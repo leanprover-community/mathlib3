@@ -66,6 +66,9 @@ let ⟨s', h⟩ := hs.exists_finset in ⟨s', set.ext h⟩
 theorem finite_mem_finset (s : finset α) : finite {a | a ∈ s} :=
 ⟨fintype_of_finset s (λ _, iff.rfl)⟩
 
+theorem finite.of_fintype [fintype α] (s : set α) : finite s :=
+by classical; exact ⟨set_fintype s⟩
+
 instance decidable_mem_of_fintype [decidable_eq α] (s : set α) [fintype s] (a) : decidable (a ∈ s) :=
 decidable_of_iff _ mem_to_finset
 
@@ -162,6 +165,11 @@ set.fintype_singleton
 
 theorem finite_pure (a : α) : finite (pure a : set α) :=
 ⟨set.fintype_pure a⟩
+
+instance fintype_univ [fintype α] : fintype (@univ α) :=
+fintype_of_finset finset.univ $ λ _, iff_true_intro (finset.mem_univ _)
+
+theorem finite_univ [fintype α] : finite (@univ α) := ⟨set.fintype_univ⟩
 
 instance fintype_union [decidable_eq α] (s t : set α) [fintype s] [fintype t] : fintype (s ∪ t : set α) :=
 fintype_of_finset (s.to_finset ∪ t.to_finset) $ by simp
@@ -278,6 +286,28 @@ by rw seq_eq_bind_map; apply set.fintype_bind'
 theorem finite_seq {α β : Type u} {f : set (α → β)} {s : set α} :
   finite f → finite s → finite (f <*> s)
 | ⟨hf⟩ ⟨hs⟩ := by haveI := classical.dec_eq β; exactI ⟨fintype_seq _ _⟩
+
+/-- There are finitely many subsets of a given finite set -/
+lemma finite_subsets_of_finite {α : Type u} {a : set α} (h : finite a) : finite {b | b ⊆ a} :=
+begin
+  -- we just need to translate the result, already known for finsets,
+  -- to the language of finite sets
+  let s := coe '' ((finset.powerset (finite.to_finset h)).to_set),
+  have : finite s := finite_image _ (finite_mem_finset _),
+  have : {b | b ⊆ a} ⊆ s :=
+  begin
+    assume b hb,
+    rw [set.mem_image],
+    rw [set.mem_set_of_eq] at hb,
+    let b' : finset α := finite.to_finset (finite_subset h hb),
+    have : b' ∈ (finset.powerset (finite.to_finset h)).to_set :=
+      show b' ∈ (finset.powerset (finite.to_finset h)),
+        by simp [b', finset.subset_iff]; exact hb,
+    have : coe b' = b := by ext; simp,
+    exact ⟨b', by assumption, by assumption⟩
+  end,
+  exact finite_subset ‹finite s› this
+end
 
 end set
 

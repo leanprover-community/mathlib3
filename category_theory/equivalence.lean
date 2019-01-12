@@ -10,9 +10,9 @@ import tactic.converter.interactive
 
 namespace category_theory
 
-universes u₁ v₁ u₂ v₂ u₃ v₃
+universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-structure equivalence (C : Type u₁) [category.{u₁ v₁} C] (D : Type u₂) [category.{u₂ v₂} D] :=
+structure equivalence (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D] :=
 (functor : C ⥤ D)
 (inverse : D ⥤ C)
 (fun_inv_id' : (functor ⋙ inverse) ≅ (category_theory.functor.id C) . obviously)
@@ -25,14 +25,14 @@ infixr ` ≌ `:10  := equivalence
 
 namespace equivalence
 
-variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C]
+variables {C : Type u₁} [𝒞 : category.{v₁} C]
 include 𝒞
 
 @[refl] def refl : C ≌ C :=
 { functor := functor.id C,
   inverse := functor.id C }
 
-variables {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
+variables {D : Type u₂} [𝒟 : category.{v₂} D]
 include 𝒟
 
 @[symm] def symm (e : C ≌ D) : D ≌ C :=
@@ -54,7 +54,7 @@ begin
   refl
 end
 
-variables {E : Type u₃} [ℰ : category.{u₃ v₃} E]
+variables {E : Type u₃} [ℰ : category.{v₃} E]
 include ℰ
 
 @[simp] private def effe_iso_id (e : C ≌ D) (f : D ≌ E) (X : C) :
@@ -94,11 +94,11 @@ calc
 
 end equivalence
 
-variables {C : Type u₁} [𝒞 : category.{u₁ v₁} C]
+variables {C : Type u₁} [𝒞 : category.{v₁} C]
 include 𝒞
 
 section
-variables {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
+variables {D : Type u₂} [𝒟 : category.{v₂} D]
 include 𝒟
 
 class is_equivalence (F : C ⥤ D) :=
@@ -111,7 +111,7 @@ restate_axiom is_equivalence.inv_fun_id'
 end
 
 namespace is_equivalence
-variables {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
+variables {D : Type u₂} [𝒟 : category.{v₂} D]
 include 𝒟
 
 instance of_equivalence (F : C ≌ D) : is_equivalence (F.functor) :=
@@ -129,7 +129,7 @@ instance is_equivalence_refl : is_equivalence (functor.id C) :=
 { inverse := functor.id C }
 end functor
 
-variables {D : Type u₂} [𝒟 : category.{u₂ v₂} D]
+variables {D : Type u₂} [𝒟 : category.{v₂} D]
 include 𝒟
 
 namespace functor
@@ -153,7 +153,7 @@ def as_equivalence (F : C ⥤ D) [is_equivalence F] : C ≌ D :=
   fun_inv_id' := is_equivalence.fun_inv_id F,
   inv_fun_id' := is_equivalence.inv_fun_id F }
 
-variables {E : Type u₃} [ℰ : category.{u₃ v₃} E]
+variables {E : Type u₃} [ℰ : category.{v₃} E]
 include ℰ
 
 instance is_equivalence_trans (F : C ⥤ D) (G : D ⥤ E) [is_equivalence F] [is_equivalence G] :
@@ -194,7 +194,7 @@ class ess_surj (F : C ⥤ D) :=
 restate_axiom ess_surj.iso'
 
 namespace functor
-def obj_preimage (F : C ⥤ D) [ess_surj F] (d : D) : C := ess_surj.obj_preimage.{u₁ v₁ u₂ v₂} F d
+def obj_preimage (F : C ⥤ D) [ess_surj F] (d : D) : C := ess_surj.obj_preimage.{v₁ v₂} F d
 def fun_obj_preimage_iso (F : C ⥤ D) [ess_surj F] (d : D) : F.obj (F.obj_preimage d) ≅ d :=
 ess_surj.iso F d
 end functor

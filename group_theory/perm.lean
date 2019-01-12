@@ -418,6 +418,13 @@ have h₁ : l.map sign = list.repeat (-1) l.length :=
   hg.2 ▸ sign_eq_of_is_swap (hl _ hg.1)⟩,
 by rw [← list.prod_repeat, ← h₁, ← is_group_hom.prod (@sign α _ _)]
 
+lemma sign_surjective (hα : 1 < fintype.card α) : function.surjective (sign : perm α → units ℤ) :=
+λ a, (int.units_eq_one_or a).elim
+  (λ h, ⟨1, by simp [h]⟩)
+  (λ h, let ⟨x⟩ := fintype.card_pos_iff.1 (lt_trans zero_lt_one hα) in
+    let ⟨y, hxy⟩ := fintype.exists_ne_of_card_gt_one hα x in
+    ⟨swap y x, by rw [sign_swap hxy, h]⟩ )
+
 lemma eq_sign_of_surjective_hom {s : perm α → units ℤ}
   [is_group_hom s] (hs : surjective s) : s = sign :=
 have ∀ {f}, is_swap f → s f = -1 :=

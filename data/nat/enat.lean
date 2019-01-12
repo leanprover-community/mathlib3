@@ -17,6 +17,7 @@ instance : has_zero enat := ⟨some 0⟩
 instance : has_one enat := ⟨some 1⟩
 instance : has_add enat := ⟨λ x y, ⟨x.dom ∧ y.dom, λ h, get x h.1 + get y h.2⟩⟩
 instance : has_coe ℕ enat := ⟨some⟩
+instance (n : ℕ) : decidable (n : enat).dom := is_true trivial
 
 @[simp] lemma coe_inj {x y : ℕ} : (x : enat) = y ↔ x = y := roption.some_inj
 
@@ -102,6 +103,8 @@ instance order_top : order_top enat :=
 lemma coe_lt_top (x : ℕ) : (x : enat) < ⊤ :=
 lt_of_le_of_ne le_top (λ h, absurd (congr_arg dom h) true_ne_false)
 
+@[simp] lemma coe_ne_bot (x : ℕ) : (x : enat) ≠ ⊤ := ne_of_lt (coe_lt_top x)
+
 lemma pos_iff_one_le {x : enat} : 0 < x ↔ 1 ≤ x :=
 enat.cases_on x ⟨λ _, le_top, λ _, coe_lt_top _⟩
   (λ n, ⟨λ h, enat.coe_le_coe.2 (enat.coe_lt_coe.1 h),
@@ -160,5 +163,37 @@ instance : canonically_ordered_monoid enat :=
               rw hc; exact nat.le_add_right _ _)) hc)⟩))
   ..enat.ordered_comm_monoid }
 
+section with_top
+
+def to_with_top (x : enat) [decidable x.dom]: with_top ℕ := x.to_option
+
+lemma to_with_top_top : to_with_top ⊤ = ⊤ := rfl
+@[simp] lemma to_with_top_top' [decidable (⊤ : enat).dom] : to_with_top ⊤ = ⊤ :=
+by convert to_with_top_top
+
+lemma to_with_top_zero : to_with_top 0 = 0 := rfl
+@[simp] lemma to_with_top_zero' [decidable (0 : enat).dom]: to_with_top 0 = 0 :=
+by convert to_with_top_zero
+
+lemma to_with_top_coe (n : ℕ) : to_with_top n = n := rfl
+@[simp] lemma to_with_top_coe' (n : ℕ) [decidable (n : enat).dom] : to_with_top (n : enat) = n :=
+by convert to_with_top_coe n
+
+@[simp] lemma to_with_top_le {x y : enat} : Π [decidable x.dom]
+  [decidable y.dom], by exactI to_with_top x ≤ to_with_top y ↔ x ≤ y :=
+enat.cases_on y (by simp) (enat.cases_on x (by simp) (by intros; simp))
+
+@[simp] lemma to_with_top_lt {x y : enat} [decidable x.dom] [decidable y.dom] :
+  to_with_top x < to_with_top y ↔ x < y :=
+by simp only [lt_iff_le_not_le, to_with_top_le]
+
+end with_top
+
+lemma lt_wf : well_founded ((<) : enat → enat → Prop) :=
+show well_founded (λ a b : enat, a < b),
+by haveI := classical.dec; simp only [to_with_top_lt.symm] {eta := ff};
+    exact inv_image.wf _ (with_top.well_founded_lt nat.lt_wf)
+
+instance : has_well_founded enat := ⟨(<), lt_wf⟩
+
 end enat
- 

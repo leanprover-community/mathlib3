@@ -147,7 +147,7 @@ mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
     from tendsto_finset_sum bs $
       assume c hc, tendsto_infi' c $ tendsto_infi' hc $ tendsto_comap.comp (hf c),
   have bs.sum g ∈ s,
-    from mem_closure_of_tendsto this hsc $ forall_sets_neq_empty_iff_neq_bot.mp $
+    from mem_of_closed_of_tendsto' this hsc $ forall_sets_neq_empty_iff_neq_bot.mp $
       by simp [mem_inf_sets, exists_imp_distrib, and_imp, forall_and_distrib,
                filter.mem_infi_sets_finset, mem_comap_sets, skolem, mem_at_top_sets,
                and_comm];
@@ -379,7 +379,7 @@ variables [ordered_comm_monoid α] [topological_space α] [ordered_topology α] 
 variables {f g : β → α} {a a₁ a₂ : α}
 
 lemma is_sum_le (h : ∀b, f b ≤ g b) (hf : is_sum f a₁) (hg : is_sum g a₂) : a₁ ≤ a₂ :=
-le_of_tendsto at_top_ne_bot hf hg $ univ_mem_sets' $ assume s, sum_le_sum' $ assume b _, h b
+le_of_tendsto_of_tendsto at_top_ne_bot hf hg $ univ_mem_sets' $ assume s, sum_le_sum' $ assume b _, h b
 
 lemma tsum_le_tsum (h : ∀b, f b ≤ g b) (hf : has_sum f) (hg : has_sum g) : (∑b, f b) ≤ (∑b, g b) :=
 is_sum_le h (is_sum_tsum hf) (is_sum_tsum hg)

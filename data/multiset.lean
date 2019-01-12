@@ -434,6 +434,10 @@ by simpa using add_le_add_right (zero_le t) s
 @[simp] theorem card_add (s t : multiset α) : card (s + t) = card s + card t :=
 quotient.induction_on₂ s t length_append
 
+lemma card_smul (s : multiset α) (n : ℕ) :
+  (n • s).card = n * s.card :=
+by induction n; simp [succ_smul, *, nat.succ_mul]
+
 @[simp] theorem mem_add {a : α} {s t : multiset α} : a ∈ s + t ↔ a ∈ s ∨ a ∈ t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, mem_append
 
@@ -764,6 +768,20 @@ multiset.induction_on s (by simp) (assume a s ih, by simp [ih, mul_add])
 lemma sum_map_mul_right [semiring β] {b : β} {s : multiset α} {f : α → β} :
   sum (s.map (λa, f a * b)) = sum (s.map f) * b :=
 multiset.induction_on s (by simp) (assume a s ih, by simp [ih, add_mul])
+
+lemma prod_hom [comm_monoid α] [comm_monoid β] (f : α → β) [is_monoid_hom f] (s : multiset α) :
+  (s.map f).prod = f s.prod :=
+multiset.induction_on s (by simp [is_monoid_hom.map_one f])
+  (by simp [is_monoid_hom.map_mul f] {contextual := tt})
+
+lemma dvd_prod [comm_semiring α] {a : α} {s : multiset α} : a ∈ s → a ∣ s.prod :=
+quotient.induction_on s (λ l a h, by simpa using list.dvd_prod h) a
+
+lemma sum_hom [add_comm_monoid α] [add_comm_monoid β] (f : α → β) [is_add_monoid_hom f] (s : multiset α) :
+  (s.map f).sum = f s.sum :=
+multiset.induction_on s (by simp [is_add_monoid_hom.map_zero f])
+  (by simp [is_add_monoid_hom.map_add f] {contextual := tt})
+attribute [to_additive multiset.sum_hom] multiset.prod_hom
 
 /- join -/
 
@@ -1940,6 +1958,18 @@ lemma card_eq_card_of_rel {r : α → β → Prop} {s : multiset α} {t : multis
   card s = card t :=
 by induction h; simp [*]
 
+lemma exists_mem_of_rel_of_mem {r : α → β → Prop} {s : multiset α} {t : multiset β} (h : rel r s t) :
+  ∀ {a : α} (ha : a ∈ s), ∃ b ∈ t, r a b :=
+begin
+  induction h with x y s t hxy hst ih,
+  { simp },
+  { assume a ha,
+    cases mem_cons.1 ha with ha ha,
+    { exact ⟨y, mem_cons_self _ _, ha.symm ▸ hxy⟩ },
+    { rcases ih ha with ⟨b, hbt, hab⟩,
+      exact ⟨b, mem_cons.2 (or.inr hbt), hab⟩ } }
+end
+
 end rel
 
 section map
@@ -2107,6 +2137,10 @@ le_antisymm (nodup_iff_count_le_one.1 d a) (count_pos.2 h)
 lemma pairwise_of_nodup {r : α → α → Prop} {s : multiset α} :
   (∀a∈s, ∀b∈s, a ≠ b → r a b) → nodup s → pairwise r s :=
 quotient.induction_on s $ assume l h hl, ⟨l, rfl, hl.imp_of_mem $ assume a b ha hb, h a ha b hb⟩
+
+lemma forall_of_pairwise {r : α → α → Prop} (H : symmetric r) {s : multiset α}
+   (hs : pairwise r s) : (∀a∈s, ∀b∈s, a ≠ b → r a b) :=
+let ⟨l, hl₁, hl₂⟩ := hs in hl₁.symm ▸ list.forall_of_pairwise H hl₂
 
 theorem nodup_add {s t : multiset α} : nodup (s + t) ↔ nodup s ∧ nodup t ∧ disjoint s t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, nodup_append

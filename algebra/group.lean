@@ -577,6 +577,8 @@ section add_comm_group
 
   theorem neg_add' (a b : α) : -(a + b) = -a - b := neg_add a b
 
+  lemma neg_sub_neg (a b : α) : -a - -b = b - a := by simp
+
   lemma eq_sub_iff_add_eq' : a = b - c ↔ c + a = b :=
   by rw [eq_sub_iff_add_eq, add_comm]
 
@@ -608,11 +610,18 @@ def is_conj (a b : α) := ∃ c : α, c * a * c⁻¹ = b
 @[refl] lemma is_conj_refl (a : α) : is_conj a a :=
 ⟨1, by rw [one_mul, one_inv, mul_one]⟩
 
-@[symm] lemma is_conj_symm (a b : α) : is_conj a b → is_conj b a
+@[symm] lemma is_conj_symm {a b : α} : is_conj a b → is_conj b a
 | ⟨c, hc⟩ := ⟨c⁻¹, by rw [← hc, mul_assoc, mul_inv_cancel_right, inv_mul_cancel_left]⟩
 
-@[trans] lemma is_conj_trans (a b c : α) : is_conj a b → is_conj b c → is_conj a c
+@[trans] lemma is_conj_trans {a b c : α} : is_conj a b → is_conj b c → is_conj a c
 | ⟨c₁, hc₁⟩ ⟨c₂, hc₂⟩ := ⟨c₂ * c₁, by rw [← hc₂, ← hc₁, mul_inv_rev]; simp only [mul_assoc]⟩
+
+@[simp] lemma is_conj_one_right {a : α} : is_conj 1 a  ↔ a = 1 :=
+⟨by simp [is_conj, is_conj_refl] {contextual := tt}, by simp [is_conj_refl] {contextual := tt}⟩
+
+@[simp] lemma is_conj_one_left {a : α} : is_conj a 1 ↔ a = 1 :=
+calc is_conj a 1 ↔ is_conj 1 a : ⟨is_conj_symm, is_conj_symm⟩
+... ↔ a = 1 : is_conj_one_right
 
 @[simp] lemma is_conj_iff_eq {α : Type*} [comm_group α] {a b : α} : is_conj a b ↔ a = b :=
 ⟨λ ⟨c, hc⟩, by rw [← hc, mul_right_comm, mul_inv_self, one_mul], λ h, by rw h⟩
@@ -664,6 +673,14 @@ attribute [to_additive is_add_group_hom] is_group_hom
 attribute [to_additive is_add_group_hom.add] is_group_hom.mul
 attribute [to_additive is_add_group_hom.mk] is_group_hom.mk
 
+instance additive.is_add_group_hom [group α] [group β] (f : α → β) [is_group_hom f] :
+  @is_add_group_hom (additive α) (additive β) _ _ f :=
+⟨@is_group_hom.mul α β _ _ f _⟩
+
+instance multiplicative.is_group_hom [add_group α] [add_group β] (f : α → β) [is_add_group_hom f] :
+  @is_group_hom (multiplicative α) (multiplicative β) _ _ f :=
+⟨@is_add_group_hom.add α β _ _ f _⟩
+
 namespace is_group_hom
 variables [group α] [group β] (f : α → β) [is_group_hom f]
 
@@ -690,6 +707,14 @@ protected lemma is_conj (f : α → β) [is_group_hom f] {a b : α} : is_conj a 
 @[to_additive is_add_group_hom.to_is_add_monoid_hom]
 lemma to_is_monoid_hom (f : α → β) [is_group_hom f] : is_monoid_hom f :=
 ⟨is_group_hom.one f, is_group_hom.mul f⟩
+
+@[to_additive is_add_group_hom.injective_iff]
+lemma injective_iff (f : α → β) [is_group_hom f] :
+  function.injective f ↔ (∀ a, f a = 1 → a = 1) :=
+⟨λ h _, by rw ← is_group_hom.one f; exact @h _ _,
+  λ h x y hxy, by rw [← inv_inv (f x), inv_eq_iff_mul_eq_one, ← is_group_hom.inv f,
+      ← is_group_hom.mul f] at hxy;
+    simpa using inv_eq_of_mul_eq_one (h _ hxy)⟩
 
 attribute [instance] is_group_hom.to_is_monoid_hom
   is_add_group_hom.to_is_add_monoid_hom

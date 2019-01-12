@@ -5,7 +5,7 @@ Author: Jeremy Avigad, Andrew Zipperer, Haitao Zhang, Minchao Wu
 
 Functions over sets.
 -/
-import data.set.basic
+import data.set.basic logic.function
 open function
 
 namespace set
@@ -16,6 +16,9 @@ variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
 
 /-- `maps_to f a b` means that the image of `a` is contained in `b`. -/
 @[reducible] def maps_to (f : α → β) (a : set α) (b : set β) : Prop := a ⊆ f ⁻¹' b
+
+theorem maps_to' (f : α → β) (a : set α) (b : set β) : maps_to f a b ↔ f '' a ⊆ b :=
+image_subset_iff.symm
 
 theorem maps_to_of_eq_on {f1 f2 : α → β} {a : set α} {b : set β} (h₁ : eq_on f1 f2 a)
     (h₂ : maps_to f1 a b) :
@@ -28,6 +31,12 @@ theorem maps_to_comp {g : β → γ} {f : α → β} {a : set α} {b : set β} {
 
 theorem maps_to_univ (f : α → β) (a) : maps_to f a univ :=
 λ x h, trivial
+
+theorem maps_to_image (f : α → β) (a : set α) : maps_to f a (f '' a) :=
+by rw maps_to'
+
+theorem maps_to_range (f : α → β) (a : set α) : maps_to f a (range f) :=
+by rw [← image_univ, maps_to']; exact image_subset _ (subset_univ _)
 
 theorem image_subset_of_maps_to_of_subset {f : α → β} {a c : set α} {b : set β} (h₁ : maps_to f a b)
   (h₂ : c ⊆ a) :
@@ -69,6 +78,15 @@ iff.intro (λ h _ _ _ _ heq, h heq) (λ h _ _ heq, h trivial trivial heq)
 lemma inj_on_iff_injective {f : α → β} {s : set α} : inj_on f s ↔ injective (λ x:s, f x.1) :=
 ⟨λ H a b h, subtype.eq $ H a.2 b.2 h,
  λ H a b as bs h, congr_arg subtype.val $ @H ⟨a, as⟩ ⟨b, bs⟩ h⟩
+
+lemma inv_fun_on_image [inhabited α] {β : Type v} {s t : set α} {f : α → β}
+  (h : inj_on f s) (ht : t ⊆ s) : (inv_fun_on f s) '' (f '' t) = t :=
+begin
+  have A : ∀z, z ∈ t → ((inv_fun_on f s) ∘ f) z = z := λz hz, inv_fun_on_eq' h (ht hz),
+  rw ← image_comp,
+  ext,
+  simp [A] {contextual := tt}
+end
 
 /- surjectivity -/
 

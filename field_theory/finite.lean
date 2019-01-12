@@ -29,6 +29,19 @@ end
 
 namespace finite_field
 
+def field_of_integral_domain [fintype α] [decidable_eq α] [integral_domain α] : 
+  discrete_field α :=
+{ has_decidable_eq := by apply_instance,
+  inv := λ a, if h : a = 0 then 0
+    else fintype.bij_inv (show function.bijective (* a), 
+      from fintype.injective_iff_bijective.1 $ λ _ _, (domain.mul_right_inj h).1) 1,
+  inv_mul_cancel := λ a ha, show dite _ _ _ * a = _, by rw dif_neg ha; 
+    exact fintype.right_inverse_bij_inv (show function.bijective (* a), from _) 1,
+  mul_inv_cancel :=  λ a ha, show a * dite _ _ _ = _, by rw [dif_neg ha, mul_comm]; 
+    exact fintype.right_inverse_bij_inv (show function.bijective (* a), from _) 1,
+  inv_zero := dif_pos rfl,
+  ..show integral_domain α, by apply_instance }
+
 variables [field α] [fintype α]
 
 instance [decidable_eq α] : fintype (units α) :=

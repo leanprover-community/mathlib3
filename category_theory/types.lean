@@ -7,7 +7,7 @@ import category_theory.fully_faithful
 
 namespace category_theory
 
-universes u v u' v' w
+universes v v' w u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 instance types : large_category (Type u) :=
 { hom     := λ a b, (a → b),
@@ -19,7 +19,7 @@ instance types : large_category (Type u) :=
 @[simp] lemma types_comp {α β γ : Type u} (f : α → β) (g : β → γ) (a : α) : (((f : α ⟶ β) ≫ (g : β ⟶ γ)) : α ⟶ γ) a = g (f a) := rfl
 
 namespace functor_to_types
-variables {C : Type u} [𝒞 : category.{u v} C] (F G H : C ⥤ (Type w)) {X Y Z : C}
+variables {C : Type u} [𝒞 : category.{v} C] (F G H : C ⥤ (Type w)) {X Y Z : C}
 include 𝒞
 variables (σ : F ⟹ G) (τ : G ⟹ H)
 
@@ -34,7 +34,7 @@ congr_fun (σ.naturality f) x
 
 @[simp] lemma vcomp (x : F.obj X) : (σ ⊟ τ).app X x = τ.app X (σ.app X x) := rfl
 
-variables {D : Type u'} [𝒟 : category.{u' v'} D] (I J : D ⥤ C) (ρ : I ⟹ J) {W : D}
+variables {D : Type u'} [𝒟 : category.{u'} D] (I J : D ⥤ C) (ρ : I ⟹ J) {W : D}
 
 @[simp] lemma hcomp (x : (I ⋙ F).obj W) : (ρ ◫ σ).app W x = (G.map (ρ.app W)) (σ.app (I.obj W) x) := rfl
 

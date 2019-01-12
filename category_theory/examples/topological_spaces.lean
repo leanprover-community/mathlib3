@@ -47,7 +47,7 @@ by refine is_limit.of_faithful forget (limit.is_limit _) (λ s, ⟨_, _⟩) (λ 
    exact continuous_iff_le_coinduced.mpr (lattice.supr_le $ λ j,
      induced_le_iff_le_coinduced.mpr $ continuous_iff_le_coinduced.mp (s.π.app j).property)
 
-instance : has_limits.{u+1 u} Top.{u} :=
+instance : has_limits.{u} Top.{u} :=
 λ J 𝒥 F, by exactI { cone := limit F, is_limit := limit_is_limit F }
 
 instance : preserves_limits (forget : Top.{u} ⥤ Type u) :=
@@ -65,7 +65,7 @@ by refine is_colimit.of_faithful forget (colimit.is_colimit _) (λ s, ⟨_, _⟩
    exact continuous_iff_induced_le.mpr (lattice.le_infi $ λ j,
      induced_le_iff_le_coinduced.mpr $ continuous_iff_le_coinduced.mp (s.ι.app j).property)
 
-instance : has_colimits.{u+1 u} Top.{u} :=
+instance : has_colimits.{u} Top.{u} :=
 λ J 𝒥 F, by exactI { cocone := colimit F, is_colimit := colimit_is_colimit F }
 
 instance : preserves_colimits (forget : Top.{u} ⥤ Type u) :=

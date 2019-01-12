@@ -13,6 +13,11 @@ namespace rb_set
 meta def filter {key} (s : rb_set key) (P : key → bool) : rb_set key :=
 s.fold s (λ a m, if P a then m else m.erase a)
 
+meta def mfilter {m} [monad m] {key} (s : rb_set key) (P : key → m bool) : m (rb_set key) :=
+s.fold (pure s) (λ a m,
+  do x ← m,
+     mcond (P a) (pure x) (pure $ x.erase a))
+
 meta def union {key} (s t : rb_set key) : rb_set key :=
 s.fold t (λ a t, t.insert a)
 
@@ -39,6 +44,17 @@ m1.fold m2
   (λ n v m,
    let nv := v + m2.zfind n in
    if nv = 0 then m.erase n else m.insert n nv)
+
+variables {m : Type → Type*} [monad m]
+open function
+
+meta def mfilter {key val} [has_lt key] [decidable_rel ((<) : key → key → Prop)]
+  (s : rb_map key val) (P : key → val → m bool) : m (rb_map.{0 0} key val) :=
+rb_map.of_list <$> s.to_list.mfilter (uncurry P)
+
+meta def mmap {key val val'} [has_lt key] [decidable_rel ((<) : key → key → Prop)]
+  (s : rb_map key val) (f : val → m val') : m (rb_map.{0 0} key val') :=
+rb_map.of_list <$> s.to_list.mmap (λ ⟨a,b⟩, prod.mk a <$> f b)
 
 meta def scale {α β} [has_lt α] [decidable_rel ((<) : α → α → Prop)] [has_mul β] (b : β) (m : rb_map α β) : rb_map α β :=
 m.map ((*) b)

@@ -61,12 +61,13 @@ variables [comm_ring β]
 
 def lift (i : α → β) [is_ring_hom i] (x : β) (h : f.eval₂ i x = 0) : (adjoin_root f) → β :=
 ideal.quotient.lift _ (eval₂ i x) $ λ g H,
-by
-  simp [mem_span_singleton] at H;
-  cases H with y H;
-  dsimp at H;
-  rw [H, eval₂_mul];
+begin
+  simp [mem_span_singleton] at H,
+  cases H with y H,
+  dsimp at H,
+  rw [H, eval₂_mul],
   simp [h]
+end
 
 variables {i : α → β} [is_ring_hom i] {a : β} {h : f.eval₂ i a = 0}
 

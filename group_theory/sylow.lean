@@ -64,6 +64,8 @@ lemma quotient_group.card_preimage_mk [fintype G] (s : set G) [is_subgroup s]
 by rw [← fintype.card_prod, fintype.card_congr
   (preimage_mk_equiv_subgroup_times_set _ _)]
 
+namespace sylow
+
 def mk_vector_prod_eq_one (n : ℕ) (v : vector G n) : vector G (n+1) :=
 v.to_list.prod⁻¹ :: v
 
@@ -151,3 +153,5 @@ let ⟨a, ha⟩ := this in
   have a ^ p = 1, by rwa [ha, list.prod_repeat, hx₁] at hx1,
   (hp.2 _ (order_of_dvd_of_pow_eq_one this)).resolve_left
     (λ h, ha1 (order_of_eq_one_iff.1 h))⟩
+
+end sylow

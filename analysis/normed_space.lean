@@ -340,11 +340,14 @@ begin
     have limg' : tendsto (λ x, ∥g x∥) e (nhds ∥b∥) := filter.tendsto.comp limg (continuous_iff_tendsto.1 continuous_norm _),
 
     have lim1 : tendsto (λ x, ∥f x - s∥ * ∥g x∥) e (nhds 0),
-      by simpa using tendsto_mul limf' limg',
+    { have := tendsto_mul limf' limg',
+      simp at this,
+      exact this },
     have limg3 := tendsto_iff_norm_tendsto_zero.1 limg,
     have lim2 : tendsto (λ x, ∥s∥ * ∥g x - b∥) e (nhds 0),
-      by simpa using tendsto_mul tendsto_const_nhds limg3,
-
+    { have := tendsto_mul tendsto_const_nhds limg3,
+      simp at this,
+      exact this },
     rw [show (0:ℝ) = 0 + 0, by simp],
     exact tendsto_add lim1 lim2  }
 end
@@ -378,7 +381,7 @@ instance fintype.normed_space {ι : Type*} {E : ι → Type*} [fintype ι] [∀i
     show (↑(finset.sup finset.univ (λ (b : ι), nnnorm (a • f b))) : ℝ) =
       nnnorm a * ↑(finset.sup finset.univ (λ (b : ι), nnnorm (f b))),
     by simp only [(nnreal.coe_mul _ _).symm, nnreal.mul_finset_sup, nnnorm_smul],
-  ..metric.metric_space_pi,
+  ..metric_space_pi,
   ..pi.vector_space α }
 
 end normed_space

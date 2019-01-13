@@ -318,7 +318,7 @@ begin
   exact ⟨_, ⟨F ⟨x, xs⟩, rfl⟩, hF _ _ this.symm⟩
 end
 
-lemma cauchy_iff {f : filter α} :
+protected lemma cauchy_iff {f : filter α} :
   cauchy f ↔ f ≠ ⊥ ∧ ∀ ε > 0, ∃ t ∈ f.sets, ∀ x y ∈ t, dist x y < ε :=
 cauchy_iff.trans $ and_congr iff.rfl
 ⟨λ H ε ε0, let ⟨t, tf, ts⟩ := H _ (dist_mem_uniformity ε0) in
@@ -407,7 +407,7 @@ we need to show that the uniform structure coming from the edistance and the
 distance coincide. -/
 
 /-- Expressing the uniformity in terms of `edist` -/
-lemma mem_uniformity_edist {s : set (α×α)} :
+protected lemma metric.mem_uniformity_edist {s : set (α×α)} :
   s ∈ (@uniformity α _).sets ↔ (∃ε>0, ∀{a b:α}, edist a b < ε → (a, b) ∈ s) :=
 begin
   refine mem_uniformity_dist.trans ⟨_, _⟩; rintro ⟨ε, ε0, Hε⟩,
@@ -421,17 +421,17 @@ begin
     rwa [edist_dist, ennreal.coe_lt_coe, nnreal.of_real_lt_of_real_iff ε0'] }
 end
 
-theorem uniformity_edist' : uniformity = (⨅ε:{ε:ennreal // ε>0}, principal {p:α×α | edist p.1 p.2 < ε.val}) :=
+protected theorem metric.uniformity_edist' : uniformity = (⨅ε:{ε:ennreal // ε>0}, principal {p:α×α | edist p.1 p.2 < ε.val}) :=
 begin
   ext s, rw infi_sets_eq,
-  { simp [mem_uniformity_edist, subset_def] },
+  { simp [metric.mem_uniformity_edist, subset_def] },
   { rintro ⟨r, hr⟩ ⟨p, hp⟩, use ⟨min r p, lt_min hr hp⟩,
     simp [lt_min_iff, (≥)] {contextual := tt} },
   { exact ⟨⟨1, ennreal.zero_lt_one⟩⟩ }
 end
 
 theorem uniformity_edist : uniformity = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
-by simpa [infi_subtype] using @uniformity_edist' α _
+by simpa [infi_subtype] using @metric.uniformity_edist' α _
 
 open emetric
 /-- A metric space induces an emetric space -/

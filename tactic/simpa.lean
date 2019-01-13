@@ -11,17 +11,19 @@ open interactive interactive.types expr lean.parser
 local postfix `?`:9001 := optional
 
 /--
-This is a "finishing" tactic modification of `simp`. The tactic `simpa [rules, ...] using e`
-will simplify the hypothesis `e` using `rules`, then simplify the goal using `rules`, and
-try to close the goal using the target or (if no target is provided) `assumption`. If `e` is a term
-instead of a local constant, it is first added to the local context using `have`.
--/
+This is a "finishing" tactic modification of `simp`.
+
+* `simpa [rules, ...] using e` will simplify the goal and the type of
+  `e` using `rules`, then try to close the goal using `e`.
+
+* `simpa [rules, ...]` will simplify the goal using `rules`, then try
+  to close it using `assumption`. -/
 meta def simpa (use_iota_eqn : parse $ (tk "!")?) (no_dflt : parse only_flag)
   (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
   (tgt : parse (tk "using" *> texpr)?) (cfg : simp_config_ext := {}) : tactic unit :=
-let simp_at (lc) tac :=
+let simp_at lc close_tac :=
   try (simp use_iota_eqn no_dflt hs attr_names (loc.ns lc) cfg) >>
-  (tac <|> trivial) in
+  (close_tac <|> trivial) in
 match tgt with
 | none := get_local `this >> simp_at [some `this, none] assumption <|> simp_at [none] assumption
 | some e := do

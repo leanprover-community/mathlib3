@@ -99,12 +99,18 @@ depth of splitting; the default is 5.
 
 ### simpa
 
-This is a "finishing" tactic modification of `simp`. The tactic `simpa
-[rules, ...] using e` will simplify the hypothesis `e` using `rules`,
-then simplify the goal using `rules`, and try to close the goal using
-the target, or (if no target is provided) `assumption`. If `e` is a
-term instead of a local constant, it is first added to the local
-context using `have`.
+This is a "finishing" tactic modification of `simp`. It has two forms.
+
+* `simpa [rules, ...] using e` will simplify the goal and the type of
+  `e` using `rules`, then try to close the goal using `e`.
+
+  Simplifying the type of `e` makes it more likely to match the goal
+  (which has also been simplified). This construction also tends to be
+  more robust under changes to the simp lemma set.
+
+* `simpa [rules, ...]` will simplify the goal and the type of a
+  hypothesis `this` if present, then try to close the goal using
+  the `assumption` tactic.
 
 ### replace
 

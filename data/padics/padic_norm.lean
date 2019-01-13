@@ -456,7 +456,7 @@ if hq : q = 0 then
 else if hr : r = 0 then
   by simp [hr, max_eq_left hnqp]
 else if hqr : q + r = 0 then
-  le_trans (by simpa [hqr] using padic_norm.nonneg) (le_max_left _ _)
+  le_trans (by simpa [hqr] using hnqp) (le_max_left _ _)
 else
   begin
     unfold padic_norm, split_ifs,

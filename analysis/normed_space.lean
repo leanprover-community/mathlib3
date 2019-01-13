@@ -339,15 +339,11 @@ begin
     have limf': tendsto (λ x, ∥f x - s∥) e (nhds 0) := tendsto_iff_norm_tendsto_zero.1 limf,
     have limg' : tendsto (λ x, ∥g x∥) e (nhds ∥b∥) := filter.tendsto.comp limg (continuous_iff_tendsto.1 continuous_norm _),
 
-    have lim1 : tendsto (λ x, ∥f x - s∥ * ∥g x∥) e (nhds 0),
-    { have := tendsto_mul limf' limg',
-      simp at this,
-      exact this },
+    have lim1 : tendsto (λ x, ∥f x - s∥ * ∥g x∥) e (nhds 0) :=
+      (zero_mul ∥b∥) ▸ tendsto_mul limf' limg',
     have limg3 := tendsto_iff_norm_tendsto_zero.1 limg,
-    have lim2 : tendsto (λ x, ∥s∥ * ∥g x - b∥) e (nhds 0),
-    { have := tendsto_mul tendsto_const_nhds limg3,
-      simp at this,
-      exact this },
+    have lim2 : tendsto (λ x, ∥s∥ * ∥g x - b∥) e (nhds 0) :=
+      (mul_zero ∥s∥) ▸ tendsto_mul tendsto_const_nhds limg3,
     rw [show (0:ℝ) = 0 + 0, by simp],
     exact tendsto_add lim1 lim2  }
 end

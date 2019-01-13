@@ -191,7 +191,7 @@ end
 end
 
 theorem is_noetherian_iff_well_founded
-  (α β) [ring α] [add_comm_group β] [module α β] :
+  {α β} [ring α] [add_comm_group β] [module α β] :
   is_noetherian α β ↔ well_founded ((>) : submodule α β → submodule α β → Prop) :=
 ⟨λ h, begin
   apply order_embedding.well_founded_iff_no_descending_seq.2,

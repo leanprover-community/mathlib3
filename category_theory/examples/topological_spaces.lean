@@ -47,7 +47,7 @@ by refine is_limit.of_faithful forget (limit.is_limit _) (λ s, ⟨_, _⟩) (λ 
    exact continuous_iff_le_coinduced.mpr (lattice.supr_le $ λ j,
      induced_le_iff_le_coinduced.mpr $ continuous_iff_le_coinduced.mp (s.π.app j).property)
 
-instance : has_limits.{u+1 u} Top.{u} :=
+instance : has_limits.{u} Top.{u} :=
 λ J 𝒥 F, by exactI { cone := limit F, is_limit := limit_is_limit F }
 
 instance : preserves_limits (forget : Top.{u} ⥤ Type u) :=
@@ -65,7 +65,7 @@ by refine is_colimit.of_faithful forget (colimit.is_colimit _) (λ s, ⟨_, _⟩
    exact continuous_iff_induced_le.mpr (lattice.le_infi $ λ j,
      induced_le_iff_le_coinduced.mpr $ continuous_iff_le_coinduced.mp (s.ι.app j).property)
 
-instance : has_colimits.{u+1 u} Top.{u} :=
+instance : has_colimits.{u} Top.{u} :=
 λ J 𝒥 F, by exactI { cocone := colimit F, is_colimit := colimit_is_colimit F }
 
 instance : preserves_colimits (forget : Top.{u} ⥤ Type u) :=
@@ -81,6 +81,12 @@ instance : small_category (opens X) := by apply_instance
 
 def nbhd (x : X.α) := { U : opens X // x ∈ U }
 def nbhds (x : X.α) : small_category (nbhd x) := begin unfold nbhd, apply_instance end
+
+end category_theory.examples
+
+open category_theory.examples
+
+namespace topological_space.opens
 
 /-- `opens.map f` gives the functor from open sets in Y to open set in X,
     given by taking preimages under f. -/
@@ -102,4 +108,4 @@ nat_iso.of_components (λ U, eq_to_iso (congr_fun (congr_arg _ (congr_arg _ h)) 
 
 @[simp] def map_iso_id {X : Top.{u}} (h) : map_iso (𝟙 X) (𝟙 X) h = iso.refl (map _) := rfl
 
-end category_theory.examples
+end topological_space.opens

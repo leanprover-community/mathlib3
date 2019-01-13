@@ -346,7 +346,7 @@ end
 
 private lemma measure_inter_union (h : s₁ ∩ s₂ ⊆ ∅) (h₁ : C s₁) {t : set α} :
   m (t ∩ (s₁ ∪ s₂)) = m (t ∩ s₁) + m (t ∩ s₂) :=
-by rw [h₁, set.inter_assoc, union_inter_cancel_left h,
+by rw [h₁, set.inter_assoc, union_inter_cancel_left,
   inter_diff_assoc, union_diff_cancel_left h]
 
 private lemma C_Union_lt {s : ℕ → set α} : ∀{n:ℕ}, (∀i<n, C (s i)) → C (⋃i<n, s i)

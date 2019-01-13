@@ -87,6 +87,11 @@ instance (a : β) : is_subgroup (stabilizer f a) :=
   inv_mem := λ x (hx : f x a = a), show f x⁻¹ a = a,
     by rw [← hx, ← is_monoid_action.mul f, inv_mul_self, is_monoid_action.one f, hx] }
 
+def orbit_rel : setoid β :=
+{ r := λ a b, a ∈ orbit f b,
+  iseqv := ⟨mem_orbit_self f, λ a b, by simp [orbit_eq_iff.symm, eq_comm],
+    λ a b, by simp [orbit_eq_iff.symm, eq_comm] {contextual := tt}⟩ }
+
 open quotient_group
 
 noncomputable def orbit_equiv_quotient_stabilizer (a : β) :

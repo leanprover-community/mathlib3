@@ -415,6 +415,53 @@ sup_le_sup (map_le_iff_le_comap.2 $ le_refl _) (map_le_iff_le_comap.2 $ le_refl 
 theorem le_comap_mul : comap f K * comap f L ≤ comap f (K * L) :=
 map_le_iff_le_comap.1 $ (map_mul f (comap f K) (comap f L)).symm ▸
 mul_mono (map_le_iff_le_comap.2 $ le_refl _) (map_le_iff_le_comap.2 $ le_refl _)
+
+section surjective
+variables (hf : function.surjective f)
+include hf
+
+theorem map_comap_of_surjective (I : ideal S) :
+  map f (comap f I) = I :=
+le_antisymm (map_le_iff_le_comap.2 (le_refl _))
+(λ s hsi, let ⟨r, hfrs⟩ := hf s in
+  hfrs ▸ (mem_map_of_mem $ show f r ∈ I, from hfrs.symm ▸ hsi))
+
+theorem mem_image_of_mem_map_of_surjective {I : ideal R} {y}
+  (H : y ∈ map f I) : y ∈ f '' I :=
+submodule.span_induction H (λ _, id) ⟨0, I.zero_mem, is_ring_hom.map_zero f⟩
+(λ y1 y2 ⟨x1, hx1i, hxy1⟩ ⟨x2, hx2i, hxy2⟩, ⟨x1 + x2, I.add_mem hx1i hx2i, hxy1 ▸ hxy2 ▸ is_ring_hom.map_add f⟩)
+(λ c y ⟨x, hxi, hxy⟩, let ⟨d, hdc⟩ := hf c in ⟨d • x, I.smul_mem _ hxi, hdc ▸ hxy ▸ is_ring_hom.map_mul f⟩)
+
+theorem comap_map_of_surjective (I : ideal R) :
+  comap f (map f I) = I ⊔ comap f ⊥ :=
+le_antisymm (assume r h, let ⟨s, hsi, hfsr⟩ := mem_image_of_mem_map_of_surjective f hf h in
+  submodule.mem_sup.2 ⟨s, hsi, r - s, submodule.mem_bot.2 $ by rw [is_ring_hom.map_sub f, hfsr, sub_self],
+  add_sub_cancel'_right s r⟩)
+(sup_le (map_le_iff_le_comap.1 (le_refl _)) (comap_mono bot_le))
+
+/-- Correspondence theorem -/
+def order_iso_of_surjective :
+  ((≤) : ideal S → ideal S → Prop) ≃o
+  ((≤) : { p : ideal R // comap f ⊥ ≤ p } → { p : ideal R // comap f ⊥ ≤ p } → Prop) :=
+{ to_fun := λ J, ⟨comap f J, comap_mono bot_le⟩,
+  inv_fun := λ I, map f I.1,
+  left_inv := λ J, map_comap_of_surjective f hf J,
+  right_inv := λ I, subtype.eq $ show comap f (map f I.1) = I.1,
+    from (comap_map_of_surjective f hf I).symm ▸ le_antisymm
+      (sup_le (le_refl _) I.2) le_sup_left,
+  ord := λ I1 I2, ⟨comap_mono, λ H, map_comap_of_surjective f hf I1 ▸
+    map_comap_of_surjective f hf I2 ▸ map_mono H⟩ }
+
+def le_order_embedding_of_surjective :
+  ((≤) : ideal S → ideal S → Prop) ≼o ((≤) : ideal R → ideal R → Prop) :=
+(order_iso_of_surjective f hf).to_order_embedding.trans (subtype.order_embedding _ _)
+
+def lt_order_embedding_of_surjective :
+  ((<) : ideal S → ideal S → Prop) ≼o ((<) : ideal R → ideal R → Prop) :=
+(le_order_embedding_of_surjective f hf).lt_embedding_of_le_embedding
+
+end surjective
+
 end map_and_comap
 
 end ideal

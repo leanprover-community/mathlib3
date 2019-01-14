@@ -5,8 +5,8 @@ Authors: Chris Hughes
 -/
 import data.set.finite group_theory.coset
 
-universes u v
-variables {α : Type u} {β : Type v}
+universes u v w
+variables {α : Type u} {β : Type v} {γ : Type w}
 
 class is_monoid_action [monoid α] (f : α → β → β) : Prop :=
 (one : ∀ a : β, f (1 : α) a = a)
@@ -50,13 +50,21 @@ lemma mem_fixed_points' {f : α → β → β} [is_monoid_action f] {a : β} : a
 ⟨λ h b h₁, let ⟨x, hx⟩ := mem_orbit_iff.1 h₁ in hx ▸ h x,
 λ h b, mem_stabilizer_iff.2 (h _ (mem_orbit _ _ _))⟩
 
+lemma comp_hom [group γ] (f : α → β → β) [is_monoid_action f] (g : γ → α) [is_monoid_hom g] :
+  is_monoid_action (f ∘ g) :=
+{ one := by simp [is_monoid_hom.map_one g, is_monoid_action.one f],
+  mul := by simp [is_monoid_hom.map_mul g, is_monoid_action.mul f] }
+
 end is_monoid_action
 
 class is_group_action [group α] (f : α → β → β) extends is_monoid_action f : Prop
 
 namespace is_group_action
-variables [group α] (f : α → β → β) [is_group_action f]
-open is_monoid_action
+variables [group α]
+
+section
+variables (f : α → β → β) [is_group_action f]
+open is_monoid_action quotient_group
 
 def to_perm (g : α) : equiv.perm β :=
 { to_fun := f g,
@@ -87,6 +95,9 @@ instance (a : β) : is_subgroup (stabilizer f a) :=
   inv_mem := λ x (hx : f x a = a), show f x⁻¹ a = a,
     by rw [← hx, ← is_monoid_action.mul f, inv_mul_self, is_monoid_action.one f, hx] }
 
+lemma comp_hom [group γ] (f : α → β → β) [is_group_action f] (g : γ → α) [is_group_hom g] :
+  is_group_action (f ∘ g) := { ..is_monoid_action.comp_hom f g }
+
 def orbit_rel : setoid β :=
 { r := λ a b, a ∈ orbit f b,
   iseqv := ⟨mem_orbit_self f, λ a b, by simp [orbit_eq_iff.symm, eq_comm],
@@ -109,5 +120,25 @@ equiv.symm (@equiv.of_bijective _ _
   by rw [is_monoid_action.mul f, ← H, ← is_monoid_action.mul f, inv_mul_self,
     is_monoid_action.one f]),
   λ ⟨b, ⟨g, hgb⟩⟩, ⟨g, subtype.eq hgb⟩⟩)
+
+end
+
+open quotient_group  is_monoid_action is_subgroup
+
+def mul_left_cosets (H : set α) [is_subgroup H]
+  (x : α) (y : quotient H) : quotient H :=
+quotient.lift_on' y (λ y, quotient_group.mk ((x : α) * y))
+  (λ a b (hab : _ ∈ H), quotient_group.eq.2
+    (by rwa [mul_inv_rev, ← mul_assoc, mul_assoc (a⁻¹), inv_mul_self, mul_one]))
+
+instance (H : set α) [is_subgroup H] : is_group_action (mul_left_cosets H) :=
+{ one := λ a, quotient.induction_on' a (λ a, quotient_group.eq.2
+    (by simp [is_submonoid.one_mem])),
+  mul := λ x y a, quotient.induction_on' a (λ a, quotient_group.eq.2
+    (by simp [mul_inv_rev, is_submonoid.one_mem, mul_assoc])) }
+
+instance mul_left_cosets_comp_subtype_val (H I : set α) [is_subgroup H] [is_subgroup I] :
+  is_group_action (mul_left_cosets H ∘ (subtype.val : I → α)) :=
+is_group_action.comp_hom _ _
 
 end is_group_action

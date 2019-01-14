@@ -82,10 +82,11 @@ by rw [padic_val_rat, dif_pos];
 
 protected lemma mul {q r : ℚ} (hq : q ≠ 0) (hr : r ≠ 0) :
   padic_val_rat p (q * r) = padic_val_rat p q + padic_val_rat p r :=
-have q*r = (q.num * r.num) /. (↑q.denom * ↑r.denom), by simp [rat.mul_num_denom],
-have hq' : q.num /. q.denom ≠ 0, by simpa [(rat.num_denom _).symm],
-have hr' : r.num /. r.denom ≠ 0, by simpa [(rat.num_denom _).symm],
-have hp' : prime (p : ℤ), from nat.prime_iff_prime_int.1 p_prime,
+have q*r = (q.num * r.num) /. (↑q.denom * ↑r.denom),
+  by rw [rat.mul_num_denom, int.coe_nat_mul],
+have hq' : q.num /. q.denom ≠ 0, by rw ← rat.num_denom q; exact hq,
+have hr' : r.num /. r.denom ≠ 0, by rw ← rat.num_denom r; exact hr,
+have hp' : _root_.prime (p : ℤ), from nat.prime_iff_prime_int.1 p_prime,
 begin
   rw [padic_val_rat.defn p (mul_ne_zero hq hr) this],
   conv_rhs { rw [rat.num_denom q, padic_val_rat.defn p hq',

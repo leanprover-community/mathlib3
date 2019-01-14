@@ -678,8 +678,26 @@ calc  mk (list α)
   equiv.arrow_congr equiv.ulift.symm (equiv.refl α)⟩
 ... = sum (λ n : ℕ, (mk α)^(n:cardinal.{u})) : by simp only [(lift_mk_fin _).symm, lift_mk, power_def, sum_mk]
 
+theorem mk_quot_le {α : Type u} {r : α → α → Prop} : mk (quot r) ≤ mk α :=
+mk_le_of_surjective quot.exists_rep
+
+theorem mk_quotient_le {α : Type u} {s : setoid α} : mk (quotient s) ≤ mk α :=
+mk_quot_le
+
+theorem mk_subtype_le {α : Type u} {s : set α} : mk s ≤ mk α :=
+mk_le_of_injective subtype.val_injective
+
 @[simp] theorem mk_emptyc (α : Type u) : mk (∅ : set α) = 0 :=
 quotient.sound ⟨equiv.set.pempty α⟩
+
+theorem mk_univ {α : Type u} : mk (@univ α) = mk α :=
+quotient.sound ⟨equiv.set.univ α⟩
+
+theorem mk_image_le {α β : Type u} {f : α → β} {s : set α} : mk (f '' s) ≤ mk s :=
+mk_le_of_surjective surjective_onto_image
+
+theorem mk_range_le {α β : Type u} {f : α → β} {s : set α} : mk (range f) ≤ mk α :=
+mk_le_of_surjective surjective_onto_range
 
 theorem mk_eq_of_injective {α β : Type u} {f : α → β} {s : set α} (hf : injective f) : mk (f '' s) = mk s :=
 quotient.sound ⟨(equiv.set.image f s hf).symm⟩

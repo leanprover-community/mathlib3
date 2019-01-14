@@ -823,6 +823,10 @@ theorem image_inter {f : α → β} {s t : set α} (H : injective f) :
   f '' s ∩ f '' t = f '' (s ∩ t) :=
 image_inter_on (assume x _ y _ h, H h)
 
+theorem surjective_onto_image {f : α → β} {s : set α} :
+  surjective (λ p, ⟨f p.1, ⟨p.1, p.2, rfl⟩⟩ : s → f '' s) :=
+λ ⟨_, ⟨a, ha, rfl⟩⟩, ⟨⟨a, ha⟩, rfl⟩
+
 theorem image_univ_of_surjective {ι : Type*} {f : ι → β} (H : surjective f) : f '' univ = univ :=
 eq_univ_of_forall $ by simp [image]; exact H
 
@@ -993,6 +997,9 @@ theorem forall_range_iff {p : α → Prop} : (∀ a ∈ range f, p a) ↔ (∀ i
 
 theorem exists_range_iff {p : α → Prop} : (∃ a ∈ range f, p a) ↔ (∃ i, p (f i)) :=
 ⟨assume ⟨a, ⟨i, eq⟩, h⟩, ⟨i, eq.symm ▸ h⟩, assume ⟨i, h⟩, ⟨f i, mem_range_self _, h⟩⟩
+
+theorem surjective_onto_range : surjective (λ i, ⟨f i, mem_range_self _⟩ : ι → range f) :=
+λ ⟨_, ⟨i, rfl⟩⟩, ⟨i, rfl⟩
 
 theorem range_iff_surjective : range f = univ ↔ surjective f :=
 eq_univ_iff_forall

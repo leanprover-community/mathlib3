@@ -645,9 +645,6 @@ fintype_card empty
 @[simp] theorem mk_pempty : mk pempty = 0 :=
 fintype_card pempty
 
-@[simp] theorem mk_emptyc (α : Type u) : mk (∅ : set α) = 0 :=
-quotient.sound ⟨equiv.set.pempty α⟩
-
 @[simp] theorem mk_plift_of_false {p : Prop} (h : ¬ p) : mk (plift p) = 0 :=
 quotient.sound ⟨equiv.plift.trans $ equiv.equiv_pempty h⟩
 
@@ -672,9 +669,6 @@ quotient.sound ⟨equiv.bool_equiv_punit_sum_punit⟩
 @[simp] theorem mk_option {α : Type u} : mk (option α) = mk α + 1 :=
 quotient.sound ⟨equiv.option_equiv_sum_punit α⟩
 
-theorem mk_eq_of_injective {α β : Type u} {f : α → β} {s : set α} (hf : injective f) : mk (f '' s) = mk s :=
-quotient.sound ⟨(equiv.set.image f s hf).symm⟩
-
 theorem mk_list_eq_sum_pow (α : Type u) : mk (list α) = sum (λ n : ℕ, (mk α)^(n:cardinal.{u})) :=
 calc  mk (list α)
     = mk (Σ n, vector α n) : quotient.sound ⟨equiv.equiv_sigma_subtype list.length⟩
@@ -683,6 +677,12 @@ calc  mk (list α)
 ... = mk (Σ n : ℕ, ulift.{u} (fin n) → α) : quotient.sound ⟨equiv.sigma_congr_right $ λ n,
   equiv.arrow_congr equiv.ulift.symm (equiv.refl α)⟩
 ... = sum (λ n : ℕ, (mk α)^(n:cardinal.{u})) : by simp only [(lift_mk_fin _).symm, lift_mk, power_def, sum_mk]
+
+@[simp] theorem mk_emptyc (α : Type u) : mk (∅ : set α) = 0 :=
+quotient.sound ⟨equiv.set.pempty α⟩
+
+theorem mk_eq_of_injective {α β : Type u} {f : α → β} {s : set α} (hf : injective f) : mk (f '' s) = mk s :=
+quotient.sound ⟨(equiv.set.image f s hf).symm⟩
 
 theorem mk_Union_le_sum_mk {α ι : Type u} {f : ι → set α} : mk (⋃ i, f i) ≤ sum (λ i, mk (f i)) :=
 calc  mk (⋃ i, f i)

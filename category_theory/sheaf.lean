@@ -46,10 +46,7 @@ def jointly_surjective {ι : Type v} {X : Top} {α : ι → Top} (f : Π i, α i
 def is_open_embedding {X Y : Top} (f : X ⟶ Y) : Prop :=
 embedding f ∧ is_open_map f
 
-variables {X : Type u} [𝒳 : category.{v} X]
-include 𝒳
-
-def family_of_set {U : X} (Us : covering_family U) :
+def family_of_set {X : Type u} [category.{v} X] {U : X} (Us : covering_family U) :
   Π (Ui : Σ (V : X), {p : V ⟶ U // p ∈ Us}), Ui.1 ⟶ U :=
 λ Ui, Ui.2.val
 

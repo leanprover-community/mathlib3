@@ -8,7 +8,7 @@ import ring_theory.subring
 
 variables {F : Type*} [field F] (s : set F)
 
-class is_subfield extends is_subring s :=
+class is_subfield extends is_subring s : Prop :=
 (inv_mem : ∀ {x : F}, x ∈ s → x⁻¹ ∈ s)
 
 open is_subfield

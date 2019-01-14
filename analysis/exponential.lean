@@ -5,12 +5,12 @@ Authors: Chris Hughes
 -/
 import analysis.real analysis.complex tactic.linarith data.complex.exponential
 
-open finset filter
+open finset filter metric
 
 namespace complex
 
 lemma tendsto_exp_zero_one : tendsto exp (nhds 0) (nhds 1) :=
-tendsto_nhds_of_metric.2 $ λ ε ε0,
+tendsto_nhds_nhds.2 $ λ ε ε0,
   ⟨min (ε / 2) 1, lt_min (div_pos ε0 (by norm_num)) (by norm_num),
     λ x h, have h : abs x < min (ε / 2) 1, by simpa [dist_eq] using h,
       calc abs (exp x - 1) ≤ 2 * abs x : abs_exp_sub_one_le

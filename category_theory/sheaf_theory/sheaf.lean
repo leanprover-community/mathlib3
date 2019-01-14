@@ -1,6 +1,6 @@
 -- Copyright (c) 2018 Johan Commelin. All rights reserved.
 -- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Johan Commelin
+-- Authors: Johan Commelin, Reid Barton
 
 import category_theory.presheaf
 import category_theory.comma
@@ -15,9 +15,9 @@ namespace category_theory
 open category_theory
 open category_theory.limits
 
-@[reducible]
-def covering_family₂ {X : Type u} [category.{v} X] (U : X) : Type (max u (v+1)) :=
-Σ (ι : Type v), ι → over U
+-- @[reducible]
+-- def covering_family₂ {X : Type u} [category.{v} X] (U : X) : Type (max u (v+1)) :=
+-- Σ (ι : Type v), ι → over U
 
 def covering_family {X : Type u} [category.{v} X] (U : X) : Type (max u v) :=
 Π {{V}}, set (V ⟶ U)
@@ -77,8 +77,8 @@ set_option pp.universes true
 def matching_sections (c : covering_family U) : presheaf X ⥤ Type (max u v) :=
 { obj := λ F,
   { s : c.sections_of_family.obj F //
-    ∀ Ui (gi : Ui ⟶ U), gi ∈ c → ∀ Uj (gj : Uj ⟶ U), gj ∈ c →
-    ∀ V (fi : V ⟶ Ui) (fj : V ⟶ Uj), fi ≫ gi = fj ≫ gj →
+    ∀ {Ui} {gi : Ui ⟶ U}, gi ∈ c → ∀ {Uj} {gj : Uj ⟶ U}, gj ∈ c →
+    ∀ {V} (fi : V ⟶ Ui) (fj : V ⟶ Uj), fi ≫ gi = fj ≫ gj →
     F.map fi (s ‹gi ∈ c›) = F.map fj (s ‹gj ∈ c›) },
   map := λ F₁ F₂ α s,
   { val := c.sections_of_family.map α s.1,
@@ -93,7 +93,7 @@ def matching_sections (c : covering_family U) : presheaf X ⥤ Type (max u v) :=
 @[simp] lemma matching_sections_map_val (c : covering_family U) {F₁ F₂ : presheaf X} (α : F₁ ⟶ F₂) (s : c.matching_sections.obj F₁) :
 (c.matching_sections.map α s).val = c.sections_of_family.map α s.1 := rfl
 
-def matching_sections_π (c : covering_family U) :
+def matching_sections_of_sections (c : covering_family U) :
 coyoneda.obj (yoneda.obj U) ⟶ c.matching_sections :=
 { app := λ F s,-- show c.matching_sections.obj F, from
   { val := λ Ui f hf, F.map f $ ((yoneda_sections U F).hom s).down,
@@ -113,8 +113,14 @@ coyoneda.obj (yoneda.obj U) ⟶ c.matching_sections :=
     exact congr (α.naturality _) rfl
   end }
 
+@[simp] lemma matching_sections_of_sections_app_val {c : covering_family U} {F : presheaf X} (s) :
+(c.matching_sections_of_sections.app F s).val = λ Ui f hf, F.map f $ ((yoneda_sections U F).hom s).down := rfl
+
 def sheaf_condition (c : covering_family U) (F : presheaf X) : Type* :=
-is_iso (c.matching_sections_π.app F)
+is_iso (c.matching_sections_of_sections.app F)
+
+instance sheaf_condition.subsingleton {c : covering_family U} {F : presheaf X} :
+subsingleton (c.sheaf_condition F) := by delta sheaf_condition; apply_instance
 
 end covering_family
 
@@ -131,78 +137,6 @@ instance sheaf.category : category.{max u v} (sheaf X) :=
 by delta sheaf; apply_instance
 
 #exit
-
---def covering_family (U : X) : Type u := Π {{V}}, set (V ⟶ U)
-
-set_option pp.universes true
-#print covering_family
-
-def covering_family.is_sieve {U : X} (c : covering_family U) : Prop :=
-∀ (Ui : over U) (hUi : Ui ∈ c) {V : X} (f : V ⟶ Ui.left),
-over.mk (f ≫ Ui.hom) ∈ c
-
-lemma covering_family.is_sieve_iff {U : X} (c : covering_family U) :
-c.is_sieve ↔ ∀ {Ui : X} (g : Ui ⟶ U) (hg : over.mk g ∈ c) {V : X} (f : V ⟶ Ui),
-over.mk (f ≫ g) ∈ c :=
-begin
-  split; intro H,
-  { intros Ui g hg V f,
-    rw show g = (over.mk g).hom, by simp,
-    exact H (over.mk g) hg f },
-  { intros Ui hUi V f,
-    apply H,
-    suffices : over.mk Ui.hom = Ui,
-    { rwa this },
-    { cases Ui,
-      cases Ui_right,
-      delta over.mk,
-      congr } }
-end
-
-def sieve (U : X) : Type u := { S : covering_family U // S.is_sieve }
-
-namespace sieve
-variables {U : X}
-
-lemma is_sieve₂ (S : sieve U) :
-∀ {Ui : X} (g : Ui ⟶ U) (hg : over.mk g ∈ S.val) {V : X} (f : V ⟶ Ui),
-over.mk (f ≫ g) ∈ S.val :=
-λ Ui, S.val.is_sieve_iff.mp S.property
-
-def to_presheaf (S : sieve U) : presheaf X :=
-{ obj := λ V, { f : V ⟶ U // S.val (over.mk f) },
-  map := λ V₁ V₂ f g,
-  begin
-    cases g with g hg,
-    change X at V₁, change X at V₂,
-    change V₂ ⟶ V₁ at f,
-    split,
-    swap,
-    { exact f ≫ g },
-    { apply S.is_sieve₂ _ hg }
-  end,
-  map_id' :=
-  begin
-    tidy,
-    exact category.id_comp _ _
-  end,
-  map_comp' :=
-  begin
-    tidy,
-    erw category.assoc
-  end }
-
-@[simp] lemma to_presheaf_map (S : sieve U) {V₁ V₂ : X} (f : V₁ ⟶ V₂) (g) :
-(S.to_presheaf.map f g).val = f ≫ g.1 :=
-by cases g; refl
-
-def π (S : sieve U) : S.to_presheaf ⟶ yoneda.obj U :=
-{ app := λ V, subtype.val }
-
-def sheaf_condition (S : sieve U) (F : presheaf X) :=
-is_iso $ (yoneda.obj F).map S.π
-
-end sieve
 
 namespace covering_family
 variables {U : X}
@@ -289,46 +223,7 @@ coyoneda.obj (yoneda.obj U) ⟶ c.matching_sections :=
     exact congr (α.naturality _) rfl
   end }
 
-def matching_sections_of_sieve_section (S : sieve U) :
-(coyoneda.obj S.to_presheaf) ⟶ S.val.matching_sections :=
-{ app := λ F (α : S.to_presheaf ⟶ F), show S.val.matching_sections.obj F, from
-  { val := λ Ui h, α.app _ ⟨Ui.hom, by simpa using S.property _ h (𝟙 _)⟩,
-    property :=
-    begin
-      intros,
-      show (α.app _ ≫ F.map _) _ = (α.app _ ≫ F.map _) _,
-      repeat {erw ← α.naturality},
-      simp only [category_theory.types_comp],
-      congr,
-      apply subtype.ext.mpr,
-      simp
-    end } }
 
-def sieve_section_of_matching_sections (S : sieve U) :
-S.val.matching_sections ⟶ (coyoneda.obj S.to_presheaf) :=
-{ app := λ F (s : S.val.matching_sections.obj F), show S.to_presheaf ⟶ F, from
-  { app := λ V i, s.1 _ i.2,
-    naturality' := λ V₁ V₂ f,
-    begin
-      change X at V₁, change X at V₂,
-      change V₂ ⟶ V₁ at f,
-      ext1 i,
-      have := s.2 _ i.2 _ (S.to_presheaf.map f i).2 _ (by exact {left := f}) (𝟙 _),
-      simp [this]
-    end } }
-
-def sieve_section_iso_matching_sections (S : sieve U) :
-(coyoneda.obj S.to_presheaf) ≅ S.val.matching_sections :=
-{ hom := matching_sections_of_sieve_section S,
-  inv := sieve_section_of_matching_sections S,
-  inv_hom_id' :=
-  begin
-    delta sieve_section_of_matching_sections matching_sections_of_sieve_section,
-    tidy {trace_result := tt},
-    delta over.mk,
-    cases x, cases x_right,
-    congr
-  end }
 
 noncomputable def foo (c : covering_family U) :
 c.matching_sections ⟶ c.generate_sieve.val.matching_sections :=

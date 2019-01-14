@@ -102,8 +102,9 @@ depth of splitting; the default is 5.
 This is a "finishing" tactic modification of `simp`. The tactic `simpa
 [rules, ...] using e` will simplify the hypothesis `e` using `rules`,
 then simplify the goal using `rules`, and try to close the goal using
-`assumption`. If `e` is a term instead of a local constant, it is first
-added to the local context using `have`.
+the target, or (if no target is provided) `assumption`. If `e` is a
+term instead of a local constant, it is first added to the local
+context using `have`.
 
 ### replace
 

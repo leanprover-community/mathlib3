@@ -10,12 +10,11 @@ open interactive interactive.types expr lean.parser
 
 local postfix `?`:9001 := optional
 
--- TODO: update documentation
 /--
 This is a "finishing" tactic modification of `simp`. The tactic `simpa [rules, ...] using e`
 will simplify the hypothesis `e` using `rules`, then simplify the goal using `rules`, and
-try to close the goal using `assumption`. If `e` is a term instead of a local constant,
-it is first added to the local context using `have`.
+try to close the goal using the target or (if no target is provided) `assumption`. If `e` is a term
+instead of a local constant, it is first added to the local context using `have`.
 -/
 meta def simpa (use_iota_eqn : parse $ (tk "!")?) (no_dflt : parse only_flag)
   (hs : parse simp_arg_list) (attr_names : parse with_ident_list)

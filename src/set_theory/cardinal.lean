@@ -41,6 +41,12 @@ instance : has_le cardinal.{u} :=
   assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
     propext ⟨assume ⟨e⟩, ⟨e.congr e₁ e₂⟩, assume ⟨e⟩, ⟨e.congr e₁.symm e₂.symm⟩⟩⟩
 
+theorem mk_le_of_injective {α β : Type u} {f : α → β} (hf : injective f) : mk α ≤ mk β :=
+⟨⟨f, hf⟩⟩
+
+theorem mk_le_of_surjective {α β : Type u} {f : α → β} (hf : surjective f) : mk β ≤ mk α :=
+⟨embedding.of_surjective hf⟩
+
 theorem le_mk_iff_exists_set {c : cardinal} {α : Type u} :
   c ≤ mk α ↔ ∃ p : set α, mk p = c :=
 ⟨quotient.induction_on c $ λ β ⟨⟨f, hf⟩⟩,
@@ -680,15 +686,9 @@ calc  mk (list α)
 
 theorem mk_Union_le_sum_mk {α ι : Type u} {f : ι → set α} : mk (⋃ i, f i) ≤ sum (λ i, mk (f i)) :=
 calc  mk (⋃ i, f i)
-    ≤ mk (Σ i, f i) : show nonempty ((⋃ i, f i) ↪ (Σ i, f i)),
-  from ⟨⟨λ x, ⟨classical.some (mem_Union.1 x.2), x.1, classical.some_spec (mem_Union.1 x.2)⟩,
-  λ x y H, subtype.eq $ begin
-    cases sigma.mk.inj H with H1 H2, clear H,
-    generalize_hyp : classical.some_spec _ = H4 at H1 H2,
-    generalize_hyp : classical.some _ = i₀ at H1 H2 H4,
-    subst H1,
-    exact subtype.mk.inj (eq_of_heq H2)
-  end⟩⟩
+    ≤ mk (Σ i, f i) : mk_le_of_surjective $ show surjective
+        (show (Σ i, f i) → (⋃ i, f i), from λ ⟨i, x, hx⟩, ⟨x, mem_Union.2 ⟨i, hx⟩⟩), from
+        λ ⟨x, hx⟩, let ⟨i, hi⟩ := mem_Union.1 hx in ⟨⟨i, x, hi⟩, rfl⟩
 ... = sum (λ i, mk (f i)) : (sum_mk _).symm
 
 @[simp] lemma finset_card {α : Type u} {s : finset α} : ↑(finset.card s) = mk (↑s : set α) :=

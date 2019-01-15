@@ -175,6 +175,9 @@ by haveI := classical.dec_eq α; exact
 if ha0 : a = 0 then by simp [ha0]
 else (div_le_div_left (lt_of_le_of_ne ha (ne.symm ha0)) hb hc).2 h
 
+lemma one_div_succ_pos (n : ℕ) : 1 / ((n : α) + 1) > 0 :=
+one_div_pos_of_pos $ add_pos_of_nonneg_of_pos' (nat.cast_nonneg _) zero_lt_one
+
 end linear_ordered_field
 
 section

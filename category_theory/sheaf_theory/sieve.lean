@@ -16,6 +16,21 @@ lemma equiv_subsingleton {α β : Type*} [subsingleton α] [subsingleton β] (f 
 namespace category_theory
 open category_theory
 
+variables {C : Type u} [cat : category.{v} C]
+include cat
+
+variables {X Y Z : C}
+
+def is_iso_comp (f : X ⟶ Y) (hf : is_iso f) (g : Y ⟶ Z) (hg : is_iso g) : is_iso (f ≫ g) :=
+{ inv := hg.inv ≫ hf.inv,
+  hom_inv_id' := sorry,
+  inv_hom_id' := sorry }
+
+end category_theory
+
+namespace category_theory
+open category_theory
+
 variables {X : Type u} [𝒳 : category.{v} X]
 include 𝒳
 
@@ -133,22 +148,28 @@ def sieve_section_iso_matching_sections (S : sieve U) :
   inv := sieve_section_of_matching_sections S }
 
 lemma commutes (S : sieve U) :
-(@functor.map _ _ _ _ coyoneda (yoneda.obj U) (S.to_presheaf) S.inclusion) ≫ (S.matching_sections_of_sieve_section) =
-(S.val.matching_sections_of_sections) :=
+S.val.matching_sections_of_sections = (coyoneda.map S.inclusion) ≫ S.matching_sections_of_sieve_section :=
 begin
   ext F s,
   apply subtype.ext.mpr,
   dsimp at *,
   funext Ui fi h,
-  have := (yoneda_sections U F).hom,
-  have := s.naturality,
-  tidy,
+  change (s.app U ≫ F.map fi) _ = _,
+  simp [(s.naturality fi).symm]
 end
 
---   apply S.matching_sections_of_sieve_section.app F,
-
--- lemma sheaf_condition_iff (S : sieve U) (F : presheaf X) :
--- S.val.sheaf_condition F ≃ S.sheaf_condition F :=
+lemma sheaf_condition_iff (S : sieve U) (F : presheaf X) :
+S.val.sheaf_condition F ≃ S.sheaf_condition F :=
+begin
+  delta covering_family.sheaf_condition sheaf_condition,
+  erw commutes S,
+  simp only [functor.category.comp_app],
+  apply equiv_subsingleton; intro H,
+  { convert is_iso_comp _ H (S.sieve_section_of_matching_sections.app F) _,
+    have := functor.on_iso (yoneda.obj F) S.sieve_section_iso_matching_sections,
+    sorry },
+   { apply is_iso_comp _ H, }
+end
 -- { to_fun    := λ H, -- show S.sheaf_condition F, from
 --   { inv := λ s,
 --     begin

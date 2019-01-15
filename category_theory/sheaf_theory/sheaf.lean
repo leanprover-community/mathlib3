@@ -9,7 +9,7 @@ import analysis.topology.topological_space
 import category_theory.examples.topological_spaces
 import tactic.where
 
-universes v u
+universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory
 open category_theory

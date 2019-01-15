@@ -4,7 +4,9 @@
 
 import category_theory.sheaf_theory.sheaf
 
-universes v u
+universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+
+section move_this
 
 lemma equiv_subsingleton {α β : Type*} [subsingleton α] [subsingleton β] (f : α → β) (g : β → α) :
 α ≃ β :=
@@ -13,7 +15,9 @@ lemma equiv_subsingleton {α β : Type*} [subsingleton α] [subsingleton β] (f 
   left_inv := λ _, subsingleton.elim _ _,
   right_inv := λ _, subsingleton.elim _ _, }
 
-namespace category_theory
+end move_this
+
+namespace category_theory -- move_this
 open category_theory
 
 variables {C : Type u} [cat : category.{v} C]
@@ -22,11 +26,29 @@ include cat
 variables {X Y Z : C}
 
 def is_iso_comp (f : X ⟶ Y) (hf : is_iso f) (g : Y ⟶ Z) (hg : is_iso g) : is_iso (f ≫ g) :=
-{ inv := hg.inv ≫ hf.inv,
-  hom_inv_id' := sorry,
-  inv_hom_id' := sorry }
+{ inv := inv g ≫ inv f,
+  hom_inv_id' :=
+  begin
+    conv_lhs
+    { rw category.assoc,
+      congr,
+      skip,
+      rw [← category.assoc, is_iso.hom_inv_id g] },
+    simp
+  end,
+  inv_hom_id' :=
+  begin
+    conv_lhs
+    { rw category.assoc,
+      congr,
+      skip,
+      rw [← category.assoc, is_iso.inv_hom_id f] },
+    simp
+  end }
 
 end category_theory
+
+-- proper start of file
 
 namespace category_theory
 open category_theory
@@ -166,30 +188,43 @@ begin
   simp only [functor.category.comp_app],
   apply equiv_subsingleton; intro H,
   { convert is_iso_comp _ H (S.sieve_section_of_matching_sections.app F) _,
-    have := functor.on_iso (yoneda.obj F) S.sieve_section_iso_matching_sections,
-    sorry },
-   { apply is_iso_comp _ H, }
+    exact is_iso.of_iso_inverse
+      (((evaluation _ _).obj F).on_iso S.sieve_section_iso_matching_sections) },
+   { apply is_iso_comp _ H,
+    exact is_iso.of_iso
+      (((evaluation _ _).obj F).on_iso S.sieve_section_iso_matching_sections) }
 end
--- { to_fun    := λ H, -- show S.sheaf_condition F, from
---   { inv := λ s,
---     begin
---       apply H.inv,
---       exact S.matching_sections_of_sieve_section.app F s,
---     end,
---     hom_inv_id' :=
---     begin
---       ext1 s,
---       dsimp at *,
---     end,
---     inv_hom_id' :=
---     begin
---       ext s Ui fi,
---       dsimp at *,
---     end },
---   inv_fun   := _,
---   left_inv  := λ _, subsingleton.elim _ _,
---   right_inv := λ _, subsingleton.elim _ _ }
+
+def pullback {V : X} (f : V ⟶ U) (S : sieve U) : sieve V :=
+{ val := λ Vi gi, (gi ≫ f) ∈ S.val,
+  property := by tidy }
+
+def univ : sieve U :=
+{ val := λ Ui fi, true,
+  property := by tidy }
+
+omit 𝒳
+variables [𝒳site : site.{v} X]
+include 𝒳site
+
+inductive is_covering : Π {U : X}, sieve U → Prop
+| basic    : ∀ {U} {c} (hc : c ∈ site.covers U), is_covering (c.generate_sieve)
+| pullback : ∀ {U V : X} (f : V ⟶ U) (S : sieve U), is_covering S → is_covering (pullback f S)
+| univ     : ∀ (U), is_covering (univ : sieve U)
+| union    : ∀ {U} (R : sieve U) (S : sieve U), -- cook up a good name, instead of "union"
+              is_covering R → (Π {V} (f : V ⟶ U), f ∈ R.val → is_covering (pullback f S)) → is_covering S
 
 end sieve
+
+/-
+
+/-- The least topology containing a collection of basic sets. -/
+inductive generate_open (g : set (set α)) : set α → Prop
+| basic  : ∀s∈g, generate_open s
+| univ   : generate_open univ
+| inter  : ∀s t, generate_open s → generate_open t → generate_open (s ∩ t)
+| sUnion : ∀k, (∀s∈k, generate_open s) → generate_open (⋃₀ k)
+
+-/
 
 end category_theory

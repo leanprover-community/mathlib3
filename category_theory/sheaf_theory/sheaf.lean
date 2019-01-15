@@ -9,7 +9,7 @@ import analysis.topology.topological_space
 import category_theory.examples.topological_spaces
 import tactic.where
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u u₁ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory
 open category_theory
@@ -122,7 +122,7 @@ is_iso (c.matching_sections_of_sections.app F)
 instance sheaf_condition.subsingleton {c : covering_family U} {F : presheaf X} :
 subsingleton (c.sheaf_condition F) := by delta sheaf_condition; apply_instance
 
-inductive map {Y : Type u} [category.{v} Y] (F : X ⥤ Y) (c : covering_family U) : covering_family (F.obj U)
+inductive map {Y : Type u₁} [category.{v} Y] (F : X ⥤ Y) (c : covering_family U) : covering_family (F.obj U)
 | img : ∀ {V : X} (f : V ⟶ U), map (F.map f)
 
 end covering_family

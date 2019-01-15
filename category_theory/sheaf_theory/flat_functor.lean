@@ -1,4 +1,4 @@
--- Copyright (c) 2018 Johan Commelin. All rights reserved.
+-- Copyright (c) 2019 Johan Commelin. All rights reserved.
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Johan Commelin
 
@@ -11,10 +11,10 @@ namespace category_theory
 open category_theory category_theory.limits
 
 namespace functor
-variables {C : Type u₁} [𝒞 : category.{v₁} C] {X : Type u₂} [𝒳 : site.{v₁} X]
+variables {C : Type u₁} [𝒞 : category.{v} C] {X : Type u₂} [𝒳 : site.{v} X]
 include 𝒞 𝒳
 
-def is_flat.aux (F : C ⥤ X) {J : Type v₁} [small_category J] (D : J ⥤ C) (T : cone (D ⋙ F)) :
+def is_flat.aux (F : C ⥤ X) {J : Type v} [small_category J] (D : J ⥤ C) (T : cone (D ⋙ F)) :
 sieve T.X :=
 { val := λ Y h, ∃ (T' : cone D), nonempty ((T.extend h) ⟶ (map_cone F T')),
   property := λ Ui fi H V g,
@@ -34,8 +34,8 @@ end functor
 namespace functor
 open site
 
-variables {X : Type u} [𝒳 : site.{v} X]
-variables {Y : Type u} [𝒴 : site.{v} Y]
+variables {X : Type u₁} [𝒳 : site.{v} X]
+variables {Y : Type u₂} [𝒴 : site.{v} Y]
 include 𝒳 𝒴
 
 def preserves_covers (F : X ⥤ Y) : Prop :=

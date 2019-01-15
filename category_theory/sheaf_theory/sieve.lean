@@ -1,4 +1,4 @@
--- Copyright (c) 2018 Johan Commelin. All rights reserved.
+-- Copyright (c) 2019 Johan Commelin. All rights reserved.
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Johan Commelin
 
@@ -65,6 +65,16 @@ def sieve (U : X) : Type (max u v) := { S : covering_family U // S.is_sieve }
 
 namespace sieve
 variables {U : X}
+
+instance : has_inter (sieve U) :=
+⟨λ S₁ S₂,
+{ val := λ V f, f ∈ S₁.val ∧ f ∈ S₂.val,
+  property := λ Ui fi H V g,
+  begin
+    split,
+    { apply S₁.property, exact H.left },
+    { apply S₂.property, exact H.right }
+  end}⟩
 
 def to_presheaf (S : sieve U) : presheaf X :=
 { obj := λ V, { f : V ⟶ U // f ∈ S.val },
@@ -209,22 +219,11 @@ include 𝒳site
 
 inductive is_covering : Π {U : X}, sieve U → Prop
 | basic    : ∀ {U} {c} (hc : c ∈ site.covers U), is_covering (c.generate_sieve)
-| pullback : ∀ {U V : X} (f : V ⟶ U) (S : sieve U), is_covering S → is_covering (pullback f S)
+| pullback : ∀ {U V : X} (f : V ⟶ U) (S : sieve U), is_covering S → is_covering (S.pullback f)
 | univ     : ∀ (U), is_covering (univ : sieve U)
 | union    : ∀ {U} (R : sieve U) (S : sieve U), -- cook up a good name, instead of "union"
               is_covering R → (Π {V} (f : V ⟶ U), f ∈ R.val → is_covering (pullback f S)) → is_covering S
 
 end sieve
-
-/-
-
-/-- The least topology containing a collection of basic sets. -/
-inductive generate_open (g : set (set α)) : set α → Prop
-| basic  : ∀s∈g, generate_open s
-| univ   : generate_open univ
-| inter  : ∀s t, generate_open s → generate_open t → generate_open (s ∩ t)
-| sUnion : ∀k, (∀s∈k, generate_open s) → generate_open (⋃₀ k)
-
--/
 
 end category_theory

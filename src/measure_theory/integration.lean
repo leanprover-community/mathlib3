@@ -10,8 +10,8 @@ approximated by a sequence of simple functions.
 -/
 import
   algebra.pi_instances
-  analysis.measure_theory.measure_space
-  analysis.measure_theory.borel_space
+  measure_theory.measure_space
+  measure_theory.borel_space
 noncomputable theory
 open lattice set filter
 local attribute [instance] classical.prop_decidable

@@ -7,7 +7,7 @@ Type of bounded continuous functions taking values in a metric space, with
 the uniform distance.
  -/
 
-import analysis.normed_space data.real.cau_seq_filter
+import analysis.normed_space.basic data.real.cau_seq_filter
 
 noncomputable theory
 local attribute [instance] classical.decidable_inhabited classical.prop_decidable

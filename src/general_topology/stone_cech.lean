@@ -9,7 +9,7 @@ Parts of the formalization are based on "Ultrafilters and Topology"
 by Marius Stekelenburg, particularly section 5.
 -/
 
-import analysis.topology.continuity
+import general_topology.continuity
 
 noncomputable theory
 

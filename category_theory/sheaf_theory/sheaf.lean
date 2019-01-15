@@ -122,6 +122,9 @@ is_iso (c.matching_sections_of_sections.app F)
 instance sheaf_condition.subsingleton {c : covering_family U} {F : presheaf X} :
 subsingleton (c.sheaf_condition F) := by delta sheaf_condition; apply_instance
 
+inductive map {Y : Type u} [category.{v} Y] (F : X ⥤ Y) (c : covering_family U) : covering_family (F.obj U)
+| img : ∀ {V : X} (f : V ⟶ U), map (F.map f)
+
 end covering_family
 
 variables {X : Type u} [𝒳 : site.{v} X]

@@ -199,6 +199,12 @@ by rw [mul_inv_cancel ((map_ne_zero f).2 h), ← map_mul f, mul_inv_cancel h, ma
 lemma map_div' (h : y ≠ 0) : f (x / y) = f x / f y :=
 (map_mul f).trans $ congr_arg _ $ map_inv' f h
 
+lemma injective : function.injective f :=
+(is_add_group_hom.injective_iff _).2
+  (λ a ha, classical.by_contradiction $ λ ha0,
+    by simpa [ha, is_ring_hom.map_mul f, is_ring_hom.map_one f, zero_ne_one]
+        using congr_arg f (mul_inv_cancel ha0))
+
 end
 
 section

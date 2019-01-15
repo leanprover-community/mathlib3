@@ -694,4 +694,13 @@ lemma classical.nonempty_pi {α : Sort u} {β : α → Sort v} :
   nonempty (Πa:α, β a) ↔ (∀a:α, nonempty (β a)) :=
 iff.intro (assume ⟨f⟩ a, ⟨f a⟩) (assume f, ⟨assume a, classical.choice $ f a⟩)
 
+-- inhabited_of_nonempty already exists, in core/init/classical.lean, but the
+-- assumption is not [...], which makes it unsuitable for some applications
+noncomputable def classical.inhabited_of_nonempty' {α : Sort u} [h : nonempty α] : inhabited α :=
+⟨classical.choice h⟩
+
+-- `nonempty` cannot be a `functor`, because `functor` is restricted to Types.
+lemma nonempty.map {α : Sort u} {β : Sort v} (f : α → β) : nonempty α → nonempty β
+| ⟨h⟩ := ⟨f h⟩
+
 end nonempty

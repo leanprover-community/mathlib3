@@ -9,7 +9,7 @@ Define the p-adic integers ℤ_p as a subtype of ℚ_p. Construct algebraic stru
 import data.padics.padic_numbers ring_theory.ideals data.int.modeq
 import tactic.linarith
 
-open nat padic
+open nat padic metric
 noncomputable theory
 local attribute [instance] classical.prop_decidable
 
@@ -93,8 +93,7 @@ variables {p : ℕ} [nat.prime p]
 
 @[reducible] def padic_norm_z (z : ℤ_[p]) : ℝ := ∥z.val∥
 
-instance : metric_space ℤ_[p] :=
-subtype.metric_space
+instance : metric_space ℤ_[p] := metric_space_subtype
 
 instance : has_norm ℤ_[p] := ⟨padic_norm_z⟩
 

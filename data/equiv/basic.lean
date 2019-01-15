@@ -612,6 +612,18 @@ noncomputable def of_bijective {α β} {f : α → β} (hf : bijective f) : α �
 
 @[simp] theorem of_bijective_to_fun {α β} {f : α → β} (hf : bijective f) : (of_bijective hf : α → β) = f := rfl
 
+lemma subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid α]
+  [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ :  ∀ a, p₁ a ↔ p₂ ⟦a⟧)
+  (h : ∀ x y : subtype p₁, @setoid.r _ s₂ x y ↔ (x : α) ≈ y) :
+  {x // p₂ x} ≃ quotient s₂ :=
+{ to_fun := λ a, quotient.hrec_on a.1 (λ a h, ⟦⟨a, (hp₂ _).2 h⟩⟧)
+    (λ a b hab, hfunext (by rw quotient.sound hab)
+    (λ h₁ h₂ _, heq_of_eq (quotient.sound ((h _ _).2 hab)))) a.2,
+  inv_fun := λ a, quotient.lift_on a (λ a, (⟨⟦a.1⟧, (hp₂ _).1 a.2⟩ : {x // p₂ x}))
+    (λ a b hab, subtype.eq' (quotient.sound ((h _ _).1 hab))),
+  left_inv := λ ⟨a, ha⟩, quotient.induction_on a (λ a ha, rfl) ha,
+  right_inv := λ a, quotient.induction_on a (λ ⟨a, ha⟩, rfl) }
+
 section swap
 variable [decidable_eq α]
 open decidable

@@ -7,7 +7,7 @@ Nonnegative real numbers.
 -/
 import data.real.nnreal analysis.real analysis.topology.infinite_sum
 noncomputable theory
-open set topological_space
+open set topological_space metric
 
 namespace nnreal
 local notation ` ℝ≥0 ` := nnreal

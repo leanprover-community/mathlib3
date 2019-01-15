@@ -5,7 +5,6 @@ Authors: Johan Commelin
 -/
 
 import group_theory.subgroup
-import data.polynomial
 import algebra.ring
 
 universes u v

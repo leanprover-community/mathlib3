@@ -3314,6 +3314,13 @@ begin
   exacts [H₁₁, H₂₁ _ hy, H (H₂₁ _ hx), IH H₁₂ H₂₂ _ hx _ hy]
 end
 
+lemma forall_of_pairwise (H : symmetric R) {l : list α}
+   (hl : pairwise R l) : (∀a∈l, ∀b∈l, a ≠ b → R a b) :=
+forall_of_forall_of_pairwise 
+  (λ a b h hne, H (h hne.symm)) 
+  (λ _ _ h, (h rfl).elim) 
+  (pairwise.imp (λ _ _ h _, h) hl)
+
 theorem pairwise_singleton (R) (a : α) : pairwise R [a] :=
 by simp only [pairwise_cons, mem_singleton, forall_prop_of_false (not_mem_nil _), forall_true_iff, pairwise.nil, and_true]
 

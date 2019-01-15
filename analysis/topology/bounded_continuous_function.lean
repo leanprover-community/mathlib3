@@ -12,7 +12,7 @@ import analysis.normed_space data.real.cau_seq_filter
 noncomputable theory
 local attribute [instance] classical.decidable_inhabited classical.prop_decidable
 
-open set lattice filter
+open set lattice filter metric
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -22,10 +22,10 @@ lemma continuous_of_locally_uniform_limit_of_continuous [topological_space α] [
   {F : ℕ → α → β} {f : α → β}
   (L : ∀x:α, ∃s ∈ (nhds x).sets, ∀ε>(0:ℝ), ∃n, ∀y∈s, dist (F n y) (f y) ≤ ε)
   (C : ∀ n, continuous (F n)) : continuous f :=
-continuous_topo_metric.2 $ λ x ε ε0, begin
+continuous_iff'.2 $ λ x ε ε0, begin
   rcases L x with ⟨r, rx, hr⟩,
   rcases hr (ε/2/2) (half_pos $ half_pos ε0) with ⟨n, hn⟩,
-  rcases continuous_topo_metric.1 (C n) x (ε/2) (half_pos ε0) with ⟨s, sx, hs⟩,
+  rcases continuous_iff'.1 (C n) x (ε/2) (half_pos ε0) with ⟨s, sx, hs⟩,
   refine ⟨_, (nhds x).inter_sets rx sx, _⟩,
   rintro y ⟨yr, ys⟩,
   calc dist (f y) (f x)
@@ -45,7 +45,7 @@ continuous_of_locally_uniform_limit_of_continuous $ λx,
 /-- A Lipschitz function is continuous -/
 lemma continuous_of_lipschitz [metric_space α] [metric_space β] {C : ℝ}
   {f : α → β} (H : ∀x y, dist (f x) (f y) ≤ C * dist x y) : continuous f :=
-continuous_of_metric.2 $ λ x ε ε0,
+continuous_iff.2 $ λ x ε ε0,
 have 0 < max C 1 := lt_of_lt_of_le zero_lt_one (le_max_right C 1),
 ⟨ε/max C 1, div_pos ε0 this, λ y hy, calc
   dist (f y) (f x) ≤ C * dist y x : H y x
@@ -137,9 +137,9 @@ instance [inhabited β] : inhabited (α →ᵇ β) := ⟨const (default β)⟩
 
 /-- The evaluation map is continuous, as a joint function of `u` and `x` -/
 theorem continuous_eval : continuous (λ p : (α →ᵇ β) × α, p.1 p.2) :=
-continuous_topo_metric.2 $ λ ⟨f, x⟩ ε ε0,
+continuous_iff'.2 $ λ ⟨f, x⟩ ε ε0,
 /- use the continuity of `f` to find a neighborhood of `x` where it varies at most by ε/2 -/
-let ⟨s, sx, Hs⟩ := continuous_topo_metric.1 f.2.1 x (ε/2) (half_pos ε0) in
+let ⟨s, sx, Hs⟩ := continuous_iff'.1 f.2.1 x (ε/2) (half_pos ε0) in
 /- s : set α, sx : s ∈ (nhds x).sets, Hs : ∀ (b : α), b ∈ s → dist (f.val b) (f.val x) < ε / 2 -/
 ⟨set.prod (ball f (ε/2)) s, prod_mem_nhds_sets (ball_mem_nhds _ (half_pos ε0)) sx,
 λ ⟨g, y⟩ ⟨hg, hy⟩, calc dist (g y) (f x)
@@ -175,7 +175,7 @@ begin
   refine ⟨⟨F, _, _⟩, _⟩,
   { /- Check that `F` is continuous -/
     refine continuous_of_uniform_limit_of_continuous (λ ε ε0, _) (λN, (f N).2.1),
-    rcases tendsto_at_top_metric.1 b_lim ε ε0 with ⟨N, hN⟩,
+    rcases metric.tendsto_at_top.1 b_lim ε ε0 with ⟨N, hN⟩,
     exact ⟨N, λy, calc
       dist (f N y) (F y) ≤ b N : fF_bdd y N
       ... ≤ dist (b N) 0 : begin simp, show b N ≤ abs(b N), from le_abs_self _ end
@@ -352,7 +352,7 @@ lemma equicontinuous_of_continuity_modulus {α : Type u} [metric_space α]
   (x:α) (ε : ℝ) (ε0 : ε > 0) : ∃U ∈ (nhds x).sets, ∀ (y z ∈ U) (f : α →ᵇ β),
     f ∈ A → dist (f y) (f z) < ε :=
 begin
-  rcases tendsto_nhds_of_metric.1 b_lim ε ε0 with ⟨δ, δ0, hδ⟩,
+  rcases tendsto_nhds_nhds.1 b_lim ε ε0 with ⟨δ, δ0, hδ⟩,
   refine ⟨ball x (δ/2), ball_mem_nhds x (half_pos δ0), λ y z hy hz f hf, _⟩,
   have : dist y z < δ := calc
     dist y z ≤ dist y x + dist z x : dist_triangle_right _ _ _

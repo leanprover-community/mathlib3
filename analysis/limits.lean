@@ -8,7 +8,7 @@ A collection of limit properties.
 import algebra.big_operators algebra.group_power tactic.norm_num
   analysis.ennreal analysis.topology.infinite_sum
 noncomputable theory
-open classical finset function filter
+open classical finset function filter metric
 local attribute [instance] prop_decidable
 
 section real

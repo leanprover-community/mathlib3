@@ -30,7 +30,7 @@ variables {J C} (F : J ⥤ C)
 natural transformations from the constant functor with value `X` to `F`.
 An object representing this functor is a limit of `F`.
 -/
-def cones : Cᵒᵖ ⥤ Type v := ((const (Jᵒᵖ)) ⋙ (op_inv J C)) ⋙ (yoneda.obj F)
+def cones : Cᵒᵖ ⥤ Type v := (const Jᵒᵖ ⋙ op_inv J C) ⋙ (yoneda.obj F)
 
 lemma cones_obj (X : C) : F.cones.obj X = ((const J).obj X ⟹ F) := rfl
 

@@ -162,6 +162,37 @@ is too aggressive in breaking down the goal. For example, given
 and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`.
 If, at any point, a subgoal matches a hypothesis then the subgoal will be closed.
 
+### convert
+
+The `exact e` and `refine e` tactics require a term `e` whose type is
+definitionally equal to the goal. `convert e` is similar to `refine
+e`, but the type of `e` is not required to exactly match the
+goal. Instead, new goals are created for differences between the type
+of `e` and the goal. For example, in the proof state
+
+```lean
+n : ℕ,
+e : prime (2 * n + 1)
+⊢ prime (n + n + 1)
+```
+
+the tactic `convert e` will change the goal to
+
+```lean
+⊢ n + n = 2 * n
+```
+
+In this example, the new goal can be solved using `ring`.
+
+The syntax `convert ← e` will reverse the direction of the new goals
+(producing `⊢ 2 * n = n + n` in this example).
+
+Internally, `convert e` works by creating a new goal asserting that
+the goal equals the type of `e`, then simplifying it using
+`congr'`. The syntax `convert e using n` can be used to control the
+depth of matching (like `congr' n`). In the example, `convert e using
+1` would produce a new goal `⊢ n + n + 1 = 2 * n + 1`.
+
 ### unfold_coes
 
 Unfold coercion-related definitions

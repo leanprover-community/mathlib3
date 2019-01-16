@@ -2,7 +2,7 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Scott Morrison
 
-/- The Yoneda embedding, as a functor `yoneda : C ⥤ ((Cᵒᵖ) ⥤ (Type v₁))`,
+/- The Yoneda embedding, as a functor `yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁)`,
    along with an instance that it is `fully_faithful`.
 
    Also the Yoneda lemma, `yoneda_lemma : (yoneda_pairing C) ≅ (yoneda_evaluation C)`. -/
@@ -75,11 +75,11 @@ def ext (X Y : C)
   (nat_iso.of_components (λ Z, { hom := p, inv := q, }) (by tidy))
 
 -- We need to help typeclass inference with some awkward universe levels here.
-instance prod_category_instance_1 : category (((Cᵒᵖ) ⥤ Type v₁) × (Cᵒᵖ)) :=
-category_theory.prod.{(max u₁ v₁)  v₁} (Cᵒᵖ ⥤ Type v₁) (Cᵒᵖ)
+instance prod_category_instance_1 : category ((Cᵒᵖ ⥤ Type v₁) × Cᵒᵖ) :=
+category_theory.prod.{(max u₁ v₁)  v₁} (Cᵒᵖ ⥤ Type v₁) Cᵒᵖ
 
-instance prod_category_instance_2 : category ((Cᵒᵖ) × ((Cᵒᵖ) ⥤ Type v₁)) :=
-category_theory.prod.{v₁ (max u₁ v₁)} (Cᵒᵖ) (Cᵒᵖ ⥤ Type v₁)
+instance prod_category_instance_2 : category (Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) :=
+category_theory.prod.{v₁ (max u₁ v₁)} Cᵒᵖ (Cᵒᵖ ⥤ Type v₁)
 
 end yoneda
 
@@ -97,7 +97,7 @@ variables (C)
 open yoneda
 
 def yoneda_evaluation : (Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) ⥤ Type (max u₁ v₁) :=
-(evaluation_uncurried (Cᵒᵖ) (Type v₁)) ⋙ ulift_functor.{u₁}
+(evaluation_uncurried Cᵒᵖ (Type v₁)) ⋙ ulift_functor.{u₁}
 
 @[simp] lemma yoneda_evaluation_map_down
   (P Q : Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) (α : P ⟶ Q) (x : (yoneda_evaluation C).obj P) :

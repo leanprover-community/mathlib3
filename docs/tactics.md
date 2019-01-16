@@ -99,11 +99,18 @@ depth of splitting; the default is 5.
 
 ### simpa
 
-This is a "finishing" tactic modification of `simp`. The tactic `simpa
-[rules, ...] using e` will simplify the hypothesis `e` using `rules`,
-then simplify the goal using `rules`, and try to close the goal using
-`assumption`. If `e` is a term instead of a local constant, it is first
-added to the local context using `have`.
+This is a "finishing" tactic modification of `simp`. It has two forms.
+
+* `simpa [rules, ...] using e` will simplify the goal and the type of
+  `e` using `rules`, then try to close the goal using `e`.
+
+  Simplifying the type of `e` makes it more likely to match the goal
+  (which has also been simplified). This construction also tends to be
+  more robust under changes to the simp lemma set.
+
+* `simpa [rules, ...]` will simplify the goal and the type of a
+  hypothesis `this` if present, then try to close the goal using
+  the `assumption` tactic.
 
 ### replace
 
@@ -154,6 +161,37 @@ is too aggressive in breaking down the goal. For example, given
 `⊢ f (g (x + y)) = f (g (y + x))`, `congr'` produces the goals `⊢ x = y`
 and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`.
 If, at any point, a subgoal matches a hypothesis then the subgoal will be closed.
+
+### convert
+
+The `exact e` and `refine e` tactics require a term `e` whose type is
+definitionally equal to the goal. `convert e` is similar to `refine
+e`, but the type of `e` is not required to exactly match the
+goal. Instead, new goals are created for differences between the type
+of `e` and the goal. For example, in the proof state
+
+```lean
+n : ℕ,
+e : prime (2 * n + 1)
+⊢ prime (n + n + 1)
+```
+
+the tactic `convert e` will change the goal to
+
+```lean
+⊢ n + n = 2 * n
+```
+
+In this example, the new goal can be solved using `ring`.
+
+The syntax `convert ← e` will reverse the direction of the new goals
+(producing `⊢ 2 * n = n + n` in this example).
+
+Internally, `convert e` works by creating a new goal asserting that
+the goal equals the type of `e`, then simplifying it using
+`congr'`. The syntax `convert e using n` can be used to control the
+depth of matching (like `congr' n`). In the example, `convert e using
+1` would produce a new goal `⊢ n + n + 1 = 2 * n + 1`.
 
 ### unfold_coes
 

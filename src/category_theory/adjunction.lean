@@ -165,6 +165,12 @@ def left_triangle := adj.to_core_unit_counit.left_triangle
 
 def right_triangle := adj.to_core_unit_counit.right_triangle
 
+def left_triangle_components {c : C} :=
+@core_unit_counit.left_triangle_components _ _ _ _ _ _ adj.to_core_unit_counit c
+
+def right_triangle_components {d : D} :=
+@core_unit_counit.right_triangle_components _ _ _ _ _ _ adj.to_core_unit_counit d
+
 end
 
 section construct_left
@@ -285,20 +291,48 @@ nat_iso.of_components (λ X,
 
 section preservation
 
-def foo {J : Type v} [small_category J] (K : J ⥤ C) : cocone (K ⋙ F) ⥤ cocone K :=
+@[simp] def foo {J : Type v} [small_category J] (K : J ⥤ C) : cocone (K ⋙ F) ⥤ cocone K :=
 (cocones.functoriality G) ⋙  (cocones.precompose
   ((right_unitor _).inv ⊟ (whisker_left K adj.unit) ⊟ (associator _ _ _).inv))
 
 def foo.adjunction {J : Type v} [small_category J] {K : J ⥤ C} :
-  adjunction (adj.foo K) (cocones.functoriality F) :=
+  adjunction (cocones.functoriality F) (adj.foo K) :=
 of_core_unit_counit _ _
 { unit :=
-  { app := λ c, _ },
+  { app := λ c,
+    { hom := adj.unit.app c.X,
+      w' :=
+      begin
+        intro j,
+        dsimp,
+        simpa using adj.unit.naturality (c.ι.app j)
+      end },
+    naturality' :=
+    begin
+      intros c₁ c₂ f,
+      ext1,
+      dsimp,
+      simpa using adj.unit.naturality (f.hom)
+    end },
   counit :=
   { app := λ c,
-  begin
-
-end } }
+    { hom := adj.counit.app c.X,
+      w' :=
+      begin
+        intro j,
+        dsimp,
+        erw [category.comp_id, category.id_comp, F.map_comp, category.assoc,
+          adj.counit.naturality (c.ι.app j), ← category.assoc, adj.left_triangle_components,
+          category.id_comp],
+        refl,
+      end },
+    naturality' :=
+    begin
+      intros c₁ c₂ f,
+      ext1,
+      dsimp,
+      simpa using adj.counit.naturality (f.hom)
+    end } }
 
 /-- A left adjoint preserves colimits. -/
 def left_adjoint_preserves_colimits : preserves_colimits F :=

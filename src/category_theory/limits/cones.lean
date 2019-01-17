@@ -230,6 +230,15 @@ def precompose {G : J ⥤ C} (α : G ⟹ F) : cocone F ⥤ cocone G :=
 { obj := λ c, { X := c.X, ι := α ⊟ c.ι },
   map := λ c₁ c₂ f, { hom := f.hom } }
 
+@[simp] lemma precompose_obj_X {G : J ⥤ C} (α : G ⟹ F) (c : cocone F) :
+  ((precompose α).obj c).X = c.X := rfl
+
+@[simp] lemma precompose_obj_ι {G : J ⥤ C} (α : G ⟹ F) (c : cocone F) :
+  ((precompose α).obj c).ι = α ⊟ c.ι := rfl
+
+@[simp] lemma precompose_map_hom {G : J ⥤ C} (α : G ⟹ F) {c₁ c₂ : cocone F} (f : c₁ ⟶ c₂) :
+  ((precompose α).map f).hom = f.hom := rfl
+
 section
 variables {D : Type u'} [𝒟 : category.{v} D]
 include 𝒟

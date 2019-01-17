@@ -7,6 +7,7 @@ Authors: Reid Barton, Johan Commelin
 import category_theory.limits.preserves
 import category_theory.whiskering
 import data.equiv.basic
+import tactic.where
 
 namespace category_theory
 open category
@@ -22,9 +23,9 @@ include 𝒞 𝒟
 structure adjunction.core_hom_equiv (F : C ⥤ D) (G : D ⥤ C) :=
 (hom_equiv : Π (X Y), (F.obj X ⟶ Y) ≃ (X ⟶ G.obj Y))
 (hom_equiv_naturality_left' : Π {X' X Y} (f : X' ⟶ X) (g : F.obj X ⟶ Y),
-  (hom_equiv _ _).to_fun (F.map f ≫ g) = f ≫ (hom_equiv _ _).to_fun g . obviously)
+  (hom_equiv X' Y) (F.map f ≫ g) = f ≫ (hom_equiv X Y) g . obviously)
 (hom_equiv_naturality_right' : Π {X Y Y'} (f : F.obj X ⟶ Y) (g : Y ⟶ Y'),
-  (hom_equiv _ _).to_fun (f ≫ g) = (hom_equiv _ _).to_fun f ≫ G.map g . obviously)
+  (hom_equiv X Y') (f ≫ g) = (hom_equiv X Y) f ≫ G.map g . obviously)
 
 namespace adjunction.core_hom_equiv
 
@@ -35,21 +36,17 @@ restate_axiom hom_equiv_naturality_right'
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : adjunction.core_hom_equiv F G) {X' X : C} {Y Y' : D}
 
 lemma hom_equiv_naturality_left_symm (f : X' ⟶ X) (g : X ⟶  G.obj Y) :
-  (adj.hom_equiv _ _).inv_fun (f ≫ g) = F.map f ≫ (adj.hom_equiv _ _).inv_fun g :=
+  (adj.hom_equiv X' Y).symm (f ≫ g) = F.map f ≫ (adj.hom_equiv X Y).symm g :=
 begin
-  conv {
-    to_rhs,
-    rw ← (adj.hom_equiv X' Y).left_inv (F.map f ≫ (adj.hom_equiv X Y).inv_fun g) },
-  simp [(adj.hom_equiv _ _).right_inv g]
+  rw [← equiv.apply_eq_iff_eq (adj.hom_equiv X' Y)],
+  simp
 end
 
 @[simp] lemma hom_equiv_naturality_right_symm (f : X ⟶  G.obj Y) (g : Y ⟶ Y') :
-  (adj.hom_equiv _ _).inv_fun (f ≫ G.map g) = (adj.hom_equiv _ _).inv_fun f ≫ g :=
+  (adj.hom_equiv X Y').symm (f ≫ G.map g) = (adj.hom_equiv X Y).symm f ≫ g :=
 begin
-  conv {
-    to_rhs,
-    rw ← (adj.hom_equiv X Y').left_inv ((adj.hom_equiv X Y).inv_fun f ≫ g) },
-  simp [hom_equiv_naturality_right, (adj.hom_equiv _ _).right_inv f]
+  rw [← equiv.apply_eq_iff_eq (adj.hom_equiv X Y')],
+  simp [hom_equiv_naturality_right]
 end
 
 end adjunction.core_hom_equiv
@@ -89,7 +86,7 @@ structure adjunction (F : C ⥤ D) (G : D ⥤ C) extends
 (counit_hom_equiv : Π {Y}, counit.app Y = (hom_equiv _ _).inv_fun (𝟙 (G.obj Y)) . obviously)
 
 namespace adjunction
-variables {F : C ⥤ D} {G : D ⥤ C}
+variables (F : C ⥤ D) (G : D ⥤ C)
 
 def of_core_hom_equiv (adj : core_hom_equiv F G) : adjunction F G :=
 { unit :=
@@ -169,6 +166,41 @@ def left_triangle := adj.to_core_unit_counit.left_triangle
 def right_triangle := adj.to_core_unit_counit.right_triangle
 
 end
+
+section construct_left
+-- Construction of a left adjoint. In order to construct a left
+-- adjoint to a functor G : D → C, it suffices to give the object part
+-- of a functor F : C → D together with isomorphisms Hom(FX, Y) ≃
+-- Hom(X, GY) natural in Y. The action of F on morphisms can be
+-- constructed from this data.
+variables {F_obj : C → D} {G}
+variables (e : Π X Y, (F_obj X ⟶ Y) ≃ (X ⟶ G.obj Y))
+variables (he : Π X Y Y' g h, e X Y' (h ≫ g) = e X Y h ≫ G.map g)
+include he
+
+def left_adjoint_of_equiv : C ⥤ D :=
+{ obj := F_obj,
+  map := λ X X' f, (e X (F_obj X')).symm (f ≫ e X' (F_obj X') (𝟙 _)),
+  map_comp' := λ X X' X'' f f', begin
+    rw [equiv.symm_apply_eq, he, equiv.apply_inverse_apply],
+    conv { to_rhs, rw [assoc, ←he, id_comp, equiv.apply_inverse_apply] },
+    simp
+  end }
+
+def adjunction_of_equiv_left : adjunction (left_adjoint_of_equiv e he) G :=
+of_core_hom_equiv (left_adjoint_of_equiv e he) G
+{ hom_equiv := e,
+  hom_equiv_naturality_left' :=
+  begin
+    intros X' X Y f h,
+    dsimp [left_adjoint_of_equiv],
+    rw [he, equiv.apply_inverse_apply, assoc, ←he],
+    simp
+  end
+}
+
+end construct_left
+
 
 end adjunction
 

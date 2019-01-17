@@ -8,7 +8,7 @@ Cardinal arithmetic.
 Cardinals are represented as quotient over equinumerous types.
 -/
 
-import data.set.finite data.quot logic.schroeder_bernstein logic.function
+import data.set.finite data.quot logic.function set_theory.schroeder_bernstein
 
 open function lattice set
 local attribute [instance] classical.prop_decidable

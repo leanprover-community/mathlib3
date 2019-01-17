@@ -147,7 +147,7 @@ def of_core_unit_counit (adj : core_unit_counit F G) : adjunction F G :=
   .. adj }
 
 section
-variables (adj : adjunction F G) {X' X : C} {Y Y' : D}
+variables {F} {G} (adj : adjunction F G) {X' X : C} {Y Y' : D}
 
 def hom_equiv_naturality_left (f : X' ⟶ X) (g : F.obj X ⟶ Y) :=
 adj.to_core_hom_equiv.hom_equiv_naturality_left f g
@@ -193,14 +193,41 @@ of_core_hom_equiv (left_adjoint_of_equiv e he) G
   hom_equiv_naturality_left' :=
   begin
     intros X' X Y f h,
-    dsimp [left_adjoint_of_equiv],
-    rw [he, equiv.apply_inverse_apply, assoc, ←he],
-    simp
+    erw [he, equiv.apply_inverse_apply, assoc, ←he, id_comp]
   end
 }
 
 end construct_left
 
+section construct_right
+-- Construction of a right adjoint, analogous to the above.
+variables {F} {G_obj : D → C}
+variables (e : Π X Y, (F.obj X ⟶ Y) ≃ (X ⟶ G_obj Y))
+variables (he : Π X' X Y f h, e X' Y (F.map f ≫ h) = f ≫ e X Y h)
+include he
+
+private lemma he' (X' X Y f h) : F.map f ≫ (e X Y).symm h = (e X' Y).symm (f ≫ h) :=
+by intros; rw [equiv.eq_symm_apply, he]; simp
+
+def right_adjoint_of_equiv : D ⥤ C :=
+{ obj := G_obj,
+  map := λ Y Y' g, (e (G_obj Y) Y') ((e (G_obj Y) Y).symm (𝟙 _) ≫ g),
+  map_comp' := λ Y Y' Y'' g g', begin
+    rw [← equiv.eq_symm_apply, ← he' e he, equiv.inverse_apply_apply],
+    conv { to_rhs, rw [← assoc, he' e he, comp_id, equiv.inverse_apply_apply] },
+    simp
+  end }
+
+def adjunction_of_equiv_right : adjunction F (right_adjoint_of_equiv e he) :=
+of_core_hom_equiv F (right_adjoint_of_equiv e he)
+{ hom_equiv := e,
+  hom_equiv_naturality_right' :=
+  begin
+    intros X Y Y' g h,
+    erw [←he, equiv.apply_eq_iff_eq, ←assoc, he' e he, comp_id, equiv.inverse_apply_apply]
+  end }
+
+end construct_right
 
 end adjunction
 
@@ -219,29 +246,29 @@ include 𝒞 𝒟
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : adjunction F G)
 
 def cocone_equiv {J : Type v} [small_category J] {X : J ⥤ C} {Y : D} :
-  (X.comp F ⟹ (const J).obj Y) ≃ (X ⟹ (const J).obj (G.obj Y)) :=
+  ((X ⋙ F) ⟶ ((const J).obj Y)) ≃ (X ⟶ ((const J).obj (G.obj Y))) :=
 { to_fun := λ t,
-  { app := λ j, (adj.hom_equiv _ _).to_fun (t.app j),
-    naturality' := λ j j' f, by erw [←adj.hom_equiv_naturality_left, t.naturality]; dsimp; simp },
+  { app := λ j, (adj.hom_equiv (X.obj j) Y) (t.app j),
+    naturality' := λ j j' f, by erw [← adj.hom_equiv_naturality_left, t.naturality]; dsimp; simp },
   inv_fun := λ t,
-  { app := λ j, (adj.hom_equiv _ _).inv_fun (t.app j),
+  { app := λ j, (adj.hom_equiv (X.obj j) Y).symm (t.app j),
     naturality' := λ j j' f, begin
-      erw [←adj.hom_equiv_naturality_left_symm, ←adj.hom_equiv_naturality_right_symm, t.naturality],
-      congr, dsimp, simp
+      erw [← adj.hom_equiv_naturality_left_symm, ← adj.hom_equiv_naturality_right_symm, t.naturality],
+      dsimp [const], simp
     end },
   left_inv := λ t, by ext j; apply (adj.hom_equiv _ _).left_inv,
   right_inv := λ t, by ext j; apply (adj.hom_equiv _ _).right_inv }
 
 def cone_equiv {J : Type v} [small_category J] {X : C} {Y : J ⥤ D} :
-  ((const J).obj (F.obj X) ⟹ Y) ≃ ((const J).obj X ⟹ Y.comp G) :=
+  ((const J).obj (F.obj X) ⟶ Y) ≃ ((const J).obj X ⟶ Y ⋙ G) :=
 { to_fun := λ t,
-  { app := λ j, (adj.hom_equiv _ _).to_fun (t.app j),
+  { app := λ j, (adj.hom_equiv X (Y.obj j)) (t.app j),
     naturality' := λ j j' f, begin
       erw [←adj.hom_equiv_naturality_left, ←adj.hom_equiv_naturality_right, ←t.naturality],
       dsimp, simp
     end },
   inv_fun := λ t,
-  { app := λ j, (adj.hom_equiv _ _).inv_fun (t.app j),
+  { app := λ j, (adj.hom_equiv X (Y.obj j)).symm (t.app j),
     naturality' := λ j j' f,
       by erw [←adj.hom_equiv_naturality_right_symm, ←t.naturality]; dsimp; simp },
   left_inv := λ t, by ext j; apply (adj.hom_equiv _ _).left_inv,

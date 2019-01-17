@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 
-A collection of limit properties.
+A collection of specific limit computations.
 -/
 import algebra.big_operators algebra.group_power tactic.norm_num
   topology.instances.ennreal topology.algebra.infinite_sum

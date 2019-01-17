@@ -98,3 +98,6 @@ by linarith
 
 example (a b i : ℕ) (h1 :  ¬ a < i) (h2 : b < i) (h3 : a ≤ b) : false :=
 by linarith
+
+example (a b c : ℚ) (h1 : 1 / a < b) (h2 : b < c) : 1 / a < c := 
+by linarith

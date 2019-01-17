@@ -16,7 +16,7 @@ topological spaces. For example:
 The class `emetric_space` therefore extends `uniform_space` (and `topological_space`).
 -/
 
-import data.real.nnreal data.real.ennreal general_topology.algebra.topological_structures
+import data.real.nnreal data.real.ennreal topology.algebra.topological_structures
 open lattice set filter classical
 noncomputable theory
 

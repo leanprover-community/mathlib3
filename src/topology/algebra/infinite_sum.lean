@@ -10,7 +10,7 @@ permutations. For Euclidean spaces (finite dimensional Banach spaces) this is eq
 convergence.
 -/
 import logic.function algebra.big_operators data.set data.finset
-       general_topology.metric_space.basic general_topology.algebra.topological_structures
+       topology.metric_space.basic topology.algebra.topological_structures
 
 noncomputable theory
 open lattice finset filter function classical

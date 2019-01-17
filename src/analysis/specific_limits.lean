@@ -6,7 +6,7 @@ Authors: Johannes Hölzl
 A collection of limit properties.
 -/
 import algebra.big_operators algebra.group_power tactic.norm_num
-  topology.instances.ennreal general_topology.algebra.infinite_sum
+  topology.instances.ennreal topology.algebra.infinite_sum
 noncomputable theory
 open classical finset function filter metric
 local attribute [instance] prop_decidable

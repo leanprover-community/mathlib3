@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2019 Reid Barton. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Reid Barton, Johan Commelin
+-/
+
 import category_theory.limits.preserves
 import category_theory.whiskering
 import data.equiv.basic
@@ -143,6 +149,104 @@ def of_core_unit_counit (adj : core_unit_counit F G) : adjunction F G :=
   end,
   .. adj }
 
+section
+variables (adj : adjunction F G) {X' X : C} {Y Y' : D}
+
+def hom_equiv_naturality_left (f : X' ⟶ X) (g : F.obj X ⟶ Y) :=
+adj.to_core_hom_equiv.hom_equiv_naturality_left f g
+
+def hom_equiv_naturality_right (f : F.obj X ⟶ Y) (g : Y ⟶ Y') :=
+adj.to_core_hom_equiv.hom_equiv_naturality_right f g
+
+def hom_equiv_naturality_left_symm (f : X' ⟶ X) (g : X ⟶ G.obj Y) :=
+adj.to_core_hom_equiv.hom_equiv_naturality_left_symm f g
+
+def hom_equiv_naturality_right_symm (f : X ⟶ G.obj Y) (g : Y ⟶ Y') :=
+adj.to_core_hom_equiv.hom_equiv_naturality_right_symm f g
+
+def left_triangle := adj.to_core_unit_counit.left_triangle
+
+def right_triangle := adj.to_core_unit_counit.right_triangle
+
+end
+
 end adjunction
 
 end category_theory
+
+namespace category_theory.adjunction
+open category_theory
+open category_theory.functor
+open category_theory.limits
+
+universes u₁ u₂ v
+
+variables {C : Type u₁} [𝒞 : category.{v} C] {D : Type u₂} [𝒟 : category.{v} D]
+include 𝒞 𝒟
+
+variables {F : C ⥤ D} {G : D ⥤ C} (adj : adjunction F G)
+
+def cocone_equiv {J : Type v} [small_category J] {X : J ⥤ C} {Y : D} :
+  (X.comp F ⟹ (const J).obj Y) ≃ (X ⟹ (const J).obj (G.obj Y)) :=
+{ to_fun := λ t,
+  { app := λ j, (adj.hom_equiv _ _).to_fun (t.app j),
+    naturality' := λ j j' f, by erw [←adj.hom_equiv_naturality_left, t.naturality]; dsimp; simp },
+  inv_fun := λ t,
+  { app := λ j, (adj.hom_equiv _ _).inv_fun (t.app j),
+    naturality' := λ j j' f, begin
+      erw [←adj.hom_equiv_naturality_left_symm, ←adj.hom_equiv_naturality_right_symm, t.naturality],
+      congr, dsimp, simp
+    end },
+  left_inv := λ t, by ext j; apply (adj.hom_equiv _ _).left_inv,
+  right_inv := λ t, by ext j; apply (adj.hom_equiv _ _).right_inv }
+
+def cone_equiv {J : Type v} [small_category J] {X : C} {Y : J ⥤ D} :
+  ((const J).obj (F.obj X) ⟹ Y) ≃ ((const J).obj X ⟹ Y.comp G) :=
+{ to_fun := λ t,
+  { app := λ j, (adj.hom_equiv _ _).to_fun (t.app j),
+    naturality' := λ j j' f, begin
+      erw [←adj.hom_equiv_naturality_left, ←adj.hom_equiv_naturality_right, ←t.naturality],
+      dsimp, simp
+    end },
+  inv_fun := λ t,
+  { app := λ j, (adj.hom_equiv _ _).inv_fun (t.app j),
+    naturality' := λ j j' f,
+      by erw [←adj.hom_equiv_naturality_right_symm, ←t.naturality]; dsimp; simp },
+  left_inv := λ t, by ext j; apply (adj.hom_equiv _ _).left_inv,
+  right_inv := λ t, by ext j; apply (adj.hom_equiv _ _).right_inv }
+
+section preservation
+
+include adj
+
+-- /-- A left adjoint preserves colimits. -/
+-- def left_adjoint_preserves_colimits : preserves_colimits F :=
+-- λ J 𝒥 K, by resetI; exact
+--  ⟨by exactI λ Y c h, limits.is_colimit.of_equiv
+--   (λ Z, calc
+--      (F.obj c.X ⟶ Z) ≃ (c.X ⟶ G.obj Z)            : adj.hom_equiv
+--      ... ≃ (Y ⟹ (functor.const J).obj (G.obj Z))  : h.equiv
+--      ... ≃ (Y.comp F ⟹ (functor.const J).obj Z)   : adj.cocone_equiv.symm)
+--   (λ Z f j, begin
+--      dsimp [is_colimit.equiv, cocone_equiv],
+--      rw adj.hom_equiv_symm_naturality,
+--      erw adj.hom_equiv.left_inv f
+--    end)⟩
+
+-- /-- A right adjoint preserves limits. -/
+-- def right_adjoint_preserves_limits : preserves_limits G :=
+-- ⟨λ J 𝒥, by exactI λ Y c h, limits.is_limit.of_equiv
+--   (λ Z, calc
+--      (Z ⟶ G.obj c.X) ≃ (F.obj Z ⟶ c.X)            : adj.hom_equiv.symm
+--      ... ≃ ((functor.const J).obj (F.obj Z) ⟹ Y)  : (h.equiv (F.obj Z)).to_equiv
+--      ... ≃ ((functor.const J).obj Z ⟹ Y.comp G)   : adj.cone_equiv)
+--   (λ Z f j, begin
+--      dsimp [is_limit.equiv, cone_equiv],
+--      rw adj.hom_equiv_naturality,
+--      erw adj.hom_equiv.right_inv f,
+--      simp
+--    end)⟩
+
+end preservation
+
+end category_theory.adjunction

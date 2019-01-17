@@ -285,6 +285,21 @@ nat_iso.of_components (λ X,
 
 section preservation
 
+def foo {J : Type v} [small_category J] (K : J ⥤ C) : cocone (K ⋙ F) ⥤ cocone K :=
+(cocones.functoriality G) ⋙  (cocones.precompose
+  ((right_unitor _).inv ⊟ (whisker_left K adj.unit) ⊟ (associator _ _ _).inv))
+
+def foo.adjunction {J : Type v} [small_category J] {K : J ⥤ C} :
+  adjunction (adj.foo K) (cocones.functoriality F) :=
+of_core_unit_counit _ _
+{ unit :=
+  { app := λ c, _ },
+  counit :=
+  { app := λ c,
+  begin
+
+end } }
+
 /-- A left adjoint preserves colimits. -/
 def left_adjoint_preserves_colimits : preserves_colimits F :=
 λ J 𝒥 K, by resetI; exact

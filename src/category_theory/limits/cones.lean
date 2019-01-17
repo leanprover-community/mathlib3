@@ -141,10 +141,6 @@ namespace cocone
 { X := X,
   ι := c.extensions.app X f }
 
-def precompose {G : J ⥤ C} (α : G ⟹ F) (c : cocone F) : cocone G :=
-{ X := c.X,
-  ι := α ⊟ c.ι }
-
 def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cocone F) : cocone (E ⋙ F) :=
 { X := c.X,
   ι := whisker_left E c.ι }
@@ -230,6 +226,10 @@ namespace cocones
 { hom := { hom := φ.hom },
   inv := { hom := φ.inv, w' := λ j, φ.comp_inv_eq.mpr (w j).symm } }
 
+def precompose {G : J ⥤ C} (α : G ⟹ F) : cocone F ⥤ cocone G :=
+{ obj := λ c, { X := c.X, ι := α ⊟ c.ι },
+  map := λ c₁ c₂ f, { hom := f.hom } }
+
 section
 variables {D : Type u'} [𝒟 : category.{v} D]
 include 𝒟
@@ -271,3 +271,4 @@ def map_cocone_morphism {c c' : cocone F} (f : cocone_morphism c c') :
 end functor
 
 end category_theory
+  

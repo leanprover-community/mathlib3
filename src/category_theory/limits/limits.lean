@@ -607,7 +607,7 @@ variables {F} {G : J ⥤ C} (α : F ⟹ G)
 by apply is_colimit.fac
 
 @[simp] lemma colimit.map_desc (c : cocone G) :
-  colim.map α ≫ colimit.desc G c = colimit.desc F (c.precompose α) :=
+  colim.map α ≫ colimit.desc G c = colimit.desc F ((cocones.precompose α).obj c) :=
 by ext; rw [←assoc, colim.ι_map, assoc, colimit.ι_desc, colimit.ι_desc]; refl
 
 lemma colimit.pre_map {K : Type v} [small_category K] [has_colimits_of_shape K C] (E : K ⥤ J) :

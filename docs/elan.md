@@ -42,8 +42,9 @@ all users.
    On Linux and on macOS, this automatically appends a line to your `$HOME/.profile`
    which prepends `$HOME/.elan/bin` to your `$PATH`.
 
-   On Windows, this doesn't happen automatically, so you'll need to run
-   `echo 'PATH="$HOME/.elan/bin:$PATH"' >> $HOME/.profile` in the terminal.
+   On Windows, this doesn't happen automatically. 
+   * With Git for Windows you'll need to run `echo 'PATH="$HOME/.elan/bin:$PATH"' >> $HOME/.profile` in the terminal.
+   * With MSYS2 you'll need to run `echo 'PATH="/c/Users/$USERNAME/.elan/bin:$PATH"' >> $HOME/.bashrc`.
 
    It is recommended that you re-login,
    so that your environment knows about `elan`.

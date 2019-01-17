@@ -11,12 +11,14 @@ universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.c
 
 def op (C : Type u₁) : Type u₁ := C
 
-notation C `ᵒᵖ`:80 := op C
+-- Use a high right binding power (like that of postfix ⁻¹) so that, for example,
+-- `presheaf Cᵒᵖ` parses as `presheaf (Cᵒᵖ)` and not `(presheaf C)ᵒᵖ`.
+notation C `ᵒᵖ`:std.prec.max_plus := op C
 
 variables {C : Type u₁} [𝒞 : category.{v₁} C]
 include 𝒞
 
-instance opposite : category.{v₁} (Cᵒᵖ) :=
+instance opposite : category.{v₁} Cᵒᵖ :=
 { hom  := λ X Y : C, Y ⟶ X,
   comp := λ _ _ _ f g, g ≫ f,
   id   := λ X, 𝟙 X }

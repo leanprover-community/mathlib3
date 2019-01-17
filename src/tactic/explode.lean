@@ -91,7 +91,7 @@ with explode.core : expr → bool → nat → entries → tactic entries
   if si then
     let en : entry := ⟨l, es.size, depth, status.sintro, to_string n, []⟩ in do
     es' ← explode.core b' si depth (es.add en),
-    return $ es'.add ⟨e, es'.size, depth, status.lam, "∀I", [es.size]⟩
+    return $ es'.add ⟨e, es'.size, depth, status.lam, "∀I", [es.size, es'.size - 1]⟩
   else do
     let en : entry := ⟨l, es.size, depth, status.intro, to_string n, []⟩,
     es' ← explode.core b' si (depth + 1) (es.add en),

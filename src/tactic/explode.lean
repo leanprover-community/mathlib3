@@ -89,8 +89,10 @@ with explode.core : expr → bool → nat → entries → tactic entries
   let l := local_const m n bi d,
   let b' := instantiate_var b l,
   if si then
-    let en : entry := ⟨l, es.size, depth, status.sintro, to_string n, []⟩ in
-    explode.core b' si depth (es.add en)
+    let deps := es.size in
+    let en : entry := ⟨l, es.size, depth, status.sintro, to_string n, []⟩ in do
+    es ← explode.core b' si depth (es.add en),
+    return $ es.add ⟨e, es.size, depth, status.lam, "∀I", [deps]⟩
   else do
     let en : entry := ⟨l, es.size, depth, status.intro, to_string n, []⟩,
     es' ← explode.core b' si (depth + 1) (es.add en),

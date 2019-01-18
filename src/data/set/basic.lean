@@ -1043,6 +1043,9 @@ range_iff_surjective.2 quot.exists_rep
   range (@subtype.val _ p) = {x | p x} :=
 by rw ← image_univ; simp [-image_univ, subtype_val_image]
 
+@[simp] lemma range_coe_subtype (s : set α): range (coe : s → α) = s :=
+subtype_val_range
+
 lemma range_const_subset {c : β} : range (λx:α, c) ⊆ {c} :=
 range_subset_iff.2 $ λ x, or.inl rfl
 
@@ -1072,6 +1075,8 @@ variables {s s₁ s₂ : set α} {t t₁ t₂ : set β}
   such that `a ∈ s` and `b ∈ t`. -/
 protected def prod (s : set α) (t : set β) : set (α × β) :=
 {p | p.1 ∈ s ∧ p.2 ∈ t}
+
+lemma prod_eq (s : set α) (t : set β) : set.prod s t = prod.fst ⁻¹' s ∩ prod.snd ⁻¹' t := rfl
 
 theorem mem_prod_eq {p : α × β} : p ∈ set.prod s t = (p.1 ∈ s ∧ p.2 ∈ t) := rfl
 

@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import analysis.real analysis.complex tactic.linarith data.complex.exponential
+import topology.instances.real topology.instances.complex tactic.linarith data.complex.exponential
 
 open finset filter metric
 

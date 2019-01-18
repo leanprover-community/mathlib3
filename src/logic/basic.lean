@@ -704,14 +704,3 @@ lemma nonempty.map {α : Sort u} {β : Sort v} (f : α → β) : nonempty α →
 | ⟨h⟩ := ⟨f h⟩
 
 end nonempty
-
-namespace inhabited
-universes u v
-open function
-
-variables {α : Sort u} {β : Sort v}
-
-def of_function (f : α → β) [inhabited α] : inhabited β :=
-⟨f (default _)⟩
-
-end inhabited

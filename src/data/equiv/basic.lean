@@ -472,8 +472,7 @@ def inhabited_of_equiv [inhabited β] (e : α ≃ β) : inhabited α :=
 ⟨e.symm (default _)⟩
 
 def unique_of_equiv [unique β] (e : α ≃ β) : unique α :=
-{ uniq := λ _, (e.apply_eq_iff_eq _ _).mp $ subsingleton.elim _ _,
-  ..e.inhabited_of_equiv }
+unique.of_surjective e.symm.bijective.2
 
 def unique_unique_equiv : unique (unique α) ≃ unique α :=
 { to_fun := λ h, h.default,

@@ -471,6 +471,10 @@ def decidable_eq_of_equiv [decidable_eq β] (e : α ≃ β) : decidable_eq α
 def inhabited_of_equiv [inhabited β] (e : α ≃ β) : inhabited α :=
 ⟨e.symm (default _)⟩
 
+def unique_of_equiv [unique β] (e : α ≃ β) : unique α :=
+{ uniq := λ _ _, (e.apply_eq_iff_eq _ _).mp $ unique.uniq _ _,
+  ..e.inhabited_of_equiv }
+
 section
 open subtype
 

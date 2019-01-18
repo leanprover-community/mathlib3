@@ -433,7 +433,6 @@ end
 theorem uniformity_edist : uniformity = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
 by simpa [infi_subtype] using @metric.uniformity_edist' α _
 
-open emetric
 /-- A metric space induces an emetric space -/
 instance metric_space.to_emetric_space [a : metric_space α] : emetric_space α :=
 { edist               := edist,
@@ -869,91 +868,6 @@ instance metric_space_pi : metric_space (Πb, π b) :=
 
 end pi
 
-section first_countable
-
-instance metric_space.first_countable_topology (α : Type u) [metric_space α] :
-  first_countable_topology α :=
-⟨assume a, ⟨⋃ i:ℕ, {ball a (i + 1 : ℝ)⁻¹},
-  countable_Union $ assume n, countable_singleton _,
-  suffices (⨅ i:{ i : ℝ // i > 0}, principal (ball a i)) = ⨅ (n : ℕ), principal (ball a (↑n + 1)⁻¹),
-    by simpa [nhds_eq, @infi_comm _ _ ℕ],
-  begin
-    apply le_antisymm,
-    { refine le_infi (assume n, infi_le_of_le _ _),
-      exact ⟨(n + 1)⁻¹, inv_pos $ add_pos_of_nonneg_of_pos (nat.cast_nonneg n) zero_lt_one⟩,
-      exact le_refl _ },
-    refine le_infi (assume ε, _),
-    rcases exists_nat_gt (ε:ℝ)⁻¹ with ⟨_ | n, εn⟩,
-    { exact (lt_irrefl (0:ℝ) $ lt_trans (inv_pos ε.2) εn).elim },
-    refine infi_le_of_le n (principal_mono.2 $ ball_subset_ball $ _),
-    exact (inv_le ε.2 $ add_pos_of_nonneg_of_pos (nat.cast_nonneg n) zero_lt_one).1 (le_of_lt εn)
-  end⟩⟩
-
-end first_countable
-
-section second_countable
-
-/-- A separable metric space is second countable: one obtains a countable basis by taking
-the balls centered at points in a dense subset, and with rational radii. We do not register
-this as an instance, as there is already an instance going in the other direction
-from second countable spaces to separable spaces, and we want to avoid loops. -/
-lemma second_countable_of_separable_metric_space (α : Type u) [metric_space α] [separable_space α] :
-  second_countable_topology α :=
-let ⟨S, ⟨S_countable, S_dense⟩⟩ := separable_space.exists_countable_closure_eq_univ α in
-⟨⟨⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)},
-⟨show countable ⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)},
-begin
-  apply countable_bUnion S_countable,
-  intros a aS,
-  apply countable_Union,
-  simp
-end,
-show uniform_space.to_topological_space α = generate_from (⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)}),
-begin
-  have A : ∀ (u : set α), (u ∈ ⋃x ∈ S, ⋃ (n : nat), ({ball x ((n : ℝ)⁻¹)} : set (set α))) → is_open u :=
-  begin
-    simp,
-    intros u x hx i u_ball,
-    rw [u_ball],
-    apply is_open_ball
-  end,
-  have B : is_topological_basis (⋃x ∈ S, ⋃ (n : nat), ({ball x (n⁻¹)} : set (set α))) :=
-  begin
-    apply is_topological_basis_of_open_of_nhds A,
-    intros a u au open_u,
-    rcases is_open_iff.1 open_u a au with ⟨ε, εpos, εball⟩,
-    have : ε / 2 > 0 := half_pos εpos,
-    /- The ball `ball a ε` is included in `u`. We need to find one of our balls `ball x (n⁻¹)`
-    containing `a` and contained in `ball a ε`. For this, we take `n` larger than `2/ε`, and
-    then `x` in `S` at distance at most `n⁻¹` of `a`-/
-    rcases exists_nat_gt (ε/2)⁻¹ with ⟨n, εn⟩,
-    have : (n : ℝ) > 0 := lt_trans (inv_pos ‹ε/2 > 0›) εn,
-    have : 0 < (n : ℝ)⁻¹ := inv_pos this,
-    have : (n : ℝ)⁻¹ < ε/2 := (inv_lt ‹ε/2 > 0› ‹(n : ℝ) > 0›).1 εn,
-    have : (a : α) ∈ closure (S : set α) := by rw [S_dense]; simp,
-    rcases metric.mem_closure_iff'.1 this _ ‹0 < (n : ℝ)⁻¹› with ⟨x, xS, xdist⟩,
-    have : a ∈ ball x (n⁻¹) := by simpa,
-    have : ball x (n⁻¹) ⊆ ball a ε :=
-    begin
-      intros y,
-      simp,
-      intros ydist,
-      calc dist y a = dist a y : dist_comm _ _
-          ... ≤ dist a x + dist y x : dist_triangle_right _ _ _
-          ... < n⁻¹ + n⁻¹ : add_lt_add xdist ydist
-          ... < ε/2 + ε/2 : add_lt_add ‹(n : ℝ)⁻¹ < ε/2› ‹(n : ℝ)⁻¹ < ε/2›
-          ... = ε : add_halves _,
-    end,
-    have : ball x (n⁻¹) ⊆ u := subset.trans this εball,
-    existsi ball x (↑n)⁻¹,
-    simp,
-    exact ⟨⟨x, xS, n, rfl⟩, by assumption, by assumption⟩,
-  end,
-  exact B.2.2,
-end⟩⟩⟩
-
-end second_countable
-
 section compact
 
 /-- Any compact set in a metric space can be covered by finitely many balls of a given positive
@@ -967,46 +881,6 @@ begin
   { intros x xs,
     simp,
     exact ⟨x, ⟨xs, by simpa⟩⟩ }
-end
-
-/-- A compact set in a metric space is separable, i.e., it is the closure of a countable set -/
-lemma countable_closure_of_compact {α : Type u} [metric_space α] {s : set α} (hs : compact s) :
-  ∃ t ⊆ s, countable t ∧ s = closure t :=
-begin
-  have A : ∀ (e:ℝ), e > 0 → ∃ t ⊆ s, (finite t ∧ s ⊆ (⋃x∈t, ball x e)) :=
-    assume e, finite_cover_balls_of_compact hs,
-  have B : ∀ (e:ℝ), ∃ t ⊆ s, finite t ∧ (e > 0 → s ⊆ (⋃x∈t, ball x e)) :=
-  begin
-    intro e,
-    cases le_or_gt e 0 with h,
-    { exact ⟨∅, by finish⟩ },
-    { rcases A e h with ⟨s, ⟨finite_s, closure_s⟩⟩, existsi s, finish }
-  end,
-  /- The desired countable set is obtained by taking for each `n` the centers of a finite cover
-  by balls of radius `1/n`, and then the union over `n`. -/
-  choose T T_in_s finite_T using B,
-  let t := ⋃n, T (n : ℕ)⁻¹,
-  have T₁ : t ⊆ s := begin apply Union_subset, assume n, apply T_in_s end,
-  have T₂ : countable t := by finish [countable_Union, countable_finite],
-  have T₃ : s ⊆ closure t :=
-  begin
-    intros x x_in_s,
-    apply metric.mem_closure_iff'.2,
-    intros ε εpos,
-    rcases exists_nat_gt ε⁻¹ with ⟨n, εn⟩,
-    have : (n : ℝ) > 0 := lt_trans (inv_pos εpos) εn,
-    have inv_n_pos : 0 < (n : ℝ)⁻¹ := inv_pos this,
-    have C : x ∈ (⋃y∈ T (↑n)⁻¹, ball y (↑n)⁻¹) := mem_of_mem_of_subset x_in_s ((finite_T (↑n)⁻¹).2 inv_n_pos),
-    rcases mem_Union.1 C with ⟨y, _, ⟨y_in_T, rfl⟩, x_w⟩,
-    simp at x_w,
-    have : y ∈ t := mem_of_mem_of_subset y_in_T (by apply subset_Union (λ (n:ℕ), T (n : ℝ)⁻¹)),
-    have : dist x y < ε := lt_trans x_w ((inv_lt εpos ‹(n : ℝ) > 0›).1 εn),
-    exact ⟨y, ‹y ∈ t›, ‹dist x y < ε›⟩
-  end,
-  have T₄ : closure t ⊆ s :=
-  calc closure t ⊆ closure s : closure_mono T₁
-             ... = s : closure_eq_of_is_closed (closed_of_compact _ hs),
-  exact ⟨t, ⟨T₁, T₂, subset.antisymm T₃ T₄⟩⟩
 end
 
 end compact
@@ -1073,7 +947,7 @@ begin
     assume non_empty,
     rcases ne_empty_iff_exists_mem.1 non_empty with ⟨x, x_univ⟩,
     choose T a using show ∀ (r:ℝ), ∃ t ⊆ closed_ball x r, (countable (t : set α) ∧ closed_ball x r = closure t),
-      from assume r, countable_closure_of_compact (proper_space.compact_ball _ _),
+      from assume r, emetric.countable_closure_of_compact (proper_space.compact_ball _ _),
     let t := (⋃n:ℕ, T (n : ℝ)),
     have T₁ : countable t := by finish [countable_Union],
     have T₂ : closure t ⊆ univ := by simp,
@@ -1089,7 +963,7 @@ begin
     exact ⟨t, ⟨T₁, subset.antisymm T₂ T₃⟩⟩
   end,
   haveI : separable_space α := ⟨by_cases A B⟩,
-  apply second_countable_of_separable_metric_space,
+  apply emetric.second_countable_of_separable,
 end
 
 end proper_space

@@ -7,7 +7,7 @@ Basic setup for measurable spaces.
 
 import category_theory.examples.topological_spaces
 import category_theory.types
-import analysis.measure_theory.borel_space
+import measure_theory.borel_space
 
 open category_theory
 universes u v

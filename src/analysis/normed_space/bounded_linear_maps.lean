@@ -7,7 +7,7 @@ Continuous linear functions -- functions between normed vector spaces which are 
 -/
 import algebra.field
 import tactic.norm_num
-import analysis.normed_space
+import analysis.normed_space.basic
 
 @[simp] lemma mul_inv_eq' {α} [discrete_field α] (a b : α) : (a * b)⁻¹ = b⁻¹ * a⁻¹ :=
 classical.by_cases (assume : a = 0, by simp [this]) $ assume ha,

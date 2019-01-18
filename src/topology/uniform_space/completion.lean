@@ -39,11 +39,11 @@ In this file we introduce the following concepts:
 This formalization is mostly based on
   N. Bourbaki: General Topology
   I. M. James: Topologies and Uniformities
-From a slightly different perspective in order to reuse material in analysis.topology.uniform_space.
+From a slightly different perspective in order to reuse material in topology.uniform_space.basic.
 -/
 import data.set.basic data.set.function
 import algebra.pi_instances
-import analysis.topology.uniform_space analysis.topology.topological_structures
+import topology.uniform_space.basic topology.algebra.topological_structures
 import ring_theory.ideals
 
 noncomputable theory

@@ -7,7 +7,7 @@ Characterize completeness of metric spaces in terms of Cauchy sequences.
 In particular, reconcile the filter notion of Cauchy-ness with the cau_seq notion on normed spaces.
 -/
 
-import analysis.topology.uniform_space analysis.normed_space data.real.cau_seq analysis.limits
+import topology.uniform_space.basic analysis.normed_space.basic data.real.cau_seq analysis.specific_limits
 import tactic.linarith
 
 universes u v

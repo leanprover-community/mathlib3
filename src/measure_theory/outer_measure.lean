@@ -7,8 +7,8 @@ Outer measures -- overapproximations of measures
 -/
 
 import order.galois_connection algebra.big_operators algebra.module
-       analysis.ennreal analysis.limits
-       analysis.measure_theory.measurable_space
+       topology.instances.ennreal analysis.specific_limits
+       measure_theory.measurable_space
 
 noncomputable theory
 

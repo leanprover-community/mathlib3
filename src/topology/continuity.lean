@@ -10,7 +10,7 @@ Parts of the formalization is based on the books:
   I. M. James: Topologies and Uniformities
 A major difference is that this formalization is heavily based on the filter library.
 -/
-import analysis.topology.topological_space
+import topology.basic
 noncomputable theory
 
 open set filter lattice

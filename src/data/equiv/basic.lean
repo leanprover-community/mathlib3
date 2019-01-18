@@ -580,8 +580,8 @@ calc  ((s ∪ t : set α) ⊕ (s ∩ t : set α))
 
 protected def prod {α β} (s : set α) (t : set β) :
   (s.prod t) ≃ (s × t) :=
-⟨λ ⟨⟨x, y⟩, ⟨h₁, h₂⟩⟩, ⟨⟨x, h₁⟩, ⟨y, h₂⟩⟩,
- λ ⟨⟨x, h₁⟩, ⟨y, h₂⟩⟩, ⟨⟨x, y⟩, ⟨h₁, h₂⟩⟩,
+⟨λp, ⟨⟨p.1.1, p.2.1⟩, ⟨p.1.2, p.2.2⟩⟩,
+ λp, ⟨⟨p.1.1, p.2.1⟩, ⟨p.1.2, p.2.2⟩⟩,
  λ ⟨⟨x, y⟩, ⟨h₁, h₂⟩⟩, rfl,
  λ ⟨⟨x, h₁⟩, ⟨y, h₂⟩⟩, rfl⟩
 

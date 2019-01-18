@@ -1366,3 +1366,15 @@ begin
     { exact infi_le_of_le {b : α | b < a + r} (infi_le_of_le (lt_add_of_pos_right _ hr) $
         infi_le_of_le (a + r) $ infi_le _ (or.inr rfl)) } }
 end
+
+lemma supr_eq_of_tendsto {α} [topological_space α] [complete_linear_order α] [orderable_topology α]
+  {f : ℕ → α} {a : α} (hf : monotone f) (h : tendsto f at_top (nhds a)) : supr f = a :=
+le_antisymm
+  (supr_le $ assume i, le_of_not_gt $ assume hi,
+    have {n | i ≤ n} ∈ (at_top : filter ℕ).sets, from mem_at_top _,
+    let ⟨n, h₁, h₂⟩ := inhabited_of_mem_sets at_top_ne_bot
+      (inter_mem_sets this ((tendsto_orderable.1 h).2 _ hi)) in
+    not_lt_of_ge (hf h₁) h₂)
+  (le_of_not_gt $ assume ha,
+    let ⟨n, hn⟩ := inhabited_of_mem_sets at_top_ne_bot ((tendsto_orderable.1 h).1 _ ha) in
+    not_lt_of_ge (le_supr _ _) hn)

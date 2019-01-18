@@ -114,6 +114,14 @@ theorem monotone_comp {f : α → β} {g : β → γ} (m_f : monotone f) (m_g : 
   monotone (g ∘ f) :=
 assume a b h, m_g (m_f h)
 
+lemma monotone_of_monotone_nat {f : ℕ → α} (hf : ∀n, f n ≤ f (n + 1)) :
+  monotone f | n m h :=
+begin
+  induction h,
+  { refl },
+  { transitivity, assumption, exact hf _ }
+end
+
 end monotone
 
 def order_dual (α : Type*) := α

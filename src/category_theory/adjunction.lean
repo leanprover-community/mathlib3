@@ -301,19 +301,8 @@ of_core_unit_counit _ _
 { unit :=
   { app := λ c,
     { hom := adj.unit.app c.X,
-      w' :=
-      begin
-        intro j,
-        dsimp,
-        simpa using adj.unit.naturality (c.ι.app j)
-      end },
-    naturality' :=
-    begin
-      intros c₁ c₂ f,
-      ext1,
-      dsimp,
-      simpa using adj.unit.naturality (f.hom)
-    end },
+      w' := by intro j; have := adj.unit.naturality (c.ι.app j); tidy },
+    naturality' := λ _ _ f, by have := adj.unit.naturality (f.hom); tidy },
   counit :=
   { app := λ c,
     { hom := adj.counit.app c.X,
@@ -326,13 +315,7 @@ of_core_unit_counit _ _
           category.id_comp],
         refl,
       end },
-    naturality' :=
-    begin
-      intros c₁ c₂ f,
-      ext1,
-      dsimp,
-      simpa using adj.counit.naturality (f.hom)
-    end } }
+    naturality' := λ _ _ f, by have := adj.counit.naturality (f.hom); tidy } }
 
 /-- A left adjoint preserves colimits. -/
 def left_adjoint_preserves_colimits : preserves_colimits F :=

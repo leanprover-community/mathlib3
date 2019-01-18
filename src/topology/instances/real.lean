@@ -376,4 +376,20 @@ let ⟨x, hx₁, hx₂, hx₃⟩ := @real.intermediate_value
   (neg_le_neg ha) (neg_le_neg hb) hab in
 ⟨x, hx₁, hx₂, neg_inj hx₃⟩
 
+lemma real.bounded_iff_bdd_below_bdd_above {s : set ℝ} : bounded s ↔ bdd_below s ∧ bdd_above s :=
+⟨begin
+  assume bdd,
+  rcases (bounded_iff_subset_ball 0).1 bdd with ⟨r, hr⟩, -- hr : s ⊆ closed_ball 0 r
+  rw closed_ball_Icc at hr, -- hr : s ⊆ Icc (0 - r) (0 + r)
+  exact ⟨⟨-r, λy hy, by simpa using (hr hy).1⟩, ⟨r, λy hy, by simpa using (hr hy).2⟩⟩
+end,
+begin
+  rintros ⟨⟨m, hm⟩, ⟨M, hM⟩⟩,
+  have I : s ⊆ Icc m M := λx hx, ⟨hm x hx, hM x hx⟩,
+  have : Icc m M = closed_ball ((m+M)/2) ((M-m)/2) :=
+    by rw closed_ball_Icc; congr; ring,
+  rw this at I,
+  exact bounded.subset I bounded_closed_ball
+end⟩
+
 end

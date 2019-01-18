@@ -705,26 +705,13 @@ lemma nonempty.map {α : Sort u} {β : Sort v} (f : α → β) : nonempty α →
 
 end nonempty
 
-section
-universe u
+namespace inhabited
+universes u v
+open function
 
-class unique (α : Sort u) extends inhabited α :=
-(uniq : Π (a₁ a₂ : α), a₁ = a₂)
+variables {α : Sort u} {β : Sort v}
 
-instance punit.unique : unique punit.{u} :=
-{ default := punit.star,
-  uniq := punit_eq }
+def of_function (f : α → β) [inhabited α] : inhabited β :=
+⟨f (default _)⟩
 
-end
-
-namespace unique
-universes u
-variables {α : Sort u} [unique α]
-
-instance : subsingleton α := ⟨uniq⟩
-
-lemma eq_default (a : α) : a = default α := uniq _ _
-
-lemma default_eq (a : α) : default α = a := uniq _ _
-
-end unique
+end inhabited

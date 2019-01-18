@@ -8,7 +8,7 @@ We say two types are equivalent if they are isomorphic.
 
 Two equivalent types have the same cardinality.
 -/
-import logic.function data.set.basic data.bool
+import logic.function logic.unique data.set.basic data.bool
 
 open function
 
@@ -472,8 +472,14 @@ def inhabited_of_equiv [inhabited β] (e : α ≃ β) : inhabited α :=
 ⟨e.symm (default _)⟩
 
 def unique_of_equiv [unique β] (e : α ≃ β) : unique α :=
-{ uniq := λ _ _, (e.apply_eq_iff_eq _ _).mp $ unique.uniq _ _,
+{ uniq := λ _, (e.apply_eq_iff_eq _ _).mp $ subsingleton.elim _ _,
   ..e.inhabited_of_equiv }
+
+def unique_unique_equiv : unique (unique α) ≃ unique α :=
+{ to_fun := λ h, h.default,
+  inv_fun := λ h, { default := h, uniq := λ _, subsingleton.elim _ _ },
+  left_inv := λ _, subsingleton.elim _ _,
+  right_inv := λ _, subsingleton.elim _ _ }
 
 section
 open subtype

@@ -64,8 +64,8 @@ end
 lemma is_open_ne_top : is_open {a : ennreal | a ≠ ⊤} :=
 is_open_neg (is_closed_eq continuous_id continuous_const)
 
-lemma coe_image_univ_mem_nhds : (coe : nnreal → ennreal) '' univ ∈ (nhds (r : ennreal)).sets :=
-have {a : ennreal | a ≠ ⊤} = (coe : nnreal → ennreal) '' univ,
+lemma coe_range_mem_nhds : range (coe : nnreal → ennreal) ∈ (nhds (r : ennreal)).sets :=
+have {a : ennreal | a ≠ ⊤} = range (coe : nnreal → ennreal),
   from set.ext $ assume a, by cases a; simp [none_eq_top, some_eq_coe],
 this ▸ mem_nhds_sets is_open_ne_top coe_ne_top
 
@@ -78,14 +78,14 @@ continuous (λa, (f a : ennreal)) ↔ continuous f :=
 embedding_coe.continuous_iff.symm
 
 lemma nhds_coe {r : nnreal} : nhds (r : ennreal) = (nhds r).map coe :=
-by rw [embedding_coe.2, map_nhds_induced_eq coe_image_univ_mem_nhds]
+by rw [embedding_coe.2, map_nhds_induced_eq coe_range_mem_nhds]
 
 lemma nhds_coe_coe {r p : nnreal} : nhds ((r : ennreal), (p : ennreal)) =
   (nhds (r, p)).map (λp:nnreal×nnreal, (p.1, p.2)) :=
 begin
   rw [(embedding_prod_mk embedding_coe embedding_coe).map_nhds_eq],
-  rw [← univ_prod_univ, ← prod_image_image_eq],
-  exact prod_mem_nhds_sets coe_image_univ_mem_nhds coe_image_univ_mem_nhds
+  rw [← prod_range_range_eq],
+  exact prod_mem_nhds_sets coe_range_mem_nhds coe_range_mem_nhds
 end
 
 lemma tendsto_to_nnreal {a : ennreal} : a ≠ ⊤ →

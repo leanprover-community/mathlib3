@@ -154,7 +154,7 @@ assume s h, ⟨_, h, rfl⟩
 
 lemma continuous_induced_rng {g : γ → α} {t₂ : tspace β} {t₁ : tspace γ}
   (h : cont t₁ t₂ (f ∘ g)) : cont t₁ (induced f t₂) g :=
-assume s ⟨t, ht, s_eq⟩, s_eq.symm ▸ h t ht
+assume s ⟨t, ht, s_eq⟩, s_eq ▸ h t ht
 
 lemma continuous_coinduced_rng {t : tspace α} : cont t (coinduced f t) f :=
 assume s h, h
@@ -241,39 +241,23 @@ section induced
 open topological_space
 variables [t : topological_space β] {f : α → β}
 
+theorem is_open_induced_eq {s : set α} :
+  @_root_.is_open _ (induced f t) s ↔ s ∈ preimage f '' {s | is_open s} :=
+iff.refl _
+
 theorem is_open_induced {s : set β} (h : is_open s) : (induced f t).is_open (f ⁻¹' s) :=
 ⟨s, h, rfl⟩
 
 lemma nhds_induced_eq_comap {a : α} : @nhds α (induced f t) a = comap f (nhds (f a)) :=
-le_antisymm
-  (assume s ⟨s', hs', (h_s : f ⁻¹' s' ⊆ s)⟩,
-    let ⟨t', hsub, ht', hin⟩ := mem_nhds_sets_iff.1 hs' in
-    (@nhds α (induced f t) a).sets_of_superset
-      begin
-        simp [mem_nhds_sets_iff],
-        exact ⟨preimage f t', preimage_mono hsub, is_open_induced ht', hin⟩
-      end
-      h_s)
-  (le_infi $ assume s, le_infi $ assume ⟨as, s', is_open_s', s_eq⟩,
-    begin
-      simp [comap, mem_nhds_sets_iff, s_eq],
-      exact ⟨s', ⟨s', subset.refl _, is_open_s', by rwa [s_eq] at as⟩, subset.refl _⟩
-    end)
+calc @nhds α (induced f t) a = (⨅ s (x : s ∈ preimage f '' set_of is_open ∧ a ∈ s), principal s) :
+    by simp [nhds, is_open_induced_eq, -mem_image, and_comm]
+  ... = (⨅ s (x : is_open s ∧ f a ∈ s), principal (f ⁻¹' s)) :
+    by simp only [infi_and, infi_image]; refl
+  ... = _ : by simp [nhds, comap_infi, and_comm]
 
-lemma map_nhds_induced_eq {a : α} (h : image f univ ∈ (nhds (f a)).sets) :
+lemma map_nhds_induced_eq {a : α} (h : range f ∈ (nhds (f a)).sets) :
   map f (@nhds α (induced f t) a) = nhds (f a) :=
-le_antisymm
-  (@continuous.tendsto α β (induced f t) _ _ continuous_induced_dom a)
-  (assume s, assume hs : f ⁻¹' s ∈ (@nhds α (induced f t) a).sets,
-    let ⟨t', t_subset, is_open_t, a_in_t⟩ := mem_nhds_sets_iff.mp h in
-    let ⟨s', s'_subset, ⟨s'', is_open_s'', s'_eq⟩, a_in_s'⟩ := (@mem_nhds_sets_iff _ (induced f t) _ _).mp hs in
-    by subst s'_eq; exact (mem_nhds_sets_iff.mpr $
-      ⟨t' ∩ s'',
-        assume x ⟨h₁, h₂⟩, match x, h₂, t_subset h₁ with
-        | x, h₂, ⟨y, _, y_eq⟩ := begin subst y_eq, exact s'_subset h₂ end
-        end,
-        is_open_inter is_open_t is_open_s'',
-        ⟨a_in_t, a_in_s'⟩⟩))
+by rw [nhds_induced_eq_comap, filter.map_comap h]
 
 lemma closure_induced [t : topological_space β] {f : α → β} {a : α} {s : set α}
   (hf : ∀x y, f x = f y → x = y) :
@@ -331,7 +315,7 @@ lemma embedding_open {f : α → β} {s : set α}
   (hf : embedding f) (h : is_open (range f)) (hs : is_open s) : is_open (f '' s) :=
 let ⟨t, ht, h_eq⟩ := by rw [hf.right] at hs; exact hs in
 have is_open (t ∩ range f), from is_open_inter ht h,
-h_eq.symm ▸ by rwa [image_preimage_eq_inter_range]
+h_eq ▸ by rwa [image_preimage_eq_inter_range]
 
 lemma embedding_is_closed {f : α → β} {s : set α}
   (hf : embedding f) (h : is_closed (range f)) (hs : is_closed s) : is_closed (f '' s) :=
@@ -339,8 +323,8 @@ let ⟨t, ht, h_eq⟩ := by rw [hf.right, is_closed_induced_iff] at hs; exact hs
 have is_closed (t ∩ range f), from is_closed_inter ht h,
 h_eq.symm ▸ by rwa [image_preimage_eq_inter_range]
 
-lemma embedding.map_nhds_eq [topological_space α] [topological_space β] {f : α → β} (hf : embedding f) (a : α)
-  (h : f '' univ ∈ (nhds (f a)).sets) : (nhds a).map f = nhds (f a) :=
+lemma embedding.map_nhds_eq [topological_space α] [topological_space β] {f : α → β}
+  (hf : embedding f) (a : α) (h : range f ∈ (nhds (f a)).sets) : (nhds a).map f = nhds (f a) :=
 by rw [hf.2]; exact map_nhds_induced_eq h
 
 lemma embedding.tendsto_nhds_iff {ι : Type*}
@@ -552,12 +536,8 @@ lemma prod_eq_generate_from [tα : topological_space α] [tβ : topological_spac
   generate_from {g | ∃(s:set α) (t:set β), is_open s ∧ is_open t ∧ g = set.prod s t} :=
 le_antisymm
   (sup_le
-    (assume s ⟨t, ht, s_eq⟩,
-      have set.prod t univ = s, by simp [s_eq, preimage, set.prod],
-      this ▸ (generate_open.basic _ ⟨t, univ, ht, is_open_univ, rfl⟩))
-    (assume s ⟨t, ht, s_eq⟩,
-      have set.prod univ t = s, by simp [s_eq, preimage, set.prod],
-      this ▸ (generate_open.basic _ ⟨univ, t, is_open_univ, ht, rfl⟩)))
+    (ball_image_of_ball $ λt ht, generate_open.basic _ ⟨t, univ, by simpa [set.prod_eq] using ht⟩)
+    (ball_image_of_ball $ λt ht, generate_open.basic _ ⟨univ, t, by simpa [set.prod_eq] using ht⟩))
   (generate_from_le $ assume g ⟨s, t, hs, ht, g_eq⟩, g_eq.symm ▸ is_open_prod hs ht)
 
 lemma is_open_prod_iff {s : set (α×β)} : is_open s ↔
@@ -801,7 +781,7 @@ lemma embedding_inl : embedding (@sum.inl α β) :=
       change
         (is_open (sum.inl ⁻¹' (@sum.inl α β '' u)) ∧
          is_open (sum.inr ⁻¹' (@sum.inl α β '' u))) ∧
-        u = sum.inl ⁻¹' (sum.inl '' u),
+        sum.inl ⁻¹' (sum.inl '' u) = u,
       have : sum.inl ⁻¹' (@sum.inl α β '' u) = u :=
         preimage_image_eq u (λ _ _, sum.inl.inj_iff.mp), rw this,
       have : sum.inr ⁻¹' (@sum.inl α β '' u) = ∅ :=
@@ -819,7 +799,7 @@ lemma embedding_inr : embedding (@sum.inr α β) :=
       change
         (is_open (sum.inl ⁻¹' (@sum.inr α β '' u)) ∧
          is_open (sum.inr ⁻¹' (@sum.inr α β '' u))) ∧
-        u = sum.inr ⁻¹' (sum.inr '' u),
+        sum.inr ⁻¹' (sum.inr '' u) = u,
       have : sum.inl ⁻¹' (@sum.inr α β '' u) = ∅ :=
         eq_empty_iff_forall_not_mem.mpr (assume b ⟨a, _, h⟩, sum.inr_ne_inl h), rw this,
       have : sum.inr ⁻¹' (@sum.inr α β '' u) = u :=
@@ -1007,7 +987,7 @@ lemma pi_eq_generate_from [∀a, topological_space (π a)] :
   generate_from {g | ∃(s:Πa, set (π a)) (i : finset ι), (∀a∈i, is_open (s a)) ∧ g = pi ↑i s} :=
 le_antisymm
   (supr_le $ assume a s ⟨t, ht, s_eq⟩, generate_open.basic _ $
-    ⟨function.update (λa, univ) a t, {a}, by simpa using ht, by ext f; simp [s_eq, pi]⟩)
+    ⟨function.update (λa, univ) a t, {a}, by simpa using ht, by ext f; simp [s_eq.symm, pi]⟩)
   (generate_from_le $ assume g ⟨s, i, hi, eq⟩, eq.symm ▸ is_open_set_pi (finset.finite_to_set _) hi)
 
 lemma pi_generate_from_eq {g : Πa, set (set (π a))} :
@@ -1091,7 +1071,8 @@ lemma tendsto_cons_iff [topological_space β]
   tendsto f (nhds (a :: l)) b ↔ tendsto (λp:α×list α, f (p.1 :: p.2)) ((nhds a).prod (nhds l)) b :=
 have nhds (a :: l) = ((nhds a).prod (nhds l)).map (λp:α×list α, (p.1 :: p.2)),
 begin
-  simp only [nhds_cons, prod_eq, (filter.map_def _ _).symm, (filter.seq_eq_filter_seq _ _).symm],
+  simp only
+    [nhds_cons, filter.prod_eq, (filter.map_def _ _).symm, (filter.seq_eq_filter_seq _ _).symm],
   simp [-filter.seq_eq_filter_seq, -filter.map_def, (∘)] with functor_norm,
 end,
 by rw [this, filter.tendsto_map'_iff]
@@ -1127,7 +1108,8 @@ lemma tendsto_insert_nth' {a : α} : ∀{n : ℕ} {l : list α},
   have (nhds a).prod (nhds (a' :: l)) =
     ((nhds a).prod ((nhds a').prod (nhds l))).map (λp:α×α×list α, (p.1, p.2.1 :: p.2.2)),
   begin
-    simp only [nhds_cons, prod_eq, (filter.map_def _ _).symm, (filter.seq_eq_filter_seq _ _).symm],
+    simp only
+      [nhds_cons, filter.prod_eq, (filter.map_def _ _).symm, (filter.seq_eq_filter_seq _ _).symm],
     simp [-filter.seq_eq_filter_seq, -filter.map_def, (∘)] with functor_norm
   end,
   begin

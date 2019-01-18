@@ -659,7 +659,7 @@ begin
     rcases c f' cf' this with ⟨x, xs, hx⟩,
     existsi [m x, mem_image_of_mem m xs],
     rw [(uniform_embedding.embedding hm).2, nhds_induced_eq_comap] at hx,
-    calc f ≤ map m f' : le_map_comap' fs (λb ⟨x, hx⟩, ⟨x, hx.2⟩)
+    calc f = map m f' : (map_comap $ filter.mem_sets_of_superset fs $ image_subset_range _ _).symm
       ... ≤ map m (comap m (nhds (m x))) : map_mono hx
       ... ≤ nhds (m x) : map_comap_le }
 end
@@ -1342,21 +1342,17 @@ begin
   rw [nhds_subtype_eq_comap] at hc,
   simp [comap_comap_comp] at hc,
   change (tendsto (f ∘ @subtype.val α p) (comap (e ∘ @subtype.val α p) (nhds b)) (nhds c)) at hc,
-  rw [←comap_comap_comp] at hc,
-  existsi c,
-  apply tendsto_comap'' s _ _ hc,
+  rw [←comap_comap_comp, tendsto_comap'_iff] at hc,
+  exact ⟨c, hc⟩,
   exact ⟨_, hb, assume x,
     begin
-      change e x ∈ (closure (e '' s)) → x ∈ s,
-      rw [←closure_induced, closure_eq_nhds],
-      dsimp,
-      rw [nhds_induced_eq_comap, de.induced],
-      change x ∈ {x | nhds x ⊓ principal s ≠ ⊥} → x ∈ s,
+      change e x ∈ (closure (e '' s)) → x ∈ range subtype.val,
+      rw [←closure_induced, closure_eq_nhds, mem_set_of_eq, (≠), nhds_induced_eq_comap, de.induced],
+      change x ∈ {x | nhds x ⊓ principal s ≠ ⊥} → x ∈ range subtype.val,
       rw [←closure_eq_nhds, closure_eq_of_is_closed hs],
-      exact id,
+      exact assume hxs, ⟨⟨x, hp x hxs⟩, rfl⟩,
       exact de.inj
-    end⟩,
-  exact (assume x hx, ⟨⟨x, hp x hx⟩, rfl⟩)
+    end⟩
 end
 
 section prod

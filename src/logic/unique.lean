@@ -52,3 +52,4 @@ def of_surjective {f : α → β} (hf : surjective f) [unique α] : unique β :=
   end }
 
 end unique
+

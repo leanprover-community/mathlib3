@@ -634,9 +634,8 @@ begin
 end
 
 def colim_coyoneda : colim.op ⋙ coyoneda ≅ category_theory.cocones J C :=
-nat_iso.of_components (λ F, nat_iso.of_components (colimit.hom_iso F)
-  (by {tidy, dsimp [functor.cocones], rw category.assoc }))
-  (by {tidy, rw [← category.assoc,← category.assoc], tidy })
+nat_iso.of_components (λ F, nat_iso.of_components (colimit.hom_iso F) (by tidy))
+  (by {tidy, rw [← category.assoc,← category.assoc], tidy})
 
 end colim_functor
 

@@ -301,7 +301,7 @@ of_core_unit_counit _ _
 { unit :=
   { app := λ c,
     { hom := adj.unit.app c.X,
-      w' := by intro j; have := adj.unit.naturality (c.ι.app j); tidy },
+      w' := λ j, by have := adj.unit.naturality (c.ι.app j); tidy },
     naturality' := λ _ _ f, by have := adj.unit.naturality (f.hom); tidy },
   counit :=
   { app := λ c,

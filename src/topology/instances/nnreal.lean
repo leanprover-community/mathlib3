@@ -5,7 +5,7 @@ Authors: Johan Commelin
 
 Nonnegative real numbers.
 -/
-import data.real.nnreal analysis.real analysis.topology.infinite_sum
+import data.real.nnreal topology.instances.real topology.algebra.infinite_sum
 noncomputable theory
 open set topological_space metric
 

@@ -5,7 +5,7 @@ Author: Johannes Hölzl
 
 Extended non-negative reals
 -/
-import analysis.nnreal data.real.ennreal
+import topology.instances.nnreal data.real.ennreal
 noncomputable theory
 open classical set lattice filter metric
 local attribute [instance] prop_decidable

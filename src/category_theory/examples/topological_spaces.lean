@@ -8,8 +8,8 @@ import category_theory.limits.preserves
 import category_theory.limits.types
 import category_theory.natural_isomorphism
 import category_theory.eq_to_hom
-import analysis.topology.topological_space
-import analysis.topology.continuity
+import topology.basic
+import topology.continuity
 import order.galois_connection
 
 open category_theory

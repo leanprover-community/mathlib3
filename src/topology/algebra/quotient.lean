@@ -5,7 +5,7 @@ Authors: Patrick Massot, Johannes Hölzl
 
 Topological structures on quotient rings and groups.
 -/
-import analysis.topology.completion
+import topology.uniform_space.completion
 import group_theory.quotient_group
 
 @[simp] lemma {u} eq_mpr_heq {α β : Sort u} (h : β = α) (x : α) : eq.mpr h x == x :=

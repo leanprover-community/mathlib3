@@ -474,9 +474,9 @@ def inhabited_of_equiv [inhabited β] (e : α ≃ β) : inhabited α :=
 def unique_of_equiv [unique β] (e : α ≃ β) : unique α :=
 unique.of_surjective e.symm.bijective.2
 
-def unique_unique_equiv : unique (unique α) ≃ unique α :=
-{ to_fun := λ h, h.default,
-  inv_fun := λ h, { default := h, uniq := λ _, subsingleton.elim _ _ },
+def unique_congr (e : α ≃ β) : unique α ≃ unique β :=
+{ to_fun := λ h, by resetI; exact e.symm.unique_of_equiv,
+  inv_fun := λ h, by resetI; exact e.unique_of_equiv,
   left_inv := λ _, subsingleton.elim _ _,
   right_inv := λ _, subsingleton.elim _ _ }
 
@@ -715,3 +715,18 @@ instance {α} [subsingleton α] : subsingleton (plift α) := equiv.plift.subsing
 
 instance {α} [decidable_eq α] : decidable_eq (ulift α) := equiv.ulift.decidable_eq
 instance {α} [decidable_eq α] : decidable_eq (plift α) := equiv.plift.decidable_eq
+
+def unique_unique_equiv : unique (unique α) ≃ unique α :=
+{ to_fun := λ h, h.default,
+  inv_fun := λ h, { default := h, uniq := λ _, subsingleton.elim _ _ },
+  left_inv := λ _, subsingleton.elim _ _,
+  right_inv := λ _, subsingleton.elim _ _ }
+
+def equiv_of_unique_of_unique [unique α] [unique β] : α ≃ β :=
+{ to_fun := λ _, default β,
+  inv_fun := λ _, default α,
+  left_inv := λ _, subsingleton.elim _ _,
+  right_inv := λ _, subsingleton.elim _ _ }
+
+def equiv_punit_of_unique [unique α] : α ≃ punit.{v} :=
+equiv_of_unique_of_unique

@@ -3316,9 +3316,9 @@ end
 
 lemma forall_of_pairwise (H : symmetric R) {l : list α}
    (hl : pairwise R l) : (∀a∈l, ∀b∈l, a ≠ b → R a b) :=
-forall_of_forall_of_pairwise 
-  (λ a b h hne, H (h hne.symm)) 
-  (λ _ _ h, (h rfl).elim) 
+forall_of_forall_of_pairwise
+  (λ a b h hne, H (h hne.symm))
+  (λ _ _ h, (h rfl).elim)
   (pairwise.imp (λ _ _ h _, h) hl)
 
 theorem pairwise_singleton (R) (a : α) : pairwise R [a] :=
@@ -4041,18 +4041,12 @@ by dsimp [Ico]; rw nat.sub_sub_self h; simp
 -- Someone put me out of my misery (no human suffering should be needed to prove this):
 private lemma mem_condition {n m l : ℕ} : n ≤ l ∧ l < n + (m - n) ↔ n ≤ l ∧ l < m :=
 begin
-  by_cases n ≤ m,
-  { rw add_sub_of_le h },
-  { simp at h,
-    rw sub_eq_zero_of_le (le_of_lt h),
-    simp,
-    split,
-    { rintro ⟨a, b⟩,
-      exfalso,
-      have h := lt_of_lt_of_le b a,
-      exact lt_irrefl _ h, },
-    { rintro ⟨a, b⟩,
-      split, assumption, transitivity; assumption } }
+  cases le_total n m with hnm hmn,
+  { rw [nat.add_sub_of_le hnm] },
+  { rw [nat.sub_eq_zero_of_le hmn, add_zero],
+    exact and_congr_right (assume hnl, iff.intro
+      (assume hln, (not_le_of_gt hln hnl).elim)
+      (assume hlm, lt_of_lt_of_le hlm hmn)) }
 end
 
 @[simp] theorem mem {n m l : ℕ} : l ∈ Ico n m ↔ n ≤ l ∧ l < m :=
@@ -4060,6 +4054,16 @@ by dsimp [Ico]; simp [mem_condition]
 
 @[simp] theorem not_mem_top {n m : ℕ} : m ∉ Ico n m :=
 by simp; intros; refl
+
+-- @[simp] lemma filter_lt (l n m : ℕ) : (Ico n m).filter (λ x, x < l) = (Ico n (min m l)) :=
+-- -- This seems like a real pain in the neck.
+-- -- I want to first prove both lists are strictly ordered,
+-- -- and then have it be enough that they have the same elements (as finsets).
+-- sorry
+
+-- @[simp] lemma filter_ge (l n m : ℕ) : (Ico n m).filter (λ x, x ≥ l) = (Ico (max n l) m) :=
+-- sorry
+
 end Ico
 
 @[simp] theorem enum_from_map_fst : ∀ n (l : list α),

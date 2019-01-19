@@ -7,7 +7,7 @@ Finite sets.
 -/
 import logic.embedding order.boolean_algebra algebra.order_functions
   data.multiset data.sigma.basic data.set.lattice
-
+import tactic.tidy
 open multiset subtype nat lattice
 
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -652,37 +652,86 @@ by dsimp [Ico]; congr; rw multiset.Ico.pred_singleton h; refl
 @[simp] lemma filter_lt (l n m : ℕ) : (Ico n m).filter (λ x, x < l) = (Ico n (min m l)) :=
 begin
   /- `tidy` says -/
-  ext,
-  simp,
+  ext1,
+  simp at *,
+  fsplit,
+  intros a_1,
+  cases a_1,
+  cases a_1_left,
+  fsplit, assumption,
+  fsplit, assumption,
+  assumption ,
+  intros a_1,
+  cases a_1,
+  cases a_1_right,
+  fsplit,
+  fsplit; assumption,
+  assumption
+end
+
+@[simp] lemma filter_ge (l n m : ℕ) : (Ico n m).filter (λ x, x ≥ l) = (Ico (max n l) m) :=
+begin
+  /- `tidy` says -/
+  ext1,
+  dsimp at *,
+  simp at *,
+  fsplit,
+  intros a_1,
+  cases a_1,
+  cases a_1_left,
+  fsplit,
+  fsplit; assumption,
+  assumption,
+  intros a_1,
+  cases a_1,
+  cases a_1_left,
+  fsplit,
+  fsplit; assumption,
+  assumption
+end
+
+@[simp] lemma diff_left (l n m : ℕ) : (Ico n m) \ (Ico n l) = Ico (max n l) m :=
+begin
+  /- `tidy` says -/
+  ext1,
+  dsimp at *,
+  simp at *,
+  fsplit,
+  intros a_1,
+  cases a_1,
+  cases a_1_left,
+  fsplit,
+  fsplit,
+  assumption,
+  solve_by_elim,
+  assumption,
+  intros a_1,
+  cases a_1,
+  cases a_1_left,
+  fsplit,
+  fsplit; assumption,
+  intros a_1,
+  assumption
+end
+
+@[simp] lemma diff_right (l n m : ℕ) (h : l ≤ m): (Ico n m) \ (Ico l m) = Ico n l :=
+begin
+  /- `tidy` says -/
+  ext1,
+  dsimp at *,
+  simp at *,
   fsplit,
   intros a_1, cases a_1, cases a_1_left, fsplit, assumption,
   swap,
-  intros a_1, cases a_1, fsplit, fsplit, assumption,
-  swap 3,
-  -- and after that it's just chasing down inequalities...
-  apply lt_min; assumption,
-  apply lt_of_lt_of_le a_1_right,
-  apply min_le_left,
-  apply lt_of_lt_of_le a_1_right,
-  apply min_le_right,
+  intros a_1, cases a_1, fsplit, fsplit, assumption ,
+  swap 2,
+  intros a_1,
+  -- and then some easy logic puzzles, that should be automatic
+  show m ≤ a, sorry,
+  show a < m, sorry,
+  show a < l, sorry
 end
 
-@[simp] lemma diff (l n m : ℕ) : (Ico n m) \ (Ico n l) = Ico (max n l) m :=
-begin
-  /- `tidy` says -/
-  ext,
-  simp,
-  fsplit,
-  intros a_1, cases a_1, cases a_1_left, fsplit, swap, assumption,
-  swap,
-  intros a_1, cases a_1, fsplit,
-  fsplit, swap, assumption,
-  -- and then some more inequalities
-  swap 3,
-  apply max_le; solve_by_elim,
-  transitivity, swap, exact a_1_left, apply le_max_left,
-  intros, transitivity, swap, exact a_1_left, apply le_max_right,
-end
 end Ico
 
 /- useful rules for calculations with quantifiers -/

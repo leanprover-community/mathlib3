@@ -8,7 +8,7 @@ We say two types are equivalent if they are isomorphic.
 
 Two equivalent types have the same cardinality.
 -/
-import logic.function data.set.basic data.bool
+import logic.function logic.unique data.set.basic data.bool
 
 open function
 
@@ -471,6 +471,15 @@ def decidable_eq_of_equiv [decidable_eq β] (e : α ≃ β) : decidable_eq α
 def inhabited_of_equiv [inhabited β] (e : α ≃ β) : inhabited α :=
 ⟨e.symm (default _)⟩
 
+def unique_of_equiv [unique β] (e : α ≃ β) : unique α :=
+unique.of_surjective e.symm.bijective.2
+
+def unique_congr (e : α ≃ β) : unique α ≃ unique β :=
+{ to_fun := λ h, by resetI; exact e.symm.unique_of_equiv,
+  inv_fun := λ h, by resetI; exact e.unique_of_equiv,
+  left_inv := λ _, subsingleton.elim _ _,
+  right_inv := λ _, subsingleton.elim _ _ }
+
 section
 open subtype
 
@@ -706,3 +715,18 @@ instance {α} [subsingleton α] : subsingleton (plift α) := equiv.plift.subsing
 
 instance {α} [decidable_eq α] : decidable_eq (ulift α) := equiv.ulift.decidable_eq
 instance {α} [decidable_eq α] : decidable_eq (plift α) := equiv.plift.decidable_eq
+
+def unique_unique_equiv : unique (unique α) ≃ unique α :=
+{ to_fun := λ h, h.default,
+  inv_fun := λ h, { default := h, uniq := λ _, subsingleton.elim _ _ },
+  left_inv := λ _, subsingleton.elim _ _,
+  right_inv := λ _, subsingleton.elim _ _ }
+
+def equiv_of_unique_of_unique [unique α] [unique β] : α ≃ β :=
+{ to_fun := λ _, default β,
+  inv_fun := λ _, default α,
+  left_inv := λ _, subsingleton.elim _ _,
+  right_inv := λ _, subsingleton.elim _ _ }
+
+def equiv_punit_of_unique [unique α] : α ≃ punit.{v} :=
+equiv_of_unique_of_unique

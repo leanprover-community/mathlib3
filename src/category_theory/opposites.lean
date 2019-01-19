@@ -9,9 +9,6 @@ namespace category_theory
 
 universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
--- Without marking this as irreducible, Lean is just too helpful for its own good,
--- passing back and forth between a category and its opposite.
--- Broken proofs become very difficult to debug.
 def opposite (C : Type u₁) : Type u₁ := C
 
 -- Use a high right binding power (like that of postfix ⁻¹) so that, for example,
@@ -24,8 +21,6 @@ def op (X : C) : Cᵒᵖ := X
 def unop (X : Cᵒᵖ) : C := X
 @[simp] lemma unop_op (X : C) : unop (op X) = X := rfl
 @[simp] lemma op_unop (X : Cᵒᵖ) : op (unop X) = X := rfl
-
-attribute [irreducible] opposite
 
 variables (C) [𝒞 : category.{v₁} C]
 include 𝒞

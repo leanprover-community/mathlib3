@@ -221,6 +221,14 @@ def of_faithful {t : cocone F} {D : Type u'} [category.{v} D] (G : C ⥤ D) [fai
 
 end is_colimit
 
+def is_colimit_iso_unique_cocone_morphism {t : cocone F} : is_colimit t ≅ Π s, unique (t ⟶ s) :=
+{ hom := λ h s,
+  { default := h.desc_cocone_morphism s,
+    uniq := λ _, h.uniq_cocone_morphism },
+  inv := λ h,
+  { desc := λ s, (h s).default.hom,
+    uniq' := λ s f w, congr_arg cocone_morphism.hom ((h s).uniq ⟨f, w⟩) } }
+
 section limit
 
 /-- `has_limit F` represents a particular chosen limit of the diagram `F`. -/

@@ -320,51 +320,10 @@ of_core_unit_counit _ _
 /-- A left adjoint preserves colimits. -/
 def left_adjoint_preserves_colimits : preserves_colimits F :=
 λ J 𝒥 K, by resetI; exact
-{ preserves := λ c hc,
-
--- begin
---   refine is_colimit.of_iso_colimit _ _,
---   {
---     fsplit,
---     exact F.obj c.X,
---     refine (@cocones_iso _ _ _ _ _ _ adj _ _ K).inv.app (F.obj c.X) _,
---     dsimp [category_theory.cocones, functor.cocones],
---     sorry
---     },
-
--- end
-
-  { desc := λ s,
-    (adj.hom_equiv c.X s.X).symm $
-      hc.desc ((map_cocone G s).precompose
-        ((right_unitor _).inv ⊟ (whisker_left K adj.unit) ⊟ (associator _ _ _).inv)),
-    fac' :=
-    begin
-      tidy {trace_result := tt},
-      erw ← adj.hom_equiv_naturality_left_symm _ _,
-      tidy {trace_result := tt},
-      sorry
-    end,
-    uniq' :=
-    begin
-      tidy,
-    end }
-
-
-  --  by exactI λ Y c h,
-  -- is_colimit.of_iso_colimit _
-  -- -- (λ Z, _
-  --  (calc
-  --    (F.obj c.X ⟶ Z) ≅ (c.X ⟶ G.obj Z)            : adj.hom_equiv
-  --    ... ≅ (Y ⟶ (functor.const J).obj (G.obj Z))  : h.equiv
-  --    ... ≅ (Y.comp F ⟶ (functor.const J).obj Z)   : adj.cocone_equiv.symm
-  --    )
-  -- (λ Z f j, begin
-  --    dsimp [is_colimit.equiv, cocone_equiv],
-  --    rw adj.hom_equiv_symm_naturality,
-  --    erw adj.hom_equiv.left_inv f
-  --  end)
-}
+{ preserves := λ c hc, is_colimit_iso_unique_cocone_morphism.inv
+    (λ s, by { letI : unique (c ⟶ (adj.foo K).obj s) :=
+      is_colimit_iso_unique_cocone_morphism.hom hc _,
+      exact ((foo.adjunction adj).hom_equiv _ _).unique_of_equiv } ) }
 
 -- /-- A right adjoint preserves limits. -/
 -- def right_adjoint_preserves_limits : preserves_limits G :=

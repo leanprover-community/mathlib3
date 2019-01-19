@@ -86,11 +86,13 @@ def hom_iso (h : is_limit t) (W : C) : (W ⟶ t.X) ≅ ((const J).obj W ⟹ F) :
 
 @[simp] lemma hom_iso_hom (h : is_limit t) {W : C} (f : W ⟶ t.X) :
   (is_limit.hom_iso h W).hom f = (t.extend f).π := rfl
+@[simp] lemma hom_iso_inv (h : is_limit t) {W : C} (π : (const J).obj W ⟹ F) :
+  (is_limit.hom_iso h W).inv π = h.lift { X := W, π := π } := rfl
 
 /-- The limit of `F` represents the functor taking `W` to
   the set of cones on `F` with vertex `W`. -/
 def nat_iso (h : is_limit t) : yoneda.obj t.X ≅ F.cones :=
-nat_iso.of_components (is_limit.hom_iso h) (by tidy)
+nat_iso.of_components (λ W, is_limit.hom_iso h (unop W)) (by tidy)
 
 def hom_iso' (h : is_limit t) (W : C) :
   (W ⟶ t.X) ≅ { p : Π j, W ⟶ F.obj j // ∀ {j j'} (f : j ⟶ j'), p j ≫ F.map f = p j' } :=
@@ -188,10 +190,12 @@ def hom_iso (h : is_colimit t) (W : C) : (t.X ⟶ W) ≅ (F ⟹ (const J).obj W)
 
 @[simp] lemma hom_iso_hom (h : is_colimit t) {W : C} (f : t.X ⟶ W) :
   (is_colimit.hom_iso h W).hom f = (t.extend f).ι := rfl
+@[simp] lemma hom_iso_inv (h : is_colimit t) {W : C} (ι : F ⟹ (const J).obj W) :
+  (is_colimit.hom_iso h W).inv ι = h.desc { X := W, ι := ι } := rfl
 
 /-- The colimit of `F` represents the functor taking `W` to
   the set of cocones on `F` with vertex `W`. -/
-def nat_iso (h : is_colimit t) : coyoneda.obj t.X ≅ F.cocones :=
+def nat_iso (h : is_colimit t) : coyoneda.obj (op t.X) ≅ F.cocones :=
 nat_iso.of_components (is_colimit.hom_iso h) (by intros; ext; dsimp; rw ←assoc; refl)
 
 def hom_iso' (h : is_colimit t) (W : C) :
@@ -290,12 +294,15 @@ by erw is_limit.fac
   (w : ∀ j, f ≫ limit.π F j = f' ≫ limit.π F j) : f = f' :=
 (limit.is_limit F).hom_ext w
 
-def limit.hom_iso (F : J ⥤ C) [has_limit F] (W : C) : (W ⟶ limit F) ≅ (F.cones.obj W) :=
+def limit.hom_iso (F : J ⥤ C) [has_limit F] (W : C) : (W ⟶ limit F) ≅ (F.cones.obj (op W)) :=
 (limit.is_limit F).hom_iso W
 
 @[simp] lemma limit.hom_iso_hom (F : J ⥤ C) [has_limit F] {W : C} (f : W ⟶ limit F):
   (limit.hom_iso F W).hom f = (const J).map f ≫ (limit.cone F).π :=
 (limit.is_limit F).hom_iso_hom f
+@[simp] lemma limit.hom_iso_inv (F : J ⥤ C) [has_limit F] {W : C} (π : F.cones.obj (op W)):
+  (limit.hom_iso F W).inv π = limit.lift F { X := W, π := π } :=
+(limit.is_limit F).hom_iso_inv π
 
 def limit.hom_iso' (F : J ⥤ C) [has_limit F] (W : C) :
   (W ⟶ limit F) ≅ { p : Π j, W ⟶ F.obj j // ∀ {j j' : J} (f : j ⟶ j'), p j ≫ F.map f = p j' } :=
@@ -416,7 +423,9 @@ begin
 end
 
 def lim_yoneda : lim ⋙ yoneda ≅ category_theory.cones J C :=
-nat_iso.of_components (λ F, nat_iso.of_components (limit.hom_iso F) (by tidy)) (by tidy)
+nat_iso.of_components
+  (λ F, nat_iso.of_components (λ W, limit.hom_iso F (unop W)) (by tidy))
+  (by tidy)
 
 end lim_functor
 
@@ -498,6 +507,9 @@ def colimit.hom_iso (F : J ⥤ C) [has_colimit F] (W : C) : (colimit F ⟶ W) �
 @[simp] lemma colimit.hom_iso_hom (F : J ⥤ C) [has_colimit F] {W : C} (f : colimit F ⟶ W):
   (colimit.hom_iso F W).hom f = (colimit.cocone F).ι ≫ (const J).map f :=
 (colimit.is_colimit F).hom_iso_hom f
+@[simp] lemma colimit.hom_iso_inv (F : J ⥤ C) [has_colimit F] {W : C} (ι : F.cocones.obj W):
+  (colimit.hom_iso F W).inv ι = colimit.desc F { X := W, ι := ι } :=
+(colimit.is_colimit F).hom_iso_inv ι
 
 def colimit.hom_iso' (F : J ⥤ C) [has_colimit F] (W : C) :
   (colimit F ⟶ W) ≅ { p : Π j, F.obj j ⟶ W // ∀ {j j'} (f : j ⟶ j'), F.map f ≫ p j' = p j } :=
@@ -634,9 +646,16 @@ begin
 end
 
 def colim_coyoneda : colim.op ⋙ coyoneda ≅ category_theory.cocones J C :=
-nat_iso.of_components (λ F, nat_iso.of_components (colimit.hom_iso F)
-  (by {tidy, dsimp [functor.cocones], rw category.assoc }))
-  (by {tidy, rw [← category.assoc,← category.assoc], tidy })
+nat_iso.of_components
+  (λ F, nat_iso.of_components (colimit.hom_iso (unop F)) (by tidy))
+  begin
+     intros X Y f, ext1, ext1, ext1,
+     dsimp, simp,
+     dsimp [category.hom.op, category.hom.unop],
+     rw [←category.assoc],
+     simp,
+     refl
+   end
 
 end colim_functor
 

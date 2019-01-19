@@ -30,41 +30,55 @@ variables {J C} (F : J ⥤ C)
 natural transformations from the constant functor with value `X` to `F`.
 An object representing this functor is a limit of `F`.
 -/
-def cones : Cᵒᵖ ⥤ Type v := (const Jᵒᵖ ⋙ op_inv J C) ⋙ (yoneda.obj F)
+def cones : Cᵒᵖ ⥤ Type v := (const J).op ⋙ (yoneda.obj F)
 
-lemma cones_obj (X : C) : F.cones.obj X = ((const J).obj X ⟹ F) := rfl
+section
+lemma cones_obj (X : Cᵒᵖ) : F.cones.obj X = ((const J).obj (unop X) ⟶ F) := rfl
+
+local attribute [semireducible] category.hom.op category.hom.unop
+@[simp] lemma cones_map {X Y : Cᵒᵖ} (f : X ⟶ Y) (g : (cones F).obj X) (j : J) :
+  ((cones F).map f g).app j = f ≫ g.app j := rfl
+end
 
 /--
 `F.cocones` is the functor assigning to an object `X` the type of
 natural transformations from `F` to the constant functor with value `X`.
 An object corepresenting this functor is a colimit of `F`.
 -/
-def cocones : C ⥤ Type v := (const J) ⋙ (coyoneda.obj F)
 
+def cocones : C ⥤ Type v := (const J) ⋙ (coyoneda.obj (op F))
+
+section
 lemma cocones_obj (X : C) : F.cocones.obj X = (F ⟹ (const J).obj X) := rfl
 
+local attribute [semireducible] category.hom.op category.hom.unop
+@[simp] lemma cocones_map {X Y : C} (f : X ⟶ Y) (g : (cocones F).obj X) (j : J) :
+  ((cocones F).map f g).app j = g.app j ≫ f := rfl
+end
 end functor
 
 section
 variables (J C)
 
 def cones : (J ⥤ C) ⥤ (Cᵒᵖ ⥤ Type v) :=
-{ obj := functor.cones,
-  map := λ F G f, whisker_left _ (yoneda.map f) }
+{ obj := λ F, F.cones,
+  map := λ F G f, whisker_left (const J).op (yoneda.map f) }
+
+-- set_option pp.all true
 
 def cocones : (J ⥤ C)ᵒᵖ ⥤ (C ⥤ Type v) :=
-{ obj := functor.cocones,
-  map := λ F G f, whisker_left _ (coyoneda.map f) }
+{ obj := λ F, (unop F).cocones,
+  map := λ F G f, whisker_left (const J) (coyoneda.map f.unop) }
 
 variables {J C}
 
 @[simp] lemma cones_obj (F : J ⥤ C) : (cones J C).obj F = F.cones := rfl
-@[simp] lemma cones_map  {F G : J ⥤ C} {f : F ⟶ G} :
-(cones J C).map f = (whisker_left _ (yoneda.map f)) := rfl
+@[simp] lemma cones_map {F G : J ⥤ C} {f : F ⟶ G} :
+(cones J C).map f = (whisker_left (const J).op (yoneda.map f)) := rfl
 
-@[simp] lemma cocones_obj (F : J ⥤ C) : (cocones J C).obj F = F.cocones := rfl
-@[simp] lemma cocones_map  {F G : J ⥤ C} {f : F ⟶ G} :
-(cocones J C).map f = (whisker_left _ (coyoneda.map f)) := rfl
+@[simp] lemma cocones_obj (F : (J ⥤ C)ᵒᵖ) : (cocones J C).obj F = (unop F).cocones := rfl
+@[simp] lemma cocones_map {F G : (J ⥤ C)ᵒᵖ} {f : F ⟶ G} :
+(cocones J C).map f = (whisker_left (const J) (coyoneda.map f.unop)) := rfl
 
 end
 
@@ -111,7 +125,7 @@ namespace cone
 /-- A map to the vertex of a cone induces a cone by composition. -/
 @[simp] def extend (c : cone F) {X : C} (f : X ⟶ c.X) : cone F :=
 { X := X,
-  π := c.extensions.app X f }
+  π := c.extensions.app (op X) f }
 
 def postcompose {G : J ⥤ C} (α : F ⟹ G) (c : cone F) : cone G :=
 { X := c.X,
@@ -126,9 +140,8 @@ def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cone F) : cone (E
 end cone
 
 namespace cocone
-@[simp] def extensions (c : cocone F) : coyoneda.obj c.X ⟶ F.cocones :=
-{ app := λ X f, c.ι ≫ ((const J).map f),
-  naturality' := by intros X Y f; ext g j; dsimp; rw ←assoc; refl }
+@[simp] def extensions (c : cocone F) : coyoneda.obj (op c.X) ⟶ F.cocones :=
+{ app := λ X f, c.ι ≫ ((const J).map f) }
 
 /-- A map from the vertex of a cocone induces a cocone by composition. -/
 @[simp] def extend (c : cocone F) {X : C} (f : c.X ⟶ X) : cocone F :=

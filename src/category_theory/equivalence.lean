@@ -5,6 +5,7 @@
 import category_theory.fully_faithful
 import category_theory.functor_category
 import category_theory.natural_isomorphism
+import category_theory.opposites
 import tactic.slice
 import tactic.converter.interactive
 
@@ -187,6 +188,36 @@ end
 
 end is_equivalence
 
+section -- opposites
+
+@[simp] private def fun_inv_id_hom : functor.op_hom C D ⋙ functor.op_inv C D ⟶ functor.id ((C ⥤ D)ᵒᵖ) :=
+{ app := λ F, { app := λ X, 𝟙 _ },
+  naturality' := λ F G α, begin ext, repeat { erw functor.category.comp_app }, dsimp, simp, end }
+@[simp] private def fun_inv_id_inv : functor.id ((C ⥤ D)ᵒᵖ) ⟶ functor.op_hom C D ⋙ functor.op_inv C D :=
+{ app := λ F, { app := λ X, 𝟙 _ },
+  naturality' := λ F G α, begin ext, repeat { erw functor.category.comp_app }, dsimp, simp, end }
+
+instance op_hom_is_equivalence : is_equivalence (functor.op_hom C D) :=
+{ inverse := functor.op_inv C D,
+  inv_fun_id' := nat_iso.of_components (λ F, as_iso { app := λ X, 𝟙 _ }) (by tidy),
+  -- unfortunately we have to be grungier for the other direction
+  fun_inv_id' :=
+  { hom := fun_inv_id_hom,
+    inv := fun_inv_id_inv,
+    hom_inv_id' := begin ext, erw functor.category.comp_app, simp, refl end,
+    inv_hom_id' := begin ext, erw functor.category.comp_app, simp, refl end } }
+
+instance op_inv_is_equivalence : is_equivalence (functor.op_inv C D) := functor.is_equivalence_symm (functor.op_hom C D)
+
+omit 𝒟
+
+instance op_op_is_equivalence : is_equivalence (op_op C) :=
+{ inverse :=
+  { obj := λ X, op (op X),
+    map := λ X Y f, f } }
+
+end
+
 class ess_surj (F : C ⥤ D) :=
 (obj_preimage (d : D) : C)
 (iso' (d : D) : F.obj (obj_preimage d) ≅ d . obviously)
@@ -199,7 +230,7 @@ def fun_obj_preimage_iso (F : C ⥤ D) [ess_surj F] (d : D) : F.obj (F.obj_preim
 ess_surj.iso F d
 end functor
 
-namespace category_theory.equivalence
+namespace equivalence
 
 def ess_surj_of_equivalence (F : C ⥤ D) [is_equivalence F] : ess_surj F :=
 ⟨ λ Y : D, F.inv.obj Y, λ Y : D, (nat_iso.app F.inv_fun_id Y) ⟩
@@ -252,6 +283,6 @@ def equivalence_of_fully_faithfully_ess_surj
     (by obviously) }
 end
 
-end category_theory.equivalence
+end equivalence
 
 end category_theory

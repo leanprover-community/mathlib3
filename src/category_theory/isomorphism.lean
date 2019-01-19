@@ -135,6 +135,12 @@ instance of_iso_inverse (f : X ≅ Y) : is_iso f.inv :=
 
 end is_iso
 
+def as_iso (f : X ⟶ Y) [is_iso f] : X ≅ Y :=
+{ hom := f,
+  inv := inv f }
+@[simp] lemma as_iso_hom (f : X ⟶ Y) [is_iso f] : (as_iso f).hom = f := rfl
+@[simp] lemma as_iso_inv (f : X ⟶ Y) [is_iso f] : (as_iso f).inv = inv f := rfl
+
 namespace functor
 
 universes u₁ v₁ u₂ v₂

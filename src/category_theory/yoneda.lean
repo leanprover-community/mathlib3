@@ -7,7 +7,6 @@
 
    Also the Yoneda lemma, `yoneda_lemma : (yoneda_pairing C) ≅ (yoneda_evaluation C)`. -/
 
-import category_theory.natural_transformation
 import category_theory.opposites
 import category_theory.types
 import category_theory.fully_faithful
@@ -22,15 +21,15 @@ include 𝒞
 
 def yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁) :=
 { obj := λ X,
-  { obj := λ Y : C, Y ⟶ X,
+  { obj := λ Y, (unop Y) ⟶ X,
     map := λ Y Y' f g, f ≫ g,
-    map_comp' := begin intros X_1 Y Z f g, ext1, dsimp at *, erw [category.assoc] end,
-    map_id' := begin intros X_1, ext1, dsimp at *, erw [category.id_comp] end },
+    map_comp' := λ X' Y' Z' f g, begin ext h, dsimp, erw [category.assoc] end,
+    map_id' := λ X', begin ext h, dsimp, erw [category.id_comp] end },
   map := λ X X' f, { app := λ Y g, g ≫ f } }
 
 def coyoneda : Cᵒᵖ ⥤ (C ⥤ Type v₁) :=
-{ obj := λ X : C,
-  { obj := λ Y, X ⟶ Y,
+{ obj := λ X,
+  { obj := λ Y, (unop X) ⟶ Y,
     map := λ Y Y' f g, g ≫ f,
     map_comp' := begin intros X_1 Y Z f g, ext1, dsimp at *, erw [category.assoc] end,
     map_id' := begin intros X_1, ext1, dsimp at *, erw [category.comp_id] end },
@@ -39,24 +38,25 @@ def coyoneda : Cᵒᵖ ⥤ (C ⥤ Type v₁) :=
   map_id' := begin intros X, ext1, ext1, dsimp at *, erw [category.id_comp] end }
 
 namespace yoneda
-@[simp] lemma obj_obj (X Y : C) : (yoneda.obj X).obj Y = (Y ⟶ X) := rfl
+@[simp] lemma obj_obj (X : C) (Y : Cᵒᵖ) : (yoneda.obj X).obj Y = ((unop Y) ⟶ X) := rfl
 @[simp] lemma obj_map (X : C) {Y Y' : C} (f : Y ⟶ Y') : (yoneda.obj X).map f = λ g, f ≫ g := rfl
-@[simp] lemma map_app {X X' : C} (f : X ⟶ X') (Y : C) : (yoneda.map f).app Y = λ g, g ≫ f := rfl
+@[simp] lemma map_app {X X' : C} (f : X ⟶ X') (Y : Cᵒᵖ) : (yoneda.map f).app Y = λ g, g ≫ f := rfl
 
 lemma obj_map_id {X Y : Cᵒᵖ} (f : X ⟶ Y) :
-  ((@yoneda C _).obj X).map f (𝟙 X) = ((@yoneda C _).map f).app Y (𝟙 Y) :=
-by obviously
+  ((@yoneda C _).obj (unop X)).map f (𝟙 (unop X)) = ((@yoneda C _).map f).app Y (𝟙 (unop Y)) :=
+by dsimp; simp; erw category.comp_id
 
 @[simp] lemma naturality {X Y : C} (α : yoneda.obj X ⟶ yoneda.obj Y)
-  {Z Z' : C} (f : Z ⟶ Z') (h : Z' ⟶ X) : f ≫ α.app Z' h = α.app Z (f ≫ h) :=
-begin erw [functor_to_types.naturality], refl end
+  {Z Z' : C} (f : Z ⟶ Z') (h : Z' ⟶ X) : f ≫ α.app (op Z') h = α.app (op Z) (f ≫ h) :=
+by erw [functor_to_types.naturality]; refl
 
 instance yoneda_fully_faithful : fully_faithful (@yoneda C _) :=
-{ preimage := λ X Y f, (f.app X) (𝟙 X),
+{ preimage := λ X Y f, (f.app (op X)) (𝟙 X),
   injectivity' := λ X Y f g p,
   begin
     injection p with h,
-    convert (congr_fun (congr_fun h X) (𝟙 X)) ; simp
+    convert (congr_fun (congr_fun h (op X)) (𝟙 X));
+    erw category.id_comp
   end }
 
 /-- Extensionality via Yoneda. The typical usage would be
@@ -84,8 +84,8 @@ category_theory.prod.{v₁ (max u₁ v₁)} Cᵒᵖ (Cᵒᵖ ⥤ Type v₁)
 end yoneda
 
 namespace coyoneda
-@[simp] lemma obj_obj (X Y : C) : (coyoneda.obj X).obj Y = (X ⟶ Y) := rfl
-@[simp] lemma obj_map {X' X : C} (f : X' ⟶ X) (Y : C) : (coyoneda.obj Y).map f = λ g, g ≫ f := rfl
+@[simp] lemma obj_obj (X : Cᵒᵖ) (Y : C) : (coyoneda.obj X).obj Y = ((unop X) ⟶ Y) := rfl
+@[simp] lemma obj_map {X' X : C} (f : X' ⟶ X) (Y : Cᵒᵖ) : (coyoneda.obj Y).map f = λ g, g ≫ f := rfl
 @[simp] lemma map_app (X : C) {Y Y' : C} (f : Y ⟶ Y') : (coyoneda.map f).app X = λ g, f ≫ g := rfl
 end coyoneda
 
@@ -106,13 +106,14 @@ def yoneda_evaluation : (Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) ⥤ Type (max u₁ 
 def yoneda_pairing : (Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) ⥤ Type (max u₁ v₁) :=
 (functor.prod yoneda.op (functor.id (Cᵒᵖ ⥤ Type v₁))) ⋙ functor.hom (Cᵒᵖ ⥤ Type v₁)
 
+local attribute [semireducible] category.hom.op category.hom.unop
 @[simp] lemma yoneda_pairing_map
   (P Q : Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) (α : P ⟶ Q) (β : (yoneda_pairing C).obj P) :
   (yoneda_pairing C).map α β = yoneda.map α.1 ≫ β ≫ α.2 := rfl
 
 def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
 { hom :=
-  { app := λ F x, ulift.up ((x.app F.1) (𝟙 F.1)),
+  { app := λ F x, ulift.up ((x.app F.1) (𝟙 (unop F.1))),
     naturality' :=
     begin
       intros X Y f, ext1, ext1,
@@ -158,11 +159,11 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
 
 variables {C}
 
-@[simp] def yoneda_sections (X : C) (F : Cᵒᵖ ⥤ Type v₁) : (yoneda.obj X ⟹ F) ≅ ulift.{u₁} (F.obj X) :=
-nat_iso.app (yoneda_lemma C) (X, F)
+@[simp] def yoneda_sections (X : C) (F : Cᵒᵖ ⥤ Type v₁) : (yoneda.obj X ⟹ F) ≅ ulift.{u₁} (F.obj (op X)) :=
+nat_iso.app (yoneda_lemma C) (op X, F)
 
 omit 𝒞
-@[simp] def yoneda_sections_small {C : Type u₁} [small_category C] (X : C) (F : Cᵒᵖ ⥤ Type u₁) : (yoneda.obj X ⟹ F) ≅ F.obj X :=
+@[simp] def yoneda_sections_small {C : Type u₁} [small_category C] (X : C) (F : Cᵒᵖ ⥤ Type u₁) : (yoneda.obj X ⟹ F) ≅ F.obj (op X) :=
 yoneda_sections X F ≪≫ ulift_trivial _
 
 end category_theory

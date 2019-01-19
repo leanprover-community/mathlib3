@@ -241,6 +241,16 @@ def of_measurable {α} [measurable_space α]
   end,
   ..outer_measure' m m0 }
 
+lemma of_measurable_apply {α} [measurable_space α]
+  {m : Π (s : set α), is_measurable s → ennreal}
+  {m0 : m ∅ is_measurable.empty = 0}
+  {mU : ∀ {f : ℕ → set α} (h : ∀i, is_measurable (f i)),
+    pairwise (disjoint on f) →
+    m (⋃i, f i) (is_measurable.Union h) = (∑i, m (f i) (h i))}
+  (s : set α) (hs : is_measurable s) :
+  of_measurable m m0 @mU s = m s hs :=
+outer_measure'_eq m m0 @mU hs
+
 @[extensionality] lemma ext {α} [measurable_space α] :
   ∀ {μ₁ μ₂ : measure α}, (∀s, is_measurable s → μ₁ s = μ₂ s) → μ₁ = μ₂
 | ⟨m₁, u₁, h₁⟩ ⟨m₂, u₂, h₂⟩ h := by congr; rw [← h₁, ← h₂];

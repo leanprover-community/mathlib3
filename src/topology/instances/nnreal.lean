@@ -25,6 +25,9 @@ instance : topological_semiring ℝ≥0 :=
           (continuous_add (continuous.comp continuous_fst continuous_subtype_val)
                           (continuous.comp continuous_snd continuous_subtype_val)) }
 
+instance : second_countable_topology nnreal :=
+topological_space.subtype.second_countable_topology _ _
+
 instance : orderable_topology ℝ≥0 :=
 ⟨ le_antisymm
     begin

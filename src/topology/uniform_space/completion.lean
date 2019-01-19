@@ -156,7 +156,8 @@ instance complete_space_separation [h : complete_space α] :
     cauchy_comap comap_quotient_le_uniformity hf $
       comap_neq_bot_of_surj hf.left $ assume b, quotient.exists_rep _,
   let ⟨x, (hx : f.comap (λx, ⟦x⟧) ≤ nhds x)⟩ := complete_space.complete this in
-  ⟨⟦x⟧, calc f ≤ map (λx, ⟦x⟧) (f.comap (λx, ⟦x⟧)) : le_map_comap $ assume b, quotient.exists_rep _
+  ⟨⟦x⟧, calc f = map (λx, ⟦x⟧) (f.comap (λx, ⟦x⟧)) :
+      (map_comap $ univ_mem_sets' $ assume b, quotient.exists_rep _).symm
     ... ≤ map (λx, ⟦x⟧) (nhds x) : map_mono hx
     ... ≤ _ : continuous_iff_tendsto.mp uniform_continuous_quotient_mk.continuous _⟩⟩
 

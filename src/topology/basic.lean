@@ -1314,8 +1314,8 @@ variables {α : Type*} {β : Type*} {γ : Type*}
   makes `f` continuous. -/
 def topological_space.induced {α : Type u} {β : Type v} (f : α → β) (t : topological_space β) :
   topological_space α :=
-{ is_open        := λs, ∃s', t.is_open s' ∧ s = f ⁻¹' s',
-  is_open_univ   := ⟨univ, t.is_open_univ, preimage_univ.symm⟩,
+{ is_open        := λs, ∃s', t.is_open s' ∧ f ⁻¹' s' = s,
+  is_open_univ   := ⟨univ, t.is_open_univ, preimage_univ⟩,
   is_open_inter  := by rintro s₁ s₂ ⟨s'₁, hs₁, rfl⟩ ⟨s'₂, hs₂, rfl⟩;
     exact ⟨s'₁ ∩ s'₂, t.is_open_inter _ _ hs₁ hs₂, preimage_inter⟩,
   is_open_sUnion := assume s h,
@@ -1323,18 +1323,19 @@ def topological_space.induced {α : Type u} {β : Type v} (f : α → β) (t : t
     simp only [classical.skolem] at h,
     cases h with f hf,
     apply exists.intro (⋃(x : set α) (h : x ∈ s), f x h),
-    simp only [sUnion_eq_bUnion, preimage_Union, (λx h, (hf x h).right.symm)], refine ⟨_, rfl⟩,
+    simp only [sUnion_eq_bUnion, preimage_Union, (λx h, (hf x h).right)], refine ⟨_, rfl⟩,
     exact (@is_open_Union β _ t _ $ assume i,
       show is_open (⋃h, f i h), from @is_open_Union β _ t _ $ assume h, (hf i h).left)
   end }
 
 lemma is_open_induced_iff [t : topological_space β] {s : set α} {f : α → β} :
-  @is_open α (t.induced f) s ↔ (∃t, is_open t ∧ s = f ⁻¹' t) :=
+  @is_open α (t.induced f) s ↔ (∃t, is_open t ∧ f ⁻¹' t = s) :=
 iff.refl _
 
 lemma is_closed_induced_iff [t : topological_space β] {s : set α} {f : α → β} :
   @is_closed α (t.induced f) s ↔ (∃t, is_closed t ∧ s = f ⁻¹' t) :=
-⟨assume ⟨t, ht, heq⟩, ⟨-t, is_closed_compl_iff.2 ht, by simp only [preimage_compl, heq.symm, lattice.neg_neg]⟩,
+⟨assume ⟨t, ht, heq⟩, ⟨-t, is_closed_compl_iff.2 ht,
+    by simp only [preimage_compl, heq, lattice.neg_neg]⟩,
   assume ⟨t, ht, heq⟩, ⟨-t, ht, by simp only [preimage_compl, heq.symm]⟩⟩
 
 /-- Given `f : α → β` and a topology on `α`, the coinduced topology on `β` is defined
@@ -1359,7 +1360,7 @@ lemma induced_le_iff_le_coinduced {f : α → β } {tα : topological_space α} 
   tβ.induced f ≤ tα ↔ tβ ≤ tα.coinduced f :=
 iff.intro
   (assume h s hs, show tα.is_open (f ⁻¹' s), from h _ ⟨s, hs, rfl⟩)
-  (assume h s ⟨t, ht, hst⟩, hst.symm ▸ h _ ht)
+  (assume h s ⟨t, ht, hst⟩, hst ▸ h _ ht)
 
 lemma gc_induced_coinduced (f : α → β) :
   galois_connection (topological_space.induced f) (topological_space.coinduced f) :=
@@ -1393,12 +1394,12 @@ lemma coinduced_mono (h : t₁ ≤ t₂) : t₁.coinduced f ≤ t₂.coinduced f
 
 lemma induced_id [t : topological_space α] : t.induced id = t :=
 topological_space_eq $ funext $ assume s, propext $
-  ⟨assume ⟨s', hs, h⟩, h.symm ▸ hs, assume hs, ⟨s, hs, rfl⟩⟩
+  ⟨assume ⟨s', hs, h⟩, h ▸ hs, assume hs, ⟨s, hs, rfl⟩⟩
 
 lemma induced_compose [tβ : topological_space β] [tγ : topological_space γ]
   {f : α → β} {g : β → γ} : (tγ.induced g).induced f = tγ.induced (g ∘ f) :=
 topological_space_eq $ funext $ assume s, propext $
-  ⟨assume ⟨s', ⟨s, hs, h₂⟩, h₁⟩, h₁.symm ▸ h₂.symm ▸ ⟨s, hs, rfl⟩,
+  ⟨assume ⟨s', ⟨s, hs, h₂⟩, h₁⟩, h₁ ▸ h₂ ▸ ⟨s, hs, rfl⟩,
     assume ⟨s, hs, h⟩, ⟨preimage g s, ⟨s, hs, rfl⟩, h ▸ rfl⟩⟩
 
 lemma coinduced_id [t : topological_space α] : t.coinduced id = t :=
@@ -1516,6 +1517,13 @@ lemma generate_from_le {t : topological_space α} { g : set (set α) } (h : ∀s
   generate_from g ≤ t :=
 generate_from_le_iff_subset_is_open.2 h
 
+lemma induced_generate_from_eq {α β} {b : set (set β)} {f : α → β} :
+  (generate_from b).induced f = topological_space.generate_from (preimage f '' b) :=
+le_antisymm
+  (induced_le_iff_le_coinduced.2 $ generate_from_le $ assume s hs,
+    generate_open.basic _ $ mem_image_of_mem _ hs)
+  (generate_from_le $ ball_image_iff.2 $ assume s hs, ⟨s, generate_open.basic _ hs, rfl⟩)
+
 protected def topological_space.nhds_adjoint (a : α) (f : filter α) : topological_space α :=
 { is_open        := λs, a ∈ s → s ∈ f.sets,
   is_open_univ   := assume s, univ_mem_sets,
@@ -1570,7 +1578,7 @@ instance Pi.t2_space {β : α → Type v} [t₂ : Πa, topological_space (β a)]
 instance {p : α → Prop} [topological_space α] [discrete_topology α] :
   discrete_topology (subtype p) :=
 ⟨top_unique $ assume s hs,
-  ⟨subtype.val '' s, is_open_discrete _, (set.preimage_image_eq _ subtype.val_injective).symm⟩⟩
+  ⟨subtype.val '' s, is_open_discrete _, (set.preimage_image_eq _ subtype.val_injective)⟩⟩
 
 instance sum.discrete_topology [topological_space α] [topological_space β]
   [hα : discrete_topology α] [hβ : discrete_topology β] : discrete_topology (α ⊕ β) :=
@@ -1695,6 +1703,19 @@ instance second_countable_topology.to_first_countable_topology
 let ⟨b, hb, eq⟩ := second_countable_topology.is_open_generated_countable α in
 ⟨assume a, ⟨{s | a ∈ s ∧ s ∈ b},
   countable_subset (assume x ⟨_, hx⟩, hx) hb, by rw [eq, nhds_generate_from]⟩⟩
+
+lemma second_countable_topology_induced (β)
+  [t : topological_space β] [second_countable_topology β] (f : α → β) :
+  @second_countable_topology α (t.induced f) :=
+begin
+  rcases second_countable_topology.is_open_generated_countable β with ⟨b, hb, eq⟩,
+  refine { is_open_generated_countable := ⟨preimage f '' b, countable_image _ hb, _⟩ },
+  rw [eq, induced_generate_from_eq]
+end
+
+instance subtype.second_countable_topology
+  (s : set α) [topological_space α] [second_countable_topology α] : second_countable_topology s :=
+second_countable_topology_induced s α coe
 
 lemma is_open_generated_countable_inter [second_countable_topology α] :
   ∃b:set (set α), countable b ∧ ∅ ∉ b ∧ is_topological_basis b :=

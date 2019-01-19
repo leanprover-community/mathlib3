@@ -440,5 +440,21 @@ by rw normed_group.dist_eq; exact @norm_coe_le_norm _ _ _ _ (f-g) x
 lemma coe_le_coe_add_dist {f g : α →ᵇ ℝ} : f x ≤ g x + dist f g :=
 sub_le_iff_le_add'.1 $ (abs_le.1 $ @dist_coe_le_dist _ _ _ _ f g x).2
 
+/-- Constructing a bounded continuous function from a uniformly bounded continuous
+function taking values in a normed group. -/
+def of_normed_group {α : Type u} {β : Type v} [topological_space α] [normed_group β]
+  (f : α  → β) (C : ℝ) (H : ∀x, norm (f x) ≤ C) (Hf : continuous f) : α →ᵇ β :=
+⟨λn, f n, ⟨Hf, ⟨C + C, λ m n,
+  calc dist (f m) (f n) ≤ dist (f m) 0 + dist (f n) 0 : dist_triangle_right _ _ _
+       ... = norm (f m) + norm (f n) : by simp
+       ... ≤ C + C : add_le_add (H m) (H n)⟩⟩⟩
+
+/-- Constructing a bounded continuous function from a uniformly bounded
+function on a discrete space, taking values in a normed group -/
+def of_normed_group_discrete {α : Type u} {β : Type v}
+  [topological_space α] [discrete_topology α] [normed_group β]
+  (f : α  → β) (C : ℝ) (H : ∀x, norm (f x) ≤ C) : α →ᵇ β :=
+of_normed_group f C H continuous_of_discrete_topology
+
 end normed_group
 end bounded_continuous_function

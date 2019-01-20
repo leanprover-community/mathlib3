@@ -306,7 +306,7 @@ def ball (x : α) (ε : ennreal) : set α := {y | edist y x < ε}
 
 theorem mem_ball' : y ∈ ball x ε ↔ edist x y < ε := by rw edist_comm; refl
 
-/-- `closed_ball x ε` is the set of all points `y` with `edist y x ≤ ε` -/
+/-- `emetric.closed_ball x ε` is the set of all points `y` with `edist y x ≤ ε` -/
 def closed_ball (x : α) (ε : ennreal) := {y | edist y x ≤ ε}
 
 @[simp] theorem mem_closed_ball : y ∈ closed_ball x ε ↔ edist y x ≤ ε := iff.rfl
@@ -419,8 +419,8 @@ begin
   exact ⟨λ ⟨s, ⟨N, hN⟩, hs⟩, ⟨N, λn hn, hs _ (hN _ hn)⟩, λ ⟨N, hN⟩, ⟨{n | n ≥ N}, ⟨⟨N, by simp⟩, hN⟩⟩⟩,
 end
 
-/-- In a metric space, Cauchy sequences are characterized by the fact that, eventually,
-the distance between its elements is arbitrarily small -/
+/-- In an emetric space, Cauchy sequences are characterized by the fact that, eventually,
+the edistance between its elements is arbitrarily small -/
 theorem cauchy_seq_iff [inhabited β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ ∀ε>0, ∃N, ∀m n≥N, edist (u n) (u m) < ε :=
 begin
@@ -441,7 +441,7 @@ begin
         ... = ε : ennreal.add_halves _ } }
 end
 
-/-- A variation around the metric characterization of Cauchy sequences -/
+/-- A variation around the emetric characterization of Cauchy sequences -/
 theorem cauchy_seq_iff' [inhabited β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ ∀ε>(0 : ennreal), ∃N, ∀n≥N, edist (u n) (u N) < ε :=
 begin

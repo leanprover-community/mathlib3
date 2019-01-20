@@ -3,9 +3,6 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl (CMU)
 -/
-prelude
-import init.meta.expr init.meta.tactic init.meta.constructor_tactic init.meta.attribute
-import init.meta.interactive
 
 namespace name
 

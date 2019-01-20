@@ -1,5 +1,5 @@
 /- test cases for coinductive predicates -/
-import meta.coinductive_predicates
+import data.stream meta.coinductive_predicates
 universe u
 
 def stream (α : Type u) := nat → α

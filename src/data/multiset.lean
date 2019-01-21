@@ -501,29 +501,6 @@ theorem range_subset {m n : ℕ} : range m ⊆ range n ↔ m ≤ n := range_subs
 
 @[simp] theorem not_mem_range_self {n : ℕ} : n ∉ range n := not_mem_range_self
 
-/- Ico -/
-
-/-- `Ico n m` is the multiset lifted from the list `Ico n m`,
-  that is, the set `{n, n+1, ..., m-1}`. -/
-def Ico (n m : ℕ) : multiset ℕ := Ico n m
-
-namespace Ico
-
-@[simp] theorem mem {n m l : ℕ} : l ∈ Ico n m ↔ n ≤ l ∧ l < m := list.Ico.mem
-
-@[simp] theorem Ico_range (n : ℕ) : Ico 0 n = range n :=
-by dsimp [Ico]; congr; dsimp [list.Ico]; rw list.range_eq_range'
-
-@[simp] theorem empty (n : ℕ) : Ico n n = ∅ :=
-by dsimp [Ico]; congr; simp
-
-@[simp] theorem succ_singleton (n : ℕ) : Ico n (n+1) = singleton n :=
-by dsimp [Ico]; congr; simp
-
-lemma pred_singleton {m : ℕ} (h : m > 0) : Ico (m-1) m = {m-1} :=
-by dsimp [Ico]; congr; rw list.Ico.pred_singleton h
-end Ico
-
 /- erase -/
 section erase
 variables [decidable_eq α] {s t : multiset α} {a b : α}
@@ -2228,8 +2205,6 @@ quot.induction_on s $ λ l, nodup_filter_map H
 
 theorem nodup_range (n : ℕ) : nodup (range n) := nodup_range _
 
-theorem nodup_Ico (n m : ℕ) : nodup (Ico n m) := Ico.nodup _ _
-
 theorem nodup_inter_left [decidable_eq α] {s : multiset α} (t) : nodup s → nodup (s ∩ t) :=
 nodup_of_le $ inter_le_left _ _
 
@@ -2980,5 +2955,37 @@ lemma choose_mem (hp : ∃! a, a ∈ l ∧ p a) : choose p l hp ∈ l := (choose
 lemma choose_property (hp : ∃! a, a ∈ l ∧ p a) : p (choose p l hp) := (choose_spec _ _ _).2
 
 end choose
+
+/- Ico -/
+
+/-- `Ico n m` is the multiset lifted from the list `Ico n m`,
+  that is, the set `{n, n+1, ..., m-1}`. -/
+def Ico (n m : ℕ) : multiset ℕ := Ico n m
+
+namespace Ico
+
+@[simp] theorem mem {n m l : ℕ} : l ∈ Ico n m ↔ n ≤ l ∧ l < m := list.Ico.mem
+
+@[simp] theorem Ico_range (n : ℕ) : Ico 0 n = range n :=
+by dsimp [Ico]; congr; dsimp [list.Ico]; rw list.range_eq_range'
+
+@[simp] theorem empty (n : ℕ) : Ico n n = ∅ :=
+by dsimp [Ico]; congr; simp
+
+@[simp] theorem succ_singleton (n : ℕ) : Ico n (n+1) = singleton n :=
+by dsimp [Ico]; congr; simp
+
+lemma pred_singleton {m : ℕ} (h : m > 0) : Ico (m-1) m = {m-1} :=
+by dsimp [Ico]; congr; rw list.Ico.pred_singleton h
+
+theorem nodup (n m : ℕ) : nodup (Ico n m) := Ico.nodup _ _
+
+@[simp] lemma filter_lt (l n m : ℕ) : (Ico n l).filter (λ x, x < m) = Ico n (min m l) :=
+by dsimp [Ico]; simp
+
+@[simp] lemma filter_ge (l n m : ℕ) : (Ico n l).filter (λ x, x ≥ m) = Ico (max n m) l :=
+by dsimp [Ico]; simp
+
+end Ico
 
 end multiset

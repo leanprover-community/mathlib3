@@ -3925,7 +3925,7 @@ theorem pairwise_lt_range' : ∀ s n : ℕ, pairwise (<) (range' s n)
 theorem nodup_range' (s n : ℕ) : nodup (range' s n) :=
 (pairwise_lt_range' s n).imp (λ a b, ne_of_lt)
 
-theorem range'_append : ∀ s m n : ℕ, range' s m ++ range' (s+m) n = range' s (n+m)
+@[simp] theorem range'_append : ∀ s m n : ℕ, range' s m ++ range' (s+m) n = range' s (n+m)
 | s 0     n := rfl
 | s (m+1) n := show s :: (range' (s+1) m ++ range' (s+m+1) n) = s :: range' (s+1) (n+m),
                by rw [add_right_comm, range'_append]
@@ -4038,7 +4038,14 @@ by dsimp [Ico]; simp [nat.add_sub_cancel_left]
 theorem pred_singleton {m : ℕ} (h : m > 0) : Ico (m-1) m = [m-1] :=
 by dsimp [Ico]; rw nat.sub_sub_self h; simp
 
--- Someone put me out of my misery (no human suffering should be needed to prove this):
+theorem gt_nil {n m : ℕ} (h : n > m) : Ico n m = [] :=
+begin
+  dsimp [Ico],
+  rw nat.sub_eq_zero_of_le (le_of_lt h),
+  simp,
+end
+
+-- Someone put me out of my misery (no human effort should be needed to prove this):
 private lemma mem_condition {n m l : ℕ} : n ≤ l ∧ l < n + (m - n) ↔ n ≤ l ∧ l < m :=
 begin
   cases le_total n m with hnm hmn,
@@ -4055,14 +4062,91 @@ by dsimp [Ico]; simp [mem_condition]
 @[simp] theorem not_mem_top {n m : ℕ} : m ∉ Ico n m :=
 by simp; intros; refl
 
--- @[simp] lemma filter_lt (l n m : ℕ) : (Ico n m).filter (λ x, x < l) = (Ico n (min m l)) :=
--- -- This seems like a real pain in the neck.
--- -- I want to first prove both lists are strictly ordered,
--- -- and then have it be enough that they have the same elements (as finsets).
--- sorry
+@[simp] lemma append {n m l : ℕ} (h₁ : m ≥ n) (h₂ : l ≥ m) : Ico n m ++ Ico m l = Ico n l :=
+begin
+  dsimp [Ico],
+  convert range'_append _ _ _,
+  exact (nat.add_sub_of_le h₁).symm,
+  rw ← nat.add_sub_assoc h₁,
+  rw nat.sub_add_cancel,
+  exact h₂
+end
 
--- @[simp] lemma filter_ge (l n m : ℕ) : (Ico n m).filter (λ x, x ≥ l) = (Ico (max n l) m) :=
--- sorry
+@[simp] lemma filter_lt_top (n m : ℕ) : (Ico n m).filter (λ x, x < m) = Ico n m :=
+begin
+  rw filter_eq_self.mpr,
+  intros a H,
+  simp at H,
+  exact H.right
+end
+@[simp] lemma filter_lt_bot (n m : ℕ) : (Ico n m).filter (λ x, x < n) = [] :=
+begin
+  rw filter_eq_nil.mpr,
+  intros a H,
+  simp at H,
+  simp,
+  exact H.left,
+end
+
+@[simp] lemma filter_lt (l n m : ℕ) : (Ico n l).filter (λ x, x < m) = Ico n (min m l) :=
+begin
+  by_cases h₁ : m ≥ n,
+  { by_cases h₂ : l ≥ m,
+    { rw ← append h₁ h₂,
+      simp [min_eq_left h₂] },
+    { rw filter_eq_self.mpr,
+      simp at h₂,
+      rw min_eq_right (le_of_lt h₂),
+      intros a H,
+      simp at *,
+      cases H,
+      transitivity; assumption } },
+  { rw filter_eq_nil.mpr,
+    rw gt_nil,
+    simp at h₁,
+    exact gt_of_gt_of_ge h₁ (min_le_left _ _),
+    intros a H,
+    simp at *,
+    exact le_trans (le_of_lt h₁) H.left }
+end
+
+@[simp] lemma filter_ge_top (n m : ℕ) : (Ico n m).filter (λ x, x ≥ n) = Ico n m :=
+begin
+  rw filter_eq_self.mpr,
+  intros a H,
+  simp at H,
+  exact H.left
+end
+@[simp] lemma filter_ge_bot (n m : ℕ) : (Ico n m).filter (λ x, x ≥ m) = [] :=
+begin
+  rw filter_eq_nil.mpr,
+  intros a H,
+  simp at H,
+  simp,
+  exact H.right,
+end
+
+@[simp] lemma filter_ge (l n m : ℕ) : (Ico n l).filter (λ x, x ≥ m) = Ico (max n m) l :=
+begin
+  by_cases h₁ : m ≥ n,
+  { by_cases h₂ : l ≥ m,
+    { rw ← append h₁ h₂,
+      simp [max_eq_right h₁] },
+    { simp at h₂,
+      rw filter_eq_nil.mpr,
+      rw gt_nil,
+      exact gt_of_ge_of_gt (le_max_right _ _) h₂,
+      intros a H,
+      simp at *,
+      cases H,
+      transitivity; assumption } },
+  { simp at h₁,
+    rw filter_eq_self.mpr,
+    rw max_eq_left (le_of_lt h₁),
+    intros a H,
+    simp at *,
+    exact le_trans (le_of_lt h₁) H.left }
+end
 
 end Ico
 

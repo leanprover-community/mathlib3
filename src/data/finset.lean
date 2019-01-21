@@ -629,7 +629,7 @@ end range
 variables {n m l : ℕ}
 
 /-- `Ico n m` is the set of natural numbers `n ≤ k < m`. -/
-def Ico (n m : ℕ) : finset ℕ := ⟨_, nodup_Ico n m⟩
+def Ico (n m : ℕ) : finset ℕ := ⟨_, Ico.nodup n m⟩
 
 namespace Ico
 
@@ -649,46 +649,11 @@ by dsimp [Ico]; congr; simp
 lemma pred_singleton {m : ℕ} (h : m > 0) : Ico (m-1) m = {m-1} :=
 by dsimp [Ico]; congr; rw multiset.Ico.pred_singleton h; refl
 
-@[simp] lemma filter_lt (l n m : ℕ) : (Ico n m).filter (λ x, x < l) = (Ico n (min m l)) :=
-begin
-  /- `tidy` says -/
-  ext1,
-  simp at *,
-  fsplit,
-  intros a_1,
-  cases a_1,
-  cases a_1_left,
-  fsplit, assumption,
-  fsplit, assumption,
-  assumption ,
-  intros a_1,
-  cases a_1,
-  cases a_1_right,
-  fsplit,
-  fsplit; assumption,
-  assumption
-end
+@[simp] lemma filter_lt (l n m : ℕ) : (Ico n l).filter (λ x, x < m) = Ico n (min m l) :=
+by dsimp [Ico, filter]; congr; simp
 
-@[simp] lemma filter_ge (l n m : ℕ) : (Ico n m).filter (λ x, x ≥ l) = (Ico (max n l) m) :=
-begin
-  /- `tidy` says -/
-  ext1,
-  dsimp at *,
-  simp at *,
-  fsplit,
-  intros a_1,
-  cases a_1,
-  cases a_1_left,
-  fsplit,
-  fsplit; assumption,
-  assumption,
-  intros a_1,
-  cases a_1,
-  cases a_1_left,
-  fsplit,
-  fsplit; assumption,
-  assumption
-end
+@[simp] lemma filter_ge (l n m : ℕ) : (Ico n l).filter (λ x, x ≥ m) = Ico (max n m) l :=
+by dsimp [Ico, filter]; congr; simp
 
 @[simp] lemma diff_left (l n m : ℕ) : (Ico n m) \ (Ico n l) = Ico (max n l) m :=
 begin

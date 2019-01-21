@@ -124,6 +124,12 @@ by rw edist_comm z; apply edist_triangle
 theorem edist_triangle_right (x y z : α) : edist x y ≤ edist x z + edist y z :=
 by rw edist_comm y; apply edist_triangle
 
+lemma edist_triangle4 (x y z t : α) :
+  edist x t ≤ edist x y + edist y z + edist z t :=
+calc
+  edist x t ≤ edist x z + edist z t : edist_triangle x z t
+... ≤ (edist x y + edist y z) + edist z t : add_le_add_right' (edist_triangle x y z)
+
 /-- Two points coincide if their distance is `< ε` for all positive ε -/
 theorem eq_of_forall_edist_le {x y : α} (h : ∀ε, ε > 0 → edist x y ≤ ε) : x = y :=
 eq_of_edist_eq_zero (eq_of_le_of_forall_le_of_dense (by simp) h)
@@ -175,7 +181,7 @@ uniform_embedding_def'.trans $ and_congr iff.rfl $ and_congr iff.rfl
   ⟨_, edist_mem_uniformity ε0, λ a b h, hδ (hε h)⟩⟩
 
 /-- ε-δ characterization of Cauchy sequences on emetric spaces -/
-lemma cauchy_iff {f : filter α} :
+protected lemma cauchy_iff {f : filter α} :
   cauchy f ↔ f ≠ ⊥ ∧ ∀ ε > 0, ∃ t ∈ f.sets, ∀ x y ∈ t, edist x y < ε :=
 cauchy_iff.trans $ and_congr iff.rfl
 ⟨λ H ε ε0, let ⟨t, tf, ts⟩ := H _ (edist_mem_uniformity ε0) in
@@ -289,3 +295,288 @@ instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π 
     end }
 
 end pi
+
+namespace emetric
+variables {x y z : α} {ε ε₁ ε₂ : ennreal} {s : set α}
+
+/-- `emetric.ball x ε` is the set of all points `y` with `edist y x < ε` -/
+def ball (x : α) (ε : ennreal) : set α := {y | edist y x < ε}
+
+@[simp] theorem mem_ball : y ∈ ball x ε ↔ edist y x < ε := iff.rfl
+
+theorem mem_ball' : y ∈ ball x ε ↔ edist x y < ε := by rw edist_comm; refl
+
+/-- `emetric.closed_ball x ε` is the set of all points `y` with `edist y x ≤ ε` -/
+def closed_ball (x : α) (ε : ennreal) := {y | edist y x ≤ ε}
+
+@[simp] theorem mem_closed_ball : y ∈ closed_ball x ε ↔ edist y x ≤ ε := iff.rfl
+
+theorem ball_subset_closed_ball : ball x ε ⊆ closed_ball x ε :=
+assume y, by simp; intros h; apply le_of_lt h
+
+theorem pos_of_mem_ball (hy : y ∈ ball x ε) : 0 < ε :=
+lt_of_le_of_lt (zero_le _) hy
+
+theorem mem_ball_self (h : 0 < ε) : x ∈ ball x ε :=
+show edist x x < ε, by rw edist_self; assumption
+
+theorem mem_ball_comm : x ∈ ball y ε ↔ y ∈ ball x ε :=
+by simp [edist_comm]
+
+theorem ball_subset_ball (h : ε₁ ≤ ε₂) : ball x ε₁ ⊆ ball x ε₂ :=
+λ y (yx : _ < ε₁), lt_of_lt_of_le yx h
+
+theorem closed_ball_subset_closed_ball (h : ε₁ ≤ ε₂) :
+  closed_ball x ε₁ ⊆ closed_ball x ε₂ :=
+λ y (yx : _ ≤ ε₁), le_trans yx h
+
+theorem ball_disjoint (h : ε₁ + ε₂ ≤ edist x y) : ball x ε₁ ∩ ball y ε₂ = ∅ :=
+eq_empty_iff_forall_not_mem.2 $ λ z ⟨h₁, h₂⟩,
+not_lt_of_le (edist_triangle_left x y z)
+  (lt_of_lt_of_le (ennreal.add_lt_add h₁ h₂) h)
+
+theorem ball_subset (h : edist x y + ε₁ ≤ ε₂) (h' : edist x y < ⊤): ball x ε₁ ⊆ ball y ε₂ :=
+λ z zx, calc
+  edist z y ≤ edist z x + edist x y : edist_triangle _ _ _
+  ... = edist x y + edist z x : add_comm _ _
+  ... < edist x y + ε₁ : (ennreal.add_lt_add_iff_left h').2 zx
+  ... ≤ ε₂ : h
+
+theorem exists_ball_subset_ball (h : y ∈ ball x ε) : ∃ ε' > 0, ball y ε' ⊆ ball x ε :=
+begin
+  have : 0 < ε - edist y x := by simpa using h,
+  refine ⟨ε - edist y x, this, ball_subset _ _⟩,
+  { rw ennreal.add_sub_cancel_of_le (le_of_lt h), apply le_refl _},
+  { have : edist y x ≠ ⊤ := lattice.ne_top_of_lt h, apply lt_top_iff_ne_top.2 this }
+end
+
+theorem nhds_eq : nhds x = (⨅ε:{ε:ennreal // ε>0}, principal (ball x ε.val)) :=
+begin
+  rw [nhds_eq_uniformity, uniformity_edist'', lift'_infi],
+  { apply congr_arg, funext ε,
+    rw [lift'_principal],
+    { simp [ball, edist_comm] },
+    { exact monotone_preimage } },
+  { exact ⟨⟨1, ennreal.zero_lt_one⟩⟩ },
+  { intros, refl }
+end
+
+theorem mem_nhds_iff : s ∈ (nhds x).sets ↔ ∃ε>0, ball x ε ⊆ s :=
+begin
+  rw [nhds_eq, infi_sets_eq],
+  { simp },
+  { intros y z, cases y with y hy, cases z with z hz,
+    refine ⟨⟨min y z, lt_min hy hz⟩, _⟩,
+    simp [ball_subset_ball, min_le_left, min_le_right, (≥)] },
+  { exact ⟨⟨1, ennreal.zero_lt_one⟩⟩ }
+end
+
+theorem is_open_iff : is_open s ↔ ∀x∈s, ∃ε>0, ball x ε ⊆ s :=
+by simp [is_open_iff_nhds, mem_nhds_iff]
+
+theorem is_open_ball : is_open (ball x ε) :=
+is_open_iff.2 $ λ y, exists_ball_subset_ball
+
+theorem ball_mem_nhds (x : α) {ε : ennreal} (ε0 : 0 < ε) : ball x ε ∈ (nhds x).sets :=
+mem_nhds_sets is_open_ball (mem_ball_self ε0)
+
+/-- ε-characterization of the closure in emetric spaces -/
+theorem mem_closure_iff' :
+  x ∈ closure s ↔ ∀ε>0, ∃y ∈ s, edist x y < ε :=
+⟨begin
+  intros hx ε hε,
+  have A : ball x ε ∩ s ≠ ∅ := mem_closure_iff.1 hx _ is_open_ball (mem_ball_self hε),
+  cases ne_empty_iff_exists_mem.1 A with y hy,
+  simp,
+  exact ⟨y, ⟨hy.2, by have B := hy.1; simpa [mem_ball'] using B⟩⟩
+end,
+begin
+  intros H,
+  apply mem_closure_iff.2,
+  intros o ho xo,
+  rcases is_open_iff.1 ho x xo with ⟨ε, ⟨εpos, hε⟩⟩,
+  rcases H ε εpos with ⟨y, ⟨ys, ydist⟩⟩,
+  have B : y ∈ o ∩ s := ⟨hε (by simpa [edist_comm]), ys⟩,
+  apply ne_empty_of_mem B
+end⟩
+
+theorem tendsto_nhds {f : filter β} {u : β → α} {a : α} :
+  tendsto u f (nhds a) ↔ ∀ ε > 0, ∃ n ∈ f.sets, ∀x ∈ n, edist (u x) a < ε :=
+⟨λ H ε ε0, ⟨u⁻¹' (ball a ε), H (ball_mem_nhds _ ε0), by simp⟩,
+ λ H s hs,
+  let ⟨ε, ε0, hε⟩ := mem_nhds_iff.1 hs, ⟨δ, δ0, hδ⟩ := H _ ε0 in
+  f.sets_of_superset δ0 (λx xδ, hε (hδ x xδ))⟩
+
+theorem tendsto_at_top [inhabited β] [semilattice_sup β] (u : β → α) {a : α} :
+  tendsto u at_top (nhds a) ↔ ∀ε>0, ∃N, ∀n≥N, edist (u n) a < ε :=
+begin
+  rw tendsto_nhds,
+  apply forall_congr,
+  intro ε,
+  apply forall_congr,
+  intro hε,
+  simp,
+  exact ⟨λ ⟨s, ⟨N, hN⟩, hs⟩, ⟨N, λn hn, hs _ (hN _ hn)⟩, λ ⟨N, hN⟩, ⟨{n | n ≥ N}, ⟨⟨N, by simp⟩, hN⟩⟩⟩,
+end
+
+/-- In an emetric space, Cauchy sequences are characterized by the fact that, eventually,
+the edistance between its elements is arbitrarily small -/
+theorem cauchy_seq_iff [inhabited β] [semilattice_sup β] {u : β → α} :
+  cauchy_seq u ↔ ∀ε>0, ∃N, ∀m n≥N, edist (u n) (u m) < ε :=
+begin
+  simp only [cauchy_seq, emetric.cauchy_iff, true_and, exists_prop, filter.mem_at_top_sets,
+    filter.at_top_ne_bot, filter.mem_map, ne.def, filter.map_eq_bot_iff, not_false_iff, set.mem_set_of_eq],
+  split,
+  { intros H ε εpos,
+    rcases H ε εpos with ⟨t, ⟨N, hN⟩, ht⟩,
+    exact ⟨N, λm n hm hn, ht _ _ (hN _ hn) (hN _ hm)⟩ },
+  { intros H ε εpos,
+    rcases H (ε/2) (ennreal.half_pos εpos) with ⟨N, hN⟩,
+    existsi ball (u N) (ε/2),
+    split,
+    { exact ⟨N, λx hx, hN _ _ (le_refl N) hx⟩ },
+    { exact λx y hx hy, calc
+        edist x y ≤ edist x (u N) + edist y (u N) : edist_triangle_right _ _ _
+        ... < ε/2 + ε/2 : ennreal.add_lt_add hx hy
+        ... = ε : ennreal.add_halves _ } }
+end
+
+/-- A variation around the emetric characterization of Cauchy sequences -/
+theorem cauchy_seq_iff' [inhabited β] [semilattice_sup β] {u : β → α} :
+  cauchy_seq u ↔ ∀ε>(0 : ennreal), ∃N, ∀n≥N, edist (u n) (u N) < ε :=
+begin
+  rw cauchy_seq_iff,
+  split,
+  { intros H ε εpos,
+    rcases H ε εpos with ⟨N, hN⟩,
+    exact ⟨N, λn hn, hN _ _ (le_refl N) hn⟩ },
+  { intros H ε εpos,
+    rcases H (ε/2) (ennreal.half_pos εpos) with ⟨N, hN⟩,
+    exact ⟨N, λ m n hm hn, calc
+       edist (u n) (u m) ≤ edist (u n) (u N) + edist (u m) (u N) : edist_triangle_right _ _ _
+                    ... < ε/2 + ε/2 : ennreal.add_lt_add (hN _ hn) (hN _ hm)
+                    ... = ε : ennreal.add_halves _⟩ }
+end
+
+theorem totally_bounded_iff {s : set α} :
+  totally_bounded s ↔ ∀ ε > 0, ∃t : set α, finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
+⟨λ H ε ε0, H _ (edist_mem_uniformity ε0),
+ λ H r ru, let ⟨ε, ε0, hε⟩ := mem_uniformity_edist.1 ru,
+               ⟨t, ft, h⟩ := H ε ε0 in
+  ⟨t, ft, subset.trans h $ Union_subset_Union $ λ y, Union_subset_Union $ λ yt z, hε⟩⟩
+
+theorem totally_bounded_iff' {s : set α} :
+  totally_bounded s ↔ ∀ ε > 0, ∃t⊆s, finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
+⟨λ H ε ε0, (totally_bounded_iff_subset.1 H) _ (edist_mem_uniformity ε0),
+ λ H r ru, let ⟨ε, ε0, hε⟩ := mem_uniformity_edist.1 ru,
+               ⟨t, _, ft, h⟩ := H ε ε0 in
+  ⟨t, ft, subset.trans h $ Union_subset_Union $ λ y, Union_subset_Union $ λ yt z, hε⟩⟩
+
+section compact
+
+/-- A compact set in an emetric space is separable, i.e., it is the closure of a countable set -/
+lemma countable_closure_of_compact {α : Type u} [emetric_space α] {s : set α} (hs : compact s) :
+  ∃ t ⊆ s, (countable t ∧ s = closure t) :=
+begin
+  have A : ∀ (e:ennreal), e > 0 → ∃ t ⊆ s, (finite t ∧ s ⊆ (⋃x∈t, ball x e)) :=
+    totally_bounded_iff'.1 (compact_iff_totally_bounded_complete.1 hs).1,
+--    assume e, finite_cover_balls_of_compact hs,
+  have B : ∀ (e:ennreal), ∃ t ⊆ s, finite t ∧ (e > 0 → s ⊆ (⋃x∈t, ball x e)),
+  { intro e,
+    cases le_or_gt e 0 with h,
+    { exact ⟨∅, by finish⟩ },
+    { rcases A e h with ⟨s, ⟨finite_s, closure_s⟩⟩, existsi s, finish }},
+  /-The desired countable set is obtained by taking for each `n` the centers of a finite cover
+  by balls of radius `1/n`, and then the union over `n`. -/
+  choose T T_in_s finite_T using B,
+  let t := ⋃n:ℕ, T n⁻¹,
+  have T₁ : t ⊆ s := begin apply Union_subset, assume n, apply T_in_s end,
+  have T₂ : countable t := by finish [countable_Union, countable_finite],
+  have T₃ : s ⊆ closure t,
+  { intros x x_in_s,
+    apply mem_closure_iff'.2,
+    intros ε εpos,
+    rcases ennreal.exists_inv_nat_lt (bot_lt_iff_ne_bot.1 εpos) with ⟨n, hn⟩,
+    have inv_n_pos : (0 : ennreal) < (n : ℕ)⁻¹ := by simp [ennreal.bot_lt_iff_ne_bot],
+    have C : x ∈ (⋃y∈ T (n : ℕ)⁻¹, ball y (n : ℕ)⁻¹) :=
+      mem_of_mem_of_subset x_in_s ((finite_T (n : ℕ)⁻¹).2 inv_n_pos),
+    rcases mem_Union.1 C with ⟨y, _, ⟨y_in_T, rfl⟩, Dxy⟩,
+    simp at Dxy,  -- Dxy : edist x y < 1 / ↑n
+    have : y ∈ t := mem_of_mem_of_subset y_in_T (by apply subset_Union (λ (n:ℕ), T (n : ℕ)⁻¹)),
+    have : edist x y < ε := lt_trans Dxy hn,
+    exact ⟨y, ‹y ∈ t›, ‹edist x y < ε›⟩ },
+  have T₄ : closure t ⊆ s := calc
+    closure t ⊆ closure s : closure_mono T₁
+    ... = s : closure_eq_of_is_closed (closed_of_compact _ hs),
+  exact ⟨t, ⟨T₁, T₂, subset.antisymm T₃ T₄⟩⟩
+end
+
+end compact
+
+section first_countable
+
+instance (α : Type u) [emetric_space α] :
+  topological_space.first_countable_topology α :=
+⟨assume a, ⟨⋃ i:ℕ, {ball a i⁻¹},
+  countable_Union $ assume n, countable_singleton _,
+  suffices (⨅ i:{ i : ennreal // i > 0}, principal (ball a i)) = ⨅ (n : ℕ), principal (ball a n⁻¹),
+    by simpa [nhds_eq, @infi_comm _ _ ℕ],
+  begin
+    apply le_antisymm,
+    { refine le_infi (assume n, infi_le_of_le _ _),
+      exact ⟨n⁻¹, by apply bot_lt_iff_ne_bot.2; simp⟩,
+      exact le_refl _ },
+    refine le_infi (assume ε, _),
+    rcases ennreal.exists_inv_nat_lt (bot_lt_iff_ne_bot.1 ε.2) with ⟨n, εn⟩,
+    exact infi_le_of_le n (principal_mono.2 $ ball_subset_ball $ le_of_lt εn)
+  end⟩⟩
+
+end first_countable
+
+section second_countable
+open topological_space
+
+/-- A separable emetric space is second countable: one obtains a countable basis by taking
+the balls centered at points in a dense subset, and with rational radii. We do not register
+this as an instance, as there is already an instance going in the other direction
+from second countable spaces to separable spaces, and we want to avoid loops. -/
+lemma second_countable_of_separable (α : Type u) [emetric_space α] [separable_space α] :
+  second_countable_topology α :=
+let ⟨S, ⟨S_countable, S_dense⟩⟩ := separable_space.exists_countable_closure_eq_univ α in
+⟨⟨⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)},
+⟨show countable ⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)},
+{ apply countable_bUnion S_countable,
+  intros a aS,
+  apply countable_Union,
+  simp },
+show uniform_space.to_topological_space α = generate_from (⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)}),
+{ have A : ∀ (u : set α), (u ∈ ⋃x ∈ S, ⋃ (n : nat), ({ball x ((n : ennreal)⁻¹)} : set (set α))) → is_open u,
+  { simp only [and_imp, exists_prop, set.mem_Union, set.mem_singleton_iff, exists_imp_distrib],
+    intros u x hx i u_ball,
+    rw [u_ball],
+    exact is_open_ball },
+  have B : is_topological_basis (⋃x ∈ S, ⋃ (n : nat), ({ball x (n⁻¹)} : set (set α))),
+  { refine is_topological_basis_of_open_of_nhds A (λa u au open_u, _),
+    rcases is_open_iff.1 open_u a au with ⟨ε, εpos, εball⟩,
+    have : ε / 2 > 0 := ennreal.half_pos εpos,
+    /- The ball `ball a ε` is included in `u`. We need to find one of our balls `ball x (n⁻¹)`
+    containing `a` and contained in `ball a ε`. For this, we take `n` larger than `2/ε`, and
+    then `x` in `S` at distance at most `n⁻¹` of `a` -/
+    rcases ennreal.exists_inv_nat_lt (bot_lt_iff_ne_bot.1 (ennreal.half_pos εpos)) with ⟨n, εn⟩,
+    have : (0 : ennreal) < n⁻¹ := by simp [ennreal.bot_lt_iff_ne_bot],
+    have : (a : α) ∈ closure (S : set α) := by rw [S_dense]; simp,
+    rcases mem_closure_iff'.1 this _ ‹(0 : ennreal) <  n⁻¹› with ⟨x, xS, xdist⟩,
+    existsi ball x (↑n)⁻¹,
+    have I : ball x (n⁻¹) ⊆ ball a ε := λy ydist, calc
+      edist y a = edist a y : edist_comm _ _
+      ... ≤ edist a x + edist y x : edist_triangle_right _ _ _
+      ... < n⁻¹ + n⁻¹ : ennreal.add_lt_add xdist ydist
+      ... < ε/2 + ε/2 : ennreal.add_lt_add εn εn
+      ... = ε : ennreal.add_halves _,
+    simp only [emetric.mem_ball, exists_prop, set.mem_Union, set.mem_singleton_iff],
+    exact ⟨⟨x, ⟨xS, ⟨n, rfl⟩⟩⟩, ⟨by simpa, subset.trans I εball⟩⟩ },
+  exact B.2.2 }⟩⟩⟩
+
+end second_countable
+
+end emetric --namespace

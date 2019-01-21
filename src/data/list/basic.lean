@@ -4038,10 +4038,10 @@ by dsimp [Ico]; simp [nat.add_sub_cancel_left]
 theorem pred_singleton {m : ℕ} (h : m > 0) : Ico (m-1) m = [m-1] :=
 by dsimp [Ico]; rw nat.sub_sub_self h; simp
 
-theorem gt_nil {n m : ℕ} (h : n > m) : Ico n m = [] :=
+theorem eq_nil_of_le {n m : ℕ} (h : n ≥ m) : Ico n m = [] :=
 begin
   dsimp [Ico],
-  rw nat.sub_eq_zero_of_le (le_of_lt h),
+  rw nat.sub_eq_zero_of_le h,
   simp,
 end
 
@@ -4102,9 +4102,9 @@ begin
       cases H,
       transitivity; assumption } },
   { rw filter_eq_nil.mpr,
-    rw gt_nil,
+    rw eq_nil_of_le,
     simp at h₁,
-    exact gt_of_gt_of_ge h₁ (min_le_left _ _),
+    exact le_of_lt (gt_of_gt_of_ge h₁ (min_le_left _ _)),
     intros a H,
     simp at *,
     exact le_trans (le_of_lt h₁) H.left }
@@ -4134,8 +4134,8 @@ begin
       simp [max_eq_right h₁] },
     { simp at h₂,
       rw filter_eq_nil.mpr,
-      rw gt_nil,
-      exact gt_of_ge_of_gt (le_max_right _ _) h₂,
+      rw eq_nil_of_le,
+      exact le_of_lt (gt_of_ge_of_gt (le_max_right _ _) h₂),
       intros a H,
       simp at *,
       cases H,

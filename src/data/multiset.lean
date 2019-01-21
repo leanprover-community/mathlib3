@@ -2972,7 +2972,7 @@ by dsimp [Ico]; congr; dsimp [list.Ico]; rw list.range_eq_range'
 @[simp] theorem empty (n : ℕ) : Ico n n = ∅ :=
 by dsimp [Ico]; congr; simp
 
-@[simp] theorem succ_singleton (n : ℕ) : Ico n (n+1) = singleton n :=
+@[simp] theorem succ_singleton (n : ℕ) : Ico n (n+1) = {n} :=
 by dsimp [Ico]; congr; simp
 
 lemma pred_singleton {m : ℕ} (h : m > 0) : Ico (m-1) m = {m-1} :=

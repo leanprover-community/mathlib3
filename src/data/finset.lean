@@ -643,7 +643,7 @@ by dsimp [Ico]; congr; dsimp [multiset.Ico, list.Ico, multiset.range]; rw list.r
 @[simp] theorem empty (n : ℕ) : Ico n n = ∅ :=
 by dsimp [Ico]; congr; simp
 
-@[simp] theorem succ_singleton (n : ℕ) : Ico n (n+1) = singleton n :=
+@[simp] theorem succ_singleton (n : ℕ) : Ico n (n+1) = {n} :=
 by dsimp [Ico]; congr; simp
 
 lemma pred_singleton {m : ℕ} (h : m > 0) : Ico (m-1) m = {m-1} :=

@@ -88,7 +88,7 @@ structure adjunction (F : C ⥤ D) (G : D ⥤ C) extends
 namespace adjunction
 variables (F : C ⥤ D) (G : D ⥤ C)
 
-def of_core_hom_equiv (adj : core_hom_equiv F G) : adjunction F G :=
+def mk_of_hom_equiv (adj : core_hom_equiv F G) : adjunction F G :=
 { unit :=
   { app := λ X, (adj.hom_equiv _ _).to_fun (𝟙 (F.obj X)),
     naturality' :=
@@ -119,7 +119,7 @@ def of_core_hom_equiv (adj : core_hom_equiv F G) : adjunction F G :=
   end,
   .. adj }
 
-def of_core_unit_counit (adj : core_unit_counit F G) : adjunction F G :=
+def mk_of_unit_counit (adj : core_unit_counit F G) : adjunction F G :=
 { hom_equiv := λ X Y,
   { to_fun := λ f, adj.unit.app X ≫ G.map f,
     inv_fun := λ g, F.map g ≫ adj.counit.app Y,
@@ -194,7 +194,7 @@ def left_adjoint_of_equiv : C ⥤ D :=
   end }
 
 def adjunction_of_equiv_left : adjunction (left_adjoint_of_equiv e he) G :=
-of_core_hom_equiv (left_adjoint_of_equiv e he) G
+mk_of_hom_equiv (left_adjoint_of_equiv e he) G
 { hom_equiv := e,
   hom_equiv_naturality_left' :=
   begin
@@ -225,7 +225,7 @@ def right_adjoint_of_equiv : D ⥤ C :=
   end }
 
 def adjunction_of_equiv_right : adjunction F (right_adjoint_of_equiv e he) :=
-of_core_hom_equiv F (right_adjoint_of_equiv e he)
+mk_of_hom_equiv F (right_adjoint_of_equiv e he)
 { hom_equiv := e,
   hom_equiv_naturality_right' :=
   begin
@@ -251,6 +251,59 @@ include 𝒞 𝒟
 
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : adjunction F G)
 include adj
+
+section preservation
+
+@[simp] def foo {J : Type v} [small_category J] (K : J ⥤ C) : cocone (K ⋙ F) ⥤ cocone K :=
+(cocones.functoriality G) ⋙  (cocones.precompose
+  ((right_unitor _).inv ⊟ (whisker_left K adj.unit) ⊟ (associator _ _ _).inv))
+
+def adjunction_of_foo {J : Type v} [small_category J] {K : J ⥤ C} :
+  adjunction (cocones.functoriality F) (adj.foo K) :=
+mk_of_unit_counit _ _
+{ unit :=
+  { app := λ c,
+    { hom := adj.unit.app c.X,
+      w' := λ j, by have := adj.unit.naturality (c.ι.app j); tidy },
+    naturality' := λ _ _ f, by have := adj.unit.naturality (f.hom); tidy },
+  counit :=
+  { app := λ c,
+    { hom := adj.counit.app c.X,
+      w' :=
+      begin
+        intro j,
+        dsimp,
+        erw [category.comp_id, category.id_comp, F.map_comp, category.assoc,
+          adj.counit.naturality (c.ι.app j), ← category.assoc, adj.left_triangle_components,
+          category.id_comp],
+        refl,
+      end },
+    naturality' := λ _ _ f, by have := adj.counit.naturality (f.hom); tidy },
+    left_triangle'  := by { ext1 c, ext, dsimp, exact adj.left_triangle_components },
+    right_triangle' := by { ext1 c, ext, dsimp, exact adj.right_triangle_components } }
+
+/-- A left adjoint preserves colimits. -/
+def left_adjoint_preserves_colimits : preserves_colimits F :=
+λ J 𝒥 K, by resetI; exact
+{ preserves := λ c hc, is_colimit_iso_unique_cocone_morphism.inv
+    (λ s, ((adjunction_of_foo adj).hom_equiv _ _).unique_of_equiv $
+      is_colimit_iso_unique_cocone_morphism.hom hc _ ) }
+
+-- /-- A right adjoint preserves limits. -/
+-- def right_adjoint_preserves_limits : preserves_limits G :=
+-- ⟨λ J 𝒥, by exactI λ Y c h, limits.is_limit.of_equiv
+--   (λ Z, calc
+--      (Z ⟶ G.obj c.X) ≃ (F.obj Z ⟶ c.X)            : adj.hom_equiv.symm
+--      ... ≃ ((functor.const J).obj (F.obj Z) ⟶ Y)  : (h.equiv (F.obj Z)).to_equiv
+--      ... ≃ ((functor.const J).obj Z ⟶ Y.comp G)   : adj.cone_equiv)
+--   (λ Z f j, begin
+--      dsimp [is_limit.equiv, cone_equiv],
+--      rw adj.hom_equiv_naturality,
+--      erw adj.hom_equiv.right_inv f,
+--      simp
+--    end)⟩
+
+end preservation
 
 -- Note: this is natural in K, but we do not yet have the tools to formulate that.
 def cocones_iso {J : Type v} [small_category J] {K : J ⥤ C} :
@@ -288,57 +341,5 @@ nat_iso.of_components (λ X,
       erw [← adj.hom_equiv_naturality_right_symm, ← t.naturality, category.id_comp, category.id_comp]
     end } } )
 (by tidy)
-
-section preservation
-
-@[simp] def foo {J : Type v} [small_category J] (K : J ⥤ C) : cocone (K ⋙ F) ⥤ cocone K :=
-(cocones.functoriality G) ⋙  (cocones.precompose
-  ((right_unitor _).inv ⊟ (whisker_left K adj.unit) ⊟ (associator _ _ _).inv))
-
-def foo.adjunction {J : Type v} [small_category J] {K : J ⥤ C} :
-  adjunction (cocones.functoriality F) (adj.foo K) :=
-of_core_unit_counit _ _
-{ unit :=
-  { app := λ c,
-    { hom := adj.unit.app c.X,
-      w' := λ j, by have := adj.unit.naturality (c.ι.app j); tidy },
-    naturality' := λ _ _ f, by have := adj.unit.naturality (f.hom); tidy },
-  counit :=
-  { app := λ c,
-    { hom := adj.counit.app c.X,
-      w' :=
-      begin
-        intro j,
-        dsimp,
-        erw [category.comp_id, category.id_comp, F.map_comp, category.assoc,
-          adj.counit.naturality (c.ι.app j), ← category.assoc, adj.left_triangle_components,
-          category.id_comp],
-        refl,
-      end },
-    naturality' := λ _ _ f, by have := adj.counit.naturality (f.hom); tidy } }
-
-/-- A left adjoint preserves colimits. -/
-def left_adjoint_preserves_colimits : preserves_colimits F :=
-λ J 𝒥 K, by resetI; exact
-{ preserves := λ c hc, is_colimit_iso_unique_cocone_morphism.inv
-    (λ s, by { letI : unique (c ⟶ (adj.foo K).obj s) :=
-      is_colimit_iso_unique_cocone_morphism.hom hc _,
-      exact ((foo.adjunction adj).hom_equiv _ _).unique_of_equiv } ) }
-
--- /-- A right adjoint preserves limits. -/
--- def right_adjoint_preserves_limits : preserves_limits G :=
--- ⟨λ J 𝒥, by exactI λ Y c h, limits.is_limit.of_equiv
---   (λ Z, calc
---      (Z ⟶ G.obj c.X) ≃ (F.obj Z ⟶ c.X)            : adj.hom_equiv.symm
---      ... ≃ ((functor.const J).obj (F.obj Z) ⟶ Y)  : (h.equiv (F.obj Z)).to_equiv
---      ... ≃ ((functor.const J).obj Z ⟶ Y.comp G)   : adj.cone_equiv)
---   (λ Z f j, begin
---      dsimp [is_limit.equiv, cone_equiv],
---      rw adj.hom_equiv_naturality,
---      erw adj.hom_equiv.right_inv f,
---      simp
---    end)⟩
-
-end preservation
 
 end category_theory.adjunction

@@ -471,12 +471,12 @@ def decidable_eq_of_equiv [decidable_eq β] (e : α ≃ β) : decidable_eq α
 def inhabited_of_equiv [inhabited β] (e : α ≃ β) : inhabited α :=
 ⟨e.symm (default _)⟩
 
-def unique_of_equiv [unique β] (e : α ≃ β) : unique α :=
+def unique_of_equiv (e : α ≃ β) (h : unique β) : unique α :=
 unique.of_surjective e.symm.bijective.2
 
 def unique_congr (e : α ≃ β) : unique α ≃ unique β :=
-{ to_fun := λ h, by resetI; exact e.symm.unique_of_equiv,
-  inv_fun := λ h, by resetI; exact e.unique_of_equiv,
+{ to_fun := e.symm.unique_of_equiv,
+  inv_fun := e.unique_of_equiv,
   left_inv := λ _, subsingleton.elim _ _,
   right_inv := λ _, subsingleton.elim _ _ }
 

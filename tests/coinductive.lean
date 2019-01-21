@@ -98,5 +98,5 @@ begin
   admit
 end
 
-coinductive foo : list ℕ → Prop
-| mk : ∀ xs, (∀ k l m, foo (k::l::m::xs)) → foo xs
+coinductive coind_foo : list ℕ → Prop
+| mk : ∀ xs, (∀ k l m, coind_foo (k::l::m::xs)) → coind_foo xs

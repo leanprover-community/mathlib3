@@ -564,7 +564,7 @@ meta def find_cancel_factor : expr → ℕ × tree ℕ
 | `(%%e1 * %%e2) :=
   let (v1, t1) := find_cancel_factor e1, (v2, t2) := find_cancel_factor e2, pd := v1*v2 in
   (pd, tree.node pd t1 t2)
-| `(%%e1 / %%e2) := --do q ← is_numeric e2, return q.num.nat_abs
+| `(%%e1 / %%e2) :=
   match is_numeric e2 with
   | some q := let (v1, t1) := find_cancel_factor e1, n := v1.lcm q.num.nat_abs in
     (n, tree.node n t1 (tree.node q.num.nat_abs tree.nil tree.nil))
@@ -622,6 +622,7 @@ by rwa he at hl
 
 meta def norm_hyp_aux (h' lhs : expr) : tactic expr :=
 do (v, lhs') ← kill_factors lhs,
+   if v = 1 then return h' else do 
    (ih, h'') ← mk_single_comp_zero_pf v h',
    (_, nep, _) ← infer_type h'' >>= rewrite_core lhs',
    mk_eq_mp nep h''

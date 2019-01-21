@@ -7,7 +7,7 @@ Irrationality of real numbers.
 -/
 import data.real.basic data.padics.padic_norm
 
-open rat real
+open rat real multiplicity
 
 def irrational (x : ℝ) := ¬ ∃ q : ℚ, x = q
 
@@ -29,34 +29,36 @@ theorem irr_nrt_of_notint_nrt {x : ℝ} (n : ℕ) (m : ℤ)
       int.cast_one, div_one, cast_coe_int] at e
 end
 
-theorem irr_nrt_of_n_not_dvd_padic_val {x : ℝ} (n : ℕ) (m : ℤ) (p : ℕ)
-  [hp : nat.prime p] (hxr : x ^ n = m) (hv : padic_val p m % n ≠ 0) :
+theorem irr_nrt_of_n_not_dvd_multiplicity {x : ℝ} (n : ℕ) {m : ℤ} (hm : m ≠ 0) (p : ℕ)
+  [hp : nat.prime p] (hxr : x ^ n = m)
+  (hv : (multiplicity (p : ℤ) m).get (finite_int_iff.2 ⟨hp.ne_one, hm⟩) % n ≠ 0) :
   irrational x :=
 begin
   rcases nat.eq_zero_or_pos n with rfl | hnpos,
   { rw [eq_comm, pow_zero, ← int.cast_one, int.cast_inj] at hxr,
-    rw [hxr, padic_val.one hp.gt_one, nat.zero_mod] at hv,
-    exact (hv rfl).elim },
-  rcases decidable.em (m = 0) with rfl | hm,
-  { rw [padic_val.zero, nat.zero_mod] at hv,
-    exact (hv rfl).elim },
+    simpa [hxr, multiplicity.one_right (mt is_unit_iff_dvd_one.1
+      (mt int.coe_nat_dvd.1 hp.not_dvd_one)), nat.zero_mod] using hv },
   refine irr_nrt_of_notint_nrt _ _ hxr _ hnpos,
   rintro ⟨y, rfl⟩,
   rw [← int.cast_pow, int.cast_inj] at hxr, subst m,
   have : y ≠ 0, { rintro rfl, rw zero_pow hnpos at hm, exact hm rfl },
-  rw [padic_val.pow p this, nat.mul_mod_right] at hv, exact hv rfl
+  erw [multiplicity.pow' (nat.prime_iff_prime_int.1 hp)
+    (finite_int_iff.2 ⟨hp.ne_one, this⟩), nat.mul_mod_right] at hv,
+  exact hv rfl
 end
 
-theorem irr_sqrt_of_padic_val_odd (m : ℤ) (hm : m ≥ 0)
-  (p : ℕ) [hp : nat.prime p] (Hpv : padic_val p m % 2 = 1) :
+theorem irr_sqrt_of_multiplicity_odd (m : ℤ) (hm : 0 < m)
+  (p : ℕ) [hp : nat.prime p]
+  (Hpv : (multiplicity (p : ℤ) m).get (finite_int_iff.2 ⟨hp.ne_one, ne.symm (ne_of_lt hm)⟩) % 2 = 1) :
   irrational (sqrt m) :=
-irr_nrt_of_n_not_dvd_padic_val 2 m p
-  (sqr_sqrt (int.cast_nonneg.2 hm))
+irr_nrt_of_n_not_dvd_multiplicity 2 (ne.symm (ne_of_lt hm)) p
+  (sqr_sqrt (int.cast_nonneg.2 $ le_of_lt hm))
   (by rw Hpv; exact one_ne_zero)
 
 theorem irr_sqrt_of_prime (p : ℕ) (hp : nat.prime p) : irrational (sqrt p) :=
-irr_sqrt_of_padic_val_odd p (int.coe_nat_nonneg p) p $
-by rw padic_val.padic_val_self hp.gt_one; refl
+irr_sqrt_of_multiplicity_odd p (int.coe_nat_pos.2 hp.pos) p $
+by simp [multiplicity_self (mt is_unit_iff_dvd_one.1 (mt int.coe_nat_dvd.1 hp.not_dvd_one) : _)];
+  refl
 
 theorem irr_sqrt_two : irrational (sqrt 2) :=
 by simpa using irr_sqrt_of_prime 2 nat.prime_two

@@ -1,13 +1,9 @@
-
 /-
 Copyright (c) 2018 Jan-David Salchow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jan-David Salchow
 -/
-import analysis.topology.topological_space
-import analysis.metric_space
-import analysis.topology.uniform_space
-import data.set.countable
+import topology.basic topology.continuity topology.metric_space.basic
 import data.real.cau_seq_filter
 
 open filter
@@ -177,6 +173,8 @@ section metric_space
 variable [metric_space X]
 variables {ε : ℝ}
 
+open metric
+
 /-- A sequence converges in the sence of metric spaces iff the associated statement about filters holds. -/
 @[simp] lemma metric_space.seq_tendsto_iff {x : ℕ → X} {limit : X} :
   (x ⟶ limit) ↔ ∀ ε > 0, ∃ n0 : ℕ, ∀ n ≥ n0, dist (x n) limit < ε :=
@@ -196,7 +194,7 @@ iff.intro
   (assume metrConvTo,
     suffices ∀ U : set X, limit ∈ U → is_open U → ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U, by simpa,
     assume U limitInU isOpenU,
-      have ∃ ε > 0, ball limit ε ⊆ U, from is_open_metric.mp isOpenU limit limitInU,
+      have ∃ ε > 0, ball limit ε ⊆ U, from is_open_iff.mp isOpenU limit limitInU,
       let ⟨ε, _, _⟩ := this in
       have ∃ n0, ∀ n ≥ n0, dist (x n) limit < ε, from metrConvTo ε ‹ε > 0›, 
       let ⟨n0, _⟩ := this in

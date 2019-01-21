@@ -7,7 +7,7 @@ Finite sets.
 -/
 import logic.embedding order.boolean_algebra algebra.order_functions
   data.multiset data.sigma.basic data.set.lattice
-import tactic.tidy
+
 open multiset subtype nat lattice
 
 variables {α : Type*} {β : Type*} {γ : Type*}

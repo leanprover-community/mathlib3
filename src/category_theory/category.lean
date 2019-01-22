@@ -116,7 +116,7 @@ instance {X Y : bundled c} : has_coe_to_fun (X ⟶ Y) :=
 { F := λ f, X → Y,
   coe := λ f, f.1 }
 
-@[simp] lemma bundled_hom_coe {X  Y: bundled c} (val : X → Y) (prop) (x : X) :
+@[simp] lemma bundled_hom_coe {X Y : bundled c} (val : X → Y) (prop) (x : X) :
   (⟨val, prop⟩ : X ⟶ Y) x = val x := rfl
 
 @[extensionality] lemma bundled_hom_ext {X Y : bundled c} (f g : X ⟶ Y) : f = g ↔ f.val = g.val :=

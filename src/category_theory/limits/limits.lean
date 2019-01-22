@@ -221,7 +221,8 @@ def of_faithful {t : cocone F} {D : Type u'} [category.{v} D] (G : C ⥤ D) [fai
 
 end is_colimit
 
-def is_colimit_iso_unique_cocone_morphism {t : cocone F} : is_colimit t ≅ Π s, unique (t ⟶ s) :=
+def is_colimit_iso_unique_cocone_morphism {t : cocone F} :
+  is_colimit t ≅ Π s, unique (t ⟶ s) :=
 { hom := λ h s,
   { default := h.desc_cocone_morphism s,
     uniq := λ _, h.uniq_cocone_morphism },

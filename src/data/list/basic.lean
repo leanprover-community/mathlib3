@@ -4062,7 +4062,7 @@ by dsimp [Ico]; simp [mem_condition]
 @[simp] theorem not_mem_top {n m : ℕ} : m ∉ Ico n m :=
 by simp; intros; refl
 
-@[simp] lemma append {n m l : ℕ} (h₁ : m ≥ n) (h₂ : l ≥ m) : Ico n m ++ Ico m l = Ico n l :=
+lemma append_consecutive {n m l : ℕ} (h₁ : m ≥ n) (h₂ : l ≥ m) : Ico n m ++ Ico m l = Ico n l :=
 begin
   dsimp [Ico],
   convert range'_append _ _ _,
@@ -4072,29 +4072,34 @@ begin
   exact h₂
 end
 
-@[simp] lemma filter_lt_top (n m : ℕ) : (Ico n m).filter (λ x, x < m) = Ico n m :=
+lemma filter_lt_eq_self_of_ge_top (k l m : ℕ) (h : m ≥ l): (Ico k l).filter (λ x, x < m) = Ico k l :=
 begin
   rw filter_eq_self.mpr,
   intros a H,
   simp at H,
-  exact H.right
-end
-@[simp] lemma filter_lt_bot (n m : ℕ) : (Ico n m).filter (λ x, x < n) = [] :=
-begin
-  rw filter_eq_nil.mpr,
-  intros a H,
-  simp at H,
-  simp,
-  exact H.left,
+  exact lt_of_lt_of_le H.right h,
 end
 
+@[simp] lemma filter_lt_top_eq_self (n m : ℕ) : (Ico n m).filter (λ x, x < m) = Ico n m :=
+filter_lt_eq_self_of_ge_top n m m (sorry)
+
+lemma filter_lt_eq_nil_of_le_bot (k l m : ℕ) (h : m ≤ k): (Ico k l).filter (λ x, x < m) = [] :=
+begin
+  sorry
+end
+
+@[simp] lemma filter_lt_bot_eq_nil (n m : ℕ) : (Ico n m).filter (λ x, x < n) = [] :=
+filter_lt_eq_nil_of_le_bot n m n sorry
+
+-- TODO fix ordering and naming of parameters
 @[simp] lemma filter_lt (l n m : ℕ) : (Ico n l).filter (λ x, x < m) = Ico n (min m l) :=
 begin
   by_cases h₁ : m ≥ n,
   { by_cases h₂ : l ≥ m,
-    { rw ← append h₁ h₂,
+    { rw ← append_consecutive h₁ h₂,
       simp [min_eq_left h₂] },
-    { rw filter_eq_self.mpr,
+    { 
+      rw filter_eq_self.mpr,
       simp at h₂,
       rw min_eq_right (le_of_lt h₂),
       intros a H,
@@ -4110,14 +4115,14 @@ begin
     exact le_trans (le_of_lt h₁) H.left }
 end
 
-@[simp] lemma filter_ge_top (n m : ℕ) : (Ico n m).filter (λ x, x ≥ n) = Ico n m :=
+@[simp] lemma filter_ge_top_eq_self (n m : ℕ) : (Ico n m).filter (λ x, x ≥ n) = Ico n m :=
 begin
   rw filter_eq_self.mpr,
   intros a H,
   simp at H,
   exact H.left
 end
-@[simp] lemma filter_ge_bot (n m : ℕ) : (Ico n m).filter (λ x, x ≥ m) = [] :=
+@[simp] lemma filter_ge_bot_eq_nil (n m : ℕ) : (Ico n m).filter (λ x, x ≥ m) = [] :=
 begin
   rw filter_eq_nil.mpr,
   intros a H,
@@ -4130,7 +4135,7 @@ end
 begin
   by_cases h₁ : m ≥ n,
   { by_cases h₂ : l ≥ m,
-    { rw ← append h₁ h₂,
+    { rw ← append_consecutive h₁ h₂,
       simp [max_eq_right h₁] },
     { simp at h₂,
       rw filter_eq_nil.mpr,

@@ -649,11 +649,18 @@ by dsimp [Ico]; congr; simp
 lemma pred_singleton {m : ℕ} (h : m > 0) : Ico (m-1) m = {m-1} :=
 by dsimp [Ico]; congr; rw multiset.Ico.pred_singleton h; refl
 
+theorem eq_empty_of_le {n m : ℕ} (h : n ≥ m) : Ico n m = ∅ :=
+by dsimp [Ico]; congr; rw multiset.Ico.eq_empty_of_le h; simp
+
 @[simp] lemma filter_lt (l n m : ℕ) : (Ico n l).filter (λ x, x < m) = Ico n (min m l) :=
 by dsimp [Ico, filter]; congr; simp
 
 @[simp] lemma filter_ge (l n m : ℕ) : (Ico n l).filter (λ x, x ≥ m) = Ico (max n m) l :=
 by dsimp [Ico, filter]; congr; simp
+
+-- Statements about `diff`. 
+-- (These are less useful on the `list` and `multiset` versions of `Ico`, so
+-- are proved here.)
 
 @[simp] lemma diff_left (l n m : ℕ) : (Ico n m) \ (Ico n l) = Ico (max n l) m :=
 begin
@@ -679,7 +686,7 @@ begin
   assumption
 end
 
-@[simp] lemma diff_right (l n m : ℕ) (h : l ≤ m): (Ico n m) \ (Ico l m) = Ico n l :=
+@[simp] lemma diff_right (l n m : ℕ) (h : l ≤ m) : (Ico n m) \ (Ico l m) = Ico n l :=
 begin
   /- `tidy` says -/
   ext1,
@@ -696,6 +703,9 @@ begin
   show a < m, sorry,
   show a < l, sorry
 end
+
+-- One could also prove
+-- lemma diff (k l n m : ℕ) : (Ico k l) \ (Ico n m) = (Ico k (min k n)) ∪ (Ico (max k m) l) := sorry
 
 end Ico
 

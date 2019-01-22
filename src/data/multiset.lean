@@ -2978,7 +2978,13 @@ by dsimp [Ico]; congr; simp
 lemma pred_singleton {m : ℕ} (h : m > 0) : Ico (m-1) m = {m-1} :=
 by dsimp [Ico]; congr; rw list.Ico.pred_singleton h
 
+theorem eq_empty_of_le {n m : ℕ} (h : n ≥ m) : Ico n m = ∅ :=
+by dsimp [Ico]; congr; rw list.Ico.eq_nil_of_le h
+
 theorem nodup (n m : ℕ) : nodup (Ico n m) := Ico.nodup _ _
+
+lemma add_consecutive {n m l : ℕ} (h₁ : m ≥ n) (h₂ : l ≥ m) : Ico n m + Ico m l = Ico n l :=
+by dsimp [Ico]; congr; rw list.Ico.append h₁ h₂
 
 @[simp] lemma filter_lt (l n m : ℕ) : (Ico n l).filter (λ x, x < m) = Ico n (min m l) :=
 by dsimp [Ico]; simp

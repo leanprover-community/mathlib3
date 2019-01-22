@@ -176,18 +176,18 @@ namespace cones
 { hom := { hom := φ.hom },
   inv := { hom := φ.inv, w' := λ j, φ.inv_comp_eq.mpr (w j) } }
 
-def postcompose {G : J ⥤ C} (α : F ⟹ G) : cone F ⥤ cone G :=
+def postcompose {G : J ⥤ C} (α : F ⟶ G) : cone F ⥤ cone G :=
 { obj := λ c, { X := c.X, π := c.π ⊟ α },
   map := λ c₁ c₂ f, { hom := f.hom, w' :=
   by intro; erw ← category.assoc; simp [-category.assoc] } }
 
-@[simp] lemma postcompose_obj_X {G : J ⥤ C} (α : F ⟹ G) (c : cone F) :
+@[simp] lemma postcompose_obj_X {G : J ⥤ C} (α : F ⟶ G) (c : cone F) :
   ((postcompose α).obj c).X = c.X := rfl
 
-@[simp] lemma postcompose_obj_π {G : J ⥤ C} (α : F ⟹ G) (c : cone F) :
+@[simp] lemma postcompose_obj_π {G : J ⥤ C} (α : F ⟶ G) (c : cone F) :
   ((postcompose α).obj c).π = c.π ⊟ α := rfl
 
-@[simp] lemma postcompose_map_hom {G : J ⥤ C} (α : F ⟹ G) {c₁ c₂ : cone F} (f : c₁ ⟶ c₂):
+@[simp] lemma postcompose_map_hom {G : J ⥤ C} (α : F ⟶ G) {c₁ c₂ : cone F} (f : c₁ ⟶ c₂):
   ((postcompose α).map f).hom = f.hom := rfl
 
 section
@@ -236,17 +236,17 @@ namespace cocones
 { hom := { hom := φ.hom },
   inv := { hom := φ.inv, w' := λ j, φ.comp_inv_eq.mpr (w j).symm } }
 
-def precompose {G : J ⥤ C} (α : G ⟹ F) : cocone F ⥤ cocone G :=
+def precompose {G : J ⥤ C} (α : G ⟶ F) : cocone F ⥤ cocone G :=
 { obj := λ c, { X := c.X, ι := α ⊟ c.ι },
   map := λ c₁ c₂ f, { hom := f.hom } }
 
-@[simp] lemma precompose_obj_X {G : J ⥤ C} (α : G ⟹ F) (c : cocone F) :
+@[simp] lemma precompose_obj_X {G : J ⥤ C} (α : G ⟶ F) (c : cocone F) :
   ((precompose α).obj c).X = c.X := rfl
 
-@[simp] lemma precompose_obj_ι {G : J ⥤ C} (α : G ⟹ F) (c : cocone F) :
+@[simp] lemma precompose_obj_ι {G : J ⥤ C} (α : G ⟶ F) (c : cocone F) :
   ((precompose α).obj c).ι = α ⊟ c.ι := rfl
 
-@[simp] lemma precompose_map_hom {G : J ⥤ C} (α : G ⟹ F) {c₁ c₂ : cocone F} (f : c₁ ⟶ c₂) :
+@[simp] lemma precompose_map_hom {G : J ⥤ C} (α : G ⟶ F) {c₁ c₂ : cocone F} (f : c₁ ⟶ c₂) :
   ((precompose α).map f).hom = f.hom := rfl
 
 section
@@ -290,4 +290,4 @@ def map_cocone_morphism {c c' : cocone F} (f : cocone_morphism c c') :
 end functor
 
 end category_theory
-  
+

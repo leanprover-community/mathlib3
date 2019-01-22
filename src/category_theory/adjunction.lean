@@ -320,8 +320,6 @@ end preservation_colimits
 section preservation_limits
 variables {J : Type v} [small_category J] (K : J ⥤ D)
 
-set_option pp.universes true
-
 def functoriality_is_right_adjoint :
   is_right_adjoint (@cones.functoriality _ _ _ _ K _ _ G) :=
 { left := (cones.functoriality F) ⋙ (cones.postcompose
@@ -350,8 +348,8 @@ def functoriality_is_right_adjoint :
 def right_adjoint_preserves_limits : preserves_limits G :=
 λ J 𝒥 K, by resetI; exact
 { preserves := λ c hc, is_limit_iso_unique_cone_morphism.inv
-    (λ s, (((adj.functoriality_is_right_adjoint _).adj).hom_equiv _ _).unique_of_equiv $
-      is_limit_iso_unique_cone_morphism.hom hc _ ) }
+    (λ s, (((adj.functoriality_is_right_adjoint _).adj).hom_equiv _ _).symm.unique_of_equiv $
+      is_limit_iso_unique_cone_morphism.hom hc _) }
 
 end preservation_limits
 

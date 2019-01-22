@@ -407,7 +407,7 @@ variables {F} {G : J ⥤ C} (α : F ⟹ G)
 by apply is_limit.fac
 
 @[simp] lemma limit.lift_map (c : cone F) :
-  limit.lift F c ≫ lim.map α = limit.lift G (c.postcompose α) :=
+  limit.lift F c ≫ lim.map α = limit.lift G ((cones.postcompose α).obj c) :=
 by ext; rw [assoc, lim.map_π, ←assoc, limit.lift_π, limit.lift_π]; refl
 
 lemma limit.map_pre {K : Type v} [small_category K] [has_limits_of_shape K C] (E : K ⥤ J) :

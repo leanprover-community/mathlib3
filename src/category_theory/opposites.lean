@@ -102,7 +102,7 @@ section
 variable (C)
 
 /-- `functor.hom` is the hom-pairing, sending (X,Y) to X → Y, contravariant in X and covariant in Y. -/
-definition hom : (Cᵒᵖ × C) ⥤ (Type v₁) :=
+definition hom : Cᵒᵖ × C ⥤ Type v₁ :=
 { obj       := λ p, @category.hom C _ p.1 p.2,
   map       := λ X Y f, λ h, f.1 ≫ h ≫ f.2,
   map_id'   := by intros; ext; dsimp [category_theory.opposite]; simp,

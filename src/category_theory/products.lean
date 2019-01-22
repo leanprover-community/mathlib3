@@ -50,30 +50,30 @@ variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : cat
 include 𝒞 𝒟
 
 /-- `inl C Z` is the functor `X ↦ (X, Z)`. -/
-def inl (Z : D) : C ⥤ (C × D) :=
+def inl (Z : D) : C ⥤ C × D :=
 { obj := λ X, (X, Z),
   map := λ X Y f, (f, 𝟙 Z) }
 
 /-- `inr D Z` is the functor `X ↦ (Z, X)`. -/
-def inr (Z : C) : D ⥤ (C × D) :=
+def inr (Z : C) : D ⥤ C × D :=
 { obj := λ X, (Z, X),
   map := λ X Y f, (𝟙 Z, f) }
 
 /-- `fst` is the functor `(X, Y) ↦ X`. -/
-def fst : (C × D) ⥤ C :=
+def fst : C × D ⥤ C :=
 { obj := λ X, X.1,
   map := λ X Y f, f.1 }
 
 /-- `snd` is the functor `(X, Y) ↦ Y`. -/
-def snd : (C × D) ⥤ D :=
+def snd : C × D ⥤ D :=
 { obj := λ X, X.2,
   map := λ X Y f, f.2 }
 
-def swap : (C × D) ⥤ (D × C) :=
+def swap : C × D ⥤ D × C :=
 { obj := λ X, (X.2, X.1),
   map := λ _ _ f, (f.2, f.1) }
 
-def symmetry : ((swap C D) ⋙ (swap D C)) ≅ (functor.id (C × D)) :=
+def symmetry : swap C D ⋙ swap D C ≅ functor.id (C × D) :=
 { hom :=
   { app := λ X, 𝟙 X,
     naturality' := begin intros, erw [category.comp_id (C × D), category.id_comp (C × D)], dsimp [swap], simp, end },
@@ -99,7 +99,7 @@ include 𝒞 𝒟
     ext, dsimp, rw functor.map_comp,
   end }
 
-@[simp] def evaluation_uncurried : (C × (C ⥤ D)) ⥤ D :=
+@[simp] def evaluation_uncurried : C × (C ⥤ D) ⥤ D :=
 { obj := λ p, p.2.obj p.1,
   map := λ x y f, (x.2.map f.1) ≫ (f.2.app y.1),
   map_comp' := begin
@@ -117,7 +117,7 @@ include 𝒜 ℬ 𝒞 𝒟
 
 namespace functor
 /-- The cartesian product of two functors. -/
-def prod (F : A ⥤ B) (G : C ⥤ D) : (A × C) ⥤ (B × D) :=
+def prod (F : A ⥤ B) (G : C ⥤ D) : A × C ⥤ B × D :=
 { obj := λ X, (F.obj X.1, G.obj X.2),
   map := λ _ _ f, (F.map f.1, G.map f.2) }
 

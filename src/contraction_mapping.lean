@@ -1,152 +1,119 @@
 /-
 Copyright (c) 2018 Rohan Mitta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker
+Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker, Johannes Hölzl
+
+Lipschitz functions and the Banach fixed-point theorem
 -/
-import analysis.limits analysis.normed_space
-open nat filter
+import topology.metric_space.basic analysis.specific_limits
+open filter
 
-lemma fixed_point_of_iteration_limit {α : Type*} [topological_space α] [t2_space α] {f : α → α}
-  {x : α} : continuous f → (∃ x₀ : α, tendsto (λ n, f^[n] x₀) at_top (nhds x)) → x = f x :=
+variables {α : Type*} {β : Type*} {γ : Type*}
+
+lemma fixed_point_of_tendsto_iterate [topological_space α] [t2_space α] {f : α → α} {x : α}
+  (hf : tendsto f (nhds x) (nhds (f x))) (hx : ∃ x₀ : α, tendsto (λ n, f^[n] x₀) at_top (nhds x)) :
+  f x = x :=
 begin
-  intros hf hx,
-  cases hx with x₀ hx,
-  apply @tendsto_nhds_unique α ℕ _ _ (λ n, f^[succ n] x₀) at_top x (f x),
-  { exact at_top_ne_bot },
-  { rewrite @tendsto_comp_succ_at_top_iff α (λ n, f^[n] x₀) (nhds x),
-    exact hx },
-  { rewrite funext (λ n, iterate_succ' f n x₀),
-    exact tendsto.comp hx (continuous.tendsto hf x) },
+  rcases hx with ⟨x₀, hx⟩,
+  refine tendsto_nhds_unique at_top_ne_bot _ hx,
+  rw [← tendsto_comp_succ_at_top_iff, funext (assume n, nat.iterate_succ' f n x₀)],
+  exact hx.comp hf
 end
 
-def lipschitz {α : Type*} [metric_space α] (K : ℝ) (f : α → α) :=
-0 ≤ K ∧ ∀ (x y : α), dist (f x) (f y) ≤ K * (dist x y)
+/-- `lipschitz_with K f`: the function `f` is Lipschitz continuous w.r.t. the Lipschitz
+constant `K`. -/
+def lipschitz_with [metric_space α] [metric_space β] (K : ℝ) (f : α → β) :=
+0 ≤ K ∧ ∀x y, dist (f x) (f y) ≤ K * dist x y
 
-lemma uniform_continuous_of_lipschitz {α : Type*} [metric_space α] {K : ℝ} {f : α → α} :
-  lipschitz K f → uniform_continuous f :=
-λ hf, uniform_continuous_of_metric.mpr (λ ε hε, or.elim (lt_or_le K ε)
-  (λ h, ⟨(1 : ℝ), zero_lt_one, (λ x y hd, lt_of_le_of_lt (hf.right x y)
-    (lt_of_le_of_lt (mul_le_mul_of_nonneg_left (le_of_lt hd) hf.left) (symm (mul_one K) ▸ h)))⟩)
-  (λ h, ⟨ε / K, div_pos_of_pos_of_pos hε (lt_of_lt_of_le hε h),
-    (λ x y hd, lt_of_le_of_lt (hf.right x y)
-      (mul_comm (dist x y) K ▸ mul_lt_of_lt_div (lt_of_lt_of_le hε h) hd))⟩))
+namespace lipschitz_with
 
-lemma iterated_lipschitz_of_lipschitz {α : Type*} [metric_space α] {K : ℝ} {f : α → α} :
-   lipschitz K f → ∀ (n : ℕ), lipschitz (K ^ n) (f^[n]) :=
+variables [metric_space α] [metric_space β] [metric_space γ] {K : ℝ}
+
+protected lemma weaken (K' : ℝ) {f : α → β} (hf : lipschitz_with K f) (h : K ≤ K') :
+  lipschitz_with K' f :=
+⟨le_trans hf.1 h, assume x y, le_trans (hf.2 x y) $ mul_le_mul_of_nonneg_right h dist_nonneg⟩
+
+protected lemma to_uniform_continuous {f : α → β} (hf : lipschitz_with K f) :
+  uniform_continuous f :=
+metric.uniform_continuous_iff.mpr (λ ε hε, or.elim (lt_or_le K ε)
+(λ h, ⟨(1 : ℝ), zero_lt_one, (λ x y hd, lt_of_le_of_lt (hf.right x y)
+  (lt_of_le_of_lt (mul_le_mul_of_nonneg_left (le_of_lt hd) hf.left) (symm (mul_one K) ▸ h)))⟩)
+(λ h, ⟨ε / K, div_pos_of_pos_of_pos hε (lt_of_lt_of_le hε h),
+  (λ x y hd, lt_of_le_of_lt (hf.right x y)
+    (mul_comm (dist x y) K ▸ mul_lt_of_lt_div (lt_of_lt_of_le hε h) hd))⟩))
+
+protected lemma const (b : β) : lipschitz_with 0 (λa:α, b) :=
+⟨le_refl 0, assume x y, by simp⟩
+
+protected lemma id : lipschitz_with 1 (@id α) :=
+⟨zero_le_one, by simp [le_refl]⟩
+
+protected lemma comp {Kf Kg : ℝ} {f : β → γ} {g : α → β}
+  (hf : lipschitz_with Kf f) (hg : lipschitz_with Kg g) : lipschitz_with (Kf * Kg) (f ∘ g) :=
+⟨mul_nonneg hf.1 hg.1, assume x y,
+  calc dist (f (g x)) (f (g y)) ≤ Kf * dist (g x) (g y) : hf.2 _ _
+    ... ≤ Kf * (Kg * dist x y) : mul_le_mul_of_nonneg_left (hg.2 _ _) hf.1
+    ... = (Kf * Kg) * dist x y : by rw mul_assoc⟩
+
+protected lemma iterate {f : α → α} (hf : lipschitz_with K f) : ∀n, lipschitz_with (K ^ n) (f^[n])
+| 0       := lipschitz_with.id
+| (n + 1) := by rw [← nat.succ_eq_add_one, pow_succ, mul_comm]; exact (iterate n).comp hf
+
+section contraction
+variables {f : α → α} {x y : α}
+
+lemma dist_inequality_of_contraction (hK₁ : K < 1) (hf : lipschitz_with K f) :
+   dist x y ≤ (dist x (f x) + dist y (f y)) / (1 - K) :=
+suffices dist x y ≤ dist x (f x) + (dist y (f y) + K * dist x y),
+  by rwa [le_div_iff (sub_pos_of_lt hK₁), mul_comm, sub_mul, one_mul, sub_le_iff_le_add, add_assoc],
+calc dist x y ≤ dist x (f x) + dist y (f x) :
+    dist_triangle_right x y (f x)
+  ... ≤ dist x (f x) + (dist y (f y) + dist (f x) (f y)) :
+    add_le_add_left (dist_triangle_right y (f x) (f y)) _
+  ... ≤ dist x (f x) + (dist y (f y) + K * dist x y) :
+    add_le_add_left (add_le_add_left (hf.2 _ _) _) _
+
+theorem fixed_point_unique_of_contraction (hK : K < 1) (hf : lipschitz_with K f)
+  (hx : f x = x) (hy : f y = y) : x = y :=
+dist_le_zero.1 $ le_trans (dist_inequality_of_contraction hK hf) $
+  by rewrite [iff.mpr dist_eq_zero hx.symm, iff.mpr dist_eq_zero hy.symm]; simp
+
+lemma dist_bound_of_contraction (hK : K < 1) (hf : lipschitz_with K f) {n m : ℕ} :
+  dist (f^[n] x) (f^[m] x) ≤ (K ^ n + K ^ m) * dist x (f x) / (1 - K) :=
 begin
-  intros hf n,
-  induction n with n ih,
-  { apply and.intro,
-    { exact pow_zero K ▸ zero_le_one, },
-    { intros x y,
-      rewrite [pow_zero K, one_mul, iterate_zero f x, iterate_zero f y], }, },
-  { apply and.intro,
-    { exact mul_nonneg hf.left ih.left, },
-    { intros x y,
-      rewrite [iterate_succ', iterate_succ'],
-      apply le_trans (hf.right (f^[n] x) (f^[n] y)),
-      rewrite [pow_succ K n, mul_assoc],
-      exact mul_le_mul_of_nonneg_left (ih.right x y) hf.left, }, },
-end
-
-lemma dist_inequality_of_contraction {α : Type*} [metric_space α] {K : ℝ} {f : α → α} (hK₁ : K < 1) :
-  lipschitz K f → ∀ (x y : α), dist x y ≤ (dist x (f x) + dist y (f y)) / (1 - K) :=
-begin
-  intros hf x y,
-  apply le_div_of_mul_le (sub_pos_of_lt hK₁),
-  rewrite [mul_comm, sub_mul, one_mul],
-  apply sub_left_le_of_le_add,
   apply le_trans,
-    exact dist_triangle_right x y (f x),
-  apply le_trans,
-    apply add_le_add_left,
-    exact dist_triangle_right y (f x) (f y),
-  rewrite [←add_assoc, add_comm],
-  apply add_le_add_right,
-  exact hf.right x y,
-end
-
-theorem fixed_point_unique_of_contraction {α : Type*} [metric_space α] {K : ℝ} {f : α → α} :
-  K < 1 → lipschitz K f → ∀ (x : α), x = f x → ∀ (y : α), y = f y → x = y :=
-begin
-  intros hK₁ hf x hx y hy,
-  apply iff.mp dist_le_zero,
-  apply le_trans,
-  exact dist_inequality_of_contraction hK₁ hf x y,
-  rewrite [iff.mpr dist_eq_zero hx, iff.mpr dist_eq_zero hy],
-  norm_num,
-end
-
-lemma dist_bound_of_contraction {α : Type*} [metric_space α] {K : ℝ} {f : α → α} :
-  K < 1 → lipschitz K f → ∀ (x₀ : α) (n : ℕ × ℕ),
-  dist (f^[n.1] x₀) (f^[n.2] x₀) ≤ (K ^ n.1 + K ^ n.2) * dist x₀ (f x₀) / (1 - K) :=
-begin
-  intros hK₁ hf x₀ n,
-  apply le_trans,
-  exact dist_inequality_of_contraction hK₁ hf (f^[n.1] x₀) (f^[n.2] x₀),
-  apply div_le_div_of_le_of_pos _ (sub_pos_of_lt hK₁),
-  have h : ∀ (m : ℕ), dist (f^[m] x₀) (f (f^[m] x₀)) ≤ K ^ m * dist x₀ (f x₀),
-    intro m,
-    rewrite [←iterate_succ' f m x₀, iterate_succ f m x₀],
-    exact and.right (iterated_lipschitz_of_lipschitz hf m) x₀ (f x₀),
+  exact dist_inequality_of_contraction hK hf,
+  apply div_le_div_of_le_of_pos _ (sub_pos_of_lt hK),
+  have h : ∀ (m : ℕ), dist (f^[m] x) (f (f^[m] x)) ≤ K ^ m * dist x (f x),
+  { intro m,
+    rewrite [←nat.iterate_succ' f m x, nat.iterate_succ f m x],
+    exact and.right (hf.iterate m) x (f x) },
   rewrite add_mul,
-  apply add_le_add,
-  { exact h n.1, },
-  { exact h n.2, },
+  exact add_le_add (h n) (h m)
 end
 
-lemma continuous_prod_snd {α β γ  : Type*} [topological_space α] [topological_space β]
-  [topological_space γ] {f : α × β → γ} {a : α} (hf : continuous f) : continuous (λ b, f (a, b)) :=
-continuous.comp (continuous.prod_mk continuous_const continuous_id) hf
-
-local attribute [instance] prod.prod_semilattice_sup
-
-lemma tendsto_dist_bound_at_top_nhds_0 {K : ℝ} (hK₀ : 0 ≤ K) (hK₁ : K < 1) (z : ℝ) :
+private lemma tendsto_dist_bound_at_top_nhds_0 (hK₀ : 0 ≤ K) (hK₁ : K < 1) (z : ℝ) :
   tendsto (λ (n : ℕ × ℕ), (K ^ n.1 + K ^ n.2) * z / (1 - K)) at_top (nhds 0) :=
-begin
-  let f := λ (n : ℕ × ℕ), (K ^ n.1, K ^ n.2),
-  let g := λ (y : ℝ × ℝ), (y.1 + y.2) * z / (1 - K),
-  show tendsto (g ∘ f) at_top (nhds 0),
-  apply tendsto.comp,
-  { show tendsto f at_top (nhds (0, 0)),
-    rw ←prod_at_top_at_top_eq,
-    apply tendsto_prod_mk_nhds,
-    { apply tendsto.comp tendsto_fst,
-      exact tendsto_pow_at_top_nhds_0_of_lt_1 hK₀ hK₁, },
-    { apply tendsto.comp tendsto_snd,
-      exact tendsto_pow_at_top_nhds_0_of_lt_1 hK₀ hK₁, }, },
-  { show tendsto g (nhds (0, 0)) (nhds 0),
-    have hg : g = λ (y : ℝ × ℝ), z / (1 - K) * (y.1 + y.2),
-      ext,
-      rewrite [mul_comm, ←mul_div_assoc],
-    have hc : continuous g,
-      rewrite hg,
-      apply continuous.comp,
-      exact continuous_add',
-      exact continuous_prod_snd continuous_mul',
-    have h₀ := continuous.tendsto hc (0, 0),
-    suffices h : g (0, 0) = 0,
-      rewrite h at h₀,
-      exact h₀,
-    rewrite hg,
-    norm_num, },
-end
+suffices tendsto (λ (n : ℕ × ℕ), (K ^ n.1 + K ^ n.2) * z / (1 - K))
+    (at_top.prod at_top) (nhds (((0 + 0) * z) * (1 - K)⁻¹)),
+  by simpa [prod_at_top_at_top_eq],
+tendsto_mul (tendsto_mul (tendsto_add
+  (tendsto_fst.comp (tendsto_pow_at_top_nhds_0_of_lt_1 hK₀ hK₁))
+  (tendsto_snd.comp (tendsto_pow_at_top_nhds_0_of_lt_1 hK₀ hK₁))) tendsto_const_nhds)
+  tendsto_const_nhds
 
-theorem fixed_point_exists_of_contraction {α : Type*} [inhabited α] [metric_space α]
-  [complete_space α] {K : ℝ} {f : α → α} : K < 1 → lipschitz K f → ∃ (x : α), x = f x :=
-begin
-  intros hK₁ hf,
-  let x₀ := default α,
-  suffices h : cauchy_seq (λ n, f^[n] x₀),
-    cases cauchy_seq_tendsto_of_complete h with x hx,
-    use x,
-    apply @fixed_point_of_iteration_limit α _,
-    { exact uniform_continuous.continuous (uniform_continuous_of_lipschitz hf), },
-    { exact ⟨x₀, hx⟩, },
-  apply iff.mpr cauchy_seq_iff_tendsto_dist_at_top_0,
-  apply squeeze_zero,
-  { intro x,
-    exact dist_nonneg, },
-  { exact dist_bound_of_contraction hK₁ hf x₀, },
-  { exact tendsto_dist_bound_at_top_nhds_0 hf.left hK₁ (dist x₀ (f x₀)), },
-end
+/-- Banach fixed-point theorem, contraction mapping theorem -/
+theorem exists_fixed_point_of_contraction [hα : nonempty α] [complete_space α]
+  (hK : K < 1) (hf : lipschitz_with K f) : ∃x, f x = x :=
+let ⟨x₀⟩ := hα in
+have tendsto (λ (n : ℕ × ℕ), dist (f^[n.fst] x₀) (f^[n.snd] x₀)) at_top (nhds 0) :=
+  squeeze_zero (assume x, dist_nonneg)
+    (assume p, dist_bound_of_contraction hK hf)
+    (tendsto_dist_bound_at_top_nhds_0 hf.left hK (dist x₀ (f x₀))),
+have cauchy_seq (λ n, f^[n] x₀), by rwa [cauchy_seq_iff_tendsto_dist_at_top_0],
+let ⟨x, hx⟩ := cauchy_seq_tendsto_of_complete this in
+⟨x, fixed_point_of_tendsto_iterate (hf.to_uniform_continuous.continuous.tendsto x) ⟨x₀, hx⟩⟩
+
+end contraction
+
+end lipschitz_with

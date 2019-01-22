@@ -905,14 +905,9 @@ defined on ℝ is Cauchy at +∞ to deduce convergence. Therefore, we define it 
 is general enough to cover both ℕ and ℝ, which are the main motivating examples. -/
 def cauchy_seq [inhabited β] [semilattice_sup β] (u : β → α) := cauchy (at_top.map u)
 
-section prod
-local attribute [instance] prod.prod_semilattice_sup
-
 lemma cauchy_seq_iff_prod_map [inhabited β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ map (prod.map u u) at_top ≤ uniformity :=
 iff.trans (and_iff_right (map_ne_bot at_top_ne_bot)) (prod_map_at_top_eq u u ▸ iff.rfl)
-
-end prod
 
 /-- A complete space is defined here using uniformities. A uniform space
   is complete if every Cauchy filter converges. -/

@@ -480,21 +480,27 @@ lemma closed_ball_Icc {x r : ℝ} : closed_ball x r = Icc (x-r) (x+r) :=
 by ext y; rw [mem_closed_ball, dist_comm, real.dist_eq,
   abs_sub_le_iff, mem_Icc, ← sub_le_iff_le_add', sub_le]
 
-local attribute [instance] prod.prod_semilattice_sup
+lemma squeeze_zero {α} {f g : α → ℝ} {t₀ : filter α} (hf : ∀t, 0 ≤ f t) (hft : ∀t, f t ≤ g t)
+  (g0 : tendsto g t₀ (nhds 0)) : tendsto f t₀ (nhds 0) :=
+begin
+  apply tendsto_of_tendsto_of_tendsto_of_le_of_le (tendsto_const_nhds) g0;
+  simp [*]; exact filter.univ_mem_sets
+end
 
-lemma dist_prod_eq_dist_0 {β₁ β₂ : Type*} (u₁ : β₁ → α) (u₂ : β₂ → α) (n : β₁ × β₂) :
-  dist (prod.map u₁ u₂ n).1 (prod.map u₁ u₂ n).2 = dist (dist (u₁ n.1) (u₂ n.2)) 0 :=
-by rw [prod.map_fst, prod.map_snd, real.dist_0_eq_abs, abs_of_nonneg dist_nonneg]
+theorem metric.uniformity_eq_comap_nhds_zero :
+  uniformity = comap (λp:α×α, dist p.1 p.2) (nhds (0 : ℝ)) :=
+begin
+  simp only [uniformity_dist', nhds_eq, comap_infi, comap_principal],
+  congr, funext ε,
+  rw [principal_eq_iff_eq],
+  ext ⟨a, b⟩,
+  simp [real.dist_0_eq_abs]
+end
 
 lemma cauchy_seq_iff_tendsto_dist_at_top_0 [inhabited β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ tendsto (λ (n : β × β), dist (u n.1) (u n.2)) at_top (nhds 0) :=
-iff.trans cauchy_seq_iff_prod_map (iff.symm (iff.trans tendsto_nhds_topo_metric
-  ⟨(λ h s hs, let ⟨ε, hε, hε'⟩ := mem_uniformity_dist.mp hs in
-     let ⟨t, ht, ht'⟩ := h ε hε in mem_map_sets_iff.mpr
-       ⟨t, ht, (λ p hp, @prod.mk.eta α α p ▸ hε' (let ⟨n, hn, hn'⟩ := hp in
-         show dist p.1 p.2 < ε, from hn' ▸ symm (dist_prod_eq_dist_0 u u n) ▸ ht' n hn))⟩),
-   (λ h ε hε, let ⟨s, hs, hs'⟩ := mem_map_sets_iff.mp (h (dist_mem_uniformity hε)) in
-     ⟨s, hs, (λ n hn, dist_prod_eq_dist_0 u u n ▸ hs' (set.mem_image_of_mem (prod.map u u) hn))⟩)⟩))
+by rw [cauchy_seq_iff_prod_map, metric.uniformity_eq_comap_nhds_zero, ← map_le_iff_le_comap,
+  filter.map_map, tendsto, prod.map_def]
 
 end real
 

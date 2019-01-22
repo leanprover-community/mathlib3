@@ -15,13 +15,6 @@ noncomputable theory
 open filter metric
 local notation f `→_{`:50 a `}`:0 b := tendsto f (nhds a) (nhds b)
 
-lemma squeeze_zero {α} {f g : α → ℝ} {t₀ : filter α} (hf : ∀t, 0 ≤ f t) (hft : ∀t, f t ≤ g t)
-  (g0 : tendsto g t₀ (nhds 0)) : tendsto f t₀ (nhds 0) :=
-begin
-  apply tendsto_of_tendsto_of_tendsto_of_le_of_le (tendsto_const_nhds) g0;
-  simp [*]; exact filter.univ_mem_sets
-end
-
 class has_norm (α : Type*) := (norm : α → ℝ)
 
 export has_norm (norm)

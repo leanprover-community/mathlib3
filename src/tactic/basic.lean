@@ -701,7 +701,7 @@ instance : monad id :=
 { name := "Instance Stub",
   descr := "Generate a skeleton for the structure under construction.",
   action := λ _,
-  do tgt ← target,
+  do tgt ← target >>= whnf,
      let cl := tgt.get_app_fn.const_name,
      env ← get_env,
      fs ← expanded_field_list cl,

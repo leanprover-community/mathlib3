@@ -10,43 +10,43 @@ universes u
 
 variables (α : Type u)
 
-inductive opposite : Type u
-| op : α → opposite
+def opposite : Type u := α
 
 namespace opposite
 variables {α}
-def unop : opposite α → α | (opposite.op x) := x
-theorem op_inj : function.injective (op : α → opposite α) := λ _ _, op.inj
-theorem unop_inj : function.injective (unop : opposite α → α) := λ ⟨x⟩ ⟨y⟩ H, congr_arg op H
-theorem op_unop (x : opposite α) : op (unop x) = x := by cases x; refl
+def op : α → opposite α := id
+def unop : opposite α → α := id
+theorem op_inj : function.injective (op : α → opposite α) := λ _ _, id
+theorem unop_inj : function.injective (unop : opposite α → α) := λ _ _, id
+theorem op_unop (x : opposite α) : op (unop x) = x := rfl
 theorem unop_op (x : α) : unop (op x) = x := rfl
 variables (α)
 
 instance [has_add α] : has_add (opposite α) :=
-{ add := λ x y, op (unop y + unop x) }
+{ add := λ x y, op (unop x + unop y) }
 
 instance [add_semigroup α] : add_semigroup (opposite α) :=
-{ add_assoc := λ x y z, unop_inj $ eq.symm $ add_assoc (unop z) (unop y) (unop x),
+{ add_assoc := λ x y z, unop_inj $ add_assoc (unop x) (unop y) (unop z),
   .. opposite.has_add α }
 
-instance [add_right_cancel_semigroup α] : add_left_cancel_semigroup (opposite α) :=
-{ add_left_cancel := λ x y z H, unop_inj $ add_right_cancel $ op_inj H,
+instance [add_left_cancel_semigroup α] : add_left_cancel_semigroup (opposite α) :=
+{ add_left_cancel := λ x y z H, unop_inj $ add_left_cancel $ op_inj H,
   .. opposite.add_semigroup α }
 
-instance [add_left_cancel_semigroup α] : add_right_cancel_semigroup (opposite α) :=
-{ add_right_cancel := λ x y z H, unop_inj $ add_left_cancel $ op_inj H,
+instance [add_right_cancel_semigroup α] : add_right_cancel_semigroup (opposite α) :=
+{ add_right_cancel := λ x y z H, unop_inj $ add_right_cancel $ op_inj H,
   .. opposite.add_semigroup α }
 
 instance [add_comm_semigroup α] : add_comm_semigroup (opposite α) :=
-{ add_comm := λ x y, unop_inj $ add_comm (unop y) (unop x),
+{ add_comm := λ x y, unop_inj $ add_comm (unop x) (unop y),
   .. opposite.add_semigroup α }
 
 instance [has_zero α] : has_zero (opposite α) :=
 { zero := op 0 }
 
 instance [add_monoid α] : add_monoid (opposite α) :=
-{ zero_add := λ x, unop_inj $ add_zero $ unop x,
-  add_zero := λ x, unop_inj $ zero_add $ unop x,
+{ zero_add := λ x, unop_inj $ zero_add $ unop x,
+  add_zero := λ x, unop_inj $ add_zero $ unop x,
   .. opposite.add_semigroup α, .. opposite.has_zero α }
 
 instance [add_comm_monoid α] : add_comm_monoid (opposite α) :=
@@ -56,7 +56,7 @@ instance [has_neg α] : has_neg (opposite α) :=
 { neg := λ x, op $ -(unop x) }
 
 instance [add_group α] : add_group (opposite α) :=
-{ add_left_neg := λ x, unop_inj $ add_neg_self $ unop x,
+{ add_left_neg := λ x, unop_inj $ add_left_neg $ unop x,
   .. opposite.add_monoid α, .. opposite.has_neg α }
 
 instance [add_comm_group α] : add_comm_group (opposite α) :=
@@ -103,8 +103,8 @@ instance [comm_group α] : comm_group (opposite α) :=
 { .. opposite.group α, .. opposite.comm_monoid α }
 
 instance [distrib α] : distrib (opposite α) :=
-{ left_distrib := λ x y z, unop_inj $ add_mul (unop z) (unop y) (unop x),
-  right_distrib := λ x y z, unop_inj $ mul_add (unop z) (unop y) (unop x),
+{ left_distrib := λ x y z, unop_inj $ add_mul (unop y) (unop z) (unop x),
+  right_distrib := λ x y z, unop_inj $ mul_add (unop z) (unop x) (unop y),
   .. opposite.has_add α, .. opposite.has_mul α }
 
 instance [semiring α] : semiring (opposite α) :=

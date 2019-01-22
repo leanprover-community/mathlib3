@@ -29,49 +29,49 @@ structure adjunction (F : C ⥤ D) (G : D ⥤ C) :=
 (hom_equiv : Π (X Y), (F.obj X ⟶ Y) ≃ (X ⟶ G.obj Y))
 (unit : functor.id C ⟶ F.comp G)
 (counit : G.comp F ⟶ functor.id D)
-(hom_equiv_unit' : Π {X}, (hom_equiv X (F.obj X)) (𝟙 (F.obj X)) = (unit : _ ⟹ _).app X . obviously)
-(hom_equiv_counit' : Π {Y}, (hom_equiv (G.obj Y) Y).symm (𝟙 (G.obj Y)) = counit.app Y . obviously)
-(hom_equiv_naturality_left_symm' : Π {X' X Y} (f : X' ⟶ X) (g : X ⟶ G.obj Y),
-  (hom_equiv X' Y).symm (f ≫ g) = F.map f ≫ (hom_equiv X Y).symm g . obviously)
-(hom_equiv_naturality_right' : Π {X Y Y'} (f : F.obj X ⟶ Y) (g : Y ⟶ Y'),
-  (hom_equiv X Y') (f ≫ g) = (hom_equiv X Y) f ≫ G.map g . obviously)
+(hom_equiv_unit' : Π {X Y f}, (hom_equiv X Y) f = (unit : _ ⟹ _).app X ≫ G.map f . obviously)
+(hom_equiv_counit' : Π {X Y g}, (hom_equiv X Y).symm g = F.map g ≫ counit.app Y . obviously)
 
 namespace adjunction
 
 restate_axiom hom_equiv_unit'
 restate_axiom hom_equiv_counit'
-restate_axiom hom_equiv_naturality_left_symm'
-restate_axiom hom_equiv_naturality_right'
-
 attribute [simp, priority 1] hom_equiv_unit hom_equiv_counit
-attribute [simp, priority 1] hom_equiv_naturality_left_symm hom_equiv_naturality_right
 
 section
 
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : adjunction F G) {X' X : C} {Y Y' : D}
 
+@[simp, priority 1] lemma hom_equiv_naturality_left_symm (f : X' ⟶ X) (g : X ⟶ G.obj Y) :
+  (adj.hom_equiv X' Y).symm (f ≫ g) = F.map f ≫ (adj.hom_equiv X Y).symm g :=
+by rw [hom_equiv_counit, F.map_comp, assoc, adj.hom_equiv_counit.symm]
+
 @[simp] lemma hom_equiv_naturality_left (f : X' ⟶ X) (g : F.obj X ⟶ Y) :
   (adj.hom_equiv X' Y) (F.map f ≫ g) = f ≫ (adj.hom_equiv X Y) g :=
-by rw [← equiv.eq_symm_apply]; simp
+by rw [← equiv.eq_symm_apply]; simp [-hom_equiv_unit]
+
+@[simp, priority 1] lemma hom_equiv_naturality_right (f : F.obj X ⟶ Y) (g : Y ⟶ Y') :
+  (adj.hom_equiv X Y') (f ≫ g) = (adj.hom_equiv X Y) f ≫ G.map g :=
+by rw [hom_equiv_unit, G.map_comp, ← assoc, ←hom_equiv_unit]
 
 @[simp] lemma hom_equiv_naturality_right_symm (f : X ⟶ G.obj Y) (g : Y ⟶ Y') :
   (adj.hom_equiv X Y').symm (f ≫ G.map g) = (adj.hom_equiv X Y).symm f ≫ g :=
-by rw [equiv.symm_apply_eq]; simp
+by rw [equiv.symm_apply_eq]; simp [-hom_equiv_counit]
 
 @[simp] lemma left_triangle :
   (whisker_right adj.unit F).vcomp (whisker_left F adj.counit) = nat_trans.id _ :=
 begin
   ext1 X, dsimp,
-  erw [← adj.hom_equiv_counit, ← adj.hom_equiv_naturality_left_symm, equiv.symm_apply_eq],
-  simp,
+  erw [← adj.hom_equiv_counit, equiv.symm_apply_eq, adj.hom_equiv_unit],
+  simp
 end
 
 @[simp] lemma right_triangle :
   (whisker_left G adj.unit).vcomp (whisker_right adj.counit G) = nat_trans.id _ :=
 begin
   ext1 Y, dsimp,
-  erw [← adj.hom_equiv_unit, ← adj.hom_equiv_naturality_right, ← equiv.eq_symm_apply],
-  simp,
+  erw [← adj.hom_equiv_unit, ← equiv.eq_symm_apply, adj.hom_equiv_counit],
+  simp
 end
 
 @[simp] lemma left_triangle_components :
@@ -142,6 +142,8 @@ def mk_of_hom_equiv (adj : core_hom_equiv F G) : adjunction F G :=
       erw [← adj.hom_equiv_naturality_left_symm, ← adj.hom_equiv_naturality_right_symm],
       dsimp, simp
     end },
+  hom_equiv_unit' := λ X Y f, by erw [← adj.hom_equiv_naturality_right]; simp,
+  hom_equiv_counit' := λ X Y f, by erw [← adj.hom_equiv_naturality_left_symm]; simp,
   .. adj }
 
 def mk_of_unit_counit (adj : core_unit_counit F G) : adjunction F G :=
@@ -170,23 +172,7 @@ def trans (adj₁ : adjunction F G) (adj₂ : adjunction H I) : adjunction (F �
   unit := adj₁.unit ≫
   (whisker_left F $ whisker_right adj₂.unit G) ≫ (functor.associator _ _ _).inv,
   counit := (functor.associator _ _ _).hom ≫
-    (whisker_left I $ whisker_right adj₁.counit H) ≫ adj₂.counit,
-  hom_equiv_unit' :=
-  begin
-    intro X,
-    dsimp,
-    erw [← adj₁.hom_equiv_unit, ← adj₂.hom_equiv_unit, comp_id],
-    erw ← adj₁.hom_equiv_naturality_right,
-    simp
-  end,
-  hom_equiv_counit' :=
-  begin
-    intro Z,
-    dsimp,
-    erw [← adj₁.hom_equiv_counit, ← adj₂.hom_equiv_counit, id_comp],
-    erw ← adj₂.hom_equiv_naturality_left_symm,
-    simp
-  end }
+    (whisker_left I $ whisker_right adj₁.counit H) ≫ adj₂.counit }
 
 end
 

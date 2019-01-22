@@ -119,6 +119,15 @@ def of_faithful {t : cone F} {D : Type u'} [category.{v} D] (G : C ⥤ D) [faith
 
 end is_limit
 
+def is_limit_iso_unique_cone_morphism {t : cone F} :
+  is_limit t ≅ Π s, unique (s ⟶ t) :=
+{ hom := λ h s,
+  { default := h.lift_cone_morphism s,
+    uniq := λ _, h.uniq_cone_morphism },
+  inv := λ h,
+  { lift := λ s, (h s).default.hom,
+    uniq' := λ s f w, congr_arg cone_morphism.hom ((h s).uniq ⟨f, w⟩) } }
+
 /-- A cocone `t` on `F` is a colimit cocone if each cocone on `F` admits a unique
   cocone morphism from `t`. -/
 structure is_colimit (t : cocone F) :=

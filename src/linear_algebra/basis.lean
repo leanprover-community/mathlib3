@@ -359,6 +359,30 @@ lemma linear_equiv.is_basis {s : set β} (hs : is_basis s)
 show is_basis ((f : β →ₗ γ) '' s), from
 ⟨hs.1.image $ by simp, by rw [span_image, hs.2, map_top, f.range]⟩
 
+lemma is_basis_injective {s : set γ} {f : β →ₗ γ}
+  (hs : linear_independent s) (h : function.injective f) (hfs : span s = f.range) :
+  is_basis (f ⁻¹' s) :=
+have s_eq : f '' (f ⁻¹' s) = s :=
+  image_preimage_eq_of_subset $ by rw [← linear_map.range_coe, ← hfs]; exact subset_span,
+have linear_independent (f '' (f ⁻¹' s)), from hs.mono (image_preimage_subset _ _),
+begin
+  split,
+  exact (this.of_image $ assume a ha b hb eq, h eq),
+  refine (top_unique $ (linear_map.map_le_map_iff $ linear_map.ker_eq_bot.2 h).1 _),
+  rw [← span_image f,s_eq, hfs, linear_map.range],
+  exact le_refl _
+end
+
+lemma is_basis_span {s : set β} (hs : linear_independent s) : is_basis ((span s).subtype ⁻¹' s) :=
+is_basis_injective hs subtype.val_injective (range_subtype _).symm
+
+lemma is_basis_empty (h : ∀x:β, x = 0) : is_basis (∅ : set β) :=
+⟨linear_independent_empty, eq_top_iff'.2 $ assume x, (h x).symm ▸ submodule.zero_mem _⟩
+
+lemma is_basis_empty_bot : is_basis ({x | false } : set (⊥ : submodule α β)) :=
+is_basis_empty $ assume ⟨x, hx⟩,
+  by change x ∈ (⊥ : submodule α β) at hx; simpa [subtype.ext] using hx
+
 end module
 
 section vector_space

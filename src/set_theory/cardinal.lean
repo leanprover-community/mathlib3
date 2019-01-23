@@ -41,6 +41,12 @@ instance : has_le cardinal.{u} :=
   assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
     propext ⟨assume ⟨e⟩, ⟨e.congr e₁ e₂⟩, assume ⟨e⟩, ⟨e.congr e₁.symm e₂.symm⟩⟩⟩
 
+theorem mk_le_of_injective {α β : Type u} {f : α → β} (hf : injective f) : mk α ≤ mk β :=
+⟨⟨f, hf⟩⟩
+
+theorem mk_le_of_surjective {α β : Type u} {f : α → β} (hf : surjective f) : mk β ≤ mk α :=
+⟨embedding.of_surjective hf⟩
+
 theorem le_mk_iff_exists_set {c : cardinal} {α : Type u} :
   c ≤ mk α ↔ ∃ p : set α, mk p = c :=
 ⟨quotient.induction_on c $ λ β ⟨⟨f, hf⟩⟩,
@@ -639,9 +645,6 @@ fintype_card empty
 @[simp] theorem mk_pempty : mk pempty = 0 :=
 fintype_card pempty
 
-@[simp] theorem mk_emptyc (α : Type u) : mk (∅ : set α) = 0 :=
-quotient.sound ⟨equiv.set.pempty α⟩
-
 @[simp] theorem mk_plift_of_false {p : Prop} (h : ¬ p) : mk (plift p) = 0 :=
 quotient.sound ⟨equiv.plift.trans $ equiv.equiv_pempty h⟩
 
@@ -666,9 +669,6 @@ quotient.sound ⟨equiv.bool_equiv_punit_sum_punit⟩
 @[simp] theorem mk_option {α : Type u} : mk (option α) = mk α + 1 :=
 quotient.sound ⟨equiv.option_equiv_sum_punit α⟩
 
-theorem mk_eq_of_injective {α β : Type u} {f : α → β} {s : set α} (hf : injective f) : mk (f '' s) = mk s :=
-quotient.sound ⟨(equiv.set.image f s hf).symm⟩
-
 theorem mk_list_eq_sum_pow (α : Type u) : mk (list α) = sum (λ n : ℕ, (mk α)^(n:cardinal.{u})) :=
 calc  mk (list α)
     = mk (Σ n, vector α n) : quotient.sound ⟨equiv.equiv_sigma_subtype list.length⟩
@@ -678,17 +678,36 @@ calc  mk (list α)
   equiv.arrow_congr equiv.ulift.symm (equiv.refl α)⟩
 ... = sum (λ n : ℕ, (mk α)^(n:cardinal.{u})) : by simp only [(lift_mk_fin _).symm, lift_mk, power_def, sum_mk]
 
+theorem mk_quot_le {α : Type u} {r : α → α → Prop} : mk (quot r) ≤ mk α :=
+mk_le_of_surjective quot.exists_rep
+
+theorem mk_quotient_le {α : Type u} {s : setoid α} : mk (quotient s) ≤ mk α :=
+mk_quot_le
+
+theorem mk_subtype_le {α : Type u} {s : set α} : mk s ≤ mk α :=
+mk_le_of_injective subtype.val_injective
+
+@[simp] theorem mk_emptyc (α : Type u) : mk (∅ : set α) = 0 :=
+quotient.sound ⟨equiv.set.pempty α⟩
+
+theorem mk_univ {α : Type u} : mk (@univ α) = mk α :=
+quotient.sound ⟨equiv.set.univ α⟩
+
+theorem mk_image_le {α β : Type u} {f : α → β} {s : set α} : mk (f '' s) ≤ mk s :=
+mk_le_of_surjective surjective_onto_image
+
+theorem mk_range_le {α β : Type u} {f : α → β} {s : set α} : mk (range f) ≤ mk α :=
+mk_le_of_surjective surjective_onto_range
+
+theorem mk_eq_of_injective {α β : Type u} {f : α → β} {s : set α} (hf : injective f) : mk (f '' s) = mk s :=
+quotient.sound ⟨(equiv.set.image f s hf).symm⟩
+
 theorem mk_Union_le_sum_mk {α ι : Type u} {f : ι → set α} : mk (⋃ i, f i) ≤ sum (λ i, mk (f i)) :=
 calc  mk (⋃ i, f i)
-    ≤ mk (Σ i, f i) : show nonempty ((⋃ i, f i) ↪ (Σ i, f i)),
-  from ⟨⟨λ x, ⟨classical.some (mem_Union.1 x.2), x.1, classical.some_spec (mem_Union.1 x.2)⟩,
-  λ x y H, subtype.eq $ begin
-    cases sigma.mk.inj H with H1 H2, clear H,
-    generalize_hyp : classical.some_spec _ = H4 at H1 H2,
-    generalize_hyp : classical.some _ = i₀ at H1 H2 H4,
-    subst H1,
-    exact subtype.mk.inj (eq_of_heq H2)
-  end⟩⟩
+    ≤ mk (Σ i, f i) :
+        let f : (Σ i, f i) → (⋃ i, f i) := λ ⟨i, x, hx⟩, ⟨x, mem_Union.2 ⟨i, hx⟩⟩ in
+        have surjective f := λ ⟨x, hx⟩, let ⟨i, hi⟩ := mem_Union.1 hx in ⟨⟨i, x, hi⟩, rfl⟩,
+        mk_le_of_surjective this
 ... = sum (λ i, mk (f i)) : (sum_mk _).symm
 
 @[simp] lemma finset_card {α : Type u} {s : finset α} : ↑(finset.card s) = mk (↑s : set α) :=

@@ -17,9 +17,6 @@ open lattice
 
 local infix ` ⊗ `:100 := tensor_product
 
-structure algebra.core (R : Type u) (A : Type v) [comm_ring R] [comm_ring A] :=
-(to_fun : R → A) [hom : is_ring_hom to_fun]
-
 /-- The category of R-algebras where R is a commutative
 ring is the under category R ↓ CRing. In the categorical
 setting we have a forgetful functor R-Alg ⥤ R-Mod.
@@ -70,17 +67,17 @@ is_ring_hom.map_mul _
 is_ring_hom.map_one _
 
 /-- Creating an algebra from a morphism in CRing. -/
-def of_core (i : algebra.core R S) : algebra R S :=
-{ smul := λ c x, i.to_fun c * x,
-  smul_zero := λ x, mul_zero (i.to_fun x),
-  smul_add := λ r x y, mul_add (i.to_fun r) x y,
-  add_smul := λ r s x, show i.to_fun (r + s) * x = _, by rw [i.hom.3, add_mul],
-  mul_smul := λ r s x, show i.to_fun (r * s) * x = _, by rw [i.hom.2, mul_assoc],
-  one_smul := λ x, show i.to_fun 1 * x = _, by rw [i.hom.1, one_mul],
-  zero_smul := λ x, show i.to_fun 0 * x = _, by rw [@@is_ring_hom.map_zero _ _ i.to_fun i.hom, zero_mul],
+def of_ring_hom (i : R → S) (hom : is_ring_hom i) : algebra R S :=
+{ smul := λ c x, i c * x,
+  smul_zero := λ x, mul_zero (i x),
+  smul_add := λ r x y, mul_add (i r) x y,
+  add_smul := λ r s x, show i (r + s) * x = _, by rw [hom.3, add_mul],
+  mul_smul := λ r s x, show i (r * s) * x = _, by rw [hom.2, mul_assoc],
+  one_smul := λ x, show i 1 * x = _, by rw [hom.1, one_mul],
+  zero_smul := λ x, show i 0 * x = _, by rw [@@is_ring_hom.map_zero _ _ i hom, zero_mul],
+  to_fun := i,
   commutes' := λ _ _, mul_comm _ _,
-  smul_def' := λ c x, rfl,
-  .. i }
+  smul_def' := λ c x, rfl }
 
 theorem smul_def (r : R) (x : A) : r • x = algebra_map A r * x :=
 algebra.smul_def' r x
@@ -91,11 +88,11 @@ algebra.commutes' r x
 theorem left_comm (r : R) (x y : A) : x * (algebra_map A r * y) = algebra_map A r * (x * y) :=
 by rw [← mul_assoc, commutes, mul_assoc]
 
-@[simp] protected lemma mul_smul (s : R) (x y : A) :
+@[simp] lemma mul_smul_comm (s : R) (x y : A) :
   x * (s • y) = s • (x * y) :=
 by rw [smul_def, smul_def, left_comm]
 
-@[simp] lemma smul_mul (r : R) (x y : A) :
+@[simp] lemma smul_mul_assoc (r : R) (x y : A) :
   (r • x) * y = r • (x * y) :=
 by rw [smul_def, smul_def, mul_assoc]
 
@@ -115,9 +112,8 @@ instance mv_polynomial (R : Type u) [comm_ring R] [decidable_eq R]
   .. mv_polynomial.module }
 
 /-- Creating an algebra from a subring. This is the dual of ring extension. -/
-def of_subring (S : set R) [is_subring S] : algebra S R := of_core
-{ to_fun := subtype.val,
-  hom := ⟨rfl, λ _ _, rfl, λ _ _, rfl⟩ }
+def of_subring (S : set R) [is_subring S] : algebra S R :=
+of_ring_hom subtype.val ⟨rfl, λ _ _, rfl, λ _ _, rfl⟩
 
 variables (A)
 /-- The multiplication in an algebra is a bilinear map. -/
@@ -342,9 +338,8 @@ section
 variables (R : Type*) [comm_ring R]
 
 /-- CRing ⥤ ℤ-Alg -/
-def ring.to_ℤ_algebra : algebra ℤ R := algebra.of_core
-{ to_fun := coe,
-  hom := by constructor; intros; simp }
+def ring.to_ℤ_algebra : algebra ℤ R :=
+algebra.of_ring_hom coe $ by constructor; intros; simp
 
 /-- CRing ⥤ ℤ-Alg -/
 def is_ring_hom.to_ℤ_alg_hom
@@ -473,8 +468,8 @@ variables [comm_ring R] [ring A] [algebra R A]
 include R
 
 variables (R)
-instance id : algebra R R := algebra.of_core
-{ to_fun := id }
+instance id : algebra R R :=
+algebra.of_ring_hom id $ by apply_instance
 variables {R}
 
 def of_id : R →ₐ A :=

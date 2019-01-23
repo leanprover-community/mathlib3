@@ -143,21 +143,28 @@ protected def comm_ring [comm_ring β] : comm_ring α :=
 { ..equiv.comm_monoid e,
   ..equiv.ring e }
 
-protected def nonzero_comm_ring [nonzero_comm_ring β] : nonzero_comm_ring α :=
+protected def zero_ne_one_class [zero_ne_one_class β] : zero_ne_one_class α :=
 { zero_ne_one := by simp [zero_def, one_def],
   ..equiv.has_zero e,
-  ..equiv.has_one e,
+  ..equiv.has_one e }
+
+protected def nonzero_comm_ring [nonzero_comm_ring β] : nonzero_comm_ring α :=
+{ ..equiv.zero_ne_one_class e,
   ..equiv.comm_ring e }
 
-protected def integral_domain [integral_domain β] : integral_domain α :=
+protected def domain [domain β] : domain α :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := by simp [mul_def, zero_def, equiv.eq_symm_apply],
   ..equiv.has_zero e,
+  ..equiv.zero_ne_one_class e,
   ..equiv.has_mul e,
+  ..equiv.ring e }
+
+protected def integral_domain [integral_domain β] : integral_domain α :=
+{ ..equiv.domain e,
   ..equiv.nonzero_comm_ring e }
 
 protected def division_ring [division_ring β] : division_ring α :=
-{ zero_ne_one := by simp [zero_def, one_def],
-  inv_mul_cancel := λ _,
+{ inv_mul_cancel := λ _,
     by simp [mul_def, inv_def, zero_def, one_def, (equiv.symm_apply_eq _).symm];
       exact inv_mul_cancel,
   mul_inv_cancel := λ _,
@@ -165,11 +172,11 @@ protected def division_ring [division_ring β] : division_ring α :=
       exact mul_inv_cancel,
   ..equiv.has_zero e,
   ..equiv.has_one e,
-  ..equiv.ring e,
+  ..equiv.domain e,
   ..equiv.has_inv e }
 
 protected def field [field β] : field α :=
-{ ..equiv.comm_ring e,
+{ ..equiv.integral_domain e,
   ..equiv.division_ring e }
 
 protected def discrete_field [discrete_field β] : discrete_field α :=

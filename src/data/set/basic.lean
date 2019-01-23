@@ -1029,6 +1029,10 @@ ext $ assume x, ⟨assume ⟨x, hx, heq⟩, heq ▸ ⟨hx, mem_range_self _⟩,
   assume ⟨hx, ⟨y, h_eq⟩⟩, h_eq ▸ mem_image_of_mem f $
     show y ∈ f ⁻¹' t, by simp [preimage, h_eq, hx]⟩
 
+lemma image_preimage_eq_of_subset {f : α → β} {s : set β} (hs : s ⊆ range f) :
+  f '' (f ⁻¹' s) = s :=
+by rw [image_preimage_eq_inter_range, inter_eq_self_of_subset_left hs]
+
 theorem preimage_inter_range {f : α → β} {s : set β} : f ⁻¹' (s ∩ range f) = f ⁻¹' s :=
 set.ext $ λ x, and_iff_left ⟨x, rfl⟩
 

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Author: Mario Carneiro, Johannes Hölzl, Sander Dahmen
 
 Dimension of modules and vector spaces.
 -/
@@ -9,15 +9,15 @@ import linear_algebra.basis
 import set_theory.ordinal
 noncomputable theory
 
-local attribute [instance] classical.prop_decidable
+local attribute [instance, priority 0] classical.prop_decidable
 
 universes u v w
-variables {α : Type u} {β γ : Type v}
+variables {α : Type u} {β γ δ : Type v}
 
 section vector_space
 variables [discrete_field α] [add_comm_group β] [vector_space α β]
 include α
-open submodule lattice
+open submodule lattice function set
 
 variables (α β)
 def vector_space.dim : cardinal :=
@@ -68,6 +68,23 @@ hb.mk_eq_dim.symm.trans $
   (cardinal.mk_eq_of_injective f.to_equiv.bijective.1).symm.trans $
 (f.is_basis hb).mk_eq_dim
 
+lemma dim_bot : dim α (⊥ : submodule α β) = 0 :=
+begin
+  rw [← (@is_basis_empty_bot α β _ _ _).mk_eq_dim],
+  exact cardinal.mk_emptyc (⊥ : submodule α β)
+end
+
+lemma dim_span {s : set β} (hs : linear_independent s) : dim α ↥(span s) = cardinal.mk s :=
+have (span s).subtype '' ((span s).subtype ⁻¹' s) = s :=
+  image_preimage_eq_of_subset $ by rw [← linear_map.range_coe, range_subtype]; exact subset_span,
+begin
+  rw [← (is_basis_span hs).mk_eq_dim],
+  calc cardinal.mk ↥(⇑(submodule.subtype (span s)) ⁻¹' s) =
+      cardinal.mk ↥((submodule.subtype (span s)) '' ((submodule.subtype (span s)) ⁻¹' s)) :
+      (cardinal.mk_eq_of_injective subtype.val_injective).symm
+    ... = cardinal.mk ↥s : by rw this
+end
+
 theorem dim_prod : dim α (β × γ) = dim α β + dim α γ :=
 begin
   rcases exists_is_basis β with ⟨b, hb⟩,
@@ -87,5 +104,108 @@ let ⟨f⟩ := quotient_prod_linear_equiv p in dim_prod.symm.trans f.dim_eq
 /-- rank-nullity theorem -/
 theorem dim_range_add_dim_ker (f : linear_map β γ) : dim α f.range + dim α f.ker = dim α β :=
 by rw [← f.quot_ker_equiv_range.dim_eq, dim_quotient]
+
+lemma dim_range_le (f : β →ₗ γ) : dim α f.range ≤ dim α β :=
+by rw ← dim_range_add_dim_ker f; exact le_add_right (le_refl _)
+
+lemma dim_map_le (f : β →ₗ γ) (p : submodule α β): dim α (p.map f) ≤ dim α p :=
+begin
+  have h := dim_range_le (f.comp (submodule.subtype p)),
+  rwa [linear_map.range_comp, range_subtype] at h,
+end
+
+lemma dim_range_of_surjective (f : β →ₗ γ) (h : surjective f) :
+  dim α f.range = dim α γ :=
+begin
+  refine linear_equiv.dim_eq (linear_equiv.of_bijective (submodule.subtype _) _ _),
+  exact linear_map.ker_eq_bot.2 subtype.val_injective,
+  rwa [range_subtype, linear_map.range_eq_top]
+end
+
+lemma dim_eq_surjective (f : β →ₗ γ) (h : surjective f) : dim α β = dim α γ + dim α f.ker :=
+by rw [← dim_range_add_dim_ker f, ← dim_range_of_surjective f h]
+
+lemma dim_le_surjective (f : β →ₗ γ) (h : surjective f) : dim α γ ≤ dim α β :=
+by rw [dim_eq_surjective f h]; refine le_add_right (le_refl _)
+
+lemma dim_eq_injective (f : β →ₗ γ) (h : injective f) : dim α β = dim α f.range :=
+by rw [← dim_range_add_dim_ker f, linear_map.ker_eq_bot.2 h]; simp [dim_bot]
+
+lemma dim_submodule_le (s : submodule α β) : dim α s ≤ dim α β :=
+begin
+  rcases exists_is_basis s with ⟨bs, hbs⟩,
+  have : linear_independent (submodule.subtype s '' bs) :=
+    hbs.1.image (linear_map.disjoint_ker'.2 $ assume x y _ _ eq, subtype.val_injective eq),
+  have : linear_independent ((coe : s → β) '' bs) := this,
+  rcases exists_subset_is_basis this with ⟨b, hbs_b, hb⟩,
+  rw [← is_basis.mk_eq_dim hbs, ← is_basis.mk_eq_dim hb],
+  calc cardinal.mk ↥bs = cardinal.mk ((coe : s → β) '' bs) :
+      (cardinal.mk_eq_of_injective $ subtype.val_injective).symm
+    ... ≤ cardinal.mk ↥b :
+      nonempty.intro (embedding_of_subset hbs_b)
+end
+
+lemma dim_le_injective (f : β →ₗ γ) (h : injective f) : dim α β ≤ dim α γ :=
+by rw [dim_eq_injective f h]; exact dim_submodule_le _
+
+lemma dim_le_of_submodule (s t : submodule α β) (h : s ≤ t) : dim α s ≤ dim α t :=
+dim_le_injective (of_le h) $ assume ⟨x, hx⟩ ⟨y, hy⟩ eq,
+  subtype.eq $ show x = y, from subtype.ext.1 eq
+
+lemma dim_add_le_dim_add_dim (s t : submodule α β) :
+  dim α (s ⊔ t : submodule α β) ≤ dim α s + dim α t :=
+begin
+  rcases exists_is_basis s with ⟨bs, hbs⟩,
+  have li_bs : linear_independent (submodule.subtype s '' bs) :=
+    hbs.1.image (linear_map.disjoint_ker'.2 $ assume x y _ _ eq, subtype.val_injective eq),
+  have sp_bs : span (submodule.subtype s '' bs) = s,
+  { rw [span_image, hbs.2, map_top, range_subtype] },
+
+  rcases exists_is_basis t with ⟨bt, hbt⟩,
+  have li_bt : linear_independent (submodule.subtype t '' bt) :=
+    hbt.1.image (linear_map.disjoint_ker'.2 $ assume x y _ _ eq, subtype.val_injective eq),
+  have sp_bt : span (submodule.subtype t '' bt) = t,
+  { rw [span_image, hbt.2, map_top, range_subtype] },
+
+  rcases exists_linear_independent linear_independent_empty
+      (empty_subset (⇑(submodule.subtype s) '' bs ∪ ⇑(submodule.subtype t) '' bt))
+    with ⟨b, hb_bsbt, _, hbsbt_b, hb⟩,
+  have eq : span (⇑(submodule.subtype s) '' bs ∪ ⇑(submodule.subtype t) '' bt) = span b,
+  { exact span_eq_of_le _ hbsbt_b (span_mono hb_bsbt) },
+
+  rw [← sp_bs, ← sp_bt, ← span_union, eq, dim_span hb, dim_span li_bs, dim_span li_bt,
+    ← cardinal.mk_union_add_mk_inter],
+  exact le_trans (cardinal.mk_le_mk_of_subset hb_bsbt) (le_add_right $ le_refl _)
+end
+
+def rank (f : β →ₗ γ) : cardinal := dim α f.range
+
+lemma rank_le_domain (f : β →ₗ γ) : rank f ≤ dim α β :=
+by rw [← dim_range_add_dim_ker f]; exact le_add_right (le_refl _)
+
+lemma rank_le_range (f : β →ₗ γ) : rank f ≤ dim α γ :=
+dim_submodule_le _
+
+lemma rank_add_le (f g : β →ₗ γ) : rank (f + g) ≤ rank f + rank g :=
+calc rank (f + g) ≤ dim α (f.range ⊔ g.range : submodule α γ) :
+  begin
+    refine dim_le_of_submodule _ _ _,
+    exact (linear_map.range_le_iff_comap.2 $ eq_top_iff'.2 $
+      assume x, show f x + g x ∈ (f.range ⊔ g.range : submodule α γ), from
+        mem_sup.2 ⟨_, mem_image_of_mem _ (mem_univ _), _, mem_image_of_mem _ (mem_univ _), rfl⟩)
+  end
+  ... ≤ rank f + rank g : dim_add_le_dim_add_dim _ _
+
+variables [add_comm_group δ] [vector_space α δ]
+
+lemma rank_comp_le1 (g : β →ₗ γ) (f : γ →ₗ δ) : rank (f.comp g) ≤ rank f :=
+begin
+  refine dim_le_of_submodule _ _ _,
+  rw [linear_map.range_comp],
+  exact image_subset _ (subset_univ _)
+end
+
+lemma rank_comp_le2 (g : β →ₗ γ) (f : γ →ₗ δ) : rank (f.comp g) ≤ rank g :=
+by rw [rank, rank, linear_map.range_comp]; exact dim_map_le _ _
 
 end vector_space

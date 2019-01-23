@@ -209,6 +209,13 @@ by ext; simp [total_apply, finsupp.sum_map_domain_index, add_smul]
 
 end lc
 
+namespace lc
+variables [discrete_field α] [add_comm_group β] [vector_space α β]
+
+instance : vector_space α (lc α β) := { .. lc.module }
+
+end lc
+
 section module
 variables [ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group δ]
 variables [module α β] [module α γ] [module α δ]

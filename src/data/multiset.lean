@@ -53,6 +53,9 @@ instance : inhabited (multiset α)  := ⟨0⟩
 @[simp] theorem coe_nil_eq_zero : (@nil α : multiset α) = 0 := rfl
 @[simp] theorem empty_eq_zero : (∅ : multiset α) = 0 := rfl
 
+theorem coe_eq_zero (l : list α) : (l : multiset α) = 0 ↔ l = [] :=
+iff.trans coe_eq_coe perm_nil
+
 /- cons -/
 
 /-- `cons a s` is the multiset which contains `s` plus one more
@@ -500,7 +503,6 @@ theorem range_subset {m n : ℕ} : range m ⊆ range n ↔ m ≤ n := range_subs
 @[simp] theorem mem_range {m n : ℕ} : m ∈ range n ↔ m < n := mem_range
 
 @[simp] theorem not_mem_range_self {n : ℕ} : n ∉ range n := not_mem_range_self
-
 
 /- erase -/
 section erase
@@ -2956,5 +2958,80 @@ lemma choose_mem (hp : ∃! a, a ∈ l ∧ p a) : choose p l hp ∈ l := (choose
 lemma choose_property (hp : ∃! a, a ∈ l ∧ p a) : p (choose p l hp) := (choose_spec _ _ _).2
 
 end choose
+
+/- Ico -/
+
+/-- `Ico n m` is the multiset lifted from the list `Ico n m`, e.g. the set `{n, n+1, ..., m-1}`. -/
+def Ico (n m : ℕ) : multiset ℕ := Ico n m
+
+namespace Ico
+
+theorem map_add (n m k : ℕ) : (Ico n m).map ((+) k) = Ico (n + k) (m + k) :=
+congr_arg coe $ list.Ico.map_add _ _ _
+
+theorem zero_bot (n : ℕ) : Ico 0 n = range n :=
+congr_arg coe $ list.Ico.zero_bot _
+
+@[simp] theorem card (n m : ℕ) : (Ico n m).card = m - n :=
+list.Ico.length _ _
+
+theorem nodup (n m : ℕ) : nodup (Ico n m) := Ico.nodup _ _
+
+@[simp] theorem mem {n m l : ℕ} : l ∈ Ico n m ↔ n ≤ l ∧ l < m :=
+list.Ico.mem
+
+theorem eq_zero_of_le {n m : ℕ} (h : m ≤ n) : Ico n m = 0 :=
+congr_arg coe $ list.Ico.eq_nil_of_le h
+
+@[simp] theorem self_eq_zero {n : ℕ} : Ico n n = 0 :=
+eq_zero_of_le $ le_refl n
+
+@[simp] theorem eq_zero_iff {n m : ℕ} : Ico n m = 0 ↔ m ≤ n :=
+iff.trans (coe_eq_zero _) list.Ico.eq_empty_iff
+
+lemma add_consecutive {n m l : ℕ} (hnm : n ≤ m) (hml : m ≤ l) :
+  Ico n m + Ico m l = Ico n l :=
+congr_arg coe $ list.Ico.append_consecutive hnm hml
+
+@[simp] theorem succ_singleton {n : ℕ} : Ico n (n+1) = {n} :=
+congr_arg coe $ list.Ico.succ_singleton
+
+@[simp] theorem succ_top {n m : ℕ} (h : n ≤ m) : Ico n (m + 1) = m :: Ico n m :=
+by rw [Ico, list.Ico.succ_top h, ← coe_add, add_comm]; refl
+
+theorem eq_cons {n m : ℕ} (h : n < m) : Ico n m = n :: Ico (n + 1) m :=
+congr_arg coe $ list.Ico.eq_cons h
+
+theorem pred_singleton {m : ℕ} (h : m > 0) : Ico (m - 1) m = {m - 1} :=
+congr_arg coe $ list.Ico.pred_singleton h
+
+@[simp] theorem not_mem_top {n m : ℕ} : m ∉ Ico n m :=
+list.Ico.not_mem_top
+
+lemma filter_lt_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, x < l) = Ico n m :=
+congr_arg coe $ list.Ico.filter_lt_of_top_le hml
+
+lemma filter_lt_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, x < l) = ∅ :=
+congr_arg coe $ list.Ico.filter_lt_of_le_bot hln
+
+lemma filter_lt_of_ge {n m l : ℕ} (hlm : l ≤ m) : (Ico n m).filter (λ x, x < l) = Ico n l :=
+congr_arg coe $ list.Ico.filter_lt_of_ge hlm
+
+@[simp] lemma filter_lt (n m l : ℕ) : (Ico n m).filter (λ x, x < l) = Ico n (min m l) :=
+congr_arg coe $ list.Ico.filter_lt n m l
+
+lemma filter_ge_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, x ≥ l) = Ico n m :=
+congr_arg coe $ list.Ico.filter_ge_of_le_bot hln
+
+lemma filter_ge_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, x ≥ l) = ∅ :=
+congr_arg coe $ list.Ico.filter_ge_of_top_le hml
+
+lemma filter_ge_of_ge {n m l : ℕ} (hnl : n ≤ l) : (Ico n m).filter (λ x, x ≥ l) = Ico l m :=
+congr_arg coe $ list.Ico.filter_ge_of_ge hnl
+
+@[simp] lemma filter_ge (n m l : ℕ) : (Ico n m).filter (λ x, x ≥ l) = Ico (max n l) m :=
+congr_arg coe $ list.Ico.filter_ge n m l
+
+end Ico
 
 end multiset

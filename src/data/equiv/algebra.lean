@@ -120,12 +120,23 @@ protected def add_group [add_group β] : add_group α :=
 protected def add_comm_group [add_comm_group β] : add_comm_group α :=
 @additive.add_comm_group _ (@equiv.comm_group _ _ e multiplicative.comm_group)
 
-protected def ring [ring β] : ring α :=
+protected def semiring [semiring β] : semiring α :=
 { right_distrib := by simp [mul_def, add_def, add_mul],
   left_distrib := by simp [mul_def, add_def, mul_add],
+  zero_mul := by simp [mul_def, zero_def],
+  mul_zero := by simp [mul_def, zero_def],
+  ..equiv.has_zero e,
   ..equiv.has_mul e,
   ..equiv.has_add e,
   ..equiv.monoid e,
+  ..equiv.add_comm_monoid e }
+
+protected def comm_semiring [comm_semiring β] : comm_semiring α :=
+{ ..equiv.semiring e,
+  ..equiv.comm_monoid e }
+
+protected def ring [ring β] : ring α :=
+{ ..equiv.semiring e,
   ..equiv.add_comm_group e }
 
 protected def comm_ring [comm_ring β] : comm_ring α :=

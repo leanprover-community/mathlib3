@@ -32,22 +32,22 @@ An object representing this functor is a limit of `F`.
 -/
 def cones : Cᵒᵖ ⥤ Type v := (const Jᵒᵖ ⋙ op_inv J C) ⋙ (yoneda.obj F)
 
-lemma cones_obj (X : C) : F.cones.obj X = ((const J).obj X ⟹ F) := rfl
+lemma cones_obj (X : C) : F.cones.obj (op X) = ((const J).obj X ⟹ F) := rfl
 
-@[simp] lemma cones_map_app {X₁ X₂ : C} (f : X₁ ⟶ X₂) (t : F.cones.obj X₂) (j : J) :
-(F.cones.map f t).app j = f ≫ t.app j := rfl
+@[simp] lemma cones_map_app {X₁ X₂ : Cᵒᵖ} (f : X₁ ⟶ X₂) (t : F.cones.obj X₁) (j : J) :
+  (F.cones.map f t).app j = f.unop ≫ t.app j := rfl
 
 /--
 `F.cocones` is the functor assigning to an object `X` the type of
 natural transformations from `F` to the constant functor with value `X`.
 An object corepresenting this functor is a colimit of `F`.
 -/
-def cocones : C ⥤ Type v := (const J) ⋙ (coyoneda.obj F)
+def cocones : C ⥤ Type v := const J ⋙ coyoneda.obj (op F)
 
 lemma cocones_obj (X : C) : F.cocones.obj X = (F ⟹ (const J).obj X) := rfl
 
 @[simp] lemma cocones_map_app {X₁ X₂ : C} (f : X₁ ⟶ X₂) (t : F.cocones.obj X₁) (j : J) :
-(F.cocones.map f t).app j = t.app j ≫ f := rfl
+  (F.cocones.map f t).app j = t.app j ≫ f := rfl
 
 end functor
 
@@ -59,7 +59,7 @@ def cones : (J ⥤ C) ⥤ (Cᵒᵖ ⥤ Type v) :=
   map := λ F G f, whisker_left _ (yoneda.map f) }
 
 def cocones : (J ⥤ C)ᵒᵖ ⥤ (C ⥤ Type v) :=
-{ obj := functor.cocones,
+{ obj := λ F, functor.cocones (unop F),
   map := λ F G f, whisker_left _ (coyoneda.map f) }
 
 variables {J C}
@@ -68,8 +68,8 @@ variables {J C}
 @[simp] lemma cones_map  {F G : J ⥤ C} {f : F ⟶ G} :
 (cones J C).map f = (whisker_left _ (yoneda.map f)) := rfl
 
-@[simp] lemma cocones_obj (F : J ⥤ C) : (cocones J C).obj F = F.cocones := rfl
-@[simp] lemma cocones_map  {F G : J ⥤ C} {f : F ⟶ G} :
+@[simp] lemma cocones_obj (F : (J ⥤ C)ᵒᵖ) : (cocones J C).obj F = (unop F).cocones := rfl
+@[simp] lemma cocones_map  {F G : (J ⥤ C)ᵒᵖ} {f : F ⟶ G} :
 (cocones J C).map f = (whisker_left _ (coyoneda.map f)) := rfl
 
 end
@@ -117,7 +117,7 @@ namespace cone
 /-- A map to the vertex of a cone induces a cone by composition. -/
 @[simp] def extend (c : cone F) {X : C} (f : X ⟶ c.X) : cone F :=
 { X := X,
-  π := c.extensions.app X f }
+  π := c.extensions.app (op X) f }
 
 def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cone F) : cone (E ⋙ F) :=
 { X := c.X,
@@ -128,7 +128,7 @@ def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cone F) : cone (E
 end cone
 
 namespace cocone
-@[simp] def extensions (c : cocone F) : coyoneda.obj c.X ⟶ F.cocones :=
+@[simp] def extensions (c : cocone F) : coyoneda.obj (op c.X) ⟶ F.cocones :=
 { app := λ X f, c.ι ≫ ((const J).map f),
   naturality' := by intros X Y f; ext g j; dsimp; rw ←assoc; refl }
 

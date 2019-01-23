@@ -7,6 +7,7 @@ Theory of filters on sets.
 -/
 import order.galois_connection order.zorn
 import data.set.finite data.list
+import algebra.pi_instances
 import category.applicative
 open lattice set
 
@@ -1768,6 +1769,16 @@ tendsto_infi.2 $ assume s, tendsto_infi' (s.image i) $ tendsto_principal_princip
   calc s = (s.image i).image j :
       by simp only [finset.image_image, (∘), h]; exact finset.image_id.symm
     ... ⊆  t.image j : finset.image_subset_image ht
+
+lemma prod_at_top_at_top_eq {β₁ β₂ : Type*} [inhabited β₁] [inhabited β₂] [semilattice_sup β₁]
+  [semilattice_sup β₂] : filter.prod (@at_top β₁ _) (@at_top β₂ _) = @at_top (β₁ × β₂) _ :=
+by simp [at_top, prod_infi_left (default β₁), prod_infi_right (default β₂), infi_prod];
+    exact infi_comm
+
+lemma prod_map_at_top_eq {α₁ α₂ β₁ β₂ : Type*} [inhabited β₁] [inhabited β₂]
+  [semilattice_sup β₁] [semilattice_sup β₂] (u₁ : β₁ → α₁) (u₂ : β₂ → α₂) :
+  filter.prod (map u₁ at_top) (map u₂ at_top) = map (prod.map u₁ u₂) at_top :=
+by rw [prod_map_map_eq, prod_at_top_at_top_eq, prod.map_def]
 
 /- ultrafilter -/
 

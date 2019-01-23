@@ -162,24 +162,26 @@ def mk_of_unit_counit (adj : core_unit_counit F G) : adjunction F G :=
   end },
   .. adj }
 
-def of_equivalence (e : equivalence C D) : adjunction e.functor e.inverse :=
-mk_of_unit_counit _ _
-{ unit := e.fun_inv_id.inv,
-  counit := e.inv_fun_id.hom,
-  left_triangle' :=
-  begin
-    tidy,
-    have := e.fun_inv_id.hom.naturality,
-  end,
-  right_triangle' :=
-  begin
-  end,
-}
+section
+omit 𝒟
+
+def id : adjunction (functor.id C) (functor.id C) :=
+{ hom_equiv := λ X Y, equiv.refl _,
+  unit := 𝟙 _,
+  counit := 𝟙 _ }
+
+end
+
+/-
+TODO
+* define adjoint equivalences
+* show that every equivalence can be improved into an adjoint equivalence
+-/
 
 section
 variables {E : Type u₃} [ℰ : category.{v₃} E] (H : D ⥤ E) (I : E ⥤ D)
 
-def trans (adj₁ : adjunction F G) (adj₂ : adjunction H I) : adjunction (F ⋙ H) (I ⋙ G) :=
+def comp (adj₁ : adjunction F G) (adj₂ : adjunction H I) : adjunction (F ⋙ H) (I ⋙ G) :=
 { hom_equiv := λ X Z, equiv.trans (adj₂.hom_equiv _ _) (adj₁.hom_equiv _ _),
   unit := adj₁.unit ≫
   (whisker_left F $ whisker_right adj₂.unit G) ≫ (functor.associator _ _ _).inv,

@@ -6,8 +6,7 @@ Authors: Reid Barton, Johan Commelin
 
 import category_theory.limits.preserves
 import category_theory.whiskering
-import data.equiv.basic
-import tactic.where
+import category_theory.equivalence
 
 namespace category_theory
 open category
@@ -19,7 +18,6 @@ local attribute [elab_simple] whisker_left whisker_right
 
 variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
-
 
 /--
 `adjunction F G` represents the data of an adjunction between two functors
@@ -163,6 +161,20 @@ def mk_of_unit_counit (adj : core_unit_counit F G) : adjunction F G :=
       exact congr_arg (λ t : _ ⟹ _, t.app _) adj.right_triangle
   end },
   .. adj }
+
+def of_equivalence (e : equivalence C D) : adjunction e.functor e.inverse :=
+mk_of_unit_counit _ _
+{ unit := e.fun_inv_id.inv,
+  counit := e.inv_fun_id.hom,
+  left_triangle' :=
+  begin
+    tidy,
+    have := e.fun_inv_id.hom.naturality,
+  end,
+  right_triangle' :=
+  begin
+  end,
+}
 
 section
 variables {E : Type u₃} [ℰ : category.{v₃} E] (H : D ⥤ E) (I : E ⥤ D)

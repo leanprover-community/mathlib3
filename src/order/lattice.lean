@@ -363,4 +363,36 @@ instance [semilattice_sup α] : semilattice_inf (order_dual α) :=
 instance [lattice α] : lattice (order_dual α) :=
 { .. order_dual.lattice.semilattice_sup α, .. order_dual.lattice.semilattice_inf α }
 
+instance [distrib_lattice α] : distrib_lattice (order_dual α) :=
+{ le_sup_inf := assume x y z, le_of_eq inf_sup_left.symm,
+  .. order_dual.lattice.lattice α }
+
 end order_dual
+
+namespace prod
+open lattice
+variables (α : Type u) (β : Type v)
+
+instance [has_sup α] [has_sup β] : has_sup (α × β) := ⟨λp q, ⟨p.1 ⊔ q.1, p.2 ⊔ q.2⟩⟩
+instance [has_inf α] [has_inf β] : has_inf (α × β) := ⟨λp q, ⟨p.1 ⊓ q.1, p.2 ⊓ q.2⟩⟩
+
+instance [semilattice_sup α] [semilattice_sup β] : semilattice_sup (α × β) :=
+{ sup_le := assume a b c h₁ h₂, ⟨sup_le h₁.1 h₂.1, sup_le h₁.2 h₂.2⟩,
+  le_sup_left  := assume a b, ⟨le_sup_left, le_sup_left⟩,
+  le_sup_right := assume a b, ⟨le_sup_right, le_sup_right⟩,
+  .. prod.partial_order α β, .. prod.lattice.has_sup α β }
+
+instance [semilattice_inf α] [semilattice_inf β] : semilattice_inf (α × β) :=
+{ le_inf := assume a b c h₁ h₂, ⟨le_inf h₁.1 h₂.1, le_inf h₁.2 h₂.2⟩,
+  inf_le_left  := assume a b, ⟨inf_le_left, inf_le_left⟩,
+  inf_le_right := assume a b, ⟨inf_le_right, inf_le_right⟩,
+  .. prod.partial_order α β, .. prod.lattice.has_inf α β }
+
+instance [lattice α] [lattice β] : lattice (α × β) :=
+{ .. prod.lattice.semilattice_inf α β, .. prod.lattice.semilattice_sup α β }
+
+instance [distrib_lattice α] [distrib_lattice β] : distrib_lattice (α × β) :=
+{ le_sup_inf := assume a b c, ⟨le_sup_inf, le_sup_inf⟩,
+  .. prod.lattice.lattice α β }
+
+end prod

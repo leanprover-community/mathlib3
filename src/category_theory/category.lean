@@ -33,14 +33,17 @@ powerful tactics.
 def_replacer obviously
 @[obviously] meta def obviously' := tactic.tidy
 
+class has_hom (obj : Type u) : Type (max u (v+1)) :=
+(hom : obj → obj → Type v)
+
+infixr ` ⟶ `:10 := has_hom.hom -- type as \h
+
 /--
 The typeclass `category C` describes morphisms associated to objects of type `C`.
 The universe levels of the objects and morphisms are unconstrained, and will often need to be
 specified explicitly, as `category.{v} C`. (See also `large_category` and `small_category`.)
 -/
-class category (obj : Type u) : Type (max u (v+1)) :=
-(hom      : obj → obj → Type v)
-(infixr ` ⟶ `:10 := hom)
+class category (obj : Type u) extends has_hom.{v} obj : Type (max u (v+1)) :=
 (id       : Π X : obj, X ⟶ X)
 (notation `𝟙` := id)
 (comp     : Π {X Y Z : obj}, (X ⟶ Y) → (Y ⟶ Z) → (X ⟶ Z))
@@ -52,7 +55,6 @@ class category (obj : Type u) : Type (max u (v+1)) :=
 
 notation `𝟙` := category.id -- type as \b1
 infixr ` ≫ `:80 := category.comp -- type as \gg
-infixr ` ⟶ `:10 := category.hom -- type as \h
 
 -- `restate_axiom` is a command that creates a lemma from a structure field,
 -- discarding any auto_param wrappers from the type.

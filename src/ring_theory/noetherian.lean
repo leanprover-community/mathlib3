@@ -6,7 +6,7 @@ Authors: Mario Carneiro, Kevin Buzzard
 
 import data.equiv.algebra
 import data.polynomial
-import linear_algebra.lc
+import linear_algebra.linear_combination
 import ring_theory.ideal_operations
 
 open set lattice

@@ -302,9 +302,24 @@ instance : module α (mv_polynomial σ α) := finsupp.to_module _ α
 instance C.is_ring_hom : is_ring_hom (C : α → mv_polynomial σ α) :=
 by apply is_ring_hom.of_semiring
 
+variables (σ a a')
 lemma C_sub : (C (a - a') : mv_polynomial σ α) = C a - C a' := is_ring_hom.map_sub _
 
 @[simp] lemma C_neg : (C (-a) : mv_polynomial σ α) = -C a := is_ring_hom.map_neg _
+
+variables {σ} (p)
+theorem C_mul' : mv_polynomial.C a * p = a • p :=
+begin
+  apply finsupp.induction p,
+  { exact (mul_zero $ mv_polynomial.C a).trans (@smul_zero α (mv_polynomial σ α) _ _ _ a).symm },
+  intros p b f haf hb0 ih,
+  rw [mul_add, ih, @smul_add α (mv_polynomial σ α) _ _ _ a], congr' 1,
+  rw [finsupp.mul_def, finsupp.smul_single, mv_polynomial.C, mv_polynomial.monomial],
+  rw [finsupp.sum_single_index, finsupp.sum_single_index, zero_add, smul_eq_mul],
+  { rw [mul_zero, finsupp.single_zero] },
+  { rw finsupp.sum_single_index,
+    all_goals { rw [zero_mul, finsupp.single_zero] } }
+end
 
 section eval₂
 

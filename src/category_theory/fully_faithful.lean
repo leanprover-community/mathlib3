@@ -50,6 +50,10 @@ def preimage_iso (f : (F.obj X) ≅ (F.obj Y)) : X ≅ Y :=
 end
 
 class fully_faithful (F : C ⥤ D) extends (full F), (faithful F).
+
+@[simp] lemma preimage_id (F : C ⥤ D) [fully_faithful F] (X : C) : F.preimage (𝟙 (F.obj X)) = 𝟙 X :=
+F.injectivity (by simp)
+
 end category_theory
 
 namespace category_theory

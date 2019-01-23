@@ -35,7 +35,9 @@ structure functor (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.
 (map_id'   : ∀ (X : C), map (𝟙 X) = 𝟙 (obj X) . obviously)
 (map_comp' : ∀ {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z), map (f ≫ g) = (map f) ≫ (map g) . obviously)
 
-infixr ` ⥤ `:70 := functor       -- type as \func --
+-- A functor is basically a function, so give ⥤ a similar precedence to → (25).
+-- For example, `C × D ⥤ E` should parse as `(C × D) ⥤ E` not `C × (D ⥤ E)`.
+infixr ` ⥤ `:26 := functor       -- type as \func --
 
 restate_axiom functor.map_id'
 attribute [simp] functor.map_id

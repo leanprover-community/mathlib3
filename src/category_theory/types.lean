@@ -19,7 +19,7 @@ instance types : large_category (Type u) :=
 @[simp] lemma types_comp {α β γ : Type u} (f : α → β) (g : β → γ) (a : α) : (((f : α ⟶ β) ≫ (g : β ⟶ γ)) : α ⟶ γ) a = g (f a) := rfl
 
 namespace functor_to_types
-variables {C : Type u} [𝒞 : category.{v} C] (F G H : C ⥤ (Type w)) {X Y Z : C}
+variables {C : Type u} [𝒞 : category.{v} C] (F G H : C ⥤ Type w) {X Y Z : C}
 include 𝒞
 variables (σ : F ⟹ G) (τ : G ⟹ H)
 
@@ -42,7 +42,7 @@ end functor_to_types
 
 def ulift_trivial (V : Type u) : ulift.{u} V ≅ V := by tidy
 
-def ulift_functor : (Type u) ⥤ (Type (max u v)) :=
+def ulift_functor : Type u ⥤ Type (max u v) :=
 { obj := λ X, ulift.{v} X,
   map := λ X Y f, λ x : ulift.{v} X, ulift.up (f x.down) }
 

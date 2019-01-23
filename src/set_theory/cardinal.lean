@@ -700,4 +700,7 @@ quot.sound ⟨equiv.set.union_sum_inter S T⟩
 theorem mk_union_of_disjoint {α : Type u} {S T : set α} (H : disjoint S T) : mk (S ∪ T : set α) = mk S + mk T :=
 quot.sound ⟨equiv.set.union (disjoint_iff.1 H)⟩
 
+lemma mk_le_mk_of_subset {α} {s t : set α} (h : s ⊆ t) : mk s ≤ mk t :=
+⟨ set.embedding_of_subset h ⟩
+
 end cardinal

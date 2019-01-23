@@ -96,15 +96,15 @@ class representable (F : Cᵒᵖ ⥤ Type v₁) :=
 variables (C)
 open yoneda
 
-def yoneda_evaluation : (Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) ⥤ Type (max u₁ v₁) :=
-(evaluation_uncurried Cᵒᵖ (Type v₁)) ⋙ ulift_functor.{u₁}
+def yoneda_evaluation : Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁) ⥤ Type (max u₁ v₁) :=
+evaluation_uncurried Cᵒᵖ (Type v₁) ⋙ ulift_functor.{u₁}
 
 @[simp] lemma yoneda_evaluation_map_down
   (P Q : Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) (α : P ⟶ Q) (x : (yoneda_evaluation C).obj P) :
   ((yoneda_evaluation C).map α x).down = α.2.app Q.1 (P.2.map α.1 x.down) := rfl
 
-def yoneda_pairing : (Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) ⥤ Type (max u₁ v₁) :=
-(functor.prod yoneda.op (functor.id (Cᵒᵖ ⥤ Type v₁))) ⋙ functor.hom (Cᵒᵖ ⥤ Type v₁)
+def yoneda_pairing : Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁) ⥤ Type (max u₁ v₁) :=
+functor.prod yoneda.op (functor.id (Cᵒᵖ ⥤ Type v₁)) ⋙ functor.hom (Cᵒᵖ ⥤ Type v₁)
 
 @[simp] lemma yoneda_pairing_map
   (P Q : Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) (α : P ⟶ Q) (β : (yoneda_pairing C).obj P) :

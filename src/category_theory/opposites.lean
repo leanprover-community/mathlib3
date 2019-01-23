@@ -86,9 +86,6 @@ instance {F : C ⥤ D} [full F] : full F.op :=
 instance {F : C ⥤ D} [faithful F] : faithful F.op :=
 { injectivity' := λ X Y f g h, by simpa using injectivity F h }
 
-@[simp] lemma preimage_id (F : C ⥤ D) [fully_faithful F] (X : C) : F.preimage (𝟙 (F.obj X)) = 𝟙 X :=
-injectivity F (by simp)
-
 end
 
 namespace category
@@ -105,13 +102,13 @@ section
 variable (C)
 
 /-- `functor.hom` is the hom-pairing, sending (X,Y) to X → Y, contravariant in X and covariant in Y. -/
-definition hom : (Cᵒᵖ × C) ⥤ (Type v₁) :=
-{ obj       := λ p, @category.hom C _ p.1 p.2,
+definition hom : Cᵒᵖ × C ⥤ Type v₁ :=
+{ obj       := λ p, @has_hom.hom C _ p.1 p.2,
   map       := λ X Y f, λ h, f.1 ≫ h ≫ f.2,
   map_id'   := by intros; ext; dsimp [category_theory.opposite]; simp,
   map_comp' := by intros; ext; dsimp [category_theory.opposite]; simp }
 
-@[simp] lemma hom_obj (X : Cᵒᵖ × C) : (functor.hom C).obj X = @category.hom C _ X.1 X.2 := rfl
+@[simp] lemma hom_obj (X : Cᵒᵖ × C) : (functor.hom C).obj X = @has_hom.hom C _ X.1 X.2 := rfl
 @[simp] lemma hom_pairing_map {X Y : Cᵒᵖ × C} (f : X ⟶ Y) :
   (functor.hom C).map f = λ h, f.1 ≫ h ≫ f.2 := rfl
 

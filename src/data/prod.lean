@@ -33,6 +33,9 @@ by rw [← @mk.eta _ _ p, ← @mk.eta _ _ q, mk.inj_iff]
 lemma ext {α β} {p q : α × β} (h₁ : p.1 = q.1) (h₂ : p.2 = q.2) : p = q :=
 ext_iff.2 ⟨h₁, h₂⟩
 
+lemma map_def {f : α → γ} {g : β → δ} : prod.map f g = λ (p : α × β), (f p.1, g p.2) :=
+funext (λ p, ext (map_fst f g p) (map_snd f g p))
+
 lemma id_prod : (λ (p : α × α), (p.1, p.2)) = id :=
 funext $ λ ⟨a, b⟩, rfl
 

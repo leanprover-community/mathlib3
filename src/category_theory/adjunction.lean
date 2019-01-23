@@ -355,7 +355,7 @@ end preservation_limits
 
 -- Note: this is natural in K, but we do not yet have the tools to formulate that.
 def cocones_iso {J : Type v} [small_category J] {K : J ⥤ C} :
-  (cocones J D).obj (K ⋙ F) ≅ G ⋙ ((cocones J C).obj K) :=
+  (cocones J D).obj (op (K ⋙ F)) ≅ G ⋙ ((cocones J C).obj (op K)) :=
 nat_iso.of_components (λ Y,
 { hom := λ t,
     { app := λ j, (adj.hom_equiv (K.obj j) Y) (t.app j),
@@ -378,13 +378,13 @@ def cones_iso {J : Type v} [small_category J] {K : J ⥤ D} :
   F.op ⋙ ((cones J D).obj K) ≅ (cones J C).obj (K ⋙ G) :=
 nat_iso.of_components (λ X,
 { hom := λ t,
-  { app := λ j, (adj.hom_equiv X (K.obj j)) (t.app j),
+  { app := λ j, (adj.hom_equiv (unop X) (K.obj j)) (t.app j),
     naturality' := λ j j' f, begin
       erw [← adj.hom_equiv_naturality_right, ← t.naturality, category.id_comp, category.id_comp],
       refl
     end },
   inv := λ t,
-  { app := λ j, (adj.hom_equiv X (K.obj j)).symm (t.app j),
+  { app := λ j, (adj.hom_equiv (unop X) (K.obj j)).symm (t.app j),
     naturality' := λ j j' f, begin
       erw [← adj.hom_equiv_naturality_right_symm, ← t.naturality, category.id_comp, category.id_comp]
     end } } )

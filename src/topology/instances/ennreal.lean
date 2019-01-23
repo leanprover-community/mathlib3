@@ -92,6 +92,13 @@ begin
   exact prod_mem_nhds_sets coe_range_mem_nhds coe_range_mem_nhds
 end
 
+lemma continuous_of_real : continuous ennreal.of_real :=
+continuous.comp nnreal.continuous_of_real (continuous_coe.2 continuous_id)
+
+lemma tendsto_of_real {f : filter α} {m : α → ℝ} {a : ℝ} (h : tendsto m f (nhds a)) :
+  tendsto (λa, ennreal.of_real (m a)) f (nhds (ennreal.of_real a)) :=
+tendsto.comp h (continuous.tendsto continuous_of_real _)
+
 lemma tendsto_to_nnreal {a : ennreal} : a ≠ ⊤ →
   tendsto (ennreal.to_nnreal) (nhds a) (nhds a.to_nnreal) :=
 begin

@@ -242,6 +242,9 @@ section of_real
 @[simp] lemma of_real_zero : nnreal.of_real 0 = 0 :=
 by simp [nnreal.of_real]; refl
 
+@[simp] lemma of_real_one : nnreal.of_real 1 = 1 :=
+by simp [nnreal.of_real, max_eq_left (zero_le_one : (0 :ℝ) ≤ 1)]; refl
+
 @[simp] lemma of_real_pos {r : ℝ} : 0 < nnreal.of_real r ↔ 0 < r :=
 by simp [nnreal.of_real, nnreal.coe_lt, lt_irrefl]
 

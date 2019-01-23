@@ -332,6 +332,9 @@ lt_of_le_of_lt (zero_le _) hy
 theorem mem_ball_self (h : 0 < ε) : x ∈ ball x ε :=
 show edist x x < ε, by rw edist_self; assumption
 
+theorem mem_closed_ball_self : x ∈ closed_ball x ε :=
+show edist x x ≤ ε, by rw edist_self; exact bot_le
+
 theorem mem_ball_comm : x ∈ ball y ε ↔ y ∈ ball x ε :=
 by simp [edist_comm]
 
@@ -361,6 +364,11 @@ begin
   { rw ennreal.add_sub_cancel_of_le (le_of_lt h), apply le_refl _},
   { have : edist y x ≠ ⊤ := lattice.ne_top_of_lt h, apply lt_top_iff_ne_top.2 this }
 end
+
+theorem ball_eq_empty_iff : ball x ε = ∅ ↔ ε = 0 :=
+eq_empty_iff_forall_not_mem.trans
+⟨λh, le_bot_iff.1 (le_of_not_gt (λ ε0, h _ (mem_ball_self ε0))),
+λε0 y h, not_lt_of_le (le_of_eq ε0) (pos_of_mem_ball h)⟩
 
 theorem nhds_eq : nhds x = (⨅ε:{ε:ennreal // ε>0}, principal (ball x ε.val)) :=
 begin

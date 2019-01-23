@@ -38,25 +38,45 @@ protected def to_nnreal : ennreal → nnreal
 | (some r) := r
 | none := 0
 
+/-- `to_real x` returns `x` if it is real, `0` otherwise. -/
+protected def to_real (a : ennreal) : real := coe (a.to_nnreal)
+
+/-- `of_real x` returns `x` if it is nonnegative, `0` otherwise. -/
+protected def of_real (r : real) : ennreal := coe (nnreal.of_real r)
+
 @[simp] lemma to_nnreal_coe : (r : ennreal).to_nnreal = r := rfl
 
 @[simp] lemma coe_to_nnreal : ∀{a:ennreal}, a ≠ ∞ → ↑(a.to_nnreal) = a
 | (some r) h := rfl
 | none     h := (h rfl).elim
 
+@[simp] lemma of_real_to_real {a : ennreal} (h : a ≠ ∞) : ennreal.of_real (a.to_real) = a :=
+by simp [ennreal.to_real, ennreal.of_real, h]
+
+@[simp] lemma to_real_of_real {r : real} (h : 0 ≤ r) : ennreal.to_real (ennreal.of_real r) = r :=
+by simp [ennreal.to_real, ennreal.of_real, nnreal.coe_of_real _ h]
+
 lemma coe_to_nnreal_le_self : ∀{a:ennreal}, ↑(a.to_nnreal) ≤ a
 | (some r) := by rw [some_eq_coe, to_nnreal_coe]; exact le_refl _
 | none     := le_top
 
+@[simp] lemma coe_zero : ↑(0 : nnreal) = (0 : ennreal) := rfl
+@[simp] lemma coe_one : ↑(1 : nnreal) = (1 : ennreal) := rfl
+
+@[simp] lemma to_real_nonneg {a : ennreal} : 0 ≤ a.to_real := by simp [ennreal.to_real]
+
 @[simp] lemma top_to_nnreal : ∞.to_nnreal = 0 := rfl
+@[simp] lemma top_to_real : ∞.to_real = 0 := rfl
 @[simp] lemma zero_to_nnreal : (0 : ennreal).to_nnreal = 0 := rfl
+@[simp] lemma zero_to_real : (0 : ennreal).to_real = 0 := rfl
+@[simp] lemma of_real_zero : ennreal.of_real (0 : ℝ) = 0 :=
+by simp [ennreal.of_real]; refl
+@[simp] lemma of_real_one : ennreal.of_real (1 : ℝ) = (1 : ennreal) :=
+by simp [ennreal.of_real]
 
 lemma forall_ennreal {p : ennreal → Prop} : (∀a, p a) ↔ (∀r:nnreal, p r) ∧ p ∞ :=
 ⟨assume h, ⟨assume r, h _, h _⟩,
   assume ⟨h₁, h₂⟩ a, match a with some r := h₁ _ | none := h₂ end⟩
-
-@[simp] lemma coe_zero : ↑(0 : nnreal) = (0 : ennreal) := rfl
-@[simp] lemma coe_one : ↑(1 : nnreal) = (1 : ennreal) := rfl
 
 lemma to_nnreal_eq_zero_iff (x : ennreal) : x.to_nnreal = 0 ↔ x = 0 ∨ x = ⊤ :=
 ⟨begin
@@ -67,8 +87,13 @@ lemma to_nnreal_eq_zero_iff (x : ennreal) : x.to_nnreal = 0 ↔ x = 0 ∨ x = �
 end,
 by intro h; cases h; simp [h]⟩
 
+lemma to_real_eq_zero_iff (x : ennreal) : x.to_real = 0 ↔ x = 0 ∨ x = ⊤ :=
+by simp [ennreal.to_real, to_nnreal_eq_zero_iff]
+
 @[simp] lemma coe_ne_top : (r : ennreal) ≠ ∞ := with_top.coe_ne_top
 @[simp] lemma top_ne_coe : ∞ ≠ (r : ennreal) := with_top.top_ne_coe
+@[simp] lemma of_real_ne_top {r : ℝ} : ennreal.of_real r ≠ ∞ := by simp [ennreal.of_real]
+@[simp] lemma top_ne_of_real {r : ℝ} : ∞ ≠ ennreal.of_real r := by simp [ennreal.of_real]
 
 @[simp] lemma zero_ne_top : 0 ≠ ∞ := coe_ne_top
 @[simp] lemma top_ne_zero : ∞ ≠ 0 := top_ne_coe
@@ -192,7 +217,7 @@ lemma lt_iff_exists_rat_btwn :
 λ ⟨q, q0, qa, qb⟩, lt_trans qa qb⟩
 
 lemma lt_iff_exists_real_btwn :
-  a < b ↔ (∃r:ℝ, 0 ≤ r ∧ a < nnreal.of_real r ∧ (nnreal.of_real r:ennreal) < b) :=
+  a < b ↔ (∃r:ℝ, 0 ≤ r ∧ a < ennreal.of_real r ∧ (ennreal.of_real r:ennreal) < b) :=
 ⟨λ h, let ⟨q, q0, aq, qb⟩ := ennreal.lt_iff_exists_rat_btwn.1 h in
   ⟨q, rat.cast_nonneg.2 q0, aq, qb⟩,
 λ ⟨q, q0, qa, qb⟩, lt_trans qa qb⟩
@@ -536,6 +561,59 @@ begin
   exact ⟨n, lt_of_le_of_lt I ba⟩
 end
 end inv
+
+section real
+
+lemma to_real_add (ha : a ≠ ⊤) (hb : b ≠ ⊤) : (a+b).to_real = a.to_real + b.to_real :=
+begin
+  cases a,
+  { simpa [none_eq_top] using ha },
+  cases b,
+  { simpa [none_eq_top] using hb },
+  refl
+end
+
+lemma of_real_add {p q : ℝ} (hp : 0 ≤ p) (hq : 0 ≤ q) :
+  ennreal.of_real (p + q) = ennreal.of_real p + ennreal.of_real q :=
+by rw [ennreal.of_real, ennreal.of_real, ennreal.of_real, ← coe_add,
+       coe_eq_coe, nnreal.of_real_add hp hq]
+
+@[simp] lemma to_real_le_to_real (ha : a ≠ ⊤) (hb : b ≠ ⊤) : a.to_real ≤ b.to_real ↔ a ≤ b :=
+begin
+  cases a,
+  { simpa [none_eq_top] using ha },
+  cases b,
+  { simpa [none_eq_top] using hb },
+  simp only [ennreal.to_real, nnreal.coe_le.symm, with_top.some_le_some],
+  refl
+end
+
+@[simp] lemma to_real_lt_to_real (ha : a ≠ ⊤) (hb : b ≠ ⊤) : a.to_real < b.to_real ↔ a < b :=
+begin
+  cases a,
+  { simpa [none_eq_top] using ha },
+  cases b,
+  { simpa [none_eq_top] using hb },
+  rw [with_top.some_lt_some],
+  refl
+end
+
+lemma of_real_le_of_real {p q : ℝ} (h : p ≤ q) : ennreal.of_real p ≤ ennreal.of_real q :=
+by simp [ennreal.of_real, nnreal.of_real_le_of_real h]
+
+@[simp] lemma of_real_le_of_real_iff {p q : ℝ} (h : 0 ≤ q) : ennreal.of_real p ≤ ennreal.of_real q ↔ p ≤ q :=
+by rw [ennreal.of_real, ennreal.of_real, coe_le_coe, nnreal.of_real_le_of_real_iff h]
+
+@[simp] lemma of_real_lt_of_real_iff {p q : ℝ} (h : 0 < q) : ennreal.of_real p < ennreal.of_real q ↔ p < q :=
+by rw [ennreal.of_real, ennreal.of_real, coe_lt_coe, nnreal.of_real_lt_of_real_iff h]
+
+@[simp] lemma of_real_pos {p : ℝ} : 0 < ennreal.of_real p ↔ 0 < p :=
+by simp [ennreal.of_real]
+
+@[simp] lemma of_real_eq_zero {p : ℝ} : ennreal.of_real p = 0 ↔ p ≤ 0 :=
+by simp [ennreal.of_real]
+
+end real
 
 section infi
 variables {ι : Sort*} {f g : ι → ennreal}

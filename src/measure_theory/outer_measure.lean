@@ -441,6 +441,10 @@ end
 @[simp] theorem zero_caratheodory : (0 : outer_measure α).caratheodory = ⊤ :=
 top_unique $ λ s _ t, (add_zero _).symm
 
+theorem top_caratheodory : (⊤ : outer_measure α).caratheodory = ⊤ :=
+top_unique $ assume s hs, (is_caratheodory_le _).2 $ assume t,
+  by by_cases ht : t = ∅; simp [ht, top_apply]
+
 theorem le_add_caratheodory (m₁ m₂ : outer_measure α) :
   m₁.caratheodory ⊓ m₂.caratheodory ≤ (m₁ + m₂ : outer_measure α).caratheodory :=
 λ s ⟨hs₁, hs₂⟩ t, by simp [hs₁ t, hs₂ t]
@@ -459,6 +463,41 @@ top_unique $ λ s _ t, begin
   by_cases a ∈ t; simp [h],
   by_cases a ∈ s; simp [h]
 end
+
+section Inf_gen
+
+def Inf_gen (m : set (outer_measure α)) (s : set α) : ennreal :=
+⨆(h : s ≠ ∅), ⨅ (μ : outer_measure α) (h : μ ∈ m), μ s
+
+@[simp] lemma Inf_gen_empty (m : set (outer_measure α)) : Inf_gen m ∅ = 0 :=
+by simp [Inf_gen]
+
+lemma Inf_gen_nonempty1 (m : set (outer_measure α)) (t : set α) (h : t ≠ ∅) :
+  Inf_gen m t = (⨅ (μ : outer_measure α) (h : μ ∈ m), μ t) :=
+by rw [Inf_gen, supr_pos h]
+
+lemma Inf_gen_nonempty2 (m : set (outer_measure α)) (μ) (h : μ ∈ m) (t) :
+  Inf_gen m t = (⨅ (μ : outer_measure α) (h : μ ∈ m), μ t) :=
+begin
+  by_cases ht : t = ∅,
+  { simp [ht],
+    refine (bot_unique $ infi_le_of_le μ $ _).symm,
+    refine infi_le_of_le h (le_refl ⊥) },
+  { exact Inf_gen_nonempty1 m t ht }
+end
+
+lemma Inf_eq_of_function_Inf_gen (m : set (outer_measure α)) :
+  Inf m = outer_measure.of_function (Inf_gen m) (Inf_gen_empty m) :=
+begin
+  refine le_antisymm
+    (assume t', le_of_function.2 (assume t, _) _)
+    (lattice.le_Inf $ assume μ hμ t, le_trans (outer_measure.of_function_le _ _ _) _);
+    by_cases ht : t = ∅; simp [ht, Inf_gen_nonempty1],
+  { assume μ hμ, exact (show Inf m ≤ μ, from lattice.Inf_le hμ) t },
+  { exact infi_le_of_le μ (infi_le _ hμ) }
+end
+
+end Inf_gen
 
 end outer_measure
 

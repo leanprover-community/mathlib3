@@ -295,6 +295,7 @@ tsum_eq_is_sum $ ennreal.is_sum_coe.2 $ h
 protected lemma tsum_coe {f : α → nnreal} : has_sum f → (∑a, (f a : ennreal)) = ↑(tsum f)
 | ⟨r, hr⟩ := by rw [tsum_eq_is_sum hr, ennreal.tsum_coe_eq hr]
 
+
 protected lemma is_sum : is_sum f (⨆s:finset α, s.sum f) :=
 tendsto_orderable.2
   ⟨assume a' ha',
@@ -307,6 +308,22 @@ tendsto_orderable.2
     lt_of_le_of_lt this ha'⟩
 
 @[simp] protected lemma has_sum : has_sum f := ⟨_, ennreal.is_sum⟩
+
+protected lemma has_sum_coe' {α} {f : α → nnreal}
+(h : (∑a, (f a : ennreal)) ≠ ⊤) : has_sum f := 
+begin
+  use (∑a, (f a : ennreal)).to_nnreal, 
+  apply (ennreal.is_sum_coe).mp, rw coe_to_nnreal h,
+  apply is_sum_tsum,
+  apply ennreal.has_sum, 
+end
+
+protected lemma tsum_coe' {α} {f : α → nnreal} (h : (∑a, (f a : ennreal)) ≠ ⊤) : (∑a, (f a : ennreal)) = ↑(tsum f) := 
+begin
+  apply ennreal.tsum_coe,
+  apply ennreal.has_sum_coe',
+  assumption,
+end
 
 protected lemma tsum_eq_supr_sum : (∑a, f a) = (⨆s:finset α, s.sum f) :=
 tsum_eq_is_sum ennreal.is_sum

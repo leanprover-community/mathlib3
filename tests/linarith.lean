@@ -1,5 +1,7 @@
 import tactic.linarith
 
+set_option trace.app_builder true
+
 example (e b c a v0 v1 : ℚ) (h1 : v0 = 5*a) (h2 : v1 = 3*b) (h3 : v0 + v1 + c = 10) :
   v0 + 5 + (v1 - 3) + (c - 2) = 10 :=
 by linarith
@@ -99,5 +101,10 @@ by linarith
 example (a b i : ℕ) (h1 :  ¬ a < i) (h2 : b < i) (h3 : a ≤ b) : false :=
 by linarith
 
-example (a b c : ℚ) (h1 : 1 / a < b) (h2 : b < c) : 1 / a < c := 
+example (a b c : ℚ) (h1 : 1 / a < b) (h2 : b < c) : 1 / a < c :=
 by linarith
+
+example
+(N : ℕ) (n : ℕ) (Hirrelevant : n > N)
+(A : ℚ) (l : ℚ) (h : A - l ≤ -(A - l)) (h_1 : ¬A ≤ -A) (h_2 : ¬l ≤ -l)
+(h_3 : -(A - l) < 1) :  A < l + 1 := by linarith

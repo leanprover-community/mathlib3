@@ -449,10 +449,6 @@ meta def ineq_pf_tp (pf : expr) : tactic expr :=
 do (_, z) ← infer_type pf >>= get_rel_sides,
    infer_type z
 
-meta def ineq_pf_tp_eq (pf1 pf2 : expr) : tactic bool :=
-do tp1 ← ineq_pf_tp pf1, tp2 ← ineq_pf_tp pf2,
-   succeeds $ is_def_eq tp1 tp2
-
 meta def mk_neg_one_lt_zero_pf (tp : expr) : tactic expr :=
 to_expr ``((neg_neg_of_pos zero_lt_one : -1 < (0 : %%tp)))
 

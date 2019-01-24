@@ -711,21 +711,27 @@ meta def partition_by_type_aux : rb_lmap expr expr → list expr → tactic (rb_
 meta def partition_by_type (l : list expr) : tactic (rb_lmap expr expr) :=
 partition_by_type_aux mk_rb_map l
 
+private meta def try_linarith_on_lists (cfg : linarith_config) (ls : list (list expr)) : tactic unit :=
+(first $ ls.map $ prove_false_by_linarith1 cfg) <|> fail "linarith failed"
+
 /--
   Takes a list of proofs of propositions.
   Filters out the proofs of linear (in)equalities,
   and tries to use them to prove `false`.
+  If pref_type is given, starts by working over this type
 -/
-meta def prove_false_by_linarith (cfg : linarith_config) (l : list expr) : tactic unit :=
+meta def prove_false_by_linarith (cfg : linarith_config) (pref_type : option expr) (l : list expr) : tactic unit :=
 do l' ← replace_nat_pfs l,
    ls ← list.reduce_option <$> l'.mmap (λ h, (do s ← norm_hyp h, return (some s)) <|> return none)
           >>= partition_by_type,
-   match cfg.restrict_type, ls.values with
-   | some rtp, _ :=
+   pref_type ← (unify pref_type.iget `(ℕ) >> return (some `(ℤ) : option expr)) <|> return pref_type,
+   match cfg.restrict_type, ls.values, pref_type with
+   | some rtp, _, _ :=
       do m ← mk_mvar, unify `(some %%m : option Type) cfg.restrict_type_reflect, m ← instantiate_mvars m,
-         prove_false_by_linarith1 cfg (rb_map.ifind ls m)
-   | none, [ls'] := prove_false_by_linarith1 cfg ls'
-   | none, ls' := (first $ ls'.map $ prove_false_by_linarith1 cfg) <|> fail "linarith failed"
+         prove_false_by_linarith1 cfg (ls.ifind m)
+   | none, [ls'], _ := prove_false_by_linarith1 cfg ls'
+   | none, ls', none := try_linarith_on_lists cfg ls'
+   | none, _, (some t) := prove_false_by_linarith1 cfg (ls.ifind t) <|> try_linarith_on_lists cfg (ls.erase t).values
    end
 
 end normalize
@@ -739,18 +745,18 @@ open lean lean.parser interactive tactic interactive.types
 local postfix `?`:9001 := optional
 local postfix *:9001 := many
 
-meta def linarith.interactive_aux (cfg : linarith_config) :
+meta def linarith.interactive_aux (cfg : linarith_config) : option expr →
      parse ident* → (parse (tk "using" *> pexpr_list)?) → tactic unit
-| l (some pe) := pe.mmap (λ p, i_to_expr p >>= note_anon) >> linarith.interactive_aux l none
-| [] none :=
+| pt l (some pe) := pe.mmap (λ p, i_to_expr p >>= note_anon) >> linarith.interactive_aux pt l none
+| pt [] none :=
   do t ← target,
-     if t = `(false) then local_context >>= prove_false_by_linarith cfg
+     if t = `(false) then local_context >>= prove_false_by_linarith cfg pt
      else match get_contr_lemma_name t with
-     | some nm := seq (applyc nm) (intro1 >> linarith.interactive_aux [] none)
-     | none := if cfg.exfalso then exfalso >> linarith.interactive_aux [] none
+     | some nm := seq (applyc nm) (do t ← intro1 >>= ineq_pf_tp, linarith.interactive_aux (some t) [] none)
+     | none := if cfg.exfalso then exfalso >> linarith.interactive_aux pt [] none
                else fail "linarith failed: target type is not an inequality."
      end
-| ls none := (ls.mmap get_local) >>= prove_false_by_linarith cfg
+| pt ls none := (ls.mmap get_local) >>= prove_false_by_linarith cfg pt
 
 /--
   Tries to prove a goal of `false` by linear arithmetic on hypotheses.
@@ -769,6 +775,6 @@ meta def linarith.interactive_aux (cfg : linarith_config) :
 -/
 meta def tactic.interactive.linarith (ids : parse (many ident))
      (using_hyps : parse (tk "using" *> pexpr_list)?) (cfg : linarith_config := {}) : tactic unit :=
-linarith.interactive_aux cfg ids using_hyps
+linarith.interactive_aux cfg none ids using_hyps
 
 end

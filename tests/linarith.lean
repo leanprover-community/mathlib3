@@ -1,7 +1,5 @@
 import tactic.linarith
 
-set_option trace.app_builder true
-
 example (e b c a v0 v1 : ℚ) (h1 : v0 = 5*a) (h2 : v1 = 3*b) (h3 : v0 + v1 + c = 10) :
   v0 + 5 + (v1 - 3) + (c - 2) = 10 :=
 by linarith

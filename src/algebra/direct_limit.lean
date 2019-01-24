@@ -1,18 +1,35 @@
-import algebra.ring order.lattice
+import linear_algebra.direct_sum_module
 
-universes u v
-
+universes u v w
+#check directed
+#check @directed.finset_le
+#check submodule.Union_coe_of_directed
+#check dfinsupp
 open lattice
 
-instance is_ring_hom.to_is_add_group_hom {α : Type*} {β : Type*} [ring α] [ring β]
-  (f : α → β) [is_ring_hom f] : is_add_group_hom f :=
-⟨λ _ _, is_ring_hom.map_add f⟩
+class directed_order (α : Type u) extends partial_order α :=
+(directed : ∀ i j : α, ∃ k, i ≤ k ∧ j ≤ k)
 
-class directed_order (α : Type u) extends has_sup α, partial_order α :=
-(le_sup_left : ∀ a b : α, a ≤ a ⊔ b)
-(le_sup_right : ∀ a b : α, b ≤ a ⊔ b)
+variables {ι : out_param (Type u)} [inhabited ι]
+variables [directed_order ι] [decidable_eq ι]
+variables {G : ι → Type v}
 
-theorem le_sup_left {α : Type u} [directed_order α] {x y : α} : x ≤ x ⊔ y :=
+class directed_system (f : Π i j, i ≤ j → G i → G j) : Prop :=
+(Hid : ∀ i x, f i i (le_refl i) x = x)
+(Hcomp : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
+
+section module
+variables [Π i, decidable_eq (G i)] {R : Type w} [comm_ring R]
+variables [Π i, add_comm_group (G i)] [Π i, module R (G i)]
+
+def direct_limit.submodule (f : Π i j, i ≤ j → G i →ₗ G j) :
+  submodule R (direct_sum R ι G) :=
+submodule.span $ ⋃ i j (H : i ≤ j) x,
+{ @direct_sum.of _ _ ι _ G _ _ i x - direct_sum.of G j (f i j H x) }
+
+end module
+
+/-theorem le_sup_left {α : Type u} [directed_order α] {x y : α} : x ≤ x ⊔ y :=
 directed_order.le_sup_left x y
 
 theorem le_sup_right {α : Type u} [directed_order α] {x y : α} : y ≤ x ⊔ y :=
@@ -20,9 +37,6 @@ directed_order.le_sup_right x y
 
 variables {ι : out_param (Type u)} [inhabited ι] [directed_order ι]
 variables {G : ι → Type v}
-
-class directed_system (f : Π i j, i ≤ j → G i → G j) : Prop :=
-(Hcomp : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
 
 def direct_limit.setoid (f : Π i j, i ≤ j → G i → G j)
   [directed_system f] : setoid (sigma G) :=
@@ -288,3 +302,4 @@ instance: comm_ring (direct_limit f) :=
 direct_limit.comm_ring' f
 
 end direct_limit
+-/

@@ -8,7 +8,9 @@ Currently only the basic setup.
 -/
 
 import category_theory.fully_faithful
-import algebra.ring
+import category_theory.types
+import category_theory.adjunction
+import data.finsupp
 
 universes u v
 

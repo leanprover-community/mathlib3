@@ -480,6 +480,28 @@ lemma closed_ball_Icc {x r : ℝ} : closed_ball x r = Icc (x-r) (x+r) :=
 by ext y; rw [mem_closed_ball, dist_comm, real.dist_eq,
   abs_sub_le_iff, mem_Icc, ← sub_le_iff_le_add', sub_le]
 
+lemma squeeze_zero {α} {f g : α → ℝ} {t₀ : filter α} (hf : ∀t, 0 ≤ f t) (hft : ∀t, f t ≤ g t)
+  (g0 : tendsto g t₀ (nhds 0)) : tendsto f t₀ (nhds 0) :=
+begin
+  apply tendsto_of_tendsto_of_tendsto_of_le_of_le (tendsto_const_nhds) g0;
+  simp [*]; exact filter.univ_mem_sets
+end
+
+theorem metric.uniformity_eq_comap_nhds_zero :
+  uniformity = comap (λp:α×α, dist p.1 p.2) (nhds (0 : ℝ)) :=
+begin
+  simp only [uniformity_dist', nhds_eq, comap_infi, comap_principal],
+  congr, funext ε,
+  rw [principal_eq_iff_eq],
+  ext ⟨a, b⟩,
+  simp [real.dist_0_eq_abs]
+end
+
+lemma cauchy_seq_iff_tendsto_dist_at_top_0 [inhabited β] [semilattice_sup β] {u : β → α} :
+  cauchy_seq u ↔ tendsto (λ (n : β × β), dist (u n.1) (u n.2)) at_top (nhds 0) :=
+by rw [cauchy_seq_iff_prod_map, metric.uniformity_eq_comap_nhds_zero, ← map_le_iff_le_comap,
+  filter.map_map, tendsto, prod.map_def]
+
 end real
 
 section cauchy_seq

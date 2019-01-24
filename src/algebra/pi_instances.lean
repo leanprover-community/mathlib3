@@ -124,6 +124,7 @@ end
 end pi
 
 namespace prod
+
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {p q : α × β}
 
 instance [has_add α] [has_add β] : has_add (α × β) :=

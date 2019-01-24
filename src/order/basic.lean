@@ -140,6 +140,10 @@ instance (α : Type*) [partial_order α] : partial_order (order_dual α) :=
 instance (α : Type*) [linear_order α] : linear_order (order_dual α) :=
 { le_total := assume a b:α, le_total b a, .. order_dual.partial_order α }
 
+instance (α : Type*) [decidable_linear_order α] : decidable_linear_order (order_dual α) :=
+{ decidable_le := show decidable_rel (λa b:α, b ≤ a), by apply_instance,
+  .. order_dual.linear_order α }
+
 end order_dual
 
 /- order instances on the function space -/
@@ -198,6 +202,25 @@ partial_order.lift subtype.val $ λ x y, subtype.eq'
 
 instance subtype.linear_order {α} [linear_order α] (p : α → Prop) : linear_order (subtype p) :=
 linear_order.lift subtype.val $ λ x y, subtype.eq'
+
+instance subtype.decidable_linear_order {α} [decidable_linear_order α] (p : α → Prop) :
+  decidable_linear_order (subtype p) :=
+decidable_linear_order.lift subtype.val $ λ x y, subtype.eq'
+
+instance prod.has_le (α : Type u) (β : Type v) [has_le α] [has_le β] : has_le (α × β) :=
+⟨λp q, p.1 ≤ q.1 ∧ p.2 ≤ q.2⟩
+
+instance prod.preorder (α : Type u) (β : Type v) [preorder α] [preorder β] : preorder (α × β) :=
+{ le_refl  := assume ⟨a, b⟩, ⟨le_refl a, le_refl b⟩,
+  le_trans := assume ⟨a, b⟩ ⟨c, d⟩ ⟨e, f⟩ ⟨hac, hbd⟩ ⟨hce, hdf⟩,
+    ⟨le_trans hac hce, le_trans hbd hdf⟩,
+  .. prod.has_le α β }
+
+instance prod.partial_order (α : Type u) (β : Type v) [partial_order α] [partial_order β] :
+  partial_order (α × β) :=
+{ le_antisymm := assume ⟨a, b⟩ ⟨c, d⟩ ⟨hac, hbd⟩ ⟨hca, hdb⟩,
+    prod.ext (le_antisymm hac hca) (le_antisymm hbd hdb),
+  .. prod.preorder α β }
 
 /- additional order classes -/
 

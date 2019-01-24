@@ -969,6 +969,17 @@ Hh.symm ▸ set.ext (λ ⟨a₁, a₂⟩, ⟨quotient.induction_on₂ a₁ a₂
   have h₃ : ⟦b₁⟧ = a₁ ∧ ⟦b₂⟧ = a₂ := prod.ext_iff.1 h₂,
     h₃.1 ▸ h₃.2 ▸ h₁⟩)
 
+def image_factorization (f : α → β) (s : set α) : s → f '' s :=
+λ p, ⟨f p.1, mem_image_of_mem f p.2⟩
+
+lemma image_factorization_eq {f : α → β} {s : set α} :
+  subtype.val ∘ image_factorization f s = f ∘ subtype.val :=
+funext $ λ p, rfl
+
+lemma surjective_onto_image {f : α → β} {s : set α} :
+  surjective (image_factorization f s) :=
+λ ⟨_, ⟨a, ha, rfl⟩⟩, ⟨⟨a, ha⟩, rfl⟩
+
 end image
 
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
@@ -1052,6 +1063,16 @@ subtype_val_range
 
 lemma range_const_subset {c : β} : range (λx:α, c) ⊆ {c} :=
 range_subset_iff.2 $ λ x, or.inl rfl
+
+def range_factorization (f : ι → β) : ι → range f :=
+λ i, ⟨f i, mem_range_self i⟩
+
+lemma range_factorization_eq {f : ι → β} :
+  subtype.val ∘ range_factorization f = f :=
+funext $ λ i, rfl
+
+lemma surjective_onto_range : surjective (range_factorization f) :=
+λ ⟨_, ⟨i, rfl⟩⟩, ⟨i, rfl⟩
 
 end range
 

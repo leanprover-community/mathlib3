@@ -4,7 +4,7 @@
 
 import category_theory.full_subcategory
 import category_theory.functor_category
-import category_theory.limits.preserves
+import category_theory.adjunction
 import category_theory.limits.types
 import category_theory.natural_isomorphism
 import category_theory.eq_to_hom
@@ -73,6 +73,33 @@ instance : preserves_colimits (forget : Top.{u} ⥤ Type u) :=
   (colimit.is_colimit F) (colimit.is_colimit (F ⋙ forget))
 
 end
+
+def discrete : Type u ⥤ Top.{u} :=
+{ obj := λ X, ⟨X, ⊤⟩,
+  map := λ X Y f, ⟨f, continuous_top⟩ }
+
+def trivial : Type u ⥤ Top.{u} :=
+{ obj := λ X, ⟨X, ⊥⟩,
+  map := λ X Y f, ⟨f, continuous_bot⟩ }
+
+def adj₁ : adjunction discrete forget :=
+{ hom_equiv := λ X Y,
+  { to_fun := λ f, f,
+    inv_fun := λ f, ⟨f, continuous_top⟩,
+    left_inv := by tidy,
+    right_inv := by tidy },
+  unit := { app := λ X, id },
+  counit := { app := λ X, ⟨id, continuous_top⟩ } }
+
+def adj₂ : adjunction forget trivial :=
+{ hom_equiv := λ X Y,
+  { to_fun := λ f, ⟨f, continuous_bot⟩,
+    inv_fun := λ f, f,
+    left_inv := by tidy,
+    right_inv := by tidy },
+  unit := { app := λ X, ⟨id, continuous_bot⟩ },
+  counit := { app := λ X, id } }
+
 end Top
 
 variables {X : Top.{u}}

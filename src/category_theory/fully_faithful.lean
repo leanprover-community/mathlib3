@@ -13,7 +13,7 @@ include 𝒞 𝒟
 
 class full (F : C ⥤ D) :=
 (preimage : ∀ {X Y : C} (f : (F.obj X) ⟶ (F.obj Y)), X ⟶ Y)
-(witness'  : ∀ {X Y : C} (f : (F.obj X) ⟶ (F.obj Y)), F.map (preimage f) = f . obviously)
+(witness' : ∀ {X Y : C} (f : (F.obj X) ⟶ (F.obj Y)), F.map (preimage f) = f . obviously)
 
 restate_axiom full.witness'
 attribute [simp] full.witness
@@ -28,7 +28,7 @@ def injectivity (F : C ⥤ D) [faithful F] {X Y : C} {f g : X ⟶ Y} (p : F.map 
 faithful.injectivity F p
 
 def preimage (F : C ⥤ D) [full F] {X Y : C} (f : F.obj X ⟶ F.obj Y) : X ⟶ Y :=
-full.preimage.{v₁ v₂}  f
+full.preimage.{v₁ v₂} f
 @[simp] lemma image_preimage (F : C ⥤ D) [full F] {X Y : C} (f : F.obj X ⟶ F.obj Y) :
   F.map (preimage F f) = f :=
 by unfold preimage; obviously

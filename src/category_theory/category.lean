@@ -100,29 +100,28 @@ structure concrete_category {c : Type u → Type v}
   hom ia ib f → hom ib ic g → hom ia ic (g ∘ f))
 attribute [class] concrete_category
 
-instance {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
-  [h : concrete_category @hom] : category (bundled c) :=
+section
+variables {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
+variables [h : concrete_category @hom]
+include h
+
+instance : category (bundled c) :=
 { hom   := λa b, subtype (hom a.2 b.2),
   id    := λa, ⟨@id a.1, h.hom_id a.2⟩,
   comp  := λa b c f g, ⟨g.1 ∘ f.1, h.hom_comp a.2 b.2 c.2 f.2 g.2⟩ }
 
-@[simp] lemma concrete_category_id
-  {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
-  [h : concrete_category @hom] (X : bundled c) : subtype.val (𝟙 X) = id := rfl
-@[simp] lemma concrete_category_comp
-  {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
-  [h : concrete_category @hom] {X Y Z : bundled c} (f : X ⟶ Y) (g : Y ⟶ Z) :
+@[simp] lemma concrete_category_id (X : bundled c) : subtype.val (𝟙 X) = id := rfl
+@[simp] lemma concrete_category_comp {X Y Z : bundled c} (f : X ⟶ Y) (g : Y ⟶ Z) :
   subtype.val (f ≫ g) = g.val ∘ f.val := rfl
 
-instance {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
-  [h : concrete_category @hom] {R S : bundled c} : has_coe_to_fun (R ⟶ S) :=
-{ F := λ f, R → S,
+instance {X Y : bundled c} : has_coe_to_fun (X ⟶ Y) :=
+{ F := λ f, X → Y,
   coe := λ f, f.1 }
 
-@[simp] lemma bundled_hom_coe
-  {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
-  [h : concrete_category @hom] {R S : bundled c} (val : R → S) (prop) (r : R) :
-  (⟨val, prop⟩ : R ⟶ S) r = val r := rfl
+@[simp] lemma bundled_hom_coe {X Y : bundled c} (val : X → Y) (prop) (x : X) :
+  (⟨val, prop⟩ : X ⟶ Y) x = val x := rfl
+
+end
 
 section
 variables {C : Type u} [𝒞 : category.{v} C] {X Y Z : C}

@@ -840,6 +840,9 @@ lemma exp_injective : function.injective exp :=
   { exact absurd h (ne.symm (ne_of_lt (exp_lt_exp h₁))) }
 end
 
+@[simp] lemma exp_eq_one_iff : exp x = 1 ↔ x = 0 :=
+⟨by rw ← exp_zero; exact λ h, exp_injective h, λ h, by rw [h, exp_zero]⟩
+
 end real
 
 namespace complex

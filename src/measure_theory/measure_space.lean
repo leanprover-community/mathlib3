@@ -26,6 +26,26 @@ local attribute [instance] prop_decidable
 
 universes u v w x
 
+section tendsto
+variables {α : Type*} [topological_space α]
+open lattice filter
+
+lemma tendsto_at_top_supr_nat [complete_linear_order α] [orderable_topology α]
+  (f : ℕ → α) (hf : monotone f) : tendsto f at_top (nhds (⨆i, f i)) :=
+tendsto_orderable.2 $ and.intro
+  (assume a ha, let ⟨n, hn⟩ := lt_supr_iff.1 ha in
+    mem_at_top_sets.2 ⟨n, assume i hi, lt_of_lt_of_le hn (hf hi)⟩)
+  (assume a ha, univ_mem_sets' (assume n, lt_of_le_of_lt (le_supr _ n) ha))
+
+lemma tendsto_at_top_infi_nat [complete_linear_order α] [orderable_topology α]
+  (f : ℕ → α) (hf : ∀{n m}, n ≤ m → f m ≤ f n) : tendsto f at_top (nhds (⨅i, f i)) :=
+tendsto_orderable.2 $ and.intro
+  (assume a ha, univ_mem_sets' (assume n, lt_of_lt_of_le ha (infi_le _ _)))
+  (assume a ha, let ⟨n, hn⟩ := infi_lt_iff.1 ha in
+    mem_at_top_sets.2 ⟨n, assume i hi, lt_of_le_of_lt (hf hi) hn⟩)
+
+end tendsto
+
 namespace measure_theory
 
 section of_measurable
@@ -383,6 +403,28 @@ begin
   { exact λ i j ij, diff_subset_diff_right (hs _ _ ij) }
 end
 
+lemma measure_eq_inter_diff {μ : measure α} {s t : set α}
+  (hs : is_measurable s) (ht : is_measurable t) :
+  μ s = μ (s ∩ t) + μ (s \ t) :=
+have hd : disjoint (s ∩ t) (s \ t) := assume a ⟨⟨_, hs⟩, _, hns⟩, hns hs ,
+by rw [← measure_union hd (hs.inter ht) (hs.diff ht), inter_union_diff s t]
+
+lemma tendsto_measure_Union {μ : measure α} {s : ℕ → set α}
+  (hs : ∀n, is_measurable (s n)) (hm : monotone s) :
+  tendsto (μ ∘ s) at_top (nhds (μ (⋃n, s n))) :=
+begin
+  rw measure_Union_eq_supr_nat hs hm,
+  exact tendsto_at_top_supr_nat (μ ∘ s) (assume n m hnm, measure_mono $ hm $ hnm)
+end
+
+lemma tendsto_measure_Inter {μ : measure α} {s : ℕ → set α}
+  (hs : ∀n, is_measurable (s n)) (hm : ∀n m, n ≤ m → s m ⊆ s n) (hf : ∃i, μ (s i) < ⊤):
+  tendsto (μ ∘ s) at_top (nhds (μ (⋂n, s n))) :=
+begin
+  rw measure_Inter_eq_infi_nat hs hm hf,
+  exact tendsto_at_top_infi_nat (μ ∘ s) (assume n m hnm, measure_mono $ hm _ _ $ hnm),
+end
+
 end
 
 def outer_measure.to_measure {α} (m : outer_measure α)
@@ -486,14 +528,13 @@ begin
   simp only [outer_measure.Inf_gen_nonempty1 _ _ ht, le_infi_iff, ball_image_iff,
     to_outer_measure_apply, measure_eq_infi t],
   assume μ hμ u htu hu,
-  have hd : disjoint (u ∩ s) (u \ s) := assume a ⟨⟨_, hs⟩, _, hns⟩, hns hs ,
   have hm : ∀{s t}, s ⊆ t → outer_measure.Inf_gen (to_outer_measure '' m) s ≤ μ t,
   { assume s t hst,
     rw [outer_measure.Inf_gen_nonempty2 _ _ (mem_image_of_mem _ hμ)],
     refine infi_le_of_le (μ.to_outer_measure) (infi_le_of_le (mem_image_of_mem _ hμ) _),
     rw [to_outer_measure_apply],
     refine measure_mono hst },
-  rw [← inter_union_diff u s, measure_union hd (hu.inter hs) (hu.diff hs)],
+  rw [measure_eq_inter_diff hu hs],
   refine add_le_add' (hm $ inter_subset_inter_left _ htu) (hm $ diff_subset_diff_left htu)
 end
 
@@ -551,7 +592,7 @@ if hf : measurable f then
   le_to_outer_measure_caratheodory μ _ (hf _ hs) (f ⁻¹' t)
 else 0
 
-variable {μ : measure α}
+variables {μ ν : measure α}
 
 @[simp] theorem map_apply {f : α → β} (hf : measurable f)
   {s : set β} (hs : is_measurable s) :

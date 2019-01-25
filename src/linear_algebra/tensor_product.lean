@@ -395,19 +395,19 @@ variables (β₁ : ι₁ → Type*) (β₂ : ι₂ → Type*)
 variables [Π i₁, add_comm_group (β₁ i₁)] [Π i₂, add_comm_group (β₂ i₂)]
 variables [Π i₁, module R (β₁ i₁)] [Π i₂, module R (β₂ i₂)]
 
-def direct_sum : direct_sum R ι₁ β₁ ⊗ direct_sum R ι₂ β₂
-  ≃ₗ direct_sum R (ι₁ × ι₂) (λ i, β₁ i.1 ⊗ β₂ i.2) :=
+def direct_sum : direct_sum ι₁ β₁ ⊗ direct_sum ι₂ β₂
+  ≃ₗ direct_sum (ι₁ × ι₂) (λ i, β₁ i.1 ⊗ β₂ i.2) :=
 begin
   refine linear_equiv.of_linear
-    (lift $ direct_sum.to_module $ λ i₁, flip $ direct_sum.to_module $ λ i₂,
-      flip $ curry $ direct_sum.of (λ i : ι₁ × ι₂, β₁ i.1 ⊗ β₂ i.2) (i₁, i₂))
-    (direct_sum.to_module $ λ i, map (direct_sum.of _ _) (direct_sum.of _ _))
+    (lift $ direct_sum.to_module _ _ $ λ i₁, flip $ direct_sum.to_module _ _ $ λ i₂,
+      flip $ curry $ direct_sum.lof (ι₁ × ι₂) (λ i, β₁ i.1 ⊗ β₂ i.2) (i₁, i₂))
+    (direct_sum.to_module _ _ $ λ i, map (direct_sum.lof _ _ _) (direct_sum.lof _ _ _))
     (linear_map.ext $ direct_sum.to_module.ext $ λ i, mk_compr₂_inj $
       linear_map.ext $ λ x₁, linear_map.ext $ λ x₂, _)
     (mk_compr₂_inj $ linear_map.ext $ direct_sum.to_module.ext $ λ i₁, linear_map.ext $ λ x₁,
       linear_map.ext $ direct_sum.to_module.ext $ λ i₂, linear_map.ext $ λ x₂, _);
   repeat { rw compr₂_apply <|> rw comp_apply <|> rw id_apply <|> rw mk_apply <|>
-    rw direct_sum.to_module.of <|> rw map_tmul <|> rw lift.tmul <|> rw flip_apply <|>
+    rw direct_sum.to_module_lof <|> rw map_tmul <|> rw lift.tmul <|> rw flip_apply <|>
     rw curry_apply },
   cases i; refl
 end

@@ -167,7 +167,7 @@ end padic_val_rat
 end padic_val_rat
 
 def padic_norm (p : ℕ) (q : ℚ) : ℚ :=
-if q = 0 then 0 else fpow (↑p : ℚ) (-(padic_val_rat p q))
+if q = 0 then 0 else (↑p : ℚ) ^ (-(padic_val_rat p q))
 
 namespace padic_norm
 
@@ -181,7 +181,7 @@ include hp
 @[simp] protected lemma one : padic_norm p 1 = 1 := by simp [padic_norm]
 
 @[simp] protected lemma eq_fpow_of_nonzero {q : ℚ} (hq : q ≠ 0) :
-  padic_norm p q = fpow p (-(padic_val_rat p q)) :=
+  padic_norm p q = p ^ (-(padic_val_rat p q)) :=
 by simp [hq, padic_norm]
 
 protected lemma nonzero {q : ℚ} (hq : q ≠ 0) : padic_norm p q ≠ 0 :=
@@ -199,7 +199,7 @@ else by simp [padic_norm, hq, hp.gt_one]
 lemma zero_of_padic_norm_eq_zero {q : ℚ} (h : padic_norm p q = 0) : q = 0 :=
 by_contradiction $
   assume hq : q ≠ 0,
-  have padic_norm p q = fpow p (-(padic_val_rat p q)), by simp [hq],
+  have padic_norm p q = p ^ (-(padic_val_rat p q)), by simp [hq],
   fpow_ne_zero_of_ne_zero
     (show (↑p : ℚ) ≠ 0, by simp [prime.ne_zero hp])
     (-(padic_val_rat p q)) (by rw [←this, h])
@@ -301,7 +301,7 @@ begin
     assumption }
 end
 
-protected theorem image {q : ℚ} (hq : q ≠ 0) : ∃ n : ℤ, padic_norm p q = fpow p (-n) :=
+protected theorem image {q : ℚ} (hq : q ≠ 0) : ∃ n : ℤ, padic_norm p q = p ^ (-n) :=
 ⟨ (padic_val_rat p q), by simp [padic_norm, hq] ⟩
 
 instance : is_absolute_value (padic_norm p) :=
@@ -316,7 +316,7 @@ instance : is_absolute_value (padic_norm p) :=
   abv_add := padic_norm.triangle_ineq p,
   abv_mul := padic_norm.mul p }
 
-lemma le_of_dvd {n : ℕ} {z : ℤ} (hd : ↑(p^n) ∣ z) : padic_norm p z ≤ fpow ↑p (-n) :=
+lemma le_of_dvd {n : ℕ} {z : ℤ} (hd : ↑(p^n) ∣ z) : padic_norm p z ≤ ↑p ^ (-n : ℤ) :=
 have hp' : (↑p : ℚ) ≥ 1, from show ↑p ≥ ↑(1 : ℕ), from cast_le.2 (le_of_lt hp.gt_one),
 have hpn : (↑p : ℚ) ≥ 0, from le_trans zero_le_one hp',
 begin

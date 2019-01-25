@@ -86,6 +86,19 @@ meta def is_mvar : expr → bool
 | (mvar _ _ _) := tt
 | _            := ff
 
+/--
+ is_num_eq n1 n2 returns true if n1 and n2 are both numerals with the same numeral structure,
+ ignoring differences in type and type class arguments.
+-/
+meta def is_num_eq : expr → expr → bool
+| `(@has_zero.zero _ _) `(@has_zero.zero _ _) := tt
+| `(@has_one.one _ _) `(@has_one.one _ _) := tt
+| `(bit0 %%a) `(bit0 %%b) := a.is_num_eq b
+| `(bit1 %%a) `(bit1 %%b) := a.is_num_eq b
+| `(-%%a) `(-%%b) := a.is_num_eq b
+| `(%%a/%%a') `(%%b/%%b') :=  a.is_num_eq b
+| _ _ := ff
+
 end expr
 
 

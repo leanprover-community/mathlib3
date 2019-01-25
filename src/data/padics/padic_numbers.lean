@@ -198,7 +198,7 @@ else
   by simp [norm, this]
 
 lemma norm_image (a : padic_seq p) (ha : ¬ a ≈ 0) :
-  (∃ (n : ℤ), a.norm = fpow ↑p (-n)) :=
+  (∃ (n : ℤ), a.norm = ↑p ^ (-n)) :=
 let ⟨k, hk, hk'⟩ := norm_eq_norm_app_of_nonzero ha in
 by simpa [hk] using padic_norm.image p hk'
 
@@ -500,7 +500,7 @@ instance : is_absolute_value (@padic_norm_e p _) :=
 @[simp] lemma eq_padic_norm' (q : ℚ) : padic_norm_e (padic.of_rat p q) = padic_norm p q :=
 norm_const _
 
-protected theorem image' {q : ℚ_[p]} : q ≠ 0 → ∃ n : ℤ, padic_norm_e q = fpow p (-n) :=
+protected theorem image' {q : ℚ_[p]} : q ≠ 0 → ∃ n : ℤ, padic_norm_e q = p ^ (-n) :=
 quotient.induction_on q $ λ f hf,
   have ¬ f ≈ 0, from (ne_zero_iff_nequiv_zero f).1 hf,
   norm_image f this
@@ -690,7 +690,7 @@ end
 @[simp] lemma eq_padic_norm (q : ℚ) : ∥padic.of_rat p q∥ = padic_norm p q :=
 by unfold has_norm.norm; congr; apply padic_seq.norm_const
 
-protected theorem image {q : ℚ_[p]} : q ≠ 0 → ∃ n : ℤ, ∥q∥ = ↑(fpow (↑p : ℚ) (-n)) :=
+protected theorem image {q : ℚ_[p]} : q ≠ 0 → ∃ n : ℤ, ∥q∥ = ↑((↑p : ℚ) ^ (-n)) :=
 quotient.induction_on q $ λ f hf,
   have ¬ f ≈ 0, from (padic_seq.ne_zero_iff_nequiv_zero f).1 hf,
   let ⟨n, hn⟩ := padic_seq.norm_image f this in
@@ -712,13 +712,13 @@ theorem norm_rat_le_one : ∀ {q : ℚ} (hq : ¬ p ∣ q.denom), ∥(q : ℚ_[p]
   else
     have hnz' : {rat . num := n, denom := d, pos := hn, cop := hd} ≠ 0,
       from mt rat.zero_iff_num_zero.1 hnz,
-    have fpow (p : ℚ) (-(multiplicity (p : ℤ) n).get
-      (finite_int_iff.2 ⟨hp.ne_one, hnz⟩)) ≤ 1,
+    have (p : ℚ) ^ (-(multiplicity (p : ℤ) n).get
+      (finite_int_iff.2 ⟨hp.ne_one, hnz⟩) : ℤ) ≤ 1,
       from fpow_le_one_of_nonpos
         (show (↑p : ℚ) ≥ ↑(1: ℕ), from le_of_lt (nat.cast_lt.2 hp.gt_one))
         (neg_nonpos_of_nonneg (int.coe_nat_nonneg _)),
-    have ((fpow (p : ℚ) (-(multiplicity (p : ℤ) n).get
-        (finite_int_iff.2 ⟨hp.ne_one, hnz⟩)) : ℚ) : ℝ) ≤ (1 : ℚ),
+    have (((p : ℚ) ^ (-(multiplicity (p : ℤ) n).get
+        (finite_int_iff.2 ⟨hp.ne_one, hnz⟩) : ℤ) : ℚ) : ℝ) ≤ (1 : ℚ),
       from rat.cast_le.2 this,
     by simpa [padic.cast_eq_of_rat, hnz', padic_norm, padic_val_rat_def p hnz',
                multiplicity_eq_zero_of_not_dvd (mt int.coe_nat_dvd.1 hq)]

@@ -80,49 +80,6 @@ A `small_category` has objects and morphisms in the same universe level.
 -/
 abbreviation small_category (C : Type u)     : Type (u+1) := category.{u} C
 
-structure bundled (c : Type u → Type v) :=
-(α : Type u)
-(str : c α)
-
-instance (c : Type u → Type v) : has_coe_to_sort (bundled c) :=
-{ S := Type u, coe := bundled.α }
-
-def mk_ob {c : Type u → Type v} (α : Type u) [str : c α] : bundled c :=
-@bundled.mk c α str
-
-/-- `concrete_category hom` collects the evidence that a type constructor `c` and a morphism
-predicate `hom` can be thought of as a concrete category.
-In a typical example, `c` is the type class `topological_space` and `hom` is `continuous`. -/
-structure concrete_category {c : Type u → Type v}
-  (hom : out_param $ ∀{α β : Type u}, c α → c β → (α → β) → Prop) :=
-(hom_id : ∀{α} (ia : c α), hom ia ia id)
-(hom_comp : ∀{α β γ} (ia : c α) (ib : c β) (ic : c γ) {f g},
-  hom ia ib f → hom ib ic g → hom ia ic (g ∘ f))
-attribute [class] concrete_category
-
-section
-variables {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
-variables [h : concrete_category @hom]
-include h
-
-instance : category (bundled c) :=
-{ hom   := λa b, subtype (hom a.2 b.2),
-  id    := λa, ⟨@id a.1, h.hom_id a.2⟩,
-  comp  := λa b c f g, ⟨g.1 ∘ f.1, h.hom_comp a.2 b.2 c.2 f.2 g.2⟩ }
-
-@[simp] lemma concrete_category_id (X : bundled c) : subtype.val (𝟙 X) = id := rfl
-@[simp] lemma concrete_category_comp {X Y Z : bundled c} (f : X ⟶ Y) (g : Y ⟶ Z) :
-  subtype.val (f ≫ g) = g.val ∘ f.val := rfl
-
-instance {X Y : bundled c} : has_coe_to_fun (X ⟶ Y) :=
-{ F := λ f, X → Y,
-  coe := λ f, f.1 }
-
-@[simp] lemma bundled_hom_coe {X Y : bundled c} (val : X → Y) (prop) (x : X) :
-  (⟨val, prop⟩ : X ⟶ Y) x = val x := rfl
-
-end
-
 section
 variables {C : Type u} [𝒞 : category.{v} C] {X Y Z : C}
 include 𝒞

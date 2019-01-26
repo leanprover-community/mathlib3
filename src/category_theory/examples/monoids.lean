@@ -7,8 +7,8 @@ Introduce Mon -- the category of monoids.
 Currently only the basic setup.
 -/
 
+import category_theory.concrete_category
 import category_theory.fully_faithful
-import category_theory.types
 import category_theory.adjunction
 import data.finsupp
 

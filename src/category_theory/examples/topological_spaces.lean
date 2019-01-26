@@ -2,6 +2,7 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Patrick Massot, Scott Morrison, Mario Carneiro
 
+import category_theory.concrete_category
 import category_theory.full_subcategory
 import category_theory.functor_category
 import category_theory.adjunction

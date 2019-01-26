@@ -54,15 +54,4 @@ instance ulift_functor_faithful : fully_faithful ulift_functor :=
   injectivity' := λ X Y f g p, funext $ λ x,
     congr_arg ulift.down ((congr_fun p (ulift.up x)) : ((ulift.up (f x)) = (ulift.up (g x)))) }
 
-section forget
-variables {C : Type u → Type v} {hom : ∀α β, C α → C β → (α → β) → Prop} [i : concrete_category hom]
-include i
-
-/-- The forgetful functor from a bundled category to `Type`. -/
-def forget : bundled C ⥤ Type u := { obj := bundled.α, map := λa b h, h.1 }
-
-instance forget.faithful : faithful (forget : bundled C ⥤ Type u) := {}
-
-end forget
-
 end category_theory

@@ -26,6 +26,26 @@ local attribute [instance] prop_decidable
 
 universes u v w x
 
+section tendsto
+variables {α : Type*} [topological_space α]
+open lattice filter
+
+lemma tendsto_at_top_supr_nat [complete_linear_order α] [orderable_topology α]
+  (f : ℕ → α) (hf : monotone f) : tendsto f at_top (nhds (⨆i, f i)) :=
+tendsto_orderable.2 $ and.intro
+  (assume a ha, let ⟨n, hn⟩ := lt_supr_iff.1 ha in
+    mem_at_top_sets.2 ⟨n, assume i hi, lt_of_lt_of_le hn (hf hi)⟩)
+  (assume a ha, univ_mem_sets' (assume n, lt_of_le_of_lt (le_supr _ n) ha))
+
+lemma tendsto_at_top_infi_nat [complete_linear_order α] [orderable_topology α]
+  (f : ℕ → α) (hf : ∀{n m}, n ≤ m → f m ≤ f n) : tendsto f at_top (nhds (⨅i, f i)) :=
+tendsto_orderable.2 $ and.intro
+  (assume a ha, univ_mem_sets' (assume n, lt_of_lt_of_le ha (infi_le _ _)))
+  (assume a ha, let ⟨n, hn⟩ := infi_lt_iff.1 ha in
+    mem_at_top_sets.2 ⟨n, assume i hi, lt_of_le_of_lt (hf hi) hn⟩)
+
+end tendsto
+
 namespace measure_theory
 
 section of_measurable
@@ -383,6 +403,28 @@ begin
   { exact λ i j ij, diff_subset_diff_right (hs _ _ ij) }
 end
 
+lemma measure_eq_inter_diff {μ : measure α} {s t : set α}
+  (hs : is_measurable s) (ht : is_measurable t) :
+  μ s = μ (s ∩ t) + μ (s \ t) :=
+have hd : disjoint (s ∩ t) (s \ t) := assume a ⟨⟨_, hs⟩, _, hns⟩, hns hs ,
+by rw [← measure_union hd (hs.inter ht) (hs.diff ht), inter_union_diff s t]
+
+lemma tendsto_measure_Union {μ : measure α} {s : ℕ → set α}
+  (hs : ∀n, is_measurable (s n)) (hm : monotone s) :
+  tendsto (μ ∘ s) at_top (nhds (μ (⋃n, s n))) :=
+begin
+  rw measure_Union_eq_supr_nat hs hm,
+  exact tendsto_at_top_supr_nat (μ ∘ s) (assume n m hnm, measure_mono $ hm $ hnm)
+end
+
+lemma tendsto_measure_Inter {μ : measure α} {s : ℕ → set α}
+  (hs : ∀n, is_measurable (s n)) (hm : ∀n m, n ≤ m → s m ⊆ s n) (hf : ∃i, μ (s i) < ⊤):
+  tendsto (μ ∘ s) at_top (nhds (μ (⋂n, s n))) :=
+begin
+  rw measure_Inter_eq_infi_nat hs hm hf,
+  exact tendsto_at_top_infi_nat (μ ∘ s) (assume n m hnm, measure_mono $ hm _ _ $ hnm),
+end
+
 end
 
 def outer_measure.to_measure {α} (m : outer_measure α)
@@ -474,13 +516,83 @@ theorem le_iff' {μ₁ μ₂ : measure α} :
   μ₁ ≤ μ₂ ↔ ∀ s, μ₁ s ≤ μ₂ s :=
 to_outer_measure_le.symm
 
+section
+variables {m : set (measure α)} {μ : measure α}
+
+lemma Inf_caratheodory (s : set α) (hs : is_measurable s) :
+  (Inf (measure.to_outer_measure '' m)).caratheodory.is_measurable s :=
+begin
+  rw [outer_measure.Inf_eq_of_function_Inf_gen],
+  refine outer_measure.caratheodory_is_measurable (assume t, _),
+  by_cases ht : t = ∅, { simp [ht] },
+  simp only [outer_measure.Inf_gen_nonempty1 _ _ ht, le_infi_iff, ball_image_iff,
+    to_outer_measure_apply, measure_eq_infi t],
+  assume μ hμ u htu hu,
+  have hm : ∀{s t}, s ⊆ t → outer_measure.Inf_gen (to_outer_measure '' m) s ≤ μ t,
+  { assume s t hst,
+    rw [outer_measure.Inf_gen_nonempty2 _ _ (mem_image_of_mem _ hμ)],
+    refine infi_le_of_le (μ.to_outer_measure) (infi_le_of_le (mem_image_of_mem _ hμ) _),
+    rw [to_outer_measure_apply],
+    refine measure_mono hst },
+  rw [measure_eq_inter_diff hu hs],
+  refine add_le_add' (hm $ inter_subset_inter_left _ htu) (hm $ diff_subset_diff_left htu)
+end
+
+instance : has_Inf (measure α) :=
+⟨λm, (Inf (to_outer_measure '' m)).to_measure $ Inf_caratheodory⟩
+
+lemma Inf_apply {m : set (measure α)} {s : set α} (hs : is_measurable s) :
+  Inf m s = Inf (to_outer_measure '' m) s :=
+to_measure_apply _ _ hs
+
+private lemma Inf_le (h : μ ∈ m) : Inf m ≤ μ :=
+have Inf (to_outer_measure '' m) ≤ μ.to_outer_measure := Inf_le (mem_image_of_mem _ h),
+assume s hs, by rw [Inf_apply hs, ← to_outer_measure_apply]; exact this s
+
+private lemma le_Inf (h : ∀μ' ∈ m, μ ≤ μ') : μ ≤ Inf m :=
+have μ.to_outer_measure ≤ Inf (to_outer_measure '' m) :=
+  le_Inf $ ball_image_of_ball $ assume μ hμ, to_outer_measure_le.2 $ h _ hμ,
+assume s hs, by rw [Inf_apply hs, ← to_outer_measure_apply]; exact this s
+
+instance : has_Sup (measure α) := ⟨λs, Inf {μ' | ∀μ∈s, μ ≤ μ' }⟩
+private lemma le_Sup (h : μ ∈ m) : μ ≤ Sup m := le_Inf $ assume μ' h', h' _ h
+private lemma Sup_le (h : ∀μ' ∈ m, μ' ≤ μ) : Sup m ≤ μ := Inf_le h
+
+instance : order_bot (measure α) :=
+{ bot := 0, bot_le := assume a s hs, bot_le, .. measure.partial_order }
+
+instance : order_top (measure α) :=
+{ top := (⊤ : outer_measure α).to_measure (by rw [outer_measure.top_caratheodory]; exact le_top),
+  le_top := assume a s hs,
+    by by_cases s = ∅; simp [h, to_measure_apply ⊤ _ hs, outer_measure.top_apply],
+  .. measure.partial_order }
+
+instance : complete_lattice (measure α) :=
+{ Inf          := Inf,
+  Sup          := Sup,
+  inf          := λa b, Inf {a, b},
+  sup          := λa b, Sup {a, b},
+  le_Sup       := assume s μ h, le_Sup h,
+  Sup_le       := assume s μ h, Sup_le h,
+  Inf_le       := assume s μ h, Inf_le h,
+  le_Inf       := assume s μ h, le_Inf h,
+  le_sup_left  := assume a b, le_Sup $ by simp,
+  le_sup_right := assume a b, le_Sup $ by simp,
+  sup_le       := assume a b c hac hbc, Sup_le $ by simp [*, or_imp_distrib] {contextual := tt},
+  inf_le_left  := assume a b, Inf_le $ by simp,
+  inf_le_right := assume a b, Inf_le $ by simp,
+  le_inf       := assume a b c hac hbc, le_Inf $ by simp [*, or_imp_distrib] {contextual := tt},
+  .. measure.partial_order, .. measure.lattice.order_top, .. measure.lattice.order_bot }
+
+end
+
 def map (f : α → β) (μ : measure α) : measure β :=
 if hf : measurable f then
   (μ.to_outer_measure.map f).to_measure $ λ s hs t,
   le_to_outer_measure_caratheodory μ _ (hf _ hs) (f ⁻¹' t)
 else 0
 
-variables {μ : measure α}
+variables {μ ν : measure α}
 
 @[simp] theorem map_apply {f : α → β} (hf : measurable f)
   {s : set β} (hs : is_measurable s) :

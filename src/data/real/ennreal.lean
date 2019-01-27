@@ -102,6 +102,16 @@ by refine_struct {..}; simp
 lemma add_eq_top : a + b = ∞ ↔ a = ∞ ∨ b = ∞ := with_top.add_eq_top _ _
 lemma add_lt_top : a + b < ∞ ↔ a < ∞ ∧ b < ∞ := with_top.add_lt_top _ _
 
+lemma to_nnreal_add {r₁ r₂ : ennreal} (h₁ : r₁ < ⊤) (h₂ : r₂ < ⊤) :
+  (r₁ + r₂).to_nnreal = r₁.to_nnreal + r₂.to_nnreal :=
+begin
+  rw [← coe_eq_coe, coe_add, coe_to_nnreal, coe_to_nnreal, coe_to_nnreal];
+    apply @ne_top_of_lt ennreal _ _ ⊤,
+  exact h₂,
+  exact h₁,
+  exact add_lt_top.2 ⟨h₁, h₂⟩
+end
+
 /- rw has trouble with the generic lt_top_iff_ne_top and bot_lt_iff_ne_bot
 (contrary to erw). This is solved with the next lemmas -/
 protected lemma lt_top_iff_ne_top : a < ∞ ↔ a ≠ ∞ := lt_top_iff_ne_top

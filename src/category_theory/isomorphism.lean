@@ -32,21 +32,12 @@ by rw [←category.assoc, α.hom_inv_id, category.id_comp]
 @[simp] lemma inv_hom_id_assoc (α : X ≅ Y) (f : Y ⟶ Z) : α.inv ≫ α.hom ≫ f = f :=
 by rw [←category.assoc, α.inv_hom_id, category.id_comp]
 
-@[extensionality] lemma ext
-  (α β : X ≅ Y)
-  (w : α.hom = β.hom) : α = β :=
-  begin
-    induction α with f g wα1 wα2,
-    induction β with h k wβ1 wβ2,
-    dsimp at *,
-    have p : g = k,
-      begin
-        induction w,
-        rw [← category.id_comp C k, ←wα2, category.assoc, wβ1, category.comp_id]
-      end,
-    induction p, induction w,
-    refl
-  end
+@[extensionality] lemma ext (α β : X ≅ Y) (w : α.hom = β.hom) : α = β :=
+suffices α.inv = β.inv, by cases α; cases β; cc,
+calc α.inv
+    = α.inv ≫ (β.hom ≫ β.inv) : by rw [iso.hom_inv_id, category.comp_id]
+... = (α.inv ≫ α.hom) ≫ β.inv : by rw [category.assoc, ←w]
+... = β.inv                   : by rw [iso.inv_hom_id, category.id_comp]
 
 @[symm] def symm (I : X ≅ Y) : Y ≅ X :=
 { hom := I.inv,
@@ -66,19 +57,7 @@ by rw [←category.assoc, α.inv_hom_id, category.id_comp]
 
 @[trans] def trans (α : X ≅ Y) (β : Y ≅ Z) : X ≅ Z :=
 { hom := α.hom ≫ β.hom,
-  inv := β.inv ≫ α.inv,
-  hom_inv_id' := begin
-    /- `obviously'` says: -/
-    rw [category.assoc],
-    conv { to_lhs, congr, skip, rw ← category.assoc },
-    rw [iso.hom_inv_id, category.id_comp, iso.hom_inv_id]
-  end,
-  inv_hom_id' := begin
-    /- `obviously'` says: -/
-    rw [category.assoc],
-    conv { to_lhs, congr, skip, rw ← category.assoc },
-    rw [iso.inv_hom_id, category.id_comp, iso.inv_hom_id]
-  end }
+  inv := β.inv ≫ α.inv }
 
 infixr ` ≪≫ `:80 := iso.trans -- type as `\ll \gg`.
 
@@ -113,13 +92,6 @@ def inv (f : X ⟶ Y) [is_iso f] := is_iso.inv f
 
 namespace is_iso
 
-instance (f : X ⟶ Y) : subsingleton (is_iso f) :=
-⟨ λ a b, begin
-          cases a, cases b,
-          dsimp at *, congr,
-          rw [← category.id_comp _ a_inv, ← b_inv_hom_id', category.assoc, a_hom_inv_id', category.comp_id]
-         end ⟩
-
 @[simp] def hom_inv_id (f : X ⟶ Y) [is_iso f] : f ≫ category_theory.inv f = 𝟙 X :=
 is_iso.hom_inv_id' f
 @[simp] def inv_hom_id (f : X ⟶ Y) [is_iso f] : category_theory.inv f ≫ f = 𝟙 Y :=
@@ -135,6 +107,18 @@ instance of_iso_inverse (f : X ≅ Y) : is_iso f.inv :=
 
 end is_iso
 
+def as_iso (f : X ⟶ Y) [is_iso f] : X ≅ Y :=
+{ hom := f, inv := inv f }
+
+@[simp] lemma as_iso_hom (f : X ⟶ Y) [is_iso f] : (as_iso f).hom = f := rfl
+@[simp] lemma as_iso_inv (f : X ⟶ Y) [is_iso f] : (as_iso f).inv = inv f := rfl
+
+instance (f : X ⟶ Y) : subsingleton (is_iso f) :=
+⟨λ a b,
+ suffices a.inv = b.inv, by cases a; cases b; congr; exact this,
+ show (@as_iso C _ _ _ f a).inv = (@as_iso C _ _ _ f b).inv,
+ by congr' 1; ext; refl⟩
+
 namespace functor
 
 universes u₁ v₁ u₂ v₂
@@ -143,19 +127,19 @@ variables {D : Type u₂}
 variables [𝒟 : category.{v₂} D]
 include 𝒟
 
-def on_iso (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : (F.obj X) ≅ (F.obj Y) :=
+def on_iso (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : F.obj X ≅ F.obj Y :=
 { hom := F.map i.hom,
   inv := F.map i.inv,
-  hom_inv_id' := by erw [←map_comp, iso.hom_inv_id, ←map_id],
-  inv_hom_id' := by erw [←map_comp, iso.inv_hom_id, ←map_id] }
+  hom_inv_id' := by rw [←map_comp, iso.hom_inv_id, ←map_id],
+  inv_hom_id' := by rw [←map_comp, iso.inv_hom_id, ←map_id] }
 
 @[simp] lemma on_iso_hom (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : (F.on_iso i).hom = F.map i.hom := rfl
 @[simp] lemma on_iso_inv (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : (F.on_iso i).inv = F.map i.inv := rfl
 
 instance (F : C ⥤ D) (f : X ⟶ Y) [is_iso f] : is_iso (F.map f) :=
 { inv := F.map (inv f),
-  hom_inv_id' := begin rw ← F.map_comp, rw is_iso.hom_inv_id, rw map_id, end,
-  inv_hom_id' := begin rw ← F.map_comp, rw is_iso.inv_hom_id, rw map_id, end }
+  hom_inv_id' := by rw [← F.map_comp, is_iso.hom_inv_id, map_id],
+  inv_hom_id' := by rw [← F.map_comp, is_iso.inv_hom_id, map_id] }
 
 end functor
 

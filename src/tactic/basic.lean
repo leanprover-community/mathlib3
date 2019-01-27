@@ -710,6 +710,134 @@ instance : monad id :=
      let out := format.to_string format!"{{ {format.join fs} }",
      return [(out,"")] }
 
+meta def is_default_local : expr → bool
+| (expr.local_const _ _ binder_info.default _) := tt
+| _ := ff
+
+meta def mk_patterns (t : expr) : tactic (list format) :=
+do let cl := t.get_app_fn.const_name,
+   env ← get_env,
+   let fs := env.constructors_of cl,
+   fs.mmap $ λ f,
+     do { (vs,_) ← mk_const f >>= infer_type >>= mk_local_pis,
+          let vs := vs.filter (λ v, is_default_local v),
+          vs ← vs.mmap (λ v,
+            do v' ← get_unused_name v.local_pp_name,
+               pose v' none `(()),
+               pure v' ),
+          vs.mmap' $ λ v, get_local v >>= clear,
+          let args := list.intersperse (" " : format) $ vs.map to_fmt,
+          if args.empty
+            then pure $ format!"| {f} := _\n"
+            else pure format!"| ({f} {format.join args}) := _\n" }
+
+/--
+Hole command used to generate a `match` expression.
+
+In the following:
+
+```
+meta def foo (e : expr) : tactic unit :=
+{! e !}
+```
+
+invoking hole command `Match Stub` produces:
+
+```
+meta def foo (e : expr) : tactic unit :=
+match e with
+| (expr.var a) := _
+| (expr.sort a) := _
+| (expr.const a a_1) := _
+| (expr.mvar a a_1 a_2) := _
+| (expr.local_const a a_1 a_2 a_3) := _
+| (expr.app a a_1) := _
+| (expr.lam a a_1 a_2 a_3) := _
+| (expr.pi a a_1 a_2 a_3) := _
+| (expr.elet a a_1 a_2 a_3) := _
+| (expr.macro a a_1) := _
+end
+```
+-/
+@[hole_command] meta def match_stub : hole_command :=
+{ name := "Match Stub",
+  descr := "Generate a skeleton for the structure under construction.",
+  action := λ es,
+  do [e] ← pure es | fail "expecting one expression",
+     e ← to_expr e,
+     t ← infer_type e >>= whnf,
+     fs ← mk_patterns t,
+     e ← pp e,
+     let out := format.to_string format!"match {e} with\n{format.join fs}end\n",
+     return [(out,"")] }
+
+/--
+Hole command used to generate a `match` expression.
+
+In the following:
+
+```
+meta def foo : {! expr → tactic unit !} -- `:=` is omitted
+```
+
+invoking hole command `Equations Stub` produces:
+
+```
+meta def foo : expr → tactic unit
+| (expr.var a) := _
+| (expr.sort a) := _
+| (expr.const a a_1) := _
+| (expr.mvar a a_1 a_2) := _
+| (expr.local_const a a_1 a_2 a_3) := _
+| (expr.app a a_1) := _
+| (expr.lam a a_1 a_2 a_3) := _
+| (expr.pi a a_1 a_2 a_3) := _
+| (expr.elet a a_1 a_2 a_3) := _
+| (expr.macro a a_1) := _
+```
+
+A similar result can be obtained by invoking `Equations Stub` on the following:
+
+```
+meta def foo : expr → tactic unit := -- do not forget to write `:=`!!
+{! !}
+```
+
+```
+meta def foo : expr → tactic unit := -- don't forget to erase `:=`!!
+| (expr.var a) := _
+| (expr.sort a) := _
+| (expr.const a a_1) := _
+| (expr.mvar a a_1 a_2) := _
+| (expr.local_const a a_1 a_2 a_3) := _
+| (expr.app a a_1) := _
+| (expr.lam a a_1 a_2 a_3) := _
+| (expr.pi a a_1 a_2 a_3) := _
+| (expr.elet a a_1 a_2 a_3) := _
+| (expr.macro a a_1) := _
+```
+
+-/
+@[hole_command] meta def eqn_stub : hole_command :=
+{ name := "Equations Stub",
+  descr := "Generate a skeleton for the structure under construction.",
+  action := λ es,
+  do t ← match es with
+         | [t] := to_expr t
+         | [] := target
+         | _ := fail "expecting one type"
+         end,
+     e ← whnf t,
+     (v :: _,_) ← mk_local_pis e | fail "expecting Pi-type",
+     t' ← infer_type v,
+     fs ← mk_patterns t',
+     t ← pp t,
+     let out :=
+         if es.empty then
+           format.to_string format!"-- do not forget to erase `:=`!!\n{format.join fs}"
+           else format.to_string format!"{t}\n{format.join fs}",
+     return [(out,"")] }
+
 meta def classical : tactic unit :=
 do h ← get_unused_name `_inst,
    mk_const `classical.prop_decidable >>= note h none,

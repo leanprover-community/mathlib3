@@ -643,5 +643,16 @@ by use [100, tt, 4, 3]
 meta def use (l : parse pexpr_list_or_texpr) : tactic unit :=
 tactic.use l >> try triv
 
+/--
+`clear_aux_decl` clears every `aux_decl` in the local context for the current goal.
+This includes the induction hypothesis when using the equation compiler and
+`_let_match` and `_fun_match`.
+
+It is useful when using a tactic such as `finish`, `simp *` or `subst` that may use these
+auxiliary declarations, and produce an error saying the recursion is not well founded.
+-/
+
+meta def clear_aux_decl : tactic unit := tactic.clear_aux_decl
+
 end interactive
 end tactic

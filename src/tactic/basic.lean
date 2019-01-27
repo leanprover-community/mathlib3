@@ -842,4 +842,11 @@ private meta def tactic.use_aux (h : pexpr) : tactic unit :=
 meta def tactic.use (l : list pexpr) : tactic unit :=
 focus1 $ l.mmap' $ λ h, tactic.use_aux h <|> fail format!"failed to instantiate goal with {h}"
 
+meta def clear_aux_decl_aux : list expr → tactic unit
+| []     := skip
+| (e::l) := do cond e.is_aux_decl (tactic.clear e) skip, clear_aux_decl_aux l
+
+meta def clear_aux_decl : tactic unit :=
+local_context >>= clear_aux_decl_aux
+
 end tactic

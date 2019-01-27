@@ -753,3 +753,28 @@ by use [1, 2, 3]
 example : ∃ p : ℤ × ℤ, p.1 = 1 :=
 by use ⟨1, 42⟩
 ```
+
+### clear_aux_decl
+
+`clear_aux_decl` clears every `aux_decl` in the local context for the current goal.
+This includes the induction hypothesis when using the equation compiler and
+`_let_match` and `_fun_match`.
+
+It is useful when using a tactic such as `finish`, `simp *` or `subst` that may use these
+auxiliary declarations, and produce an error saying the recursion is not well founded.
+
+```lean
+example (n m : ℕ) (h₁ : n = m) (h₂ : ∃ a : ℕ, a = n ∧ a = m) : 2 * m = 2 * n :=
+let ⟨a, ha⟩ := h₂ in
+begin
+  clear_aux_decl, -- subst will fail without this line
+  subst h₁
+end
+
+example (x y : ℕ) (h₁ : ∃ n : ℕ, n * 1 = 2) (h₂ : 1 + 1 = 2 → x * 1 = y) : x = y :=
+let ⟨n, hn⟩ := h₁ in
+begin
+  clear_aux_decl, -- finish produces an error without this line
+  finish
+end
+```

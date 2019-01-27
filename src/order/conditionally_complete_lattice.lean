@@ -30,8 +30,8 @@ set_option old_structure_cmd true
 
 open preorder set lattice
 
-universes u v
-variables {α : Type u} {β : Type v}
+universes u v w
+variables {α : Type u} {β : Type v} {ι : Type w}
 
 section preorder
 variables [preorder α] [preorder β] {s t : set α} {a b : α}
@@ -484,7 +484,7 @@ lemma csupr_le [ne : nonempty β] {f : β → α} {c : α} (H : ∀x, f x ≤ c)
 cSup_le (by simp [not_not_intro ne]) (by rwa forall_range_iff)
 
 /--The indexed supremum of a function is bounded below by the value taken at one point-/
-lemma le_csupr [ne : nonempty β] {f : β → α} (H : bdd_above (range f)) {c : β} : f c ≤ supr f :=
+lemma le_csupr {f : β → α} (H : bdd_above (range f)) {c : β} : f c ≤ supr f :=
 le_cSup H (mem_range_self _)
 
 /--The indexed infimum of two functions are comparable if the functions are pointwise comparable-/
@@ -506,7 +506,7 @@ lemma le_cinfi [ne : nonempty β] {f : β → α} {c : α} (H : ∀x, c ≤ f x)
 le_cInf (by simp [not_not_intro ne]) (by rwa forall_range_iff)
 
 /--The indexed infimum of a function is bounded above by the value taken at one point-/
-lemma cinfi_le [ne : nonempty β] {f : β → α} (H : bdd_below (range f)) {c : β} : infi f ≤ f c :=
+lemma cinfi_le {f : β → α} (H : bdd_below (range f)) {c : β} : infi f ≤ f c :=
 cInf_le H (mem_range_self _)
 
 lemma is_lub_cSup {s : set α} (ne : s ≠ ∅) (H : bdd_above s) : is_lub s (Sup s) :=
@@ -514,6 +514,22 @@ lemma is_lub_cSup {s : set α} (ne : s ≠ ∅) (H : bdd_above s) : is_lub s (Su
 
 lemma is_glb_cInf {s : set α} (ne : s ≠ ∅) (H : bdd_below s) : is_glb s (Inf s) :=
 ⟨assume x, cInf_le H, assume x, le_cInf ne⟩
+
+@[simp] theorem cinfi_const [nonempty ι] {a : α} : (⨅ b:ι, a) = a :=
+begin
+  rcases exists_mem_of_nonempty ι with ⟨x, _⟩,
+  refine le_antisymm (@cinfi_le _ _ _ _ _ x) (le_cinfi (λi, _root_.le_refl _)),
+  rw range_const,
+  exact bdd_below_singleton
+end
+
+@[simp] theorem csupr_const [nonempty ι] {a : α} : (⨆ b:ι, a) = a :=
+begin
+  rcases exists_mem_of_nonempty ι with ⟨x, _⟩,
+  refine le_antisymm (csupr_le (λi, _root_.le_refl _)) (@le_csupr _ _ _ (λ b:ι, a) _ x),
+  rw range_const,
+  exact bdd_above_singleton
+end
 
 end conditionally_complete_lattice
 

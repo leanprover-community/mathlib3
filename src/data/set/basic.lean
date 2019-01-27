@@ -1067,6 +1067,14 @@ subtype_val_range
 lemma range_const_subset {c : β} : range (λx:α, c) ⊆ {c} :=
 range_subset_iff.2 $ λ x, or.inl rfl
 
+@[simp] lemma range_const [h : nonempty α] {c : β} : range (λx:α, c) = {c} :=
+begin
+  refine subset.antisymm range_const_subset (λy hy, _),
+  rw set.mem_singleton_iff.1 hy,
+  rcases exists_mem_of_nonempty α with ⟨x, _⟩,
+  exact mem_range_self x
+end
+
 def range_factorization (f : ι → β) : ι → range f :=
 λ i, ⟨f i, mem_range_self i⟩
 

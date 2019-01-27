@@ -833,6 +833,11 @@ polynomial.ext.2 (λ n, nat.cases_on n (by simp)
       by simp [coeff_eq_zero_of_degree_lt this, coeff_C, nat.succ_ne_zero, coeff_X,
         nat.succ_inj', @eq_comm ℕ 0])))
 
+lemma eq_X_add_C_of_degree_eq_one (h : degree p = 1) :
+  p = C (p.leading_coeff) * X + C (p.coeff 0) :=
+(eq_X_add_C_of_degree_le_one (show degree p ≤ 1, from h ▸ le_refl _)).trans
+  (by simp [leading_coeff, nat_degree_eq_of_degree_eq_some h])
+
 theorem degree_C_mul_X_pow_le (r : α) (n : ℕ) : degree (C r * X^n) ≤ n :=
 begin
   rw [← single_eq_C_mul_X],
@@ -1569,6 +1574,9 @@ begin
   rw [← leading_coeff, ne.def, leading_coeff_eq_zero],
   exact units.coe_ne_zero _
 end
+
+lemma degree_eq_degree_of_associated (h : associated p q) : degree p = degree q :=
+let ⟨u, hu⟩ := h in by simp [hu.symm]
 
 end integral_domain
 

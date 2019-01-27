@@ -123,6 +123,25 @@ structure unique_irreducible_factorization (α : Type*) [integral_domain α] :=
   (∀x∈f, irreducible x) → (∀x∈g, irreducible x) → f.prod ~ᵤ g.prod → multiset.rel associated f g)
 
 namespace unique_factorization_domain
+open unique_factorization_domain associated lattice
+variables [integral_domain α] [unique_factorization_domain α] [decidable_eq (associates α)]
+
+lemma exists_mem_factors_of_dvd {a p : α} (ha0 : a ≠ 0) (hp : irreducible p) : p ∣ a →
+  ∃ q ∈ factors a, p ~ᵤ q :=
+λ ⟨b, hb⟩,
+have hb0 : b ≠ 0, from λ hb0, by simp * at *,
+have multiset.rel associated (p :: factors b) (factors a),
+  from unique
+    (λ x hx, (multiset.mem_cons.1 hx).elim (λ h, h.symm ▸ hp)
+      (irreducible_factors hb0 _))
+    (irreducible_factors ha0)
+    (associated.symm $ calc multiset.prod (factors a) ~ᵤ a : factors_prod ha0
+      ... = p * b : hb
+      ... ~ᵤ multiset.prod (p :: factors b) :
+        by rw multiset.prod_cons; exact associated_mul_mul
+          (associated.refl _)
+          (associated.symm (factors_prod hb0))),
+multiset.exists_mem_of_rel_of_mem this (by simp)
 
 def of_unique_irreducible_factorization {α : Type*} [integral_domain α]
   (o : unique_irreducible_factorization α) : unique_factorization_domain α :=

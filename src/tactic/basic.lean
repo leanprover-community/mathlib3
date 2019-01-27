@@ -761,7 +761,7 @@ end
 -/
 @[hole_command] meta def match_stub : hole_command :=
 { name := "Match Stub",
-  descr := "Generate a skeleton for the structure under construction.",
+  descr := "Generate a list of equations for a `match` expression.",
   action := λ es,
   do [e] ← pure es | fail "expecting one expression",
      e ← to_expr e,
@@ -820,7 +820,7 @@ meta def foo : expr → tactic unit := -- don't forget to erase `:=`!!
 -/
 @[hole_command] meta def eqn_stub : hole_command :=
 { name := "Equations Stub",
-  descr := "Generate a skeleton for the structure under construction.",
+  descr := "Generate a list of equations for a recursive definition.",
   action := λ es,
   do t ← match es with
          | [t] := to_expr t
@@ -828,7 +828,7 @@ meta def foo : expr → tactic unit := -- don't forget to erase `:=`!!
          | _ := fail "expecting one type"
          end,
      e ← whnf t,
-     (v :: _,_) ← mk_local_pis e | fail "expecting Pi-type",
+     (v :: _,_) ← mk_local_pis e | fail "expecting a Pi-type",
      t' ← infer_type v,
      fs ← mk_patterns t',
      t ← pp t,
@@ -836,6 +836,51 @@ meta def foo : expr → tactic unit := -- don't forget to erase `:=`!!
          if es.empty then
            format.to_string format!"-- do not forget to erase `:=`!!\n{format.join fs}"
            else format.to_string format!"{t}\n{format.join fs}",
+     return [(out,"")] }
+
+/--
+This command lists the constructors that can be used to satisfy the expected type.
+
+When used in the following hole:
+
+```
+def foo : ℤ ⊕ ℕ :=
+{! !}
+```
+
+the command will produce:
+
+```
+def foo : ℤ ⊕ ℕ :=
+{! sum.inl, sum.inr !}
+```
+
+and will display:
+
+```
+sum.inl : ℤ → ℤ ⊕ ℕ
+
+sum.inr : ℕ → ℤ ⊕ ℕ
+```
+
+-/
+@[hole_command] meta def list_constructors_hole : hole_command :=
+{ name := "List Constructors",
+  descr := "Show the list of constructors of the expected type.",
+  action := λ es,
+  do t ← target >>= whnf,
+     (_,t) ← mk_local_pis t,
+     let cl := t.get_app_fn.const_name,
+     let args := t.get_app_args,
+     env ← get_env,
+     let cs := env.constructors_of cl,
+     ts ← cs.mmap $ λ c,
+       do { e ← mk_const c,
+            t ← infer_type (e.mk_app args) >>= pp,
+            pure format!"\n{c} : {t}\n" },
+     let fs := list.intersperse (", " : format) $ cs.map to_fmt,
+     let out := format.to_string format!"{{! {format.join fs} !}",
+     trace (format.join ts).to_string,
      return [(out,"")] }
 
 meta def classical : tactic unit :=

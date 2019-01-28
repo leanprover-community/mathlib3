@@ -309,6 +309,26 @@ lemma measure_mono (h : s₁ ⊆ s₂) : μ s₁ ≤ μ s₂ := μ.mono h
 lemma measure_mono_null (h : s₁ ⊆ s₂) (h₂ : μ s₂ = 0) : μ s₁ = 0 :=
 by rw [← le_zero_iff_eq, ← h₂]; exact measure_mono h
 
+lemma exists_is_measurable_superset_of_measure_eq_zero {s : set α} (h : μ s = 0) :
+  ∃t, s ⊆ t ∧ is_measurable t ∧ μ t = 0 :=
+begin
+  rw [measure_eq_infi] at h,
+  have h := (infi_eq_bot _).1 h,
+  choose t ht using show ∀n:ℕ, ∃t, s ⊆ t ∧ is_measurable t ∧ μ t < n⁻¹,
+  { assume n,
+    have : (0 : ennreal) < n⁻¹ :=
+      (zero_lt_iff_ne_zero.2 $ ennreal.inv_ne_zero.2 $ ennreal.nat_ne_top _),
+    rcases h _ this with ⟨t, ht⟩,
+    use [t],
+    simpa [(>), infi_lt_iff, -add_comm] using ht },
+  refine ⟨⋂n, t n, subset_Inter (λn, (ht n).1), is_measurable.Inter (λn, (ht n).2.1), _⟩,
+  refine eq_of_le_of_forall_le_of_dense bot_le (assume r hr, _),
+  rcases ennreal.exists_inv_nat_lt (ne_of_gt hr) with ⟨n, hn⟩,
+  calc μ (⋂n, t n) ≤ μ (t n) : measure_mono (Inter_subset _ _)
+    ... ≤ n⁻¹ : le_of_lt (ht n).2.2
+    ... ≤ r : le_of_lt hn
+end
+
 theorem measure_Union_le {β} [encodable β] (s : β → set α) : μ (⋃i, s i) ≤ (∑i, μ (s i)) :=
 μ.to_outer_measure.Union _
 
@@ -636,6 +656,8 @@ def a_e (μ : measure α) : filter α :=
   inter_sets := λ s t hs ht, by simp [compl_inter]; exact measure_union_null hs ht,
   sets_of_superset := λ s t hs hst, measure_mono_null (set.compl_subset_compl.2 hst) hs }
 
+lemma mem_a_e_iff (s : set α) : s ∈ μ.a_e.sets ↔ μ (- s) = 0 := iff.refl _
+
 end measure
 
 end measure_theory
@@ -853,6 +875,32 @@ end
 lemma volume_diff : s₂ ⊆ s₁ → is_measurable s₁ → is_measurable s₂ →
   volume s₂ < ⊤ → volume (s₁ \ s₂) = volume s₁ - volume s₂ :=
 measure_diff
+
+/-- `∀ₘ a:α, p a` states that the property `p` is almost everywhere true in the measure space
+associated with `α`. This means that the measure of the complementary of `p` is `0`.
+
+In a probability measure, the measure of `p` is `1`, when `p` is measurable.
+-/
+def all_ae (p : α → Prop) : Prop := { a | p a } ∈ (@measure_space.μ α _).a_e.sets
+
+notation `∀ₘ` binders `, ` r:(scoped P, all_ae P) := r
+
+lemma all_ae_congr {p q : α → Prop} (h : ∀ₘ a, p a ↔ q a) : (∀ₘ a, p a) ↔ (∀ₘ a, q a) :=
+iff.intro
+  (assume h', by filter_upwards [h, h'] assume a hpq hp, hpq.1 hp)
+  (assume h', by filter_upwards [h, h'] assume a hpq hq, hpq.2 hq)
+
+lemma all_ae_iff {p : α → Prop} : (∀ₘ a, p a) ↔ volume { a | ¬ p a } = 0 := iff.refl _
+
+lemma all_ae_all_iff {ι : Type*} [encodable ι] {p : α → ι → Prop} :
+  (∀ₘ a, ∀i, p a i) ↔ (∀i, ∀ₘ a, p a i):=
+begin
+  refine iff.intro (assume h i, _) (assume h, _),
+  { filter_upwards [h] assume a ha, ha i },
+  { have h := measure_Union_null h,
+    rw [← compl_Inter] at h,
+    filter_upwards [h] assume a, mem_Inter.1 }
+end
 
 end measure_space
 

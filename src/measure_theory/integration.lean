@@ -732,6 +732,56 @@ begin
   congr; ext a; by_cases a ∈ s; simp [h, hs]
 end
 
+lemma lintegral_le_lintegral_ae {f g : α → ennreal} (h : ∀ₘ a, f a ≤ g a) :
+  (∫⁻ a, f a) ≤ (∫⁻ a, g a) :=
+begin
+  rcases exists_is_measurable_superset_of_measure_eq_zero h with ⟨t, hts, ht, ht0⟩,
+  have : - t ∈ (@measure_space.μ α _).a_e.sets,
+  { rw [measure.mem_a_e_iff, lattice.neg_neg, ht0] },
+  refine (supr_le $ assume s, supr_le $ assume hfs,
+    le_supr_of_le (s.restrict (- t)) $ le_supr_of_le _ _),
+  { assume a,
+    by_cases a ∈ t;
+      simp [h, simple_func.restrict_apply, ht.compl],
+    exact le_trans (hfs a) (by_contradiction $ assume hnfg, h (hts hnfg)) },
+  { refine le_of_eq (s.integral_congr _ _),
+    filter_upwards [this],
+    refine assume a hnt, _,
+    by_cases hat : a ∈ t; simp [hat, ht.compl],
+    exact (hnt hat).elim }
+end
+
+lemma lintegral_congr_ae {f g : α → ennreal} (h : ∀ₘ a, f a = g a) :
+  (∫⁻ a, f a) = (∫⁻ a, g a) :=
+le_antisymm
+  (lintegral_le_lintegral_ae $ by filter_upwards [h] assume a h, le_of_eq h)
+  (lintegral_le_lintegral_ae $ by filter_upwards [h] assume a h, le_of_eq h.symm)
+
+lemma lintegral_eq_zero_iff {f : α → ennreal} (hf : measurable f) :
+  lintegral f = 0 ↔ (∀ₘ a, f a = 0) :=
+begin
+  refine iff.intro (assume h, _) (assume h, _),
+  { have : ∀n:ℕ, ∀ₘ a, f a < n⁻¹,
+    { assume n,
+      have : is_measurable {a : α | f a ≥ n⁻¹ },
+      { exact hf _ (is_measurable_of_is_closed $ is_closed_ge' _) },
+      have : (n : ennreal)⁻¹ * volume {a | f a ≥ n⁻¹ } = 0,
+      { rw [← simple_func.restrict_const_integral _ _ this, ← le_zero_iff_eq,
+          ← simple_func.lintegral_eq_integral],
+        refine le_trans (lintegral_le_lintegral _ _ _) (le_of_eq h),
+        assume a, by_cases h : (n : ennreal)⁻¹ ≤ f a; simp [h, (≥), this] },
+      rw [ennreal.mul_eq_zero, ennreal.inv_eq_zero] at this,
+      simpa [ennreal.nat_ne_top, all_ae_iff] using this },
+    filter_upwards [all_ae_all_iff.2 this],
+    dsimp,
+    assume a ha,
+    by_contradiction h,
+    rcases ennreal.exists_inv_nat_lt h with ⟨n, hn⟩,
+    exact (lt_irrefl _ $ lt_trans hn $ ha n).elim },
+  { calc lintegral f = lintegral (λa:α, 0) : lintegral_congr_ae h
+      ... = 0 : lintegral_zero }
+end
+
 section
 open encodable
 

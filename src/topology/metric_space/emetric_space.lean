@@ -89,7 +89,10 @@ This is enforced in the type class definition, by extending the `uniform_space` 
 instantiating an `emetric_space` structure, the uniformity fields are not necessary, they will be
 filled in by default. There is a default value for the uniformity, that can be substituted
 in cases of interest, for instance when instantiating an `emetric_space` structure
-on a product. -/
+on a product.
+
+Continuity of `edist` is finally proving in `topology.instances.ennreal`
+-/
 class emetric_space (α : Type u) extends has_edist α : Type u :=
 (edist_self : ∀ x : α, edist x x = 0)
 (eq_of_edist_eq_zero : ∀ {x y : α}, edist x y = 0 → x = y)
@@ -141,6 +144,15 @@ emetric_space.uniformity_edist _
 /-- Reformulation of the uniform structure in terms of the extended distance on a subtype -/
 theorem uniformity_edist'' : uniformity = (⨅ε:{ε:ennreal // ε>0}, principal {p:α×α | edist p.1 p.2 < ε.val}) :=
 by simp [infi_subtype]; exact uniformity_edist'
+
+theorem uniformity_edist_nnreal :
+  uniformity = (⨅(ε:nnreal) (h : ε > 0), principal {p:α×α | edist p.1 p.2 < ε}) :=
+begin
+  rw [uniformity_edist', ennreal.infi_ennreal, inf_of_le_left],
+  { congr, funext ε, refine infi_congr_Prop ennreal.coe_pos _, assume h, refl },
+  refine le_infi (assume h, infi_le_of_le 1 $ infi_le_of_le ennreal.zero_lt_one $ _),
+  exact principal_mono.2 (assume p h, lt_of_lt_of_le h le_top)
+end
 
 /-- Characterization of the elements of the uniformity in terms of the extended distance -/
 theorem mem_uniformity_edist {s : set (α×α)} :

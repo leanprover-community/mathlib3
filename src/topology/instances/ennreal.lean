@@ -410,3 +410,94 @@ let g' (b : β) : nnreal := ⟨g b, hg b⟩ in
 have has_sum f', from nnreal.has_sum_coe.1 hf,
 have has_sum g', from nnreal.has_sum_of_le (assume b, (@nnreal.coe_le (g' b) (f' b)).2 $ hgf b) this,
 show has_sum (λb, g' b : β → ℝ), from nnreal.has_sum_coe.2 this
+
+lemma infi_real_pos_eq_infi_nnreal_pos {α : Type*} [complete_lattice α] {f : ℝ → α} :
+  (⨅(n:ℝ) (h : n > 0), f n) = (⨅(n:nnreal) (h : n > 0), f n) :=
+le_antisymm
+  (le_infi $ assume n, le_infi $ assume hn, infi_le_of_le n $ infi_le _ (nnreal.coe_pos.2 hn))
+  (le_infi $ assume r, le_infi $ assume hr, infi_le_of_le ⟨r, le_of_lt hr⟩ $ infi_le _ hr)
+
+namespace emetric
+variables [emetric_space β]
+open lattice ennreal filter
+
+lemma edist_ne_top_of_mem_ball {a : β} {r : ennreal} (x y : ball a r) : edist x.1 y.1 ≠ ⊤ :=
+lt_top_iff_ne_top.1 $
+calc edist x y ≤ edist a x + edist a y : edist_triangle_left x.1 y.1 a
+  ... < r + r : by rw [edist_comm a x, edist_comm a y]; exact add_lt_add x.2 y.2
+  ... ≤ ⊤ : le_top
+
+/-- Each ball in an extended metric space gives us a metric space.
+
+The topology is fixed to be the subtype topology. -/
+def metric_space_emetric_ball (a : β) (r : ennreal) : metric_space (ball a r) :=
+{ dist               := λx y, (edist x.1 y.1).to_nnreal,
+  edist              := λx y, edist x.1 y.1,
+  to_uniform_space   := subtype.uniform_space,
+  dist_self          := assume ⟨x, hx⟩, by simp,
+  dist_comm          := assume ⟨x, hx⟩ ⟨y, hy⟩, by simp [edist_comm],
+  dist_triangle      := assume x y z,
+  begin
+    simp only [coe_to_nnreal (edist_ne_top_of_mem_ball _ _),
+      (nnreal.coe_add _ _).symm, ennreal.coe_le_coe.symm, nnreal.coe_le.symm, ennreal.coe_add],
+    exact edist_triangle _ _ _
+  end,
+  eq_of_dist_eq_zero := assume x y h, subtype.eq $
+    by simp [to_nnreal_eq_zero_iff, edist_ne_top_of_mem_ball] at h; assumption,
+  edist_dist         := assume x y,
+    have h : _ := edist_ne_top_of_mem_ball x y,
+    by cases eq : edist x.1 y.1; simp [none_eq_top, some_eq_coe, *] at *,
+  uniformity_dist    :=
+  begin
+    have : ∀(p : ↥(ball a r) × ↥(ball a r)) (n : nnreal),
+      ((edist p.1.1 p.2.1).to_nnreal : ℝ) < n ↔ edist p.1.1 p.2.1 < n,
+    { assume p n,
+      rw [← nnreal.coe_lt, ← ennreal.coe_lt_coe, coe_to_nnreal (edist_ne_top_of_mem_ball _ _)] },
+    simp only [uniformity_subtype, uniformity_edist_nnreal, comap_infi, comap_principal,
+      infi_real_pos_eq_infi_nnreal_pos, this],
+    refl
+  end }
+
+section
+local attribute [instance] metric_space_emetric_ball
+
+lemma nhds_eq_nhds_emetric_ball (a x : β) (r : ennreal) (h : x ∈ ball a r) :
+  nhds x = map (coe : ball a r → β) (nhds ⟨x, h⟩) :=
+(map_nhds_subtype_val_eq _ $ mem_nhds_sets is_open_ball h).symm
+
+lemma continuous_edist : continuous (λp:β×β, edist p.1 p.2) :=
+continuous_iff_tendsto.2
+begin
+  rintros ⟨p₁, p₂⟩,
+  cases h : edist p₁ p₂; simp [none_eq_top, some_eq_coe, nhds_prod_eq] at ⊢ h,
+  { refine tendsto_nhds_top (assume n, _),
+    rw [filter.mem_prod_iff],
+    refine ⟨_, ball_mem_nhds p₁ ennreal.zero_lt_one, _, ball_mem_nhds p₂ ennreal.zero_lt_one, _⟩,
+    rintros ⟨q₁, q₂⟩ ⟨h₁, h₂⟩,
+    change edist q₁ p₁ < 1 at h₁,
+    change edist q₂ p₂ < 1 at h₂,
+    rw [edist_comm] at h₁,
+    have : ⊤ ≤ edist q₁ q₂ + 2,
+    exact calc ⊤ = edist p₁ p₂ : h.symm
+      ... ≤ edist p₁ q₁ + edist q₁ q₂ + edist q₂ p₂ : edist_triangle4 _ _ _ _
+      ... ≤ 1 + edist q₁ q₂ + 1 : add_le_add' (add_le_add' (le_of_lt h₁) $ le_refl _) (le_of_lt h₂)
+      ... = edist q₁ q₂ + 2 : by rw [← one_add_one_eq_two]; simp,
+    rw [top_le_iff, add_eq_top] at this,
+    simp at this,
+    simp [this, lt_top_iff_ne_top] },
+  { have h₁ : p₁ ∈ ball p₁ ⊤, { simp, exact with_top.zero_lt_top },
+    let p'₁ : ↥(ball p₁ ⊤) := ⟨p₁, h₁⟩,
+    have h₂ : p₂ ∈ ball p₁ ⊤, { dsimp [ball], rw [edist_comm, h], exact coe_lt_top },
+    let p'₂ : ↥(ball p₁ ⊤) := ⟨p₂, h₂⟩,
+    rw [nhds_eq_nhds_emetric_ball p₁ p₁ ⊤ h₁, nhds_eq_nhds_emetric_ball p₁ p₂ ⊤ h₂,
+      prod_map_map_eq, tendsto_map'_iff, ← h],
+    change tendsto (λp : ↥(ball p₁ ⊤) × ↥(ball p₁ ⊤), edist p.1 p.2)
+      (filter.prod (nhds ⟨p₁, h₁⟩) (nhds ⟨p₂, h₂⟩))
+      (nhds (edist p'₁ p'₂)),
+    simp only [(nndist_eq_edist _ _).symm],
+    exact ennreal.tendsto_coe.2 (tendsto_nndist' _ _) }
+end
+
+end
+
+end emetric

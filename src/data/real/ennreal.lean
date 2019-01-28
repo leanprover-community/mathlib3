@@ -125,6 +125,12 @@ begin split_ifs, { simp [h] }, { exact with_top.top_mul h } end
 
 @[simp] lemma top_mul_top : ∞ * ∞ = ∞ := with_top.top_mul_top
 
+lemma mul_eq_top {a b : ennreal} : a * b = ⊤ ↔ (a ≠ 0 ∧ b = ⊤) ∨ (a = ⊤ ∧ b ≠ 0) :=
+with_top.mul_eq_top_iff
+
+lemma mul_lt_top {a b : ennreal}  : a < ⊤ → b < ⊤ → a * b < ⊤ :=
+by simp [ennreal.lt_top_iff_ne_top, (≠), mul_eq_top] {contextual := tt}
+
 @[simp] lemma coe_finset_sum {s : finset α} {f : α → nnreal} : ↑(s.sum f) = (s.sum (λa, f a) : ennreal) :=
 (finset.sum_hom coe).symm
 
@@ -230,6 +236,12 @@ lemma coe_mem_upper_bounds {s : set nnreal} :
   ↑r ∈ upper_bounds ((coe : nnreal → ennreal) '' s) ↔ r ∈ upper_bounds s :=
 by simp [upper_bounds, ball_image_iff, -mem_image, *] {contextual := tt}
 
+lemma infi_ennreal {α : Type*} [complete_lattice α] {f : ennreal → α} :
+  (⨅n, f n) = (⨅n:nnreal, f n) ⊓ f ⊤ :=
+le_antisymm
+  (le_inf (le_infi $ assume i, infi_le _ _) (infi_le _ _))
+  (le_infi $ forall_ennreal.2 ⟨assume r, inf_le_left_of_le $ infi_le _ _, inf_le_right⟩)
+
 end complete_lattice
 
 section mul
@@ -247,9 +259,6 @@ begin
     simp [none_eq_top, some_eq_coe, mul_top, top_mul, -coe_mul, coe_mul.symm] {contextual := tt},
   assume h, exact mul_le_mul_left (zero_lt_iff_ne_zero.2 h)
 end
-
-lemma mul_eq_top {a b : ennreal} : a * b = ⊤ ↔ (a ≠ 0 ∧ b = ⊤) ∨ (a = ⊤ ∧ b ≠ 0) :=
-with_top.mul_eq_top_iff
 
 lemma mul_eq_zero {a b : ennreal} : a * b = 0 ↔ a = 0 ∨ b = 0 :=
 canonically_ordered_comm_semiring.mul_eq_zero_iff _ _

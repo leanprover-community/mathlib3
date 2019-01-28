@@ -646,6 +646,12 @@ metric_space.induced subtype.val (λ x y, subtype.eq) t
 theorem subtype.dist_eq {p : α → Prop} [t : metric_space α] (x y : subtype p) :
   dist x y = dist x.1 y.1 := rfl
 
+section nnreal
+
+instance : metric_space nnreal := by unfold nnreal; apply_instance
+
+end nnreal
+
 section prod
 
 instance prod.metric_space_max [metric_space β] : metric_space (α × β) :=
@@ -819,6 +825,16 @@ le_antisymm
 lemma tendsto_iff_dist_tendsto_zero {f : β → α} {x : filter β} {a : α} :
   (tendsto f x (nhds a)) ↔ (tendsto (λb, dist (f b) a) x (nhds 0)) :=
 by rw [← nhds_comap_dist a, tendsto_comap_iff]
+
+lemma uniform_continuous_nndist' : uniform_continuous (λp:α×α, nndist p.1 p.2) :=
+uniform_continuous_subtype_mk uniform_continuous_dist' _
+
+lemma continuous_nndist' : continuous (λp:α×α, nndist p.1 p.2) :=
+uniform_continuous_nndist'.continuous
+
+lemma tendsto_nndist' (a b :α) :
+  tendsto (λp:α×α, nndist p.1 p.2) (filter.prod (nhds a) (nhds b)) (nhds (nndist a b)) :=
+by rw [← nhds_prod_eq]; exact continuous_iff_tendsto.1 continuous_nndist' _
 
 namespace metric
 variables {x y z : α} {ε ε₁ ε₂ : ℝ} {s : set α}

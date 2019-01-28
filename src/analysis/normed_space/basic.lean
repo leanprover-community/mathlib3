@@ -161,6 +161,9 @@ begin
   exact squeeze_zero (λ t, abs_nonneg _) (λ t, abs_norm_sub_norm_le _ _) (lim_norm x)
 end
 
+lemma continuous_nnnorm : continuous (nnnorm : α → nnreal) :=
+continuous_subtype_mk _ continuous_norm
+
 instance normed_top_monoid : topological_add_monoid α :=
 ⟨continuous_iff_tendsto.2 $ λ ⟨x₁, x₂⟩,
   tendsto_iff_norm_tendsto_zero.2
@@ -341,6 +344,11 @@ begin
     rw [show (0:ℝ) = 0 + 0, by simp],
     exact tendsto_add lim1 lim2  }
 end
+
+lemma continuous_smul [topological_space γ] {f : γ → α} {g : γ → E}
+  (hf : continuous f) (hg : continuous g) : continuous (λc, f c • g c) :=
+continuous_iff_tendsto.2 $ assume c,
+  tendsto_smul (continuous_iff_tendsto.1 hf _) (continuous_iff_tendsto.1 hg _)
 
 instance : normed_space α (E × F) :=
 { norm_smul :=

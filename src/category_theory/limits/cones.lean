@@ -190,6 +190,12 @@ def postcompose {G : J ⥤ C} (α : F ⟶ G) : cone F ⥤ cone G :=
 @[simp] lemma postcompose_map_hom {G : J ⥤ C} (α : F ⟶ G) {c₁ c₂ : cone F} (f : c₁ ⟶ c₂):
   ((postcompose α).map f).hom = f.hom := rfl
 
+def forget : cone F ⥤ C :=
+{ obj := λ t, t.X, map := λ s t f, f.hom }
+
+@[simp] lemma forget_obj {t : cone F} : forget.obj t = t.X := rfl
+@[simp] lemma forget_map {s t : cone F} {f : s ⟶ t} : forget.map f = f.hom := rfl
+
 section
 variables {D : Type u'} [𝒟 : category.{v} D]
 include 𝒟
@@ -248,6 +254,12 @@ def precompose {G : J ⥤ C} (α : G ⟶ F) : cocone F ⥤ cocone G :=
 
 @[simp] lemma precompose_map_hom {G : J ⥤ C} (α : G ⟶ F) {c₁ c₂ : cocone F} (f : c₁ ⟶ c₂) :
   ((precompose α).map f).hom = f.hom := rfl
+
+def forget : cocone F ⥤ C :=
+{ obj := λ t, t.X, map := λ s t f, f.hom }
+
+@[simp] lemma forget_obj {t : cocone F} : forget.obj t = t.X := rfl
+@[simp] lemma forget_map {s t : cocone F} {f : s ⟶ t} : forget.map f = f.hom := rfl
 
 section
 variables {D : Type u'} [𝒟 : category.{v} D]

@@ -19,6 +19,10 @@ variables {a b c d : ennreal} {r p q : nnreal}
 section topological_space
 open topological_space
 
+/-- Topology on `ennreal`.
+
+Note: this is different from the `emetric_space` topology. The `emetric_space` topology has
+`is_open {⊤}`, while this topology doesn't have singleton elements. -/
 instance : topological_space ennreal :=
 topological_space.generate_from {s | ∃a, s = {b | a < b} ∨ s = {b | b < a}}
 

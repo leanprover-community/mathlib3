@@ -154,29 +154,13 @@ dim_le_injective (of_le h) $ assume ⟨x, hx⟩ ⟨y, hy⟩ eq,
 
 lemma dim_add_le_dim_add_dim (s t : submodule α β) :
   dim α (s ⊔ t : submodule α β) ≤ dim α s + dim α t :=
-begin
-  rcases exists_is_basis s with ⟨bs, hbs⟩,
-  have li_bs : linear_independent (submodule.subtype s '' bs) :=
-    hbs.1.image (linear_map.disjoint_ker'.2 $ assume x y _ _ eq, subtype.val_injective eq),
-  have sp_bs : span (submodule.subtype s '' bs) = s,
-  { rw [span_image, hbs.2, map_top, range_subtype] },
-
-  rcases exists_is_basis t with ⟨bt, hbt⟩,
-  have li_bt : linear_independent (submodule.subtype t '' bt) :=
-    hbt.1.image (linear_map.disjoint_ker'.2 $ assume x y _ _ eq, subtype.val_injective eq),
-  have sp_bt : span (submodule.subtype t '' bt) = t,
-  { rw [span_image, hbt.2, map_top, range_subtype] },
-
-  rcases exists_linear_independent linear_independent_empty
-      (empty_subset (⇑(submodule.subtype s) '' bs ∪ ⇑(submodule.subtype t) '' bt))
-    with ⟨b, hb_bsbt, _, hbsbt_b, hb⟩,
-  have eq : span (⇑(submodule.subtype s) '' bs ∪ ⇑(submodule.subtype t) '' bt) = span b,
-  { exact span_eq_of_le _ hbsbt_b (span_mono hb_bsbt) },
-
-  rw [← sp_bs, ← sp_bt, ← span_union, eq, dim_span hb, dim_span li_bs, dim_span li_bt,
-    ← cardinal.mk_union_add_mk_inter],
-  exact le_trans (cardinal.mk_le_mk_of_subset hb_bsbt) (le_add_right $ le_refl _)
-end
+calc dim α (s ⊔ t : submodule α β) ≤ dim α (s × t) :
+  dim_le_surjective
+    (linear_map.copair (of_le $ le_sup_left) (of_le $ le_sup_right))
+    (assume ⟨b, (hb : b ∈ (s ⊔ t : submodule α β))⟩,
+      let ⟨x, hx, y, hy, eq⟩ := mem_sup.1 hb in
+      ⟨⟨⟨x, hx⟩, ⟨y, hy⟩⟩, subtype.eq $ by simp [eq.symm]; refl⟩)
+  ... = dim α s + dim α t : dim_prod
 
 def rank (f : β →ₗ γ) : cardinal := dim α f.range
 

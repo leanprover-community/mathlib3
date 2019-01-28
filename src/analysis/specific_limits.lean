@@ -150,6 +150,10 @@ tendsto.comp (tendsto_coe_iff.2 tendsto_id) tendsto_inverse_at_top_nhds_0
 lemma tendsto_one_div_at_top_nhds_0_nat : tendsto (λ n : ℕ, 1/(n : ℝ)) at_top (nhds 0) :=
 by simpa only [inv_eq_one_div] using tendsto_inverse_at_top_nhds_0_nat
 
+lemma tendsto_one_div_add_at_top_nhds_0_nat : tendsto (λ n : ℕ, 1 / ((n : ℝ) + 1)) at_top (nhds 0) :=
+suffices tendsto (λ n : ℕ, 1 / (↑(n + 1) : ℝ)) at_top (nhds 0), by simpa,
+tendsto_comp_succ_at_top_iff.2 tendsto_one_div_at_top_nhds_0_nat
+
 lemma sum_geometric' {r : ℝ} (h : r ≠ 0) :
   ∀{n}, (finset.range n).sum (λi, (r + 1) ^ i) = ((r + 1) ^ n - 1) / r
 | 0     := by simp [zero_div]

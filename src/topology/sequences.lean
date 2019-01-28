@@ -19,7 +19,7 @@ TODO:
 -/
 
 import topology.basic topology.continuity topology.metric_space.basic
-import data.real.cau_seq_filter
+import analysis.specific_limits
 
 open set filter
 
@@ -186,7 +186,7 @@ instance : sequential_space α :=
         assume ε _,
         -- we apply that 1/n converges to zero to the fact that (x n) ∈ ball p ε
         have ∀ ε > 0, ∃ n0 : ℕ, ∀ n ≥ n0, dist (1 / (↑n + 1)) (0:ℝ) < ε :=
-          metric.tendsto_at_top.mp sequentially_complete.tendsto_div,
+          metric.tendsto_at_top.mp tendsto_one_div_add_at_top_nhds_0_nat,
         let ⟨n0, hn0⟩ := this ε ‹ε > 0› in
         show ∃ n0 : ℕ, ∀ n ≥ n0, dist (x n) p < ε, from
           ⟨n0, assume n ngtn0,

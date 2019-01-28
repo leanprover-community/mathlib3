@@ -453,7 +453,7 @@ def metric_space_emetric_ball (a : β) (r : ennreal) : metric_space (ball a r) :
     by simp [to_nnreal_eq_zero_iff, edist_ne_top_of_mem_ball] at h; assumption,
   edist_dist         := assume x y,
     have h : _ := edist_ne_top_of_mem_ball x y,
-    by cases eq : edist x.1 y.1; simp [none_eq_top, some_eq_coe, *] at *,
+    by cases eq : edist x.1 y.1; simp [none_eq_top, some_eq_coe, ennreal.of_real, *] at *,
   uniformity_dist    :=
   begin
     have : ∀(p : ↥(ball a r) × ↥(ball a r)) (n : nnreal),
@@ -501,7 +501,7 @@ begin
     change tendsto (λp : ↥(ball p₁ ⊤) × ↥(ball p₁ ⊤), edist p.1 p.2)
       (filter.prod (nhds ⟨p₁, h₁⟩) (nhds ⟨p₂, h₂⟩))
       (nhds (edist p'₁ p'₂)),
-    simp only [(nndist_eq_edist _ _).symm],
+    simp only [edist_nndist],
     exact ennreal.tendsto_coe.2 (tendsto_nndist' _ _) }
 end
 

@@ -7,7 +7,7 @@ Type of bounded continuous functions taking values in a metric space, with
 the uniform distance.
  -/
 
-import analysis.normed_space.basic data.real.cau_seq_filter
+import analysis.normed_space.basic data.real.cau_seq_filter topology.metric_space.lipschitz
 
 noncomputable theory
 local attribute [instance] classical.decidable_inhabited classical.prop_decidable
@@ -41,16 +41,6 @@ lemma continuous_of_uniform_limit_of_continuous [topological_space α] {β : Typ
   (∀ n, continuous (F n)) → continuous f :=
 continuous_of_locally_uniform_limit_of_continuous $ λx,
   ⟨univ, by simpa [filter.univ_mem_sets] using L⟩
-
-/-- A Lipschitz function is continuous -/
-lemma continuous_of_lipschitz [metric_space α] [metric_space β] {C : ℝ}
-  {f : α → β} (H : ∀x y, dist (f x) (f y) ≤ C * dist x y) : continuous f :=
-continuous_iff.2 $ λ x ε ε0,
-have 0 < max C 1 := lt_of_lt_of_le zero_lt_one (le_max_right C 1),
-⟨ε/max C 1, div_pos ε0 this, λ y hy, calc
-  dist (f y) (f x) ≤ C * dist y x : H y x
-  ... ≤ max C 1 * dist y x : mul_le_mul_of_nonneg_right (le_max_left C 1) dist_nonneg
-  ... < ε : (lt_div_iff' this).1 hy⟩
 
 /-- The type of bounded continuous functions from a topological space to a metric space -/
 def bounded_continuous_function (α : Type u) (β : Type v) [topological_space α] [metric_space β] : Type (max u v) :=

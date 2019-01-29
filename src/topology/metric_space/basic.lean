@@ -1213,7 +1213,7 @@ begin
   simp [diam, h]
 end
 
-/-- If `s ⊆ t`, then the diameter of `s` is bounded by that of `t`, provided `s` is bounded -/
+/-- If `s ⊆ t`, then the diameter of `s` is bounded by that of `t`, provided `t` is bounded. -/
 lemma diam_mono {s t : set α} (h : s ⊆ t) (ht : bounded t) : diam s ≤ diam t :=
 begin
   unfold diam,
@@ -1221,7 +1221,7 @@ begin
   exact emetric.diam_mono h
 end
 
-/-- The distance between two points in a set is controlled by the diameter of the set -/
+/-- The distance between two points in a set is controlled by the diameter of the set. -/
 lemma dist_le_diam_of_mem (h : bounded s) (hx : x ∈ s) (hy : y ∈ s) : dist x y ≤ diam s :=
 begin
   rw [diam, dist_edist],
@@ -1279,21 +1279,21 @@ begin
 end,
 classical.by_cases I2 I1
 
-/-- If two sets intersect, the diameter of the union is bounded by the sum of the diameters -/
+/-- If two sets intersect, the diameter of the union is bounded by the sum of the diameters. -/
 lemma diam_union' {t : set α} (h : s ∩ t ≠ ∅) : diam (s ∪ t) ≤ diam s + diam t :=
 begin
   rcases ne_empty_iff_exists_mem.1 h with ⟨x, ⟨xs, xt⟩⟩,
   simpa using diam_union xs xt
 end
 
-/-- The diameter of a closed ball of radius `r` is at most `2 r` -/
+/-- The diameter of a closed ball of radius `r` is at most `2 r`. -/
 lemma diam_closed_ball {r : ℝ} (h : r ≥ 0) : diam (closed_ball x r) ≤ 2 * r :=
 diam_le_of_forall_dist_le (mul_nonneg (by norm_num) h) $ λa b ha hb, calc
   dist a b ≤ dist a x + dist b x : dist_triangle_right _ _ _
   ... ≤ r + r : add_le_add ha hb
   ... = 2 * r : by simp [mul_two, mul_comm]
 
-/-- The diameter of a ball of radius `r` is at most `2 r` -/
+/-- The diameter of a ball of radius `r` is at most `2 r`. -/
 lemma diam_ball {r : ℝ} (h : r ≥ 0) : diam (ball x r) ≤ 2 * r :=
 le_trans (diam_mono ball_subset_closed_ball bounded_closed_ball) (diam_closed_ball h)
 

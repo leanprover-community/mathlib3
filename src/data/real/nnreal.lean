@@ -89,14 +89,7 @@ lemma smul_coe (r : ℝ≥0) : ∀n, ↑(add_monoid.smul n r) = add_monoid.smul 
 | (n + 1) := by simp [coe_nat_cast n]
 
 instance : decidable_linear_order ℝ≥0 :=
-{ le               := (≤),
-  lt               := λa b, (a : ℝ) < b,
-  lt_iff_le_not_le := assume a b, @lt_iff_le_not_le ℝ _ a b,
-  le_refl          := assume a, le_refl (a : ℝ),
-  le_trans         := assume a b c, @le_trans ℝ _ a b c,
-  le_antisymm      := assume a b hab hba, nnreal.eq $ le_antisymm hab hba,
-  le_total         := assume a b, le_total (a : ℝ) b,
-  decidable_le     := λa b, by apply_instance }
+by dunfold R≥0; apply_instance
 
 protected lemma coe_le {r₁ r₂ : ℝ≥0} : r₁ ≤ r₂ ↔ (r₁ : ℝ) ≤ r₂ := iff.rfl
 protected lemma coe_lt {r₁ r₂ : ℝ≥0} : r₁ < r₂ ↔ (r₁ : ℝ) < r₂ := iff.rfl

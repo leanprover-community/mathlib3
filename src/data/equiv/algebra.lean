@@ -3,10 +3,10 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.equiv.basic algebra.field
+import data.equiv.basic data.polynomial linear_algebra.multivariate_polynomial
 
 universes u v w
-variables {α : Type u} {β : Type v}  {γ : Type w}
+variables {α : Type u} {β : Type v} {γ : Type w}
 
 namespace equiv
 
@@ -215,3 +215,105 @@ protected def trans {α β γ : Type*} [ring α] [ring β] [ring γ]
 { hom := is_ring_hom.comp _ _, .. e₁.1.trans e₂.1  }
 
 end ring_equiv
+
+namespace mv_polynomial
+
+variables (α) [comm_ring α]
+variables [decidable_eq α] [decidable_eq β] [decidable_eq γ]
+
+def ring_equiv_of_equiv (e : β ≃ γ) : mv_polynomial β α ≃r mv_polynomial γ α :=
+{ to_fun := eval₂ C (X ∘ e),
+  inv_fun := eval₂ C (X ∘ e.symm),
+  left_inv := λ f, induction_on f
+    (λ r, by rw [eval₂_C, eval₂_C])
+    (λ p q hp hq, by rw [eval₂_add, eval₂_add, hp, hq])
+    (λ p s hp, by simp only [eval₂_mul, eval₂_X, hp, (∘), equiv.inverse_apply_apply]),
+  right_inv := λ f, induction_on f
+    (λ r, by rw [eval₂_C, eval₂_C])
+    (λ p q hp hq, by rw [eval₂_add, eval₂_add, hp, hq])
+    (λ p s hp, by simp only [eval₂_mul, eval₂_X, hp, (∘), equiv.apply_inverse_apply]),
+  hom := by apply eval₂.is_ring_hom }
+
+variables (β)
+set_option class.instance_max_depth 10
+def of_option : mv_polynomial (option β) α → polynomial (mv_polynomial β α) :=
+eval₂ (polynomial.C ∘ C) (λ x, option.rec_on x polynomial.X (polynomial.C ∘ X))
+
+def to_option : polynomial (mv_polynomial β α) → mv_polynomial (option β) α :=
+polynomial.eval₂ (eval₂ C (X ∘ some)) (X none)
+
+variables {α β}
+theorem of_option_C (r : α) : of_option α β (C r) = polynomial.C (C r) :=
+by convert eval₂_C _ _ _; convert is_semiring_hom.comp _ _; apply_instance
+
+theorem of_option_X_none : of_option α β (X none) = polynomial.X :=
+by convert eval₂_X _ _ _; convert is_semiring_hom.comp _ _; apply_instance
+
+theorem of_option_X_some (n : β) : of_option α β (X (some n)) = polynomial.C (X n) :=
+by convert eval₂_X _ _ _; convert is_semiring_hom.comp _ _; apply_instance
+
+theorem of_option_add (p q) : of_option α β (p + q) = of_option α β p + of_option α β q :=
+by convert eval₂_add _ _; convert is_semiring_hom.comp _ _; apply_instance
+
+theorem of_option_mul (p q) : of_option α β (p * q) = of_option α β p * of_option α β q :=
+by convert eval₂_mul _ _; convert is_semiring_hom.comp _ _; apply_instance
+
+theorem to_option_C (g) : to_option α β (polynomial.C g) = eval₂ C (X ∘ some) g :=
+by apply polynomial.eval₂_C _ _; apply eval₂.is_semiring_hom _ _; convert is_ring_hom.is_semiring_hom C; apply C.is_ring_hom
+
+theorem to_option_C_C (r : α) : to_option α β (polynomial.C (C r)) = C r :=
+by rw to_option_C; apply eval₂_C _ _ _; convert is_ring_hom.is_semiring_hom C; apply C.is_ring_hom
+
+theorem to_option_C_X (n : β) : to_option α β (polynomial.C (X n)) = X (some n) :=
+by rw to_option_C; apply eval₂_X _ _ _; convert is_ring_hom.is_semiring_hom C; apply C.is_ring_hom
+
+theorem to_option_X : to_option α β (polynomial.X) = X none :=
+by apply polynomial.eval₂_X _ _; apply eval₂.is_semiring_hom _ _; convert is_ring_hom.is_semiring_hom C; apply C.is_ring_hom
+
+theorem to_option_add (p q) : to_option α β (p + q) = to_option α β p + to_option α β q :=
+by apply polynomial.eval₂_add _ _; apply eval₂.is_semiring_hom _ _; convert is_ring_hom.is_semiring_hom C; apply C.is_ring_hom
+
+theorem to_option_mul (p q) : to_option α β (p * q) = to_option α β p * to_option α β q :=
+by apply polynomial.eval₂_mul _ _; apply eval₂.is_semiring_hom _ _; convert is_ring_hom.is_semiring_hom C; apply C.is_ring_hom
+
+set_option class.instance_max_depth 15
+theorem to_option_of_option (f) : to_option α β (of_option α β f) = f :=
+induction_on f
+  (λ r, by rw [of_option_C, to_option_C_C])
+  (λ p q hp hq, by rw [of_option_add, to_option_add, hp, hq])
+  (λ p n h, option.rec_on n (by rw [of_option_mul, to_option_mul, h, of_option_X_none, to_option_X]) $ λ n,
+    by rw [of_option_mul, to_option_mul, h, of_option_X_some, to_option_C_X])
+
+theorem of_option_to_option (f : polynomial (mv_polynomial β α)) : of_option α β (to_option α β f) = f :=
+polynomial.induction_on f
+  (λ g, induction_on g
+    (λ r, by rw [to_option_C_C, of_option_C])
+    (λ p q hp hq, by rw [polynomial.C_add, to_option_add, of_option_add, hp, hq])
+    (λ p n h, by rw [polynomial.C_mul, to_option_mul, of_option_mul, h, to_option_C_X, of_option_X_some]))
+  (λ p q hp hq, by rw [to_option_add, of_option_add, hp, hq])
+  (λ n g h, by rw [to_option_mul, of_option_mul, pow_succ', to_option_mul, of_option_mul,
+    ← mul_assoc, ← of_option_mul, ← to_option_mul, h, to_option_X, of_option_X_none, mul_assoc])
+
+instance option_ring : ring (mv_polynomial (option β) α) :=
+mv_polynomial.ring
+
+instance polynomial_ring : ring (polynomial (mv_polynomial β α)) :=
+@comm_ring.to_ring _ polynomial.comm_ring
+
+def option_ring_equiv : mv_polynomial (option β) α ≃r polynomial (mv_polynomial β α) :=
+{ to_fun := of_option α β,
+  inv_fun := to_option α β,
+  left_inv := to_option_of_option,
+  right_inv := of_option_to_option,
+  hom := ⟨of_option_C 1, of_option_mul, of_option_add⟩ }
+
+def pempty_ring_equiv : mv_polynomial pempty α ≃r α :=
+{ to_fun := mv_polynomial.eval₂ id $ pempty.rec _,
+  inv_fun := C,
+  left_inv := λ f, induction_on f (λ r, congr_arg _ $ eval₂_C _ _ _)
+    (λ p q hp hq, by rw [eval₂_add, C_add, hp, hq])
+    (λ p, pempty.rec _),
+  right_inv := λ r, eval₂_C _ _ _,
+  hom := eval₂.is_ring_hom _ _ }
+
+end mv_polynomial

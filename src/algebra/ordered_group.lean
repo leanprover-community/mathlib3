@@ -137,11 +137,7 @@ end ordered_comm_monoid
 namespace units
 
 instance [monoid α] [preorder α] : preorder (units α) :=
-{ le := λ a b, (a:α) ≤ b,
-  lt := λ a b, (a:α) < b,
-  le_refl := λ a, @le_refl α _ _,
-  le_trans := λ a b c, @le_trans α _ _ _ _,
-  lt_iff_le_not_le := λ a b, @lt_iff_le_not_le α _ _ _ }
+preorder.lift (coe : units α → α)
 
 @[simp] theorem coe_le_coe [monoid α] [preorder α] {a b : units α} :
   (a : α) ≤ b ↔ a ≤ b := iff.rfl
@@ -150,16 +146,13 @@ instance [monoid α] [preorder α] : preorder (units α) :=
   (a : α) < b ↔ a < b := iff.rfl
 
 instance [monoid α] [partial_order α] : partial_order (units α) :=
-{ le_antisymm := λ a b h₁ h₂, ext $ le_antisymm h₁ h₂, ..units.preorder }
+partial_order.lift (coe : units α → α) (by ext)
 
 instance [monoid α] [linear_order α] : linear_order (units α) :=
-{ le_total := λ a b, @le_total α _ _ _, ..units.partial_order }
+linear_order.lift (coe : units α → α) (by ext)
 
 instance [monoid α] [decidable_linear_order α] : decidable_linear_order (units α) :=
-{ decidable_le := by apply_instance,
-  decidable_lt := by apply_instance,
-  decidable_eq := by apply_instance,
-  ..units.linear_order }
+decidable_linear_order.lift (coe : units α → α) (by ext)
 
 theorem max_coe [monoid α] [decidable_linear_order α] {a b : units α} :
   (↑(max a b) : α) = max a b :=

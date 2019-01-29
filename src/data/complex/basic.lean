@@ -243,8 +243,11 @@ by refine_struct {..}; simp
 instance : is_ring_hom conj :=
 by refine_struct {..}; simp
 
+instance of_real.is_ring_hom : is_ring_hom (coe : ℝ → ℂ) :=
+by refine_struct {..}; simp
+
 @[simp] lemma of_real_div (r s : ℝ) : ((r / s : ℝ) : ℂ) = r / s :=
-by rw [division_def, of_real_mul, division_def, of_real_inv]
+is_field_hom.map_div coe
 
 @[simp] lemma of_real_fpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : ℂ) = (r : ℂ) ^ n :=
 is_field_hom.map_fpow of_real r n

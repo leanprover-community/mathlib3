@@ -66,7 +66,7 @@ match r with
 end
 
 -- Override the builtin `lean.parser.of_tactic` coe, which is broken.
--- (See tests/tactics.lean for a failure case.)
+-- (See test/tactics.lean for a failure case.)
 @[priority 2000]
 meta instance has_coe' {α} : has_coe (tactic α) (parser α) :=
 ⟨of_tactic'⟩

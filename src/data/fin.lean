@@ -30,14 +30,7 @@ instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨fin.val⟩
 @[simp] def mk_val {m n : ℕ} (h : m < n) : (⟨m, h⟩ : fin n).val = m := rfl
 
 instance {n : ℕ} : decidable_linear_order (fin n) :=
-{ le_refl := λ a, @le_refl ℕ _ _,
-  le_trans := λ a b c, @le_trans ℕ _ _ _ _,
-  le_antisymm := λ a b ha hb, fin.eq_of_veq $ le_antisymm ha hb,
-  le_total := λ a b, @le_total ℕ _ _ _,
-  lt_iff_le_not_le := λ a b, @lt_iff_le_not_le ℕ _ _ _,
-  decidable_le := fin.decidable_le,
-  ..fin.has_le,
-  ..fin.has_lt }
+decidable_linear_order.lift fin.val (@fin.eq_of_veq _)
 
 lemma zero_le (a : fin (n + 1)) : 0 ≤ a := zero_le a.1
 

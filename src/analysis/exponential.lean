@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import topology.instances.complex tactic.linarith data.complex.exponential algebra.field_power
+import topology.instances.complex tactic.linarith data.complex.exponential
 
 open finset filter metric
 
@@ -1000,60 +1000,134 @@ by simp [cos_add, sin_add, cos_int_mul_two_pi]
 
 section pow
 
-protected noncomputable def pow (x y : ℂ) : ℂ :=
+noncomputable def cpow (x y : ℂ) : ℂ :=
 if x = 0
   then if y = 0
     then 1
     else 0
   else exp (log x * y)
 
-noncomputable instance : has_pow ℂ ℂ := ⟨complex.pow⟩
+noncomputable instance : has_pow ℂ ℂ := ⟨cpow⟩
 
-lemma pow_def (x y : ℂ) : x ^ y =
+lemma cpow_def (x y : ℂ) : x ^ y =
   if x = 0
     then if y = 0
       then 1
       else 0
     else exp (log x * y) := rfl
 
-@[simp] protected lemma pow_zero (x : ℂ) : x ^ (0 : ℂ) = 1 := by simp [pow_def]
+@[simp] lemma cpow_zero (x : ℂ) : x ^ (0 : ℂ) = 1 := by simp [cpow_def]
 
-@[simp] protected lemma zero_pow {x : ℂ} (h : x ≠ 0) : (0 : ℂ) ^ x = 0 :=
-by simp [pow_def, *]
+@[simp] lemma zero_cpow {x : ℂ} (h : x ≠ 0) : (0 : ℂ) ^ x = 0 :=
+by simp [cpow_def, *]
 
-@[simp] protected lemma pow_one (x : ℂ) : x ^ (1 : ℂ) = x :=
-if hx : x = 0 then by simp [hx, pow_def]
-else by rw [pow_def, if_neg (@one_ne_zero ℂ _), if_neg hx, mul_one, exp_log hx]
+@[simp] lemma cpow_one (x : ℂ) : x ^ (1 : ℂ) = x :=
+if hx : x = 0 then by simp [hx, cpow_def]
+else by rw [cpow_def, if_neg (@one_ne_zero ℂ _), if_neg hx, mul_one, exp_log hx]
 
-@[simp] protected lemma one_pow (x : ℂ) : (1 : ℂ) ^ x = 1 :=
-by rw pow_def; split_ifs; simp [one_ne_zero, *] at *
+@[simp] lemma one_cpow (x : ℂ) : (1 : ℂ) ^ x = 1 :=
+by rw cpow_def; split_ifs; simp [one_ne_zero, *] at *
 
-lemma pow_add {x : ℂ} (y z : ℂ) (hx : x ≠ 0) : x ^ (y + z) = x ^ y * x ^ z :=
-by simp [pow_def]; split_ifs; simp [*, exp_add, mul_add] at *
+lemma cpow_add {x : ℂ} (y z : ℂ) (hx : x ≠ 0) : x ^ (y + z) = x ^ y * x ^ z :=
+by simp [cpow_def]; split_ifs; simp [*, exp_add, mul_add] at *
 
-lemma pow_mul {x y : ℂ} (z : ℂ) (h₁ : -π < (log x * y).im) (h₂ : (log x * y).im ≤ π) :
+lemma cpow_mul {x y : ℂ} (z : ℂ) (h₁ : -π < (log x * y).im) (h₂ : (log x * y).im ≤ π) :
   x ^ (y * z) = (x ^ y) ^ z :=
 begin
-  simp [pow_def],
+  simp [cpow_def],
   split_ifs;
   simp [*, exp_ne_zero, log_exp h₁ h₂, mul_assoc] at *
 end
 
-protected lemma pow_neg (x y : ℂ) : x ^ -y = (x ^ y)⁻¹ :=
-by simp [pow_def]; split_ifs; simp [exp_neg]
+lemma cpow_neg (x y : ℂ) : x ^ -y = (x ^ y)⁻¹ :=
+by simp [cpow_def]; split_ifs; simp [exp_neg]
 
-@[simp] lemma pow_nat_cast (x : ℂ) : ∀ (n : ℕ), x ^ (n : ℂ) = x ^ n
+@[simp] lemma cpow_nat_cast (x : ℂ) : ∀ (n : ℕ), x ^ (n : ℂ) = x ^ n
 | 0       := by simp
 | (n + 1) := if hx : x = 0 then by simp only [hx, pow_succ,
-    complex.zero_pow (nat.cast_ne_zero.2 (nat.succ_ne_zero _)), zero_mul]
-  else by simp [pow_def, hx, mul_add, exp_add, pow_succ, (pow_nat_cast n).symm, exp_log hx]
+    complex.zero_cpow (nat.cast_ne_zero.2 (nat.succ_ne_zero _)), zero_mul]
+  else by simp [cpow_def, hx, mul_add, exp_add, pow_succ, (cpow_nat_cast n).symm, exp_log hx]
 
-@[simp] lemma pow_int_cast (x : ℂ) : ∀ (n : ℤ), x ^ (n : ℂ) = fpow x n
+@[simp] lemma cpow_int_cast (x : ℂ) : ∀ (n : ℤ), x ^ (n : ℂ) = x ^ n
 | (n : ℕ) := by simp; refl
-| -[1+ n] := by unfold fpow;
-  simp only [int.neg_succ_of_nat_coe, int.cast_neg, complex.pow_neg, inv_eq_one_div,
-    int.cast_coe_nat, pow_nat_cast]
+| -[1+ n] := by rw fpow_neg_succ_of_nat;
+  simp only [int.neg_succ_of_nat_coe, int.cast_neg, complex.cpow_neg, inv_eq_one_div,
+    int.cast_coe_nat, cpow_nat_cast]
 
 end pow
 
 end complex
+
+namespace real
+
+noncomputable def rpow (x y : ℝ) := ((x : ℂ) ^ (y : ℂ)).re
+
+noncomputable instance : has_pow ℝ ℝ := ⟨rpow⟩
+
+lemma rpow_def (x y : ℝ) : x ^ y = ((x : ℂ) ^ (y : ℂ)).re := rfl
+
+lemma rpow_def_of_nonneg {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : x ^ y =
+  if x = 0
+    then if y = 0
+      then 1
+      else 0
+    else exp (log x * y) :=
+by simp only [rpow_def, complex.cpow_def];
+  split_ifs;
+  simp [*, (complex.of_real_log hx).symm, -complex.of_real_mul,
+    (complex.of_real_mul _ _).symm, complex.exp_of_real_re] at *
+
+end real
+
+namespace complex
+
+lemma of_real_cpow {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : ((x ^ y : ℝ) : ℂ) = (x : ℂ) ^ (y : ℂ) :=
+by simp [real.rpow_def_of_nonneg hx, complex.cpow_def]; split_ifs; simp [complex.of_real_log hx]
+
+@[simp] lemma abs_cpow_real (x : ℂ) (y : ℝ) : abs (x ^ (y : ℂ)) = x.abs ^ y :=
+begin
+  rw [real.rpow_def_of_nonneg (abs_nonneg _), complex.cpow_def],
+  split_ifs;
+  simp [*, abs_of_nonneg (le_of_lt (real.exp_pos _)), complex.log, complex.exp_add,
+    add_mul, mul_right_comm _ I, exp_mul_I, abs_cos_add_sin_mul_I,
+    (complex.of_real_mul _ _).symm, -complex.of_real_mul] at *
+end
+
+end complex
+
+namespace real
+
+@[simp] lemma rpow_zero (x : ℝ) : x ^ (0 : ℝ) = 1 := by simp [rpow_def]
+
+@[simp] lemma zero_rpow {x : ℝ} (h : x ≠ 0) : (0 : ℝ) ^ x = 0 :=
+by simp [rpow_def, *]
+
+@[simp] lemma rpow_one (x : ℝ) : x ^ (1 : ℝ) = x := by simp [rpow_def]
+
+@[simp] lemma one_rpow (x : ℝ) : (1 : ℝ) ^ x = 1 := by simp [rpow_def]
+
+lemma rpow_nonneg_of_nonneg {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : 0 ≤ x ^ y :=
+by rw [rpow_def_of_nonneg hx];
+  split_ifs; simp only [zero_le_one, le_refl, le_of_lt (exp_pos _)]
+
+lemma rpow_add {x : ℝ} (y z : ℝ) (hx : 0 < x) : x ^ (y + z) = x ^ y * x ^ z :=
+by simp only [rpow_def_of_nonneg (le_of_lt hx), if_neg (ne_of_lt hx).symm, mul_add, exp_add]
+
+lemma rpow_mul {x : ℝ} (hx : 0 ≤ x) (y z : ℝ) : x ^ (y * z) = (x ^ y) ^ z :=
+by rw [← complex.of_real_inj, complex.of_real_cpow (rpow_nonneg_of_nonneg hx _),
+    complex.of_real_cpow hx, complex.of_real_mul, complex.cpow_mul, complex.of_real_cpow hx];
+  simp only [(complex.of_real_mul _ _).symm, (complex.of_real_log hx).symm,
+    complex.of_real_im, neg_lt_zero, pi_pos, le_of_lt pi_pos]
+
+lemma rpow_neg {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : x ^ -y = (x ^ y)⁻¹ :=
+by simp only [rpow_def_of_nonneg hx]; split_ifs; simp [*, exp_neg] at *
+
+@[simp] lemma rpow_nat_cast (x : ℝ) (n : ℕ) : x ^ (n : ℝ) = x ^ n :=
+by simp only [rpow_def, (complex.of_real_pow _ _).symm, complex.cpow_nat_cast,
+  complex.of_real_nat_cast, complex.of_real_re]
+
+@[simp] lemma rpow_int_cast (x : ℝ) (n : ℤ) : x ^ (n : ℝ) = x ^ n :=
+by simp only [rpow_def, (complex.of_real_fpow _ _).symm, complex.cpow_int_cast,
+  complex.of_real_int_cast, complex.of_real_re]
+
+end real

@@ -46,6 +46,10 @@ quot.hrec_on₂ qa qb f
   (λ _ _ _ p, c _ _ _ _ (setoid.refl _) p)
 end quotient
 
+lemma quot.eq {α : Type*} {r : α → α → Prop} {x y : α} :
+  quot.mk r x = quot.mk r y ↔ eqv_gen r x y :=
+⟨quot.exact r, quot.eqv_gen_sound⟩
+
 @[simp] theorem quotient.eq [r : setoid α] {x y : α} : ⟦x⟧ = ⟦y⟧ ↔ x ≈ y :=
 ⟨quotient.exact, quotient.sound⟩
 

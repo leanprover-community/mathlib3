@@ -638,7 +638,7 @@ and likewise for `to_rhs`.
 
 - `mono` applies a monotonicity rule.
 - `mono*` applies monotonicity rules repetitively.
-- `mono using x ≤ y` or `mono using [0 ≤ x,0 ≤ y]` creates an assertion for the listed
+- `mono with x ≤ y` or `mono with [0 ≤ x,0 ≤ y]` creates an assertion for the listed
   propositions. Those help to select the right monotonicity rule.
 - `mono left` or `mono right` is useful when proving strict orderings:
    for `x + y < w + z` could be broken down into either

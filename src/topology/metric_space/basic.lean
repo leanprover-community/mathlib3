@@ -1039,6 +1039,55 @@ end
 
 end proper_space
 
+namespace metric
+section second_countable
+open topological_space
+
+/-- A metric space is second countable if, for every ε > 0, there is a countable set which is ε-dense. -/
+lemma second_countable_of_almost_dense_set
+  (H : ∀ε > (0 : ℝ), ∃ s : set α, countable s ∧ (∀x, ∃y ∈ s, dist x y ≤ ε)) :
+  second_countable_topology α :=
+begin
+  choose T T_dense using H,
+  have I1 : ∀n:ℕ, (n:ℝ) + 1 > 0 :=
+    λn, lt_of_lt_of_le zero_lt_one (le_add_of_nonneg_left (nat.cast_nonneg _)),
+  have I : ∀n:ℕ, (n+1 : ℝ)⁻¹ > 0 := λn, inv_pos'.2 (I1 n),
+  let t := ⋃n:ℕ, T (n+1)⁻¹ (I n),
+  have count_t : countable t := by finish [countable_Union],
+  have clos_t : closure t = univ,
+  { refine subset.antisymm (subset_univ _) (λx xuniv, mem_closure_iff'.2 (λε εpos, _)),
+    rcases exists_nat_gt ε⁻¹ with ⟨n, hn⟩,
+    have : ε⁻¹ < n + 1 := lt_of_lt_of_le hn (le_add_of_nonneg_right zero_le_one),
+    have nε : ((n:ℝ)+1)⁻¹ < ε := (inv_lt (I1 n) εpos).2 this,
+    rcases (T_dense (n+1)⁻¹ (I n)).2 x with ⟨y, yT, Dxy⟩,
+    have : y ∈ t := mem_of_mem_of_subset yT (by apply subset_Union (λ (n:ℕ), T (n+1)⁻¹ (I n))),
+    exact ⟨y, this, lt_of_le_of_lt Dxy nε⟩ },
+  haveI : separable_space α := ⟨⟨t, ⟨count_t, clos_t⟩⟩⟩,
+  exact emetric.second_countable_of_separable α
+end
+
+/-- A metric space space is second countable if one can reconstruct up to any ε>0 any element of the
+space from countably many data. -/
+lemma second_countable_of_countable_discretization {α : Type u} [metric_space α]
+  (H : ∀ε > (0 : ℝ), ∃ (β : Type u) [encodable β] (F : α → β), ∀x y, F x = F y → dist x y ≤ ε) :
+  second_countable_topology α :=
+begin
+  classical, by_cases hs : (univ : set α) = ∅,
+  { haveI : compact_space α := ⟨by rw hs; exact compact_of_finite (set.finite_empty)⟩, by apply_instance },
+  rcases exists_mem_of_ne_empty hs with ⟨x0, hx0⟩,
+  letI : inhabited α := ⟨x0⟩,
+  refine second_countable_of_almost_dense_set (λε ε0, _),
+  rcases H ε ε0 with ⟨β, fβ, F, hF⟩,
+  let Finv := function.inv_fun F,
+  refine ⟨range Finv, ⟨countable_range _, λx, _⟩⟩,
+  let x' := Finv (F x),
+  have : F x' = F x := function.inv_fun_eq ⟨x, rfl⟩,
+  exact ⟨x', mem_range_self _, hF _ _ this.symm⟩
+end
+
+end second_countable
+end metric
+
 lemma lebesgue_number_lemma_of_metric
   {s : set α} {ι} {c : ι → set α} (hs : compact s)
   (hc₁ : ∀ i, is_open (c i)) (hc₂ : s ⊆ ⋃ i, c i) :

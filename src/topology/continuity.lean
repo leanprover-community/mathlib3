@@ -129,6 +129,9 @@ compact_of_finite_subcover $ assume c hco hcs,
   let ⟨d', hcd', hfd', hd'⟩ := compact_elim_finite_subcover_image hs hdo hds in
   ⟨d', hcd', hfd', by simpa [subset_def, -mem_image, image_subset_iff] using hd'⟩
 
+lemma compact_range [compact_space α] {f : α → β} (hf : continuous f) : compact (range f) :=
+by rw ← image_univ; exact compact_image compact_univ hf
+
 end
 
 section constructions

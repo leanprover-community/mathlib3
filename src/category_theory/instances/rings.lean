@@ -8,7 +8,7 @@ Currently only the basic setup.
 -/
 
 import category_theory.concrete_category
-import category_theory.examples.monoids
+import category_theory.instances.monoids
 import category_theory.fully_faithful
 import category_theory.adjunction
 import linear_algebra.multivariate_polynomial
@@ -18,7 +18,7 @@ universes u v
 
 open category_theory
 
-namespace category_theory.examples
+namespace category_theory.instances
 
 /-- The category of rings. -/
 @[reducible] def Ring : Type (u+1) := bundled ring
@@ -138,4 +138,4 @@ end
 
 end CommRing
 
-end category_theory.examples
+end category_theory.instances

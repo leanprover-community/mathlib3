@@ -73,6 +73,8 @@ by simp [(pure_seq_eq_map _ _).symm]; simp [seq_assoc]
 end applicative
 
 -- TODO: setup `functor_norm` for `monad` laws
+attribute [functor_norm] pure_bind bind_assoc bind_pure
+
 section monad
 variables {m : Type u → Type v} [monad m] [is_lawful_monad m]
 
@@ -94,6 +96,24 @@ by rw [← bind_pure_comp_eq_map, bind_assoc]; simp [pure_bind]
 
 lemma seq_eq_bind_map {x : m α} {f : m (α → β)} : f <*> x = (f >>= (<$> x)) :=
 (bind_map_eq_seq m f x).symm
+
+/-- This is the Kleisli composition -/
+@[reducible] def pipe {m} [monad m] {α β γ} (f : α → m β) (g : β → m γ) := λ x, f x >>= g
+
+infix ` >=> `:55 := pipe
+
+@[functor_norm]
+lemma pipe_pure {α β} (f : α → m β) : f >=> pure = f :=
+by simp only [(>=>)] with functor_norm
+
+@[functor_norm]
+lemma pure_pipe {α β} (f : α → m β) : pure >=> f = f :=
+by simp only [(>=>)] with functor_norm
+
+@[functor_norm]
+lemma pipe_assoc {α β γ φ} (f : α → m β) (g : β → m γ) (h : γ → m φ) :
+  (f >=> g) >=> h = f >=> (g >=> h) :=
+by simp only [(>=>)] with functor_norm
 
 variables {β' γ' : Type v}
 variables {m' : Type v → Type w} [monad m']

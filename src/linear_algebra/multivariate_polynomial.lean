@@ -155,6 +155,10 @@ begin
   { simp [X, eval₂_monomial, eval₂_mul_monomial, (mul_assoc _ _ _).symm] { contextual := tt} }
 end
 
+lemma eval₂_pow {p:mv_polynomial σ α} : ∀{n:ℕ}, (p ^ n).eval₂ f g = (p.eval₂ f g)^n
+| 0       := eval₂_one _ _
+| (n + 1) := by rw [pow_add, pow_one, pow_add, pow_one, eval₂_mul, eval₂_pow]
+
 instance eval₂.is_semiring_hom : is_semiring_hom (eval₂ f g) :=
 { map_zero := eval₂_zero _ _,
   map_one := eval₂_one _ _,

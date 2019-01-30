@@ -1420,7 +1420,7 @@ if h : p = 0 then by simp [h]
 else by rw [root_multiplicity, dif_neg h];
   exact multiplicity.pow_multiplicity_dvd _
 
-lemma div_by_monic_mul_pow_multiplicity_eq
+lemma div_by_monic_mul_pow_root_multiplicity_eq
   (p : polynomial α) (a : α) :
   p /ₘ ((X - C a) ^ root_multiplicity p a) *
   (X - C a) ^ root_multiplicity p a = p :=
@@ -1430,7 +1430,7 @@ by conv_rhs { rw [← mod_by_monic_add_div p this,
     (dvd_iff_mod_by_monic_eq_zero this).2 (pow_root_multiplicity_dvd _ _)] };
   simp [mul_comm]
 
-lemma eval_div_by_monic_pow_multiplicity_ne_zero
+lemma eval_div_by_monic_pow_root_multiplicity_ne_zero
   {p : polynomial α} (a : α) (hp : p ≠ 0) :
   (p /ₘ ((X - C a) ^ root_multiplicity p a)).eval a ≠ 0 :=
 have (0 : α) ≠ 1, from (λ h, by haveI := subsingleton_of_zero_eq_one _ h;
@@ -1439,7 +1439,7 @@ begin
   letI : nonzero_comm_ring α := { zero_ne_one := this, ..show comm_ring α, by apply_instance },
   rw [ne.def, ← is_root.def, ← dvd_iff_is_root],
   rintros ⟨q, hq⟩,
-  have := div_by_monic_mul_pow_multiplicity_eq p a,
+  have := div_by_monic_mul_pow_root_multiplicity_eq p a,
   rw [mul_comm, hq, ← mul_assoc, ← pow_succ',
     root_multiplicity, dif_neg hp] at this,
   refine multiplicity.is_greatest'

@@ -891,6 +891,44 @@ decidable.by_cases
     by rw [leading_coeff_mul', leading_coeff_X_pow, mul_one];
       rwa [leading_coeff_X_pow, mul_one])
 
+lemma monic_mul (hp : monic p) (hq : monic q) : monic (p * q) :=
+if h0 : (0 : α) = 1 then by haveI := subsingleton_of_zero_eq_one _ h0;
+  exact subsingleton.elim _ _
+else
+  have leading_coeff p * leading_coeff q ≠ 0, by simp [monic.def.1 hp, monic.def.1 hq, ne.symm h0],
+  by rw [monic.def, leading_coeff_mul' this, monic.def.1 hp, monic.def.1 hq, one_mul]
+
+lemma monic_pow (hp : monic p) : ∀ (n : ℕ), monic (p ^ n)
+| 0     := monic_one
+| (n+1) := monic_mul hp (monic_pow n)
+
+lemma multiplicity_finite_of_degree_pos_of_monic (hp : (0 : with_bot ℕ) < degree p)
+  (hmp : monic p) (hq : q ≠ 0) : multiplicity.finite p q :=
+have zn0 : (0 : α) ≠ 1, from λ h, by haveI := subsingleton_of_zero_eq_one _ h;
+  exact hq (subsingleton.elim _ _),
+⟨nat_degree q, λ ⟨r, hr⟩,
+  have hp0 : p ≠ 0, from λ hp0, by simp [hp0] at hp; contradiction,
+  have hr0 : r ≠ 0, from λ hr0, by simp * at *,
+  have hpn1 : leading_coeff p ^ (nat_degree q + 1) = 1,
+    by simp [show _ = _, from hmp],
+  have hpn0' : leading_coeff p ^ (nat_degree q + 1) ≠ 0,
+    from hpn1.symm ▸ zn0.symm,
+  have hpnr0 : leading_coeff (p ^ (nat_degree q + 1)) * leading_coeff r ≠ 0,
+    by simp only [leading_coeff_pow' hpn0', leading_coeff_eq_zero, hpn1,
+      one_pow, one_mul, ne.def, hr0]; simp,
+  have hpn0 : p ^ (nat_degree q + 1) ≠ 0,
+    from mt leading_coeff_eq_zero.2 $
+      by rw [leading_coeff_pow' hpn0', show _ = _, from hmp, one_pow]; exact zn0.symm,
+  have hnp : 0 < nat_degree p,
+    by rw [← with_bot.coe_lt_coe, ← degree_eq_nat_degree hp0];
+    exact hp,
+  begin
+    have := congr_arg nat_degree hr,
+    rw [nat_degree_mul_eq' hpnr0,  nat_degree_pow_eq' hpn0', add_mul, add_assoc] at this,
+    exact ne_of_lt (lt_add_of_le_of_pos (le_mul_of_ge_one_right' (nat.zero_le _) hnp)
+      (add_pos_of_pos_of_nonneg (by rwa one_mul) (nat.zero_le _))) this
+  end⟩
+
 end comm_semiring
 
 section comm_ring
@@ -1364,6 +1402,52 @@ lemma dvd_iff_is_root : (X - C a) ∣ p ↔ is_root p a :=
 
 lemma mod_by_monic_X (p : polynomial α) : p %ₘ X = C (p.eval 0) :=
 by rw [← mod_by_monic_X_sub_C_eq_C_eval, C_0, sub_zero]
+
+variable [decidable_rel ((∣) : polynomial α → polynomial α → Prop)]
+
+def root_multiplicity (p : polynomial α) (a : α) : ℕ :=
+if h0 : p = 0 then 0 else
+(multiplicity (X - C a) p).get (multiplicity_finite_of_degree_pos_of_monic
+  (have (0 : α) ≠ 1, from (λ h, by haveI := subsingleton_of_zero_eq_one _ h;
+    exact h0 (subsingleton.elim _ _)),
+  by letI : nonzero_comm_ring α := { zero_ne_one := this, ..show comm_ring α, by apply_instance };
+    rw degree_X_sub_C; exact dec_trivial)
+  (monic_X_sub_C _) h0)
+
+lemma pow_root_multiplicity_dvd (p : polynomial α) (a : α) :
+  (X - C a) ^ root_multiplicity p a ∣ p :=
+if h : p = 0 then by simp [h]
+else by rw [root_multiplicity, dif_neg h];
+  exact multiplicity.pow_multiplicity_dvd _
+
+lemma div_by_monic_mul_pow_multiplicity_eq
+  (p : polynomial α) (a : α) :
+  p /ₘ ((X - C a) ^ root_multiplicity p a) *
+  (X - C a) ^ root_multiplicity p a = p :=
+have monic ((X - C a) ^ root_multiplicity p a),
+  from monic_pow (monic_X_sub_C _) _,
+by conv_rhs { rw [← mod_by_monic_add_div p this,
+    (dvd_iff_mod_by_monic_eq_zero this).2 (pow_root_multiplicity_dvd _ _)] };
+  simp [mul_comm]
+
+lemma eval_div_by_monic_pow_multiplicity_ne_zero
+  {p : polynomial α} (a : α) (hp : p ≠ 0) :
+  (p /ₘ ((X - C a) ^ root_multiplicity p a)).eval a ≠ 0 :=
+have (0 : α) ≠ 1, from (λ h, by haveI := subsingleton_of_zero_eq_one _ h;
+  exact hp (subsingleton.elim _ _)),
+begin
+  letI : nonzero_comm_ring α := { zero_ne_one := this, ..show comm_ring α, by apply_instance },
+  rw [ne.def, ← is_root.def, ← dvd_iff_is_root],
+  rintros ⟨q, hq⟩,
+  have := div_by_monic_mul_pow_multiplicity_eq p a,
+  rw [mul_comm, hq, ← mul_assoc, ← pow_succ',
+    root_multiplicity, dif_neg hp] at this,
+  refine multiplicity.is_greatest'
+    (multiplicity_finite_of_degree_pos_of_monic
+    (show (0 : with_bot ℕ) < degree (X - C a),
+      by rw degree_X_sub_C; exact dec_trivial) _ hp)
+    (nat.lt_succ_self _) (dvd_of_mul_right_eq _ this)
+end
 
 end comm_ring
 

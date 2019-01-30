@@ -37,9 +37,9 @@ X.map (@category.comp C _ _ _ _ f g) = (X.map g) ≫ (X.map f) := functor.map_co
 
 end simp
 
-instance : category.{(v+1) v}     (presheaf C) := by dunfold presheaf; apply_instance
-instance : has_limits.{(v+1) v}   (presheaf C) := by dunfold presheaf; apply_instance
-instance : has_colimits.{(v+1) v} (presheaf C) := by dunfold presheaf; apply_instance
+instance : category.{v}     (presheaf C) := by dunfold presheaf; apply_instance
+instance : has_limits.{v}   (presheaf C) := by dunfold presheaf; apply_instance
+instance : has_colimits.{v} (presheaf C) := by dunfold presheaf; apply_instance
 -- instance : has_pullbacks.{(v+1) v} (presheaf C) := limits.functor_category_has_pullbacks
 -- instance : has_coproducts.{(v+1) v} (presheaf C) := limits.functor_category_has_coproducts
 -- instance : has_coequalizers.{(v+1) v} (presheaf C) := limits.functor_category_has_coequalizers
@@ -48,7 +48,7 @@ def eval : Cᵒᵖ ⥤ presheaf C ⥤ Type v :=
 evaluation _ _
 
 section restriction_extension
-variables {D : Type u} [𝒟 : category.{u v} D]
+variables {D : Type u} [𝒟 : category.{v} D]
 include 𝒟
 
 def restricted_yoneda (F : C ⥤ D) : D ⥤ presheaf C :=
@@ -58,7 +58,7 @@ def restricted_yoneda (F : C ⥤ D) : D ⥤ presheaf C :=
 @[simp] lemma restricted_yoneda_obj (F : C ⥤ D) (d : D) : (restricted_yoneda F).obj d = F.op ⋙ yoneda.obj d := rfl
 @[simp] lemma restricted_yoneda_map (F : C ⥤ D) {d₁ d₂ : D} (g : d₁ ⟶ d₂) : (restricted_yoneda F).map g = (whisker_left _ $ yoneda.map g) := rfl
 
-variables [has_colimits.{u v} D]
+variables [has_colimits.{v} D]
 
 def yoneda_extension (F : C ⥤ D) : presheaf C ⥤ D :=
 { obj := λ X, colimit (comma.fst.{v v v v} yoneda (functor.of.obj X) ⋙ F),
@@ -68,7 +68,7 @@ def yoneda_extension (F : C ⥤ D) : presheaf C ⥤ D :=
     erw functor.of.map_id, -- why doesn't this simplify automatically?
     erw colimit.pre_map'
       (comma.fst.{v v v v} yoneda (functor.of.obj X) ⋙ F)
-      (comma.map_right_id.{v v v} yoneda (functor.of.obj X)).hom,
+      (comma.map_right_id.{v v v v} yoneda (functor.of.obj X)).hom,
     erw colimit.pre_id,
     erw ← colim.map_comp,
     erw ← colim.map_id,

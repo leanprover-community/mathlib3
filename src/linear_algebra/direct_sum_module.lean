@@ -36,6 +36,11 @@ theorem mk_smul (s : finset ι) (c : R) (x) : mk β s (c • x) = c • mk β s 
 theorem of_smul (i : ι) (c : R) (x) : of β i (c • x) = c • of β i x :=
 (lof R ι β i).map_smul c x
 
+lemma sum_of [Π i, decidable_pred (eq (0 : β i))] (f : direct_sum R ι β) :
+  f.sum (λ i, of ι β i) = f :=
+by dsimp [of, dfinsupp.lsingle]; unfold_coes; simp;
+  exact @dfinsupp.sum_single ι β _ _ _ f
+
 variables {γ : Type u₁} [add_comm_group γ] [module R γ]
 variables (φ : Π i, β i →ₗ[R] γ)
 
@@ -71,5 +76,30 @@ protected def lid (M : Type v) [add_comm_group M] [module R M] :
   direct_sum punit (λ _, M) ≃ₗ M :=
 { .. direct_sum.id M,
   .. to_module R punit M (λ i, linear_map.id) }
+
+def component (ι : Type*) [decidable_eq ι] (β : ι → Type*)
+  [Π i, add_comm_group (β i)] [Π i, module R (β i)]
+  (i : ι) : direct_sum R ι β →ₗ β i :=
+{ to_fun := λ f, f i,
+  add := λ _ _, dfinsupp.add_apply,
+  smul := λ _ _, dfinsupp.smul_apply }
+
+lemma of_apply (i : ι) (b : β i) : ((of ι β i) b) i = b :=
+by rw [of, dfinsupp.lsingle_apply, dfinsupp.single_apply, dif_pos rfl]
+
+lemma apply_eq_component (f : direct_sum R ι β) (i : ι) :
+  f i = component ι β i f := rfl
+
+@[simp] lemma component.of (i : ι) (b : β i) :
+  component ι β i ((of ι β i) b) = b :=
+of_apply i b
+
+@[extensionality] lemma ext {f g : direct_sum R ι β}
+  (h : ∀ i, component ι β i f = component ι β i g) : f = g :=
+dfinsupp.ext h
+
+lemma ext_iff {f g : direct_sum R ι β} : f = g ↔
+  ∀ i, component ι β i f = component ι β i g :=
+⟨λ h _, by rw h, ext⟩
 
 end direct_sum

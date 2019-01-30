@@ -728,6 +728,13 @@ begin
   all_goals { intros, simp }
 end
 
+lemma map_sum {R δ : Type*} [ring R] [add_comm_group δ] [module R δ] [add_comm_group γ]
+  [module R γ] [Π i, add_comm_monoid (β i)]
+  [Π i, decidable_pred (eq (0 : β i))] {f : Π₀ i, β i} {h : Π i, β i → γ} {l : γ →ₗ δ} :
+  l (f.sum h) = f.support.sum (λ x, (h x)) :=
+
+
+
 @[to_additive dfinsupp.sum_subtype_domain_index]
 lemma prod_subtype_domain_index [Π i, has_zero (β i)] [Π i, decidable_pred (eq (0 : β i))]
   [comm_monoid γ] {v : Π₀ i, β i} {p : ι → Prop} [decidable_pred p]

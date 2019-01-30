@@ -1263,67 +1263,6 @@ decidable.by_cases
 lemma root_X_sub_C : is_root (X - C a) b ↔ a = b :=
 by rw [is_root.def, eval_sub, eval_X, eval_C, sub_eq_zero_iff_eq, eq_comm]
 
--- section multiplicity
-
--- variable [decidable_rel (@has_dvd.dvd (polynomial α) _)]
-
--- lemma multiplicity_finite_of_degree_pos
---   {p q : polynomial α} (hp : (0 : with_bot ℕ) < degree p) (hq : q ≠ 0) :
---   multiplicity.finite p q :=
--- ⟨nat_degree q, λ ⟨r, hr⟩,
---   have hp0 : p ≠ 0, from λ hp0, by simp [hp0] at hp; contradiction,
---   have hr0 : r ≠ 0, from λ hr0, by simp * at *,
---   have hpn0 : p ^ (nat_degree q + 1) ≠ 0,
---     from pow_ne_zero _ hp0,
---   have hnp : 0 < nat_degree p,
---     by rw [← with_bot.coe_lt_coe, ← degree_eq_nat_degree hp0];
---     exact hp,
---   begin
---     have := congr_arg nat_degree hr,
---     rw [nat_degree_mul_eq hpn0 hr0, nat_degree_pow_eq, add_mul, add_assoc] at this,
---     exact ne_of_lt (lt_add_of_le_of_pos (le_mul_of_ge_one_right' (nat.zero_le _) hnp)
---       (add_pos_of_pos_of_nonneg (by rwa one_mul) (nat.zero_le _))) this
---   end⟩
-
--- noncomputable protected def multiplicity (p : polynomial α) (a :  α) : ℕ :=
--- if h0 : p = 0 then 0 else
--- (multiplicity (X - C a) p).get (multiplicity_finite_of_degree_pos
---   (by rw degree_X_sub_C; exact dec_trivial) h0)
-
--- lemma pow_multiplicity_dvd (p : polynomial α) (a : α) :
---   (X - C a) ^ polynomial.multiplicity p a ∣ p :=
--- if h : p = 0 then by simp [h]
--- else by rw [polynomial.multiplicity, dif_neg h];
---   exact multiplicity.pow_multiplicity_dvd _
-
--- lemma div_by_monic_mul_pow_multiplicity_eq
---   (p : polynomial α) (a : α) :
---   p /ₘ ((X - C a) ^ polynomial.multiplicity p a) *
---   (X - C a) ^ polynomial.multiplicity p a = p :=
--- have monic ((X - C a) ^ polynomial.multiplicity p a),
---   from by rw [monic.def, leading_coeff_pow,
---     (show _ = _, from monic_X_sub_C _), one_pow],
--- by conv_rhs { rw [← mod_by_monic_add_div p this,
---     (dvd_iff_mod_by_monic_eq_zero this).2 (pow_multiplicity_dvd _ _)] };
---   simp [mul_comm]
-
--- lemma eval_div_by_monic_pow_multiplicity_ne_zero
---   {p : polynomial α} (a : α) (hp : p ≠ 0) :
---   (p /ₘ ((X - C a) ^ polynomial.multiplicity p a)).eval a ≠ 0 :=
--- mt dvd_iff_is_root.2 $ λ ⟨q, hq⟩,
--- begin
---   have := div_by_monic_mul_pow_multiplicity_eq p a,
---   rw [mul_comm, hq, ← mul_assoc, ← pow_succ',
---     polynomial.multiplicity, dif_neg hp] at this,
---   refine multiplicity.is_greatest'
---     (polynomial.finite_of_degree_pos
---     (show (0 : with_bot ℕ) < degree (X - C a),
---       by rw degree_X_sub_C; exact dec_trivial) hp)
---     (nat.lt_succ_self _) (dvd_of_mul_right_eq _ this)
--- end
-
--- end multiplicity
-
 end comm_ring
 
 section nonzero_comm_ring

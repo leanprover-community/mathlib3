@@ -50,7 +50,7 @@ sometimes called boundary in mathematics) are defined, and basic
 properties about them are proved. For example
 
 ```lean
-import analysis.topology.topological_space
+import topology.basic
 open topological_space
 variables {X : Type} [topological_space X] {U V C D Y Z : set X}
 

@@ -1403,6 +1403,8 @@ lemma dvd_iff_is_root : (X - C a) ∣ p ↔ is_root p a :=
 lemma mod_by_monic_X (p : polynomial α) : p %ₘ X = C (p.eval 0) :=
 by rw [← mod_by_monic_X_sub_C_eq_C_eval, C_0, sub_zero]
 
+section multiplicity
+
 variable [decidable_rel ((∣) : polynomial α → polynomial α → Prop)]
 
 def root_multiplicity (p : polynomial α) (a : α) : ℕ :=
@@ -1448,6 +1450,8 @@ begin
       by rw degree_X_sub_C; exact dec_trivial) _ hp)
     (nat.lt_succ_self _) (dvd_of_mul_right_eq _ this)
 end
+
+end multiplicity
 
 end comm_ring
 

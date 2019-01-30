@@ -9,8 +9,8 @@ import data.finsupp linear_algebra.basic algebra.ring
 
 open set function finsupp lattice
 
-universes u v w
-variables {α : Type u} {β : Type v} {γ : Type w}
+universes u v w x
+variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
 /-- Multivariate polynomial, where `σ` is the index set of the variables and
   `α` is the coefficient ring -/
@@ -99,6 +99,19 @@ end,
 finsupp.induction p
   (by have : M (C 0) := h_C 0; rwa [C_0] at this)
   (assume s a p hsp ha hp, h_add _ _ (this s a) hp)
+
+lemma hom_eq_hom [semiring γ]
+  (f g : mv_polynomial σ α → γ) (hf : is_semiring_hom f) (hg : is_semiring_hom g)
+  (hC : ∀a:α, f (C a) = g (C a)) (hX : ∀n:σ, f (X n) = g (X n)) (p : mv_polynomial σ α) :
+  f p = g p :=
+mv_polynomial.induction_on p hC
+  begin assume p q hp hq, rw [is_semiring_hom.map_add f, is_semiring_hom.map_add g, hp, hq] end
+  begin assume p n hp, rw [is_semiring_hom.map_mul f, is_semiring_hom.map_mul g, hp, hX] end
+
+lemma is_id (f : mv_polynomial σ α → mv_polynomial σ α) (hf : is_semiring_hom f)
+  (hC : ∀a:α, f (C a) = (C a)) (hX : ∀n:σ, f (X n) = (X n)) (p : mv_polynomial σ α) :
+  f p = p :=
+hom_eq_hom f id hf is_semiring_hom.id hC hX p
 
 section eval₂
 variables [comm_semiring β]
@@ -366,5 +379,37 @@ lemma map_sub : (p - q).map f = p.map f - q.map f := is_ring_hom.map_sub _
 end map
 
 end comm_ring
+
+section rename
+variables {α} [comm_semiring α] [decidable_eq α] [decidable_eq β] [decidable_eq γ] [decidable_eq δ]
+
+def rename (f : β → γ) : mv_polynomial β α → mv_polynomial γ α :=
+eval₂ C (X ∘ f)
+
+instance rename.is_semiring_hom (f : β → γ) :
+  is_semiring_hom (rename f : mv_polynomial β α → mv_polynomial γ α) :=
+by unfold rename; apply_instance
+
+@[simp] lemma rename_C (f : β → γ) (a : α) : rename f (C a) = C a :=
+eval₂_C _ _ _
+
+@[simp] lemma rename_X (f : β → γ) (b : β) : rename f (X b : mv_polynomial β α) = X (f b) :=
+eval₂_X _ _ _
+
+lemma rename_rename (f : β → γ) (g : γ → δ) (p : mv_polynomial β α) :
+  rename g (rename f p) = rename (g ∘ f) p :=
+show rename g (eval₂ C (X ∘ f) p) = _,
+  by simp only [eval₂_comp_left (rename g) C (X ∘ f) p, (∘), rename_C, rename_X]; refl
+
+lemma rename_id (p : mv_polynomial β α) : rename id p = p :=
+eval₂_eta p
+
+end rename
+
+instance rename.is_ring_hom
+  {α} [comm_ring α] [decidable_eq α] [decidable_eq β] [decidable_eq γ] (f : β → γ) :
+  is_ring_hom (rename f : mv_polynomial β α → mv_polynomial γ α) :=
+@is_ring_hom.of_semiring (mv_polynomial β α) (mv_polynomial γ α) _ _ (rename f)
+  (rename.is_semiring_hom f)
 
 end mv_polynomial

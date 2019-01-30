@@ -21,6 +21,7 @@ install:
   - (git status | grep  -e "Changes not staged for commit:"); RESULT=$?
   - if [ $RESULT -eq 0 ]; then git checkout -f HEAD ; fi
   - git clean -d -f -q
+  - ./purge_olean.sh
   - rm mathlib.txt || true
 
 jobs:

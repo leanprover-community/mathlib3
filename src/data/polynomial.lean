@@ -5,7 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Jens Wagemaker
 
 Theory of univariate polynomials, represented as `ℕ →₀ α`, where α is a commutative semiring.
 -/
-import data.finsupp algebra.euclidean_domain tactic.ring ring_theory.associated
+import data.finsupp algebra.euclidean_domain tactic.ring ring_theory.associated ring_theory.multiplicity
 
 /-- `polynomial α` is the type of univariate polynomials over `α`.
 
@@ -833,6 +833,11 @@ polynomial.ext.2 (λ n, nat.cases_on n (by simp)
       by simp [coeff_eq_zero_of_degree_lt this, coeff_C, nat.succ_ne_zero, coeff_X,
         nat.succ_inj', @eq_comm ℕ 0])))
 
+lemma eq_X_add_C_of_degree_eq_one (h : degree p = 1) :
+  p = C (p.leading_coeff) * X + C (p.coeff 0) :=
+(eq_X_add_C_of_degree_le_one (show degree p ≤ 1, from h ▸ le_refl _)).trans
+  (by simp [leading_coeff, nat_degree_eq_of_degree_eq_some h])
+
 theorem degree_C_mul_X_pow_le (r : α) (n : ℕ) : degree (C r * X^n) ≤ n :=
 begin
   rw [← single_eq_C_mul_X],
@@ -1255,6 +1260,9 @@ decidable.by_cases
     rw [eq_zero_of_zero_eq_one _ this (p %ₘ q), eq_zero_of_zero_eq_one _ this q]; exact le_refl _)
   (assume H : q ≠ 0, le_of_lt $ degree_mod_by_monic_lt _ hq H)
 
+lemma root_X_sub_C : is_root (X - C a) b ↔ a = b :=
+by rw [is_root.def, eval_sub, eval_X, eval_C, sub_eq_zero_iff_eq, eq_comm]
+
 end comm_ring
 
 section nonzero_comm_ring
@@ -1316,10 +1324,16 @@ by simpa only [monic, leading_coeff_zero] using zero_ne_one
 lemma ne_zero_of_monic (h : monic p) : p ≠ 0 :=
 λ h₁, @not_monic_zero α _ _ (h₁ ▸ h)
 
-lemma root_X_sub_C : is_root (X - C a) b ↔ a = b :=
-by rw [is_root.def, eval_sub, eval_X, eval_C, sub_eq_zero_iff_eq, eq_comm]
+end nonzero_comm_ring
+
+section comm_ring
+
+variables [comm_ring α] [decidable_eq α] {p q : polynomial α}
 
 @[simp] lemma mod_by_monic_X_sub_C_eq_C_eval (p : polynomial α) (a : α) : p %ₘ (X - C a) = C (p.eval a) :=
+if h0 : (0 : α) = 1 then by letI := subsingleton_of_zero_eq_one α h0; exact subsingleton.elim _ _
+else
+by letI : nonzero_comm_ring α := {zero_ne_one := h0, ..show comm_ring α, from infer_instance}; exact
 have h : (p %ₘ (X - C a)).eval a = p.eval a :=
   by rw [mod_by_monic_eq_sub_mul_div _ (monic_X_sub_C a), eval_sub, eval_mul,
     eval_sub, eval_X, eval_C, sub_self, zero_mul, sub_zero],
@@ -1351,7 +1365,7 @@ lemma dvd_iff_is_root : (X - C a) ∣ p ↔ is_root p a :=
 lemma mod_by_monic_X (p : polynomial α) : p %ₘ X = C (p.eval 0) :=
 by rw [← mod_by_monic_X_sub_C_eq_C_eval, C_0, sub_zero]
 
-end nonzero_comm_ring
+end comm_ring
 
 section integral_domain
 variables [integral_domain α] [decidable_eq α] {p q : polynomial α}
@@ -1569,6 +1583,9 @@ begin
   rw [← leading_coeff, ne.def, leading_coeff_eq_zero],
   exact units.coe_ne_zero _
 end
+
+lemma degree_eq_degree_of_associated (h : associated p q) : degree p = degree q :=
+let ⟨u, hu⟩ := h in by simp [hu.symm]
 
 end integral_domain
 

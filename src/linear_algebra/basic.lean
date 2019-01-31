@@ -710,6 +710,14 @@ by simpa [disjoint] using @disjoint_ker' _ _ _ _ _ _ _ _ f ⊤
 lemma le_ker_iff_map {f : β →ₗ[α] γ} {p : submodule α β} : p ≤ ker f ↔ map f p = ⊥ :=
 by rw [ker, eq_bot_iff, map_le_iff_le_comap]
 
+lemma ker_cod_restrict (p : submodule α β) (f : γ →ₗ[α] β) (hf) :
+  ker (cod_restrict p f hf) = ker f :=
+by rw [ker, comap_cod_restrict, map_bot]; refl
+
+lemma range_cod_restrict (p : submodule α β) (f : γ →ₗ[α] β) (hf) :
+  range (cod_restrict p f hf) = comap p.subtype f.range :=
+map_cod_restrict _ _ _ _
+
 lemma map_comap_eq (f : β →ₗ[α] γ) (q : submodule α γ) :
   map f (comap f q) = range f ⊓ q :=
 le_antisymm (le_inf (map_mono le_top) (map_comap_le _ _)) $
@@ -775,6 +783,11 @@ lemma span_inl_union_inr {s : set β} {t : set γ} :
   span α (prod.inl '' s ∪ prod.inr '' t) = (span α s).prod (span α t) :=
 by rw [span_union, prod_eq_sup_map, ← span_image, ← span_image]; refl
 
+lemma ker_pair (f : β →ₗ[α] γ) (g : β →ₗ[α] δ) :
+  ker (pair f g) = ker f ⊓ ker g :=
+by rw [ker, ← prod_bot, comap_pair_prod]; refl
+
+
 end linear_map
 
 namespace submodule
@@ -795,6 +808,9 @@ by simpa using map_comap_subtype p ⊤
 
 lemma map_subtype_le (p' : submodule α p) : map p.subtype p' ≤ p :=
 by simpa using (map_mono le_top : map p.subtype p' ≤ p.subtype.range)
+
+@[simp] theorem ker_of_le (p p' : submodule α β) (h : p ≤ p') : (of_le h).ker = ⊥ :=
+by rw [of_le, ker_cod_restrict, ker_subtype]
 
 /-- If N ⊆ M then submodules of N are the same as submodules of M contained in N -/
 def map_subtype.order_iso :

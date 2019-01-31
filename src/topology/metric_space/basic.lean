@@ -1039,6 +1039,55 @@ end
 
 end proper_space
 
+namespace metric
+section second_countable
+open topological_space
+
+/-- A metric space is second countable if, for every ε > 0, there is a countable set which is ε-dense. -/
+lemma second_countable_of_almost_dense_set
+  (H : ∀ε > (0 : ℝ), ∃ s : set α, countable s ∧ (∀x, ∃y ∈ s, dist x y ≤ ε)) :
+  second_countable_topology α :=
+begin
+  choose T T_dense using H,
+  have I1 : ∀n:ℕ, (n:ℝ) + 1 > 0 :=
+    λn, lt_of_lt_of_le zero_lt_one (le_add_of_nonneg_left (nat.cast_nonneg _)),
+  have I : ∀n:ℕ, (n+1 : ℝ)⁻¹ > 0 := λn, inv_pos'.2 (I1 n),
+  let t := ⋃n:ℕ, T (n+1)⁻¹ (I n),
+  have count_t : countable t := by finish [countable_Union],
+  have clos_t : closure t = univ,
+  { refine subset.antisymm (subset_univ _) (λx xuniv, mem_closure_iff'.2 (λε εpos, _)),
+    rcases exists_nat_gt ε⁻¹ with ⟨n, hn⟩,
+    have : ε⁻¹ < n + 1 := lt_of_lt_of_le hn (le_add_of_nonneg_right zero_le_one),
+    have nε : ((n:ℝ)+1)⁻¹ < ε := (inv_lt (I1 n) εpos).2 this,
+    rcases (T_dense (n+1)⁻¹ (I n)).2 x with ⟨y, yT, Dxy⟩,
+    have : y ∈ t := mem_of_mem_of_subset yT (by apply subset_Union (λ (n:ℕ), T (n+1)⁻¹ (I n))),
+    exact ⟨y, this, lt_of_le_of_lt Dxy nε⟩ },
+  haveI : separable_space α := ⟨⟨t, ⟨count_t, clos_t⟩⟩⟩,
+  exact emetric.second_countable_of_separable α
+end
+
+/-- A metric space space is second countable if one can reconstruct up to any ε>0 any element of the
+space from countably many data. -/
+lemma second_countable_of_countable_discretization {α : Type u} [metric_space α]
+  (H : ∀ε > (0 : ℝ), ∃ (β : Type u) [encodable β] (F : α → β), ∀x y, F x = F y → dist x y ≤ ε) :
+  second_countable_topology α :=
+begin
+  classical, by_cases hs : (univ : set α) = ∅,
+  { haveI : compact_space α := ⟨by rw hs; exact compact_of_finite (set.finite_empty)⟩, by apply_instance },
+  rcases exists_mem_of_ne_empty hs with ⟨x0, hx0⟩,
+  letI : inhabited α := ⟨x0⟩,
+  refine second_countable_of_almost_dense_set (λε ε0, _),
+  rcases H ε ε0 with ⟨β, fβ, F, hF⟩,
+  let Finv := function.inv_fun F,
+  refine ⟨range Finv, ⟨countable_range _, λx, _⟩⟩,
+  let x' := Finv (F x),
+  have : F x' = F x := function.inv_fun_eq ⟨x, rfl⟩,
+  exact ⟨x', mem_range_self _, hF _ _ this.symm⟩
+end
+
+end second_countable
+end metric
+
 lemma lebesgue_number_lemma_of_metric
   {s : set α} {ι} {c : ι → set α} (hs : compact s)
   (hc₁ : ∀ i, is_open (c i)) (hc₂ : s ⊆ ⋃ i, c i) :
@@ -1162,4 +1211,141 @@ lemma compact_iff_closed_bounded [proper_space α] :
 end⟩
 
 end bounded
+
+section diam
+variables {s : set α} {x y : α}
+
+/-- The diameter of a set in a metric space. To get controllable behavior even when the diameter
+should be infinite, we express it in terms of the emetric.diameter -/
+def diam (s : set α) : ℝ := ennreal.to_real (emetric.diam s)
+
+/-- The diameter of a set is always nonnegative -/
+lemma diam_nonneg : 0 ≤ diam s :=
+by simp [diam]
+
+/-- The empty set has zero diameter -/
+@[simp] lemma diam_empty : diam (∅ : set α) = 0 :=
+by simp [diam]
+
+/-- A singleton has zero diameter -/
+@[simp] lemma diam_singleton : diam ({x} : set α) = 0 :=
+by simp [diam]
+
+/-- Characterize the boundedness of a set in terms of the finiteness of its emetric.diameter. -/
+lemma bounded_iff_diam_ne_top : bounded s ↔ emetric.diam s ≠ ⊤ :=
+begin
+  classical, by_cases hs : s = ∅,
+  { simp [hs] },
+  { rcases ne_empty_iff_exists_mem.1 hs with ⟨x, hx⟩,
+    split,
+    { assume bs,
+      rcases (bounded_iff_subset_ball x).1 bs with ⟨r, hr⟩,
+      have r0 : 0 ≤ r := by simpa [closed_ball] using hr hx,
+      have : emetric.diam s < ⊤ := calc
+        emetric.diam s ≤ emetric.diam (emetric.closed_ball x (ennreal.of_real r)) :
+          by rw emetric_closed_ball r0; exact emetric.diam_mono hr
+        ... ≤ 2 * (ennreal.of_real r) : emetric.diam_closed_ball
+        ... < ⊤ : begin apply ennreal.lt_top_iff_ne_top.2, simp [ennreal.mul_eq_top], end,
+      exact ennreal.lt_top_iff_ne_top.1 this },
+    { assume ds,
+      have : s ⊆ closed_ball x (ennreal.to_real (emetric.diam s)),
+      { rw [← emetric_closed_ball ennreal.to_real_nonneg, ennreal.of_real_to_real ds],
+        exact λy hy, emetric.edist_le_diam_of_mem hy hx },
+      exact bounded.subset this (bounded_closed_ball) }}
+end
+
+/-- An unbounded set has zero diameter. If you would prefer to get the value ∞, use `emetric.diam`.
+This lemma makes it possible to avoid side conditions in some situations -/
+lemma diam_eq_zero_of_unbounded (h : ¬(bounded s)) : diam s = 0 :=
+begin
+  simp only [bounded_iff_diam_ne_top, not_not, ne.def] at h,
+  simp [diam, h]
+end
+
+/-- If `s ⊆ t`, then the diameter of `s` is bounded by that of `t`, provided `t` is bounded. -/
+lemma diam_mono {s t : set α} (h : s ⊆ t) (ht : bounded t) : diam s ≤ diam t :=
+begin
+  unfold diam,
+  rw ennreal.to_real_le_to_real (bounded_iff_diam_ne_top.1 (bounded.subset h ht)) (bounded_iff_diam_ne_top.1 ht),
+  exact emetric.diam_mono h
+end
+
+/-- The distance between two points in a set is controlled by the diameter of the set. -/
+lemma dist_le_diam_of_mem (h : bounded s) (hx : x ∈ s) (hy : y ∈ s) : dist x y ≤ diam s :=
+begin
+  rw [diam, dist_edist],
+  rw ennreal.to_real_le_to_real (edist_ne_top _ _) (bounded_iff_diam_ne_top.1 h),
+  exact emetric.edist_le_diam_of_mem hx hy
+end
+
+/-- If the distance between any two points in a set is bounded by some constant, this constant
+bounds the diameter. -/
+lemma diam_le_of_forall_dist_le {d : real} (hd : d ≥ 0) (h : ∀x y ∈ s, dist x y ≤ d) : diam s ≤ d :=
+begin
+  have I : emetric.diam s ≤ ennreal.of_real d,
+  { refine emetric.diam_le_of_forall_edist_le (λx y hx hy, _),
+    rw [edist_dist],
+    exact ennreal.of_real_le_of_real (h x y hx hy) },
+  have A : emetric.diam s ≠ ⊤ :=
+    ennreal.lt_top_iff_ne_top.1 (lt_of_le_of_lt I (ennreal.lt_top_iff_ne_top.2 (by simp))),
+  rw [← ennreal.to_real_of_real hd, diam, ennreal.to_real_le_to_real A],
+  { exact I },
+  { simp }
+end
+
+/-- The diameter of a union is controlled by the sum of the diameters, and the distance between
+any two points in each of the sets. This lemma is true without any side condition, since it is
+obviously true if `s ∪ t` is unbounded. -/
+lemma diam_union {t : set α} (xs : x ∈ s) (yt : y ∈ t) : diam (s ∪ t) ≤ diam s + dist x y + diam t :=
+have I1 : ¬(bounded (s ∪ t)) → diam (s ∪ t) ≤ diam s + dist x y + diam t := λh, calc
+  diam (s ∪ t) = 0 + 0 + 0 : by simp [diam_eq_zero_of_unbounded h]
+  ... ≤ diam s + dist x y + diam t : add_le_add (add_le_add diam_nonneg dist_nonneg) diam_nonneg,
+have I2 : (bounded (s ∪ t)) → diam (s ∪ t) ≤ diam s + dist x y + diam t := λh,
+begin
+  have : bounded s := bounded.subset (subset_union_left _ _) h,
+  have : bounded t := bounded.subset (subset_union_right _ _) h,
+  have A : ∀a ∈ s, ∀b ∈ t, dist a b ≤ diam s + dist x y + diam t := λa ha b hb, calc
+    dist a b ≤ dist a x + dist x y + dist y b : dist_triangle4 _ _ _ _
+    ... ≤ diam s + dist x y + diam t :
+      add_le_add (add_le_add (dist_le_diam_of_mem ‹bounded s› ha xs) (le_refl _)) (dist_le_diam_of_mem ‹bounded t› yt hb),
+  have B : ∀a b ∈ s ∪ t, dist a b ≤ diam s + dist x y + diam t := λa b ha hb,
+  begin
+    cases (mem_union _ _ _).1 ha with h'a h'a; cases (mem_union _ _ _).1 hb with h'b h'b,
+    { calc dist a b ≤ diam s : dist_le_diam_of_mem ‹bounded s› h'a h'b
+           ... = diam s + (0 + 0) : by simp
+           ... ≤ diam s + (dist x y + diam t) : add_le_add (le_refl _) (add_le_add dist_nonneg diam_nonneg)
+           ... = diam s + dist x y + diam t : by simp only [add_comm, eq_self_iff_true, add_left_comm] },
+    { exact A a h'a b h'b },
+    { have Z := A b h'b a h'a, rwa [dist_comm] at Z },
+    { calc dist a b ≤ diam t : dist_le_diam_of_mem ‹bounded t› h'a h'b
+           ... = (0 + 0) + diam t : by simp
+           ... ≤ (diam s + dist x y) + diam t : add_le_add (add_le_add diam_nonneg dist_nonneg) (le_refl _) }
+  end,
+  have C : 0 ≤ diam s + dist x y + diam t := calc
+    0 = 0 + 0 + 0 : by simp
+    ... ≤ diam s + dist x y + diam t : add_le_add (add_le_add diam_nonneg dist_nonneg) diam_nonneg,
+  exact diam_le_of_forall_dist_le C B
+end,
+classical.by_cases I2 I1
+
+/-- If two sets intersect, the diameter of the union is bounded by the sum of the diameters. -/
+lemma diam_union' {t : set α} (h : s ∩ t ≠ ∅) : diam (s ∪ t) ≤ diam s + diam t :=
+begin
+  rcases ne_empty_iff_exists_mem.1 h with ⟨x, ⟨xs, xt⟩⟩,
+  simpa using diam_union xs xt
+end
+
+/-- The diameter of a closed ball of radius `r` is at most `2 r`. -/
+lemma diam_closed_ball {r : ℝ} (h : r ≥ 0) : diam (closed_ball x r) ≤ 2 * r :=
+diam_le_of_forall_dist_le (mul_nonneg (by norm_num) h) $ λa b ha hb, calc
+  dist a b ≤ dist a x + dist b x : dist_triangle_right _ _ _
+  ... ≤ r + r : add_le_add ha hb
+  ... = 2 * r : by simp [mul_two, mul_comm]
+
+/-- The diameter of a ball of radius `r` is at most `2 r`. -/
+lemma diam_ball {r : ℝ} (h : r ≥ 0) : diam (ball x r) ≤ 2 * r :=
+le_trans (diam_mono ball_subset_closed_ball bounded_closed_ball) (diam_closed_ball h)
+
+end diam
+
 end metric

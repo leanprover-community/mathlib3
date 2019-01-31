@@ -11,3 +11,8 @@ do
         rm $olean_file
     fi
 done
+
+# Delete all empty directories. An empty directory may have been created if it
+# does not contain any .lean files and all of its .olean files were deleted.
+
+find . -type d -empty -delete

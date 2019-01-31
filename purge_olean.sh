@@ -1,8 +1,11 @@
 #!/bin/sh
 
+# Top-level directory of the Git repository
+dir=`git rev-parse --show-toplevel`
+
 # Delete every <path>.olean without a matching <path>.lean.
 
-for olean_file in `find . -name "*.olean"`
+for olean_file in `find $dir -name "*.olean"`
 do
     lean_file=`echo $olean_file | sed "s/\.olean/.lean/"`
     if [ ! -e $lean_file ]; then
@@ -14,4 +17,4 @@ done
 # Delete all empty directories. An empty directory may have been created if it
 # does not contain any .lean files and all of its .olean files were deleted.
 
-find . -type d -empty -delete
+find $dir -type d -empty -delete

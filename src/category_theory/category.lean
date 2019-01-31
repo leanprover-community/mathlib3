@@ -36,12 +36,15 @@ def_replacer obviously
 class has_hom (obj : Type u) : Type (max u (v+1)) :=
 (hom : obj → obj → Type v)
 
+infixr ` ⟶ `:10 := has_hom.hom -- type as \h
+
 class category_struct (obj : Type u)
 extends has_hom.{v} obj :=
 (id       : Π X : obj, hom X X)
-(comp     : Π {X Y Z : obj}, hom X Y → hom Y Z → hom X Z)
-(notation `𝟙` := id)
-(infixr ` ≫ `:80 := comp)
+(comp     : Π {X Y Z : obj}, (X ⟶ Y) → (Y ⟶ Z) → (X ⟶ Z))
+
+notation `𝟙` := category_struct.id -- type as \b1
+infixr ` ≫ `:80 := category_struct.comp -- type as \gg
 
 /--
 The typeclass `category C` describes morphisms associated to objects of type `C`.
@@ -50,15 +53,10 @@ specified explicitly, as `category.{v} C`. (See also `large_category` and `small
 -/
 class category (obj : Type u)
 extends category_struct.{v} obj :=
-(infixr ` ⟶ `:10 := hom)
-(id_comp' : ∀ {X Y : obj} (f : hom X Y), comp (id X) f = f . obviously)
-(comp_id' : ∀ {X Y : obj} (f : hom X Y), comp f (id Y) = f . obviously)
+(id_comp' : ∀ {X Y : obj} (f : hom X Y), 𝟙 X ≫ f = f . obviously)
+(comp_id' : ∀ {X Y : obj} (f : hom X Y), f ≫ 𝟙 Y = f . obviously)
 (assoc'   : ∀ {W X Y Z : obj} (f : hom W X) (g : hom X Y) (h : hom Y Z),
-  comp (comp f g) h = comp f (comp g h) . obviously)
-
-notation `𝟙` := category_struct.id -- type as \b1
-infixr ` ≫ `:80 := category_struct.comp -- type as \gg
-infixr ` ⟶ `:10 := has_hom.hom -- type as \h
+  (f ≫ g) ≫ h = f ≫ (g ≫ h) . obviously)
 
 -- `restate_axiom` is a command that creates a lemma from a structure field,
 -- discarding any auto_param wrappers from the type.

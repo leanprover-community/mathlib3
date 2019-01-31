@@ -122,7 +122,7 @@ instance [preorder α] : small_category α :=
 section
 variables {C : Type u}
 
-def End [category_struct.{v} C] (X : C) := X ⟶ X
+def End [has_hom.{v} C] (X : C) := X ⟶ X
 
 instance End.has_one [category_struct.{v} C] {X : C} : has_one (End X) := by refine { one := 𝟙 X }
 instance End.has_mul [category_struct.{v} C] {X : C} : has_mul (End X) := by refine { mul := λ x y, x ≫ y }

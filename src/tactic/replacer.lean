@@ -15,11 +15,12 @@ meta def replacer_core {α : Type} [reflected α]
   list name → tactic α
 | [] := fail ("no implementation defined for " ++ to_string ntac)
 | (n::ns) := do d ← get_decl n, let t := d.type,
-  do { tac ← mk_const n >>= eval (tactic α), tac } <|>
-  do { tac ← mk_const n >>= eval (tactic α → tactic α),
-       tac (replacer_core ns) } <|>
-  do { tac ← mk_const n >>= eval (option (tactic α) → tactic α),
-       tac (guard (ns ≠ []) >> some (replacer_core ns)) }
+  tac ← do { mk_const n >>= eval (tactic α) } <|>
+        do { tac ← mk_const n >>= eval (tactic α → tactic α),
+            return (tac (replacer_core ns)) } <|>
+        do { tac ← mk_const n >>= eval (option (tactic α) → tactic α),
+            return (tac (guard (ns ≠ []) >> some (replacer_core ns))) },
+  tac
 
 meta def replacer (ntac : name) {α : Type} [reflected α]
   (F : Type → Type) (eF : ∀ β, reflected β → reflected (F β))

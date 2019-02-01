@@ -279,6 +279,17 @@ instance : complete_lattice (submodule α β) :=
   ..submodule.lattice.order_top,
   ..submodule.lattice.order_bot }
 
+instance : add_comm_monoid (submodule α β) :=
+{ add := (⊔),
+  add_assoc := λ _ _ _, sup_assoc,
+  zero := ⊥,
+  zero_add := λ _, bot_sup_eq,
+  add_zero := λ _, sup_bot_eq,
+  add_comm := λ _ _, sup_comm }
+
+@[simp] lemma add_eq_sup (M N : submodule α β) : M + N = M ⊔ N := rfl
+@[simp] lemma zero_eq_bot : (0 : submodule α β) = ⊥ := rfl
+
 lemma eq_top_iff' {p : submodule α β} : p = ⊤ ↔ ∀ x, x ∈ p :=
 eq_top_iff.trans ⟨λ h x, @h x trivial, λ h x _, h x⟩
 

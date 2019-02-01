@@ -295,13 +295,7 @@ have is_prime m, from ⟨by rintro rfl; rw radical_top at hrm; exact hrm trivial
 hrm $ this.radical.symm ▸ (Inf_le ⟨him, this⟩ : Inf {J : ideal R | I ≤ J ∧ is_prime J} ≤ m) hr
 
 instance : semiring (ideal R) :=
-{ add := (⊔),
-  add_assoc := λ _ _ _, sup_assoc,
-  zero := ⊥,
-  zero_add := λ _, bot_sup_eq,
-  add_zero := λ _, sup_bot_eq,
-  add_comm := λ _ _, sup_comm,
-  mul := (*),
+{ mul := (*),
   mul_assoc := ideal.mul_assoc,
   zero_mul := bot_mul,
   mul_zero := mul_bot,
@@ -309,7 +303,8 @@ instance : semiring (ideal R) :=
   one_mul := top_mul,
   mul_one := mul_top,
   left_distrib := mul_sup,
-  right_distrib := sup_mul }
+  right_distrib := sup_mul,
+  .. submodule.add_comm_monoid }
 
 @[simp] lemma add_eq_sup : I + J = I ⊔ J := rfl
 @[simp] lemma zero_eq_bot : (0 : ideal R) = ⊥ := rfl
@@ -471,17 +466,6 @@ namespace submodule
 variables {R : Type u} {M : Type v}
 variables [comm_ring R] [add_comm_group M] [module R M]
 variables (I J : ideal R) (N P : submodule R M)
-
-instance : add_comm_monoid (submodule R M) :=
-{ add := (⊔),
-  add_assoc := λ _ _ _, sup_assoc,
-  zero := ⊥,
-  zero_add := λ _, bot_sup_eq,
-  add_zero := λ _, sup_bot_eq,
-  add_comm := λ _ _, sup_comm }
-
-@[simp] lemma add_eq_sup : N + P = N ⊔ P := rfl
-@[simp] lemma zero_eq_bot : (0 : submodule R M) = ⊥ := rfl
 
 instance : semimodule (ideal R) (submodule R M) :=
 { smul_add := smul_sup,

@@ -147,7 +147,6 @@ span_induction H
         (λ hl, le_trans (hj _ hl) hjk),
       begin
         clear_,
-        rw [← @dfinsupp.sum_single ι G _ _ _ x],
         simp [linear_map.map_add, hxi, hyj,
           to_module_totalize_of_le G f hik hi,
           to_module_totalize_of_le G f hjk hj]

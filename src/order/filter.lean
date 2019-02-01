@@ -7,6 +7,7 @@ Theory of filters on sets.
 -/
 import order.galois_connection order.zorn
 import data.set.finite data.list
+import algebra.pi_instances
 import category.applicative
 open lattice set
 
@@ -756,15 +757,10 @@ le_antisymm
       union_subset hs₁ hs₂⟩)
   (sup_le (comap_mono le_sup_left) (comap_mono le_sup_right))
 
-lemma le_map_comap' {f : filter β} {m : α → β} {s : set β}
-  (hs : s ∈ f.sets) (hm : ∀b∈s, ∃a, m a = b) : f ≤ map m (comap m f) :=
-assume t' ⟨t, ht, (sub : m ⁻¹' t ⊆ m ⁻¹' t')⟩,
-by filter_upwards [ht, hs] assume x hxt hxs,
-  let ⟨y, hy⟩ := hm x hxs in
-  hy ▸ sub (show m y ∈ t, from hy.symm ▸ hxt)
-
-lemma le_map_comap {f : filter β} {m : α → β} (hm : ∀x, ∃y, m y = x) : f ≤ map m (comap m f) :=
-le_map_comap' univ_mem_sets (assume b _, hm b)
+lemma map_comap {f : filter β} {m : α → β} (hf : range m ∈ f.sets) : (f.comap m).map m = f :=
+le_antisymm
+  map_comap_le
+  (assume t' ⟨t, ht, sub⟩, by filter_upwards [ht, hf]; rintros x hxt ⟨y, rfl⟩; exact sub hxt)
 
 lemma comap_map {f : filter α} {m : α → β} (h : ∀ x y, m x = m y → x = y) :
   comap m (map m f) = f :=
@@ -1160,12 +1156,9 @@ lemma tendsto_comap_iff {f : α → β} {g : β → γ} {a : filter α} {c : fil
   tendsto f a (c.comap g) ↔ tendsto (g ∘ f) a c :=
 ⟨assume h, h.comp tendsto_comap, assume h, map_le_iff_le_comap.mp $ by rwa [map_map]⟩
 
-lemma tendsto_comap'' {m : α → β} {f : filter α} {g : filter β} (s : set α)
-  {i : γ → α} (hs : s ∈ f.sets) (hi : ∀a∈s, ∃c, i c = a)
-  (h : tendsto (m ∘ i) (comap i f) g) : tendsto m f g :=
-have tendsto m (map i $ comap i $ f) g,
-  by rwa [tendsto, ←map_compose] at h,
-le_trans (map_mono $ le_map_comap' hs hi) this
+lemma tendsto_comap'_iff {m : α → β} {f : filter α} {g : filter β} {i : γ → α}
+  (h : range i ∈ f.sets) : tendsto (m ∘ i) (comap i f) g ↔ tendsto m f g :=
+by rw [tendsto, ← map_compose]; simp only [(∘), map_comap h, tendsto]
 
 lemma comap_eq_of_inverse {f : filter α} {g : filter β} {φ : α → β} (ψ : β → α)
   (eq : ψ ∘ φ = id) (hφ : tendsto φ f g) (hψ : tendsto ψ g f) : comap φ g = f :=
@@ -1776,6 +1769,16 @@ tendsto_infi.2 $ assume s, tendsto_infi' (s.image i) $ tendsto_principal_princip
   calc s = (s.image i).image j :
       by simp only [finset.image_image, (∘), h]; exact finset.image_id.symm
     ... ⊆  t.image j : finset.image_subset_image ht
+
+lemma prod_at_top_at_top_eq {β₁ β₂ : Type*} [inhabited β₁] [inhabited β₂] [semilattice_sup β₁]
+  [semilattice_sup β₂] : filter.prod (@at_top β₁ _) (@at_top β₂ _) = @at_top (β₁ × β₂) _ :=
+by simp [at_top, prod_infi_left (default β₁), prod_infi_right (default β₂), infi_prod];
+    exact infi_comm
+
+lemma prod_map_at_top_eq {α₁ α₂ β₁ β₂ : Type*} [inhabited β₁] [inhabited β₂]
+  [semilattice_sup β₁] [semilattice_sup β₂] (u₁ : β₁ → α₁) (u₂ : β₂ → α₂) :
+  filter.prod (map u₁ at_top) (map u₂ at_top) = map (prod.map u₁ u₂) at_top :=
+by rw [prod_map_map_eq, prod_at_top_at_top_eq, prod.map_def]
 
 /- ultrafilter -/
 

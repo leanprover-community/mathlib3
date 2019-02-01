@@ -339,6 +339,22 @@ le_antisymm (supr_le $ assume h, le_refl _) (le_supr _ _)
 @[simp] lemma supr_neg {p : Prop} {f : p → α} (hp : ¬ p) : (⨆ h : p, f h) = ⊥ :=
 le_antisymm (supr_le $ assume h, (hp h).elim) bot_le
 
+lemma supr_eq_dif {p : Prop} [decidable p] (a : p → α) :
+  (⨆h:p, a h) = (if h : p then a h else ⊥) :=
+by by_cases p; simp [h]
+
+lemma supr_eq_if {p : Prop} [decidable p] (a : α) :
+  (⨆h:p, a) = (if p then a else ⊥) :=
+by rw [supr_eq_dif, dif_eq_if]
+
+lemma infi_eq_dif {p : Prop} [decidable p] (a : p → α) :
+  (⨅h:p, a h) = (if h : p then a h else ⊤) :=
+by by_cases p; simp [h]
+
+lemma infi_eq_if {p : Prop} [decidable p] (a : α) :
+  (⨅h:p, a) = (if p then a else ⊤) :=
+by rw [infi_eq_dif, dif_eq_if]
+
 -- TODO: should this be @[simp]?
 theorem infi_comm {f : ι → ι₂ → α} : (⨅i, ⨅j, f i j) = (⨅j, ⨅i, f i j) :=
 le_antisymm
@@ -564,6 +580,22 @@ show (⨅ x ∈ insert b (∅ : set β), f x) = f b,
 show (⨆ x ∈ insert b (∅ : set β), f x) = f b,
   by simp
 
+lemma infi_image {γ} {f : β → γ} {g : γ → α} {t : set β} :
+  (⨅ c ∈ f '' t, g c) = (⨅ b ∈ t, g (f b)) :=
+le_antisymm
+  (le_infi $ assume b, le_infi $ assume hbt,
+    infi_le_of_le (f b) $ infi_le (λ_, g (f b)) (mem_image_of_mem f hbt))
+  (le_infi $ assume c, le_infi $ assume ⟨b, hbt, eq⟩,
+    eq ▸ infi_le_of_le b $ infi_le (λ_, g (f b)) hbt)
+
+lemma supr_image {γ} {f : β → γ} {g : γ → α} {t : set β} :
+  (⨆ c ∈ f '' t, g c) = (⨆ b ∈ t, g (f b)) :=
+le_antisymm
+  (supr_le $ assume c, supr_le $ assume ⟨b, hbt, eq⟩,
+    eq ▸ le_supr_of_le b $ le_supr (λ_, g (f b)) hbt)
+  (supr_le $ assume b, supr_le $ assume hbt,
+    le_supr_of_le (f b) $ le_supr (λ_, g (f b)) (mem_image_of_mem f hbt))
+
 /- supr and infi under Type -/
 
 @[simp] theorem infi_empty {s : empty → α} : infi s = ⊤ :=
@@ -752,4 +784,32 @@ instance [complete_lattice α] : complete_lattice (order_dual α) :=
   le_Inf := @complete_lattice.Sup_le α _,
   .. order_dual.lattice.bounded_lattice α, ..order_dual.lattice.has_Sup α, ..order_dual.lattice.has_Inf α }
 
+instance [complete_linear_order α] : complete_linear_order (order_dual α) :=
+{ .. order_dual.lattice.complete_lattice α, .. order_dual.decidable_linear_order α }
+
 end order_dual
+
+namespace prod
+open lattice
+variables (α : Type*) (β : Type*)
+
+instance [has_Inf α] [has_Inf β] : has_Inf (α × β) :=
+⟨λs, (Inf (prod.fst '' s), Inf (prod.snd '' s))⟩
+
+instance [has_Sup α] [has_Sup β] : has_Sup (α × β) :=
+⟨λs, (Sup (prod.fst '' s), Sup (prod.snd '' s))⟩
+
+instance [complete_lattice α] [complete_lattice β] : complete_lattice (α × β) :=
+{ le_Sup := assume s p hab, ⟨le_Sup $ mem_image_of_mem _ hab, le_Sup $ mem_image_of_mem _ hab⟩,
+  Sup_le := assume s p h,
+    ⟨ Sup_le $ ball_image_of_ball $ assume p hp, (h p hp).1,
+      Sup_le $ ball_image_of_ball $ assume p hp, (h p hp).2⟩,
+  Inf_le := assume s p hab, ⟨Inf_le $ mem_image_of_mem _ hab, Inf_le $ mem_image_of_mem _ hab⟩,
+  le_Inf := assume s p h,
+    ⟨ le_Inf $ ball_image_of_ball $ assume p hp, (h p hp).1,
+      le_Inf $ ball_image_of_ball $ assume p hp, (h p hp).2⟩,
+  .. prod.lattice.bounded_lattice α β,
+  .. prod.lattice.has_Sup α β,
+  .. prod.lattice.has_Inf α β }
+
+end prod

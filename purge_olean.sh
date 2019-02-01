@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Top-level root directory of the Git repository
 root=`git rev-parse --show-toplevel`
@@ -12,7 +12,7 @@ dirs="$root/src $root/test"
 
 for olean_file in `find $dirs -name "*.olean"`
 do
-    lean_file=`echo $olean_file | sed "s/\.olean/.lean/"`
+    lean_file=${olean_file/%.olean/.lean}
     if [ ! -e $lean_file ]; then
         echo "rm $olean_file"
         rm $olean_file

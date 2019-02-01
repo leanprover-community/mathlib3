@@ -651,8 +651,16 @@ This includes the induction hypothesis when using the equation compiler and
 It is useful when using a tactic such as `finish`, `simp *` or `subst` that may use these
 auxiliary declarations, and produce an error saying the recursion is not well founded.
 -/
-
 meta def clear_aux_decl : tactic unit := tactic.clear_aux_decl
+
+/--
+`set a := t with h` is a variant of `let a := t` that adds the hypothesis `h : a = t` to the local context.
+`set a := t with h⁻¹` will add `h : t = a` instead.
+`set! a := t with h` will try to replace `t` with `a` in the goal and all hypotheses.
+-/
+meta def set (h_simp : parse (tk "!")?) (a : parse ident) (_ : parse (tk ":=")) (v : parse texpr)
+  (h : parse (tk "with" >> ident)) (h_symm : parse (tk "⁻¹")?) :=
+do e ← i_to_expr v, tactic.set a h e h_simp.is_some h_symm.is_some
 
 end interactive
 end tactic

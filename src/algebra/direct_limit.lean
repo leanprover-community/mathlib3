@@ -145,12 +145,9 @@ span_induction H
       (finset.mem_union.1 (dfinsupp.support_add hl)).elim
         (λ hl, le_trans (hi _ hl) hik)
         (λ hl, le_trans (hj _ hl) hjk),
-      begin
-        clear_,
-        simp [linear_map.map_add, hxi, hyj,
+      by simp [linear_map.map_add, hxi, hyj,
           to_module_totalize_of_le G f hik hi,
-          to_module_totalize_of_le G f hjk hj]
-      end⟩)
+          to_module_totalize_of_le G f hjk hj]⟩)
   (λ a x ⟨i, hi, hxi⟩,
     ⟨i, λ k hk, hi k (dfinsupp.support_smul hk),
       by simp [linear_map.map_smul, hxi]⟩)

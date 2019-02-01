@@ -16,7 +16,7 @@ universes u v
 
 open category_theory
 
-namespace category_theory.examples
+namespace category_theory.instances
 
 /-- The category of monoids and monoid morphisms. -/
 @[reducible] def Mon : Type (u+1) := bundled monoid
@@ -55,4 +55,4 @@ instance : faithful (forget_to_Mon) := {}
 
 end CommMon
 
-end category_theory.examples
+end category_theory.instances

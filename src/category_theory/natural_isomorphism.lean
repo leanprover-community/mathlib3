@@ -74,8 +74,8 @@ begin erw [nat_trans.naturality, ←category.assoc, is_iso.hom_inv_id, category.
 def of_components (app : ∀ X : C, (F.obj X) ≅ (G.obj X))
   (naturality : ∀ {X Y : C} (f : X ⟶ Y), (F.map f) ≫ ((app Y).hom) = ((app X).hom) ≫ (G.map f)) :
   F ≅ G :=
-{ hom  := { app := λ X, ((app X).hom), },
-  inv  :=
+{ hom := { app := λ X, ((app X).hom), },
+  inv :=
   { app := λ X, ((app X).inv),
     naturality' := λ X Y f,
     by simpa using congr_arg (λ f, (app X).inv ≫ (f ≫ (app Y).inv)) (naturality f).symm } }
@@ -87,6 +87,12 @@ by tidy
   (of_components app naturality).hom.app X = (app X).hom := rfl
 @[simp] def of_components.inv_app (app : ∀ X : C, (F.obj X) ≅ (G.obj X)) (naturality) (X) :
   (of_components app naturality).inv.app X = (app X).inv := rfl
+
+instance is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso α :=
+begin
+  convert is_iso.of_iso (of_components (λ X, as_iso (α.app X)) (λ X Y f, α.naturality f)),
+  ext, refl
+end
 
 end category_theory.nat_iso
 

@@ -559,6 +559,13 @@ support_zip_with
   support (-f) = support f :=
 by ext i; simp
 
+local attribute [instance] dfinsupp.to_module
+
+lemma support_smul {γ : Type w} [ring γ] [Π i, add_comm_group (β i)] [Π i, module γ (β i)]
+  [Π (i : ι), decidable_pred (eq (0 : β i))]
+  {b : γ} {v : Π₀ i, β i} : (b • v).support ⊆ v.support :=
+λ x, by simp [dfinsupp.mem_support_iff, not_imp_not] {contextual := tt}
+
 instance [decidable_eq ι] [Π i, has_zero (β i)] [Π i, decidable_eq (β i)] : decidable_eq (Π₀ i, β i) :=
 assume f g, decidable_of_iff (f.support = g.support ∧ (∀i∈f.support, f i = g i))
   ⟨assume ⟨h₁, h₂⟩, ext $ assume i,
@@ -727,13 +734,6 @@ begin
   rw [sum_add_index, ih, sum_single_index],
   all_goals { intros, simp }
 end
-
-lemma map_sum {R δ : Type*} [ring R] [add_comm_group δ] [module R δ] [add_comm_group γ]
-  [module R γ] [Π i, add_comm_monoid (β i)]
-  [Π i, decidable_pred (eq (0 : β i))] {f : Π₀ i, β i} {h : Π i, β i → γ} {l : γ →ₗ δ} :
-  l (f.sum h) = f.support.sum (λ x, (h x)) :=
-
-
 
 @[to_additive dfinsupp.sum_subtype_domain_index]
 lemma prod_subtype_domain_index [Π i, has_zero (β i)] [Π i, decidable_pred (eq (0 : β i))]

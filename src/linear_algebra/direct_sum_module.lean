@@ -25,6 +25,10 @@ instance : module R (direct_sum ι β) := dfinsupp.to_module
 variables R ι β
 def lmk : Π s : finset ι, (Π i : (↑s : set ι), β i.1) →ₗ[R] direct_sum ι β :=
 dfinsupp.lmk β R
+lemma single_eq_of (i : ι) (b : β i) :
+  dfinsupp.single i b = of ι β i b := rfl
+
+variables {ι β}
 
 def lof : Π i : ι, β i →ₗ[R] direct_sum ι β :=
 dfinsupp.lsingle β R
@@ -90,9 +94,14 @@ by rw [of, dfinsupp.lsingle_apply, dfinsupp.single_apply, dif_pos rfl]
 lemma apply_eq_component (f : direct_sum R ι β) (i : ι) :
   f i = component ι β i f := rfl
 
-@[simp] lemma component.of (i : ι) (b : β i) :
+@[simp] lemma component.of_self (i : ι) (b : β i) :
   component ι β i ((of ι β i) b) = b :=
 of_apply i b
+
+lemma component.of (i j : ι) (b : β j) :
+  component ι β i ((of ι β j) b) =
+  if h : j = i then eq.rec_on h b else 0 :=
+dfinsupp.single_apply
 
 @[extensionality] lemma ext {f g : direct_sum R ι β}
   (h : ∀ i, component ι β i f = component ι β i g) : f = g :=

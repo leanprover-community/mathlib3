@@ -2,17 +2,6 @@ import linear_algebra.direct_sum_module linear_algebra.linear_combination tactic
 
 universes u v w u₁
 
-namespace tactic.interactive 
-open tactic
-meta def clear_aux_decl : tactic unit :=
-do l ← local_context,
-match l with
-| [] := skip
-| (e::l) := cond e.is_aux_decl (tactic.clear e) skip
-end
-
-end tactic.interactive
-
 open lattice submodule
 
 class directed_order (α : Type u) extends partial_order α :=
@@ -121,154 +110,61 @@ if h : i ≤ j
   else by dsimp [totalize]; rw [dif_neg h, dif_neg h, linear_map.zero_apply]
 -- set_option trace.simplify.rewrite true
 
+lemma to_module_totalize_of_le {x : direct_sum R ι G} {i j : ι}
+  (hij : i ≤ j) (hx : ∀ k ∈ x.support, k ≤ i) :
+  direct_sum.to_module ι (λ k, totalize G f k j) x =
+  f i j hij (direct_sum.to_module ι (λ k, totalize G f k i) x) :=
+begin
+  rw [← @dfinsupp.sum_single ι G _ _ _ x, dfinsupp.sum],
+  simp only [linear_map.map_sum],
+  refine finset.sum_congr rfl (λ k hk, _),
+  rw [direct_sum.single_eq_of],
+  simp [totalize_apply, hx k hk, le_trans (hx k hk) hij,
+    directed_system.Hcomp f]
+end
 
-
-theorem of.zero_exact {i x} (H : of ι G R f i x = 0) :
-  ∃ j hij, f i j hij x = (0 : G j) := 
-@span_induction _ _ _ _ _ _ _
-  (λ y, ∀ i (x : G i), y = direct_sum.of ι G i x →
-    ∃ j hij, f i j hij x = (0 : G j))
-  ((submodule.quotient.eq _).1 H)
-  (λ y hy', let ⟨i, j, Hij, z, hy⟩ := mem_thing.1 hy' in 
-    λ k xk hyk,
-      let ⟨l, hl⟩ := directed_order.directed i k in
-      ⟨l, hl.2, begin
-        clear_aux_decl,
-        subst hyk,
-        have := congr_arg (direct_sum.component ι G k) hy,
-        clear hy',
-        simp at this,
-        subst this,
-
-
-
+lemma of.zero_exact_aux {x : direct_sum R ι G} (H : x ∈ span (thing G f)) :
+  ∃ j, (∀ k ∈ x.support, k ≤ j) ∧ direct_sum.to_module ι (λ i, totalize G f i j) x = (0 : G j) :=
+span_induction H
+  (λ x hx, let ⟨i, j, hij, y, hxy⟩ := mem_thing.1 hx in
+    let ⟨k, hik, hjk⟩ := directed_order.directed i j in
+    ⟨k, begin
+      clear_,
+      subst hxy,
+      simp [linear_map.map_sub, totalize_apply, hik, hjk,
+        directed_system.Hcomp f, direct_sum.apply_eq_component,
+        direct_sum.component.of],
+      intros,
+      split_ifs at *;
+      simp * at *
+    end⟩)
+  ⟨default ι, λ _ h, (finset.not_mem_empty _ h).elim, linear_map.map_zero _⟩
+  (λ x y ⟨i, hi, hxi⟩ ⟨j, hj, hyj⟩,
+    let ⟨k, hik, hjk⟩ := directed_order.directed i j in
+    ⟨k, λ l hl,
+      (finset.mem_union.1 (dfinsupp.support_add hl)).elim
+        (λ hl, le_trans (hi _ hl) hik)
+        (λ hl, le_trans (hj _ hl) hjk),
+      begin
+        clear_,
+        rw [← @dfinsupp.sum_single ι G _ _ _ x],
+        simp [linear_map.map_add, hxi, hyj,
+          to_module_totalize_of_le G f hik hi,
+          to_module_totalize_of_le G f hjk hj]
       end⟩)
-  _
-  begin
-    simp,
+  (λ a x ⟨i, hi, hxi⟩,
+    ⟨i, λ k hk, hi k (dfinsupp.support_smul hk),
+      by simp [linear_map.map_smul, hxi]⟩)
 
-  end 
-  _ 
-  _ _ (sub_zero _)
-
-theorem of.zero_exact {i x} (H : of ι G R f i x = 0) :
-  ∃ j hij, f i j hij x = (0 : G j) := 
-@span_induction _ _ _ _ _ _ _
-  (λ y, ∀ i (x : G i), (direct_sum.to_module ι (λ j, totalize G f j i)) y = x →
-    ∃ j hij, f i j hij x = (0 : G j))
-  ((submodule.quotient.eq _).1 H)
-  (λ y hy', let ⟨i, j, Hij, z, hy⟩ := mem_thing.1 hy' in
-    (λ k xk hyk,
-      let ⟨l, hl⟩ := directed_order.directed j k in
-      ⟨l, hl.2, begin
-        clear _let_match _let_match,
-        subst hyk,
-        have := congr_arg ((direct_sum.of ι G l).comp (direct_sum.to_module ι (λ i, totalize G f i l))) hy,
-        simp only [direct_sum.to_module.of, linear_map.map_sub] at this,
-        simp [totalize_apply] at *,
-        rw [dif_pos (le_trans Hij hl.1), dif_pos hl.1, directed_system.Hcomp f,
-          add_neg_self] at this,
-        clear H hy' x hy Hij z i i,
-        rw [← direct_sum.sum_of y, dfinsupp.sum] at *,
-        refine direct_sum.of_inj l _,
-        simp only [linear_map.map_sum, direct_sum.to_module.of,
-          direct_sum.ext_iff, linear_map.map_zero] at *,
-        assume i,
-        calc finset.sum (dfinsupp.support y)
-              (λ (m : ι), direct_sum.component ι G i
-              ((direct_sum.of ι G l) ((f k l _) ((totalize G f m k) (direct_sum.component ι G m y)))))
-            = direct_sum.component ι G i
-              ((direct_sum.of ι G l) ((f k l _) ((totalize G f l k) (direct_sum.component ι G l y)))) :
-            finset.sum_eq_single _ begin
-              intros,
-              simp [direct_sum.apply_eq_component, totalize_apply],
-
-            end _
-        ... = _ : sorry
-
-
-
-      end⟩))
-  (λ i x hix, ⟨i, le_refl _,
-    by rw [← linear_map.map_zero (direct_sum.of ι G i), direct_sum.to_module.of,
-      linear_map.map_zero] at hix;
-      rw [directed_system.Hid f, hix]⟩)
-  (λ x y hx hy i _ hxy,
-    let ⟨j, hij, hj⟩ := hx i _ rfl in
-    let ⟨k, hik, hk⟩ := hy i _ rfl in
-    let ⟨l, hl⟩ := directed_order.directed j k in
-    ⟨l, le_trans hij hl.1, begin
-      have hx := congr_arg (f j l hl.1) hj,
-      have hy := congr_arg (f k l hl.2) hk,
-      simp only [directed_system.Hcomp f] at hx hy,
-      rw [← hxy, linear_map.map_add, linear_map.map_add, hx, hy],
-      simp
-    end⟩)
-  (λ a x hx i _ hax,
-    let ⟨j, hij, hj⟩ := hx i _ rfl in
-    ⟨j, hij, begin
-      clear _let_match,
-      subst hax,
-      simp [linear_map.map_smul, hj]
-    end⟩)
-  _ _
-  (begin
-    rw [sub_zero, direct_sum.to_module.of, totalize],
-    dsimp,
-    rw [dif_pos (le_refl _), directed_system.Hid f]
-  end)
-#print subtype.val
 theorem of.zero_exact {i x} (H : of ι G R f i x = 0) :
   ∃ j hij, f i j hij x = (0 : G j) :=
-@span_induction _ _ _ _ _ _ _
-  (λ y, ∀ i (x : G i), (direct_sum.to_module ι (λ j, totalize G f j i)) y = x →
-    ∃ j hij, f i j hij x = (0 : G j))
-  ((submodule.quotient.eq _).1 H)
-  (λ y hy', let ⟨i, j, Hij, z, hy⟩ := mem_thing.1 hy' in
-    (λ k xk hyk,
-      let ⟨l, hl⟩ := directed_order.directed j k in
-      ⟨l, hl.2, 
-        --have i ≤ k → j ≤ k, from _,
-        begin
-        clear _let_match _let_match hy',
-        subst hyk, subst hy,
-        simp [direct_sum.apply_eq_component, direct_sum.ext_iff, linear_map.map_sub,
-          totalize_apply],
-        split_ifs;
-        simp [directed_system.Hcomp f] at *,
-        
-
-
-
-      end⟩))
-  (λ i x hix, ⟨i, le_refl _,
-    by rw [← linear_map.map_zero (direct_sum.of ι G i), direct_sum.to_module.of,
-      linear_map.map_zero] at hix;
-      rw [directed_system.Hid f, hix]⟩)
-  (λ x y hx hy i _ hxy,
-    let ⟨j, hij, hj⟩ := hx i _ rfl in
-    let ⟨k, hik, hk⟩ := hy i _ rfl in
-    let ⟨l, hl⟩ := directed_order.directed j k in
-    ⟨l, le_trans hij hl.1, begin
-      have hx := congr_arg (f j l hl.1) hj,
-      have hy := congr_arg (f k l hl.2) hk,
-      simp only [directed_system.Hcomp f] at hx hy,
-      rw [← hxy, linear_map.map_add, linear_map.map_add, hx, hy],
-      simp
-    end⟩)
-  (λ a x hx i _ hax,
-    let ⟨j, hij, hj⟩ := hx i _ rfl in
-    ⟨j, hij, begin
-      clear _let_match,
-      subst hax,
-      simp [linear_map.map_smul, hj]
-    end⟩)
-  _ _
-  (begin
-    rw [sub_zero, direct_sum.to_module.of, totalize],
-    dsimp,
-    rw [dif_pos (le_refl _), directed_system.Hid f]
-  end)
+let ⟨j, hj, hxj⟩ := of.zero_exact_aux G f
+  ((submodule.quotient.eq _).1 H) in
+if hx0 : x = 0 then ⟨i, le_refl _, by simp [hx0]⟩
+else
+  have hij : i ≤ j, from hj _ $
+    by simp [direct_sum.apply_eq_component, hx0],
+  ⟨j, hij, by simpa [totalize_apply, hij] using hxj⟩
 
 end module
 

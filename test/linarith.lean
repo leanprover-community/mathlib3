@@ -106,3 +106,10 @@ example
 (N : ℕ) (n : ℕ) (Hirrelevant : n > N)
 (A : ℚ) (l : ℚ) (h : A - l ≤ -(A - l)) (h_1 : ¬A ≤ -A) (h_2 : ¬l ≤ -l)
 (h_3 : -(A - l) < 1) :  A < l + 1 := by linarith
+
+example (d : ℚ) (q n : ℕ) (h1 : ((q : ℚ) - 1)*n ≥ 0) (h2 : d = 2/3*(((q : ℚ) - 1)*n)) : d ≤ ((q : ℚ) - 1)*n :=
+by linarith
+
+example (d : ℚ) (q n : ℕ) (h1 : ((q : ℚ) - 1)*n ≥ 0) (h2 : d = 2/3*(((q : ℚ) - 1)*n)) :
+  ((q : ℚ) - 1)*n - d = 1/3 * (((q : ℚ) - 1)*n) :=
+by linarith

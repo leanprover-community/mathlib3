@@ -199,7 +199,7 @@ def fun_obj_preimage_iso (F : C ⥤ D) [ess_surj F] (d : D) : F.obj (F.obj_preim
 ess_surj.iso F d
 end functor
 
-namespace category_theory.equivalence
+namespace equivalence
 
 def ess_surj_of_equivalence (F : C ⥤ D) [is_equivalence F] : ess_surj F :=
 ⟨ λ Y : D, F.inv.obj Y, λ Y : D, (nat_iso.app F.inv_fun_id Y) ⟩
@@ -252,6 +252,6 @@ def equivalence_of_fully_faithfully_ess_surj
     (by obviously) }
 end
 
-end category_theory.equivalence
+end equivalence
 
 end category_theory

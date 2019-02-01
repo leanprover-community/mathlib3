@@ -7,7 +7,7 @@ Theory of unique factorization domains.
 
 @TODO: setup the complete lattice structure on `factor_set`.
 -/
-import ring_theory.associated algebra.gcd_domain
+import algebra.gcd_domain
 
 variables {α : Type*}
 local infix ` ~ᵤ ` : 50 := associated

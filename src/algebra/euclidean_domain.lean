@@ -12,6 +12,7 @@ universe u
 
 class euclidean_domain (α : Type u) extends nonzero_comm_ring α :=
 (quotient : α → α → α)
+(quotient_zero : ∀ a, quotient a 0 = 0)
 (remainder : α → α → α)
  -- This could be changed to the same order as int.mod_add_div.
  -- We normally write qb+r rather than r + qb though.
@@ -95,8 +96,13 @@ mod_eq_zero.2 (one_dvd _)
 @[simp] lemma zero_mod (b : α) : 0 % b = 0 :=
 mod_eq_zero.2 (dvd_zero _)
 
-@[simp] lemma zero_div {a : α} (a0 : a ≠ 0) : 0 / a = 0 :=
-by simpa only [zero_mul] using mul_div_cancel 0 a0
+@[simp] lemma div_zero (a : α) : a / 0 = 0 :=
+quotient_zero a
+
+@[simp] lemma zero_div {a : α} : 0 / a = 0 :=
+classical.by_cases
+  (λ a0 : a = 0, a0.symm ▸ div_zero 0)
+  (λ a0, by simpa only [zero_mul] using mul_div_cancel 0 a0)
 
 @[simp] lemma div_self {a : α} (a0 : a ≠ 0) : a / a = 1 :=
 by simpa only [one_mul] using mul_div_cancel 1 a0
@@ -106,6 +112,14 @@ by rw [← h, mul_div_cancel _ hb]
 
 lemma eq_div_of_mul_eq_right {a b c : α} (ha : a ≠ 0) (h : a * b = c) : b = c / a :=
 by rw [← h, mul_div_cancel_left _ ha]
+
+theorem mul_div_assoc (x : α) {y z : α} (h : z ∣ y) : x * y / z = x * (y / z) :=
+begin
+  classical, by_cases hz : z = 0,
+  { subst hz, rw [div_zero, div_zero, mul_zero] },
+  rcases h with ⟨p, rfl⟩,
+  rw [mul_div_cancel_left _ hz, mul_left_comm, mul_div_cancel_left _ hz]
+end
 
 section gcd
 variable [decidable_eq α]
@@ -225,13 +239,14 @@ instance (α : Type*) [e : euclidean_domain α] : integral_domain α :=
 by haveI := classical.dec_eq α; exact
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
     λ a b (h : a * b = 0), or_iff_not_and_not.2 $ λ h0 : a ≠ 0 ∧ b ≠ 0,
-      h0.1 $ by rw [← mul_div_cancel a h0.2, h, zero_div h0.2],
+      h0.1 $ by rw [← mul_div_cancel a h0.2, h, zero_div],
   ..e }
 
 end gcd
 
 instance : euclidean_domain ℤ :=
 { quotient := (/),
+  quotient_zero := int.div_zero,
   remainder := (%),
   quotient_mul_add_remainder_eq := λ a b, by rw add_comm; exact int.mod_add_div _ _,
   r := λ a b, a.nat_abs < b.nat_abs,

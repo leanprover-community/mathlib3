@@ -4,6 +4,43 @@ In addition to [core tactics](https://leanprover.github.io/reference/tactics.htm
 mathlib provides a number of specific interactive tactics and commands.
 Here we document the mostly commonly used ones.
 
+### Table of Contents
+
+* [Instance cache tactics](#instance-cache-tactics)
+* [The `extensionality` attribute](#the-extensionality-attribute)
+* [ac_mono](#ac_mono)
+* [apply_rules](#apply_rules)
+* [assoc_rewrite](#assoc_rewrite)
+* [choose](#choose)
+* [clear_aux_decl](#clear_aux_decl)
+* [congr'](#congr)
+* [conv](#conv)
+* [convert](#convert)
+* [def_replacer](#def_replacer)
+* [elide/unelide](#elideunelide)
+* [ext1 / ext](#ext1--ext)
+* [fin_cases](#fin_cases)
+* [find](#find)
+* [finish/clarify/safe](#finishclarifysafe)
+* [h_generalize](#h_generalize)
+* [linarith](#linarith)
+* [mono](#mono)
+* [pi_instance](#pi_instance)
+* [rcases](#rcases)
+* [refine_struct](#refine_struct)
+* [replace](#replace)
+* [restate_axiom](#restate_axiom)
+* [ring](#ring)
+* [rintro](#rintro)
+* [set](#set)
+* [simpa](#simpa)
+* [solve_by_elim](#solve_by_elim)
+* [squeeze_simp / squeeze_simpa](#squeeze_simp--squeeze_simpa)
+* [tfae](#tfae)
+* [tidy](#tidy)
+* [unfold_coes](#unfold_coes)
+* [use](#use)
+
 ### Instance cache tactics
 
 * `resetI`: Reset the instance cache. This allows any new instances

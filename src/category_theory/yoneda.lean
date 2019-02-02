@@ -24,19 +24,19 @@ def yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁) :=
 { obj := λ X,
   { obj := λ Y, unop Y ⟶ X,
     map := λ Y Y' f g, f.unop ≫ g,
-    map_comp' := begin intros X_1 Y Z f g, ext1, dsimp at *, erw [category.assoc] end,
-    map_id' := begin intros X_1, ext1, dsimp at *, erw [category.id_comp] end },
+    map_comp' := λ _ _ _ f g, begin ext1, dsimp at *, erw [category.assoc] end,
+    map_id' := λ Y, begin ext1, dsimp at *, erw [category.id_comp] end },
   map := λ X X' f, { app := λ Y g, g ≫ f } }
 
 def coyoneda : Cᵒᵖ ⥤ (C ⥤ Type v₁) :=
 { obj := λ X,
   { obj := λ Y, unop X ⟶ Y,
     map := λ Y Y' f g, g ≫ f,
-    map_comp' := begin intros X_1 Y Z f g, ext1, dsimp at *, erw [category.assoc] end,
-    map_id' := begin intros X_1, ext1, dsimp at *, erw [category.comp_id] end },
+    map_comp' := λ _ _ _ f g, begin ext1, dsimp at *, erw [category.assoc] end,
+    map_id' := λ Y, begin ext1, dsimp at *, erw [category.comp_id] end },
   map := λ X X' f, { app := λ Y g, f.unop ≫ g },
-  map_comp' := begin intros X Y Z f g, ext1, ext1, dsimp at *, erw [category.assoc] end,
-  map_id' := begin intros X, ext1, ext1, dsimp at *, erw [category.id_comp] end }
+  map_comp' := λ _ _ _ f g, begin ext1, ext1, dsimp at *, erw [category.assoc] end,
+  map_id' := λ X, begin ext1, ext1, dsimp at *, erw [category.id_comp] end }
 
 namespace yoneda
 @[simp] lemma obj_obj (X : C) (Y : Cᵒᵖ) : (yoneda.obj X).obj Y = (unop Y ⟶ X) := rfl

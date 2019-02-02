@@ -1678,6 +1678,7 @@ div_by_monic_eq_div p (monic_X_sub_C a) ▸ mul_div_by_monic_eq_iff_is_root
 
 instance : euclidean_domain (polynomial α) :=
 { quotient := (/),
+  quotient_zero := by simp [div_def],
   remainder := (%),
   r := _,
   r_well_founded := degree_lt_wf,
@@ -1702,9 +1703,6 @@ lemma div_eq_zero_iff (hq0 : q ≠ 0) : p / q = 0 ↔ degree p < degree q :=
     by rwa degree_mul_leading_coeff_inv q hq0,
   have hm : monic (q * C (leading_coeff q)⁻¹) := monic_mul_leading_coeff_inv hq0,
   by rw [div_def, (div_by_monic_eq_zero_iff hm (ne_zero_of_monic hm)).2 hlt, mul_zero]⟩
-
-@[simp] lemma div_zero : p / 0 = 0 :=
-by simp [div_def]
 
 lemma degree_add_div (hq0 : q ≠ 0) (hpq : degree q ≤ degree p) :
   degree q + degree (p / q) = degree p :=

@@ -11,7 +11,7 @@ meta def back_attribute : user_attribute unit (option unit) := {
   name := `back,
   descr :=
 "A lemma that should be applied to a goal whenever possible;
-use `back` to automatically `apply` all lemmas tagged `[back]`.
+use the tactic `back` to automatically `apply` all lemmas tagged `[back]`.
 Lemmas tagged with `[back!]` will be applied even if the
 resulting goals cannot all be discharged.",
   parser := optional $ lean.parser.tk "!"
@@ -55,18 +55,11 @@ do g :: _ ← get_goals,
 meta def filter_mvars (L : list expr) : tactic (list expr) :=
 (list.filter (λ e, e.is_meta_var)) <$> (L.mmap (λ e, instantiate_mvars e))
 
-meta def patch_nth {α : Type} (f : α → α) : ℕ → list α → list α
-| _ []           := []
-| 0 (h :: t)     := f h :: t
-| (n+1) (h :: t) := h :: patch_nth n t
-
-meta def opatch_nth {α : Type} (f : α → option α) : ℕ → list α → list α
-| _ []           := []
-| 0 (h :: t)     := match f h with
-                    | (some e) := e :: t
-                    | none     := t
-                    end
-| (n+1) (h :: t) := h :: opatch_nth n t
+-- TODO remove in cleanup
+meta def pad_trace (n : ℕ) {α : Type} [has_to_tactic_format α] (a : α) : tactic unit :=
+do let s := (list.repeat ' ' n).as_string,
+   p ← pp a,
+   trace (s ++ sformat!"{p}")
 
 /--
 * Discard any goals which have already been solved,
@@ -88,11 +81,6 @@ do stashed ← filter_mvars s.stashed,
      lemmas := lemmas,
      .. s}
 
-meta def pad_trace (n : ℕ) {α : Type} [has_to_tactic_format α] (a : α) : tactic unit :=
-do let s := (list.repeat ' ' n).as_string,
-   p ← pp a,
-   trace (s ++ sformat!"{p}")
-
 meta def back_state.apply (s : back_state) (index : ℕ) (e : expr) (committed : bool) : tactic back_state :=
 do apply_thorough e,
    goal_types ← get_goals >>= λ gs, gs.mmap infer_type,
@@ -106,7 +94,7 @@ do apply_thorough e,
    else
      return { in_progress := gs ++ s.in_progress, .. s' }
 
-meta def back_state.run : Π (s : back_state), tactic back_state
+meta def back_state.run : back_state → tactic back_state
 | s :=
   do
   guard (s.steps ≤ s.limit.get_or_else 20),

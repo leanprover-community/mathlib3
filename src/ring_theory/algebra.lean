@@ -343,31 +343,6 @@ end
 
 end mv_polynomial
 
-section
-
-variables (R : Type*) [comm_ring R]
-
-/-- CRing ⥤ ℤ-Alg -/
-def ring.to_ℤ_algebra : algebra ℤ R :=
-algebra.of_ring_hom coe $ by constructor; intros; simp
-
-/-- CRing ⥤ ℤ-Alg -/
-def is_ring_hom.to_ℤ_alg_hom
-  {R : Type u} [comm_ring R] (iR : algebra ℤ R)
-  {S : Type v} [comm_ring S] (iS : algebra ℤ S)
-  (f : R → S) [is_ring_hom f] : R →ₐ[ℤ] S :=
-{ to_fun := f, hom := by apply_instance,
-  commutes' := λ i, int.induction_on i (by rw [algebra.map_zero, algebra.map_zero, is_ring_hom.map_zero f])
-      (λ i ih, by rw [algebra.map_add, algebra.map_add, algebra.map_one, algebra.map_one];
-        rw [is_ring_hom.map_add f, is_ring_hom.map_one f, ih])
-      (λ i ih, by rw [algebra.map_sub, algebra.map_sub, algebra.map_one, algebra.map_one];
-        rw [is_ring_hom.map_sub f, is_ring_hom.map_one f, ih]) }
-
-instance : ring (polynomial ℤ) :=
-comm_ring.to_ring _
-
-end
-
 structure subalgebra (R : Type u) (A : Type v)
   [comm_ring R] [ring A] [algebra R A] : Type v :=
 (carrier : set A) [subring : is_subring carrier]
@@ -518,3 +493,37 @@ def to_top : A →ₐ[R] (⊤ : subalgebra R A) :=
   commutes' := λ _, rfl }
 
 end algebra
+
+section int
+
+variables (R : Type*) [comm_ring R]
+
+/-- CRing ⥤ ℤ-Alg -/
+def alg_hom_int
+  {R : Type u} [comm_ring R] [algebra ℤ R]
+  {S : Type v} [comm_ring S] [algebra ℤ S]
+  (f : R → S) [is_ring_hom f] : R →ₐ[ℤ] S :=
+{ to_fun := f, hom := by apply_instance,
+  commutes' := λ i, int.induction_on i (by rw [algebra.map_zero, algebra.map_zero, is_ring_hom.map_zero f])
+      (λ i ih, by rw [algebra.map_add, algebra.map_add, algebra.map_one, algebra.map_one];
+        rw [is_ring_hom.map_add f, is_ring_hom.map_one f, ih])
+      (λ i ih, by rw [algebra.map_sub, algebra.map_sub, algebra.map_one, algebra.map_one];
+        rw [is_ring_hom.map_sub f, is_ring_hom.map_one f, ih]) }
+
+/-- CRing ⥤ ℤ-Alg -/
+instance algebra_int : algebra ℤ R :=
+algebra.of_ring_hom coe $ by constructor; intros; simp
+
+variables {R}
+/-- CRing ⥤ ℤ-Alg -/
+def subalgebra_of_subring (S : set R) [is_subring S] : subalgebra ℤ R :=
+{ carrier := S, range_le := λ x ⟨i, h⟩, h ▸ int.induction_on i
+    (by rw algebra.map_zero; exact is_add_submonoid.zero_mem _)
+    (λ i hi, by rw [algebra.map_add, algebra.map_one]; exact is_add_submonoid.add_mem hi (is_submonoid.one_mem _))
+    (λ i hi, by rw [algebra.map_sub, algebra.map_one]; exact is_add_subgroup.sub_mem _ _ _ hi (is_submonoid.one_mem _)) }
+
+@[simp] lemma mem_subalgebra_of_subring {x : R} {S : set R} [is_subring S] :
+  x ∈ subalgebra_of_subring S ↔ x ∈ S :=
+iff.rfl
+
+end int

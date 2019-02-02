@@ -1301,6 +1301,13 @@ decidable.by_cases
 lemma root_X_sub_C : is_root (X - C a) b ↔ a = b :=
 by rw [is_root.def, eval_sub, eval_X, eval_C, sub_eq_zero_iff_eq, eq_comm]
 
+def nonzero_comm_ring.of_polynomial_ne (h : p ≠ q) : nonzero_comm_ring α :=
+{ zero := 0,
+  one := 1,
+  zero_ne_one := λ h01, h $
+    by rw [← one_mul p, ← one_mul q, ← C_1, ← h01, C_0, zero_mul, zero_mul],
+  ..show comm_ring α, by apply_instance }
+
 end comm_ring
 
 section nonzero_comm_ring
@@ -1371,7 +1378,7 @@ variables [comm_ring α] [decidable_eq α] {p q : polynomial α}
 @[simp] lemma mod_by_monic_X_sub_C_eq_C_eval (p : polynomial α) (a : α) : p %ₘ (X - C a) = C (p.eval a) :=
 if h0 : (0 : α) = 1 then by letI := subsingleton_of_zero_eq_one α h0; exact subsingleton.elim _ _
 else
-by letI : nonzero_comm_ring α := {zero_ne_one := h0, ..show comm_ring α, from infer_instance}; exact
+by letI : nonzero_comm_ring α := nonzero_comm_ring.of_ne h0; exact
 have h : (p %ₘ (X - C a)).eval a = p.eval a :=
   by rw [mod_by_monic_eq_sub_mul_div _ (monic_X_sub_C a), eval_sub, eval_mul,
     eval_sub, eval_X, eval_C, sub_self, zero_mul, sub_zero],
@@ -1435,16 +1442,14 @@ by conv_rhs { rw [← mod_by_monic_add_div p this,
 lemma eval_div_by_monic_pow_root_multiplicity_ne_zero
   {p : polynomial α} (a : α) (hp : p ≠ 0) :
   (p /ₘ ((X - C a) ^ root_multiplicity p a)).eval a ≠ 0 :=
-have (0 : α) ≠ 1, from (λ h, by haveI := subsingleton_of_zero_eq_one _ h;
-  exact hp (subsingleton.elim _ _)),
 begin
-  letI : nonzero_comm_ring α := { zero_ne_one := this, ..show comm_ring α, by apply_instance },
+  letI : nonzero_comm_ring α := nonzero_comm_ring.of_polynomial_ne hp,
   rw [ne.def, ← is_root.def, ← dvd_iff_is_root],
   rintros ⟨q, hq⟩,
   have := div_by_monic_mul_pow_root_multiplicity_eq p a,
   rw [mul_comm, hq, ← mul_assoc, ← pow_succ',
     root_multiplicity, dif_neg hp] at this,
-  refine multiplicity.is_greatest'
+  exact multiplicity.is_greatest'
     (multiplicity_finite_of_degree_pos_of_monic
     (show (0 : with_bot ℕ) < degree (X - C a),
       by rw degree_X_sub_C; exact dec_trivial) _ hp)

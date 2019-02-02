@@ -557,6 +557,27 @@ begin
   apply lt_irrefl b (lt_of_le_of_lt ‹b ≤ Inf s› ‹Inf s < b›)
 end
 
+local attribute [instance] classical.prop_decidable
+
+/--Introduction rule to prove that b is the supremum of s: it suffices to check that
+1) b is an upper bound
+2) every other upper bound b' satisfies b ≤ b'.-/
+theorem cSup_intro' (_ : s ≠ ∅)
+  (_ : ∀ a ∈ s, a ≤ b) (H : ∀ub, (∀ a ∈ s, a ≤ ub) → (b ≤ ub)) : Sup s = b :=
+suffices ∀w, w < b → (∃a∈s, w < a), from cSup_intro ‹s ≠ ∅› ‹∀a∈s, a ≤ b› this,
+assume w _, 
+  suffices ¬∀a∈s, w ≥ a, from 
+    let ⟨a, (h : ¬(a ∈ s → w ≥ a))⟩ := not_forall.mp this in
+    have a ∈ s, from (not_imp.mp h).1,
+    have w < a, from lt_of_not_ge (not_imp.mp h).2,
+    show ∃ a ∈ s, w < a, from ⟨a, ‹a ∈ s›, ‹w < a›⟩,
+  assume : ∀a∈s, w ≥ a,
+    absurd
+      (show b ≤ w, from H w this)
+      (not_le_of_lt ‹w < b›)
+
+
+
 end conditionally_complete_linear_order
 
 section conditionally_complete_linear_order_bot

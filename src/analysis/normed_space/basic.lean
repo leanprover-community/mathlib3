@@ -377,4 +377,26 @@ instance fintype.normed_space {ι : Type*} {E : ι → Type*} [fintype ι] [∀i
   ..metric_space_pi,
   ..pi.vector_space α }
 
+/-- A normed space can be build from a norm that satisfies algebraic properties. This is formalised in this structure. -/
+structure normed_space.core (α : Type*) (β : Type*)
+  [out_param $ discrete_field α] [normed_field α] [add_comm_group β] [has_scalar α β] [has_norm β]:=
+(norm_eq_zero_iff : ∀ x : β, ∥x∥ = 0 ↔ x = 0)
+(norm_smul : ∀ c : α, ∀ x : β, ∥c • x∥ = ∥c∥ * ∥x∥)
+(triangle : ∀ x y : β, ∥x + y∥ ≤ ∥x∥ + ∥y∥)
+
+noncomputable def normed_space.of_core (α : Type*) (β : Type*)
+  [normed_field α] [add_comm_group β] [vector_space α β] [has_norm β] (C : normed_space.core α β) : normed_space α β :=
+{ dist := λ x y, ∥x - y∥,
+  dist_eq := assume x y, by refl,
+  dist_self := assume x, (C.norm_eq_zero_iff (x - x)).mpr (show x - x = 0, by simp),
+  eq_of_dist_eq_zero := assume x y h, show (x = y), from sub_eq_zero.mp $ (C.norm_eq_zero_iff (x - y)).mp h,
+  dist_triangle := assume x y z,
+    calc ∥x - z∥ = ∥x - y + (y - z)∥ : by simp
+            ... ≤ ∥x - y∥ + ∥y - z∥  : C.triangle _ _,
+  dist_comm := assume x y,
+    calc ∥x - y∥ = ∥ -(1 : α) • (y - x)∥ : by simp
+             ... = ∥y - x∥ : begin rw[C.norm_smul], simp end,
+  norm_smul := C.norm_smul
+}
+
 end normed_space

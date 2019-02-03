@@ -270,11 +270,11 @@ local attribute [instance] type_aux.discrete_field
 def of_aux {n : ℕ} (f : polynomial α) (hf : nat_degree f = n) : α → type_aux f hf :=
 (splitting_field_aux f hf).2.2.1
 
-lemma is_field_hom_of_aux {n : ℕ} (f : polynomial α) (hf : nat_degree f = n) :
+lemma of_aux.is_field_hom {n : ℕ} (f : polynomial α) (hf : nat_degree f = n) :
   is_field_hom (of_aux f hf) :=
 (splitting_field_aux f hf).2.2.2.1
 
-local attribute [instance] is_field_hom_of_aux
+local attribute [instance] of_aux.is_field_hom
 
 attribute [reducible] splitting_field_aux type_aux splitting_field_aux_succ of_aux
 
@@ -311,22 +311,26 @@ lemma exists_hom : Π (n : ℕ) {α : Type u} [discrete_field α] (f : by exactI
   exact ⟨k, λ x, by conv_rhs { rw [← @lift_of _ _ _ _ _ _ i _ _ _ x, ← hk.1] }; refl, hk.2⟩,
 end
 
-end splitting_field
-
 variable [discrete_field α]
+
+end splitting_field
 
 /-- The splitting field of `f` is the "smallest" field extension that splits `f` -/
 def splitting_field (f : polynomial α) := splitting_field.type_aux f rfl
 
 namespace splitting_field
 
+open polynomial
+
+local attribute [instance] of_aux.is_field_hom type_aux.discrete_field
+
 instance field (f : polynomial α) : discrete_field (splitting_field f) :=
-by unfold splitting_field; apply_instance
+type_aux.discrete_field f rfl
 
 def of (f : polynomial α) : α → splitting_field f := of_aux f rfl
 
 instance (f : polynomial α) : is_field_hom (of f) :=
-by unfold of; apply_instance
+of_aux.is_field_hom  _ rfl
 
 lemma splitting_field_splits (f : polynomial α) : splits (of f) f :=
 (splitting_field_aux f rfl).2.2.2.2

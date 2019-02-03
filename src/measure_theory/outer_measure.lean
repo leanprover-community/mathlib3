@@ -255,7 +255,7 @@ by by_cases b ∈ s; simp [h]
 
 theorem top_apply {s : set α} (h : s ≠ ∅) : (⊤ : outer_measure α) s = ⊤ :=
 let ⟨a, as⟩ := set.exists_mem_of_ne_empty h in
-top_unique $ le_supr_of_le ⟨⊤ • dirac a, trivial⟩ $
+top_unique $ le_supr_of_le ⟨(⊤ : ennreal) • dirac a, trivial⟩ $
 by simp [smul_dirac_apply, as]
 
 end basic

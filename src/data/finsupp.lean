@@ -889,7 +889,7 @@ finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
 section
 variables (α β)
 
-def to_has_scalar' {R:semiring γ} [add_comm_monoid β] [semimodule γ β] : has_scalar γ (α →₀ β) := ⟨λa v, v.map_range ((•) a) (smul_zero _)⟩
+def to_has_scalar' [R:semiring γ] [add_comm_monoid β] [semimodule γ β] : has_scalar γ (α →₀ β) := ⟨λa v, v.map_range ((•) a) (smul_zero _)⟩
 local attribute [instance] to_has_scalar'
 
 @[simp] lemma smul_apply' {R:semiring γ} [add_comm_monoid β] [semimodule γ β] {a : α} {b : γ} {v : α →₀ β} :
@@ -899,9 +899,9 @@ def to_semimodule {R:semiring γ} [add_comm_monoid β] [semimodule γ β] : semi
 { smul      := (•),
   smul_add  := λ a x y, finsupp.ext $ λ _, smul_add _ _ _,
   add_smul  := λ a x y, finsupp.ext $ λ _, add_smul _ _ _,
-  one_smul  := λ x, finsupp.ext $ λ _, one_smul _,
+  one_smul  := λ x, finsupp.ext $ λ _, one_smul _ _,
   mul_smul  := λ r s x, finsupp.ext $ λ _, mul_smul _ _ _,
-  zero_smul := λ x, finsupp.ext $ λ _, zero_smul _,
+  zero_smul := λ x, finsupp.ext $ λ _, zero_smul _ _,
   smul_zero := λ x, finsupp.ext $ λ _, smul_zero _ }
 
 def to_module {R:ring γ} [add_comm_group β] [module γ β] : module γ (α →₀ β) :=

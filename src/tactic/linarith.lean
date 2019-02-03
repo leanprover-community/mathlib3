@@ -346,6 +346,7 @@ do pftps ← l.mmap infer_type,
   let vars : rb_set ℕ := rb_map.set_of_list $ list.range map.size.succ,
   let pc : rb_set pcomp := rb_map.set_of_list $
     lz.map (λ ⟨n, x⟩, ⟨x.2, comp_source.assump n⟩),
+  --trace pc, trace prmap,
   return (⟨vars, pc⟩, prmap)
 
 meta def linarith_monad.run {α} (tac : linarith_monad α) (l : list expr) : tactic ((pcomp ⊕ α) × rb_map ℕ (expr × expr)) :=
@@ -474,33 +475,24 @@ meta def add_neg_eq_pfs : list expr → tactic (list expr)
 meta def prove_false_by_linarith1 (cfg : linarith_config) : list expr → tactic unit
 | [] := fail "no args to linarith"
 | l@(h::t) :=
-do extp ← match cfg.restrict_type with
-    | none := do (_, z) ← infer_type h >>= get_rel_sides, infer_type z
-    | some rtp := do
-      m ← mk_mvar,
-      unify `(some %%m : option Type) cfg.restrict_type_reflect,
-      return m
-    end,
-  hz ← mk_neg_one_lt_zero_pf extp,
-  l' ← if cfg.restrict_type.is_some then
-          l.mfilter (λ e, succeeds (ineq_pf_tp e >>= is_def_eq extp))
-      else return l,
-  l' ← add_neg_eq_pfs l',
-  (sum.inl contr, inputs) ← elim_all_vars.run (hz::l')
-    | fail "linarith failed to find a contradiction",
-  let coeffs := inputs.keys.map (λ k, (contr.src.flatten.ifind k)),
-  let pfs : list expr := inputs.keys.map (λ k, (inputs.ifind k).1),
-  let zip := (coeffs.zip pfs).filter (λ pr, pr.1 ≠ 0),
-  let (coeffs, pfs) := zip.unzip,
-  mls ← zip.mmap (λ pr, do e ← term_of_ineq_prf pr.2, return (mul_expr pr.1 e)),
-  sm ← to_expr $ add_exprs mls,
-  tgt ← to_expr ``(%%sm = 0),
-  (a, b) ← solve_aux tgt (cfg.discharger >> done),
-  pf ← mk_lt_zero_pf coeffs pfs,
-  pftp ← infer_type pf,
-  (_, nep, _) ← rewrite_core b pftp,
-  pf' ← mk_eq_mp nep pf,
-  mk_app `lt_irrefl [pf'] >>= exact
+  do l' ← add_neg_eq_pfs l,
+     hz ← ineq_pf_tp h >>= mk_neg_one_lt_zero_pf,
+     --list.mmap' (λ e, infer_type e >>= trace) (hz::l') ,
+     (sum.inl contr, inputs) ← elim_all_vars.run (hz::l')
+       | fail "linarith failed to find a contradiction",
+     let coeffs := inputs.keys.map (λ k, (contr.src.flatten.ifind k)),
+     let pfs : list expr := inputs.keys.map (λ k, (inputs.ifind k).1),
+     let zip := (coeffs.zip pfs).filter (λ pr, pr.1 ≠ 0),
+     let (coeffs, pfs) := zip.unzip,
+     mls ← zip.mmap (λ pr, do e ← term_of_ineq_prf pr.2, return (mul_expr pr.1 e)),
+     sm ← to_expr $ add_exprs mls,
+     tgt ← to_expr ``(%%sm = 0),
+     (a, b) ← solve_aux tgt (cfg.discharger >> done),
+     pf ← mk_lt_zero_pf coeffs pfs,
+     pftp ← infer_type pf,
+     (_, nep, _) ← rewrite_core b pftp,
+     pf' ← mk_eq_mp nep pf,
+     mk_app `lt_irrefl [pf'] >>= exact
 
 end prove
 
@@ -562,8 +554,12 @@ meta def find_cancel_factor : expr → ℕ × tree ℕ
   let (v1, t1) := find_cancel_factor e1, (v2, t2) := find_cancel_factor e2, lcm := v1.lcm v2 in
   (lcm, tree.node lcm t1 t2)
 | `(%%e1 * %%e2) :=
-  let (v1, t1) := find_cancel_factor e1, (v2, t2) := find_cancel_factor e2, pd := v1*v2 in
-  (pd, tree.node pd t1 t2)
+  match is_numeric e1, is_numeric e2 with
+  | none, none := (1, tree.node 1 tree.nil tree.nil)
+  | _, _ :=
+    let (v1, t1) := find_cancel_factor e1, (v2, t2) := find_cancel_factor e2, pd := v1*v2 in
+    (pd, tree.node pd t1 t2)
+  end
 | `(%%e1 / %%e2) :=
   match is_numeric e2 with
   | some q := let (v1, t1) := find_cancel_factor e1, n := v1.lcm q.num.nat_abs in
@@ -622,7 +618,7 @@ by rwa he at hl
 
 meta def norm_hyp_aux (h' lhs : expr) : tactic expr :=
 do (v, lhs') ← kill_factors lhs,
-   if v = 1 then return h' else do 
+   if v = 1 then return h' else do
    (ih, h'') ← mk_single_comp_zero_pf v h',
    (_, nep, _) ← infer_type h'' >>= rewrite_core lhs',
    mk_eq_mp nep h''
@@ -714,15 +710,35 @@ meta def replace_nat_pfs : list expr → tactic (list expr)
       ls ← mk_int_pfs_of_nat_pf h,
       list.append ls <$> replace_nat_pfs t) <|> list.cons h <$> replace_nat_pfs t
 
+meta def partition_by_type_aux : rb_lmap expr expr → list expr → tactic (rb_lmap expr expr)
+| m [] := return m
+| m (h::t) := do tp ← ineq_pf_tp h, partition_by_type_aux (m.insert tp h) t
+
+meta def partition_by_type (l : list expr) : tactic (rb_lmap expr expr) :=
+partition_by_type_aux mk_rb_map l
+
+private meta def try_linarith_on_lists (cfg : linarith_config) (ls : list (list expr)) : tactic unit :=
+(first $ ls.map $ prove_false_by_linarith1 cfg) <|> fail "linarith failed"
+
 /--
   Takes a list of proofs of propositions.
   Filters out the proofs of linear (in)equalities,
   and tries to use them to prove `false`.
+  If pref_type is given, starts by working over this type
 -/
-meta def prove_false_by_linarith (cfg : linarith_config) (l : list expr) : tactic unit :=
+meta def prove_false_by_linarith (cfg : linarith_config) (pref_type : option expr) (l : list expr) : tactic unit :=
 do l' ← replace_nat_pfs l,
-   ls ← l'.mmap (λ h, (do s ← norm_hyp h, return (some s)) <|> return none),
-   prove_false_by_linarith1 cfg ls.reduce_option
+   ls ← list.reduce_option <$> l'.mmap (λ h, (do s ← norm_hyp h, return (some s)) <|> return none)
+          >>= partition_by_type,
+   pref_type ← (unify pref_type.iget `(ℕ) >> return (some `(ℤ) : option expr)) <|> return pref_type,
+   match cfg.restrict_type, ls.values, pref_type with
+   | some rtp, _, _ :=
+      do m ← mk_mvar, unify `(some %%m : option Type) cfg.restrict_type_reflect, m ← instantiate_mvars m,
+         prove_false_by_linarith1 cfg (ls.ifind m)
+   | none, [ls'], _ := prove_false_by_linarith1 cfg ls'
+   | none, ls', none := try_linarith_on_lists cfg ls'
+   | none, _, (some t) := prove_false_by_linarith1 cfg (ls.ifind t) <|> try_linarith_on_lists cfg (ls.erase t).values
+   end
 
 end normalize
 
@@ -735,18 +751,18 @@ open lean lean.parser interactive tactic interactive.types
 local postfix `?`:9001 := optional
 local postfix *:9001 := many
 
-meta def linarith.interactive_aux (cfg : linarith_config) :
+meta def linarith.interactive_aux (cfg : linarith_config) : option expr →
      parse ident* → (parse (tk "using" *> pexpr_list)?) → tactic unit
-| l (some pe) := pe.mmap (λ p, i_to_expr p >>= note_anon) >> linarith.interactive_aux l none
-| [] none :=
+| pt l (some pe) := pe.mmap (λ p, i_to_expr p >>= note_anon) >> linarith.interactive_aux pt l none
+| pt [] none :=
   do t ← target,
-     if t = `(false) then local_context >>= prove_false_by_linarith cfg
+     if t = `(false) then local_context >>= prove_false_by_linarith cfg pt
      else match get_contr_lemma_name t with
-     | some nm := seq (applyc nm) (intro1 >> linarith.interactive_aux [] none)
-     | none := if cfg.exfalso then exfalso >> linarith.interactive_aux [] none
+     | some nm := seq (applyc nm) (do t ← intro1 >>= ineq_pf_tp, linarith.interactive_aux (some t) [] none)
+     | none := if cfg.exfalso then exfalso >> linarith.interactive_aux pt [] none
                else fail "linarith failed: target type is not an inequality."
      end
-| ls none := (ls.mmap get_local) >>= prove_false_by_linarith cfg
+| pt ls none := (ls.mmap get_local) >>= prove_false_by_linarith cfg pt
 
 /--
   Tries to prove a goal of `false` by linear arithmetic on hypotheses.
@@ -765,6 +781,6 @@ meta def linarith.interactive_aux (cfg : linarith_config) :
 -/
 meta def tactic.interactive.linarith (ids : parse (many ident))
      (using_hyps : parse (tk "using" *> pexpr_list)?) (cfg : linarith_config := {}) : tactic unit :=
-linarith.interactive_aux cfg ids using_hyps
+linarith.interactive_aux cfg none ids using_hyps
 
 end

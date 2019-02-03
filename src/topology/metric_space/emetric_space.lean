@@ -89,7 +89,10 @@ This is enforced in the type class definition, by extending the `uniform_space` 
 instantiating an `emetric_space` structure, the uniformity fields are not necessary, they will be
 filled in by default. There is a default value for the uniformity, that can be substituted
 in cases of interest, for instance when instantiating an `emetric_space` structure
-on a product. -/
+on a product.
+
+Continuity of `edist` is finally proving in `topology.instances.ennreal`
+-/
 class emetric_space (α : Type u) extends has_edist α : Type u :=
 (edist_self : ∀ x : α, edist x x = 0)
 (eq_of_edist_eq_zero : ∀ {x y : α}, edist x y = 0 → x = y)
@@ -141,6 +144,15 @@ emetric_space.uniformity_edist _
 /-- Reformulation of the uniform structure in terms of the extended distance on a subtype -/
 theorem uniformity_edist'' : uniformity = (⨅ε:{ε:ennreal // ε>0}, principal {p:α×α | edist p.1 p.2 < ε.val}) :=
 by simp [infi_subtype]; exact uniformity_edist'
+
+theorem uniformity_edist_nnreal :
+  uniformity = (⨅(ε:nnreal) (h : ε > 0), principal {p:α×α | edist p.1 p.2 < ε}) :=
+begin
+  rw [uniformity_edist', ennreal.infi_ennreal, inf_of_le_left],
+  { congr, funext ε, refine infi_congr_Prop ennreal.coe_pos _, assume h, refl },
+  refine le_infi (assume h, infi_le_of_le 1 $ infi_le_of_le ennreal.zero_lt_one $ _),
+  exact principal_mono.2 (assume p h, lt_of_lt_of_le h le_top)
+end
 
 /-- Characterization of the elements of the uniformity in terms of the extended distance -/
 theorem mem_uniformity_edist {s : set (α×α)} :
@@ -320,6 +332,9 @@ lt_of_le_of_lt (zero_le _) hy
 theorem mem_ball_self (h : 0 < ε) : x ∈ ball x ε :=
 show edist x x < ε, by rw edist_self; assumption
 
+theorem mem_closed_ball_self : x ∈ closed_ball x ε :=
+show edist x x ≤ ε, by rw edist_self; exact bot_le
+
 theorem mem_ball_comm : x ∈ ball y ε ↔ y ∈ ball x ε :=
 by simp [edist_comm]
 
@@ -349,6 +364,11 @@ begin
   { rw ennreal.add_sub_cancel_of_le (le_of_lt h), apply le_refl _},
   { have : edist y x ≠ ⊤ := lattice.ne_top_of_lt h, apply lt_top_iff_ne_top.2 this }
 end
+
+theorem ball_eq_empty_iff : ball x ε = ∅ ↔ ε = 0 :=
+eq_empty_iff_forall_not_mem.trans
+⟨λh, le_bot_iff.1 (le_of_not_gt (λ ε0, h _ (mem_ball_self ε0))),
+λε0 y h, not_lt_of_le (le_of_eq ε0) (pos_of_mem_ball h)⟩
 
 theorem nhds_eq : nhds x = (⨅ε:{ε:ennreal // ε>0}, principal (ball x ε.val)) :=
 begin
@@ -578,5 +598,75 @@ show uniform_space.to_topological_space α = generate_from (⋃x ∈ S, ⋃ (n :
   exact B.2.2 }⟩⟩⟩
 
 end second_countable
+
+section diam
+
+/-- The diameter of a set in an emetric space, named `emetric.diam` -/
+def diam (s : set α) := Sup ((λp : α × α, edist p.1 p.2) '' (set.prod s s))
+
+/-- If two points belong to some set, their edistance is bounded by the diameter of the set -/
+lemma edist_le_diam_of_mem (hx : x ∈ s) (hy : y ∈ s) : edist x y ≤ diam s :=
+le_Sup ((mem_image _ _ _).2 ⟨(⟨x, y⟩ : α × α), by simp [hx, hy]⟩)
+
+/-- If the distance between any two points in a set is bounded by some constant, this constant
+bounds the diameter. -/
+lemma diam_le_of_forall_edist_le {d : ennreal} (h : ∀x y ∈ s, edist x y ≤ d) : diam s ≤ d :=
+begin
+  apply Sup_le _,
+  simp only [and_imp, set.mem_image, set.mem_prod, exists_imp_distrib, prod.exists],
+  assume b x y xs ys dxy,
+  rw ← dxy,
+  exact h x y xs ys
+end
+
+/-- The diameter of the empty set vanishes -/
+@[simp] lemma diam_empty : diam (∅ : set α) = 0 :=
+by simp [diam]
+
+/-- The diameter of a singleton vanishes -/
+@[simp] lemma diam_singleton : diam ({x} : set α) = 0 :=
+by simp [diam]
+
+/-- The diameter is monotonous with respect to inclusion -/
+lemma diam_mono {s t : set α} (h : s ⊆ t) : diam s ≤ diam t :=
+begin
+  refine Sup_le_Sup (λp hp, _),
+  simp only [set.mem_image, set.mem_prod, prod.exists] at hp,
+  rcases hp with ⟨x, y, ⟨⟨xs, ys⟩, dxy⟩⟩,
+  exact (mem_image _ _ _).2 ⟨⟨x, y⟩, ⟨⟨h xs, h ys⟩, dxy⟩⟩
+end
+
+/-- The diameter of a union is controlled by the diameter of the sets, and the edistance
+between two points in the sets. -/
+lemma diam_union {t : set α} (xs : x ∈ s) (yt : y ∈ t) : diam (s ∪ t) ≤ diam s + edist x y + diam t :=
+begin
+  have A : ∀a ∈ s, ∀b ∈ t, edist a b ≤ diam s + edist x y + diam t := λa ha b hb, calc
+    edist a b ≤ edist a x + edist x y + edist y b : edist_triangle4 _ _ _ _
+    ... ≤ diam s + edist x y + diam t :
+      add_le_add' (add_le_add' (edist_le_diam_of_mem ha xs) (le_refl _)) (edist_le_diam_of_mem yt hb),
+  refine diam_le_of_forall_edist_le (λa b ha hb, _),
+  cases (mem_union _ _ _).1 ha with h'a h'a; cases (mem_union _ _ _).1 hb with h'b h'b,
+  { calc edist a b ≤ diam s : edist_le_diam_of_mem h'a h'b
+        ... ≤ diam s + (edist x y + diam t) : le_add_right (le_refl _)
+        ... = diam s + edist x y + diam t : by simp only [add_comm, eq_self_iff_true, add_left_comm] },
+  { exact A a h'a b h'b },
+  { have Z := A b h'b a h'a, rwa [edist_comm] at Z },
+  { calc edist a b ≤ diam t : edist_le_diam_of_mem h'a h'b
+        ... ≤ (diam s + edist x y) + diam t : le_add_left (le_refl _) }
+end
+
+lemma diam_union' {t : set α} (h : s ∩ t ≠ ∅) : diam (s ∪ t) ≤ diam s + diam t :=
+let ⟨x, ⟨xs, xt⟩⟩ := ne_empty_iff_exists_mem.1 h in by simpa using diam_union xs xt
+
+lemma diam_closed_ball {r : ennreal} : diam (closed_ball x r) ≤ 2 * r :=
+diam_le_of_forall_edist_le $ λa b ha hb, calc
+  edist a b ≤ edist a x + edist b x : edist_triangle_right _ _ _
+  ... ≤ r + r : add_le_add' ha hb
+  ... = 2 * r : by simp [mul_two, mul_comm]
+
+lemma diam_ball {r : ennreal} : diam (ball x r) ≤ 2 * r :=
+le_trans (diam_mono ball_subset_closed_ball) diam_closed_ball
+
+end diam
 
 end emetric --namespace

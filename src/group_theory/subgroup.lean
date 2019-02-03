@@ -159,10 +159,56 @@ assume a ha, by induction ha; simp [h _, *, one_mem, mul_mem, inv_mem_iff]
 lemma closure_subset_iff (s t : set α) [is_subgroup t] : closure s ⊆ t ↔ s ⊆ t :=
 ⟨assume h b ha, h (mem_closure ha), assume h b ha, closure_subset h ha⟩
 
+theorem closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
+closure_subset $ set.subset.trans h subset_closure
+
+theorem exists_list_of_mem_closure {s : set α} {a : α} (h : a ∈ closure s) :
+  (∃l:list α, (∀x∈l, x ∈ s ∨ x⁻¹ ∈ s) ∧ l.prod = a) :=
+in_closure.rec_on h
+  (λ x hxs, ⟨[x], list.forall_mem_singleton.2 $ or.inl hxs, one_mul _⟩)
+  ⟨[], list.forall_mem_nil _, rfl⟩
+  (λ x _ ⟨L, HL1, HL2⟩, ⟨L.reverse.map has_inv.inv,
+    λ x hx, let ⟨y, hy1, hy2⟩ := list.exists_of_mem_map hx in
+      hy2 ▸ or.imp id (by rw [inv_inv]; exact id) (HL1 _ $ list.mem_reverse.1 hy1).symm,
+      HL2 ▸ list.rec_on L one_inv.symm (λ hd tl ih,
+        by rw [list.reverse_cons, list.map_append, list.prod_append, ih, list.map_singleton,
+            list.prod_cons, list.prod_nil, mul_one, list.prod_cons, mul_inv_rev])⟩)
+  (λ x y hx hy ⟨L1, HL1, HL2⟩ ⟨L2, HL3, HL4⟩, ⟨L1 ++ L2, list.forall_mem_append.2 ⟨HL1, HL3⟩,
+    by rw [list.prod_append, HL2, HL4]⟩)
+
+theorem mclosure_subset {s : set α} : monoid.closure s ⊆ closure s :=
+monoid.closure_subset $ subset_closure
+
+theorem mclosure_inv_subset {s : set α} : monoid.closure (has_inv.inv ⁻¹' s) ⊆ closure s :=
+monoid.closure_subset $ λ x hx, inv_inv x ▸ (is_subgroup.inv_mem $ subset_closure hx)
+
+theorem closure_eq_mclosure {s : set α} : closure s = monoid.closure (s ∪ has_inv.inv ⁻¹' s) :=
+set.subset.antisymm
+  (@closure_subset _ _ _ (monoid.closure (s ∪ has_inv.inv ⁻¹' s))
+    { inv_mem := λ x hx, monoid.in_closure.rec_on hx
+      (λ x hx, or.cases_on hx (λ hx, monoid.subset_closure $ or.inr $ show x⁻¹⁻¹ ∈ s, from (inv_inv x).symm ▸ hx)
+        (λ hx, monoid.subset_closure $ or.inl hx))
+      ((@one_inv α _).symm ▸ is_submonoid.one_mem _)
+      (λ x y hx hy ihx ihy, (mul_inv_rev x y).symm ▸ is_submonoid.mul_mem ihy ihx) }
+    (set.subset.trans (set.subset_union_left _ _) monoid.subset_closure))
+  (monoid.closure_subset $ set.union_subset subset_closure $ λ x hx, inv_inv x ▸ (is_subgroup.inv_mem $ subset_closure hx))
+
+theorem mem_closure_union_iff {α : Type*} [comm_group α] {s t : set α} {x : α} :
+  x ∈ closure (s ∪ t) ↔ ∃ y ∈ closure s, ∃ z ∈ closure t, y * z = x :=
+begin
+  simp only [closure_eq_mclosure, monoid.mem_closure_union_iff, exists_prop, preimage_union], split,
+  { rintro ⟨_, ⟨ys, hys, yt, hyt, rfl⟩, _, ⟨zs, hzs, zt, hzt, rfl⟩, rfl⟩,
+    refine ⟨_, ⟨_, hys, _, hzs, rfl⟩, _, ⟨_, hyt, _, hzt, rfl⟩, _⟩,
+    rw [mul_assoc, mul_assoc, mul_left_comm zs], refl },
+  { rintro ⟨_, ⟨ys, hys, zs, hzs, rfl⟩, _, ⟨yt, hyt, zt, hzt, rfl⟩, rfl⟩,
+    refine ⟨_, ⟨ys, hys, yt, hyt, rfl⟩, _, ⟨zs, hzs, zt, hzt, rfl⟩, _⟩,
+    rw [mul_assoc, mul_assoc, mul_left_comm yt], refl }
+end
+
 theorem gpowers_eq_closure {a : α} : gpowers a = closure {a} :=
 subset.antisymm
   (assume x h, match x, h with _, ⟨i, rfl⟩ := gpow_mem (mem_closure $ by simp) end)
-  (closure_subset $ by  simp [mem_gpowers])
+  (closure_subset $ by simp [mem_gpowers])
 
 end group
 
@@ -201,6 +247,26 @@ theorem in_closure.rec_on {C : α → Prop}
   (H4 : ∀ {a b : α}, a ∈ closure s → b ∈ closure s → C a → C b → C (a + b)) :
   C a :=
 group.in_closure.rec_on H (λ _, H1) H2 (λ _, H3) (λ _ _, H4)
+
+theorem closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
+closure_subset $ set.subset.trans h subset_closure
+
+theorem exists_list_of_mem_closure {s : set α} {a : α} (h : a ∈ closure s) :
+  (∃l:list α, (∀x∈l, x ∈ s ∨ -x ∈ s) ∧ l.sum = a) :=
+group.exists_list_of_mem_closure h
+
+theorem mclosure_subset {s : set α} : add_monoid.closure s ⊆ closure s :=
+group.mclosure_subset
+
+theorem mclosure_inv_subset {s : set α} : add_monoid.closure (has_neg.neg ⁻¹' s) ⊆ closure s :=
+group.mclosure_inv_subset
+
+theorem closure_eq_mclosure {s : set α} : closure s = add_monoid.closure (s ∪ has_neg.neg ⁻¹' s) :=
+group.closure_eq_mclosure
+
+theorem mem_closure_union_iff {α : Type*} [add_comm_group α] {s t : set α} {x : α} :
+  x ∈ closure (s ∪ t) ↔ ∃ y ∈ closure s, ∃ z ∈ closure t, y + z = x :=
+group.mem_closure_union_iff
 
 end add_group
 

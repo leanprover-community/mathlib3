@@ -97,16 +97,4 @@ end
 
 end functor
 
-def bundled.map {c : Type u → Type v} {d : Type u → Type v} (f : Π{a}, c a → d a) (s : bundled c) :
-  bundled d :=
-{ α := s.α, str := f s.str }
-
-def concrete_functor
-  {C : Type u → Type v} {hC : ∀{α β}, C α → C β → (α → β) → Prop} [concrete_category @hC]
-  {D : Type u → Type v} {hD : ∀{α β}, D α → D β → (α → β) → Prop} [concrete_category @hD]
-  (m : ∀{α}, C α → D α) (h : ∀{α β} {ia : C α} {ib : C β} {f}, hC ia ib f → hD (m ia) (m ib) f) :
-  bundled C ⥤ bundled D :=
-{ obj := bundled.map @m,
-  map := λ X Y f, ⟨ f, h f.2 ⟩}
-
 end category_theory

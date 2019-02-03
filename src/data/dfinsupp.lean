@@ -387,9 +387,9 @@ instance [Π i, add_group (β i)] {s : finset ι} : is_add_group_hom (@mk ι β 
 
 section
 local attribute [instance] to_module
-variables {γ : Type w} [ring γ] [Π i, add_comm_group (β i)] [Π i, module γ (β i)]
+variables (γ : Type w) [ring γ] [Π i, add_comm_group (β i)] [Π i, module γ (β i)]
 include γ
-@[simp] lemma mk_smul {s : finset ι} {c : γ} {x : Π i : (↑s : set ι), β i.1} :
+@[simp] lemma mk_smul {s : finset ι} {c : γ} (x : Π i : (↑s : set ι), β i.1) :
   mk s (c • x) = c • mk s x :=
 ext $ λ i, by simp only [smul_apply, mk_apply]; split_ifs; [refl, rw smul_zero]
 
@@ -398,16 +398,16 @@ ext $ λ i, by simp only [smul_apply, mk_apply]; split_ifs; [refl, rw smul_zero]
 ext $ λ i, by simp only [smul_apply, single_apply]; split_ifs; [cases h, rw smul_zero]; refl
 
 variable β
-def lmk (s : finset ι) : (Π i : (↑s : set ι), β i.1) →ₗ Π₀ i, β i :=
-⟨mk s, λ _ _, mk_add, λ _ _, mk_smul⟩
+def lmk (s : finset ι) : (Π i : (↑s : set ι), β i.1) →ₗ[γ] Π₀ i, β i :=
+⟨mk s, λ _ _, mk_add, λ c x, by rw [mk_smul γ x]⟩
 
-def lsingle (i) : β i →ₗ Π₀ i, β i :=
-⟨single i, λ _ _, single_add, λ _ _, single_smul⟩
+def lsingle (i) : β i →ₗ[γ] Π₀ i, β i :=
+⟨single i, λ _ _, single_add, λ _ _, single_smul _⟩
 variable {β}
 
-@[simp] lemma lmk_apply {s : finset ι} {x} : lmk β s x = mk s x := rfl
+@[simp] lemma lmk_apply {s : finset ι} {x} : lmk β γ s x = mk s x := rfl
 
-@[simp] lemma lsingle_apply {i : ι} {x : β i} : lsingle β i x = single i x := rfl
+@[simp] lemma lsingle_apply {i : ι} {x : β i} : lsingle β γ i x = single i x := rfl
 end
 
 section support_basic

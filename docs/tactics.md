@@ -638,7 +638,7 @@ and likewise for `to_rhs`.
 
 - `mono` applies a monotonicity rule.
 - `mono*` applies monotonicity rules repetitively.
-- `mono using x ≤ y` or `mono using [0 ≤ x,0 ≤ y]` creates an assertion for the listed
+- `mono with x ≤ y` or `mono with [0 ≤ x,0 ≤ y]` creates an assertion for the listed
   propositions. Those help to select the right monotonicity rule.
 - `mono left` or `mono right` is useful when proving strict orderings:
    for `x + y < w + z` could be broken down into either
@@ -752,4 +752,50 @@ by use [1, 2, 3]
 
 example : ∃ p : ℤ × ℤ, p.1 = 1 :=
 by use ⟨1, 42⟩
+```
+
+### clear_aux_decl
+
+`clear_aux_decl` clears every `aux_decl` in the local context for the current goal.
+This includes the induction hypothesis when using the equation compiler and
+`_let_match` and `_fun_match`.
+
+It is useful when using a tactic such as `finish`, `simp *` or `subst` that may use these
+auxiliary declarations, and produce an error saying the recursion is not well founded.
+
+```lean
+example (n m : ℕ) (h₁ : n = m) (h₂ : ∃ a : ℕ, a = n ∧ a = m) : 2 * m = 2 * n :=
+let ⟨a, ha⟩ := h₂ in
+begin
+  clear_aux_decl, -- subst will fail without this line
+  subst h₁
+end
+
+example (x y : ℕ) (h₁ : ∃ n : ℕ, n * 1 = 2) (h₂ : 1 + 1 = 2 → x * 1 = y) : x = y :=
+let ⟨n, hn⟩ := h₁ in
+begin
+  clear_aux_decl, -- finish produces an error without this line
+  finish
+end
+```
+### set
+
+`set a := t with h` is a variant of `let a := t` that adds the hypothesis `h : a = t` to the local context.
+
+`set a := t with h⁻¹` will add `h : t = a` instead.
+
+`set! a := t with h` will try to replace `t` with `a` in the goal and all hypotheses.
+
+```lean
+example (x : ℕ) (h : x = 3)  : x + x + x = 9 :=
+begin
+  set! y := x with h_xy⁻¹,
+/-
+x : ℕ,
+y : ℕ := x,
+h_xy : x = y,
+h : y = 3
+⊢ y + y + y = 9
+-/
+end
 ```

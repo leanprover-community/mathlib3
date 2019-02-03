@@ -20,6 +20,37 @@ begin
   exact hx.comp hf
 end
 
+/-- A Lipschitz function is uniformly continuous -/
+lemma uniform_continuous_of_lipschitz [metric_space α] [metric_space β] {K : ℝ}
+  {f : α → β} (H : ∀x y, dist (f x) (f y) ≤ K * dist x y) : uniform_continuous f :=
+begin
+  have : 0 < max K 1 := lt_of_lt_of_le zero_lt_one (le_max_right K 1),
+  refine metric.uniform_continuous_iff.2 (λε εpos, _),
+  exact ⟨ε/max K 1, div_pos εpos this, assume y x Dyx, calc
+    dist (f y) (f x) ≤ K * dist y x : H y x
+    ... ≤ max K 1 * dist y x : mul_le_mul_of_nonneg_right (le_max_left K 1) (dist_nonneg)
+    ... < max K 1 * (ε/max K 1) : mul_lt_mul_of_pos_left Dyx this
+    ... = ε : mul_div_cancel' _ (ne_of_gt this)⟩
+end
+
+/-- A Lipschitz function is continuous -/
+lemma continuous_of_lipschitz [metric_space α] [metric_space β] {K : ℝ}
+  {f : α → β} (H : ∀x y, dist (f x) (f y) ≤ K * dist x y) : continuous f :=
+uniform_continuous.continuous (uniform_continuous_of_lipschitz H)
+
+lemma uniform_continuous_of_le_add [metric_space α] {f : α → ℝ} (K : ℝ)
+  (h : ∀x y, f x ≤ f y + K * dist x y) : uniform_continuous f :=
+begin
+  have I : ∀ (x y : α), f x - f y ≤ K * dist x y := λx y, calc
+    f x - f y ≤ (f y + K * dist x y) - f y : add_le_add (h x y) (le_refl _)
+    ... = K * dist x y : by ring,
+  refine @uniform_continuous_of_lipschitz _ _ _ _ K _ (λx y, _),
+  rw real.dist_eq,
+  refine abs_sub_le_iff.2 ⟨_, _⟩,
+  { exact I x y },
+  { rw dist_comm, exact I y x }
+end
+
 /-- `lipschitz_with K f`: the function `f` is Lipschitz continuous w.r.t. the Lipschitz
 constant `K`. -/
 def lipschitz_with [metric_space α] [metric_space β] (K : ℝ) (f : α → β) :=
@@ -33,14 +64,11 @@ protected lemma weaken (K' : ℝ) {f : α → β} (hf : lipschitz_with K f) (h :
   lipschitz_with K' f :=
 ⟨le_trans hf.1 h, assume x y, le_trans (hf.2 x y) $ mul_le_mul_of_nonneg_right h dist_nonneg⟩
 
-protected lemma to_uniform_continuous {f : α → β} (hf : lipschitz_with K f) :
-  uniform_continuous f :=
-metric.uniform_continuous_iff.mpr (λ ε hε, or.elim (lt_or_le K ε)
-(λ h, ⟨(1 : ℝ), zero_lt_one, (λ x y hd, lt_of_le_of_lt (hf.right x y)
-  (lt_of_le_of_lt (mul_le_mul_of_nonneg_left (le_of_lt hd) hf.left) (symm (mul_one K) ▸ h)))⟩)
-(λ h, ⟨ε / K, div_pos_of_pos_of_pos hε (lt_of_lt_of_le hε h),
-  (λ x y hd, lt_of_le_of_lt (hf.right x y)
-    (mul_comm (dist x y) K ▸ mul_lt_of_lt_div (lt_of_lt_of_le hε h) hd))⟩))
+protected lemma to_uniform_continuous {f : α → β} (hf : lipschitz_with K f) : uniform_continuous f :=
+uniform_continuous_of_lipschitz hf.2
+
+protected lemma to_continuous {f : α → β} (hf : lipschitz_with K f) : continuous f :=
+continuous_of_lipschitz hf.2
 
 protected lemma const (b : β) : lipschitz_with 0 (λa:α, b) :=
 ⟨le_refl 0, assume x y, by simp⟩

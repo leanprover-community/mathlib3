@@ -51,7 +51,7 @@ theorem ext {a b : set α} (h : ∀ x, x ∈ a ↔ x ∈ b) : a = b :=
 funext (assume x, propext (h x))
 
 theorem ext_iff (s t : set α) : s = t ↔ ∀ x, x ∈ s ↔ x ∈ t :=
-⟨begin intros h x, rw h end, ext⟩
+⟨λ h x, by rw h, ext⟩
 
 @[trans] theorem mem_of_mem_of_subset {α : Type u} {x : α} {s t : set α} (hx : x ∈ s) (h : s ⊆ t) : x ∈ t :=
 h hx
@@ -1066,6 +1066,14 @@ subtype_val_range
 
 lemma range_const_subset {c : β} : range (λx:α, c) ⊆ {c} :=
 range_subset_iff.2 $ λ x, or.inl rfl
+
+@[simp] lemma range_const [h : nonempty α] {c : β} : range (λx:α, c) = {c} :=
+begin
+  refine subset.antisymm range_const_subset (λy hy, _),
+  rw set.mem_singleton_iff.1 hy,
+  rcases exists_mem_of_nonempty α with ⟨x, _⟩,
+  exact mem_range_self x
+end
 
 def range_factorization (f : ι → β) : ι → range f :=
 λ i, ⟨f i, mem_range_self i⟩

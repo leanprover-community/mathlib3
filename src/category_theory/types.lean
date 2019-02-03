@@ -54,15 +54,40 @@ instance ulift_functor_faithful : fully_faithful ulift_functor :=
   injectivity' := λ X Y f g p, funext $ λ x,
     congr_arg ulift.down ((congr_fun p (ulift.up x)) : ((ulift.up (f x)) = (ulift.up (g x)))) }
 
-section forget
-variables {C : Type u → Type v} {hom : ∀α β, C α → C β → (α → β) → Prop} [i : concrete_category hom]
-include i
-
-/-- The forgetful functor from a bundled category to `Type`. -/
-def forget : bundled C ⥤ Type u := { obj := bundled.α, map := λa b h, h.1 }
-
-instance forget.faithful : faithful (forget : bundled C ⥤ Type u) := {}
-
-end forget
-
 end category_theory
+
+-- Isomorphisms in Type and equivalences.
+
+namespace equiv
+
+universe u
+
+variables {X Y : Type u}
+
+def to_iso (e : X ≃ Y) : X ≅ Y :=
+{ hom := e.to_fun,
+  inv := e.inv_fun,
+  hom_inv_id' := funext e.left_inv,
+  inv_hom_id' := funext e.right_inv }
+
+@[simp] lemma to_iso_hom {e : X ≃ Y} : e.to_iso.hom = e := rfl
+@[simp] lemma to_iso_inv {e : X ≃ Y} : e.to_iso.inv = e.symm := rfl
+
+end equiv
+
+namespace category_theory.iso
+
+universe u
+
+variables {X Y : Type u}
+
+def to_equiv (i : X ≅ Y) : X ≃ Y :=
+{ to_fun := i.hom,
+  inv_fun := i.inv,
+  left_inv := λ x, congr_fun i.hom_inv_id x,
+  right_inv := λ y, congr_fun i.inv_hom_id y }
+
+@[simp] lemma to_equiv_fun (i : X ≅ Y) : (i.to_equiv : X → Y) = i.hom := rfl
+@[simp] lemma to_equiv_symm_fun (i : X ≅ Y) : (i.to_equiv.symm : Y → X) = i.inv := rfl
+
+end category_theory.iso

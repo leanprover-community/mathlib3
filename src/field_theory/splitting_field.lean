@@ -10,37 +10,15 @@ import ring_theory.adjoin_root ring_theory.unique_factorization_domain
 
 universes u v w
 
-variables {α : Type u} {β : Type v} {γ : Type w}
-
-namespace splitting_field
-
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+variables {α : Type u} {β : Type v} {γ : Type w}
 variables [discrete_field α] [discrete_field β] [discrete_field γ]
+open adjoin_root
+
+namespace polynomial
+
+local attribute [instance, priority 0] classical.prop_decidable
 open polynomial adjoin_root
-
-def irr_factor (f : polynomial α) : polynomial α :=
-if hf : f ≠ 0 ∧ ¬is_unit f
-then classical.some (is_noetherian_ring.exists_irreducible_factor
-  principal_ideal_domain.is_noetherian_ring hf.2 hf.1)
-else X
-
-lemma irr_factor_dvd {f : polynomial α} (h : degree f ≠ 0) : irr_factor f ∣ f :=
-if hf : f = 0
-then by simp [hf]
-else have hf : f ≠ 0 ∧ ¬ is_unit f, from ⟨hf, by rwa is_unit_iff_degree_eq_zero⟩,
-  by rw [irr_factor, dif_pos hf]; exact
-(classical.some_spec (is_noetherian_ring.exists_irreducible_factor
-    principal_ideal_domain.is_noetherian_ring hf.2 hf.1)).2
-
-@[instance] lemma irr_factor_irreducible (f : polynomial α) :
-  irreducible (irr_factor f) :=
-if hf : f ≠ 0 ∧ ¬ is_unit f
-then by rw [irr_factor, dif_pos hf]; exact
- (classical.some_spec (is_noetherian_ring.exists_irreducible_factor
-    principal_ideal_domain.is_noetherian_ring hf.2 hf.1)).1
-else by rw [irr_factor, dif_neg hf];
-  exact irreducible_of_degree_eq_one degree_X
 
 section splits
 
@@ -100,12 +78,15 @@ by simp [splits, polynomial.map_map]
 
 lemma exists_root_of_splits {f : polynomial α} (hs : splits i f) (hf0 : degree f ≠ 0) :
   ∃ x, eval₂ i x f = 0 :=
-hs.elim (λ hf0, ⟨37, by simp [hf0]⟩) $
-λ hs, let ⟨x, hx⟩ := exists_root_of_degree_eq_one
-  (hs (irr_factor_irreducible (f.map i))
-    (irr_factor_dvd (by simpa))) in
-  ⟨x, let ⟨g, hg⟩ := irr_factor_dvd (show degree (f.map i) ≠ 0, by simpa) in
-    by rw [← eval_map, hg, eval_mul, (show _ = _, from hx), zero_mul]⟩
+if hf0 : f = 0 then ⟨37, by simp [hf0]⟩
+else
+  let ⟨g, hg⟩ := is_noetherian_ring.exists_irreducible_factor
+    principal_ideal_domain.is_noetherian_ring
+    (show ¬ is_unit (f.map i), from mt is_unit_iff_degree_eq_zero.1 (by rwa degree_map))
+    (by rw [ne.def, map_eq_zero]; exact hf0) in
+  let ⟨x, hx⟩ := exists_root_of_degree_eq_one (hs.resolve_left hf0 hg.1 hg.2) in
+  let ⟨i, hi⟩ := hg.2 in
+  ⟨x, by rw [← eval_map, hi, eval_mul, show _ = _, from hx, zero_mul]⟩
 
 lemma exists_multiset_of_splits {f : polynomial α} : splits i f →
   ∃ (s : multiset β), f.map i = C (i f.leading_coeff) *
@@ -191,6 +172,35 @@ end
 
 end splits
 
+def irr_factor (f : polynomial α) : polynomial α :=
+if hf : f ≠ 0 ∧ ¬is_unit f
+then classical.some (is_noetherian_ring.exists_irreducible_factor
+  principal_ideal_domain.is_noetherian_ring hf.2 hf.1)
+else X
+
+lemma irr_factor_dvd {f : polynomial α} (h : degree f ≠ 0) : irr_factor f ∣ f :=
+if hf : f = 0
+then by simp [hf]
+else have hf : f ≠ 0 ∧ ¬ is_unit f, from ⟨hf, by rwa is_unit_iff_degree_eq_zero⟩,
+  by rw [irr_factor, dif_pos hf]; exact
+(classical.some_spec (is_noetherian_ring.exists_irreducible_factor
+    principal_ideal_domain.is_noetherian_ring hf.2 hf.1)).2
+
+@[instance] lemma irr_factor_irreducible (f : polynomial α) :
+  irreducible (irr_factor f) :=
+if hf : f ≠ 0 ∧ ¬ is_unit f
+then by rw [irr_factor, dif_pos hf]; exact
+ (classical.some_spec (is_noetherian_ring.exists_irreducible_factor
+    principal_ideal_domain.is_noetherian_ring hf.2 hf.1)).1
+else by rw [irr_factor, dif_neg hf];
+  exact irreducible_of_degree_eq_one degree_X
+
+end polynomial
+
+namespace splitting_field
+
+open polynomial
+
 lemma mul_div_irr_factor_cancel {f : polynomial α} (h : degree f ≠ 0) :
   (X - C (root : adjoin_root (irr_factor f))) * (f.map coe / (X - C root)) = f.map coe :=
 begin
@@ -251,24 +261,28 @@ noncomputable def splitting_field_aux : Π {n : ℕ} {α : Type u} [discrete_fie
 def type_aux {n : ℕ} (f : polynomial α) (hf : nat_degree f = n) : Type u :=
 (splitting_field_aux f hf).1
 
-instance {n : ℕ} (f : polynomial α) (hf : nat_degree f = n) :
+def type_aux.discrete_field {n : ℕ} (f : polynomial α) (hf : nat_degree f = n) :
   discrete_field (type_aux f hf) :=
 (splitting_field_aux f hf).2.1
 
-def mk_aux {n : ℕ} (f : polynomial α) (hf : nat_degree f = n) : α → type_aux f hf :=
+local attribute [instance] type_aux.discrete_field
+
+def of_aux {n : ℕ} (f : polynomial α) (hf : nat_degree f = n) : α → type_aux f hf :=
 (splitting_field_aux f hf).2.2.1
 
-@[instance] lemma is_field_hom_mk_aux {n : ℕ} (f : polynomial α) (hf : nat_degree f = n) :
-  is_field_hom (mk_aux f hf) :=
+lemma is_field_hom_of_aux {n : ℕ} (f : polynomial α) (hf : nat_degree f = n) :
+  is_field_hom (of_aux f hf) :=
 (splitting_field_aux f hf).2.2.2.1
 
-attribute [reducible] splitting_field_aux type_aux splitting_field_aux_succ mk_aux
+local attribute [instance] is_field_hom_of_aux
+
+attribute [reducible] splitting_field_aux type_aux splitting_field_aux_succ of_aux
 
 lemma exists_hom : Π (n : ℕ) {α : Type u} [discrete_field α] (f : by exactI polynomial α)
   (hf : by exactI nat_degree f = n)
   {β : Type v} [discrete_field β] (i : α → β) [by exactI is_field_hom i] (hif : by exactI splits i f),
   ∃ j : by exactI type_aux f hf → β,
-  by exactI (∀ x, j (mk_aux f hf x) = i x) ∧
+  by exactI (∀ x, j (of_aux f hf x) = i x) ∧
   by letI := (splitting_field_aux f hf).2.1; exact is_field_hom j
 | 0     := λ α Iα f hf β Iβ i Ii hsf, by exactI ⟨i, λ x, rfl, Ii⟩
 | (n+1) := λ α Iα f hf β Iβ i Ii hsf, begin
@@ -293,7 +307,7 @@ lemma exists_hom : Π (n : ℕ) {α : Type u} [discrete_field α] (f : by exactI
   have wf : nat_degree (map (coe : α → adjoin_root (irr_factor f)) f / (X - C root)) = n,
     from splitting_field.well_founded hf,
   cases exists_hom n _ wf (adjoin_root.lift i x hx) h₁ with k hk,
-  dsimp [splitting_field_aux, type_aux, splitting_field_aux_succ, mk_aux],
+  dsimp [splitting_field_aux, type_aux, splitting_field_aux_succ, of_aux],
   exact ⟨k, λ x, by conv_rhs { rw [← @lift_of _ _ _ _ _ _ i _ _ _ x, ← hk.1] }; refl, hk.2⟩,
 end
 
@@ -309,12 +323,12 @@ namespace splitting_field
 instance field (f : polynomial α) : discrete_field (splitting_field f) :=
 by unfold splitting_field; apply_instance
 
-def mk (f : polynomial α) : α → splitting_field f := mk_aux f rfl
+def of (f : polynomial α) : α → splitting_field f := of_aux f rfl
 
-instance (f : polynomial α) : is_field_hom (mk f) :=
-by unfold mk; apply_instance
+instance (f : polynomial α) : is_field_hom (of f) :=
+by unfold of; apply_instance
 
-lemma splitting_field_splits (f : polynomial α) : splits (mk f) f :=
+lemma splitting_field_splits (f : polynomial α) : splits (of f) f :=
 (splitting_field_aux f rfl).2.2.2.2
 
 def lift {β : Type v} [discrete_field β] (i : α → β) [is_field_hom i] (f : polynomial α)
@@ -326,9 +340,9 @@ classical.some (exists_hom _ f rfl i hβ)
 (classical.some_spec (exists_hom _ f rfl i hβ)).2
 
 @[simp] lemma lift_fixes {β : Type v} [discrete_field β] (i : α → β) [is_field_hom i]
-  (f : polynomial α) (hβ : splits i f) : ∀ x, lift i f hβ (mk f x) = i x :=
+  (f : polynomial α) (hβ : splits i f) : ∀ x, lift i f hβ (of f x) = i x :=
 (classical.some_spec (exists_hom _ f rfl i hβ)).1
 
-attribute [irreducible] lift splitting_field splitting_field.field splitting_field.mk
+attribute [irreducible] lift splitting_field splitting_field.field splitting_field.of
 
 end splitting_field

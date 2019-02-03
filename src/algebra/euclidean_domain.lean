@@ -12,6 +12,7 @@ universe u
 
 class euclidean_domain (α : Type u) extends nonzero_comm_ring α :=
 (quotient : α → α → α)
+(quotient_zero : ∀ a, quotient a 0 = 0)
 (remainder : α → α → α)
  -- This could be changed to the same order as int.mod_add_div.
  -- We normally write qb+r rather than r + qb though.
@@ -95,8 +96,13 @@ mod_eq_zero.2 (one_dvd _)
 @[simp] lemma zero_mod (b : α) : 0 % b = 0 :=
 mod_eq_zero.2 (dvd_zero _)
 
-@[simp] lemma zero_div {a : α} (a0 : a ≠ 0) : 0 / a = 0 :=
-by simpa only [zero_mul] using mul_div_cancel 0 a0
+@[simp] lemma div_zero (a : α) : a / 0 = 0 :=
+quotient_zero a
+
+@[simp] lemma zero_div {a : α} : 0 / a = 0 :=
+classical.by_cases
+  (λ a0 : a = 0, a0.symm ▸ div_zero 0)
+  (λ a0, by simpa only [zero_mul] using mul_div_cancel 0 a0)
 
 @[simp] lemma div_self {a : α} (a0 : a ≠ 0) : a / a = 1 :=
 by simpa only [one_mul] using mul_div_cancel 1 a0
@@ -106,6 +112,14 @@ by rw [← h, mul_div_cancel _ hb]
 
 lemma eq_div_of_mul_eq_right {a b c : α} (ha : a ≠ 0) (h : a * b = c) : b = c / a :=
 by rw [← h, mul_div_cancel_left _ ha]
+
+theorem mul_div_assoc (x : α) {y z : α} (h : z ∣ y) : x * y / z = x * (y / z) :=
+begin
+  classical, by_cases hz : z = 0,
+  { subst hz, rw [div_zero, div_zero, mul_zero] },
+  rcases h with ⟨p, rfl⟩,
+  rw [mul_div_cancel_left _ hz, mul_left_comm, mul_div_cancel_left _ hz]
+end
 
 section gcd
 variable [decidable_eq α]
@@ -225,13 +239,87 @@ instance (α : Type*) [e : euclidean_domain α] : integral_domain α :=
 by haveI := classical.dec_eq α; exact
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
     λ a b (h : a * b = 0), or_iff_not_and_not.2 $ λ h0 : a ≠ 0 ∧ b ≠ 0,
-      h0.1 $ by rw [← mul_div_cancel a h0.2, h, zero_div h0.2],
+      h0.1 $ by rw [← mul_div_cancel a h0.2, h, zero_div],
   ..e }
 
 end gcd
 
-instance : euclidean_domain ℤ :=
+section lcm
+variables [decidable_eq α]
+
+def lcm (x y : α) : α :=
+x * y / gcd x y
+
+theorem dvd_lcm_left (x y : α) : x ∣ lcm x y :=
+classical.by_cases
+  (assume hxy : gcd x y = 0, by rw [lcm, hxy, div_zero]; exact dvd_zero _)
+  (λ hxy, let ⟨z, hz⟩ := (gcd_dvd x y).2 in ⟨z, eq.symm $ eq_div_of_mul_eq_left hxy $
+    by rw [mul_right_comm, mul_assoc, ← hz]⟩)
+
+theorem dvd_lcm_right (x y : α) : y ∣ lcm x y :=
+classical.by_cases
+  (assume hxy : gcd x y = 0, by rw [lcm, hxy, div_zero]; exact dvd_zero _)
+  (λ hxy, let ⟨z, hz⟩ := (gcd_dvd x y).1 in ⟨z, eq.symm $ eq_div_of_mul_eq_right hxy $
+    by rw [← mul_assoc, mul_right_comm, ← hz]⟩)
+
+theorem lcm_dvd {x y z : α} (hxz : x ∣ z) (hyz : y ∣ z) : lcm x y ∣ z :=
+begin
+  rw lcm, by_cases hxy : gcd x y = 0,
+  { rw [hxy, div_zero], rw euclidean_domain.gcd_eq_zero_iff at hxy, rwa hxy.1 at hxz },
+  rcases gcd_dvd x y with ⟨⟨r, hr⟩, ⟨s, hs⟩⟩,
+  suffices : x * y ∣ z * gcd x y,
+  { cases this with p hp, use p,
+    generalize_hyp : gcd x y = g at hxy hs hp ⊢, subst hs,
+    rw [mul_left_comm, mul_div_cancel_left _ hxy, ← domain.mul_right_inj hxy, hp],
+    rw [← mul_assoc], simp only [mul_right_comm] },
+  rw [gcd_eq_gcd_ab, mul_add], apply dvd_add,
+  { rw mul_left_comm, exact mul_dvd_mul_left _ (dvd_mul_of_dvd_left hyz _) },
+  { rw [mul_left_comm, mul_comm], exact mul_dvd_mul_left _ (dvd_mul_of_dvd_left hxz _) }
+end
+
+@[simp] lemma lcm_dvd_iff {x y z : α} : lcm x y ∣ z ↔ x ∣ z ∧ y ∣ z :=
+⟨λ hz, ⟨dvd_trans (dvd_lcm_left _ _) hz, dvd_trans (dvd_lcm_right _ _) hz⟩,
+λ ⟨hxz, hyz⟩, lcm_dvd hxz hyz⟩
+
+@[simp] lemma lcm_zero_left (x : α) : lcm 0 x = 0 :=
+by rw [lcm, zero_mul, zero_div]
+
+@[simp] lemma lcm_zero_right (x : α) : lcm x 0 = 0 :=
+by rw [lcm, mul_zero, zero_div]
+
+@[simp] lemma lcm_eq_zero_iff {x y : α} : lcm x y = 0 ↔ x = 0 ∨ y = 0 :=
+begin
+  split,
+  { intro hxy, rw [lcm, mul_div_assoc _ (gcd_dvd_right _ _), mul_eq_zero] at hxy,
+    apply or_of_or_of_imp_right hxy, intro hy,
+    by_cases hgxy : gcd x y = 0,
+    { rw euclidean_domain.gcd_eq_zero_iff at hgxy, exact hgxy.2 },
+    { rcases gcd_dvd x y with ⟨⟨r, hr⟩, ⟨s, hs⟩⟩,
+      generalize_hyp : gcd x y = g at hr hs hy hgxy ⊢, subst hs,
+      rw [mul_div_cancel_left _ hgxy] at hy, rw [hy, mul_zero] } },
+  rintro (hx | hy),
+  { rw [hx, lcm_zero_left] },
+  { rw [hy, lcm_zero_right] }
+end
+
+@[simp] lemma gcd_mul_lcm (x y : α) : gcd x y * lcm x y = x * y :=
+begin
+  rw lcm, by_cases h : gcd x y = 0,
+  { rw [h, zero_mul], rw euclidean_domain.gcd_eq_zero_iff at h, rw [h.1, zero_mul] },
+  rcases gcd_dvd x y with ⟨⟨r, hr⟩, ⟨s, hs⟩⟩,
+  generalize_hyp : gcd x y = g at h hr ⊢, subst hr,
+  rw [mul_assoc, mul_div_cancel_left _ h]
+end
+
+end lcm
+
+end euclidean_domain
+
+open euclidean_domain
+
+instance int.euclidean_domain : euclidean_domain ℤ :=
 { quotient := (/),
+  quotient_zero := int.div_zero,
   remainder := (%),
   quotient_mul_add_remainder_eq := λ a b, by rw add_comm; exact int.mod_add_div _ _,
   r := λ a b, a.nat_abs < b.nat_abs,
@@ -243,4 +331,15 @@ instance : euclidean_domain ℤ :=
     by rw [← mul_one a.nat_abs, int.nat_abs_mul];
     exact mul_le_mul_of_nonneg_left (int.nat_abs_pos_of_ne_zero b0) (nat.zero_le _) }
 
-end euclidean_domain
+instance discrete_field.to_euclidean_domain {K : Type u} [discrete_field K] : euclidean_domain K :=
+{ quotient := (/),
+  remainder := λ a b, if b = 0 then a else 0,
+  quotient_zero := div_zero,
+  quotient_mul_add_remainder_eq := λ a b,
+    if H : b = 0 then by rw [if_pos H, H, zero_mul, zero_add] else
+    by rw [if_neg H, add_zero, mul_div_cancel' _ H],
+  r := λ a b, a = 0 ∧ b ≠ 0,
+  r_well_founded := well_founded.intro $ λ a, acc.intro _ $ λ b ⟨hb, hna⟩,
+    acc.intro _ $ λ c ⟨hc, hnb⟩, false.elim $ hnb hb,
+  remainder_lt := λ a b hnb, ⟨if_neg hnb, hnb⟩,
+  mul_left_not_lt := λ a b hnb ⟨hab, hna⟩, or.cases_on (mul_eq_zero.1 hab) hna hnb }

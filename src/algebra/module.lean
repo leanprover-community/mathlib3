@@ -13,7 +13,7 @@ universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
 /-- Typeclass for types with a scalar multiplication operation, denoted `•` (`\bu`) -/
-class has_scalar (α : out_param $ Type u) (γ : Type v) := (smul : α → γ → γ)
+class has_scalar (α : Type u) (γ : Type v) := (smul : α → γ → γ)
 
 infixr ` • `:73 := has_scalar.smul
 
@@ -22,25 +22,26 @@ infixr ` • `:73 := has_scalar.smul
   connected by a "scalar multiplication" operation `r • x : β`
   (where `r : α` and `x : β`) with some natural associativity and
   distributivity axioms similar to those on a ring. -/
-class semimodule (α : out_param $ Type u) (β : Type v) [out_param $ semiring α]
+class semimodule (α : Type u) (β : Type v) [semiring α]
   [add_comm_monoid β] extends has_scalar α β :=
-(smul_add : ∀r (x y : β), r • (x + y) = r • x + r • y)
-(add_smul : ∀r s (x : β), (r + s) • x = r • x + s • x)
-(mul_smul : ∀r s (x : β), (r * s) • x = r • s • x)
+(smul_add : ∀(r : α) (x y : β), r • (x + y) = r • x + r • y)
+(add_smul : ∀(r s : α) (x : β), (r + s) • x = r • x + s • x)
+(mul_smul : ∀(r s : α) (x : β), (r * s) • x = r • s • x)
 (one_smul : ∀x : β, (1 : α) • x = x)
 (zero_smul : ∀x : β, (0 : α) • x = 0)
-(smul_zero {} : ∀r, r • (0 : β) = 0)
+(smul_zero {} : ∀(r : α), r • (0 : β) = 0)
 
 section semimodule
-variables {R:semiring α} [add_comm_monoid β] [semimodule α β] (r s : α) (x y : β)
+variables [R:semiring α] [add_comm_monoid β] [semimodule α β] (r s : α) (x y : β)
 include R
 
 theorem smul_add : r • (x + y) = r • x + r • y := semimodule.smul_add r x y
 theorem add_smul : (r + s) • x = r • x + s • x := semimodule.add_smul r s x
 theorem mul_smul : (r * s) • x = r • s • x := semimodule.mul_smul r s x
-@[simp] theorem one_smul : (1 : α) • x = x := semimodule.one_smul x
-@[simp] theorem zero_smul : (0 : α) • x = 0 := semimodule.zero_smul x
 @[simp] theorem smul_zero : r • (0 : β) = 0 := semimodule.smul_zero r
+variables (α)
+@[simp] theorem one_smul : (1 : α) • x = x := semimodule.one_smul α x
+@[simp] theorem zero_smul : (0 : α) • x = 0 := semimodule.zero_smul α x
 
 lemma smul_smul : r • s • x = (r * s) • x := (mul_smul _ _ _).symm
 
@@ -54,19 +55,18 @@ end semimodule
   connected by a "scalar multiplication" operation `r • x : β`
   (where `r : α` and `x : β`) with some natural associativity and
   distributivity axioms similar to those on a ring. -/
-class module (α : out_param $ Type u) (β : Type v) [out_param $ ring α]
-  [add_comm_group β] extends semimodule α β
+class module (α : Type u) (β : Type v) [ring α] [add_comm_group β] extends semimodule α β
 
 structure module.core (α β) [ring α] [add_comm_group β] extends has_scalar α β :=
-(smul_add : ∀r (x y : β), r • (x + y) = r • x + r • y)
-(add_smul : ∀r s (x : β), (r + s) • x = r • x + s • x)
-(mul_smul : ∀r s (x : β), (r * s) • x = r • s • x)
+(smul_add : ∀(r : α) (x y : β), r • (x + y) = r • x + r • y)
+(add_smul : ∀(r s : α) (x : β), (r + s) • x = r • x + s • x)
+(mul_smul : ∀(r s : α) (x : β), (r * s) • x = r • s • x)
 (one_smul : ∀x : β, (1 : α) • x = x)
 
 def module.of_core {α β} [ring α] [add_comm_group β] (M : module.core α β) : module α β :=
 by letI := M.to_has_scalar; exact
 { zero_smul := λ x,
-    have (0 : α) • x + 0 • x = 0 • x + 0, by rw ← M.add_smul; simp,
+    have (0 : α) • x + (0 : α) • x = (0 : α) • x + 0, by rw ← M.add_smul; simp,
     add_left_cancel this,
   smul_zero := λ r,
     have r • (0:β) + r • 0 = r • 0 + 0, by rw ← M.smul_add; simp,
@@ -74,16 +74,17 @@ by letI := M.to_has_scalar; exact
   ..M }
 
 section module
-variables {R:ring α} [add_comm_group β] [module α β] {r s : α} {x y : β}
-include R
+variables [ring α] [add_comm_group β] [module α β] (r s : α) (x y : β)
 
 @[simp] theorem neg_smul : -r • x = - (r • x) :=
 eq_neg_of_add_eq_zero (by rw [← add_smul, add_left_neg, zero_smul])
 
+variables (α)
 theorem neg_one_smul (x : β) : (-1 : α) • x = -x := by simp
+variables {α}
 
 @[simp] theorem smul_neg : r • (-x) = -(r • x) :=
-by rw [← neg_one_smul x, ← mul_smul, mul_neg_one, neg_smul]
+by rw [← neg_one_smul α, ← mul_smul, mul_neg_one, neg_smul]
 
 theorem smul_sub (r : α) (x y : β) : r • (x - y) = r • x - r • y :=
 by simp [smul_add]; rw smul_neg
@@ -107,35 +108,36 @@ instance semiring.to_semimodule [r : semiring α] : semimodule α α :=
 instance ring.to_module [r : ring α] : module α α :=
 { ..semiring.to_semimodule }
 
-class is_linear_map {α : Type u} {β : Type v} {γ : Type w}
+class is_linear_map (α : Type u) {β : Type v} {γ : Type w}
   [ring α] [add_comm_group β] [add_comm_group γ] [module α β] [module α γ]
   (f : β → γ) : Prop :=
 (add  : ∀x y, f (x + y) = f x + f y)
-(smul : ∀c x, f (c • x) = c • f x)
+(smul : ∀(c : α) x, f (c • x) = c • f x)
 
-structure linear_map {α : Type u} (β : Type v) (γ : Type w)
+structure linear_map (α : Type u) (β : Type v) (γ : Type w)
   [ring α] [add_comm_group β] [add_comm_group γ] [module α β] [module α γ] :=
 (to_fun : β → γ)
 (add  : ∀x y, to_fun (x + y) = to_fun x + to_fun y)
-(smul : ∀c x, to_fun (c • x) = c • to_fun x)
+(smul : ∀(c : α) x, to_fun (c • x) = c • to_fun x)
 
-infixr ` →ₗ `:25 := linear_map
+infixr ` →ₗ `:25 := linear_map _
+notation β ` →ₗ[`:25 α `] ` γ := linear_map α β γ
 
 namespace linear_map
 
 variables [ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group δ]
 variables [module α β] [module α γ] [module α δ]
-variables (f g : β →ₗ γ)
+variables (f g : β →ₗ[α] γ)
 include α
 
-instance : has_coe_to_fun (β →ₗ γ) := ⟨_, to_fun⟩
+instance : has_coe_to_fun (β →ₗ[α] γ) := ⟨_, to_fun⟩
 
-theorem is_linear : is_linear_map f := {..f}
+theorem is_linear : is_linear_map α f := {..f}
 
-@[extensionality] theorem ext {f g : β →ₗ γ} (H : ∀ x, f x = g x) : f = g :=
+@[extensionality] theorem ext {f g : β →ₗ[α] γ} (H : ∀ x, f x = g x) : f = g :=
 by cases f; cases g; congr'; exact funext H
 
-theorem ext_iff {f g : β →ₗ γ} : f = g ↔ ∀ x, f x = g x :=
+theorem ext_iff {f g : β →ₗ[α] γ} : f = g ↔ ∀ x, f x = g x :=
 ⟨by rintro rfl; simp, ext⟩
 
 @[simp] lemma map_add (x y : β) : f (x + y) = f x + f y := f.add x y
@@ -143,12 +145,12 @@ theorem ext_iff {f g : β →ₗ γ} : f = g ↔ ∀ x, f x = g x :=
 @[simp] lemma map_smul (c : α) (x : β) : f (c • x) = c • f x := f.smul c x
 
 @[simp] lemma map_zero : f 0 = 0 :=
-by rw [← zero_smul, map_smul f 0 0, zero_smul]
+by rw [← zero_smul α, map_smul f 0 0, zero_smul]
 
 instance : is_add_group_hom f := ⟨map_add f⟩
 
 @[simp] lemma map_neg (x : β) : f (- x) = - f x :=
-by rw [← neg_one_smul, map_smul, neg_one_smul]
+by rw [← neg_one_smul α, map_smul, neg_one_smul]
 
 @[simp] lemma map_sub (x y : β) : f (x - y) = f x - f y :=
 by simp [map_neg, map_add]
@@ -157,11 +159,11 @@ by simp [map_neg, map_add]
   f (t.sum g) = t.sum (λi, f (g i)) :=
 (finset.sum_hom f).symm
 
-def comp (f : γ →ₗ δ) (g : β →ₗ γ) : β →ₗ δ := ⟨f ∘ g, by simp, by simp⟩
+def comp (f : γ →ₗ[α] δ) (g : β →ₗ[α] γ) : β →ₗ[α] δ := ⟨f ∘ g, by simp, by simp⟩
 
-@[simp] lemma comp_apply (f : γ →ₗ δ) (g : β →ₗ γ) (x : β) : f.comp g x = f (g x) := rfl
+@[simp] lemma comp_apply (f : γ →ₗ[α] δ) (g : β →ₗ[α] γ) (x : β) : f.comp g x = f (g x) := rfl
 
-def id : linear_map β β := ⟨id, by simp, by simp⟩
+def id : β →ₗ[α] β := ⟨id, by simp, by simp⟩
 
 @[simp] lemma id_apply (x : β) : @id α β _ _ _ x = x := rfl
 
@@ -172,9 +174,9 @@ variables [ring α] [add_comm_group β] [add_comm_group γ]
 variables [module α β] [module α γ]
 include α
 
-def mk' (f : β → γ) (H : is_linear_map f) : β →ₗ γ := {to_fun := f, ..H}
+def mk' (f : β → γ) (H : is_linear_map α f) : β →ₗ γ := {to_fun := f, ..H}
 
-@[simp] theorem mk'_apply {f : β → γ} (H : is_linear_map f) (x : β) :
+@[simp] theorem mk'_apply {f : β → γ} (H : is_linear_map α f) (x : β) :
   mk' f H x = f x := rfl
 
 end is_linear_map
@@ -182,19 +184,18 @@ end is_linear_map
 /-- A submodule of a module is one which is closed under vector operations.
   This is a sufficient condition for the subset of vectors in the submodule
   to themselves form a module. -/
-structure submodule (α : Type u) (β : Type v) {R:ring α}
+structure submodule (α : Type u) (β : Type v) [ring α]
   [add_comm_group β] [module α β] : Type v :=
 (carrier : set β)
 (zero : (0:β) ∈ carrier)
 (add : ∀ {x y}, x ∈ carrier → y ∈ carrier → x + y ∈ carrier)
-(smul : ∀ c {x}, x ∈ carrier → c • x ∈ carrier)
+(smul : ∀ (c:α) {x}, x ∈ carrier → c • x ∈ carrier)
 
 namespace submodule
-variables {R:ring α} [add_comm_group β] [add_comm_group γ]
+variables [ring α] [add_comm_group β] [add_comm_group γ]
 variables [module α β] [module α γ]
 variables (p p' : submodule α β)
 variables {r : α} {x y : β}
-include R
 
 instance : has_coe (submodule α β) (set β) := ⟨submodule.carrier⟩
 instance : has_mem β (submodule α β) := ⟨λ x p, x ∈ (p : set β)⟩
@@ -215,7 +216,7 @@ lemma add_mem (h₁ : x ∈ p) (h₂ : y ∈ p) : x + y ∈ p := p.add h₁ h₂
 
 lemma smul_mem (r : α) (h : x ∈ p) : r • x ∈ p := p.smul r h
 
-lemma neg_mem (hx : x ∈ p) : -x ∈ p := by rw ← neg_one_smul x; exact p.smul_mem _ hx
+lemma neg_mem (hx : x ∈ p) : -x ∈ p := by rw ← neg_one_smul α; exact p.smul_mem _ hx
 
 lemma sub_mem (hx : x ∈ p) (hy : y ∈ p) : x - y ∈ p := p.add_mem hx (p.neg_mem hy)
 
@@ -252,7 +253,7 @@ instance : module α p :=
 by refine {smul := (•), ..};
    { intros, apply set_coe.ext, simp [smul_add, add_smul, mul_smul] }
 
-protected def subtype : p →ₗ β :=
+protected def subtype : p →ₗ[α] β :=
 by refine {to_fun := coe, ..}; simp [coe_smul]
 
 @[simp] theorem subtype_apply (x : p) : p.subtype x = x := rfl
@@ -287,8 +288,7 @@ end ideal
   This is the traditional generalization of spaces like `ℝ^n`, which have a natural
   addition operation and a way to multiply them by real numbers, but no multiplication
   operation between vectors. -/
-class vector_space (α : out_param $ Type u) (β : Type v)
-  [out_param $ discrete_field α] [add_comm_group β] extends module α β
+class vector_space (α : Type u) (β : Type v) [discrete_field α] [add_comm_group β] extends module α β
 
 /-- Subspace of a vector space. Defined to equal `submodule`. -/
 @[reducible] def subspace (α : Type u) (β : Type v)

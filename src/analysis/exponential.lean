@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import analysis.real analysis.complex tactic.linarith data.complex.exponential
+import topology.instances.complex tactic.linarith data.complex.exponential
 
 open finset filter metric
 
@@ -126,6 +126,9 @@ by simp [log, lt_irrefl]
 
 @[simp] lemma log_one : log 1 = 0 :=
 exp_injective $ by rw [exp_log zero_lt_one, exp_zero]
+
+lemma log_mul {x y : ℝ} (hx : 0 < x) (hy : 0 < y) : log (x * y) = log x + log y :=
+exp_injective $ by rw [exp_log (mul_pos hx hy), exp_add, exp_log hx, exp_log hy]
 
 lemma exists_cos_eq_zero : ∃ x, 1 ≤ x ∧ x ≤ 2 ∧ cos x = 0 :=
 real.intermediate_value'
@@ -893,6 +896,35 @@ lemma log_I : log I = π / 2 * I := by simp [log]
 
 lemma log_neg_I : log (-I) = -(π / 2) * I := by simp [log]
 
+lemma exp_eq_one_iff {x : ℂ} : exp x = 1 ↔ ∃ n : ℤ, x = n * ((2 * π) * I) :=
+have real.exp (x.re) * real.cos (x.im) = 1 → real.cos x.im ≠ -1,
+  from λ h₁ h₂, begin
+    rw [h₂, mul_neg_eq_neg_mul_symm, mul_one, neg_eq_iff_neg_eq] at h₁,
+    have := real.exp_pos x.re,
+    rw ← h₁ at this,
+    exact absurd this (by norm_num)
+  end,
+calc exp x = 1 ↔ (exp x).re = 1 ∧ (exp x).im = 0 : by simp [complex.ext_iff]
+  ... ↔ real.cos x.im = 1 ∧ real.sin x.im = 0 ∧ x.re = 0 :
+    begin
+      rw exp_eq_exp_re_mul_sin_add_cos,
+      simp [complex.ext_iff, cos_of_real_re, sin_of_real_re, exp_of_real_re,
+        real.exp_ne_zero],
+      split; finish [real.sin_eq_zero_iff_cos_eq]
+    end
+  ... ↔ (∃ n : ℤ, ↑n * (2 * π) = x.im) ∧ (∃ n : ℤ, ↑n * π = x.im) ∧ x.re = 0 :
+    by rw [real.sin_eq_zero_iff, real.cos_eq_one_iff]
+  ... ↔ ∃ n : ℤ, x = n * ((2 * π) * I) :
+    ⟨λ ⟨⟨n, hn⟩, ⟨m, hm⟩, h⟩, ⟨n, by simp [complex.ext_iff, hn.symm, h]⟩,
+      λ ⟨n, hn⟩, ⟨⟨n, by simp [hn]⟩, ⟨2 * n, by simp [hn, mul_comm, mul_assoc, mul_left_comm]⟩,
+        by simp [hn]⟩⟩
+
+lemma exp_eq_exp_iff_exp_sub_eq_one {x y : ℂ} : exp x = exp y ↔ exp (x - y) = 1 :=
+by rw [exp_sub, div_eq_one_iff_eq _ (exp_ne_zero _)]
+
+lemma exp_eq_exp_iff_exists_int {x y : ℂ} : exp x = exp y ↔ ∃ n : ℤ, x = y + n * ((2 * π) * I) :=
+by simp only [exp_eq_exp_iff_exp_sub_eq_one, exp_eq_one_iff, sub_eq_iff_eq_add']
+
 @[simp] lemma cos_pi_div_two : cos (π / 2) = 0 :=
 calc cos (π / 2) = real.cos (π / 2) : by rw [of_real_cos]; simp
 ... = 0 : by simp
@@ -966,4 +998,158 @@ by cases n; simp only [cos_nat_mul_two_pi, int.of_nat_eq_coe,
 lemma cos_int_mul_two_pi_add_pi (n : ℤ) : cos (n * (2 * π) + π) = -1 :=
 by simp [cos_add, sin_add, cos_int_mul_two_pi]
 
+section pow
+
+noncomputable def cpow (x y : ℂ) : ℂ :=
+if x = 0
+  then if y = 0
+    then 1
+    else 0
+  else exp (log x * y)
+
+noncomputable instance : has_pow ℂ ℂ := ⟨cpow⟩
+
+lemma cpow_def (x y : ℂ) : x ^ y =
+  if x = 0
+    then if y = 0
+      then 1
+      else 0
+    else exp (log x * y) := rfl
+
+@[simp] lemma cpow_zero (x : ℂ) : x ^ (0 : ℂ) = 1 := by simp [cpow_def]
+
+@[simp] lemma zero_cpow {x : ℂ} (h : x ≠ 0) : (0 : ℂ) ^ x = 0 :=
+by simp [cpow_def, *]
+
+@[simp] lemma cpow_one (x : ℂ) : x ^ (1 : ℂ) = x :=
+if hx : x = 0 then by simp [hx, cpow_def]
+else by rw [cpow_def, if_neg (@one_ne_zero ℂ _), if_neg hx, mul_one, exp_log hx]
+
+@[simp] lemma one_cpow (x : ℂ) : (1 : ℂ) ^ x = 1 :=
+by rw cpow_def; split_ifs; simp [one_ne_zero, *] at *
+
+lemma cpow_add {x : ℂ} (y z : ℂ) (hx : x ≠ 0) : x ^ (y + z) = x ^ y * x ^ z :=
+by simp [cpow_def]; split_ifs; simp [*, exp_add, mul_add] at *
+
+lemma cpow_mul {x y : ℂ} (z : ℂ) (h₁ : -π < (log x * y).im) (h₂ : (log x * y).im ≤ π) :
+  x ^ (y * z) = (x ^ y) ^ z :=
+begin
+  simp [cpow_def],
+  split_ifs;
+  simp [*, exp_ne_zero, log_exp h₁ h₂, mul_assoc] at *
+end
+
+lemma cpow_neg (x y : ℂ) : x ^ -y = (x ^ y)⁻¹ :=
+by simp [cpow_def]; split_ifs; simp [exp_neg]
+
+@[simp] lemma cpow_nat_cast (x : ℂ) : ∀ (n : ℕ), x ^ (n : ℂ) = x ^ n
+| 0       := by simp
+| (n + 1) := if hx : x = 0 then by simp only [hx, pow_succ,
+    complex.zero_cpow (nat.cast_ne_zero.2 (nat.succ_ne_zero _)), zero_mul]
+  else by simp [cpow_def, hx, mul_add, exp_add, pow_succ, (cpow_nat_cast n).symm, exp_log hx]
+
+@[simp] lemma cpow_int_cast (x : ℂ) : ∀ (n : ℤ), x ^ (n : ℂ) = x ^ n
+| (n : ℕ) := by simp; refl
+| -[1+ n] := by rw fpow_neg_succ_of_nat;
+  simp only [int.neg_succ_of_nat_coe, int.cast_neg, complex.cpow_neg, inv_eq_one_div,
+    int.cast_coe_nat, cpow_nat_cast]
+
+lemma cpow_nat_inv_pow (x : ℂ) {n : ℕ} (hn : 0 < n) : (x ^ (n⁻¹ : ℂ)) ^ n = x :=
+have (log x * (↑n)⁻¹).im = (log x).im / n,
+  by rw [div_eq_mul_inv, ← of_real_nat_cast, ← of_real_inv, mul_im,
+                of_real_re, of_real_im]; simp,
+have h : -π < (log x * (↑n)⁻¹).im ∧ (log x * (↑n)⁻¹).im ≤ π,
+  from (le_total (log x).im 0).elim
+    (λ h, ⟨calc -π < (log x).im : by simp [log, neg_pi_lt_arg]
+            ... ≤ ((log x).im * 1) / n : le_div_of_mul_le (nat.cast_pos.2 hn)
+              (mul_le_mul_of_nonpos_left (by rw ← nat.cast_one; exact nat.cast_le.2 hn) h)
+            ... = (log x * (↑n)⁻¹).im : by simp [this],
+          this.symm ▸ le_trans (div_nonpos_of_nonpos_of_pos h (nat.cast_pos.2 hn))
+            (le_of_lt real.pi_pos)⟩)
+    (λ h, ⟨this.symm ▸ lt_of_lt_of_le (neg_neg_of_pos real.pi_pos)
+            (div_nonneg h (nat.cast_pos.2 hn)),
+          calc (log x * (↑n)⁻¹).im = (1 * (log x).im) / n : by simp [this]
+            ... ≤ (log x).im : (div_le_of_le_mul (nat.cast_pos.2 hn)
+              (mul_le_mul_of_nonneg_right (by rw ← nat.cast_one; exact nat.cast_le.2 hn) h))
+            ... ≤ _ : by simp [log, arg_le_pi]⟩),
+by rw [← cpow_nat_cast, ← cpow_mul _ h.1 h.2,
+    inv_mul_cancel (show (n : ℂ) ≠ 0, from nat.cast_ne_zero.2 (nat.pos_iff_ne_zero.1 hn)),
+    cpow_one]
+
+end pow
+
 end complex
+
+namespace real
+
+noncomputable def rpow (x y : ℝ) := ((x : ℂ) ^ (y : ℂ)).re
+
+noncomputable instance : has_pow ℝ ℝ := ⟨rpow⟩
+
+lemma rpow_def (x y : ℝ) : x ^ y = ((x : ℂ) ^ (y : ℂ)).re := rfl
+
+lemma rpow_def_of_nonneg {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : x ^ y =
+  if x = 0
+    then if y = 0
+      then 1
+      else 0
+    else exp (log x * y) :=
+by simp only [rpow_def, complex.cpow_def];
+  split_ifs;
+  simp [*, (complex.of_real_log hx).symm, -complex.of_real_mul,
+    (complex.of_real_mul _ _).symm, complex.exp_of_real_re] at *
+
+end real
+
+namespace complex
+
+lemma of_real_cpow {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : ((x ^ y : ℝ) : ℂ) = (x : ℂ) ^ (y : ℂ) :=
+by simp [real.rpow_def_of_nonneg hx, complex.cpow_def]; split_ifs; simp [complex.of_real_log hx]
+
+@[simp] lemma abs_cpow_real (x : ℂ) (y : ℝ) : abs (x ^ (y : ℂ)) = x.abs ^ y :=
+begin
+  rw [real.rpow_def_of_nonneg (abs_nonneg _), complex.cpow_def],
+  split_ifs;
+  simp [*, abs_of_nonneg (le_of_lt (real.exp_pos _)), complex.log, complex.exp_add,
+    add_mul, mul_right_comm _ I, exp_mul_I, abs_cos_add_sin_mul_I,
+    (complex.of_real_mul _ _).symm, -complex.of_real_mul] at *
+end
+
+end complex
+
+namespace real
+
+@[simp] lemma rpow_zero (x : ℝ) : x ^ (0 : ℝ) = 1 := by simp [rpow_def]
+
+@[simp] lemma zero_rpow {x : ℝ} (h : x ≠ 0) : (0 : ℝ) ^ x = 0 :=
+by simp [rpow_def, *]
+
+@[simp] lemma rpow_one (x : ℝ) : x ^ (1 : ℝ) = x := by simp [rpow_def]
+
+@[simp] lemma one_rpow (x : ℝ) : (1 : ℝ) ^ x = 1 := by simp [rpow_def]
+
+lemma rpow_nonneg_of_nonneg {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : 0 ≤ x ^ y :=
+by rw [rpow_def_of_nonneg hx];
+  split_ifs; simp only [zero_le_one, le_refl, le_of_lt (exp_pos _)]
+
+lemma rpow_add {x : ℝ} (y z : ℝ) (hx : 0 < x) : x ^ (y + z) = x ^ y * x ^ z :=
+by simp only [rpow_def_of_nonneg (le_of_lt hx), if_neg (ne_of_lt hx).symm, mul_add, exp_add]
+
+lemma rpow_mul {x : ℝ} (hx : 0 ≤ x) (y z : ℝ) : x ^ (y * z) = (x ^ y) ^ z :=
+by rw [← complex.of_real_inj, complex.of_real_cpow (rpow_nonneg_of_nonneg hx _),
+    complex.of_real_cpow hx, complex.of_real_mul, complex.cpow_mul, complex.of_real_cpow hx];
+  simp only [(complex.of_real_mul _ _).symm, (complex.of_real_log hx).symm,
+    complex.of_real_im, neg_lt_zero, pi_pos, le_of_lt pi_pos]
+
+lemma rpow_neg {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : x ^ -y = (x ^ y)⁻¹ :=
+by simp only [rpow_def_of_nonneg hx]; split_ifs; simp [*, exp_neg] at *
+
+@[simp] lemma rpow_nat_cast (x : ℝ) (n : ℕ) : x ^ (n : ℝ) = x ^ n :=
+by simp only [rpow_def, (complex.of_real_pow _ _).symm, complex.cpow_nat_cast,
+  complex.of_real_nat_cast, complex.of_real_re]
+
+@[simp] lemma rpow_int_cast (x : ℝ) (n : ℤ) : x ^ (n : ℝ) = x ^ n :=
+by simp only [rpow_def, (complex.of_real_fpow _ _).symm, complex.cpow_int_cast,
+  complex.of_real_int_cast, complex.of_real_re]
+
+end real

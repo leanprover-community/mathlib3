@@ -90,7 +90,7 @@ def hom_iso (h : is_limit t) (W : C) : (W ⟶ t.X) ≅ ((const J).obj W ⟹ F) :
 /-- The limit of `F` represents the functor taking `W` to
   the set of cones on `F` with vertex `W`. -/
 def nat_iso (h : is_limit t) : yoneda.obj t.X ≅ F.cones :=
-nat_iso.of_components (is_limit.hom_iso h) (by tidy)
+nat_iso.of_components (λ W, is_limit.hom_iso h (unop W)) (by tidy)
 
 def hom_iso' (h : is_limit t) (W : C) :
   (W ⟶ t.X) ≅ { p : Π j, W ⟶ F.obj j // ∀ {j j'} (f : j ⟶ j'), p j ≫ F.map f = p j' } :=
@@ -118,6 +118,15 @@ def of_faithful {t : cone F} {D : Type u'} [category.{v} D] (G : C ⥤ D) [faith
   end }
 
 end is_limit
+
+def is_limit_iso_unique_cone_morphism {t : cone F} :
+  is_limit t ≅ Π s, unique (s ⟶ t) :=
+{ hom := λ h s,
+  { default := h.lift_cone_morphism s,
+    uniq := λ _, h.uniq_cone_morphism },
+  inv := λ h,
+  { lift := λ s, (h s).default.hom,
+    uniq' := λ s f w, congr_arg cone_morphism.hom ((h s).uniq ⟨f, w⟩) } }
 
 /-- A cocone `t` on `F` is a colimit cocone if each cocone on `F` admits a unique
   cocone morphism from `t`. -/
@@ -191,7 +200,7 @@ def hom_iso (h : is_colimit t) (W : C) : (t.X ⟶ W) ≅ (F ⟹ (const J).obj W)
 
 /-- The colimit of `F` represents the functor taking `W` to
   the set of cocones on `F` with vertex `W`. -/
-def nat_iso (h : is_colimit t) : coyoneda.obj t.X ≅ F.cocones :=
+def nat_iso (h : is_colimit t) : coyoneda.obj (op t.X) ≅ F.cocones :=
 nat_iso.of_components (is_colimit.hom_iso h) (by intros; ext; dsimp; rw ←assoc; refl)
 
 def hom_iso' (h : is_colimit t) (W : C) :
@@ -220,6 +229,15 @@ def of_faithful {t : cocone F} {D : Type u'} [category.{v} D] (G : C ⥤ D) [fai
   end }
 
 end is_colimit
+
+def is_colimit_iso_unique_cocone_morphism {t : cocone F} :
+  is_colimit t ≅ Π s, unique (t ⟶ s) :=
+{ hom := λ h s,
+  { default := h.desc_cocone_morphism s,
+    uniq := λ _, h.uniq_cocone_morphism },
+  inv := λ h,
+  { desc := λ s, (h s).default.hom,
+    uniq' := λ s f w, congr_arg cocone_morphism.hom ((h s).uniq ⟨f, w⟩) } }
 
 section limit
 
@@ -290,7 +308,7 @@ by erw is_limit.fac
   (w : ∀ j, f ≫ limit.π F j = f' ≫ limit.π F j) : f = f' :=
 (limit.is_limit F).hom_ext w
 
-def limit.hom_iso (F : J ⥤ C) [has_limit F] (W : C) : (W ⟶ limit F) ≅ (F.cones.obj W) :=
+def limit.hom_iso (F : J ⥤ C) [has_limit F] (W : C) : (W ⟶ limit F) ≅ (F.cones.obj (op W)) :=
 (limit.is_limit F).hom_iso W
 
 @[simp] lemma limit.hom_iso_hom (F : J ⥤ C) [has_limit F] {W : C} (f : W ⟶ limit F):
@@ -389,7 +407,7 @@ variables {F} {G : J ⥤ C} (α : F ⟹ G)
 by apply is_limit.fac
 
 @[simp] lemma limit.lift_map (c : cone F) :
-  limit.lift F c ≫ lim.map α = limit.lift G (c.postcompose α) :=
+  limit.lift F c ≫ lim.map α = limit.lift G ((cones.postcompose α).obj c) :=
 by ext; rw [assoc, lim.map_π, ←assoc, limit.lift_π, limit.lift_π]; refl
 
 lemma limit.map_pre {K : Type v} [small_category K] [has_limits_of_shape K C] (E : K ⥤ J) :
@@ -416,7 +434,8 @@ begin
 end
 
 def lim_yoneda : lim ⋙ yoneda ≅ category_theory.cones J C :=
-nat_iso.of_components (λ F, nat_iso.of_components (limit.hom_iso F) (by tidy)) (by tidy)
+nat_iso.of_components (λ F, nat_iso.of_components (λ W, limit.hom_iso F (unop W)) (by tidy))
+  (by tidy)
 
 end lim_functor
 
@@ -607,7 +626,7 @@ variables {F} {G : J ⥤ C} (α : F ⟹ G)
 by apply is_colimit.fac
 
 @[simp] lemma colimit.map_desc (c : cocone G) :
-  colim.map α ≫ colimit.desc G c = colimit.desc F (c.precompose α) :=
+  colim.map α ≫ colimit.desc G c = colimit.desc F ((cocones.precompose α).obj c) :=
 by ext; rw [←assoc, colim.ι_map, assoc, colimit.ι_desc, colimit.ι_desc]; refl
 
 lemma colimit.pre_map {K : Type v} [small_category K] [has_colimits_of_shape K C] (E : K ⥤ J) :
@@ -634,9 +653,8 @@ begin
 end
 
 def colim_coyoneda : colim.op ⋙ coyoneda ≅ category_theory.cocones J C :=
-nat_iso.of_components (λ F, nat_iso.of_components (colimit.hom_iso F)
-  (by {tidy, dsimp [functor.cocones], rw category.assoc }))
-  (by {tidy, rw [← category.assoc,← category.assoc], tidy })
+nat_iso.of_components (λ F, nat_iso.of_components (colimit.hom_iso (unop F)) (by tidy))
+  (by {tidy, rw [← category.assoc,← category.assoc], tidy})
 
 end colim_functor
 

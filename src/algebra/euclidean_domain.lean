@@ -313,7 +313,11 @@ end
 
 end lcm
 
-instance : euclidean_domain ℤ :=
+end euclidean_domain
+
+open euclidean_domain
+
+instance int.euclidean_domain : euclidean_domain ℤ :=
 { quotient := (/),
   quotient_zero := int.div_zero,
   remainder := (%),
@@ -327,4 +331,15 @@ instance : euclidean_domain ℤ :=
     by rw [← mul_one a.nat_abs, int.nat_abs_mul];
     exact mul_le_mul_of_nonneg_left (int.nat_abs_pos_of_ne_zero b0) (nat.zero_le _) }
 
-end euclidean_domain
+instance discrete_field.to_euclidean_domain {K : Type u} [discrete_field K] : euclidean_domain K :=
+{ quotient := (/),
+  remainder := λ a b, if b = 0 then a else 0,
+  quotient_zero := div_zero,
+  quotient_mul_add_remainder_eq := λ a b,
+    if H : b = 0 then by rw [if_pos H, H, zero_mul, zero_add] else
+    by rw [if_neg H, add_zero, mul_div_cancel' _ H],
+  r := λ a b, a = 0 ∧ b ≠ 0,
+  r_well_founded := well_founded.intro $ λ a, acc.intro _ $ λ b ⟨hb, hna⟩,
+    acc.intro _ $ λ c ⟨hc, hnb⟩, false.elim $ hnb hb,
+  remainder_lt := λ a b hnb, ⟨if_neg hnb, hnb⟩,
+  mul_left_not_lt := λ a b hnb ⟨hab, hna⟩, or.cases_on (mul_eq_zero.1 hab) hna hnb }

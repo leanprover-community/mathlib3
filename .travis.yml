@@ -20,8 +20,8 @@ install:
   - chmod +x $HOME/scripts/travis_long
   - (git status | grep  -e "Changes not staged for commit:"); RESULT=$?
   - if [ $RESULT -eq 0 ]; then git checkout -f HEAD ; fi
-  - rm `git status | grep "\.lean" | sed "s/\.lean/.olean/"` ||  true
-  - rm `git status | grep "\.lean"` || true
+  - git clean -d -f -q
+  - ./purge_olean.sh
   - rm mathlib.txt || true
 
 jobs:

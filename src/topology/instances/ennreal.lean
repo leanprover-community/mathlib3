@@ -19,6 +19,10 @@ variables {a b c d : ennreal} {r p q : nnreal}
 section topological_space
 open topological_space
 
+/-- Topology on `ennreal`.
+
+Note: this is different from the `emetric_space` topology. The `emetric_space` topology has
+`is_open {⊤}`, while this topology doesn't have singleton elements. -/
 instance : topological_space ennreal :=
 topological_space.generate_from {s | ∃a, s = {b | a < b} ∨ s = {b | b < a}}
 
@@ -87,6 +91,13 @@ begin
   rw [← prod_range_range_eq],
   exact prod_mem_nhds_sets coe_range_mem_nhds coe_range_mem_nhds
 end
+
+lemma continuous_of_real : continuous ennreal.of_real :=
+continuous.comp nnreal.continuous_of_real (continuous_coe.2 continuous_id)
+
+lemma tendsto_of_real {f : filter α} {m : α → ℝ} {a : ℝ} (h : tendsto m f (nhds a)) :
+  tendsto (λa, ennreal.of_real (m a)) f (nhds (ennreal.of_real a)) :=
+tendsto.comp h (continuous.tendsto continuous_of_real _)
 
 lemma tendsto_to_nnreal {a : ennreal} : a ≠ ⊤ →
   tendsto (ennreal.to_nnreal) (nhds a) (nhds a.to_nnreal) :=
@@ -406,3 +417,162 @@ let g' (b : β) : nnreal := ⟨g b, hg b⟩ in
 have has_sum f', from nnreal.has_sum_coe.1 hf,
 have has_sum g', from nnreal.has_sum_of_le (assume b, (@nnreal.coe_le (g' b) (f' b)).2 $ hgf b) this,
 show has_sum (λb, g' b : β → ℝ), from nnreal.has_sum_coe.2 this
+
+lemma infi_real_pos_eq_infi_nnreal_pos {α : Type*} [complete_lattice α] {f : ℝ → α} :
+  (⨅(n:ℝ) (h : n > 0), f n) = (⨅(n:nnreal) (h : n > 0), f n) :=
+le_antisymm
+  (le_infi $ assume n, le_infi $ assume hn, infi_le_of_le n $ infi_le _ (nnreal.coe_pos.2 hn))
+  (le_infi $ assume r, le_infi $ assume hr, infi_le_of_le ⟨r, le_of_lt hr⟩ $ infi_le _ hr)
+
+section
+variables [emetric_space β]
+open lattice ennreal filter emetric
+
+/-- In an emetric ball, the distance between points is everywhere finite -/
+lemma edist_ne_top_of_mem_ball {a : β} {r : ennreal} (x y : ball a r) : edist x.1 y.1 ≠ ⊤ :=
+lt_top_iff_ne_top.1 $
+calc edist x y ≤ edist a x + edist a y : edist_triangle_left x.1 y.1 a
+  ... < r + r : by rw [edist_comm a x, edist_comm a y]; exact add_lt_add x.2 y.2
+  ... ≤ ⊤ : le_top
+
+/-- Each ball in an extended metric space gives us a metric space, as the edist
+is everywhere finite. -/
+def metric_space_emetric_ball (a : β) (r : ennreal) : metric_space (ball a r) :=
+emetric_space.to_metric_space edist_ne_top_of_mem_ball
+
+local attribute [instance] metric_space_emetric_ball
+
+lemma nhds_eq_nhds_emetric_ball (a x : β) (r : ennreal) (h : x ∈ ball a r) :
+  nhds x = map (coe : ball a r → β) (nhds ⟨x, h⟩) :=
+(map_nhds_subtype_val_eq _ $ mem_nhds_sets emetric.is_open_ball h).symm
+end
+
+section
+variable [emetric_space α]
+open emetric
+
+/-- Yet another metric characterization of Cauchy sequences on integers. This one is often the
+most efficient. -/
+lemma emetric.cauchy_seq_iff_le_tendsto_0 [inhabited β] [semilattice_sup β] {s : β → α} :
+  cauchy_seq s ↔ (∃ (b: β → ennreal), (∀ n m N : β, N ≤ n → N ≤ m → edist (s n) (s m) ≤ b N)
+                    ∧ (tendsto b at_top (nhds 0))) :=
+⟨begin
+  assume hs,
+  rw emetric.cauchy_seq_iff at hs,
+  /- `s` is Cauchy sequence. The sequence `b` will be constructed by taking
+  the supremum of the distances between `s n` and `s m` for `n m ≥ N`-/
+  let b := λN, Sup ((λ(p : β × β), edist (s p.1) (s p.2))''{p | p.1 ≥ N ∧ p.2 ≥ N}),
+  --Prove that it bounds the distances of points in the Cauchy sequence
+  have C : ∀ n m N, N ≤ n → N ≤ m → edist (s n) (s m) ≤ b N,
+  { refine λm n N hm hn, le_Sup _,
+    use (prod.mk m n),
+    simp only [and_true, eq_self_iff_true, set.mem_set_of_eq],
+    exact ⟨hm, hn⟩ },
+  --Prove that it tends to `0`, by using the Cauchy property of `s`
+  have D : tendsto b at_top (nhds 0),
+  { refine tendsto_orderable.2 ⟨λa ha, absurd ha (ennreal.not_lt_zero), λε εpos, _⟩,
+    rcases dense εpos with ⟨δ, δpos, δlt⟩,
+    rcases hs δ δpos with ⟨N, hN⟩,
+    refine filter.mem_at_top_sets.2 ⟨N, λn hn, _⟩,
+    have : b n ≤ δ := Sup_le begin
+      simp only [and_imp, set.mem_image, set.mem_set_of_eq, exists_imp_distrib, prod.exists],
+      intros d p q hp hq hd,
+      rw ← hd,
+      exact le_of_lt (hN q p (le_trans hn hq) (le_trans hn hp))
+    end,
+    simpa using lt_of_le_of_lt this δlt },
+  -- Conclude
+  exact ⟨b, ⟨C, D⟩⟩
+end,
+begin
+  rintros ⟨b, ⟨b_bound, b_lim⟩⟩,
+  /-b : ℕ → ℝ, b_bound : ∀ (n m N : ℕ), N ≤ n → N ≤ m → edist (s n) (s m) ≤ b N,
+    b_lim : tendsto b at_top (nhds 0)-/
+  refine emetric.cauchy_seq_iff.2 (λε εpos, _),
+  have : {n | b n < ε} ∈ at_top.sets := (tendsto_orderable.1 b_lim ).2 _ εpos,
+  rcases filter.mem_at_top_sets.1 this with ⟨N, hN⟩,
+  exact ⟨N, λm n hm hn, calc
+    edist (s n) (s m) ≤ b N : b_bound n m N hn hm
+    ... < ε : (hN _ (le_refl N)) ⟩
+end⟩
+
+lemma continuous_of_le_add_edist {f : α → ennreal} (C : ennreal)
+  (hC : C ≠ ⊤) (h : ∀x y, f x ≤ f y + C * edist x y) : continuous f :=
+begin
+  refine continuous_iff_tendsto.2 (λx, tendsto_orderable.2 ⟨_, _⟩),
+  show ∀e, e < f x → {y : α | e < f y} ∈ (nhds x).sets,
+  { assume e he,
+    let ε := min (f x - e) 1,
+    have : ε < ⊤ := lt_of_le_of_lt (min_le_right _ _) (by simp [lt_top_iff_ne_top]),
+    have : 0 < ε := by simp [ε, hC, he, ennreal.zero_lt_one],
+    have : 0 < C⁻¹ * (ε/2) := bot_lt_iff_ne_bot.2 (by simp [hC, (ne_of_lt this).symm, ennreal.mul_eq_zero]),
+    have I : C * (C⁻¹ * (ε/2)) < ε,
+    { by_cases C_zero : C = 0,
+      { simp [C_zero, ‹0 < ε›] },
+      { calc C * (C⁻¹ * (ε/2)) = (C * C⁻¹) * (ε/2) : by simp [mul_assoc]
+        ... = ε/2 : by simp [ennreal.mul_inv_cancel C_zero hC]
+        ... < ε : ennreal.half_lt_self (bot_lt_iff_ne_bot.1 ‹0 < ε›) (lt_top_iff_ne_top.1 ‹ε < ⊤›) }},
+    have : ball x (C⁻¹ * (ε/2)) ⊆ {y : α | e < f y},
+    { rintros y hy,
+      by_cases htop : f y = ⊤,
+      { simp [htop, lt_top_iff_ne_top, ne_top_of_lt he] },
+      { simp at hy,
+        have : e + ε < f y + ε := calc
+          e + ε ≤ e + (f x - e) : add_le_add_left' (min_le_left _ _)
+          ... = f x : by simp [le_of_lt he]
+          ... ≤ f y + C * edist x y : h x y
+          ... = f y + C * edist y x : by simp [edist_comm]
+          ... ≤ f y + C * (C⁻¹ * (ε/2)) :
+            add_le_add_left' $ canonically_ordered_semiring.mul_le_mul (le_refl _) (le_of_lt hy)
+          ... < f y + ε : (ennreal.add_lt_add_iff_left (lt_top_iff_ne_top.2 htop)).2 I,
+        show e < f y, from
+          (ennreal.add_lt_add_iff_right ‹ε < ⊤›).1 this }},
+    apply filter.mem_sets_of_superset (ball_mem_nhds _ (‹0 < C⁻¹ * (ε/2)›)) this },
+  show ∀e, f x < e → {y : α | f y < e} ∈ (nhds x).sets,
+  { assume e he,
+    let ε := min (e - f x) 1,
+    have : ε < ⊤ := lt_of_le_of_lt (min_le_right _ _) (by simp [lt_top_iff_ne_top]),
+    have : 0 < ε := by simp [ε, he, ennreal.zero_lt_one],
+    have : 0 < C⁻¹ * (ε/2) := bot_lt_iff_ne_bot.2 (by simp [hC, (ne_of_lt this).symm, ennreal.mul_eq_zero]),
+    have I : C * (C⁻¹ * (ε/2)) < ε,
+    { by_cases C_zero : C = 0,
+      simp [C_zero, ‹0 < ε›],
+      calc C * (C⁻¹ * (ε/2)) = (C * C⁻¹) * (ε/2) : by simp [mul_assoc]
+        ... = ε/2 : by simp [ennreal.mul_inv_cancel C_zero hC]
+        ... < ε : ennreal.half_lt_self (bot_lt_iff_ne_bot.1 ‹0 < ε›) (lt_top_iff_ne_top.1 ‹ε < ⊤›) },
+    have : ball x (C⁻¹ * (ε/2)) ⊆ {y : α | f y < e},
+    { rintros y hy,
+      have htop : f x ≠ ⊤ := ne_top_of_lt he,
+      show f y < e, from calc
+        f y ≤ f x + C * edist y x : h y x
+        ... ≤ f x + C * (C⁻¹ * (ε/2)) :
+            add_le_add_left' $ canonically_ordered_semiring.mul_le_mul (le_refl _) (le_of_lt hy)
+        ... < f x + ε : (ennreal.add_lt_add_iff_left (lt_top_iff_ne_top.2 htop)).2 I
+        ... ≤ f x + (e - f x) : add_le_add_left' (min_le_left _ _)
+        ... = e : by simp [le_of_lt he] },
+    apply filter.mem_sets_of_superset (ball_mem_nhds _ (‹0 < C⁻¹ * (ε/2)›)) this },
+end
+
+theorem continuous_edist' : continuous (λp:α×α, edist p.1 p.2) :=
+begin
+  apply continuous_of_le_add_edist 2 (by simp),
+  rintros ⟨x, y⟩ ⟨x', y'⟩,
+  calc edist x y ≤ edist x x' + edist x' y' + edist y' y : edist_triangle4 _ _ _ _
+    ... = edist x' y' + (edist x x' + edist y y') : by simp [add_comm, edist_comm]
+    ... ≤ edist x' y' + (edist (x, y) (x', y') + edist (x, y) (x', y')) :
+      add_le_add_left' (add_le_add' (by simp [edist, le_refl]) (by simp [edist, le_refl]))
+    ... = edist x' y' + 2 * edist (x, y) (x', y') : by rw [← mul_two, mul_comm]
+end
+
+theorem continuous_edist [topological_space β] {f g : β → α}
+  (hf : continuous f) (hg : continuous g) : continuous (λb, edist (f b) (g b)) :=
+(hf.prod_mk hg).comp continuous_edist'
+
+theorem tendsto_edist {f g : β → α} {x : filter β} {a b : α}
+  (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) :
+  tendsto (λx, edist (f x) (g x)) x (nhds (edist a b)) :=
+have tendsto (λp:α×α, edist p.1 p.2) (nhds (a, b)) (nhds (edist a b)),
+  from continuous_iff_tendsto.mp continuous_edist' (a, b),
+(hf.prod_mk hg).comp (by rw [nhds_prod_eq] at this; exact this)
+
+end --section

@@ -683,4 +683,44 @@ instance [semilattice_sup_top α] : semilattice_inf_bot (order_dual α) :=
 instance [bounded_lattice α] : bounded_lattice (order_dual α) :=
 { .. order_dual.lattice.lattice α, .. order_dual.lattice.order_top α, .. order_dual.lattice.order_bot α }
 
+instance [bounded_distrib_lattice α] : bounded_distrib_lattice (order_dual α) :=
+{ .. order_dual.lattice.bounded_lattice α, .. order_dual.lattice.distrib_lattice α }
+
 end order_dual
+
+namespace prod
+open lattice
+variables (α : Type u) (β : Type v)
+
+instance [has_top α] [has_top β] : has_top (α × β) := ⟨⟨⊤, ⊤⟩⟩
+instance [has_bot α] [has_bot β] : has_bot (α × β) := ⟨⟨⊥, ⊥⟩⟩
+
+instance [order_top α] [order_top β] : order_top (α × β) :=
+{ le_top := assume a, ⟨le_top, le_top⟩,
+  .. prod.partial_order α β, .. prod.lattice.has_top α β }
+
+instance [order_bot α] [order_bot β] : order_bot (α × β) :=
+{ bot_le := assume a, ⟨bot_le, bot_le⟩,
+  .. prod.partial_order α β, .. prod.lattice.has_bot α β }
+
+instance [semilattice_sup_top α] [semilattice_sup_top β] : semilattice_sup_top (α × β) :=
+{ .. prod.lattice.semilattice_sup α β, .. prod.lattice.order_top α β }
+
+instance [semilattice_inf_top α] [semilattice_inf_top β] : semilattice_inf_top (α × β) :=
+{ .. prod.lattice.semilattice_inf α β, .. prod.lattice.order_top α β }
+
+instance [semilattice_sup_bot α] [semilattice_sup_bot β] : semilattice_sup_bot (α × β) :=
+{ .. prod.lattice.semilattice_sup α β, .. prod.lattice.order_bot α β }
+
+instance [semilattice_inf_bot α] [semilattice_inf_bot β] : semilattice_inf_bot (α × β) :=
+{ .. prod.lattice.semilattice_inf α β, .. prod.lattice.order_bot α β }
+
+instance [bounded_lattice α] [bounded_lattice β] : bounded_lattice (α × β) :=
+{ .. prod.lattice.lattice α β, .. prod.lattice.order_top α β, .. prod.lattice.order_bot α β }
+
+instance [bounded_distrib_lattice α] [bounded_distrib_lattice β] :
+  bounded_distrib_lattice (α × β) :=
+{ .. prod.lattice.bounded_lattice α β, .. prod.lattice.distrib_lattice α β }
+
+end prod
+

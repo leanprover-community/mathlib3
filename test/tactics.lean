@@ -706,6 +706,24 @@ end
 
 end conv
 
+section clear_aux_decl
+
+example (n m : ℕ) (h₁ : n = m) (h₂ : ∃ a : ℕ, a = n ∧ a = m) : 2 * m = 2 * n :=
+let ⟨a, ha⟩ := h₂ in
+begin
+  clear_aux_decl, -- subst will fail without this line
+  subst h₁
+end
+
+example (x y : ℕ) (h₁ : ∃ n : ℕ, n * 1 = 2) (h₂ : 1 + 1 = 2 → x * 1 = y) : x = y :=
+let ⟨n, hn⟩ := h₁ in
+begin
+  clear_aux_decl, -- finish produces an error without this line
+  finish
+end
+
+end clear_aux_decl
+
 private meta def get_exception_message (t : lean.parser unit) : lean.parser string
 | s := match t s with
        | result.success a s' := result.success "No exception" s

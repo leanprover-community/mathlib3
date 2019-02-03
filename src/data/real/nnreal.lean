@@ -36,6 +36,8 @@ protected def of_real (r : ℝ) : ℝ≥0 := ⟨max r 0, le_max_right _ _⟩
 lemma coe_of_real (r : ℝ) (hr : 0 ≤ r) : (nnreal.of_real r : ℝ) = r :=
 max_eq_left hr
 
+lemma coe_nonneg (r : nnreal) : (0 : ℝ) ≤ r := r.2
+
 instance : has_zero ℝ≥0  := ⟨⟨0, le_refl 0⟩⟩
 instance : has_one ℝ≥0   := ⟨⟨1, zero_le_one⟩⟩
 instance : has_add ℝ≥0   := ⟨λa b, ⟨a + b, add_nonneg a.2 b.2⟩⟩
@@ -87,14 +89,7 @@ lemma smul_coe (r : ℝ≥0) : ∀n, ↑(add_monoid.smul n r) = add_monoid.smul 
 | (n + 1) := by simp [coe_nat_cast n]
 
 instance : decidable_linear_order ℝ≥0 :=
-{ le               := (≤),
-  lt               := λa b, (a : ℝ) < b,
-  lt_iff_le_not_le := assume a b, @lt_iff_le_not_le ℝ _ a b,
-  le_refl          := assume a, le_refl (a : ℝ),
-  le_trans         := assume a b c, @le_trans ℝ _ a b c,
-  le_antisymm      := assume a b hab hba, nnreal.eq $ le_antisymm hab hba,
-  le_total         := assume a b, le_total (a : ℝ) b,
-  decidable_le     := λa b, by apply_instance }
+decidable_linear_order.lift (coe : ℝ≥0 → ℝ) subtype.val_injective
 
 protected lemma coe_le {r₁ r₂ : ℝ≥0} : r₁ ≤ r₂ ↔ (r₁ : ℝ) ≤ r₂ := iff.rfl
 protected lemma coe_lt {r₁ r₂ : ℝ≥0} : r₁ < r₂ ↔ (r₁ : ℝ) < r₂ := iff.rfl
@@ -239,6 +234,9 @@ section of_real
 
 @[simp] lemma of_real_zero : nnreal.of_real 0 = 0 :=
 by simp [nnreal.of_real]; refl
+
+@[simp] lemma of_real_one : nnreal.of_real 1 = 1 :=
+by simp [nnreal.of_real, max_eq_left (zero_le_one : (0 :ℝ) ≤ 1)]; refl
 
 @[simp] lemma of_real_pos {r : ℝ} : 0 < nnreal.of_real r ↔ 0 < r :=
 by simp [nnreal.of_real, nnreal.coe_lt, lt_irrefl]

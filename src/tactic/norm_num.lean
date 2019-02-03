@@ -159,7 +159,7 @@ meta def prove_lt (simp : expr → tactic (expr × expr)) : instance_cache → e
   d ← expr.of_rat c.α (n₂ - n₁),
   (c, e₃) ← c.mk_app ``has_add.add [e₁, d],
   (e₂', p) ← norm_num e₃,
-  guard (e₂' =ₐ e₂),
+  guard (e₂'.is_num_eq e₂),
   (c, p') ← prove_pos c d,
   (c, p) ← c.mk_app ``norm_num.lt_add_of_pos_helper [e₁, d, e₂, p, p'],
   return (c, p)

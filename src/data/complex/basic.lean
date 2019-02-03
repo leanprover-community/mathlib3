@@ -5,7 +5,7 @@ Authors: Kevin Buzzard, Mario Carneiro
 
 The complex numbers, modelled as R^2 in the obvious way.
 -/
-import data.real.basic tactic.ring algebra.field
+import data.real.basic tactic.ring algebra.field_power
 
 structure complex : Type :=
 (re : ℝ) (im : ℝ)
@@ -211,7 +211,7 @@ theorem inv_def (z : ℂ) : z⁻¹ = conj z * ((norm_sq z)⁻¹:ℝ) := rfl
 @[simp] lemma inv_re (z : ℂ) : (z⁻¹).re = z.re / norm_sq z := by simp [inv_def, division_def]
 @[simp] lemma inv_im (z : ℂ) : (z⁻¹).im = -z.im / norm_sq z := by simp [inv_def, division_def]
 
-lemma of_real_inv (r : ℝ) : ((r⁻¹ : ℝ) : ℂ) = r⁻¹ :=
+@[simp] lemma of_real_inv (r : ℝ) : ((r⁻¹ : ℝ) : ℂ) = r⁻¹ :=
 ext_iff.2 $ begin
   simp,
   by_cases r = 0, {simp [h]},
@@ -243,8 +243,14 @@ by refine_struct {..}; simp
 instance : is_ring_hom conj :=
 by refine_struct {..}; simp
 
+instance of_real.is_ring_hom : is_ring_hom (coe : ℝ → ℂ) :=
+by refine_struct {..}; simp
+
 @[simp] lemma of_real_div (r s : ℝ) : ((r / s : ℝ) : ℂ) = r / s :=
-by rw [division_def, of_real_mul, division_def, of_real_inv]
+is_field_hom.map_div coe
+
+@[simp] lemma of_real_fpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : ℂ) = (r : ℂ) ^ n :=
+is_field_hom.map_fpow of_real r n
 
 @[simp] theorem of_real_int_cast : ∀ n : ℤ, ((n : ℝ) : ℂ) = n :=
 int.eq_cast (λ n, ((n : ℝ) : ℂ))

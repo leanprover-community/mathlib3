@@ -15,13 +15,6 @@ noncomputable theory
 open filter metric
 local notation f `→_{`:50 a `}`:0 b := tendsto f (nhds a) (nhds b)
 
-lemma squeeze_zero {α} {f g : α → ℝ} {t₀ : filter α} (hf : ∀t, 0 ≤ f t) (hft : ∀t, f t ≤ g t)
-  (g0 : tendsto g t₀ (nhds 0)) : tendsto f t₀ (nhds 0) :=
-begin
-  apply tendsto_of_tendsto_of_tendsto_of_le_of_le (tendsto_const_nhds) g0;
-  simp [*]; exact filter.univ_mem_sets
-end
-
 class has_norm (α : Type*) := (norm : α → ℝ)
 
 export has_norm (norm)
@@ -168,6 +161,9 @@ begin
   exact squeeze_zero (λ t, abs_nonneg _) (λ t, abs_norm_sub_norm_le _ _) (lim_norm x)
 end
 
+lemma continuous_nnnorm : continuous (nnnorm : α → nnreal) :=
+continuous_subtype_mk _ continuous_norm
+
 instance normed_top_monoid : topological_add_monoid α :=
 ⟨continuous_iff_tendsto.2 $ λ ⟨x₁, x₂⟩,
   tendsto_iff_norm_tendsto_zero.2
@@ -306,7 +302,7 @@ section normed_space
 
 class normed_space (α : out_param $ Type*) (β : Type*) [out_param $ normed_field α]
   extends normed_group β, vector_space α β :=
-(norm_smul : ∀ a b, norm (a • b) = has_norm.norm a * norm b)
+(norm_smul : ∀ (a:α) b, norm (a • b) = has_norm.norm a * norm b)
 
 variables [normed_field α]
 
@@ -349,22 +345,22 @@ begin
     exact tendsto_add lim1 lim2  }
 end
 
+lemma continuous_smul [topological_space γ] {f : γ → α} {g : γ → E}
+  (hf : continuous f) (hg : continuous g) : continuous (λc, f c • g c) :=
+continuous_iff_tendsto.2 $ assume c,
+  tendsto_smul (continuous_iff_tendsto.1 hf _) (continuous_iff_tendsto.1 hg _)
+
 instance : normed_space α (E × F) :=
 { norm_smul :=
   begin
     intros s x,
     cases x with x₁ x₂,
-    exact calc
-      ∥s • (x₁, x₂)∥ = ∥ (s • x₁, s• x₂)∥ : rfl
-      ... = max (∥s • x₁∥) (∥ s• x₂∥) : rfl
-      ... = max (∥s∥ * ∥x₁∥) (∥s∥ * ∥x₂∥) : by simp [norm_smul s x₁, norm_smul s x₂]
-      ... = ∥s∥ * max (∥x₁∥) (∥x₂∥) : by simp [mul_max_of_nonneg]
+    change max (∥s • x₁∥) (∥s • x₂∥) = ∥s∥ * max (∥x₁∥) (∥x₂∥),
+    rw [norm_smul, norm_smul, ← mul_max_of_nonneg _ _ (norm_nonneg _)]
   end,
 
-  add_smul := by simp[add_smul],
-  -- I have no idea why by simp[smul_add] is not enough for the next goal
-  smul_add := assume r x y,  show (r•(x+y).fst, r•(x+y).snd)  = (r•x.fst+r•y.fst, r•x.snd+r•y.snd),
-               by simp[smul_add],
+  add_smul := λ r x y, prod.ext (add_smul _ _ _) (add_smul _ _ _),
+  smul_add := λ r x y, prod.ext (smul_add _ _ _) (smul_add _ _ _),
   ..prod.normed_group,
   ..prod.vector_space }
 

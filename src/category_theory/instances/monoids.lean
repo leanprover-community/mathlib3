@@ -7,14 +7,16 @@ Introduce Mon -- the category of monoids.
 Currently only the basic setup.
 -/
 
+import category_theory.concrete_category
 import category_theory.fully_faithful
-import algebra.ring
+import category_theory.adjunction
+import data.finsupp
 
 universes u v
 
 open category_theory
 
-namespace category_theory.examples
+namespace category_theory.instances
 
 /-- The category of monoids and monoid morphisms. -/
 @[reducible] def Mon : Type (u+1) := bundled monoid
@@ -53,4 +55,4 @@ instance : faithful (forget_to_Mon) := {}
 
 end CommMon
 
-end category_theory.examples
+end category_theory.instances

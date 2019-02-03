@@ -34,7 +34,7 @@ theorem eq_top_iff_one : I = ⊤ ↔ (1:α) ∈ I :=
 theorem ne_top_iff_one : I ≠ ⊤ ↔ (1:α) ∉ I :=
 not_congr I.eq_top_iff_one
 
-def span (s : set α) : ideal α := submodule.span s
+def span (s : set α) : ideal α := submodule.span α s
 
 lemma subset_span {s : set α} : s ⊆ span s := submodule.subset_span
 

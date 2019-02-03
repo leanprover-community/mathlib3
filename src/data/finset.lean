@@ -1651,6 +1651,94 @@ end
 
 end decidable_linear_order
 
+/- Ico (a closed openinterval) -/
+variables {n m l : ℕ}
+
+/-- `Ico n m` is the set of natural numbers `n ≤ k < m`. -/
+def Ico (n m : ℕ) : finset ℕ := ⟨_, Ico.nodup n m⟩
+
+namespace Ico
+
+@[simp] theorem val (n m : ℕ) : (Ico n m).1 = multiset.Ico n m := rfl
+
+@[simp] theorem to_finset (n m : ℕ) : (multiset.Ico n m).to_finset = Ico n m :=
+(multiset.to_finset_eq _).symm
+
+theorem map_add (n m k : ℕ) : (Ico n m).image ((+) k) = Ico (n + k) (m + k) :=
+by simp [image, multiset.Ico.map_add]
+
+theorem zero_bot (n : ℕ) : Ico 0 n = range n :=
+eq_of_veq $ multiset.Ico.zero_bot _
+
+@[simp] theorem card (n m : ℕ) : (Ico n m).card = m - n :=
+multiset.Ico.card _ _
+
+@[simp] theorem mem {n m l : ℕ} : l ∈ Ico n m ↔ n ≤ l ∧ l < m :=
+multiset.Ico.mem
+
+theorem eq_empty_of_le {n m : ℕ} (h : m ≤ n) : Ico n m = ∅ :=
+eq_of_veq $ multiset.Ico.eq_zero_of_le h
+
+@[simp] theorem self_eq_empty {n : ℕ} : Ico n n = ∅ :=
+eq_empty_of_le $ le_refl n
+
+@[simp] theorem eq_empty_iff {n m : ℕ} : Ico n m = ∅ ↔ m ≤ n :=
+iff.trans val_eq_zero.symm multiset.Ico.eq_zero_iff
+
+lemma union_consecutive {n m l : ℕ} (hnm : n ≤ m) (hml : m ≤ l) :
+  Ico n m ∪ Ico m l = Ico n l :=
+by rw [← to_finset, ← to_finset, ← multiset.to_finset_add,
+  multiset.Ico.add_consecutive hnm hml, to_finset]
+
+@[simp] theorem succ_singleton {n : ℕ} : Ico n (n+1) = {n} :=
+eq_of_veq $ multiset.Ico.succ_singleton
+
+@[simp] theorem succ_top {n m : ℕ} (h : n ≤ m) : Ico n (m + 1) = insert m (Ico n m) :=
+by rw [← to_finset, multiset.Ico.succ_top h, multiset.to_finset_cons, to_finset]
+
+theorem eq_cons {n m : ℕ} (h : n < m) : Ico n m = insert n (Ico (n + 1) m) :=
+by rw [← to_finset, multiset.Ico.eq_cons h, multiset.to_finset_cons, to_finset]
+
+theorem pred_singleton {m : ℕ} (h : m > 0) : Ico (m - 1) m = {m - 1} :=
+eq_of_veq $ multiset.Ico.pred_singleton h
+
+@[simp] theorem not_mem_top {n m : ℕ} : m ∉ Ico n m :=
+multiset.Ico.not_mem_top
+
+lemma filter_lt_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, x < l) = Ico n m :=
+eq_of_veq $ multiset.Ico.filter_lt_of_top_le hml
+
+lemma filter_lt_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, x < l) = ∅ :=
+eq_of_veq $ multiset.Ico.filter_lt_of_le_bot hln
+
+lemma filter_lt_of_ge {n m l : ℕ} (hlm : l ≤ m) : (Ico n m).filter (λ x, x < l) = Ico n l :=
+eq_of_veq $ multiset.Ico.filter_lt_of_ge hlm
+
+@[simp] lemma filter_lt (n m l : ℕ) : (Ico n m).filter (λ x, x < l) = Ico n (min m l) :=
+eq_of_veq $ multiset.Ico.filter_lt n m l
+
+lemma filter_ge_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, x ≥ l) = Ico n m :=
+eq_of_veq $ multiset.Ico.filter_ge_of_le_bot hln
+
+lemma filter_ge_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, x ≥ l) = ∅ :=
+eq_of_veq $ multiset.Ico.filter_ge_of_top_le hml
+
+lemma filter_ge_of_ge {n m l : ℕ} (hnl : n ≤ l) : (Ico n m).filter (λ x, x ≥ l) = Ico l m :=
+eq_of_veq $ multiset.Ico.filter_ge_of_ge hnl
+
+@[simp] lemma filter_ge (n m l : ℕ) : (Ico n m).filter (λ x, x ≥ l) = Ico (max n l) m :=
+eq_of_veq $ multiset.Ico.filter_ge n m l
+
+@[simp] lemma diff_left (l n m : ℕ) : (Ico n m) \ (Ico n l) = Ico (max n l) m :=
+by ext k; by_cases n ≤ k; simp [h, and_comm]
+
+@[simp] lemma diff_right (l n m : ℕ) : (Ico n m) \ (Ico l m) = Ico n (min m l) :=
+have ∀k, (k < m ∧ (l ≤ k → m ≤ k)) ↔ (k < m ∧ k < l) :=
+  assume k, and_congr_right $ assume hk, by rw [← not_imp_not]; simp [hk],
+by ext k; by_cases n ≤ k; simp [h, this]
+
+end Ico
+
 end finset
 
 namespace list

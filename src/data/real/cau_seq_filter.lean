@@ -95,14 +95,10 @@ begin
   simpa [real.norm_eq_abs, abs_of_nonneg (bnn _)] using this
 end
 
-lemma tendsto_div : tendsto (λ n : ℕ, 1 / ((n : ℝ) + 1)) at_top (nhds 0) :=
-suffices tendsto (λ n : ℕ, 1 / (↑(n + 1) : ℝ)) at_top (nhds 0), by simpa,
-tendsto_comp_succ_at_top_iff.2 tendsto_one_div_at_top_nhds_0_nat
-
 /--The approximating sequence is indeed Cauchy-/
 lemma seq_of_cau_filter_is_cauchy :
   cauchy_seq (seq_of_cau_filter hf) :=
-cauchy_seq_of_dist_tendsto_0 (@seq_of_cau_filter_is_cauchy' _ _ _ hf) tendsto_div
+cauchy_seq_of_dist_tendsto_0 (@seq_of_cau_filter_is_cauchy' _ _ _ hf) tendsto_one_div_add_at_top_nhds_0_nat
 
 /--
 If the approximating Cauchy sequence is converging, to a limit `y`, then the

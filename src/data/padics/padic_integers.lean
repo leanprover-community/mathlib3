@@ -243,7 +243,7 @@ namespace padic_norm_z
 variables {p : ℕ} [nat.prime p]
 
 lemma padic_val_of_cong_pow_p {z1 z2 : ℤ} {n : ℕ} (hz : z1 ≡ z2 [ZMOD ↑(p^n)]) :
-      ∥(z1 - z2 : ℚ_[p])∥ ≤ ↑(fpow ↑p (-n) : ℚ) :=
+      ∥(z1 - z2 : ℚ_[p])∥ ≤ ↑(↑p ^ (-n : ℤ) : ℚ) :=
 have hdvd : ↑(p^n) ∣ z2 - z1, from int.modeq.modeq_iff_dvd.1 hz,
 have (↑(z2 - z1) : ℚ_[p]) = padic.of_rat p ↑(z2 - z1), by simp,
 begin

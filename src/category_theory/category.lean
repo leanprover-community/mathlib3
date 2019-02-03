@@ -33,14 +33,17 @@ powerful tactics.
 def_replacer obviously
 @[obviously] meta def obviously' := tactic.tidy
 
+class has_hom (obj : Type u) : Type (max u (v+1)) :=
+(hom : obj → obj → Type v)
+
+infixr ` ⟶ `:10 := has_hom.hom -- type as \h
+
 /--
 The typeclass `category C` describes morphisms associated to objects of type `C`.
 The universe levels of the objects and morphisms are unconstrained, and will often need to be
 specified explicitly, as `category.{v} C`. (See also `large_category` and `small_category`.)
 -/
-class category (obj : Type u) : Type (max u (v+1)) :=
-(hom      : obj → obj → Type v)
-(infixr ` ⟶ `:10 := hom)
+class category (obj : Type u) extends has_hom.{v} obj : Type (max u (v+1)) :=
 (id       : Π X : obj, X ⟶ X)
 (notation `𝟙` := id)
 (comp     : Π {X Y Z : obj}, (X ⟶ Y) → (Y ⟶ Z) → (X ⟶ Z))
@@ -52,7 +55,6 @@ class category (obj : Type u) : Type (max u (v+1)) :=
 
 notation `𝟙` := category.id -- type as \b1
 infixr ` ≫ `:80 := category.comp -- type as \gg
-infixr ` ⟶ `:10 := category.hom -- type as \h
 
 -- `restate_axiom` is a command that creates a lemma from a structure field,
 -- discarding any auto_param wrappers from the type.
@@ -77,50 +79,6 @@ abbreviation large_category (C : Type (u+1)) : Type (u+1) := category.{u} C
 A `small_category` has objects and morphisms in the same universe level.
 -/
 abbreviation small_category (C : Type u)     : Type (u+1) := category.{u} C
-
-structure bundled (c : Type u → Type v) :=
-(α : Type u)
-(str : c α)
-
-instance (c : Type u → Type v) : has_coe_to_sort (bundled c) :=
-{ S := Type u, coe := bundled.α }
-
-def mk_ob {c : Type u → Type v} (α : Type u) [str : c α] : bundled c :=
-@bundled.mk c α str
-
-/-- `concrete_category hom` collects the evidence that a type constructor `c` and a morphism
-predicate `hom` can be thought of as a concrete category.
-In a typical example, `c` is the type class `topological_space` and `hom` is `continuous`. -/
-structure concrete_category {c : Type u → Type v}
-  (hom : out_param $ ∀{α β : Type u}, c α → c β → (α → β) → Prop) :=
-(hom_id : ∀{α} (ia : c α), hom ia ia id)
-(hom_comp : ∀{α β γ} (ia : c α) (ib : c β) (ic : c γ) {f g},
-  hom ia ib f → hom ib ic g → hom ia ic (g ∘ f))
-attribute [class] concrete_category
-
-instance {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
-  [h : concrete_category @hom] : category (bundled c) :=
-{ hom   := λa b, subtype (hom a.2 b.2),
-  id    := λa, ⟨@id a.1, h.hom_id a.2⟩,
-  comp  := λa b c f g, ⟨g.1 ∘ f.1, h.hom_comp a.2 b.2 c.2 f.2 g.2⟩ }
-
-@[simp] lemma concrete_category_id
-  {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
-  [h : concrete_category @hom] (X : bundled c) : subtype.val (𝟙 X) = id := rfl
-@[simp] lemma concrete_category_comp
-  {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
-  [h : concrete_category @hom] {X Y Z : bundled c} (f : X ⟶ Y) (g : Y ⟶ Z) :
-  subtype.val (f ≫ g) = g.val ∘ f.val := rfl
-
-instance {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
-  [h : concrete_category @hom] {R S : bundled c} : has_coe_to_fun (R ⟶ S) :=
-{ F := λ f, R → S,
-  coe := λ f, f.1 }
-
-@[simp] lemma bundled_hom_coe
-  {c : Type u → Type v} (hom : ∀{α β : Type u}, c α → c β → (α → β) → Prop)
-  [h : concrete_category @hom] {R S : bundled c} (val : R → S) (prop) (r : R) :
-  (⟨val, prop⟩ : R ⟶ S) r = val r := rfl
 
 section
 variables {C : Type u} [𝒞 : category.{v} C] {X Y Z : C}

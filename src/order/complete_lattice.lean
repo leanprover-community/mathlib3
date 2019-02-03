@@ -784,4 +784,32 @@ instance [complete_lattice α] : complete_lattice (order_dual α) :=
   le_Inf := @complete_lattice.Sup_le α _,
   .. order_dual.lattice.bounded_lattice α, ..order_dual.lattice.has_Sup α, ..order_dual.lattice.has_Inf α }
 
+instance [complete_linear_order α] : complete_linear_order (order_dual α) :=
+{ .. order_dual.lattice.complete_lattice α, .. order_dual.decidable_linear_order α }
+
 end order_dual
+
+namespace prod
+open lattice
+variables (α : Type*) (β : Type*)
+
+instance [has_Inf α] [has_Inf β] : has_Inf (α × β) :=
+⟨λs, (Inf (prod.fst '' s), Inf (prod.snd '' s))⟩
+
+instance [has_Sup α] [has_Sup β] : has_Sup (α × β) :=
+⟨λs, (Sup (prod.fst '' s), Sup (prod.snd '' s))⟩
+
+instance [complete_lattice α] [complete_lattice β] : complete_lattice (α × β) :=
+{ le_Sup := assume s p hab, ⟨le_Sup $ mem_image_of_mem _ hab, le_Sup $ mem_image_of_mem _ hab⟩,
+  Sup_le := assume s p h,
+    ⟨ Sup_le $ ball_image_of_ball $ assume p hp, (h p hp).1,
+      Sup_le $ ball_image_of_ball $ assume p hp, (h p hp).2⟩,
+  Inf_le := assume s p hab, ⟨Inf_le $ mem_image_of_mem _ hab, Inf_le $ mem_image_of_mem _ hab⟩,
+  le_Inf := assume s p h,
+    ⟨ le_Inf $ ball_image_of_ball $ assume p hp, (h p hp).1,
+      le_Inf $ ball_image_of_ball $ assume p hp, (h p hp).2⟩,
+  .. prod.lattice.bounded_lattice α β,
+  .. prod.lattice.has_Sup α β,
+  .. prod.lattice.has_Inf α β }
+
+end prod

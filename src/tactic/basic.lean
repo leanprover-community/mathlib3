@@ -3,74 +3,12 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
-import data.dlist.basic category.basic
+import data.dlist.basic category.basic meta.expr meta.rb_map
 
-namespace name
-
-meta def deinternalize_field : name → name
-| (name.mk_string s name.anonymous) :=
-  let i := s.mk_iterator in
-  if i.curr = '_' then i.next.next_to_string else s
-| n := n
-
-meta def get_nth_prefix : name → ℕ → name
-| nm 0 := nm
-| nm (n + 1) := get_nth_prefix nm.get_prefix n
-
-private meta def pop_nth_prefix_aux : name → ℕ → name × ℕ
-| anonymous n := (anonymous, 1)
-| nm n := let (pfx, height) := pop_nth_prefix_aux nm.get_prefix n in
-          if height ≤ n then (anonymous, height + 1)
-          else (nm.update_prefix pfx, height + 1)
-
--- Pops the top `n` prefixes from the given name.
-meta def pop_nth_prefix (nm : name) (n : ℕ) : name :=
-prod.fst $ pop_nth_prefix_aux nm n
-
-meta def pop_prefix (n : name) : name :=
-pop_nth_prefix n 1
-
--- `name`s can contain numeral pieces, which are not legal names
--- when typed/passed directly to the parser. We turn an arbitrary
--- name into a legal identifier name.
-meta def sanitize_name : name → name
-| name.anonymous := name.anonymous
-| (name.mk_string s p) := name.mk_string s $ sanitize_name p
-| (name.mk_numeral s p) := name.mk_string sformat!"n{s}" $ sanitize_name p
-
-end name
-
-namespace name_set
-meta def filter (s : name_set) (P : name → bool) : name_set :=
-s.fold s (λ a m, if P a then m else m.erase a)
-
-meta def mfilter {m} [monad m] (s : name_set) (P : name → m bool) : m name_set :=
-s.fold (pure s) (λ a m,
-  do x ← m,
-     mcond (P a) (pure x) (pure $ x.erase a))
-
-meta def union (s t : name_set) : name_set :=
-s.fold t (λ a t, t.insert a)
-
-end name_set
 namespace expr
 open tactic
 
 attribute [derive has_reflect] binder_info
-
-protected meta def to_pos_nat : expr → option ℕ
-| `(has_one.one _) := some 1
-| `(bit0 %%e) := bit0 <$> e.to_pos_nat
-| `(bit1 %%e) := bit1 <$> e.to_pos_nat
-| _           := none
-
-protected meta def to_nat : expr → option ℕ
-| `(has_zero.zero _) := some 0
-| e                  := e.to_pos_nat
-
-protected meta def to_int : expr → option ℤ
-| `(has_neg.neg %%e) := do n ← e.to_nat, some (-n)
-| e                  := coe <$> e.to_nat
 
 protected meta def of_nat (α : expr) : ℕ → tactic expr :=
 nat.binary_rec
@@ -83,30 +21,6 @@ protected meta def of_int (α : expr) : ℤ → tactic expr
 | -[1+ n] := do
   e ← expr.of_nat α (n+1),
   tactic.mk_app ``has_neg.neg [e]
-
-meta def is_meta_var : expr → bool
-| (mvar _ _ _) := tt
-| e            := ff
-
-meta def is_sort : expr → bool
-| (sort _) := tt
-| e         := ff
-
-meta def list_local_consts (e : expr) : list expr :=
-e.fold [] (λ e' _ es, if e'.is_local_constant then insert e' es else es)
-
-meta def list_constant (e : expr) : name_set :=
-e.fold mk_name_set (λ e' _ es, if e'.is_constant then es.insert e'.const_name else es)
-
-meta def list_meta_vars (e : expr) : list expr :=
-e.fold [] (λ e' _ es, if e'.is_meta_var then insert e' es else es)
-
-meta def list_names_with_prefix (pre : name) (e : expr) : name_set :=
-e.fold mk_name_set $ λ e' _ l,
-  match e' with
-  | expr.const n _ := if n.get_prefix = pre then l.insert n else l
-  | _ := l
-  end
 
 /- only traverses the direct descendents -/
 meta def {u} traverse {m : Type → Type u} [applicative m]
@@ -127,34 +41,7 @@ meta def mfoldl {α : Type} {m} [monad m] (f : α → expr → m α) : α → ex
 | x e := prod.snd <$> (state_t.run (e.traverse $ λ e',
     (get >>= monad_lift ∘ flip f e' >>= put) $> e') x : m _)
 
-meta def is_mvar : expr → bool
-| (mvar _ _ _) := tt
-| _            := ff
-
 end expr
-
-namespace environment
-
-meta def in_current_file' (env : environment) (n : name) : bool :=
-env.in_current_file n && (n ∉ [``quot, ``quot.mk, ``quot.lift, ``quot.ind])
-
-meta def is_structure_like (env : environment) (n : name) : option (nat × name) :=
-do guardb (env.is_inductive n),
-  d ← (env.get n).to_option,
-  [intro] ← pure (env.constructors_of n) | none,
-  guard (env.inductive_num_indices n = 0),
-  some (env.inductive_num_params n, intro)
-
-meta def is_structure (env : environment) (n : name) : bool :=
-option.is_some $ do
-  (nparams, intro) ← env.is_structure_like n,
-  di ← (env.get intro).to_option,
-  expr.pi x _ _ _ ← nparams.iterate
-    (λ e : option expr, do expr.pi _ _ _ body ← e | none, some body)
-    (some di.type) | none,
-  env.is_projection (n ++ x.deinternalize_field)
-
-end environment
 
 namespace interaction_monad
 open result
@@ -179,7 +66,7 @@ match r with
 end
 
 -- Override the builtin `lean.parser.of_tactic` coe, which is broken.
--- (See tests/tactics.lean for a failure case.)
+-- (See test/tactics.lean for a failure case.)
 @[priority 2000]
 meta instance has_coe' {α} : has_coe (tactic α) (parser α) :=
 ⟨of_tactic'⟩
@@ -701,13 +588,186 @@ instance : monad id :=
 { name := "Instance Stub",
   descr := "Generate a skeleton for the structure under construction.",
   action := λ _,
-  do tgt ← target,
+  do tgt ← target >>= whnf,
      let cl := tgt.get_app_fn.const_name,
      env ← get_env,
      fs ← expanded_field_list cl,
      let fs := fs.map prod.snd,
      let fs := list.intersperse (",\n  " : format) $ fs.map (λ fn, format!"{fn} := _"),
      let out := format.to_string format!"{{ {format.join fs} }",
+     return [(out,"")] }
+
+meta def is_default_local : expr → bool
+| (expr.local_const _ _ binder_info.default _) := tt
+| _ := ff
+
+meta def mk_patterns (t : expr) : tactic (list format) :=
+do let cl := t.get_app_fn.const_name,
+   env ← get_env,
+   let fs := env.constructors_of cl,
+   fs.mmap $ λ f,
+     do { (vs,_) ← mk_const f >>= infer_type >>= mk_local_pis,
+          let vs := vs.filter (λ v, is_default_local v),
+          vs ← vs.mmap (λ v,
+            do v' ← get_unused_name v.local_pp_name,
+               pose v' none `(()),
+               pure v' ),
+          vs.mmap' $ λ v, get_local v >>= clear,
+          let args := list.intersperse (" " : format) $ vs.map to_fmt,
+          if args.empty
+            then pure $ format!"| {f} := _\n"
+            else pure format!"| ({f} {format.join args}) := _\n" }
+
+/--
+Hole command used to generate a `match` expression.
+
+In the following:
+
+```
+meta def foo (e : expr) : tactic unit :=
+{! e !}
+```
+
+invoking hole command `Match Stub` produces:
+
+```
+meta def foo (e : expr) : tactic unit :=
+match e with
+| (expr.var a) := _
+| (expr.sort a) := _
+| (expr.const a a_1) := _
+| (expr.mvar a a_1 a_2) := _
+| (expr.local_const a a_1 a_2 a_3) := _
+| (expr.app a a_1) := _
+| (expr.lam a a_1 a_2 a_3) := _
+| (expr.pi a a_1 a_2 a_3) := _
+| (expr.elet a a_1 a_2 a_3) := _
+| (expr.macro a a_1) := _
+end
+```
+-/
+@[hole_command] meta def match_stub : hole_command :=
+{ name := "Match Stub",
+  descr := "Generate a list of equations for a `match` expression.",
+  action := λ es,
+  do [e] ← pure es | fail "expecting one expression",
+     e ← to_expr e,
+     t ← infer_type e >>= whnf,
+     fs ← mk_patterns t,
+     e ← pp e,
+     let out := format.to_string format!"match {e} with\n{format.join fs}end\n",
+     return [(out,"")] }
+
+/--
+Hole command used to generate a `match` expression.
+
+In the following:
+
+```
+meta def foo : {! expr → tactic unit !} -- `:=` is omitted
+```
+
+invoking hole command `Equations Stub` produces:
+
+```
+meta def foo : expr → tactic unit
+| (expr.var a) := _
+| (expr.sort a) := _
+| (expr.const a a_1) := _
+| (expr.mvar a a_1 a_2) := _
+| (expr.local_const a a_1 a_2 a_3) := _
+| (expr.app a a_1) := _
+| (expr.lam a a_1 a_2 a_3) := _
+| (expr.pi a a_1 a_2 a_3) := _
+| (expr.elet a a_1 a_2 a_3) := _
+| (expr.macro a a_1) := _
+```
+
+A similar result can be obtained by invoking `Equations Stub` on the following:
+
+```
+meta def foo : expr → tactic unit := -- do not forget to write `:=`!!
+{! !}
+```
+
+```
+meta def foo : expr → tactic unit := -- don't forget to erase `:=`!!
+| (expr.var a) := _
+| (expr.sort a) := _
+| (expr.const a a_1) := _
+| (expr.mvar a a_1 a_2) := _
+| (expr.local_const a a_1 a_2 a_3) := _
+| (expr.app a a_1) := _
+| (expr.lam a a_1 a_2 a_3) := _
+| (expr.pi a a_1 a_2 a_3) := _
+| (expr.elet a a_1 a_2 a_3) := _
+| (expr.macro a a_1) := _
+```
+
+-/
+@[hole_command] meta def eqn_stub : hole_command :=
+{ name := "Equations Stub",
+  descr := "Generate a list of equations for a recursive definition.",
+  action := λ es,
+  do t ← match es with
+         | [t] := to_expr t
+         | [] := target
+         | _ := fail "expecting one type"
+         end,
+     e ← whnf t,
+     (v :: _,_) ← mk_local_pis e | fail "expecting a Pi-type",
+     t' ← infer_type v,
+     fs ← mk_patterns t',
+     t ← pp t,
+     let out :=
+         if es.empty then
+           format.to_string format!"-- do not forget to erase `:=`!!\n{format.join fs}"
+           else format.to_string format!"{t}\n{format.join fs}",
+     return [(out,"")] }
+
+/--
+This command lists the constructors that can be used to satisfy the expected type.
+
+When used in the following hole:
+
+```
+def foo : ℤ ⊕ ℕ :=
+{! !}
+```
+
+the command will produce:
+
+```
+def foo : ℤ ⊕ ℕ :=
+{! sum.inl, sum.inr !}
+```
+
+and will display:
+
+```
+sum.inl : ℤ → ℤ ⊕ ℕ
+
+sum.inr : ℕ → ℤ ⊕ ℕ
+```
+
+-/
+@[hole_command] meta def list_constructors_hole : hole_command :=
+{ name := "List Constructors",
+  descr := "Show the list of constructors of the expected type.",
+  action := λ es,
+  do t ← target >>= whnf,
+     (_,t) ← mk_local_pis t,
+     let cl := t.get_app_fn.const_name,
+     let args := t.get_app_args,
+     env ← get_env,
+     let cs := env.constructors_of cl,
+     ts ← cs.mmap $ λ c,
+       do { e ← mk_const c,
+            t ← infer_type (e.mk_app args) >>= pp,
+            pure format!"\n{c} : {t}\n" },
+     let fs := list.intersperse (", " : format) $ cs.map to_fmt,
+     let out := format.to_string format!"{{! {format.join fs} !}",
+     trace (format.join ts).to_string,
      return [(out,"")] }
 
 meta def classical : tactic unit :=
@@ -781,5 +841,23 @@ private meta def tactic.use_aux (h : pexpr) : tactic unit :=
 
 meta def tactic.use (l : list pexpr) : tactic unit :=
 focus1 $ l.mmap' $ λ h, tactic.use_aux h <|> fail format!"failed to instantiate goal with {h}"
+
+meta def clear_aux_decl_aux : list expr → tactic unit
+| []     := skip
+| (e::l) := do cond e.is_aux_decl (tactic.clear e) skip, clear_aux_decl_aux l
+
+meta def clear_aux_decl : tactic unit :=
+local_context >>= clear_aux_decl_aux
+
+protected meta def set (a h : name) (v : expr) (b_simp : bool := ff) (b_symm : bool := false) : tactic unit :=
+do tp ← infer_type v,
+   nv ← definev a tp v,
+   pf ← to_expr (cond b_symm ``(%%v = %%nv) ``(%%nv = %%v)) >>= assert h,
+   reflexivity,
+   when b_simp $ do
+     rw ← cond b_symm (return pf) (mk_app `eq.symm [pf]),
+     s ← simp_lemmas.mk.add rw,
+     hyps ← list.filter (λ e, e ≠ pf) <$> non_dep_prop_hyps,
+     interactive.simp_core_aux {} tactic.failed s [] hyps tt
 
 end tactic

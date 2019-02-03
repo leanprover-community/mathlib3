@@ -98,20 +98,24 @@ lemma seq_eq_bind_map {x : m α} {f : m (α → β)} : f <*> x = (f >>= (<$> x))
 (bind_map_eq_seq m f x).symm
 
 /-- This is the Kleisli composition -/
-@[reducible] def pipe {m} [monad m] {α β γ} (f : α → m β) (g : β → m γ) := λ x, f x >>= g
+@[reducible] def fish {m} [monad m] {α β γ} (f : α → m β) (g : β → m γ) := λ x, f x >>= g
 
-infix ` >=> `:55 := pipe
+-- >=> is already defined in the core library but it is unusable
+-- because of its precedence (it is defined with precedence 2) and
+-- because it is defined as a lambda instead of having a named
+-- function
+infix ` >=> `:55 := fish
 
 @[functor_norm]
-lemma pipe_pure {α β} (f : α → m β) : f >=> pure = f :=
+lemma fish_pure {α β} (f : α → m β) : f >=> pure = f :=
 by simp only [(>=>)] with functor_norm
 
 @[functor_norm]
-lemma pure_pipe {α β} (f : α → m β) : pure >=> f = f :=
+lemma fish_pipe {α β} (f : α → m β) : pure >=> f = f :=
 by simp only [(>=>)] with functor_norm
 
 @[functor_norm]
-lemma pipe_assoc {α β γ φ} (f : α → m β) (g : β → m γ) (h : γ → m φ) :
+lemma fish_assoc {α β γ φ} (f : α → m β) (g : β → m γ) (h : γ → m φ) :
   (f >=> g) >=> h = f >=> (g >=> h) :=
 by simp only [(>=>)] with functor_norm
 

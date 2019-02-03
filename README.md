@@ -1,6 +1,6 @@
 # mathlib
 
-[![Build Status](https://travis-ci.org/leanprover/mathlib.svg?branch=master)](https://travis-ci.org/leanprover/mathlib)
+[![Build Status](https://travis-ci.org/leanprover-community/mathlib.svg?branch=master)](https://travis-ci.org/leanprover-community/mathlib)
 
 Lean standard library
 

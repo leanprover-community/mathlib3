@@ -1,6 +1,6 @@
 # mathlib
 
-[![Build Status](https://travis-ci.org/leanprover/mathlib.svg?branch=master)](https://travis-ci.org/leanprover/mathlib)
+[![Build Status](https://travis-ci.org/leanprover-community/mathlib.svg?branch=master)](https://travis-ci.org/leanprover-community/mathlib)
 
 Lean standard library
 
@@ -29,3 +29,4 @@ Maintainers (topics):
 * Simon Hudon (@cipher1024): all
 * Chris Hughes (@ChrisHughes24): group_theory, ring_theory, field_theory
 * Robert Y. Lewis (@robertylewis): all
+* Patrick Massot (@patrickmassot): documentation

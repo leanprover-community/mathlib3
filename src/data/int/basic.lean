@@ -108,8 +108,8 @@ attribute [simp] nat_abs nat_abs_of_nat nat_abs_zero nat_abs_one
 
 theorem nat_abs_add_le (a b : ℤ) : nat_abs (a + b) ≤ nat_abs a + nat_abs b :=
 begin
-  have, {
-    refine (λ a b : ℕ, sub_nat_nat_elim a b.succ
+  have : ∀ (a b : ℕ), nat_abs (sub_nat_nat a (nat.succ b)) ≤ nat.succ (a + b), 
+  { refine (λ a b : ℕ, sub_nat_nat_elim a b.succ
       (λ m n i, n = b.succ → nat_abs i ≤ (m + b).succ) _ _ rfl);
     intros i n e,
     { subst e, rw [add_comm _ i, add_assoc],

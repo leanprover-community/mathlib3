@@ -4,6 +4,7 @@
 
 import category_theory.isomorphism
 import category_theory.functor_category
+import tactic.slice
 
 open category_theory
 
@@ -89,10 +90,21 @@ by tidy
   (of_components app naturality).inv.app X = (app X).inv := rfl
 
 instance is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso α :=
-begin
-  convert is_iso.of_iso (of_components (λ X, as_iso (α.app X)) (λ X Y f, α.naturality f)),
-  ext, refl
-end
+{ inv :=
+  { app := λ X, inv (α.app X),
+    naturality' := λ X Y f,
+    begin
+     have := congr_arg (λ f, inv (α.app X) ≫ (f ≫ inv (α.app Y))) (α.naturality f).symm,
+     simp at this,
+     rw ←this,
+     slice_rhs 1 2 {
+       simp,
+     },
+     simp,
+    end } }
+
+-- The last proof was a bit cumbersome, but the benefit is we get definitional equality here:
+example (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : (inv α).app X = inv (α.app X) := rfl
 
 end category_theory.nat_iso
 

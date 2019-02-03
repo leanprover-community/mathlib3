@@ -37,6 +37,9 @@ lt_iff_lt_of_le_iff_le le_floor
 theorem floor_le (x : α) : (⌊x⌋ : α) ≤ x :=
 le_floor.1 (le_refl _)
 
+theorem sub_floor_nonneg (x : α) : 0 ≤ x - ⌊x⌋ :=
+sub_nonneg.2 $ floor_le _
+
 theorem floor_nonneg {x : α} : 0 ≤ ⌊x⌋ ↔ 0 ≤ x :=
 by rw [le_floor]; refl
 
@@ -48,6 +51,9 @@ by simpa only [int.succ, int.cast_add, int.cast_one] using lt_succ_floor x
 
 theorem sub_one_lt_floor (x : α) : x - 1 < ⌊x⌋ :=
 sub_lt_iff_lt_add.2 (lt_floor_add_one x)
+
+theorem sub_floor_lt_one (x : α) : x - ⌊x⌋ < 1 :=
+sub_lt.1 $ sub_one_lt_floor _
 
 @[simp] theorem floor_coe (z : ℤ) : ⌊(z:α)⌋ = z :=
 eq_of_forall_le_iff $ λ a, by rw [le_floor, int.cast_le]
@@ -66,6 +72,11 @@ eq_of_forall_le_iff $ λ a, by rw [le_floor,
 
 theorem floor_sub_int (x : α) (z : ℤ) : ⌊x - z⌋ = ⌊x⌋ - z :=
 eq.trans (by rw [int.cast_neg]; refl) (floor_add_int _ _)
+
+lemma floor_of_bounds (r : α) (z : ℤ) :
+  ↑z ≤ r ∧ r < (z + 1) ↔ ⌊ r ⌋ = z :=
+by rw [←le_floor, ←int.cast_one, ←int.cast_add, ←floor_lt,
+int.lt_add_one_iff, le_antisymm_iff, and.comm]
 
 /-- `ceil x` is the smallest integer `z` such that `x ≤ z` -/
 def ceil (x : α) : ℤ := -⌊-x⌋

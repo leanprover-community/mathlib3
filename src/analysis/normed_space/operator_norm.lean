@@ -71,6 +71,9 @@ open lattice set
 
 local notation `L(` E `,` F `)` := @bounded_linear_maps _ E F _ _ _
 
+noncomputable def to_linear_map (A : L(E, F)) : linear_map _ E F :=
+{to_fun := A.val, ..A.property}
+
 /-- The operator norm of a bounded linear map A : E → F is the sup of
     the set ∥A x∥ with ∥x∥ ≤ 1. If E = {0} we set ∥A∥ = 0. -/
 noncomputable def operator_norm (A : L(E, F)) : ℝ :=
@@ -88,28 +91,27 @@ bdd_above.mk c
          ... ≤ c : H x ‹∥x∥ ≤ 1›)
 
 lemma zero_in_im_ball (A : L(E,F)) : (0:ℝ) ∈ {r : ℝ | ∃ (x : E), ∥x∥ ≤ 1 ∧ ∥A x∥ = r} :=
-have A 0 = 0, from linear_map.map_zero {to_fun := A.val, ..A.property}, 
+have A 0 = 0, from (to_linear_map A).map_zero, 
 exists.intro (0:E) $ and.intro (by rw[norm_zero]; exact zero_le_one) (by rw[‹A 0 = 0›]; simp)
 
 lemma operator_norm_nonneg (A : L(E,F)) : 0 ≤ ∥A∥ :=
 have (0:ℝ) ∈ _, from zero_in_im_ball A,
-suffices 0 ≤ Sup (image (norm ∘ A) {x | ∥x∥ ≤ 1}), by assumption,
+show 0 ≤ Sup (image (norm ∘ A) {x | ∥x∥ ≤ 1}), from
 let ⟨c, _, H⟩ := (exists_bound' A : ∃ c, c > 0 ∧ ∀ x : E, ∥x∥ ≤ 1 → ∥A x∥ ≤ c) in
 le_cSup (norm_of_unit_ball_bdd_above A) ‹(0:ℝ) ∈ _›
 
 lemma bounded_by_operator_norm_on_unit_vector (A : L(E, F)) {x : E} (_ : ∥x∥ = 1) : ∥A x∥ ≤ ∥A∥ :=
-suffices ∥A x∥ ≤ Sup (image (norm ∘ A) {x | ∥x∥ ≤ 1}), by assumption,
+show ∥A x∥ ≤ Sup (image (norm ∘ A) {x | ∥x∥ ≤ 1}), from
 let ⟨c, _, _⟩ := (exists_bound A : ∃ c, c > 0 ∧ ∀ x : E, ∥ A x ∥ ≤ c * ∥ x ∥) in
-have ∥A x∥ ∈ (image (norm ∘ A) {x | ∥x∥ ≤ 1}), from exists.intro x ⟨le_of_eq ‹∥x∥ = 1›, rfl⟩,
+have ∥A x∥ ∈ (image (norm ∘ A) {x | ∥x∥ ≤ 1}), from mem_image_of_mem _ $ le_of_eq ‹∥x∥ = 1›,
 le_cSup (norm_of_unit_ball_bdd_above A) ‹∥A x∥ ∈ _›
 
 /-- This is the fundamental property of the operator norm: ∥A x∥ ≤ ∥A∥ * ∥x∥. -/
 theorem bounded_by_operator_norm {A : L(E,F)} {x : E} : ∥A x∥ ≤ ∥A∥ * ∥x∥ :=
-have A 0 = 0, from linear_map.map_zero {to_fun := A.val, ..A.property}, 
+have A 0 = 0, from (to_linear_map A).map_zero,
 classical.by_cases
   (assume : x = (0:E),
-    calc ∥A x∥ ≤ 0 : by rw[‹x = 0›, ‹A 0 = 0›, norm_zero]; exact le_refl 0
-          ... = ∥A∥ * ∥x∥ : by rw[‹x = 0›, norm_zero, mul_zero])
+    show ∥A x∥ ≤ ∥A∥ * ∥x∥, by rw[‹x = 0›, ‹A 0 = 0›, norm_zero, norm_zero, mul_zero]; exact le_refl 0)
   (assume : x ≠ (0:E),
     have ∥x∥ ≠ 0, from ne_of_gt $ (norm_pos_iff x).mpr ‹x ≠ 0›,
     have ∥∥x∥⁻¹∥ = ∥x∥⁻¹, from abs_of_nonneg $ inv_nonneg.mpr $ norm_nonneg x,
@@ -144,9 +146,16 @@ operator_norm_bounded_by (⟨∥A∥, operator_norm_nonneg A⟩ + ⟨∥B∥, op
                 ... ≤ ∥A∥ + ∥B∥ : by exact add_le_add (bounded_by_operator_norm_on_unit_ball A ‹_›)
                                             (bounded_by_operator_norm_on_unit_ball B ‹_›))
 
-theorem operator_norm_zero_iff (A : L(E,F)) : A = 0 ↔ ∥A∥ = 0 :=
-have A 0 = 0, from linear_map.map_zero {to_fun := A.val, ..A.property}, 
+theorem operator_norm_zero_iff (A : L(E,F)) : ∥A∥ = 0 ↔ A = 0 :=
+have A 0 = 0, from (to_linear_map A).map_zero, 
 iff.intro
+  (assume : ∥A∥ = 0,
+    suffices ∀ x, A x = 0, from ext this,
+    assume x,
+      have ∥A x∥ ≤ 0, from 
+        calc ∥A x∥ ≤ ∥A∥ * ∥x∥ : bounded_by_operator_norm
+              ... = 0 : by rw[‹∥A∥ = 0›]; ring,
+      (norm_le_zero_iff (A x)).mp this)
   (assume : A = 0,
     let M := {r : ℝ | ∃ (x : E), ∥x∥ ≤ 1 ∧ ∥A x∥ = r} in
     -- note that we have M = (image (norm ∘ A) {x | ∥x∥ ≤ 1}), from rfl
@@ -160,13 +169,6 @@ iff.intro
       (assume : r ∈ {0},
         have r = 0, from set.eq_of_mem_singleton this,
         exists.intro (0:E) $ ⟨by rw[norm_zero]; exact zero_le_one, by rw[this, ‹A 0 = 0›]; simp⟩))
-  (assume : ∥A∥ = 0,
-    suffices ∀ x, A x = 0, from ext this,
-    assume x,
-      have ∥A x∥ ≤ 0, from 
-        calc ∥A x∥ ≤ ∥A∥ * ∥x∥ : bounded_by_operator_norm
-              ... = 0 : by rw[‹∥A∥ = 0›]; ring,
-      (norm_le_zero_iff (A x)).mp this)
 
 theorem operator_norm_homogeneous (c : ℝ) (A : L(E, F)) : ∥c • A∥ = ∥c∥ * ∥A∥ :=
 -- ∥c • A∥ is the supremum of the image of the map x ↦ ∥c • A x∥ on the unit ball in E
@@ -208,10 +210,9 @@ and.intro
 /-- Expose L(E,F) equipped with the operator norm as normed space. -/
 noncomputable instance bounded_linear_maps.to_normed_space : normed_space ℝ L(E,F) :=
 normed_space.of_core ℝ L(E,F) {
-  definite := operator_norm_zero_iff,
-  homogeneous := operator_norm_homogeneous,
+  norm_eq_zero_iff := operator_norm_zero_iff,
+  norm_smul := operator_norm_homogeneous,
   triangle := operator_norm_triangle
 }
 
 end operator_norm
-

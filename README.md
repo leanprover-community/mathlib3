@@ -29,3 +29,4 @@ Maintainers (topics):
 * Simon Hudon (@cipher1024): all
 * Chris Hughes (@ChrisHughes24): group_theory, ring_theory, field_theory
 * Robert Y. Lewis (@robertylewis): all
+* Patrick Massot (@patrickmassot): documentation

@@ -4,7 +4,6 @@
 
 import category_theory.isomorphism
 import category_theory.functor_category
-import tactic.slice
 
 open category_theory
 
@@ -72,14 +71,16 @@ begin erw [nat_trans.naturality, ←category.assoc, is_iso.hom_inv_id, category.
   (α.hom.app X) ≫ (G.map f) ≫ (α.inv.app Y) = F.map f :=
 begin erw [nat_trans.naturality, ←category.assoc, is_iso.hom_inv_id, category.id_comp] end
 
+instance is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso α :=
+{ inv :=
+  { app := λ X, inv (α.app X),
+    naturality' := λ X Y f,
+    by simpa using congr_arg (λ f, inv (α.app X) ≫ (f ≫ inv (α.app Y))) (α.naturality f).symm } }
+
 def of_components (app : ∀ X : C, (F.obj X) ≅ (G.obj X))
   (naturality : ∀ {X Y : C} (f : X ⟶ Y), (F.map f) ≫ ((app Y).hom) = ((app X).hom) ≫ (G.map f)) :
   F ≅ G :=
-{ hom := { app := λ X, ((app X).hom), },
-  inv :=
-  { app := λ X, ((app X).inv),
-    naturality' := λ X Y f,
-    by simpa using congr_arg (λ f, (app X).inv ≫ (f ≫ (app Y).inv)) (naturality f).symm } }
+as_iso { app := λ X, (app X).hom }
 
 @[simp] def of_components.app (app' : ∀ X : C, (F.obj X) ≅ (G.obj X)) (naturality) (X) :
   app (of_components app' naturality) X = app' X :=
@@ -88,23 +89,6 @@ by tidy
   (of_components app naturality).hom.app X = (app X).hom := rfl
 @[simp] def of_components.inv_app (app : ∀ X : C, (F.obj X) ≅ (G.obj X)) (naturality) (X) :
   (of_components app naturality).inv.app X = (app X).inv := rfl
-
-instance is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso α :=
-{ inv :=
-  { app := λ X, inv (α.app X),
-    naturality' := λ X Y f,
-    begin
-     have := congr_arg (λ f, inv (α.app X) ≫ (f ≫ inv (α.app Y))) (α.naturality f).symm,
-     simp at this,
-     rw ←this,
-     slice_rhs 1 2 {
-       simp,
-     },
-     simp,
-    end } }
-
--- The last proof was a bit cumbersome, but the benefit is we get definitional equality here:
-example (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : (inv α).app X = inv (α.app X) := rfl
 
 end category_theory.nat_iso
 

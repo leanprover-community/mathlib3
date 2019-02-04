@@ -1693,7 +1693,7 @@ by rw [← to_finset, ← to_finset, ← multiset.to_finset_add,
 @[simp] theorem succ_singleton {n : ℕ} : Ico n (n+1) = {n} :=
 eq_of_veq $ multiset.Ico.succ_singleton
 
-@[simp] theorem succ_top {n m : ℕ} (h : n ≤ m) : Ico n (m + 1) = insert m (Ico n m) :=
+theorem succ_top {n m : ℕ} (h : n ≤ m) : Ico n (m + 1) = insert m (Ico n m) :=
 by rw [← to_finset, multiset.Ico.succ_top h, multiset.to_finset_cons, to_finset]
 
 theorem eq_cons {n m : ℕ} (h : n < m) : Ico n m = insert n (Ico (n + 1) m) :=

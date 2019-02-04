@@ -55,40 +55,6 @@ end lemmas
 instance : is_comm_applicative id :=
 by refine { .. }; intros; refl
 
-namespace const
-open functor
-variables {γ : Type u} [monoid γ]
-
-protected def pure {α} (x : α) : const γ α := (1 : γ)
-protected def seq {α β : Type*} (f : const γ (α → β)) (x : const γ α) : const γ β :=
-(f * x : γ)
-
-instance : applicative (const γ) :=
-{ pure := @const.pure γ _,
-  seq := @const.seq γ _ }
-
-instance : is_lawful_applicative (const γ) :=
-by refine { .. }; intros; simp! [const.seq,const.pure,mul_assoc]
-
-end const
-
-namespace add_const
-open functor
-variables {γ : Type u} [add_monoid γ]
-
-protected def pure {α} (x : α) : add_const γ α := (0 : γ)
-protected def seq {α β : Type*} (f : add_const γ (α → β)) (x : add_const γ α) : add_const γ β :=
-(f + x : γ)
-
-instance : applicative (add_const γ) :=
-{ pure := @add_const.pure γ _,
-  seq  := @add_const.seq γ _ }
-
-instance : is_lawful_applicative (add_const γ) :=
-by refine { .. }; intros; simp! [add_const.seq,add_const.pure,add_assoc]
-
-end add_const
-
 namespace comp
 
 open function (hiding comp)
@@ -175,3 +141,17 @@ lemma comp.seq_mk {α β : Type w}
   [applicative f] [applicative g]
   (h : f (g (α → β))) (x : f (g α)) :
   comp.mk h <*> comp.mk x = comp.mk (has_seq.seq <$> h <*> x) := rfl
+
+instance {α} [has_one α] [has_mul α] : applicative (const α) :=
+{ pure := λ β x, (1 : α),
+  seq := λ β γ f x, (f * x : α) }
+
+instance {α} [monoid α] : is_lawful_applicative (const α) :=
+by refine { .. }; intros; simp [mul_assoc]
+
+instance {α} [has_zero α] [has_add α] : applicative (add_const α) :=
+{ pure := λ β x, (0 : α),
+  seq := λ β γ f x, (f + x : α) }
+
+instance {α} [add_monoid α] : is_lawful_applicative (add_const α) :=
+by refine { .. }; intros; simp

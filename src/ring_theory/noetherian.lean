@@ -8,6 +8,7 @@ import data.equiv.algebra
 import data.polynomial
 import linear_algebra.linear_combination
 import ring_theory.ideal_operations
+import ring_theory.subring
 
 open set lattice
 
@@ -304,6 +305,12 @@ begin
   rw is_noetherian_iff_well_founded at H ⊢,
   convert order_embedding.well_founded (order_embedding.rsymm (ideal.lt_order_embedding_of_surjective f hf)) H
 end
+
+theorem is_noetherian_ring_range {R} [comm_ring R] {S} [comm_ring S] (f : R → S) (hf : is_ring_hom f)
+  (h : is_noetherian_ring R) : is_noetherian_ring (set.range f) :=
+is_noetherian_ring_of_surjective _ _ (λ r, ⟨f r, r, rfl⟩)
+  ⟨subtype.eq $ is_ring_hom.map_one f, λ x y, subtype.eq $ is_ring_hom.map_mul f, λ x y, subtype.eq $ is_ring_hom.map_add f⟩
+  (λ ⟨y, r, h⟩, ⟨r, subtype.eq h⟩) h
 
 theorem is_noetherian_ring_of_ring_equiv (R) [comm_ring R] {S} [comm_ring S]
   (f : R ≃r S) (H : is_noetherian_ring R) : is_noetherian_ring S :=

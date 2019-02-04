@@ -19,7 +19,7 @@ open topological_space
 
 universe u
 
-namespace category_theory.examples
+namespace category_theory.instances
 
 /-- The category of topological spaces and continuous maps. -/
 @[reducible] def Top : Type (u+1) := bundled topological_space
@@ -110,9 +110,9 @@ instance : small_category (opens X) := by apply_instance
 def nbhd (x : X.α) := { U : opens X // x ∈ U }
 def nbhds (x : X.α) : small_category (nbhd x) := begin unfold nbhd, apply_instance end
 
-end category_theory.examples
+end category_theory.instances
 
-open category_theory.examples
+open category_theory.instances
 
 namespace topological_space.opens
 

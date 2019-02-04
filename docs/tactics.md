@@ -778,3 +778,24 @@ begin
   finish
 end
 ```
+### set
+
+`set a := t with h` is a variant of `let a := t` that adds the hypothesis `h : a = t` to the local context.
+
+`set a := t with h⁻¹` will add `h : t = a` instead.
+
+`set! a := t with h` will try to replace `t` with `a` in the goal and all hypotheses.
+
+```lean
+example (x : ℕ) (h : x = 3)  : x + x + x = 9 :=
+begin
+  set! y := x with h_xy⁻¹,
+/-
+x : ℕ,
+y : ℕ := x,
+h_xy : x = y,
+h : y = 3
+⊢ y + y + y = 9
+-/
+end
+```

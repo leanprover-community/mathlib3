@@ -148,6 +148,9 @@ assume a, in_closure.basic
 theorem closure_subset {s t : set α} [is_submonoid t] (h : s ⊆ t) : closure s ⊆ t :=
 assume a ha, by induction ha; simp [h _, *, is_submonoid.one_mem, is_submonoid.mul_mem]
 
+theorem closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
+closure_subset $ set.subset.trans h subset_closure
+
 theorem exists_list_of_mem_closure {s : set α} {a : α} (h : a ∈ closure s) :
   (∃l:list α, (∀x∈l, x ∈ s) ∧ l.prod = a) :=
 begin
@@ -163,6 +166,17 @@ begin
   }
 end
 
+theorem mem_closure_union_iff {α : Type*} [comm_monoid α] {s t : set α} {x : α} :
+  x ∈ closure (s ∪ t) ↔ ∃ y ∈ closure s, ∃ z ∈ closure t, y * z = x :=
+⟨λ hx, let ⟨L, HL1, HL2⟩ := exists_list_of_mem_closure hx in HL2 ▸
+  list.rec_on L (λ _, ⟨1, is_submonoid.one_mem _, 1, is_submonoid.one_mem _, mul_one _⟩)
+    (λ hd tl ih HL1, let ⟨y, hy, z, hz, hyzx⟩ := ih (list.forall_mem_of_forall_mem_cons HL1) in
+      or.cases_on (HL1 hd $ list.mem_cons_self _ _)
+        (λ hs, ⟨hd * y, is_submonoid.mul_mem (subset_closure hs) hy, z, hz, by rw [mul_assoc, list.prod_cons, ← hyzx]; refl⟩)
+        (λ ht, ⟨y, hy, z * hd, is_submonoid.mul_mem hz (subset_closure ht), by rw [← mul_assoc, list.prod_cons, ← hyzx, mul_comm hd]; refl⟩)) HL1,
+λ ⟨y, hy, z, hz, hyzx⟩, hyzx ▸ is_submonoid.mul_mem (closure_mono (set.subset_union_left _ _) hy)
+  (closure_mono (set.subset_union_right _ _) hz)⟩
+
 end monoid
 
 namespace add_monoid
@@ -173,14 +187,17 @@ instance closure.is_add_submonoid (s : set β) : is_add_submonoid (closure s) :=
 multiplicative.is_submonoid_iff.1 $ monoid.closure.is_submonoid s
 
 theorem subset_closure {s : set β} : s ⊆ closure s :=
-@monoid.subset_closure (multiplicative β) _ _
+monoid.subset_closure
 
 theorem closure_subset {s t : set β} [is_add_submonoid t] : s ⊆ t → closure s ⊆ t :=
-@monoid.closure_subset (multiplicative β) _ _ _ _
+monoid.closure_subset
+
+theorem closure_mono {s t : set β} (h : s ⊆ t) : closure s ⊆ closure t :=
+closure_subset $ set.subset.trans h subset_closure
 
 theorem exists_list_of_mem_closure {s : set β} {a : β} :
   a ∈ closure s → ∃l:list β, (∀x∈l, x ∈ s) ∧ l.sum = a :=
-@monoid.exists_list_of_mem_closure (multiplicative β) _ _ _
+monoid.exists_list_of_mem_closure
 
 @[elab_as_eliminator]
 theorem in_closure.rec_on {s : set β} {C : β → Prop}
@@ -189,5 +206,9 @@ theorem in_closure.rec_on {s : set β} {C : β → Prop}
   (H3 : ∀ {a b : β}, a ∈ closure s → b ∈ closure s → C a → C b → C (a + b)) :
   C a :=
 monoid.in_closure.rec_on H (λ _, H1) H2 (λ _ _, H3)
+
+theorem mem_closure_union_iff {β : Type*} [add_comm_monoid β] {s t : set β} {x : β} :
+  x ∈ closure (s ∪ t) ↔ ∃ y ∈ closure s, ∃ z ∈ closure t, y + z = x :=
+monoid.mem_closure_union_iff
 
 end add_monoid

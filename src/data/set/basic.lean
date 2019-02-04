@@ -15,7 +15,7 @@ end set
 section set_coe
 universe u
 variables {α : Type u}
-@[simp] theorem set.set_coe_eq_subtype (s : set α) :
+theorem set.set_coe_eq_subtype (s : set α) :
   coe_sort.{(u+1) (u+2)} s = {x // x ∈ s} := rfl
 
 @[simp] theorem set_coe.forall {s : set α} {p : s → Prop} :

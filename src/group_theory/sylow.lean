@@ -181,7 +181,7 @@ local attribute [instance] set_fintype
 
 lemma exists_subgroup_card_pow_prime [fintype G] {p : ℕ} : ∀ {n : ℕ} (hp : nat.prime p)
   (hdvd : p ^ n ∣ card G), ∃ H : set G, is_subgroup H ∧ fintype.card H = p ^ n
-| 0 := λ _ _, ⟨trivial G, by apply_instance, by simp [-set.set_coe_eq_subtype]⟩
+| 0 := λ _ _, ⟨trivial G, by apply_instance, by simp⟩
 | (n+1) := λ hp hdvd,
 let ⟨H, ⟨hH1, hH2⟩⟩ := exists_subgroup_card_pow_prime hp
   (dvd.trans (nat.pow_dvd_pow _ (nat.le_succ _)) hdvd) in

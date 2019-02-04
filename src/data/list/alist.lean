@@ -11,7 +11,7 @@ universes u v w
 open list
 variables {α : Type u} {β : α → Type v}
 
-/-- `alist β` is a key-value map stored as a list.
+/-- `alist β` is a key-value map stored as a `list` (i.e. a linked list).
   It is a wrapper around certain `list` functions with the added constraint
   that the list have unique keys. -/
 structure alist (β : α → Type v) : Type (max u v) :=

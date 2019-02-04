@@ -40,6 +40,9 @@ lemma coe_nat_ne_zero_iff_pos {n : ℕ} : (n : ℤ) ≠ 0 ↔ 0 < n :=
 
 lemma coe_nat_succ_pos (n : ℕ) : 0 < (n.succ : ℤ) := int.coe_nat_pos.2 (succ_pos n)
 
+@[simp] theorem coe_nat_abs (n : ℕ) : abs (n : ℤ) = n :=
+abs_of_nonneg (coe_nat_nonneg n)
+
 /- succ and pred -/
 
 /-- Immediate successor of an integer: `succ n = n + 1` -/
@@ -108,7 +111,7 @@ attribute [simp] nat_abs nat_abs_of_nat nat_abs_zero nat_abs_one
 
 theorem nat_abs_add_le (a b : ℤ) : nat_abs (a + b) ≤ nat_abs a + nat_abs b :=
 begin
-  have : ∀ (a b : ℕ), nat_abs (sub_nat_nat a (nat.succ b)) ≤ nat.succ (a + b), 
+  have : ∀ (a b : ℕ), nat_abs (sub_nat_nat a (nat.succ b)) ≤ nat.succ (a + b),
   { refine (λ a b : ℕ, sub_nat_nat_elim a b.succ
       (λ m n i, n = b.succ → nat_abs i ≤ (m + b).succ) _ _ rfl);
     intros i n e,

@@ -24,6 +24,8 @@ class premetric_space (α : Type u) extends has_dist α : Type u :=
 (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z)
 
 namespace premetric
+section
+
 protected lemma dist_nonneg {α : Type u} [premetric_space α] {x y : α} : 0 ≤ dist x y :=
 begin
   have := calc
@@ -34,7 +36,7 @@ begin
 end
 
 /-- The canonical equivalence relation on a premetric space. -/
-instance dist_setoid (α : Type u) [premetric_space α] : setoid α :=
+def dist_setoid (α : Type u) [premetric_space α] : setoid α :=
 setoid.mk (λx y, dist x y = 0)
 begin
   unfold equivalence,
@@ -47,6 +49,8 @@ begin
          ... = 0 + 0 : by rw [hxy, hyz]
          ... = 0 : by simp }
 end
+
+local attribute [instance] dist_setoid
 
 /-- The canonical quotient of a premetric space, identifying points at distance 0. -/
 @[reducible] definition metric_quot (α : Type u) [premetric_space α] : Type* :=
@@ -85,4 +89,5 @@ instance metric_space_quot {α : Type u} [premetric_space α] : metric_space (me
   dist_triangle :=
     λxc yc zc, quotient.induction_on₃ xc yc zc (λx y z, premetric_space.dist_triangle _ _ _) }
 
-end premetric
+end --section
+end premetric --namespace

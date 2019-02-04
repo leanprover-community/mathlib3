@@ -626,6 +626,11 @@ section add_comm_group
   lemma sub_sub_sub_cancel_left (a b c : α) : (c - a) - (c - b) = b - a :=
   by rw [← neg_sub b c, sub_neg_eq_add, add_comm, sub_add_sub_cancel]
 
+  -- Is this lemma in the right place?
+  lemma sub_eq_sub_of_sub_eq_sub {d : α} (h : a - b = c - d) :
+    a - c = b - d :=
+  by rw (eq_add_of_sub_eq h);simp
+
 end add_comm_group
 
 section is_conj

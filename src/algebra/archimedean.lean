@@ -67,6 +67,11 @@ eq_of_forall_le_iff $ λ a, by rw [le_floor,
 theorem floor_sub_int (x : α) (z : ℤ) : ⌊x - z⌋ = ⌊x⌋ - z :=
 eq.trans (by rw [int.cast_neg]; refl) (floor_add_int _ _)
 
+lemma eq_floor_iff_bounds (r : α) (z : ℤ) :
+  ⌊r⌋ = z ↔ ↑z ≤ r ∧ r < (z + 1) :=
+by rw [←le_floor, ←int.cast_one, ←int.cast_add, ←floor_lt,
+int.lt_add_one_iff, le_antisymm_iff, and.comm]
+
 /-- `ceil x` is the smallest integer `z` such that `x ≤ z` -/
 def ceil (x : α) : ℤ := -⌊-x⌋
 

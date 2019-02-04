@@ -47,6 +47,11 @@ attribute [irreducible] opposite
 @[simp] lemma unop_op (X : C) : unop (op X) = X := rfl
 @[simp] lemma op_unop (X : Cᵒᵖ) : op (unop X) = X := rfl
 
+lemma op_inj : function.injective (@op C) :=
+by { rintros _ _ ⟨ ⟩, refl }
+lemma unop_inj : function.injective (@unop C) :=
+by { rintros _ _ ⟨ ⟩, refl }
+
 section has_hom
 
 variables [𝒞 : has_hom.{v₁} C]
@@ -172,5 +177,28 @@ definition hom : Cᵒᵖ × C ⥤ Type v₁ :=
 end
 
 end functor
+
+omit 𝒞
+
+instance opposite.has_one [has_one C] : has_one (Cᵒᵖ) :=
+{ one := op 1 }
+
+instance opposite.has_mul [has_mul C] : has_mul (Cᵒᵖ) :=
+{ mul := λ x y, op $ unop y * unop  x }
+
+@[simp] lemma opposite.unop_one [has_one C] : unop (1 : Cᵒᵖ) = (1 : C) := rfl
+
+@[simp] lemma opposite.unop_mul [has_mul C] (xs ys : Cᵒᵖ) : unop (xs * ys) = (unop ys * unop xs : C) := rfl
+
+@[simp] lemma opposite.op_one [has_one C] : op (1 : C) = 1 := rfl
+
+@[simp] lemma opposite.op_mul [has_mul C] (xs ys : C) : op (xs * ys) = (op ys * op xs) := rfl
+
+instance opposite.monoid [monoid C] : monoid (Cᵒᵖ) :=
+{ one := op 1,
+  mul := λ x y, op $ unop y * unop  x,
+  mul_one := by { intros, apply unop_inj, simp },
+  one_mul := by { intros, simp },
+  mul_assoc := by { intros, simp [mul_assoc], } }
 
 end category_theory

@@ -96,6 +96,6 @@ by by_cases a ≤ b; simp [h, min]
 by by_cases a ≤ b; simp [h, max]
 
 @[simp] theorem abs_cast [decidable_linear_ordered_comm_ring α] (a : ℕ) : abs (a : α) = a :=
-abs_of_nonneg (nat.cast_nonneg a)
+abs_of_nonneg (cast_nonneg a)
 
 end nat

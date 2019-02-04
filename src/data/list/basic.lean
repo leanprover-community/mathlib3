@@ -4065,7 +4065,7 @@ end
 @[simp] theorem succ_singleton {n : ℕ} : Ico n (n+1) = [n] :=
 by dsimp [Ico]; simp [nat.add_sub_cancel_left]
 
-@[simp] theorem succ_top {n m : ℕ} (h : n ≤ m) : Ico n (m + 1) = Ico n m ++ [m] :=
+theorem succ_top {n m : ℕ} (h : n ≤ m) : Ico n (m + 1) = Ico n m ++ [m] :=
 by rwa [← succ_singleton, append_consecutive]; exact nat.le_succ _
 
 theorem eq_cons {n m : ℕ} (h : n < m) : Ico n m = n :: Ico (n + 1) m :=

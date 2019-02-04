@@ -2996,7 +2996,7 @@ congr_arg coe $ list.Ico.append_consecutive hnm hml
 @[simp] theorem succ_singleton {n : ℕ} : Ico n (n+1) = {n} :=
 congr_arg coe $ list.Ico.succ_singleton
 
-@[simp] theorem succ_top {n m : ℕ} (h : n ≤ m) : Ico n (m + 1) = m :: Ico n m :=
+theorem succ_top {n m : ℕ} (h : n ≤ m) : Ico n (m + 1) = m :: Ico n m :=
 by rw [Ico, list.Ico.succ_top h, ← coe_add, add_comm]; refl
 
 theorem eq_cons {n m : ℕ} (h : n < m) : Ico n m = n :: Ico (n + 1) m :=

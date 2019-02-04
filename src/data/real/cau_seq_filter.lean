@@ -204,7 +204,7 @@ theorem complete_of_cauchy_seq_tendsto {α : Type u} [emetric_space α]
   exact ⟨x, sequentially_complete.le_nhds_cau_filter_lim hf (λn, 1) (λn, ennreal.zero_lt_one) hx⟩
 end⟩
 
-/- -A very useful criterion to show that a space is complete is to show that all sequences
+/-- A very useful criterion to show that a space is complete is to show that all sequences
 which satisfy a bound of the form `edist (u n) (u m) < B N` for all `n m ≥ N` are
 converging. This is often applied for `B N = 2^{-N}`, i.e., with a very fast convergence to
 `0`, which makes it possible to use arguments of converging series, while this is impossible

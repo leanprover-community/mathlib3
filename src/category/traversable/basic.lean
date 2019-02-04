@@ -20,9 +20,9 @@ variables (F : Type u → Type v) [applicative F] [is_lawful_applicative F]
 variables (G : Type u → Type w) [applicative G] [is_lawful_applicative G]
 
 structure applicative_transformation : Type (max (u+1) v w) :=
-(app : ∀ {α : Type u}, F α → G α)
-(preserves_pure' : ∀ {α : Type u} (x : α), app (pure x) = pure x)
-(preserves_seq' : ∀ {α β : Type u} (x : F (α → β)) (y : F α), app (x <*> y) = app x <*> app y)
+(app : ∀ α : Type u, F α → G α)
+(preserves_pure' : ∀ {α : Type u} (x : α), app _ (pure x) = pure x)
+(preserves_seq' : ∀ {α β : Type u} (x : F (α → β)) (y : F α), app _ (x <*> y) = app _ x <*> app _ y)
 
 end applicative_transformation
 
@@ -31,7 +31,9 @@ namespace applicative_transformation
 variables (F : Type u → Type v) [applicative F] [is_lawful_applicative F]
 variables (G : Type u → Type w) [applicative G] [is_lawful_applicative G]
 
-instance : has_coe_to_fun (applicative_transformation F G) := ⟨_, λ m, m.app⟩
+instance : has_coe_to_fun (applicative_transformation F G) :=
+{ F := λ _, Π {α}, F α → G α,
+  coe := λ a, a.app }
 
 variables {F G}
 variables (η : applicative_transformation F G)

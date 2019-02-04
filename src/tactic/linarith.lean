@@ -346,6 +346,7 @@ do pftps ← l.mmap infer_type,
   let vars : rb_set ℕ := rb_map.set_of_list $ list.range map.size.succ,
   let pc : rb_set pcomp := rb_map.set_of_list $
     lz.map (λ ⟨n, x⟩, ⟨x.2, comp_source.assump n⟩),
+  --trace pc, trace prmap,
   return (⟨vars, pc⟩, prmap)
 
 meta def linarith_monad.run {α} (tac : linarith_monad α) (l : list expr) : tactic ((pcomp ⊕ α) × rb_map ℕ (expr × expr)) :=
@@ -476,6 +477,7 @@ meta def prove_false_by_linarith1 (cfg : linarith_config) : list expr → tactic
 | l@(h::t) :=
   do l' ← add_neg_eq_pfs l,
      hz ← ineq_pf_tp h >>= mk_neg_one_lt_zero_pf,
+     --list.mmap' (λ e, infer_type e >>= trace) (hz::l') ,
      (sum.inl contr, inputs) ← elim_all_vars.run (hz::l')
        | fail "linarith failed to find a contradiction",
      let coeffs := inputs.keys.map (λ k, (contr.src.flatten.ifind k)),
@@ -552,8 +554,12 @@ meta def find_cancel_factor : expr → ℕ × tree ℕ
   let (v1, t1) := find_cancel_factor e1, (v2, t2) := find_cancel_factor e2, lcm := v1.lcm v2 in
   (lcm, tree.node lcm t1 t2)
 | `(%%e1 * %%e2) :=
-  let (v1, t1) := find_cancel_factor e1, (v2, t2) := find_cancel_factor e2, pd := v1*v2 in
-  (pd, tree.node pd t1 t2)
+  match is_numeric e1, is_numeric e2 with
+  | none, none := (1, tree.node 1 tree.nil tree.nil)
+  | _, _ :=
+    let (v1, t1) := find_cancel_factor e1, (v2, t2) := find_cancel_factor e2, pd := v1*v2 in
+    (pd, tree.node pd t1 t2)
+  end
 | `(%%e1 / %%e2) :=
   match is_numeric e2 with
   | some q := let (v1, t1) := find_cancel_factor e1, n := v1.lcm q.num.nat_abs in

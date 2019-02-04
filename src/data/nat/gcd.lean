@@ -278,6 +278,21 @@ theorem coprime.pow {k l : ℕ} (m n : ℕ) (H1 : coprime k l) : coprime (k ^ m)
 theorem coprime.eq_one_of_dvd {k m : ℕ} (H : coprime k m) (d : k ∣ m) : k = 1 :=
 by rw [← H.gcd_eq_one, gcd_eq_left d]
 
+@[simp] theorem coprime_zero_left (n : ℕ) : coprime 0 n ↔ n = 1 :=
+by simp [coprime]
+
+@[simp] theorem coprime_zero_right (n : ℕ) : coprime n 0 ↔ n = 1 :=
+by simp [coprime]
+
+@[simp] theorem coprime_one_left_iff (n : ℕ) : coprime 1 n ↔ true :=
+by simp [coprime]
+
+@[simp] theorem coprime_one_right_iff (n : ℕ) : coprime n 1 ↔ true :=
+by simp [coprime]
+
+@[simp] theorem coprime_self (n : ℕ) : coprime n n ↔ n = 1 :=
+by simp [coprime]
+
 theorem exists_eq_prod_and_dvd_and_dvd {m n k : ℕ} (H : k ∣ m * n) :
   ∃ m' n', k = m' * n' ∧ m' ∣ m ∧ n' ∣ n :=
 or.elim (eq_zero_or_pos (gcd k m))

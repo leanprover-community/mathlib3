@@ -7,7 +7,6 @@ Introduce CommRing -- the category of commutative rings.
 Currently only the basic setup.
 -/
 
-import category_theory.concrete_category
 import category_theory.instances.monoids
 import category_theory.fully_faithful
 import category_theory.adjunction

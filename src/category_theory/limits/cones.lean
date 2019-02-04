@@ -30,9 +30,9 @@ variables {J C} (F : J ⥤ C)
 natural transformations from the constant functor with value `X` to `F`.
 An object representing this functor is a limit of `F`.
 -/
-def cones : Cᵒᵖ ⥤ Type v := (const Jᵒᵖ ⋙ op_inv J C) ⋙ (yoneda.obj F)
+def cones : Cᵒᵖ ⥤ Type v := (const J).op ⋙ (yoneda.obj F)
 
-lemma cones_obj (X : C) : F.cones.obj (op X) = ((const J).obj X ⟹ F) := rfl
+lemma cones_obj (X : Cᵒᵖ) : F.cones.obj X = ((const J).obj (unop X) ⟶ F) := rfl
 
 @[simp] lemma cones_map_app {X₁ X₂ : Cᵒᵖ} (f : X₁ ⟶ X₂) (t : F.cones.obj X₁) (j : J) :
   (F.cones.map f t).app j = f.unop ≫ t.app j := rfl
@@ -56,21 +56,21 @@ variables (J C)
 
 def cones : (J ⥤ C) ⥤ (Cᵒᵖ ⥤ Type v) :=
 { obj := functor.cones,
-  map := λ F G f, whisker_left _ (yoneda.map f) }
+  map := λ F G f, whisker_left (const J).op (yoneda.map f) }
 
 def cocones : (J ⥤ C)ᵒᵖ ⥤ (C ⥤ Type v) :=
 { obj := λ F, functor.cocones (unop F),
-  map := λ F G f, whisker_left _ (coyoneda.map f) }
+  map := λ F G f, whisker_left (const J) (coyoneda.map f) }
 
 variables {J C}
 
 @[simp] lemma cones_obj (F : J ⥤ C) : (cones J C).obj F = F.cones := rfl
 @[simp] lemma cones_map  {F G : J ⥤ C} {f : F ⟶ G} :
-(cones J C).map f = (whisker_left _ (yoneda.map f)) := rfl
+(cones J C).map f = (whisker_left (const J).op (yoneda.map f)) := rfl
 
 @[simp] lemma cocones_obj (F : (J ⥤ C)ᵒᵖ) : (cocones J C).obj F = (unop F).cocones := rfl
 @[simp] lemma cocones_map  {F G : (J ⥤ C)ᵒᵖ} {f : F ⟶ G} :
-(cocones J C).map f = (whisker_left _ (coyoneda.map f)) := rfl
+(cocones J C).map f = (whisker_left (const J) (coyoneda.map f)) := rfl
 
 end
 
@@ -129,8 +129,7 @@ end cone
 
 namespace cocone
 @[simp] def extensions (c : cocone F) : coyoneda.obj (op c.X) ⟶ F.cocones :=
-{ app := λ X f, c.ι ≫ ((const J).map f),
-  naturality' := by intros X Y f; ext g j; dsimp; rw ←assoc; refl }
+{ app := λ X f, c.ι ≫ ((const J).map f) }
 
 /-- A map from the vertex of a cocone induces a cocone by composition. -/
 @[simp] def extend (c : cocone F) {X : C} (f : c.X ⟶ X) : cocone F :=
@@ -302,4 +301,3 @@ def map_cocone_morphism {c c' : cocone F} (f : cocone_morphism c c') :
 end functor
 
 end category_theory
-

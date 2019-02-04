@@ -536,7 +536,7 @@ suffices f ∈ perms_of_list l ∨ ∃ (b : α), b ∈ l ∧ ∃ g : perm α, g 
     if hffa : f (f a) = a then mem_of_ne_of_mem hfa (h _ (mt (λ h, f.bijective.1 h) hfa))
       else this _ $ by simp [mul_apply, swap_apply_def]; split_ifs; cc,
     ⟨swap a (f a) * f, mem_perms_of_list_of_mem this,
-      by rw [← mul_assoc, mul_def (swap a (f a)) (swap a (f a)), swap_swap, ← one_def, one_mul]⟩⟩)
+      by rw [← mul_assoc, mul_def (swap a (f a)) (swap a (f a)), swap_swap, ← equiv.perm.one_def, one_mul]⟩⟩)
 
 lemma mem_of_mem_perms_of_list : ∀ {l : list α} {f : perm α}, f ∈ perms_of_list l → ∀ {x}, f x ≠ x → x ∈ l
 | []     f h := have f = 1 := by simpa [perms_of_list] using h, by rw this; simp

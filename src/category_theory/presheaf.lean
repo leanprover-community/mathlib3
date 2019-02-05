@@ -5,18 +5,20 @@
 import category_theory.yoneda
 import category_theory.limits.functor_category
 import category_theory.limits.types
+import category_theory.adjunction
 import category_theory.comma
 import category_theory.punit
 
 namespace category_theory
 open category_theory.limits
 
-universes u v
+universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 -- TODO: How much of this should be generalized to a possibly large category?
-variables (C : Type v) [small_category C]
+variables (C : Type u₁) [𝒞 : category.{v₁} C]
+include 𝒞
 
-def presheaf := Cᵒᵖ ⥤ Type v
+def presheaf := Cᵒᵖ ⥤ Type v₁
 variables {C}
 
 namespace presheaf
@@ -24,31 +26,67 @@ namespace presheaf
 section simp
 variable (X : presheaf C)
 
-@[simp] lemma map_id {c : C} : X.map (𝟙 c) = 𝟙 (X.obj c) := X.map_id c
+-- @[simp] lemma map_id {c : C} : X.map (𝟙 c) = 𝟙 (X.obj c) := X.map_id c
 
-@[simp] lemma map_id' {c : C} :
-X.map (@category.id C _ c) = 𝟙 (X.obj c) := functor.map_id X c
+-- @[simp] lemma map_id' {c : C} :
+-- X.map (@category.id C _ c) = 𝟙 (X.obj c) := functor.map_id X c
 
-@[simp] lemma map_comp {c₁ c₂ c₃ : C} {f : c₁ ⟶ c₂} {g : c₂ ⟶ c₃} :
-X.map (g ≫ f) = (X.map g) ≫ (X.map f) := X.map_comp g f
+-- @[simp] lemma map_comp {c₁ c₂ c₃ : C} {f : c₁ ⟶ c₂} {g : c₂ ⟶ c₃} :
+-- X.map (g ≫ f) = (X.map g) ≫ (X.map f) := X.map_comp g f
 
-@[simp] lemma map_comp' {c₁ c₂ c₃ : C} {f : c₁ ⟶ c₂} {g : c₂ ⟶ c₃} :
-X.map (@category.comp C _ _ _ _ f g) = (X.map g) ≫ (X.map f) := functor.map_comp X g f
+-- @[simp] lemma map_comp' {c₁ c₂ c₃ : C} {f : c₁ ⟶ c₂} {g : c₂ ⟶ c₃} :
+-- X.map (@category.comp C _ _ _ _ f g) = (X.map g) ≫ (X.map f) := functor.map_comp X g f
 
 end simp
 
-instance : category.{v}     (presheaf C) := by dunfold presheaf; apply_instance
-instance : has_limits.{v}   (presheaf C) := by dunfold presheaf; apply_instance
-instance : has_colimits.{v} (presheaf C) := by dunfold presheaf; apply_instance
--- instance : has_pullbacks.{(v+1) v} (presheaf C) := limits.functor_category_has_pullbacks
--- instance : has_coproducts.{(v+1) v} (presheaf C) := limits.functor_category_has_coproducts
--- instance : has_coequalizers.{(v+1) v} (presheaf C) := limits.functor_category_has_coequalizers
+set_option pp.universes true
 
-def eval : Cᵒᵖ ⥤ presheaf C ⥤ Type v :=
+instance : category.{(max u₁ v₁)} (presheaf C) := by dunfold presheaf; apply_instance
+
+def eval : Cᵒᵖ ⥤ presheaf C ⥤ Type v₁ :=
 evaluation _ _
 
+section adjoints
+variables {C} {D : Type u₂} [𝒟 : category.{v₁} D]
+include 𝒟
+
+def precompose (F : C ⥤ D) : presheaf D ⥤ presheaf C :=
+{ obj := λ Y, F.op ⋙ Y,
+  map := λ _ _ f, whisker_left _ f }
+
+def left_kan_obj (F : C ⥤ D) : presheaf C → presheaf D :=
+_
+
+def left_kan_equiv (F : C ⥤ D) (X Y) : (left_kan_obj F X ⟶ Y) ≃ (X ⟶ (precompose F).obj Y) :=
+_
+
+def left_kan (F : C ⥤ D) : presheaf C ⥤ presheaf D :=
+adjunction.left_adjoint_of_equiv (left_kan_equiv F) _
+
+def right_kan (F : C ⥤ D) : presheaf C ⥤ presheaf D :=
+{ obj := λ X, yoneda.op ⋙ (precompose F).op ⋙ yoneda.obj X,
+map := λ _ _ α, whisker_left _ $ whisker_left _ $ yoneda.map α }
+
+-- def right_kan_obj (F : C ⥤ D) : presheaf C → presheaf D :=
+-- _
+
+-- def right_kan_equiv (F : C ⥤ D) (X Y) : ((precompose F).obj X ⟶ Y) ≃ (X ⟶ right_kan_obj F Y) :=
+-- _
+
+def right_kan_adj (F : C ⥤ D) : adjunction (precompose F) (right_kan F) := _
+
+end adjoints
+
+def presheaf_equivalence : ess_surj (yoneda : presheaf C ⥤ presheaf (presheaf C)) :=
+{ obj_preimage := λ X,
+  { obj := λ c, _,
+    map := _,
+    map_id' := _,
+    map_comp' := _ },
+  iso' := _ }
+
 section restriction_extension
-variables {D : Type u} [𝒟 : category.{v} D]
+variables {D : Type u₂} [𝒟 : category.{v₁} D]
 include 𝒟
 
 def restricted_yoneda (F : C ⥤ D) : D ⥤ presheaf C :=

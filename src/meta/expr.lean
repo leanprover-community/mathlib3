@@ -39,6 +39,10 @@ meta def sanitize_name : name → name
 | (name.mk_string s p) := name.mk_string s $ sanitize_name p
 | (name.mk_numeral s p) := name.mk_string sformat!"n{s}" $ sanitize_name p
 
+def append_suffix : name → string → name
+| (mk_string s n) s' := mk_string (s ++ s') n
+| n _ := n
+
 end name
 
 namespace expr

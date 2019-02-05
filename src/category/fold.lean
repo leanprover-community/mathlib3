@@ -68,9 +68,9 @@ with f : α → β → α
 
 We can view the above as a composition of functions:
 
-  ... = f (f x y₀) y₁             : rfl
-  ... = flip f y₁ (flip f y₀ x)   : rfl
-  ... = (flip f y₁ ∘ flip f y₀) x : rfl
+  ... = f (f x y₀) y₁              : rfl
+  ... = flip f y₁ (flip f y₀ x)    : rfl
+  ... = (flip f y₁ ∘ flip f y₀) x  : rfl
 
 We can use traverse and const to construct this composition:
 
@@ -126,17 +126,22 @@ def foldr (f : α → β → β) (x : β) (xs : t α) : β :=
 unop (fold_map (foldr.mk ∘ f) xs) x
 
 /--
-`to_list_spec` provides an alternative definition for `to_list`:
-`fold_map list.ret`
+Conceptually, `to_list` collects all the elements of a collection
+in a list. This idea is formalized by
 
-The definition based on `foldr` is faster than using `list` as a
-monoid. Each insertion is done in constant time. In sum, `to_list`
-performs in linear. On the other hand, `fold_map list.ret` creates a
-singleton list around each element and concatenates all the resulting
-lists. In `xs ++ ys`, concatenation takes a time proportional to
-`length xs`. Since the order in which concatenation is evaluated is
-unspecified, nothing prevents each element of the traversable to be
-appended at the end `xs ++ [x]` which yields `O(n²)` run time. -/
+  `lemma to_list_spec (x : t α) : to_list x = fold_map free_monoid.mk x`.
+
+The definition of `to_list` is based on `foldl` and `list.cons` for
+speed. It is faster than using `fold_map free_monoid.mk` because, by
+using `foldl` and `list.cons`, each insertion is done in constant
+time. As a consequence, `to_list` performs in linear.
+
+On the other hand, `fold_map free_monoid.mk` creates a singleton list
+around each element and concatenates all the resulting lists. In
+`xs ++ ys`, concatenation takes a time proportional to `length xs`. Since
+the order in which concatenation is evaluated is unspecified, nothing
+prevents each element of the traversable to be appended at the end
+`xs ++ [x]` which would yield a `O(n²)` run time. -/
 def to_list : t α → list α :=
 list.reverse ∘ foldl (flip list.cons) []
 

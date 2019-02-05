@@ -463,7 +463,8 @@ theorem mem_Sup_of_directed {s : set (submodule α β)}
   ∃ y ∈ s, z ∈ y :=
 begin
   haveI := classical.dec, rw Sup_eq_supr at hzs,
-  have, { refine (mem_supr_of_directed ⟨⊥⟩ _ (λ i j, _)).1 hzs,
+  have : ∃ (i : submodule α β), z ∈ ⨆ (H : i ∈ s), i,
+  { refine (mem_supr_of_directed ⟨⊥⟩ _ (λ i j, _)).1 hzs,
     by_cases his : i ∈ s; by_cases hjs : j ∈ s,
     { rcases hdir i his j hjs with ⟨k, hks, hik, hjk⟩,
         exact ⟨k, le_supr_of_le hks (supr_le $ λ _, hik),

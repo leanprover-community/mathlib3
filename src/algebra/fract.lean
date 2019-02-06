@@ -18,9 +18,7 @@ def fract (r : α) : α := r - ⌊r⌋
 -- Mathematical notation is usually {r}. Let's not even go there.
 -- I have no notation currently.
 
--- My mathematical instinct tells me that the order is ⌊r⌋ + {r}
--- but then I have to cast in the statement of the theorem. Should I care?
-@[simp] theorem fract_add_floor (r : α) : fract r + ⌊r⌋ = r := sub_add_cancel _ _
+@[simp] theorem fract_add_floor (r : α) : (⌊r⌋ : α) + fract r = r := by unfold fract;simp
 
 theorem fract_nonneg (r : α) : 0 ≤ fract r :=
 sub_nonneg.2 $ floor_le _
@@ -39,7 +37,7 @@ by unfold fract; rw floor_coe; exact sub_self _
 by rw eq_floor_iff_bounds; exact ⟨fract_nonneg _,
   by rw [int.cast_zero, zero_add]; exact fract_lt_one r⟩
 
-theorem eq_fract (r s : α) : fract r = s ↔ 0 ≤ s ∧ s < 1 ∧ ∃ z : ℤ, r - s = z :=
+theorem fract_eq_iff {r s : α} : fract r = s ↔ 0 ≤ s ∧ s < 1 ∧ ∃ z : ℤ, r - s = z :=
 ⟨λ h, by rw ←h; exact ⟨fract_nonneg _, fract_lt_one _,
   ⟨⌊r⌋, sub_sub_cancel _ _⟩⟩, begin
     intro h,
@@ -50,13 +48,13 @@ theorem eq_fract (r s : α) : fract r = s ↔ 0 ≤ s ∧ s < 1 ∧ ∃ z : ℤ,
     clear hz, split; linarith {discharger := `[simp]}
   end⟩
 
-theorem fract_eq_fract (r s : α) : fract r = fract s ↔ ∃ z : ℤ, r - s = z :=
+theorem fract_eq_fract {r s : α} : fract r = fract s ↔ ∃ z : ℤ, r - s = z :=
 ⟨λ h, ⟨⌊r⌋ - ⌊s⌋, begin
-  unfold fract at h, rw [int.cast_sub, sub_eq_sub_of_sub_eq_sub.1 h],
+  unfold fract at h, rw [int.cast_sub, sub_eq_sub_iff_sub_eq_sub.1 h],
  end⟩,
 λ h, begin
   rcases h with ⟨z, hz⟩,
-  rw eq_fract,
+  rw fract_eq_iff,
   split, exact fract_nonneg _,
   split, exact fract_lt_one _,
   use z + ⌊s⌋,

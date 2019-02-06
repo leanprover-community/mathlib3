@@ -423,6 +423,8 @@ lemma exists_sin_eq {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : ∃ y, -(π
   (by rwa [sin_neg, sin_pi_div_two]) (by rwa sin_pi_div_two)
   (le_trans (neg_nonpos.2 (le_of_lt pi_div_two_pos)) (le_of_lt pi_div_two_pos))
 
+namespace angle
+
 /-- The type of angles -/
 def angle : Type :=
 quotient_add_group.quotient (gmultiples (2 * π))
@@ -440,46 +442,40 @@ instance angle.is_add_group_hom : is_add_group_hom (coe : ℝ → angle) :=
 @[simp] lemma coe_add (x y : ℝ) : ↑(x + y : ℝ) = (↑x + ↑y : angle) := rfl
 @[simp] lemma coe_neg (x : ℝ) : ↑(-x : ℝ) = -(↑x : angle) := rfl
 @[simp] lemma coe_sub (x y : ℝ) : ↑(x - y : ℝ) = (↑x - ↑y : angle) := rfl
-@[simp] lemma coe_gsmul (x : ℝ) (n : ℤ) : ↑(gsmul n x : ℝ) = gsmul n (↑x : angle) :=
-int.induction_on n rfl (λ i ih, by simp only [add_gsmul, one_gsmul, coe_add, ih]) $ λ i ih,
-by simp only [sub_eq_add_neg, add_gsmul, neg_one_gsmul, coe_add, coe_neg, ih]
+@[simp] lemma coe_gsmul (x : ℝ) (n : ℤ) : ↑(gsmul n x : ℝ) = gsmul n (↑x : angle) := is_add_group_hom.gsmul _ _ _
 @[simp] lemma coe_two_pi : ↑(2 * π : ℝ) = (0 : angle) :=
 quotient.sound' ⟨-1, by dsimp only; rw [neg_one_gsmul, add_zero]⟩
 
-definition equal_angle (θ ψ : ℝ) := (θ : angle) = ψ
-definition semiequal_angle_even (θ ψ : ℝ) := (θ + ψ : angle) = 0
-definition semiequal_angle_odd (θ ψ : ℝ) := (θ + ψ : angle) = π
-
-theorem of_cos_eq {θ ψ : ℝ} (Hcos : cos θ = cos ψ) : equal_angle θ ψ ∨ semiequal_angle_even θ ψ :=
+theorem of_cos_eq {θ ψ : ℝ} (Hcos : cos θ = cos ψ) : (θ : angle) = ψ ∨ (θ : angle) = -ψ :=
 begin
   rw [←sub_eq_zero, cos_sub_cos, mul_eq_zero, mul_eq_zero, neg_eq_zero, eq_false_intro two_ne_zero,
       false_or, sin_eq_zero_iff, sin_eq_zero_iff] at Hcos,
   rcases Hcos with ⟨n, hn⟩ | ⟨n, hn⟩,
   { right,
     rw [eq_div_iff_mul_eq _ _ two_ne_zero, ← sub_eq_iff_eq_add] at hn,
-    rw [semiequal_angle_even, ← hn, coe_sub, sub_add_cancel, mul_assoc,
+    rw [← hn, coe_sub, eq_neg_iff_add_eq_zero, sub_add_cancel, mul_assoc,
         ← gsmul_eq_mul, coe_gsmul, mul_comm, coe_two_pi, gsmul_zero] },
   { left,
     rw [eq_div_iff_mul_eq _ _ two_ne_zero, eq_sub_iff_add_eq] at hn,
-    rw [equal_angle, ← hn, coe_add, mul_assoc,
+    rw [← hn, coe_add, mul_assoc,
         ← gsmul_eq_mul, coe_gsmul, mul_comm, coe_two_pi, gsmul_zero, zero_add] }
 end
 
-theorem of_sin_eq {θ ψ : ℝ} (Hsin : sin θ = sin ψ) : equal_angle θ ψ ∨ semiequal_angle_odd θ ψ :=
+theorem of_sin_eq {θ ψ : ℝ} (Hsin : sin θ = sin ψ) : (θ : angle) = ψ ∨ (θ : angle) + ψ = π :=
 begin
   rw [← cos_pi_div_two_sub, ← cos_pi_div_two_sub] at Hsin,
   cases of_cos_eq Hsin with h h,
-  { left, rw [equal_angle, coe_sub] at h, exact sub_left_inj.1 h },
-  right, rw [semiequal_angle_even, coe_sub, coe_sub, add_sub,
+  { left, rw coe_sub at h, exact sub_left_inj.1 h },
+  right, rw [coe_sub, coe_sub, eq_neg_iff_add_eq_zero, add_sub,
       sub_add_eq_add_sub, ← coe_add, add_halves, sub_sub, sub_eq_zero] at h,
   exact h.symm
 end
 
-theorem cos_sin_inj (θ ψ : ℝ) (Hcos : cos θ = cos ψ) (Hsin : sin θ = sin ψ) : equal_angle θ ψ :=
+theorem cos_sin_inj {θ ψ : ℝ} (Hcos : cos θ = cos ψ) (Hsin : sin θ = sin ψ) : (θ : angle) = ψ :=
 begin
   cases of_cos_eq Hcos with hc hc, { exact hc },
   cases of_sin_eq Hsin with hs hs, { exact hs },
-  rw [semiequal_angle_odd] at hs, rw [semiequal_angle_even, hs] at hc,
+  rw [eq_neg_iff_add_eq_zero, hs] at hc,
   cases quotient.exact' hc with n hn, dsimp only at hn,
   rw [← neg_one_mul, add_zero, ← sub_eq_zero_iff_eq, gsmul_eq_mul, ← mul_assoc, ← sub_mul,
       mul_eq_zero, eq_false_intro (ne_of_gt pi_pos), or_false, sub_neg_eq_add,
@@ -488,6 +484,8 @@ begin
   rw [add_comm, int.add_mul_mod_self] at this,
   exact absurd this one_ne_zero
 end
+
+end angle
 
 /-- Inverse of the `sin` function, returns values in the range `-π / 2 ≤ arcsin x` and `arcsin x ≤ π / 2`.
   If the argument is not between `-1` and `1` it defaults to `0` -/

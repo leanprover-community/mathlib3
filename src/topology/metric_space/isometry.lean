@@ -5,7 +5,7 @@ Isometries of emetric and metric spaces
 Authors: Sébastien Gouëzel
 We define isometries, i.e., maps between emetric spaces that preserve
 the edistance (on metric spaces, these are exactly the maps that preserve distances),
-and prove their basic properties.
+and prove their basic properties. We also introduce isometric bijections.
 -/
 
 import topology.metric_space.basic topology.instances.real
@@ -106,25 +106,18 @@ begin
     exact emetric.edist_le_diam_of_mem (mem_image_of_mem _ xs) (mem_image_of_mem _ x's) }
 end
 
-end emetric_isometry --section
-
-section metric_isometry
-
-variables [metric_space α] [metric_space β] [metric_space γ]
-variables {f : α → β} {x y z : α} {s : set α}
-
 /-- The injection from a subtype is an isometry -/
 lemma isometry_subtype_val {s : set α} : isometry (subtype.val : s → α) :=
 λx y, rfl
 
-/-- An isometry preserves the diameter -/
-lemma metric.isometry.diam_image (hf : isometry f) :
-  metric.diam (f '' s) = metric.diam s :=
+end emetric_isometry --section
+
+/-- An isometry preserves the diameter in metric spaces -/
+lemma metric.isometry.diam_image [metric_space α] [metric_space β]
+  {f : α → β} {s : set α} (hf : isometry f) : metric.diam (f '' s) = metric.diam s :=
 by rw [metric.diam, metric.diam, emetric.isometry.diam_image hf]
 
-end metric_isometry --section
-
-/-- α and β are isometric, also called metric isomorphism -/
+/-- α and β are isometric if there is an isometric bijection between them. -/
 structure isometric (α : Type*) (β : Type*) [emetric_space α] [emetric_space β]
   extends α ≃ β :=
 (isometry_to_fun  : isometry to_fun)

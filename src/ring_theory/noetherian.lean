@@ -252,7 +252,7 @@ theorem is_noetherian_iff_well_founded
 
 @[class] def is_noetherian_ring (α) [ring α] : Prop := is_noetherian α α
 
-instance is_neotherian_ring.to_is_neotherian {α : Type*} [ring α] :
+instance is_noetherian_ring.to_is_noetherian {α : Type*} [ring α] :
   ∀ [is_noetherian_ring α], is_noetherian α α := id
 
 instance ring.is_noetherian_of_fintype (R M) [ring R] [add_comm_group M] [module R M] [fintype M] : is_noetherian R M :=

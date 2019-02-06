@@ -52,7 +52,7 @@ theorem eq_fract (r s : α) : fract r = s ↔ 0 ≤ s ∧ s < 1 ∧ ∃ z : ℤ,
 
 theorem fract_eq_fract (r s : α) : fract r = fract s ↔ ∃ z : ℤ, r - s = z :=
 ⟨λ h, ⟨⌊r⌋ - ⌊s⌋, begin
-  unfold fract at h, rw [int.cast_sub], exact sub_eq_sub_of_sub_eq_sub h,
+  unfold fract at h, rw [int.cast_sub, sub_eq_sub_of_sub_eq_sub.1 h],
  end⟩,
 λ h, begin
   rcases h with ⟨z, hz⟩,
@@ -70,7 +70,7 @@ by rw fract_eq_fract; exact ⟨-⌊r⌋, by unfold fract;simp⟩
 theorem fract_add (r s : α) : ∃ z : ℤ, fract (r + s) - fract r - fract s = z :=
 ⟨⌊r⌋ + ⌊s⌋ - ⌊r + s⌋, by unfold fract; simp⟩
 
-theorem fract_mul_nat (r : α) (b : ℕ) : ∃ z : ℤ, (fract r) * b - fract (r * b) = z :=
+theorem fract_mul_nat (r : α) (b : ℕ) : ∃ z : ℤ, fract r * b - fract (r * b) = z :=
 begin
   induction b with c hc,
     use 0, simp,

@@ -34,7 +34,7 @@ by unfold fract; rw floor_coe; exact sub_self _
 @[simp] lemma fract_floor (r : α) : fract (⌊r⌋ : α) = 0 := fract_coe _
 
 @[simp] lemma floor_fract (r : α) : ⌊fract r⌋ = 0 :=
-by rw eq_floor_iff_bounds; exact ⟨fract_nonneg _,
+by rw floor_eq_iff; exact ⟨fract_nonneg _,
   by rw [int.cast_zero, zero_add]; exact fract_lt_one r⟩
 
 theorem fract_eq_iff {r s : α} : fract r = s ↔ 0 ≤ s ∧ s < 1 ∧ ∃ z : ℤ, r - s = z :=
@@ -44,7 +44,7 @@ theorem fract_eq_iff {r s : α} : fract r = s ↔ 0 ≤ s ∧ s < 1 ∧ ∃ z : 
     show r - ⌊r⌋ = s, apply eq.symm,
     rw [eq_sub_iff_add_eq, add_comm, ←eq_sub_iff_add_eq],
     rcases h with ⟨hge, hlt, ⟨z, hz⟩⟩,
-    rw [hz, int.cast_inj, eq_floor_iff_bounds, ←hz],
+    rw [hz, int.cast_inj, floor_eq_iff, ←hz],
     clear hz, split; linarith {discharger := `[simp]}
   end⟩
 

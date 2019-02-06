@@ -95,12 +95,12 @@ end
 namespace principal_ideal_domain
 variables [principal_ideal_domain α]
 
-lemma is_noetherian_ring : is_noetherian_ring α :=
-assume s : ideal α,
+instance is_noetherian_ring : is_noetherian_ring α :=
+⟨assume s : ideal α,
 begin
   cases (principal s).principal with a hs,
   refine ⟨finset.singleton a, submodule.ext' _⟩, rw hs, refl
-end
+end⟩
 
 section
 local attribute [instance] classical.prop_decidable
@@ -140,14 +140,14 @@ local attribute [instance] classical.prop_decidable
 
 noncomputable def factors (a : α) : multiset α :=
 if h : a = 0 then ∅ else classical.some
-  (is_noetherian_ring.exists_factors is_noetherian_ring a h)
+  (is_noetherian_ring.exists_factors a h)
 
 lemma factors_spec (a : α) (h : a ≠ 0) :
   (∀b∈factors a, irreducible b) ∧ associated a (factors a).prod :=
 begin
   unfold factors, rw [dif_neg h],
   exact classical.some_spec
-    (is_noetherian_ring.exists_factors is_noetherian_ring a h)
+    (is_noetherian_ring.exists_factors a h)
 end
 
 /-- The unique factorization domain structure given by the principal ideal domain.

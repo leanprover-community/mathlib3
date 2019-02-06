@@ -136,26 +136,26 @@ begin
     I.leading_coeff_nth_mono (nat.le_add_left _ _)⟩
 end
 
-theorem is_fg_degree_le (hnr : is_noetherian_ring R) (n : ℕ) :
+theorem is_fg_degree_le [is_noetherian_ring R] (n : ℕ) :
   submodule.fg (I.degree_le n) :=
-is_noetherian_submodule_left.1 (is_noetherian_of_fg_of_noetherian _ hnr
+is_noetherian_submodule_left.1 (is_noetherian_of_fg_of_noetherian _
   ⟨_, degree_le_eq_span_X_pow.symm⟩) _
 
 end ideal
 
 /-- Hilbert basis theorem. -/
-theorem is_noetherian_ring_polynomial (hnr : is_noetherian_ring R) : is_noetherian_ring (polynomial R) :=
-assume I : ideal (polynomial R),
+theorem is_noetherian_ring_polynomial [is_noetherian_ring R] : is_noetherian_ring (polynomial R) :=
+⟨assume I : ideal (polynomial R),
 let L := I.leading_coeff in
-let M := well_founded.min (is_noetherian_iff_well_founded.1 hnr)
+let M := well_founded.min (is_noetherian_iff_well_founded.1 (by apply_instance))
   (set.range I.leading_coeff_nth) (set.ne_empty_of_mem ⟨0, rfl⟩) in
 have hm : M ∈ set.range I.leading_coeff_nth := well_founded.min_mem _ _ _,
-let ⟨N, HN⟩ := hm, ⟨s, hs⟩ := I.is_fg_degree_le hnr N in
+let ⟨N, HN⟩ := hm, ⟨s, hs⟩ := I.is_fg_degree_le N in
 have hm2 : ∀ k, I.leading_coeff_nth k ≤ M := λ k, or.cases_on (le_or_lt k N)
   (λ h, HN ▸ I.leading_coeff_nth_mono h)
   (λ h x hx, classical.by_contradiction $ λ hxm,
     have ¬M < I.leading_coeff_nth k, by refine well_founded.not_lt_min
-      (is_noetherian_iff_well_founded.1 hnr) _ _ _; exact ⟨k, rfl⟩,
+      (is_noetherian_iff_well_founded.1 (by apply_instance)) _ _ _; exact ⟨k, rfl⟩,
     this ⟨HN ▸ I.leading_coeff_nth_mono (le_of_lt h), λ H, hxm (H hx)⟩),
 have hs2 : ∀ {x}, x ∈ I.degree_le N → x ∈ ideal.span (↑s : set (polynomial R)),
 from hs ▸ λ x hx, submodule.span_induction hx (λ _ hx, ideal.subset_span hx) (ideal.zero_mem _)
@@ -200,4 +200,4 @@ from hs ▸ λ x hx, submodule.span_induction hx (λ _ hx, ideal.subset_span hx)
       refine ih _ _ (I.sub_mem hp (I.mul_mem_right hq)) rfl,
       rwa [polynomial.degree_eq_nat_degree hpq, with_bot.coe_lt_coe, hn] at this },
     exact hs2 ⟨polynomial.mem_degree_le.2 hdq, hq⟩ }
-end⟩
+end⟩⟩

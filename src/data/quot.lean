@@ -201,6 +201,17 @@ protected def lift_on₂' (q₁ : quotient s₁) (q₂ : quotient s₂) (f : α 
 quotient.lift_on₂ q₁ q₂ f h
 
 @[elab_as_eliminator]
+protected lemma ind' {p : quotient s₁ → Prop}
+  (h : ∀ a, p (quotient.mk' a)) (q : quotient s₁) : p q :=
+quotient.ind h q
+
+@[elab_as_eliminator]
+protected lemma ind₂' {p : quotient s₁ → quotient s₂ → Prop}
+  (h : ∀ a₁ a₂, p (quotient.mk' a₁) (quotient.mk' a₂))
+  (q₁ : quotient s₁) (q₂ : quotient s₂) : p q₁ q₂ :=
+quotient.ind₂ h q₁ q₂
+
+@[elab_as_eliminator]
 protected lemma induction_on' {p : quotient s₁ → Prop} (q : quotient s₁)
   (h : ∀ a, p (quotient.mk' a)) : p q := quotient.induction_on q h
 

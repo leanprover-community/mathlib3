@@ -200,17 +200,13 @@ protected def lift_on₂' (q₁ : quotient s₁) (q₂ : quotient s₂) (f : α 
   (h : ∀ a₁ a₂ b₁ b₂, @setoid.r α s₁ a₁ b₁ → @setoid.r β s₂ a₂ b₂ → f a₁ a₂ = f b₁ b₂) : γ :=
 quotient.lift_on₂ q₁ q₂ f h
 
--- I (Buzzard) am reluctant to write "@[elab_as_eliminator, reducible]", not because I know
--- it's wrong, but because I don't really understand these elaborator tags
--- and don't want to write stuff which makes it look like I know what I'm doing;
--- also I note some of these functions below are [reducible] and others aren't.
--- Is `protected` correct?
-protected def ind' {p : quotient s₁ → Prop}
+@[elab_as_eliminator]
+protected lemma ind' {p : quotient s₁ → Prop}
   (h : ∀ a, p (quotient.mk' a)) (q : quotient s₁) : p q :=
 quotient.ind h q
 
--- @[elab_as_eliminator, reducible]? protected?
-protected def ind₂' {p : quotient s₁ → quotient s₂ → Prop}
+@[elab_as_eliminator]
+protected lemma ind₂' {p : quotient s₁ → quotient s₂ → Prop}
   (h : ∀ a₁ a₂, p (quotient.mk' a₁) (quotient.mk' a₂))
   (q₁ : quotient s₁) (q₂ : quotient s₂) : p q₁ q₂ :=
 quotient.ind₂ h q₁ q₂

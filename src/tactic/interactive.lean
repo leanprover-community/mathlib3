@@ -490,7 +490,7 @@ meta def return_cast (f : option expr) (t : option (expr × expr))
 (do guard (¬ e.has_var),
     unify x x',
     u ← mk_meta_univ,
-    f ← f <|> to_expr ``(@id %%(expr.sort u : expr)),
+    f ← f <|> mk_mapp ``_root_.id [(expr.sort u : expr)],
     t' ← infer_type e,
     some (f',t) ← pure t | return (some (f,t'), (e,x',eq_h) :: es),
     infer_type e >>= is_def_eq t,

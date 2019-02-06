@@ -92,10 +92,15 @@ def inv (f : X ⟶ Y) [is_iso f] := is_iso.inv f
 
 namespace is_iso
 
-@[simp] def hom_inv_id (f : X ⟶ Y) [is_iso f] : f ≫ category_theory.inv f = 𝟙 X :=
+@[simp] lemma hom_inv_id (f : X ⟶ Y) [is_iso f] : f ≫ category_theory.inv f = 𝟙 X :=
 is_iso.hom_inv_id' f
-@[simp] def inv_hom_id (f : X ⟶ Y) [is_iso f] : category_theory.inv f ≫ f = 𝟙 Y :=
+@[simp] lemma inv_hom_id (f : X ⟶ Y) [is_iso f] : category_theory.inv f ≫ f = 𝟙 Y :=
 is_iso.inv_hom_id' f
+
+@[simp] lemma hom_inv_id_assoc {Z} (f : X ⟶ Y) [is_iso f] (g : X ⟶ Z) : f ≫ category_theory.inv f ≫ g = g :=
+by rw [←category.assoc, hom_inv_id, category.id_comp]
+@[simp] lemma inv_hom_id_assoc {Z} (f : X ⟶ Y) [is_iso f] (g : Y ⟶ Z) : category_theory.inv f ≫ f ≫ g = g :=
+by rw [←category.assoc, inv_hom_id, category.id_comp]
 
 instance (X : C) : is_iso (𝟙 X) :=
 { inv := 𝟙 X }

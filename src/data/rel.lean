@@ -5,7 +5,7 @@ Authors: Jeremy Avigad
 
 Operations on set-valued functions, aka partial multifunctions, aka relations.
 -/
-import tactic.ext tactic.interactive data.set.basic order.complete_lattice
+import tactic.ext tactic.interactive data.set.lattice order.complete_lattice
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
@@ -33,7 +33,7 @@ lemma codom_inv : r.inv.codom = r.dom := by { ext x y, reflexivity }
 lemma dom_inv : r.inv.dom = r.codom := by { ext x y, reflexivity}
 
 def comp (r : rel α β) (s : rel β γ) : rel α γ :=
-λ x z, ∃ y, r x y ∧ s y z 
+λ x z, ∃ y, r x y ∧ s y z
 
 local infixr ` ∘ ` :=rel.comp
 
@@ -71,18 +71,18 @@ lemma image_inter (s t : set α) : r.image (s ∩ t) ⊆ r.image s ∩ r.image t
 assume y ⟨x, ⟨xs, xt⟩, rxy⟩, ⟨⟨x, xs, rxy⟩, ⟨x, xt, rxy⟩⟩
 
 lemma image_union (s t : set α) : r.image (s ∪ t) = r.image s ∪ r.image t :=
-set.eq_of_subset_of_subset
-  (λ y ⟨x, xst, rxy⟩, 
-    begin 
-      cases xst with xs xt, 
+set.subset.antisymm
+  (λ y ⟨x, xst, rxy⟩,
+    begin
+      cases xst with xs xt,
       { left, exact ⟨x, xs, rxy⟩ },
-      right, exact ⟨x, xt, rxy⟩ 
+      right, exact ⟨x, xt, rxy⟩
     end)
-  (λ y ymem, 
-    begin 
+  (λ y ymem,
+    begin
       rcases ymem with ⟨x, xs, rxy⟩ | ⟨x, xt, rxy⟩; existsi x,
       { split, { left, exact xs }, exact rxy},
-      split, { right, exact xt }, exact rxy 
+      split, { right, exact xt }, exact rxy
     end)
 
 @[simp]
@@ -90,7 +90,7 @@ lemma image_id (s : set α) : image (@eq α) s = s :=
 by { ext x, simp [mem_image] }
 
 lemma image_comp (s : rel β γ) (t : set α) : image (r ∘ s) t = image s (image r t) :=
-begin 
+begin
   ext z, simp only [mem_image, comp], split,
   { rintros ⟨x, xt, y, rxy, syz⟩, exact ⟨y, ⟨x, xt, rxy⟩, syz⟩ },
   rintros ⟨y, ⟨x, xt, rxy⟩, syz⟩, exact ⟨x, xt, y, rxy, syz⟩
@@ -118,7 +118,7 @@ image_union _ s t
 lemma preimage_id (s : set α) : preimage (@eq α) s = s :=
 by simp only [preimage, inv_id, image_id]
 
-lemma preimage_comp (s : rel β γ) (t : set γ) : 
+lemma preimage_comp (s : rel β γ) (t : set γ) :
   preimage (r ∘ s) t = preimage r (preimage s t) :=
 by simp only [preimage, inv_comp, image_comp]
 
@@ -137,11 +137,11 @@ lemma core_inter (s t : set β) : r.core (s ∩ t) = r.core s ∩ r.core t :=
 set.ext (by simp [mem_core, imp_and_distrib, forall_and_distrib])
 
 lemma core_union (s t : set β) : r.core (s ∪ t) ⊇ r.core s ∪ r.core t :=
-λ x, 
-  begin 
+λ x,
+  begin
     simp [mem_core], intro h, cases h with hs ht; intros y rxy,
     { left, exact hs y rxy },
-    right, exact ht y rxy 
+    right, exact ht y rxy
   end
 
 lemma core_univ : r.core set.univ = set.univ := set.ext (by simp [mem_core])
@@ -149,16 +149,24 @@ lemma core_univ : r.core set.univ = set.univ := set.ext (by simp [mem_core])
 lemma core_id (s : set α): core (@eq α) s = s :=
 by simp [core]
 
-lemma core_comp (r : rel α β) (s : rel β γ) (t : set γ) :
+lemma core_comp (s : rel β γ) (t : set γ) :
   core (r ∘ s) t = core r (core s t) :=
-begin 
+begin
   ext x, simp [core, comp], split,
   { intros h y rxy z syz, exact h z y rxy syz },
   intros h z y rzy syz, exact h y rzy z syz
 end
 
-def restrict_domain (r : rel α β) (s : set α) : rel {x // x ∈ s} β :=
+def restrict_domain (s : set α) : rel {x // x ∈ s} β :=
 λ x y, r x.val y
+
+theorem image_subset_iff (s : set α) (t : set β) : image r s ⊆ t ↔ s ⊆ core r t :=
+iff.intro
+  (λ h x xs y rxy, h ⟨x, xs, rxy⟩)
+  (λ h y ⟨x, xs, rxy⟩, h xs y rxy)
+
+theorem core_preimage_gc : galois_connection (image r) (core r) :=
+image_subset_iff _
 
 end rel
 
@@ -170,18 +178,18 @@ end function
 
 namespace set
 
--- TODO: if image were defined with bounded quantification in corelib, the next two would 
+-- TODO: if image were defined with bounded quantification in corelib, the next two would
 -- be definitional
 
 lemma image_eq (f : α → β) (s : set α) : f '' s = (function.graph f).image s :=
 by simp [set.image, function.graph, rel.image]
 
-lemma preimage_eq (f : α → β) (s : set β) : 
+lemma preimage_eq (f : α → β) (s : set β) :
   f ⁻¹' s = (function.graph f).preimage s :=
 by simp [set.preimage, function.graph, rel.preimage, rel.inv, flip, rel.image]
 
 lemma preimage_eq_core (f : α → β) (s : set β) :
-  f ⁻¹' s = (function.graph f).core s := 
+  f ⁻¹' s = (function.graph f).core s :=
  by simp [set.preimage, function.graph, rel.core]
- 
+
 end set

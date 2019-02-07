@@ -56,6 +56,18 @@ instance : distrib_lattice (set α) :=
 lemma monotone_image {f : α → β} : monotone (image f) :=
 assume s t, assume h : s ⊆ t, image_subset _ h
 
+theorem monotone_inter [preorder β] {f g : β → set α}
+  (hf : monotone f) (hg : monotone g) : monotone (λx, f x ∩ g x) :=
+assume b₁ b₂ h, inter_subset_inter (hf h) (hg h)
+
+theorem monotone_union [preorder β] {f g : β → set α}
+  (hf : monotone f) (hg : monotone g) : monotone (λx, f x ∪ g x) :=
+assume b₁ b₂ h, union_subset_union (hf h) (hg h)
+
+theorem monotone_set_of [preorder α] {p : α → β → Prop}
+  (hp : ∀b, monotone (λa, p a b)) : monotone (λa, {b | p a b}) :=
+assume a a' h b, hp b h
+
 section galois_connection
 variables {f : α → β}
 

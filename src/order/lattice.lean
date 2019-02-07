@@ -115,6 +115,9 @@ by apply le_antisymm; finish
 
 instance sup_is_associative : is_associative α (⊔) := ⟨@sup_assoc _ _⟩
 
+lemma sup_left_comm (a b c : α) : a ⊔ (b ⊔ c) = b ⊔ (a ⊔ c) :=
+by rw [← sup_assoc, ← sup_assoc, @sup_comm α _ a]
+
 lemma forall_le_or_exists_lt_sup (a : α) : (∀b, b ≤ a) ∨ (∃b, a < b) :=
 suffices (∃b, ¬b ≤ a) → (∃b, a < b),
   by rwa [classical.or_iff_not_imp_left, classical.not_forall],
@@ -135,6 +138,10 @@ begin
   have ss := funext (λ x, funext $ semilattice_sup.ext_sup H x),
   cases A; cases B; injection this; congr'
 end
+
+lemma directed_of_sup {β : Type*} {r : β → β → Prop} {f : α → β}
+  (hf : ∀a₁ a₂, a₁ ≤ a₂ → r (f a₁) (f a₂)) : directed r f :=
+assume x y, ⟨x ⊔ y, hf _ _ le_sup_left, hf _ _ le_sup_right⟩
 
 end semilattice_sup
 
@@ -208,6 +215,9 @@ by apply le_antisymm; finish
 
 instance inf_is_associative : is_associative α (⊓) := ⟨@inf_assoc _ _⟩
 
+lemma inf_left_comm (a b c : α) : a ⊓ (b ⊓ c) = b ⊓ (a ⊓ c) :=
+by rw [← inf_assoc, ← inf_assoc, @inf_comm α _ a]
+
 lemma forall_le_or_exists_lt_inf (a : α) : (∀b, a ≤ b) ∨ (∃b, b < a) :=
 suffices (∃b, ¬a ≤ b) → (∃b, b < a),
   by rwa [classical.or_iff_not_imp_left, classical.not_forall],
@@ -228,6 +238,10 @@ begin
   have ss := funext (λ x, funext $ semilattice_inf.ext_inf H x),
   cases A; cases B; injection this; congr'
 end
+
+lemma directed_of_inf {β : Type*} {r : β → β → Prop} {f : α → β}
+  (hf : ∀a₁ a₂, a₁ ≤ a₂ → r (f a₂) (f a₁)) : directed r f :=
+assume x y, ⟨x ⊓ y, hf _ _ inf_le_left, hf _ _ inf_le_right⟩
 
 end semilattice_inf
 

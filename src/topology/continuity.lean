@@ -996,6 +996,22 @@ compact_iff_compact_univ.trans ⟨λ h, ⟨h⟩, @compact_space.compact_univ _ _
 
 end subtype
 
+section nonempty_compacts
+variables [topological_space α]
+open topological_space
+
+instance nonempty_compacts.to_compact_space {p : nonempty_compacts α} : compact_space p.val :=
+⟨compact_iff_compact_univ.1 p.property.2⟩
+
+instance nonempty_compacts.to_nonempty {p : nonempty_compacts α} : nonempty p.val :=
+nonempty_subtype.2 $ ne_empty_iff_exists_mem.1 p.property.1
+
+/-- Associate to a nonempty compact subset the corresponding closed subset -/
+def nonempty_compacts.to_closeds [t2_space α] (s : nonempty_compacts α) : closeds α :=
+⟨s.val, closed_of_compact _ s.property.2⟩
+
+end nonempty_compacts
+
 section quotient
 variables [topological_space α] [topological_space β] [topological_space γ]
 variables {r : α → α → Prop} {s : setoid α}

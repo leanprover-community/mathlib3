@@ -1988,7 +1988,17 @@ let ⟨T, cT, hT⟩ := is_open_Union_countable (λ s:S, s.1) (λ s, H s.1 s.2) i
   by rwa [sUnion_image, sUnion_eq_Union]⟩
 
 variable (α)
+/-- The type of open subsets of a topological space. -/
 def opens := {s : set α // _root_.is_open s}
+
+/-- The type of closed subsets of a topological space. -/
+def closeds := {s : set α // is_closed s}
+
+/-- The type of non-empty compact subsets of a topological space. The
+non-emptiness will be useful in metric spaces, as we will be able to put
+a distance (and not merely an edistance) on this space. -/
+def nonempty_compacts := {s : set α // s ≠ ∅ ∧ compact s}
+
 variable {α}
 
 namespace opens

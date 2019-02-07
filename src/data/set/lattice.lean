@@ -664,24 +664,34 @@ end disjoint
 theorem set.disjoint_diff {a b : set α} : disjoint a (b \ a) :=
 disjoint_iff.2 (inter_diff_self _ _)
 
-section
-open set
-set_option eqn_compiler.zeta true
+namespace set
+variables (t : α → set β)
 
-noncomputable def set.bUnion_eq_sigma_of_disjoint {α β} {s : set α} {t : α → set β}
-  (h : pairwise_on s (disjoint on t)) : (⋃i∈s, t i) ≃ (Σi:s, t i.val) :=
-let f : (Σi:s, t i.val) → (⋃i∈s, t i) := λ⟨⟨a, ha⟩, ⟨b, hb⟩⟩, ⟨b, mem_bUnion ha hb⟩ in
-have injective f,
-  from assume ⟨⟨a₁, ha₁⟩, ⟨b₁, hb₁⟩⟩ ⟨⟨a₂, ha₂⟩, ⟨b₂, hb₂⟩⟩ eq,
+def sigma_to_Union (x : Σi, t i) : (⋃i, t i) := ⟨x.2, mem_Union.2 ⟨x.1, x.2.2⟩⟩
+
+lemma surjective_sigma_to_Union : surjective (sigma_to_Union t)
+| ⟨b, hb⟩ := have ∃a, b ∈ t a, by simpa using hb, let ⟨a, hb⟩ := this in ⟨⟨a, ⟨b, hb⟩⟩, rfl⟩
+
+lemma injective_sigma_to_Union (h : ∀i j, i ≠ j → disjoint (t i) (t j)) :
+  injective (sigma_to_Union t)
+| ⟨a₁, ⟨b₁, h₁⟩⟩ ⟨a₂, ⟨b₂, h₂⟩⟩ eq :=
   have b_eq : b₁ = b₂, from congr_arg subtype.val eq,
   have a_eq : a₁ = a₂, from classical.by_contradiction $ assume ne,
-    have b₁ ∈ t a₁ ∩ t a₂, from ⟨hb₁, b_eq.symm ▸ hb₂⟩,
-    h _ ha₁ _ ha₂ ne this,
-  sigma.eq (subtype.eq a_eq) (subtype.eq $ by subst b_eq; subst a_eq),
-have surjective f,
-  from assume ⟨b, hb⟩,
-  have ∃a∈s, b ∈ t a, by simpa using hb,
-  let ⟨a, ha, hb⟩ := this in ⟨⟨⟨a, ha⟩, ⟨b, hb⟩⟩, rfl⟩,
-(equiv.of_bijective ⟨‹injective f›, ‹surjective f›⟩).symm
+    have b₁ ∈ t a₁ ∩ t a₂, from ⟨h₁, b_eq.symm ▸ h₂⟩,
+    h _ _ ne this,
+  sigma.eq a_eq $ subtype.eq $ by subst b_eq; subst a_eq
 
-end
+lemma bijective_sigma_to_Union (h : ∀i j, i ≠ j → disjoint (t i) (t j)) :
+  bijective (sigma_to_Union t) :=
+⟨injective_sigma_to_Union t h, surjective_sigma_to_Union t⟩
+
+noncomputable def Union_eq_sigma_of_disjoint {t : α → set β}
+  (h : ∀i j, i ≠ j → disjoint (t i) (t j)) : (⋃i, t i) ≃ (Σi, t i) :=
+(equiv.of_bijective $ bijective_sigma_to_Union t h).symm
+
+noncomputable def bUnion_eq_sigma_of_disjoint {s : set α} {t : α → set β}
+  (h : pairwise_on s (disjoint on t)) : (⋃i∈s, t i) ≃ (Σi:s, t i.val) :=
+equiv.trans (equiv.set_congr (bUnion_eq_Union _ _)) $ Union_eq_sigma_of_disjoint $
+  assume ⟨i, hi⟩ ⟨j, hj⟩ ne, h _ hi _ hj $ assume eq, ne $ subtype.eq eq
+
+end set

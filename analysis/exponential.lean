@@ -446,35 +446,56 @@ instance angle.is_add_group_hom : is_add_group_hom (coe : ℝ → angle) :=
 @[simp] lemma coe_two_pi : ↑(2 * π : ℝ) = (0 : angle) :=
 quotient.sound' ⟨-1, by dsimp only; rw [neg_one_gsmul, add_zero]⟩
 
-theorem of_cos_eq {θ ψ : ℝ} (Hcos : cos θ = cos ψ) : (θ : angle) = ψ ∨ (θ : angle) = -ψ :=
+lemma angle_eq_iff_two_pi_dvd_sub {ψ θ : ℝ} : (θ : angle) = ψ ↔ ∃ k : ℤ, θ - ψ = 2 * π * k :=
+by simp only [quotient_add_group.eq, gmultiples, set.mem_range, gsmul_eq_mul', (sub_eq_neg_add _ _).symm, eq_comm]
+
+theorem cos_eq_iff_eq_or_eq_neg {θ ψ : ℝ} : cos θ = cos ψ ↔ (θ : angle) = ψ ∨ (θ : angle) = -ψ :=
 begin
-  rw [←sub_eq_zero, cos_sub_cos, mul_eq_zero, mul_eq_zero, neg_eq_zero, eq_false_intro two_ne_zero,
-      false_or, sin_eq_zero_iff, sin_eq_zero_iff] at Hcos,
-  rcases Hcos with ⟨n, hn⟩ | ⟨n, hn⟩,
-  { right,
-    rw [eq_div_iff_mul_eq _ _ two_ne_zero, ← sub_eq_iff_eq_add] at hn,
-    rw [← hn, coe_sub, eq_neg_iff_add_eq_zero, sub_add_cancel, mul_assoc,
-        ← gsmul_eq_mul, coe_gsmul, mul_comm, coe_two_pi, gsmul_zero] },
-  { left,
-    rw [eq_div_iff_mul_eq _ _ two_ne_zero, eq_sub_iff_add_eq] at hn,
-    rw [← hn, coe_add, mul_assoc,
-        ← gsmul_eq_mul, coe_gsmul, mul_comm, coe_two_pi, gsmul_zero, zero_add] }
+  split,
+  { intro Hcos,
+    rw [←sub_eq_zero, cos_sub_cos, mul_eq_zero, mul_eq_zero, neg_eq_zero, eq_false_intro two_ne_zero,
+        false_or, sin_eq_zero_iff, sin_eq_zero_iff] at Hcos,
+    rcases Hcos with ⟨n, hn⟩ | ⟨n, hn⟩,
+    { right,
+      rw [eq_div_iff_mul_eq _ _ two_ne_zero, ← sub_eq_iff_eq_add] at hn,
+      rw [← hn, coe_sub, eq_neg_iff_add_eq_zero, sub_add_cancel, mul_assoc,
+          ← gsmul_eq_mul, coe_gsmul, mul_comm, coe_two_pi, gsmul_zero] },
+    { left,
+      rw [eq_div_iff_mul_eq _ _ two_ne_zero, eq_sub_iff_add_eq] at hn,
+      rw [← hn, coe_add, mul_assoc,
+          ← gsmul_eq_mul, coe_gsmul, mul_comm, coe_two_pi, gsmul_zero, zero_add] } },
+  { rw [angle_eq_iff_two_pi, ← coe_neg, angle_eq_iff_two_pi], 
+    rintro (⟨k, H⟩ | ⟨k, H⟩),
+    rw [← sub_eq_zero_iff_eq, cos_sub_cos, H, mul_assoc 2 π k, mul_div_cancel_left _ two_ne_zero, 
+      mul_comm π _, sin_int_mul_pi, mul_zero],
+    rw [←sub_eq_zero_iff_eq, cos_sub_cos, ← sub_neg_eq_add, H, mul_assoc 2 π k, 
+      mul_div_cancel_left _ two_ne_zero, mul_comm π _, sin_int_mul_pi, mul_zero, zero_mul] }
 end
 
-theorem of_sin_eq {θ ψ : ℝ} (Hsin : sin θ = sin ψ) : (θ : angle) = ψ ∨ (θ : angle) + ψ = π :=
+theorem sin_eq_iff_eq_or_add_eq_pi {θ ψ : ℝ} : sin θ = sin ψ ↔ (θ : angle) = ψ ∨ (θ : angle) + ψ = π :=
 begin
-  rw [← cos_pi_div_two_sub, ← cos_pi_div_two_sub] at Hsin,
-  cases of_cos_eq Hsin with h h,
-  { left, rw coe_sub at h, exact sub_left_inj.1 h },
-  right, rw [coe_sub, coe_sub, eq_neg_iff_add_eq_zero, add_sub,
+  split,
+  { intro Hsin, rw [← cos_pi_div_two_sub, ← cos_pi_div_two_sub] at Hsin,
+    cases cos_eq_iff_eq_or_eq_neg.mp Hsin with h h,
+    { left, rw coe_sub at h, exact sub_left_inj.1 h },
+      right, rw [coe_sub, coe_sub, eq_neg_iff_add_eq_zero, add_sub,
       sub_add_eq_add_sub, ← coe_add, add_halves, sub_sub, sub_eq_zero] at h,
-  exact h.symm
+    exact h.symm },
+  { rw [angle_eq_iff_two_pi, ←eq_sub_iff_add_eq, ←coe_sub, angle_eq_iff_two_pi], 
+    rintro (⟨k, H⟩ | ⟨k, H⟩),
+    rw [← sub_eq_zero_iff_eq, sin_sub_sin, H, mul_assoc 2 π k, mul_div_cancel_left _ two_ne_zero,
+      mul_comm π _, sin_int_mul_pi, mul_zero, zero_mul],
+    have H' : θ + ψ = (2 * k) * π + π := by rwa [←sub_add, sub_add_eq_add_sub, sub_eq_iff_eq_add, 
+      mul_assoc, mul_comm π _, ←mul_assoc] at H,
+    rw [← sub_eq_zero_iff_eq, sin_sub_sin, H', add_div, mul_assoc 2 _ π, mul_div_cancel_left _ two_ne_zero, 
+      cos_add_pi_div_two, sin_int_mul_pi, neg_zero, mul_zero]
+  }
 end
 
 theorem cos_sin_inj {θ ψ : ℝ} (Hcos : cos θ = cos ψ) (Hsin : sin θ = sin ψ) : (θ : angle) = ψ :=
 begin
-  cases of_cos_eq Hcos with hc hc, { exact hc },
-  cases of_sin_eq Hsin with hs hs, { exact hs },
+  cases cos_eq_iff_eq_or_eq_neg.mp Hcos with hc hc, { exact hc },
+  cases sin_eq_iff_eq_or_add_eq_pi.mp Hsin with hs hs, { exact hs },
   rw [eq_neg_iff_add_eq_zero, hs] at hc,
   cases quotient.exact' hc with n hn, dsimp only at hn,
   rw [← neg_one_mul, add_zero, ← sub_eq_zero_iff_eq, gsmul_eq_mul, ← mul_assoc, ← sub_mul,

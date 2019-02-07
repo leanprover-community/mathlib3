@@ -349,8 +349,8 @@ end
 
 lemma continuous_smul [topological_space γ] {f : γ → α} {g : γ → E}
   (hf : continuous f) (hg : continuous g) : continuous (λc, f c • g c) :=
-continuous_iff_tendsto.2 $ assume c,
-  tendsto_smul (continuous_iff_tendsto.1 hf _) (continuous_iff_tendsto.1 hg _)
+continuous_iff_continuous_at.2 $ assume c,
+  tendsto_smul (continuous_iff_continuous_at.1 hf _) (continuous_iff_continuous_at.1 hg _)
 
 instance : normed_space α (E × F) :=
 { norm_smul :=

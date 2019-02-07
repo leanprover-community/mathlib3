@@ -260,9 +260,9 @@ multiplicative absolute value on normed fields. -/
 lemma tendsto_limit [normed_ring β] [hn : is_absolute_value (norm : β → ℝ)]
   (f : cau_seq β norm) [cau_seq.is_complete β norm] :
   tendsto f at_top (nhds f.lim) :=
-tendsto_nhds
+_root_.tendsto_nhds.mpr
 begin
-  intros s lfs os,
+  intros s os lfs,
   suffices : ∃ (a : ℕ), ∀ (b : ℕ), b ≥ a → f b ∈ s, by simpa using this,
   rcases metric.is_open_iff.1 os _ lfs with ⟨ε, ⟨hε, hεs⟩⟩,
   cases setoid.symm (cau_seq.equiv_lim f) _ hε with N hN,

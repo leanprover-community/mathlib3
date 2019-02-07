@@ -27,7 +27,7 @@ def continuous (f : α → β) := ∀s, is_open s → is_open (f ⁻¹' s)
 
 def continuous_at (f : α → β) (x : α) := tendsto f (nhds x) (nhds (f x))
 
-def continuous_at_within (f : α → β) (x : α) (s : set α) : Prop := 
+def continuous_at_within (f : α → β) (x : α) (s : set α) : Prop :=
 tendsto f (nhds_within x s) (nhds (f x))
 
 def continuous_on (f : α → β) (s : set α) : Prop := ∀ x ∈ s, continuous_at_within f x s
@@ -108,16 +108,16 @@ by rw [this]; exact is_closed_union
   (is_closed_inter is_closed_closure $ continuous_iff_is_closed.mp hf s hs)
   (is_closed_inter is_closed_closure $ continuous_iff_is_closed.mp hg s hs)
 
-theorem continuous_at_within_univ (f : α → β) (x : α) : 
+theorem continuous_at_within_univ (f : α → β) (x : α) :
    continuous_at_within f x set.univ ↔ continuous_at f x :=
 by rw [continuous_at, continuous_at_within, nhds_within_univ]
 
-theorem continuous_at_within_iff_continuous_at_restrict (f : α → β) {x : α} {s : set α} (h : x ∈ s) : 
+theorem continuous_at_within_iff_continuous_at_restrict (f : α → β) {x : α} {s : set α} (h : x ∈ s) :
   continuous_at_within f x s ↔ continuous_at (function.restrict f s) ⟨x, h⟩ :=
 tendsto_at_within_iff_subtype h f _
 
 theorem continuous_on_iff {f : α → β} {s : set α} :
-  continuous_on f s ↔ ∀ x ∈ s, ∀ t : set β, is_open t → f x ∈ t → ∃ u, is_open u ∧ x ∈ u ∧ 
+  continuous_on f s ↔ ∀ x ∈ s, ∀ t : set β, is_open t → f x ∈ t → ∃ u, is_open u ∧ x ∈ u ∧
     u ∩ s ⊆ f ⁻¹' t :=
 by simp only [continuous_on, continuous_at_within, tendsto_nhds, mem_nhds_within]
 
@@ -125,7 +125,7 @@ theorem continuous_on_iff_continuous_restrict {f : α → β} {s : set α} :
   continuous_on f s ↔ continuous (function.restrict f s) :=
 begin
   rw [continuous_on, continuous_iff_continuous_at], split,
-  { rintros h ⟨x, xs⟩, 
+  { rintros h ⟨x, xs⟩,
     exact (continuous_at_within_iff_continuous_at_restrict f xs).mp (h x xs) },
   intros h x xs,
   exact (continuous_at_within_iff_continuous_at_restrict f xs).mpr (h ⟨x, xs⟩)
@@ -134,16 +134,17 @@ end
 theorem continuous_on_iff' {f : α → β} {s : set α} :
   continuous_on f s ↔ ∀ t : set β, is_open t → ∃ u, is_open u ∧ f ⁻¹' t ∩ s = u ∩ s :=
 have ∀ t, is_open (function.restrict f s ⁻¹' t) ↔ ∃ (u : set α), is_open u ∧ f ⁻¹' t ∩ s = u ∩ s,
-  begin 
-    intro t, 
+  begin
+    intro t,
     rw [is_open_induced_iff, function.restrict_eq, set.preimage_comp],
-    simp only [subtype.preimage_val_eq_preimage_val_iff], 
-  end, 
+    simp only [subtype.preimage_val_eq_preimage_val_iff],
+    split; { rintros ⟨u, ou, useq⟩, exact ⟨u, ou, useq.symm⟩ }
+  end,
 by rw [continuous_on_iff_continuous_restrict, continuous]; simp only [this]
 
 theorem continuous_at_within_iff_ptendsto_res (f : α → β) {x : α} {s : set α} (xs : x ∈ s) :
   continuous_at_within f x s ↔ ptendsto (pfun.res f s) (nhds x) (nhds (f x)) :=
-tendsto_iff_ptendsto _ _ _ _ 
+tendsto_iff_ptendsto _ _ _ _
 
 /- Continuity and partial functions -/
 
@@ -168,9 +169,9 @@ begin
   assume h : f.preimage s ⊆ t,
   apply mem_sets_of_superset _ h,
   have h' : ∀ s ∈ (nhds y).sets, f.preimage s ∈ (nhds x).sets,
-  { intros s hs, 
-     have : ptendsto' f (nhds x) (nhds y) := hf fxy, 
-     rw ptendsto'_def at this, 
+  { intros s hs,
+     have : ptendsto' f (nhds x) (nhds y) := hf fxy,
+     rw ptendsto'_def at this,
      exact this s hs },
   show f.preimage s ∈ (nhds x).sets,
   apply h', rw nhds_sets, exact ⟨s, set.subset.refl _, os, ys⟩
@@ -1202,7 +1203,7 @@ lemma tendsto_insert_nth {n : ℕ} {a : α} {l : list α} {f : β → α} {g : �
 (tendsto.prod_mk hf hg).comp tendsto_insert_nth'
 
 lemma continuous_insert_nth {n : ℕ} : continuous (λp:α×list α, insert_nth n p.1 p.2) :=
-continuous_iff_continuous_at.mpr $ 
+continuous_iff_continuous_at.mpr $
   assume ⟨a, l⟩, by rw [continuous_at, nhds_prod_eq]; exact tendsto_insert_nth'
 
 lemma tendsto_remove_nth : ∀{n : ℕ} {l : list α},
@@ -1249,7 +1250,7 @@ end
 
 lemma continuous_insert_nth' [topological_space α] {n : ℕ} {i : fin (n+1)} :
   continuous (λp:α×vector α n, insert_nth p.1 i p.2) :=
-continuous_iff_continuous_at.mpr $ assume ⟨a, l⟩, 
+continuous_iff_continuous_at.mpr $ assume ⟨a, l⟩,
   by rw [continuous_at, nhds_prod_eq]; exact tendsto_insert_nth
 
 lemma continuous_insert_nth [topological_space α] [topological_space β] {n : ℕ} {i : fin (n+1)}

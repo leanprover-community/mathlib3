@@ -358,6 +358,10 @@ lemma is_basis_inl_union_inr {s : set β} {t : set γ}
 
 end is_basis
 
+lemma is_basis_singleton_one (α : Type*) [ring α] : is_basis α ({1} : set α) :=
+⟨ by simp [linear_independent_iff_not_smul_mem_span],
+  top_unique $ assume a h, by simp [submodule.mem_span_singleton]⟩
+
 lemma linear_equiv.is_basis {s : set β} (hs : is_basis α s)
   (f : β ≃ₗ[α] γ) : is_basis α (f '' s) :=
 show is_basis α ((f : β →ₗ[α] γ) '' s), from

@@ -74,6 +74,9 @@ begin
   exact cardinal.mk_emptyc (⊥ : submodule α β)
 end
 
+lemma dim_of_field (α : Type*) [discrete_field α] : dim α α = 1 :=
+by rw [← (is_basis_singleton_one α).mk_eq_dim, cardinal.mk_singleton]
+
 set_option class.instance_max_depth 37
 lemma dim_span {s : set β} (hs : linear_independent α s) : dim α ↥(span α s) = cardinal.mk s :=
 have (span α s).subtype '' ((span α s).subtype ⁻¹' s) = s :=

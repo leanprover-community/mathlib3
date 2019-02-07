@@ -507,6 +507,13 @@ def pi_equiv_subtype_sigma (ι : Type*) (π : ι → Type*) :
   assume ⟨f, hf⟩, subtype.eq $ funext $ assume i, sigma.eq (hf i).symm $
     eq_of_heq $ rec_heq_of_heq _ $ rec_heq_of_heq _ $ heq.refl _⟩
 
+def subtype_congr {α : Type*} {p q : α → Prop} (h : p = q) : subtype p ≃ subtype q :=
+⟨subtype.map id $ by rw [h]; exact assume h, id, subtype.map id $ by rw [h]; exact assume h, id,
+  assume ⟨a, h⟩, rfl, assume ⟨a, h⟩, rfl,⟩
+
+def set_congr {α : Type*} {s t : set α} (h : s = t) : s ≃ t :=
+subtype_congr h
+
 end
 
 section

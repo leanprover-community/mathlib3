@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 
 Archimedean groups and fields.
 -/
-import algebra.group_power data.rat
+import algebra.group_power data.rat tactic.linarith
 
 local infix ` • ` := add_monoid.smul
 
@@ -66,6 +66,17 @@ eq_of_forall_le_iff $ λ a, by rw [le_floor,
 
 theorem floor_sub_int (x : α) (z : ℤ) : ⌊x - z⌋ = ⌊x⌋ - z :=
 eq.trans (by rw [int.cast_neg]; refl) (floor_add_int _ _)
+
+lemma abs_diff_lt_one_of_floor_eq_floor {α : Type*} [decidable_linear_ordered_comm_ring α] [floor_ring α]
+  {x y : α} (h : floor x = floor y) : abs (x - y) < 1 :=
+begin
+  have : x < (floor x) + 1         := lt_floor_add_one x,
+  have : y < (floor y) + 1         :=  lt_floor_add_one y,
+  have : ((floor x) : α) = floor y := int.cast_inj.2 h,
+  have : ((floor x) : α) ≤ x       := floor_le x,
+  have : ((floor y) : α) ≤ y       := floor_le y,
+  exact abs_sub_lt_iff.2 ⟨by linarith, by linarith⟩
+end
 
 /-- `ceil x` is the smallest integer `z` such that `x ≤ z` -/
 def ceil (x : α) : ℤ := -⌊-x⌋

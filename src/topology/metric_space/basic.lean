@@ -364,7 +364,7 @@ theorem tendsto_nhds_nhds [metric_space β] {f : α → β} {a b} :
 theorem continuous_iff [metric_space β] {f : α → β} :
   continuous f ↔
     ∀b (ε > 0), ∃ δ > 0, ∀a, dist a b < δ → dist (f a) (f b) < ε :=
-continuous_iff_tendsto.trans $ forall_congr $ λ b, tendsto_nhds_nhds
+continuous_iff_continuous_at.trans $ forall_congr $ λ b, tendsto_nhds_nhds
 
 theorem exists_delta_of_continuous [metric_space β] {f : α → β} {ε : ℝ}
   (hf : continuous f) (hε : ε > 0) (b : α) :
@@ -381,7 +381,7 @@ theorem tendsto_nhds {f : filter β} {u : β → α} {a : α} :
 
 theorem continuous_iff' [topological_space β] {f : β → α} :
   continuous f ↔ ∀a (ε > 0), ∃ n ∈ (nhds a).sets, ∀b ∈ n, dist (f b) (f a) < ε :=
-continuous_iff_tendsto.trans $ forall_congr $ λ b, tendsto_nhds
+continuous_iff_continuous_at.trans $ forall_congr $ λ b, tendsto_nhds
 
 theorem tendsto_at_top [inhabited β] [semilattice_sup β] {u : β → α} {a : α} :
   tendsto u at_top (nhds a) ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) a < ε :=
@@ -843,7 +843,7 @@ theorem tendsto_dist {f g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) :
   tendsto (λx, dist (f x) (g x)) x (nhds (dist a b)) :=
 have tendsto (λp:α×α, dist p.1 p.2) (nhds (a, b)) (nhds (dist a b)),
-  from continuous_iff_tendsto.mp continuous_dist' (a, b),
+  from continuous_iff_continuous_at.mp continuous_dist' (a, b),
 (hf.prod_mk hg).comp (by rw [nhds_prod_eq] at this; exact this)
 
 lemma nhds_comap_dist (a : α) : (nhds (0 : ℝ)).comap (λa', dist a' a) = nhds a :=
@@ -868,7 +868,7 @@ uniform_continuous_nndist'.continuous
 
 lemma tendsto_nndist' (a b :α) :
   tendsto (λp:α×α, nndist p.1 p.2) (filter.prod (nhds a) (nhds b)) (nhds (nndist a b)) :=
-by rw [← nhds_prod_eq]; exact continuous_iff_tendsto.1 continuous_nndist' _
+by rw [← nhds_prod_eq]; exact continuous_iff_continuous_at.1 continuous_nndist' _
 
 namespace metric
 variables {x y z : α} {ε ε₁ ε₂ : ℝ} {s : set α}

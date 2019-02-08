@@ -487,18 +487,19 @@ same type, or the type `α → β → tactic γ → tactic γ` or
 In particular, `tidy` uses the `chain` tactic to repeatedly apply a list of tactics to
 the goal and recursively on new goals, until no tactic makes further progress.
 
-`tidy` can report the tactic script it found using `tidy { trace_result := tt }`. As an example
+`tidy` can report the tactic script it found using `tidy?`. As an example
 ```lean
 example : ∀ x : unit, x = unit.star :=
 begin
-  tidy {trace_result:=tt} -- Prints the trace message: "intros x, exact dec_trivial"
+  tidy? -- Prints the trace message: "intros x, exact dec_trivial"
 end
 ```
 
 The default list of tactics can be found by looking up the definition of
 [`default_tidy_tactics`](https://github.com/leanprover/mathlib/blob/master/tactic/tidy.lean).
 
-This list can be overriden using `tidy { tactics :=  ... }`. (The list must be a list of `tactic string`.)
+This list can be overriden using `tidy { tactics :=  ... }`. (The list must be a list of
+`tactic string`, so that `tidy?` can report a usable tactic script.)
 
 ## linarith
 

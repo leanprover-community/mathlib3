@@ -530,6 +530,32 @@ eq.symm (prod_bij (λ x _, nat.succ x)
 
 end finset
 
+section geom_sum
+open finset
+
+theorem geom_sum_mul_add [semiring α] (x : α) :
+  ∀ (n : ℕ), ((range n).sum (λ i, (x+1)^i)) * x + 1 = (x+1)^n
+| 0     := by simp
+| (n+1) := calc (range (n + 1)).sum (λi, (x + 1) ^ i) * x + 1 =
+        (x + 1)^n * x + (((range n).sum (λ i, (x+1)^i)) * x + 1) :
+    by simp [range_add_one, add_mul]
+  ... = (x + 1)^n * x + (x + 1)^n :
+    by rw geom_sum_mul_add n
+  ... = (x + 1) ^ (n + 1) :
+    by simp [pow_add, mul_add]
+
+theorem geom_sum_mul [ring α] (x : α) (n : ℕ) :
+  ((range n).sum (λ i, x^i)) * (x-1) = x^n-1 :=
+have _ := geom_sum_mul_add (x-1) n,
+by rw [sub_add_cancel] at this; rw [← this, add_sub_cancel]
+
+theorem geom_sum [division_ring α] (x : α) (h : x ≠ 1) (n : ℕ) :
+  (range n).sum (λ i, x^i) = (x^n-1)/(x-1) :=
+have x - 1 ≠ 0, by simp [*, -sub_eq_add_neg, sub_eq_iff_eq_add] at *,
+by rw [← geom_sum_mul, mul_div_cancel _ this]
+
+end geom_sum
+
 section group
 
 open list

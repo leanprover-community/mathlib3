@@ -67,6 +67,7 @@ eq_of_forall_le_iff $ λ a, by rw [le_floor,
 theorem floor_sub_int (x : α) (z : ℤ) : ⌊x - z⌋ = ⌊x⌋ - z :=
 eq.trans (by rw [int.cast_neg]; refl) (floor_add_int _ _)
 
+<<<<<<< HEAD
 lemma abs_sub_lt_one_of_floor_eq_floor {α : Type*} [decidable_linear_ordered_comm_ring α] [floor_ring α]
   {x y : α} (h : floor x = floor y) : abs (x - y) < 1 :=
 begin
@@ -78,6 +79,8 @@ begin
   exact abs_sub_lt_iff.2 ⟨by linarith, by linarith⟩
 end
 
+=======
+>>>>>>> b1c26ab82710dc82e5e25bd13c358aa3fa7e161b
 lemma floor_eq_iff {r : α} {z : ℤ} :
   ⌊r⌋ = z ↔ ↑z ≤ r ∧ r < (z + 1) :=
 by rw [←le_floor, ←int.cast_one, ←int.cast_add, ←floor_lt,

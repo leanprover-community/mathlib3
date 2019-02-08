@@ -9,7 +9,7 @@ cache:
     - $HOME/.elan
 
 install:
-  - export TRAVIS_TAG=${TRAVIS_TAG:-bin-$(date +'%Y%m%d-%H%M%S')-$(git log --format=%h -1)}
+  # - export TRAVIS_TAG=${TRAVIS_TAG:-bin-$(date +'%Y%m%d-%H%M%S')-$(git log --format=%h -1)}
   - |
     if [ ! -d "$HOME/.elan/toolchains/" ]; then
       curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
@@ -42,9 +42,10 @@ jobs:
         - lean --recursive --export=mathlib.txt src/
         - leanchecker mathlib.txt
       before_deploy:
-        - export TRAVIS_TAG=${TRAVIS_TAG:$(date +'%Y%m%d-%H%M%S')-$(git log --format=%h -1)}
-        - export OLEAN_ARCHIVE=mathlib-olean-$TRAVIS_TAG.tar.gz
-        - export SCRIPT_ARCHIVE=mathlib-scripts-$TRAVIS_TAG.tar.gz
+        - export RELEASE=$(date +'%Y%m%d-%H%M%S')-$(git log --format=%h -1)
+        - export TRAVIS_TAG=${TRAVIS_TAG:-bin-$RELEASE}
+        - export OLEAN_ARCHIVE=mathlib-olean-$RELEASE.tar.gz
+        - export SCRIPT_ARCHIVE=mathlib-scripts-$RELEASE.tar.gz
         - tar -zcvf $OLEAN_ARCHIVE src
         - mv scripts mathlib-scripts
         - tar -zcvf $SCRIPT_ARCHIVE mathlib-scripts
@@ -58,7 +59,7 @@ jobs:
           - "$OLEAN_ARCHIVE"
           - "$SCRIPT_ARCHIVE"
         on:
-          branch: deploy-olean
+          branch: master
           repo: leanprover-community/mathlib
 
 notifications:

@@ -32,8 +32,10 @@ if lib['git'] in ['https://github.com/leanprover/mathlib','https://github.com/le
     g = Github()
     repo = g.get_repo("leanprover-community/mathlib")
     assets = [r.get_assets() for r in (repo.get_releases())
-                             if r.tag_name.split('-')[3] == hash and r.tag_name.split('-')[0] == 'bin']
-    a = assets[0][0]
+                             if r.tag_name.split('-')[3] == hash and
+                                  r.tag_name.split('-')[0] == 'bin' and
+                                  r.target_commitish == rev ]
+    a = next(x for x in assets[0] if x.name.startswith('mathlib-scripts'))
     cd = os.getcwd()
     os.chdir(mathlib_dir)
     if not os.path.isfile(a.name):

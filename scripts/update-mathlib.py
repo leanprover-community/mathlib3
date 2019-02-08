@@ -31,23 +31,27 @@ if lib['git'] in ['https://github.com/leanprover/mathlib','https://github.com/le
 
     g = Github()
     repo = g.get_repo("leanprover-community/mathlib")
-    assets = [r.get_assets() for r in (repo.get_releases())
+    assets = (r.get_assets() for r in (repo.get_releases())
                              if r.tag_name.endswith(hash) and
                                   r.tag_name.startswith('bin') and
-                                  r.target_commitish == rev ]
-    a = next(x for x in assets[0] if x.name.startswith('mathlib-scripts'))
-    cd = os.getcwd()
-    os.chdir(mathlib_dir)
-    if not os.path.isfile(a.name):
-        http = urllib3.PoolManager(
-            cert_reqs='CERT_REQUIRED',
-            ca_certs=certifi.where())
-        r = http.request('GET', a.browser_download_url)
-        f = open(a.name,'wb')
-        f.write(r.data)
-        f.close()
-    os.chdir(cd)
+                                  r.target_commitish == rev )
+    assets = next(assets,None)
+    if assets:
+        a = next(x for x in assets if x.name.startswith('mathlib-bin'))
+        cd = os.getcwd()
+        os.chdir(mathlib_dir)
+        if not os.path.isfile(a.name):
+            http = urllib3.PoolManager(
+                cert_reqs='CERT_REQUIRED',
+                ca_certs=certifi.where())
+            r = http.request('GET', a.browser_download_url)
+            f = open(a.name,'wb')
+            f.write(r.data)
+            f.close()
+            os.chdir(cd)
 
-    # extract archive
-    ar = tarfile.open(os.path.join(mathlib_dir, a.name))
-    ar.extractall('_target/deps/mathlib')
+            # extract archive
+            ar = tarfile.open(os.path.join(mathlib_dir, a.name))
+            ar.extractall('_target/deps/mathlib')
+    else:
+        print('no olean archive available')

@@ -211,4 +211,9 @@ end update
 
 lemma uncurry_def {α β γ} (f : α → β → γ) : uncurry f = (λp, f p.1 p.2) :=
 funext $ assume ⟨a, b⟩, rfl
+
+def restrict {α β} (f : α → β) (s : set α) : subtype s → β := λ x, f x.val
+
+theorem restrict_eq {α β} (f : α → β) (s : set α): function.restrict f s = f ∘ (@subtype.val _ s) := rfl
+
 end function

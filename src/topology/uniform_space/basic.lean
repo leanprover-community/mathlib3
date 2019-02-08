@@ -486,7 +486,7 @@ lemma uniform_embedding.dense_embedding [uniform_space β] {f : α → β}
 
 lemma uniform_continuous.continuous [uniform_space β] {f : α → β}
   (hf : uniform_continuous f) : continuous f :=
-continuous_iff_tendsto.mpr $ assume a,
+continuous_iff_continuous_at.mpr $ assume a,
 calc map f (nhds a) ≤
     (map (λp:α×α, (f p.1, f p.2)) uniformity).lift' (λs:set (β×β), {y | (f a, y) ∈ s}) :
   begin
@@ -1317,7 +1317,7 @@ lemma tendsto_of_uniform_continuous_subtype
   (hf : uniform_continuous (λx:s, f x.val)) (ha : s ∈ (nhds a).sets) :
   tendsto f (nhds a) (nhds (f a)) :=
 by rw [(@map_nhds_subtype_val_eq α _ s a (mem_of_nhds ha) ha).symm]; exact
-tendsto_map' (continuous_iff_tendsto.mp hf.continuous _)
+tendsto_map' (continuous_iff_continuous_at.mp hf.continuous _)
 
 lemma uniform_embedding_subtype_emb {α : Type*} {β : Type*} [uniform_space α] [uniform_space β]
   (p : α → Prop) {e : α → β} (ue : uniform_embedding e) (de : dense_embedding e) :

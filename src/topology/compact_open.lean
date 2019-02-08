@@ -67,7 +67,7 @@ def ev (p : C(α, β) × α) : β := p.1 p.2
 variables {α β}
 -- The evaluation map C(α, β) × α → β is continuous if α is locally compact.
 lemma continuous_ev [locally_compact_space α] : continuous (ev α β) :=
-continuous_iff_tendsto.mpr $ assume ⟨f, x⟩ n hn,
+continuous_iff_continuous_at.mpr $ assume ⟨f, x⟩ n hn,
   let ⟨v, vn, vo, fxv⟩ := mem_nhds_sets_iff.mp hn in
   have v ∈ (nhds (f.val x)).sets, from mem_nhds_sets vo fxv,
   let ⟨s, hs, sv, sc⟩ :=

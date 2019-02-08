@@ -250,6 +250,10 @@ theorem is_noetherian_iff_well_founded
       rw [← hs₂, sup_assoc, ← submodule.span_union], simp }
   end⟩
 
+lemma well_founded_submodule_gt {α β} [ring α] [add_comm_group β] [module α β] :
+  ∀ [is_noetherian α β], well_founded ((>) : submodule α β → submodule α β → Prop) :=
+is_noetherian_iff_well_founded.mp
+
 @[class] def is_noetherian_ring (α) [ring α] : Prop := is_noetherian α α
 
 instance is_noetherian_ring.to_is_noetherian {α : Type*} [ring α] :
@@ -338,8 +342,7 @@ local attribute [elab_as_eliminator] well_founded.fix
 
 lemma well_founded_dvd_not_unit : well_founded (λ a b : α, a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ b = a * x ) :=
 by simp only [ideal.span_singleton_lt_span_singleton.symm];
-   exact inv_image.wf (λ a, ideal.span ({a} : set α))
-     (is_noetherian_iff_well_founded.1 (by apply_instance))
+   exact inv_image.wf (λ a, ideal.span ({a} : set α)) well_founded_submodule_gt
 
 lemma exists_irreducible_factor {a : α} (ha : ¬ is_unit a) (ha0 : a ≠ 0) :
   ∃ i, irreducible i ∧ i ∣ a :=

@@ -23,7 +23,7 @@ not specific to mathlib.
 
 ## Obtaining binaries
 
-### Install the `update-mathlib`
+### Install the `update-mathlib` script
 
 *Linux/OS X/Cygwin/MSYS2/git bash*: run the following command in a terminal:
 

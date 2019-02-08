@@ -97,19 +97,19 @@ attribute [to_additive pi.add_left_cancel_semigroup]  pi.left_cancel_semigroup
 attribute [to_additive pi.add_right_cancel_semigroup] pi.right_cancel_semigroup
 
 @[to_additive pi.list_sum_apply]
-lemma list_prod_apply {α : Type*} {β} [monoid β] (a : α) :
-  ∀ (l : list (α → β)), l.prod a = (l.map (λf:α → β, f a)).prod
+lemma list_prod_apply {α : Type*} {β : α → Type*} [∀a, monoid (β a)] (a : α) :
+  ∀ (l : list (Πa, β a)), l.prod a = (l.map (λf:Πa, β a, f a)).prod
 | []       := rfl
 | (f :: l) := by simp [mul_apply f l.prod a, list_prod_apply l]
 
 @[to_additive pi.multiset_sum_apply]
-lemma multiset_prod_apply {α : Type*} {β} [comm_monoid β] (a : α) (s : multiset (α → β)) :
-  s.prod a = (s.map (λf:α → β, f a)).prod :=
+lemma multiset_prod_apply {α : Type*} {β : α → Type*} [∀a, comm_monoid (β a)] (a : α)
+  (s : multiset (Πa, β a)) : s.prod a = (s.map (λf:Πa, β a, f a)).prod :=
 quotient.induction_on s $ assume l, begin simp [list_prod_apply a l] end
 
 @[to_additive pi.finset_sum_apply]
-lemma finset_prod_apply {α : Type*} {β γ} [comm_monoid β] (a : α) (s : finset γ) (g : γ → α → β) :
-  s.prod g a = s.prod (λc, g c a) :=
+lemma finset_prod_apply {α : Type*} {β : α → Type*} {γ} [∀a, comm_monoid (β a)] (a : α)
+  (s : finset γ) (g : γ → Πa, β a) : s.prod g a = s.prod (λc, g c a) :=
 show (s.val.map g).prod a = (s.val.map (λc, g c a)).prod,
   by rw [multiset_prod_apply, multiset.map_map]
 

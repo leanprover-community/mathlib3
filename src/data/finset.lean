@@ -408,6 +408,9 @@ instance : lattice (finset α) :=
 instance : semilattice_inf_bot (finset α) :=
 { bot := ∅, bot_le := empty_subset, ..finset.lattice.lattice }
 
+instance {α : Type*} [decidable_eq α] : semilattice_sup_bot (finset α) :=
+{ ..finset.lattice.semilattice_inf_bot, ..finset.lattice.lattice }
+
 instance : distrib_lattice (finset α) :=
 { le_sup_inf := assume a b c, show (a ∪ b) ∩ (a ∪ c) ⊆ a ∪ b ∩ c,
     by simp only [subset_iff, mem_inter, mem_union, and_imp, or_imp_distrib] {contextual:=tt};
@@ -1277,6 +1280,9 @@ lemma sup_union [decidable_eq β] : (s₁ ∪ s₂).sup f = s₁.sup f ⊔ s₂.
 finset.induction_on s₁ (by rw [empty_union, sup_empty, bot_sup_eq]) $ λ a s has ih,
 by rw [insert_union, sup_insert, sup_insert, ih, sup_assoc]
 
+theorem sup_congr {f g : β → α} (hs : s₁ = s₂) (hfg : ∀a∈s₂, f a = g a) : s₁.sup f = s₂.sup g :=
+by subst hs; exact finset.fold_congr hfg
+
 lemma sup_mono_fun {g : β → α} : (∀b∈s, f b ≤ g b) → s.sup f ≤ s.sup g :=
 by letI := classical.dec_eq β; from
 finset.induction_on s (λ _, le_refl _) (λ a s has ih H,
@@ -1347,6 +1353,9 @@ calc _ = f b ⊓ (∅:finset β).inf f : inf_insert
 lemma inf_union [decidable_eq β] : (s₁ ∪ s₂).inf f = s₁.inf f ⊓ s₂.inf f :=
 finset.induction_on s₁ (by rw [empty_union, inf_empty, top_inf_eq]) $ λ a s has ih,
 by rw [insert_union, inf_insert, inf_insert, ih, inf_assoc]
+
+theorem inf_congr {f g : β → α} (hs : s₁ = s₂) (hfg : ∀a∈s₂, f a = g a) : s₁.inf f = s₂.inf g :=
+by subst hs; exact finset.fold_congr hfg
 
 lemma inf_mono_fun {g : β → α} : (∀b∈s, f b ≤ g b) → s.inf f ≤ s.inf g :=
 by letI := classical.dec_eq β; from
@@ -1748,3 +1757,33 @@ theorem to_finset_card_of_nodup {l : list α} (h : l.nodup) : l.to_finset.card =
 congr_arg card $ (@multiset.erase_dup_eq_self α _ l).2 h
 
 end list
+
+namespace lattice
+variables {ι : Sort*} [complete_lattice α] [decidable_eq ι]
+
+lemma supr_eq_supr_finset (s : ι → α) : (⨆i, s i) = (⨆t:finset (plift ι), ⨆i∈t, s (plift.down i)) :=
+le_antisymm
+  (supr_le $ assume b, le_supr_of_le {plift.up b} $ le_supr_of_le (plift.up b) $ le_supr_of_le
+    (by simp) $ le_refl _)
+  (supr_le $ assume t, supr_le $ assume b, supr_le $ assume hb, le_supr _ _)
+
+lemma infi_eq_infi_finset (s : ι → α) : (⨅i, s i) = (⨅t:finset (plift ι), ⨅i∈t, s (plift.down i)) :=
+le_antisymm
+  (le_infi $ assume t, le_infi $ assume b, le_infi $ assume hb, infi_le _ _)
+  (le_infi $ assume b, infi_le_of_le {plift.up b} $ infi_le_of_le (plift.up b) $ infi_le_of_le
+    (by simp) $ le_refl _)
+
+end lattice
+
+namespace set
+variables {ι : Sort*} [decidable_eq ι]
+
+lemma Union_eq_Union_finset (s : ι → set α) :
+  (⋃i, s i) = (⋃t:finset (plift ι), ⋃i∈t, s (plift.down i)) :=
+lattice.supr_eq_supr_finset s
+
+lemma Inter_eq_Inter_finset (s : ι → set α) :
+  (⋂i, s i) = (⋂t:finset (plift ι), ⋂i∈t, s (plift.down i)) :=
+lattice.infi_eq_infi_finset s
+
+end set

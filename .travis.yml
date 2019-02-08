@@ -2,6 +2,10 @@ language: c
 sudo: false
 os:
     - linux
+branches:
+  except:
+    - /^bin-.*$/
+
 
 cache:
   directories:

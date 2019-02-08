@@ -28,7 +28,7 @@ not specific to mathlib.
 *Linux/OS X/Cygwin/MSYS2/git bash*: run the following command in a terminal:
 
 ``` shell
-curl https://raw.githubusercontent.com/leanprover-community/mathlib/master/remote-install-update-mathlib.sh -sSf | sh
+curl https://raw.githubusercontent.com/leanprover-community/mathlib/master/scripts/remote-install-update-mathlib.sh -sSf | sh
 ```
 
 *Any platform*: in the release section of this page, download
@@ -45,6 +45,17 @@ update-mathlib
 
 The existing `_target/deps/mathlib` will be rewritten with a compiled
 version of mathlib.
+
+### Automatic update of the binaries
+
+The following command, run on each project, sets up an automatic
+update of the mathlib binaries after every `git checkout`.
+
+``` shell
+echo \#! /bin/sh > .git/hooks/post-checkout
+echo update-mathlib >> .git/hooks/post-checkout
+chmod +x .git/hooks/post-checkout
+```
 
 ## Maintainers (topics):
 

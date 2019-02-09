@@ -14,22 +14,6 @@ open is_absolute_value
 section
 open real is_absolute_value finset
 
-lemma geo_sum_eq {α : Type*} [field α] {x : α} : ∀ (n : ℕ) (hx1 : x ≠ 1),
-  (range n).sum (λ m, x ^ m) = (1 - x ^ n) / (1 - x)
-| 0     hx1 := by simp
-| (n+1) hx1 := have 1 - x ≠ 0 := mt sub_eq_zero_iff_eq.1 hx1.symm,
-by rw [sum_range_succ, ← mul_div_cancel (x ^ n) this, geo_sum_eq n hx1, ← add_div, _root_.pow_succ];
-    simp [mul_add, add_mul, mul_comm]
-
-lemma geo_sum_inv_eq {α : Type*} [discrete_field α] {x : α} (n : ℕ) (hx1 : x ≠ 1) (hx0 : x ≠ 0) :
-  (range n).sum (λ m, x⁻¹ ^ m) = (x - x * x⁻¹ ^ n) / (x - 1) :=
-have hx1' : x⁻¹ ≠ 1, from λ h, by rw [← @inv_inv' _ _ x, h] at hx1; simpa using hx1,
-have h1x' : 1 - x⁻¹ ≠ 0, from sub_ne_zero.2 hx1'.symm,
-have h1x : x - 1 ≠ 0, from sub_ne_zero.2 hx1,
-by rw [geo_sum_eq _ hx1', div_eq_div_iff h1x' h1x];
-  simp [mul_add, add_mul, mul_inv_cancel hx0, mul_comm x, mul_left_comm x,
-    mul_assoc, inv_mul_cancel hx0]
-
 lemma forall_ge_le_of_forall_le_succ {α : Type*} [preorder α] (f : ℕ → α) {m : ℕ}
   (h : ∀ n ≥ m, f n.succ ≤ f n) : ∀ {l}, ∀ k ≥ m, k ≤ l → f l ≤ f k :=
 begin
@@ -122,10 +106,11 @@ lemma is_cau_geo_series {β : Type*} [field β] {abv : β → α} [is_absolute_v
 have hx1' : abv x ≠ 1 := λ h, by simpa [h, lt_irrefl] using hx1,
 is_cau_series_of_abv_cau
 begin
-  simp only [abv_pow abv, geo_sum_eq _ hx1'] {eta := ff},
+  simp only [abv_pow abv, geom_sum hx1'] {eta := ff},
+  conv in (_ / _) { rw [← neg_div_neg_eq, neg_sub, neg_sub] },
   refine @is_cau_of_mono_bounded _ _ _ _ ((1 : α) / (1 - abv x)) 0 _ _,
   { assume n hn,
-    rw abs_of_nonneg ,
+    rw abs_of_nonneg,
     refine div_le_div_of_le_of_pos (sub_le_self _ (abv_pow abv x n ▸ abv_nonneg _ _))
       (sub_pos.2 hx1),
     refine div_nonneg (sub_nonneg.2 _) (sub_pos.2 hx1),
@@ -877,12 +862,11 @@ calc (filter (λ k, n ≤ k) (range j)).sum (λ m : ℕ, (1 / m.fact : α))
   have h₂ : (n.succ : α) ≠ 0, from nat.cast_ne_zero.2 (nat.succ_ne_zero _),
   have h₃ : (n.fact * n : α) ≠ 0, from mul_ne_zero (nat.cast_ne_zero.2 (nat.pos_iff_ne_zero.1 (nat.fact_pos _)))
     (nat.cast_ne_zero.2 (nat.pos_iff_ne_zero.1 hn)),
-  have h₄ : (n.succ - 1 : α) * (n.fact : ℕ) ≠ 0,
-    from mul_ne_zero (sub_ne_zero.2 h₁)
-      (nat.cast_ne_zero.2 (nat.pos_iff_ne_zero.1 (nat.fact_pos _))),
-  by rw [geo_sum_inv_eq _ h₁ h₂, mul_comm, ← div_eq_mul_inv, div_div_eq_div_mul,
-      div_eq_div_iff h₄ h₃];
-    simp [mul_add, add_mul, mul_comm, mul_assoc, mul_left_comm]
+  have h₄ : (n.succ - 1 : α) = n, by simp,
+  by rw [geom_sum_inv h₁ h₂, eq_div_iff_mul_eq _ _ h₃, mul_comm _ (n.fact * n : α),
+      ← mul_assoc (n.fact⁻¹ : α), ← mul_inv', h₄, ← mul_assoc (n.fact * n : α),
+      mul_comm (n : α) n.fact, mul_inv_cancel h₃];
+    simp [mul_add, add_mul, mul_assoc, mul_comm]
 ... ≤ n.succ / (n.fact * n) :
   begin
     refine (div_le_div_right (mul_pos _ _)).2 _,

@@ -1,12 +1,12 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl
+Authors: Johannes Hölzl, Jeremy Avigad
 
 Theory of filters on sets.
 -/
 import order.galois_connection order.zorn
-import data.set.finite data.list
+import data.set.finite data.list data.pfun
 import algebra.pi_instances
 import category.applicative
 open lattice set
@@ -516,6 +516,18 @@ bot_unique $ assume s _, empty_subset _
 lemma inf_principal_eq_bot {f : filter α} {s : set α} (hs : -s ∈ f.sets) : f ⊓ principal s = ⊥ :=
 empty_in_sets_eq_bot.mp ⟨_, hs, s, mem_principal_self s, assume x ⟨h₁, h₂⟩, h₁ h₂⟩
 
+theorem mem_inf_principal (f : filter α) (s t : set α) :
+  s ∈ (f ⊓ principal t).sets ↔ { x | x ∈ t → x ∈ s } ∈ f.sets :=
+begin
+  simp only [mem_inf_sets, mem_principal_sets, exists_prop], split,
+  { rintros ⟨u, ul, v, tsubv, uvinter⟩,
+    apply filter.mem_sets_of_superset ul,
+    intros x xu xt, exact uvinter ⟨xu, tsubv xt⟩ },
+  intro h, refine ⟨_, h, t, set.subset.refl t, _⟩,
+  rintros x ⟨hx, xt⟩,
+  exact hx xt
+end
+
 end lattice
 
 section map
@@ -749,6 +761,29 @@ lemma map_inj {f g : filter α} {m : α → β} (hm : ∀ x y, m x = m y → x =
   f = g :=
 have comap m (map m f) = comap m (map m g), by rw h,
 by rwa [comap_map hm, comap_map hm] at this
+
+theorem le_map_comap_of_surjective' {f : α → β} {l : filter β} {u : set β} (ul : u ∈ l.sets)
+    (hf : ∀ y ∈ u, ∃ x, f x = y) :
+  l ≤ map f (comap f l) :=
+assume s ⟨t, tl, ht⟩,
+have t ∩ u ⊆ s, from
+  assume x ⟨xt, xu⟩,
+  exists.elim (hf x xu) $ λ a faeq,
+  by { rw ←faeq, apply ht, change f a ∈ t, rw faeq, exact xt },
+mem_sets_of_superset (inter_mem_sets tl ul) this
+
+theorem map_comap_of_surjective' {f : α → β} {l : filter β} {u : set β} (ul : u ∈ l.sets)
+    (hf : ∀ y ∈ u, ∃ x, f x = y)  :
+  map f (comap f l) = l :=
+le_antisymm map_comap_le (le_map_comap_of_surjective' ul hf)
+
+theorem le_map_comap_of_surjective {f : α → β} (hf : function.surjective f) (l : filter β) :
+  l ≤ map f (comap f l) :=
+le_map_comap_of_surjective' univ_mem_sets (λ y _, hf y)
+
+theorem map_comap_of_surjective {f : α → β} (hf : function.surjective f) (l : filter β) :
+  map f (comap f l) = l :=
+le_antisymm map_comap_le (le_map_comap_of_surjective hf l)
 
 lemma comap_neq_bot {f : filter β} {m : α → β}
   (hm : ∀t∈f.sets, ∃a, m a ∈ t) : comap m f ≠ ⊥ :=
@@ -1159,6 +1194,21 @@ show filter.map f (pure a) ≤ pure (f a),
 
 lemma tendsto_const_pure {a : filter α} {b : β} : tendsto (λa, b) a (pure b) :=
 by simp [tendsto]; exact univ_mem_sets
+
+lemma tendsto_if {l₁ : filter α} {l₂ : filter β}
+    {f g : α → β} {p : α → Prop} [decidable_pred p]
+    (h₀ : tendsto f (l₁ ⊓ principal p) l₂)
+    (h₁ : tendsto g (l₁ ⊓ principal { x | ¬ p x }) l₂) :
+  tendsto (λ x, if p x then f x else g x) l₁ l₂ :=
+begin
+  revert h₀ h₁, simp only [tendsto_def, mem_inf_principal],
+  intros h₀ h₁ s hs,
+  apply mem_sets_of_superset (inter_mem_sets (h₀ s hs) (h₁ s hs)),
+  rintros x ⟨hp₀, hp₁⟩, dsimp,
+  by_cases h : p x,
+  { rw if_pos h, exact hp₀ h },
+  rw if_neg h, exact hp₁ h
+end
 
 section lift
 
@@ -1862,7 +1912,7 @@ begin
   by_contradiction hs',
   let j : (-s) → α := subtype.val,
   have j_inv_s : j ⁻¹' s = ∅, by
-    erw [←preimage_inter_range, subtype_val_range, inter_compl_self, preimage_empty],
+    erw [←preimage_inter_range, subtype.val_range, inter_compl_self, preimage_empty],
   let f' := comap j f,
   have : f' ≠ ⊥,
   { apply mt empty_in_sets_eq_bot.mpr,
@@ -1870,7 +1920,7 @@ begin
     suffices : t ⊆ s, from absurd (f.sets_of_superset htf this) hs',
     rw [subset_empty_iff] at ht,
     have : j '' (j ⁻¹' t) = ∅, by rw [ht, image_empty],
-    erw [image_preimage_eq_inter_range, subtype_val_range, ←subset_compl_iff_disjoint,
+    erw [image_preimage_eq_inter_range, subtype.val_range, ←subset_compl_iff_disjoint,
       set.compl_compl] at this,
     exact this },
   rcases exists_ultrafilter this with ⟨g', g'f', u'⟩,

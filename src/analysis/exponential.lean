@@ -21,7 +21,7 @@ tendsto_nhds_nhds.2 $ λ ε ε0,
         ... = ε : by rw add_halves⟩
 
 lemma continuous_exp : continuous exp :=
-continuous_iff_tendsto.2 (λ x,
+continuous_iff_continuous_at.2 (λ x,
   have H1 : tendsto (λ h, exp (x + h)) (nhds 0) (nhds (exp x)),
     by simpa [exp_add] using tendsto_mul tendsto_const_nhds tendsto_exp_zero_one,
   have H2 : tendsto (λ y, y - x) (nhds x) (nhds (x - x)) :=
@@ -101,7 +101,7 @@ lemma continuous_cosh : continuous cosh :=
 
 private lemma exists_exp_eq_of_one_le {x : ℝ} (hx : 1 ≤ x) : ∃ y, exp y = x :=
 let ⟨y, hy⟩ := @intermediate_value real.exp 0 (x - 1) x
-  (λ _ _ _, continuous_iff_tendsto.1 continuous_exp _) (by simpa)
+  (λ _ _ _, continuous_iff_continuous_at.1 continuous_exp _) (by simpa)
   (by simpa using add_one_le_exp_of_nonneg (sub_nonneg.2 hx)) (sub_nonneg.2 hx) in
 ⟨y, hy.2.2⟩
 
@@ -132,7 +132,7 @@ exp_injective $ by rw [exp_log (mul_pos hx hy), exp_add, exp_log hx, exp_log hy]
 
 lemma exists_cos_eq_zero : ∃ x, 1 ≤ x ∧ x ≤ 2 ∧ cos x = 0 :=
 real.intermediate_value'
-  (λ x _ _, continuous_iff_tendsto.1 continuous_cos _)
+  (λ x _ _, continuous_iff_continuous_at.1 continuous_cos _)
   (le_of_lt cos_one_pos)
   (le_of_lt cos_two_neg) (by norm_num)
 
@@ -396,7 +396,7 @@ end
 
 lemma exists_sin_eq {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : ∃ y, -(π / 2) ≤ y ∧ y ≤ π / 2 ∧ sin y = x :=
 @real.intermediate_value sin (-(π / 2)) (π / 2) x
-  (λ _ _ _, continuous_iff_tendsto.1 continuous_sin _)
+  (λ _ _ _, continuous_iff_continuous_at.1 continuous_sin _)
   (by rwa [sin_neg, sin_pi_div_two]) (by rwa sin_pi_div_two)
   (le_trans (neg_nonpos.2 (le_of_lt pi_div_two_pos)) (le_of_lt pi_div_two_pos))
 

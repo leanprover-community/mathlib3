@@ -319,7 +319,101 @@ lemma prod_eq_one [comm_monoid β] {f : α → β} {s : finset α} (h : ∀x∈s
 calc s.prod f = s.prod (λx, 1) : finset.prod_congr rfl h
   ... = 1 : finset.prod_const_one
 
+@[to_additive finset.sum_filter]
+lemma prod_filter [decidable_eq α] [comm_monoid β]
+  (s : finset α) (f : α → β) (P : α → Prop) [decidable_pred P] :
+  s.prod f = (s.filter P).prod f * (s.filter (λ a, ¬ P a)).prod f :=
+by rw [← finset.prod_union (finset.filter_inter_filter_neg_eq s), finset.filter_union_filter_neg_eq]
+
+@[to_additive finset.Ico_sum_split]
+lemma Ico_prod_split (l n m : ℕ) (h₁ : n ≤ l) (h₂ : l ≤ m) (f : ℕ → β) :
+  (Ico n m).prod f = (Ico n l).prod f * (Ico l m).prod f :=
+begin
+  rw ← Ico.union_consecutive h₁ h₂,
+  rw prod_union,
+  simp,
+end
+
+-- `to_additive` chokes on this one, so we reprove it below
+lemma Ico_prod_split_first (n m : ℕ) (h : n < m) (f : ℕ → β) :
+  (Ico n m).prod f = f n * (Ico (n+1) m).prod f :=
+begin
+  rw [Ico.eq_cons h, prod_insert],
+  rw Ico.mem,
+  simp,
+  intros,
+  exfalso,
+  exact nat.not_succ_le_self n a,
+end
+
+-- `to_additive` chokes on this one, so we reprove it below
+lemma Ico_prod_split_last (n m : ℕ) (h : m > n) (f : ℕ → β) :
+  (Ico n m).prod f = (Ico n (m-1)).prod f * f (m-1) :=
+begin
+  rw [Ico.succ_top' h, prod_insert, mul_comm],
+  simp,
+end
+
+@[to_additive finset.Ico_sum_reindex_right]
+lemma Ico_prod_reindex_right (k n m : ℕ) (f : ℕ → β) :
+  (Ico n m).prod f = (Ico (n+k) (m+k)).prod (λ x, f (x - k)) :=
+begin
+  rw ←Ico.image_add,
+  have inj : ∀ (x : ℕ), x ∈ Ico n m → ∀ (y : ℕ), y ∈ Ico n m → k + x = k + y → x = y,
+  { -- TODO this should be much easier
+    intros x mx y my h,
+    rw add_comm at h,
+    conv at h { to_rhs, rw add_comm },
+    replace h := congr_arg (λ x, x - k) h,
+    dsimp at h,
+    rw nat.add_sub_cancel at h,
+    rw nat.add_sub_cancel at h,
+    exact h },
+  rw prod_image inj,
+  simp,
+end.
+
+local attribute [-simp] add_comm
+
+@[to_additive finset.Ico_sum_reindex_left]
+lemma Ico_prod_reindex_left (k n m : ℕ) (h : k ≤ n) (f : ℕ → β) :
+  (Ico n m).prod f = (Ico (n-k) (m-k)).prod (λ x, f (x + k)) :=
+begin
+  rw ←Ico.image_sub _ _ _ h,
+  have inj : ∀ (x : ℕ), x ∈ Ico n m → ∀ (y : ℕ), y ∈ Ico n m → x - k = y - k → x = y,
+  { intros x mx y my w,
+    simp at mx,
+    have xh : x ≥ k := le_trans h mx.left,
+    clear mx,
+    simp at my,
+    have yh : y ≥ k := le_trans h my.left,
+    clear my,
+    replace h := congr_arg (λ x, x + k) w,
+    dsimp at h,
+    rw nat.sub_add_cancel xh at h,
+    rw nat.sub_add_cancel yh at h,
+    exact h },
+  rw prod_image inj,
+  simp,
+  refine finset.prod_congr rfl (assume a ha, _),
+  congr,
+  simp at ha,
+  cases ha,
+  have p : k ≤ a := le_trans h ha_left,
+  rw nat.sub_add_cancel p,
+end
+
 end comm_monoid
+
+-- This is a duplicate of `Ico_prod_split_first` above; `to_additive` choked.
+lemma Ico_sum_split_first [add_comm_monoid β] (n m : ℕ) (h : n < m) (f : ℕ → β) :
+(Ico n m).sum f = f n + (Ico (n+1) m).sum f :=
+@Ico_prod_split_first (multiplicative β) _ n m h f
+
+-- Duplicated from above; `to_additive` choked.
+lemma Ico_sum_split_last [add_comm_monoid β] (n m : ℕ) (h : m > n) (f : ℕ → β) :
+(Ico n m).sum f = (Ico n (m-1)).sum f + f (m-1) :=
+@Ico_prod_split_last (multiplicative β) _ n m h f
 
 lemma sum_hom [add_comm_monoid β] [add_comm_monoid γ] (g : β → γ) [is_add_monoid_hom g] :
   s.sum (λx, g (f x)) = g (s.sum f) :=

@@ -218,19 +218,19 @@ ext_iff.2 $ begin
   rw [← div_div_eq_div_mul, div_self h, one_div_eq_inv]
 end
 
-lemma inv_zero : (0⁻¹ : ℂ) = 0 :=
+protected lemma inv_zero : (0⁻¹ : ℂ) = 0 :=
 by rw [← of_real_zero, ← of_real_inv, inv_zero]
 
-theorem mul_inv_cancel {z : ℂ} (h : z ≠ 0) : z * z⁻¹ = 1 :=
+protected theorem mul_inv_cancel {z : ℂ} (h : z ≠ 0) : z * z⁻¹ = 1 :=
 by rw [inv_def, ← mul_assoc, mul_conj, ← of_real_mul,
   mul_inv_cancel (mt norm_sq_eq_zero.1 h), of_real_one]
 
 noncomputable instance : discrete_field ℂ :=
 { inv := has_inv.inv,
   zero_ne_one := mt (congr_arg re) zero_ne_one,
-  mul_inv_cancel := @mul_inv_cancel,
-  inv_mul_cancel := λ z h, by rw [mul_comm, mul_inv_cancel h],
-  inv_zero := inv_zero,
+  mul_inv_cancel := @complex.mul_inv_cancel,
+  inv_mul_cancel := λ z h, by rw [mul_comm, complex.mul_inv_cancel h],
+  inv_zero := complex.inv_zero,
   has_decidable_eq := classical.dec_eq _,
   ..complex.comm_ring }
 

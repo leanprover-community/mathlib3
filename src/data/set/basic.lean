@@ -583,6 +583,14 @@ forall_congr $ λ a, imp_not_comm
 theorem subset_compl_iff_disjoint {s t : set α} : s ⊆ -t ↔ s ∩ t = ∅ :=
 iff.trans (forall_congr $ λ a, and_imp.symm) subset_empty_iff
 
+theorem inter_subset (a b c : set α) : a ∩ b ⊆ c ↔ a ⊆ -b ∪ c :=
+begin
+  haveI := classical.prop_decidable,
+  split,
+  { intros h x xa, by_cases h' : x ∈ b, simp [h ⟨xa, h'⟩], simp [h'] },
+  intros h x, rintro ⟨xa, xb⟩, cases h xa, contradiction, assumption
+end
+
 /- set difference -/
 
 theorem diff_eq (s t : set α) : s \ t = s ∩ -t := rfl
@@ -939,12 +947,6 @@ theorem subset_image_union (f : α → β) (s : set α) (t : set β) :
   f '' (s ∪ f ⁻¹' t) ⊆ f '' s ∪ t :=
 image_subset_iff.2 (union_preimage_subset _ _ _)
 
-lemma subtype_val_image {p : α → Prop} {s : set (subtype p)} :
-  subtype.val '' s = {x | ∃h : p x, (⟨x, h⟩ : subtype p) ∈ s} :=
-ext $ assume a,
-⟨assume ⟨⟨a', ha'⟩, in_s, h_eq⟩, h_eq ▸ ⟨ha', in_s⟩,
-  assume ⟨ha, in_s⟩, ⟨⟨a, ha⟩, in_s, rfl⟩⟩
-
 lemma preimage_subset_iff {A : set α} {B : set β} {f : α → β} :
   f⁻¹' B ⊆ A ↔ (∀ a : α, f a ∈ B → a ∈ A) := iff.rfl
 
@@ -1057,13 +1059,6 @@ by rw [image_preimage_eq_inter_range, preimage_inter_range]
 @[simp] theorem quot_mk_range_eq [setoid α] : range (λx : α, ⟦x⟧) = univ :=
 range_iff_surjective.2 quot.exists_rep
 
-@[simp] lemma subtype_val_range {p : α → Prop} :
-  range (@subtype.val _ p) = {x | p x} :=
-by rw ← image_univ; simp [-image_univ, subtype_val_image]
-
-@[simp] lemma range_coe_subtype (s : set α): range (coe : s → α) = s :=
-subtype_val_range
-
 lemma range_const_subset {c : β} : range (λx:α, c) ⊆ {c} :=
 range_subset_iff.2 $ λ x, or.inl rfl
 
@@ -1100,7 +1095,58 @@ theorem pairwise_on.mono' {s : set α} {r r' : α → α → Prop}
 
 end set
 
+/- image and preimage on subtypes -/
+
+namespace subtype
+
+variable {α : Type*}
+
+lemma val_image {p : α → Prop} {s : set (subtype p)} :
+  subtype.val '' s = {x | ∃h : p x, (⟨x, h⟩ : subtype p) ∈ s} :=
+set.ext $ assume a,
+⟨assume ⟨⟨a', ha'⟩, in_s, h_eq⟩, h_eq ▸ ⟨ha', in_s⟩,
+  assume ⟨ha, in_s⟩, ⟨⟨a, ha⟩, in_s, rfl⟩⟩
+
+@[simp] lemma val_range {p : α → Prop} :
+  set.range (@subtype.val _ p) = {x | p x} :=
+by rw ← set.image_univ; simp [-set.image_univ, val_image]
+theorem val_image_subset (s : set α) (t : set (subtype s)) : t.image val ⊆ s :=
+λ x ⟨y, yt, yvaleq⟩, by rw ←yvaleq; exact y.property
+
+theorem val_image_univ (s : set α) : @val _ s '' set.univ = s :=
+set.eq_of_subset_of_subset (val_image_subset _ _) (λ x xs, ⟨⟨x, xs⟩, ⟨set.mem_univ _, rfl⟩⟩)
+
+theorem image_preimage_val (s t : set α) :
+  (@subtype.val _ s) '' ((@subtype.val _ s) ⁻¹' t) = t ∩ s :=
+begin
+  ext x, simp, split,
+  { rintros ⟨y, ys, yt, yx⟩, rw ←yx, exact ⟨yt, ys⟩ },
+  rintros ⟨xt, xs⟩, exact ⟨x, xs, xt, rfl⟩
+end
+
+theorem preimage_val_eq_preimage_val_iff (s t u : set α) :
+  ((@subtype.val _ s) ⁻¹' t = (@subtype.val _ s) ⁻¹' u) ↔ (t ∩ s = u ∩ s) :=
+begin
+  rw [←image_preimage_val, ←image_preimage_val],
+  split, { intro h, rw h },
+  intro h, exact set.injective_image (val_injective) h
+end
+end subtype
+
 namespace set
+
+section range
+
+variable {α : Type*}
+
+@[simp] lemma subtype.val_range {p : α → Prop} :
+  range (@subtype.val _ p) = {x | p x} :=
+by rw ← image_univ; simp [-image_univ, subtype.val_image]
+
+@[simp] lemma range_coe_subtype (s : set α): range (coe : s → α) = s :=
+subtype.val_range
+
+end range
 
 section prod
 

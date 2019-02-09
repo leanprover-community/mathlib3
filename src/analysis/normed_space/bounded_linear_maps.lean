@@ -88,10 +88,10 @@ lemma tendsto {L : E → F} (x : E) : is_bounded_linear_map L → L →_{x} (L x
       tendsto_mul tendsto_const_nhds (lim_norm _))
 
 lemma continuous {L : E → F} (hL : is_bounded_linear_map L) : continuous L :=
-continuous_iff_tendsto.2 $ assume x, hL.tendsto x
+continuous_iff_continuous_at.2 $ assume x, hL.tendsto x
 
 lemma lim_zero_bounded_linear_map {L : E → F} (H : is_bounded_linear_map L) : (L →_{0} 0) :=
-(H.1.mk' _).map_zero ▸ continuous_iff_tendsto.1 H.continuous 0
+(H.1.mk' _).map_zero ▸ continuous_iff_continuous_at.1 H.continuous 0
 
 end is_bounded_linear_map
 

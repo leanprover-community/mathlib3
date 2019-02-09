@@ -130,7 +130,7 @@ begin
 end
 
 instance : topological_add_monoid ennreal :=
-⟨ continuous_iff_tendsto.2 $
+⟨ continuous_iff_continuous_at.2 $
   have hl : ∀a:ennreal, tendsto (λ (p : ennreal × ennreal), p.fst + p.snd) (nhds (⊤, a)) (nhds ⊤), from
     assume a, tendsto_nhds_top $ assume n,
     have set.prod {a | ↑n < a } univ ∈ (nhds ((⊤:ennreal), a)).sets, from
@@ -138,9 +138,10 @@ instance : topological_add_monoid ennreal :=
     begin filter_upwards [this] assume ⟨a₁, a₂⟩ ⟨h₁, h₂⟩, lt_of_lt_of_le h₁ (le_add_right $ le_refl _) end,
   begin
     rintro ⟨a₁, a₂⟩,
-    cases a₁, { simp [none_eq_top, hl a₂], },
-    cases a₂, { simp [none_eq_top, some_eq_coe, nhds_swap (a₁ : ennreal) ⊤, tendsto_map'_iff, (∘), hl ↑a₁] },
-    simp [some_eq_coe, nhds_coe_coe, tendsto_map'_iff, (∘)],
+    cases a₁, { simp [continuous_at, none_eq_top, hl a₂], },
+    cases a₂, { simp [continuous_at, none_eq_top, some_eq_coe, nhds_swap (a₁ : ennreal) ⊤,
+                      tendsto_map'_iff, (∘), hl ↑a₁] },
+    simp [continuous_at, some_eq_coe, nhds_coe_coe, tendsto_map'_iff, (∘)],
     simp only [coe_add.symm, tendsto_coe, tendsto_add']
   end ⟩
 
@@ -499,7 +500,7 @@ end⟩
 lemma continuous_of_le_add_edist {f : α → ennreal} (C : ennreal)
   (hC : C ≠ ⊤) (h : ∀x y, f x ≤ f y + C * edist x y) : continuous f :=
 begin
-  refine continuous_iff_tendsto.2 (λx, tendsto_orderable.2 ⟨_, _⟩),
+  refine continuous_iff_continuous_at.2 (λx, tendsto_orderable.2 ⟨_, _⟩),
   show ∀e, e < f x → {y : α | e < f y} ∈ (nhds x).sets,
   { assume e he,
     let ε := min (f x - e) 1,
@@ -572,7 +573,7 @@ theorem tendsto_edist {f g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) :
   tendsto (λx, edist (f x) (g x)) x (nhds (edist a b)) :=
 have tendsto (λp:α×α, edist p.1 p.2) (nhds (a, b)) (nhds (edist a b)),
-  from continuous_iff_tendsto.mp continuous_edist' (a, b),
+  from continuous_iff_continuous_at.mp continuous_edist' (a, b),
 (hf.prod_mk hg).comp (by rw [nhds_prod_eq] at this; exact this)
 
 end --section

@@ -154,21 +154,6 @@ lemma tendsto_one_div_add_at_top_nhds_0_nat : tendsto (λ n : ℕ, 1 / ((n : ℝ
 suffices tendsto (λ n : ℕ, 1 / (↑(n + 1) : ℝ)) at_top (nhds 0), by simpa,
 tendsto_comp_succ_at_top_iff.2 tendsto_one_div_at_top_nhds_0_nat
 
-lemma sum_geometric' {r : ℝ} (h : r ≠ 0) :
-  ∀{n}, (finset.range n).sum (λi, (r + 1) ^ i) = ((r + 1) ^ n - 1) / r
-| 0     := by simp [zero_div]
-| (n+1) :=
-  by simp [@sum_geometric' n, h, pow_succ, range_succ, add_div_eq_mul_add_div, add_mul, mul_comm, mul_assoc]
-
-lemma sum_geometric {r : ℝ} {n : ℕ} (h : r ≠ 1) :
-  (range n).sum (λi, r ^ i) = (r ^ n - 1) / (r - 1) :=
-calc (range n).sum (λi, r ^ i) = (range n).sum (λi, ((r - 1) + 1) ^ i) :
-    by simp
-  ... = (((r - 1) + 1) ^ n - 1) / (r - 1) :
-    sum_geometric' $ by simp [sub_eq_iff_eq_add, -sub_eq_add_neg, h]
-  ... = (r ^ n - 1) / (r - 1) :
-    by simp
-
 lemma is_sum_geometric {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
   is_sum (λn:ℕ, r ^ n) (1 / (1 - r)) :=
 have r ≠ 1, from ne_of_lt h₂,
@@ -178,7 +163,7 @@ have tendsto (λn, (r ^ n - 1) * (r - 1)⁻¹) at_top (nhds ((0 - 1) * (r - 1)�
   from tendsto_mul
     (tendsto_sub (tendsto_pow_at_top_nhds_0_of_lt_1 h₁ h₂) tendsto_const_nhds) tendsto_const_nhds,
 (is_sum_iff_tendsto_nat_of_nonneg $ pow_nonneg h₁).mpr $
-  by simp [neg_inv, sum_geometric, div_eq_mul_inv, *] at *
+  by simp [neg_inv, geom_sum, div_eq_mul_inv, *] at *
 
 lemma is_sum_geometric_two (a : ℝ) : is_sum (λn:ℕ, (a / 2) / 2 ^ n) a :=
 begin

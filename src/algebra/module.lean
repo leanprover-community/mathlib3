@@ -290,6 +290,9 @@ end ideal
   operation between vectors. -/
 class vector_space (α : Type u) (β : Type v) [discrete_field α] [add_comm_group β] extends module α β
 
+instance discrete_field.to_vector_space {α : Type*} [discrete_field α] : vector_space α α :=
+{ .. ring.to_module }
+
 /-- Subspace of a vector space. Defined to equal `submodule`. -/
 @[reducible] def subspace (α : Type u) (β : Type v)
   [discrete_field α] [add_comm_group β] [vector_space α β] : Type v :=

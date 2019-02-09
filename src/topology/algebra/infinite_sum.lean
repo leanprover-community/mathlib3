@@ -105,7 +105,7 @@ lemma is_sum_hom (g : α → γ) [add_comm_monoid γ] [topological_space γ] [to
 have (λs:finset β, s.sum (g ∘ f)) = g ∘ (λs:finset β, s.sum f),
   from funext $ assume s, sum_hom g,
 show tendsto (λs:finset β, s.sum (g ∘ f)) at_top (nhds (g a)),
-  by rw [this]; exact hf.comp (continuous_iff_tendsto.mp h₃ a)
+  by rw [this]; exact hf.comp (continuous_iff_continuous_at.mp h₃ a)
 
 lemma tendsto_sum_nat_of_is_sum {f : ℕ → α} (h : is_sum f a) :
   tendsto (λn:ℕ, (range n).sum f) at_top (nhds a) :=

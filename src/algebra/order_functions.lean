@@ -58,6 +58,12 @@ by rw [lt_iff_not_ge]; simp [(≥), max_le_iff, not_and_distrib]
 @[simp] lemma min_lt_iff : min a b < c ↔ a < c ∨ b < c :=
 by rw [lt_iff_not_ge]; simp [(≥), le_min_iff, not_and_distrib]
 
+lemma max_lt_max (h₁ : a < c) (h₂ : b < d) : max a b < max c d :=
+by apply max_lt; simp [lt_max_iff, h₁, h₂]
+
+lemma min_lt_min (h₁ : a < c) (h₂ : b < d) : min a b < min c d :=
+by apply lt_min; simp [min_lt_iff, h₁, h₂]
+
 theorem min_right_comm (a b c : α) : min (min a b) c = min (min a c) b :=
 right_comm min min_comm min_assoc a b c
 

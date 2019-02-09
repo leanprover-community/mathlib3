@@ -699,16 +699,18 @@ mk_le_of_surjective surjective_onto_image
 theorem mk_range_le {α β : Type u} {f : α → β} {s : set α} : mk (range f) ≤ mk α :=
 mk_le_of_surjective surjective_onto_range
 
-theorem mk_eq_of_injective {α β : Type u} {f : α → β} {s : set α} (hf : injective f) : mk (f '' s) = mk s :=
+theorem mk_eq_of_injective {α β : Type u} {f : α → β} {s : set α} (hf : injective f) :
+  mk (f '' s) = mk s :=
 quotient.sound ⟨(equiv.set.image f s hf).symm⟩
 
 theorem mk_Union_le_sum_mk {α ι : Type u} {f : ι → set α} : mk (⋃ i, f i) ≤ sum (λ i, mk (f i)) :=
-calc  mk (⋃ i, f i)
-    ≤ mk (Σ i, f i) :
-        let f : (Σ i, f i) → (⋃ i, f i) := λ ⟨i, x, hx⟩, ⟨x, mem_Union.2 ⟨i, hx⟩⟩ in
-        have surjective f := λ ⟨x, hx⟩, let ⟨i, hi⟩ := mem_Union.1 hx in ⟨⟨i, x, hi⟩, rfl⟩,
-        mk_le_of_surjective this
-... = sum (λ i, mk (f i)) : (sum_mk _).symm
+calc mk (⋃ i, f i) ≤ mk (Σ i, f i) : mk_le_of_surjective (set.surjective_sigma_to_Union f)
+  ... = sum (λ i, mk (f i)) : (sum_mk _).symm
+
+theorem mk_Union_eq_sum_mk {α ι : Type u} {f : ι → set α} (h : ∀i j, i ≠ j → disjoint (f i) (f j)) :
+  mk (⋃ i, f i) = sum (λ i, mk (f i)) :=
+calc mk (⋃ i, f i) = mk (Σi, f i) : quot.sound ⟨set.Union_eq_sigma_of_disjoint h⟩
+  ... = sum (λi, mk (f i)) : (sum_mk _).symm
 
 @[simp] lemma finset_card {α : Type u} {s : finset α} : ↑(finset.card s) = mk (↑s : set α) :=
 by rw [fintype_card, nat_cast_inj, fintype.card_coe]

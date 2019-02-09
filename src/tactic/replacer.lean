@@ -6,7 +6,7 @@ Author: Mario Carneiro
 A mechanism for defining tactics for use in auto params, whose
 meaning is defined incrementally through attributes.
 -/
-import tactic.basic
+import tactic.basic data.string.defs data.list.defs meta.expr
 
 namespace tactic
 
@@ -98,5 +98,21 @@ do ntac ← ident,
   | (some p) := do t ← to_expr p, def_replacer ntac t
   | none     := def_replacer ntac `(tactic unit)
   end
+
+meta def unprime : name → tactic name
+| nn@(name.mk_string s n) :=
+  let s' := s.over_list (list.take_while (≠ ''')) in
+  if s'.length < s.length then pure (name.mk_string s' n)
+                   else fail format!"expecting primed name: {nn}"
+| n := fail format!"invalid name: {n}"
+
+@[user_attribute] meta def replaceable_attr : user_attribute :=
+{ name := `replaceable,
+  descr := "make definition replaceable in dependent modules",
+  after_set := some $ λ n' _ _,
+    do { n ← unprime n',
+         d ← get_decl n',
+         «def_replacer» n d.type,
+         (replacer_attr n).set n' () tt } }
 
 end tactic

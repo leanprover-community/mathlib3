@@ -20,7 +20,6 @@ go get github.com/itchio/gothub
 HEAD=`git rev-parse --abbrev-ref HEAD`
 if [ $HEAD = "master" ] && git tag $MATHLIB_VERSION_STRING
 then
-    last_tag=$(git describe @^ --abbrev=0 --tags)
     export OLEAN_ARCHIVE=mathlib-olean-$MATHLIB_VERSION_STRING.tar.gz
     export SCRIPT_ARCHIVE=mathlib-scripts-$MATHLIB_VERSION_STRING.tar.gz
     tar -zcvf $OLEAN_ARCHIVE src > /dev/null
@@ -28,7 +27,7 @@ then
     cp scripts/* mathlib-scripts/
     tar -zcvf $SCRIPT_ARCHIVE mathlib-scripts > /dev/null
     ls *.tar.gz
-    gothub release -s $GITHUB_TOKEN -u leanprover-community -r mathlib-nightly -t $MATHLIB_VERSION_STRING -d "some description" --pre-release
+    gothub release -s $GITHUB_TOKEN -u leanprover-community -r mathlib-nightly -t $MATHLIB_VERSION_STRING -d "Mathlib's .olean files and scripts" --pre-release
     gothub upload -s $GITHUB_TOKEN -u leanprover-community -r mathlib-nightly -t $MATHLIB_VERSION_STRING -n "$(basename $OLEAN_ARCHIVE)" -f "$OLEAN_ARCHIVE"
     gothub upload -s $GITHUB_TOKEN -u leanprover-community -r mathlib-nightly -t $MATHLIB_VERSION_STRING -n "$(basename $SCRIPT_ARCHIVE)" -f "$SCRIPT_ARCHIVE"
 

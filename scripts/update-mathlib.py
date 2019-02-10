@@ -30,14 +30,13 @@ if lib['git'] in ['https://github.com/leanprover/mathlib','https://github.com/le
     hash = rev[:7]
 
     g = Github()
-    repo = g.get_repo("leanprover-community/mathlib")
+    repo = g.get_repo("leanprover-community/mathlib-nightly")
     assets = (r.get_assets() for r in (repo.get_releases())
-                             if r.tag_name.endswith(hash) and
-                                  r.tag_name.startswith('bin') and
+                             if r.tag_name.startswith('nightly-') and
                                   r.target_commitish == rev )
     assets = next(assets,None)
     if assets:
-        a = next(x for x in assets if x.name.startswith('mathlib-bin'))
+        a = next(x for x in assets if x.name.startswith('mathlib-olean-nightly-'))
         cd = os.getcwd()
         os.chdir(mathlib_dir)
         if not os.path.isfile(a.name):

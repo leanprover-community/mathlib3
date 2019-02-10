@@ -1907,7 +1907,7 @@ instance : normalization_domain (polynomial α) :=
     end,
   ..polynomial.integral_domain }
 
-lemma monic_mul_norm_unit (hp0 : p ≠ 0) : monic (p * norm_unit p) :=
+lemma monic_normalize (hp0 : p ≠ 0) : monic (normalize p) :=
 show leading_coeff (p * ↑(dite _ _ _)) = 1,
 by rw dif_neg hp0; exact monic_mul_leading_coeff_inv hp0
 

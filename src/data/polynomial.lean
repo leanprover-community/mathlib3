@@ -1426,29 +1426,29 @@ multiplicity_finite_of_degree_pos_of_monic
       rw degree_X_sub_C; exact dec_trivial)
     (monic_X_sub_C _) h0
 
-def root_multiplicity (p : polynomial α) (a : α) : ℕ :=
+def root_multiplicity (a : α) (p : polynomial α) : ℕ :=
 if h0 : p = 0 then 0
 else let I : decidable_pred (λ n : ℕ, ¬(X - C a) ^ (n + 1) ∣ p) :=
   λ n, @not.decidable _ (decidable_dvd_monic p (monic_pow (monic_X_sub_C a) (n + 1))) in
 by exactI nat.find (multiplicity_X_sub_C_finite a h0)
 
 lemma root_multiplicity_eq_multiplicity (p : polynomial α) (a : α) :
-  root_multiplicity p a = if h0 : p = 0 then 0 else
+  root_multiplicity a p = if h0 : p = 0 then 0 else
   (multiplicity (X - C a) p).get (multiplicity_X_sub_C_finite a h0) :=
 by simp [multiplicity, root_multiplicity, roption.dom];
   congr; funext; congr
 
 lemma pow_root_multiplicity_dvd (p : polynomial α) (a : α) :
-  (X - C a) ^ root_multiplicity p a ∣ p :=
+  (X - C a) ^ root_multiplicity a p ∣ p :=
 if h : p = 0 then by simp [h]
 else by rw [root_multiplicity_eq_multiplicity, dif_neg h];
   exact multiplicity.pow_multiplicity_dvd _
 
 lemma div_by_monic_mul_pow_root_multiplicity_eq
   (p : polynomial α) (a : α) :
-  p /ₘ ((X - C a) ^ root_multiplicity p a) *
-  (X - C a) ^ root_multiplicity p a = p :=
-have monic ((X - C a) ^ root_multiplicity p a),
+  p /ₘ ((X - C a) ^ root_multiplicity a p) *
+  (X - C a) ^ root_multiplicity a p = p :=
+have monic ((X - C a) ^ root_multiplicity a p),
   from monic_pow (monic_X_sub_C _) _,
 by conv_rhs { rw [← mod_by_monic_add_div p this,
     (dvd_iff_mod_by_monic_eq_zero this).2 (pow_root_multiplicity_dvd _ _)] };
@@ -1456,14 +1456,14 @@ by conv_rhs { rw [← mod_by_monic_add_div p this,
 
 lemma eval_div_by_monic_pow_root_multiplicity_ne_zero
   {p : polynomial α} (a : α) (hp : p ≠ 0) :
-  (p /ₘ ((X - C a) ^ root_multiplicity p a)).eval a ≠ 0 :=
+  (p /ₘ ((X - C a) ^ root_multiplicity a p)).eval a ≠ 0 :=
 begin
   letI : nonzero_comm_ring α := nonzero_comm_ring.of_polynomial_ne hp,
   rw [ne.def, ← is_root.def, ← dvd_iff_is_root],
   rintros ⟨q, hq⟩,
   have := div_by_monic_mul_pow_root_multiplicity_eq p a,
   rw [mul_comm, hq, ← mul_assoc, ← pow_succ',
-    root_multiplicity, dif_neg hp] at this,
+    root_multiplicity_eq_multiplicity, dif_neg hp] at this,
   exact multiplicity.is_greatest'
     (multiplicity_finite_of_degree_pos_of_monic
     (show (0 : with_bot ℕ) < degree (X - C a),

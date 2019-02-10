@@ -1420,7 +1420,7 @@ local attribute [instance, priority 0] classical.dec
 lemma multiplicity_X_sub_C_finite (a : α) (h0 : p ≠ 0) :
   multiplicity.finite (X - C a) p :=
 multiplicity_finite_of_degree_pos_of_monic
-    (have (0 : α) ≠ 1, from (λ h, by haveI := subsingleton_of_zero_eq_one _ h;
+  (have (0 : α) ≠ 1, from (λ h, by haveI := subsingleton_of_zero_eq_one _ h;
       exact h0 (subsingleton.elim _ _)),
     by letI : nonzero_comm_ring α := { zero_ne_one := this, ..show comm_ring α, by apply_instance };
       rw degree_X_sub_C; exact dec_trivial)
@@ -1434,7 +1434,7 @@ by exactI nat.find (multiplicity_X_sub_C_finite a h0)
 
 lemma root_multiplicity_eq_multiplicity (p : polynomial α) (a : α) :
   root_multiplicity p a = if h0 : p = 0 then 0 else
-(multiplicity (X - C a) p).get (multiplicity_X_sub_C_finite a h0) :=
+  (multiplicity (X - C a) p).get (multiplicity_X_sub_C_finite a h0) :=
 by simp [multiplicity, root_multiplicity, roption.dom];
   congr; funext; congr
 

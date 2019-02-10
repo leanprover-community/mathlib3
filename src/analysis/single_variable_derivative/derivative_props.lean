@@ -1,3 +1,10 @@
+/-
+Copyright (c) 2019 Abhimanyu Pallavi Sudhir. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Abhimanyu Pallavi Sudhir
+Standard properties of derivatives
+-/
+
 import .tendsto_punctured
 import .derivative
 
@@ -141,4 +148,8 @@ begin
     apply has_derivative_at_of_has_derivative_everywhere _ _ _ Hg }                
 end
 
+--ideas:
+----------
 --L' Hospital
+--mean value theorem, rolle's theorem, etc.
+--squeeze theorem (not about derivatives), intermediate value theorem (not about derivatives)

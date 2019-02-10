@@ -1,3 +1,11 @@
+/-
+Copyright (c) 2019 Abhimanyu Pallavi Sudhir. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Abhimanyu Pallavi Sudhir
+Data about derivatives of specific functions.
+-/
+
+
 import .derivative_props
 import data.polynomial
 import analysis.exponential

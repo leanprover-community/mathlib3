@@ -1,3 +1,10 @@
+/-
+Copyright (c) 2019 Abhimanyu Pallavi Sudhir. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Abhimanyu Pallavi Sudhir
+Single-variable derivatives. Hopefully we can eventually extend this to more general metric spaces.
+-/
+
 import data.real.basic
 import analysis.normed_space
 

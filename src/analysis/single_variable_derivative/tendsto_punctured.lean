@@ -1,3 +1,15 @@
+/-
+Copyright (c) 2019 Abhimanyu Pallavi Sudhir. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Abhimanyu Pallavi Sudhir
+"Tendsto punctured" -- I hate this approach, but I need it for some theorems right now. 
+ Perhaps a better approach would be to define tendsto_punctured like this:
+  variables {α : Type} [topological_space α] (a : α)
+  def nhds_punctured (a : α) : filter α 
+  := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s ∧ s ≠ {a}}, principal s)
+But I have no idea how I could work with something like that.
+-/
+
 import .dependencies
 import data.real.basic
 import analysis.normed_space

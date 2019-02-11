@@ -12,4 +12,4 @@ if not os.path.isfile('leanpkg.toml'):
 
 leanpkg = toml.load('leanpkg.toml')
 version = leanpkg['package']['lean_version']
-print(f'lean-{version}')
+print('lean-' + version)

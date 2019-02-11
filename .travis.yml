@@ -24,6 +24,7 @@ before_install:
 
 install:
   - .venv/bin/python -m pip install toml
+  - export LEAN_VERSION=`.venv/bin/python scripts/lean_version.py`
   - |
     if [ ! -d "$HOME/.elan/toolchains/" ]; then
       curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y

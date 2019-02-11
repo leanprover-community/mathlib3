@@ -16,8 +16,12 @@ fi
 export GOPATH=$($READLINK -f go)
 PATH=$PATH:$GOPATH/bin
 go get github.com/itchio/gothub
-
-HEAD=`git rev-parse --abbrev-ref HEAD`
+if [ "$TRAVIS_PULL_REQUEST_BRANCH" = "" ]
+then
+    export HEAD=$TRAVIS_BRANCH
+else
+    export HEAD=$TRAVIS_PULL_REQUEST_BRANCH
+fi
 if [ $HEAD = "master" ] && git tag $MATHLIB_VERSION_STRING
 then
     export OLEAN_ARCHIVE=mathlib-olean-$MATHLIB_VERSION_STRING.tar.gz
@@ -31,7 +35,6 @@ then
     gothub upload -s $GITHUB_TOKEN -u leanprover-community -r mathlib-nightly -t $MATHLIB_VERSION_STRING -n "$(basename $OLEAN_ARCHIVE)" -f "$OLEAN_ARCHIVE"
     gothub upload -s $GITHUB_TOKEN -u leanprover-community -r mathlib-nightly -t $MATHLIB_VERSION_STRING -n "$(basename $SCRIPT_ARCHIVE)" -f "$SCRIPT_ARCHIVE"
 
-    LEAN_VERSION=`python3 lean_version.py`
     git tag $LEAN_VERSION -f
     git push mathlib -f $LEAN_VERSION
 fi

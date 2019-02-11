@@ -79,11 +79,6 @@ attribute [to_additive quotient_add_group.coe_neg] coe_inv
 
 local notation ` Q ` := quotient N
 
-instance is_group_hom_quotient_group_mk : is_group_hom (mk : G → Q) :=
-by refine {..}; intros; refl
-attribute [to_additive quotient_add_group.is_add_group_hom_quotient_add_group_mk] quotient_group.is_group_hom_quotient_group_mk
-attribute [to_additive quotient_add_group.is_add_group_hom_quotient_add_group_mk.equations._eqn_1] quotient_group.is_group_hom_quotient_group_mk.equations._eqn_1
-
 def lift (φ : G → H) [is_group_hom φ] (HN : ∀x∈N, φ x = 1) (q : Q) : H :=
 q.lift_on' φ $ assume a b (hab : a⁻¹ * b ∈ N),
 (calc φ a = φ a * 1           : by simp

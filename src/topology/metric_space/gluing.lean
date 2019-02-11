@@ -1,10 +1,10 @@
 /-
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Glueing metric spaces
+Gluing metric spaces
 Authors: Sébastien Gouëzel
 
-Glueing two metric spaces along a common subset. Formally, we are given
+Gluing two metric spaces along a common subset. Formally, we are given
      Φ
   γ ---> α
   |
@@ -37,7 +37,7 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 open function set premetric lattice
 
 namespace metric
-section approx_glueing
+section approx_gluing
 
 variables [nonempty γ] [metric_space α] [metric_space β]
           {Φ : γ → α} {Ψ : γ → β} {ε : ℝ}
@@ -200,15 +200,15 @@ private lemma glue_eq_of_dist_eq_zero (Φ : γ → α) (Ψ : γ → β) (ε : �
     have : 0 ≤ infi (λp, dist x (Φ p) + dist y (Ψ p)) :=
       le_cinfi (λp, by simpa using add_le_add (@dist_nonneg _ _ x _) (@dist_nonneg _ _ y _)),
     have : 0 + ε ≤ glue_dist Φ Ψ ε (inl x) (inr y) := add_le_add this (le_refl ε),
-    have : false, by linarith,
-    exact this.elim
+    exfalso,
+    linarith
   end
 | (inr x) (inl y) h := begin
     have : 0 ≤ infi (λp, dist y (Φ p) + dist x (Ψ p)) :=
       le_cinfi (λp, by simpa using add_le_add (@dist_nonneg _ _ x _) (@dist_nonneg _ _ y _)),
     have : 0 + ε ≤ glue_dist Φ Ψ ε (inr x) (inl y) := add_le_add this (le_refl ε),
-    have : false, by linarith,
-    exact this.elim
+    exfalso,
+    linarith
   end
 | (inr x) (inr y) h := by rw eq_of_dist_eq_zero h
 
@@ -223,13 +223,13 @@ def glue_metric_approx (Φ : γ → α) (Ψ : γ → β) (ε : ℝ) (ε0 : 0 < �
   dist_triangle      := glue_dist_triangle Φ Ψ ε H,
   eq_of_dist_eq_zero := glue_eq_of_dist_eq_zero Φ Ψ ε ε0 }
 
-end approx_glueing
+end approx_gluing
 
 section sum
 /- A particular case of the previous construction is when one uses basepoints in α and β and one
 glues only along the basepoints, putting them at distance 1. We give a direct definition of
 the distance, without infi, as it is easier to use in applications, and show that it is equal to
-the glueing distance defined above to take advantage of the lemmas we have already proved. -/
+the gluing distance defined above to take advantage of the lemmas we have already proved. -/
 
 variables [metric_space α] [metric_space β] [inhabited α] [inhabited β]
 open sum (inl inr)
@@ -298,8 +298,7 @@ def metric_space_sum : metric_space (α ⊕ β) :=
 
 local attribute [instance] metric_space_sum
 
-lemma sum.dist_eq {x y : α ⊕ β} :
-dist x y = sum.dist x y := rfl
+lemma sum.dist_eq {x y : α ⊕ β} : dist x y = sum.dist x y := rfl
 
 /-- The left injection of a space in a disjoint union in an isometry -/
 lemma isometry_on_inl : isometry (sum.inl : α → (α ⊕ β)) :=
@@ -311,8 +310,8 @@ isometry_emetric_iff_metric.2 $ λx y, rfl
 
 end sum
 
-section glueing
-/- Exact glueing of two metric spaces along isometric subsets. -/
+section gluing
+/- Exact gluing of two metric spaces along isometric subsets. -/
 
 variables [nonempty γ] [metric_space γ] [metric_space α] [metric_space β]
           {Φ : γ → α} {Ψ : γ → β} {ε : ℝ}
@@ -353,5 +352,5 @@ isometry_emetric_iff_metric.2 $ λ_ _, rfl
 lemma to_glue_r_isometry (hΦ : isometry Φ) (hΨ : isometry Ψ) : isometry (to_glue_r hΦ hΨ) :=
 isometry_emetric_iff_metric.2 $ λ_ _, rfl
 
-end glueing --section
+end gluing --section
 end metric --namespace

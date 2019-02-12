@@ -1724,31 +1724,48 @@ def at_bot [preorder α] : filter α := ⨅ a, principal {b | b ≤ a}
 lemma mem_at_top [preorder α] (a : α) : {b : α | a ≤ b} ∈ (@at_top α _).sets :=
 mem_infi_sets a $ subset.refl _
 
-@[simp] lemma at_top_ne_bot [inhabited α] [semilattice_sup α] : (at_top : filter α) ≠ ⊥ :=
+@[simp] lemma at_top_ne_bot [nonempty α] [semilattice_sup α] : (at_top : filter α) ≠ ⊥ :=
 infi_neq_bot_of_directed (by apply_instance)
   (assume a b, ⟨a ⊔ b, by simp only [ge, le_principal_iff, forall_const, set_of_subset_set_of,
     mem_principal_sets, and_self, sup_le_iff, forall_true_iff] {contextual := tt}⟩)
   (assume a, by simp only [principal_eq_bot_iff, ne.def, principal_eq_bot_iff]; exact ne_empty_of_mem (le_refl a))
 
-@[simp] lemma mem_at_top_sets [inhabited α] [semilattice_sup α] {s : set α} :
+@[simp] lemma mem_at_top_sets [nonempty α] [semilattice_sup α] {s : set α} :
   s ∈ (at_top : filter α).sets ↔ ∃a:α, ∀b≥a, b ∈ s :=
+let ⟨a⟩ := ‹nonempty α› in
 iff.intro
-  (assume h, infi_sets_induct h ⟨default α, by simp only [forall_const, mem_univ, forall_true_iff]⟩
+  (assume h, infi_sets_induct h ⟨a, by simp only [forall_const, mem_univ, forall_true_iff]⟩
     (assume a s₁ s₂ ha ⟨b, hb⟩, ⟨a ⊔ b,
       assume c hc, ⟨ha $ le_trans le_sup_left hc, hb _ $ le_trans le_sup_right hc⟩⟩)
     (assume s₁ s₂ h ⟨a, ha⟩, ⟨a, assume b hb, h $ ha _ hb⟩))
   (assume ⟨a, h⟩, mem_infi_sets a $ assume x, h x)
 
-lemma map_at_top_eq [inhabited α] [semilattice_sup α] {f : α → β} :
+lemma map_at_top_eq [nonempty α] [semilattice_sup α] {f : α → β} :
   at_top.map f = (⨅a, principal $ f '' {a' | a ≤ a'}) :=
 calc map f (⨅a, principal {a' | a ≤ a'}) = (⨅a, map f $ principal {a' | a ≤ a'}) :
     map_infi_eq (assume a b, ⟨a ⊔ b, by simp only [ge, le_principal_iff, forall_const, set_of_subset_set_of,
-      mem_principal_sets, and_self, sup_le_iff, forall_true_iff] {contextual := tt}⟩) ⟨default α⟩
+      mem_principal_sets, and_self, sup_le_iff, forall_true_iff] {contextual := tt}⟩)
+      (by apply_instance)
   ... = (⨅a, principal $ f '' {a' | a ≤ a'}) : by simp only [map_principal, eq_self_iff_true]
 
 lemma tendsto_at_top {α β} [preorder β] (m : α → β) (f : filter α) :
   tendsto m f at_top ↔ (∀b, {a | b ≤ m a} ∈ f.sets) :=
 by simp only [at_top, tendsto_infi, tendsto_principal]; refl
+
+/-- A function `f` grows to infinity independent of an order-preserving embedding `e`. -/
+lemma tendsto_at_top_embedding {α β γ : Type*} [preorder β] [preorder γ]
+  {f : α → β} {e : β → γ} {l : filter α}
+  (hm : ∀b₁ b₂, e b₁ ≤ e b₂ ↔ b₁ ≤ b₂) (hu : ∀c, ∃b, c ≤ e b) :
+  tendsto (e ∘ f) l at_top ↔ tendsto f l at_top :=
+begin
+  rw [tendsto_at_top, tendsto_at_top],
+  split,
+  { assume hc b,
+    filter_upwards [hc (e b)] assume a, (hm b (f a)).1 },
+  { assume hb c,
+    rcases hu c with ⟨b, hc⟩,
+    filter_upwards [hb b] assume a ha, le_trans hc ((hm b (f a)).2 ha) }
+end
 
 lemma tendsto_at_top_at_top {α β} [preorder α] [preorder β]
   [hα : nonempty α] (h : directed (@has_le.le α _) id)
@@ -1777,6 +1794,57 @@ lemma prod_map_at_top_eq {α₁ α₂ β₁ β₂ : Type*} [inhabited β₁] [in
   [semilattice_sup β₁] [semilattice_sup β₂] (u₁ : β₁ → α₁) (u₂ : β₂ → α₂) :
   filter.prod (map u₁ at_top) (map u₂ at_top) = map (prod.map u₁ u₂) at_top :=
 by rw [prod_map_map_eq, prod_at_top_at_top_eq, prod.map_def]
+
+/-- A function `f` maps upwards closed sets (at_top sets) to upwards closed sets when it is a
+Galois insertion. The Galois "insertion" and "connection" is weakened to only require it to be an
+insertion and a connetion above `b'`. -/
+lemma map_at_top_eq_of_gc [semilattice_sup α] [semilattice_sup β] {f : α → β} (g : β → α) (b' : β)(hf : monotone f) (gc : ∀a, ∀b≥b', f a ≤ b ↔ a ≤ g b) (hgi : ∀b≥b', b ≤ f (g b)) :
+  map f at_top = at_top :=
+begin
+  rw [@map_at_top_eq α _ ⟨g b'⟩],
+  refine le_antisymm
+    (le_infi $ assume b, infi_le_of_le (g (b ⊔ b')) $ principal_mono.2 $ image_subset_iff.2 _)
+    (le_infi $ assume a, infi_le_of_le (f a ⊔ b') $ principal_mono.2 _),
+  { assume a ha, exact (le_trans le_sup_left $ le_trans (hgi _ le_sup_right) $ hf ha) },
+  { assume b hb,
+    have hb' : b' ≤ b := le_trans le_sup_right hb,
+    exact ⟨g b, (gc _ _ hb').1 (le_trans le_sup_left hb),
+      le_antisymm ((gc _ _ hb').2 (le_refl _)) (hgi _ hb')⟩ }
+end
+
+lemma map_add_at_top_eq_nat (k : ℕ) : map (λa, a + k) at_top = at_top :=
+map_at_top_eq_of_gc (λa, a - k) k
+  (assume a b h, add_le_add_right h k)
+  (assume a b h, (nat.le_sub_right_iff_add_le h).symm)
+  (assume a h, by rw [nat.sub_add_cancel h])
+
+lemma map_sub_at_top_eq_nat (k : ℕ) : map (λa, a - k) at_top = at_top :=
+map_at_top_eq_of_gc (λa, a + k) 0
+  (assume a b h, nat.sub_le_sub_right h _)
+  (assume a b _, nat.sub_le_right_iff_le_add)
+  (assume b _, by rw [nat.add_sub_cancel])
+
+lemma tendso_add_at_top_nat (k : ℕ) : tendsto (λa, a + k) at_top at_top :=
+le_of_eq (map_add_at_top_eq_nat k)
+
+lemma tendso_sub_at_top_nat (k : ℕ) : tendsto (λa, a - k) at_top at_top :=
+le_of_eq (map_sub_at_top_eq_nat k)
+
+lemma map_div_at_top_eq_nat (k : ℕ) (hk : k > 0) : map (λa, a / k) at_top = at_top :=
+map_at_top_eq_of_gc (λb, b * k + (k - 1)) 1
+  (assume a b h, nat.div_le_div_right h)
+  (assume a b _,
+    calc a / k ≤ b ↔ a / k < b + 1 : by rw [← nat.succ_eq_add_one, nat.lt_succ_iff]
+      ... ↔ a < (b + 1) * k : nat.div_lt_iff_lt_mul _ _ hk
+      ... ↔ _ :
+      begin
+        cases k,
+        exact (lt_irrefl _ hk).elim,
+        simp [mul_add, add_mul, nat.succ_add, nat.lt_succ_iff]
+      end)
+  (assume b _,
+    calc b = (b * k) / k : by rw [nat.mul_div_cancel b hk]
+      ... ≤ (b * k + (k - 1)) / k : nat.div_le_div_right $ nat.le_add_right _ _)
 
 /- ultrafilter -/
 

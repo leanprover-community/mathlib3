@@ -11,6 +11,8 @@ noncomputable theory
 open classical finset function filter metric
 local attribute [instance] prop_decidable
 
+variables {α : Type*}
+
 section real
 
 lemma has_sum_of_absolute_convergence {f : ℕ → ℝ}
@@ -95,25 +97,10 @@ tendsto_orderable_unbounded (no_top 0) (no_bot 0) $ assume l u hl hu,
       simp [this]
     end⟩⟩
 
-lemma map_succ_at_top_eq : map nat.succ at_top = at_top :=
-le_antisymm
-  (assume s hs,
-    let ⟨b, hb⟩ := mem_at_top_sets.mp hs in
-    mem_at_top_sets.mpr ⟨b, assume c hc, hb (c + 1) $ le_trans hc $ nat.le_succ _⟩)
-  (assume s hs,
-    let ⟨b, hb⟩ := mem_at_top_sets.mp hs in
-    mem_at_top_sets.mpr ⟨b + 1, assume c,
-    match c with
-    | 0     := assume h,
-      have 0 > 0, from lt_of_lt_of_le (lt_add_of_le_of_pos (nat.zero_le _) zero_lt_one) h,
-      (lt_irrefl 0 this).elim
-    | (c+1) := assume h, hb _ (nat.le_of_succ_le_succ h)
-    end⟩)
-
-lemma tendsto_comp_succ_at_top_iff {α : Type*} {f : ℕ → α} {x : filter α} :
+lemma tendsto_comp_succ_at_top_iff {f : ℕ → α} {x : filter α} :
   tendsto (λn, f (nat.succ n)) at_top x ↔ tendsto f at_top x :=
 calc tendsto (f ∘ nat.succ) at_top x ↔ tendsto f (map nat.succ at_top) x : by simp [tendsto, filter.map_map]
- ... ↔ _ : by rw [map_succ_at_top_eq]
+ ... ↔ _ : by rw [map_add_at_top_eq_nat 1]
 
 lemma tendsto_pow_at_top_nhds_0_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
   tendsto (λn:ℕ, r^n) at_top (nhds 0) :=
@@ -125,18 +112,13 @@ by_cases
         tendsto_inverse_at_top_nhds_0,
     tendsto_cong this $ univ_mem_sets' $ by simp *)
 
-lemma tendsto_coe_iff {f : ℕ → ℕ} : tendsto (λ n, (f n : ℝ)) at_top at_top ↔ tendsto f at_top at_top :=
-⟨ λ h, tendsto_infi.2 $ λ i, tendsto_principal.2
-    (have _, from tendsto_infi.1 h i, by simpa using tendsto_principal.1 this),
-  λ h, tendsto.comp h tendsto_of_nat_at_top_at_top ⟩
-
 lemma tendsto_pow_at_top_at_top_of_gt_1_nat {k : ℕ} (h : 1 < k) : tendsto (λn:ℕ, k ^ n) at_top at_top :=
-tendsto_coe_iff.1 $
+tendsto_coe_nat_real_at_top_iff.1 $
   have hr : 1 < (k : ℝ), by rw [← nat.cast_one, nat.cast_lt]; exact h,
   by simpa using tendsto_pow_at_top_at_top_of_gt_1 hr
 
 lemma tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ)⁻¹) at_top (nhds 0) :=
-tendsto.comp (tendsto_coe_iff.2 tendsto_id) tendsto_inverse_at_top_nhds_0
+tendsto.comp (tendsto_coe_nat_real_at_top_iff.2 tendsto_id) tendsto_inverse_at_top_nhds_0
 
 lemma tendsto_one_div_at_top_nhds_0_nat : tendsto (λ n : ℕ, 1/(n : ℝ)) at_top (nhds 0) :=
 by simpa only [inv_eq_one_div] using tendsto_inverse_at_top_nhds_0_nat

@@ -11,10 +11,6 @@ noncomputable theory
 open classical finset function filter metric
 local attribute [instance] prop_decidable
 
-variables {α : Type*}
-
-section real
-
 lemma has_sum_of_absolute_convergence {f : ℕ → ℝ}
   (hf : ∃r, tendsto (λn, (range n).sum (λi, abs (f i))) at_top (nhds r)) : has_sum f :=
 let f' := λs:finset ℕ, s.sum (λi, abs (f i)) in
@@ -68,8 +64,6 @@ lemma is_sum_iff_tendsto_nat_of_nonneg {f : ℕ → ℝ} {r : ℝ} (hf : ∀n, 0
   have p = r, from tendsto_nhds_unique at_top_ne_bot hp hr,
   this ▸ h⟩
 
-end real
-
 lemma tendsto_pow_at_top_at_top_of_gt_1 {r : ℝ} (h : r > 1) : tendsto (λn:ℕ, r ^ n) at_top at_top :=
 tendsto_infi.2 $ assume p, tendsto_principal.2 $
   let ⟨n, hn⟩ := exists_nat_gt (p / (r - 1)) in
@@ -97,22 +91,18 @@ tendsto_orderable_unbounded (no_top 0) (no_bot 0) $ assume l u hl hu,
       simp [this]
     end⟩⟩
 
-lemma tendsto_comp_succ_at_top_iff {f : ℕ → α} {x : filter α} :
-  tendsto (λn, f (nat.succ n)) at_top x ↔ tendsto f at_top x :=
-calc tendsto (f ∘ nat.succ) at_top x ↔ tendsto f (map nat.succ at_top) x : by simp [tendsto, filter.map_map]
- ... ↔ _ : by rw [map_add_at_top_eq_nat 1]
-
 lemma tendsto_pow_at_top_nhds_0_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
   tendsto (λn:ℕ, r^n) at_top (nhds 0) :=
 by_cases
-  (assume : r = 0, tendsto_comp_succ_at_top_iff.mp $ by simp [pow_succ, this, tendsto_const_nhds])
+  (assume : r = 0, (tendsto_add_at_top_iff_nat 1).mp $ by simp [pow_succ, this, tendsto_const_nhds])
   (assume : r ≠ 0,
     have tendsto (λn, (r⁻¹ ^ n)⁻¹) at_top (nhds 0),
       from (tendsto_pow_at_top_at_top_of_gt_1 $ one_lt_inv (lt_of_le_of_ne h₁ this.symm) h₂).comp
         tendsto_inverse_at_top_nhds_0,
     tendsto_cong this $ univ_mem_sets' $ by simp *)
 
-lemma tendsto_pow_at_top_at_top_of_gt_1_nat {k : ℕ} (h : 1 < k) : tendsto (λn:ℕ, k ^ n) at_top at_top :=
+lemma tendsto_pow_at_top_at_top_of_gt_1_nat {k : ℕ} (h : 1 < k) :
+  tendsto (λn:ℕ, k ^ n) at_top at_top :=
 tendsto_coe_nat_real_at_top_iff.1 $
   have hr : 1 < (k : ℝ), by rw [← nat.cast_one, nat.cast_lt]; exact h,
   by simpa using tendsto_pow_at_top_at_top_of_gt_1 hr
@@ -123,9 +113,10 @@ tendsto.comp (tendsto_coe_nat_real_at_top_iff.2 tendsto_id) tendsto_inverse_at_t
 lemma tendsto_one_div_at_top_nhds_0_nat : tendsto (λ n : ℕ, 1/(n : ℝ)) at_top (nhds 0) :=
 by simpa only [inv_eq_one_div] using tendsto_inverse_at_top_nhds_0_nat
 
-lemma tendsto_one_div_add_at_top_nhds_0_nat : tendsto (λ n : ℕ, 1 / ((n : ℝ) + 1)) at_top (nhds 0) :=
+lemma tendsto_one_div_add_at_top_nhds_0_nat :
+  tendsto (λ n : ℕ, 1 / ((n : ℝ) + 1)) at_top (nhds 0) :=
 suffices tendsto (λ n : ℕ, 1 / (↑(n + 1) : ℝ)) at_top (nhds 0), by simpa,
-tendsto_comp_succ_at_top_iff.2 tendsto_one_div_at_top_nhds_0_nat
+(tendsto_add_at_top_iff_nat 1).2 tendsto_one_div_at_top_nhds_0_nat
 
 lemma is_sum_geometric {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
   is_sum (λn:ℕ, r ^ n) (1 / (1 - r)) :=

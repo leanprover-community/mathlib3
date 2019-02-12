@@ -1468,6 +1468,11 @@ le_of_eq (map_add_at_top_eq_nat k)
 lemma tendso_sub_at_top_nat (k : ℕ) : tendsto (λa, a - k) at_top at_top :=
 le_of_eq (map_sub_at_top_eq_nat k)
 
+lemma tendsto_add_at_top_iff_nat {f : ℕ → α} {l : filter α} (k : ℕ) :
+  tendsto (λn, f (n + k)) at_top l ↔ tendsto f at_top l :=
+show tendsto (f ∘ (λn, n + k)) at_top l ↔ tendsto f at_top l,
+  by rw [← tendsto_map'_iff, map_add_at_top_eq_nat]
+
 lemma map_div_at_top_eq_nat (k : ℕ) (hk : k > 0) : map (λa, a / k) at_top = at_top :=
 map_at_top_eq_of_gc (λb, b * k + (k - 1)) 1
   (assume a b h, nat.div_le_div_right h)

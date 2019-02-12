@@ -26,26 +26,6 @@ local attribute [instance] prop_decidable
 
 universes u v w x
 
-section tendsto
-variables {α : Type*} [topological_space α]
-open lattice filter
-
-lemma tendsto_at_top_supr_nat [complete_linear_order α] [orderable_topology α]
-  (f : ℕ → α) (hf : monotone f) : tendsto f at_top (nhds (⨆i, f i)) :=
-tendsto_orderable.2 $ and.intro
-  (assume a ha, let ⟨n, hn⟩ := lt_supr_iff.1 ha in
-    mem_at_top_sets.2 ⟨n, assume i hi, lt_of_lt_of_le hn (hf hi)⟩)
-  (assume a ha, univ_mem_sets' (assume n, lt_of_le_of_lt (le_supr _ n) ha))
-
-lemma tendsto_at_top_infi_nat [complete_linear_order α] [orderable_topology α]
-  (f : ℕ → α) (hf : ∀{n m}, n ≤ m → f m ≤ f n) : tendsto f at_top (nhds (⨅i, f i)) :=
-tendsto_orderable.2 $ and.intro
-  (assume a ha, univ_mem_sets' (assume n, lt_of_lt_of_le ha (infi_le _ _)))
-  (assume a ha, let ⟨n, hn⟩ := infi_lt_iff.1 ha in
-    mem_at_top_sets.2 ⟨n, assume i hi, lt_of_le_of_lt (hf hi) hn⟩)
-
-end tendsto
-
 namespace measure_theory
 
 section of_measurable

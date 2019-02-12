@@ -1367,14 +1367,24 @@ begin
         infi_le_of_le (a + r) $ infi_le _ (or.inr rfl)) } }
 end
 
+lemma tendsto_at_top_supr_nat [topological_space α] [complete_linear_order α] [orderable_topology α]
+  (f : ℕ → α) (hf : monotone f) : tendsto f at_top (nhds (⨆i, f i)) :=
+tendsto_orderable.2 $ and.intro
+  (assume a ha, let ⟨n, hn⟩ := lt_supr_iff.1 ha in
+    mem_at_top_sets.2 ⟨n, assume i hi, lt_of_lt_of_le hn (hf hi)⟩)
+  (assume a ha, univ_mem_sets' (assume n, lt_of_le_of_lt (le_supr _ n) ha))
+
+lemma tendsto_at_top_infi_nat [topological_space α] [complete_linear_order α] [orderable_topology α]
+  (f : ℕ → α) (hf : ∀{n m}, n ≤ m → f m ≤ f n) : tendsto f at_top (nhds (⨅i, f i)) :=
+tendsto_orderable.2 $ and.intro
+  (assume a ha, univ_mem_sets' (assume n, lt_of_lt_of_le ha (infi_le _ _)))
+  (assume a ha, let ⟨n, hn⟩ := infi_lt_iff.1 ha in
+    mem_at_top_sets.2 ⟨n, assume i hi, lt_of_le_of_lt (hf hi) hn⟩)
+
 lemma supr_eq_of_tendsto {α} [topological_space α] [complete_linear_order α] [orderable_topology α]
-  {f : ℕ → α} {a : α} (hf : monotone f) (h : tendsto f at_top (nhds a)) : supr f = a :=
-le_antisymm
-  (supr_le $ assume i, le_of_not_gt $ assume hi,
-    have {n | i ≤ n} ∈ (at_top : filter ℕ).sets, from mem_at_top _,
-    let ⟨n, h₁, h₂⟩ := inhabited_of_mem_sets at_top_ne_bot
-      (inter_mem_sets this ((tendsto_orderable.1 h).2 _ hi)) in
-    not_lt_of_ge (hf h₁) h₂)
-  (le_of_not_gt $ assume ha,
-    let ⟨n, hn⟩ := inhabited_of_mem_sets at_top_ne_bot ((tendsto_orderable.1 h).1 _ ha) in
-    not_lt_of_ge (le_supr _ _) hn)
+  {f : ℕ → α} {a : α} (hf : monotone f) : tendsto f at_top (nhds a) → supr f = a :=
+tendsto_nhds_unique at_top_ne_bot (tendsto_at_top_supr_nat f hf)
+
+lemma infi_eq_of_tendsto {α} [topological_space α] [complete_linear_order α] [orderable_topology α]
+  {f : ℕ → α} {a : α} (hf : ∀n m, n ≤ m → f m ≤ f n) : tendsto f at_top (nhds a) → infi f = a :=
+tendsto_nhds_unique at_top_ne_bot (tendsto_at_top_infi_nat f hf)

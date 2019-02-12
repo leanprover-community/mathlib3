@@ -84,6 +84,20 @@ calc ∥-g∥ = ∥0 - g∥ : by simp
       ... = ∥g - 0∥ : (dist_eq_norm g 0)
       ... = ∥g∥ : by simp
 
+lemma norm_triangle_sub {a b : α} : ∥a - b∥ ≤ ∥a∥ + ∥b∥ :=
+by simpa only [sub_eq_add_neg, norm_neg] using norm_triangle a (-b)
+
+lemma norm_triangle_sum {β} [decidable_eq β] (s : finset β) (f : β → α) :
+  ∥s.sum f∥ ≤ s.sum (λa, ∥ f a ∥) :=
+finset.induction_on s (by simp only [finset.sum_empty, norm_zero]; exact le_refl _)
+begin
+  assume a s has ih,
+  calc ∥(insert a s).sum f∥ ≤ ∥ f a + s.sum f ∥ : by rw [finset.sum_insert has]
+    ... ≤ ∥ f a ∥ + ∥ s.sum f ∥ : norm_triangle _ _
+    ... ≤ ∥ f a ∥ + s.sum (λa, ∥ f a ∥) : add_le_add_left ih _
+    ... = (insert a s).sum (λa, ∥ f a ∥) : by rw [finset.sum_insert has]
+end
+
 lemma abs_norm_sub_norm_le (g h : α) : abs(∥g∥ - ∥h∥) ≤ ∥g - h∥ :=
 abs_le.2 $ and.intro
   (suffices -∥g - h∥ ≤ -(∥h∥ - ∥g∥), by simpa,

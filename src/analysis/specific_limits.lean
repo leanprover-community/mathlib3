@@ -5,64 +5,61 @@ Authors: Johannes Hölzl
 
 A collection of specific limit computations.
 -/
-import algebra.big_operators algebra.group_power tactic.norm_num
-  topology.instances.ennreal topology.algebra.infinite_sum
+import analysis.normed_space.basic
+import topology.instances.ennreal
+
 noncomputable theory
-open classical finset function filter metric
-local attribute [instance] prop_decidable
+local attribute [instance] classical.prop_decidable
 
-lemma has_sum_of_absolute_convergence {f : ℕ → ℝ}
-  (hf : ∃r, tendsto (λn, (range n).sum (λi, abs (f i))) at_top (nhds r)) : has_sum f :=
-let f' := λs:finset ℕ, s.sum (λi, abs (f i)) in
-suffices cauchy (map (λs:finset ℕ, s.sum f) at_top),
-  from complete_space.complete this,
-cauchy_iff.mpr $ and.intro (map_ne_bot at_top_ne_bot) $
-assume s hs,
-let ⟨ε, hε, hsε⟩ := mem_uniformity_dist.mp hs, ⟨r, hr⟩ := hf in
-have hε' : {p : ℝ × ℝ | dist p.1 p.2 < ε / 2} ∈ (@uniformity ℝ _).sets,
-  from mem_uniformity_dist.mpr ⟨ε / 2, div_pos_of_pos_of_pos hε two_pos, assume a b h, h⟩,
-have cauchy (at_top.map $ λn, f' (range n)),
-  from cauchy_downwards cauchy_nhds (map_ne_bot at_top_ne_bot) hr,
-have ∃n, ∀{n'}, n ≤ n' → dist (f' (range n)) (f' (range n')) < ε / 2,
-  by simp [cauchy_iff, mem_at_top_sets] at this;
-  from let ⟨t, ⟨u, hu⟩, ht⟩ := this _ hε' in
-    ⟨u, assume n' hn, ht $ set.prod_mk_mem_set_prod_eq.mpr ⟨hu _ (le_refl _), hu _ hn⟩⟩,
-let ⟨n, hn⟩ := this in
-have ∀{s}, range n ⊆ s → abs ((s \ range n).sum f) < ε / 2,
-  from assume s hs,
-  let ⟨n', hn'⟩ := @exists_nat_subset_range s in
-  have range n ⊆ range n', from finset.subset.trans hs hn',
-  have f'_nn : 0 ≤ f' (range n' \ range n), from zero_le_sum $ assume _ _, abs_nonneg _,
-  calc abs ((s \ range n).sum f) ≤ f' (s \ range n) : abs_sum_le_sum_abs
-    ... ≤ f' (range n' \ range n) : sum_le_sum_of_subset_of_nonneg
-      (finset.sdiff_subset_sdiff hn' (finset.subset.refl _))
-      (assume _ _ _, abs_nonneg _)
-    ... = abs (f' (range n' \ range n)) : (abs_of_nonneg f'_nn).symm
-    ... = abs (f' (range n') - f' (range n)) :
-      by simp [f', (sum_sdiff ‹range n ⊆ range n'›).symm]
-    ... = abs (f' (range n) - f' (range n')) : abs_sub _ _
-    ... < ε / 2 : hn $ range_subset.mp this,
-have ∀{s t}, range n ⊆ s → range n ⊆ t → dist (s.sum f) (t.sum f) < ε,
-  from assume s t hs ht,
-  calc abs (s.sum f - t.sum f) = abs ((s \ range n).sum f + - (t \ range n).sum f) :
-      by rw [←sum_sdiff hs, ←sum_sdiff ht]; simp
-    ... ≤ abs ((s \ range n).sum f) + abs ((t \ range n).sum f) :
-      le_trans (abs_add_le_abs_add_abs _ _) $ by rw [abs_neg]; exact le_refl _
-    ... < ε / 2 + ε / 2 : add_lt_add (this hs) (this ht)
-    ... = ε : by rw [←add_div, add_self_div_two],
-⟨(λs:finset ℕ, s.sum f) '' {s | range n ⊆ s}, image_mem_map $ mem_at_top (range n),
-  assume ⟨a, b⟩ ⟨⟨t, ht, ha⟩, ⟨s, hs, hb⟩⟩, by simp at ha hb; exact ha ▸ hb ▸ hsε (this ht hs)⟩
+open classical function lattice filter finset metric
 
-lemma is_sum_iff_tendsto_nat_of_nonneg {f : ℕ → ℝ} {r : ℝ} (hf : ∀n, 0 ≤ f n) :
-  is_sum f r ↔ tendsto (λn, (range n).sum f) at_top (nhds r) :=
-⟨tendsto_sum_nat_of_is_sum,
-  assume hr,
-  have tendsto (λn, (range n).sum (λn, abs (f n))) at_top (nhds r),
-    by simp [(λi, abs_of_nonneg (hf i)), hr],
-  let ⟨p, h⟩ := has_sum_of_absolute_convergence ⟨r, this⟩ in
-  have hp : tendsto (λn, (range n).sum f) at_top (nhds p), from tendsto_sum_nat_of_is_sum h,
-  have p = r, from tendsto_nhds_unique at_top_ne_bot hp hr,
-  this ▸ h⟩
+variables {α : Type*} {β : Type*} {ι : Type*}
+
+lemma has_sum_iff_cauchy [normed_group α] [complete_space α] {f : ι → α} :
+  has_sum f ↔ ∀ε>0, (∃s:finset ι, ∀t, disjoint t s → ∥ t.sum f ∥ < ε) :=
+begin
+  refine iff.trans (cauchy_map_iff_exists_tendsto at_top_ne_bot).symm _,
+  simp only [cauchy_map_iff, and_iff_right at_top_ne_bot, prod_at_top_at_top_eq, uniformity_dist,
+    tendsto_infi, tendsto_at_top_principal, set.mem_set_of_eq],
+  split,
+  { assume h ε hε,
+    rcases h ε hε with ⟨⟨s₁, s₂⟩, h⟩,
+    use [s₁ ∪ s₂],
+    assume t ht,
+    have : (s₁ ∪ s₂) ∩ t = ∅ := finset.disjoint_iff_inter_eq_empty.1 ht.symm,
+    specialize h (s₁ ∪ s₂, (s₁ ∪ s₂) ∪ t) ⟨le_sup_left, le_sup_left_of_le le_sup_right⟩,
+    simpa only [finset.sum_union this, dist_eq_norm,
+      sub_add_eq_sub_sub, sub_self, zero_sub, norm_neg] using h },
+  { assume h' ε hε,
+    rcases h' (ε / 2) (half_pos hε) with ⟨s, h⟩,
+    use [(s, s)],
+    rintros ⟨t₁, t₂⟩ ⟨ht₁, ht₂⟩,
+    dsimp at ht₁ ht₂,
+    calc dist (t₁.sum f) (t₂.sum f) = ∥sum (t₁ \ s) f - sum (t₂ \ s) f∥ :
+        by simp only [(finset.sum_sdiff ht₁).symm, (finset.sum_sdiff ht₂).symm,
+          dist_eq_norm, add_sub_add_right_eq_sub]
+      ... ≤ ∥sum (t₁ \ s) f∥ + ∥ sum (t₂ \ s) f∥ : norm_triangle_sub
+      ... < ε / 2 + ε / 2 : add_lt_add (h _ finset.disjoint_sdiff) (h _ finset.disjoint_sdiff)
+      ... = ε : add_halves _ }
+end
+
+lemma has_sum_of_has_sum_norm [normed_group α] [complete_space α] {f : ι → α}
+  (hf : has_sum (λa, norm (f a))) : has_sum f :=
+has_sum_iff_cauchy.2 $ assume ε hε,
+  let ⟨s, hs⟩ := has_sum_iff_cauchy.1 hf ε hε in
+  ⟨s, assume t ht,
+    have ∥t.sum (λa, ∥f a∥)∥ < ε := hs t ht,
+    have nn : 0 ≤ t.sum (λa, ∥f a∥) := finset.zero_le_sum (assume a _, norm_nonneg _),
+    lt_of_le_of_lt (norm_triangle_sum t f) $ by rwa [real.norm_eq_abs, abs_of_nonneg nn] at this⟩
+
+lemma has_sum_of_absolute_convergence_real {f : ℕ → ℝ} (hf : ∀n, 0 ≤ f n) :
+  (∃r, tendsto (λn, (range n).sum (λi, abs (f i))) at_top (nhds r)) → has_sum f
+| ⟨r, hr⟩ :=
+  begin
+    refine has_sum_of_has_sum_norm ⟨r, (is_sum_iff_tendsto_nat_of_nonneg _ _).2 _⟩,
+    exact assume i, norm_nonneg _,
+    simpa only using hr
+  end
 
 lemma tendsto_pow_at_top_at_top_of_gt_1 {r : ℝ} (h : r > 1) : tendsto (λn:ℕ, r ^ n) at_top at_top :=
 tendsto_infi.2 $ assume p, tendsto_principal.2 $
@@ -126,7 +123,7 @@ have r + -1 ≠ 0,
 have tendsto (λn, (r ^ n - 1) * (r - 1)⁻¹) at_top (nhds ((0 - 1) * (r - 1)⁻¹)),
   from tendsto_mul
     (tendsto_sub (tendsto_pow_at_top_nhds_0_of_lt_1 h₁ h₂) tendsto_const_nhds) tendsto_const_nhds,
-(is_sum_iff_tendsto_nat_of_nonneg $ pow_nonneg h₁).mpr $
+(is_sum_iff_tendsto_nat_of_nonneg (pow_nonneg h₁) _).mpr $
   by simp [neg_inv, geom_sum, div_eq_mul_inv, *] at *
 
 lemma is_sum_geometric_two (a : ℝ) : is_sum (λn:ℕ, (a / 2) / 2 ^ n) a :=

@@ -374,21 +374,16 @@ let ⟨δ, δ_pos, hδ⟩ := continuous_iff.1 hf b ε hε in
 
 theorem tendsto_nhds {f : filter β} {u : β → α} {a : α} :
   tendsto u f (nhds a) ↔ ∀ ε > 0, ∃ n ∈ f.sets, ∀x ∈ n,  dist (u x) a < ε :=
-⟨λ H ε ε0, ⟨u⁻¹' (ball a ε), H (ball_mem_nhds _ ε0), by simp⟩,
- λ H s hs,
-  let ⟨ε, ε0, hε⟩ := mem_nhds_iff.1 hs, ⟨δ, δ0, hδ⟩ := H _ ε0 in
-  f.sets_of_superset δ0 (λx xδ, hε (hδ x xδ))⟩
+by simp only [metric.nhds_eq, tendsto_infi, subtype.forall, tendsto_principal, mem_ball];
+  exact forall_congr (assume ε, forall_congr (assume hε, exists_sets_subset_iff.symm))
 
 theorem continuous_iff' [topological_space β] {f : β → α} :
   continuous f ↔ ∀a (ε > 0), ∃ n ∈ (nhds a).sets, ∀b ∈ n, dist (f b) (f a) < ε :=
 continuous_iff_continuous_at.trans $ forall_congr $ λ b, tendsto_nhds
 
-theorem tendsto_at_top [inhabited β] [semilattice_sup β] {u : β → α} {a : α} :
+theorem tendsto_at_top [nonempty β] [semilattice_sup β] {u : β → α} {a : α} :
   tendsto u at_top (nhds a) ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) a < ε :=
-tendsto_nhds.trans $ ball_congr $ λ ε ε0,
-by simp; exact ⟨
-  λ ⟨s, ⟨N, hN⟩, hs⟩, ⟨N, λn hn, hs _ (hN _ hn)⟩,
-  λ ⟨N, hN⟩, ⟨{n | n ≥ N}, ⟨⟨N, by simp⟩, hN⟩⟩⟩
+by simp only [metric.nhds_eq, tendsto_infi, subtype.forall, tendsto_at_top_principal]; refl
 
 end metric
 

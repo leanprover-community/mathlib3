@@ -174,14 +174,24 @@ field.div_div_cancel ha b0
 
 end
 
-@[reducible] def is_field_hom {α β} [division_ring α] [division_ring β] (f : α → β) := is_ring_hom f
+@[reducible] def field_hom (α β) [division_ring α] [division_ring β] :=
+{ f : α → β // is_ring_hom f }
 
-namespace is_field_hom
+infixr ` →f `:25 := field_hom
+
+namespace field_hom
 open is_ring_hom
 
 section
 variables {β : Type*} [division_ring α] [division_ring β]
-variables (f : α → β) [is_field_hom f] {x y : α}
+
+instance : has_coe_to_fun (α →f β) :=
+⟨_, subtype.val⟩
+
+instance (f : α →f β) : is_ring_hom f :=
+f.property
+
+variables (f : α →f β) {x y : α}
 
 lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 :=
 ⟨mt $ λ h, h.symm ▸ map_zero f,
@@ -190,14 +200,14 @@ lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 :=
   ... = 0 : by rw [map_mul f, h, zero_mul]⟩
 
 lemma map_eq_zero : f x = 0 ↔ x = 0 :=
-by haveI := classical.dec; exact not_iff_not.1 (map_ne_zero f)
+by haveI := classical.dec; exact not_iff_not.1 f.map_ne_zero
 
 lemma map_inv' (h : x ≠ 0) : f x⁻¹ = (f x)⁻¹ :=
-(domain.mul_left_inj ((map_ne_zero f).2 h)).1 $
-by rw [mul_inv_cancel ((map_ne_zero f).2 h), ← map_mul f, mul_inv_cancel h, map_one f]
+(domain.mul_left_inj (f.map_ne_zero.2 h)).1 $
+by rw [mul_inv_cancel (f.map_ne_zero.2 h), ← map_mul f, mul_inv_cancel h, map_one f]
 
 lemma map_div' (h : y ≠ 0) : f (x / y) = f x / f y :=
-(map_mul f).trans $ congr_arg _ $ map_inv' f h
+(map_mul f).trans $ congr_arg _ $ f.map_inv' h
 
 lemma injective : function.injective f :=
 (is_add_group_hom.injective_iff _).2
@@ -205,18 +215,29 @@ lemma injective : function.injective f :=
     by simpa [ha, is_ring_hom.map_mul f, is_ring_hom.map_one f, zero_ne_one]
         using congr_arg f (mul_inv_cancel ha0))
 
+variables (α)
+protected def id : α →f α :=
+⟨id, by apply_instance⟩
+
+variables {α} {γ : Type*} [division_ring γ]
+def comp (g : α →f β) (f : β →f γ) : α →f γ :=
+⟨f ∘ g, by apply_instance⟩
+
+@[simp] lemma coe_fun_id : (field_hom.id α : α → α) = id := rfl
+@[simp] lemma coe_fun_comp (g : α →f β) (f : β →f γ) : (g.comp f : α → γ) = f ∘ g := rfl
+
 end
 
 section
 variables {β : Type*} [discrete_field α] [discrete_field β]
-variables (f : α → β) [is_field_hom f] {x y : α}
+variables (f : α →f β) {x y : α}
 
 lemma map_inv : f x⁻¹ = (f x)⁻¹ :=
-classical.by_cases (by rintro rfl; simp only [map_zero f, inv_zero]) (map_inv' f)
+classical.by_cases (by rintro rfl; simp only [map_zero f, inv_zero]) f.map_inv'
 
 lemma map_div : f (x / y) = f x / f y :=
-(map_mul f).trans $ congr_arg _ $ map_inv f
+(map_mul f).trans $ congr_arg _ $ f.map_inv
 
 end
 
-end is_field_hom
+end field_hom

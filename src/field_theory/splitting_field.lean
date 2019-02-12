@@ -21,7 +21,7 @@ open polynomial adjoin_root
 
 section splits
 
-variables (i : α → β) [is_field_hom i]
+variables (i : α →f β)
 
 /-- a polynomial `splits` iff it is zero or all of its irreducible factors have `degree` 1 -/
 def splits (f : polynomial α) : Prop :=
@@ -32,8 +32,7 @@ f = 0 ∨ ∀ {g : polynomial β}, irreducible g → g ∣ f.map i → degree g 
 @[simp] lemma splits_C (a : α) : splits i (C a) :=
 if ha : a = 0 then ha.symm ▸ (@C_0 α _ _).symm ▸ splits_zero i
 else
-have hia : i a ≠ 0, from mt ((is_add_group_hom.injective_iff i).1
-  (is_field_hom.injective i) _) ha,
+have hia : i a ≠ 0, from mt ((is_add_group_hom.injective_iff i).1 i.injective _) ha,
 or.inr $ λ g hg ⟨p, hp⟩, absurd hg.1 (classical.not_not.2 (is_unit_iff_degree_eq_zero.2 $
   by have := congr_arg degree hp;
     simp [degree_C hia, @eq_comm (with_bot ℕ) 0,
@@ -71,8 +70,8 @@ lemma splits_of_splits_mul {f g : polynomial α} (hfg : f * g ≠ 0) (h : splits
 ⟨or.inr $ λ g hgi hg, or.resolve_left h hfg hgi (by rw map_mul; exact dvd.trans hg (dvd_mul_right _ _)),
  or.inr $ λ g hgi hg, or.resolve_left h hfg hgi (by rw map_mul; exact dvd.trans hg (dvd_mul_left _ _))⟩
 
-lemma splits_map_iff (j : β → γ) [is_field_hom j] {f : polynomial α} :
-  splits j (f.map i) ↔ splits (λ x, j (i x)) f :=
+lemma splits_map_iff (j : β →f γ) {f : polynomial α} :
+  splits j (f.map i) ↔ splits (i.comp j) f :=
 by simp [splits, polynomial.map_map]
 
 lemma exists_root_of_splits {f : polynomial α} (hs : splits i f) (hf0 : degree f ≠ 0) :
@@ -86,10 +85,11 @@ else
   let ⟨i, hi⟩ := hg.2 in
   ⟨x, by rw [← eval_map, hi, eval_mul, show _ = _, from hx, zero_mul]⟩
 
+set_option class.instance_max_depth 100
 lemma exists_multiset_of_splits {f : polynomial α} : splits i f →
   ∃ (s : multiset β), f.map i = C (i f.leading_coeff) *
   (s.map (λ a : β, (X : polynomial β) - C a)).prod :=
-suffices splits id (f.map i) → ∃ s : multiset β, f.map i =
+suffices splits (field_hom.id _) (f.map i) → ∃ s : multiset β, f.map i =
   (C (f.map i).leading_coeff) * (s.map (λ a : β, (X : polynomial β) - C a)).prod,
 by rwa [splits_map_iff, leading_coeff_map i] at this,
 is_noetherian_ring.irreducible_induction_on (f.map i)
@@ -142,14 +142,14 @@ else
   by rw [← degree_X_sub_C a, ha.2];
     exact degree_eq_degree_of_associated (hpq.trans hqq')
 
-lemma splits_of_splits_id {f : polynomial α} : splits id f → splits i f :=
+lemma splits_of_splits_id {f : polynomial α} : splits (field_hom.id _) f → splits i f :=
 unique_factorization_domain.induction_on_prime f (λ _, splits_zero _)
   (λ _ hu _, splits_of_degree_le_one _
     ((is_unit_iff_degree_eq_zero.1 hu).symm ▸ dec_trivial))
   (λ a p ha0 hp ih hfi, splits_mul _
     (splits_of_degree_eq_one _
       ((splits_of_splits_mul _ (mul_ne_zero hp.1 ha0) hfi).1.resolve_left
-        hp.1 (irreducible_of_prime hp) (by rw map_id)))
+        hp.1 (irreducible_of_prime hp) (by rw [field_hom.coe_fun_id, map_id])))
     (ih (splits_of_splits_mul _ (mul_ne_zero hp.1 ha0) hfi).2))
 
 end UFD
@@ -159,12 +159,12 @@ lemma splits_iff_exists_multiset {f : polynomial α} : splits i f ↔
   (s.map (λ a : β, (X : polynomial β) - C a)).prod :=
 ⟨exists_multiset_of_splits i, λ ⟨s, hs⟩, splits_of_exists_multiset i hs⟩
 
-lemma splits_comp_of_splits (j : β → γ) [is_field_hom j] {f : polynomial α}
-  (h : splits i f) : splits (λ x, j (i x)) f :=
+lemma splits_comp_of_splits (j : β →f γ) {f : polynomial α}
+  (h : splits i f) : splits (i.comp j) f :=
 begin
-  change i with (λ x, id (i x)) at h,
+  change i with i.comp (field_hom.id _) at h,
   rw [← splits_map_iff],
-  rw [← splits_map_iff i id] at h,
+  rw [← splits_map_iff i (field_hom.id _)] at h,
   exact splits_of_splits_id _ h
 end
 

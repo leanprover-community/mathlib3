@@ -247,10 +247,10 @@ instance of_real.is_ring_hom : is_ring_hom (coe : ℝ → ℂ) :=
 by refine_struct {..}; simp
 
 @[simp] lemma of_real_div (r s : ℝ) : ((r / s : ℝ) : ℂ) = r / s :=
-is_field_hom.map_div coe
+field_hom.map_div ⟨coe, of_real.is_ring_hom⟩
 
 @[simp] lemma of_real_fpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : ℂ) = (r : ℂ) ^ n :=
-is_field_hom.map_fpow of_real r n
+field_hom.map_fpow ⟨coe, of_real.is_ring_hom⟩ r n
 
 @[simp] theorem of_real_int_cast : ∀ n : ℤ, ((n : ℝ) : ℂ) = n :=
 int.eq_cast (λ n, ((n : ℝ) : ℂ))

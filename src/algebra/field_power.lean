@@ -6,7 +6,7 @@ Authors: Robert Y. Lewis
 Integer power operation on fields.
 -/
 
-import algebra.group_power tactic.wlog
+import algebra.ordered_field algebra.group_power tactic.wlog
 
 universe u
 
@@ -51,14 +51,14 @@ begin simp only [fpow_eq_gpow ha], rw ← units.coe_mul, congr, apply gpow_add e
 
 end field_power
 
-namespace is_field_hom
+namespace field_hom
 
-lemma map_fpow {α β : Type*} [discrete_field α] [discrete_field β] (f : α → β) [is_field_hom f]
+lemma map_fpow {α β : Type*} [discrete_field α] [discrete_field β] (f : α →f β)
   (a : α) : ∀ (n : ℤ), f (a ^ n) = f a ^ n
 | (n : ℕ) := is_semiring_hom.map_pow f a n
-| -[1+ n] := by simp [fpow_neg_succ_of_nat, is_semiring_hom.map_pow f, is_field_hom.map_inv f]
+| -[1+ n] := by simp [fpow_neg_succ_of_nat, is_semiring_hom.map_pow f, f.map_inv]
 
-end is_field_hom
+end field_hom
 
 section discrete_field_power
 open int nat

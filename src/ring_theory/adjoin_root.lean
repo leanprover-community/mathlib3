@@ -96,13 +96,19 @@ noncomputable instance field : discrete_field (adjoin_root f) :=
   ..adjoin_root.comm_ring f,
   ..ideal.quotient.field (span {f} : ideal (polynomial α)) }
 
-instance : is_field_hom (coe : α → adjoin_root f) := by apply_instance
+variables (α f)
+def fof : α →f adjoin_root f :=
+⟨coe, by apply_instance⟩
 
-instance lift_is_field_hom [field β] {i : α → β} [is_ring_hom i] {a : β}
-  {h : f.eval₂ i a = 0} : is_field_hom (lift i a h) := by apply_instance
+def flift [field β] (i : α → β) [is_ring_hom i] (a : β)
+  (h : f.eval₂ i a = 0) : adjoin_root f →f β :=
+⟨lift i a h, by apply_instance⟩
 
-lemma coe_injective : function.injective (coe : α → adjoin_root f) :=
-is_field_hom.injective _
+variables {α f}
+
+@[simp] lemma fof_apply {x : α} : fof α f x = ↑x := rfl
+@[simp] lemma flift_apply [field β] {i : α → β} [is_ring_hom i] {a : β} {h x} :
+  flift α f i a h x = lift i a h x := rfl
 
 lemma mul_div_root_cancel (f : polynomial α) [irreducible f] :
   (X - C (root : adjoin_root f)) * (f.map coe / (X - C root)) = f.map coe :=

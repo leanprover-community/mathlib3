@@ -11,7 +11,7 @@ a^n is used for the first, but users can locally redefine it to gpow when needed
 
 Note: power adopts the convention that 0^0=1.
 -/
-import algebra.char_zero algebra.group algebra.ordered_field
+import algebra.group
 import data.int.basic data.list.basic
 
 universes u v

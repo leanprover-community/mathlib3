@@ -687,9 +687,11 @@ It adds the hypothesis `h : a = t` to the local context and replaces `t` with `a
 `set a := t with ←h` will add `h : t = a` instead.
 `set! a := t with h` does not do any replacing.
 -/
-meta def set (h_simp : parse (tk "!")?) (a : parse ident) (_ : parse (tk ":=")) (pv : parse texpr)
+meta def set (h_simp : parse (tk "!")?) (a : parse ident) (tp : parse ((tk ":") >> texpr)?) (_ : parse (tk ":=")) (pv : parse texpr)
   (rev_name : parse opt_dir_with) :=
-do v ← to_expr pv,
+do let vt := match tp with | some t := t | none := pexpr.mk_placeholder end,
+   let pv := ``(%%pv : %%vt),
+   v ← to_expr pv,
    tp ← infer_type v,
    definev a tp v,
    when h_simp.is_none $ change' pv (some (expr.const a [])) loc.wildcard,

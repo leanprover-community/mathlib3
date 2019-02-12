@@ -68,16 +68,6 @@ lemma is_sum_iff_tendsto_nat_of_nonneg {f : ℕ → ℝ} {r : ℝ} (hf : ∀n, 0
 
 end real
 
-lemma mul_add_one_le_pow {r : ℝ} (hr : 0 ≤ r) : ∀{n:ℕ}, (n:ℝ) * r + 1 ≤ (r + 1) ^ n
-| 0       := by simp; exact le_refl 1
-| (n + 1) :=
-  let h : (n:ℝ) ≥ 0 := nat.cast_nonneg n in
-  calc ↑(n + 1) * r + 1 ≤ ((n + 1) * r + 1) + r * r * n :
-      le_add_of_le_of_nonneg (le_refl _) (mul_nonneg (mul_nonneg hr hr) h)
-    ... = (r + 1) * (n * r + 1) : by simp [mul_add, add_mul, mul_comm, mul_assoc]
-    ... ≤ (r + 1) * (r + 1) ^ n : mul_le_mul (le_refl _) mul_add_one_le_pow
-      (add_nonneg (mul_nonneg h hr) zero_le_one) (add_nonneg hr zero_le_one)
-
 lemma tendsto_pow_at_top_at_top_of_gt_1 {r : ℝ} (h : r > 1) : tendsto (λn:ℕ, r ^ n) at_top at_top :=
 tendsto_infi.2 $ assume p, tendsto_principal.2 $
   let ⟨n, hn⟩ := exists_nat_gt (p / (r - 1)) in
@@ -86,8 +76,9 @@ tendsto_infi.2 $ assume p, tendsto_principal.2 $
   have p ≤ r ^ n,
     from calc p = (p / (r - 1)) * (r - 1) : (div_mul_cancel _ $ ne_of_gt this).symm
       ... ≤ n * (r - 1) : mul_le_mul (le_of_lt hn) (le_refl _) (le_of_lt this) hn_nn
-      ... ≤ n * (r - 1) + 1 : le_add_of_le_of_nonneg (le_refl _) zero_le_one
-      ... ≤ ((r - 1) + 1) ^ n : mul_add_one_le_pow $ le_of_lt this
+      ... ≤ 1 + n * (r - 1) : le_add_of_nonneg_of_le zero_le_one (le_refl _)
+      ... = 1 + add_monoid.smul n (r - 1) : by rw [add_monoid.smul_eq_mul]
+      ... ≤ (1 + (r - 1)) ^ n : pow_ge_one_add_mul (le_of_lt this) _
       ... ≤ r ^ n : by simp; exact le_refl _,
   show {n | p ≤ r ^ n} ∈ at_top.sets,
     from mem_at_top_sets.mpr ⟨n, assume m hnm, le_trans this (pow_le_pow (le_of_lt h) hnm)⟩

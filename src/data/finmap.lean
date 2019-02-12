@@ -55,6 +55,27 @@ end
 @[simp] theorem lift_on_to_finmap {γ} (s : alist β) (f : alist β → γ) (H) :
   lift_on ⟦s⟧ f H = f s := by cases s; refl
 
+/-- Lift a permutation-respecting function on 2 `alist`s to 2 `finmap`s. -/
+@[elab_as_eliminator] def lift_on₂
+  {γ} (s₁ s₂ : finmap β) (f : alist β → alist β → γ)
+  (H : ∀ a₁ b₁ a₂ b₂ : alist β, a₁.entries ~ a₂.entries → b₁.entries ~ b₂.entries → f a₁ b₁ = f a₂ b₂) : γ :=
+begin
+  apply (quotient.lift_on₂ s₁.entries s₂.entries
+    (λ l₁ l₂, roption.mk (l₁.nodupkeys ∧ l₂.nodupkeys) (λ ⟨nd₁, nd₂⟩, f ⟨l₁, nd₁⟩ ⟨l₂, nd₂⟩))
+    (λ a₁ b₁ a₂ b₂ pa pb, roption.ext'
+      (and_congr (perm_nodupkeys pa) (perm_nodupkeys pb))
+      (λ ⟨nda₁, ndb₁⟩ ⟨nda₂, ndb₂⟩, H ⟨_, nda₁⟩ ⟨_, ndb₁⟩ ⟨_, nda₂⟩ ⟨_, ndb₂⟩ pa pb))).get,
+  { have := s₁.nodupkeys,
+    have := s₂.nodupkeys,
+    rcases s₂.entries with ⟨l₂⟩,
+    rcases s₁.entries with ⟨l₁⟩,
+    exact and.intro }
+end
+
+@[simp] theorem lift_on₂_to_finmap {γ} (s₁ s₂ : alist β) (f : alist β → alist β → γ) (H) :
+  lift_on₂ ⟦s₁⟧ ⟦s₂⟧ f H = f s₁ s₂ :=
+by cases s₁; cases s₂; simp [lift_on₂, quotient.lift_on₂, quotient.lift₂]; rw lift_on₂._match_1
+
 @[elab_as_eliminator] theorem induction_on
   {C : finmap β → Prop} (s : finmap β) (H : ∀ (a : alist β), C ⟦a⟧) : C s :=
 by rcases s with ⟨⟨a⟩, h⟩; exact H ⟨a, h⟩

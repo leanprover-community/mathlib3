@@ -34,14 +34,6 @@ def inf_edist (x : α) (s : set α) : ennreal := Inf ((edist x) '' s)
 @[simp] lemma inf_edist_empty : inf_edist x ∅ = ∞ :=
 by unfold inf_edist; simp
 
-/-- If a point `x` belongs to `s`, then its edist to `s` vanishes -/
-lemma inf_edist_zero_of_mem (h : x ∈ s) : inf_edist x s = 0 :=
-begin
-  refine le_zero_iff_eq.1 (Inf_le _),
-  rw ← @edist_self _ _ x,
-  exact mem_image_of_mem _ h,
-end
-
 /-- The edist to a union is the minimum of the edists -/
 @[simp] lemma inf_edist_union : inf_edist x (s ∪ t) = inf_edist x s ⊓ inf_edist x t :=
 by simp [inf_edist, image_union, Inf_union]
@@ -53,6 +45,10 @@ by simp [inf_edist]
 /-- The edist to a set is bounded above by the edist to any of its points -/
 lemma inf_edist_le_edist_of_mem (h : y ∈ s) : inf_edist x s ≤ edist x y :=
 Inf_le ((mem_image _ _ _).2 ⟨y, h, by refl⟩)
+
+/-- If a point `x` belongs to `s`, then its edist to `s` vanishes -/
+lemma inf_edist_zero_of_mem (h : x ∈ s) : inf_edist x s = 0 :=
+le_zero_iff_eq.1 $ @edist_self _ _ x ▸ inf_edist_le_edist_of_mem h
 
 /-- The edist is monotonous with respect to inclusion -/
 lemma inf_edist_le_inf_edist_of_subset (h : s ⊆ t) : inf_edist x t ≤ inf_edist x s :=
@@ -114,8 +110,8 @@ lemma mem_closure_iff_inf_edist_zero : x ∈ closure s ↔ inf_edist x s = 0 :=
 /-- Given a closed set `s`, a point belongs to `s` iff its infimum edistance to this set vanishes -/
 lemma mem_iff_ind_edist_zero_of_closed (h : is_closed s) : x ∈ s ↔ inf_edist x s = 0 :=
 begin
-  have := @mem_closure_iff_inf_edist_zero _ _ x s,
-  rwa closure_eq_iff_is_closed.2 h at this
+  convert ← mem_closure_iff_inf_edist_zero,
+  exact closure_eq_iff_is_closed.2 h
 end
 
 /-- The infimum edistance is invariant under isometries -/
@@ -295,9 +291,9 @@ end
 @[simp] lemma Hausdorff_edist_closure₁ : Hausdorff_edist (closure s) t = Hausdorff_edist s t :=
 begin
   refine le_antisymm _ _,
-  {calc  _ ≤ Hausdorff_edist (closure s) s + Hausdorff_edist s t : Hausdorff_edist_triangle
+  { calc  _ ≤ Hausdorff_edist (closure s) s + Hausdorff_edist s t : Hausdorff_edist_triangle
     ... = Hausdorff_edist s t : by simp [Hausdorff_edist_comm] },
-  {calc _ ≤ Hausdorff_edist s (closure s) + Hausdorff_edist (closure s) t : Hausdorff_edist_triangle
+  { calc _ ≤ Hausdorff_edist s (closure s) + Hausdorff_edist (closure s) t : Hausdorff_edist_triangle
     ... = Hausdorff_edist (closure s) t : by simp }
 end
 

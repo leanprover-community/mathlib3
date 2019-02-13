@@ -7,7 +7,7 @@ Define the p-adic numbers (rationals) ℚ_p as the completion of ℚ wrt the p-a
 Show that the p-adic norm extends to ℚ_p, that ℚ is embedded in ℚ_p, and that ℚ_p is complete
 -/
 
-import data.real.cau_seq_completion data.real.cau_seq_filter
+import data.real.cau_seq_completion topology.metric_space.cau_seq_filter
 import data.padics.padic_norm algebra.archimedean analysis.normed_space.basic
 noncomputable theory
 local attribute [instance, priority 1] classical.prop_decidable

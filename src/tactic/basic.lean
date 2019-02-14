@@ -420,6 +420,16 @@ meta def change_core (e : expr) : option expr → tactic unit
      tactic.change $ expr.pi n bi e b,
      intron num_reverted
 
+/--
+assuming olde and newe are defeq when elaborated, replaces occurences of olde with newe at hypothesis h.
+-/
+meta def change_with_at (olde newe : pexpr) (hyp : name) : tactic unit :=
+do h ← get_local hyp,
+   tp ← infer_type h,
+   olde ← to_expr olde, newe ← to_expr newe,
+   let repl_tp := tp.replace (λ a n, if a = olde then some newe else none),
+   change_core repl_tp (some h)
+
 open nat
 
 meta def solve_by_elim_aux (discharger : tactic unit) (asms : tactic (list expr))  : ℕ → tactic unit
@@ -848,16 +858,5 @@ meta def clear_aux_decl_aux : list expr → tactic unit
 
 meta def clear_aux_decl : tactic unit :=
 local_context >>= clear_aux_decl_aux
-
-protected meta def set (a h : name) (v : expr) (b_simp : bool := ff) (b_symm : bool := false) : tactic unit :=
-do tp ← infer_type v,
-   nv ← definev a tp v,
-   pf ← to_expr (cond b_symm ``(%%v = %%nv) ``(%%nv = %%v)) >>= assert h,
-   reflexivity,
-   when b_simp $ do
-     rw ← cond b_symm (return pf) (mk_app `eq.symm [pf]),
-     s ← simp_lemmas.mk.add rw,
-     hyps ← list.filter (λ e, e ≠ pf) <$> non_dep_prop_hyps,
-     interactive.simp_core_aux {} tactic.failed s [] hyps tt
 
 end tactic

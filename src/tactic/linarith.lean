@@ -346,7 +346,6 @@ do pftps ← l.mmap infer_type,
   let vars : rb_set ℕ := rb_map.set_of_list $ list.range map.size.succ,
   let pc : rb_set pcomp := rb_map.set_of_list $
     lz.map (λ ⟨n, x⟩, ⟨x.2, comp_source.assump n⟩),
-  --trace pc, trace prmap,
   return (⟨vars, pc⟩, prmap)
 
 meta def linarith_monad.run {α} (tac : linarith_monad α) (l : list expr) : tactic ((pcomp ⊕ α) × rb_map ℕ (expr × expr)) :=
@@ -477,7 +476,6 @@ meta def prove_false_by_linarith1 (cfg : linarith_config) : list expr → tactic
 | l@(h::t) :=
   do l' ← add_neg_eq_pfs l,
      hz ← ineq_pf_tp h >>= mk_neg_one_lt_zero_pf,
-     --list.mmap' (λ e, infer_type e >>= trace) (hz::l') ,
      (sum.inl contr, inputs) ← elim_all_vars.run (hz::l')
        | fail "linarith failed to find a contradiction",
      let coeffs := inputs.keys.map (λ k, (contr.src.flatten.ifind k)),

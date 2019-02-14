@@ -1571,6 +1571,9 @@ by simp only [disjoint_left, mem_union, or_imp_distrib, forall_and_distrib]
   disjoint s (t ∪ u) ↔ disjoint s t ∧ disjoint s u :=
 by simp only [disjoint_right, mem_union, or_imp_distrib, forall_and_distrib]
 
+lemma disjoint_sdiff {s t : finset α} : disjoint (t \ s) s :=
+disjoint_left.2 $ assume a ha, (mem_sdiff.1 ha).2
+
 @[simp] theorem card_disjoint_union {s t : finset α} :
     disjoint s t → card (s ∪ t) = card s + card t :=
 finset.induction_on s (λ _, by simp only [empty_union, card_empty, zero_add]) $ λ a s ha ih H,

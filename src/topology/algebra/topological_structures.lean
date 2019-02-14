@@ -214,6 +214,18 @@ begin
   exact ⟨V₁ ∩ V₂, inter_mem_sets H₁ H₂, assume v w ⟨hv, _⟩ ⟨_, hw⟩, @H (v, w) ⟨hv, hw⟩⟩
 end
 
+@[to_additive exists_nhds_half_neg]
+lemma exists_nhds_split_inv [topological_group α] {s : set α} (hs : s ∈ (nhds (1 : α)).sets) :
+  ∃ V ∈ (nhds (1 : α)).sets, ∀ v w ∈ V, v * w⁻¹ ∈ s :=
+begin
+  have : tendsto (λa:α×α, a.1 * (a.2)⁻¹) ((nhds (1:α)).prod (nhds (1:α))) (nhds 1),
+  { simpa using tendsto_mul (@tendsto_fst α α (nhds 1) (nhds 1)) (tendsto_inv tendsto_snd) },
+  have : ((λa:α×α, a.1 * (a.2)⁻¹) ⁻¹' s) ∈ ((nhds (1:α)).prod (nhds (1:α))).sets :=
+    this (by simpa using hs),
+  rcases mem_prod_iff.1 this with ⟨V₁, H₁, V₂, H₂, H⟩,
+  exact ⟨V₁ ∩ V₂, inter_mem_sets H₁ H₂, assume v w ⟨hv, _⟩ ⟨_, hw⟩, @H (v, w) ⟨hv, hw⟩⟩
+end
+
 @[to_additive exists_nhds_quarter]
 lemma exists_nhds_split4 [topological_group α] {u : set α} (hu : u ∈ (nhds (1 : α)).sets) :
   ∃ V ∈ (nhds (1 : α)).sets, ∀ {v w s t}, v ∈ V → w ∈ V → s ∈ V → t ∈ V → v * w * s * t ∈ u :=

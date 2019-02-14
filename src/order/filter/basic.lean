@@ -652,6 +652,7 @@ section map
 variables {f f₁ f₂ : filter α} {g g₁ g₂ : filter β} {m : α → β} {m' : β → γ} {s : set α} {t : set β}
 
 @[simp] theorem mem_comap_sets : s ∈ (comap m g).sets ↔ ∃t∈g.sets, m ⁻¹' t ⊆ s := iff.rfl
+
 theorem preimage_mem_comap (ht : t ∈ g.sets) : m ⁻¹' t ∈ (comap m g).sets :=
 ⟨t, ht, subset.refl _⟩
 
@@ -1386,9 +1387,13 @@ calc map f (⨅a, principal {a' | a ≤ a'}) = (⨅a, map f $ principal {a' | a 
       (by apply_instance)
   ... = (⨅a, principal $ f '' {a' | a ≤ a'}) : by simp only [map_principal, eq_self_iff_true]
 
-lemma tendsto_at_top {α β} [preorder β] (m : α → β) (f : filter α) :
+lemma tendsto_at_top [preorder β] (m : α → β) (f : filter α) :
   tendsto m f at_top ↔ (∀b, {a | b ≤ m a} ∈ f.sets) :=
 by simp only [at_top, tendsto_infi, tendsto_principal]; refl
+
+lemma tendsto_at_top' [nonempty α] [semilattice_sup α] (f : α → β) (l : filter β) :
+  tendsto f at_top l ↔ (∀s∈l.sets, ∃a, ∀b≥a, f b ∈ s) :=
+by simp only [tendsto_def, mem_at_top_sets]; refl
 
 theorem tendsto_at_top_principal [nonempty β] [semilattice_sup β] {f : β → α} {s : set α} :
   tendsto f at_top (principal s) ↔ ∃N, ∀n≥N, f n ∈ s :=

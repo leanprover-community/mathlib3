@@ -130,6 +130,10 @@ exp_injective $ by rw [exp_log zero_lt_one, exp_zero]
 lemma log_mul {x y : ℝ} (hx : 0 < x) (hy : 0 < y) : log (x * y) = log x + log y :=
 exp_injective $ by rw [exp_log (mul_pos hx hy), exp_add, exp_log hx, exp_log hy]
 
+lemma log_le_iff {x y : ℝ} (h : 0 < x) (h₁ : 0 < y) : real.log x ≤ real.log y ↔ x ≤ y :=
+⟨λ h₂, by rwa [←real.exp_le_iff, real.exp_log h, real.exp_log h₁] at h₂, λ h₂,
+(real.exp_le_iff _ _).1 $ by rwa [real.exp_log h₁, real.exp_log h]⟩
+
 lemma exists_cos_eq_zero : ∃ x, 1 ≤ x ∧ x ≤ 2 ∧ cos x = 0 :=
 real.intermediate_value'
   (λ x _ _, continuous_iff_continuous_at.1 continuous_cos _)
@@ -1151,5 +1155,27 @@ by simp only [rpow_def, (complex.of_real_pow _ _).symm, complex.cpow_nat_cast,
 @[simp] lemma rpow_int_cast (x : ℝ) (n : ℤ) : x ^ (n : ℝ) = x ^ n :=
 by simp only [rpow_def, (complex.of_real_fpow _ _).symm, complex.cpow_int_cast,
   complex.of_real_int_cast, complex.of_real_re]
+
+lemma rpow_le_rpow (x y z: ℝ) (h : 0 ≤ x) (h₁ : x ≤ y) (h₂ : 0 ≤ z): x^z ≤ y^z :=
+begin
+  have y_pos : 0 ≤ y, exact le_trans h h₁,
+  rw real.rpow_def_of_nonneg, split_ifs with h₃ h₄,
+    { rw [h₄, rpow_zero]},
+    { exact real.rpow_nonneg_of_nonneg y_pos z},
+    { rw real.rpow_def_of_nonneg, split_ifs with h₄ h₅,
+      { rw [h₅, mul_zero, real.exp_zero]},
+      { exfalso, rw h₄ at h₁, rw le_antisymm h₁ h at h₃, exact h₃ rfl},
+      have x_gt : 0 < x,
+      { cases lt_or_eq_of_le h with hx hx, exact hx, exfalso, apply h₃, exact eq.symm hx},
+      have y_gt : 0 < y,
+      { cases lt_or_eq_of_le y_pos with hy hy, exact hy, exfalso, apply h₄, exact eq.symm hy},
+      rw [←log_le_iff (real.exp_pos (real.log x * z)) (real.exp_pos (real.log y * z))],
+      rw [real.log_exp, real.log_exp],
+      cases lt_or_eq_of_le h₂ with z_gt z0,
+      { rwa [mul_le_mul_right, log_le_iff x_gt], exact y_gt, exact z_gt},
+      rw [←z0, mul_zero, mul_zero],
+    exact y_pos},
+  exact h,
+end
 
 end real

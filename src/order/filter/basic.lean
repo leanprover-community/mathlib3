@@ -132,10 +132,10 @@ end filter
 namespace tactic.interactive
 open tactic interactive
 
-/-- `filter [t1, ⋯, tn]` replaces a goal of the form `s ∈ f.sets`
-and terms `h1 : t1 ∈ f.sets, ⋯, tn ∈ f.sets` with `∀x, x ∈ t1 → ⋯ → x ∈ tn → x ∈ s`.
+/-- `filter_upwards [h1, ⋯, hn]` replaces a goal of the form `s ∈ f.sets`
+and terms `h1 : t1 ∈ f.sets, ⋯, hn : tn ∈ f.sets` with `∀x, x ∈ t1 → ⋯ → x ∈ tn → x ∈ s`.
 
-`filter [t1, ⋯, tn] e` is a short form for `{ filter [t1, ⋯, tn], exact e }`.
+`filter_upwards [h1, ⋯, hn] e` is a short form for `{ filter_upwards [h1, ⋯, hn], exact e }`.
 -/
 meta def filter_upwards
   (s : parse types.pexpr_list)

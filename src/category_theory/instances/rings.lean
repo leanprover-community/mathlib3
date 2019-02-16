@@ -108,7 +108,7 @@ noncomputable def polynomial : Type u ⥤ CommRing.{u} :=
   (polynomial.obj α).α = mv_polynomial α ℤ := rfl
 
 @[simp] lemma polynomial_map_val {α β : Type u} {f : α → β} :
-  (polynomial.map f).val = eval₂ C (X ∘ f) := rfl
+  (CommRing.polynomial.map f).val = eval₂ C (X ∘ f) := rfl
 
 noncomputable def adj : adjunction polynomial (forget : CommRing ⥤ Type u) :=
 adjunction.mk_of_hom_equiv _ _

@@ -15,43 +15,6 @@ open classical function lattice filter finset metric
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 
-lemma has_sum_iff_cauchy [normed_group α] [complete_space α] {f : ι → α} :
-  has_sum f ↔ ∀ε>0, (∃s:finset ι, ∀t, disjoint t s → ∥ t.sum f ∥ < ε) :=
-begin
-  refine iff.trans (cauchy_map_iff_exists_tendsto at_top_ne_bot).symm _,
-  simp only [cauchy_map_iff, and_iff_right at_top_ne_bot, prod_at_top_at_top_eq, uniformity_dist,
-    tendsto_infi, tendsto_at_top_principal, set.mem_set_of_eq],
-  split,
-  { assume h ε hε,
-    rcases h ε hε with ⟨⟨s₁, s₂⟩, h⟩,
-    use [s₁ ∪ s₂],
-    assume t ht,
-    have : (s₁ ∪ s₂) ∩ t = ∅ := finset.disjoint_iff_inter_eq_empty.1 ht.symm,
-    specialize h (s₁ ∪ s₂, (s₁ ∪ s₂) ∪ t) ⟨le_sup_left, le_sup_left_of_le le_sup_right⟩,
-    simpa only [finset.sum_union this, dist_eq_norm,
-      sub_add_eq_sub_sub, sub_self, zero_sub, norm_neg] using h },
-  { assume h' ε hε,
-    rcases h' (ε / 2) (half_pos hε) with ⟨s, h⟩,
-    use [(s, s)],
-    rintros ⟨t₁, t₂⟩ ⟨ht₁, ht₂⟩,
-    dsimp at ht₁ ht₂,
-    calc dist (t₁.sum f) (t₂.sum f) = ∥sum (t₁ \ s) f - sum (t₂ \ s) f∥ :
-        by simp only [(finset.sum_sdiff ht₁).symm, (finset.sum_sdiff ht₂).symm,
-          dist_eq_norm, add_sub_add_right_eq_sub]
-      ... ≤ ∥sum (t₁ \ s) f∥ + ∥ sum (t₂ \ s) f∥ : norm_triangle_sub
-      ... < ε / 2 + ε / 2 : add_lt_add (h _ finset.disjoint_sdiff) (h _ finset.disjoint_sdiff)
-      ... = ε : add_halves _ }
-end
-
-lemma has_sum_of_has_sum_norm [normed_group α] [complete_space α] {f : ι → α}
-  (hf : has_sum (λa, norm (f a))) : has_sum f :=
-has_sum_iff_cauchy.2 $ assume ε hε,
-  let ⟨s, hs⟩ := has_sum_iff_cauchy.1 hf ε hε in
-  ⟨s, assume t ht,
-    have ∥t.sum (λa, ∥f a∥)∥ < ε := hs t ht,
-    have nn : 0 ≤ t.sum (λa, ∥f a∥) := finset.zero_le_sum (assume a _, norm_nonneg _),
-    lt_of_le_of_lt (norm_triangle_sum t f) $ by rwa [real.norm_eq_abs, abs_of_nonneg nn] at this⟩
-
 lemma has_sum_of_absolute_convergence_real {f : ℕ → ℝ} (hf : ∀n, 0 ≤ f n) :
   (∃r, tendsto (λn, (range n).sum (λi, abs (f i))) at_top (nhds r)) → has_sum f
 | ⟨r, hr⟩ :=
@@ -142,28 +105,11 @@ begin
   have hf : is_sum f ε := is_sum_geometric_two _,
   have f0 : ∀ n, 0 < f n := λ n, div_pos (half_pos hε) (pow_pos two_pos _),
   refine ⟨f ∘ encodable.encode, λ i, f0 _, _⟩,
-  let g : ℕ → ℝ := λ n, option.cases_on (encodable.decode2 ι n) 0 (f ∘ encodable.encode),
-  have : ∀ n, g n = 0 ∨ g n = f n,
-  { intro n, dsimp [g], cases e : encodable.decode2 ι n with a,
-    { exact or.inl rfl },
-    { simp [encodable.mem_decode2.1 e] } },
-  cases has_sum_of_has_sum_of_sub ⟨_, hf⟩ this with c hg,
-  have cε : c ≤ ε,
-  { refine is_sum_le (λ n, _) hg hf,
-    cases this n; rw h, exact le_of_lt (f0 _) },
-  have hs : ∀ n, g n ≠ 0 → (encodable.decode2 ι n).is_some,
-  { intros n h, dsimp [g] at h,
-    cases encodable.decode2 ι n,
-    exact (h rfl).elim, exact rfl },
-  refine ⟨c, _, cε⟩,
-  refine is_sum_of_is_sum_ne_zero
-    (λ n h, option.get (hs n h)) (λ n _, ne_of_gt (f0 _))
-    (λ i _, encodable.encode i) (λ n h, ne_of_gt _)
-    (λ n h, _) (λ i _, _) (λ i _, _) hg,
-  { dsimp [g], rw encodable.encodek2, exact f0 _ },
-  { exact encodable.mem_decode2.1 (option.get_mem _) },
-  { exact option.get_of_mem _ (encodable.encodek2 _) },
-  { dsimp [g], rw encodable.encodek2 }
+  rcases has_sum_comp_of_has_sum_of_injective f (has_sum_spec hf) (@encodable.encode_injective ι _)
+    with ⟨c, hg⟩,
+  refine ⟨c, hg, is_sum_le_inj _ (@encodable.encode_injective ι _) _ _ hg hf⟩,
+  { assume i _, exact le_of_lt (f0 _) },
+  { assume n, exact le_refl _ }
 end
 
 namespace nnreal

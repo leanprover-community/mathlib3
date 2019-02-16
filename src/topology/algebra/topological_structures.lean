@@ -12,7 +12,6 @@ import order.liminf_limsup
 import algebra.big_operators algebra.group algebra.pi_instances
 import data.set.intervals data.equiv.algebra
 import topology.basic topology.continuity topology.uniform_space.basic
-import ring_theory.ideals
 
 open classical set lattice filter topological_space
 local attribute [instance] classical.prop_decidable
@@ -210,6 +209,18 @@ begin
   have : ((λa:α×α, a.1 * a.2) ⁻¹' s) ∈ (nhds ((1, 1) : α × α)).sets :=
     tendsto_mul' (by simpa using hs),
   rw nhds_prod_eq at this,
+  rcases mem_prod_iff.1 this with ⟨V₁, H₁, V₂, H₂, H⟩,
+  exact ⟨V₁ ∩ V₂, inter_mem_sets H₁ H₂, assume v w ⟨hv, _⟩ ⟨_, hw⟩, @H (v, w) ⟨hv, hw⟩⟩
+end
+
+@[to_additive exists_nhds_half_neg]
+lemma exists_nhds_split_inv [topological_group α] {s : set α} (hs : s ∈ (nhds (1 : α)).sets) :
+  ∃ V ∈ (nhds (1 : α)).sets, ∀ v w ∈ V, v * w⁻¹ ∈ s :=
+begin
+  have : tendsto (λa:α×α, a.1 * (a.2)⁻¹) ((nhds (1:α)).prod (nhds (1:α))) (nhds 1),
+  { simpa using tendsto_mul (@tendsto_fst α α (nhds 1) (nhds 1)) (tendsto_inv tendsto_snd) },
+  have : ((λa:α×α, a.1 * (a.2)⁻¹) ⁻¹' s) ∈ ((nhds (1:α)).prod (nhds (1:α))).sets :=
+    this (by simpa using hs),
   rcases mem_prod_iff.1 this with ⟨V₁, H₁, V₂, H₂, H⟩,
   exact ⟨V₁ ∩ V₂, inter_mem_sets H₁ H₂, assume v w ⟨hv, _⟩ ⟨_, hw⟩, @H (v, w) ⟨hv, hw⟩⟩
 end

@@ -6,21 +6,16 @@ Authors: Johan Commelin
 Tactic to merge identical goals.
 -/
 
-import category.fold
-
 namespace tactic
+open list
 
-private meta def map_unify (g : expr) : list expr → tactic unit
-| []        := fail ()
-| (x :: xs) := unify g x <|> map_unify xs
-
-/- This returns either ac or ac ++ [g] depending on whether g unifies with some goal in ac -/
-private meta def unify_or_add (g : expr) (ac : tactic (list expr)) : tactic (list expr) :=
-do l ← ac, (map_unify g l >> return l) <|> return (l ++ [g])
+private meta def unify_or_cons : list expr → expr → tactic (list expr)
+| []        g := trace "!" >> pure [g]
+| (x :: xs) g := ((unify x g >> pure (x :: xs)) <|> cons x <$> unify_or_cons xs g)
 
 meta def merge_goals : tactic unit :=
 do gs ← get_goals,
-   new_gs ← traversable.foldr unify_or_add (return []) gs,
+   new_gs ← mfoldl unify_or_cons [] gs,
    set_goals new_gs
 
 namespace interactive
@@ -30,7 +25,8 @@ tactic.merge_goals
 
 end interactive
 
-example : ((true ∧ true) ∧ (true ∧ true)) ∧ (((∀ (x y : ℕ), x + y = y + x) ∧ true) ∧ (true ∧ true)) :=
+example : ((true ∧ (∀ (x y : ℕ), x + y = y + x)) ∧ (true ∧ true)) ∧
+          (((∀ (x y : ℕ), x + y = y + x) ∧ true) ∧ (true ∧ true)) :=
 begin
   split; split; split,
   merge_goals,

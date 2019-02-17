@@ -9,6 +9,7 @@ http://hackage.haskell.org/package/mtl-2.2.2/docs/Control-Monad-Cont.html
 -/
 
 import tactic.ext
+import category.monad.basic category.monad.writer
 
 universes u v w
 
@@ -34,6 +35,8 @@ extends is_lawful_monad m :=
 export is_lawful_monad_cont
 
 def cont_t (r : Type u) (m : Type u → Type v) (α : Type w) := (α → m r) → m r
+
+@[reducible] def cont (r : Type u) (α : Type w) := cont_t r id α
 
 namespace cont_t
 
@@ -68,12 +71,15 @@ instance : is_lawful_monad (cont_t r m) :=
   pure_bind := by { intros, ext, refl },
   bind_assoc := by { intros, ext, refl } }
 
+def cont_t.monad_lift [monad m] {α} : m α → cont_t r m α :=
+λ x f, x >>= f
+
 instance [monad m] : has_monad_lift m (cont_t r m) :=
-{ monad_lift := λ a x f, x >>= f }
+{ monad_lift := λ α, cont_t.monad_lift }
 
 lemma monad_lift_bind [monad m] [is_lawful_monad m] {α β} (x : m α) (f : α → m β) :
   (monad_lift (x >>= f) : cont_t r m β) = monad_lift x >>= monad_lift ∘ f :=
-by { ext, simp only [monad_lift,has_monad_lift.monad_lift,(∘),(>>=),bind_assoc,id.def,run], }
+by { ext, simp only [monad_lift,has_monad_lift.monad_lift,(∘),(>>=),bind_assoc,id.def,run,cont_t.monad_lift] }
 
 instance : monad_cont (cont_t r m) :=
 { call_cc := λ α β f g, f ⟨λ x h, g x⟩ g }
@@ -127,6 +133,18 @@ instance [monad_cont m] [is_lawful_monad_cont m] : is_lawful_monad_cont (option_
 { call_cc_bind_right := by { intros, simp [call_cc,option_t.call_cc,call_cc_bind_right], ext, dsimp, congr, ext ⟨ ⟩; simp [option_t.bind_cont,@call_cc_dummy m _], },
   call_cc_bind_left  := by { intros, simp [call_cc,option_t.call_cc,call_cc_bind_right,option_t.goto_mk_label,map_eq_bind_pure_comp,bind_assoc,@call_cc_bind_left m _], ext, refl },
   call_cc_dummy := by { intros, simp [call_cc,option_t.call_cc,@call_cc_dummy m _], ext, refl }, }
+
+def writer_t.mk_label {α β ω} [has_one ω] : label (α × ω) m β → label α (writer_t ω m) β
+| ⟨ f ⟩ := ⟨ λ a, monad_lift $ f (a,1) ⟩
+
+lemma writer_t.goto_mk_label {α β ω : Type*} [has_one ω] (x : label (α × ω) m β) (i : α) :
+  goto (writer_t.mk_label x) i = monad_lift (goto x (i,1)) := by cases x; refl
+
+def writer_t.call_cc [monad_cont m] {α β ω : Type*} [has_one ω] (f : label α (writer_t ω m) β → writer_t ω m α) : writer_t ω m α :=
+⟨ call_cc (writer_t.run ∘ f ∘ writer_t.mk_label : label (α × ω) m β → m (α × ω)) ⟩
+
+instance (ω) [monad m] [has_one ω] [monad_cont m] : monad_cont (writer_t ω m) :=
+{ call_cc := λ α β, writer_t.call_cc }
 
 def state_t.mk_label {α β σ : Type u} : label (α × σ) m (β × σ) → label α (state_t σ m) β
 | ⟨ f ⟩ := ⟨ λ a, ⟨ λ s, f (a,s) ⟩ ⟩

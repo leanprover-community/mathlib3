@@ -2586,7 +2586,7 @@ begin
       h₂, by rw h₃; refl, by simp [pb, h₄]⟩ }
 end
 
-theorem exists_or_eq_self_of_erasep (l : list α) :
+theorem exists_or_eq_self_of_erasep (p : α → Prop) [decidable_pred p] (l : list α) :
   l.erasep p = l ∨ ∃ a l₁ l₂, (∀ b ∈ l₁, ¬ p b) ∧ p a ∧ l = l₁ ++ a :: l₂ ∧ l.erasep p = l₁ ++ l₂ :=
 begin
   by_cases h : ∃ a ∈ l, p a,
@@ -2614,7 +2614,7 @@ theorem erasep_append_right : ∀ {l₁ : list α} (l₂), (∀ b ∈ l₁, ¬ p
   erasep_append_right _ (forall_mem_cons.1 h).2]
 
 theorem erasep_sublist (l : list α) : l.erasep p <+ l :=
-by rcases exists_or_eq_self_of_erasep l with h | ⟨c, l₁, l₂, h₁, h₂, h₃, h₄⟩;
+by rcases exists_or_eq_self_of_erasep p l with h | ⟨c, l₁, l₂, h₁, h₂, h₃, h₄⟩;
    [rw h, {rw [h₄, h₃], simp}]
 
 theorem erasep_subset (l : list α) : l.erasep p ⊆ l :=
@@ -2637,7 +2637,7 @@ theorem mem_of_mem_erasep {a : α} {l : list α} : a ∈ l.erasep p → a ∈ l 
 
 @[simp] theorem mem_erasep_of_neg {a : α} {l : list α} (pa : ¬ p a) : a ∈ l.erasep p ↔ a ∈ l :=
 ⟨mem_of_mem_erasep, λ al, begin
-  rcases exists_or_eq_self_of_erasep l with h | ⟨c, l₁, l₂, h₁, h₂, h₃, h₄⟩,
+  rcases exists_or_eq_self_of_erasep p l with h | ⟨c, l₁, l₂, h₁, h₂, h₃, h₄⟩,
   { rwa h },
   { rw h₄, rw h₃ at al,
     have : a ≠ c, {rintro rfl, exact pa.elim h₂},

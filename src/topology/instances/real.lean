@@ -288,10 +288,22 @@ instance : complete_space ℝ :=
   exact λ x h, lt_trans ((hF_dist n) x (G n) h (hG n)) h₁
 end⟩
 
-lemma tendsto_of_nat_at_top_at_top : tendsto (coe : ℕ → ℝ) at_top at_top :=
-tendsto_infi.2 $ assume r, tendsto_principal.2 $
-let ⟨n, hn⟩ := exists_nat_gt r in
-mem_at_top_sets.2 ⟨n, λ m h, le_trans (le_of_lt hn) (nat.cast_le.2 h)⟩
+lemma tendsto_coe_nat_real_at_top_iff {f : α → ℕ} {l : filter α} :
+  tendsto (λ n, (f n : ℝ)) l at_top ↔ tendsto f l at_top :=
+tendsto_at_top_embedding (assume a₁ a₂, nat.cast_le) $
+  assume r, let ⟨n, hn⟩ := exists_nat_gt r in ⟨n, le_of_lt hn⟩
+
+lemma tendsto_coe_nat_real_at_top_at_top : tendsto (coe : ℕ → ℝ) at_top at_top :=
+tendsto_coe_nat_real_at_top_iff.2 tendsto_id
+
+lemma tendsto_coe_int_real_at_top_iff {f : α → ℤ} {l : filter α} :
+  tendsto (λ n, (f n : ℝ)) l at_top ↔ tendsto f l at_top :=
+tendsto_at_top_embedding (assume a₁ a₂, int.cast_le) $
+  assume r, let ⟨n, hn⟩ := exists_nat_gt r in
+  ⟨(n:ℤ), le_of_lt $ by rwa [int.cast_coe_nat]⟩
+
+lemma tendsto_coe_int_real_at_top_at_top : tendsto (coe : ℤ → ℝ) at_top at_top :=
+tendsto_coe_int_real_at_top_iff.2 tendsto_id
 
 section
 

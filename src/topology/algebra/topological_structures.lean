@@ -12,7 +12,6 @@ import order.liminf_limsup
 import algebra.big_operators algebra.group algebra.pi_instances
 import data.set.intervals data.equiv.algebra
 import topology.basic topology.continuity topology.uniform_space.basic
-import ring_theory.ideals
 
 open classical set lattice filter topological_space
 local attribute [instance] classical.prop_decidable
@@ -210,6 +209,18 @@ begin
   have : ((λa:α×α, a.1 * a.2) ⁻¹' s) ∈ (nhds ((1, 1) : α × α)).sets :=
     tendsto_mul' (by simpa using hs),
   rw nhds_prod_eq at this,
+  rcases mem_prod_iff.1 this with ⟨V₁, H₁, V₂, H₂, H⟩,
+  exact ⟨V₁ ∩ V₂, inter_mem_sets H₁ H₂, assume v w ⟨hv, _⟩ ⟨_, hw⟩, @H (v, w) ⟨hv, hw⟩⟩
+end
+
+@[to_additive exists_nhds_half_neg]
+lemma exists_nhds_split_inv [topological_group α] {s : set α} (hs : s ∈ (nhds (1 : α)).sets) :
+  ∃ V ∈ (nhds (1 : α)).sets, ∀ v w ∈ V, v * w⁻¹ ∈ s :=
+begin
+  have : tendsto (λa:α×α, a.1 * (a.2)⁻¹) ((nhds (1:α)).prod (nhds (1:α))) (nhds 1),
+  { simpa using tendsto_mul (@tendsto_fst α α (nhds 1) (nhds 1)) (tendsto_inv tendsto_snd) },
+  have : ((λa:α×α, a.1 * (a.2)⁻¹) ⁻¹' s) ∈ ((nhds (1:α)).prod (nhds (1:α))).sets :=
+    this (by simpa using hs),
   rcases mem_prod_iff.1 this with ⟨V₁, H₁, V₂, H₂, H⟩,
   exact ⟨V₁ ∩ V₂, inter_mem_sets H₁ H₂, assume v w ⟨hv, _⟩ ⟨_, hw⟩, @H (v, w) ⟨hv, hw⟩⟩
 end
@@ -1367,14 +1378,24 @@ begin
         infi_le_of_le (a + r) $ infi_le _ (or.inr rfl)) } }
 end
 
+lemma tendsto_at_top_supr_nat [topological_space α] [complete_linear_order α] [orderable_topology α]
+  (f : ℕ → α) (hf : monotone f) : tendsto f at_top (nhds (⨆i, f i)) :=
+tendsto_orderable.2 $ and.intro
+  (assume a ha, let ⟨n, hn⟩ := lt_supr_iff.1 ha in
+    mem_at_top_sets.2 ⟨n, assume i hi, lt_of_lt_of_le hn (hf hi)⟩)
+  (assume a ha, univ_mem_sets' (assume n, lt_of_le_of_lt (le_supr _ n) ha))
+
+lemma tendsto_at_top_infi_nat [topological_space α] [complete_linear_order α] [orderable_topology α]
+  (f : ℕ → α) (hf : ∀{n m}, n ≤ m → f m ≤ f n) : tendsto f at_top (nhds (⨅i, f i)) :=
+tendsto_orderable.2 $ and.intro
+  (assume a ha, univ_mem_sets' (assume n, lt_of_lt_of_le ha (infi_le _ _)))
+  (assume a ha, let ⟨n, hn⟩ := infi_lt_iff.1 ha in
+    mem_at_top_sets.2 ⟨n, assume i hi, lt_of_le_of_lt (hf hi) hn⟩)
+
 lemma supr_eq_of_tendsto {α} [topological_space α] [complete_linear_order α] [orderable_topology α]
-  {f : ℕ → α} {a : α} (hf : monotone f) (h : tendsto f at_top (nhds a)) : supr f = a :=
-le_antisymm
-  (supr_le $ assume i, le_of_not_gt $ assume hi,
-    have {n | i ≤ n} ∈ (at_top : filter ℕ).sets, from mem_at_top _,
-    let ⟨n, h₁, h₂⟩ := inhabited_of_mem_sets at_top_ne_bot
-      (inter_mem_sets this ((tendsto_orderable.1 h).2 _ hi)) in
-    not_lt_of_ge (hf h₁) h₂)
-  (le_of_not_gt $ assume ha,
-    let ⟨n, hn⟩ := inhabited_of_mem_sets at_top_ne_bot ((tendsto_orderable.1 h).1 _ ha) in
-    not_lt_of_ge (le_supr _ _) hn)
+  {f : ℕ → α} {a : α} (hf : monotone f) : tendsto f at_top (nhds a) → supr f = a :=
+tendsto_nhds_unique at_top_ne_bot (tendsto_at_top_supr_nat f hf)
+
+lemma infi_eq_of_tendsto {α} [topological_space α] [complete_linear_order α] [orderable_topology α]
+  {f : ℕ → α} {a : α} (hf : ∀n m, n ≤ m → f m ≤ f n) : tendsto f at_top (nhds a) → infi f = a :=
+tendsto_nhds_unique at_top_ne_bot (tendsto_at_top_infi_nat f hf)

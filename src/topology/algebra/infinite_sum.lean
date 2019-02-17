@@ -8,6 +8,13 @@ Infinite sum over a topological monoid
 This sum is known as unconditionally convergent, as it sums to the same value under all possible
 permutations. For Euclidean spaces (finite dimensional Banach spaces) this is equivalent to absolute
 convergence.
+
+Note: There are summable sequences which are not unconditionally convergent! The other way holds
+generally, see `tendsto_sum_nat_of_is_sum`.
+
+Reference:
+* Bourbaki: General Topology (1995), Chapter 3 §5 (Infinite sums in commutative groups)
+
 -/
 import logic.function algebra.big_operators data.set data.finset
        topology.metric_space.basic topology.algebra.topological_structures
@@ -15,6 +22,10 @@ import logic.function algebra.big_operators data.set data.finset
 noncomputable theory
 open lattice finset filter function classical
 local attribute [instance] prop_decidable
+
+def option.cases_on' {α β} : option α → β → (α → β) → β
+| none     n s := n
+| (some a) n s := s a
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
@@ -71,7 +82,7 @@ tendsto_infi' s $ tendsto_cong tendsto_const_nhds $
 lemma has_sum_sum_of_ne_finset_zero (hf : ∀b∉s, f b = 0) : has_sum f :=
 has_sum_spec $ is_sum_sum_of_ne_finset_zero hf
 
-lemma is_sum_ite (b : β) (a : α) : is_sum (λb', if b' = b then a else 0) a :=
+lemma is_sum_ite_eq (b : β) (a : α) : is_sum (λb', if b' = b then a else 0) a :=
 suffices
   is_sum (λb', if b' = b then a else 0) (({b} : finset β).sum (λb', if b' = b then a else 0)), from
   by simpa,
@@ -228,6 +239,34 @@ exists_congr $
 
 end is_sum_iff_is_sum_of_iso_ne_zero
 
+section is_sum_iff_is_sum_of_bij_ne_zero
+variables [add_comm_monoid α] [topological_space α] [topological_add_monoid α]
+variables {f : β → α} {g : γ → α} {a : α}
+  (i : Π⦃c⦄, g c ≠ 0 → β)
+  (h₁ : ∀⦃c₁ c₂⦄ (h₁ : g c₁ ≠ 0) (h₂ : g c₂ ≠ 0), i h₁ = i h₂ → c₁ = c₂)
+  (h₂ : ∀⦃b⦄, f b ≠ 0 → ∃c (h : g c ≠ 0), i h = b)
+  (h₃ : ∀⦃c⦄ (h : g c ≠ 0), f (i h) = g c)
+include i h₁ h₂ h₃
+
+lemma is_sum_iff_is_sum_of_ne_zero_bij : is_sum f a ↔ is_sum g a :=
+have hi : ∀⦃c⦄ (h : g c ≠ 0), f (i h) ≠ 0,
+  from assume c h, by simp [h₃, h],
+let j : Π⦃b⦄, f b ≠ 0 → γ := λb h, some $ h₂ h in
+have hj : ∀⦃b⦄ (h : f b ≠ 0), ∃(h : g (j h) ≠ 0), i h = b,
+  from assume b h, some_spec $ h₂ h,
+have hj₁ : ∀⦃b⦄ (h : f b ≠ 0), g (j h) ≠ 0,
+  from assume b h, let ⟨h₁, _⟩ := hj h in h₁,
+have hj₂ : ∀⦃b⦄ (h : f b ≠ 0), i (hj₁ h) = b,
+  from assume b h, let ⟨h₁, h₂⟩ := hj h in h₂,
+is_sum_iff_is_sum_of_ne_zero i hi j hj₁
+  (assume c h, h₁ (hj₁ _) h $ hj₂ _) hj₂ (assume b h, by rw [←h₃ (hj₁ _), hj₂])
+
+lemma has_sum_iff_has_sum_ne_zero_bij : has_sum f ↔ has_sum g :=
+exists_congr $
+  assume a, is_sum_iff_is_sum_of_ne_zero_bij @i h₁ h₂ h₃
+
+end is_sum_iff_is_sum_of_bij_ne_zero
+
 section tsum
 variables [add_comm_monoid α] [topological_space α] [topological_add_monoid α] [t2_space α]
 variables {f g : β → α} {a a₁ a₂ : α}
@@ -264,8 +303,8 @@ lemma tsum_sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → 
   (h₁ : ∀b, has_sum (λc, f ⟨b, c⟩)) (h₂ : has_sum f) : (∑p, f p) = (∑b c, f ⟨b, c⟩):=
 (tsum_eq_is_sum $ is_sum_sigma (assume b, is_sum_tsum $ h₁ b) $ is_sum_tsum h₂).symm
 
-@[simp] lemma tsum_ite (b : β) (a : α) : (∑b', if b' = b then a else 0) = a :=
-tsum_eq_is_sum (is_sum_ite b a)
+@[simp] lemma tsum_ite_eq (b : β) (a : α) : (∑b', if b' = b then a else 0) = a :=
+tsum_eq_is_sum (is_sum_ite_eq b a)
 
 lemma tsum_eq_tsum_of_is_sum_iff_is_sum {f : β → α} {g : γ → α}
   (h : ∀{a}, is_sum f a ↔ is_sum g a) : (∑b, f b) = (∑c, g c) :=
@@ -293,17 +332,7 @@ lemma tsum_eq_tsum_of_ne_zero_bij {f : β → α} {g : γ → α}
   (h₂ : ∀⦃b⦄, f b ≠ 0 → ∃c (h : g c ≠ 0), i h = b)
   (h₃ : ∀⦃c⦄ (h : g c ≠ 0), f (i h) = g c) :
   (∑i, f i) = (∑j, g j) :=
-have hi : ∀⦃c⦄ (h : g c ≠ 0), f (i h) ≠ 0,
-  from assume c h, by simp [h₃, h],
-let j : Π⦃b⦄, f b ≠ 0 → γ := λb h, some $ h₂ h in
-have hj : ∀⦃b⦄ (h : f b ≠ 0), ∃(h : g (j h) ≠ 0), i h = b,
-  from assume b h, some_spec $ h₂ h,
-have hj₁ : ∀⦃b⦄ (h : f b ≠ 0), g (j h) ≠ 0,
-  from assume b h, let ⟨h₁, _⟩ := hj h in h₁,
-have hj₂ : ∀⦃b⦄ (h : f b ≠ 0), i (hj₁ h) = b,
-  from assume b h, let ⟨h₁, h₂⟩ := hj h in h₂,
-tsum_eq_tsum_of_ne_zero i hi j hj₁
-  (assume c h, h₁ (hj₁ _) h $ hj₂ _) hj₂ (assume b h, by rw [←h₃ (hj₁ _), hj₂])
+tsum_eq_tsum_of_is_sum_iff_is_sum $ assume a, is_sum_iff_is_sum_of_ne_zero_bij i h₁ h₂ h₃
 
 lemma tsum_eq_tsum_of_iso (j : γ → β) (i : β → γ)
   (h₁ : ∀x, i (j x) = x) (h₂ : ∀x, j (i x) = x) :
@@ -375,11 +404,37 @@ end tsum
 end topological_semiring
 
 section order_topology
-variables [ordered_comm_monoid α] [topological_space α] [ordered_topology α] [topological_add_monoid α]
+variables [ordered_comm_monoid α] [topological_space α] [ordered_topology α]
+  [topological_add_monoid α]
 variables {f g : β → α} {a a₁ a₂ : α}
 
 lemma is_sum_le (h : ∀b, f b ≤ g b) (hf : is_sum f a₁) (hg : is_sum g a₂) : a₁ ≤ a₂ :=
-le_of_tendsto_of_tendsto at_top_ne_bot hf hg $ univ_mem_sets' $ assume s, sum_le_sum' $ assume b _, h b
+le_of_tendsto_of_tendsto at_top_ne_bot hf hg $ univ_mem_sets' $
+  assume s, sum_le_sum' $ assume b _, h b
+
+lemma is_sum_le_inj {g : γ → α} (i : β → γ) (hi : injective i) (hs : ∀c∉set.range i, 0 ≤ g c)
+  (h : ∀b, f b ≤ g (i b)) (hf : is_sum f a₁) (hg : is_sum g a₂) : a₁ ≤ a₂ :=
+have is_sum (λc, (partial_inv i c).cases_on' 0 f) a₁,
+begin
+  refine (is_sum_iff_is_sum_of_ne_zero_bij (λb _, i b) _ _ _).2 hf,
+  { assume c₁ c₂ h₁ h₂ eq, exact hi eq },
+  { assume c hc,
+    cases eq : partial_inv i c with b; rw eq at hc,
+    { contradiction },
+    { rw [partial_inv_of_injective hi] at eq,
+      exact ⟨b, hc, eq⟩ } },
+  { assume c hc, rw [partial_inv_left hi, option.cases_on'] }
+end,
+begin
+  refine is_sum_le (assume c, _) this hg,
+  by_cases c ∈ set.range i,
+  { rcases h with ⟨b, rfl⟩,
+    rw [partial_inv_left hi, option.cases_on'],
+    exact h _ },
+  { have : partial_inv i c = none := dif_neg h,
+    rw [this, option.cases_on'],
+    exact hs _ h }
+end
 
 lemma tsum_le_tsum (h : ∀b, f b ≤ g b) (hf : has_sum f) (hg : has_sum g) : (∑b, f b) ≤ (∑b, g b) :=
 is_sum_le h (is_sum_tsum hf) (is_sum_tsum hg)
@@ -388,57 +443,68 @@ end order_topology
 
 section uniform_group
 variables [add_comm_group α] [uniform_space α] [complete_space α] [uniform_add_group α]
-variables {f g : β → α} {a a₁ a₂ : α}
+variables (f g : β → α) {a a₁ a₂ : α}
+
+lemma has_sum_iff_cauchy : has_sum f ↔ cauchy (map (λ (s : finset β), sum s f) at_top) :=
+(cauchy_map_iff_exists_tendsto at_top_ne_bot).symm
+
+lemma has_sum_iff_vanishing :
+  has_sum f ↔ ∀e∈(nhds (0:α)).sets, (∃s:finset β, ∀t, disjoint t s → t.sum f ∈ e) :=
+begin
+  simp only [has_sum_iff_cauchy, cauchy_map_iff, and_iff_right at_top_ne_bot,
+    prod_at_top_at_top_eq, uniformity_eq_comap_nhds_zero α, tendsto_comap_iff, (∘)],
+  rw [tendsto_at_top' (_ : finset β × finset β → α)],
+  split,
+  { assume h e he,
+    rcases h e he with ⟨⟨s₁, s₂⟩, h⟩,
+    use [s₁ ∪ s₂],
+    assume t ht,
+    have : (s₁ ∪ s₂) ∩ t = ∅ := finset.disjoint_iff_inter_eq_empty.1 ht.symm,
+    specialize h (s₁ ∪ s₂, (s₁ ∪ s₂) ∪ t) ⟨le_sup_left, le_sup_left_of_le le_sup_right⟩,
+    simpa only [finset.sum_union this, add_sub_cancel'] using h },
+  { assume h e he,
+    rcases exists_nhds_half_neg he with ⟨d, hd, hde⟩,
+    rcases h d hd with ⟨s, h⟩,
+    use [(s, s)],
+    rintros ⟨t₁, t₂⟩ ⟨ht₁, ht₂⟩,
+    have : t₂.sum f - t₁.sum f = (t₂ \ s).sum f - (t₁ \ s).sum f,
+    { simp only [(finset.sum_sdiff ht₁).symm, (finset.sum_sdiff ht₂).symm,
+        add_sub_add_right_eq_sub] },
+    simp only [this],
+    exact hde _ _ (h _ finset.disjoint_sdiff) (h _ finset.disjoint_sdiff) }
+end
 
 /- TODO: generalize to monoid with a uniform continuous subtraction operator: `(a + b) - b = a` -/
-lemma has_sum_of_has_sum_of_sub {f' : β → α} (hf : has_sum f) (h : ∀b, f' b = 0 ∨ f' b = f b) :
-  has_sum f' :=
-let ⟨a, hf⟩ := hf in
-suffices cauchy (at_top.map (λs:finset β, s.sum f')),
-  from complete_space.complete this,
-⟨map_ne_bot at_top_ne_bot,
-  assume s' hs',
-  have ∃t∈(@uniformity α _).sets, ∀{a₁ a₂ a₃ a₄}, (a₁, a₂) ∈ t → (a₃, a₄) ∈ t → (a₁ - a₃, a₂ - a₄) ∈ s',
-  begin
-    have h : {p:(α×α)×(α×α)| (p.1.1 - p.1.2, p.2.1 - p.2.2) ∈ s'} ∈ (@uniformity (α × α) _).sets,
-      from uniform_continuous_sub' hs',
-    rw [uniformity_prod_eq_prod, filter.mem_map, mem_prod_same_iff] at h,
-    rcases h with ⟨t, ht, h⟩,
-    exact ⟨t, ht, assume a₁ a₂ a₃ a₄ h₁ h₂, @h ((a₁, a₂), (a₃, a₄)) ⟨h₁, h₂⟩⟩
-  end,
-  let ⟨s, hs, hss'⟩ := this in
-  have cauchy (at_top.map (λs:finset β, s.sum f)),
-    from cauchy_downwards cauchy_nhds (map_ne_bot at_top_ne_bot) hf,
-  have ∃t, ∀u₁ u₂:finset β, t ⊆ u₁ → t ⊆ u₂ → (u₁.sum f, u₂.sum f) ∈ s,
-    by simp [cauchy_iff, mem_at_top_sets, and.assoc, and.left_comm, and.comm] at this;
-    from let ⟨t, ht, u, hu⟩ := this s hs in
-      ⟨u, assume u₁ u₂ h₁ h₂, ht $ set.prod_mk_mem_set_prod_eq.mpr ⟨hu _ h₁, hu _ h₂⟩⟩,
-  let ⟨t, ht⟩ := this in
-  let d := (t.filter (λb, f' b = 0)).sum f in
-  have eq : ∀{u}, t ⊆ u → (t ∪ u.filter (λb, f' b ≠ 0)).sum f - d = u.sum f',
-    from assume u hu,
-    have t ∪ u.filter (λb, f' b ≠ 0) = t.filter (λb, f' b = 0) ∪ u.filter (λb, f' b ≠ 0),
-      from finset.ext.2 $ assume b, by by_cases f' b = 0;
-        simp [h, subset_iff.mp hu, iff_def, or_imp_distrib] {contextual := tt},
-    calc (t ∪ u.filter (λb, f' b ≠ 0)).sum f - d =
-        (t.filter (λb, f' b = 0) ∪ u.filter (λb, f' b ≠ 0)).sum f - d : by rw [this]
-      ... = (d + (u.filter (λb, f' b ≠ 0)).sum f) - d :
-        by rw [sum_union]; exact (finset.ext.2 $ by simp {contextual := tt})
-      ... = (u.filter (λb, f' b ≠ 0)).sum f :
-        by simp
-      ... = (u.filter (λb, f' b ≠ 0)).sum f' :
-        sum_congr rfl $ assume b, by have h := h b; cases h with h h; simp [*]
-      ... = u.sum f' :
-        by apply sum_subset; by simp [subset_iff, not_not] {contextual := tt},
-  have ∀{u₁ u₂}, t ⊆ u₁ → t ⊆ u₂ → (u₁.sum f', u₂.sum f') ∈ s',
-    from assume u₁ u₂ h₁ h₂,
-    have ((t ∪ u₁.filter (λb, f' b ≠ 0)).sum f, (t ∪ u₂.filter (λb, f' b ≠ 0)).sum f) ∈ s,
-      from ht _ _ (subset_union_left _ _) (subset_union_left _ _),
-    have ((t ∪ u₁.filter (λb, f' b ≠ 0)).sum f - d, (t ∪ u₂.filter (λb, f' b ≠ 0)).sum f - d) ∈ s',
-      from hss' this $ refl_mem_uniformity hs,
-    by rwa [eq h₁, eq h₂] at this,
-  mem_prod_same_iff.mpr ⟨(λu:finset β, u.sum f') '' {u | t ⊆ u},
-    image_mem_map $ mem_at_top t,
-    assume ⟨a₁, a₂⟩ ⟨⟨t₁, h₁, eq₁⟩, ⟨t₂, h₂, eq₂⟩⟩, by simp at eq₁ eq₂; rw [←eq₁, ←eq₂]; exact this h₁ h₂⟩⟩
+lemma has_sum_of_has_sum_of_sub (hf : has_sum f) (h : ∀b, g b = 0 ∨ g b = f b) : has_sum g :=
+(has_sum_iff_vanishing g).2 $
+  assume e he,
+  let ⟨s, hs⟩ := (has_sum_iff_vanishing f).1 hf e he in
+  ⟨s, assume t ht,
+    have eq : (t.filter (λb, g b = f b)).sum f = t.sum g :=
+      calc (t.filter (λb, g b = f b)).sum f = (t.filter (λb, g b = f b)).sum g :
+          finset.sum_congr rfl (assume b hb, (finset.mem_filter.1 hb).2.symm)
+        ... = t.sum g :
+        begin
+          refine finset.sum_subset (finset.filter_subset _) _,
+          assume b hbt hb,
+          simp only [(∉), finset.mem_filter, and_iff_right hbt] at hb,
+          exact (h b).resolve_right hb
+        end,
+    eq ▸ hs _ $ finset.disjoint_of_subset_left (finset.filter_subset _) ht⟩
+
+lemma has_sum_comp_of_has_sum_of_injective {i : γ → β} (hf : has_sum f) (hi : injective i) :
+  has_sum (f ∘ i) :=
+suffices has_sum (λb, if b ∈ set.range i then f b else 0),
+begin
+  refine (has_sum_iff_has_sum_ne_zero_bij (λc _, i c) _ _ _).1 this,
+  { assume c₁ c₂ hc₁ hc₂ eq, exact hi eq },
+  { assume b hb,
+    split_ifs at hb,
+    { rcases h with ⟨c, rfl⟩,
+      exact ⟨c, hb, rfl⟩ },
+    { contradiction } },
+  { assume c hc, exact if_pos (set.mem_range_self _) }
+end,
+has_sum_of_has_sum_of_sub _ _ hf $ assume b, by by_cases b ∈ set.range i; simp [h]
 
 end uniform_group

@@ -28,14 +28,14 @@ lemma has_sum_coe (p : pmf α) : has_sum p := has_sum_spec p.is_sum_coe_one
 
 def support (p : pmf α) : set α := {a | p.1 a ≠ 0}
 
-def pure (a : α) : pmf α := ⟨λa', if a' = a then 1 else 0, is_sum_ite _ _⟩
+def pure (a : α) : pmf α := ⟨λa', if a' = a then 1 else 0, is_sum_ite_eq _ _⟩
 
 @[simp] lemma pure_apply (a a' : α) : pure a a' = (if a' = a then 1 else 0) := rfl
 
 instance [inhabited α] : inhabited (pmf α) := ⟨pure (default α)⟩
 
 lemma coe_le_one (p : pmf α) (a : α) : p a ≤ 1 :=
-is_sum_le (by intro b; split_ifs; simp [h]; exact le_refl _) (is_sum_ite a (p a)) p.2
+is_sum_le (by intro b; split_ifs; simp [h]; exact le_refl _) (is_sum_ite_eq a (p a)) p.2
 
 protected lemma bind.has_sum (p : pmf α) (f : α → pmf β) (b : β) : has_sum (λa:α, p a * f a b) :=
 begin

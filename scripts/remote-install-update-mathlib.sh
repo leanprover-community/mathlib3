@@ -4,4 +4,5 @@ curl -o update-mathlib.py https://raw.githubusercontent.com/leanprover-community
 chmod +x update-mathlib.py
 mkdir -p $HOME/.mathlib/bin || true
 cp update-mathlib.py $HOME/.mathlib/bin/update-mathlib
-echo "export PATH=\"\$HOME/.mathlib/bin:\$PATH\" " >> .profile
+echo "export PATH=\"\$HOME/.mathlib/bin:\$PATH\" " >> $HOME/.profile
+source $HOME/.profile

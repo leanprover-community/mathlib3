@@ -931,6 +931,46 @@ have zn0 : (0 : α) ≠ 1, from λ h, by haveI := subsingleton_of_zero_eq_one _ 
 
 end comm_semiring
 
+section nonzero_comm_semiring
+variables [nonzero_comm_semiring α] [decidable_eq α] {p q : polynomial α}
+
+instance : nonzero_comm_semiring (polynomial α) :=
+{ zero_ne_one := λ (h : (0 : polynomial α) = 1),
+    @zero_ne_one α _ $
+    calc (0 : α) = eval 0 0 : eval_zero.symm
+      ... = eval 0 1 : congr_arg _ h
+      ... = 1 : eval_C,
+  ..polynomial.comm_semiring }
+
+@[simp] lemma degree_one : degree (1 : polynomial α) = (0 : with_bot ℕ) :=
+degree_C (show (1 : α) ≠ 0, from zero_ne_one.symm)
+
+@[simp] lemma degree_X : degree (X : polynomial α) = 1 :=
+begin
+  unfold X degree single finsupp.support,
+  rw if_neg (zero_ne_one).symm,
+  refl
+end
+
+lemma X_ne_zero : (X : polynomial α) ≠ 0 :=
+mt (congr_arg (λ p, coeff p 1)) (by simp)
+
+@[simp] lemma degree_X_pow : ∀ (n : ℕ), degree ((X : polynomial α) ^ n) = n
+| 0 := by simp only [pow_zero, degree_one]; refl
+| (n+1) :=
+have h : leading_coeff (X : polynomial α) * leading_coeff (X ^ n) ≠ 0,
+  by rw [leading_coeff_X, leading_coeff_X_pow n, one_mul];
+    exact zero_ne_one.symm,
+by rw [pow_succ, degree_mul_eq' h, degree_X, degree_X_pow, add_comm]; refl
+
+@[simp] lemma not_monic_zero : ¬monic (0 : polynomial α) :=
+by simpa only [monic, leading_coeff_zero] using zero_ne_one
+
+lemma ne_zero_of_monic (h : monic p) : p ≠ 0 :=
+λ h₁, @not_monic_zero α _ _ (h₁ ▸ h)
+
+end nonzero_comm_semiring
+
 section comm_ring
 variables [comm_ring α] [decidable_eq α] {p q : polynomial α}
 instance : comm_ring (polynomial α) := finsupp.to_comm_ring
@@ -1314,25 +1354,8 @@ section nonzero_comm_ring
 variables [nonzero_comm_ring α] [decidable_eq α] {p q : polynomial α}
 
 instance : nonzero_comm_ring (polynomial α) :=
-{ zero_ne_one := λ (h : (0 : polynomial α) = 1),
-    @zero_ne_one α _ $
-    calc (0 : α) = eval 0 0 : eval_zero.symm
-      ... = eval 0 1 : congr_arg _ h
-      ... = 1 : eval_C,
+{ ..polynomial.nonzero_comm_semiring,
   ..polynomial.comm_ring }
-
-@[simp] lemma degree_one : degree (1 : polynomial α) = (0 : with_bot ℕ) :=
-degree_C (show (1 : α) ≠ 0, from zero_ne_one.symm)
-
-@[simp] lemma degree_X : degree (X : polynomial α) = 1 :=
-begin
-  unfold X degree single finsupp.support,
-  rw if_neg (zero_ne_one).symm,
-  refl
-end
-
-lemma X_ne_zero : (X : polynomial α) ≠ 0 :=
-mt (congr_arg (λ p, coeff p 1)) (by simp)
 
 @[simp] lemma degree_X_sub_C (a : α) : degree (X - C a) = 1 :=
 begin
@@ -1341,14 +1364,6 @@ begin
   { simp only [ha, C_0, neg_zero, zero_add] },
   exact degree_add_eq_of_degree_lt (by rw [degree_X, degree_neg, degree_C ha]; exact dec_trivial)
 end
-
-@[simp] lemma degree_X_pow : ∀ (n : ℕ), degree ((X : polynomial α) ^ n) = n
-| 0 := by simp only [pow_zero, degree_one]; refl
-| (n+1) :=
-have h : leading_coeff (X : polynomial α) * leading_coeff (X ^ n) ≠ 0,
-  by rw [leading_coeff_X, leading_coeff_X_pow n, one_mul];
-    exact zero_ne_one.symm,
-by rw [pow_succ, degree_mul_eq' h, degree_X, degree_X_pow, add_comm]; refl
 
 lemma degree_X_pow_sub_C {n : ℕ} (hn : 0 < n) (a : α) :
   degree ((X : polynomial α) ^ n - C a) = n :=
@@ -1362,12 +1377,6 @@ lemma X_pow_sub_C_ne_zero {n : ℕ} (hn : 0 < n) (a : α) :
   (X : polynomial α) ^ n - C a ≠ 0 :=
 mt degree_eq_bot.2 (show degree ((X : polynomial α) ^ n - C a) ≠ ⊥,
   by rw degree_X_pow_sub_C hn; exact dec_trivial)
-
-@[simp] lemma not_monic_zero : ¬monic (0 : polynomial α) :=
-by simpa only [monic, leading_coeff_zero] using zero_ne_one
-
-lemma ne_zero_of_monic (h : monic p) : p ≠ 0 :=
-λ h₁, @not_monic_zero α _ _ (h₁ ▸ h)
 
 end nonzero_comm_ring
 

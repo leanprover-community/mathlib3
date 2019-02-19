@@ -10,8 +10,8 @@ namespace tactic
 open list
 
 private meta def unify_or_cons : list expr → expr → tactic (list expr)
-| []        g := trace "!" >> pure [g]
-| (x :: xs) g := ((unify x g >> pure (x :: xs)) <|> cons x <$> unify_or_cons xs g)
+| []        g := pure [g]
+| (x :: xs) g := (unify x g >> pure (x :: xs)) <|> cons x <$> unify_or_cons xs g
 
 meta def merge_goals : tactic unit :=
 do gs ← get_goals,

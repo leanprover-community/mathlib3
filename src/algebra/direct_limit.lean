@@ -1,4 +1,7 @@
-import linear_algebra.direct_sum_module linear_algebra.linear_combination tactic.linarith
+import linear_algebra.direct_sum_module
+import linear_algebra.linear_combination
+import ring_theory.free_comm_ring
+import ring_theory.ideal_operations
 
 universes u v w u₁
 
@@ -10,11 +13,11 @@ class directed_order (α : Type u) extends partial_order α :=
 variables {R : Type u} [ring R]
 variables {ι : Type v} [inhabited ι]
 variables [directed_order ι] [decidable_eq ι]
-variables (G : ι → Type w) [Π i, decidable_eq (G i)] [Π i, add_comm_group (G i)]
+variables (G : ι → Type w) [Π i, decidable_eq (G i)]
 
 namespace module
 
-variables [Π i, module R (G i)]
+variables [Π i, add_comm_group (G i)] [Π i, module R (G i)]
 
 class directed_system (f : Π i j, i ≤ j → G i →ₗ[R] G j) : Prop :=
 (Hid : ∀ i x, f i i (le_refl i) x = x)
@@ -23,15 +26,15 @@ class directed_system (f : Π i j, i ≤ j → G i →ₗ[R] G j) : Prop :=
 variables (f : Π i j, i ≤ j → G i →ₗ[R] G j) [directed_system G f]
 
 def thing : set (direct_sum ι G) :=
-⋃ i j (H : i ≤ j) x, { direct_sum.lof R ι G i x - direct_sum.lof R ι G j (f i j H x) }
+⋃ i j H, set.range $ λ x, direct_sum.lof R ι G i x - direct_sum.lof R ι G j (f i j H x)
 
 def direct_limit : Type (max v w) :=
 (span R $ thing G f).quotient
 
 variables {G f}
 lemma mem_thing {a : direct_sum ι G} : a ∈ thing G f ↔ ∃ (i j) (H : i ≤ j) x,
-  a = direct_sum.lof R ι G i x - direct_sum.lof R ι G j (f i j H x) :=
-by simp only [thing, set.mem_Union, set.mem_singleton_iff]
+  direct_sum.lof R ι G i x - direct_sum.lof R ι G j (f i j H x) = a :=
+by simp only [thing, set.mem_Union, set.mem_range]
 variables (G f)
 
 namespace direct_limit
@@ -39,28 +42,28 @@ namespace direct_limit
 instance : add_comm_group (direct_limit G f) := quotient.add_comm_group _
 instance : module R (direct_limit G f) := quotient.module _
 
-variables (ι R)
+variables (R ι)
 def of (i) : G i →ₗ[R] direct_limit G f :=
 (mkq _).comp $ direct_sum.lof R ι G i
-variables {ι R}
+variables {R ι}
 
 theorem of_f {i j hij x} : (of R ι G f j (f i j hij x)) = of R ι G f i x :=
 eq.symm $ (submodule.quotient.eq _).2 $ subset_span $
-set.mem_Union.2 ⟨i, set.mem_Union.2 ⟨j, set.mem_Union.2 ⟨hij, set.mem_Union.2 ⟨x, or.inl rfl⟩⟩⟩⟩
+set.mem_Union.2 ⟨i, set.mem_Union.2 ⟨j, set.mem_Union.2 ⟨hij, set.mem_range_self x⟩⟩⟩
 
 variables {P : Type u₁} [add_comm_group P] [module R P] (g : Π i, G i →ₗ[R] P)
 variables (Hg : ∀ i j hij x, g j (f i j hij x) = g i x)
 include Hg
 
-variables (ι R)
+variables (R ι)
 def rec : direct_limit G f →ₗ[R] P :=
 liftq _ (direct_sum.to_module R ι P g)
   (span_le.2 $ set.Union_subset $ λ i,
-    set.Union_subset $ λ j, set.Union_subset $ λ hij, set.Union_subset $ λ x,
-      set.singleton_subset_iff.2 $ linear_map.sub_mem_ker_iff.2 $
+    set.Union_subset $ λ j, set.Union_subset $ λ hij,
+      set.range_subset_iff.2 $ λ x, linear_map.sub_mem_ker_iff.2 $
         by rw [direct_sum.to_module_lof, direct_sum.to_module_lof, Hg])
 
-variables {ι R}
+variables {R ι}
 
 omit Hg
 lemma rec_of {i} (x) : rec R ι G f g Hg (of R ι G f i x) = g i x :=
@@ -170,6 +173,7 @@ by rintro ⟨⟨⟨f⟩, _, _, _, _, _, _⟩⟩ ⟨⟨⟨g⟩, _, _, _, _, _, _�
 
 end module
 
+
 namespace add_comm_group
 
 variables {α : Type u} [add_comm_group α]
@@ -208,6 +212,8 @@ end is_add_group_hom
 
 namespace add_comm_group
 
+variables [Π i, add_comm_group (G i)]
+
 class directed_system (f : Π i j, i ≤ j → G i → G j) : Prop :=
 (Hid : ∀ i x, f i i (le_refl i) x = x)
 (Hcomp : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
@@ -223,11 +229,93 @@ namespace direct_limit
 variables (f : Π i j, i ≤ j → G i → G j)
 variables [Π i j hij, is_add_group_hom (f i j hij)] [directed_system G f]
 
+def directed_system : module.directed_system G (λ (i j : ι) (hij : i ≤ j), is_add_group_hom.to_linear_map (f i j hij)) :=
+⟨directed_system.Hid f, directed_system.Hcomp f⟩
+
+local attribute [instance] directed_system
+
 instance : add_comm_group (direct_limit G f) :=
-@module.direct_limit.add_comm_group _ _ _ _ _ _ _ _ _ _
-  (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij)
-  ⟨directed_system.Hid f, directed_system.Hcomp f⟩
+module.direct_limit.add_comm_group G (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij)
+
+variables (P : Type u₁) [add_comm_group P]
+variables (g : Π i, G i → P) [Π i, is_add_group_hom (g i)]
+variables (Hg : ∀ i j hij x, g j (f i j hij x) = g i x)
+
+set_option class.instance_max_depth 51
+def rec : direct_limit G f → P :=
+module.direct_limit.rec ℤ ι G (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij)
+  (λ i, is_add_group_hom.to_linear_map $ g i) Hg
 
 end direct_limit
 
 end add_comm_group
+
+
+namespace ring
+
+variables [Π i, ring (G i)]
+variables (f : Π i j, i ≤ j → G i → G j) [Π i j hij, is_ring_hom (f i j hij)]
+variables [add_comm_group.directed_system G f]
+
+open free_comm_ring
+
+def thing1 : set (free_comm_ring Σ i, G i) :=
+⋃ i j H, set.range $ λ x, of ⟨j, f i j H x⟩ - of ⟨i, x⟩
+
+def thing2 : set (free_comm_ring Σ i, G i) :=
+set.range $ λ i, of ⟨i, 1⟩ - 1
+
+def thing3 : set (free_comm_ring Σ i, G i) :=
+⋃ i x, set.range $ λ y, of ⟨i, x + y⟩ - (of ⟨i, x⟩ + of ⟨i, y⟩)
+
+def thing4 : set (free_comm_ring Σ i, G i) :=
+⋃ i x, set.range $ λ y, of ⟨i, x * y⟩ - (of ⟨i, x⟩ * of ⟨i, y⟩)
+
+def direct_limit : Type (max v w) :=
+(ideal.span (thing1 G f ∪ thing2 G ∪ thing3 G ∪ thing4 G)).quotient
+
+namespace direct_limit
+
+instance : comm_ring (direct_limit G f) :=
+ideal.quotient.comm_ring _
+
+def of (i) (x : G i) : direct_limit G f :=
+ideal.quotient.mk _ $ of ⟨i, x⟩
+
+instance of.is_ring_hom (i) : is_ring_hom (of G f i) :=
+{ map_one := ideal.quotient.eq.2 $ subset_span $ or.inl $ or.inl $ or.inr $ set.mem_range_self i,
+  map_mul := λ x y, ideal.quotient.eq.2 $ subset_span $ or.inr $ set.mem_Union.2 ⟨i,
+    set.mem_Union.2 ⟨x, set.mem_range_self y⟩⟩,
+  map_add := λ x y, ideal.quotient.eq.2 $ subset_span $ or.inl $ or.inr $ set.mem_Union.2 ⟨i,
+    set.mem_Union.2 ⟨x, set.mem_range_self y⟩⟩ }
+
+variables (P : Type u₁) [comm_ring P]
+variables (g : Π i, G i → P) [Π i, is_ring_hom (g i)]
+variables (Hg : ∀ i j hij x, g j (f i j hij x) = g i x)
+include Hg
+
+open free_comm_ring
+
+def rec : direct_limit G f → P :=
+ideal.quotient.lift _ (free_comm_ring.lift $ λ x, g x.1 x.2) begin
+  suffices : ideal.span (thing1 G f ∪ thing2 G ∪ thing3 G ∪ thing4 G) ≤
+    ideal.comap (free_comm_ring.lift (λ (x : Σ (i : ι), G i), g (x.fst) (x.snd))) ⊥,
+  { intros x hx, exact (mem_bot P).1 (this hx) },
+  rw ideal.span_le, intros x hx,
+  simp only [thing1, thing2, thing3, thing4, set.mem_union, set.mem_Union, set.mem_range] at hx,
+  rw [mem_coe, ideal.mem_comap, mem_bot],
+  rcases hx with ⟨⟨i, j, hij, x, rfl⟩ | hx⟩,
+  { simp only [lift_sub, lift_of, Hg, sub_self] },
+  { rcases hx with ⟨i, rfl⟩, simp only [lift_sub, lift_of, lift_one, is_ring_hom.map_one (g i), sub_self] },
+  { rcases hx with ⟨i, x, y, rfl⟩, simp only [lift_sub, lift_of, lift_add, is_ring_hom.map_add (g i), sub_self] },
+  { rcases hx with ⟨i, x, y, rfl⟩, simp only [lift_sub, lift_of, lift_mul, is_ring_hom.map_mul (g i), sub_self] }
+end
+
+instance rec.is_ring_hom : is_ring_hom (rec G f P g Hg) :=
+⟨free_comm_ring.lift_one _,
+λ x y, quotient.induction_on₂' x y $ λ p q, free_comm_ring.lift_mul _ _ _,
+λ x y, quotient.induction_on₂' x y $ λ p q, free_comm_ring.lift_add _ _ _⟩
+
+end direct_limit
+
+end ring

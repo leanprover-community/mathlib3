@@ -7,71 +7,67 @@ open lattice submodule
 class directed_order (α : Type u) extends partial_order α :=
 (directed : ∀ i j : α, ∃ k, i ≤ k ∧ j ≤ k)
 
-variables {ι : Type u} [inhabited ι]
+variables {R : Type u} [ring R]
+variables {ι : Type v} [inhabited ι]
 variables [directed_order ι] [decidable_eq ι]
-variables (G : ι → Type v) [Π i, decidable_eq (G i)]
+variables (G : ι → Type w) [Π i, decidable_eq (G i)] [Π i, add_comm_group (G i)]
 
 namespace module
 
-class directed_system {R : Type w} [comm_ring R] [Π i, add_comm_group (G i)] [Π i, module R (G i)]
-  (f : Π i j, i ≤ j → G i →ₗ G j) : Prop :=
+variables [Π i, module R (G i)]
+
+class directed_system (f : Π i j, i ≤ j → G i →ₗ[R] G j) : Prop :=
 (Hid : ∀ i x, f i i (le_refl i) x = x)
 (Hcomp : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
 
-def thing {R : Type w} [comm_ring R] [Π i, add_comm_group (G i)] [Π i, module R (G i)]
-  (f : Π i j, i ≤ j → G i →ₗ G j) [directed_system G f] : set (direct_sum R ι G) :=
-  ⋃ i j (H : i ≤ j) x,
-  ({ direct_sum.of ι G i x - direct_sum.of ι G j (f i j H x) } : set $ direct_sum R ι G)
+variables (f : Π i j, i ≤ j → G i →ₗ[R] G j) [directed_system G f]
 
-def direct_limit {R : Type w} [comm_ring R] [Π i, add_comm_group (G i)] [Π i, module R (G i)]
-  (f : Π i j, i ≤ j → G i →ₗ G j) [directed_system G f] : Type (max u v) :=
-quotient $ span $ thing G f
+def thing : set (direct_sum ι G) :=
+⋃ i j (H : i ≤ j) x, { direct_sum.lof R ι G i x - direct_sum.lof R ι G j (f i j H x) }
 
-lemma mem_thing {G : ι → Type v} [Π i, decidable_eq (G i)]
-  {R : Type w} [comm_ring R] [Π i, add_comm_group (G i)] [Π i, module R (G i)]
-  {f : Π i j, i ≤ j → G i →ₗ G j} [directed_system G f] {a : direct_sum R ι G} :
-  a ∈ thing G f ↔ ∃ (i j) (H : i ≤ j) x,
-  a = direct_sum.of ι G i x - direct_sum.of ι G j (f i j H x) :=
-  by simp [thing, set.mem_Union]
+def direct_limit : Type (max v w) :=
+(span R $ thing G f).quotient
+
+variables {G f}
+lemma mem_thing {a : direct_sum ι G} : a ∈ thing G f ↔ ∃ (i j) (H : i ≤ j) x,
+  a = direct_sum.lof R ι G i x - direct_sum.lof R ι G j (f i j H x) :=
+by simp only [thing, set.mem_Union, set.mem_singleton_iff]
+variables (G f)
 
 namespace direct_limit
-
-variables {R : Type w} [comm_ring R] [Π i, add_comm_group (G i)] [Π i, module R (G i)]
-variables (f : Π i j, i ≤ j → G i →ₗ G j) [directed_system G f]
-include R
 
 instance : add_comm_group (direct_limit G f) := quotient.add_comm_group _
 instance : module R (direct_limit G f) := quotient.module _
 
 variables (ι R)
-def of (i) : G i →ₗ direct_limit G f :=
-(mkq _).comp $ direct_sum.of ι G i
+def of (i) : G i →ₗ[R] direct_limit G f :=
+(mkq _).comp $ direct_sum.lof R ι G i
 variables {ι R}
 
-theorem of_f {i j hij x} : (of ι G R f j (f i j hij x)) = of ι G R f i x :=
+theorem of_f {i j hij x} : (of R ι G f j (f i j hij x)) = of R ι G f i x :=
 eq.symm $ (submodule.quotient.eq _).2 $ subset_span $
 set.mem_Union.2 ⟨i, set.mem_Union.2 ⟨j, set.mem_Union.2 ⟨hij, set.mem_Union.2 ⟨x, or.inl rfl⟩⟩⟩⟩
 
-variables {P : Type u₁} [add_comm_group P] [module R P] (g : Π i, G i →ₗ P)
+variables {P : Type u₁} [add_comm_group P] [module R P] (g : Π i, G i →ₗ[R] P)
 variables (Hg : ∀ i j hij x, g j (f i j hij x) = g i x)
 include Hg
 
 variables (ι R)
-def rec : direct_limit G f →ₗ P :=
-liftq _ (direct_sum.to_module _ g)
+def rec : direct_limit G f →ₗ[R] P :=
+liftq _ (direct_sum.to_module R ι P g)
   (span_le.2 $ set.Union_subset $ λ i,
     set.Union_subset $ λ j, set.Union_subset $ λ hij, set.Union_subset $ λ x,
       set.singleton_subset_iff.2 $ linear_map.sub_mem_ker_iff.2 $
-        by rw [direct_sum.to_module.of, direct_sum.to_module.of, Hg])
+        by rw [direct_sum.to_module_lof, direct_sum.to_module_lof, Hg])
 
 variables {ι R}
 
 omit Hg
-lemma rec_of {i} (x) : rec ι G R f g Hg (of ι G R f i x) = g i x :=
-direct_sum.to_module.of _ _
+lemma rec_of {i} (x) : rec R ι G f g Hg (of R ι G f i x) = g i x :=
+direct_sum.to_module_lof R _ _
 
-theorem rec_unique (F : direct_limit G f →ₗ P) (x) :
-  F x = rec ι G R f (λ i, F.comp $ of ι G R f i)
+theorem rec_unique (F : direct_limit G f →ₗ[R] P) (x) :
+  F x = rec R ι G f (λ i, F.comp $ of R ι G f i)
     (λ i j hij x, by rw [linear_map.comp_apply, of_f]; refl) x :=
 quotient.induction_on' x $ λ y, direct_sum.induction_on y
   ((linear_map.map_zero _).trans (linear_map.map_zero _).symm)
@@ -79,7 +75,7 @@ quotient.induction_on' x $ λ y, direct_sum.induction_on y
   (λ x y ihx ihy, (linear_map.map_add F (quotient.mk' x) (quotient.mk' y)).trans $
     ihx.symm ▸ ihy.symm ▸ (linear_map.map_add _ _ _).symm)
 
-theorem exists_of (z : direct_limit G f) : ∃ i x, z = of ι G R f i x :=
+theorem exists_of (z : direct_limit G f) : ∃ i x, z = of R ι G f i x :=
 quotient.induction_on' z $ λ z, direct_sum.induction_on z
   ⟨default _, 0, (linear_map.map_zero _).symm⟩
   (λ i x, ⟨i, x, rfl⟩)
@@ -87,56 +83,59 @@ quotient.induction_on' z $ λ z, direct_sum.induction_on z
     ⟨k, f i k hik x + f j k hjk y, by rw [linear_map.map_add, of_f, of_f, ← ihx, ← ihy]; refl⟩)
 
 @[elab_as_eliminator] theorem induction_on {C : direct_limit G f → Prop} (z : direct_limit G f)
-  (ih : ∀ i x, C (of ι G R f i x)) : C z :=
+  (ih : ∀ i x, C (of R ι G f i x)) : C z :=
 let ⟨i, x, h⟩ := exists_of G f z in h.symm ▸ ih i x
 
 lemma span_preimage_le_comap_span {R M N: Type*} [ring R] [add_comm_group M] [module R M]
-  [add_comm_group N] [module R N] (f : N →ₗ M) (s : set M) : span (f ⁻¹' s) ≤ (span s).comap f :=
+  [add_comm_group N] [module R N] (f : N →ₗ[R] M) (s : set M) : span R (f ⁻¹' s) ≤ (span R s).comap f :=
 λ x h, span_induction h
   (by simp only [set.preimage, set.mem_set_of_eq, mem_comap]; exact λ x h, subset_span h)
-  (zero_mem ((span s).comap f))
-  (λ _ _ hx hy, add_mem ((span s).comap f) hx hy)
-  (λ _ _ h, smul_mem ((span s).comap f) _ h)
+  (zero_mem ((span R s).comap f))
+  (λ _ _ hx hy, add_mem ((span R s).comap f) hx hy)
+  (λ _ _ h, smul_mem ((span R s).comap f) _ h)
 
+section totalize
 local attribute [instance, priority 0] classical.dec
 
-noncomputable def totalize : Π i j, G i →ₗ G j :=
+noncomputable def totalize : Π i j, G i →ₗ[R] G j :=
 λ i j, if h : i ≤ j then f i j h else 0
 
 lemma totalize_apply (i j x) :
   totalize G f i j x = if h : i ≤ j then f i j h x else 0 :=
 if h : i ≤ j
-  then by dsimp [totalize]; rw [dif_pos h, dif_pos h]
-  else by dsimp [totalize]; rw [dif_neg h, dif_neg h, linear_map.zero_apply]
--- set_option trace.simplify.rewrite true
+  then by dsimp only [totalize]; rw [dif_pos h, dif_pos h]
+  else by dsimp only [totalize]; rw [dif_neg h, dif_neg h, linear_map.zero_apply]
+end totalize
 
-lemma to_module_totalize_of_le {x : direct_sum R ι G} {i j : ι}
+lemma to_module_totalize_of_le {x : direct_sum ι G} {i j : ι}
   (hij : i ≤ j) (hx : ∀ k ∈ x.support, k ≤ i) :
-  direct_sum.to_module ι (λ k, totalize G f k j) x =
-  f i j hij (direct_sum.to_module ι (λ k, totalize G f k i) x) :=
+  direct_sum.to_module R ι (G j) (λ k, totalize G f k j) x =
+  f i j hij (direct_sum.to_module R ι (G i) (λ k, totalize G f k i) x) :=
 begin
   rw [← @dfinsupp.sum_single ι G _ _ _ x, dfinsupp.sum],
   simp only [linear_map.map_sum],
   refine finset.sum_congr rfl (λ k hk, _),
-  rw [direct_sum.single_eq_of],
-  simp [totalize_apply, hx k hk, le_trans (hx k hk) hij,
-    directed_system.Hcomp f]
+  rw direct_sum.single_eq_lof R k (x k),
+  simp [totalize_apply, hx k hk, le_trans (hx k hk) hij, directed_system.Hcomp f]
 end
 
-lemma of.zero_exact_aux {x : direct_sum R ι G} (H : x ∈ span (thing G f)) :
-  ∃ j, (∀ k ∈ x.support, k ≤ j) ∧ direct_sum.to_module ι (λ i, totalize G f i j) x = (0 : G j) :=
+lemma of.zero_exact_aux {x : direct_sum ι G} (H : x ∈ span R (thing G f)) :
+  ∃ j, (∀ k ∈ x.support, k ≤ j) ∧ direct_sum.to_module R ι (G j) (λ i, totalize G f i j) x = (0 : G j) :=
 span_induction H
   (λ x hx, let ⟨i, j, hij, y, hxy⟩ := mem_thing.1 hx in
     let ⟨k, hik, hjk⟩ := directed_order.directed i j in
     ⟨k, begin
       clear_,
       subst hxy,
+      split,
+      { intros i0 hi0,
+        rw [dfinsupp.mem_support_iff, dfinsupp.sub_apply, ← direct_sum.single_eq_lof,
+            ← direct_sum.single_eq_lof, dfinsupp.single_apply, dfinsupp.single_apply] at hi0,
+        split_ifs at hi0 with hi hj hj, { rwa hi at hik }, { rwa hi at hik }, { rwa hj at hjk },
+        exfalso, apply hi0, rw sub_zero },
       simp [linear_map.map_sub, totalize_apply, hik, hjk,
         directed_system.Hcomp f, direct_sum.apply_eq_component,
         direct_sum.component.of],
-      intros,
-      split_ifs at *;
-      simp * at *
     end⟩)
   ⟨default ι, λ _ h, (finset.not_mem_empty _ h).elim, linear_map.map_zero _⟩
   (λ x y ⟨i, hi, hxi⟩ ⟨j, hj, hyj⟩,
@@ -152,7 +151,7 @@ span_induction H
     ⟨i, λ k hk, hi k (dfinsupp.support_smul hk),
       by simp [linear_map.map_smul, hxi]⟩)
 
-theorem of.zero_exact {i x} (H : of ι G R f i x = 0) :
+theorem of.zero_exact {i x} (H : of R ι G f i x = 0) :
   ∃ j hij, f i j hij x = (0 : G j) :=
 let ⟨j, hj, hxj⟩ := of.zero_exact_aux G f
   ((submodule.quotient.eq _).1 H) in
@@ -170,7 +169,6 @@ end direct_limit
 by rintro ⟨⟨⟨f⟩, _, _, _, _, _, _⟩⟩ ⟨⟨⟨g⟩, _, _, _, _, _, _⟩⟩ H; congr' 3; ext; apply H
 
 end module
-
 
 namespace add_comm_group
 
@@ -199,7 +197,7 @@ namespace is_add_group_hom
 
 variables {α : Type u} {β : Type v} [add_comm_group α] [add_comm_group β]
 
-def to_linear_map (f : α → β) [is_add_group_hom f] : α →ₗ β :=
+def to_linear_map (f : α → β) [is_add_group_hom f] : α →ₗ[ℤ] β :=
 { to_fun := f,
   add := is_add_group_hom.add f,
   smul := λ i x, int.induction_on i (by rw [zero_smul, zero_smul, is_add_group_hom.zero f])
@@ -210,19 +208,19 @@ end is_add_group_hom
 
 namespace add_comm_group
 
-class directed_system [Π i, add_comm_group (G i)] (f : Π i j, i ≤ j → G i → G j) : Prop :=
+class directed_system (f : Π i j, i ≤ j → G i → G j) : Prop :=
 (Hid : ∀ i x, f i i (le_refl i) x = x)
 (Hcomp : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
 
-def direct_limit [Π i, add_comm_group (G i)]
+def direct_limit
   (f : Π i j, i ≤ j → G i → G j) [Π i j hij, is_add_group_hom (f i j hij)] [directed_system G f] : Type* :=
-@module.direct_limit ι _ _ _ G _ ℤ _ _ _
+@module.direct_limit ℤ _ ι _ _ _ G _ _ _
   (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij)
   ⟨directed_system.Hid f, directed_system.Hcomp f⟩
 
 namespace direct_limit
 
-variables [Π i, add_comm_group (G i)] (f : Π i j, i ≤ j → G i → G j)
+variables (f : Π i j, i ≤ j → G i → G j)
 variables [Π i j hij, is_add_group_hom (f i j hij)] [directed_system G f]
 
 instance : add_comm_group (direct_limit G f) :=

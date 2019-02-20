@@ -11,6 +11,8 @@ variables {ι : Type u} [inhabited ι]
 variables [directed_order ι] [decidable_eq ι]
 variables (G : ι → Type v) [Π i, decidable_eq (G i)]
 
+namespace module
+
 class directed_system {R : Type w} [comm_ring R] [Π i, add_comm_group (G i)] [Π i, module R (G i)]
   (f : Π i j, i ≤ j → G i →ₗ G j) : Prop :=
 (Hid : ∀ i x, f i i (le_refl i) x = x)
@@ -33,8 +35,6 @@ lemma mem_thing {G : ι → Type v} [Π i, decidable_eq (G i)]
   by simp [thing, set.mem_Union]
 
 namespace direct_limit
-
-section module
 
 variables {R : Type w} [comm_ring R] [Π i, add_comm_group (G i)] [Π i, module R (G i)]
 variables (f : Π i j, i ≤ j → G i →ₗ G j) [directed_system G f]
@@ -161,7 +161,75 @@ else
   have hij : i ≤ j, from hj _ $
     by simp [direct_sum.apply_eq_component, hx0],
   ⟨j, hij, by simpa [totalize_apply, hij] using hxj⟩
+end direct_limit
+
+@[extensionality] theorem ext {α : Type u} [ring α] {β : Type v} [add_comm_group β] :
+  Π (M₁ M₂ : module α β)
+    (H : ∀ r x, @has_scalar.smul α β M₁.to_has_scalar r x = @has_scalar.smul α β M₂.to_has_scalar r x),
+  M₁ = M₂ :=
+by rintro ⟨⟨⟨f⟩, _, _, _, _, _, _⟩⟩ ⟨⟨⟨g⟩, _, _, _, _, _, _⟩⟩ H; congr' 3; ext; apply H
 
 end module
 
+
+namespace add_comm_group
+
+variables {α : Type u} [add_comm_group α]
+
+protected def module : module ℤ α := module.of_core
+{ smul := gsmul,
+  mul_smul := λ r s x, gsmul_mul x r s,
+  smul_add := λ r x y, gsmul_add x y r,
+  add_smul := λ r s x, add_gsmul x r s,
+  one_smul := one_gsmul }
+
+instance module.subsingleton : subsingleton (module ℤ α) :=
+begin
+  constructor, intros M₁ M₂, ext i x, refine int.induction_on i _ _ _,
+  { rw [zero_smul, zero_smul] },
+  { intros i ih, rw [add_smul, add_smul, ih, one_smul, one_smul] },
+  { intros i ih, rw [sub_smul, sub_smul, ih, one_smul, one_smul] }
+end
+
+end add_comm_group
+
+local attribute [instance] add_comm_group.module
+
+namespace is_add_group_hom
+
+variables {α : Type u} {β : Type v} [add_comm_group α] [add_comm_group β]
+
+def to_linear_map (f : α → β) [is_add_group_hom f] : α →ₗ β :=
+{ to_fun := f,
+  add := is_add_group_hom.add f,
+  smul := λ i x, int.induction_on i (by rw [zero_smul, zero_smul, is_add_group_hom.zero f])
+    (λ i ih, by rw [add_smul, add_smul, is_add_group_hom.add f, ih, one_smul, one_smul])
+    (λ i ih, by rw [sub_smul, sub_smul, is_add_group_hom.sub f, ih, one_smul, one_smul]) }
+
+end is_add_group_hom
+
+namespace add_comm_group
+
+class directed_system [Π i, add_comm_group (G i)] (f : Π i j, i ≤ j → G i → G j) : Prop :=
+(Hid : ∀ i x, f i i (le_refl i) x = x)
+(Hcomp : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
+
+def direct_limit [Π i, add_comm_group (G i)]
+  (f : Π i j, i ≤ j → G i → G j) [Π i j hij, is_add_group_hom (f i j hij)] [directed_system G f] : Type* :=
+@module.direct_limit ι _ _ _ G _ ℤ _ _ _
+  (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij)
+  ⟨directed_system.Hid f, directed_system.Hcomp f⟩
+
+namespace direct_limit
+
+variables [Π i, add_comm_group (G i)] (f : Π i j, i ≤ j → G i → G j)
+variables [Π i j hij, is_add_group_hom (f i j hij)] [directed_system G f]
+
+instance : add_comm_group (direct_limit G f) :=
+@module.direct_limit.add_comm_group _ _ _ _ _ _ _ _ _ _
+  (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij)
+  ⟨directed_system.Hid f, directed_system.Hcomp f⟩
+
 end direct_limit
+
+end add_comm_group

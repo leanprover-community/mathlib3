@@ -63,6 +63,18 @@ end
 @[simp] theorem lift_on_to_finmap {γ} (s : alist β) (f : alist β → γ) (H) :
   lift_on ⟦s⟧ f H = f s := by cases s; refl
 
+/-- Lift a permutation-respecting function on 2 `alist`s to 2 `finmap`s. -/
+@[elab_as_eliminator] def lift_on₂
+  {γ} (s₁ s₂ : finmap β) (f : alist β → alist β → γ)
+  (H : ∀ a₁ b₁ a₂ b₂ : alist β, a₁.entries ~ a₂.entries → b₁.entries ~ b₂.entries → f a₁ b₁ = f a₂ b₂) : γ :=
+lift_on s₁
+  (λ l₁, lift_on s₂ (f l₁) (λ b₁ b₂ p, H _ _ _ _ (perm.refl _) p))
+  (λ a₁ a₂ p, have H' : f a₁ = f a₂ := funext (λ _, H _ _ _ _ p (perm.refl _)), by simp only [H'])
+
+@[simp] theorem lift_on₂_to_finmap {γ} (s₁ s₂ : alist β) (f : alist β → alist β → γ) (H) :
+  lift_on₂ ⟦s₁⟧ ⟦s₂⟧ f H = f s₁ s₂ :=
+by cases s₁; cases s₂; refl
+
 @[elab_as_eliminator] theorem induction_on
   {C : finmap β → Prop} (s : finmap β) (H : ∀ (a : alist β), C ⟦a⟧) : C s :=
 by rcases s with ⟨⟨a⟩, h⟩; exact H ⟨a, h⟩

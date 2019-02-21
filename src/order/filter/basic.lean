@@ -691,6 +691,9 @@ lemma monotone_comap : monotone (comap m) | a b := comap_mono
 @[simp] lemma comap_infi {f : ι → filter β} : comap m (⨅i, f i) = (⨅i, comap m (f i)) :=
 (gc_map_comap m).u_infi
 
+lemma le_comap_top (f : α → β) (l : filter α) : l ≤ comap f ⊤ :=
+by rw [comap_top]; exact le_top
+
 lemma map_comap_le : map m (comap m g) ≤ g := (gc_map_comap m).l_u_le _
 lemma le_comap_map : f ≤ comap m (map m f) := (gc_map_comap m).le_u_l _
 
@@ -1103,6 +1106,12 @@ map_le_iff_le_comap
 lemma tendsto_cong {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter β}
   (h : tendsto f₁ l₁ l₂) (hl : {x | f₁ x = f₂ x} ∈ l₁.sets) : tendsto f₂ l₁ l₂ :=
 by rwa [tendsto, ←map_cong hl]
+
+theorem tendsto.congr {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter β}
+    (h : tendsto f₁ l₁ l₂) (h' : ∀ x, f₁ x = f₂ x) :
+  tendsto f₂ l₁ l₂ :=
+have f₁ = f₂, from funext h',
+by rw ←this; exact h
 
 lemma tendsto_id' {x y : filter α} : x ≤ y → tendsto id x y :=
 by simp only [tendsto, map_id, forall_true_iff] {contextual := tt}

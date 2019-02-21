@@ -549,6 +549,21 @@ have h₁ : ∃ (i : set α), i ∈ {t : set α | a ∈ t ∧ is_open t},
   from ⟨set.univ, set.mem_univ _, is_open_univ⟩,
 by { rw [nhds_within_eq, map_binfi_eq h₀ h₁], simp only [map_principal] }
 
+theorem tendsto_nhds_within_mono_left {f : α → β} {a : α}
+    {s t : set α} {l : filter β} (h : tendsto f (nhds_within a t) l) (hst : s ⊆ t) :
+  tendsto f (nhds_within a s) l :=
+tendsto_le_left (nhds_within_mono a hst) h
+
+theorem tendsto_nhds_within_mono_right {f : β → α} {l : filter β}
+    {a : α} {s t : set α}(h : tendsto f l (nhds_within a s)) (hst : s ⊆ t) :
+  tendsto f l (nhds_within a t) :=
+tendsto_le_right (nhds_within_mono a hst) h
+
+theorem tendsto_nhds_within_of_tendsto_nhds {f : α → β} {a : α}
+    {s : set α} {l : filter β} (h : tendsto f (nhds a) l) :
+  tendsto f (nhds_within a s) l :=
+by rw [←nhds_within_univ] at h; exact tendsto_nhds_within_mono_left h (set.subset_univ _)
+
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
 section locally_finite
 
@@ -1770,7 +1785,7 @@ begin
   exact (map_comap_of_surjective' h₀ h₁).symm,
 end
 
-theorem tendsto_at_within_iff_subtype {s : set α} {a : α} (h : a ∈ s) (f : α → β) (l : filter β) :
+theorem tendsto_nhds_within_iff_subtype {s : set α} {a : α} (h : a ∈ s) (f : α → β) (l : filter β) :
   tendsto f (nhds_within a s) l ↔ tendsto (function.restrict f s) (nhds ⟨a, h⟩) l :=
 by rw [tendsto, tendsto, function.restrict, nhds_within_eq_map_subtype_val h,
     ←(@filter.map_map _ _ _ _ subtype.val)]

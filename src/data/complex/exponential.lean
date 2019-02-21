@@ -394,7 +394,7 @@ by rw lim_mul_lim;
   exact eq.symm (lim_eq_lim_of_equiv (by dsimp; simp only [hj];
     exact cauchy_product (is_cau_abs_exp x) (is_cau_exp y)))
 
-lemma exp_nat_mul (x : ℂ) : ∀ n : ℕ, exp(n*x) = (exp(x))^n
+lemma exp_nat_mul (x : ℂ) : ∀ n : ℕ, exp(n*x) = (exp x)^n
 | 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]
 | (nat.succ n) := by rw [pow_succ', nat.cast_add_one, add_mul, exp_add, ←exp_nat_mul, one_mul]
 
@@ -565,7 +565,7 @@ begin
   rw [← exp_mul_I, ← exp_mul_I],
   induction n with n ih,
   { rw [pow_zero, nat.cast_zero, zero_mul, zero_mul, exp_zero] },
-  rw [pow_succ', ih, nat.cast_succ, add_mul, add_mul, one_mul, exp_add]
+  { rw [pow_succ', ih, nat.cast_succ, add_mul, add_mul, one_mul, exp_add] }
 end
 
 @[simp] lemma sinh_zero : sinh 0 = 0 := by simp [sinh]
@@ -670,7 +670,7 @@ by simp [real.exp]
 lemma exp_add : exp (x + y) = exp x * exp y :=
 by simp [exp_add, exp]
 
-lemma exp_nat_mul (x : ℝ) : ∀ n : ℕ, exp(n*x) = (exp(x))^n
+lemma exp_nat_mul (x : ℝ) : ∀ n : ℕ, exp(n*x) = (exp x)^n
 | 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]
 | (nat.succ n) := by rw [pow_succ', nat.cast_add_one, add_mul, exp_add, ←exp_nat_mul, one_mul]
 

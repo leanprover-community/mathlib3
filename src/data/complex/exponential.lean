@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes
+Authors: Chris Hughes, Abhimanyu Pallavi Sudhir
 -/
 import algebra.archimedean
 import data.nat.choose data.complex.basic
@@ -394,6 +394,10 @@ by rw lim_mul_lim;
   exact eq.symm (lim_eq_lim_of_equiv (by dsimp; simp only [hj];
     exact cauchy_product (is_cau_abs_exp x) (is_cau_exp y)))
 
+lemma exp_nat_mul (x : ℂ) : ∀ n : ℕ, exp(n*x) = (exp(x))^n
+| 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]
+| (nat.succ n) := by rw [pow_succ', nat.cast_add_one, add_mul, exp_add, ←exp_nat_mul, one_mul]
+
 lemma exp_ne_zero : exp x ≠ 0 :=
 λ h, @zero_ne_one ℂ _ $
   by rw [← exp_zero, ← add_neg_self x, exp_add, h]; simp
@@ -556,6 +560,14 @@ by rw [exp_add, exp_mul_I]
 lemma exp_eq_exp_re_mul_sin_add_cos : exp x = exp x.re * (cos x.im + sin x.im * I) :=
 by rw [← exp_add_mul_I, re_add_im]
 
+theorem cos_add_sin_mul_I_pow (n : ℕ) (z : ℂ) : (cos z + sin z * I) ^ n = cos (↑n * z) + sin (↑n * z) * I :=
+begin
+  rw [← exp_mul_I, ← exp_mul_I],
+  induction n with n ih,
+  { rw [pow_zero, nat.cast_zero, zero_mul, zero_mul, exp_zero] },
+  rw [pow_succ', ih, nat.cast_succ, add_mul, add_mul, one_mul, exp_add]
+end
+
 @[simp] lemma sinh_zero : sinh 0 = 0 := by simp [sinh]
 
 @[simp] lemma sinh_neg : sinh (-x) = -sinh x :=
@@ -657,6 +669,10 @@ by simp [real.exp]
 
 lemma exp_add : exp (x + y) = exp x * exp y :=
 by simp [exp_add, exp]
+
+lemma exp_nat_mul (x : ℝ) : ∀ n : ℕ, exp(n*x) = (exp(x))^n
+| 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]
+| (nat.succ n) := by rw [pow_succ', nat.cast_add_one, add_mul, exp_add, ←exp_nat_mul, one_mul]
 
 lemma exp_ne_zero : exp x ≠ 0 :=
 λ h, exp_ne_zero x $ by rw [exp, ← of_real_inj] at h; simp * at *

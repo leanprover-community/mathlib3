@@ -1004,6 +1004,20 @@ lemma bdd_above_of_compact {α : Type u} [topological_space α] [linear_order α
   [orderable_topology α] : Π [nonempty α] {s : set α}, compact s → bdd_above s :=
 @bdd_below_of_compact (order_dual α) _ _ _
 
+lemma mem_image_of_is_glb_range (f : β → α) (hf : continuous f) (r b : α) (a : β)
+  (har : f a ≤ r) (s : set β) (hs : compact s) (h : ∀ z, z ∉ s → r < f z)
+  (hb : is_glb (range f) b) : b ∈ f '' s :=
+have has : a ∈ s, from classical.by_contradiction (λ has, (not_le_of_gt (h _ has) har)),
+mem_of_is_glb_of_is_closed
+  ((is_glb_subset_iff (image_subset_range _ _) (f a) ⟨a, has, rfl⟩
+    (λ y ⟨⟨c, hcy⟩, hc⟩, le_trans har $ hcy ▸ le_of_lt (h c $ by clear_aux_decl; finish))).2 hb)
+  (ne_empty_of_mem ⟨a, has, rfl⟩)
+  (closed_of_compact _ (compact_image hs hf))
+
+lemma mem_image_of_is_lub_range : ∀ f : β → α, continuous f → ∀ (r b : α) (a : β),
+  r ≤ f a → ∀ s : set β, compact s → (∀ z, z ∉ s → f z < r) → is_lub (range f) b → b ∈ f '' s :=
+@mem_image_of_is_glb_range (order_dual α) β _ _ _ _ _ _
+
 end order_topology
 
 

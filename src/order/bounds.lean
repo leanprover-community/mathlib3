@@ -42,6 +42,26 @@ by simp [is_lub, is_least, upper_bounds, lower_bounds] {contextual := tt}
 lemma is_glb_singleton {a : α} : is_glb {a} a :=
 by simp [is_glb, is_greatest, upper_bounds, lower_bounds] {contextual := tt}
 
+lemma lower_bounds_subset_eq {s t : set α} (hst : s ⊆ t)
+  (x : α) (hxs : x ∈ s) (hxst : x ∈ lower_bounds (t \ s)) :
+  lower_bounds s = lower_bounds t :=
+by letI := classical.dec; exact
+set.ext (λ y, ⟨λ hy a hat, if has : a ∈ s then hy _ has
+    else le_trans (hy x hxs) (hxst a ⟨hat, has⟩),
+  λ hy a ha, hy _ (hst ha)⟩)
+
+lemma upper_bounds_subset_eq : ∀ {s t : set α}, s ⊆ t → ∀ x ∈ s,
+  x ∈ upper_bounds (t \ s) → upper_bounds s = upper_bounds t :=
+@lower_bounds_subset_eq (order_dual α) _
+
+lemma is_glb_subset_iff {s t : set α} (hst : s ⊆ t) (x : α) (hxs : x ∈ s)
+  (hxst : x ∈ lower_bounds (t \ s)) {a : α} : is_glb s a ↔ is_glb t a :=
+by rw [is_glb, is_glb, is_greatest, is_greatest, lower_bounds_subset_eq hst x hxs hxst].
+
+lemma is_lub_subset_iff : ∀ {s t : set α}, s ⊆ t → ∀ x ∈ s, x ∈ upper_bounds (t \ s) →
+  ∀ {a}, is_lub s a ↔ is_lub t a :=
+@is_glb_subset_iff (order_dual α) _
+
 end preorder
 
 section partial_order

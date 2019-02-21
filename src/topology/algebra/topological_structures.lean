@@ -11,7 +11,7 @@ TODO: generalize `topological_monoid` and `topological_add_monoid` to semigroups
 import order.liminf_limsup
 import algebra.big_operators algebra.group algebra.pi_instances
 import data.set.intervals data.equiv.algebra
-import topology.basic topology.continuity topology.uniform_space.basic tactic.converter.interactive
+import topology.basic topology.continuity topology.uniform_space.basic
 
 open classical set lattice filter topological_space
 local attribute [instance] classical.prop_decidable

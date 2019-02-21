@@ -145,6 +145,7 @@ instance (α : Type*) [linear_order α] : linear_order (order_dual α) :=
 
 instance (α : Type*) [decidable_linear_order α] : decidable_linear_order (order_dual α) :=
 { decidable_le := show decidable_rel (λa b:α, b ≤ a), by apply_instance,
+  decidable_lt := show decidable_rel (λa b:α, b < a), by apply_instance,
   .. order_dual.linear_order α }
 
 end order_dual

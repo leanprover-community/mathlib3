@@ -117,6 +117,18 @@ by rw ←norm_neg; simp
 lemma ball_0_eq (ε : ℝ) : ball (0:α) ε = {x | ∥x∥ < ε} :=
 set.ext $ assume a, by simp
 
+theorem normed_space.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
+  tendsto f l (nhds 0) ↔ ∀ ε > 0, { x | ∥ f x ∥ < ε } ∈ l.sets :=
+begin
+  rw [metric.tendsto_nhds], simp only [normed_group.dist_eq, sub_zero],
+  split,
+  { intros h ε εgt0,
+    rcases h ε εgt0 with ⟨s, ssets, hs⟩,
+    exact mem_sets_of_superset ssets hs },
+  intros h ε εgt0,
+  exact ⟨_, h ε εgt0, set.subset.refl _⟩
+end
+
 section nnnorm
 
 def nnnorm (a : α) : nnreal := ⟨norm a, norm_nonneg a⟩
@@ -307,6 +319,9 @@ lemma real.norm_eq_abs (r : ℝ): norm r = abs r := rfl
 
 end normed_field
 
+@[simp] lemma norm_norm [normed_group α] (x : α) : ∥∥x∥∥ = ∥x∥ :=
+by rw [real.norm_eq_abs, abs_of_nonneg (norm_nonneg _)]
+
 section normed_space
 
 class normed_space (α : out_param $ Type*) (β : Type*) [out_param $ normed_field α]
@@ -355,6 +370,10 @@ begin
     rw [show (0:ℝ) = 0 + 0, by simp],
     exact tendsto_add lim1 lim2  }
 end
+
+lemma tendsto_smul_const {g : γ → F} {e : filter γ} (s : α) {b : F} :
+  (tendsto g e (nhds b)) → tendsto (λ x, s • (g x)) e (nhds (s • b)) :=
+tendsto_smul tendsto_const_nhds
 
 lemma continuous_smul [topological_space γ] {f : γ → α} {g : γ → E}
   (hf : continuous f) (hg : continuous g) : continuous (λc, f c • g c) :=

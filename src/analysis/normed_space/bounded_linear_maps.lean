@@ -8,6 +8,7 @@ Continuous linear functions -- functions between normed vector spaces which are 
 import algebra.field
 import tactic.norm_num
 import analysis.normed_space.basic
+import ..asymptotics
 
 @[simp] lemma mul_inv_eq' {α} [discrete_field α] (a b : α) : (a * b)⁻¹ = b⁻¹ * a⁻¹ :=
 classical.by_cases (assume : a = 0, by simp [this]) $ assume ha,
@@ -43,6 +44,9 @@ lemma is_linear_map.with_bound
   (assume : ¬ M ≤ 0, ⟨M, lt_of_not_ge this, h⟩)⟩
 
 namespace is_bounded_linear_map
+
+def to_linear_map {f : E → F} (h : is_bounded_linear_map f) : E →ₗ[k] F :=
+(is_linear_map.mk' _ h.to_is_linear_map)
 
 lemma zero : is_bounded_linear_map (λ (x:E), (0:F)) :=
 (0 : E →ₗ F).is_linear.with_bound 0 $ by simp [le_refl]
@@ -92,6 +96,20 @@ continuous_iff_continuous_at.2 $ assume x, hL.tendsto x
 
 lemma lim_zero_bounded_linear_map {L : E → F} (H : is_bounded_linear_map L) : (L →_{0} 0) :=
 (H.1.mk' _).map_zero ▸ continuous_iff_continuous_at.1 H.continuous 0
+
+section
+open asymptotics filter
+
+theorem is_bigo_id {L : E → F} (h : is_bounded_linear_map L) (l : filter E) :
+  is_bigo L (λ x, x) l :=
+let ⟨M, Mpos, hM⟩ := h.bound in
+⟨M, mem_sets_of_superset univ_mem_sets (λ x _, hM x)⟩
+
+theorem is_bigo_sub {L : E → F} (h : is_bounded_linear_map L) (l : filter E) (x : E) :
+  is_bigo (λ x', L (x' - x)) (λ x', x' - x) l :=
+((h.is_bigo_id ⊤).comp _).mono (map_le_iff_le_comap.mp lattice.le_top)
+
+end
 
 end is_bounded_linear_map
 

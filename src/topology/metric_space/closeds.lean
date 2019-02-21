@@ -381,7 +381,7 @@ instance nonempty_compacts.compact_space [compact_space α] : compact_space (non
 end⟩
 
 /-- In a second countable space, the type of nonempty compact subsets is second countable -/
-instance nonempty_compacts.second_countable topology [second_countable_topology α] : 
+instance nonempty_compacts.second_countable_topology [second_countable_topology α] : 
   second_countable_topology (nonempty_compacts α) :=
 begin
   haveI : separable_space (nonempty_compacts α) :=

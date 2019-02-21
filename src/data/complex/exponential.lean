@@ -813,7 +813,7 @@ by rw [← sub_add_cancel y x, real.exp_add];
   exact (lt_mul_iff_one_lt_left (exp_pos _)).2
     (lt_of_lt_of_le (by linarith) (add_one_le_exp_of_nonneg (by linarith)))
 
-lemma exp_le_iff (x y : ℝ) : real.exp x ≤ real.exp y ↔ x ≤ y :=
+lemma exp_le_exp {x y : ℝ} : real.exp x ≤ real.exp y ↔ x ≤ y :=
 ⟨λ h, le_of_not_gt $ mt exp_lt_exp $ by simpa, λ h, by rw [←sub_add_cancel y x, real.exp_add];
 exact (le_mul_iff_one_le_left (exp_pos _)).2 (one_le_exp (sub_nonneg.2 h))⟩
 

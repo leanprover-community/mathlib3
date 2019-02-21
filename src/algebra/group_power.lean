@@ -520,8 +520,8 @@ theorem pow_pos {a : α} (H : 0 < a) : ∀ (n : ℕ), 0 < a ^ n
 theorem pow_nonneg {a : α} (H : 0 ≤ a) : ∀ (n : ℕ), 0 ≤ a ^ n
 | 0     := zero_le_one
 | (n+1) := mul_nonneg H (pow_nonneg _)
-theorem pow_lt_pow_of_lt_left {x y : α} {n : ℕ} (Hxy : x < y) (Hxpos : 0 ≤ x) (Hnpos : 0 < n) : x ^ n < y ^ n :=
 
+theorem pow_lt_pow_of_lt_left {x y : α} {n : ℕ} (Hxy : x < y) (Hxpos : 0 ≤ x) (Hnpos : 0 < n) : x ^ n < y ^ n :=
 begin
   cases lt_or_eq_of_le Hxpos,
   { rw ←nat.sub_add_cancel Hnpos,

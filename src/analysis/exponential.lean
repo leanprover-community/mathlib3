@@ -329,7 +329,7 @@ lemma cos_eq_one_iff (x : ℝ) : cos x = 1 ↔ ∃ n : ℤ, (n : ℝ) * (2 * π)
         exact absurd h (by norm_num))⟩,
   λ ⟨n, hn⟩, hn ▸ cos_int_mul_two_pi _⟩
 
-theorem cos_eq_zero_iff (θ : ℝ) : cos θ = 0 ↔ ∃ k : ℤ, θ = (2 * k + 1) * pi / 2 :=
+theorem cos_eq_zero_iff {θ : ℝ} : cos θ = 0 ↔ ∃ k : ℤ, θ = (2 * k + 1) * pi / 2 :=
 begin
   rw [←real.sin_pi_div_two_sub, sin_eq_zero_iff],
   split,
@@ -491,8 +491,7 @@ begin
     have H' : θ + ψ = (2 * k) * π + π := by rwa [←sub_add, sub_add_eq_add_sub, sub_eq_iff_eq_add, 
       mul_assoc, mul_comm π _, ←mul_assoc] at H,
     rw [← sub_eq_zero_iff_eq, sin_sub_sin, H', add_div, mul_assoc 2 _ π, mul_div_cancel_left _ two_ne_zero, 
-      cos_add_pi_div_two, sin_int_mul_pi, neg_zero, mul_zero]
-  }
+      cos_add_pi_div_two, sin_int_mul_pi, neg_zero, mul_zero] }
 end
 
 theorem cos_sin_inj {θ ψ : ℝ} (Hcos : cos θ = cos ψ) (Hsin : sin θ = sin ψ) : (θ : angle) = ψ :=

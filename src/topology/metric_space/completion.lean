@@ -166,7 +166,7 @@ protected lemma completion.uniformity_dist :
 by simpa [infi_subtype] using @completion.uniformity_dist' α _
 
 /-- Metric space structure on the completion of a metric space. -/
-instance : metric_space (completion α) :=
+instance completion.metric_space : metric_space (completion α) :=
 { dist_self          := completion.dist_self,
   eq_of_dist_eq_zero := completion.eq_of_dist_eq_zero,
   dist_comm          := completion.dist_comm,

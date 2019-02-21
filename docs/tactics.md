@@ -99,11 +99,18 @@ depth of splitting; the default is 5.
 
 ### simpa
 
-This is a "finishing" tactic modification of `simp`. The tactic `simpa
-[rules, ...] using e` will simplify the hypothesis `e` using `rules`,
-then simplify the goal using `rules`, and try to close the goal using
-`assumption`. If `e` is a term instead of a local constant, it is first
-added to the local context using `have`.
+This is a "finishing" tactic modification of `simp`. It has two forms.
+
+* `simpa [rules, ...] using e` will simplify the goal and the type of
+  `e` using `rules`, then try to close the goal using `e`.
+
+  Simplifying the type of `e` makes it more likely to match the goal
+  (which has also been simplified). This construction also tends to be
+  more robust under changes to the simp lemma set.
+
+* `simpa [rules, ...]` will simplify the goal and the type of a
+  hypothesis `this` if present, then try to close the goal using
+  the `assumption` tactic.
 
 ### replace
 
@@ -154,6 +161,37 @@ is too aggressive in breaking down the goal. For example, given
 `⊢ f (g (x + y)) = f (g (y + x))`, `congr'` produces the goals `⊢ x = y`
 and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`.
 If, at any point, a subgoal matches a hypothesis then the subgoal will be closed.
+
+### convert
+
+The `exact e` and `refine e` tactics require a term `e` whose type is
+definitionally equal to the goal. `convert e` is similar to `refine
+e`, but the type of `e` is not required to exactly match the
+goal. Instead, new goals are created for differences between the type
+of `e` and the goal. For example, in the proof state
+
+```lean
+n : ℕ,
+e : prime (2 * n + 1)
+⊢ prime (n + n + 1)
+```
+
+the tactic `convert e` will change the goal to
+
+```lean
+⊢ n + n = 2 * n
+```
+
+In this example, the new goal can be solved using `ring`.
+
+The syntax `convert ← e` will reverse the direction of the new goals
+(producing `⊢ 2 * n = n + n` in this example).
+
+Internally, `convert e` works by creating a new goal asserting that
+the goal equals the type of `e`, then simplifying it using
+`congr'`. The syntax `convert e using n` can be used to control the
+depth of matching (like `congr' n`). In the example, `convert e using
+1` would produce a new goal `⊢ n + n + 1 = 2 * n + 1`.
 
 ### unfold_coes
 
@@ -449,18 +487,19 @@ same type, or the type `α → β → tactic γ → tactic γ` or
 In particular, `tidy` uses the `chain` tactic to repeatedly apply a list of tactics to
 the goal and recursively on new goals, until no tactic makes further progress.
 
-`tidy` can report the tactic script it found using `tidy { trace_result := tt }`. As an example
+`tidy` can report the tactic script it found using `tidy?`. As an example
 ```lean
 example : ∀ x : unit, x = unit.star :=
 begin
-  tidy {trace_result:=tt} -- Prints the trace message: "intros x, exact dec_trivial"
+  tidy? -- Prints the trace message: "intros x, exact dec_trivial"
 end
 ```
 
 The default list of tactics can be found by looking up the definition of
 [`default_tidy_tactics`](https://github.com/leanprover/mathlib/blob/master/tactic/tidy.lean).
 
-This list can be overriden using `tidy { tactics :=  ... }`. (The list must be a list of `tactic string`.)
+This list can be overriden using `tidy { tactics :=  ... }`. (The list must be a list of
+`tactic string`, so that `tidy?` can report a usable tactic script.)
 
 ## linarith
 
@@ -600,7 +639,7 @@ and likewise for `to_rhs`.
 
 - `mono` applies a monotonicity rule.
 - `mono*` applies monotonicity rules repetitively.
-- `mono using x ≤ y` or `mono using [0 ≤ x,0 ≤ y]` creates an assertion for the listed
+- `mono with x ≤ y` or `mono with [0 ≤ x,0 ≤ y]` creates an assertion for the listed
   propositions. Those help to select the right monotonicity rule.
 - `mono left` or `mono right` is useful when proving strict orderings:
    for `x + y < w + z` could be broken down into either
@@ -714,4 +753,50 @@ by use [1, 2, 3]
 
 example : ∃ p : ℤ × ℤ, p.1 = 1 :=
 by use ⟨1, 42⟩
+```
+
+### clear_aux_decl
+
+`clear_aux_decl` clears every `aux_decl` in the local context for the current goal.
+This includes the induction hypothesis when using the equation compiler and
+`_let_match` and `_fun_match`.
+
+It is useful when using a tactic such as `finish`, `simp *` or `subst` that may use these
+auxiliary declarations, and produce an error saying the recursion is not well founded.
+
+```lean
+example (n m : ℕ) (h₁ : n = m) (h₂ : ∃ a : ℕ, a = n ∧ a = m) : 2 * m = 2 * n :=
+let ⟨a, ha⟩ := h₂ in
+begin
+  clear_aux_decl, -- subst will fail without this line
+  subst h₁
+end
+
+example (x y : ℕ) (h₁ : ∃ n : ℕ, n * 1 = 2) (h₂ : 1 + 1 = 2 → x * 1 = y) : x = y :=
+let ⟨n, hn⟩ := h₁ in
+begin
+  clear_aux_decl, -- finish produces an error without this line
+  finish
+end
+```
+### set
+
+`set a := t with h` is a variant of `let a := t`. It adds the hypothesis `h : a = t` to the local context and replaces `t` with `a` everywhere it can.
+
+`set a := t with ←h` will add `h : t = a` instead.
+
+`set! a := t with h` does not do any replacing.
+
+```lean
+example (x : ℕ) (h : x = 3)  : x + x + x = 9 :=
+begin
+  set y := x with ←h_xy,
+/-
+x : ℕ,
+y : ℕ := x,
+h_xy : x = y,
+h : y = 3
+⊢ y + y + y = 9
+-/
+end
 ```

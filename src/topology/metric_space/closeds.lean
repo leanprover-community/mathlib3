@@ -27,7 +27,7 @@ variables {α : Type u} [emetric_space α] {s : set α}
 
 /-- In emetric spaces, the Hausdorff edistance defines an emetric space structure
 on the type of closed subsets -/
-instance : emetric_space (closeds α) :=
+instance closeds.emetric_space : emetric_space (closeds α) :=
 { edist               := λs t, Hausdorff_edist s.val t.val,
   edist_self          := λs, Hausdorff_edist_self,
   edist_comm          := λs t, Hausdorff_edist_comm,
@@ -76,7 +76,7 @@ lemma closeds.edist_eq {s t : closeds α} : edist s t = Hausdorff_edist s.val t.
 
 /-- In a complete space, the type of closed subsets is complete for the
 Hausdorff edistance. -/
-instance [complete_space α] : complete_space (closeds α) :=
+instance closeds.complete_space [complete_space α] : complete_space (closeds α) :=
 begin
   /- We will show that, if a sequence of sets `s n` satisfies
      `edist (s n) (s (n+1)) < 2^{-n}`, then it converges. This is enough to guarantee
@@ -248,7 +248,7 @@ begin
 end
 
 /-- In a compact space, the type of closed subsets is compact. -/
-instance [compact_space α] : compact_space (closeds α) :=
+instance closeds.compact_space [compact_space α] : compact_space (closeds α) :=
 ⟨begin
   /- by completeness, it suffices to show that it is totally bounded,
     i.e., for all ε>0, there is a finite set which is ε-dense.
@@ -381,7 +381,8 @@ instance nonempty_compacts.compact_space [compact_space α] : compact_space (non
 end⟩
 
 /-- In a second countable space, the type of nonempty compact subsets is second countable -/
-instance [second_countable_topology α] : second_countable_topology (nonempty_compacts α) :=
+instance nonempty_compacts.second_countable topology [second_countable_topology α] : 
+  second_countable_topology (nonempty_compacts α) :=
 begin
   haveI : separable_space (nonempty_compacts α) :=
   begin
@@ -480,7 +481,7 @@ variables {α : Type u} [metric_space α]
 
 /-- `nonempty_compacts α` inherits a metric space structure, as the Hausdorff
 edistance between two such sets is finite. -/
-instance : metric_space (nonempty_compacts α) :=
+instance nonempty_compacts.metric_space : metric_space (nonempty_compacts α) :=
 emetric_space.to_metric_space $ λx y, Hausdorff_edist_ne_top_of_ne_empty_of_bounded x.2.1 y.2.1
   (bounded_of_compact x.2.2) (bounded_of_compact y.2.2)
 

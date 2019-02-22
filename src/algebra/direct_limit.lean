@@ -2,6 +2,7 @@ import linear_algebra.direct_sum_module
 import linear_algebra.linear_combination
 import ring_theory.free_comm_ring
 import ring_theory.ideal_operations
+import ring_theory.to_field
 
 universes u v w u₁
 
@@ -11,7 +12,7 @@ class directed_order (α : Type u) extends partial_order α :=
 (directed : ∀ i j : α, ∃ k, i ≤ k ∧ j ≤ k)
 
 variables {R : Type u} [ring R]
-variables {ι : Type v} [inhabited ι]
+variables {ι : Type v} [nonempty ι]
 variables [directed_order ι] [decidable_eq ι]
 variables (G : ι → Type w) [Π i, decidable_eq (G i)]
 
@@ -79,8 +80,9 @@ quotient.induction_on' x $ λ y, direct_sum.induction_on y
     ihx.symm ▸ ihy.symm ▸ (linear_map.map_add _ _ _).symm)
 
 theorem exists_of (z : direct_limit G f) : ∃ i x, z = of R ι G f i x :=
+nonempty.elim (by apply_instance) $ assume ind : ι,
 quotient.induction_on' z $ λ z, direct_sum.induction_on z
-  ⟨default _, 0, (linear_map.map_zero _).symm⟩
+  ⟨ind, 0, (linear_map.map_zero _).symm⟩
   (λ i x, ⟨i, x, rfl⟩)
   (λ p q ⟨i, x, ihx⟩ ⟨j, y, ihy⟩, let ⟨k, hik, hjk⟩ := directed_order.directed i j in
     ⟨k, f i k hik x + f j k hjk y, by rw [linear_map.map_add, of_f, of_f, ← ihx, ← ihy]; refl⟩)
@@ -124,6 +126,7 @@ end
 
 lemma of.zero_exact_aux {x : direct_sum ι G} (H : x ∈ span R (thing G f)) :
   ∃ j, (∀ k ∈ x.support, k ≤ j) ∧ direct_sum.to_module R ι (G j) (λ i, totalize G f i j) x = (0 : G j) :=
+nonempty.elim (by apply_instance) $ assume ind : ι,
 span_induction H
   (λ x hx, let ⟨i, j, hij, y, hxy⟩ := mem_thing.1 hx in
     let ⟨k, hik, hjk⟩ := directed_order.directed i j in
@@ -140,7 +143,7 @@ span_induction H
         directed_system.Hcomp f, direct_sum.apply_eq_component,
         direct_sum.component.of],
     end⟩)
-  ⟨default ι, λ _ h, (finset.not_mem_empty _ h).elim, linear_map.map_zero _⟩
+  ⟨ind, λ _ h, (finset.not_mem_empty _ h).elim, linear_map.map_zero _⟩
   (λ x y ⟨i, hi, hxi⟩ ⟨j, hj, hyj⟩,
     let ⟨k, hik, hjk⟩ := directed_order.directed i j in
     ⟨k, λ l hl,
@@ -289,6 +292,26 @@ instance of.is_ring_hom (i) : is_ring_hom (of G f i) :=
   map_add := λ x y, ideal.quotient.eq.2 $ subset_span $ or.inl $ or.inr $ set.mem_Union.2 ⟨i,
     set.mem_Union.2 ⟨x, set.mem_range_self y⟩⟩ }
 
+theorem of_f {i j} (hij : i ≤ j) (x : G i) : of G f j (f i j hij x) = of G f i x :=
+ideal.quotient.eq.2 $ subset_span $ or.inl $ or.inl $ or.inl $ set.mem_Union.2 ⟨i, set.mem_Union.2
+⟨j, set.mem_Union.2 ⟨hij, set.mem_range_self _⟩⟩⟩
+
+theorem exists_of (z : direct_limit G f) : ∃ i x, of G f i x = z :=
+nonempty.elim (by apply_instance) $ assume ind : ι,
+quotient.induction_on' z $ λ x, free_abelian_group.induction_on x
+  ⟨ind, 0, is_ring_hom.map_zero (of G f ind)⟩
+  (λ s, multiset.induction_on s
+    ⟨ind, 1, is_ring_hom.map_one (of G f ind)⟩
+    (λ a s ih, let ⟨i, x⟩ := a, ⟨j, y, hs⟩ := ih, ⟨k, hik, hjk⟩ := directed_order.directed i j in
+      ⟨k, f i k hik x * f j k hjk y, by rw [is_ring_hom.map_mul (of G f k), of_f, of_f, hs]; refl⟩))
+  (λ s ⟨i, x, ih⟩, ⟨i, -x, by rw [is_ring_hom.map_neg (of G f i), ih]; refl⟩)
+  (λ p q ⟨i, x, ihx⟩ ⟨j, y, ihy⟩, let ⟨k, hik, hjk⟩ := directed_order.directed i j in
+    ⟨k, f i k hik x + f j k hjk y, by rw [is_ring_hom.map_add (of G f k), of_f, of_f, ihx, ihy]; refl⟩)
+
+@[elab_as_eliminator] theorem induction_on {C : direct_limit G f → Prop} (z : direct_limit G f)
+  (ih : ∀ i x, C (of G f i x)) : C z :=
+let ⟨i, x, hx⟩ := exists_of G f z in hx ▸ ih i x
+
 variables (P : Type u₁) [comm_ring P]
 variables (g : Π i, G i → P) [Π i, is_ring_hom (g i)]
 variables (Hg : ∀ i j hij x, g j (f i j hij x) = g i x)
@@ -319,3 +342,25 @@ instance rec.is_ring_hom : is_ring_hom (rec G f P g Hg) :=
 end direct_limit
 
 end ring
+
+
+namespace field
+
+variables [Π i, field (G i)]
+variables (f : Π i j, i ≤ j → G i → G j) [Π i j hij, is_field_hom (f i j hij)]
+variables [add_comm_group.directed_system G f]
+
+instance direct_limit.nonzero_comm_ring : nonzero_comm_ring (ring.direct_limit G f) :=
+{ zero_ne_one := sorry,
+  .. ring.direct_limit.comm_ring G f }
+
+instance direct_limit.is_division_ring : is_division_ring (ring.direct_limit G f) :=
+{ exists_inv := λ x, sorry }
+
+def direct_limit : Type (max v w) :=
+to_field (ring.direct_limit G f)
+
+instance : field (direct_limit G f) :=
+@to_field.field (ring.direct_limit G f) (field.direct_limit.nonzero_comm_ring G f) (field.direct_limit.is_division_ring G f)
+
+end field

@@ -15,7 +15,7 @@ open classical function lattice filter finset metric
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 
-lemma has_sum_of_absolute_convergence_real {f : ℕ → ℝ} (hf : ∀n, 0 ≤ f n) :
+lemma has_sum_of_absolute_convergence_real {f : ℕ → ℝ} :
   (∃r, tendsto (λn, (range n).sum (λi, abs (f i))) at_top (nhds r)) → has_sum f
 | ⟨r, hr⟩ :=
   begin

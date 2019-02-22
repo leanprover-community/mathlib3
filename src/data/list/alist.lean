@@ -220,4 +220,8 @@ lookup_kunion_left
   a ∉ s₁ → lookup a (s₁ ∪ s₂) = lookup a s₂ :=
 lookup_kunion_right
 
+@[simp] theorem mem_lookup_union {a} {b : β a} {s₁ s₂ : alist β} :
+  b ∈ lookup a (s₁ ∪ s₂) ↔ b ∈ lookup a s₁ ∨ a ∉ s₁ ∧ b ∈ lookup a s₂ :=
+mem_lookup_kunion
+
 end alist

@@ -545,4 +545,16 @@ begin
   case list.cons : _ _ ih { simp [not_or_distrib] at h, simp [h.1, ih h.2] }
 end
 
+@[simp] theorem mem_lookup_kunion {a} {b : β a} {l₁ l₂ : list (sigma β)} :
+  b ∈ lookup a (kunion l₁ l₂) ↔ b ∈ lookup a l₁ ∨ a ∉ l₁.keys ∧ b ∈ lookup a l₂ :=
+begin
+  induction l₁ generalizing l₂,
+  case list.nil { simp },
+  case list.cons : s _ ih {
+    cases s with a',
+    by_cases h₁ : a = a',
+    { subst h₁, simp },
+    { let h₂ := @ih (kerase a' l₂), simp [h₁] at h₂, simp [h₁, h₂] } }
+end
+
 end list

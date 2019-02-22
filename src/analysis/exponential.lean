@@ -467,7 +467,7 @@ begin
       rw [eq_div_iff_mul_eq _ _ two_ne_zero, eq_sub_iff_add_eq] at hn,
       rw [← hn, coe_add, mul_assoc,
           ← gsmul_eq_mul, coe_gsmul, mul_comm, coe_two_pi, gsmul_zero, zero_add] } },
-  { rw [angle_eq_iff_two_pi, ← coe_neg, angle_eq_iff_two_pi], 
+  { rw [angle_eq_iff_two_pi_dvd_sub, ← coe_neg, angle_eq_iff_two_pi_dvd_sub], 
     rintro (⟨k, H⟩ | ⟨k, H⟩),
     rw [← sub_eq_zero_iff_eq, cos_sub_cos, H, mul_assoc 2 π k, mul_div_cancel_left _ two_ne_zero, 
       mul_comm π _, sin_int_mul_pi, mul_zero],

@@ -16,9 +16,89 @@ particular
 import algebra.module
 import analysis.normed_space.bounded_linear_maps
 
-variables {k : Type*} 
-variables {E : Type*} {F : Type*}
+variable  {k : Type*}
+variables {E : Type*} {F : Type*} {G : Type*}
 
+-- refactor : formulation for bundled bounded_linear_map
+section op_norm
+
+variable  [normed_field k]
+variables [normed_space k E] [normed_space k F] [normed_space k G]
+
+open bounded_linear_map
+
+variables (α : k) {x : E}
+variables (f g : bounded_linear_map k E F) (h : bounded_linear_map k F G)
+
+noncomputable def op_norm  := real.Inf { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ }
+
+noncomputable instance : has_norm (bounded_linear_map k E F) := ⟨op_norm⟩
+
+-- so that invocations of real.Inf_le make sense:
+lemma bounds_nonempty {f : bounded_linear_map k E F}:
+  ∃ c, c ∈ { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ } :=
+  let ⟨M, hMp, hMb⟩ := has_pos_bound in ⟨M, le_of_lt hMp, hMb⟩
+lemma bounds_bdd_below {f : bounded_linear_map k E F}:
+  bdd_below { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ } :=
+  ⟨0, λ _ ⟨hn, _⟩, hn⟩
+
+lemma op_norm_nonneg: ∥f∥ ≥ 0 :=
+  real.lb_le_Inf _ bounds_nonempty (λ _ ⟨hx, _⟩, hx)
+
+lemma le_op_norm: ∥f x∥ ≤ ∥f∥ * ∥x∥ :=
+  or.elim (eq_or_lt_of_le (norm_nonneg x))
+  (λ heq, by rw [←heq, mul_zero,
+    (norm_eq_zero _).1 heq.symm, map_zero, norm_zero])
+  (λ hlt, le_mul_of_div_le hlt
+    ((real.le_Inf _ bounds_nonempty bounds_bdd_below).2
+    (λ c ⟨_, hc⟩, div_le_of_le_mul hlt (by rw mul_comm; exact hc _))))
+
+-- results about bounding the unit ball. (naming conventions?)
+lemma ratio_le_op_norm: ∥x∥ > 0 → ∥f x∥ / ∥x∥ ≤ ∥f∥ :=
+  λ hx, div_le_of_le_mul hx (by rw mul_comm; exact le_op_norm _)
+
+lemma unit_le_op_norm: ∥x∥ ≤ 1 → ∥f x∥ ≤ ∥f∥ :=
+  λ hx, by rw [←(mul_one ∥f∥)];
+  calc _ ≤ (op_norm f) * ∥x∥ : le_op_norm _
+  ...    ≤ _ : mul_le_mul_of_nonneg_left hx (op_norm_nonneg _)
+
+lemma op_norm_eq_zero : ∥f∥ = 0 ↔ f = 0 :=
+  ⟨λ hn, bounded_linear_map.ext (λ x, (norm_le_zero_iff _).1
+    (calc _ ≤ ∥f∥ * ∥x∥ : le_op_norm _
+    ...     = _ : by rw [hn, zero_mul])),
+  λ hf, le_antisymm (real.Inf_le _ bounds_bdd_below
+    ⟨ge_of_eq rfl, λ _, le_of_eq (by rw [zero_mul, hf]; exact norm_zero)⟩)
+    (op_norm_nonneg _)⟩
+
+lemma op_norm_triangle : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=
+  real.Inf_le _ bounds_bdd_below
+  ⟨add_nonneg (op_norm_nonneg _) (op_norm_nonneg _), λ x, by rw add_mul;
+    calc _ ≤ ∥f x∥ + ∥g x∥ : norm_triangle _ _
+    ...    ≤ _ : add_le_add (le_op_norm _) (le_op_norm _)⟩
+
+lemma op_norm_smul: ∥α • f∥ = ∥α∥ * ∥f∥ :=
+  le_antisymm
+    (real.Inf_le _ bounds_bdd_below
+      ⟨mul_nonneg (norm_nonneg _) (op_norm_nonneg _),
+      λ _, by erw [norm_smul, mul_assoc]; exact
+      mul_le_mul_of_nonneg_left (le_op_norm _) (norm_nonneg _)⟩)
+    (real.lb_le_Inf _ bounds_nonempty (λ _ ⟨hn, hc⟩,
+      (or.elim (lt_or_eq_of_le (norm_nonneg α))
+        (λ hlt, by rw mul_comm; exact
+          mul_le_of_le_div hlt (real.Inf_le _ bounds_bdd_below
+          ⟨div_nonneg hn hlt, λ _,
+            (by rw div_mul_eq_mul_div; exact le_div_of_mul_le hlt
+            (by rw [ mul_comm, ←norm_smul ]; exact hc _))⟩))
+        (λ heq, by rw [←heq, zero_mul]; exact hn))))
+
+-- operator norm is submultiplicative
+lemma op_norm_comp_le : ∥comp h f∥ ≤ ∥h∥ * ∥f∥ :=
+  (real.Inf_le _
+  bounds_bdd_below ⟨mul_nonneg (op_norm_nonneg _) (op_norm_nonneg _),
+  λ x, by rw mul_assoc; calc _ ≤ ∥h∥ * ∥f x∥: le_op_norm _
+  ... ≤ _ : mul_le_mul_of_nonneg_left (le_op_norm _) (op_norm_nonneg _)⟩)
+
+end op_norm
 
 -- Define the subspace of bounded linear maps, introduce the notation L(E,F) for the set of bounded linear maps.
 section bounded_linear_maps
@@ -86,12 +166,12 @@ lemma norm_of_unit_ball_bdd_above (A : L(E,F)) : bdd_above (image (norm ∘ A) {
 let ⟨c, _, H⟩ := (exists_bound' A : ∃ c, c > 0 ∧ ∀ x : E, ∥x∥ ≤ 1 → ∥A x∥ ≤ c) in
 bdd_above.mk c
   (assume r ⟨x, (_ : ∥x∥ ≤ 1), (_ : ∥A x∥ = r)⟩,
-    show r ≤ c, from 
+    show r ≤ c, from
       calc r = ∥A x∥ : eq.symm ‹∥A x∥ = r›
          ... ≤ c : H x ‹∥x∥ ≤ 1›)
 
 lemma zero_in_im_ball (A : L(E,F)) : (0:ℝ) ∈ {r : ℝ | ∃ (x : E), ∥x∥ ≤ 1 ∧ ∥A x∥ = r} :=
-have A 0 = 0, from (to_linear_map A).map_zero, 
+have A 0 = 0, from (to_linear_map A).map_zero,
 exists.intro (0:E) $ and.intro (by rw[norm_zero]; exact zero_le_one) (by rw[‹A 0 = 0›]; simp)
 
 lemma operator_norm_nonneg (A : L(E,F)) : 0 ≤ ∥A∥ :=
@@ -116,15 +196,15 @@ classical.by_cases
     have ∥x∥ ≠ 0, from ne_of_gt $ (norm_pos_iff x).mpr ‹x ≠ 0›,
     have ∥∥x∥⁻¹∥ = ∥x∥⁻¹, from abs_of_nonneg $ inv_nonneg.mpr $ norm_nonneg x,
     have ∥∥x∥⁻¹•x∥ = 1, begin rw[norm_smul, ‹∥∥x∥⁻¹∥ = ∥x∥⁻¹›], exact inv_mul_cancel ‹∥x∥ ≠ 0› end,
-    calc ∥A x∥ = (∥x∥ * ∥x∥⁻¹) * ∥A x∥ : by rw[mul_inv_cancel ‹∥x∥ ≠ 0›]; ring 
-          ... = ∥∥x∥⁻¹∥ * ∥A x∥ * ∥x∥  : by rw[‹∥∥x∥⁻¹∥ = ∥x∥⁻¹›]; ring 
+    calc ∥A x∥ = (∥x∥ * ∥x∥⁻¹) * ∥A x∥ : by rw[mul_inv_cancel ‹∥x∥ ≠ 0›]; ring
+          ... = ∥∥x∥⁻¹∥ * ∥A x∥ * ∥x∥  : by rw[‹∥∥x∥⁻¹∥ = ∥x∥⁻¹›]; ring
           ... = ∥∥x∥⁻¹• A x ∥ * ∥x∥    : by rw[←normed_space.norm_smul ∥x∥⁻¹ (A x)]
           ... = ∥A (∥x∥⁻¹• x)∥ * ∥x∥   : begin rw[show ⇑A = A.val, from rfl, A.property.smul] end
           ... ≤ ∥A∥ * ∥x∥              : (mul_le_mul_right ((norm_pos_iff x).mpr ‹x ≠ 0›)).mpr
                                           (bounded_by_operator_norm_on_unit_vector A ‹∥∥x∥⁻¹•x∥ = 1›))
 
 lemma bounded_by_operator_norm_on_unit_ball (A : L(E, F)) {x : E} (_ : ∥x∥ ≤ 1) : ∥A x∥ ≤ ∥A∥ :=
-calc ∥A x∥ ≤ ∥A∥ * ∥x∥ : bounded_by_operator_norm 
+calc ∥A x∥ ≤ ∥A∥ * ∥x∥ : bounded_by_operator_norm
         ... ≤ ∥A∥ * 1 : mul_le_mul_of_nonneg_left ‹∥x∥ ≤ 1› (operator_norm_nonneg A)
         ... = ∥A∥ : mul_one ∥A∥
 
@@ -179,7 +259,7 @@ suffices (∀ a ∈ _, a ≤ ∥c∥ * ∥A∥) ∧ (∀ (ub : ℝ), (∀ a ∈ 
   cSup_intro' (show _ ≠ ∅, from set.ne_empty_of_mem $ zero_in_im_ball _) this.1 this.2,
 and.intro
   (show ∀ a ∈ image (λ x, ∥(c • A) x∥) {x : E | ∥x∥ ≤ 1}, a ≤ ∥c∥ * ∥A∥, from
-    assume a (hₐ : ∃ (x : E), ∥x∥ ≤ 1 ∧ ∥(c • A) x∥ = a), 
+    assume a (hₐ : ∃ (x : E), ∥x∥ ≤ 1 ∧ ∥(c • A) x∥ = a),
       let ⟨x, _, _⟩ := hₐ in
         calc a = ∥c • A x∥    : eq.symm ‹_›
            ... = ∥c∥ * ∥A x∥   : by rw[←norm_smul c (A x)]; refl
@@ -201,7 +281,7 @@ and.intro
           cSup_le
             (set.ne_empty_of_mem $ zero_in_im_ball _)
             (assume n (H : ∃ (x : E), ∥x∥ ≤ 1 ∧ ∥A x∥ = n),
-              let ⟨x, _, _⟩ := H in 
+              let ⟨x, _, _⟩ := H in
               calc n = ∥A x∥             : eq.symm ‹∥A x∥ = n›
                  ... = ∥c∥⁻¹ * ∥c • A x∥ : by rw[norm_smul, ←mul_assoc, inv_mul_cancel ‹∥c∥ ≠ 0›, one_mul]
                  ... ≤ ∥c∥⁻¹ * u         : mul_le_mul_of_nonneg_left (u_is_ub ∥c • A x∥ ⟨x, ‹∥x∥ ≤ 1›, rfl⟩) $

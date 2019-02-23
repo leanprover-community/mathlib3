@@ -22,15 +22,115 @@ local notation f ` →_{`:50 a `} `:0 b := filter.tendsto f (nhds a) (nhds b)
 open filter (tendsto)
 open metric
 
+structure is_bounded_linear_map {k : Type*} [normed_field k]
+  {E : Type*} [normed_space k E] {F : Type*} [normed_space k F] (L : E → F)
+  extends is_linear_map k L : Prop :=
+(bound : ∃ M, M > 0 ∧ ∀ x : E, ∥L x∥ ≤ M * ∥x∥)
+
+-- refactor: bounded linear map as a bundled structure
+structure bounded_linear_map (k : Type*) [normed_field k]
+  (E : Type*) [normed_space k E] (F : Type*) [normed_space k F]
+  extends linear_map k E F :=
+(bounded : ∃ M, ∀ x : E, ∥to_fun x∥ ≤ M * ∥x∥)
+
 variables {k : Type*} [normed_field k]
 variables {E : Type*} [normed_space k E]
 variables {F : Type*} [normed_space k F]
 variables {G : Type*} [normed_space k G]
 
-structure is_bounded_linear_map {k : Type*}
-  [normed_field k] {E : Type*} [normed_space k E] {F : Type*} [normed_space k F] (L : E → F)
-  extends is_linear_map k L : Prop :=
-(bound : ∃ M, M > 0 ∧ ∀ x : E, ∥ L x ∥ ≤ M * ∥ x ∥)
+namespace bounded_linear_map
+
+instance : has_coe (bounded_linear_map k E F) (linear_map k E F) :=
+  ⟨to_linear_map⟩
+
+instance : has_coe_to_fun (bounded_linear_map k E F) :=
+  ⟨_, λ f, f.to_fun⟩
+
+@[extensionality] theorem ext {f g : bounded_linear_map k E F}
+  (h : ∀ x, f x = g x) : f = g :=
+  by cases f; cases g; congr' 1; ext x; apply h
+
+theorem ext_iff {f g : bounded_linear_map k E F} : f = g ↔ ∀ x, f x = g x :=
+  ⟨λ h x, by rintro; rw h, ext⟩
+
+variable {f : bounded_linear_map k E F}
+
+lemma map_zero : f 0 = 0 := linear_map.map_zero _
+
+lemma has_pos_bound : ∃ M > 0, ∀ x, ∥f x∥ ≤ M * ∥x∥ :=
+  let ⟨M, hf⟩ := f.bounded in
+  ⟨max 1 M, lt_of_lt_of_le zero_lt_one (le_max_left 1 _), λ _, le_trans
+  (hf _) (mul_le_mul_of_nonneg_right (le_max_right _ _) (norm_nonneg _))⟩
+
+-- some lemmas about things having bounds and things being bounds
+lemma ratio_has_pos_bound : ∃ M > 0, ∀ x ≠ 0, ∥f x∥ / ∥x∥ ≤ M :=
+  let ⟨M, hMp, hMb⟩ := has_pos_bound in ⟨M, hMp, λ _ hx, div_le_of_le_mul
+  ((norm_pos_iff _).2 hx) (by rw mul_comm; exact hMb _)⟩
+
+def of_linear_map_of_bounded {f : linear_map k E F}
+  (h : ∃ M, ∀ x, ∥f x∥ ≤ M * ∥x∥) : bounded_linear_map k E F := ⟨f, h⟩
+
+theorem is_bounded_linear_map {f: bounded_linear_map k E F}:
+  is_bounded_linear_map f :=
+  ⟨f.to_linear_map.is_linear,
+  let ⟨M, hMg, hMb⟩ := has_pos_bound in ⟨M, hMg, hMb⟩⟩
+
+
+-- some special bounded linear maps
+def zero : bounded_linear_map k E F :=
+  ⟨0, 0, λ x, by rw zero_mul; exact le_of_eq norm_zero⟩
+
+def id : bounded_linear_map k E E :=
+  ⟨linear_map.id, 1, λ x, le_of_eq (one_mul _).symm⟩
+
+
+-- instances so you can add these things together, and stuff.
+def comp (g : bounded_linear_map k F G) (f : bounded_linear_map k E F):
+  bounded_linear_map k E G :=
+  ⟨linear_map.comp g.to_linear_map f.to_linear_map,
+  let ⟨Mg, hMgp, hMgb⟩ := has_pos_bound in
+  let ⟨Mf, _, hMfb⟩ := has_pos_bound in ⟨Mg * Mf, λ x, by rw mul_assoc;
+  exact le_trans (hMgb _) ((mul_le_mul_left hMgp).2 (hMfb _))⟩⟩
+
+instance : has_zero (bounded_linear_map k E F) := ⟨zero⟩
+instance : has_one (bounded_linear_map k E E) := ⟨id⟩
+
+instance : has_mul (bounded_linear_map k E E) := ⟨comp⟩
+
+instance : has_add (bounded_linear_map k E F) :=
+  ⟨λ f g, ⟨f + g, let ⟨Mg, hMg⟩ := g.bounded in
+  let ⟨Mf, hMf⟩ := f.bounded in ⟨Mf + Mg, λ x,
+  calc _ ≤ ∥f x∥ + ∥g x∥       : norm_triangle _ _
+...      ≤ Mf * ∥x∥ + Mg * ∥x∥ : add_le_add (hMf _) (hMg _)
+...      = (Mf + Mg) * ∥x∥     : (add_mul _ _ _).symm ⟩⟩⟩
+
+instance : has_scalar k (bounded_linear_map k E F) :=
+  ⟨λ c f, ⟨c • f, let ⟨M, hM⟩ := f.bounded in ⟨∥c∥ * M,
+  λ x, by rw mul_assoc; exact (norm_smul c (f x)).symm ▸
+  (mul_le_mul_of_nonneg_left (hM x) (norm_nonneg c))⟩⟩⟩
+
+instance : has_neg (bounded_linear_map k E F) := ⟨λ f, (-1 : k) • f⟩
+instance : has_sub (bounded_linear_map k E F) := ⟨λ f g, f + (-g)⟩
+
+variables {α : k} {u v : E}
+
+-- (helpful?) lemmas because invoking the corresponding results
+-- for linear_map isn't straightforward.
+lemma map_add:  f (u + v) = f u + f v := by erw linear_map.map_add _ _ _; refl
+lemma map_sub:  f (u - v) = f u - f v := by erw linear_map.map_sub _ _ _; refl
+lemma map_smul: f (α • u) = α • f u   := by erw linear_map.map_smul _ _ _; refl
+
+-- a bounded linear map is continuous.
+lemma tendsto (x : E): f →_{x} (f x) :=
+  tendsto_iff_norm_tendsto_zero.2 $ let ⟨M, hf⟩ := f.bounded in
+  (squeeze_zero (λ _, norm_nonneg _)
+  (λ t, by rw ←map_sub; exact hf _ : ∀ t, ∥f t - f x∥ ≤ M * ∥t - x∥)
+  ((mul_zero M) ▸ (tendsto_mul tendsto_const_nhds (lim_norm _))))
+
+theorem continuous : continuous f :=
+  continuous_iff_continuous_at.2 tendsto
+
+end bounded_linear_map
 
 include k
 

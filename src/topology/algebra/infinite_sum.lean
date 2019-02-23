@@ -18,6 +18,7 @@ Reference:
 -/
 import logic.function algebra.big_operators data.set data.finset
        topology.metric_space.basic topology.algebra.topological_structures
+       topology.instances.real
 
 noncomputable theory
 open lattice finset filter function classical
@@ -508,3 +509,33 @@ end,
 has_sum_of_has_sum_of_sub _ _ hf $ assume b, by by_cases b ∈ set.range i; simp [h]
 
 end uniform_group
+
+section cauchy_seq
+open finset.Ico filter
+
+lemma cauchy_seq_of_has_sum_dist [metric_space α] {f : ℕ → α}
+  (h : has_sum (λn, dist (f n) (f n.succ))) : cauchy_seq f :=
+begin
+  let d := λn, dist (f n) (f (n+1)),
+  refine metric.cauchy_seq_iff'.2 (λε εpos, _),
+  rcases (has_sum_iff_vanishing _).1 h {x : ℝ | x < ε} (gt_mem_nhds εpos) with ⟨s, hs⟩,
+  have : ∃N:ℕ, ∀x ∈ s, x < N,
+  { by_cases h : s = ∅,
+    { use 0, simp [h]},
+    { use s.max' h + 1,
+      exact λx hx, lt_of_le_of_lt (s.le_max' h x hx) (nat.lt_succ_self _) }},
+  rcases this with ⟨N, hN⟩,
+  refine ⟨N, λn hn, _⟩,
+  have : ∀n, n ≥ N → dist (f N) (f n) ≤ (Ico N n).sum d,
+  { apply nat.le_induction,
+    { simp },
+    { assume n hn hrec,
+      calc dist (f N) (f (n+1)) ≤ dist (f N) (f n) + d n : dist_triangle _ _ _
+        ... ≤ (Ico N n).sum d + d n : add_le_add hrec (le_refl _)
+        ... = (Ico N (n+1)).sum d : by rw [succ_top hn, sum_insert, add_comm]; simp }},
+  calc dist (f n) (f N) ≤ (Ico N n).sum d : by rw dist_comm; apply this n hn
+    ... < ε : hs _ (finset.disjoint_iff_ne.2
+                     (λa ha b hb, ne_of_gt (lt_of_lt_of_le (hN _ hb) (mem.1 ha).1)))
+end
+
+end cauchy_seq

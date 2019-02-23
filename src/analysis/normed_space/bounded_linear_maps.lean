@@ -114,6 +114,27 @@ instance : has_scalar k (bounded_linear_map k E F) :=
 instance : has_neg (bounded_linear_map k E F) := ⟨λ f, (-1 : k) • f⟩
 instance : has_sub (bounded_linear_map k E F) := ⟨λ f g, f + (-g)⟩
 
+instance : add_comm_group (bounded_linear_map k E F) := {
+  add       := (+),
+  add_assoc := λ _ _ _, ext $ λ _, add_assoc _ _ _,
+  add_comm  := λ _ _, ext $ λ _, add_comm _ _,
+  zero      := 0,
+  add_zero  := λ _, ext $ λ _, add_zero _,
+  zero_add  := λ _, ext $ λ _, zero_add _,
+  neg       := λ f, -f,
+  add_left_neg := λ f, ext $ λ x, have t: (-1 : k) • f x + f x = 0, from
+    by rw neg_one_smul; exact add_left_neg _, t
+}
+
+instance : vector_space k (bounded_linear_map k E F) := {
+  smul_zero := λ _, ext $ λ _, smul_zero _,
+  zero_smul := λ _, ext $ λ _, semimodule.zero_smul _ _,
+  one_smul  := λ _, ext $ λ _, semimodule.one_smul _ _,
+  mul_smul  := λ _ _ _, ext $ λ _, semimodule.mul_smul _ _ _,
+  add_smul  := λ _ _ _, ext $ λ _, semimodule.add_smul _ _ _,
+  smul_add  := λ _ _ _, ext $ λ _, semimodule.smul_add _ _ _
+}
+
 variables {α : k} {u v : E}
 
 -- (helpful?) lemmas because invoking the corresponding results

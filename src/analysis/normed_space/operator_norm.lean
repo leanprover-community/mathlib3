@@ -93,6 +93,10 @@ lemma op_norm_smul: ∥α • f∥ = ∥α∥ * ∥f∥ :=
             (by rw [ mul_comm, ←norm_smul ]; exact hc _))⟩))
         (λ heq, by rw [←heq, zero_mul]; exact hn))))
 
+-- the bounded linear maps themselves form a normed space w/ the op norm
+noncomputable instance : normed_space k (bounded_linear_map k E F) :=
+  normed_space.of_core _ _ ⟨op_norm_eq_zero, op_norm_smul, op_norm_triangle⟩
+
 -- operator norm is submultiplicative
 lemma op_norm_comp_le : ∥comp h f∥ ≤ ∥h∥ * ∥f∥ :=
   (real.Inf_le _

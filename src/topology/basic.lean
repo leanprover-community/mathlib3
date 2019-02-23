@@ -550,19 +550,19 @@ have h₁ : ∃ (i : set α), i ∈ {t : set α | a ∈ t ∧ is_open t},
 by { rw [nhds_within_eq, map_binfi_eq h₀ h₁], simp only [map_principal] }
 
 theorem tendsto_nhds_within_mono_left {f : α → β} {a : α}
-    {s t : set α} {l : filter β} (h : tendsto f (nhds_within a t) l) (hst : s ⊆ t) :
+    {s t : set α} {l : filter β} (hst : s ⊆ t) (h : tendsto f (nhds_within a t) l) :
   tendsto f (nhds_within a s) l :=
 tendsto_le_left (nhds_within_mono a hst) h
 
 theorem tendsto_nhds_within_mono_right {f : β → α} {l : filter β}
-    {a : α} {s t : set α}(h : tendsto f l (nhds_within a s)) (hst : s ⊆ t) :
+    {a : α} {s t : set α} (hst : s ⊆ t) (h : tendsto f l (nhds_within a s)) :
   tendsto f l (nhds_within a t) :=
 tendsto_le_right (nhds_within_mono a hst) h
 
 theorem tendsto_nhds_within_of_tendsto_nhds {f : α → β} {a : α}
     {s : set α} {l : filter β} (h : tendsto f (nhds a) l) :
   tendsto f (nhds_within a s) l :=
-by rw [←nhds_within_univ] at h; exact tendsto_nhds_within_mono_left h (set.subset_univ _)
+by rw [←nhds_within_univ] at h; exact tendsto_nhds_within_mono_left (set.subset_univ _) h
 
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
 section locally_finite

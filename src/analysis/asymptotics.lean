@@ -33,7 +33,6 @@ the Fréchet derivative.)
 import analysis.normed_space.basic
 open filter
 
-
 namespace asymptotics
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}

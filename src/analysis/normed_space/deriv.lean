@@ -41,8 +41,7 @@ theorem has_fderiv_at_within_equiv_aux (f : E → F) (f' : E → F) (x : E) (s :
   tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - f' (x' - x)∥) (nhds_within x s) (nhds 0) :=
 begin
   have f'0 : f' 0 = 0 := (bf'.to_linear_map _).map_zero,
-  rw [tendsto_iff_norm_tendsto_zero], congr,
-  ext x',
+  rw [tendsto_iff_norm_tendsto_zero], congr, ext x',
   have : ∥x' + -x∥⁻¹ ≥ 0, from inv_nonneg.mpr (norm_nonneg _),
   simp [norm_smul, real.norm_eq_abs, abs_of_nonneg this]
 end
@@ -56,16 +55,12 @@ and.congr_right_iff.mpr $
   have f'0 : f' 0 = 0 := (bf'.to_linear_map _).map_zero,
   have h : ∀ x', ∥x' - x∥ = 0 → ∥f x' - f x - f' (x' - x)∥ = 0, from
     assume x' hx',
-    have x' = x,
-      from eq_of_sub_eq_zero ((norm_eq_zero _).mp hx'),
+    have x' = x, from eq_of_sub_eq_zero ((norm_eq_zero _).mp hx'),
     by rw this; simp [f'0],
   begin
     rw has_fderiv_at_within_equiv_aux _ _ _ _ bf',
-    rw ←is_littleo_norm_left,
-    rw ←is_littleo_norm_right,
-    rw is_littleo_iff_tendsto h,
-    apply iff_of_eq, congr, ext x',
-    apply mul_comm
+    rw [←is_littleo_norm_left, ←is_littleo_norm_right, is_littleo_iff_tendsto h],
+    apply iff_of_eq, congr, ext x', apply mul_comm
   end
 
 theorem has_fderiv_at_iff_tendsto {f : E → F} {f' : E → F} {x : E} :
@@ -75,7 +70,7 @@ theorem has_fderiv_at_iff_tendsto {f : E → F} {f' : E → F} {x : E} :
 by convert has_fderiv_at_within_iff_tendsto; rw nhds_within_univ
 
 theorem has_fderiv_at_within.mono {f : E → F} {f' : E → F} {x : E} {s t : set E}
-     (hst : s ⊆ t) (h : has_fderiv_at_within f f' x t) :
+    (hst : s ⊆ t) (h : has_fderiv_at_within f f' x t) :
   has_fderiv_at_within f f' x s :=
 and.intro h.left (h.right.mono (nhds_within_mono _ hst))
 

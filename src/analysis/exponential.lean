@@ -484,7 +484,7 @@ begin
       right, rw [coe_sub, coe_sub, eq_neg_iff_add_eq_zero, add_sub,
       sub_add_eq_add_sub, ← coe_add, add_halves, sub_sub, sub_eq_zero] at h,
     exact h.symm },
-  { rw [angle_eq_iff_two_pi, ←eq_sub_iff_add_eq, ←coe_sub, angle_eq_iff_two_pi], 
+  { rw [angle_eq_iff_two_pi_dvd_sub, ←eq_sub_iff_add_eq, ←coe_sub, angle_eq_iff_two_pi_dvd_sub], 
     rintro (⟨k, H⟩ | ⟨k, H⟩),
     rw [← sub_eq_zero_iff_eq, sin_sub_sin, H, mul_assoc 2 π k, mul_div_cancel_left _ two_ne_zero,
       mul_comm π _, sin_int_mul_pi, mul_zero, zero_mul],

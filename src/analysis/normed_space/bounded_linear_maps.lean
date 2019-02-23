@@ -63,9 +63,11 @@ lemma has_pos_bound : ∃ M > 0, ∀ x, ∥f x∥ ≤ M * ∥x∥ :=
   (hf _) (mul_le_mul_of_nonneg_right (le_max_right _ _) (norm_nonneg _))⟩
 
 -- some lemmas about things having bounds and things being bounds
-lemma ratio_has_pos_bound : ∃ M > 0, ∀ x ≠ 0, ∥f x∥ / ∥x∥ ≤ M :=
-  let ⟨M, hMp, hMb⟩ := has_pos_bound in ⟨M, hMp, λ _ hx, div_le_of_le_mul
-  ((norm_pos_iff _).2 hx) (by rw mul_comm; exact hMb _)⟩
+lemma ratio_has_pos_bound : ∃ M > 0, ∀ x, ∥f x∥ / ∥x∥ ≤ M :=
+  let ⟨M, hMp, hMb⟩ := has_pos_bound in ⟨M, hMp,
+  λ x, or.elim (lt_or_eq_of_le (norm_nonneg x))
+  (λ hlt, div_le_of_le_mul hlt (by rw mul_comm; exact hMb x))
+  (λ heq, by rw [←heq, div_zero]; exact le_of_lt hMp)⟩
 
 def of_linear_map_of_bounded {f : linear_map k E F}
   (h : ∃ M, ∀ x, ∥f x∥ ≤ M * ∥x∥) : bounded_linear_map k E F := ⟨f, h⟩

@@ -54,8 +54,10 @@ lemma le_op_norm: ∥f x∥ ≤ ∥f∥ * ∥x∥ :=
     (λ c ⟨_, hc⟩, div_le_of_le_mul hlt (by rw mul_comm; exact hc _))))
 
 -- results about bounding the unit ball. (naming conventions?)
-lemma ratio_le_op_norm: ∥x∥ > 0 → ∥f x∥ / ∥x∥ ≤ ∥f∥ :=
-  λ hx, div_le_of_le_mul hx (by rw mul_comm; exact le_op_norm _)
+lemma ratio_le_op_norm: ∥f x∥ / ∥x∥ ≤ ∥f∥ :=
+  (or.elim (lt_or_eq_of_le (norm_nonneg _))
+  (λ hlt, div_le_of_le_mul hlt (by rw mul_comm; exact le_op_norm _))
+  (λ heq, by rw [←heq, div_zero]; exact op_norm_nonneg _))
 
 lemma unit_le_op_norm: ∥x∥ ≤ 1 → ∥f x∥ ≤ ∥f∥ :=
   λ hx, by rw [←(mul_one ∥f∥)];

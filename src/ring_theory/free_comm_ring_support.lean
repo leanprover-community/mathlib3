@@ -1,56 +1,5 @@
 import ring_theory.free_comm_ring ring_theory.subring data.set.finite data.real.irrational
 
-@[derive decidable_eq]
-inductive F4 : Type | z | o | a | b
-
-namespace F4
-
-instance : fintype F4 :=
-{ elems := {z, o, a, b},
-  complete := λ x, by cases x; simp }
-
-def add : F4 → F4 → F4
-| z x := x
-| x z := x
-| o o := z
-| o a := b
-| o b := a
-| a o := b
-| a a := z
-| a b := o
-| b o := a
-| b a := o
-| b b := z
-
-def mul : F4 → F4 → F4
-| z x := z
-| x z := z
-| o x := x
-| x o := x
-| a a := b
-| a b := o
-| b a := o
-| b b := a
-
-def inv : F4 → F4
-| z := z
-| o := o
-| a := b
-| b := a
-
-instance : discrete_field F4 :=
-by refine
-{ add := add,
-  zero := z,
-  neg := id,
-  mul := mul,
-  one := o,
-  inv := inv,
-  has_decidable_eq := F4.decidable_eq,
-  .. }; tactic.exact_dec_trivial
-
-end F4
-
 universes u v
 
 variables {α : Type u}
@@ -110,16 +59,14 @@ theorem is_supported_pure {p} {s : set α} : is_supported (pure p) s ↔ p ∈ s
 suffices is_supported (pure p) s → p ∈ s, from ⟨this, λ hps, ring.subset_closure ⟨p, hps, rfl⟩⟩,
 assume hps : is_supported (pure p) s, begin
   classical,
-  have : ∀ x, is_supported x s → lift (λ q, if q ∈ s then 0 else F4.a) x = 0 ∨
-    lift (λ q, if q ∈ s then 0 else F4.a) x = 1,
+  have : ∀ x, is_supported x s → ∃ q : ℚ, lift (λ q, if q ∈ s then 0 else real.sqrt 2) x = ↑q,
   { intros x hx, refine ring.in_closure.rec_on hx _ _ _ _,
-    { right, rw lift_one },
-    { right, rw [lift_neg, lift_one], refl },
-    { rintros _ ⟨q, hqs, rfl⟩ _ _, left, rw [lift_mul, lift_of, if_pos hqs, zero_mul] },
-    { rintros x y (ihx | ihx) (ihy | ihy); rw [lift_add, ihx, ihy],
-      exacts [or.inl rfl, or.inr rfl, or.inr rfl, or.inl rfl] } },
+    { use 1, rw [lift_one, rat.cast_one] },
+    { use -1, rw [lift_neg, lift_one, rat.cast_neg, rat.cast_one], },
+    { rintros _ ⟨z, hzs, rfl⟩ _ _, use 0, rw [lift_mul, lift_of, if_pos hzs, zero_mul, rat.cast_zero] },
+    { rintros x y ⟨q, hq⟩ ⟨r, hr⟩, use q+r, rw [lift_add, hq, hr, rat.cast_add] } },
   specialize this (of p) hps, rw [lift_of] at this, split_ifs at this, { exact h },
-  exfalso, cases this; cases this
+  exfalso, exact irr_sqrt_two this
 end
 
 theorem subtype_val_map_restriction {x} (s : set α) [decidable_pred s] (hxs : is_supported x s) :

@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2019 Kenny Lau. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kenny Lau
+-/
+
 import group_theory.free_abelian_group ring_theory.subring data.set.finite data.real.irrational
 
 universes u v
@@ -247,7 +253,7 @@ begin
   { intros x y ihx ihy, rw [restriction_add, map_add, ihx, ihy] }
 end
 
-theorem exists_finset (x : free_comm_ring α) : ∃ s : set α, set.finite s ∧ is_supported x s :=
+theorem exists_finite_support (x : free_comm_ring α) : ∃ s : set α, set.finite s ∧ is_supported x s :=
 free_comm_ring.induction_on x
   ⟨∅, set.finite_empty, is_supported_neg is_supported_one⟩
   (λ p, ⟨{p}, set.finite_singleton p, is_supported_pure.2 $ finset.mem_singleton_self _⟩)
@@ -257,5 +263,8 @@ free_comm_ring.induction_on x
   (λ x y ⟨s, hfs, hxs⟩ ⟨t, hft, hxt⟩, ⟨s ∪ t, set.finite_union hfs hft, is_supported_mul
     (is_supported_upwards hxs $ set.subset_union_left s t)
     (is_supported_upwards hxt $ set.subset_union_right s t)⟩)
+
+theorem exists_finset_support (x : free_comm_ring α) : ∃ s : finset α, is_supported x ↑s :=
+let ⟨s, hfs, hxs⟩ := exists_finite_support x in ⟨hfs.to_finset, by rwa finset.coe_to_finset⟩
 
 end free_comm_ring

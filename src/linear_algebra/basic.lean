@@ -586,6 +586,13 @@ span_eq_bot.trans $ by simp
 span_eq_of_le _ (image_subset _ subset_span) $ map_le_iff_le_comap.2 $
 span_le.2 $ image_subset_iff.1 subset_span
 
+lemma span_preimage_le_comap_span (f : β →ₗ[α] γ) (s : set γ) : span α (f ⁻¹' s) ≤ (span α s).comap f :=
+λ x h, span_induction h
+  (by simp only [set.preimage, set.mem_set_of_eq, mem_comap]; exact λ x h, subset_span h)
+  (zero_mem ((span α s).comap f))
+  (λ _ _ hx hy, add_mem ((span α s).comap f) hx hy)
+  (λ _ _ h, smul_mem ((span α s).comap f) _ h)
+
 def prod : submodule α (β × γ) :=
 { carrier := set.prod p q,
   zero := ⟨zero_mem _, zero_mem _⟩,

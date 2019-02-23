@@ -115,36 +115,4 @@ begin
     ac_refl }
 end
 
-section count
-
-variables [decidable_eq α]
-
-def count (x : α) : free_abelian_group α → ℤ :=
-lift $ λ y, if x = y then 1 else 0
-
-theorem count_of (x y : α) : count x (of y) = if x = y then 1 else 0 :=
-lift.of _ _
-
-theorem count_of_self (x : α) : count x (of x) = 1 :=
-(count_of x x).trans $ if_pos rfl
-
-theorem count_zero (x : α) : count x 0 = 0 :=
-lift.zero _
-
-end count
-
-theorem of_inj (x y : α) (H : of x = of y) : x = y :=
-begin
-  classical, replace H := congr_arg (count x) H,
-  rw [count_of_self x, count_of] at H, split_ifs at H with h,
-  { exact h }, { exfalso, exact one_ne_zero H }
-end
-
-theorem of_ne_zero (x : α) : of x ≠ 0 :=
-begin
-  intros H, classical, replace H := congr_arg (count x) H,
-  rw [count_of_self x, count_zero] at H,
-  exact one_ne_zero H
-end
-
 end free_abelian_group

@@ -39,11 +39,6 @@ theorem mk_smul (s : finset ι) (c : R) (x) : mk β s (c • x) = c • mk β s 
 theorem of_smul (i : ι) (c : R) (x) : of β i (c • x) = c • of β i x :=
 (lof R ι β i).map_smul c x
 
-lemma sum_of [Π i, decidable_pred (eq (0 : β i))] (f : direct_sum ι β) :
-  f.sum (λ i, lof R ι β i) = f :=
-by dsimp [of, dfinsupp.lsingle]; unfold_coes;
-  exact @dfinsupp.sum_single ι β _ _ _ f
-
 variables {γ : Type u₁} [add_comm_group γ] [module R γ]
 variables (φ : Π i, β i →ₗ[R] γ)
 

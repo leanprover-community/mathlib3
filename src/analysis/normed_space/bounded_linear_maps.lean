@@ -45,7 +45,7 @@ lemma is_linear_map.with_bound
 
 namespace is_bounded_linear_map
 
-def to_linear_map {f : E → F} (h : is_bounded_linear_map f) : E →ₗ[k] F :=
+def to_linear_map (f : E → F) (h : is_bounded_linear_map f) : E →ₗ[k] F :=
 (is_linear_map.mk' _ h.to_is_linear_map)
 
 lemma zero : is_bounded_linear_map (λ (x:E), (0:F)) :=
@@ -103,7 +103,7 @@ open asymptotics filter
 theorem is_bigo_id {L : E → F} (h : is_bounded_linear_map L) (l : filter E) :
   is_bigo L (λ x, x) l :=
 let ⟨M, Mpos, hM⟩ := h.bound in
-⟨M, mem_sets_of_superset univ_mem_sets (λ x _, hM x)⟩
+⟨M, Mpos, mem_sets_of_superset univ_mem_sets (λ x _, hM x)⟩
 
 theorem is_bigo_sub {L : E → F} (h : is_bounded_linear_map L) (l : filter E) (x : E) :
   is_bigo (λ x', L (x' - x)) (λ x', x' - x) l :=

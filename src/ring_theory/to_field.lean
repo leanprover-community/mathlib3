@@ -1,11 +1,20 @@
 import algebra.ring
 
-universes u
+universes u v
 
 variables (α : Type u)
 
 class is_division_ring [ring α] : Prop :=
 (exists_inv : ∀ {x : α}, x ≠ 0 → ∃ y, x * y = 1)
+
+section
+set_option old_structure_cmd true
+class field' (α : Type u) extends division_ring α, comm_ring α :=
+(inv_zero : (0:α)⁻¹ = 0)
+end
+
+theorem inv_zero' [field' α] : (0:α)⁻¹ = 0 :=
+field'.inv_zero α
 
 theorem mul_eq_one_comm {α} [ring α] [is_division_ring α] {x y : α} (hxy : x * y = 1) : y * x = 1 :=
 classical.by_cases
@@ -60,6 +69,26 @@ pre_to_field.rec_on p
       ⟨y, or.inr ⟨x, hpx, hxy⟩, λ z hz, or.cases_on hz
         (λ ⟨hp0, hz0⟩, by rw [hz0, ← one_mul y, ← hxy, ← hpx2 0 hp0, zero_mul, zero_mul])
         (λ ⟨s, hps, hsz⟩, by rw [← mul_one y, ← hsz, ← mul_assoc, hpx2 s hps, mul_eq_one_comm hxy, one_mul])⟩))
+
+variables {β : Type v}
+
+def eval [division_ring β] (f : α → β) : pre_to_field α → β
+| (of p)    := f p
+| (add x y) := eval x + eval y
+| (mul x y) := eval x * eval y
+| (inv p)   := (eval p)⁻¹
+
+theorem eval_of_rel [field' β] (f : α → β) [is_ring_hom f] :
+  Π {p} {x : α} (hpx : pre_to_field.rel p x), eval f p = f x
+| (of p)    z hpz                   := congr_arg f hpz
+| (add p q) z ⟨x, y, hpx, hqy, hxyz⟩ := by rw [eval, eval_of_rel hpx, eval_of_rel hqy, ← hxyz, is_ring_hom.map_add f]
+| (mul p q) z ⟨x, y, hpx, hqy, hxyz⟩ := by rw [eval, eval_of_rel hpx, eval_of_rel hqy, ← hxyz, is_ring_hom.map_mul f]
+| (inv p)   z (or.inl ⟨hp0, hz0⟩)    := by rw [eval, eval_of_rel hp0, hz0, is_ring_hom.map_zero f, inv_zero']
+| (inv p)   z (or.inr ⟨x, hpx, hxz⟩) := by rw [eval, eval_of_rel hpx, ← mul_one (f x)⁻¹, ← is_ring_hom.map_one f,
+    ← hxz, is_ring_hom.map_mul f, ← mul_assoc,
+    inv_mul_cancel (assume hfx : f x = 0, @zero_ne_one β _ $
+      by rw [← is_ring_hom.map_one f, ← hxz, is_ring_hom.map_mul f, hfx, zero_mul]),
+    one_mul]
 
 variables (α)
 
@@ -166,8 +195,18 @@ instance : ring (to_field α) :=
 @[simp] lemma mk_zero : mk (0 : α) = 0 := rfl
 @[simp] lemma mk_one : mk (1 : α) = 1 := rfl
 
-instance : is_ring_hom (@mk α _ _) :=
+instance mk.is_ring_hom : is_ring_hom (@mk α _ _) :=
 ⟨mk_one α, mk_mul, mk_add⟩
+
+variables {α}
+def eval {β : Type v} [field' β] (f : α → β) [is_ring_hom f] (p : to_field α) : β :=
+quotient.lift_on p (pre_to_field.eval f) $ λ p q ⟨x, hpx, hqx⟩,
+by rw [pre_to_field.eval_of_rel f hpx, pre_to_field.eval_of_rel f hqx]
+
+instance eval.is_ring_hom {β : Type v} [field' β] (f : α → β) [is_ring_hom f] : is_ring_hom (eval f) :=
+⟨by convert is_ring_hom.map_one f,
+λ p q, quotient.induction_on₂ p q $ λ x y, rfl,
+λ p q, quotient.induction_on₂ p q $ λ x y, rfl⟩
 
 end to_field
 

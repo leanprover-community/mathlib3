@@ -77,6 +77,19 @@ variables {α}
 def of (x : α) : free_comm_ring α :=
 free_abelian_group.of [x]
 
+@[elab_as_eliminator] protected lemma induction_on
+  {C : free_comm_ring α → Prop} (z : free_comm_ring α)
+  (hn1 : C (-1)) (hb : ∀ b, C (of b))
+  (ha : ∀ x y, C x → C y → C (x + y))
+  (hm : ∀ x y, C x → C y → C (x * y)) : C z :=
+have hn : ∀ x, C x → C (-x), from λ x ih, neg_one_mul x ▸ hm _ _ hn1 ih,
+have h1 : C 1, from neg_neg (1 : free_comm_ring α) ▸ hn _ hn1,
+free_abelian_group.induction_on z
+  (add_left_neg (1 : free_comm_ring α) ▸ ha _ _ hn1 h1)
+  (λ m, multiset.induction_on m h1 $ λ a m ih, hm _ _ (hb a) ih)
+  (λ m ih, hn _ ih)
+  ha
+
 section lift
 
 variables {β : Type v} [comm_ring β] (f : α → β)
@@ -132,14 +145,33 @@ funext $ λ x, @@free_abelian_group.lift.ext _ _ _
 
 end lift
 
-variables {β : Type v} (f : α → β)
-
-def map : free_comm_ring α → free_comm_ring β :=
+def map {β : Type v} (f : α → β) : free_comm_ring α → free_comm_ring β :=
 lift $ of ∘ f
 
 instance : monad free_comm_ring :=
 { map := λ _ _, map,
   pure := λ _, of,
   bind := λ _ _ x f, lift f x }
+
+@[simp] lemma lift_pure {β : Type v} [comm_ring β] (f : α → β) (x : α) : lift f (pure x) = f x :=
+lift_of _ _
+
+@[elab_as_eliminator] protected lemma induction_on'
+  {C : free_comm_ring α → Prop} (z : free_comm_ring α)
+  (hn1 : C (-1)) (hb : ∀ b, C (pure b))
+  (ha : ∀ x y, C x → C y → C (x + y))
+  (hm : ∀ x y, C x → C y → C (x * y)) : C z :=
+free_comm_ring.induction_on z hn1 hb ha hm
+
+section map
+variables {β : Type u} (f : α → β) (x y : free_comm_ring α)
+@[simp] lemma map_pure (z) : f <$> (pure z : free_comm_ring α) = pure (f z) := lift_of (of ∘ f) z
+@[simp] lemma map_zero : f <$> (0 : free_comm_ring α) = 0 := lift_zero (of ∘ f)
+@[simp] lemma map_one : f <$> (1 : free_comm_ring α) = 1 := lift_one (of ∘ f)
+@[simp] lemma map_add : f <$> (x + y) = f <$> x + f <$> y := lift_add (of ∘ f) x y
+@[simp] lemma map_neg : f <$> (-x) = -(f <$> x) := lift_neg (of ∘ f) x
+@[simp] lemma map_sub : f <$> (x - y) = f <$> x - f <$> y := lift_sub (of ∘ f) x y
+@[simp] lemma map_mul : f <$> (x * y) = f <$> x * f <$> y := lift_mul (of ∘ f) x y
+end map
 
 end free_comm_ring

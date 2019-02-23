@@ -1,6 +1,6 @@
 import linear_algebra.direct_sum_module
 import linear_algebra.linear_combination
-import ring_theory.free_comm_ring_support
+import ring_theory.free_comm_ring
 import ring_theory.ideal_operations
 import ring_theory.to_field
 
@@ -10,6 +10,35 @@ open lattice submodule
 
 class directed_order (α : Type u) extends partial_order α :=
 (directed : ∀ i j : α, ∃ k, i ≤ k ∧ j ≤ k)
+
+theorem finset.exists_le_of_nonempty {α : Type u} [directed_order α] (s : finset α) (hs : s ≠ ∅) :
+  ∃ M, ∀ i ∈ s, i ≤ M :=
+begin
+  revert hs, classical, refine finset.induction_on s (λ H, false.elim $ H rfl) _,
+  intros a s has ih _, by_cases hs : s = ∅,
+  { rw hs, exact ⟨a, λ i hi, finset.mem_singleton.1 hi ▸ le_refl i⟩ },
+  rcases ih hs with ⟨j, hj⟩, rcases directed_order.directed a j with ⟨k, hak, hjk⟩,
+  exact ⟨k, λ i hi, or.cases_on (finset.mem_insert.1 hi) (λ hia, hia.symm ▸ hak) (λ his, le_trans (hj i his) hjk)⟩
+end
+
+theorem finset.exists_le {α : Type u} [nonempty α] [directed_order α] (s : finset α) :
+  ∃ M, ∀ i ∈ s, i ≤ M :=
+nonempty.elim (by apply_instance) $ assume ind : α,
+classical.by_cases
+  (assume hs : s = ∅, ⟨ind, hs.symm ▸ λ i, false.elim⟩)
+  s.exists_le_of_nonempty
+
+theorem set.finite.exists_le_of_nonempty {α : Type u} [directed_order α] {s : set α} (hs : s ≠ ∅) (hfs : set.finite s) :
+  ∃ M, ∀ i ∈ s, i ≤ M :=
+let ⟨x, hxs⟩ := set.ne_empty_iff_exists_mem.1 hs in
+have hfs.to_finset ≠ ∅, from finset.ne_empty_of_mem (set.finite.mem_to_finset.2 hxs),
+let ⟨M, HM⟩ := hfs.to_finset.exists_le_of_nonempty this in
+⟨M, λ i his, HM i $ set.finite.mem_to_finset.2 his⟩
+
+theorem set.finite.exists_le {α : Type u} [nonempty α] [directed_order α] {s : set α} (hfs : set.finite s) :
+  ∃ M, ∀ i ∈ s, i ≤ M :=
+let ⟨M, HM⟩ := hfs.to_finset.exists_le in
+⟨M, λ i his, HM i $ set.finite.mem_to_finset.2 his⟩
 
 variables {R : Type u} [ring R]
 variables {ι : Type v} [nonempty ι]
@@ -295,21 +324,29 @@ instance of.is_ring_hom (i) : is_ring_hom (of G f i) :=
   map_add := λ x y, ideal.quotient.eq.2 $ subset_span $ or.inl $ or.inr $ set.mem_Union.2 ⟨i,
     set.mem_Union.2 ⟨x, set.mem_range_self y⟩⟩ }
 
-theorem of_f {i j} (hij : i ≤ j) (x : G i) : of G f j (f i j hij x) = of G f i x :=
+@[simp] lemma of_f {i j} (hij : i ≤ j) (x : G i) : of G f j (f i j hij x) = of G f i x :=
 ideal.quotient.eq.2 $ subset_span $ or.inl $ or.inl $ or.inl $ set.mem_Union.2 ⟨i, set.mem_Union.2
 ⟨j, set.mem_Union.2 ⟨hij, set.mem_range_self _⟩⟩⟩
+
+@[simp] lemma of_zero (i) : of G f i 0 = 0 := is_ring_hom.map_zero _
+@[simp] lemma of_one (i) : of G f i 1 = 1 := is_ring_hom.map_one _
+@[simp] lemma of_add (i x y) : of G f i (x + y) = of G f i x + of G f i y := is_ring_hom.map_add _
+@[simp] lemma of_neg (i x) : of G f i (-x) = -of G f i x := is_ring_hom.map_neg _
+@[simp] lemma of_sub (i x y) : of G f i (x - y) = of G f i x - of G f i y := is_ring_hom.map_sub _
+@[simp] lemma of_mul (i x y) : of G f i (x * y) = of G f i x * of G f i y := is_ring_hom.map_mul _
+@[simp] lemma of_pow (i x) (n : ℕ) : of G f i (x ^ n) = of G f i x ^ n := is_semiring_hom.map_pow _ _ _
 
 theorem exists_of (z : direct_limit G f) : ∃ i x, of G f i x = z :=
 nonempty.elim (by apply_instance) $ assume ind : ι,
 quotient.induction_on' z $ λ x, free_abelian_group.induction_on x
-  ⟨ind, 0, is_ring_hom.map_zero (of G f ind)⟩
+  ⟨ind, 0, of_zero G f ind⟩
   (λ s, multiset.induction_on s
-    ⟨ind, 1, is_ring_hom.map_one (of G f ind)⟩
+    ⟨ind, 1, of_one G f ind⟩
     (λ a s ih, let ⟨i, x⟩ := a, ⟨j, y, hs⟩ := ih, ⟨k, hik, hjk⟩ := directed_order.directed i j in
-      ⟨k, f i k hik x * f j k hjk y, by rw [is_ring_hom.map_mul (of G f k), of_f, of_f, hs]; refl⟩))
-  (λ s ⟨i, x, ih⟩, ⟨i, -x, by rw [is_ring_hom.map_neg (of G f i), ih]; refl⟩)
+      ⟨k, f i k hik x * f j k hjk y, by rw [of_mul, of_f, of_f, hs]; refl⟩))
+  (λ s ⟨i, x, ih⟩, ⟨i, -x, by rw [of_neg, ih]; refl⟩)
   (λ p q ⟨i, x, ihx⟩ ⟨j, y, ihy⟩, let ⟨k, hik, hjk⟩ := directed_order.directed i j in
-    ⟨k, f i k hik x + f j k hjk y, by rw [is_ring_hom.map_add (of G f k), of_f, of_f, ihx, ihy]; refl⟩)
+    ⟨k, f i k hik x + f j k hjk y, by rw [of_add, of_f, of_f, ihx, ihy]; refl⟩)
 
 @[elab_as_eliminator] theorem induction_on {C : direct_limit G f → Prop} (z : direct_limit G f)
   (ih : ∀ i x, C (of G f i x)) : C z :=
@@ -359,36 +396,27 @@ variables [add_comm_group.directed_system G f]
 
 open free_comm_ring
 
-/-section totalize
-local attribute [instance, priority 0] classical.dec
-
-noncomputable def totalize : Π i j, G i → G j :=
-λ i j, if h : i ≤ j then f i j h else 0
-
-instance totalize.is_ring_hom (i j) : is_ring_hom (totalize G f i j) :=
-by unfold totalize; split_ifs; apply_instance
-
-lemma totalize_apply (i j x) :
-  totalize G f i j x = if h : i ≤ j then f i j h x else 0 :=
-if h : i ≤ j
-  then by dsimp only [totalize]; rw [dif_pos h, dif_pos h]
-  else by dsimp only [totalize]; rw [dif_neg h, dif_neg h, pi.zero_apply]
-end totalize-/
-
-/-lemma to_module_totalize_of_le {x : free_comm_ring Σ i, G i} {i j : ι}
-  (hij : i ≤ j) (hx : ∀ k ∈ x.support, k ≤ i) :
-  direct_sum.to_module R ι (G j) (λ k, totalize G f k j) x =
-  f i j hij (direct_sum.to_module R ι (G i) (λ k, totalize G f k i) x) :=
-begin
-  rw [← @dfinsupp.sum_single ι G _ _ _ x, dfinsupp.sum],
-  simp only [linear_map.map_sum],
-  refine finset.sum_congr rfl (λ k hk, _),
-  rw direct_sum.single_eq_lof R k (x k),
-  simp [totalize_apply, hx k hk, le_trans (hx k hk) hij, directed_system.Hcomp f]
-end-/
-
 section of_zero_exact_aux
 attribute [instance, priority 0] classical.dec
+lemma of.zero_exact_aux2 {x : free_comm_ring Σ i, G i} {s t} (hxs : is_supported x s) {j k}
+  (hj : ∀ z : Σ i, G i, z ∈ s → z.1 ≤ j) (hk : ∀ z : Σ i, G i, z ∈ t → z.1 ≤ k)
+  (hjk : j ≤ k) (hst : s ⊆ t) :
+  f j k hjk (lift (λ ix : s, f ix.1.1 j (hj ix ix.2) ix.1.2) (restriction s x)) =
+  lift (λ ix : t, f ix.1.1 k (hk ix ix.2) ix.1.2) (restriction t x) :=
+begin
+  refine ring.in_closure.rec_on hxs _ _ _ _,
+  { rw [restriction_one, lift_one, is_ring_hom.map_one (f j k hjk), restriction_one, lift_one] },
+  { rw [restriction_neg, restriction_one, lift_neg, lift_one,
+      is_ring_hom.map_neg (f j k hjk), is_ring_hom.map_one (f j k hjk),
+      restriction_neg, restriction_one, lift_neg, lift_one] },
+  { rintros _ ⟨p, hps, rfl⟩ n ih,
+    rw [restriction_mul, lift_mul, is_ring_hom.map_mul (f j k hjk), ih, restriction_mul, lift_mul,
+        restriction_of, dif_pos hps, lift_pure, restriction_of, dif_pos (hst hps), lift_pure],
+    dsimp only, rw add_comm_group.directed_system.Hcomp f, refl },
+  { rintros x y ihx ihy,
+    rw [restriction_add, lift_add, is_ring_hom.map_add (f j k hjk), ihx, ihy, restriction_add, lift_add] }
+end
+
 lemma of.zero_exact_aux {x : free_comm_ring Σ i, G i} (H : x ∈ ideal.span (thing1 G f ∪ thing2 G ∪ thing3 G ∪ thing4 G)) :
   ∃ j s, ∃ H : (∀ k : Σ i, G i, k ∈ s → k.1 ≤ j), is_supported x s ∧
     lift (λ ix : s, f ix.1.1 j (H ix ix.2) ix.1.2) (restriction s x) = (0 : G j) :=
@@ -414,8 +442,8 @@ begin
       { rintros k (rfl | ⟨rfl | ⟨rfl | hk⟩⟩), refl, refl, refl, cases hk },
       { rw [restriction_sub, restriction_add, restriction_of, restriction_of, restriction_of,
           dif_pos, dif_pos, dif_pos, lift_sub, lift_add, lift_pure, lift_pure, lift_pure],
-        dsimp only, simp only [add_comm_group.directed_system.Hid f], rw sub_self,
-        { left, refl }, { right, left, refl }, { right, right, left, refl } } },
+        dsimp only, rw is_ring_hom.map_add (f i i _), exact sub_self _,
+        { right, right, left, refl }, { apply_instance }, { left, refl }, { right, left, refl } } },
     { simp only [thing4, set.mem_Union, set.mem_range] at hx, rcases hx with ⟨i, x, y, rfl⟩,
       refine ⟨i, {⟨i, x*y⟩, ⟨i, x⟩, ⟨i, y⟩}, _,
         is_supported_sub (is_supported_pure.2 $ or.inr $ or.inr $ or.inl rfl)
@@ -423,18 +451,32 @@ begin
       { rintros k (rfl | ⟨rfl | ⟨rfl | hk⟩⟩), refl, refl, refl, cases hk },
       { rw [restriction_sub, restriction_mul, restriction_of, restriction_of, restriction_of,
           dif_pos, dif_pos, dif_pos, lift_sub, lift_mul, lift_pure, lift_pure, lift_pure],
-        dsimp only, simp only [add_comm_group.directed_system.Hid f], rw sub_self,
-        { left, refl }, { right, left, refl }, { right, right, left, refl } } } },
+        dsimp only, rw is_ring_hom.map_mul (f i i _), exact sub_self _,
+        { right, right, left, refl }, { apply_instance }, { left, refl }, { right, left, refl } } } },
   { refine nonempty.elim (by apply_instance) (assume ind : ι, _),
     refine ⟨ind, ∅, λ _, false.elim, is_supported_zero, _⟩,
     rw [restriction_zero, lift_zero] },
-  { rintros x y ⟨i, s, hi, hxs, ihs⟩ ⟨j, t, hj, hxt, iht⟩,
+  { rintros x y ⟨i, s, hi, hxs, ihs⟩ ⟨j, t, hj, hyt, iht⟩,
     rcases directed_order.directed i j with ⟨k, hik, hjk⟩,
-    refine ⟨k, s ∪ t, _, is_supported_add (is_supported_upwards hxs $ set.subset_union_left s t)
-      (is_supported_upwards hxt $ set.subset_union_right s t), _⟩,
-    { rintros t (ht | ht), exact le_trans (hi _ ht) hik, exact le_trans (hj _ ht) hjk },
-    { rw [restriction_add, lift_add], sorry } },
-  sorry
+    have : ∀ z : Σ i, G i, z ∈ s ∪ t → z.1 ≤ k,
+    { rintros z (hz | hz), exact le_trans (hi z hz) hik, exact le_trans (hj z hz) hjk },
+    refine ⟨k, s ∪ t, this, is_supported_add (is_supported_upwards hxs $ set.subset_union_left s t)
+      (is_supported_upwards hyt $ set.subset_union_right s t), _⟩,
+    { rw [restriction_add, lift_add,
+        ← of.zero_exact_aux2 G f hxs hi this hik (set.subset_union_left s t),
+        ← of.zero_exact_aux2 G f hyt hj this hjk (set.subset_union_right s t),
+        ihs, is_ring_hom.map_zero (f i k hik), iht, is_ring_hom.map_zero (f j k hjk), zero_add] } },
+  { rintros x y ⟨j, t, hj, hyt, iht⟩, rw smul_eq_mul,
+    rcases exists_finset x with ⟨s, hfs, hxs⟩,
+    rcases (set.finite_image sigma.fst hfs).exists_le with ⟨i, hi⟩,
+    rcases directed_order.directed i j with ⟨k, hik, hjk⟩,
+    have : ∀ z : Σ i, G i, z ∈ s ∪ t → z.1 ≤ k,
+    { rintros z (hz | hz), exact le_trans (hi z.1 ⟨z, hz, rfl⟩) hik, exact le_trans (hj z hz) hjk },
+    refine ⟨k, s ∪ t, this, is_supported_mul (is_supported_upwards hxs $ set.subset_union_left s t)
+      (is_supported_upwards hyt $ set.subset_union_right s t), _⟩,
+    rw [restriction_mul, lift_mul,
+        ← of.zero_exact_aux2 G f hyt hj this hjk (set.subset_union_right s t),
+        iht, is_ring_hom.map_zero (f j k hjk), mul_zero] }
 end
 end of_zero_exact_aux
 
@@ -442,19 +484,16 @@ lemma of.zero_exact {i x} (hix : of G f i x = 0) : ∃ j, ∃ hij : i ≤ j, f i
 let ⟨j, s, H, hxs, hx⟩ := of.zero_exact_aux G f (ideal.quotient.eq_zero_iff_mem.1 hix) in
 have hixs : (⟨i, x⟩ : Σ i, G i) ∈ s, from is_supported_pure.1 hxs,
 ⟨j, H ⟨i, x⟩ hixs, by rw [restriction_of, dif_pos hixs, lift_pure] at hx; exact hx⟩
-/-
+
 theorem of_inj (hf : ∀ i j hij, function.injective (f i j hij)) (i) :
   function.injective (of G f i) :=
 begin
   suffices : ∀ x, of G f i x = 0 → x = 0,
   { intros x y hxy, rw ← sub_eq_zero_iff_eq, apply this,
     rw [is_ring_hom.map_sub (of G f i), hxy, sub_self] },
-  intros x hx, replace hx := ideal.quotient.eq_zero_iff_mem.1 hx,
-  generalize_hyp hy : free_comm_ring.of _ = y at hx, revert hy,
-  refine span_induction hx _ _ _ _,
-  { rintros z ⟨⟨hz | hz⟩ | hz⟩,
-    { simp only [thing1, set.mem_Union, set.mem_range] at hz } }
-end-/
+  intros x hx, rcases of.zero_exact G f hx with ⟨j, hij, hfx⟩,
+  apply hf i j hij, rw [hfx, is_ring_hom.map_zero (f i j hij)]
+end
 
 end direct_limit
 
@@ -468,14 +507,20 @@ variables (f : Π i j, i ≤ j → G i → G j) [Π i j hij, is_field_hom (f i j
 variables [add_comm_group.directed_system G f]
 
 instance direct_limit.nonzero_comm_ring : nonzero_comm_ring (ring.direct_limit G f) :=
-{ zero_ne_one := sorry,
+{ zero_ne_one := nonempty.elim (by apply_instance) $ assume i : ι, begin
+    change (0 : ring.direct_limit G f) ≠ 1,
+    rw ← ring.direct_limit.of_one,
+    intros H, rcases ring.direct_limit.of.zero_exact G f H.symm with ⟨j, hij, hf⟩,
+    rw is_ring_hom.map_one (f i j hij) at hf,
+    exact one_ne_zero hf
+  end,
   .. ring.direct_limit.comm_ring G f }
 
 instance direct_limit.is_division_ring : is_division_ring (ring.direct_limit G f) :=
 { exists_inv := λ p, ring.direct_limit.induction_on G f p $ λ i x H,
-    ⟨ring.direct_limit.of G f i (x⁻¹), by erw [← is_ring_hom.map_mul (ring.direct_limit.of G f i),
-        mul_inv_cancel (assume h : x = 0, H $ by rw [h, is_ring_hom.map_zero (ring.direct_limit.of G f i)]),
-        is_ring_hom.map_one (ring.direct_limit.of G f i)]⟩ }
+    ⟨ring.direct_limit.of G f i (x⁻¹), by erw [← ring.direct_limit.of_mul,
+        mul_inv_cancel (assume h : x = 0, H $ by rw [h, ring.direct_limit.of_zero]),
+        ring.direct_limit.of_one]⟩ }
 
 def direct_limit : Type (max v w) :=
 to_field (ring.direct_limit G f)

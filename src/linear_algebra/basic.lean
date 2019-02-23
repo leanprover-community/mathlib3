@@ -229,6 +229,10 @@ linear_map.cod_restrict _ p.subtype $ λ ⟨x, hx⟩, h hx
 @[simp] theorem of_le_apply {p p' : submodule α β} (h : p ≤ p')
   (x : p) : (of_le h x : β) = x := rfl
 
+lemma subtype_comp_of_le (p q : submodule α β) (h : p ≤ q) :
+  (submodule.subtype q).comp (of_le h) = submodule.subtype p :=
+by ext ⟨b, hb⟩; simp
+
 instance : has_bot (submodule α β) :=
 ⟨by split; try {exact {0}}; simp {contextual := tt}⟩
 
@@ -914,6 +918,9 @@ by simpa using (map_mono le_top : map p.subtype p' ≤ p.subtype.range)
 
 @[simp] theorem ker_of_le (p p' : submodule α β) (h : p ≤ p') : (of_le h).ker = ⊥ :=
 by rw [of_le, ker_cod_restrict, ker_subtype]
+
+lemma range_of_le (p q : submodule α β) (h : p ≤ q) : (of_le h).range = comap q.subtype p :=
+by rw [← map_top, of_le, linear_map.map_cod_restrict, map_top, range_subtype]
 
 /-- If N ⊆ M then submodules of N are the same as submodules of M contained in N -/
 def map_subtype.order_iso :

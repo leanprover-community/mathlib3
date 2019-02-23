@@ -12,7 +12,7 @@ noncomputable theory
 local attribute [instance, priority 0] classical.prop_decidable
 
 universes u v w
-variables {α : Type u} {β γ δ : Type v}
+variables {α : Type u} {β γ δ  ε: Type v}
 
 section vector_space
 variables [discrete_field α] [add_comm_group β] [vector_space α β]
@@ -159,16 +159,68 @@ lemma dim_le_of_submodule (s t : submodule α β) (h : s ≤ t) : dim α s ≤ d
 dim_le_injective (of_le h) $ assume ⟨x, hx⟩ ⟨y, hy⟩ eq,
   subtype.eq $ show x = y, from subtype.ext.1 eq
 
-set_option class.instance_max_depth 37
+section
+variables [add_comm_group δ] [vector_space α δ]
+variables [add_comm_group ε] [vector_space α ε]
+set_option class.instance_max_depth 70
+open linear_map
+
+/-- This is mostly an auxiliary lemma for `dim_sup_add_dim_inf_eq` -/
+lemma dim_add_dim_split
+  (db : δ →ₗ[α] β) (eb : ε →ₗ[α] β) (cd : γ →ₗ[α] δ) (ce : γ →ₗ[α] ε)
+  (hde : ⊤ ≤ db.range ⊔ eb.range)
+  (hgd : ker cd = ⊥)
+  (eq : db.comp cd = eb.comp ce)
+  (eq₂ : ∀d e, db d = eb e → (∃c, cd c = d ∧ ce c = e)) :
+  dim α β + dim α γ = dim α δ + dim α ε :=
+have hf : surjective (copair db eb),
+begin
+  refine (range_eq_top.1 $ top_unique $ _),
+  rwa [← map_top, ← prod_top, map_copair_prod]
+end,
+begin
+  conv {to_rhs, rw [← dim_prod, dim_eq_surjective _ hf] },
+  congr' 1,
+  apply linear_equiv.dim_eq,
+  fapply linear_equiv.of_bijective,
+  { refine cod_restrict _ (pair cd (- ce)) _,
+    { assume c,
+      simp [add_eq_zero_iff_eq_neg],
+      exact linear_map.ext_iff.1 eq c } },
+  { rw [ker_cod_restrict, ker_pair, hgd, bot_inf_eq] },
+  { rw [eq_top_iff, range_cod_restrict, ← map_le_iff_le_comap, map_top, range_subtype],
+    rintros ⟨d, e⟩,
+    have h := eq₂ d (-e),
+    simp [add_eq_zero_iff_eq_neg] at ⊢ h,
+    assume hde,
+    rcases h hde with ⟨c, h₁, h₂⟩,
+    refine ⟨c, h₁, _⟩,
+    rw [h₂, _root_.neg_neg] }
+end
+
+lemma dim_sup_add_dim_inf_eq (s t : submodule α β) :
+  dim α (s ⊔ t : submodule α β) + dim α (s ⊓ t : submodule α β) = dim α s + dim α t :=
+dim_add_dim_split (of_le le_sup_left) (of_le le_sup_right) (of_le inf_le_left) (of_le inf_le_right)
+  begin
+    rw [← map_le_map_iff (ker_subtype $ s ⊔ t), map_sup, map_top,
+      ← linear_map.range_comp, ← linear_map.range_comp, subtype_comp_of_le, subtype_comp_of_le,
+      range_subtype, range_subtype, range_subtype],
+    exact le_refl _
+  end
+  (ker_of_le _ _ _)
+  begin ext ⟨x, hx⟩, refl end
+  begin
+    rintros ⟨b₁, hb₁⟩ ⟨b₂, hb₂⟩ eq,
+    have : b₁ = b₂ := congr_arg subtype.val eq,
+    subst this,
+    exact ⟨⟨b₁, hb₁, hb₂⟩, rfl, rfl⟩
+  end
+
 lemma dim_add_le_dim_add_dim (s t : submodule α β) :
   dim α (s ⊔ t : submodule α β) ≤ dim α s + dim α t :=
-calc dim α (s ⊔ t : submodule α β) ≤ dim α (s × t) :
-  dim_le_surjective
-    (linear_map.copair (of_le $ le_sup_left) (of_le $ le_sup_right))
-    (assume ⟨b, (hb : b ∈ (s ⊔ t : submodule α β))⟩,
-      let ⟨x, hx, y, hy, eq⟩ := mem_sup.1 hb in
-      ⟨⟨⟨x, hx⟩, ⟨y, hy⟩⟩, subtype.eq $ by simp [eq.symm]; refl⟩)
-  ... = dim α s + dim α t : dim_prod
+by rw [← dim_sup_add_dim_inf_eq]; exact le_add_right (le_refl _)
+
+end
 
 def rank (f : β →ₗ[α] γ) : cardinal := dim α f.range
 

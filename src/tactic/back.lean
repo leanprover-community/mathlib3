@@ -84,8 +84,8 @@ do stashed ← filter_mvars s.stashed,
 meta def back_state.apply (s : back_state) (index : ℕ) (e : expr) (committed : bool) : tactic back_state :=
 do apply_thorough e,
    goal_types ← get_goals >>= λ gs, gs.mmap infer_type,
-   pad_trace s.steps e,
-   get_goals >>= λ gs, gs.mmap infer_type >>= pad_trace s.steps,
+  --  pad_trace s.steps e,
+  --  get_goals >>= λ gs, gs.mmap infer_type >>= pad_trace s.steps,
    s' ← s.clean index e,
    (done >> return s') <|> do
    gs ← get_goals,

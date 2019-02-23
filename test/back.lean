@@ -31,7 +31,7 @@ begin
   have pp : prime p, { back [ne_of_gt], },
   -- Adding a `?`, i.e. as `back? [ne_of_gt]`, reports the expression back built:
   -- exact min_fac_prime (ne_of_gt (succ_lt_succ (fact_pos N)))
-  existsi p,
+  use p,
   split,
   {
     by_contradiction,
@@ -54,7 +54,7 @@ begin
   let M := fact N + 1,
   let p := min_fac M,
   have pp : prime p, { back },
-  existsi p,
+  use p,
   split,
   {
     by_contradiction,
@@ -79,6 +79,15 @@ begin
   -- Goal is `p ≥ N`.
   by_contradiction h, simp at h,
   back?,
+end
+
+theorem infinitude_of_primes''' (N : ℕ) : ∃ p ≥ N, prime p :=
+begin
+  use min_fac (fact N + 1),
+  split,
+  { by_contradiction h, simp at h,
+    back, },
+  back
 end
 
 end primes

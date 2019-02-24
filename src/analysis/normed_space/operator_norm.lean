@@ -67,7 +67,7 @@ lemma unit_le_op_norm: ∥x∥ ≤ 1 → ∥f x∥ ≤ ∥f∥ :=
 lemma op_norm_eq_zero : ∥f∥ = 0 ↔ f = 0 :=
   ⟨λ hn, bounded_linear_map.ext (λ x, (norm_le_zero_iff _).1
     (calc _ ≤ ∥f∥ * ∥x∥ : le_op_norm _
-    ...     = _ : by rw [hn, zero_mul])),
+     ...     = _ : by rw [hn, zero_mul])),
   λ hf, le_antisymm (real.Inf_le _ bounds_bdd_below
     ⟨ge_of_eq rfl, λ _, le_of_eq (by rw [zero_mul, hf]; exact norm_zero)⟩)
     (op_norm_nonneg _)⟩
@@ -205,7 +205,7 @@ classical.by_cases
     calc ∥A x∥ = (∥x∥ * ∥x∥⁻¹) * ∥A x∥ : by rw[mul_inv_cancel ‹∥x∥ ≠ 0›]; ring
           ... = ∥∥x∥⁻¹∥ * ∥A x∥ * ∥x∥  : by rw[‹∥∥x∥⁻¹∥ = ∥x∥⁻¹›]; ring
           ... = ∥∥x∥⁻¹• A x ∥ * ∥x∥    : by rw[←normed_space.norm_smul ∥x∥⁻¹ (A x)]
-          ... = ∥A (∥x∥⁻¹• x)∥ * ∥x∥   : begin rw[show ⇑A = A.val, from rfl, A.property.smul] end
+          ... = ∥A (∥x∥⁻¹• x)∥ * ∥x∥   : begin rw[show A (∥x∥⁻¹ • x) = ∥x∥⁻¹ • A x, by apply A.property.smul] end
           ... ≤ ∥A∥ * ∥x∥              : (mul_le_mul_right ((norm_pos_iff x).mpr ‹x ≠ 0›)).mpr
                                           (bounded_by_operator_norm_on_unit_vector A ‹∥∥x∥⁻¹•x∥ = 1›))
 

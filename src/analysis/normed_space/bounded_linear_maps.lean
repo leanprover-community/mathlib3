@@ -73,22 +73,20 @@ lemma ratio_has_pos_bound : ∃ M > 0, ∀ x, ∥f x∥ / ∥x∥ ≤ M :=
 def of_linear_map_of_bounded {f : linear_map k E F}
   (h : ∃ M, ∀ x, ∥f x∥ ≤ M * ∥x∥) : bounded_linear_map k E F := ⟨f, h⟩
 
-theorem is_bounded_linear_map {f: bounded_linear_map k E F}:
+theorem is_bounded_linear_map {f: bounded_linear_map k E F} :
   is_bounded_linear_map f :=
   ⟨f.to_linear_map.is_linear,
   let ⟨M, hMg, hMb⟩ := has_pos_bound in ⟨M, hMg, hMb⟩⟩
 
-
--- some special bounded linear maps
+-- the zero map and the identity maps are bounded
 def zero : bounded_linear_map k E F :=
   ⟨0, 0, λ x, by rw zero_mul; exact le_of_eq norm_zero⟩
 
 def id : bounded_linear_map k E E :=
   ⟨linear_map.id, 1, λ x, le_of_eq (one_mul _).symm⟩
 
-
--- instances so you can add these things together, and stuff.
-def comp (g : bounded_linear_map k F G) (f : bounded_linear_map k E F):
+-- boundedness respects a bunch of operations
+def comp (g : bounded_linear_map k F G) (f : bounded_linear_map k E F) :
   bounded_linear_map k E G :=
   ⟨linear_map.comp g.to_linear_map f.to_linear_map,
   let ⟨Mg, hMgp, hMgb⟩ := has_pos_bound in
@@ -115,7 +113,7 @@ instance : has_scalar k (bounded_linear_map k E F) :=
 instance : has_neg (bounded_linear_map k E F) := ⟨λ f, (-1 : k) • f⟩
 instance : has_sub (bounded_linear_map k E F) := ⟨λ f g, f + (-g)⟩
 
-instance to_add_comm_group: add_comm_group (bounded_linear_map k E F) := {
+instance to_add_comm_group : add_comm_group (bounded_linear_map k E F) := {
   add       := (+),
   add_assoc := λ _ _ _, ext $ λ _, add_assoc _ _ _,
   add_comm  := λ _ _, ext $ λ _, add_comm _ _,

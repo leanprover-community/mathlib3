@@ -36,17 +36,17 @@ noncomputable def op_norm  := real.Inf { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c 
 noncomputable instance : has_norm (bounded_linear_map k E F) := ⟨op_norm⟩
 
 -- so that invocations of real.Inf_le make sense:
-lemma bounds_nonempty {f : bounded_linear_map k E F}:
+lemma bounds_nonempty {f : bounded_linear_map k E F} :
   ∃ c, c ∈ { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ } :=
   let ⟨M, hMp, hMb⟩ := has_pos_bound in ⟨M, le_of_lt hMp, hMb⟩
-lemma bounds_bdd_below {f : bounded_linear_map k E F}:
+lemma bounds_bdd_below {f : bounded_linear_map k E F} :
   bdd_below { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ } :=
   ⟨0, λ _ ⟨hn, _⟩, hn⟩
 
-lemma op_norm_nonneg: ∥f∥ ≥ 0 :=
+lemma op_norm_nonneg : ∥f∥ ≥ 0 :=
   real.lb_le_Inf _ bounds_nonempty (λ _ ⟨hx, _⟩, hx)
 
-lemma le_op_norm: ∥f x∥ ≤ ∥f∥ * ∥x∥ :=
+lemma le_op_norm : ∥f x∥ ≤ ∥f∥ * ∥x∥ :=
   or.elim (eq_or_lt_of_le (norm_nonneg x))
   (λ heq, by rw [←heq, mul_zero,
     (norm_eq_zero _).1 heq.symm, map_zero, norm_zero])
@@ -55,12 +55,12 @@ lemma le_op_norm: ∥f x∥ ≤ ∥f∥ * ∥x∥ :=
     (λ c ⟨_, hc⟩, div_le_of_le_mul hlt (by rw mul_comm; exact hc _))))
 
 -- results about bounding the unit ball. (naming conventions?)
-lemma ratio_le_op_norm: ∥f x∥ / ∥x∥ ≤ ∥f∥ :=
+lemma ratio_le_op_norm : ∥f x∥ / ∥x∥ ≤ ∥f∥ :=
   (or.elim (lt_or_eq_of_le (norm_nonneg _))
   (λ hlt, div_le_of_le_mul hlt (by rw mul_comm; exact le_op_norm _))
   (λ heq, by rw [←heq, div_zero]; exact op_norm_nonneg _))
 
-lemma unit_le_op_norm: ∥x∥ ≤ 1 → ∥f x∥ ≤ ∥f∥ :=
+lemma unit_le_op_norm : ∥x∥ ≤ 1 → ∥f x∥ ≤ ∥f∥ :=
   λ hx, by rw [←(mul_one ∥f∥)];
   calc _ ≤ (op_norm f) * ∥x∥ : le_op_norm _
   ...    ≤ _ : mul_le_mul_of_nonneg_left hx (op_norm_nonneg _)
@@ -79,7 +79,7 @@ lemma op_norm_triangle : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=
     calc _ ≤ ∥f x∥ + ∥g x∥ : norm_triangle _ _
     ...    ≤ _ : add_le_add (le_op_norm _) (le_op_norm _)⟩
 
-lemma op_norm_smul: ∥α • f∥ = ∥α∥ * ∥f∥ :=
+lemma op_norm_smul : ∥α • f∥ = ∥α∥ * ∥f∥ :=
   le_antisymm
     (real.Inf_le _ bounds_bdd_below
       ⟨mul_nonneg (norm_nonneg _) (op_norm_nonneg _),
@@ -224,9 +224,9 @@ lemma operator_norm_bounded_by {A : L(E,F)} (c : nnreal) :
   (∀ x : E, ∥x∥ ≤ 1 → ∥A x∥ ≤ (c:ℝ)) → ∥A∥ ≤ c :=
 assume H : ∀ x : E, ∥x∥ ≤ 1 → ∥A x∥ ≤ c,
 suffices Sup (image (norm ∘ A) {x | ∥x∥ ≤ 1}) ≤ c, by assumption,
-cSup_le (set.ne_empty_of_mem $ zero_in_im_ball A) 
-  (show ∀ (r : ℝ), r ∈ (image (norm ∘ A) {x | ∥x∥ ≤ 1}) → r ≤ c, from 
-    assume r ⟨x, _, _⟩, 
+cSup_le (set.ne_empty_of_mem $ zero_in_im_ball A)
+  (show ∀ (r : ℝ), r ∈ (image (norm ∘ A) {x | ∥x∥ ≤ 1}) → r ≤ c, from
+    assume r ⟨x, _, _⟩,
       calc r = ∥A x∥ : eq.symm ‹_›
          ... ≤ c : H x ‹_›)
 
@@ -239,12 +239,12 @@ operator_norm_bounded_by (⟨∥A∥, operator_norm_nonneg A⟩ + ⟨∥B∥, op
                                             (bounded_by_operator_norm_on_unit_ball B ‹_›))
 
 theorem operator_norm_zero_iff (A : L(E,F)) : ∥A∥ = 0 ↔ A = 0 :=
-have A 0 = 0, from (to_linear_map A).map_zero, 
+have A 0 = 0, from (to_linear_map A).map_zero,
 iff.intro
   (assume : ∥A∥ = 0,
     suffices ∀ x, A x = 0, from ext this,
     assume x,
-      have ∥A x∥ ≤ 0, from 
+      have ∥A x∥ ≤ 0, from
         calc ∥A x∥ ≤ ∥A∥ * ∥x∥ : bounded_by_operator_norm
               ... = 0 : by rw[‹∥A∥ = 0›]; ring,
       (norm_le_zero_iff (A x)).mp this)

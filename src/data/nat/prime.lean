@@ -199,9 +199,8 @@ section min_fac
    λ ⟨p2, e⟩, e ▸ min_fac_prime (ne_of_gt p2)⟩
 
   /--
-  This instance is faster in the virtual machine than `decidable_prime_1`.
-  However it uses `classical.choice`, so can't actually be used in a
-  decision procedure.
+  This instance is faster in the virtual machine than `decidable_prime_1`,
+  but slower in the kernel.
 
   If you need to prove that a particular number is prime, in any case
   you should not use `dec_trivial`, but rather `by norm_num`, which is

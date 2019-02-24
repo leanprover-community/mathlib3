@@ -616,6 +616,9 @@ def range (n : ℕ) : finset ℕ := ⟨_, nodup_range n⟩
 theorem range_succ : range (succ n) = insert n (range n) :=
 eq_of_veq $ (range_succ n).trans $ (ndinsert_of_not_mem not_mem_range_self).symm
 
+theorem range_add_one : range (n + 1) = insert n (range n) :=
+range_succ
+
 @[simp] theorem not_mem_range_self : n ∉ range n := not_mem_range_self
 
 @[simp] theorem range_subset {n m} : range n ⊆ range m ↔ n ≤ m := range_subset
@@ -1567,6 +1570,9 @@ by simp only [disjoint_left, mem_union, or_imp_distrib, forall_and_distrib]
 @[simp] theorem disjoint_union_right {s t u : finset α} :
   disjoint s (t ∪ u) ↔ disjoint s t ∧ disjoint s u :=
 by simp only [disjoint_right, mem_union, or_imp_distrib, forall_and_distrib]
+
+lemma disjoint_sdiff {s t : finset α} : disjoint (t \ s) s :=
+disjoint_left.2 $ assume a ha, (mem_sdiff.1 ha).2
 
 @[simp] theorem card_disjoint_union {s t : finset α} :
     disjoint s t → card (s ∪ t) = card s + card t :=

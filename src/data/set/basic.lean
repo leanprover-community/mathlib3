@@ -1218,6 +1218,11 @@ theorem prod_neq_empty_iff {s : set α} {t : set β} :
   set.prod s t ≠ ∅ ↔ (s ≠ ∅ ∧ t ≠ ∅) :=
 by simp [not_eq_empty_iff_exists]
 
+theorem prod_eq_empty_iff {s : set α} {t : set β} :
+  set.prod s t = ∅ ↔ (s = ∅ ∨ t = ∅) :=
+suffices (¬ set.prod s t ≠ ∅) ↔ (¬ s ≠ ∅ ∨ ¬ t ≠ ∅), by simpa only [(≠), classical.not_not],
+by classical; rw [prod_neq_empty_iff, not_and_distrib]
+
 @[simp] theorem prod_mk_mem_set_prod_eq {a : α} {b : β} {s : set α} {t : set β} :
   (a, b) ∈ set.prod s t = (a ∈ s ∧ b ∈ t) := rfl
 

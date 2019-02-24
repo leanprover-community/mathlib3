@@ -374,21 +374,16 @@ let ⟨δ, δ_pos, hδ⟩ := continuous_iff.1 hf b ε hε in
 
 theorem tendsto_nhds {f : filter β} {u : β → α} {a : α} :
   tendsto u f (nhds a) ↔ ∀ ε > 0, ∃ n ∈ f.sets, ∀x ∈ n,  dist (u x) a < ε :=
-⟨λ H ε ε0, ⟨u⁻¹' (ball a ε), H (ball_mem_nhds _ ε0), by simp⟩,
- λ H s hs,
-  let ⟨ε, ε0, hε⟩ := mem_nhds_iff.1 hs, ⟨δ, δ0, hδ⟩ := H _ ε0 in
-  f.sets_of_superset δ0 (λx xδ, hε (hδ x xδ))⟩
+by simp only [metric.nhds_eq, tendsto_infi, subtype.forall, tendsto_principal, mem_ball];
+  exact forall_congr (assume ε, forall_congr (assume hε, exists_sets_subset_iff.symm))
 
 theorem continuous_iff' [topological_space β] {f : β → α} :
   continuous f ↔ ∀a (ε > 0), ∃ n ∈ (nhds a).sets, ∀b ∈ n, dist (f b) (f a) < ε :=
 continuous_iff_continuous_at.trans $ forall_congr $ λ b, tendsto_nhds
 
-theorem tendsto_at_top [inhabited β] [semilattice_sup β] {u : β → α} {a : α} :
+theorem tendsto_at_top [nonempty β] [semilattice_sup β] {u : β → α} {a : α} :
   tendsto u at_top (nhds a) ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) a < ε :=
-tendsto_nhds.trans $ ball_congr $ λ ε ε0,
-by simp; exact ⟨
-  λ ⟨s, ⟨N, hN⟩, hs⟩, ⟨N, λn hn, hs _ (hN _ hn)⟩,
-  λ ⟨N, hN⟩, ⟨{n | n ≥ N}, ⟨⟨N, by simp⟩, hN⟩⟩⟩
+by simp only [metric.nhds_eq, tendsto_infi, subtype.forall, tendsto_at_top_principal]; refl
 
 end metric
 
@@ -715,99 +710,6 @@ lemma prod.dist_eq [metric_space β] {x y : α × β} :
   dist x y = max (dist x.1 y.1) (dist x.2 y.2) := rfl
 
 end prod
-
-section sum
-variables [metric_space β] [inhabited α] [inhabited β]
-open sum (inl inr)
-
-/--Distance on a disjoint union. There are many (noncanonical) ways to put a distance compatible with each factor.
-If the two spaces are bounded, one can say for instance that each point in the first is at distance
-`diam α + diam β + 1` of each point in the second.
-Instead, we choose a construction that works for unbounded spaces, but requires basepoints.
-We embed isometrically each factor, set the basepoints at distance 1,
-arbitrarily, and say that the distance from `a` to `b` is the sum of the distances of `a` and `b` to
-their respective basepoints, plus the distance 1 between the basepoints.
-Since there is an arbitrary choice in this construction, it is not an instance by default-/
-private def sum.dist : α ⊕ β → α ⊕ β → ℝ
-| (inl a) (inl a') := dist a a'
-| (inr b) (inr b') := dist b b'
-| (inl a) (inr b)  := dist a (default α) + 1 + dist (default β) b
-| (inr b) (inl a)  := dist b (default β) + 1 + dist (default α) a
-
-private lemma sum.dist_comm (x y : α ⊕ β) : sum.dist x y = sum.dist y x :=
-by cases x; cases y; simp only [sum.dist, dist_comm, add_comm, add_left_comm]
-
-lemma sum.one_dist_le {x : α} {y : β} : 1 ≤ sum.dist (inl x) (inr y) :=
-le_trans (le_add_of_nonneg_right dist_nonneg) $
-add_le_add_right (le_add_of_nonneg_left dist_nonneg) _
-
-lemma sum.one_dist_le' {x : α} {y : β} : 1 ≤ sum.dist (inr y) (inl x) :=
-by rw sum.dist_comm; exact sum.one_dist_le
-
-private lemma sum.dist_triangle : ∀ x y z : α ⊕ β, sum.dist x z ≤ sum.dist x y + sum.dist y z
-| (inl x) (inl y) (inl z) := dist_triangle _ _ _
-| (inl x) (inl y) (inr z) := by unfold sum.dist; rw [← add_assoc, ← add_assoc];
-  exact add_le_add_right (add_le_add_right (dist_triangle _ _ _) _) _
-| (inl x) (inr y) (inl z) := by unfold sum.dist; rw [add_assoc _ (1:ℝ), add_assoc];
-  refine le_trans (dist_triangle _ _ _) (add_le_add_left _ _);
-  refine le_trans (le_add_of_nonneg_left (add_nonneg zero_le_one dist_nonneg)) (add_le_add_left _ _);
-  exact le_add_of_nonneg_left (add_nonneg dist_nonneg zero_le_one)
-| (inr x) (inl y) (inl z) := by unfold sum.dist; rw [add_assoc _ _ (dist y z)];
-  exact add_le_add_left (dist_triangle _ _ _) _
-| (inr x) (inr y) (inl z) := by unfold sum.dist; rw [← add_assoc, ← add_assoc];
-  exact add_le_add_right (add_le_add_right (dist_triangle _ _ _) _) _
-| (inr x) (inl y) (inr z) := by unfold sum.dist; rw [add_assoc _ (1:ℝ), add_assoc];
-  refine le_trans (dist_triangle _ _ _) (add_le_add_left _ _);
-  refine le_trans (le_add_of_nonneg_left (add_nonneg zero_le_one dist_nonneg)) (add_le_add_left _ _);
-  exact le_add_of_nonneg_left (add_nonneg dist_nonneg zero_le_one)
-| (inl x) (inr y) (inr z) := by unfold sum.dist; rw [add_assoc _ _ (dist y z)];
-  exact add_le_add_left (dist_triangle _ _ _) _
-| (inr x) (inr y) (inr z) := dist_triangle _ _ _
-
-private lemma sum.eq_of_dist_eq_zero : ∀ x y : α ⊕ β, sum.dist x y = 0 → x = y
-| (inl x) (inl y) h := by simp only [sum.dist] at h ⊢; exact eq_of_dist_eq_zero h
-| (inl x) (inr y) h :=
-  (ne_of_gt (lt_of_lt_of_le zero_lt_one sum.one_dist_le) h).elim
-| (inr x) (inl y) h :=
-  (ne_of_gt (lt_of_lt_of_le zero_lt_one sum.one_dist_le') h).elim
-| (inr x) (inr y) h := by simp only [sum.dist] at h ⊢; exact eq_of_dist_eq_zero h
-
-private lemma sum.mem_uniformity (s : set ((α ⊕ β) × (α ⊕ β))) :
-  s ∈ (@uniformity (α ⊕ β) _).sets ↔ ∃ ε > 0, ∀ a b, sum.dist a b < ε → (a, b) ∈ s :=
-begin
-  split,
-  { rintro ⟨hsα, hsβ⟩,
-    rcases mem_uniformity_dist.1 hsα with ⟨εα, εα0, hα⟩,
-    rcases mem_uniformity_dist.1 hsβ with ⟨εβ, εβ0, hβ⟩,
-    refine ⟨min (min εα εβ) 1, lt_min (lt_min εα0 εβ0) zero_lt_one, _⟩,
-    rintro (a|a) (b|b) h,
-    { exact hα (lt_of_lt_of_le h (le_trans (min_le_left _ _) (min_le_left _ _))) },
-    { cases not_le_of_lt (lt_of_lt_of_le h (min_le_right _ _)) sum.one_dist_le },
-    { cases not_le_of_lt (lt_of_lt_of_le h (min_le_right _ _)) sum.one_dist_le' },
-    { exact hβ (lt_of_lt_of_le h (le_trans (min_le_left _ _) (min_le_right _ _))) } },
-  { rintro ⟨ε, ε0, H⟩,
-    split; rw [filter.mem_map, mem_uniformity_dist];
-      exact ⟨ε, ε0, λ x y h, H _ _ (by exact h)⟩ }
-end
-
-/-- The distance on the disjoint union indeed defines a metric space. All the distance properties follow from our
-choice of the distance. The harder work is to show that the uniform structure defined by the distance coincides
-with the disjoint union uniform structure. -/
-def metric_space_sum : metric_space (α ⊕ β) :=
-{ dist := sum.dist,
-  dist_self := λx, by cases x; simp only [sum.dist, dist_self],
-  dist_comm := sum.dist_comm,
-  dist_triangle := sum.dist_triangle,
-  eq_of_dist_eq_zero := sum.eq_of_dist_eq_zero,
-  to_uniform_space := sum.uniform_space,
-  uniformity_dist := uniformity_dist_of_mem_uniformity _ _ sum.mem_uniformity }
-
-local attribute [instance] metric_space_sum
-
-lemma sum.dist_eq {x y : α ⊕ β} :
-dist x y = sum.dist x y := rfl
-
-end sum
 
 theorem uniform_continuous_dist' : uniform_continuous (λp:α×α, dist p.1 p.2) :=
 metric.uniform_continuous_iff.2 (λ ε ε0, ⟨ε/2, half_pos ε0,

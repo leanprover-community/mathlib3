@@ -16,7 +16,7 @@ lemma fixed_point_of_tendsto_iterate [topological_space α] [t2_space α] {f : �
 begin
   rcases hx with ⟨x₀, hx⟩,
   refine tendsto_nhds_unique at_top_ne_bot _ hx,
-  rw [← tendsto_comp_succ_at_top_iff, funext (assume n, nat.iterate_succ' f n x₀)],
+  rw [← tendsto_add_at_top_iff_nat 1, funext (assume n, nat.iterate_succ' f n x₀)],
   exact hx.comp hf
 end
 

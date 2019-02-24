@@ -192,14 +192,33 @@ end is_ring_hom
 
 set_option old_structure_cmd true
 
-class nonzero_comm_ring (α : Type*) extends zero_ne_one_class α, comm_ring α
+class nonzero_comm_semiring (α : Type*) extends comm_semiring α, zero_ne_one_class α
+
+class nonzero_comm_ring (α : Type*) extends comm_ring α, zero_ne_one_class α
+
+instance nonzero_comm_ring.to_nonzero_comm_semiring {α : Type*} [I : nonzero_comm_ring α] :
+  nonzero_comm_semiring α :=
+{ zero_ne_one := by convert zero_ne_one,
+  ..show comm_semiring α, by apply_instance }
 
 instance integral_domain.to_nonzero_comm_ring (α : Type*) [id : integral_domain α] :
   nonzero_comm_ring α :=
 { ..id }
 
-lemma units.coe_ne_zero [nonzero_comm_ring α] (u : units α) : (u : α) ≠ 0 :=
+lemma units.coe_ne_zero [nonzero_comm_semiring α] (u : units α) : (u : α) ≠ 0 :=
 λ h : u.1 = 0, by simpa [h, zero_ne_one] using u.3
+
+def nonzero_comm_ring.of_ne [comm_ring α] {x y : α} (h : x ≠ y) : nonzero_comm_ring α :=
+{ one := 1,
+  zero := 0,
+  zero_ne_one := λ h01, h $ by rw [← one_mul x, ← one_mul y, ← h01, zero_mul, zero_mul],
+  ..show comm_ring α, by apply_instance }
+
+def nonzero_comm_semiring.of_ne [comm_semiring α] {x y : α} (h : x ≠ y) : nonzero_comm_semiring α :=
+{ one := 1,
+  zero := 0,
+  zero_ne_one := λ h01, h $ by rw [← one_mul x, ← one_mul y, ← h01, zero_mul, zero_mul],
+  ..show comm_semiring α, by apply_instance }
 
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain

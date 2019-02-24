@@ -3,7 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 -/
-import linear_algebra.basic ring_theory.associated order.zorn
+import algebra.associated linear_algebra.basic order.zorn
 
 universes u v
 variables {α : Type u} {β : Type v} [comm_ring α] {a b : α}

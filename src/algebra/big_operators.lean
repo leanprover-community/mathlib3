@@ -530,6 +530,45 @@ eq.symm (prod_bij (λ x _, nat.succ x)
 
 end finset
 
+section geom_sum
+open finset
+
+theorem geom_sum_mul_add [semiring α] (x : α) :
+  ∀ (n : ℕ), ((range n).sum (λ i, (x+1)^i)) * x + 1 = (x+1)^n
+| 0     := by simp
+| (n+1) := calc (range (n + 1)).sum (λi, (x + 1) ^ i) * x + 1 =
+        (x + 1)^n * x + (((range n).sum (λ i, (x+1)^i)) * x + 1) :
+    by simp [range_add_one, add_mul]
+  ... = (x + 1)^n * x + (x + 1)^n :
+    by rw geom_sum_mul_add n
+  ... = (x + 1) ^ (n + 1) :
+    by simp [pow_add, mul_add]
+
+theorem geom_sum_mul [ring α] (x : α) (n : ℕ) :
+  ((range n).sum (λ i, x^i)) * (x-1) = x^n-1 :=
+have _ := geom_sum_mul_add (x-1) n,
+by rw [sub_add_cancel] at this; rw [← this, add_sub_cancel]
+
+theorem geom_sum [division_ring α] {x : α} (h : x ≠ 1) (n : ℕ) :
+  (range n).sum (λ i, x^i) = (x^n-1)/(x-1) :=
+have x - 1 ≠ 0, by simp [*, -sub_eq_add_neg, sub_eq_iff_eq_add] at *,
+by rw [← geom_sum_mul, mul_div_cancel _ this]
+
+lemma geom_sum_inv [division_ring α] {x : α} (hx1 : x ≠ 1) (hx0 : x ≠ 0) (n : ℕ) :
+  (range n).sum (λ m, x⁻¹ ^ m) = (x - 1)⁻¹ * (x - x⁻¹ ^ n * x) :=
+have h₁ : x⁻¹ ≠ 1, by rwa [inv_eq_one_div, ne.def, div_eq_iff_mul_eq hx0, one_mul],
+have h₂ : x⁻¹ - 1 ≠ 0, from mt sub_eq_zero.1 h₁,
+have h₃ : x - 1 ≠ 0, from mt sub_eq_zero.1 hx1,
+have h₄ : x * x⁻¹ ^ n = x⁻¹ ^ n * x,
+  from nat.cases_on n (by simp)
+  (λ _, by conv { to_rhs, rw [pow_succ', mul_assoc, inv_mul_cancel hx0, mul_one] };
+    rw [pow_succ, ← mul_assoc, mul_inv_cancel hx0, one_mul]),
+by rw [geom_sum h₁, div_eq_iff_mul_eq h₂, ← domain.mul_left_inj h₃,
+    ← mul_assoc, ← mul_assoc, mul_inv_cancel h₃];
+  simp [mul_add, add_mul, mul_inv_cancel hx0, mul_assoc, h₄]
+
+end geom_sum
+
 section group
 
 open list

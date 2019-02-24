@@ -653,14 +653,55 @@ auxiliary declarations, and produce an error saying the recursion is not well fo
 -/
 meta def clear_aux_decl : tactic unit := tactic.clear_aux_decl
 
+meta def loc.get_local_pp_names : loc → tactic (list name)
+| loc.wildcard := list.map expr.local_pp_name <$> local_context
+| (loc.ns l) := return l.reduce_option
+
+meta def loc.get_local_uniq_names (l : loc) : tactic (list name) :=
+list.map expr.local_uniq_name <$> l.get_locals
+
 /--
-`set a := t with h` is a variant of `let a := t` that adds the hypothesis `h : a = t` to the local context.
-`set a := t with h⁻¹` will add `h : t = a` instead.
-`set! a := t with h` will try to replace `t` with `a` in the goal and all hypotheses.
+The logic of `change x with y at l` fails when there are dependencies.
+`change'` mimics the behavior of `change`, except in the case of `change x with y at l`.
+In this case, it will correctly replace occurences of `x` with `y` at all possible hypotheses in `l`.
+As long as `x` and `y` are defeq, it should never fail.
 -/
-meta def set (h_simp : parse (tk "!")?) (a : parse ident) (_ : parse (tk ":=")) (v : parse texpr)
-  (h : parse (tk "with" >> ident)) (h_symm : parse (tk "⁻¹")?) :=
-do e ← i_to_expr v, tactic.set a h e h_simp.is_some h_symm.is_some
+meta def change' (q : parse texpr) : parse (tk "with" *> texpr)? → parse location → tactic unit
+| none (loc.ns [none]) := do e ← i_to_expr q, change_core e none
+| none (loc.ns [some h]) := do eq ← i_to_expr q, eh ← get_local h, change_core eq (some eh)
+| none _ := fail "change-at does not support multiple locations"
+| (some w) l :=
+  do l' ← loc.get_local_pp_names l,
+     l'.mmap' (λ e, try (change_with_at q w e)),
+     when l.include_goal $ change q w (loc.ns [none])
+
+private meta def opt_dir_with : parser (option (bool × name)) :=
+(do tk "with",
+   arrow ← (tk "<-")?,
+   h ← ident,
+   return (arrow.is_some, h)) <|> return none
+
+/--
+`set a := t with h` is a variant of `let a := t`.
+It adds the hypothesis `h : a = t` to the local context and replaces `t` with `a` everywhere it can.
+`set a := t with ←h` will add `h : t = a` instead.
+`set! a := t with h` does not do any replacing.
+-/
+meta def set (h_simp : parse (tk "!")?) (a : parse ident) (tp : parse ((tk ":") >> texpr)?) (_ : parse (tk ":=")) (pv : parse texpr)
+  (rev_name : parse opt_dir_with) :=
+do let vt := match tp with | some t := t | none := pexpr.mk_placeholder end,
+   let pv := ``(%%pv : %%vt),
+   v ← to_expr pv,
+   tp ← infer_type v,
+   definev a tp v,
+   when h_simp.is_none $ change' pv (some (expr.const a [])) loc.wildcard,
+   match rev_name with
+   | some (flip, id) :=
+     do nv ← get_local a,
+        pf ← to_expr (cond flip ``(%%pv = %%nv) ``(%%nv = %%pv)) >>= assert id,
+        reflexivity
+   | none := skip
+   end
 
 end interactive
 end tactic

@@ -1,19 +1,30 @@
 language: c
 sudo: false
+go:
+- 1.11.x
 os:
     - linux
+addons:
+    packages:
+        - python3.4
 branches:
   except:
-    - /^bin-.*$/
-
+    - /^lean-.*$/
 
 cache:
   directories:
-    - $TRAVIS_BUILD_DIR/*/
+    - $TRAVIS_BUILD_DIR/test/
+    - $TRAVIS_BUILD_DIR/src/
     - $HOME/.elan
 
+before_install:
+  - python3.4 -m venv .venv --without-pip
+  - curl -s https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+  - .venv/bin/python get-pip.py
+
 install:
-  # - export TRAVIS_TAG=${TRAVIS_TAG:-bin-$(date +'%Y%m%d-%H%M%S')-$(git log --format=%h -1)}
+  - .venv/bin/python -m pip install toml
+  - export LEAN_VERSION=`.venv/bin/python scripts/lean_version.py`
   - |
     if [ ! -d "$HOME/.elan/toolchains/" ]; then
       curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
@@ -28,7 +39,6 @@ install:
   - git clean -d -f -q
   - ./purge_olean.sh
   - rm mathlib.txt || true
-  - travis_long lean -v
 
 jobs:
   include:
@@ -45,26 +55,7 @@ jobs:
         - leanpkg test
         - lean --recursive --export=mathlib.txt src/
         - leanchecker mathlib.txt
-      before_deploy:
-        - export RELEASE=$(date +'%Y%m%d-%H%M%S')-$(git log --format=%h -1)
-        - export TRAVIS_TAG=${TRAVIS_TAG:-bin-$RELEASE}
-        - export OLEAN_ARCHIVE=mathlib-olean-$RELEASE.tar.gz
-        - export SCRIPT_ARCHIVE=mathlib-scripts-$RELEASE.tar.gz
-        - tar -zcvf $OLEAN_ARCHIVE src
-        - mv scripts mathlib-scripts
-        - tar -zcvf $SCRIPT_ARCHIVE mathlib-scripts
-      deploy:
-        provider: releases
-        overwrite: true
-        skip_cleanup: true
-        api_key:
-          secure: HsAy78hjdJf+jg2yGqD7MWGCn+8K/EceaZ8sZ2U/95Kprmnetc1A5j1T0pgY531pQbjGm6XSbVdn0L0ymuunKo7gIfg3q4+ns6bMCucnxdCrXdJR9/DoUwSLVqJrdFjcigJ58ekMUh1l2g7jIfqJwCAM09FF+dMF09Wh9wVKGK1TYsr6RHZ7NqYlfme6hO+GwBw545NbSHxWEjvNT/8s+T8sMAwMWqjzXm/n/GNUn2TGoRwkwp/BdcQ9V7hKOHX0bbMQXc5RZniVqVnFpnZHx8zTIWJoKnx4HeS5beYN/OcPha6cShqpml3sGaGSUrkWBnQYOzcx28lA4jblYIc84g7lyryLhT2qYB02Fv4C97hyYIppDDdx4Op3NF4IdPqvHazji1pmctWH6muE0z/pJNw5fEX+eNY9djGnexRE8XnVUJigtvh0cUmYRPlb7+6Qza7K6lXzdXflK8TEDYcY9lTHoLw+h8ffFFxKq18yNzvwMoLk9VaA/h2gSCTTjOXrr8s3tLRBNJEjkFWvRAVPaJCbDep5DPf/eK9VEL497xZAfe8YLf1CKlw1ynV7nNb5VB4dPoQFxak/76gDQT/po1l2c/QC4EJe02Degx0+0FG+e2MlY7k/uJb4qndVXdJZQE9DQty0IquHPU0KNISp+VVb7xanh26UtulE/0YdChI=
-        file:
-          - "$OLEAN_ARCHIVE"
-          - "$SCRIPT_ARCHIVE"
-        on:
-          branch: master
-          repo: leanprover-community/mathlib
+        - sh scripts/deploy_nightly.sh
 
 notifications:
   webhooks:

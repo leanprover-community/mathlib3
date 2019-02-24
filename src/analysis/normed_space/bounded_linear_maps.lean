@@ -6,6 +6,7 @@ Authors: Patrick Massot, Johannes Hölzl
 Continuous linear functions -- functions between normed vector spaces which are bounded and linear.
 -/
 import algebra.field
+import ring_theory.algebra
 import tactic.norm_num
 import analysis.normed_space.basic
 
@@ -114,7 +115,7 @@ instance : has_scalar k (bounded_linear_map k E F) :=
 instance : has_neg (bounded_linear_map k E F) := ⟨λ f, (-1 : k) • f⟩
 instance : has_sub (bounded_linear_map k E F) := ⟨λ f g, f + (-g)⟩
 
-instance : add_comm_group (bounded_linear_map k E F) := {
+instance to_add_comm_group: add_comm_group (bounded_linear_map k E F) := {
   add       := (+),
   add_assoc := λ _ _ _, ext $ λ _, add_assoc _ _ _,
   add_comm  := λ _ _, ext $ λ _, add_comm _ _,
@@ -142,6 +143,32 @@ variables {α : k} {u v : E}
 lemma map_add:  f (u + v) = f u + f v := by erw linear_map.map_add _ _ _; refl
 lemma map_sub:  f (u - v) = f u - f v := by erw linear_map.map_sub _ _ _; refl
 lemma map_smul: f (α • u) = α • f u   := by erw linear_map.map_smul _ _ _; refl
+
+-- endomorphism algebra
+instance : ring (bounded_linear_map k E E) := {
+  mul := (*),
+  one := 1,
+  mul_one := λ _, ext $ λ _, rfl,
+  one_mul := λ _, ext $ λ _, rfl,
+  mul_assoc := λ _ _ _, ext $ λ _, rfl,
+  left_distrib := λ _ _ _, ext $ λ _, map_add,
+  right_distrib := λ _ _ _, ext $ λ _, linear_map.add_apply _ _ _,
+
+  .. bounded_linear_map.to_add_comm_group
+}
+
+instance : is_ring_hom (λ α : k, α • (1 : bounded_linear_map k E E)) := {
+  map_one := one_smul _ _,
+  map_add := λ _ _, ext $ λ _, add_smul _ _ _,
+  map_mul := λ _ _, ext $ λ _, mul_smul _ _ _,
+}
+
+instance : algebra k (bounded_linear_map k E E) := {
+  to_fun    := λ α, α • 1,
+  smul_def' := λ _ _, rfl,
+  commutes' := λ _ _, ext $ λ _, map_smul,
+}
+
 
 -- a bounded linear map is continuous.
 lemma tendsto (x : E): f →_{x} (f x) :=

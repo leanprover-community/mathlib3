@@ -4,6 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes
 
 Direct limit of modules, abelian groups, rings, and fields.
+
+See Atiyah-Macdonald PP.32-33, Matsumura PP.269-270
+
+Generalizes the notion of "union", or "gluing", of incomparable modules over the same ring,
+or incomparable abelian groups, or rings, or fields.
+
+It is constructed as a quotient of the free module (for the module case) or quotient of
+the free commutative ring (for the ring case) instead of a quotient of the disjoint union
+so as to make the operations (addition etc.) "computable".
 -/
 
 import linear_algebra.direct_sum_module
@@ -20,6 +29,9 @@ variables {ι : Type v} [nonempty ι]
 variables [directed_order ι] [decidable_eq ι]
 variables (G : ι → Type w) [Π i, decidable_eq (G i)]
 
+/-- A directed system is a functor from the category (directed poset) to another category.
+This is used for abelian groups and rings and fields because their maps are not bundled.
+See module.directed_system -/
 class directed_system (f : Π i j, i ≤ j → G i → G j) : Prop :=
 (map_self : ∀ i x h, f i i h x = x)
 (map_map : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
@@ -28,12 +40,14 @@ namespace module
 
 variables [Π i, add_comm_group (G i)] [Π i, module R (G i)]
 
+/-- A directed system is a functor from the category (directed poset) to the category of R-modules. -/
 class directed_system (f : Π i j, i ≤ j → G i →ₗ[R] G j) : Prop :=
 (map_self : ∀ i x h, f i i h x = x)
 (map_map : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
 
 variables (f : Π i j, i ≤ j → G i →ₗ[R] G j) [directed_system G f]
 
+/-- The direct limit of a directed system is the modules glued together along the maps. -/
 def direct_limit : Type (max v w) :=
 (span R $ { a | ∃ (i j) (H : i ≤ j) x,
   direct_sum.lof R ι G i x - direct_sum.lof R ι G j (f i j H x) = a }).quotient
@@ -44,6 +58,7 @@ instance : add_comm_group (direct_limit G f) := quotient.add_comm_group _
 instance : module R (direct_limit G f) := quotient.module _
 
 variables (R ι)
+/-- The canonical map from a component to the direct limit. -/
 def of (i) : G i →ₗ[R] direct_limit G f :=
 (mkq _).comp $ direct_sum.lof R ι G i
 variables {R ι G f}
@@ -51,6 +66,8 @@ variables {R ι G f}
 @[simp] lemma of_f {i j hij x} : (of R ι G f j (f i j hij x)) = of R ι G f i x :=
 eq.symm $ (submodule.quotient.eq _).2 $ subset_span ⟨i, j, hij, x, rfl⟩
 
+/-- Every element of the direct limit corresponds to some element in
+some component of the directed system. -/
 theorem exists_of (z : direct_limit G f) : ∃ i x, of R ι G f i x = z :=
 nonempty.elim (by apply_instance) $ assume ind : ι,
 quotient.induction_on' z $ λ z, direct_sum.induction_on z
@@ -69,6 +86,9 @@ variables (Hg : ∀ i j hij x, g j (f i j hij x) = g i x)
 include Hg
 
 variables (R ι G f)
+/-- The universal property of the direct limit: maps from the components to another module
+that respect the directed system structure (i.e. make some diagram commute) give rise
+to a unique map out of the direct limit. -/
 def lift : direct_limit G f →ₗ[R] P :=
 liftq _ (direct_sum.to_module R ι P g)
   (span_le.2 $ λ a ⟨i, j, hij, x, hx⟩, by rw [← hx, mem_coe, linear_map.sub_mem_ker_iff,
@@ -142,6 +162,8 @@ span_induction ((quotient.mk_eq_zero _).1 H)
     ⟨i, λ k hk, hi k (dfinsupp.support_smul hk),
       by simp [linear_map.map_smul, hxi]⟩)
 
+/-- A component that corresponds to zero in the direct limit is already zero in some
+bigger module in the directed system. -/
 theorem of.zero_exact {i x} (H : of R ι G f i x = 0) :
   ∃ j hij, f i j hij x = (0 : G j) :=
 let ⟨j, hj, hxj⟩ := of.zero_exact_aux H in
@@ -160,6 +182,7 @@ namespace add_comm_group
 
 variables [Π i, add_comm_group (G i)]
 
+/-- The direct limit of a directed system is the abelian groups glued together along the maps. -/
 def direct_limit (f : Π i j, i ≤ j → G i → G j)
   [Π i j hij, is_add_group_hom (f i j hij)] [directed_system G f] : Type* :=
 @module.direct_limit ℤ _ ι _ _ _ G _ _ _
@@ -181,6 +204,7 @@ module.direct_limit.add_comm_group G (λ i j hij, is_add_group_hom.to_linear_map
 
 set_option class.instance_max_depth 50
 
+/-- The canonical map from a component to the direct limit. -/
 def of (i) : G i → direct_limit G f :=
 module.direct_limit.of ℤ ι G (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij) i
 variables {G f}
@@ -201,6 +225,8 @@ protected theorem induction_on {C : direct_limit G f → Prop} (z : direct_limit
   (ih : ∀ i x, C (of G f i x)) : C z :=
 module.direct_limit.induction_on z ih
 
+/-- A component that corresponds to zero in the direct limit is already zero in some
+bigger module in the directed system. -/
 theorem of.zero_exact (i x) (h : of G f i x = 0) : ∃ j hij, f i j hij x = 0 :=
 module.direct_limit.of.zero_exact h
 
@@ -209,6 +235,9 @@ variables (g : Π i, G i → P) [Π i, is_add_group_hom (g i)]
 variables (Hg : ∀ i j hij x, g j (f i j hij x) = g i x)
 
 variables (G f)
+/-- The universal property of the direct limit: maps from the components to another abelian group
+that respect the directed system structure (i.e. make some diagram commute) give rise
+to a unique map out of the direct limit. -/
 def lift : direct_limit G f → P :=
 module.direct_limit.lift ℤ ι G (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij)
   (λ i, is_add_group_hom.to_linear_map $ g i) Hg
@@ -243,6 +272,7 @@ variables [directed_system G f]
 
 open free_comm_ring
 
+/-- The direct limit of a directed system is the rings glued together along the maps. -/
 def direct_limit : Type (max v w) :=
 (ideal.span { a | (∃ i j H x, of (⟨j, f i j H x⟩ : Σ i, G i) - of ⟨i, x⟩ = a) ∨
   (∃ i, of (⟨i, 1⟩ : Σ i, G i) - 1 = a) ∨
@@ -257,6 +287,7 @@ ideal.quotient.comm_ring _
 instance : ring (direct_limit G f) :=
 comm_ring.to_ring _
 
+/-- The canonical map from a component to the direct limit. -/
 def of (i) (x : G i) : direct_limit G f :=
 ideal.quotient.mk _ $ of ⟨i, x⟩
 
@@ -278,6 +309,8 @@ ideal.quotient.eq.2 $ subset_span $ or.inl ⟨i, j, hij, x, rfl⟩
 @[simp] lemma of_mul (i x y) : of G f i (x * y) = of G f i x * of G f i y := is_ring_hom.map_mul _
 @[simp] lemma of_pow (i x) (n : ℕ) : of G f i (x ^ n) = of G f i x ^ n := is_semiring_hom.map_pow _ _ _
 
+/-- Every element of the direct limit corresponds to some element in
+some component of the directed system. -/
 theorem exists_of (z : direct_limit G f) : ∃ i x, of G f i x = z :=
 nonempty.elim (by apply_instance) $ assume ind : ι,
 quotient.induction_on' z $ λ x, free_abelian_group.induction_on x
@@ -376,11 +409,15 @@ begin
 end
 end of_zero_exact_aux
 
+/-- A component that corresponds to zero in the direct limit is already zero in some
+bigger module in the directed system. -/
 lemma of.zero_exact {i x} (hix : of G f i x = 0) : ∃ j, ∃ hij : i ≤ j, f i j hij x = 0 :=
 let ⟨j, s, H, hxs, hx⟩ := of.zero_exact_aux hix in
 have hixs : (⟨i, x⟩ : Σ i, G i) ∈ s, from is_supported_pure.1 hxs,
 ⟨j, H ⟨i, x⟩ hixs, by rw [restriction_of, dif_pos hixs, lift_pure] at hx; exact hx⟩
 
+/-- If the maps in the directed system are injective, then the canonical maps
+from the components to the direct limits are injective. -/
 theorem of_inj (hf : ∀ i j hij, function.injective (f i j hij)) (i) :
   function.injective (of G f i) :=
 begin
@@ -399,6 +436,9 @@ include Hg
 open free_comm_ring
 
 variables (G f)
+/-- The universal property of the direct limit: maps from the components to another ring
+that respect the directed system structure (i.e. make some diagram commute) give rise
+to a unique map out of the direct limit. -/
 def lift : direct_limit G f → P :=
 ideal.quotient.lift _ (free_comm_ring.lift $ λ x, g x.1 x.2) begin
   suffices : ideal.span _ ≤

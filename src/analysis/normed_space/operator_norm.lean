@@ -15,6 +15,7 @@ particular
 -/
 import algebra.module
 import analysis.normed_space.bounded_linear_maps
+import topology.metric_space.lipschitz
 
 variable  {k : Type*}
 variables {E : Type*} {F : Type*} {G : Type*}
@@ -103,6 +104,11 @@ lemma op_norm_comp_le : ∥comp h f∥ ≤ ∥h∥ * ∥f∥ :=
   bounds_bdd_below ⟨mul_nonneg (op_norm_nonneg _) (op_norm_nonneg _),
   λ x, by rw mul_assoc; calc _ ≤ ∥h∥ * ∥f x∥: le_op_norm _
   ... ≤ _ : mul_le_mul_of_nonneg_left (le_op_norm _) (op_norm_nonneg _)⟩)
+
+-- bounded linear maps are lipschitz continuous
+theorem lipschitz : lipschitz_with ∥f∥ f :=
+  ⟨op_norm_nonneg _, λ x y, by rw [ dist_eq_norm, dist_eq_norm, ←map_sub];
+  exact le_op_norm _⟩
 
 end op_norm
 

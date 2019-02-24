@@ -53,6 +53,14 @@ prime_def_lt'.trans $ and_congr_right $ λ p2,
       rwa [one_mul, ← e] }
   end⟩
 
+/--
+  This instance is slower than the instance `decidable_prime` defined below,
+  but has the advantage that it works in the kernel.
+
+  If you need to prove that a particular number is prime, in any case
+  you should not use `by dec_trivial`, but rather `by norm_num`, which is
+  much faster.
+  -/
 def decidable_prime_1 (p : ℕ) : decidable (prime p) :=
 decidable_of_iff' _ prime_def_lt'
 local attribute [instance] decidable_prime_1
@@ -190,6 +198,15 @@ section min_fac
     ((dvd_prime pp).1 fd).resolve_left (ne_of_gt f2)⟩,
    λ ⟨p2, e⟩, e ▸ min_fac_prime (ne_of_gt p2)⟩
 
+  /--
+  This instance is faster in the virtual machine than `decidable_prime_1`.
+  However it uses `classical.choice`, so can't actually be used in a
+  decision procedure.
+
+  If you need to prove that a particular number is prime, in any case
+  you should not use `by dec_trivial`, but rather `by norm_num`, which is
+  much faster.
+  -/
   instance decidable_prime (p : ℕ) : decidable (prime p) :=
   decidable_of_iff' _ prime_def_min_fac
 

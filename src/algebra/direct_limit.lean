@@ -21,16 +21,16 @@ variables [directed_order ι] [decidable_eq ι]
 variables (G : ι → Type w) [Π i, decidable_eq (G i)]
 
 class directed_system (f : Π i j, i ≤ j → G i → G j) : Prop :=
-(Hid : ∀ i x h, f i i h x = x)
-(Hcomp : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
+(map_self : ∀ i x h, f i i h x = x)
+(map_map : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
 
 namespace module
 
 variables [Π i, add_comm_group (G i)] [Π i, module R (G i)]
 
 class directed_system (f : Π i j, i ≤ j → G i →ₗ[R] G j) : Prop :=
-(Hid : ∀ i x h, f i i h x = x)
-(Hcomp : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
+(map_self : ∀ i x h, f i i h x = x)
+(map_map : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
 
 variables (f : Π i j, i ≤ j → G i →ₗ[R] G j) [directed_system G f]
 
@@ -48,41 +48,41 @@ def of (i) : G i →ₗ[R] direct_limit G f :=
 (mkq _).comp $ direct_sum.lof R ι G i
 variables {R ι G f}
 
-theorem of_f {i j hij x} : (of R ι G f j (f i j hij x)) = of R ι G f i x :=
+@[simp] lemma of_f {i j hij x} : (of R ι G f j (f i j hij x)) = of R ι G f i x :=
 eq.symm $ (submodule.quotient.eq _).2 $ subset_span ⟨i, j, hij, x, rfl⟩
 
-theorem exists_of (z : direct_limit G f) : ∃ i x, z = of R ι G f i x :=
+theorem exists_of (z : direct_limit G f) : ∃ i x, of R ι G f i x = z :=
 nonempty.elim (by apply_instance) $ assume ind : ι,
 quotient.induction_on' z $ λ z, direct_sum.induction_on z
-  ⟨ind, 0, (linear_map.map_zero _).symm⟩
+  ⟨ind, 0, linear_map.map_zero _⟩
   (λ i x, ⟨i, x, rfl⟩)
   (λ p q ⟨i, x, ihx⟩ ⟨j, y, ihy⟩, let ⟨k, hik, hjk⟩ := directed_order.directed i j in
-    ⟨k, f i k hik x + f j k hjk y, by rw [linear_map.map_add, of_f, of_f, ← ihx, ← ihy]; refl⟩)
+    ⟨k, f i k hik x + f j k hjk y, by rw [linear_map.map_add, of_f, of_f, ihx, ihy]; refl⟩)
 
 @[elab_as_eliminator]
 protected theorem induction_on {C : direct_limit G f → Prop} (z : direct_limit G f)
   (ih : ∀ i x, C (of R ι G f i x)) : C z :=
-let ⟨i, x, h⟩ := exists_of z in h.symm ▸ ih i x
+let ⟨i, x, h⟩ := exists_of z in h ▸ ih i x
 
 variables {P : Type u₁} [add_comm_group P] [module R P] (g : Π i, G i →ₗ[R] P)
 variables (Hg : ∀ i j hij x, g j (f i j hij x) = g i x)
 include Hg
 
 variables (R ι G f)
-def rec : direct_limit G f →ₗ[R] P :=
+def lift : direct_limit G f →ₗ[R] P :=
 liftq _ (direct_sum.to_module R ι P g)
   (span_le.2 $ λ a ⟨i, j, hij, x, hx⟩, by rw [← hx, mem_coe, linear_map.sub_mem_ker_iff,
     direct_sum.to_module_lof, direct_sum.to_module_lof, Hg])
 variables {R ι G f}
 
 omit Hg
-lemma rec_of {i} (x) : rec R ι G f g Hg (of R ι G f i x) = g i x :=
+lemma lift_of {i} (x) : lift R ι G f g Hg (of R ι G f i x) = g i x :=
 direct_sum.to_module_lof R _ _
 
-theorem rec_unique (F : direct_limit G f →ₗ[R] P) (x) :
-  F x = rec R ι G f (λ i, F.comp $ of R ι G f i)
+theorem lift_unique (F : direct_limit G f →ₗ[R] P) (x) :
+  F x = lift R ι G f (λ i, F.comp $ of R ι G f i)
     (λ i j hij x, by rw [linear_map.comp_apply, of_f]; refl) x :=
-direct_limit.induction_on x $ λ i x, by rw rec_of; refl
+direct_limit.induction_on x $ λ i x, by rw lift_of; refl
 
 section totalize
 local attribute [instance, priority 0] classical.dec
@@ -107,7 +107,7 @@ begin
   simp only [linear_map.map_sum],
   refine finset.sum_congr rfl (λ k hk, _),
   rw direct_sum.single_eq_lof R k (x k),
-  simp [totalize_apply, hx k hk, le_trans (hx k hk) hij, directed_system.Hcomp f]
+  simp [totalize_apply, hx k hk, le_trans (hx k hk) hij, directed_system.map_map f]
 end
 
 lemma of.zero_exact_aux {x : direct_sum ι G} (H : submodule.quotient.mk x = (0 : direct_limit G f)) :
@@ -125,7 +125,7 @@ span_induction ((quotient.mk_eq_zero _).1 H)
         split_ifs at hi0 with hi hj hj, { rwa hi at hik }, { rwa hi at hik }, { rwa hj at hjk },
         exfalso, apply hi0, rw sub_zero },
       simp [linear_map.map_sub, totalize_apply, hik, hjk,
-        directed_system.Hcomp f, direct_sum.apply_eq_component,
+        directed_system.map_map f, direct_sum.apply_eq_component,
         direct_sum.component.of],
     end⟩)
   ⟨ind, λ _ h, (finset.not_mem_empty _ h).elim, linear_map.map_zero _⟩
@@ -164,7 +164,7 @@ def direct_limit (f : Π i j, i ≤ j → G i → G j)
   [Π i j hij, is_add_group_hom (f i j hij)] [directed_system G f] : Type* :=
 @module.direct_limit ℤ _ ι _ _ _ G _ _ _
   (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij)
-  ⟨directed_system.Hid f, directed_system.Hcomp f⟩
+  ⟨directed_system.map_self f, directed_system.map_map f⟩
 
 namespace direct_limit
 
@@ -172,7 +172,7 @@ variables (f : Π i j, i ≤ j → G i → G j)
 variables [Π i j hij, is_add_group_hom (f i j hij)] [directed_system G f]
 
 def directed_system : module.directed_system G (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij) :=
-⟨directed_system.Hid f, directed_system.Hcomp f⟩
+⟨directed_system.map_self f, directed_system.map_map f⟩
 
 local attribute [instance] directed_system
 
@@ -180,6 +180,7 @@ instance : add_comm_group (direct_limit G f) :=
 module.direct_limit.add_comm_group G (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij)
 
 set_option class.instance_max_depth 50
+
 def of (i) : G i → direct_limit G f :=
 module.direct_limit.of ℤ ι G (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij) i
 variables {G f}
@@ -208,25 +209,25 @@ variables (g : Π i, G i → P) [Π i, is_add_group_hom (g i)]
 variables (Hg : ∀ i j hij x, g j (f i j hij x) = g i x)
 
 variables (G f)
-def rec : direct_limit G f → P :=
-module.direct_limit.rec ℤ ι G (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij)
+def lift : direct_limit G f → P :=
+module.direct_limit.lift ℤ ι G (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij)
   (λ i, is_add_group_hom.to_linear_map $ g i) Hg
 variables {G f}
 
-instance rec.is_add_group_hom : is_add_group_hom (rec G f P g Hg) :=
+instance lift.is_add_group_hom : is_add_group_hom (lift G f P g Hg) :=
 linear_map.is_add_group_hom _
 
-@[simp] lemma rec_of (i x) : rec G f P g Hg (of G f i x) = g i x :=
-module.direct_limit.rec_of _ _ _
+@[simp] lemma lift_of (i x) : lift G f P g Hg (of G f i x) = g i x :=
+module.direct_limit.lift_of _ _ _
 
-@[simp] lemma rec_zero : rec G f P g Hg 0 = 0 := is_add_group_hom.zero _
-@[simp] lemma rec_add (x y) : rec G f P g Hg (x + y) = rec G f P g Hg x + rec G f P g Hg y := is_add_group_hom.add _ _ _
-@[simp] lemma rec_neg (x) : rec G f P g Hg (-x) = -rec G f P g Hg x := is_add_group_hom.neg _ _
-@[simp] lemma rec_sub (x y) : rec G f P g Hg (x - y) = rec G f P g Hg x - rec G f P g Hg y := is_add_group_hom.sub _ _ _
+@[simp] lemma lift_zero : lift G f P g Hg 0 = 0 := is_add_group_hom.zero _
+@[simp] lemma lift_add (x y) : lift G f P g Hg (x + y) = lift G f P g Hg x + lift G f P g Hg y := is_add_group_hom.add _ _ _
+@[simp] lemma lift_neg (x) : lift G f P g Hg (-x) = -lift G f P g Hg x := is_add_group_hom.neg _ _
+@[simp] lemma lift_sub (x y) : lift G f P g Hg (x - y) = lift G f P g Hg x - lift G f P g Hg y := is_add_group_hom.sub _ _ _
 
-lemma rec_unique (F : direct_limit G f → P) [is_add_group_hom F] (x) :
-  F x = rec G f P (λ i x, F $ of G f i x) (λ i j hij x, by rw of_f) x :=
-direct_limit.induction_on x $ λ i x, by rw rec_of
+lemma lift_unique (F : direct_limit G f → P) [is_add_group_hom F] (x) :
+  F x = lift G f P (λ i x, F $ of G f i x) (λ i j hij x, by rw of_f) x :=
+direct_limit.induction_on x $ λ i x, by rw lift_of
 
 end direct_limit
 
@@ -310,7 +311,7 @@ begin
   { rintros _ ⟨p, hps, rfl⟩ n ih,
     rw [restriction_mul, lift_mul, is_ring_hom.map_mul (f j k hjk), ih, restriction_mul, lift_mul,
         restriction_of, dif_pos hps, lift_pure, restriction_of, dif_pos (hst hps), lift_pure],
-    dsimp only, rw directed_system.Hcomp f, refl },
+    dsimp only, rw directed_system.map_map f, refl },
   { rintros x y ihx ihy,
     rw [restriction_add, lift_add, is_ring_hom.map_add (f j k hjk), ihx, ihy, restriction_add, lift_add] }
 end
@@ -326,7 +327,7 @@ begin
         is_supported_sub (is_supported_pure.2 $ or.inl rfl) (is_supported_pure.2 $ or.inr $ or.inl rfl), _⟩,
       { rintros k (rfl | ⟨rfl | h⟩), refl, exact hij, cases h },
       { rw [restriction_sub, lift_sub, restriction_of, dif_pos, restriction_of, dif_pos, lift_pure, lift_pure],
-        dsimp only, rw directed_system.Hcomp f, exact sub_self _,
+        dsimp only, rw directed_system.map_map f, exact sub_self _,
         { left, refl }, { right, left, refl }, } },
     { refine ⟨i, {⟨i, 1⟩}, _, is_supported_sub (is_supported_pure.2 $ or.inl rfl) is_supported_one, _⟩,
       { rintros k (rfl | h), refl, cases h },
@@ -398,7 +399,7 @@ include Hg
 open free_comm_ring
 
 variables (G f)
-def rec : direct_limit G f → P :=
+def lift : direct_limit G f → P :=
 ideal.quotient.lift _ (free_comm_ring.lift $ λ x, g x.1 x.2) begin
   suffices : ideal.span _ ≤
     ideal.comap (free_comm_ring.lift (λ (x : Σ (i : ι), G i), g (x.fst) (x.snd))) ⊥,
@@ -412,23 +413,23 @@ end
 variables {G f}
 omit Hg
 
-instance rec.is_ring_hom : is_ring_hom (rec G f P g Hg) :=
+instance lift.is_ring_hom : is_ring_hom (lift G f P g Hg) :=
 ⟨free_comm_ring.lift_one _,
 λ x y, quotient.induction_on₂' x y $ λ p q, free_comm_ring.lift_mul _ _ _,
 λ x y, quotient.induction_on₂' x y $ λ p q, free_comm_ring.lift_add _ _ _⟩
 
-@[simp] lemma rec_of (i x) : rec G f P g Hg (of G f i x) = g i x := free_comm_ring.lift_of _ _
-@[simp] lemma rec_zero : rec G f P g Hg 0 = 0 := is_ring_hom.map_zero _
-@[simp] lemma rec_one : rec G f P g Hg 1 = 1 := is_ring_hom.map_one _
-@[simp] lemma rec_add (x y) : rec G f P g Hg (x + y) = rec G f P g Hg x + rec G f P g Hg y := is_ring_hom.map_add _
-@[simp] lemma rec_neg (x) : rec G f P g Hg (-x) = -rec G f P g Hg x := is_ring_hom.map_neg _
-@[simp] lemma rec_sub (x y) : rec G f P g Hg (x - y) = rec G f P g Hg x - rec G f P g Hg y := is_ring_hom.map_sub _
-@[simp] lemma rec_mul (x y) : rec G f P g Hg (x * y) = rec G f P g Hg x * rec G f P g Hg y := is_ring_hom.map_mul _
-@[simp] lemma rec_pow (x) (n : ℕ) : rec G f P g Hg (x ^ n) = rec G f P g Hg x ^ n := is_semiring_hom.map_pow _ _ _
+@[simp] lemma lift_of (i x) : lift G f P g Hg (of G f i x) = g i x := free_comm_ring.lift_of _ _
+@[simp] lemma lift_zero : lift G f P g Hg 0 = 0 := is_ring_hom.map_zero _
+@[simp] lemma lift_one : lift G f P g Hg 1 = 1 := is_ring_hom.map_one _
+@[simp] lemma lift_add (x y) : lift G f P g Hg (x + y) = lift G f P g Hg x + lift G f P g Hg y := is_ring_hom.map_add _
+@[simp] lemma lift_neg (x) : lift G f P g Hg (-x) = -lift G f P g Hg x := is_ring_hom.map_neg _
+@[simp] lemma lift_sub (x y) : lift G f P g Hg (x - y) = lift G f P g Hg x - lift G f P g Hg y := is_ring_hom.map_sub _
+@[simp] lemma lift_mul (x y) : lift G f P g Hg (x * y) = lift G f P g Hg x * lift G f P g Hg y := is_ring_hom.map_mul _
+@[simp] lemma lift_pow (x) (n : ℕ) : lift G f P g Hg (x ^ n) = lift G f P g Hg x ^ n := is_semiring_hom.map_pow _ _ _
 
-theorem rec_unique (F : direct_limit G f → P) [is_ring_hom F] (x) :
-  F x = rec G f P (λ i x, F $ of G f i x) (λ i j hij x, by rw [of_f]) x :=
-direct_limit.induction_on x $ λ i x, by rw rec_of
+theorem lift_unique (F : direct_limit G f → P) [is_ring_hom F] (x) :
+  F x = lift G f P (λ i x, F $ of G f i x) (λ i j hij x, by rw [of_f]) x :=
+direct_limit.induction_on x $ λ i x, by rw lift_of
 
 end direct_limit
 

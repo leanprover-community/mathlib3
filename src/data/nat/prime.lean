@@ -58,7 +58,7 @@ prime_def_lt'.trans $ and_congr_right $ λ p2,
   but has the advantage that it works in the kernel.
 
   If you need to prove that a particular number is prime, in any case
-  you should not use `by dec_trivial`, but rather `by norm_num`, which is
+  you should not use `dec_trivial`, but rather `by norm_num`, which is
   much faster.
   -/
 def decidable_prime_1 (p : ℕ) : decidable (prime p) :=
@@ -204,7 +204,7 @@ section min_fac
   decision procedure.
 
   If you need to prove that a particular number is prime, in any case
-  you should not use `by dec_trivial`, but rather `by norm_num`, which is
+  you should not use `dec_trivial`, but rather `by norm_num`, which is
   much faster.
   -/
   instance decidable_prime (p : ℕ) : decidable (prime p) :=

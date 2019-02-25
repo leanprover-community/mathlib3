@@ -509,6 +509,12 @@ end
 lemma univ_subtype {p : α → Prop} : (univ : set (subtype p)) = (⋃x (h : p x), {⟨x, h⟩})  :=
 set.ext $ assume ⟨x, h⟩, by simp [h]
 
+lemma range_eq_Union {ι} (f : ι → α) : range f = (⋃i, {f i}) :=
+set.ext $ assume a, by simp [@eq_comm α a]
+
+lemma image_eq_Union (f : α → β) (s : set α) : f '' s = (⋃i∈s, {f i}) :=
+set.ext $ assume b, by simp [@eq_comm β b]
+
 end image
 
 section preimage

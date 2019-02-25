@@ -28,15 +28,16 @@ if ( 'dependencies' in leanpkg and
     lib = leanpkg['dependencies']['mathlib']
 
     # download archive
-    if lib['git'] in ['https://github.com/leanprover/mathlib','https://github.com/leanprover-community/mathlib']:
+    if 'git' in lib and lib['git'] in ['https://github.com/leanprover/mathlib','https://github.com/leanprover-community/mathlib']:
         rev = lib['rev']
         hash = rev[:7]
 
         g = Github()
         repo = g.get_repo("leanprover-community/mathlib-nightly")
+        tags = dict([ (t.name,t.commit.sha) for t in repo.get_tags() ])
         assets = (r.get_assets() for r in (repo.get_releases())
                       if r.tag_name.startswith('nightly-') and
-                      r.target_commitish == rev )
+                      tags[r.tag_name] == rev )
         assets = next(assets,None)
         if assets:
             a = next(x for x in assets if x.name.startswith('mathlib-olean-nightly-'))
@@ -57,5 +58,9 @@ if ( 'dependencies' in leanpkg and
                 ar.extractall('_target/deps/mathlib')
             else:
                 print('no olean archive available')
+        else:
+            print('no nightly archive found')
+    else:
+        print('mathlib reference is a fork')
 else:
     print('project does not depend on mathlib')

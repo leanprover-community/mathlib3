@@ -129,43 +129,65 @@ begin
   exact ⟨h₁ c cpos, h₂ c cpos⟩
 end
 
-private theorem congr_aux1 (f₁ f₂ : α → β) (g : α → γ) (l : filter α)
-    (h : {x | f₁ x = f₂ x} ∈ l.sets) :
-  ∀ c, {x : α | ∥f₁ x∥ ≤ c * ∥g x∥} ∈ l.sets ↔ {x : α | ∥f₂ x∥ ≤ c * ∥g x∥} ∈ l.sets :=
-begin
-  intro c, split,
-  { intro h₀, filter_upwards [h₀, h], dsimp, intros x hx e, rw ←e, apply hx },
-  intro h₀, filter_upwards [h₀, h], dsimp, intros x hx e, rw e, apply hx
-end
+theorem is_bigo_congr {f₁ f₂ : α → β} {g₁ g₂ : α → γ} {l : filter α}
+  (hf : {x | f₁ x = f₂ x} ∈ l.sets) (hg : {x | g₁ x = g₂ x} ∈ l.sets) :
+  is_bigo f₁ g₁ l ↔ is_bigo f₂ g₂ l :=
+bex_congr $ λ c _, filter.congr_sets $
+by filter_upwards [hf, hg] λ x e₁ e₂,
+  by dsimp at e₁ e₂ ⊢; rw [e₁, e₂]
+
+theorem is_littleo_congr {f₁ f₂ : α → β} {g₁ g₂ : α → γ} {l : filter α}
+  (hf : {x | f₁ x = f₂ x} ∈ l.sets) (hg : {x | g₁ x = g₂ x} ∈ l.sets) :
+  is_littleo f₁ g₁ l ↔ is_littleo f₂ g₂ l :=
+ball_congr $ λ c _, filter.congr_sets $
+by filter_upwards [hf, hg] λ x e₁ e₂,
+  by dsimp at e₁ e₂ ⊢; rw [e₁, e₂]
+
+theorem is_bigo.congr {f₁ f₂ : α → β} {g₁ g₂ : α → γ} {l : filter α}
+  (hf : ∀ x, f₁ x = f₂ x) (hg : ∀ x, g₁ x = g₂ x) :
+  is_bigo f₁ g₁ l → is_bigo f₂ g₂ l :=
+(is_bigo_congr (univ_mem_sets' hf) (univ_mem_sets' hg)).1
+
+theorem is_littleo.congr {f₁ f₂ : α → β} {g₁ g₂ : α → γ} {l : filter α}
+  (hf : ∀ x, f₁ x = f₂ x) (hg : ∀ x, g₁ x = g₂ x) :
+  is_littleo f₁ g₁ l → is_littleo f₂ g₂ l :=
+(is_littleo_congr (univ_mem_sets' hf) (univ_mem_sets' hg)).1
+
+theorem is_bigo_congr_left {f₁ f₂ : α → β} {g : α → γ} {l : filter α}
+  (h : {x | f₁ x = f₂ x} ∈ l.sets) :
+  is_bigo f₁ g l ↔ is_bigo f₂ g l :=
+is_bigo_congr h (univ_mem_sets' $ λ _, rfl)
+
+theorem is_littleo_congr_left {f₁ f₂ : α → β} {g : α → γ} {l : filter α}
+  (h : {x | f₁ x = f₂ x} ∈ l.sets) :
+  is_littleo f₁ g l ↔ is_littleo f₂ g l :=
+is_littleo_congr h (univ_mem_sets' $ λ _, rfl)
 
 theorem is_bigo.congr_left {f₁ f₂ : α → β} {g : α → γ} {l : filter α}
-    (h : {x | f₁ x = f₂ x} ∈ l.sets) :
-  is_bigo f₁ g l ↔ is_bigo f₂ g l :=
-by simp only [is_bigo, congr_aux1 f₁ f₂ g l h]
+  (hf : ∀ x, f₁ x = f₂ x) : is_bigo f₁ g l → is_bigo f₂ g l :=
+is_bigo.congr hf (λ _, rfl)
 
 theorem is_littleo.congr_left {f₁ f₂ : α → β} {g : α → γ} {l : filter α}
-    (h : {x | f₁ x = f₂ x} ∈ l.sets) :
-  is_littleo f₁ g l ↔ is_littleo f₂ g l :=
-by simp only [is_littleo, congr_aux1 f₁ f₂ g l h]
+  (hf : ∀ x, f₁ x = f₂ x) : is_littleo f₁ g l → is_littleo f₂ g l :=
+is_littleo.congr hf (λ _, rfl)
 
-private theorem congr_aux2 (f : α → β) (g₁ g₂ : α → γ) (l : filter α)
-    (h : {x | g₁ x = g₂ x} ∈ l.sets) :
-  ∀ c, {x : α | ∥f x∥ ≤ c * ∥g₁ x∥} ∈ l.sets ↔ {x : α | ∥f x∥ ≤ c * ∥g₂ x∥} ∈ l.sets :=
-begin
-  intro c, split,
-  { intro h₀, filter_upwards [h₀, h], dsimp, intros x hx e, rw ←e, apply hx },
-  intro h₀, filter_upwards [h₀, h], dsimp, intros x hx e, rw e, apply hx
-end
+theorem is_bigo_congr_right {f : α → β} {g₁ g₂ : α → γ} {l : filter α}
+  (h : {x | g₁ x = g₂ x} ∈ l.sets) :
+  is_bigo f g₁ l ↔ is_bigo f g₂ l :=
+is_bigo_congr (univ_mem_sets' $ λ _, rfl) h
+
+theorem is_littleo_congr_right {f : α → β} {g₁ g₂ : α → γ} {l : filter α}
+  (h : {x | g₁ x = g₂ x} ∈ l.sets) :
+  is_littleo f g₁ l ↔ is_littleo f g₂ l :=
+is_littleo_congr (univ_mem_sets' $ λ _, rfl) h
 
 theorem is_bigo.congr_right {f : α → β} {g₁ g₂ : α → γ} {l : filter α}
-    (h : {x | g₁ x = g₂ x} ∈ l.sets) :
-  is_bigo f g₁ l ↔ is_bigo f g₂ l :=
-by simp only [is_bigo, congr_aux2 f g₁ g₂ l h]
+  (hg : ∀ x, g₁ x = g₂ x) : is_bigo f g₁ l → is_bigo f g₂ l :=
+is_bigo.congr (λ _, rfl) hg
 
 theorem is_littleo.congr_right {f : α → β} {g₁ g₂ : α → γ} {l : filter α}
-    (h : {x | g₁ x = g₂ x} ∈ l.sets) :
-  is_littleo f g₁ l ↔ is_littleo f g₂ l :=
-by simp only [is_littleo, congr_aux2 f g₁ g₂ l h]
+  (hg : ∀ x, g₁ x = g₂ x) : is_littleo f g₁ l → is_littleo f g₂ l :=
+is_littleo.congr (λ _, rfl) hg
 
 end
 
@@ -230,23 +252,19 @@ end
 section
 variables [normed_group β] [has_norm γ]
 
-@[simp]
-theorem is_bigo_norm_left {f : α → β} {g : α → γ} {l : filter α} :
+@[simp] theorem is_bigo_norm_left {f : α → β} {g : α → γ} {l : filter α} :
   is_bigo (λ x, ∥f x∥) g l ↔ is_bigo f g l :=
 by simp only [is_bigo, norm_norm]
 
-@[simp]
-theorem is_littleo_norm_left {f : α → β} {g : α → γ} {l : filter α} :
+@[simp] theorem is_littleo_norm_left {f : α → β} {g : α → γ} {l : filter α} :
   is_littleo (λ x, ∥f x∥) g l ↔ is_littleo f g l :=
 by simp only [is_littleo, norm_norm]
 
-@[simp]
-theorem is_bigo_neg_left {f : α → β} {g : α → γ} {l : filter α} :
+@[simp] theorem is_bigo_neg_left {f : α → β} {g : α → γ} {l : filter α} :
   is_bigo (λ x, -f x) g l ↔ is_bigo f g l :=
 by { rw ←is_bigo_norm_left, simp only [norm_neg], rw is_bigo_norm_left }
 
-@[simp]
-theorem is_littleo_neg_left {f : α → β} {g : α → γ} {l : filter α} :
+@[simp] theorem is_littleo_neg_left {f : α → β} {g : α → γ} {l : filter α} :
   is_littleo (λ x, -f x) g l ↔ is_littleo f g l :=
 by { rw ←is_littleo_norm_left, simp only [norm_neg], rw is_littleo_norm_left }
 
@@ -287,6 +305,46 @@ theorem is_littleo.sub {f₁ f₂ : α → β} {g : α → γ} {l : filter α}
   is_littleo (λ x, f₁ x - f₂ x) g l :=
 h₁.add (is_littleo_neg_left.mpr h₂)
 
+theorem is_bigo_comm {f₁ f₂ : α → β} {g : α → γ} {l : filter α} :
+  is_bigo (λ x, f₁ x - f₂ x) g l ↔ is_bigo (λ x, f₂ x - f₁ x) g l :=
+by simpa using @is_bigo_neg_left _ _ _ _ _ (λ x, f₂ x - f₁ x) g l
+
+theorem is_bigo.symm {f₁ f₂ : α → β} {g : α → γ} {l : filter α}
+  : is_bigo (λ x, f₁ x - f₂ x) g l → is_bigo (λ x, f₂ x - f₁ x) g l :=
+is_bigo_comm.1
+
+theorem is_bigo.tri {f₁ f₂ f₃ : α → β} {g : α → γ} {l : filter α}
+  (h₁ : is_bigo (λ x, f₁ x - f₂ x) g l)
+  (h₂ : is_bigo (λ x, f₂ x - f₃ x) g l) :
+  is_bigo (λ x, f₁ x - f₃ x) g l :=
+(h₁.add h₂).congr_left (by simp)
+
+theorem is_bigo.congr_of_sub {f₁ f₂ : α → β} {g : α → γ} {l : filter α}
+  (h : is_bigo (λ x, f₁ x - f₂ x) g l) :
+  is_bigo f₁ g l ↔ is_bigo f₂ g l :=
+⟨λ h', (h'.sub h).congr_left (λ x, sub_sub_cancel _ _),
+ λ h', (h.add h').congr_left (λ x, sub_add_cancel _ _)⟩
+
+theorem is_littleo_comm {f₁ f₂ : α → β} {g : α → γ} {l : filter α} :
+  is_littleo (λ x, f₁ x - f₂ x) g l ↔ is_littleo (λ x, f₂ x - f₁ x) g l :=
+by simpa using @is_littleo_neg_left _ _ _ _ _ (λ x, f₂ x - f₁ x) g l
+
+theorem is_littleo.symm {f₁ f₂ : α → β} {g : α → γ} {l : filter α}
+  : is_littleo (λ x, f₁ x - f₂ x) g l → is_littleo (λ x, f₂ x - f₁ x) g l :=
+is_littleo_comm.1
+
+theorem is_littleo.tri {f₁ f₂ f₃ : α → β} {g : α → γ} {l : filter α}
+  (h₁ : is_littleo (λ x, f₁ x - f₂ x) g l)
+  (h₂ : is_littleo (λ x, f₂ x - f₃ x) g l) :
+  is_littleo (λ x, f₁ x - f₃ x) g l :=
+(h₁.add h₂).congr_left (by simp)
+
+theorem is_littleo.congr_of_sub {f₁ f₂ : α → β} {g : α → γ} {l : filter α}
+  (h : is_littleo (λ x, f₁ x - f₂ x) g l) :
+  is_littleo f₁ g l ↔ is_littleo f₂ g l :=
+⟨λ h', (h'.sub h).congr_left (λ x, sub_sub_cancel _ _),
+ λ h', (h.add h').congr_left (λ x, sub_add_cancel _ _)⟩
+
 end
 
 section
@@ -295,6 +353,10 @@ variables [normed_group β] [normed_group γ]
 theorem is_bigo_zero (g : α → γ) (l : filter α) :
   is_bigo (λ x, (0 : β)) g l :=
 ⟨1, zero_lt_one, by { filter_upwards [univ_mem_sets], intros x _, simp }⟩
+
+theorem is_bigo_refl_left {f : α → β} {g : α → γ} {l : filter α} :
+  is_bigo (λ x, f x - f x) g l :=
+by simpa using is_bigo_zero g l
 
 theorem is_bigo_zero_right_iff {f : α → β} {l : filter α} :
   is_bigo f (λ x, (0 : γ)) l ↔ {x | f x = 0} ∈ l.sets :=
@@ -316,6 +378,10 @@ theorem is_littleo_zero (g : α → γ) (l : filter α) :
 λ c cpos,
 by { filter_upwards [univ_mem_sets], intros x _, simp,
      exact mul_nonneg (le_of_lt cpos) (norm_nonneg _)}
+
+theorem is_littleo_refl_left {f : α → β} {g : α → γ} {l : filter α} :
+  is_littleo (λ x, f x - f x) g l :=
+by simpa using is_littleo_zero g l
 
 theorem is_littleo_zero_right_iff {f : α → β} (l : filter α) :
   is_littleo f (λ x, (0 : γ)) l ↔ {x | f x = 0} ∈ l.sets :=
@@ -408,7 +474,7 @@ theorem is_bigo_of_is_bigo_const_mul_right {f : α → β} {g : α → γ} {l : 
   is_bigo f g l  :=
 begin
   cases classical.em (c = 0) with h' h',
-  { simp [h', is_bigo_zero_right_iff] at h, rw is_bigo.congr_left h, apply is_bigo_zero },
+  { simp [h', is_bigo_zero_right_iff] at h, rw is_bigo_congr_left h, apply is_bigo_zero },
   have cne0 : ∥c∥ ≠ 0, from mt (norm_eq_zero _).mp h',
   have cpos : ∥c∥ > 0, from lt_of_le_of_ne (norm_nonneg _) (ne.symm cne0),
   rcases h with ⟨c', c'pos, h''⟩,
@@ -433,7 +499,7 @@ theorem is_littleo_of_is_littleo_const_mul_right {f : α → β} {g : α → γ}
   is_littleo f g l  :=
 begin
   cases classical.em (c = 0) with h' h',
-  { simp [h', is_littleo_zero_right_iff] at h, rw is_littleo.congr_left h, apply is_littleo_zero },
+  { simp [h', is_littleo_zero_right_iff] at h, rw is_littleo_congr_left h, apply is_littleo_zero },
   have cne0 : ∥c∥ ≠ 0, from mt (norm_eq_zero _).mp h',
   have cpos : ∥c∥ > 0, from lt_of_le_of_ne (norm_nonneg _) (ne.symm cne0),
   intros c' c'pos,
@@ -465,6 +531,19 @@ begin
   intros x hx,
   exact le_of_lt hx
 end
+
+end
+
+section
+variables [normed_group β] [normed_group γ]
+
+theorem is_bigo.trans_tendsto {f : α → β} {g : α → γ} {l : filter α}
+  (h₁ : is_bigo f g l) (h₂ : tendsto g l (nhds 0)) : tendsto f l (nhds 0) :=
+(@is_littleo_one_iff _ _ ℝ _ _ _ _).1 $ h₁.trans_is_littleo $ is_littleo_one_iff.2 h₂
+
+theorem is_littleo.trans_tendsto {f : α → β} {g : α → γ} {l : filter α}
+  (h₁ : is_littleo f g l) : tendsto g l (nhds 0) → tendsto f l (nhds 0) :=
+h₁.to_is_bigo.trans_tendsto
 
 end
 

@@ -105,9 +105,13 @@ theorem is_bigo_id {L : E → F} (h : is_bounded_linear_map L) (l : filter E) :
 let ⟨M, Mpos, hM⟩ := h.bound in
 ⟨M, Mpos, mem_sets_of_superset univ_mem_sets (λ x _, hM x)⟩
 
+theorem is_bigo_comp {L : F → G} (h : is_bounded_linear_map L)
+  {f : E → F} (l : filter E) : is_bigo (λ x', L (f x')) f l :=
+((h.is_bigo_id ⊤).comp _).mono (map_le_iff_le_comap.mp lattice.le_top)
+
 theorem is_bigo_sub {L : E → F} (h : is_bounded_linear_map L) (l : filter E) (x : E) :
   is_bigo (λ x', L (x' - x)) (λ x', x' - x) l :=
-((h.is_bigo_id ⊤).comp _).mono (map_le_iff_le_comap.mp lattice.le_top)
+is_bigo_comp h l
 
 end
 

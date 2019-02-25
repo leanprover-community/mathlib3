@@ -79,42 +79,20 @@ Hausdorff edistance. -/
 instance closeds.complete_space [complete_space α] : complete_space (closeds α) :=
 begin
   /- We will show that, if a sequence of sets `s n` satisfies
-     `edist (s n) (s (n+1)) < 2^{-n}`, then it converges. This is enough to guarantee
-     completeness, by a standard completeness criterion.
-     First, introduce the bounding coefficients `B n = 2^{-n}`, in `ennreal`,
-     and prove their basic properties that we will use later -/
-  have BR_pos : ∀n:ℕ, (0 : real) < (1/2)^n := by apply pow_pos; norm_num,
-  let B : ℕ → ennreal := λn, ennreal.of_real ((1 / 2) ^ n),
-  have Bpos : ∀n:ℕ, (0 : ennreal) < B n := by simpa using BR_pos,
-  have B_lim: tendsto B at_top (nhds 0),
-  { rw ← ennreal.of_real_zero,
-    apply ennreal.tendsto_of_real,
-    apply tendsto_pow_at_top_nhds_0_of_lt_1,
-    norm_num, norm_num },
-  have B2_lim : tendsto (λn, 2 * B n) at_top (nhds 0),
-  { have : tendsto (λn, 2 * B n) at_top (nhds (2 * 0)) := ennreal.tendsto_mul_right B_lim (by simp),
-    simpa using this },
-  have Bkk : ∀k, B (k+1) + B (k+1) = B k,
-  { assume k,
-    simp only [B, (ennreal.of_real_add _ _).symm, BR_pos, le_of_lt],
-    apply congr_arg,
-    simp only [pow_add, one_div_eq_inv, pow_one],
-    ring },
-  have IB : ∀m, ∀k≥m, 2 * B k ≤ 2 * B m,
-  { assume m k hkm,
-    apply canonically_ordered_semiring.mul_le_mul (le_refl _) _,
-    exact ennreal.of_real_le_of_real (pow_le_pow_of_le_one (by norm_num) (by norm_num) hkm) },
-
-  /- Consider now a sequence of closed sets `s n` with `edist (s n) (s (n+1)) < B n`.
+  `edist (s n) (s (n+1)) < 2^{-n}`, then it converges. This is enough to guarantee
+  completeness, by a standard completeness criterion.
+  We use the shorthand `B n = 2^{-n}` in ennreal. -/
+  let B : ℕ → ennreal := ennreal.half_pow,
+  /- Consider a sequence of closed sets `s n` with `edist (s n) (s (n+1)) < B n`.
   We will show that it converges. The limit set is t0 = ⋂n, closure (⋃m≥n, s m).
   We will have to show that a point in `s n` is close to a point in `t0`, and a point
   in `t0` is close to a point in `s n`. The completeness then follows from a
   standard criterion. -/
-  refine complete_of_convergent_controlled_sequences _ Bpos (λs hs, _),
+  refine complete_of_convergent_controlled_sequences _ ennreal.half_pow_pos (λs hs, _),
   let t0 := ⋂n, closure (⋃m≥n, (s m).val),
   have : is_closed t0 := is_closed_Inter (λ_, is_closed_closure),
   let t : closeds α := ⟨t0, this⟩,
-  existsi t,
+  use t,
   have I1 : ∀n:ℕ, ∀x ∈ (s n).val, ∃y ∈ t0, edist x y ≤ 2 * B n,
   { /- This is the main difficulty of the proof. Starting from `x ∈ s n`, we want
        to find a point in `t0` which is close to `x`. Define inductively a sequence of
@@ -150,55 +128,20 @@ begin
       nat.le_induction (by rwa ‹z n = x›) (λm hm zm, (I m hm zm).1),
     -- for all `m`, the distance between `z m` and `z (m+1)` is controlled by `B m`:
     -- for `m ≥ n`, this follows from the construction, while for `m < n` all points are `x`.
-    have Im_succm : ∀m, edist (z m) (z (m+1)) < B m,
+    have Im_succm : ∀m, edist (z m) (z (m+1)) ≤ B m,
     { assume m,
       by_cases hm : n≤m,
-      { exact (I m hm (z_in_s m hm)).2 },
+      { exact le_of_lt (I m hm (z_in_s m hm)).2 },
       { rw not_le at hm,
         have Im : z m = x := z_le_n m (le_of_lt hm),
         have Im' : z (m+1) = x := z_le_n (m+1) (nat.succ_le_of_lt hm),
-        simp [Im, Im', Bpos] }},
+        simp [Im, Im', ennreal.half_pow_pos] }},
     /- From the distance control between `z m` and `z (m+1)`, we deduce a distance control
-    between `z k` and `z l` by summing the geometric series. Except that we are in `ennreal`, so
-    we really want to avoid subtraction and we write the computation with a more awkward
-    induction -/
-    have Iz : ∀k l N, N ≤ k → N ≤ l → edist (z k) (z l) ≤ 2 * B N,
-    { have ineq_rec : ∀m, ∀k≥m, B k + edist (z m) (z (k+1)) ≤ 2 * B m,
-      { assume m,
-        refine nat.le_induction _ (λk km hk, _),
-        { calc B m + edist (z m) (z (m+1)) ≤ B m + B m : add_le_add_left' (le_of_lt (Im_succm m))
-          ... = 2 * B m : by simp [(mul_two _).symm, mul_comm] },
-        { calc B (k + 1) + edist (z m) (z (k + 1 + 1))
-          ≤ B (k+1) + (edist (z m) (z (k+1)) + edist (z (k+1)) (z (k+2))) :
-            add_le_add_left' (edist_triangle _ _ _)
-          ... ≤ B (k+1) + (edist (z m) (z (k+1)) + B (k+1)) :
-            add_le_add_left' (add_le_add_left' (le_of_lt (Im_succm (k+1))))
-          ... = (B(k+1) + B(k+1)) + edist (z m) (z (k+1)) : by simp [add_comm]
-          ... = B k + edist (z m) (z (k+1)) : by rw Bkk
-          ... ≤ 2 * B m : hk }},
-      have Imk : ∀m, ∀k≥m, edist (z m) (z k) ≤ 2 * B m,
-      { assume m k hk,
-        by_cases h : m = k,
-        { simp [h, le_of_lt (Bpos k)] },
-        { have I : m < k := lt_of_le_of_ne hk h,
-          have : 0 < k := lt_of_le_of_lt (nat.zero_le _) ‹m < k›,
-          let l := nat.pred k,
-          have : k = l+1 := (nat.succ_pred_eq_of_pos ‹0 < k›).symm,
-          rw this,
-          have : m ≤ l := begin rw this at I, apply nat.le_of_lt_succ I end,
-          calc edist (z m) (z (l+1)) ≤ B l + edist (z m) (z (l+1)) : le_add_left (le_refl _)
-            ... ≤ 2 * B m : ineq_rec m l ‹m ≤ l› }},
-      assume k l N hk hl,
-      by_cases h : k ≤ l,
-      { calc edist (z k) (z l) ≤ 2 * B k : Imk k l h
-          ... ≤ 2 * B N : IB N k hk },
-      { simp at h,
-        calc edist (z k) (z l) = edist (z l) (z k) : edist_comm _ _
-          ... ≤ 2 * B l : Imk l k (le_of_lt h)
-          ... ≤ 2 * B N : IB N l hl }},
+    between `z k` and `z l` by summing the geometric series. -/
+    have Iz : ∀k l N, N ≤ k → N ≤ l → edist (z k) (z l) ≤ 2 * B N :=
+      λk l N hk hl, ennreal.edist_le_two_mul_half_pow hk hl Im_succm,
     -- it follows from the previous bound that `z` is a Cauchy sequence
-    have : cauchy_seq z :=
-      cauchy_seq_iff_le_tendsto_0.2 ⟨λn:ℕ, 2 * B n, ⟨Iz, B2_lim⟩⟩,
+    have : cauchy_seq z := ennreal.cauchy_seq_of_edist_le_half_pow Im_succm,
     -- therefore, it converges
     rcases cauchy_seq_tendsto_of_complete this with ⟨y, y_lim⟩,
     -- the limit point `y` will be the desired point, in `t0` and close to our initial point `x`.
@@ -224,8 +167,8 @@ begin
         `s n` are close, this point is itself well approximated by a point `y` in `s n`,
         as required. -/
     assume n x xt0,
-    have : x ∈ closure (⋃m≥n, (s m).val) := by apply mem_Inter.1 xt0 n,
-    rcases mem_closure_iff'.1 this (B n) (Bpos n) with ⟨z, hz, Dxz⟩,
+    have : x ∈ closure (⋃m≥n, (s m).val), by apply mem_Inter.1 xt0 n,
+    rcases mem_closure_iff'.1 this (B n) (ennreal.half_pow_pos n) with ⟨z, hz, Dxz⟩,
     -- z : α,  Dxz : edist x z < B n,
     simp only [exists_prop, set.mem_Union] at hz,
     rcases hz with ⟨m, ⟨m_ge_n, hm⟩⟩,
@@ -241,7 +184,10 @@ begin
   have main : ∀n:ℕ, edist (s n) t ≤ 2 * B n := λn, Hausdorff_edist_le_of_mem_edist (I1 n) (I2 n),
   -- from this, the convergence of `s n` to `t0` follows.
   refine (tendsto_at_top _).2 (λε εpos, _),
-  have Z := (tendsto_orderable.1 B2_lim).2 ε εpos,
+  have : tendsto (λn, 2 * ennreal.half_pow n) at_top (nhds (2 * 0)) :=
+    ennreal.tendsto_mul_right ennreal.half_pow_tendsto_zero (by simp),
+  rw mul_zero at this,
+  have Z := (tendsto_orderable.1 this).2 ε εpos,
   simp only [filter.mem_at_top_sets, set.mem_set_of_eq] at Z,
   rcases Z with ⟨N, hN⟩,  --  ∀ (b : ℕ), b ≥ N → ε > 2 * B b
   exact ⟨N, λn hn, lt_of_le_of_lt (main n) (hN n hn)⟩
@@ -273,10 +219,10 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
     { rintros x ⟨hx1, ⟨y, yu, hy⟩⟩,
       exact ⟨y, yu, le_of_lt hy⟩ }},
   -- introduce the set F of all subsets of `s` (seen as members of `closeds α`).
-  -- it is finite
   let F := {f : closeds α | f.val ⊆ s},
-  existsi F,
+  use F,
   split,
+  -- `F` is finite
   { apply @finite_of_finite_image _ _ F (λf, f.val),
     { simp [subtype.val_injective] },
     { refine finite_subset (finite_subsets_of_finite fs) (λb, _),
@@ -381,7 +327,7 @@ instance nonempty_compacts.compact_space [compact_space α] : compact_space (non
 end⟩
 
 /-- In a second countable space, the type of nonempty compact subsets is second countable -/
-instance nonempty_compacts.second_countable_topology [second_countable_topology α] : 
+instance nonempty_compacts.second_countable_topology [second_countable_topology α] :
   second_countable_topology (nonempty_compacts α) :=
 begin
   haveI : separable_space (nonempty_compacts α) :=

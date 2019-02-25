@@ -5,8 +5,8 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Finite sets.
 -/
-import data.set.lattice data.nat.basic logic.function
-       data.fintype
+import logic.function
+import data.nat.basic data.fintype data.set.lattice data.set.function
 
 open set lattice function
 
@@ -219,10 +219,18 @@ begin
   simp [I _, (injective_of_partial_inv I).eq_iff]
 end
 
-theorem finite_of_finite_image {s : set α} {f : α → β}
-  (I : injective f) : finite (f '' s) → finite s | ⟨hs⟩ :=
-by haveI := classical.dec_eq β; exact
-⟨fintype_of_fintype_image _ (partial_inv_of_injective I)⟩
+theorem finite_of_finite_image_on {s : set α} {f : α → β} (hi : set.inj_on f s) :
+  finite (f '' s) → finite s | ⟨h⟩ :=
+⟨@fintype.of_injective _ _ h (λa:s, ⟨f a.1, mem_image_of_mem f a.2⟩) $
+  assume a b eq, subtype.eq $ hi a.2 b.2 $ subtype.ext.1 eq⟩
+
+theorem finite_image_iff_on {s : set α} {f : α → β} (hi : inj_on f s) :
+  finite (f '' s) ↔ finite s :=
+⟨finite_of_finite_image_on hi, finite_image _⟩
+
+theorem finite_of_finite_image {s : set α} {f : α → β} (I : injective f) :
+  finite (f '' s) → finite s :=
+finite_of_finite_image_on (assume _ _ _ _ eq, I eq)
 
 theorem finite_preimage {s : set β} {f : α → β}
   (I : injective f) (h : finite s) : finite (f ⁻¹' s) :=

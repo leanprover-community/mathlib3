@@ -51,13 +51,11 @@ if ( 'dependencies' in leanpkg and
                 f = open(a.name,'wb')
                 f.write(r.data)
                 f.close()
-                os.chdir(cd)
+            os.chdir(cd)
 
-                # extract archive
-                ar = tarfile.open(os.path.join(mathlib_dir, a.name))
-                ar.extractall('_target/deps/mathlib')
-            else:
-                print('no olean archive available')
+            # extract archive
+            ar = tarfile.open(os.path.join(mathlib_dir, a.name))
+            ar.extractall('_target/deps/mathlib')
         else:
             print('no nightly archive found')
     else:

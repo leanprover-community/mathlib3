@@ -10,6 +10,51 @@ import data.finsupp linear_algebra.basic algebra.ring data.polynomial data.equiv
 open set function finsupp lattice
 
 universes u v w x
+
+-- <TODO: move to appropriate places>
+
+def equiv.fin_zero : fin 0 ≃ pempty.{u} :=
+equiv.equiv_pempty fin.elim0
+
+def equiv.fin_succ (n : ℕ) : fin n.succ ≃ option (fin n) :=
+⟨λ x, fin.cases none some x, λ x, option.rec_on x 0 fin.succ,
+  λ x, fin.cases rfl (λ i, show (option.rec_on (fin.cases none some (fin.succ i) : option (fin n))
+    0 fin.succ : fin n.succ) = _, by rw fin.cases_succ) x,
+  by rintro ⟨none | x⟩; [refl, exact fin.cases_succ _]⟩
+
+/-- Like `infer_instance`, but works for Sort 0. -/
+@[reducible] def infer_instance' {α : Sort u} [i : α] : α := i
+
+class is_integral_domain (R : Type u) [comm_ring R] : Prop :=
+(eq_zero_or_eq_zero_of_mul_eq_zero : ∀ x y : R, x * y = 0 → x = 0 ∨ y = 0)
+(zero_ne_one : (0 : R) ≠ 1)
+
+instance integral_domain.to_is_integral_domain (R : Type u) [integral_domain R] : is_integral_domain R :=
+{ .. (infer_instance : integral_domain R) }
+
+def is_integral_domain.to_integral_domain (R : Type u) [comm_ring R] [is_integral_domain R] : integral_domain R :=
+{ .. (infer_instance : comm_ring R),
+  .. (infer_instance' : is_integral_domain R) }
+
+namespace ring_equiv
+
+protected def is_integral_domain {A : Type u} [comm_ring A]
+  (B : Type v) [integral_domain B] (e : A ≃r B) : is_integral_domain A :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ x y hxy, have e.1 x * e.1 y = 0,
+    by rw [← is_ring_hom.map_mul e.1, hxy, is_ring_hom.map_zero e.1],
+    (mul_eq_zero.1 this).imp (λ hx, e.1.bijective.1 $ by rw [hx, is_ring_hom.map_zero e.1])
+      (λ hy, e.1.bijective.1 $ by rw [hy, is_ring_hom.map_zero e.1]),
+  zero_ne_one := λ H, @zero_ne_one B _ $ by rw [← is_ring_hom.map_zero e.1, ← is_ring_hom.map_one e.1, H] }
+
+protected def integral_domain {A : Type u} [comm_ring A]
+  (B : Type v) [integral_domain B] (e : A ≃r B) : integral_domain A :=
+{ .. (infer_instance : comm_ring A),
+  .. ring_equiv.is_integral_domain B e }
+
+end ring_equiv
+
+-- </TODO: move to appropriate places>
+
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
 /-- Multivariate polynomial, where `σ` is the index set of the variables and
@@ -381,36 +426,60 @@ end map
 end comm_ring
 
 section rename
-variables {α} [comm_semiring α] [decidable_eq α] [decidable_eq β] [decidable_eq γ] [decidable_eq δ]
+variables (α) [comm_semiring α] [decidable_eq α] [decidable_eq β] [decidable_eq γ] [decidable_eq δ]
 
 def rename (f : β → γ) : mv_polynomial β α → mv_polynomial γ α :=
 eval₂ C (X ∘ f)
 
-instance rename.is_semiring_hom (f : β → γ) :
-  is_semiring_hom (rename f : mv_polynomial β α → mv_polynomial γ α) :=
+instance rename.is_semiring_hom (f : β → γ) : is_semiring_hom (rename α f) :=
 by unfold rename; apply_instance
 
-@[simp] lemma rename_C (f : β → γ) (a : α) : rename f (C a) = C a :=
+variables {α}
+
+@[simp] lemma rename_C (f : β → γ) (a : α) : rename α f (C a) = C a :=
 eval₂_C _ _ _
 
-@[simp] lemma rename_X (f : β → γ) (b : β) : rename f (X b : mv_polynomial β α) = X (f b) :=
+@[simp] lemma rename_X (f : β → γ) (b : β) : rename α f (X b : mv_polynomial β α) = X (f b) :=
 eval₂_X _ _ _
 
-lemma rename_rename (f : β → γ) (g : γ → δ) (p : mv_polynomial β α) :
-  rename g (rename f p) = rename (g ∘ f) p :=
-show rename g (eval₂ C (X ∘ f) p) = _,
-  by simp only [eval₂_comp_left (rename g) C (X ∘ f) p, (∘), rename_C, rename_X]; refl
+@[simp] lemma rename_zero (f : β → γ) : rename α f 0 = 0 :=
+is_semiring_hom.map_zero _
 
-lemma rename_id (p : mv_polynomial β α) : rename id p = p :=
+@[simp] lemma rename_one (f : β → γ) : rename α f 1 = 1 :=
+is_semiring_hom.map_one _
+
+@[simp] lemma rename_add (f : β → γ) (p q) : rename α f (p + q) = rename α f p + rename α f q :=
+is_semiring_hom.map_add _
+
+@[simp] lemma rename_mul (f : β → γ) (p q) : rename α f (p * q) = rename α f p * rename α f q :=
+is_semiring_hom.map_mul _
+
+lemma rename_rename (f : β → γ) (g : γ → δ) (p : mv_polynomial β α) :
+  rename α g (rename α f p) = rename α (g ∘ f) p :=
+show rename α g (eval₂ C (X ∘ f) p) = _,
+  by simp only [eval₂_comp_left (rename α g) C (X ∘ f) p, (∘), rename_C, rename_X]; refl
+
+lemma rename_id (p : mv_polynomial β α) : rename α id p = p :=
 eval₂_eta p
+
+lemma eval₂_rename {f : β → γ} (hf : injective f) (x : mv_polynomial β α) :
+  (eval₂ C (λ y, option.cases_on (partial_inv f y) 0 X) (rename α f x) : mv_polynomial β α) = x :=
+is_id (eval₂ C (λ y, option.cases_on (partial_inv f y) 0 X : γ → mv_polynomial β α) ∘ λ x, rename α f x)
+  (is_semiring_hom.comp _ _)
+  (λ x, by rw [comp_apply, rename_C, eval₂_C])
+  (λ n, by rw [comp_apply, rename_X, eval₂_X, partial_inv_left hf])
+  x
+
+lemma injective_rename {f : β → γ} (hf : injective f) : injective (rename α f) :=
+injective_of_left_inverse $ eval₂_rename hf
 
 end rename
 
 instance rename.is_ring_hom
   {α} [comm_ring α] [decidable_eq α] [decidable_eq β] [decidable_eq γ] (f : β → γ) :
-  is_ring_hom (rename f : mv_polynomial β α → mv_polynomial γ α) :=
-@is_ring_hom.of_semiring (mv_polynomial β α) (mv_polynomial γ α) _ _ (rename f)
-  (rename.is_semiring_hom f)
+  is_ring_hom (rename α f) :=
+@is_ring_hom.of_semiring (mv_polynomial β α) (mv_polynomial γ α) _ _ (rename α f)
+  (rename.is_semiring_hom α f)
 
 section equiv
 
@@ -420,7 +489,7 @@ variables [decidable_eq β] [decidable_eq γ] [decidable_eq δ]
 def pempty_ring_equiv : mv_polynomial pempty α ≃r α :=
 { to_fun    := mv_polynomial.eval₂ id $ pempty.elim,
   inv_fun   := C,
-  left_inv  := is_id _ (by apply_instance) (assume a, by rw [eval₂_C]; refl) (assume a, a.elim),
+  left_inv  := is_id _ (is_semiring_hom.comp _ _) (assume a, by rw [eval₂_C]; refl) (assume a, a.elim),
   right_inv := λ r, eval₂_C _ _ _,
   hom       := eval₂.is_ring_hom _ _ }
 
@@ -430,9 +499,11 @@ def punit_ring_equiv : mv_polynomial punit α ≃r polynomial α :=
   left_inv  :=
     begin
       refine is_id _ _ _ _,
-      apply is_semiring_hom.comp (eval₂ polynomial.C (λu:punit, polynomial.X)) _; apply_instance,
-      { assume a, rw [eval₂_C, polynomial.eval₂_C] },
-      { rintros ⟨⟩, rw [eval₂_X, polynomial.eval₂_X] }
+      { apply is_semiring_hom.comp (eval₂ polynomial.C (λu:punit, polynomial.X)) _,
+        { apply_instance }, { apply_instance },
+        convert polynomial.eval₂.is_semiring_hom _ _, apply_instance },
+      { assume a, rw eval₂_C, convert polynomial.eval₂_C _ _, convert mv_polynomial.is_semiring_hom },
+      { rintros ⟨⟩, rw eval₂_X, convert polynomial.eval₂_X _ _, convert mv_polynomial.is_semiring_hom }
     end,
   right_inv := assume p, polynomial.induction_on p
     (assume a, by rw [polynomial.eval₂_C, mv_polynomial.eval₂_C])
@@ -443,8 +514,8 @@ def punit_ring_equiv : mv_polynomial punit α ≃r polynomial α :=
   hom       := eval₂.is_ring_hom _ _ }
 
 def ring_equiv_of_equiv (e : β ≃ γ) : mv_polynomial β α ≃r mv_polynomial γ α :=
-{ to_fun    := rename e,
-  inv_fun   := rename e.symm,
+{ to_fun    := rename α e,
+  inv_fun   := rename α e.symm,
   left_inv  := λ p, by simp only [rename_rename, (∘), e.inverse_apply_apply]; exact rename_id p,
   right_inv := λ p, by simp only [rename_rename, (∘), e.apply_inverse_apply]; exact rename_id p,
   hom       := rename.is_ring_hom e }
@@ -565,6 +636,70 @@ def option_equiv_right : mv_polynomial (option β) α ≃r mv_polynomial β (pol
 ring_equiv_congr (mv_polynomial unit α) (punit_ring_equiv α)
 
 end
+
+instance is_integral_domain_fin (R : Type u) [integral_domain R] [decidable_eq R] (n : ℕ) :
+  is_integral_domain (mv_polynomial (fin n) R) :=
+nat.rec_on n (ring_equiv.is_integral_domain R $
+  (ring_equiv_of_equiv R equiv.fin_zero).trans $
+  mv_polynomial.pempty_ring_equiv R) $ λ n ih,
+@@ring_equiv.is_integral_domain _ (polynomial $ mv_polynomial (fin n) R)
+  (@@polynomial.integral_domain (@@is_integral_domain.to_integral_domain _ _ ih) _) $
+by convert (ring_equiv_of_equiv R $ equiv.fin_succ n).trans
+  (option_equiv_left R (fin n))
+
+instance integral_domain_fin (R : Type u) [integral_domain R] [decidable_eq R] (n : ℕ) :
+  integral_domain (mv_polynomial (fin n) R) :=
+@@is_integral_domain.to_integral_domain _ _ $ mv_polynomial.is_integral_domain_fin R n
+
+instance is_integral_domain_fintype (R : Type u) [integral_domain R] [decidable_eq R]
+  (σ : Type v) [fintype σ] [decidable_eq σ] :
+  is_integral_domain (mv_polynomial σ R) :=
+trunc.induction_on (fintype.equiv_fin σ) $ λ e,
+@@ring_equiv.is_integral_domain _ (mv_polynomial (fin $ fintype.card σ) R)
+  (mv_polynomial.integral_domain_fin _ _)
+  (ring_equiv_of_equiv R e)
+
+instance integral_domain_fintype (R : Type u) [integral_domain R] [decidable_eq R]
+  (σ : Type v) [fintype σ] [decidable_eq σ] :
+  integral_domain (mv_polynomial σ R) :=
+@@is_integral_domain.to_integral_domain _ _ $ mv_polynomial.is_integral_domain_fintype R σ
+
+variables {α}
+/-- Where should I move this to? Why do I need subtype.decidable_eq explicitly? -/
+theorem exists_finite_map (p : mv_polynomial β α) :
+  ∃ s : finset β, p ∈ set.range (rename α (subtype.val : (↑s : set β) → β)) :=
+induction_on p (λ x, ⟨∅, C x, by rw rename_C⟩)
+  (λ p q ⟨s, ps, ihs⟩ ⟨t, pt, iht⟩, ⟨s ∪ t, (rename α (subtype.map id $ finset.subset_union_left s t) ps +
+    @@rename α _ _ _ subtype.decidable_eq _ (subtype.map id $ finset.subset_union_right s t : (↑t : set β) → (↑(s ∪ t) : set β)) pt),
+    by rw [rename_add, rename_rename, rename_rename, ← ihs, ← iht]; refl⟩)
+  (λ p n ⟨s, ps, ih⟩, ⟨insert n s, @@rename α _ _ _ subtype.decidable_eq _
+      (subtype.map id $ finset.subset_insert n s : (↑s : set β) → (↑(insert n s) : set β)) ps *
+    X ⟨n, finset.mem_insert_self n s⟩,
+    by rw [rename_mul, rename_X, rename_rename, ← ih]; refl⟩)
+
+protected theorem is_integral_domain (R : Type u) [integral_domain R] [decidable_eq R] (σ : Type v) [decidable_eq σ] :
+  is_integral_domain (mv_polynomial σ R) :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ p q hpq,
+    let ⟨s, ps, ihs⟩ := exists_finite_map p, ⟨t, pt, iht⟩ := exists_finite_map q in
+    have rename R (subtype.map id $ finset.subset_union_left s t : (↑s : set σ) → (↑(s ∪ t) : set σ)) ps *
+      rename R (subtype.map id $ finset.subset_union_right s t) pt = 0,
+      from injective_rename subtype.val_injective $
+      by rw [rename_mul, rename_rename, rename_rename, rename_zero, ← hpq, ← ihs, ← iht]; refl,
+    have his : injective (subtype.map id $ finset.subset_union_left s t : (↑s : set σ) → (↑(s ∪ t) : set σ)),
+      from λ ⟨x, hx⟩ ⟨y, hy⟩ H, subtype.eq (subtype.mk.inj H),
+    have hit : injective (subtype.map id $ finset.subset_union_right s t : (↑t : set σ) → (↑(s ∪ t) : set σ)),
+      from λ ⟨x, hx⟩ ⟨y, hy⟩ H, subtype.eq (subtype.mk.inj H),
+    by letI := mv_polynomial.integral_domain_fintype R (↑(s ∪ t) : set σ); exact
+    (mul_eq_zero.1 this).imp
+      (λ h, have ps = 0, from injective_rename his $ by rw [h, rename_zero], by rw [← ihs, this, rename_zero])
+      (λ h, have pt = 0, from injective_rename hit $ by rw [h, rename_zero], by rw [← iht, this, rename_zero]),
+  zero_ne_one := λ H, have eval₂ id (λ s, (0:R)) (0 : mv_polynomial σ R) =
+      eval₂ id (λ s, (0:R)) (1 : mv_polynomial σ R), by rw H,
+    @zero_ne_one R _ $ by rwa [eval₂_zero, eval₂_one] at this }
+
+instance (R : Type u) [integral_domain R] [decidable_eq R] (σ : Type v) [decidable_eq σ] :
+  integral_domain (mv_polynomial σ R) :=
+@@is_integral_domain.to_integral_domain _ _ (mv_polynomial.is_integral_domain R σ)
 
 end equiv
 

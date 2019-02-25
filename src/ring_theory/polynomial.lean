@@ -287,15 +287,10 @@ theorem is_noetherian_ring_mv_polynomial_fin {n : ℕ} [is_noetherian_ring R] :
 begin
   induction n with n ih,
   { exact is_noetherian_ring_of_ring_equiv R
-      ((mv_polynomial.pempty_ring_equiv R).symm.trans $ mv_polynomial.ring_equiv_of_equiv _
-        ⟨pempty.elim, fin.elim0, λ x, pempty.elim x, λ x, fin.elim0 x⟩) },
+      ((mv_polynomial.pempty_ring_equiv R).symm.trans $ mv_polynomial.ring_equiv_of_equiv R equiv.fin_zero.symm) },
   exact @is_noetherian_ring_of_ring_equiv (polynomial (mv_polynomial (fin n) R)) _
     (mv_polynomial (fin (n+1)) R) _
-    ((mv_polynomial.option_equiv_left _ _).symm.trans (mv_polynomial.ring_equiv_of_equiv _
-      ⟨λ x, option.rec_on x 0 fin.succ, λ x, fin.cases none some x,
-      by rintro ⟨none | x⟩; [refl, exact fin.cases_succ _],
-      λ x, fin.cases rfl (λ i, show (option.rec_on (fin.cases none some (fin.succ i) : option (fin n))
-        0 fin.succ : fin n.succ) = _, by rw fin.cases_succ) x⟩))
+    ((mv_polynomial.option_equiv_left _ _).symm.trans (mv_polynomial.ring_equiv_of_equiv R (equiv.fin_succ n).symm))
     (@@is_noetherian_ring_polynomial _ _ ih)
 end
 

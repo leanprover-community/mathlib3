@@ -395,4 +395,25 @@ lemma card_range_of_injective [fintype α] {f : α → β} (hf : injective f)
 eq.symm $ fintype.card_congr (@equiv.of_bijective  _ _ (λ a : α, show range f, from ⟨f a, a, rfl⟩)
   ⟨λ x y h, hf $ subtype.mk.inj h, λ b, let ⟨a, ha⟩ := b.2 in ⟨a, by simp *⟩⟩)
 
+lemma finite.exists_maximal_wrt [partial_order β]
+  (f : α → β) (s : set α) (h : set.finite s) : s ≠ ∅ → ∃a∈s, ∀a'∈s, f a ≤ f a' → f a = f a' :=
+begin
+  classical,
+  refine h.induction_on _ _,
+  { assume h, contradiction },
+  assume a s his _ ih _,
+  by_cases s = ∅,
+  { use a, simp [h] },
+  rcases ih h with ⟨b, hb, ih⟩,
+  by_cases f b ≤ f a,
+  { refine ⟨a, set.mem_insert _ _, assume c hc hac, le_antisymm hac _⟩,
+    rcases set.mem_insert_iff.1 hc with rfl | hcs,
+    { refl },
+    { rwa [← ih c hcs (le_trans h hac)] } },
+  { refine ⟨b, set.mem_insert_of_mem _ hb, assume c hc hbc, _⟩,
+    rcases set.mem_insert_iff.1 hc with rfl | hcs,
+    { exact (h hbc).elim },
+    { exact ih c hcs hbc } }
+end
+
 end set

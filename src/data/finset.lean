@@ -1767,6 +1767,21 @@ end Ico
 
 end finset
 
+namespace multiset
+
+lemma count_sup [decidable_eq β] (s : finset α) (f : α → multiset β) (b : β) :
+  count b (s.sup f) = s.sup (λa, count b (f a)) :=
+begin
+  letI := classical.dec_eq α,
+  refine s.induction _ _,
+  { exact count_zero _ },
+  { assume i s his ih,
+    rw [finset.sup_insert, sup_eq_union, count_union, finset.sup_insert, ih],
+    refl }
+end
+
+end multiset
+
 namespace list
 variable [decidable_eq α]
 

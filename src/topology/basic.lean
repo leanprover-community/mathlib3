@@ -1984,9 +1984,11 @@ instance : has_subset (opens α) :=
 instance : has_mem α (opens α) :=
 { mem := λ a U, a ∈ U.val }
 
-instance : has_inter (opens α) := ⟨λ U V, ⟨U.1 ∩ V.1, is_open_inter U.2 V.2⟩⟩
+instance : has_inter (opens α) :=
+⟨λ U V, ⟨U.1 ∩ V.1, is_open_inter _ _ _ U.2 V.2⟩⟩
 
-instance : has_union (opens α) := ⟨λ U V, ⟨U.1 ∪ V.1, is_open_union U.2 V.2⟩⟩
+instance : has_union (opens α) :=
+⟨λ U V, ⟨U.1 ∪ V.1, is_open_union U.2 V.2⟩⟩
 
 instance : has_emptyc (opens α) := ⟨⟨∅, is_open_empty⟩⟩
 

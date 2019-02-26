@@ -163,6 +163,18 @@ have (s₂ \ s₁).prod f = (s₂ \ s₁).prod (λx, 1),
   from prod_congr rfl $ by simpa only [mem_sdiff, and_imp],
 by rw [←prod_sdiff h]; simp only [this, prod_const_one, one_mul]
 
+@[to_additive sum_filter]
+lemma prod_filter (p : α → Prop) [decidable_pred p] (f : α → β) :
+  (s.filter p).prod f = s.prod (λa, if p a then f a else 1) :=
+calc (s.filter p).prod f = (s.filter p).prod (λa, if p a then f a else 1) :
+    prod_congr rfl (assume a h, by rw [if_pos (mem_filter.1 h).2])
+  ... = s.prod (λa, if p a then f a else 1) :
+    begin
+      refine prod_subset (filter_subset s) (assume x hs h, _),
+      rw [mem_filter, not_and] at h,
+      exact if_neg (h hs)
+    end
+
 @[to_additive finset.sum_eq_single]
 lemma prod_eq_single {s : finset α} {f : α → β} (a : α)
   (h₀ : ∀b∈s, b ≠ a → f b = 1) (h₁ : a ∉ s → f a = 1) : s.prod f = f a :=

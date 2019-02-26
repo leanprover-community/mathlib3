@@ -1984,6 +1984,12 @@ instance : has_subset (opens α) :=
 instance : has_mem α (opens α) :=
 { mem := λ a U, a ∈ U.val }
 
+instance : has_inter (opens X) := ⟨λ U V, ⟨U.1 ∩ V.1, is_open_inter U.2 V.2⟩⟩
+
+instance : has_union (opens X) := ⟨λ U V, ⟨U.1 ∪ V.1, is_open_union U.2 V.2⟩⟩
+
+instance : has_emptyc (opens X) := ⟨⟨∅, is_open_empty⟩⟩
+
 namespace opens
 
 @[extensionality] lemma ext {U V : opens α} (h : U.val = V.val) : U = V := subtype.ext.mpr h

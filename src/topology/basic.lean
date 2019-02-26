@@ -1976,6 +1976,8 @@ variable (α)
 def opens := {s : set α // _root_.is_open s}
 variable {α}
 
+namespace opens
+
 instance : has_coe (opens α) (set α) := { coe := subtype.val }
 
 instance : has_subset (opens α) :=
@@ -1983,16 +1985,6 @@ instance : has_subset (opens α) :=
 
 instance : has_mem α (opens α) :=
 { mem := λ a U, a ∈ U.val }
-
-instance : has_inter (opens α) :=
-⟨λ U V, ⟨U.1 ∩ V.1, is_open_inter _ _ _ U.2 V.2⟩⟩
-
-instance : has_union (opens α) :=
-⟨λ U V, ⟨U.1 ∪ V.1, is_open_union U.2 V.2⟩⟩
-
-instance : has_emptyc (opens α) := ⟨⟨∅, is_open_empty⟩⟩
-
-namespace opens
 
 @[extensionality] lemma ext {U V : opens α} (h : U.val = V.val) : U = V := subtype.ext.mpr h
 
@@ -2037,6 +2029,14 @@ begin
   refl,
 end
 /- Inf -/ _ rfl
+
+instance : has_inter (opens α) := ⟨λ U V, U ⊓ V⟩
+instance : has_union (opens α) := ⟨λ U V, U ⊔ V⟩
+instance : has_emptyc (opens α) := ⟨⊥⟩
+
+@[simp] lemma inter_eq (U V : opens α) : U ∩ V = U ⊓ V := rfl
+@[simp] lemma union_eq (U V : opens α) : U ∪ V = U ⊔ V := rfl
+@[simp] lemma empty_eq : (∅ : opens α) = ⊥ := rfl
 
 @[simp] lemma Sup_s {Us : set (opens α)} : (Sup Us).val = ⋃₀ (subtype.val '' Us) :=
 begin

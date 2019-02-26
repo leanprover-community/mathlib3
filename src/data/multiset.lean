@@ -452,6 +452,8 @@ theorem le_iff_exists_add {s t : multiset α} : s ≤ t ↔ ∃ u, t = s + u :=
 instance : canonically_ordered_monoid (multiset α) :=
 { lt_of_add_lt_add_left := @lt_of_add_lt_add_left _ _,
   le_iff_exists_add     := @le_iff_exists_add _,
+  bot                   := 0,
+  bot_le                := multiset.zero_le,
   ..multiset.ordered_cancel_comm_monoid }
 
 /- repeat -/

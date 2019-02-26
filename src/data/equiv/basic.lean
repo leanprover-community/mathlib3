@@ -517,6 +517,12 @@ def pi_equiv_subtype_sigma (ι : Type*) (π : ι → Type*) :
   assume ⟨f, hf⟩, subtype.eq $ funext $ assume i, sigma.eq (hf i).symm $
     eq_of_heq $ rec_heq_of_heq _ $ rec_heq_of_heq _ $ heq.refl _⟩
 
+def subtype_pi_equiv_pi {α : Sort u} {β : α → Sort v} {p : Πa, β a → Prop} :
+  {f : Πa, β a // ∀a, p a (f a) } ≃ Πa, { b : β a // p a b } :=
+⟨λf a, ⟨f.1 a, f.2 a⟩, λf, ⟨λa, (f a).1, λa, (f a).2⟩,
+  by rintro ⟨f, h⟩; refl,
+  by rintro f; funext a; exact subtype.eq' rfl⟩
+
 end
 
 section

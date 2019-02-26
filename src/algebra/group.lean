@@ -905,9 +905,7 @@ instance : has_div (with_zero α) := ⟨with_zero.div⟩
 
 lemma div_coe (a b : α) : (a : with_zero α) / b = (a * b⁻¹ : α) := rfl
 
-lemma one_div : ∀ (x : with_zero α), 1 / x = x⁻¹
-| 0       := rfl
-| (a : α) := show _ * _ = _, by simp
+lemma one_div (x : with_zero α) : 1 / x = x⁻¹ := one_mul _
 
 @[simp] lemma div_one : ∀ (x : with_zero α), x / 1 = x
 | 0       := rfl

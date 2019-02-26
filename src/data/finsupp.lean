@@ -578,6 +578,11 @@ instance [has_add α] [semiring β] : has_mul (α →₀ β) :=
 lemma mul_def [has_add α] [semiring β] {f g : α →₀ β} :
   f * g = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, single (a₁ + a₂) (b₁ * b₂)) := rfl
 
+lemma support_mul [has_add α] [semiring β] (a b : α →₀ β) :
+  (a * b).support ⊆ a.support.bind (λa₁, b.support.bind $ λa₂, {a₁ + a₂}) :=
+subset.trans support_sum $ bind_mono $ assume a₁ _,
+  subset.trans support_sum $ bind_mono $ assume a₂ _, support_single_subset
+
 /-- The unit of the multiplication is `single 0 1`, i.e. the function
   that is 1 at 0 and zero elsewhere. -/
 instance [has_zero α] [has_zero β] [has_one β] : has_one (α →₀ β) :=

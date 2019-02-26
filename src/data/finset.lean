@@ -1588,8 +1588,11 @@ by simp only [disjoint_left, mem_union, or_imp_distrib, forall_and_distrib]
   disjoint s (t ∪ u) ↔ disjoint s t ∧ disjoint s u :=
 by simp only [disjoint_right, mem_union, or_imp_distrib, forall_and_distrib]
 
-lemma disjoint_sdiff {s t : finset α} : disjoint (t \ s) s :=
+lemma sdiff_disjoint {s t : finset α} : disjoint (t \ s) s :=
 disjoint_left.2 $ assume a ha, (mem_sdiff.1 ha).2
+
+lemma disjoint_sdiff {s t : finset α} : disjoint s (t \ s) :=
+sdiff_disjoint.symm
 
 lemma disjoint_bind_left {ι : Type*} [decidable_eq ι]
   (s : finset ι) (f : ι → finset α) (t : finset α) :

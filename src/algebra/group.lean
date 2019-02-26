@@ -836,7 +836,7 @@ instance [has_one α] : zero_ne_one_class (with_zero α) :=
   ..with_zero.has_zero,
   ..with_zero.has_one }
 
-@[simp] lemma coe_one [has_one α] : ((1 : α) : with_zero α) = 1 := rfl
+lemma coe_one [has_one α] : ((1 : α) : with_zero α) = 1 := rfl
 
 instance [has_mul α] : mul_zero_class (with_zero α) :=
 { mul       := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a * b)),
@@ -893,7 +893,7 @@ section group
 variables [group α]
 
 @[simp] lemma inv_one : (1 : with_zero α)⁻¹ = 1 :=
-show ((1⁻¹ : α) : with_zero α) = 1, by simp
+show ((1⁻¹ : α) : with_zero α) = 1, by simp [coe_one]
 
 definition with_zero.div (x y : with_zero α) : with_zero α :=
 x * y⁻¹
@@ -913,11 +913,11 @@ lemma one_div (x : with_zero α) : 1 / x = x⁻¹ := one_mul _
 
 @[simp] lemma mul_right_inv : ∀  (x : with_zero α) (h : x ≠ 0), x * x⁻¹ = 1
 | 0       h := false.elim $ h rfl
-| (a : α) h := by simp
+| (a : α) h := by simp [coe_one]
 
 @[simp] lemma mul_left_inv : ∀  (x : with_zero α) (h : x ≠ 0), x⁻¹ * x = 1
 | 0       h := false.elim $ h rfl
-| (a : α) h := by simp
+| (a : α) h := by simp [coe_one]
 
 @[simp] lemma mul_inv_rev : ∀ (x y : with_zero α), (x * y)⁻¹ = y⁻¹ * x⁻¹
 | 0       0       := rfl

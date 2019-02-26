@@ -1585,6 +1585,21 @@ by simp only [disjoint_right, mem_union, or_imp_distrib, forall_and_distrib]
 lemma disjoint_sdiff {s t : finset α} : disjoint (t \ s) s :=
 disjoint_left.2 $ assume a ha, (mem_sdiff.1 ha).2
 
+lemma disjoint_bind_left {ι : Type*} [decidable_eq ι]
+  (s : finset ι) (f : ι → finset α) (t : finset α) :
+  disjoint (s.bind f) t ↔ (∀i∈s, disjoint (f i) t) :=
+begin
+  refine s.induction _ _,
+  { simp only [forall_mem_empty_iff, bind_empty, disjoint_empty_left] },
+  { assume i s his ih,
+    simp only [disjoint_union_left, bind_insert, his, forall_mem_insert, ih] }
+end
+
+lemma disjoint_bind_right {ι : Type*} [decidable_eq ι]
+  (s : finset α) (t : finset ι) (f : ι → finset α) :
+  disjoint s (t.bind f) ↔ (∀i∈t, disjoint s (f i)) :=
+by simpa only [disjoint.comm] using disjoint_bind_left t f s
+
 @[simp] theorem card_disjoint_union {s t : finset α} :
     disjoint s t → card (s ∪ t) = card s + card t :=
 finset.induction_on s (λ _, by simp only [empty_union, card_empty, zero_add]) $ λ a s ha ih H,

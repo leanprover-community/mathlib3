@@ -12,7 +12,8 @@ noncomputable theory
 local attribute [instance, priority 0] classical.prop_decidable
 
 universes u v w
-variables {α : Type u} {β γ δ  ε: Type v}
+variables {α : Type u} {β γ δ ε : Type v}
+variables {ι : Type u} {φ : ι → Type u} -- relax these universe constraints
 
 section vector_space
 variables [discrete_field α] [add_comm_group β] [vector_space α β]
@@ -221,6 +222,36 @@ lemma dim_add_le_dim_add_dim (s t : submodule α β) :
 by rw [← dim_sup_add_dim_inf_eq]; exact le_add_right (le_refl _)
 
 end
+
+section fintype
+variable [fintype ι]
+variables [∀i, add_comm_group (φ i)] [∀i, vector_space α (φ i)]
+
+open linear_map
+
+lemma dim_pi : vector_space.dim α (Πi, φ i) = cardinal.sum (λi, vector_space.dim α (φ i)) :=
+begin
+  choose b hb using assume i, exists_is_basis α (φ i),
+  have : is_basis α (⋃i, std_basis α φ i '' b i) := pi.is_basis_std_basis b hb,
+  rw [← this.mk_eq_dim, cardinal.mk_Union_eq_sum_mk],
+  { congr, funext i,
+    rw [cardinal.mk_eq_of_injective, (hb i).mk_eq_dim],
+    exact ker_eq_bot.1 (ker_std_basis α _ i) },
+  rintros i j h b ⟨⟨x, hx, rfl⟩, ⟨y, hy, eq⟩⟩,
+  replace eq := congr_fun eq i,
+  rw [std_basis_same, std_basis_ne α φ _ _ h] at eq,
+  subst eq,
+  exact (zero_not_mem_of_linear_independent (zero_ne_one : (0:α) ≠ 1) (hb i).1 hx).elim
+end
+
+lemma dim_fun {β : Type u} [add_comm_group β] [vector_space α β] :
+  vector_space.dim α (ι → β) = fintype.card ι * vector_space.dim α β :=
+by rw [dim_pi, cardinal.sum_const, cardinal.fintype_card]
+
+lemma dim_fun' : vector_space.dim α (ι → α) = fintype.card ι :=
+by rw [dim_fun, dim_of_field, mul_one]
+
+end fintype
 
 def rank (f : β →ₗ[α] γ) : cardinal := dim α f.range
 

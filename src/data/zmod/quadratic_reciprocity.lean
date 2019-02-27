@@ -41,6 +41,16 @@ lemma euler_criterion {a : zmodp p hp} (ha : a ≠ 0) :
 λ h, let ⟨y, hy⟩ := (euler_criterion_units hp).2 (show units.mk0 _ ha ^ (p / 2) = 1, by simpa [units.ext_iff]) in
   ⟨y, by simpa [units.ext_iff] using hy⟩⟩
 
+lemma neg_one_is_square_iff_mod_four_ne_three :
+  (∃ y : zmodp p hp, y ^ 2 = -1) ↔ p % 4 ≠ 3 :=
+if hp2 : p = 2 then by subst hp2; exact dec_trivial
+else begin
+  rw [euler_criterion, neg_one_pow_eq_pow_mod_two,
+    ← mod_mul_right_div_self, show 2 * 2 = 4, from rfl],
+
+
+end
+
 lemma pow_div_two_eq_neg_one_or_one {a : zmodp p hp} (ha : a ≠ 0) : a ^ (p / 2) = 1 ∨ a ^ (p / 2) = -1 :=
 hp.eq_two_or_odd.elim
   (λ h, by revert a ha; subst h; exact dec_trivial)

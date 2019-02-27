@@ -121,6 +121,11 @@ instance is_group_hom_quotient_lift  :
 attribute [to_additive quotient_add_group.is_add_group_hom_quotient_lift] quotient_group.is_group_hom_quotient_lift
 attribute [to_additive quotient_add_group.is_add_group_hom_quotient_lift.equations._eqn_1] quotient_group.is_group_hom_quotient_lift.equations._eqn_1
 
+@[to_additive quotient_add_group.map_is_add_group_hom]
+instance map_is_group_hom (M : set H) [normal_subgroup M]
+(f : G → H) [is_group_hom f] (h : N ⊆ f ⁻¹' M) : is_group_hom (map N M f h) :=
+quotient_group.is_group_hom_quotient_lift _ _ _
+
 open function is_group_hom
 
 @[to_additive quotient_add_group.injective_ker_lift]

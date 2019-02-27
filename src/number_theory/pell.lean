@@ -9,7 +9,7 @@ import data.int.basic data.nat.prime data.nat.modeq
   These have the form `a + b √d` where `a b : ℤ`. The components
   are called `re` and `im` by analogy to the negative `d` case,
   but of course both parts are real here since `d` is nonnegative. -/
-structure zsqrtd (d : ℕ) := mk {} ::
+structure zsqrtd (d : ℤ) := mk {} ::
 (re : ℤ)
 (im : ℤ)
 
@@ -17,7 +17,7 @@ prefix `ℤ√`:100 := zsqrtd
 
 namespace zsqrtd
 section
-  parameters {d : ℕ}
+  parameters {d : ℤ}
 
   instance : decidable_eq ℤ√d :=
   by tactic.mk_dec_eq_instance
@@ -229,6 +229,11 @@ section
 
   theorem nonnegg_cases_left {c d} {b : ℕ} {a : ℤ} (h : Π x : ℕ, a = -x → sq_le x d b c) : nonnegg c d a b :=
   cast nonnegg_comm (nonnegg_cases_right h)
+
+end
+
+section
+parameter {d : ℕ}
 
   /-- Nonnegativity of an element of `ℤ√d`. -/
   def nonneg : ℤ√d → Prop | ⟨a, b⟩ := nonnegg d 1 a b

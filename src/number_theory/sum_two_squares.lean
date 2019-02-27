@@ -135,8 +135,7 @@ instance : euclidean_domain ℤ[i] :=
   r_well_founded := measure_wf norm,
   remainder_lt := gaussian_int.remainder_lt,
   mul_left_not_lt := λ a b hb0, not_lt_of_ge $
-    by rw [norm_mul];
-      exact le_mul_of_ge_one_right' (nat.zero_le _) (norm_pos.2 hb0) }
+    by rw [norm_mul]; exact le_mul_of_ge_one_right' (nat.zero_le _) (norm_pos.2 hb0) }
 
 #eval (⟨49, -17⟩ : ℤ[i]) % ⟨12, 11⟩
 

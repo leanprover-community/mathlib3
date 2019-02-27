@@ -695,8 +695,8 @@ do tp ← infer_type pf,
 match tp with
 | `(%%a < %%b) := to_expr ``(@cast (%%a < %%b) (%%a + 1 ≤ %%b) (by refl) %%pf)
 | `(%%a > %%b) := to_expr ``(@cast (%%a > %%b) (%%a ≥ %%b + 1) (by refl) %%pf)
-| `(¬ %%a ≤ %%b) := to_expr ``(@cast (¬ %%a ≤ %%b) (%%a ≥ %%b + 1) (by refl) %%pf)
-| `(¬ %%a ≥ %%b) := to_expr ``(@cast (¬ %%a ≥ %%b) (%%a + 1 ≤ %%b) (by refl) %%pf)
+| `(¬ %%a ≤ %%b) := to_expr ``(@cast (%%a > %%b) (%%a ≥ %%b + 1) (by refl) (lt_of_not_ge %%pf))
+| `(¬ %%a ≥ %%b) := to_expr ``(@cast (%%a < %%b) (%%a + 1 ≤ %%b) (by refl) (le_of_not_ge %%pf))
 | _ := fail "mk_non_strict_int_pf_of_strict_int_pf failed: proof is not an inequality"
 end
 

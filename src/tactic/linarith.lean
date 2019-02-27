@@ -8,7 +8,6 @@ A tactic for discharging linear arithmetic goals using Fourier-Motzkin eliminati
 `linarith` is (in principle) complete for ℚ and ℝ. It is not complete for non-dense orders, i.e. ℤ.
 
 @TODO: investigate storing comparisons in a list instead of a set, for possible efficiency gains
-@TODO: alternative discharger to `ring`
 @TODO: delay proofs of denominator normalization and nat casting until after contradiction is found
 -/
 

@@ -1,2 +1,4 @@
 #!/bin/sh
-cache_olean.py --fetch
+source ~/.profile
+cache-olean --fetch
+update-mathlib

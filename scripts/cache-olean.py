@@ -6,13 +6,13 @@ import tarfile
 from git import Repo
 
 def make_cache():
-    fn = os.path.join(cache_dir, 'olean-' + repo.commit().hexsha + ".bz2")
+    global fn
     if os.path.exists(fn):
         os.remove(fn)
 
     ar = tarfile.open(fn, 'w|bz2')
-    ar.add('src/')
-    ar.add('test/')
+    if os.path.exists('src/'): ar.add('src/')
+    if os.path.exists('test/'): ar.add('test/')
     ar.close()
 
 while not os.path.isdir('.git') and not os.getcwd() == '/':
@@ -30,10 +30,15 @@ if repo.bare:
 if not os.path.exists(cache_dir):
     os.makedirs(cache_dir)
 
+fn = os.path.join(cache_dir, 'olean-' + repo.commit().hexsha + ".bz2")
+
 if sys.argv[1:] == ['--fetch']:
-    ar = tarfile.open(fn, 'r')
-    ar.extractall(root_dir)
-    ar.close()
+    if os.path.exists(fn):
+        ar = tarfile.open(fn, 'r')
+        ar.extractall(root_dir)
+        ar.close()
+    else:
+        print('no cache found')
 elif sys.argv[1:] == ['--build']:
     if os.system('leanpkg build') == 0:
         make_cache()

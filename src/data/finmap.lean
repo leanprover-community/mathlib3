@@ -83,6 +83,10 @@ by rcases s with ⟨⟨a⟩, h⟩; exact H ⟨a, h⟩
   (s₁ s₂ : finmap β) (H : ∀ (a₁ a₂ : alist β), C ⟦a₁⟧ ⟦a₂⟧) : C s₁ s₂ :=
 induction_on s₁ $ λ l₁, induction_on s₂ $ λ l₂, H l₁ l₂
 
+@[elab_as_eliminator] theorem induction_on₃ {C : finmap β →  finmap β → finmap β → Prop}
+  (s₁ s₂ s₃ : finmap β) (H : ∀ (a₁ a₂ a₃ : alist β), C ⟦a₁⟧ ⟦a₂⟧ ⟦a₃⟧) : C s₁ s₂ s₃ :=
+induction_on₂ s₁ s₂ $ λ l₁ l₂, induction_on s₃ $ λ l₃, H l₁ l₂ l₃
+
 @[extensionality] theorem ext : ∀ {s t : finmap β}, s.entries = t.entries → s = t
 | ⟨l₁, h₁⟩ ⟨l₂, h₂⟩ H := by congr'
 
@@ -270,5 +274,9 @@ induction_on₂ s₁ s₂ $ λ s₁ s₂, lookup_union_right
 @[simp] theorem mem_lookup_union {a} {b : β a} {s₁ s₂ : finmap β} :
   b ∈ lookup a (s₁ ∪ s₂) ↔ b ∈ lookup a s₁ ∨ a ∉ s₁ ∧ b ∈ lookup a s₂ :=
 induction_on₂ s₁ s₂ $ λ s₁ s₂, mem_lookup_union
+
+theorem mem_lookup_union_middle {a} {b : β a} {s₁ s₂ s₃ : finmap β} :
+  b ∈ lookup a (s₁ ∪ s₃) → a ∉ s₂ → b ∈ lookup a (s₁ ∪ s₂ ∪ s₃) :=
+induction_on₃ s₁ s₂ s₃ $ λ s₁ s₂ s₃, mem_lookup_union_middle
 
 end finmap

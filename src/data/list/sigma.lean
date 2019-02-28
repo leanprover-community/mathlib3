@@ -557,4 +557,13 @@ begin
     { let h₂ := @ih (kerase a' l₂), simp [h₁] at h₂, simp [h₁, h₂] } }
 end
 
+theorem mem_lookup_kunion_middle {a} {b : β a} {l₁ l₂ l₃ : list (sigma β)}
+  (h₁ : b ∈ lookup a (kunion l₁ l₃)) (h₂ : a ∉ keys l₂) :
+  b ∈ lookup a (kunion (kunion l₁ l₂) l₃) :=
+match mem_lookup_kunion.mp h₁ with
+| or.inl h := mem_lookup_kunion.mpr (or.inl (mem_lookup_kunion.mpr (or.inl h)))
+| or.inr h := mem_lookup_kunion.mpr $
+  or.inr ⟨mt mem_keys_kunion.mp (not_or_distrib.mpr ⟨h.1, h₂⟩), h.2⟩
+end
+
 end list

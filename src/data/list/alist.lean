@@ -224,4 +224,8 @@ lookup_kunion_right
   b ∈ lookup a (s₁ ∪ s₂) ↔ b ∈ lookup a s₁ ∨ a ∉ s₁ ∧ b ∈ lookup a s₂ :=
 mem_lookup_kunion
 
+theorem mem_lookup_union_middle {a} {b : β a} {s₁ s₂ s₃ : alist β} :
+  b ∈ lookup a (s₁ ∪ s₃) → a ∉ s₂ → b ∈ lookup a (s₁ ∪ s₂ ∪ s₃) :=
+mem_lookup_kunion_middle
+
 end alist

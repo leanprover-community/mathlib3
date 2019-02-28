@@ -6,10 +6,16 @@ Author: Scott Morrison
 Case bashing on `fin n`, for explicit numerals `n`.
 -/
 import data.fin
+import data.finset
 
 namespace tactic
 open lean.parser
 open interactive interactive.types expr
+
+meta def finset_cases_at (e : expr) : tactic unit :=
+do `(%%x ∈ %%A) ← infer_type e,
+   `(finset %%α) ← infer_type A,
+   eval_expr (list ℕ) `(@finset.sort ℕ (<) _ _ _ _ %%A) >>= trace
 
 meta def fin_cases_at (e : expr) : tactic unit :=
 do `(fin %%n) ← infer_type e,
@@ -32,6 +38,11 @@ do `(fin %%n) ← infer_type e,
 namespace interactive
 private meta def hyp := tk "*" *> return none <|> some <$> ident
 
+meta def finset_cases : parse hyp → tactic unit
+| none := do ctx ← local_context,
+             ctx.mfirst finset_cases_at <|> fail "No explicit `x ∈ A`, where `A : finset ℕ` hypotheses."
+| (some n) := do h ← get_local n, finset_cases_at h
+
 /--
 `fin_cases h` performs case analysis on a hypothesis `h : fin n`, where `n` is an explicit natural
 number. `fin_cases *` performs case analysis on all suitable hypotheses.
@@ -53,3 +64,9 @@ meta def fin_cases : parse hyp → tactic unit
 end interactive
 
 end tactic
+
+open finset
+example (x : ℕ) (h : x ∈ Ico 2 4) : x = 2 ∨ x = 3 :=
+begin
+  finset_cases h,
+end

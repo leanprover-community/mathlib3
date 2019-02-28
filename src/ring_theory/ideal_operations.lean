@@ -321,6 +321,201 @@ or.cases_on (lt_or_eq_of_le $ nat.le_of_lt_succ H)
        ... = radical I : inf_idem)
   (λ H, H ▸ (pow_one I).symm ▸ rfl)) H
 
+theorem is_prime.mul_le {I J P : ideal R} (hp : is_prime P) :
+  I * J ≤ P ↔ I ≤ P ∨ J ≤ P :=
+⟨λ h, classical.or_iff_not_imp_left.2 $ λ hip j hj, let ⟨i, hi, hip⟩ := set.not_subset.1 hip in
+  (hp.2 $ h $ mul_mem_mul hi hj).resolve_left hip,
+λ h, or.cases_on h (le_trans $ le_trans mul_le_inf inf_le_left)
+  (le_trans $ le_trans mul_le_inf inf_le_right)⟩
+
+theorem is_prime.inf_le {I J P : ideal R} (hp : is_prime P) :
+  I ⊓ J ≤ P ↔ I ≤ P ∨ J ≤ P :=
+⟨λ h, hp.mul_le.1 $ le_trans mul_le_inf h,
+λ h, or.cases_on h (le_trans inf_le_left) (le_trans inf_le_right)⟩
+
+variables {ι : Type v}
+
+theorem prod_le_inf {s : finset ι} {f : ι → ideal R} : s.prod f ≤ s.inf f :=
+begin
+  classical, refine s.induction_on _ _,
+  { rw [finset.prod_empty, finset.inf_empty], exact le_refl _ },
+ intros a s has ih,
+  rw [finset.prod_insert has, finset.inf_insert],
+  exact le_trans mul_le_inf (inf_le_inf (le_refl _) ih)
+end
+
+theorem is_prime.prod_le {s : finset ι} {f : ι → ideal R} {P : ideal R} (hp : is_prime P) :
+  s.prod f ≤ P ↔ ∃ i ∈ s, f i ≤ P :=
+suffices s.prod f ≤ P → ∃ i ∈ s, f i ≤ P,
+  from ⟨this, λ ⟨i, his, hip⟩, le_trans prod_le_inf $ le_trans (finset.inf_le his) hip⟩,
+begin
+  classical, refine s.induction_on _ _,
+  { intro h, rw finset.prod_empty at h,
+    exact (hp.1 $ eq_top_iff.2 h).elim },
+  intros a s has ih h,
+  rw [finset.prod_insert has, hp.mul_le] at h, cases h,
+  { exact ⟨a, finset.mem_insert_self a s, h⟩ },
+  rcases ih h with ⟨i, hi, ih⟩,
+  exact ⟨i, finset.mem_insert_of_mem hi, ih⟩
+end
+
+theorem is_prime.inf_le' {s : finset ι} {f : ι → ideal R} {P : ideal R} (hp : is_prime P) :
+  s.inf f ≤ P ↔ ∃ i ∈ s, f i ≤ P :=
+⟨λ h, hp.prod_le.1 $ le_trans prod_le_inf h, λ ⟨i, his, hip⟩, le_trans (finset.inf_le his) hip⟩
+
+theorem subset_union {I J K : ideal R} : (I : set R) ⊆ J ∪ K ↔ I ≤ J ∨ I ≤ K :=
+⟨λ h, classical.or_iff_not_imp_left.2 $ λ hij s hsi,
+  let ⟨r, hri, hrj⟩ := set.not_subset.1 hij in classical.by_contradiction $ λ hsk,
+  or.cases_on (h $ I.add_mem hri hsi)
+    (λ hj, hrj $ add_sub_cancel r s ▸ J.sub_mem hj ((h hsi).resolve_right hsk))
+    (λ hk, hsk $ add_sub_cancel' r s ▸ K.sub_mem hk ((h hri).resolve_left hrj)),
+λ h, or.cases_on h (λ h, set.subset.trans h $ set.subset_union_left J K)
+  (λ h, set.subset.trans h $ set.subset_union_right J K)⟩
+
+theorem subset_union_prime' {s : finset ι} {f : ι → ideal R} {a b : ι}
+  (hp : ∀ i ∈ s, is_prime (f i)) {I : ideal R} :
+  (I : set R) ⊆ f a ∪ f b ∪ (⋃ i ∈ (↑s : set ι), f i) ↔ I ≤ f a ∨ I ≤ f b ∨ ∃ i ∈ s, I ≤ f i :=
+suffices (I : set R) ⊆ f a ∪ f b ∪ (⋃ i ∈ (↑s : set ι), f i) → I ≤ f a ∨ I ≤ f b ∨ ∃ i ∈ s, I ≤ f i,
+  from ⟨this, λ h, or.cases_on h (λ h, set.subset.trans h $ set.subset.trans
+      (set.subset_union_left _ _) (set.subset_union_left _ _)) $
+    λ h, or.cases_on h (λ h, set.subset.trans h $ set.subset.trans
+      (set.subset_union_right _ _) (set.subset_union_left _ _)) $
+    λ ⟨i, his, hi⟩, by refine (set.subset.trans hi $ set.subset.trans _ $ set.subset_union_right _ _);
+      exact set.subset_bUnion_of_mem (finset.mem_coe.2 his)⟩,
+begin
+  generalize hn : s.card = n, unfreezeI, intros h,
+  induction n with n ih generalizing a b s,
+  { rw finset.card_eq_zero at hn, subst hn,
+    rw [finset.coe_empty, set.bUnion_empty, set.union_empty] at h,
+    simp only [exists_prop, finset.not_mem_empty, false_and, exists_false, or_false],
+    rwa subset_union at h },
+  classical, replace hn := finset.card_eq_succ.1 hn,
+  rcases hn with ⟨i, t, hit, rfl, hn⟩, simp only [finset.forall_mem_insert] at hp,
+  by_cases Ht : ∃ j ∈ t, f j ≤ f i,
+  { rcases Ht with ⟨j, hjt, hfji⟩,
+    have : ∃ u, j ∉ u ∧ insert j u = t,
+    { exact ⟨t.erase j, finset.not_mem_erase j t, finset.insert_erase hjt⟩ },
+    rcases this with ⟨u, hju, rfl⟩,
+    have : ∀ k ∈ insert i u, is_prime (f k),
+    { simp only [finset.forall_mem_insert] at hp ⊢, exact ⟨hp.1, hp.2.2⟩ },
+    specialize @ih a b (insert i u) this _ _,
+    { refine ih.imp id (or.imp id (exists_imp_exists $ λ k, _)), simp only [exists_prop],
+      exact and.imp (λ hk, finset.insert_subset_insert i (finset.subset_insert j u) hk) id },
+    { rwa finset.card_insert_of_not_mem at hn ⊢,
+      { exact mt (λ hiu, finset.mem_insert_of_mem hiu) hit }, { exact hju } },
+    { change (f j : set R) ≤ f i at hfji,
+      rw finset.coe_insert at h ⊢, rw finset.coe_insert at h,
+      simp only [set.bUnion_insert] at h ⊢,
+      rwa [← set.union_assoc ↑(f i), set.union_eq_self_of_subset_right hfji] at h } },
+  by_cases Ha : f a ≤ f i,
+  { specialize @ih i b t hp.2 hn _,
+    { rcases ih with ih | ih | ⟨k, hkt, ih⟩,
+      { right, right, exact ⟨i, finset.mem_insert_self i t, ih⟩ },
+      { right, left, exact ih },
+      { right, right, exact ⟨k, finset.mem_insert_of_mem hkt, ih⟩ } },
+    { rwa [finset.coe_insert, set.bUnion_insert, set.union_left_comm,
+          ← set.union_assoc, ← set.union_assoc, set.union_eq_self_of_subset_right Ha] at h } },
+  by_cases Hb : f b ≤ f i,
+  { specialize @ih a i t hp.2 hn _,
+    { rcases ih with ih | ih | ⟨k, hkt, ih⟩,
+      { left, exact ih },
+      { right, right, exact ⟨i, finset.mem_insert_self i t, ih⟩ },
+      { right, right, exact ⟨k, finset.mem_insert_of_mem hkt, ih⟩ } },
+    { rwa [finset.coe_insert, set.bUnion_insert, ← set.union_assoc,
+        set.union_assoc ↑(f a), set.union_eq_self_of_subset_left Hb] at h } },
+  by_cases Hi : I ≤ f i,
+  { right, right, exact ⟨i, finset.mem_insert_self i t, Hi⟩ },
+  have : ¬I ⊓ f a ⊓ f b ⊓ t.inf f ≤ f i,
+  { simp only [hp.1.inf_le, hp.1.inf_le', not_or_distrib], exact ⟨⟨⟨Hi, Ha⟩, Hb⟩, Ht⟩ },
+  replace this := set.not_subset.1 this, rcases this with ⟨r, ⟨⟨⟨hrI, hra⟩, hrb⟩, hr⟩, hri⟩,
+  by_cases HI : (I : set R) ⊆ ↑(f a) ∪ ↑(f b) ∪ ⋃ i ∈ (↑t : set ι), f i,
+  { specialize ih hp.2 hn HI, rcases ih with ih | ih | ⟨k, hkt, ih⟩,
+    { left, exact ih }, { right, left, exact ih },
+    { right, right, exact ⟨k, finset.mem_insert_of_mem hkt, ih⟩ } },
+  exfalso, replace HI := set.not_subset.1 HI, rcases HI with ⟨s, hsI, hs⟩,
+  rw [finset.coe_insert, set.bUnion_insert] at h,
+  have hsi : s ∈ f i,
+  { rcases h hsI with ⟨hsa | hsb⟩ | hsi | hst,
+    { exact (hs $ or.inl $ or.inl hsa).elim },
+    { exact (hs $ or.inl $ or.inr hsb).elim },
+    { exact hsi },
+    { exact (hs $ or.inr hst).elim } },
+  rcases h (I.add_mem hrI hsI) with ⟨ha | hb⟩ | hi | ht,
+  { exact hs (or.inl $ or.inl $ add_sub_cancel' r s ▸ (f a).sub_mem ha hra) },
+  { exact hs (or.inl $ or.inr $ add_sub_cancel' r s ▸ (f b).sub_mem hb hrb) },
+  { exact hri (add_sub_cancel r s ▸ (f i).sub_mem hi hsi) },
+  { rw set.mem_bUnion_iff at ht, rcases ht with ⟨j, hjt, hj⟩,
+    simp only [finset.inf_eq_infi, submodule.mem_coe, submodule.mem_infi] at hr,
+    exact hs (or.inr $ set.mem_bUnion hjt $ add_sub_cancel' r s ▸ (f j).sub_mem hj $ hr j hjt) }
+end
+
+/-- Prime avoidance. Atiyah-Macdonald 1.11, Eisenbud 3.3, Stacks 10.14.2 (00DS), Matsumura Ex.1.6. -/
+theorem subset_union_prime {s : finset ι} {f : ι → ideal R} (a b : ι)
+  (hp : ∀ i ∈ s, i ≠ a → i ≠ b → is_prime (f i)) {I : ideal R} :
+  (I : set R) ⊆ (⋃ i ∈ (↑s : set ι), f i) ↔ ∃ i ∈ s, I ≤ f i :=
+begin
+  classical, by_cases ha : a ∈ s,
+  { have : ∃ t, a ∉ t ∧ insert a t = s := ⟨s.erase a, finset.not_mem_erase a s, finset.insert_erase ha⟩,
+    rcases this with ⟨t, hat, rfl⟩,
+    by_cases hb : b ∈ t,
+    { have : ∃ u, b ∉ u ∧ insert b u = t :=
+        ⟨t.erase b, finset.not_mem_erase b t, finset.insert_erase hb⟩,
+      rcases this with ⟨u, hbu, rfl⟩,
+      rw [finset.coe_insert, finset.coe_insert, set.bUnion_insert, set.bUnion_insert,
+          ← set.union_assoc, subset_union_prime', bex_def, bex_def,
+          finset.exists_mem_insert, finset.exists_mem_insert],
+      { intros i hi, apply hp i (finset.mem_insert_of_mem $ finset.mem_insert_of_mem hi),
+        { rintro rfl, exact hat (finset.mem_insert_of_mem hi) },
+        { rintro rfl, exact hbu hi } } },
+    { by_cases ht : t = ∅,
+      { subst ht,
+        rw [finset.coe_insert, finset.coe_empty, set.bUnion_insert, set.bUnion_empty, set.union_empty,
+            bex_def, finset.exists_mem_insert, finset.exists_mem_empty_iff, or_false], refl },
+      rcases finset.exists_mem_of_ne_empty ht with ⟨i, hit⟩,
+      have : ∃ u, i ∉ u ∧ insert i u = t := ⟨t.erase i, finset.not_mem_erase i t, finset.insert_erase hit⟩,
+      rcases this with ⟨u, hiu, rfl⟩,
+      rw [finset.coe_insert, finset.coe_insert, set.bUnion_insert, set.bUnion_insert,
+          ← set.union_assoc, subset_union_prime', bex_def, bex_def,
+          finset.exists_mem_insert, finset.exists_mem_insert],
+      { rintros j hj, apply hp j (finset.mem_insert_of_mem $ finset.mem_insert_of_mem hj),
+        { rintro rfl, exact hat (finset.mem_insert_of_mem hj) },
+        { rintro rfl, exact hb (finset.mem_insert_of_mem hj) } } } },
+  by_cases hb : b ∈ s,
+  { have : ∃ t, b ∉ t ∧ insert b t = s := ⟨s.erase b, finset.not_mem_erase b s, finset.insert_erase hb⟩,
+    rcases this with ⟨t, hbt, rfl⟩,
+    by_cases ht : t = ∅,
+    { subst ht,
+      rw [finset.coe_insert, finset.coe_empty, set.bUnion_insert, set.bUnion_empty, set.union_empty,
+         bex_def, finset.exists_mem_insert, finset.exists_mem_empty_iff, or_false], refl },
+    rcases finset.exists_mem_of_ne_empty ht with ⟨i, hit⟩,
+    have : ∃ u, i ∉ u ∧ insert i u = t := ⟨t.erase i, finset.not_mem_erase i t, finset.insert_erase hit⟩,
+    rcases this with ⟨u, hiu, rfl⟩,
+    rw [finset.coe_insert, finset.coe_insert, set.bUnion_insert, set.bUnion_insert,
+        ← set.union_assoc, subset_union_prime', bex_def, bex_def,
+        finset.exists_mem_insert, finset.exists_mem_insert],
+    { rintros j hj, apply hp j (finset.mem_insert_of_mem $ finset.mem_insert_of_mem hj),
+      { rintro rfl, exact ha (finset.mem_insert_of_mem $ finset.mem_insert_of_mem hj) },
+      { rintro rfl, exact hbt (finset.mem_insert_of_mem hj) } } },
+  by_cases hs : s = ∅,
+  { subst hs, rw [finset.coe_empty, set.bUnion_empty, bex_def,
+        finset.exists_mem_empty_iff, set.subset_empty_iff, iff_false],
+    exact set.ne_empty_of_mem I.zero_mem },
+  rcases finset.exists_mem_of_ne_empty hs with ⟨i, his⟩,
+  have : ∃ t, i ∉ t ∧ insert i t = s := ⟨s.erase i, finset.not_mem_erase i s, finset.insert_erase his⟩,
+  rcases this with ⟨t, hit, rfl⟩,
+  by_cases ht : t = ∅,
+  { subst ht, rw [finset.coe_insert, finset.coe_empty, set.bUnion_insert, set.bUnion_empty, set.union_empty,
+        bex_def, finset.exists_mem_insert, finset.exists_mem_empty_iff, or_false], refl },
+  rcases finset.exists_mem_of_ne_empty ht with ⟨j, hjt⟩,
+  have : ∃ u, j ∉ u ∧ insert j u = t := ⟨t.erase j, finset.not_mem_erase j t, finset.insert_erase hjt⟩,
+  rcases this with ⟨u, hju, rfl⟩,
+  rw [finset.coe_insert, finset.coe_insert, set.bUnion_insert, set.bUnion_insert, ← set.union_assoc,
+      subset_union_prime', bex_def, bex_def, finset.exists_mem_insert, finset.exists_mem_insert],
+  intros k hku, apply hp k (finset.mem_insert_of_mem $ finset.mem_insert_of_mem hku),
+  { rintro rfl, exact ha (finset.mem_insert_of_mem $ finset.mem_insert_of_mem hku) },
+  { rintro rfl, exact hb (finset.mem_insert_of_mem $ finset.mem_insert_of_mem hku) }
+end
+
 end mul_and_radical
 
 section map_and_comap

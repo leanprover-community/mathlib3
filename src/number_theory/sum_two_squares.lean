@@ -1,13 +1,13 @@
 import number_theory.pell data.zmod.quadratic_reciprocity
-import algebra.archimedean data.complex.basic
+import algebra.archimedean data.complex.basic ring_theory.principal_ideal_domain
 
 open zsqrtd complex
 
 @[reducible] def gaussian_int : Type := zsqrtd (-1)
 
-namespace gaussian_int
-
 local notation `ℤ[i]` := gaussian_int
+
+namespace gaussian_int
 
 instance : has_repr ℤ[i] := ⟨λ x, "⟨" ++ repr x.re ++ ", " ++ repr x.im ++ "⟩"⟩
 
@@ -63,6 +63,27 @@ by rw [← @nat.cast_inj ℝ _ _ _]; simp
 
 lemma norm_pos {x : ℤ[i]} : 0 < norm x ↔ x ≠ 0 :=
 by rw [nat.pos_iff_ne_zero', ne.def, norm_eq_zero]
+
+lemma norm_nat_cast (x : ℕ) : norm x = x ^ 2 :=
+by simp [norm, nat.pow_two]
+
+@[simp] lemma norm_one : norm 1 = 1 := rfl
+@[simp] lemma norm_zero : norm 0 = 0 := rfl
+
+lemma norm_eq_one_iff {x : ℤ[i]} : norm x = 1 ↔ is_unit x :=
+⟨λ h, is_unit_iff_dvd_one.2 begin
+  rw [norm, nat.add_eq_one_iff, ← int.coe_nat_inj', ← int.coe_nat_inj',
+    ← int.coe_nat_inj', ← int.coe_nat_inj', int.nat_abs_mul_self,
+    int.nat_abs_mul_self] at h,
+  cases h,
+  { exact ⟨⟨0, -x.im⟩, by simp [zsqrtd.ext, *] at *⟩ },
+  { exact ⟨⟨x.re, 0⟩, by simp [zsqrtd.ext, *] at *⟩ }
+end,
+λ h, let ⟨y, hy⟩ := is_unit_iff_dvd_one.1 h in begin
+  have := congr_arg norm hy,
+  rw [norm_one, norm_mul, eq_comm, nat.mul_eq_one_iff] at this,
+  exact this.1
+end⟩
 
 protected def div (x y : ℤ[i]) : ℤ[i] :=
 ⟨round ((x * conj y).re / norm y : ℚ),
@@ -123,6 +144,10 @@ have (y : ℂ) ≠ 0, by rwa [ne.def, ← to_complex_zero, to_complex_inj],
     (norm_sq_pos.2 this)
   ... = norm y : by simp
 
+lemma norm_le_norm_mul_left (x : ℤ[i]) {y : ℤ[i]} (hy : y ≠ 0) :
+  norm x ≤ norm (x * y) :=
+by rw norm_mul; exact le_mul_of_ge_one_right' (nat.zero_le _) (norm_pos.2 hy)
+
 instance : nonzero_comm_ring ℤ[i] :=
 { zero_ne_one := dec_trivial, ..gaussian_int.comm_ring }
 
@@ -134,9 +159,54 @@ instance : euclidean_domain ℤ[i] :=
   r := λ x y, norm x < norm y,
   r_well_founded := measure_wf norm,
   remainder_lt := gaussian_int.remainder_lt,
-  mul_left_not_lt := λ a b hb0, not_lt_of_ge $
-    by rw [norm_mul]; exact le_mul_of_ge_one_right' (nat.zero_le _) (norm_pos.2 hb0) }
-
-#eval (⟨49, -17⟩ : ℤ[i]) % ⟨12, 11⟩
+  mul_left_not_lt := λ a b hb0, not_lt_of_ge $ norm_le_norm_mul_left a hb0 }
 
 end gaussian_int
+
+open gaussian_int principal_ideal_domain
+
+lemma sum_two_squares {p : ℕ} (hp : p.prime) (hp1 : p % 4 = 1) :
+  ∃ a b : ℕ, a ^ 2 + b ^ 2 = p :=
+let ⟨k, hk⟩ := (zmodp.neg_one_is_square_iff_mod_four_ne_three hp).2 $
+  by rw hp1; exact dec_trivial in
+have hpk : p ∣ k.val ^ 2 + 1,
+  by rw [← zmodp.eq_zero_iff_dvd_nat hp]; simp *,
+have hkmul : (k.val ^ 2 + 1 : ℤ[i]) = ⟨k.val, 1⟩ * ⟨k.val, -1⟩ :=
+  by simp [pow_two, zsqrtd.ext],
+have hpne1 : p ≠ 1, from (ne_of_lt (hp.gt_one)).symm,
+have hkltp : 1 + k.val * k.val < p * p,
+  from calc 1 + k.val * k.val ≤ k.val + k.val * k.val :
+    add_le_add_right (nat.pos_of_ne_zero
+      (λ hk0, by clear_aux_decl; simp [*, nat.pow_succ] at *)) _
+  ... = k.val * (k.val + 1) : by simp [mul_add]
+  ... < p * p : mul_lt_mul k.2 k.2 (nat.succ_pos _) (nat.zero_le _),
+have hpk₁ : ¬ (p : ℤ[i]) ∣ ⟨k.val, -1⟩ :=
+  λ ⟨x, hx⟩, lt_irrefl (p * x : ℤ[i]).norm $
+    calc norm (p * x) = norm ⟨k.val, -1⟩ : congr_arg _ hx.symm
+    ... < norm p : by simpa [norm] using hkltp
+    ... ≤ norm (p * x) : norm_le_norm_mul_left _
+      (λ hx0, (show (-1 : ℤ) ≠ 0, from dec_trivial) $
+         by simpa [hx0] using congr_arg zsqrtd.im hx),
+have hpk₂ : ¬ (p : ℤ[i]) ∣ ⟨k.val, 1⟩ :=
+  λ ⟨x, hx⟩, lt_irrefl (p * x : ℤ[i]).norm $
+    calc norm (p * x) = norm ⟨k.val, 1⟩ : congr_arg _ hx.symm
+    ... < norm p : by simpa [norm] using hkltp
+    ... ≤ norm (p * x) : norm_le_norm_mul_left _
+      (λ hx0, (show (-1 : ℤ) ≠ 0, from dec_trivial) $
+         by simpa [hx0] using congr_arg zsqrtd.im hx),
+have hpu : ¬ is_unit (p : ℤ[i]), from mt norm_eq_one_iff.2 $
+  by rw [norm_nat_cast, nat.pow_two, nat.mul_eq_one_iff];
+  exact λ h, (ne_of_lt hp.gt_one).symm h.1,
+let ⟨y, hy⟩ := hpk in
+have hpi : ¬ irreducible (p : ℤ[i]),
+  from mt irreducible_iff_prime.1
+    (λ hp, by have := hp.2.2 ⟨k.val, 1⟩ ⟨k.val, -1⟩
+        ⟨y, by rw [← hkmul, ← nat.cast_mul p, ← hy]; simp⟩;
+      clear_aux_decl; tauto),
+have hab : ∃ a b, (p : ℤ[i]) = a * b ∧ ¬ is_unit a ∧ ¬ is_unit b,
+  by simpa [irreducible, hpu, classical.not_forall, not_or_distrib] using hpi,
+let ⟨a, b, hpab, hau, hbu⟩ := hab in
+have hnap : norm a = p, from ((mul_eq_prime_pow_two hp
+    (mt norm_eq_one_iff.1 hau) (mt norm_eq_one_iff.1 hbu)).1 $
+  by rw [← norm_mul, ← hpab, norm_nat_cast]).1,
+⟨a.re.nat_abs, a.im.nat_abs, by simpa [norm, nat.pow_two] using hnap⟩

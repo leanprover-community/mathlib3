@@ -294,7 +294,7 @@ have is_prime m, from ⟨by rintro rfl; rw radical_top at hrm; exact hrm trivial
     refine m.add_mem (m.mul_mem_right hpm) (m.add_mem (m.mul_mem_left hfm) (m.mul_mem_left hxym))⟩⟩,
 hrm $ this.radical.symm ▸ (Inf_le ⟨him, this⟩ : Inf {J : ideal R | I ≤ J ∧ is_prime J} ≤ m) hr
 
-instance : semiring (ideal R) :=
+instance : comm_semiring (ideal R) :=
 { mul := (*),
   mul_assoc := ideal.mul_assoc,
   zero_mul := bot_mul,
@@ -304,6 +304,7 @@ instance : semiring (ideal R) :=
   mul_one := mul_top,
   left_distrib := mul_sup,
   right_distrib := sup_mul,
+  mul_comm := ideal.mul_comm,
   .. submodule.add_comm_monoid }
 
 @[simp] lemma add_eq_sup : I + J = I ⊔ J := rfl

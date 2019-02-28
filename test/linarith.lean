@@ -99,6 +99,14 @@ by linarith
 example (a b i : ℕ) (h1 :  ¬ a < i) (h2 : b < i) (h3 : a ≤ b) : false :=
 by linarith
 
+example (n : ℕ) (h1 : n ≤ 3) (h2 : n > 2) : n = 3 := by linarith
+
+example (z : ℕ) (hz : ¬ z ≥ 2) (h2 : ¬ z + 1 ≤ 2) : false :=
+by linarith
+
+example (z : ℕ) (hz : ¬ z ≥ 2) : z + 1 ≤ 2 :=
+by linarith
+
 example (a b c : ℚ) (h1 : 1 / a < b) (h2 : b < c) : 1 / a < c :=
 by linarith
 

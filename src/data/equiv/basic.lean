@@ -483,12 +483,22 @@ def unique_congr (e : α ≃ β) : unique α ≃ unique β :=
 section
 open subtype
 
-def subtype_equiv_of_subtype {p : α → Prop} : Π (e : α ≃ β), {a : α // p a} ≃ {b : β // p (e.symm b)}
-| ⟨f, g, l, r⟩ :=
-  ⟨subtype.map f $ assume a ha, show p (g (f a)), by rwa [l],
-   subtype.map g $ assume a ha, ha,
-   assume p, by simp [map_comp, l.comp_eq_id]; rw [map_id]; refl,
-   assume p, by simp [map_comp, r.comp_eq_id]; rw [map_id]; refl⟩
+def subtype_congr {p : α → Prop} {q : β → Prop}
+  (e : α ≃ β) (h : ∀ a, p a ↔ q (e a)) : {a : α // p a} ≃ {b : β // q b} :=
+⟨λ x, ⟨e x.1, (h _).1 x.2⟩,
+ λ y, ⟨e.symm y.1, (h _).2 (by simp; exact y.2)⟩,
+ λ ⟨x, h⟩, subtype.eq' $ by simp,
+ λ ⟨y, h⟩, subtype.eq' $ by simp⟩
+
+def subtype_equiv_of_subtype' {p : α → Prop} (e : α ≃ β) :
+  {a : α // p a} ≃ {b : β // p (e.symm b)} :=
+subtype_congr e $ by simp
+
+def subtype_congr_prop {α : Type*} {p q : α → Prop} (h : p = q) : subtype p ≃ subtype q :=
+subtype_congr (equiv.refl α) (assume a, h ▸ iff.refl _)
+
+def set_congr {α : Type*} {s t : set α} (h : s = t) : s ≃ t :=
+subtype_congr_prop h
 
 def subtype_subtype_equiv_subtype {α : Type u} (p : α → Prop) (q : subtype p → Prop) :
   subtype q ≃ {a : α // ∃h:p a, q ⟨a, h⟩ } :=
@@ -506,13 +516,6 @@ def pi_equiv_subtype_sigma (ι : Type*) (π : ι → Type*) :
   assume f, funext $ assume i, rfl,
   assume ⟨f, hf⟩, subtype.eq $ funext $ assume i, sigma.eq (hf i).symm $
     eq_of_heq $ rec_heq_of_heq _ $ rec_heq_of_heq _ $ heq.refl _⟩
-
-def subtype_congr {α : Type*} {p q : α → Prop} (h : p = q) : subtype p ≃ subtype q :=
-⟨subtype.map id $ by rw [h]; exact assume h, id, subtype.map id $ by rw [h]; exact assume h, id,
-  assume ⟨a, h⟩, rfl, assume ⟨a, h⟩, rfl,⟩
-
-def set_congr {α : Type*} {s t : set α} (h : s = t) : s ≃ t :=
-subtype_congr h
 
 end
 

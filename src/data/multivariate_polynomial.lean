@@ -5,7 +5,8 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 
 Multivariate Polynomial
 -/
-import data.finsupp linear_algebra.basic algebra.ring data.polynomial data.equiv.algebra
+import algebra.ring
+import data.finsupp data.polynomial data.equiv.algebra
 
 open set function finsupp lattice
 

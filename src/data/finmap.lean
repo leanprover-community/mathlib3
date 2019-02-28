@@ -13,6 +13,14 @@ variables {α : Type u} {β : α → Type v}
 
 namespace multiset
 
+/-- Multiset of keys of an association multiset. -/
+def keys (s : multiset (sigma β)) : multiset α :=
+s.map sigma.fst
+
+@[simp] theorem coe_keys {l : list (sigma β)} :
+  keys (l : multiset (sigma β)) = (l.keys : multiset α) :=
+rfl
+
 /-- `nodupkeys s` means that `s` has no duplicate keys. -/
 def nodupkeys (s : multiset (sigma β)) : Prop :=
 quot.lift_on s list.nodupkeys (λ s t p, propext $ perm_nodupkeys p)
@@ -55,6 +63,18 @@ end
 @[simp] theorem lift_on_to_finmap {γ} (s : alist β) (f : alist β → γ) (H) :
   lift_on ⟦s⟧ f H = f s := by cases s; refl
 
+/-- Lift a permutation-respecting function on 2 `alist`s to 2 `finmap`s. -/
+@[elab_as_eliminator] def lift_on₂
+  {γ} (s₁ s₂ : finmap β) (f : alist β → alist β → γ)
+  (H : ∀ a₁ b₁ a₂ b₂ : alist β, a₁.entries ~ a₂.entries → b₁.entries ~ b₂.entries → f a₁ b₁ = f a₂ b₂) : γ :=
+lift_on s₁
+  (λ l₁, lift_on s₂ (f l₁) (λ b₁ b₂ p, H _ _ _ _ (perm.refl _) p))
+  (λ a₁ a₂ p, have H' : f a₁ = f a₂ := funext (λ _, H _ _ _ _ p (perm.refl _)), by simp only [H'])
+
+@[simp] theorem lift_on₂_to_finmap {γ} (s₁ s₂ : alist β) (f : alist β → alist β → γ) (H) :
+  lift_on₂ ⟦s₁⟧ ⟦s₂⟧ f H = f s₁ s₂ :=
+by cases s₁; cases s₂; refl
+
 @[elab_as_eliminator] theorem induction_on
   {C : finmap β → Prop} (s : finmap β) (H : ∀ (a : alist β), C ⟦a⟧) : C s :=
 by rcases s with ⟨⟨a⟩, h⟩; exact H ⟨a, h⟩
@@ -63,17 +83,17 @@ by rcases s with ⟨⟨a⟩, h⟩; exact H ⟨a, h⟩
 | ⟨l₁, h₁⟩ ⟨l₂, h₂⟩ H := by congr'
 
 /-- The predicate `a ∈ s` means that `s` has a value associated to the key `a`. -/
-instance : has_mem α (finmap β) := ⟨λ a s, ∃ b : β a, sigma.mk a b ∈ s.entries⟩
+instance : has_mem α (finmap β) := ⟨λ a s, a ∈ s.entries.keys⟩
 
 theorem mem_def {a : α} {s : finmap β} :
-  a ∈ s ↔ ∃ b : β a, sigma.mk a b ∈ s.entries := iff.rfl
+  a ∈ s ↔ a ∈ s.entries.keys := iff.rfl
 
 @[simp] theorem mem_to_finmap {a : α} {s : alist β} :
   a ∈ ⟦s⟧ ↔ a ∈ s := iff.rfl
 
 /-- The set of keys of a finite map. -/
 def keys (s : finmap β) : finset α :=
-⟨s.entries.map sigma.fst, induction_on s $ λ s, s.keys_nodup⟩
+⟨s.entries.keys, induction_on s keys_nodup⟩
 
 @[simp] theorem keys_val (s : alist β) : (keys ⟦s⟧).val = s.keys := rfl
 
@@ -82,7 +102,7 @@ def keys (s : finmap β) : finset α :=
 by simp [keys, alist.keys]
 
 theorem mem_keys {a : α} {s : finmap β} : a ∈ s.keys ↔ a ∈ s :=
-induction_on s $ λ s, mem_keys
+induction_on s $ λ s, alist.mem_keys
 
 /-- The empty map. -/
 instance : has_emptyc (finmap β) := ⟨⟨0, nodupkeys_nil⟩⟩
@@ -90,11 +110,8 @@ instance : has_emptyc (finmap β) := ⟨⟨0, nodupkeys_nil⟩⟩
 @[simp] theorem empty_to_finmap (s : alist β) :
   (⟦∅⟧ : finmap β) = ∅ := rfl
 
-theorem not_mem_empty_entries {s : sigma β} : s ∉ (∅ : finmap β).entries :=
-multiset.not_mem_zero _
-
 theorem not_mem_empty {a : α} : a ∉ (∅ : finmap β) :=
-λ ⟨b, h⟩, not_mem_empty_entries h
+multiset.not_mem_zero a
 
 @[simp] theorem keys_empty : (∅ : finmap β).keys = ∅ := rfl
 
@@ -118,31 +135,11 @@ theorem lookup_is_some {a : α} {s : finmap β} :
   (s.lookup a).is_some ↔ a ∈ s :=
 induction_on s $ λ s, alist.lookup_is_some
 
+theorem lookup_eq_none {a} {s : finmap β} : lookup a s = none ↔ a ∉ s :=
+induction_on s $ λ s, alist.lookup_eq_none
+
 instance (a : α) (s : finmap β) : decidable (a ∈ s) :=
 decidable_of_iff _ lookup_is_some
-
-/-- Insert a key-value pair into a finite map.
-  If the key is already present it does nothing. -/
-def insert (a : α) (b : β a) (s : finmap β) : finmap β :=
-lift_on s (λ t, ⟦insert a b t⟧) $
-λ s₁ s₂ p, to_finmap_eq.2 $ perm_insert p
-
-@[simp] theorem insert_to_finmap (a : α) (b : β a) (s : alist β) :
-  insert a b ⟦s⟧ = ⟦s.insert a b⟧ := by simp [insert]
-
-@[simp] theorem insert_of_pos {a : α} {b : β a} {s : finmap β} : a ∈ s →
-  insert a b s = s :=
-induction_on s $ λ ⟨s, nd⟩ h, congr_arg to_finmap $
-insert_of_pos (mem_to_finmap.2 h)
-
-theorem insert_entries_of_neg {a : α} {b : β a} {s : finmap β} : a ∉ s →
-  (insert a b s).entries = ⟨a, b⟩ :: s.entries :=
-induction_on s $ λ s h,
-by simp [insert_entries_of_neg (mt mem_to_finmap.1 h)]
-
-@[simp] theorem mem_insert {a a' : α} {b : β a} {s : finmap β} :
-  a' ∈ insert a b s ↔ a' = a ∨ a' ∈ s :=
-induction_on s $ by simp
 
 /-- Replace a key with a given value in a finite map.
   If the key is not present it does nothing. -/
@@ -177,7 +174,7 @@ lift_on s (λ t, ⟦erase a t⟧) $
 
 @[simp] theorem keys_erase_to_finset (a : α) (s : alist β) :
   keys ⟦s.erase a⟧ = (keys ⟦s⟧).erase a :=
-by simp [finset.erase, keys, alist.erase, list.kerase_map_fst]
+by simp [finset.erase, keys, alist.erase, keys_kerase]
 
 @[simp] theorem keys_erase (a : α) (s : finmap β) :
   (erase a s).keys = s.keys.erase a :=
@@ -185,6 +182,40 @@ induction_on s $ λ s, by simp
 
 @[simp] theorem mem_erase {a a' : α} {s : finmap β} : a' ∈ erase a s ↔ a' ≠ a ∧ a' ∈ s :=
 induction_on s $ λ s, by simp
+
+@[simp] theorem lookup_erase (a) (s : finmap β) : lookup a (erase a s) = none :=
+induction_on s $ lookup_erase a
+
+@[simp] theorem lookup_erase_ne {a a'} {s : finmap β} (h : a ≠ a') :
+  lookup a' (erase a s) = lookup a' s :=
+induction_on s $ λ s, lookup_erase_ne h
+
+/- insert -/
+
+/-- Insert a key-value pair into a finite map, replacing any existing pair with
+  the same key. -/
+def insert (a : α) (b : β a) (s : finmap β) : finmap β :=
+lift_on s (λ t, ⟦insert a b t⟧) $
+λ s₁ s₂ p, to_finmap_eq.2 $ perm_insert p
+
+@[simp] theorem insert_to_finmap (a : α) (b : β a) (s : alist β) :
+  insert a b ⟦s⟧ = ⟦s.insert a b⟧ := by simp [insert]
+
+theorem insert_entries_of_neg {a : α} {b : β a} {s : finmap β} : a ∉ s →
+  (insert a b s).entries = ⟨a, b⟩ :: s.entries :=
+induction_on s $ λ s h,
+by simp [insert_entries_of_neg (mt mem_to_finmap.1 h)]
+
+@[simp] theorem mem_insert {a a' : α} {b : β a} {s : finmap β} :
+  a' ∈ insert a b s ↔ a = a' ∨ a' ∈ s :=
+induction_on s mem_insert
+
+@[simp] theorem lookup_insert {a} {b : β a} (s : finmap β) :
+  lookup a (insert a b s) = some b :=
+induction_on s $ λ s,
+by simp only [insert_to_finmap, lookup_to_finmap, lookup_insert]
+
+/- extract -/
 
 /-- Erase a key from the map, and return the corresponding value, if found. -/
 def extract (a : α) (s : finmap β) : option (β a) × finmap β :=

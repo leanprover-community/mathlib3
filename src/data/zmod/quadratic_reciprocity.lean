@@ -43,13 +43,27 @@ lemma euler_criterion {a : zmodp p hp} (ha : a ≠ 0) :
 
 lemma neg_one_is_square_iff_mod_four_ne_three :
   (∃ y : zmodp p hp, y ^ 2 = -1) ↔ p % 4 ≠ 3 :=
-if hp2 : p = 2 then by subst hp2; exact dec_trivial
-else begin
-  rw [euler_criterion, neg_one_pow_eq_pow_mod_two,
-    ← mod_mul_right_div_self, show 2 * 2 = 4, from rfl],
-
-
-end
+have (-1 : zmodp p hp) ≠ 0, from mt neg_eq_zero.1 one_ne_zero,
+hp.eq_two_or_odd.elim (λ hp, by subst hp; exact dec_trivial)
+  (λ hp1, (mod_two_eq_zero_or_one (p / 2)).elim
+    (λ hp2, begin
+      rw [euler_criterion hp this, neg_one_pow_eq_pow_mod_two, hp2, _root_.pow_zero,
+        eq_self_iff_true, true_iff],
+      assume h,
+      rw [← nat.mod_mul_right_div_self, show 2 * 2 = 4, from rfl, h] at hp2,
+      exact absurd hp2 dec_trivial,
+    end)
+    (λ hp2, begin
+      rw [euler_criterion hp this, neg_one_pow_eq_pow_mod_two, hp2, _root_.pow_one,
+        iff_false_intro (zmodp.ne_neg_self hp hp1 one_ne_zero).symm, false_iff,
+        not_not],
+      rw [← nat.mod_mul_right_div_self, show 2 * 2 = 4, from rfl] at hp2,
+      rw [← nat.mod_mul_left_mod _ 2, show 2 * 2 = 4, from rfl] at hp1,
+      have hp4 : p % 4 < 4, from nat.mod_lt _ dec_trivial,
+      revert hp1 hp2, revert hp4,
+      generalize : p % 4 = k,
+      revert k, exact dec_trivial
+    end))
 
 lemma pow_div_two_eq_neg_one_or_one {a : zmodp p hp} (ha : a ≠ 0) : a ^ (p / 2) = 1 ∨ a ^ (p / 2) = -1 :=
 hp.eq_two_or_odd.elim

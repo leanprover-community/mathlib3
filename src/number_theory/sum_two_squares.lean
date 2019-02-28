@@ -206,7 +206,7 @@ have hpi : ¬ irreducible (p : ℤ[i]),
 have hab : ∃ a b, (p : ℤ[i]) = a * b ∧ ¬ is_unit a ∧ ¬ is_unit b,
   by simpa [irreducible, hpu, classical.not_forall, not_or_distrib] using hpi,
 let ⟨a, b, hpab, hau, hbu⟩ := hab in
-have hnap : norm a = p, from ((mul_eq_prime_pow_two hp
+have hnap : norm a = p, from ((hp.mul_eq_prime_pow_two_iff
     (mt norm_eq_one_iff.1 hau) (mt norm_eq_one_iff.1 hbu)).1 $
   by rw [← norm_mul, ← hpab, norm_nat_cast]).1,
 ⟨a.re.nat_abs, a.im.nat_abs, by simpa [norm, nat.pow_two] using hnap⟩

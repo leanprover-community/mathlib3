@@ -493,6 +493,17 @@ begin
     all_goals { rw [zero_mul, finsupp.single_zero] } }
 end
 
+lemma smul_eq_C_mul (p : mv_polynomial σ α) (a : α) : a • p = C a * p :=
+begin
+  rw [← finsupp.sum_single p, @finsupp.smul_sum (σ →₀ ℕ) α α, finsupp.mul_sum],
+  refine finset.sum_congr rfl (assume n _, _),
+  simp only [finsupp.smul_single],
+  exact C_mul_monomial.symm
+end
+
+@[simp] lemma smul_eval (x) (p : mv_polynomial σ α) (s) : (s • p).eval x = s * p.eval x :=
+by rw [smul_eq_C_mul, eval_mul, eval_C]
+
 section degrees
 
 lemma degrees_neg [comm_ring α] (p : mv_polynomial σ α) : (- p).degrees = p.degrees :=

@@ -13,6 +13,9 @@ open gaussian_int principal_ideal_domain
 
 local notation `ℤ[i]` := gaussian_int
 
+namespace nat
+namespace prime
+
 lemma sum_two_squares {p : ℕ} (hp : p.prime) (hp1 : p % 4 = 1) :
   ∃ a b : ℕ, a ^ 2 + b ^ 2 = p :=
 let ⟨k, hk⟩ := (zmodp.neg_one_is_square_iff_mod_four_ne_three hp).2 $
@@ -20,7 +23,7 @@ let ⟨k, hk⟩ := (zmodp.neg_one_is_square_iff_mod_four_ne_three hp).2 $
 have hpk : p ∣ k.val ^ 2 + 1,
   by rw [← zmodp.eq_zero_iff_dvd_nat hp]; simp *,
 have hkmul : (k.val ^ 2 + 1 : ℤ[i]) = ⟨k.val, 1⟩ * ⟨k.val, -1⟩ :=
-  by simp [pow_two, zsqrtd.ext],
+  by simp [_root_.pow_two, zsqrtd.ext],
 have hpne1 : p ≠ 1, from (ne_of_lt (hp.gt_one)).symm,
 have hkltp : 1 + k.val * k.val < p * p,
   from calc 1 + k.val * k.val ≤ k.val + k.val * k.val :
@@ -58,3 +61,6 @@ have hnap : norm a = p, from ((hp.mul_eq_prime_pow_two_iff
     (mt norm_eq_one_iff.1 hau) (mt norm_eq_one_iff.1 hbu)).1 $
   by rw [← norm_mul, ← hpab, norm_nat_cast]).1,
 ⟨a.re.nat_abs, a.im.nat_abs, by simpa [norm, nat.pow_two] using hnap⟩
+
+end prime
+end nat

@@ -70,15 +70,13 @@ variables {α S}
 
 def mk (r : α) (s : S) : loc α S := ⟦(r, s)⟧
 
-variables (S)
-
 def of (r : α) : loc α S := mk r 1
 
 instance : comm_ring (loc α S) :=
 by refine
 { add            := has_add.add,
   add_assoc      := λ m n k, quotient.induction_on₃ m n k _,
-  zero           := of _ 0,
+  zero           := of 0,
   zero_add       := quotient.ind _,
   add_zero       := quotient.ind _,
   neg            := has_neg.neg,
@@ -86,7 +84,7 @@ by refine
   add_comm       := quotient.ind₂ _,
   mul            := has_mul.mul,
   mul_assoc      := λ m n k, quotient.induction_on₃ m n k _,
-  one            := of _ 1,
+  one            := of 1,
   one_mul        := quotient.ind _,
   mul_one        := quotient.ind _,
   left_distrib   := λ m n k, quotient.induction_on₃ m n k _,
@@ -99,35 +97,35 @@ by refine
   refine (quotient.sound $ r_of_eq _),
   simp [mul_left_comm, mul_add, mul_comm] }
 
-instance of.is_ring_hom : is_ring_hom (of S) :=
+instance of.is_ring_hom : is_ring_hom (of : α → loc α S) :=
 { map_add := λ x y, quotient.sound $ by simp,
   map_mul := λ x y, quotient.sound $ by simp,
   map_one := rfl }
 
 variables {S}
 
-instance : has_coe α (loc α S) := ⟨of S⟩
+instance : has_coe α (loc α S) := ⟨of⟩
 
 instance coe.is_ring_hom : is_ring_hom (coe : α → loc α S) :=
-localization.of.is_ring_hom S
+localization.of.is_ring_hom
 
 section
 variables (α S) (x y : α) (n : ℕ)
-@[simp] lemma of_zero (s : S) : of S 0 = 0 := rfl
-@[simp] lemma of_one : of S 1 = 1 := rfl
-@[simp] lemma of_add : of S (x + y) = of S x + of S y :=
+@[simp] lemma of_zero : (of 0 : loc α S) = 0 := rfl
+@[simp] lemma of_one : (of 1 : loc α S) = 1 := rfl
+@[simp] lemma of_add : (of (x + y) : loc α S) = of x + of y :=
 by apply is_ring_hom.map_add
 
-@[simp] lemma of_sub : of S (x - y) = of S x - of S y :=
+@[simp] lemma of_sub : (of (x - y) : loc α S) = of x - of y :=
 by apply is_ring_hom.map_sub
 
-@[simp] lemma of_mul : of S (x * y) = of S x * of S y :=
+@[simp] lemma of_mul : (of (x * y) : loc α S) = of x * of y :=
 by apply is_ring_hom.map_mul
 
-@[simp] lemma of_neg : of S (-x) = -of S x :=
+@[simp] lemma of_neg : (of (-x) : loc α S) = -of x :=
 by apply is_ring_hom.map_neg
 
-@[simp] lemma of_pow : of S (x ^ n) = (of S x) ^ n :=
+@[simp] lemma of_pow : (of (x ^ n) : loc α S) = (of x) ^ n :=
 by apply is_semiring_hom.map_pow
 
 @[simp] lemma coe_zero : ((0 : α) : loc α S) = 0 := rfl
@@ -344,7 +342,7 @@ by refine
   inv_mul_cancel := quotient.ind _,
   has_decidable_eq := localization.decidable_eq β,
   inv_zero := dif_pos rfl,
-  .. localization.comm_ring _ };
+  .. localization.comm_ring };
 { intros x hnx,
   rcases x with ⟨x, z, hz⟩,
   have : x ≠ 0,
@@ -356,41 +354,15 @@ by refine
 show _ = _ * dite (s.1 = 0) _ _, by rw [dif_neg (ne_zero_of_mem_non_zero_divisors s.2)];
 exact localization.mk_eq_mul_mk_one _ _
 
-end fraction_ring
+variables {β}
 
-namespace fraction_ring
-variables {β : Type u} [integral_domain β] [decidable_eq β] (x y : β) (n : ℕ)
-
-def of (x : β) : fraction_ring β := localization.of _ x
-
-instance : is_ring_hom (of : β → fraction_ring β) :=
-by delta of; apply_instance
-
-@[simp] lemma of_zero : of (0 : β) = 0 := rfl
-@[simp] lemma of_one : of (1 : β) = 1 := rfl
-@[simp] lemma of_add : of (x + y) = of x + of y :=
-by apply is_ring_hom.map_add
-
-@[simp] lemma of_sub : of (x - y) = of x - of y :=
-by apply is_ring_hom.map_sub
-
-@[simp] lemma of_mul : of (x * y) = of x * of y :=
-by apply is_ring_hom.map_mul
-
-@[simp] lemma of_neg : of (-x) = -of x :=
-by apply is_ring_hom.map_neg
-
-@[simp] lemma of_pow : of (x ^ n) = (of x) ^ n :=
-by apply is_semiring_hom.map_pow
-
-lemma eq_zero_of (h : of x = 0) : x = 0 :=
+lemma eq_zero_of (x : β) (h : (of x : fraction_ring β) = 0) : x = 0 :=
 begin
   rcases quotient.exact h with ⟨t, ht, ht'⟩,
   simpa [ne_zero_of_mem_non_zero_divisors ht] using ht'
 end
 
-lemma of.injective :
-  function.injective (of : β → fraction_ring β) :=
+lemma of.injective : function.injective (of : β → fraction_ring β) :=
 (is_add_group_hom.injective_iff _).mpr eq_zero_of
 
 end fraction_ring

@@ -123,6 +123,7 @@ attribute [to_additive quotient_add_group.is_add_group_hom_quotient_lift.equatio
 
 open function is_group_hom
 
+/-- The induced map from the quotient by the kernel to the codomain. -/
 def ker_lift : quotient (ker φ) → H :=
 lift _ φ $ λ g, (mem_ker φ).mp
 

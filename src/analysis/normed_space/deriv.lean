@@ -253,6 +253,30 @@ theorem has_fderiv_at_filter.comp {g g' : F → G} {f f' : E → F} {L : filter 
   rw [show g' (_-_) = g' _ - g' _, from (hg.1.to_linear_map _).map_sub _ _]
 end⟩
 
+/- A readable version of the previous theorem, a general form of the chain rule. -/
+
+example {g g' : F → G} {f f' : E → F} {L : filter E} {x : E}
+  (hf : has_fderiv_at_filter f f' x L)
+  (hg : has_fderiv_at_filter g g' (f x) (L.map f)) :
+  has_fderiv_at_filter (g ∘ f) (g' ∘ f') x L :=
+⟨hg.1.comp hf.1,
+begin
+  have : is_o (λ x', g (f x') - g (f x) - g' (f x' - f x)) (λ x', f x' - f x) L,
+    from (hg.2.comp f).mono le_comap_map,
+  have eq₁ : is_o (λ x', g (f x') - g (f x) - g' (f x' - f x)) (λ x', x' - x) L,
+    from this.trans_is_O hf.is_O_sub,
+  have eq₂ : is_o (λ x', f x' - f x - f' (x' - x)) (λ x', x' - x) L,
+    from hf.2,
+  have : is_O (λ x', g' (f x' - f x - f' (x' - x))) (λ x', f x' - f x - f' (x' - x)) L,
+    from hg.1.is_O_comp _,
+  have : is_o (λ x', g' (f x' - f x - f' (x' - x))) (λ x', x' - x) L,
+    from this.trans_is_o eq₂,
+  have eq₃ : is_o (λ x', g' (f x' - f x) - (g' (f' (x' - x)))) (λ x', x' - x) L,
+    by { refine this.congr_left (λ x', _),
+         rw [show g' (_-_) = g' _ - g' _, from (hg.1.to_linear_map _).map_sub _ _] },
+  exact eq₁.tri eq₃
+end⟩
+
 theorem has_fderiv_at_within.comp {g g' : F → G} {f f' : E → F} {s : set E} {x : E}
   (hf : has_fderiv_at_within f f' x s)
   (hg : has_fderiv_at_within g g' (f x) (f '' s)) :

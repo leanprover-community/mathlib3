@@ -124,6 +124,9 @@ by cases a; simp [mk_eq_cast]
 @[simp] lemma cast_mod_int (n : ℕ+) (a : ℤ) : ((a % (n : ℕ) : ℤ) : zmod n) = a :=
 by conv {to_rhs, rw ← int.mod_add_div a n}; simp
 
+@[simp] lemma cast_mod_int' {n : ℕ} (hn : 0 < n) (a : ℤ) :
+  ((a % (n : ℕ) : ℤ) : zmod ⟨n, hn⟩) = a := cast_mod_int _ _
+
 lemma val_cast_int {n : ℕ+} (a : ℤ) : (a : zmod n).val = (a % (n : ℕ)).nat_abs :=
 have h : nat_abs (a % (n : ℕ)) < n := int.coe_nat_lt.1 begin
   rw [nat_abs_of_nonneg (mod_nonneg _ (int.coe_nat_ne_zero_iff_pos.2 n.pos))],

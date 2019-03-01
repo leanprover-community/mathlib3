@@ -49,7 +49,7 @@ theorem has_fderiv_at_filter_equiv_aux {f : E → F} {f' : E → F} {x : E} {L :
   tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - f' (x' - x)∥) L (nhds 0) :=
 begin
   have f'0 : f' 0 = 0 := (bf'.to_linear_map _).map_zero,
-  rw [tendsto_iff_norm_tendsto_zero], refine tendsto_congr (λ x', _),
+  rw [tendsto_iff_norm_tendsto_zero], refine tendsto.congr'r (λ x', _),
   have : ∥x' + -x∥⁻¹ ≥ 0, from inv_nonneg.mpr (norm_nonneg _),
   simp [norm_smul, real.norm_eq_abs, abs_of_nonneg this]
 end
@@ -68,7 +68,7 @@ and.congr_right_iff.mpr $
   begin
     rw has_fderiv_at_filter_equiv_aux bf',
     rw [←is_littleo_norm_left, ←is_littleo_norm_right, is_littleo_iff_tendsto h],
-    exact tendsto_congr (λ x', mul_comm _ _)
+    exact tendsto.congr'r (λ x', mul_comm _ _)
   end
 
 theorem has_fderiv_at_within_iff_tendsto {f : E → F} {f' : E → F} {x : E} {s : set E} :

@@ -143,6 +143,12 @@ def of_bijective [fintype α] (f : α → β) (H : function.bijective f) : finty
 def of_surjective [fintype α] [decidable_eq β] (f : α → β) (H : function.surjective f) : fintype β :=
 ⟨univ.image f, λ b, let ⟨a, e⟩ := H b in e ▸ mem_image_of_mem _ (mem_univ _)⟩
 
+noncomputable def of_injective [fintype β] (f : α → β) (H : function.injective f) : fintype α :=
+by letI := classical.dec; exact
+if hα : nonempty α then by letI := classical.inhabited_of_nonempty hα;
+  exact of_surjective (inv_fun f) (inv_fun_surjective H)
+else ⟨∅, λ x, (hα ⟨x⟩).elim⟩
+
 /-- If `f : α ≃ β` and `α` is a fintype, then `β` is also a fintype. -/
 def of_equiv (α : Type*) [fintype α] (f : α ≃ β) : fintype β := of_bijective _ f.bijective
 

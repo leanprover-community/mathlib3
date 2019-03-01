@@ -15,7 +15,7 @@ open classical function lattice filter finset metric
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 
-lemma has_sum_of_absolute_convergence_real {f : ℕ → ℝ} (hf : ∀n, 0 ≤ f n) :
+lemma has_sum_of_absolute_convergence_real {f : ℕ → ℝ} :
   (∃r, tendsto (λn, (range n).sum (λi, abs (f i))) at_top (nhds r)) → has_sum f
 | ⟨r, hr⟩ :=
   begin
@@ -59,7 +59,7 @@ by_cases
     have tendsto (λn, (r⁻¹ ^ n)⁻¹) at_top (nhds 0),
       from (tendsto_pow_at_top_at_top_of_gt_1 $ one_lt_inv (lt_of_le_of_ne h₁ this.symm) h₂).comp
         tendsto_inverse_at_top_nhds_0,
-    tendsto_cong this $ univ_mem_sets' $ by simp *)
+    tendsto.congr' (univ_mem_sets' $ by simp *) this)
 
 lemma tendsto_pow_at_top_at_top_of_gt_1_nat {k : ℕ} (h : 1 < k) :
   tendsto (λn:ℕ, k ^ n) at_top at_top :=

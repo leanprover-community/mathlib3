@@ -698,3 +698,23 @@ le_antisymm
   end
 
 end with_top
+
+section order_dual
+open lattice
+
+instance (α : Type*) [conditionally_complete_lattice α] :
+  conditionally_complete_lattice (order_dual α) :=
+{ le_cSup := @cInf_le α _,
+  cSup_le := @le_cInf α _,
+  le_cInf := @cSup_le α _,
+  cInf_le := @le_cSup α _,
+  ..order_dual.lattice.has_Inf α,
+  ..order_dual.lattice.has_Sup α,
+  ..order_dual.lattice.lattice α }
+
+instance (α : Type*) [conditionally_complete_linear_order α] :
+  conditionally_complete_linear_order (order_dual α) :=
+{ ..order_dual.lattice.conditionally_complete_lattice α,
+  ..order_dual.decidable_linear_order α }
+
+end order_dual

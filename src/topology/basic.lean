@@ -549,6 +549,21 @@ have h₁ : ∃ (i : set α), i ∈ {t : set α | a ∈ t ∧ is_open t},
   from ⟨set.univ, set.mem_univ _, is_open_univ⟩,
 by { rw [nhds_within_eq, map_binfi_eq h₀ h₁], simp only [map_principal] }
 
+theorem tendsto_nhds_within_mono_left {f : α → β} {a : α}
+    {s t : set α} {l : filter β} (hst : s ⊆ t) (h : tendsto f (nhds_within a t) l) :
+  tendsto f (nhds_within a s) l :=
+tendsto_le_left (nhds_within_mono a hst) h
+
+theorem tendsto_nhds_within_mono_right {f : β → α} {l : filter β}
+    {a : α} {s t : set α} (hst : s ⊆ t) (h : tendsto f l (nhds_within a s)) :
+  tendsto f l (nhds_within a t) :=
+tendsto_le_right (nhds_within_mono a hst) h
+
+theorem tendsto_nhds_within_of_tendsto_nhds {f : α → β} {a : α}
+    {s : set α} {l : filter β} (h : tendsto f (nhds a) l) :
+  tendsto f (nhds_within a s) l :=
+by rw [←nhds_within_univ] at h; exact tendsto_nhds_within_mono_left (set.subset_univ _) h
+
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
 section locally_finite
 
@@ -1770,7 +1785,7 @@ begin
   exact (map_comap_of_surjective' h₀ h₁).symm,
 end
 
-theorem tendsto_at_within_iff_subtype {s : set α} {a : α} (h : a ∈ s) (f : α → β) (l : filter β) :
+theorem tendsto_nhds_within_iff_subtype {s : set α} {a : α} (h : a ∈ s) (f : α → β) (l : filter β) :
   tendsto f (nhds_within a s) l ↔ tendsto (function.restrict f s) (nhds ⟨a, h⟩) l :=
 by rw [tendsto, tendsto, function.restrict, nhds_within_eq_map_subtype_val h,
     ←(@filter.map_map _ _ _ _ subtype.val)]
@@ -1976,6 +1991,8 @@ variable (α)
 def opens := {s : set α // _root_.is_open s}
 variable {α}
 
+namespace opens
+
 instance : has_coe (opens α) (set α) := { coe := subtype.val }
 
 instance : has_subset (opens α) :=
@@ -1983,8 +2000,6 @@ instance : has_subset (opens α) :=
 
 instance : has_mem α (opens α) :=
 { mem := λ a U, a ∈ U.val }
-
-namespace opens
 
 @[extensionality] lemma ext {U V : opens α} (h : U.val = V.val) : U = V := subtype.ext.mpr h
 
@@ -2029,6 +2044,14 @@ begin
   refl,
 end
 /- Inf -/ _ rfl
+
+instance : has_inter (opens α) := ⟨λ U V, U ⊓ V⟩
+instance : has_union (opens α) := ⟨λ U V, U ⊔ V⟩
+instance : has_emptyc (opens α) := ⟨⊥⟩
+
+@[simp] lemma inter_eq (U V : opens α) : U ∩ V = U ⊓ V := rfl
+@[simp] lemma union_eq (U V : opens α) : U ∪ V = U ⊔ V := rfl
+@[simp] lemma empty_eq : (∅ : opens α) = ⊥ := rfl
 
 @[simp] lemma Sup_s {Us : set (opens α)} : (Sup Us).val = ⋃₀ (subtype.val '' Us) :=
 begin

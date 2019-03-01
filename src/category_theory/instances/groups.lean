@@ -33,30 +33,29 @@ instance Group_hom_is_group_hom {G₁ G₂ : Group} (f : G₁ ⟶ G₂) :
 instance : has_one Group := ⟨{ α := punit, str := by tidy }⟩
 
 /-- The category of commutative groups and group morphisms. -/
-@[reducible] def CommGroup : Type (u+1) := bundled comm_group
+@[reducible] def AddCommGroup : Type (u+1) := bundled add_comm_group
 
-instance (x : CommGroup) : comm_group x := x.str
+instance (A : AddCommGroup) : add_comm_group A := A.str
 
-@[reducible] def is_comm_group_hom {α β} [comm_group α] [comm_group β] (f : α → β) : Prop :=
-is_group_hom f
+@[reducible] def is_add_comm_group_hom {α β} [add_comm_group α] [add_comm_group β] (f : α → β) : Prop :=
+is_add_group_hom f
 
-instance concrete_is_comm_group_hom : concrete_category @is_comm_group_hom :=
+instance concrete_is_comm_group_hom : concrete_category @is_add_comm_group_hom :=
 ⟨by introsI α ia; apply_instance,
   by introsI α β γ ia ib ic f g hf hg; apply_instance⟩
 
-instance CommGroup_hom_is_comm_group_hom {R S : CommGroup} (f : R ⟶ S) :
-  is_comm_group_hom (f : R → S) := f.2
+instance CommGroup_hom_is_comm_group_hom {A₁ A₂ : AddCommGroup} (f : A₁ ⟶ A₂) :
+  is_add_comm_group_hom (f : A₁ → A₂) := f.2
 
 namespace CommGroup
 /-- The forgetful functor from commutative groups to groups. -/
-def forget_to_Group : CommGroup ⥤ Group :=
-concrete_functor
-  (by intros _ c; exact { ..c })
-  (by introsI _ _ _ _ f i;  exact { ..i })
+def forget_to_Group : AddCommGroup ⥤ Group :=
+{ obj := λ A₁, ⟨multiplicative A₁, infer_instance⟩,
+  map := λ A₁ A₂ f, ⟨f, multiplicative.is_group_hom f⟩ }
 
 instance : faithful (forget_to_Group) := {}
 
-instance : has_one CommGroup := ⟨{ α := punit, str := by tidy }⟩
+instance : has_zero AddCommGroup := ⟨{ α := punit, str := by tidy }⟩
 
 end CommGroup
 

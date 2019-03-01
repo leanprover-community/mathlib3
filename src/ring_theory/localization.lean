@@ -295,7 +295,7 @@ instance non_zero_divisors.is_submonoid : is_submonoid (non_zero_divisors α) :=
 
 @[reducible] def fraction_ring := loc α (non_zero_divisors α)
 
-section fraction_ring
+namespace fraction_ring
 open function
 variables {β : Type u} [integral_domain β] [decidable_eq β]
 
@@ -350,7 +350,7 @@ from decidable_of_iff (s₁ * r₂ - s₂ * r₁ = 0)
 λ ⟨t, ht1, ht2⟩, or.resolve_right (mul_eq_zero.1 ht2) $ λ ht,
   one_ne_zero (ht1 1 ((one_mul t).symm ▸ ht))⟩
 
-instance fraction_ring.field : discrete_field (fraction_ring β) :=
+instance : discrete_field (fraction_ring β) :=
 by refine
 { inv            := has_inv.inv,
   zero_ne_one    := λ hzo,
@@ -358,7 +358,7 @@ by refine
     zero_ne_one (by simpa using hts _ ht : 0 = 1),
   mul_inv_cancel := quotient.ind _,
   inv_mul_cancel := quotient.ind _,
-  has_decidable_eq := localization.decidable_eq β,
+  has_decidable_eq := fraction_ring.decidable_eq β,
   inv_zero := dif_pos rfl,
   .. localization.comm_ring };
 { intros x hnx,

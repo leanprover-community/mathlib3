@@ -3,7 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro
 -/
-import tactic.ring data.quot ring_theory.ideal_operations group_theory.submonoid
+import tactic.ring data.quot data.equiv.algebra ring_theory.ideal_operations group_theory.submonoid
 
 universes u v
 
@@ -284,10 +284,12 @@ instance non_zero_divisors.is_submonoid : is_submonoid (non_zero_divisors α) :=
     have z * x₁ * x₂ = 0, by rwa mul_assoc,
     hx₁ z $ hx₂ (z * x₁) this }
 
+@[simp] lemma non_zero_divisors_one_val : (1 : non_zero_divisors α).val = 1 := rfl
+
 @[reducible] def fraction_ring := loc α (non_zero_divisors α)
 
 section fraction_ring
-
+open function
 variables {β : Type u} [integral_domain β] [decidable_eq β]
 
 lemma ne_zero_of_mem_non_zero_divisors {x : β}
@@ -324,6 +326,15 @@ instance : has_inv (fraction_ring β) :=
       simpa [mul_comm] using hrs.symm }
   end⟩
 
+lemma mk_inv {r s} :
+  (mk r s : fraction_ring β)⁻¹ =
+  if h : r = 0 then 0 else ⟦⟨s, r, mem_non_zero_divisors_of_ne_zero h⟩⟧ := rfl
+
+lemma mk_inv' :
+  ∀ (x : β × (non_zero_divisors β)), (⟦x⟧⁻¹ : fraction_ring β) =
+  if h : x.1 = 0 then 0 else ⟦⟨x.2.val, x.1, mem_non_zero_divisors_of_ne_zero h⟩⟧
+| ⟨r,s,hs⟩ := rfl
+
 instance : decidable_eq (fraction_ring β) :=
 @quotient.decidable_eq (β × non_zero_divisors β) (localization.setoid β (non_zero_divisors β)) $
 λ ⟨r₁, s₁, hs₁⟩ ⟨r₂, s₂, hs₂⟩, show decidable (∃ t ∈ non_zero_divisors β, (s₁ * r₂ - s₂ * r₁) * t = 0),
@@ -356,6 +367,10 @@ exact localization.mk_eq_mul_mk_one _ _
 
 variables {β}
 
+@[simp] lemma mk_eq_div' (x : β × (non_zero_divisors β)) :
+  (⟦x⟧ : fraction_ring β) = ((x.1) / ((x.2).val) : fraction_ring β) :=
+by erw ← mk_eq_div; cases x; refl
+
 lemma eq_zero_of (x : β) (h : (of x : fraction_ring β) = 0) : x = 0 :=
 begin
   rcases quotient.exact h with ⟨t, ht, ht'⟩,
@@ -364,6 +379,100 @@ end
 
 lemma of.injective : function.injective (of : β → fraction_ring β) :=
 (is_add_group_hom.injective_iff _).mpr eq_zero_of
+
+section map
+open function is_ring_hom
+variables {A : Type u} [integral_domain A] [decidable_eq A]
+variables {B : Type v} [integral_domain B] [decidable_eq B]
+variables (f : A → B) [is_ring_hom f] (hf : injective f)
+include hf
+
+def map : fraction_ring A → fraction_ring B :=
+quotient.lift (λ rs : A × (non_zero_divisors A), (f rs.1 : fraction_ring B) / (f rs.2.val)) $
+λ x y hxy,
+begin
+  erw div_eq_div_iff,
+  { rcases hxy with ⟨t, ht, H⟩,
+    replace H := ht _ H,
+    rw sub_eq_zero at H,
+    erw [← coe_mul, ← coe_mul, ← map_mul f, ← map_mul f],
+    congr' 2,
+    convert H.symm using 1; exact mul_comm _ _, },
+    all_goals { intro h,
+      rw [← coe_zero, ← map_zero f] at h,
+      exact ne_zero_of_mem_non_zero_divisors (by simp) (injective_comp of.injective hf h), },
+end
+
+@[simp] lemma map_coe (a : A) : map f hf a = f a :=
+begin
+  delta map,
+  erw quotient.lift_beta,
+  simp [map_one f],
+end
+
+@[simp] lemma map_of (a : A) : map f hf (of a) = of (f a) :=
+begin
+  delta map,
+  erw quotient.lift_beta,
+  simpa [map_one f],
+end
+
+@[simp] lemma map_mk (x : A × (non_zero_divisors A)) :
+  map f hf ⟦x⟧ = (f x.1) / (f x.2.val) := rfl
+
+@[simp] lemma map_circ_of :
+  map f hf ∘ (of : A → fraction_ring A) = (of : B → fraction_ring B) ∘ f :=
+funext $ map_of f hf
+
+instance map.is_field_hom : is_field_hom (map f hf) :=
+{ map_one := by erw [map_of f hf 1, map_one f]; refl,
+  map_mul :=
+  begin
+    rintros ⟨x⟩ ⟨y⟩,
+    repeat {erw map_mk},
+    rw div_mul_div,
+    congr' 1; erw [map_mul f, coe_mul],
+  end,
+  map_add :=
+  begin
+    rintros ⟨x⟩ ⟨y⟩,
+    repeat {erw map_mk},
+    rw div_add_div,
+    { congr' 1,
+      { simp only [coe_mul, coe_add, map_mul f, map_add f],
+        unfold_coes,
+        ring, },
+      { erw [← coe_mul, ← map_mul f],
+        refl, } },
+    all_goals { intro h,
+      rw [← coe_zero, ← map_zero f] at h,
+      exact ne_zero_of_mem_non_zero_divisors (by simp) (injective_comp of.injective hf h), },
+  end }
+
+def equiv_of_equiv (h : A ≃r B) : fraction_ring A ≃r fraction_ring B :=
+{ hom := by apply_instance,
+  to_fun := map h.to_equiv (injective_of_left_inverse h.left_inv),
+  inv_fun := map h.symm.to_equiv (injective_of_left_inverse h.symm.left_inv),
+  left_inv :=
+  begin
+    rintro ⟨x⟩,
+    erw [map_mk, is_field_hom.map_div (map _ _)],
+    { simp only [map_coe],
+      repeat {erw h.to_equiv.inverse_apply_apply},
+      exact (mk_eq_div' x).symm, },
+    apply_instance
+  end,
+  right_inv :=
+  begin
+    rintro ⟨x⟩,
+    erw [map_mk, is_field_hom.map_div (map _ _)],
+    { simp only [map_coe],
+      repeat {erw h.to_equiv.apply_inverse_apply},
+      exact (mk_eq_div' x).symm, },
+    apply_instance
+end }
+
+end map
 
 end fraction_ring
 

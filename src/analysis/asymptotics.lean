@@ -46,8 +46,7 @@ def is_O (f : α → β) (g : α → γ) (l : filter α) : Prop :=
 def is_o (f : α → β) (g : α → γ) (l : filter α) : Prop :=
 ∀ c > 0, { x | ∥ f x ∥ ≤  c * ∥ g x ∥ } ∈ l.sets
 
-theorem is_O_refl (f : α → β) (l : filter α) :
-  is_O f f l :=
+theorem is_O_refl (f : α → β) (l : filter α) : is_O f f l :=
 ⟨1, zero_lt_one, by { filter_upwards [univ_mem_sets], intros x _, simp }⟩
 
 theorem is_O.comp {f : α → β} {g : α → γ} {l : filter α} (hfg : is_O f g l)
@@ -69,13 +68,11 @@ theorem is_o.mono {f : α → β} {g : α → γ} {l₁ l₂ : filter α} (h : l
   (h' : is_o f g l₂) : is_o f g l₁ :=
 λ c cpos, h (h' c cpos)
 
-theorem is_o.to_is_O {f : α → β} {g : α → γ} {l : filter α} (hgf : is_o f g l) :
-  is_O f g l :=
+theorem is_o.to_is_O {f : α → β} {g : α → γ} {l : filter α} (hgf : is_o f g l) : is_O f g l :=
 ⟨1, zero_lt_one, hgf 1 zero_lt_one⟩
 
 theorem is_O.trans {f : α → β} {g : α → γ} {k : α → δ} {l : filter α}
-    (h₁ : is_O f g l)
-    (h₂ : is_O g k l) :
+    (h₁ : is_O f g l) (h₂ : is_O g k l) :
   is_O f k l :=
 let ⟨c,  cpos,  hc⟩  := h₁,
     ⟨c', c'pos, hc'⟩ := h₂ in
@@ -87,8 +84,7 @@ begin
 end
 
 theorem is_o.trans_is_O {f : α → β} {g : α → γ} {k : α → δ} {l : filter α}
-    (h₁ : is_o f g l)
-    (h₂ : is_O g k l) :
+    (h₁ : is_o f g l) (h₂ : is_O g k l) :
   is_o f k l :=
 begin
   intros c cpos,
@@ -101,8 +97,7 @@ begin
 end
 
 theorem is_O.trans_is_o {f : α → β} {g : α → γ} {k : α → δ} {l : filter α}
-    (h₁ : is_O f g l)
-    (h₂ : is_o g k l) :
+    (h₁ : is_O f g l) (h₂ : is_o g k l) :
   is_o f k l :=
 begin
   intros c cpos,
@@ -115,8 +110,7 @@ begin
 end
 
 theorem is_o.trans {f : α → β} {g : α → γ} {k : α → δ} {l : filter α}
-    (h₁ : is_o f g l)
-    (h₂ : is_o g k l) :
+    (h₁ : is_o f g l) (h₂ : is_o g k l) :
   is_o f k l :=
 h₁.to_is_O.trans_is_o h₂
 
@@ -130,36 +124,36 @@ begin
 end
 
 theorem is_O_congr {f₁ f₂ : α → β} {g₁ g₂ : α → γ} {l : filter α}
-  (hf : {x | f₁ x = f₂ x} ∈ l.sets) (hg : {x | g₁ x = g₂ x} ∈ l.sets) :
+    (hf : {x | f₁ x = f₂ x} ∈ l.sets) (hg : {x | g₁ x = g₂ x} ∈ l.sets) :
   is_O f₁ g₁ l ↔ is_O f₂ g₂ l :=
 bex_congr $ λ c _, filter.congr_sets $
 by filter_upwards [hf, hg] λ x e₁ e₂,
   by dsimp at e₁ e₂ ⊢; rw [e₁, e₂]
 
 theorem is_o_congr {f₁ f₂ : α → β} {g₁ g₂ : α → γ} {l : filter α}
-  (hf : {x | f₁ x = f₂ x} ∈ l.sets) (hg : {x | g₁ x = g₂ x} ∈ l.sets) :
+    (hf : {x | f₁ x = f₂ x} ∈ l.sets) (hg : {x | g₁ x = g₂ x} ∈ l.sets) :
   is_o f₁ g₁ l ↔ is_o f₂ g₂ l :=
 ball_congr $ λ c _, filter.congr_sets $
 by filter_upwards [hf, hg] λ x e₁ e₂,
   by dsimp at e₁ e₂ ⊢; rw [e₁, e₂]
 
 theorem is_O.congr {f₁ f₂ : α → β} {g₁ g₂ : α → γ} {l : filter α}
-  (hf : ∀ x, f₁ x = f₂ x) (hg : ∀ x, g₁ x = g₂ x) :
+    (hf : ∀ x, f₁ x = f₂ x) (hg : ∀ x, g₁ x = g₂ x) :
   is_O f₁ g₁ l → is_O f₂ g₂ l :=
 (is_O_congr (univ_mem_sets' hf) (univ_mem_sets' hg)).1
 
 theorem is_o.congr {f₁ f₂ : α → β} {g₁ g₂ : α → γ} {l : filter α}
-  (hf : ∀ x, f₁ x = f₂ x) (hg : ∀ x, g₁ x = g₂ x) :
+    (hf : ∀ x, f₁ x = f₂ x) (hg : ∀ x, g₁ x = g₂ x) :
   is_o f₁ g₁ l → is_o f₂ g₂ l :=
 (is_o_congr (univ_mem_sets' hf) (univ_mem_sets' hg)).1
 
 theorem is_O_congr_left {f₁ f₂ : α → β} {g : α → γ} {l : filter α}
-  (h : {x | f₁ x = f₂ x} ∈ l.sets) :
+    (h : {x | f₁ x = f₂ x} ∈ l.sets) :
   is_O f₁ g l ↔ is_O f₂ g l :=
 is_O_congr h (univ_mem_sets' $ λ _, rfl)
 
 theorem is_o_congr_left {f₁ f₂ : α → β} {g : α → γ} {l : filter α}
-  (h : {x | f₁ x = f₂ x} ∈ l.sets) :
+    (h : {x | f₁ x = f₂ x} ∈ l.sets) :
   is_o f₁ g l ↔ is_o f₂ g l :=
 is_o_congr h (univ_mem_sets' $ λ _, rfl)
 
@@ -172,12 +166,12 @@ theorem is_o.congr_left {f₁ f₂ : α → β} {g : α → γ} {l : filter α}
 is_o.congr hf (λ _, rfl)
 
 theorem is_O_congr_right {f : α → β} {g₁ g₂ : α → γ} {l : filter α}
-  (h : {x | g₁ x = g₂ x} ∈ l.sets) :
+    (h : {x | g₁ x = g₂ x} ∈ l.sets) :
   is_O f g₁ l ↔ is_O f g₂ l :=
 is_O_congr (univ_mem_sets' $ λ _, rfl) h
 
 theorem is_o_congr_right {f : α → β} {g₁ g₂ : α → γ} {l : filter α}
-  (h : {x | g₁ x = g₂ x} ∈ l.sets) :
+    (h : {x | g₁ x = g₂ x} ∈ l.sets) :
   is_o f g₁ l ↔ is_o f g₂ l :=
 is_o_congr (univ_mem_sets' $ λ _, rfl) h
 
@@ -268,8 +262,7 @@ by { rw ←is_O_norm_left, simp only [norm_neg], rw is_O_norm_left }
   is_o (λ x, -f x) g l ↔ is_o f g l :=
 by { rw ←is_o_norm_left, simp only [norm_neg], rw is_o_norm_left }
 
-theorem is_O.add {f₁ f₂ : α → β} {g : α → γ} {l : filter α}
-    (h₁ : is_O f₁ g l) (h₂ : is_O f₂ g l) :
+theorem is_O.add {f₁ f₂ : α → β} {g : α → γ} {l : filter α} (h₁ : is_O f₁ g l) (h₂ : is_O f₂ g l) :
   is_O (λ x, f₁ x + f₂ x) g l :=
 let ⟨c₁, c₁pos, hc₁⟩ := h₁,
     ⟨c₂, c₂pos, hc₂⟩ := h₂ in
@@ -283,8 +276,7 @@ begin
   exact add_le_add hx₁ hx₂
 end
 
-theorem is_o.add {f₁ f₂ : α → β} {g : α → γ} {l : filter α}
-    (h₁ : is_o f₁ g l) (h₂ : is_o f₂ g l) :
+theorem is_o.add {f₁ f₂ : α → β} {g : α → γ} {l : filter α} (h₁ : is_o f₁ g l) (h₂ : is_o f₂ g l) :
   is_o (λ x, f₁ x + f₂ x) g l :=
 begin
   intros c cpos,
@@ -295,13 +287,11 @@ begin
   rw [←mul_add, ←two_mul, ←mul_assoc, div_mul_cancel _ two_ne_zero]
 end
 
-theorem is_O.sub {f₁ f₂ : α → β} {g : α → γ} {l : filter α}
-    (h₁ : is_O f₁ g l) (h₂ : is_O f₂ g l) :
+theorem is_O.sub {f₁ f₂ : α → β} {g : α → γ} {l : filter α} (h₁ : is_O f₁ g l) (h₂ : is_O f₂ g l) :
   is_O (λ x, f₁ x - f₂ x) g l :=
 h₁.add (is_O_neg_left.mpr h₂)
 
-theorem is_o.sub {f₁ f₂ : α → β} {g : α → γ} {l : filter α}
-    (h₁ : is_o f₁ g l) (h₂ : is_o f₂ g l) :
+theorem is_o.sub {f₁ f₂ : α → β} {g : α → γ} {l : filter α} (h₁ : is_o f₁ g l) (h₂ : is_o f₂ g l) :
   is_o (λ x, f₁ x - f₂ x) g l :=
 h₁.add (is_o_neg_left.mpr h₂)
 
@@ -309,18 +299,18 @@ theorem is_O_comm {f₁ f₂ : α → β} {g : α → γ} {l : filter α} :
   is_O (λ x, f₁ x - f₂ x) g l ↔ is_O (λ x, f₂ x - f₁ x) g l :=
 by simpa using @is_O_neg_left _ _ _ _ _ (λ x, f₂ x - f₁ x) g l
 
-theorem is_O.symm {f₁ f₂ : α → β} {g : α → γ} {l : filter α}
-  : is_O (λ x, f₁ x - f₂ x) g l → is_O (λ x, f₂ x - f₁ x) g l :=
+theorem is_O.symm {f₁ f₂ : α → β} {g : α → γ} {l : filter α} :
+  is_O (λ x, f₁ x - f₂ x) g l → is_O (λ x, f₂ x - f₁ x) g l :=
 is_O_comm.1
 
 theorem is_O.tri {f₁ f₂ f₃ : α → β} {g : α → γ} {l : filter α}
-  (h₁ : is_O (λ x, f₁ x - f₂ x) g l)
-  (h₂ : is_O (λ x, f₂ x - f₃ x) g l) :
+    (h₁ : is_O (λ x, f₁ x - f₂ x) g l)
+    (h₂ : is_O (λ x, f₂ x - f₃ x) g l) :
   is_O (λ x, f₁ x - f₃ x) g l :=
 (h₁.add h₂).congr_left (by simp)
 
 theorem is_O.congr_of_sub {f₁ f₂ : α → β} {g : α → γ} {l : filter α}
-  (h : is_O (λ x, f₁ x - f₂ x) g l) :
+    (h : is_O (λ x, f₁ x - f₂ x) g l) :
   is_O f₁ g l ↔ is_O f₂ g l :=
 ⟨λ h', (h'.sub h).congr_left (λ x, sub_sub_cancel _ _),
  λ h', (h.add h').congr_left (λ x, sub_add_cancel _ _)⟩
@@ -329,18 +319,18 @@ theorem is_o_comm {f₁ f₂ : α → β} {g : α → γ} {l : filter α} :
   is_o (λ x, f₁ x - f₂ x) g l ↔ is_o (λ x, f₂ x - f₁ x) g l :=
 by simpa using @is_o_neg_left _ _ _ _ _ (λ x, f₂ x - f₁ x) g l
 
-theorem is_o.symm {f₁ f₂ : α → β} {g : α → γ} {l : filter α}
-  : is_o (λ x, f₁ x - f₂ x) g l → is_o (λ x, f₂ x - f₁ x) g l :=
+theorem is_o.symm {f₁ f₂ : α → β} {g : α → γ} {l : filter α} :
+  is_o (λ x, f₁ x - f₂ x) g l → is_o (λ x, f₂ x - f₁ x) g l :=
 is_o_comm.1
 
 theorem is_o.tri {f₁ f₂ f₃ : α → β} {g : α → γ} {l : filter α}
-  (h₁ : is_o (λ x, f₁ x - f₂ x) g l)
-  (h₂ : is_o (λ x, f₂ x - f₃ x) g l) :
+    (h₁ : is_o (λ x, f₁ x - f₂ x) g l)
+    (h₂ : is_o (λ x, f₂ x - f₃ x) g l) :
   is_o (λ x, f₁ x - f₃ x) g l :=
 (h₁.add h₂).congr_left (by simp)
 
 theorem is_o.congr_of_sub {f₁ f₂ : α → β} {g : α → γ} {l : filter α}
-  (h : is_o (λ x, f₁ x - f₂ x) g l) :
+    (h : is_o (λ x, f₁ x - f₂ x) g l) :
   is_o f₁ g l ↔ is_o f₂ g l :=
 ⟨λ h', (h'.sub h).congr_left (λ x, sub_sub_cancel _ _),
  λ h', (h.add h').congr_left (λ x, sub_add_cancel _ _)⟩
@@ -412,8 +402,7 @@ end
 section
 variables [normed_field β] [normed_group γ]
 
-theorem is_O_const_mul_left {f : α → β} {g : α → γ} {l : filter α}
-    (h : is_O f g l) (c : β) :
+theorem is_O_const_mul_left {f : α → β} {g : α → γ} {l : filter α} (h : is_O f g l) (c : β) :
   is_O (λ x, c * f x) g l :=
 begin
   cases classical.em (c = 0) with h'' h'',
@@ -538,7 +527,8 @@ section
 variables [normed_group β] [normed_group γ]
 
 theorem is_O.trans_tendsto {f : α → β} {g : α → γ} {l : filter α}
-  (h₁ : is_O f g l) (h₂ : tendsto g l (nhds 0)) : tendsto f l (nhds 0) :=
+    (h₁ : is_O f g l) (h₂ : tendsto g l (nhds 0)) :
+  tendsto f l (nhds 0) :=
 (@is_o_one_iff _ _ ℝ _ _ _ _).1 $ h₁.trans_is_o $ is_o_one_iff.2 h₂
 
 theorem is_o.trans_tendsto {f : α → β} {g : α → γ} {l : filter α}
@@ -551,7 +541,7 @@ section
 variables [normed_field β] [normed_field γ]
 
 theorem is_O_mul {f₁ f₂ : α → β} {g₁ g₂ : α → γ} {l : filter α}
-    (h₁ : is_O f₁ g₁ l) (h₂ : is_O f₂ g₂ l):
+    (h₁ : is_O f₁ g₁ l) (h₂ : is_O f₂ g₂ l) :
   is_O (λ x, f₁ x * f₂ x) (λ x, g₁ x * g₂ x) l :=
 begin
   rcases h₁ with ⟨c₁, c₁pos, hc₁⟩,
@@ -606,8 +596,7 @@ begin
   apply h
 end
 
-theorem is_O_const_smul_left_iff {f : α → β} {g : α → γ} {l : filter α}
-    {c : K} (hc : c ≠ 0) :
+theorem is_O_const_smul_left_iff {f : α → β} {g : α → γ} {l : filter α} {c : K} (hc : c ≠ 0) :
   is_O (λ x, c • f x) g l ↔ is_O f g l :=
 begin
   have cne0 : ∥c∥ ≠ 0, from mt (norm_eq_zero _).mp hc,
@@ -615,8 +604,7 @@ begin
   rw [is_O_const_mul_left_iff cne0, is_O_norm_left]
 end
 
-theorem is_o_const_smul_left {f : α → β} {g : α → γ} {l : filter α}
-    (h : is_o f g l) (c : K) :
+theorem is_o_const_smul_left {f : α → β} {g : α → γ} {l : filter α} (h : is_o f g l) (c : K) :
   is_o (λ x, c • f x) g l :=
 begin
   rw [←is_o_norm_left], simp only [norm_smul],
@@ -682,8 +670,7 @@ end
 section
 variables [normed_field β]
 
-theorem tendsto_nhds_zero_of_is_o {f g : α → β} {l : filter α}
-    (h : is_o f g l) :
+theorem tendsto_nhds_zero_of_is_o {f g : α → β} {l : filter α} (h : is_o f g l) :
   tendsto (λ x, f x / (g x)) l (nhds 0) :=
 have eq₁ : is_o (λ x, f x / g x) (λ x, g x / g x) l,
   from is_o_mul_right h (is_O_refl _ _),

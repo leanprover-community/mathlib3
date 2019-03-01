@@ -32,7 +32,7 @@ instance Group_hom_is_group_hom {G₁ G₂ : Group} (f : G₁ ⟶ G₂) :
 
 instance : has_one Group := ⟨{ α := punit, str := by tidy }⟩
 
-/-- The category of commutative groups and group morphisms. -/
+/-- The category of additive commutative groups and group morphisms. -/
 @[reducible] def AddCommGroup : Type (u+1) := bundled add_comm_group
 
 instance (A : AddCommGroup) : add_comm_group A := A.str
@@ -48,7 +48,7 @@ instance CommGroup_hom_is_comm_group_hom {A₁ A₂ : AddCommGroup} (f : A₁ �
   is_add_comm_group_hom (f : A₁ → A₂) := f.2
 
 namespace CommGroup
-/-- The forgetful functor from commutative groups to groups. -/
+/-- The forgetful functor from additive commutative groups to groups. -/
 def forget_to_Group : AddCommGroup ⥤ Group :=
 { obj := λ A₁, ⟨multiplicative A₁, infer_instance⟩,
   map := λ A₁ A₂ f, ⟨f, multiplicative.is_group_hom f⟩ }

@@ -8,8 +8,6 @@ A tactic for discharging linear arithmetic goals using Fourier-Motzkin eliminati
 `linarith` is (in principle) complete for ℚ and ℝ. It is not complete for non-dense orders, i.e. ℤ.
 
 @TODO: investigate storing comparisons in a list instead of a set, for possible efficiency gains
-@TODO: perform slightly better on ℤ by strengthening t < 0 hyps to t + 1 ≤ 0
-@TODO: alternative discharger to `ring`
 @TODO: delay proofs of denominator normalization and nat casting until after contradiction is found
 -/
 
@@ -689,7 +687,17 @@ match tp with
 | `(¬ %%a < %%b) := do pf' ← mk_app ``le_of_not_gt [pf], mk_cast_eq_and_nonneg_prfs pf' b a ``nat_le_subst
 | `(¬ %%a ≥ %%b) := do pf' ← mk_app ``lt_of_not_ge [pf], mk_cast_eq_and_nonneg_prfs pf' a b ``nat_lt_subst
 | `(¬ %%a > %%b) := do pf' ← mk_app ``le_of_not_gt [pf], mk_cast_eq_and_nonneg_prfs pf' a b ``nat_le_subst
-| _ := fail "mk_coe_comp_prf failed: proof is not an inequality"
+| _ := fail "mk_int_pfs_of_nat_pf failed: proof is not an inequality"
+end
+
+meta def mk_non_strict_int_pf_of_strict_int_pf (pf : expr) : tactic expr :=
+do tp ← infer_type pf,
+match tp with
+| `(%%a < %%b) := to_expr ``(@cast (%%a < %%b) (%%a + 1 ≤ %%b) (by refl) %%pf)
+| `(%%a > %%b) := to_expr ``(@cast (%%a > %%b) (%%a ≥ %%b + 1) (by refl) %%pf)
+| `(¬ %%a ≤ %%b) := to_expr ``(@cast (%%a > %%b) (%%a ≥ %%b + 1) (by refl) (lt_of_not_ge %%pf))
+| `(¬ %%a ≥ %%b) := to_expr ``(@cast (%%a < %%b) (%%a + 1 ≤ %%b) (by refl) (lt_of_not_ge %%pf))
+| _ := fail "mk_non_strict_int_pf_of_strict_int_pf failed: proof is not an inequality"
 end
 
 meta def guard_is_nat_prop : expr → tactic unit
@@ -701,12 +709,26 @@ meta def guard_is_nat_prop : expr → tactic unit
 | `(¬ %%p) := guard_is_nat_prop p
 | _ := failed
 
+meta def guard_is_strict_int_prop : expr → tactic unit
+| `(%%a < _) := infer_type a >>= unify `(ℤ)
+| `(%%a > _) := infer_type a >>= unify `(ℤ)
+| `(¬ %%a ≤ _) := infer_type a >>= unify `(ℤ)
+| `(¬ %%a ≥ _) := infer_type a >>= unify `(ℤ)
+| _ := failed
+
 meta def replace_nat_pfs : list expr → tactic (list expr)
 | [] := return []
 | (h::t) :=
   (do infer_type h >>= guard_is_nat_prop,
       ls ← mk_int_pfs_of_nat_pf h,
       list.append ls <$> replace_nat_pfs t) <|> list.cons h <$> replace_nat_pfs t
+
+meta def replace_strict_int_pfs : list expr → tactic (list expr)
+| [] := return []
+| (h::t) :=
+  (do infer_type h >>= guard_is_strict_int_prop,
+      l ← mk_non_strict_int_pf_of_strict_int_pf h,
+      list.cons l <$> replace_strict_int_pfs t) <|> list.cons h <$> replace_strict_int_pfs t
 
 meta def partition_by_type_aux : rb_lmap expr expr → list expr → tactic (rb_lmap expr expr)
 | m [] := return m
@@ -726,7 +748,8 @@ private meta def try_linarith_on_lists (cfg : linarith_config) (ls : list (list 
 -/
 meta def prove_false_by_linarith (cfg : linarith_config) (pref_type : option expr) (l : list expr) : tactic unit :=
 do l' ← replace_nat_pfs l,
-   ls ← list.reduce_option <$> l'.mmap (λ h, (do s ← norm_hyp h, return (some s)) <|> return none)
+   l'' ← replace_strict_int_pfs l',
+   ls ← list.reduce_option <$> l''.mmap (λ h, (do s ← norm_hyp h, return (some s)) <|> return none)
           >>= partition_by_type,
    pref_type ← (unify pref_type.iget `(ℕ) >> return (some `(ℤ) : option expr)) <|> return pref_type,
    match cfg.restrict_type, ls.values, pref_type with

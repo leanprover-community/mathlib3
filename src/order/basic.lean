@@ -128,11 +128,14 @@ def order_dual (α : Type*) := α
 
 namespace order_dual
 instance (α : Type*) [has_le α] : has_le (order_dual α) := ⟨λx y:α, y ≤ x⟩
+instance (α : Type*) [has_lt α] : has_lt (order_dual α) := ⟨λx y:α, y < x⟩
 
 instance (α : Type*) [preorder α] : preorder (order_dual α) :=
 { le_refl  := le_refl,
   le_trans := assume a b c hab hbc, le_trans hbc hab,
-  .. order_dual.has_le α }
+  lt_iff_le_not_le := λ _ _, lt_iff_le_not_le,
+  .. order_dual.has_le α,
+  .. order_dual.has_lt α }
 
 instance (α : Type*) [partial_order α] : partial_order (order_dual α) :=
 { le_antisymm := assume a b hab hba, @le_antisymm α _ a b hba hab, .. order_dual.preorder α }
@@ -142,6 +145,7 @@ instance (α : Type*) [linear_order α] : linear_order (order_dual α) :=
 
 instance (α : Type*) [decidable_linear_order α] : decidable_linear_order (order_dual α) :=
 { decidable_le := show decidable_rel (λa b:α, b ≤ a), by apply_instance,
+  decidable_lt := show decidable_rel (λa b:α, b < a), by apply_instance,
   .. order_dual.linear_order α }
 
 end order_dual

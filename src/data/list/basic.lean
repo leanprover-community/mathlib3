@@ -4266,6 +4266,11 @@ lemma rotate_cons_succ (l : list α) (a : α) (n : ℕ) :
   (a :: l : list α).rotate n.succ = (l ++ [a]).rotate n :=
 by rw [rotate_eq_rotate', rotate_eq_rotate', rotate'_cons_succ]
 
+@[simp] lemma mem_rotate : ∀ {l : list α} {a : α} {n : ℕ}, a ∈ l.rotate n ↔ a ∈ l
+| []     _ n     := by simp
+| (a::l) _ 0     := by simp
+| (a::l) _ (n+1) := by simp [rotate_cons_succ, mem_rotate, or.comm]
+
 @[simp] lemma length_rotate (l : list α) (n : ℕ) : (l.rotate n).length = l.length :=
 by rw [rotate_eq_rotate', length_rotate']
 

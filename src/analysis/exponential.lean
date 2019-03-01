@@ -131,8 +131,8 @@ lemma log_mul {x y : ℝ} (hx : 0 < x) (hy : 0 < y) : log (x * y) = log x + log 
 exp_injective $ by rw [exp_log (mul_pos hx hy), exp_add, exp_log hx, exp_log hy]
 
 lemma log_le_log {x y : ℝ} (h : 0 < x) (h₁ : 0 < y) : real.log x ≤ real.log y ↔ x ≤ y :=
-⟨λ h₂, by rwa [←real.exp_le_exp, real.exp_log h, real.exp_log h₁] at h₂, λ h₂,
-(real.exp_le_exp _ _).1 $ by rwa [real.exp_log h₁, real.exp_log h]⟩
+⟨λ h₂, by rwa [←real.exp_le_exp, real.exp_log h, real.exp_log h₁] at h₂,
+λ h₂, (real.exp_le_exp).1 $ by rwa [real.exp_log h₁, real.exp_log h]⟩
 
 lemma exists_cos_eq_zero : ∃ x, 1 ≤ x ∧ x ≤ 2 ∧ cos x = 0 :=
 real.intermediate_value'

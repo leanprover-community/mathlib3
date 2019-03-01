@@ -1111,13 +1111,13 @@ lemma tendsto.congr' {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter �
   (hl : {x | f₁ x = f₂ x} ∈ l₁.sets) (h : tendsto f₁ l₁ l₂) : tendsto f₂ l₁ l₂ :=
 by rwa [tendsto, ←map_cong hl]
 
-theorem tendsto_congr {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter β}
+theorem tendsto.congr'r {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter β}
   (h : ∀ x, f₁ x = f₂ x) : tendsto f₁ l₁ l₂ ↔ tendsto f₂ l₁ l₂ :=
 iff_of_eq (by congr'; exact funext h)
 
 theorem tendsto.congr {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter β}
   (h : ∀ x, f₁ x = f₂ x) : tendsto f₁ l₁ l₂ → tendsto f₂ l₁ l₂ :=
-(tendsto_congr h).1
+(tendsto.congr'r h).1
 
 lemma tendsto_id' {x y : filter α} : x ≤ y → tendsto id x y :=
 by simp only [tendsto, map_id, forall_true_iff] {contextual := tt}

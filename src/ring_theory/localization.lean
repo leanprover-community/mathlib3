@@ -391,10 +391,9 @@ section map
 open function is_ring_hom
 variables {A : Type u} [integral_domain A] [decidable_eq A]
 variables {B : Type v} [integral_domain B] [decidable_eq B]
-variables (f : A → B) [is_ring_hom f] (hf : injective f)
-include hf
+variables (f : A → B) [is_ring_hom f]
 
-def map : fraction_ring A → fraction_ring B :=
+def map (hf : injective f) : fraction_ring A → fraction_ring B :=
 quotient.lift (λ rs : A × (non_zero_divisors A), (f rs.1 : fraction_ring B) / (f rs.2.val)) $
 λ x y hxy,
 begin
@@ -410,28 +409,28 @@ begin
       exact ne_zero_of_mem_non_zero_divisors (by simp) (injective_comp of.injective hf h), },
 end
 
-@[simp] lemma map_coe (a : A) : map f hf a = f a :=
+@[simp] lemma map_coe (hf : injective f) (a : A) : map f hf a = f a :=
 begin
   delta map,
   erw quotient.lift_beta,
   simp [map_one f],
 end
 
-@[simp] lemma map_of (a : A) : map f hf (of a) = of (f a) :=
+@[simp] lemma map_of (hf : injective f) (a : A) : map f hf (of a) = of (f a) :=
 begin
   delta map,
   erw quotient.lift_beta,
   simpa [map_one f],
 end
 
-@[simp] lemma map_mk (x : A × (non_zero_divisors A)) :
+@[simp] lemma map_mk (hf : injective f) (x : A × (non_zero_divisors A)) :
   map f hf ⟦x⟧ = (f x.1) / (f x.2.val) := rfl
 
-@[simp] lemma map_circ_of :
+@[simp] lemma map_circ_of (hf : injective f) :
   map f hf ∘ (of : A → fraction_ring A) = (of : B → fraction_ring B) ∘ f :=
 funext $ map_of f hf
 
-instance map.is_field_hom : is_field_hom (map f hf) :=
+instance map.is_field_hom (hf : injective f) : is_field_hom (map f hf) :=
 { map_one := by erw [map_of f hf 1, map_one f]; refl,
   map_mul :=
   begin

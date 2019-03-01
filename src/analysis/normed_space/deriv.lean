@@ -26,7 +26,7 @@ variables {G : Type*} [normed_space ℝ G]
 
 def has_fderiv_at_filter (f : E → F) (f' : E → F) (x : E) (L : filter E) :=
 is_bounded_linear_map f' ∧
-  is_littleo (λ x', f x' - f x - f' (x' - x)) (λ x', x' - x) L
+  is_o (λ x', f x' - f x - f' (x' - x)) (λ x', x' - x) L
 
 def has_fderiv_at_within (f : E → F) (f' : E → F) (x : E) (s : set E) :=
 has_fderiv_at_filter f f' x (nhds_within x s)
@@ -34,14 +34,14 @@ has_fderiv_at_filter f f' x (nhds_within x s)
 def has_fderiv_at (f : E → F) (f' : E → F) (x : E) :=
 has_fderiv_at_filter f f' x (nhds x)
 
-theorem has_fderiv_at_filter.is_littleo {f : E → F} {f' : E → F} {x L}
+theorem has_fderiv_at_filter.is_o {f : E → F} {f' : E → F} {x L}
   (h : has_fderiv_at_filter f f' x L) :
-  is_littleo (λ x', f x' - f x - f' (x' - x)) (λ x', x' - x) L :=
+  is_o (λ x', f x' - f x - f' (x' - x)) (λ x', x' - x) L :=
 h.right
 
-theorem has_fderiv_at.is_littleo {f : E → F} {f' : E → F} {x : E} (h : has_fderiv_at f f' x) :
-  is_littleo (λ x', f x' - f x - f' (x' - x)) (λ x', x' - x) (nhds x) :=
-h.is_littleo
+theorem has_fderiv_at.is_o {f : E → F} {f' : E → F} {x : E} (h : has_fderiv_at f f' x) :
+  is_o (λ x', f x' - f x - f' (x' - x)) (λ x', x' - x) (nhds x) :=
+h.is_o
 
 theorem has_fderiv_at_filter_equiv_aux {f : E → F} {f' : E → F} {x : E} {L : filter E}
     (bf' : is_bounded_linear_map f') :
@@ -67,7 +67,7 @@ and.congr_right_iff.mpr $
     by rw this; simp [f'0],
   begin
     rw has_fderiv_at_filter_equiv_aux bf',
-    rw [←is_littleo_norm_left, ←is_littleo_norm_right, is_littleo_iff_tendsto h],
+    rw [←is_o_norm_left, ←is_o_norm_right, is_o_iff_tendsto h],
     exact tendsto.congr'r (λ x', mul_comm _ _)
   end
 
@@ -85,7 +85,7 @@ has_fderiv_at_filter_iff_tendsto
 
 theorem has_fderiv_at_filter.mono {f : E → F} {f' : E → F} {x : E} {L₁ L₂ : filter E}
   (hst : L₁ ≤ L₂) : has_fderiv_at_filter f f' x L₂ → has_fderiv_at_filter f f' x L₁ :=
-and.imp_right (is_littleo.mono hst)
+and.imp_right (is_o.mono hst)
 
 theorem has_fderiv_at_within.mono {f : E → F} {f' : E → F} {x : E} {s t : set E}
   (hst : s ⊆ t) : has_fderiv_at_within f f' x t → has_fderiv_at_within f f' x s :=
@@ -103,7 +103,7 @@ theorem has_fderiv_at_filter_congr' {f₀ f₁ : E → F} {f₀' f₁' : E → F
   (hx : f₀ x = f₁ x) (h₀ : {x | f₀ x = f₁ x} ∈ L.sets) (h₁ : ∀ x, f₀' x = f₁' x) :
   has_fderiv_at_filter f₀ f₀' x L ↔ has_fderiv_at_filter f₁ f₁' x L :=
 by rw (funext h₁ : f₀' = f₁'); exact
-and_congr_right (λ _, is_littleo_congr
+and_congr_right (λ _, is_o_congr
   (by filter_upwards [h₀] λ x' (h:_=_), by simp [h, hx])
   (univ_mem_sets' $ λ _, rfl))
 
@@ -138,7 +138,7 @@ theorem has_fderiv_at.congr {f₀ f₁ : E → F} {f₀' f₁' : E → F} {x : E
 (has_fderiv_at_congr h₀ h₁).1
 
 theorem has_fderiv_at_filter_id (x : E) (L : filter E) : has_fderiv_at_filter id id x L :=
-⟨is_bounded_linear_map.id, (is_littleo_zero _ _).congr_left (by simp)⟩
+⟨is_bounded_linear_map.id, (is_o_zero _ _).congr_left (by simp)⟩
 
 theorem has_fderiv_at_within_id (x : E) (s : set E) : has_fderiv_at_within id id x s :=
 has_fderiv_at_filter_id _ _
@@ -148,7 +148,7 @@ has_fderiv_at_filter_id _ _
 
 theorem has_fderiv_at_filter_const (c : F) (x : E) (L : filter E) :
   has_fderiv_at_filter (λ x, c) (λ y, 0) x L :=
-⟨is_bounded_linear_map.zero, (is_littleo_zero _ _).congr_left (by simp)⟩
+⟨is_bounded_linear_map.zero, (is_o_zero _ _).congr_left (by simp)⟩
 
 theorem has_fderiv_at_within_const (c : F) (x : E) (s : set E) :
   has_fderiv_at_within (λ x, c) (λ y, 0) x s :=
@@ -162,7 +162,7 @@ theorem has_fderiv_at_filter_smul {f : E → F} {f' : E → F} {x : E} {L : filt
     (c : ℝ) (h : has_fderiv_at_filter f f' x L) :
   has_fderiv_at_filter (λ x, c • f x) (λ x, c • f' x) x L :=
 ⟨is_bounded_linear_map.smul c h.left,
-  (is_littleo_const_smul_left h.right c).congr_left $
+  (is_o_const_smul_left h.right c).congr_left $
   λ x, by simp [smul_neg, smul_add]⟩
 
 theorem has_fderiv_at_within_smul {f : E → F} {f' : E → F} {x : E} {s : set E}
@@ -219,15 +219,15 @@ theorem has_fderiv_at_sub {f g : E → F} {f' g' : E → F} {x : E} :
   has_fderiv_at (λ x, f x - g x) (λ x, f' x - g' x) x :=
 has_fderiv_at_filter_sub
 
-theorem has_fderiv_at_filter.is_bigo_sub {f : E → F} {f' : E → F} {x : E} {L : filter E}
-  (h : has_fderiv_at_filter f f' x L) : is_bigo (λ x', f x' - f x) (λ x', x' - x) L :=
-h.2.to_is_bigo.congr_of_sub.2 (h.1.is_bigo_sub _ _)
+theorem has_fderiv_at_filter.is_O_sub {f : E → F} {f' : E → F} {x : E} {L : filter E}
+  (h : has_fderiv_at_filter f f' x L) : is_O (λ x', f x' - f x) (λ x', x' - x) L :=
+h.2.to_is_O.congr_of_sub.2 (h.1.is_O_sub _ _)
 
 theorem has_fderiv_at_filter.tendsto_nhds {f : E → F} {f' : E → F} {x : E} {L : filter E}
   (hL : L ≤ nhds x) (h : has_fderiv_at_filter f f' x L) : tendsto f L (nhds (f x)) :=
 begin
   have : tendsto (λ x', f x' - f x) L (nhds 0),
-  { refine h.is_bigo_sub.trans_tendsto (tendsto_le_left hL _),
+  { refine h.is_O_sub.trans_tendsto (tendsto_le_left hL _),
     rw ← sub_self x, exact tendsto_sub tendsto_id tendsto_const_nhds },
   have := tendsto_add this tendsto_const_nhds,
   rw zero_add (f x) at this,
@@ -247,8 +247,8 @@ theorem has_fderiv_at_filter.comp {g g' : F → G} {f f' : E → F} {L : filter 
   (hg : has_fderiv_at_filter g g' (f x) (L.map f)) :
   has_fderiv_at_filter (g ∘ f) (g' ∘ f') x L :=
 ⟨hg.1.comp hf.1, begin
-  have eq₁ := (hg.1.is_bigo_comp _).trans_is_littleo hf.2,
-  have eq₂ := ((hg.2.comp f).mono le_comap_map).trans_is_bigo hf.is_bigo_sub,
+  have eq₁ := (hg.1.is_O_comp _).trans_is_o hf.2,
+  have eq₂ := ((hg.2.comp f).mono le_comap_map).trans_is_O hf.is_O_sub,
   refine eq₂.tri (eq₁.congr_left (λ x', _)),
   rw [show g' (_-_) = g' _ - g' _, from (hg.1.to_linear_map _).map_sub _ _]
 end⟩

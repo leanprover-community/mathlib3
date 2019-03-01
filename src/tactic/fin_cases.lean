@@ -23,8 +23,9 @@ do t ← infer_type e,
    | `(%%x ∈ %%A) :=
       do t ← infer_type A,
         match t with
-        | `(finset %%α) := return α
-        | `(list %%α)   := return α
+        | `(finset %%α)   := return α
+        | `(multiset %%α) := return α
+        | `(list %%α)     := return α
         | _ := failed
         end
    | `(@list.mem %%α %%x %%A) := return α
@@ -42,10 +43,9 @@ focus1 $
    -- We have a goal with an equation `s`, and a second goal with a smaller `e : x ∈ _`.
    | [(_, [s], _), (_, [e], _)] :=
      do let sn := local_pp_name s,
-        if numeric then
+        when numeric
           -- tidy up with norm_num
-          tactic.interactive.conv (some sn) none (to_rhs >> `[try { norm_num }])
-        else skip,
+          (tactic.interactive.conv (some sn) none (to_rhs >> `[try { norm_num }])),
         s ← get_local sn,
         try `[subst %%s],
         rotate_left 1,

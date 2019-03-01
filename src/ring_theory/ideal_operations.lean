@@ -449,7 +449,7 @@ begin
     exact hs (or.inr $ set.mem_bUnion hjt $ add_sub_cancel' r s ▸ (f j).sub_mem hj $ hr j hjt) }
 end
 
-/-- Prime avoidance. Atiyah-Macdonald 1.11, Eisenbud 3.3, Stacks 10.14.2 (00DS), Matsumura Ex.1.6. -/
+/-- Prime avoidance. Atiyah-Macdonald 1.11, Eisenbud 3.3, Stacks 00DS, Matsumura Ex.1.6. -/
 theorem subset_union_prime {s : finset ι} {f : ι → ideal R} (a b : ι)
   (hp : ∀ i ∈ s, i ≠ a → i ≠ b → is_prime (f i)) {I : ideal R} :
   (I : set R) ⊆ (⋃ i ∈ (↑s : set ι), f i) ↔ ∃ i ∈ s, I ≤ f i :=

@@ -182,13 +182,18 @@ protected def rec {β : Type v} [comm_ring β]
 quotient.lift_on x (λ p, f p.1 * ((g p.2)⁻¹ : units β)) $ λ ⟨r₁, s₁⟩ ⟨r₂, s₂⟩ ⟨t, hts, ht⟩,
 show f r₁ * ↑(g s₁)⁻¹ = f r₂ * ↑(g s₂)⁻¹, from
 calc  f r₁ * ↑(g s₁)⁻¹
-    = (f r₁ * g s₂ + ((g s₁ * f r₂ - g s₂ * f r₁) * g ⟨t, hts⟩) * ↑(g ⟨t, hts⟩)⁻¹) * ↑(g s₁)⁻¹ * ↑(g s₂)⁻¹ :
-  by simp only [hg, subtype.coe_mk, (is_ring_hom.map_mul f).symm, (is_ring_hom.map_sub f).symm, ht, is_ring_hom.map_zero f,
-                zero_mul, add_zero]; rw [is_ring_hom.map_mul f, ← hg, mul_right_comm, mul_assoc (f r₁), ← units.coe_mul, mul_inv_self];
+    = (f r₁ * g s₂ + ((g s₁ * f r₂ - g s₂ * f r₁) * g ⟨t, hts⟩) * ↑(g ⟨t, hts⟩)⁻¹)
+      * ↑(g s₁)⁻¹ * ↑(g s₂)⁻¹ :
+  by simp only [hg, subtype.coe_mk, (is_ring_hom.map_mul f).symm, (is_ring_hom.map_sub f).symm,
+                ht, is_ring_hom.map_zero f, zero_mul, add_zero];
+     rw [is_ring_hom.map_mul f, ← hg, mul_right_comm,
+         mul_assoc (f r₁), ← units.coe_mul, mul_inv_self];
      rw [units.coe_one, mul_one]
 ... = f r₂ * ↑(g s₂)⁻¹ :
-  by rw [mul_assoc, mul_assoc, ← units.coe_mul, mul_inv_self, units.coe_one, mul_one, mul_comm ↑(g s₂), add_sub_cancel'_right];
-     rw [mul_comm ↑(g s₁), ← mul_assoc, mul_assoc (f r₂), ← units.coe_mul, mul_inv_self, units.coe_one, mul_one]
+  by rw [mul_assoc, mul_assoc, ← units.coe_mul, mul_inv_self, units.coe_one,
+         mul_one, mul_comm ↑(g s₂), add_sub_cancel'_right];
+     rw [mul_comm ↑(g s₁), ← mul_assoc, mul_assoc (f r₂), ← units.coe_mul,
+         mul_inv_self, units.coe_one, mul_one]
 
 instance rec.is_ring_hom {β : Type v} [comm_ring β]
   (f : α → β) [hf : is_ring_hom f] (g : S → units β) (hg : ∀ s, (g s : β) = f s) :
@@ -197,14 +202,16 @@ instance rec.is_ring_hom {β : Type v} [comm_ring β]
     show f 1 * ↑(g 1)⁻¹ = 1, by rw [this, one_inv, units.coe_one, mul_one, is_ring_hom.map_one f],
   map_mul := λ x y, localization.induction_on x $ λ r₁ s₁,
     localization.induction_on y $ λ r₂ s₂,
-    have g (s₁ * s₂) = g s₁ * g s₂, from units.ext (by simp only [hg, units.coe_mul]; exact is_ring_hom.map_mul f),
+    have g (s₁ * s₂) = g s₁ * g s₂,
+      from units.ext (by simp only [hg, units.coe_mul]; exact is_ring_hom.map_mul f),
     show _ * ↑(g (_ * _))⁻¹ = (_ * _) * (_ * _),
     by simp only [subtype.coe_mk, mul_one, one_mul, subtype.coe_eta, this, mul_inv_rev];
        rw [is_ring_hom.map_mul f, units.coe_mul, ← mul_assoc, ← mul_assoc];
        simp only [mul_right_comm],
   map_add := λ x y, localization.induction_on x $ λ r₁ s₁,
     localization.induction_on y $ λ r₂ s₂,
-    have g (s₁ * s₂) = g s₁ * g s₂, from units.ext (by simp only [hg, units.coe_mul]; exact is_ring_hom.map_mul f),
+    have g (s₁ * s₂) = g s₁ * g s₂,
+      from units.ext (by simp only [hg, units.coe_mul]; exact is_ring_hom.map_mul f),
     show _ * ↑(g (_ * _))⁻¹ = _ * _ + _ * _,
     by simp only [subtype.coe_mk, mul_one, one_mul, subtype.coe_eta, this, mul_inv_rev];
        simp only [is_ring_hom.map_mul f, is_ring_hom.map_add f, add_mul, (hg _).symm];

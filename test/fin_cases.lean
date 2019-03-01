@@ -3,18 +3,9 @@ import data.nat.prime
 import group_theory.perm
 import tactic.norm_num
 
-example (p : ℕ) (h : p ∈ list.range 2) : true :=
-begin
-  cases h,
-  trivial,
-  cases h,
-  trivial,
-  cases h,
-end
-
 example (f : ℕ → Prop) (p : fin 3) (h0 : f 0) (h1 : f 1) (h2 : f 2) : f p.val :=
 begin
-  fin_cases *,
+  fin_cases *; simp,
   all_goals { assumption }
 end
 

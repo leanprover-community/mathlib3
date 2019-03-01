@@ -12,6 +12,12 @@ universes u v
 namespace nat
 variables {m n k : ℕ}
 
+-- Sometimes a bare `nat.add` or similar appears as a consequence of unfolding
+-- during pattern matching. These lemmas package them back up as typeclass
+-- mediated operations.
+@[simp] theorem add_eq_plus {a b : ℕ} : nat.add a b = a + b := rfl
+@[simp] theorem mul_eq_times {a b : ℕ} : nat.mul a b = a * b := rfl
+
 attribute [simp] nat.add_sub_cancel nat.add_sub_cancel_left
 attribute [simp] nat.sub_self
 
@@ -861,7 +867,7 @@ lemma with_bot.add_eq_one_iff : ∀ {n m : with_bot ℕ}, n + m = 1 ↔ (n = 0 �
 
 -- induction
 
-@[elab_as_eliminator] lemma le_induction {P : nat → Prop} {m} (h0 : P m) (h1 : ∀ n ≥ m, P n → P (n + 1)) : 
+@[elab_as_eliminator] lemma le_induction {P : nat → Prop} {m} (h0 : P m) (h1 : ∀ n ≥ m, P n → P (n + 1)) :
   ∀ n ≥ m, P n :=
 by apply nat.less_than_or_equal.rec h0; exact h1
 

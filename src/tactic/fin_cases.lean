@@ -15,11 +15,6 @@ open lean.parser
 open interactive interactive.types expr
 open conv.interactive
 
--- Maybe this is controversial.
--- When we do `cases h`, for `h : x ∈ range n`, a wild `nat.add` appears.
--- This simp lemma wraps it up again...
-@[simp] lemma nat.add_plus (a b : ℕ) : nat.add a b = a + b := rfl
-
 /-- Checks that the expression looks like `x ∈ A` for `A : finset α` or `A : list α`,
     and returns the type α. -/
 meta def guard_mem_fin (e : expr) : tactic expr :=

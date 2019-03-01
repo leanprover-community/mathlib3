@@ -14,15 +14,19 @@ says that the function `f' : E → F` is a bounded linear map and `f` has deriva
 
   `has_fderiv_at f f' x := has_fderiv_at_within f f' x univ`
 
-The derivative is defined in terms of the `littleo` relation, but also characterized in terms of
+The derivative is defined in terms of the `is_o` relation, but also characterized in terms of
 the `tendsto` relation.
 -/
 import topology.basic analysis.normed_space.bounded_linear_maps ..asymptotics tactic.abel
 open filter asymptotics
 
-variables {E : Type*} [normed_space ℝ E]
-variables {F : Type*} [normed_space ℝ F]
-variables {G : Type*} [normed_space ℝ G]
+section
+
+variables {K : Type*} [normed_field K]
+variables {E : Type*} [normed_space K E]
+variables {F : Type*} [normed_space K F]
+variables {G : Type*} [normed_space K G]
+include K
 
 def has_fderiv_at_filter (f : E → F) (f' : E → F) (x : E) (L : filter E) :=
 is_bounded_linear_map f' ∧
@@ -43,21 +47,10 @@ theorem has_fderiv_at.is_o {f : E → F} {f' : E → F} {x : E} (h : has_fderiv_
   is_o (λ x', f x' - f x - f' (x' - x)) (λ x', x' - x) (nhds x) :=
 h.is_o
 
-theorem has_fderiv_at_filter_equiv_aux {f : E → F} {f' : E → F} {x : E} {L : filter E}
-    (bf' : is_bounded_linear_map f') :
-  tendsto (λ x', ∥x' - x∥⁻¹ • (f x' - f x - f' (x' - x))) L (nhds 0) ↔
-  tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - f' (x' - x)∥) L (nhds 0) :=
-begin
-  have f'0 : f' 0 = 0 := (bf'.to_linear_map _).map_zero,
-  rw [tendsto_iff_norm_tendsto_zero], refine tendsto.congr'r (λ x', _),
-  have : ∥x' + -x∥⁻¹ ≥ 0, from inv_nonneg.mpr (norm_nonneg _),
-  simp [norm_smul, real.norm_eq_abs, abs_of_nonneg this]
-end
-
 theorem has_fderiv_at_filter_iff_tendsto {f : E → F} {f' : E → F} {x : E} {L : filter E} :
   has_fderiv_at_filter f f' x L ↔
     is_bounded_linear_map f' ∧
-      tendsto (λ x', ∥x' - x∥⁻¹ • (f x' - f x - f' (x' - x))) L (nhds 0) :=
+      tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - f' (x' - x)∥) L (nhds 0) :=
 and.congr_right_iff.mpr $
   assume bf' : is_bounded_linear_map f',
   have f'0 : f' 0 = 0 := (bf'.to_linear_map _).map_zero,
@@ -66,7 +59,6 @@ and.congr_right_iff.mpr $
     have x' = x, from eq_of_sub_eq_zero ((norm_eq_zero _).mp hx'),
     by rw this; simp [f'0],
   begin
-    rw has_fderiv_at_filter_equiv_aux bf',
     rw [←is_o_norm_left, ←is_o_norm_right, is_o_iff_tendsto h],
     exact tendsto.congr'r (λ x', mul_comm _ _)
   end
@@ -74,13 +66,13 @@ and.congr_right_iff.mpr $
 theorem has_fderiv_at_within_iff_tendsto {f : E → F} {f' : E → F} {x : E} {s : set E} :
   has_fderiv_at_within f f' x s ↔
     is_bounded_linear_map f' ∧
-      tendsto (λ x', ∥x' - x∥⁻¹ • (f x' - f x - f' (x' - x))) (nhds_within x s) (nhds 0) :=
+      tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - f' (x' - x)∥) (nhds_within x s) (nhds 0) :=
 has_fderiv_at_filter_iff_tendsto
 
 theorem has_fderiv_at_iff_tendsto {f : E → F} {f' : E → F} {x : E} :
   has_fderiv_at f f' x ↔
     is_bounded_linear_map f' ∧
-      tendsto (λ x', ∥x' - x∥⁻¹ • (f x' - f x - f' (x' - x))) (nhds x) (nhds 0) :=
+      tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - f' (x' - x)∥) (nhds x) (nhds 0) :=
 has_fderiv_at_filter_iff_tendsto
 
 theorem has_fderiv_at_filter.mono {f : E → F} {f' : E → F} {x : E} {L₁ L₂ : filter E}
@@ -159,19 +151,19 @@ theorem has_fderiv_at_const (c : F) (x : E) :
 has_fderiv_at_filter_const _ _ _
 
 theorem has_fderiv_at_filter_smul {f : E → F} {f' : E → F} {x : E} {L : filter E}
-    (c : ℝ) (h : has_fderiv_at_filter f f' x L) :
+    (c : K) (h : has_fderiv_at_filter f f' x L) :
   has_fderiv_at_filter (λ x, c • f x) (λ x, c • f' x) x L :=
 ⟨is_bounded_linear_map.smul c h.left,
   (is_o_const_smul_left h.right c).congr_left $
   λ x, by simp [smul_neg, smul_add]⟩
 
 theorem has_fderiv_at_within_smul {f : E → F} {f' : E → F} {x : E} {s : set E}
-    (c : ℝ) : has_fderiv_at_within f f' x s →
+    (c : K) : has_fderiv_at_within f f' x s →
   has_fderiv_at_within (λ x, c • f x) (λ x, c • f' x) x s :=
 has_fderiv_at_filter_smul _
 
 theorem has_fderiv_at_smul {f : E → F} {f' : E → F} {x : E}
-    (c : ℝ) : has_fderiv_at f f' x →
+    (c : K) : has_fderiv_at f f' x →
   has_fderiv_at (λ x, c • f x) (λ x, c • f' x) x :=
 has_fderiv_at_filter_smul _
 
@@ -194,7 +186,7 @@ has_fderiv_at_filter_add
 theorem has_fderiv_at_filter_neg {f : E → F} {f' : E → F} {x : E} {L : filter E}
   (h : has_fderiv_at_filter f f' x L) :
   has_fderiv_at_filter (λ x, -f x) (λ x, -f' x) x L :=
-(has_fderiv_at_filter_smul (-1 : ℝ) h).congr (by simp) (by simp)
+(has_fderiv_at_filter_smul (-1 : K) h).congr (by simp) (by simp)
 
 theorem has_fderiv_at_within_neg {f : E → F} {f' : E → F} {x : E} {s : set E} :
   has_fderiv_at_within f f' x s → has_fderiv_at_within (λ x, -f x) (λ x, -f' x) x s :=
@@ -289,3 +281,29 @@ theorem has_fderiv_at.comp {g g' : F → G} {f f' : E → F} {x : E}
   (hf : has_fderiv_at f f' x) (hg : has_fderiv_at g g' (f x)) :
   has_fderiv_at (g ∘ f) (g' ∘ f') x :=
 hf.comp (hg.mono hf.continuous_at)
+
+end
+
+/-
+In the special case of a normed space over the reals, we can use scalar multiplication in the
+`tendsto` characterization of the Fréchet derivative.
+-/
+
+section
+
+variables {E : Type*} [normed_space ℝ E]
+variables {F : Type*} [normed_space ℝ F]
+variables {G : Type*} [normed_space ℝ G]
+
+theorem has_fderiv_at_filter_real_equiv {f : E → F} {f' : E → F} {x : E} {L : filter E}
+    (bf' : is_bounded_linear_map f') :
+  tendsto (λ x' : E, ∥x' - x∥⁻¹ * ∥f x' - f x - f' (x' - x)∥) L (nhds 0) ↔
+  tendsto (λ x' : E, ∥x' - x∥⁻¹ • (f x' - f x - f' (x' - x))) L (nhds 0) :=
+begin
+  have f'0 : f' 0 = 0 := (bf'.to_linear_map _).map_zero,
+  symmetry, rw [tendsto_iff_norm_tendsto_zero], refine tendsto.congr'r (λ x', _),
+  have : ∥x' + -x∥⁻¹ ≥ 0, from inv_nonneg.mpr (norm_nonneg _),
+  simp [norm_smul, real.norm_eq_abs, abs_of_nonneg this]
+end
+
+end

@@ -32,8 +32,8 @@ do t ← infer_type e,
    | _ := failed
    end
 
-meta def fin_cases_at : expr → tactic unit
-| e :=
+meta def fin_cases_at : expr → list expr → tactic unit
+| e w :=
 focus1 $
 -- Deal with `x ∈ A` hypotheses first:
 (do ty ← guard_mem_fin e,
@@ -43,13 +43,14 @@ focus1 $
    -- We have a goal with an equation `s`, and a second goal with a smaller `e : x ∈ _`.
    | [(_, [s], _), (_, [e], _)] :=
      do let sn := local_pp_name s,
+        -- TODO actually use `w` here, to try to `change` the result to the user specified value.
         when numeric
           -- tidy up with norm_num
           (tactic.interactive.conv (some sn) none (to_rhs >> `[try { norm_num }])),
         s ← get_local sn,
         try `[subst %%s],
         rotate_left 1,
-        fin_cases_at e
+        fin_cases_at e w.tail
    -- No cases; we're done.
    | [] := skip
    | _ := failed
@@ -61,10 +62,16 @@ focus1 $
    t ← to_expr ``(%%e ∈ @fintype.elems %%ty %%i),
    v ← to_expr ``(@fintype.complete %%ty %%i %%e),
    h ← assertv `h t v,
-   fin_cases_at h)
+   fin_cases_at h w)
+
+meta def expr_list_to_list_expr : expr → tactic (list expr)
+| `(list.cons %%h %%t) := do t ← expr_list_to_list_expr t, return h :: t
+| `([]) := return []
+| _ := failed
 
 namespace interactive
 private meta def hyp := tk "*" *> return none <|> some <$> ident
+local postfix `?`:9001 := optional
 
 /--
 `fin_cases h` performs case analysis on a hypothesis of the form
@@ -83,10 +90,18 @@ end
 ```
 after `fin_cases p`, there are three goals, `f 0`, `f 1`, and `f 2`.
 -/
-meta def fin_cases : parse hyp → tactic unit
-| none := do ctx ← local_context,
-             ctx.mfirst fin_cases_at <|> fail "No hypothesis of the forms `x ∈ A`, where `A : finset ℕ`, or `x : A`, with `[fintype A]`."
-| (some n) := do h ← get_local n, fin_cases_at h
+meta def fin_cases : parse hyp → parse (tk ":" *> texpr)? → tactic unit
+| none none := do ctx ← local_context,
+             ctx.mfirst (fin_cases_at none) <|> fail "No hypothesis of the forms `x ∈ A`, where `A : finset ℕ`, or `x : A`, with `[fintype A]`."
+| none (some _) := fail "Specify a single hypothesis when using a `with` argument."
+| (some n) w :=
+  do
+    h ← get_local n,
+    w ← match w with
+        | (some w) := i_to_expr w >>= expr_list_to_list_expr
+        | none := return []
+        end,
+    fin_cases_at w h
 
 end interactive
 

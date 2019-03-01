@@ -85,7 +85,7 @@ after `fin_cases p`, there are three goals, `f 0`, `f 1`, and `f 2`.
 -/
 meta def fin_cases : parse hyp → tactic unit
 | none := do ctx ← local_context,
-             ctx.mfirst fin_cases_at <|> fail "No hypothesis of the forms `x ∈ A`, where `A : finset ℕ`, or `x : A`, with `[fintype A]`."
+             ctx.mfirst fin_cases_at <|> fail "No hypothesis of the forms `x ∈ A`, where `A : finset X`, `A : list X`, or `A : multiset X`, or `x : A`, with `[fintype A]`."
 | (some n) := do h ← get_local n, fin_cases_at h
 
 end interactive

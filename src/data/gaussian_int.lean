@@ -73,6 +73,10 @@ int.nat_abs_of_nonneg (norm_nonneg _)
   (x : ℤ[i]) : (x.norm.nat_abs : α) = x.norm :=
 by rw [← int.cast_coe_nat, coe_nat_abs_norm]
 
+lemma nat_abs_norm_eq (x : ℤ[i]) : x.norm.nat_abs =
+  x.re.nat_abs * x.re.nat_abs + x.im.nat_abs * x.im.nat_abs :=
+int.coe_nat_inj $ begin simp, simp [norm] end
+
 protected def div (x y : ℤ[i]) : ℤ[i] :=
 ⟨round ((x * conj y).re / norm y : ℚ),
  round ((x * conj y).im / norm y : ℚ)⟩

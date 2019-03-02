@@ -10,7 +10,7 @@ def translate (n : ℤ) : ℤ ⥤ ℤ :=
   map := by tidy }
 
 namespace category_theory
-open set is_group_hom instances
+open set instances
 variables (C : Type u₁) [𝒞 : category.{v₁} C]
 include 𝒞
 
@@ -48,7 +48,7 @@ def shift (n : ℤ) : sequence C ⥤ sequence C :=
   map := λ X Y f, whisker_left _ f }
 
 omit 𝒞
-variable (A : sequence Group)
+variable (A : sequence AddCommGroup)
 
 #print delta
 
@@ -57,7 +57,7 @@ def is_complex :=
   ker (@delta _ _ A i (i-1+1) begin by tidy end)
 
 def is_bounded_below_by (n : ℤ) :=
-∀ i < n, A.obj i ≅ 1
+∀ i < n, A.obj i ≅ 0
 
 end sequence
 

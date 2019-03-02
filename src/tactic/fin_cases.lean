@@ -39,10 +39,9 @@ meta def expr_list_to_list_expr : Π (e : expr), tactic (list expr)
 | `([]) := return []
 | _ := failed
 
-meta def fin_cases_at_aux : Π (with_list : list expr) (e ty : expr), tactic unit
-| with_list e ty :=
+meta def fin_cases_at_aux : Π (with_list : list expr) (e : expr) (ty_numeric : bool), tactic unit
+| with_list e ty_numeric :=
 (do
-  numeric ← option.is_some <$> try_core (unify ty `(ℕ) <|> unify ty `(ℤ) <|> unify ty `(ℚ)),
   result ← cases_core e,
   match result with
   -- We have a goal with an equation `s`, and a second goal with a smaller `e : x ∈ _`.
@@ -53,13 +52,13 @@ meta def fin_cases_at_aux : Π (with_list : list expr) (e ty : expr), tactic uni
         tactic.interactive.conv (some sn) none
           (to_rhs >> match with_list.nth 0 with
           | (some h) := conv.interactive.change (to_pexpr h)
-          | _ := `[try { conv.interactive.simp ff [] [] }] >> when numeric `[try { conv.interactive.norm_num [] }]
+          | _ := `[try { conv.interactive.simp ff [] [] }] >> when ty_numeric `[try { conv.interactive.norm_num [] }]
           end),
         s ← get_local sn,
         try `[subst %%s],
         ng' ← num_goals,
         when (ng = ng') (rotate_left 1),
-        fin_cases_at_aux with_list.tail e ty
+        fin_cases_at_aux with_list.tail e ty_numeric
   -- No cases; we're done.
   | [] := skip
   | _ := failed
@@ -84,7 +83,8 @@ do ty ← try_core $ guard_mem_fin e,
         | (some e) := do e ← to_expr ``(%%e : list %%ty), expr_list_to_list_expr e
         | none := return []
         end,
-        fin_cases_at_aux with_list e ty)
+        ty_numeric ← succeeds (unify ty `(ℕ) <|> unify ty `(ℤ) <|> unify ty `(ℚ)),
+        fin_cases_at_aux with_list e ty_numeric)
     end
 
 meta def fin_cases_at' (with_list : option pexpr) (e : expr) : tactic unit :=

@@ -114,7 +114,14 @@ by rw [continuous_at, continuous_at_within, nhds_within_univ]
 
 theorem continuous_at_within_iff_continuous_at_restrict (f : α → β) {x : α} {s : set α} (h : x ∈ s) :
   continuous_at_within f x s ↔ continuous_at (function.restrict f s) ⟨x, h⟩ :=
-tendsto_at_within_iff_subtype h f _
+tendsto_nhds_within_iff_subtype h f _
+
+theorem continuous_at_within.tendsto_nhds_within_image {f : α → β} {x : α} {s : set α}
+  (h : continuous_at_within f x s) :
+  tendsto f (nhds_within x s) (nhds_within (f x) (f '' s)) :=
+tendsto_inf.2 ⟨h, tendsto_principal.2 $
+  mem_inf_sets_of_right $ mem_principal_sets.2 $
+  λ x, mem_image_of_mem _⟩
 
 theorem continuous_on_iff {f : α → β} {s : set α} :
   continuous_on f s ↔ ∀ x ∈ s, ∀ t : set β, is_open t → f x ∈ t → ∃ u, is_open u ∧ x ∈ u ∧
@@ -141,6 +148,10 @@ have ∀ t, is_open (function.restrict f s ⁻¹' t) ↔ ∃ (u : set α), is_op
     split; { rintros ⟨u, ou, useq⟩, exact ⟨u, ou, useq.symm⟩ }
   end,
 by rw [continuous_on_iff_continuous_restrict, continuous]; simp only [this]
+
+theorem nhds_within_le_comap {x : α} {s : set α} {f : α → β} (ctsf : continuous_at_within f x s) :
+  nhds_within x s ≤ comap f (nhds_within (f x) (f '' s)) :=
+map_le_iff_le_comap.1 ctsf.tendsto_nhds_within_image
 
 theorem continuous_at_within_iff_ptendsto_res (f : α → β) {x : α} {s : set α} (xs : x ∈ s) :
   continuous_at_within f x s ↔ ptendsto (pfun.res f s) (nhds x) (nhds (f x)) :=

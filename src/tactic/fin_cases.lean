@@ -87,9 +87,6 @@ do ty ← try_core $ guard_mem_fin e,
         fin_cases_at_aux with_list e ty_numeric)
     end
 
-meta def fin_cases_at' (with_list : option pexpr) (e : expr) : tactic unit :=
-focus1 $ fin_cases_at with_list e
-
 namespace interactive
 private meta def hyp := tk "*" *> return none <|> some <$> ident
 local postfix `?`:9001 := optional
@@ -112,13 +109,14 @@ end
 after `fin_cases p; simp`, there are three goals, `f 0`, `f 1`, and `f 2`.
 -/
 meta def fin_cases : parse hyp → parse (tk "with" *> texpr)? → tactic unit
-| none none := do ctx ← local_context,
-                  ctx.mfirst (fin_cases_at' none) <|> fail "No hypothesis of the forms `x ∈ A`, where `A : finset X`, `A : list X`, or `A : multiset X`, or `x : A`, with `[fintype A]`."
+| none none := focus1 $
+               do ctx ← local_context,
+                  ctx.mfirst (fin_cases_at none) <|> fail "No hypothesis of the forms `x ∈ A`, where `A : finset X`, `A : list X`, or `A : multiset X`, or `x : A`, with `[fintype A]`."
 | none (some _) := fail "Specify a single hypothesis when using a `with` argument."
 | (some n) with_list :=
   do
     h ← get_local n,
-    fin_cases_at' with_list h
+    focus1 $ fin_cases_at with_list h
 
 end interactive
 

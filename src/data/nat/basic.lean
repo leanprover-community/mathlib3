@@ -361,6 +361,31 @@ iff.intro
     apply add_pos_right _ npos
   end
 
+lemma add_eq_one_iff : ∀ {a b : ℕ}, a + b = 1 ↔ (a = 0 ∧ b = 1) ∨ (a = 1 ∧ b = 0)
+| 0     0     := dec_trivial
+| 0     1     := dec_trivial
+| 1     0     := dec_trivial
+| 1     1     := dec_trivial
+| (a+2) _     := by rw add_right_comm; exact dec_trivial
+| _     (b+2) := by rw [← add_assoc]; simp only [nat.succ_inj', nat.succ_ne_zero]; simp
+
+lemma mul_eq_one_iff : ∀ {a b : ℕ}, a * b = 1 ↔ a = 1 ∧ b = 1
+| 0     0     := dec_trivial
+| 0     1     := dec_trivial
+| 1     0     := dec_trivial
+| (a+2) 0     := by simp
+| 0     (b+2) := by simp
+| (a+1) (b+1) := ⟨λ h, by simp only [add_mul, mul_add, mul_add, one_mul, mul_one,
+    (add_assoc _ _ _).symm, nat.succ_inj', add_eq_zero_iff] at h; simp [h.1.2, h.2],
+  by clear_aux_decl; finish⟩
+
+lemma mul_right_eq_self_iff {a b : ℕ} (ha : 0 < a): a * b = a ↔ b = 1 :=
+suffices a * b = a * 1 ↔ b = 1, by rwa mul_one at this,
+nat.mul_left_inj ha
+
+lemma mul_left_eq_self_iff {a b : ℕ} (hb : 0 < b): a * b = b ↔ a = 1 :=
+by rw [mul_comm, nat.mul_right_eq_self_iff hb]
+
 lemma lt_succ_iff_lt_or_eq {n i : ℕ} : n < i.succ ↔ (n < i ∨ n = i) :=
 lt_succ_iff.trans le_iff_lt_or_eq
 
@@ -861,7 +886,7 @@ lemma with_bot.add_eq_one_iff : ∀ {n m : with_bot ℕ}, n + m = 1 ↔ (n = 0 �
 
 -- induction
 
-@[elab_as_eliminator] lemma le_induction {P : nat → Prop} {m} (h0 : P m) (h1 : ∀ n ≥ m, P n → P (n + 1)) : 
+@[elab_as_eliminator] lemma le_induction {P : nat → Prop} {m} (h0 : P m) (h1 : ∀ n ≥ m, P n → P (n + 1)) :
   ∀ n ≥ m, P n :=
 by apply nat.less_than_or_equal.rec h0; exact h1
 

@@ -18,7 +18,7 @@ namespace prime
 
 lemma sum_two_squares {p : ℕ} (hp : p.prime) (hp1 : p % 4 = 1) :
   ∃ a b : ℕ, a ^ 2 + b ^ 2 = p :=
-let ⟨k, hk⟩ := (zmodp.neg_one_is_square_iff_mod_four_ne_three hp).2 $
+let ⟨k, hk⟩ := (zmodp.exists_pow_two_eq_neg_one_iff_mod_four_ne_three hp).2 $
   by rw hp1; exact dec_trivial in
 have hpk : p ∣ k.val ^ 2 + 1,
   by rw [← zmodp.eq_zero_iff_dvd_nat hp]; simp *,

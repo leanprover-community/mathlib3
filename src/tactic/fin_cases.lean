@@ -22,12 +22,22 @@ do t ← infer_type e,
    match t with
    | `(%%x ∈ %%A) :=
       do t ← infer_type A,
+        /- I'd thought this commented out block would work as a slightly
+        -- more general replacement for the match block.
+        -- Instead it causes a mysterious problem, re-ordering goals?! -/
+        --  α ← mk_mvar,
+        --  to_expr ``(finset %%α)   >>= unify t <|>
+        --  to_expr ``(multiset %%α) >>= unify t <|>
+        --  to_expr ``(list %%α)     >>= unify t,
+        --  α ← instantiate_mvars α,
+        --  return α
         match t with
         | `(finset %%α)   := return α
         | `(multiset %%α) := return α
         | `(list %%α)     := return α
         | _ := failed
         end
+   -- after we start case bashing, the hypothesis may look like `list.mem x A` rather than `x ∈ A`
    | `(@list.mem %%α %%x %%A) := return α
    | _ := failed
    end

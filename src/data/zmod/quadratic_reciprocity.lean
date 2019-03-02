@@ -41,7 +41,7 @@ lemma euler_criterion {a : zmodp p hp} (ha : a ≠ 0) :
 λ h, let ⟨y, hy⟩ := (euler_criterion_units hp).2 (show units.mk0 _ ha ^ (p / 2) = 1, by simpa [units.ext_iff]) in
   ⟨y, by simpa [units.ext_iff] using hy⟩⟩
 
-lemma neg_one_is_square_iff_mod_four_ne_three :
+lemma exists_pow_two_eq_neg_one_iff_mod_four_ne_three :
   (∃ y : zmodp p hp, y ^ 2 = -1) ↔ p % 4 ≠ 3 :=
 have (-1 : zmodp p hp) ≠ 0, from mt neg_eq_zero.1 one_ne_zero,
 hp.eq_two_or_odd.elim (λ hp, by subst hp; exact dec_trivial)
@@ -534,7 +534,7 @@ begin
   cc
 end
 
-lemma is_square_iff_is_square_of_mod_four_eq_one (hp1 : p % 4 = 1) (hq1 : q % 2 = 1) :
+lemma exists_pow_two_eq_prime_iff_of_mod_four_eq_one (hp1 : p % 4 = 1) (hq1 : q % 2 = 1) :
   (∃ a : zmodp p hp, a ^ 2 = q) ↔ ∃ b : zmodp q hq, b ^ 2 = p :=
 if hpq : p = q then by subst hpq else
 have h1 : ((p / 2) * (q / 2)) % 2 = 0,
@@ -549,8 +549,8 @@ begin
   split_ifs at this; simp *; contradiction
 end
 
-lemma is_square_iff_is_not_square_of_mod_four_eq_three (hp3 : p % 4 = 3) (hq3 : q % 4 = 3)
-  (hpq : p ≠ q) : (∃ a : zmodp p hp, a ^ 2 = q) ↔ ¬∃ b : zmodp q hq, b ^ 2 = p :=
+lemma exists_pow_two_eq_prime_iff_of_mod_four_eq_three (hp3 : p % 4 = 3)
+  (hq3 : q % 4 = 3) (hpq : p ≠ q) : (∃ a : zmodp p hp, a ^ 2 = q) ↔ ¬∃ b : zmodp q hq, b ^ 2 = p :=
 have h1 : ((p / 2) * (q / 2)) % 2 = 1,
   from nat.odd_mul_odd
     (by rw [← mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hp3]; refl)

@@ -605,7 +605,7 @@ Known limitation(s):
 ## fin_cases
 `fin_cases h` performs case analysis on a hypothesis of the form
 1) `h : A`, where `[fintype A]` is available, or
-2) `h ∈ A`, where `A : finset X` or `A : list X`.
+2) `h ∈ A`, where `A : finset X`, `A : multiset X` or `A : list X`.
 
 `fin_cases *` performs case analysis on all suitable hypotheses.
 
@@ -613,11 +613,12 @@ As an example, in
 ```
 example (f : ℕ → Prop) (p : fin 3) (h0 : f 0) (h1 : f 1) (h2 : f 2) : f p.val :=
 begin
-  fin_cases p,
+  fin_cases p; simp,
   all_goals { assumption }
 end
 ```
-after `fin_cases p`, there are three goals, `f 0`, `f 1`, and `f 2`.
+after `fin_cases p; simp`, there are three goals, `f 0`, `f 1`, and `f 2`.
+
 ## conv
 The `conv` tactic is built-in to lean. Currently mathlib additionally provides
    * `erw`,

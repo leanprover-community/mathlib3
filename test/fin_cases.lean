@@ -30,6 +30,20 @@ begin
   fin_cases h; simp
 end
 
+example (x : ℕ) (h : x ∈ [2,3,5,7]) : true :=
+begin
+  success_if_fail { fin_cases h with [3,3,5,7] },
+  trivial
+end
+
+example (x : list ℕ) (h : x ∈ [[1],[2]]) : x.length = 1 :=
+begin
+  fin_cases h with [[1],[1+1]],
+  simp,
+  guard_target (list.length [1 + 1] = 1),
+  simp
+end
+
 instance (n : ℕ) : decidable (prime n) := decidable_prime_1 n
 example (x : ℕ) (h : x ∈ (range 10).filter prime) : x = 2 ∨ x = 3 ∨ x = 5 ∨ x = 7 :=
 begin

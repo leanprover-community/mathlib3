@@ -15,8 +15,8 @@ meta instance : has_to_format ℤ := ⟨λ z, int.rec_on z (λ k, ↑k) (λ k, "
 
 attribute [simp] int.coe_nat_add int.coe_nat_mul int.coe_nat_zero int.coe_nat_one int.coe_nat_succ
 
-@[simp] theorem add_eq_plus {a b : ℤ} : int.add a b = a + b := rfl
-@[simp] theorem mul_eq_times {a b : ℤ} : int.mul a b = a * b := rfl
+@[simp] theorem add_def {a b : ℤ} : int.add a b = a + b := rfl
+@[simp] theorem mul_def {a b : ℤ} : int.mul a b = a * b := rfl
 
 @[simp] theorem coe_nat_mul_neg_succ (m n : ℕ) : (m : ℤ) * -[1+ n] = -(m * succ n) := rfl
 @[simp] theorem neg_succ_mul_coe_nat (m n : ℕ) : -[1+ m] * n = -(succ m * n) := rfl
@@ -131,7 +131,7 @@ theorem nat_abs_neg_of_nat (n : ℕ) : nat_abs (neg_of_nat n) = n :=
 by cases n; refl
 
 theorem nat_abs_mul (a b : ℤ) : nat_abs (a * b) = (nat_abs a) * (nat_abs b) :=
-by cases a; cases b; simp only [has_mul.mul, int.mul, nat_abs_neg_of_nat, eq_self_iff_true, int.nat_abs]
+by cases a; cases b; simp only [(*), int.mul, nat_abs_neg_of_nat, eq_self_iff_true, int.nat_abs]
 
 theorem neg_succ_of_nat_eq' (m : ℕ) : -[1+ m] = -m - 1 :=
 by simp [neg_succ_of_nat_eq]

@@ -114,7 +114,14 @@ by rw [continuous_at, continuous_at_within, nhds_within_univ]
 
 theorem continuous_at_within_iff_continuous_at_restrict (f : α → β) {x : α} {s : set α} (h : x ∈ s) :
   continuous_at_within f x s ↔ continuous_at (function.restrict f s) ⟨x, h⟩ :=
-tendsto_at_within_iff_subtype h f _
+tendsto_nhds_within_iff_subtype h f _
+
+theorem continuous_at_within.tendsto_nhds_within_image {f : α → β} {x : α} {s : set α}
+  (h : continuous_at_within f x s) :
+  tendsto f (nhds_within x s) (nhds_within (f x) (f '' s)) :=
+tendsto_inf.2 ⟨h, tendsto_principal.2 $
+  mem_inf_sets_of_right $ mem_principal_sets.2 $
+  λ x, mem_image_of_mem _⟩
 
 theorem continuous_on_iff {f : α → β} {s : set α} :
   continuous_on f s ↔ ∀ x ∈ s, ∀ t : set β, is_open t → f x ∈ t → ∃ u, is_open u ∧ x ∈ u ∧
@@ -141,6 +148,10 @@ have ∀ t, is_open (function.restrict f s ⁻¹' t) ↔ ∃ (u : set α), is_op
     split; { rintros ⟨u, ou, useq⟩, exact ⟨u, ou, useq.symm⟩ }
   end,
 by rw [continuous_on_iff_continuous_restrict, continuous]; simp only [this]
+
+theorem nhds_within_le_comap {x : α} {s : set α} {f : α → β} (ctsf : continuous_at_within f x s) :
+  nhds_within x s ≤ comap f (nhds_within (f x) (f '' s)) :=
+map_le_iff_le_comap.1 ctsf.tendsto_nhds_within_image
 
 theorem continuous_at_within_iff_ptendsto_res (f : α → β) {x : α} {s : set α} (xs : x ∈ s) :
   continuous_at_within f x s ↔ ptendsto (pfun.res f s) (nhds x) (nhds (f x)) :=
@@ -984,6 +995,22 @@ lemma compact_iff_compact_space {s : set α} : compact s ↔ compact_space s :=
 compact_iff_compact_univ.trans ⟨λ h, ⟨h⟩, @compact_space.compact_univ _ _⟩
 
 end subtype
+
+section nonempty_compacts
+variables [topological_space α]
+open topological_space
+
+instance nonempty_compacts.to_compact_space {p : nonempty_compacts α} : compact_space p.val :=
+⟨compact_iff_compact_univ.1 p.property.2⟩
+
+instance nonempty_compacts.to_nonempty {p : nonempty_compacts α} : nonempty p.val :=
+nonempty_subtype.2 $ ne_empty_iff_exists_mem.1 p.property.1
+
+/-- Associate to a nonempty compact subset the corresponding closed subset -/
+def nonempty_compacts.to_closeds [t2_space α] (s : nonempty_compacts α) : closeds α :=
+⟨s.val, closed_of_compact _ s.property.2⟩
+
+end nonempty_compacts
 
 section quotient
 variables [topological_space α] [topological_space β] [topological_space γ]

@@ -18,7 +18,10 @@ import algebra.group algebra.group_power
 import data.fintype data.list.basic data.quot
 import group_theory.subgroup
 open relation
-variables {α : Type*}
+
+universes u v w
+
+variables {α : Type u}
 
 local attribute [simp] list.append_eq_has_append
 
@@ -304,7 +307,7 @@ end free_group
 
 /-- The free group over a type, i.e. the words formed by the elements of the type and their formal
 inverses, quotient by one step reduction. -/
-def free_group (α : Type*) : Type* :=
+def free_group (α : Type u) : Type u :=
 quot $ @free_group.red.step α
 
 namespace free_group
@@ -315,11 +318,11 @@ def mk (L) : free_group α := quot.mk red.step L
 
 @[simp] lemma quot_mk_eq_mk : quot.mk red.step L = mk L := rfl
 
-@[simp] lemma quot_lift_mk (β : Type*) (f : list (α × bool) → β)
+@[simp] lemma quot_lift_mk (β : Type v) (f : list (α × bool) → β)
   (H : ∀ L₁ L₂, red.step L₁ L₂ → f L₁ = f L₂) :
 quot.lift f H (mk L) = f L := rfl
 
-@[simp] lemma quot_lift_on_mk (β : Type*) (f : list (α × bool) → β)
+@[simp] lemma quot_lift_on_mk (β : Type v) (f : list (α × bool) → β)
   (H : ∀ L₁ L₂, red.step L₁ L₂ → f L₁ = f L₂) :
 quot.lift_on (mk L) f H = f L := rfl
 
@@ -363,7 +366,7 @@ by simp [red.singleton_iff] at hx hy; cc
 
 section to_group
 
-variables {β : Type*} [group β] (f : α → β) {x y : free_group α}
+variables {β : Type v} [group β] (f : α → β) {x y : free_group α}
 
 def to_group.aux : list (α × bool) → β :=
 λ L, list.prod $ L.map $ λ x, cond x.2 (f x.1) (f x.1)⁻¹
@@ -430,7 +433,7 @@ end to_group
 
 section map
 
-variables {β : Type*} (f : α → β) {x y : free_group α}
+variables {β : Type v} (f : α → β) {x y : free_group α}
 
 def map.aux (L : list (α × bool)) : list (β × bool) :=
 L.map $ λ x, (f x.1, x.2)
@@ -456,7 +459,7 @@ by rcases x with ⟨L⟩; simp [H1]
 
 @[simp] lemma map.id' : map (λ z, z) x = x := map.id
 
-theorem map.comp {γ : Type*} {f : α → β} {g : β → γ} {x} :
+theorem map.comp {γ : Type w} {f : α → β} {g : β → γ} {x} :
   map g (map f x) = map (g ∘ f) x :=
 by rcases x with ⟨L⟩; simp
 
@@ -530,7 +533,7 @@ to_group.unique g hg
 
 end prod
 
-theorem to_group_eq_prod_map {β : Type*} [group β] {f : α → β} {x} :
+theorem to_group_eq_prod_map {β : Type v} [group β] {f : α → β} {x} :
   to_group f x = prod (map f x) :=
 eq.symm $ to_group.unique (prod ∘ map f) $ λ _, by simp
 
@@ -582,6 +585,64 @@ def free_group_unit_equiv_int : free_group unit ≃ int :=
   right_inv := λ x, int.induction_on x (by simp)
     (λ i ih, by simp at ih; simp [gpow_add, ih])
     (λ i ih, by simp at ih; simp [gpow_add, ih]) }
+
+section category
+
+variables {β : Type u}
+
+instance : monad free_group.{u} :=
+{ pure := λ α, of,
+  map := λ α β, map,
+  bind := λ α β x f, to_group f x }
+
+@[elab_as_eliminator]
+protected theorem induction_on
+  {C : free_group α → Prop}
+  (z : free_group α)
+  (C1 : C 1)
+  (Cp : ∀ x, C $ pure x)
+  (Ci : ∀ x, C (pure x) → C (pure x)⁻¹)
+  (Cm : ∀ x y, C x → C y → C (x * y)) : C z :=
+quot.induction_on z $ λ L, list.rec_on L C1 $ λ ⟨x, b⟩ tl ih,
+bool.rec_on b (Cm _ _ (Ci _ $ Cp x) ih) (Cm _ _ (Cp x) ih)
+
+@[simp] lemma map_pure (f : α → β) (x : α) : f <$> (pure x : free_group α) = pure (f x) :=
+map.of
+
+@[simp] lemma map_one (f : α → β) : f <$> (1 : free_group α) = 1 :=
+map.one
+
+@[simp] lemma map_mul (f : α → β) (x y : free_group α) : f <$> (x * y) = f <$> x * f <$> y :=
+map.mul
+
+@[simp] lemma map_inv (f : α → β) (x : free_group α) : f <$> (x⁻¹) = (f <$> x)⁻¹ :=
+map.inv
+
+@[simp] lemma pure_bind (f : α → free_group β) (x) : pure x >>= f = f x :=
+to_group.of
+
+@[simp] lemma one_bind (f : α → free_group β) : 1 >>= f = 1 :=
+@@to_group.one _ f
+
+@[simp] lemma mul_bind (f : α → free_group β) (x y : free_group α) : x * y >>= f = (x >>= f) * (y >>= f) :=
+to_group.mul
+
+@[simp] lemma inv_bind (f : α → free_group β) (x : free_group α) : x⁻¹ >>= f = (x >>= f)⁻¹ :=
+to_group.inv
+
+instance : is_lawful_monad free_group.{u} :=
+{ id_map := λ α x, free_group.induction_on x (map_one id) (λ x, map_pure id x)
+    (λ x ih, by rw [map_inv, ih]) (λ x y ihx ihy, by rw [map_mul, ihx, ihy]),
+  pure_bind := λ α β x f, pure_bind f x,
+  bind_assoc := λ α β γ x f g, free_group.induction_on x
+    (by iterate 3 { rw one_bind }) (λ x, by iterate 2 { rw pure_bind })
+    (λ x ih, by iterate 3 { rw inv_bind }; rw ih)
+    (λ x y ihx ihy, by iterate 3 { rw mul_bind }; rw [ihx, ihy]),
+  bind_pure_comp_eq_map := λ α β f x, free_group.induction_on x
+    (by rw [one_bind, map_one]) (λ x, by rw [pure_bind, map_pure])
+    (λ x ih, by rw [inv_bind, map_inv, ih]) (λ x y ihx ihy, by rw [mul_bind, map_mul, ihx, ihy]) }
+
+end category
 
 section reduce
 

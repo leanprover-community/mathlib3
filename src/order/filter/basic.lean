@@ -112,6 +112,10 @@ mem_sets_of_superset univ_mem_sets (assume x _, h x)
 lemma mp_sets (hs : s ∈ f.sets) (h : {x | x ∈ s → x ∈ t} ∈ f.sets) : t ∈ f.sets :=
 mem_sets_of_superset (inter_mem_sets hs h) $ assume x ⟨h₁, h₂⟩, h₂ h₁
 
+lemma congr_sets (h : {x | x ∈ s ↔ x ∈ t} ∈ f.sets) : s ∈ f.sets ↔ t ∈ f.sets :=
+⟨λ hs, mp_sets hs (mem_sets_of_superset h (λ x, iff.mp)),
+ λ hs, mp_sets hs (mem_sets_of_superset h (λ x, iff.mpr))⟩
+
 lemma Inter_mem_sets {β : Type v} {s : β → set α} {is : set β} (hf : finite is) :
   (∀i∈is, s i ∈ f.sets) → (⋂i∈is, s i) ∈ f.sets :=
 finite.induction_on hf
@@ -691,6 +695,9 @@ lemma monotone_comap : monotone (comap m) | a b := comap_mono
 @[simp] lemma comap_infi {f : ι → filter β} : comap m (⨅i, f i) = (⨅i, comap m (f i)) :=
 (gc_map_comap m).u_infi
 
+lemma le_comap_top (f : α → β) (l : filter α) : l ≤ comap f ⊤ :=
+by rw [comap_top]; exact le_top
+
 lemma map_comap_le : map m (comap m g) ≤ g := (gc_map_comap m).l_u_le _
 lemma le_comap_map : f ≤ comap m (map m f) := (gc_map_comap m).le_u_l _
 
@@ -1100,9 +1107,17 @@ lemma tendsto_iff_comap {f : α → β} {l₁ : filter α} {l₂ : filter β} :
   tendsto f l₁ l₂ ↔ l₁ ≤ l₂.comap f :=
 map_le_iff_le_comap
 
-lemma tendsto_cong {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter β}
-  (h : tendsto f₁ l₁ l₂) (hl : {x | f₁ x = f₂ x} ∈ l₁.sets) : tendsto f₂ l₁ l₂ :=
+lemma tendsto.congr' {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter β}
+  (hl : {x | f₁ x = f₂ x} ∈ l₁.sets) (h : tendsto f₁ l₁ l₂) : tendsto f₂ l₁ l₂ :=
 by rwa [tendsto, ←map_cong hl]
+
+theorem tendsto.congr'r {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter β}
+  (h : ∀ x, f₁ x = f₂ x) : tendsto f₁ l₁ l₂ ↔ tendsto f₂ l₁ l₂ :=
+iff_of_eq (by congr'; exact funext h)
+
+theorem tendsto.congr {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter β}
+  (h : ∀ x, f₁ x = f₂ x) : tendsto f₁ l₁ l₂ → tendsto f₂ l₁ l₂ :=
+(tendsto.congr'r h).1
 
 lemma tendsto_id' {x y : filter α} : x ≤ y → tendsto id x y :=
 by simp only [tendsto, map_id, forall_true_iff] {contextual := tt}

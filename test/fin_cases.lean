@@ -48,6 +48,14 @@ begin
   simp
 end
 
+ -- testing that `with` arguments are elaborated with respect to the expected type:
+example (x : ℤ) (h : x ∈ ([2,3] : list ℤ)) : x = 2 ∨ x = 3:=
+begin
+  fin_cases h with [2,3],
+  all_goals { simp }
+end
+
+
 instance (n : ℕ) : decidable (prime n) := decidable_prime_1 n
 example (x : ℕ) (h : x ∈ (range 10).filter prime) : x = 2 ∨ x = 3 ∨ x = 5 ∨ x = 7 :=
 begin

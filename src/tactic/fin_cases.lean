@@ -40,11 +40,11 @@ meta def fin_cases_at : list expr → expr → tactic unit
       -- Deal with `x : A`, where `[fintype A]` is available:
       (do
         ty ← infer_type e,
-        i ← to_expr ``(fintype %%ty) >>= mk_instance,
+        i ← to_expr ``(fintype %%ty) >>= mk_instance <|> fail "Failed to find `fintype` instance.",
         t ← to_expr ``(%%e ∈ @fintype.elems %%ty %%i),
         v ← to_expr ``(@fintype.complete %%ty %%i %%e),
         h ← assertv `h t v,
-        fin_cases_at with_list h) <|> fail "Failed to find `fintype` instance."
+        fin_cases_at with_list h)
     | (some ty) :=
       -- Deal with `x ∈ A` hypotheses:
       (do
@@ -54,15 +54,17 @@ meta def fin_cases_at : list expr → expr → tactic unit
         -- We have a goal with an equation `s`, and a second goal with a smaller `e : x ∈ _`.
         | [(_, [s], _), (_, [e], _)] :=
           do let sn := local_pp_name s,
+              ng ← num_goals,
               -- tidy up the new value
               tactic.interactive.conv (some sn) none
                 (to_rhs >> match with_list.nth 0 with
                 | (some h) := conv.interactive.change (to_pexpr h)
-                | _ := when numeric `[try { conv.interactive.norm_num [] }]
+                | _ := `[try { conv.interactive.simp ff [] [] }] >> when numeric `[try { conv.interactive.norm_num [] }]
                 end),
               s ← get_local sn,
               try `[subst %%s],
-              rotate_left 1,
+              ng' ← num_goals,
+              when (ng = ng') (rotate_left 1),
               fin_cases_at with_list.tail e
         -- No cases; we're done.
         | [] := skip

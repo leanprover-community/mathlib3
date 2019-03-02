@@ -5,8 +5,10 @@ import tactic.norm_num
 
 example (f : ℕ → Prop) (p : fin 3) (h0 : f 0) (h1 : f 1) (h2 : f 2) : f p.val :=
 begin
-  fin_cases *; simp,
-  all_goals { assumption }
+  fin_cases *,
+  simp, assumption,
+  simp, assumption,
+  simp, assumption,
 end
 
 example (x2 : fin 2) (x3 : fin 3) (n : nat) (y : fin n) : x2.val * x3.val = x3.val * x2.val :=
@@ -21,13 +23,15 @@ end
 open finset
 example (x : ℕ) (h : x ∈ Ico 2 5) : x = 2 ∨ x = 3 ∨ x = 4 :=
 begin
-  fin_cases h; simp
+  fin_cases h,
+  all_goals { simp }
 end
 
 open nat
 example (x : ℕ) (h : x ∈ [2,3,5,7]) : x = 2 ∨ x = 3 ∨ x = 5 ∨ x = 7 :=
 begin
-  fin_cases h; simp
+  fin_cases h,
+  all_goals { simp }
 end
 
 example (x : ℕ) (h : x ∈ [2,3,5,7]) : true :=

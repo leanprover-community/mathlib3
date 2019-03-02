@@ -42,12 +42,43 @@ do t ← infer_type e,
    | _ := failed
    end
 
-meta def fin_cases_at : list expr → expr → tactic unit
+meta def expr_list_to_list_expr : Π (e : expr), tactic (list expr)
+| `(list.cons %%h %%t) := do t ← expr_list_to_list_expr t, return (h :: t)
+| `([]) := return []
+| _ := failed
+
+meta def fin_cases_at_aux : Π (with_list : list expr) (e ty : expr), tactic unit
+| with_list e ty :=
+(do
+  numeric ← option.is_some <$> try_core (unify ty `(ℕ) <|> unify ty `(ℤ) <|> unify ty `(ℚ)),
+  result ← cases_core e,
+  match result with
+  -- We have a goal with an equation `s`, and a second goal with a smaller `e : x ∈ _`.
+  | [(_, [s], _), (_, [e], _)] :=
+    do let sn := local_pp_name s,
+        ng ← num_goals,
+        -- tidy up the new value
+        tactic.interactive.conv (some sn) none
+          (to_rhs >> match with_list.nth 0 with
+          | (some h) := conv.interactive.change (to_pexpr h)
+          | _ := `[try { conv.interactive.simp ff [] [] }] >> when numeric `[try { conv.interactive.norm_num [] }]
+          end),
+        s ← get_local sn,
+        try `[subst %%s],
+        ng' ← num_goals,
+        when (ng = ng') (rotate_left 1),
+        fin_cases_at_aux with_list.tail e ty
+  -- No cases; we're done.
+  | [] := skip
+  | _ := failed
+  end)
+
+
+meta def fin_cases_at : Π (with_list : option pexpr) (e : expr), tactic unit
 | with_list e :=
-(do ty ← try_core $ guard_mem_fin e,
+do ty ← try_core $ guard_mem_fin e,
     match ty with
-    | none :=
-      -- Deal with `x : A`, where `[fintype A]` is available:
+    | none := -- Deal with `x : A`, where `[fintype A]` is available:
       (do
         ty ← infer_type e,
         i ← to_expr ``(fintype %%ty) >>= mk_instance <|> fail "Failed to find `fintype` instance.",
@@ -55,40 +86,17 @@ meta def fin_cases_at : list expr → expr → tactic unit
         v ← to_expr ``(@fintype.complete %%ty %%i %%e),
         h ← assertv `h t v,
         fin_cases_at with_list h)
-    | (some ty) :=
-      -- Deal with `x ∈ A` hypotheses:
+    | (some ty) := -- Deal with `x ∈ A` hypotheses:
       (do
-        numeric ← option.is_some <$> try_core (unify ty `(ℕ) <|> unify ty `(ℤ) <|> unify ty `(ℚ)),
-        result ← cases_core e,
-        match result with
-        -- We have a goal with an equation `s`, and a second goal with a smaller `e : x ∈ _`.
-        | [(_, [s], _), (_, [e], _)] :=
-          do let sn := local_pp_name s,
-              ng ← num_goals,
-              -- tidy up the new value
-              tactic.interactive.conv (some sn) none
-                (to_rhs >> match with_list.nth 0 with
-                | (some h) := conv.interactive.change (to_pexpr h)
-                | _ := `[try { conv.interactive.simp ff [] [] }] >> when numeric `[try { conv.interactive.norm_num [] }]
-                end),
-              s ← get_local sn,
-              try `[subst %%s],
-              ng' ← num_goals,
-              when (ng = ng') (rotate_left 1),
-              fin_cases_at with_list.tail e
-        -- No cases; we're done.
-        | [] := skip
-        | _ := failed
-        end)-- <|> fail "Something went wrong while performing `cases`."
-    end)
+        with_list ← match with_list with
+        | (some e) := do e ← to_expr ``(%%e : list %%ty), expr_list_to_list_expr e
+        | none := return []
+        end,
+        fin_cases_at_aux with_list e ty)
+    end
 
-meta def fin_cases_at' (with_list : list expr) (e : expr) : tactic unit :=
+meta def fin_cases_at' (with_list : option pexpr) (e : expr) : tactic unit :=
 focus1 $ fin_cases_at with_list e
-
-meta def expr_list_to_list_expr : expr → tactic (list expr)
-| `(list.cons %%h %%t) := do t ← expr_list_to_list_expr t, return (h :: t)
-| `([]) := return []
-| _ := failed
 
 namespace interactive
 private meta def hyp := tk "*" *> return none <|> some <$> ident
@@ -113,15 +121,11 @@ after `fin_cases p; simp`, there are three goals, `f 0`, `f 1`, and `f 2`.
 -/
 meta def fin_cases : parse hyp → parse (tk "with" *> texpr)? → tactic unit
 | none none := do ctx ← local_context,
-                  ctx.mfirst (fin_cases_at' []) <|> fail "No hypothesis of the forms `x ∈ A`, where `A : finset X`, `A : list X`, or `A : multiset X`, or `x : A`, with `[fintype A]`."
+                  ctx.mfirst (fin_cases_at' none) <|> fail "No hypothesis of the forms `x ∈ A`, where `A : finset X`, `A : list X`, or `A : multiset X`, or `x : A`, with `[fintype A]`."
 | none (some _) := fail "Specify a single hypothesis when using a `with` argument."
 | (some n) with_list :=
   do
     h ← get_local n,
-    with_list ← match with_list with
-        | (some e) := i_to_expr e >>= expr_list_to_list_expr
-        | none := return []
-        end,
     fin_cases_at' with_list h
 
 end interactive

@@ -88,9 +88,9 @@ def fract (r : α) : α := r - ⌊r⌋
 
 -- Mathematical notation is usually {r}. Let's not even go there.
 
-@[simp] lemma fract_add_floor (r : α) : (⌊r⌋ : α) + fract r = r := by unfold fract; simp
+@[simp] lemma floor_add_fract (r : α) : (⌊r⌋ : α) + fract r = r := by unfold fract; simp
 
-@[simp] lemma floor_add_fract (r : α) : fract r + ⌊r⌋ = r := sub_add_cancel _ _
+@[simp] lemma fract_add_floor (r : α) : fract r + ⌊r⌋ = r := sub_add_cancel _ _
 
 theorem fract_nonneg (r : α) : 0 ≤ fract r :=
 sub_nonneg.2 $ floor_le _

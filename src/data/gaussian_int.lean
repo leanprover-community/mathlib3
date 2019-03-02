@@ -19,8 +19,6 @@ instance : has_repr ℤ[i] := ⟨λ x, "⟨" ++ repr x.re ++ ", " ++ repr x.im +
 
 instance : comm_ring ℤ[i] := zsqrtd.comm_ring
 
-def norm (x : ℤ[i]) : ℕ := x.re.nat_abs * x.re.nat_abs + x.im.nat_abs * x.im.nat_abs
-
 def to_complex (x : ℤ[i]) : ℂ := x.re + x.im * I
 
 instance : has_coe (ℤ[i]) ℂ := ⟨to_complex⟩
@@ -55,41 +53,25 @@ by cases x; cases y; simp [to_complex_def₂]
 by rw [← to_complex_zero, to_complex_inj]
 
 @[simp] lemma nat_cast_real_norm (x : ℤ[i]) : (x.norm : ℝ) = (x : ℂ).norm_sq :=
-by rw [norm, nat.cast_add, ← int.cast_coe_nat, ← int.cast_coe_nat,
-  int.nat_abs_mul_self, int.nat_abs_mul_self, complex.norm_sq]; simp
+by rw [norm, norm_sq]; simp
 
 @[simp] lemma nat_cast_complex_norm (x : ℤ[i]) : (x.norm : ℂ) = (x : ℂ).norm_sq :=
-by rw [← of_real_nat_cast, nat_cast_real_norm]
+by cases x; rw [norm, norm_sq]; simp
 
-@[simp] lemma norm_mul (x y : ℤ[i]) : norm (x * y) = norm x * norm y :=
-(@nat.cast_inj ℂ _ _ _ _ _).1 $ by simp
+lemma norm_nonneg (x : ℤ[i]) : 0 ≤ norm x := norm_nonneg trivial _
 
 @[simp] lemma norm_eq_zero {x : ℤ[i]} : norm x = 0 ↔ x = 0 :=
-by rw [← @nat.cast_inj ℝ _ _ _]; simp
+by rw [← @int.cast_inj ℝ _ _ _]; simp
 
 lemma norm_pos {x : ℤ[i]} : 0 < norm x ↔ x ≠ 0 :=
-by rw [nat.pos_iff_ne_zero', ne.def, norm_eq_zero]
+by rw [lt_iff_le_and_ne, ne.def, eq_comm, norm_eq_zero]; simp [norm_nonneg]
 
-lemma norm_nat_cast (x : ℕ) : norm x = x ^ 2 :=
-by simp [norm, nat.pow_two]
+@[simp] lemma coe_nat_abs_norm (x : ℤ[i]) : (x.norm.nat_abs : ℤ) = x.norm :=
+int.nat_abs_of_nonneg (norm_nonneg _)
 
-@[simp] lemma norm_one : norm 1 = 1 := rfl
-@[simp] lemma norm_zero : norm 0 = 0 := rfl
-
-lemma norm_eq_one_iff {x : ℤ[i]} : norm x = 1 ↔ is_unit x :=
-⟨λ h, is_unit_iff_dvd_one.2 begin
-  rw [norm, nat.add_eq_one_iff, ← int.coe_nat_inj', ← int.coe_nat_inj',
-    ← int.coe_nat_inj', ← int.coe_nat_inj', int.nat_abs_mul_self,
-    int.nat_abs_mul_self] at h,
-  cases h,
-  { exact ⟨⟨0, -x.im⟩, by simp [zsqrtd.ext, *] at *⟩ },
-  { exact ⟨⟨x.re, 0⟩, by simp [zsqrtd.ext, *] at *⟩ }
-end,
-λ h, let ⟨y, hy⟩ := is_unit_iff_dvd_one.1 h in begin
-  have := congr_arg norm hy,
-  rw [norm_one, norm_mul, eq_comm, nat.mul_eq_one_iff] at this,
-  exact this.1
-end⟩
+@[simp] lemma nat_cast_nat_abs_norm {α : Type*} [ring α]
+  (x : ℤ[i]) : (x.norm.nat_abs : α) = x.norm :=
+by rw [← int.cast_coe_nat, coe_nat_abs_norm]
 
 protected def div (x y : ℤ[i]) : ℤ[i] :=
 ⟨round ((x * conj y).re / norm y : ℚ),
@@ -140,9 +122,9 @@ instance : has_mod ℤ[i] := ⟨gaussian_int.mod⟩
 
 lemma mod_def (x y : ℤ[i]) : x % y = x - y * (x / y) := rfl
 
-protected lemma remainder_lt (x y : ℤ[i]) (hy : y ≠ 0) : (x % y).norm < y.norm :=
+lemma norm_mod_lt (x : ℤ[i]) {y : ℤ[i]} (hy : y ≠ 0) : (x % y).norm < y.norm :=
 have (y : ℂ) ≠ 0, by rwa [ne.def, ← to_complex_zero, to_complex_inj],
-(@nat.cast_lt ℝ _ _ _).1 $
+(@int.cast_lt ℝ _ _ _).1 $
   calc ↑(norm (x % y)) = (x - y * (x / y : ℤ[i]) : ℂ).norm_sq : by simp [mod_def]
   ... = (y : ℂ).norm_sq * (((x / y) - (x / y : ℤ[i])) : ℂ).norm_sq :
     by rw [← norm_sq_mul, mul_sub, mul_div_cancel' _ this]
@@ -150,9 +132,15 @@ have (y : ℂ) ≠ 0, by rwa [ne.def, ← to_complex_zero, to_complex_inj],
     (norm_sq_pos.2 this)
   ... = norm y : by simp
 
+lemma nat_abs_norm_mod_lt (x : ℤ[i]) {y : ℤ[i]} (hy : y ≠ 0) :
+  (x % y).norm.nat_abs < y.norm.nat_abs :=
+int.coe_nat_lt.1 (by simp [-int.coe_nat_lt, norm_mod_lt x hy])
+
 lemma norm_le_norm_mul_left (x : ℤ[i]) {y : ℤ[i]} (hy : y ≠ 0) :
-  norm x ≤ norm (x * y) :=
-by rw norm_mul; exact le_mul_of_ge_one_right' (nat.zero_le _) (norm_pos.2 hy)
+  (norm x).nat_abs ≤ (norm (x * y)).nat_abs :=
+by rw [norm_mul, int.nat_abs_mul];
+  exact le_mul_of_ge_one_right' (nat.zero_le _)
+    (int.coe_nat_le.1 (by rw [coe_nat_abs_norm]; exact norm_pos.2 hy))
 
 instance : nonzero_comm_ring ℤ[i] :=
 { zero_ne_one := dec_trivial, ..gaussian_int.comm_ring }
@@ -162,9 +150,9 @@ instance : euclidean_domain ℤ[i] :=
   remainder := (%),
   quotient_zero := λ _, by simp [div_def]; refl,
   quotient_mul_add_remainder_eq := λ _ _, by simp [mod_def],
-  r := λ x y, norm x < norm y,
-  r_well_founded := measure_wf norm,
-  remainder_lt := gaussian_int.remainder_lt,
+  r := _,
+  r_well_founded := measure_wf (int.nat_abs ∘ norm),
+  remainder_lt := nat_abs_norm_mod_lt,
   mul_left_not_lt := λ a b hb0, not_lt_of_ge $ norm_le_norm_mul_left a hb0 }
 
 end gaussian_int

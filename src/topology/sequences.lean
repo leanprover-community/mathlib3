@@ -18,7 +18,7 @@ TODO:
 * Sequential compactness should be handled here.
 -/
 
-import topology.basic topology.continuity topology.metric_space.basic
+import topology.basic topology.metric_space.basic
 import analysis.specific_limits
 
 open set filter

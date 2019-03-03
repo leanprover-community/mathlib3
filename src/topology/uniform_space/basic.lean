@@ -26,7 +26,7 @@ The formalization is mostly based on the books:
   I. M. James: Topologies and Uniformities
 A major difference is that this formalization is heavily based on the filter library.
 -/
-import order.filter order.filter.lift data.quot topology.basic topology.continuity
+import order.filter order.filter.lift data.quot topology.constructions
 open set lattice filter classical
 local attribute [instance] prop_decidable
 
@@ -1062,7 +1062,7 @@ begin
     rw [uniformly_extend_of_emb, de.induced],
     exact h_f.continuous.tendsto _ },
   { simp only [dense_embedding.extend, dif_neg ha],
-    exact (@lim_spec _ (id _) _ _ $ uniformly_extend_exists h_e h_dense h_f _) }
+    exact (@lim_spec _ _ (id _) _ $ uniformly_extend_exists h_e h_dense h_f _) }
 end
 
 lemma uniform_continuous_uniformly_extend [cγ : complete_space γ] : uniform_continuous ψ :=

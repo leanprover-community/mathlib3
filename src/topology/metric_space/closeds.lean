@@ -14,7 +14,7 @@ inherits a metric space structure from the Hausdorff distance, as the Hausdorff 
 always finite in this context.
 -/
 
-import topology.metric_space.hausdorff_distance
+import topology.metric_space.hausdorff_distance topology.opens
 noncomputable theory
 local attribute [instance, priority 0] classical.prop_decidable
 

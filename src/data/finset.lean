@@ -1609,11 +1609,13 @@ lemma disjoint_bind_right {ι : Type*} [decidable_eq ι]
   disjoint s (t.bind f) ↔ (∀i∈t, disjoint s (f i)) :=
 by simpa only [disjoint.comm] using disjoint_bind_left t f s
 
-@[simp] theorem card_disjoint_union {s t : finset α} :
-    disjoint s t → card (s ∪ t) = card s + card t :=
-finset.induction_on s (λ _, by simp only [empty_union, card_empty, zero_add]) $ λ a s ha ih H,
-have h1 : a ∉ s ∪ t, from λ h, or.elim (mem_union.1 h) ha (disjoint_insert_left.1 H).1,
-by rw [insert_union, card_insert_of_not_mem h1, card_insert_of_not_mem ha, ih (disjoint_insert_left.1 H).2, add_right_comm]
+@[simp] theorem card_disjoint_union {s t : finset α} (h : disjoint s t) :
+  card (s ∪ t) = card s + card t :=
+by rw [← card_union_add_card_inter, disjoint_iff_inter_eq_empty.1 h, card_empty, add_zero]
+
+theorem card_sdiff {s t : finset α} (h : s ⊆ t) : card (t \ s) = card t - card s :=
+suffices card (t \ s) = card ((t \ s) ∪ s) - card s, by rwa sdiff_union_of_subset h at this,
+by rw [card_disjoint_union sdiff_disjoint, nat.add_sub_cancel]
 
 end disjoint
 

@@ -195,8 +195,7 @@ rfl
 
 lemma finset.card_univ_diff [fintype α] [decidable_eq α] (s : finset α) :
   (finset.univ \ s).card = fintype.card α - s.card :=
-eq.symm $ nat.sub_eq_of_eq_add $
-  by rw [← card_disjoint_union disjoint_sdiff, union_sdiff_of_subset (subset_univ _)]; refl
+finset.card_sdiff (subset_univ s)
 
 instance (n : ℕ) : fintype (fin n) :=
 ⟨⟨list.pmap fin.mk (list.range n) (λ a, list.mem_range.1),

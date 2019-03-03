@@ -51,21 +51,12 @@ end topological_comm_ring
 section ideal_is_add_subgroup
 variables {α : Type*} [comm_ring α] {M : Type*} [add_comm_group M] [module α M] (N : submodule α M)
 
-instance submodule_is_add_subgroup : is_add_subgroup ↑N :=
+instance submodule_is_add_subgroup : is_add_subgroup N :=
 { zero_mem := N.zero,
   add_mem  := N.add,
   neg_mem  := λ _, N.neg_mem }
 
 end ideal_is_add_subgroup
-
-section normal_subgroup
-variables {α : Type*}
-@[to_additive normal_add_subgroup_of_comm]
-instance normal_subgroup_of_comm [comm_group α] (s : set α) [hs : is_subgroup s] :
-  normal_subgroup s :=
-{ normal := assume a hn b, by rwa [mul_comm b, mul_inv_cancel_right] }
-attribute [instance] normal_add_subgroup_of_comm
-end normal_subgroup
 
 section topological_ring
 variables {α : Type*} [topological_space α] [comm_ring α] [topological_ring α] (N : ideal α)

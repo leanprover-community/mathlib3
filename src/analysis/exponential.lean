@@ -3,7 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
-import topology.instances.complex tactic.linarith data.complex.exponential group_theory.quotient_group
+import topology.instances.complex tactic.linarith data.complex.exponential
+      group_theory.quotient_group topology.metric_space.basic
 
 open finset filter metric
 
@@ -431,6 +432,8 @@ lemma exists_sin_eq {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : ∃ y, -(π
   (le_trans (neg_nonpos.2 (le_of_lt pi_div_two_pos)) (le_of_lt pi_div_two_pos))
 
 namespace angle
+-- Patrick has no idea why this instance shortcut is now necessary
+instance gmultiple_two_pi := gmultiples.is_add_subgroup (2 * π)
 
 /-- The type of angles -/
 def angle : Type :=

@@ -17,8 +17,8 @@ Reference:
 
 -/
 import logic.function algebra.big_operators data.set data.finset
-       topology.metric_space.basic topology.algebra.topological_structures
-       topology.instances.real
+       topology.metric_space.basic topology.algebra.uniform_group topology.algebra.ring
+       topology.algebra.ordered
 
 noncomputable theory
 open lattice finset filter function classical
@@ -444,6 +444,7 @@ is_sum_le h (is_sum_tsum hf) (is_sum_tsum hg)
 end order_topology
 
 section uniform_group
+
 variables [add_comm_group α] [uniform_space α] [complete_space α] [uniform_add_group α]
 variables (f g : β → α) {a a₁ a₂ : α}
 

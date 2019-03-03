@@ -361,6 +361,8 @@ lemma rec_heq_of_heq {β} {C : α → Sort*} {x : C a} {y : β} (eq : a = b) (h 
   @eq.rec α a C x b eq == y :=
 by subst eq; exact h
 
+@[simp] lemma {u} eq_mpr_heq {α β : Sort u} (h : β = α) (x : α) : eq.mpr h x == x :=
+by subst h; refl
 end equality
 
 /-

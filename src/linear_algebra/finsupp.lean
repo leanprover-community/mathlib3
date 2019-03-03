@@ -203,8 +203,6 @@ variables [ring α]
 variables [add_comm_group β] [module α β]
 variables [add_comm_group γ] [module α γ]
 
-local attribute [instance, priority 0] classical.prop_decidable
-
 noncomputable def congr (s : set β) (t : set γ) (e : s ≃ t) : supported α s ≃ₗ[α] supported α t :=
 begin
   show (finsupp.restrict_dom α α s) ≃ₗ[α] (finsupp.restrict_dom α α t),
@@ -213,13 +211,13 @@ begin
   exact finsupp.dom_lcongr e
 end
 
--- TODO: this is super slow
-set_option class.instance_max_depth 80
+-- TODO: this is bad, we need to fix the decidability instances
 noncomputable def supported_equiv [decidable_eq β] (s : set β) :
   lc.supported α s ≃ₗ[α] (s →₀ α) :=
 begin
-  refine linear_equiv.trans _ (finsupp.restrict_dom_equiv_finsupp α α s),
-  convert linear_equiv.refl (lc.supported α s); ext; exact subsingleton.elim _ _,
+  have eq : _inst_6 = (λa b : β, classical.prop_decidable (a = b)) := subsingleton.elim _ _,
+  unfreezeI, subst eq,
+  refine (finsupp.restrict_dom_equiv_finsupp α α s)
 end
 
 end lc

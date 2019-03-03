@@ -112,12 +112,8 @@ variables (σ : Type u) (α : Type u) [decidable_eq σ] [fintype σ] [discrete_f
 
 def R : Type u := restrict_degree σ α (fintype.card α - 1)
 
-instance R.acg : add_comm_group (R σ α) := by unfold R; apply_instance
-instance R.vs : vector_space α (R σ α) :=
-begin
-  show vector_space α (restrict_degree σ α (fintype.card α - 1)),
-  apply_instance
-end
+instance R.add_comm_group : add_comm_group (R σ α) := by dunfold R; apply_instance
+instance R.vector_space : vector_space α (R σ α) := by dunfold R; apply_instance
 
 set_option class.instance_max_depth 50
 lemma dim_R : vector_space.dim α (R σ α) = fintype.card (σ → α) :=

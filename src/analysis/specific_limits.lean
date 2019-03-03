@@ -112,6 +112,26 @@ begin
   { assume n, exact le_refl _ }
 end
 
+lemma cauchy_seq_of_le_geometric [metric_space α] (r C : ℝ) (hr : r < 1) {f : ℕ → α}
+  (hu : ∀n, dist (f n) (f (n+1)) ≤ C * r^n) : cauchy_seq f :=
+begin
+  refine cauchy_seq_of_has_sum_dist (has_sum_of_norm_bounded (λn, C * r^n) _ _),
+  { by_cases h : C = 0,
+    { simp [h, has_sum_zero] },
+    { have Cpos : C > 0,
+      { have := le_trans dist_nonneg (hu 0),
+        simp only [mul_one, pow_zero] at this,
+        exact lt_of_le_of_ne this (ne.symm h) },
+      have rnonneg: r ≥ 0,
+      { have := le_trans dist_nonneg (hu 1),
+        simp only [pow_one] at this,
+        exact nonneg_of_mul_nonneg_left this Cpos },
+      refine has_sum_mul_left C _,
+      exact has_sum_spec (@is_sum_geometric r rnonneg hr) }},
+  show ∀n, abs (dist (f n) (f (n+1))) ≤ C * r^n,
+  { assume n, rw abs_of_nonneg (dist_nonneg), exact hu n }
+end
+
 namespace nnreal
 
 theorem exists_pos_sum_of_encodable {ε : nnreal} (hε : 0 < ε) (ι) [encodable ι] :

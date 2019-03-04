@@ -51,7 +51,7 @@ end topological_comm_ring
 section ideal_is_add_subgroup
 variables {α : Type*} [comm_ring α] {M : Type*} [add_comm_group M] [module α M] (N : submodule α M)
 
-instance submodule_is_add_subgroup : is_add_subgroup N :=
+instance submodule_is_add_subgroup : is_add_subgroup ↑N :=
 { zero_mem := N.zero,
   add_mem  := N.add,
   neg_mem  := λ _, N.neg_mem }

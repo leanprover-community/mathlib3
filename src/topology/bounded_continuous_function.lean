@@ -7,7 +7,8 @@ Type of bounded continuous functions taking values in a metric space, with
 the uniform distance.
  -/
 
-import analysis.normed_space.basic topology.metric_space.cau_seq_filter topology.metric_space.lipschitz
+import analysis.normed_space.basic topology.metric_space.cau_seq_filter
+       topology.metric_space.lipschitz topology.instances.real
 
 noncomputable theory
 local attribute [instance] classical.decidable_inhabited classical.prop_decidable
@@ -215,6 +216,8 @@ a common modulus of continuity and taking values in a compact set forms a compac
 subset for the topology of uniform convergence. In this section, we prove this theorem
 and several useful variations around it. -/
 
+variables (A : set (α →ᵇ β))
+#check (coe_fn_trans : has_coe_to_fun A)
 /-- First version, with pointwise equicontinuity and range in a compact space -/
 theorem arzela_ascoli₁ [compact_space β]
   (A : set (α →ᵇ β))
@@ -257,6 +260,7 @@ begin
 
   /- Associate to every function a discrete approximation, mapping each point in `tα`
   to a point in `tβ` close to its true image by the function. -/
+  letI := @coe_fn_trans ↥A _ _  (@bounded_continuous_function.has_coe_to_fun α β _ _),
   refine ⟨tα → tβ, by apply_instance, λ f a, ⟨F (f a), (hF (f a)).fst⟩, _⟩,
   rintro ⟨f, hf⟩ ⟨g, hg⟩ f_eq_g,
   /- If two functions have the same approximation, then they are within distance ε -/

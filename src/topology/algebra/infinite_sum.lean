@@ -18,7 +18,7 @@ Reference:
 -/
 import logic.function algebra.big_operators data.set data.finset
        topology.metric_space.basic topology.algebra.uniform_group topology.algebra.ring
-       topology.algebra.ordered
+       topology.algebra.ordered topology.instances.real
 
 noncomputable theory
 open lattice finset filter function classical

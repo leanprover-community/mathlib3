@@ -19,23 +19,14 @@ open conv.interactive
     and returns the type α. -/
 meta def guard_mem_fin (e : expr) : tactic expr :=
 do t ← infer_type e,
-   match t with
-   | `(%%x ∈ %%A) :=
-      do t ← infer_type A,
-         α ← mk_mvar,
-          -- `to_expr _ tt ff` prevents the creation of new goals:
-         to_expr ``(finset %%α)   tt ff >>= unify t <|>
-         to_expr ``(multiset %%α) tt ff >>= unify t <|>
-         to_expr ``(list %%α)     tt ff >>= unify t,
-         α ← instantiate_mvars α,
-         return α
-   -- after we start case bashing, the hypothesis may look like `list.mem x A` rather than `x ∈ A`
-   | `(@list.mem %%α %%x %%A) := return α
-   | _ := failed
-   end
+   α ← mk_mvar,
+   to_expr ``(_ ∈ (_ : finset %%α))   tt ff >>= unify t <|>
+   to_expr ``(_ ∈ (_ : multiset %%α)) tt ff >>= unify t <|>
+   to_expr ``(_ ∈ (_ : list %%α))     tt ff >>= unify t,
+   instantiate_mvars α
 
 meta def expr_list_to_list_expr : Π (e : expr), tactic (list expr)
-| `(list.cons %%h %%t) := do t ← expr_list_to_list_expr t, return (h :: t)
+| `(list.cons %%h %%t) := list.cons h <$> expr_list_to_list_expr t
 | `([]) := return []
 | _ := failed
 

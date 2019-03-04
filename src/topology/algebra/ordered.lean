@@ -3,10 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 
-Theory of topological monoids, groups and rings.
-
-TODO: generalize `topological_monoid` and `topological_add_monoid` to semigroups, or add a type class
-`topological_operator α (*)`.
+Theory of ordered topology.
 -/
 import order.liminf_limsup
 import algebra.big_operators algebra.group algebra.pi_instances

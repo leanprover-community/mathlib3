@@ -3,7 +3,7 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 
-Hausdorff completions of uniform spaces; lifting the group and ring structure.
+Hausdorff completions of uniform spaces.
 
 The goal is to construct a left-adjoint to the inclusion of complete Hausdorff uniform spaces
 into all uniform spaces. Any uniform space `α` gets a completion `completion α` and a morphism
@@ -24,17 +24,10 @@ provided `f` is uniformly continuous. This construction is compatible with compo
 
 In this file we introduce the following concepts:
 
-* `separation_setoid α`: to construct the quotient over all elements which are topologically not
-  distinguishable.
-
 * `Cauchy α` the uniform completion of the uniform space `α` (using Cauchy filters). These are not
   minimal filters.
 
 * `completion α := quotient (separation_setoid (Cauchy α))` the Hausdorff completion.
-
-* lift topological groups (using `uniform_add_group`) to the complete group structure.
-
-* lift topological rings (using `uniform_add_group` and `topological_ring`) to the complete ring structure.
 
 This formalization is mostly based on
   N. Bourbaki: General Topology

@@ -3,10 +3,12 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 
-Basic constructions for topological groups:
+Uniform structure on topological groups:
 
 * `topological_add_group.to_uniform_space` and `topological_add_group_is_uniform` can be used to
   construct a canonical uniformity for a topological add group.
+
+* extension of ℤ-bilinear maps to the completion (useful for ring completions)
 
 * `add_group_with_zero_nhd`: construct the topological structure from a group with a neighbourhood
   around zero. Then with `topological_add_group.to_uniform_space` one can derive a `uniform_space`.

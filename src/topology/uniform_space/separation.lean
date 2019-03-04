@@ -1,3 +1,10 @@
+/-
+Copyright (c) 2017 Johannes Hölzl. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johannes Hölzl, Patrick Massot
+
+Hausdorff properties of uniform spaces. Separation quotient.
+-/
 import topology.uniform_space.basic
 
 

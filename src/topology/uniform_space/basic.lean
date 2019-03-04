@@ -14,8 +14,6 @@ generalize to uniform spaces, e.g.
 * totally bounded
 * totally bounded ∧ complete → compact
 
-One reason to directly formalize uniform spaces is foundational: we define ℝ as a completion of ℚ.
-
 The central concept of uniform spaces is its uniformity: a filter relating two elements of the
 space. This filter is reflexive, symmetric and transitive. So a set (i.e. a relation) in this filter
 represents a 'distance': it is reflexive, symmetric and the uniformity contains a set for which the

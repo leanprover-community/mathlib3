@@ -1,3 +1,10 @@
+/-
+Copyright (c) 2017 Johannes Hölzl. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johannes Hölzl, Mario Carneiro
+
+Theory of Cauchy filters in uniform spaces. Complete uniform spaces. Totally bounded subsets.
+-/
 import topology.uniform_space.basic
 
 
@@ -100,11 +107,6 @@ lemma cauchy_comap [uniform_space β] {f : filter β} {m : α → β}
     ... ≤ comap (λp:α×α, (m p.1, m p.2)) uniformity : comap_mono hf.right
     ... ≤ uniformity : hm⟩
 
-
-
-
-
-
 /-- Cauchy sequences. Usually defined on ℕ, but often it is also useful to say that a function
 defined on ℝ is Cauchy at +∞ to deduce convergence. Therefore, we define it in a type class that
 is general enough to cover both ℕ and ℝ, which are the main motivating examples. -/
@@ -173,8 +175,6 @@ lemma is_complete_of_is_closed [complete_space α] {s : set α}
 λ f cf fs, let ⟨x, hx⟩ := complete_space.complete cf in
 ⟨x, is_closed_iff_nhds.mp h x (neq_bot_of_le_neq_bot cf.left (le_inf hx fs)), hx⟩
 
-
-
 /-- A set `s` is totally bounded if for every entourage `d` there is a finite
   set of points `t` such that every element of `s` is `d`-near to some element of `t`. -/
 def totally_bounded (s : set α) : Prop :=
@@ -231,8 +231,6 @@ let ⟨c, hfc, hct⟩ := hs _ this in
     intros x hx, simp [-mem_image],
     exact let ⟨i, hi, ht⟩ := hct x hx in ⟨f i, mem_image_of_mem f hi, ht⟩
   end⟩
-
-
 
 lemma cauchy_of_totally_bounded_of_ultrafilter {s : set α} {f : filter α}
   (hs : totally_bounded s) (hf : is_ultrafilter f) (h : f ≤ principal s) : cauchy f :=

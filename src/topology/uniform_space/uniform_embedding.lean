@@ -1,5 +1,11 @@
-import topology.uniform_space.cauchy
+/-
+Copyright (c) 2017 Johannes Hölzl. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johannes Hölzl, Sébastien Gouëzel
 
+Uniform embeddings of uniform spaces. Extension of uniform continuous functions.
+-/
+import topology.uniform_space.cauchy
 
 open filter topological_space lattice set classical
 local attribute [instance, priority 0] prop_decidable

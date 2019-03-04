@@ -3,13 +3,13 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.int.basic data.nat.prime data.nat.modeq
+import data.int.basic data.nat.prime data.nat.modeq algebra.associated
 
 /-- The ring of integers adjoined with a square root of `d`.
   These have the form `a + b √d` where `a b : ℤ`. The components
   are called `re` and `im` by analogy to the negative `d` case,
   but of course both parts are real here since `d` is nonnegative. -/
-structure zsqrtd (d : ℕ) := mk {} ::
+structure zsqrtd (d : ℤ) := mk {} ::
 (re : ℤ)
 (im : ℤ)
 
@@ -17,7 +17,7 @@ prefix `ℤ√`:100 := zsqrtd
 
 namespace zsqrtd
 section
-  parameters {d : ℕ}
+  parameters {d : ℤ}
 
   instance : decidable_eq ℤ√d :=
   by tactic.mk_dec_eq_instance
@@ -115,6 +115,9 @@ section
   instance : zero_ne_one_class ℤ√d :=
   { zero := 0, one := 1, zero_ne_one := dec_trivial }
 
+  instance : nonzero_comm_ring ℤ√d :=
+  { ..zsqrtd.comm_ring, ..zsqrtd.zero_ne_one_class }
+
   @[simp] theorem coe_nat_re (n : ℕ) : (n : ℤ√d).re = n :=
   by induction n; simp *
   @[simp] theorem coe_nat_im (n : ℕ) : (n : ℤ√d).im = 0 :=
@@ -128,6 +131,9 @@ section
   by cases n; simp *
   theorem coe_int_val (n : ℤ) : (n : ℤ√d) = ⟨n, 0⟩ :=
   by simp [ext]
+
+  instance : char_zero ℤ√d :=
+  { cast_inj := λ m n, ⟨by simp [zsqrtd.ext], congr_arg _⟩ }
 
   @[simp] theorem of_int_eq_coe (n : ℤ) : (of_int n : ℤ√d) = n :=
   by simp [ext]
@@ -229,6 +235,56 @@ section
 
   theorem nonnegg_cases_left {c d} {b : ℕ} {a : ℤ} (h : Π x : ℕ, a = -x → sq_le x d b c) : nonnegg c d a b :=
   cast nonnegg_comm (nonnegg_cases_right h)
+
+section norm
+
+def norm (n : ℤ√d) : ℤ := n.re * n.re - d * n.im * n.im
+
+@[simp] lemma norm_zero : norm 0 = 0 := by simp [norm]
+
+@[simp] lemma norm_one : norm 1 = 1 := by simp [norm]
+
+@[simp] lemma norm_int_cast (n : ℤ) : norm n = n * n := by simp [norm]
+
+@[simp] lemma norm_nat_cast (n : ℕ) : norm n = n * n := norm_int_cast n
+
+@[simp] lemma norm_mul (n m : ℤ√d) : norm (n * m) = norm n * norm m :=
+by simp [norm, mul_add, add_mul, mul_comm, mul_assoc, mul_left_comm]
+
+lemma norm_eq_mul_conj (n : ℤ√d) : (norm n : ℤ√d) = n * n.conj :=
+by cases n; simp [norm, conj, zsqrtd.ext, mul_comm]
+
+instance : is_monoid_hom norm :=
+{ map_one := norm_one, map_mul := norm_mul }
+
+lemma norm_nonneg (hd : d ≤ 0) (n : ℤ√d) : 0 ≤ n.norm :=
+add_nonneg (mul_self_nonneg _)
+  (by rw [mul_assoc, neg_mul_eq_neg_mul];
+    exact (mul_nonneg (neg_nonneg.2 hd) (mul_self_nonneg _)))
+
+lemma norm_eq_one_iff {x : ℤ√d} : x.norm.nat_abs = 1 ↔ is_unit x :=
+⟨λ h, is_unit_iff_dvd_one.2 $
+  (le_total 0 (norm x)).cases_on
+    (λ hx, show x ∣ 1, from ⟨x.conj,
+      by rwa [← int.coe_nat_inj', int.nat_abs_of_nonneg hx,
+        ← @int.cast_inj (ℤ√d) _ _, norm_eq_mul_conj, eq_comm] at h⟩)
+    (λ hx, show x ∣ 1, from ⟨- x.conj,
+      by rwa [← int.coe_nat_inj', int.of_nat_nat_abs_of_nonpos hx,
+        ← @int.cast_inj (ℤ√d) _ _, int.cast_neg, norm_eq_mul_conj, neg_mul_eq_mul_neg,
+        eq_comm] at h⟩),
+λ h, let ⟨y, hy⟩ := is_unit_iff_dvd_one.1 h in begin
+  have := congr_arg (int.nat_abs ∘ norm) hy,
+  rw [function.comp_app, function.comp_app, norm_mul, int.nat_abs_mul,
+    norm_one, int.nat_abs_one, eq_comm, nat.mul_eq_one_iff] at this,
+  exact this.1
+end⟩
+
+end norm
+
+end
+
+section
+parameter {d : ℕ}
 
   /-- Nonnegativity of an element of `ℤ√d`. -/
   def nonneg : ℤ√d → Prop | ⟨a, b⟩ := nonnegg d 1 a b

@@ -68,13 +68,13 @@ theorem floor_sub_int (x : α) (z : ℤ) : ⌊x - z⌋ = ⌊x⌋ - z :=
 eq.trans (by rw [int.cast_neg]; refl) (floor_add_int _ _)
 
 lemma abs_sub_lt_one_of_floor_eq_floor {α : Type*} [decidable_linear_ordered_comm_ring α] [floor_ring α]
-  {x y : α} (h : floor x = floor y) : abs (x - y) < 1 :=
+  {x y : α} (h : ⌊x⌋ = ⌊y⌋) : abs (x - y) < 1 :=
 begin
-  have : x < (floor x) + 1         := lt_floor_add_one x,
-  have : y < (floor y) + 1         :=  lt_floor_add_one y,
-  have : ((floor x) : α) = floor y := int.cast_inj.2 h,
-  have : ((floor x) : α) ≤ x       := floor_le x,
-  have : ((floor y) : α) ≤ y       := floor_le y,
+  have : x < ⌊x⌋ + 1         := lt_floor_add_one x,
+  have : y < ⌊y⌋ + 1         :=  lt_floor_add_one y,
+  have : (⌊x⌋ : α) = ⌊y⌋ := int.cast_inj.2 h,
+  have : (⌊x⌋: α) ≤ x        := floor_le x,
+  have : (⌊y⌋ : α) ≤ y       := floor_le y,
   exact abs_sub_lt_iff.2 ⟨by linarith, by linarith⟩
 end
 
@@ -358,6 +358,9 @@ begin
     apply floor_le }
 end
 
+/-- `round` rounds a number to the nearest integer. `round (1 / 2) = 1` -/
+def round [floor_ring α] (x : α) : ℤ := ⌊x + 1 / 2⌋
+
 end linear_ordered_field
 
 section
@@ -369,7 +372,21 @@ let ⟨q, h₁, h₂⟩ := exists_rat_btwn $
   lt_trans ((sub_lt_self_iff x).2 ε0) ((lt_add_iff_pos_left x).2 ε0) in
 ⟨q, abs_sub_lt_iff.2 ⟨sub_lt.1 h₁, sub_lt_iff_lt_add.2 h₂⟩⟩
 
+lemma abs_sub_round [floor_ring α] (x : α) : abs (x - round x) ≤ 1 / 2 :=
+begin
+  rw [round, abs_sub_le_iff],
+  have := floor_le (x + 1 / 2),
+  have := lt_floor_add_one (x + 1 / 2),
+  split; linarith
 end
 
 instance : archimedean ℚ :=
 archimedean_iff_rat_le.2 $ λ q, ⟨q, by rw rat.cast_id⟩
+
+@[simp] theorem rat.cast_round {α : Type*} [discrete_linear_ordered_field α]
+  [archimedean α] (x : ℚ) : by haveI := archimedean.floor_ring α;
+  exact round (x:α) = round x :=
+have ((x + (1 : ℚ) / (2 : ℚ) : ℚ) : α) = x + 1 / 2, by simp,
+by rw [round, round, ← this, rat.cast_floor]
+
+end

@@ -48,15 +48,6 @@ def ideal.closure (S : ideal α) : ideal α :=
 
 end topological_comm_ring
 
-section ideal_is_add_subgroup
-variables {α : Type*} [comm_ring α] {M : Type*} [add_comm_group M] [module α M] (N : submodule α M)
-
-instance submodule_is_add_subgroup : is_add_subgroup ↑N :=
-{ zero_mem := N.zero,
-  add_mem  := N.add,
-  neg_mem  := λ _, N.neg_mem }
-
-end ideal_is_add_subgroup
 
 section topological_ring
 variables {α : Type*} [topological_space α] [comm_ring α] [topological_ring α] (N : ideal α)
@@ -65,7 +56,6 @@ open ideal.quotient
 instance topological_ring_quotient_topology : topological_space N.quotient :=
 by dunfold ideal.quotient submodule.quotient; apply_instance
 
--- this should be quotient_add_saturate ...
 lemma quotient_ring_saturate (s : set α) :
   mk N ⁻¹' (mk N '' s) = (⋃ x : N, (λ y, x.1 + y) '' s) :=
 begin

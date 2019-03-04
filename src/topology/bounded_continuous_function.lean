@@ -216,8 +216,6 @@ a common modulus of continuity and taking values in a compact set forms a compac
 subset for the topology of uniform convergence. In this section, we prove this theorem
 and several useful variations around it. -/
 
-variables (A : set (α →ᵇ β))
-#check (coe_fn_trans : has_coe_to_fun A)
 /-- First version, with pointwise equicontinuity and range in a compact space -/
 theorem arzela_ascoli₁ [compact_space β]
   (A : set (α →ᵇ β))

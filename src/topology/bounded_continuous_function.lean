@@ -258,7 +258,6 @@ begin
 
   /- Associate to every function a discrete approximation, mapping each point in `tα`
   to a point in `tβ` close to its true image by the function. -/
-  letI := @coe_fn_trans ↥A _ _  (@bounded_continuous_function.has_coe_to_fun α β _ _),
   refine ⟨tα → tβ, by apply_instance, λ f a, ⟨F (f a), (hF (f a)).fst⟩, _⟩,
   rintro ⟨f, hf⟩ ⟨g, hg⟩ f_eq_g,
   /- If two functions have the same approximation, then they are within distance ε -/

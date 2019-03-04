@@ -25,7 +25,7 @@ The formalization is mostly based on the books:
 A major difference is that this formalization is heavily based on the filter library.
 -/
 import order.filter order.filter.lift data.quot topology.constructions
-import tactic.where
+
 open set lattice filter classical
 local attribute [instance, priority 0] prop_decidable
 

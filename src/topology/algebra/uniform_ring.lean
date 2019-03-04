@@ -6,7 +6,7 @@ Authors: Patrick Massot, Johannes Hölzl
 Theory of topological rings with uniform structure.
 -/
 
-import topology.algebra.uniform_group topology.algebra.ring
+import topology.algebra.group_completion topology.algebra.ring
 
 open classical set lattice filter topological_space add_comm_group
 local attribute [instance] classical.prop_decidable

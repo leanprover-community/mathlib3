@@ -130,6 +130,9 @@ by cases n; refl
 theorem nat_abs_mul (a b : ℤ) : nat_abs (a * b) = (nat_abs a) * (nat_abs b) :=
 by cases a; cases b; simp [(*), int.mul, nat_abs_neg_of_nat]
 
+@[simp] lemma nat_abs_mul_self' (a : ℤ) : (nat_abs a * nat_abs a : ℤ) = a * a :=
+by rw [← int.coe_nat_mul, nat_abs_mul_self]
+
 theorem neg_succ_of_nat_eq' (m : ℕ) : -[1+ m] = -m - 1 :=
 by simp [neg_succ_of_nat_eq]
 

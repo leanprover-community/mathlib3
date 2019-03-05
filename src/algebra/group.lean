@@ -744,7 +744,9 @@ is_add_group_hom_add f (λa, - g a)
 attribute [instance] is_add_group_hom_sub
 
 namespace units
-variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
+
+variables {γ : Type*} [monoid α] [monoid β] [monoid γ] (f : α → β) (g : β → γ)
+[is_monoid_hom f] [is_monoid_hom g]
 
 definition map : units α → units β :=
 λ u, ⟨f u.val, f u.inv,
@@ -756,6 +758,10 @@ instance : is_group_hom (units.map f) :=
 
 instance : is_monoid_hom (coe : units α → α) :=
 ⟨by simp, by simp⟩
+
+lemma map_id : map (id : α → α) = id := by ext; refl
+
+lemma map_comp : map (g ∘ f) = map g ∘ map f := rfl
 
 end units
 

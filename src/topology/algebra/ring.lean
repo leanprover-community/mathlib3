@@ -48,7 +48,6 @@ def ideal.closure (S : ideal α) : ideal α :=
 
 end topological_comm_ring
 
-
 section topological_ring
 variables {α : Type*} [topological_space α] [comm_ring α] [topological_ring α] (N : ideal α)
 open ideal.quotient

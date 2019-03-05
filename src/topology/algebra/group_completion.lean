@@ -76,7 +76,6 @@ section instance_max_depth
 -- TODO: continuous_add requires some long proofs through
 -- uniform_add_group / topological_add_group w.r.t prod / completion etc
 set_option class.instance_max_depth 52
--- set_option trace.class_instances true
 
 lemma is_add_group_hom_prod [add_group β] [uniform_add_group β] :
   is_add_group_hom (@completion.prod α β _ _) :=

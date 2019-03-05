@@ -93,9 +93,9 @@ protected def homeomorph.inv (α : Type*) [topological_space α] [group α] [top
 { continuous_to_fun  := continuous_inv',
   continuous_inv_fun := continuous_inv',
   .. equiv.inv α }
-attribute [to_additive homeomorph.inv._proof_1] homeomorph.inv._proof_1
-attribute [to_additive homeomorph.inv._proof_2] homeomorph.inv._proof_2
-attribute [to_additive homeomorph.inv] homeomorph.inv
+attribute [to_additive homeomorph.neg._proof_1] homeomorph.inv._proof_1
+attribute [to_additive homeomorph.neg._proof_2] homeomorph.inv._proof_2
+attribute [to_additive homeomorph.neg] homeomorph.inv
 
 @[to_additive exists_nhds_half]
 lemma exists_nhds_split [topological_group α] {s : set α} (hs : s ∈ (nhds (1 : α)).sets) :

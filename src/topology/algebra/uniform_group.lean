@@ -137,12 +137,6 @@ uniform_continuous_of_tendsto_zero $
 
 end uniform_add_group
 
-
-
-/- open filter
-universes u v w x
-variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
- -/
 section topological_add_comm_group
 universes u v w x
 open filter
@@ -224,9 +218,6 @@ begin
 end
 
 end topological_add_comm_group
-
-
-
 
 namespace add_comm_group
 section Z_bilin

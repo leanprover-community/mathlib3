@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kenny Lau, Mario Carneiro
+Authors: Kenny Lau, Mario Carneiro, Johan Commelin
 -/
 import tactic.ring data.quot data.equiv.algebra ring_theory.ideal_operations group_theory.submonoid
 
@@ -39,6 +39,8 @@ instance : setoid (α × S) :=
 
 end localization
 
+/-- The localization of a ring at a submonoid:
+ the elements of the submonoid become invertible in the localization.-/
 def localization (α : Type u) [comm_ring α] (S : set α) [is_submonoid S] :=
 quotient $ localization.setoid α S
 
@@ -75,6 +77,7 @@ variables {α S}
 
 def mk (r : α) (s : S) : localization α S := ⟦(r, s)⟧
 
+/-- The natural map from the ring to the localization.-/
 def of (r : α) : localization α S := mk r 1
 
 instance : comm_ring (localization α S) :=
@@ -114,6 +117,7 @@ instance : has_coe α (localization α S) := ⟨of⟩
 instance coe.is_ring_hom : is_ring_hom (coe : α → localization α S) :=
 localization.of.is_ring_hom
 
+/-- The natural map from the submonoid to the unit group of the localization.-/
 def to_units (s : S) : units (localization α S) :=
 { val := s,
   inv := mk 1 s,
@@ -281,8 +285,8 @@ end
 @[simp] lemma lift_circ_of (h : ∀ s ∈ S, is_unit (f s)) :
   lift f h ∘ of = f := lift'_circ_of _ _ _
 
-@[simp] lemma lift'_of_comp (f : localization α S → β) [is_ring_hom f] :
-  lift' (f ∘ of) (units.map f ∘ to_units) (λ s, rfl) = f :=
+@[simp] lemma lift'_apply_coe (f : localization α S → β) [is_ring_hom f] :
+  lift' (λ a : α, f a) (units.map f ∘ to_units) (λ s, rfl) = f :=
 begin
   apply funext,
   rintros ⟨⟨r,s⟩⟩,
@@ -294,10 +298,10 @@ begin
   refl
 end
 
-@[simp] lemma lift_of_comp (f : localization α S → β) [is_ring_hom f] :
-  lift (f ∘ of) (λ s hs, is_unit_unit (units.map f (to_units ⟨s, hs⟩))) = f :=
+@[simp] lemma lift_apply_coe (f : localization α S → β) [is_ring_hom f] :
+  lift (λ a : α, f a) (λ s hs, is_unit_unit (units.map f (to_units ⟨s, hs⟩))) = f :=
 begin
-  convert lift'_of_comp f,
+  convert lift'_apply_coe f,
   show lift' _ _ _ = lift' _ _ _,
   congr' 1,
   funext s,
@@ -306,14 +310,16 @@ begin
   refl,
 end
 
-protected lemma funext (f g : localization α S → β) [is_ring_hom f] [is_ring_hom g] (h : ∀ a : α, f a = g a) :
+/-- Function extensionality for localisations:
+ two functions are equal if they agree on elements that are coercions.-/
+protected lemma funext (f g : localization α S → β) [is_ring_hom f] [is_ring_hom g]
+  (h : ∀ a : α, f a = g a) :
   f = g :=
 begin
-  rw ← lift_of_comp f,
-  rw ← lift_of_comp g,
+  rw ← lift_apply_coe f,
+  rw ← lift_apply_coe g,
   congr' 1,
-  funext a,
-  exact h a,
+  exact funext h,
 end
 
 variables {α S T}
@@ -454,6 +460,7 @@ instance non_zero_divisors.is_submonoid : is_submonoid (non_zero_divisors α) :=
 
 @[simp] lemma non_zero_divisors_one_val : (1 : non_zero_divisors α).val = 1 := rfl
 
+/-- The field of fractions of an integral domain.-/
 @[reducible] def fraction_ring := localization α (non_zero_divisors α)
 
 namespace fraction_ring

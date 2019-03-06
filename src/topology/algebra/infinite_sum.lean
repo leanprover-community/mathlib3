@@ -17,8 +17,8 @@ Reference:
 
 -/
 import logic.function algebra.big_operators data.set data.finset
-       topology.metric_space.basic topology.algebra.topological_structures
-       topology.instances.real
+       topology.metric_space.basic topology.algebra.uniform_group topology.algebra.ring
+       topology.algebra.ordered topology.instances.real
 
 noncomputable theory
 open lattice finset filter function classical
@@ -444,6 +444,7 @@ is_sum_le h (is_sum_tsum hf) (is_sum_tsum hg)
 end order_topology
 
 section uniform_group
+
 variables [add_comm_group α] [uniform_space α] [complete_space α] [uniform_add_group α]
 variables (f g : β → α) {a a₁ a₂ : α}
 
@@ -473,7 +474,7 @@ begin
     { simp only [(finset.sum_sdiff ht₁).symm, (finset.sum_sdiff ht₂).symm,
         add_sub_add_right_eq_sub] },
     simp only [this],
-    exact hde _ _ (h _ finset.disjoint_sdiff) (h _ finset.disjoint_sdiff) }
+    exact hde _ _ (h _ finset.sdiff_disjoint) (h _ finset.sdiff_disjoint) }
 end
 
 /- TODO: generalize to monoid with a uniform continuous subtraction operator: `(a + b) - b = a` -/

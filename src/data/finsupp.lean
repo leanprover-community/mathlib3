@@ -67,6 +67,9 @@ lemma ext : ∀{f g : α →₀ β}, (∀a, f a = g a) → f = g
     subst this
   end
 
+lemma ext_iff {f g : α →₀ β} : f = g ↔ (∀a:α, f a = g a) :=
+⟨by rintros rfl a; refl, ext⟩
+
 @[simp] lemma support_eq_empty [decidable_eq β] {f : α →₀ β} : f.support = ∅ ↔ f = 0 :=
 ⟨assume h, ext $ assume a, by_contradiction $ λ H, (finset.ext.1 h a).1 $
   mem_support_iff.2 H, by rintro rfl; refl⟩
@@ -87,6 +90,11 @@ lemma support_subset_iff {s : set α} {f : α →₀ β} [decidable_eq α] :
   ↑f.support ⊆ s ↔ (∀a∉s, f a = 0) :=
 by simp only [set.subset_def, mem_coe, mem_support_iff];
    exact forall_congr (assume a, @not_imp_comm _ _ (classical.dec _) (classical.dec _))
+
+def equiv_fun_on_fintype [fintype α] [decidable_eq β]: (α →₀ β) ≃ (α → β) :=
+⟨λf a, f a, λf, mk (finset.univ.filter $ λa, f a ≠ 0) f (by simp),
+  begin intro f, ext a, refl end,
+  begin intro f, ext a, refl end⟩
 
 end basic
 
@@ -124,6 +132,29 @@ if_neg hb
 
 lemma support_single_subset : (single a b).support ⊆ {a} :=
 show ite _ _ _ ⊆ _, by split_ifs; [exact empty_subset _, exact subset.refl _]
+
+lemma injective_single (a : α) : function.injective (single a : β → α →₀ β) :=
+assume b₁ b₂ eq,
+have (single a b₁ : α →₀ β) a = (single a b₂ : α →₀ β) a, by rw eq,
+by rwa [single_eq_same, single_eq_same] at this
+
+lemma single_eq_single_iff (a₁ a₂ : α) (b₁ b₂ : β) :
+  single a₁ b₁ = single a₂ b₂ ↔ ((a₁ = a₂ ∧ b₁ = b₂) ∨ (b₁ = 0 ∧ b₂ = 0)):=
+begin
+  split,
+  { assume eq,
+    by_cases a₁ = a₂,
+    { refine or.inl ⟨h, _⟩,
+      rwa [h, (injective_single a₂).eq_iff] at eq },
+    { rw [finsupp.ext_iff] at eq,
+      have h₁ := eq a₁,
+      have h₂ := eq a₂,
+      simp only [single_eq_same, single_eq_of_ne h, single_eq_of_ne (ne.symm h)] at h₁ h₂,
+      exact or.inr ⟨h₁, h₂.symm⟩ } },
+  { rintros (⟨rfl, rfl⟩ | ⟨rfl, rfl⟩),
+    { refl },
+    { rw [single_zero, single_zero] } }
+end
 
 end single
 
@@ -512,6 +543,25 @@ lemma multiset_sum_sum [has_zero β] [add_comm_monoid γ] {f : α →₀ β} {h 
   multiset.sum (f.sum h) = f.sum (λa b, multiset.sum (h a b)) :=
 (finset.sum_hom multiset.sum).symm
 
+section map_range
+variables
+  [decidable_eq β₁] [decidable_eq β₂] [add_comm_monoid β₁] [add_comm_monoid β₂]
+  (f : β₁ → β₂) [hf : is_add_monoid_hom f]
+
+instance is_add_monoid_hom_map_range :
+  is_add_monoid_hom (map_range f hf.1 : (α →₀ β₁) → (α →₀ β₂)) :=
+⟨map_range_zero, assume a b, map_range_add hf.2 _ _⟩
+
+lemma map_range_multiset_sum (m : multiset (α →₀ β₁)) :
+  map_range f hf.1 m.sum = (m.map $ λx, map_range f hf.1 x).sum :=
+(m.sum_hom (map_range f hf.1)).symm
+
+lemma map_range_finset_sum {ι : Type*} [decidable_eq ι] (s : finset ι) (g : ι → (α →₀ β₁))  :
+  map_range f hf.1 (s.sum g) = s.sum (λx, map_range f hf.1 (g x)) :=
+by rw [finset.sum.equations._eqn_1, map_range_multiset_sum, multiset.map_map]; refl
+
+end map_range
+
 section map_domain
 variables [decidable_eq α₁] [decidable_eq α₂] [add_comm_monoid β] {v v₁ v₂ : α →₀ β}
 
@@ -520,6 +570,25 @@ variables [decidable_eq α₁] [decidable_eq α₂] [add_comm_monoid β] {v v₁
   of `v x` over all `x` such that `f x = a`. -/
 def map_domain (f : α₁ → α₂) (v : α₁ →₀ β) : α₂ →₀ β :=
 v.sum $ λa, single (f a)
+
+lemma map_domain_apply {f : α₁ → α₂} (hf : function.injective f) (x : α₁ →₀ β) (a : α₁) :
+  map_domain f x (f a) = x a :=
+begin
+  rw [map_domain, sum_apply, sum, finset.sum_eq_single a, single_eq_same],
+  { assume b _ hba, exact single_eq_of_ne (hf.ne hba) },
+  { simp only [(∉), (≠), not_not, mem_support_iff],
+    assume h,
+    rw [h, single_zero],
+    refl }
+end
+
+lemma map_domain_notin_range {f : α₁ → α₂} (x : α₁ →₀ β) (a : α₂) (h : a ∉ set.range f) :
+  map_domain f x a = 0 :=
+begin
+  rw [map_domain, sum_apply, sum],
+  exact finset.sum_eq_zero
+    (assume a' h', single_eq_of_ne $ assume eq, h $ eq ▸ set.mem_range_self _)
+end
 
 lemma map_domain_id : map_domain id v = v := sum_single _
 
@@ -578,6 +647,11 @@ instance [has_add α] [semiring β] : has_mul (α →₀ β) :=
 lemma mul_def [has_add α] [semiring β] {f g : α →₀ β} :
   f * g = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, single (a₁ + a₂) (b₁ * b₂)) := rfl
 
+lemma support_mul [has_add α] [semiring β] (a b : α →₀ β) :
+  (a * b).support ⊆ a.support.bind (λa₁, b.support.bind $ λa₂, {a₁ + a₂}) :=
+subset.trans support_sum $ bind_mono $ assume a₁ _,
+  subset.trans support_sum $ bind_mono $ assume a₂ _, support_single_subset
+
 /-- The unit of the multiplication is `single 0 1`, i.e. the function
   that is 1 at 0 and zero elsewhere. -/
 instance [has_zero α] [has_zero β] [has_one β] : has_one (α →₀ β) :=
@@ -604,6 +678,9 @@ if_neg h
 finset.ext.mpr $ assume a, if H : p a
 then by simp only [mem_support_iff, filter_apply_pos _ _ H, mem_filter, H, and_true]
 else by simp only [mem_support_iff, filter_apply_neg _ _ H, mem_filter, H, and_false, ne.def, ne_self_iff_false]
+
+lemma filter_zero : (0 : α →₀ β).filter p = 0 :=
+by rw [← support_eq_empty, support_filter, support_zero, finset.filter_empty]
 
 @[simp] lemma filter_single_of_pos
   {a : α} {b : β} (h : p a) : (single a b).filter p = single a b :=
@@ -700,6 +777,10 @@ by refine_struct {..}; simp
   (v + v').filter p = v.filter p + v'.filter p :=
 ext $ λ a, by by_cases p a; simp [h]
 
+instance filter.is_add_monoid_hom (p : α → Prop) [decidable_pred p] :
+  is_add_monoid_hom (filter p : (α →₀ β) → (α →₀ β)) :=
+⟨filter_zero p, assume x y, filter_add⟩
+
 end monoid
 
 section comm_monoid
@@ -712,6 +793,10 @@ eq.symm (finset.sum_hom _)
 lemma subtype_domain_finsupp_sum {s : γ →₀ δ} {h : γ → δ → α →₀ β} :
   (s.sum h).subtype_domain p = s.sum (λc d, (h c d).subtype_domain p) :=
 subtype_domain_sum
+
+lemma filter_sum (s : finset γ) (f : γ → α →₀ β) :
+  (s.sum f).filter p = s.sum (λa, filter p (f a)) :=
+(finset.sum_hom (filter p)).symm
 
 end comm_monoid
 
@@ -734,6 +819,68 @@ section multiset
 
 def to_multiset (f : α →₀ ℕ) : multiset α :=
 f.sum (λa n, add_monoid.smul n {a})
+
+lemma to_multiset_zero : (0 : α →₀ ℕ).to_multiset = 0 :=
+rfl
+
+lemma to_multiset_add (m n : α →₀ ℕ) :
+  (m + n).to_multiset = m.to_multiset + n.to_multiset :=
+sum_add_index (assume a, add_monoid.zero_smul _) (assume a b₁ b₂, add_monoid.add_smul _ _ _)
+
+lemma to_multiset_single (a : α) (n : ℕ) : to_multiset (single a n) = add_monoid.smul n {a} :=
+by rw [to_multiset, sum_single_index]; apply add_monoid.zero_smul
+
+instance is_add_monoid_hom.to_multiset : is_add_monoid_hom (to_multiset : _ → multiset α) :=
+⟨to_multiset_zero, to_multiset_add⟩
+
+lemma card_to_multiset (f : α →₀ ℕ) : f.to_multiset.card = f.sum (λa, id) :=
+begin
+  refine f.induction _ _,
+  { rw [to_multiset_zero, multiset.card_zero, sum_zero_index] },
+  { assume a n f _ _ ih,
+    rw [to_multiset_add, multiset.card_add, ih, sum_add_index, to_multiset_single,
+      sum_single_index, multiset.card_smul, multiset.singleton_eq_singleton,
+      multiset.card_singleton, mul_one]; intros; refl }
+end
+
+lemma to_multiset_map (f : α →₀ ℕ) (g : α → β) :
+  f.to_multiset.map g = (f.map_domain g).to_multiset :=
+begin
+  refine f.induction _ _,
+  { rw [to_multiset_zero, multiset.map_zero, map_domain_zero, to_multiset_zero] },
+  { assume a n f _ _ ih,
+    rw [to_multiset_add, multiset.map_add, ih, map_domain_add, map_domain_single,
+      to_multiset_single, to_multiset_add, to_multiset_single,
+      is_add_monoid_hom.map_smul (multiset.map g)],
+    refl }
+end
+
+lemma prod_to_multiset [comm_monoid α] (f : α →₀ ℕ) :
+  f.to_multiset.prod = f.prod (λa n, a ^ n) :=
+begin
+  refine f.induction _ _,
+  { rw [to_multiset_zero, multiset.prod_zero, finsupp.prod_zero_index] },
+  { assume a n f _ _ ih,
+    rw [to_multiset_add, multiset.prod_add, ih, to_multiset_single, finsupp.prod_add_index,
+      finsupp.prod_single_index, multiset.prod_smul, multiset.singleton_eq_singleton,
+      multiset.prod_singleton],
+    { exact pow_zero a },
+    { exact pow_zero },
+    { exact pow_add  } }
+end
+
+lemma to_finset_to_multiset (f : α →₀ ℕ) : f.to_multiset.to_finset = f.support :=
+begin
+  refine f.induction _ _,
+  { rw [to_multiset_zero, multiset.to_finset_zero, support_zero] },
+  { assume a n f ha hn ih,
+    rw [to_multiset_add, multiset.to_finset_add, ih, to_multiset_single, support_add_eq,
+      support_single_ne_zero hn, multiset.to_finset_smul _ _ hn,
+      multiset.singleton_eq_singleton, multiset.to_finset_cons, multiset.to_finset_zero],
+    refl,
+    refine disjoint_mono support_single_subset (subset.refl _) _,
+    rwa [finset.singleton_eq_singleton, finset.singleton_disjoint] }
+end
 
 @[simp] lemma count_to_multiset [decidable_eq α] (f : α →₀ ℕ) (a : α) :
   f.to_multiset.count a = f a :=
@@ -820,6 +967,30 @@ by refine ⟨finsupp.curry, finsupp.uncurry, λ f, _, λ f, _⟩; simp only [
   finsupp.curry, finsupp.uncurry, sum_sum_index, sum_zero_index, sum_add_index,
   sum_single_index, single_zero, single_add, eq_self_iff_true, forall_true_iff,
   forall_3_true_iff, prod.mk.eta, (single_sum _ _ _).symm, sum_single]
+
+lemma filter_curry [decidable_eq α₁] [decidable_eq α₂] [add_comm_monoid β]
+  (f : α₁ × α₂ →₀ β) (p : α₁ → Prop) [decidable_pred p] :
+  (f.filter (λa:α₁×α₂, p a.1)).curry = f.curry.filter p :=
+begin
+  rw [finsupp.curry, finsupp.curry, finsupp.sum, finsupp.sum,
+    @filter_sum _ (α₂ →₀ β) _ _ _ p _ _ f.support _],
+  rw [support_filter, sum_filter],
+  refine finset.sum_congr rfl _,
+  rintros ⟨a₁, a₂⟩ ha,
+  dsimp only,
+  split_ifs,
+  { rw [filter_apply_pos, filter_single_of_pos]; exact h },
+  { rwa [filter_single_of_neg] }
+end
+
+lemma support_curry
+  [decidable_eq α₁] [decidable_eq α₂] [add_comm_monoid β] (f : α₁ × α₂ →₀ β) :
+  f.curry.support ⊆ f.support.image prod.fst :=
+begin
+  rw ← finset.bind_singleton,
+  refine finset.subset.trans support_sum _,
+  refine finset.bind_mono (assume a _, support_single_subset)
+end
 
 end curry_uncurry
 
@@ -961,5 +1132,44 @@ lemma mul_sum (b : γ) (s : α →₀ β) {f : α → β → γ} :
 by simp only [finsupp.sum, finset.mul_sum]
 
 end
+
+def restrict_support_equiv [decidable_eq α] [decidable_eq β] [add_comm_monoid β]
+  (s : set α) [decidable_pred (λx, x ∈ s)] :
+  {f : α →₀ β // ↑f.support ⊆ s } ≃ (s →₀ β):=
+begin
+  refine ⟨λf, subtype_domain (λx, x ∈ s) f.1, λ f, ⟨f.map_domain subtype.val, _⟩, _, _⟩,
+  { refine set.subset.trans (finset.coe_subset.2 map_domain_support) _,
+    rw [finset.coe_image, set.image_subset_iff],
+    exact assume x hx, x.2 },
+  { rintros ⟨f, hf⟩,
+    apply subtype.eq,
+    ext a,
+    dsimp only,
+    refine classical.by_cases (assume h : a ∈ set.range (subtype.val : s → α), _) (assume h, _),
+    { rcases h with ⟨x, rfl⟩,
+      rw [map_domain_apply subtype.val_injective, subtype_domain_apply] },
+    { convert map_domain_notin_range _ _ h,
+      rw [← not_mem_support_iff],
+      refine mt _ h,
+      exact assume ha, ⟨⟨a, hf ha⟩, rfl⟩ } },
+  { assume f,
+    ext ⟨a, ha⟩,
+    dsimp only,
+    rw [subtype_domain_apply, map_domain_apply subtype.val_injective] }
+end
+
+protected def dom_congr [decidable_eq α₁] [decidable_eq α₂] [decidable_eq β] [add_comm_monoid β]
+  (e : α₁ ≃ α₂) : (α₁ →₀ β) ≃ (α₂ →₀ β) :=
+⟨map_domain e, map_domain e.symm,
+  begin
+    assume v,
+    simp only [map_domain_comp.symm, (∘), equiv.inverse_apply_apply],
+    exact map_domain_id
+  end,
+  begin
+    assume v,
+    simp only [map_domain_comp.symm, (∘), equiv.apply_inverse_apply],
+    exact map_domain_id
+  end⟩
 
 end finsupp

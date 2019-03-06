@@ -452,6 +452,8 @@ theorem le_iff_exists_add {s t : multiset α} : s ≤ t ↔ ∃ u, t = s + u :=
 instance : canonically_ordered_monoid (multiset α) :=
 { lt_of_add_lt_add_left := @lt_of_add_lt_add_left _ _,
   le_iff_exists_add     := @le_iff_exists_add _,
+  bot                   := 0,
+  bot_le                := multiset.zero_le,
   ..multiset.ordered_cancel_comm_monoid }
 
 /- repeat -/
@@ -734,6 +736,12 @@ quotient.induction_on₂ s t $ λ l₁ l₂, by simp
 
 instance sum.is_add_monoid_hom [add_comm_monoid α] : is_add_monoid_hom (sum : multiset α → α) :=
 by refine_struct {..}; simp
+
+lemma prod_smul {α : Type*} [comm_monoid α] (m : multiset α) :
+  ∀n, (add_monoid.smul n m).prod = m.prod ^ n
+| 0       := rfl
+| (n + 1) :=
+  by rw [add_monoid.add_smul, add_monoid.one_smul, _root_.pow_add, _root_.pow_one, prod_add, prod_smul n]
 
 @[simp] theorem prod_repeat [comm_monoid α] (a : α) (n : ℕ) : prod (multiset.repeat a n) = a ^ n :=
 by simp [repeat, list.prod_repeat]
@@ -2867,6 +2875,17 @@ begin
     simp [(∘), this] with functor_norm },
   case perm.trans { simp [*] }
 end
+
+instance : monad multiset :=
+{ pure := λ α x, x::0,
+  bind := @bind,
+  .. multiset.functor }
+
+instance : is_lawful_monad multiset :=
+{ bind_pure_comp_eq_map := λ α β f s, multiset.induction_on s rfl $ λ a s ih,
+    by rw [bind_cons, map_cons, bind_zero, add_zero],
+  pure_bind := λ α β x f, by simp only [cons_bind, zero_bind, add_zero],
+  bind_assoc := @bind_assoc }
 
 open functor
 open traversable is_lawful_traversable

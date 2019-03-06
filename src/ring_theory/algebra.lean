@@ -6,8 +6,7 @@ Authors: Kenny Lau
 Algebra over Commutative Ring (under category)
 -/
 
-import data.polynomial
-import linear_algebra.multivariate_polynomial
+import data.polynomial data.multivariate_polynomial
 import linear_algebra.tensor_product
 import ring_theory.subring
 

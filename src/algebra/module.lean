@@ -6,7 +6,7 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 Modules over a ring.
 -/
 
-import algebra.ring algebra.big_operators
+import algebra.ring algebra.big_operators group_theory.subgroup
 open function
 
 universes u v w x
@@ -246,6 +246,11 @@ instance : has_scalar α p := ⟨λ c x, ⟨c • x.1, smul_mem _ c x.2⟩⟩
 instance : add_comm_group p :=
 by refine {add := (+), zero := 0, neg := has_neg.neg, ..};
   { intros, apply set_coe.ext, simp }
+
+instance submodule_is_add_subgroup : is_add_subgroup (p : set β) :=
+{ zero_mem := p.zero,
+  add_mem  := p.add,
+  neg_mem  := λ _, p.neg_mem }
 
 lemma coe_sub (x y : p) : (↑(x - y) : β) = ↑x - ↑y := by simp
 

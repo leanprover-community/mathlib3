@@ -713,6 +713,10 @@ finset.ext' $ by simp
         finset.union_idempotent] }
   end
 
+@[simp] lemma to_finset_inter (s t : multiset α) :
+  to_finset (s ∩ t) = to_finset s ∩ to_finset t :=
+finset.ext' $ by simp
+
 end multiset
 
 namespace list

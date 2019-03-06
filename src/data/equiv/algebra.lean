@@ -214,4 +214,16 @@ protected def trans {α β γ : Type*} [ring α] [ring β] [ring γ]
   (e₁ : α ≃r β) (e₂ : β ≃r γ) : α ≃r γ :=
 { hom := is_ring_hom.comp _ _, .. e₁.1.trans e₂.1  }
 
+instance symm.is_ring_hom {e : α ≃r β} : is_ring_hom e.to_equiv.symm := hom e.symm
+
+@[simp] lemma symm_apply_apply (e : α ≃r β) (x : α) : e.symm.to_equiv (e.to_equiv x) = x :=
+equiv.inverse_apply_apply _ _
+
+@[simp] lemma apply_symm_apply (e : α ≃r β) (x : β) : e.to_equiv (e.symm.to_equiv x) = x :=
+equiv.apply_inverse_apply _ _
+
+@[simp] lemma symm_to_equiv (e : α ≃r β) : e.to_equiv.symm = e.symm.to_equiv := rfl
+@[simp] lemma symm_to_equiv_apply (e : α ≃r β) (x : β) :
+  e.to_equiv.symm x = e.symm.to_equiv x := rfl
+
 end ring_equiv

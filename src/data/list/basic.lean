@@ -2734,6 +2734,27 @@ theorem map_foldl_erase [decidable_eq β] {f : α → β} (finj : injective f) {
 by induction l₂ generalizing l₁; [refl,
 simp only [foldl_cons, map_erase finj, *]]
 
+@[simp] theorem count_erase_self (a : α) : ∀ (s : list α), count a (list.erase s a) = pred (count a s)
+| [] := by simp
+| (h :: t) :=
+begin
+  rw erase_cons,
+  by_cases p : h = a,
+  { rw [if_pos p, count_cons', if_pos p.symm], simp },
+  { rw [if_neg p, count_cons', count_cons', if_neg (λ x : a = h, p x.symm), count_erase_self],
+    simp, }
+end
+
+@[simp] theorem count_erase_of_ne {a b : α} (ab : a ≠ b) : ∀ (s : list α), count a (list.erase s b) = count a s
+| [] := by simp
+| (x :: xs) :=
+begin
+  rw erase_cons,
+  split_ifs with h,
+  { rw [count_cons', h, if_neg ab], simp },
+  { rw [count_cons', count_cons', count_erase_of_ne] }
+end
+
 end erase
 
 /- diff -/
@@ -3209,7 +3230,7 @@ begin
   simp only [erase_of_not_mem h, list.bag_inter, if_neg h]
 end
 
-theorem mem_bag_inter {a : α} : ∀ {l₁ l₂ : list α}, a ∈ l₁.bag_inter l₂ ↔ a ∈ l₁ ∧ a ∈ l₂
+@[simp] theorem mem_bag_inter {a : α} : ∀ {l₁ l₂ : list α}, a ∈ l₁.bag_inter l₂ ↔ a ∈ l₁ ∧ a ∈ l₂
 | []      l₂ := by simp only [nil_bag_inter, not_mem_nil, false_and]
 | (b::l₁) l₂ := begin
     by_cases b ∈ l₂,
@@ -3222,12 +3243,62 @@ theorem mem_bag_inter {a : α} : ∀ {l₁ l₂ : list α}, a ∈ l₁.bag_inter
       rintro ⟨rfl, h'⟩, exact h.elim h' }
   end
 
+@[simp] theorem count_bag_inter {a : α} :
+  ∀ {l₁ l₂ : list α}, count a (l₁.bag_inter l₂) = min (count a l₁) (count a l₂)
+| []         l₂ := by simp
+| l₁         [] := by simp
+| (h₁ :: l₁) (h₂ :: l₂) :=
+begin
+  dsimp [list.bag_inter],
+  simp,
+  by_cases p₁ : h₁ = h₂,
+  { simp [p₁],
+    repeat { rw count_cons' },
+    by_cases p₂ : h₂ = a,
+    { simp *,
+      rw min_add_add_left, },
+    { simp *,
+      rw if_neg (ne.symm p₂),
+      simp, } },
+  { simp *,
+    split_ifs,
+    { rw list.erase_cons,
+      rw if_neg (ne.symm p₁),
+      repeat { rw count_cons' },
+      rw count_bag_inter,
+      repeat { rw count_cons' },
+      split_ifs with p₂ p₃ p₃,
+      { exfalso, exact p₁ (eq.trans p₃.symm p₂), },
+      { simp, rw count_erase_of_ne p₃, },
+      { rw [←p₃, count_erase_self],
+        simp only [nat.add_zero],
+        rw ←min_add_add_right,
+        conv {to_lhs, congr, skip, rw [add_one] },
+        rw nat.succ_pred_eq_of_pos,
+        subst p₃,
+        exact count_pos.2 h },
+      { simp, rw count_erase_of_ne p₃, } },
+    { rw count_bag_inter,
+      by_cases p₂ : a = h₁,
+      { rw [p₂, count_cons', if_neg p₁, count_eq_zero_of_not_mem h],
+        simp },
+      { conv {to_rhs, rw [count_cons', if_neg p₂], simp } } } }
+end
+
 theorem bag_inter_sublist_left : ∀ l₁ l₂ : list α, l₁.bag_inter l₂ <+ l₁
 | []      l₂ := by simp [nil_sublist]
 | (b::l₁) l₂ := begin
   by_cases b ∈ l₂; simp [h],
   { apply cons_sublist_cons, apply bag_inter_sublist_left },
   { apply sublist_cons_of_sublist, apply bag_inter_sublist_left }
+end
+
+theorem bag_inter_nil_iff_inter_nil : ∀ l₁ l₂ : list α, l₁.bag_inter l₂ = [] ↔ l₁ ∩ l₂ = []
+| []      l₂ := by simp
+| (b::l₁) l₂ :=
+begin
+  by_cases h : b ∈ l₂; simp [h],
+  exact bag_inter_nil_iff_inter_nil l₁ l₂
 end
 
 end bag_inter

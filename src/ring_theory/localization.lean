@@ -279,14 +279,14 @@ end
 @[simp] lemma lift_coe (h : ∀ s ∈ S, is_unit (f s)) (a : α) :
   lift f h a = f a := lift'_of _ _ _ _
 
-@[simp] lemma lift'_circ_of (g : S → units β) (hg : ∀ s, (g s : β) = f s) :
+@[simp] lemma lift'_comp_of (g : S → units β) (hg : ∀ s, (g s : β) = f s) :
   lift' f g hg ∘ of = f := funext $ λ a, lift'_of _ _ _ a
 
-@[simp] lemma lift_circ_of (h : ∀ s ∈ S, is_unit (f s)) :
-  lift f h ∘ of = f := lift'_circ_of _ _ _
+@[simp] lemma lift_comp_of (h : ∀ s ∈ S, is_unit (f s)) :
+  lift f h ∘ of = f := lift'_comp_of _ _ _
 
 @[simp] lemma lift'_apply_coe (f : localization α S → β) [is_ring_hom f] :
-  lift' (λ a : α, f a) (units.map f ∘ to_units) (λ s, rfl) = f :=
+  lift' (λ a : α, f a) (λ s, units.map f (to_units s)) (λ s, rfl) = f :=
 begin
   apply funext,
   rintros ⟨⟨r,s⟩⟩,
@@ -336,7 +336,7 @@ lift'.is_ring_hom _ _ _
 @[simp] lemma map_coe (hf : ∀ s ∈ S, f s ∈ T) (a : α) :
   map f hf a = (f a) := lift'_of _ _ _ _
 
-@[simp] lemma map_circ_of (hf : ∀ s ∈ S, f s ∈ T) :
+@[simp] lemma map_comp_of (hf : ∀ s ∈ S, f s ∈ T) :
   map f hf ∘ of = of ∘ f := funext $ λ a, map_of _ _ _
 
 def equiv_of_equiv (h₁ : α ≃r β) (h₂ : h₁.to_equiv '' S = T) :
@@ -396,8 +396,8 @@ lift'.is_ring_hom _ _ _
 @[simp] lemma away.lift_coe {x : α} (hfx : is_unit (f x)) (a : α) :
   away.lift f hfx a = f a := lift'_of _ _ _ _
 
-@[simp] lemma away.lift_circ_of {x : α} (hfx : is_unit (f x)) :
-  away.lift f hfx ∘ of = f := lift'_circ_of _ _ _
+@[simp] lemma away.lift_comp_of {x : α} (hfx : is_unit (f x)) :
+  away.lift f hfx ∘ of = f := lift'_comp_of _ _ _
 
 noncomputable def away_to_away_right (x y : α) : away x → away (x * y) :=
 localization.away.lift coe $
@@ -576,9 +576,9 @@ localization.map_of _ _ _
 @[simp] lemma map_coe (hf : injective f) (a : A) : map f hf a = f a :=
 localization.map_coe _ _ _
 
-@[simp] lemma map_circ_of (hf : injective f) :
+@[simp] lemma map_comp_of (hf : injective f) :
   map f hf ∘ (of : A → fraction_ring A) = (of : B → fraction_ring B) ∘ f :=
-localization.map_circ_of _ _
+localization.map_comp_of _ _
 
 instance map.is_field_hom (hf : injective f) : is_field_hom (map f hf) :=
 localization.map.is_ring_hom _ _

@@ -40,6 +40,19 @@ by rw [← sub_one, nat.sub_sub, one_add]; refl
 
 lemma pred_eq_sub_one (n : ℕ) : pred n = n - 1 := rfl
 
+lemma sub_sub_sub_cancel_right {a b c : ℕ} (h₂ : c ≤ b) : (a - c) - (b - c) = a - b :=
+by rw [nat.sub_sub, ←nat.add_sub_assoc h₂, nat.add_sub_cancel_left]
+
+lemma one_le_of_lt {n m : ℕ} (h : n < m) : 1 ≤ m :=
+lt_of_le_of_lt (nat.zero_le _) h
+
+lemma le_pred_of_lt {n m : ℕ} (h : m < n) : m ≤ n - 1 :=
+nat.sub_le_sub_right h 1
+
+/-- This ensures that `simp` succeeds on `pred (n + 1) = n`. -/
+@[simp] lemma nat.pred_one_add (n : ℕ) : pred (1 + n) = n :=
+by rw [add_comm, add_one, pred_succ]
+
 theorem pos_iff_ne_zero : n > 0 ↔ n ≠ 0 :=
 ⟨ne_of_gt, nat.pos_of_ne_zero⟩
 

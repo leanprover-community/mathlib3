@@ -240,8 +240,8 @@ quotient.rec_on_subsingleton (@univ α _).1
 (λ l h, trunc.mk (swap_factors_aux l f h))
 (show ∀ x, f x ≠ x → x ∈ (@univ α _).1, from λ _ _, mem_univ _)
 
-@[elab_as_eliminator] lemma swap_induction_on [fintype α] {P : perm α → Prop} (f : perm α) : ∀
-  (h1 : P 1) (hmul_swap : ∀ f x y, x ≠ y → P f → P (swap x y * f)), P f :=
+@[elab_as_eliminator] lemma swap_induction_on [fintype α] {P : perm α → Prop} (f : perm α) :
+  P 1 → (∀ f x y, x ≠ y → P f → P (swap x y * f)) → P f :=
 begin
   cases trunc.out (trunc_swap_factors f) with l hl,
   induction l with g l ih generalizing f,
@@ -771,7 +771,7 @@ lemma cycle_of_apply_of_not_same_cycle [fintype α] {f : perm α} {x y : α} (h 
 
 @[simp] lemma cycle_of_apply_self [fintype α] (f : perm α) (x : α) :
   cycle_of f x x = f x := cycle_of_apply_of_same_cycle (same_cycle.refl _ _)
-#print gpow_add_one
+
 lemma apply_eq_self_iff_of_same_cycle {f : perm α} {x y : α} :
   same_cycle f x y → (f x = x ↔ f y = y) :=
 λ ⟨i, hi⟩, by rw [← hi, ← mul_apply, ← gpow_one_add, add_comm, gpow_add_one, mul_apply,

@@ -10,6 +10,34 @@ open native
 
 namespace back
 
+def lexicographic_preorder {α β : Type*} [preorder α] [preorder β] : preorder (α × β) :=
+{ le := λ a b, a.1 < b.1 ∨ (a.1 = b.1 ∧ a.2 ≤ b.2),
+  le_refl := λ a, or.inr ⟨rfl, le_refl _⟩,
+  le_trans := λ a b c h₁ h₂,
+  begin
+    dsimp at *,
+    cases h₁,
+    { left,
+      cases h₂,
+      { exact lt_trans h₁ h₂ },
+      { rwa ←h₂.left } },
+    { cases h₂,
+      { left, rwa h₁.left },
+      { right, exact ⟨eq.trans h₁.1 h₂.1, le_trans h₁.2 h₂.2⟩ }
+    } end }
+local attribute [instance] lexicographic_preorder
+
+-- Just a check that we're actually using lexicographic ordering here.
+example : (5,10) ≤ (10,3) := by exact dec_trivial
+
+def bool_preorder : preorder bool :=
+{ le := λ a b, bor a (bnot b) = tt,
+  le_refl := λ a, begin cases a; simp end,
+  le_trans := λ a b c h₁ h₂, begin cases a; cases b; cases c; simp at *; assumption end }
+local attribute [instance] bool_preorder
+
+example : tt ≤ ff := by exact dec_trivial
+
 meta def head_symbol : expr → name
 | (expr.pi _ _ _ t) := head_symbol t
 | (expr.app f _) := head_symbol f
@@ -36,21 +64,24 @@ meta def head_symbols : expr → list name
   end
 | _                 := [`_]
 
-example : true :=
-begin
-  lock_tactic_state $ (do e ← to_expr ``(nat.lt_of_le_of_lt) >>= infer_type, trace (head_symbols e)),
-  lock_tactic_state $ (do e ← to_expr ``(lt_of_le_of_lt)     >>= infer_type, trace (head_symbols e)),
-  lock_tactic_state $ (do e ← to_expr ``(nat.zero_le)        >>= infer_type, trace (head_symbols e)),
+-- example : true :=
+-- begin
+--   lock_tactic_state $ (do e ← to_expr ``(nat.lt_of_le_of_lt) >>= infer_type, trace (head_symbols e)),
+--   lock_tactic_state $ (do e ← to_expr ``(lt_of_le_of_lt)     >>= infer_type, trace (head_symbols e)),
+--   lock_tactic_state $ (do e ← to_expr ``(nat.zero_le)        >>= infer_type, trace (head_symbols e)),
 
-  trivial
-end
+--   trivial
+-- end
 
--- meta def symbols : expr → list name
--- | (expr.pi _ _ e t) := symbols e ++ symbols t
--- | (expr.app f _) := head_symbols f
--- | (expr.const n _) := [n]
--- | _ := [`_]
+-- example : true :=
+-- begin
+--   (do e ← to_expr ``(nat.dvd_add_iff_left) >>= infer_type, trace $ head_symbol e),
+--   (do e ← to_expr ``(list.forall_mem_inter_of_forall_left) >>= infer_type, trace $ head_symbol e),
+--   (do e ← to_expr ``(nat.dvd_add_iff_left) >>= infer_type, trace $ symbols e),
+--   (do e ← to_expr ``(@list.forall_mem_inter_of_forall_left) >>= infer_type, trace $ symbols e),
 
+--   trivial
+-- end
 
 @[user_attribute]
 meta def back_attribute : user_attribute (rb_map name (list name)) (option unit) := {
@@ -70,19 +101,7 @@ resulting subgoals cannot all be discharged.",
      dependencies := [] }
 }
 
--- #check list.forall_mem_inter_of_forall_left
--- example : true :=
--- begin
---   (do e ← to_expr ``(nat.dvd_add_iff_left) >>= infer_type, trace $ head_symbol e),
---   (do e ← to_expr ``(list.forall_mem_inter_of_forall_left) >>= infer_type, trace $ head_symbol e),
---   (do e ← to_expr ``(nat.dvd_add_iff_left) >>= infer_type, trace $ symbols e),
---   (do e ← to_expr ``(@list.forall_mem_inter_of_forall_left) >>= infer_type, trace $ symbols e),
--- end
 
--- example (l₁ l₂ : list ℕ): ∀ x, x ∈ l₁ ∩ l₂ → x = 2 :=
--- begin
---   apply list.forall_mem_inter_of_forall_left,
--- end
 
 meta structure back_lemma :=
 (lem          : expr)
@@ -182,7 +201,6 @@ meta def back_state.complexity (s : back_state) : ℕ × bool × ℤ × ℕ :=
 -- (s.stashed.length, s.done, 2 * s.in_progress_fc.length + 2 * s.committed_fc.length + s.steps, s.steps + s.num_mvars) -- works!
 -- (s.stashed.length, s.done, 16 * s.in_progress_fc.length + 16 * s.committed_fc.length + 4 * s.in_progress_new.length + 4 * s.committed_new.length + s.steps, s.steps + s.num_mvars)
 
-
 (-- We postpone back_states with stashed goals.
  s.stashed.length,
  -- But otherwise bring back_states with no remaining goals to the front.
@@ -196,39 +214,38 @@ meta def back_state.complexity (s : back_state) : ℕ × bool × ℤ × ℕ :=
 
 -- Count the number of arguments not determined by later arguments.
 meta def count_arrows : expr → ℕ
+| `(%%a <-> %%b)     := 1 + min (count_arrows a) (count_arrows b)
 | (expr.pi n bi d b) :=
    if b.has_var_idx 0 then count_arrows b
                       else 1 + count_arrows b
-| `(%%a <-> %%b) := 1 + min (count_arrows a) (count_arrows b)
-| _ := 0
+| _                  := 0
+
+meta def count_pis : expr → ℕ
+| `(%%a <-> %%b)    := 1 + min (count_pis a) (count_pis b)
+| (expr.pi _ _ _ b) := 1 + count_pis b
+| _                 := 0
 
 /-- Sorts a list of lemmas according to the number of explicit arguments
     (more precisely, arguments which are not determined by later arguments). -/
-meta def sort_by_arrows (L : list back_lemma) : tactic (list back_lemma) :=
-do M ← L.mmap (λ e, do c ← count_arrows <$> infer_type e.lem, return (c, e)),
-   return ((list.qsort (λ (p q : ℕ × back_lemma), p.1 ≤ q.1) M).map (λ p, p.2))
+meta def sort_by_arrows (L : list back_lemma) : list back_lemma :=
+let M := L.map (λ e, ((count_arrows e.ty, count_pis e.ty), e)) in
+(list.qsort (λ (p q : (ℕ × ℕ) × back_lemma), p.1 ≤ q.1) M).map (λ p, p.2)
 
 meta def back_state.init (goals : list expr) (lemmas : list back_lemma) (limit library_limit : option ℕ) : tactic back_state :=
 λ s, (do
-
-  /- We (used to!) sort the lemmas, preferring lemmas which, when applied, will produce fewer new goals. -/
-  --  lemmas_with_counts ← all_lemmas.mmap (λ e, do ty ← infer_type e.lem, return (count_arrows ty, expr.is_pi ty, e)),
-  --  let (facts', lemmas') := lemmas_with_counts.partition (λ p : ℕ × bool × back_lemma, p.2.1 = ff),
-  --  let facts := facts'.map (λ p, p.2.2),
-  -- --  let lemmas := ((list.qsort (λ (p q : ℕ × bool × back_lemma), p.1 ≤ q.1) lemmas').map (λ p, p.2.2)),
-  --  let lemmas := lemmas'.map (λ p, p.2.2),
-
    let (lemmas', facts') := lemmas.partition (λ p : back_lemma, expr.is_pi p.ty),
 
    let facts_map : rb_map name (list back_lemma) :=
      facts'.foldl (λ m l,
             (head_symbols l.ty).erase_dup.foldl (λ m i, m.insert_cons i l) m)
             (rb_map.mk _ _),
+   let facts_map := facts_map.map sort_by_arrows,
 
    let lemma_map : rb_map name (list back_lemma) :=
      lemmas'.foldl (λ m l,
             (head_symbols l.ty).erase_dup.foldl (λ m i, m.insert_cons i l) m)
             (rb_map.mk _ _),
+   let lemma_map := lemma_map.map sort_by_arrows,
 
   --  trace "facts:",
   --  facts'.mmap (λ f, (do t ← infer_type f.lem, return (f.lem, (head_symbols t).erase_dup))) >>= trace,
@@ -396,34 +413,6 @@ match s.goals with
      | (ff, apply_step.others)   := return (if s'.steps > 0 then [{ stashed := g.goal :: s'.stashed, .. s' }] else [])
      end
 end
-
-def lexicographic_preorder {α β : Type*} [preorder α] [preorder β] : preorder (α × β) :=
-{ le := λ a b, a.1 < b.1 ∨ (a.1 = b.1 ∧ a.2 ≤ b.2),
-  le_refl := λ a, or.inr ⟨rfl, le_refl _⟩,
-  le_trans := λ a b c h₁ h₂,
-  begin
-    dsimp at *,
-    cases h₁,
-    { left,
-      cases h₂,
-      { exact lt_trans h₁ h₂ },
-      { rwa ←h₂.left } },
-    { cases h₂,
-      { left, rwa h₁.left },
-      { right, exact ⟨eq.trans h₁.1 h₂.1, le_trans h₁.2 h₂.2⟩ }
-    } end }
-local attribute [instance] lexicographic_preorder
-
--- Just a check that we're actually using lexicographic ordering here.
-example : (5,10) ≤ (10,3) := by exact dec_trivial
-
-def bool_preorder : preorder bool :=
-{ le := λ a b, bor a (bnot b) = tt,
-  le_refl := λ a, begin cases a; simp end,
-  le_trans := λ a b c h₁ h₂, begin cases a; cases b; cases c; simp at *; assumption end }
-local attribute [instance] bool_preorder
-
-example : tt ≤ ff := by exact dec_trivial
 
 private meta def insert_new_state : back_state → list back_state → list back_state
 /- depth first search: -/

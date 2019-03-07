@@ -210,16 +210,25 @@ by library_search [-div_dvd_of_dvd]
 #print linear_ordered_semiring.le_of_add_le_add_left
 #print ordered_semiring.le_of_add_le_add_left
 #print lt_of_le_of_lt
+#print lattice.distrib_lattice.le_trans
+#print nat.le_trans
 
 lemma one_le_of_lt {n m : ℕ} (h : n < m) : 1 ≤ m :=
--- by library_search
-lattice.distrib_lattice.le_trans 1 (succ n) m (lattice.le_of_inf_eq min_fac_one) h
+by library_search [-one_le_of_lt]
+-- a human proof:
 -- lt_of_le_of_lt (nat.zero_le _) h
+
+-- 2nd library_search result:
+-- lattice.distrib_lattice.le_trans 1 (succ n) m (succ_pos n) h
+-- 1st library_search result:
+-- lattice.distrib_lattice.le_trans 1 (succ n) m (lattice.le_of_inf_eq min_fac_one) h
+
+-- It would be nice to just use `nat.le_trans` here!
 
 set_option pp.implicit true
 #print one_le_of_lt
 
 lemma le_pred_of_lt {n m : ℕ} (h : m < n) : m ≤ n - 1 :=
-by library_search
+by library_search [-le_pred_of_lt]
 
 end nat

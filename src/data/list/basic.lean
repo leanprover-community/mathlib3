@@ -4101,8 +4101,10 @@ See also `data/set/intervals.lean` for `set.Ico`, modelling intervals in general
 
 @TODO (anyone): Define `Ioo` and `Icc`, state basic lemmas about them.
 @TODO (anyone): Prove that `finset.Ico` and `set.Ico` agree.
-@TODO (anyone): Also do the versions for integers (one could attempt to generalise futher,
-but I'm not sure how many interesting total orders there are so `a ≤ x < b` is always finite).
+@TODO (anyone): Also do the versions for integers?
+@TODO (anyone): One could generalise even further, defining
+'locally finite partial orders', for which `set.Ico a b` is `[finite]`, and
+'locally finite total orders', for which there is a list model.
  -/
 def Ico (n m : ℕ) : list ℕ := range' n (m - n)
 

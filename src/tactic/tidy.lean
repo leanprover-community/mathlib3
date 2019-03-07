@@ -21,7 +21,7 @@ meta def name_to_tactic (n : name) : tactic string :=
 do d ← get_decl n,
    e ← mk_const n,
    let t := d.type,
-   if (t =ₐ `(tactic unit)) then 
+   if (t =ₐ `(tactic unit)) then
      (eval_expr (tactic unit) e) >>= (λ t, t >> pure n.to_string)
    else if (t =ₐ `(tactic string)) then
      (eval_expr (tactic string) e) >>= (λ t, t)
@@ -40,7 +40,7 @@ do ng ← num_goals,
    else "ext1"
 
 meta def default_tactics : list (tactic string) :=
-[ reflexivity                                 >> pure "refl", 
+[ reflexivity                                 >> pure "refl",
   `[exact dec_trivial]                        >> pure "exact dec_trivial",
   propositional_goal >> assumption            >> pure "assumption",
   ext1_wrapper,
@@ -49,7 +49,7 @@ meta def default_tactics : list (tactic string) :=
   `[apply_auto_param]                         >> pure "apply_auto_param",
   `[dsimp at *]                               >> pure "dsimp at *",
   `[simp at *]                                >> pure "simp at *",
-  fsplit                                      >> pure "fsplit", 
+  fsplit                                      >> pure "fsplit",
   injections_and_clear                        >> pure "injections_and_clear",
   propositional_goal >> (`[solve_by_elim])    >> pure "solve_by_elim",
   `[unfold_aux]                               >> pure "unfold_aux",
@@ -74,11 +74,14 @@ end tidy
 meta def tidy (cfg : tidy.cfg := {}) := tactic.tidy.core cfg >> skip
 
 namespace interactive
-meta def tidy (cfg : tidy.cfg := {}) := tactic.tidy cfg
+open lean.parser interactive
+
+meta def tidy (trace : parse $ optional (tk "?")) (cfg : tidy.cfg := {}) :=
+tactic.tidy { trace_result := trace.is_some, ..cfg }
 end interactive
 
 @[hole_command] meta def tidy_hole_cmd : hole_command :=
-{ name := "tidy", 
+{ name := "tidy",
   descr := "Use `tidy` to complete the goal.",
   action := λ _, do script ← tidy.core, return [("begin " ++ (", ".intercalate script) ++ " end", "by tidy")] }
 

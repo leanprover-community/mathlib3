@@ -13,8 +13,8 @@ open function lattice
 
 reserve infix `≃ₗ` : 50
 
-universes u v w x y
-variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type y} {ι : Type x}
+universes u v w x y z
+variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type y} {ε : Type z} {ι : Type x}
 
 namespace finset
 
@@ -36,16 +36,19 @@ end finsupp
 
 namespace linear_map
 section
-variables [ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group δ]
-variables [module α β] [module α γ] [module α δ]
+variables [ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group δ] [add_comm_group ε]
+variables [module α β] [module α γ] [module α δ] [module α ε]
 variables (f g : β →ₗ[α] γ)
 include α
 
-theorem comp_id (f : β →ₗ[α] γ) : f.comp id = f :=
+@[simp] theorem comp_id : f.comp id = f :=
 linear_map.ext $ λ x, rfl
 
-theorem id_comp (f : β →ₗ[α] γ) : id.comp f = f :=
+@[simp] theorem id_comp : id.comp f = f :=
 linear_map.ext $ λ x, rfl
+
+theorem comp_assoc (g : γ →ₗ[α] δ) (h : δ →ₗ[α] ε) : (h.comp g).comp f = h.comp (g.comp f) :=
+rfl
 
 def cod_restrict (p : submodule α β) (f : γ →ₗ[α] β) (h : ∀c, f c ∈ p) : γ →ₗ[α] p :=
 by refine {to_fun := λc, ⟨f c, h c⟩, ..}; intros; apply set_coe.ext; simp
@@ -98,6 +101,12 @@ instance : has_mul (β →ₗ[α] β) := ⟨linear_map.comp⟩
 
 @[simp] lemma one_app (x : β) : (1 : β →ₗ[α] β) x = x := rfl
 @[simp] lemma mul_app (A B : β →ₗ[α] β) (x : β) : (A * B) x = A (B x) := rfl
+
+@[simp] theorem comp_zero : f.comp (0 : δ →ₗ[α] β) = 0 :=
+ext $ assume c, by rw [comp_apply, zero_apply, zero_apply, f.map_zero]
+
+@[simp] theorem zero_comp : (0 : γ →ₗ[α] δ).comp f = 0 :=
+rfl
 
 section
 variables (α β)
@@ -190,6 +199,12 @@ def congr_right (f : γ →ₗ[α] δ) : (β →ₗ[α] γ) →ₗ[α] (β →�
 ⟨linear_map.comp f,
 λ _ _, linear_map.ext $ λ _, f.2 _ _,
 λ _ _, linear_map.ext $ λ _, f.3 _ _⟩
+
+theorem smul_comp (g : γ →ₗ[α] δ) (a : α) : (a • g).comp f = a • (g.comp f) :=
+rfl
+
+theorem comp_smul (g : γ →ₗ[α] δ) (a : α) : g.comp (a • f) = a • (g.comp f) :=
+ext $ assume b, by rw [comp_apply, smul_apply, g.map_smul]; refl
 
 end comm_ring
 end linear_map
@@ -341,6 +356,10 @@ submodule.ext' $ by simp [map_coe]; rw ← image_comp
 lemma map_mono {f : β →ₗ[α] γ} {p p' : submodule α β} : p ≤ p' → map f p ≤ map f p' :=
 image_subset _
 
+@[simp] lemma map_zero : map (0 : β →ₗ[α] γ) p = ⊥ :=
+have ∃ (x : β), x ∈ p := ⟨0, p.zero_mem⟩,
+ext $ by simp [this, eq_comm]
+
 /-- The pullback -/
 def comap (f : β →ₗ[α] γ) (p : submodule α γ) : submodule α β :=
 { carrier := f ⁻¹' p,
@@ -363,19 +382,38 @@ lemma comap_comp (f : β →ₗ[α] γ) (g : γ →ₗ[α] δ) (p : submodule α
 lemma comap_mono {f : β →ₗ[α] γ} {q q' : submodule α γ} : q ≤ q' → comap f q ≤ comap f q' :=
 preimage_mono
 
-@[simp] lemma comap_top (f : β →ₗ[α] γ) : comap f ⊤ = ⊤ := rfl
-
 lemma map_le_iff_le_comap {f : β →ₗ[α] γ} {p : submodule α β} {q : submodule α γ} :
   map f p ≤ q ↔ p ≤ comap f q := image_subset_iff
 
-lemma map_comap_le (f : β →ₗ[α] γ) (q : submodule α γ) : map f (comap f q) ≤ q :=
-map_le_iff_le_comap.2 $ le_refl _
-
-lemma le_comap_map (f : β →ₗ[α] γ) (p : submodule α β) : p ≤ comap f (map f p) :=
-map_le_iff_le_comap.1 $ le_refl _
+lemma gc_map_comap (f : β →ₗ[α] γ) : galois_connection (map f) (comap f)
+| p q := map_le_iff_le_comap
 
 @[simp] lemma map_bot (f : β →ₗ[α] γ) : map f ⊥ = ⊥ :=
-eq_bot_iff.2 $ map_le_iff_le_comap.2 bot_le
+(gc_map_comap f).l_bot
+
+@[simp] lemma map_sup (f : β →ₗ[α] γ) : map f (p ⊔ p') = map f p ⊔ map f p' :=
+(gc_map_comap f).l_sup
+
+@[simp] lemma map_supr {ι : Sort*} (f : β →ₗ[α] γ) (p : ι → submodule α β) :
+  map f (⨆i, p i) = (⨆i, map f (p i)) :=
+(gc_map_comap f).l_supr
+
+@[simp] lemma comap_top (f : β →ₗ[α] γ) : comap f ⊤ = ⊤ := rfl
+
+@[simp] lemma comap_inf (f : β →ₗ[α] γ) : comap f (q ⊓ q') = comap f q ⊓ comap f q' := rfl
+
+@[simp] lemma comap_infi {ι : Sort*} (f : β →ₗ[α] γ) (p : ι → submodule α γ) :
+  comap f (⨅i, p i) = (⨅i, comap f (p i)) :=
+(gc_map_comap f).u_infi
+
+@[simp] lemma comap_zero : comap (0 : β →ₗ[α] γ) q = ⊤ :=
+ext $ by simp
+
+lemma map_comap_le (f : β →ₗ[α] γ) (q : submodule α γ) : map f (comap f q) ≤ q :=
+(gc_map_comap f).l_u_le _
+
+lemma le_comap_map (f : β →ₗ[α] γ) (p : submodule α β) : p ≤ comap f (map f p) :=
+(gc_map_comap f).le_u_l _
 
 --TODO(Mario): is there a way to prove this from order properties?
 lemma map_inf_eq_map_inf_comap {f : β →ₗ[α] γ}
@@ -418,13 +456,14 @@ span_eq_of_le _ (subset.refl _) subset_span
   (H2 : ∀ (a:α) x, p x → p (a • x)) : p x :=
 (@span_le _ _ _ _ _ _ ⟨p, H0, H1, H2⟩).2 Hs h
 
+section
 variables (α β)
 protected def gi : galois_insertion (@span α β _ _ _) coe :=
 { choice := λ s _, span α s,
   gc := λ s t, span_le,
   le_l_u := λ s, subset_span,
   choice_eq := λ s h, rfl }
-variables {α β}
+end
 
 @[simp] lemma span_empty : span α (∅ : set β) = ⊥ :=
 (submodule.gi α β).gc.l_bot
@@ -479,6 +518,7 @@ begin
     cases (mem_bot α).1 (this hzn), exact ⟨x, H, x.zero_mem⟩ }
 end
 
+section
 variables {p p'}
 lemma mem_sup : x ∈ p ⊔ p' ↔ ∃ (y ∈ p) (z ∈ p'), y + z = x :=
 ⟨λ h, begin
@@ -496,7 +536,7 @@ end,
 by rintro ⟨y, hy, z, hz, rfl⟩; exact add_mem _
   ((le_sup_left : p ≤ p ⊔ p') hy)
   ((le_sup_right : p' ≤ p ⊔ p') hz)⟩
-variables (p p')
+end
 
 lemma mem_span_singleton {y : β} : x ∈ span α ({y} : set β) ↔ ∃ a:α, a • y = x :=
 ⟨λ h, begin
@@ -647,6 +687,33 @@ end quotient
 
 end submodule
 
+namespace submodule
+variables [discrete_field α]
+variables [add_comm_group β] [vector_space α β]
+variables [add_comm_group γ] [vector_space α γ]
+
+lemma comap_smul (f : β →ₗ[α] γ) (p : submodule α γ) (a : α) (h : a ≠ 0) :
+  p.comap (a • f) = p.comap f :=
+by ext b; simp only [submodule.mem_comap, p.smul_mem_iff h, linear_map.smul_apply]
+
+lemma map_smul (f : β →ₗ[α] γ) (p : submodule α β) (a : α) (h : a ≠ 0) :
+  p.map (a • f) = p.map f :=
+le_antisymm
+  begin rw [map_le_iff_le_comap, comap_smul f _ a h, ← map_le_iff_le_comap], exact le_refl _ end
+  begin rw [map_le_iff_le_comap, ← comap_smul f _ a h, ← map_le_iff_le_comap], exact le_refl _ end
+
+set_option class.instance_max_depth 40
+
+lemma comap_smul' (f : β →ₗ[α] γ) (p : submodule α γ) (a : α) :
+  p.comap (a • f) = (⨅ h : a ≠ 0, p.comap f) :=
+by by_cases a = 0; simp [h, comap_smul]
+
+lemma map_smul' (f : β →ₗ[α] γ) (p : submodule α β) (a : α) :
+  p.map (a • f) = (⨆ h : a ≠ 0, p.map f) :=
+by by_cases a = 0; simp [h, map_smul]
+
+end submodule
+
 namespace linear_map
 variables [ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group δ]
 variables [module α β] [module α γ] [module α δ]
@@ -754,8 +821,14 @@ by rw [comap_map_eq, sup_of_le_left h]
 @[simp] theorem ker_zero : ker (0 : β →ₗ[α] γ) = ⊤ :=
 eq_top_iff'.2 $ λ x, by simp
 
+@[simp] theorem range_zero : range (0 : β →ₗ[α] γ) = ⊥ :=
+submodule.map_zero _
+
 theorem ker_eq_top {f : β →ₗ[α] γ} : ker f = ⊤ ↔ f = 0 :=
 ⟨λ h, ext $ λ x, mem_ker.1 $ h.symm ▸ trivial, λ h, h.symm ▸ ker_zero⟩
+
+lemma range_le_bot_iff (f : β →ₗ[α] γ) : range f ≤ ⊥ ↔ f = 0 :=
+by rw [range_le_iff_comap]; exact ker_eq_top
 
 theorem map_le_map_iff {f : β →ₗ[α] γ} (hf : ker f = ⊥) {p p'} : map f p ≤ map f p' ↔ p ≤ p' :=
 ⟨λ H x hx, let ⟨y, hy, e⟩ := H ⟨x, hx, rfl⟩ in ker_eq_bot.1 hf e ▸ hy, map_mono⟩
@@ -799,6 +872,24 @@ lemma ker_pair (f : β →ₗ[α] γ) (g : β →ₗ[α] δ) :
   ker (pair f g) = ker f ⊓ ker g :=
 by rw [ker, ← prod_bot, comap_pair_prod]; refl
 
+end linear_map
+
+namespace linear_map
+variables [discrete_field α]
+variables [add_comm_group β] [vector_space α β]
+variables [add_comm_group γ] [vector_space α γ]
+
+lemma ker_smul (f : β →ₗ[α] γ) (a : α) (h : a ≠ 0) : ker (a • f) = ker f :=
+submodule.comap_smul f _ a h
+
+lemma ker_smul' (f : β →ₗ[α] γ) (a : α) : ker (a • f) = ⨅(h : a ≠ 0), ker f :=
+submodule.comap_smul' f _ a
+
+lemma range_smul (f : β →ₗ[α] γ) (a : α) (h : a ≠ 0) : range (a • f) = range f :=
+submodule.map_smul f _ a h
+
+lemma range_smul' (f : β →ₗ[α] γ) (a : α) : range (a • f) = ⨆(h : a ≠ 0), range f :=
+submodule.map_smul' f _ a
 
 end linear_map
 
@@ -886,8 +977,8 @@ def mkq : β →ₗ[α] p.quotient := ⟨quotient.mk, by simp, by simp⟩
 def liftq (f : β →ₗ[α] γ) (h : p ≤ f.ker) : p.quotient →ₗ[α] γ :=
 ⟨λ x, _root_.quotient.lift_on' x f $
    λ a b (ab : a - b ∈ p), eq_of_sub_eq_zero $ by simpa using h ab,
- by rintro ⟨x⟩ ⟨y⟩; exact map_add f x y,
- by rintro a ⟨x⟩; exact map_smul f a x⟩
+ by rintro ⟨x⟩ ⟨y⟩; exact f.map_add x y,
+ by rintro a ⟨x⟩; exact f.map_smul a x⟩
 
 @[simp] theorem liftq_apply (f : β →ₗ[α] γ) {h} (x : β) :
   p.liftq f h (quotient.mk x) = f x := rfl

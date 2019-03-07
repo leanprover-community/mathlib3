@@ -7,7 +7,7 @@ A proof of Hensel's lemma on ℤ_p, roughly following Keith Conrad's writeup:
 http://www.math.uconn.edu/~kconrad/blurbs/gradnumthy/hensel.pdf
 -/
 
-import data.padics.padic_integers data.polynomial data.nat.choose data.real.cau_seq_filter
+import data.padics.padic_integers data.polynomial data.nat.choose topology.metric_space.cau_seq_filter
 import analysis.specific_limits topology.instances.polynomial
 import tactic.ring
 
@@ -30,7 +30,7 @@ private lemma comp_tendsto_lim {p : ℕ} [p.prime] {F : polynomial ℤ_[p]} (ncs
   (λ k, F.eval k)
   _ _ _
   (tendsto_limit ncs)
-  (continuous_iff_tendsto.1 F.continuous_eval _)
+  (continuous_iff_continuous_at.1 F.continuous_eval _)
 
 section
 parameters {p : ℕ} [nat.prime p] {ncs : cau_seq ℤ_[p] norm} {F : polynomial ℤ_[p]} {a : ℤ_[p]}
@@ -43,7 +43,7 @@ by convert tendsto_const_nhds; ext; rw ncs_der_val
 
 private lemma ncs_tendsto_lim :
   tendsto (λ i, ∥F.derivative.eval (ncs i)∥) at_top (nhds (∥F.derivative.eval ncs.lim∥)) :=
-tendsto.comp (comp_tendsto_lim _) (continuous_iff_tendsto.1 continuous_norm _)
+tendsto.comp (comp_tendsto_lim _) (continuous_iff_continuous_at.1 continuous_norm _)
 
 private lemma norm_deriv_eq : ∥F.derivative.eval ncs.lim∥ = ∥F.derivative.eval a∥ :=
 tendsto_nhds_unique at_top_ne_bot ncs_tendsto_lim ncs_tendsto_const
@@ -342,7 +342,7 @@ tendsto_cong (tendsto_const_nhds) $
 private lemma newton_seq_dist_tendsto' :
   tendsto (λ n, ∥newton_cau_seq n - a∥) at_top (nhds ∥soln - a∥) :=
 tendsto.comp (tendsto_sub (tendsto_limit _) tendsto_const_nhds)
-             (continuous_iff_tendsto.1 continuous_norm _)
+             (continuous_iff_continuous_at.1 continuous_norm _)
 
 private lemma soln_dist_to_a : ∥soln - a∥ = ∥F.eval a∥ / ∥F.derivative.eval a∥ :=
 tendsto_nhds_unique at_top_ne_bot newton_seq_dist_tendsto' newton_seq_dist_tendsto

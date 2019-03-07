@@ -273,6 +273,18 @@ theorem gpow_add (a : α) : ∀ (i j : ℤ), a ^ (i + j) = a ^ i * a ^ j
 theorem add_gsmul : ∀ (a : β) (i j : ℤ), (i + j) • a = i • a + j • a :=
 @gpow_add (multiplicative β) _
 
+theorem gpow_add_one (a : α) (i : ℤ) : a ^ (i + 1) = a ^ i * a :=
+by rw [gpow_add, gpow_one]
+theorem add_one_gsmul : ∀ (a : β) (i : ℤ), (i + 1) • a = i • a + a :=
+@gpow_add_one (multiplicative β) _
+attribute [to_additive add_one_gsmul] gpow_add_one
+
+theorem gpow_one_add (a : α) (i : ℤ) : a ^ (1 + i) = a * a ^ i :=
+by rw [gpow_add, gpow_one]
+theorem one_add_gsmul : ∀ (a : β) (i : ℤ), (1 + i) • a = a + i • a :=
+@gpow_one_add (multiplicative β) _
+attribute [to_additive one_add_gsmul] gpow_one_add
+
 theorem gpow_mul_comm (a : α) (i j : ℤ) : a ^ i * a ^ j = a ^ j * a ^ i :=
 by rw [← gpow_add, ← gpow_add, add_comm]
 theorem gsmul_add_comm : ∀ (a : β) (i j), i • a + j • a = j • a + i • a :=
@@ -508,6 +520,24 @@ theorem pow_pos {a : α} (H : 0 < a) : ∀ (n : ℕ), 0 < a ^ n
 theorem pow_nonneg {a : α} (H : 0 ≤ a) : ∀ (n : ℕ), 0 ≤ a ^ n
 | 0     := zero_le_one
 | (n+1) := mul_nonneg H (pow_nonneg _)
+
+theorem pow_lt_pow_of_lt_left {x y : α} {n : ℕ} (Hxy : x < y) (Hxpos : 0 ≤ x) (Hnpos : 0 < n) : x ^ n < y ^ n :=
+begin
+  cases lt_or_eq_of_le Hxpos,
+  { rw ←nat.sub_add_cancel Hnpos,
+    induction (n - 1), { simpa only [pow_one] },
+    rw [pow_add, pow_add, nat.succ_eq_add_one, pow_one, pow_one],
+    apply mul_lt_mul ih (le_of_lt Hxy) h (le_of_lt (pow_pos (lt_trans h Hxy) _)) },
+  { rw [←h, zero_pow Hnpos], apply pow_pos (by rwa ←h at Hxy : 0 < y),}
+end
+
+theorem pow_right_inj {x y : α} {n : ℕ} (Hxpos : 0 ≤ x) (Hypos : 0 ≤ y) (Hnpos : 0 < n) (Hxyn : x ^ n = y ^ n) : x = y :=
+begin
+  rcases lt_trichotomy x y with hxy | rfl | hyx,
+  { exact absurd Hxyn (ne_of_lt (pow_lt_pow_of_lt_left hxy Hxpos Hnpos)) },
+  { refl },
+  { exact absurd Hxyn (ne_of_gt (pow_lt_pow_of_lt_left hyx Hypos Hnpos)) },
+end
 
 theorem one_le_pow_of_one_le {a : α} (H : 1 ≤ a) : ∀ (n : ℕ), 1 ≤ a ^ n
 | 0     := le_refl _

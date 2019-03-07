@@ -557,6 +557,15 @@ begin
   apply lt_irrefl b (lt_of_le_of_lt ‹b ≤ Inf s› ‹Inf s < b›)
 end
 
+/--Introduction rule to prove that b is the supremum of s: it suffices to check that
+1) b is an upper bound
+2) every other upper bound b' satisfies b ≤ b'.-/
+theorem cSup_intro' (_ : s ≠ ∅)
+  (h_is_ub : ∀ a ∈ s, a ≤ b) (h_b_le_ub : ∀ub, (∀ a ∈ s, a ≤ ub) → (b ≤ ub)) : Sup s = b :=
+le_antisymm
+  (show Sup s ≤ b, from cSup_le ‹s ≠ ∅› h_is_ub)
+  (show b ≤ Sup s, from h_b_le_ub _ $ assume a, le_cSup ⟨b, h_is_ub⟩)
+
 end conditionally_complete_linear_order
 
 section conditionally_complete_linear_order_bot
@@ -689,3 +698,23 @@ le_antisymm
   end
 
 end with_top
+
+section order_dual
+open lattice
+
+instance (α : Type*) [conditionally_complete_lattice α] :
+  conditionally_complete_lattice (order_dual α) :=
+{ le_cSup := @cInf_le α _,
+  cSup_le := @le_cInf α _,
+  le_cInf := @cSup_le α _,
+  cInf_le := @le_cSup α _,
+  ..order_dual.lattice.has_Inf α,
+  ..order_dual.lattice.has_Sup α,
+  ..order_dual.lattice.lattice α }
+
+instance (α : Type*) [conditionally_complete_linear_order α] :
+  conditionally_complete_linear_order (order_dual α) :=
+{ ..order_dual.lattice.conditionally_complete_lattice α,
+  ..order_dual.decidable_linear_order α }
+
+end order_dual

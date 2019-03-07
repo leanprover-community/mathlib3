@@ -25,6 +25,13 @@ variables [topological_space α] [topological_space β] [topological_space γ]
   of every open set is open. -/
 def continuous (f : α → β) := ∀s, is_open s → is_open (f ⁻¹' s)
 
+def continuous_at (f : α → β) (x : α) := tendsto f (nhds x) (nhds (f x))
+
+def continuous_at_within (f : α → β) (x : α) (s : set α) : Prop :=
+tendsto f (nhds_within x s) (nhds (f x))
+
+def continuous_on (f : α → β) (s : set α) : Prop := ∀ x ∈ s, continuous_at_within f x s
+
 lemma continuous_id : continuous (id : α → α) :=
 assume s h, h
 
@@ -39,8 +46,7 @@ by simp [nhds_sets]; exact
 assume t t_subset t_open fx_in_t,
   ⟨f ⁻¹' t, preimage_mono t_subset, hf t t_open, fx_in_t⟩
 
-lemma continuous_iff_tendsto {f : α → β} :
-  continuous f ↔ (∀x, tendsto f (nhds x) (nhds (f x))) :=
+lemma continuous_iff_continuous_at {f : α → β} : continuous f ↔ ∀ x, continuous_at f x :=
 ⟨continuous.tendsto,
   assume hf : ∀x, tendsto f (nhds x) (nhds (f x)),
   assume s, assume hs : is_open s,
@@ -50,7 +56,7 @@ lemma continuous_iff_tendsto {f : α → β} :
     by simp [is_open_iff_nhds]; exact assume a ha, hf a (this a ha)⟩
 
 lemma continuous_const {b : β} : continuous (λa:α, b) :=
-continuous_iff_tendsto.mpr $ assume a, tendsto_const_nhds
+continuous_iff_continuous_at.mpr $ assume a, tendsto_const_nhds
 
 lemma continuous_of_discrete_topology [discrete_topology α] {f : α → β} : continuous f :=
 λs hs, is_open_discrete _
@@ -60,13 +66,13 @@ lemma continuous_iff_is_closed {f : α → β} :
 ⟨assume hf s hs, hf (-s) hs,
   assume hf s, by rw [←is_closed_compl_iff, ←is_closed_compl_iff]; exact hf _⟩
 
-lemma continuous_at_iff_ultrafilter {f : α → β} (x) : tendsto f (nhds x) (nhds (f x)) ↔
+lemma continuous_at_iff_ultrafilter {f : α → β} (x) : continuous_at f x ↔
   ∀ g, is_ultrafilter g → g ≤ nhds x → g.map f ≤ nhds (f x) :=
 tendsto_iff_ultrafilter f (nhds x) (nhds (f x))
 
 lemma continuous_iff_ultrafilter {f : α → β} :
   continuous f ↔ ∀ x g, is_ultrafilter g → g ≤ nhds x → g.map f ≤ nhds (f x) :=
-by simp only [continuous_iff_tendsto, continuous_at_iff_ultrafilter]
+by simp only [continuous_iff_continuous_at, continuous_at_iff_ultrafilter]
 
 lemma continuous_if {p : α → Prop} {f g : α → β} {h : ∀a, decidable (p a)}
   (hp : ∀a∈frontier {a | p a}, f a = g a) (hf : continuous f) (hg : continuous g) :
@@ -102,6 +108,75 @@ by rw [this]; exact is_closed_union
   (is_closed_inter is_closed_closure $ continuous_iff_is_closed.mp hf s hs)
   (is_closed_inter is_closed_closure $ continuous_iff_is_closed.mp hg s hs)
 
+theorem continuous_at_within_univ (f : α → β) (x : α) :
+   continuous_at_within f x set.univ ↔ continuous_at f x :=
+by rw [continuous_at, continuous_at_within, nhds_within_univ]
+
+theorem continuous_at_within_iff_continuous_at_restrict (f : α → β) {x : α} {s : set α} (h : x ∈ s) :
+  continuous_at_within f x s ↔ continuous_at (function.restrict f s) ⟨x, h⟩ :=
+tendsto_at_within_iff_subtype h f _
+
+theorem continuous_on_iff {f : α → β} {s : set α} :
+  continuous_on f s ↔ ∀ x ∈ s, ∀ t : set β, is_open t → f x ∈ t → ∃ u, is_open u ∧ x ∈ u ∧
+    u ∩ s ⊆ f ⁻¹' t :=
+by simp only [continuous_on, continuous_at_within, tendsto_nhds, mem_nhds_within]
+
+theorem continuous_on_iff_continuous_restrict {f : α → β} {s : set α} :
+  continuous_on f s ↔ continuous (function.restrict f s) :=
+begin
+  rw [continuous_on, continuous_iff_continuous_at], split,
+  { rintros h ⟨x, xs⟩,
+    exact (continuous_at_within_iff_continuous_at_restrict f xs).mp (h x xs) },
+  intros h x xs,
+  exact (continuous_at_within_iff_continuous_at_restrict f xs).mpr (h ⟨x, xs⟩)
+end
+
+theorem continuous_on_iff' {f : α → β} {s : set α} :
+  continuous_on f s ↔ ∀ t : set β, is_open t → ∃ u, is_open u ∧ f ⁻¹' t ∩ s = u ∩ s :=
+have ∀ t, is_open (function.restrict f s ⁻¹' t) ↔ ∃ (u : set α), is_open u ∧ f ⁻¹' t ∩ s = u ∩ s,
+  begin
+    intro t,
+    rw [is_open_induced_iff, function.restrict_eq, set.preimage_comp],
+    simp only [subtype.preimage_val_eq_preimage_val_iff],
+    split; { rintros ⟨u, ou, useq⟩, exact ⟨u, ou, useq.symm⟩ }
+  end,
+by rw [continuous_on_iff_continuous_restrict, continuous]; simp only [this]
+
+theorem continuous_at_within_iff_ptendsto_res (f : α → β) {x : α} {s : set α} (xs : x ∈ s) :
+  continuous_at_within f x s ↔ ptendsto (pfun.res f s) (nhds x) (nhds (f x)) :=
+tendsto_iff_ptendsto _ _ _ _
+
+/- Continuity and partial functions -/
+
+def pcontinuous (f : α →. β) := ∀ s, is_open s → is_open (f.preimage s)
+
+lemma open_dom_of_pcontinuous {f : α →. β} (h : pcontinuous f) : is_open f.dom :=
+by rw [←pfun.preimage_univ]; exact h _ is_open_univ
+
+lemma pcontinuous_iff' {f : α →. β} :
+  pcontinuous f ↔ ∀ {x y} (h : y ∈ f x), ptendsto' f (nhds x) (nhds y) :=
+begin
+  split,
+  { intros h x y h',
+    rw [ptendsto'_def, nhds_sets, nhds_sets],
+    rintros s ⟨t, tsubs, opent, yt⟩,
+    exact ⟨f.preimage t, pfun.preimage_mono _ tsubs, h _ opent, ⟨y, yt, h'⟩⟩
+  },
+  intros hf s os,
+  rw is_open_iff_nhds,
+  rintros x ⟨y, ys, fxy⟩ t,
+  rw [mem_principal_sets],
+  assume h : f.preimage s ⊆ t,
+  apply mem_sets_of_superset _ h,
+  have h' : ∀ s ∈ (nhds y).sets, f.preimage s ∈ (nhds x).sets,
+  { intros s hs,
+     have : ptendsto' f (nhds x) (nhds y) := hf fxy,
+     rw ptendsto'_def at this,
+     exact this s hs },
+  show f.preimage s ∈ (nhds x).sets,
+  apply h', rw nhds_sets, exact ⟨s, set.subset.refl _, os, ys⟩
+end
+
 lemma image_closure_subset_closure_image {f : α → β} {s : set α} (h : continuous f) :
   f '' closure s ⊆ closure (f '' s) :=
 have ∀ (a : α), nhds a ⊓ principal s ≠ ⊥ → nhds (f a) ⊓ principal (f '' s) ≠ ⊥,
@@ -110,7 +185,7 @@ have ∀ (a : α), nhds a ⊓ principal s ≠ ⊥ → nhds (f a) ⊓ principal (
     by rwa[map_eq_bot_iff],
   have h₂ : map f (nhds a ⊓ principal s) ≤ nhds (f a) ⊓ principal (f '' s),
     from le_inf
-      (le_trans (map_mono inf_le_left) $ by rw [continuous_iff_tendsto] at h; exact h a)
+      (le_trans (map_mono inf_le_left) $ by rw [continuous_iff_continuous_at] at h; exact h a)
       (le_trans (map_mono inf_le_right) $ by simp; exact subset.refl _),
   neq_bot_of_le_neq_bot h₁ h₂,
 by simp [image_subset_iff, closure_eq_nhds]; assumption
@@ -337,7 +412,7 @@ by rw [tendsto, tendsto, hg.right, nhds_induced_eq_comap, ← map_le_iff_le_coma
 
 lemma embedding.continuous_iff {f : α → β} {g : β → γ} (hg : embedding g) :
   continuous f ↔ continuous (g ∘ f) :=
-by simp [continuous_iff_tendsto, embedding.tendsto_nhds_iff hg]
+by simp [continuous_iff_continuous_at, continuous_at, embedding.tendsto_nhds_iff hg]
 
 lemma embedding.continuous {f : α → β} (hf : embedding f) : continuous f :=
 hf.continuous_iff.mp continuous_id
@@ -839,13 +914,13 @@ lemma continuous_subtype_mk {f : β → α}
   (hp : ∀x, p (f x)) (h : continuous f) : continuous (λx, (⟨f x, hp x⟩ : subtype p)) :=
 continuous_induced_rng h
 
-lemma tendsto_subtype_val [topological_space α] {p : α → Prop} {a : subtype p} :
-  tendsto subtype.val (nhds a) (nhds a.val) :=
-continuous_iff_tendsto.1 continuous_subtype_val _
+lemma continuous_at_subtype_val [topological_space α] {p : α → Prop} {a : subtype p} :
+  continuous_at subtype.val a :=
+continuous_iff_continuous_at.mp continuous_subtype_val _
 
 lemma map_nhds_subtype_val_eq {a : α} (ha : p a) (h : {a | p a} ∈ (nhds a).sets) :
   map (@subtype.val α p) (nhds ⟨a, ha⟩) = nhds a :=
-map_nhds_induced_eq (by simp [subtype_val_image, h])
+map_nhds_induced_eq (by simp [subtype.val_image, h])
 
 lemma nhds_subtype_eq_comap {a : α} {h : p a} :
   nhds (⟨a, h⟩ : subtype p) = comap subtype.val (nhds a) :=
@@ -859,13 +934,13 @@ lemma continuous_subtype_nhds_cover {ι : Sort*} {f : α → β} {c : ι → α 
   (c_cover : ∀x:α, ∃i, {x | c i x} ∈ (nhds x).sets)
   (f_cont  : ∀i, continuous (λ(x : subtype (c i)), f x.val)) :
   continuous f :=
-continuous_iff_tendsto.mpr $ assume x,
+continuous_iff_continuous_at.mpr $ assume x,
   let ⟨i, (c_sets : {x | c i x} ∈ (nhds x).sets)⟩ := c_cover x in
   let x' : subtype (c i) := ⟨x, mem_of_nhds c_sets⟩ in
   calc map f (nhds x) = map f (map subtype.val (nhds x')) :
       congr_arg (map f) (map_nhds_subtype_val_eq _ $ c_sets).symm
     ... = map (λx:subtype (c i), f x.val) (nhds x') : rfl
-    ... ≤ nhds (f x) : continuous_iff_tendsto.mp (f_cont i) x'
+    ... ≤ nhds (f x) : continuous_iff_continuous_at.mp (f_cont i) x'
 
 lemma continuous_subtype_is_closed_cover {ι : Sort*} {f : α → β} (c : ι → α → Prop)
   (h_lf : locally_finite (λi, {x | c i x}))
@@ -878,7 +953,7 @@ continuous_iff_is_closed.mpr $
   have ∀i, is_closed (@subtype.val α {x | c i x} '' (f ∘ subtype.val ⁻¹' s)),
     from assume i,
     embedding_is_closed embedding_subtype_val
-      (by simp [subtype_val_range]; exact h_is_closed i)
+      (by simp [subtype.val_range]; exact h_is_closed i)
       (continuous_iff_is_closed.mp (f_cont i) _ hs),
   have is_closed (⋃i, @subtype.val α {x | c i x} '' (f ∘ subtype.val ⁻¹' s)),
     from is_closed_Union_of_locally_finite
@@ -903,7 +978,7 @@ lemma compact_iff_compact_in_subtype {s : set {a // p a}} :
 compact_iff_compact_image_of_embedding embedding_subtype_val
 
 lemma compact_iff_compact_univ {s : set α} : compact s ↔ compact (univ : set (subtype s)) :=
-by rw [compact_iff_compact_in_subtype, image_univ, subtype_val_range]; refl
+by rw [compact_iff_compact_in_subtype, image_univ, subtype.val_range]; refl
 
 lemma compact_iff_compact_space {s : set α} : compact s ↔ compact_space s :=
 compact_iff_compact_univ.trans ⟨λ h, ⟨h⟩, @compact_space.compact_univ _ _⟩
@@ -1088,10 +1163,10 @@ lemma tendsto_nhds [topological_space β]
 | []     := by rwa [nhds_nil]
 | (a::l) := by rw [tendsto_cons_iff]; exact h_cons l a (tendsto_nhds l)
 
-lemma tendsto_length [topological_space α] :
-  ∀(l : list α), tendsto list.length (nhds l) (nhds l.length) :=
+lemma continuous_at_length [topological_space α] :
+  ∀(l : list α), continuous_at list.length l :=
 begin
-  simp only [nhds_discrete],
+  simp only [continuous_at, nhds_discrete],
   refine tendsto_nhds _ _,
   { exact tendsto_pure_pure _ _ },
   { assume l a ih,
@@ -1128,7 +1203,8 @@ lemma tendsto_insert_nth {n : ℕ} {a : α} {l : list α} {f : β → α} {g : �
 (tendsto.prod_mk hf hg).comp tendsto_insert_nth'
 
 lemma continuous_insert_nth {n : ℕ} : continuous (λp:α×list α, insert_nth n p.1 p.2) :=
-continuous_iff_tendsto.2 $ assume ⟨a, l⟩, by rw [nhds_prod_eq]; exact tendsto_insert_nth'
+continuous_iff_continuous_at.mpr $
+  assume ⟨a, l⟩, by rw [continuous_at, nhds_prod_eq]; exact tendsto_insert_nth'
 
 lemma tendsto_remove_nth : ∀{n : ℕ} {l : list α},
   tendsto (λl, remove_nth l n) (nhds l) (nhds (remove_nth l n))
@@ -1142,7 +1218,7 @@ lemma tendsto_remove_nth : ∀{n : ℕ} {l : list α},
   end
 
 lemma continuous_remove_nth {n : ℕ} : continuous (λl : list α, remove_nth l n) :=
-continuous_iff_tendsto.2 $ assume a, tendsto_remove_nth
+continuous_iff_continuous_at.mpr $ assume a, tendsto_remove_nth
 
 end list
 
@@ -1159,7 +1235,7 @@ lemma tendsto_cons [topological_space α] {n : ℕ} {a : α} {l : vector α n}:
   tendsto (λp:α×vector α n, vector.cons p.1 p.2) ((nhds a).prod (nhds l)) (nhds (a :: l)) :=
 by
   simp [tendsto_subtype_rng, cons_val];
-  exact tendsto_cons tendsto_fst (tendsto.comp tendsto_snd tendsto_subtype_val)
+  exact tendsto_cons tendsto_fst (tendsto.comp tendsto_snd continuous_at_subtype_val)
 
 lemma tendsto_insert_nth
   [topological_space α] {n : ℕ} {i : fin (n+1)} {a:α} :
@@ -1169,30 +1245,33 @@ lemma tendsto_insert_nth
 begin
   rw [insert_nth, tendsto_subtype_rng],
   simp [insert_nth_val],
-  exact list.tendsto_insert_nth tendsto_fst (tendsto.comp tendsto_snd tendsto_subtype_val)
+  exact list.tendsto_insert_nth tendsto_fst (tendsto.comp tendsto_snd continuous_at_subtype_val)
 end
 
 lemma continuous_insert_nth' [topological_space α] {n : ℕ} {i : fin (n+1)} :
   continuous (λp:α×vector α n, insert_nth p.1 i p.2) :=
-continuous_iff_tendsto.2 $ assume ⟨a, l⟩, by rw [nhds_prod_eq]; exact tendsto_insert_nth
+continuous_iff_continuous_at.mpr $ assume ⟨a, l⟩,
+  by rw [continuous_at, nhds_prod_eq]; exact tendsto_insert_nth
 
 lemma continuous_insert_nth [topological_space α] [topological_space β] {n : ℕ} {i : fin (n+1)}
   {f : β → α} {g : β → vector α n} (hf : continuous f) (hg : continuous g) :
   continuous (λb, insert_nth (f b) i (g b)) :=
 continuous.comp (continuous.prod_mk hf hg) continuous_insert_nth'
 
-lemma tendsto_remove_nth [topological_space α] {n : ℕ} {i : fin (n+1)} :
-  ∀{l:vector α (n+1)}, tendsto (remove_nth i) (nhds l) (nhds (remove_nth i l))
+lemma continuous_at_remove_nth [topological_space α] {n : ℕ} {i : fin (n+1)} :
+  ∀{l:vector α (n+1)}, continuous_at (remove_nth i) l
 | ⟨l, hl⟩ :=
+--  ∀{l:vector α (n+1)}, tendsto (remove_nth i) (nhds l) (nhds (remove_nth i l))
+--| ⟨l, hl⟩ :=
 begin
-  rw [remove_nth, tendsto_subtype_rng],
+  rw [continuous_at, remove_nth, tendsto_subtype_rng],
   simp [remove_nth_val],
-  exact tendsto_subtype_val.comp list.tendsto_remove_nth
+  exact continuous_at_subtype_val.comp list.tendsto_remove_nth
 end
 
 lemma continuous_remove_nth [topological_space α] {n : ℕ} {i : fin (n+1)} :
   continuous (remove_nth i : vector α (n+1) → vector α n) :=
-continuous_iff_tendsto.2 $ assume ⟨a, l⟩, tendsto_remove_nth
+continuous_iff_continuous_at.mpr $ assume ⟨a, l⟩, continuous_at_remove_nth
 
 end vector
 
@@ -1221,11 +1300,11 @@ variables {e : α → β} (de : dense_embedding e)
 protected lemma embedding (de : dense_embedding e) : embedding e :=
 ⟨de.inj, eq_of_nhds_eq_nhds begin intro a, rw [← de.induced a, nhds_induced_eq_comap] end⟩
 
-protected lemma tendsto (de : dense_embedding e) {a : α} : tendsto e (nhds a) (nhds (e a)) :=
-by rw [←de.induced a]; exact tendsto_comap
+protected lemma continuous_at (de : dense_embedding e) {a : α} : continuous_at e a :=
+by rw [continuous_at, ←de.induced a]; exact tendsto_comap
 
 protected lemma continuous (de : dense_embedding e) {a : α} : continuous e :=
-continuous_iff_tendsto.2 $ λ a, de.tendsto
+continuous_iff_continuous_at.mpr $ λ a, de.continuous_at
 
 lemma inj_iff (de : dense_embedding e) {x y} : e x = e y ↔ x = y := de.inj.eq_iff
 
@@ -1369,7 +1448,7 @@ have h₂ : t ⊆ de.extend f ⁻¹' closure (f '' (e ⁻¹' t)), from
 
 lemma continuous_extend [regular_space γ] {f : α → γ} (de : dense_embedding e)
   (hf : ∀b, ∃c, tendsto f (comap e (nhds b)) (nhds c)) : continuous (de.extend f) :=
-continuous_iff_tendsto.mpr $ assume b, de.tendsto_extend $ univ_mem_sets' hf
+continuous_iff_continuous_at.mpr $ assume b, de.tendsto_extend $ univ_mem_sets' hf
 
 end dense_embedding
 
@@ -1402,7 +1481,7 @@ protected def subtype (p : α → Prop) {e : α → β} (de : dense_embedding e)
     begin
       rw ← image_univ,
       simp [(image_comp _ _ _).symm, (∘), subtype_emb, -image_univ],
-      rw [this, image_comp, subtype_val_image],
+      rw [this, image_comp, subtype.val_image],
       simp,
       assumption
     end,

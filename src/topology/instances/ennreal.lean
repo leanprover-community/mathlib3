@@ -130,7 +130,7 @@ begin
 end
 
 instance : topological_add_monoid ennreal :=
-⟨ continuous_iff_tendsto.2 $
+⟨ continuous_iff_continuous_at.2 $
   have hl : ∀a:ennreal, tendsto (λ (p : ennreal × ennreal), p.fst + p.snd) (nhds (⊤, a)) (nhds ⊤), from
     assume a, tendsto_nhds_top $ assume n,
     have set.prod {a | ↑n < a } univ ∈ (nhds ((⊤:ennreal), a)).sets, from
@@ -138,9 +138,10 @@ instance : topological_add_monoid ennreal :=
     begin filter_upwards [this] assume ⟨a₁, a₂⟩ ⟨h₁, h₂⟩, lt_of_lt_of_le h₁ (le_add_right $ le_refl _) end,
   begin
     rintro ⟨a₁, a₂⟩,
-    cases a₁, { simp [none_eq_top, hl a₂], },
-    cases a₂, { simp [none_eq_top, some_eq_coe, nhds_swap (a₁ : ennreal) ⊤, tendsto_map'_iff, (∘), hl ↑a₁] },
-    simp [some_eq_coe, nhds_coe_coe, tendsto_map'_iff, (∘)],
+    cases a₁, { simp [continuous_at, none_eq_top, hl a₂], },
+    cases a₂, { simp [continuous_at, none_eq_top, some_eq_coe, nhds_swap (a₁ : ennreal) ⊤,
+                      tendsto_map'_iff, (∘), hl ↑a₁] },
+    simp [continuous_at, some_eq_coe, nhds_coe_coe, tendsto_map'_iff, (∘)],
     simp only [coe_add.symm, tendsto_coe, tendsto_add']
   end ⟩
 
@@ -389,14 +390,23 @@ le_antisymm
   (calc f a ≤ (⨆ (h : a = a), f a) : le_supr (λh:a=a, f a) rfl
     ... ≤ (∑b:α, ⨆ (h : a = b), f b) : ennreal.le_tsum _)
 
+lemma is_sum_iff_tendsto_nat {f : ℕ → ennreal} (r : ennreal) :
+  is_sum f r ↔ tendsto (λn:ℕ, (finset.range n).sum f) at_top (nhds r) :=
+begin
+  refine ⟨tendsto_sum_nat_of_is_sum, assume h, _⟩,
+  rw [← supr_eq_of_tendsto _ h, ← ennreal.tsum_eq_supr_nat],
+  { exact is_sum_tsum ennreal.has_sum },
+  { exact assume s t hst, finset.sum_le_sum_of_subset (finset.range_subset.2 hst) }
+end
+
 end tsum
 
 end ennreal
 
 namespace nnreal
 
-lemma exists_le_is_sum_of_le {f g : β → nnreal} {r : nnreal} (hgf : ∀b, g b ≤ f b) (hfr : is_sum f r) :
-  ∃p≤r, is_sum g p :=
+lemma exists_le_is_sum_of_le {f g : β → nnreal} {r : nnreal}
+  (hgf : ∀b, g b ≤ f b) (hfr : is_sum f r) : ∃p≤r, is_sum g p :=
 have (∑b, (g b : ennreal)) ≤ r,
 begin
   refine is_sum_le (assume b, _) (is_sum_tsum ennreal.has_sum) (ennreal.is_sum_coe.2 hfr),
@@ -408,15 +418,39 @@ let ⟨p, eq, hpr⟩ := ennreal.le_coe_iff.1 this in
 lemma has_sum_of_le {f g : β → nnreal} (hgf : ∀b, g b ≤ f b) : has_sum f → has_sum g
 | ⟨r, hfr⟩ := let ⟨p, _, hp⟩ := exists_le_is_sum_of_le hgf hfr in has_sum_spec hp
 
+lemma is_sum_iff_tendsto_nat {f : ℕ → nnreal} (r : nnreal) :
+  is_sum f r ↔ tendsto (λn:ℕ, (finset.range n).sum f) at_top (nhds r) :=
+begin
+  rw [← ennreal.is_sum_coe, ennreal.is_sum_iff_tendsto_nat],
+  simp only [ennreal.coe_finset_sum.symm],
+  exact ennreal.tendsto_coe
+end
+
 end nnreal
 
-lemma has_sum_of_nonneg_of_le {f g : β → ℝ} (hg : ∀b, 0 ≤ g b) (hgf : ∀b, g b ≤ f b) (hf : has_sum f) :
-  has_sum g :=
+lemma has_sum_of_nonneg_of_le {f g : β → ℝ}
+  (hg : ∀b, 0 ≤ g b) (hgf : ∀b, g b ≤ f b) (hf : has_sum f) : has_sum g :=
 let f' (b : β) : nnreal := ⟨f b, le_trans (hg b) (hgf b)⟩ in
 let g' (b : β) : nnreal := ⟨g b, hg b⟩ in
 have has_sum f', from nnreal.has_sum_coe.1 hf,
-have has_sum g', from nnreal.has_sum_of_le (assume b, (@nnreal.coe_le (g' b) (f' b)).2 $ hgf b) this,
+have has_sum g', from
+  nnreal.has_sum_of_le (assume b, (@nnreal.coe_le (g' b) (f' b)).2 $ hgf b) this,
 show has_sum (λb, g' b : β → ℝ), from nnreal.has_sum_coe.2 this
+
+lemma is_sum_iff_tendsto_nat_of_nonneg {f : ℕ → ℝ} (hf : ∀i, 0 ≤ f i) (r : ℝ) :
+  is_sum f r ↔ tendsto (λn:ℕ, (finset.range n).sum f) at_top (nhds r) :=
+⟨tendsto_sum_nat_of_is_sum,
+  assume hfr,
+  have 0 ≤ r := ge_of_tendsto at_top_ne_bot hfr $ univ_mem_sets' $ assume i,
+    show 0 ≤ (finset.range i).sum f, from finset.zero_le_sum $ assume i _, hf i,
+  let f' (n : ℕ) : nnreal := ⟨f n, hf n⟩, r' : nnreal := ⟨r, this⟩ in
+  have f_eq : f = (λi:ℕ, (f' i : ℝ)) := rfl,
+  have r_eq : r = r' := rfl,
+  begin
+    rw [f_eq, r_eq, nnreal.is_sum_coe, nnreal.is_sum_iff_tendsto_nat, ← nnreal.tendsto_coe],
+    simp only [nnreal.sum_coe],
+    exact hfr
+  end⟩
 
 lemma infi_real_pos_eq_infi_nnreal_pos {α : Type*} [complete_lattice α] {f : ℝ → α} :
   (⨅(n:ℝ) (h : n > 0), f n) = (⨅(n:nnreal) (h : n > 0), f n) :=
@@ -499,7 +533,7 @@ end⟩
 lemma continuous_of_le_add_edist {f : α → ennreal} (C : ennreal)
   (hC : C ≠ ⊤) (h : ∀x y, f x ≤ f y + C * edist x y) : continuous f :=
 begin
-  refine continuous_iff_tendsto.2 (λx, tendsto_orderable.2 ⟨_, _⟩),
+  refine continuous_iff_continuous_at.2 (λx, tendsto_orderable.2 ⟨_, _⟩),
   show ∀e, e < f x → {y : α | e < f y} ∈ (nhds x).sets,
   { assume e he,
     let ε := min (f x - e) 1,
@@ -572,7 +606,7 @@ theorem tendsto_edist {f g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) :
   tendsto (λx, edist (f x) (g x)) x (nhds (edist a b)) :=
 have tendsto (λp:α×α, edist p.1 p.2) (nhds (a, b)) (nhds (edist a b)),
-  from continuous_iff_tendsto.mp continuous_edist' (a, b),
+  from continuous_iff_continuous_at.mp continuous_edist' (a, b),
 (hf.prod_mk hg).comp (by rw [nhds_prod_eq] at this; exact this)
 
 end --section

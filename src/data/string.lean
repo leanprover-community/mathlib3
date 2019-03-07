@@ -67,7 +67,4 @@ by refine_struct {
     decidable_eq := by apply_instance, .. };
   { simp [-not_le], introv, apply_field }
 
-def map_tokens (c : char) (f : list string → list string) : string → string :=
-intercalate (singleton c) ∘ f ∘ split (= c)
-
 end string

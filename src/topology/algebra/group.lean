@@ -158,9 +158,9 @@ topological_space.nhds_mk_of_nhds _ _
 lemma nhds_zero_eq_Z : nhds 0 = Z α := by simp [nhds_eq]; exact filter.map_id
 
 instance : topological_add_monoid α :=
-⟨ continuous_iff_tendsto.2 $ assume ⟨a, b⟩,
+⟨ continuous_iff_continuous_at.2 $ assume ⟨a, b⟩,
   begin
-    rw [nhds_prod_eq, nhds_eq, nhds_eq, nhds_eq, filter.prod_map_map_eq,
+    rw [continuous_at, nhds_prod_eq, nhds_eq, nhds_eq, nhds_eq, filter.prod_map_map_eq,
       tendsto_map'_iff],
     suffices :  tendsto ((λx:α, (a + b) + x) ∘ (λp:α×α,p.1 + p.2)) (filter.prod (Z α) (Z α))
       (map (λx:α, (a + b) + x) (Z α)),
@@ -169,9 +169,9 @@ instance : topological_add_monoid α :=
   end⟩
 
 instance : topological_add_group α :=
-⟨continuous_iff_tendsto.2 $ assume a,
+⟨continuous_iff_continuous_at.2 $ assume a,
   begin
-    rw [nhds_eq, nhds_eq, tendsto_map'_iff],
+    rw [continuous_at, nhds_eq, nhds_eq, tendsto_map'_iff],
     suffices : tendsto ((λx:α, x - a) ∘ (λx:α, -x)) (Z α) (map (λx:α, x - a) (Z α)),
     { simpa [(∘)] },
     exact neg_Z.comp tendsto_map

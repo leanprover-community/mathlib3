@@ -40,7 +40,7 @@ lemma coe_nat_ne_zero_iff_pos {n : ℕ} : (n : ℤ) ≠ 0 ↔ 0 < n :=
 
 lemma coe_nat_succ_pos (n : ℕ) : 0 < (n.succ : ℤ) := int.coe_nat_pos.2 (succ_pos n)
 
-@[simp] lemma coe_nat_abs (n : ℕ) : abs (n : ℤ) = n :=
+@[simp] theorem coe_nat_abs (n : ℕ) : abs (n : ℤ) = n :=
 abs_of_nonneg (coe_nat_nonneg n)
 
 /- succ and pred -/
@@ -717,6 +717,9 @@ by rw [to_nat_eq_max]; apply le_max_left
 @[simp] theorem to_nat_le (a : ℤ) (n : ℕ) : to_nat a ≤ n ↔ a ≤ n :=
 by rw [(coe_nat_le_coe_nat_iff _ _).symm, to_nat_eq_max, max_le_iff];
    exact and_iff_left (coe_zero_le _)
+
+theorem to_nat_le_to_nat {a b : ℤ} (h : a ≤ b) : to_nat a ≤ to_nat b :=
+by rw to_nat_le; exact le_trans h (le_to_nat b)
 
 def to_nat' : ℤ → option ℕ
 | (n : ℕ) := some n

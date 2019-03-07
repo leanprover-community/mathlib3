@@ -84,6 +84,20 @@ calc ∥-g∥ = ∥0 - g∥ : by simp
       ... = ∥g - 0∥ : (dist_eq_norm g 0)
       ... = ∥g∥ : by simp
 
+lemma norm_triangle_sub {a b : α} : ∥a - b∥ ≤ ∥a∥ + ∥b∥ :=
+by simpa only [sub_eq_add_neg, norm_neg] using norm_triangle a (-b)
+
+lemma norm_triangle_sum {β} [decidable_eq β] (s : finset β) (f : β → α) :
+  ∥s.sum f∥ ≤ s.sum (λa, ∥ f a ∥) :=
+finset.induction_on s (by simp only [finset.sum_empty, norm_zero]; exact le_refl _)
+begin
+  assume a s has ih,
+  calc ∥(insert a s).sum f∥ ≤ ∥ f a + s.sum f ∥ : by rw [finset.sum_insert has]
+    ... ≤ ∥ f a ∥ + ∥ s.sum f ∥ : norm_triangle _ _
+    ... ≤ ∥ f a ∥ + s.sum (λa, ∥ f a ∥) : add_le_add_left ih _
+    ... = (insert a s).sum (λa, ∥ f a ∥) : by rw [finset.sum_insert has]
+end
+
 lemma abs_norm_sub_norm_le (g h : α) : abs(∥g∥ - ∥h∥) ≤ ∥g - h∥ :=
 abs_le.2 $ and.intro
   (suffices -∥g - h∥ ≤ -(∥h∥ - ∥g∥), by simpa,
@@ -99,6 +113,9 @@ abs_norm_sub_norm_le g h
 
 lemma norm_sub_rev (g h : α) : ∥g - h∥ = ∥h - g∥ :=
 by rw ←norm_neg; simp
+
+lemma ball_0_eq (ε : ℝ) : ball (0:α) ε = {x | ∥x∥ < ε} :=
+set.ext $ assume a, by simp
 
 section nnnorm
 
@@ -148,42 +165,34 @@ lemma tendsto_iff_norm_tendsto_zero {f : ι → β} {a : filter ι} {b : β} :
 by rw tendsto_iff_dist_tendsto_zero ; simp only [(dist_eq_norm _ _).symm]
 
 lemma lim_norm (x : α) : ((λ g, ∥g - x∥) : α → ℝ) →_{x} 0 :=
-tendsto_iff_norm_tendsto_zero.1 (continuous_iff_tendsto.1 continuous_id x)
+tendsto_iff_norm_tendsto_zero.1 (continuous_iff_continuous_at.1 continuous_id x)
 
 lemma lim_norm_zero : ((λ g, ∥g∥) : α → ℝ) →_{0} 0 :=
 by simpa using lim_norm (0:α)
 
 lemma continuous_norm : continuous ((λ g, ∥g∥) : α → ℝ) :=
 begin
-  rw continuous_iff_tendsto,
+  rw continuous_iff_continuous_at,
   intro x,
-  rw tendsto_iff_dist_tendsto_zero,
+  rw [continuous_at, tendsto_iff_dist_tendsto_zero],
   exact squeeze_zero (λ t, abs_nonneg _) (λ t, abs_norm_sub_norm_le _ _) (lim_norm x)
 end
 
 lemma continuous_nnnorm : continuous (nnnorm : α → nnreal) :=
 continuous_subtype_mk _ continuous_norm
 
-instance normed_top_monoid : topological_add_monoid α :=
-⟨continuous_iff_tendsto.2 $ λ ⟨x₁, x₂⟩,
-  tendsto_iff_norm_tendsto_zero.2
-  begin
-    refine squeeze_zero (by simp) _
-      (by simpa using tendsto_add (lim_norm (x₁, x₂)) (lim_norm (x₁, x₂))),
-    exact λ ⟨e₁, e₂⟩, calc
-      ∥(e₁ + e₂) - (x₁ + x₂)∥ = ∥(e₁ - x₁) + (e₂ - x₂)∥ : by simp
-      ... ≤ ∥e₁ - x₁∥ + ∥e₂ - x₂∥ : norm_triangle _ _
-      ... ≤ max (∥e₁ - x₁∥) (∥e₂ - x₂∥) + max (∥e₁ - x₁∥) (∥e₂ - x₂∥) :
-        add_le_add (le_max_left _ _) (le_max_right _ _)
-  end⟩
+instance normed_uniform_group : uniform_add_group α :=
+begin
+  refine ⟨metric.uniform_continuous_iff.2 $ assume ε hε, ⟨ε / 2, half_pos hε, assume a b h, _⟩⟩,
+  rw [prod.dist_eq, max_lt_iff, dist_eq_norm, dist_eq_norm] at h,
+  calc dist (a.1 - a.2) (b.1 - b.2) = ∥(a.1 - b.1) - (a.2 - b.2)∥  : by simp [dist_eq_norm]
+    ... ≤ ∥a.1 - b.1∥ + ∥a.2 - b.2∥ : norm_triangle_sub
+    ... < ε / 2 + ε / 2 : add_lt_add h.1 h.2
+    ... = ε : add_halves _
+end
 
-instance normed_top_group : topological_add_group α :=
-⟨continuous_iff_tendsto.2 $ λ x,
-tendsto_iff_norm_tendsto_zero.2 begin
-  have : ∀ (e : α), ∥-e - -x∥ = ∥e - x∥,
-  { intro, simpa using norm_neg (e - x) },
-  rw funext this, exact lim_norm x,
-end⟩
+instance normed_top_monoid : topological_add_monoid α := by apply_instance
+instance normed_top_group : topological_add_group α := by apply_instance
 
 end normed_group
 
@@ -219,7 +228,7 @@ instance prod.normed_ring [normed_ring α] [normed_ring β] : normed_ring (α ×
 end normed_ring
 
 instance normed_ring_top_monoid [normed_ring α] : topological_monoid α :=
-⟨ continuous_iff_tendsto.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
+⟨ continuous_iff_continuous_at.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
     have ∀ e : α × α, e.fst * e.snd - x.fst * x.snd =
       e.fst * e.snd - e.fst * x.snd + (e.fst * x.snd - x.fst * x.snd), by intro; rw sub_add_sub_cancel,
     begin
@@ -232,12 +241,12 @@ instance normed_ring_top_monoid [normed_ring α] : topological_monoid α :=
           { intro t, show ∥t.fst * t.snd - t.fst * x.snd∥ ≤ ∥t.fst∥ * ∥t.snd - x.snd∥,
             rw ←mul_sub, apply norm_mul },
           { rw ←mul_zero (∥x.fst∥), apply tendsto_mul,
-            { apply continuous_iff_tendsto.1,
+            { apply continuous_iff_continuous_at.1,
               apply continuous.comp,
               { apply continuous_fst },
               { apply continuous_norm }},
             { apply tendsto_iff_norm_tendsto_zero.1,
-              apply continuous_iff_tendsto.1,
+              apply continuous_iff_continuous_at.1,
               apply continuous_snd }}},
         { apply squeeze_zero,
           { intro, apply norm_nonneg },
@@ -245,13 +254,13 @@ instance normed_ring_top_monoid [normed_ring α] : topological_monoid α :=
             rw ←sub_mul, apply norm_mul },
           { rw ←zero_mul (∥x.snd∥), apply tendsto_mul,
             { apply tendsto_iff_norm_tendsto_zero.1,
-              apply continuous_iff_tendsto.1,
+              apply continuous_iff_continuous_at.1,
               apply continuous_fst },
             { apply tendsto_const_nhds }}}}
     end ⟩
 
 instance normed_top_ring [normed_ring α] : topological_ring α :=
-⟨ continuous_iff_tendsto.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
+⟨ continuous_iff_continuous_at.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
     have ∀ e : α, -e - -x = -(e - x), by intro; simp,
     by simp only [this, norm_neg]; apply lim_norm ⟩
 
@@ -333,13 +342,15 @@ begin
   { clear ineq,
 
     have limf': tendsto (λ x, ∥f x - s∥) e (nhds 0) := tendsto_iff_norm_tendsto_zero.1 limf,
-    have limg' : tendsto (λ x, ∥g x∥) e (nhds ∥b∥) := filter.tendsto.comp limg (continuous_iff_tendsto.1 continuous_norm _),
+    have limg' : tendsto (λ x, ∥g x∥) e (nhds ∥b∥) := filter.tendsto.comp limg (continuous_iff_continuous_at.1 continuous_norm _),
 
-    have lim1 : tendsto (λ x, ∥f x - s∥ * ∥g x∥) e (nhds 0),
-      by simpa using tendsto_mul limf' limg',
+    have lim1 := tendsto_mul limf' limg',
+    simp only [zero_mul, sub_eq_add_neg] at lim1,
+
     have limg3 := tendsto_iff_norm_tendsto_zero.1 limg,
-    have lim2 : tendsto (λ x, ∥s∥ * ∥g x - b∥) e (nhds 0),
-      by simpa using tendsto_mul tendsto_const_nhds limg3,
+
+    have lim2 := tendsto_mul (tendsto_const_nhds : tendsto _ _ (nhds ∥ s ∥)) limg3,
+    simp only [sub_eq_add_neg, mul_zero] at lim2,
 
     rw [show (0:ℝ) = 0 + 0, by simp],
     exact tendsto_add lim1 lim2  }
@@ -347,8 +358,8 @@ end
 
 lemma continuous_smul [topological_space γ] {f : γ → α} {g : γ → E}
   (hf : continuous f) (hg : continuous g) : continuous (λc, f c • g c) :=
-continuous_iff_tendsto.2 $ assume c,
-  tendsto_smul (continuous_iff_tendsto.1 hf _) (continuous_iff_tendsto.1 hg _)
+continuous_iff_continuous_at.2 $ assume c,
+  tendsto_smul (continuous_iff_continuous_at.1 hf _) (continuous_iff_continuous_at.1 hg _)
 
 instance : normed_space α (E × F) :=
 { norm_smul :=
@@ -377,4 +388,66 @@ instance fintype.normed_space {ι : Type*} {E : ι → Type*} [fintype ι] [∀i
   ..metric_space_pi,
   ..pi.vector_space α }
 
+/-- A normed space can be build from a norm that satisfies algebraic properties. This is formalised in this structure. -/
+structure normed_space.core (α : Type*) (β : Type*)
+  [out_param $ discrete_field α] [normed_field α] [add_comm_group β] [has_scalar α β] [has_norm β]:=
+(norm_eq_zero_iff : ∀ x : β, ∥x∥ = 0 ↔ x = 0)
+(norm_smul : ∀ c : α, ∀ x : β, ∥c • x∥ = ∥c∥ * ∥x∥)
+(triangle : ∀ x y : β, ∥x + y∥ ≤ ∥x∥ + ∥y∥)
+
+noncomputable def normed_space.of_core (α : Type*) (β : Type*)
+  [normed_field α] [add_comm_group β] [vector_space α β] [has_norm β] (C : normed_space.core α β) : normed_space α β :=
+{ dist := λ x y, ∥x - y∥,
+  dist_eq := assume x y, by refl,
+  dist_self := assume x, (C.norm_eq_zero_iff (x - x)).mpr (show x - x = 0, by simp),
+  eq_of_dist_eq_zero := assume x y h, show (x = y), from sub_eq_zero.mp $ (C.norm_eq_zero_iff (x - y)).mp h,
+  dist_triangle := assume x y z,
+    calc ∥x - z∥ = ∥x - y + (y - z)∥ : by simp
+            ... ≤ ∥x - y∥ + ∥y - z∥  : C.triangle _ _,
+  dist_comm := assume x y,
+    calc ∥x - y∥ = ∥ -(1 : α) • (y - x)∥ : by simp
+             ... = ∥y - x∥ : begin rw[C.norm_smul], simp end,
+  norm_smul := C.norm_smul
+}
+
 end normed_space
+
+section has_sum
+local attribute [instance] classical.prop_decidable
+open finset filter
+variables [normed_group α] [complete_space α]
+
+lemma has_sum_iff_vanishing_norm {f : ι → α} :
+  has_sum f ↔ ∀ε>0, (∃s:finset ι, ∀t, disjoint t s → ∥ t.sum f ∥ < ε) :=
+begin
+  simp only [has_sum_iff_vanishing, metric.mem_nhds_iff, exists_imp_distrib],
+  split,
+  { assume h ε hε, refine h {x | ∥x∥ < ε} ε hε _, rw [ball_0_eq ε] },
+  { assume h s ε hε hs,
+    rcases h ε hε with ⟨t, ht⟩,
+    refine ⟨t, assume u hu, hs _⟩,
+    rw [ball_0_eq],
+    exact ht u hu }
+end
+
+lemma has_sum_of_norm_bounded {f : ι → α} (g : ι → ℝ) (hf : has_sum g) (h : ∀i, ∥f i∥ ≤ g i) :
+  has_sum f :=
+has_sum_iff_vanishing_norm.2 $ assume ε hε,
+  let ⟨s, hs⟩ := has_sum_iff_vanishing_norm.1 hf ε hε in
+  ⟨s, assume t ht,
+    have ∥t.sum g∥ < ε := hs t ht,
+    have nn : 0 ≤ t.sum g := finset.zero_le_sum (assume a _, le_trans (norm_nonneg _) (h a)),
+    lt_of_le_of_lt (norm_triangle_sum t f) $ lt_of_le_of_lt (finset.sum_le_sum $ assume i _, h i) $
+      by rwa [real.norm_eq_abs, abs_of_nonneg nn] at this⟩
+
+lemma has_sum_of_has_sum_norm {f : ι → α} (hf : has_sum (λa, ∥f a∥)) : has_sum f :=
+has_sum_of_norm_bounded _ hf (assume i, le_refl _)
+
+lemma norm_tsum_le_tsum_norm {f : ι → α} (hf : has_sum (λi, ∥f i∥)) : ∥(∑i, f i)∥ ≤ (∑ i, ∥f i∥) :=
+have h₁ : tendsto (λs:finset ι, ∥s.sum f∥) at_top (nhds ∥(∑ i, f i)∥) :=
+  (is_sum_tsum $ has_sum_of_has_sum_norm hf).comp (continuous_norm.tendsto _),
+have h₂ : tendsto (λs:finset ι, s.sum (λi, ∥f i∥)) at_top (nhds (∑ i, ∥f i∥)) :=
+  is_sum_tsum hf,
+le_of_tendsto_of_tendsto at_top_ne_bot h₁ h₂ $ univ_mem_sets' $ assume s, norm_triangle_sum _ _
+
+end has_sum

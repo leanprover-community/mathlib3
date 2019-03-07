@@ -10,14 +10,14 @@ namespace tidy.test
 
 meta def interactive_simp := `[simp]
 
-def tidy_test_0 : ∀ x : unit, x = unit.star := 
+def tidy_test_0 : ∀ x : unit, x = unit.star :=
 begin
   success_if_fail { chain [ interactive_simp ] },
   intro1,
   induction x,
   refl
 end
-def tidy_test_1 (a : string): ∀ x : unit, x = unit.star := 
+def tidy_test_1 (a : string): ∀ x : unit, x = unit.star :=
 begin
   tidy -- intros x, exact dec_trivial
 end
@@ -25,7 +25,7 @@ end
 structure A :=
 (z : ℕ)
 
-structure B := 
+structure B :=
 (a : A)
 (aa : a.z = 0)
 
@@ -41,9 +41,9 @@ structure D :=
 
 open tactic
 
-def d : D := 
+def d : D :=
 begin
-  tidy, 
+  tidy,
   -- /- obviously says -/ fsplit, work_on_goal 0 { fsplit, work_on_goal 0 { fsplit }, work_on_goal 1 { refl } }, work_on_goal 0 { fsplit, work_on_goal 0 { fsplit }, work_on_goal 1 { fsplit, work_on_goal 0 { fsplit }, work_on_goal 1 { refl } }, work_on_goal 1 { refl } }, refl
 end.
 

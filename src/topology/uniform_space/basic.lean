@@ -26,7 +26,7 @@ The formalization is mostly based on the books:
   I. M. James: Topologies and Uniformities
 A major difference is that this formalization is heavily based on the filter library.
 -/
-import order.filter data.quot topology.basic topology.continuity
+import order.filter order.filter.lift data.quot topology.basic topology.continuity
 open set lattice filter classical
 local attribute [instance] prop_decidable
 
@@ -486,7 +486,7 @@ lemma uniform_embedding.dense_embedding [uniform_space β] {f : α → β}
 
 lemma uniform_continuous.continuous [uniform_space β] {f : α → β}
   (hf : uniform_continuous f) : continuous f :=
-continuous_iff_tendsto.mpr $ assume a,
+continuous_iff_continuous_at.mpr $ assume a,
 calc map f (nhds a) ≤
     (map (λp:α×α, (f p.1, f p.2)) uniformity).lift' (λs:set (β×β), {y | (f a, y) ∈ s}) :
   begin
@@ -545,6 +545,10 @@ def is_complete (s : set α) := ∀f, cauchy f → f ≤ principal s → ∃x∈
 lemma cauchy_iff [uniform_space α] {f : filter α} :
   cauchy f ↔ (f ≠ ⊥ ∧ (∀s∈(@uniformity α _).sets, ∃t∈f.sets, set.prod t t ⊆ s)) :=
 and_congr (iff.refl _) $ forall_congr $ assume s, forall_congr $ assume hs, mem_prod_same_iff
+
+lemma cauchy_map_iff [uniform_space α] {l : filter β} {f : β → α} :
+  cauchy (l.map f) ↔ (l ≠ ⊥ ∧ tendsto (λp:β×β, (f p.1, f p.2)) (l.prod l) uniformity) :=
+by rw [cauchy, (≠), map_eq_bot_iff, prod_map_map_eq]; refl
 
 lemma cauchy_downwards {f g : filter α} (h_c : cauchy f) (hg : g ≠ ⊥) (h_le : g ≤ f) : cauchy g :=
 ⟨hg, le_trans (filter.prod_mono h_le h_le) h_c.right⟩
@@ -925,6 +929,14 @@ end
 /--If `univ` is complete, the space is a complete space -/
 lemma complete_space_of_is_complete_univ (h : is_complete (univ : set α)) : complete_space α :=
 ⟨λ f hf, let ⟨x, _, hx⟩ := h f hf ((@principal_univ α).symm ▸ le_top) in ⟨x, hx⟩⟩
+
+lemma cauchy_iff_exists_le_nhds [uniform_space α] [complete_space α] {l : filter α} (hl : l ≠ ⊥) :
+  cauchy l ↔ (∃x, l ≤ nhds x) :=
+⟨complete_space.complete, assume ⟨x, hx⟩, cauchy_downwards cauchy_nhds hl hx⟩
+
+lemma cauchy_map_iff_exists_tendsto [uniform_space α] [complete_space α] {l : filter β} {f : β → α}
+  (hl : l ≠ ⊥) : cauchy (l.map f) ↔ (∃x, tendsto f l (nhds x)) :=
+cauchy_iff_exists_le_nhds (map_ne_bot hl)
 
 /-- A Cauchy sequence in a complete space converges -/
 theorem cauchy_seq_tendsto_of_complete [inhabited β] [semilattice_sup β] [complete_space α]
@@ -1317,7 +1329,7 @@ lemma tendsto_of_uniform_continuous_subtype
   (hf : uniform_continuous (λx:s, f x.val)) (ha : s ∈ (nhds a).sets) :
   tendsto f (nhds a) (nhds (f a)) :=
 by rw [(@map_nhds_subtype_val_eq α _ s a (mem_of_nhds ha) ha).symm]; exact
-tendsto_map' (continuous_iff_tendsto.mp hf.continuous _)
+tendsto_map' (continuous_iff_continuous_at.mp hf.continuous _)
 
 lemma uniform_embedding_subtype_emb {α : Type*} {β : Type*} [uniform_space α] [uniform_space β]
   (p : α → Prop) {e : α → β} (ue : uniform_embedding e) (de : dense_embedding e) :

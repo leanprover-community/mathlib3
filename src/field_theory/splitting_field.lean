@@ -80,7 +80,6 @@ lemma exists_root_of_splits {f : polynomial α} (hs : splits i f) (hf0 : degree 
 if hf0 : f = 0 then ⟨37, by simp [hf0]⟩
 else
   let ⟨g, hg⟩ := is_noetherian_ring.exists_irreducible_factor
-    principal_ideal_domain.is_noetherian_ring
     (show ¬ is_unit (f.map i), from mt is_unit_iff_degree_eq_zero.1 (by rwa degree_map))
     (by rw [ne.def, map_eq_zero]; exact hf0) in
   let ⟨x, hx⟩ := exists_root_of_degree_eq_one (hs.resolve_left hf0 hg.1 hg.2) in
@@ -93,7 +92,7 @@ lemma exists_multiset_of_splits {f : polynomial α} : splits i f →
 suffices splits id (f.map i) → ∃ s : multiset β, f.map i =
   (C (f.map i).leading_coeff) * (s.map (λ a : β, (X : polynomial β) - C a)).prod,
 by rwa [splits_map_iff, leading_coeff_map i] at this,
-is_noetherian_ring.irreducible_induction_on principal_ideal_domain.is_noetherian_ring (f.map i)
+is_noetherian_ring.irreducible_induction_on (f.map i)
   (λ _, ⟨{37}, by simp [is_ring_hom.map_zero i]⟩)
   (λ u hu _, ⟨0,
     by conv_lhs { rw eq_C_of_degree_eq_zero (is_unit_iff_degree_eq_zero.1 hu) };
@@ -165,7 +164,7 @@ lemma splits_comp_of_splits (j : β → γ) [is_field_hom j] {f : polynomial α}
 begin
   change i with (λ x, id (i x)) at h,
   rw [← splits_map_iff],
-  rw [← splits_map_iff i id]  at h,
+  rw [← splits_map_iff i id] at h,
   exact splits_of_splits_id _ h
 end
 

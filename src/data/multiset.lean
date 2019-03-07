@@ -1823,6 +1823,9 @@ quotient.induction_on₂ s t $ λ l₁ l₂, quotient.eq.trans perm_iff_count
 theorem ext' {s t : multiset α} : (∀ a, count a s = count a t) → s = t :=
 ext.2
 
+@[simp] theorem coe_inter (s t : list α) : (s ∩ t : multiset α) = (s.bag_inter t : list α) :=
+by ext; simp
+
 theorem le_iff_count {s t : multiset α} : s ≤ t ↔ ∀ a, count a s ≤ count a t :=
 ⟨λ h a, count_le_of_le a h, λ al,
  by rw ← (ext.2 (λ a, by simp [max_eq_right (al a)]) : s ∪ t = t);

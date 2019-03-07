@@ -10,7 +10,7 @@ import category_theory.limits.types
 import category_theory.natural_isomorphism
 import category_theory.eq_to_hom
 import topology.basic
-import topology.continuity
+import topology.opens
 import order.galois_connection
 
 open category_theory

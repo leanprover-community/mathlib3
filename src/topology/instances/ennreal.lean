@@ -273,8 +273,8 @@ begin
   { simp [@nhds_coe a, tendsto_map'_iff, (∘), tendsto_coe, coe_sub.symm],
     exact nnreal.tendsto_sub tendsto_const_nhds tendsto_id },
   simp,
-  exact (tendsto_cong tendsto_const_nhds $ mem_sets_of_superset (lt_mem_nhds $ @coe_lt_top r) $
-    by simp [le_of_lt] {contextual := tt})
+  exact (tendsto.congr' (mem_sets_of_superset (lt_mem_nhds $ @coe_lt_top r) $
+    by simp [le_of_lt] {contextual := tt})) tendsto_const_nhds
 end
 
 lemma sub_supr {ι : Sort*} [hι : nonempty ι] {b : ι → ennreal} (hr : a < ⊤) :

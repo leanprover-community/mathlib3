@@ -509,6 +509,12 @@ end
 lemma univ_subtype {p : α → Prop} : (univ : set (subtype p)) = (⋃x (h : p x), {⟨x, h⟩})  :=
 set.ext $ assume ⟨x, h⟩, by simp [h]
 
+lemma range_eq_Union {ι} (f : ι → α) : range f = (⋃i, {f i}) :=
+set.ext $ assume a, by simp [@eq_comm α a]
+
+lemma image_eq_Union (f : α → β) (s : set α) : f '' s = (⋃i∈s, {f i}) :=
+set.ext $ assume b, by simp [@eq_comm β b]
+
 end image
 
 section preimage
@@ -643,6 +649,7 @@ end set
 
 section disjoint
 variable [semilattice_inf_bot α]
+
 /-- Two elements of a lattice are disjoint if their inf is the bottom element.
   (This generalizes disjoint sets, viewed as members of the subset lattice.) -/
 def disjoint (a b : α) : Prop := a ⊓ b ≤ ⊥
@@ -673,8 +680,26 @@ disjoint_mono (le_refl _) h
 
 end disjoint
 
-theorem set.disjoint_diff {a b : set α} : disjoint a (b \ a) :=
+namespace set
+
+protected theorem disjoint_iff {s t : set α} : disjoint s t ↔ s ∩ t ⊆ ∅ := iff.refl _
+
+theorem disjoint_diff {a b : set α} : disjoint a (b \ a) :=
 disjoint_iff.2 (inter_diff_self _ _)
+
+theorem disjoint_compl (s : set α) : disjoint s (-s) := assume a ⟨h₁, h₂⟩, h₂ h₁
+
+theorem disjoint_singleton_left {a : α} {s : set α} : disjoint {a} s ↔ a ∉ s :=
+by simp [set.disjoint_iff, subset_def]; exact iff.rfl
+
+theorem disjoint_singleton_right {a : α} {s : set α} : disjoint s {a} ↔ a ∉ s :=
+by rw [disjoint.comm]; exact disjoint_singleton_left
+
+theorem disjoint_image_image {f : β → α} {g : γ → α} {s : set β} {t : set γ}
+  (h : ∀b∈s, ∀c∈t, f b ≠ g c) : disjoint (f '' s) (g '' t) :=
+by rintros a ⟨⟨b, hb, eq⟩, ⟨c, hc, rfl⟩⟩; exact h b hb c hc eq
+
+end set
 
 namespace set
 variables (t : α → set β)

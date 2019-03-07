@@ -4092,6 +4092,18 @@ theorem reverse_range' : ∀ s n : ℕ,
     nil_append, eq_self_iff_true, true_and, map_map]
   using reverse_range' s n
 
+/--
+`Ico n m` is the list of natural numbers `n ≤ x < m`.
+(Ico stands for "interval, closed-open".)
+
+See also `data/set/intervals.lean` for `set.Ico`, modelling intervals in general preorders, and
+`multiset.Ico` and `finset.Ico` for `n ≤ x < m` as a multiset or as a finset.
+
+@TODO (anyone): Define `Ioo` and `Icc`, state basic lemmas about them.
+@TODO (anyone): Prove that `finset.Ico` and `set.Ico` agree.
+@TODO (anyone): Also do the versions for integers (one could attempt to generalise futher,
+but I'm not sure how many interesting total orders there are so `a ≤ x < b` is always finite).
+ -/
 def Ico (n m : ℕ) : list ℕ := range' n (m - n)
 
 namespace Ico

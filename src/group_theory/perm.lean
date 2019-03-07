@@ -825,15 +825,6 @@ def cycle_factors [fintype α] [decidable_linear_order α] (f : perm α) :
   {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint} :=
 cycle_factors_aux (univ.sort (≤)) f (λ _ _, (mem_sort _).2 (mem_univ _))
 
-def distance [fintype α] (f : perm α) (x y : α) : enat :=
-⟨∃ n : ℕ, (f ^ n) x = y, nat.find⟩
-
-def cycle_of_list [fintype α] (f : perm α) (x : α) : α → list α
-| y := if x = y then []
-  else let z := f y in z :: cycle_of_list (f y)
-using_well_founded {rel_tac := λ _ _, `[exact ⟨_, inv_image.wf distance f x⟩]}
-
-
 end equiv.perm
 
 lemma finset.prod_univ_perm [fintype α] [comm_monoid β] {f : α → β} (σ : perm α) :
@@ -846,4 +837,3 @@ lemma finset.sum_univ_perm [fintype α] [add_comm_monoid β] {f : α → β} (σ
 @finset.prod_univ_perm _ (multiplicative β) _ _ f σ
 
 attribute [to_additive finset.sum_univ_perm] finset.prod_univ_perm
-

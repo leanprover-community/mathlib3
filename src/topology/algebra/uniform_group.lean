@@ -162,7 +162,7 @@ def topological_add_group.to_uniform_space : uniform_space G :=
     { rcases H with ⟨U, U_nhds, U_sub⟩,
       rcases exists_nhds_half U_nhds with ⟨V, ⟨V_nhds, V_sum⟩⟩,
       existsi ((λp:G×G, p.2 - p.1) ⁻¹' V),
-      have H : (λp:G×G, p.2 - p.1) ⁻¹' V ∈ (comap (λp:G×G, p.2 - p.1) (nhds (0 : G))).sets,
+      have H : (λp:G×G, p.2 - p.1) ⁻¹' V ∈ comap (λp:G×G, p.2 - p.1) (nhds (0 : G)),
         by existsi [V, V_nhds] ; refl,
       existsi H,
       have comp_rel_sub : comp_rel ((λp:G×G, p.2 - p.1) ⁻¹' V) ((λp:G×G, p.2 - p.1) ⁻¹' V) ⊆ (λp:G×G, p.2 - p.1) ⁻¹' U,
@@ -178,7 +178,7 @@ def topological_add_group.to_uniform_space : uniform_space G :=
   begin
     intro S,
     let S' := λ x, {p : G × G | p.1 = x → p.2 ∈ S},
-    show is_open S ↔ ∀ (x : G), x ∈ S → S' x ∈ (comap (λp:G×G, p.2 - p.1) (nhds (0 : G))).sets,
+    show is_open S ↔ ∀ (x : G), x ∈ S → S' x ∈ comap (λp:G×G, p.2 - p.1) (nhds (0 : G)),
     rw [is_open_iff_mem_nhds],
     refine forall_congr (assume a, forall_congr (assume ha, _)),
     rw [← nhds_translation a, mem_comap_sets, mem_comap_sets],
@@ -359,11 +359,11 @@ variables {φ : β × δ → G} (hφ : continuous φ) [bilin : is_Z_bilin φ]
 
 include de df hφ bilin
 
-variables {W' : set G} (W'_nhd : W' ∈ (nhds (0 : G)).sets)
+variables {W' : set G} (W'_nhd : W' ∈ nhds (0 : G))
 include W'_nhd
 
 private lemma extend_Z_bilin_aux (x₀ : α) (y₁ : δ) :
-  ∃ U₂ ∈ (comap e (nhds x₀)).sets, ∀ x x' ∈ U₂, φ (x' - x, y₁) ∈ W' :=
+  ∃ U₂ ∈ comap e (nhds x₀), ∀ x x' ∈ U₂, φ (x' - x, y₁) ∈ W' :=
 begin
   let Nx := nhds x₀,
   let ee := λ u : β × β, (e u.1, e u.2),
@@ -379,7 +379,7 @@ begin
 end
 
 private lemma extend_Z_bilin_key (x₀ : α) (y₀ : γ) :
-  ∃ U ∈ (comap e (nhds x₀)).sets, ∃ V ∈ (comap f (nhds y₀)).sets,
+  ∃ U ∈ comap e (nhds x₀), ∃ V ∈ comap f (nhds y₀),
     ∀ x x' ∈ U, ∀ y y' ∈ V, φ (x', y') - φ (x, y) ∈ W' :=
 begin
   let Nx := nhds x₀,
@@ -403,7 +403,7 @@ begin
 
   rcases exists_nhds_quarter W'_nhd with ⟨W, W_nhd, W4⟩,
 
-  have : ∃ U₁ ∈ (comap e (nhds x₀)).sets, ∃ V₁ ∈ (comap f (nhds y₀)).sets,
+  have : ∃ U₁ ∈ comap e (nhds x₀), ∃ V₁ ∈ comap f (nhds y₀),
     ∀ x x' ∈ U₁, ∀ y y' ∈ V₁,  φ (x'-x, y'-y) ∈ W,
   { have := tendsto_prod_iff.1 lim_φ_sub_sub W W_nhd,
     repeat { rw [nhds_prod_eq, ←prod_comap_comap_eq] at this },
@@ -484,7 +484,9 @@ begin
 
     simp only [exists_prop],
     split,
-    { have := prod_mem_prod U'_nhd V'_nhd,
+    { change U' ∈ nhds x₀ at U'_nhd,
+      change V' ∈ nhds y₀ at V'_nhd,
+      have := prod_mem_prod U'_nhd V'_nhd,
       tauto },
     { intros p h',
       simp only [set.mem_preimage_eq, set.prod_mk_mem_set_prod_eq] at h',

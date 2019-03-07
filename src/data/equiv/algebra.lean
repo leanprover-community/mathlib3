@@ -218,10 +218,6 @@ namespace add_equiv
 
 variables [has_add α] [has_add β] [has_add γ]
 
---instance : has_coe_to_fun (α ≃+ β) :=
---{ F := λ _, α → β,
---  coe := λ h, h.to_fun }
-
 def refl (α : Type) [has_add α] : α ≃+ α :=
 { hom := λ _ _,rfl,
 ..equiv.refl _}
@@ -254,15 +250,7 @@ infix ` ≃* `:50 := mul_equiv
 
 namespace mul_equiv
 
---instance : has_coe_to_fun (α ≃* β) :=
---{ F := λ _, α → β,
---  coe := λ h, h.to_fun }
-
 variables [has_mul α] [has_mul β] [has_mul γ]
-
---instance : has_coe_to_fun (α ≃+ β) :=
---{ F := λ _, α → β,
---  coe := λ h, h.to_fun }
 
 @[refl] def refl (α : Type) [has_mul α] : α ≃* α :=
 { hom := λ _ _,rfl,

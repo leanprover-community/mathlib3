@@ -78,13 +78,13 @@ rfl
 
 @[simp] theorem trans_apply (f : α ≃ β) (g : β ≃ γ) (a : α) : (f.trans g) a = g (f a) := rfl
 
-@[simp] theorem apply_inverse_apply : ∀ (e : α ≃ β) (x : β), e (e.symm x) = x
+@[simp] theorem apply_symm_apply : ∀ (e : α ≃ β) (x : β), e (e.symm x) = x
 | ⟨f₁, g₁, l₁, r₁⟩ x := by simp [equiv.symm]; rw r₁
 
-@[simp] theorem inverse_apply_apply : ∀ (e : α ≃ β) (x : α), e.symm (e x) = x
+@[simp] theorem symm_apply_apply : ∀ (e : α ≃ β) (x : α), e.symm (e x) = x
 | ⟨f₁, g₁, l₁, r₁⟩ x := by simp [equiv.symm]; rw l₁
 
-@[simp] lemma inverse_trans_apply (f : α ≃ β) (g : β ≃ γ) (a : γ) :
+@[simp] lemma symm_trans_apply (f : α ≃ β) (g : β ≃ γ) (a : γ) :
   (f.trans g).symm a = f.symm (g.symm a) := rfl
 
 @[simp] theorem apply_eq_iff_eq : ∀ (f : α ≃ β) (x y : α), f x = f y ↔ x = y
@@ -145,7 +145,7 @@ instance perm_group {α : Type u} : group (perm α) :=
 begin
   refine { mul := λ f g, equiv.trans g f, one := equiv.refl α, inv:= equiv.symm, ..};
   intros; apply equiv.ext; try { apply trans_apply },
-  apply inverse_apply_apply
+  apply symm_apply_apply
 end
 
 @[simp] theorem mul_apply {α : Type u} (f g : perm α) (x) : (f * g) x = f (g x) :=
@@ -154,10 +154,10 @@ equiv.trans_apply _ _ _
 @[simp] theorem one_apply {α : Type u} (x) : (1 : perm α) x = x := rfl
 
 @[simp] lemma inv_apply_self {α : Type u} (f : perm α) (x) :
-  f⁻¹ (f x) = x := equiv.inverse_apply_apply _ _
+  f⁻¹ (f x) = x := equiv.symm_apply_apply _ _
 
 @[simp] lemma apply_inv_self {α : Type u} (f : perm α) (x) :
-  f (f⁻¹ x) = x := equiv.apply_inverse_apply _ _
+  f (f⁻¹ x) = x := equiv.apply_symm_apply _ _
 
 lemma one_def {α : Type u} : (1 : perm α) = equiv.refl α := rfl
 
@@ -233,8 +233,8 @@ end
 
 @[congr] def prod_congr {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ :β₁ ≃ β₂) : (α₁ × β₁) ≃ (α₂ × β₂) :=
 ⟨λp, (e₁ p.1, e₂ p.2), λp, (e₁.symm p.1, e₂.symm p.2),
-   λ ⟨a, b⟩, show (e₁.symm (e₁ a), e₂.symm (e₂ b)) = (a, b), by rw [inverse_apply_apply, inverse_apply_apply],
-   λ ⟨a, b⟩, show (e₁ (e₁.symm a), e₂ (e₂.symm b)) = (a, b), by rw [apply_inverse_apply, apply_inverse_apply]⟩
+   λ ⟨a, b⟩, show (e₁.symm (e₁ a), e₂.symm (e₂ b)) = (a, b), by rw [symm_apply_apply, symm_apply_apply],
+   λ ⟨a, b⟩, show (e₁ (e₁.symm a), e₂ (e₂.symm b)) = (a, b), by rw [apply_symm_apply, apply_symm_apply]⟩
 
 @[simp] theorem prod_congr_apply {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂) (a : α₁) (b : β₁) :
   prod_congr e₁ e₂ (a, b) = (e₁ a, e₂ b) :=
@@ -373,8 +373,8 @@ def psigma_equiv_sigma {α} (β : α → Sort*) : psigma β ≃ sigma β :=
 
 def sigma_congr_right {α} {β₁ β₂ : α → Sort*} (F : ∀ a, β₁ a ≃ β₂ a) : sigma β₁ ≃ sigma β₂ :=
 ⟨λ ⟨a, b⟩, ⟨a, F a b⟩, λ ⟨a, b⟩, ⟨a, (F a).symm b⟩,
- λ ⟨a, b⟩, congr_arg (sigma.mk a) $ inverse_apply_apply (F a) b,
- λ ⟨a, b⟩, congr_arg (sigma.mk a) $ apply_inverse_apply (F a) b⟩
+ λ ⟨a, b⟩, congr_arg (sigma.mk a) $ symm_apply_apply (F a) b,
+ λ ⟨a, b⟩, congr_arg (sigma.mk a) $ apply_symm_apply (F a) b⟩
 
 def sigma_congr_left {α₁ α₂} {β : α₂ → Sort*} : ∀ f : α₁ ≃ α₂, (Σ a:α₁, β (f a)) ≃ (Σ a:α₂, β a)
 | ⟨f, g, l, r⟩ :=

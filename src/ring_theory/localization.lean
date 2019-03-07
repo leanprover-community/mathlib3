@@ -347,7 +347,7 @@ def equiv_of_equiv (h₁ : α ≃r β) (h₂ : h₁.to_equiv '' S = T) :
     rw ← h₂ at ht,
     rcases ht with ⟨s,hs⟩,
     rw ← hs.2,
-    erw h₁.to_equiv.inverse_apply_apply,
+    erw h₁.to_equiv.symm_apply_apply,
     exact hs.1,
   end,
   left_inv :=
@@ -357,7 +357,7 @@ def equiv_of_equiv (h₁ : α ≃r β) (h₂ : h₁.to_equiv '' S = T) :
     refine @localization.funext _ _ _ _ _ _ (map _ _ ∘ map _ _) id (is_ring_hom.comp _ _) _ _,
     intro a,
     simp only [function.comp, id.def, localization.map_coe],
-    erw h₁.to_equiv.inverse_apply_apply a,
+    erw h₁.to_equiv.symm_apply_apply a,
   end,
   right_inv :=
   begin

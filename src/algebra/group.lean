@@ -759,9 +759,11 @@ instance : is_group_hom (units.map f) :=
 instance : is_monoid_hom (coe : units α → α) :=
 ⟨by simp, by simp⟩
 
-lemma map_id : map (id : α → α) = id := by ext; refl
+@[simp] lemma map_id : map (id : α → α) = id := by ext; refl
 
 lemma map_comp : map (g ∘ f) = map g ∘ map f := rfl
+
+lemma map_comp' : map (λ x, g (f x)) = λ x, map g (map f x) := rfl
 
 end units
 

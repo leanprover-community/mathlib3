@@ -199,85 +199,123 @@ protected def discrete_field [discrete_field β] : discrete_field α :=
 end instances
 end equiv
 
-structure monoid_equiv (M N : Type*) [monoid M] [monoid N] extends M ≃ N :=
-(hom : is_monoid_hom to_fun)
+-- Do this definition and two lemmas go somewhere else?
+def is_add_hom {α β : Type*} [has_add α] [has_add β] (f : α → β) : Prop :=
+∀ x y, f (x + y) = f x + f y
 
-infix ` ≃m `:50 := monoid_equiv
+lemma is_add_hom.id (α : Type*) [has_add α] : is_add_hom (id : α → α) := λ _ _, rfl
 
-namespace monoid_equiv
+lemma is_add_hom.comp [has_add α] [has_add β] [has_add γ] {f : α → β}
+  {g : β → γ} (hf : is_add_hom f) (hg : is_add_hom g) : is_add_hom (g ∘ f) :=
+λ x y, by show _ = g _ + g _; rw [←hg, ←hf]
+
+structure add_equiv (α β : Type*) [has_add α] [has_add β] extends α ≃ β :=
+(hom : is_add_hom to_fun)
+
+infix ` ≃+ `:50 := add_equiv
+
+namespace add_equiv
+
+variables [has_add α] [has_add β] [has_add γ]
+
+--instance : has_coe_to_fun (α ≃+ β) :=
+--{ F := λ _, α → β,
+--  coe := λ h, h.to_fun }
+
+def refl (α : Type) [has_add α] : α ≃+ α :=
+{ hom := λ _ _,rfl,
+..equiv.refl _}
+
+def symm (h : α ≃+ β) : β ≃+ α :=
+{ hom := λ n₁ n₂, function.injective_of_left_inverse h.left_inv begin
+   rw h.hom, unfold equiv.symm, rw [h.right_inv, h.right_inv, h.right_inv], end
+  ..h.to_equiv.symm}
+
+def trans (h1 : α ≃+ β) (h2 : β ≃+ γ) : (α ≃+ γ) := {
+  hom := is_add_hom.comp h1.hom h2.hom,
+  ..equiv.trans h1.to_equiv h2.to_equiv }
+
+end add_equiv
+
+-- Do this definition and two lemmas go somewhere else?
+def is_mul_hom {α β : Type*} [has_mul α] [has_mul β] (f : α → β) : Prop :=
+∀ x y, f (x * y) = f x * f y
+
+lemma is_mul_hom.id (α : Type*) [has_mul α] : is_mul_hom (id : α → α) := λ _ _, rfl
+
+lemma is_mul_hom.comp [has_mul α] [has_mul β] [has_mul γ] {f : α → β}
+  {g : β → γ} (hf : is_mul_hom f) (hg : is_mul_hom g) : is_mul_hom (g ∘ f) :=
+λ x y, by show _ = g _ * g _; rw [←hg, ←hf]
+
+structure mul_equiv (α β : Type*) [has_mul α] [has_mul β] extends α ≃ β :=
+(hom : is_mul_hom to_fun)
+
+infix ` ≃* `:50 := mul_equiv
+
+namespace mul_equiv
+
+--instance : has_coe_to_fun (α ≃* β) :=
+--{ F := λ _, α → β,
+--  coe := λ h, h.to_fun }
+
+variables [has_mul α] [has_mul β] [has_mul γ]
+
+--instance : has_coe_to_fun (α ≃+ β) :=
+--{ F := λ _, α → β,
+--  coe := λ h, h.to_fun }
+
+@[refl] def refl (α : Type) [has_mul α] : α ≃* α :=
+{ hom := λ _ _,rfl,
+..equiv.refl _}
+
+@[symm] def symm (h : α ≃* β) : β ≃* α :=
+{ hom := λ n₁ n₂, function.injective_of_left_inverse h.left_inv begin
+   rw h.hom, unfold equiv.symm, rw [h.right_inv, h.right_inv, h.right_inv], end
+  ..h.to_equiv.symm}
+
+@[trans] def trans (h1 : α ≃* β) (h2 : β ≃* γ) : (α ≃* γ) := {
+  hom := is_mul_hom.comp h1.hom h2.hom,
+  ..equiv.trans h1.to_equiv h2.to_equiv }
+
+end mul_equiv
+
+-- equiv of monoids
+namespace mul_equiv
 
 variables [monoid α] [monoid β] [monoid γ]
 
-instance : has_coe_to_fun (α ≃m β) :=
-{ F := λ _, α → β,
-  coe := λ h, h.to_fun }
+lemma one (h : equiv α β) (hom : ∀ x y, h (x * y) = h x * h y) :
+h 1 = 1 :=
+by rw [←mul_one (h 1), ←h.apply_inverse_apply 1, ←hom]; simp
 
-instance is_monoid_hom (h : α ≃m β) :
-is_monoid_hom h := h.hom
+instance is_monoid_hom (h : α ≃* β) : is_monoid_hom h.to_equiv := {
+  map_one := mul_equiv.one h.to_equiv h.hom,
+  map_mul := h.hom }
 
-def refl (α : Type) [monoid α] : α ≃m α :=
-{ hom := is_monoid_hom.id,
-..equiv.refl _}
+end mul_equiv
 
-def symm (h : α ≃m β) : β ≃m α :=
-{ hom := { map_one := by rw ←h.hom.map_one; exact (h.left_inv 1),
-  map_mul := λ n₁ n₂, function.injective_of_left_inverse h.left_inv begin
-   rw h.hom.map_mul, unfold equiv.symm, rw [h.right_inv, h.right_inv, h.right_inv], end }
- ..h.to_equiv.symm}
-
-def trans (h1 : α ≃m β) (h2 : β ≃m γ) : (α ≃m γ) := {
-  hom := is_monoid_hom.comp _ _,
-  ..equiv.trans h1.to_equiv h2.to_equiv }
-
-instance symm.is_monoid_hom (h : α ≃m β) :
-is_monoid_hom h.symm := h.symm.hom
-
-end monoid_equiv
-
-structure group_equiv (α β : Type*) [group α] [group β] extends α ≃ β :=
-{ hom : is_group_hom to_fun}
-
-infix ` ≃g `:50 := group_equiv
-
-namespace group_equiv
+-- equiv of groups
+namespace mul_equiv
 
 variables [group α] [group β] [group γ]
 
-instance : has_coe_to_fun (α ≃g β) :=
-{ F := λ _, α → β,
-  coe := λ h, h.to_fun }
+instance is_group_hom (h : α ≃* β) : is_group_hom h.to_equiv := ⟨h.hom⟩
 
-instance is_group_hom (h : α ≃g β) :
-is_group_hom h := h.hom
+instance symm.is_group_hom (h : α ≃* β) : is_group_hom h.symm.to_equiv := h.symm.is_group_hom
 
-def refl (α : Type*) [group α] : α ≃g α :=
-{ hom := is_group_hom.id, ..equiv.refl _}
-
-def symm (h : α ≃g β) : β ≃g α :=
-{ hom := { mul := λ n₁ n₂, function.injective_of_left_inverse h.left_inv begin
-  rw h.hom.mul, unfold equiv.symm, rw [h.right_inv, h.right_inv, h.right_inv], end }
-  ..h.to_equiv.symm}
-
-def trans (h1 : α ≃g β) (h2 : β ≃g γ) : α ≃g γ := {
-  hom := is_group_hom.comp _ _,
-  ..equiv.trans h1.to_equiv h2.to_equiv }
-
-instance symm.is_group_hom (h : α ≃g β) :
-is_group_hom h.symm := h.symm.hom
-
-end group_equiv
+end mul_equiv
 
 namespace units
 
 variables [monoid α] [monoid β] [monoid γ]
 (f : α → β) (g : β → γ) [is_monoid_hom f] [is_monoid_hom g]
 
-def map_equiv (h : α ≃m β) : units α ≃g units β :=
-{ to_fun := map h,
-  inv_fun := map h.symm,
+def map_equiv (h : α ≃* β) : units α ≃* units β :=
+{ to_fun := map h.to_equiv,
+  inv_fun := map h.symm.to_equiv,
   left_inv := λ u, ext $ h.left_inv u,
   right_inv := λ u, ext $ h.right_inv u,
-  hom := by apply_instance }
+  hom := λ _ _, units.ext $ h.hom _ _}
 
 end units
 

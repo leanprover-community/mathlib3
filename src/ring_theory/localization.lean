@@ -337,8 +337,10 @@ def equiv_of_equiv (h₁ : α ≃r β) (h₂ : h₁.to_equiv '' S = T) :
 { to_fun := map h₁.to_equiv $ λ s hs, by {rw ← h₂, simp [hs]},
   inv_fun := map h₁.symm.to_equiv $ λ t ht,
     by simp [equiv.image_eq_preimage, set.preimage, set.ext_iff, *] at *,
-  left_inv := λ _, by simp only [map_map, ring_equiv.symm_apply_apply]; erw map_id; refl,
-  right_inv := λ _, by simp only [map_map, ring_equiv.apply_symm_apply]; erw map_id; refl,
+  left_inv := λ _, by simp only [map_map, ring_equiv.to_equiv_symm_apply,
+    equiv.inverse_apply_apply]; erw map_id; refl,
+  right_inv := λ _, by simp only [map_map, ring_equiv.to_equiv_symm_apply,
+    equiv.apply_inverse_apply]; erw map_id; refl,
   hom := map.is_ring_hom _ _ }
 
 end

@@ -83,6 +83,24 @@ meta def emit_code_here : string → lean.parser unit
 
 end lean.parser
 
+namespace name
+
+meta def head : name → string
+| (mk_string s anonymous) := s
+| (mk_string s p)         := head p
+| (mk_numeral n p)        := head p
+| anonymous               := "[anonymous]"
+
+meta def is_private (n : name) : bool :=
+n.head = "_private"
+
+meta def last : name → string
+| (mk_string s _)  := s
+| (mk_numeral n _) := repr n
+| anonymous        := "[anonymous]"
+
+end name
+
 namespace tactic
 
 meta def eval_expr' (α : Type*) [_inst_1 : reflected α] (e : expr) : tactic α :=

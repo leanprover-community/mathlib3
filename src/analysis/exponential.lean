@@ -3,7 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
-import topology.instances.complex tactic.linarith data.complex.exponential group_theory.quotient_group
+import topology.instances.complex tactic.linarith data.complex.exponential
+      group_theory.quotient_group topology.metric_space.basic
 
 open finset filter metric
 

@@ -8,7 +8,7 @@ We say two types are equivalent if they are isomorphic.
 
 Two equivalent types have the same cardinality.
 -/
-import logic.function logic.unique data.set.basic data.bool
+import logic.function logic.unique data.set.basic data.bool data.quot
 
 open function
 
@@ -746,3 +746,17 @@ def equiv_of_unique_of_unique [unique α] [unique β] : α ≃ β :=
 
 def equiv_punit_of_unique [unique α] : α ≃ punit.{v} :=
 equiv_of_unique_of_unique
+
+namespace quot
+/-- Quotients are congruent on equivalences under equality of their relation.
+An alternative is just to use rewriting with `eq`, but then computational proofs get stuck. -/
+protected def congr {α} {r r' : α → α → Prop} (eq : ∀a b, r a b ↔ r' a b) : quot r ≃ quot r' :=
+⟨quot.map r r' (assume a b, (eq a b).1), quot.map r' r (assume a b, (eq a b).2),
+  by rintros ⟨a⟩; refl, by rintros ⟨a⟩; refl⟩
+end quot
+
+namespace quotient
+protected def congr {α} {r r' : setoid α} (eq : ∀a b, @setoid.r α r a b ↔ @setoid.r α r' a b) :
+  quotient r ≃ quotient r' :=
+quot.congr eq
+end quotient

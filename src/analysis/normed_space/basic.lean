@@ -118,7 +118,7 @@ lemma ball_0_eq (ε : ℝ) : ball (0:α) ε = {x | ∥x∥ < ε} :=
 set.ext $ assume a, by simp
 
 theorem normed_space.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
-  tendsto f l (nhds 0) ↔ ∀ ε > 0, { x | ∥ f x ∥ < ε } ∈ l.sets :=
+  tendsto f l (nhds 0) ↔ ∀ ε > 0, { x | ∥ f x ∥ < ε } ∈ l :=
 begin
   rw [metric.tendsto_nhds], simp only [normed_group.dist_eq, sub_zero],
   split,

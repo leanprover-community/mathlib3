@@ -622,8 +622,8 @@ def punit_ring_equiv : mv_polynomial punit α ≃r polynomial α :=
 def ring_equiv_of_equiv (e : β ≃ γ) : mv_polynomial β α ≃r mv_polynomial γ α :=
 { to_fun    := rename e,
   inv_fun   := rename e.symm,
-  left_inv  := λ p, by simp only [rename_rename, (∘), e.inverse_apply_apply]; exact rename_id p,
-  right_inv := λ p, by simp only [rename_rename, (∘), e.apply_inverse_apply]; exact rename_id p,
+  left_inv  := λ p, by simp only [rename_rename, (∘), e.symm_apply_apply]; exact rename_id p,
+  right_inv := λ p, by simp only [rename_rename, (∘), e.apply_symm_apply]; exact rename_id p,
   hom       := rename.is_ring_hom e }
 
 def ring_equiv_congr [comm_ring γ] (e : α ≃r γ) : mv_polynomial β α ≃r mv_polynomial β γ :=
@@ -631,11 +631,11 @@ def ring_equiv_congr [comm_ring γ] (e : α ≃r γ) : mv_polynomial β α ≃r 
   inv_fun   := map e.symm.to_fun,
   left_inv  := assume p,
     have (e.symm.to_equiv.to_fun ∘ e.to_equiv.to_fun) = id,
-    { ext a, exact e.to_equiv.inverse_apply_apply a },
+    { ext a, exact e.to_equiv.symm_apply_apply a },
     by simp only [map_map, this, map_id],
   right_inv := assume p,
     have (e.to_equiv.to_fun ∘ e.symm.to_equiv.to_fun) = id,
-    { ext a, exact e.to_equiv.apply_inverse_apply a },
+    { ext a, exact e.to_equiv.apply_symm_apply a },
     by simp only [map_map, this, map_id],
   hom       := map.is_ring_hom e.to_fun }
 

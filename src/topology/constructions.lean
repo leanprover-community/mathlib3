@@ -43,7 +43,7 @@ instance [topological_space α] [discrete_topology α] [topological_space β] [d
   by rw [nhds_prod_eq, nhds_discrete α, nhds_discrete β, nhds_top, filter.prod_pure_pure]⟩
 
 lemma prod_mem_nhds_sets {s : set α} {t : set β} {a : α} {b : β}
-  (ha : s ∈ (nhds a).sets) (hb : t ∈ (nhds b).sets) : set.prod s t ∈ (nhds (a, b)).sets :=
+  (ha : s ∈ nhds a) (hb : t ∈ nhds b) : set.prod s t ∈ nhds (a, b) :=
 by rw [nhds_prod_eq]; exact prod_mem_prod ha hb
 
 lemma nhds_swap (a : α) (b : β) : nhds (a, b) = (nhds (b, a)).map prod.swap :=
@@ -203,6 +203,8 @@ is_closed_iff_nhds.mpr $ assume ⟨a₁, a₂⟩ h, eq_of_nhds_neq_bot $ assume 
   let ⟨t₁, ht₁, t₂, ht₂, (h' : t₁ ∩ t₂ ⊆ ∅)⟩ :=
     by rw [←empty_in_sets_eq_bot, mem_inf_sets] at this; exact this in
   begin
+    change t₁ ∈ nhds a₁ at ht₁,
+    change t₂ ∈ nhds a₂ at ht₂,
     rw [nhds_prod_eq, ←empty_in_sets_eq_bot],
     apply filter.sets_of_superset,
     apply inter_mem_inf_sets (prod_mem_prod ht₁ ht₂) (mem_principal_sets.mpr (subset.refl _)),
@@ -240,7 +242,7 @@ is_open_compl_iff.mpr $ is_open_iff_forall_mem_open.mpr $ assume x hx,
 ⟨v, this, vo, by simpa using xv⟩
 
 lemma locally_compact_of_compact_nhds [topological_space α] [t2_space α]
-  (h : ∀ x : α, ∃ s, s ∈ (nhds x).sets ∧ compact s) :
+  (h : ∀ x : α, ∃ s, s ∈ nhds x ∧ compact s) :
   locally_compact_space α :=
 ⟨assume x n hn,
   let ⟨u, un, uo, xu⟩ := mem_nhds_sets_iff.mp hn in
@@ -252,7 +254,7 @@ lemma locally_compact_of_compact_nhds [topological_space α] [t2_space α]
   let ⟨v, w, vo, wo, xv, kuw, vw⟩ :=
     compact_compact_separated compact_singleton (compact_diff kc uo)
       (by rw [singleton_inter_eq_empty]; exact λ h, h.2 xu) in
-  have wn : -w ∈ (nhds x).sets, from
+  have wn : -w ∈ nhds x, from
    mem_nhds_sets_iff.mpr
      ⟨v, subset_compl_iff_disjoint.mpr vw, vo, singleton_subset_iff.mp xv⟩,
   ⟨k - w,
@@ -390,7 +392,7 @@ lemma continuous_at_subtype_val [topological_space α] {p : α → Prop} {a : su
   continuous_at subtype.val a :=
 continuous_iff_continuous_at.mp continuous_subtype_val _
 
-lemma map_nhds_subtype_val_eq {a : α} (ha : p a) (h : {a | p a} ∈ (nhds a).sets) :
+lemma map_nhds_subtype_val_eq {a : α} (ha : p a) (h : {a | p a} ∈ nhds a) :
   map (@subtype.val α p) (nhds ⟨a, ha⟩) = nhds a :=
 map_nhds_induced_eq (by simp [subtype.val_image, h])
 
@@ -403,11 +405,11 @@ lemma tendsto_subtype_rng [topological_space α] {p : α → Prop} {b : filter �
 | ⟨a, ha⟩ := by rw [nhds_subtype_eq_comap, tendsto_comap_iff]
 
 lemma continuous_subtype_nhds_cover {ι : Sort*} {f : α → β} {c : ι → α → Prop}
-  (c_cover : ∀x:α, ∃i, {x | c i x} ∈ (nhds x).sets)
+  (c_cover : ∀x:α, ∃i, {x | c i x} ∈ nhds x)
   (f_cont  : ∀i, continuous (λ(x : subtype (c i)), f x.val)) :
   continuous f :=
 continuous_iff_continuous_at.mpr $ assume x,
-  let ⟨i, (c_sets : {x | c i x} ∈ (nhds x).sets)⟩ := c_cover x in
+  let ⟨i, (c_sets : {x | c i x} ∈ nhds x)⟩ := c_cover x in
   let x' : subtype (c i) := ⟨x, mem_of_nhds c_sets⟩ in
   calc map f (nhds x) = map f (map subtype.val (nhds x')) :
       congr_arg (map f) (map_nhds_subtype_val_eq _ $ c_sets).symm

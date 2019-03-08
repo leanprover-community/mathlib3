@@ -124,7 +124,7 @@ lemma tendsto_sum_nat_of_is_sum {f : ℕ → α} (h : is_sum f a) :
   tendsto (λn:ℕ, (range n).sum f) at_top (nhds a) :=
 suffices map (λ (n : ℕ), sum (range n) f) at_top ≤ map (λ (s : finset ℕ), sum s f) at_top,
   from le_trans this h,
-assume s (hs : {t : finset ℕ | t.sum f ∈ s} ∈ at_top.sets),
+assume s (hs : {t : finset ℕ | t.sum f ∈ s} ∈ at_top),
 let ⟨t, ht⟩ := mem_at_top_sets.mp hs, ⟨n, hn⟩ := @exists_nat_subset_range t in
 mem_at_top_sets.mpr ⟨n, assume n' hn', ht _ $ finset.subset.trans hn $ range_subset.mpr hn'⟩
 

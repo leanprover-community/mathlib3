@@ -81,7 +81,7 @@ end
 /-- Elements of the uniformity (defined generally for completions) can be characterized in terms
 of the distance. -/
 protected lemma completion.mem_uniformity_dist (s : set (completion α × completion α)) :
-  s ∈ (@uniformity (completion α) _).sets ↔ (∃ε>0, ∀{a b: completion α}, dist a b < ε → (a, b) ∈ s) :=
+  s ∈ (@uniformity (completion α) _) ↔ (∃ε>0, ∀{a b: completion α}, dist a b < ε → (a, b) ∈ s) :=
 begin
   split,
   { /- Start from an entourage `s`. It contains a closed entourage `t`. Its pullback in α is an
@@ -90,7 +90,7 @@ begin
     closed properties pass to the completion. -/
     assume hs,
     rcases mem_uniformity_is_closed hs with ⟨t, ht, ⟨tclosed, ts⟩⟩,
-    have A : {x : α × α | (coe (x.1), coe (x.2)) ∈ t} ∈ uniformity.sets :=
+    have A : {x : α × α | (coe (x.1), coe (x.2)) ∈ t} ∈ uniformity :=
       uniform_continuous_def.1 (uniform_continuous_coe α) t ht,
     rcases mem_uniformity_dist.1 A with ⟨ε, εpos, hε⟩,
     refine ⟨ε, εpos, λx y hxy, _⟩,
@@ -119,7 +119,7 @@ begin
     also the case of `s`. -/
     rintros ⟨ε, εpos, hε⟩,
     let r : set (ℝ × ℝ) := {p | dist p.1 p.2 < ε},
-    have : r ∈ uniformity.sets := metric.dist_mem_uniformity εpos,
+    have : r ∈ uniformity := metric.dist_mem_uniformity εpos,
     have T := uniform_continuous_def.1 (@completion.uniform_continuous_dist α _) r this,
     simp only [uniformity_prod_eq_prod, mem_prod_iff, exists_prop,
                filter.mem_map, set.mem_set_of_eq] at T,
@@ -154,7 +154,7 @@ of the metric space structure. -/
 protected lemma completion.uniformity_dist' :
   uniformity = (⨅ε:{ε:ℝ // ε>0}, principal {p:completion α × completion α | dist p.1 p.2 < ε.val}) :=
 begin
-  ext s, rw infi_sets_eq,
+  ext s, rw mem_infi,
   { simp [completion.mem_uniformity_dist, subset_def] },
   { rintro ⟨r, hr⟩ ⟨p, hp⟩, use ⟨min r p, lt_min hr hp⟩,
     simp [lt_min_iff, (≥)] {contextual := tt} },

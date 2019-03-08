@@ -36,7 +36,7 @@ tendsto_infi.2 $ assume p, tendsto_principal.2 $
       ... = 1 + add_monoid.smul n (r - 1) : by rw [add_monoid.smul_eq_mul]
       ... ≤ (1 + (r - 1)) ^ n : pow_ge_one_add_mul (le_of_lt this) _
       ... ≤ r ^ n : by simp; exact le_refl _,
-  show {n | p ≤ r ^ n} ∈ at_top.sets,
+  show {n | p ≤ r ^ n} ∈ at_top,
     from mem_at_top_sets.mpr ⟨n, assume m hnm, le_trans this (pow_le_pow (le_of_lt h) hnm)⟩
 
 lemma tendsto_inverse_at_top_nhds_0 : tendsto (λr:ℝ, r⁻¹) at_top (nhds 0) :=
@@ -59,7 +59,7 @@ by_cases
     have tendsto (λn, (r⁻¹ ^ n)⁻¹) at_top (nhds 0),
       from (tendsto_pow_at_top_at_top_of_gt_1 $ one_lt_inv (lt_of_le_of_ne h₁ this.symm) h₂).comp
         tendsto_inverse_at_top_nhds_0,
-    tendsto_cong this $ univ_mem_sets' $ by simp *)
+    tendsto.congr' (univ_mem_sets' $ by simp *) this)
 
 lemma tendsto_pow_at_top_at_top_of_gt_1_nat {k : ℕ} (h : 1 < k) :
   tendsto (λn:ℕ, k ^ n) at_top at_top :=
@@ -110,6 +110,26 @@ begin
   refine ⟨c, hg, is_sum_le_inj _ (@encodable.encode_injective ι _) _ _ hg hf⟩,
   { assume i _, exact le_of_lt (f0 _) },
   { assume n, exact le_refl _ }
+end
+
+lemma cauchy_seq_of_le_geometric [metric_space α] (r C : ℝ) (hr : r < 1) {f : ℕ → α}
+  (hu : ∀n, dist (f n) (f (n+1)) ≤ C * r^n) : cauchy_seq f :=
+begin
+  refine cauchy_seq_of_has_sum_dist (has_sum_of_norm_bounded (λn, C * r^n) _ _),
+  { by_cases h : C = 0,
+    { simp [h, has_sum_zero] },
+    { have Cpos : C > 0,
+      { have := le_trans dist_nonneg (hu 0),
+        simp only [mul_one, pow_zero] at this,
+        exact lt_of_le_of_ne this (ne.symm h) },
+      have rnonneg: r ≥ 0,
+      { have := le_trans dist_nonneg (hu 1),
+        simp only [pow_one] at this,
+        exact nonneg_of_mul_nonneg_left this Cpos },
+      refine has_sum_mul_left C _,
+      exact has_sum_spec (@is_sum_geometric r rnonneg hr) }},
+  show ∀n, abs (dist (f n) (f (n+1))) ≤ C * r^n,
+  { assume n, rw abs_of_nonneg (dist_nonneg), exact hu n }
 end
 
 namespace nnreal

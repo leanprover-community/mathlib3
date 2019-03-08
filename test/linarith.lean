@@ -121,3 +121,6 @@ by linarith
 example (d : ℚ) (q n : ℕ) (h1 : ((q : ℚ) - 1)*n ≥ 0) (h2 : d = 2/3*(((q : ℚ) - 1)*n)) :
   ((q : ℚ) - 1)*n - d = 1/3 * (((q : ℚ) - 1)*n) :=
 by linarith
+
+example (a : ℚ) (ha : 0 ≤ a): 0 * 0 ≤ 2 * a :=
+by linarith

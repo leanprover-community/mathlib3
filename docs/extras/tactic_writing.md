@@ -434,14 +434,26 @@ This section is a direct compilation of messages from Mario on Zulip.
 * ``` ``(my pexpr) ``` constructs a pre-expression at parse time, resolving in the current (of the tactic) namespace
 * ```` ```(my pexpr) ```` constructs a pexpr, but defers resolution to run time (of the tactic), meaning that any references will be resolved in the namespace of the begin end block of the user, rather than the tactic itself
 * `%%`: This is called anti-quotation, and is supported in all the expr and pexpr quoting expressions `` `(expr) ``, ``` ``(pexpr) ```, ```` ```(pexpr) ````, as well as `` `[tacs] ``. Wherever an expression is expected inside one of these quoting constructs, you can use `%%e` instead, where `e` has type `expr` in the outer context of the tactic, and it will be spliced into the constructed expr/pexpr/etc. For example, if `a b : expr` then  `` `(%%a + %%b) `` is of type `expr`
+* The `reflect` function turns a term `t : T` into an `expr` that reflects `t`, if Lean can infer an instance `reflected t`. This can be used, for example, to refer to local variables from a tactic definition inside a quotation, using `%%(reflect n)`. As an example, we could write
+    ```
+    meta def assert_ge_zero (n : ℕ) : tactic unit :=
+    do v ← to_expr ``(nat.zero_le %%(reflect n)),
+       t ← infer_type v,
+       assertv `h t v,
+       skip
+    ```
+    If you just wrote `n` directly here you'd get a "unexpected local in quotation expression" error.
 * `` `[tac...] `` is exactly the same as `begin tac... end` in the sense that it parses tac... using the interactive mode parser, but instead of evaluating the tactic to produce a term, it just wraps up the list of tactics as a single tactic of type tactic unit. This is useful for writing "macros" or light-weight tactic writing
 
 
-Also worth mentioning are expr pattern matches, which have the same syntax
+Also worth mentioning are `expr` pattern matches, which have the same syntax
 like `` `(%%a + %%b) ``. These can be used in the pattern position of a match or on
 the left side of a `←` in do notation, and will destruct an expression and
 bind the antiquoted variables.
 For example, if `e` is an expression then `` do `(%%a = %%b) ← return e, ... `` will check that `e` is an equality, and bind the LHS and RHS to `a` and `b` (of type `expr`), and if it is not an equality the tactic will fail.
+
+(It's worth noting that this sort of pattern matching works at a syntactic level. Sometimes
+it is more flexible to use unification, instead.)
 
 ## Mario's monadic symbols cheat sheet
 

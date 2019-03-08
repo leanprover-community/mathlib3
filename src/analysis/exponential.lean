@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo
+Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
-import topology.instances.complex tactic.linarith data.complex.exponential group_theory.quotient_group
+import topology.instances.complex tactic.linarith data.complex.exponential
+      group_theory.quotient_group topology.metric_space.basic
 
 open finset filter metric
 
@@ -129,6 +130,10 @@ exp_injective $ by rw [exp_log zero_lt_one, exp_zero]
 
 lemma log_mul {x y : ℝ} (hx : 0 < x) (hy : 0 < y) : log (x * y) = log x + log y :=
 exp_injective $ by rw [exp_log (mul_pos hx hy), exp_add, exp_log hx, exp_log hy]
+
+lemma log_le_log {x y : ℝ} (h : 0 < x) (h₁ : 0 < y) : real.log x ≤ real.log y ↔ x ≤ y :=
+⟨λ h₂, by rwa [←real.exp_le_exp, real.exp_log h, real.exp_log h₁] at h₂, λ h₂,
+(real.exp_le_exp).1 $ by rwa [real.exp_log h₁, real.exp_log h]⟩
 
 lemma exists_cos_eq_zero : ∃ x, 1 ≤ x ∧ x ≤ 2 ∧ cos x = 0 :=
 real.intermediate_value'
@@ -467,11 +472,11 @@ begin
       rw [eq_div_iff_mul_eq _ _ two_ne_zero, eq_sub_iff_add_eq] at hn,
       rw [← hn, coe_add, mul_assoc,
           ← gsmul_eq_mul, coe_gsmul, mul_comm, coe_two_pi, gsmul_zero, zero_add] } },
-  { rw [angle_eq_iff_two_pi_dvd_sub, ← coe_neg, angle_eq_iff_two_pi_dvd_sub], 
+  { rw [angle_eq_iff_two_pi_dvd_sub, ← coe_neg, angle_eq_iff_two_pi_dvd_sub],
     rintro (⟨k, H⟩ | ⟨k, H⟩),
-    rw [← sub_eq_zero_iff_eq, cos_sub_cos, H, mul_assoc 2 π k, mul_div_cancel_left _ two_ne_zero, 
+    rw [← sub_eq_zero_iff_eq, cos_sub_cos, H, mul_assoc 2 π k, mul_div_cancel_left _ two_ne_zero,
       mul_comm π _, sin_int_mul_pi, mul_zero],
-    rw [←sub_eq_zero_iff_eq, cos_sub_cos, ← sub_neg_eq_add, H, mul_assoc 2 π k, 
+    rw [←sub_eq_zero_iff_eq, cos_sub_cos, ← sub_neg_eq_add, H, mul_assoc 2 π k,
       mul_div_cancel_left _ two_ne_zero, mul_comm π _, sin_int_mul_pi, mul_zero, zero_mul] }
 end
 
@@ -484,13 +489,13 @@ begin
       right, rw [coe_sub, coe_sub, eq_neg_iff_add_eq_zero, add_sub,
       sub_add_eq_add_sub, ← coe_add, add_halves, sub_sub, sub_eq_zero] at h,
     exact h.symm },
-  { rw [angle_eq_iff_two_pi_dvd_sub, ←eq_sub_iff_add_eq, ←coe_sub, angle_eq_iff_two_pi_dvd_sub], 
+  { rw [angle_eq_iff_two_pi_dvd_sub, ←eq_sub_iff_add_eq, ←coe_sub, angle_eq_iff_two_pi_dvd_sub],
     rintro (⟨k, H⟩ | ⟨k, H⟩),
     rw [← sub_eq_zero_iff_eq, sin_sub_sin, H, mul_assoc 2 π k, mul_div_cancel_left _ two_ne_zero,
       mul_comm π _, sin_int_mul_pi, mul_zero, zero_mul],
-    have H' : θ + ψ = (2 * k) * π + π := by rwa [←sub_add, sub_add_eq_add_sub, sub_eq_iff_eq_add, 
+    have H' : θ + ψ = (2 * k) * π + π := by rwa [←sub_add, sub_add_eq_add_sub, sub_eq_iff_eq_add,
       mul_assoc, mul_comm π _, ←mul_assoc] at H,
-    rw [← sub_eq_zero_iff_eq, sin_sub_sin, H', add_div, mul_assoc 2 _ π, mul_div_cancel_left _ two_ne_zero, 
+    rw [← sub_eq_zero_iff_eq, sin_sub_sin, H', add_div, mul_assoc 2 _ π, mul_div_cancel_left _ two_ne_zero,
       cos_add_pi_div_two, sin_int_mul_pi, neg_zero, mul_zero] }
 end
 
@@ -1265,7 +1270,48 @@ by simp only [rpow_def, (complex.of_real_pow _ _).symm, complex.cpow_nat_cast,
 by simp only [rpow_def, (complex.of_real_fpow _ _).symm, complex.cpow_int_cast,
   complex.of_real_int_cast, complex.of_real_re]
 
-lemma pow_nat_rpow_nat_inv {x : ℝ} (hx : 0 ≤ x) {n : ℕ} (hn : 0 < n) : 
+lemma mul_rpow {x y z : ℝ} (h : 0 ≤ x) (h₁ : 0 ≤ y): (x*y)^z = x^z * y^z :=
+begin
+  iterate 3 { rw real.rpow_def_of_nonneg }, split_ifs; simp * at *,
+  { have hx : 0 < x, cases lt_or_eq_of_le h with h₂ h₂, exact h₂, exfalso, apply h_2, exact eq.symm h₂,
+    have hy : 0 < y, cases lt_or_eq_of_le h₁ with h₂ h₂, exact h₂, exfalso, apply h_3, exact eq.symm h₂,
+    rw [log_mul hx hy, add_mul, exp_add]},
+  { exact h₁},
+  { exact h},
+  { exact mul_nonneg h h₁},
+end
+
+lemma one_le_rpow {x z : ℝ} (h : 1 ≤ x) (h₁ : 0 ≤ z) : 1 ≤ x^z :=
+begin
+  rw real.rpow_def_of_nonneg, split_ifs with h₂ h₃,
+  { refl},
+  { simp [*, not_le_of_gt zero_lt_one] at *},
+  { have hx : 0 < x, exact lt_of_lt_of_le zero_lt_one h,
+    rw [←log_le_log zero_lt_one hx, log_one] at h,
+    have pos : 0 ≤ log x * z, exact mul_nonneg h h₁,
+      rwa [←exp_le_exp, exp_zero] at pos},
+  { exact le_trans zero_le_one h},
+end
+
+lemma rpow_le_rpow {x y z: ℝ} (h : 0 ≤ x) (h₁ : x ≤ y) (h₂ : 0 ≤ z): x^z ≤ y^z :=
+begin
+  rw le_iff_eq_or_lt at h h₂, cases h₂,
+  { rw [←h₂, rpow_zero, rpow_zero]},
+  { cases h,
+    { rw [←h, zero_rpow], rw real.rpow_def_of_nonneg, split_ifs,
+      { exact zero_le_one},
+      { refl},
+      { exact le_of_lt (exp_pos (log y * z))},
+      { rwa ←h at h₁},
+      { exact ne.symm (ne_of_lt h₂)}},
+    { have one_le : 1 ≤ y / x, rw one_le_div_iff_le h, exact h₁,
+      have one_le_pow : 1 ≤ (y / x)^z, exact one_le_rpow one_le (le_of_lt h₂),
+      rw [←mul_div_cancel y (ne.symm (ne_of_lt h)), mul_comm, mul_div_assoc],
+      rw [mul_rpow (le_of_lt h) (le_trans zero_le_one one_le), mul_comm],
+      exact (le_mul_of_ge_one_left (rpow_nonneg_of_nonneg (le_of_lt h) z) one_le_pow)}},
+end
+
+lemma pow_nat_rpow_nat_inv {x : ℝ} (hx : 0 ≤ x) {n : ℕ} (hn : 0 < n) :
   (x ^ n) ^ (n⁻¹ : ℝ) = x :=
 have hn0 : (n : ℝ) ≠ 0, by simpa [nat.pos_iff_ne_zero'] using hn,
 by rw [← rpow_nat_cast, ← rpow_mul hx, mul_inv_cancel hn0, rpow_one]

@@ -199,22 +199,22 @@ Unfold coercion-related definitions
 
 ### Instance cache tactics
 
-* `resetI`: Reset the instance cache. This allows any new instances
-  added to the context to be used in typeclass inference.
+* `resetI`: Reset the instance cache. This allows any instances
+  currently in the context to be used in typeclass inference.
 
 * `unfreezeI`: Unfreeze local instances, which allows us to revert
   instances in the context
 
-* `introI`/`introsI`: Like `intro`/`intros`, but uses the introduced variable
-  in typeclass inference.
+* `introI`/`introsI`: `intro`/`intros` followed by `resetI`. Like
+  `intro`/`intros`, but uses the introduced variable in typeclass inference.
 
-* `haveI`/`letI`: Used to add typeclasses to the context so that they can
-  be used in typeclass inference. The syntax is the same as
-  `have`/`letI`, but the proof-omitted version of `have` is not supported
-  (for this one must write `have : t, { <proof> }, resetI, <proof>`).
+* `haveI`/`letI`: `have`/`let` followed by `resetI`. Used to add typeclasses
+  to the context so that they can be used in typeclass inference. The syntax
+  is the same as `have`/`letI`, but the proof-omitted version of `have` is
+  not supported (for this one must write `have : t, { <proof> }, resetI, <proof>`).
 
-* `exactI`: Like `exact`, but uses all variables in the context
-  for typeclass inference.
+* `exactI`: `resetI` followed by `exact`. Like `exact`, but uses all
+  variables in the context for typeclass inference.
 
 ### find
 

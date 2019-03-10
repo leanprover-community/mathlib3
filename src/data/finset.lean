@@ -713,6 +713,10 @@ finset.ext' $ by simp
         finset.union_idempotent] }
   end
 
+@[simp] lemma to_finset_inter (s t : multiset α) :
+  to_finset (s ∩ t) = to_finset s ∩ to_finset t :=
+finset.ext' $ by simp
+
 end multiset
 
 namespace list
@@ -1246,6 +1250,10 @@ variables {op} {f : α → β} {b : β} {s : finset α} {a : α}
 by unfold fold; rw [insert_val, ndinsert_of_not_mem h, map_cons, fold_cons_left]
 
 @[simp] theorem fold_singleton : (singleton a).fold op b f = f a * b := rfl
+
+@[simp] theorem fold_map [decidable_eq α] {g : γ ↪ α} {s : finset γ} :
+  (s.map g).fold op b f = s.fold op b (f ∘ g) :=
+by simp only [fold, map, multiset.map_map]
 
 @[simp] theorem fold_image [decidable_eq α] {g : γ → α} {s : finset γ}
   (H : ∀ (x ∈ s) (y ∈ s), g x = g y → x = y) : (s.image g).fold op b f = s.fold op b (f ∘ g) :=

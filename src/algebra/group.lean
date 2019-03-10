@@ -757,6 +757,8 @@ instance : is_group_hom (units.map f) :=
 instance : is_monoid_hom (coe : units α → α) :=
 ⟨by simp, by simp⟩
 
+@[simp] lemma coe_map (u : units α) : (map f u : β) = f u := rfl
+
 end units
 
 @[to_additive with_zero]

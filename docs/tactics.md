@@ -210,8 +210,9 @@ Unfold coercion-related definitions
 
 * `haveI`/`letI`: `have`/`let` followed by `resetI`. Used to add typeclasses
   to the context so that they can be used in typeclass inference. The syntax
-  is the same as `have`/`letI`, but the proof-omitted version of `have` is
-  not supported (for this one must write `have : t, { <proof> }, resetI, <proof>`).
+  `haveI := <proof>` and `haveI : t := <proof>` is supported, but
+  `haveI : t, from _` and `haveI : t, { <proof> }` are not; in these cases
+  use `have : t, { <proof> }, resetI` directly).
 
 * `exactI`: `resetI` followed by `exact`. Like `exact`, but uses all
   variables in the context for typeclass inference.

@@ -47,6 +47,14 @@ def powers (x : α) : set α := {y | ∃ n:ℕ, x^n = y}
 def multiples (x : β) : set β := {y | ∃ n:ℕ, add_monoid.smul n x = y}
 attribute [to_additive multiples] powers
 
+lemma powers.one_mem {x : α} : (1 : α) ∈ powers x := ⟨0,pow_zero _⟩
+
+lemma multiples.zero_mem {x : β} : (0 : β) ∈ multiples x := ⟨0,add_monoid.zero_smul _⟩
+
+lemma powers.self_mem {x : α} : x ∈ powers x := ⟨1,pow_one _⟩
+
+lemma multiples.self_mem {x : β} : x ∈ multiples x := ⟨1,add_monoid.one_smul _⟩
+
 instance powers.is_submonoid (x : α) : is_submonoid (powers x) :=
 { one_mem := ⟨0, by simp⟩,
   mul_mem := λ x₁ x₂ ⟨n₁, hn₁⟩ ⟨n₂, hn₂⟩, ⟨n₁ + n₂, by simp [pow_add, *]⟩ }
@@ -151,6 +159,10 @@ assume a ha, by induction ha; simp [h _, *, is_submonoid.one_mem, is_submonoid.m
 theorem closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
 closure_subset $ set.subset.trans h subset_closure
 
+theorem closure_singleton {x : α} : closure ({x} : set α) = powers x :=
+set.eq_of_subset_of_subset (closure_subset $ set.singleton_subset_iff.2 $ powers.self_mem) $
+  is_submonoid.power_subset $ set.singleton_subset_iff.1 $ subset_closure
+
 theorem exists_list_of_mem_closure {s : set α} {a : α} (h : a ∈ closure s) :
   (∃l:list α, (∀x∈l, x ∈ s) ∧ l.prod = a) :=
 begin
@@ -194,6 +206,9 @@ monoid.closure_subset
 
 theorem closure_mono {s t : set β} (h : s ⊆ t) : closure s ⊆ closure t :=
 closure_subset $ set.subset.trans h subset_closure
+
+theorem closure_singleton {x : β} : closure ({x} : set β) = multiples x :=
+monoid.closure_singleton
 
 theorem exists_list_of_mem_closure {s : set β} {a : β} :
   a ∈ closure s → ∃l:list β, (∀x∈l, x ∈ s) ∧ l.sum = a :=

@@ -7,8 +7,8 @@ The role of this file is twofold. In the first part there are theorems of the fo
 form: if α has a group structure and α ≃ β then β has a group structure, and
 similarly for monoids, semigroups, rings, integral domains, fields and so on.
 
-In the second part there are extensions of equiv called monoid_equiv,
-group_equiv, and ring_equiv, which are datatypes representing isomorphisms
+In the second part there are extensions of equiv called add_equiv,
+mul_equiv, and ring_equiv, which are datatypes representing isomorphisms
 of monoids, groups and rings.
 
 -/
@@ -218,16 +218,16 @@ namespace add_equiv
 
 variables [has_add α] [has_add β] [has_add γ]
 
-def refl (α : Type) [has_add α] : α ≃+ α :=
+@[refl] def refl (α : Type) [has_add α] : α ≃+ α :=
 { hom := λ _ _,rfl,
 ..equiv.refl _}
 
-def symm (h : α ≃+ β) : β ≃+ α :=
+@[symm] def symm (h : α ≃+ β) : β ≃+ α :=
 { hom := λ n₁ n₂, function.injective_of_left_inverse h.left_inv begin
    rw h.hom, unfold equiv.symm, rw [h.right_inv, h.right_inv, h.right_inv], end
   ..h.to_equiv.symm}
 
-def trans (h1 : α ≃+ β) (h2 : β ≃+ γ) : (α ≃+ γ) := {
+@[trans] def trans (h1 : α ≃+ β) (h2 : β ≃+ γ) : (α ≃+ γ) := {
   hom := is_add_hom.comp h1.hom h2.hom,
   ..equiv.trans h1.to_equiv h2.to_equiv }
 
@@ -274,7 +274,7 @@ variables [monoid α] [monoid β] [monoid γ]
 
 lemma one (h : equiv α β) (hom : ∀ x y, h (x * y) = h x * h y) :
 h 1 = 1 :=
-by rw [←mul_one (h 1), ←h.apply_inverse_apply 1, ←hom]; simp
+by rw [←mul_one (h 1), ←h.apply_symm_apply 1, ←hom]; simp
 
 instance is_monoid_hom (h : α ≃* β) : is_monoid_hom h.to_equiv := {
   map_one := mul_equiv.one h.to_equiv h.hom,
@@ -288,8 +288,6 @@ namespace mul_equiv
 variables [group α] [group β] [group γ]
 
 instance is_group_hom (h : α ≃* β) : is_group_hom h.to_equiv := ⟨h.hom⟩
-
-instance symm.is_group_hom (h : α ≃* β) : is_group_hom h.symm.to_equiv := h.symm.is_group_hom
 
 end mul_equiv
 

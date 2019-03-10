@@ -44,10 +44,6 @@ assume l₁ l₂, assume Pe, tail_eq_of_cons_eq Pe
 
 /- mem -/
 
-theorem eq_nil_of_forall_not_mem : ∀ {l : list α}, (∀ a, a ∉ l) → l = nil
-| []        := assume h, rfl
-| (b :: l') := assume h, absurd (mem_cons_self b l') (h b)
-
 theorem mem_singleton_self (a : α) : a ∈ [a] := mem_cons_self _ _
 
 theorem eq_of_mem_singleton {a b : α} : a ∈ [b] → a = b :=

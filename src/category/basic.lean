@@ -119,6 +119,32 @@ lemma fish_assoc {α β γ φ} (f : α → m β) (g : β → m γ) (h : γ → m
   (f >=> g) >=> h = f >=> (g >=> h) :=
 by simp only [(>=>)] with functor_norm
 
+@[simp]
+lemma bind_pure_star {m} [monad m] [is_lawful_monad m] (x : m punit) :
+  x >>= (λ (_x : punit), pure punit.star : punit → m punit) = x :=
+by { transitivity,
+     { apply congr_arg, funext z, cases z, refl },
+     { simp } }
+
+
+@[functor_norm]
+lemma map_bind_eq_bind_comp {α β γ} {m} [monad m] [is_lawful_monad m]
+  (f : α → β) (cmd : m α) (g : β → m γ) :
+  (f <$> cmd) >>= g = cmd >>= g ∘ f :=
+by rw [← bind_pure_comp_eq_map,bind_assoc,(∘)]; simp
+
+@[functor_norm]
+lemma bind_map {α β γ} {m} [monad m] [is_lawful_monad m]
+  (f : α → γ → β) (cmd : m α) (g : α → m γ) :
+  cmd >>= (λ x, f x <$> g x) = do { x ← cmd, y ← g x, pure $ f x y }  :=
+by congr; funext; rw [← bind_pure (g x),map_bind]; simp
+
+@[functor_norm]
+lemma bind_seq {α β γ : Type u} {m} [monad m] [is_lawful_monad m]
+  (f : α → m (γ → β)) (cmd : m α) (g : α → m γ) :
+  cmd >>= (λ x, f x <*> g x) = do { x ← cmd, h ← f x, y ← g x, pure $ h y }  :=
+by congr; funext; simp [seq_eq_bind_map] with functor_norm
+
 variables {β' γ' : Type v}
 variables {m' : Type v → Type w} [monad m']
 

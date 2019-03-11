@@ -223,17 +223,17 @@ ext $ λ a, by simp; exact
  ⟨λ ⟨_, ⟨_, h₁, h₂⟩, h₃⟩, ⟨_, h₁, _, h₂, h₃⟩,
   λ ⟨_, h₁, _, h₂, h₃⟩, ⟨_, ⟨_, h₁, h₂⟩, h₃⟩⟩
 
-@[simp] theorem bind_map {γ} (f : α → β) (x) (g : β → roption γ) :
+protected theorem bind_map {γ} (f : α → β) (x) (g : β → roption γ) :
   (map f x).bind g = x.bind (λ y, g (f y)) :=
 by rw [← bind_some_eq_map, bind_assoc]; simp
 
-@[simp] theorem map_bind {γ} (f : α → roption β) (x : roption α) (g : β → γ) :
+protected theorem map_bind {γ} (f : α → roption β) (x : roption α) (g : β → γ) :
   map g (x.bind f) = x.bind (λ y, map g (f y)) :=
 by rw [← bind_some_eq_map, bind_assoc]; simp [bind_some_eq_map]
 
 theorem map_map (g : β → γ) (f : α → β) (o : roption α) :
   map g (map f o) = map (g ∘ f) o :=
-by rw [← bind_some_eq_map, bind_map, bind_some_eq_map]
+by rw [← bind_some_eq_map, roption.bind_map, bind_some_eq_map]
 
 instance : monad roption :=
 { pure := @some,

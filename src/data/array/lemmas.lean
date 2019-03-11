@@ -20,14 +20,22 @@ namespace array
 instance {n α} [inhabited α] : inhabited (array n α) :=
 d_array.inhabited
 
+/- to_list -/
+
 theorem to_list_of_heq {n₁ n₂ α} {a₁ : array n₁ α} {a₂ : array n₂ α}
   (hn : n₁ = n₂) (ha : a₁ == a₂) : a₁.to_list = a₂.to_list :=
 by congr; assumption
+
+@[simp] theorem to_list_zero {α} (a : array 0 α) : a.to_list = [] :=
+rfl
 
 /- rev_list -/
 
 section rev_list
 variables {n : ℕ} {α : Type u} {a : array n α}
+
+@[simp] theorem rev_list_zero (a : array 0 α) : a.rev_list = [] :=
+rfl
 
 theorem rev_list_reverse_aux : ∀ i (h : i ≤ n) (t : list α),
   (a.iterate_aux (λ _, (::)) i h []).reverse_core t = a.rev_iterate_aux (λ _, (::)) i h t
@@ -222,7 +230,59 @@ end
 @[simp] theorem push_back_to_list : (a.push_back v).to_list = a.to_list ++ [v] :=
 by rw [←rev_list_reverse, ←rev_list_reverse, push_back_rev_list, list.reverse_cons]
 
+theorem read_push_back {i : fin n} :
+  a.read i = v ↔ (a.push_back v).read i.cast_succ = v ∧ (a.push_back v).read (fin.last n) = v :=
+by cases i with _ i_lt_n;
+   simp [fin.cast_succ, fin.cast_add, fin.cast_le, fin.cast_lt, fin.last, read, push_back,
+         d_array.read, ne_of_lt i_lt_n]
+
 end push_back
+
+/- pop_back -/
+
+section pop_back
+variables {n : ℕ} {α : Type u}
+
+theorem read_pop_back {v : α} {a : array (n+1) α} :
+  (∀ (i : fin (n+1)), a.read i = v) ↔
+  a.read (fin.last n) = v ∧ ∀ (i : fin n), a.pop_back.read i = v :=
+iff.intro
+  (λ h, ⟨h (fin.last n), λ i, by rw ←h i.cast_succ; cases i; refl⟩)
+  (λ h i, begin
+    cases i with i i_lt_succ_n,
+    by_cases p : i = n,
+    { subst p, rw ←h.1, refl },
+    { rw ←h.2 ⟨i, nat.lt_of_le_and_ne (nat.le_of_lt_succ i_lt_succ_n) p⟩, refl }
+  end)
+
+theorem pop_back_push_back {v : α} : ∀ {a : array (n+1) α},
+  a.read (fin.last n) = v → a = a.pop_back.push_back v
+| ⟨a⟩ h := array.ext $ λ ⟨i, i_lt_n⟩,
+by by_cases e : i = n; simp [push_back, pop_back, read, d_array.read, e]; exact h
+
+@[simp] theorem pop_back_rev_list {a : array (n+1) α} :
+  a.read (fin.last n) :: a.pop_back.rev_list = a.rev_list :=
+by rw ←push_back_rev_list; congr; exact (pop_back_push_back rfl).symm
+
+theorem rev_list_repeat {v : α} : ∀ {n} {a : array n α},
+  a.rev_list = list.repeat v n ↔ ∀ i, a.read i = v
+| 0 _ := ⟨λ _ i, by cases i.is_lt, by simp⟩
+| (n+1) a :=
+  ⟨λ h, by rw [list.repeat, ←pop_back_rev_list] at h;
+    exact read_pop_back.mpr
+      ⟨list.head_eq_of_cons_eq h, rev_list_repeat.mp (list.tail_eq_of_cons_eq h)⟩,
+   λ h, by rw [list.repeat, pop_back_push_back (h (fin.last n)),
+    push_back_rev_list, rev_list_repeat.mpr (read_pop_back.mp h).2]⟩
+
+theorem to_list_repeat {v : α} {a : array n α} :
+  a.to_list = list.repeat v n ↔ ∀ i, a.read i = v :=
+by rw [←rev_list_reverse, ←list.reverse_repeat, list.reverse_inj]; exact rev_list_repeat
+
+theorem to_list_join_nil {n} {a : array n (list α)} :
+  a.to_list.join = [] ↔ ∀ i, a.read i = [] :=
+by simp [to_list_repeat.symm, list.join_eq_nil, list.eq_repeat]
+
+end pop_back
 
 /- foreach -/
 

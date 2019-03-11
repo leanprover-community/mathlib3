@@ -37,6 +37,9 @@ instance : has_mem α (alist β) := ⟨λ a s, a ∈ s.keys⟩
 
 theorem mem_keys {a : α} {s : alist β} : a ∈ s ↔ a ∈ s.keys := iff.rfl
 
+theorem mem_entries {a} {s : alist β} : a ∈ s ↔ ∃ (b : β a), sigma.mk a b ∈ s.entries :=
+list.mem_keys
+
 theorem mem_of_perm {a : α} {s₁ s₂ : alist β} (p : s₁.entries ~ s₂.entries) : a ∈ s₁ ↔ a ∈ s₂ :=
 mem_of_perm $ perm_map sigma.fst p
 
@@ -72,6 +75,9 @@ theorem lookup_is_some {a : α} {s : alist β} :
 theorem lookup_eq_none {a : α} {s : alist β} :
   lookup a s = none ↔ a ∉ s :=
 lookup_eq_none
+
+theorem mem_lookup_iff {a} {b : β a} {s : alist β} : b ∈ lookup a s ↔ sigma.mk a b ∈ s.entries :=
+mem_lookup_iff s.nodupkeys
 
 theorem perm_lookup {a : α} {s₁ s₂ : alist β} (p : s₁.entries ~ s₂.entries) :
   s₁.lookup a = s₂.lookup a :=

@@ -16,7 +16,8 @@ topological spaces. For example:
 The class `emetric_space` therefore extends `uniform_space` (and `topological_space`).
 -/
 
-import data.real.nnreal data.real.ennreal topology.algebra.topological_structures
+import data.real.nnreal data.real.ennreal
+import topology.uniform_space.separation topology.uniform_space.uniform_embedding
 open lattice set filter classical
 noncomputable theory
 
@@ -26,7 +27,7 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 /-- Characterizing uniformities associated to a (generalized) distance function `D`
 in terms of the elements of the uniformity. -/
 theorem uniformity_dist_of_mem_uniformity [linear_order β] {U : filter (α × α)} (z : β) (D : α → α → β)
-  (H : ∀ s, s ∈ U.sets ↔ ∃ε>z, ∀{a b:α}, D a b < ε → (a, b) ∈ s) :
+  (H : ∀ s, s ∈ U ↔ ∃ε>z, ∀{a b:α}, D a b < ε → (a, b) ∈ s) :
   U = ⨅ ε>z, principal {p:α×α | D p.1 p.2 < ε} :=
 le_antisymm
   (le_infi $ λ ε, le_infi $ λ ε0, le_principal_iff.2 $ (H _).2 ⟨ε, ε0, λ a b, id⟩)
@@ -156,9 +157,9 @@ end
 
 /-- Characterization of the elements of the uniformity in terms of the extended distance -/
 theorem mem_uniformity_edist {s : set (α×α)} :
-  s ∈ (@uniformity α _).sets ↔ (∃ε>0, ∀{a b:α}, edist a b < ε → (a, b) ∈ s) :=
+  s ∈ @uniformity α _ ↔ (∃ε>0, ∀{a b:α}, edist a b < ε → (a, b) ∈ s) :=
 begin
-  rw [uniformity_edist'', infi_sets_eq],
+  rw [uniformity_edist'', mem_infi],
   simp [subset_def],
   exact assume ⟨r, hr⟩ ⟨p, hp⟩, ⟨⟨min r p, lt_min hr hp⟩, by simp [lt_min_iff, (≥)] {contextual := tt}⟩,
   exact ⟨⟨1, ennreal.zero_lt_one⟩⟩
@@ -166,7 +167,7 @@ end
 
 /-- Fixed size neighborhoods of the diagonal belong to the uniform structure -/
 theorem edist_mem_uniformity {ε:ennreal} (ε0 : 0 < ε) :
-  {p:α×α | edist p.1 p.2 < ε} ∈ (@uniformity α _).sets :=
+  {p:α×α | edist p.1 p.2 < ε} ∈ @uniformity α _ :=
 mem_uniformity_edist.2 ⟨ε, ε0, λ a b, id⟩
 
 namespace emetric
@@ -194,7 +195,7 @@ uniform_embedding_def'.trans $ and_congr iff.rfl $ and_congr iff.rfl
 
 /-- ε-δ characterization of Cauchy sequences on emetric spaces -/
 protected lemma cauchy_iff {f : filter α} :
-  cauchy f ↔ f ≠ ⊥ ∧ ∀ ε > 0, ∃ t ∈ f.sets, ∀ x y ∈ t, edist x y < ε :=
+  cauchy f ↔ f ≠ ⊥ ∧ ∀ ε > 0, ∃ t ∈ f, ∀ x y ∈ t, edist x y < ε :=
 cauchy_iff.trans $ and_congr iff.rfl
 ⟨λ H ε ε0, let ⟨t, tf, ts⟩ := H _ (edist_mem_uniformity ε0) in
    ⟨t, tf, λ x y xt yt, @ts (x, y) ⟨xt, yt⟩⟩,
@@ -381,9 +382,9 @@ begin
   { intros, refl }
 end
 
-theorem mem_nhds_iff : s ∈ (nhds x).sets ↔ ∃ε>0, ball x ε ⊆ s :=
+theorem mem_nhds_iff : s ∈ nhds x ↔ ∃ε>0, ball x ε ⊆ s :=
 begin
-  rw [nhds_eq, infi_sets_eq],
+  rw [nhds_eq, mem_infi],
   { simp },
   { intros y z, cases y with y hy, cases z with z hz,
     refine ⟨⟨min y z, lt_min hy hz⟩, _⟩,
@@ -397,7 +398,7 @@ by simp [is_open_iff_nhds, mem_nhds_iff]
 theorem is_open_ball : is_open (ball x ε) :=
 is_open_iff.2 $ λ y, exists_ball_subset_ball
 
-theorem ball_mem_nhds (x : α) {ε : ennreal} (ε0 : 0 < ε) : ball x ε ∈ (nhds x).sets :=
+theorem ball_mem_nhds (x : α) {ε : ennreal} (ε0 : 0 < ε) : ball x ε ∈ nhds x :=
 mem_nhds_sets is_open_ball (mem_ball_self ε0)
 
 /-- ε-characterization of the closure in emetric spaces -/
@@ -421,7 +422,7 @@ begin
 end⟩
 
 theorem tendsto_nhds {f : filter β} {u : β → α} {a : α} :
-  tendsto u f (nhds a) ↔ ∀ ε > 0, ∃ n ∈ f.sets, ∀x ∈ n, edist (u x) a < ε :=
+  tendsto u f (nhds a) ↔ ∀ ε > 0, ∃ n ∈ f, ∀x ∈ n, edist (u x) a < ε :=
 ⟨λ H ε ε0, ⟨u⁻¹' (ball a ε), H (ball_mem_nhds _ ε0), by simp⟩,
  λ H s hs,
   let ⟨ε, ε0, hε⟩ := mem_nhds_iff.1 hs, ⟨δ, δ0, hδ⟩ := H _ ε0 in

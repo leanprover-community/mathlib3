@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 
 Computational realization of topological spaces (experimental).
 -/
-import topology.basic data.analysis.filter
+import topology.bases data.analysis.filter
 open set
 open filter (hiding realizer)
 
@@ -55,7 +55,7 @@ theorem to_topsp_is_topological_basis (F : ctop α σ) :
 eq_univ_iff_forall.2 $ λ x, ⟨_, ⟨_, rfl⟩, F.top_mem x⟩, rfl⟩
 
 @[simp] theorem mem_nhds_to_topsp (F : ctop α σ) {s : set α} {a : α} :
-  s ∈ (@nhds _ F.to_topsp a).sets ↔ ∃ b, a ∈ F b ∧ F b ⊆ s :=
+  s ∈ @nhds _ F.to_topsp a ↔ ∃ b, a ∈ F b ∧ F b ⊆ s :=
 (@topological_space.mem_nhds_of_is_topological_basis
   _ F.to_topsp _ _ _ F.to_topsp_is_topological_basis).trans $
 ⟨λ ⟨_, ⟨x, rfl⟩, h⟩, ⟨x, h⟩, λ ⟨x, h⟩, ⟨_, ⟨x, rfl⟩, h⟩⟩
@@ -80,7 +80,7 @@ protected theorem is_basis [T : topological_space α] (F : realizer α) :
 by have := to_topsp_is_topological_basis F.F; rwa F.eq at this
 
 protected theorem mem_nhds [T : topological_space α] (F : realizer α) {s : set α} {a : α} :
-  s ∈ (nhds a).sets ↔ ∃ b, a ∈ F.F b ∧ F.F b ⊆ s :=
+  s ∈ nhds a ↔ ∃ b, a ∈ F.F b ∧ F.F b ⊆ s :=
 by have := mem_nhds_to_topsp F.F; rwa F.eq at this
 
 theorem is_open_iff [topological_space α] (F : realizer α) {s : set α} :
@@ -102,19 +102,19 @@ protected theorem is_open [topological_space α] (F : realizer α) (s : F.σ) : 
 is_open_iff_nhds.2 $ λ a m, by simpa using F.mem_nhds.2 ⟨s, m, subset.refl _⟩
 
 theorem ext' [T : topological_space α] {σ : Type*} {F : ctop α σ}
-  (H : ∀ a s, s ∈ (nhds a).sets ↔ ∃ b, a ∈ F b ∧ F b ⊆ s) :
+  (H : ∀ a s, s ∈ nhds a ↔ ∃ b, a ∈ F b ∧ F b ⊆ s) :
   F.to_topsp = T :=
 topological_space_eq $ funext $ λ s, begin
   have : ∀ T s, @topological_space.is_open _ T s ↔ _ := @is_open_iff_mem_nhds α,
   rw [this, this],
-  apply congr_arg (λ f : α → filter α, ∀ a ∈ s, s ∈ (f a).sets),
+  apply congr_arg (λ f : α → filter α, ∀ a ∈ s, s ∈ f a),
   funext a, apply filter_eq, apply set.ext, intro x,
   rw [mem_nhds_to_topsp, H]
 end
 
 theorem ext [T : topological_space α] {σ : Type*} {F : ctop α σ}
   (H₁ : ∀ a, is_open (F a))
-  (H₂ : ∀ a s, s ∈ (nhds a).sets → ∃ b, a ∈ F b ∧ F b ⊆ s) :
+  (H₂ : ∀ a s, s ∈ nhds a → ∃ b, a ∈ F b ∧ F b ⊆ s) :
   F.to_topsp = T :=
 ext' $ λ a s, ⟨H₂ a s, λ ⟨b, h₁, h₂⟩, mem_nhds_sets_iff.2 ⟨_, h₂, H₁ _, h₁⟩⟩
 

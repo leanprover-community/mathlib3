@@ -5,8 +5,8 @@ Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin
 
 Matrices
 -/
-
-import algebra.module data.fintype algebra.pi_instances
+import algebra.module algebra.pi_instances
+import data.fintype
 
 universes u v
 
@@ -25,6 +25,15 @@ theorem ext_iff : (∀ i j, M i j = N i j) ↔ M = N :=
 
 @[extensionality] theorem ext : (∀ i j, M i j = N i j) → M = N :=
 ext_iff.mp
+
+def transpose (M : matrix m n α) : matrix n m α
+| x y := M y x
+
+def row (w : m → α) : matrix m punit α
+| x y := w x
+
+def col (v : n → α) : matrix punit n α
+| x y := v y
 
 end ext
 
@@ -182,6 +191,44 @@ module.of_core
   mul_smul := λ a b M, ext $ λ i j, mul_assoc a b (M i j),
   one_smul := λ M, ext $ λ i j, one_mul (M i j),
   .. (infer_instance : has_scalar α (matrix m n α)) }
+
+section semiring
+variables [semiring α]
+
+def vec_mul_vec (w : m → α) (v : n → α) : matrix m n α
+| x y := w x * v y
+
+def mul_vec (M : matrix m n α) (v : n → α) : m → α
+| x := finset.univ.sum (λy:n, M x y * v y)
+
+def vec_mul (v : m → α) (M : matrix m n α) : n → α
+| y := finset.univ.sum (λx:m, v x * M x y)
+
+instance mul_vec.is_add_monoid_hom_left (v : n → α) :
+  is_add_monoid_hom (λM:matrix m n α, mul_vec M v) :=
+⟨by ext; simp [mul_vec]; refl,
+  begin
+    intros x y,
+    ext m,
+    rw pi.add_apply (mul_vec x v) (mul_vec y v) m,
+    simp [mul_vec, finset.sum_add_distrib, right_distrib]
+  end⟩
+
+lemma mul_vec_diagonal [decidable_eq m] (v w : m → α) (x : m) :
+  mul_vec (diagonal v) w x = v x * w x :=
+begin
+  transitivity,
+  refine finset.sum_eq_single x _ _,
+  { assume b _ ne, simp [diagonal, ne.symm] },
+  { simp },
+  { rw [diagonal_val_eq] }
+end
+
+lemma vec_mul_vec_eq (w : m → α) (v : n → α) :
+  vec_mul_vec w v = (row w).mul (col v) :=
+by simp [matrix.mul]; refl
+
+end semiring
 
 def minor (A : matrix m n α) (col : l → m) (row : o → n) : matrix l o α :=
 λ i j, A (col i) (row j)

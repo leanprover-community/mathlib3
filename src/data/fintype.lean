@@ -190,6 +190,13 @@ def of_subsingleton (a : α) [subsingleton α] : fintype α :=
 
 end fintype
 
+lemma finset.card_univ [fintype α] : (finset.univ : finset α).card = fintype.card α :=
+rfl
+
+lemma finset.card_univ_diff [fintype α] [decidable_eq α] (s : finset α) :
+  (finset.univ \ s).card = fintype.card α - s.card :=
+finset.card_sdiff (subset_univ s)
+
 instance (n : ℕ) : fintype (fin n) :=
 ⟨⟨list.pmap fin.mk (list.range n) (λ a, list.mem_range.1),
   list.nodup_pmap (λ a _ b _, congr_arg fin.val) (list.nodup_range _)⟩,

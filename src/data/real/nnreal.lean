@@ -95,6 +95,9 @@ protected lemma coe_le {r₁ r₂ : ℝ≥0} : r₁ ≤ r₂ ↔ (r₁ : ℝ) �
 protected lemma coe_lt {r₁ r₂ : ℝ≥0} : r₁ < r₂ ↔ (r₁ : ℝ) < r₂ := iff.rfl
 protected lemma coe_pos {r : ℝ≥0} : 0 < r ↔ (0 : ℝ) < r := iff.rfl
 
+instance : order_bot ℝ≥0 :=
+{ bot := ⊥, bot_le := assume ⟨a, h⟩, h, .. nnreal.decidable_linear_order }
+
 instance : canonically_ordered_monoid ℝ≥0 :=
 { add_le_add_left       := assume a b h c, @add_le_add_left ℝ _ a b h c,
   lt_of_add_lt_add_left := assume a b c, @lt_of_add_lt_add_left ℝ _ a b c,
@@ -105,10 +108,8 @@ instance : canonically_ordered_monoid ℝ≥0 :=
           nnreal.eq $ show b = a + (b - a), by rw [add_sub_cancel'_right]⟩)
       (assume ⟨⟨c, hc⟩, eq⟩, eq.symm ▸ show a ≤ a + c, from (le_add_iff_nonneg_right a).2 hc),
   ..nnreal.comm_semiring,
-  ..nnreal.decidable_linear_order}
-
-instance : order_bot ℝ≥0 :=
-{ bot := ⊥, bot_le := zero_le, .. nnreal.decidable_linear_order }
+  ..nnreal.lattice.order_bot,
+  ..nnreal.decidable_linear_order }
 
 instance : distrib_lattice ℝ≥0 := by apply_instance
 

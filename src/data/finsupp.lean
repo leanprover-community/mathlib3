@@ -1163,12 +1163,12 @@ protected def dom_congr [decidable_eq α₁] [decidable_eq α₂] [decidable_eq 
 ⟨map_domain e, map_domain e.symm,
   begin
     assume v,
-    simp only [map_domain_comp.symm, (∘), equiv.inverse_apply_apply],
+    simp only [map_domain_comp.symm, (∘), equiv.symm_apply_apply],
     exact map_domain_id
   end,
   begin
     assume v,
-    simp only [map_domain_comp.symm, (∘), equiv.apply_inverse_apply],
+    simp only [map_domain_comp.symm, (∘), equiv.apply_symm_apply],
     exact map_domain_id
   end⟩
 

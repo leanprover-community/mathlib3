@@ -165,7 +165,7 @@ e.symm ▸ ⟨(l₁++l₂ : list α), quot.sound perm_middle⟩
 @[simp] theorem not_mem_zero (a : α) : a ∉ (0 : multiset α) := id
 
 theorem eq_zero_of_forall_not_mem {s : multiset α} : (∀x, x ∉ s) → s = 0 :=
-quot.induction_on s $ λ l H, by rw eq_nil_of_forall_not_mem H; refl
+quot.induction_on s $ λ l H, by rw eq_nil_iff_forall_not_mem.mpr H; refl
 
 theorem exists_mem_of_ne_zero {s : multiset α} : s ≠ 0 → ∃ a : α, a ∈ s :=
 quot.induction_on s $ assume l hl,

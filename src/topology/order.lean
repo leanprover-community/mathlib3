@@ -53,25 +53,25 @@ le_antisymm
     this s hs as)
 
 lemma tendsto_nhds_generate_from {β : Type*} {m : α → β} {f : filter α} {g : set (set β)} {b : β}
-  (h : ∀s∈g, b ∈ s → m ⁻¹' s ∈ f.sets) : tendsto m f (@nhds β (generate_from g) b) :=
+  (h : ∀s∈g, b ∈ s → m ⁻¹' s ∈ f) : tendsto m f (@nhds β (generate_from g) b) :=
 by rw [nhds_generate_from]; exact
   (tendsto_infi.2 $ assume s, tendsto_infi.2 $ assume ⟨hbs, hsg⟩, tendsto_principal.2 $ h s hsg hbs)
 
 protected def mk_of_nhds (n : α → filter α) : topological_space α :=
-{ is_open        := λs, ∀a∈s, s ∈ (n a).sets,
+{ is_open        := λs, ∀a∈s, s ∈ n a,
   is_open_univ   := assume x h, univ_mem_sets,
   is_open_inter  := assume s t hs ht x ⟨hxs, hxt⟩, inter_mem_sets (hs x hxs) (ht x hxt),
   is_open_sUnion := assume s hs a ⟨x, hx, hxa⟩, mem_sets_of_superset (hs x hx _ hxa) (set.subset_sUnion_of_mem hx) }
 
 lemma nhds_mk_of_nhds (n : α → filter α) (a : α)
-  (h₀ : pure ≤ n) (h₁ : ∀{a s}, s ∈ (n a).sets → ∃t∈(n a).sets, t ⊆ s ∧ ∀a'∈t, s ∈ (n a').sets) :
+  (h₀ : pure ≤ n) (h₁ : ∀{a s}, s ∈ n a → ∃ t ∈ n a, t ⊆ s ∧ ∀a' ∈ t, s ∈ n a') :
   @nhds α (topological_space.mk_of_nhds n) a = n a :=
 begin
   letI := topological_space.mk_of_nhds n,
   refine le_antisymm (assume s hs, _) (assume s hs, _),
-  { have h₀ : {b | s ∈ (n b).sets} ⊆ s := assume b hb, mem_pure_sets.1 $ h₀ b hb,
-    have h₁ : {b | s ∈ (n b).sets} ∈ (nhds a).sets,
-    { refine mem_nhds_sets (assume b (hb : s ∈ (n b).sets), _) hs,
+  { have h₀ : {b | s ∈ n b} ⊆ s := assume b hb, mem_pure_sets.1 $ h₀ b hb,
+    have h₁ : {b | s ∈ n b} ∈ nhds a,
+    { refine mem_nhds_sets (assume b (hb : s ∈ n b), _) hs,
       rcases h₁ hb with ⟨t, ht, hts, h⟩,
       exact mem_sets_of_superset ht h },
     exact mem_sets_of_superset h₁ h₀ },
@@ -385,7 +385,7 @@ le_antisymm
   (generate_from_le $ ball_image_iff.2 $ assume s hs, ⟨s, generate_open.basic _ hs, rfl⟩)
 
 protected def topological_space.nhds_adjoint (a : α) (f : filter α) : topological_space α :=
-{ is_open        := λs, a ∈ s → s ∈ f.sets,
+{ is_open        := λs, a ∈ s → s ∈ f,
   is_open_univ   := assume s, univ_mem_sets,
   is_open_inter  := assume s t hs ht ⟨has, hat⟩, inter_mem_sets (hs has) (ht hat),
   is_open_sUnion := assume k hk ⟨u, hu, hau⟩, mem_sets_of_superset (hk u hu hau) (subset_sUnion_of_mem hu) }
@@ -528,7 +528,7 @@ continuous_iff_le_coinduced.2 $ bot_le
 /- nhds in the induced topology -/
 
 theorem mem_nhds_induced [T : topological_space α] (f : β → α) (a : β) (s : set β) :
-  s ∈ (@nhds β (topological_space.induced f T) a).sets ↔ ∃ u ∈ (nhds (f a)).sets, f ⁻¹' u ⊆ s :=
+  s ∈ @nhds β (topological_space.induced f T) a ↔ ∃ u ∈ nhds (f a), f ⁻¹' u ⊆ s :=
 begin
   simp only [nhds_sets, is_open_induced_iff, exists_prop, set.mem_set_of_eq],
   split,
@@ -556,7 +556,7 @@ The nhds filter and the subspace topology.
 -/
 
 theorem mem_nhds_subtype (s : set α) (a : {x // x ∈ s}) (t : set {x // x ∈ s}) :
-  t ∈ (nhds a).sets ↔ ∃ u ∈ (nhds a.val).sets, (@subtype.val α s) ⁻¹' u ⊆ t :=
+  t ∈ nhds a ↔ ∃ u ∈ nhds a.val, (@subtype.val α s) ⁻¹' u ⊆ t :=
 by rw mem_nhds_induced
 
 theorem nhds_subtype (s : set α) (a : {x // x ∈ s}) :
@@ -572,8 +572,8 @@ nhds_within and subtypes
 -/
 
 theorem mem_nhds_within_subtype (s : set α) (a : {x // x ∈ s}) (t u : set {x // x ∈ s}) :
-  t ∈ (nhds_within a u).sets ↔
-    t ∈ (comap (@subtype.val _ s) (nhds_within a.val (subtype.val '' u))).sets :=
+  t ∈ nhds_within a u ↔
+    t ∈ comap (@subtype.val _ s) (nhds_within a.val (subtype.val '' u)) :=
 by rw [nhds_within, nhds_subtype, principal_subtype, ←comap_inf, ←nhds_within]
 
 theorem nhds_within_subtype (s : set α) (a : {x // x ∈ s}) (t : set {x // x ∈ s}) :
@@ -582,7 +582,7 @@ filter_eq $ by ext u; rw mem_nhds_within_subtype
 
 theorem nhds_within_eq_map_subtype_val {s : set α} {a : α} (h : a ∈ s) :
   nhds_within a s = map subtype.val (nhds ⟨a, h⟩) :=
-have h₀ : s ∈ (nhds_within a s).sets,
+have h₀ : s ∈ nhds_within a s,
   by { rw [mem_nhds_within], existsi set.univ, simp [set.diff_eq] },
 have h₁ : ∀ y ∈ s, ∃ x, @subtype.val _ s x = y,
   from λ y h, ⟨⟨y, h⟩, rfl⟩,
@@ -669,7 +669,7 @@ calc @nhds α (induced f t) a = (⨅ s (x : s ∈ preimage f '' set_of is_open �
     by simp only [infi_and, infi_image]; refl
   ... = _ : by simp [nhds, comap_infi, and_comm]
 
-lemma map_nhds_induced_eq {a : α} (h : range f ∈ (nhds (f a)).sets) :
+lemma map_nhds_induced_eq {a : α} (h : range f ∈ nhds (f a)) :
   map f (@nhds α (induced f t) a) = nhds (f a) :=
 by rw [nhds_induced_eq_comap, filter.map_comap h]
 
@@ -681,9 +681,9 @@ have comap f (nhds (f a) ⊓ principal (f '' s)) ≠ ⊥ ↔ nhds (f a) ⊓ prin
     assume h,
     forall_sets_neq_empty_iff_neq_bot.mp $
       assume s₁ ⟨s₂, hs₂, (hs : f ⁻¹' s₂ ⊆ s₁)⟩,
-      have f '' s ∈ (nhds (f a) ⊓ principal (f '' s)).sets,
+      have f '' s ∈ nhds (f a) ⊓ principal (f '' s),
         from mem_inf_sets_of_right $ by simp [subset.refl],
-      have s₂ ∩ f '' s ∈ (nhds (f a) ⊓ principal (f '' s)).sets,
+      have s₂ ∩ f '' s ∈ nhds (f a) ⊓ principal (f '' s),
         from inter_mem_sets hs₂ this,
       let ⟨b, hb₁, ⟨a, ha, ha₂⟩⟩ := inhabited_of_mem_sets h this in
       ne_empty_of_mem $ hs $ by rwa [←ha₂] at hb₁⟩,

@@ -56,7 +56,7 @@ have is_closed (t ∩ range f), from is_closed_inter ht h,
 h_eq.symm ▸ by rwa [image_preimage_eq_inter_range]
 
 lemma embedding.map_nhds_eq [topological_space α] [topological_space β] {f : α → β}
-  (hf : embedding f) (a : α) (h : range f ∈ (nhds (f a)).sets) : (nhds a).map f = nhds (f a) :=
+  (hf : embedding f) (a : α) (h : range f ∈ nhds (f a)) : (nhds a).map f = nhds (f a) :=
 by rw [hf.2]; exact map_nhds_induced_eq h
 
 lemma embedding.tendsto_nhds_iff {ι : Type*}
@@ -89,8 +89,8 @@ theorem dense_embedding.mk'
   (c     : continuous e)
   (dense : ∀x, x ∈ closure (range e))
   (inj   : function.injective e)
-  (H     : ∀ (a:α) s ∈ (nhds a).sets,
-    ∃t ∈ (nhds (e a)).sets, ∀ b, e b ∈ t → b ∈ s) :
+  (H     : ∀ (a:α) s ∈ nhds a,
+    ∃t ∈ nhds (e a), ∀ b, e b ∈ t → b ∈ s) :
   dense_embedding e :=
 ⟨dense, inj, λ a, le_antisymm
   (by simpa [le_def] using H a)
@@ -127,7 +127,7 @@ begin
 end
 
 lemma closure_image_nhds_of_nhds {s : set α} {a : α} (de : dense_embedding e) :
-  s ∈ (nhds a).sets → closure (e '' s) ∈ (nhds (e a)).sets :=
+  s ∈ nhds a → closure (e '' s) ∈ nhds (e a) :=
 begin
   rw [← de.induced a, mem_comap_sets],
   intro h,
@@ -138,7 +138,7 @@ begin
                    ... ⊆ s      : sub,
   have := calc U ⊆ closure (e '' (e ⁻¹' U)) : self_sub_closure_image_preimage_of_open de U_op
              ... ⊆ closure (e '' s)         : closure_mono (image_subset e this),
-  have U_nhd : U ∈ (nhds (e a)).sets := mem_nhds_sets U_op e_a_in_U,
+  have U_nhd : U ∈ nhds (e a) := mem_nhds_sets U_op e_a_in_U,
   exact (nhds (e a)).sets_of_superset U_nhd this
 end
 
@@ -169,7 +169,7 @@ end
 lemma comap_nhds_neq_bot (de : dense_embedding e) {b : β} : comap e (nhds b) ≠ ⊥ :=
 forall_sets_neq_empty_iff_neq_bot.mp $
 assume s ⟨t, ht, (hs : e ⁻¹' t ⊆ s)⟩,
-have t ∩ range e ∈ (nhds b ⊓ principal (range e)).sets,
+have t ∩ range e ∈ nhds b ⊓ principal (range e),
   from inter_mem_inf_sets ht (subset.refl _),
 let ⟨_, ⟨hx₁, y, rfl⟩⟩ := inhabited_of_mem_sets de.nhds_inf_neq_bot this in
 subset_ne_empty hs $ ne_empty_of_mem hx₁
@@ -213,10 +213,10 @@ begin
 end
 
 lemma tendsto_extend [regular_space γ] {b : β} {f : α → γ} (de : dense_embedding e)
-  (hf : {b | ∃c, tendsto f (comap e $ nhds b) (nhds c)} ∈ (nhds b).sets) :
+  (hf : {b | ∃c, tendsto f (comap e $ nhds b) (nhds c)} ∈ nhds b) :
   tendsto (de.extend f) (nhds b) (nhds (de.extend f b)) :=
 let φ := {b | tendsto f (comap e $ nhds b) (nhds $ de.extend f b)} in
-have hφ : φ ∈ (nhds b).sets,
+have hφ : φ ∈ nhds b,
   from (nhds b).sets_of_superset hf $ assume b ⟨c, hc⟩,
     show tendsto f (comap e (nhds b)) (nhds (de.extend f b)), from (de.extend_eq hc).symm ▸ hc,
 assume s hs,
@@ -242,7 +242,7 @@ have h₂ : t ⊆ de.extend f ⁻¹' closure (f '' (e ⁻¹' t)), from
     exact de.comap_nhds_neq_bot
   end,
 (nhds b).sets_of_superset
-  (show t ∈ (nhds b).sets, from mem_nhds_sets ht₂ ht₃)
+  (show t ∈ nhds b, from mem_nhds_sets ht₂ ht₃)
   (calc t ⊆ de.extend f ⁻¹' closure (f '' (e ⁻¹' t)) : h₂
     ... ⊆ de.extend f ⁻¹' closure (f '' (e ⁻¹' s')) :
       preimage_mono $ closure_mono $ image_subset f $ preimage_mono $ subset.trans ht₁ $ inter_subset_right _ _

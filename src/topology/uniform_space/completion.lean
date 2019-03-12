@@ -60,14 +60,14 @@ variables {β : Type v} {γ : Type w}
 variables [uniform_space β] [uniform_space γ]
 
 def gen (s : set (α × α)) : set (Cauchy α × Cauchy α) :=
-{p | s ∈ (filter.prod (p.1.val) (p.2.val)).sets }
+{p | s ∈ filter.prod (p.1.val) (p.2.val) }
 
 lemma monotone_gen : monotone gen :=
 monotone_set_of $ assume p, @monotone_mem_sets (α×α) (filter.prod (p.1.val) (p.2.val))
 
 private lemma symm_gen : map prod.swap (uniformity.lift' gen) ≤ uniformity.lift' gen :=
 calc map prod.swap (uniformity.lift' gen) =
-  uniformity.lift' (λs:set (α×α), {p | s ∈ (filter.prod (p.2.val) (p.1.val)).sets }) :
+  uniformity.lift' (λs:set (α×α), {p | s ∈ filter.prod (p.2.val) (p.1.val) }) :
   begin
     delta gen,
     simp [map_lift'_eq, monotone_set_of, monotone_mem_sets,
@@ -86,11 +86,11 @@ calc map prod.swap (uniformity.lift' gen) =
 private lemma comp_rel_gen_gen_subset_gen_comp_rel {s t : set (α×α)} : comp_rel (gen s) (gen t) ⊆
   (gen (comp_rel s t) : set (Cauchy α × Cauchy α)) :=
 assume ⟨f, g⟩ ⟨h, h₁, h₂⟩,
-let ⟨t₁, (ht₁ : t₁ ∈ f.val.sets), t₂, (ht₂ : t₂ ∈ h.val.sets), (h₁ : set.prod t₁ t₂ ⊆ s)⟩ :=
+let ⟨t₁, (ht₁ : t₁ ∈ f.val), t₂, (ht₂ : t₂ ∈ h.val), (h₁ : set.prod t₁ t₂ ⊆ s)⟩ :=
   mem_prod_iff.mp h₁ in
-let ⟨t₃, (ht₃ : t₃ ∈ h.val.sets), t₄, (ht₄ : t₄ ∈ g.val.sets), (h₂ : set.prod t₃ t₄ ⊆ t)⟩ :=
+let ⟨t₃, (ht₃ : t₃ ∈ h.val), t₄, (ht₄ : t₄ ∈ g.val), (h₂ : set.prod t₃ t₄ ⊆ t)⟩ :=
   mem_prod_iff.mp h₂ in
-have t₂ ∩ t₃ ∈ h.val.sets,
+have t₂ ∩ t₃ ∈ h.val,
   from inter_mem_sets ht₂ ht₃,
 let ⟨x, xt₂, xt₃⟩ :=
   inhabited_of_mem_sets (h.property.left) this in
@@ -129,12 +129,12 @@ uniform_space.of_core
   comp        := comp_gen }
 
 theorem mem_uniformity {s : set (Cauchy α × Cauchy α)} :
-  s ∈ (@uniformity (Cauchy α) _).sets ↔ ∃ t ∈ (@uniformity α _).sets, gen t ⊆ s :=
+  s ∈ @uniformity (Cauchy α) _ ↔ ∃ t ∈ @uniformity α _, gen t ⊆ s :=
 mem_lift'_sets monotone_gen
 
 theorem mem_uniformity' {s : set (Cauchy α × Cauchy α)} :
-  s ∈ (@uniformity (Cauchy α) _).sets ↔ ∃ t ∈ (@uniformity α _).sets,
-    ∀ f g : Cauchy α, t ∈ (filter.prod f.1 g.1).sets → (f, g) ∈ s :=
+  s ∈ @uniformity (Cauchy α) _ ↔ ∃ t ∈ @uniformity α _,
+    ∀ f g : Cauchy α, t ∈ filter.prod f.1 g.1 → (f, g) ∈ s :=
 mem_uniformity.trans $ bex_congr $ λ t h, prod.forall
 
 /-- Embedding of `α` into its completion -/
@@ -162,11 +162,11 @@ have h_ex : ∀s∈(@uniformity (Cauchy α) _).sets, ∃y:α, (f, pure_cauchy y)
   assume s hs,
   let ⟨t'', ht''₁, (ht''₂ : gen t'' ⊆ s)⟩ := (mem_lift'_sets monotone_gen).mp hs in
   let ⟨t', ht'₁, ht'₂⟩ := comp_mem_uniformity_sets ht''₁ in
-  have t' ∈ (filter.prod (f.val) (f.val)).sets,
+  have t' ∈ filter.prod (f.val) (f.val),
     from f.property.right ht'₁,
   let ⟨t, ht, (h : set.prod t t ⊆ t')⟩ := mem_prod_same_iff.mp this in
   let ⟨x, (hx : x ∈ t)⟩ := inhabited_of_mem_sets f.property.left ht in
-  have t'' ∈ (filter.prod f.val (pure x)).sets,
+  have t'' ∈ filter.prod f.val (pure x),
     from mem_prod_iff.mpr ⟨t, ht, {y:α | (x, y) ∈ t'},
       assume y, begin simp, intro h, simp [h], exact refl_mem_uniformity ht'₁ end,
       assume ⟨a, b⟩ ⟨(h₁ : a ∈ t), (h₂ : (x, b) ∈ t')⟩,
@@ -269,7 +269,7 @@ begin
     refine H {p | (lim p.1.1, lim p.2.1) ∈ t}
       (Cauchy.mem_uniformity'.2 ⟨d, du, λ f g h, _⟩),
     rcases mem_prod_iff.1 h with ⟨x, xf, y, yg, h⟩,
-    have limc : ∀ (f : Cauchy α) (x ∈ f.1.sets), lim f.1 ∈ closure x,
+    have limc : ∀ (f : Cauchy α) (x ∈ f.1), lim f.1 ∈ closure x,
     { intros f x xf,
       rw closure_eq_nhds,
       exact lattice.neq_bot_of_le_neq_bot f.2.1

@@ -40,11 +40,11 @@ iff.intro
   (assume ttol : tendsto x at_top (nhds limit),
     show ∀ U : set α, limit ∈ U → is_open U → ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U, from
       assume U limitInU isOpenU,
-      have {n | (x n) ∈ U} ∈ at_top.sets :=
+      have {n | (x n) ∈ U} ∈ at_top :=
         mem_map.mp $ le_def.mp ttol U $ mem_nhds_sets isOpenU limitInU,
       show ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U, from mem_at_top_sets.mp this)
   (assume xtol : ∀ U : set α, limit ∈ U → is_open U → ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U,
-    suffices ∀ U, is_open U → limit ∈ U → x ⁻¹' U ∈ at_top.sets,
+    suffices ∀ U, is_open U → limit ∈ U → x ⁻¹' U ∈ at_top,
       from tendsto_nhds.mpr this,
     assume U isOpenU limitInU,
     suffices ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U, by simp [this],

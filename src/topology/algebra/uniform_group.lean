@@ -18,6 +18,7 @@ import topology.uniform_space.uniform_embedding topology.uniform_space.separatio
 noncomputable theory
 local attribute [instance, priority 0] classical.prop_decidable
 
+local notation `𝓤` := uniformity
 
 section uniform_add_group
 open filter set
@@ -74,13 +75,13 @@ instance [uniform_space β] [add_group β] [uniform_add_group β] : uniform_add_
     (uniform_continuous_fst.comp uniform_continuous_snd)
     (uniform_continuous_snd.comp uniform_continuous_snd)) ⟩
 
-lemma uniformity_translate (a : α) : uniformity.map (λx:α×α, (x.1 + a, x.2 + a)) = uniformity :=
+lemma uniformity_translate (a : α) : (𝓤 α).map (λx:α×α, (x.1 + a, x.2 + a)) = 𝓤 α :=
 le_antisymm
   (uniform_continuous_add uniform_continuous_id uniform_continuous_const)
-  (calc uniformity =
-    (uniformity.map (λx:α×α, (x.1 + -a, x.2 + -a))).map (λx:α×α, (x.1 + a, x.2 + a)) :
+  (calc 𝓤 α =
+    ((𝓤 α).map (λx:α×α, (x.1 + -a, x.2 + -a))).map (λx:α×α, (x.1 + a, x.2 + a)) :
       by simp [filter.map_map, (∘)]; exact filter.map_id.symm
-    ... ≤ uniformity.map (λx:α×α, (x.1 + a, x.2 + a)) :
+    ... ≤ (𝓤 α).map (λx:α×α, (x.1 + a, x.2 + a)) :
       filter.map_mono (uniform_continuous_add uniform_continuous_id uniform_continuous_const))
 
 lemma uniform_embedding_translate (a : α) : uniform_embedding (λx:α, x + a) :=
@@ -93,7 +94,7 @@ end
 
 section
 variables (α)
-lemma uniformity_eq_comap_nhds_zero : uniformity = comap (λx:α×α, x.2 - x.1) (nhds (0:α)) :=
+lemma uniformity_eq_comap_nhds_zero : 𝓤 α = comap (λx:α×α, x.2 - x.1) (nhds (0:α)) :=
 begin
   rw [nhds_eq_comap_uniformity, filter.comap_comap_comp],
   refine le_antisymm (filter.map_le_iff_le_comap.1 _) _,
@@ -111,7 +112,7 @@ end
 
 lemma group_separation_rel (x y : α) : (x, y) ∈ separation_rel α ↔ x - y ∈ closure ({0} : set α) :=
 have embedding (λa, a + (y - x)), from (uniform_embedding_translate (y - x)).embedding,
-show (x, y) ∈ ⋂₀ uniformity.sets ↔ x - y ∈ closure ({0} : set α),
+show (x, y) ∈ ⋂₀ (𝓤 α).sets ↔ x - y ∈ closure ({0} : set α),
 begin
   rw [this.closure_eq_preimage_closure_image, uniformity_eq_comap_nhds_zero α, sInter_comap_sets],
   simp [mem_closure_iff_nhds, inter_singleton_eq_empty]
@@ -162,7 +163,7 @@ def topological_add_group.to_uniform_space : uniform_space G :=
     { rcases H with ⟨U, U_nhds, U_sub⟩,
       rcases exists_nhds_half U_nhds with ⟨V, ⟨V_nhds, V_sum⟩⟩,
       existsi ((λp:G×G, p.2 - p.1) ⁻¹' V),
-      have H : (λp:G×G, p.2 - p.1) ⁻¹' V ∈ (comap (λp:G×G, p.2 - p.1) (nhds (0 : G))).sets,
+      have H : (λp:G×G, p.2 - p.1) ⁻¹' V ∈ comap (λp:G×G, p.2 - p.1) (nhds (0 : G)),
         by existsi [V, V_nhds] ; refl,
       existsi H,
       have comp_rel_sub : comp_rel ((λp:G×G, p.2 - p.1) ⁻¹' V) ((λp:G×G, p.2 - p.1) ⁻¹' V) ⊆ (λp:G×G, p.2 - p.1) ⁻¹' U,
@@ -178,7 +179,7 @@ def topological_add_group.to_uniform_space : uniform_space G :=
   begin
     intro S,
     let S' := λ x, {p : G × G | p.1 = x → p.2 ∈ S},
-    show is_open S ↔ ∀ (x : G), x ∈ S → S' x ∈ (comap (λp:G×G, p.2 - p.1) (nhds (0 : G))).sets,
+    show is_open S ↔ ∀ (x : G), x ∈ S → S' x ∈ comap (λp:G×G, p.2 - p.1) (nhds (0 : G)),
     rw [is_open_iff_mem_nhds],
     refine forall_congr (assume a, forall_congr (assume ha, _)),
     rw [← nhds_translation a, mem_comap_sets, mem_comap_sets],
@@ -192,7 +193,7 @@ def topological_add_group.to_uniform_space : uniform_space G :=
 section
 local attribute [instance] topological_add_group.to_uniform_space
 
-lemma uniformity_eq_comap_nhds_zero' : uniformity = comap (λp:G×G, p.2 - p.1) (nhds (0 : G)) := rfl
+lemma uniformity_eq_comap_nhds_zero' : 𝓤 G = comap (λp:G×G, p.2 - p.1) (nhds (0 : G)) := rfl
 
 variable {G}
 lemma topological_add_group_is_uniform : uniform_add_group G :=
@@ -213,7 +214,7 @@ lemma to_uniform_space_eq {α : Type*} [u : uniform_space α] [add_comm_group α
   topological_add_group.to_uniform_space α = u :=
 begin
   ext : 1,
-  show @uniformity α (topological_add_group.to_uniform_space α) = uniformity,
+  show @uniformity α (topological_add_group.to_uniform_space α) = 𝓤 α,
   rw [uniformity_eq_comap_nhds_zero' α, uniformity_eq_comap_nhds_zero α]
 end
 
@@ -359,11 +360,11 @@ variables {φ : β × δ → G} (hφ : continuous φ) [bilin : is_Z_bilin φ]
 
 include de df hφ bilin
 
-variables {W' : set G} (W'_nhd : W' ∈ (nhds (0 : G)).sets)
+variables {W' : set G} (W'_nhd : W' ∈ nhds (0 : G))
 include W'_nhd
 
 private lemma extend_Z_bilin_aux (x₀ : α) (y₁ : δ) :
-  ∃ U₂ ∈ (comap e (nhds x₀)).sets, ∀ x x' ∈ U₂, φ (x' - x, y₁) ∈ W' :=
+  ∃ U₂ ∈ comap e (nhds x₀), ∀ x x' ∈ U₂, φ (x' - x, y₁) ∈ W' :=
 begin
   let Nx := nhds x₀,
   let ee := λ u : β × β, (e u.1, e u.2),
@@ -379,7 +380,7 @@ begin
 end
 
 private lemma extend_Z_bilin_key (x₀ : α) (y₀ : γ) :
-  ∃ U ∈ (comap e (nhds x₀)).sets, ∃ V ∈ (comap f (nhds y₀)).sets,
+  ∃ U ∈ comap e (nhds x₀), ∃ V ∈ comap f (nhds y₀),
     ∀ x x' ∈ U, ∀ y y' ∈ V, φ (x', y') - φ (x, y) ∈ W' :=
 begin
   let Nx := nhds x₀,
@@ -403,7 +404,7 @@ begin
 
   rcases exists_nhds_quarter W'_nhd with ⟨W, W_nhd, W4⟩,
 
-  have : ∃ U₁ ∈ (comap e (nhds x₀)).sets, ∃ V₁ ∈ (comap f (nhds y₀)).sets,
+  have : ∃ U₁ ∈ comap e (nhds x₀), ∃ V₁ ∈ comap f (nhds y₀),
     ∀ x x' ∈ U₁, ∀ y y' ∈ V₁,  φ (x'-x, y'-y) ∈ W,
   { have := tendsto_prod_iff.1 lim_φ_sub_sub W W_nhd,
     repeat { rw [nhds_prod_eq, ←prod_comap_comap_eq] at this },
@@ -484,7 +485,9 @@ begin
 
     simp only [exists_prop],
     split,
-    { have := prod_mem_prod U'_nhd V'_nhd,
+    { change U' ∈ nhds x₀ at U'_nhd,
+      change V' ∈ nhds y₀ at V'_nhd,
+      have := prod_mem_prod U'_nhd V'_nhd,
       tauto },
     { intros p h',
       simp only [set.mem_preimage_eq, set.prod_mk_mem_set_prod_eq] at h',

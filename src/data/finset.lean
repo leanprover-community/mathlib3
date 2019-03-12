@@ -1724,8 +1724,15 @@ namespace Ico
 @[simp] theorem to_finset (n m : ℕ) : (multiset.Ico n m).to_finset = Ico n m :=
 (multiset.to_finset_eq _).symm
 
-theorem map_add (n m k : ℕ) : (Ico n m).image ((+) k) = Ico (n + k) (m + k) :=
+theorem image_add (n m k : ℕ) : (Ico n m).image ((+) k) = Ico (n + k) (m + k) :=
 by simp [image, multiset.Ico.map_add]
+
+theorem image_sub (n m k : ℕ) (h : k ≤ n): (Ico n m).image (λ x, x - k) = Ico (n - k) (m - k) :=
+begin
+  dsimp [image],
+  rw [multiset.Ico.map_sub _ _ _ h, ←multiset.to_finset_eq],
+  refl,
+end
 
 theorem zero_bot (n : ℕ) : Ico 0 n = range n :=
 eq_of_veq $ multiset.Ico.zero_bot _
@@ -1750,16 +1757,30 @@ lemma union_consecutive {n m l : ℕ} (hnm : n ≤ m) (hml : m ≤ l) :
 by rw [← to_finset, ← to_finset, ← multiset.to_finset_add,
   multiset.Ico.add_consecutive hnm hml, to_finset]
 
+@[simp] lemma inter_consecutive {n m l : ℕ} : Ico n m ∩ Ico m l = ∅ :=
+begin
+  rw [← to_finset, ← to_finset, ← multiset.to_finset_inter, multiset.Ico.inter_consecutive],
+  simp,
+end
+
 @[simp] theorem succ_singleton {n : ℕ} : Ico n (n+1) = {n} :=
 eq_of_veq $ multiset.Ico.succ_singleton
 
 theorem succ_top {n m : ℕ} (h : n ≤ m) : Ico n (m + 1) = insert m (Ico n m) :=
 by rw [← to_finset, multiset.Ico.succ_top h, multiset.to_finset_cons, to_finset]
 
+theorem succ_top' {n m : ℕ} (h : n < m) : Ico n m = insert (m - 1) (Ico n (m - 1)) :=
+begin
+  have w : m = m - 1 + 1 := (nat.sub_add_cancel (nat.one_le_of_lt h)).symm,
+  conv { to_lhs, rw w },
+  rw succ_top,
+  exact nat.le_pred_of_lt h
+end
+
 theorem eq_cons {n m : ℕ} (h : n < m) : Ico n m = insert n (Ico (n + 1) m) :=
 by rw [← to_finset, multiset.Ico.eq_cons h, multiset.to_finset_cons, to_finset]
 
-theorem pred_singleton {m : ℕ} (h : m > 0) : Ico (m - 1) m = {m - 1} :=
+@[simp] theorem pred_singleton {m : ℕ} (h : m > 0) : Ico (m - 1) m = {m - 1} :=
 eq_of_veq $ multiset.Ico.pred_singleton h
 
 @[simp] theorem not_mem_top {n m : ℕ} : m ∉ Ico n m :=

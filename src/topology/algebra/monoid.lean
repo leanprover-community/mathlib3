@@ -114,6 +114,11 @@ lemma continuous_finset_prod [topological_space β] {f : γ → β → α} (s : 
   (∀c∈s, continuous (f c)) → continuous (λa, s.prod (λc, f c a)) :=
 continuous_multiset_prod _
 
+@[to_additive is_add_submonoid.mem_nhds_zero]
+lemma is_submonoid.mem_nhds_one (β : set α) [is_submonoid β] (oβ : is_open β) :
+  β ∈ nhds (1 : α) :=
+mem_nhds_sets_iff.2 ⟨β, (by refl), oβ, is_submonoid.one_mem _⟩
+
 end
 
 end topological_monoid

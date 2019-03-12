@@ -92,7 +92,7 @@ theorem has_fderiv_at_within_of_has_fderiv_at {f : E → F} {f' : E → F} {x : 
 has_fderiv_at_filter_of_has_fderiv_at lattice.inf_le_left
 
 theorem has_fderiv_at_filter_congr' {f₀ f₁ : E → F} {f₀' f₁' : E → F} {x : E} {L : filter E}
-  (hx : f₀ x = f₁ x) (h₀ : {x | f₀ x = f₁ x} ∈ L.sets) (h₁ : ∀ x, f₀' x = f₁' x) :
+  (hx : f₀ x = f₁ x) (h₀ : {x | f₀ x = f₁ x} ∈ L) (h₁ : ∀ x, f₀' x = f₁' x) :
   has_fderiv_at_filter f₀ f₀' x L ↔ has_fderiv_at_filter f₁ f₁' x L :=
 by rw (funext h₁ : f₀' = f₁'); exact
 and_congr_right (λ _, is_o_congr

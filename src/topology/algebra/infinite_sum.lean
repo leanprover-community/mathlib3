@@ -452,7 +452,7 @@ lemma has_sum_iff_cauchy : has_sum f ↔ cauchy (map (λ (s : finset β), sum s 
 (cauchy_map_iff_exists_tendsto at_top_ne_bot).symm
 
 lemma has_sum_iff_vanishing :
-  has_sum f ↔ ∀e∈(nhds (0:α)).sets, (∃s:finset β, ∀t, disjoint t s → t.sum f ∈ e) :=
+  has_sum f ↔ ∀ e ∈ nhds (0:α), (∃s:finset β, ∀t, disjoint t s → t.sum f ∈ e) :=
 begin
   simp only [has_sum_iff_cauchy, cauchy_map_iff, and_iff_right at_top_ne_bot,
     prod_at_top_at_top_eq, uniformity_eq_comap_nhds_zero α, tendsto_comap_iff, (∘)],

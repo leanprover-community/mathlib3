@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.fintype group_theory.order_of_element data.nat.cast data.int.basic
+import data.fintype group_theory.order_of_element data.nat.cast --data.int.basic
 
 universes u v
 open equiv function fintype finset
@@ -707,7 +707,7 @@ def same_cycle (f : perm α) (x y : α) := ∃ i : ℤ, (f ^ i) x = y
 λ ⟨i, hi⟩ ⟨j, hj⟩, ⟨j + i, by rw [gpow_add, mul_apply, hi, hj]⟩
 
 instance [fintype α] (f : perm α) : decidable_rel (same_cycle f) :=
-λ x y, decidable_of_iff (∃ n ∈ range (order_of f), (f ^ n) x = y)
+λ x y, decidable_of_iff (∃ n ∈ list.range (order_of f), (f ^ n) x = y)
 ⟨λ ⟨n, _, hn⟩, ⟨n, hn⟩, λ ⟨i, hi⟩, ⟨(i % order_of f).nat_abs, list.mem_range.2
   (int.coe_nat_lt.1 $
     by rw int.nat_abs_of_nonneg (int.mod_nonneg _

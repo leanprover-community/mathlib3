@@ -102,23 +102,23 @@ meta def last : name → string
 end name
 
 namespace environment
-meta def filter_map {α : Type} (e : environment) (f : declaration → option α) : list α :=
+meta def decl_filter_map {α : Type} (e : environment) (f : declaration → option α) : list α :=
   e.fold [] $ λ d l, match f d with
                      | some r := r :: l
                      | none := l
                      end
 
-meta def map {α : Type} (e : environment) (f : declaration → α) : list α :=
-  e.filter_map $ λ d, some (f d)
+meta def decl_map {α : Type} (e : environment) (f : declaration → α) : list α :=
+  e.decl_filter_map $ λ d, some (f d)
 
 meta def get_decls (e : environment) : list declaration :=
-  e.map id
+  e.decl_map id
 
 meta def get_trusted_decls (e : environment) : list declaration :=
-  e.filter_map (λ d, if d.is_trusted then some d else none)
+  e.decl_filter_map (λ d, if d.is_trusted then some d else none)
 
 meta def get_decl_names (e : environment) : list name :=
-  e.map declaration.to_name
+  e.decl_map declaration.to_name
 end environment
 
 namespace tactic

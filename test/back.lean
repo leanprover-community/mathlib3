@@ -231,4 +231,14 @@ set_option pp.implicit true
 lemma le_pred_of_lt {n m : ℕ} (h : m < n) : m ≤ n - 1 :=
 by library_search [-le_pred_of_lt]
 
+
+-- example (a b : ℕ) (h : a ∣ b) (b ≠ 0) : a ≤ b :=
+-- by library_search
+
+-- example {a b : ℕ} (b ≠ 0) : a ≤ a * b :=
+-- by library_search
+
+-- example {a b : ℕ} (b < 0) : a ≤ a * b :=
+-- by library_search
+
 end nat

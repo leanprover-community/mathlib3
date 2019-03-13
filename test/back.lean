@@ -237,7 +237,18 @@ set_option pp.implicit true
 lemma le_pred_of_lt {n m : ℕ} (h : m < n) : m ≤ n - 1 :=
 by library_search [-le_pred_of_lt]
 
+example {α : Type} (x y : α) : x = y ↔ y = x :=
+by library_search -- says: exact @eq_comm α x y
 
+example (a b : ℕ) (ha : 0 < a) (hb : 0 < b) : 0 < a + b :=
+by library_search -- says: exact @add_pos_left a ha b
+
+-- TODO maybe run intros first??
+example (a b : ℕ) : 0 < a → 0 < b → 0 < a + b :=
+by library_search -- says: exact @add_pos ℕ (@ordered_semiring.to_ordered_cancel_comm_monoid ℕ nat.ordered_semiring) a b
+
+
+-- FIXME why are these failing?
 -- example (a b : ℕ) (h : a ∣ b) (b ≠ 0) : a ≤ b :=
 -- by library_search
 
@@ -246,5 +257,6 @@ by library_search [-le_pred_of_lt]
 
 -- example {a b : ℕ} (b < 0) : a ≤ a * b :=
 -- by library_search
+
 
 end nat

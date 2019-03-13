@@ -131,13 +131,13 @@ open nat
 
 variables (α : Type u) [integral_domain α]
 
-theorem char_p_ne_one (p : ℕ) [hc : char_p α p] : p ≠ 1 :=
+theorem char_p.ne_one (p : ℕ) [hc : char_p α p] : p ≠ 1 :=
 assume hp : p = 1,
 have (↑1 : α) = 0, from (char_p.cast_eq_zero_iff α p 1).mpr (hp ▸ dvd_refl p),
 have ( 1 : α) = 0, from @cast_one α _ _ ▸ this,
 absurd this one_ne_zero
 
-theorem char_p_prime_of_ge_two (p : ℕ) [hc : char_p α p] (hp : p ≥ 2) : nat.prime p :=
+theorem char_p.prime_of_ge_two (p : ℕ) [hc : char_p α p] (hp : p ≥ 2) : nat.prime p :=
 suffices ∀d ∣ p, d = 1 ∨ d = p, from ⟨hp, this⟩,
 assume (d : ℕ) (hdvd : ∃ e, p = d * e),
 let ⟨e, hmul⟩ := hdvd in
@@ -155,14 +155,14 @@ or.elim (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero (d : α) e this)
   have d * p = 1 * p, by rw ‹e = p› at hmul; rw [one_mul]; exact eq.symm hmul,
   show d = 1 ∨ d = p, from or.inl (eq_of_mul_eq_mul_right h₀ this))
 
-theorem char_p_prime_or_zero (p : ℕ) [hc : char_p α p] : nat.prime p ∨ p = 0 :=
+theorem char_p.prime_or_zero (p : ℕ) [hc : char_p α p] : nat.prime p ∨ p = 0 :=
 match p, hc with
 | 0,     _  := or.inr rfl
-| 1,     hc := absurd (eq.refl (1 : ℕ)) (@char_p_ne_one α _ (1 : ℕ) hc)
-| (m+2), hc := or.inl (@char_p_prime_of_ge_two α _ (m+2) hc (nat.le_add_left 2 m))
+| 1,     hc := absurd (eq.refl (1 : ℕ)) (@char_p.ne_one α _ (1 : ℕ) hc)
+| (m+2), hc := or.inl (@char_p.prime_of_ge_two α _ (m+2) hc (nat.le_add_left 2 m))
 end
 
-theorem char_p_prime [fintype α] [decidable_eq α] (p : ℕ) [char_p α p] : nat.prime p :=
-or.resolve_right (char_p_prime_or_zero α p) (char_p.ne_zero_of_fintype α p)
+theorem char_p.prime [fintype α] [decidable_eq α] (p : ℕ) [char_p α p] : nat.prime p :=
+or.resolve_right (char_p.prime_or_zero α p) (char_p.ne_zero_of_fintype α p)
 
 end integral_domain

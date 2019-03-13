@@ -596,9 +596,12 @@ calc β ≃ lc.supported α b : (module_equiv_lc h).to_equiv
    ... ≃ (b →₀ α)         : equiv.symm finsupp_equiv_lc
    ... ≃ (b → α)          : finsupp.equiv_fun_on_fintype
 
-theorem card_fin [fintype α] [fintype β]  : card β = (card α) ^ (card b) :=
+theorem vector_space.card_fintype [fintype α] [fintype β] : card β = (card α) ^ (card b) :=
 calc card β = card (b → α)    : card_congr (equiv_fun_basis b h)
         ... = card α ^ card b : card_fun
+
+theorem vector_space.card_fintype' [fintype α] [fintype β] : ∃ n : ℕ, card β = (card α) ^ n :=
+let ⟨b, hb⟩ := exists_is_basis α β in ⟨card b, vector_space.card_fintype b hb⟩
 
 end vector_space
 

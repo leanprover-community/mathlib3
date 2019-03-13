@@ -256,4 +256,14 @@ by rw [lc.total_on, linear_map.range, linear_map.map_cod_restrict, ← linear_ma
 lemma linear_eq_on {f g : β →ₗ[α] γ} (H : ∀x∈s, f x = g x) {x} (h : x ∈ span α s) : f x = g x :=
 by apply span_induction h H; simp {contextual := tt}
 
+open finsupp finset
+def finsupp_equiv_lc [decidable_pred s] : (s →₀ α) ≃ lc.supported α s :=
+{ to_fun := λ f, ⟨map_domain subtype.val f,
+    assume a h,
+    have h0 : a ∈ image _ _, from mem_of_subset map_domain_support h,
+    let ⟨ap, _, hs⟩ := mem_image.mp h0 in hs ▸ ap.property⟩,
+  inv_fun := (finsupp.subtype_domain s) ∘ subtype.val,
+  left_inv := subtype_domain_right_inv _,
+  right_inv := λ f, subtype.eq $ subtype_domain_left_inv _ f.val f.property }
+
 end module

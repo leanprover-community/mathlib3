@@ -798,6 +798,28 @@ lemma filter_sum (s : finset γ) (f : γ → α →₀ β) :
   (s.sum f).filter p = s.sum (λa, filter p (f a)) :=
 (finset.sum_hom (filter p)).symm
 
+lemma subtype_domain_left_inv (p : α → Prop) [d : decidable_pred p] (f : {f : α →₀ β // ∀ a ∈ f.support, p a}) :
+map_domain subtype.val (subtype_domain p f.val) = f.val :=
+finsupp.ext $ λ a, match d a with
+| is_true  (hp : p a)  := by rw[←subtype.coe_mk _ hp];
+  exact map_domain_apply _ _ subtype.val_injective
+| is_false (hp : ¬p a) :=
+  have a ∉ f.val.support, from mt (f.property a) hp,
+  have h0 : f.val a = 0, from of_not_not $ mt ((f.val.mem_support_to_fun a).mpr) this,
+  begin
+    rw[h0],
+    apply (not_mem_support_iff).mp,
+    apply mt (mem_of_subset map_domain_support),
+    simp,
+    assume x _ hfx hxa,
+    exact absurd h0 (hxa ▸ hfx)
+  end
+end
+
+lemma subtype_domain_right_inv (p : α → Prop) [decidable_pred p] (f : subtype p →₀ β) :
+subtype_domain p (map_domain subtype.val f) = f :=
+finsupp.ext $ λ a, map_domain_apply _ _ (subtype.val_injective)
+
 end comm_monoid
 
 section group

@@ -215,6 +215,9 @@ lt_of_le_of_lt dist_nonneg hy
 theorem mem_ball_self (h : ε > 0) : x ∈ ball x ε :=
 show dist x x < ε, by rw dist_self; assumption
 
+theorem mem_closed_ball_self (h : ε ≥ 0) : x ∈ closed_ball x ε :=
+show dist x x ≤ ε, by rw dist_self; assumption
+
 theorem mem_ball_comm : x ∈ ball y ε ↔ y ∈ ball x ε :=
 by simp [dist_comm]
 

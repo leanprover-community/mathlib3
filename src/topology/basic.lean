@@ -294,6 +294,19 @@ by rw [closure_compl, frontier, diff_eq]
 @[simp] lemma frontier_compl (s : set α) : frontier (-s) = frontier s :=
 by simp only [frontier_eq_closure_inter_closure, lattice.neg_neg, inter_comm]
 
+lemma is_closed_frontier {s : set α} : is_closed (frontier s) :=
+by rw frontier_eq_closure_inter_closure; exact is_closed_inter is_closed_closure is_closed_closure
+
+lemma interior_frontier {s : set α} (h : is_closed s) : interior (frontier s) = ∅ :=
+begin
+  have A : frontier s = s \ interior s, by rw [frontier, closure_eq_of_is_closed h],
+  have B : interior (frontier s) ⊆ interior s, by rw A; exact interior_mono (diff_subset _ _),
+  have C : interior (frontier s) ⊆ frontier s := interior_subset,
+  have : interior (frontier s) ⊆ (interior s) ∩ (s \ interior s) :=
+    subset_inter B (by simpa [A] using C),
+  rwa [inter_diff_self, subset_empty_iff] at this,
+end
+
 /-- neighbourhood filter -/
 def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal s)
 

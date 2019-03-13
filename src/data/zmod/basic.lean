@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Chris Hughes
 -/
 import data.int.modeq data.int.gcd data.fintype data.pnat
+import algebra.char_p algebra.module
 
 open nat nat.modeq int
 
@@ -227,17 +228,44 @@ def units_equiv_coprime {n : ℕ+} : units (zmod n) ≃ {x : zmod n // nat.copri
   left_inv := λ ⟨_, _, _, _⟩, units.ext rfl,
   right_inv := λ ⟨_, _⟩, rfl }
 
+section
+variables (α : Type*) [ring α] {n : ℕ+}
+
+def cast : zmod n → α := nat.cast ∘ fin.val
+
+instance cast_is_ring_hom [char_p α n] : is_ring_hom (cast α) :=
+{ map_one := by rw ←nat.cast_one; exact eq.symm (char_p.eq_mod α n 1),
+  map_mul := assume x y : zmod n, show ↑((x * y).val) = ↑(x.val) * ↑(y.val), from
+    by rw [zmod.mul_val, ←char_p.eq_mod, nat.cast_mul],
+  map_add := assume x y : zmod n, show ↑((x + y).val) = ↑(x.val) + ↑(y.val), from
+    by rw [zmod.add_val, ←char_p.eq_mod, nat.cast_add] }
+
+open is_ring_hom
+
+instance to_module [char_p α n] : module (zmod n) α :=
+module.of_core
+{ smul := λ r x, (cast α) r * x,
+  smul_add := λ r x y, by unfold has_scalar.smul; rw[mul_add]; refl,
+  add_smul := λ r s x, by unfold has_scalar.smul; rw[map_add (cast α), add_mul]; apply_instance,
+  mul_smul := λ r s x, by unfold has_scalar.smul; rw[map_mul (cast α), mul_assoc]; apply_instance,
+  one_smul := λ x, show (cast α) 1 * x = _, by rw[map_one (cast α), one_mul]; apply_instance }
+
+instance to_module' {m : ℕ} {hm : m > 0} [hc : char_p α m] : module (zmod ⟨m, hm⟩) α :=
+@zmod.to_module α _ ⟨m, hm⟩ hc
+
+end
+
 end zmod
 
-def zmodp (p : ℕ) (hp : prime p) : Type := zmod ⟨p, hp.pos⟩
+def zmodp (p : ℕ) (hp : nat.prime p) : Type := zmod ⟨p, hp.pos⟩
 
 namespace zmodp
 
-variables {p : ℕ} (hp : prime p)
+variables {p : ℕ} (hp : nat.prime p)
 
 instance : comm_ring (zmodp p hp) := zmod.comm_ring ⟨p, hp.pos⟩
 
-instance {p : ℕ} (hp : prime p) : has_inv (zmodp p hp) :=
+instance {p : ℕ} (hp : nat.prime p) : has_inv (zmodp p hp) :=
 ⟨λ a, gcd_a a.1 p⟩
 
 lemma add_val : ∀ a b : zmodp p hp, (a + b).val = (a.val + b.val) % p
@@ -299,14 +327,14 @@ instance (n : ℕ+) : has_repr (zmodp p hp) := fin.has_repr _
 @[simp] lemma card_zmodp : fintype.card (zmodp p hp) = p :=
 @zmod.card_zmod ⟨p, hp.pos⟩
 
-lemma le_div_two_iff_lt_neg {p : ℕ} (hp : prime p) (hp1 : p % 2 = 1)
+lemma le_div_two_iff_lt_neg {p : ℕ} (hp : nat.prime p) (hp1 : p % 2 = 1)
   {x : zmodp p hp} (hx0 : x ≠ 0) : x.1 ≤ (p / 2 : ℕ) ↔ (p / 2 : ℕ) < (-x).1 :=
 @zmod.le_div_two_iff_lt_neg ⟨p, hp.pos⟩ hp1 _ hx0
 
 lemma ne_neg_self (hp1 : p % 2 = 1) {a : zmodp p hp} (ha : a ≠ 0) : a ≠ -a :=
 @zmod.ne_neg_self ⟨p, hp.pos⟩ hp1 _ ha
 
-lemma prime_ne_zero {q : ℕ} (hq : prime q) (hpq : p ≠ q) : (q : zmodp p hp) ≠ 0 :=
+lemma prime_ne_zero {q : ℕ} (hq : nat.prime q) (hpq : p ≠ q) : (q : zmodp p hp) ≠ 0 :=
 by rwa [← nat.cast_zero, ne.def, zmodp.eq_iff_modeq_nat, nat.modeq.modeq_zero_iff,
   ← hp.coprime_iff_not_dvd, coprime_primes hp hq]
 

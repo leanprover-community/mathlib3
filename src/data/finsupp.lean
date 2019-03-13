@@ -802,7 +802,7 @@ lemma subtype_domain_left_inv (p : α → Prop) [d : decidable_pred p] (f : {f :
 map_domain subtype.val (subtype_domain p f.val) = f.val :=
 finsupp.ext $ λ a, match d a with
 | is_true  (hp : p a)  := by rw[←subtype.coe_mk _ hp];
-  exact map_domain_apply _ _ subtype.val_injective
+  exact map_domain_apply subtype.val_injective _ _
 | is_false (hp : ¬p a) :=
   have a ∉ f.val.support, from mt (f.property a) hp,
   have h0 : f.val a = 0, from of_not_not $ mt ((f.val.mem_support_to_fun a).mpr) this,
@@ -818,7 +818,7 @@ end
 
 lemma subtype_domain_right_inv (p : α → Prop) [decidable_pred p] (f : subtype p →₀ β) :
 subtype_domain p (map_domain subtype.val f) = f :=
-finsupp.ext $ λ a, map_domain_apply _ _ (subtype.val_injective)
+finsupp.ext $ λ a, map_domain_apply (subtype.val_injective) _ _
 
 end comm_monoid
 

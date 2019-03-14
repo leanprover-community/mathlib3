@@ -236,15 +236,15 @@ end
 
 end zmod
 
-def zmodp (p : ℕ) (hp : nat.prime p) : Type := zmod ⟨p, hp.pos⟩
+def zmodp (p : ℕ) (hp : prime p) : Type := zmod ⟨p, hp.pos⟩
 
 namespace zmodp
 
-variables {p : ℕ} (hp : nat.prime p)
+variables {p : ℕ} (hp : prime p)
 
 instance : comm_ring (zmodp p hp) := zmod.comm_ring ⟨p, hp.pos⟩
 
-instance {p : ℕ} (hp : nat.prime p) : has_inv (zmodp p hp) :=
+instance {p : ℕ} (hp : prime p) : has_inv (zmodp p hp) :=
 ⟨λ a, gcd_a a.1 p⟩
 
 lemma add_val : ∀ a b : zmodp p hp, (a + b).val = (a.val + b.val) % p
@@ -306,14 +306,14 @@ instance (n : ℕ+) : has_repr (zmodp p hp) := fin.has_repr _
 @[simp] lemma card_zmodp : fintype.card (zmodp p hp) = p :=
 @zmod.card_zmod ⟨p, hp.pos⟩
 
-lemma le_div_two_iff_lt_neg {p : ℕ} (hp : nat.prime p) (hp1 : p % 2 = 1)
+lemma le_div_two_iff_lt_neg {p : ℕ} (hp : prime p) (hp1 : p % 2 = 1)
   {x : zmodp p hp} (hx0 : x ≠ 0) : x.1 ≤ (p / 2 : ℕ) ↔ (p / 2 : ℕ) < (-x).1 :=
 @zmod.le_div_two_iff_lt_neg ⟨p, hp.pos⟩ hp1 _ hx0
 
 lemma ne_neg_self (hp1 : p % 2 = 1) {a : zmodp p hp} (ha : a ≠ 0) : a ≠ -a :=
 @zmod.ne_neg_self ⟨p, hp.pos⟩ hp1 _ ha
 
-lemma prime_ne_zero {q : ℕ} (hq : nat.prime q) (hpq : p ≠ q) : (q : zmodp p hp) ≠ 0 :=
+lemma prime_ne_zero {q : ℕ} (hq : prime q) (hpq : p ≠ q) : (q : zmodp p hp) ≠ 0 :=
 by rwa [← nat.cast_zero, ne.def, zmodp.eq_iff_modeq_nat, nat.modeq.modeq_zero_iff,
   ← hp.coprime_iff_not_dvd, coprime_primes hp hq]
 

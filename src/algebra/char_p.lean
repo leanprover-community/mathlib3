@@ -176,7 +176,7 @@ namespace zmod
 
 variables {α : Type u} [ring α] {n : ℕ+}
 
-instance cast_is_ring_hom [char_p α n] : is_ring_hom (@cast α _ _ _ n) :=
+instance cast_is_ring_hom [char_p α n] : is_ring_hom (cast : zmod n → α) :=
 { map_one := by rw ←@nat.cast_one α _ _; exact eq.symm (char_p.eq_mod α n 1),
   map_mul := assume x y : zmod n, show ↑((x * y).val) = ↑(x.val) * ↑(y.val), from
     by rw [zmod.mul_val, ←char_p.eq_mod, nat.cast_mul],

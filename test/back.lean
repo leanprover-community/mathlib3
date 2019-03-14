@@ -137,6 +137,7 @@ add_le_add (add_le_add (add_le_add (add_le_add h1 (mul_le_mul_of_nonneg_right h2
 example {a b c d e : nat} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
 a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
 by back? [add_le_add, mul_le_mul_of_nonneg_right]
+-- says `exact add_le_add (add_le_add (add_le_add (add_le_add h1 (mul_le_mul_of_nonneg_right h2 h3)) h1) h2) h3`
 
 @[user_attribute]
 meta def mono_rules : user_attribute :=
@@ -181,13 +182,24 @@ begin
   back? with dvd,
 end
 
-set_option profiler true
 example {a b c : ℕ} (h₁ : a ∣ c) (h₂ : a ∣ b + c) : a ∣ b :=
 begin
-  library_search, -- says exact (nat.dvd_add_iff_left h₁).mpr h₂
+  library_search, -- says `exact (nat.dvd_add_iff_left h₁).mpr h₂`
 end
 
 end dvd
+
+section infinite_of_prime_by_library_search
+
+example (N : ℕ) : ∃ p ≥ N, prime p :=
+begin
+  let M := fact N + 1,
+  let p := min_fac M,
+  have pp : prime p, { library_search, },
+  sorry
+end
+
+end infinite_of_prime_by_library_search
 
 section nat
 
@@ -232,17 +244,17 @@ by library_search [-one_le_of_lt]
 -- It would be nice to just use `nat.le_trans` here!
 
 lemma le_pred_of_lt {n m : ℕ} (h : m < n) : m ≤ n - 1 :=
-by library_search [-le_pred_of_lt]
+by library_search [-le_pred_of_lt] -- says: `exact nat.le_sub_right_of_add_le h`
 
 example {α : Type} (x y : α) : x = y ↔ y = x :=
-by library_search -- says: exact eq_comm
+by library_search -- says: `exact eq_comm`
 
 example (a b : ℕ) (ha : 0 < a) (hb : 0 < b) : 0 < a + b :=
-by library_search -- says: exact add_pos_left ha b
+by library_search -- says: `exact add_pos_left ha b`
 
 -- TODO maybe run intros first??
 example (a b : ℕ) : 0 < a → 0 < b → 0 < a + b :=
-by library_search -- says: exact add_pos
+by library_search -- says: `exact add_pos`
 
 
 -- FIXME why are these failing?
@@ -255,5 +267,7 @@ by library_search -- says: exact add_pos
 -- example {a b : ℕ} (b < 0) : a ≤ a * b :=
 -- by library_search
 
+example : ∀ P : Prop, ¬(P ↔ ¬P) :=
+by library_search -- says: `λ (a : Prop), (iff_not_self a).mp`
 
 end nat

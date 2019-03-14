@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Chris Hughes
 -/
 import data.int.modeq data.int.gcd data.fintype data.pnat
-import algebra.char_p algebra.module
 
 open nat nat.modeq int
 
@@ -229,21 +228,9 @@ def units_equiv_coprime {n : ℕ+} : units (zmod n) ≃ {x : zmod n // nat.copri
   right_inv := λ ⟨_, _⟩, rfl }
 
 section
-variables {α : Type*} [ring α] {n : ℕ+}
+variables {α : Type*} [has_zero α] [has_one α] [has_add α] {n : ℕ+}
 
 def cast : zmod n → α := nat.cast ∘ fin.val
-
-instance cast_is_ring_hom [char_p α n] : is_ring_hom (@cast α _ _) :=
-{ map_one := by rw ←nat.cast_one; exact eq.symm (char_p.eq_mod α n 1),
-  map_mul := assume x y : zmod n, show ↑((x * y).val) = ↑(x.val) * ↑(y.val), from
-    by rw [zmod.mul_val, ←char_p.eq_mod, nat.cast_mul],
-  map_add := assume x y : zmod n, show ↑((x + y).val) = ↑(x.val) + ↑(y.val), from
-    by rw [zmod.add_val, ←char_p.eq_mod, nat.cast_add] }
-
-instance to_module [char_p α n] : module (zmod n) α := is_ring_hom.to_module cast
-
-instance to_module' {m : ℕ} {hm : m > 0} [hc : char_p α m] : module (zmod ⟨m, hm⟩) α :=
-@zmod.to_module α _ ⟨m, hm⟩ hc
 
 end
 

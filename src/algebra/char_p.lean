@@ -7,6 +7,7 @@ Characteristic of semirings.
 -/
 
 import data.padics.padic_norm data.nat.choose data.fintype data.set
+import data.zmod.basic algebra.module
 
 universes u v
 
@@ -166,3 +167,21 @@ theorem char_p.prime [fintype α] [decidable_eq α] (p : ℕ) [char_p α p] : na
 or.resolve_right (char_p.prime_or_zero α p) (char_p.ne_zero_of_fintype α p)
 
 end integral_domain
+
+namespace zmod
+
+variables {α : Type u} [ring α] {n : ℕ+}
+
+instance cast_is_ring_hom [char_p α n] : is_ring_hom (@cast α _ _ _ n) :=
+{ map_one := by rw ←@nat.cast_one α _ _; exact eq.symm (char_p.eq_mod α n 1),
+  map_mul := assume x y : zmod n, show ↑((x * y).val) = ↑(x.val) * ↑(y.val), from
+    by rw [zmod.mul_val, ←char_p.eq_mod, nat.cast_mul],
+  map_add := assume x y : zmod n, show ↑((x + y).val) = ↑(x.val) + ↑(y.val), from
+    by rw [zmod.add_val, ←char_p.eq_mod, nat.cast_add] }
+
+instance to_module [char_p α n] : module (zmod n) α := is_ring_hom.to_module cast
+
+instance to_module' {m : ℕ} {hm : m > 0} [hc : char_p α m] : module (zmod ⟨m, hm⟩) α :=
+@zmod.to_module α _ ⟨m, hm⟩ hc
+
+end zmod

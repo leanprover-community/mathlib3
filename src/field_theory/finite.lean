@@ -85,7 +85,7 @@ variables [discrete_field α] [fintype α]
 variables [discrete_field β] [fintype β]
 
 theorem card (p : ℕ) [char_p α p] : ∃ (n : ℕ+), nat.prime p ∧ fintype.card α = p^(n : ℕ) :=
-have hp : nat.prime p, from char_p_prime α p,
+have hp : nat.prime p, from char_p.prime α p,
 have V : vector_space (zmodp p hp) α, from {..zmod.to_module' α},
 let ⟨n, h⟩ := @vector_space.card_fintype' _ _ _ _ V _ _ in
 have hn : n > 0, from or.resolve_left (nat.eq_zero_or_pos n)

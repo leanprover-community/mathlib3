@@ -80,7 +80,6 @@ by rw [← insert_erase (mem_univ (-1 : units α)), prod_insert (not_mem_erase _
 end
 
 section
-open fintype vector_space
 variables [discrete_field α] [fintype α]
 variables [discrete_field β] [fintype β]
 
@@ -90,7 +89,7 @@ have V : vector_space (zmodp p hp) α, from {..zmod.to_module'},
 let ⟨n, h⟩ := @vector_space.card_fintype' _ _ _ _ V _ _ in
 have hn : n > 0, from or.resolve_left (nat.eq_zero_or_pos n)
   (assume h0 : n = 0,
-  have card α = 1, by rw[←nat.pow_zero (fintype.card _), ←h0]; exact h,
+  have fintype.card α = 1, by rw[←nat.pow_zero (fintype.card _), ←h0]; exact h,
   have (1 : α) = 0, from (fintype.card_le_one_iff.mp (le_of_eq this)) 1 0,
   absurd this one_ne_zero),
 ⟨⟨n, hn⟩, hp, fintype.card_fin p ▸ h⟩

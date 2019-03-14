@@ -109,20 +109,22 @@ theorem frobenius_nat_cast (α : Type u) [comm_ring α] (p : ℕ) [nat.prime p] 
   frobenius α p x = x :=
 by induction x; simp only [nat.cast_zero, nat.cast_succ, frobenius_zero, frobenius_one, frobenius_add, *]
 
+namespace char_p
+
 section
 variables (α : Type u) [ring α]
 
-theorem char_p.to_char_zero [char_p α 0] : char_zero α :=
+lemma to_char_zero [char_p α 0] : char_zero α :=
 add_group.char_zero_of_inj_zero $
-  λ n h0, eq_zero_of_zero_dvd ((char_p.cast_eq_zero_iff α 0 n).mp h0)
+  λ n h0, eq_zero_of_zero_dvd ((cast_eq_zero_iff α 0 n).mp h0)
 
-lemma char_p.eq_mod (p : ℕ) [char_p α p] (k : ℕ) : (k : α) = (k % p : ℕ) :=
+lemma eq_mod (p : ℕ) [char_p α p] (k : ℕ) : (k : α) = (k % p : ℕ) :=
 calc (k : α) = ↑(k % p + p * (k / p)) : by rw [nat.mod_add_div]
-         ... = ↑(k % p)               : by simp[char_p.cast_eq_zero]
+         ... = ↑(k % p)               : by simp[cast_eq_zero]
 
-theorem char_p.ne_zero_of_fintype (p : ℕ) [hc : char_p α p] [fintype α] [decidable_eq α] : p ≠ 0 :=
+theorem ne_zero_of_fintype (p : ℕ) [hc : char_p α p] [fintype α] [decidable_eq α] : p ≠ 0 :=
 assume h : p = 0,
-have char_zero α := @char_p.to_char_zero α _ (h ▸ hc),
+have char_zero α := @to_char_zero α _ (h ▸ hc),
 absurd (@nat.cast_injective α _ _ this) (@set.not_injective_nat_fintype α _ _ _)
 
 end
@@ -132,41 +134,43 @@ open nat
 
 variables (α : Type u) [integral_domain α]
 
-theorem char_p.ne_one (p : ℕ) [hc : char_p α p] : p ≠ 1 :=
+theorem ne_one (p : ℕ) [hc : char_p α p] : p ≠ 1 :=
 assume hp : p = 1,
-have (↑1 : α) = 0, from (char_p.cast_eq_zero_iff α p 1).mpr (hp ▸ dvd_refl p),
+have (↑1 : α) = 0, from (cast_eq_zero_iff α p 1).mpr (hp ▸ dvd_refl p),
 have ( 1 : α) = 0, from @cast_one α _ _ ▸ this,
 absurd this one_ne_zero
 
-theorem char_p.prime_of_ge_two (p : ℕ) [hc : char_p α p] (hp : p ≥ 2) : nat.prime p :=
+theorem is_prime_of_ge_two (p : ℕ) [hc : char_p α p] (hp : p ≥ 2) : nat.prime p :=
 suffices ∀d ∣ p, d = 1 ∨ d = p, from ⟨hp, this⟩,
 assume (d : ℕ) (hdvd : ∃ e, p = d * e),
 let ⟨e, hmul⟩ := hdvd in
-have (p : α) = 0, from (char_p.cast_eq_zero_iff α p p).mpr (dvd_refl p),
+have (p : α) = 0, from (cast_eq_zero_iff α p p).mpr (dvd_refl p),
 have (d : α) * e = 0, from (@cast_mul α _ d e) ▸ (hmul ▸ this),
 or.elim (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero (d : α) e this)
   (assume hd : (d : α) = 0,
-  have p ∣ d, from (char_p.cast_eq_zero_iff α p d).mp hd,
+  have p ∣ d, from (cast_eq_zero_iff α p d).mp hd,
   show d = 1 ∨ d = p, from or.inr (dvd_antisymm ⟨e, hmul⟩ this))
   (assume he : (e : α) = 0,
-  have p ∣ e, from (char_p.cast_eq_zero_iff α p e).mp he,
+  have p ∣ e, from (cast_eq_zero_iff α p e).mp he,
   have e ∣ p, from dvd_of_mul_left_eq d (eq.symm hmul),
   have e = p, from dvd_antisymm ‹e ∣ p› ‹p ∣ e›,
   have h₀ : p > 0, from gt_of_ge_of_gt hp (nat.zero_lt_succ 1),
   have d * p = 1 * p, by rw ‹e = p› at hmul; rw [one_mul]; exact eq.symm hmul,
   show d = 1 ∨ d = p, from or.inl (eq_of_mul_eq_mul_right h₀ this))
 
-theorem char_p.prime_or_zero (p : ℕ) [hc : char_p α p] : nat.prime p ∨ p = 0 :=
+theorem is_prime_or_zero (p : ℕ) [hc : char_p α p] : nat.prime p ∨ p = 0 :=
 match p, hc with
 | 0,     _  := or.inr rfl
-| 1,     hc := absurd (eq.refl (1 : ℕ)) (@char_p.ne_one α _ (1 : ℕ) hc)
-| (m+2), hc := or.inl (@char_p.prime_of_ge_two α _ (m+2) hc (nat.le_add_left 2 m))
+| 1,     hc := absurd (eq.refl (1 : ℕ)) (@ne_one α _ (1 : ℕ) hc)
+| (m+2), hc := or.inl (@is_prime_of_ge_two α _ (m+2) hc (nat.le_add_left 2 m))
 end
 
-theorem char_p.prime [fintype α] [decidable_eq α] (p : ℕ) [char_p α p] : nat.prime p :=
-or.resolve_right (char_p.prime_or_zero α p) (char_p.ne_zero_of_fintype α p)
+theorem is_prime [fintype α] [decidable_eq α] (p : ℕ) [char_p α p] : nat.prime p :=
+or.resolve_right (is_prime_or_zero α p) (ne_zero_of_fintype α p)
 
 end integral_domain
+
+end char_p
 
 namespace zmod
 

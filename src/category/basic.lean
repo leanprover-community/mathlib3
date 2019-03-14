@@ -119,7 +119,7 @@ lemma fish_assoc {α β γ φ} (f : α → m β) (g : β → m γ) (h : γ → m
   (f >=> g) >=> h = f >=> (g >=> h) :=
 by simp only [(>=>)] with functor_norm
 
-@[simp]
+@[functor_norm]
 lemma bind_pure_star {m} [monad m] [is_lawful_monad m] (x : m punit) :
   x >>= (λ (_x : punit), pure punit.star : punit → m punit) = x :=
 by { transitivity,

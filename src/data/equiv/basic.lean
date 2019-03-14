@@ -724,6 +724,12 @@ by dsimp [set_value]; simp [swap_apply_left]
 
 end swap
 
+lemma forall_iff_forall {α β} {p : α → Prop} (f : α ≃ β) :
+  (∀ x, p x) ↔ (∀ x, p $ f.symm x) :=
+iff.intro
+  (assume h x, h _)
+  (assume h x, by { specialize h (f x), revert h, simp })
+
 end equiv
 
 instance {α} [subsingleton α] : subsingleton (ulift α) := equiv.ulift.subsingleton

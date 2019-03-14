@@ -223,11 +223,11 @@ ext $ λ a, by simp; exact
  ⟨λ ⟨_, ⟨_, h₁, h₂⟩, h₃⟩, ⟨_, h₁, _, h₂, h₃⟩,
   λ ⟨_, h₁, _, h₂, h₃⟩, ⟨_, ⟨_, h₁, h₂⟩, h₃⟩⟩
 
-protected theorem bind_map {γ} (f : α → β) (x) (g : β → roption γ) :
+@[simp] theorem bind_map {γ} (f : α → β) (x) (g : β → roption γ) :
   (map f x).bind g = x.bind (λ y, g (f y)) :=
 by rw [← bind_some_eq_map, bind_assoc]; simp
 
-protected theorem map_bind {γ} (f : α → roption β) (x : roption α) (g : β → γ) :
+@[simp] theorem map_bind {γ} (f : α → roption β) (x : roption α) (g : β → γ) :
   map g (x.bind f) = x.bind (λ y, map g (f y)) :=
 by rw [← bind_some_eq_map, bind_assoc]; simp [bind_some_eq_map]
 
@@ -252,13 +252,26 @@ by rw [show f = id, from funext H]; exact id_map o
 @[simp] theorem bind_some_right (x : roption α) : x.bind some = x :=
 by rw [bind_some_eq_map]; simp [map_id']
 
-@[simp] theorem ret_eq_some (a : α) : return a = some a := rfl
+theorem ret_eq_some (a : α) : return a = some a := rfl
 
-@[simp] theorem map_eq_map {α β} (f : α → β) (o : roption α) :
+theorem map_eq_map {α β} (f : α → β) (o : roption α) :
   f <$> o = map f o := rfl
 
-@[simp] theorem bind_eq_bind {α β} (f : roption α) (g : α → roption β) :
+theorem bind_eq_bind {α β} (f : roption α) (g : α → roption β) :
   f >>= g = f.bind g := rfl
+
+@[simp] theorem mem_map_iff' {α β} (f : α → β) {o : roption α} {b} :
+  b ∈ f <$> o ↔ ∃ a ∈ o, f a = b :=
+mem_map_iff f
+
+@[simp] theorem map_none' {α β} (f : α → β) :
+  f <$> none = none := map_none f
+
+@[simp] theorem mem_bind_iff' {α β} {f : roption α} {g : α → roption β} {b} :
+  b ∈ f >>= g ↔ ∃ a ∈ f, b ∈ g a := mem_bind_iff
+
+@[simp] theorem bind_none' {α β} (f : α → roption β) :
+  none >>= f = none := bind_none f
 
 instance : monad_fail roption :=
 { fail := λ_ _, none, ..roption.monad }

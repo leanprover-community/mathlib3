@@ -233,7 +233,7 @@ by refine { .. }; intros; apply serializer.eq; try { ext }; simp [map_map]
 
 instance {α} : is_lawful_applicative (serializer.{u} α) :=
 by{  constructor; intros; apply serializer.eq; try { ext };
-     simp [(>>),pure_seq_eq_map,seq_assoc,bind_assoc],  }
+     simp [(>>),pure_seq_eq_map,seq_assoc,bind_assoc] with functor_norm }
 
 protected def up {β} (ser : serializer β β) : serializer (ulift.{u v} β) (ulift.{u v} β) :=
 { encoder := pliftable.up' _ ∘ ser.encoder ∘ ulift.down,

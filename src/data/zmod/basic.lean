@@ -240,9 +240,9 @@ instance cast_is_ring_hom [char_p α n] : is_ring_hom (@cast α _ _) :=
   map_add := assume x y : zmod n, show ↑((x + y).val) = ↑(x.val) + ↑(y.val), from
     by rw [zmod.add_val, ←char_p.eq_mod, nat.cast_add] }
 
-theorem to_module [char_p α n] : module (zmod n) α := is_ring_hom.to_module cast
+instance to_module [char_p α n] : module (zmod n) α := is_ring_hom.to_module cast
 
-theorem to_module' {m : ℕ} {hm : m > 0} [hc : char_p α m] : module (zmod ⟨m, hm⟩) α :=
+instance to_module' {m : ℕ} {hm : m > 0} [hc : char_p α m] : module (zmod ⟨m, hm⟩) α :=
 @zmod.to_module α _ ⟨m, hm⟩ hc
 
 end

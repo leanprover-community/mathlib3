@@ -108,7 +108,7 @@ instance semiring.to_semimodule [r : semiring α] : semimodule α α :=
 instance ring.to_module [r : ring α] : module α α :=
 { ..semiring.to_semimodule }
 
-theorem is_ring_hom.to_module [ring α] [ring β] (f : α → β) [h : is_ring_hom f] : module α β :=
+def is_ring_hom.to_module [ring α] [ring β] (f : α → β) [h : is_ring_hom f] : module α β :=
 module.of_core
 { smul := λ r x, f r * x,
   smul_add := λ r x y, by unfold has_scalar.smul; rw[mul_add],

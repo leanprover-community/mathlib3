@@ -672,7 +672,7 @@ def metric_space.induced {α β} (f : α → β) (hf : function.injective f)
       exact ⟨_, dist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
   end }
 
-instance metric_space_subtype {p : α → Prop} [t : metric_space α] : metric_space (subtype p) :=
+instance subtype.metric_space {p : α → Prop} [t : metric_space α] : metric_space (subtype p) :=
 metric_space.induced subtype.val (λ x y, subtype.eq) t
 
 theorem subtype.dist_eq {p : α → Prop} [t : metric_space α] (x y : subtype p) :

@@ -111,10 +111,10 @@ instance ring.to_module [r : ring α] : module α α :=
 theorem is_ring_hom.to_module [ring α] [ring β] (f : α → β) [h : is_ring_hom f] : module α β :=
 module.of_core
 { smul := λ r x, f r * x,
-  smul_add := λ r x y, by unfold has_scalar.smul; rw[mul_add]; refl,
-  add_smul := λ r s x, by unfold has_scalar.smul; rw[h.map_add, add_mul]; apply_instance,
-  mul_smul := λ r s x, by unfold has_scalar.smul; rw[h.map_mul, mul_assoc]; apply_instance,
-  one_smul := λ x, show f 1 * x = _, by rw[h.map_one, one_mul]; apply_instance }
+  smul_add := λ r x y, by unfold has_scalar.smul; rw[mul_add],
+  add_smul := λ r s x, by unfold has_scalar.smul; rw[h.map_add, add_mul],
+  mul_smul := λ r s x, by unfold has_scalar.smul; rw[h.map_mul, mul_assoc],
+  one_smul := λ x, show f 1 * x = _, by rw[h.map_one, one_mul] }
 
 class is_linear_map (α : Type u) {β : Type v} {γ : Type w}
   [ring α] [add_comm_group β] [add_comm_group γ] [module α β] [module α γ]

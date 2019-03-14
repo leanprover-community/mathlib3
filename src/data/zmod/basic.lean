@@ -242,13 +242,7 @@ instance cast_is_ring_hom [char_p α n] : is_ring_hom (cast α) :=
 
 open is_ring_hom
 
-instance to_module [char_p α n] : module (zmod n) α :=
-module.of_core
-{ smul := λ r x, (cast α) r * x,
-  smul_add := λ r x y, by unfold has_scalar.smul; rw[mul_add]; refl,
-  add_smul := λ r s x, by unfold has_scalar.smul; rw[map_add (cast α), add_mul]; apply_instance,
-  mul_smul := λ r s x, by unfold has_scalar.smul; rw[map_mul (cast α), mul_assoc]; apply_instance,
-  one_smul := λ x, show (cast α) 1 * x = _, by rw[map_one (cast α), one_mul]; apply_instance }
+instance to_module [char_p α n] : module (zmod n) α := is_ring_hom.to_module (cast α)
 
 instance to_module' {m : ℕ} {hm : m > 0} [hc : char_p α m] : module (zmod ⟨m, hm⟩) α :=
 @zmod.to_module α _ ⟨m, hm⟩ hc

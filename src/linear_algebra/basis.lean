@@ -593,7 +593,7 @@ variables (b : set β) (h : is_basis α b)
 
 noncomputable def equiv_fun_basis [fintype b] : β ≃ (b → α) :=
 calc β ≃ lc.supported α b : (module_equiv_lc h).to_equiv
-   ... ≃ (b →₀ α)         : equiv.symm finsupp_equiv_lc
+   ... ≃ (b →₀ α)         : finsupp.restrict_support_equiv b
    ... ≃ (b → α)          : finsupp.equiv_fun_on_fintype
 
 theorem vector_space.card_fintype [fintype α] [fintype β] : card β = (card α) ^ (card b) :=

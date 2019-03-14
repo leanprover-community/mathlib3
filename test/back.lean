@@ -184,7 +184,7 @@ end
 set_option profiler true
 example {a b c : ℕ} (h₁ : a ∣ c) (h₂ : a ∣ b + c) : a ∣ b :=
 begin
-  library_search,
+  library_search, -- says exact (nat.dvd_add_iff_left h₁).mpr h₂
 end
 
 end dvd
@@ -192,10 +192,10 @@ end dvd
 section nat
 
 example {a b : ℕ} : a ≤ a + b :=
-by library_search
+by library_search -- exact le_add_right a b
 
 example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
-by library_search
+by library_search -- exact nat.mul_sub_left_distrib n m k
 
 lemma div_dvd_of_dvd {a b : ℕ} (h : b ∣ a) : (a / b) ∣ a :=
 -- The mathlib proof is: `⟨b, (nat.div_mul_cancel h).symm⟩`

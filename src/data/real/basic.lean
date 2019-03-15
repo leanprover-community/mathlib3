@@ -540,7 +540,7 @@ begin
 end
 
 /- note: if you want to conclude `x ≤ sqrt y`, then use `le_sqrt_of_sqr_le`.
-   if you have `y > 0`, consider using `le_sqrt'` -/
+   if you have `x > 0`, consider using `le_sqrt'` -/
 lemma le_sqrt (hx : 0 ≤ x) (hy : 0 ≤ y) : x ≤ sqrt y ↔ x ^ 2 ≤ y :=
 by rw [mul_self_le_mul_self_iff hx (sqrt_nonneg _), pow_two, mul_self_sqrt hy]
 

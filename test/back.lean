@@ -225,12 +225,6 @@ by library_search [-div_dvd_of_dvd]
 -- -- back? with _,
 -- end
 
-#print linear_ordered_semiring.le_of_add_le_add_left
-#print ordered_semiring.le_of_add_le_add_left
-#print lt_of_le_of_lt
-#print lattice.distrib_lattice.le_trans
-#print nat.le_trans
-
 lemma one_le_of_lt {n m : ℕ} (h : n < m) : 1 ≤ m :=
 by library_search [-one_le_of_lt]
 -- a human proof:

@@ -4,6 +4,7 @@
 
 import tactic.basic
 import data.list.defs
+import data.option.basic
 
 namespace tactic
 open native
@@ -17,15 +18,14 @@ def lexicographic_preorder {α β : Type*} [preorder α] [preorder β] : preorde
   begin
     dsimp at *,
     cases h₁,
-    { left,
-      cases h₂,
+    { left, cases h₂,
       { exact lt_trans h₁ h₂ },
       { rwa ←h₂.left } },
     { cases h₂,
       { left, rwa h₁.left },
       { right, exact ⟨eq.trans h₁.1 h₂.1, le_trans h₁.2 h₂.2⟩ }
     } end }
-local attribute [instance] lexicographic_preorder
+local attribute [instance, priority 500] lexicographic_preorder
 
 -- Just a check that we're actually using lexicographic ordering here.
 example : (5,10) ≤ (10,3) := by exact dec_trivial
@@ -34,9 +34,14 @@ def bool_preorder : preorder bool :=
 { le := λ a b, bor a (bnot b) = tt,
   le_refl := λ a, begin cases a; simp end,
   le_trans := λ a b c h₁ h₂, begin cases a; cases b; cases c; simp at *; assumption end }
-local attribute [instance] bool_preorder
+local attribute [instance, priority 500] bool_preorder
 
 example : tt ≤ ff := by exact dec_trivial
+
+def unit_preorder : preorder unit :=
+{ le := λ _ _, true,
+  le_refl := λ a, by trivial,
+  le_trans := λ a b c h₁ h₂, by trivial }
 
 meta def head_symbol : expr → name
 | (expr.pi _ _ _ t) := head_symbol t
@@ -101,8 +106,6 @@ resulting subgoals cannot all be discharged.",
      dependencies := [] }
 }
 
-
-
 meta structure back_lemma :=
 (lem          : expr)
 (ty           : expr)
@@ -118,16 +121,6 @@ meta def back_lemma.is_fact (l : back_lemma) : bool := ¬ expr.is_pi l.ty
 -- We fake an instance here for convenience. Correctness is ensured by creating unique index values.
 meta instance : decidable_eq back_lemma :=
 λ a b, if a.index = b.index then is_true undefined else is_false undefined
-
--- -- Can be much better!
--- meta def filter_lemmas (goal_type : expr) (lemmas : list back_lemma) : tactic (list back_lemma) :=
--- do -- trace format!"filtering lemmas for {goal_type}",
---    let hs := head_symbol goal_type,
---    -- trace hs,
---   --  lemmas.mmap $ λ l, (do t ← infer_type l.lem, return (l.lem, head_symbols t)) >>= trace,
---    result ← lemmas.mfilter $ λ l, (do t ← infer_type l.lem, return $ hs ∈ head_symbols t),
---    -- trace $ result.map back_lemma.lem,
---    return result
 
 @[derive decidable_eq]
 inductive apply_step
@@ -195,22 +188,19 @@ meta def back_state.done (s : back_state) : bool :=
 s.goals.empty
 
 -- TODO Think hard about what goes here; possibly allow customisation.
-meta def back_state.complexity (s : back_state) : ℕ × bool × ℤ × ℕ :=
+meta def back_state.default_complexity (s : back_state) : ℤ × ℕ :=
 -- It's essential to put `stashed` first, so that stashed goals are not returned until
 -- we've exhausted other branches of the search tree.
 -- (s.stashed.length, s.done, 2 * s.in_progress_fc.length + 2 * s.committed_fc.length + s.steps, s.steps + s.num_mvars) -- works!
 -- (s.stashed.length, s.done, 16 * s.in_progress_fc.length + 16 * s.committed_fc.length + 4 * s.in_progress_new.length + 4 * s.committed_new.length + s.steps, s.steps + s.num_mvars)
 
-(-- We postpone back_states with stashed goals.
- s.stashed.length,
- -- But otherwise bring back_states with no remaining goals to the front.
- s.done,
- -- Amongst the completed back_states with stashed goals, we prefer whoever took the most steps.
- if s.stashed.length > 0 ∧ s.done then - (s.steps : ℤ) else 0,
+(if s.stashed.length > 0 ∧ s.done then - (s.steps : ℤ) else 0,
  -- Goals which haven't been fact-checked yet are cheap; goals which have been are more expensive.
  -- TODO explain why `steps` amd `fact_steps` are here.
  -- The particular weights used here are ... voodoo.
  4 * (list.foldl (+) 0 (s.goals.map (λ as : apply_state, as.step.weight))) + s.steps - s.fact_steps)
+
+meta def back_state.depth_first_complexity (s : back_state) : unit := ()
 
 -- Count the number of arguments not determined by later arguments.
 meta def count_arrows : expr → ℕ
@@ -231,6 +221,8 @@ meta def sort_by_arrows (L : list back_lemma) : list back_lemma :=
 let M := L.map (λ e, ((count_arrows e.ty, count_pis e.ty), e)) in
 (list.qsort (λ (p q : (ℕ × ℕ) × back_lemma), p.1 ≤ q.1) M).map (λ p, p.2)
 
+declare_trace back
+
 meta def back_state.init (goals : list expr) (lemmas : list back_lemma) (limit library_limit : option ℕ) : tactic back_state :=
 λ s, (do
    let (lemmas', facts') := lemmas.partition (λ p : back_lemma, expr.is_pi p.ty),
@@ -247,10 +239,12 @@ meta def back_state.init (goals : list expr) (lemmas : list back_lemma) (limit l
             (rb_map.mk _ _),
    let lemma_map := lemma_map.map sort_by_arrows,
 
-  --  trace "facts:",
-  --  facts'.mmap (λ f, (do t ← infer_type f.lem, return (f.lem, (head_symbols t).erase_dup))) >>= trace,
-  --  trace "lemmas:",
-  --  lemmas'.mmap (λ f, (do t ← infer_type f.lem, return (f.lem, (head_symbols t).erase_dup))) >>= trace,
+   when (is_trace_enabled_for `back) $ (do
+     trace "initialising `back`...",
+     trace "using facts:",
+     facts'.mmap (λ f, (do t ← infer_type f.lem, return (f.lem, (head_symbols t).erase_dup))) >>= trace,
+     trace "using lemmas:",
+     lemmas'.mmap (λ f, (do t ← infer_type f.lem, return (f.lem, (head_symbols t).erase_dup))) >>= trace),
 
    initial_goals ← goals.mmap (λ goal, do goal_type ← infer_type goal, return
    { apply_state .
@@ -279,12 +273,6 @@ meta def partition_mvars (L : list expr) : tactic (list expr × list expr) :=
 meta def partition_apply_state_mvars (L : list apply_state) : tactic (list apply_state × list apply_state) :=
 (list.partition (λ as, as.goal.is_meta_var)) <$>
   (L.mmap (λ as, do e' ← instantiate_mvars as.goal, return { goal := e', ..as }))
-
--- TODO remove in cleanup
-meta def pad_trace (n : ℕ) {α : Type} [has_to_tactic_format α] (a : α) : tactic unit :=
-do let s := (list.repeat '.' n).as_string,
-   p ← pp a,
-   trace (s ++ sformat!"{p}")
 
 /--
 * Discard any goals which have already been solved,
@@ -330,8 +318,7 @@ as.foldl (λ s a, s.add_goal a) s
 
 meta def back_state.apply_lemma (s : back_state) (g : expr) (e : back_lemma) (step : apply_step) (committed : bool) : tactic (back_state × bool) :=
 s.run_on_bundled_state $
-do --trace $ "attempting to apply " ++ to_string e.lem,
-   set_goals [g],
+do set_goals [g],
    prop ← is_proof g,
    explicit ← (list.empty ∘ expr.list_meta_vars) <$> infer_type g,
 
@@ -346,15 +333,15 @@ do --trace $ "attempting to apply " ++ to_string e.lem,
           (list.empty ∘ expr.list_meta_vars) <$> infer_type g >>= guardb,
           s.facts.mfirst (λ f, exact f.lem)) <|> skip),
 
-   pad_trace s.steps goal_types,
-   trace $  "successfully applied " ++ to_string e.lem,
-   get_goals >>= λ gs, gs.mmap infer_type >>= pad_trace s.steps,
+   when (is_trace_enabled_for `back) $ (do
+    trace $ format!"successfully applied {e.lem} to goal {goal_types}",
+    get_goals >>= λ gs, gs.mmap infer_type >>= λ gs, trace format!"new goals: {gs}"),
 
    s' ← s.clean g e,
    (done >> return (s', prop ∧ explicit)) <|> do
    gs ← get_goals,
    types ← gs.mmap infer_type,
-   /- `back` does not attempt to proof `false`; there are just too many directions you could go. -/
+   /- `back` does not attempt to prove `false`; there are just too many directions you could go. -/
    success_if_fail $ types.mfirst $ λ t, unify t expr.mk_false,
    as ← gs.mmap $ λ g, (do
          t ← infer_type g,
@@ -388,21 +375,12 @@ match s.goals with
 | (g :: gs) :=
   do let s' := { goals := gs, ..s },
      g_pp ← pp g.goal_type,
-    --  trace format!"working on goal {g_pp}",
-    --  match g.step with
-    --  | facts := trace format!"facts: {g.lemmas.map back_lemma.lem}"
-    --  | relevant := trace format!"relevant: {g.lemmas.map back_lemma.lem}"
-    --  | others := trace format!"others: [...({g.lemmas.length})]"
-    --  end,
      s'.apply g <|>
      -- If no lemma from that step applied, we move on to the next step
      match (g.committed, g.step) with
      -- After trying to apply all the facts, we assemble the relevant lemmas and try those
      | (_, apply_step.facts)     :=
         do let relevant_lemmas := (s.lemma_map.find (head_symbol g.goal_type)).get_or_else [],
-          --  g_pp ← pp g.goal_type,
-          --  trace format!"relevant lemmas for {g_pp}, with head_symbol {head_symbol g.goal_type}:",
-          --  trace $ relevant_lemmas.map back_lemma.lem,
            return [s'.add_goal { lemmas := relevant_lemmas, step := apply_step.relevant, ..g }]
      -- After trying to apply all the relevant lemmas, we just try everything.
      | (_, apply_step.relevant)  :=
@@ -414,11 +392,20 @@ match s.goals with
      end
 end
 
+variables {α : Type} [preorder α] [@decidable_rel α (≤)] (C : back_state → α)
+
+private meta def complexity (s : back_state) : ℕ × bool × α :=
+(-- We postpone back_states with stashed goals.
+ s.stashed.length,
+ -- But otherwise bring back_states with no remaining goals to the front.
+ s.done,
+ C s)
+
 private meta def insert_new_state : back_state → list back_state → list back_state
 /- depth first search: -/
 -- | s states := s :: states
 /- complexity ordered search -/
-| s (h :: t) := if s.complexity ≤ h.complexity then
+| s (h :: t) := if complexity C s ≤ complexity C h then
                   s :: h :: t
                 else
                   h :: (insert_new_state s t)
@@ -426,7 +413,7 @@ private meta def insert_new_state : back_state → list back_state → list back
 
 private meta def insert_new_states : list back_state → list back_state → list back_state
 | [] states := states
-| (h :: t) states := insert_new_states t (insert_new_state h states)
+| (h :: t) states := insert_new_states t (insert_new_state C h states)
 
 -- Either return a completed back_state, or an updated list.
 private meta def run_one_step : list back_state → tactic (back_state ⊕ (list back_state))
@@ -438,18 +425,13 @@ private meta def run_one_step : list back_state → tactic (back_state ⊕ (list
     do if h.steps ≥ h.limit ∨ h.library_steps ≥ h.library_limit then
          return $ sum.inr t
        else do
-         trace format!"running: {h}",
-        --  trace $ h.goals.map apply_state.goal_type,
          c ← h.children,
-         trace format!"children: {c}",
-         return $ sum.inr $ insert_new_states c t
+         return $ sum.inr $ insert_new_states C c t
 
 private meta def run : list back_state → tactic back_state
 | states :=
   do
-    --  trace "run:",
-    --  trace states,
-     r ← run_one_step states,
+     r ← run_one_step C states,
      match r with
      | (sum.inl success) := return success
      | (sum.inr states) := run states
@@ -459,22 +441,18 @@ private meta def run : list back_state → tactic back_state
 -- internal tactic_state; it's as if we got it right first try!
 private meta def run' : list back_state → tactic back_state
 | states :=
-  λ ts, match run states ts with
+  λ ts, match run C states ts with
         | result.success bs ts' := result.success bs bs.tactic_state
         | result.exception msg pos ts' := result.exception msg pos ts'
         end
 
-/-- Takes two sets of lemmas, 'progress' lemmas and 'finishing' lemmas.
-
-    Progress lemmas should be applied whenever possible, regardless of new hypotheses.
-    Finishing lemmas should be applied only as part of a sequence of applications that close the goals.
-
-    `back` succeeds if at least one progress lemma was applied, or all goals are discharged.
-    -/
+/--
+`back` succeeds if at least one progress lemma was applied, or all goals are discharged.
+  -/
 meta def back (lemmas : list back_lemma) (limit library_limit : option ℕ := none) : tactic unit :=
 do gs ← get_goals,
    i ← back_state.init gs lemmas limit library_limit,
-   f ← run' [i],
+   f ← run' C [i],
   --  set_goals gs,
    gs ← gs.mmap instantiate_mvars,
    set_goals ((gs.map expr.list_meta_vars).join),
@@ -622,6 +600,22 @@ namespace interactive
 
 open interactive interactive.types expr
 
+local attribute [instance] lexicographic_preorder
+
+meta def back_core
+  {α : Type} [preorder α] [@decidable_rel α (≤)] (C : back_state → α)
+  (trace : option unit) (no_dflt : bool)
+  (hs : list back.back_arg_type) (wth : list (name × bool)) (limit library_limit : option ℕ) : tactic string :=
+do gs ← get_goals,
+   lemmas ← tactic.back.mk_assumption_set no_dflt hs wth,
+   tactic.back.back back_state.default_complexity lemmas limit library_limit,
+   gs ← gs.mmap instantiate_mvars,
+   gs ← gs.mmap head_beta,
+   rs ← gs.mmap (λ g, do p ← pp (replace_mvars g), pure $ if g.has_meta_var then sformat!"refine {p}" else sformat!"exact {p}"),
+   let r := string.intercalate ", " rs,
+   if trace.is_some then tactic.trace r else skip,
+   return r
+
 /--
 `back` performs backwards reasoning, recursively applying lemmas against the goals.
 
@@ -655,15 +649,15 @@ be subsequently discharged in a single step. -- FIXME this is no longer what's i
 meta def back
   (trace : parse $ optional (tk "?")) (no_dflt : parse only_flag)
   (hs : parse back_arg_list) (wth : parse with_back_ident_list) (limit library_limit : parse (optional (with_desc "n" small_nat))) : tactic string :=
-do gs ← get_goals,
-   lemmas ← tactic.back.mk_assumption_set no_dflt hs wth,
-   tactic.back.back lemmas limit library_limit,
-   gs ← gs.mmap instantiate_mvars,
-   gs ← gs.mmap head_beta,
-   rs ← gs.mmap (λ g, do p ← pp (replace_mvars g), pure $ if g.has_meta_var then sformat!"refine {p}" else sformat!"exact {p}"),
-   let r := string.intercalate ", " rs,
-   if trace.is_some then tactic.trace r else skip,
-   return r
+back_core back_state.default_complexity trace no_dflt hs wth limit library_limit
+
+local attribute [instance] unit_preorder
+
+meta def solve_by_elim'
+  (trace : parse $ optional (tk "?")) (no_dflt : parse only_flag)
+  (hs : parse back_arg_list) (wth : parse with_back_ident_list) (limit library_limit : parse (optional (with_desc "n" small_nat))) : tactic string :=
+back_core back_state.depth_first_complexity trace no_dflt hs wth limit library_limit
+
 
 /--
 `library_search` calls `back`, passing all imported lemmas. Surprisingly, this sometimes works.
@@ -671,7 +665,7 @@ By default, `library_search` uses at most two lemmas from the library (but perha
 hypotheses or lemmas tagged `@[back]`). This can be adjusted, e.g. as `library_search 1`.
 -/
 meta def library_search (hs : parse back_arg_list) (library_limit : parse (optional (with_desc "n" small_nat))): tactic string :=
-  back (some ()) ff hs [(`_, ff)] none library_limit
+  back (some ()) ff hs [(`_, ff)] none (library_limit <|> some 2)
 
 end interactive
 

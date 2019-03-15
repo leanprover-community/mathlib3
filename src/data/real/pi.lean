@@ -108,9 +108,10 @@ begin
   { rw [sub_nonneg], apply le_of_lt, apply sqrt_two_add_series_lt_two },
   apply le_of_lt, apply mul_pos, apply sin_pos_of_pos_of_lt_pi,
   { apply div_pos pi_pos, apply pow_pos, norm_num },
-  rw [div_lt_iff pi_pos, one_mul]
+  refine lt_of_lt_of_le _ (le_of_eq (div_one _)), rw [div_lt_div_left],
   refine lt_of_le_of_lt (le_of_eq (pow_zero 2).symm) _,
-  apply pow_lt_pow, norm_num, apply nat.succ_pos, norm_num, norm_num
+  apply pow_lt_pow, norm_num, apply nat.succ_pos, apply pi_pos,
+  apply pow_pos, all_goals {norm_num}
 end
 
 lemma cos_pi_div_four : cos (pi / 4) = sqrt 2 / 2 :=
@@ -150,8 +151,7 @@ lemma pi_lt_sqrt_two_add_series (n : ℕ) :
   pi < 2 ^ (n+1) * sqrt (2 - sqrt_two_add_series 0 n) + 1 / 4 ^ n :=
 begin
   have : pi < (sqrt (2 - sqrt_two_add_series 0 n) / 2 + 1 / (2 ^ n) ^ 3 / 4) * 2 ^ (n+2),
-  { rw [←div_lt_iff], apply pow_pos, norm_num,
-    rw [←sin_pi_over_two_pow_succ],
+  { rw [←div_lt_iff, ←sin_pi_over_two_pow_succ],
     refine lt_of_lt_of_le (lt_add_of_sub_right_lt (sin_gt_sub_cube _ _)) _,
     { apply div_pos pi_pos, apply pow_pos, norm_num },
     { apply div_le_of_le_mul, apply pow_pos, norm_num, refine le_trans pi_le_four _,
@@ -166,7 +166,8 @@ begin
     apply mul_le_of_le_div, apply pow_pos, norm_num,
     refine le_trans ((div_le_div_right _).mpr pi_le_four) _, apply pow_pos, norm_num,
     rw [pow_succ, pow_succ, ←mul_assoc, ←field.div_div_eq_div_mul],
-    convert le_refl _, norm_num, norm_num, apply pow_ne_zero, norm_num, norm_num },
+    convert le_refl _, norm_num, norm_num, apply pow_ne_zero, norm_num, norm_num,
+    apply pow_pos, norm_num },
   apply lt_of_lt_of_le this (le_of_eq _), rw [add_mul], congr' 1,
   { rw [pow_succ _ (n+1), ←mul_assoc, div_mul_cancel, mul_comm], norm_num },
   rw [pow_succ, ←pow_mul, mul_comm n 2, pow_mul, show (2 : ℝ) ^ 2 = 4, by norm_num, pow_succ,

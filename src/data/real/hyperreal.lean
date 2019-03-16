@@ -18,9 +18,7 @@ namespace hyperreal
 notation `ℝ*` := hyperreal
 
 private def U := is_ultrafilter_hyperfilter set.infinite_univ_nat
-noncomputable instance : discrete_field ℝ* := filter_product.discrete_field U
-noncomputable instance : linear_order ℝ* := filter_product.linear_order U
-noncomputable instance : ordered_comm_group ℝ* := filter_product.ordered_comm_group U
+noncomputable instance : discrete_linear_ordered_field ℝ* := filter_product.discrete_linear_ordered_field U
 
 /-- A sample infinitesimal hyperreal-/
 noncomputable def epsilon : ℝ* := of_seq (λ n, n⁻¹)
@@ -47,18 +45,11 @@ end
 
 lemma epsilon_ne_zero : ε ≠ 0 := ne_of_gt epsilon_pos
 
-lemma omega_ne_zero : ω ≠ 0 := λ he,
-have he' : {n : ℕ | (n : ℝ) = 0} ∈ _ := quotient.exact' he,
-by simp only [nat.cast_eq_zero, set.set_of_eq_eq_singleton] at he';
-exact nmem_hyperfilter_of_finite set.infinite_univ_nat (set.finite_singleton _) he'
+lemma omega_pos : 0 < ω := by rw ←inv_epsilon_eq_omega; exact inv_pos epsilon_pos
 
-theorem epsilon_mul_omega : ε * ω = 1 := quotient.sound' $
-  have h : ∀ n : ℕ, (n : ℝ)⁻¹ * ↑n = 1 ↔ (n : ℝ) ≠ 0 := λ n,
-  ⟨ λ c e, by rw [e, inv_zero, zero_mul] at c; exact zero_ne_one c,
-    inv_mul_cancel ⟩,
-  have r : {n : ℕ | n ≠ 0} = - {n : ℕ | n = 0} := rfl,
-  by show _ ∈ _; simp only [function.const, nat.cast_ne_zero, h, r, set.set_of_eq_eq_singleton];
-  exact compl_mem_hyperfilter_of_finite set.infinite_univ_nat (set.finite_singleton _)
+lemma omega_ne_zero : ω ≠ 0 := ne_of_gt omega_pos
+
+theorem epsilon_mul_omega : ε * ω = 1 := @inv_mul_cancel _ _ ω omega_ne_zero
 
 lemma lt_of_tendsto_zero_of_pos {f : ℕ → ℝ} (hf : tendsto f at_top (nhds 0)) :
   ∀ {r : ℝ}, r > 0 → of_seq f < (r : ℝ*) :=
@@ -110,7 +101,7 @@ end
 /-- A hyperreal number is infinitesimal if its standard part is 0 -/
 def infinitesimal (x : ℝ*) := is_st x 0
 
-theorem infinitesimal_of_tendsto_zero (f : ℕ → ℝ) (hf : tendsto f at_top (nhds 0)) :
+theorem infinitesimal_of_tendsto_zero {f : ℕ → ℝ} (hf : tendsto f at_top (nhds 0)) :
   infinitesimal (of_seq f) :=
 λ d hd, by rw [←of_eq_coe, ←of_eq_coe, sub_eq_add_neg, ←of_neg, ←of_add, ←of_add, zero_add, zero_add, of_eq_coe, of_eq_coe];
 exact ⟨neg_lt_of_tendsto_zero_of_neg hf hd, lt_of_tendsto_zero_of_pos hf hd⟩

@@ -5,28 +5,18 @@
 import tactic.basic
 import data.list.defs
 import data.option.basic
+import order.lexicographic
 
 namespace tactic
 open native
 
 namespace back
 
-def lexicographic_preorder {α β : Type*} [preorder α] [preorder β] : preorder (α × β) :=
-{ le := λ a b, a.1 < b.1 ∨ (a.1 = b.1 ∧ a.2 ≤ b.2),
-  le_refl := λ a, or.inr ⟨rfl, le_refl _⟩,
-  le_trans := λ a b c h₁ h₂,
-  begin
-    dsimp at *,
-    cases h₁,
-    { left, cases h₂,
-      { exact lt_trans h₁ h₂ },
-      { rwa ←h₂.left } },
-    { cases h₂,
-      { left, rwa h₁.left },
-      { right, exact ⟨eq.trans h₁.1 h₂.1, le_trans h₁.2 h₂.2⟩ }
-    } end }
-local attribute [instance, priority 500] lexicographic_preorder
-
+local attribute [instance, priority 2000] lex_linear_order
+def foo : linear_order (ℕ × ℕ) := by apply_instance
+#print foo
+set_option trace.class_instances true
+#check prod.has_le
 -- Just a check that we're actually using lexicographic ordering here.
 example : (5,10) ≤ (10,3) := by exact dec_trivial
 

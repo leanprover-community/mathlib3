@@ -335,6 +335,36 @@ instance [ordered_comm_group β] (U : is_ultrafilter φ) : ordered_comm_group β
     (λ a b c hab, by rw lt_def U at hab ⊢; filter_upwards [hab] λ i hi, add_lt_add_left hi (c i)),
   ..filter_product.partial_order, ..filter_product.add_comm_group }
 
+instance [ordered_ring β] (U : is_ultrafilter φ) : ordered_ring β* :=
+{ mul_nonneg := λ x y, quotient.induction_on₂' x y $
+    λ a b ha hb, by filter_upwards [ha, hb] λ i, by simp only [set.mem_set_of_eq]; exact mul_nonneg,
+  mul_pos := λ x y, quotient.induction_on₂' x y $
+    λ a b ha hb, by rw lt_def U at ha hb ⊢; filter_upwards [ha, hb] λ i, mul_pos,
+  ..filter_product.ring, ..filter_product.ordered_comm_group U, ..filter_product.zero_ne_one_class U.1 }
+
+instance [linear_ordered_ring β] (U : is_ultrafilter φ) : linear_ordered_ring β* :=
+{ zero_lt_one := by rw lt_def U; show {i | (0 : β) < 1} ∈ _; simp only [zero_lt_one, (set.univ_def).symm, univ_sets],
+  ..filter_product.ordered_ring U, ..filter_product.linear_order U }
+
+instance [linear_ordered_field β] (U : is_ultrafilter φ) : linear_ordered_field β* :=
+{ ..filter_product.linear_ordered_ring U, ..filter_product.field U }
+
+instance [linear_ordered_comm_ring β] (U : is_ultrafilter φ) : linear_ordered_comm_ring β* :=
+{ ..filter_product.linear_ordered_ring U, ..filter_product.comm_monoid }
+
+noncomputable instance [decidable_linear_order β] (U : is_ultrafilter φ) : decidable_linear_order β* :=
+{ decidable_le := by apply_instance,
+  ..filter_product.linear_order U }
+
+noncomputable instance [decidable_linear_ordered_comm_group β] (U : is_ultrafilter φ) : decidable_linear_ordered_comm_group β* :=
+{ ..filter_product.ordered_comm_group U, ..filter_product.decidable_linear_order U }
+
+noncomputable instance [decidable_linear_ordered_comm_ring β] (U : is_ultrafilter φ) : decidable_linear_ordered_comm_ring β* :=
+{ ..filter_product.linear_ordered_comm_ring U, ..filter_product.decidable_linear_ordered_comm_group U }
+
+noncomputable instance [discrete_linear_ordered_field β] (U : is_ultrafilter φ) : discrete_linear_ordered_field β* :=
+{ ..filter_product.linear_ordered_field U, ..filter_product.decidable_linear_ordered_comm_ring U, ..filter_product.discrete_field U }
+
 end filter_product
 
 end filter

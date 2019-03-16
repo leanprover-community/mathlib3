@@ -10,13 +10,8 @@ import order.lexicographic
 namespace tactic
 open native
 
-namespace back
+local attribute [instance] lex_decidable_linear_order
 
-local attribute [instance, priority 2000] lex_linear_order
-def foo : linear_order (ℕ × ℕ) := by apply_instance
-#print foo
-set_option trace.class_instances true
-#check prod.has_le
 -- Just a check that we're actually using lexicographic ordering here.
 example : (5,10) ≤ (10,3) := by exact dec_trivial
 
@@ -24,7 +19,29 @@ def bool_preorder : preorder bool :=
 { le := λ a b, bor a (bnot b) = tt,
   le_refl := λ a, begin cases a; simp end,
   le_trans := λ a b c h₁ h₂, begin cases a; cases b; cases c; simp at *; assumption end }
-local attribute [instance, priority 500] bool_preorder
+
+local attribute [instance] bool_preorder
+@[simp] lemma tt_le_tt     : tt ≤ tt = true  := begin dsimp [(≤), preorder.le], simp end
+@[simp] lemma not_tt_lt_tt : tt < tt = false := begin dsimp [(<), preorder.lt], simp end
+@[simp] lemma tt_le_ff     : tt ≤ ff = true  := begin dsimp [(≤), preorder.le], simp end
+@[simp] lemma tt_lt_ff     : tt < ff = true  := begin dsimp [(<), preorder.lt], simp end
+@[simp] lemma not_ff_le_tt : ff ≤ tt = false := begin dsimp [(≤), preorder.le], simp end
+@[simp] lemma not_ff_lt_tt : ff < tt = false := begin dsimp [(<), preorder.lt], simp end
+@[simp] lemma ff_le_ff     : ff ≤ ff = true  := begin dsimp [(≤), preorder.le], simp end
+@[simp] lemma not_ff_lt_ff : ff < ff = false := begin dsimp [(<), preorder.lt], simp end
+
+def bool_partial_order : partial_order bool :=
+{ le_antisymm := λ a b, begin cases a; cases b; intros; simp at *; assumption end
+  .. bool_preorder }
+
+def bool_linear_order : linear_order bool :=
+{ le_total := λ a b, begin cases a; cases b; intros; simp at *; assumption end
+  .. bool_partial_order }
+
+def bool_decidable_linear_order : decidable_linear_order bool :=
+{ decidable_le := λ a b, begin cases a; cases b; simp; apply_instance end,
+  .. bool_linear_order }
+local attribute [instance] bool_decidable_linear_order
 
 example : tt ≤ ff := by exact dec_trivial
 
@@ -32,6 +49,46 @@ def unit_preorder : preorder unit :=
 { le := λ _ _, true,
   le_refl := λ a, by trivial,
   le_trans := λ a b c h₁ h₂, by trivial }
+
+attribute [instance] unit_preorder
+
+@[simp] lemma star_le_star     : () ≤ () = true  := begin dsimp [(≤), preorder.le], simp end
+
+def unit_partial_order : partial_order unit :=
+{ le_antisymm := λ a b, begin cases a; cases b; intros; simp at *; assumption end
+  .. unit_preorder }
+
+def unit_linear_order : linear_order unit :=
+{ le_total := λ a b, begin cases a; cases b; intros; simp at *; assumption end
+  .. unit_partial_order }
+
+def unit_decidable_linear_order : decidable_linear_order unit :=
+{ decidable_le := λ a b, begin cases a; cases b; simp; apply_instance end,
+  .. unit_linear_order }
+
+attribute [instance] unit_partial_order unit_linear_order unit_decidable_linear_order
+
+def empty_preorder : preorder empty :=
+{ le := λ _ _, true,
+  le_refl := empty.rec _,
+  le_trans := empty.rec _ }
+
+def empty_partial_order : partial_order empty :=
+{ le_antisymm := empty.rec _,
+  .. empty_preorder }
+
+def empty_linear_order : linear_order empty :=
+{ le_total := empty.rec _,
+  .. empty_partial_order }
+
+def empty_decidable_linear_order : decidable_linear_order empty :=
+{ decidable_le := empty.rec _,
+  .. empty_linear_order }
+
+attribute [instance] empty_preorder empty_partial_order empty_linear_order
+                     empty_decidable_linear_order
+
+namespace back
 
 meta def head_symbol : expr → name
 | (expr.pi _ _ _ t) := head_symbol t
@@ -214,7 +271,8 @@ let M := L.map (λ e, ((count_arrows e.ty, count_pis e.ty), e)) in
 declare_trace back
 
 meta def back_state.init (goals : list expr) (lemmas : list back_lemma) (limit library_limit : option ℕ) : tactic back_state :=
-λ s, (do
+λ s, -- We'll need to grab a copy of the tactic state.
+(do
    let (lemmas', facts') := lemmas.partition (λ p : back_lemma, expr.is_pi p.ty),
 
    let facts_map : rb_map name (list back_lemma) :=
@@ -382,7 +440,7 @@ match s.goals with
      end
 end
 
-variables {α : Type} [preorder α] [@decidable_rel α (≤)] (C : back_state → α)
+variables {α : Type} [decidable_linear_order α] (C : back_state → α)
 
 private meta def complexity (s : back_state) : ℕ × bool × α :=
 (-- We postpone back_states with stashed goals.
@@ -590,7 +648,7 @@ namespace interactive
 
 open interactive interactive.types expr
 
-local attribute [instance] lexicographic_preorder
+local attribute [instance] lex_decidable_linear_order
 
 meta def back_core
   {α : Type} [preorder α] [@decidable_rel α (≤)] (C : back_state → α)

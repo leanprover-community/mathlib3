@@ -245,21 +245,21 @@ theorem of_seq_fun (f g : α → β) (h : β → β) (H : {n : α | f n = h (g n
 theorem of_seq_fun₂ (f g₁ g₂ : α → β) (h : β → β → β) (H : {n : α | f n = h (g₁ n) (g₂ n) } ∈ φ) : 
   of_seq f = (lift₂ h) (@of_seq _ _ φ g₁) (@of_seq _ _ φ g₂) := quotient.sound' H
 
-lemma of_seq_zero [has_zero β] (f : α → β) : of_seq 0 = (0 : β*) := rfl
+@[simp] lemma of_seq_zero [has_zero β] (f : α → β) : of_seq 0 = (0 : β*) := rfl
 
-lemma of_seq_add [has_add β] (f g : α → β) : of_seq (f + g) = of_seq f + (of_seq g : β*) := rfl
+@[simp] lemma of_seq_add [has_add β] (f g : α → β) : of_seq (f + g) = of_seq f + (of_seq g : β*) := rfl
 
-lemma of_seq_neg [has_neg β] (f : α → β) : of_seq (-f) = - (of_seq f : β*) := rfl
+@[simp] lemma of_seq_neg [has_neg β] (f : α → β) : of_seq (-f) = - (of_seq f : β*) := rfl
 
-lemma of_seq_one [has_one β] (f : α → β) : of_seq 1 = (1 : β*) := rfl
+@[simp] lemma of_seq_one [has_one β] (f : α → β) : of_seq 1 = (1 : β*) := rfl
 
-lemma of_seq_mul [has_mul β] (f g : α → β) : of_seq (f * g) = of_seq f * (of_seq g : β*) := rfl
+@[simp] lemma of_seq_mul [has_mul β] (f g : α → β) : of_seq (f * g) = of_seq f * (of_seq g : β*) := rfl
 
-lemma of_seq_inv [has_inv β] (f : α → β) : of_seq (f⁻¹) = (of_seq f : β*)⁻¹ := rfl
+@[simp] lemma of_seq_inv [has_inv β] (f : α → β) : of_seq (f⁻¹) = (of_seq f : β*)⁻¹ := rfl
 
 lemma of_eq_coe (x : β) : of x = (↑x : β*) := rfl
 
-lemma of_id (x : β) : of x = (x : β*) := rfl
+@[simp] lemma of_id (x : β) : of x = (x : β*) := rfl
 
 lemma of_eq (x y : β) (NT : φ ≠ ⊥) : x = y ↔ of x = (of y : β*) := ⟨λ h, by rw h, by apply of_inj NT⟩
 
@@ -269,15 +269,17 @@ lemma of_eq_zero [has_zero β] (NT : φ ≠ ⊥) (x : β) : x = 0 ↔ of x = (0 
 
 lemma of_ne_zero [has_zero β] (NT : φ ≠ ⊥) (x : β) : x ≠ 0 ↔ of x ≠ (0 : β*) := of_ne _ _ NT
 
-lemma of_zero [has_zero β] : of 0 = (0 : β*) := rfl
+@[simp] lemma of_zero [has_zero β] : of 0 = (0 : β*) := rfl
 
-lemma of_add [has_add β] (x y : β) : of (x + y) = of x + (of y : β*) := rfl
+@[simp] lemma of_add [has_add β] (x y : β) : of (x + y) = of x + (of y : β*) := rfl
 
-lemma of_neg [has_neg β] (x : β) : of (- x) = - (of x : β*) := rfl
+@[simp] lemma of_neg [has_neg β] (x : β) : of (- x) = - (of x : β*) := rfl
 
-lemma of_one [has_one β] : of 1 = (1 : β*) := rfl
+@[simp] lemma of_one [has_one β] : of 1 = (1 : β*) := rfl
 
-lemma of_mul [has_mul β] (x y : β) : of (x * y) = of x * (of y : β*) := rfl
+@[simp] lemma of_mul [has_mul β] (x y : β) : of (x * y) = of x * (of y : β*) := rfl
+
+@[simp] lemma of_inv [has_inv β] (x : β) : of (x⁻¹) = (of x : β*)⁻¹ := rfl
 
 lemma of_rel_of_rel (R : β → Prop) (x : β) : 
   R x → (lift_rel R) (of x : β*) := 

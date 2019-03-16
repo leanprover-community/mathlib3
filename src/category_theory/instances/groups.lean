@@ -44,10 +44,10 @@ instance concrete_is_comm_group_hom : concrete_category @is_add_comm_group_hom :
 ⟨by introsI α ia; apply_instance,
   by introsI α β γ ia ib ic f g hf hg; apply_instance⟩
 
-instance CommGroup_hom_is_comm_group_hom {A₁ A₂ : AddCommGroup} (f : A₁ ⟶ A₂) :
+instance AddCommGroup_hom_is_comm_group_hom {A₁ A₂ : AddCommGroup} (f : A₁ ⟶ A₂) :
   is_add_comm_group_hom (f : A₁ → A₂) := f.2
 
-namespace CommGroup
+namespace AddCommGroup
 /-- The forgetful functor from additive commutative groups to groups. -/
 def forget_to_Group : AddCommGroup ⥤ Group :=
 { obj := λ A₁, ⟨multiplicative A₁, infer_instance⟩,
@@ -57,6 +57,6 @@ instance : faithful (forget_to_Group) := {}
 
 instance : has_zero AddCommGroup := ⟨{ α := punit, str := by tidy }⟩
 
-end CommGroup
+end AddCommGroup
 
 end category_theory.instances

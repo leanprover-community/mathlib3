@@ -7,7 +7,6 @@ Lexicographic preorder / partial_order / linear_order / decidable_linear_order,
 for pairs and dependent pairs.
 -/
 import order.basic
-import tactic.squeeze
 
 universes u v
 
@@ -32,7 +31,7 @@ def lex_preorder [preorder α] [preorder β] : preorder (α × β) :=
     end,
   .. lex_has_le }
 
-/-- Dictionary / lexicographic partial for pairs. -/
+/-- Dictionary / lexicographic partial_order for pairs. -/
 def lex_partial_order [partial_order α] [partial_order β] : partial_order (α × β) :=
 { le_antisymm :=
   begin
@@ -114,11 +113,19 @@ def lex_decidable_linear_order [decidable_linear_order α] [decidable_linear_ord
 }
 
 variables {Z : α → Type v}
-def dlex_has_le [preorder α] [∀ a, preorder (Z a)] : has_le (Σ a, Z a) :=
+
+/--
+Dictionary / lexicographic ordering on dependent pairs.
+
+The 'pointwise' partial order `prod.has_le` doesn't make
+sense for dependent pairs, so it's safe to mark these as
+instances here.
+-/
+instance dlex_has_le [preorder α] [∀ a, preorder (Z a)] : has_le (Σ a, Z a) :=
 { le := λ a b, a.1 < b.1 ∨ (∃ p : a.1 = b.1, a.2 ≤ (by convert b.2)) }
 
-/-- Dictionary / lexicographic ordering on dependent pairs. -/
-def dlex_preorder [preorder α] [∀ a, preorder (Z a)] : preorder (Σ a, Z a) :=
+/-- Dictionary / lexicographic preorder on dependent pairs. -/
+instance dlex_preorder [preorder α] [∀ a, preorder (Z a)] : preorder (Σ a, Z a) :=
 { le_refl := λ a, or.inr ⟨rfl, le_refl _⟩,
   le_trans :=
   begin
@@ -130,8 +137,8 @@ def dlex_preorder [preorder α] [∀ a, preorder (Z a)] : preorder (Σ a, Z a) :
   end,
   .. dlex_has_le }
 
-/-- Dictionary / lexicographic partial for dependent pairs. -/
-def dlex_partial_order [partial_order α] [∀ a, partial_order (Z a)] : partial_order (Σ a, Z a) :=
+/-- Dictionary / lexicographic partial_order for dependent pairs. -/
+instance dlex_partial_order [partial_order α] [∀ a, partial_order (Z a)] : partial_order (Σ a, Z a) :=
 { le_antisymm :=
   begin
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ (a₁₂_lt | ⟨a₁₂_eq, b₁₂_le⟩) (a₂₁_lt | ⟨a₂₁_eq, b₂₁_le⟩),
@@ -143,7 +150,7 @@ def dlex_partial_order [partial_order α] [∀ a, partial_order (Z a)] : partial
   .. dlex_preorder }
 
 /-- Dictionary / lexicographic linear_order for pairs. -/
-def dlex_linear_order [linear_order α] [∀ a, linear_order (Z a)] : linear_order (Σ a, Z a) :=
+instance dlex_linear_order [linear_order α] [∀ a, linear_order (Z a)] : linear_order (Σ a, Z a) :=
 { le_total :=
   begin
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,

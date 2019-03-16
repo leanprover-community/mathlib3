@@ -222,7 +222,7 @@ variables [ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group δ]
 variables [module α β] [module α γ] [module α δ]
 variables (p p' : submodule α β) (q q' : submodule α γ)
 variables {r : α} {x y : β}
-open set lattice
+open set lattice subsemimodule
 
 instance : partial_order (submodule α β) :=
 partial_order.lift (coe : submodule α β → set β) $ λ a b, ext'
@@ -234,11 +234,15 @@ lemma le_def' {p p' : submodule α β} : p ≤ p' ↔ ∀ x ∈ p, x ∈ p' := i
 def of_le {p p' : submodule α β} (h : p ≤ p') : p →ₗ[α] p' :=
 linear_map.cod_restrict _ p.subtype $ λ ⟨x, hx⟩, h hx
 
+set_option class.instance_max_depth 41
+
 @[simp] theorem of_le_apply {p p' : submodule α β} (h : p ≤ p')
   (x : p) : (of_le h x : β) = x := rfl
 
+set_option class.instance_max_depth 32
+
 lemma subtype_comp_of_le (p q : submodule α β) (h : p ≤ q) :
-  (submodule.subtype q).comp (of_le h) = submodule.subtype p :=
+  (subsemimodule.subtype q).comp (of_le h) = subsemimodule.subtype p :=
 by ext ⟨b, hb⟩; simp
 
 instance : has_bot (submodule α β) :=
@@ -363,7 +367,7 @@ submodule.ext $ λ a, by simp
 
 lemma map_comp (f : β →ₗ[α] γ) (g : γ →ₗ[α] δ) (p : submodule α β) :
   map (g.comp f) p = map g (map f p) :=
-submodule.ext' $ by simp [map_coe]; rw ← image_comp
+ext' $ by simp [map_coe]; rw ← image_comp
 
 lemma map_mono {f : β →ₗ[α] γ} {p p' : submodule α β} : p ≤ p' → map f p ≤ map f p' :=
 image_subset _
@@ -386,7 +390,7 @@ def comap (f : β →ₗ[α] γ) (p : submodule α γ) : submodule α β :=
   x ∈ comap f p ↔ f x ∈ p := iff.rfl
 
 lemma comap_id : comap linear_map.id p = p :=
-submodule.ext' rfl
+ext' rfl
 
 lemma comap_comp (f : β →ₗ[α] γ) (g : γ →ₗ[α] δ) (p : submodule α δ) :
   comap (g.comp f) p = comap f (comap g p) := rfl
@@ -772,7 +776,7 @@ theorem range_comp_le_range (f : β →ₗ[α] γ) (g : γ →ₗ[α] δ) : rang
 by rw range_comp; exact map_mono le_top
 
 theorem range_eq_top {f : β →ₗ[α] γ} : range f = ⊤ ↔ surjective f :=
-by rw [← submodule.ext'_iff, range_coe, top_coe, set.range_iff_surjective]
+by rw [← subsemimodule.ext'_iff, range_coe, top_coe, set.range_iff_surjective]
 
 lemma range_le_iff_comap {f : β →ₗ[α] γ} {p : submodule α γ} : range f ≤ p ↔ comap f p = ⊤ :=
 by rw [range, map_le_iff_le_comap, eq_top_iff]
@@ -1153,6 +1157,8 @@ def of_top (p : submodule α β) (h : p = ⊤) : p ≃ₗ[α] β :=
   right_inv := λ x, rfl,
   .. p.subtype }
 
+set_option class.instance_max_depth 43
+
 @[simp] theorem of_top_apply (p : submodule α β) {h} (x : p) :
   of_top p h x = x := rfl
 
@@ -1168,6 +1174,8 @@ begin
     ← e.symm.coe_apply, linear_map.map_zero] at this,
   exact congr_arg (coe : p → β) this.symm
 end
+
+set_option class.instance_max_depth 32
 
 end ring
 
@@ -1217,6 +1225,8 @@ variables [ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group δ]
 variables [module α β] [module α γ] [module α δ]
 variables (f : β →ₗ[α] γ)
 
+set_option class.instance_max_depth 39
+
 /-- First Isomorphism Law -/
 noncomputable def quot_ker_equiv_range : f.ker.quotient ≃ₗ[α] f.range :=
 have hr : ∀ x : f.range, ∃ y, f y = ↑x := λ x, x.2.imp $ λ _, and.right,
@@ -1239,7 +1249,7 @@ def sup_quotient_to_quotient_inf (p p' : submodule α β) :
 rw [ker_comp, of_le, comap_cod_restrict, ker_mkq, map_comap_subtype],
 exact comap_mono (inf_le_inf le_sup_left (le_refl _)) end
 
-set_option class.instance_max_depth 41
+set_option class.instance_max_depth 70
 
 /-- Second Isomorphism Law -/
 noncomputable def sup_quotient_equiv_quotient_inf (p p' : submodule α β) :

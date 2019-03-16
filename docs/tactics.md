@@ -806,3 +806,27 @@ h : y = 3
 -/
 end
 ```
+
+## omega
+
+`omega` attempts to discharge goals in the quantifier-free fragment of integer and natural number arithmetic using the Omega test. It implements the real shadow step of the test, but not the dark and gray shadows. Therefore, it should (in principle) succeed whenever the negation of the goal has no real solution, but it may fail if a real solution exists, even if there is no integer/natural number solution.
+
+Some examples:
+
+```lean
+example (x y : int) : (x ≤ 5 ∧ y ≤ 3) → x + y ≤ 8 := by omega
+
+example : ∀ (x y : int), (-x - y < x - y) → 
+  (x - y < x + y) → (x > 0 ∧ y > 0) := by omega
+
+example (x y : nat) : ¬(2 * x + 1 = 2 * y) := by omega
+```
+
+By default, `omega` tries to guess the correct domain from the goal and hypotheses, but it may fail to do so when hypotheses involving both `int` and `nat` are present. In that case, you can use an optional boolean argument to specify the domain (`tt` for `int`, `ff` for `nat`):
+
+```lean
+example (i : int) (n : nat) (h1 : n = 0) (h2 : i < i) : false := by omega tt
+example (i : int) (n : nat) (h1 : i = 0) (h2 : n < n) : false := by omega ff
+```
+
+`omega` handles `nat` subtraction by repeatedly rewriting goals of the form `P[t-s]` with `P[x] ∧ (t = s + x ∨ (t ≤ s ∧ x = 0))`, where `x` is fresh. This means that each (distinct) occurrence of subtraction will cause the goal size to double during DNF transformation.

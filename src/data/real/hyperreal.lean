@@ -26,8 +26,8 @@ noncomputable def epsilon : ℝ* := of_seq (λ n, n⁻¹)
 /-- A sample infinite hyperreal-/
 noncomputable def omega : ℝ* := of_seq (λ n, n)
 
-local notation `ε` := epsilon
-local notation `ω` := omega
+notation `ε` := epsilon
+notation `ω` := omega
 
 theorem epsilon_eq_inv_omega : ε = ω⁻¹ := rfl
 
@@ -106,6 +106,6 @@ theorem infinitesimal_of_tendsto_zero {f : ℕ → ℝ} (hf : tendsto f at_top (
 λ d hd, by rw [←of_eq_coe, ←of_eq_coe, sub_eq_add_neg, ←of_neg, ←of_add, ←of_add, zero_add, zero_add, of_eq_coe, of_eq_coe];
 exact ⟨neg_lt_of_tendsto_zero_of_neg hf hd, lt_of_tendsto_zero_of_pos hf hd⟩
 
-theorem infinitesimal_epsilon : infinitesimal ε := infinitesimal_of_tendsto_zero _ tendsto_inverse_at_top_nhds_0_nat
+theorem infinitesimal_epsilon : infinitesimal ε := infinitesimal_of_tendsto_zero tendsto_inverse_at_top_nhds_0_nat
 
 end hyperreal

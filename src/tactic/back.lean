@@ -15,79 +15,6 @@ local attribute [instance] lex_decidable_linear_order
 -- Just a check that we're actually using lexicographic ordering here.
 example : (5,10) ≤ (10,3) := by exact dec_trivial
 
-def bool_preorder : preorder bool :=
-{ le := λ a b, bor a (bnot b) = tt,
-  le_refl := λ a, begin cases a; simp end,
-  le_trans := λ a b c h₁ h₂, begin cases a; cases b; cases c; simp at *; assumption end }
-
-local attribute [instance] bool_preorder
-@[simp] lemma tt_le_tt     : tt ≤ tt = true  := begin dsimp [(≤), preorder.le], simp end
-@[simp] lemma not_tt_lt_tt : tt < tt = false := begin dsimp [(<), preorder.lt], simp end
-@[simp] lemma tt_le_ff     : tt ≤ ff = true  := begin dsimp [(≤), preorder.le], simp end
-@[simp] lemma tt_lt_ff     : tt < ff = true  := begin dsimp [(<), preorder.lt], simp end
-@[simp] lemma not_ff_le_tt : ff ≤ tt = false := begin dsimp [(≤), preorder.le], simp end
-@[simp] lemma not_ff_lt_tt : ff < tt = false := begin dsimp [(<), preorder.lt], simp end
-@[simp] lemma ff_le_ff     : ff ≤ ff = true  := begin dsimp [(≤), preorder.le], simp end
-@[simp] lemma not_ff_lt_ff : ff < ff = false := begin dsimp [(<), preorder.lt], simp end
-
-def bool_partial_order : partial_order bool :=
-{ le_antisymm := λ a b, begin cases a; cases b; intros; simp at *; assumption end
-  .. bool_preorder }
-
-def bool_linear_order : linear_order bool :=
-{ le_total := λ a b, begin cases a; cases b; intros; simp at *; assumption end
-  .. bool_partial_order }
-
-def bool_decidable_linear_order : decidable_linear_order bool :=
-{ decidable_le := λ a b, begin cases a; cases b; simp; apply_instance end,
-  .. bool_linear_order }
-local attribute [instance] bool_decidable_linear_order
-
-example : tt ≤ ff := by exact dec_trivial
-
-def unit_preorder : preorder unit :=
-{ le := λ _ _, true,
-  le_refl := λ a, by trivial,
-  le_trans := λ a b c h₁ h₂, by trivial }
-
-attribute [instance] unit_preorder
-
-@[simp] lemma star_le_star     : () ≤ () = true  := begin dsimp [(≤), preorder.le], simp end
-
-def unit_partial_order : partial_order unit :=
-{ le_antisymm := λ a b, begin cases a; cases b; intros; simp at *; assumption end
-  .. unit_preorder }
-
-def unit_linear_order : linear_order unit :=
-{ le_total := λ a b, begin cases a; cases b; intros; simp at *; assumption end
-  .. unit_partial_order }
-
-def unit_decidable_linear_order : decidable_linear_order unit :=
-{ decidable_le := λ a b, begin cases a; cases b; simp; apply_instance end,
-  .. unit_linear_order }
-
-attribute [instance] unit_partial_order unit_linear_order unit_decidable_linear_order
-
-def empty_preorder : preorder empty :=
-{ le := λ _ _, true,
-  le_refl := empty.rec _,
-  le_trans := empty.rec _ }
-
-def empty_partial_order : partial_order empty :=
-{ le_antisymm := empty.rec _,
-  .. empty_preorder }
-
-def empty_linear_order : linear_order empty :=
-{ le_total := empty.rec _,
-  .. empty_partial_order }
-
-def empty_decidable_linear_order : decidable_linear_order empty :=
-{ decidable_le := empty.rec _,
-  .. empty_linear_order }
-
-attribute [instance] empty_preorder empty_partial_order empty_linear_order
-                     empty_decidable_linear_order
-
 namespace back
 
 meta def head_symbol : expr → name
@@ -442,11 +369,11 @@ end
 
 variables {α : Type} [decidable_linear_order α] (C : back_state → α)
 
-private meta def complexity (s : back_state) : ℕ × bool × α :=
+private meta def complexity (s : back_state) : ℕ × ℕ × α :=
 (-- We postpone back_states with stashed goals.
  s.stashed.length,
  -- But otherwise bring back_states with no remaining goals to the front.
- s.done,
+ if s.done then 0 else 1,
  C s)
 
 private meta def insert_new_state : back_state → list back_state → list back_state
@@ -698,6 +625,12 @@ meta def back
   (trace : parse $ optional (tk "?")) (no_dflt : parse only_flag)
   (hs : parse back_arg_list) (wth : parse with_back_ident_list) (limit library_limit : parse (optional (with_desc "n" small_nat))) : tactic string :=
 back_core back_state.default_complexity trace no_dflt hs wth limit library_limit
+
+-- TODO once Kenny's algebra/punit_instances.lean is merged, just use that.
+def unit_preorder : preorder unit :=
+{ le := λ _ _, true,
+  le_refl := λ a, by trivial,
+  le_trans := λ a b c h₁ h₂, by trivial }
 
 local attribute [instance] unit_preorder
 

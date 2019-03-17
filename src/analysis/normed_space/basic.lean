@@ -286,6 +286,10 @@ class normed_field (α : Type*) extends has_norm α, discrete_field α, metric_s
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 (norm_mul : ∀ a b, norm (a * b) = norm a * norm b)
 
+class nondiscrete_normed_field (α : Type*) extends normed_field α :=
+(non_trivial : ∃x:α, 1<∥x∥)
+
+
 instance normed_field.to_normed_ring [i : normed_field α] : normed_ring α :=
 { norm_mul := by finish [i.norm_mul], ..i }
 
@@ -318,6 +322,9 @@ instance : normed_field ℝ :=
 { norm := λ x, abs x,
   dist_eq := assume x y, rfl,
   norm_mul := abs_mul }
+
+instance : nondiscrete_normed_field ℝ :=
+ { non_trivial := ⟨2, by unfold norm; rw abs_of_nonneg; by norm_num⟩ }
 
 lemma real.norm_eq_abs (r : ℝ): norm r = abs r := rfl
 

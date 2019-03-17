@@ -13,6 +13,8 @@ import data.real.nnreal topology.metric_space.emetric_space topology.algebra.ord
 open lattice set filter classical topological_space
 noncomputable theory
 
+local notation `𝓤` := uniformity
+
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
@@ -63,7 +65,7 @@ class metric_space (α : Type u) extends has_dist α : Type u :=
 (edist : α → α → ennreal := λx y, ennreal.of_real (dist x y))
 (edist_dist : ∀ x y : α, edist x y = ennreal.of_real (dist x y) . control_laws_tac)
 (to_uniform_space : uniform_space α := uniform_space_of_dist dist dist_self dist_comm dist_triangle)
-(uniformity_dist : uniformity = ⨅ ε>0, principal {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
+(uniformity_dist : 𝓤 α = ⨅ ε>0, principal {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
 
 variables [metric_space α]
 
@@ -215,6 +217,9 @@ lt_of_le_of_lt dist_nonneg hy
 theorem mem_ball_self (h : ε > 0) : x ∈ ball x ε :=
 show dist x x < ε, by rw dist_self; assumption
 
+theorem mem_closed_ball_self (h : ε ≥ 0) : x ∈ closed_ball x ε :=
+show dist x x ≤ ε, by rw dist_self; assumption
+
 theorem mem_ball_comm : x ∈ ball y ε ↔ y ∈ ball x ε :=
 by simp [dist_comm]
 
@@ -248,14 +253,14 @@ theorem ball_eq_empty_iff_nonpos : ε ≤ 0 ↔ ball x ε = ∅ :=
 ⟨λ h, le_of_not_gt $ λ ε0, h _ $ mem_ball_self ε0,
  λ ε0 y h, not_lt_of_le ε0 $ pos_of_mem_ball h⟩).symm
 
-theorem uniformity_dist : uniformity = (⨅ ε>0, principal {p:α×α | dist p.1 p.2 < ε}) :=
+theorem uniformity_dist : 𝓤 α = (⨅ ε>0, principal {p:α×α | dist p.1 p.2 < ε}) :=
 metric_space.uniformity_dist _
 
-theorem uniformity_dist' : uniformity = (⨅ε:{ε:ℝ // ε>0}, principal {p:α×α | dist p.1 p.2 < ε.val}) :=
+theorem uniformity_dist' : 𝓤 α = (⨅ε:{ε:ℝ // ε>0}, principal {p:α×α | dist p.1 p.2 < ε.val}) :=
 by simp [infi_subtype]; exact uniformity_dist
 
 theorem mem_uniformity_dist {s : set (α×α)} :
-  s ∈ @uniformity α _ ↔ (∃ε>0, ∀{a b:α}, dist a b < ε → (a, b) ∈ s) :=
+  s ∈ 𝓤 α ↔ (∃ε>0, ∀{a b:α}, dist a b < ε → (a, b) ∈ s) :=
 begin
   rw [uniformity_dist', mem_infi],
   simp [subset_def],
@@ -264,7 +269,7 @@ begin
 end
 
 theorem dist_mem_uniformity {ε:ℝ} (ε0 : 0 < ε) :
-  {p:α×α | dist p.1 p.2 < ε} ∈ @uniformity α _ :=
+  {p:α×α | dist p.1 p.2 < ε} ∈ 𝓤 α :=
 mem_uniformity_dist.2 ⟨ε, ε0, λ a b, id⟩
 
 theorem uniform_continuous_iff [metric_space β] {f : α → β} :
@@ -399,7 +404,7 @@ distance coincide. -/
 
 /-- Expressing the uniformity in terms of `edist` -/
 protected lemma metric.mem_uniformity_edist {s : set (α×α)} :
-  s ∈ @uniformity α _ ↔ (∃ε>0, ∀{a b:α}, edist a b < ε → (a, b) ∈ s) :=
+  s ∈ 𝓤 α ↔ (∃ε>0, ∀{a b:α}, edist a b < ε → (a, b) ∈ s) :=
 begin
   refine mem_uniformity_dist.trans ⟨_, _⟩; rintro ⟨ε, ε0, Hε⟩,
   { refine ⟨ennreal.of_real ε, _, λ a b, _⟩,
@@ -412,7 +417,7 @@ begin
     rwa [edist_dist, ennreal.of_real_lt_of_real_iff ε0'] }
 end
 
-protected theorem metric.uniformity_edist' : uniformity = (⨅ε:{ε:ennreal // ε>0}, principal {p:α×α | edist p.1 p.2 < ε.val}) :=
+protected theorem metric.uniformity_edist' : 𝓤 α = (⨅ε:{ε:ennreal // ε>0}, principal {p:α×α | edist p.1 p.2 < ε.val}) :=
 begin
   ext s, rw mem_infi,
   { simp [metric.mem_uniformity_edist, subset_def] },
@@ -421,7 +426,7 @@ begin
   { exact ⟨⟨1, ennreal.zero_lt_one⟩⟩ }
 end
 
-theorem uniformity_edist : uniformity = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
+theorem uniformity_edist : 𝓤 α = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
 by simpa [infi_subtype] using @metric.uniformity_edist' α _
 
 /-- A metric space induces an emetric space -/
@@ -528,7 +533,7 @@ begin
 end
 
 theorem metric.uniformity_eq_comap_nhds_zero :
-  uniformity = comap (λp:α×α, dist p.1 p.2) (nhds (0 : ℝ)) :=
+  𝓤 α = comap (λp:α×α, dist p.1 p.2) (nhds (0 : ℝ)) :=
 begin
   simp only [uniformity_dist', nhds_eq, comap_infi, comap_principal],
   congr, funext ε,
@@ -667,7 +672,7 @@ def metric_space.induced {α β} (f : α → β) (hf : function.injective f)
       exact ⟨_, dist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
   end }
 
-instance metric_space_subtype {p : α → Prop} [t : metric_space α] : metric_space (subtype p) :=
+instance subtype.metric_space {p : α → Prop} [t : metric_space α] : metric_space (subtype p) :=
 metric_space.induced subtype.val (λ x y, subtype.eq) t
 
 theorem subtype.dist_eq {p : α → Prop} [t : metric_space α] (x y : subtype p) :

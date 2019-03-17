@@ -12,19 +12,21 @@ local attribute [instance, priority 0] prop_decidable
 variables {α : Type*} {β : Type*} {γ : Type*} [uniform_space α]
 universe u
 
+local notation `𝓤` := uniformity
+
 def uniform_embedding [uniform_space β] (f : α → β) :=
 function.injective f ∧
-comap (λx:α×α, (f x.1, f x.2)) uniformity = uniformity
+comap (λx:α×α, (f x.1, f x.2)) (𝓤 β) = 𝓤 α
 
 theorem uniform_embedding_def [uniform_space β] {f : α → β} :
-  uniform_embedding f ↔ function.injective f ∧ ∀ s, s ∈ @uniformity α _ ↔
-    ∃ t ∈ @uniformity β _, ∀ x y : α, (f x, f y) ∈ t → (x, y) ∈ s :=
+  uniform_embedding f ↔ function.injective f ∧ ∀ s, s ∈ 𝓤 α ↔
+    ∃ t ∈ 𝓤 β, ∀ x y : α, (f x, f y) ∈ t → (x, y) ∈ s :=
 by rw [uniform_embedding, eq_comm, filter.ext_iff]; simp [subset_def]
 
 theorem uniform_embedding_def' [uniform_space β] {f : α → β} :
   uniform_embedding f ↔ function.injective f ∧ uniform_continuous f ∧
-    ∀ s, s ∈ @uniformity α _ →
-      ∃ t ∈ @uniformity β _, ∀ x y : α, (f x, f y) ∈ t → (x, y) ∈ s :=
+    ∀ s, s ∈ 𝓤 α →
+      ∃ t ∈ 𝓤 β, ∀ x y : α, (f x, f y) ∈ t → (x, y) ∈ s :=
 by simp [uniform_embedding_def, uniform_continuous_def]; exact
 ⟨λ ⟨I, H⟩, ⟨I, λ s su, (H _).2 ⟨s, su, λ x y, id⟩, λ s, (H s).1⟩,
  λ ⟨I, H₁, H₂⟩, ⟨I, λ s, ⟨H₂ s,
@@ -55,9 +57,9 @@ lemma uniform_embedding.dense_embedding [uniform_space β] {f : α → β}
 
 lemma closure_image_mem_nhds_of_uniform_embedding
   [uniform_space α] [uniform_space β] {s : set (α×α)} {e : α → β} (b : β)
-  (he₁ : uniform_embedding e) (he₂ : dense_embedding e) (hs : s ∈ @uniformity α _) :
+  (he₁ : uniform_embedding e) (he₂ : dense_embedding e) (hs : s ∈ 𝓤 α) :
   ∃a, closure (e '' {a' | (a, a') ∈ s}) ∈ nhds b :=
-have s ∈ comap (λp:α×α, (e p.1, e p.2)) uniformity,
+have s ∈ comap (λp:α×α, (e p.1, e p.2)) (𝓤 β),
   from he₁.right.symm ▸ hs,
 let ⟨t₁, ht₁u, ht₁⟩ := this in
 have ht₁ : ∀p:α×α, (e p.1, e p.2) ∈ t₁ → p ∈ s, from ht₁,
@@ -66,7 +68,7 @@ let ⟨t, htu, hts, htc⟩ := comp_symm_of_uniformity ht₂u in
 have preimage e {b' | (b, b') ∈ t₂} ∈ comap e (nhds b),
   from preimage_mem_comap $ mem_nhds_left b ht₂u,
 let ⟨a, (ha : (b, e a) ∈ t₂)⟩ := inhabited_of_mem_sets (he₂.comap_nhds_neq_bot) this in
-have ∀b' (s' : set (β × β)), (b, b') ∈ t → s' ∈ @uniformity β _ →
+have ∀b' (s' : set (β × β)), (b, b') ∈ t → s' ∈ 𝓤 β →
   {y : β | (b', y) ∈ s'} ∩ e '' {a' : α | (a, a') ∈ s} ≠ ∅,
   from assume b' s' hb' hs',
   have preimage e {b'' | (b', b'') ∈ s' ∩ t} ∈ comap e (nhds b'),
@@ -154,7 +156,7 @@ lemma complete_space_extension [uniform_space β] {m : β → α}
 ⟨assume (f : filter α), assume hf : cauchy f,
 let
   p : set (α × α) → set α → set α := λs t, {y : α| ∃x:α, x ∈ t ∧ (x, y) ∈ s},
-  g := uniformity.lift (λs, f.lift' (p s))
+  g := (𝓤 α).lift (λs, f.lift' (p s))
 in
 have mp₀ : monotone p,
   from assume a b h t s ⟨x, xs, xa⟩, ⟨x, xs, h xa⟩,
@@ -278,13 +280,13 @@ have h_pnt : ∀{a m}, m ∈ nhds a → ∃c, c ∈ f '' preimage e m ∧ (c, ψ
     from inter_mem_sets (image_mem_map $ preimage_mem_comap $ hm)
       (uniformly_extend_spec h_e h_dense h_f _ (inter_mem_sets (mem_nhds_right _ hs) (mem_nhds_left _ hs))),
   inhabited_of_mem_sets nb this,
-have preimage (λp:β×β, (f p.1, f p.2)) s ∈ @uniformity β _,
+have preimage (λp:β×β, (f p.1, f p.2)) s ∈ 𝓤 β,
   from h_f hs,
-have preimage (λp:β×β, (f p.1, f p.2)) s ∈ comap (λx:β×β, (e x.1, e x.2)) uniformity,
+have preimage (λp:β×β, (f p.1, f p.2)) s ∈ comap (λx:β×β, (e x.1, e x.2)) (𝓤 α),
   by rwa [h_e.right.symm] at this,
 let ⟨t, ht, ts⟩ := this in
-show preimage (λp:(α×α), (ψ p.1, ψ p.2)) d ∈ uniformity.sets,
-  from (@uniformity α _).sets_of_superset (interior_mem_uniformity ht) $
+show preimage (λp:(α×α), (ψ p.1, ψ p.2)) d ∈ 𝓤 α,
+  from (𝓤 α).sets_of_superset (interior_mem_uniformity ht) $
   assume ⟨x₁, x₂⟩ hx_t,
   have nhds (x₁, x₂) ≤ principal (interior t),
     from is_open_iff_nhds.mp is_open_interior (x₁, x₂) hx_t,

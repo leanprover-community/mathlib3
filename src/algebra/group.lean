@@ -592,6 +592,22 @@ calc is_conj a 1 ↔ is_conj 1 a : ⟨is_conj_symm, is_conj_symm⟩
 
 end is_conj
 
+@[to_additive is_add_hom]
+def is_mul_hom {α β : Type*} [has_mul α] [has_mul β] (f : α → β) : Prop :=
+∀ {x y}, f (x * y) = f x * f y
+
+namespace is_mul_hom
+variables [has_mul α] [has_mul β] {γ : Type*} [has_mul γ]
+
+@[to_additive is_add_hom.id]
+lemma id : is_mul_hom (id : α → α) := λ _ _, rfl
+
+@[to_additive is_add_hom.comp]
+lemma comp {f : α → β} {g : β → γ} (hf : is_mul_hom f) (hg : is_mul_hom g) : is_mul_hom (g ∘ f) :=
+λ x y, by show _ = g _ * g _; rw [←hg, ←hf]
+
+end is_mul_hom
+
 class is_monoid_hom [monoid α] [monoid β] (f : α → β) : Prop :=
 (map_one : f 1 = 1)
 (map_mul : ∀ {x y}, f (x * y) = f x * f y)

@@ -199,16 +199,6 @@ protected def discrete_field [discrete_field β] : discrete_field α :=
 end instances
 end equiv
 
--- Do this definition and two lemmas go somewhere else?
-def is_add_hom {α β : Type*} [has_add α] [has_add β] (f : α → β) : Prop :=
-∀ x y, f (x + y) = f x + f y
-
-lemma is_add_hom.id (α : Type*) [has_add α] : is_add_hom (id : α → α) := λ _ _, rfl
-
-lemma is_add_hom.comp [has_add α] [has_add β] [has_add γ] {f : α → β}
-  {g : β → γ} (hf : is_add_hom f) (hg : is_add_hom g) : is_add_hom (g ∘ f) :=
-λ x y, by show _ = g _ + g _; rw [←hg, ←hf]
-
 structure add_equiv (α β : Type*) [has_add α] [has_add β] extends α ≃ β :=
 (hom : is_add_hom to_fun)
 
@@ -220,28 +210,18 @@ variables [has_add α] [has_add β] [has_add γ]
 
 @[refl] def refl (α : Type) [has_add α] : α ≃+ α :=
 { hom := λ _ _,rfl,
-..equiv.refl _}
+  ..equiv.refl _}
 
 @[symm] def symm (h : α ≃+ β) : β ≃+ α :=
 { hom := λ n₁ n₂, function.injective_of_left_inverse h.left_inv begin
    rw h.hom, unfold equiv.symm, rw [h.right_inv, h.right_inv, h.right_inv], end
   ..h.to_equiv.symm}
 
-@[trans] def trans (h1 : α ≃+ β) (h2 : β ≃+ γ) : (α ≃+ γ) := {
-  hom := is_add_hom.comp h1.hom h2.hom,
+@[trans] def trans (h1 : α ≃+ β) (h2 : β ≃+ γ) : (α ≃+ γ) :=
+{ hom := λ _ _, is_add_hom.comp h1.hom h2.hom,
   ..equiv.trans h1.to_equiv h2.to_equiv }
 
 end add_equiv
-
--- Do this definition and two lemmas go somewhere else?
-def is_mul_hom {α β : Type*} [has_mul α] [has_mul β] (f : α → β) : Prop :=
-∀ x y, f (x * y) = f x * f y
-
-lemma is_mul_hom.id (α : Type*) [has_mul α] : is_mul_hom (id : α → α) := λ _ _, rfl
-
-lemma is_mul_hom.comp [has_mul α] [has_mul β] [has_mul γ] {f : α → β}
-  {g : β → γ} (hf : is_mul_hom f) (hg : is_mul_hom g) : is_mul_hom (g ∘ f) :=
-λ x y, by show _ = g _ * g _; rw [←hg, ←hf]
 
 structure mul_equiv (α β : Type*) [has_mul α] [has_mul β] extends α ≃ β :=
 (hom : is_mul_hom to_fun)
@@ -261,8 +241,8 @@ variables [has_mul α] [has_mul β] [has_mul γ]
    rw h.hom, unfold equiv.symm, rw [h.right_inv, h.right_inv, h.right_inv], end
   ..h.to_equiv.symm}
 
-@[trans] def trans (h1 : α ≃* β) (h2 : β ≃* γ) : (α ≃* γ) := {
-  hom := is_mul_hom.comp h1.hom h2.hom,
+@[trans] def trans (h1 : α ≃* β) (h2 : β ≃* γ) : (α ≃* γ) :=
+{ hom := λ _ _, is_mul_hom.comp h1.hom h2.hom,
   ..equiv.trans h1.to_equiv h2.to_equiv }
 
 end mul_equiv
@@ -273,7 +253,7 @@ namespace mul_equiv
 variables [monoid α] [monoid β] [monoid γ]
 
 lemma one (h : equiv α β) (hom : ∀ x y, h (x * y) = h x * h y) :
-h 1 = 1 :=
+  h 1 = 1 :=
 by rw [←mul_one (h 1), ←h.apply_symm_apply 1, ←hom]; simp
 
 instance is_monoid_hom (h : α ≃* β) : is_monoid_hom h.to_equiv := {
@@ -291,6 +271,16 @@ instance is_group_hom (h : α ≃* β) : is_group_hom h.to_equiv := ⟨h.hom⟩
 
 end mul_equiv
 
+-- equiv of add_groups
+namespace add_equiv
+
+variables [add_group α] [add_group β] [add_group γ]
+
+instance is_add_group_hom (h : α ≃+ β) : is_add_group_hom h.to_equiv := ⟨h.hom⟩
+
+end add_equiv
+
+
 namespace units
 
 variables [monoid α] [monoid β] [monoid γ]
@@ -301,7 +291,7 @@ def map_equiv (h : α ≃* β) : units α ≃* units β :=
   inv_fun := map h.symm.to_equiv,
   left_inv := λ u, ext $ h.left_inv u,
   right_inv := λ u, ext $ h.right_inv u,
-  hom := λ _ _, units.ext $ h.hom _ _}
+  hom := λ a b, units.ext $ by have X := h.hom; exact X} -- ??
 
 end units
 

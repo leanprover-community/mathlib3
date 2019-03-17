@@ -610,11 +610,11 @@ end is_mul_hom
 
 class is_monoid_hom [monoid α] [monoid β] (f : α → β) : Prop :=
 (map_one : f 1 = 1)
-(map_mul : ∀ {x y}, f (x * y) = f x * f y)
+(map_mul : ∀ x y, f (x * y) = f x * f y)
 
 class is_add_monoid_hom [add_monoid α] [add_monoid β] (f : α → β) : Prop :=
 (map_zero : f 0 = 0)
-(map_add : ∀ {x y}, f (x + y) = f x + f y)
+(map_add : ∀ x y, f (x + y) = f x + f y)
 
 attribute [to_additive is_add_monoid_hom] is_monoid_hom
 attribute [to_additive is_add_monoid_hom.map_add] is_monoid_hom.map_mul
@@ -770,7 +770,7 @@ definition map : units α → units β :=
       by rw [← is_monoid_hom.map_mul f, u.inv_val, is_monoid_hom.map_one f] ⟩
 
 instance : is_group_hom (units.map f) :=
-⟨λ a b, by ext; exact is_monoid_hom.map_mul f ⟩
+⟨λ a b, units.ext $ is_monoid_hom.map_mul f a b⟩
 
 instance : is_monoid_hom (coe : units α → α) :=
 ⟨by simp, by simp⟩

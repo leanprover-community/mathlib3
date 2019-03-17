@@ -232,7 +232,7 @@ namespace mul_equiv
 
 variables [has_mul α] [has_mul β] [has_mul γ]
 
-@[refl] def refl (α : Type) [has_mul α] : α ≃* α :=
+@[refl] def refl (α : Type*) [has_mul α] : α ≃* α :=
 { hom := λ _ _,rfl,
 ..equiv.refl _}
 

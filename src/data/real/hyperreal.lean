@@ -26,8 +26,8 @@ noncomputable def epsilon : ℝ* := of_seq (λ n, n⁻¹)
 /-- A sample infinite hyperreal-/
 noncomputable def omega : ℝ* := of_seq (λ n, n)
 
-notation `ε` := epsilon
-notation `ω` := omega
+local notation `ε` := epsilon
+local notation `ω` := omega
 
 theorem epsilon_eq_inv_omega : ε = ω⁻¹ := rfl
 

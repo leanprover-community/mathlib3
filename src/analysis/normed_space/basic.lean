@@ -318,6 +318,16 @@ by simp only [inv_eq_one_div, norm_div, norm_one]
            ... = ∥a∥*∥a^k∥ : by rw normed_field.norm_mul
            ... = ∥a∥ ^ (k + 1) : by rw normed_field.norm_pow; simp [pow, monoid.pow]
 
+lemma nondiscrete_normed_field.has_small_element (α : Type*) [nnf : nondiscrete_normed_field α] :
+  ∃ x : α, x ≠ 0 ∧ ∥x∥ < 1 :=
+let ⟨x, _⟩ := nnf.non_trivial in
+begin
+  use x⁻¹,
+  split,
+  simpa [inv_ne_zero, norm_eq_zero] using ne_of_gt (lt_trans zero_lt_one ‹1 < ∥x∥›),
+  simpa using inv_lt_one ‹1 < ∥x∥›,
+end
+
 instance : normed_field ℝ :=
 { norm := λ x, abs x,
   dist_eq := assume x y, rfl,

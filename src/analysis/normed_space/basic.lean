@@ -176,6 +176,10 @@ lemma tendsto_iff_norm_tendsto_zero {f : ι → β} {a : filter ι} {b : β} :
   tendsto f a (nhds b) ↔ tendsto (λ e, ∥ f e - b ∥) a (nhds 0) :=
 by rw tendsto_iff_dist_tendsto_zero ; simp only [(dist_eq_norm _ _).symm]
 
+lemma tendsto_at_top_iff_norm_tendsto_zero [nonempty ι] [lattice.semilattice_sup ι] {u : ι → α} {a : α} :
+  tendsto u filter.at_top (nhds a) ↔ tendsto (λ n, ∥u n - a∥) at_top (nhds 0)  :=
+by rw tendsto_iff_dist_tendsto_zero; simp only [(dist_eq_norm _ _).symm]
+
 lemma lim_norm (x : α) : ((λ g, ∥g - x∥) : α → ℝ) →_{x} 0 :=
 tendsto_iff_norm_tendsto_zero.1 (continuous_iff_continuous_at.1 continuous_id x)
 

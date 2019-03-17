@@ -218,7 +218,7 @@ variables [has_add α] [has_add β] [has_add γ]
   ..h.to_equiv.symm}
 
 @[trans] def trans (h1 : α ≃+ β) (h2 : β ≃+ γ) : (α ≃+ γ) :=
-{ hom := λ _ _, is_add_hom.comp h1.hom h2.hom,
+{ hom := is_add_hom.comp h1.hom h2.hom,
   ..equiv.trans h1.to_equiv h2.to_equiv }
 
 end add_equiv
@@ -242,7 +242,7 @@ variables [has_mul α] [has_mul β] [has_mul γ]
   ..h.to_equiv.symm}
 
 @[trans] def trans (h1 : α ≃* β) (h2 : β ≃* γ) : (α ≃* γ) :=
-{ hom := λ _ _, is_mul_hom.comp h1.hom h2.hom,
+{ hom := is_mul_hom.comp h1.hom h2.hom,
   ..equiv.trans h1.to_equiv h2.to_equiv }
 
 end mul_equiv
@@ -291,7 +291,7 @@ def map_equiv (h : α ≃* β) : units α ≃* units β :=
   inv_fun := map h.symm.to_equiv,
   left_inv := λ u, ext $ h.left_inv u,
   right_inv := λ u, ext $ h.right_inv u,
-  hom := λ a b, units.ext $ by have X := h.hom; exact X} -- ??
+  hom := λ a b, units.ext $ h.hom a b}
 
 end units
 

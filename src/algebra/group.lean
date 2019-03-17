@@ -594,7 +594,7 @@ end is_conj
 
 @[to_additive is_add_hom]
 def is_mul_hom {α β : Type*} [has_mul α] [has_mul β] (f : α → β) : Prop :=
-∀ {x y}, f (x * y) = f x * f y
+∀ x y, f (x * y) = f x * f y
 
 namespace is_mul_hom
 variables [has_mul α] [has_mul β] {γ : Type*} [has_mul γ]

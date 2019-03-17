@@ -5,15 +5,7 @@ Authors: Johan Commelin
 
 Nonnegative real numbers.
 -/
-import data.real.basic order.lattice
-
-section discrete_field
-
-@[simp] lemma inv_eq_zero {α} [discrete_field α] (a : α) : a⁻¹ = 0 ↔ a = 0 :=
-classical.by_cases (assume : a = 0, by simp [*])(assume : a ≠ 0, by simp [*, inv_ne_zero])
-
-end discrete_field
-
+import data.real.basic order.lattice algebra.field
 
 noncomputable theory
 open lattice

@@ -456,6 +456,8 @@ theorem singleton_def (a : α) : ({a} : set α) = insert a ∅ := rfl
 @[simp] theorem mem_singleton_iff {a b : α} : a ∈ ({b} : set α) ↔ a = b :=
 by finish [singleton_def]
 
+lemma set_of_eq_eq_singleton {a : α} : {n | n = a} = {a} := set.ext $ λ n, (set.mem_singleton_iff).symm
+
 -- TODO: again, annotation needed
 @[simp] theorem mem_singleton (a : α) : a ∈ ({a} : set α) := by finish
 

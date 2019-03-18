@@ -1,5 +1,7 @@
 import category_theory.isomorphism
 import category_theory.types
+import category_theory.groupoid
+import category_theory.equivalence
 
 open category_theory
 
@@ -10,6 +12,69 @@ open tactic
 open interactive
 open interactive.types
 open lean.parser
+
+def nonempty_functor : Type ⥤ Prop :=
+{ obj := λ X, nonempty X,
+  map := λ X Y f ⟨h⟩, ⟨f h⟩ }
+
+def core (C : Sort u₁) := C
+
+variables {C : Sort u₁} [𝒞 : category.{v₁} C]
+include 𝒞
+
+instance core_category : groupoid.{(max v₁ 1)} (core C) :=
+{ hom  := λ X Y : C, X ≅ Y,
+  inv  := λ X Y f, iso.symm f,
+  id   := λ X, iso.refl X,
+  comp := λ X Y Z f g, iso.trans f g }
+
+def core_inclusion : core C ⥤ C :=
+{ obj := id,
+  map := λ X Y f, f.hom }
+
+section
+variables {G : Sort u₂} [𝒢 : groupoid.{v₂} G]
+include 𝒢
+
+-- We're not ready for adjunctions between 2-categories, so
+-- we don't completely prove that `core` is right adjoint to the
+-- forgetful function from groupoids to categories.
+
+def core_adjunction_hom_equiv : (G ⥤ C) ≌ (G ⥤ core C) :=
+{ functor :=
+  { obj := λ F,
+    { obj := λ X, F.obj X,
+      map := λ X Y f, ⟨F.map f, F.map (inv f)⟩ },
+    map := λ F G τ,
+    { app := λ X, sorry } },
+  inverse :=
+  { obj := λ F,
+    { obj := λ X, (F.obj X : C),
+      map := λ X Y f, (F.map f).hom },
+    map := λ F G τ,
+    { app := λ X, sorry } } }.
+end
+
+@[extensionality]
+lemma has_mul.ext {α : Type u₁} {m m' : has_mul α}
+  (w : ∀ a b : α, begin haveI := m, exact a * b end = begin haveI := m', exact a * b end) : m = m' :=
+begin
+  unfreeze_local_instances,
+  induction m,
+  induction m',
+  congr,
+  ext a b,
+  exact w a b
+end
+
+def has_mul_functor : (core Type) ⥤ Type :=
+{ obj := λ X, has_mul X,
+  map := λ X Y f m,
+  begin
+    resetI,
+    exact { mul := λ a b, f.hom (f.inv a * f.inv b) }
+  end }
+
 #check reflected
 meta def check_equal (a b : ℕ) : tactic unit :=
 do let a' := reflected.to_expr `(a),
@@ -32,7 +97,7 @@ set_option pp.universes true
 structure functorial_preimage (e : D) :=
 (E : Type (u₁+1) )
 [ℰ : large_category E]
-(F : E ⥤ D) 
+(F : E ⥤ D)
 (e' : E)
 (w : F.obj e' = e)
 end
@@ -42,7 +107,7 @@ end
 -- variables {D : Type (u₁+1)} [𝒟 : large_category D]
 -- include 𝒟
 
--- def comp 
+-- def comp
 --   {e : D}
 --   (p : functorial_preimage e)
 --   (q : functorial_preimage p.e') :
@@ -114,4 +179,4 @@ begin
   exact f,
 end
 
-example 
+example

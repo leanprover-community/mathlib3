@@ -17,44 +17,6 @@ def nonempty_functor : Type ⥤ Prop :=
 { obj := λ X, nonempty X,
   map := λ X Y f ⟨h⟩, ⟨f h⟩ }
 
-def core (C : Sort u₁) := C
-
-variables {C : Sort u₁} [𝒞 : category.{v₁} C]
-include 𝒞
-
-instance core_category : groupoid.{(max v₁ 1)} (core C) :=
-{ hom  := λ X Y : C, X ≅ Y,
-  inv  := λ X Y f, iso.symm f,
-  id   := λ X, iso.refl X,
-  comp := λ X Y Z f g, iso.trans f g }
-
-def core_inclusion : core C ⥤ C :=
-{ obj := id,
-  map := λ X Y f, f.hom }
-
-section
-variables {G : Sort u₂} [𝒢 : groupoid.{v₂} G]
-include 𝒢
-
--- We're not ready for adjunctions between 2-categories, so
--- we don't completely prove that `core` is right adjoint to the
--- forgetful function from groupoids to categories.
-
-def core_adjunction_hom_equiv : (G ⥤ C) ≌ (G ⥤ core C) :=
-{ functor :=
-  { obj := λ F,
-    { obj := λ X, F.obj X,
-      map := λ X Y f, ⟨F.map f, F.map (inv f)⟩ },
-    map := λ F G τ,
-    { app := λ X, sorry } },
-  inverse :=
-  { obj := λ F,
-    { obj := λ X, (F.obj X : C),
-      map := λ X Y f, (F.map f).hom },
-    map := λ F G τ,
-    { app := λ X, sorry } } }.
-end
-
 @[extensionality]
 lemma has_mul.ext {α : Type u₁} {m m' : has_mul α}
   (w : ∀ a b : α, begin haveI := m, exact a * b end = begin haveI := m', exact a * b end) : m = m' :=

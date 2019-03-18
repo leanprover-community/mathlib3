@@ -81,6 +81,7 @@ resulting subgoals cannot all be discharged.",
 }
 
 meta structure back_lemma :=
+(name         : string) -- oh dear!
 (lem          : expr)
 (ty           : expr)
 /- a flag indicating that is we use this lemma, we must discharge resulting goals -/
@@ -162,17 +163,19 @@ meta def back_state.done (s : back_state) : bool :=
 s.goals.empty
 
 -- TODO Think hard about what goes here; possibly allow customisation.
-meta def back_state.default_complexity (s : back_state) : ℤ × ℕ :=
+meta def back_state.default_complexity (s : back_state) : ℤ × ℕ × ℕ :=
 -- It's essential to put `stashed` first, so that stashed goals are not returned until
 -- we've exhausted other branches of the search tree.
 -- (s.stashed.length, s.done, 2 * s.in_progress_fc.length + 2 * s.committed_fc.length + s.steps, s.steps + s.num_mvars) -- works!
 -- (s.stashed.length, s.done, 16 * s.in_progress_fc.length + 16 * s.committed_fc.length + 4 * s.in_progress_new.length + 4 * s.committed_new.length + s.steps, s.steps + s.num_mvars)
 
-(if s.stashed.length > 0 ∧ s.done then - (s.steps : ℤ) else 0,
+(if s.stashed.length > 0 ∧ s.done then - (s.steps : ℤ) else 0, -- Think about this some more!
  -- Goals which haven't been fact-checked yet are cheap; goals which have been are more expensive.
  -- TODO explain why `steps` amd `fact_steps` are here.
  -- The particular weights used here are ... voodoo.
- 4 * (list.foldl (+) 0 (s.goals.map (λ as : apply_state, as.step.weight))) + s.steps - s.fact_steps)
+ 4 * (list.foldl (+) 0 (s.goals.map (λ as : apply_state, as.step.weight))) + s.steps - s.fact_steps,
+ 0)
+--  s.steps + (s.goals.countp $ λ g, g.goal_type.has_meta_var)) -- cache this?
 
 meta def back_state.depth_first_complexity (s : back_state) : unit := ()
 
@@ -191,11 +194,12 @@ meta def count_pis : expr → ℕ
 
 /-- Sorts a list of lemmas according to the number of explicit arguments
     (more precisely, arguments which are not determined by later arguments). -/
-meta def sort_by_arrows (L : list back_lemma) : list back_lemma :=
-let M := L.map (λ e, ((count_arrows e.ty, count_pis e.ty), e)) in
-(list.qsort (λ (p q : (ℕ × ℕ) × back_lemma), p.1 ≤ q.1) M).map (λ p, p.2)
+meta def sort_back_lemmas (L : list back_lemma) : list back_lemma :=
+let M := L.map (λ e, ((count_arrows e.ty, count_pis e.ty, 0 /-e.name.length-/), e)) in
+(list.qsort (λ (p q : (ℕ × ℕ × ℕ) × back_lemma), p.1 ≤ q.1) M).map (λ p, p.2)
 
 declare_trace back
+declare_trace back_lemmas
 
 meta def back_state.init (goals : list expr) (lemmas : list back_lemma) (limit library_limit : option ℕ) : tactic back_state :=
 λ s, -- We'll need to grab a copy of the tactic state.
@@ -206,20 +210,20 @@ meta def back_state.init (goals : list expr) (lemmas : list back_lemma) (limit l
      facts'.foldl (λ m l,
             (head_symbols l.ty).erase_dup.foldl (λ m i, m.insert_cons i l) m)
             (rb_map.mk _ _),
-   let facts_map := facts_map.map sort_by_arrows,
+   let facts_map := facts_map.map sort_back_lemmas,
 
    let lemma_map : rb_map name (list back_lemma) :=
      lemmas'.foldl (λ m l,
             (head_symbols l.ty).erase_dup.foldl (λ m i, m.insert_cons i l) m)
             (rb_map.mk _ _),
-   let lemma_map := lemma_map.map sort_by_arrows,
+   let lemma_map := lemma_map.map sort_back_lemmas,
 
-   when (is_trace_enabled_for `back) $ (do
+   when (is_trace_enabled_for `back_lemmas) $ (do
      trace "initialising `back`...",
      trace "using facts:",
-     facts'.mmap (λ f, (do t ← infer_type f.lem, return (f.lem, (head_symbols t).erase_dup))) >>= trace,
+     trace $ facts'.map (λ f, (f.lem, (head_symbols f.ty).erase_dup)),
      trace "using lemmas:",
-     lemmas'.mmap (λ f, (do t ← infer_type f.lem, return (f.lem, (head_symbols t).erase_dup))) >>= trace),
+     trace $ lemmas'.map (λ f, (f.lem, (head_symbols f.ty).erase_dup))),
 
    initial_goals ← goals.mmap (λ goal, do goal_type ← infer_type goal, return
    { apply_state .
@@ -309,8 +313,8 @@ do set_goals [g],
           s.facts.mfirst (λ f, exact f.lem)) <|> skip),
 
    when (is_trace_enabled_for `back) $ (do
-    trace $ format!"successfully applied {e.lem} to goal {goal_types}",
-    get_goals >>= λ gs, gs.mmap infer_type >>= λ gs, trace format!"new goals: {gs}"),
+    pp e.lem >>= λ l, trace $ format!"successfully applied {l} to goal {goal_types}",
+    get_goals >>= λ gs, gs.mmap infer_type >>= pp >>= λ gs, trace format!"new goals: {gs}"),
 
    s' ← s.clean g e,
    (done >> return (s', prop ∧ explicit)) <|> do
@@ -507,13 +511,13 @@ meta def ignored_suffixes :=
  "tfae_nil" -- This one is just unhelpful. TODO
 ]
 
-meta def all_defs_except (gex : list name): tactic (list (expr × expr)) :=
+meta def all_defs_except (gex : list name): tactic (list (name × expr × expr)) :=
 do env ← get_env,
    let decls := env.get_trusted_decls,
    let decls := decls.filter $ λ d, let n := d.to_name in
      n ∉ gex ∧ ¬ n.is_internal ∧ ¬ n.is_private
        ∧ n.last ∉ ignored_suffixes,
-   decls.mmap (λ d : declaration, do e ← mk_const d.to_name, return (e, d.type))
+   decls.mmap (λ d : declaration, do e ← mk_const d.to_name, return (d.to_name, e, d.type))
 
 /--
 Returns a list of "finishing lemmas" (which should only be applied as part of a
@@ -555,10 +559,10 @@ do (extra_pr_lemmas, extra_fi_lemmas, gex, hex, all_hyps) ← decode_back_arg_li
    let filter_excl : list expr → list expr := list.filter $ λ h, h.const_name ∉ gex,
 
    progress_lemmas ← (filter_excl $ extra_pr_lemmas ++ with_pr_lemmas ++ tagged_pr_lemmas).enum.mmap
-     (λ l, do t ← infer_type l.2, return { back_lemma . lem := l.2, ty := t, finishing := ff, index := l.1 }),
+     (λ l, do t ← infer_type l.2, n ← pp l.2, return { back_lemma . name := to_string n, lem := l.2, ty := t, finishing := ff, index := l.1 }),
    finishing_lemmas ← (filter_excl $ extra_fi_lemmas ++ with_fi_lemmas ++ hypotheses ++ tagged_fi_lemmas).enum.mmap
-     (λ l, do t ← infer_type l.2, return { back_lemma . lem := l.2, ty := t, finishing := tt, index := l.1 + progress_lemmas.length }),
-   let environment_lemmas := environment.enum.map (λ p, { back_lemma . lem := p.2.1, ty := p.2.2, finishing := tt, from_library := tt, index := p.1 + progress_lemmas.length + finishing_lemmas.length }),
+     (λ l, do t ← infer_type l.2, n ← pp l.2, return { back_lemma . name := to_string n, lem := l.2, ty := t, finishing := tt, index := l.1 + progress_lemmas.length }),
+   let environment_lemmas := environment.enum.map (λ p, { back_lemma . name := to_string p.2.1, lem := p.2.2.1, ty := p.2.2.2, finishing := tt, from_library := tt, index := p.1 + progress_lemmas.length + finishing_lemmas.length }),
 
    return $ progress_lemmas ++ finishing_lemmas ++ environment_lemmas
 

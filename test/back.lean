@@ -189,17 +189,28 @@ end
 
 end dvd
 
-section infinite_of_prime_by_library_search
+section infinitude_of_prime_by_library_search
 
-example (N : ℕ) : ∃ p ≥ N, prime p :=
+set_option trace.back true
+
+example (N : ℕ) : (∃ p ≥ N, prime p) ∨ true :=
 begin
   let M := fact N + 1,
   let p := min_fac M,
-  have pp : prime p, { library_search, },
-  sorry
+  have pp : prime p, { apply min_fac_prime, apply ne_of_gt, library_search, },
+  right, trivial
 end
 
-end infinite_of_prime_by_library_search
+-- works with timeLimit = 1,000,000
+-- example (N : ℕ) : (∃ p ≥ N, prime p) ∨ true :=
+-- begin
+--   let M := fact N + 1,
+--   let p := min_fac M,
+--   have pp : prime p, { apply min_fac_prime, library_search, },
+--   right, trivial
+-- end
+
+end infinitude_of_prime_by_library_search
 
 section nat
 
@@ -209,22 +220,20 @@ by library_search -- exact le_add_right a b
 example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
 by library_search -- exact nat.mul_sub_left_distrib n m k
 
+set_option trace.back true
+
 lemma div_dvd_of_dvd {a b : ℕ} (h : b ∣ a) : (a / b) ∣ a :=
 -- The mathlib proof is: `⟨b, (nat.div_mul_cancel h).symm⟩`
 by library_search [-div_dvd_of_dvd]
 -- We get: `dvd.intro b (nat.div_mul_cancel h)`
 
--- Doesn't work:
--- lemma div_pos {a b : ℕ} (hba : b ≤ a) (hb : 0 < b) : 0 < a / b :=
--- by back? [-nat.div_pos] with _
+lemma div_pos {a b : ℕ} (hba : b ≤ a) (hb : 0 < b) : 0 < a / b :=
+by library_search
 
--- Doesn't work:
--- lemma lt_succ_iff_lt_or_eq {n i : ℕ} : n < i.succ ↔ (n < i ∨ n = i) :=
--- begin
--- -- transitivity,
--- -- back? with _,
--- end
+example {a b : ℕ} (hba : b ≤ a) (hb : b ≠ 0) : 0 < a / b :=
+by library_search
 
+set_option trace.back_lemmas true
 lemma one_le_of_lt {n m : ℕ} (h : n < m) : 1 ≤ m :=
 by library_search [-one_le_of_lt]
 -- a human proof:
@@ -246,22 +255,40 @@ by library_search -- says: `exact eq_comm`
 example (a b : ℕ) (ha : 0 < a) (hb : 0 < b) : 0 < a + b :=
 by library_search -- says: `exact add_pos_left ha b`
 
--- TODO maybe run intros first??
 example (a b : ℕ) : 0 < a → 0 < b → 0 < a + b :=
 by library_search -- says: `exact add_pos`
 
-
--- FIXME why are these failing?
--- example (a b : ℕ) (h : a ∣ b) (b ≠ 0) : a ≤ b :=
--- by library_search
-
--- example {a b : ℕ} (b ≠ 0) : a ≤ a * b :=
--- by library_search
-
--- example {a b : ℕ} (b < 0) : a ≤ a * b :=
--- by library_search
-
 example : ∀ P : Prop, ¬(P ↔ ¬P) :=
 by library_search -- says: `λ (a : Prop), (iff_not_self a).mp`
+
+-- set_option trace.back_lemmas true
+set_option trace.back false
+
+example (a b : ℕ) (h : a ∣ b) (w : b > 0) : a ≤ b :=
+by library_search
+
+example (a b : ℕ) (h : a ∣ b) (w : b ≠ 0) : a ≤ b :=
+by library_search
+
+example {a b : ℕ} (w : b ≥ 1) : a ≤ a * b :=
+by library_search
+
+example {b : ℕ} (w : b > 0) : b ≥ 1 :=
+by library_search
+
+example {b : ℕ} (w : b ≠ 0) : b ≥ 1 :=
+by library_search
+
+-- FIXME why are these failing?
+-- -- Works with timeLimit = 1,000,000
+-- example {a b : ℕ} (w : b > 0) : a ≤ a * b :=
+-- by library_search
+
+-- -- Doesn't work:
+-- example {a b : ℕ} (w : b ≠ 0) : a ≤ a * b :=
+-- by library_search
+
+
+
 
 end nat

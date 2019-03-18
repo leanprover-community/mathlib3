@@ -224,10 +224,10 @@ rfl
 @[simp] theorem trans_apply : ∀ (f : r ≃o s) (g : s ≃o t) (a : α), (f.trans g) a = g (f a)
 | ⟨f₁, o₁⟩ ⟨f₂, o₂⟩ a := equiv.trans_apply _ _ _
 
-@[simp] theorem apply_inverse_apply : ∀ (e : r ≃o s) (x : β), e (e.symm x) = x
+@[simp] theorem apply_symm_apply : ∀ (e : r ≃o s) (x : β), e (e.symm x) = x
 | ⟨f₁, o₁⟩ x := by simp
 
-@[simp] theorem inverse_apply_apply : ∀ (e : r ≃o s) (x : α), e.symm (e x) = x
+@[simp] theorem symm_apply_apply : ∀ (e : r ≃o s) (x : α), e.symm (e x) = x
 | ⟨f₁, o₁⟩ x := by simp
 
 /-- Any equivalence lifts to an order isomorphism between `s` and its preimage. -/

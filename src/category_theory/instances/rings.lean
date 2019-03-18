@@ -10,7 +10,7 @@ Currently only the basic setup.
 import category_theory.instances.monoids
 import category_theory.fully_faithful
 import category_theory.adjunction
-import linear_algebra.multivariate_polynomial
+import data.multivariate_polynomial
 import algebra.ring
 
 universes u v
@@ -108,7 +108,7 @@ noncomputable def polynomial : Type u ⥤ CommRing.{u} :=
   (polynomial.obj α).α = mv_polynomial α ℤ := rfl
 
 @[simp] lemma polynomial_map_val {α β : Type u} {f : α → β} :
-  (polynomial.map f).val = eval₂ C (X ∘ f) := rfl
+  (CommRing.polynomial.map f).val = eval₂ C (X ∘ f) := rfl
 
 noncomputable def adj : adjunction polynomial (forget : CommRing ⥤ Type u) :=
 adjunction.mk_of_hom_equiv _ _

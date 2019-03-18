@@ -143,6 +143,12 @@ def of_bijective [fintype α] (f : α → β) (H : function.bijective f) : finty
 def of_surjective [fintype α] [decidable_eq β] (f : α → β) (H : function.surjective f) : fintype β :=
 ⟨univ.image f, λ b, let ⟨a, e⟩ := H b in e ▸ mem_image_of_mem _ (mem_univ _)⟩
 
+noncomputable def of_injective [fintype β] (f : α → β) (H : function.injective f) : fintype α :=
+by letI := classical.dec; exact
+if hα : nonempty α then by letI := classical.inhabited_of_nonempty hα;
+  exact of_surjective (inv_fun f) (inv_fun_surjective H)
+else ⟨∅, λ x, (hα ⟨x⟩).elim⟩
+
 /-- If `f : α ≃ β` and `α` is a fintype, then `β` is also a fintype. -/
 def of_equiv (α : Type*) [fintype α] (f : α ≃ β) : fintype β := of_bijective _ f.bijective
 
@@ -183,6 +189,13 @@ def of_subsingleton (a : α) [subsingleton α] : fintype α :=
   @fintype.card _ (of_subsingleton a) = 1 := rfl
 
 end fintype
+
+lemma finset.card_univ [fintype α] : (finset.univ : finset α).card = fintype.card α :=
+rfl
+
+lemma finset.card_univ_diff [fintype α] [decidable_eq α] (s : finset α) :
+  (finset.univ \ s).card = fintype.card α - s.card :=
+finset.card_sdiff (subset_univ s)
 
 instance (n : ℕ) : fintype (fin n) :=
 ⟨⟨list.pmap fin.mk (list.range n) (λ a, list.mem_range.1),

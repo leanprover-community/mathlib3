@@ -120,6 +120,30 @@ linear_independent_Union_of_directed
   ((directed_comp _ _ _).2 $ (directed_on_iff_directed _).1 hs)
   (by simpa using h)
 
+lemma linear_independent_Union_finite {ι : Type*} {f : ι → set β}
+  (hl : ∀i, linear_independent α (f i))
+  (hd : ∀i, ∀t:set ι, finite t → i ∉ t → disjoint (span α (f i)) (⨆i∈t, span α (f i))) :
+  linear_independent α (⋃i, f i) :=
+begin
+  classical,
+  rw [Union_eq_Union_finset f],
+  refine linear_independent_Union_of_directed (directed_of_sup _) _,
+  exact (assume t₁ t₂ ht, Union_subset_Union $ assume i, Union_subset_Union_const $ assume h, ht h),
+  assume t, rw [set.Union, ← finset.sup_eq_supr],
+  refine t.induction_on _ _,
+  { exact linear_independent_empty },
+  { rintros ⟨i⟩ s his ih,
+    rw [finset.sup_insert],
+    refine linear_independent_union (hl _) ih _,
+    rw [finset.sup_eq_supr],
+    refine disjoint_mono (le_refl _) _ (hd i _ _ his),
+    { simp only [(span_Union _).symm],
+      refine span_mono (@supr_le_supr2 (set β) _ _ _ _ _ _),
+      rintros ⟨i⟩, exact ⟨i, le_refl _⟩ },
+    { change finite (plift.up ⁻¹' s.to_set),
+      exact finite_preimage (assume i j, plift.up.inj) s.finite_to_set } }
+end
+
 section repr
 variables (hs : linear_independent α s)
 
@@ -565,3 +589,45 @@ begin
 end.
 
 end vector_space
+
+namespace pi
+open set linear_map
+
+section module
+variables {ι : Type*} {φ : ι → Type*}
+variables [ring α] [∀i, add_comm_group (φ i)] [∀i, module α (φ i)] [fintype ι] [decidable_eq ι]
+
+lemma linear_independent_std_basis (s : Πi, set (φ i)) (hs : ∀i, linear_independent α (s i)) :
+  linear_independent α (⋃i, std_basis α φ i '' s i) :=
+begin
+  refine linear_independent_Union_finite _ _,
+  { assume i,
+    refine (linear_independent_image_iff _).2 (hs i),
+    simp only [ker_std_basis, disjoint_bot_right] },
+  { assume i J _ hiJ,
+    simp [(set.Union.equations._eqn_1 _).symm, submodule.span_image, submodule.span_Union],
+    have h₁ : map (std_basis α φ i) (span α (s i)) ≤ (⨆j∈({i} : set ι), range (std_basis α φ j)),
+    { exact (le_supr_of_le i $ le_supr_of_le (set.mem_singleton _) $ map_mono $ le_top) },
+    have h₂ : (⨆j∈J, map (std_basis α φ j) (span α (s j))) ≤ (⨆j∈J, range (std_basis α φ j)),
+    { exact supr_le_supr (assume i, supr_le_supr $ assume hi, map_mono $ le_top) },
+    exact disjoint_mono h₁ h₂
+      (disjoint_std_basis_std_basis _ _ _ _ $ set.disjoint_singleton_left.2 hiJ) }
+end
+
+lemma is_basis_std_basis [fintype ι] (s : Πi, set (φ i)) (hs : ∀i, is_basis α (s i)) :
+  is_basis α (⋃i, std_basis α φ i '' s i) :=
+begin
+  refine ⟨linear_independent_std_basis _ (assume i, (hs i).1), _⟩,
+  simp only [submodule.span_Union, submodule.span_image, (assume i, (hs i).2), submodule.map_top,
+    supr_range_std_basis]
+end
+
+section
+variables (α ι)
+lemma is_basis_fun [fintype ι] : is_basis α (⋃i, std_basis α (λi:ι, α) i '' {1}) :=
+is_basis_std_basis _ (assume i, is_basis_singleton_one _)
+end
+
+end module
+
+end pi

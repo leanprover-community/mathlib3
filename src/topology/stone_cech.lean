@@ -9,7 +9,7 @@ Parts of the formalization are based on "Ultrafilters and Topology"
 by Marius Stekelenburg, particularly section 5.
 -/
 
-import topology.continuity
+import topology.constructions
 
 noncomputable theory
 
@@ -23,7 +23,7 @@ section ultrafilter
 
 /-- Basis for the topology on `ultrafilter α`. -/
 def ultrafilter_basis (α : Type u) : set (set (ultrafilter α)) :=
-{t | ∃ (s : set α), t = {u | s ∈ u.val.sets}}
+{t | ∃ (s : set α), t = {u | s ∈ u.val}}
 
 variables {α : Type u}
 
@@ -43,12 +43,12 @@ lemma ultrafilter_basis_is_basis :
 
 /-- The basic open sets for the topology on ultrafilters are open. -/
 lemma ultrafilter_is_open_basic (s : set α) :
-  is_open {u : ultrafilter α | s ∈ u.val.sets} :=
+  is_open {u : ultrafilter α | s ∈ u.val} :=
 topological_space.is_open_of_is_topological_basis ultrafilter_basis_is_basis ⟨s, rfl⟩
 
 /-- The basic open sets for the topology on ultrafilters are also closed. -/
 lemma ultrafilter_is_closed_basic (s : set α) :
-  is_closed {u : ultrafilter α | s ∈ u.val.sets} :=
+  is_closed {u : ultrafilter α | s ∈ u.val} :=
 begin
   change is_open (- _),
   convert ultrafilter_is_open_basic (-s),
@@ -62,7 +62,7 @@ lemma ultrafilter_converges_iff {u : ultrafilter (ultrafilter α)} {x : ultrafil
   u.val ≤ nhds x ↔ x = mjoin u :=
 begin
   rw [eq_comm, ultrafilter.eq_iff_val_le_val],
-  change u.val ≤ nhds x ↔ x.val.sets ⊆ {a | {v : ultrafilter α | a ∈ v.val.sets} ∈ u.val.sets},
+  change u.val ≤ nhds x ↔ x.val.sets ⊆ {a | {v : ultrafilter α | a ∈ v.val} ∈ u.val},
   simp only [topological_space.nhds_generate_from, lattice.le_infi_iff, ultrafilter_basis,
     le_principal_iff],
   split; intro h,
@@ -86,7 +86,7 @@ begin
   simp only [comap_infi, comap_principal],
   intros s hs,
   rw ←le_principal_iff,
-  refine lattice.infi_le_of_le {u | s ∈ u.val.sets} _,
+  refine lattice.infi_le_of_le {u | s ∈ u.val} _,
   refine lattice.infi_le_of_le ⟨hs, ⟨s, rfl⟩⟩ _,
   rw principal_mono,
   intros a ha,
@@ -98,7 +98,7 @@ section embedding
 lemma ultrafilter_pure_injective : function.injective (pure : α → ultrafilter α) :=
 begin
   intros x y h,
-  have : {x} ∈ (pure x : ultrafilter α).val.sets := singleton_mem_pure_sets,
+  have : {x} ∈ (pure x : ultrafilter α).val := singleton_mem_pure_sets,
   rw h at this,
   exact (mem_singleton_iff.mp (mem_pure_sets.mp this)).symm
 end
@@ -114,7 +114,7 @@ dense_embedding.mk' pure continuous_top
       ultrafilter_converges_iff.mpr (bind_pure x).symm⟩)
   ultrafilter_pure_injective
   (assume a s as,
-     ⟨{u | s ∈ u.val.sets},
+     ⟨{u | s ∈ u.val},
       mem_nhds_sets (ultrafilter_is_open_basic s) (mem_pure_sets.mpr (mem_of_nhds as)),
       assume b hb, mem_pure_sets.mp hb⟩)
 

@@ -120,14 +120,12 @@ section
 variables (α β)
 include β
 
--- declaring this an instance breaks `real.lean` with reaching max. instance resolution depth
-def endomorphism_ring : ring (β →ₗ[α] β) :=
+instance endomorphism_ring : ring (β →ₗ[α] β) :=
 by refine {mul := (*), one := 1, ..linear_map.add_comm_group, ..};
   { intros, apply linear_map.ext, simp }
 
 /-- The group of invertible linear maps from `β` to itself -/
-def general_linear_group :=
-by haveI := endomorphism_ring α β; exact units (β →ₗ[α] β)
+def general_linear_group := units (β →ₗ[α] β)
 end
 
 section

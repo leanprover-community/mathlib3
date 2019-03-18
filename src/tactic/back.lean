@@ -195,7 +195,7 @@ meta def count_pis : expr → ℕ
 /-- Sorts a list of lemmas according to the number of explicit arguments
     (more precisely, arguments which are not determined by later arguments). -/
 meta def sort_back_lemmas (L : list back_lemma) : list back_lemma :=
-let M := L.map (λ e, ((count_arrows e.ty, count_pis e.ty, 0 /-e.name.length-/), e)) in
+let M := L.map (λ e, ((count_arrows e.ty, count_pis e.ty, e.name.length), e)) in
 (list.qsort (λ (p q : (ℕ × ℕ × ℕ) × back_lemma), p.1 ≤ q.1) M).map (λ p, p.2)
 
 declare_trace back
@@ -381,14 +381,24 @@ private meta def complexity (s : back_state) : ℕ × ℕ × α :=
  C s)
 
 private meta def insert_new_state : back_state → list back_state → list back_state
-/- depth first search: -/
--- | s states := s :: states
-/- complexity ordered search -/
 | s (h :: t) := if complexity C s ≤ complexity C h then
                   s :: h :: t
                 else
                   h :: (insert_new_state s t)
 | s [] := [s]
+
+-- An attempt to tweak the ordering...
+-- | s (h₁ :: h₂ :: t) := if complexity C s < complexity C h₁ then
+--                   s :: h₁ :: h₂ :: t
+--                 else if complexity C s < complexity C h₂ then
+--                   h₁ :: s :: h₂ :: t
+--                 else
+--                   h₁ :: (insert_new_state s (h₂ :: t))
+-- | s [t] := if complexity C s < complexity C t then
+--                   [s, t]
+--                 else
+--                   [t, s]
+-- | s [] := [s]
 
 private meta def insert_new_states : list back_state → list back_state → list back_state
 | [] states := states

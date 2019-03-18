@@ -8,6 +8,7 @@ Currently only the basic setup.
 Copied from monoids.lean.
 -/
 
+import algebra.punit_instances
 import category_theory.concrete_category
 import category_theory.fully_faithful
 
@@ -30,7 +31,7 @@ instance concrete_is_group_hom :
 instance Group_hom_is_group_hom {G₁ G₂ : Group} (f : G₁ ⟶ G₂) :
   is_group_hom (f : G₁ → G₂) := f.2
 
-instance : has_one Group := ⟨{ α := punit, str := by tidy }⟩
+instance : has_one Group := ⟨{ α := punit, str := infer_instance }⟩
 
 /-- The category of additive commutative groups and group morphisms. -/
 @[reducible] def AddCommGroup : Type (u+1) := bundled add_comm_group
@@ -55,7 +56,7 @@ def forget_to_Group : AddCommGroup ⥤ Group :=
 
 instance : faithful (forget_to_Group) := {}
 
-instance : has_zero AddCommGroup := ⟨{ α := punit, str := by tidy }⟩
+instance : has_zero AddCommGroup := ⟨{ α := punit, str := infer_instance }⟩
 
 end CommGroup
 

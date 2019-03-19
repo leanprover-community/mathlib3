@@ -168,9 +168,17 @@ lemma is_st_real_iff_eq {r s : ℝ} : is_st r s ↔ r = s := ⟨eq_of_is_st_real
 
 /- (st x < st y) → (x < y) → (x ≤ y) → (st x ≤ st y) -/
 
-lemma st_le_of_lt {x y : ℝ*} : x ≤ y → st x ≤ st y := sorry
+lemma is_st_le_of_lt {x y : ℝ*} {r s : ℝ} (hxr : is_st x r) (hsy : is_st y s) :
+  x ≤ y → r ≤ s := sorry
 
-lemma lt_of_st_lt {x y : ℝ*} : st x < st y → x < y := sorry
+lemma lt_of_is_st_lt {x y : ℝ*} {r s : ℝ} (hxr : is_st x r) (hsy : is_st y s) :
+  r < s → x < y := sorry
+
+lemma st_le_of_lt {x y : ℝ*} (hix : ¬ infinite x) (hiy : ¬ infinite y) : 
+  x ≤ y → st x ≤ st y := sorry
+
+lemma lt_of_st_lt {x y : ℝ*} (hix : ¬ infinite x) (hiy : ¬ infinite y) : 
+  st x < st y → x < y := sorry
 
 theorem not_infinite_of_exist_st {x : ℝ*} : (∃ r : ℝ, is_st x r) → ¬ infinite x := 
 λ he hi, Exists.dcases_on he $ λ r hr, hi.elim 

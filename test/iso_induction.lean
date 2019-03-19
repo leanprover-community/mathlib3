@@ -39,9 +39,27 @@ def has_mul_functor : (core Type) ⥤ Type :=
 
 open category_theory.instances
 
+def submodule_functor : (core CommRing) ⥤ Type :=
+{ obj := λ R, submodule (core.unwrap R).α (core.unwrap R).α,
+  map := λ X Y f m,
+  begin
+    exact
+    { carrier := f.hom.val '' m.carrier,
+      zero := begin sorry end,
+      add := sorry,
+      smul := sorry }
+  end,
+  map_id' := sorry,
+  map_comp' := sorry }
+
+
+def ideal_functor : (core CommRing) ⥤ Type :=
+{ obj := λ R, ideal (core.unwrap R).α,
+  map := λ X Y f, begin dsimp [ideal], sorry end }
+
 def is_local_functor : (core CommRing) ⥤ Prop :=
 { obj := λ R, is_local_ring (core.unwrap R).α,
-  map := λ X Y f, begin dsimp [is_local_ring], end }
+  map := λ X Y f, begin dsimp [is_local_ring], intro h, cases h with I uniq, fsplit, sorry end }
 
 
 ----------------------------------------

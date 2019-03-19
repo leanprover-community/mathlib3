@@ -4,6 +4,7 @@ import os
 import sys
 import tarfile
 from git import Repo
+from github import Github
 
 def make_cache():
     global fn
@@ -30,19 +31,78 @@ if repo.bare:
 if not os.path.exists(cache_dir):
     os.makedirs(cache_dir)
 
-fn = os.path.join(cache_dir, 'olean-' + repo.commit().hexsha + ".bz2")
 
-if sys.argv[1:] == ['--fetch']:
-    if os.path.exists(fn):
-        ar = tarfile.open(fn, 'r')
-        ar.extractall(root_dir)
-        ar.close()
+def mathlib_asset(rev):
+    global repo
+    mathlib = [ 'https://github.com/leanprover/mathlib',
+                'https://github.com/leanprover-community/mathlib',
+                'https://www.github.com/leanprover/mathlib',
+                'https://www.github.com/leanprover-community/mathlib']
+    if not any([ r.url in mathlib for r in repo.remotes ]): return False
+
+    g = Github()
+    print("Querying GitHub...")
+    repo = g.get_repo("leanprover-community/mathlib-nightly")
+    tags = {tag.name: tag.commit.sha for tag in repo.get_tags()}
+    try:
+        release = next(r for r in repo.get_releases()
+                           if r.tag_name.startswith('nightly-') and
+                           tags[r.tag_name] == rev)
+    except StopIteration:
+        print('Error: no nightly archive found')
+        return False
+
+    try:
+        asset = next(x for x in release.get_assets()
+                     if x.name.startswith('mathlib-olean-nightly-'))
+    except StopIteration:
+        print("Error: Release " + release.tag_name + " does not contains a olean "
+              "archive (this shouldn't happen...)")
+        return False
+    return asset
+
+def fetch_mathlib(asset):
+    mathlib_dir = os.path.join(os.environ['HOME'], '.mathlib')
+    if not os.path.isdir(mathlib_dir):
+        os.mkdir(mathlib_dir)
+
+    if not os.path.isfile(os.path.join(mathlib_dir, asset.name)):
+        print("Downloading nightly...")
+        cd = os.getcwd()
+        os.chdir(mathlib_dir)
+        http = urllib3.PoolManager(
+            cert_reqs='CERT_REQUIRED',
+            ca_certs=certifi.where())
+        req = http.request('GET', asset.browser_download_url)
+        with open(asset.name, 'wb') as f:
+            f.write(req.data)
+        os.chdir(cd)
     else:
-        print('no cache found')
-elif sys.argv[1:] == ['--build']:
-    if os.system('leanpkg build') == 0:
-        make_cache()
-elif sys.argv[1:] == []:
-    make_cache()
-else:
-    print('usage: cache_olean.py [--fetch | --build]')
+        print("Reusing cached olean archive")
+
+    print("Extracting nightly...")
+    ar = tarfile.open(os.path.join(mathlib_dir, asset.name))
+    ar.extractall('.')
+    return True
+
+rev = repo.commit().hexsha
+fn = os.path.join(cache_dir, 'olean-' + rev + ".bz2")
+
+if __name__ == "__main__":
+    if sys.argv[1:] == ['--fetch']:
+        asset = mathlib_asset(rev)
+        if asset:
+            fetch_mathlib(asset)
+        elif os.path.exists(fn):
+            ar = tarfile.open(fn, 'r')
+            ar.extractall(root_dir)
+            ar.close()
+        else:
+            print('no cache found')
+    elif sys.argv[1:] == ['--build']:
+        if os.system('leanpkg build') == 0:
+            make_cache()
+        elif sys.argv[1:] == []:
+            make_cache()
+        else:
+            print('usage: cache_olean.py [--fetch | --build]')

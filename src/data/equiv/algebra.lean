@@ -209,12 +209,12 @@ namespace add_equiv
 variables [has_add α] [has_add β] [has_add γ]
 
 @[refl] def refl (α : Type) [has_add α] : α ≃+ α :=
-{ hom := λ _ _,rfl,
+{ hom := is_add_hom.id
   ..equiv.refl _}
 
 @[symm] def symm (h : α ≃+ β) : β ≃+ α :=
-{ hom := λ n₁ n₂, function.injective_of_left_inverse h.left_inv begin
-   rw h.hom, unfold equiv.symm, rw [h.right_inv, h.right_inv, h.right_inv], end
+{ hom := ⟨λ n₁ n₂, function.injective_of_left_inverse h.left_inv begin
+   rw h.hom.map_add, unfold equiv.symm, rw [h.right_inv, h.right_inv, h.right_inv], end⟩
   ..h.to_equiv.symm}
 
 @[trans] def trans (h1 : α ≃+ β) (h2 : β ≃+ γ) : (α ≃+ γ) :=
@@ -233,12 +233,12 @@ namespace mul_equiv
 variables [has_mul α] [has_mul β] [has_mul γ]
 
 @[refl] def refl (α : Type*) [has_mul α] : α ≃* α :=
-{ hom := λ _ _,rfl,
+{ hom := ⟨λ _ _,rfl⟩,
 ..equiv.refl _}
 
 @[symm] def symm (h : α ≃* β) : β ≃* α :=
-{ hom := λ n₁ n₂, function.injective_of_left_inverse h.left_inv begin
-   rw h.hom, unfold equiv.symm, rw [h.right_inv, h.right_inv, h.right_inv], end
+{ hom := ⟨λ n₁ n₂, function.injective_of_left_inverse h.left_inv begin
+   rw h.hom.map_mul, unfold equiv.symm, rw [h.right_inv, h.right_inv, h.right_inv], end⟩
   ..h.to_equiv.symm}
 
 @[trans] def trans (h1 : α ≃* β) (h2 : β ≃* γ) : (α ≃* γ) :=
@@ -257,9 +257,10 @@ lemma one (h : equiv α β) (hom : ∀ x y, h (x * y) = h x * h y) :
 by rw [←mul_one (h 1), ←h.apply_symm_apply 1, ←hom]; simp
 
 instance is_monoid_hom (h : α ≃* β) : is_monoid_hom h.to_equiv := {
-  map_one := mul_equiv.one h.to_equiv h.hom,
-  map_mul := h.hom }
+  map_one := mul_equiv.one h.to_equiv h.hom.map_mul,
+  map_mul := h.hom.map_mul }
 
+instance (h : α ≃* β) : is_mul_hom h.to_equiv := {map_mul := λ a b, is_monoid_hom.map_mul h.to_equiv}
 end mul_equiv
 
 -- equiv of groups
@@ -267,7 +268,7 @@ namespace mul_equiv
 
 variables [group α] [group β] [group γ]
 
-instance is_group_hom (h : α ≃* β) : is_group_hom h.to_equiv := ⟨h.hom⟩
+instance is_group_hom (h : α ≃* β) : is_group_hom h.to_equiv := ⟨h.hom.map_mul⟩
 
 end mul_equiv
 
@@ -276,7 +277,7 @@ namespace add_equiv
 
 variables [add_group α] [add_group β] [add_group γ]
 
-instance is_add_group_hom (h : α ≃+ β) : is_add_group_hom h.to_equiv := ⟨h.hom⟩
+instance is_add_group_hom (h : α ≃+ β) : is_add_group_hom h.to_equiv := ⟨h.hom.map_add⟩
 
 end add_equiv
 
@@ -291,7 +292,7 @@ def map_equiv (h : α ≃* β) : units α ≃* units β :=
   inv_fun := map h.symm.to_equiv,
   left_inv := λ u, ext $ h.left_inv u,
   right_inv := λ u, ext $ h.right_inv u,
-  hom := λ a b, units.ext $ h.hom a b}
+  hom := ⟨λ a b, units.ext $ is_mul_hom.map_mul h.to_equiv⟩}
 
 end units
 

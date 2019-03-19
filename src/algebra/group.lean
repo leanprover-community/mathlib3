@@ -592,21 +592,43 @@ calc is_conj a 1 ↔ is_conj 1 a : ⟨is_conj_symm, is_conj_symm⟩
 
 end is_conj
 
-@[to_additive is_add_hom]
-def is_mul_hom {α β : Type*} [has_mul α] [has_mul β] (f : α → β) : Prop :=
-∀ x y, f (x * y) = f x * f y
+class is_mul_hom {α β : Type*} [has_mul α] [has_mul β] (f : α → β) : Prop :=
+(map_mul : ∀ {x y}, f (x * y) = f x * f y)
+
+class is_add_hom {α β : Type*} [has_add α] [has_add β] (f : α → β) : Prop :=
+(map_add : ∀ {x y}, f (x + y) = f x + f y)
+attribute [to_additive is_add_hom] is_mul_hom
 
 namespace is_mul_hom
 variables [has_mul α] [has_mul β] {γ : Type*} [has_mul γ]
 
-@[to_additive is_add_hom.id]
-lemma id : is_mul_hom (id : α → α) := λ _ _, rfl
+lemma id : is_mul_hom (id : α → α) := {map_mul := λ _ _, rfl}
 
-@[to_additive is_add_hom.comp]
 lemma comp {f : α → β} {g : β → γ} (hf : is_mul_hom f) (hg : is_mul_hom g) : is_mul_hom (g ∘ f) :=
-λ x y, by show _ = g _ * g _; rw [←hg, ←hf]
+⟨λ x y, by show _ = g _ * g _; rw [←hg.map_mul, ←hf.map_mul]⟩
+
+lemma comp' {f : α → β} {g : β → γ} (hf : is_mul_hom f) (hg : is_mul_hom g) :
+  is_mul_hom (λ x, g (f x)) :=
+⟨λ x y, by rw [←hg.map_mul, ←hf.map_mul]⟩
 
 end is_mul_hom
+
+namespace is_add_hom
+variables [has_add α] [has_add β] {γ : Type*} [has_add γ]
+
+def id : is_add_hom (id : α → α) := {map_add := λ _ _, rfl}
+
+def comp {f : α → β} {g : β → γ} (hf : is_add_hom f) (hg : is_add_hom g) : is_add_hom (g ∘ f) :=
+⟨λ x y, by show _ = g _ + g _; rw [←hg.map_add, ←hf.map_add]⟩
+
+def comp' {f : α → β} {g : β → γ} (hf : is_add_hom f) (hg : is_add_hom g) :
+  is_add_hom (λ x, g (f x)) :=
+⟨λ x y, by rw [←hg.map_add, ←hf.map_add]⟩
+
+end is_add_hom
+
+attribute [to_additive is_add_hom.id] is_mul_hom.id
+attribute [to_additive is_add_hom.comp] is_mul_hom.comp
 
 class is_monoid_hom [monoid α] [monoid β] (f : α → β) : Prop :=
 (map_one : f 1 = 1)

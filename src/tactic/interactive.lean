@@ -141,7 +141,7 @@ meta def clear_ : tactic unit := tactic.repeat $ do
 
 meta def apply_iff_congr_core (tgt : expr) : tactic unit :=
 do applyc ``iff_of_eq,
-   (lhs, rhs) ← target >>= match_iff,
+   (lhs, rhs) ← target >>= match_eq,
    guard lhs.is_app,
    clemma ← mk_specialized_congr_lemma lhs,
    apply_congr_core clemma

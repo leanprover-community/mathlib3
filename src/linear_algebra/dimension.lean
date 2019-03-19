@@ -266,6 +266,17 @@ by rw [dim_fun, dim_of_field, mul_one]
 
 end fintype
 
+lemma exists_mem_ne_zero_of_ne_bot {s : submodule α β} (h : s ≠ ⊥) : ∃ b : β, b ∈ s ∧ b ≠ 0 :=
+begin
+  by_contradiction hex,
+  have : ∀x∈s, (x:β) = 0, { simpa only [not_exists, not_and, not_not, ne.def] using hex },
+  exact (h $ bot_unique $ assume s hs, (submodule.mem_bot α).2 $ this s hs)
+end
+
+lemma exists_mem_ne_zero_of_dim_pos {s : submodule α β} (h : vector_space.dim α s > 0) :
+  ∃ b : β, b ∈ s ∧ b ≠ 0 :=
+exists_mem_ne_zero_of_ne_bot $ assume eq, by rw [(>), eq, dim_bot] at h; exact lt_irrefl _ h
+
 def rank (f : β →ₗ[α] γ) : cardinal := dim α f.range
 
 lemma rank_le_domain (f : β →ₗ[α] γ) : rank f ≤ dim α β :=

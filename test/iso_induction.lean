@@ -82,7 +82,7 @@ def is_local_functor : (core CommRing) ⥤ Prop :=
   map := λ X Y f, begin dsimp [is_local_ring], intro h, cases h with I uniq, fsplit, sorry end }
 
 
-----------------------------------------
+----------------Feeble attempts at writing the actual tactics below------------------------
 
 #check reflected
 meta def check_equal (a b : ℕ) : tactic unit :=

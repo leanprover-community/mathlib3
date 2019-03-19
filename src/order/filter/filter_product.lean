@@ -2,8 +2,7 @@
 Copyright (c) 2019 Abhimanyu Pallavi Sudhir. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Abhimanyu Pallavi Sudhir
-"Filterproducts" (ultraproducts on general filters), ultraproducts and 
-the construction of the hyperreals.
+"Filterproducts" (ultraproducts on general filters), ultraproducts.
 -/
 
 import order.filter.basic

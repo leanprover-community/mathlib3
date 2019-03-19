@@ -7,6 +7,7 @@ Algebra over Commutative Ring (under category)
 -/
 
 import data.polynomial data.mv_polynomial
+import data.complex.basic
 import linear_algebra.tensor_product
 import ring_theory.subring
 
@@ -343,6 +344,31 @@ begin
 end
 
 end mv_polynomial
+
+namespace complex
+
+instance algebra_over_reals : algebra ℝ ℂ :=
+algebra.of_ring_hom coe $ by constructor; intros; simp [one_re]
+
+instance : has_scalar ℝ ℂ := { smul := λ r c, ↑r * c}
+
+lemma smul_re: ∀ (c : ℝ) (x : ℂ), (c • x).re = c • x.re :=
+begin
+  unfold has_scalar.smul,
+  assume _ _,
+  rw [complex.mul_re,complex.of_real_im],
+  simp
+end
+
+lemma smul_im: ∀ (c : ℝ) (x : ℂ), (c • x).im = c • x.im :=
+begin
+  unfold has_scalar.smul,
+  assume _ _,
+  rw [complex.mul_im,complex.of_real_re],
+  simp
+end
+
+end complex
 
 structure subalgebra (R : Type u) (A : Type v)
   [comm_ring R] [ring A] [algebra R A] : Type v :=

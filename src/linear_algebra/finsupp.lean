@@ -5,7 +5,7 @@ Author: Johannes Hölzl
 
 Linear structures on function with finit support `α →₀ β` and multivariate polynomials.
 -/
-import data.finsupp data.multivariate_polynomial
+import data.finsupp data.mv_polynomial
 import linear_algebra.dimension
 noncomputable theory
 

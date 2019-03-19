@@ -26,8 +26,8 @@ noncomputable def epsilon : ℝ* := of_seq (λ n, n⁻¹)
 /-- A sample infinite hyperreal-/
 noncomputable def omega : ℝ* := of_seq (λ n, n)
 
-notation `ε` := epsilon
-notation `ω` := omega
+local notation `ε` := epsilon
+local notation `ω` := omega
 
 lemma epsilon_eq_inv_omega : ε = ω⁻¹ := rfl
 
@@ -285,21 +285,29 @@ lemma not_infinite_of_infinitesimal {x : ℝ*} : infinitesimal x → ¬ infinite
 
 lemma not_infinitesimal_of_infinite {x : ℝ*} : infinite x → ¬ infinitesimal x := imp_not_comm.mp not_infinite_of_infinitesimal
 
-lemma infinite_pos_mul_of_infinite_pos_not_infinitesimal_pos {x y : ℝ*} : infinite_pos x → ¬ infinitesimal y → y > 0 → infinite_pos (x * y) := sorry
+lemma infinite_pos_mul_of_infinite_pos_not_infinitesimal_pos {x y : ℝ*} : 
+  infinite_pos x → ¬ infinitesimal y → y > 0 → infinite_pos (x * y) := sorry
 
-lemma infinite_pos_mul_of_not_infinitesimal_pos_infinite_pos {x y : ℝ*} : ¬ infinitesimal x → x > 0 → infinite_pos y → infinite_pos (x * y) := sorry
+lemma infinite_pos_mul_of_not_infinitesimal_pos_infinite_pos {x y : ℝ*} : 
+  ¬ infinitesimal x → x > 0 → infinite_pos y → infinite_pos (x * y) := sorry
 
-lemma infinite_pos_mul_of_infinite_neg_not_infinitesimal_neg {x y : ℝ*} : infinite_neg x → ¬ infinitesimal y → y < 0 → infinite_pos (x * y) := sorry
+lemma infinite_pos_mul_of_infinite_neg_not_infinitesimal_neg {x y : ℝ*} : 
+  infinite_neg x → ¬ infinitesimal y → y < 0 → infinite_pos (x * y) := sorry
 
-lemma infinite_pos_mul_of_notw_infinitesimal_neg_infinite_neg {x y : ℝ*} : ¬ infinitesimal x → x < 0 → infinite_neg y → infinite_pos (x * y) := sorry
+lemma infinite_pos_mul_of_notw_infinitesimal_neg_infinite_neg {x y : ℝ*} : 
+  ¬ infinitesimal x → x < 0 → infinite_neg y → infinite_pos (x * y) := sorry
 
-lemma infinite_neg_mul_of_infinite_pos_not_infinitesimal_neg {x y : ℝ*} : infinite_pos x → ¬ infinitesimal y → y < 0 → infinite_neg (x * y) := sorry
+lemma infinite_neg_mul_of_infinite_pos_not_infinitesimal_neg {x y : ℝ*} : 
+  infinite_pos x → ¬ infinitesimal y → y < 0 → infinite_neg (x * y) := sorry
 
-lemma infinite_neg_mul_of_not_infinitesimal_neg_infinite_pos {x y : ℝ*} : ¬ infinitesimal x → x < 0 → infinite_pos y → infinite_neg (x * y) := sorry
+lemma infinite_neg_mul_of_not_infinitesimal_neg_infinite_pos {x y : ℝ*} : 
+  ¬ infinitesimal x → x < 0 → infinite_pos y → infinite_neg (x * y) := sorry
 /-    314159265358979323846264338327950288419716939950510582    -/
-lemma infinite_neg_mul_of_infinite_neg_not_infinitesimal_pos {x y : ℝ*} : infinite_neg x → ¬ infinitesimal y → y > 0 → infinite_neg (x * y) := sorry
+lemma infinite_neg_mul_of_infinite_neg_not_infinitesimal_pos {x y : ℝ*} : 
+  infinite_neg x → ¬ infinitesimal y → y > 0 → infinite_neg (x * y) := sorry
 
-lemma infinite_neg_mul_of_not_infinitesimal_pos_infinite_neg {x y : ℝ*} : ¬ infinitesimal x → x > 0 → infinite_neg y → infinite_neg (x * y) := sorry
+lemma infinite_neg_mul_of_not_infinitesimal_pos_infinite_neg {x y : ℝ*} : 
+  ¬ infinitesimal x → x > 0 → infinite_neg y → infinite_neg (x * y) := sorry
 
 lemma infinite_pos_mul_infinite_pos {x y : ℝ*} : infinite_pos x → infinite_pos y → infinite_pos (x * y) := sorry
 
@@ -338,7 +346,9 @@ lemma infinite_omega : infinite ω := sorry
 theorem not_infinite_iff_exist_lt_gt {x : ℝ*} : ¬ infinite x ↔ ∃ r s : ℝ, ↑r < x ∧ x < s := sorry
 
 theorem not_infinite_real (r : ℝ) : ¬ infinite r := by rw not_infinite_iff_exist_lt_gt; exact
-⟨r - 1, r + 1, by rw [←of_eq_coe, ←of_eq_coe, ←of_lt U]; exact sub_one_lt _, by rw [←of_eq_coe, ←of_eq_coe, ←of_lt U]; exact lt_add_one _⟩
+⟨ r - 1, r + 1, 
+  by rw [←of_eq_coe, ←of_eq_coe, ←of_lt U]; exact sub_one_lt _, 
+  by rw [←of_eq_coe, ←of_eq_coe, ←of_lt U]; exact lt_add_one _⟩
 
 theorem not_real_of_infinite {x : ℝ*} : infinite x → ∀ r : ℝ, x ≠ of r := sorry
 

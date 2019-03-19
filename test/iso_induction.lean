@@ -1,7 +1,7 @@
 import category_theory.isomorphism
 import category_theory.types
-import category_theory.groupoid
-import category_theory.equivalence
+import category_theory.core
+import category_theory.instances.rings
 
 open category_theory
 
@@ -30,12 +30,21 @@ begin
 end
 
 def has_mul_functor : (core Type) ⥤ Type :=
-{ obj := λ X, has_mul X,
+{ obj := λ X, has_mul (core.unwrap X),
   map := λ X Y f m,
   begin
     resetI,
     exact { mul := λ a b, f.hom (f.inv a * f.inv b) }
   end }
+
+open category_theory.instances
+
+def is_local_functor : (core CommRing) ⥤ Prop :=
+{ obj := λ R, is_local_ring (core.unwrap R).α,
+  map := λ X Y f, begin dsimp [is_local_ring], end }
+
+
+----------------------------------------
 
 #check reflected
 meta def check_equal (a b : ℕ) : tactic unit :=

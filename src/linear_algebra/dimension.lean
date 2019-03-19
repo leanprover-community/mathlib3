@@ -91,6 +91,19 @@ begin
 end
 set_option class.instance_max_depth 32
 
+lemma dim_span_le (s : set β) : dim α (span α s) ≤ cardinal.mk s :=
+let ⟨b, hb, _, hsb, hlib⟩ :=
+  exists_linear_independent (@linear_independent_empty α _ _ _ _) (set.empty_subset s) in
+have hsab : span α s = span α b, from span_eq_of_le _ hsb (span_le.2 (λ x hx, subset_span (hb hx))),
+calc dim α (span α s) = dim α (span α b) : by rw hsab
+                  ... = cardinal.mk b : dim_span hlib
+                  ... ≤ cardinal.mk s : cardinal.mk_le_mk_of_subset hb
+
+lemma dim_span_of_finset (s : finset β) : dim α (span α (↑s : set β)) < cardinal.omega :=
+calc dim α (span α (↑s : set β)) ≤ cardinal.mk (↑s : set β) : dim_span_le ↑s
+                             ... = s.card : by rw ←cardinal.finset_card
+                             ... < cardinal.omega : cardinal.nat_lt_omega _
+
 theorem dim_prod : dim α (β × γ) = dim α β + dim α γ :=
 begin
   rcases exists_is_basis α β with ⟨b, hb⟩,
@@ -270,6 +283,18 @@ calc rank (f + g) ≤ dim α (f.range ⊔ g.range : submodule α γ) :
         mem_sup.2 ⟨_, mem_image_of_mem _ (mem_univ _), _, mem_image_of_mem _ (mem_univ _), rfl⟩)
   end
   ... ≤ rank f + rank g : dim_add_le_dim_add_dim _ _
+
+@[simp] lemma rank_zero : rank (0 : β →ₗ[α] γ) = 0 :=
+by rw [rank, linear_map.range_zero, dim_bot]
+
+lemma rank_finset_sum_le {ι} (s : finset ι) (f : ι → β →ₗ[α] γ) :
+  rank (s.sum f) ≤ s.sum (λ d, rank (f d)) :=
+begin
+  refine @finset.sum_hom_rel _ _ _ _ _ (λa b, rank a ≤ b) _ _ s (le_of_eq _) _,
+  { exact rank_zero },
+  { assume i g c h, exact le_trans (rank_add_le _ _) (add_le_add_left' h) }
+end
+
 
 variables [add_comm_group δ] [vector_space α δ]
 

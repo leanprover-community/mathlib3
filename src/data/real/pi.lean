@@ -223,4 +223,9 @@ begin
   all_goals {norm_num}
 end
 
+/- A computation of the first 7 digits of pi is given here:
+  https://gist.github.com/fpvandoorn/5b405988bc2e61953d56e3597db16ecf
+  This is not included in mathlib, because of slow compilation time.
+  -/
+
 end real

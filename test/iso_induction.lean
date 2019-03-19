@@ -39,8 +39,6 @@ def has_mul_functor : (core Type) ⥤ Type :=
 
 open category_theory.instances
 
-instance {R S : CommRing} (f : R ⟶ S) : is_ring_hom (f.val) := by apply_instance
-
 def submodule_functor : (core CommRing) ⥤ Type :=
 { obj := λ R, submodule R.α R.α,
   map := λ X Y f m,

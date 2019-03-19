@@ -581,6 +581,28 @@ by rw [geom_sum h₁, div_eq_iff_mul_eq h₂, ← domain.mul_left_inj h₃,
 
 end geom_sum
 
+namespace finset
+section gauss_sum
+
+/-- Gauss' summation formula -/
+lemma sum_range_id_mul_two :
+  ∀(n : ℕ), (finset.range n).sum (λi, i) * 2 = n * (n - 1)
+| 0       := rfl
+| 1       := rfl
+| ((n + 1) + 1) :=
+  begin
+    rw [sum_range_succ, add_mul, sum_range_id_mul_two (n + 1), mul_comm, two_mul,
+      nat.add_sub_cancel, nat.add_sub_cancel, mul_comm _ n],
+    simp only [add_mul, one_mul, add_comm, add_assoc, add_left_comm]
+  end
+
+/-- Gauss' summation formula -/
+lemma sum_range_id (n : ℕ) : (finset.range n).sum (λi, i) = (n * (n - 1)) / 2 :=
+by rw [← sum_range_id_mul_two n, nat.mul_div_cancel]; exact dec_trivial
+
+end gauss_sum
+end finset
+
 section group
 
 open list

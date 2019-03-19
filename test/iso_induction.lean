@@ -30,7 +30,7 @@ begin
 end
 
 def has_mul_functor : (core Type) ⥤ Type :=
-{ obj := λ X, has_mul (core.unwrap X),
+{ obj := λ X, has_mul X,
   map := λ X Y f m,
   begin
     resetI,
@@ -39,26 +39,48 @@ def has_mul_functor : (core Type) ⥤ Type :=
 
 open category_theory.instances
 
+instance {R S : CommRing} (f : R ⟶ S) : is_ring_hom (f.val) := by apply_instance
+
 def submodule_functor : (core CommRing) ⥤ Type :=
-{ obj := λ R, submodule (core.unwrap R).α (core.unwrap R).α,
+{ obj := λ R, submodule R.α R.α,
   map := λ X Y f m,
   begin
     exact
     { carrier := f.hom.val '' m.carrier,
-      zero := begin sorry end,
-      add := sorry,
+      zero :=
+      begin
+        have m_zero := m.zero,
+        -- for automation, it might even be helpful to generalize m.carrier and clear m!
+        simp,
+        use 0, -- how did we know to `use 0`? perhaps the computer would only realise to use `f.inv.val 0`.
+        split,
+        assumption,
+        sorry
+      end,
+      add :=
+      begin
+        have m_add := m.add,
+        intros a b a_mem b_mem,
+        simp,
+        use f.inv.val (a + b),
+        split,
+        rw [is_ring_hom.map_add f.inv.val], -- this will have to work by simp!
+        apply m_add,
+        sorry,
+        sorry,
+        sorry
+      end,
       smul := sorry }
   end,
   map_id' := sorry,
   map_comp' := sorry }
 
-
 def ideal_functor : (core CommRing) ⥤ Type :=
-{ obj := λ R, ideal (core.unwrap R).α,
+{ obj := λ R, ideal R.α,
   map := λ X Y f, begin dsimp [ideal], sorry end }
 
 def is_local_functor : (core CommRing) ⥤ Prop :=
-{ obj := λ R, is_local_ring (core.unwrap R).α,
+{ obj := λ R, is_local_ring R.α,
   map := λ X Y f, begin dsimp [is_local_ring], intro h, cases h with I uniq, fsplit, sorry end }
 
 

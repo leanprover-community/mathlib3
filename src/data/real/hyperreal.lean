@@ -190,7 +190,7 @@ have HR₂ : ∃ z : ℝ, ∀ y ∈ S, y ≤ z := ⟨r₂, λ y hy, le_of_lt ((o
     have hc : ∀ y ∈ S, y ≤ R - δ := λ y hy, (of_le U.1).mpr (le_of_lt (lt_of_lt_of_le hy c)),
     not_lt_of_le ((real.Sup_le _ HR₁ HR₂).mpr hc) (sub_lt_self R hδ)), 
    lt_of_not_ge' (λ c,
-    have hc : ↑(R + δ / 2) < x := lt_of_lt_of_le (add_lt_add_left (of_lt_of_lt U(half_lt_self hδ)) ↑R) c,
+    have hc : ↑(R + δ / 2) < x := lt_of_lt_of_le (add_lt_add_left (of_lt_of_lt U (half_lt_self hδ)) ↑R) c,
     not_lt_of_le (real.le_Sup _ HR₂ hc) ((lt_add_iff_pos_right _).mpr (half_pos hδ)))⟩⟩))
 
 theorem exist_st_iff_not_infinite {x : ℝ*} : (∃ r : ℝ, is_st x r) ↔ ¬ infinite x := 

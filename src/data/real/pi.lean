@@ -53,18 +53,32 @@ lemma sqrt_two_add_series_monotone_left {x y : ℝ} (h : x ≤ y) :
     apply sqrt_le_sqrt, apply add_le_add_left, apply sqrt_two_add_series_monotone_left
   end
 
-lemma sqrt_two_add_series_step_up {x z : ℝ} {n : ℕ} (y : ℝ) (hz : sqrt_two_add_series y n ≤ z)
-  (h : 2 + x ≤ y ^ 2) (h2 : 0 ≤ y) : sqrt_two_add_series x (n+1) ≤ z :=
+lemma sqrt_two_add_series_step_up {a b n : ℕ} {z : ℝ} (c d : ℕ)
+  (hz : sqrt_two_add_series (c/d) n ≤ z) (hb : b ≠ 0) (hd : d ≠ 0)
+  (h : (2 * b + a) * d ^ 2 ≤ c ^ 2 * b) : sqrt_two_add_series (a/b) (n+1) ≤ z :=
 begin
   refine le_trans _ hz, rw [sqrt_two_add_series_succ], apply sqrt_two_add_series_monotone_left,
-  rw [sqrt_le_left], exact h, exact h2
+  rwa [sqrt_le_left, div_pow, add_div_eq_mul_add_div, div_le_iff, mul_comm (_/_), ←mul_div_assoc,
+      le_div_iff, ←nat.cast_pow, ←nat.cast_pow, ←@nat.cast_one ℝ, ←nat.cast_bit0, ←nat.cast_mul,
+      ←nat.cast_mul, ←nat.cast_add, ←nat.cast_mul, nat.cast_le, mul_comm b],
+  apply pow_pos, iterate 2 {apply nat.cast_pos.2, apply nat.pos_of_ne_zero, assumption},
+  exact nat.cast_ne_zero.2 hb,
+  exact nat.cast_ne_zero.2 hd,
+  exact div_nonneg (nat.cast_nonneg _) (nat.cast_pos.2 $ nat.pos_of_ne_zero hd)
 end
 
-lemma sqrt_two_add_series_step_down {x z : ℝ} {n : ℕ} (y : ℝ) (hz : z ≤ sqrt_two_add_series y n)
-  (h : y ^ 2 ≤ 2 + x) : z ≤ sqrt_two_add_series x (n+1) :=
+lemma sqrt_two_add_series_step_down {c d n : ℕ} {z : ℝ} (a b : ℕ)
+  (hz : z ≤ sqrt_two_add_series (a/b) n) (hb : b ≠ 0) (hd : d ≠ 0)
+  (h : a ^ 2 * d ≤ (2 * d + c) * b ^ 2) : z ≤ sqrt_two_add_series (c/d) (n+1) :=
 begin
-  apply le_trans hz, rw [sqrt_two_add_series_succ],
-  apply sqrt_two_add_series_monotone_left, exact le_sqrt_of_sqr_le h
+  apply le_trans hz, rw [sqrt_two_add_series_succ], apply sqrt_two_add_series_monotone_left,
+  apply le_sqrt_of_sqr_le,
+  rwa [div_pow, add_div_eq_mul_add_div, div_le_iff, mul_comm (_/_), ←mul_div_assoc,
+      le_div_iff, ←nat.cast_pow, ←nat.cast_pow, ←@nat.cast_one ℝ, ←nat.cast_bit0, ←nat.cast_mul,
+      ←nat.cast_mul, ←nat.cast_add, ←nat.cast_mul, nat.cast_le, mul_comm (b ^ 2)],
+  swap, apply pow_pos, iterate 2 {apply nat.cast_pos.2, apply nat.pos_of_ne_zero, assumption},
+  exact nat.cast_ne_zero.2 hd,
+  exact nat.cast_ne_zero.2 hb
 end
 
 @[simp] lemma cos_pi_over_two_pow : ∀(n : ℕ), cos (pi / 2 ^ (n+1)) = sqrt_two_add_series 0 n / 2
@@ -180,18 +194,20 @@ lemma pi_gt_three : pi > 3 :=
 begin
   refine lt_of_le_of_lt _ (pi_gt_sqrt_two_add_series 1), rw [mul_comm],
   apply le_mul_of_div_le, norm_num, apply le_sqrt_of_sqr_le, rw [le_sub],
-  apply sqrt_two_add_series_step_up (23/16),
+  rw show (0:ℝ) = (0:ℕ)/(1:ℕ), by rw [nat.cast_zero, zero_div],
+  apply sqrt_two_add_series_step_up 23 16,
   all_goals {norm_num}
 end
 
 lemma pi_gt_314 : pi > 3.14 :=
 begin
   refine lt_of_le_of_lt _ (pi_gt_sqrt_two_add_series 4), rw [mul_comm],
-  apply le_mul_of_div_le, norm_num, apply le_sqrt_of_sqr_le, rw [le_sub],
-  apply sqrt_two_add_series_step_up (99/70),
-  apply sqrt_two_add_series_step_up (874/473),
-  apply sqrt_two_add_series_step_up (1940/989),
-  apply sqrt_two_add_series_step_up (1447/727),
+  apply le_mul_of_div_le, norm_num, apply le_sqrt_of_sqr_le,
+  rw [le_sub, show (0:ℝ) = (0:ℕ)/(1:ℕ), by rw [nat.cast_zero, zero_div]],
+  apply sqrt_two_add_series_step_up 99 70,
+  apply sqrt_two_add_series_step_up 874 473,
+  apply sqrt_two_add_series_step_up 1940 989,
+  apply sqrt_two_add_series_step_up 1447 727,
   all_goals {norm_num}
 end
 
@@ -199,11 +215,11 @@ lemma pi_lt_315 : pi < 3.15 :=
 begin
   refine lt_of_lt_of_le (pi_lt_sqrt_two_add_series 4) _,
   apply add_le_of_le_sub_right, rw [mul_comm], apply mul_le_of_le_div, apply pow_pos, norm_num,
-  rw [sqrt_le_left, sub_le], swap, norm_num,
-  apply sqrt_two_add_series_step_down (140/99),
-  apply sqrt_two_add_series_step_down (279/151),
-  apply sqrt_two_add_series_step_down (51/26),
-  apply sqrt_two_add_series_step_down (412/207),
+  rw [sqrt_le_left, sub_le, show (0:ℝ) = (0:ℕ)/(1:ℕ), by rw [nat.cast_zero, zero_div]],
+  apply sqrt_two_add_series_step_down 140 99,
+  apply sqrt_two_add_series_step_down 279 151,
+  apply sqrt_two_add_series_step_down 51 26,
+  apply sqrt_two_add_series_step_down 412 207,
   all_goals {norm_num}
 end
 

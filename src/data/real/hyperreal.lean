@@ -80,7 +80,7 @@ def is_st (x : ℝ*) (r : ℝ) := ∀ δ : ℝ, δ > 0 → (r - δ : ℝ*) < x �
 
 /-- Standard part function: like a "floor" to ℝ instead of ℤ -/
 noncomputable def st : ℝ* → ℝ := 
-λ x, if h : ∃ r, is_st x r then classical.some else 0
+λ x, if h : ∃ r, is_st x r then classical.some h else 0
 
 /-- A hyperreal number is infinitesimal if its standard part is 0 -/
 def infinitesimal (x : ℝ*) := is_st x 0

@@ -696,11 +696,11 @@ have eq₂ : is_o (λ x, f x / g x * g x) g l,
 have eq₃ : is_O f (λ x, f x / g x * g x) l,
   begin
     use [1, zero_lt_one],
-    filter_upwards [univ_mem_sets], simp,
-    intro x,
-    cases classical.em (∥g x∥ = 0) with h' h',
-    { rw hgf _ ((norm_eq_zero _).mp h'), simp },
-    rw [normed_field.norm_mul, norm_div, div_mul_cancel _ h']
+    refine filter.univ_mem_sets' (assume x, _),
+    suffices : ∥f x∥ ≤ ∥f x∥ / ∥g x∥ * ∥g x∥, { simpa },
+    by_cases g x = 0,
+    { simp only [h, hgf x h, norm_zero, mul_zero] },
+    { rw [div_mul_cancel], exact mt (norm_eq_zero _).1 h }
   end,
 eq₃.trans_is_o eq₂
 

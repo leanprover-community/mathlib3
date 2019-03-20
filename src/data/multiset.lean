@@ -793,6 +793,17 @@ multiset.induction_on s (by simp [is_add_monoid_hom.map_zero f])
   (by simp [is_add_monoid_hom.map_add f] {contextual := tt})
 attribute [to_additive multiset.sum_hom] multiset.prod_hom
 
+lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_comm_monoid β]
+  (f : α → β) (h_zero : f 0 = 0) (h_add : ∀x y, f (x + y) ≤ f x + f y) (s : multiset α) :
+  f s.sum ≤ (s.map f).sum :=
+multiset.induction_on s (le_of_eq h_zero) $
+  assume a s ih, by rw [sum_cons, map_cons, sum_cons];
+    from le_trans (h_add a s.sum) (add_le_add_left' ih)
+
+lemma abs_sum_le_sum_abs [discrete_linear_ordered_field α] {s : multiset α} :
+  abs s.sum ≤ (s.map abs).sum :=
+le_sum_of_subadditive _ abs_zero abs_add s
+
 /- join -/
 
 /-- `join S`, where `S` is a multiset of multisets, is the lift of the list join

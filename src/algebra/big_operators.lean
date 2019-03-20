@@ -345,6 +345,19 @@ lemma sum_nat_cast [add_comm_monoid β] [has_one β] (s : finset α) (f : α →
   ↑(s.sum f) = s.sum (λa, f a : α → β) :=
 (sum_hom _).symm
 
+lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_comm_monoid β]
+  (f : α → β) (h_zero : f 0 = 0) (h_add : ∀x y, f (x + y) ≤ f x + f y) (s : finset γ) (g : γ → α) :
+  f (s.sum g) ≤ s.sum (λc, f (g c)):=
+begin
+  refine le_trans (multiset.le_sum_of_subadditive f h_zero h_add _) _,
+  rw [multiset.map_map],
+  refl
+end
+
+lemma abs_sum_le_sum_abs [discrete_linear_ordered_field α] {f : β → α} {s : finset β} :
+  abs (s.sum f) ≤ s.sum (λa, abs (f a)) :=
+le_sum_of_subadditive _ abs_zero abs_add s f
+
 section comm_group
 variables [comm_group β]
 
@@ -397,6 +410,7 @@ finset.induction_on s (λ _, le_refl _) $ assume a s ha ih h,
   by simpa only [sum_insert ha]
 
 lemma zero_le_sum (h : ∀x∈s, 0 ≤ f x) : 0 ≤ s.sum f := le_trans (by rw [sum_const_zero]) (sum_le_sum h)
+
 lemma sum_le_zero (h : ∀x∈s, f x ≤ 0) : s.sum f ≤ 0 := le_trans (sum_le_sum h) (by rw [sum_const_zero])
 
 end ordered_cancel_comm_monoid
@@ -472,6 +486,7 @@ finset.induction_on s (λ _, le_refl _) $ assume a s ha ih h,
   by simpa only [sum_insert ha]
 
 lemma zero_le_sum' (h : ∀x∈s, 0 ≤ f x) : 0 ≤ s.sum f := le_trans (by rw [sum_const_zero]) (sum_le_sum' h)
+
 lemma sum_le_zero' (h : ∀x∈s, f x ≤ 0) : s.sum f ≤ 0 := le_trans (sum_le_sum' h) (by rw [sum_const_zero])
 
 lemma sum_le_sum_of_subset_of_nonneg
@@ -510,19 +525,6 @@ calc s₁.sum f = (s₁.filter (λx, f x = 0)).sum f + (s₁.filter (λx, f x �
       (sum_le_sum_of_subset $ by simpa only [subset_iff, mem_filter, and_imp])
 
 end canonically_ordered_monoid
-
-section discrete_linear_ordered_field
-variables [discrete_linear_ordered_field α] [decidable_eq β]
-
-lemma abs_sum_le_sum_abs {f : β → α} {s : finset β} : abs (s.sum f) ≤ s.sum (λa, abs (f a)) :=
-finset.induction_on s (le_of_eq abs_zero) $
-  assume a s has ih,
-  calc abs (sum (insert a s) f) ≤ abs (f a) + abs (sum s f) :
-      by rw sum_insert has; exact abs_add_le_abs_add_abs _ _
-    ... ≤ abs (f a) + s.sum (λa, abs (f a)) : add_le_add (le_refl _) ih
-    ... ≤ sum (insert a s) (λ (a : β), abs (f a)) : by rw sum_insert has
-
-end discrete_linear_ordered_field
 
 @[simp] lemma card_pi [decidable_eq α] {δ : α → Type*}
   (s : finset α) (t : Π a, finset (δ a)) :

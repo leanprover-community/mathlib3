@@ -67,6 +67,9 @@ by { rw[←dist_zero_right], exact dist_eq_zero }
 
 @[simp] lemma norm_zero : ∥(0:α)∥ = 0 := (norm_eq_zero _).2 (by simp)
 
+lemma norm_triangle_sum {β} : ∀(s : finset β) (f : β → α), ∥s.sum f∥ ≤ s.sum (λa, ∥ f a ∥) :=
+finset.le_sum_of_subadditive norm norm_zero norm_triangle
+
 lemma norm_pos_iff (g : α) : ∥ g ∥ > 0 ↔ g ≠ 0 :=
 begin
   split ; intro h ; rw[←dist_zero_right] at *,
@@ -86,17 +89,6 @@ calc ∥-g∥ = ∥0 - g∥ : by simp
 
 lemma norm_triangle_sub {a b : α} : ∥a - b∥ ≤ ∥a∥ + ∥b∥ :=
 by simpa only [sub_eq_add_neg, norm_neg] using norm_triangle a (-b)
-
-lemma norm_triangle_sum {β} [decidable_eq β] (s : finset β) (f : β → α) :
-  ∥s.sum f∥ ≤ s.sum (λa, ∥ f a ∥) :=
-finset.induction_on s (by simp only [finset.sum_empty, norm_zero]; exact le_refl _)
-begin
-  assume a s has ih,
-  calc ∥(insert a s).sum f∥ ≤ ∥ f a + s.sum f ∥ : by rw [finset.sum_insert has]
-    ... ≤ ∥ f a ∥ + ∥ s.sum f ∥ : norm_triangle _ _
-    ... ≤ ∥ f a ∥ + s.sum (λa, ∥ f a ∥) : add_le_add_left ih _
-    ... = (insert a s).sum (λa, ∥ f a ∥) : by rw [finset.sum_insert has]
-end
 
 lemma abs_norm_sub_norm_le (g h : α) : abs(∥g∥ - ∥h∥) ≤ ∥g - h∥ :=
 abs_le.2 $ and.intro

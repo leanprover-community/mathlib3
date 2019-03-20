@@ -121,6 +121,7 @@ begin
   exact ⟨_, h ε εgt0, set.subset.refl _⟩
 end
 
+
 section nnnorm
 
 def nnnorm (a : α) : nnreal := ⟨norm a, norm_nonneg a⟩
@@ -168,13 +169,20 @@ lemma tendsto_iff_norm_tendsto_zero {f : ι → β} {a : filter ι} {b : β} :
   tendsto f a (nhds b) ↔ tendsto (λ e, ∥ f e - b ∥) a (nhds 0) :=
 by rw tendsto_iff_dist_tendsto_zero ; simp only [(dist_eq_norm _ _).symm]
 
-lemma lim_norm (x : α) : ((λ g, ∥g - x∥) : α → ℝ) →_{x} 0 :=
+lemma tendsto_zero_iff_norm_tendsto_zero [normed_group α] [normed_group β]
+  {f : γ → β} {a : filter γ} :
+  tendsto f a (nhds 0) ↔ tendsto (λ e, ∥ f e ∥) a (nhds 0) :=
+have tendsto f a (nhds 0) ↔ tendsto (λ e, ∥ f e - 0 ∥) a (nhds 0) :=
+  tendsto_iff_norm_tendsto_zero,
+by simpa
+
+lemma lim_norm (x : α) : (λg:α, ∥g - x∥) →_{x} 0 :=
 tendsto_iff_norm_tendsto_zero.1 (continuous_iff_continuous_at.1 continuous_id x)
 
-lemma lim_norm_zero : ((λ g, ∥g∥) : α → ℝ) →_{0} 0 :=
+lemma lim_norm_zero : (λg:α, ∥g∥) →_{0} 0 :=
 by simpa using lim_norm (0:α)
 
-lemma continuous_norm : continuous ((λ g, ∥g∥) : α → ℝ) :=
+lemma continuous_norm : continuous (λg:α, ∥g∥) :=
 begin
   rw continuous_iff_continuous_at,
   intro x,

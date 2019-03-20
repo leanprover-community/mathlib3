@@ -208,22 +208,23 @@ class normed_ring (α : Type*) extends has_norm α, ring α, metric_space α :=
 
 instance normed_ring.to_normed_group [β : normed_ring α] : normed_group α := { ..β }
 
-lemma norm_mul {α : Type*} [normed_ring α] (a b : α) : (∥a*b∥) ≤ (∥a∥) * (∥b∥) :=
+lemma norm_mul_le {α : Type*} [normed_ring α] (a b : α) : (∥a*b∥) ≤ (∥a∥) * (∥b∥) :=
 normed_ring.norm_mul _ _
 
-lemma norm_pow {α : Type*} [normed_ring α] (a : α) : ∀ {n : ℕ}, n > 0 → ∥a^n∥ ≤ ∥a∥^n
+lemma norm_pow_le {α : Type*} [normed_ring α] (a : α) : ∀ {n : ℕ}, n > 0 → ∥a^n∥ ≤ ∥a∥^n
 | 1 h := by simp
 | (n+2) h :=
-  le_trans (norm_mul a (a^(n+1)))
+  le_trans (norm_mul_le a (a^(n+1)))
            (mul_le_mul (le_refl _)
-                       (norm_pow (nat.succ_pos _)) (norm_nonneg _) (norm_nonneg _))
+                       (norm_pow_le (nat.succ_pos _)) (norm_nonneg _) (norm_nonneg _))
 
 instance prod.normed_ring [normed_ring α] [normed_ring β] : normed_ring (α × β) :=
 { norm_mul := assume x y,
   calc
     ∥x * y∥ = ∥(x.1*y.1, x.2*y.2)∥ : rfl
         ... = (max ∥x.1*y.1∥  ∥x.2*y.2∥) : rfl
-        ... ≤ (max (∥x.1∥*∥y.1∥) (∥x.2∥*∥y.2∥)) : max_le_max (norm_mul (x.1) (y.1)) (norm_mul (x.2) (y.2))
+        ... ≤ (max (∥x.1∥*∥y.1∥) (∥x.2∥*∥y.2∥)) :
+          max_le_max (norm_mul_le (x.1) (y.1)) (norm_mul_le (x.2) (y.2))
         ... = (max (∥x.1∥*∥y.1∥) (∥y.2∥*∥x.2∥)) : by simp[mul_comm]
         ... ≤ (max (∥x.1∥) (∥x.2∥)) * (max (∥y.2∥) (∥y.1∥)) : by { apply max_mul_mul_le_max_mul_max; simp [norm_nonneg] }
         ... = (max (∥x.1∥) (∥x.2∥)) * (max (∥y.1∥) (∥y.2∥)) : by simp[max_comm]
@@ -243,7 +244,7 @@ instance normed_ring_top_monoid [normed_ring α] : topological_monoid α :=
         { apply squeeze_zero,
           { intro, apply norm_nonneg },
           { intro t, show ∥t.fst * t.snd - t.fst * x.snd∥ ≤ ∥t.fst∥ * ∥t.snd - x.snd∥,
-            rw ←mul_sub, apply norm_mul },
+            rw ←mul_sub, apply norm_mul_le },
           { rw ←mul_zero (∥x.fst∥), apply tendsto_mul,
             { apply continuous_iff_continuous_at.1,
               apply continuous.comp,
@@ -255,7 +256,7 @@ instance normed_ring_top_monoid [normed_ring α] : topological_monoid α :=
         { apply squeeze_zero,
           { intro, apply norm_nonneg },
           { intro t, show ∥t.fst * x.snd - x.fst * x.snd∥ ≤ ∥t.fst - x.fst∥ * ∥x.snd∥,
-            rw ←sub_mul, apply norm_mul },
+            rw ←sub_mul, apply norm_mul_le },
           { rw ←zero_mul (∥x.snd∥), apply tendsto_mul,
             { apply tendsto_iff_norm_tendsto_zero.1,
               apply continuous_iff_continuous_at.1,
@@ -283,6 +284,20 @@ have  ∥(1 : α)∥ * ∥(1 : α)∥ = ∥(1 : α)∥ * 1, by calc
                   ... = ∥(1 : α)∥ * 1 : by simp,
 eq_of_mul_eq_mul_left (ne_of_gt ((norm_pos_iff _).2 (by simp))) this
 
+@[simp] lemma norm_mul [normed_field α] (a b : α) : ∥a * b∥ = ∥a∥ * ∥b∥ :=
+normed_field.norm_mul a b
+
+instance normed_field.is_monoid_hom_norm [normed_field α] : is_monoid_hom (norm : α → ℝ) :=
+⟨norm_one, norm_mul⟩
+
+@[simp] lemma norm_pow [normed_field α] (a : α) : ∀ (n : ℕ), ∥a^n∥ = ∥a∥^n
+| 0     := by simp
+| (n+1) := show ∥a * a^n∥ = ∥a∥ * ∥a∥^n, by rw [norm_mul, norm_pow]
+
+@[simp] lemma norm_prod {β : Type*} [normed_field α] (s : finset β) (f : β → α) :
+  ∥s.prod f∥ = s.prod (λb, ∥f b∥) :=
+eq.symm (finset.prod_hom norm)
+
 @[simp] lemma norm_div {α : Type*} [normed_field α] (a b : α) : ∥a/b∥ = ∥a∥/∥b∥ :=
 if hb : b = 0 then by simp [hb] else
 begin
@@ -293,14 +308,6 @@ end
 
 @[simp] lemma norm_inv {α : Type*} [normed_field α] (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ :=
 by simp only [inv_eq_one_div, norm_div, norm_one]
-
-@[simp] lemma normed_field.norm_pow {α : Type*} [normed_field α] (a : α) :
-  ∀ n : ℕ, ∥a^n∥ = ∥a∥^n
-| 0 := by simp
-| (k+1) := calc
-  ∥a ^ (k + 1)∥ = ∥a*(a^k)∥ : rfl
-           ... = ∥a∥*∥a^k∥ : by rw normed_field.norm_mul
-           ... = ∥a∥ ^ (k + 1) : by rw normed_field.norm_pow; simp [pow, monoid.pow]
 
 instance : normed_field ℝ :=
 { norm := λ x, abs x,

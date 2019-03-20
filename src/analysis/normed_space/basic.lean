@@ -8,7 +8,7 @@ Authors: Patrick Massot, Johannes Hölzl
 
 import algebra.pi_instances
 import linear_algebra.basic
-import topology.instances.nnreal
+import topology.instances.nnreal topology.instances.complex
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 noncomputable theory
@@ -462,3 +462,28 @@ have h₂ : tendsto (λs:finset ι, s.sum (λi, ∥f i∥)) at_top (nhds (∑ i,
 le_of_tendsto_of_tendsto at_top_ne_bot h₁ h₂ $ univ_mem_sets' $ assume s, norm_triangle_sum _ _
 
 end has_sum
+
+namespace complex
+
+instance : normed_field ℂ :=
+{ norm := complex.abs,
+  dist_eq := λ _ _, rfl,
+  norm_mul := complex.abs_mul,
+  .. complex.discrete_field }
+
+@[simp] lemma norm_real (r : ℝ) : ∥(r : ℂ)∥ = ∥r∥ := complex.abs_of_real _
+
+@[simp] lemma norm_rat (r : ℚ) : ∥(r : ℂ)∥ = _root_.abs (r : ℝ) :=
+suffices ∥((r : ℝ) : ℂ)∥ = _root_.abs r, by simpa,
+by rw [norm_real, real.norm_eq_abs]
+
+@[simp] lemma norm_nat (n : ℕ) : ∥(n : ℂ)∥ = n := complex.abs_of_nat _
+
+@[simp] lemma norm_int {n : ℤ} : ∥(n : ℂ)∥ = _root_.abs n :=
+suffices ∥((n : ℝ) : ℂ)∥ = _root_.abs n, by simpa,
+by rw [norm_real, real.norm_eq_abs]
+
+lemma norm_int_of_nonneg {n : ℤ} (hn : n ≥ 0) : ∥(n : ℂ)∥ = n :=
+by rw [norm_int, _root_.abs_of_nonneg]; exact int.cast_nonneg.2 hn
+
+end complex

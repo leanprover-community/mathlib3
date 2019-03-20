@@ -78,7 +78,7 @@ lemma epsilon_lt_pos (x : ℝ) : x > 0 → ε < of x := lt_of_tendsto_zero_of_po
 /-- Standard part predicate -/
 def is_st (x : ℝ*) (r : ℝ) := ∀ δ : ℝ, δ > 0 → (r - δ : ℝ*) < x ∧ x < r + δ
 
-/-- Standard part function: like a "floor" to ℝ instead of ℤ -/
+/-- Standard part function: like a "round" to ℝ instead of ℤ -/
 noncomputable def st : ℝ* → ℝ := 
 λ x, if h : ∃ r, is_st x r then classical.some h else 0
 
@@ -94,7 +94,7 @@ def infinite_neg (x : ℝ*) := ∀ r : ℝ, x < r
 /-- A hyperreal number is infinite if it is larger than all real numbers or smaller than all real numbers -/
 def infinite (x : ℝ*) := infinite_pos x ∨ infinite_neg x
 
--- SOME FACTS ABOUT ST THAT MAY (?) TAKE INFINITESIMAL MACHINERY TO PROVE
+-- SOME FACTS ABOUT ST
 
 private lemma is_st_unique_1 (x : ℝ*) (r s : ℝ) (hr : is_st x r) (hs : is_st x s) (hrs : r < s) : false :=
 have hrs' : _ := half_pos $ sub_pos_of_lt hrs,
@@ -111,74 +111,6 @@ begin
   { exact h },
   { exact false.elim (is_st_unique_1 x s r hs hr h) }
 end
-
-lemma st_of_is_st {x : ℝ*} {r : ℝ} (hxr : is_st x r): st x = r :=
-begin
-  unfold st, split_ifs,
-  { exact is_st_unique (classical.some_spec h) hxr },
-  { exact false.elim (h ⟨r, hxr⟩) }
-end
-
-lemma is_st_of_st {x : ℝ*} (hx : st x ≠ 0) : is_st x (st x) := 
-begin
-  unfold st, split_ifs,
-  { exact classical.some_spec h },
-  { exact false.elim (hx (by unfold st; split_ifs; refl)) }
-end
-
-lemma is_st_of_st' {x : ℝ*} : ¬ infinite x → is_st x (st x) := sorry
-
-lemma is_st_self (r : ℝ) : is_st r r := sorry
-
-lemma st_self (r : ℝ) : st r = r := st_of_is_st (is_st_self  r)
-
-lemma is_st_of (r : ℝ) : is_st (of r) r := sorry
-
-lemma st_of (r : ℝ) : st (of r) = r := sorry
-
--- THIS ISN'T RIGHT, BUT I'LL KEEP IT HERE FOR THE TIME BEING
--- Perhaps f needs to be continuous?
-/-lemma is_st_function {f : ℝ → ℝ} {x : ℝ*} {r : ℝ} : is_st x r → is_st ((lift f) x) (f r) := sorry
-
-lemma is_st_function₂ {f : ℝ → ℝ → ℝ} {x y : ℝ*} {r s : ℝ} : is_st x r → is_st y s → is_st ((lift₂ f) x y) (f r s) := sorry
-
-lemma st_function {f : ℝ → ℝ} (x : ℝ*) : (st ((lift f) x) : ℝ*) = (lift f) (st x : ℝ*) := sorry
-
-lemma st_function₂ {f : ℝ → ℝ → ℝ} (x y : ℝ*) : (st ((lift₂ f) x y) : ℝ*) = (lift₂ f) (st x : ℝ*) (st y : ℝ*) := sorry-/
-
-lemma is_st_add {x y : ℝ*} {r s : ℝ} : is_st x r → is_st y s → is_st (x + y) (r + s) := sorry
-
-lemma st_add (x y : ℝ*) : st (x + y) = st x + st y := sorry
-
-lemma is_st_neg {x : ℝ*} {r : ℝ} : is_st x r → is_st (-x) (-r) := sorry
-
-lemma st_neg (x : ℝ*) : st x = - st x := sorry
-
-lemma is_st_mul {x y : ℝ*} {r s : ℝ} : is_st x r → is_st y s → is_st (x * y) (r * s) := sorry
-
-lemma st_mul (x y : ℝ*) : st (x * y) = (st x) * (st y) := sorry
-
-lemma is_st_inv {x : ℝ*} {r : ℝ} {hi : ¬ infinitesimal x} : is_st x r → is_st x⁻¹ r⁻¹ := sorry
-
-lemma st_inv (x : ℝ*) : st x⁻¹ = (st x)⁻¹ := sorry
-
-lemma eq_of_is_st_real {r s : ℝ} : is_st r s → r = s := sorry
-
-lemma is_st_real_iff_eq {r s : ℝ} : is_st r s ↔ r = s := ⟨eq_of_is_st_real, λ hrs, by rw [hrs]; exact is_st_self s⟩
-
-/- (st x < st y) → (x < y) → (x ≤ y) → (st x ≤ st y) -/
-
-lemma is_st_le_of_lt {x y : ℝ*} {r s : ℝ} (hxr : is_st x r) (hsy : is_st y s) :
-  x ≤ y → r ≤ s := sorry
-
-lemma lt_of_is_st_lt {x y : ℝ*} {r s : ℝ} (hxr : is_st x r) (hsy : is_st y s) :
-  r < s → x < y := sorry
-
-lemma st_le_of_lt {x y : ℝ*} (hix : ¬ infinite x) (hiy : ¬ infinite y) : 
-  x ≤ y → st x ≤ st y := sorry
-
-lemma lt_of_st_lt {x y : ℝ*} (hix : ¬ infinite x) (hiy : ¬ infinite y) : 
-  st x < st y → x < y := sorry
 
 theorem not_infinite_of_exist_st {x : ℝ*} : (∃ r : ℝ, is_st x r) → ¬ infinite x := 
 λ he hi, Exists.dcases_on he $ λ r hr, hi.elim 
@@ -204,9 +136,44 @@ have HR₂ : ∃ z : ℝ, ∀ y ∈ S, y ≤ z := ⟨r₂, λ y hy, le_of_lt ((o
 theorem exist_st_iff_not_infinite {x : ℝ*} : (∃ r : ℝ, is_st x r) ↔ ¬ infinite x := 
 ⟨ not_infinite_of_exist_st, exist_st_of_not_infinite ⟩
 
+theorem infinite_iff_not_exist_st {x : ℝ*} : infinite x ↔ ¬ ∃ r : ℝ, is_st x r := iff_not_comm.mp exist_st_iff_not_infinite
+
+theorem st_infinite {x : ℝ*} (hi : infinite x) : st x = 0 := 
+begin
+  unfold st, split_ifs,
+  { exact false.elim ((infinite_iff_not_exist_st.mp hi) h) },
+  { refl }
+end
+
+lemma st_of_is_st {x : ℝ*} {r : ℝ} (hxr : is_st x r): st x = r :=
+begin
+  unfold st, split_ifs,
+  { exact is_st_unique (classical.some_spec h) hxr },
+  { exact false.elim (h ⟨r, hxr⟩) }
+end
+
+lemma is_st_st_of_is_st {x : ℝ*} {r : ℝ} (hxr : is_st x r) : is_st x (st x) := by rwa [st_of_is_st hxr]
+
+lemma is_st_st_of_exists_st {x : ℝ*} (hx : ∃ r : ℝ, is_st x r) : is_st x (st x) :=
+Exists.dcases_on hx (λ r, is_st_st_of_is_st)
+
+lemma is_st_st {x : ℝ*} (hx : st x ≠ 0) : is_st x (st x) := 
+begin
+  unfold st, split_ifs,
+  { exact classical.some_spec h },
+  { exact false.elim (hx (by unfold st; split_ifs; refl)) }
+end
+
+lemma is_st_st' {x : ℝ*} (hx : ¬ infinite x) : is_st x (st x) := is_st_st_of_exists_st $ exist_st_of_not_infinite hx
+
+lemma is_st_self (r : ℝ) : is_st r r := 
+λ δ hδ, ⟨sub_lt_self _ (of_lt_of_lt U hδ), (lt_add_of_pos_right _ (of_lt_of_lt U hδ))⟩
+
+lemma st_self (r : ℝ) : st r = r := st_of_is_st (is_st_self  r)
+
 -- BASIC LEMMAS ABOUT INFINITESIMAL
 
-theorem infinitesimal_def {x : ℝ*} : infinitesimal x ↔ (∀ r : ℝ, r > 0 → -r < x ∧ x < r) := sorry
+theorem infinitesimal_def {x : ℝ*} : infinitesimal x ↔ (∀ r : ℝ, r > 0 → -(r : ℝ*) < x ∧ x < r) := sorry
 
 theorem lt_of_pos_of_infinitesimal {x : ℝ*} : infinitesimal x → ∀ r : ℝ, r > 0 → x < r := sorry
 
@@ -302,7 +269,7 @@ lemma infinite_pos_mul_of_not_infinitesimal_pos_infinite_pos {x y : ℝ*} :
 lemma infinite_pos_mul_of_infinite_neg_not_infinitesimal_neg {x y : ℝ*} : 
   infinite_neg x → ¬ infinitesimal y → y < 0 → infinite_pos (x * y) := sorry
 
-lemma infinite_pos_mul_of_notw_infinitesimal_neg_infinite_neg {x y : ℝ*} : 
+lemma infinite_pos_mul_of_not_infinitesimal_neg_infinite_neg {x y : ℝ*} : 
   ¬ infinitesimal x → x < 0 → infinite_neg y → infinite_pos (x * y) := sorry
 
 lemma infinite_neg_mul_of_infinite_pos_not_infinitesimal_neg {x y : ℝ*} : 
@@ -343,11 +310,23 @@ theorem infinitesimal_pos_iff_infinite_pos_inv {x : ℝ*} : (infinitesimal x ∧
 
 theorem infinitesimal_neg_iff_infinite_neg_inv {x : ℝ*} : (infinitesimal x ∧ x < 0) ↔ infinite_neg x⁻¹ := sorry
 
+lemma infinite_pos_iff_infinite_neg_neg {x : ℝ*} : infinite_pos x ↔ infinite_neg (-x) := sorry
+
+lemma infinite_neg_iff_infinite_pos_neg {x : ℝ*} : infinite_neg x ↔ infinite_pos (-x) := sorry
+
+lemma infinite_iff_infinite_neg {x : ℝ*} : infinite x ↔ infinite (-x) := sorry
+
+lemma not_infinite_add {x y : ℝ*} (hx : ¬ infinite x) (hy : ¬ infinite y) : ¬ infinite (x + y) := sorry
+
+lemma not_infinite_neg {x : ℝ*} (hx : ¬ infinite x) : ¬ infinite (-x) := sorry
+
+lemma not_infinite_mul {x y : ℝ*} (hx : ¬ infinite x) (hy : ¬ infinite y) : ¬ infinite (x * y) := sorry
+
 theorem infinite_iff_infinitesimal_inv {x : ℝ*} : infinite x ↔ infinitesimal x⁻¹ := sorry
 
 theorem infinitesimal_iff_infinite_inv {x : ℝ*} : infinitesimal x ↔ infinite x⁻¹ := sorry
 
-lemma infinite_pos_omea : infinite_pos ω := sorry
+lemma infinite_pos_omega : infinite_pos ω := sorry
 
 lemma infinite_omega : infinite ω := sorry
 
@@ -360,18 +339,67 @@ theorem not_infinite_real (r : ℝ) : ¬ infinite r := by rw not_infinite_iff_ex
 
 theorem not_real_of_infinite {x : ℝ*} : infinite x → ∀ r : ℝ, x ≠ of r := sorry
 
-theorem infinite_iff_not_exist_st {x : ℝ*} : infinite x ↔ ¬ ∃ r : ℝ, is_st x r := sorry
-
-theorem st_infinite (x : ℝ*) (hi : infinite x) : st x = 0 := 
-begin
-  unfold st, split_ifs,
-  { exact false.elim ((infinite_iff_not_exist_st.mp hi) h) },
-  { refl }
-end
+-- FACTS ABOUT ST THAT REQUIRE SOME INFINITE/INFINITESIMAL MACHINERY
 
 theorem infinitesimal_sub_is_st {x : ℝ*} {r : ℝ} : is_st x r → infinitesimal (x - r) := sorry
 
 theorem infinitesimal_sub_st {x : ℝ*} (hx : ¬infinite x) : infinitesimal (x - st x) := sorry
+
+-- This isn't right
+-- Perhaps f needs to be continuous?
+/-lemma is_st_function {f : ℝ → ℝ} {x : ℝ*} {r : ℝ} : is_st x r → is_st ((lift f) x) (f r) := sorry
+
+lemma is_st_function₂ {f : ℝ → ℝ → ℝ} {x y : ℝ*} {r s : ℝ} : is_st x r → is_st y s → is_st ((lift₂ f) x y) (f r s) := sorry
+
+lemma st_function {f : ℝ → ℝ} (x : ℝ*) : (st ((lift f) x) : ℝ*) = (lift f) (st x : ℝ*) := sorry
+
+lemma st_function₂ {f : ℝ → ℝ → ℝ} (x y : ℝ*) : (st ((lift₂ f) x y) : ℝ*) = (lift₂ f) (st x : ℝ*) (st y : ℝ*) := sorry-/
+
+lemma is_st_add {x y : ℝ*} {r s : ℝ} : is_st x r → is_st y s → is_st (x + y) (r + s) := sorry
+
+lemma st_add {x y : ℝ*} (hx : ¬infinite x) (hy : ¬infinite y) : st (x + y) = st x + st y := 
+have hx' : _ := is_st_st' hx, 
+have hy' : _ := is_st_st' hy,
+have hxy : _ := is_st_st' (not_infinite_add hx hy),
+have hxy' : _ := is_st_add hx' hy',
+is_st_unique hxy hxy'
+
+lemma is_st_neg {x : ℝ*} {r : ℝ} : is_st x r → is_st (-x) (-r) := sorry
+
+lemma st_neg (x : ℝ*) : st (-x) = - st x := 
+if h : infinite x then by rw [st_infinite h, st_infinite (infinite_iff_infinite_neg.mp h), neg_zero]
+else is_st_unique (is_st_st' (not_infinite_neg h)) (is_st_neg (is_st_st' h))
+
+lemma is_st_mul {x y : ℝ*} {r s : ℝ} : is_st x r → is_st y s → is_st (x * y) (r * s) := sorry
+
+lemma st_mul {x y : ℝ*} (hx : ¬infinite x) (hy : ¬infinite y) : st (x * y) = (st x) * (st y) := 
+have hx' : _ := is_st_st' hx, 
+have hy' : _ := is_st_st' hy,
+have hxy : _ := is_st_st' (not_infinite_mul hx hy),
+have hxy' : _ := is_st_mul hx' hy',
+is_st_unique hxy hxy'
+
+lemma is_st_inv {x : ℝ*} {r : ℝ} {hi : ¬ infinitesimal x} : is_st x r → is_st x⁻¹ r⁻¹ := sorry
+
+lemma st_inv (x : ℝ*) : st x⁻¹ = (st x)⁻¹ := sorry
+
+lemma eq_of_is_st_real {r s : ℝ} : is_st r s → r = s := sorry
+
+lemma is_st_real_iff_eq {r s : ℝ} : is_st r s ↔ r = s := ⟨eq_of_is_st_real, λ hrs, by rw [hrs]; exact is_st_self s⟩
+
+/- (st x < st y) → (x < y) → (x ≤ y) → (st x ≤ st y) -/
+
+lemma is_st_le_of_lt {x y : ℝ*} {r s : ℝ} (hxr : is_st x r) (hsy : is_st y s) :
+  x ≤ y → r ≤ s := sorry
+
+lemma lt_of_is_st_lt {x y : ℝ*} {r s : ℝ} (hxr : is_st x r) (hsy : is_st y s) :
+  r < s → x < y := sorry
+
+lemma st_le_of_lt {x y : ℝ*} (hix : ¬ infinite x) (hiy : ¬ infinite y) : 
+  x ≤ y → st x ≤ st y := sorry
+
+lemma lt_of_st_lt {x y : ℝ*} (hix : ¬ infinite x) (hiy : ¬ infinite y) : 
+  st x < st y → x < y := sorry
 
 /-- Standard part of a cauchy sequence -/
 theorem is_st_lim_of_cau_seq {f : ℕ → ℝ} (hf : is_cau_seq abs f) : is_st (of_seq f) (cau_seq.lim ⟨f, hf⟩) := sorry

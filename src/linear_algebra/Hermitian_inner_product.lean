@@ -416,8 +416,6 @@ normed_space ℂ α :=
   dist_eq := by intros; refl,
   norm_smul := herm_norm_smul}
 
---instance normed_space.module {W : Type*} {F : Type*} [normed_field F] [normed_space F W] : module F W := (normed_space.to_vector_space W).to_module
-
 @[simp] lemma herm_norm_zero : 
 |(0 : α)| = 0 := @norm_zero α _
 
@@ -461,7 +459,7 @@ end
 
 def is_normalised (x : α) := |x| = 1
 
-noncomputable def normalise (x : α) := ↑|x|⁻¹ • x 
+noncomputable def normalise (x : α) := (↑|x|⁻¹ : ℂ) • x 
 
 lemma normalise_normalises (x : α) (ho : x ≠ 0) : 
 is_normalised (normalise x) :=
@@ -481,7 +479,7 @@ begin
 end
 
 def normalise_set :
-set α → set α := image(λ x, ↑|x|⁻¹ • x)
+set α → set α := image(λ x, (↑|x|⁻¹ : ℂ) • x)
 
 lemma normalise_set_normalises 
 (A : set α) (Ho : (0 : α) ∉ A) : 
@@ -505,13 +503,13 @@ end
 def herm_ortho (x y : α) : Prop := x ₀ y = 0 
 
 notation a ⊥ b := herm_ortho a b 
-#print ortho_sym
+
 def herm_ortho_sym (x y : α) :
-(x ⊥ y) ↔ (y ⊥ x) := @ortho_sym ℂ α _ conj.ring_invo _ _ (to_sym_sesq_form α) 
+(x ⊥ y) ↔ (y ⊥ x) := @ortho_sym ℂ α _ conj.ring_invo _ _ (to_sym_sesq_form α) _ _ 
 
 lemma ortho_refl_iff_zero (x : α) : 
 (x ⊥ x) ↔ x = 0 := inprod_self_eq_zero_iff  
-#print ortho_smul_left 
+
 def herm_ortho_smul_left (x y : α) (a : ℂ) (ha : a ≠ 0) : 
 (x ⊥ y) ↔ ((a • x) ⊥ y) := @ortho_smul_left _ _ _ _ _ _ (herm_inner_product_space.to_sym_sesq_form α).to_sesq_form _ _ _ ha
 

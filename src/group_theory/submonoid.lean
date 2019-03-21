@@ -47,13 +47,15 @@ def powers (x : α) : set α := {y | ∃ n:ℕ, x^n = y}
 def multiples (x : β) : set β := {y | ∃ n:ℕ, add_monoid.smul n x = y}
 attribute [to_additive multiples] powers
 
-lemma powers.one_mem {x : α} : (1 : α) ∈ powers x := ⟨0,pow_zero _⟩
+lemma powers.one_mem {x : α} : (1 : α) ∈ powers x := ⟨0, pow_zero _⟩
 
-lemma multiples.zero_mem {x : β} : (0 : β) ∈ multiples x := ⟨0,add_monoid.zero_smul _⟩
+lemma multiples.zero_mem {x : β} : (0 : β) ∈ multiples x := ⟨0, add_monoid.zero_smul _⟩
+attribute [to_additive multiples.zero_mem] powers.one_mem
 
-lemma powers.self_mem {x : α} : x ∈ powers x := ⟨1,pow_one _⟩
+lemma powers.self_mem {x : α} : x ∈ powers x := ⟨1, pow_one _⟩
 
-lemma multiples.self_mem {x : β} : x ∈ multiples x := ⟨1,add_monoid.one_smul _⟩
+lemma multiples.self_mem {x : β} : x ∈ multiples x := ⟨1, add_monoid.one_smul _⟩
+attribute [to_additive multiples.self_mem] powers.self_mem
 
 instance powers.is_submonoid (x : α) : is_submonoid (powers x) :=
 { one_mem := ⟨0, by simp⟩,
@@ -194,25 +196,32 @@ end monoid
 namespace add_monoid
 
 def closure (s : set β) : set β := @monoid.closure (multiplicative β) _ s
+attribute [to_additive add_monoid.closure] monoid.closure
 
 instance closure.is_add_submonoid (s : set β) : is_add_submonoid (closure s) :=
 multiplicative.is_submonoid_iff.1 $ monoid.closure.is_submonoid s
+attribute [to_additive add_monoid.closure.is_add_submonoid] monoid.closure.is_submonoid
 
 theorem subset_closure {s : set β} : s ⊆ closure s :=
 monoid.subset_closure
+attribute [to_additive add_monoid.subset_closure] monoid.subset_closure
 
 theorem closure_subset {s t : set β} [is_add_submonoid t] : s ⊆ t → closure s ⊆ t :=
 monoid.closure_subset
+attribute [to_additive add_monoid.closure_subset] monoid.closure_subset
 
 theorem closure_mono {s t : set β} (h : s ⊆ t) : closure s ⊆ closure t :=
 closure_subset $ set.subset.trans h subset_closure
+attribute [to_additive add_monoid.closure_mono] monoid.closure_mono
 
 theorem closure_singleton {x : β} : closure ({x} : set β) = multiples x :=
 monoid.closure_singleton
+attribute [to_additive add_monoid.closure_singleton] monoid.closure_singleton
 
 theorem exists_list_of_mem_closure {s : set β} {a : β} :
   a ∈ closure s → ∃l:list β, (∀x∈l, x ∈ s) ∧ l.sum = a :=
 monoid.exists_list_of_mem_closure
+attribute [to_additive add_monoid.exists_list_of_mem_closure] monoid.exists_list_of_mem_closure
 
 @[elab_as_eliminator]
 theorem in_closure.rec_on {s : set β} {C : β → Prop}

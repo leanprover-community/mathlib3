@@ -489,8 +489,7 @@ meta structure by_elim_opt :=
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
 do
   tactic.fail_if_no_goals,
-  focus1 $
-    solve_by_elim_aux opt.discharger opt.assumptions opt.max_rep
+  solve_by_elim_aux opt.discharger opt.assumptions opt.max_rep
 
 meta def metavariables : tactic (list expr) :=
 do r ← result,

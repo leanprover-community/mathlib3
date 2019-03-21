@@ -416,7 +416,7 @@ normed_space ℂ α :=
   dist_eq := by intros; refl,
   norm_smul := herm_norm_smul}
 
-instance normed_space.module {W : Type*} {F : Type*} [normed_field F] [normed_space F W] : module F W := (normed_space.to_vector_space W).to_module
+--instance normed_space.module {W : Type*} {F : Type*} [normed_field F] [normed_space F W] : module F W := (normed_space.to_vector_space W).to_module
 
 @[simp] lemma herm_norm_zero : 
 |(0 : α)| = 0 := @norm_zero α _

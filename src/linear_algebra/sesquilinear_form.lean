@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Andreas Swerdlow 
 -/
 
-import algebra.module ring_theory.ring_involution
+import algebra.module ring_theory.involution
 
 open module ring_invo
 

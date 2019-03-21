@@ -23,17 +23,67 @@ class complete_distrib_lattice α extends complete_lattice α :=
 (inf_Sup_le_supr_inf : ∀a s, a ⊓ Sup s ≤ (⨆ b ∈ s, a ⊓ b))
 
 section complete_distrib_lattice
-variables [complete_distrib_lattice α] {a : α} {s : set α}
+variables [complete_distrib_lattice α] {a b : α} {s t : set α}
 
 theorem sup_Inf_eq : a ⊔ Inf s = (⨅ b ∈ s, a ⊔ b) :=
 le_antisymm
   (le_infi $ assume i, le_infi $ assume h, sup_le_sup (le_refl _) (Inf_le h))
   (complete_distrib_lattice.infi_sup_le_sup_Inf _ _)
 
+theorem Inf_sup_eq : Inf s ⊔ b = (⨅ a ∈ s, a ⊔ b) :=
+by simpa [sup_comm] using @sup_Inf_eq α _ b s
+
 theorem inf_Sup_eq : a ⊓ Sup s = (⨆ b ∈ s, a ⊓ b) :=
 le_antisymm
   (complete_distrib_lattice.inf_Sup_le_supr_inf _ _)
   (supr_le $ assume i, supr_le $ assume h, inf_le_inf (le_refl _) (le_Sup h))
+
+theorem Sup_inf_eq : Sup s ⊓ b = (⨆ a ∈ s, a ⊓ b) :=
+by simpa [inf_comm] using @inf_Sup_eq α _ b s
+
+theorem Inf_sup_Inf : Inf s ⊔ Inf t = (⨅p ∈ set.prod s t, (p : α × α).1 ⊔ p.2) :=
+begin
+  apply le_antisymm,
+  { finish },
+  { have : ∀ a ∈ s, (⨅p ∈ set.prod s t, (p : α × α).1 ⊔ p.2) ≤ a ⊔ Inf t,
+    { assume a ha,
+      have : (⨅p ∈ set.prod s t, ((p : α × α).1 : α) ⊔ p.2) ≤
+             (⨅p ∈ prod.mk a '' t, (p : α × α).1 ⊔ p.2),
+      { apply infi_le_infi_of_subset,
+        rintros ⟨x, y⟩,
+        simp only [and_imp, set.mem_image, prod.mk.inj_iff, set.prod_mk_mem_set_prod_eq,
+                   exists_imp_distrib],
+        assume x' x't ax x'y,
+        rw [← x'y, ← ax],
+        simp [ha, x't] },
+      rw [infi_image] at this,
+      simp only [] at this,
+      rwa ← sup_Inf_eq at this },
+    calc (⨅p ∈ set.prod s t, (p : α × α).1 ⊔ p.2) ≤ (⨅a∈s, a ⊔ Inf t) : by simp; exact this
+       ... = Inf s ⊔ Inf t : Inf_sup_eq.symm }
+end
+
+theorem Sup_inf_Sup : Sup s ⊓ Sup t = (⨆p ∈ set.prod s t, (p : α × α).1 ⊓ p.2) :=
+begin
+  apply le_antisymm,
+  { have : ∀ a ∈ s, a ⊓ Sup t ≤ (⨆p ∈ set.prod s t, (p : α × α).1 ⊓ p.2),
+    { assume a ha,
+      have : (⨆p ∈ prod.mk a '' t, (p : α × α).1 ⊓ p.2)
+             ≤ (⨆p ∈ set.prod s t, ((p : α × α).1 : α) ⊓ p.2),
+      { apply supr_le_supr_of_subset,
+        rintros ⟨x, y⟩,
+        simp only [and_imp, set.mem_image, prod.mk.inj_iff, set.prod_mk_mem_set_prod_eq,
+                   exists_imp_distrib],
+        assume x' x't ax x'y,
+        rw [← x'y, ← ax],
+        simp [ha, x't] },
+      rw [supr_image] at this,
+      simp only [] at this,
+      rwa ← inf_Sup_eq at this },
+    calc Sup s ⊓ Sup t = (⨆a∈s, a ⊓ Sup t) : Sup_inf_eq
+      ... ≤ (⨆p ∈ set.prod s t, (p : α × α).1 ⊓ p.2) : by simp; exact this },
+  { finish }
+end
 
 end complete_distrib_lattice
 

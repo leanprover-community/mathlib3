@@ -21,6 +21,8 @@ import topology.uniform_space.separation topology.uniform_space.uniform_embeddin
 open lattice set filter classical
 noncomputable theory
 
+local notation `𝓤` := uniformity
+
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
@@ -100,7 +102,7 @@ class emetric_space (α : Type u) extends has_edist α : Type u :=
 (edist_comm : ∀ x y : α, edist x y = edist y x)
 (edist_triangle : ∀ x y z : α, edist x z ≤ edist x y + edist y z)
 (to_uniform_space : uniform_space α := uniform_space_of_edist edist edist_self edist_comm edist_triangle)
-(uniformity_edist : uniformity = ⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε} . control_laws_tac)
+(uniformity_edist : 𝓤 α = ⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε} . control_laws_tac)
 
 /- emetric spaces are less common than metric spaces. Therefore, we work in a dedicated
 namespace, while notions associated to metric spaces are mostly in the root namespace. -/
@@ -139,15 +141,15 @@ theorem eq_of_forall_edist_le {x y : α} (h : ∀ε, ε > 0 → edist x y ≤ ε
 eq_of_edist_eq_zero (eq_of_le_of_forall_le_of_dense (by simp) h)
 
 /-- Reformulation of the uniform structure in terms of the extended distance -/
-theorem uniformity_edist' : uniformity = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
+theorem uniformity_edist' : 𝓤 α = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
 emetric_space.uniformity_edist _
 
 /-- Reformulation of the uniform structure in terms of the extended distance on a subtype -/
-theorem uniformity_edist'' : uniformity = (⨅ε:{ε:ennreal // ε>0}, principal {p:α×α | edist p.1 p.2 < ε.val}) :=
+theorem uniformity_edist'' : 𝓤 α = (⨅ε:{ε:ennreal // ε>0}, principal {p:α×α | edist p.1 p.2 < ε.val}) :=
 by simp [infi_subtype]; exact uniformity_edist'
 
 theorem uniformity_edist_nnreal :
-  uniformity = (⨅(ε:nnreal) (h : ε > 0), principal {p:α×α | edist p.1 p.2 < ε}) :=
+  𝓤 α = (⨅(ε:nnreal) (h : ε > 0), principal {p:α×α | edist p.1 p.2 < ε}) :=
 begin
   rw [uniformity_edist', ennreal.infi_ennreal, inf_of_le_left],
   { congr, funext ε, refine infi_congr_Prop ennreal.coe_pos _, assume h, refl },
@@ -157,7 +159,7 @@ end
 
 /-- Characterization of the elements of the uniformity in terms of the extended distance -/
 theorem mem_uniformity_edist {s : set (α×α)} :
-  s ∈ @uniformity α _ ↔ (∃ε>0, ∀{a b:α}, edist a b < ε → (a, b) ∈ s) :=
+  s ∈ 𝓤 α ↔ (∃ε>0, ∀{a b:α}, edist a b < ε → (a, b) ∈ s) :=
 begin
   rw [uniformity_edist'', mem_infi],
   simp [subset_def],
@@ -167,7 +169,7 @@ end
 
 /-- Fixed size neighborhoods of the diagonal belong to the uniform structure -/
 theorem edist_mem_uniformity {ε:ennreal} (ε0 : 0 < ε) :
-  {p:α×α | edist p.1 p.2 < ε} ∈ @uniformity α _ :=
+  {p:α×α | edist p.1 p.2 < ε} ∈ 𝓤 α :=
 mem_uniformity_edist.2 ⟨ε, ε0, λ a b, id⟩
 
 namespace emetric

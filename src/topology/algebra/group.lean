@@ -8,7 +8,7 @@ Theory of topological groups.
 -/
 import data.equiv.algebra
 import group_theory.quotient_group
-import topology.algebra.monoid
+import topology.algebra.monoid topology.order
 
 open classical set lattice filter topological_space
 local attribute [instance] classical.prop_decidable
@@ -155,6 +155,12 @@ begin
     exact tendsto_mul tendsto_id tendsto_const_nhds }
 end
 
+@[to_additive topological_add_group.ext]
+lemma topological_group.ext {G : Type*} [group G] {t t' : topological_space G}
+  (tg : @topological_group G t _) (tg' : @topological_group G t' _)
+  (h : @nhds G t 1 = @nhds G t' 1) : t = t' :=
+eq_of_nhds_eq_nhds $ λ x, by
+  rw [← @nhds_translation_mul_inv G t _ _ x , ← @nhds_translation_mul_inv G t' _ _ x , ← h]
 end topological_group
 
 section quotient_topological_group

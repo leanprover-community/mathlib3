@@ -47,9 +47,10 @@ end local_cache
 open local_cache
 
 -- Using the namespace `ns` as its key, when called for the first
--- time `calculate_once ns t` runs `t`, saves and returns the result.
+-- time `run_once ns t` runs `t`, then saves and returns the result.
 -- Upon subsequent invocations in the same `environment` (usually
--- just in the same tactic block) return the cached result.
+-- just in the same tactic block, with the scope of the caching being
+-- inherited by child tactic blocks) we return the cached result directly.
 --
 -- If `α` is just `unit`, this means we just run `t` once each tactic
 -- block.

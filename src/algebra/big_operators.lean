@@ -56,6 +56,11 @@ lemma prod_image [decidable_eq α] {s : finset γ} {g : γ → α} :
   (∀x∈s, ∀y∈s, g x = g y → x = y) → (s.image g).prod f = s.prod (λx, f (g x)) :=
 fold_image
 
+@[simp, to_additive sum_map]
+lemma prod_map [comm_monoid γ] (s : finset α) (e : α ↪ β) (f : β → γ):
+  (s.map e).prod f = s.prod (λa, f (e a)) :=
+by rw [finset.prod, finset.map_val, multiset.map_map]; refl
+
 @[congr, to_additive finset.sum_congr]
 lemma prod_congr (h : s₁ = s₂) : (∀x∈s₂, f x = g x) → s₁.prod f = s₂.prod g :=
 by rw [h]; exact fold_congr

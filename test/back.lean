@@ -191,7 +191,7 @@ end dvd
 
 section infinitude_of_prime_by_library_search
 
-set_option trace.back true
+-- set_option trace.back true
 
 example (N : ℕ) : (∃ p ≥ N, prime p) ∨ true :=
 begin
@@ -220,7 +220,7 @@ by library_search -- exact le_add_right a b
 example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
 by library_search -- exact nat.mul_sub_left_distrib n m k
 
-set_option trace.back true
+-- set_option trace.back true
 
 lemma div_dvd_of_dvd {a b : ℕ} (h : b ∣ a) : (a / b) ∣ a :=
 -- The mathlib proof is: `⟨b, (nat.div_mul_cancel h).symm⟩`
@@ -233,7 +233,7 @@ by library_search
 example {a b : ℕ} (hba : b ≤ a) (hb : b ≠ 0) : 0 < a / b :=
 by library_search
 
-set_option trace.back_lemmas true
+-- set_option trace.back_lemmas true
 lemma one_le_of_lt {n m : ℕ} (h : n < m) : 1 ≤ m :=
 by library_search [-one_le_of_lt]
 -- a human proof:
@@ -262,9 +262,12 @@ example : ∀ P : Prop, ¬(P ↔ ¬P) :=
 by library_search -- says: `λ (a : Prop), (iff_not_self a).mp`
 
 -- set_option trace.back_lemmas true
-set_option trace.back false
+-- set_option trace.back false
 
 example (a b : ℕ) (h : a ∣ b) (w : b > 0) : a ≤ b :=
+by library_search
+
+example (a b : ℕ) (h : a ∣ b) (w : b ≥ 1) : a ≤ b :=
 by library_search
 
 example (a b : ℕ) (h : a ∣ b) (w : b ≠ 0) : a ≤ b :=

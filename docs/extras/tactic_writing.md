@@ -240,7 +240,7 @@ do
   l.mmap (λ h, tactic.infer_type h >>= tactic.trace),
   return ()
 ```
-The last line is a bit silly, it's there because what we get from the
+The last line is a bit silly: it's there because what we get from the
 previous line has type `list unit`, so it cannot be the final
 piece of our do block. Hence we add `return ()` where `()` is the
 only term of type `unit`. One can also use the tactic `skip` to achieve

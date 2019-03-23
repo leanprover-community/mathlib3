@@ -3,11 +3,10 @@ import os.path
 import os
 import sys
 import tarfile
-from git import Repo
+from git import Repo, InvalidGitRepositoryError
 from github import Github
 
-def make_cache():
-    global fn
+def make_cache(fn):
     if os.path.exists(fn):
         os.remove(fn)
 
@@ -16,29 +15,10 @@ def make_cache():
     if os.path.exists('test/'): ar.add('test/')
     ar.close()
 
-while not os.path.isdir('.git') and not os.getcwd() == '/':
-    os.chdir(os.path.dirname(os.getcwd()))
-if not os.path.isdir('.git'):
-    raise('no .git repo')
-root_dir = os.getcwd()
-cache_dir = os.path.join(root_dir, "_cache")
-
-repo = Repo(os.getcwd())
-if repo.bare:
-    print('repo not initialized')
-    sys.exit(-1)
-
-if not os.path.exists(cache_dir):
-    os.makedirs(cache_dir)
-
-
-def mathlib_asset(rev):
-    global repo
-    mathlib = [ 'https://github.com/leanprover/mathlib',
-                'https://github.com/leanprover-community/mathlib',
-                'https://www.github.com/leanprover/mathlib',
-                'https://www.github.com/leanprover-community/mathlib']
-    if not any([ r.url in mathlib for r in repo.remotes ]): return False
+def mathlib_asset(repo, rev):
+    if not any(['leanprover' in r.url and 'mathlib' in r.url
+                for r in repo.remotes]):
+        return None
 
     g = Github()
     print("Querying GitHub...")
@@ -50,7 +30,7 @@ def mathlib_asset(rev):
                            tags[r.tag_name] == rev)
     except StopIteration:
         print('Error: no nightly archive found')
-        return False
+        return None
 
     try:
         asset = next(x for x in release.get_assets()
@@ -58,7 +38,7 @@ def mathlib_asset(rev):
     except StopIteration:
         print("Error: Release " + release.tag_name + " does not contains a olean "
               "archive (this shouldn't happen...)")
-        return False
+        return None
     return asset
 
 def fetch_mathlib(asset):
@@ -83,14 +63,30 @@ def fetch_mathlib(asset):
     print("Extracting nightly...")
     ar = tarfile.open(os.path.join(mathlib_dir, asset.name))
     ar.extractall('.')
-    return True
 
-rev = repo.commit().hexsha
-fn = os.path.join(cache_dir, 'olean-' + rev + ".bz2")
 
 if __name__ == "__main__":
+    try:
+        repo = Repo('.', search_parent_directories=True)
+    except InvalidGitRepositoryError:
+        print('This does not seem to be a git repository.')
+        sys.exit(-1)
+
+    if repo.bare:
+        print('Repository not initialized')
+        sys.exit(-1)
+    
+    root_dir = repo.working_tree_dir
+    os.chdir(root_dir)
+    rev = repo.commit().hexsha
+
+    cache_dir = os.path.join(root_dir, "_cache")
+    if not os.path.exists(cache_dir):
+        os.makedirs(cache_dir)
+    fn = os.path.join(cache_dir, 'olean-' + rev + ".bz2")
+
     if sys.argv[1:] == ['--fetch']:
-        asset = mathlib_asset(rev)
+        asset = mathlib_asset(repo, rev)
         if asset:
             fetch_mathlib(asset)
         elif os.path.exists(fn):
@@ -101,8 +97,10 @@ if __name__ == "__main__":
             print('no cache found')
     elif sys.argv[1:] == ['--build']:
         if os.system('leanpkg build') == 0:
-            make_cache()
-        elif sys.argv[1:] == []:
-            make_cache()
+            make_cache(fn)
         else:
-            print('usage: cache_olean.py [--fetch | --build]')
+            print("leanpkg build failed, I'm not making cache")
+    elif sys.argv[1:] == []:
+        make_cache(fn)
+    else:
+        print('usage: cache_olean [--fetch | --build]')

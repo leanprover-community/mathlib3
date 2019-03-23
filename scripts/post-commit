@@ -1,2 +1,3 @@
 #!/bin/sh
+echo "Caching olean..."
 $HOME/.mathlib/bin/cache-olean

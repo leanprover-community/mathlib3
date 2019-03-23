@@ -1,4 +1,4 @@
 #!/bin/sh
-source ~/.profile
+export PATH=$HOME/.mathlib/bin:$PATH
 cache-olean --fetch
 update-mathlib

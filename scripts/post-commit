@@ -1,3 +1,2 @@
 #!/bin/sh
-source ~/.profile
-cache-olean
+$HOME/.mathlib/bin/cache-olean

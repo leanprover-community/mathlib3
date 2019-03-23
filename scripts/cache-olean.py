@@ -86,15 +86,16 @@ if __name__ == "__main__":
     fn = os.path.join(cache_dir, 'olean-' + rev + ".bz2")
 
     if sys.argv[1:] == ['--fetch']:
-        asset = mathlib_asset(repo, rev)
-        if asset:
-            fetch_mathlib(asset)
-        elif os.path.exists(fn):
+        if os.path.exists(fn):
             ar = tarfile.open(fn, 'r')
             ar.extractall(root_dir)
             ar.close()
         else:
-            print('no cache found')
+            asset = mathlib_asset(repo, rev)
+            if asset:
+                fetch_mathlib(asset)
+            else:
+                print('no cache found')
     elif sys.argv[1:] == ['--build']:
         if os.system('leanpkg build') == 0:
             make_cache(fn)

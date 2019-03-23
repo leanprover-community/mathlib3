@@ -1,4 +1,4 @@
 #!/bin/sh
 export PATH=$HOME/.mathlib/bin:$PATH
+echo "Trying to fetch cached olean"
 cache-olean --fetch
-update-mathlib

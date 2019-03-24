@@ -3,12 +3,27 @@ Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
 
-A tactic for discharging Presburger arithmetic goals using the Omega test.
+Subtraction elimination for linear natural number arithmetic.
+Works by repeatedly rewriting goals of the form `P[t-s]` into
+`P[x] ∧ (t = s + x ∨ (t ≤ s ∧ x = 0))`, where `x` is fresh.
 -/
 
-import tactic.omega.nat.form 
+import tactic.omega.nat.form
 
-namespace nat  
+namespace omega
+namespace nat
+
+local notation `&` k    := preterm.cst k
+local infix `**`  : 300 := preterm.var 
+local notation t `+*` s := preterm.add t s
+local notation t `-*` s := preterm.sub t s
+
+local notation x `=*` y := form.eq x y
+local notation x `≤*` y := form.le x y
+local notation `¬*` p   := form.not p
+local notation p `∨*` q := form.or p q
+local notation p `∧*` q := form.and p q
+
 namespace preterm
 
 def sub_terms : preterm → option (preterm × preterm)
@@ -17,40 +32,40 @@ def sub_terms : preterm → option (preterm × preterm)
 | (t +* s) := t.sub_terms <|> s.sub_terms
 | (t -* s) := t.sub_terms <|> s.sub_terms <|> some (t,s)
 
-def sub_subst (t s : preterm) (k : nat) : preterm → preterm 
+def sub_subst (t s : preterm) (k : nat) : preterm → preterm
 | t@(& m)    := t
 | t@(m ** n) := t
 | (x +* y) := x.sub_subst +* y.sub_subst
-| (x -* y) := 
+| (x -* y) :=
   if x = t ∧ y = s then (1 ** k)
   else x.sub_subst -* y.sub_subst
 
-lemma val_sub_subst {k x y v} :
-  ∀ {t : preterm}, t.fresh_index ≤ k → 
-  (sub_subst x y k t).val 
-  (update k (x.val v - y.val v) v) = t.val v 
+lemma val_sub_subst {k : nat} {x y : preterm} {v : nat → nat} :
+  ∀ {t : preterm}, t.fresh_index ≤ k →
+  (sub_subst x y k t).val (update k (x.val v - y.val v) v) = t.val v
 | (& m)    h1 := rfl
-| (m ** n) h1 := 
-  begin 
-    simp_omega [sub_subst], apply congr_arg,
-    apply update_eq_of_ne _ (ne.symm (ne_of_gt _)),
-    apply lt_iff_add_one_le.elim_right h1,
- end
-| (t +* s) h1 := 
+| (m ** n) h1 :=
   begin
-    simp_omega [sub_subst], apply fun_mono_2;
-    apply val_sub_subst (le_trans _ h1), 
+    have h2 : n ≠ k := ne_of_lt h1,
+    simp only [sub_subst, preterm.val], 
+    rw update_eq_of_ne _ h2,
+ end
+| (t +* s) h1 :=
+  begin
+    simp only [sub_subst, val_add], apply fun_mono_2;
+    apply val_sub_subst (le_trans _ h1),
     apply le_max_left, apply le_max_right
   end
-| (t -* s) h1 := 
+| (t -* s) h1 :=
   begin
-    simp_omega [sub_subst], 
+    simp only [sub_subst, val_sub],
     by_cases h2 : t = x ∧ s = y,
-    { rw if_pos h2, simp_omega,
-      rw [update_eq, h2.left, h2.right, one_mul] },
-    { rw if_neg h2, simp_omega [sub_subst],
+    { rw if_pos h2, simp only [val_var, one_mul],
+      rw [update_eq, h2.left, h2.right] },
+    { rw if_neg h2, 
+      simp only [val_sub, sub_subst],
       apply fun_mono_2;
-      apply val_sub_subst (le_trans _ h1), 
+      apply val_sub_subst (le_trans _ h1),
       apply le_max_left, apply le_max_right, }
   end
 
@@ -65,7 +80,7 @@ def sub_terms : form → option (preterm × preterm)
 | (p ∨* q) := p.sub_terms <|> q.sub_terms
 | (p ∧* q) := p.sub_terms <|> q.sub_terms
 
-@[omega] def sub_subst (x y : preterm) (k : nat) : form → form 
+@[simp] def sub_subst (x y : preterm) (k : nat) : form → form
 | (t =* s) := preterm.sub_subst x y k t =* preterm.sub_subst x y k s
 | (t ≤* s) := preterm.sub_subst x y k t ≤* preterm.sub_subst x y k s
 | (¬* p)   := ¬* p.sub_subst
@@ -74,69 +89,75 @@ def sub_terms : form → option (preterm × preterm)
 
 end form
 
-def is_diff (t s k) : form := 
-((t =* (s +* (1 ** k))) ∨* (t ≤* s ∧* ((1 ** k) =* &0))) 
+def is_diff (t s : preterm) (k : nat) : form :=
+((t =* (s +* (1 ** k))) ∨* (t ≤* s ∧* ((1 ** k) =* &0)))
 
-lemma holds_is_diff {t s : preterm} {k} {v : nat → nat} :
-  v k = t.val v - s.val v → (is_diff t s k).holds v := 
+lemma holds_is_diff {t s : preterm} {k : nat} {v : nat → nat} :
+  v k = t.val v - s.val v → (is_diff t s k).holds v :=
 begin
-  intro h1, simp_omega [is_diff, if_pos (eq.refl 1)],
-  by_cases h2 : t.val v ≤ s.val v, 
-  { right, refine ⟨h2,_⟩, 
+  intro h1, 
+  simp only [form.holds, is_diff, if_pos (eq.refl 1),
+    preterm.val_add, preterm.val_var, preterm.val_const],
+  by_cases h2 : t.val v ≤ s.val v,
+  { right, refine ⟨h2,_⟩,
     rw [h1, one_mul, nat.sub_eq_zero_iff_le], exact h2 },
-  { left, rw [h1, one_mul, add_comm, nat.sub_add_cancel _], 
+  { left, rw [h1, one_mul, add_comm, nat.sub_add_cancel _],
     rw not_le at h2, apply le_of_lt h2 }
 end
 
-def sub_elim_core (t s k) (p : form) : form := 
+def sub_elim_core (t s : preterm) (k : nat) (p : form) : form :=
 (form.sub_subst t s k p) ∧* (is_diff t s k)
 
 def sub_fresh_index (t s : preterm) (p : form) : nat :=
-max p.fresh_index (max t.fresh_index s.fresh_index) 
+max p.fresh_index (max t.fresh_index s.fresh_index)
 
-def sub_elim (t s) (p : form) : form := 
+def sub_elim (t s : preterm) (p : form) : form :=
 sub_elim_core t s (sub_fresh_index t s p) p
 
-lemma sub_subst_equiv {k} {x y : preterm} {v} :
-  ∀ p : form, p.fresh_index ≤ k → ((form.sub_subst x y k p).holds 
-    (update k (x.val v - y.val v) v) ↔ (p.holds v)) 
-| (t =* s) h1 := 
+lemma sub_subst_equiv {k : nat} {x y : preterm} {v : nat → nat} :
+  ∀ p : form, p.fresh_index ≤ k → ((form.sub_subst x y k p).holds
+    (update k (x.val v - y.val v) v) ↔ (p.holds v))
+| (t =* s) h1 :=
   begin
-    simp_omega, apply pred_mono_2;
+    simp only [form.holds, form.sub_subst], 
+    apply pred_mono_2;
     apply preterm.val_sub_subst (le_trans _ h1),
     apply le_max_left, apply le_max_right
   end
-| (t ≤* s) h1 := 
+| (t ≤* s) h1 :=
   begin
-    simp_omega, apply pred_mono_2;
+    simp only [form.holds, form.sub_subst], 
+    apply pred_mono_2;
     apply preterm.val_sub_subst (le_trans _ h1),
     apply le_max_left, apply le_max_right
   end
-| (¬* p) h1 :=  
-  by { apply not_iff_not_of_iff, apply sub_subst_equiv p h1 } 
-| (p ∨* q) h1 := 
+| (¬* p) h1 :=
+  by { apply not_iff_not_of_iff, apply sub_subst_equiv p h1 }
+| (p ∨* q) h1 :=
   begin
-    simp_omega, apply pred_mono_2; apply propext;
+    simp only [form.holds, form.sub_subst], 
+    apply pred_mono_2; apply propext;
     apply sub_subst_equiv _ (le_trans _ h1),
     apply le_max_left, apply le_max_right
   end
-| (p ∧* q) h1 := 
+| (p ∧* q) h1 :=
   begin
-    simp_omega, apply pred_mono_2; apply propext;
+    simp only [form.holds, form.sub_subst], 
+    apply pred_mono_2; apply propext;
     apply sub_subst_equiv _ (le_trans _ h1),
     apply le_max_left, apply le_max_right
   end
 
-lemma sat_sub_elim {t s} {p : form} :
-  p.sat → (sub_elim t s p).sat := 
+lemma sat_sub_elim {t s : preterm} {p : form} :
+  p.sat → (sub_elim t s p).sat :=
 begin
-  intro h1, simp only [sub_elim, sub_elim_core], 
-  cases h1 with v h1, 
-  refine ⟨update (sub_fresh_index t s p) (t.val v - s.val v) v, _⟩, 
+  intro h1, simp only [sub_elim, sub_elim_core],
+  cases h1 with v h1,
+  refine ⟨update (sub_fresh_index t s p) (t.val v - s.val v) v, _⟩,
   constructor,
   { apply (sub_subst_equiv p _).elim_right h1,
     apply le_max_left },
-  { apply holds_is_diff, rw update_eq, 
+  { apply holds_is_diff, rw update_eq,
     apply fun_mono_2;
     apply preterm.val_constant; intros x h2;
     rw update_eq_of_ne _ (ne.symm (ne_of_gt _));
@@ -145,8 +166,10 @@ begin
     apply le_max_left, apply le_max_right }
 end
 
-lemma unsat_of_unsat_sub_elim (t s p) :
-  (sub_elim t s p).unsat → p.unsat := 
-(@not_imp_not _ _ (classical.dec _)).elim_right sat_sub_elim 
+lemma unsat_of_unsat_sub_elim (t s : preterm) (p : form) :
+  (sub_elim t s p).unsat → p.unsat :=
+(@not_imp_not _ _ (classical.dec _)).elim_right sat_sub_elim
 
 end nat
+
+end omega

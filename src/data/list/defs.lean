@@ -136,6 +136,13 @@ def lookmap (f : α → option α) : list α → list α
   | none   := a :: lookmap l
   end
 
+def map_with_index_core (f : ℕ → α → β) : ℕ → list α → list β
+| k []      := []
+| k (a::as) := f k a::(map_with_index_core (k+1) as)
+
+def map_with_index (f : ℕ → α → β) (as : list α) : list β :=
+map_with_index_core f 0 as
+
 /-- `indexes_of a l` is the list of all indexes of `a` in `l`.
 
      indexes_of a [a, b, a, a] = [0, 2, 3] -/
@@ -440,5 +447,19 @@ let ⟨a, ⟨a_mem_ls, pa⟩⟩ := choose_x ls (hp.imp
 def choose (hp : ∃ a, a ∈ l ∧ p a) : α := choose_x p l hp
 
 end choose
+
+def max [decidable_linear_order α] : list α → option α
+| []           := none
+| [a]          := some a
+| (a1::a2::as) := 
+  match max (a2::as) with 
+  | none   := a1
+  | some a := @_root_.max α _ a1 a 
+  end
+
+def imax [inhabited α] [decidable_linear_order α] : list α → α
+| []           := @inhabited.default α _
+| [a]          := a
+| (a1::a2::as) := _root_.max a1 (imax (a2::as))
 
 end list

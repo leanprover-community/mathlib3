@@ -3,10 +3,12 @@ Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
 
-A tactic for discharging Presburger arithmetic goals using the Omega test.
+Linear natural number arithmetic formulas in pre-normalized form.
 -/
 
 import tactic.omega.nat.preterm 
+
+namespace omega
 
 namespace nat 
 
@@ -18,15 +20,15 @@ inductive form
 | or  : form → form → form
 | and : form → form → form
 
-notation x `=*` y := form.eq x y
-notation x `≤*` y := form.le x y
-notation `¬*` p := form.not p
-notation p `∨*` q := form.or p q
-notation p `∧*` q := form.and p q
+local notation x `=*` y := form.eq x y
+local notation x `≤*` y := form.le x y
+local notation `¬*` p   := form.not p
+local notation p `∨*` q := form.or p q
+local notation p `∧*` q := form.and p q
 
 namespace form
 
-@[omega] def holds (v : nat → nat) : form → Prop 
+@[simp] def holds (v : nat → nat) : form → Prop 
 | (t =* s) := t.val v = s.val v
 | (t ≤* s) := t.val v ≤ s.val v
 | (¬* p)   := ¬ p.holds
@@ -35,7 +37,7 @@ namespace form
 
 end form
 
-@[omega] def univ_close (p : form) : (nat → nat) → nat → Prop 
+@[simp] def univ_close (p : form) : (nat → nat) → nat → Prop 
 | v 0     := p.holds v
 | v (k+1) := ∀ i : nat, univ_close (update_zero i v) k 
 
@@ -68,14 +70,16 @@ def holds_constant {v w : nat → nat} :
     (p.holds v ↔ p.holds w) ) 
 | (t =* s) h1 := 
   begin
-    simp_omega, apply pred_mono_2;
+    simp only [holds], 
+    apply pred_mono_2;
     apply preterm.val_constant;
     intros x h2; apply h1 _ (lt_of_lt_of_le h2 _),
     apply le_max_left, apply le_max_right
   end
 | (t ≤* s) h1 := 
   begin
-    simp_omega, apply pred_mono_2;
+    simp only [holds],
+    apply pred_mono_2;
     apply preterm.val_constant;
     intros x h2; apply h1 _ (lt_of_lt_of_le h2 _),
     apply le_max_left, apply le_max_right
@@ -87,14 +91,16 @@ def holds_constant {v w : nat → nat} :
   end
 | (p ∨* q) h1 := 
   begin
-    simp_omega, apply pred_mono_2';
+    simp only [holds], 
+    apply pred_mono_2';
     apply holds_constant;
     intros x h2; apply h1 _ (lt_of_lt_of_le h2 _),
     apply le_max_left, apply le_max_right
   end
 | (p ∧* q) h1 := 
   begin
-    simp_omega, apply pred_mono_2';
+    simp only [holds], 
+    apply pred_mono_2';
     apply holds_constant;
     intros x h2; apply h1 _ (lt_of_lt_of_le h2 _),
     apply le_max_left, apply le_max_right
@@ -112,9 +118,9 @@ def implies (p q : form) : Prop :=
 def equiv (p q : form) : Prop := 
 ∀ v, (holds v p ↔ holds v q)
 
-lemma sat_of_implies_of_sat {p q} :
+lemma sat_of_implies_of_sat {p q : form} :
   implies p q → sat p → sat q :=
-begin intros h1 h2, apply exists_of_exists h1 h2 end
+begin intros h1 h2, apply exists_imp_exists h1 h2 end
 
 lemma sat_or {p q : form} :
   sat (p ∨* q) ↔ sat p ∨ sat q :=
@@ -141,7 +147,7 @@ meta instance has_to_format : has_to_format form := ⟨λ x, x.repr⟩
 end form
 
 lemma univ_close_of_valid {p : form} : 
-  ∀ {m v}, p.valid → univ_close p v m
+  ∀ {m : nat} {v : nat → nat}, p.valid → univ_close p v m
 | 0 v h1     := h1 _ 
 | (m+1) v h1 := λ i, univ_close_of_valid h1
 
@@ -155,3 +161,5 @@ meta def form.induce (t : tactic unit := tactic.skip) : tactic unit :=
 `[ intro p, induction p with t s t s p ih p q ihp ihq p q ihp ihq; t ]
 
 end nat
+
+end omega

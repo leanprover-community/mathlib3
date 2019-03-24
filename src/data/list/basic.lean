@@ -4215,7 +4215,7 @@ begin
   { rw [eq_nil_of_le hml, filter_ge_of_top_le hml] }
 end
 
-@[simp] lemma filter_ge (n m l : ℕ) : (Ico n m).filter (λ x, x ≥ l) = Ico (max n l) m :=
+@[simp] lemma filter_ge (n m l : ℕ) : (Ico n m).filter (λ x, x ≥ l) = Ico (_root_.max n l) m :=
 begin
   cases le_total n l with hnl hln,
   { rw [max_eq_right hnl, filter_ge_of_ge hnl] },

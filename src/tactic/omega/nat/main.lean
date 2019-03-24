@@ -3,47 +3,40 @@ Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
 
-A tactic for discharging Presburger arithmetic goals using the Omega test.
+Main procedure for linear natural number arithmetic.
 -/
 
 import tactic.omega.prove_unsats
 import tactic.omega.nat.dnf
 import tactic.omega.nat.neg_elim
 
+open tactic 
+
+namespace omega
 namespace nat
 
-meta def is_form_aux : expr → bool 
-| `(¬ %% p)               := is_form_aux p
-| `(%% p ∨ %%q)           := is_form_aux p && is_form_aux q
-| `(%% p ∧ %%q)           := is_form_aux p && is_form_aux q
-| `(@eq nat _ _)          := true
-| `(@has_le.le nat _ _ _) := true
-| _                       := false
-    
-open tactic  
+local notation `&` k    := preterm.cst k
+local infix `**`  : 300 := preterm.var 
+local notation t `+*` s := preterm.add t s
+local notation t `-*` s := preterm.sub t s
 
-meta def is_form (x : expr) : tactic bool :=
-do tx ← infer_type x,
-   return $ is_form_aux tx
+local notation x `=*` y := form.eq x y
+local notation x `≤*` y := form.le x y
+local notation `¬*` p   := form.not p
+local notation p `∨*` q := form.or p q
+local notation p `∧*` q := form.and p q
 
-meta def is_term (x : expr) : tactic bool :=
-do tx ← infer_type x, 
-   return $ `(nat).to_expr = tx
-
-meta def rev : tactic unit :=
-do revert_cond_all is_form,
-   revert_cond_all is_term
    
 run_cmd mk_simp_attr `sugar_nat 
 attribute [sugar_nat] 
   not_le not_lt
-  lt_iff_add_one_le
-  succ_eq_add_one
+  nat.lt_iff_add_one_le
+  nat.succ_eq_add_one
   or_false false_or
   and_true true_and
-  ge gt mul_add add_mul 
-  mul_comm classical.iff_iff
+  ge gt mul_add add_mul mul_comm
   classical.imp_iff_not_or
+  classical.iff_iff_not_or_and_or_not
 
 meta def desugar := `[try {simp only with sugar_nat}]
 
@@ -168,11 +161,15 @@ meta def to_form_core : expr → tactic form
 meta def to_form : nat → expr → tactic (form × nat) 
 | m `(_ → %%px) := to_form (m+1) px
 | m x := do p ← to_form_core x, return (p,m)
+
 meta def prove_lna : tactic expr :=
 do (p,m) ← target >>= to_form 0,
    prove_univ_close m p 
 
-meta def omega : tactic unit :=
-rev >> desugar >> prove_lna >>= apply >> skip
-
 end nat
+end omega
+
+open omega.nat
+
+meta def omega_nat : tactic unit :=
+desugar >> prove_lna >>= apply >> skip

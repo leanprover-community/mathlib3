@@ -3,24 +3,31 @@ Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
 
-A tactic for discharging Presburger arithmetic goals using the Omega test.
+Negation elimination.
 -/
 
 import tactic.omega.nat.form
 
+namespace omega
 namespace nat
 
-@[omega] def push_neg : form → form 
+local notation x `=*` y := form.eq x y
+local notation x `≤*` y := form.le x y
+local notation `¬*` p   := form.not p
+local notation p `∨*` q := form.or p q
+local notation p `∧*` q := form.and p q
+
+@[simp] def push_neg : form → form 
 | (p ∨* q) := (push_neg p) ∧* (push_neg q)
 | (p ∧* q) := (push_neg p) ∨* (push_neg q)
 | (¬*p)    := p
 | p        := ¬* p
 
 lemma push_neg_equiv : 
-  ∀ {p}, form.equiv (push_neg p) (¬* p) :=
+  ∀ {p : form}, form.equiv (push_neg p) (¬* p) :=
 begin
   form.induce `[intros v; try {refl}], 
-  { simp_omega [classical.not_not] },
+  { simp only [classical.not_not, form.holds, push_neg] },
   { simp only [form.holds, push_neg, not_or_distrib, ihp v, ihq v] },
   { simp only [form.holds, push_neg, classical.not_and_distrib, ihp v, ihq v] }
 end
@@ -40,7 +47,7 @@ def is_nnf : form → Prop
 | (p ∧* q) := is_nnf p ∧ is_nnf q
 | _ := false
 
-lemma is_nnf_push_neg : ∀ p, is_nnf p → is_nnf (push_neg p) :=
+lemma is_nnf_push_neg : ∀ p : form, is_nnf p → is_nnf (push_neg p) :=
 begin
   form.induce `[intro h1; try {trivial}],
   { cases p; try {cases h1}; trivial },
@@ -48,8 +55,7 @@ begin
   { cases h1, constructor; [{apply ihp}, {apply ihq}]; assumption }
 end
 
-
-lemma is_nnf_nnf : ∀ p, is_nnf (nnf p) := 
+lemma is_nnf_nnf : ∀ p : form, is_nnf (nnf p) := 
 begin
   form.induce `[try {trivial}],
   { apply is_nnf_push_neg _ ih },
@@ -66,7 +72,7 @@ begin
   { apply pred_mono_2' (ihp v) (ihq v) }
 end
 
-@[omega] def neg_elim_core : form → form 
+@[simp] def neg_elim_core : form → form 
 | (¬* (t =* s)) := (t.add_one ≤* s) ∨* (s.add_one ≤* t)
 | (¬* (t ≤* s)) := s.add_one ≤* t
 | (p ∨* q) := (neg_elim_core p) ∨* (neg_elim_core q)
@@ -90,22 +96,26 @@ begin
   { constructor; apply le_of_eq; rw h1  }
 end
 
-lemma implies_neg_elim_core : ∀ {p : form}, form.implies p (neg_elim_core p) :=
+lemma implies_neg_elim_core : ∀ {p : form}, 
+  form.implies p (neg_elim_core p) :=
 begin
   form.induce `[intros v h, try {apply h}],
   { cases p with t s t s; try {apply h},
-    { simp_omega [le_and_le_iff_eq.symm, 
+    { simp only [form.holds, le_and_le_iff_eq.symm, 
         classical.not_and_distrib, not_le] at h,
-      simp_omega [int.add_one_le_iff], rw or.comm, assumption },
-    { simp_omega [not_le, int.add_one_le_iff] at *, assumption} },
-  { simp only [neg_elim_core], cases h; [{left, apply ihp}, 
-    {right, apply ihq}]; assumption }, 
-  { apply and_of_and (ihp _) (ihq _) h }
+      simp only [form.holds, neg_elim_core, int.add_one_le_iff], 
+      rw or.comm, assumption },
+    { simp only [form.holds, not_le, int.add_one_le_iff] at *, 
+      assumption} },
+  { simp only [neg_elim_core], cases h; 
+    [{left, apply ihp}, {right, apply ihq}]; 
+    assumption }, 
+  { apply and.imp (ihp _) (ihq _) h }
 end
 
 def neg_elim : form → form := neg_elim_core ∘ nnf
 
-lemma neg_free_neg_elim {p} : (neg_elim p).neg_free := 
+lemma neg_free_neg_elim {p : form} : (neg_elim p).neg_free := 
 neg_free_neg_elim_core _ (is_nnf_nnf _)
 
 lemma implies_neg_elim {p : form} : form.implies p (neg_elim p) :=
@@ -115,3 +125,5 @@ begin
 end
 
 end nat
+
+end omega

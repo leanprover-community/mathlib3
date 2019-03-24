@@ -27,11 +27,23 @@ theorem succ_inj' {n m : ℕ} : succ n = succ m ↔ n = m :=
 theorem succ_le_succ_iff {m n : ℕ} : succ m ≤ succ n ↔ m ≤ n :=
 ⟨le_of_succ_le_succ, succ_le_succ⟩
 
+theorem max_succ_succ {m n : ℕ} :
+  max (succ m) (succ n) = succ (max m n) :=
+begin
+  by_cases h1 : m ≤ n,
+  rw [max_eq_right h1, max_eq_right (succ_le_succ h1)],
+  { rw not_le at h1, have h2 := le_of_lt h1,
+    rw [max_eq_left h2, max_eq_left (succ_le_succ h2)] }
+end
+
 theorem lt_succ_iff {m n : ℕ} : m < succ n ↔ m ≤ n :=
 succ_le_succ_iff
 
 lemma succ_le_iff {m n : ℕ} : succ m ≤ n ↔ m < n :=
 ⟨lt_of_succ_le, succ_le_of_lt⟩
+
+lemma lt_iff_add_one_le {m n : ℕ} : m < n ↔ m + 1 ≤ n := 
+by rw succ_le_iff
 
 theorem pred_eq_of_eq_succ {m n : ℕ} (H : m = n.succ) : m.pred = n := by simp [H]
 

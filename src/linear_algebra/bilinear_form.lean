@@ -6,6 +6,8 @@ Author: Andreas Swerdlow
 
 import linear_algebra.tensor_product
 
+set_option class.instance_max_depth 100
+
 universes u v
 
 structure bilin_form (α : Type u) (β : Type v) [ring α] [add_comm_group β] [module α β] :=
@@ -15,15 +17,23 @@ structure bilin_form (α : Type u) (β : Type v) [ring α] [add_comm_group β] [
 (bilin_add_right : ∀ (x y z : β), bilin x (y + z) = bilin x y + bilin x z)
 (bilin_smul_right : ∀ (a : α) (x y : β), bilin x (a • y) = a * (bilin x y))
 
+def linear_map.to_bilin {χ : Type u} {β : Type v} [comm_ring χ] [add_comm_group β] [module χ β] 
+(f : β →ₗ[χ] β →ₗ[χ] χ) : bilin_form χ β := 
+{ bilin := λ x y, f x y,
+  bilin_add_left := λ x y z, eq_comm.mp (linear_map.map_add f x y) ▸ linear_map.add_apply (f x) (f y) z,
+  bilin_smul_left := λ a x y, by {rw linear_map.map_smul, rw linear_map.smul_apply, rw smul_eq_mul},
+  bilin_add_right := λ x y z, linear_map.map_add (f x) y z,
+  bilin_smul_right := λ a x y, linear_map.map_smul (f x) a y
+  }
+
 namespace bilin_form
- 
 
 variables {α : Type u} {β : Type v} [ring α] [add_comm_group β] [module α β] {B : bilin_form α β}
 
 instance module : module α β := by apply_instance
 
 lemma zero_bilin (x : β) :
-B.bilin 0 x = 0 := by rw [←@zero_smul α _ _ _ _ (0 : β), bilin_smul_left, zero_mul]
+B.bilin 0 x = 0 := by {rw [←@zero_smul α _ _ _ _ (0 : β), bilin_smul_left, zero_mul]}
 
 lemma bilin_zero (x : β) :
 B.bilin x 0 = 0 := by rw [←@zero_smul _ _ _ _ _ (0 : β), bilin_smul_right, ring.zero_mul]
@@ -95,16 +105,7 @@ instance to_module : module χ (bilin_form χ β) :=
 def to_linear_map : β →ₗ[χ] β →ₗ[χ] χ := 
 linear_map.mk₂ χ F.1 (bilin_add_left F) (bilin_smul_left F) (bilin_add_right F) (bilin_smul_right F)  
 
-def linear_map.to_bilin (f : β →ₗ[χ] β →ₗ[χ] χ) : bilin_form χ β := 
-{ bilin := λ x y, f x y,
-  bilin_add_left := λ x y z, eq_comm.mp (linear_map.map_add f x y) ▸ linear_map.add_apply (f x) (f y) z,
-  bilin_smul_left := λ a x y, by {rw linear_map.map_smul, rw linear_map.smul_apply, rw smul_eq_mul},
-  bilin_add_right := λ x y z, linear_map.map_add (f x) y z,
-  bilin_smul_right := λ a x y, linear_map.map_smul (f x) a y
-  }
-
-
-def bilin_linear_map_equiv : (bilin_form χ β) ≃ₗ[χ] (β →ₗ[χ] β →ₗ[χ] χ) := 
+def bilin_linear_map_equiv : (bilin_form χ β) ≃ₗ[χ] (β →ₗ[χ] β →ₗ[χ] χ) :=  
 { to_fun := to_linear_map,
   add := λ B D, by refl, 
   smul := λ a B, by refl,
@@ -161,23 +162,23 @@ end
 
 end bilin_form
 
-structure reflx_bilin_form (α : Type*) (β : Type*) [ring α] [add_comm_group β] [module α β] extends bilin_form α β :=
-(bilin_reflx : ∀ {x y : β}, bilin x y = 0 → bilin y x = 0)
+structure refl_bilin_form (α : Type*) (β : Type*) [ring α] [add_comm_group β] [module α β] extends bilin_form α β :=
+(bilin_refl : ∀ {x y : β}, bilin x y = 0 → bilin y x = 0)
 
-namespace reflx_sesquilinear_form_space
+namespace refl_sesquilinear_form_space
 
-open reflx_bilin_form bilin_form
+open refl_bilin_form bilin_form
 
-variables {α : Type*} {β : Type*} [ring α] [add_comm_group β] [module α β] {B : reflx_bilin_form α β}
+variables {α : Type*} {β : Type*} [ring α] [add_comm_group β] [module α β] {B : refl_bilin_form α β}
 
-lemma bilin_eq_zero {x y : β} : B.bilin x y = 0 → B.bilin y x = 0 := bilin_reflx B
+lemma bilin_eq_zero {x y : β} : B.bilin x y = 0 → B.bilin y x = 0 := bilin_refl B
 
 variables (x y : β)
 
-lemma ortho_sym (B : reflx_bilin_form α β) {x y : β} :
+lemma ortho_sym (B : refl_bilin_form α β) {x y : β} :
 is_ortho B.1 x y ↔ is_ortho B.1 y x := ⟨λ H, bilin_eq_zero H, λ H, bilin_eq_zero H⟩
 
-end reflx_sesquilinear_form_space
+end refl_sesquilinear_form_space
 
 structure sym_bilin_form (α : Type*) (β : Type*) [ring α] [add_comm_group β] [module α β] extends bilin_form α β :=
 (bilin_sym : ∀ (x y : β), bilin x y = bilin y x)
@@ -188,12 +189,12 @@ open sym_bilin_form bilin_form
 
 variables {α : Type*} {β : Type*} [ring α] [add_comm_group β] [module α β] {B : sym_bilin_form α β}
 
-def to_reflx_bilin_form (B : sym_bilin_form α β):
-reflx_bilin_form α β := { bilin_reflx := λ x y H, (@bilin_sym α _ _ _ _ B x y) ▸ H,
+def to_refl_bilin_form (B : sym_bilin_form α β):
+refl_bilin_form α β := { bilin_refl := λ x y H, (@bilin_sym α _ _ _ _ B x y) ▸ H,
                           .. to_bilin_form B, }
 
 lemma ortho_sym {x y : β} :
-is_ortho B.1 x y ↔ is_ortho B.1 y x := reflx_sesquilinear_form_space.ortho_sym (to_reflx_bilin_form B) 
+is_ortho B.1 x y ↔ is_ortho B.1 y x := refl_sesquilinear_form_space.ortho_sym (to_refl_bilin_form B) 
 
 end sym_sesquilinear_form_space
 

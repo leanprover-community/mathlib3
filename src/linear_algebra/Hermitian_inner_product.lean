@@ -8,7 +8,6 @@ import analysis.normed_space.basic linear_algebra.sesquilinear_form data.complex
 
 open vector_space field set complex real
 
-set_option class.instance_max_depth 32
 
 lemma ne_comm {α : Type*} {a b : α} : a ≠ b ↔ b ≠ a :=
 ⟨ λ H, iff_subst (@eq_comm _ a b) H, 

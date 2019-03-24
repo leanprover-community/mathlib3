@@ -66,7 +66,7 @@ class herm_inner_product_space (α : Type*) [add_comm_group α] [vector_space �
 
 namespace herm_inner_product_space
 
-open herm_inner_product_space ring_invo
+open ring_invo
 
 variables {α : Type*} [add_comm_group α] [vector_space ℂ α] [herm_inner_product_space α]
 

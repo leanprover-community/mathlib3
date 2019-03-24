@@ -501,7 +501,7 @@ end
 
 def herm_ortho (x y : α) : Prop := x ₀ y = 0 
 
-notation a ⊥ b := herm_ortho a b 
+local notation a ⊥ b := herm_ortho a b 
 
 def herm_ortho_sym (x y : α) :
 (x ⊥ y) ↔ (y ⊥ x) := @ortho_sym ℂ α _ conj.ring_invo _ _ (to_sym_sesq_form α) _ _ 

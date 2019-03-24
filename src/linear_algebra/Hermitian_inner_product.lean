@@ -72,7 +72,7 @@ variables {α : Type*} [add_comm_group α] [vector_space ℂ α] [herm_inner_pro
 
 noncomputable def inprod : α → α → ℂ := (herm_inner_product_space.to_sym_sesq_form α).to_sesq_form.sesq  
 
-infix `₀` : 74 := inprod 
+local infix `₀` : 74 := inprod 
 
 lemma conj_inprod (x y : α) : conj (x ₀ y) = y ₀ x := sym_sesq_form.map_sesq conj.ring_invo y x 
 

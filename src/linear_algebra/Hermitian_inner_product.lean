@@ -636,7 +636,7 @@ begin
       exact norm_ne_zero_iff_ne_zero.mpr Hy }
 end
 
-lemma ortho_imp_proj_eq_zero {x y : α} :
+lemma proj_eq_zero_of_ortho {x y : α} :
 (x ⊥ y) → proj x y = 0 := 
 begin
   dunfold herm_ortho,

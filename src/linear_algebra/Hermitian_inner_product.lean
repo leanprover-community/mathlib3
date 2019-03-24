@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Andreas Swerdlow
 -/
 
-import analysis.normed_space.basic linear_algebra.sesquilinear_form data.complex.basic
+import analysis.normed_space.basic linear_algebra.sesquilinear_form topology.instances.complex
 
 open vector_space field set complex real
 
@@ -398,13 +398,6 @@ begin
   dunfold herm_norm,
   rw [mul_self_sqrt (inner_product.self_re_nonneg x), re_of_real (inner_product.self_im x)],
 end
-
-noncomputable instance complex.metric_space : metric_space ℂ :=
-{ dist := λ x y, abs(x - y),
-  dist_self := by simp,
-  eq_of_dist_eq_zero := assume x y H, sub_eq_zero.mp (complex.abs_eq_zero.mp H),
-  dist_comm := begin intros, unfold dist, rw ←neg_sub, rw complex.abs_neg, end,
-  dist_triangle := abs_sub_le}
 
 noncomputable instance complex.normed_field : normed_field ℂ :=
 { norm := abs,

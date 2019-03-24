@@ -17,7 +17,6 @@ structure bilin_form (α : Type u) (β : Type v) [ring α] [add_comm_group β] [
 
 namespace bilin_form
  
-open bilin_form
 
 variables {α : Type u} {β : Type v} [ring α] [add_comm_group β] [module α β] {B : bilin_form α β}
 

@@ -47,10 +47,10 @@ sum_involution
     have ∀ a, p (swap i j a) = p a := λ a, by simp only [swap_apply_def]; split_ifs; cc,
     have univ.prod (λ x, M (σ x) (p x)) = univ.prod (λ x, M ((σ * swap i j) x) (p x)),
       from prod_bij (λ a _, swap i j a) (λ _ _, mem_univ _) (by simp [this])
-        (λ _ _ _ _ h, (swap i j).bijective.1 h)
+        (λ _ _ _ _ h, (swap i j).injective h)
         (λ b _, ⟨swap i j b, mem_univ _, by simp⟩),
     by simp [sign_mul, this, sign_swap hij.2, prod_mul_distrib])
-  (λ σ _ _ h, hij.2 (σ.bijective.1 $ by conv {to_lhs, rw ← h}; simp))
+  (λ σ _ _ h, hij.2 (σ.injective $ by conv {to_lhs, rw ← h}; simp))
   (λ _ _, mem_univ _)
   (λ _ _, equiv.ext _ _ $ by simp)
 

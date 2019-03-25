@@ -261,7 +261,7 @@ theorem prod_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
   { generalize e : f b₁ = fb₁,
     intro h, cases h with _ _ _ _ h _ _ _ h,
     { subst e, left, exact hf.2 h },
-    { have := f.bijective.1 e, subst b₁,
+    { have := f.injective e, subst b₁,
       right, exact hg.2 h } }
 end⟩
 

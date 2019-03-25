@@ -237,7 +237,7 @@ solve_by_elim { discharger := `[cc] }
 also attempts to discharge the goal using congruence closure before each round of applying assumptions.
 
 `solve_by_elim*` tries to solve all goals together, using backtracking if a solution for one goal
-make other goals impossible.
+makes other goals impossible.
 
 By default `solve_by_elim` also applies `congr_fun` and `congr_arg` against the goal.
 

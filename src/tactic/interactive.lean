@@ -229,7 +229,7 @@ unless they are explicitly included.
 `solve_by_elim [-id]` removes a specified assumption.
 
 `solve_by_elim*` tries to solve all goals together, using backtracking if a solution for one goal
-make other goals impossible.
+makes other goals impossible.
 
 optional arguments:
 - discharger: a subsidiary tactic to try at each step (e.g. `cc` may be helpful)

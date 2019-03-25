@@ -93,7 +93,7 @@ variables {p : ℕ} [nat.prime p]
 
 @[reducible] def padic_norm_z (z : ℤ_[p]) : ℝ := ∥z.val∥
 
-instance : metric_space ℤ_[p] := metric_space_subtype
+instance : metric_space ℤ_[p] := subtype.metric_space
 
 instance : has_norm ℤ_[p] := ⟨padic_norm_z⟩
 

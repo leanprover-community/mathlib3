@@ -109,7 +109,7 @@ This is a "finishing" tactic modification of `simp`. It has two forms.
   more robust under changes to the simp lemma set.
 
 * `simpa [rules, ...]` will simplify the goal and the type of a
-  hypothesis `this` if present, then try to close the goal using
+  hypothesis `this` if present in the context, then try to close the goal using
   the `assumption` tactic.
 
 ### replace
@@ -142,8 +142,8 @@ The procedures *do* split on disjunctions and recreate the smt state for each te
 they are only meant to be used on small, straightforward problems.
 
 * finish:  solves the goal or fails
-* clarify:  makes as much progress as possible while not leaving more than one goal
-* safe:     splits freely, finishes off whatever subgoals it can, and leaves the rest
+* clarify: makes as much progress as possible while not leaving more than one goal
+* safe:    splits freely, finishes off whatever subgoals it can, and leaves the rest
 
 All accept an optional list of simplifier rules, typically definitions that should be expanded.
 (The equations and identities should not refer to the local context.)
@@ -235,6 +235,9 @@ The tactic `solve_by_elim` repeatedly applies assumptions to the current goal, a
 solve_by_elim { discharger := `[cc] }
 ```
 also attempts to discharge the goal using congruence closure before each round of applying assumptions.
+
+`solve_by_elim*` tries to solve all goals together, using backtracking if a solution for one goal
+makes other goals impossible.
 
 By default `solve_by_elim` also applies `congr_fun` and `congr_arg` against the goal.
 
@@ -505,8 +508,8 @@ This list can be overriden using `tidy { tactics :=  ... }`. (The list must be a
 
 `linarith` attempts to find a contradiction between hypotheses that are linear (in)equalities.
 Equivalently, it can prove a linear inequality by assuming its negation and proving `false`.
-This tactic is currently work in progress, and has various limitations. In particular,
-it will not work on `nat`. The tactic can be made much more efficient.
+
+In theory, `linarith` should prove any goal that is true in the theory of linear arithmetic over the rationals. While there is some special handling for non-dense orders like `nat` and `int`, this tactic is not complete for these theories and will not prove every true goal.
 
 An example:
 ```lean
@@ -603,15 +606,21 @@ Known limitation(s):
     combined by concatenating their list of lemmas.
 
 ## fin_cases
-Performs cases analysis on a `fin n` hypothesis. As an example, in
+`fin_cases h` performs case analysis on a hypothesis of the form
+1) `h : A`, where `[fintype A]` is available, or
+2) `h ∈ A`, where `A : finset X`, `A : multiset X` or `A : list X`.
+
+`fin_cases *` performs case analysis on all suitable hypotheses.
+
+As an example, in
 ```
 example (f : ℕ → Prop) (p : fin 3) (h0 : f 0) (h1 : f 1) (h2 : f 2) : f p.val :=
 begin
-  fin_cases p,
+  fin_cases p; simp,
   all_goals { assumption }
 end
 ```
-after `fin_cases p`, there are three goals, `f 0`, `f 1`, and `f 2`.
+after `fin_cases p; simp`, there are three goals, `f 0`, `f 1`, and `f 2`.
 
 ## conv
 The `conv` tactic is built-in to lean. Currently mathlib additionally provides

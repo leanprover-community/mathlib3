@@ -83,6 +83,51 @@ meta def emit_code_here : string → lean.parser unit
 
 end lean.parser
 
+namespace name
+
+meta def head : name → string
+| (mk_string s anonymous) := s
+| (mk_string s p)         := head p
+| (mk_numeral n p)        := head p
+| anonymous               := "[anonymous]"
+
+meta def is_private (n : name) : bool :=
+n.head = "_private"
+
+meta def last : name → string
+| (mk_string s _)  := s
+| (mk_numeral n _) := repr n
+| anonymous        := "[anonymous]"
+
+end name
+
+namespace environment
+meta def decl_filter_map {α : Type} (e : environment) (f : declaration → option α) : list α :=
+  e.fold [] $ λ d l, match f d with
+                     | some r := r :: l
+                     | none := l
+                     end
+
+meta def decl_map {α : Type} (e : environment) (f : declaration → α) : list α :=
+  e.decl_filter_map $ λ d, some (f d)
+
+meta def get_decls (e : environment) : list declaration :=
+  e.decl_map id
+
+meta def get_trusted_decls (e : environment) : list declaration :=
+  e.decl_filter_map (λ d, if d.is_trusted then some d else none)
+
+meta def get_decl_names (e : environment) : list name :=
+  e.decl_map declaration.to_name
+end environment
+
+namespace format
+
+meta def intercalate (x : format) : list format → format :=
+format.join ∘ list.intersperse x
+
+end format
+
 namespace tactic
 
 meta def eval_expr' (α : Type*) [_inst_1 : reflected α] (e : expr) : tactic α :=
@@ -112,7 +157,7 @@ meta def simp_lemmas_from_file : tactic name_set :=
 do s ← local_decls,
    let s := s.map (expr.list_constant ∘ declaration.value),
    xs ← s.to_list.mmap ((<$>) name_set.of_list ∘ mfilter tactic.is_simp_lemma ∘ name_set.to_list ∘ prod.snd),
-   return $ name_set.filter (xs.foldl name_set.union mk_name_set) (λ x, ¬ s.contains x)
+   return $ name_set.filter (λ x, ¬ s.contains x) (xs.foldl name_set.union mk_name_set)
 
 meta def file_simp_attribute_decl (attr : name) : tactic unit :=
 do s ← simp_lemmas_from_file,
@@ -437,6 +482,7 @@ meta def solve_by_elim_aux (discharger : tactic unit) (asms : tactic (list expr)
 | (succ n) := discharger <|> (apply_assumption asms $ solve_by_elim_aux n)
 
 meta structure by_elim_opt :=
+  (all_goals : bool := ff)
   (discharger : tactic unit := done)
   (assumptions : tactic (list expr) := local_context)
   (max_rep : ℕ := 3)
@@ -444,7 +490,7 @@ meta structure by_elim_opt :=
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
 do
   tactic.fail_if_no_goals,
-  focus1 $
+  (if opt.all_goals then id else focus1) $
     solve_by_elim_aux opt.discharger opt.assumptions opt.max_rep
 
 meta def metavariables : tactic (list expr) :=
@@ -603,9 +649,24 @@ instance : monad id :=
      env ← get_env,
      fs ← expanded_field_list cl,
      let fs := fs.map prod.snd,
-     let fs := list.intersperse (",\n  " : format) $ fs.map (λ fn, format!"{fn} := _"),
-     let out := format.to_string format!"{{ {format.join fs} }",
+     let fs := format.intercalate (",\n  " : format) $ fs.map (λ fn, format!"{fn} := _"),
+     let out := format.to_string format!"{{ {fs} }",
      return [(out,"")] }
+
+meta def strip_prefix' (n : name) : list string → name → tactic name
+| s name.anonymous := pure $ s.foldl (flip name.mk_string) name.anonymous
+| s (name.mk_string a p) :=
+  do let n' := s.foldl (flip name.mk_string) name.anonymous,
+     do { n'' ← tactic.resolve_constant n',
+          if n'' = n
+            then pure n'
+            else strip_prefix' (a :: s) p }
+     <|> strip_prefix' (a :: s) p
+| s (name.mk_numeral a p) := interaction_monad.failed
+
+meta def strip_prefix : name → tactic name
+| n@(name.mk_string a a_1) := strip_prefix' n [a] a_1
+| _ := interaction_monad.failed
 
 meta def is_default_local : expr → bool
 | (expr.local_const _ _ binder_info.default _) := tt
@@ -624,6 +685,7 @@ do let cl := t.get_app_fn.const_name,
                pure v' ),
           vs.mmap' $ λ v, get_local v >>= clear,
           let args := list.intersperse (" " : format) $ vs.map to_fmt,
+          f ← strip_prefix f,
           if args.empty
             then pure $ format!"| {f} := _\n"
             else pure format!"| ({f} {format.join args}) := _\n" }
@@ -774,9 +836,10 @@ sum.inr : ℕ → ℤ ⊕ ℕ
      ts ← cs.mmap $ λ c,
        do { e ← mk_const c,
             t ← infer_type (e.mk_app args) >>= pp,
+            c ← strip_prefix c,
             pure format!"\n{c} : {t}\n" },
-     let fs := list.intersperse (", " : format) $ cs.map to_fmt,
-     let out := format.to_string format!"{{! {format.join fs} !}",
+     fs ← format.intercalate ", " <$> cs.mmap (strip_prefix >=> pure ∘ to_fmt),
+     let out := format.to_string format!"{{! {fs} !}",
      trace (format.join ts).to_string,
      return [(out,"")] }
 

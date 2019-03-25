@@ -228,13 +228,16 @@ unless they are explicitly included.
 
 `solve_by_elim [-id]` removes a specified assumption.
 
+`solve_by_elim*` tries to solve all goals together, using backtracking if a solution for one goal
+make other goals impossible.
+
 optional arguments:
 - discharger: a subsidiary tactic to try at each step (e.g. `cc` may be helpful)
 - max_rep: number of attempts at discharging generated sub-goals
 -/
-meta def solve_by_elim (no_dflt : parse only_flag) (hs : parse simp_arg_list)  (attr_names : parse with_ident_list) (opt : by_elim_opt := { }) : tactic unit :=
+meta def solve_by_elim (all_goals : parse $ (tk "*")?) (no_dflt : parse only_flag) (hs : parse simp_arg_list)  (attr_names : parse with_ident_list) (opt : by_elim_opt := { }) : tactic unit :=
 do asms ← mk_assumption_set no_dflt hs attr_names,
-   tactic.solve_by_elim { assumptions := return asms ..opt }
+   tactic.solve_by_elim { all_goals := all_goals.is_some, assumptions := return asms, ..opt }
 
 /--
 `tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`

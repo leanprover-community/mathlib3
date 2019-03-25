@@ -84,7 +84,7 @@ have (span α s).subtype '' ((span α s).subtype ⁻¹' s) = s :=
   image_preimage_eq_of_subset $ by rw [← linear_map.range_coe, range_subtype]; exact subset_span,
 begin
   rw [← (is_basis_span hs).mk_eq_dim],
-  calc cardinal.mk ↥(⇑(submodule.subtype (span α s)) ⁻¹' s) =
+  calc cardinal.mk ↥((submodule.subtype (span α s) : span α s →ₗ[α] β) ⁻¹' s) =
       cardinal.mk ↥((submodule.subtype (span α s)) '' ((submodule.subtype (span α s)) ⁻¹' s)) :
       (cardinal.mk_eq_of_injective subtype.val_injective).symm
     ... = cardinal.mk ↥s : by rw this

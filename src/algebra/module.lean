@@ -6,16 +6,16 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 Modules over a ring.
 -/
 
-import algebra.ring algebra.big_operators group_theory.subgroup
+import algebra.ring algebra.big_operators group_theory.subgroup group_theory.group_action
 open function
 
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
-/-- Typeclass for types with a scalar multiplication operation, denoted `•` (`\bu`) -/
-class has_scalar (α : Type u) (γ : Type v) := (smul : α → γ → γ)
+-- /-- Typeclass for types with a scalar multiplication operation, denoted `•` (`\bu`) -/
+-- class has_scalar (α : Type u) (γ : Type v) := (smul : α → γ → γ)
 
-infixr ` • `:73 := has_scalar.smul
+-- infixr ` • `:73 := has_scalar.smul
 
 /-- A semimodule is a generalization of vector spaces to a scalar semiring.
   It consists of a scalar semiring `α` and an additive monoid of "vectors" `β`,

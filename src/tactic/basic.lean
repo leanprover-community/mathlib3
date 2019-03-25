@@ -482,6 +482,7 @@ meta def solve_by_elim_aux (discharger : tactic unit) (asms : tactic (list expr)
 | (succ n) := discharger <|> (apply_assumption asms $ solve_by_elim_aux n)
 
 meta structure by_elim_opt :=
+  (all_goals : bool := ff)
   (discharger : tactic unit := done)
   (assumptions : tactic (list expr) := local_context)
   (max_rep : ℕ := 3)
@@ -489,7 +490,7 @@ meta structure by_elim_opt :=
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
 do
   tactic.fail_if_no_goals,
-  focus1 $
+  (if opt.all_goals then id else focus1) $
     solve_by_elim_aux opt.discharger opt.assumptions opt.max_rep
 
 meta def metavariables : tactic (list expr) :=

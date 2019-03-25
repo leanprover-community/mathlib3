@@ -394,7 +394,6 @@ begin
       apply hεs,
       rw dist_eq_norm,
       apply hN; assumption }},
-  { apply_instance }
 end
 
 /-- In a normed field, `cau_seq` coincides with the usual notion of Cauchy sequences. -/

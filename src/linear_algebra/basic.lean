@@ -120,14 +120,12 @@ section
 variables (α β)
 include β
 
--- declaring this an instance breaks `real.lean` with reaching max. instance resolution depth
-def endomorphism_ring : ring (β →ₗ[α] β) :=
+instance endomorphism_ring : ring (β →ₗ[α] β) :=
 by refine {mul := (*), one := 1, ..linear_map.add_comm_group, ..};
   { intros, apply linear_map.ext, simp }
 
 /-- The group of invertible linear maps from `β` to itself -/
-def general_linear_group :=
-by haveI := endomorphism_ring α β; exact units (β →ₗ[α] β)
+def general_linear_group := units (β →ₗ[α] β)
 end
 
 section
@@ -1142,10 +1140,10 @@ def of_linear (f : β →ₗ[α] γ) (g : γ →ₗ[α] β)
   (x : γ) : (of_linear f g h₁ h₂).symm x = g x := rfl
 
 @[simp] protected theorem ker (f : β ≃ₗ[α] γ) : (f : β →ₗ[α] γ).ker = ⊥ :=
-linear_map.ker_eq_bot.2 f.to_equiv.bijective.1
+linear_map.ker_eq_bot.2 f.to_equiv.injective
 
 @[simp] protected theorem range (f : β ≃ₗ[α] γ) : (f : β →ₗ[α] γ).range = ⊤ :=
-linear_map.range_eq_top.2 f.to_equiv.bijective.2
+linear_map.range_eq_top.2 f.to_equiv.surjective
 
 def of_top (p : submodule α β) (h : p = ⊤) : p ≃ₗ[α] β :=
 { inv_fun   := λ x, ⟨x, h.symm ▸ trivial⟩,

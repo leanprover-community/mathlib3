@@ -66,7 +66,7 @@ variables [add_comm_group γ] [vector_space α γ]
 theorem linear_equiv.dim_eq (f : β ≃ₗ[α] γ) : dim α β = dim α γ :=
 let ⟨b, hb⟩ := exists_is_basis α β in
 hb.mk_eq_dim.symm.trans $
-  (cardinal.mk_eq_of_injective f.to_equiv.bijective.1).symm.trans $
+  (cardinal.mk_eq_of_injective f.to_equiv.injective).symm.trans $
 (f.is_basis hb).mk_eq_dim
 
 lemma dim_bot : dim α (⊥ : submodule α β) = 0 :=
@@ -84,7 +84,7 @@ have (span α s).subtype '' ((span α s).subtype ⁻¹' s) = s :=
   image_preimage_eq_of_subset $ by rw [← linear_map.range_coe, range_subtype]; exact subset_span,
 begin
   rw [← (is_basis_span hs).mk_eq_dim],
-  calc cardinal.mk ↥(⇑(submodule.subtype (span α s)) ⁻¹' s) =
+  calc cardinal.mk ↥((submodule.subtype (span α s) : span α s →ₗ[α] β) ⁻¹' s) =
       cardinal.mk ↥((submodule.subtype (span α s)) '' ((submodule.subtype (span α s)) ⁻¹' s)) :
       (cardinal.mk_eq_of_injective subtype.val_injective).symm
     ... = cardinal.mk ↥s : by rw this

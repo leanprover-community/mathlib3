@@ -6,6 +6,23 @@ import tarfile
 from git import Repo, InvalidGitRepositoryError
 from github import Github
 
+def auth_github():
+    try:
+        repo = Repo('.', search_parent_directories=True)
+        config = repo.config_reader()
+    except:
+        print('This does not seem to be a git repository.')
+        return Github()
+    try:
+        return Github(config.get('github', 'user'), config.get('github', 'password'))
+    except configparser.NoOptionError:
+        print('No username / password found in \'git config\'')
+    try:
+        return Github(config.get('github', 'oauthtoken'))
+    except configparser.NoOptionError:
+        print('No oauth token found in \'git config\'')
+    return Github()
+
 def make_cache(fn):
     if os.path.exists(fn):
         os.remove(fn)
@@ -20,7 +37,7 @@ def mathlib_asset(repo, rev):
                 for r in repo.remotes]):
         return None
 
-    g = Github()
+    g = auth_github()
     print("Querying GitHub...")
     repo = g.get_repo("leanprover-community/mathlib-nightly")
     tags = {tag.name: tag.commit.sha for tag in repo.get_tags()}
@@ -75,7 +92,7 @@ if __name__ == "__main__":
     if repo.bare:
         print('Repository not initialized')
         sys.exit(-1)
-    
+
     root_dir = repo.working_tree_dir
     os.chdir(root_dir)
     rev = repo.commit().hexsha

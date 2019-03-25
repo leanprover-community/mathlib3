@@ -367,7 +367,7 @@ instance is_noetherian_ring_range {R} [comm_ring R] {S} [comm_ring S] (f : R →
 
 theorem is_noetherian_ring_of_ring_equiv (R) [comm_ring R] {S} [comm_ring S]
   (f : R ≃r S) [is_noetherian_ring R] : is_noetherian_ring S :=
-is_noetherian_ring_of_surjective R S f.1 f.1.bijective.2
+is_noetherian_ring_of_surjective R S f.1 f.1.surjective
 
 namespace is_noetherian_ring
 

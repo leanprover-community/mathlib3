@@ -23,7 +23,7 @@ def same_cycle (f : perm β) (x y : β) := ∃ i : ℤ, (f ^ i) x = y
 lemma apply_eq_self_iff_of_same_cycle {f : perm β} {x y : β} :
   same_cycle f x y → (f x = x ↔ f y = y) :=
 λ ⟨i, hi⟩, by rw [← hi, ← mul_apply, ← gpow_one_add, add_comm, gpow_add_one, mul_apply,
-    (f ^ i).bijective.1.eq_iff]
+    (f ^ i).injective.eq_iff]
 
 lemma same_cycle_of_is_cycle {f : perm β} (hf : is_cycle f) {x y : β}
   (hx : f x ≠ x) (hy : f y ≠ y) : same_cycle f x y :=
@@ -47,7 +47,7 @@ lemma same_cycle_apply {f : perm β} {x y : β} : same_cycle f x (f y) ↔ same_
 lemma same_cycle_cycle {f : perm β} {x : β} (hx : f x ≠ x) : is_cycle f ↔
   (∀ {y}, same_cycle f x y ↔ f y ≠ y) :=
 ⟨λ hf y, ⟨λ ⟨i, hi⟩ hy, hx $
-    by rw [← gpow_apply_eq_self_of_apply_eq_self hy i, (f ^ i).bijective.1.eq_iff] at hi;
+    by rw [← gpow_apply_eq_self_of_apply_eq_self hy i, (f ^ i).injective.eq_iff] at hi;
     rw [hi, hy],
   exists_gpow_eq_of_is_cycle hf hx⟩,
   λ h, ⟨x, hx, λ y hy, h.2 hy⟩⟩

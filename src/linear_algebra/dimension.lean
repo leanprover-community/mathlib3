@@ -66,7 +66,7 @@ variables [add_comm_group γ] [vector_space α γ]
 theorem linear_equiv.dim_eq (f : β ≃ₗ[α] γ) : dim α β = dim α γ :=
 let ⟨b, hb⟩ := exists_is_basis α β in
 hb.mk_eq_dim.symm.trans $
-  (cardinal.mk_eq_of_injective f.to_equiv.bijective.1).symm.trans $
+  (cardinal.mk_eq_of_injective f.to_equiv.injective).symm.trans $
 (f.is_basis hb).mk_eq_dim
 
 lemma dim_bot : dim α (⊥ : submodule α β) = 0 :=

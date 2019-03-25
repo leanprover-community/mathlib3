@@ -58,15 +58,20 @@ equiv.ext _ _ H
 ⟨e₂.to_fun ∘ e₁.to_fun, e₁.inv_fun ∘ e₂.inv_fun,
   e₂.left_inv.comp e₁.left_inv, e₂.right_inv.comp e₁.right_inv⟩
 
-protected theorem bijective : ∀ f : α ≃ β, bijective f
-| ⟨f, g, h₁, h₂⟩ :=
-  ⟨injective_of_left_inverse h₁, surjective_of_has_right_inverse ⟨_, h₂⟩⟩
+protected theorem injective : ∀ f : α ≃ β, injective f
+| ⟨f, g, h₁, h₂⟩ := injective_of_left_inverse h₁
+
+protected theorem surjective : ∀ f : α ≃ β, surjective f
+| ⟨f, g, h₁, h₂⟩ := surjective_of_has_right_inverse ⟨_, h₂⟩
+
+protected theorem bijective (f : α ≃ β) : bijective f :=
+⟨f.injective, f.surjective⟩
 
 protected theorem subsingleton (e : α ≃ β) : ∀ [subsingleton β], subsingleton α
-| ⟨H⟩ := ⟨λ a b, e.bijective.1 (H _ _)⟩
+| ⟨H⟩ := ⟨λ a b, e.injective (H _ _)⟩
 
 protected def decidable_eq (e : α ≃ β) [H : decidable_eq β] : decidable_eq α
-| a b := decidable_of_iff _ e.bijective.1.eq_iff
+| a b := decidable_of_iff _ e.injective.eq_iff
 
 protected def cast {α β : Sort*} (h : α = β) : α ≃ β :=
 ⟨cast h, cast h.symm, λ x, by cases h; refl, λ x, by cases h; refl⟩
@@ -466,13 +471,13 @@ def fin_equiv_subtype (n : ℕ) : fin n ≃ {m // m < n} :=
 ⟨λ x, ⟨x.1, x.2⟩, λ x, ⟨x.1, x.2⟩, λ ⟨a, b⟩, rfl,λ ⟨a, b⟩, rfl⟩
 
 def decidable_eq_of_equiv [decidable_eq β] (e : α ≃ β) : decidable_eq α
-| a₁ a₂ := decidable_of_iff (e a₁ = e a₂) e.bijective.1.eq_iff
+| a₁ a₂ := decidable_of_iff (e a₁ = e a₂) e.injective.eq_iff
 
 def inhabited_of_equiv [inhabited β] (e : α ≃ β) : inhabited α :=
 ⟨e.symm (default _)⟩
 
 def unique_of_equiv (e : α ≃ β) (h : unique β) : unique α :=
-unique.of_surjective e.symm.bijective.2
+unique.of_surjective e.symm.surjective
 
 def unique_congr (e : α ≃ β) : unique α ≃ unique β :=
 { to_fun := e.symm.unique_of_equiv,

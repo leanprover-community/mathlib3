@@ -109,7 +109,7 @@ This is a "finishing" tactic modification of `simp`. It has two forms.
   more robust under changes to the simp lemma set.
 
 * `simpa [rules, ...]` will simplify the goal and the type of a
-  hypothesis `this` if present, then try to close the goal using
+  hypothesis `this` if present in the context, then try to close the goal using
   the `assumption` tactic.
 
 ### replace
@@ -142,8 +142,8 @@ The procedures *do* split on disjunctions and recreate the smt state for each te
 they are only meant to be used on small, straightforward problems.
 
 * finish:  solves the goal or fails
-* clarify:  makes as much progress as possible while not leaving more than one goal
-* safe:     splits freely, finishes off whatever subgoals it can, and leaves the rest
+* clarify: makes as much progress as possible while not leaving more than one goal
+* safe:    splits freely, finishes off whatever subgoals it can, and leaves the rest
 
 All accept an optional list of simplifier rules, typically definitions that should be expanded.
 (The equations and identities should not refer to the local context.)

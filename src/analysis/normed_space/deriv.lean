@@ -17,7 +17,7 @@ says that the function `f' : E → F` is a bounded linear map and `f` has deriva
 The derivative is defined in terms of the `is_o` relation, but also characterized in terms of
 the `tendsto` relation.
 -/
-import topology.basic analysis.normed_space.bounded_linear_maps ..asymptotics tactic.abel
+import topology.basic analysis.normed_space.bounded_linear_maps analysis.asymptotics tactic.abel
 open filter asymptotics
 
 section

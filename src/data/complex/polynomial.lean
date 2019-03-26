@@ -39,7 +39,7 @@ then let ⟨r, hr0, hr⟩ := polynomial_tendsto_infinity complex.abs hp0 ((p.eva
 else ⟨p.coeff 0, by rw [eq_C_of_degree_le_zero (le_of_not_gt hp0)]; simp⟩
 
 lemma exists_root {f : polynomial ℂ} (hf : 0 < degree f) : ∃ z : ℂ, is_root f z :=
-let ⟨z₀, hz₀⟩ := attains_infi f in
+let ⟨z₀, hz₀⟩ := exists_forall_abs_polynomial_eval_le f in
 exists.intro z₀ $ by_contradiction $ λ hf0,
 have hfX : f - C (f.eval z₀) ≠ 0,
   from mt sub_eq_zero.1 (λ h, not_le_of_gt hf (h.symm ▸ degree_C_le)),

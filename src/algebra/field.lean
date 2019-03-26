@@ -9,6 +9,9 @@ open set
 universe u
 variables {α : Type u}
 
+@[priority 101]
+instance division_ring_has_div' [division_ring α] : has_div α := ⟨algebra.div⟩
+
 instance division_ring.to_domain [s : division_ring α] : domain α :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h,
     classical.by_contradiction $ λ hn,

@@ -13,15 +13,24 @@ class has_scalar (α : Type u) (γ : Type v) := (smul : α → γ → γ)
 
 infixr ` • `:73 := has_scalar.smul
 
+/-- Typeclass for multiplictive actions by monoids. This generalizes group actions. -/
 class mul_action (α : Type u) (β : Type v) [monoid α] extends has_scalar α β :=
 (one_smul : ∀ b : β, (1 : α) • b = b)
 (mul_smul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)
 
+section
+variables [monoid α] [mul_action α β]
+
+theorem mul_smul (a₁ a₂ : α) (b : β) : (a₁ * a₂) • b = a₁ • a₂ • b := mul_action.mul_smul _ _ _
+
+variable (α)
+@[simp] theorem one_smul (b : β) : (1 : α) • b = b := mul_action.one_smul α _
+
+end
+
 namespace mul_action
 
 variables (α) [monoid α] [mul_action α β]
-
-attribute [simp] one_smul
 
 def orbit (b : β) := set.range (λ x : α, x • b)
 
@@ -159,3 +168,20 @@ instance mul_left_cosets_comp_subtype_val (H I : set α) [is_subgroup H] [is_sub
 mul_action.comp_hom (quotient H) (subtype.val : I → α)
 
 end mul_action
+
+/-- Typeclass for multiplicative actions on additive structures. This generalizes group modules. -/
+class mul_action_add (α : Type u) (β : Type v) [monoid α] [add_monoid β] extends mul_action α β :=
+(smul_add : ∀(r : α) (x y : β), r • (x + y) = r • x + r • y)
+(smul_zero {} : ∀(r : α), r • (0 : β) = 0)
+
+section
+variables [monoid α] [add_monoid β] [mul_action_add α β]
+
+theorem smul_add (a : α) (b₁ b₂ : β) : a • (b₁ + b₂) = a • b₁ + a • b₂ :=
+mul_action_add.smul_add _ _ _
+
+variable (β)
+@[simp] theorem smul_zero (a : α) : a • (0 : β) = 0 :=
+mul_action_add.smul_zero _
+
+end

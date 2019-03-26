@@ -1316,8 +1316,11 @@ begin
       have one_le_pow : 1 ≤ (y / x)^z, exact one_le_rpow one_le (le_of_lt h₂),
       rw [←mul_div_cancel y (ne.symm (ne_of_lt h)), mul_comm, mul_div_assoc],
       rw [mul_rpow (le_of_lt h) (le_trans zero_le_one one_le), mul_comm],
-      exact (le_mul_of_ge_one_left (rpow_nonneg_of_nonneg (le_of_lt h) z) one_le_pow)}},
+      exact (le_mul_of_ge_one_left (rpow_nonneg_of_nonneg (le_of_lt h) z) one_le_pow) } }
 end
+
+lemma rpow_le_one {x e : ℝ} (he : e ≥ 0) (hx : 0 ≤ x) (hx2 : x ≤ 1) : x^e ≤ 1 :=
+by rw ←one_rpow e; apply rpow_le_rpow; assumption
 
 lemma pow_nat_rpow_nat_inv {x : ℝ} (hx : 0 ≤ x) {n : ℕ} (hn : 0 < n) :
   (x ^ n) ^ (n⁻¹ : ℝ) = x :=

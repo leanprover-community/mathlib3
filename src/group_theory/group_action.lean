@@ -180,7 +180,6 @@ variables [monoid α] [add_monoid β] [mul_action_add α β]
 theorem smul_add (a : α) (b₁ b₂ : β) : a • (b₁ + b₂) = a • b₁ + a • b₂ :=
 mul_action_add.smul_add _ _ _
 
-variable (β)
 @[simp] theorem smul_zero (a : α) : a • (0 : β) = 0 :=
 mul_action_add.smul_zero _
 

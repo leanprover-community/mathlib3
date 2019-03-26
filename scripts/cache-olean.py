@@ -3,6 +3,7 @@ import os.path
 import os
 import sys
 import tarfile
+import configparser
 from git import Repo, InvalidGitRepositoryError
 from github import Github
 
@@ -15,13 +16,16 @@ def auth_github():
         return Github()
     try:
         return Github(config.get('github', 'user'), config.get('github', 'password'))
+    except configparser.NoSectionError:
+        print('No github section found in \'git config\'')
+        return Github()
     except configparser.NoOptionError:
-        print('No username / password found in \'git config\'')
-    try:
-        return Github(config.get('github', 'oauthtoken'))
-    except configparser.NoOptionError:
-        print('No oauth token found in \'git config\'')
-    return Github()
+        try:
+            return Github(config.get('github', 'oauthtoken'))
+        except configparser.NoOptionError:
+            print('No github \'user\'/\'password\' or \'oauthtoken\' keys found in \'git config\'.')
+            print('You can create an OAuth token at https://github.com/settings/tokens/new, with \'repo\' scope.')
+            return Github()
 
 def make_cache(fn):
     if os.path.exists(fn):

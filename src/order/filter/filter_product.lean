@@ -288,11 +288,15 @@ of_ne _ _ NT
 
 @[simp] lemma of_neg [has_neg β] (x : β) : of (- x) = - (of x : β*) := rfl
 
+@[simp] lemma of_sub [add_group β] (x y : β) : of (x - y) = of x - (of y : β*) := rfl
+
 @[simp] lemma of_one [has_one β] : of 1 = (1 : β*) := rfl
 
 @[simp] lemma of_mul [has_mul β] (x y : β) : of (x * y) = of x * (of y : β*) := rfl
 
 @[simp] lemma of_inv [has_inv β] (x : β) : of (x⁻¹) = (of x : β*)⁻¹ := rfl
+
+@[simp] lemma of_div [division_ring β] (U : is_ultrafilter φ) (x y : β) : of (x / y) = @has_div.div _ (@division_ring_has_div _ (filter_product.division_ring U) (filter_product.division_ring U)) (of x) (of y) := rfl
 
 lemma of_rel_of_rel {R : β → Prop} {x : β} : 
   R x → (lift_rel R) (of x : β*) := 

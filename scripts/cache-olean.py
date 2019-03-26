@@ -37,6 +37,7 @@ def make_cache(fn):
     if os.path.exists('src/'): ar.add('src/')
     if os.path.exists('test/'): ar.add('test/')
     ar.close()
+    print('... successfully made olean cache.')
 
 def mathlib_asset(repo, rev):
     if not any(['leanprover' in r.url and 'mathlib' in r.url
@@ -83,9 +84,9 @@ def fetch_mathlib(asset):
     else:
         print("Reusing cached olean archive")
 
-    print("Extracting nightly...")
     ar = tarfile.open(os.path.join(mathlib_dir, asset.name))
     ar.extractall('.')
+    print("... successfully extracted olean archive.")
 
 
 if __name__ == "__main__":
@@ -113,6 +114,7 @@ if __name__ == "__main__":
             ar = tarfile.open(fn, 'r')
             ar.extractall(root_dir)
             ar.close()
+            print('... successfully fetched local cache.')
         else:
             asset = mathlib_asset(repo, rev)
             if asset:

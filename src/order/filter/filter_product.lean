@@ -406,6 +406,28 @@ end
 
 @[simp] lemma of_abs [decidable_linear_ordered_comm_group β] (U : is_ultrafilter φ) (x : β) : (of (abs x) : β*) = @abs _ (filter_product.decidable_linear_ordered_comm_group U) (of x) := of_max U x (-x)
 
+lemma max_def [K : decidable_linear_order β] (U : is_ultrafilter φ) (x y : β*) : 
+  @max β* (filter_product.decidable_linear_order U) x y = (lift₂ max) x y := 
+quotient.induction_on₂' x y $ λ a b, by unfold max; 
+begin
+  split_ifs,
+  exact quotient.sound'(by filter_upwards [h] λ i hi, (max_eq_right hi).symm),
+  exact quotient.sound'(by filter_upwards [@le_of_not_le _ (filter_product.linear_order U) _ _ h] λ i hi, (max_eq_left hi).symm),
+end
+
+lemma min_def [K : decidable_linear_order β] (U : is_ultrafilter φ) (x y : β*) : 
+  @min β* (filter_product.decidable_linear_order U) x y = (lift₂ min) x y := 
+quotient.induction_on₂' x y $ λ a b, by unfold min; 
+begin
+  split_ifs,
+  exact quotient.sound'(by filter_upwards [h] λ i hi, (min_eq_left hi).symm),
+  exact quotient.sound'(by filter_upwards [@le_of_not_le _ (filter_product.linear_order U) _ _ h] λ i hi, (min_eq_right hi).symm),
+end
+
+lemma abs_def [decidable_linear_ordered_comm_group β] (U : is_ultrafilter φ) (x y : β*) :
+  @abs _ (filter_product.decidable_linear_ordered_comm_group U) x = (lift abs) x :=
+quotient.induction_on' x $ λ a, by unfold abs; rw max_def; exact quotient.sound' (by show {i | abs _ = _} ∈ _; simp only [eq_self_iff_true, set.univ_def.symm]; exact univ_mem_sets)
+
 end filter_product
 
 end filter

@@ -298,9 +298,8 @@ normed_field.norm_mul a b
 instance normed_field.is_monoid_hom_norm [normed_field α] : is_monoid_hom (norm : α → ℝ) :=
 ⟨norm_one, norm_mul⟩
 
-@[simp] lemma norm_pow [normed_field α] (a : α) : ∀ (n : ℕ), ∥a^n∥ = ∥a∥^n
-| 0     := by simp
-| (n+1) := show ∥a * a^n∥ = ∥a∥ * ∥a∥^n, by rw [norm_mul, norm_pow]
+@[simp] lemma norm_pow [normed_field α] (a : α) : ∀ (n : ℕ), ∥a^n∥ = ∥a∥^n :=
+is_monoid_hom.map_pow norm a
 
 @[simp] lemma norm_prod {β : Type*} [normed_field α] (s : finset β) (f : β → α) :
   ∥s.prod f∥ = s.prod (λb, ∥f b∥) :=

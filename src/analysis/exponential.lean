@@ -1214,6 +1214,14 @@ by simp only [rpow_def, complex.cpow_def];
   simp [*, (complex.of_real_log hx).symm, -complex.of_real_mul,
     (complex.of_real_mul _ _).symm, complex.exp_of_real_re] at *
 
+lemma rpow_pos_of_pos {x : ℝ} (hx : 0 < x) (y : ℝ) : 0 < x ^ y :=
+begin
+  rw [rpow_def_of_nonneg (le_of_lt hx)]; split_ifs,
+  { exact zero_lt_one },
+  { rwa h at hx },
+  { apply exp_pos }
+end
+
 end real
 
 namespace complex

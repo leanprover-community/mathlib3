@@ -24,7 +24,7 @@ def auth_github():
             return Github(config.get('github', 'oauthtoken'))
         except configparser.NoOptionError:
             print('No github \'user\'/\'password\' or \'oauthtoken\' keys found in \'git config\'.')
-            print('You can create an OAuth token at https://github.com/settings/tokens/new, with \'repo\' scope.')
+            print('You can create an OAuth token at https://github.com/settings/tokens/new (no scopes are required).')
             return Github()
 
 def make_cache(fn):

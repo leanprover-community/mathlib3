@@ -23,11 +23,9 @@ variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
   (where `r : α` and `x : β`) with some natural associativity and
   distributivity axioms similar to those on a ring. -/
 class semimodule (α : Type u) (β : Type v) [semiring α]
-  [add_comm_monoid β] extends has_scalar α β :=
+  [add_comm_monoid β] extends action α β :=
 (smul_add : ∀(r : α) (x y : β), r • (x + y) = r • x + r • y)
 (add_smul : ∀(r s : α) (x : β), (r + s) • x = r • x + s • x)
-(mul_smul : ∀(r s : α) (x : β), (r * s) • x = r • s • x)
-(one_smul : ∀x : β, (1 : α) • x = x)
 (zero_smul : ∀x : β, (0 : α) • x = 0)
 (smul_zero {} : ∀(r : α), r • (0 : β) = 0)
 
@@ -37,10 +35,10 @@ include R
 
 theorem smul_add : r • (x + y) = r • x + r • y := semimodule.smul_add r x y
 theorem add_smul : (r + s) • x = r • x + s • x := semimodule.add_smul r s x
-theorem mul_smul : (r * s) • x = r • s • x := semimodule.mul_smul r s x
+theorem mul_smul : (r * s) • x = r • s • x := action.mul_smul r s x
 @[simp] theorem smul_zero : r • (0 : β) = 0 := semimodule.smul_zero r
 variables (α)
-@[simp] theorem one_smul : (1 : α) • x = x := semimodule.one_smul α x
+@[simp] theorem one_smul : (1 : α) • x = x := action.one_smul α x
 @[simp] theorem zero_smul : (0 : α) • x = 0 := semimodule.zero_smul α x
 
 lemma smul_smul : r • s • x = (r * s) • x := (mul_smul _ _ _).symm

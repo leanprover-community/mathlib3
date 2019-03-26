@@ -38,6 +38,8 @@ then let ⟨r, hr0, hr⟩ := polynomial_tendsto_infinity complex.abs hp0 ((p.eva
     else le_trans (hx₂ _ (by simp [le_of_lt hr0])) (le_of_lt (hr y (lt_of_not_ge hy)))⟩
 else ⟨p.coeff 0, by rw [eq_C_of_degree_le_zero (le_of_not_gt hp0)]; simp⟩
 
+/-- Proof of the fundamental theorem of algebra. Every non constant complex polynomial
+  has a root -/
 lemma exists_root {f : polynomial ℂ} (hf : 0 < degree f) : ∃ z : ℂ, is_root f z :=
 let ⟨z₀, hz₀⟩ := exists_forall_abs_polynomial_eval_le f in
 exists.intro z₀ $ by_contradiction $ λ hf0,
@@ -64,9 +66,11 @@ let F : polynomial ℂ := C (f.eval z₀) + C (g.eval z₀) * (X - C z₀) ^ n i
 let z' := (-f.eval z₀ * (g.eval z₀).abs * δ ^ n /
   ((f.eval z₀).abs * g.eval z₀)) ^ (n⁻¹ : ℂ) + z₀ in
 have hF₁ : F.eval z' = f.eval z₀ - f.eval z₀ * (g.eval z₀).abs * δ ^ n / (f.eval z₀).abs,
-  by simp [F, cpow_nat_inv_pow _ hn0, div_eq_mul_inv, eval_pow, mul_assoc, mul_comm (g.eval z₀),
-      mul_left_comm (g.eval z₀), mul_left_comm (g.eval z₀)⁻¹, mul_inv', inv_mul_cancel hg0];
-    simp [mul_comm, mul_left_comm, mul_assoc],
+  by simp only [F, cpow_nat_inv_pow _ hn0, div_eq_mul_inv, eval_pow, mul_assoc, mul_comm (g.eval z₀),
+      mul_left_comm (g.eval z₀), mul_left_comm (g.eval z₀)⁻¹, mul_inv', inv_mul_cancel hg0,
+      eval_C, eval_add, eval_neg, sub_eq_add_neg, eval_mul, eval_X, add_neg_cancel_right,
+      neg_mul_eq_neg_mul_symm, mul_one, div_eq_mul_inv];
+    simp only [mul_comm, mul_left_comm, mul_assoc],
 have hδs : (g.eval z₀).abs * δ ^ n / (f.eval z₀).abs < 1,
   by rw [div_eq_mul_inv, mul_right_comm, mul_comm, ← @inv_inv' _ _ (complex.abs _ * _), mul_inv',
       inv_inv', ← div_eq_mul_inv, div_lt_iff hfg0, one_mul];

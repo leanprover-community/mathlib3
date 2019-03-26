@@ -809,3 +809,20 @@ h : y = 3
 -/
 end
 ```
+
+### push_neg
+
+This tactic pushes negations inside expressions. For instance, given an assumption
+```lean
+h : ¬ ∀ ε > 0, ∃ δ > 0, ∀ x, |x - x₀| ≤ δ → |f x - y₀| ≤ ε)
+```
+writing `push_neg at h` will turn `h` into
+```lean
+h : ∃ ε, ε > 0 ∧ ∀ δ, δ > 0 → (∃ x, |x - x₀| ≤ δ ∧ ε < |f x - y₀|),
+```
+(the pretty printer does *not* use the abreviations `∀ δ > 0` and `∃ ε > 0` but this issue
+has nothing to do with `push_neg`).
+Note that names are conserved by this tactic, contrary to what would happen with `simp`
+using the relevant lemmas. One can also use this tactic at the goal using `push_neg`,
+at every assumption and the goal using `push_neg at *` or at selected assumptions and the goal
+using say `push_neg at h h' ⊢` as usual.

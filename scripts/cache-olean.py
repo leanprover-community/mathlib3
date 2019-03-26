@@ -5,6 +5,7 @@ import sys
 import tarfile
 import configparser
 import urllib3
+import certifi
 from git import Repo, InvalidGitRepositoryError
 from github import Github
 

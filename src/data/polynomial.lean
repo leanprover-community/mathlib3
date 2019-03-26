@@ -1608,6 +1608,16 @@ end
 
 end multiplicity
 
+lemma degree_map' [comm_semiring β] [decidable_eq β] (p : polynomial α)
+  {f : α → β} [is_semiring_hom f] (hf : function.injective f) :
+  degree (p.map f) = degree p :=
+degree_map_eq_of_injective _ hf
+
+lemma nat_degree_map' [comm_semiring β] [decidable_eq β] (p : polynomial α)
+  {f : α → β} [is_semiring_hom f] (hf : function.injective f) :
+  nat_degree (p.map f) = nat_degree p :=
+nat_degree_eq_of_degree_eq (degree_map' _ hf)
+
 end comm_ring
 
 section integral_domain

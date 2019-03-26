@@ -818,6 +818,10 @@ eq_of_veq $ by rw [map_val, attach_val]; exact attach_map_val _
 
 end map
 
+lemma range_add_one' (n : ℕ) :
+  range (n + 1) = insert 0 ((range n).map ⟨λi, i + 1, assume i j, nat.succ_inj⟩) :=
+by ext (⟨⟩ | ⟨n⟩); simp [nat.succ_eq_add_one, nat.zero_lt_succ n]
+
 section image
 variables [decidable_eq β]
 

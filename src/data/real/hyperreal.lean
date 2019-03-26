@@ -209,11 +209,19 @@ lemma infinite_neg_neg_of_infinite_pos {x : ℝ*} : infinite_pos x → infinite_
 
 lemma infinite_pos_neg_of_infinite_neg {x : ℝ*} : infinite_neg x → infinite_pos (-x) := λ hp r, lt_neg.mp (hp (-r))
 
-lemma infinite_neg_neg_iff_infinite_pos {x : ℝ*} : infinite_pos x ↔ infinite_neg (-x) := 
+lemma infinite_pos_iff_infinite_neg_neg {x : ℝ*} : infinite_pos x ↔ infinite_neg (-x) := 
 ⟨infinite_neg_neg_of_infinite_pos, λ hin, neg_neg x ▸ infinite_pos_neg_of_infinite_neg hin⟩
 
-lemma infinite_pos_neg_iff_infinite_neg {x : ℝ*} : infinite_neg x ↔ infinite_pos (-x) := 
+lemma infinite_neg_iff_infinite_pos_neg {x : ℝ*} : infinite_neg x ↔ infinite_pos (-x) := 
 ⟨infinite_pos_neg_of_infinite_neg, λ hin, neg_neg x ▸ infinite_neg_neg_of_infinite_pos hin⟩
+
+lemma infinite_iff_infinite_neg {x : ℝ*} : infinite x ↔ infinite (-x) := 
+⟨ λ hi, or.cases_on hi 
+  (λ hip, or.inr (infinite_neg_neg_of_infinite_pos hip))
+  (λ hin, or.inl (infinite_pos_neg_of_infinite_neg hin)), 
+ λ hi, or.cases_on hi
+  (λ hipn, or.inr (infinite_neg_iff_infinite_pos_neg.mpr hipn))
+  (λ hinp, or.inl (infinite_pos_iff_infinite_neg_neg.mpr hinp))⟩
 
 lemma not_infinite_of_infinitesimal {x : ℝ*} : infinitesimal x → ¬ infinite x := 
 λ hi hI, have hi' : _ := (hi 2 two_pos), or.dcases_on hI 
@@ -252,7 +260,7 @@ lemma infinite_iff_infinite_pos_abs {x : ℝ*} : infinite x ↔ infinite_pos (ab
    (λ hip, by rw [abs_of_pos (hip 0)]; exact hip d) 
    (λ hin, by rw [abs_of_neg (hin 0)]; exact lt_neg.mp (hin (-d))), 
   λ hipa, by { rcases (lt_trichotomy x 0) with h | h | h,
-    { exact or.inr (infinite_pos_neg_iff_infinite_neg.mpr (by rwa abs_of_neg h at hipa)) },
+    { exact or.inr (infinite_neg_iff_infinite_pos_neg.mpr (by rwa abs_of_neg h at hipa)) },
     { exact false.elim (ne_zero_of_infinite (or.inl (by rw [h]; rwa [h, abs_zero] at hipa)) h) },
     { exact or.inl (by rwa abs_of_pos h at hipa) } } ⟩ 
 
@@ -265,12 +273,19 @@ lemma infinite_iff_abs_lt_abs {x : ℝ*} : infinite x ↔ ∀ r : ℝ, (abs r : 
   (λ h, or.inl $ λ r, lt_of_le_of_lt (le_abs_self _) (h ▸ (hR r))) 
   (λ h, or.inr $ λ r, neg_lt_neg_iff.mp $ lt_of_le_of_lt (neg_le_abs_self _) (h ▸ (hR r)))⟩
 
-lemma infinite_pos_add_not_infinite_neg {x y : ℝ*} : infinite_pos x → ¬ infinite_neg y → infinite_pos (x + y) := sorry
+lemma infinite_pos_add_not_infinite_neg {x y : ℝ*} : infinite_pos x → ¬ infinite_neg y → infinite_pos (x + y) := 
+begin
+  intros hip hnin r,
+  cases not_forall.mp hnin with r₂ hr₂,
+  convert (add_lt_add_of_lt_of_le (hip (r + -r₂)) (not_lt.mp hr₂)), 
+  rw [←of_eq_coe, ←of_eq_coe, ←of_eq_coe, of_add, of_neg, ←sub_eq_add_neg, sub_add_cancel]
+end
 
 lemma not_infinite_neg_add_infinite_pos {x y : ℝ*} : ¬ infinite_neg x → infinite_pos y → infinite_pos (x + y) := 
 λ hx hy, by rw [add_comm]; exact infinite_pos_add_not_infinite_neg hy hx
 
-lemma infinite_neg_add_not_infinite_pos {x y : ℝ*} : infinite_neg x → ¬ infinite_pos y → infinite_neg (x + y) := sorry
+lemma infinite_neg_add_not_infinite_pos {x y : ℝ*} : infinite_neg x → ¬ infinite_pos y → infinite_neg (x + y) := 
+by rw [@infinite_neg_iff_infinite_pos_neg x, @infinite_pos_iff_infinite_neg_neg y, @infinite_neg_iff_infinite_pos_neg (x + y), neg_add]; exact infinite_pos_add_not_infinite_neg
 
 lemma not_infinite_pos_add_infinite_neg {x y : ℝ*} : ¬ infinite_pos x → infinite_neg y → infinite_neg (x + y) := 
 λ hx hy, by rw [add_comm]; exact infinite_neg_add_not_infinite_pos hy hx
@@ -286,62 +301,6 @@ lemma infinite_pos_add_not_infinite {x y : ℝ*} : infinite_pos x → ¬ infinit
 
 lemma infinite_neg_add_not_infinite {x y : ℝ*} : infinite_neg x → ¬ infinite y → infinite_neg (x + y) := 
 λ hx hy, infinite_neg_add_not_infinite_pos hx (not_or_distrib.mp hy).1
-
-lemma infinite_pos_mul_of_infinite_pos_not_infinitesimal_pos {x y : ℝ*} : 
-  infinite_pos x → ¬ infinitesimal y → y > 0 → infinite_pos (x * y) := sorry
-
-lemma infinite_pos_mul_of_not_infinitesimal_pos_infinite_pos {x y : ℝ*} : 
-  ¬ infinitesimal x → x > 0 → infinite_pos y → infinite_pos (x * y) := 
-λ hx hp hy, by rw [mul_comm]; exact infinite_pos_mul_of_infinite_pos_not_infinitesimal_pos hy hx hp
-
-lemma infinite_pos_mul_of_infinite_neg_not_infinitesimal_neg {x y : ℝ*} : 
-  infinite_neg x → ¬ infinitesimal y → y < 0 → infinite_pos (x * y) := sorry
-
-lemma infinite_pos_mul_of_not_infinitesimal_neg_infinite_neg {x y : ℝ*} : 
-  ¬ infinitesimal x → x < 0 → infinite_neg y → infinite_pos (x * y) := 
-λ hx hp hy, by rw [mul_comm]; exact infinite_pos_mul_of_infinite_neg_not_infinitesimal_neg hy hx hp
-
-lemma infinite_neg_mul_of_infinite_pos_not_infinitesimal_neg {x y : ℝ*} : 
-  infinite_pos x → ¬ infinitesimal y → y < 0 → infinite_neg (x * y) := sorry
-
-lemma infinite_neg_mul_of_not_infinitesimal_neg_infinite_pos {x y : ℝ*} : 
-  ¬ infinitesimal x → x < 0 → infinite_pos y → infinite_neg (x * y) := 
-λ hx hp hy, by rw [mul_comm]; exact infinite_neg_mul_of_infinite_pos_not_infinitesimal_neg hy hx hp
-
-lemma infinite_neg_mul_of_infinite_neg_not_infinitesimal_pos {x y : ℝ*} : 
-  infinite_neg x → ¬ infinitesimal y → y > 0 → infinite_neg (x * y) := sorry
-
-lemma infinite_neg_mul_of_not_infinitesimal_pos_infinite_neg {x y : ℝ*} : 
-  ¬ infinitesimal x → x > 0 → infinite_neg y → infinite_neg (x * y) := 
-λ hx hp hy, by rw [mul_comm]; exact infinite_neg_mul_of_infinite_neg_not_infinitesimal_pos hy hx hp
-
-lemma infinite_pos_mul_infinite_pos {x y : ℝ*} : infinite_pos x → infinite_pos y → infinite_pos (x * y) := 
-λ hx hy, infinite_pos_mul_of_infinite_pos_not_infinitesimal_pos hx (not_infinitesimal_of_infinite_pos hy) (hy 0)
-
-lemma infinite_neg_mul_infinite_neg {x y : ℝ*} : infinite_neg x → infinite_neg y → infinite_pos (x * y) := 
-λ hx hy, infinite_pos_mul_of_infinite_neg_not_infinitesimal_neg hx (not_infinitesimal_of_infinite_neg hy) (hy 0)
-
-lemma infinite_pos_mul_infinite_neg {x y : ℝ*} : infinite_pos x → infinite_neg y → infinite_neg (x * y) := 
-λ hx hy, infinite_neg_mul_of_infinite_pos_not_infinitesimal_neg hx (not_infinitesimal_of_infinite_neg hy) (hy 0)
-
-lemma infinite_neg_mul_infinite_pos {x y : ℝ*} : infinite_neg x → infinite_pos y → infinite_neg (x * y) := 
-λ hx hy, infinite_neg_mul_of_infinite_neg_not_infinitesimal_pos hx (not_infinitesimal_of_infinite_pos hy) (hy 0)
-
-lemma infinite_mul_of_infinite_not_infinitesimal {x y : ℝ*} : infinite x → ¬ infinitesimal y → infinite (x * y) := 
-λ hx hy, have h0 : y < 0 ∨ y > 0 := lt_or_gt_of_ne (λ H0, hy (eq.substr H0 (is_st_refl_real 0))),
-or.dcases_on hx
-  (or.dcases_on h0 
-    (λ H0 Hx, or.inr (infinite_neg_mul_of_infinite_pos_not_infinitesimal_neg Hx hy H0))
-    (λ H0 Hx, or.inl (infinite_pos_mul_of_infinite_pos_not_infinitesimal_pos Hx hy H0))) 
-  (or.dcases_on h0 
-    (λ H0 Hx, or.inl (infinite_pos_mul_of_infinite_neg_not_infinitesimal_neg Hx hy H0)) 
-    (λ H0 Hx, or.inr (infinite_neg_mul_of_infinite_neg_not_infinitesimal_pos Hx hy H0)))
-
-lemma infinite_mul_of_not_infinitesimal_infinite {x y : ℝ*} : ¬ infinitesimal x → infinite y → infinite (x * y) := 
-λ hx hy, by rw [mul_comm]; exact infinite_mul_of_infinite_not_infinitesimal hy hx
-
-lemma infinite_mul_infinite {x y : ℝ*} : infinite x → infinite y → infinite (x * y) := 
-λ hx hy, infinite_mul_of_infinite_not_infinitesimal hx (not_infinitesimal_of_infinite hy)
 
 theorem infinite_pos_of_tendsto_top {f : ℕ → ℝ} (hf : tendsto f at_top at_top) : infinite_pos (of_seq f) := 
 λ r, have hf' : _ := (tendsto_at_top_at_top (λ x y, ⟨max x y, ⟨le_max_left _ _, le_max_right _ _⟩⟩) _).mp hf,
@@ -359,12 +318,6 @@ Exists.cases_on (hf' (r - 1)) $ λ i hi,
   by simp only [set.compl_set_of, not_lt]; exact λ a har, le_of_lt (hi' a (lt_of_lt_of_le (sub_one_lt _) har)),
   (lt_def U).mpr $ mem_hyperfilter_of_finite_compl set.infinite_univ_nat $ set.finite_subset (set.finite_le_nat _) hS
 
-lemma infinite_pos_iff_infinite_neg_neg {x : ℝ*} : infinite_pos x ↔ infinite_neg (-x) := sorry
-
-lemma infinite_neg_iff_infinite_pos_neg {x : ℝ*} : infinite_neg x ↔ infinite_pos (-x) := sorry
-
-lemma infinite_iff_infinite_neg {x : ℝ*} : infinite x ↔ infinite (-x) := sorry
-
 lemma not_infinite_add {x y : ℝ*} (hx : ¬ infinite x) (hy : ¬ infinite y) : ¬ infinite (x + y) := 
 begin
   rw [infinite, not_or_distrib, infinite_pos, infinite_neg, not_forall, not_forall] at hx hy ⊢,
@@ -378,14 +331,22 @@ lemma not_infinite_neg {x : ℝ*} (hx : ¬ infinite x) : ¬ infinite (-x) := sor
 
 lemma not_infinite_mul {x y : ℝ*} (hx : ¬ infinite x) (hy : ¬ infinite y) : ¬ infinite (x * y) := sorry
 
-theorem not_infinite_iff_exist_lt_gt {x : ℝ*} : ¬ infinite x ↔ ∃ r s : ℝ, ↑r < x ∧ x < s := sorry
+theorem not_infinite_iff_exist_lt_gt {x : ℝ*} : ¬ infinite x ↔ ∃ r s : ℝ, ↑r < x ∧ x < s := ⟨ λ hni, 
+Exists.dcases_on (not_forall.mp (not_or_distrib.mp hni).1) $
+Exists.dcases_on (not_forall.mp (not_or_distrib.mp hni).2) $ λ r hr s hs, 
+by rw [not_lt] at hr hs; exact ⟨r - 1, s + 1, 
+  ⟨ lt_of_lt_of_le (by rw [←of_eq_coe, of_sub]; exact sub_one_lt _) hr, 
+    lt_of_le_of_lt hs (by rw [←of_eq_coe (s + 1), of_add]; exact lt_add_one _)⟩ ⟩, 
+λ hrs, Exists.dcases_on hrs $ λ r hr, Exists.dcases_on hr $ λ s hs, 
+  not_or_distrib.mpr ⟨not_forall.mpr ⟨s, lt_asymm (hs.2)⟩, not_forall.mpr ⟨r, lt_asymm (hs.1) ⟩⟩⟩ 
 
 theorem not_infinite_real (r : ℝ) : ¬ infinite r := by rw not_infinite_iff_exist_lt_gt; exact
 ⟨ r - 1, r + 1, 
   by rw [←of_eq_coe, ←of_eq_coe, ←of_lt U]; exact sub_one_lt _, 
   by rw [←of_eq_coe, ←of_eq_coe, ←of_lt U]; exact lt_add_one _⟩
 
-theorem not_real_of_infinite {x : ℝ*} : infinite x → ∀ r : ℝ, x ≠ of r := sorry
+theorem not_real_of_infinite {x : ℝ*} : infinite x → ∀ r : ℝ, x ≠ of r := 
+λ hi r hr,  not_infinite_real r $ @eq.subst _ infinite _ _ hr hi
 
 -- FACTS ABOUT ST THAT REQUIRE SOME INFINITE MACHINERY
 
@@ -490,13 +451,16 @@ show is_st (x + -r) 0, by rw ←add_neg_self r; exact is_st_add hxr (is_st_refl_
 theorem infinitesimal_sub_st {x : ℝ*} (hx : ¬infinite x) : infinitesimal (x - st x) := 
 infinitesimal_sub_is_st $ is_st_st' hx
 
-lemma infinite_pos_iff_infinitesimal_inv_pos {x : ℝ*} : infinite_pos x ↔ (infinitesimal x⁻¹ ∧ x⁻¹ > 0) := sorry
+lemma infinite_pos_iff_infinitesimal_inv_pos {x : ℝ*} : infinite_pos x ↔ (infinitesimal x⁻¹ ∧ x⁻¹ > 0) := 
+⟨ λ hip, ⟨ infinitesimal_def.mpr (λ r hr, ⟨lt_trans (of_lt_of_lt U (neg_neg_of_pos hr)) (inv_pos (hip 0)), (inv_lt (of_lt_of_lt U hr) (hip 0)).mp (by convert hip r⁻¹)⟩), inv_pos $ hip 0 ⟩, 
+  λ ⟨hi, hp⟩ r, @classical.by_cases (r = 0) (x > (r : ℝ*)) (λ h, eq.substr h (inv_pos'.mp hp)) $
+  λ h, lt_of_le_of_lt (of_le_of_le (le_abs_self r)) ((inv_lt_inv (inv_pos'.mp hp) (of_lt_of_lt U (abs_pos_of_ne_zero h))).mp ((infinitesimal_def.mp hi) ((abs r)⁻¹) (inv_pos (abs_pos_of_ne_zero h))).2) ⟩
 
 lemma infinite_neg_iff_infinitesimal_inv_neg {x : ℝ*} : infinite_neg x ↔ (infinitesimal x⁻¹ ∧ x⁻¹ < 0) := 
 ⟨ λ hin, have hin' : _ := infinite_pos_iff_infinitesimal_inv_pos.mp (infinite_pos_neg_of_infinite_neg hin),
  by rwa [infinitesimal_neg_iff, ←neg_pos, neg_inv (λ h0, lt_irrefl x (by convert hin 0) : x ≠ 0)], 
  λ hin, have h0 : x ≠ 0 := λ h0, (lt_irrefl (0 : ℝ*) (by convert hin.2; rw [h0, inv_zero])),
- by rwa [←neg_pos, infinitesimal_neg_iff, neg_inv h0, ←infinite_pos_iff_infinitesimal_inv_pos, ←infinite_pos_neg_iff_infinite_neg] at hin ⟩ 
+ by rwa [←neg_pos, infinitesimal_neg_iff, neg_inv h0, ←infinite_pos_iff_infinitesimal_inv_pos, ←infinite_neg_iff_infinite_pos_neg] at hin ⟩ 
 
 theorem infinitesimal_inv_of_infinite {x : ℝ*} : infinite x → infinitesimal x⁻¹ := 
 λ hi, or.cases_on hi 
@@ -560,5 +524,72 @@ lemma infinite_pos_omega : infinite_pos ω :=
 infinite_pos_iff_infinitesimal_inv_pos.mpr ⟨infinitesimal_epsilon, epsilon_pos⟩
 
 lemma infinite_omega : infinite ω := (infinite_iff_infinitesimal_inv omega_ne_zero).mpr infinitesimal_epsilon
+
+lemma infinite_pos_mul_of_infinite_pos_not_infinitesimal_pos {x y : ℝ*} : 
+  infinite_pos x → ¬ infinitesimal y → y > 0 → infinite_pos (x * y) := 
+λ hx hy₁ hy₂ r, have hy₁' : _ := not_forall.mp (by rw infinitesimal_def at hy₁; exact hy₁),
+Exists.dcases_on hy₁' $ λ r₁ hy₁'', 
+have hyr : _ := by rw [not_imp, ←abs_lt, not_lt, abs_of_pos hy₂] at hy₁''; exact hy₁'', 
+by rw [←div_mul_cancel r (ne_of_gt hyr.1), ←of_eq_coe, of_mul];
+exact mul_lt_mul (hx (r / r₁)) hyr.2 (of_lt_of_lt U hyr.1) (le_of_lt (hx 0))
+
+lemma infinite_pos_mul_of_not_infinitesimal_pos_infinite_pos {x y : ℝ*} : 
+  ¬ infinitesimal x → 0 < x → infinite_pos y → infinite_pos (x * y) := 
+λ hx hp hy, by rw [mul_comm]; exact infinite_pos_mul_of_infinite_pos_not_infinitesimal_pos hy hx hp
+
+lemma infinite_pos_mul_of_infinite_neg_not_infinitesimal_neg {x y : ℝ*} : 
+  infinite_neg x → ¬ infinitesimal y → y < 0 → infinite_pos (x * y) := 
+by rw [infinite_neg_iff_infinite_pos_neg, ←neg_pos, ←neg_mul_neg, infinitesimal_neg_iff];
+exact infinite_pos_mul_of_infinite_pos_not_infinitesimal_pos
+
+lemma infinite_pos_mul_of_not_infinitesimal_neg_infinite_neg {x y : ℝ*} : 
+  ¬ infinitesimal x → x < 0 → infinite_neg y → infinite_pos (x * y) := 
+λ hx hp hy, by rw [mul_comm]; exact infinite_pos_mul_of_infinite_neg_not_infinitesimal_neg hy hx hp
+
+lemma infinite_neg_mul_of_infinite_pos_not_infinitesimal_neg {x y : ℝ*} : 
+  infinite_pos x → ¬ infinitesimal y → y < 0 → infinite_neg (x * y) := 
+by rw [infinite_neg_iff_infinite_pos_neg, ←neg_pos, neg_mul_eq_mul_neg, infinitesimal_neg_iff];
+exact infinite_pos_mul_of_infinite_pos_not_infinitesimal_pos
+
+lemma infinite_neg_mul_of_not_infinitesimal_neg_infinite_pos {x y : ℝ*} : 
+  ¬ infinitesimal x → x < 0 → infinite_pos y → infinite_neg (x * y) := 
+λ hx hp hy, by rw [mul_comm]; exact infinite_neg_mul_of_infinite_pos_not_infinitesimal_neg hy hx hp
+
+lemma infinite_neg_mul_of_infinite_neg_not_infinitesimal_pos {x y : ℝ*} : 
+  infinite_neg x → ¬ infinitesimal y → 0 < y → infinite_neg (x * y) := 
+by rw [infinite_neg_iff_infinite_pos_neg, infinite_neg_iff_infinite_pos_neg, neg_mul_eq_neg_mul];
+exact infinite_pos_mul_of_infinite_pos_not_infinitesimal_pos
+
+lemma infinite_neg_mul_of_not_infinitesimal_pos_infinite_neg {x y : ℝ*} : 
+  ¬ infinitesimal x → x > 0 → infinite_neg y → infinite_neg (x * y) := 
+λ hx hp hy, by rw [mul_comm]; exact infinite_neg_mul_of_infinite_neg_not_infinitesimal_pos hy hx hp
+
+lemma infinite_pos_mul_infinite_pos {x y : ℝ*} : infinite_pos x → infinite_pos y → infinite_pos (x * y) := 
+λ hx hy, infinite_pos_mul_of_infinite_pos_not_infinitesimal_pos hx (not_infinitesimal_of_infinite_pos hy) (hy 0)
+
+lemma infinite_neg_mul_infinite_neg {x y : ℝ*} : infinite_neg x → infinite_neg y → infinite_pos (x * y) := 
+λ hx hy, infinite_pos_mul_of_infinite_neg_not_infinitesimal_neg hx (not_infinitesimal_of_infinite_neg hy) (hy 0)
+
+lemma infinite_pos_mul_infinite_neg {x y : ℝ*} : infinite_pos x → infinite_neg y → infinite_neg (x * y) := 
+λ hx hy, infinite_neg_mul_of_infinite_pos_not_infinitesimal_neg hx (not_infinitesimal_of_infinite_neg hy) (hy 0)
+
+lemma infinite_neg_mul_infinite_pos {x y : ℝ*} : infinite_neg x → infinite_pos y → infinite_neg (x * y) := 
+λ hx hy, infinite_neg_mul_of_infinite_neg_not_infinitesimal_pos hx (not_infinitesimal_of_infinite_pos hy) (hy 0)
+
+lemma infinite_mul_of_infinite_not_infinitesimal {x y : ℝ*} : infinite x → ¬ infinitesimal y → infinite (x * y) := 
+λ hx hy, have h0 : y < 0 ∨ y > 0 := lt_or_gt_of_ne (λ H0, hy (eq.substr H0 (is_st_refl_real 0))),
+or.dcases_on hx
+  (or.dcases_on h0 
+    (λ H0 Hx, or.inr (infinite_neg_mul_of_infinite_pos_not_infinitesimal_neg Hx hy H0))
+    (λ H0 Hx, or.inl (infinite_pos_mul_of_infinite_pos_not_infinitesimal_pos Hx hy H0))) 
+  (or.dcases_on h0 
+    (λ H0 Hx, or.inl (infinite_pos_mul_of_infinite_neg_not_infinitesimal_neg Hx hy H0)) 
+    (λ H0 Hx, or.inr (infinite_neg_mul_of_infinite_neg_not_infinitesimal_pos Hx hy H0)))
+
+lemma infinite_mul_of_not_infinitesimal_infinite {x y : ℝ*} : ¬ infinitesimal x → infinite y → infinite (x * y) := 
+λ hx hy, by rw [mul_comm]; exact infinite_mul_of_infinite_not_infinitesimal hy hx
+
+lemma infinite_mul_infinite {x y : ℝ*} : infinite x → infinite y → infinite (x * y) := 
+λ hx hy, infinite_mul_of_infinite_not_infinitesimal hx (not_infinitesimal_of_infinite hy)
 
 end hyperreal

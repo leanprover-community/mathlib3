@@ -259,7 +259,11 @@ lemma infinite_iff_infinite_pos_abs {x : ℝ*} : infinite x ↔ infinite_pos (ab
 lemma infinite_iff_infinite_abs {x : ℝ*} : infinite x ↔ infinite (abs x) := 
 by rw [←infinite_pos_iff_infinite_of_nonneg (abs_nonneg _), infinite_iff_infinite_pos_abs]
 
-lemma infinite_iff_abs_lt_abs {x : ℝ*} : infinite x ↔ ∀ r : ℝ, (abs r : ℝ*) < abs x := sorry
+lemma infinite_iff_abs_lt_abs {x : ℝ*} : infinite x ↔ ∀ r : ℝ, (abs r : ℝ*) < abs x := 
+⟨ λ hI r, (of_abs U r) ▸ infinite_iff_infinite_pos_abs.mp hI (abs r), 
+  λ hR, or.cases_on (max_choice x (-x)) 
+  (λ h, or.inl $ λ r, lt_of_le_of_lt (le_abs_self _) (h ▸ (hR r))) 
+  (λ h, or.inr $ λ r, neg_lt_neg_iff.mp $ lt_of_le_of_lt (neg_le_abs_self _) (h ▸ (hR r)))⟩
 
 lemma infinite_pos_add_not_infinite_neg {x y : ℝ*} : infinite_pos x → ¬ infinite_neg y → infinite_pos (x + y) := sorry
 
@@ -451,9 +455,8 @@ theorem gt_of_neg_of_infinitesimal {x : ℝ*} : infinitesimal x → ∀ r : ℝ,
 λ hi r hr, by convert ((infinitesimal_def.mp hi) (-r) (neg_pos.mpr hr)).1; exact (neg_neg ↑r).symm
 
 theorem abs_lt_real_iff_infinitesimal {x : ℝ*} : infinitesimal x ↔ ∀ r : ℝ, r ≠ 0 → abs x < abs r := 
-⟨ λ hi r hr, have hi' : _ := infinitesimal_def.mp hi, begin
-  cases (lt_or_gt_of_ne hr), sorry, sorry
-end, sorry⟩ 
+⟨ λ hi r hr, abs_lt.mpr (by rw [←of_eq_coe, ←of_abs U]; exact infinitesimal_def.mp hi (abs r) (abs_pos_of_ne_zero hr)),
+  λ hR, infinitesimal_def.mpr $ λ r hr, abs_lt.mp $ (abs_of_pos $ of_lt_of_lt U hr : abs ↑r = ↑r) ▸ hR r $ ne_of_gt hr ⟩ 
 
 lemma infinitesimal_zero : infinitesimal 0 := is_st_refl_real 0
 

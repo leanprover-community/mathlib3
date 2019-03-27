@@ -71,21 +71,17 @@ instance mul_action_add (α) {m : monoid α}         [∀ i, add_monoid $ f i]  
   smul_add := λ c f g, funext $ λ i, smul_add _ _ _,
   ..pi.mul_action _ }
 
+variables (I f)
+
 instance semimodule     (α) {r : semiring α}       [∀ i, add_comm_monoid $ f i] [∀ i, semimodule α $ f i]     : semimodule α (Π i : I, f i) :=
 { add_smul := λ c f g, funext $ λ i, add_smul _ _ _,
   zero_smul := λ f, funext $ λ i, zero_smul α _,
   ..pi.mul_action_add _ }
 
-instance module         (α) {r : ring α}           [∀ i, add_comm_group $ f i]  [∀ i, module α $ f i]         : module α (Π i : I, f i)       :=
-{ to_semimodule :=
-begin
-  convert pi.semimodule α,
-  swap,
-  { by apply_instance },
-  swap,
-  { by apply_instance },
-  refl
-end }
+variables {I f}
+
+instance module         (α) {r : ring α}           [∀ i, add_comm_group $ f i]  [∀ i, module α $ f i]         : module α (Π i : I, f i)       := {..pi.semimodule I f α}
+
 instance vector_space   (α) {r : discrete_field α} [∀ i, add_comm_group $ f i]  [∀ i, vector_space α $ f i]   : vector_space α (Π i : I, f i) := {..pi.module α}
 
 instance left_cancel_semigroup [∀ i, left_cancel_semigroup $ f i] : left_cancel_semigroup (Π i : I, f i) :=

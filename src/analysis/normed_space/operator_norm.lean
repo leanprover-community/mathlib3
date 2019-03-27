@@ -60,7 +60,7 @@ by ext; simp
 by ext; simp
 
 /-- Bounded linear maps are ... bounded -/
-lemma exists_bound (A : L(E,F)) : ∃ c, c > 0 ∧ ∀ x : E, ∥A x∥ ≤ c * ∥x∥ := A.property.bound
+lemma exists_bound (A : L(E,F)) : ∃ c, 0 < c ∧ ∀ x : E, ∥A x∥ ≤ c * ∥x∥ := A.property.bound
 
 end bounded_linear_maps
 
@@ -85,10 +85,10 @@ noncomputable instance bounded_linear_maps.to_has_norm : has_norm L(E,F) :=
 {norm := operator_norm}
 
 lemma bdd_above_range_norm_image_div_norm (A : L(E,F)) : bdd_above (range (λ x, ∥A x∥/∥x∥)) :=
-let ⟨c, _, H⟩ := (exists_bound A : ∃ c, c > 0 ∧ ∀ x : E, ∥A x∥ ≤ c * ∥x∥) in
+let ⟨c, _, H⟩ := (exists_bound A : ∃ c, 0 < c ∧ ∀ x : E, ∥A x∥ ≤ c * ∥x∥) in
 bdd_above.mk c $ forall_range_iff.2 $ λx, begin
   by_cases h : ∥x∥ = 0,
-  { simp [h, le_of_lt ‹c > 0›] },
+  { simp [h, le_of_lt ‹0 < c›] },
   { refine (div_le_iff _).2 (H x),
     simpa [ne.symm h] using le_iff_eq_or_lt.1 (norm_nonneg x) }
 end
@@ -115,7 +115,7 @@ begin
 end
 
 /-- Conversely, if one controls the norm of every A x, then one controls the norm of A. -/
-lemma operator_norm_bounded_by {A : L(E,F)} {c : ℝ} (hc : 0 ≤ c) (H : ∀ x, ∥A x∥ ≤ (c:ℝ) * ∥x∥) :
+lemma operator_norm_bounded_by {A : L(E,F)} {c : ℝ} (hc : 0 ≤ c) (H : ∀ x, ∥A x∥ ≤ c * ∥x∥) :
   ∥A∥ ≤ c :=
 begin
   haveI : nonempty E := ⟨0⟩,
@@ -150,9 +150,9 @@ iff.intro
     have ∥A∥ ≤ 0, from operator_norm_bounded_by (le_refl 0) $ by rw this; simp [le_refl],
     le_antisymm this (operator_norm_nonneg A))
 
-section instance_60
+section instance_70
 -- one needs to increase the max_depth for the following proof
-set_option class.instance_max_depth 60
+set_option class.instance_max_depth 70
 
 /-- Auxiliary lemma to prove that the operator norm is homogeneous. -/
 lemma operator_norm_homogeneous_le (c : k) (A : L(E, F)) : ∥c • A∥ ≤ ∥c∥ * ∥A∥ :=
@@ -179,7 +179,7 @@ begin
     rwa [le_div_iff, mul_comm] at this,
     simpa [ne.symm h] using le_iff_eq_or_lt.1 (norm_nonneg c) }
 end
-end instance_60
+end instance_70
 
 /-- Expose L(E,F) equipped with the operator norm as normed space. -/
 noncomputable instance bounded_linear_maps.to_normed_space : normed_space k L(E,F) :=

@@ -76,9 +76,6 @@ instance semimodule     (α) {r : semiring α}       [∀ i, add_comm_monoid $ f
   zero_smul := λ f, funext $ λ i, zero_smul α _,
   ..pi.mul_action_add _ }
 
-#print pi.semimodule
-
-set_option pp.all true
 instance module         (α) {r : ring α}           [∀ i, add_comm_group $ f i]  [∀ i, module α $ f i]         : module α (Π i : I, f i)       :=
 { to_semimodule :=
 begin

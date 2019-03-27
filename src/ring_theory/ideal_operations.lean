@@ -9,6 +9,7 @@ More operations on modules and ideals.
 import ring_theory.ideals data.nat.choose order.zorn
 import linear_algebra.tensor_product
 import data.equiv.algebra
+import ring_theory.algebra_operations
 
 universes u v w x
 
@@ -107,15 +108,15 @@ theorem smul_mono_right (h : N ≤ P) : I • N ≤ I • P :=
 smul_mono (le_refl I) h
 
 variables (I J N P)
-theorem smul_bot : I • (⊥ : submodule R M) = ⊥ :=
+@[simp] theorem smul_bot : I • (⊥ : submodule R M) = ⊥ :=
 eq_bot_iff.2 $ smul_le.2 $ λ r hri s hsb,
 (submodule.mem_bot R).2 $ ((submodule.mem_bot R).1 hsb).symm ▸ smul_zero r
 
-theorem bot_smul : (⊥ : ideal R) • N = ⊥ :=
+@[simp] theorem bot_smul : (⊥ : ideal R) • N = ⊥ :=
 eq_bot_iff.2 $ smul_le.2 $ λ r hrb s hsi,
 (submodule.mem_bot R).2 $ ((submodule.mem_bot R).1 hrb).symm ▸ zero_smul _ s
 
-theorem top_smul : (⊤ : ideal R) • N = N :=
+@[simp] theorem top_smul : (⊤ : ideal R) • N = N :=
 le_antisymm smul_le_right $ λ r hri, one_smul R r ▸ smul_mem_smul mem_top hri
 
 theorem smul_sup : I • (N ⊔ P) = I • N ⊔ I • P :=
@@ -379,22 +380,12 @@ have is_prime m, from ⟨by rintro rfl; rw radical_top at hrm; exact hrm trivial
     refine m.add_mem (m.mul_mem_right hpm) (m.add_mem (m.mul_mem_left hfm) (m.mul_mem_left hxym))⟩⟩,
 hrm $ this.radical.symm ▸ (Inf_le ⟨him, this⟩ : Inf {J : ideal R | I ≤ J ∧ is_prime J} ≤ m) hr
 
-instance : comm_semiring (ideal R) :=
-{ mul := (*),
-  mul_assoc := ideal.mul_assoc,
-  zero_mul := bot_mul,
-  mul_zero := mul_bot,
-  one := ⊤,
-  one_mul := top_mul,
-  mul_one := mul_top,
-  left_distrib := mul_sup,
-  right_distrib := sup_mul,
-  mul_comm := ideal.mul_comm,
-  .. submodule.add_comm_monoid }
+instance : comm_semiring (ideal R) := submodule.comm_semiring
 
 @[simp] lemma add_eq_sup : I + J = I ⊔ J := rfl
 @[simp] lemma zero_eq_bot : (0 : ideal R) = ⊥ := rfl
-@[simp] lemma one_eq_top : (1 : ideal R) = ⊤ := rfl
+@[simp] lemma one_eq_top : (1 : ideal R) = ⊤ :=
+by erw [submodule.one_eq_map_top, submodule.map_id]
 
 variables (I)
 theorem radical_pow (n : ℕ) (H : n > 0) : radical (I^n) = radical I :=
@@ -551,13 +542,14 @@ namespace submodule
 
 variables {R : Type u} {M : Type v}
 variables [comm_ring R] [add_comm_group M] [module R M]
-variables (I J : ideal R) (N P : submodule R M)
+
+-- It is even a semialgebra. But those aren't in mathlib yet.
 
 instance : semimodule (ideal R) (submodule R M) :=
 { smul_add := smul_sup,
   add_smul := sup_smul,
   mul_smul := smul_assoc,
-  one_smul := top_smul,
+  one_smul := by simp,
   zero_smul := bot_smul,
   smul_zero := smul_bot }
 

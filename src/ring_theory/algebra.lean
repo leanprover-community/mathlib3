@@ -6,7 +6,7 @@ Authors: Kenny Lau
 Algebra over Commutative Ring (under category)
 -/
 
-import data.polynomial data.multivariate_polynomial
+import data.polynomial data.mv_polynomial
 import linear_algebra.tensor_product
 import ring_theory.subring
 
@@ -127,7 +127,7 @@ linear_map.mk₂ R (*)
   (λ x y z, mul_add x y z)
   (λ c x y, by rw [smul_def, smul_def, left_comm])
 
-set_option class.instance_max_depth 37
+set_option class.instance_max_depth 39
 def lmul_left (r : A) : A →ₗ A :=
 lmul R A r
 

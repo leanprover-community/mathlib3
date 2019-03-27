@@ -165,7 +165,7 @@ e.symm ▸ ⟨(l₁++l₂ : list α), quot.sound perm_middle⟩
 @[simp] theorem not_mem_zero (a : α) : a ∉ (0 : multiset α) := id
 
 theorem eq_zero_of_forall_not_mem {s : multiset α} : (∀x, x ∉ s) → s = 0 :=
-quot.induction_on s $ λ l H, by rw eq_nil_of_forall_not_mem H; refl
+quot.induction_on s $ λ l H, by rw eq_nil_iff_forall_not_mem.mpr H; refl
 
 theorem exists_mem_of_ne_zero {s : multiset α} : s ≠ 0 → ∃ a : α, a ∈ s :=
 quot.induction_on s $ assume l hl,
@@ -792,6 +792,17 @@ lemma sum_hom [add_comm_monoid α] [add_comm_monoid β] (f : α → β) [is_add_
 multiset.induction_on s (by simp [is_add_monoid_hom.map_zero f])
   (by simp [is_add_monoid_hom.map_add f] {contextual := tt})
 attribute [to_additive multiset.sum_hom] multiset.prod_hom
+
+lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_comm_monoid β]
+  (f : α → β) (h_zero : f 0 = 0) (h_add : ∀x y, f (x + y) ≤ f x + f y) (s : multiset α) :
+  f s.sum ≤ (s.map f).sum :=
+multiset.induction_on s (le_of_eq h_zero) $
+  assume a s ih, by rw [sum_cons, map_cons, sum_cons];
+    from le_trans (h_add a s.sum) (add_le_add_left' ih)
+
+lemma abs_sum_le_sum_abs [discrete_linear_ordered_field α] {s : multiset α} :
+  abs s.sum ≤ (s.map abs).sum :=
+le_sum_of_subadditive _ abs_zero abs_add s
 
 /- join -/
 
@@ -2991,6 +3002,9 @@ namespace Ico
 theorem map_add (n m k : ℕ) : (Ico n m).map ((+) k) = Ico (n + k) (m + k) :=
 congr_arg coe $ list.Ico.map_add _ _ _
 
+theorem map_sub (n m k : ℕ) (h : k ≤ n) : (Ico n m).map (λ x, x - k) = Ico (n - k) (m - k) :=
+congr_arg coe $ list.Ico.map_sub _ _ _ h
+
 theorem zero_bot (n : ℕ) : Ico 0 n = range n :=
 congr_arg coe $ list.Ico.zero_bot _
 
@@ -3015,6 +3029,9 @@ lemma add_consecutive {n m l : ℕ} (hnm : n ≤ m) (hml : m ≤ l) :
   Ico n m + Ico m l = Ico n l :=
 congr_arg coe $ list.Ico.append_consecutive hnm hml
 
+@[simp] lemma inter_consecutive (n m l : ℕ) : Ico n m ∩ Ico m l = 0 :=
+congr_arg coe $ list.Ico.bag_inter_consecutive n m l
+
 @[simp] theorem succ_singleton {n : ℕ} : Ico n (n+1) = {n} :=
 congr_arg coe $ list.Ico.succ_singleton
 
@@ -3024,7 +3041,7 @@ by rw [Ico, list.Ico.succ_top h, ← coe_add, add_comm]; refl
 theorem eq_cons {n m : ℕ} (h : n < m) : Ico n m = n :: Ico (n + 1) m :=
 congr_arg coe $ list.Ico.eq_cons h
 
-theorem pred_singleton {m : ℕ} (h : m > 0) : Ico (m - 1) m = {m - 1} :=
+@[simp] theorem pred_singleton {m : ℕ} (h : m > 0) : Ico (m - 1) m = {m - 1} :=
 congr_arg coe $ list.Ico.pred_singleton h
 
 @[simp] theorem not_mem_top {n m : ℕ} : m ∉ Ico n m :=

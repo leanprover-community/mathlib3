@@ -109,7 +109,7 @@ This is a "finishing" tactic modification of `simp`. It has two forms.
   more robust under changes to the simp lemma set.
 
 * `simpa [rules, ...]` will simplify the goal and the type of a
-  hypothesis `this` if present, then try to close the goal using
+  hypothesis `this` if present in the context, then try to close the goal using
   the `assumption` tactic.
 
 ### replace
@@ -142,8 +142,8 @@ The procedures *do* split on disjunctions and recreate the smt state for each te
 they are only meant to be used on small, straightforward problems.
 
 * finish:  solves the goal or fails
-* clarify:  makes as much progress as possible while not leaving more than one goal
-* safe:     splits freely, finishes off whatever subgoals it can, and leaves the rest
+* clarify: makes as much progress as possible while not leaving more than one goal
+* safe:    splits freely, finishes off whatever subgoals it can, and leaves the rest
 
 All accept an optional list of simplifier rules, typically definitions that should be expanded.
 (The equations and identities should not refer to the local context.)
@@ -235,6 +235,9 @@ The tactic `solve_by_elim` repeatedly applies assumptions to the current goal, a
 solve_by_elim { discharger := `[cc] }
 ```
 also attempts to discharge the goal using congruence closure before each round of applying assumptions.
+
+`solve_by_elim*` tries to solve all goals together, using backtracking if a solution for one goal
+makes other goals impossible.
 
 By default `solve_by_elim` also applies `congr_fun` and `congr_arg` against the goal.
 

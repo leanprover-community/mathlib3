@@ -44,10 +44,6 @@ assume l₁ l₂, assume Pe, tail_eq_of_cons_eq Pe
 
 /- mem -/
 
-theorem eq_nil_of_forall_not_mem : ∀ {l : list α}, (∀ a, a ∉ l) → l = nil
-| []        := assume h, rfl
-| (b :: l') := assume h, absurd (mem_cons_self b l') (h b)
-
 theorem mem_singleton_self (a : α) : a ∈ [a] := mem_cons_self _ _
 
 theorem eq_of_mem_singleton {a b : α} : a ∈ [b] → a = b :=
@@ -3249,38 +3245,21 @@ end
 | l₁         [] := by simp
 | (h₁ :: l₁) (h₂ :: l₂) :=
 begin
-  dsimp [list.bag_inter],
-  simp only [list.mem_cons_iff],
-  by_cases p₁ : h₁ = h₂,
-  { subst p₁,
-    simp only [list.erase_cons_head, if_true, list.mem_cons_iff, true_or, eq_self_iff_true],
-    repeat { rw count_cons' },
-    by_cases p₂ : a = h₁,
-    { rw [count_bag_inter, p₂],
-      simp only [if_true, add_comm, eq_self_iff_true],
-      rw min_add_add_left, },
-    { rw [if_neg p₂, count_bag_inter, add_zero, add_zero, add_zero], } },
-  { simp only [*, list.mem_cons_iff, false_or],
-    split_ifs,
-    { rw [list.erase_cons, if_neg (ne.symm p₁), count_cons', count_cons', count_cons',
-          count_bag_inter, count_cons'],
-      split_ifs with p₂ p₃ p₃,
-      { exact false.elim (p₁ (eq.trans p₃.symm p₂)), },
-      { simp only [add_zero],
-        rw [count_erase_of_ne p₃], },
-      { simp only [add_zero],
-        rw [←p₃, count_erase_self, ←min_add_add_right],
-        conv { to_lhs, congr, skip, rw [add_one] },
-        rw succ_pred_eq_of_pos,
-        subst p₃,
-        exact count_pos.2 h },
-      { simp only [add_zero],
-        rw count_erase_of_ne p₃, } },
-    { rw count_bag_inter,
-      by_cases p₂ : a = h₁,
-      { rw [p₂, count_cons', if_neg p₁, count_eq_zero_of_not_mem h],
-        simp only [add_zero, list.count_cons_self, eq_self_iff_true, nat.min_zero] },
-      { conv {to_rhs, rw [count_cons', if_neg p₂, add_zero], } } } }
+  simp only [list.bag_inter, list.mem_cons_iff],
+  by_cases p₁ : h₂ = h₁; by_cases p₂ : h₁ = a,
+  { simp only [p₁, p₂, count_bag_inter, min_succ_succ, erase_cons_head, if_true, mem_cons_iff,
+               count_cons_self, true_or, eq_self_iff_true] },
+  { simp only [p₁, ne.symm p₂, count_bag_inter, count_cons, erase_cons_head, if_true, mem_cons_iff,
+               true_or, eq_self_iff_true, if_false] },
+  { rw p₂ at p₁,
+    by_cases p₃ : a ∈ l₂,
+    { simp only [p₁, ne.symm p₁, p₂, p₃, erase_cons, count_bag_inter, eq.symm (min_succ_succ _ _),
+                 succ_pred_eq_of_pos (count_pos.2 p₃), if_true, mem_cons_iff, false_or,
+                 count_cons_self, eq_self_iff_true, if_false, ne.def, not_false_iff,
+                 count_erase_self, list.count_cons_of_ne] },
+    { simp [ne.symm p₁, p₂, p₃] } },
+  { by_cases p₄ : h₁ ∈ l₂; simp only [ne.symm p₁, ne.symm p₂, p₄, count_bag_inter, if_true, if_false,
+      mem_cons_iff, false_or, eq_self_iff_true, ne.def, not_false_iff,count_erase_of_ne, count_cons_of_ne] }
 end
 
 theorem bag_inter_sublist_left : ∀ l₁ l₂ : list α, l₁.bag_inter l₂ <+ l₁
@@ -3980,6 +3959,15 @@ theorem map_add_range' (a) : ∀ s n : ℕ, map ((+) a) (range' s n) = range' (a
 | s 0     := rfl
 | s (n+1) := congr_arg (cons _) (map_add_range' (s+1) n)
 
+theorem map_sub_range' (a) : ∀ (s n : ℕ) (h : a ≤ s), map (λ x, x - a) (range' s n) = range' (s - a) n
+| s 0     _ := rfl
+| s (n+1) h :=
+begin
+  convert congr_arg (cons (s-a)) (map_sub_range' (s+1) n (nat.le_succ_of_le h)),
+  rw nat.succ_sub h,
+  refl,
+end
+
 theorem chain_succ_range' : ∀ s n : ℕ, chain (λ a b, b = succ a) s (range' (s+1) n)
 | s 0     := chain.nil
 | s (n+1) := (chain_succ_range' (s+1) n).cons rfl
@@ -4083,12 +4071,23 @@ theorem reverse_range' : ∀ s n : ℕ,
     nil_append, eq_self_iff_true, true_and, map_map]
   using reverse_range' s n
 
+/--
+`Ico n m` is the list of natural numbers `n ≤ x < m`.
+(Ico stands for "interval, closed-open".)
+
+See also `data/set/intervals.lean` for `set.Ico`, modelling intervals in general preorders, and
+`multiset.Ico` and `finset.Ico` for `n ≤ x < m` as a multiset or as a finset.
+
+@TODO (anyone): Define `Ioo` and `Icc`, state basic lemmas about them.
+@TODO (anyone): Prove that `finset.Ico` and `set.Ico` agree.
+@TODO (anyone): Also do the versions for integers?
+@TODO (anyone): One could generalise even further, defining
+'locally finite partial orders', for which `set.Ico a b` is `[finite]`, and
+'locally finite total orders', for which there is a list model.
+ -/
 def Ico (n m : ℕ) : list ℕ := range' n (m - n)
 
 namespace Ico
-
-theorem map_add (n m k : ℕ) : (Ico n m).map ((+) k) = Ico (n + k) (m + k) :=
-by rw [Ico, Ico, map_add_range', nat.add_sub_add_right, add_comm n k]
 
 theorem zero_bot (n : ℕ) : Ico 0 n = range n :=
 by rw [Ico, nat.sub_zero, range_eq_range']
@@ -4116,6 +4115,21 @@ end
 theorem eq_nil_of_le {n m : ℕ} (h : m ≤ n) : Ico n m = [] :=
 by simp [Ico, nat.sub_eq_zero_of_le h]
 
+theorem map_add (n m k : ℕ) : (Ico n m).map ((+) k) = Ico (n + k) (m + k) :=
+by rw [Ico, Ico, map_add_range', nat.add_sub_add_right, add_comm n k]
+
+theorem map_sub (n m k : ℕ) (h₁ : k ≤ n): (Ico n m).map (λ x, x - k) = Ico (n - k) (m - k) :=
+begin
+  by_cases h₂ : n < m,
+  { rw [Ico, Ico],
+    rw nat.sub_sub_sub_cancel_right h₁,
+    rw [map_sub_range' _ _ _ h₁] },
+  { simp at h₂,
+    rw [eq_nil_of_le h₂],
+    rw [eq_nil_of_le (nat.sub_le_sub_right h₂ _)],
+    refl }
+end
+
 @[simp] theorem self_empty {n : ℕ} : Ico n n = [] :=
 eq_nil_of_le (le_refl n)
 
@@ -4131,6 +4145,19 @@ begin
   { rwa [← nat.add_sub_assoc hnm, nat.sub_add_cancel] }
 end
 
+@[simp] lemma inter_consecutive (n m l : ℕ) : Ico n m ∩ Ico m l = [] :=
+begin
+  apply eq_nil_iff_forall_not_mem.2,
+  intro a,
+  simp only [and_imp, not_and, not_lt, list.mem_inter, list.Ico.mem],
+  intros h₁ h₂ h₃,
+  exfalso,
+  exact not_lt_of_ge h₃ h₂
+end
+
+@[simp] lemma bag_inter_consecutive (n m l : ℕ) : list.bag_inter (Ico n m) (Ico m l) = [] :=
+(bag_inter_nil_iff_inter_nil _ _).2 (inter_consecutive n m l)
+
 @[simp] theorem succ_singleton {n : ℕ} : Ico n (n+1) = [n] :=
 by dsimp [Ico]; simp [nat.add_sub_cancel_left]
 
@@ -4140,7 +4167,7 @@ by rwa [← succ_singleton, append_consecutive]; exact nat.le_succ _
 theorem eq_cons {n m : ℕ} (h : n < m) : Ico n m = n :: Ico (n + 1) m :=
 by rw [← append_consecutive (nat.le_succ n) h, succ_singleton]; refl
 
-theorem pred_singleton {m : ℕ} (h : m > 0) : Ico (m - 1) m = [m - 1] :=
+@[simp] theorem pred_singleton {m : ℕ} (h : m > 0) : Ico (m - 1) m = [m - 1] :=
 by dsimp [Ico]; rw nat.sub_sub_self h; simp
 
 theorem chain'_succ (n m : ℕ) : chain' (λa b, b = succ a) (Ico n m) :=

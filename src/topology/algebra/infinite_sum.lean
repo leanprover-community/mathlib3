@@ -124,7 +124,7 @@ lemma tendsto_sum_nat_of_is_sum {f : ℕ → α} (h : is_sum f a) :
   tendsto (λn:ℕ, (range n).sum f) at_top (nhds a) :=
 suffices map (λ (n : ℕ), sum (range n) f) at_top ≤ map (λ (s : finset ℕ), sum s f) at_top,
   from le_trans this h,
-assume s (hs : {t : finset ℕ | t.sum f ∈ s} ∈ at_top.sets),
+assume s (hs : {t : finset ℕ | t.sum f ∈ s} ∈ at_top),
 let ⟨t, ht⟩ := mem_at_top_sets.mp hs, ⟨n, hn⟩ := @exists_nat_subset_range t in
 mem_at_top_sets.mpr ⟨n, assume n' hn', ht _ $ finset.subset.trans hn $ range_subset.mpr hn'⟩
 
@@ -452,7 +452,7 @@ lemma has_sum_iff_cauchy : has_sum f ↔ cauchy (map (λ (s : finset β), sum s 
 (cauchy_map_iff_exists_tendsto at_top_ne_bot).symm
 
 lemma has_sum_iff_vanishing :
-  has_sum f ↔ ∀e∈(nhds (0:α)).sets, (∃s:finset β, ∀t, disjoint t s → t.sum f ∈ e) :=
+  has_sum f ↔ ∀ e ∈ nhds (0:α), (∃s:finset β, ∀t, disjoint t s → t.sum f ∈ e) :=
 begin
   simp only [has_sum_iff_cauchy, cauchy_map_iff, and_iff_right at_top_ne_bot,
     prod_at_top_at_top_eq, uniformity_eq_comap_nhds_zero α, tendsto_comap_iff, (∘)],

@@ -139,6 +139,20 @@ meta def clear_ : tactic unit := tactic.repeat $ do
     cl ← infer_type h >>= is_class, guard (¬ cl),
     tactic.clear h
 
+meta def apply_iff_congr_core (tgt : expr) : tactic unit :=
+do applyc ``iff_of_eq,
+   (lhs, rhs) ← target >>= match_eq,
+   guard lhs.is_app,
+   clemma ← mk_specialized_congr_lemma lhs,
+   apply_congr_core clemma
+
+meta def congr_core' : tactic unit :=
+do tgt ← target,
+   apply_eq_congr_core tgt
+   <|> apply_heq_congr_core
+   <|> apply_iff_congr_core tgt
+   <|> fail "congr tactic failed"
+
 /--
 Same as the `congr` tactic, but takes an optional argument which gives
 the depth of recursive applications. This is useful when `congr`
@@ -147,7 +161,7 @@ is too aggressive in breaking down the goal. For example, given
 and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`. -/
 meta def congr' : parse (with_desc "n" small_nat)? → tactic unit
 | (some 0) := failed
-| o        := focus1 (assumption <|> (congr_core >>
+| o        := focus1 (assumption <|> (congr_core' >>
   all_goals (reflexivity <|> `[apply proof_irrel_heq] <|>
              `[apply proof_irrel] <|> try (congr' (nat.pred <$> o)))))
 
@@ -228,13 +242,16 @@ unless they are explicitly included.
 
 `solve_by_elim [-id]` removes a specified assumption.
 
+`solve_by_elim*` tries to solve all goals together, using backtracking if a solution for one goal
+makes other goals impossible.
+
 optional arguments:
 - discharger: a subsidiary tactic to try at each step (e.g. `cc` may be helpful)
 - max_rep: number of attempts at discharging generated sub-goals
 -/
-meta def solve_by_elim (no_dflt : parse only_flag) (hs : parse simp_arg_list)  (attr_names : parse with_ident_list) (opt : by_elim_opt := { }) : tactic unit :=
+meta def solve_by_elim (all_goals : parse $ (tk "*")?) (no_dflt : parse only_flag) (hs : parse simp_arg_list)  (attr_names : parse with_ident_list) (opt : by_elim_opt := { }) : tactic unit :=
 do asms ← mk_assumption_set no_dflt hs attr_names,
-   tactic.solve_by_elim { assumptions := return asms ..opt }
+   tactic.solve_by_elim { all_goals := all_goals.is_some, assumptions := return asms, ..opt }
 
 /--
 `tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`

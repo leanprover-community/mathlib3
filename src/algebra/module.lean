@@ -6,16 +6,16 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 Modules over a ring.
 -/
 
-import algebra.ring algebra.big_operators group_theory.subgroup
+import algebra.ring algebra.big_operators group_theory.subgroup group_theory.group_action
 open function
 
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
-/-- Typeclass for types with a scalar multiplication operation, denoted `•` (`\bu`) -/
-class has_scalar (α : Type u) (γ : Type v) := (smul : α → γ → γ)
+-- /-- Typeclass for types with a scalar multiplication operation, denoted `•` (`\bu`) -/
+-- class has_scalar (α : Type u) (γ : Type v) := (smul : α → γ → γ)
 
-infixr ` • `:73 := has_scalar.smul
+-- infixr ` • `:73 := has_scalar.smul
 
 /-- A semimodule is a generalization of vector spaces to a scalar semiring.
   It consists of a scalar semiring `α` and an additive monoid of "vectors" `β`,
@@ -320,3 +320,34 @@ theorem smul_mem_iff (r0 : r ≠ 0) : r • x ∈ p ↔ x ∈ p :=
  p.smul_mem r⟩
 
 end submodule
+
+namespace add_comm_monoid
+open add_monoid
+
+variables {M : Type*} [add_comm_monoid M]
+
+instance : semimodule ℕ M :=
+{ smul := smul,
+  smul_add := λ _ _ _, smul_add _ _ _,
+  add_smul := λ _ _ _, add_smul _ _ _,
+  mul_smul := λ _ _ _, mul_smul _ _ _,
+  one_smul := one_smul,
+  zero_smul := zero_smul,
+  smul_zero := smul_zero }
+
+end add_comm_monoid
+
+namespace add_comm_group
+
+variables {M : Type*} [add_comm_group M]
+
+instance : module ℤ M :=
+{ smul := gsmul,
+  smul_add := λ _ _ _, gsmul_add _ _ _,
+  add_smul := λ _ _ _, add_gsmul _ _ _,
+  mul_smul := λ _ _ _, gsmul_mul _ _ _,
+  one_smul := one_gsmul,
+  zero_smul := zero_gsmul,
+  smul_zero := gsmul_zero }
+
+end add_comm_group

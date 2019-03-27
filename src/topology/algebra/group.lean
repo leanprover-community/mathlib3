@@ -8,7 +8,7 @@ Theory of topological groups.
 -/
 import data.equiv.algebra
 import group_theory.quotient_group
-import topology.algebra.monoid
+import topology.algebra.monoid topology.order
 
 open classical set lattice filter topological_space
 local attribute [instance] classical.prop_decidable
@@ -98,10 +98,10 @@ attribute [to_additive homeomorph.neg._proof_2] homeomorph.inv._proof_2
 attribute [to_additive homeomorph.neg] homeomorph.inv
 
 @[to_additive exists_nhds_half]
-lemma exists_nhds_split [topological_group α] {s : set α} (hs : s ∈ (nhds (1 : α)).sets) :
-  ∃ V ∈ (nhds (1 : α)).sets, ∀ v w ∈ V, v * w ∈ s :=
+lemma exists_nhds_split [topological_group α] {s : set α} (hs : s ∈ nhds (1 : α)) :
+  ∃ V ∈ nhds (1 : α), ∀ v w ∈ V, v * w ∈ s :=
 begin
-  have : ((λa:α×α, a.1 * a.2) ⁻¹' s) ∈ (nhds ((1, 1) : α × α)).sets :=
+  have : ((λa:α×α, a.1 * a.2) ⁻¹' s) ∈ nhds ((1, 1) : α × α) :=
     tendsto_mul' (by simpa using hs),
   rw nhds_prod_eq at this,
   rcases mem_prod_iff.1 this with ⟨V₁, H₁, V₂, H₂, H⟩,
@@ -109,20 +109,20 @@ begin
 end
 
 @[to_additive exists_nhds_half_neg]
-lemma exists_nhds_split_inv [topological_group α] {s : set α} (hs : s ∈ (nhds (1 : α)).sets) :
-  ∃ V ∈ (nhds (1 : α)).sets, ∀ v w ∈ V, v * w⁻¹ ∈ s :=
+lemma exists_nhds_split_inv [topological_group α] {s : set α} (hs : s ∈ nhds (1 : α)) :
+  ∃ V ∈ nhds (1 : α), ∀ v w ∈ V, v * w⁻¹ ∈ s :=
 begin
   have : tendsto (λa:α×α, a.1 * (a.2)⁻¹) ((nhds (1:α)).prod (nhds (1:α))) (nhds 1),
   { simpa using tendsto_mul (@tendsto_fst α α (nhds 1) (nhds 1)) (tendsto_inv tendsto_snd) },
-  have : ((λa:α×α, a.1 * (a.2)⁻¹) ⁻¹' s) ∈ ((nhds (1:α)).prod (nhds (1:α))).sets :=
+  have : ((λa:α×α, a.1 * (a.2)⁻¹) ⁻¹' s) ∈ (nhds (1:α)).prod (nhds (1:α)) :=
     this (by simpa using hs),
   rcases mem_prod_iff.1 this with ⟨V₁, H₁, V₂, H₂, H⟩,
   exact ⟨V₁ ∩ V₂, inter_mem_sets H₁ H₂, assume v w ⟨hv, _⟩ ⟨_, hw⟩, @H (v, w) ⟨hv, hw⟩⟩
 end
 
 @[to_additive exists_nhds_quarter]
-lemma exists_nhds_split4 [topological_group α] {u : set α} (hu : u ∈ (nhds (1 : α)).sets) :
-  ∃ V ∈ (nhds (1 : α)).sets, ∀ {v w s t}, v ∈ V → w ∈ V → s ∈ V → t ∈ V → v * w * s * t ∈ u :=
+lemma exists_nhds_split4 [topological_group α] {u : set α} (hu : u ∈ nhds (1 : α)) :
+  ∃ V ∈ nhds (1 : α), ∀ {v w s t}, v ∈ V → w ∈ V → s ∈ V → t ∈ V → v * w * s * t ∈ u :=
 begin
   rcases exists_nhds_split hu with ⟨W, W_nhd, h⟩,
   rcases exists_nhds_split W_nhd with ⟨V, V_nhd, h'⟩,
@@ -155,6 +155,12 @@ begin
     exact tendsto_mul tendsto_id tendsto_const_nhds }
 end
 
+@[to_additive topological_add_group.ext]
+lemma topological_group.ext {G : Type*} [group G] {t t' : topological_space G}
+  (tg : @topological_group G t _) (tg' : @topological_group G t' _)
+  (h : @nhds G t 1 = @nhds G t' 1) : t = t' :=
+eq_of_nhds_eq_nhds $ λ x, by
+  rw [← @nhds_translation_mul_inv G t _ _ x , ← @nhds_translation_mul_inv G t' _ _ x , ← h]
 end topological_group
 
 section quotient_topological_group
@@ -268,9 +274,9 @@ suffices tendsto (λp:α×α, p.1 - -p.2) ((Z α).prod (Z α)) (Z α),
   by simpa,
 (tendsto.prod_mk tendsto_fst (tendsto_snd.comp neg_Z)).comp sub_Z
 
-lemma exists_Z_half {s : set α} (hs : s ∈ (Z α).sets) : ∃ V ∈ (Z α).sets, ∀ v w ∈ V, v + w ∈ s :=
+lemma exists_Z_half {s : set α} (hs : s ∈ Z α) : ∃ V ∈ Z α, ∀ v w ∈ V, v + w ∈ s :=
 begin
-  have : ((λa:α×α, a.1 + a.2) ⁻¹' s) ∈ ((Z α).prod (Z α)).sets := add_Z (by simpa using hs),
+  have : ((λa:α×α, a.1 + a.2) ⁻¹' s) ∈ (Z α).prod (Z α) := add_Z (by simpa using hs),
   rcases mem_prod_iff.1 this with ⟨V₁, H₁, V₂, H₂, H⟩,
   exact ⟨V₁ ∩ V₂, inter_mem_sets H₁ H₂, assume v w ⟨hv, _⟩ ⟨_, hw⟩, @H (v, w) ⟨hv, hw⟩⟩
 end

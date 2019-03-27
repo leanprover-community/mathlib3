@@ -36,7 +36,7 @@ tendsto_infi.2 $ assume p, tendsto_principal.2 $
       ... = 1 + add_monoid.smul n (r - 1) : by rw [add_monoid.smul_eq_mul]
       ... ≤ (1 + (r - 1)) ^ n : pow_ge_one_add_mul (le_of_lt this) _
       ... ≤ r ^ n : by simp; exact le_refl _,
-  show {n | p ≤ r ^ n} ∈ at_top.sets,
+  show {n | p ≤ r ^ n} ∈ at_top,
     from mem_at_top_sets.mpr ⟨n, assume m hnm, le_trans this (pow_le_pow (le_of_lt h) hnm)⟩
 
 lemma tendsto_inverse_at_top_nhds_0 : tendsto (λr:ℝ, r⁻¹) at_top (nhds 0) :=

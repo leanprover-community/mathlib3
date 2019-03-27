@@ -216,8 +216,8 @@ def left_adjoint_of_equiv : C ⥤ D :=
 { obj := F_obj,
   map := λ X X' f, (e X (F_obj X')).symm (f ≫ e X' (F_obj X') (𝟙 _)),
   map_comp' := λ X X' X'' f f', begin
-    rw [equiv.symm_apply_eq, he, equiv.apply_inverse_apply],
-    conv { to_rhs, rw [assoc, ←he, id_comp, equiv.apply_inverse_apply] },
+    rw [equiv.symm_apply_eq, he, equiv.apply_symm_apply],
+    conv { to_rhs, rw [assoc, ←he, id_comp, equiv.apply_symm_apply] },
     simp
   end }
 
@@ -247,8 +247,8 @@ def right_adjoint_of_equiv : D ⥤ C :=
 { obj := G_obj,
   map := λ Y Y' g, (e (G_obj Y) Y') ((e (G_obj Y) Y).symm (𝟙 _) ≫ g),
   map_comp' := λ Y Y' Y'' g g', begin
-    rw [← equiv.eq_symm_apply, ← he' e he, equiv.inverse_apply_apply],
-    conv { to_rhs, rw [← assoc, he' e he, comp_id, equiv.inverse_apply_apply] },
+    rw [← equiv.eq_symm_apply, ← he' e he, equiv.symm_apply_apply],
+    conv { to_rhs, rw [← assoc, he' e he, comp_id, equiv.symm_apply_apply] },
     simp
   end }
 
@@ -259,7 +259,7 @@ mk_of_hom_equiv F (right_adjoint_of_equiv e he)
   hom_equiv_naturality_right' :=
   begin
     intros X Y Y' g h,
-    erw [←he, equiv.apply_eq_iff_eq, ←assoc, he' e he, comp_id, equiv.inverse_apply_apply]
+    erw [←he, equiv.apply_eq_iff_eq, ←assoc, he' e he, comp_id, equiv.symm_apply_apply]
   end }
 
 end construct_right

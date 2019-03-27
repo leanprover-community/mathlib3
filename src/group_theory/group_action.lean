@@ -170,17 +170,17 @@ mul_action.comp_hom (quotient H) (subtype.val : I → α)
 end mul_action
 
 /-- Typeclass for multiplicative actions on additive structures. This generalizes group modules. -/
-class mul_action_add (α : Type u) (β : Type v) [monoid α] [add_monoid β] extends mul_action α β :=
+class distrib_mul_action (α : Type u) (β : Type v) [monoid α] [add_monoid β] extends mul_action α β :=
 (smul_add : ∀(r : α) (x y : β), r • (x + y) = r • x + r • y)
 (smul_zero {} : ∀(r : α), r • (0 : β) = 0)
 
 section
-variables [monoid α] [add_monoid β] [mul_action_add α β]
+variables [monoid α] [add_monoid β] [distrib_mul_action α β]
 
 theorem smul_add (a : α) (b₁ b₂ : β) : a • (b₁ + b₂) = a • b₁ + a • b₂ :=
-mul_action_add.smul_add _ _ _
+distrib_mul_action.smul_add _ _ _
 
 @[simp] theorem smul_zero (a : α) : a • (0 : β) = 0 :=
-mul_action_add.smul_zero _
+distrib_mul_action.smul_zero _
 
 end

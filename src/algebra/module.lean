@@ -23,7 +23,7 @@ variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
   (where `r : α` and `x : β`) with some natural associativity and
   distributivity axioms similar to those on a ring. -/
 class semimodule (α : Type u) (β : Type v) [semiring α]
-  [add_comm_monoid β] extends mul_action_add α β :=
+  [add_comm_monoid β] extends distrib_mul_action α β :=
 (add_smul : ∀(r s : α) (x : β), (r + s) • x = r • x + s • x)
 (zero_smul : ∀x : β, (0 : α) • x = 0)
 

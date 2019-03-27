@@ -126,6 +126,18 @@ if __name__ == "__main__":
             make_cache(fn)
         else:
             print("leanpkg build failed, I'm not making cache")
+    elif sys.argv[1:] == ['--build-all']:
+        for b in repo.branches:
+            print("Switching to branch " + b.name)
+            try:
+                b.checkout()
+            except Exception as e:
+                print("Failed to switch branch:")
+                print(repr(e))
+            rev = repo.commit().hexsha
+            fn = os.path.join(cache_dir, 'olean-' + rev + ".bz2")
+            os.system('leanpkg build')
+            make_cache(fn) # we build the cache even if the build failed
     elif sys.argv[1:] == []:
         make_cache(fn)
     else:

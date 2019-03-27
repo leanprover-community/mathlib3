@@ -114,17 +114,17 @@ namespace char_p
 section
 variables (α : Type u) [ring α]
 
-lemma to_char_zero [char_p α 0] : char_zero α :=
+lemma char_p_to_char_zero [char_p α 0] : char_zero α :=
 add_group.char_zero_of_inj_zero $
   λ n h0, eq_zero_of_zero_dvd ((cast_eq_zero_iff α 0 n).mp h0)
 
-lemma eq_mod (p : ℕ) [char_p α p] (k : ℕ) : (k : α) = (k % p : ℕ) :=
+lemma cast_eq_mod (p : ℕ) [char_p α p] (k : ℕ) : (k : α) = (k % p : ℕ) :=
 calc (k : α) = ↑(k % p + p * (k / p)) : by rw [nat.mod_add_div]
          ... = ↑(k % p)               : by simp[cast_eq_zero]
 
-theorem ne_zero_of_fintype (p : ℕ) [hc : char_p α p] [fintype α] [decidable_eq α] : p ≠ 0 :=
+theorem char_ne_zero_of_fintype (p : ℕ) [hc : char_p α p] [fintype α] [decidable_eq α] : p ≠ 0 :=
 assume h : p = 0,
-have char_zero α := @to_char_zero α _ (h ▸ hc),
+have char_zero α := @char_p_to_char_zero α _ (h ▸ hc),
 absurd (@nat.cast_injective α _ _ this) (@set.not_injective_nat_fintype α _ _ _)
 
 end
@@ -134,13 +134,13 @@ open nat
 
 variables (α : Type u) [integral_domain α]
 
-theorem ne_one (p : ℕ) [hc : char_p α p] : p ≠ 1 :=
+theorem char_ne_one (p : ℕ) [hc : char_p α p] : p ≠ 1 :=
 assume hp : p = 1,
 have (↑1 : α) = 0, from (cast_eq_zero_iff α p 1).mpr (hp ▸ dvd_refl p),
 have ( 1 : α) = 0, from @cast_one α _ _ ▸ this,
 absurd this one_ne_zero
 
-theorem is_prime_of_ge_two (p : ℕ) [hc : char_p α p] (hp : p ≥ 2) : nat.prime p :=
+theorem char_is_prime_of_ge_two (p : ℕ) [hc : char_p α p] (hp : p ≥ 2) : nat.prime p :=
 suffices ∀d ∣ p, d = 1 ∨ d = p, from ⟨hp, this⟩,
 assume (d : ℕ) (hdvd : ∃ e, p = d * e),
 let ⟨e, hmul⟩ := hdvd in
@@ -158,15 +158,15 @@ or.elim (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero (d : α) e this)
   have d * p = 1 * p, by rw ‹e = p› at hmul; rw [one_mul]; exact eq.symm hmul,
   show d = 1 ∨ d = p, from or.inl (eq_of_mul_eq_mul_right h₀ this))
 
-theorem is_prime_or_zero (p : ℕ) [hc : char_p α p] : nat.prime p ∨ p = 0 :=
+theorem char_is_prime_or_zero (p : ℕ) [hc : char_p α p] : nat.prime p ∨ p = 0 :=
 match p, hc with
 | 0,     _  := or.inr rfl
-| 1,     hc := absurd (eq.refl (1 : ℕ)) (@ne_one α _ (1 : ℕ) hc)
-| (m+2), hc := or.inl (@is_prime_of_ge_two α _ (m+2) hc (nat.le_add_left 2 m))
+| 1,     hc := absurd (eq.refl (1 : ℕ)) (@char_ne_one α _ (1 : ℕ) hc)
+| (m+2), hc := or.inl (@char_is_prime_of_ge_two α _ (m+2) hc (nat.le_add_left 2 m))
 end
 
-theorem is_prime [fintype α] [decidable_eq α] (p : ℕ) [char_p α p] : nat.prime p :=
-or.resolve_right (is_prime_or_zero α p) (ne_zero_of_fintype α p)
+theorem char_is_prime [fintype α] [decidable_eq α] (p : ℕ) [char_p α p] : nat.prime p :=
+or.resolve_right (char_is_prime_or_zero α p) (char_ne_zero_of_fintype α p)
 
 end integral_domain
 
@@ -177,11 +177,11 @@ namespace zmod
 variables {α : Type u} [ring α] {n : ℕ+}
 
 instance cast_is_ring_hom [char_p α n] : is_ring_hom (cast : zmod n → α) :=
-{ map_one := by rw ←@nat.cast_one α _ _; exact eq.symm (char_p.eq_mod α n 1),
+{ map_one := by rw ←@nat.cast_one α _ _; exact eq.symm (char_p.cast_eq_mod α n 1),
   map_mul := assume x y : zmod n, show ↑((x * y).val) = ↑(x.val) * ↑(y.val), from
-    by rw [zmod.mul_val, ←char_p.eq_mod, nat.cast_mul],
+    by rw [zmod.mul_val, ←char_p.cast_eq_mod, nat.cast_mul],
   map_add := assume x y : zmod n, show ↑((x + y).val) = ↑(x.val) + ↑(y.val), from
-    by rw [zmod.add_val, ←char_p.eq_mod, nat.cast_add] }
+    by rw [zmod.add_val, ←char_p.cast_eq_mod, nat.cast_add] }
 
 instance to_module [char_p α n] : module (zmod n) α := is_ring_hom.to_module cast
 

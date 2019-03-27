@@ -858,6 +858,16 @@ by simpa only [C_1, one_mul] using degree_C_mul_X_pow_le (1:α) n
 theorem degree_X_le : degree (X : polynomial α) ≤ 1 :=
 by simpa only [C_1, one_mul, pow_one] using degree_C_mul_X_pow_le (1:α) 1
 
+lemma degree_map' [comm_semiring β] [decidable_eq β] (p : polynomial α)
+  {f : α → β} [is_semiring_hom f] (hf : function.injective f) :
+  degree (p.map f) = degree p :=
+degree_map_eq_of_injective _ hf
+
+lemma nat_degree_map' [comm_semiring β] [decidable_eq β] (p : polynomial α)
+  {f : α → β} [is_semiring_hom f] (hf : function.injective f) :
+  nat_degree (p.map f) = nat_degree p :=
+nat_degree_eq_of_degree_eq (degree_map' _ hf)
+
 theorem monic_of_degree_le (n : ℕ) (H1 : degree p ≤ n) (H2 : coeff p n = 1) : monic p :=
 decidable.by_cases
   (assume H : degree p < n, @subsingleton.elim _ (subsingleton_of_zero_eq_one α $
@@ -1607,16 +1617,6 @@ begin
 end
 
 end multiplicity
-
-lemma degree_map' [comm_semiring β] [decidable_eq β] (p : polynomial α)
-  {f : α → β} [is_semiring_hom f] (hf : function.injective f) :
-  degree (p.map f) = degree p :=
-degree_map_eq_of_injective _ hf
-
-lemma nat_degree_map' [comm_semiring β] [decidable_eq β] (p : polynomial α)
-  {f : α → β} [is_semiring_hom f] (hf : function.injective f) :
-  nat_degree (p.map f) = nat_degree p :=
-nat_degree_eq_of_degree_eq (degree_map' _ hf)
 
 end comm_ring
 

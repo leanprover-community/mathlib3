@@ -330,7 +330,7 @@ by rw [real.norm_eq_abs, abs_of_nonneg (norm_nonneg _)]
 
 section normed_space
 
-class normed_space (α : out_param $ Type*) (β : Type*) [out_param $ normed_field α]
+class normed_space (α : Type*) (β : Type*) [normed_field α]
   extends normed_group β, vector_space α β :=
 (norm_smul : ∀ (a:α) b, norm (a • b) = has_norm.norm a * norm b)
 
@@ -413,15 +413,17 @@ instance fintype.normed_space {ι : Type*} {E : ι → Type*} [fintype ι] [∀i
   ..metric_space_pi,
   ..pi.vector_space α }
 
-/-- A normed space can be build from a norm that satisfies algebraic properties. This is formalised in this structure. -/
+/-- A normed space can be built from a norm that satisfies algebraic properties. This is
+formalised in this structure. -/
 structure normed_space.core (α : Type*) (β : Type*)
-  [out_param $ discrete_field α] [normed_field α] [add_comm_group β] [has_scalar α β] [has_norm β]:=
+  [normed_field α] [add_comm_group β] [has_scalar α β] [has_norm β] :=
 (norm_eq_zero_iff : ∀ x : β, ∥x∥ = 0 ↔ x = 0)
 (norm_smul : ∀ c : α, ∀ x : β, ∥c • x∥ = ∥c∥ * ∥x∥)
 (triangle : ∀ x y : β, ∥x + y∥ ≤ ∥x∥ + ∥y∥)
 
 noncomputable def normed_space.of_core (α : Type*) (β : Type*)
-  [normed_field α] [add_comm_group β] [vector_space α β] [has_norm β] (C : normed_space.core α β) : normed_space α β :=
+  [normed_field α] [add_comm_group β] [vector_space α β] [has_norm β]
+  (C : normed_space.core α β) : normed_space α β :=
 { dist := λ x y, ∥x - y∥,
   dist_eq := assume x y, by refl,
   dist_self := assume x, (C.norm_eq_zero_iff (x - x)).mpr (show x - x = 0, by simp),
@@ -432,8 +434,7 @@ noncomputable def normed_space.of_core (α : Type*) (β : Type*)
   dist_comm := assume x y,
     calc ∥x - y∥ = ∥ -(1 : α) • (y - x)∥ : by simp
              ... = ∥y - x∥ : begin rw[C.norm_smul], simp end,
-  norm_smul := C.norm_smul
-}
+  norm_smul := C.norm_smul }
 
 end normed_space
 

@@ -179,6 +179,21 @@ def mk' (f : β → γ) (H : is_linear_map α f) : β →ₗ γ := {to_fun := f,
 @[simp] theorem mk'_apply {f : β → γ} (H : is_linear_map α f) (x : β) :
   mk' f H x = f x := rfl
 
+variables {f : β → γ} (lin : is_linear_map α f)
+include β γ lin
+
+@[simp] lemma map_zero : f (0 : β) = (0 : γ) :=
+by rw [← zero_smul α (0 : β), lin.smul, zero_smul]
+
+@[simp] lemma map_add (x y : β) : f (x + y) = f x + f y :=
+by rw [lin.add]
+
+@[simp] lemma map_neg (x : β) : f (- x) = - f x :=
+by rw [← neg_one_smul α, lin.smul, neg_one_smul]
+
+@[simp] lemma map_sub (x y : β) : f (x - y) = f x - f y :=
+by simp [lin.map_neg, lin.map_add]
+
 end is_linear_map
 
 /-- A submodule of a module is one which is closed under vector operations.

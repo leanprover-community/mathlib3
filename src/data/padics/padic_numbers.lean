@@ -393,8 +393,6 @@ begin
   { simpa using ih }
 end
 
-example {α} [discrete_field α] (n : ℤ) : α := n
-
 -- without short circuits, this needs an increase of class.instance_max_depth
 @[simp] lemma cast_eq_of_rat_of_int (n : ℤ) : ↑n = of_rat p n :=
 by induction n; simp
@@ -689,6 +687,18 @@ end
 
 @[simp] lemma eq_padic_norm (q : ℚ) : ∥padic.of_rat p q∥ = padic_norm p q :=
 by unfold has_norm.norm; congr; apply padic_seq.norm_const
+
+instance : nondiscrete_normed_field ℚ_[p] :=
+{ non_trivial := ⟨padic.of_rat p (p⁻¹), begin
+    have : 1 < p := prime.gt_one hp,
+    have : p ≠ 0 := ne_of_gt (hp.pos),
+    simp only [padic_norm, padic_val_rat.inv, *, inv_eq_zero, if_false, ne.def, nat.cast_eq_zero,
+      not_false_iff, neg_neg, padic_norm_e.eq_padic_norm, padic_val_rat.padic_val_rat_self,
+      nat.cast_ne_zero],
+    erw _root_.pow_one,
+    simp only [rat.cast_coe_nat],
+    rwa [← cast_one, cast_lt]
+  end⟩ }
 
 protected theorem image {q : ℚ_[p]} : q ≠ 0 → ∃ n : ℤ, ∥q∥ = ↑((↑p : ℚ) ^ (-n)) :=
 quotient.induction_on q $ λ f hf,

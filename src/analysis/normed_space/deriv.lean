@@ -150,6 +150,8 @@ theorem has_fderiv_at_const (c : F) (x : E) :
   has_fderiv_at (λ x, c) (λ y, 0) x :=
 has_fderiv_at_filter_const _ _ _
 
+set_option class.instance_max_depth 38
+
 theorem has_fderiv_at_filter_smul {f : E → F} {f' : E → F} {x : E} {L : filter E}
     (c : K) (h : has_fderiv_at_filter f f' x L) :
   has_fderiv_at_filter (λ x, c • f x) (λ x, c • f' x) x L :=

@@ -54,6 +54,8 @@ lemma zero : is_bounded_linear_map (λ (x:E), (0:F)) :=
 lemma id : is_bounded_linear_map (λ (x:E), x) :=
 linear_map.id.is_linear.with_bound 1 $ by simp [le_refl]
 
+set_option class.instance_max_depth 38
+
 lemma smul {f : E → F} (c : k) : is_bounded_linear_map f → is_bounded_linear_map (λ e, c • f e)
 | ⟨hf, ⟨M, hM, h⟩⟩ := (c • hf.mk' f).is_linear.with_bound (∥c∥ * M) $ assume x,
   calc ∥c • f x∥ = ∥c∥ * ∥f x∥ : norm_smul c (f x)

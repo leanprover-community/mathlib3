@@ -334,6 +334,8 @@ instance normed_field.to_normed_space : normed_space α α :=
 { dist_eq := normed_field.dist_eq,
   norm_smul := normed_field.norm_mul }
 
+set_option class.instance_max_depth 38
+
 lemma norm_smul [normed_space α β] (s : α) (x : β) : ∥s • x∥ = ∥s∥ * ∥x∥ :=
 normed_space.norm_smul s x
 

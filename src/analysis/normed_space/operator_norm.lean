@@ -114,7 +114,7 @@ begin
     simpa [ne.symm this] using I }
 end
 
-/-- Conversely, if one controls the norm of every A x, then one controls the norm of A. -/
+/-- If one controls the norm of every A x, then one controls the norm of A. -/
 lemma operator_norm_bounded_by {A : L(E,F)} {c : ℝ} (hc : 0 ≤ c) (H : ∀ x, ∥A x∥ ≤ c * ∥x∥) :
   ∥A∥ ≤ c :=
 begin

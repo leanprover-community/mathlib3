@@ -5,7 +5,11 @@ Authors: Abhimanyu Pallavi Sudhir
 Construction of the hyperreal numbers as an ultraproduct of real sequences.
 -/
 
-import data.real.basic algebra.field order.filter.filter_product analysis.specific_limits
+import .filter_product
+import .misc_dependencies
+import data.real.basic
+import analysis.specific_limits
+
 local attribute [instance] classical.prop_decidable
 
 open filter filter.filter_product
@@ -182,6 +186,19 @@ lemma is_st_trans_real {r s t : ℝ} : is_st r s → is_st s t → is_st r t := 
 lemma is_st_inj_real {r₁ r₂ s : ℝ} (h1 : is_st r₁ s) (h2 : is_st r₂ s) : r₁ = r₂ := 
 eq.trans (eq_of_is_st_real h1) (eq_of_is_st_real h2).symm
 
+lemma is_st_iff_abs_sub_lt_delta {x : ℝ*} {r : ℝ} : is_st x r ↔ ∀ (δ : ℝ), δ > 0 → abs (x - r) < δ :=
+by simp only [abs_sub_lt_iff, @sub_lt _ _ ↑r x _, @sub_lt_iff_lt_add' _ _ x ↑r _, and_comm]; refl 
+
+lemma is_st_iff_abs_sub_lt_k_mul_delta {x : ℝ*} {r k : ℝ}  (hk : k > 0) : is_st x r ↔ ∀ (δ : ℝ), δ > 0 → abs (x - r) < k * δ := sorry
+
+lemma is_st_add {x y : ℝ*} {r s : ℝ} : is_st x r → is_st y s → is_st (x + y) (r + s) := 
+λ hxr hys d hd, have hxr' : _ := hxr (d / 2) (half_pos hd), have hys' : _ := hys (d / 2) (half_pos hd),
+by rw [←of_eq_coe, ←of_eq_coe, ←add_halves d, of_add, of_add, add_sub_comm, norm_num.add_comm_middle, ←add_assoc, add_assoc _ _ (of s), add_comm _ (of s)];
+exact ⟨ add_lt_add hxr'.1 hys'.1, add_lt_add hxr'.2 hys'.2 ⟩
+
+lemma is_st_neg {x : ℝ*} {r : ℝ} (hxr : is_st x r) : is_st (-x) (-r) := λ d hd, 
+have hxr' : _ := hxr d hd, by show -↑r - ↑d < -x ∧ -x < -↑r + ↑d; cases hxr'; split; linarith
+
 -- BASIC LEMMAS ABOUT INFINITE
 
 lemma infinite_pos_def {x : ℝ*} : infinite_pos x ↔ ∀ r : ℝ, x > r := by rw iff_eq_eq; refl
@@ -318,18 +335,11 @@ Exists.cases_on (hf' (r - 1)) $ λ i hi,
   by simp only [set.compl_set_of, not_lt]; exact λ a har, le_of_lt (hi' a (lt_of_lt_of_le (sub_one_lt _) har)),
   (lt_def U).mpr $ mem_hyperfilter_of_finite_compl set.infinite_univ_nat $ set.finite_subset (set.finite_le_nat _) hS
 
+lemma not_infinite_neg {x : ℝ*} : ¬ infinite x → ¬ infinite (-x) := not_imp_not.mpr infinite_iff_infinite_neg.mpr
+
 lemma not_infinite_add {x y : ℝ*} (hx : ¬ infinite x) (hy : ¬ infinite y) : ¬ infinite (x + y) := 
-begin
-  rw [infinite, not_or_distrib, infinite_pos, infinite_neg, not_forall, not_forall] at hx hy ⊢,
-  rcases hx with ⟨⟨xr, hxr⟩, ⟨xl, hxl⟩⟩,
-  rcases hy with ⟨⟨yr, hyr⟩, ⟨yl, hyl⟩⟩,
-  simp only [not_lt] at hxl hxr hyl hyr ⊢, 
-  exact ⟨⟨xr + yr, add_le_add hxr hyr⟩, ⟨xl + yl, add_le_add hxl hyl⟩⟩,
-end
-
-lemma not_infinite_neg {x : ℝ*} (hx : ¬ infinite x) : ¬ infinite (-x) := sorry
-
-lemma not_infinite_mul {x y : ℝ*} (hx : ¬ infinite x) (hy : ¬ infinite y) : ¬ infinite (x * y) := sorry
+have hx' : _ := exist_st_of_not_infinite hx, have hy' : _ := exist_st_of_not_infinite hy,
+Exists.cases_on hx' $ Exists.cases_on hy' $ λ r hr s hs, not_infinite_of_exist_st $ ⟨s + r, is_st_add hs hr⟩
 
 theorem not_infinite_iff_exist_lt_gt {x : ℝ*} : ¬ infinite x ↔ ∃ r s : ℝ, ↑r < x ∧ x < s := ⟨ λ hni, 
 Exists.dcases_on (not_forall.mp (not_or_distrib.mp hni).1) $
@@ -360,7 +370,51 @@ lemma st_function {f : ℝ → ℝ} (x : ℝ*) : (st ((lift f) x) : ℝ*) = (lif
 
 lemma st_function₂ {f : ℝ → ℝ → ℝ} (x y : ℝ*) : (st ((lift₂ f) x y) : ℝ*) = (lift₂ f) (st x : ℝ*) (st y : ℝ*) := sorry-/
 
-lemma is_st_add {x y : ℝ*} {r s : ℝ} : is_st x r → is_st y s → is_st (x + y) (r + s) := sorry
+private lemma is_st_mul_1 {x y : ℝ*} {r s : ℝ} (hxr : is_st x r) (hys : is_st y s) (hs : s ≠ 0) : 
+  is_st (x * y) (r * s) := 
+have hxr' : _ := is_st_iff_abs_sub_lt_delta.mp hxr,
+have hys' : _ := is_st_iff_abs_sub_lt_delta.mp hys,
+have h : _ := not_infinite_iff_exist_lt_gt.mp $ not_imp_not.mpr infinite_iff_infinite_abs.mpr $ not_infinite_of_exist_st ⟨r, hxr⟩,
+Exists.cases_on h $ λ u h', Exists.cases_on h' $ λ t ⟨hu, ht⟩, is_st_iff_abs_sub_lt_delta.mpr $ λ d hd, 
+   calc abs (x * y - of (r * s)) 
+      = abs (x * y - (of r) * (of s)) : by rw of_mul
+  ... = abs (x * (y - of s) + (x - of r) * (of s)) : by ring
+  ... ≤ abs (x * (y - of s)) + abs ((x - of r) * (of s)) : abs_add _ _
+  ... ≤ abs x * abs (y - of s) + abs (x - of r) * abs (of s) : by simp only [abs_mul]
+  ... ≤ abs x * of ((d / t) / 2) + of ((d / abs s) / 2) * abs (of s) : by
+      { mono*, all_goals { try { exact abs_nonneg _ } },
+        exact le_of_lt (hys' _ (half_pos (div_pos hd ((of_lt U).mpr (lt_of_le_of_lt (abs_nonneg _) ht))))),
+        exact le_of_lt (hxr' _ (half_pos (div_pos hd (abs_pos_of_ne_zero hs)))),
+        exact of_le_of_le (div_nonneg (div_nonneg' (le_of_lt hd) (abs_nonneg _)) two_pos) }
+  ... = (of d) / 2 * (abs x / of t) + ((of d) / 2) : by
+      { rw [div_div_eq_div_mul, mul_comm t 2, ←div_div_eq_div_mul, of_div U, div_div_eq_div_mul, mul_comm (abs s) 2, 
+        ←div_div_eq_div_mul, mul_div_comm, of_div U, of_div U, of_div U, of_abs U, 
+        div_mul_cancel _ (ne_of_gt (abs_pos_of_ne_zero ((of_ne_zero U.1 _).mp hs)))], refl }
+  ... < (of d) / 2 * 1 + ((of d) / 2) : add_lt_add_right (mul_lt_mul_of_pos_left 
+        ((div_lt_one_iff_lt $ lt_of_le_of_lt (abs_nonneg x) ht).mpr ht) $ half_pos $ of_lt_of_lt U hd) _
+  ... = of d : by rw [mul_one, add_halves]
+
+lemma is_st_mul {x y : ℝ*} {r s : ℝ} (hxr : is_st x r) (hys : is_st y s) : is_st (x * y) (r * s) := 
+have h : _ := not_infinite_iff_exist_lt_gt.mp $ not_imp_not.mpr infinite_iff_infinite_abs.mpr $ not_infinite_of_exist_st ⟨r, hxr⟩,
+Exists.cases_on h $ λ u h', Exists.cases_on h' $ λ t ⟨hu, ht⟩,
+begin
+  by_cases hs : s = 0,
+  { apply is_st_iff_abs_sub_lt_delta.mpr, intros d hd,
+    have hys' : _ := is_st_iff_abs_sub_lt_delta.mp hys (d / t) (div_pos hd ((of_lt U).mpr (lt_of_le_of_lt (abs_nonneg x) ht))),
+    rw [hs, ←of_eq_coe _, of_zero, sub_zero] at hys',
+    rw [hs, mul_zero, (of_eq_coe _).symm, of_zero, sub_zero, abs_mul, mul_comm,
+        ←div_mul_cancel ↑d (ne_of_gt (lt_of_le_of_lt (abs_nonneg x) ht)), ←of_eq_coe d, ←of_eq_coe t, ←of_div U], 
+    exact mul_lt_mul'' hys' ht (abs_nonneg _) (abs_nonneg _) },
+  exact is_st_mul_1 hxr hys hs,
+end
+
+lemma is_st_inv {x : ℝ*} {r : ℝ} (hi : ¬ infinitesimal x) : is_st x r → is_st x⁻¹ r⁻¹ := sorry
+
+--AN INFINITE LEMMA THAT REQUIRES SOME MORE ST MACHINERY
+lemma not_infinite_mul {x y : ℝ*} (hx : ¬ infinite x) (hy : ¬ infinite y) : ¬ infinite (x * y) := 
+have hx' : _ := exist_st_of_not_infinite hx, have hy' : _ := exist_st_of_not_infinite hy,
+Exists.cases_on hx' $ Exists.cases_on hy' $ λ r hr s hs, not_infinite_of_exist_st $ ⟨s * r, is_st_mul hs hr⟩
+---
 
 lemma st_add {x y : ℝ*} (hx : ¬infinite x) (hy : ¬infinite y) : st (x + y) = st x + st y := 
 have hx' : _ := is_st_st' hx, 
@@ -369,13 +423,9 @@ have hxy : _ := is_st_st' (not_infinite_add hx hy),
 have hxy' : _ := is_st_add hx' hy',
 is_st_unique hxy hxy'
 
-lemma is_st_neg {x : ℝ*} {r : ℝ} : is_st x r → is_st (-x) (-r) := sorry
-
 lemma st_neg (x : ℝ*) : st (-x) = - st x := 
 if h : infinite x then by rw [st_infinite h, st_infinite (infinite_iff_infinite_neg.mp h), neg_zero]
 else is_st_unique (is_st_st' (not_infinite_neg h)) (is_st_neg (is_st_st' h))
-
-lemma is_st_mul {x y : ℝ*} {r s : ℝ} : is_st x r → is_st y s → is_st (x * y) (r * s) := sorry
 
 lemma st_mul {x y : ℝ*} (hx : ¬infinite x) (hy : ¬infinite y) : st (x * y) = (st x) * (st y) := 
 have hx' : _ := is_st_st' hx, 
@@ -383,8 +433,6 @@ have hy' : _ := is_st_st' hy,
 have hxy : _ := is_st_st' (not_infinite_mul hx hy),
 have hxy' : _ := is_st_mul hx' hy',
 is_st_unique hxy hxy'
-
-lemma is_st_inv {x : ℝ*} {r : ℝ} (hi : ¬ infinitesimal x) : is_st x r → is_st x⁻¹ r⁻¹ := sorry
 
 /- (st x < st y) → (x < y) → (x ≤ y) → (st x ≤ st y) -/
 

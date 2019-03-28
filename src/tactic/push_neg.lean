@@ -83,19 +83,12 @@ do e ← whnf_reducible e,
     | _        := return none
   end
 
-private meta def transform_negation : expr → tactic (option (expr × expr)) :=
-λ e, do
-  opr ← transform_negation_step e,
-  match opr with
-  | (some (e', pr)) := do
-    opr' ← transform_negation e',
-    match opr' with
-    | none              := return (some (e', pr))
-    | (some (e'', pr')) := do pr'' ← mk_eq_trans pr pr',
-                              return (some (e'', pr''))
-    end
-  | none            := return none
-  end
+private meta def transform_negation : expr → tactic (option (expr × expr))
+| e :=
+do (some (e', pr)) ← transform_negation_step e | return none,
+   (some (e'', pr')) ← transform_negation e' | return (some (e', pr)),
+   pr'' ← mk_eq_trans pr pr',
+   return (some (e'', pr''))
 
 meta def normalize_negations (t : expr) : tactic (expr × expr) :=
 do (_, e, pr) ← simplify_top_down ()

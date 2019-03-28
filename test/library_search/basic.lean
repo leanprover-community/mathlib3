@@ -49,6 +49,5 @@ by library_search -- says: `λ (a : Prop), (iff_not_self a).mp`
 example {a b c : ℕ} (h₁ : a ∣ c) (h₂ : a ∣ b + c) : a ∣ b :=
 by library_search -- says `exact (nat.dvd_add_left h₁).mp h₂`
 
-set_option trace.silence_library_search false
 example {a b c : ℕ} (h₁ : a ∣ b) (h₂ : a ∣ b + c) : a ∣ c :=
 by library_search -- says `exact (nat.dvd_add_left h₁).mp h₂`

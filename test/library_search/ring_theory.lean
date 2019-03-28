@@ -12,8 +12,3 @@ variables {I : ideal (polynomial R)}
 
 example {m n : ℕ} (H : m ≤ n) : I.leading_coeff_nth m ≤ I.leading_coeff_nth n :=
 by library_search -- exact ideal.leading_coeff_nth_mono I H
-
-open polynomial
-
-example (n : ℕ) (x) (h : ∃ p ∈ I, degree p ≤ n ∧ leading_coeff p = x) : x ∈ I.leading_coeff_nth n :=
-by library_search -- exact (ideal.mem_leading_coeff_nth I n x).mpr h

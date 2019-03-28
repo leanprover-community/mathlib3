@@ -152,7 +152,7 @@ theorem has_fderiv_at_const (c : F) (x : E) :
   has_fderiv_at K (λ x, c) (λ y, 0) x :=
 has_fderiv_at_filter_const _ _ _
 
-set_option class.instance_max_depth 38
+set_option class.instance_max_depth 43
 
 theorem has_fderiv_at_filter_smul {f : E → F} {f' : E → F} {x : E} {L : filter E}
     (c : K) (h : has_fderiv_at_filter K f f' x L) :
@@ -298,6 +298,8 @@ section
 variables {E : Type*} [normed_space ℝ E]
 variables {F : Type*} [normed_space ℝ F]
 variables {G : Type*} [normed_space ℝ G]
+
+set_option class.instance_max_depth 34
 
 theorem has_fderiv_at_filter_real_equiv {f : E → F} {f' : E → F} {x : E} {L : filter E}
     (bf' : is_bounded_linear_map ℝ f') :

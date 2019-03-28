@@ -106,6 +106,8 @@ let ⟨c, _, _⟩ := (exists_bound A : ∃ c, c > 0 ∧ ∀ x : E, ∥ A x ∥ �
 have ∥A x∥ ∈ (image (norm ∘ A) {x | ∥x∥ ≤ 1}), from mem_image_of_mem _ $ le_of_eq ‹∥x∥ = 1›,
 le_cSup (norm_of_unit_ball_bdd_above A) ‹∥A x∥ ∈ _›
 
+set_option class.instance_max_depth 34
+
 /-- This is the fundamental property of the operator norm: ∥A x∥ ≤ ∥A∥ * ∥x∥. -/
 theorem bounded_by_operator_norm {A : L(E,F)} {x : E} : ∥A x∥ ≤ ∥A∥ * ∥x∥ :=
 have A 0 = 0, from (to_linear_map A).map_zero,

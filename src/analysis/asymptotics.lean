@@ -589,7 +589,7 @@ scalar multiplication is multiplication.
 section
 variables {K : Type*} [normed_field K] [normed_space K β] [normed_group γ]
 
-set_option class.instance_max_depth 38
+set_option class.instance_max_depth 43
 
 theorem is_O_const_smul_left {f : α → β} {g : α → γ} {l : filter α} (h : is_O f g l) (c : K) :
   is_O (λ x, c • f x) g l :=
@@ -630,7 +630,7 @@ end
 section
 variables {K : Type*} [normed_group β] [normed_field K] [normed_space K γ]
 
-set_option class.instance_max_depth 38
+set_option class.instance_max_depth 43
 
 theorem is_O_const_smul_right {f : α → β} {g : α → γ} {l : filter α} {c : K} (hc : c ≠ 0) :
   is_O f (λ x, c • g x) l ↔ is_O f g l :=
@@ -653,7 +653,7 @@ end
 section
 variables {K : Type*} [normed_field K] [normed_space K β] [normed_space K γ]
 
-set_option class.instance_max_depth 38
+set_option class.instance_max_depth 43
 
 theorem is_O_smul {k : α → K} {f : α → β} {g : α → γ} {l : filter α} (h : is_O f g l) :
   is_O (λ x, k x • f x) (λ x, k x • g x) l :=

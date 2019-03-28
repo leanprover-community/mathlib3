@@ -6,6 +6,7 @@ Authors: Abhimanyu Pallavi Sudhir
 -/
 
 import order.filter.basic
+import .misc_dependencies
 
 universes u v
 variables {α : Type u} (β : Type v) (φ : filter α)

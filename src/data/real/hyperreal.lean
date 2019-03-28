@@ -196,6 +196,30 @@ exact ⟨ add_lt_add hxr'.1 hys'.1, add_lt_add hxr'.2 hys'.2 ⟩
 lemma is_st_neg {x : ℝ*} {r : ℝ} (hxr : is_st x r) : is_st (-x) (-r) := λ d hd, 
 have hxr' : _ := hxr d hd, by show -↑r - ↑d < -x ∧ -x < -↑r + ↑d; cases hxr'; split; linarith
 
+/- (st x < st y) → (x < y) → (x ≤ y) → (st x ≤ st y) -/
+
+lemma lt_of_is_st_lt {x y : ℝ*} {r s : ℝ} (hxr : is_st x r) (hys : is_st y s) :
+  r < s → x < y := 
+λ hrs, have hrs' : 0 < (s - r) / 2 := half_pos (sub_pos.mpr hrs),
+have hxr' : _ := (hxr _ hrs').2, have hys' : _ := (hys _ hrs').1,
+have H1 : r + ((s - r) / 2) = (r + s) / 2 := by linarith,
+have H2 : s - ((s - r) / 2) = (r + s) / 2 := by linarith,
+by simp only [(of_eq_coe _).symm, (of_add _ _).symm, (of_sub _ _).symm, H1, H2] at hxr' hys';
+exact lt_trans hxr' hys'
+
+lemma is_st_le_of_le {x y : ℝ*} {r s : ℝ} (hrx : is_st x r) (hsy : is_st y s) :
+  x ≤ y → r ≤ s := by rw [←not_lt, ←not_lt, not_imp_not]; exact lt_of_is_st_lt hsy hrx
+
+lemma st_le_of_le {x y : ℝ*} (hix : ¬ infinite x) (hiy : ¬ infinite y) : 
+  x ≤ y → st x ≤ st y := 
+have hx' : _ := is_st_st' hix, have hy' : _ := is_st_st' hiy,
+is_st_le_of_le hx' hy'
+
+lemma lt_of_st_lt {x y : ℝ*} (hix : ¬ infinite x) (hiy : ¬ infinite y) : 
+  st x < st y → x < y := 
+have hx' : _ := is_st_st' hix, have hy' : _ := is_st_st' hiy,
+lt_of_is_st_lt hx' hy'
+
 -- BASIC LEMMAS ABOUT INFINITE
 
 lemma infinite_pos_def {x : ℝ*} : infinite_pos x ↔ ∀ r : ℝ, x > r := by rw iff_eq_eq; refl
@@ -406,8 +430,6 @@ begin
   exact is_st_mul_1 hxr hys hs,
 end
 
-lemma is_st_inv {x : ℝ*} {r : ℝ} (hi : ¬ infinitesimal x) : is_st x r → is_st x⁻¹ r⁻¹ := sorry
-
 --AN INFINITE LEMMA THAT REQUIRES SOME MORE ST MACHINERY
 lemma not_infinite_mul {x y : ℝ*} (hx : ¬ infinite x) (hy : ¬ infinite y) : ¬ infinite (x * y) := 
 have hx' : _ := exist_st_of_not_infinite hx, have hy' : _ := exist_st_of_not_infinite hy,
@@ -431,20 +453,6 @@ have hy' : _ := is_st_st' hy,
 have hxy : _ := is_st_st' (not_infinite_mul hx hy),
 have hxy' : _ := is_st_mul hx' hy',
 is_st_unique hxy hxy'
-
-/- (st x < st y) → (x < y) → (x ≤ y) → (st x ≤ st y) -/
-
-lemma is_st_le_of_lt {x y : ℝ*} {r s : ℝ} (hxr : is_st x r) (hsy : is_st y s) :
-  x ≤ y → r ≤ s := sorry
-
-lemma lt_of_is_st_lt {x y : ℝ*} {r s : ℝ} (hxr : is_st x r) (hsy : is_st y s) :
-  r < s → x < y := sorry
-
-lemma st_le_of_lt {x y : ℝ*} (hix : ¬ infinite x) (hiy : ¬ infinite y) : 
-  x ≤ y → st x ≤ st y := sorry
-
-lemma lt_of_st_lt {x y : ℝ*} (hix : ¬ infinite x) (hiy : ¬ infinite y) : 
-  st x < st y → x < y := sorry
 
 -- BASIC LEMMAS ABOUT INFINITESIMAL
 
@@ -555,6 +563,14 @@ theorem is_st_of_tendsto {f : ℕ → ℝ} {r : ℝ} (hf : tendsto f at_top (nhd
 have hg : tendsto (λ n, f n - r) at_top (nhds 0) := (sub_self r) ▸ (tendsto_sub hf tendsto_const_nhds),
 by rw [←(zero_add r), ←(sub_add_cancel f (λ n, r))]; 
 exact is_st_add (infinitesimal_of_tendsto_zero hg) (is_st_refl_real r)
+
+lemma is_st_inv {x : ℝ*} {r : ℝ} (hi : ¬ infinitesimal x) : is_st x r → is_st x⁻¹ r⁻¹ := 
+λ hxr, have h : x ≠ 0 := (λ h, hi (h.symm ▸ infinitesimal_zero)),
+have H : _ := exist_st_of_not_infinite (not_imp_not.mpr (infinitesimal_iff_infinite_inv h).mpr hi),
+Exists.cases_on H $ λ s hs, 
+have H' : is_st 1 (r * s) := mul_inv_cancel h ▸ is_st_mul hxr hs,
+have H'' : s = r⁻¹ := one_div_eq_inv r ▸ eq_one_div_of_mul_eq_one (eq_of_is_st_real H').symm,
+H'' ▸ hs
 
 lemma st_inv (x : ℝ*) : st x⁻¹ = (st x)⁻¹ := 
 begin

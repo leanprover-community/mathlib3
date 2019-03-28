@@ -296,7 +296,10 @@ of_ne _ _ NT
 
 @[simp] lemma of_inv [has_inv β] (x : β) : of (x⁻¹) = (of x : β*)⁻¹ := rfl
 
-@[simp] lemma of_div [division_ring β] (U : is_ultrafilter φ) (x y : β) : of (x / y) = @has_div.div _ (@division_ring_has_div _ (filter_product.division_ring U) (filter_product.division_ring U)) (of x) (of y) := rfl
+@[simp] lemma of_div [division_ring β] (U : is_ultrafilter φ) (x y : β) : 
+  of (x / y) = @has_div.div _ (@division_ring_has_div _ (filter_product.division_ring U) (filter_product.division_ring U)) 
+  (of x) (of y) := 
+rfl
 
 lemma of_rel_of_rel {R : β → Prop} {x : β} : 
   R x → (lift_rel R) (of x : β*) := 
@@ -388,7 +391,8 @@ instance [ordered_cancel_comm_monoid β] : ordered_cancel_comm_monoid β* :=
 { add_le_add_left := λ x y hxy z, by revert hxy; exact quotient.induction_on₃' x y z 
     (λ a b c hab, by filter_upwards [hab] λ i hi, by simpa),
   le_of_add_le_add_left := λ x y z, quotient.induction_on₃' x y z $ λ x y z h, by filter_upwards [h] λ i, le_of_add_le_add_left,
-  ..filter_product.add_comm_monoid, ..filter_product.add_left_cancel_semigroup, ..filter_product.add_right_cancel_semigroup, ..filter_product.partial_order }
+  ..filter_product.add_comm_monoid, ..filter_product.add_left_cancel_semigroup, 
+  ..filter_product.add_right_cancel_semigroup, ..filter_product.partial_order }
 
 lemma max_def [K : decidable_linear_order β] (U : is_ultrafilter φ) (x y : β*) : 
   @max β* (filter_product.decidable_linear_order U) x y = (lift₂ max) x y := 
@@ -410,9 +414,11 @@ end
 
 lemma abs_def [decidable_linear_ordered_comm_group β] (U : is_ultrafilter φ) (x y : β*) :
   @abs _ (filter_product.decidable_linear_ordered_comm_group U) x = (lift abs) x :=
-quotient.induction_on' x $ λ a, by unfold abs; rw max_def; exact quotient.sound' (by show {i | abs _ = _} ∈ _; simp only [eq_self_iff_true, set.univ_def.symm]; exact univ_mem_sets)
+quotient.induction_on' x $ λ a, by unfold abs; rw max_def; exact quotient.sound' (by show {i | abs _ = _} ∈ _; 
+simp only [eq_self_iff_true, set.univ_def.symm]; exact univ_mem_sets)
 
-@[simp] lemma of_max [decidable_linear_order β] (U : is_ultrafilter φ) (x y : β) : (of (max x y) : β*) = @max _ (filter_product.decidable_linear_order U) (of x) (of y) := 
+@[simp] lemma of_max [decidable_linear_order β] (U : is_ultrafilter φ) (x y : β) : 
+  (of (max x y) : β*) = @max _ (filter_product.decidable_linear_order U) (of x) (of y) := 
 begin
 unfold max, split_ifs,
 { refl },
@@ -421,7 +427,8 @@ unfold max, split_ifs,
 { refl }
 end
 
-@[simp] lemma of_min [decidable_linear_order β] (U : is_ultrafilter φ) (x y : β) : (of (min x y) : β*) = @min _ (filter_product.decidable_linear_order U) (of x) (of y) := 
+@[simp] lemma of_min [decidable_linear_order β] (U : is_ultrafilter φ) (x y : β) : 
+  (of (min x y) : β*) = @min _ (filter_product.decidable_linear_order U) (of x) (of y) := 
 begin
 unfold min, split_ifs,
 { refl },
@@ -430,7 +437,9 @@ unfold min, split_ifs,
 { refl }
 end
 
-@[simp] lemma of_abs [decidable_linear_ordered_comm_group β] (U : is_ultrafilter φ) (x : β) : (of (abs x) : β*) = @abs _ (filter_product.decidable_linear_ordered_comm_group U) (of x) := of_max U x (-x)
+@[simp] lemma of_abs [decidable_linear_ordered_comm_group β] (U : is_ultrafilter φ) (x : β) : 
+  (of (abs x) : β*) = @abs _ (filter_product.decidable_linear_ordered_comm_group U) (of x) := 
+of_max U x (-x)
 
 end filter_product
 

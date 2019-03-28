@@ -4,7 +4,6 @@
 
 import tactic.basic
 import data.list.defs
-import data.option.basic
 
 /-
 A basic `library_search` tactic.

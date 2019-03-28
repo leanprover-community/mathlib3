@@ -30,18 +30,18 @@ lemma convex_iff:
   convex A ↔ ∀ {x y : α} {θ : ℝ},
     x ∈ A → y ∈ A → 0 ≤ θ → θ ≤ 1 → θ • x + (1 - θ) • y ∈ A :=
 ⟨
-  begin
+  by {
     assume h x y θ hx hy hθ₁ hθ₂,
     have hθ₂: 0 ≤ 1 - θ, by linarith,
     exact (h _ _ _ _ hx hy hθ₁ hθ₂ (by linarith))
-  end,
-  begin
+  },
+  by {
     assume h x y a b hx hy ha hb hab,
     have ha': a ≤ 1, by linarith,
     have hb': b = 1 - a, by linarith,
     rw hb',
     exact (h hx hy ha ha')
-  end
+  }
 ⟩
 
 /-- Another alternative definition of set convexity -/
@@ -49,7 +49,7 @@ lemma convex_iff_div:
   convex A ↔ ∀ {x y : α} {a : ℝ} {b : ℝ},
     x ∈ A → y ∈ A → 0 ≤ a → 0 ≤ b → 0 < a + b → (a/(a+b)) • x + (b/(a+b)) • y ∈ A :=
 ⟨
-  begin
+  by {
     assume h x y a b hx hy ha hb hab,
     apply h _ _ _ _ hx hy,
     have ha', from mul_le_mul_of_nonneg_left ha (le_of_lt (inv_pos hab)),
@@ -58,13 +58,13 @@ lemma convex_iff_div:
     rwa [mul_zero, ←div_eq_inv_mul] at hb',
     rw [←add_div],
     exact div_self (ne_of_lt hab).symm
-    end,
-    begin
+  },
+  by {
     assume h x y a b hx hy ha hb hab,
     have h', from h hx hy ha hb,
     rw [hab, div_one, div_one] at h',
     exact h' zero_lt_one
-  end
+  }
 ⟩
 
 local notation `I` := (Icc 0 1 : set ℝ)
@@ -139,11 +139,11 @@ begin
     apply exists.elim hseg,
     intros l hl,
     have hz : z = l • y + (1-l) • x,
-    begin
+    {
       rw sub_eq_iff_eq_add.1 hl.2,
       rw [smul_sub, sub_smul, one_smul],
       simp
-    end,
+    },
     rw hz,
     apply (convex_iff A).1 hA hy hx hl.1.1 hl.1.2 },
   { intros hA,
@@ -255,11 +255,11 @@ begin
   have h : convex ((λ (x : α × α), x.fst + x.snd) '' set.prod (insert z ∅) A),
     from convex_add {z} A (convex_singleton z) hA,
   show convex ((λx, z + x) '' A),
-  begin
+  {
     rw [@insert_prod _ _ z ∅ A, set.empty_prod, set.union_empty, ←image_comp] at h,
     simp at h,
     exact h
-  end
+  }
 end
 
 lemma convex_affinity (z : α) (c : ℝ) (hA : convex A) : convex ((λx, z + c • x) '' A) :=
@@ -267,11 +267,11 @@ begin
   have h : convex ((λ (x : α), z + x) '' ((λ (z : α), c • z) '' A)),
     from convex_translation _ z (convex_smul A c hA),
   show convex ((λx, z + c • x) '' A),
-  begin
+  {
     rw [←image_comp] at h,
     simp at h,
     exact h
-  end
+  }
 end
 
 lemma convex_Iio (r : ℝ) : convex (Iio r) :=
@@ -431,25 +431,26 @@ refine finset.induction _ _ s,
     have h_a0: ∀ i ∈ s, a i = 0,
       from (finset.sum_eq_zero_iff_of_nonneg ha').1 h_cases,
     have h_az0: ∀ i ∈ s, a i • z i = 0,
-    begin
+    {
       intros i hi,
       rw h_a0 i hi,
       exact zero_smul _ (z i)
-    end,
+    },
     show finset.sum (insert k s) (λ (i : γ), a i • z i) ∈ A,
-    begin
+    {
       rw [finset.sum_insert hks, hak, finset.sum_eq_zero h_az0],
       simp,
       exact hz k (finset.mem_insert_self k s)
-    end },
+    }
+  },
   { have h_sum_nonneg : 0 ≤ s.sum a ,
-    begin
+    {
       apply finset.zero_le_sum',
       intros i hi,
       apply ha _ (finset.mem_insert_of_mem hi)
-    end,
+    },
     have h_div_in_A: s.sum (λ (i : γ), ((s.sum a)⁻¹ * a i) • z i) ∈ A,
-    begin
+    {
       apply ih,
       { rw finset.mul_sum.symm,
         exact division_ring.inv_mul_cancel h_cases },
@@ -457,11 +458,11 @@ refine finset.induction _ _ s,
         exact zero_le_mul (inv_nonneg.2 h_sum_nonneg) (ha i (finset.mem_insert_of_mem hi))},
       { intros i hi,
         exact hz i (finset.mem_insert_of_mem hi) }
-    end,
+    },
     have h_sum_in_A: a k • z k
       + finset.sum s a • finset.sum s (λ (i : γ), ((finset.sum s a)⁻¹ * a i) • z i)
       ∈ A,
-    begin
+    {
       apply hA,
       exact hz k (finset.mem_insert_self k s),
       exact h_div_in_A,
@@ -469,9 +470,9 @@ refine finset.induction _ _ s,
       exact h_sum_nonneg,
       rw (finset.sum_insert hks).symm,
       exact h_sum
-    end,
+    },
     show finset.sum (insert k s) (λ (i : γ), a i • z i) ∈ A,
-    begin
+    {
       rw finset.sum_insert hks,
       rw finset.smul_sum at h_sum_in_A,
       simp [smul_smul, (mul_assoc (s.sum a) _ _).symm] at h_sum_in_A,
@@ -485,7 +486,8 @@ refine finset.induction _ _ s,
         rw (field.mul_inv_cancel h_cases).symm,
       end,
       exact h_sum_in_A
-    end }
+}
+  }
 }
 end
 
@@ -504,11 +506,11 @@ begin
     {
     let s := insert x (finset.singleton y),
     have h_sum_eq_add : finset.sum s (λ z, ite (x = z) a b • z) = a • x + b • y,
-    begin
+    {
       rw [finset.sum_insert (finset.not_mem_singleton.2 h_cases),
       finset.sum_singleton],
       simp [h_cases]
-    end,
+    },
     rw h_sum_eq_add.symm,
     apply h s,
     { rw [finset.sum_insert (finset.not_mem_singleton.2 h_cases),
@@ -541,14 +543,14 @@ lemma convex_on_iff:
   convex_on D f ↔ convex D ∧ ∀ {x y : α} {θ : ℝ},
     x ∈ D → y ∈ D → 0 ≤ θ → θ ≤ 1 → f (θ • x + (1 - θ) • y) ≤ θ * f x + (1 - θ) * f y :=
 ⟨
-  begin
+  by {
     intro h,
     apply and.intro h.1,
     intros x y θ hx hy hθ₁ hθ₂,
     have hθ₂: 0 ≤ 1 - θ, by linarith,
     exact (h.2 _ _ _ _ hx hy hθ₁ hθ₂ (by linarith))
-  end,
-  begin
+  },
+  by {
     intro h,
     apply and.intro h.1,
     assume x y a b hx hy ha hb hab,
@@ -556,7 +558,7 @@ lemma convex_on_iff:
     have hb': b = 1 - a, by linarith,
     rw hb',
     exact (h.2 hx hy ha ha')
-  end
+  }
 ⟩
 
 lemma convex_on_iff_div:
@@ -564,7 +566,7 @@ lemma convex_on_iff_div:
     x ∈ D → y ∈ D → 0 ≤ a → 0 ≤ b → 0 < a + b →
     f ((a/(a+b)) • x + (b/(a+b)) • y) ≤ (a/(a+b)) * f x + (b/(a+b)) * f y :=
 ⟨
-  begin
+  by {
     intro h,
     apply and.intro h.1,
     intros x y a b hx hy ha hb hab,
@@ -575,15 +577,15 @@ lemma convex_on_iff_div:
     rwa [mul_zero, ←div_eq_inv_mul] at hb',
     rw [←add_div],
     exact div_self (ne_of_lt hab).symm
-    end,
-    begin
+  },
+  by {
     intro h,
     apply and.intro h.1,
     intros x y a b hx hy ha hb hab,
     have h', from h.2 hx hy ha hb,
     rw [hab, div_one, div_one] at h',
     exact h' zero_lt_one
-  end
+  }
 ⟩
 
 section prop_decidable
@@ -604,32 +606,33 @@ begin
     have h_a0: ∀ i ∈ s, a i = 0,
       from (finset.sum_eq_zero_iff_of_nonneg ha').1 h_cases,
     have h_az0: ∀ i ∈ s, a i • z i = 0,
-    begin
+    {
       intros i hi,
       rw h_a0 i hi,
       exact zero_smul _ _
-    end,
+    },
     have h_afz0: ∀ i ∈ s, a i • f (z i) = 0,
-    begin
+    {
       intros i hi,
       rw h_a0 i hi,
       exact zero_smul _ _
-    end,
+    },
     show f (finset.sum (insert k s) (λi, a i • z i)) ≤ finset.sum (insert k s) (λi, a i • f (z i)),
-    begin
+    {
       rw [finset.sum_insert hks, hak, finset.sum_eq_zero h_az0],
       rw [finset.sum_insert hks, hak, finset.sum_eq_zero h_afz0],
       simp
-    end },
+    }
+  },
   { have h_sum_nonneg : 0 ≤ s.sum a ,
-    begin
+    {
       apply finset.zero_le_sum',
       intros i hi,
       apply ha _ (finset.mem_insert_of_mem hi)
-    end,
+    },
     have ih_div: f (s.sum (λ (i : γ), ((s.sum a)⁻¹ * a i) • z i))
                   ≤ s.sum (λ (i : γ), ((s.sum a)⁻¹ * a i) • f (z i)),
-    begin
+    {
       apply ih _ hf,
       { intros i hi,
         exact zero_le_mul (inv_nonneg.2 h_sum_nonneg) (ha i (finset.mem_insert_of_mem hi))},
@@ -637,7 +640,7 @@ begin
         exact hz i (finset.mem_insert_of_mem hi) },
       { rw finset.mul_sum.symm,
         exact division_ring.inv_mul_cancel h_cases }
-    end,
+    },
     have h_div_in_D: s.sum (λ (i : γ), ((s.sum a)⁻¹ * a i) • z i) ∈ D,
     by {
       apply convex_sum _ hf.1,
@@ -650,7 +653,7 @@ begin
     },
     have hf': f (a k • z k     + s.sum a •    s.sum (λ (i : γ), ((finset.sum s a)⁻¹ * a i) • z i))
                ≤ a k • f (z k) + s.sum a • f (s.sum (λ (i : γ), ((finset.sum s a)⁻¹ * a i) • z i)),
-    begin
+    {
       apply hf.2,
       exact hz k (finset.mem_insert_self k s),
       exact h_div_in_D,
@@ -658,13 +661,13 @@ begin
       exact h_sum_nonneg,
       rw (finset.sum_insert hks).symm,
       exact h_sum
-    end,
+    },
     have ih_div': f (a k • z k     + s.sum a • s.sum (λ (i : γ), ((finset.sum s a)⁻¹ * a i) • z i))
                    ≤ a k • f (z k) + s.sum a • s.sum (λ (i : γ), ((finset.sum s a)⁻¹ * a i) • f (z i)),
       from trans hf' (add_le_add_left (mul_le_mul_of_nonneg_left ih_div h_sum_nonneg) _),
     show f (finset.sum (insert k s) (λ (i : γ), a i • z i))
           ≤ finset.sum (insert k s) (λ (i : γ), a i • f (z i)),
-    begin
+    {
       simp [finset.sum_insert hks],
       simp [finset.smul_sum] at ih_div',
       simp [smul_smul, (mul_assoc (s.sum a) _ _).symm] at ih_div',
@@ -673,7 +676,8 @@ begin
         intro i,
         rw [field.mul_inv_cancel, one_mul],
         exact h_cases }
-    end }
+    }
+  }
 end
 
 end prop_decidable

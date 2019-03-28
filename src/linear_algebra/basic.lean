@@ -1175,6 +1175,8 @@ variables [module α β] [module α γ] [module α δ]
 include α
 open linear_map
 
+set_option class.instance_max_depth 39
+
 def smul_of_unit (a : units α) : β ≃ₗ[α] β :=
 of_linear ((a:α) • 1 : β →ₗ β) (((a⁻¹ : units α) : α) • 1 : β →ₗ β)
   (by rw [smul_comp, comp_smul, smul_smul, units.mul_inv, one_smul]; refl)

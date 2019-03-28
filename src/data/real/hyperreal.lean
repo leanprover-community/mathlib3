@@ -508,7 +508,8 @@ lemma infinite_neg_iff_infinitesimal_inv_neg {x : ℝ*} : infinite_neg x ↔ (in
 ⟨ λ hin, have hin' : _ := infinite_pos_iff_infinitesimal_inv_pos.mp (infinite_pos_neg_of_infinite_neg hin),
  by rwa [infinitesimal_neg_iff, ←neg_pos, neg_inv (λ h0, lt_irrefl x (by convert hin 0) : x ≠ 0)], 
  λ hin, have h0 : x ≠ 0 := λ h0, (lt_irrefl (0 : ℝ*) (by convert hin.2; rw [h0, inv_zero])),
- by rwa [←neg_pos, infinitesimal_neg_iff, neg_inv h0, ←infinite_pos_iff_infinitesimal_inv_pos, ←infinite_neg_iff_infinite_pos_neg] at hin ⟩ 
+ by rwa [←neg_pos, infinitesimal_neg_iff, neg_inv h0, ←infinite_pos_iff_infinitesimal_inv_pos, ←infinite_neg_iff_infinite_pos_neg] 
+    at hin ⟩ 
 
 theorem infinitesimal_inv_of_infinite {x : ℝ*} : infinite x → infinitesimal x⁻¹ := 
 λ hi, or.cases_on hi 

@@ -10,7 +10,7 @@ namespace category_theory.limits
 
 local attribute [tidy] tactic.case_bash
 
-universes u v
+universes v u
 
 @[derive decidable_eq] inductive walking_pair : Type v
 | zero | one
@@ -31,11 +31,12 @@ instance walking_pair_category : small_category walking_pair :=
   | _, _ ,_, (id _), h := h
   | _, _, _, left, (id one) := left
   | _, _, _, right, (id one) := right
-  end }
+  end,
+  id_comp' := begin dsimp, sorry, end, }
 
 lemma walking_pair_hom_id (X : walking_pair.{v}) : walking_pair_hom.id X = 𝟙 X := rfl
 
-variables {C : Type u} [𝒞 : category.{u v} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 variables {X Y : C}
 

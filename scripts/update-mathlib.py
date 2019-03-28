@@ -21,10 +21,12 @@ def auth_github():
         return Github(config.get('github', 'user'), config.get('github', 'password'))
     except configparser.NoOptionError:
         print('No username / password found in \'git config\'')
+        continue
     try:
         return Github(config.get('github', 'oauthtoken'))
     except configparser.NoOptionError:
         print('No oauth token found in \'git config\'')
+        continue
     return Github()
 
 # find root of project and leanpkg.toml

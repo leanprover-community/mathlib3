@@ -269,7 +269,7 @@ section vector_space
 universes u
 
 open vector_space
-set_option class.instance_max_depth 70
+set_option class.instance_max_depth 100
 
 lemma cardinal_mk_eq_cardinal_mk_field_pow_dim
   {α β : Type u} [discrete_field α] [add_comm_group β] [vector_space α β]

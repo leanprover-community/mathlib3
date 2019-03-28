@@ -24,3 +24,19 @@ makes it possible to have early access to work in progress.
 See [its README](https://github.com/leanprover-community/mathlib-nursery/blob/master/README.md)
 for more details.
 
+## Caching compilation
+
+In the `mathlib` git repository, run the following in a terminal:
+
+```sh
+$ scripts/setup-dev-scripts.sh
+$ source ~/.profile
+$ setup-lean-git-hooks
+```
+
+It will install scripts including `update-mathlib` and `cache-olean`
+and setup git hooks that will call `cache-olean` when making a commit
+and `cache-olean --fetch` and `update-mathlib` when checking out a
+branch. `update-mathlib` will fetch a compiled version of `mathlib`
+and `cache-olean` will store and fetch the compiled binaries of the
+branches you work.

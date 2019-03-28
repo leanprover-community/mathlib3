@@ -382,16 +382,6 @@ theorem not_real_of_infinite {x : ℝ*} : infinite x → ∀ r : ℝ, x ≠ of r
 
 -- FACTS ABOUT ST THAT REQUIRE SOME INFINITE MACHINERY
 
--- This isn't right
--- Perhaps f needs to be continuous?
-/-lemma is_st_function {f : ℝ → ℝ} {x : ℝ*} {r : ℝ} : is_st x r → is_st ((lift f) x) (f r) := sorry
-
-lemma is_st_function₂ {f : ℝ → ℝ → ℝ} {x y : ℝ*} {r s : ℝ} : is_st x r → is_st y s → is_st ((lift₂ f) x y) (f r s) := sorry
-
-lemma st_function {f : ℝ → ℝ} (x : ℝ*) : (st ((lift f) x) : ℝ*) = (lift f) (st x : ℝ*) := sorry
-
-lemma st_function₂ {f : ℝ → ℝ → ℝ} (x y : ℝ*) : (st ((lift₂ f) x y) : ℝ*) = (lift₂ f) (st x : ℝ*) (st y : ℝ*) := sorry-/
-
 private lemma is_st_mul_1 {x y : ℝ*} {r s : ℝ} (hxr : is_st x r) (hys : is_st y s) (hs : s ≠ 0) : 
   is_st (x * y) (r * s) := 
 have hxr' : _ := is_st_iff_abs_sub_lt_delta.mp hxr,

@@ -8,6 +8,36 @@ import urllib3
 import certifi
 from git import Repo, InvalidGitRepositoryError
 from github import Github
+import signal
+import logging
+
+# DelayedInterrupt class based on: 
+# http://stackoverflow.com/a/21919644/487556 and 
+# https://gist.github.com/tcwalther/ae058c64d5d9078a9f333913718bba95
+class DelayedInterrupt(object):
+    def __init__(self, signals):
+        if not isinstance(signals, list) and not isinstance(signals, tuple):
+            signals = [signals]
+        self.sigs = signals        
+
+    def __enter__(self):
+        self.signal_received = {}
+        self.old_handlers = {}
+        for sig in self.sigs:
+            self.signal_received[sig] = False
+            self.old_handlers[sig] = signal.getsignal(sig)
+            def handler(s, frame):
+                self.signal_received[sig] = (s, frame)
+                # Note: in Python 3.5, you can use signal.Signals(sig).name
+                logging.info('Signal %s received. Delaying KeyboardInterrupt.' % sig)
+            self.old_handlers[sig] = signal.getsignal(sig)
+            signal.signal(sig, handler)
+
+    def __exit__(self, type, value, traceback):
+        for sig in self.sigs:
+            signal.signal(sig, self.old_handlers[sig])
+            if self.signal_received[sig] and self.old_handlers[sig]:
+                self.old_handlers[sig](*self.signal_received[sig])
 
 def auth_github():
     try:
@@ -33,10 +63,11 @@ def make_cache(fn):
     if os.path.exists(fn):
         os.remove(fn)
 
-    ar = tarfile.open(fn, 'w|bz2')
-    if os.path.exists('src/'): ar.add('src/')
-    if os.path.exists('test/'): ar.add('test/')
-    ar.close()
+    with DelayedInterrupt([signal.SIGTERM, signal.SIGINT]):
+        ar = tarfile.open(fn, 'w|bz2')
+        if os.path.exists('src/'): ar.add('src/')
+        if os.path.exists('test/'): ar.add('test/')
+        ar.close()
     print('... successfully made olean cache.')
 
 def mathlib_asset(repo, rev):
@@ -78,14 +109,16 @@ def fetch_mathlib(asset):
             cert_reqs='CERT_REQUIRED',
             ca_certs=certifi.where())
         req = http.request('GET', asset.browser_download_url)
-        with open(asset.name, 'wb') as f:
-            f.write(req.data)
+        with DelayedInterrupt([signal.SIGTERM, signal.SIGINT]):
+            with open(asset.name, 'wb') as f:
+                f.write(req.data)
         os.chdir(cd)
     else:
         print("Reusing cached olean archive")
 
-    ar = tarfile.open(os.path.join(mathlib_dir, asset.name))
-    ar.extractall('.')
+    with DelayedInterrupt([signal.SIGTERM, signal.SIGINT]):
+        ar = tarfile.open(os.path.join(mathlib_dir, asset.name))
+        ar.extractall('.')
     print("... successfully extracted olean archive.")
 
 

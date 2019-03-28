@@ -178,7 +178,8 @@ lemma is_st_real_iff_eq {r s : ℝ} : is_st r s ↔ r = s := ⟨eq_of_is_st_real
 
 lemma is_st_symm_real {r s : ℝ} : is_st r s ↔ is_st s r := by rw [is_st_real_iff_eq, is_st_real_iff_eq, eq_comm]
 
-lemma is_st_trans_real {r s t : ℝ} : is_st r s → is_st s t → is_st r t := by rw [is_st_real_iff_eq, is_st_real_iff_eq, is_st_real_iff_eq]; exact eq.trans
+lemma is_st_trans_real {r s t : ℝ} : is_st r s → is_st s t → is_st r t := 
+by rw [is_st_real_iff_eq, is_st_real_iff_eq, is_st_real_iff_eq]; exact eq.trans
 
 lemma is_st_inj_real {r₁ r₂ s : ℝ} (h1 : is_st r₁ s) (h2 : is_st r₂ s) : r₁ = r₂ := 
 eq.trans (eq_of_is_st_real h1) (eq_of_is_st_real h2).symm
@@ -186,11 +187,10 @@ eq.trans (eq_of_is_st_real h1) (eq_of_is_st_real h2).symm
 lemma is_st_iff_abs_sub_lt_delta {x : ℝ*} {r : ℝ} : is_st x r ↔ ∀ (δ : ℝ), δ > 0 → abs (x - r) < δ :=
 by simp only [abs_sub_lt_iff, @sub_lt _ _ ↑r x _, @sub_lt_iff_lt_add' _ _ x ↑r _, and_comm]; refl 
 
-lemma is_st_iff_abs_sub_lt_k_mul_delta {x : ℝ*} {r k : ℝ}  (hk : k > 0) : is_st x r ↔ ∀ (δ : ℝ), δ > 0 → abs (x - r) < k * δ := sorry
-
 lemma is_st_add {x y : ℝ*} {r s : ℝ} : is_st x r → is_st y s → is_st (x + y) (r + s) := 
 λ hxr hys d hd, have hxr' : _ := hxr (d / 2) (half_pos hd), have hys' : _ := hys (d / 2) (half_pos hd),
-by rw [←of_eq_coe, ←of_eq_coe, ←add_halves d, of_add, of_add, add_sub_comm, norm_num.add_comm_middle, ←add_assoc, add_assoc _ _ (of s), add_comm _ (of s)];
+by rw [←of_eq_coe, ←of_eq_coe, ←add_halves d, of_add, of_add, add_sub_comm, 
+       norm_num.add_comm_middle, ←add_assoc, add_assoc _ _ (of s), add_comm _ (of s)];
 exact ⟨ add_lt_add hxr'.1 hys'.1, add_lt_add hxr'.2 hys'.2 ⟩
 
 lemma is_st_neg {x : ℝ*} {r : ℝ} (hxr : is_st x r) : is_st (-x) (-r) := λ d hd, 
@@ -299,7 +299,8 @@ lemma not_infinite_neg_add_infinite_pos {x y : ℝ*} : ¬ infinite_neg x → inf
 λ hx hy, by rw [add_comm]; exact infinite_pos_add_not_infinite_neg hy hx
 
 lemma infinite_neg_add_not_infinite_pos {x y : ℝ*} : infinite_neg x → ¬ infinite_pos y → infinite_neg (x + y) := 
-by rw [@infinite_neg_iff_infinite_pos_neg x, @infinite_pos_iff_infinite_neg_neg y, @infinite_neg_iff_infinite_pos_neg (x + y), neg_add]; exact infinite_pos_add_not_infinite_neg
+by rw [@infinite_neg_iff_infinite_pos_neg x, @infinite_pos_iff_infinite_neg_neg y, @infinite_neg_iff_infinite_pos_neg (x + y), neg_add]; 
+exact infinite_pos_add_not_infinite_neg
 
 lemma not_infinite_pos_add_infinite_neg {x y : ℝ*} : ¬ infinite_pos x → infinite_neg y → infinite_neg (x + y) := 
 λ hx hy, by rw [add_comm]; exact infinite_neg_add_not_infinite_pos hy hx
@@ -497,9 +498,11 @@ theorem infinitesimal_sub_st {x : ℝ*} (hx : ¬infinite x) : infinitesimal (x -
 infinitesimal_sub_is_st $ is_st_st' hx
 
 lemma infinite_pos_iff_infinitesimal_inv_pos {x : ℝ*} : infinite_pos x ↔ (infinitesimal x⁻¹ ∧ x⁻¹ > 0) := 
-⟨ λ hip, ⟨ infinitesimal_def.mpr (λ r hr, ⟨lt_trans (of_lt_of_lt U (neg_neg_of_pos hr)) (inv_pos (hip 0)), (inv_lt (of_lt_of_lt U hr) (hip 0)).mp (by convert hip r⁻¹)⟩), inv_pos $ hip 0 ⟩, 
+⟨ λ hip, ⟨ infinitesimal_def.mpr (λ r hr, ⟨lt_trans (of_lt_of_lt U (neg_neg_of_pos hr)) (inv_pos (hip 0)), 
+  (inv_lt (of_lt_of_lt U hr) (hip 0)).mp (by convert hip r⁻¹)⟩), inv_pos $ hip 0 ⟩, 
   λ ⟨hi, hp⟩ r, @classical.by_cases (r = 0) (x > (r : ℝ*)) (λ h, eq.substr h (inv_pos'.mp hp)) $
-  λ h, lt_of_le_of_lt (of_le_of_le (le_abs_self r)) ((inv_lt_inv (inv_pos'.mp hp) (of_lt_of_lt U (abs_pos_of_ne_zero h))).mp ((infinitesimal_def.mp hi) ((abs r)⁻¹) (inv_pos (abs_pos_of_ne_zero h))).2) ⟩
+  λ h, lt_of_le_of_lt (of_le_of_le (le_abs_self r)) ((inv_lt_inv (inv_pos'.mp hp) (of_lt_of_lt U (abs_pos_of_ne_zero h))).mp 
+  ((infinitesimal_def.mp hi) ((abs r)⁻¹) (inv_pos (abs_pos_of_ne_zero h))).2) ⟩
 
 lemma infinite_neg_iff_infinitesimal_inv_neg {x : ℝ*} : infinite_neg x ↔ (infinitesimal x⁻¹ ∧ x⁻¹ < 0) := 
 ⟨ λ hin, have hin' : _ := infinite_pos_iff_infinitesimal_inv_pos.mp (infinite_pos_neg_of_infinite_neg hin),

@@ -184,6 +184,15 @@ begin
   ac_refl
 end
 
+--TODO: move
+lemma is_linear_map_smul' {α R : Type*} [add_comm_group α] [comm_ring R] [module R α] (a : α):
+  is_linear_map R (λ (c : R), c • a) :=
+begin
+  refine is_linear_map.mk (λ x y, add_smul x y a) _,
+  intros _ _,
+  simp [smul_smul]
+end
+
 end is_linear_map
 
 /-- A submodule of a module is one which is closed under vector operations.

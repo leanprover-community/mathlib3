@@ -131,6 +131,38 @@ begin
       exact hba}}
 end
 
+lemma segment_translate (a b c x : α) : x ∈ [b, c] → a + x ∈ [a + b, a + c] :=
+begin
+  intro hx,
+  apply exists.elim hx,
+  intros θ hθ,
+  use θ,
+  apply and.intro hθ.1,
+  simp only [smul_sub, smul_add] at *,
+  rw (add_eq_of_eq_sub hθ.2.symm).symm,
+  simp
+end
+
+lemma segment_translate_image (a b c: α) : (λx, a + x) '' [b, c] = [a + b, a + c] :=
+begin
+  apply subset.antisymm,
+  { intros z hz,
+    apply exists.elim hz,
+    intros x hx,
+    convert segment_translate a b c x _,
+    { exact hx.2.symm },
+    { exact hx.1 }
+  },
+  { intros z hz,
+    apply exists.elim hz,
+    intros θ hθ,
+    use z - a,
+    apply and.intro,
+    { convert translate_segment (-a) (a + b) (a + c) z hz; simp },
+    { simp only [add_sub_cancel'_right] }
+  }
+end
+
 /-- Alternative defintion of set convexity using segments -/
 lemma convex_segment_iff : convex A ↔ ∀ x y ∈ A, [x, y] ⊆ A :=
 begin
@@ -342,6 +374,53 @@ begin
  apply convex_Iic,
 end
 
+private lemma convex_segment0 (b : α) : convex [0, b] :=
+begin
+  let f := (λ x : ℝ, x • b),
+  have h_image : f '' (Icc 0 1) = [0, b],
+  {
+    apply subset.antisymm,
+    {
+      intros z hz,
+      apply exists.elim hz,
+      intros x hx,
+      use x,
+      simp [hx.2.symm, hx.1]
+    },
+    {
+      intros z hz,
+      apply exists.elim hz,
+      intros x hx,
+      use x,
+      simp at hx,
+      exact and.intro hx.1 hx.2.symm,
+    }
+  },
+  have h_lin : is_linear_map ℝ f,
+    from is_linear_map.is_linear_map_smul' _,
+  show convex [0, b],
+  {
+    rw [←h_image],
+    exact convex_linear_image _ f h_lin (convex_Icc _ _),
+  }
+end
+
+lemma convex_segment (a b : α) : convex [a, b] :=
+begin
+  have h: (λx, a + x) '' [0, b-a] = [a, b],
+  {
+    convert segment_translate_image _ _ _,
+    { simp },
+    { simp only [add_sub_cancel'_right] }
+  },
+  show convex [a, b],
+  {
+    rw [← h],
+    apply convex_translation,
+    apply convex_segment0
+  }
+end
+
 lemma convex_halfspace_lt (f : α → ℝ) (h : is_linear_map ℝ f) (r : ℝ) :
   convex {w | f w < r} :=
 begin
@@ -486,7 +565,7 @@ refine finset.induction _ _ s,
         rw (field.mul_inv_cancel h_cases).symm,
       end,
       exact h_sum_in_A
-}
+    }
   }
 }
 end

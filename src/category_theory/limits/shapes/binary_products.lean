@@ -4,7 +4,7 @@
 
 import category_theory.limits.shapes.products
 
-universes u v
+universes v u
 
 open category_theory
 
@@ -17,7 +17,7 @@ def two.map {C : Type u} (X Y : C) : two → C
 | two.left := X
 | two.right := Y
 
-variables {C : Type u} [𝒞 : category.{u v} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
 variables {X Y : C}

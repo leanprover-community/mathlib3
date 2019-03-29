@@ -748,6 +748,10 @@ calc
     add_le_add (mul_le_mul_of_nonneg_left (le_max_left _ _) ha) (mul_le_mul_of_nonneg_left (le_max_right _ _) hb)
   ... ≤ max (f x) (f y) : by rw [←add_mul, hab, one_mul]
 
+/- This instance is necessary to guide class instance search in the lemma below. -/
+noncomputable instance real_normed_space.to_has_scalar (α : Type) [normed_space ℝ α] : has_scalar ℝ α :=
+mul_action.to_has_scalar ℝ α
+
 lemma convex_on_dist {α : Type} [normed_space ℝ α] (z : α) (D : set α) (hD : convex D) :
   convex_on D (λz', dist z' z) :=
 begin

@@ -1,6 +1,6 @@
 #! /bin/sh
 echo "Installing python dependencies (at user level)"
-pip3 install --user toml PyGithub urllib3 certifi
+pip3 install --user toml PyGithub urllib3 certifi GitPython
 echo "Fetching the update-mathlib script"
 curl -o update-mathlib.py https://raw.githubusercontent.com/leanprover-community/mathlib/master/scripts/update-mathlib.py
 echo "installing it in \$HOME/.mathlib/bin"

@@ -282,6 +282,13 @@ by library_search
 example {b : ℕ} (w : b ≠ 0) : b ≥ 1 :=
 by library_search
 
+-- Nope:
+-- example (a b c : ℕ) (h : b ≤ c) (w : b ≥ 1) : a / c ≤ a / b :=
+-- by library_search
+
+-- example (a b c : ℕ) (h : b ≤ c) (w : b ≠ 0) : a / c ≤ a / b :=
+-- by library_search
+
 -- example {E : Type} (e : equiv E E) : function.surjective e :=
 -- by library_search
 

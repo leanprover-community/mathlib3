@@ -42,7 +42,7 @@ begin
   have hb' : b = 1 - a, by linarith,
   rw hb',
   exact h hx hy ha ha'
-end ⟩
+end⟩
 
 /-- Another alternative definition of set convexity -/
 lemma convex_iff_div:
@@ -63,7 +63,7 @@ begin
   have h', from h hx hy ha hb,
   rw [hab, div_one, div_one] at h',
   exact h' zero_lt_one
-end ⟩
+end⟩
 
 local notation `I` := (Icc 0 1 : set ℝ)
 
@@ -76,12 +76,12 @@ lemma left_mem_segment (x y : α) : x ∈ [x, y] := ⟨0, ⟨⟨le_refl _, zero_
 lemma right_mem_segment (x y : α) : y ∈ [x, y] := ⟨1, ⟨⟨zero_le_one, le_refl _⟩, by simp⟩⟩
 
 lemma mem_segment_iff {x y z : α} : z ∈ [x, y] ↔ ∃ l ∈ I, z = x + l•(y - x) :=
-by split ; rintro ⟨l, l_in, H⟩ ; use [l, l_in] ; try { rw sub_eq_iff_eq_add at H } ; rw H ; abel
+by split; rintro ⟨l, l_in, H⟩; use [l, l_in]; try { rw sub_eq_iff_eq_add at H }; rw H; abel
 
 lemma mem_segment_iff' {x y z : α} : z ∈ [x, y] ↔ ∃ l ∈ I, z = ((1:ℝ)-l)•x + l•y :=
 begin
-  split ; rintro ⟨l, l_in, H⟩ ; use [l, l_in] ; try { rw sub_eq_iff_eq_add at H } ; rw H ;
-  simp only [smul_sub, sub_smul, one_smul] ; abel,
+  split; rintro ⟨l, l_in, H⟩; use [l, l_in]; try { rw sub_eq_iff_eq_add at H }; rw H;
+  simp only [smul_sub, sub_smul, one_smul]; abel,
 end
 
 lemma segment_symm (x y : α) : [x, y] = [y, x] :=
@@ -93,8 +93,8 @@ begin
     rintro ⟨l, ⟨hl₀, hl₁⟩, h⟩,
     use (1-l),
     split,
-    split ; linarith,
-    rw [h] ; simp },
+    split; linarith,
+    rw [h]; simp },
 end
 
 lemma segment_eq_Icc {a b : ℝ} (h : a ≤ b) : [a, b] = Icc a b :=
@@ -127,7 +127,7 @@ begin
       use [(z-a)/(b-a), this],
       rw [smul_eq_mul, div_mul_cancel],
       ring,
-      exact hba}}
+      exact hba } }
 end
 
 lemma segment_translate (a b c x : α) (hx : x ∈ [b, c]) : a + x ∈ [a + b, a + c] :=
@@ -145,14 +145,14 @@ begin
     intros x hx,
     convert segment_translate a b c x _,
     { exact hx.2.symm },
-    { exact hx.1 }},
+    { exact hx.1 } },
   { intros z hz,
     apply exists.elim hz,
     intros θ hθ,
     use z - a,
     apply and.intro,
     { convert segment_translate (-a) (a + b) (a + c) z hz; simp },
-    { simp only [add_sub_cancel'_right] }}
+    { simp only [add_sub_cancel'_right] } }
 end
 
 /-- Alternative defintion of set convexity using segments -/
@@ -354,7 +354,7 @@ begin
       intros x hx,
       use x,
       simp at hx,
-      exact and.intro hx.1 hx.2.symm }},
+      exact and.intro hx.1 hx.2.symm } },
   have h_lin : is_linear_map ℝ f,
     from is_linear_map.is_linear_map_smul' _,
   show convex [0, b],
@@ -367,7 +367,7 @@ begin
   have h: (λx, a + x) '' [0, b-a] = [a, b],
   { convert segment_translate_image _ _ _,
     { simp },
-    { simp only [add_sub_cancel'_right] }},
+    { simp only [add_sub_cancel'_right] } },
   show convex [a, b],
   { rw [← h],
     apply convex_translation,
@@ -465,7 +465,7 @@ begin
       show finset.sum (insert k s) (λ (i : γ), a i • z i) ∈ A,
       { rw [finset.sum_insert hks, hak, finset.sum_eq_zero h_az0],
         simp,
-        exact hz k (finset.mem_insert_self k s) }},
+        exact hz k (finset.mem_insert_self k s) } },
     { have h_sum_nonneg : 0 ≤ s.sum a,
       { apply finset.zero_le_sum',
         intros i hi,
@@ -477,7 +477,7 @@ begin
         { intros i hi,
           exact zero_le_mul (inv_nonneg.2 h_sum_nonneg) (ha i (finset.mem_insert_of_mem hi))},
         { intros i hi,
-          exact hz i (finset.mem_insert_of_mem hi) }},
+          exact hz i (finset.mem_insert_of_mem hi) } },
       have h_sum_in_A: a k • z k
         + finset.sum s a • finset.sum s (λ (i : γ), ((finset.sum s a)⁻¹ * a i) • z i) ∈ A,
       { apply hA,
@@ -500,7 +500,7 @@ begin
           rw (one_mul (a _)).symm,
           rw (field.mul_inv_cancel h_cases).symm,
         end,
-        exact h_sum_in_A }}}
+        exact h_sum_in_A } } }
 end
 
 lemma convex_sum_equiv :
@@ -533,7 +533,7 @@ begin
       { intros z hz,
         apply or.elim (finset.mem_insert.1 hz),
         { intros h_eq, rw h_eq, exact hx },
-        { intros h_eq, rw finset.mem_singleton at h_eq, rw h_eq, exact hy }}}}
+        { intros h_eq, rw finset.mem_singleton at h_eq, rw h_eq, exact hy } } } }
 end
 
 variables (D: set α) (D': set α) (f : α → ℝ) (g : α → ℝ)
@@ -613,7 +613,7 @@ begin
     show f (finset.sum (insert k s) (λi, a i • z i)) ≤ finset.sum (insert k s) (λi, a i • f (z i)),
     { rw [finset.sum_insert hks, hak, finset.sum_eq_zero h_az0],
       rw [finset.sum_insert hks, hak, finset.sum_eq_zero h_afz0],
-      simp }},
+      simp } },
   { have h_sum_nonneg : 0 ≤ s.sum a ,
     { apply finset.zero_le_sum',
       intros i hi,
@@ -626,7 +626,7 @@ begin
       { intros i hi,
         exact hz i (finset.mem_insert_of_mem hi) },
       { rw finset.mul_sum.symm,
-        exact division_ring.inv_mul_cancel h_cases }},
+        exact division_ring.inv_mul_cancel h_cases } },
     have h_div_in_D: s.sum (λ (i : γ), ((s.sum a)⁻¹ * a i) • z i) ∈ D,
     { apply convex_sum _ hf.1,
       { rw finset.mul_sum.symm,
@@ -634,7 +634,7 @@ begin
       { intros i hi,
         exact zero_le_mul (inv_nonneg.2 h_sum_nonneg) (ha i (finset.mem_insert_of_mem hi))},
       { intros i hi,
-        exact hz i (finset.mem_insert_of_mem hi) }},
+        exact hz i (finset.mem_insert_of_mem hi) } },
     have hf': f (a k • z k     + s.sum a •    s.sum (λ (i : γ), ((finset.sum s a)⁻¹ * a i) • z i))
                ≤ a k • f (z k) + s.sum a • f (s.sum (λ (i : γ), ((finset.sum s a)⁻¹ * a i) • z i)),
     { apply hf.2,
@@ -656,7 +656,7 @@ begin
       repeat { apply funext,
         intro i,
         rw [field.mul_inv_cancel, one_mul],
-        exact h_cases }}}
+        exact h_cases } } }
 end
 
 lemma convex_on_linorder [hα : linear_order α] (f : α → ℝ) : convex_on D f ↔
@@ -720,8 +720,7 @@ begin
       a * f x + b * f y ≤ a * f y + b * f y :
         add_le_add (mul_le_mul_of_nonneg_left h_wlog ha) (le_refl _)
       ... = (a + b) * f y : (add_mul _ _ _).symm
-      ... ≤ r             : by rw [hab, one_mul]; exact hy.2
-  }
+      ... ≤ r             : by rw [hab, one_mul]; exact hy.2 }
 end
 
 lemma convex_lt_of_convex_on (hf : convex_on D f) (r : ℝ) : convex {x ∈ D | f x < r} :=
@@ -737,8 +736,7 @@ begin
       a * f x + b * f y ≤ a * f y + b * f y :
         add_le_add (mul_le_mul_of_nonneg_left h_wlog ha) (le_refl _)
       ... = (a + b) * f y     : (add_mul _ _ _).symm
-      ... < r                 : by rw [hab, one_mul]; exact hy.2
-  }
+      ... < r                 : by rw [hab, one_mul]; exact hy.2 }
 end
 
 lemma le_on_interval_of_convex_on (x y : α) (a b : ℝ)

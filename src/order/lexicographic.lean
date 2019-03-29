@@ -171,7 +171,7 @@ instance dlex_linear_order [linear_order α] [∀ a, linear_order (Z a)] : linea
   .. dlex_partial_order }.
 
 /-- Dictionary / lexicographic decidable_linear_order for dependent pairs. -/
-def dlex_decidable_linear_order [decidable_linear_order α] [∀ a, decidable_linear_order (Z a)] :
+instance dlex_decidable_linear_order [decidable_linear_order α] [∀ a, decidable_linear_order (Z a)] :
   decidable_linear_order (Σ a, Z a) :=
 { decidable_le :=
   begin

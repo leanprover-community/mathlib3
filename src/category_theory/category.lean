@@ -33,13 +33,13 @@ powerful tactics.
 def_replacer obviously
 @[obviously] meta def obviously' := tactic.tidy
 
-class has_hom (obj : Sort u) : Sort (imax u (v+1)) :=
+class has_hom (obj : Sort u) : Sort (max u (v+1)) :=
 (hom : obj → obj → Sort v)
 
 infixr ` ⟶ `:10 := has_hom.hom -- type as \h
 
 class category_struct (obj : Sort u)
-extends has_hom.{v} obj : Sort (imax u (v+1)) :=
+extends has_hom.{v} obj : Sort (max u (v+1)) :=
 (id       : Π X : obj, hom X X)
 (comp     : Π {X Y Z : obj}, (X ⟶ Y) → (Y ⟶ Z) → (X ⟶ Z))
 
@@ -52,7 +52,7 @@ The universe levels of the objects and morphisms are unconstrained, and will oft
 specified explicitly, as `category.{v} C`. (See also `large_category` and `small_category`.)
 -/
 class category (obj : Sort u)
-extends category_struct.{v} obj : Sort (imax u (v+1)) :=
+extends category_struct.{v} obj : Sort (max u (v+1)) :=
 (id_comp' : ∀ {X Y : obj} (f : hom X Y), 𝟙 X ≫ f = f . obviously)
 (comp_id' : ∀ {X Y : obj} (f : hom X Y), f ≫ 𝟙 Y = f . obviously)
 (assoc'   : ∀ {W X Y Z : obj} (f : hom W X) (g : hom X Y) (h : hom Y Z),

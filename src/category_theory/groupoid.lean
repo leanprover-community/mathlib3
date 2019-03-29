@@ -11,7 +11,7 @@ namespace category_theory
 
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-class groupoid (obj : Sort u) extends category.{v} obj : Sort (imax u (v+1)) :=
+class groupoid (obj : Sort u) extends category.{v} obj : Sort (max u (v+1)) :=
 (inv       : Π {X Y : obj}, (X ⟶ Y) → (Y ⟶ X))
 (inv_comp' : ∀ {X Y : obj} (f : X ⟶ Y), comp (inv f) f = id Y . obviously)
 (comp_inv' : ∀ {X Y : obj} (f : X ⟶ Y), comp f (inv f) = id X . obviously)

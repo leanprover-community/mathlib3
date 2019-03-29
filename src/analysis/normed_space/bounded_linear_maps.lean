@@ -7,8 +7,8 @@ Continuous linear functions -- functions between normed vector spaces which are 
 -/
 import algebra.field
 import ring_theory.algebra
-import tactic.norm_num
 import analysis.normed_space.basic
+import ..asymptotics
 
 @[simp] lemma mul_inv_eq' {α} [discrete_field α] (a b : α) : (a * b)⁻¹ = b⁻¹ * a⁻¹ :=
 classical.by_cases (assume : a = 0, by simp [this]) $ assume ha,
@@ -17,22 +17,19 @@ mul_inv_eq hb ha
 
 noncomputable theory
 local attribute [instance] classical.prop_decidable
+set_option class.instance_max_depth 43
 
 local notation f ` →_{`:50 a `} `:0 b := filter.tendsto f (nhds a) (nhds b)
 
 open filter (tendsto)
 open metric
 
-structure is_bounded_linear_map {k : Type*} [normed_field k]
-  {E : Type*} [normed_space k E] {F : Type*} [normed_space k F] (L : E → F)
-  extends is_linear_map k L : Prop :=
-(bound : ∃ M, M > 0 ∧ ∀ x : E, ∥L x∥ ≤ M * ∥x∥)
-
--- refactor: bounded linear map as a bundled structure
 structure bounded_linear_map (k : Type*) [normed_field k]
   (E : Type*) [normed_space k E] (F : Type*) [normed_space k F]
   extends linear_map k E F :=
 (bounded : ∃ M, ∀ x : E, ∥to_fun x∥ ≤ M * ∥x∥)
+
+notation β ` →L[`:25 α `] ` γ := bounded_linear_map α β γ
 
 variables {k : Type*} [normed_field k]
 variables {E : Type*} [normed_space k E]
@@ -41,22 +38,31 @@ variables {G : Type*} [normed_space k G]
 
 namespace bounded_linear_map
 
-instance : has_coe (bounded_linear_map k E F) (linear_map k E F) :=
-  ⟨to_linear_map⟩
+instance : has_coe (E →L[k] F) (E →ₗ[k] F) := ⟨to_linear_map⟩
 
-instance : has_coe_to_fun (bounded_linear_map k E F) :=
-  ⟨_, λ f, f.to_fun⟩
+instance : has_coe_to_fun (E →L[k] F) := ⟨_, λ f, f.to_fun⟩
 
-@[extensionality] theorem ext {f g : bounded_linear_map k E F}
-  (h : ∀ x, f x = g x) : f = g :=
+@[extensionality] theorem ext {f g : E →L[k] F} (h : ∀ x, f x = g x) : f = g :=
   by cases f; cases g; congr' 1; ext x; apply h
 
-theorem ext_iff {f g : bounded_linear_map k E F} : f = g ↔ ∀ x, f x = g x :=
+theorem ext_iff {f g : E →L[k] F} : f = g ↔ ∀ x, f x = g x :=
   ⟨λ h x, by rintro; rw h, ext⟩
 
-variable {f : bounded_linear_map k E F}
+variables (f g : E →L[k] F) (c : k) (u v : E)
 
-lemma map_zero : f 0 = 0 := linear_map.map_zero _
+@[simp] lemma map_zero : f 0 = 0 := linear_map.map_zero _
+@[simp] lemma map_add  : f (u + v) = f u + f v :=
+  by erw linear_map.map_add; refl
+
+@[simp] lemma map_sub  : f (u - v) = f u - f v :=
+  by erw linear_map.map_sub; refl
+
+@[simp] lemma map_smul : f (c • u) = c • f u :=
+  by erw linear_map.map_smul; refl
+
+@[simp] lemma map_neg  : f (-u) = - (f u) :=
+  by erw linear_map.map_neg; refl
+
 
 lemma has_pos_bound : ∃ M > 0, ∀ x, ∥f x∥ ≤ M * ∥x∥ :=
   let ⟨M, hf⟩ := f.bounded in
@@ -65,55 +71,54 @@ lemma has_pos_bound : ∃ M > 0, ∀ x, ∥f x∥ ≤ M * ∥x∥ :=
 
 -- some lemmas about things having bounds and things being bounds
 lemma ratio_has_pos_bound : ∃ M > 0, ∀ x, ∥f x∥ / ∥x∥ ≤ M :=
-  let ⟨M, hMp, hMb⟩ := has_pos_bound in ⟨M, hMp,
+  let ⟨M, hMp, hMb⟩ := has_pos_bound f in ⟨M, hMp,
   λ x, or.elim (lt_or_eq_of_le (norm_nonneg x))
   (λ hlt, div_le_of_le_mul hlt (by rw mul_comm; exact hMb x))
   (λ heq, by rw [←heq, div_zero]; exact le_of_lt hMp)⟩
 
-def of_linear_map_of_bounded {f : linear_map k E F}
-  (h : ∃ M, ∀ x, ∥f x∥ ≤ M * ∥x∥) : bounded_linear_map k E F := ⟨f, h⟩
-
-theorem is_bounded_linear_map {f: bounded_linear_map k E F} :
-  is_bounded_linear_map f :=
-  ⟨f.to_linear_map.is_linear,
-  let ⟨M, hMg, hMb⟩ := has_pos_bound in ⟨M, hMg, hMb⟩⟩
+def of_linear_map_of_bounded {f : E →ₗ[k] F}
+  (h : ∃ M, ∀ x, ∥f x∥ ≤ M * ∥x∥) : E →L[k] F := ⟨f, h⟩
 
 -- the zero map and the identity maps are bounded
-def zero : bounded_linear_map k E F :=
-  ⟨0, 0, λ x, by rw zero_mul; exact le_of_eq norm_zero⟩
-
-def id : bounded_linear_map k E E :=
-  ⟨linear_map.id, 1, λ x, le_of_eq (one_mul _).symm⟩
+def zero : E →L[k] F := ⟨0, 0, λ x, by rw zero_mul; exact le_of_eq norm_zero⟩
+def id   : E →L[k] E := ⟨linear_map.id, 1, λ x, le_of_eq (one_mul _).symm⟩
 
 -- boundedness respects a bunch of operations
-def comp (g : bounded_linear_map k F G) (f : bounded_linear_map k E F) :
-  bounded_linear_map k E G :=
+def comp (g : F →L[k] G) (f : E →L[k] F) : E →L[k] G :=
   ⟨linear_map.comp g.to_linear_map f.to_linear_map,
-  let ⟨Mg, hMgp, hMgb⟩ := has_pos_bound in
-  let ⟨Mf, _, hMfb⟩ := has_pos_bound in ⟨Mg * Mf, λ x, by rw mul_assoc;
+  let ⟨Mg, hMgp, hMgb⟩ := has_pos_bound g in
+  let ⟨Mf, _, hMfb⟩ := has_pos_bound f in ⟨Mg * Mf, λ x, by rw mul_assoc;
   exact le_trans (hMgb _) ((mul_le_mul_left hMgp).2 (hMfb _))⟩⟩
 
-instance : has_zero (bounded_linear_map k E F) := ⟨zero⟩
+instance : has_zero (E →L[k] F) := ⟨zero⟩
 instance : has_one (bounded_linear_map k E E) := ⟨id⟩
 
 instance : has_mul (bounded_linear_map k E E) := ⟨comp⟩
 
-instance : has_add (bounded_linear_map k E F) :=
+instance : has_add (E →L[k] F) :=
   ⟨λ f g, ⟨f + g, let ⟨Mg, hMg⟩ := g.bounded in
   let ⟨Mf, hMf⟩ := f.bounded in ⟨Mf + Mg, λ x,
   calc _ ≤ ∥f x∥ + ∥g x∥       : norm_triangle _ _
 ...      ≤ Mf * ∥x∥ + Mg * ∥x∥ : add_le_add (hMf _) (hMg _)
 ...      = (Mf + Mg) * ∥x∥     : (add_mul _ _ _).symm ⟩⟩⟩
 
-instance : has_scalar k (bounded_linear_map k E F) :=
+instance : has_scalar k (E →L[k] F) :=
   ⟨λ c f, ⟨c • f, let ⟨M, hM⟩ := f.bounded in ⟨∥c∥ * M,
   λ x, by rw mul_assoc; exact (norm_smul c (f x)).symm ▸
   (mul_le_mul_of_nonneg_left (hM x) (norm_nonneg c))⟩⟩⟩
 
-instance : has_neg (bounded_linear_map k E F) := ⟨λ f, (-1 : k) • f⟩
-instance : has_sub (bounded_linear_map k E F) := ⟨λ f g, f + (-g)⟩
+instance : has_neg (E →L[k] F) := ⟨λ f, (-1 : k) • f⟩
+instance : has_sub (E →L[k] F) := ⟨λ f g, f + (-g)⟩
 
-instance to_add_comm_group : add_comm_group (bounded_linear_map k E F) := {
+@[simp] lemma zero_apply : (0 : E →L[k] F) u = 0 := linear_map.zero_apply _
+@[simp] lemma id_apply   : (1 : E →L[k] E) u = u := linear_map.id_apply _
+
+@[simp] lemma add_apply  : (f + g) u = f u + g u := linear_map.add_apply _ _ _
+@[simp] lemma smul_apply : (c • f) u = c • (f u) := linear_map.smul_apply _ _ _
+@[simp] lemma neg_apply  : (-f) u = - (f u) :=
+  by erw [smul_apply, neg_smul, one_smul]
+
+instance to_add_comm_group : add_comm_group (E →L[k] F) := {
   add       := (+),
   add_assoc := λ _ _ _, ext $ λ _, add_assoc _ _ _,
   add_comm  := λ _ _, ext $ λ _, add_comm _ _,
@@ -125,48 +130,40 @@ instance to_add_comm_group : add_comm_group (bounded_linear_map k E F) := {
     by rw neg_one_smul; exact add_left_neg _, t
 }
 
-instance : vector_space k (bounded_linear_map k E F) := {
+instance : vector_space k (E →L[k] F) := {
   smul_zero := λ _, ext $ λ _, smul_zero _,
-  zero_smul := λ _, ext $ λ _, semimodule.zero_smul _ _,
-  one_smul  := λ _, ext $ λ _, semimodule.one_smul _ _,
-  mul_smul  := λ _ _ _, ext $ λ _, semimodule.mul_smul _ _ _,
-  add_smul  := λ _ _ _, ext $ λ _, semimodule.add_smul _ _ _,
-  smul_add  := λ _ _ _, ext $ λ _, semimodule.smul_add _ _ _
+  zero_smul := λ _, ext $ λ _, zero_smul _ _,
+  one_smul  := λ _, ext $ λ _, one_smul _ _,
+  mul_smul  := λ _ _ _, ext $ λ _, mul_smul _ _ _,
+  add_smul  := λ _ _ _, ext $ λ _, add_smul _ _ _,
+  smul_add  := λ _ _ _, ext $ λ _, smul_add _ _ _
 }
 
-variables {α : k} {u v : E}
-
--- (helpful?) lemmas because invoking the corresponding results
--- for linear_map isn't straightforward.
-lemma map_add:  f (u + v) = f u + f v := by erw linear_map.map_add _ _ _; refl
-lemma map_sub:  f (u - v) = f u - f v := by erw linear_map.map_sub _ _ _; refl
-lemma map_smul: f (α • u) = α • f u   := by erw linear_map.map_smul _ _ _; refl
 
 -- endomorphism algebra
-instance : ring (bounded_linear_map k E E) := {
+instance : ring (E →L[k] E) := {
   mul := (*),
   one := 1,
   mul_one := λ _, ext $ λ _, rfl,
   one_mul := λ _, ext $ λ _, rfl,
   mul_assoc := λ _ _ _, ext $ λ _, rfl,
-  left_distrib := λ _ _ _, ext $ λ _, map_add,
+  left_distrib := λ _ _ _, ext $ λ _, map_add _ _ _,
   right_distrib := λ _ _ _, ext $ λ _, linear_map.add_apply _ _ _,
 
   .. bounded_linear_map.to_add_comm_group
 }
 
-instance : is_ring_hom (λ α : k, α • (1 : bounded_linear_map k E E)) := {
+instance : is_ring_hom (λ c : k, c • (1 : E →L[k] E)) := {
   map_one := one_smul _ _,
   map_add := λ _ _, ext $ λ _, add_smul _ _ _,
   map_mul := λ _ _, ext $ λ _, mul_smul _ _ _,
 }
 
-instance : algebra k (bounded_linear_map k E E) := {
-  to_fun    := λ α, α • 1,
+instance : algebra k (E →L[k] E) := {
+  to_fun    := λ c, c • 1,
   smul_def' := λ _ _, rfl,
-  commutes' := λ _ _, ext $ λ _, map_smul,
+  commutes' := λ _ _, ext $ λ _, map_smul _ _ _,
 }
-
 
 -- a bounded linear map is continuous.
 lemma tendsto (x : E): f →_{x} (f x) :=
@@ -175,16 +172,63 @@ lemma tendsto (x : E): f →_{x} (f x) :=
   (λ t, by rw ←map_sub; exact hf _ : ∀ t, ∥f t - f x∥ ≤ M * ∥t - x∥)
   ((mul_zero M) ▸ (tendsto_mul tendsto_const_nhds (lim_norm _))))
 
-theorem continuous : continuous f :=
-  continuous_iff_continuous_at.2 tendsto
+protected theorem continuous : continuous f :=
+  continuous_iff_continuous_at.2 (tendsto f)
 
+/-
+theorem of_continuous_linear_map (f : E →ₗ[k] F) (hf : continuous f)
+  (hk : normed_field.nontrivial k) : E →L[k] F :=
+  ⟨f,
+  let ⟨ϖ, hϖn, hϖ⟩ := hk in
+    have hϖp  : 0 < ∥ϖ∥, from (norm_pos_iff _).2 hϖn,
+    have hltϖ : 1 < ∥ϖ∥⁻¹, from one_lt_inv hϖp hϖ,
+
+  let ⟨δ, hδp, hδ⟩ :=
+    exists_delta_of_continuous hf ((norm_pos_iff _).2 hϖn) 0 in
+
+  ⟨δ⁻¹, λ x, or.elim (lt_or_eq_of_le (norm_nonneg x))
+
+  (λ hxp,
+  have hδx : δ⁻¹ * ∥x∥ > 0, from mul_pos (inv_pos hδp) hxp,
+  have hη  : ∀ c : ℝ, c > 0 → ∃ η : k, c < ∥η∥ ∧ ∥η∥ ≤ c * ∥ϖ∥⁻¹, from
+  (λ c hcp, let ⟨n, hltn, hnlt⟩ := exists_int_pow_near hcp hltϖ in
+    ⟨ϖ⁻¹^(n + 1),
+    by rwa [normed_field.norm_fpow, norm_inv],
+    begin
+      have tmp : ∥ϖ∥⁻¹ ≠ 0, from _,
+      rw [normed_field.norm_fpow, norm_inv, fpow_add tmp, fpow_one],
+      exact mul_le_mul_of_nonneg_right hltn (le_of_lt (inv_pos hϖp)),
+    end⟩),
+  let ⟨η, hltη, hηlt⟩ := hη _ (mul_pos (inv_pos hδp) hxp) in
+
+    have hηp : 0 < ∥η∥, from lt_trans hδx hltη,
+    have hηn : η ≠ 0, from (norm_pos_iff _).1 hηp,
+    have hηx : ∥η⁻¹ • x∥ ≤ δ, from le_of_lt (by
+      erw [norm_smul, norm_inv, mul_comm, div_lt_iff hηp,
+      mul_comm, ←div_lt_iff hδp]; rwa [mul_comm] at hltη),
+
+    have hfηx : ∥f (η⁻¹ • x)∥ ≤ ∥ϖ∥,
+      by simp [dist_eq_norm] at hδ; exact le_of_lt (hδ _ hηx),
+
+  calc ∥f x∥ = _ : linear_map.norm_mul_map_smul f η x hηn
+  ...        ≤ ∥η∥ * ∥ϖ∥ : mul_le_mul_of_nonneg_left hfηx (norm_nonneg _)
+  ...        ≤ δ⁻¹ * ∥x∥ : by erw [le_div_iff hϖp] at hηlt; exact hηlt)
+  (λ heq,
+    have hf : f.to_fun 0 = 0, from linear_map.map_zero f,
+    by rw [←heq, (norm_eq_zero _).1 heq.symm, hf, mul_zero, norm_zero])⟩⟩
+-/
 end bounded_linear_map
+
+structure is_bounded_linear_map (k : Type*)
+  [normed_field k] {E : Type*} [normed_space k E] {F : Type*} [normed_space k F] (L : E → F)
+  extends is_linear_map k L : Prop :=
+(bound : ∃ M, M > 0 ∧ ∀ x : E, ∥ L x ∥ ≤ M * ∥ x ∥)
 
 include k
 
 lemma is_linear_map.with_bound
   {L : E → F} (hf : is_linear_map k L) (M : ℝ) (h : ∀ x : E, ∥ L x ∥ ≤ M * ∥ x ∥) :
-  is_bounded_linear_map L :=
+  is_bounded_linear_map k L :=
 ⟨ hf, classical.by_cases
   (assume : M ≤ 0, ⟨1, zero_lt_one, assume x,
     le_trans (h x) $ mul_le_mul_of_nonneg_right (le_trans this zero_le_one) (norm_nonneg x)⟩)
@@ -192,42 +236,46 @@ lemma is_linear_map.with_bound
 
 namespace is_bounded_linear_map
 
-lemma zero : is_bounded_linear_map (λ (x:E), (0:F)) :=
+def to_linear_map (f : E → F) (h : is_bounded_linear_map k f) : E →ₗ[k] F :=
+(is_linear_map.mk' _ h.to_is_linear_map)
+
+lemma zero : is_bounded_linear_map k (λ (x:E), (0:F)) :=
 (0 : E →ₗ F).is_linear.with_bound 0 $ by simp [le_refl]
 
-lemma id : is_bounded_linear_map (λ (x:E), x) :=
+lemma id : is_bounded_linear_map k (λ (x:E), x) :=
 linear_map.id.is_linear.with_bound 1 $ by simp [le_refl]
 
-lemma smul {f : E → F} (c : k) : is_bounded_linear_map f → is_bounded_linear_map (λ e, c • f e)
+set_option class.instance_max_depth 43
+lemma smul {f : E → F} (c : k) : is_bounded_linear_map k f → is_bounded_linear_map k (λ e, c • f e)
 | ⟨hf, ⟨M, hM, h⟩⟩ := (c • hf.mk' f).is_linear.with_bound (∥c∥ * M) $ assume x,
   calc ∥c • f x∥ = ∥c∥ * ∥f x∥ : norm_smul c (f x)
     ... ≤ ∥c∥ * (M * ∥x∥) : mul_le_mul_of_nonneg_left (h x) (norm_nonneg c)
     ... = (∥c∥ * M) * ∥x∥ : (mul_assoc _ _ _).symm
 
-lemma neg {f : E → F} (hf : is_bounded_linear_map f) : is_bounded_linear_map (λ e, -f e) :=
+lemma neg {f : E → F} (hf : is_bounded_linear_map k f) : is_bounded_linear_map k (λ e, -f e) :=
 begin
   rw show (λ e, -f e) = (λ e, (-1 : k) • f e), { funext, simp },
   exact smul (-1) hf
 end
 
 lemma add {f : E → F} {g : E → F} :
-  is_bounded_linear_map f → is_bounded_linear_map g → is_bounded_linear_map (λ e, f e + g e)
+  is_bounded_linear_map k f → is_bounded_linear_map k g → is_bounded_linear_map k (λ e, f e + g e)
 | ⟨hlf, Mf, hMf, hf⟩  ⟨hlg, Mg, hMg, hg⟩ := (hlf.mk' _ + hlg.mk' _).is_linear.with_bound (Mf + Mg) $ assume x,
   calc ∥f x + g x∥ ≤ ∥f x∥ + ∥g x∥ : norm_triangle _ _
     ... ≤ Mf * ∥x∥ + Mg * ∥x∥ : add_le_add (hf x) (hg x)
     ... ≤ (Mf + Mg) * ∥x∥ : by rw add_mul
 
-lemma sub {f : E → F} {g : E → F} (hf : is_bounded_linear_map f) (hg : is_bounded_linear_map g) :
-  is_bounded_linear_map (λ e, f e - g e) := add hf (neg hg)
+lemma sub {f : E → F} {g : E → F} (hf : is_bounded_linear_map k f) (hg : is_bounded_linear_map k g) :
+  is_bounded_linear_map k (λ e, f e - g e) := add hf (neg hg)
 
 lemma comp {f : E → F} {g : F → G} :
-  is_bounded_linear_map g → is_bounded_linear_map f → is_bounded_linear_map (g ∘ f)
+  is_bounded_linear_map k g → is_bounded_linear_map k f → is_bounded_linear_map k (g ∘ f)
 | ⟨hlg, Mg, hMg, hg⟩ ⟨hlf, Mf, hMf, hf⟩ := ((hlg.mk' _).comp (hlf.mk' _)).is_linear.with_bound (Mg * Mf) $ assume x,
   calc ∥g (f x)∥ ≤ Mg * ∥f x∥ : hg _
     ... ≤ Mg * (Mf * ∥x∥) : mul_le_mul_of_nonneg_left (hf _) (le_of_lt hMg)
     ... = Mg * Mf * ∥x∥ : (mul_assoc _ _ _).symm
 
-lemma tendsto {L : E → F} (x : E) : is_bounded_linear_map L → L →_{x} (L x)
+lemma tendsto {L : E → F} (x : E) : is_bounded_linear_map k L → L →_{x} (L x)
 | ⟨hL, M, hM, h_ineq⟩ := tendsto_iff_norm_tendsto_zero.2 $
   squeeze_zero (assume e, norm_nonneg _)
     (assume e, calc ∥L e - L x∥ = ∥hL.mk' L (e - x)∥ : by rw (hL.mk' _).map_sub e x; refl
@@ -235,18 +283,38 @@ lemma tendsto {L : E → F} (x : E) : is_bounded_linear_map L → L →_{x} (L x
     (suffices (λ (e : E), M * ∥e - x∥) →_{x} (M * 0), by simpa,
       tendsto_mul tendsto_const_nhds (lim_norm _))
 
-lemma continuous {L : E → F} (hL : is_bounded_linear_map L) : continuous L :=
+lemma continuous {L : E → F} (hL : is_bounded_linear_map k L) : continuous L :=
 continuous_iff_continuous_at.2 $ assume x, hL.tendsto x
 
-lemma lim_zero_bounded_linear_map {L : E → F} (H : is_bounded_linear_map L) : (L →_{0} 0) :=
+lemma lim_zero_bounded_linear_map {L : E → F} (H : is_bounded_linear_map k L) : (L →_{0} 0) :=
 (H.1.mk' _).map_zero ▸ continuous_iff_continuous_at.1 H.continuous 0
 
+section
+open asymptotics filter
+
+theorem is_O_id {L : E → F} (h : is_bounded_linear_map k L) (l : filter E) :
+  is_O L (λ x, x) l :=
+let ⟨M, Mpos, hM⟩ := h.bound in
+⟨M, Mpos, mem_sets_of_superset univ_mem_sets (λ x _, hM x)⟩
+
+theorem is_O_comp {L : F → G} (h : is_bounded_linear_map k L)
+  {f : E → F} (l : filter E) : is_O (λ x', L (f x')) f l :=
+((h.is_O_id ⊤).comp _).mono (map_le_iff_le_comap.mp lattice.le_top)
+
+theorem is_O_sub {L : E → F} (h : is_bounded_linear_map k L) (l : filter E) (x : E) :
+  is_O (λ x', L (x' - x)) (λ x', x' - x) l :=
+is_O_comp h l
+
+end
+
 end is_bounded_linear_map
+
+set_option class.instance_max_depth 34
 
 -- Next lemma is stated for real normed space but it would work as soon as the base field is an extension of ℝ
 lemma bounded_continuous_linear_map
   {E : Type*} [normed_space ℝ E] {F : Type*} [normed_space ℝ F] {L : E → F}
-  (lin : is_linear_map ℝ L) (cont : continuous L) : is_bounded_linear_map L :=
+  (lin : is_linear_map ℝ L) (cont : continuous L) : is_bounded_linear_map ℝ L :=
 let ⟨δ, δ_pos, hδ⟩ := exists_delta_of_continuous cont zero_lt_one 0 in
 have HL0 : L 0 = 0, from (lin.mk' _).map_zero,
 have H : ∀{a}, ∥a∥ ≤ δ → ∥L a∥ < 1, by simpa only [HL0, dist_zero_right] using hδ,

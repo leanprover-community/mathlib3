@@ -12,6 +12,12 @@ universes u v
 namespace nat
 variables {m n k : ℕ}
 
+-- Sometimes a bare `nat.add` or similar appears as a consequence of unfolding
+-- during pattern matching. These lemmas package them back up as typeclass
+-- mediated operations.
+@[simp] theorem add_def {a b : ℕ} : nat.add a b = a + b := rfl
+@[simp] theorem mul_def {a b : ℕ} : nat.mul a b = a * b := rfl
+
 attribute [simp] nat.add_sub_cancel nat.add_sub_cancel_left
 attribute [simp] nat.sub_self
 
@@ -33,6 +39,16 @@ theorem pred_sub (n m : ℕ) : pred n - m = pred (n - m) :=
 by rw [← sub_one, nat.sub_sub, one_add]; refl
 
 lemma pred_eq_sub_one (n : ℕ) : pred n = n - 1 := rfl
+
+lemma one_le_of_lt {n m : ℕ} (h : n < m) : 1 ≤ m :=
+lt_of_le_of_lt (nat.zero_le _) h
+
+lemma le_pred_of_lt {n m : ℕ} (h : m < n) : m ≤ n - 1 :=
+nat.sub_le_sub_right h 1
+
+/-- This ensures that `simp` succeeds on `pred (n + 1) = n`. -/
+@[simp] lemma pred_one_add (n : ℕ) : pred (1 + n) = n :=
+by rw [add_comm, add_one, pred_succ]
 
 theorem pos_iff_ne_zero : n > 0 ↔ n ≠ 0 :=
 ⟨ne_of_gt, nat.pos_of_ne_zero⟩
@@ -68,6 +84,9 @@ by rw [add_comm, nat.sub_add_cancel h]
 
 protected theorem sub_eq_of_eq_add (h : k = m + n) : k - m = n :=
 begin rw [h, nat.add_sub_cancel_left] end
+
+lemma sub_sub_sub_cancel_right {a b c : ℕ} (h₂ : c ≤ b) : (a - c) - (b - c) = a - b :=
+by rw [nat.sub_sub, ←nat.add_sub_assoc h₂, nat.add_sub_cancel_left]
 
 theorem sub_min (n m : ℕ) : n - min n m = n - m :=
 nat.sub_eq_of_eq_add $ by rw [add_comm, sub_add_min]
@@ -360,6 +379,31 @@ iff.intro
     { apply add_pos_left mpos },
     apply add_pos_right _ npos
   end
+
+lemma add_eq_one_iff : ∀ {a b : ℕ}, a + b = 1 ↔ (a = 0 ∧ b = 1) ∨ (a = 1 ∧ b = 0)
+| 0     0     := dec_trivial
+| 0     1     := dec_trivial
+| 1     0     := dec_trivial
+| 1     1     := dec_trivial
+| (a+2) _     := by rw add_right_comm; exact dec_trivial
+| _     (b+2) := by rw [← add_assoc]; simp only [nat.succ_inj', nat.succ_ne_zero]; simp
+
+lemma mul_eq_one_iff : ∀ {a b : ℕ}, a * b = 1 ↔ a = 1 ∧ b = 1
+| 0     0     := dec_trivial
+| 0     1     := dec_trivial
+| 1     0     := dec_trivial
+| (a+2) 0     := by simp
+| 0     (b+2) := by simp
+| (a+1) (b+1) := ⟨λ h, by simp only [add_mul, mul_add, mul_add, one_mul, mul_one,
+    (add_assoc _ _ _).symm, nat.succ_inj', add_eq_zero_iff] at h; simp [h.1.2, h.2],
+  by clear_aux_decl; finish⟩
+
+lemma mul_right_eq_self_iff {a b : ℕ} (ha : 0 < a): a * b = a ↔ b = 1 :=
+suffices a * b = a * 1 ↔ b = 1, by rwa mul_one at this,
+nat.mul_left_inj ha
+
+lemma mul_left_eq_self_iff {a b : ℕ} (hb : 0 < b): a * b = b ↔ a = 1 :=
+by rw [mul_comm, nat.mul_right_eq_self_iff hb]
 
 lemma lt_succ_iff_lt_or_eq {n i : ℕ} : n < i.succ ↔ (n < i ∨ n = i) :=
 lt_succ_iff.trans le_iff_lt_or_eq
@@ -861,7 +905,7 @@ lemma with_bot.add_eq_one_iff : ∀ {n m : with_bot ℕ}, n + m = 1 ↔ (n = 0 �
 
 -- induction
 
-@[elab_as_eliminator] lemma le_induction {P : nat → Prop} {m} (h0 : P m) (h1 : ∀ n ≥ m, P n → P (n + 1)) : 
+@[elab_as_eliminator] lemma le_induction {P : nat → Prop} {m} (h0 : P m) (h1 : ∀ n ≥ m, P n → P (n + 1)) :
   ∀ n ≥ m, P n :=
 by apply nat.less_than_or_equal.rec h0; exact h1
 

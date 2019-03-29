@@ -9,9 +9,11 @@ Many definitions and theorems expected on metric spaces are already introduced o
 topological spaces. For example:
   open and closed sets, compactness, completeness, continuity and uniform continuity
 -/
-import data.real.nnreal topology.algebra.topological_structures topology.metric_space.emetric_space
+import data.real.nnreal topology.metric_space.emetric_space topology.algebra.ordered
 open lattice set filter classical topological_space
 noncomputable theory
+
+local notation `𝓤` := uniformity
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -63,7 +65,7 @@ class metric_space (α : Type u) extends has_dist α : Type u :=
 (edist : α → α → ennreal := λx y, ennreal.of_real (dist x y))
 (edist_dist : ∀ x y : α, edist x y = ennreal.of_real (dist x y) . control_laws_tac)
 (to_uniform_space : uniform_space α := uniform_space_of_dist dist dist_self dist_comm dist_triangle)
-(uniformity_dist : uniformity = ⨅ ε>0, principal {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
+(uniformity_dist : 𝓤 α = ⨅ ε>0, principal {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
 
 variables [metric_space α]
 
@@ -215,6 +217,9 @@ lt_of_le_of_lt dist_nonneg hy
 theorem mem_ball_self (h : ε > 0) : x ∈ ball x ε :=
 show dist x x < ε, by rw dist_self; assumption
 
+theorem mem_closed_ball_self (h : ε ≥ 0) : x ∈ closed_ball x ε :=
+show dist x x ≤ ε, by rw dist_self; assumption
+
 theorem mem_ball_comm : x ∈ ball y ε ↔ y ∈ ball x ε :=
 by simp [dist_comm]
 
@@ -248,23 +253,23 @@ theorem ball_eq_empty_iff_nonpos : ε ≤ 0 ↔ ball x ε = ∅ :=
 ⟨λ h, le_of_not_gt $ λ ε0, h _ $ mem_ball_self ε0,
  λ ε0 y h, not_lt_of_le ε0 $ pos_of_mem_ball h⟩).symm
 
-theorem uniformity_dist : uniformity = (⨅ ε>0, principal {p:α×α | dist p.1 p.2 < ε}) :=
+theorem uniformity_dist : 𝓤 α = (⨅ ε>0, principal {p:α×α | dist p.1 p.2 < ε}) :=
 metric_space.uniformity_dist _
 
-theorem uniformity_dist' : uniformity = (⨅ε:{ε:ℝ // ε>0}, principal {p:α×α | dist p.1 p.2 < ε.val}) :=
+theorem uniformity_dist' : 𝓤 α = (⨅ε:{ε:ℝ // ε>0}, principal {p:α×α | dist p.1 p.2 < ε.val}) :=
 by simp [infi_subtype]; exact uniformity_dist
 
 theorem mem_uniformity_dist {s : set (α×α)} :
-  s ∈ (@uniformity α _).sets ↔ (∃ε>0, ∀{a b:α}, dist a b < ε → (a, b) ∈ s) :=
+  s ∈ 𝓤 α ↔ (∃ε>0, ∀{a b:α}, dist a b < ε → (a, b) ∈ s) :=
 begin
-  rw [uniformity_dist', infi_sets_eq],
+  rw [uniformity_dist', mem_infi],
   simp [subset_def],
   exact assume ⟨r, hr⟩ ⟨p, hp⟩, ⟨⟨min r p, lt_min hr hp⟩, by simp [lt_min_iff, (≥)] {contextual := tt}⟩,
   exact ⟨⟨1, zero_lt_one⟩⟩
 end
 
 theorem dist_mem_uniformity {ε:ℝ} (ε0 : 0 < ε) :
-  {p:α×α | dist p.1 p.2 < ε} ∈ (@uniformity α _).sets :=
+  {p:α×α | dist p.1 p.2 < ε} ∈ 𝓤 α :=
 mem_uniformity_dist.2 ⟨ε, ε0, λ a b, id⟩
 
 theorem uniform_continuous_iff [metric_space β] {f : α → β} :
@@ -315,7 +320,7 @@ begin
 end
 
 protected lemma cauchy_iff {f : filter α} :
-  cauchy f ↔ f ≠ ⊥ ∧ ∀ ε > 0, ∃ t ∈ f.sets, ∀ x y ∈ t, dist x y < ε :=
+  cauchy f ↔ f ≠ ⊥ ∧ ∀ ε > 0, ∃ t ∈ f, ∀ x y ∈ t, dist x y < ε :=
 cauchy_iff.trans $ and_congr iff.rfl
 ⟨λ H ε ε0, let ⟨t, tf, ts⟩ := H _ (dist_mem_uniformity ε0) in
    ⟨t, tf, λ x y xt yt, @ts (x, y) ⟨xt, yt⟩⟩,
@@ -334,9 +339,9 @@ begin
   { intros, refl }
 end
 
-theorem mem_nhds_iff : s ∈ (nhds x).sets ↔ ∃ε>0, ball x ε ⊆ s :=
+theorem mem_nhds_iff : s ∈ nhds x ↔ ∃ε>0, ball x ε ⊆ s :=
 begin
-  rw [nhds_eq, infi_sets_eq],
+  rw [nhds_eq, mem_infi],
   { simp },
   { intros y z, cases y with y hy, cases z with z hz,
     refine ⟨⟨min y z, lt_min hy hz⟩, _⟩,
@@ -350,7 +355,7 @@ by simp [is_open_iff_nhds, mem_nhds_iff]
 theorem is_open_ball : is_open (ball x ε) :=
 is_open_iff.2 $ λ y, exists_ball_subset_ball
 
-theorem ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : ball x ε ∈ (nhds x).sets :=
+theorem ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : ball x ε ∈ nhds x :=
 mem_nhds_sets is_open_ball (mem_ball_self ε0)
 
 theorem tendsto_nhds_nhds [metric_space β] {f : α → β} {a b} :
@@ -373,12 +378,12 @@ let ⟨δ, δ_pos, hδ⟩ := continuous_iff.1 hf b ε hε in
 ⟨δ / 2, half_pos δ_pos, assume a ha, hδ a $ lt_of_le_of_lt ha $ div_two_lt_of_pos δ_pos⟩
 
 theorem tendsto_nhds {f : filter β} {u : β → α} {a : α} :
-  tendsto u f (nhds a) ↔ ∀ ε > 0, ∃ n ∈ f.sets, ∀x ∈ n,  dist (u x) a < ε :=
+  tendsto u f (nhds a) ↔ ∀ ε > 0, ∃ n ∈ f, ∀x ∈ n,  dist (u x) a < ε :=
 by simp only [metric.nhds_eq, tendsto_infi, subtype.forall, tendsto_principal, mem_ball];
   exact forall_congr (assume ε, forall_congr (assume hε, exists_sets_subset_iff.symm))
 
 theorem continuous_iff' [topological_space β] {f : β → α} :
-  continuous f ↔ ∀a (ε > 0), ∃ n ∈ (nhds a).sets, ∀b ∈ n, dist (f b) (f a) < ε :=
+  continuous f ↔ ∀a (ε > 0), ∃ n ∈ nhds a, ∀b ∈ n, dist (f b) (f a) < ε :=
 continuous_iff_continuous_at.trans $ forall_congr $ λ b, tendsto_nhds
 
 theorem tendsto_at_top [nonempty β] [semilattice_sup β] {u : β → α} {a : α} :
@@ -399,7 +404,7 @@ distance coincide. -/
 
 /-- Expressing the uniformity in terms of `edist` -/
 protected lemma metric.mem_uniformity_edist {s : set (α×α)} :
-  s ∈ (@uniformity α _).sets ↔ (∃ε>0, ∀{a b:α}, edist a b < ε → (a, b) ∈ s) :=
+  s ∈ 𝓤 α ↔ (∃ε>0, ∀{a b:α}, edist a b < ε → (a, b) ∈ s) :=
 begin
   refine mem_uniformity_dist.trans ⟨_, _⟩; rintro ⟨ε, ε0, Hε⟩,
   { refine ⟨ennreal.of_real ε, _, λ a b, _⟩,
@@ -412,16 +417,16 @@ begin
     rwa [edist_dist, ennreal.of_real_lt_of_real_iff ε0'] }
 end
 
-protected theorem metric.uniformity_edist' : uniformity = (⨅ε:{ε:ennreal // ε>0}, principal {p:α×α | edist p.1 p.2 < ε.val}) :=
+protected theorem metric.uniformity_edist' : 𝓤 α = (⨅ε:{ε:ennreal // ε>0}, principal {p:α×α | edist p.1 p.2 < ε.val}) :=
 begin
-  ext s, rw infi_sets_eq,
+  ext s, rw mem_infi,
   { simp [metric.mem_uniformity_edist, subset_def] },
   { rintro ⟨r, hr⟩ ⟨p, hp⟩, use ⟨min r p, lt_min hr hp⟩,
     simp [lt_min_iff, (≥)] {contextual := tt} },
   { exact ⟨⟨1, ennreal.zero_lt_one⟩⟩ }
 end
 
-theorem uniformity_edist : uniformity = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
+theorem uniformity_edist : 𝓤 α = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
 by simpa [infi_subtype] using @metric.uniformity_edist' α _
 
 /-- A metric space induces an emetric space -/
@@ -528,7 +533,7 @@ begin
 end
 
 theorem metric.uniformity_eq_comap_nhds_zero :
-  uniformity = comap (λp:α×α, dist p.1 p.2) (nhds (0 : ℝ)) :=
+  𝓤 α = comap (λp:α×α, dist p.1 p.2) (nhds (0 : ℝ)) :=
 begin
   simp only [uniformity_dist', nhds_eq, comap_infi, comap_principal],
   congr, funext ε,
@@ -667,7 +672,7 @@ def metric_space.induced {α β} (f : α → β) (hf : function.injective f)
       exact ⟨_, dist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
   end }
 
-instance metric_space_subtype {p : α → Prop} [t : metric_space α] : metric_space (subtype p) :=
+instance subtype.metric_space {p : α → Prop} [t : metric_space α] : metric_space (subtype p) :=
 metric_space.induced subtype.val (λ x y, subtype.eq) t
 
 theorem subtype.dist_eq {p : α → Prop} [t : metric_space α] (x y : subtype p) :
@@ -890,11 +895,11 @@ instance complete_of_proper {α : Type u} [metric_space α] [proper_space α] : 
   intros f hf,
   /- We want to show that the Cauchy filter `f` is converging. It suffices to find a closed
   ball (therefore compact by properness) where it is nontrivial. -/
-  have A : ∃ t ∈ f.sets, ∀ x y ∈ t, dist x y < 1 := (metric.cauchy_iff.1 hf).2 1 zero_lt_one,
+  have A : ∃ t ∈ f, ∀ x y ∈ t, dist x y < 1 := (metric.cauchy_iff.1 hf).2 1 zero_lt_one,
   rcases A with ⟨t, ⟨t_fset, ht⟩⟩,
   rcases inhabited_of_mem_sets hf.1 t_fset with ⟨x, xt⟩,
   have : t ⊆ closed_ball x 1 := by intros y yt; simp [dist_comm]; apply le_of_lt (ht x y xt yt),
-  have : closed_ball x 1 ∈ f.sets := f.sets_of_superset t_fset this,
+  have : closed_ball x 1 ∈ f := f.sets_of_superset t_fset this,
   rcases (compact_iff_totally_bounded_complete.1 (proper_space.compact_ball x 1)).2 f hf (le_principal_iff.2 this)
     with ⟨y, _, hy⟩,
   exact ⟨y, hy⟩

@@ -17,7 +17,8 @@ Reference:
 
 -/
 import logic.function algebra.big_operators data.set data.finset
-       topology.metric_space.basic topology.algebra.topological_structures
+       topology.metric_space.basic topology.algebra.uniform_group topology.algebra.ring
+       topology.algebra.ordered topology.instances.real
 
 noncomputable theory
 open lattice finset filter function classical
@@ -76,8 +77,9 @@ lemma has_sum_sum {f : γ → β → α} {s : finset γ} (hf : ∀i∈s, has_sum
 has_sum_spec $ is_sum_sum $ assume i hi, is_sum_tsum $ hf i hi
 
 lemma is_sum_sum_of_ne_finset_zero (hf : ∀b∉s, f b = 0) : is_sum f (s.sum f) :=
-tendsto_infi' s $ tendsto_cong tendsto_const_nhds $
-  assume t (ht : s ⊆ t), show s.sum f = t.sum f, from sum_subset ht $ assume x _, hf _
+tendsto_infi' s $ tendsto.congr'
+  (assume t (ht : s ⊆ t), show s.sum f = t.sum f, from sum_subset ht $ assume x _, hf _)
+  tendsto_const_nhds
 
 lemma has_sum_sum_of_ne_finset_zero (hf : ∀b∉s, f b = 0) : has_sum f :=
 has_sum_spec $ is_sum_sum_of_ne_finset_zero hf
@@ -122,7 +124,7 @@ lemma tendsto_sum_nat_of_is_sum {f : ℕ → α} (h : is_sum f a) :
   tendsto (λn:ℕ, (range n).sum f) at_top (nhds a) :=
 suffices map (λ (n : ℕ), sum (range n) f) at_top ≤ map (λ (s : finset ℕ), sum s f) at_top,
   from le_trans this h,
-assume s (hs : {t : finset ℕ | t.sum f ∈ s} ∈ at_top.sets),
+assume s (hs : {t : finset ℕ | t.sum f ∈ s} ∈ at_top),
 let ⟨t, ht⟩ := mem_at_top_sets.mp hs, ⟨n, hn⟩ := @exists_nat_subset_range t in
 mem_at_top_sets.mpr ⟨n, assume n' hn', ht _ $ finset.subset.trans hn $ range_subset.mpr hn'⟩
 
@@ -442,6 +444,7 @@ is_sum_le h (is_sum_tsum hf) (is_sum_tsum hg)
 end order_topology
 
 section uniform_group
+
 variables [add_comm_group α] [uniform_space α] [complete_space α] [uniform_add_group α]
 variables (f g : β → α) {a a₁ a₂ : α}
 
@@ -449,7 +452,7 @@ lemma has_sum_iff_cauchy : has_sum f ↔ cauchy (map (λ (s : finset β), sum s 
 (cauchy_map_iff_exists_tendsto at_top_ne_bot).symm
 
 lemma has_sum_iff_vanishing :
-  has_sum f ↔ ∀e∈(nhds (0:α)).sets, (∃s:finset β, ∀t, disjoint t s → t.sum f ∈ e) :=
+  has_sum f ↔ ∀ e ∈ nhds (0:α), (∃s:finset β, ∀t, disjoint t s → t.sum f ∈ e) :=
 begin
   simp only [has_sum_iff_cauchy, cauchy_map_iff, and_iff_right at_top_ne_bot,
     prod_at_top_at_top_eq, uniformity_eq_comap_nhds_zero α, tendsto_comap_iff, (∘)],
@@ -471,7 +474,7 @@ begin
     { simp only [(finset.sum_sdiff ht₁).symm, (finset.sum_sdiff ht₂).symm,
         add_sub_add_right_eq_sub] },
     simp only [this],
-    exact hde _ _ (h _ finset.disjoint_sdiff) (h _ finset.disjoint_sdiff) }
+    exact hde _ _ (h _ finset.sdiff_disjoint) (h _ finset.sdiff_disjoint) }
 end
 
 /- TODO: generalize to monoid with a uniform continuous subtraction operator: `(a + b) - b = a` -/
@@ -508,3 +511,33 @@ end,
 has_sum_of_has_sum_of_sub _ _ hf $ assume b, by by_cases b ∈ set.range i; simp [h]
 
 end uniform_group
+
+section cauchy_seq
+open finset.Ico filter
+
+lemma cauchy_seq_of_has_sum_dist [metric_space α] {f : ℕ → α}
+  (h : has_sum (λn, dist (f n) (f n.succ))) : cauchy_seq f :=
+begin
+  let d := λn, dist (f n) (f (n+1)),
+  refine metric.cauchy_seq_iff'.2 (λε εpos, _),
+  rcases (has_sum_iff_vanishing _).1 h {x : ℝ | x < ε} (gt_mem_nhds εpos) with ⟨s, hs⟩,
+  have : ∃N:ℕ, ∀x ∈ s, x < N,
+  { by_cases h : s = ∅,
+    { use 0, simp [h]},
+    { use s.max' h + 1,
+      exact λx hx, lt_of_le_of_lt (s.le_max' h x hx) (nat.lt_succ_self _) }},
+  rcases this with ⟨N, hN⟩,
+  refine ⟨N, λn hn, _⟩,
+  have : ∀n, n ≥ N → dist (f N) (f n) ≤ (Ico N n).sum d,
+  { apply nat.le_induction,
+    { simp },
+    { assume n hn hrec,
+      calc dist (f N) (f (n+1)) ≤ dist (f N) (f n) + d n : dist_triangle _ _ _
+        ... ≤ (Ico N n).sum d + d n : add_le_add hrec (le_refl _)
+        ... = (Ico N (n+1)).sum d : by rw [succ_top hn, sum_insert, add_comm]; simp }},
+  calc dist (f n) (f N) ≤ (Ico N n).sum d : by rw dist_comm; apply this n hn
+    ... < ε : hs _ (finset.disjoint_iff_ne.2
+                     (λa ha b hb, ne_of_gt (lt_of_lt_of_le (hN _ hb) (mem.1 ha).1)))
+end
+
+end cauchy_seq

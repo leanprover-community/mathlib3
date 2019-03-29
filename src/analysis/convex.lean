@@ -14,6 +14,8 @@ import tactic.linarith
 import linear_algebra.basic
 import ring_theory.algebra
 
+local attribute [instance] classical.prop_decidable
+
 open set
 
 variables {α : Type*} {β : Type*} {ι : Sort _}
@@ -29,43 +31,39 @@ def convex (A : set α) :=
 lemma convex_iff:
   convex A ↔ ∀ {x y : α} {θ : ℝ},
     x ∈ A → y ∈ A → 0 ≤ θ → θ ≤ 1 → θ • x + (1 - θ) • y ∈ A :=
-⟨
-  by {
-    assume h x y θ hx hy hθ₁ hθ₂,
-    have hθ₂: 0 ≤ 1 - θ, by linarith,
-    exact (h _ _ _ _ hx hy hθ₁ hθ₂ (by linarith))
-  },
-  by {
-    assume h x y a b hx hy ha hb hab,
-    have ha': a ≤ 1, by linarith,
-    have hb': b = 1 - a, by linarith,
-    rw hb',
-    exact (h hx hy ha ha')
-  }
-⟩
+⟨begin
+  assume h x y θ hx hy hθ₁ hθ₂,
+  have hθ₂ : 0 ≤ 1 - θ, by linarith,
+  exact (h _ _ _ _ hx hy hθ₁ hθ₂ (by linarith))
+end,
+begin
+  assume h x y a b hx hy ha hb hab,
+  have ha' : a ≤ 1, by linarith,
+  have hb' : b = 1 - a, by linarith,
+  rw hb',
+  exact h hx hy ha ha'
+end ⟩
 
 /-- Another alternative definition of set convexity -/
 lemma convex_iff_div:
   convex A ↔ ∀ {x y : α} {a : ℝ} {b : ℝ},
     x ∈ A → y ∈ A → 0 ≤ a → 0 ≤ b → 0 < a + b → (a/(a+b)) • x + (b/(a+b)) • y ∈ A :=
-⟨
-  by {
-    assume h x y a b hx hy ha hb hab,
-    apply h _ _ _ _ hx hy,
-    have ha', from mul_le_mul_of_nonneg_left ha (le_of_lt (inv_pos hab)),
-    rwa [mul_zero, ←div_eq_inv_mul] at ha',
-    have hb', from mul_le_mul_of_nonneg_left hb (le_of_lt (inv_pos hab)),
-    rwa [mul_zero, ←div_eq_inv_mul] at hb',
-    rw [←add_div],
-    exact div_self (ne_of_lt hab).symm
-  },
-  by {
-    assume h x y a b hx hy ha hb hab,
-    have h', from h hx hy ha hb,
-    rw [hab, div_one, div_one] at h',
-    exact h' zero_lt_one
-  }
-⟩
+⟨begin
+  assume h x y a b hx hy ha hb hab,
+  apply h _ _ _ _ hx hy,
+  have ha', from mul_le_mul_of_nonneg_left ha (le_of_lt (inv_pos hab)),
+  rwa [mul_zero, ←div_eq_inv_mul] at ha',
+  have hb', from mul_le_mul_of_nonneg_left hb (le_of_lt (inv_pos hab)),
+  rwa [mul_zero, ←div_eq_inv_mul] at hb',
+  rw [←add_div],
+  exact div_self (ne_of_lt hab).symm
+end,
+begin
+  assume h x y a b hx hy ha hb hab,
+  have h', from h hx hy ha hb,
+  rw [hab, div_one, div_one] at h',
+  exact h' zero_lt_one
+end ⟩
 
 local notation `I` := (Icc 0 1 : set ℝ)
 
@@ -74,6 +72,7 @@ def segment (x y : α) := {z : α | ∃ l : ℝ, l ∈ I ∧ z - x = l•(y-x)}
 local notation `[`x `, ` y `]` := segment x y
 
 lemma left_mem_segment (x y : α) : x ∈ [x, y] := ⟨0, ⟨⟨le_refl _, zero_le_one⟩, by simp⟩⟩
+
 lemma right_mem_segment (x y : α) : y ∈ [x, y] := ⟨1, ⟨⟨zero_le_one, le_refl _⟩, by simp⟩⟩
 
 lemma mem_segment_iff {x y z : α} : z ∈ [x, y] ↔ ∃ l ∈ I, z = x + l•(y - x) :=
@@ -131,16 +130,11 @@ begin
       exact hba}}
 end
 
-lemma segment_translate (a b c x : α) : x ∈ [b, c] → a + x ∈ [a + b, a + c] :=
+lemma segment_translate (a b c x : α) (hx : x ∈ [b, c]) : a + x ∈ [a + b, a + c] :=
 begin
-  intro hx,
-  apply exists.elim hx,
-  intros θ hθ,
-  use θ,
-  apply and.intro hθ.1,
+  refine exists.elim hx (λθ hθ, ⟨θ, ⟨hθ.1, _⟩⟩),
   simp only [smul_sub, smul_add] at *,
-  rw (add_eq_of_eq_sub hθ.2.symm).symm,
-  simp
+  simp [smul_add, (add_eq_of_eq_sub hθ.2.symm).symm]
 end
 
 lemma segment_translate_image (a b c: α) : (λx, a + x) '' [b, c] = [a + b, a + c] :=
@@ -151,16 +145,14 @@ begin
     intros x hx,
     convert segment_translate a b c x _,
     { exact hx.2.symm },
-    { exact hx.1 }
-  },
+    { exact hx.1 }},
   { intros z hz,
     apply exists.elim hz,
     intros θ hθ,
     use z - a,
     apply and.intro,
-    { convert translate_segment (-a) (a + b) (a + c) z hz; simp },
-    { simp only [add_sub_cancel'_right] }
-  }
+    { convert segment_translate (-a) (a + b) (a + c) z hz; simp },
+    { simp only [add_sub_cancel'_right] }}
 end
 
 /-- Alternative defintion of set convexity using segments -/
@@ -171,11 +163,9 @@ begin
     apply exists.elim hseg,
     intros l hl,
     have hz : z = l • y + (1-l) • x,
-    {
-      rw sub_eq_iff_eq_add.1 hl.2,
+    { rw sub_eq_iff_eq_add.1 hl.2,
       rw [smul_sub, sub_smul, one_smul],
-      simp
-    },
+      simp },
     rw hz,
     apply (convex_iff A).1 hA hy hx hl.1.1 hl.1.2 },
   { intros hA,
@@ -197,9 +187,7 @@ lemma convex_empty : convex (∅ : set α) :=  by finish
 lemma convex_singleton (a : α) : convex ({a} : set α) :=
 begin
   intros x y a b hx hy ha hb hab,
-  rw set.eq_of_mem_singleton hx,
-  rw set.eq_of_mem_singleton hy,
-  rw [←add_smul, hab],
+  rw [set.eq_of_mem_singleton hx, set.eq_of_mem_singleton hy, ←add_smul, hab],
   simp
 end
 
@@ -213,12 +201,11 @@ lemma convex_Inter {s: ι → set α} (h: ∀ i : ι, convex (s i)) : convex (In
 begin
   intros x y a b hx hy ha hb hab,
   apply mem_Inter.2,
-  intro i,
-  exact h i _ _ _ _ (mem_Inter.1 hx i) (mem_Inter.1 hy i) ha hb hab
+  exact λi, h i _ _ _ _ (mem_Inter.1 hx i) (mem_Inter.1 hy i) ha hb hab
 end
 
 lemma convex_prod {A : set α} {B : set β} (hA : convex A) (hB : convex B) :
-convex (set.prod A B) :=
+  convex (set.prod A B) :=
 begin
   intros x y a b hx hy ha hb hab,
   apply mem_prod.2,
@@ -234,13 +221,13 @@ begin
   apply exists.elim hy,
   intros y' hy',
   use a • x' + b • y',
-  apply and.intro,
+  split,
   { apply hA _ _ _ _ hx'.1 hy'.1 ha hb hab },
   { simp [hx',hy',hf.add,hf.smul] }
 end
 
 lemma convex_linear_image' (f : α →ₗ[ℝ] β) (hA : convex A) : convex (image f A) :=
- convex_linear_image A f.to_fun (linear_map.is_linear f) hA
+convex_linear_image A f.to_fun (linear_map.is_linear f) hA
 
 lemma convex_linear_preimage (A : set β) (f : α → β) (hf : is_linear_map ℝ f) (hA : convex A) :
   convex (preimage f A) :=
@@ -260,24 +247,22 @@ convex_linear_image _ _ is_linear_map.is_linear_map_neg
 lemma convex_neg_preimage : convex A → convex ((λ z, -z) ⁻¹' A) :=
 convex_linear_preimage _ _ is_linear_map.is_linear_map_neg
 
-lemma convex_smul (c : ℝ):
-  convex A → convex ((λ z, c • z) '' A) :=
+lemma convex_smul (c : ℝ) : convex A → convex ((λ z, c • z) '' A) :=
 convex_linear_image _ _ (is_linear_map.is_linear_map_smul c)
 
-lemma convex_smul_preimage (c : ℝ):
-  convex A → convex ((λ z, c • z) ⁻¹' A) :=
+lemma convex_smul_preimage (c : ℝ) : convex A → convex ((λ z, c • z) ⁻¹' A) :=
 convex_linear_preimage _ _ (is_linear_map.is_linear_map_smul _)
 
-lemma convex_add : convex A → convex B → convex ((λx : α × α, x.1 + x.2) '' (set.prod A B)) :=
+lemma convex_add (hA : convex A) (hB : convex B) :
+  convex ((λx : α × α, x.1 + x.2) '' (set.prod A B)) :=
 begin
-  intros hA hB,
   apply convex_linear_image (set.prod A B) (λx : α × α, x.1 + x.2) is_linear_map.is_linear_map_add,
   exact convex_prod hA hB
 end
 
-lemma convex_sub : convex A → convex B → convex ((λx : α × α, x.1 - x.2) '' (set.prod A B)) :=
+lemma convex_sub (hA : convex A) (hB : convex B) :
+  convex ((λx : α × α, x.1 - x.2) '' (set.prod A B)) :=
 begin
-  intros hA hB,
   apply convex_linear_image (set.prod A B) (λx : α × α, x.1 - x.2) is_linear_map.is_linear_map_sub,
   exact convex_prod hA hB
 end
@@ -287,11 +272,9 @@ begin
   have h : convex ((λ (x : α × α), x.fst + x.snd) '' set.prod (insert z ∅) A),
     from convex_add {z} A (convex_singleton z) hA,
   show convex ((λx, z + x) '' A),
-  {
-    rw [@insert_prod _ _ z ∅ A, set.empty_prod, set.union_empty, ←image_comp] at h,
+  { rw [@insert_prod _ _ z ∅ A, set.empty_prod, set.union_empty, ←image_comp] at h,
     simp at h,
-    exact h
-  }
+    exact h }
 end
 
 lemma convex_affinity (z : α) (c : ℝ) (hA : convex A) : convex ((λx, z + c • x) '' A) :=
@@ -299,11 +282,9 @@ begin
   have h : convex ((λ (x : α), z + x) '' ((λ (z : α), c • z) '' A)),
     from convex_translation _ z (convex_smul A c hA),
   show convex ((λx, z + c • x) '' A),
-  {
-    rw [←image_comp] at h,
+  { rw [←image_comp] at h,
     simp at h,
-    exact h
-  }
+    exact h }
 end
 
 lemma convex_Iio (r : ℝ) : convex (Iio r) :=
@@ -347,78 +328,50 @@ begin
 end
 
 lemma convex_Ioo (r : ℝ) (s : ℝ) : convex (Ioo r s) :=
-begin
- apply convex_inter,
- apply convex_Ioi,
- apply convex_Iio,
-end
+convex_inter _ _ (convex_Ioi _) (convex_Iio _)
 
 lemma convex_Ico (r : ℝ) (s : ℝ) : convex (Ico r s) :=
-begin
- apply convex_inter,
- apply convex_Ici,
- apply convex_Iio,
-end
+convex_inter _ _ (convex_Ici _) (convex_Iio _)
 
 lemma convex_Ioc (r : ℝ) (s : ℝ) : convex (Ioc r s) :=
-begin
- apply convex_inter,
- apply convex_Ioi,
- apply convex_Iic,
-end
+convex_inter _ _ (convex_Ioi _) (convex_Iic _)
 
 lemma convex_Icc (r : ℝ) (s : ℝ) : convex (Icc r s) :=
-begin
- apply convex_inter,
- apply convex_Ici,
- apply convex_Iic,
-end
+convex_inter _ _ (convex_Ici _) (convex_Iic _)
 
 private lemma convex_segment0 (b : α) : convex [0, b] :=
 begin
   let f := (λ x : ℝ, x • b),
   have h_image : f '' (Icc 0 1) = [0, b],
-  {
-    apply subset.antisymm,
-    {
-      intros z hz,
+  { apply subset.antisymm,
+    { intros z hz,
       apply exists.elim hz,
       intros x hx,
       use x,
-      simp [hx.2.symm, hx.1]
-    },
-    {
-      intros z hz,
+      simp [hx.2.symm, hx.1] },
+    { intros z hz,
       apply exists.elim hz,
       intros x hx,
       use x,
       simp at hx,
-      exact and.intro hx.1 hx.2.symm,
-    }
-  },
+      exact and.intro hx.1 hx.2.symm }},
   have h_lin : is_linear_map ℝ f,
     from is_linear_map.is_linear_map_smul' _,
   show convex [0, b],
-  {
-    rw [←h_image],
-    exact convex_linear_image _ f h_lin (convex_Icc _ _),
-  }
+  { rw [←h_image],
+    exact convex_linear_image _ f h_lin (convex_Icc _ _) }
 end
 
 lemma convex_segment (a b : α) : convex [a, b] :=
 begin
   have h: (λx, a + x) '' [0, b-a] = [a, b],
-  {
-    convert segment_translate_image _ _ _,
+  { convert segment_translate_image _ _ _,
     { simp },
-    { simp only [add_sub_cancel'_right] }
-  },
+    { simp only [add_sub_cancel'_right] }},
   show convex [a, b],
-  {
-    rw [← h],
+  { rw [← h],
     apply convex_translation,
-    apply convex_segment0
-  }
+    apply convex_segment0 }
 end
 
 lemma convex_halfspace_lt (f : α → ℝ) (h : is_linear_map ℝ f) (r : ℝ) :
@@ -466,108 +419,88 @@ begin
   rw [hx, hy, (add_smul a b r).symm, hab, one_smul]
 end
 
-lemma convex_halfspace_re_lt (r : ℝ): convex {c : ℂ | c.re < r} :=
-by apply convex_halfspace_lt _ (is_linear_map.mk complex.add_re complex.smul_re)
+lemma convex_halfspace_re_lt (r : ℝ) : convex {c : ℂ | c.re < r} :=
+convex_halfspace_lt _ (is_linear_map.mk complex.add_re complex.smul_re) _
 
-lemma convex_halfspace_re_le (r : ℝ): convex {c : ℂ | c.re ≤ r} :=
-by apply convex_halfspace_le _ (is_linear_map.mk complex.add_re complex.smul_re)
+lemma convex_halfspace_re_le (r : ℝ) : convex {c : ℂ | c.re ≤ r} :=
+convex_halfspace_le _ (is_linear_map.mk complex.add_re complex.smul_re) _
 
-lemma convex_halfspace_re_gt (r : ℝ): convex {c : ℂ | r < c.re } :=
-by apply convex_halfspace_gt _ (is_linear_map.mk complex.add_re complex.smul_re)
+lemma convex_halfspace_re_gt (r : ℝ) : convex {c : ℂ | r < c.re } :=
+convex_halfspace_gt _ (is_linear_map.mk complex.add_re complex.smul_re) _
 
-lemma convex_halfspace_re_lge (r : ℝ): convex {c : ℂ | r ≤ c.re} :=
-by apply convex_halfspace_ge _ (is_linear_map.mk complex.add_re complex.smul_re)
+lemma convex_halfspace_re_lge (r : ℝ) : convex {c : ℂ | r ≤ c.re} :=
+convex_halfspace_ge _ (is_linear_map.mk complex.add_re complex.smul_re) _
 
-lemma convex_halfspace_im_lt (r : ℝ): convex {c : ℂ | c.im < r} :=
-by apply convex_halfspace_lt _ (is_linear_map.mk complex.add_im complex.smul_im)
+lemma convex_halfspace_im_lt (r : ℝ) : convex {c : ℂ | c.im < r} :=
+convex_halfspace_lt _ (is_linear_map.mk complex.add_im complex.smul_im) _
 
-lemma convex_halfspace_im_le (r : ℝ): convex {c : ℂ | c.im ≤ r} :=
-by apply convex_halfspace_le _ (is_linear_map.mk complex.add_im complex.smul_im)
+lemma convex_halfspace_im_le (r : ℝ) : convex {c : ℂ | c.im ≤ r} :=
+convex_halfspace_le _ (is_linear_map.mk complex.add_im complex.smul_im) _
 
-lemma convex_halfspace_im_gt (r : ℝ): convex {c : ℂ | r < c.im } :=
-by apply convex_halfspace_gt _ (is_linear_map.mk complex.add_im complex.smul_im)
+lemma convex_halfspace_im_gt (r : ℝ) : convex {c : ℂ | r < c.im } :=
+convex_halfspace_gt _ (is_linear_map.mk complex.add_im complex.smul_im) _
 
-lemma convex_halfspace_im_lge (r : ℝ): convex {c : ℂ | r ≤ c.im} :=
-by apply convex_halfspace_ge _ (is_linear_map.mk complex.add_im complex.smul_im)
-
-section prop_decidable
-
-local attribute [instance] classical.prop_decidable
+lemma convex_halfspace_im_lge (r : ℝ) : convex {c : ℂ | r ≤ c.im} :=
+convex_halfspace_ge _ (is_linear_map.mk complex.add_im complex.smul_im) _
 
 lemma convex_sum {γ : Type*} (hA : convex A) (z : γ → α) (s : finset γ) :
-∀ a : γ → ℝ, s.sum a = 1 → (∀ i ∈ s, 0 ≤ a i) → (∀ i ∈ s, z i ∈ A) → s.sum (λi, a i • z i) ∈ A :=
+  ∀ a : γ → ℝ, s.sum a = 1 → (∀ i ∈ s, 0 ≤ a i) → (∀ i ∈ s, z i ∈ A) → s.sum (λi, a i • z i) ∈ A :=
 begin
-refine finset.induction _ _ s,
-{ intros _ h_sum,
-  simp at h_sum,
-  exact false.elim h_sum },
-{ intros k s hks ih a h_sum ha hz,
-  by_cases h_cases : s.sum a = 0,
-  { have hak : a k = 1,
-      by rwa [finset.sum_insert hks, h_cases, add_zero] at h_sum,
-    have ha': ∀ i ∈ s, 0 ≤ a i,
-      from λ i hi, ha i (finset.mem_insert_of_mem hi),
-    have h_a0: ∀ i ∈ s, a i = 0,
-      from (finset.sum_eq_zero_iff_of_nonneg ha').1 h_cases,
-    have h_az0: ∀ i ∈ s, a i • z i = 0,
-    {
-      intros i hi,
-      rw h_a0 i hi,
-      exact zero_smul _ (z i)
-    },
-    show finset.sum (insert k s) (λ (i : γ), a i • z i) ∈ A,
-    {
-      rw [finset.sum_insert hks, hak, finset.sum_eq_zero h_az0],
-      simp,
-      exact hz k (finset.mem_insert_self k s)
-    }
-  },
-  { have h_sum_nonneg : 0 ≤ s.sum a ,
-    {
-      apply finset.zero_le_sum',
-      intros i hi,
-      apply ha _ (finset.mem_insert_of_mem hi)
-    },
-    have h_div_in_A: s.sum (λ (i : γ), ((s.sum a)⁻¹ * a i) • z i) ∈ A,
-    {
-      apply ih,
-      { rw finset.mul_sum.symm,
-        exact division_ring.inv_mul_cancel h_cases },
+  refine finset.induction _ _ s,
+  { intros _ h_sum,
+    simp at h_sum,
+    exact false.elim h_sum },
+  { intros k s hks ih a h_sum ha hz,
+    by_cases h_cases : s.sum a = 0,
+    { have hak : a k = 1,
+        by rwa [finset.sum_insert hks, h_cases, add_zero] at h_sum,
+      have ha': ∀ i ∈ s, 0 ≤ a i,
+        from λ i hi, ha i (finset.mem_insert_of_mem hi),
+      have h_a0: ∀ i ∈ s, a i = 0,
+        from (finset.sum_eq_zero_iff_of_nonneg ha').1 h_cases,
+      have h_az0: ∀ i ∈ s, a i • z i = 0,
       { intros i hi,
-        exact zero_le_mul (inv_nonneg.2 h_sum_nonneg) (ha i (finset.mem_insert_of_mem hi))},
-      { intros i hi,
-        exact hz i (finset.mem_insert_of_mem hi) }
-    },
-    have h_sum_in_A: a k • z k
-      + finset.sum s a • finset.sum s (λ (i : γ), ((finset.sum s a)⁻¹ * a i) • z i)
-      ∈ A,
-    {
-      apply hA,
-      exact hz k (finset.mem_insert_self k s),
-      exact h_div_in_A,
-      exact ha k (finset.mem_insert_self k s),
-      exact h_sum_nonneg,
-      rw (finset.sum_insert hks).symm,
-      exact h_sum
-    },
-    show finset.sum (insert k s) (λ (i : γ), a i • z i) ∈ A,
-    {
-      rw finset.sum_insert hks,
-      rw finset.smul_sum at h_sum_in_A,
-      simp [smul_smul, (mul_assoc (s.sum a) _ _).symm] at h_sum_in_A,
-      conv
-      begin
-        congr,
-        congr,
-        skip,
-        congr, skip, funext,
-        rw (one_mul (a _)).symm,
-        rw (field.mul_inv_cancel h_cases).symm,
-      end,
-      exact h_sum_in_A
-    }
-  }
-}
+        rw h_a0 i hi,
+        exact zero_smul _ (z i) },
+      show finset.sum (insert k s) (λ (i : γ), a i • z i) ∈ A,
+      { rw [finset.sum_insert hks, hak, finset.sum_eq_zero h_az0],
+        simp,
+        exact hz k (finset.mem_insert_self k s) }},
+    { have h_sum_nonneg : 0 ≤ s.sum a,
+      { apply finset.zero_le_sum',
+        intros i hi,
+        apply ha _ (finset.mem_insert_of_mem hi) },
+      have h_div_in_A: s.sum (λ (i : γ), ((s.sum a)⁻¹ * a i) • z i) ∈ A,
+      { apply ih,
+        { rw finset.mul_sum.symm,
+          exact division_ring.inv_mul_cancel h_cases },
+        { intros i hi,
+          exact zero_le_mul (inv_nonneg.2 h_sum_nonneg) (ha i (finset.mem_insert_of_mem hi))},
+        { intros i hi,
+          exact hz i (finset.mem_insert_of_mem hi) }},
+      have h_sum_in_A: a k • z k
+        + finset.sum s a • finset.sum s (λ (i : γ), ((finset.sum s a)⁻¹ * a i) • z i) ∈ A,
+      { apply hA,
+        exact hz k (finset.mem_insert_self k s),
+        exact h_div_in_A,
+        exact ha k (finset.mem_insert_self k s),
+        exact h_sum_nonneg,
+        rw (finset.sum_insert hks).symm,
+        exact h_sum },
+      show finset.sum (insert k s) (λ (i : γ), a i • z i) ∈ A,
+      { rw finset.sum_insert hks,
+        rw finset.smul_sum at h_sum_in_A,
+        simp [smul_smul, (mul_assoc (s.sum a) _ _).symm] at h_sum_in_A,
+        conv
+        begin
+          congr,
+          congr,
+          skip,
+          congr, skip, funext,
+          rw (one_mul (a _)).symm,
+          rw (field.mul_inv_cancel h_cases).symm,
+        end,
+        exact h_sum_in_A }}}
 end
 
 lemma convex_sum_equiv :
@@ -582,33 +515,26 @@ begin
     intros x y a b hx hy ha hb hab,
     by_cases h_cases: x = y,
     { rw [h_cases, ←add_smul, hab, one_smul], exact hy },
-    {
-    let s := insert x (finset.singleton y),
-    have h_sum_eq_add : finset.sum s (λ z, ite (x = z) a b • z) = a • x + b • y,
-    {
-      rw [finset.sum_insert (finset.not_mem_singleton.2 h_cases),
-      finset.sum_singleton],
-      simp [h_cases]
-    },
-    rw h_sum_eq_add.symm,
-    apply h s,
-    { rw [finset.sum_insert (finset.not_mem_singleton.2 h_cases),
-      finset.sum_singleton],
-      simp [h_cases],
-      exact hab },
-    { intros k hk,
-      by_cases h_cases : x = k,
-      { simp [h_cases], exact ha },
-      { simp [h_cases], exact hb } },
-    { intros z hz,
-      apply or.elim (finset.mem_insert.1 hz),
-      { intros h_eq, rw h_eq, exact hx },
-      { intros h_eq, rw finset.mem_singleton at h_eq, rw h_eq, exact hy } } }
-  }
+    { let s := insert x (finset.singleton y),
+      have h_sum_eq_add : finset.sum s (λ z, ite (x = z) a b • z) = a • x + b • y,
+      { rw [finset.sum_insert (finset.not_mem_singleton.2 h_cases),
+        finset.sum_singleton],
+        simp [h_cases] },
+      rw h_sum_eq_add.symm,
+      apply h s,
+      { rw [finset.sum_insert (finset.not_mem_singleton.2 h_cases),
+        finset.sum_singleton],
+        simp [h_cases],
+        exact hab },
+      { intros k hk,
+        by_cases h_cases : x = k,
+        { simp [h_cases], exact ha },
+        { simp [h_cases], exact hb } },
+      { intros z hz,
+        apply or.elim (finset.mem_insert.1 hz),
+        { intros h_eq, rw h_eq, exact hx },
+        { intros h_eq, rw finset.mem_singleton at h_eq, rw h_eq, exact hy }}}}
 end
-
-end prop_decidable
-
 
 variables (D: set α) (D': set α) (f : α → ℝ) (g : α → ℝ)
 
@@ -618,60 +544,52 @@ def convex_on (f : α → ℝ) : Prop :=
   ∀ (x y : α) (a b : ℝ), x ∈ D → y ∈ D → 0 ≤ a → 0 ≤ b → a + b = 1 →
     f (a • x + b • y) ≤ a * f x + b * f y
 
-lemma convex_on_iff:
+lemma convex_on_iff :
   convex_on D f ↔ convex D ∧ ∀ {x y : α} {θ : ℝ},
     x ∈ D → y ∈ D → 0 ≤ θ → θ ≤ 1 → f (θ • x + (1 - θ) • y) ≤ θ * f x + (1 - θ) * f y :=
-⟨
-  by {
-    intro h,
-    apply and.intro h.1,
-    intros x y θ hx hy hθ₁ hθ₂,
-    have hθ₂: 0 ≤ 1 - θ, by linarith,
-    exact (h.2 _ _ _ _ hx hy hθ₁ hθ₂ (by linarith))
-  },
-  by {
-    intro h,
-    apply and.intro h.1,
-    assume x y a b hx hy ha hb hab,
-    have ha': a ≤ 1, by linarith,
-    have hb': b = 1 - a, by linarith,
-    rw hb',
-    exact (h.2 hx hy ha ha')
-  }
-⟩
+⟨begin
+  intro h,
+  apply and.intro h.1,
+  intros x y θ hx hy hθ₁ hθ₂,
+  have hθ₂: 0 ≤ 1 - θ, by linarith,
+  exact (h.2 _ _ _ _ hx hy hθ₁ hθ₂ (by linarith))
+end,
+begin
+  intro h,
+  apply and.intro h.1,
+  assume x y a b hx hy ha hb hab,
+  have ha': a ≤ 1, by linarith,
+  have hb': b = 1 - a, by linarith,
+  rw hb',
+  exact (h.2 hx hy ha ha')
+end⟩
 
 lemma convex_on_iff_div:
   convex_on D f ↔ convex D ∧ ∀ {x y : α} {a : ℝ} {b : ℝ},
     x ∈ D → y ∈ D → 0 ≤ a → 0 ≤ b → 0 < a + b →
     f ((a/(a+b)) • x + (b/(a+b)) • y) ≤ (a/(a+b)) * f x + (b/(a+b)) * f y :=
-⟨
-  by {
-    intro h,
-    apply and.intro h.1,
-    intros x y a b hx hy ha hb hab,
-    apply h.2 _ _ _ _ hx hy,
-    have ha', from mul_le_mul_of_nonneg_left ha (le_of_lt (inv_pos hab)),
-    rwa [mul_zero, ←div_eq_inv_mul] at ha',
-    have hb', from mul_le_mul_of_nonneg_left hb (le_of_lt (inv_pos hab)),
-    rwa [mul_zero, ←div_eq_inv_mul] at hb',
-    rw [←add_div],
-    exact div_self (ne_of_lt hab).symm
-  },
-  by {
-    intro h,
-    apply and.intro h.1,
-    intros x y a b hx hy ha hb hab,
-    have h', from h.2 hx hy ha hb,
-    rw [hab, div_one, div_one] at h',
-    exact h' zero_lt_one
-  }
-⟩
+⟨begin
+  intro h,
+  apply and.intro h.1,
+  intros x y a b hx hy ha hb hab,
+  apply h.2 _ _ _ _ hx hy,
+  have ha', from mul_le_mul_of_nonneg_left ha (le_of_lt (inv_pos hab)),
+  rwa [mul_zero, ←div_eq_inv_mul] at ha',
+  have hb', from mul_le_mul_of_nonneg_left hb (le_of_lt (inv_pos hab)),
+  rwa [mul_zero, ←div_eq_inv_mul] at hb',
+  rw [←add_div],
+  exact div_self (ne_of_lt hab).symm
+end,
+begin
+  intro h,
+  apply and.intro h.1,
+  intros x y a b hx hy ha hb hab,
+  have h', from h.2 hx hy ha hb,
+  rw [hab, div_one, div_one] at h',
+  exact h' zero_lt_one
+end⟩
 
-section prop_decidable
-
-local attribute [instance] classical.prop_decidable
-
-lemma convex_on_sum {γ : Type} (s : finset γ) (z : γ → α) (hs : s ≠ ∅):
+lemma convex_on_sum {γ : Type} (s : finset γ) (z : γ → α) (hs : s ≠ ∅) :
   ∀ (a : γ → ℝ), convex_on D f → (∀ i ∈ s, 0 ≤ a i) → (∀ i ∈ s, z i ∈ D) → s.sum a = 1 →
   f (s.sum (λi, a i • z i)) ≤ s.sum (λi, a i • f (z i)) :=
 begin
@@ -685,81 +603,61 @@ begin
     have h_a0: ∀ i ∈ s, a i = 0,
       from (finset.sum_eq_zero_iff_of_nonneg ha').1 h_cases,
     have h_az0: ∀ i ∈ s, a i • z i = 0,
-    {
-      intros i hi,
+    { intros i hi,
       rw h_a0 i hi,
-      exact zero_smul _ _
-    },
+      exact zero_smul _ _ },
     have h_afz0: ∀ i ∈ s, a i • f (z i) = 0,
-    {
-      intros i hi,
+    { intros i hi,
       rw h_a0 i hi,
-      exact zero_smul _ _
-    },
+      exact zero_smul _ _ },
     show f (finset.sum (insert k s) (λi, a i • z i)) ≤ finset.sum (insert k s) (λi, a i • f (z i)),
-    {
-      rw [finset.sum_insert hks, hak, finset.sum_eq_zero h_az0],
+    { rw [finset.sum_insert hks, hak, finset.sum_eq_zero h_az0],
       rw [finset.sum_insert hks, hak, finset.sum_eq_zero h_afz0],
-      simp
-    }
-  },
+      simp }},
   { have h_sum_nonneg : 0 ≤ s.sum a ,
-    {
-      apply finset.zero_le_sum',
+    { apply finset.zero_le_sum',
       intros i hi,
-      apply ha _ (finset.mem_insert_of_mem hi)
-    },
+      apply ha _ (finset.mem_insert_of_mem hi) },
     have ih_div: f (s.sum (λ (i : γ), ((s.sum a)⁻¹ * a i) • z i))
                   ≤ s.sum (λ (i : γ), ((s.sum a)⁻¹ * a i) • f (z i)),
-    {
-      apply ih _ hf,
+    { apply ih _ hf,
       { intros i hi,
         exact zero_le_mul (inv_nonneg.2 h_sum_nonneg) (ha i (finset.mem_insert_of_mem hi))},
       { intros i hi,
         exact hz i (finset.mem_insert_of_mem hi) },
       { rw finset.mul_sum.symm,
-        exact division_ring.inv_mul_cancel h_cases }
-    },
+        exact division_ring.inv_mul_cancel h_cases }},
     have h_div_in_D: s.sum (λ (i : γ), ((s.sum a)⁻¹ * a i) • z i) ∈ D,
-    by {
-      apply convex_sum _ hf.1,
+    { apply convex_sum _ hf.1,
       { rw finset.mul_sum.symm,
         exact division_ring.inv_mul_cancel h_cases },
       { intros i hi,
         exact zero_le_mul (inv_nonneg.2 h_sum_nonneg) (ha i (finset.mem_insert_of_mem hi))},
       { intros i hi,
-        exact hz i (finset.mem_insert_of_mem hi) }
-    },
+        exact hz i (finset.mem_insert_of_mem hi) }},
     have hf': f (a k • z k     + s.sum a •    s.sum (λ (i : γ), ((finset.sum s a)⁻¹ * a i) • z i))
                ≤ a k • f (z k) + s.sum a • f (s.sum (λ (i : γ), ((finset.sum s a)⁻¹ * a i) • z i)),
-    {
-      apply hf.2,
+    { apply hf.2,
       exact hz k (finset.mem_insert_self k s),
       exact h_div_in_D,
       exact ha k (finset.mem_insert_self k s),
       exact h_sum_nonneg,
       rw (finset.sum_insert hks).symm,
-      exact h_sum
-    },
+      exact h_sum },
     have ih_div': f (a k • z k     + s.sum a • s.sum (λ (i : γ), ((finset.sum s a)⁻¹ * a i) • z i))
                    ≤ a k • f (z k) + s.sum a • s.sum (λ (i : γ), ((finset.sum s a)⁻¹ * a i) • f (z i)),
       from trans hf' (add_le_add_left (mul_le_mul_of_nonneg_left ih_div h_sum_nonneg) _),
     show f (finset.sum (insert k s) (λ (i : γ), a i • z i))
           ≤ finset.sum (insert k s) (λ (i : γ), a i • f (z i)),
-    {
-      simp [finset.sum_insert hks],
+    { simp [finset.sum_insert hks],
       simp [finset.smul_sum] at ih_div',
       simp [smul_smul, (mul_assoc (s.sum a) _ _).symm] at ih_div',
       convert ih_div',
       repeat { apply funext,
         intro i,
         rw [field.mul_inv_cancel, one_mul],
-        exact h_cases }
-    }
-  }
+        exact h_cases }}}
 end
-
-end prop_decidable
 
 lemma convex_on_linorder [hα : linear_order α] (f : α → ℝ) : convex_on D f ↔
   convex D ∧ ∀ (x y : α) (a b : ℝ), x ∈ D → y ∈ D → x < y → a ≥ 0 → b ≥ 0 → a + b = 1 →
@@ -788,7 +686,7 @@ begin
   exact h_convex_on.2 x y a b (h_subset hx) (h_subset hy),
 end
 
-lemma convex_on_add (hf : convex_on D f) (hg : convex_on D g): convex_on D (λx, f x + g x) :=
+lemma convex_on_add (hf : convex_on D f) (hg : convex_on D g) : convex_on D (λx, f x + g x) :=
 begin
   apply and.intro hf.1,
   intros x y a b hx hy ha hb hab,
@@ -809,7 +707,7 @@ begin
     ... = a * (c * f x) + b * (c * f y) : by rw mul_add; ac_refl
 end
 
-lemma convex_le_of_convex_on (hf : convex_on D f) (r : ℝ): convex { x ∈ D | f x ≤ r } :=
+lemma convex_le_of_convex_on (hf : convex_on D f) (r : ℝ) : convex {x ∈ D | f x ≤ r} :=
 begin
   intros x y a b hx hy ha hb hab,
   simp at *,
@@ -818,13 +716,15 @@ begin
   { apply le_trans (hf.2 x y a b hx.1 hy.1 ha hb hab),
     wlog h_wlog : f x ≤ f y using [x y a b, y x b a],
     apply le_total,
-    calc a * f x + b * f y ≤ a * f y + b * f y : add_le_add (mul_le_mul_of_nonneg_left h_wlog ha) (le_refl _)
-                       ... = (a + b) * f y     : (add_mul _ _ _).symm
-                       ... ≤ r                 : by rw [hab, one_mul]; exact hy.2
+    calc
+      a * f x + b * f y ≤ a * f y + b * f y :
+        add_le_add (mul_le_mul_of_nonneg_left h_wlog ha) (le_refl _)
+      ... = (a + b) * f y : (add_mul _ _ _).symm
+      ... ≤ r             : by rw [hab, one_mul]; exact hy.2
   }
 end
 
-lemma convex_lt_of_convex_on (hf : convex_on D f) (r : ℝ): convex { x ∈ D | f x < r } :=
+lemma convex_lt_of_convex_on (hf : convex_on D f) (r : ℝ) : convex {x ∈ D | f x < r} :=
 begin
   intros x y a b hx hy ha hb hab,
   simp at *,
@@ -833,14 +733,16 @@ begin
   { apply lt_of_le_of_lt (hf.2 x y a b hx.1 hy.1 ha hb hab),
     wlog h_wlog : f x ≤ f y using [x y a b, y x b a],
     apply le_total,
-    calc a * f x + b * f y ≤ a * f y + b * f y : add_le_add (mul_le_mul_of_nonneg_left h_wlog ha) (le_refl _)
-                       ... = (a + b) * f y     : (add_mul _ _ _).symm
-                       ... < r                 : by rw [hab, one_mul]; exact hy.2
+    calc
+      a * f x + b * f y ≤ a * f y + b * f y :
+        add_le_add (mul_le_mul_of_nonneg_left h_wlog ha) (le_refl _)
+      ... = (a + b) * f y     : (add_mul _ _ _).symm
+      ... < r                 : by rw [hab, one_mul]; exact hy.2
   }
 end
 
 lemma le_on_interval_of_convex_on (x y : α) (a b : ℝ)
-  (hf : convex_on D f) (hx : x ∈ D) (hy : y ∈ D) (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1):
+  (hf : convex_on D f) (hx : x ∈ D) (hy : y ∈ D) (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1) :
   f (a • x + b • y) ≤ max (f x) (f y) :=
 calc
   f (a • x + b • y) ≤ a * f x + b * f y : hf.2 x y a b hx hy ha hb hab
@@ -848,34 +750,24 @@ calc
     add_le_add (mul_le_mul_of_nonneg_left (le_max_left _ _) ha) (mul_le_mul_of_nonneg_left (le_max_right _ _) hb)
   ... ≤ max (f x) (f y) : by rw [←add_mul, hab, one_mul]
 
-lemma convex_on_dist {α : Type} [normed_space ℝ α] (z : α) (D : set α) (hD : convex D):
+lemma convex_on_dist {α : Type} [normed_space ℝ α] (z : α) (D : set α) (hD : convex D) :
   convex_on D (λz', dist z' z) :=
 begin
   apply and.intro hD,
   intros x y a b hx hy ha hb hab,
   calc
-    dist (a • x + b • y) z = ∥ (a • x + b • y) - (a + b) • z ∥
-      : by rw [hab, one_smul, normed_group.dist_eq]
-    ... = ∥a • (x - z) + b • (y - z)∥
-      : by rw [add_smul, smul_sub, smul_sub]; simp
-    ... ≤ ∥a • (x - z)∥ + ∥b • (y - z)∥
-      : norm_triangle (a • (x - z)) (b • (y - z))
+    dist (a • x + b • y) z = ∥ (a • x + b • y) - (a + b) • z ∥ :
+      by rw [hab, one_smul, normed_group.dist_eq]
+    ... = ∥a • (x - z) + b • (y - z)∥ :
+      by rw [add_smul, smul_sub, smul_sub]; simp
+    ... ≤ ∥a • (x - z)∥ + ∥b • (y - z)∥ :
+      norm_triangle (a • (x - z)) (b • (y - z))
     ... = a * dist x z + b * dist y z :
       by simp [norm_smul, normed_group.dist_eq, real.norm_eq_abs, abs_of_nonneg ha, abs_of_nonneg hb]
 end
 
 lemma convex_ball {α : Type} [normed_space ℝ α] (a : α) (r : ℝ) : convex (metric.ball a r) :=
-begin
-  unfold metric.ball,
-  let h := convex_lt_of_convex_on univ (λb, dist b a) (convex_on_dist _  _ convex_univ) r,
-  simp at h,
-  exact h
-end
+by simpa using convex_lt_of_convex_on univ (λb, dist b a) (convex_on_dist _  _ convex_univ) r
 
 lemma convex_closed_ball {α : Type} [normed_space ℝ α] (a : α) (r : ℝ) : convex (metric.closed_ball a r) :=
-begin
-  unfold metric.closed_ball,
-  let h := convex_le_of_convex_on univ (λb, dist b a) (convex_on_dist _  _ convex_univ) r,
-  simp at h,
-  exact h
-end
+by simpa using convex_le_of_convex_on univ (λb, dist b a) (convex_on_dist _  _ convex_univ) r

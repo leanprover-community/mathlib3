@@ -69,7 +69,6 @@ lemma has_pos_bound : ∃ M > 0, ∀ x, ∥f x∥ ≤ M * ∥x∥ :=
   ⟨max 1 M, lt_of_lt_of_le zero_lt_one (le_max_left 1 _), λ _, le_trans
   (hf _) (mul_le_mul_of_nonneg_right (le_max_right _ _) (norm_nonneg _))⟩
 
--- some lemmas about things having bounds and things being bounds
 lemma ratio_has_pos_bound : ∃ M > 0, ∀ x, ∥f x∥ / ∥x∥ ≤ M :=
   let ⟨M, hMp, hMb⟩ := has_pos_bound f in ⟨M, hMp,
   λ x, or.elim (lt_or_eq_of_le (norm_nonneg x))
@@ -79,11 +78,12 @@ lemma ratio_has_pos_bound : ∃ M > 0, ∀ x, ∥f x∥ / ∥x∥ ≤ M :=
 def of_linear_map_of_bounded {f : E →ₗ[k] F}
   (h : ∃ M, ∀ x, ∥f x∥ ≤ M * ∥x∥) : E →L[k] F := ⟨f, h⟩
 
--- the zero map and the identity maps are bounded
+/-- the zero map is bounded.     -/
 def zero : E →L[k] F := ⟨0, 0, λ x, by rw zero_mul; exact le_of_eq norm_zero⟩
+/-- the identity map is bounded. -/
 def id   : E →L[k] E := ⟨linear_map.id, 1, λ x, le_of_eq (one_mul _).symm⟩
 
--- boundedness respects a bunch of operations
+/-- the composition of two bounded linear maps is bounded. -/
 def comp (g : F →L[k] G) (f : E →L[k] F) : E →L[k] G :=
   ⟨linear_map.comp g.to_linear_map f.to_linear_map,
   let ⟨Mg, hMgp, hMgb⟩ := has_pos_bound g in
@@ -139,8 +139,6 @@ instance : vector_space k (E →L[k] F) := {
   smul_add  := λ _ _ _, ext $ λ _, smul_add _ _ _
 }
 
-
--- endomorphism algebra
 instance : ring (E →L[k] E) := {
   mul := (*),
   one := 1,
@@ -165,7 +163,7 @@ instance : algebra k (E →L[k] E) := {
   commutes' := λ _ _, ext $ λ _, map_smul _ _ _,
 }
 
--- a bounded linear map is continuous.
+/-- bounded linear maps are continuous. -/
 lemma tendsto (x : E): f →_{x} (f x) :=
   tendsto_iff_norm_tendsto_zero.2 $ let ⟨M, hf⟩ := f.bounded in
   (squeeze_zero (λ _, norm_nonneg _)
@@ -175,49 +173,11 @@ lemma tendsto (x : E): f →_{x} (f x) :=
 protected theorem continuous : continuous f :=
   continuous_iff_continuous_at.2 (tendsto f)
 
-/-
-theorem of_continuous_linear_map (f : E →ₗ[k] F) (hf : continuous f)
-  (hk : normed_field.nontrivial k) : E →L[k] F :=
-  ⟨f,
-  let ⟨ϖ, hϖn, hϖ⟩ := hk in
-    have hϖp  : 0 < ∥ϖ∥, from (norm_pos_iff _).2 hϖn,
-    have hltϖ : 1 < ∥ϖ∥⁻¹, from one_lt_inv hϖp hϖ,
-
-  let ⟨δ, hδp, hδ⟩ :=
-    exists_delta_of_continuous hf ((norm_pos_iff _).2 hϖn) 0 in
-
-  ⟨δ⁻¹, λ x, or.elim (lt_or_eq_of_le (norm_nonneg x))
-
-  (λ hxp,
-  have hδx : δ⁻¹ * ∥x∥ > 0, from mul_pos (inv_pos hδp) hxp,
-  have hη  : ∀ c : ℝ, c > 0 → ∃ η : k, c < ∥η∥ ∧ ∥η∥ ≤ c * ∥ϖ∥⁻¹, from
-  (λ c hcp, let ⟨n, hltn, hnlt⟩ := exists_int_pow_near hcp hltϖ in
-    ⟨ϖ⁻¹^(n + 1),
-    by rwa [normed_field.norm_fpow, norm_inv],
-    begin
-      have tmp : ∥ϖ∥⁻¹ ≠ 0, from _,
-      rw [normed_field.norm_fpow, norm_inv, fpow_add tmp, fpow_one],
-      exact mul_le_mul_of_nonneg_right hltn (le_of_lt (inv_pos hϖp)),
-    end⟩),
-  let ⟨η, hltη, hηlt⟩ := hη _ (mul_pos (inv_pos hδp) hxp) in
-
-    have hηp : 0 < ∥η∥, from lt_trans hδx hltη,
-    have hηn : η ≠ 0, from (norm_pos_iff _).1 hηp,
-    have hηx : ∥η⁻¹ • x∥ ≤ δ, from le_of_lt (by
-      erw [norm_smul, norm_inv, mul_comm, div_lt_iff hηp,
-      mul_comm, ←div_lt_iff hδp]; rwa [mul_comm] at hltη),
-
-    have hfηx : ∥f (η⁻¹ • x)∥ ≤ ∥ϖ∥,
-      by simp [dist_eq_norm] at hδ; exact le_of_lt (hδ _ hηx),
-
-  calc ∥f x∥ = _ : linear_map.norm_mul_map_smul f η x hηn
-  ...        ≤ ∥η∥ * ∥ϖ∥ : mul_le_mul_of_nonneg_left hfηx (norm_nonneg _)
-  ...        ≤ δ⁻¹ * ∥x∥ : by erw [le_div_iff hϖp] at hηlt; exact hηlt)
-  (λ heq,
-    have hf : f.to_fun 0 = 0, from linear_map.map_zero f,
-    by rw [←heq, (norm_eq_zero _).1 heq.symm, hf, mul_zero, norm_zero])⟩⟩
--/
 end bounded_linear_map
+
+
+-- deriv.lean is dependent on `is_bounded_linear_map`
+-- and has not yet been refactored.
 
 structure is_bounded_linear_map (k : Type*)
   [normed_field k] {E : Type*} [normed_space k E] {F : Type*} [normed_space k F] (L : E → F)

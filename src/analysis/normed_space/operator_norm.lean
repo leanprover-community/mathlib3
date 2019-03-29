@@ -20,7 +20,6 @@ import topology.metric_space.lipschitz
 variable  {k : Type*}
 variables {E : Type*} {F : Type*} {G : Type*}
 
--- refactor : formulation for bundled bounded_linear_map
 section op_norm
 
 variable  [normed_field k]
@@ -35,7 +34,8 @@ noncomputable def op_norm  := real.Inf { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c 
 
 noncomputable instance : has_norm (bounded_linear_map k E F) := ⟨op_norm⟩
 
--- so that invocations of real.Inf_le make sense:
+-- so that invocations of real.Inf_le make sense: the set of
+-- bounds is nonempty and bounded below.
 lemma bounds_nonempty {f : bounded_linear_map k E F} :
   ∃ c, c ∈ { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ } :=
   let ⟨M, hMp, hMb⟩ := f.has_pos_bound in ⟨M, le_of_lt hMp, hMb⟩
@@ -54,12 +54,12 @@ lemma le_op_norm : ∥f x∥ ≤ ∥f∥ * ∥x∥ :=
     ((real.le_Inf _ bounds_nonempty bounds_bdd_below).2
     (λ c ⟨_, hc⟩, div_le_of_le_mul hlt (by rw mul_comm; exact hc _))))
 
--- results about bounding the unit ball. (naming conventions?)
 lemma ratio_le_op_norm : ∥f x∥ / ∥x∥ ≤ ∥f∥ :=
   (or.elim (lt_or_eq_of_le (norm_nonneg _))
   (λ hlt, div_le_of_le_mul hlt (by rw mul_comm; exact le_op_norm _))
   (λ heq, by rw [←heq, div_zero]; exact op_norm_nonneg _))
 
+/-- the image of the unit ball under a bounded linear map is bounded. -/
 lemma unit_le_op_norm : ∥x∥ ≤ 1 → ∥f x∥ ≤ ∥f∥ :=
   λ hx, by rw [←(mul_one ∥f∥)];
   calc _ ≤ (op_norm f) * ∥x∥ : le_op_norm _
@@ -94,18 +94,18 @@ lemma op_norm_smul : ∥c • f∥ = ∥c∥ * ∥f∥ :=
             (by rw [ mul_comm, ←norm_smul ]; exact hc _))⟩))
         (λ heq, by rw [←heq, zero_mul]; exact hn))))
 
--- the bounded linear maps themselves form a normed space w/ the op norm
+/-- bounded linear maps themselves form a normed space w/ the op norm -/
 noncomputable instance : normed_space k (bounded_linear_map k E F) :=
   normed_space.of_core _ _ ⟨op_norm_eq_zero, op_norm_smul, op_norm_triangle⟩
 
--- operator norm is submultiplicative
+/-- operator norm is submultiplicative. -/
 lemma op_norm_comp_le : ∥comp h f∥ ≤ ∥h∥ * ∥f∥ :=
   (real.Inf_le _
   bounds_bdd_below ⟨mul_nonneg (op_norm_nonneg _) (op_norm_nonneg _),
   λ x, by rw mul_assoc; calc _ ≤ ∥h∥ * ∥f x∥: le_op_norm _
   ... ≤ _ : mul_le_mul_of_nonneg_left (le_op_norm _) (op_norm_nonneg _)⟩)
 
--- bounded linear maps are lipschitz continuous
+/-- bounded linear maps are lipschitz continuous. -/
 theorem lipschitz : lipschitz_with ∥f∥ f :=
   ⟨op_norm_nonneg _, λ x y, by rw [ dist_eq_norm, dist_eq_norm, ←map_sub];
   exact le_op_norm _⟩

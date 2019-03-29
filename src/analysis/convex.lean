@@ -503,7 +503,7 @@ begin
         exact h_sum_in_A } } }
 end
 
-lemma convex_sum_equiv :
+lemma convex_sum_iff :
   convex A ↔
     (∀ (s : finset α) (as : α → ℝ),
       s.sum as = 1 → (∀ i ∈ s, 0 ≤ as i) → (∀ x ∈ s, x ∈ A) → s.sum (λx, as x • x) ∈ A ) :=

@@ -22,6 +22,8 @@ variables {E : Type*} {F : Type*}
 
 -- Define the subspace of bounded linear maps.
 section bounded_linear_maps
+set_option class.instance_max_depth 50
+
 
 variables [hnfk : normed_field k] [normed_space k E] [normed_space k F]
 include hnfk
@@ -186,7 +188,6 @@ noncomputable instance bounded_linear_maps.to_normed_space : normed_space k L(E,
 normed_space.of_core k L(E,F) {
   norm_eq_zero_iff := operator_norm_zero_iff,
   norm_smul := operator_norm_homogeneous,
-  triangle := operator_norm_triangle
-}
+  triangle := operator_norm_triangle }
 
 end operator_norm

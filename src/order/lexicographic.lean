@@ -10,16 +10,16 @@ import order.basic
 
 universes u v
 
+def lex (α : Type u) (β : Type v) := α × β
+
 variables {α : Type u} {β : Type v}
 
-/-- Dictionary / lexicographic ordering on pairs.
-    As the pointwise partial order is also useful,
-    neither is set as an instance by default.  -/
-def lex_has_le [preorder α] [preorder β] : has_le (α × β) :=
+/-- Dictionary / lexicographic ordering on pairs.  -/
+instance lex_has_le [preorder α] [preorder β] : has_le (lex α β) :=
 { le := λ a b, a.1 < b.1 ∨ (a.1 = b.1 ∧ a.2 ≤ b.2) }
 
 /-- Dictionary / lexicographic preorder for pairs. -/
-def lex_preorder [preorder α] [preorder β] : preorder (α × β) :=
+instance lex_preorder [preorder α] [preorder β] : preorder (lex α β) :=
 { le_refl := λ a, or.inr ⟨rfl, le_refl _⟩,
   le_trans :=
   begin
@@ -32,7 +32,7 @@ def lex_preorder [preorder α] [preorder β] : preorder (α × β) :=
   .. lex_has_le }
 
 /-- Dictionary / lexicographic partial_order for pairs. -/
-def lex_partial_order [partial_order α] [partial_order β] : partial_order (α × β) :=
+instance lex_partial_order [partial_order α] [partial_order β] : partial_order (lex α β) :=
 { le_antisymm :=
   begin
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ (a₁₂_lt | ⟨a₁₂_eq, b₁₂_le⟩) (a₂₁_lt | ⟨a₂₁_eq, b₂₁_le⟩),
@@ -44,7 +44,7 @@ def lex_partial_order [partial_order α] [partial_order β] : partial_order (α 
   .. lex_preorder }
 
 /-- Dictionary / lexicographic linear_order for pairs. -/
-def lex_linear_order [linear_order α] [linear_order β] : linear_order (α × β) :=
+instance lex_linear_order [linear_order α] [linear_order β] : linear_order (lex α β) :=
 { le_total :=
   begin
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
@@ -65,8 +65,8 @@ def lex_linear_order [linear_order α] [linear_order β] : linear_order (α × �
   .. lex_partial_order }.
 
 /-- Dictionary / lexicographic decidable_linear_order for pairs. -/
-def lex_decidable_linear_order [decidable_linear_order α] [decidable_linear_order β] :
-  decidable_linear_order (α × β) :=
+instance lex_decidable_linear_order [decidable_linear_order α] [decidable_linear_order β] :
+  decidable_linear_order (lex α β) :=
 { decidable_le :=
   begin
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,

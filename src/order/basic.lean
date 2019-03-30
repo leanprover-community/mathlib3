@@ -211,21 +211,19 @@ instance subtype.decidable_linear_order {α} [decidable_linear_order α] (p : α
   decidable_linear_order (subtype p) :=
 decidable_linear_order.lift subtype.val $ λ x y, subtype.eq'
 
-def prod.has_le (α : Type u) (β : Type v) [has_le α] [has_le β] : has_le (α × β) :=
+instance prod.has_le (α : Type u) (β : Type v) [has_le α] [has_le β] : has_le (α × β) :=
 ⟨λp q, p.1 ≤ q.1 ∧ p.2 ≤ q.2⟩
 
-def prod.preorder (α : Type u) (β : Type v) [preorder α] [preorder β] : preorder (α × β) :=
+instance prod.preorder (α : Type u) (β : Type v) [preorder α] [preorder β] : preorder (α × β) :=
 { le_refl  := assume ⟨a, b⟩, ⟨le_refl a, le_refl b⟩,
   le_trans := assume ⟨a, b⟩ ⟨c, d⟩ ⟨e, f⟩ ⟨hac, hbd⟩ ⟨hce, hdf⟩,
     ⟨le_trans hac hce, le_trans hbd hdf⟩,
   .. prod.has_le α β }
 
 /-- The pointwise partial order on a product.
-    As the lexicographic ordering is also useful,
-    neither are installed as instances by default.
-
-    Either can be added as a local instance as required. -/
-def prod.partial_order (α : Type u) (β : Type v) [partial_order α] [partial_order β] :
+    (The lexicographic ordering is defined in order/lexicographic.lean, and the instances are
+    available via the type synonym `lex α β = α × β`.) -/
+instance prod.partial_order (α : Type u) (β : Type v) [partial_order α] [partial_order β] :
   partial_order (α × β) :=
 { le_antisymm := assume ⟨a, b⟩ ⟨c, d⟩ ⟨hac, hbd⟩ ⟨hca, hdb⟩,
     prod.ext (le_antisymm hac hca) (le_antisymm hbd hdb),

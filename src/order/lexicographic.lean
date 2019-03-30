@@ -18,6 +18,9 @@ variables {α : Type u} {β : Type v}
 instance lex_has_le [preorder α] [preorder β] : has_le (lex α β) :=
 { le := λ a b, a.1 < b.1 ∨ (a.1 = b.1 ∧ a.2 ≤ b.2) }
 
+instance lex_has_lt [preorder α] [preorder β] : has_lt (lex α β) :=
+{ lt := λ a b, a.1 < b.1 ∨ (a.1 = b.1 ∧ a.2 < b.2) }
+
 /-- Dictionary / lexicographic preorder for pairs. -/
 instance lex_preorder [preorder α] [preorder β] : preorder (lex α β) :=
 { le_refl := λ a, or.inr ⟨rfl, le_refl _⟩,
@@ -29,7 +32,17 @@ instance lex_preorder [preorder α] [preorder β] : preorder (lex α β) :=
     { left, rwa a₁₂_eq },
     { exact or.inr ⟨eq.trans a₁₂_eq a₂₃_eq, le_trans b₁₂_le b₂₃_le⟩, }
     end,
-  .. lex_has_le }
+  lt_iff_le_not_le :=
+  begin
+    rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
+    split,
+    { rintros (⟨a₁₂_lt⟩ | ⟨a₁₂_eq, b₁₂_lt⟩),
+      { split, exact or.inl a₁₂_lt, sorry, },
+      { split, exact or.inr ⟨a₁₂_eq, le_of_lt b₁₂_lt⟩, sorry } },
+    sorry
+  end,
+  .. lex_has_le,
+  .. lex_has_lt }
 
 /-- Dictionary / lexicographic partial_order for pairs. -/
 instance lex_partial_order [partial_order α] [partial_order β] : partial_order (lex α β) :=
@@ -123,6 +136,8 @@ instances here.
 -/
 instance dlex_has_le [preorder α] [∀ a, preorder (Z a)] : has_le (Σ a, Z a) :=
 { le := λ a b, a.1 < b.1 ∨ (∃ p : a.1 = b.1, a.2 ≤ (by convert b.2)) }
+instance dlex_has_lt [preorder α] [∀ a, preorder (Z a)] : has_lt (Σ a, Z a) :=
+{ lt := λ a b, a.1 < b.1 ∨ (∃ p : a.1 = b.1, a.2 < (by convert b.2)) }
 
 /-- Dictionary / lexicographic preorder on dependent pairs. -/
 instance dlex_preorder [preorder α] [∀ a, preorder (Z a)] : preorder (Σ a, Z a) :=
@@ -135,7 +150,19 @@ instance dlex_preorder [preorder α] [∀ a, preorder (Z a)] : preorder (Σ a, Z
     { left, rwa a₁₂_eq },
     { exact or.inr ⟨eq.trans a₁₂_eq a₂₃_eq, le_trans b₁₂_le (by convert b₂₃_le; simp) ⟩ }
   end,
-  .. dlex_has_le }
+  lt_iff_le_not_le :=
+  begin
+    rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
+    split,
+    { rintros (⟨a₁₂_lt⟩ | ⟨a₁₂_eq, b₁₂_lt⟩),
+      { split, exact or.inl a₁₂_lt, sorry, },
+      { split,
+        { exact or.inr ⟨a₁₂_eq, le_of_lt b₁₂_lt⟩ },
+        sorry } },
+    sorry
+  end,
+  .. dlex_has_le,
+  .. dlex_has_lt }
 
 /-- Dictionary / lexicographic partial_order for dependent pairs. -/
 instance dlex_partial_order [partial_order α] [∀ a, partial_order (Z a)] : partial_order (Σ a, Z a) :=

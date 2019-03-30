@@ -4,6 +4,7 @@
 
 import category_theory.eq_to_hom
 import category_theory.limits.cones
+import category_theory.sparse
 
 open category_theory
 
@@ -48,18 +49,33 @@ def walking_cospan_comp :
 | _ _ _ inr    (id one) := inr
 .
 
-instance walking_cospan_category : small_category walking_cospan :=
-{ hom := walking_cospan_hom,
-  id := walking_cospan_hom.id,
+def walking_span_comp :
+  Π (X Y Z : walking_span) (f : walking_span_hom X Y) (g : walking_span_hom Y Z),
+    walking_span_hom X Z
+  | _ _ _ (id _) h := h
+  | _ _ _ fst    (id left) := fst
+  | _ _ _ snd    (id right) := snd
+.
+
+instance walking_cospan_category : category_struct walking_cospan :=
+{ hom  := walking_cospan_hom,
+  id   := walking_cospan_hom.id,
   comp := walking_cospan_comp, }
-instance walking_span_category : small_category walking_span :=
-{ hom := walking_span_hom,
-  id := walking_span_hom.id,
-  comp := λ X Y Z f g, match X, Y, Z, f, g with
-  | _, _ ,_, (id _), h := h
-  | _, _, _, fst, (id left) := fst
-  | _, _, _, snd, (id right) := snd
-  end }
+
+instance walking_cospan_sparse (X Y : walking_cospan) : subsingleton (X ⟶ Y) :=
+begin
+  cases X; cases Y; { split, intros, cases a; cases b; refl },
+end
+
+instance walking_span_category : category_struct walking_span :=
+{ hom  := walking_span_hom,
+  id   := walking_span_hom.id,
+  comp := walking_span_comp }
+
+instance walking_span_sparse (X Y : walking_span) : subsingleton (X ⟶ Y) :=
+begin
+  cases X; cases Y; { split, intros, cases a; cases b; refl },
+end
 
 lemma walking_cospan_hom_id (X : walking_cospan.{v}) : walking_cospan_hom.id X = 𝟙 X := rfl
 lemma walking_span_hom_id (X : walking_span.{v}) : walking_span_hom.id X = 𝟙 X := rfl
@@ -139,7 +155,7 @@ def square.mk {W : C} (π₁ : W ⟶ X) (π₂ : W ⟶ Y)
 { X := W,
   π :=
   { app := λ j, walking_cospan.cases_on j π₁ π₂ (π₁ ≫ f),
-    naturality' := λ j j' f, by cases f; obviously } }
+    naturality' := λ j j' f, begin cases f; obviously, simp, rw category.id_comp, end } }
 
 def square.condition (t : square f g) : (square.π₁ t) ≫ f = (square.π₂ t) ≫ g :=
 begin

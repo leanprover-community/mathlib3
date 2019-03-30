@@ -63,7 +63,7 @@ include 𝒞
   Use `f.op` and `f.unop` to convert between morphisms of C
   and morphisms of Cᵒᵖ.
 -/
-instance has_hom.opposite : has_hom.{v₁} Cᵒᵖ :=
+instance has_hom.opposite : has_hom Cᵒᵖ :=
 { hom := λ X Y, unop Y ⟶ unop X }
 
 def has_hom.hom.op {X Y : C} (f : X ⟶ Y) : op Y ⟶ op X := f

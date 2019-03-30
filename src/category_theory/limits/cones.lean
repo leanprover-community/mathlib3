@@ -124,6 +124,10 @@ namespace cone
 { X := X,
   π := c.extensions.app (op X) f }
 
+@[simp] lemma extend_π  (c : cone F) {X : Cᵒᵖ} (f : unop X ⟶ c.X) :
+  (extend c f).π = c.extensions.app X f :=
+rfl
+
 def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cone F) : cone (E ⋙ F) :=
 { X := c.X,
   π := whisker_left E c.π }

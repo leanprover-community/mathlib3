@@ -51,6 +51,16 @@ instance : is_group_hom (mk : G → quotient N) := ⟨λ _ _, rfl⟩
 attribute [to_additive quotient_add_group.is_add_group_hom] quotient_group.is_group_hom
 attribute [to_additive quotient_add_group.is_add_group_hom.equations._eqn_1] quotient_group.is_group_hom.equations._eqn_1
 
+@[simp] lemma ker_mk :
+  is_group_hom.ker (quotient_group.mk : G → quotient_group.quotient N) = N :=
+begin
+  ext g,
+  rw [is_group_hom.mem_ker, eq_comm],
+  show (((1 : G) : quotient_group.quotient N)) = g ↔ _,
+  rw [quotient_group.eq, one_inv, one_mul],
+end
+attribute [to_additive quotient_add_group.ker_mk] quotient_group.ker_mk
+
 instance {G : Type*} [comm_group G] (s : set G) [is_subgroup s] : comm_group (quotient s) :=
 { mul_comm := λ a b, quotient.induction_on₂' a b
     (λ a b, congr_arg mk (mul_comm a b)),

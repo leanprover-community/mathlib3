@@ -80,10 +80,10 @@ end
 lemma walking_cospan_hom_id (X : walking_cospan.{v}) : walking_cospan_hom.id X = 𝟙 X := rfl
 lemma walking_span_hom_id (X : walking_span.{v}) : walking_span_hom.id X = 𝟙 X := rfl
 
-instance walking_cospan_category : small_category walking_cospan.{v} := sparse_category
-instance walking_span_category : small_category walking_span.{v} := sparse_category
+instance walking_cospan_category : small_category.{v+1} walking_cospan.{v} := sparse_category
+instance walking_span_category : small_category.{v+1} walking_span.{v} := sparse_category
 
-variables {C : Sort u} [𝒞 : category.{v} C]
+variables {C : Sort u} [𝒞 : category.{v+1} C]
 include 𝒞
 
 def cospan {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) : walking_cospan.{v} ⥤ C :=

@@ -37,7 +37,7 @@ instance walking_pair_category : small_category.{v+1} walking_pair :=
   id   := walking_pair_hom.id,
   comp := walking_pair_comp }
 
--- lemma walking_pair_hom_id (X : walking_pair.{v}) : walking_pair_hom.id X = 𝟙 X := rfl
+lemma walking_pair_hom_id (X : walking_pair.{v}) : walking_pair_hom.id X = 𝟙 X := rfl
 
 variables {C : Sort u} [𝒞 : category.{v+1} C]
 include 𝒞

@@ -102,18 +102,16 @@ do (_, e, pr) ← simplify_top_down ()
    return (e, pr)
 
 meta def push_neg_at_hyp (h : name) : tactic unit :=
-do
-  H ← get_local h,
-  t ← infer_type H,
-  (e, pr) ← normalize_negations t,
-  replace_hyp H e pr,
-  skip
+do H ← get_local h,
+   t ← infer_type H,
+   (e, pr) ← normalize_negations t,
+   replace_hyp H e pr,
+   skip
 
 meta def push_neg_at_goal : tactic unit :=
-do
-  H ← target,
-  (e, pr) ← normalize_negations H,
-  replace_target e pr
+do H ← target,
+   (e, pr) ← normalize_negations H,
+   replace_target e pr
 end push_neg
 
 open interactive (parse)

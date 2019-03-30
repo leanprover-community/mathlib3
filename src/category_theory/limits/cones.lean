@@ -16,7 +16,7 @@ open category_theory
 -- If we allowed `J` to be a small category in `Prop`, we'd run into trouble
 -- because `yoneda.obj (F : (J ⥤ C)ᵒᵖ)` will be a functor into `Sort (max v 1)`,
 -- not into `Sort v`.
--- So we don't allow this case.
+-- So we don't allow this case; it's not particularly useful anyway.
 variables {J : Type v} [small_category J]
 variables {C : Sort u} [𝒞 : category.{v+1} C]
 include 𝒞

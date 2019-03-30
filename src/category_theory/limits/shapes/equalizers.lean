@@ -24,19 +24,22 @@ inductive walking_pair_hom : walking_pair → walking_pair → Type v
 
 open walking_pair_hom
 
-instance walking_pair_category : small_category walking_pair :=
-{ hom := walking_pair_hom,
-  id := walking_pair_hom.id,
-  comp := λ X Y Z f g, match X, Y, Z, f, g with
-  | _, _ ,_, (id _), h := h
-  | _, _, _, left, (id one) := left
-  | _, _, _, right, (id one) := right
-  end,
-  id_comp' := begin dsimp, sorry, end, }
+def walking_pair_comp :
+  Π (X Y Z : walking_pair) (f : walking_pair_hom X Y) (g : walking_pair_hom Y Z),
+    walking_pair_hom X Z
+  | _ _ _ (id _) h := h
+  | _ _ _ left   (id one) := left
+  | _ _ _ right  (id one) := right
+.
 
-lemma walking_pair_hom_id (X : walking_pair.{v}) : walking_pair_hom.id X = 𝟙 X := rfl
+instance walking_pair_category : small_category.{v+1} walking_pair :=
+{ hom  := walking_pair_hom,
+  id   := walking_pair_hom.id,
+  comp := walking_pair_comp }
 
-variables {C : Type u} [𝒞 : category.{v} C]
+-- lemma walking_pair_hom_id (X : walking_pair.{v}) : walking_pair_hom.id X = 𝟙 X := rfl
+
+variables {C : Sort u} [𝒞 : category.{v+1} C]
 include 𝒞
 variables {X Y : C}
 

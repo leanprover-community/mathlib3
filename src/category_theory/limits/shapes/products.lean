@@ -11,8 +11,8 @@ namespace category_theory.limits
 
 universes v u
 
-variables {β : Type v}
-variables {C : Type u} [𝒞 : category.{v} C]
+variables {β : Sort v}
+variables {C : Sort u} [𝒞 : category.{v} C]
 include 𝒞
 
 def fan (f : β → C) := cone (functor.of_function f)

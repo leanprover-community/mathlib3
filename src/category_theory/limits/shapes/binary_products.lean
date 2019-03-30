@@ -13,11 +13,11 @@ namespace category_theory.limits
 @[derive decidable_eq] inductive two : Type v
 | left | right
 
-def two.map {C : Type u} (X Y : C) : two → C
+def two.map {C : Sort u} (X Y : C) : two → C
 | two.left := X
 | two.right := Y
 
-variables {C : Type u} [𝒞 : category.{v} C]
+variables {C : Sort u} [𝒞 : category.{v+1} C]
 include 𝒞
 
 variables {X Y : C}

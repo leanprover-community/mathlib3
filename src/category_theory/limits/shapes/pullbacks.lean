@@ -57,7 +57,7 @@ def walking_span_comp :
   | _ _ _ snd    (id right) := snd
 .
 
-instance walking_cospan_category : category_struct walking_cospan :=
+instance walking_cospan_category_struct : category_struct walking_cospan :=
 { hom  := walking_cospan_hom,
   id   := walking_cospan_hom.id,
   comp := walking_cospan_comp, }
@@ -67,7 +67,7 @@ begin
   cases X; cases Y; { split, intros, cases a; cases b; refl },
 end
 
-instance walking_span_category : category_struct walking_span :=
+instance walking_span_category_struct : category_struct walking_span :=
 { hom  := walking_span_hom,
   id   := walking_span_hom.id,
   comp := walking_span_comp }
@@ -80,7 +80,10 @@ end
 lemma walking_cospan_hom_id (X : walking_cospan.{v}) : walking_cospan_hom.id X = 𝟙 X := rfl
 lemma walking_span_hom_id (X : walking_span.{v}) : walking_span_hom.id X = 𝟙 X := rfl
 
-variables {C : Type u} [𝒞 : category.{v} C]
+instance walking_cospan_category : small_category walking_cospan.{v} := sparse_category
+instance walking_span_category : small_category walking_span.{v} := sparse_category
+
+variables {C : Sort u} [𝒞 : category.{v} C]
 include 𝒞
 
 def cospan {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) : walking_cospan.{v} ⥤ C :=
@@ -155,7 +158,7 @@ def square.mk {W : C} (π₁ : W ⟶ X) (π₂ : W ⟶ Y)
 { X := W,
   π :=
   { app := λ j, walking_cospan.cases_on j π₁ π₂ (π₁ ≫ f),
-    naturality' := λ j j' f, begin cases f; obviously, simp, rw category.id_comp, end } }
+    naturality' := λ j j' f, begin cases f; obviously end } }
 
 def square.condition (t : square f g) : (square.π₁ t) ≫ f = (square.π₂ t) ≫ g :=
 begin

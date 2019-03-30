@@ -7,6 +7,7 @@ Lexicographic preorder / partial_order / linear_order / decidable_linear_order,
 for pairs and dependent pairs.
 -/
 import order.basic
+import tactic.interactive
 
 universes u v
 
@@ -37,9 +38,20 @@ instance lex_preorder [preorder α] [preorder β] : preorder (lex α β) :=
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
     split,
     { rintros (⟨a₁₂_lt⟩ | ⟨a₁₂_eq, b₁₂_lt⟩),
-      { split, exact or.inl a₁₂_lt, sorry, },
-      { split, exact or.inr ⟨a₁₂_eq, le_of_lt b₁₂_lt⟩, sorry } },
-    sorry
+      { exact ⟨
+        or.inl a₁₂_lt,
+        not_or_distrib.2 ⟨λ h, lt_irrefl _ (lt_trans h a₁₂_lt),
+           λ h, begin cases h with h₁, dsimp at h₁, subst h₁, exact lt_irrefl _ a₁₂_lt end⟩ ⟩ },
+      { dsimp at a₁₂_eq,
+        subst a₁₂_eq,
+        exact ⟨or.inr ⟨rfl, le_of_lt b₁₂_lt⟩,
+          not_or_distrib.2 ⟨lt_irrefl _, λ h, (lt_iff_le_not_le.1 b₁₂_lt).2 h.2⟩⟩ } },
+    { rintros ⟨a₁₂_lt | ⟨p, b₁₂_le⟩, b⟩,
+      { exact or.inl a₁₂_lt, },
+      { cases not_or_distrib.1 b with a₂₁_not_lt h,
+        dsimp at p,
+        subst p,
+        exact or.inr ⟨rfl, lt_iff_le_not_le.2 ⟨b₁₂_le, by simpa using h⟩⟩ } }
   end,
   .. lex_has_le,
   .. lex_has_lt }
@@ -85,41 +97,23 @@ instance lex_decidable_linear_order [decidable_linear_order α] [decidable_linea
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
     rcases decidable_linear_order.decidable_le α a₁ a₂ with a₂₁_lt | a₁₂_le,
     { -- a₂ < a₁
-      rw [not_le] at a₂₁_lt,
-      apply decidable.is_false,
-      rw [not_le],
-      split,
-      { exact or.inl a₂₁_lt },
-      { rintro (a₁₂_lt | ⟨a₁₂_eq, b₁₂_le⟩),
-        { exact lt_irrefl _ (lt_trans a₂₁_lt a₁₂_lt) },
-        { dsimp at a₁₂_eq,
-          rw a₁₂_eq at a₂₁_lt,
-          exact lt_irrefl _ a₂₁_lt } } },
+      exact decidable.is_false (not_le.2 (or.inl (not_le.1 a₂₁_lt))) },
     { -- a₁ ≤ a₂
       by_cases h : a₁ = a₂,
       { subst h,
         rcases decidable_linear_order.decidable_le _ b₁ b₂ with b₂₁_lt | b₁₂_le,
         { -- b₂ < b₁
-          rw [not_le] at b₂₁_lt,
-          { apply decidable.is_false,
-            rw [not_le],
-            split,
-            { exact or.inr ⟨rfl, le_of_lt b₂₁_lt⟩ },
-            { rintro (b₁₂_lt | ⟨h, b₁₂_le⟩),
-              { exact lt_irrefl _ b₁₂_lt },
-              { exact (not_le_of_gt b₂₁_lt) b₁₂_le } } },
-        },
+          exact decidable.is_false (not_le.2 (or.inr ⟨rfl, not_le.1 b₂₁_lt⟩)) },
         { -- b₁ ≤ b₂
           apply decidable.is_true,
           cases lt_or_eq_of_le a₁₂_le with a₁₂_lt a₁₂_eq,
-          { left, exact a₁₂_lt },
-          { right, exact ⟨a₁₂_eq, b₁₂_le⟩ } } },
+          { exact or.inl a₁₂_lt },
+          { exact or.inr ⟨a₁₂_eq, b₁₂_le⟩ } } },
       { -- a₁ < a₂
         apply decidable.is_true,
-        left,
         cases lt_or_eq_of_le a₁₂_le with a₁₂_lt a₁₂_eq,
-        { exact a₁₂_lt },
-        { exact false.elim (h a₁₂_eq) } }
+        { exact or.inl a₁₂_lt },
+        { exact or.inl (false.elim (h a₁₂_eq)) } }
     }
   end,
   .. lex_linear_order
@@ -155,11 +149,24 @@ instance dlex_preorder [preorder α] [∀ a, preorder (Z a)] : preorder (Σ a, Z
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
     split,
     { rintros (⟨a₁₂_lt⟩ | ⟨a₁₂_eq, b₁₂_lt⟩),
-      { split, exact or.inl a₁₂_lt, sorry, },
-      { split,
-        { exact or.inr ⟨a₁₂_eq, le_of_lt b₁₂_lt⟩ },
-        sorry } },
-    sorry
+      { exact ⟨
+        or.inl a₁₂_lt,
+        not_or_distrib.2 ⟨λ h, lt_irrefl _ (lt_trans h a₁₂_lt),
+           not_exists.2 (λ h w, by {
+            dsimp at h,
+            subst h,
+            exact lt_irrefl _ a₁₂_lt })⟩ ⟩ },
+      { dsimp at a₁₂_eq,
+        subst a₁₂_eq,
+        exact ⟨or.inr ⟨rfl, le_of_lt b₁₂_lt⟩,
+          not_or_distrib.2 ⟨lt_irrefl _, not_exists.2 (λ w h, (lt_iff_le_not_le.1 b₁₂_lt).2 h)⟩⟩,
+           } },
+    { rintros ⟨a₁₂_lt | ⟨p, b₁₂_le⟩, b⟩,
+      { exact or.inl a₁₂_lt, },
+      { cases not_or_distrib.1 b with a₂₁_not_lt h,
+        dsimp at p,
+        subst p,
+        exact or.inr ⟨rfl, lt_iff_le_not_le.2 ⟨b₁₂_le, by apply (not_exists.1 h) rfl ⟩⟩ } }
   end,
   .. dlex_has_le,
   .. dlex_has_lt }
@@ -205,41 +212,23 @@ instance dlex_decidable_linear_order [decidable_linear_order α] [∀ a, decidab
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
     rcases decidable_linear_order.decidable_le α a₁ a₂ with a₂₁_lt | a₁₂_le,
     { -- a₂ < a₁
-      rw [not_le] at a₂₁_lt,
-      apply decidable.is_false,
-      rw [not_le],
-      split,
-      { exact or.inl a₂₁_lt },
-      { rintro (a₁₂_lt | ⟨a₁₂_eq, b₁₂_le⟩),
-        { exact lt_irrefl _ (lt_trans a₂₁_lt a₁₂_lt) },
-        { dsimp at a₁₂_eq,
-          rw a₁₂_eq at a₂₁_lt,
-          exact lt_irrefl _ a₂₁_lt } } },
+      exact decidable.is_false (not_le.2 (or.inl (not_le.1 a₂₁_lt))) },
     { -- a₁ ≤ a₂
       by_cases h : a₁ = a₂,
       { subst h,
         rcases decidable_linear_order.decidable_le _ b₁ b₂ with b₂₁_lt | b₁₂_le,
         { -- b₂ < b₁
-          rw [not_le] at b₂₁_lt,
-          { apply decidable.is_false,
-            rw [not_le],
-            split,
-            { exact or.inr ⟨rfl, le_of_lt b₂₁_lt⟩ },
-            { rintro (b₁₂_lt | ⟨h, b₁₂_le⟩),
-              { exact lt_irrefl _ b₁₂_lt },
-              { exact (not_le_of_gt b₂₁_lt) b₁₂_le } } },
-        },
+          exact decidable.is_false (not_le.2 (or.inr ⟨rfl, not_le.1 b₂₁_lt⟩)) },
         { -- b₁ ≤ b₂
           apply decidable.is_true,
           cases lt_or_eq_of_le a₁₂_le with a₁₂_lt a₁₂_eq,
-          { left, exact a₁₂_lt },
-          { right, exact ⟨a₁₂_eq, b₁₂_le⟩ } } },
+          { exact or.inl a₁₂_lt },
+          { exact or.inr ⟨a₁₂_eq, b₁₂_le⟩ } } },
       { -- a₁ < a₂
         apply decidable.is_true,
-        left,
         cases lt_or_eq_of_le a₁₂_le with a₁₂_lt a₁₂_eq,
-        { exact a₁₂_lt },
-        { exact false.elim (h a₁₂_eq) } }
+        { exact or.inl a₁₂_lt },
+        { exact or.inl (false.elim (h a₁₂_eq)) } }
     }
   end,
   .. dlex_linear_order

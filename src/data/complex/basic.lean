@@ -75,6 +75,9 @@ instance : has_mul ℂ := ⟨λ z w, ⟨z.re * w.re - z.im * w.im, z.re * w.im +
 @[simp] lemma mul_im (z w : ℂ) : (z * w).im = z.re * w.im + z.im * w.re := rfl
 @[simp] lemma of_real_mul (r s : ℝ) : ((r * s : ℝ) : ℂ) = r * s := ext_iff.2 $ by simp
 
+lemma smul_re (r : ℝ) (z : ℂ) : (↑r * z).re = r * z.re := by simp
+lemma smul_im (r : ℝ) (z : ℂ) : (↑r * z).im = r * z.im := by simp
+
 @[simp] lemma I_mul_I : I * I = -1 := ext_iff.2 $ by simp
 
 lemma I_ne_zero : (I : ℂ) ≠ 0 := mt (congr_arg im) zero_ne_one.symm

@@ -6,58 +6,12 @@ import tarfile
 import configparser
 import urllib3
 import certifi
+import signal
 from git import Repo, InvalidGitRepositoryError
 from github import Github
-import signal
-import logging
+from delayed_interrupt import DelayedInterrupt
+from auth_github import auth_github
 
-# DelayedInterrupt class based on: 
-# http://stackoverflow.com/a/21919644/487556 and 
-# https://gist.github.com/tcwalther/ae058c64d5d9078a9f333913718bba95
-class DelayedInterrupt(object):
-    def __init__(self, signals):
-        if not isinstance(signals, list) and not isinstance(signals, tuple):
-            signals = [signals]
-        self.sigs = signals        
-
-    def __enter__(self):
-        self.signal_received = {}
-        self.old_handlers = {}
-        for sig in self.sigs:
-            self.signal_received[sig] = False
-            self.old_handlers[sig] = signal.getsignal(sig)
-            def handler(s, frame):
-                self.signal_received[sig] = (s, frame)
-                # Note: in Python 3.5, you can use signal.Signals(sig).name
-                logging.info('Signal %s received. Delaying KeyboardInterrupt.' % sig)
-            self.old_handlers[sig] = signal.getsignal(sig)
-            signal.signal(sig, handler)
-
-    def __exit__(self, type, value, traceback):
-        for sig in self.sigs:
-            signal.signal(sig, self.old_handlers[sig])
-            if self.signal_received[sig] and self.old_handlers[sig]:
-                self.old_handlers[sig](*self.signal_received[sig])
-
-def auth_github():
-    try:
-        repo = Repo('.', search_parent_directories=True)
-        config = repo.config_reader()
-    except:
-        print('This does not seem to be a git repository.')
-        return Github()
-    try:
-        return Github(config.get('github', 'user'), config.get('github', 'password'))
-    except configparser.NoSectionError:
-        print('No github section found in \'git config\'')
-        return Github()
-    except configparser.NoOptionError:
-        try:
-            return Github(config.get('github', 'oauthtoken'))
-        except configparser.NoOptionError:
-            print('No github \'user\'/\'password\' or \'oauthtoken\' keys found in \'git config\'.')
-            print('You can create an OAuth token at https://github.com/settings/tokens/new (no scopes are required).')
-            return Github()
 
 def make_cache(fn):
     if os.path.exists(fn):

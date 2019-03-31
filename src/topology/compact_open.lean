@@ -6,7 +6,7 @@ Authors: Reid Barton
 Type of continuous maps and the compact-open topology on them.
 -/
 
-import topology.continuity tactic.tidy
+import topology.constructions tactic.tidy
 
 open set
 
@@ -69,12 +69,12 @@ variables {α β}
 lemma continuous_ev [locally_compact_space α] : continuous (ev α β) :=
 continuous_iff_continuous_at.mpr $ assume ⟨f, x⟩ n hn,
   let ⟨v, vn, vo, fxv⟩ := mem_nhds_sets_iff.mp hn in
-  have v ∈ (nhds (f.val x)).sets, from mem_nhds_sets vo fxv,
+  have v ∈ nhds (f.val x), from mem_nhds_sets vo fxv,
   let ⟨s, hs, sv, sc⟩ :=
     locally_compact_space.local_compact_nhds x (f.val ⁻¹' v)
       (f.property.tendsto x this) in
   let ⟨u, us, uo, xu⟩ := mem_nhds_sets_iff.mp hs in
-  show (ev α β) ⁻¹' n ∈ (nhds (f, x)).sets, from
+  show (ev α β) ⁻¹' n ∈ nhds (f, x), from
   let w := set.prod (compact_open.gen s v) u in
   have w ⊆ ev α β ⁻¹' n, from assume ⟨f', x'⟩ ⟨hf', hx'⟩, calc
     f'.val x' ∈ f'.val '' s  : mem_image_of_mem f'.val (us hx')

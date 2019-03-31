@@ -141,6 +141,27 @@ variables {α : Type*} {σ : Type*}
 variables [primcodable α] [primcodable σ]
 open nat.partrec (code) nat.partrec.code computable
 
+theorem computable_iff {p : α → Prop} :
+  computable_pred p ↔ ∃ f : α → bool, computable f ∧ p = λ a, f a :=
+⟨λ ⟨D, h⟩, by exactI ⟨_, h, funext $ λ a, propext (to_bool_iff _).symm⟩,
+ by rintro ⟨f, h, rfl⟩; exact ⟨by apply_instance, by simpa using h⟩⟩
+
+protected theorem not {p : α → Prop}
+  (hp : computable_pred p) : computable_pred (λ a, ¬ p a) :=
+by rcases computable_iff.1 hp with ⟨f, hf, rfl⟩; exact
+  ⟨by apply_instance,
+    (cond hf (const ff) (const tt)).of_eq
+      (λ n, by {dsimp, cases f n; refl})⟩
+
+theorem to_re {p : α → Prop} (hp : computable_pred p) : re_pred p :=
+begin
+  rcases computable_iff.1 hp with ⟨f, hf, rfl⟩,
+  unfold re_pred,
+  refine (partrec.cond hf (partrec.const' (roption.some ())) partrec.none).of_eq
+    (λ n, roption.ext $ λ a, _),
+  cases a, cases f n; simp
+end
+
 theorem rice (C : set (ℕ →. ℕ))
   (h : computable_pred (λ c, eval c ∈ C))
   {f g} (hf : nat.partrec f) (hg : nat.partrec g)
@@ -175,6 +196,20 @@ from λ f, ⟨set.mem_image_of_mem _, λ ⟨g, hg, e⟩, (H _ _ e).1 hg⟩,
 
 theorem halting_problem (n) : ¬ computable_pred (λ c, (eval c n).dom)
 | h := rice {f | (f n).dom} h nat.partrec.zero nat.partrec.none trivial
+
+-- Post's theorem on the equivalence of r.e., co-r.e. sets and
+-- computable sets. The assumption that p is decidable is required
+-- unless we assume Markov's principle or LEM.
+theorem computable_iff_re_compl_re {p : α → Prop} [decidable_pred p] :
+  computable_pred p ↔ re_pred p ∧ re_pred (λ a, ¬ p a) :=
+⟨λ h, ⟨h.to_re, h.not.to_re⟩, λ ⟨h₁, h₂⟩, ⟨‹_›, begin
+  rcases partrec.merge
+    (h₁.map (computable.const tt).to₂)
+    (h₂.map (computable.const ff).to₂) _ with ⟨k, pk, hk⟩,
+  { refine partrec.of_eq pk (λ n, roption.eq_some_iff.2 _),
+    rw hk, simp, apply decidable.em },
+  { intros a x hx y hy, simp at hx hy, cases hy.1 hx.1 }
+end⟩⟩
 
 end computable_pred
 

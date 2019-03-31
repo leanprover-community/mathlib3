@@ -19,7 +19,7 @@ instance discrete_category (α : Type u₁) : small_category (discrete α) :=
   id   := by tidy,
   comp := by tidy }
 
-variables {C : Type u₂} [𝒞 : category.{v₂} C]
+variables {C : Sort u₂} [𝒞 : category.{v₂} C]
 include 𝒞
 
 namespace functor

@@ -144,54 +144,55 @@ variables {X Y Z : C}
 
 attribute [simp] walking_cospan_hom_id walking_span_hom_id
 
-section pullback
-def square (f : X ⟶ Z) (g : Y ⟶ Z) := cone (cospan f g)
+def pullback_cone (f : X ⟶ Z) (g : Y ⟶ Z) := cone (cospan f g)
 
+namespace pullback_cone
 variables {f : X ⟶ Z} {g : Y ⟶ Z}
 
-def square.π₁ (t : square f g) : t.X ⟶ X := t.π.app left
-def square.π₂ (t : square f g) : t.X ⟶ Y := t.π.app right
+def π₁ (t : pullback_cone f g) : t.X ⟶ X := t.π.app left
+def π₂ (t : pullback_cone f g) : t.X ⟶ Y := t.π.app right
 
-def square.mk {W : C} (π₁ : W ⟶ X) (π₂ : W ⟶ Y)
+def mk {W : C} (π₁ : W ⟶ X) (π₂ : W ⟶ Y)
   (eq : π₁ ≫ f = π₂ ≫ g) :
-  square f g :=
+  pullback_cone f g :=
 { X := W,
   π :=
   { app := λ j, walking_cospan.cases_on j π₁ π₂ (π₁ ≫ f),
     naturality' := λ j j' f, begin cases f; obviously end } }
 
-def square.condition (t : square f g) : (square.π₁ t) ≫ f = (square.π₂ t) ≫ g :=
+def condition (t : pullback_cone f g) : (π₁ t) ≫ f = (π₂ t) ≫ g :=
 begin
   erw [t.w inl, ← t.w inr], refl
 end
 
-end pullback
+end pullback_cone
 
-section pushout
-def cosquare (f : X ⟶ Y) (g : X ⟶ Z) := cocone (span f g)
+def pushout_cocone (f : X ⟶ Y) (g : X ⟶ Z) := cocone (span f g)
+
+namespace pushout_cocone
 
 variables {f : X ⟶ Y} {g : X ⟶ Z}
 
-def cosquare.ι₁ (t : cosquare f g) : Y ⟶ t.X := t.ι.app left
-def cosquare.ι₂ (t : cosquare f g) : Z ⟶ t.X := t.ι.app right
+def ι₁ (t : pushout_cocone f g) : Y ⟶ t.X := t.ι.app left
+def ι₂ (t : pushout_cocone f g) : Z ⟶ t.X := t.ι.app right
 
-def cosquare.mk {W : C} (ι₁ : Y ⟶ W) (ι₂ : Z ⟶ W)
+def mk {W : C} (ι₁ : Y ⟶ W) (ι₂ : Z ⟶ W)
   (eq : f ≫ ι₁ = g ≫ ι₂) :
-  cosquare f g :=
+  pushout_cocone f g :=
 { X := W,
   ι :=
   { app := λ j, walking_span.cases_on j (f ≫ ι₁) ι₁ ι₂,
     naturality' := λ j j' f, by cases f; obviously } }
 
-def cosquare.condition (t : cosquare f g) : f ≫ (cosquare.ι₁ t) = g ≫ (cosquare.ι₂ t) :=
+def condition (t : pushout_cocone f g) : f ≫ (ι₁ t) = g ≫ (ι₂ t) :=
 begin
   erw [t.w fst, ← t.w snd], refl
 end
 
-end pushout
+end pushout_cocone
 
-def cone.of_square
-  {F : walking_cospan.{v} ⥤ C} (t : square (F.map inl) (F.map inr)) : cone F :=
+def cone.of_pullback_cone
+  {F : walking_cospan.{v} ⥤ C} (t : pullback_cone (F.map inl) (F.map inr)) : cone F :=
 { X := t.X,
   π :=
   { app := λ X, t.π.app X ≫ eq_to_hom (by tidy),
@@ -202,12 +203,12 @@ def cone.of_square
       erw ← t.w inr, refl,
     end } }.
 
-@[simp] lemma cone.of_square_π
-  {F : walking_cospan.{v} ⥤ C} (t : square (F.map inl) (F.map inr)) (j):
-  (cone.of_square t).π.app j = t.π.app j ≫ eq_to_hom (by tidy) := rfl
+@[simp] lemma cone.of_pullback_cone_π
+  {F : walking_cospan.{v} ⥤ C} (t : pullback_cone (F.map inl) (F.map inr)) (j):
+  (cone.of_pullback_cone t).π.app j = t.π.app j ≫ eq_to_hom (by tidy) := rfl
 
-def cocone.of_cosquare
-  {F : walking_span.{v} ⥤ C} (t : cosquare (F.map fst) (F.map snd)) : cocone F :=
+def cocone.of_pushout_cocone
+  {F : walking_span.{v} ⥤ C} (t : pushout_cocone (F.map fst) (F.map snd)) : cocone F :=
 { X := t.X,
   ι :=
   { app := λ X, eq_to_hom (by tidy) ≫ t.ι.app X,
@@ -218,26 +219,26 @@ def cocone.of_cosquare
       erw ← t.w snd, refl,
     end } }.
 
-@[simp] lemma cocone.of_cosquare_ι
-  {F : walking_span.{v} ⥤ C} (t : cosquare (F.map fst) (F.map snd)) (j):
-  (cocone.of_cosquare t).ι.app j = eq_to_hom (by tidy) ≫ t.ι.app j := rfl
+@[simp] lemma cocone.of_pushout_cocone_ι
+  {F : walking_span.{v} ⥤ C} (t : pushout_cocone (F.map fst) (F.map snd)) (j):
+  (cocone.of_pushout_cocone t).ι.app j = eq_to_hom (by tidy) ≫ t.ι.app j := rfl
 
-def square.of_cone
-  {F : walking_cospan.{v} ⥤ C} (t : cone F) : square (F.map inl) (F.map inr) :=
+def pullback_cone.of_cone
+  {F : walking_cospan.{v} ⥤ C} (t : cone F) : pullback_cone (F.map inl) (F.map inr) :=
 { X := t.X,
   π :=
   { app := λ j, t.π.app j ≫ eq_to_hom (by tidy) } }
 
-@[simp] lemma square.of_cone_π {F : walking_cospan.{v} ⥤ C} (t : cone F) (j) :
-  (square.of_cone t).π.app j = t.π.app j ≫ eq_to_hom (by tidy) := rfl
+@[simp] lemma pullback_cone.of_cone_π {F : walking_cospan.{v} ⥤ C} (t : cone F) (j) :
+  (pullback_cone.of_cone t).π.app j = t.π.app j ≫ eq_to_hom (by tidy) := rfl
 
-def cosquare.of_cocone
-  {F : walking_span.{v} ⥤ C} (t : cocone F) : cosquare (F.map fst) (F.map snd) :=
+def pushout_cocone.of_cocone
+  {F : walking_span.{v} ⥤ C} (t : cocone F) : pushout_cocone (F.map fst) (F.map snd) :=
 { X := t.X,
   ι :=
   { app := λ j, eq_to_hom (by tidy) ≫ t.ι.app j } }
 
-@[simp] lemma cosquare.of_cocone_ι {F : walking_span.{v} ⥤ C} (t : cocone F) (j) :
-  (cosquare.of_cocone t).ι.app j = eq_to_hom (by tidy) ≫ t.ι.app j := rfl
+@[simp] lemma pushout_cocone.of_cocone_ι {F : walking_span.{v} ⥤ C} (t : cocone F) (j) :
+  (pushout_cocone.of_cocone t).ι.app j = eq_to_hom (by tidy) ≫ t.ι.app j := rfl
 
 end category_theory.limits

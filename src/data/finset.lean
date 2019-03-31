@@ -717,6 +717,9 @@ finset.ext' $ by simp
   to_finset (s ∩ t) = to_finset s ∩ to_finset t :=
 finset.ext' $ by simp
 
+theorem to_finset_eq_empty {m : multiset α} : m.to_finset = ∅ ↔ m = 0 :=
+finset.val_inj.symm.trans multiset.erase_dup_eq_zero
+
 end multiset
 
 namespace list

@@ -295,6 +295,33 @@ end
 -- Properties of `split_on`
 @[simp] lemma split_on_nil {α : Type u} [decidable_eq α] (a : α) : [].split_on a = [[]] := rfl
 
+def split_on_p_aux' {α : Type u} (P : α → Prop) [decidable_pred P] : list α → list α → list (list α)
+| [] xs       := [xs]
+| (h :: t) xs :=
+  if P h then xs :: split_on_p_aux' t []
+  else split_on_p_aux' t (xs ++ [h])
+
+lemma split_on_p_aux_eq {α : Type u} (P : α → Prop) [decidable_pred P] (xs ys : list α) :
+  split_on_p_aux' P xs ys = split_on_p_aux P xs ((++) ys) :=
+begin
+  induction xs generalizing ys; simp!, split_ifs; rw xs_ih,
+  { refine ⟨rfl,rfl⟩ },
+  { congr, ext, simp }
+end
+
+lemma split_on_p_aux_nil {α : Type u} (P : α → Prop) [decidable_pred P] (xs : list α) :
+  split_on_p_aux P xs id = split_on_p_aux' P xs [] :=
+by rw split_on_p_aux_eq; refl
+
+lemma split_on_p_spec {α : Type u} (p : α → Prop) [decidable_pred p] (as : list α) :
+  join (zip_with (++) (split_on_p p as) ((as.filter p).map(λ x, [x]) ++ [[]])) = as :=
+begin
+  rw [split_on_p,split_on_p_aux_nil],
+  suffices : ∀ xs, join (zip_with (++) (split_on_p_aux' p as xs) ((as.filter p).map(λ x, [x]) ++ [[]])) = xs ++ as, { rw this; refl },
+  induction as; intro; simp! only [split_on_p_aux',append_nil],
+  split_ifs; simp [zip_with,join,*],
+end
+
 lemma split_on_not_in {α : Type u} [decidable_eq α] (a : α) (as : list α) (h : a ∉ as) :
   as.split_on a = [as] :=
 sorry
@@ -309,10 +336,6 @@ sorry
 
 lemma split_on_spec {α : Type u} [decidable_eq α] (a : α) (as : list α) :
   list.intercalate [a] (as.split_on a) = as :=
-sorry
-
-lemma split_on_p_spec {α : Type u} (p : α → Prop) [decidable_pred p] (as : list α) :
-  join (zip_with (++) (split_on_p p as) ((as.filter (λ x, ¬ p x)).map(λ x, [x]) ++ [[]])) = as :=
 sorry
 
 @[simp] theorem take_append_drop : ∀ (n : ℕ) (l : list α), take n l ++ drop n l = l

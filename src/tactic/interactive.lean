@@ -139,18 +139,14 @@ meta def clear_ : tactic unit := tactic.repeat $ do
     cl ← infer_type h >>= is_class, guard (¬ cl),
     tactic.clear h
 
-meta def apply_iff_congr_core (tgt : expr) : tactic unit :=
-do applyc ``iff_of_eq,
-   (lhs, rhs) ← target >>= match_eq,
-   guard lhs.is_app,
-   clemma ← mk_specialized_congr_lemma lhs,
-   apply_congr_core clemma
+meta def apply_iff_congr_core : tactic unit :=
+applyc ``iff_of_eq
 
 meta def congr_core' : tactic unit :=
 do tgt ← target,
    apply_eq_congr_core tgt
    <|> apply_heq_congr_core
-   <|> apply_iff_congr_core tgt
+   <|> apply_iff_congr_core
    <|> fail "congr tactic failed"
 
 /--

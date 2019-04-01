@@ -426,6 +426,30 @@ Fixes `guard_hyp` by instantiating meta variables
 meta def guard_hyp' (n : parse ident) (p : parse $ tk ":=" *> texpr) : tactic unit :=
 do h ← get_local n >>= infer_type >>= instantiate_mvars, guard_expr_eq h p
 
+/--
+`guard_expr_strict t := e` fails if the expr `t` is not equal to `e`. By contrast
+to `guard_expr`, this tests strict (syntactic) equality.
+We use this tactic for writing tests.
+-/
+meta def guard_expr_strict (t : expr) (p : parse $ tk ":=" *> texpr) : tactic unit :=
+do e ← to_expr p, guard (t = e)
+
+/--
+`guard_target_strict t` fails if the target of the main goal is not syntactically `t`.
+We use this tactic for writing tests.
+-/
+meta def guard_target_strict (p : parse texpr) : tactic unit :=
+do t ← target, guard_expr_strict t p
+
+
+/--
+`guard_hyp_strict h := t` fails if the hypothesis `h` does not have type syntactically equal
+to `t`.
+We use this tactic for writing tests.
+-/
+meta def guard_hyp_strict (n : parse ident) (p : parse $ tk ":=" *> texpr) : tactic unit :=
+do h ← get_local n >>= infer_type >>= instantiate_mvars, guard_expr_strict h p
+
 meta def guard_hyp_nums (n : ℕ) : tactic unit :=
 do k ← local_context,
    guard (n = k.length) <|> fail format!"{k.length} hypotheses found"

@@ -84,10 +84,16 @@ begin
   solve_by_elim,
 end
 
--- Verifying that solve_by_elim behaves as expected in the presence of multiple goals.
+-- Verifying that `solve_by_elim*` acts on all remaining goals.
 example (n : ℕ) : ℕ × ℕ :=
 begin
   split,
-  solve_by_elim,
-  solve_by_elim
+  solve_by_elim*,
+end
+
+-- Verifying that `solve_by_elim*` backtracks when given multiple goals.
+example (n m : ℕ) (f : ℕ → ℕ → Prop) (h : f n m): ∃ p : ℕ × ℕ, f p.1 p.2 :=
+begin
+  repeat { split },
+  solve_by_elim*,
 end

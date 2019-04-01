@@ -25,6 +25,94 @@ of the subsequence, and then the convergence of the original sequence. All this 
 completely bypassed by the following proof, which avoids any use of subsequences and is written
 partly in terms of filters. -/
 
+namespace ennreal
+
+/-In this paragraph, we prove useful properties of the sequence `half_pow n := 2^{-n}` in ennreal.
+Some of them are instrumental in this file to get Cauchy sequences, but others are proved
+here only for use in further applications of the completeness criterion
+`emetric.complete_of_convergent_controlled_sequences` below. -/
+
+/-- An auxiliary positive sequence that tends to `0` in `ennreal`, with good behavior. -/
+noncomputable def half_pow (n : ℕ) : ennreal := ennreal.of_real ((1 / 2) ^ n)
+
+lemma half_pow_pos (n : ℕ) : 0 < half_pow n :=
+begin
+  have : (0 : real) < (1/2)^n := pow_pos (by norm_num) _,
+  simpa [half_pow] using this
+end
+
+lemma half_pow_tendsto_zero : tendsto (λn, half_pow n) at_top (nhds 0) :=
+begin
+  unfold half_pow,
+  rw ← ennreal.of_real_zero,
+  apply ennreal.tendsto_of_real,
+  exact tendsto_pow_at_top_nhds_0_of_lt_1 (by norm_num) (by norm_num)
+end
+
+lemma half_pow_add_succ (n : ℕ) : half_pow (n+1) + half_pow (n+1) = half_pow n :=
+begin
+  have : (0 : real) ≤ (1/2)^(n+1) := (le_of_lt (pow_pos (by norm_num) _)),
+  simp only [half_pow, eq.symm (ennreal.of_real_add this this)],
+  apply congr_arg,
+  simp only [pow_add, one_div_eq_inv, pow_one],
+  ring,
+end
+
+lemma half_pow_mono (m k : ℕ) (h : m ≤ k) : half_pow k ≤ half_pow m :=
+ennreal.of_real_le_of_real (pow_le_pow_of_le_one (by norm_num) (by norm_num) h)
+
+lemma edist_le_two_mul_half_pow [emetric_space β] {k l N : ℕ} (hk : N ≤ k) (hl : N ≤ l)
+  {u : ℕ → β} (h : ∀n, edist (u n) (u (n+1)) ≤ half_pow n) :
+  edist (u k) (u l) ≤ 2 * half_pow N :=
+begin
+  have ineq_rec : ∀m, ∀k≥m, half_pow k + edist (u m) (u (k+1)) ≤ 2 * half_pow m,
+  { assume m,
+    refine nat.le_induction _ (λk km hk, _),
+    { calc half_pow m + edist (u m) (u (m+1)) ≤ half_pow m + half_pow m : add_le_add_left' (h m)
+      ... = 2 * half_pow m : by simp [(mul_two _).symm, mul_comm] },
+    { calc half_pow (k + 1) + edist (u m) (u (k + 1 + 1))
+      ≤ half_pow (k+1) + (edist (u m) (u (k+1)) + edist (u (k+1)) (u (k+2))) :
+        add_le_add_left' (edist_triangle _ _ _)
+      ... ≤ half_pow (k+1) + (edist (u m) (u (k+1)) + half_pow (k+1)) :
+        add_le_add_left' (add_le_add_left' (h (k+1)))
+      ... = (half_pow(k+1) + half_pow(k+1)) + edist (u m) (u (k+1)) : by simp [add_comm]
+      ... = half_pow k + edist (u m) (u (k+1)) : by rw half_pow_add_succ
+      ... ≤ 2 * half_pow m : hk }},
+  have Imk : ∀m, ∀k≥m, edist (u m) (u k) ≤ 2 * half_pow m,
+  { assume m k hk,
+    by_cases h : m = k,
+    { simp [h, le_of_lt (half_pow_pos k)] },
+    { have I : m < k := lt_of_le_of_ne hk h,
+      have : 0 < k := lt_of_le_of_lt (nat.zero_le _) ‹m < k›,
+      let l := nat.pred k,
+      have : k = l+1 := (nat.succ_pred_eq_of_pos ‹0 < k›).symm,
+      rw this,
+      have : m ≤ l := begin rw this at I, apply nat.le_of_lt_succ I end,
+      calc edist (u m) (u (l+1)) ≤ half_pow l + edist (u m) (u (l+1)) : le_add_left (le_refl _)
+        ... ≤ 2 * half_pow m : ineq_rec m l ‹m ≤ l› }},
+  by_cases h : k ≤ l,
+  { calc edist (u k) (u l) ≤ 2 * half_pow k : Imk k l h
+      ... ≤ 2 * half_pow N :
+        canonically_ordered_semiring.mul_le_mul (le_refl _) (half_pow_mono N k hk) },
+  { simp at h,
+    calc edist (u k) (u l) = edist (u l) (u k) : edist_comm _ _
+      ... ≤ 2 * half_pow l : Imk l k (le_of_lt h)
+      ... ≤ 2 * half_pow N :
+        canonically_ordered_semiring.mul_le_mul (le_refl _) (half_pow_mono N l hl) }
+end
+
+lemma cauchy_seq_of_edist_le_half_pow [emetric_space β]
+  {u : ℕ → β} (h : ∀n, edist (u n) (u (n+1)) ≤ half_pow n) : cauchy_seq u :=
+begin
+  refine emetric.cauchy_seq_iff_le_tendsto_0.2 ⟨λn:ℕ, 2 * half_pow n, ⟨_, _⟩⟩,
+  { exact λk l N hk hl, edist_le_two_mul_half_pow hk hl h },
+  { have : tendsto (λn, 2 * half_pow n) at_top (nhds (2 * 0)) :=
+      ennreal.tendsto_mul_right half_pow_tendsto_zero (by simp),
+    simpa using this }
+end
+
+end ennreal
+
 namespace sequentially_complete
 
 section
@@ -37,59 +125,43 @@ We give the argument in the more general setting of emetric spaces, and speciali
 metric spaces at the end.
 -/
 variables [emetric_space β] {f : filter β} (hf : cauchy f) (B : ℕ → ennreal) (hB : ∀n, 0 < B n)
-
-/--A positive sequence that tends to `0` in `ennreal`-/
-noncomputable def F (n : ℕ) : ennreal := nnreal.of_real (1 / ((n : ℝ) + 1))
-
-lemma F_pos (n : ℕ) : 0 < F n :=
-begin
-  simp only [F, -one_div_eq_inv, ennreal.zero_lt_coe_iff, add_comm, ennreal.zero_lt_coe_iff, add_comm, nnreal.of_real_pos],
-  apply one_div_pos_of_pos,
-  have : (↑n : ℝ) ≥ 0 := nat.cast_nonneg _,
-  by linarith
-end
-
-lemma F_lim : tendsto (λn, F n) at_top (nhds 0) :=
-begin
-  unfold F,
-  rw [← ennreal.coe_zero, ennreal.tendsto_coe, ← nnreal.of_real_zero],
-  exact nnreal.tendsto_of_real tendsto_one_div_add_at_top_nhds_0_nat
-end
+open ennreal
 
 /--Auxiliary sequence, which is bounded by `B`, positive, and tends to `0`.-/
-noncomputable def FB (B : ℕ → ennreal) (hB : ∀n, 0 < B n) (n : ℕ) :=
-  (F n) ⊓ (B n)
+noncomputable def B2 (B : ℕ → ennreal) (hB : ∀n, 0 < B n) (n : ℕ) :=
+  (half_pow n) ⊓ (B n)
 
-lemma FB_pos (n : ℕ) : 0 < (FB B hB n) :=
-by unfold FB; simp [F_pos n, hB n]
+lemma B2_pos (n : ℕ) : 0 < B2 B hB n :=
+by unfold B2; simp [half_pow_pos n, hB n]
 
-lemma FB_lim : tendsto (λn, FB B hB n) at_top (nhds 0) :=
+lemma B2_lim : tendsto (λn, B2 B hB n) at_top (nhds 0) :=
 begin
-  have : ∀n, FB B hB n ≤ F n := λn, lattice.inf_le_left,
-  exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds F_lim (by simp) (by simp [this])
+  have : ∀n, B2 B hB n ≤ half_pow n := λn, lattice.inf_le_left,
+  exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds half_pow_tendsto_zero
+    (by simp) (by simp [this])
 end
 
-/-- Define a decreasing sequence of sets in the filter `f`, of diameter bounded by `FB n`. -/
+/-- Define a decreasing sequence of sets in the filter `f`, of diameter bounded by `B2 n`. -/
 def set_seq_of_cau_filter : ℕ → set β
-| 0 := some ((emetric.cauchy_iff.1 hf).2 _ (FB_pos B hB 0))
-| (n+1) := (set_seq_of_cau_filter n) ∩ some ((emetric.cauchy_iff.1 hf).2 _ (FB_pos B hB (n + 1)))
+| 0 := some ((emetric.cauchy_iff.1 hf).2 _ (B2_pos B hB 0))
+| (n+1) := (set_seq_of_cau_filter n) ∩ some ((emetric.cauchy_iff.1 hf).2 _ (B2_pos B hB (n + 1)))
 
 /-- These sets are in the filter. -/
-lemma set_seq_of_cau_filter_mem_sets : ∀ n, set_seq_of_cau_filter hf B hB n ∈ f.sets
-| 0 := some (some_spec ((emetric.cauchy_iff.1 hf).2 _ (FB_pos B hB 0)))
+lemma set_seq_of_cau_filter_mem_sets : ∀ n, set_seq_of_cau_filter hf B hB n ∈ f
+| 0 := some (some_spec ((emetric.cauchy_iff.1 hf).2 _ (B2_pos B hB 0)))
 | (n+1) := inter_mem_sets (set_seq_of_cau_filter_mem_sets n)
-             (some (some_spec ((emetric.cauchy_iff.1 hf).2 _ (FB_pos B hB (n + 1)))))
+             (some (some_spec ((emetric.cauchy_iff.1 hf).2 _ (B2_pos B hB (n + 1)))))
 
 /-- These sets are nonempty. -/
 lemma set_seq_of_cau_filter_inhabited (n : ℕ) : ∃ x, x ∈ set_seq_of_cau_filter hf B hB n :=
 inhabited_of_mem_sets (emetric.cauchy_iff.1 hf).1 (set_seq_of_cau_filter_mem_sets hf B hB n)
 
-/-- By construction, their diameter is controlled by `FB n`. -/
+/-- By construction, their diameter is controlled by `B2 n`. -/
 lemma set_seq_of_cau_filter_spec : ∀ n, ∀ {x y},
-  x ∈ set_seq_of_cau_filter hf B hB n → y ∈ set_seq_of_cau_filter hf B hB n → edist x y < FB B hB n
-| 0 := some_spec (some_spec ((emetric.cauchy_iff.1 hf).2 _ (FB_pos B hB 0)))
+  x ∈ set_seq_of_cau_filter hf B hB n → y ∈ set_seq_of_cau_filter hf B hB n → edist x y < B2 B hB n
+| 0 := some_spec (some_spec ((emetric.cauchy_iff.1 hf).2 _ (B2_pos B hB 0)))
 | (n+1) := λ x y hx hy,
-  some_spec (some_spec ((emetric.cauchy_iff.1 hf).2 _ (FB_pos B hB (n+1)))) x y
+  some_spec (some_spec ((emetric.cauchy_iff.1 hf).2 _ (B2_pos B hB (n+1)))) x y
     (mem_of_mem_inter_right hx) (mem_of_mem_inter_right hy)
 
 -- this must exist somewhere, no?
@@ -121,27 +193,27 @@ some (set_seq_of_cau_filter_inhabited hf B hB n)
 lemma seq_of_cau_filter_mem_set_seq (n : ℕ) : seq_of_cau_filter hf B hB n ∈ set_seq_of_cau_filter hf B hB n :=
 some_spec (set_seq_of_cau_filter_inhabited hf B hB n)
 
-/-- The distance between points in the sequence is bounded by `FB N`. -/
+/-- The distance between points in the sequence is bounded by `B2 N`. -/
 lemma seq_of_cau_filter_bound {N n k : ℕ} (hn : N ≤ n) (hk : N ≤ k) :
-  edist (seq_of_cau_filter hf B hB n) (seq_of_cau_filter hf B hB k) < FB B hB N :=
+  edist (seq_of_cau_filter hf B hB n) (seq_of_cau_filter hf B hB k) < B2 B hB N :=
 set_seq_of_cau_filter_spec hf B hB N
   (set_seq_of_cau_filter_monotone hf B hB hn (seq_of_cau_filter_mem_set_seq hf B hB n))
   (set_seq_of_cau_filter_monotone hf B hB hk (seq_of_cau_filter_mem_set_seq hf B hB k))
 
-/-- The approximating sequence is indeed Cauchy as `FB n` tends to `0` with `n`. -/
+/-- The approximating sequence is indeed Cauchy as `B2 n` tends to `0` with `n`. -/
 lemma seq_of_cau_filter_is_cauchy :
   cauchy_seq (seq_of_cau_filter hf B hB) :=
-emetric.cauchy_seq_iff_le_tendsto_0.2 ⟨FB B hB,
-  λ n m N hn hm, le_of_lt (seq_of_cau_filter_bound hf B hB hn hm), FB_lim B hB⟩
+emetric.cauchy_seq_iff_le_tendsto_0.2 ⟨B2 B hB,
+  λ n m N hn hm, le_of_lt (seq_of_cau_filter_bound hf B hB hn hm), B2_lim B hB⟩
 
 /-- If the approximating Cauchy sequence is converging, to a limit `y`, then the
 original Cauchy filter `f` is also converging, to the same limit.
 Given `t1` in the filter `f` and `t2` a neighborhood of `y`, it suffices to show that `t1 ∩ t2` is
 nonempty.
 Pick `ε` so that the ε-eball around `y` is contained in `t2`.
-Pick `n` with `FB n < ε/2`, and `n2` such that `dist(seq n2, y) < ε/2`. Let `N = max(n, n2)`.
+Pick `n` with `B2 n < ε/2`, and `n2` such that `dist(seq n2, y) < ε/2`. Let `N = max(n, n2)`.
 We defined `seq` by looking at a decreasing sequence of sets of `f` with shrinking radius.
-The Nth one has radius `< FB N < ε/2`. This set is in `f`, so we can find an element `x` that's
+The Nth one has radius `< B2 N < ε/2`. This set is in `f`, so we can find an element `x` that's
 also in `t1`.
 `dist(x, seq N) < ε/2` since `seq N` is in this set, and `dist (seq N, y) < ε/2`,
 so `x` is in the ε-ball around `y`, and thus in `t2`. -/
@@ -154,12 +226,12 @@ begin
   rcases emetric.mem_nhds_iff.1 ht2 with ⟨ε, hε, ht2'⟩,
   cases emetric.cauchy_iff.1 hf with hfb _,
   have : ε / 2 > 0 := ennreal.half_pos hε,
-  rcases inhabited_of_mem_sets (by simp) ((tendsto_orderable.1 (FB_lim B hB)).2 _ this)
+  rcases inhabited_of_mem_sets (by simp) ((tendsto_orderable.1 (B2_lim B hB)).2 _ this)
     with ⟨n, hnε⟩,
-  simp only [set.mem_set_of_eq] at hnε, -- hnε : ε / 2 > FB B hB n
+  simp only [set.mem_set_of_eq] at hnε, -- hnε : ε / 2 > B2 B hB n
   cases (emetric.tendsto_at_top _).1 H _ this with n2 hn2,
   let N := max n n2,
-  have ht1sn : t1 ∩ set_seq_of_cau_filter hf B hB N ∈ f.sets,
+  have ht1sn : t1 ∩ set_seq_of_cau_filter hf B hB N ∈ f,
     from inter_mem_sets ht1 (set_seq_of_cau_filter_mem_sets hf B hB _),
   have hts1n_ne : t1 ∩ set_seq_of_cau_filter hf B hB N ≠ ∅,
     from forall_sets_neq_empty_iff_neq_bot.2 hfb _ ht1sn,
@@ -170,13 +242,13 @@ begin
     (set_seq_of_cau_filter_monotone hf B hB (le_max_left n n2)) (seq_of_cau_filter_mem_set_seq hf B hB N),
   have I2 : x ∈ set_seq_of_cau_filter hf B hB n :=
     (set_seq_of_cau_filter_monotone hf B hB (le_max_left n n2)) hx.2,
-  have hdist1 : edist x (seq_of_cau_filter hf B hB N) < FB B hB n :=
+  have hdist1 : edist x (seq_of_cau_filter hf B hB N) < B2 B hB n :=
     set_seq_of_cau_filter_spec hf B hB _ I2 I1,
   have hdist2 : edist (seq_of_cau_filter hf B hB N) y < ε / 2 :=
     hn2 N (le_max_right _ _),
   have hdist : edist x y < ε := calc
     edist x y ≤ edist x (seq_of_cau_filter hf B hB N) + edist (seq_of_cau_filter hf B hB N) y : edist_triangle _ _ _
-          ... < FB B hB n + ε/2 : ennreal.add_lt_add hdist1 hdist2
+          ... < B2 B hB n + ε/2 : ennreal.add_lt_add hdist1 hdist2
           ... ≤ ε/2 + ε/2 : add_le_add_right' (le_of_lt hnε)
           ... = ε : ennreal.add_halves _,
   have hxt2 : x ∈ t2, from ht2' hdist,
@@ -220,7 +292,7 @@ theorem emetric.complete_of_convergent_controlled_sequences {α : Type u} [emetr
   let u := sequentially_complete.seq_of_cau_filter hf B hB,
   -- It satisfies the required bound.
   have : ∀N n m : ℕ, N ≤ n → N ≤ m → edist (u n) (u m) < B N := λN n m hn hm, calc
-    edist (u n) (u m) < sequentially_complete.FB B hB N :
+    edist (u n) (u m) < sequentially_complete.B2 B hB N :
       sequentially_complete.seq_of_cau_filter_bound hf B hB hn hm
     ... ≤ B N : lattice.inf_le_right,
   -- Therefore, it converges by assumption. Let `x` be its limit.
@@ -322,7 +394,6 @@ begin
       apply hεs,
       rw dist_eq_norm,
       apply hN; assumption }},
-  { apply_instance }
 end
 
 /-- In a normed field, `cau_seq` coincides with the usual notion of Cauchy sequences. -/

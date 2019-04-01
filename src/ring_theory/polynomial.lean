@@ -3,11 +3,12 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 
-Hilbert basis theorem: if a ring is noetherian then so is its polynomial ring.
+Ring-theoretic supplement of data.polynomial.
+
+Main result: Hilbert basis theorem, that if a ring is noetherian then so is its polynomial ring.
 -/
 
-import linear_algebra.multivariate_polynomial
-import data.polynomial
+import data.polynomial data.mv_polynomial
 import ring_theory.principal_ideal_domain
 import ring_theory.subring
 
@@ -46,6 +47,84 @@ begin
   intros k hk, apply mem_degree_le.2,
   apply le_trans (degree_X_pow_le _) (with_bot.coe_le_coe.2 $ nat.le_of_lt_succ $ finset.mem_range.1 hk)
 end
+
+/-- Given a polynomial, return the polynomial whose coefficients are in
+the ring closure of the original coefficients. -/
+def restriction (p : polynomial R) : polynomial (ring.closure (↑p.frange : set R)) :=
+⟨p.support, λ i, ⟨p.to_fun i,
+  if H : p.to_fun i = 0 then H.symm ▸ is_add_submonoid.zero_mem _
+  else ring.subset_closure $ finsupp.mem_frange.2 ⟨H, i, rfl⟩⟩,
+λ i, finsupp.mem_support_iff.trans (not_iff_not_of_iff ⟨λ H, subtype.eq H, subtype.mk.inj⟩)⟩
+
+@[simp] theorem coeff_restriction {p : polynomial R} {n : ℕ} : ↑(coeff (restriction p) n) = coeff p n := rfl
+
+@[simp] theorem coeff_restriction' {p : polynomial R} {n : ℕ} : (coeff (restriction p) n).1 = coeff p n := rfl
+
+@[simp] theorem degree_restriction {p : polynomial R} : (restriction p).degree = p.degree := rfl
+
+@[simp] theorem nat_degree_restriction {p : polynomial R} : (restriction p).nat_degree = p.nat_degree := rfl
+
+@[simp] theorem monic_restriction {p : polynomial R} : monic (restriction p) ↔ monic p :=
+⟨λ H, congr_arg subtype.val H, λ H, subtype.eq H⟩
+
+@[simp] theorem restriction_zero : restriction (0 : polynomial R) = 0 := rfl
+
+@[simp] theorem restriction_one : restriction (1 : polynomial R) = 1 :=
+ext.2 $ λ i, subtype.eq $ by rw [coeff_restriction', coeff_one, coeff_one]; split_ifs; refl
+
+variables {S : Type v} [comm_ring S] {f : R → S} {x : S}
+
+theorem eval₂_restriction {p : polynomial R} :
+  eval₂ f x p = eval₂ (f ∘ subtype.val) x p.restriction :=
+rfl
+
+section to_subring
+variables (p : polynomial R) (T : set R) [is_subring T]
+
+/-- Given a polynomial `p` and a subring `T` that contains the coefficients of `p`,
+return the corresponding polynomial whose coefficients are in `T. -/
+def to_subring (hp : ↑p.frange ⊆ T) : polynomial T :=
+⟨p.support, λ i, ⟨p.to_fun i,
+  if H : p.to_fun i = 0 then H.symm ▸ is_add_submonoid.zero_mem _
+  else hp $ finsupp.mem_frange.2 ⟨H, i, rfl⟩⟩,
+λ i, finsupp.mem_support_iff.trans (not_iff_not_of_iff ⟨λ H, subtype.eq H, subtype.mk.inj⟩)⟩
+
+variables (hp : ↑p.frange ⊆ T)
+include hp
+
+@[simp] theorem coeff_to_subring {n : ℕ} : ↑(coeff (to_subring p T hp) n) = coeff p n := rfl
+
+@[simp] theorem coeff_to_subring' {n : ℕ} : (coeff (to_subring p T hp) n).1 = coeff p n := rfl
+
+@[simp] theorem degree_to_subring : (to_subring p T hp).degree = p.degree := rfl
+
+@[simp] theorem nat_degree_to_subring : (to_subring p T hp).nat_degree = p.nat_degree := rfl
+
+@[simp] theorem monic_to_subring : monic (to_subring p T hp) ↔ monic p :=
+⟨λ H, congr_arg subtype.val H, λ H, subtype.eq H⟩
+
+omit hp
+
+@[simp] theorem to_subring_zero : to_subring (0 : polynomial R) T (set.empty_subset _) = 0 := rfl
+
+@[simp] theorem to_subring_one : to_subring (1 : polynomial R) T
+  (set.subset.trans (finset.coe_subset.2 finsupp.frange_single)
+    (set.singleton_subset_iff.2 (is_submonoid.one_mem _))) = 1 :=
+ext.2 $ λ i, subtype.eq $ by rw [coeff_to_subring', coeff_one, coeff_one]; split_ifs; refl
+end to_subring
+
+variables (T : set R) [is_subring T]
+
+/-- Given a polynomial whose coefficients are in some subring, return
+the corresponding polynomial whose coefificents are in the ambient ring. -/
+def of_subring (p : polynomial T) : polynomial R :=
+⟨p.support, subtype.val ∘ p.to_fun,
+λ n, finsupp.mem_support_iff.trans (not_iff_not_of_iff
+  ⟨λ h, congr_arg subtype.val h, λ h, subtype.eq h⟩)⟩
+
+@[simp] theorem frange_of_subring {p : polynomial T} :
+  ↑(p.of_subring T).frange ⊆ T :=
+λ y H, let ⟨hy, x, hx⟩ := finsupp.mem_frange.1 H in hx ▸ (p.to_fun x).2
 
 end polynomial
 
@@ -201,3 +280,26 @@ from hs ▸ λ x hx, submodule.span_induction hx (λ _ hx, ideal.subset_span hx)
       rwa [polynomial.degree_eq_nat_degree hpq, with_bot.coe_lt_coe, hn] at this },
     exact hs2 ⟨polynomial.mem_degree_le.2 hdq, hq⟩ }
 end⟩⟩
+
+theorem is_noetherian_ring_mv_polynomial_fin {n : ℕ} [is_noetherian_ring R] :
+  is_noetherian_ring (mv_polynomial (fin n) R) :=
+begin
+  induction n with n ih,
+  { exact is_noetherian_ring_of_ring_equiv R
+      ((mv_polynomial.pempty_ring_equiv R).symm.trans $ mv_polynomial.ring_equiv_of_equiv _
+        ⟨pempty.elim, fin.elim0, λ x, pempty.elim x, λ x, fin.elim0 x⟩) },
+  exact @is_noetherian_ring_of_ring_equiv (polynomial (mv_polynomial (fin n) R)) _
+    (mv_polynomial (fin (n+1)) R) _
+    ((mv_polynomial.option_equiv_left _ _).symm.trans (mv_polynomial.ring_equiv_of_equiv _
+      ⟨λ x, option.rec_on x 0 fin.succ, λ x, fin.cases none some x,
+      by rintro ⟨none | x⟩; [refl, exact fin.cases_succ _],
+      λ x, fin.cases rfl (λ i, show (option.rec_on (fin.cases none some (fin.succ i) : option (fin n))
+        0 fin.succ : fin n.succ) = _, by rw fin.cases_succ) x⟩))
+    (@@is_noetherian_ring_polynomial _ _ ih)
+end
+
+theorem is_noetherian_ring_mv_polynomial_of_fintype {σ : Type v} [fintype σ] [decidable_eq σ]
+  [is_noetherian_ring R] : is_noetherian_ring (mv_polynomial σ R) :=
+trunc.induction_on (fintype.equiv_fin σ) $ λ e,
+@is_noetherian_ring_of_ring_equiv (mv_polynomial (fin (fintype.card σ)) R) _ _ _
+  (mv_polynomial.ring_equiv_of_equiv _ e.symm) is_noetherian_ring_mv_polynomial_fin

@@ -32,6 +32,9 @@ def mk0 (a : α) (ha : a ≠ 0) : units α :=
 
 @[simp] theorem mk0_inv (ha : a ≠ 0) : ((mk0 a ha)⁻¹ : α) = a⁻¹ := rfl
 
+@[simp] lemma mk0_coe (u : units α) (h : (u : α) ≠ 0) : mk0 (u : α) h = u :=
+units.ext rfl
+
 @[simp] lemma units.mk0_inj [field α] {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) :
   units.mk0 a ha = units.mk0 b hb ↔ a = b :=
 ⟨λ h, by injection h, λ h, units.ext h⟩
@@ -171,6 +174,16 @@ field.div_mul_div_cancel _ b0 hc
 lemma div_div_cancel (ha : a ≠ 0) : a / (a / b) = b :=
 if b0 : b = 0 then by simp only [b0, div_zero] else
 field.div_div_cancel ha b0
+
+@[simp] lemma inv_eq_zero (a : α) : a⁻¹ = 0 ↔ a = 0 :=
+classical.by_cases (assume : a = 0, by simp [*])(assume : a ≠ 0, by simp [*, inv_ne_zero])
+
+lemma neg_inv' (a : α) : (-a)⁻¹ = - a⁻¹ :=
+begin
+  by_cases a = 0,
+  { rw [h, neg_zero, inv_zero, neg_zero] },
+  { rw [neg_inv h] }
+end
 
 end
 

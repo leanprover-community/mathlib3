@@ -38,7 +38,7 @@ fi
 
 # Try to update the lean-x.y.z branch on mathlib. This could fail if
 # a subsequent commit has already pushed an update.
-git push mathlib HEAD:$LEAN_VERSION || \
+git push mathlib HEAD:refs/heads/$LEAN_VERSION || \
     echo "mathlib rejected push to branch $LEAN_VERSION; maybe it already has a later version?" >&2
 
 # Push the commits to a branch on nightly and push a tag.

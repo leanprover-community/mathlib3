@@ -285,6 +285,32 @@ end
 | (succ n) []        := rfl
 | (succ n) (x :: xs) := by simp only [split_at, split_at_eq_take_drop n xs, take, drop]
 
+-- TODO these lemmas need homes
+@[simp] lemma intersperse_nil {α : Type u} (a b : α) : intersperse a [] = [] := rfl
+@[simp] lemma intersperse_singleton {α : Type u} (a b : α) : intersperse a [b] = [b] := rfl
+@[simp] lemma intersperse_cons_cons {α : Type u} (a b c : α) (tl : list α) :
+  intersperse a (b :: c :: tl) = b :: a :: intersperse a (c :: tl) := rfl
+@[simp] lemma join_nil {α : Type u} : [([] : list α)].join = [] := rfl
+
+-- Properties of `split_on`
+@[simp] lemma split_on_nil {α : Type u} [decidable_eq α] (a : α) : [].split_on a = [[]] := rfl
+
+lemma split_on_not_in {α : Type u} [decidable_eq α] (a : α) (as : list α) (h : a ∉ as) :
+  as.split_on a = [as] :=
+sorry
+
+lemma split_on_cons_self {α : Type u} [decidable_eq α] (a : α) (tl : list α) :
+  ((a :: tl).split_on a) = [] :: tl.split_on a :=
+sorry
+
+lemma split_on_spec' {α : Type u} [decidable_eq α] (a : α) (as bs : list α) (h : a ∉ as) :
+  (as ++ [a] ++ bs).split_on a = as :: (bs.split_on a) :=
+sorry
+
+lemma split_on_spec {α : Type u} [decidable_eq α] (a : α) (as : list α) :
+  list.intercalate [a] (as.split_on a) = as :=
+sorry
+
 @[simp] theorem take_append_drop : ∀ (n : ℕ) (l : list α), take n l ++ drop n l = l
 | 0        a         := rfl
 | (succ n) []        := rfl

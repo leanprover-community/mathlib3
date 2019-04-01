@@ -1,0 +1,21 @@
+pull_request_rules:
+  - name: automatic merge on CI success and review
+    conditions:
+      - status-success=continuous-integration/travis-ci/pr
+      - "#approved-reviews-by>=1"
+      - "#review-requested=0"
+      - "#changes-requested-reviews-by=0"
+      - base=master
+      - label=['ready-to-merge']
+    actions:
+      delete_head_branch: True
+      merge:
+        method: squash
+  - name: remove outdated reviews
+    conditions:
+      - status-success=continuous-integration/travis-ci/pr
+      - "#approved-reviews-by>=2"
+    actions:
+      - dismiss_reviews:
+        approved: True
+      - remove: ['ready-to-merge']

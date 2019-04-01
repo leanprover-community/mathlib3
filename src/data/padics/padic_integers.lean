@@ -99,7 +99,7 @@ instance : has_norm ℤ_[p] := ⟨padic_norm_z⟩
 
 instance : normed_ring ℤ_[p] :=
 { dist_eq := λ ⟨_, _⟩ ⟨_, _⟩, rfl,
-  norm_mul := λ ⟨_, _⟩ ⟨_, _⟩, norm_mul _ _ }
+  norm_mul := λ ⟨_, _⟩ ⟨_, _⟩, norm_mul_le _ _ }
 
 instance padic_norm_z.is_absolute_value : is_absolute_value (λ z : ℤ_[p], ∥z∥) :=
 { abv_nonneg := norm_nonneg,

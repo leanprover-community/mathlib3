@@ -717,6 +717,9 @@ finset.ext' $ by simp
   to_finset (s ∩ t) = to_finset s ∩ to_finset t :=
 finset.ext' $ by simp
 
+theorem to_finset_eq_empty {m : multiset α} : m.to_finset = ∅ ↔ m = 0 :=
+finset.val_inj.symm.trans multiset.erase_dup_eq_zero
+
 end multiset
 
 namespace list
@@ -817,6 +820,10 @@ lemma attach_map_val {s : finset α} : s.attach.map (embedding.subtype _) = s :=
 eq_of_veq $ by rw [map_val, attach_val]; exact attach_map_val _
 
 end map
+
+lemma range_add_one' (n : ℕ) :
+  range (n + 1) = insert 0 ((range n).map ⟨λi, i + 1, assume i j, nat.succ_inj⟩) :=
+by ext (⟨⟩ | ⟨n⟩); simp [nat.succ_eq_add_one, nat.zero_lt_succ n]
 
 section image
 variables [decidable_eq β]

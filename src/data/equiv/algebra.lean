@@ -2,6 +2,15 @@
 Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
+
+The role of this file is twofold. In the first part there are theorems of the following
+form: if α has a group structure and α ≃ β then β has a group structure, and
+similarly for monoids, semigroups, rings, integral domains, fields and so on.
+
+In the second part there are extensions of equiv called add_equiv,
+mul_equiv, and ring_equiv, which are datatypes representing isomorphisms
+of monoids, groups and rings.
+
 -/
 import data.equiv.basic algebra.field
 
@@ -190,6 +199,103 @@ protected def discrete_field [discrete_field β] : discrete_field α :=
 end instances
 end equiv
 
+structure add_equiv (α β : Type*) [has_add α] [has_add β] extends α ≃ β :=
+(hom : is_add_hom to_fun)
+
+infix ` ≃+ `:50 := add_equiv
+
+namespace add_equiv
+
+variables [has_add α] [has_add β] [has_add γ]
+
+@[refl] def refl (α : Type) [has_add α] : α ≃+ α :=
+{ hom := is_add_hom.id
+  ..equiv.refl _}
+
+@[symm] def symm (h : α ≃+ β) : β ≃+ α :=
+{ hom := ⟨λ n₁ n₂, function.injective_of_left_inverse h.left_inv begin
+   rw h.hom.map_add, unfold equiv.symm, rw [h.right_inv, h.right_inv, h.right_inv], end⟩
+  ..h.to_equiv.symm}
+
+@[trans] def trans (h1 : α ≃+ β) (h2 : β ≃+ γ) : (α ≃+ γ) :=
+{ hom := is_add_hom.comp h1.hom h2.hom,
+  ..equiv.trans h1.to_equiv h2.to_equiv }
+
+end add_equiv
+
+structure mul_equiv (α β : Type*) [has_mul α] [has_mul β] extends α ≃ β :=
+(hom : is_mul_hom to_fun)
+
+infix ` ≃* `:50 := mul_equiv
+
+namespace mul_equiv
+
+variables [has_mul α] [has_mul β] [has_mul γ]
+
+@[refl] def refl (α : Type*) [has_mul α] : α ≃* α :=
+{ hom := ⟨λ _ _,rfl⟩,
+..equiv.refl _}
+
+@[symm] def symm (h : α ≃* β) : β ≃* α :=
+{ hom := ⟨λ n₁ n₂, function.injective_of_left_inverse h.left_inv begin
+   rw h.hom.map_mul, unfold equiv.symm, rw [h.right_inv, h.right_inv, h.right_inv], end⟩
+  ..h.to_equiv.symm}
+
+@[trans] def trans (h1 : α ≃* β) (h2 : β ≃* γ) : (α ≃* γ) :=
+{ hom := is_mul_hom.comp h1.hom h2.hom,
+  ..equiv.trans h1.to_equiv h2.to_equiv }
+
+end mul_equiv
+
+-- equiv of monoids
+namespace mul_equiv
+
+variables [monoid α] [monoid β] [monoid γ]
+
+lemma one (h : equiv α β) (hom : ∀ x y, h (x * y) = h x * h y) :
+  h 1 = 1 :=
+by rw [←mul_one (h 1), ←h.apply_symm_apply 1, ←hom]; simp
+
+instance is_monoid_hom (h : α ≃* β) : is_monoid_hom h.to_equiv := {
+  map_one := mul_equiv.one h.to_equiv h.hom.map_mul,
+  map_mul := h.hom.map_mul }
+
+instance (h : α ≃* β) : is_mul_hom h.to_equiv := {map_mul := λ a b, is_monoid_hom.map_mul h.to_equiv}
+end mul_equiv
+
+-- equiv of groups
+namespace mul_equiv
+
+variables [group α] [group β] [group γ]
+
+instance is_group_hom (h : α ≃* β) : is_group_hom h.to_equiv := ⟨h.hom.map_mul⟩
+
+end mul_equiv
+
+-- equiv of add_groups
+namespace add_equiv
+
+variables [add_group α] [add_group β] [add_group γ]
+
+instance is_add_group_hom (h : α ≃+ β) : is_add_group_hom h.to_equiv := ⟨h.hom.map_add⟩
+
+end add_equiv
+
+
+namespace units
+
+variables [monoid α] [monoid β] [monoid γ]
+(f : α → β) (g : β → γ) [is_monoid_hom f] [is_monoid_hom g]
+
+def map_equiv (h : α ≃* β) : units α ≃* units β :=
+{ to_fun := map h.to_equiv,
+  inv_fun := map h.symm.to_equiv,
+  left_inv := λ u, ext $ h.left_inv u,
+  right_inv := λ u, ext $ h.right_inv u,
+  hom := ⟨λ a b, units.ext $ is_mul_hom.map_mul h.to_equiv⟩}
+
+end units
+
 structure ring_equiv (α β : Type*) [ring α] [ring β] extends α ≃ β :=
 (hom : is_ring_hom to_fun)
 
@@ -213,5 +319,12 @@ protected def symm {α β : Type*} [ring α] [ring β] (e : α ≃r β) : β ≃
 protected def trans {α β γ : Type*} [ring α] [ring β] [ring γ]
   (e₁ : α ≃r β) (e₂ : β ≃r γ) : α ≃r γ :=
 { hom := is_ring_hom.comp _ _, .. e₁.1.trans e₂.1  }
+
+instance symm.is_ring_hom {e : α ≃r β} : is_ring_hom e.to_equiv.symm := hom e.symm
+
+@[simp] lemma to_equiv_symm (e : α ≃r β) : e.symm.to_equiv = e.to_equiv.symm := rfl
+
+@[simp] lemma to_equiv_symm_apply (e : α ≃r β) (x : β) :
+  e.symm.to_equiv x = e.to_equiv.symm x := rfl
 
 end ring_equiv

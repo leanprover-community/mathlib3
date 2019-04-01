@@ -17,7 +17,7 @@ variables {m n k : ℕ}
 -- mediated operations.
 @[simp] theorem add_def {a b : ℕ} : nat.add a b = a + b := rfl
 @[simp] theorem mul_def {a b : ℕ} : nat.mul a b = a * b := rfl
-
+lemma two_add_two : 2 + 2 = 4 := rfl
 attribute [simp] nat.add_sub_cancel nat.add_sub_cancel_left
 attribute [simp] nat.sub_self
 

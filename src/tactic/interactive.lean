@@ -6,7 +6,7 @@ Authors: Mario Carneiro, Simon Hudon, Sebastien Gouezel, Scott Morrison
 import data.dlist data.dlist.basic data.prod category.basic
   tactic.basic tactic.rcases tactic.generalize_proofs
   tactic.split_ifs logic.basic tactic.ext tactic.tauto
-  tactic.replacer tactic.simpa tactic.squeeze
+  tactic.replacer tactic.simpa tactic.squeeze tactic.library_search
 
 open lean
 open lean.parser
@@ -139,6 +139,20 @@ meta def clear_ : tactic unit := tactic.repeat $ do
     cl ← infer_type h >>= is_class, guard (¬ cl),
     tactic.clear h
 
+meta def apply_iff_congr_core (tgt : expr) : tactic unit :=
+do applyc ``iff_of_eq,
+   (lhs, rhs) ← target >>= match_eq,
+   guard lhs.is_app,
+   clemma ← mk_specialized_congr_lemma lhs,
+   apply_congr_core clemma
+
+meta def congr_core' : tactic unit :=
+do tgt ← target,
+   apply_eq_congr_core tgt
+   <|> apply_heq_congr_core
+   <|> apply_iff_congr_core tgt
+   <|> fail "congr tactic failed"
+
 /--
 Same as the `congr` tactic, but takes an optional argument which gives
 the depth of recursive applications. This is useful when `congr`
@@ -147,7 +161,7 @@ is too aggressive in breaking down the goal. For example, given
 and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`. -/
 meta def congr' : parse (with_desc "n" small_nat)? → tactic unit
 | (some 0) := failed
-| o        := focus1 (assumption <|> (congr_core >>
+| o        := focus1 (assumption <|> (congr_core' >>
   all_goals (reflexivity <|> `[apply proof_irrel_heq] <|>
              `[apply proof_irrel] <|> try (congr' (nat.pred <$> o)))))
 

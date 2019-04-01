@@ -206,6 +206,65 @@ finsupp.ext $ λ a', show f (ite _ _ _) = ite _ _ _, by split_ifs; [refl, exact 
 
 end map_range
 
+section emb_domain
+variables [has_zero β] [decidable_eq α₂]
+
+/-- Given `f : α₁ ↪ α₂` and `v : α₁ →₀ β`, `emb_domain f v : α₂ →₀ β` is the finitely supported
+function whose value at `f a : α₂` is `v a`. For a `a : α₁` outside the domain of `f` it is zero. -/
+def emb_domain (f : α₁ ↪ α₂) (v : α₁ →₀ β) : α₂ →₀ β :=
+begin
+  refine ⟨v.support.map f, λa₂,
+    if h : a₂ ∈ v.support.map f then v (v.support.choose (λa₁, f a₁ = a₂) _) else 0, _⟩,
+  { rcases finset.mem_map.1 h with ⟨a, ha, rfl⟩,
+    exact exists_unique.intro a ⟨ha, rfl⟩ (assume b ⟨_, hb⟩, f.inj hb) },
+  { assume a₂,
+    split_ifs,
+    { simp [h],
+      rw [← finsupp.not_mem_support_iff, classical.not_not],
+      apply finset.choose_mem },
+    { simp [h] } }
+end
+
+lemma support_emb_domain (f : α₁ ↪ α₂) (v : α₁ →₀ β) :
+  (emb_domain f v).support = v.support.map f :=
+rfl
+
+lemma emb_domain_zero (f : α₁ ↪ α₂) : (emb_domain f 0 : α₂ →₀ β) = 0 :=
+rfl
+
+lemma emb_domain_apply (f : α₁ ↪ α₂) (v : α₁ →₀ β) (a : α₁) :
+  emb_domain f v (f a) = v a :=
+begin
+  change dite _ _ _ = _,
+  split_ifs; rw [finset.mem_map' f] at h,
+  { refine congr_arg (v : α₁ → β) (f.inj' _),
+    exact finset.choose_property (λa₁, f a₁ = f a) _ _ },
+  { exact (finsupp.not_mem_support_iff.1 h).symm }
+end
+
+lemma emb_domain_notin_range (f : α₁ ↪ α₂) (v : α₁ →₀ β) (a : α₂) (h : a ∉ set.range f) :
+  emb_domain f v a = 0 :=
+begin
+  refine dif_neg (mt (assume h, _) h),
+  rcases finset.mem_map.1 h with ⟨a, h, rfl⟩,
+  exact set.mem_range_self a
+end
+
+lemma emb_domain_map_range
+  {β₁ β₂ : Type*} [has_zero β₁] [has_zero β₂] [decidable_eq β₁] [decidable_eq β₂]
+  (f : α₁ ↪ α₂) (g : β₁ → β₂) (p : α₁ →₀ β₁) (hg : g 0 = 0) :
+  emb_domain f (map_range g hg p) = map_range g hg (emb_domain f p) :=
+begin
+  ext a,
+  classical,
+  by_cases a ∈ set.range f,
+  { rcases h with ⟨a', rfl⟩,
+    rw [map_range_apply, emb_domain_apply, emb_domain_apply, map_range_apply] },
+  { rw [map_range_apply, emb_domain_notin_range, emb_domain_notin_range, ← hg]; assumption }
+end
+
+end emb_domain
+
 section zip_with
 variables [has_zero β] [has_zero β₁] [has_zero β₂] [decidable_eq α] [decidable_eq β]
 
@@ -634,6 +693,25 @@ lemma prod_map_domain_index [comm_monoid γ] {f : α → α₂} {s : α →₀ �
   {h : α₂ → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   (s.map_domain f).prod h = s.prod (λa b, h (f a) b) :=
 (prod_sum_index h_zero h_add).trans $ prod_congr rfl $ λ _ _, prod_single_index (h_zero _)
+
+lemma emb_domain_eq_map_domain (f : α₁ ↪ α₂) (v : α₁ →₀ β) :
+  emb_domain f v = map_domain f v :=
+begin
+  ext a,
+  classical,
+  by_cases a ∈ set.range f,
+  { rcases h with ⟨a, rfl⟩,
+    rw [map_domain_apply (function.embedding.inj' _), emb_domain_apply] },
+  { rw [map_domain_notin_range, emb_domain_notin_range]; assumption }
+end
+
+lemma injective_map_domain {f : α₁ → α₂} (hf : function.injective f) :
+  function.injective (map_domain f : (α₁ →₀ β) → (α₂ →₀ β)) :=
+begin
+  assume v₁ v₂ eq, ext a,
+  have : map_domain f v₁ (f a) = map_domain f v₂ (f a), { rw eq },
+  rwa [map_domain_apply hf, map_domain_apply hf] at this,
+end
 
 end map_domain
 

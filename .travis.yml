@@ -54,7 +54,7 @@ jobs:
       script:
         - leanpkg test
         - lean --recursive --export=mathlib.txt src/
-        - leanchecker mathlib.txt
+        - travis_long "leanchecker mathlib.txt"
         - sh scripts/deploy_nightly.sh
 
 notifications:

@@ -11,6 +11,7 @@ namespace category_theory
 
 universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
+-- We only work in `Type`, rather than `Sort`, as we need to use `ulift`.
 def discrete (α : Type u₁) := α
 
 instance discrete_category (α : Type u₁) : small_category (discrete α) :=
@@ -18,7 +19,7 @@ instance discrete_category (α : Type u₁) : small_category (discrete α) :=
   id   := by tidy,
   comp := by tidy }
 
-variables {C : Type u₂} [𝒞 : category.{v₂} C]
+variables {C : Sort u₂} [𝒞 : category.{v₂} C]
 include 𝒞
 
 namespace functor

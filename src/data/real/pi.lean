@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 
-import analysis.exponential
+import analysis.complex.exponential
 
 namespace real
 variable (x : ℝ)

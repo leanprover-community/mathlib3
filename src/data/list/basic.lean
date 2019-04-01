@@ -311,6 +311,10 @@ lemma split_on_spec {α : Type u} [decidable_eq α] (a : α) (as : list α) :
   list.intercalate [a] (as.split_on a) = as :=
 sorry
 
+lemma split_on_p_spec {α : Type u} (p : α → Prop) [decidable_pred p] (as : list α) :
+  join (zip_with (++) (split_on_p p as) ((as.filter (λ x, ¬ p x)).map(λ x, [x]) ++ [[]])) = as :=
+sorry
+
 @[simp] theorem take_append_drop : ∀ (n : ℕ) (l : list α), take n l ++ drop n l = l
 | 0        a         := rfl
 | (succ n) []        := rfl

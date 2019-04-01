@@ -199,6 +199,25 @@ Unfold coercion-related definitions
 
 ### Instance cache tactics
 
+For performance reasons, Lean does not automatically update its database
+of class instances during a proof. The group of tactics described below
+helps forcing such updates. For a simple (but very artificial) example,
+consider the function `default` from the core library. It has type 
+`Π (α : Sort u) [inhabited α], α`, so one can use `default α` only if Lean 
+can find a registered instance of `inhabited α`. Because the database of
+such instance is not automatically updated during a proof, the following
+attempt won't work (Lean will not pick up the instance from the local
+context):
+```lean
+def my_id (α : Type) : α → α :=
+begin
+  intro x,
+  have : inhabited α := ⟨x⟩,
+  exact default α, -- Won't work!
+end
+```
+However, it will work, producing the identity function, if one replaces have by its variant `haveI` described below.
+
 * `resetI`: Reset the instance cache. This allows any instances
   currently in the context to be used in typeclass inference.
 

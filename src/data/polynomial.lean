@@ -1162,6 +1162,14 @@ by unfold degree; rw support_neg
 
 @[simp] lemma coeff_sub (p q : polynomial α) (n : ℕ) : coeff (p - q) n = coeff p n - coeff q n := rfl
 
+@[simp] lemma eval₂_neg {β} [comm_ring β] (f : α → β) [is_ring_hom f] {x : β} :
+  (-p).eval₂ f x = -p.eval₂ f x :=
+is_ring_hom.map_neg _
+
+@[simp] lemma eval₂_sub {β} [comm_ring β] (f : α → β) [is_ring_hom f] {x : β} :
+  (p - q).eval₂ f x = p.eval₂ f x - q.eval₂ f x :=
+is_ring_hom.map_sub _
+
 @[simp] lemma eval_neg (p : polynomial α) (x : α) : (-p).eval x = -p.eval x :=
 is_ring_hom.map_neg _
 

@@ -9,7 +9,8 @@ pull_request_rules:
       delete_head_branch: {}
       merge:
         method: squash
-  - name: remove outdated reviews
+        strict: smart
+        strict_method: squash  - name: remove outdated reviews
     conditions:
       - status-success=continuous-integration/travis-ci/pr
       - "#approved-reviews-by>=2"

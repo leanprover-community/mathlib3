@@ -217,6 +217,9 @@ lt_of_le_of_lt dist_nonneg hy
 theorem mem_ball_self (h : ε > 0) : x ∈ ball x ε :=
 show dist x x < ε, by rw dist_self; assumption
 
+theorem mem_closed_ball_self (h : ε ≥ 0) : x ∈ closed_ball x ε :=
+show dist x x ≤ ε, by rw dist_self; assumption
+
 theorem mem_ball_comm : x ∈ ball y ε ↔ y ∈ ball x ε :=
 by simp [dist_comm]
 
@@ -669,7 +672,7 @@ def metric_space.induced {α β} (f : α → β) (hf : function.injective f)
       exact ⟨_, dist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
   end }
 
-instance metric_space_subtype {p : α → Prop} [t : metric_space α] : metric_space (subtype p) :=
+instance subtype.metric_space {p : α → Prop} [t : metric_space α] : metric_space (subtype p) :=
 metric_space.induced subtype.val (λ x y, subtype.eq) t
 
 theorem subtype.dist_eq {p : α → Prop} [t : metric_space α] (x y : subtype p) :

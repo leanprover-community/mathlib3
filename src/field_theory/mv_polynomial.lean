@@ -58,6 +58,7 @@ begin
   exact degrees_X _
 end
 
+set_option class.instance_max_depth 50
 lemma indicator_mem_restrict_degree (c : σ → α) :
   indicator c ∈ restrict_degree σ α (fintype.card α - 1) :=
 begin

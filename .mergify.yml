@@ -13,8 +13,7 @@ pull_request_rules:
         strict_method: merge
   - name: remove outdated reviews
     conditions:
-      - status-success=continuous-integration/travis-ci/pr
-      - "#approved-reviews-by>=2"
+      - base=master
     actions:
       dismiss_reviews:
         approved: True

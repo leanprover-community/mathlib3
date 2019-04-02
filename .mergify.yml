@@ -10,7 +10,7 @@ pull_request_rules:
       merge:
         method: squash
         strict: smart
-        strict_method: merge
+        strict_method: squash
   - name: remove outdated reviews
     conditions:
       - base=master

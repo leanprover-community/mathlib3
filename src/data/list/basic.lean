@@ -322,22 +322,6 @@ begin
   split_ifs; simp [zip_with,join,*],
 end
 
-lemma split_on_not_in {α : Type u} [decidable_eq α] (a : α) (as : list α) (h : a ∉ as) :
-  as.split_on a = [as] :=
-sorry
-
-lemma split_on_cons_self {α : Type u} [decidable_eq α] (a : α) (tl : list α) :
-  ((a :: tl).split_on a) = [] :: tl.split_on a :=
-sorry
-
-lemma split_on_spec' {α : Type u} [decidable_eq α] (a : α) (as bs : list α) (h : a ∉ as) :
-  (as ++ [a] ++ bs).split_on a = as :: (bs.split_on a) :=
-sorry
-
-lemma split_on_spec {α : Type u} [decidable_eq α] (a : α) (as : list α) :
-  list.intercalate [a] (as.split_on a) = as :=
-sorry
-
 @[simp] theorem take_append_drop : ∀ (n : ℕ) (l : list α), take n l ++ drop n l = l
 | 0        a         := rfl
 | (succ n) []        := rfl

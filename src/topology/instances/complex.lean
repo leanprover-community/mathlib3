@@ -57,8 +57,8 @@ tendsto_of_uniform_continuous_subtype
   (mem_nhds_sets (continuous_abs _ $ is_open_lt' (abs r / 2)) (half_lt_self r0))
 
 lemma continuous_inv' : continuous (λa:{r:ℂ // r ≠ 0}, a.val⁻¹) :=
-continuous_iff_tendsto.mpr $ assume ⟨r, hr⟩,
-  (continuous_iff_tendsto.mp continuous_subtype_val _).comp (tendsto_inv hr)
+continuous_iff_continuous_at.mpr $ assume ⟨r, hr⟩,
+  (continuous_iff_continuous_at.mp continuous_subtype_val _).comp (tendsto_inv hr)
 
 lemma continuous_inv {α} [topological_space α] {f : α → ℂ} (h : ∀a, f a ≠ 0) (hf : continuous f) :
   continuous (λa, (f a)⁻¹) :=
@@ -84,7 +84,7 @@ let ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma abs ε0 r₁0 r₂0 in
   let ⟨h₁, h₂⟩ := max_lt_iff.1 h in Hδ (H _ a.2).1 (H _ b.2).2 h₁ h₂⟩
 
 protected lemma continuous_mul : continuous (λp : ℂ × ℂ, p.1 * p.2) :=
-continuous_iff_tendsto.2 $ λ ⟨a₁, a₂⟩,
+continuous_iff_continuous_at.2 $ λ ⟨a₁, a₂⟩,
 tendsto_of_uniform_continuous_subtype
   (uniform_continuous_mul
     ({x | abs x < abs a₁ + 1}.prod {x | abs x < abs a₂ + 1})

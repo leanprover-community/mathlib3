@@ -724,6 +724,20 @@ end
 
 end clear_aux_decl
 
+section congr
+
+example (c : Prop → Prop → Prop → Prop) (x x' y z z' : Prop)
+  (h₀ : x ↔ x')
+  (h₁ : z ↔ z') :
+  c x y z ↔ c x' y z' :=
+begin
+  congr',
+  { guard_target x = x', ext, assumption },
+  { guard_target z = z', ext, assumption },
+end
+
+end congr
+
 private meta def get_exception_message (t : lean.parser unit) : lean.parser string
 | s := match t s with
        | result.success a s' := result.success "No exception" s

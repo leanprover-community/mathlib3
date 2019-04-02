@@ -12,9 +12,9 @@ import category_theory.equivalence
 namespace category_theory
 
 universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
-variables {A : Type u₁} [𝒜 : category.{v₁} A]
-variables {B : Type u₂} [ℬ : category.{v₂} B]
-variables {T : Type u₃} [𝒯 : category.{v₃} T]
+variables {A : Sort u₁} [𝒜 : category.{v₁} A]
+variables {B : Sort u₂} [ℬ : category.{v₂} B]
+variables {T : Sort u₃} [𝒯 : category.{v₃} T]
 include 𝒜 ℬ 𝒯
 
 structure comma (L : A ⥤ T) (R : B ⥤ T) :=
@@ -193,7 +193,7 @@ end comma
 
 omit 𝒜 ℬ
 
-def over (X : T) := comma.{v₃ 0 v₃} (functor.id T) (functor.of.obj X)
+def over (X : T) := comma.{v₃ 1 v₃} (functor.id T) (functor.of.obj X)
 
 namespace over
 
@@ -244,8 +244,8 @@ variables {Y : T} {f : X ⟶ Y} {U V : over X} {g : U ⟶ V}
 end
 
 section
-variables {D : Type u₃} [Dcat : category.{v₃} D]
-include Dcat
+variables {D : Sort u₃} [𝒟 : category.{v₃} D]
+include 𝒟
 
 def post (F : T ⥤ D) : over X ⥤ over (F.obj X) :=
 { obj := λ Y, mk $ F.map Y.hom,
@@ -257,7 +257,7 @@ end
 
 end over
 
-def under (X : T) := comma.{0 v₃ v₃} (functor.of.obj X) (functor.id T)
+def under (X : T) := comma.{1 v₃ v₃} (functor.of.obj X) (functor.id T)
 
 namespace under
 
@@ -308,8 +308,8 @@ variables {Y : T} {f : X ⟶ Y} {U V : under Y} {g : U ⟶ V}
 end
 
 section
-variables {D : Type u₃} [Dcat : category.{v₃} D]
-include Dcat
+variables {D : Sort u₃} [𝒟 : category.{v₃} D]
+include 𝒟
 
 def post {X : T} (F : T ⥤ D) : under X ⥤ under (F.obj X) :=
 { obj := λ Y, mk $ F.map Y.hom,

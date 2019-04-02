@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes
+Authors: Chris Hughes, Abhimanyu Pallavi Sudhir
 -/
 import algebra.archimedean
 import data.nat.choose data.complex.basic
@@ -13,22 +13,6 @@ open is_absolute_value
 
 section
 open real is_absolute_value finset
-
-lemma geo_sum_eq {α : Type*} [field α] {x : α} : ∀ (n : ℕ) (hx1 : x ≠ 1),
-  (range n).sum (λ m, x ^ m) = (1 - x ^ n) / (1 - x)
-| 0     hx1 := by simp
-| (n+1) hx1 := have 1 - x ≠ 0 := mt sub_eq_zero_iff_eq.1 hx1.symm,
-by rw [sum_range_succ, ← mul_div_cancel (x ^ n) this, geo_sum_eq n hx1, ← add_div, _root_.pow_succ];
-    simp [mul_add, add_mul, mul_comm]
-
-lemma geo_sum_inv_eq {α : Type*} [discrete_field α] {x : α} (n : ℕ) (hx1 : x ≠ 1) (hx0 : x ≠ 0) :
-  (range n).sum (λ m, x⁻¹ ^ m) = (x - x * x⁻¹ ^ n) / (x - 1) :=
-have hx1' : x⁻¹ ≠ 1, from λ h, by rw [← @inv_inv' _ _ x, h] at hx1; simpa using hx1,
-have h1x' : 1 - x⁻¹ ≠ 0, from sub_ne_zero.2 hx1'.symm,
-have h1x : x - 1 ≠ 0, from sub_ne_zero.2 hx1,
-by rw [geo_sum_eq _ hx1', div_eq_div_iff h1x' h1x];
-  simp [mul_add, add_mul, mul_inv_cancel hx0, mul_comm x, mul_left_comm x,
-    mul_assoc, inv_mul_cancel hx0]
 
 lemma forall_ge_le_of_forall_le_succ {α : Type*} [preorder α] (f : ℕ → α) {m : ℕ}
   (h : ∀ n ≥ m, f n.succ ≤ f n) : ∀ {l}, ∀ k ≥ m, k ≤ l → f l ≤ f k :=
@@ -122,10 +106,11 @@ lemma is_cau_geo_series {β : Type*} [field β] {abv : β → α} [is_absolute_v
 have hx1' : abv x ≠ 1 := λ h, by simpa [h, lt_irrefl] using hx1,
 is_cau_series_of_abv_cau
 begin
-  simp only [abv_pow abv, geo_sum_eq _ hx1'] {eta := ff},
+  simp only [abv_pow abv, geom_sum hx1'] {eta := ff},
+  conv in (_ / _) { rw [← neg_div_neg_eq, neg_sub, neg_sub] },
   refine @is_cau_of_mono_bounded _ _ _ _ ((1 : α) / (1 - abv x)) 0 _ _,
   { assume n hn,
-    rw abs_of_nonneg ,
+    rw abs_of_nonneg,
     refine div_le_div_of_le_of_pos (sub_le_self _ (abv_pow abv x n ▸ abv_nonneg _ _))
       (sub_pos.2 hx1),
     refine div_nonneg (sub_nonneg.2 _) (sub_pos.2 hx1),
@@ -409,6 +394,10 @@ by rw lim_mul_lim;
   exact eq.symm (lim_eq_lim_of_equiv (by dsimp; simp only [hj];
     exact cauchy_product (is_cau_abs_exp x) (is_cau_exp y)))
 
+lemma exp_nat_mul (x : ℂ) : ∀ n : ℕ, exp(n*x) = (exp x)^n
+| 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]
+| (nat.succ n) := by rw [pow_succ', nat.cast_add_one, add_mul, exp_add, ←exp_nat_mul, one_mul]
+
 lemma exp_ne_zero : exp x ≠ 0 :=
 λ h, @zero_ne_one ℂ _ $
   by rw [← exp_zero, ← add_neg_self x, exp_add, h]; simp
@@ -561,6 +550,12 @@ by rw [two_mul, cos_add, ← pow_two, ← pow_two, eq_sub_iff_add_eq.2 (sin_pow_
 lemma sin_two_mul : sin (2 * x) = 2 * sin x * cos x :=
 by rw [two_mul, sin_add, two_mul, add_mul, mul_comm]
 
+lemma cos_square : cos x ^ 2 = 1 / 2 + cos (2 * x) / 2 :=
+by simp [cos_two_mul, div_add_div_same, mul_div_cancel_left, two_ne_zero', -one_div_eq_inv]
+
+lemma sin_square : sin x ^ 2 = 1 - cos x ^ 2 :=
+by { rw [←sin_pow_two_add_cos_pow_two x], simp }
+
 lemma exp_mul_I : exp (x * I) = cos x + sin x * I :=
 by rw [cos, sin, mul_comm (_ / 2) I, ← mul_div_assoc, mul_left_comm I, I_mul_I,
   ← add_div]; simp
@@ -570,6 +565,14 @@ by rw [exp_add, exp_mul_I]
 
 lemma exp_eq_exp_re_mul_sin_add_cos : exp x = exp x.re * (cos x.im + sin x.im * I) :=
 by rw [← exp_add_mul_I, re_add_im]
+
+theorem cos_add_sin_mul_I_pow (n : ℕ) (z : ℂ) : (cos z + sin z * I) ^ n = cos (↑n * z) + sin (↑n * z) * I :=
+begin
+  rw [← exp_mul_I, ← exp_mul_I],
+  induction n with n ih,
+  { rw [pow_zero, nat.cast_zero, zero_mul, zero_mul, exp_zero] },
+  { rw [pow_succ', ih, nat.cast_succ, add_mul, add_mul, one_mul, exp_add] }
+end
 
 @[simp] lemma sinh_zero : sinh 0 = 0 := by simp [sinh]
 
@@ -673,6 +676,10 @@ by simp [real.exp]
 lemma exp_add : exp (x + y) = exp x * exp y :=
 by simp [exp_add, exp]
 
+lemma exp_nat_mul (x : ℝ) : ∀ n : ℕ, exp(n*x) = (exp x)^n
+| 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]
+| (nat.succ n) := by rw [pow_succ', nat.cast_add_one, add_mul, exp_add, ←exp_nat_mul, one_mul]
+
 lemma exp_ne_zero : exp x ≠ 0 :=
 λ h, exp_ne_zero x $ by rw [exp, ← of_real_inj] at h; simp * at *
 
@@ -760,6 +767,13 @@ by rw ← of_real_inj; simp [cos_two_mul, cos, pow_two]
 lemma sin_two_mul : sin (2 * x) = 2 * sin x * cos x :=
 by rw ← of_real_inj; simp [sin_two_mul, sin, pow_two]
 
+lemma cos_square : cos x ^ 2 = 1 / 2 + cos (2 * x) / 2 :=
+by simp [cos_two_mul, div_add_div_same, mul_div_cancel_left, two_ne_zero, -one_div_eq_inv]
+
+lemma sin_square : sin x ^ 2 = 1 - cos x ^ 2 :=
+by { rw [←sin_pow_two_add_cos_pow_two x], simp }
+
+
 @[simp] lemma sinh_zero : sinh 0 = 0 := by simp [sinh]
 
 @[simp] lemma sinh_neg : sinh (-x) = -sinh x :=
@@ -823,14 +837,14 @@ lemma exp_pos (x : ℝ) : 0 < exp x :=
 @[simp] lemma abs_exp (x : ℝ) : abs' (exp x) = exp x :=
 abs_of_nonneg (le_of_lt (exp_pos _))
 
-lemma exp_le_exp {x y : ℝ} (h : x ≤ y) : exp x ≤ exp y :=
-by rw [← sub_add_cancel y x, real.exp_add];
-  exact (le_mul_iff_one_le_left (exp_pos _)).2 (one_le_exp (sub_nonneg.2 h))
-
 lemma exp_lt_exp {x y : ℝ} (h : x < y) : exp x < exp y :=
 by rw [← sub_add_cancel y x, real.exp_add];
   exact (lt_mul_iff_one_lt_left (exp_pos _)).2
     (lt_of_lt_of_le (by linarith) (add_one_le_exp_of_nonneg (by linarith)))
+
+lemma exp_le_exp {x y : ℝ} : real.exp x ≤ real.exp y ↔ x ≤ y :=
+⟨λ h, le_of_not_gt $ mt exp_lt_exp $ by simpa, λ h, by rw [←sub_add_cancel y x, real.exp_add];
+exact (le_mul_iff_one_le_left (exp_pos _)).2 (one_le_exp (sub_nonneg.2 h))⟩
 
 lemma exp_injective : function.injective exp :=
 λ x y h, begin
@@ -877,12 +891,11 @@ calc (filter (λ k, n ≤ k) (range j)).sum (λ m : ℕ, (1 / m.fact : α))
   have h₂ : (n.succ : α) ≠ 0, from nat.cast_ne_zero.2 (nat.succ_ne_zero _),
   have h₃ : (n.fact * n : α) ≠ 0, from mul_ne_zero (nat.cast_ne_zero.2 (nat.pos_iff_ne_zero.1 (nat.fact_pos _)))
     (nat.cast_ne_zero.2 (nat.pos_iff_ne_zero.1 hn)),
-  have h₄ : (n.succ - 1 : α) * (n.fact : ℕ) ≠ 0,
-    from mul_ne_zero (sub_ne_zero.2 h₁)
-      (nat.cast_ne_zero.2 (nat.pos_iff_ne_zero.1 (nat.fact_pos _))),
-  by rw [geo_sum_inv_eq _ h₁ h₂, mul_comm, ← div_eq_mul_inv, div_div_eq_div_mul,
-      div_eq_div_iff h₄ h₃];
-    simp [mul_add, add_mul, mul_comm, mul_assoc, mul_left_comm]
+  have h₄ : (n.succ - 1 : α) = n, by simp,
+  by rw [geom_sum_inv h₁ h₂, eq_div_iff_mul_eq _ _ h₃, mul_comm _ (n.fact * n : α),
+      ← mul_assoc (n.fact⁻¹ : α), ← mul_inv', h₄, ← mul_assoc (n.fact * n : α),
+      mul_comm (n : α) n.fact, mul_inv_cancel h₃];
+    simp [mul_add, add_mul, mul_assoc, mul_comm]
 ... ≤ n.succ / (n.fact * n) :
   begin
     refine (div_le_div_right (mul_pos _ _)).2 _,

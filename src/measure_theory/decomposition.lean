@@ -18,6 +18,11 @@ open set lattice filter
 
 variables {α : Type*} [measurable_space α] {μ ν : measure α}
 
+-- suddenly this is necessary?!
+private lemma aux {m : ℕ} {γ d : ℝ} (h : γ - (1 / 2) ^ m < d) :
+  γ - 2 * (1 / 2) ^ m + (1 / 2) ^ m ≤ d :=
+by linarith
+
 lemma hahn_decomposition (hμ : μ univ < ⊤) (hν : ν univ < ⊤) :
   ∃s, is_measurable s ∧
     (∀t, is_measurable t → t ⊆ s → ν t ≤ μ t) ∧
@@ -116,7 +121,7 @@ begin
     { have := he₂ m,
       simp only [f],
       rw [finset.Ico.succ_singleton, finset.inf_singleton],
-      linarith },
+      exact aux this },
     { assume n (hmn : m ≤ n) ih,
       have : γ + (γ - 2 * (1 / 2)^m + (1 / 2) ^ (n + 1)) ≤ γ + d (f m (n + 1)),
       { calc γ + (γ - 2 * (1 / 2)^m + (1 / 2) ^ (n+1)) ≤

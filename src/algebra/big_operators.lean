@@ -56,6 +56,11 @@ lemma prod_image [decidable_eq α] {s : finset γ} {g : γ → α} :
   (∀x∈s, ∀y∈s, g x = g y → x = y) → (s.image g).prod f = s.prod (λx, f (g x)) :=
 fold_image
 
+@[simp, to_additive sum_map]
+lemma prod_map [comm_monoid γ] (s : finset α) (e : α ↪ β) (f : β → γ):
+  (s.map e).prod f = s.prod (λa, f (e a)) :=
+by rw [finset.prod, finset.map_val, multiset.map_map]; refl
+
 @[congr, to_additive finset.sum_congr]
 lemma prod_congr (h : s₁ = s₂) : (∀x∈s₂, f x = g x) → s₁.prod f = s₂.prod g :=
 by rw [h]; exact fold_congr
@@ -162,6 +167,18 @@ by haveI := classical.dec_eq α; exact
 have (s₂ \ s₁).prod f = (s₂ \ s₁).prod (λx, 1),
   from prod_congr rfl $ by simpa only [mem_sdiff, and_imp],
 by rw [←prod_sdiff h]; simp only [this, prod_const_one, one_mul]
+
+@[to_additive sum_filter]
+lemma prod_filter (p : α → Prop) [decidable_pred p] (f : α → β) :
+  (s.filter p).prod f = s.prod (λa, if p a then f a else 1) :=
+calc (s.filter p).prod f = (s.filter p).prod (λa, if p a then f a else 1) :
+    prod_congr rfl (assume a h, by rw [if_pos (mem_filter.1 h).2])
+  ... = s.prod (λa, if p a then f a else 1) :
+    begin
+      refine prod_subset (filter_subset s) (assume x hs h, _),
+      rw [mem_filter, not_and] at h,
+      exact if_neg (h hs)
+    end
 
 @[to_additive finset.sum_eq_single]
 lemma prod_eq_single {s : finset α} {f : α → β} (a : α)
@@ -333,6 +350,19 @@ lemma sum_nat_cast [add_comm_monoid β] [has_one β] (s : finset α) (f : α →
   ↑(s.sum f) = s.sum (λa, f a : α → β) :=
 (sum_hom _).symm
 
+lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_comm_monoid β]
+  (f : α → β) (h_zero : f 0 = 0) (h_add : ∀x y, f (x + y) ≤ f x + f y) (s : finset γ) (g : γ → α) :
+  f (s.sum g) ≤ s.sum (λc, f (g c)):=
+begin
+  refine le_trans (multiset.le_sum_of_subadditive f h_zero h_add _) _,
+  rw [multiset.map_map],
+  refl
+end
+
+lemma abs_sum_le_sum_abs [discrete_linear_ordered_field α] {f : β → α} {s : finset β} :
+  abs (s.sum f) ≤ s.sum (λa, abs (f a)) :=
+le_sum_of_subadditive _ abs_zero abs_add s f
+
 section comm_group
 variables [comm_group β]
 
@@ -385,6 +415,7 @@ finset.induction_on s (λ _, le_refl _) $ assume a s ha ih h,
   by simpa only [sum_insert ha]
 
 lemma zero_le_sum (h : ∀x∈s, 0 ≤ f x) : 0 ≤ s.sum f := le_trans (by rw [sum_const_zero]) (sum_le_sum h)
+
 lemma sum_le_zero (h : ∀x∈s, f x ≤ 0) : s.sum f ≤ 0 := le_trans (sum_le_sum h) (by rw [sum_const_zero])
 
 end ordered_cancel_comm_monoid
@@ -460,6 +491,7 @@ finset.induction_on s (λ _, le_refl _) $ assume a s ha ih h,
   by simpa only [sum_insert ha]
 
 lemma zero_le_sum' (h : ∀x∈s, 0 ≤ f x) : 0 ≤ s.sum f := le_trans (by rw [sum_const_zero]) (sum_le_sum' h)
+
 lemma sum_le_zero' (h : ∀x∈s, f x ≤ 0) : s.sum f ≤ 0 := le_trans (sum_le_sum' h) (by rw [sum_const_zero])
 
 lemma sum_le_sum_of_subset_of_nonneg
@@ -499,19 +531,6 @@ calc s₁.sum f = (s₁.filter (λx, f x = 0)).sum f + (s₁.filter (λx, f x �
 
 end canonically_ordered_monoid
 
-section discrete_linear_ordered_field
-variables [discrete_linear_ordered_field α] [decidable_eq β]
-
-lemma abs_sum_le_sum_abs {f : β → α} {s : finset β} : abs (s.sum f) ≤ s.sum (λa, abs (f a)) :=
-finset.induction_on s (le_of_eq abs_zero) $
-  assume a s has ih,
-  calc abs (sum (insert a s) f) ≤ abs (f a) + abs (sum s f) :
-      by rw sum_insert has; exact abs_add_le_abs_add_abs _ _
-    ... ≤ abs (f a) + s.sum (λa, abs (f a)) : add_le_add (le_refl _) ih
-    ... ≤ sum (insert a s) (λ (a : β), abs (f a)) : by rw sum_insert has
-
-end discrete_linear_ordered_field
-
 @[simp] lemma card_pi [decidable_eq α] {δ : α → Type*}
   (s : finset α) (t : Π a, finset (δ a)) :
   (s.pi t).card = s.prod (λ a, card (t a)) :=
@@ -528,6 +547,67 @@ eq.symm (prod_bij (λ x _, nat.succ x)
     ⟨nat.pred b, mem_range.2 $ nat.lt_of_succ_lt_succ (by simp [*] at *), this.symm⟩))
 ... = nat.fact n : by induction n; simp [*, range_succ]
 
+end finset
+
+section geom_sum
+open finset
+
+theorem geom_sum_mul_add [semiring α] (x : α) :
+  ∀ (n : ℕ), ((range n).sum (λ i, (x+1)^i)) * x + 1 = (x+1)^n
+| 0     := by simp
+| (n+1) := calc (range (n + 1)).sum (λi, (x + 1) ^ i) * x + 1 =
+        (x + 1)^n * x + (((range n).sum (λ i, (x+1)^i)) * x + 1) :
+    by simp [range_add_one, add_mul]
+  ... = (x + 1)^n * x + (x + 1)^n :
+    by rw geom_sum_mul_add n
+  ... = (x + 1) ^ (n + 1) :
+    by simp [pow_add, mul_add]
+
+theorem geom_sum_mul [ring α] (x : α) (n : ℕ) :
+  ((range n).sum (λ i, x^i)) * (x-1) = x^n-1 :=
+have _ := geom_sum_mul_add (x-1) n,
+by rw [sub_add_cancel] at this; rw [← this, add_sub_cancel]
+
+theorem geom_sum [division_ring α] {x : α} (h : x ≠ 1) (n : ℕ) :
+  (range n).sum (λ i, x^i) = (x^n-1)/(x-1) :=
+have x - 1 ≠ 0, by simp [*, -sub_eq_add_neg, sub_eq_iff_eq_add] at *,
+by rw [← geom_sum_mul, mul_div_cancel _ this]
+
+lemma geom_sum_inv [division_ring α] {x : α} (hx1 : x ≠ 1) (hx0 : x ≠ 0) (n : ℕ) :
+  (range n).sum (λ m, x⁻¹ ^ m) = (x - 1)⁻¹ * (x - x⁻¹ ^ n * x) :=
+have h₁ : x⁻¹ ≠ 1, by rwa [inv_eq_one_div, ne.def, div_eq_iff_mul_eq hx0, one_mul],
+have h₂ : x⁻¹ - 1 ≠ 0, from mt sub_eq_zero.1 h₁,
+have h₃ : x - 1 ≠ 0, from mt sub_eq_zero.1 hx1,
+have h₄ : x * x⁻¹ ^ n = x⁻¹ ^ n * x,
+  from nat.cases_on n (by simp)
+  (λ _, by conv { to_rhs, rw [pow_succ', mul_assoc, inv_mul_cancel hx0, mul_one] };
+    rw [pow_succ, ← mul_assoc, mul_inv_cancel hx0, one_mul]),
+by rw [geom_sum h₁, div_eq_iff_mul_eq h₂, ← domain.mul_left_inj h₃,
+    ← mul_assoc, ← mul_assoc, mul_inv_cancel h₃];
+  simp [mul_add, add_mul, mul_inv_cancel hx0, mul_assoc, h₄]
+
+end geom_sum
+
+namespace finset
+section gauss_sum
+
+/-- Gauss' summation formula -/
+lemma sum_range_id_mul_two :
+  ∀(n : ℕ), (finset.range n).sum (λi, i) * 2 = n * (n - 1)
+| 0       := rfl
+| 1       := rfl
+| ((n + 1) + 1) :=
+  begin
+    rw [sum_range_succ, add_mul, sum_range_id_mul_two (n + 1), mul_comm, two_mul,
+      nat.add_sub_cancel, nat.add_sub_cancel, mul_comm _ n],
+    simp only [add_mul, one_mul, add_comm, add_assoc, add_left_comm]
+  end
+
+/-- Gauss' summation formula -/
+lemma sum_range_id (n : ℕ) : (finset.range n).sum (λi, i) = (n * (n - 1)) / 2 :=
+by rw [← sum_range_id_mul_two n, nat.mul_div_cancel]; exact dec_trivial
+
+end gauss_sum
 end finset
 
 section group

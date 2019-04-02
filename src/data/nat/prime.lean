@@ -53,6 +53,14 @@ prime_def_lt'.trans $ and_congr_right $ λ p2,
       rwa [one_mul, ← e] }
   end⟩
 
+/--
+  This instance is slower than the instance `decidable_prime` defined below,
+  but has the advantage that it works in the kernel.
+
+  If you need to prove that a particular number is prime, in any case
+  you should not use `dec_trivial`, but rather `by norm_num`, which is
+  much faster.
+  -/
 def decidable_prime_1 (p : ℕ) : decidable (prime p) :=
 decidable_of_iff' _ prime_def_lt'
 local attribute [instance] decidable_prime_1
@@ -190,6 +198,14 @@ section min_fac
     ((dvd_prime pp).1 fd).resolve_left (ne_of_gt f2)⟩,
    λ ⟨p2, e⟩, e ▸ min_fac_prime (ne_of_gt p2)⟩
 
+  /--
+  This instance is faster in the virtual machine than `decidable_prime_1`,
+  but slower in the kernel.
+
+  If you need to prove that a particular number is prime, in any case
+  you should not use `dec_trivial`, but rather `by norm_num`, which is
+  much faster.
+  -/
   instance decidable_prime (p : ℕ) : decidable (prime p) :=
   decidable_of_iff' _ prime_def_min_fac
 
@@ -280,6 +296,23 @@ theorem prime.dvd_of_dvd_pow {p m n : ℕ} (pp : prime p) (h : p ∣ m^n) : p �
 by induction n with n IH;
    [exact pp.not_dvd_one.elim h,
     exact (pp.dvd_mul.1 h).elim IH id]
+
+lemma prime.mul_eq_prime_pow_two_iff {x y p : ℕ} (hp : p.prime) (hx : x ≠ 1) (hy : y ≠ 1) :
+  x * y = p ^ 2 ↔ x = p ∧ y = p :=
+⟨λ h, have pdvdxy : p ∣ x * y, by rw h; simp [nat.pow_two],
+begin
+  wlog := hp.dvd_mul.1 pdvdxy using x y,
+  cases case with a ha,
+  have hap : a ∣ p, from ⟨y, by rwa [ha, nat.pow_two,
+        mul_assoc, nat.mul_left_inj hp.pos, eq_comm] at h⟩,
+  exact ((nat.dvd_prime hp).1 hap).elim
+    (λ _, by clear_aux_decl; simp [*, nat.pow_two, nat.mul_left_inj hp.pos] at *
+      {contextual := tt})
+    (λ _, by clear_aux_decl; simp [*, nat.pow_two, mul_comm, mul_assoc,
+      nat.mul_left_inj hp.pos, nat.mul_right_eq_self_iff hp.pos] at *
+      {contextual := tt})
+end,
+λ ⟨h₁, h₂⟩, h₁.symm ▸ h₂.symm ▸ (nat.pow_two _).symm⟩
 
 lemma prime.dvd_fact : ∀ {n p : ℕ} (hp : prime p), p ∣ n.fact ↔ p ≤ n
 | 0 p hp := iff_of_false hp.not_dvd_one (not_le_of_lt hp.pos)

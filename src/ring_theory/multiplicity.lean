@@ -3,7 +3,7 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Chris Hughes
 -/
-import data.nat.enat ring_theory.associated
+import algebra.associated data.int.gcd data.nat.enat
 import tactic.converter.interactive
 
 variables {α : Type*}
@@ -12,7 +12,7 @@ open nat roption
 
 /-- `multiplicity a b` returns the largest natural number `n` such that
   `a ^ n ∣ b`, as an `enat` or natural with infinity. If `∀ n, a ^ n ∣ b`,
-  the it return `⊤`-/
+  then it returns `⊤`-/
 def multiplicity [comm_semiring α] [decidable_rel ((∣) : α → α → Prop)] (a b : α) : enat :=
 ⟨∃ n : ℕ, ¬a ^ (n + 1) ∣ b, λ h, nat.find h⟩
 
@@ -112,7 +112,6 @@ eq_top_iff.2 (λ _, is_unit_iff_forall_dvd.1 (is_unit_pow _ ha) _)
 
 lemma multiplicity_eq_zero_of_not_dvd {a b : α} (ha : ¬a ∣ b) : multiplicity a b = 0 :=
 eq_some_iff.2 (by simpa)
-
 
 lemma eq_top_iff_not_finite {a b : α} : multiplicity a b = ⊤ ↔ ¬ finite a b :=
 roption.eq_none_iff'

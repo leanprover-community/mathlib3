@@ -15,6 +15,9 @@ meta instance : has_to_format ℤ := ⟨λ z, int.rec_on z (λ k, ↑k) (λ k, "
 
 attribute [simp] int.coe_nat_add int.coe_nat_mul int.coe_nat_zero int.coe_nat_one int.coe_nat_succ
 
+@[simp] theorem add_def {a b : ℤ} : int.add a b = a + b := rfl
+@[simp] theorem mul_def {a b : ℤ} : int.mul a b = a * b := rfl
+
 @[simp] theorem coe_nat_mul_neg_succ (m n : ℕ) : (m : ℤ) * -[1+ n] = -(m * succ n) := rfl
 @[simp] theorem neg_succ_mul_coe_nat (m n : ℕ) : -[1+ m] * n = -(succ m * n) := rfl
 @[simp] theorem neg_succ_mul_neg_succ (m n : ℕ) : -[1+ m] * -[1+ n] = succ m * succ n := rfl
@@ -39,6 +42,9 @@ lemma coe_nat_ne_zero_iff_pos {n : ℕ} : (n : ℤ) ≠ 0 ↔ 0 < n :=
 λ h, (ne_of_lt (coe_nat_lt.2 h)).symm⟩
 
 lemma coe_nat_succ_pos (n : ℕ) : 0 < (n.succ : ℤ) := int.coe_nat_pos.2 (succ_pos n)
+
+@[simp] theorem coe_nat_abs (n : ℕ) : abs (n : ℤ) = n :=
+abs_of_nonneg (coe_nat_nonneg n)
 
 /- succ and pred -/
 
@@ -108,8 +114,8 @@ attribute [simp] nat_abs nat_abs_of_nat nat_abs_zero nat_abs_one
 
 theorem nat_abs_add_le (a b : ℤ) : nat_abs (a + b) ≤ nat_abs a + nat_abs b :=
 begin
-  have, {
-    refine (λ a b : ℕ, sub_nat_nat_elim a b.succ
+  have : ∀ (a b : ℕ), nat_abs (sub_nat_nat a (nat.succ b)) ≤ nat.succ (a + b),
+  { refine (λ a b : ℕ, sub_nat_nat_elim a b.succ
       (λ m n i, n = b.succ → nat_abs i ≤ (m + b).succ) _ _ rfl);
     intros i n e,
     { subst e, rw [add_comm _ i, add_assoc],
@@ -125,7 +131,10 @@ theorem nat_abs_neg_of_nat (n : ℕ) : nat_abs (neg_of_nat n) = n :=
 by cases n; refl
 
 theorem nat_abs_mul (a b : ℤ) : nat_abs (a * b) = (nat_abs a) * (nat_abs b) :=
-by cases a; cases b; simp [(*), int.mul, nat_abs_neg_of_nat]
+by cases a; cases b; simp only [(*), int.mul, nat_abs_neg_of_nat, eq_self_iff_true, int.nat_abs]
+
+@[simp] lemma nat_abs_mul_self' (a : ℤ) : (nat_abs a * nat_abs a : ℤ) = a * a :=
+by rw [← int.coe_nat_mul, nat_abs_mul_self]
 
 theorem neg_succ_of_nat_eq' (m : ℕ) : -[1+ m] = -m - 1 :=
 by simp [neg_succ_of_nat_eq]
@@ -714,6 +723,9 @@ by rw [to_nat_eq_max]; apply le_max_left
 @[simp] theorem to_nat_le (a : ℤ) (n : ℕ) : to_nat a ≤ n ↔ a ≤ n :=
 by rw [(coe_nat_le_coe_nat_iff _ _).symm, to_nat_eq_max, max_le_iff];
    exact and_iff_left (coe_zero_le _)
+
+theorem to_nat_le_to_nat {a b : ℤ} (h : a ≤ b) : to_nat a ≤ to_nat b :=
+by rw to_nat_le; exact le_trans h (le_to_nat b)
 
 def to_nat' : ℤ → option ℕ
 | (n : ℕ) := some n

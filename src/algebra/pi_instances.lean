@@ -61,16 +61,28 @@ instance add_comm_group     [∀ i, add_comm_group     $ f i] : add_comm_group  
 instance ring               [∀ i, ring               $ f i] : ring               (Π i : I, f i) := by pi_instance
 instance comm_ring          [∀ i, comm_ring          $ f i] : comm_ring          (Π i : I, f i) := by pi_instance
 
-instance semimodule   (α) {r : semiring α}       [∀ i, add_comm_monoid $ f i] [∀ i, semimodule α $ f i]   : semimodule α (Π i : I, f i)   :=
+instance mul_action     (α) {m : monoid α}                                      [∀ i, mul_action α $ f i]     : mul_action α (Π i : I, f i) :=
 { smul := λ c f i, c • f i,
-  smul_add := λ c f g, funext $ λ i, smul_add _ _ _,
-  add_smul := λ c f g, funext $ λ i, add_smul _ _ _,
   mul_smul := λ r s f, funext $ λ i, mul_smul _ _ _,
-  one_smul := λ f, funext $ λ i, one_smul α _,
+  one_smul := λ f, funext $ λ i, one_smul α _ }
+
+instance distrib_mul_action (α) {m : monoid α}         [∀ i, add_monoid $ f i]      [∀ i, distrib_mul_action α $ f i] : distrib_mul_action α (Π i : I, f i) :=
+{ smul_zero := λ c, funext $ λ i, smul_zero _,
+  smul_add := λ c f g, funext $ λ i, smul_add _ _ _,
+  ..pi.mul_action _ }
+
+variables (I f)
+
+instance semimodule     (α) {r : semiring α}       [∀ i, add_comm_monoid $ f i] [∀ i, semimodule α $ f i]     : semimodule α (Π i : I, f i) :=
+{ add_smul := λ c f g, funext $ λ i, add_smul _ _ _,
   zero_smul := λ f, funext $ λ i, zero_smul α _,
-  smul_zero := λ c, funext $ λ i, smul_zero _ }
-instance module       (α) {r : ring α}           [∀ i, add_comm_group $ f i]  [∀ i, module α $ f i]       : module α (Π i : I, f i)       := {..pi.semimodule α}
-instance vector_space (α) {r : discrete_field α} [∀ i, add_comm_group $ f i]  [∀ i, vector_space α $ f i] : vector_space α (Π i : I, f i) := {..pi.module α}
+  ..pi.distrib_mul_action _ }
+
+variables {I f}
+
+instance module         (α) {r : ring α}           [∀ i, add_comm_group $ f i]  [∀ i, module α $ f i]         : module α (Π i : I, f i)       := {..pi.semimodule I f α}
+
+instance vector_space   (α) {r : discrete_field α} [∀ i, add_comm_group $ f i]  [∀ i, vector_space α $ f i]   : vector_space α (Π i : I, f i) := {..pi.module α}
 
 instance left_cancel_semigroup [∀ i, left_cancel_semigroup $ f i] : left_cancel_semigroup (Π i : I, f i) :=
 by pi_instance
@@ -97,19 +109,19 @@ attribute [to_additive pi.add_left_cancel_semigroup]  pi.left_cancel_semigroup
 attribute [to_additive pi.add_right_cancel_semigroup] pi.right_cancel_semigroup
 
 @[to_additive pi.list_sum_apply]
-lemma list_prod_apply {α : Type*} {β} [monoid β] (a : α) :
-  ∀ (l : list (α → β)), l.prod a = (l.map (λf:α → β, f a)).prod
+lemma list_prod_apply {α : Type*} {β : α → Type*} [∀a, monoid (β a)] (a : α) :
+  ∀ (l : list (Πa, β a)), l.prod a = (l.map (λf:Πa, β a, f a)).prod
 | []       := rfl
 | (f :: l) := by simp [mul_apply f l.prod a, list_prod_apply l]
 
 @[to_additive pi.multiset_sum_apply]
-lemma multiset_prod_apply {α : Type*} {β} [comm_monoid β] (a : α) (s : multiset (α → β)) :
-  s.prod a = (s.map (λf:α → β, f a)).prod :=
+lemma multiset_prod_apply {α : Type*} {β : α → Type*} [∀a, comm_monoid (β a)] (a : α)
+  (s : multiset (Πa, β a)) : s.prod a = (s.map (λf:Πa, β a, f a)).prod :=
 quotient.induction_on s $ assume l, begin simp [list_prod_apply a l] end
 
 @[to_additive pi.finset_sum_apply]
-lemma finset_prod_apply {α : Type*} {β γ} [comm_monoid β] (a : α) (s : finset γ) (g : γ → α → β) :
-  s.prod g a = s.prod (λc, g c a) :=
+lemma finset_prod_apply {α : Type*} {β : α → Type*} {γ} [∀a, comm_monoid (β a)] (a : α)
+  (s : finset γ) (g : γ → Πa, β a) : s.prod g a = s.prod (λc, g c a) :=
 show (s.val.map g).prod a = (s.val.map (λc, g c a)).prod,
   by rw [multiset_prod_apply, multiset.map_map]
 

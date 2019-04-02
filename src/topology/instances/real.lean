@@ -21,7 +21,8 @@ generalizations:
 * Archimedean fields
 
 -/
-import logic.function topology.metric_space.basic tactic.linarith
+import logic.function topology.metric_space.basic topology.algebra.uniform_group
+       topology.algebra.ring tactic.linarith
 
 noncomputable theory
 open classical set lattice filter topological_space metric
@@ -146,8 +147,8 @@ tendsto_of_uniform_continuous_subtype
   (mem_nhds_sets (real.continuous_abs _ $ is_open_lt' (abs r / 2)) (half_lt_self r0))
 
 lemma real.continuous_inv' : continuous (λa:{r:ℝ // r ≠ 0}, a.val⁻¹) :=
-continuous_iff_tendsto.mpr $ assume ⟨r, hr⟩,
-  (continuous_iff_tendsto.mp continuous_subtype_val _).comp (real.tendsto_inv hr)
+continuous_iff_continuous_at.mpr $ assume ⟨r, hr⟩,
+  (continuous_iff_continuous_at.mp continuous_subtype_val _).comp (real.tendsto_inv hr)
 
 lemma real.continuous_inv [topological_space α] {f : α → ℝ} (h : ∀a, f a ≠ 0) (hf : continuous f) :
   continuous (λa, (f a)⁻¹) :=
@@ -173,7 +174,7 @@ let ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma abs ε0 r₁0 r₂0 in
   let ⟨h₁, h₂⟩ := max_lt_iff.1 h in Hδ (H _ a.2).1 (H _ b.2).2 h₁ h₂⟩
 
 protected lemma real.continuous_mul : continuous (λp : ℝ × ℝ, p.1 * p.2) :=
-continuous_iff_tendsto.2 $ λ ⟨a₁, a₂⟩,
+continuous_iff_continuous_at.2 $ λ ⟨a₁, a₂⟩,
 tendsto_of_uniform_continuous_subtype
   (real.uniform_continuous_mul
     ({x | abs x < abs a₁ + 1}.prod {x | abs x < abs a₂ + 1})
@@ -288,10 +289,22 @@ instance : complete_space ℝ :=
   exact λ x h, lt_trans ((hF_dist n) x (G n) h (hG n)) h₁
 end⟩
 
-lemma tendsto_of_nat_at_top_at_top : tendsto (coe : ℕ → ℝ) at_top at_top :=
-tendsto_infi.2 $ assume r, tendsto_principal.2 $
-let ⟨n, hn⟩ := exists_nat_gt r in
-mem_at_top_sets.2 ⟨n, λ m h, le_trans (le_of_lt hn) (nat.cast_le.2 h)⟩
+lemma tendsto_coe_nat_real_at_top_iff {f : α → ℕ} {l : filter α} :
+  tendsto (λ n, (f n : ℝ)) l at_top ↔ tendsto f l at_top :=
+tendsto_at_top_embedding (assume a₁ a₂, nat.cast_le) $
+  assume r, let ⟨n, hn⟩ := exists_nat_gt r in ⟨n, le_of_lt hn⟩
+
+lemma tendsto_coe_nat_real_at_top_at_top : tendsto (coe : ℕ → ℝ) at_top at_top :=
+tendsto_coe_nat_real_at_top_iff.2 tendsto_id
+
+lemma tendsto_coe_int_real_at_top_iff {f : α → ℤ} {l : filter α} :
+  tendsto (λ n, (f n : ℝ)) l at_top ↔ tendsto f l at_top :=
+tendsto_at_top_embedding (assume a₁ a₂, int.cast_le) $
+  assume r, let ⟨n, hn⟩ := exists_nat_gt r in
+  ⟨(n:ℤ), le_of_lt $ by rwa [int.cast_coe_nat]⟩
+
+lemma tendsto_coe_int_real_at_top_at_top : tendsto (coe : ℤ → ℝ) at_top at_top :=
+tendsto_coe_int_real_at_top_iff.2 tendsto_id
 
 section
 

@@ -8,7 +8,7 @@ universes v u -- declare the `v`'s first; see `category_theory.category` for an 
 
 namespace category_theory
 
-structure iso {C : Type u} [category.{v} C] (X Y : C) :=
+structure iso {C : Sort u} [category.{v} C] (X Y : C) :=
 (hom : X ⟶ Y)
 (inv : Y ⟶ X)
 (hom_inv_id' : hom ≫ inv = 𝟙 X . obviously)
@@ -20,7 +20,7 @@ attribute [simp] iso.hom_inv_id iso.inv_hom_id
 
 infixr ` ≅ `:10  := iso             -- type as \cong or \iso
 
-variables {C : Type u} [𝒞 : category.{v} C]
+variables {C : Sort u} [𝒞 : category.{v} C]
 include 𝒞
 variables {X Y Z : C}
 
@@ -92,10 +92,15 @@ def inv (f : X ⟶ Y) [is_iso f] := is_iso.inv f
 
 namespace is_iso
 
-@[simp] def hom_inv_id (f : X ⟶ Y) [is_iso f] : f ≫ category_theory.inv f = 𝟙 X :=
+@[simp] lemma hom_inv_id (f : X ⟶ Y) [is_iso f] : f ≫ category_theory.inv f = 𝟙 X :=
 is_iso.hom_inv_id' f
-@[simp] def inv_hom_id (f : X ⟶ Y) [is_iso f] : category_theory.inv f ≫ f = 𝟙 Y :=
+@[simp] lemma inv_hom_id (f : X ⟶ Y) [is_iso f] : category_theory.inv f ≫ f = 𝟙 Y :=
 is_iso.inv_hom_id' f
+
+@[simp] lemma hom_inv_id_assoc {Z} (f : X ⟶ Y) [is_iso f] (g : X ⟶ Z) : f ≫ category_theory.inv f ≫ g = g :=
+by rw [←category.assoc, hom_inv_id, category.id_comp]
+@[simp] lemma inv_hom_id_assoc {Z} (f : X ⟶ Y) [is_iso f] (g : Y ⟶ Z) : category_theory.inv f ≫ f ≫ g = g :=
+by rw [←category.assoc, inv_hom_id, category.id_comp]
 
 instance (X : C) : is_iso (𝟙 X) :=
 { inv := 𝟙 X }
@@ -122,7 +127,7 @@ instance (f : X ⟶ Y) : subsingleton (is_iso f) :=
 namespace functor
 
 universes u₁ v₁ u₂ v₂
-variables {D : Type u₂}
+variables {D : Sort u₂}
 
 variables [𝒟 : category.{v₂} D]
 include 𝒟
@@ -158,6 +163,14 @@ instance mono_of_iso (f : X ⟶ Y) [is_iso f] : mono f :=
                          rw [← is_iso.hom_inv_id f],
                          rw [←category.assoc, w, ←category.assoc]
                        end }
+
+end category_theory
+
+namespace category_theory
+
+ -- We need to get the morphism universe level up into `Type`, in order to have group structures.
+variables {C : Sort u} [𝒞 : category.{v+1} C]
+include 𝒞
 
 def Aut (X : C) := X ≅ X
 

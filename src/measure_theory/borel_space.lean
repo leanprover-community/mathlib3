@@ -349,9 +349,9 @@ def ennreal_equiv_nnreal : measurable_equiv {r : ennreal | r < ⊤} nnreal :=
   measurable_to_fun  :=
   begin
     rw [← borel_eq_subtype],
-    refine measurable_of_continuous (continuous_iff_tendsto.2 _),
+    refine measurable_of_continuous (continuous_iff_continuous_at.2 _),
     rintros ⟨r, hr⟩,
-    simp [nhds_subtype_eq_comap],
+    simp [continuous_at, nhds_subtype_eq_comap],
     refine tendsto.comp tendsto_comap (tendsto_to_nnreal (ne_of_lt hr))
   end,
   measurable_inv_fun := measurable_subtype_mk measurable_coe }

@@ -2,3 +2,4 @@
 /_target
 /leanpkg.path
 _cache
+__pycache__

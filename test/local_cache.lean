@@ -430,7 +430,7 @@ end test_get
 
 end def_local
 
--- Finally, make sure the `block_local` and `def_local` caches
+-- Test: finally, make sure the `block_local` and `def_local` caches
 -- don't collide.
 
 namespace collision

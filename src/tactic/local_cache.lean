@@ -4,7 +4,7 @@ import init.data.nat.bitwise
 namespace tactic
 namespace local_cache
 
-section internal
+namespace internal
 
 variables {α : Type} [reflected α] [has_reflect α]
 
@@ -29,8 +29,6 @@ do load_data cache_name <|>
      save_data cache_name a,
      return a
    }
-
-end internal
 
 -- We maintain two separate caches with different scopes:
 -- one local to `begin ... end` or `by` blocks, and another
@@ -85,12 +83,12 @@ end block_local
 
 namespace def_local
 
--- Fowler–Noll–Vo hash function (FNV-1a)
+-- Fowler-Noll-Vo hash function (FNV-1a)
 section fnv_a1
 
 def FNV_OFFSET_BASIS := 0xcbf29ce484222325
 def FNV_PRIME := 0x100000001b3
-def RADIX := 0xFFFFFFFFFFFFFFFF + 1 -- 64-bits
+def RADIX := 2^64
 
 def hash_byte (seed : ℕ) (c : char) : ℕ :=
 let n : ℕ := c.to_nat in ((seed.lxor n) * FNV_PRIME) % RADIX
@@ -158,12 +156,19 @@ do { n ← try_get_name ns, kill_name n }
 
 end def_local
 
+end internal
+
+open internal
+
+/-- This scope propogates the cache within a `begin ... end` or `by` block
+    and its decendants. -/
 meta def cache_scope.block_local : cache_scope :=
 ⟨ block_local.get_name,
   block_local.try_get_name,
   block_local.present,
   block_local.clear ⟩
 
+/-- This scope propogates the cache within an entire `def`/`lemma`. -/
 meta def cache_scope.def_local : cache_scope :=
 ⟨ def_local.get_name,
   def_local.try_get_name,
@@ -172,13 +177,15 @@ meta def cache_scope.def_local : cache_scope :=
 
 open cache_scope
 
+/-- Asks whether the namespace `ns` currently has a value-in-cache. -/
 meta def present (ns : name) (s : cache_scope := block_local) : tactic bool :=
 s.present ns
 
+/-- Clear cache associated to namespace `ns`. -/
 meta def clear (ns : name) (s : cache_scope := block_local) : tactic unit :=
 s.clear ns
 
--- Gets the (optionally present) value-in-cache for `ns`
+/-- Gets the (optionally present) value-in-cache for `ns`. -/
 meta def get (ns : name) (α : Type) [reflected α] [has_reflect α] (s : cache_scope := block_local) : tactic (option α) :=
 do dn ← some <$> s.try_get_name ns <|> return none,
    match dn with
@@ -191,20 +198,20 @@ do dn ← some <$> s.try_get_name ns <|> return none,
 
 end local_cache
 
-open local_cache
+open local_cache local_cache.internal
 
--- Using the namespace `ns` as its key, when called for the first
--- time `run_once ns t` runs `t`, then saves and returns the result.
--- Upon subsequent invocations in the same tactic block, with the scope
--- of the caching being inherited by child tactic blocks) we return the
--- cached result directly.
---
--- You can configure the cached scope to be entire `def`/`lemma`s chaning
--- the optional cache_scope argument to `cache_scope.def_local`.
--- Note: the caches backing each scope are different.
---
--- If `α` is just `unit`, this means we just run `t` once each tactic
--- block.
+/-- Using the namespace `ns` as its key, when called for the first
+    time `run_once ns t` runs `t`, then saves and returns the result.
+    Upon subsequent invocations in the same tactic block, with the scope
+    of the caching being inherited by child tactic blocks) we return the
+    cached result directly.
+
+    You can configure the cached scope to be entire `def`/`lemma`s chaning
+    the optional cache_scope argument to `cache_scope.def_local`.
+    Note: the caches backing each scope are different.
+
+    If `α` is just `unit`, this means we just run `t` once each tactic
+    block. -/
 meta def run_once {α : Type} [reflected α] [has_reflect α] (ns : name) (t : tactic α) (s : cache_scope := cache_scope.block_local) : tactic α :=
 s.get_name ns >>= run_once_under_name t
 

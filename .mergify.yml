@@ -6,7 +6,7 @@ pull_request_rules:
       - "#review-requested=0"
       - "#changes-requested-reviews-by=0"
       - base=master
-      - label=['ready-to-merge']
+      - label=ready-to-merge
     actions:
       delete_head_branch: True
       merge:

@@ -1,5 +1,4 @@
-import tactic.basic
-import init.data.nat.bitwise
+import tactic.basic tactic.norm_num
 
 namespace tactic
 namespace local_cache
@@ -88,7 +87,7 @@ section fnv_a1
 
 def FNV_OFFSET_BASIS := 0xcbf29ce484222325
 def FNV_PRIME := 0x100000001b3
-def RADIX := 2^64
+def RADIX := by apply_normed 2^64
 
 def hash_byte (seed : ℕ) (c : char) : ℕ :=
 let n : ℕ := c.to_nat in ((seed.lxor n) * FNV_PRIME) % RADIX
@@ -101,7 +100,7 @@ end fnv_a1
 meta def hash_context : tactic string :=
 do ns ← open_namespaces,
    dn ← decl_name,
-   let flat := ((dn :: ns).map to_string).foldl string.append "",
+   let flat := ((list.cons dn ns).map to_string).foldl string.append "",
    return $ (to_string dn) ++ (to_string (hash_string flat))
 
 meta def get_root_name (ns : name) : tactic name :=

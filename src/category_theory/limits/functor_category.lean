@@ -11,7 +11,7 @@ namespace category_theory.limits
 
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Type u} [𝒞 : category.{v} C]
+variables {C : Sort u} [𝒞 : category.{v+1} C]
 include 𝒞
 
 variables {J K : Type v} [small_category J] [small_category K]

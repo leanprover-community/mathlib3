@@ -9,7 +9,7 @@ import certifi
 import signal
 from git import Repo, InvalidGitRepositoryError
 from github import Github
-from delayed_interrupt import DelayedInterrupt
+# from delayed_interrupt import DelayedInterrupt
 from auth_github import auth_github
 
 
@@ -17,11 +17,11 @@ def make_cache(fn):
     if os.path.exists(fn):
         os.remove(fn)
 
-    with DelayedInterrupt([signal.SIGTERM, signal.SIGINT]):
-        ar = tarfile.open(fn, 'w|bz2')
-        if os.path.exists('src/'): ar.add('src/')
-        if os.path.exists('test/'): ar.add('test/')
-        ar.close()
+    # with DelayedInterrupt([signal.SIGTERM, signal.SIGINT]):
+    ar = tarfile.open(fn, 'w|bz2')
+    if os.path.exists('src/'): ar.add('src/')
+    if os.path.exists('test/'): ar.add('test/')
+    ar.close()
     print('... successfully made olean cache.')
 
 def mathlib_asset(repo, rev):
@@ -63,16 +63,16 @@ def fetch_mathlib(asset):
             cert_reqs='CERT_REQUIRED',
             ca_certs=certifi.where())
         req = http.request('GET', asset.browser_download_url)
-        with DelayedInterrupt([signal.SIGTERM, signal.SIGINT]):
-            with open(asset.name, 'wb') as f:
-                f.write(req.data)
+        # with DelayedInterrupt([signal.SIGTERM, signal.SIGINT]):
+        with open(asset.name, 'wb') as f:
+            f.write(req.data)
         os.chdir(cd)
     else:
         print("Reusing cached olean archive")
 
-    with DelayedInterrupt([signal.SIGTERM, signal.SIGINT]):
-        ar = tarfile.open(os.path.join(mathlib_dir, asset.name))
-        ar.extractall('.')
+    # with DelayedInterrupt([signal.SIGTERM, signal.SIGINT]):
+    ar = tarfile.open(os.path.join(mathlib_dir, asset.name))
+    ar.extractall('.')
     print("... successfully extracted olean archive.")
 
 

@@ -6,11 +6,11 @@ pull_request_rules:
       - base=master
       - label=ready-to-merge
     actions:
-      delete_head_branch: {}
-      merge:
-        method: squash
-        strict: smart
-        strict_method: merge
+      - delete_head_branch: {}
+      - merge:
+          method: squash
+          strict: smart
+          strict_method: merge
   - name: remove outdated reviews
     conditions:
       - status-success=continuous-integration/travis-ci/pr

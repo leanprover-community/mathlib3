@@ -310,6 +310,8 @@ instance : canonically_ordered_comm_semiring ℕ :=
   zero_ne_one       := ne_of_lt zero_lt_one,
   mul_eq_zero_iff   := assume a b,
     iff.intro nat.eq_zero_of_mul_eq_zero (by simp [or_imp_distrib] {contextual := tt}),
+  bot               := 0,
+  bot_le            := nat.zero_le,
   .. (infer_instance : ordered_comm_monoid ℕ),
   .. (infer_instance : linear_ordered_semiring ℕ),
   .. (infer_instance : comm_semiring ℕ) }

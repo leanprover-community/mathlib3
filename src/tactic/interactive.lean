@@ -6,7 +6,7 @@ Authors: Mario Carneiro, Simon Hudon, Sebastien Gouezel, Scott Morrison
 import data.dlist data.dlist.basic data.prod category.basic
   tactic.basic tactic.rcases tactic.generalize_proofs
   tactic.split_ifs logic.basic tactic.ext tactic.tauto
-  tactic.replacer tactic.simpa tactic.squeeze
+  tactic.replacer tactic.simpa tactic.squeeze tactic.library_search
 
 open lean
 open lean.parser
@@ -139,6 +139,16 @@ meta def clear_ : tactic unit := tactic.repeat $ do
     cl ← infer_type h >>= is_class, guard (¬ cl),
     tactic.clear h
 
+meta def apply_iff_congr_core : tactic unit :=
+applyc ``iff_of_eq
+
+meta def congr_core' : tactic unit :=
+do tgt ← target,
+   apply_eq_congr_core tgt
+   <|> apply_heq_congr_core
+   <|> apply_iff_congr_core
+   <|> fail "congr tactic failed"
+
 /--
 Same as the `congr` tactic, but takes an optional argument which gives
 the depth of recursive applications. This is useful when `congr`
@@ -147,7 +157,7 @@ is too aggressive in breaking down the goal. For example, given
 and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`. -/
 meta def congr' : parse (with_desc "n" small_nat)? → tactic unit
 | (some 0) := failed
-| o        := focus1 (assumption <|> (congr_core >>
+| o        := focus1 (assumption <|> (congr_core' >>
   all_goals (reflexivity <|> `[apply proof_irrel_heq] <|>
              `[apply proof_irrel] <|> try (congr' (nat.pred <$> o)))))
 
@@ -228,13 +238,16 @@ unless they are explicitly included.
 
 `solve_by_elim [-id]` removes a specified assumption.
 
+`solve_by_elim*` tries to solve all goals together, using backtracking if a solution for one goal
+makes other goals impossible.
+
 optional arguments:
 - discharger: a subsidiary tactic to try at each step (e.g. `cc` may be helpful)
 - max_rep: number of attempts at discharging generated sub-goals
 -/
-meta def solve_by_elim (no_dflt : parse only_flag) (hs : parse simp_arg_list)  (attr_names : parse with_ident_list) (opt : by_elim_opt := { }) : tactic unit :=
+meta def solve_by_elim (all_goals : parse $ (tk "*")?) (no_dflt : parse only_flag) (hs : parse simp_arg_list)  (attr_names : parse with_ident_list) (opt : by_elim_opt := { }) : tactic unit :=
 do asms ← mk_assumption_set no_dflt hs attr_names,
-   tactic.solve_by_elim { assumptions := return asms ..opt }
+   tactic.solve_by_elim { all_goals := all_goals.is_some, assumptions := return asms, ..opt }
 
 /--
 `tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
@@ -408,6 +421,30 @@ Fixes `guard_hyp` by instantiating meta variables
 -/
 meta def guard_hyp' (n : parse ident) (p : parse $ tk ":=" *> texpr) : tactic unit :=
 do h ← get_local n >>= infer_type >>= instantiate_mvars, guard_expr_eq h p
+
+/--
+`guard_expr_strict t := e` fails if the expr `t` is not equal to `e`. By contrast
+to `guard_expr`, this tests strict (syntactic) equality.
+We use this tactic for writing tests.
+-/
+meta def guard_expr_strict (t : expr) (p : parse $ tk ":=" *> texpr) : tactic unit :=
+do e ← to_expr p, guard (t = e)
+
+/--
+`guard_target_strict t` fails if the target of the main goal is not syntactically `t`.
+We use this tactic for writing tests.
+-/
+meta def guard_target_strict (p : parse texpr) : tactic unit :=
+do t ← target, guard_expr_strict t p
+
+
+/--
+`guard_hyp_strict h := t` fails if the hypothesis `h` does not have type syntactically equal
+to `t`.
+We use this tactic for writing tests.
+-/
+meta def guard_hyp_strict (n : parse ident) (p : parse $ tk ":=" *> texpr) : tactic unit :=
+do h ← get_local n >>= infer_type >>= instantiate_mvars, guard_expr_strict h p
 
 meta def guard_hyp_nums (n : ℕ) : tactic unit :=
 do k ← local_context,
@@ -653,14 +690,55 @@ auxiliary declarations, and produce an error saying the recursion is not well fo
 -/
 meta def clear_aux_decl : tactic unit := tactic.clear_aux_decl
 
+meta def loc.get_local_pp_names : loc → tactic (list name)
+| loc.wildcard := list.map expr.local_pp_name <$> local_context
+| (loc.ns l) := return l.reduce_option
+
+meta def loc.get_local_uniq_names (l : loc) : tactic (list name) :=
+list.map expr.local_uniq_name <$> l.get_locals
+
 /--
-`set a := t with h` is a variant of `let a := t` that adds the hypothesis `h : a = t` to the local context.
-`set a := t with h⁻¹` will add `h : t = a` instead.
-`set! a := t with h` will try to replace `t` with `a` in the goal and all hypotheses.
+The logic of `change x with y at l` fails when there are dependencies.
+`change'` mimics the behavior of `change`, except in the case of `change x with y at l`.
+In this case, it will correctly replace occurences of `x` with `y` at all possible hypotheses in `l`.
+As long as `x` and `y` are defeq, it should never fail.
 -/
-meta def set (h_simp : parse (tk "!")?) (a : parse ident) (_ : parse (tk ":=")) (v : parse texpr)
-  (h : parse (tk "with" >> ident)) (h_symm : parse (tk "⁻¹")?) :=
-do e ← i_to_expr v, tactic.set a h e h_simp.is_some h_symm.is_some
+meta def change' (q : parse texpr) : parse (tk "with" *> texpr)? → parse location → tactic unit
+| none (loc.ns [none]) := do e ← i_to_expr q, change_core e none
+| none (loc.ns [some h]) := do eq ← i_to_expr q, eh ← get_local h, change_core eq (some eh)
+| none _ := fail "change-at does not support multiple locations"
+| (some w) l :=
+  do l' ← loc.get_local_pp_names l,
+     l'.mmap' (λ e, try (change_with_at q w e)),
+     when l.include_goal $ change q w (loc.ns [none])
+
+private meta def opt_dir_with : parser (option (bool × name)) :=
+(do tk "with",
+   arrow ← (tk "<-")?,
+   h ← ident,
+   return (arrow.is_some, h)) <|> return none
+
+/--
+`set a := t with h` is a variant of `let a := t`.
+It adds the hypothesis `h : a = t` to the local context and replaces `t` with `a` everywhere it can.
+`set a := t with ←h` will add `h : t = a` instead.
+`set! a := t with h` does not do any replacing.
+-/
+meta def set (h_simp : parse (tk "!")?) (a : parse ident) (tp : parse ((tk ":") >> texpr)?) (_ : parse (tk ":=")) (pv : parse texpr)
+  (rev_name : parse opt_dir_with) :=
+do let vt := match tp with | some t := t | none := pexpr.mk_placeholder end,
+   let pv := ``(%%pv : %%vt),
+   v ← to_expr pv,
+   tp ← infer_type v,
+   definev a tp v,
+   when h_simp.is_none $ change' pv (some (expr.const a [])) loc.wildcard,
+   match rev_name with
+   | some (flip, id) :=
+     do nv ← get_local a,
+        pf ← to_expr (cond flip ``(%%pv = %%nv) ``(%%nv = %%pv)) >>= assert id,
+        reflexivity
+   | none := skip
+   end
 
 end interactive
 end tactic

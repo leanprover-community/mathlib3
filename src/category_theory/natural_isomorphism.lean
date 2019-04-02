@@ -11,7 +11,7 @@ namespace category_theory.nat_iso
 
 universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
+variables {C : Sort u₁} [𝒞 : category.{v₁} C] {D : Sort u₂} [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
 def app {F G : C ⥤ D} (α : F ≅ G) (X : C) : F.obj X ≅ G.obj X :=
@@ -97,8 +97,8 @@ namespace category_theory.functor
 universes u₁ u₂ v₁ v₂
 
 section
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
-          {D : Type u₂} [𝒟 : category.{v₂} D]
+variables {C : Sort u₁} [𝒞 : category.{v₁} C]
+          {D : Sort u₂} [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
 @[simp] protected def id_comp (F : C ⥤ D) : functor.id C ⋙ F ≅ F :=
@@ -110,8 +110,8 @@ include 𝒞 𝒟
 
 universes u₃ v₃ u₄ v₄
 
-variables {A : Type u₃} [𝒜 : category.{v₃} A]
-          {B : Type u₄} [ℬ : category.{v₄} B]
+variables {A : Sort u₃} [𝒜 : category.{v₃} A]
+          {B : Sort u₄} [ℬ : category.{v₄} B]
 include 𝒜 ℬ
 variables (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D)
 

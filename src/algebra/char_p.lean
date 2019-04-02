@@ -136,8 +136,7 @@ variables (α : Type u) [integral_domain α]
 
 theorem char_ne_one (p : ℕ) [hc : char_p α p] : p ≠ 1 :=
 assume hp : p = 1,
-have (↑1 : α) = 0, from (cast_eq_zero_iff α p 1).mpr (hp ▸ dvd_refl p),
-have ( 1 : α) = 0, from @cast_one α _ _ ▸ this,
+have ( 1 : α) = 0, by simpa using (cast_eq_zero_iff α p 1).mpr (hp ▸ dvd_refl p),
 absurd this one_ne_zero
 
 theorem char_is_prime_of_ge_two (p : ℕ) [hc : char_p α p] (hp : p ≥ 2) : nat.prime p :=
@@ -178,9 +177,9 @@ variables {α : Type u} [ring α] {n : ℕ+}
 
 instance cast_is_ring_hom [char_p α n] : is_ring_hom (cast : zmod n → α) :=
 { map_one := by rw ←@nat.cast_one α _ _; exact eq.symm (char_p.cast_eq_mod α n 1),
-  map_mul := assume x y : zmod n, show ↑((x * y).val) = ↑(x.val) * ↑(y.val), from
+  map_mul := assume x y : zmod n, show ↑((x * y).val) = ↑(x.val) * ↑(y.val),
     by rw [zmod.mul_val, ←char_p.cast_eq_mod, nat.cast_mul],
-  map_add := assume x y : zmod n, show ↑((x + y).val) = ↑(x.val) + ↑(y.val), from
+  map_add := assume x y : zmod n, show ↑((x + y).val) = ↑(x.val) + ↑(y.val),
     by rw [zmod.add_val, ←char_p.cast_eq_mod, nat.cast_add] }
 
 instance to_module [char_p α n] : module (zmod n) α := is_ring_hom.to_module cast

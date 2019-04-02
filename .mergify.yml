@@ -10,7 +10,8 @@ pull_request_rules:
       merge:
         method: squash
         strict: smart
-        strict_method: squash  - name: remove outdated reviews
+        strict_method: squash
+  - name: remove outdated reviews
     conditions:
       - status-success=continuous-integration/travis-ci/pr
       - "#approved-reviews-by>=2"

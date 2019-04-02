@@ -13,6 +13,8 @@ As we're in meta anyway, we don't bother with proofs about these constructions.
 
 universes u v
 
+namespace tactic -- We hide this away in the tactic namespace, just because it's all meta.
+
 meta inductive mllist (m : Type u → Type u) (α : Type u) : Type u
 | nil {} : mllist
 | cons : α → m mllist → mllist
@@ -81,3 +83,5 @@ meta def concat {m} [monad m] {α : Type u} : mllist m α → α → m (mllist m
 | L a := (mllist.of_list [L, mllist.of_list [a]]).join
 
 end mllist
+
+end tactic

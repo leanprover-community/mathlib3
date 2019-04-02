@@ -3,14 +3,40 @@ PYTHON_DEPS="toml PyGithub urllib3 certifi gitpython"
 
 USER="--user"
 USER_MSG="(at user level)"
-if [ $1 = "--global" ]; then
+if [[ $1 = "--global" ]]; then
     USER=""
     USER_MSG="(globally)"
 fi
 
 if ! which pip3; then
-	echo "You'll need an installed copy of python3, with pip3 available on the PATH"
-	exit 1;
+    if which apt-get; then
+        read -p "update-mathlib needs to install python3 and pip3. Proceed?" -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            sudo apt-get install python3 python3-pip
+        else
+            exit -1
+        fi
+    elif which brew; then
+        read -p "update-mathlib needs to install python3 and pip3. Proceed?" -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            brew install python3
+        else
+            exit -1
+        fi
+    elif which choco; then
+        read -p "update-mathlib needs to install python3 and pip3. Proceed?" -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            choco install python
+        else
+            exit -1
+        fi
+    else
+        echo "python3 and pip3 not found. First install python3 and pip3 and then install update-mathlib"
+        exit -1
+    fi
 fi
 
 PYTHON_DEPS_AVAILABLE=0
@@ -20,6 +46,7 @@ for dep in $PYTHON_DEPS ; do
 	fi
 done
 
+touch $HOME/.profile
 X=$(grep -q ".mathlib/bin" $HOME/.profile)
 SCRIPTS_ON_PATH=$?
 
@@ -46,10 +73,7 @@ then
 	fi
 	echo "... Installing mathlib scripts"
 	# TODO we could test the status of all these files, and skip this step if everything is already up to date?
-        pwd
-        echo "$0"
 	BASEDIR=$(dirname "$0")
-        echo $BASEDIR
 	cd $BASEDIR
 	mkdir -p $HOME/.mathlib/bin || true
 	mkdir -p $HOME/.mathlib/hooks || true
@@ -60,7 +84,7 @@ then
 	cp setup-lean-git-hooks.sh $HOME/.mathlib/bin/setup-lean-git-hooks
 	cp post-commit   $HOME/.mathlib/hooks/
 	cp post-checkout $HOME/.mathlib/hooks/
-	if $SCRIPTS_ON_PATH
+	if [[ $SCRIPTS_ON_PATH -eq 0 ]]
 	then
 	    echo ... mathlib scripts are already added to \$PATH in .profile
 	else

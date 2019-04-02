@@ -6,7 +6,7 @@ Author: Robert Y. Lewis
 Analytic facts about polynomials.
 -/
 
-import topology.algebra.topological_structures data.polynomial
+import topology.algebra.ring data.polynomial
 
 lemma polynomial.continuous_eval {α} [comm_semiring α] [decidable_eq α] [topological_space α]
   [topological_semiring α] (p : polynomial α) : continuous (λ x, p.eval x) :=

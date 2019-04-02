@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes
+Authors: Chris Hughes, Abhimanyu Pallavi Sudhir
 -/
 import algebra.archimedean
 import data.nat.choose data.complex.basic
@@ -394,6 +394,10 @@ by rw lim_mul_lim;
   exact eq.symm (lim_eq_lim_of_equiv (by dsimp; simp only [hj];
     exact cauchy_product (is_cau_abs_exp x) (is_cau_exp y)))
 
+lemma exp_nat_mul (x : ℂ) : ∀ n : ℕ, exp(n*x) = (exp x)^n
+| 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]
+| (nat.succ n) := by rw [pow_succ', nat.cast_add_one, add_mul, exp_add, ←exp_nat_mul, one_mul]
+
 lemma exp_ne_zero : exp x ≠ 0 :=
 λ h, @zero_ne_one ℂ _ $
   by rw [← exp_zero, ← add_neg_self x, exp_add, h]; simp
@@ -546,6 +550,12 @@ by rw [two_mul, cos_add, ← pow_two, ← pow_two, eq_sub_iff_add_eq.2 (sin_pow_
 lemma sin_two_mul : sin (2 * x) = 2 * sin x * cos x :=
 by rw [two_mul, sin_add, two_mul, add_mul, mul_comm]
 
+lemma cos_square : cos x ^ 2 = 1 / 2 + cos (2 * x) / 2 :=
+by simp [cos_two_mul, div_add_div_same, mul_div_cancel_left, two_ne_zero', -one_div_eq_inv]
+
+lemma sin_square : sin x ^ 2 = 1 - cos x ^ 2 :=
+by { rw [←sin_pow_two_add_cos_pow_two x], simp }
+
 lemma exp_mul_I : exp (x * I) = cos x + sin x * I :=
 by rw [cos, sin, mul_comm (_ / 2) I, ← mul_div_assoc, mul_left_comm I, I_mul_I,
   ← add_div]; simp
@@ -555,6 +565,14 @@ by rw [exp_add, exp_mul_I]
 
 lemma exp_eq_exp_re_mul_sin_add_cos : exp x = exp x.re * (cos x.im + sin x.im * I) :=
 by rw [← exp_add_mul_I, re_add_im]
+
+theorem cos_add_sin_mul_I_pow (n : ℕ) (z : ℂ) : (cos z + sin z * I) ^ n = cos (↑n * z) + sin (↑n * z) * I :=
+begin
+  rw [← exp_mul_I, ← exp_mul_I],
+  induction n with n ih,
+  { rw [pow_zero, nat.cast_zero, zero_mul, zero_mul, exp_zero] },
+  { rw [pow_succ', ih, nat.cast_succ, add_mul, add_mul, one_mul, exp_add] }
+end
 
 @[simp] lemma sinh_zero : sinh 0 = 0 := by simp [sinh]
 
@@ -658,6 +676,10 @@ by simp [real.exp]
 lemma exp_add : exp (x + y) = exp x * exp y :=
 by simp [exp_add, exp]
 
+lemma exp_nat_mul (x : ℝ) : ∀ n : ℕ, exp(n*x) = (exp x)^n
+| 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]
+| (nat.succ n) := by rw [pow_succ', nat.cast_add_one, add_mul, exp_add, ←exp_nat_mul, one_mul]
+
 lemma exp_ne_zero : exp x ≠ 0 :=
 λ h, exp_ne_zero x $ by rw [exp, ← of_real_inj] at h; simp * at *
 
@@ -745,6 +767,13 @@ by rw ← of_real_inj; simp [cos_two_mul, cos, pow_two]
 lemma sin_two_mul : sin (2 * x) = 2 * sin x * cos x :=
 by rw ← of_real_inj; simp [sin_two_mul, sin, pow_two]
 
+lemma cos_square : cos x ^ 2 = 1 / 2 + cos (2 * x) / 2 :=
+by simp [cos_two_mul, div_add_div_same, mul_div_cancel_left, two_ne_zero, -one_div_eq_inv]
+
+lemma sin_square : sin x ^ 2 = 1 - cos x ^ 2 :=
+by { rw [←sin_pow_two_add_cos_pow_two x], simp }
+
+
 @[simp] lemma sinh_zero : sinh 0 = 0 := by simp [sinh]
 
 @[simp] lemma sinh_neg : sinh (-x) = -sinh x :=
@@ -808,14 +837,14 @@ lemma exp_pos (x : ℝ) : 0 < exp x :=
 @[simp] lemma abs_exp (x : ℝ) : abs' (exp x) = exp x :=
 abs_of_nonneg (le_of_lt (exp_pos _))
 
-lemma exp_le_exp {x y : ℝ} (h : x ≤ y) : exp x ≤ exp y :=
-by rw [← sub_add_cancel y x, real.exp_add];
-  exact (le_mul_iff_one_le_left (exp_pos _)).2 (one_le_exp (sub_nonneg.2 h))
-
 lemma exp_lt_exp {x y : ℝ} (h : x < y) : exp x < exp y :=
 by rw [← sub_add_cancel y x, real.exp_add];
   exact (lt_mul_iff_one_lt_left (exp_pos _)).2
     (lt_of_lt_of_le (by linarith) (add_one_le_exp_of_nonneg (by linarith)))
+
+lemma exp_le_exp {x y : ℝ} : real.exp x ≤ real.exp y ↔ x ≤ y :=
+⟨λ h, le_of_not_gt $ mt exp_lt_exp $ by simpa, λ h, by rw [←sub_add_cancel y x, real.exp_add];
+exact (le_mul_iff_one_le_left (exp_pos _)).2 (one_le_exp (sub_nonneg.2 h))⟩
 
 lemma exp_injective : function.injective exp :=
 λ x y h, begin

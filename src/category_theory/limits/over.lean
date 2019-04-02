@@ -10,7 +10,7 @@ universes v u -- declare the `v`'s first; see `category_theory.category` for an 
 open category_theory category_theory.limits
 
 variables {J : Type v} [small_category J]
-variables {C : Type u} [𝒞 : category.{v} C]
+variables {C : Sort u} [𝒞 : category.{v+1} C]
 include 𝒞
 variable {X : C}
 
@@ -81,7 +81,7 @@ instance has_colimit {F : J ⥤ over X} [has_colimit (F ⋙ forget)] : has_colim
 
 instance has_colimits_of_shape [has_colimits_of_shape J C] :
   has_colimits_of_shape J (over X) :=
-λ F, infer_instance
+λ F, by apply_instance
 
 instance has_colimits [has_colimits C] : has_colimits (over X) :=
 λ J 𝒥, by resetI; apply_instance
@@ -141,7 +141,7 @@ instance has_limit {F : J ⥤ under X} [has_limit (F ⋙ forget)] : has_limit F 
 
 instance has_limits_of_shape [has_limits_of_shape J C] :
   has_limits_of_shape J (under X) :=
-λ F, infer_instance
+λ F, by apply_instance
 
 instance has_limits [has_limits C] : has_limits (under X) :=
 λ J 𝒥, by resetI; apply_instance

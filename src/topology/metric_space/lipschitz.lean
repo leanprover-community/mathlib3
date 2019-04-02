@@ -16,7 +16,7 @@ lemma fixed_point_of_tendsto_iterate [topological_space α] [t2_space α] {f : �
 begin
   rcases hx with ⟨x₀, hx⟩,
   refine tendsto_nhds_unique at_top_ne_bot _ hx,
-  rw [← tendsto_comp_succ_at_top_iff, funext (assume n, nat.iterate_succ' f n x₀)],
+  rw [← tendsto_add_at_top_iff_nat 1, funext (assume n, nat.iterate_succ' f n x₀)],
   exact hx.comp hf
 end
 
@@ -106,39 +106,15 @@ theorem fixed_point_unique_of_contraction (hK : K < 1) (hf : lipschitz_with K f)
 dist_le_zero.1 $ le_trans (dist_inequality_of_contraction hK hf) $
   by rewrite [iff.mpr dist_eq_zero hx.symm, iff.mpr dist_eq_zero hy.symm]; simp
 
-lemma dist_bound_of_contraction (hK : K < 1) (hf : lipschitz_with K f) {n m : ℕ} :
-  dist (f^[n] x) (f^[m] x) ≤ (K ^ n + K ^ m) * dist x (f x) / (1 - K) :=
-begin
-  apply le_trans,
-  exact dist_inequality_of_contraction hK hf,
-  apply div_le_div_of_le_of_pos _ (sub_pos_of_lt hK),
-  have h : ∀ (m : ℕ), dist (f^[m] x) (f (f^[m] x)) ≤ K ^ m * dist x (f x),
-  { intro m,
-    rewrite [←nat.iterate_succ' f m x, nat.iterate_succ f m x],
-    exact and.right (hf.iterate m) x (f x) },
-  rewrite add_mul,
-  exact add_le_add (h n) (h m)
-end
-
-private lemma tendsto_dist_bound_at_top_nhds_0 (hK₀ : 0 ≤ K) (hK₁ : K < 1) (z : ℝ) :
-  tendsto (λ (n : ℕ × ℕ), (K ^ n.1 + K ^ n.2) * z / (1 - K)) at_top (nhds 0) :=
-suffices tendsto (λ (n : ℕ × ℕ), (K ^ n.1 + K ^ n.2) * z / (1 - K))
-    (at_top.prod at_top) (nhds (((0 + 0) * z) * (1 - K)⁻¹)),
-  by simpa [prod_at_top_at_top_eq],
-tendsto_mul (tendsto_mul (tendsto_add
-  (tendsto_fst.comp (tendsto_pow_at_top_nhds_0_of_lt_1 hK₀ hK₁))
-  (tendsto_snd.comp (tendsto_pow_at_top_nhds_0_of_lt_1 hK₀ hK₁))) tendsto_const_nhds)
-  tendsto_const_nhds
-
 /-- Banach fixed-point theorem, contraction mapping theorem -/
 theorem exists_fixed_point_of_contraction [hα : nonempty α] [complete_space α]
   (hK : K < 1) (hf : lipschitz_with K f) : ∃x, f x = x :=
 let ⟨x₀⟩ := hα in
-have tendsto (λ (n : ℕ × ℕ), dist (f^[n.fst] x₀) (f^[n.snd] x₀)) at_top (nhds 0) :=
-  squeeze_zero (assume x, dist_nonneg)
-    (assume p, dist_bound_of_contraction hK hf)
-    (tendsto_dist_bound_at_top_nhds_0 hf.left hK (dist x₀ (f x₀))),
-have cauchy_seq (λ n, f^[n] x₀), by rwa [cauchy_seq_iff_tendsto_dist_at_top_0],
+have cauchy_seq (λ n, f^[n] x₀) := begin
+  refine cauchy_seq_of_le_geometric K (dist x₀ (f x₀)) hK (λn, _),
+  rw [nat.iterate_succ f n x₀, mul_comm],
+  exact and.right (hf.iterate n) x₀ (f x₀)
+end,
 let ⟨x, hx⟩ := cauchy_seq_tendsto_of_complete this in
 ⟨x, fixed_point_of_tendsto_iterate (hf.to_uniform_continuous.continuous.tendsto x) ⟨x₀, hx⟩⟩
 

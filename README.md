@@ -3,6 +3,9 @@
 [![Build Status](https://travis-ci.org/leanprover-community/mathlib.svg?branch=master)](https://travis-ci.org/leanprover-community/mathlib)
 [![Mergify Status][mergify-status]][mergify]
 
+[mergify]: https://mergify.io
+[mergify-status]: https://gh.mergify.io/badges/:owner/:repo.png?style=cut
+
 ## Lean standard library
 
 Besides [Lean's general documentation](https://leanprover.github.io/documentation/), the documentation of mathlib consists of:

@@ -589,6 +589,8 @@ scalar multiplication is multiplication.
 section
 variables {K : Type*} [normed_field K] [normed_space K β] [normed_group γ]
 
+set_option class.instance_max_depth 43
+
 theorem is_O_const_smul_left {f : α → β} {g : α → γ} {l : filter α} (h : is_O f g l) (c : K) :
   is_O (λ x, c • f x) g l :=
 begin
@@ -628,6 +630,8 @@ end
 section
 variables {K : Type*} [normed_group β] [normed_field K] [normed_space K γ]
 
+set_option class.instance_max_depth 43
+
 theorem is_O_const_smul_right {f : α → β} {g : α → γ} {l : filter α} {c : K} (hc : c ≠ 0) :
   is_O f (λ x, c • g x) l ↔ is_O f g l :=
 begin
@@ -648,6 +652,8 @@ end
 
 section
 variables {K : Type*} [normed_field K] [normed_space K β] [normed_space K γ]
+
+set_option class.instance_max_depth 43
 
 theorem is_O_smul {k : α → K} {f : α → β} {g : α → γ} {l : filter α} (h : is_O f g l) :
   is_O (λ x, k x • f x) (λ x, k x • g x) l :=
@@ -696,11 +702,11 @@ have eq₂ : is_o (λ x, f x / g x * g x) g l,
 have eq₃ : is_O f (λ x, f x / g x * g x) l,
   begin
     use [1, zero_lt_one],
-    filter_upwards [univ_mem_sets], simp,
-    intro x,
-    cases classical.em (∥g x∥ = 0) with h' h',
-    { rw hgf _ ((norm_eq_zero _).mp h'), simp },
-    rw [normed_field.norm_mul, norm_div, div_mul_cancel _ h']
+    refine filter.univ_mem_sets' (assume x, _),
+    suffices : ∥f x∥ ≤ ∥f x∥ / ∥g x∥ * ∥g x∥, { simpa },
+    by_cases g x = 0,
+    { simp only [h, hgf x h, norm_zero, mul_zero] },
+    { rw [div_mul_cancel], exact mt (norm_eq_zero _).1 h }
   end,
 eq₃.trans_is_o eq₂
 

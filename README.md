@@ -32,7 +32,7 @@ curl https://raw.githubusercontent.com/leanprover-community/mathlib/master/scrip
 ```
 
 *Any platform*: in the release section of this page, download
-`mathlib-scripts-###-###-###.tar.gz`, expand it and run `setup-update-mathlib.sh`.
+`mathlib-scripts-###-###-###.tar.gz`, expand it and run `setup-dev-scripts.sh`.
 
 ### Fetch mathlib binaries
 

@@ -10,7 +10,7 @@ Currently only the basic setup.
 import category_theory.instances.monoids
 import category_theory.fully_faithful
 import category_theory.adjunction
-import data.multivariate_polynomial
+import data.mv_polynomial
 import algebra.ring
 
 universes u v

@@ -2,8 +2,17 @@
 Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
+
+The role of this file is twofold. In the first part there are theorems of the following
+form: if α has a group structure and α ≃ β then β has a group structure, and
+similarly for monoids, semigroups, rings, integral domains, fields and so on.
+
+In the second part there are extensions of equiv called add_equiv,
+mul_equiv, and ring_equiv, which are datatypes representing isomorphisms
+of monoids, groups and rings.
+
 -/
-import data.equiv.basic data.polynomial linear_algebra.multivariate_polynomial
+import data.equiv.basic algebra.field
 
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
@@ -190,6 +199,103 @@ protected def discrete_field [discrete_field β] : discrete_field α :=
 end instances
 end equiv
 
+structure add_equiv (α β : Type*) [has_add α] [has_add β] extends α ≃ β :=
+(hom : is_add_hom to_fun)
+
+infix ` ≃+ `:50 := add_equiv
+
+namespace add_equiv
+
+variables [has_add α] [has_add β] [has_add γ]
+
+@[refl] def refl (α : Type) [has_add α] : α ≃+ α :=
+{ hom := is_add_hom.id
+  ..equiv.refl _}
+
+@[symm] def symm (h : α ≃+ β) : β ≃+ α :=
+{ hom := ⟨λ n₁ n₂, function.injective_of_left_inverse h.left_inv begin
+   rw h.hom.map_add, unfold equiv.symm, rw [h.right_inv, h.right_inv, h.right_inv], end⟩
+  ..h.to_equiv.symm}
+
+@[trans] def trans (h1 : α ≃+ β) (h2 : β ≃+ γ) : (α ≃+ γ) :=
+{ hom := is_add_hom.comp h1.hom h2.hom,
+  ..equiv.trans h1.to_equiv h2.to_equiv }
+
+end add_equiv
+
+structure mul_equiv (α β : Type*) [has_mul α] [has_mul β] extends α ≃ β :=
+(hom : is_mul_hom to_fun)
+
+infix ` ≃* `:50 := mul_equiv
+
+namespace mul_equiv
+
+variables [has_mul α] [has_mul β] [has_mul γ]
+
+@[refl] def refl (α : Type*) [has_mul α] : α ≃* α :=
+{ hom := ⟨λ _ _,rfl⟩,
+..equiv.refl _}
+
+@[symm] def symm (h : α ≃* β) : β ≃* α :=
+{ hom := ⟨λ n₁ n₂, function.injective_of_left_inverse h.left_inv begin
+   rw h.hom.map_mul, unfold equiv.symm, rw [h.right_inv, h.right_inv, h.right_inv], end⟩
+  ..h.to_equiv.symm}
+
+@[trans] def trans (h1 : α ≃* β) (h2 : β ≃* γ) : (α ≃* γ) :=
+{ hom := is_mul_hom.comp h1.hom h2.hom,
+  ..equiv.trans h1.to_equiv h2.to_equiv }
+
+end mul_equiv
+
+-- equiv of monoids
+namespace mul_equiv
+
+variables [monoid α] [monoid β] [monoid γ]
+
+lemma one (h : equiv α β) (hom : ∀ x y, h (x * y) = h x * h y) :
+  h 1 = 1 :=
+by rw [←mul_one (h 1), ←h.apply_symm_apply 1, ←hom]; simp
+
+instance is_monoid_hom (h : α ≃* β) : is_monoid_hom h.to_equiv := {
+  map_one := mul_equiv.one h.to_equiv h.hom.map_mul,
+  map_mul := h.hom.map_mul }
+
+instance (h : α ≃* β) : is_mul_hom h.to_equiv := {map_mul := λ a b, is_monoid_hom.map_mul h.to_equiv}
+end mul_equiv
+
+-- equiv of groups
+namespace mul_equiv
+
+variables [group α] [group β] [group γ]
+
+instance is_group_hom (h : α ≃* β) : is_group_hom h.to_equiv := ⟨h.hom.map_mul⟩
+
+end mul_equiv
+
+-- equiv of add_groups
+namespace add_equiv
+
+variables [add_group α] [add_group β] [add_group γ]
+
+instance is_add_group_hom (h : α ≃+ β) : is_add_group_hom h.to_equiv := ⟨h.hom.map_add⟩
+
+end add_equiv
+
+
+namespace units
+
+variables [monoid α] [monoid β] [monoid γ]
+(f : α → β) (g : β → γ) [is_monoid_hom f] [is_monoid_hom g]
+
+def map_equiv (h : α ≃* β) : units α ≃* units β :=
+{ to_fun := map h.to_equiv,
+  inv_fun := map h.symm.to_equiv,
+  left_inv := λ u, ext $ h.left_inv u,
+  right_inv := λ u, ext $ h.right_inv u,
+  hom := ⟨λ a b, units.ext $ is_mul_hom.map_mul h.to_equiv⟩}
+
+end units
+
 structure ring_equiv (α β : Type*) [ring α] [ring β] extends α ≃ β :=
 (hom : is_ring_hom to_fun)
 
@@ -214,160 +320,11 @@ protected def trans {α β γ : Type*} [ring α] [ring β] [ring γ]
   (e₁ : α ≃r β) (e₂ : β ≃r γ) : α ≃r γ :=
 { hom := is_ring_hom.comp _ _, .. e₁.1.trans e₂.1  }
 
+instance symm.is_ring_hom {e : α ≃r β} : is_ring_hom e.to_equiv.symm := hom e.symm
+
+@[simp] lemma to_equiv_symm (e : α ≃r β) : e.symm.to_equiv = e.to_equiv.symm := rfl
+
+@[simp] lemma to_equiv_symm_apply (e : α ≃r β) (x : β) :
+  e.symm.to_equiv x = e.to_equiv.symm x := rfl
+
 end ring_equiv
-
-namespace mv_polynomial
-
-variables (α) [comm_ring α]
-variables [decidable_eq α] [decidable_eq β] [decidable_eq γ] [decidable_eq δ]
-
-def pempty_ring_equiv : mv_polynomial pempty α ≃r α :=
-{ to_fun    := mv_polynomial.eval₂ id $ pempty.elim,
-  inv_fun   := C,
-  left_inv  := is_id _ (by apply_instance) (assume a, by rw [eval₂_C]; refl) (assume a, a.elim),
-  right_inv := λ r, eval₂_C _ _ _,
-  hom       := eval₂.is_ring_hom _ _ }
-
-def punit_ring_equiv : mv_polynomial punit α ≃r polynomial α :=
-{ to_fun    := eval₂ polynomial.C (λu:punit, polynomial.X),
-  inv_fun   := polynomial.eval₂ mv_polynomial.C (X punit.star),
-  left_inv  :=
-    begin
-      refine is_id _ _ _ _,
-      apply is_semiring_hom.comp (eval₂ polynomial.C (λu:punit, polynomial.X)) _; apply_instance,
-      { assume a, rw [eval₂_C, polynomial.eval₂_C] },
-      { rintros ⟨⟩, rw [eval₂_X, polynomial.eval₂_X] }
-    end,
-  right_inv := assume p, polynomial.induction_on p
-    (assume a, by rw [polynomial.eval₂_C, mv_polynomial.eval₂_C])
-    (assume p q hp hq, by rw [polynomial.eval₂_add, mv_polynomial.eval₂_add, hp, hq])
-    (assume p n hp,
-      by rw [polynomial.eval₂_mul, polynomial.eval₂_pow, polynomial.eval₂_X, polynomial.eval₂_C,
-        eval₂_mul, eval₂_C, eval₂_pow, eval₂_X]),
-  hom       := eval₂.is_ring_hom _ _ }
-
-def ring_equiv_of_equiv (e : β ≃ γ) : mv_polynomial β α ≃r mv_polynomial γ α :=
-{ to_fun    := rename e,
-  inv_fun   := rename e.symm,
-  left_inv  := λ p, by simp only [rename_rename, (∘), e.inverse_apply_apply]; exact rename_id p,
-  right_inv := λ p, by simp only [rename_rename, (∘), e.apply_inverse_apply]; exact rename_id p,
-  hom       := rename.is_ring_hom e }
-
-def ring_equiv_congr [comm_ring γ] (e : α ≃r γ) : mv_polynomial β α ≃r mv_polynomial β γ :=
-{ to_fun    := map e.to_fun,
-  inv_fun   := map e.symm.to_fun,
-  left_inv  := assume p,
-    have (e.symm.to_equiv.to_fun ∘ e.to_equiv.to_fun) = id,
-    { ext a, exact e.to_equiv.inverse_apply_apply a },
-    by simp only [map_map, this, map_id],
-  right_inv := assume p,
-    have (e.to_equiv.to_fun ∘ e.symm.to_equiv.to_fun) = id,
-    { ext a, exact e.to_equiv.apply_inverse_apply a },
-    by simp only [map_map, this, map_id],
-  hom       := map.is_ring_hom e.to_fun }
-
-section
-variables (β γ δ)
-
-instance ring_on_sum : ring (mv_polynomial (β ⊕ γ) α) := by apply_instance
-instance ring_on_iter : ring (mv_polynomial β (mv_polynomial γ α)) := by apply_instance
-
-def sum_to_iter : mv_polynomial (β ⊕ γ) α → mv_polynomial β (mv_polynomial γ α) :=
-eval₂ (C ∘ C) (λbc, sum.rec_on bc X (C ∘ X))
-
-instance is_semiring_hom_C_C :
-  is_semiring_hom (C ∘ C : α → mv_polynomial β (mv_polynomial γ α)) :=
-@is_semiring_hom.comp _ _ _ _ C mv_polynomial.is_semiring_hom _ _ C mv_polynomial.is_semiring_hom
-
-instance is_semiring_hom_sum_to_iter : is_semiring_hom (sum_to_iter α β γ) :=
-eval₂.is_semiring_hom _ _
-
-lemma sum_to_iter_C (a : α) : sum_to_iter α β γ (C a) = C (C a) :=
-eval₂_C _ _ a
-
-lemma sum_to_iter_Xl (b : β) : sum_to_iter α β γ (X (sum.inl b)) = X b :=
-eval₂_X _ _ (sum.inl b)
-
-lemma sum_to_iter_Xr (c : γ) : sum_to_iter α β γ (X (sum.inr c)) = C (X c) :=
-eval₂_X _ _ (sum.inr c)
-
-def iter_to_sum : mv_polynomial β (mv_polynomial γ α) → mv_polynomial (β ⊕ γ) α :=
-eval₂ (eval₂ C (X ∘ sum.inr)) (X ∘ sum.inl)
-
-section
-
-instance is_semiring_hom_iter_to_sum : is_semiring_hom (iter_to_sum α β γ) :=
-eval₂.is_semiring_hom _ _
-
-end
-
-lemma iter_to_sum_C_C (a : α) : iter_to_sum α β γ (C (C a)) = C a :=
-eq.trans (eval₂_C _ _ (C a)) (eval₂_C _ _ _)
-
-lemma iter_to_sum_X (b : β) : iter_to_sum α β γ (X b) = X (sum.inl b) :=
-eval₂_X _ _ _
-
-lemma iter_to_sum_C_X (c : γ) : iter_to_sum α β γ (C (X c)) = X (sum.inr c) :=
-eq.trans (eval₂_C _ _ (X c)) (eval₂_X _ _ _)
-
-def mv_polynomial_equiv_mv_polynomial [comm_ring δ]
-  (f : mv_polynomial β α → mv_polynomial γ δ) (hf : is_semiring_hom f)
-  (g : mv_polynomial γ δ → mv_polynomial β α) (hg : is_semiring_hom g)
-  (hfgC : ∀a, f (g (C a)) = C a)
-  (hfgX : ∀n, f (g (X n)) = X n)
-  (hgfC : ∀a, g (f (C a)) = C a)
-  (hgfX : ∀n, g (f (X n)) = X n) :
-  mv_polynomial β α ≃r mv_polynomial γ δ :=
-{ to_fun    := f, inv_fun := g,
-  left_inv  := is_id _ (is_semiring_hom.comp _ _) hgfC hgfX,
-  right_inv := is_id _ (is_semiring_hom.comp _ _) hfgC hfgX,
-  hom       := is_ring_hom.of_semiring f }
-
-def sum_ring_equiv : mv_polynomial (β ⊕ γ) α ≃r mv_polynomial β (mv_polynomial γ α) :=
-begin
-  apply @mv_polynomial_equiv_mv_polynomial α (β ⊕ γ) _ _ _ _ _ _ _ _
-    (sum_to_iter α β γ) _ (iter_to_sum α β γ) _,
-  { assume p,
-    apply @hom_eq_hom _ _ _ _ _ _ _ _ _ _ _ _ _ p,
-    apply_instance,
-    { apply @is_semiring_hom.comp _ _ _ _ _ _ _ _ _ _,
-      apply_instance,
-      apply @is_semiring_hom.comp _ _ _ _ _ _ _ _ _ _,
-      apply_instance,
-      { apply @mv_polynomial.is_semiring_hom },
-      { apply mv_polynomial.is_semiring_hom_iter_to_sum α β γ },
-      { apply mv_polynomial.is_semiring_hom_sum_to_iter α β γ } },
-    { apply mv_polynomial.is_semiring_hom },
-    { assume a, rw [iter_to_sum_C_C α β γ, sum_to_iter_C α β γ] },
-    { assume c, rw [iter_to_sum_C_X α β γ, sum_to_iter_Xr α β γ] } },
-  { assume b, rw [iter_to_sum_X α β γ, sum_to_iter_Xl α β γ] },
-  { assume a, rw [sum_to_iter_C α β γ, iter_to_sum_C_C α β γ] },
-  { assume n, cases n with b c,
-    { rw [sum_to_iter_Xl, iter_to_sum_X] },
-    { rw [sum_to_iter_Xr, iter_to_sum_C_X] } },
-  { apply mv_polynomial.is_semiring_hom_sum_to_iter α β γ },
-  { apply mv_polynomial.is_semiring_hom_iter_to_sum α β γ }
-end
-
-instance option_ring : ring (mv_polynomial (option β) α) :=
-mv_polynomial.ring
-
-instance polynomial_ring : ring (polynomial (mv_polynomial β α)) :=
-@comm_ring.to_ring _ polynomial.comm_ring
-
-instance polynomial_ring2 : ring (mv_polynomial β (polynomial α)) :=
-by apply_instance
-
-def option_equiv_left : mv_polynomial (option β) α ≃r polynomial (mv_polynomial β α) :=
-(ring_equiv_of_equiv α $ (equiv.option_equiv_sum_punit β).trans (equiv.sum_comm _ _)).trans $
-(sum_ring_equiv α _ _).trans $
-punit_ring_equiv _
-
-def option_equiv_right : mv_polynomial (option β) α ≃r mv_polynomial β (polynomial α) :=
-(ring_equiv_of_equiv α $ equiv.option_equiv_sum_punit.{0} β).trans $
-(sum_ring_equiv α β unit).trans $
-ring_equiv_congr (mv_polynomial unit α) (punit_ring_equiv α)
-
-end
-
-end mv_polynomial

@@ -16,7 +16,7 @@ universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `categor
 
 local attribute [elab_simple] whisker_left whisker_right
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
+variables {C : Sort u₁} [𝒞 : category.{v₁} C] {D : Sort u₂} [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
 /--
@@ -179,7 +179,7 @@ TODO
 -/
 
 section
-variables {E : Type u₃} [ℰ : category.{v₃} E] (H : D ⥤ E) (I : E ⥤ D)
+variables {E : Sort u₃} [ℰ : category.{v₃} E] (H : D ⥤ E) (I : E ⥤ D)
 
 def comp (adj₁ : adjunction F G) (adj₂ : adjunction H I) : adjunction (F ⋙ H) (I ⋙ G) :=
 { hom_equiv := λ X Z, equiv.trans (adj₂.hom_equiv _ _) (adj₁.hom_equiv _ _),
@@ -216,8 +216,8 @@ def left_adjoint_of_equiv : C ⥤ D :=
 { obj := F_obj,
   map := λ X X' f, (e X (F_obj X')).symm (f ≫ e X' (F_obj X') (𝟙 _)),
   map_comp' := λ X X' X'' f f', begin
-    rw [equiv.symm_apply_eq, he, equiv.apply_inverse_apply],
-    conv { to_rhs, rw [assoc, ←he, id_comp, equiv.apply_inverse_apply] },
+    rw [equiv.symm_apply_eq, he, equiv.apply_symm_apply],
+    conv { to_rhs, rw [assoc, ←he, id_comp, equiv.apply_symm_apply] },
     simp
   end }
 
@@ -247,8 +247,8 @@ def right_adjoint_of_equiv : D ⥤ C :=
 { obj := G_obj,
   map := λ Y Y' g, (e (G_obj Y) Y') ((e (G_obj Y) Y).symm (𝟙 _) ≫ g),
   map_comp' := λ Y Y' Y'' g g', begin
-    rw [← equiv.eq_symm_apply, ← he' e he, equiv.inverse_apply_apply],
-    conv { to_rhs, rw [← assoc, he' e he, comp_id, equiv.inverse_apply_apply] },
+    rw [← equiv.eq_symm_apply, ← he' e he, equiv.symm_apply_apply],
+    conv { to_rhs, rw [← assoc, he' e he, comp_id, equiv.symm_apply_apply] },
     simp
   end }
 
@@ -259,7 +259,7 @@ mk_of_hom_equiv F (right_adjoint_of_equiv e he)
   hom_equiv_naturality_right' :=
   begin
     intros X Y Y' g h,
-    erw [←he, equiv.apply_eq_iff_eq, ←assoc, he' e he, comp_id, equiv.inverse_apply_apply]
+    erw [←he, equiv.apply_eq_iff_eq, ←assoc, he' e he, comp_id, equiv.symm_apply_apply]
   end }
 
 end construct_right
@@ -275,7 +275,7 @@ open category_theory.limits
 
 universes u₁ u₂ v
 
-variables {C : Type u₁} [𝒞 : category.{v} C] {D : Type u₂} [𝒟 : category.{v} D]
+variables {C : Sort u₁} [𝒞 : category.{v+1} C] {D : Sort u₂} [𝒟 : category.{v+1} D]
 include 𝒞 𝒟
 
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : adjunction F G)

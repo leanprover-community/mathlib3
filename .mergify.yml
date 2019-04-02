@@ -18,4 +18,5 @@ pull_request_rules:
     actions:
       dismiss_reviews:
         approved: True
-      remove: ['ready-to-merge']
+      label:
+        remove: ['ready-to-merge']

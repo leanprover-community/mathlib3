@@ -123,11 +123,10 @@ rfl
 @[simp] lemma cast_succ_inj {a b : fin n} : a.cast_succ = b.cast_succ ↔ a = b :=
 by simp [eq_iff_veq]
 
-def with_max (n m : ℕ) (h : m > 0) : fin m :=
-(fin.of_nat (min n (nat.pred m))).cast $ nat.succ_pred_eq_of_pos h
+def with_max (n m : ℕ) : fin (m + 1) := fin.of_nat $ min n m
 
-@[simp] lemma with_max_val (n m : ℕ) (h : m > 0) : (with_max n m h).val = min n (m - 1) :=
-eq.trans (fin.cast_val _ _) (nat.mod_eq_of_lt $ nat.lt_succ_iff.mpr $ min_le_right _ _)
+@[simp] lemma with_max_val (n m : ℕ) : (with_max n m).val = min n m :=
+nat.mod_eq_of_lt $ nat.lt_succ_iff.mpr $ min_le_right _ _
 
 lemma injective_cast_le {n₁ n₂ : ℕ} (h : n₁ ≤ n₂) : function.injective (fin.cast_le h)
 | ⟨i₁, h₁⟩ ⟨i₂, h₂⟩ eq := fin.eq_of_veq $ show i₁ = i₂, from fin.veq_of_eq eq

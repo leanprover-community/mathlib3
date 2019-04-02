@@ -56,7 +56,7 @@ do o ← tactic.get_options,
    let opt := mk_full_namespace ns,
    match o.get_string opt "" with
    | "" := mk_new o opt
-   | s := return $ name.from_components $ s.split (λ c, c = '.')
+   | s := return $ name.from_components $ s.split (= '.')
    end
 
 meta def get_name (ns : name) : tactic name :=

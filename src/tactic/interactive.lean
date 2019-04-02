@@ -6,7 +6,7 @@ Authors: Mario Carneiro, Simon Hudon, Sebastien Gouezel, Scott Morrison
 import data.dlist data.dlist.basic data.prod category.basic
   tactic.basic tactic.rcases tactic.generalize_proofs
   tactic.split_ifs logic.basic tactic.ext tactic.tauto
-  tactic.replacer tactic.simpa tactic.squeeze
+  tactic.replacer tactic.simpa tactic.squeeze tactic.library_search
 
 open lean
 open lean.parser
@@ -139,6 +139,16 @@ meta def clear_ : tactic unit := tactic.repeat $ do
     cl ← infer_type h >>= is_class, guard (¬ cl),
     tactic.clear h
 
+meta def apply_iff_congr_core : tactic unit :=
+applyc ``iff_of_eq
+
+meta def congr_core' : tactic unit :=
+do tgt ← target,
+   apply_eq_congr_core tgt
+   <|> apply_heq_congr_core
+   <|> apply_iff_congr_core
+   <|> fail "congr tactic failed"
+
 /--
 Same as the `congr` tactic, but takes an optional argument which gives
 the depth of recursive applications. This is useful when `congr`
@@ -147,7 +157,7 @@ is too aggressive in breaking down the goal. For example, given
 and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`. -/
 meta def congr' : parse (with_desc "n" small_nat)? → tactic unit
 | (some 0) := failed
-| o        := focus1 (assumption <|> (congr_core >>
+| o        := focus1 (assumption <|> (congr_core' >>
   all_goals (reflexivity <|> `[apply proof_irrel_heq] <|>
              `[apply proof_irrel] <|> try (congr' (nat.pred <$> o)))))
 
@@ -411,6 +421,30 @@ Fixes `guard_hyp` by instantiating meta variables
 -/
 meta def guard_hyp' (n : parse ident) (p : parse $ tk ":=" *> texpr) : tactic unit :=
 do h ← get_local n >>= infer_type >>= instantiate_mvars, guard_expr_eq h p
+
+/--
+`guard_expr_strict t := e` fails if the expr `t` is not equal to `e`. By contrast
+to `guard_expr`, this tests strict (syntactic) equality.
+We use this tactic for writing tests.
+-/
+meta def guard_expr_strict (t : expr) (p : parse $ tk ":=" *> texpr) : tactic unit :=
+do e ← to_expr p, guard (t = e)
+
+/--
+`guard_target_strict t` fails if the target of the main goal is not syntactically `t`.
+We use this tactic for writing tests.
+-/
+meta def guard_target_strict (p : parse texpr) : tactic unit :=
+do t ← target, guard_expr_strict t p
+
+
+/--
+`guard_hyp_strict h := t` fails if the hypothesis `h` does not have type syntactically equal
+to `t`.
+We use this tactic for writing tests.
+-/
+meta def guard_hyp_strict (n : parse ident) (p : parse $ tk ":=" *> texpr) : tactic unit :=
+do h ← get_local n >>= infer_type >>= instantiate_mvars, guard_expr_strict h p
 
 meta def guard_hyp_nums (n : ℕ) : tactic unit :=
 do k ← local_context,

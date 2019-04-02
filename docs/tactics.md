@@ -199,22 +199,57 @@ Unfold coercion-related definitions
 
 ### Instance cache tactics
 
-* `resetI`: Reset the instance cache. This allows any new instances
-  added to the context to be used in typeclass inference.
+For performance reasons, Lean does not automatically update its database
+of class instances during a proof. The group of tactics described below
+helps forcing such updates. For a simple (but very artificial) example,
+consider the function `default` from the core library. It has type 
+`Π (α : Sort u) [inhabited α], α`, so one can use `default α` only if Lean 
+can find a registered instance of `inhabited α`. Because the database of
+such instance is not automatically updated during a proof, the following
+attempt won't work (Lean will not pick up the instance from the local
+context):
+```lean
+def my_id (α : Type) : α → α :=
+begin
+  intro x,
+  have : inhabited α := ⟨x⟩,
+  exact default α, -- Won't work!
+end
+```
+However, it will work, producing the identity function, if one replaces have by its variant `haveI` described below.
+
+* `resetI`: Reset the instance cache. This allows any instances
+  currently in the context to be used in typeclass inference.
 
 * `unfreezeI`: Unfreeze local instances, which allows us to revert
   instances in the context
 
-* `introI`/`introsI`: Like `intro`/`intros`, but uses the introduced variable
-  in typeclass inference.
+* `introI`/`introsI`: `intro`/`intros` followed by `resetI`. Like
+  `intro`/`intros`, but uses the introduced variable in typeclass inference.
 
-* `haveI`/`letI`: Used to add typeclasses to the context so that they can
-  be used in typeclass inference. The syntax is the same as
-  `have`/`letI`, but the proof-omitted version of `have` is not supported
-  (for this one must write `have : t, { <proof> }, resetI, <proof>`).
+* `haveI`/`letI`: `have`/`let` followed by `resetI`. Used to add typeclasses
+  to the context so that they can be used in typeclass inference. The syntax
+  `haveI := <proof>` and `haveI : t := <proof>` is supported, but
+  `haveI : t, from _` and `haveI : t, { <proof> }` are not; in these cases
+  use `have : t, { <proof> }, resetI` directly).
 
-* `exactI`: Like `exact`, but uses all variables in the context
-  for typeclass inference.
+* `exactI`: `resetI` followed by `exact`. Like `exact`, but uses all
+  variables in the context for typeclass inference.
+
+### library_search
+
+`library_search` is a tactic to identify existing lemmas in the library. It tries to close the
+current goal by applying a lemma from the library, then discharging any new goals using
+`solve_by_elim`.
+
+Typical usage is:
+```
+example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
+by library_search -- exact nat.mul_sub_left_distrib n m k
+```
+
+`library_search` prints a trace message showing the proof it found, shown above as a comment.
+Typically you will then copy and paste this proof, replacing the call to `library_search`.
 
 ### find
 
@@ -809,3 +844,20 @@ h : y = 3
 -/
 end
 ```
+
+### push_neg
+
+This tactic pushes negations inside expressions. For instance, given an assumption
+```lean
+h : ¬ ∀ ε > 0, ∃ δ > 0, ∀ x, |x - x₀| ≤ δ → |f x - y₀| ≤ ε)
+```
+writing `push_neg at h` will turn `h` into
+```lean
+h : ∃ ε, ε > 0 ∧ ∀ δ, δ > 0 → (∃ x, |x - x₀| ≤ δ ∧ ε < |f x - y₀|),
+```
+(the pretty printer does *not* use the abreviations `∀ δ > 0` and `∃ ε > 0` but this issue
+has nothing to do with `push_neg`).
+Note that names are conserved by this tactic, contrary to what would happen with `simp`
+using the relevant lemmas. One can also use this tactic at the goal using `push_neg`,
+at every assumption and the goal using `push_neg at *` or at selected assumptions and the goal
+using say `push_neg at h h' ⊢` as usual.

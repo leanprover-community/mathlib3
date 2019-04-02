@@ -1,4 +1,5 @@
 import category_theory.instances.Top.opens
+import category_theory.full_subcategory
 
 open category_theory
 open category_theory.instances

@@ -9,6 +9,7 @@ Main procedure for linear natural number arithmetic.
 import tactic.omega.prove_unsats
 import tactic.omega.nat.dnf
 import tactic.omega.nat.neg_elim
+import tactic.omega.nat.sub_elim
 
 open tactic
 

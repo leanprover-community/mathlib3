@@ -8,7 +8,7 @@ We say two types are equivalent if they are isomorphic.
 
 Two equivalent types have the same cardinality.
 -/
-import logic.function logic.unique data.set.basic data.bool data.quot
+import tactic.split_ifs logic.function logic.unique data.set.basic data.bool data.quot
 
 open function
 

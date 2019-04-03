@@ -123,9 +123,9 @@ rfl
 @[simp] lemma cast_succ_inj {a b : fin n} : a.cast_succ = b.cast_succ ↔ a = b :=
 by simp [eq_iff_veq]
 
-def with_max (n m : ℕ) : fin (m + 1) := fin.of_nat $ min n m
+def clamp (n m : ℕ) : fin (m + 1) := fin.of_nat $ min n m
 
-@[simp] lemma with_max_val (n m : ℕ) : (with_max n m).val = min n m :=
+@[simp] lemma clamp_val (n m : ℕ) : (clamp n m).val = min n m :=
 nat.mod_eq_of_lt $ nat.lt_succ_iff.mpr $ min_le_right _ _
 
 lemma injective_cast_le {n₁ n₂ : ℕ} (h : n₁ ≤ n₂) : function.injective (fin.cast_le h)

@@ -60,7 +60,7 @@ lemma length_set {d a : α} :
 | (n+1) (a::as) := get n as
 
 @[simp] lemma get_nil {d : α} {k : ℕ} : get d k [] = d :=
-begin cases k; refl end
+by cases k; refl
 
 lemma get_eq_default_of_le {d : α} :
   ∀ (k : ℕ) {as : list α}, as.length ≤ k → get d k as = d

@@ -1002,7 +1002,7 @@ section cast
 variables {α : Type*}
 
 section
-variables [has_zero α] [has_one α] [has_add α] [has_neg α]
+variables [has_neg α] [has_zero α] [has_one α] [has_add α]
 
 /-- Canonical homomorphism from the integers to any ring(-like) structure `α` -/
 protected def cast : ℤ → α

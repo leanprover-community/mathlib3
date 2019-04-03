@@ -1,7 +1,14 @@
+/-
+Copyright (c) 2019 Johan Commelin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johan Commelin
+
+Pointwise addition and multiplication of sets
+-/
+
 import data.set.lattice
 import algebra.group
 import group_theory.subgroup
-import data.set.finite
 
 namespace set
 open function

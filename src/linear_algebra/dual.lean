@@ -12,27 +12,6 @@ noncomputable theory
 
 local attribute [instance, priority 0] classical.prop_decidable
 
-namespace linear_equiv
-universes u v w
-variables {α : Type u} {β : Type v} {γ : Type w}
-variables [discrete_field α] [add_comm_group β] [vector_space α β] [add_comm_group γ] [vector_space α γ]
-open vector_space
-
-/-- Version of linear_equiv.dim_eq without universe constraints. -/
-theorem dim_eq_lift (f : β ≃ₗ[α] γ) :
-  cardinal.lift.{v (max v w)} (dim α β) = cardinal.lift.{w (max v w)} (dim α γ) :=
-begin
-  cases exists_is_basis α β with b hb,
-  rw [← hb.mk_eq_dim, ← (f.is_basis hb).mk_eq_dim, cardinal.lift_mk, cardinal.lift_mk],
-  refine quotient.sound ⟨_⟩,
-  calc ulift.{max v w} b ≃ b : equiv.ulift
-                     ... ≃ _ : equiv.set.image _ _ f.to_equiv.injective
-                     ... ≃ _ : equiv.ulift.symm
-end
-
-end linear_equiv
-
-
 namespace module
 variables (R : Type*) (M : Type*)
 variables [comm_ring R] [add_comm_group M] [module R M]
@@ -59,7 +38,6 @@ end
 
 end dual
 end module
-
 
 namespace is_basis
 universes u v
@@ -189,7 +167,6 @@ by { rw linear_equiv.dim_eq_lift h.to_dual_equiv, apply cardinal.lift_id }
 
 end is_basis
 
-
 namespace vector_space
 
 universes u v
@@ -209,14 +186,6 @@ begin
   let hx := h (hb.to_dual v),
   erw [eval_apply, to_dual_apply _ _ hv' _ hv', if_pos rfl, zero_apply _] at hx,
   exact one_ne_zero hx
-end
-
-lemma exists_is_basis_fintype (h : dim K V < omega) :
-  ∃B : (set V), (is_basis K B) ∧ nonempty (fintype B) :=
-begin
-  cases exists_is_basis K V with b hb,
-  rw [← mk_eq_dim hb, lt_omega_iff_fintype] at h,
-  exact ⟨b, hb, h⟩
 end
 
 theorem dual_dim_eq (h : dim K V < omega) :

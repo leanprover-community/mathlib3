@@ -9,6 +9,8 @@ open set
 universe u
 variables {α : Type u}
 
+-- Default priority sufficient as core version has custom-set lower priority (100)
+/-- Core version `division_ring_has_div` erratically requires two instances of `division_ring` -/
 instance division_ring_has_div' [division_ring α] : has_div α := ⟨algebra.div⟩
 
 instance division_ring.to_domain [s : division_ring α] : domain α :=

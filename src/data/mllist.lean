@@ -16,7 +16,6 @@ universes u v
 meta inductive mllist (m : Type u → Type u) (α : Type u) : Type u
 | nil {} : mllist
 | cons : m (option α × mllist) → mllist
--- | skip : m mllist → mllist
 
 namespace mllist
 
@@ -24,7 +23,6 @@ variables {m : Type u → Type u}
 
 meta def fix {m : Type u → Type u} [alternative m]
   {α} (f : α → m α) : α → mllist m α
--- | x := (λ a, cons (_  fix a)) <$> f x <|> pure (x, nil)
 | x := cons $ (λ a, (some x, fix a)) <$> f x <|> pure (some x, nil)
 
 variables [monad m]
@@ -44,7 +42,7 @@ meta def of_list {α : Type u} : list α → mllist m α
 
 meta def m_of_list {α : Type u} : list (m α) → mllist m α
 | [] := nil
-| (h :: t) := cons ((λ x, (x, m_of_list t)) <$> h)
+| (h :: t) := cons ((λ x, (x, m_of_list t)) <$> some <$> h)
 
 meta def force {α} : mllist m α → m (list α)
 | nil := pure []
@@ -52,6 +50,14 @@ meta def force {α} : mllist m α → m (list α)
   do (x,xs) ← l,
      some x ← pure x | force xs,
      (::) x <$> (force xs)
+
+meta def take {α} : mllist m α → ℕ → m (list α)
+| nil _ := pure []
+| _ 0 := pure []
+| (cons l) (n+1) :=
+  do (x,xs) ← l,
+     some x ← pure x | take xs n,
+     (::) x <$> (take xs n)
 
 meta def map {α β : Type u} (f : α → β) : mllist m α → mllist m β
 | nil := nil

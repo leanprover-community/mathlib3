@@ -3,11 +3,9 @@ import data.mllist
 @[reducible] def S (α : Type) := state_t (list nat) option α
 def append (x : nat) : S unit :=
 { run := λ s, some ((), x :: s) }
-def fail {α : Type} : S α :=
-{ run := λ s, none }
 
 def F : nat → S nat
-| 0 := fail
+| 0 := failure
 | (n+1) := append (n+1) >> pure n
 
 open tactic

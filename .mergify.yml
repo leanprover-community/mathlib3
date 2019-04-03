@@ -1,92 +1,14 @@
 pull_request_rules:
-  - name: automatic merge on CI success and review avigad
+  - name: automatic merge on CI success and review
     conditions:
       - status-success=continuous-integration/travis-ci/pr
       - "#changes-requested-reviews-by=0"
       - base=master
       - label=ready-to-merge
-      - approved-reviews-by=avigad
+      - approved-reviews-by=@mathlib-maintainers
     actions:
      # delete_head_branch: {}
-      merge:
-        method: squash
-        strict: smart
-        strict_method: merge
-  - name: automatic merge on CI success and review rwbarton
-    conditions:
-      - status-success=continuous-integration/travis-ci/pr
-      - "#changes-requested-reviews-by=0"
-      - base=master
-      - label=ready-to-merge
-      - approved-reviews-by=rwbarton
-    actions:
-      # delete_head_branch: {}
-      merge:
-        method: squash
-        strict: smart
-        strict_method: merge
-  - name: automatic merge on CI success and review digama0
-    conditions:
-      - status-success=continuous-integration/travis-ci/pr
-      - "#changes-requested-reviews-by=0"
-      - base=master
-      - label=ready-to-merge
-      - approved-reviews-by=digama0
-    actions:
-     # delete_head_branch: {}
-      merge:
-        method: squash
-        strict: smart
-        strict_method: merge
-  - name: automatic merge on CI success and review cipher1024
-    conditions:
-      - status-success=continuous-integration/travis-ci/pr
-      - "#changes-requested-reviews-by=0"
-      - base=master
-      - label=ready-to-merge
-      - approved-reviews-by=cipher1024
-    actions:
-     # delete_head_branch: {}
-      merge:
-        method: squash
-        strict: smart
-        strict_method: merge
-  - name: automatic merge on CI success and review ChrisHughes24
-    conditions:
-      - status-success=continuous-integration/travis-ci/pr
-      - "#changes-requested-reviews-by=0"
-      - base=master
-      - label=ready-to-merge
-      - approved-reviews-by=ChrisHughes24
-    actions:
-     # delete_head_branch: {}
-      merge:
-        method: squash
-        strict: smart
-        strict_method: merge
-  - name: automatic merge on CI success and review robertylewis
-    conditions:
-      - status-success=continuous-integration/travis-ci/pr
-      - "#changes-requested-reviews-by=0"
-      - base=master
-      - label=ready-to-merge
-      - approved-reviews-by=robertylewis
-    actions:
-     # delete_head_branch: {}
-      merge:
-        method: squash
-        strict: smart
-        strict_method: merge
-  - name: automatic merge on CI success and review patrickmassot
-    conditions:
-      - status-success=continuous-integration/travis-ci/pr
-      - "#changes-requested-reviews-by=0"
-      - base=master
-      - label=ready-to-merge
-      - approved-reviews-by=patrickmassot
-    actions:
-     # delete_head_branch: {}
-      merge:
+     merge:
         method: squash
         strict: smart
         strict_method: merge

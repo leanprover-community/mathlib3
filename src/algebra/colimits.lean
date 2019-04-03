@@ -221,4 +221,10 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
     refl
   end }
 
+instance : has_colimits Mon :=
+λ J 𝒥 F,
+by resetI; exact
+{ cocone := colimit_cocone F,
+  is_colimit := colimit_is_colimit F }
+
 end monoid.colimits

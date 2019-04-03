@@ -6,6 +6,7 @@ Authors: Johan Commelin
 Pointwise addition and multiplication of sets
 -/
 
+import data.set.finite
 import data.set.lattice
 import algebra.group
 import group_theory.subgroup

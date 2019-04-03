@@ -3,8 +3,8 @@ import category_theory.limits.limits
 
 universes u v
 
-lemma subtype.ext' {α : Sort u} {p : α → Prop} {a b : {x // p x}} (h : a.val = b.val) : a = b :=
-subtype.ext.2 h
+-- lemma subtype.ext' {α : Sort u} {p : α → Prop} {a b : {x // p x}} (h : a.val = b.val) : a = b :=
+-- subtype.ext.2 h
 
 open category_theory
 open category_theory.instances
@@ -136,16 +136,12 @@ def cocone_morphism (j : J) : F.obj j ⟶ colimit F :=
 { val := cocone_fun F j,
   property := by apply_instance }
 
-section
-local attribute [extensionality] subtype.ext'
 @[simp] lemma cocone_naturality (j j' : J) (f : j ⟶ j') :
   F.map f ≫ (cocone_morphism F j') = cocone_morphism F j :=
 begin
   ext,
-  dsimp,
   apply quot.sound,
   apply relation.map,
-end
 end
 
 def colimit_cocone : cocone F :=
@@ -196,28 +192,25 @@ instance desc_fun_is_morphism (s : cocone F) : is_monoid_hom (desc_fun F s) :=
 { val := desc_fun F s,
   property := by apply_instance }
 
-local attribute [extensionality] subtype.ext'
 def colimit_is_colimit : is_colimit (colimit_cocone F) :=
 { desc := λ s, desc_morphism F s,
   uniq' := λ s m w,
   begin
-    ext, -- TODO write a better ext, for morphisms in concrete categories, that uses the coercion rather than .val
+    ext,
     induction x,
     induction x,
     { dsimp,
-      have w' := congr_fun (congr_arg subtype.val (w x_j)) x_x,
+      have w' := congr_fun (congr_arg (λ f : F.obj x_j ⟶  s.X , (f : F.obj x_j → s.X)) (w x_j)) x_x,
       dsimp at w',
       erw w',
       refl },
     { simp,
-      erw is_monoid_hom.map_one m.val,
-      erw is_monoid_hom.map_one (desc_fun F s),
-      refl },
+      erw is_monoid_hom.map_one ⇑m,
+      erw is_monoid_hom.map_one ⇑(desc_morphism F s), },
     { simp,
-      erw is_monoid_hom.map_mul m.val,
-      erw is_monoid_hom.map_mul (desc_fun F s),
-      rw [x_ih_a, x_ih_a_1],
-      refl },
+      erw is_monoid_hom.map_mul ⇑m,
+      erw is_monoid_hom.map_mul ⇑(desc_morphism F s),
+      rw [x_ih_a, x_ih_a_1], },
     refl
   end }
 

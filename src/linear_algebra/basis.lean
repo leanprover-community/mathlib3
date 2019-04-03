@@ -301,6 +301,14 @@ by  rw [is_basis.repr, linear_map.range, submodule.map_comp,
 lemma is_basis.repr_supported (x) : hs.repr x ∈ lc.supported α s :=
 hs.1.repr_supported ⟨x, _⟩
 
+lemma is_basis.repr_total (x) (hx : x ∈ lc.supported α s) :
+  hs.repr (lc.total α β x) = x :=
+begin
+  rw [← hs.repr_range, linear_map.mem_range] at hx,
+  cases hx with v hv,
+  rw [← hv, hs.total_repr],
+end
+
 lemma is_basis.repr_eq_single {x} : x ∈ s → hs.repr x = finsupp.single x 1 :=
 hs.1.repr_eq_single ⟨x, _⟩
 

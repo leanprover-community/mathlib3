@@ -5,7 +5,7 @@ pull_request_rules:
       - "#changes-requested-reviews-by=0"
       - base=master
       - label=ready-to-merge
-      - approved-reviews-by=@mathlib-maintainers
+      - approved-reviews-by=@leanprover-community/mathlib-maintainers
     actions:
      # delete_head_branch: {}
      merge:

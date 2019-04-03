@@ -6,6 +6,7 @@ Authors: Johan Commelin
 Pointwise addition and multiplication of sets
 -/
 
+import data.set.finite
 import data.set.lattice
 import algebra.group
 import group_theory.subgroup
@@ -45,6 +46,11 @@ lemma pointwise_mul_eq_image [has_mul α] {s t : set α} :
 set.ext $ λ a,
 ⟨ by { rintros ⟨_, _, _, _, rfl⟩, exact ⟨(_, _), mem_prod.mpr ⟨‹_›, ‹_›⟩, rfl⟩ },
   by { rintros ⟨_, _, rfl⟩, exact ⟨_, (mem_prod.mp ‹_›).1, _, (mem_prod.mp ‹_›).2, rfl⟩ }⟩
+
+@[to_additive set.pointwise_add_finite]
+lemma pointwise_mul_finite [has_mul α] {s t : set α} (hs : finite s) (ht : finite t) :
+  finite (s * t) :=
+by { rw pointwise_mul_eq_image, apply set.finite_image, exact set.finite_prod hs ht }
 
 def pointwise_mul_semigroup [semigroup α] : semigroup (set α) :=
 { mul_assoc := λ _ _ _, set.ext $ λ _,

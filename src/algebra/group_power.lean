@@ -582,6 +582,14 @@ calc a ^ n = a ^ n * 1 : (mul_one _).symm
     (pow_nonneg (le_trans zero_le_one ha) _)
   ... = a ^ m : by rw [←hk, pow_add]
 
+lemma pow_lt_pow {a : α} {n m : ℕ} (h : 1 < a) (h2 : n < m) : a ^ n < a ^ m :=
+begin
+  have h' : 1 ≤ a := le_of_lt h,
+  have h'' : 0 < a := lt_trans zero_lt_one h,
+  cases m, cases h2, rw [pow_succ, ←one_mul (a ^ n)],
+  exact mul_lt_mul h (pow_le_pow h' (nat.le_of_lt_succ h2)) (pow_pos h'' _) (le_of_lt h'')
+end
+
 lemma pow_le_pow_of_le_left {a b : α} (ha : 0 ≤ a) (hab : a ≤ b) : ∀ i : ℕ, a^i ≤ b^i
 | 0     := by simp
 | (k+1) := mul_le_mul hab (pow_le_pow_of_le_left _) (pow_nonneg ha _) (le_trans ha hab)

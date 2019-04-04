@@ -4,12 +4,25 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andreas Swerdlow
 -/
 
-import ring_theory.subring
+import ring_theory.subring tactic.library_search
 
-variables {F : Type*} [field F] (S : set F)
+variables {F : Type*} [discrete_field F] (S : set F)
 
 class is_subfield extends is_subring S : Prop :=
 (inv_mem : ∀ {x : F}, x ≠ 0 → x ∈ S → x⁻¹ ∈ S)
+
+instance is_subfield.field [is_subfield S] : discrete_field S :=
+{ inv := λ x, ⟨x⁻¹, if hx0 : x = 0
+    then by erw [hx0, inv_zero]; exact is_add_submonoid.zero_mem _
+    else is_subfield.inv_mem (λ h, hx0 $ subtype.ext.2 h) x.2⟩,
+  zero_ne_one := λ h : 0 = 1, (@zero_ne_one F _) (subtype.ext.1 h),
+  mul_inv_cancel := λ a ha, subtype.ext.2 (mul_inv_cancel 
+    (λ h, ha $ subtype.ext.2 h)),
+  inv_mul_cancel := λ a ha, subtype.ext.2 (inv_mul_cancel 
+    (λ h, ha $ subtype.ext.2 h)),
+  has_decidable_eq := by apply_instance,
+  inv_zero := subtype.ext.2 inv_zero,
+  ..show comm_ring S, by apply_instance }
 
 namespace field
 

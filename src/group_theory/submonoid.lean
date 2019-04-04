@@ -41,6 +41,25 @@ theorem multiplicative.is_submonoid_iff
   {s : set β} : @is_submonoid (multiplicative β) _ s ↔ is_add_submonoid s :=
 ⟨λ ⟨h₁, h₂⟩, ⟨h₁, @h₂⟩, λ h, by resetI; apply_instance⟩
 
+lemma is_submonoid_Union_of_directed {ι : Type*} [hι : nonempty ι]
+  (s : ι → set α) [∀ i, is_submonoid (s i)]
+  (directed : ∀ i j, ∃ k, s i ⊆ s k ∧ s j ⊆ s k) :
+  is_submonoid (⋃i, s i) :=
+{ one_mem := let ⟨i⟩ := hι in set.mem_Union.2 ⟨i, is_submonoid.one_mem _⟩,
+  mul_mem := λ a b ha hb,
+    let ⟨i, hi⟩ := set.mem_Union.1 ha in
+    let ⟨j, hj⟩ := set.mem_Union.1 hb in
+    let ⟨k, hk⟩ := directed i j in
+    set.mem_Union.2 ⟨k, is_submonoid.mul_mem (hk.1 hi) (hk.2 hj)⟩ }
+
+lemma is_add_submonoid_Union_of_directed {ι : Type*} [hι : nonempty ι]
+  (s : ι → set β) [∀ i, is_add_submonoid (s i)]
+  (directed : ∀ i j, ∃ k, s i ⊆ s k ∧ s j ⊆ s k) :
+  is_add_submonoid (⋃i, s i) :=
+multiplicative.is_submonoid_iff.1 $
+  @is_submonoid_Union_of_directed (multiplicative β) _ _ _ s _ directed
+attribute [to_additive is_add_submonoid_Union_of_directed] is_submonoid_Union_of_directed
+
 section powers
 
 def powers (x : α) : set α := {y | ∃ n:ℕ, x^n = y}

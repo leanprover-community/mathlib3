@@ -46,6 +46,13 @@ instance subtype.comm_ring {S : set cR} [is_subring S] : comm_ring (subtype S) :
 instance subring.domain {D : Type*} [integral_domain D] (S : set D) [is_subring S] : integral_domain S :=
 by subtype_instance
 
+lemma is_subring_Union_of_directed {ι : Type*} [hι : nonempty ι]
+  (s : ι → set R) [∀ i, is_subring (s i)]
+  (directed : ∀ i j, ∃ k, s i ⊆ s k ∧ s j ⊆ s k) :
+  is_subring (⋃i, s i) :=
+{ to_is_add_subgroup := is_add_subgroup_Union_of_directed s directed,
+  to_is_submonoid := is_submonoid_Union_of_directed s directed }
+
 namespace ring
 
 def closure (s : set R) := add_group.closure (monoid.closure s)

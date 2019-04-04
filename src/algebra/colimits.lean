@@ -136,13 +136,17 @@ def cocone_morphism (j : J) : F.obj j ⟶ colimit F :=
 { val := cocone_fun F j,
   property := by apply_instance }
 
-@[simp] lemma cocone_naturality (j j' : J) (f : j ⟶ j') :
+@[simp] lemma cocone_naturality {j j' : J} (f : j ⟶ j') :
   F.map f ≫ (cocone_morphism F j') = cocone_morphism F j :=
 begin
   ext,
   apply quot.sound,
   apply relation.map,
 end
+
+@[simp] lemma cocone_naturality_components (j j' : J) (f : j ⟶ j') (x : F.obj j):
+  (F.map f ≫ (cocone_morphism F j')) x = (cocone_morphism F j) x :=
+by rw cocone_naturality
 
 def colimit_cocone : cocone F :=
 { X := colimit F,
@@ -199,9 +203,7 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
     ext,
     induction x,
     induction x,
-    { dsimp,
-      have w' := congr_fun (congr_arg (λ f : F.obj x_j ⟶  s.X , (f : F.obj x_j → s.X)) (w x_j)) x_x,
-      dsimp at w',
+    { have w' := congr_fun (congr_arg (λ f : F.obj x_j ⟶ s.X, (f : F.obj x_j → s.X)) (w x_j)) x_x,
       erw w',
       refl },
     { simp,

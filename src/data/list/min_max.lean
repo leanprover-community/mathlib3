@@ -25,7 +25,7 @@ begin
 end
 
 theorem le_of_foldl_max {a b : α} {l} (h : a ∈ l) : a ≤ foldl max b l := 
-by rw foldl_eq_foldr max_comm max_assoc; apply le_of_foldr_max h 
+by { rw foldl_eq_foldr max_comm max_assoc, apply le_of_foldr_max h }
 
 theorem mem_foldr_max : Π {a : α} {l}, foldr max a l ∈ a :: l
 | a [] := by simp
@@ -40,7 +40,7 @@ begin
 end
 
 theorem mem_foldl_max {a : α} {l} : foldl max a l ∈ a :: l :=
-by rw foldl_eq_foldr max_comm max_assoc; apply mem_foldr_max 
+by { rw foldl_eq_foldr max_comm max_assoc, apply mem_foldr_max }
 
 theorem mem_maximum_aux : Π {l : list α}, l ≠ [] →  maximum_aux l ∈ l
 | [] h := by contradiction
@@ -52,7 +52,7 @@ begin
 end
 
 theorem mem_maximum {l : list α} (h : l ≠ []) : maximum l ∈ l :=
-by dsimp; rw foldl_eq_foldr max_comm max_assoc; apply mem_maximum_aux h
+by { dsimp, rw foldl_eq_foldr max_comm max_assoc, apply mem_maximum_aux h }
 
 theorem le_maximum_aux_of_mem : Π {a : α} {l}, a ∈ l → a ≤ maximum_aux l
 | a [] h := absurd h $ not_mem_nil _
@@ -64,7 +64,7 @@ begin
 end
 
 theorem le_maximum_of_mem {a : α} {l} (h : a ∈ l) : a ≤ maximum l :=
-by dsimp; rw foldl_eq_foldr max_comm max_assoc; apply le_maximum_aux_of_mem h
+by { dsimp, rw foldl_eq_foldr max_comm max_assoc, apply le_maximum_aux_of_mem h }
 
 def maximum_aux_cons : Π {a : α} {l}, l ≠ [] → maximum_aux (a :: l) = max a (maximum_aux l)
 | a [] h := by contradiction

@@ -15,7 +15,6 @@ cache:
     - $HOME/.elan
 
 install:
-  - export LEAN_VERSION=lean-`lean --run scripts/lean_version.lean`
   - |
     if [ ! -d "$HOME/.elan/toolchains/" ]; then
       curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
@@ -30,6 +29,7 @@ install:
   - git clean -d -f -q
   - ./purge_olean.sh
   - rm mathlib.txt || true
+  - export LEAN_VERSION=lean-`lean --run scripts/lean_version.lean`
 
 jobs:
   include:

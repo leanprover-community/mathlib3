@@ -17,10 +17,12 @@ then
 	cd $BASEDIR
 	mkdir -p $HOME/.mathlib/bin || true
 	mkdir -p $HOME/.mathlib/hooks || true
-	cp update-mathlib.py $HOME/.mathlib/bin/update-mathlib
-	cp cache-olean.py $HOME/.mathlib/bin/cache-olean
+	cp auth_github.py          $HOME/.mathlib/bin/
+	cp delayed_interrupt.py    $HOME/.mathlib/bin/
+	cp update-mathlib.py       $HOME/.mathlib/bin/update-mathlib
+	cp cache-olean.py          $HOME/.mathlib/bin/cache-olean
 	cp setup-lean-git-hooks.sh $HOME/.mathlib/bin/setup-lean-git-hooks
-	cp post-commit $HOME/.mathlib/hooks/
+	cp post-commit   $HOME/.mathlib/hooks/
 	cp post-checkout $HOME/.mathlib/hooks/
 	if grep -q ".mathlib/bin" $HOME/.profile
 	then

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andreas Swerdlow
 -/
 
-import ring_theory.subring tactic.library_search
+import ring_theory.subring
 
 variables {F : Type*} [discrete_field F] (S : set F)
 

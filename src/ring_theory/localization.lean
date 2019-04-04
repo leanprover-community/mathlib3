@@ -557,7 +557,7 @@ begin
   rw [equiv.image_eq_preimage, set.preimage, set.mem_set_of_eq,
     mem_non_zero_divisors_iff_ne_zero, mem_non_zero_divisors_iff_ne_zero, ne.def],
   exact ⟨mt (λ h, h.symm ▸ is_ring_hom.map_zero _),
-    mt ((is_add_group_hom.injective_iff _).1 h.to_equiv.symm.bijective.1 _)⟩
+    mt ((is_add_group_hom.injective_iff _).1 h.to_equiv.symm.injective _)⟩
 end
 
 end map

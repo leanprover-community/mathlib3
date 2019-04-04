@@ -6,7 +6,7 @@ Author: Chris Hughes
 The gaussian integers ℤ[i].
 -/
 
-import number_theory.pell data.complex.basic algebra.euclidean_domain algebra.associated
+import data.zsqrtd.basic data.complex.basic algebra.euclidean_domain algebra.associated
 open zsqrtd complex
 
 @[reducible] def gaussian_int : Type := zsqrtd (-1)

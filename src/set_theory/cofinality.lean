@@ -34,7 +34,7 @@ begin
       -coe_fn_coe_base, -coe_fn_coe_trans, principal_seg.coe_coe_fn', initial_seg.coe_coe_fn]⟩⟩ },
   { exact lift_mk_le.{u v (max u v)}.2
     ⟨⟨λ ⟨x, h⟩, ⟨f x, h⟩, λ ⟨x, h₁⟩ ⟨y, h₂⟩ h₃,
-      by congr; injection h₃ with h'; exact f.to_equiv.bijective.1 h'⟩⟩ }
+      by congr; injection h₃ with h'; exact f.to_equiv.injective h'⟩⟩ }
 end
 
 theorem order_iso.cof {α : Type u} {β : Type v} {r s}

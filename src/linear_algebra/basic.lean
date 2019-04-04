@@ -120,14 +120,12 @@ section
 variables (α β)
 include β
 
--- declaring this an instance breaks `real.lean` with reaching max. instance resolution depth
-def endomorphism_ring : ring (β →ₗ[α] β) :=
+instance endomorphism_ring : ring (β →ₗ[α] β) :=
 by refine {mul := (*), one := 1, ..linear_map.add_comm_group, ..};
   { intros, apply linear_map.ext, simp }
 
 /-- The group of invertible linear maps from `β` to itself -/
-def general_linear_group :=
-by haveI := endomorphism_ring α β; exact units (β →ₗ[α] β)
+def general_linear_group := units (β →ₗ[α] β)
 end
 
 section
@@ -916,6 +914,30 @@ submodule.map_smul' f _ a
 
 end linear_map
 
+namespace is_linear_map
+
+lemma is_linear_map_add {α β : Type*} [ring α] [add_comm_group β] [module α β]:
+  is_linear_map α (λ (x : β × β), x.1 + x.2) :=
+begin
+  apply is_linear_map.mk,
+  { intros x y,
+    simp },
+  { intros x y,
+    simp [smul_add] }
+end
+
+lemma is_linear_map_sub {α β : Type*} [ring α] [add_comm_group β] [module α β]:
+  is_linear_map α (λ (x : β × β), x.1 - x.2) :=
+begin
+  apply is_linear_map.mk,
+  { intros x y,
+    simp },
+  { intros x y,
+    simp [smul_add] }
+end
+
+end is_linear_map
+
 namespace submodule
 variables {R:ring α} [add_comm_group β] [add_comm_group γ] [module α β] [module α γ]
 variables (p p' : submodule α β) (q : submodule α γ)
@@ -1142,10 +1164,10 @@ def of_linear (f : β →ₗ[α] γ) (g : γ →ₗ[α] β)
   (x : γ) : (of_linear f g h₁ h₂).symm x = g x := rfl
 
 @[simp] protected theorem ker (f : β ≃ₗ[α] γ) : (f : β →ₗ[α] γ).ker = ⊥ :=
-linear_map.ker_eq_bot.2 f.to_equiv.bijective.1
+linear_map.ker_eq_bot.2 f.to_equiv.injective
 
 @[simp] protected theorem range (f : β ≃ₗ[α] γ) : (f : β →ₗ[α] γ).range = ⊤ :=
-linear_map.range_eq_top.2 f.to_equiv.bijective.2
+linear_map.range_eq_top.2 f.to_equiv.surjective
 
 def of_top (p : submodule α β) (h : p = ⊤) : p ≃ₗ[α] β :=
 { inv_fun   := λ x, ⟨x, h.symm ▸ trivial⟩,
@@ -1176,6 +1198,8 @@ variables [comm_ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group
 variables [module α β] [module α γ] [module α δ]
 include α
 open linear_map
+
+set_option class.instance_max_depth 39
 
 def smul_of_unit (a : units α) : β ≃ₗ[α] β :=
 of_linear ((a:α) • 1 : β →ₗ β) (((a⁻¹ : units α) : α) • 1 : β →ₗ β)

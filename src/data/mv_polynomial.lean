@@ -581,6 +581,50 @@ show rename g (eval₂ C (X ∘ f) p) = _,
 lemma rename_id (p : mv_polynomial β α) : rename id p = p :=
 eval₂_eta p
 
+lemma rename_monomial (f : β → γ) (p : β →₀ ℕ) (a : α) :
+  rename f (monomial p a) = monomial (p.map_domain f) a :=
+begin
+  rw [rename, eval₂_monomial, monomial_eq, finsupp.prod_map_domain_index],
+  { exact assume n, pow_zero _ },
+  { exact assume n i₁ i₂, pow_add _ _ _ }
+end
+
+lemma rename_eq (f : β → γ) (p : mv_polynomial β α) :
+  rename f p = finsupp.map_domain (finsupp.map_domain f) p :=
+begin
+  simp only [rename, eval₂, finsupp.map_domain],
+  congr, ext s a : 2,
+  rw [← monomial, monomial_eq, finsupp.prod_sum_index],
+  congr, ext n i : 2,
+  rw [finsupp.prod_single_index],
+  exact pow_zero _,
+  exact assume a, pow_zero _,
+  exact assume a b c, pow_add _ _ _
+end
+
+lemma injective_rename (f : β → γ) (hf : function.injective f) :
+  function.injective (rename f : mv_polynomial β α → mv_polynomial γ α) :=
+have (rename f : mv_polynomial β α → mv_polynomial γ α) =
+  finsupp.map_domain (finsupp.map_domain f) := funext (rename_eq f),
+begin
+  rw this,
+  exact finsupp.injective_map_domain (finsupp.injective_map_domain hf)
+end
+
+lemma total_degree_rename_le (f : β → γ) (p : mv_polynomial β α) :
+  (p.rename f).total_degree ≤ p.total_degree :=
+finset.sup_le $ assume b,
+  begin
+    assume h,
+    rw rename_eq at h,
+    have h' := finsupp.map_domain_support h,
+    rcases finset.mem_image.1 h' with ⟨s, hs, rfl⟩,
+    rw finsupp.sum_map_domain_index,
+    exact le_trans (le_refl _) (finset.le_sup hs),
+    exact assume _, rfl,
+    exact assume _ _ _, rfl
+  end
+
 end rename
 
 instance rename.is_ring_hom

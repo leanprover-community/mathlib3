@@ -4,11 +4,14 @@ import os.path
 import os
 import sys
 from github import Github
+from git import Repo, InvalidGitRepositoryError
 import toml
 import urllib3
 import certifi
+import configparser
 import tarfile
-
+from delayed_interrupt import DelayedInterrupt
+from auth_github import auth_github
 
 # find root of project and leanpkg.toml
 cwd = os.getcwd()
@@ -43,7 +46,7 @@ if git_url not in ['https://github.com/leanprover/mathlib',
     sys.exit(1)
 
 # download archive
-g = Github()
+g = auth_github()
 print("Querying GitHub...")
 repo = g.get_repo("leanprover-community/mathlib-nightly")
 tags = {tag.name: tag.commit.sha for tag in repo.get_tags()}
@@ -84,5 +87,6 @@ else:
 
 # Extract archive
 print("Extracting nightly...")
-ar = tarfile.open(os.path.join(mathlib_dir, asset.name))
-ar.extractall('_target/deps/mathlib')
+with DelayedInterrupt([signal.SIGTERM, signal.SIGINT]):
+	ar = tarfile.open(os.path.join(mathlib_dir, asset.name))
+	ar.extractall('_target/deps/mathlib')

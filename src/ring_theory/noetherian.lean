@@ -367,7 +367,7 @@ instance is_noetherian_ring_range {R} [comm_ring R] {S} [comm_ring S] (f : R →
 
 theorem is_noetherian_ring_of_ring_equiv (R) [comm_ring R] {S} [comm_ring S]
   (f : R ≃r S) [is_noetherian_ring R] : is_noetherian_ring S :=
-is_noetherian_ring_of_surjective R S f.1 f.1.bijective.2
+is_noetherian_ring_of_surjective R S f.1 f.1.surjective
 
 namespace is_noetherian_ring
 
@@ -418,3 +418,15 @@ is_noetherian_ring.irreducible_induction_on a
         exact associated_mul_mul (by refl) hs.2⟩⟩)
 
 end is_noetherian_ring
+
+namespace submodule
+variables {R : Type*} {A : Type*} [comm_ring R] [ring A] [algebra R A]
+variables (M N : submodule R A)
+
+local attribute [instance] set.pointwise_mul_semiring
+
+theorem fg_mul (hm : M.fg) (hn : N.fg) : (M * N).fg :=
+let ⟨m, hfm, hm⟩ := fg_def.1 hm, ⟨n, hfn, hn⟩ := fg_def.1 hn in
+fg_def.2 ⟨m * n, set.pointwise_mul_finite hfm hfn, span_mul_span R m n ▸ hm ▸ hn ▸ rfl⟩
+
+end submodule

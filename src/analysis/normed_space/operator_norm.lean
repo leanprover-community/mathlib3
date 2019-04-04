@@ -27,12 +27,12 @@ variables [hnfk : normed_field k] [normed_space k E] [normed_space k F]
 include hnfk
 
 def bounded_linear_maps : subspace k (E → F) :=
-{ carrier := {A : E → F | is_bounded_linear_map A},
+{ carrier := {A : E → F | is_bounded_linear_map k A},
   zero := is_bounded_linear_map.zero,
   add := assume A B, is_bounded_linear_map.add,
   smul := assume c A, is_bounded_linear_map.smul c }
 
-local notation `L(` E `,` F `)` := @bounded_linear_maps _ E F _ _ _
+local notation `L(` E `,` F `)` := @bounded_linear_maps k E F _ _ _
 
 /-- Coerce bounded linear maps to functions. -/
 instance bounded_linear_maps.to_fun : has_coe_to_fun $ L(E,F) :=
@@ -69,7 +69,7 @@ section operator_norm
 variables [normed_space ℝ E] [normed_space ℝ F]
 open lattice set
 
-local notation `L(` E `,` F `)` := @bounded_linear_maps _ E F _ _ _
+local notation `L(` E `,` F `)` := @bounded_linear_maps ℝ E F _ _ _
 
 noncomputable def to_linear_map (A : L(E, F)) : linear_map _ E F :=
 {to_fun := A.val, ..A.property}
@@ -105,6 +105,8 @@ show ∥A x∥ ≤ Sup (image (norm ∘ A) {x | ∥x∥ ≤ 1}), from
 let ⟨c, _, _⟩ := (exists_bound A : ∃ c, c > 0 ∧ ∀ x : E, ∥ A x ∥ ≤ c * ∥ x ∥) in
 have ∥A x∥ ∈ (image (norm ∘ A) {x | ∥x∥ ≤ 1}), from mem_image_of_mem _ $ le_of_eq ‹∥x∥ = 1›,
 le_cSup (norm_of_unit_ball_bdd_above A) ‹∥A x∥ ∈ _›
+
+set_option class.instance_max_depth 34
 
 /-- This is the fundamental property of the operator norm: ∥A x∥ ≤ ∥A∥ * ∥x∥. -/
 theorem bounded_by_operator_norm {A : L(E,F)} {x : E} : ∥A x∥ ≤ ∥A∥ * ∥x∥ :=

@@ -592,6 +592,39 @@ calc is_conj a 1 ↔ is_conj 1 a : ⟨is_conj_symm, is_conj_symm⟩
 
 end is_conj
 
+class is_mul_hom {α β : Type*} [has_mul α] [has_mul β] (f : α → β) : Prop :=
+(map_mul : ∀ {x y}, f (x * y) = f x * f y)
+
+class is_add_hom {α β : Type*} [has_add α] [has_add β] (f : α → β) : Prop :=
+(map_add : ∀ {x y}, f (x + y) = f x + f y)
+
+attribute [to_additive is_add_hom] is_mul_hom
+attribute [to_additive is_add_hom.cases_on] is_mul_hom.cases_on
+attribute [to_additive is_add_hom.dcases_on] is_mul_hom.dcases_on
+attribute [to_additive is_add_hom.drec] is_mul_hom.drec
+attribute [to_additive is_add_hom.drec_on] is_mul_hom.drec_on
+attribute [to_additive is_add_hom.map_add] is_mul_hom.map_mul
+attribute [to_additive is_add_hom.mk] is_mul_hom.mk
+attribute [to_additive is_add_hom.rec] is_mul_hom.rec
+attribute [to_additive is_add_hom.rec_on] is_mul_hom.rec_on
+
+namespace is_mul_hom
+variables [has_mul α] [has_mul β] {γ : Type*} [has_mul γ]
+
+@[to_additive is_add_hom.id]
+lemma id : is_mul_hom (id : α → α) := {map_mul := λ _ _, rfl}
+
+@[to_additive is_add_hom.comp]
+lemma comp {f : α → β} {g : β → γ} (hf : is_mul_hom f) (hg : is_mul_hom g) : is_mul_hom (g ∘ f) :=
+⟨λ x y, by show _ = g _ * g _; rw [←hg.map_mul, ←hf.map_mul]⟩
+
+@[to_additive is_add_hom.comp']
+lemma comp' {f : α → β} {g : β → γ} (hf : is_mul_hom f) (hg : is_mul_hom g) :
+  is_mul_hom (λ x, g (f x)) :=
+⟨λ x y, by rw [←hg.map_mul, ←hf.map_mul]⟩
+
+end is_mul_hom
+
 class is_monoid_hom [monoid α] [monoid β] (f : α → β) : Prop :=
 (map_one : f 1 = 1)
 (map_mul : ∀ {x y}, f (x * y) = f x * f y)
@@ -603,6 +636,13 @@ class is_add_monoid_hom [add_monoid α] [add_monoid β] (f : α → β) : Prop :
 attribute [to_additive is_add_monoid_hom] is_monoid_hom
 attribute [to_additive is_add_monoid_hom.map_add] is_monoid_hom.map_mul
 attribute [to_additive is_add_monoid_hom.mk] is_monoid_hom.mk
+attribute [to_additive is_add_monoid_hom.cases_on] is_monoid_hom.cases_on
+attribute [to_additive is_add_monoid_hom.dcases_on] is_monoid_hom.dcases_on
+attribute [to_additive is_add_monoid_hom.rec] is_monoid_hom.rec
+attribute [to_additive is_add_monoid_hom.drec] is_monoid_hom.drec
+attribute [to_additive is_add_monoid_hom.rec_on] is_monoid_hom.rec_on
+attribute [to_additive is_add_monoid_hom.drec_on] is_monoid_hom.drec_on
+attribute [to_additive is_add_monoid_hom.map_zero] is_monoid_hom.map_one
 
 namespace is_monoid_hom
 variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
@@ -610,7 +650,7 @@ variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
 @[to_additive is_add_monoid_hom.id]
 instance id : is_monoid_hom (@id α) := by refine {..}; intros; refl
 
-@[to_additive is_add_monoid_hom.id]
+@[to_additive is_add_monoid_hom.comp]
 instance comp {γ} [monoid γ] (g : β → γ) [is_monoid_hom g] :
   is_monoid_hom (g ∘ f) :=
 { map_mul := λ x y, show g _ = g _ * g _, by rw [map_mul f, map_mul g],
@@ -634,6 +674,12 @@ class is_add_group_hom [add_group α] [add_group β] (f : α → β) : Prop :=
 (add : ∀ a b, f (a + b) = f a + f b)
 
 attribute [to_additive is_add_group_hom] is_group_hom
+attribute [to_additive is_add_group_hom.cases_on] is_group_hom.cases_on
+attribute [to_additive is_add_group_hom.dcases_on] is_group_hom.dcases_on
+attribute [to_additive is_add_group_hom.rec] is_group_hom.rec
+attribute [to_additive is_add_group_hom.drec] is_group_hom.drec
+attribute [to_additive is_add_group_hom.rec_on] is_group_hom.rec_on
+attribute [to_additive is_add_group_hom.drec_on] is_group_hom.drec_on
 attribute [to_additive is_add_group_hom.add] is_group_hom.mul
 attribute [to_additive is_add_group_hom.mk] is_group_hom.mk
 
@@ -644,6 +690,8 @@ instance additive.is_add_group_hom [group α] [group β] (f : α → β) [is_gro
 instance multiplicative.is_group_hom [add_group α] [add_group β] (f : α → β) [is_add_group_hom f] :
   @is_group_hom (multiplicative α) (multiplicative β) _ _ f :=
 ⟨@is_add_group_hom.add α β _ _ f _⟩
+
+attribute [to_additive additive.is_add_group_hom] multiplicative.is_group_hom
 
 namespace is_group_hom
 variables [group α] [group β] (f : α → β) [is_group_hom f]
@@ -744,7 +792,9 @@ is_add_group_hom_add f (λa, - g a)
 attribute [instance] is_add_group_hom_sub
 
 namespace units
-variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
+
+variables {γ : Type*} [monoid α] [monoid β] [monoid γ] (f : α → β) (g : β → γ)
+[is_monoid_hom f] [is_monoid_hom g]
 
 definition map : units α → units β :=
 λ u, ⟨f u.val, f u.inv,
@@ -758,6 +808,12 @@ instance : is_monoid_hom (coe : units α → α) :=
 ⟨by simp, by simp⟩
 
 @[simp] lemma coe_map (u : units α) : (map f u : β) = f u := rfl
+
+@[simp] lemma map_id : map (id : α → α) = id := by ext; refl
+
+lemma map_comp : map (g ∘ f) = map g ∘ map f := rfl
+
+lemma map_comp' : map (λ x, g (f x)) = λ x, map g (map f x) := rfl
 
 end units
 

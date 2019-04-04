@@ -1,6 +1,10 @@
 # mathlib
 
 [![Build Status](https://travis-ci.org/leanprover-community/mathlib.svg?branch=master)](https://travis-ci.org/leanprover-community/mathlib)
+[![Mergify Status][mergify-status]][mergify]
+
+[mergify]: https://mergify.io
+[mergify-status]: https://gh.mergify.io/badges/leanprover-community/mathlib.png?style=cut
 
 ## Lean standard library
 
@@ -32,7 +36,7 @@ curl https://raw.githubusercontent.com/leanprover-community/mathlib/master/scrip
 ```
 
 *Any platform*: in the release section of this page, download
-`mathlib-scripts-###-###-###.tar.gz`, expand it and run `setup-update-mathlib.sh`.
+`mathlib-scripts-###-###-###.tar.gz`, expand it and run `setup-dev-scripts.sh`.
 
 ### Fetch mathlib binaries
 

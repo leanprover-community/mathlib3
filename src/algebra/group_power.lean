@@ -370,12 +370,7 @@ theorem smul (a : α) (n : ℕ) : f (n • a) = n • f a :=
 is_add_monoid_hom.map_smul f a n
 
 theorem gsmul (a : α) (n : ℤ) : f (gsmul n a) = gsmul n (f a) :=
-begin
-  induction n using int.induction_on with z ih z ih,
-  { simp [is_add_group_hom.zero f] },
-  { simp [is_add_group_hom.add f, add_gsmul, ih] },
-  { simp [is_add_group_hom.add f, is_add_group_hom.neg f, add_gsmul, ih] }
-end
+@is_group_hom.gpow (multiplicative α) (multiplicative β) _ _ f _ a n
 
 end is_add_group_hom
 

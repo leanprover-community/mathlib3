@@ -105,10 +105,10 @@ end Top
 
 variables {X : Top.{u}}
 
-instance : small_category (opens X) := by apply_instance
+instance : category (opens X) := category_theory.preorder_category (opens X)
 
 def nbhd (x : X.α) := { U : opens X // x ∈ U }
-def nbhds (x : X.α) : small_category (nbhd x) := begin unfold nbhd, apply_instance end
+def nbhds (x : X.α) : category (nbhd x) := begin unfold nbhd, apply_instance end
 
 end category_theory.instances
 
@@ -121,13 +121,16 @@ namespace topological_space.opens
 def map
   {X Y : Top.{u}} (f : X ⟶ Y) : opens Y ⥤ opens X :=
 { obj := λ U, ⟨ f.val ⁻¹' U, f.property _ U.property ⟩,
-  map := λ U V i, ⟨ ⟨ λ a b, i.down.down b ⟩ ⟩ }.
+  map := λ U V i a b, i b }.
 
 @[simp] lemma map_id_obj (X : Top.{u}) (U : opens X) : (map (𝟙 X)).obj U = U := by tidy
 
 @[simp] def map_id (X : Top.{u}) : map (𝟙 X) ≅ functor.id (opens X) :=
 { hom := { app := λ U, 𝟙 U },
   inv := { app := λ U, 𝟙 U } }
+@[simp] def map_comp {X Y Z : Top.{u}} (f : X ⟶ Y) (g : Y ⟶ Z) : map (f ≫ g) ≅ map g ⋙ map f :=
+{ hom := { app := λ U, 𝟙 _ },
+  inv := { app := λ U, 𝟙 _ } }
 
 -- We could make f g implicit here, but it's nice to be able to see when
 -- they are the identity (often!)

@@ -303,6 +303,11 @@ by library_search
 -- by library_search
 
 
-
+-- An example to try, from James:
+-- c : ℕ,
+-- lH : c > succ n,
+-- snec : succ n ≠ c,
+-- onec : 1 ≠ c
+-- ⊢ c ∣ succ n ↔ c = 1 ∨ c = succ n
 
 end nat

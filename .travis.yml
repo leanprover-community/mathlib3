@@ -2,13 +2,6 @@ language: c
 sudo: false
 os:
     - linux
-# addons:
-#   apt:
-#     # sources:
-#     #   - deadsnakes # source required so it finds the package definition below
-#     packages:
-#       # - python3.6
-#     - python3-pip
 branches:
   except:
     - /^lean-.*$/
@@ -46,7 +39,8 @@ jobs:
       script:
         - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
 
-    - stage: Test
+    - env: TASK="check Lean proofs"
+      stage: Test
       script:
         - leanpkg test
         - lean --recursive --export=mathlib.txt src/
@@ -98,10 +92,7 @@ jobs:
         - cache-olean --fetch
 
     - env: TASK="check dev scripts"
-      sudo: true
-      language: python
-      python:
-        - "3.6"
+      language: sh
       install:
         - git config --global github.oauthtoken $GITHUB_TOKEN
       os:

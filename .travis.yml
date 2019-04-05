@@ -31,11 +31,13 @@ install:
 
 jobs:
   include:
-    - stage: Pre-build-1
+    - env: TASK="check Lean proofs"
+      stage: Pre-build-1
       script:
         - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
 
-    - stage: Pre-build-2
+    - env: TASK="check Lean proofs"
+      stage: Pre-build-2
       script:
         - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
 

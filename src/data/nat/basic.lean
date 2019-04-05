@@ -133,6 +133,9 @@ by rw [←nat.sub_add_cancel h₁, ←nat.sub_add_cancel h₂, w]
 lemma sub_sub_sub_cancel_right {a b c : ℕ} (h₂ : c ≤ b) : (a - c) - (b - c) = a - b :=
 by rw [nat.sub_sub, ←nat.add_sub_assoc h₂, nat.add_sub_cancel_left]
 
+lemma add_sub_cancel_right (n m k : ℕ) : n + (m + k) - k = n + m :=
+by { rw [nat.add_sub_assoc, nat.add_sub_cancel], apply k.le_add_left }
+
 theorem sub_min (n m : ℕ) : n - min n m = n - m :=
 nat.sub_eq_of_eq_add $ by rw [add_comm, sub_add_min]
 

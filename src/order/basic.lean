@@ -275,6 +275,19 @@ classical.or_iff_not_imp_left.2 $ assume h,
   ⟨assume a ha₁, le_of_not_gt $ assume ha₂, h ⟨a, ha₁, ha₂⟩,
     assume a ha₂, le_of_not_gt $ assume ha₁, h ⟨a, ha₁, ha₂⟩⟩
 
+lemma trans_trichotomous_left [is_trans α r] [is_trichotomous α r] {a b c : α} :
+  ¬r b a → r b c → r a c :=
+begin
+  intros h₁ h₂, rcases trichotomous_of r a b with h₃|h₃|h₃,
+  exact trans h₃ h₂, rw h₃, exact h₂, exfalso, exact h₁ h₃
+end
+
+lemma trans_trichotomous_right [is_trans α r] [is_trichotomous α r] {a b c : α} :
+  r a b → ¬r c b → r a c :=
+begin
+  intros h₁ h₂, rcases trichotomous_of r b c with h₃|h₃|h₃,
+  exact trans h₁ h₃, rw ←h₃, exact h₁, exfalso, exact h₂ h₃
+end
 section
 variables {s : β → β → Prop} {t : γ → γ → Prop}
 
@@ -387,6 +400,10 @@ instance is_well_order.is_trans {α} (r : α → α → Prop) [is_well_order α 
 instance is_well_order.is_irrefl {α} (r : α → α → Prop) [is_well_order α r] : is_irrefl α r := by apply_instance
 instance is_well_order.is_asymm {α} (r : α → α → Prop) [is_well_order α r] : is_asymm α r := by apply_instance
 
+noncomputable def decidable_linear_order_of_is_well_order (r : α → α → Prop) [is_well_order α r] :
+  decidable_linear_order α :=
+by { haveI := linear_order_of_STO' r, exact classical.DLO α }
+
 instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty_relation :=
 { trichotomous := λ a b, or.inr $ or.inl $ subsingleton.elim _ _,
   irrefl       := λ a, id,
@@ -423,6 +440,12 @@ instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] : is_w
     { exact prod.lex.right _ _ (trans ab bc) }
   end,
   wf := prod.lex_wf (is_well_order.wf r) (is_well_order.wf s) }
+
+/-- An unbounded or cofinal set -/
+def unbounded (r : α → α → Prop) (s : set α) : Prop := ∀ a, ∃ b ∈ s, ¬ r b a
+/-- A bounded or final set -/
+def bounded (r : α → α → Prop) (s : set α) : Prop := ∃a, ∀ b ∈ s, r b a
+
 
 theorem well_founded.has_min {α} {r : α → α → Prop} (H : well_founded r)
   (p : set α) : p ≠ ∅ → ∃ a ∈ p, ∀ x ∈ p, ¬ r x a :=

@@ -1,10 +1,18 @@
 #!/bin/sh
 export PATH=$HOME/.mathlib/bin:$PATH
-# hooks are sometimes run from git GUIs with a limited environment
-# if python3 isn't available, we don't generate an error; just a message
-if /usr/bin/env python3 -c ""; then
-	echo "Trying to fetch cached olean"
-	cache-olean --fetch
-else
-    echo "'env python3' failed; not running post-checkout hook"
+# SourceTree on OS X provides a defective path that doesn't contain pythong
+# https://jira.atlassian.com/browse/SRCTREE-6540
+export PATH=$PATH:/usr/local/bin
+
+OLD_HEAD=$1
+NEW_HEAD=$2
+CHANGED_BRANCH=$3
+
+if [ "$CHANGED_BRANCH" -eq "1" ]; then
+    if /usr/bin/env python3 -c ""; then
+		echo "Trying to fetch cached olean"
+		cache-olean --fetch
+    else
+        echo "'env python3' failed; not running post-checkout hook"
+    fi
 fi

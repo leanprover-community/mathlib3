@@ -249,6 +249,11 @@ by refine_struct {..}; simp
 instance of_real.is_ring_hom : is_ring_hom (coe : ℝ → ℂ) :=
 by refine_struct {..}; simp
 
+lemma div_re (z w : ℂ) : (z / w).re = z.re * w.re / norm_sq w + z.im * w.im / norm_sq w :=
+by simp [div_eq_mul_inv, mul_assoc]
+lemma div_im (z w : ℂ) : (z / w).im = z.im * w.re / norm_sq w - z.re * w.im / norm_sq w :=
+by simp [div_eq_mul_inv, mul_assoc]
+
 @[simp] lemma of_real_div (r s : ℝ) : ((r / s : ℝ) : ℂ) = r / s :=
 is_field_hom.map_div coe
 

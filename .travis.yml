@@ -4,9 +4,6 @@ go:
 - 1.11.x
 os:
     - linux
-addons:
-    packages:
-        - python3.4
 branches:
   except:
     - /^lean-.*$/
@@ -17,14 +14,7 @@ cache:
     - $TRAVIS_BUILD_DIR/src/
     - $HOME/.elan
 
-before_install:
-  - python3.4 -m venv .venv --without-pip
-  - curl -s https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-  - .venv/bin/python get-pip.py
-
 install:
-  - .venv/bin/python -m pip install toml
-  - export LEAN_VERSION=`.venv/bin/python scripts/lean_version.py`
   - |
     if [ ! -d "$HOME/.elan/toolchains/" ]; then
       curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
@@ -39,22 +29,23 @@ install:
   - git clean -d -f -q
   - ./purge_olean.sh
   - rm mathlib.txt || true
+  - export LEAN_VERSION=lean-`lean --run scripts/lean_version.lean`
 
 jobs:
   include:
     - stage: Pre-build-1
       script:
-        - travis_long "timeout 2400 leanpkg test" || true
+        - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
 
     - stage: Pre-build-2
       script:
-        - travis_long "timeout 2400 leanpkg test" || true
+        - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
 
     - stage: Test
       script:
         - leanpkg test
         - lean --recursive --export=mathlib.txt src/
-        - leanchecker mathlib.txt
+        - travis_long "leanchecker mathlib.txt"
         - sh scripts/deploy_nightly.sh
 
 notifications:

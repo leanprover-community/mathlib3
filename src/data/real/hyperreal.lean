@@ -390,7 +390,7 @@ have h : _ := not_infinite_iff_exist_lt_gt.mp $ not_imp_not.mpr infinite_iff_inf
 Exists.cases_on h $ λ u h', Exists.cases_on h' $ λ t ⟨hu, ht⟩, is_st_iff_abs_sub_lt_delta.mpr $ λ d hd, 
    calc abs (x * y - of (r * s)) 
       = abs (x * y - (of r) * (of s)) : by rw of_mul
-  ... = abs (x * (y - of s) + (x - of r) * (of s)) : by ring
+  ... = abs (x * (y - of s) + (x - of r) * (of s)) : by rw [mul_sub, sub_mul, add_sub, sub_add_cancel]
   ... ≤ abs (x * (y - of s)) + abs ((x - of r) * (of s)) : abs_add _ _
   ... ≤ abs x * abs (y - of s) + abs (x - of r) * abs (of s) : by simp only [abs_mul]
   ... ≤ abs x * of ((d / t) / 2) + of ((d / abs s) / 2) * abs (of s) : by

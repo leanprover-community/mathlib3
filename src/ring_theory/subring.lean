@@ -26,13 +26,14 @@ namespace is_ring_hom
 instance {S : set R} [is_subring S] : is_ring_hom (@subtype.val R S) :=
 by refine {..} ; intros ; refl
 
+instance is_subring_preimage {R : Type u} {S : Type v} [ring R] [ring S]
+  (f : R → S) [is_ring_hom f] (s : set S) [is_subring s] : is_subring (f ⁻¹' s) := {}
+
+instance is_subring_image {R : Type u} {S : Type v} [ring R] [ring S]
+  (f : R → S) [is_ring_hom f] (s : set R) [is_subring s] : is_subring (f '' s) := {}
+
 instance is_subring_set_range {R : Type u} {S : Type v} [ring R] [ring S]
-  (f : R → S) [is_ring_hom f] : is_subring (set.range f) :=
-{ zero_mem := ⟨0, is_ring_hom.map_zero f⟩,
-  one_mem := ⟨1, is_ring_hom.map_one f⟩,
-  neg_mem := λ x ⟨p, hp⟩, ⟨-p, hp ▸ is_ring_hom.map_neg f⟩,
-  add_mem := λ x y ⟨p, hp⟩ ⟨q, hq⟩, ⟨p + q, hp ▸ hq ▸ is_ring_hom.map_add f⟩,
-  mul_mem := λ x y ⟨p, hp⟩ ⟨q, hq⟩, ⟨p * q, hp ▸ hq ▸ is_ring_hom.map_mul f⟩, }
+  (f : R → S) [is_ring_hom f] : is_subring (set.range f) := {}
 
 end is_ring_hom
 

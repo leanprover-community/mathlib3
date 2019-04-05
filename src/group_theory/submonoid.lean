@@ -65,6 +65,27 @@ instance multiples.is_add_submonoid (x : β) : is_add_submonoid (multiples x) :=
 multiplicative.is_submonoid_iff.1 $ powers.is_submonoid _
 attribute [to_additive multiples.is_add_submonoid] powers.is_submonoid
 
+@[to_additive univ.is_add_submonoid]
+instance univ.is_submonoid : is_submonoid (@set.univ α) := by split; simp
+
+@[to_additive preimage.is_add_submonoid]
+instance preimage.is_submonoid {γ : Type*} [monoid γ] (f : α → γ) [is_monoid_hom f]
+  (s : set γ) [is_submonoid s] : is_submonoid (f ⁻¹' s) :=
+{ one_mem := show f 1 ∈ s, by rw is_monoid_hom.map_one f; exact is_submonoid.one_mem s,
+  mul_mem := λ a b (ha : f a ∈ s) (hb : f b ∈ s),
+    show f (a * b) ∈ s, by rw is_monoid_hom.map_mul f; exact is_submonoid.mul_mem ha hb }
+
+@[instance, to_additive image.is_add_submonoid]
+lemma image.is_submonoid {γ : Type*} [monoid γ] (f : α → γ) [is_monoid_hom f]
+  (s : set α) [is_submonoid s] : is_submonoid (f '' s) :=
+{ one_mem := ⟨1, is_submonoid.one_mem s, is_monoid_hom.map_one f⟩,
+  mul_mem := λ a b ⟨x, hx⟩ ⟨y, hy⟩, ⟨x * y, is_submonoid.mul_mem hx.1 hy.1,
+    by rw [is_monoid_hom.map_mul f, hx.2, hy.2]⟩ }
+
+instance range.is_submonoid {γ : Type*} [monoid γ] (f : α → γ) [is_monoid_hom f] :
+  is_submonoid (set.range f) :=
+by rw ← set.image_univ; apply_instance
+
 lemma is_submonoid.pow_mem {a : α} [is_submonoid s] (h : a ∈ s) : ∀ {n : ℕ}, a ^ n ∈ s
 | 0 := is_submonoid.one_mem s
 | (n + 1) := is_submonoid.mul_mem h is_submonoid.pow_mem

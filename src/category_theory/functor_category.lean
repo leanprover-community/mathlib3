@@ -36,12 +36,13 @@ section
 @[simp] lemma id_app (F : C ⥤ D) (X : C) : (𝟙 F : F ⟹ F).app X = 𝟙 (F.obj X) := rfl
 @[simp] lemma comp_app {F G H : C ⥤ D} (α : F ⟶ G) (β : G ⟶ H) (X : C) :
   (α ≫ β).app X = α.app X ≫ β.app X := rfl
+
 end
 
 namespace nat_trans
 -- This section gives two lemmas about natural transformations
 -- between functors into functor categories,
--- spelling them out in components.
+-- spelling them out in components,
 
 include ℰ
 
@@ -52,6 +53,13 @@ lemma app_naturality {F G : C ⥤ (D ⥤ E)} (T : F ⟹ G) (X : C) {Y Z : D} (f 
 lemma naturality_app {F G : C ⥤ (D ⥤ E)} (T : F ⟹ G) (Z : D) {X Y : C} (f : X ⟶ Y) :
   ((F.map f).app Z) ≫ ((T.app Y).app Z) = ((T.app X).app Z) ≫ ((G.map f).app Z) :=
 congr_fun (congr_arg app (T.naturality f)) Z
+
+@[simp] lemma map_vcomp {F : (C ⥤ D) ⥤ E} {G H K : C ⥤ D} {α : G ⟹ H} {β : H ⟹ K} :
+  F.map(α ⊟ β) = F.map α ≫ F.map β :=
+begin
+  rw ←F.map_comp,
+  refl,
+end
 
 end nat_trans
 

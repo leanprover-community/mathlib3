@@ -98,6 +98,8 @@ instance category.opposite : category.{v₁} Cᵒᵖ :=
 @[simp] lemma unop_comp {X Y Z : Cᵒᵖ} {f : X ⟶ Y} {g : Y ⟶ Z} :
   (f ≫ g).unop = g.unop ≫ f.unop := rfl
 @[simp] lemma unop_id {X : Cᵒᵖ} : (𝟙 X).unop = 𝟙 (unop X) := rfl
+@[simp] lemma unop_id_op {X : C} : (𝟙 (op X)).unop = 𝟙 X := rfl
+@[simp] lemma op_id_unop {X : Cᵒᵖ} : (𝟙 (unop X)).op = 𝟙 X := rfl
 
 def op_op : (Cᵒᵖ)ᵒᵖ ⥤ C :=
 { obj := λ X, unop (unop X),
@@ -179,6 +181,18 @@ definition hom : Eᵒᵖ × E ⥤ Type v₁ :=
 end
 
 end functor
+
+
+namespace nat_trans
+
+variables {D : Type u₂} [𝒟 : category.{v₂} D]
+include 𝒟
+variables {F G : C ⥤ D}
+@[simp] protected definition op (α : F ⟹ G) : G.op ⟹ F.op :=
+{ app         := λ X, (α.app (unop X)).op,
+  naturality' := begin tidy, erw α.naturality, refl, end}
+
+end nat_trans
 
 -- TODO the following definitions do not belong here
 

@@ -264,6 +264,9 @@ def subperm (l₁ l₂ : list α) : Prop := ∃ l ~ l₁, l <+ l₂
 
 infix ` <+~ `:50 := subperm
 
+theorem nil_subperm {l : list α} : [] <+~ l := 
+⟨[], perm.nil, by simp⟩ 
+
 theorem perm.subperm_left {l l₁ l₂ : list α} (p : l₁ ~ l₂) : l <+~ l₁ ↔ l <+~ l₂ :=
 suffices ∀ {l₁ l₂ : list α}, l₁ ~ l₂ → l <+~ l₁ → l <+~ l₂,
 from ⟨this p, this p.symm⟩,

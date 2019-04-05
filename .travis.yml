@@ -42,7 +42,7 @@ jobs:
     - env: TASK="check Lean proofs"
       stage: Test
       script:
-        - leanpkg test
+        - travis_long "leanpkg test"
         - lean --recursive --export=mathlib.txt src/
         - travis_long "leanchecker mathlib.txt"
         - sh scripts/deploy_nightly.sh

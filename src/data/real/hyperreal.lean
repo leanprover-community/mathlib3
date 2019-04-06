@@ -118,7 +118,7 @@ theorem not_infinite_of_exist_st {x : ℝ*} : (∃ r : ℝ, is_st x r) → ¬ in
    (λ hip, not_lt_of_lt (hr 2 two_pos).2 (hip $ r + 2))
    (λ hin, not_lt_of_lt (hr 2 two_pos).1 (hin $ r - 2))
 
-theorem is_st_sup {x : ℝ*} (hni : ¬ infinite x) : is_st x (real.Sup {y : ℝ | ↑y < x}) := 
+theorem is_st_Sup {x : ℝ*} (hni : ¬ infinite x) : is_st x (real.Sup {y : ℝ | ↑y < x}) := 
 let S : set ℝ := {y : ℝ | ↑y < x} in
 let R : _ := real.Sup S in
 have hnile : _ := not_forall.mp (not_or_distrib.mp hni).1, 
@@ -135,18 +135,17 @@ have HR₂ : ∃ z : ℝ, ∀ y ∈ S, y ≤ z := ⟨r₂, λ y hy, le_of_lt ((o
     not_lt_of_le (real.le_Sup _ HR₂ hc) ((lt_add_iff_pos_right _).mpr (half_pos hδ)))⟩))
 
 theorem exist_st_of_not_infinite {x : ℝ*} (hni : ¬ infinite x) : ∃ r : ℝ, is_st x r := 
-⟨real.Sup {y : ℝ | ↑y < x}, is_st_sup hni⟩
+⟨real.Sup {y : ℝ | ↑y < x}, is_st_Sup hni⟩
 
-theorem st_eq_sup {x : ℝ*} : st x = real.Sup {y : ℝ | ↑y < x} :=
+theorem st_eq_Sup {x : ℝ*} : st x = real.Sup {y : ℝ | ↑y < x} :=
 begin
 unfold st, split_ifs,
-{ exact is_st_unique (classical.some_spec h) (is_st_sup (not_infinite_of_exist_st h)) },
+{ exact is_st_unique (classical.some_spec h) (is_st_Sup (not_infinite_of_exist_st h)) },
 { cases not_imp_comm.mp exist_st_of_not_infinite h with H H,
   { rw (set.ext (λ i, ⟨λ hi, set.mem_univ i, λ hi, H i⟩) : {y : ℝ | ↑y < x} = set.univ),
     exact (real.Sup_univ).symm },
   { rw (set.ext (λ i, ⟨λ hi, false.elim (not_lt_of_lt (H i) hi), λ hi, false.elim (set.not_mem_empty i hi)⟩) : {y : ℝ | ↑y < x} = ∅),
-    exact (real.Sup_empty).symm }
-}
+    exact (real.Sup_empty).symm } }
 end
 
 theorem exist_st_iff_not_infinite {x : ℝ*} : (∃ r : ℝ, is_st x r) ↔ ¬ infinite x := 

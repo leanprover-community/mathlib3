@@ -674,12 +674,12 @@ begin
       let i := ((E p).to_fun x).1,
       have hip : i < N p := ((E p).to_fun x).2,
       have hiq : i < N q, by rwa Npq at hip,
-      have i' : i = ((E q).to_fun (Ψ x)).1, by { simp [Ψ, (E q).right_inv _], refl },
+      have i' : i = ((E q).to_fun (Ψ x)).1, by { simp [Ψ, (E q).right_inv _] },
       -- introduce j, that codes both y and Φ y in fin (N p) = fin (N q)
       let j := ((E p).to_fun y).1,
       have hjp : j < N p := ((E p).to_fun y).2,
       have hjq : j < N q, by rwa Npq at hjp,
-      have j' : j = ((E q).to_fun (Ψ y)).1, by { simp [Ψ, (E q).right_inv _], refl },
+      have j' : j = ((E q).to_fun (Ψ y)).1, by { simp [Ψ, (E q).right_inv _] },
       -- Express dist x y in terms of F p
       have : (F p).2 ((E p).to_fun x) ((E p).to_fun y) = floor (ε⁻¹ * dist x y),
         by simp only [F, (E p).left_inv _],
@@ -815,12 +815,12 @@ begin
       let i := ((E p).to_fun x).1,
       have hip : i < N p := ((E p).to_fun x).2,
       have hiq : i < N q, by rwa Npq at hip,
-      have i' : i = ((E q).to_fun (Ψ x)).1, by { simp [Ψ, (E q).right_inv _], refl },
+      have i' : i = ((E q).to_fun (Ψ x)).1, by { simp [Ψ, (E q).right_inv _] },
       -- introduce j, that codes both y and Φ y in fin (N p) = fin (N q)
       let j := ((E p).to_fun y).1,
       have hjp : j < N p := ((E p).to_fun y).2,
       have hjq : j < N q, by rwa Npq at hjp,
-      have j' : j = ((E q).to_fun (Ψ y)).1, by { simp [Ψ, (E q).right_inv _], refl },
+      have j' : j = ((E q).to_fun (Ψ y)).1, by { simp [Ψ, (E q).right_inv _] },
       -- Express dist x y in terms of F p
       have Ap : ((F p).2 ⟨i, hip⟩ ⟨j, hjp⟩).1 = (floor (ε⁻¹ * dist x y)).to_nat := calc
         ((F p).2 ⟨i, hip⟩ ⟨j, hjp⟩).1 = ((F p).2 ((E p).to_fun x) ((E p).to_fun y)).1 :

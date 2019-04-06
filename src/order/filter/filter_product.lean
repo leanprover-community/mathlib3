@@ -15,7 +15,7 @@ namespace filter
 
 /-- Two sequences are bigly equal iff the kernel of their difference is in φ -/
 def bigly_equal : setoid (α → β) := 
-⟨ λ a b, {n | a n = b n} ∈ φ.sets,
+⟨ λ a b, {n | a n = b n} ∈ φ,
   λ a, by simp only [eq_self_iff_true, (set.univ_def).symm, univ_sets], 
   λ a b ab, by simpa only [eq_comm], 
   λ a b c ab bc, sets_of_superset φ (inter_sets φ ab bc) (λ n r, eq.trans r.1 r.2)⟩
@@ -35,24 +35,24 @@ def of (b : β): β* := of_seq (function.const α b)
 
 /-- Lift function to filter product -/
 def lift (f : β → β) : β* → β* :=
-  λ x, quotient.lift_on' x (λ a, (of_seq $ λ n, f (a n) : β*)) $
+λ x, quotient.lift_on' x (λ a, (of_seq $ λ n, f (a n) : β*)) $
   λ a b h, quotient.sound' $ show _ ∈ _, by filter_upwards [h] λ i hi, congr_arg _ hi
 
 /-- Lift binary operation to filter product -/
 def lift₂ (f : β → β → β) : β* → β* → β* :=
-  λ x y, quotient.lift_on₂' x y (λ a b, (of_seq $ λ n, f (a n) (b n) : β*)) $
+λ x y, quotient.lift_on₂' x y (λ a b, (of_seq $ λ n, f (a n) (b n) : β*)) $
   λ a₁ a₂ b₁ b₂ h1 h2, quotient.sound' $ show _ ∈ _,
   by filter_upwards [h1, h2] λ i hi1 hi2, congr (congr_arg _ hi1) hi2
 
 /-- Lift properties to filter product -/
 def lift_rel (R : β → Prop) : β* → Prop :=
-  λ x, quotient.lift_on' x (λ a, {i : α | R (a i)} ∈ φ.sets) $ λ a b h, propext 
+λ x, quotient.lift_on' x (λ a, {i : α | R (a i)} ∈ φ) $ λ a b h, propext 
   ⟨ λ ha, by filter_upwards [h, ha] λ i hi hia, by simpa [hi.symm],
     λ hb, by filter_upwards [h, hb] λ i hi hib, by simpa [hi.symm.symm] ⟩
 
 /-- Lift binary relations to filter product -/
 def lift_rel₂ (R : β → β → Prop) : β* → β* → Prop :=
-  λ x y, quotient.lift_on₂' x y (λ a b, {i : α | R (a i) (b i)} ∈ φ.sets) $
+λ x y, quotient.lift_on₂' x y (λ a b, {i : α | R (a i) (b i)} ∈ φ) $
   λ a₁ a₂ b₁ b₂ h₁ h₂, propext 
   ⟨ λ ha, by filter_upwards [h₁, h₂, ha] λ i hi1 hi2 hia, by simpa [hi1.symm, hi2.symm],
     λ hb, by filter_upwards [h₁, h₂, hb] λ i hi1 hi2 hib, by simpa [hi1.symm.symm, hi2.symm.symm] ⟩
@@ -67,7 +67,7 @@ instance [has_neg β] : has_neg β* := { neg := lift has_neg.neg }
 
 instance [add_semigroup β] : add_semigroup β* :=
 { add_assoc := λ x y z, quotient.induction_on₃' x y z $ λ a b c, quotient.sound' $
-    show {n | _+_+_ = _+(_+_)} ∈ _, by simp only [add_assoc, eq_self_iff_true]; exact φ.2, 
+    show {n | _ + _ + _ = _ + (_ + _)} ∈ _, by simp only [add_assoc, eq_self_iff_true]; exact φ.univ_sets, 
   ..filter_product.has_add }
 
 instance [add_left_cancel_semigroup β] : add_left_cancel_semigroup β* :=
@@ -117,7 +117,7 @@ instance [has_inv β] : has_inv β* := { inv := lift has_inv.inv }
 
 instance [semigroup β] : semigroup β* :=
 { mul_assoc := λ x y z, quotient.induction_on₃' x y z $ λ a b c, quotient.sound' $
-    show {n | _*_*_ = _*(_*_)} ∈ _, by simp only [mul_assoc, eq_self_iff_true]; exact φ.2, 
+    show {n | _ * _ * _ = _ * (_ * _)} ∈ _, by simp only [mul_assoc, eq_self_iff_true]; exact φ.univ_sets, 
   ..filter_product.has_mul }
 
 instance [monoid β] : monoid β* :=
@@ -248,11 +248,11 @@ begin
   exact NT rs
 end
 
-theorem of_seq_fun (f g : α → β) (h : β → β) (H : {n : α | f n = h (g n) } ∈ φ.sets) : 
-of_seq f = (lift h) (@of_seq _ _ φ g) := quotient.sound' H
+theorem of_seq_fun (f g : α → β) (h : β → β) (H : {n : α | f n = h (g n) } ∈ φ) : 
+  of_seq f = (lift h) (@of_seq _ _ φ g) := quotient.sound' H
 
-theorem of_seq_fun₂ (f g₁ g₂ : α → β) (h : β → β → β) (H : {n : α | f n = h (g₁ n) (g₂ n) } ∈ φ.sets) : 
-of_seq f = (lift₂ h) (@of_seq _ _ φ g₁) (@of_seq _ _ φ g₂) := quotient.sound' H
+theorem of_seq_fun₂ (f g₁ g₂ : α → β) (h : β → β → β) (H : {n : α | f n = h (g₁ n) (g₂ n) } ∈ φ) : 
+  of_seq f = (lift₂ h) (@of_seq _ _ φ g₁) (@of_seq _ _ φ g₂) := quotient.sound' H
 
 @[simp] lemma of_seq_zero [has_zero β] (f : α → β) : of_seq 0 = (0 : β*) := rfl
 
@@ -270,17 +270,13 @@ lemma of_eq_coe (x : β) : of x = (↑x : β*) := rfl
 
 @[simp] lemma of_id (x : β) : of x = (x : β*) := rfl
 
-lemma of_eq (x y : β) (NT : φ ≠ ⊥) : x = y ↔ of x = (of y : β*) := 
-⟨λ h, by rw h, by apply of_inj NT⟩
+lemma of_eq (x y : β) (NT : φ ≠ ⊥) : x = y ↔ of x = (of y : β*) := ⟨λ h, by rw h, by apply of_inj NT⟩
 
-lemma of_ne (x y : β) (NT : φ ≠ ⊥) : x ≠ y ↔ of x ≠ (of y : β*) := 
-by show ¬ x = y ↔ of x ≠ of y; rwa [of_eq]
+lemma of_ne (x y : β) (NT : φ ≠ ⊥) : x ≠ y ↔ of x ≠ (of y : β*) := by show ¬ x = y ↔ of x ≠ of y; rwa [of_eq]
 
-lemma of_eq_zero [has_zero β] (NT : φ ≠ ⊥) (x : β) : x = 0 ↔ of x = (0 : β*) := 
-of_eq _ _ NT
+lemma of_eq_zero [has_zero β] (NT : φ ≠ ⊥) (x : β) : x = 0 ↔ of x = (0 : β*) := of_eq _ _ NT
 
-lemma of_ne_zero [has_zero β] (NT : φ ≠ ⊥) (x : β) : x ≠ 0 ↔ of x ≠ (0 : β*) :=
-of_ne _ _ NT
+lemma of_ne_zero [has_zero β] (NT : φ ≠ ⊥) (x : β) : x ≠ 0 ↔ of x ≠ (0 : β*) := of_ne _ _ NT
 
 @[simp] lemma of_zero [has_zero β] : of 0 = (0 : β*) := rfl
 

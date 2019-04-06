@@ -4,12 +4,13 @@
 
 import category_theory.isomorphism
 import category_theory.functor_category
+import category_theory.whiskering
 
 open category_theory
 
-namespace category_theory.nat_iso
+universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+namespace category_theory.nat_iso
 
 variables {C : Sort u₁} [𝒞 : category.{v₁} C] {D : Sort u₂} [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
@@ -92,14 +93,33 @@ by tidy
 
 end category_theory.nat_iso
 
-namespace category_theory.functor
+open category_theory
 
-universes u₁ u₂ v₁ v₂
+namespace category_theory.functor
 
 section
 variables {C : Sort u₁} [𝒞 : category.{v₁} C]
           {D : Sort u₂} [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
+
+section
+variables {E : Sort u₃} [ℰ : category.{v₃} E]
+include ℰ
+
+def map_nat_iso {F G : C ⥤ D} (K : D ⥤ E) (α : F ≅ G) : (F ⋙ K) ≅ (G ⋙ K) :=
+nat_iso.of_components
+(λ X, K.map_iso (nat_iso.app α X))
+(λ X Y f,
+  begin
+    dsimp,
+    rw [←functor.map_comp, nat_trans.naturality, functor.map_comp],
+  end)
+
+@[simp] def map_nat_iso_hom {F G : C ⥤ D} (K : D ⥤ E) (α : F ≅ G) : (K.map_nat_iso α).hom = whisker_right α.hom K :=
+rfl
+@[simp] def map_nat_iso_inv {F G : C ⥤ D} (K : D ⥤ E) (α : F ≅ G) : (K.map_nat_iso α).inv = whisker_right α.inv K :=
+rfl
+end
 
 @[simp] protected def id_comp (F : C ⥤ D) : functor.id C ⋙ F ≅ F :=
 { hom := { app := λ X, 𝟙 (F.obj X) },
@@ -108,7 +128,7 @@ include 𝒞 𝒟
 { hom := { app := λ X, 𝟙 (F.obj X) },
   inv := { app := λ X, 𝟙 (F.obj X) } }
 
-universes u₃ v₃ u₄ v₄
+universes v₄ u₄
 
 variables {A : Sort u₃} [𝒜 : category.{v₃} A]
           {B : Sort u₄} [ℬ : category.{v₄} B]

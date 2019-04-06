@@ -353,6 +353,9 @@ theorem Sup_empty : lattice.Sup (∅ : set ℝ) = 0 := dif_neg $ by simp
 theorem Sup_of_not_bdd_above {s : set ℝ} (hs : ¬ bdd_above s) : lattice.Sup s = 0 :=
 dif_neg $ assume h, hs h.2
 
+theorem Sup_univ : real.Sup set.univ = 0 := real.Sup_of_not_bdd_above $ λ h, 
+Exists.dcases_on h $ λ x h', not_le_of_lt (lt_add_one _) $ h' (x + 1) $ set.mem_univ _
+
 theorem Inf_empty : lattice.Inf (∅ : set ℝ) = 0 :=
 show Inf ∅ = 0, by simp [Inf]; exact Sup_empty
 

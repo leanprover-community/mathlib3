@@ -118,7 +118,7 @@ end
 
 end is_bounded_linear_map
 
-set_option class.instance_max_depth 35
+set_option class.instance_max_depth 60
 
 /-- A continuous linear map between normed spaces is bounded when the field is nondiscrete.
 The continuity ensures boundedness on a ball of some radius δ. The nondiscreteness is then

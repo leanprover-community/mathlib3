@@ -144,7 +144,7 @@ mk_app ``id [e] >>= eval_expr α
 -- useful source of random names provided by `mk_fresh_name` into
 -- names which are usable by tactic programs.
 --
--- The returned name has four components.
+-- The returned name has four components which are all strings.
 meta def mk_user_fresh_name : tactic name :=
 do nm ← mk_fresh_name,
    return $ `user__ ++ nm.pop_prefix.sanitize_name ++ `user__

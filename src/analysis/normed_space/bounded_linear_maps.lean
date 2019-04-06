@@ -173,6 +173,22 @@ lemma tendsto (x : E): f →_{x} (f x) :=
 protected theorem continuous : continuous f :=
   continuous_iff_continuous_at.2 (tendsto f)
 
+-- asymptotic properties of bounded linear maps
+section
+  open asymptotics filter
+  variable l : filter E
+
+  theorem is_O_id : is_O f (λ x, x) l :=
+  let ⟨M, Mp, hM⟩ := f.has_pos_bound in
+  ⟨M, Mp, sets_of_superset _ univ_mem_sets $ λ x _, hM x⟩
+
+  theorem is_O_comp (f : F →L[k] G) {g : E → F} : is_O (f ∘ g) g l :=
+    ((f.is_O_id _).comp _).mono (map_le_iff_le_comap.1 lattice.le_top)
+
+  theorem is_O_sub (x : E) : is_O (λ x', f (x' - x)) (λ x', x' - x) l :=
+    is_O_comp _ _
+end
+
 end bounded_linear_map
 
 

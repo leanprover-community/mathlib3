@@ -70,7 +70,7 @@ by { rw[←dist_zero_right], exact dist_eq_zero }
 lemma norm_triangle_sum {β} : ∀(s : finset β) (f : β → α), ∥s.sum f∥ ≤ s.sum (λa, ∥ f a ∥) :=
 finset.le_sum_of_subadditive norm norm_zero norm_triangle
 
-lemma norm_pos_iff (g : α) : ∥ g ∥ > 0 ↔ g ≠ 0 :=
+lemma norm_pos_iff (g : α) : 0 < ∥ g ∥ ↔ g ≠ 0 :=
 begin
   split ; intro h ; rw[←dist_zero_right] at *,
   { exact dist_pos.1 h },
@@ -86,6 +86,15 @@ calc ∥-g∥ = ∥0 - g∥ : by simp
       ... = dist g 0 : dist_comm _ _
       ... = ∥g - 0∥ : (dist_eq_norm g 0)
       ... = ∥g∥ : by simp
+
+lemma norm_reverse_triangle' (a b : α) : ∥a∥ - ∥b∥ ≤ ∥a - b∥ :=
+by simpa using add_le_add (norm_triangle (a - b) (b)) (le_refl (-∥b∥))
+
+lemma norm_reverse_triangle (a b : α) : abs(∥a∥ - ∥b∥) ≤ ∥a - b∥ :=
+suffices -(∥a∥ - ∥b∥) ≤ ∥a - b∥, from abs_le_of_le_of_neg_le (norm_reverse_triangle' a b) this,
+calc -(∥a∥ - ∥b∥) = ∥b∥ - ∥a∥ : by abel
+             ... ≤ ∥b - a∥ : norm_reverse_triangle' b a
+             ... = ∥a - b∥ : by rw ← norm_neg (a - b); simp
 
 lemma norm_triangle_sub {a b : α} : ∥a - b∥ ≤ ∥a∥ + ∥b∥ :=
 by simpa only [sub_eq_add_neg, norm_neg] using norm_triangle a (-b)
@@ -283,6 +292,9 @@ class normed_field (α : Type*) extends has_norm α, discrete_field α, metric_s
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 (norm_mul : ∀ a b, norm (a * b) = norm a * norm b)
 
+class nondiscrete_normed_field (α : Type*) extends normed_field α :=
+(non_trivial : ∃x:α, 1<∥x∥)
+
 instance normed_field.to_normed_ring [i : normed_field α] : normed_ring α :=
 { norm_mul := by finish [i.norm_mul], ..i }
 
@@ -316,10 +328,33 @@ end
 @[simp] lemma norm_inv {α : Type*} [normed_field α] (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ :=
 by simp only [inv_eq_one_div, norm_div, norm_one]
 
+@[simp] lemma norm_fpow {α : Type*} [normed_field α] (a : α) : ∀n : ℤ,
+  ∥a^n∥ = ∥a∥^n
+| (n : ℕ) := norm_pow a n
+| -[1+ n] := by simp [fpow_neg_succ_of_nat]
+
+lemma exists_one_lt_norm (α : Type*) [i : nondiscrete_normed_field α] : ∃x : α, 1 < ∥x∥ :=
+i.non_trivial
+
+lemma exists_norm_lt_one (α : Type*) [nondiscrete_normed_field α] : ∃x : α, 0 < ∥x∥ ∧ ∥x∥ < 1 :=
+begin
+  rcases exists_one_lt_norm α with ⟨y, hy⟩,
+  refine ⟨y⁻¹, _, _⟩,
+  { simp only [inv_eq_zero, ne.def, norm_pos_iff],
+    assume h,
+    rw ← norm_eq_zero at h,
+    rw h at hy,
+    exact lt_irrefl _ (lt_trans zero_lt_one hy) },
+  { simp [inv_lt_one hy] }
+end
+
 instance : normed_field ℝ :=
 { norm := λ x, abs x,
   dist_eq := assume x y, rfl,
   norm_mul := abs_mul }
+
+instance : nondiscrete_normed_field ℝ :=
+{ non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
 
 lemma real.norm_eq_abs (r : ℝ): norm r = abs r := rfl
 
@@ -387,6 +422,33 @@ lemma continuous_smul [topological_space γ] {f : γ → α} {g : γ → E}
   (hf : continuous f) (hg : continuous g) : continuous (λc, f c • g c) :=
 continuous_iff_continuous_at.2 $ assume c,
   tendsto_smul (continuous_iff_continuous_at.1 hf _) (continuous_iff_continuous_at.1 hg _)
+
+/-- If there is a scalar `c` with `∥c∥>1`, then any element can be moved by scalar multiplication to
+any shell of width `∥c∥`. Also recap information on the norm of the rescaling element that shows
+up in applications. -/
+lemma rescale_to_shell {c : α} (hc : 1 < ∥c∥) {ε : ℝ} (εpos : 0 < ε) {x : E} (hx : x ≠ 0) :
+  ∃d:α, d ≠ 0 ∧ ∥d • x∥ ≤ ε ∧ (ε/∥c∥ ≤ ∥d • x∥) ∧ (∥d∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥) :=
+begin
+  have xεpos : 0 < ∥x∥/ε := div_pos_of_pos_of_pos ((norm_pos_iff _).2 hx) εpos,
+  rcases exists_int_pow_near xεpos hc with ⟨n, hn⟩,
+  have cpos : 0 < ∥c∥ := lt_trans (zero_lt_one : (0 :ℝ) < 1) hc,
+  have cnpos : 0 < ∥c^(n+1)∥ := by { rw norm_fpow, exact lt_trans xεpos hn.2 },
+  refine ⟨(c^(n+1))⁻¹, _, _, _, _⟩,
+  show (c ^ (n + 1))⁻¹  ≠ 0,
+    by rwa [ne.def, inv_eq_zero, ← ne.def, ← norm_pos_iff],
+  show ∥(c ^ (n + 1))⁻¹ • x∥ ≤ ε,
+  { rw [norm_smul, norm_inv, ← div_eq_inv_mul, div_le_iff cnpos, mul_comm, norm_fpow],
+    exact (div_le_iff εpos).1 (le_of_lt (hn.2)) },
+  show ε / ∥c∥ ≤ ∥(c ^ (n + 1))⁻¹ • x∥,
+  { rw [div_le_iff cpos, norm_smul, norm_inv, norm_fpow, fpow_add (ne_of_gt cpos),
+        fpow_one, mul_inv', mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
+        one_mul, ← div_eq_inv_mul, le_div_iff (fpow_pos_of_pos cpos _), mul_comm],
+    exact (le_div_iff εpos).1 hn.1 },
+  show ∥(c ^ (n + 1))⁻¹∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥,
+  { have : ε⁻¹ * ∥c∥ * ∥x∥ = ε⁻¹ * ∥x∥ * ∥c∥, by ring,
+    rw [norm_inv, inv_inv', norm_fpow, fpow_add (ne_of_gt cpos), fpow_one, this, ← div_eq_inv_mul],
+    exact mul_le_mul_of_nonneg_right hn.1 (norm_nonneg _) }
+end
 
 instance : normed_space α (E × F) :=
 { norm_smul :=
@@ -487,6 +549,9 @@ instance : normed_field ℂ :=
   dist_eq := λ _ _, rfl,
   norm_mul := complex.abs_mul,
   .. complex.discrete_field }
+
+instance : nondiscrete_normed_field ℂ :=
+{ non_trivial := ⟨2, by simp [norm]; norm_num⟩ }
 
 @[simp] lemma norm_real (r : ℝ) : ∥(r : ℂ)∥ = ∥r∥ := complex.abs_of_real _
 

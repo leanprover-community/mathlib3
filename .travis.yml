@@ -1,12 +1,7 @@
 language: c
 sudo: false
-go:
-- 1.11.x
 os:
     - linux
-addons:
-    packages:
-        - python3.4
 branches:
   except:
     - /^lean-.*$/
@@ -17,14 +12,7 @@ cache:
     - $TRAVIS_BUILD_DIR/src/
     - $HOME/.elan
 
-before_install:
-  - python3.4 -m venv .venv --without-pip
-  - curl -s https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-  - .venv/bin/python get-pip.py
-
 install:
-  - .venv/bin/python -m pip install toml
-  - export LEAN_VERSION=`.venv/bin/python scripts/lean_version.py`
   - |
     if [ ! -d "$HOME/.elan/toolchains/" ]; then
       curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
@@ -39,23 +27,86 @@ install:
   - git clean -d -f -q
   - ./purge_olean.sh
   - rm mathlib.txt || true
+  - export LEAN_VERSION=lean-`lean --run scripts/lean_version.lean`
 
 jobs:
   include:
-    - stage: Pre-build-1
+    - env: TASK="check Lean proofs"
+      stage: Pre-build-1
       script:
-        - travis_long "timeout 2400 leanpkg test" || true
+        - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
 
-    - stage: Pre-build-2
+    - env: TASK="check Lean proofs"
+      stage: Pre-build-2
       script:
-        - travis_long "timeout 2400 leanpkg test" || true
+        - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
 
-    - stage: Test
+    - env: TASK="check Lean proofs"
+      stage: Test
       script:
-        - leanpkg test
+        - travis_long "leanpkg test"
         - lean --recursive --export=mathlib.txt src/
         - travis_long "leanchecker mathlib.txt"
         - sh scripts/deploy_nightly.sh
+
+    - env: TASK="check install scripts"
+      language: python
+      python:
+        - "3.6"
+      install:
+        - git config --global github.oauthtoken $GITHUB_TOKEN
+      os:
+        - linux
+      script:
+        - cp scripts/leanpkg-example.toml leanpkg.toml
+        - sh scripts/remote-install-update-mathlib.sh --global
+        - source $HOME/.profile
+        - update-mathlib
+
+    - env: TASK="check install scripts"
+      language: sh
+      install:
+        - git config --global github.oauthtoken $GITHUB_TOKEN
+      os:
+        - osx
+      script:
+        - cp scripts/leanpkg-example.toml leanpkg.toml
+        - sh scripts/remote-install-update-mathlib.sh
+        - source $HOME/.profile
+        - update-mathlib
+
+    - env: TASK="check dev scripts"
+      sudo: true
+      language: python
+      python:
+        - "3.6"
+      install:
+        - git config --global github.oauthtoken $GITHUB_TOKEN
+      os:
+        - linux
+      script:
+        - cp scripts/leanpkg-example.toml leanpkg.toml
+        - cd scripts
+        - echo y | bash setup-dev-scripts.sh --global
+        - source $HOME/.profile
+        - update-mathlib
+        - cache-olean
+        - cache-olean --fetch
+
+    - env: TASK="check dev scripts"
+      language: sh
+      install:
+        - git config --global github.oauthtoken $GITHUB_TOKEN
+      os:
+        - osx
+      script:
+        - cp scripts/leanpkg-example.toml leanpkg.toml
+        - cd scripts
+        - echo y | bash setup-dev-scripts.sh
+        - source $HOME/.profile
+        - update-mathlib
+        - cache-olean
+        - cache-olean --fetch
 
 notifications:
   webhooks:

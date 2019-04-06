@@ -405,6 +405,15 @@ meta def mk_mvar_list : ℕ → tactic (list expr)
 | 0 := pure []
 | (succ n) := (::) <$> mk_mvar <*> mk_mvar_list n
 
+/-- Returns the only goal, or fails if there isn't just one goal. -/
+meta def get_goal : tactic expr :=
+do gs ← get_goals,
+   match gs with
+   | [a] := return a
+   | []  := fail "there are no goals"
+   | _   := fail "there are too many goals"
+   end
+
 /--`iterate_at_most_on_all_goals n t`: repeat the given tactic at most `n` times on all goals,
 or until it fails. Always succeeds. -/
 meta def iterate_at_most_on_all_goals : nat → tactic unit → tactic unit

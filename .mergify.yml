@@ -7,7 +7,7 @@ pull_request_rules:
       - label=ready-to-merge
       - approved-reviews-by=@leanprover-community/mathlib-maintainers
     actions:
-     # delete_head_branch: {}
+     delete_head_branch: {}
      merge:
         method: squash
         strict: smart

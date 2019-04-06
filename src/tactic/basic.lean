@@ -99,6 +99,12 @@ meta def last : name → string
 | (mk_numeral n _) := repr n
 | anonymous        := "[anonymous]"
 
+meta def length : name → ℕ
+| (mk_string s anonymous) := s.length
+| (mk_string s p)         := s.length + 1 + p.length
+| (mk_numeral n p)        := p.length
+| anonymous               := "[anonymous]".length
+
 end name
 
 namespace environment
@@ -138,7 +144,7 @@ mk_app ``id [e] >>= eval_expr α
 -- useful source of random names provided by `mk_fresh_name` into
 -- names which are usable by tactic programs.
 --
--- The returned name has four components.
+-- The returned name has four components which are all strings.
 meta def mk_user_fresh_name : tactic name :=
 do nm ← mk_fresh_name,
    return $ `user__ ++ nm.pop_prefix.sanitize_name ++ `user__
@@ -399,6 +405,15 @@ meta def mk_mvar_list : ℕ → tactic (list expr)
 | 0 := pure []
 | (succ n) := (::) <$> mk_mvar <*> mk_mvar_list n
 
+/-- Returns the only goal, or fails if there isn't just one goal. -/
+meta def get_goal : tactic expr :=
+do gs ← get_goals,
+   match gs with
+   | [a] := return a
+   | []  := fail "there are no goals"
+   | _   := fail "there are too many goals"
+   end
+
 /--`iterate_at_most_on_all_goals n t`: repeat the given tactic at most `n` times on all goals,
 or until it fails. Always succeeds. -/
 meta def iterate_at_most_on_all_goals : nat → tactic unit → tactic unit
@@ -443,6 +458,41 @@ do h' ← get_local h,
    p ← to_expr p,
    note h none p,
    clear h'
+
+/-- Auxiliary function for `iff_mp` and `iff_mpr`. Takes a name, which should be either `` `iff.mp``
+or `` `iff.mpr``. If the passed expression is an iterated function type eventually producing an
+`iff`, returns an expression with the `iff` converted to either the forwards or backwards
+implication, as requested. -/
+meta def mk_iff_mp_app (iffmp : name) : expr → (nat → expr) → option expr
+| (expr.pi n bi e t) f := expr.lam n bi e <$> mk_iff_mp_app t (λ n, f (n+1) (expr.var n))
+| `(%%a ↔ %%b) f := some $ @expr.const tt iffmp [] a b (f 0)
+| _ f := none
+
+meta def iff_mp_core (e ty: expr) : option expr :=
+mk_iff_mp_app `iff.mp ty (λ_, e)
+
+meta def iff_mpr_core (e ty: expr) : option expr :=
+mk_iff_mp_app `iff.mpr ty (λ_, e)
+
+/-- Given an expression whose type is (a possibly iterated function producing) an `iff`,
+create the expression which is the forward implication. -/
+meta def iff_mp (e : expr) : tactic expr :=
+do t ← infer_type e,
+   iff_mp_core e t <|> fail "Target theorem must have the form `Π x y z, a ↔ b`"
+
+/-- Given an expression whose type is (a possibly iterated function producing) an `iff`,
+create the expression which is the reverse implication. -/
+meta def iff_mpr (e : expr) : tactic expr :=
+do t ← infer_type e,
+   iff_mpr_core e t <|> fail "Target theorem must have the form `Π x y z, a ↔ b`"
+
+/--
+Attempts to apply `e`, and if that fails, if `e` is an `iff`,
+try applying both directions separately.
+-/
+meta def apply_iff (e : expr) : tactic (list (name × expr)) :=
+let ap e := tactic.apply e {new_goals := new_goals.non_dep_only} in
+ap e <|> (iff_mp e >>= ap) <|> (iff_mpr e >>= ap)
 
 meta def symm_apply (e : expr) (cfg : apply_cfg := {}) : tactic (list (name × expr)) :=
 tactic.apply e cfg <|> (symmetry >> tactic.apply e cfg)

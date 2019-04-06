@@ -87,6 +87,15 @@ calc ∥-g∥ = ∥0 - g∥ : by simp
       ... = ∥g - 0∥ : (dist_eq_norm g 0)
       ... = ∥g∥ : by simp
 
+lemma norm_reverse_triangle' (a b : α) : ∥a∥ - ∥b∥ ≤ ∥a - b∥ :=
+by simpa using add_le_add (norm_triangle (a - b) (b)) (le_refl (-∥b∥))
+
+lemma norm_reverse_triangle (a b : α) : abs(∥a∥ - ∥b∥) ≤ ∥a - b∥ :=
+suffices -(∥a∥ - ∥b∥) ≤ ∥a - b∥, from abs_le_of_le_of_neg_le (norm_reverse_triangle' a b) this,
+calc -(∥a∥ - ∥b∥) = ∥b∥ - ∥a∥ : by abel
+             ... ≤ ∥b - a∥ : norm_reverse_triangle' b a
+             ... = ∥a - b∥ : by rw ← norm_neg (a - b); simp
+
 lemma norm_triangle_sub {a b : α} : ∥a - b∥ ≤ ∥a∥ + ∥b∥ :=
 by simpa only [sub_eq_add_neg, norm_neg] using norm_triangle a (-b)
 
@@ -330,7 +339,7 @@ by rw [real.norm_eq_abs, abs_of_nonneg (norm_nonneg _)]
 
 section normed_space
 
-class normed_space (α : out_param $ Type*) (β : Type*) [out_param $ normed_field α]
+class normed_space (α : Type*) (β : Type*) [normed_field α]
   extends normed_group β, vector_space α β :=
 (norm_smul : ∀ (a:α) b, norm (a • b) = has_norm.norm a * norm b)
 
@@ -339,6 +348,8 @@ variables [normed_field α]
 instance normed_field.to_normed_space : normed_space α α :=
 { dist_eq := normed_field.dist_eq,
   norm_smul := normed_field.norm_mul }
+
+set_option class.instance_max_depth 43
 
 lemma norm_smul [normed_space α β] (s : α) (x : β) : ∥s • x∥ = ∥s∥ * ∥x∥ :=
 normed_space.norm_smul s x
@@ -413,15 +424,17 @@ instance fintype.normed_space {ι : Type*} {E : ι → Type*} [fintype ι] [∀i
   ..metric_space_pi,
   ..pi.vector_space α }
 
-/-- A normed space can be build from a norm that satisfies algebraic properties. This is formalised in this structure. -/
+/-- A normed space can be built from a norm that satisfies algebraic properties. This is
+formalised in this structure. -/
 structure normed_space.core (α : Type*) (β : Type*)
-  [out_param $ discrete_field α] [normed_field α] [add_comm_group β] [has_scalar α β] [has_norm β]:=
+  [normed_field α] [add_comm_group β] [has_scalar α β] [has_norm β] :=
 (norm_eq_zero_iff : ∀ x : β, ∥x∥ = 0 ↔ x = 0)
 (norm_smul : ∀ c : α, ∀ x : β, ∥c • x∥ = ∥c∥ * ∥x∥)
 (triangle : ∀ x y : β, ∥x + y∥ ≤ ∥x∥ + ∥y∥)
 
 noncomputable def normed_space.of_core (α : Type*) (β : Type*)
-  [normed_field α] [add_comm_group β] [vector_space α β] [has_norm β] (C : normed_space.core α β) : normed_space α β :=
+  [normed_field α] [add_comm_group β] [vector_space α β] [has_norm β]
+  (C : normed_space.core α β) : normed_space α β :=
 { dist := λ x y, ∥x - y∥,
   dist_eq := assume x y, by refl,
   dist_self := assume x, (C.norm_eq_zero_iff (x - x)).mpr (show x - x = 0, by simp),
@@ -432,8 +445,7 @@ noncomputable def normed_space.of_core (α : Type*) (β : Type*)
   dist_comm := assume x y,
     calc ∥x - y∥ = ∥ -(1 : α) • (y - x)∥ : by simp
              ... = ∥y - x∥ : begin rw[C.norm_smul], simp end,
-  norm_smul := C.norm_smul
-}
+  norm_smul := C.norm_smul }
 
 end normed_space
 

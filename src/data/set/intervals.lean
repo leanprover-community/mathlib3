@@ -251,4 +251,46 @@ set.ext $ by simp [iff_def, Ioo, lt_min_iff, max_lt_iff] {contextual := tt}
 
 end decidable_linear_order
 
+section ordered_comm_group
+
+variables {α : Type*} [ordered_comm_group α]
+
+lemma image_neg_Iio (r : α) : image (λz, -z) (Iio r) = Ioi (-r) :=
+begin
+  apply set.ext,
+  intros z,
+  apply iff.intro,
+  { intros hz,
+    apply exists.elim hz,
+    intros z' hz',
+    rw [←hz'.2],
+    simp at *,
+    exact hz'.1 },
+  { intros hz,
+    simp at *,
+    use -z,
+    simp [hz],
+    exact neg_lt.1 hz }
+end
+
+lemma image_neg_Iic (r : α)  : image (λz, -z) (Iic r) = Ici (-r) :=
+begin
+  apply set.ext,
+  intros z,
+  apply iff.intro,
+  { intros hz,
+    apply exists.elim hz,
+    intros z' hz',
+    rw [←hz'.2],
+    simp at *,
+    exact hz'.1 },
+  { intros hz,
+    simp at *,
+    use -z,
+    simp [hz],
+    exact neg_le.1 hz }
+end
+
+end ordered_comm_group
+
 end set

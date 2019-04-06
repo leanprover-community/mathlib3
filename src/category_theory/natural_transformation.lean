@@ -18,7 +18,7 @@ namespace category_theory
 
 universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
+variables {C : Sort u₁} [𝒞 : category.{v₁} C] {D : Sort u₂} [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
 /--
@@ -28,7 +28,9 @@ The field `app` provides the components of the natural transformation.
 
 Naturality is expressed by `α.naturality_lemma`.
 -/
-structure nat_trans (F G : C ⥤ D) : Type (max u₁ v₂) :=
+-- Unfortunately the universe level here needs a `(max ... 1)`,
+-- so Lean can be sure that we're not in Prop.
+structure nat_trans (F G : C ⥤ D) : Sort (max u₁ v₂ 1) :=
 (app : Π X : C, (F.obj X) ⟶ (G.obj X))
 (naturality' : ∀ {X Y : C} (f : X ⟶ Y), (F.map f) ≫ (app Y) = (app X) ≫ (G.map f) . obviously)
 
@@ -72,7 +74,7 @@ infixr ` ⊟ `:80 := vcomp
 @[simp] lemma vcomp_assoc (α : F ⟹ G) (β : G ⟹ H) (γ : H ⟹ I) : (α ⊟ β) ⊟ γ = α ⊟ (β ⊟ γ) := by tidy
 end
 
-variables {E : Type u₃} [ℰ : category.{v₃} E]
+variables {E : Sort u₃} [ℰ : category.{v₃} E]
 include ℰ
 
 /-- `hcomp α β` is the horizontal composition of natural transformations. -/

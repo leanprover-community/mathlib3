@@ -6,15 +6,15 @@ Authors: Chris Hughes
 import group_theory.group_action group_theory.quotient_group
 import group_theory.order_of_element data.zmod.basic algebra.pi_instances
 
-open equiv fintype finset group_action monoid_action function
+open equiv fintype finset mul_action function
 open equiv.perm is_subgroup list quotient_group
 universes u v w
 variables {G : Type u} {α : Type v} {β : Type w} [group G]
 
 local attribute [instance, priority 0] subtype.fintype set_fintype classical.prop_decidable
 
-namespace group_action
-variables [group_action G α]
+namespace mul_action
+variables [mul_action G α]
 
 lemma mem_fixed_points_iff_card_orbit_eq_one {a : α}
   [fintype (orbit G a)] : a ∈ fixed_points G α ↔ card (orbit G a) = 1 :=
@@ -58,7 +58,7 @@ begin
 end
 ... = _ : by simp; refl
 
-end group_action
+end mul_action
 
 lemma quotient_group.card_preimage_mk [fintype G] (s : set G) [is_subgroup s]
   (t : set (quotient s)) : fintype.card (quotient_group.mk ⁻¹' t) =
@@ -98,11 +98,11 @@ def rotate_vectors_prod_eq_one (G : Type*) [group G] (n : ℕ+) (m : multiplicat
   (v : vectors_prod_eq_one G n) : vectors_prod_eq_one G n :=
 ⟨⟨v.1.to_list.rotate m.1, by simp⟩, prod_rotate_eq_one_of_prod_eq_one v.2 _⟩
 
-instance rotate_vectors_prod_eq_one.is_group_action (n : ℕ+) :
-  group_action (multiplicative (zmod n)) (vectors_prod_eq_one G n) :=
+instance rotate_vectors_prod_eq_one.mul_action (n : ℕ+) :
+  mul_action (multiplicative (zmod n)) (vectors_prod_eq_one G n) :=
 { smul := (rotate_vectors_prod_eq_one G n),
-  one := λ v, subtype.eq $ vector.eq _ _ $ rotate_zero v.1.to_list,
-  mul := λ a b ⟨⟨v, hv₁⟩, hv₂⟩, subtype.eq $ vector.eq _ _ $
+  one_smul := λ v, subtype.eq $ vector.eq _ _ $ rotate_zero v.1.to_list,
+  mul_smul := λ a b ⟨⟨v, hv₁⟩, hv₂⟩, subtype.eq $ vector.eq _ _ $
     show v.rotate ((a + b : zmod n).val) = list.rotate (list.rotate v (b.val)) (a.val),
     by rw [zmod.add_val, rotate_rotate, ← rotate_mod _ (b.1 + a.1), add_comm, hv₁] }
 
@@ -128,7 +128,7 @@ have hcard : card (vectors_prod_eq_one G (n + 1)) = card G ^ (n : ℕ),
     set.card_range_of_injective (mk_vector_prod_eq_one_inj _), card_vector],
 have hzmod : fintype.card (multiplicative (zmod p')) =
   (p' : ℕ) ^ 1 := (nat.pow_one p').symm ▸ card_fin _,
-have hmodeq : _ = _ := @group_action.card_modeq_card_fixed_points
+have hmodeq : _ = _ := @mul_action.card_modeq_card_fixed_points
   (multiplicative (zmod p')) (vectors_prod_eq_one G p') _ _ _ _ _ _ 1 hp hzmod,
 have hdvdcard : p ∣ fintype.card (vectors_prod_eq_one G (n + 1)) :=
   calc p ∣ card G ^ 1 : by rwa nat.pow_one
@@ -157,7 +157,7 @@ let ⟨a, ha⟩ := this in
   (hp.2 _ (order_of_dvd_of_pow_eq_one this)).resolve_left
     (λ h, ha1 (order_of_eq_one_iff.1 h))⟩
 
-open is_subgroup is_submonoid is_group_hom group_action
+open is_subgroup is_submonoid is_group_hom mul_action
 
 lemma mem_fixed_points_mul_left_cosets_iff_mem_normalizer {H : set G} [is_subgroup H] [fintype H]
   {x : G} : (x : quotient H) ∈ fixed_points H (quotient H) ↔ x ∈ normalizer H :=

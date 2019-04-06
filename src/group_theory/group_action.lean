@@ -13,13 +13,24 @@ class has_scalar (α : Type u) (γ : Type v) := (smul : α → γ → γ)
 
 infixr ` • `:73 := has_scalar.smul
 
-class monoid_action (α : Type u) (β : Type v) [monoid α] extends has_scalar α β :=
-(one : ∀ b : β, (1 : α) • b = b)
-(mul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)
+/-- Typeclass for multiplictive actions by monoids. This generalizes group actions. -/
+class mul_action (α : Type u) (β : Type v) [monoid α] extends has_scalar α β :=
+(one_smul : ∀ b : β, (1 : α) • b = b)
+(mul_smul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)
 
-namespace monoid_action
+section
+variables [monoid α] [mul_action α β]
 
-variables (α) [monoid α] [monoid_action α β]
+theorem mul_smul (a₁ a₂ : α) (b : β) : (a₁ * a₂) • b = a₁ • a₂ • b := mul_action.mul_smul _ _ _
+
+variable (α)
+@[simp] theorem one_smul (b : β) : (1 : α) • b = b := mul_action.one_smul α _
+
+end
+
+namespace mul_action
+
+variables (α) [monoid α] [mul_action α β]
 
 def orbit (b : β) := set.range (λ x : α, x • b)
 
@@ -32,7 +43,7 @@ iff.rfl
 ⟨x, rfl⟩
 
 @[simp] lemma mem_orbit_self (b : β) : b ∈ orbit α b :=
-⟨1, by simp [monoid_action.one]⟩
+⟨1, by simp [mul_action.one_smul]⟩
 
 instance orbit_fintype (b : β) [fintype α] [decidable_eq β] :
   fintype (orbit α b) := set.fintype_range _
@@ -62,33 +73,31 @@ lemma mem_fixed_points' {b : β} : b ∈ fixed_points α β ↔
 λ h b, mem_stabilizer_iff.2 (h _ (mem_orbit _ _))⟩
 
 def comp_hom [monoid γ] (g : γ → α) [is_monoid_hom g] :
-  monoid_action γ β :=
+  mul_action γ β :=
 { smul := λ x b, (g x) • b,
-  one := by simp [is_monoid_hom.map_one g, monoid_action.one],
-  mul := by simp [is_monoid_hom.map_mul g, monoid_action.mul] }
+  one_smul := by simp [is_monoid_hom.map_one g, mul_action.one_smul],
+  mul_smul := by simp [is_monoid_hom.map_mul g, mul_action.mul_smul] }
 
-end monoid_action
+end mul_action
 
-class group_action (α : Type u) (β : Type v) [group α] extends monoid_action α β
-
-namespace group_action
-variables [group α] [group_action α β]
+namespace mul_action
+variables [group α] [mul_action α β]
 
 section
-open monoid_action quotient_group
+open mul_action quotient_group
 
 variables (α) (β)
 
 def to_perm (g : α) : equiv.perm β :=
 { to_fun := (•) g,
   inv_fun := (•) g⁻¹,
-  left_inv := λ a, by rw [← monoid_action.mul, inv_mul_self, monoid_action.one],
-  right_inv := λ a, by rw [← monoid_action.mul, mul_inv_self, monoid_action.one] }
+  left_inv := λ a, by rw [← mul_action.mul_smul, inv_mul_self, mul_action.one_smul],
+  right_inv := λ a, by rw [← mul_action.mul_smul, mul_inv_self, mul_action.one_smul] }
 
 variables {α} {β}
 
 instance : is_group_hom (to_perm α β) :=
-{ mul := λ x y, equiv.ext _ _ (λ a, monoid_action.mul x y a) }
+{ mul := λ x y, equiv.ext _ _ (λ a, mul_action.mul_smul x y a) }
 
 lemma bijective (g : α) : function.bijective (λ b : β, g • b) :=
 (to_perm α β g).bijective
@@ -97,25 +106,21 @@ lemma orbit_eq_iff {a b : β} :
    orbit α a = orbit α b ↔ a ∈ orbit α b:=
 ⟨λ h, h ▸ mem_orbit_self _,
 λ ⟨x, (hx : x • b = a)⟩, set.ext (λ c, ⟨λ ⟨y, (hy : y • a = c)⟩, ⟨y * x,
-  show (y * x) • b = c, by rwa [monoid_action.mul, hx]⟩,
+  show (y * x) • b = c, by rwa [mul_action.mul_smul, hx]⟩,
   λ ⟨y, (hy : y • b = c)⟩, ⟨y * x⁻¹,
     show (y * x⁻¹) • a = c, by
       conv {to_rhs, rw [← hy, ← mul_one y, ← inv_mul_self x, ← mul_assoc,
-        monoid_action.mul, hx]}⟩⟩)⟩
+        mul_action.mul_smul, hx]}⟩⟩)⟩
 
 instance (b : β) : is_subgroup (stabilizer α b) :=
-{ one_mem := monoid_action.one _ _,
+{ one_mem := mul_action.one_smul _ _,
   mul_mem := λ x y (hx : x • b = b) (hy : y • b = b),
-    show (x * y) • b = b, by rw monoid_action.mul; simp *,
+    show (x * y) • b = b, by rw mul_action.mul_smul; simp *,
   inv_mem := λ x (hx : x • b = b), show x⁻¹ • b = b,
-    by rw [← hx, ← monoid_action.mul, inv_mul_self, monoid_action.one, hx] }
+    by rw [← hx, ← mul_action.mul_smul, inv_mul_self, mul_action.one_smul, hx] }
 
-variables (β)
 
-def comp_hom [group γ] (g : γ → α) [is_group_hom g] :
-  group_action γ β := { ..monoid_action.comp_hom β g }
-
-variables (α)
+variables (α) (β)
 
 def orbit_rel : setoid β :=
 { r := λ a b, a ∈ orbit α b,
@@ -131,19 +136,19 @@ noncomputable def orbit_equiv_quotient_stabilizer (b : β) :
 equiv.symm (@equiv.of_bijective _ _
   (λ x : quotient (stabilizer α b), quotient.lift_on' x
     (λ x, (⟨x • b, mem_orbit _ _⟩ : orbit α b))
-    (λ g h (H : _ = _), subtype.eq $ (group_action.bijective (g⁻¹)).1
+    (λ g h (H : _ = _), subtype.eq $ (mul_action.bijective (g⁻¹)).1
       $ show g⁻¹ • (g • b) = g⁻¹ • (h • b),
-      by rw [← monoid_action.mul, ← monoid_action.mul,
-        H, inv_mul_self, monoid_action.one]))
+      by rw [← mul_action.mul_smul, ← mul_action.mul_smul,
+        H, inv_mul_self, mul_action.one_smul]))
 ⟨λ g h, quotient.induction_on₂' g h (λ g h H, quotient.sound' $
   have H : g • b = h • b := subtype.mk.inj H,
   show (g⁻¹ * h) • b = b,
-  by rw [monoid_action.mul, ← H, ← monoid_action.mul, inv_mul_self, monoid_action.one]),
+  by rw [mul_action.mul_smul, ← H, ← mul_action.mul_smul, inv_mul_self, mul_action.one_smul]),
   λ ⟨b, ⟨g, hgb⟩⟩, ⟨g, subtype.eq hgb⟩⟩)
 
 end
 
-open quotient_group  monoid_action is_subgroup
+open quotient_group mul_action is_subgroup
 
 def mul_left_cosets (H : set α) [is_subgroup H]
   (x : α) (y : quotient H) : quotient H :=
@@ -151,15 +156,31 @@ quotient.lift_on' y (λ y, quotient_group.mk ((x : α) * y))
   (λ a b (hab : _ ∈ H), quotient_group.eq.2
     (by rwa [mul_inv_rev, ← mul_assoc, mul_assoc (a⁻¹), inv_mul_self, mul_one]))
 
-instance (H : set α) [is_subgroup H] : group_action α (quotient H) :=
+instance (H : set α) [is_subgroup H] : mul_action α (quotient H) :=
 { smul := mul_left_cosets H,
-  one := λ a, quotient.induction_on' a (λ a, quotient_group.eq.2
+  one_smul := λ a, quotient.induction_on' a (λ a, quotient_group.eq.2
     (by simp [is_submonoid.one_mem])),
-  mul := λ x y a, quotient.induction_on' a (λ a, quotient_group.eq.2
+  mul_smul := λ x y a, quotient.induction_on' a (λ a, quotient_group.eq.2
     (by simp [mul_inv_rev, is_submonoid.one_mem, mul_assoc])) }
 
 instance mul_left_cosets_comp_subtype_val (H I : set α) [is_subgroup H] [is_subgroup I] :
-  group_action I (quotient H) :=
-group_action.comp_hom (quotient H) (subtype.val : I → α)
+  mul_action I (quotient H) :=
+mul_action.comp_hom (quotient H) (subtype.val : I → α)
 
-end group_action
+end mul_action
+
+/-- Typeclass for multiplicative actions on additive structures. This generalizes group modules. -/
+class distrib_mul_action (α : Type u) (β : Type v) [monoid α] [add_monoid β] extends mul_action α β :=
+(smul_add : ∀(r : α) (x y : β), r • (x + y) = r • x + r • y)
+(smul_zero {} : ∀(r : α), r • (0 : β) = 0)
+
+section
+variables [monoid α] [add_monoid β] [distrib_mul_action α β]
+
+theorem smul_add (a : α) (b₁ b₂ : β) : a • (b₁ + b₂) = a • b₁ + a • b₂ :=
+distrib_mul_action.smul_add _ _ _
+
+@[simp] theorem smul_zero (a : α) : a • (0 : β) = 0 :=
+distrib_mul_action.smul_zero _
+
+end

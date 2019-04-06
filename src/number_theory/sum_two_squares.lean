@@ -7,7 +7,7 @@ Proof of Fermat's theorem on the sum of two squares. Every prime congruent to 1 
 of two squares
 -/
 
-import data.gaussian_int data.zmod.quadratic_reciprocity ring_theory.principal_ideal_domain
+import data.zsqrtd.gaussian_int data.zmod.quadratic_reciprocity ring_theory.principal_ideal_domain
 
 open gaussian_int principal_ideal_domain zsqrtd
 

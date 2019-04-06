@@ -118,35 +118,37 @@ end
 
 end is_bounded_linear_map
 
-set_option class.instance_max_depth 34
+set_option class.instance_max_depth 35
 
--- Next lemma is stated for real normed space but it would work as soon as the base field is an extension of ℝ
-lemma bounded_continuous_linear_map
-  {E : Type*} [normed_space ℝ E] {F : Type*} [normed_space ℝ F] {L : E → F}
-  (lin : is_linear_map ℝ L) (cont : continuous L) : is_bounded_linear_map ℝ L :=
-let ⟨δ, δ_pos, hδ⟩ := exists_delta_of_continuous cont zero_lt_one 0 in
-have HL0 : L 0 = 0, from (lin.mk' _).map_zero,
-have H : ∀{a}, ∥a∥ ≤ δ → ∥L a∥ < 1, by simpa only [HL0, dist_zero_right] using hδ,
-lin.with_bound (δ⁻¹) $ assume x,
-classical.by_cases (assume : x = 0, by simp only [this, HL0, norm_zero, mul_zero]) $
-assume h : x ≠ 0,
-let p := ∥x∥ * δ⁻¹, q := p⁻¹ in
-have p_inv : p⁻¹ = δ*∥x∥⁻¹, by simp,
-
-have norm_x_pos : ∥x∥ > 0 := (norm_pos_iff x).2 h,
-have norm_x : ∥x∥ ≠ 0 := mt (norm_eq_zero x).1 h,
-
-have p_pos : p > 0 := mul_pos norm_x_pos (inv_pos δ_pos),
-have p0 : _ := ne_of_gt p_pos,
-have q_pos : q > 0 := inv_pos p_pos,
-have q0 : _ := ne_of_gt q_pos,
-
-have ∥p⁻¹ • x∥ = δ := calc
-  ∥p⁻¹ • x∥ = abs p⁻¹ * ∥x∥ : by rw norm_smul; refl
-  ... = p⁻¹ * ∥x∥ : by rw [abs_of_nonneg $ le_of_lt q_pos]
-  ... = δ : by simp [mul_assoc, inv_mul_cancel norm_x],
-
-calc ∥L x∥ = (p * q) * ∥L x∥ : begin dsimp [q], rw [mul_inv_cancel p0, one_mul] end
-  ... = p * ∥L (q • x)∥ : by simp [lin.smul, norm_smul, real.norm_eq_abs, abs_of_pos q_pos, mul_assoc]
-  ... ≤ p * 1 : mul_le_mul_of_nonneg_left (le_of_lt $ H $ le_of_eq $ this) (le_of_lt p_pos)
-  ... = δ⁻¹ * ∥x∥ : by rw [mul_one, mul_comm]
+/-- A continuous linear map between normed spaces is bounded when the field is nondiscrete.
+The continuity ensures boundedness on a ball of some radius δ. The nondiscreteness is then
+used to rescale any element into an element of norm in [δ/C, δ], whose image has a controlled norm.
+The norm control for the original element follows by rescaling. -/
+theorem is_linear_map.bounded_of_continuous_at {k : Type*} [nondiscrete_normed_field k]
+  {E : Type*} [normed_space k E] {F : Type*} [normed_space k F] {L : E → F} {x₀ : E}
+  (lin : is_linear_map k L) (cont : continuous_at L x₀) : is_bounded_linear_map k L :=
+begin
+  rcases tendsto_nhds_nhds.1 cont 1 zero_lt_one with ⟨ε, ε_pos, hε⟩,
+  let δ := ε/2,
+  have δ_pos : δ > 0 := half_pos ε_pos,
+  have H : ∀{a}, ∥a∥ ≤ δ → ∥L a∥ ≤ 1,
+  { assume a ha,
+    have : dist (L (x₀+a)) (L x₀) ≤ 1,
+    { apply le_of_lt (hε _),
+      have : dist x₀ (x₀ + a) = ∥a∥, by { rw dist_eq_norm, simp },
+      rw [dist_comm, this],
+      exact lt_of_le_of_lt ha (half_lt_self ε_pos) },
+    simpa [dist_eq_norm, lin.add] using this },
+  rcases exists_one_lt_norm k with ⟨c, hc⟩,
+  refine lin.with_bound (δ⁻¹ * ∥c∥) (λx, _),
+  by_cases h : x = 0,
+  { simp only [h, lin.map_zero, norm_zero, mul_zero] },
+  { rcases rescale_to_shell hc δ_pos h with ⟨d, hd, dxle, ledx, dinv⟩,
+    calc ∥L x∥
+      = ∥L ((d⁻¹ * d) • x)∥ : by rwa [inv_mul_cancel, one_smul]
+      ... = ∥d∥⁻¹ * ∥L (d • x)∥ :
+        by rw [mul_smul, lin.smul, norm_smul, norm_inv]
+      ... ≤ ∥d∥⁻¹ * 1 :
+        mul_le_mul_of_nonneg_left (H dxle) (by { rw ← norm_inv, exact norm_nonneg _ })
+      ... ≤ δ⁻¹ * ∥c∥ * ∥x∥ : by { rw mul_one, exact dinv } }
+end

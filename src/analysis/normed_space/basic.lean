@@ -87,6 +87,15 @@ calc ∥-g∥ = ∥0 - g∥ : by simp
       ... = ∥g - 0∥ : (dist_eq_norm g 0)
       ... = ∥g∥ : by simp
 
+lemma norm_reverse_triangle' (a b : α) : ∥a∥ - ∥b∥ ≤ ∥a - b∥ :=
+by simpa using add_le_add (norm_triangle (a - b) (b)) (le_refl (-∥b∥))
+
+lemma norm_reverse_triangle (a b : α) : abs(∥a∥ - ∥b∥) ≤ ∥a - b∥ :=
+suffices -(∥a∥ - ∥b∥) ≤ ∥a - b∥, from abs_le_of_le_of_neg_le (norm_reverse_triangle' a b) this,
+calc -(∥a∥ - ∥b∥) = ∥b∥ - ∥a∥ : by abel
+             ... ≤ ∥b - a∥ : norm_reverse_triangle' b a
+             ... = ∥a - b∥ : by rw ← norm_neg (a - b); simp
+
 lemma norm_triangle_sub {a b : α} : ∥a - b∥ ≤ ∥a∥ + ∥b∥ :=
 by simpa only [sub_eq_add_neg, norm_neg] using norm_triangle a (-b)
 

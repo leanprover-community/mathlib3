@@ -10,7 +10,8 @@ import urllib3
 import certifi
 import configparser
 import tarfile
-from delayed_interrupt import DelayedInterrupt
+import signal
+# from delayed_interrupt import DelayedInterrupt
 from auth_github import auth_github
 
 # find root of project and leanpkg.toml
@@ -87,6 +88,6 @@ else:
 
 # Extract archive
 print("Extracting nightly...")
-with DelayedInterrupt([signal.SIGTERM, signal.SIGINT]):
-	ar = tarfile.open(os.path.join(mathlib_dir, asset.name))
-	ar.extractall('_target/deps/mathlib')
+# with DelayedInterrupt([signal.SIGTERM, signal.SIGINT]):
+ar = tarfile.open(os.path.join(mathlib_dir, asset.name))
+ar.extractall('_target/deps/mathlib')

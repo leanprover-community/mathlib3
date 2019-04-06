@@ -498,6 +498,19 @@ def colimit.desc (F : J ⥤ C) [has_colimit F] (c : cocone F) : colimit F ⟶ c.
   colimit.ι F j ≫ colimit.desc F c = c.ι.app j :=
 is_colimit.fac _ c j
 
+/--
+We have lots of lemmas describing how to simplify `colimit.ι F j ≫ _`,
+and combined with `colimit.ext` we rely on these lemmas for many calculations.
+
+However, since `category.assoc` is a `@[simp]` lemma, often expressions are
+right associated, and it's hard to apply these lemmas about `colimit.ι`.
+
+We thus define some additional `@[simp]` lemmas, with an arbitrary extra morphism.
+ -/
+@[simp] lemma colimit.ι_desc_assoc {F : J ⥤ C} [has_colimit F] (c : cocone F) (j : J) {Y : C} (f : c.X ⟶ Y) :
+  colimit.ι F j ≫ colimit.desc F c ≫ f = c.ι.app j ≫ f :=
+by rw [←category.assoc, colimit.ι_desc]
+
 def colimit.cocone_morphism {F : J ⥤ C} [has_colimit F] (c : cocone F) :
   cocone_morphism (colimit.cocone F) c :=
 (colimit.is_colimit F).desc_cocone_morphism c
@@ -541,6 +554,10 @@ colimit.desc (E ⋙ F)
 @[simp] lemma colimit.ι_pre (k : K) : colimit.ι (E ⋙ F) k ≫ colimit.pre F E = colimit.ι F (E.obj k) :=
 by erw is_colimit.fac
 
+@[simp] lemma colimit.ι_pre_assoc (k : K) {Z : C} (f : colimit F ⟶ Z):
+  colimit.ι (E ⋙ F) k ≫ (colimit.pre F E) ≫ f = ((colimit.ι F (E.obj k)) : (E ⋙ F).obj k ⟶ colimit F) ≫ f :=
+by rw [←category.assoc, colimit.ι_pre]
+
 @[simp] lemma colimit.pre_desc (c : cocone F) :
   colimit.pre F E ≫ colimit.desc F c = colimit.desc (E ⋙ F) (c.whisker E) :=
 by ext; rw [←assoc, colimit.ι_pre]; simp
@@ -574,6 +591,10 @@ colimit.desc (F ⋙ G)
 
 @[simp] lemma colimit.ι_post (j : J) : colimit.ι (F ⋙ G) j ≫ colimit.post F G  = G.map (colimit.ι F j) :=
 by erw is_colimit.fac
+
+@[simp] lemma colimit.ι_post_assoc (j : J) {Y : D} (f : G.obj (colimit F) ⟶ Y):
+  colimit.ι (F ⋙ G) j ≫ colimit.post F G  ≫ f = G.map (colimit.ι F j) ≫ f :=
+by rw [←category.assoc, colimit.ι_post]
 
 @[simp] lemma colimit.post_desc (c : cocone F) :
   colimit.post F G ≫ G.map (colimit.desc F c) = colimit.desc (F ⋙ G) (G.map_cocone c) :=
@@ -626,6 +647,10 @@ variables {F} {G : J ⥤ C} (α : F ⟹ G)
 @[simp] lemma colim.ι_map (j : J) : colimit.ι F j ≫ colim.map α = α.app j ≫ colimit.ι G j :=
 by apply is_colimit.fac
 
+@[simp] lemma colim.ι_map_assoc (j : J) {Y : C} (f : colimit G ⟶ Y):
+  colimit.ι F j ≫ colim.map α ≫ f = α.app j ≫ colimit.ι G j ≫ f :=
+by rw [←category.assoc, colim.ι_map, category.assoc]
+
 @[simp] lemma colimit.map_desc (c : cocone G) :
   colim.map α ≫ colimit.desc G c = colimit.desc F ((cocones.precompose α).obj c) :=
 by ext; rw [←assoc, colim.ι_map, assoc, colimit.ι_desc, colimit.ι_desc]; refl
@@ -655,7 +680,7 @@ end
 
 def colim_coyoneda : colim.op ⋙ coyoneda ≅ category_theory.cocones J C :=
 nat_iso.of_components (λ F, nat_iso.of_components (colimit.hom_iso (unop F)) (by tidy))
-  (by {tidy, rw [← category.assoc,← category.assoc], tidy})
+  (by tidy)
 
 end colim_functor
 

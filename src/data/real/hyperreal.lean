@@ -118,21 +118,36 @@ theorem not_infinite_of_exist_st {x : ℝ*} : (∃ r : ℝ, is_st x r) → ¬ in
    (λ hip, not_lt_of_lt (hr 2 two_pos).2 (hip $ r + 2))
    (λ hin, not_lt_of_lt (hr 2 two_pos).1 (hin $ r - 2))
 
-theorem exist_st_of_not_infinite {x : ℝ*} (hni : ¬ infinite x) : ∃ r : ℝ, is_st x r := 
-have hnile : _ := not_forall.mp (not_or_distrib.mp hni).1, 
-have hnige : _ := not_forall.mp (not_or_distrib.mp hni).2,
+theorem is_st_sup {x : ℝ*} (hni : ¬ infinite x) : is_st x (real.Sup {y : ℝ | ↑y < x}) := 
 let S : set ℝ := {y : ℝ | ↑y < x} in
 let R : _ := real.Sup S in
+have hnile : _ := not_forall.mp (not_or_distrib.mp hni).1, 
+have hnige : _ := not_forall.mp (not_or_distrib.mp hni).2,
 Exists.dcases_on hnile (Exists.dcases_on hnige (λ r₁ hr₁ r₂ hr₂,
 have HR₁ : ∃ y : ℝ, y ∈ S := ⟨r₁ - 1, lt_of_lt_of_le (of_lt_of_lt U (sub_one_lt _)) (not_lt.mp hr₁)⟩,
 have HR₂ : ∃ z : ℝ, ∀ y ∈ S, y ≤ z := ⟨r₂, λ y hy, le_of_lt ((of_lt U).mpr (lt_of_lt_of_le hy (not_lt.mp hr₂)))⟩,
-⟨R, λ δ hδ, 
+λ δ hδ, 
   ⟨lt_of_not_ge' (λ c,
     have hc : ∀ y ∈ S, y ≤ R - δ := λ y hy, (of_le U.1).mpr (le_of_lt (lt_of_lt_of_le hy c)),
     not_lt_of_le ((real.Sup_le _ HR₁ HR₂).mpr hc) (sub_lt_self R hδ)), 
    lt_of_not_ge' (λ c,
     have hc : ↑(R + δ / 2) < x := lt_of_lt_of_le (add_lt_add_left (of_lt_of_lt U (half_lt_self hδ)) ↑R) c,
-    not_lt_of_le (real.le_Sup _ HR₂ hc) ((lt_add_iff_pos_right _).mpr (half_pos hδ)))⟩⟩))
+    not_lt_of_le (real.le_Sup _ HR₂ hc) ((lt_add_iff_pos_right _).mpr (half_pos hδ)))⟩))
+
+theorem exist_st_of_not_infinite {x : ℝ*} (hni : ¬ infinite x) : ∃ r : ℝ, is_st x r := 
+⟨real.Sup {y : ℝ | ↑y < x}, is_st_sup hni⟩
+
+theorem st_eq_sup {x : ℝ*} : st x = real.Sup {y : ℝ | ↑y < x} :=
+begin
+unfold st, split_ifs,
+{ exact is_st_unique (classical.some_spec h) (is_st_sup (not_infinite_of_exist_st h)) },
+{ cases not_imp_comm.mp exist_st_of_not_infinite h with H H,
+  { rw (set.ext (λ i, ⟨λ hi, set.mem_univ i, λ hi, H i⟩) : {y : ℝ | ↑y < x} = set.univ),
+    exact (real.Sup_univ).symm },
+  { rw (set.ext (λ i, ⟨λ hi, false.elim (not_lt_of_lt (H i) hi), λ hi, false.elim (set.not_mem_empty i hi)⟩) : {y : ℝ | ↑y < x} = ∅),
+    exact (real.Sup_empty).symm }
+}
+end
 
 theorem exist_st_iff_not_infinite {x : ℝ*} : (∃ r : ℝ, is_st x r) ↔ ¬ infinite x := 
 ⟨ not_infinite_of_exist_st, exist_st_of_not_infinite ⟩

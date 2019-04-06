@@ -183,7 +183,7 @@ tries to determine the type of an expression (since it returns a
 `tactic expr`, it must be chained with either `>>=` or `←`, as explained
 above).
 Next `tactic.unify` which, modulo a couple of optional parameters, takes
-two expressions and succeeds if and only if they are definitionaly equal.
+two expressions and succeeds if and only if they are definitionally equal.
 The first piece of the assumption tactic is a helper function searching
 an expression sharing the type of some expression `e` in a list of
 expressions, returning the first match (or failing if nothing matches).
@@ -240,8 +240,8 @@ do
   l.mmap (λ h, tactic.infer_type h >>= tactic.trace),
   return ()
 ```
-The last line is a bit silly, it's there because what we get from the
-previous line has type `list (tactic unit)`, so it cannot be the final
+The last line is a bit silly: it's there because what we get from the
+previous line has type `list unit`, so it cannot be the final
 piece of our do block. Hence we add `return ()` where `()` is the
 only term of type `unit`. One can also use the tactic `skip` to achieve
 the same goal. This special case is so common that we actually have a
@@ -327,7 +327,7 @@ meta example : (parse ident) = name := rfl
 
 The next improvement to this tactic offers the opportunity to name the new
 local assumption (which is currently named `this`). Such names are
-traditionaly introduced by the token `with`, followed by the desired identifier.
+traditionally introduced by the token `with`, followed by the desired identifier.
 The "followed by" is expressed by the `seq_right` combinator (there is again
 a monad lurking here), with notation `*>`. Parsing a token is introduced by
 `lean.parser.tk` followed by a string which must be taken from a

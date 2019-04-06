@@ -31,6 +31,13 @@ prod.fst $ pop_nth_prefix_aux nm n
 meta def pop_prefix (n : name) : name :=
 pop_nth_prefix n 1
 
+private def from_components_aux : name → list string → name
+| n [] := n
+| n (s :: rest) := from_components_aux (name.mk_string s n) rest
+
+def from_components : list string → name :=
+from_components_aux name.anonymous
+
 -- `name`s can contain numeral pieces, which are not legal names
 -- when typed/passed directly to the parser. We turn an arbitrary
 -- name into a legal identifier name.

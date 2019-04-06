@@ -22,7 +22,7 @@ instance {α : Sort u} {β : Sort v} : has_coe_to_fun (α ↪ β) := ⟨_, embed
 end function
 
 protected def equiv.to_embedding {α : Sort u} {β : Sort v} (f : α ≃ β) : α ↪ β :=
-⟨f, f.bijective.1⟩
+⟨f, f.injective⟩
 
 @[simp] theorem equiv.to_embedding_coe_fn {α : Sort u} {β : Sort v} (f : α ≃ β) :
   (f.to_embedding : α → β) = f := rfl

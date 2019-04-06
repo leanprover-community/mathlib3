@@ -793,6 +793,17 @@ multiset.induction_on s (by simp [is_add_monoid_hom.map_zero f])
   (by simp [is_add_monoid_hom.map_add f] {contextual := tt})
 attribute [to_additive multiset.sum_hom] multiset.prod_hom
 
+lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_comm_monoid β]
+  (f : α → β) (h_zero : f 0 = 0) (h_add : ∀x y, f (x + y) ≤ f x + f y) (s : multiset α) :
+  f s.sum ≤ (s.map f).sum :=
+multiset.induction_on s (le_of_eq h_zero) $
+  assume a s ih, by rw [sum_cons, map_cons, sum_cons];
+    from le_trans (h_add a s.sum) (add_le_add_left' ih)
+
+lemma abs_sum_le_sum_abs [discrete_linear_ordered_field α] {s : multiset α} :
+  abs s.sum ≤ (s.map abs).sum :=
+le_sum_of_subadditive _ abs_zero abs_add s
+
 /- join -/
 
 /-- `join S`, where `S` is a multiset of multisets, is the lift of the list join
@@ -2309,6 +2320,10 @@ quot.induction_on s nodup_erase_dup
 theorem erase_dup_eq_self {s : multiset α} : erase_dup s = s ↔ nodup s :=
 ⟨λ e, e ▸ nodup_erase_dup s,
  quot.induction_on s $ λ l h, congr_arg coe $ erase_dup_eq_self.2 h⟩
+
+theorem erase_dup_eq_zero {s : multiset α} : erase_dup s = 0 ↔ s = 0 :=
+⟨λ h, eq_zero_of_subset_zero $ h ▸ subset_erase_dup _,
+ λ h, h.symm ▸ erase_dup_zero⟩
 
 @[simp] theorem erase_dup_singleton {a : α} : erase_dup (a :: 0) = a :: 0 :=
 erase_dup_eq_self.2 $ nodup_singleton _

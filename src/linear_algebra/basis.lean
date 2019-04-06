@@ -426,6 +426,8 @@ open submodule
 /- TODO: some of the following proofs can generalized with a zero_ne_one predicate type class
    (instead of a data containing type classs) -/
 
+set_option class.instance_max_depth 36
+
 lemma mem_span_insert_exchange : x ∈ span α (insert y s) → x ∉ span α s → y ∈ span α (insert x s) :=
 begin
   simp [mem_span_insert],
@@ -434,6 +436,8 @@ begin
   have a0 : a ≠ 0, {rintro rfl, simp * at *},
   simp [a0, smul_add, smul_smul]
 end
+
+set_option class.instance_max_depth 32
 
 lemma linear_independent_iff_not_mem_span : linear_independent α s ↔ (∀x∈s, x ∉ span α (s \ {x})) :=
 linear_independent_iff_not_smul_mem_span.trans
@@ -586,7 +590,22 @@ begin
     simpa using sub_mem p hy (fp x) },
   { refine subtype.coe_ext.2 _,
     simp [mkf, (submodule.quotient.mk_eq_zero p).2 hy] }
-end.
+end
+
+open fintype
+variables (b : set β) (h : is_basis α b)
+
+noncomputable def equiv_fun_basis [fintype b] : β ≃ (b → α) :=
+calc β ≃ lc.supported α b : (module_equiv_lc h).to_equiv
+   ... ≃ (b →₀ α)         : finsupp.restrict_support_equiv b
+   ... ≃ (b → α)          : finsupp.equiv_fun_on_fintype
+
+theorem vector_space.card_fintype [fintype α] [fintype β] : card β = (card α) ^ (card b) :=
+calc card β = card (b → α)    : card_congr (equiv_fun_basis b h)
+        ... = card α ^ card b : card_fun
+
+theorem vector_space.card_fintype' [fintype α] [fintype β] : ∃ n : ℕ, card β = (card α) ^ n :=
+let ⟨b, hb⟩ := exists_is_basis α β in ⟨card b, vector_space.card_fintype b hb⟩
 
 end vector_space
 

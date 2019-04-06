@@ -61,16 +61,28 @@ instance add_comm_group     [∀ i, add_comm_group     $ f i] : add_comm_group  
 instance ring               [∀ i, ring               $ f i] : ring               (Π i : I, f i) := by pi_instance
 instance comm_ring          [∀ i, comm_ring          $ f i] : comm_ring          (Π i : I, f i) := by pi_instance
 
-instance semimodule   (α) {r : semiring α}       [∀ i, add_comm_monoid $ f i] [∀ i, semimodule α $ f i]   : semimodule α (Π i : I, f i)   :=
+instance mul_action     (α) {m : monoid α}                                      [∀ i, mul_action α $ f i]     : mul_action α (Π i : I, f i) :=
 { smul := λ c f i, c • f i,
-  smul_add := λ c f g, funext $ λ i, smul_add _ _ _,
-  add_smul := λ c f g, funext $ λ i, add_smul _ _ _,
   mul_smul := λ r s f, funext $ λ i, mul_smul _ _ _,
-  one_smul := λ f, funext $ λ i, one_smul α _,
+  one_smul := λ f, funext $ λ i, one_smul α _ }
+
+instance distrib_mul_action (α) {m : monoid α}         [∀ i, add_monoid $ f i]      [∀ i, distrib_mul_action α $ f i] : distrib_mul_action α (Π i : I, f i) :=
+{ smul_zero := λ c, funext $ λ i, smul_zero _,
+  smul_add := λ c f g, funext $ λ i, smul_add _ _ _,
+  ..pi.mul_action _ }
+
+variables (I f)
+
+instance semimodule     (α) {r : semiring α}       [∀ i, add_comm_monoid $ f i] [∀ i, semimodule α $ f i]     : semimodule α (Π i : I, f i) :=
+{ add_smul := λ c f g, funext $ λ i, add_smul _ _ _,
   zero_smul := λ f, funext $ λ i, zero_smul α _,
-  smul_zero := λ c, funext $ λ i, smul_zero _ }
-instance module       (α) {r : ring α}           [∀ i, add_comm_group $ f i]  [∀ i, module α $ f i]       : module α (Π i : I, f i)       := {..pi.semimodule α}
-instance vector_space (α) {r : discrete_field α} [∀ i, add_comm_group $ f i]  [∀ i, vector_space α $ f i] : vector_space α (Π i : I, f i) := {..pi.module α}
+  ..pi.distrib_mul_action _ }
+
+variables {I f}
+
+instance module         (α) {r : ring α}           [∀ i, add_comm_group $ f i]  [∀ i, module α $ f i]         : module α (Π i : I, f i)       := {..pi.semimodule I f α}
+
+instance vector_space   (α) {r : discrete_field α} [∀ i, add_comm_group $ f i]  [∀ i, vector_space α $ f i]   : vector_space α (Π i : I, f i) := {..pi.module α}
 
 instance left_cancel_semigroup [∀ i, left_cancel_semigroup $ f i] : left_cancel_semigroup (Π i : I, f i) :=
 by pi_instance

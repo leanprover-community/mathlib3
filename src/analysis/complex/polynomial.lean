@@ -23,7 +23,7 @@ else ⟨p.coeff 0, by rw [eq_C_of_degree_le_zero (le_of_not_gt hp0)]; simp⟩
 
 /- The following proof uses the method given at
   https://ncatlab.org/nlab/show/fundamental+theorem+of+algebra#classical_fta_via_advanced_calculus -/
-/-- Proof of the fundamental theorem of algebra. Every non constant complex polynomial
+/-- The fundamental theorem of algebra. Every non constant complex polynomial
   has a root -/
 lemma exists_root {f : polynomial ℂ} (hf : 0 < degree f) : ∃ z : ℂ, is_root f z :=
 let ⟨z₀, hz₀⟩ := exists_forall_abs_polynomial_eval_le f in

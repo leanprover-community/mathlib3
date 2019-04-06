@@ -1,9 +1,9 @@
 version: 1.0.{build}
 build: off
-only_commits:
-  files:
-    - scripts/*
-    - appveyor.yml
+# only_commits:
+#   files:
+#     - scripts/*
+#     - appveyor.yml
 
 environment:
   matrix:

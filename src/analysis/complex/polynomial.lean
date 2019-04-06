@@ -7,29 +7,12 @@ import data.polynomial topology.instances.polynomial analysis.complex.exponentia
 
 open complex polynomial metric filter is_absolute_value set lattice
 
-lemma polynomial_tendsto_infinity {α β : Type*} [comm_ring α] [discrete_linear_ordered_field β]
-  (abv : α → β) [is_absolute_value abv] [decidable_eq α] {p : polynomial α} (h : 0 < degree p) :
-  ∀ x : β, ∃ r > 0, ∀ z : α, r < abv z → x < abv (p.eval z) :=
-degree_pos_induction_on p h
-  (λ a ha x, ⟨max (x / abv a) 1, (lt_max_iff.2 (or.inr zero_lt_one)), λ z hz,
-    by simp [max_lt_iff, div_lt_iff' ((abv_pos abv).2 ha), abv_mul abv] at *; tauto⟩)
-  (λ p hp ih x, let ⟨r, hr0, hr⟩ := ih x in
-    ⟨max r 1, lt_max_iff.2 (or.inr zero_lt_one), λ z hz, by rw [eval_mul, eval_X, abv_mul abv];
-        exact lt_of_lt_of_le (hr z (lt_of_le_of_lt (le_max_left _ _) hz))
-          (le_mul_of_ge_one_right (abv_nonneg _ _)
-            (le_trans (le_max_right _ _) (le_of_lt hz)))⟩)
-  (λ p a hp ih x, let ⟨r, hr0, hr⟩ := ih (x + abv a) in
-    ⟨r, hr0, λ z hz, by rw [eval_add, eval_C, ← sub_neg_eq_add];
-      exact lt_of_lt_of_le (lt_sub_iff_add_lt.2
-        (by rw abv_neg abv; exact (hr z hz)))
-        (le_trans (le_abs_self _) (abs_abv_sub_le_abv_sub _ _ _))⟩)
-
 namespace complex
 
 lemma exists_forall_abs_polynomial_eval_le (p : polynomial ℂ) :
   ∃ x, ∀ y, (p.eval x).abs ≤ (p.eval y).abs :=
 if hp0 : 0 < degree p
-then let ⟨r, hr0, hr⟩ := polynomial_tendsto_infinity complex.abs hp0 ((p.eval 0).abs) in
+then let ⟨r, hr0, hr⟩ := polynomial.tendsto_infinity complex.abs hp0 ((p.eval 0).abs) in
   let ⟨x, hx₁, hx₂⟩ := exists_forall_le_of_compact_of_continuous (λ y, (p.eval y).abs)
     (p.continuous_eval.comp continuous_abs)
     (closed_ball 0 r) (proper_space.compact_ball _ _)

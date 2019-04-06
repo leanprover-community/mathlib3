@@ -54,7 +54,7 @@ lemma clauses.unsat_cons (c : clause) (cs : list clause) :
   clause.unsat c → clauses.unsat cs →
   clauses.unsat (c::cs) | h1 h2 h3 :=
 begin
-  simp only [clauses.sat] at h3,
+  unfold clauses.sat at h3,
   rw list.exists_mem_cons_iff at h3,
   cases h3; contradiction,
 end

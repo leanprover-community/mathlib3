@@ -101,16 +101,17 @@ lemma implies_neg_elim_core : ∀ {p : form},
 begin
   form.induce `[intros v h, try {apply h}],
   { cases p with t s t s; try {apply h},
-    { simp only [form.holds, le_and_le_iff_eq.symm, 
-        classical.not_and_distrib, not_le] at h,
-      simp only [form.holds, neg_elim_core, int.add_one_le_iff], 
-      rw or.comm, assumption },
-    { simp only [form.holds, not_le, int.add_one_le_iff] at *, 
-      assumption} },
+    { have : preterm.val v (preterm.add_one t) ≤ preterm.val v s ∨ 
+             preterm.val v (preterm.add_one s) ≤ preterm.val v t,
+      { rw or.comm, 
+        simpa only [form.holds, le_and_le_iff_eq.symm, 
+          classical.not_and_distrib, not_le] using h },
+      simpa only [form.holds, neg_elim_core, int.add_one_le_iff] },
+    simpa only [form.holds, not_le, int.add_one_le_iff] using h },
   { simp only [neg_elim_core], cases h; 
     [{left, apply ihp}, {right, apply ihq}]; 
     assumption }, 
-  { apply and.imp (ihp _) (ihq _) h }
+  apply and.imp (ihp _) (ihq _) h 
 end
 
 def neg_elim : form → form := neg_elim_core ∘ nnf

@@ -465,18 +465,37 @@ def choose (hp : ∃ a, a ∈ l ∧ p a) : α := choose_x p l hp
 
 end choose
 
-def max [decidable_linear_order α] : list α → option α
-| []           := none
-| [a]          := some a
-| (a1::a2::as) := 
-  match max (a2::as) with 
-  | none   := a1
-  | some a := @_root_.max α _ a1 a 
-  end
+namespace func
 
-def imax [inhabited α] [decidable_linear_order α] : list α → α
-| []           := @inhabited.default α _
-| [a]          := a
-| (a1::a2::as) := _root_.max a1 (imax (a2::as))
+/- Definitions for using lists as finite 
+   representations of functions with domain ℕ. -/
+
+@[simp] def set (a' a : α) : list α → ℕ → list α
+| (_::as) 0     := a::as
+| []      0     := [a]
+| (h::as) (k+1) := h::(set as k)
+| []      (k+1) := a'::(set ([] : list α) k)
+
+@[simp] def get (d : α): ℕ → list α → α
+| _ []          := d
+| 0 (a::as)     := a
+| (n+1) (a::as) := get n as
+
+def equiv (a : α) (as1 as2 : list α) : Prop :=
+∀ (m : nat), get a m as1 = get a m as2
+
+def neg [has_neg α] (as : list α) := as.map (λ a, -a) 
+
+@[simp] def pointwise (a' : α) (b' : β) (f : α → β → γ) : list α → list β → list γ 
+| []      []      := []
+| []      (b::bs) := map (f a') (b::bs)
+| (a::as) []      := map (λ x, f x b') (a::as)
+| (a::as) (b::bs) := (f a b)::(pointwise as bs)
+
+def add [has_zero α] [has_add α] : list α → list α → list α := pointwise 0 0 (+)
+
+def sub [has_zero α] [has_sub α] : list α → list α → list α := pointwise 0 0 (λ x y, x - y)
+
+end func
 
 end list

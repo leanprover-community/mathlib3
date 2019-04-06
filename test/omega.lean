@@ -5,7 +5,8 @@ Handbook of Practical Logic and Automated Reasoning.
 
 import tactic.omega
 
-example (x : int) : (x = 5 ∨ x = 7) → 2 < x := by omega 
+
+example (x : int) : (x = 5 ∨ x = 7) → 2 < x := by omega
 example (x : int) : x ≤ -x → x ≤ 0 := by omega
 example : ∀ x y : int, (x ≤ 5 ∧ y ≤ 3) → x + y ≤ 8 := by omega
 example : ∀ (x y z : int), x < y → y < z → x < z := by omega

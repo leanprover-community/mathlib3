@@ -126,7 +126,7 @@ begin
   have h6 : nonnegate c ∈ dnf p,
   { simp only [dnf], rw list.mem_map,
     refine ⟨c,h4,rfl⟩ },
-    refine ⟨h6,_⟩, cases c with eqs les,
+  refine ⟨h6,_⟩, cases c with eqs les,
   simp only [nonnegate, clause.holds],
   constructor, apply h5.left,
   rw list.forall_mem_append,

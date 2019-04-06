@@ -28,11 +28,11 @@ def update (m : nat) (a : α) (v : nat → α) : nat → α
 local notation v `⟨` m `↦` a `⟩` := update m a v
 
 lemma update_eq (m : nat) (a : α) (v : nat → α) : (v ⟨m ↦ a⟩) m = a :=
-by {simp only [update, if_pos rfl]}
+by simp only [update, if_pos rfl]
 
 lemma update_eq_of_ne {m : nat} {a : α} {v : nat → α} (k : nat) :
   k ≠ m → update m a v k = v k :=
-by {intro h1, simp only [update], rw if_neg h1} 
+by {intro h1, unfold update, rw if_neg h1} 
 
 def update_zero (a : α) (v : nat → α) : nat → α
 | 0     := a

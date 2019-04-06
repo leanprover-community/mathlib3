@@ -7,7 +7,7 @@ A tactic which performs Fourier–Motzkin elimination to find
 a contradictory linear combination of input constraints.
 -/
 
-import tactic.omega.term
+import tactic.omega.term data.list.min_max
 
 open list.func
 
@@ -56,7 +56,7 @@ local notation as `{` m `↦` a `;` a' `}` := list.func.set a' a as m
 
 meta def find_scalars (ts : list term) : tactic (list nat) :=
 find_scalars_core
-  (ts.map (λ t : term, t.snd.length)).imax
+  (ts.map (λ t : term, t.snd.length)).maximum
   (ts.map_with_index (λ m t, ([]{m ↦ 1 ; 0}, t)))
 
 end omega

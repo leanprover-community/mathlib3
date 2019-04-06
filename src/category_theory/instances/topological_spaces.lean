@@ -4,14 +4,10 @@
 
 import category_theory.concrete_category
 import category_theory.full_subcategory
-import category_theory.functor_category
 import category_theory.adjunction
 import category_theory.limits.types
-import category_theory.natural_isomorphism
 import category_theory.eq_to_hom
-import topology.basic
 import topology.opens
-import order.galois_connection
 
 open category_theory
 open category_theory.nat_iso
@@ -105,16 +101,10 @@ end Top
 
 variables {X : Top.{u}}
 
--- To avoid mucky about with opposite categories, we just define the morphisms
--- in the direction we're always going to want to use.
 instance : category.{u+1} (opens X) :=
-{ hom  := λ U V, ulift (plift (U ≥ V)),
+{ hom  := λ U V, ulift (plift (U ≤ V)),
   id   := λ X, ⟨ ⟨ le_refl X ⟩ ⟩,
-  comp := λ X Y Z f g, ⟨ ⟨ ge_trans f.down.down g.down.down ⟩ ⟩ }
--- instance : category.{0} (opens X) :=
--- { hom  := λ U V, U ≥ V,
---   id   := λ X, le_refl X,
---   comp := λ X Y Z f g, ge_trans f g }
+  comp := λ X Y Z f g, ⟨ ⟨ le_trans f.down.down g.down.down ⟩ ⟩ }
 
 def nbhds (x : X.α) := { U : opens X // x ∈ U }
 instance nbhds_category (x : X.α) : category (nbhds x) := begin unfold nbhds, apply_instance end
@@ -151,7 +141,6 @@ def map
 def map_iso {X Y : Top.{u}} (f g : X ⟶ Y) (h : f = g) : map f ≅ map g :=
 nat_iso.of_components (λ U, eq_to_iso (congr_fun (congr_arg _ (congr_arg _ h)) _) ) (by obviously)
 
--- @[simp] lemma map_iso_id {X : Top.{u}} (h) : map_iso (𝟙 X) (𝟙 X) h = iso.refl (map _) := rfl
 @[simp] lemma map_iso_refl {X Y : Top.{u}} (f : X ⟶ Y) (h) : map_iso f f h = iso.refl (map _) := rfl
 
 @[simp] lemma map_iso_hom_app {X Y : Top.{u}} (f g : X ⟶ Y) (h : f = g) (U : opens Y) :
@@ -161,6 +150,49 @@ rfl
 @[simp] lemma map_iso_inv_app {X Y : Top.{u}} (f g : X ⟶ Y) (h : f = g) (U : opens Y) :
   (map_iso f g h).inv.app U = eq_to_hom (congr_fun (congr_arg functor.obj (congr_arg map h.symm)) U) :=
 rfl
+
+/-- `opens.map f` gives the functor from open sets in Y to open set in X,
+    given by taking preimages under f. -/
+def op_map
+  {X Y : Top.{u}} (f : X ⟶ Y) : (opens Y)ᵒᵖ ⥤ (opens X)ᵒᵖ :=
+{ obj := λ U, op ⟨ (f.val ⁻¹' (unop U).val), f.property _ (unop U).property ⟩,
+  map := λ U V i, has_hom.hom.op ⟨ ⟨ λ a b, (i.unop).down.down b ⟩ ⟩ }.
+def op_map'
+  {X Y : Top.{u}} (f : X ⟶ Y) : (opens Y)ᵒᵖ ⥤ (opens X)ᵒᵖ := (map f).op
+
+@[simp] lemma op_map_id_obj' {X : Top.{u}} (U) (p) : (op_map (𝟙 X)).obj (op ⟨U, p⟩) = op ⟨U, p⟩ := rfl
+
+@[simp] lemma op_map_id_obj {X : Top.{u}} (U : (opens X)ᵒᵖ) : (op_map (𝟙 X)).obj U = U :=
+begin
+  dsimp [opposite] at U,
+  cases U,
+  refl,
+end
+
+@[simp] def op_map_id (X : Top.{u}) : op_map (𝟙 X) ≅ functor.id (opens X)ᵒᵖ :=
+{ hom := { app := λ U, begin convert 𝟙 U, simp, end },
+  inv := { app := λ U, begin convert 𝟙 U, simp, end } }
+
+@[simp] def op_map_comp {X Y Z : Top.{u}} (f : X ⟶ Y) (g : Y ⟶ Z) : op_map (f ≫ g) ≅ op_map g ⋙ op_map f :=
+{ hom := { app := λ U, 𝟙 _ },
+  inv := { app := λ U, 𝟙 _ } }
+
+-- We could make f g implicit here, but it's nice to be able to see when
+-- they are the identity (often!)
+def op_map_iso {X Y : Top.{u}} (f g : X ⟶ Y) (h : f = g) : op_map f ≅ op_map g :=
+nat_iso.of_components (λ U, eq_to_iso (congr_fun (congr_arg _ (congr_arg _ h)) _) ) (by obviously)
+
+@[simp] lemma op_map_iso_refl {X Y : Top.{u}} (f : X ⟶ Y) (h) : op_map_iso f f h = iso.refl (op_map _) := rfl
+
+@[simp] lemma op_map_iso_hom_app {X Y : Top.{u}} (f g : X ⟶ Y) (h : f = g) (U : (opens Y)ᵒᵖ) :
+  (op_map_iso f g h).hom.app U = eq_to_hom (congr_fun (congr_arg _ (congr_arg op_map h)) _) :=
+rfl
+
+@[simp] lemma op_map_iso_inv_app {X Y : Top.{u}} (f g : X ⟶ Y) (h : f = g) (U : (opens Y)ᵒᵖ) :
+  (op_map_iso f g h).inv.app U = eq_to_hom (congr_fun (congr_arg functor.obj (congr_arg op_map h.symm)) U) :=
+rfl
+
+
 
 end topological_space.opens
 

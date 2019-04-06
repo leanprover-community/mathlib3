@@ -4,6 +4,7 @@
 
 import category_theory.products
 import category_theory.types
+import category_theory.natural_isomorphism
 
 namespace category_theory
 
@@ -188,11 +189,26 @@ namespace nat_trans
 variables {D : Type u₂} [𝒟 : category.{v₂} D]
 include 𝒟
 variables {F G : C ⥤ D}
+
 @[simp] protected definition op (α : F ⟹ G) : G.op ⟹ F.op :=
 { app         := λ X, (α.app (unop X)).op,
-  naturality' := begin tidy, erw α.naturality, refl, end}
+  naturality' := begin tidy, erw α.naturality, refl, end }
 
 end nat_trans
+
+namespace nat_iso
+
+variables {D : Type u₂} [𝒟 : category.{v₂} D]
+include 𝒟
+variables {F G : C ⥤ D}
+
+@[simp] protected definition op (α : F ≅ G) : G.op ≅ F.op :=
+{ hom := nat_trans.op α.hom,
+  inv := nat_trans.op α.inv,
+  hom_inv_id' := begin ext, dsimp, rw ←op_comp, rw inv_hom_id_app, refl, end,
+  inv_hom_id' := begin ext, dsimp, rw ←op_comp, rw hom_inv_id_app, refl, end }
+
+end nat_iso
 
 -- TODO the following definitions do not belong here
 

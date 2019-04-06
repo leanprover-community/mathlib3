@@ -185,7 +185,7 @@ lemma is_st_st' {x : ℝ*} (hx : ¬ infinite x) : is_st x (st x) := is_st_st_of_
 lemma is_st_refl_real (r : ℝ) : is_st r r := 
 λ δ hδ, ⟨sub_lt_self _ (of_lt_of_lt U hδ), (lt_add_of_pos_right _ (of_lt_of_lt U hδ))⟩
 
-lemma st_id_real (r : ℝ) : st r = r := st_of_is_st (is_st_refl_real  r)
+lemma st_id_real (r : ℝ) : st r = r := st_of_is_st (is_st_refl_real r)
 
 lemma eq_of_is_st_real {r s : ℝ} : is_st r s → r = s := is_st_unique (is_st_refl_real r)
 

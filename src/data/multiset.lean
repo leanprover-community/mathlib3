@@ -2321,6 +2321,10 @@ theorem erase_dup_eq_self {s : multiset α} : erase_dup s = s ↔ nodup s :=
 ⟨λ e, e ▸ nodup_erase_dup s,
  quot.induction_on s $ λ l h, congr_arg coe $ erase_dup_eq_self.2 h⟩
 
+theorem erase_dup_eq_zero {s : multiset α} : erase_dup s = 0 ↔ s = 0 :=
+⟨λ h, eq_zero_of_subset_zero $ h ▸ subset_erase_dup _,
+ λ h, h.symm ▸ erase_dup_zero⟩
+
 @[simp] theorem erase_dup_singleton {a : α} : erase_dup (a :: 0) = a :: 0 :=
 erase_dup_eq_self.2 $ nodup_singleton _
 

@@ -10,9 +10,9 @@ namespace category_theory
 universes u₁ v₁ u₂ v₂ u₃ v₃ u₄ v₄
 
 section
-variables (C : Type u₁) [𝒞 : category.{v₁} C]
-          (D : Type u₂) [𝒟 : category.{v₂} D]
-          (E : Type u₃) [ℰ : category.{v₃} E]
+variables (C : Sort u₁) [𝒞 : category.{v₁} C]
+          (D : Sort u₂) [𝒟 : category.{v₂} D]
+          (E : Sort u₃) [ℰ : category.{v₃} E]
 include 𝒞 𝒟 ℰ
 
 def whiskering_left : (C ⥤ D) ⥤ ((D ⥤ E) ⥤ (C ⥤ E)) :=
@@ -72,7 +72,7 @@ rfl
   whisker_right (α ⊟ β) F = (whisker_right α F) ⊟ (whisker_right β F) :=
 ((whiskering_right C D E).obj F).map_comp α β
 
-variables {B : Type u₄} [ℬ : category.{v₄} B]
+variables {B : Sort u₄} [ℬ : category.{v₄} B]
 include ℬ
 
 local attribute [elab_simple] whisker_left whisker_right
@@ -94,8 +94,8 @@ namespace functor
 
 universes u₅ v₅
 
-variables {A : Type u₁} [𝒜 : category.{v₁} A]
-variables {B : Type u₂} [ℬ : category.{v₂} B]
+variables {A : Sort u₁} [𝒜 : category.{v₁} A]
+variables {B : Sort u₂} [ℬ : category.{v₂} B]
 include 𝒜 ℬ
 
 def left_unitor (F : A ⥤ B) : ((functor.id _) ⋙ F) ≅ F :=
@@ -112,8 +112,8 @@ def right_unitor (F : A ⥤ B) : (F ⋙ (functor.id _)) ≅ F :=
 @[simp] lemma right_unitor_hom_app {F : A ⥤ B} {X} : F.right_unitor.hom.app X = 𝟙 _ := rfl
 @[simp] lemma right_unitor_inv_app {F : A ⥤ B} {X} : F.right_unitor.inv.app X = 𝟙 _ := rfl
 
-variables {C : Type u₃} [𝒞 : category.{v₃} C]
-variables {D : Type u₄} [𝒟 : category.{v₄} D]
+variables {C : Sort u₃} [𝒞 : category.{v₃} C]
+variables {D : Sort u₄} [𝒟 : category.{v₄} D]
 include 𝒞 𝒟
 
 def associator (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D) : ((F ⋙ G) ⋙ H) ≅ (F ⋙ (G ⋙ H)) :=
@@ -136,7 +136,7 @@ begin
   simp
 end
 
-variables {E : Type u₅} [ℰ : category.{v₅} E]
+variables {E : Sort u₅} [ℰ : category.{v₅} E]
 include 𝒟 ℰ
 
 variables (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D) (K : D ⥤ E)

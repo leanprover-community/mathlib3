@@ -9,15 +9,18 @@ import tactic.interactive
 namespace category_theory
 
 universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄ -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- Am awkward note on universes:
+-- we need to make sure we're in `Type`, not `Sort`
+-- for both objects and morphisms when taking products.
 
 section
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
+variables (C : Type u₁) [𝒞 : category.{v₁+1} C] (D : Type u₂) [𝒟 : category.{v₂+1} D]
 include 𝒞 𝒟
 
 /--
 `prod C D` gives the cartesian product of two categories.
 -/
-instance prod : category.{max v₁ v₂} (C × D) :=
+instance prod : category.{max (v₁+1) (v₂+1)} (C × D) :=
 { hom     := λ X Y, ((X.1) ⟶ (Y.1)) × ((X.2) ⟶ (Y.2)),
   id      := λ X, ⟨ 𝟙 (X.1), 𝟙 (X.2) ⟩,
   comp    := λ _ _ _ f g, (f.1 ≫ g.1, f.2 ≫ g.2) }
@@ -35,7 +38,7 @@ instance prod : category.{max v₁ v₂} (C × D) :=
 end
 
 section
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₁) [𝒟 : category.{v₁} D]
+variables (C : Type u₁) [𝒞 : category.{v₁+1} C] (D : Type u₁) [𝒟 : category.{v₁+1} D]
 include 𝒞 𝒟
 /--
 `prod.category.uniform C D` is an additional instance specialised so both factors have the same universe levels. This helps typeclass resolution.
@@ -46,7 +49,7 @@ end
 
 namespace prod
 
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
+variables (C : Type u₁) [𝒞 : category.{v₁+1} C] (D : Type u₂) [𝒟 : category.{v₂+1} D]
 include 𝒞 𝒟
 
 /-- `inl C Z` is the functor `X ↦ (X, Z)`. -/
@@ -84,7 +87,7 @@ def symmetry : swap C D ⋙ swap D C ≅ functor.id (C × D) :=
 end prod
 
 section
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
+variables (C : Sort u₁) [𝒞 : category.{v₁} C] (D : Sort u₂) [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
 @[simp] def evaluation : C ⥤ (C ⥤ D) ⥤ D :=
@@ -98,6 +101,11 @@ include 𝒞 𝒟
   begin
     ext, dsimp, rw functor.map_comp,
   end }
+end
+
+section
+variables (C : Type u₁) [𝒞 : category.{v₁+1} C] (D : Type u₂) [𝒟 : category.{v₂+1} D]
+include 𝒞 𝒟
 
 @[simp] def evaluation_uncurried : C × (C ⥤ D) ⥤ D :=
 { obj := λ p, p.2.obj p.1,
@@ -109,10 +117,10 @@ include 𝒞 𝒟
 
 end
 
-variables {A : Type u₁} [𝒜 : category.{v₁} A]
-          {B : Type u₂} [ℬ : category.{v₂} B]
-          {C : Type u₃} [𝒞 : category.{v₃} C]
-          {D : Type u₄} [𝒟 : category.{v₄} D]
+variables {A : Type u₁} [𝒜 : category.{v₁+1} A]
+          {B : Type u₂} [ℬ : category.{v₂+1} B]
+          {C : Type u₃} [𝒞 : category.{v₃+1} C]
+          {D : Type u₄} [𝒟 : category.{v₄+1} D]
 include 𝒜 ℬ 𝒞 𝒟
 
 namespace functor

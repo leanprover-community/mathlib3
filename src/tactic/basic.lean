@@ -144,7 +144,7 @@ mk_app ``id [e] >>= eval_expr α
 -- useful source of random names provided by `mk_fresh_name` into
 -- names which are usable by tactic programs.
 --
--- The returned name has four components.
+-- The returned name has four components which are all strings.
 meta def mk_user_fresh_name : tactic name :=
 do nm ← mk_fresh_name,
    return $ `user__ ++ nm.pop_prefix.sanitize_name ++ `user__
@@ -404,6 +404,15 @@ open nat
 meta def mk_mvar_list : ℕ → tactic (list expr)
 | 0 := pure []
 | (succ n) := (::) <$> mk_mvar <*> mk_mvar_list n
+
+/-- Returns the only goal, or fails if there isn't just one goal. -/
+meta def get_goal : tactic expr :=
+do gs ← get_goals,
+   match gs with
+   | [a] := return a
+   | []  := fail "there are no goals"
+   | _   := fail "there are too many goals"
+   end
 
 /--`iterate_at_most_on_all_goals n t`: repeat the given tactic at most `n` times on all goals,
 or until it fails. Always succeeds. -/

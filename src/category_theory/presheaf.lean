@@ -180,7 +180,7 @@ variables {C}
   (α ≫ β).f = α.f ≫ β.f :=
 rfl
 
--- We don't mark these are simp lemmas, because the innards are pretty unsightly.
+-- We don't mark these as simp lemmas, because the innards are pretty unsightly.
 lemma id_c (F : PresheafedSpace.{v} C) :
   ((𝟙 F) : F ⟶ F).c = (((functor.id_comp _).inv) ⊟ (whisker_right (nat_trans.op (opens.map_id _).hom) _)) :=
 rfl

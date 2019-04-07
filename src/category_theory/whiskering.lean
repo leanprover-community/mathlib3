@@ -45,6 +45,9 @@ variables {C} {D} {E}
 def whisker_left (F : C ⥤ D) {G H : D ⥤ E} (α : G ⟹ H) : (F ⋙ G) ⟹ (F ⋙ H) :=
 ((whiskering_left C D E).obj F).map α
 
+@[simp] lemma whiskering_left_obj_obj (F : C ⥤ D) (G : D ⥤ E) :
+  ((whiskering_left C D E).obj F).obj G = F ⋙ G :=
+rfl
 @[simp] lemma whiskering_left_obj_map (F : C ⥤ D) {G H : D ⥤ E} (α : G ⟹ H) :
   ((whiskering_left C D E).obj F).map α = whisker_left F α :=
 rfl
@@ -56,6 +59,9 @@ rfl
 def whisker_right {G H : C ⥤ D} (α : G ⟹ H) (F : D ⥤ E) : (G ⋙ F) ⟹ (H ⋙ F) :=
 ((whiskering_right C D E).obj F).map α
 
+@[simp] lemma whiskering_right_obj_obj (G : C ⥤ D) (F : D ⥤ E) :
+  ((whiskering_right C D E).obj F).obj G = G ⋙ F :=
+rfl
 @[simp] lemma whiskering_right_obj_map {G H : C ⥤ D} (α : G ⟹ H) (F : D ⥤ E) :
   ((whiskering_right C D E).obj F).map α = whisker_right α F :=
 rfl

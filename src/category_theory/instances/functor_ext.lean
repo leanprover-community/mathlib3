@@ -8,6 +8,8 @@ variables (C : Sort u₁) [𝒞 : category.{v₁} C]
 variables (D : Sort u₂) [𝒟 : category.{0} D]
 include 𝒞 𝒟
 
+-- FIXME move this
+
 namespace category_theory.functor
 
 /--

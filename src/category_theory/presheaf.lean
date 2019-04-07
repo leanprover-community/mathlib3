@@ -27,42 +27,62 @@ namespace presheaf
 variables {C}
 
 def pushforward {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : presheaf C X) : presheaf C Y :=
-opens.op_map f ⋙ ℱ
+(opens.map f).op ⋙ ℱ
 
 def pushforward_eq {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : presheaf C X) :
   ℱ.pushforward f ≅ ℱ.pushforward g :=
-ℱ.map_nat_iso (opens.op_map_iso f g h)
-def pushforward_eq_eq {X Y : Top.{v}} {f g : X ⟶ Y} (h₁ h₂ : f = g) (ℱ : presheaf C X) :
+ℱ.map_nat_iso (nat_iso.op (opens.map_iso f g h).symm)
+lemma pushforward_eq_eq {X Y : Top.{v}} {f g : X ⟶ Y} (h₁ h₂ : f = g) (ℱ : presheaf C X) :
   ℱ.pushforward_eq h₁ = ℱ.pushforward_eq h₂ :=
 rfl
 
 namespace pushforward
 def id {X : Top.{v}} (ℱ : presheaf C X) : ℱ.pushforward (𝟙 X) ≅ ℱ :=
-ℱ.map_nat_iso (opens.op_map_id X) ≪≫ functor.left_unitor _
+ℱ.map_nat_iso (nat_iso.op (opens.map_id X).symm) ≪≫ functor.left_unitor _
 
--- @[simp] lemma id_hom_app {X : Top.{v}} (ℱ : presheaf C X) (U) : (id ℱ).hom.app U = ℱ.map (𝟙 U) :=
--- begin
---   dsimp [id],
---   simp,
--- end
--- @[simp] lemma id_inv_app {X : Top.{v}} (ℱ : presheaf C X) (U) : (id ℱ).inv.app U = ℱ.map (𝟙 U) :=
--- begin
---   dsimp [id],
---   simp,
--- end
+@[simp] lemma id_hom_app' {X : Top.{v}} (ℱ : presheaf C X) (U) (p) : (id ℱ).hom.app (op ⟨U, p⟩) = ℱ.map (𝟙 (op ⟨U, p⟩)) :=
+begin
+  dsimp [id],
+  simp,
+  dsimp,
+  simp,
+end
+@[simp] lemma id_hom_app {X : Top.{v}} (ℱ : presheaf C X) (U) : (id ℱ).hom.app U = ℱ.map (eq_to_hom (opens.op_map_id_obj U)) :=
+begin
+  have w : U = op (unop U) := rfl,
+  revert w,
+  generalize : unop U = U',
+  intro w,
+  subst w,
+  cases U',
+  simp,
+  erw category_theory.functor.map_id,
+end
+
+@[simp] lemma id_inv_app' {X : Top.{v}} (ℱ : presheaf C X) (U) (p) : (id ℱ).inv.app (op ⟨U, p⟩) = ℱ.map (𝟙 (op ⟨U, p⟩)) :=
+begin
+  dsimp [id],
+  simp,
+  dsimp,
+  simp,
+end
 
 def comp {X Y Z : Top.{v}}  (ℱ : presheaf C X) (f : X ⟶ Y) (g : Y ⟶ Z) : ℱ.pushforward (f ≫ g) ≅ (ℱ.pushforward f).pushforward g :=
-ℱ.map_nat_iso (opens.op_map_comp f g)
+ℱ.map_nat_iso (nat_iso.op (opens.map_comp f g).symm)
 
 @[simp] lemma comp_hom_app {X Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) (ℱ : presheaf C X) (U) : (comp ℱ f g).hom.app U = 𝟙 _ :=
 begin
   dsimp [pushforward, comp],
+  simp,
+  erw category_theory.functor.map_id, -- FIXME simp should do this
+  dsimp,
   simp,
 end
 @[simp] lemma comp_inv_app {X Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) (ℱ : presheaf C X) (U) : (comp ℱ f g).inv.app U = 𝟙 _ :=
 begin
   dsimp [pushforward, comp],
   simp,
+  erw category_theory.functor.map_id,
   dsimp,
   simp,
 end
@@ -90,7 +110,7 @@ structure hom (F G : PresheafedSpace.{v} C) :=
 (c : G.𝒪 ⟹ F.𝒪.pushforward f)
 
 @[extensionality] lemma ext {F G : PresheafedSpace.{v} C} (α β : hom F G)
-  (w : α.f = β.f) (h : α.c ⊟ (whisker_right (opens.op_map_iso _ _ w).hom F.𝒪) = β.c) :
+  (w : α.f = β.f) (h : α.c ⊟ (whisker_right (nat_trans.op (opens.map_iso _ _ w).inv) F.𝒪) = β.c) :
   α = β :=
 begin
   cases α, cases β,
@@ -102,11 +122,11 @@ end
 
 def id (F : PresheafedSpace.{v} C) : hom F F :=
 { f := 𝟙 F.X,
-  c := ((functor.id_comp _).inv) ⊟ (whisker_right (opens.op_map_id _).inv _) }
+  c := ((functor.id_comp _).inv) ⊟ (whisker_right (nat_trans.op (opens.map_id _).hom) _) }
 
 def comp (F G H : PresheafedSpace.{v} C) (α : hom F G) (β : hom G H) : hom F H :=
 { f := α.f ≫ β.f,
-  c := β.c ⊟ (whisker_left (opens.op_map β.f) α.c) }
+  c := β.c ⊟ (whisker_left (opens.map β.f).op α.c) }
 
 variables (C)
 
@@ -127,6 +147,7 @@ instance category_of_presheaves : category (PresheafedSpace.{v} C) :=
       cases X_1,
       dsimp,
       erw category_theory.functor.map_id,
+      erw category_theory.functor.map_id,
       simp,
       refl },
     { simp }
@@ -139,10 +160,18 @@ instance category_of_presheaves : category (PresheafedSpace.{v} C) :=
       dsimp,
       erw category_theory.functor.map_id,
       erw category.comp_id,
-      simp },
+      simp, },
     { simp }
-  end }.
+  end,
+  assoc' := λ W X Y Z f g h,
+  begin
+    tidy,
+    erw category_theory.functor.map_id,
+    simp,
+    refl,
+  end }
 end
+.
 
 variables {C}
 
@@ -153,10 +182,10 @@ rfl
 
 -- We don't mark these are simp lemmas, because the innards are pretty unsightly.
 lemma id_c (F : PresheafedSpace.{v} C) :
-  ((𝟙 F) : F ⟶ F).c = (((functor.id_comp _).inv) ⊟ (whisker_right (opens.op_map_id _).inv _)) :=
+  ((𝟙 F) : F ⟶ F).c = (((functor.id_comp _).inv) ⊟ (whisker_right (nat_trans.op (opens.map_id _).hom) _)) :=
 rfl
 lemma comp_c {F G H : PresheafedSpace.{v} C} (α : F ⟶ G) (β : G ⟶ H) :
-  (α ≫ β).c = (β.c ⊟ (whisker_left (opens.op_map β.f) α.c)) :=
+  (α ≫ β).c = (β.c ⊟ (whisker_left (opens.map β.f).op α.c)) :=
 rfl
 end PresheafedSpace
 
@@ -185,7 +214,7 @@ rfl
 def nat_trans.on_presheaf {F G : C ⥤ D} (α : F ⟹ G) : G.map_presheaf ⟹ F.map_presheaf :=
 { app := λ X,
   { f := 𝟙 _,
-    c := whisker_left X.𝒪 α ⊟ ((functor.id_comp _).inv) ⊟ (whisker_right (opens.op_map_id _).inv _) },
+    c := whisker_left X.𝒪 α ⊟ ((functor.id_comp _).inv) ⊟ (whisker_right (nat_trans.op (opens.map_id _).hom) _) },
   naturality' := λ X Y f,
   begin
     ext U,
@@ -196,6 +225,9 @@ def nat_trans.on_presheaf {F G : C ⥤ D} (α : F ⟹ G) : G.map_presheaf ⟹ F.
       erw category_theory.functor.map_id,
       erw category_theory.functor.map_id,
       erw category_theory.functor.map_id,
+      erw category_theory.functor.map_id,
+      erw category.comp_id,
+      erw category.comp_id,
       simp,
       exact (α.naturality _).symm, },
     { refl, }

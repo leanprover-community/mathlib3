@@ -186,27 +186,32 @@ end functor
 
 namespace nat_trans
 
-variables {D : Type u₂} [𝒟 : category.{v₂} D]
+variables {D : Sort u₂} [𝒟 : category.{v₂} D]
 include 𝒟
 variables {F G : C ⥤ D}
 
-@[simp] protected definition op (α : F ⟹ G) : G.op ⟹ F.op :=
+protected definition op (α : F ⟹ G) : G.op ⟹ F.op :=
 { app         := λ X, (α.app (unop X)).op,
   naturality' := begin tidy, erw α.naturality, refl, end }
+
+@[simp] lemma op_app (α : F ⟹ G) (X) : (α.op).app X = (α.app (unop X)).op := rfl
 
 end nat_trans
 
 namespace nat_iso
 
-variables {D : Type u₂} [𝒟 : category.{v₂} D]
+variables {D : Sort u₂} [𝒟 : category.{v₂} D]
 include 𝒟
 variables {F G : C ⥤ D}
 
-@[simp] protected definition op (α : F ≅ G) : G.op ≅ F.op :=
+protected definition op (α : F ≅ G) : G.op ≅ F.op :=
 { hom := nat_trans.op α.hom,
   inv := nat_trans.op α.inv,
   hom_inv_id' := begin ext, dsimp, rw ←op_comp, rw inv_hom_id_app, refl, end,
   inv_hom_id' := begin ext, dsimp, rw ←op_comp, rw hom_inv_id_app, refl, end }
+
+@[simp] lemma op_hom (α : F ≅ G) : (nat_iso.op α).hom = nat_trans.op α.hom := rfl
+@[simp] lemma op_inv (α : F ≅ G) : (nat_iso.op α).inv = nat_trans.op α.inv := rfl
 
 end nat_iso
 

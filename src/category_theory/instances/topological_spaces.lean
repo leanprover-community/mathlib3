@@ -20,10 +20,10 @@ namespace category_theory.instances
 /-- The category of topological spaces and continuous maps. -/
 @[reducible] def Top : Type (u+1) := bundled topological_space
 
-instance (x : Top) : topological_space x := x.str
+instance topological_space_unbundled (x : Top) : topological_space x := x.str
 
 namespace Top
-instance : concrete_category @continuous := ⟨@continuous_id, @continuous.comp⟩
+instance concrete_category_continuous : concrete_category @continuous := ⟨@continuous_id, @continuous.comp⟩
 
 section
 open category_theory.limits
@@ -41,10 +41,10 @@ by refine is_limit.of_faithful forget (limit.is_limit _) (λ s, ⟨_, _⟩) (λ 
    exact continuous_iff_le_coinduced.mpr (lattice.supr_le $ λ j,
      induced_le_iff_le_coinduced.mpr $ continuous_iff_le_coinduced.mp (s.π.app j).property)
 
-instance : has_limits.{u} Top.{u} :=
+instance Top_has_limits : has_limits.{u} Top.{u} :=
 λ J 𝒥 F, by exactI { cone := limit F, is_limit := limit_is_limit F }
 
-instance : preserves_limits (forget : Top.{u} ⥤ Type u) :=
+instance forget_preserves_limits : preserves_limits (forget : Top.{u} ⥤ Type u) :=
 λ J 𝒥 F, by exactI preserves_limit_of_preserves_limit_cone
   (limit.is_limit F) (limit.is_limit (F ⋙ forget))
 
@@ -59,10 +59,10 @@ by refine is_colimit.of_faithful forget (colimit.is_colimit _) (λ s, ⟨_, _⟩
    exact continuous_iff_induced_le.mpr (lattice.le_infi $ λ j,
      induced_le_iff_le_coinduced.mpr $ continuous_iff_le_coinduced.mp (s.ι.app j).property)
 
-instance : has_colimits.{u} Top.{u} :=
+instance Top_has_colimits : has_colimits.{u} Top.{u} :=
 λ J 𝒥 F, by exactI { cocone := colimit F, is_colimit := colimit_is_colimit F }
 
-instance : preserves_colimits (forget : Top.{u} ⥤ Type u) :=
+instance forget_preserves_colimits : preserves_colimits (forget : Top.{u} ⥤ Type u) :=
 λ J 𝒥 F, by exactI preserves_colimit_of_preserves_colimit_cocone
   (colimit.is_colimit F) (colimit.is_colimit (F ⋙ forget))
 
@@ -98,7 +98,7 @@ end Top
 
 variables {X : Top.{u}}
 
-instance : category.{u+1} (opens X) :=
+instance opens_category : category.{u+1} (opens X) :=
 { hom  := λ U V, ulift (plift (U ≤ V)),
   id   := λ X, ⟨ ⟨ le_refl X ⟩ ⟩,
   comp := λ X Y Z f g, ⟨ ⟨ le_trans f.down.down g.down.down ⟩ ⟩ }

@@ -8,7 +8,7 @@ universes v u -- declare the `v`'s first; see `category_theory.category` for an 
 
 namespace category_theory
 
-structure iso {C : Type u} [category.{v} C] (X Y : C) :=
+structure iso {C : Sort u} [category.{v} C] (X Y : C) :=
 (hom : X ⟶ Y)
 (inv : Y ⟶ X)
 (hom_inv_id' : hom ≫ inv = 𝟙 X . obviously)
@@ -20,7 +20,7 @@ attribute [simp] iso.hom_inv_id iso.inv_hom_id
 
 infixr ` ≅ `:10  := iso             -- type as \cong or \iso
 
-variables {C : Type u} [𝒞 : category.{v} C]
+variables {C : Sort u} [𝒞 : category.{v} C]
 include 𝒞
 variables {X Y Z : C}
 
@@ -127,7 +127,7 @@ instance (f : X ⟶ Y) : subsingleton (is_iso f) :=
 namespace functor
 
 universes u₁ v₁ u₂ v₂
-variables {D : Type u₂}
+variables {D : Sort u₂}
 
 variables [𝒟 : category.{v₂} D]
 include 𝒟
@@ -146,6 +146,17 @@ instance (F : C ⥤ D) (f : X ⟶ Y) [is_iso f] : is_iso (F.map f) :=
   hom_inv_id' := by rw [← F.map_comp, is_iso.hom_inv_id, map_id],
   inv_hom_id' := by rw [← F.map_comp, is_iso.inv_hom_id, map_id] }
 
+@[simp] lemma map_hom_inv (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) [is_iso f] :
+  F.map f ≫ F.map (inv f) = 𝟙 (F.obj X) :=
+begin
+  rw [←map_comp, is_iso.hom_inv_id, map_id],
+end
+@[simp] lemma map_inv_hom (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) [is_iso f] :
+  F.map (inv f) ≫ F.map f = 𝟙 (F.obj Y) :=
+begin
+  rw [←map_comp, is_iso.inv_hom_id, map_id],
+end
+
 end functor
 
 instance epi_of_iso  (f : X ⟶ Y) [is_iso f] : epi f  :=
@@ -163,6 +174,14 @@ instance mono_of_iso (f : X ⟶ Y) [is_iso f] : mono f :=
                          rw [← is_iso.hom_inv_id f],
                          rw [←category.assoc, w, ←category.assoc]
                        end }
+
+end category_theory
+
+namespace category_theory
+
+ -- We need to get the morphism universe level up into `Type`, in order to have group structures.
+variables {C : Sort u} [𝒞 : category.{v+1} C]
+include 𝒞
 
 def Aut (X : C) := X ≅ X
 

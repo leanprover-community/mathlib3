@@ -324,7 +324,7 @@ assume v,
 have is_o (λ x, A₂ (x - x₀) - A₁ (x - x₀)) (λ x, x - x₀) L, by simpa using eq₁.sub eq₂,
 
 -- pick ξ ≠ 0, ∥ξ∥ < 1 and plugin in the sequence ξ^n + x₀, replace filter by at_top
-let ⟨ξ, _, norm_ξ_ne_0⟩ := nondiscrete_normed_field.has_small_element K in
+let ⟨ξ, _, _⟩ := exists_norm_lt_one K in
 have is_o (λ n, A₂ (ξ^n • v) - A₁ (ξ^n • v)) (λ n, ξ^n • v) (comap ((λ n, x₀ + ξ^n • v)) (nhds x₀)),
   by simpa [function.comp] using ((this.comp (λ (n : ℕ), ξ^n • v + x₀)).mono (comap_mono h)),
 
@@ -346,13 +346,11 @@ have is_o (λ n : ℕ, A₂ (ξ^n • v) - A₁ (ξ^n • v)) (λ n, ξ^n • v)
 -- the ξ^n factor cancels
 have is_o (λ (x : ℕ), A₂ v - A₁ v) (λ (x : ℕ), v) at_top,
   by simpa [‹is_linear_map K A₁›.smul, ‹is_linear_map K A₂›.smul,
-            smul_add, smul_smul, inv_mul_cancel ((λ n, pow_ne_zero n ‹ξ ≠ 0›) _), one_smul] using
+            smul_add, smul_smul, inv_mul_cancel ((λ n, pow_ne_zero n ((norm_pos_iff ξ).mp ‹0 < ∥ξ∥›)) _), one_smul] using
      @is_o_smul _ _ _ _ _ _ _ (λ n : ℕ, (ξ^n)⁻¹) _ _ _ this,
 
 show tendsto (λ (n : ℕ), A₂ v - A₁ v) at_top (nhds 0),
   from is_o_one_iff.mp (this.trans_is_O (is_O_const_one v _) : is_o _ (λ n, (1:K)) _)
-
-set_option trace.class_instances false
 
 theorem fderiv_at_unique (f : E → F) (x₀ : E) {A₁ A₂ : E → F} :
   has_fderiv_at K f A₁ x₀ → has_fderiv_at K f A₂ x₀ → A₁ = A₂ :=

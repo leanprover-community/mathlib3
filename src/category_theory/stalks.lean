@@ -20,7 +20,7 @@ namespace category_theory.presheaf_on_space
 variables (C)
 /-- Stalks are functorial with respect to morphisms of presheaves over a fixed `X`. -/
 def stalk_functor (x : X) : presheaf_on_space C X ⥤ C :=
-((whiskering_left _ _ C).obj (nbhds.inclusion x).op) ⋙ colim
+((whiskering_left _ _ C).obj (open_nhds.inclusion x).op) ⋙ colim
 
 variables {C}
 
@@ -45,12 +45,12 @@ def stalk_pushforward (f : X ⟶ Y) (ℱ : presheaf_on_space C X) (x : X) : (ℱ
 begin
   transitivity,
   swap,
-  exact colimit.pre _ (nbhds.map f x).op,
-  exact colim.map (whisker_right (nat_trans.op (nbhds.inclusion_map_iso f x).inv) ℱ),
+  exact colimit.pre _ (open_nhds.map f x).op,
+  exact colim.map (whisker_right (nat_trans.op (open_nhds.inclusion_map_iso f x).inv) ℱ),
 end
 
 @[simp] def stalk_pushforward_id (ℱ : presheaf_on_space C X) (x : X) :
-  ℱ.stalk_pushforward C (𝟙 X) x = (stalk_functor C x).map ((presheaf.pushforward.id ℱ).hom) :=
+  ℱ.stalk_pushforward C (𝟙 X) x = (stalk_functor C x).map ((presheaf_on_space.pushforward.id ℱ).hom) :=
 begin
   dsimp [stalk_pushforward, stalk_functor],
   tidy,
@@ -112,7 +112,7 @@ begin
   tidy,
   rw ←category_theory.functor.map_comp,
   rw ←category_theory.functor.map_id,
-  rw [eq_to_hom_2],
+  rw [eq_to_hom_op_comp],
   refl,
 end
 .

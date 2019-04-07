@@ -51,8 +51,8 @@ instance Top_has_colimits : has_colimits.{u} Top.{u} :=
   { has_colimit := λ F, by exactI { cocone := colimit F, is_colimit := colimit_is_colimit F } } }
 
 instance forget_preserves_colimits : preserves_colimits (forget : Top.{u} ⥤ Type u) :=
-{ preserves_limits_of_shape := λ J 𝒥,
-  { preserves_limit := λ F,
+{ preserves_colimits_of_shape := λ J 𝒥,
+  { preserves_colimit := λ F,
     by exactI preserves_colimit_of_preserves_colimit_cocone
       (colimit.is_colimit F) (colimit.is_colimit (F ⋙ forget)) } }
 

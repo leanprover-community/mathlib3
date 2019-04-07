@@ -33,6 +33,48 @@ succ_le_succ_iff
 lemma succ_le_iff {m n : ℕ} : succ m ≤ n ↔ m < n :=
 ⟨lt_of_succ_le, succ_le_of_lt⟩
 
+theorem of_le_succ {n m : ℕ} (H : n ≤ m.succ) : n ≤ m ∨ n = m.succ :=
+(lt_or_eq_of_le H).imp le_of_lt_succ id
+
+@[elab_as_eliminator]
+def le_rec_on {C : ℕ → Sort u} {n : ℕ} : Π {m : ℕ}, n ≤ m → (Π {k}, C k → C (k+1)) → C n → C m
+| 0     H next x := eq.rec_on (eq_zero_of_le_zero H) x
+| (m+1) H next x := or.by_cases (of_le_succ H) (λ h : n ≤ m, next $ le_rec_on h @next x) (λ h : n = m + 1, eq.rec_on h x)
+
+theorem le_rec_on_self {C : ℕ → Sort u} {n} {h : n ≤ n} {next} (x : C n) : (le_rec_on h next x : C n) = x :=
+by cases n; unfold le_rec_on or.by_cases; rw [dif_neg n.not_succ_le_self, dif_pos rfl]
+
+theorem le_rec_on_succ {C : ℕ → Sort u} {n m} (h1 : n ≤ m) {h2 : n ≤ m+1} {next} (x : C n) :
+  (le_rec_on h2 @next x : C (m+1)) = next (le_rec_on h1 @next x : C m) :=
+by conv { to_lhs, rw [le_rec_on, or.by_cases, dif_pos h1] }
+
+theorem le_rec_on_succ' {C : ℕ → Sort u} {n} {h : n ≤ n+1} {next} (x : C n) :
+  (le_rec_on h next x : C (n+1)) = next x :=
+by rw [le_rec_on_succ (le_refl n), le_rec_on_self]
+
+theorem le_rec_on_trans {C : ℕ → Sort u} {n m k} (hnm : n ≤ m) (hmk : m ≤ k) {next} (x : C n) :
+  (le_rec_on (le_trans hnm hmk) @next x : C k) = le_rec_on hmk @next (le_rec_on hnm @next x) :=
+begin
+  induction hmk with k hmk ih, { rw le_rec_on_self },
+  rw [le_rec_on_succ (le_trans hnm hmk), ih, le_rec_on_succ]
+end
+
+theorem le_rec_on_injective {C : ℕ → Sort u} {n m} (hnm : n ≤ m)
+  (next : Π n, C n → C (n+1)) (Hnext : ∀ n, function.injective (next n)) :
+  function.injective (le_rec_on hnm next) :=
+begin
+  induction hnm with m hnm ih, { intros x y H, rwa [le_rec_on_self, le_rec_on_self] at H },
+  intros x y H, rw [le_rec_on_succ hnm, le_rec_on_succ hnm] at H, exact ih (Hnext _ H)
+end
+
+theorem le_rec_on_surjective {C : ℕ → Sort u} {n m} (hnm : n ≤ m)
+  (next : Π n, C n → C (n+1)) (Hnext : ∀ n, function.surjective (next n)) :
+  function.surjective (le_rec_on hnm next) :=
+begin
+  induction hnm with m hnm ih, { intros x, use x, rw le_rec_on_self },
+  intros x, rcases Hnext _ x with ⟨w, rfl⟩, rcases ih w with ⟨x, rfl⟩, use x, rw le_rec_on_succ
+end
+
 theorem pred_eq_of_eq_succ {m n : ℕ} (H : m = n.succ) : m.pred = n := by simp [H]
 
 theorem pred_sub (n m : ℕ) : pred n - m = pred (n - m) :=
@@ -84,6 +126,9 @@ by rw [add_comm, nat.sub_add_cancel h]
 
 protected theorem sub_eq_of_eq_add (h : k = m + n) : k - m = n :=
 begin rw [h, nat.add_sub_cancel_left] end
+
+theorem sub_cancel {a b c : ℕ} (h₁ : a ≤ b) (h₂ : a ≤ c) (w : b - a = c - a) : b = c :=
+by rw [←nat.sub_add_cancel h₁, ←nat.sub_add_cancel h₂, w]
 
 lemma sub_sub_sub_cancel_right {a b c : ℕ} (h₂ : c ≤ b) : (a - c) - (b - c) = a - b :=
 by rw [nat.sub_sub, ←nat.add_sub_assoc h₂, nat.add_sub_cancel_left]

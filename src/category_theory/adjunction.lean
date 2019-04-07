@@ -348,12 +348,12 @@ def functoriality_is_right_adjoint :
 
 /-- A right adjoint preserves limits. -/
 def right_adjoint_preserves_limits : preserves_limits G :=
-{ preserves_colimits_of_shape := λ J 𝒥,
-  { preserves_colimit := λ K,
+{ preserves_limits_of_shape := λ J 𝒥,
+  { preserves_limit := λ K,
     by resetI; exact
     { preserves := λ c hc, is_limit_iso_unique_cone_morphism.inv
         (λ s, (((adj.functoriality_is_right_adjoint _).adj).hom_equiv _ _).symm.unique_of_equiv $
-          is_limit_iso_unique_cone_morphism.hom hc _) }
+          is_limit_iso_unique_cone_morphism.hom hc _) } } }
 
 end preservation_limits
 

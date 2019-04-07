@@ -278,21 +278,22 @@ lemma dvd_val {as : list int} {i : int} :
 | 0     := by simp only [int.zero_div, val_between, list.map]
 | (m+1) :=
   begin
-    unfold val_between, rw [@val_between_map_div m,
-      int.add_div_of_dvd (dvd_val_between h1)],
+    unfold val_between, 
+    rw [@val_between_map_div m, int.add_div_of_dvd (dvd_val_between h1)],
     apply fun_mono_2 rfl,
-    apply calc get 0 (l + m) (list.map (λ (x : ℤ), x / i) as) * v (l + m)
-        = ((get 0 (l + m) as) / i) * v (l + m) :
-          begin
-            apply fun_mono_2 _ rfl,
-            rw get_map', apply int.zero_div
-          end
-    ... =  get 0 (l + m) as * v (l + m) / i :
-          begin
-            repeat {rw mul_comm _ (v (l+m))},
-            rw int.mul_div_assoc,
-            apply forall_val_dvd_of_forall_mem_dvd h1
-          end,
+    { apply calc get 0 (l + m) (list.map (λ (x : ℤ), x / i) as) * v (l + m)
+          = ((get 0 (l + m) as) / i) * v (l + m) :
+            begin
+              apply fun_mono_2 _ rfl,
+              rw get_map', 
+              apply int.zero_div
+            end
+      ... =  get 0 (l + m) as * v (l + m) / i :
+            begin
+              repeat {rw mul_comm _ (v (l+m))},
+              rw int.mul_div_assoc,
+              apply forall_val_dvd_of_forall_mem_dvd h1
+            end },
     apply dvd_mul_of_dvd_left,
     apply forall_val_dvd_of_forall_mem_dvd h1,
   end

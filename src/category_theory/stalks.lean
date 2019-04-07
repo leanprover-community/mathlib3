@@ -1,4 +1,5 @@
 import category_theory.presheaf
+import category_theory.instances.Top.open_nhds
 import category_theory.limits.limits
 
 universes v u v' u'
@@ -102,7 +103,7 @@ namespace stalk_map
 
 -- The next two proofs are grotesque.
 
-@[simp] lemma id (F : PresheafedSpace.{v} C) (x : F.X) : @stalk_map C _ _ _ _ (𝟙 F) x = 𝟙 (F.stalk x) :=
+@[simp] lemma id (F : PresheafedSpace.{v} C) (x : F.X) : stalk_map (𝟙 F) x = 𝟙 (F.stalk x) :=
 begin
   dsimp [stalk_map],
   simp [id_c],
@@ -118,7 +119,9 @@ end
 .
 
 @[simp] lemma comp {F G H : PresheafedSpace.{v} C} (α : F ⟶ G) (β : G ⟶ H) (x : F.X) :
-  @stalk_map C _ _ _ _ (α ≫ β) x = @stalk_map C _ _ _ _ β (α.f x) ≫ @stalk_map C _ _ _ _ α x :=
+  stalk_map (α ≫ β) x =
+    (stalk_map β (α.f x) : H.stalk (β.f (α.f x)) ⟶ G.stalk (α.f x)) ≫
+    (stalk_map α x : G.stalk (α.f x) ⟶ F.stalk x) :=
 begin
   dsimp [stalk, stalk_map, stalk_functor, stalk_pushforward, comp_c],
   tidy,

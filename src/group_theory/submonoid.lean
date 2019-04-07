@@ -41,6 +41,25 @@ theorem multiplicative.is_submonoid_iff
   {s : set β} : @is_submonoid (multiplicative β) _ s ↔ is_add_submonoid s :=
 ⟨λ ⟨h₁, h₂⟩, ⟨h₁, @h₂⟩, λ h, by resetI; apply_instance⟩
 
+lemma is_submonoid_Union_of_directed {ι : Type*} [hι : nonempty ι]
+  (s : ι → set α) [∀ i, is_submonoid (s i)]
+  (directed : ∀ i j, ∃ k, s i ⊆ s k ∧ s j ⊆ s k) :
+  is_submonoid (⋃i, s i) :=
+{ one_mem := let ⟨i⟩ := hι in set.mem_Union.2 ⟨i, is_submonoid.one_mem _⟩,
+  mul_mem := λ a b ha hb,
+    let ⟨i, hi⟩ := set.mem_Union.1 ha in
+    let ⟨j, hj⟩ := set.mem_Union.1 hb in
+    let ⟨k, hk⟩ := directed i j in
+    set.mem_Union.2 ⟨k, is_submonoid.mul_mem (hk.1 hi) (hk.2 hj)⟩ }
+
+lemma is_add_submonoid_Union_of_directed {ι : Type*} [hι : nonempty ι]
+  (s : ι → set β) [∀ i, is_add_submonoid (s i)]
+  (directed : ∀ i j, ∃ k, s i ⊆ s k ∧ s j ⊆ s k) :
+  is_add_submonoid (⋃i, s i) :=
+multiplicative.is_submonoid_iff.1 $
+  @is_submonoid_Union_of_directed (multiplicative β) _ _ _ s _ directed
+attribute [to_additive is_add_submonoid_Union_of_directed] is_submonoid_Union_of_directed
+
 section powers
 
 def powers (x : α) : set α := {y | ∃ n:ℕ, x^n = y}
@@ -64,6 +83,27 @@ instance powers.is_submonoid (x : α) : is_submonoid (powers x) :=
 instance multiples.is_add_submonoid (x : β) : is_add_submonoid (multiples x) :=
 multiplicative.is_submonoid_iff.1 $ powers.is_submonoid _
 attribute [to_additive multiples.is_add_submonoid] powers.is_submonoid
+
+@[to_additive univ.is_add_submonoid]
+instance univ.is_submonoid : is_submonoid (@set.univ α) := by split; simp
+
+@[to_additive preimage.is_add_submonoid]
+instance preimage.is_submonoid {γ : Type*} [monoid γ] (f : α → γ) [is_monoid_hom f]
+  (s : set γ) [is_submonoid s] : is_submonoid (f ⁻¹' s) :=
+{ one_mem := show f 1 ∈ s, by rw is_monoid_hom.map_one f; exact is_submonoid.one_mem s,
+  mul_mem := λ a b (ha : f a ∈ s) (hb : f b ∈ s),
+    show f (a * b) ∈ s, by rw is_monoid_hom.map_mul f; exact is_submonoid.mul_mem ha hb }
+
+@[instance, to_additive image.is_add_submonoid]
+lemma image.is_submonoid {γ : Type*} [monoid γ] (f : α → γ) [is_monoid_hom f]
+  (s : set α) [is_submonoid s] : is_submonoid (f '' s) :=
+{ one_mem := ⟨1, is_submonoid.one_mem s, is_monoid_hom.map_one f⟩,
+  mul_mem := λ a b ⟨x, hx⟩ ⟨y, hy⟩, ⟨x * y, is_submonoid.mul_mem hx.1 hy.1,
+    by rw [is_monoid_hom.map_mul f, hx.2, hy.2]⟩ }
+
+instance range.is_submonoid {γ : Type*} [monoid γ] (f : α → γ) [is_monoid_hom f] :
+  is_submonoid (set.range f) :=
+by rw ← set.image_univ; apply_instance
 
 lemma is_submonoid.pow_mem {a : α} [is_submonoid s] (h : a ∈ s) : ∀ {n : ℕ}, a ^ n ∈ s
 | 0 := is_submonoid.one_mem s

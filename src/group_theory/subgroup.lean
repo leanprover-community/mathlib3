@@ -84,6 +84,16 @@ theorem is_add_subgroup.of_sub (s : set β)
 multiplicative.is_subgroup_iff.1 $
 @is_subgroup.of_div (multiplicative β) _ _ zero_mem @sub_mem
 
+@[to_additive is_add_subgroup_Union_of_directed]
+lemma is_subgroup_Union_of_directed {ι : Type*} [hι : nonempty ι]
+  (s : ι → set α) [∀ i, is_subgroup (s i)]
+  (directed : ∀ i j, ∃ k, s i ⊆ s k ∧ s j ⊆ s k) :
+  is_subgroup (⋃i, s i) :=
+{ inv_mem := λ a ha,
+    let ⟨i, hi⟩ := set.mem_Union.1 ha in
+    set.mem_Union.2 ⟨i, is_subgroup.inv_mem hi⟩,
+  to_is_submonoid := is_submonoid_Union_of_directed s directed }
+
 def gpowers (x : α) : set α := set.range ((^) x : ℤ → α)
 def gmultiples (x : β) : set β := set.range (λ i, gsmul i x)
 attribute [to_additive gmultiples] gpowers

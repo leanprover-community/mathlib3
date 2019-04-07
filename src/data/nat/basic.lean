@@ -127,6 +127,9 @@ by rw [add_comm, nat.sub_add_cancel h]
 protected theorem sub_eq_of_eq_add (h : k = m + n) : k - m = n :=
 begin rw [h, nat.add_sub_cancel_left] end
 
+theorem sub_cancel {a b c : ℕ} (h₁ : a ≤ b) (h₂ : a ≤ c) (w : b - a = c - a) : b = c :=
+by rw [←nat.sub_add_cancel h₁, ←nat.sub_add_cancel h₂, w]
+
 lemma sub_sub_sub_cancel_right {a b c : ℕ} (h₂ : c ≤ b) : (a - c) - (b - c) = a - b :=
 by rw [nat.sub_sub, ←nat.add_sub_assoc h₂, nat.add_sub_cancel_left]
 

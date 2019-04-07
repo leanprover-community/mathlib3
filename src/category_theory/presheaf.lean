@@ -41,12 +41,8 @@ def id {X : Top.{v}} (ℱ : presheaf C X) : ℱ.pushforward (𝟙 X) ≅ ℱ :=
 ℱ.map_nat_iso (nat_iso.op (opens.map_id X).symm) ≪≫ functor.left_unitor _
 
 @[simp] lemma id_hom_app' {X : Top.{v}} (ℱ : presheaf C X) (U) (p) : (id ℱ).hom.app (op ⟨U, p⟩) = ℱ.map (𝟙 (op ⟨U, p⟩)) :=
-begin
-  dsimp [id],
-  simp,
-  dsimp,
-  simp,
-end
+by { dsimp [id], simp, dsimp, simp }
+
 @[simp] lemma id_hom_app {X : Top.{v}} (ℱ : presheaf C X) (U) : (id ℱ).hom.app U = ℱ.map (eq_to_hom (opens.op_map_id_obj U)) :=
 begin
   have w : U = op (unop U) := rfl,
@@ -60,12 +56,7 @@ begin
 end
 
 @[simp] lemma id_inv_app' {X : Top.{v}} (ℱ : presheaf C X) (U) (p) : (id ℱ).inv.app (op ⟨U, p⟩) = ℱ.map (𝟙 (op ⟨U, p⟩)) :=
-begin
-  dsimp [id],
-  simp,
-  dsimp,
-  simp,
-end
+by { dsimp [id], simp, dsimp, simp }
 
 def comp {X Y Z : Top.{v}}  (ℱ : presheaf C X) (f : X ⟶ Y) (g : Y ⟶ Z) : ℱ.pushforward (f ≫ g) ≅ (ℱ.pushforward f).pushforward g :=
 ℱ.map_nat_iso (nat_iso.op (opens.map_comp f g).symm)

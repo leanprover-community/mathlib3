@@ -1,8 +1,10 @@
 import category_theory.stalks
+import category_theory.limits.types
 
 universes v u
 
 open category_theory.limits
+open category_theory.PresheafedSpace
 
 namespace category_theory
 
@@ -14,11 +16,10 @@ F.preorder x
 
 namespace PreorderPresheaf
 
--- what's going on with the @s !?
 structure hom (F G : PreorderPresheaf.{v}) :=
 (hom : F.to_PresheafedSpace ⟶ G.to_PresheafedSpace)
-(monotone : Π (x : F.X) (a b : @PresheafedSpace.stalk (Type v) _ _ G.to_PresheafedSpace (PresheafedSpace.hom.f hom x)),
-   (a ≤ b) → ((@PresheafedSpace.stalk_map (Type v) _ _ _ _ hom x) a ≤ (@PresheafedSpace.stalk_map (Type v) _ _ _ _ hom x) b))
+(monotone : Π (x : F.X) (a b : G.to_PresheafedSpace.stalk (PresheafedSpace.hom.f hom x)),
+   (a ≤ b) → ((stalk_map hom x) a ≤ (stalk_map hom x) b))
 
 @[extensionality] lemma hom.ext
   (F G : PreorderPresheaf.{v}) {f g : hom F G}

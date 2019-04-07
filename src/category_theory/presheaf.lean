@@ -18,32 +18,32 @@ namespace category_theory
 variables (C : Type u) [𝒞 : category.{v+1} C]
 include 𝒞
 
-def presheaf (X : Top.{v}) := (opens X)ᵒᵖ ⥤ C
+def presheaf_on_space (X : Top.{v}) := (opens X)ᵒᵖ ⥤ C
 
-instance category_presheaf (X : Top.{v}) : category (presheaf C X) :=
-by dsimp [presheaf]; apply_instance
+instance category_presheaf_on_space (X : Top.{v}) : category (presheaf_on_space C X) :=
+by dsimp [presheaf_on_space]; apply_instance
 
-namespace presheaf
+namespace presheaf_on_space
 variables {C}
 
-def pushforward {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : presheaf C X) : presheaf C Y :=
+def pushforward {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : presheaf_on_space C X) : presheaf_on_space C Y :=
 (opens.map f).op ⋙ ℱ
 
-def pushforward_eq {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : presheaf C X) :
+def pushforward_eq {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : presheaf_on_space C X) :
   ℱ.pushforward f ≅ ℱ.pushforward g :=
 ℱ.map_nat_iso (nat_iso.op (opens.map_iso f g h).symm)
-lemma pushforward_eq_eq {X Y : Top.{v}} {f g : X ⟶ Y} (h₁ h₂ : f = g) (ℱ : presheaf C X) :
+lemma pushforward_eq_eq {X Y : Top.{v}} {f g : X ⟶ Y} (h₁ h₂ : f = g) (ℱ : presheaf_on_space C X) :
   ℱ.pushforward_eq h₁ = ℱ.pushforward_eq h₂ :=
 rfl
 
 namespace pushforward
-def id {X : Top.{v}} (ℱ : presheaf C X) : ℱ.pushforward (𝟙 X) ≅ ℱ :=
+def id {X : Top.{v}} (ℱ : presheaf_on_space C X) : ℱ.pushforward (𝟙 X) ≅ ℱ :=
 ℱ.map_nat_iso (nat_iso.op (opens.map_id X).symm) ≪≫ functor.left_unitor _
 
-@[simp] lemma id_hom_app' {X : Top.{v}} (ℱ : presheaf C X) (U) (p) : (id ℱ).hom.app (op ⟨U, p⟩) = ℱ.map (𝟙 (op ⟨U, p⟩)) :=
+@[simp] lemma id_hom_app' {X : Top.{v}} (ℱ : presheaf_on_space C X) (U) (p) : (id ℱ).hom.app (op ⟨U, p⟩) = ℱ.map (𝟙 (op ⟨U, p⟩)) :=
 by { dsimp [id], simp, dsimp, simp }
 
-@[simp] lemma id_hom_app {X : Top.{v}} (ℱ : presheaf C X) (U) : (id ℱ).hom.app U = ℱ.map (eq_to_hom (opens.op_map_id_obj U)) :=
+@[simp] lemma id_hom_app {X : Top.{v}} (ℱ : presheaf_on_space C X) (U) : (id ℱ).hom.app U = ℱ.map (eq_to_hom (opens.op_map_id_obj U)) :=
 begin
   have w : U = op (unop U) := rfl,
   revert w,
@@ -55,13 +55,13 @@ begin
   erw category_theory.functor.map_id,
 end
 
-@[simp] lemma id_inv_app' {X : Top.{v}} (ℱ : presheaf C X) (U) (p) : (id ℱ).inv.app (op ⟨U, p⟩) = ℱ.map (𝟙 (op ⟨U, p⟩)) :=
+@[simp] lemma id_inv_app' {X : Top.{v}} (ℱ : presheaf_on_space C X) (U) (p) : (id ℱ).inv.app (op ⟨U, p⟩) = ℱ.map (𝟙 (op ⟨U, p⟩)) :=
 by { dsimp [id], simp, dsimp, simp }
 
-def comp {X Y Z : Top.{v}}  (ℱ : presheaf C X) (f : X ⟶ Y) (g : Y ⟶ Z) : ℱ.pushforward (f ≫ g) ≅ (ℱ.pushforward f).pushforward g :=
+def comp {X Y Z : Top.{v}}  (ℱ : presheaf_on_space C X) (f : X ⟶ Y) (g : Y ⟶ Z) : ℱ.pushforward (f ≫ g) ≅ (ℱ.pushforward f).pushforward g :=
 ℱ.map_nat_iso (nat_iso.op (opens.map_comp f g).symm)
 
-@[simp] lemma comp_hom_app {X Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) (ℱ : presheaf C X) (U) : (comp ℱ f g).hom.app U = 𝟙 _ :=
+@[simp] lemma comp_hom_app {X Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) (ℱ : presheaf_on_space C X) (U) : (comp ℱ f g).hom.app U = 𝟙 _ :=
 begin
   dsimp [pushforward, comp],
   simp,
@@ -69,7 +69,7 @@ begin
   dsimp,
   simp,
 end
-@[simp] lemma comp_inv_app {X Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) (ℱ : presheaf C X) (U) : (comp ℱ f g).inv.app U = 𝟙 _ :=
+@[simp] lemma comp_inv_app {X Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) (ℱ : presheaf_on_space C X) (U) : (comp ℱ f g).inv.app U = 𝟙 _ :=
 begin
   dsimp [pushforward, comp],
   simp,
@@ -80,12 +80,12 @@ end
 
 end pushforward
 
-end presheaf
+end presheaf_on_space
 
 
 structure PresheafedSpace :=
 (X : Top.{v})
-(𝒪 : presheaf C X)
+(𝒪 : presheaf_on_space C X)
 
 instance : has_coe_to_sort (PresheafedSpace.{v} C) :=
 { S := Type v, coe := λ F, F.X.α }
@@ -106,7 +106,7 @@ structure hom (F G : PresheafedSpace.{v} C) :=
 begin
   cases α, cases β,
   dsimp at w,
-  dsimp [presheaf.pushforward] at *,
+  dsimp [presheaf_on_space.pushforward] at *,
   tidy, -- including `injections` would make tidy work earlier.
 end
 .
@@ -122,7 +122,7 @@ def comp (F G H : PresheafedSpace.{v} C) (α : hom F G) (β : hom G H) : hom F H
 variables (C)
 
 section
-local attribute [simp] id comp presheaf.pushforward
+local attribute [simp] id comp presheaf_on_space.pushforward
 
 instance category_of_presheaves : category (PresheafedSpace.{v} C) :=
 { hom  := hom,
@@ -183,7 +183,7 @@ end PresheafedSpace
 variables {D : Type u} [𝒟 : category.{v+1} D]
 include 𝒟
 
-local attribute [simp] PresheafedSpace.id_c PresheafedSpace.comp_c presheaf.pushforward
+local attribute [simp] PresheafedSpace.id_c PresheafedSpace.comp_c presheaf_on_space.pushforward
 
 def functor.map_presheaf (F : C ⥤ D) : PresheafedSpace.{v} C ⥤ PresheafedSpace.{v} D :=
 { obj := λ X, { X := X.X, 𝒪 := X.𝒪 ⋙ F },

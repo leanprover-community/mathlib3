@@ -15,11 +15,11 @@ variables [has_colimits.{v} C]
 
 variables {X : Top.{v}}
 
-namespace category_theory.presheaf
+namespace category_theory.presheaf_on_space
 
 variables (C)
 /-- Stalks are functorial with respect to morphisms of presheaves over a fixed `X`. -/
-def stalk_functor (x : X) : presheaf C X ⥤ C :=
+def stalk_functor (x : X) : presheaf_on_space C X ⥤ C :=
 ((whiskering_left _ _ C).obj (nbhds.inclusion x).op) ⋙ colim
 
 variables {C}
@@ -28,10 +28,10 @@ variables {C}
 The stalk of a presheaf `F` at a point `x` is calculated as the colimit of the functor
 nbhds x ⥤ opens F.X ⥤ C
 -/
-def stalk (ℱ : presheaf C X) (x : X) : C :=
+def stalk (ℱ : presheaf_on_space C X) (x : X) : C :=
 (stalk_functor C x).obj ℱ -- -- colimit (nbhds_inclusion x ⋙ ℱ)
 
-@[simp] lemma stalk_functor_obj (ℱ : presheaf C X) (x : X) : (stalk_functor C x).obj ℱ = ℱ.stalk x := rfl
+@[simp] lemma stalk_functor_obj (ℱ : presheaf_on_space C X) (x : X) : (stalk_functor C x).obj ℱ = ℱ.stalk x := rfl
 
 variables (C)
 variables {Y : Top.{v}}
@@ -41,7 +41,7 @@ Warning: we are accummulating some abstract nonsense debt here.
 If you describe the stalk as a filtered colimit (i.e. some quotient of the disjoint union of sections near x)
 this map should be pretty close to invisible. Right now it's ... a bit opaque.
 -/
-def stalk_pushforward (f : X ⟶ Y) (ℱ : presheaf C X) (x : X) : (ℱ.pushforward f).stalk (f x) ⟶ ℱ.stalk x :=
+def stalk_pushforward (f : X ⟶ Y) (ℱ : presheaf_on_space C X) (x : X) : (ℱ.pushforward f).stalk (f x) ⟶ ℱ.stalk x :=
 begin
   transitivity,
   swap,
@@ -49,7 +49,7 @@ begin
   exact colim.map (whisker_right (nat_trans.op (nbhds.inclusion_map_iso f x).inv) ℱ),
 end
 
-@[simp] def stalk_pushforward_id (ℱ : presheaf C X) (x : X) :
+@[simp] def stalk_pushforward_id (ℱ : presheaf_on_space C X) (x : X) :
   ℱ.stalk_pushforward C (𝟙 X) x = (stalk_functor C x).map ((presheaf.pushforward.id ℱ).hom) :=
 begin
   dsimp [stalk_pushforward, stalk_functor],
@@ -66,7 +66,7 @@ begin
 end
 
 variables {Z : Top.{v}}
-@[simp] def stalk_pushforward_comp (ℱ : presheaf C X) (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
+@[simp] def stalk_pushforward_comp (ℱ : presheaf_on_space C X) (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
   ℱ.stalk_pushforward C (f ≫ g) x =
   begin
     have a := ℱ.stalk_pushforward C f x,
@@ -81,9 +81,9 @@ begin
   erw category.id_comp,
 end
 
-end category_theory.presheaf
+end category_theory.presheaf_on_space
 
-open category_theory.presheaf
+open category_theory.presheaf_on_space
 
 namespace category_theory.PresheafedSpace
 

@@ -79,3 +79,11 @@ theorem closure_mono {s t : set F} (H : s ⊆ t) : closure s ⊆ closure t :=
 closure_subset $ set.subset.trans H subset_closure
 
 end field
+
+lemma is_subfield_Union_of_directed {ι : Type*} [hι : nonempty ι]
+  (s : ι → set F) [∀ i, is_subfield (s i)]
+  (directed : ∀ i j, ∃ k, s i ⊆ s k ∧ s j ⊆ s k) :
+  is_subfield (⋃i, s i) :=
+{ inv_mem := λ x hx0 hx, let ⟨i, hi⟩ := set.mem_Union.1 hx in
+    set.mem_Union.2 ⟨i, is_subfield.inv_mem hx0 hi⟩,
+  to_is_subring := is_subring_Union_of_directed s directed }

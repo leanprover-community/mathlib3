@@ -54,7 +54,7 @@ jobs:
       python:
         - "3.6"
       install:
-        - git config --add github.oauthtoken $GITHUB_TOKEN
+        - if [ '$GITHUB_TOKEN' != '' ]; then git config --add github.oauthtoken $GITHUB_TOKEN; echo setting up GitHub credentials; else echo no GitHub credentials available; fi
       os:
         - linux
       script:
@@ -66,7 +66,7 @@ jobs:
     - env: TASK="check install scripts"
       language: sh
       install:
-        - git config --add github.oauthtoken $GITHUB_TOKEN
+        - if [ '$GITHUB_TOKEN' != '' ]; then git config --add github.oauthtoken $GITHUB_TOKEN; echo setting up GitHub credentials; else echo no GitHub credentials available; fi
       os:
         - osx
       script:
@@ -81,7 +81,7 @@ jobs:
       python:
         - "3.6"
       install:
-        - git config --add github.oauthtoken $GITHUB_TOKEN
+        - if [ '$GITHUB_TOKEN' != '' ]; then git config --add github.oauthtoken $GITHUB_TOKEN; echo setting up GitHub credentials; else echo no GitHub credentials available; fi
       os:
         - linux
       script:
@@ -96,7 +96,7 @@ jobs:
     - env: TASK="check dev scripts"
       language: sh
       install:
-        - git config --add github.oauthtoken $GITHUB_TOKEN
+        - if [ '$GITHUB_TOKEN' != '' ]; then git config --add github.oauthtoken $GITHUB_TOKEN; echo setting up GitHub credentials; else echo no GitHub credentials available; fi
       os:
         - osx
       script:

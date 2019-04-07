@@ -25,9 +25,6 @@ instance (x : Top) : topological_space x := x.str
 namespace Top
 instance : concrete_category @continuous := ⟨@continuous_id, @continuous.comp⟩
 
--- local attribute [class] continuous
--- instance {R S : Top} (f : R ⟶ S) : continuous (f : R → S) := f.2
-
 section
 open category_theory.limits
 
@@ -106,8 +103,8 @@ instance : category.{u+1} (opens X) :=
   id   := λ X, ⟨ ⟨ le_refl X ⟩ ⟩,
   comp := λ X Y Z f g, ⟨ ⟨ le_trans f.down.down g.down.down ⟩ ⟩ }
 
-def nbhds (x : X.α) := { U : opens X // x ∈ U }
-instance nbhds_category (x : X.α) : category (nbhds x) := begin unfold nbhds, apply_instance end
+def open_nhds (x : X.α) := { U : opens X // x ∈ U }
+instance open_nhds_category (x : X.α) : category (open_nhds x) := begin unfold open_nhds, apply_instance end
 
 end category_theory.instances
 
@@ -173,68 +170,20 @@ rfl
   (map_iso f g h).inv.app U = eq_to_hom (congr_fun (congr_arg functor.obj (congr_arg map h.symm)) U) :=
 rfl
 
--- /-- `opens.map f` gives the functor from open sets in Y to open set in X,
---     given by taking preimages under f. -/
--- def op_map
---   {X Y : Top.{u}} (f : X ⟶ Y) : (opens Y)ᵒᵖ ⥤ (opens X)ᵒᵖ :=
--- { obj := λ U, op ⟨ (f.val ⁻¹' (unop U).val), f.property _ (unop U).property ⟩,
---   map := λ U V i, has_hom.hom.op ⟨ ⟨ λ a b, (i.unop).down.down b ⟩ ⟩ }.
--- def op_map'
---   {X Y : Top.{u}} (f : X ⟶ Y) : (opens Y)ᵒᵖ ⥤ (opens X)ᵒᵖ := (map f).op
-
--- @[simp] lemma op_map_id_obj' {X : Top.{u}} (U) (p) : (op_map (𝟙 X)).obj (op ⟨U, p⟩) = op ⟨U, p⟩ := rfl
-
--- @[simp] lemma op_map_id_obj {X : Top.{u}} (U : (opens X)ᵒᵖ) : (op_map (𝟙 X)).obj U = U :=
--- begin
---   dsimp [opposite] at U,
---   cases U,
---   refl,
--- end
-
--- def op_map_id (X : Top.{u}) : op_map (𝟙 X) ≅ functor.id (opens X)ᵒᵖ :=
--- { hom := { app := λ U, begin convert 𝟙 U, simp, end },
---   inv := { app := λ U, begin convert 𝟙 U, simp, end } }
-
--- def op_map_comp {X Y Z : Top.{u}} (f : X ⟶ Y) (g : Y ⟶ Z) : op_map (f ≫ g) ≅ op_map g ⋙ op_map f :=
--- { hom := { app := λ U, 𝟙 _ },
---   inv := { app := λ U, 𝟙 _ } }
-
--- -- We could make f g implicit here, but it's nice to be able to see when
--- -- they are the identity (often!)
--- def op_map_iso {X Y : Top.{u}} (f g : X ⟶ Y) (h : f = g) : op_map f ≅ op_map g :=
--- nat_iso.of_components (λ U, eq_to_iso (congr_fun (congr_arg _ (congr_arg _ h)) _) ) (by obviously)
-
--- @[simp] lemma op_map_iso_refl {X Y : Top.{u}} (f : X ⟶ Y) (h) : op_map_iso f f h = iso.refl (op_map _) := rfl
-
--- @[simp] lemma op_map_iso_hom_app {X Y : Top.{u}} (f g : X ⟶ Y) (h : f = g) (U : (opens Y)ᵒᵖ) :
---   (op_map_iso f g h).hom.app U = eq_to_hom (congr_fun (congr_arg _ (congr_arg op_map h)) _) :=
--- rfl
-
--- @[simp] lemma op_map_iso_inv_app {X Y : Top.{u}} (f g : X ⟶ Y) (h : f = g) (U : (opens Y)ᵒᵖ) :
---   (op_map_iso f g h).inv.app U = eq_to_hom (congr_fun (congr_arg functor.obj (congr_arg op_map h.symm)) U) :=
--- rfl
-
-
-
 end topological_space.opens
 
 open topological_space
 
-namespace topological_space.nbhds
+namespace topological_space.open_nhds
 variables {X Y : Top.{u}} (f : X ⟶ Y)
 
-def inclusion (x : X.α) : nbhds x ⥤ opens X :=
+def inclusion (x : X.α) : open_nhds x ⥤ opens X :=
 { obj := λ U, U.val,
   map := λ U V i, i }
 
 @[simp] lemma inclusion_obj (x : X.α) (U) (p) : (inclusion x).obj ⟨U,p⟩ = U := rfl
 
--- def op_inclusion (x : X.α) : (nbhds x)ᵒᵖ ⥤ (opens X)ᵒᵖ :=
--- (inclusion x).op
-
--- @[simp] lemma op_inclusion_obj (x : X.α) (U) (p) : (op_inclusion x).obj (op ⟨U,p⟩) = op U := rfl
-
-def map (x : X) : nbhds (f x) ⥤ nbhds x :=
+def map (x : X) : open_nhds (f x) ⥤ open_nhds x :=
 { obj := λ U, ⟨(opens.map f).obj U.1, by tidy⟩,
   map := λ U V i, (opens.map f).map i }
 
@@ -243,21 +192,10 @@ rfl
 @[simp] lemma map_id_obj {X : Top.{u}} (x : X) (U) : (map (𝟙 X) x).obj U = U :=
 by tidy
 
-@[simp] lemma map_id_obj_unop {X : Top.{u}} (x : X) (U : (nbhds x)ᵒᵖ) : (map (𝟙 X) x).obj (unop U) = unop U :=
+@[simp] lemma map_id_obj_unop {X : Top.{u}} (x : X) (U : (open_nhds x)ᵒᵖ) : (map (𝟙 X) x).obj (unop U) = unop U :=
 by simp
-@[simp] lemma op_map_id_obj {X : Top.{u}} (x : X) (U : (nbhds x)ᵒᵖ) : (map (𝟙 X) x).op.obj U = U :=
+@[simp] lemma op_map_id_obj {X : Top.{u}} (x : X) (U : (open_nhds x)ᵒᵖ) : (map (𝟙 X) x).op.obj U = U :=
 by simp
-
-
--- def op_map (x : X) : (nbhds (f x))ᵒᵖ ⥤ (nbhds x)ᵒᵖ :=
--- (map f x).op
-
--- @[simp] lemma op_map_id_obj (x : X) (U : (nbhds x)ᵒᵖ) : (op_map (𝟙 X) x).obj U = U :=
--- begin
---   dsimp [opposite] at U,
---   cases U,
---   tidy,
--- end
 
 def inclusion_map_iso (x : X) : inclusion (f x) ⋙ opens.map f ≅ map f x ⋙ inclusion x :=
 nat_iso.of_components
@@ -267,12 +205,4 @@ nat_iso.of_components
 @[simp] lemma inclusion_map_iso_hom (x : X) : (inclusion_map_iso f x).hom = 𝟙 _ := rfl
 @[simp] lemma inclusion_map_iso_inv (x : X) : (inclusion_map_iso f x).inv = 𝟙 _ := rfl
 
--- def inclusion_op_map_iso (x : X) : op_inclusion (f x) ⋙ opens.op_map f ≅ op_map f x ⋙ op_inclusion x :=
--- nat_iso.of_components
---   (λ U, begin split, exact 𝟙 _, exact 𝟙 _ end)
---   (by tidy)
-
--- @[simp] lemma inclusion_op_map_iso_hom (x : X) : (inclusion_op_map_iso f x).hom = 𝟙 _ := rfl
--- @[simp] lemma inclusion_op_map_iso_inv (x : X) : (inclusion_op_map_iso f x).inv = 𝟙 _ := rfl
-
-end topological_space.nbhds
+end topological_space.open_nhds

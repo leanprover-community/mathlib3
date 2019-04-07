@@ -42,7 +42,7 @@ end
 namespace nat_trans
 -- This section gives two lemmas about natural transformations
 -- between functors into functor categories,
--- spelling them out in components,
+-- spelling them out in components.
 
 include ℰ
 

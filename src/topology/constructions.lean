@@ -388,8 +388,8 @@ lemma continuous_subtype_mk {f : β → α}
   (hp : ∀x, p (f x)) (h : continuous f) : continuous (λx, (⟨f x, hp x⟩ : subtype p)) :=
 continuous_induced_rng h
 
-lemma continuous_inclusion {s t : set α} (h : s ⊆ t) : 
-  continuous (inclusion h) := continuous_subtype_mk _ continuous_subtype_val
+lemma continuous_inclusion {s t : set α} (h : s ⊆ t) : continuous (inclusion h) := 
+continuous_subtype_mk _ continuous_subtype_val
 
 lemma continuous_at_subtype_val [topological_space α] {p : α → Prop} {a : subtype p} :
   continuous_at subtype.val a :=

@@ -328,6 +328,10 @@ theorem mem_sUnion_of_mem {x : α} {t : set α} {S : set (set α)} (hx : x ∈ t
 
 @[simp] theorem mem_sUnion {x : α} {S : set (set α)} : x ∈ ⋃₀ S ↔ ∃t ∈ S, x ∈ t := iff.rfl
 
+lemma subset_sUnion_of_subset {s : set α} (t : set (set α)) (u : set α) (h₁ : s ⊆ u)
+  (h₂ : u ∈ t) : s ⊆ ⋃₀ t :=
+subset.trans h₁ (subset_sUnion_of_mem h₂)
+
 -- is this theorem really necessary?
 theorem not_mem_of_not_mem_sUnion {x : α} {t : set α} {S : set (set α)}
   (hx : x ∉ ⋃₀ S) (ht : t ∈ S) : x ∉ t :=
@@ -443,6 +447,9 @@ lemma Union_subset_Union2 {ι₂ : Sort*} {s : ι → set α} {t : ι₂ → set
 lemma Union_subset_Union_const {ι₂ : Sort x} {s : set α} (h : ι → ι₂) : (⋃ i:ι, s) ⊆ (⋃ j:ι₂, s) :=
 @supr_le_supr_const (set α) ι ι₂ _ s h
 
+@[simp] lemma Union_of_singleton (α : Type u) : (⋃(x : α), {x}) = @set.univ α :=
+ext $ λ x, ⟨λ h, ⟨⟩, λ h, ⟨{x}, ⟨⟨x, rfl⟩, mem_singleton x⟩⟩⟩
+
 theorem bUnion_subset_Union (s : set α) (t : α → set β) :
   (⋃ x ∈ s, t x) ⊆ (⋃ x, t x) :=
 Union_subset_Union $ λ i, Union_subset $ λ h, by refl
@@ -523,6 +530,25 @@ begin
     rw hT s sS at xs,
     rcases mem_sUnion.1 xs with ⟨t, tTs, xt⟩,
     exact ⟨t, ⟨⟨s, ⟨sS, tTs⟩⟩, xt⟩⟩ }
+end
+
+lemma Union_range_eq_sUnion {α β : Type*} (C : set (set α))
+  {f : ∀(s : C), β → s} (hf : ∀(s : C), surjective (f s)) :
+  (⋃(y : β), range (λ(s : C), (f s y).val)) = ⋃₀ C :=
+begin
+  ext x, split,
+  { rintro ⟨s, ⟨y, rfl⟩, ⟨⟨s, hs⟩, rfl⟩⟩, refine ⟨_, hs, _⟩, exact (f ⟨s, hs⟩ y).2 },
+  { rintro ⟨s, hs, hx⟩, cases hf ⟨s, hs⟩ ⟨x, hx⟩ with y hy, refine ⟨_, ⟨y, rfl⟩, ⟨⟨s, hs⟩, _⟩⟩,
+    exact congr_arg subtype.val hy }
+end
+
+lemma Union_range_eq_Union {ι α β : Type*} (C : ι → set α)
+  {f : ∀(x : ι), β → C x} (hf : ∀(x : ι), surjective (f x)) :
+  (⋃(y : β), range (λ(x : ι), (f x y).val)) = ⋃x, C x :=
+begin
+  ext x, rw [mem_Union, mem_Union], split,
+  { rintro ⟨y, ⟨i, rfl⟩⟩, exact ⟨i, (f i y).2⟩ },
+  { rintro ⟨i, hx⟩, cases hf i ⟨x, hx⟩ with y hy, refine ⟨y, ⟨i, congr_arg subtype.val hy⟩⟩ }
 end
 
 @[simp] theorem sub_eq_diff (s t : set α) : s - t = s \ t := rfl

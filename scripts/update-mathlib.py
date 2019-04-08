@@ -11,7 +11,7 @@ import certifi
 import configparser
 import tarfile
 import signal
-# from delayed_interrupt import DelayedInterrupt
+from delayed_interrupt import DelayedInterrupt
 from auth_github import auth_github
 
 self_update = '--self-update' in sys.argv
@@ -96,6 +96,6 @@ else:
 
     # Extract archive
     print("Extracting nightly...")
-    # with DelayedInterrupt([signal.SIGTERM, signal.SIGINT]):
-    ar = tarfile.open(os.path.join(mathlib_dir, asset.name))
-    ar.extractall('_target/deps/mathlib')
+    with DelayedInterrupt([signal.SIGTERM, signal.SIGINT]):
+        ar = tarfile.open(os.path.join(mathlib_dir, asset.name))
+        ar.extractall('_target/deps/mathlib')

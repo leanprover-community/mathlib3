@@ -27,7 +27,8 @@ def limit_is_limit (F : J ⥤ Type u) : is_limit (limit F) :=
   end }
 
 instance : has_limits.{u} (Type u) :=
-λ J 𝒥 F, by exactI { cone := limit F, is_limit := limit_is_limit F }
+{ has_limits_of_shape := λ J 𝒥,
+  { has_limit := λ F, by exactI { cone := limit F, is_limit := limit_is_limit F } } }
 
 @[simp] lemma types_limit (F : J ⥤ Type u) :
   limits.limit F = {u : Π j, F.obj j // ∀ {j j'} f, F.map f (u j) = u j'} := rfl
@@ -59,7 +60,8 @@ def colimit_is_colimit (F : J ⥤ Type u) : is_colimit (colimit F) :=
     (assume ⟨j, x⟩ ⟨j', x'⟩ ⟨f, hf⟩, by rw hf; exact (congr_fun (cocone.w s f) x).symm) }
 
 instance : has_colimits.{u} (Type u) :=
-λ J 𝒥 F, by exactI { cocone := colimit F, is_colimit := colimit_is_colimit F }
+{ has_colimits_of_shape := λ J 𝒥,
+  { has_colimit := λ F, by exactI { cocone := colimit F, is_colimit := colimit_is_colimit F } } }
 
 @[simp] lemma types_colimit (F : J ⥤ Type u) :
   limits.colimit F = @quot (Σ j, F.obj j) (λ p p', ∃ f : p.1 ⟶ p'.1, p'.2 = F.map f p.2) := rfl

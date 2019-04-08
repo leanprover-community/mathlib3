@@ -100,6 +100,14 @@ instance semiring.to_semimodule [r : semiring α] : semimodule α α :=
 instance ring.to_module [r : ring α] : module α α :=
 { ..semiring.to_semimodule }
 
+def is_ring_hom.to_module [ring α] [ring β] (f : α → β) [h : is_ring_hom f] : module α β :=
+module.of_core
+{ smul := λ r x, f r * x,
+  smul_add := λ r x y, by unfold has_scalar.smul; rw [mul_add],
+  add_smul := λ r s x, by unfold has_scalar.smul; rw [h.map_add, add_mul],
+  mul_smul := λ r s x, by unfold has_scalar.smul; rw [h.map_mul, mul_assoc],
+  one_smul := λ x, show f 1 * x = _, by rw [h.map_one, one_mul] }
+
 class is_linear_map (α : Type u) {β : Type v} {γ : Type w}
   [ring α] [add_comm_group β] [add_comm_group γ] [module α β] [module α γ]
   (f : β → γ) : Prop :=
@@ -192,6 +200,21 @@ begin
   intros _ _,
   simp [smul_smul]
 end
+
+variables {f : β → γ} (lin : is_linear_map α f)
+include β γ lin
+
+@[simp] lemma map_zero : f (0 : β) = (0 : γ) :=
+by rw [← zero_smul α (0 : β), lin.smul, zero_smul]
+
+@[simp] lemma map_add (x y : β) : f (x + y) = f x + f y :=
+by rw [lin.add]
+
+@[simp] lemma map_neg (x : β) : f (- x) = - f x :=
+by rw [← neg_one_smul α, lin.smul, neg_one_smul]
+
+@[simp] lemma map_sub (x y : β) : f (x - y) = f x - f y :=
+by simp [lin.map_neg, lin.map_add]
 
 end is_linear_map
 

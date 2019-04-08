@@ -39,12 +39,18 @@ def forget_to_CommRing : TopCommRing ⥤ CommRing :=
 
 instance forget_to_CommRing_faithful : faithful (forget_to_CommRing) := by tidy
 
+instance forget_to_CommRing_is_Top (R : TopCommRing) : topological_space (forget_to_CommRing.obj R) :=
+R.is_topological_space
+
 /-- The forgetful functor to Top. -/
 def forget_to_Top : TopCommRing ⥤ Top :=
 { obj := λ R, { α := R, str := instances.TopCommRing_topological_space R },
   map := λ R S f, ⟨ f.1, f.2.right ⟩ }
 
 instance forget_to_Top_faithful : faithful (forget_to_Top) := by tidy
+
+instance forget_to_Top_is_CommRing (R : TopCommRing) : comm_ring (forget_to_Top.obj R) :=
+R.is_comm_ring
 
 def forget : TopCommRing ⥤ (Type u) :=
 { obj := λ R, R,

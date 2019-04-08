@@ -807,6 +807,12 @@ theorem inj_of_disjoint_ker {f : β →ₗ[α] γ} {p : submodule α β}
 theorem ker_eq_bot {f : β →ₗ[α] γ} : ker f = ⊥ ↔ injective f :=
 by simpa [disjoint] using @disjoint_ker' _ _ _ _ _ _ _ _ f ⊤
 
+theorem ker_eq_bot' {f : β →ₗ[α] γ} :
+  ker f = ⊥ ↔ (∀ m, f m = 0 → m = 0) :=
+have h : (∀ m ∈ (⊤ : submodule α β), f m = 0 → m = 0) ↔ (∀ m, f m = 0 → m = 0),
+  from ⟨λ h m, h m mem_top, λ h m _, h m⟩,
+by simpa [h, disjoint] using @disjoint_ker _ _ _ _ _ _ _ _ f ⊤
+
 lemma le_ker_iff_map {f : β →ₗ[α] γ} {p : submodule α β} : p ≤ ker f ↔ map f p = ⊥ :=
 by rw [ker, eq_bot_iff, map_le_iff_le_comap]
 

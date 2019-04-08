@@ -1,6 +1,10 @@
 import category_theory.instances.rings
 import category_theory.instances.Top
 import topology.algebra.ring
+import data.real.basic
+import data.complex.basic
+import topology.instances.real
+import topology.instances.complex
 
 universes u
 
@@ -32,6 +36,14 @@ instance TopCommRing_category : category TopCommRing :=
     end⟩ }.
 
 namespace TopCommRing
+
+noncomputable def rational : TopCommRing :=
+{ α := ℚ }
+noncomputable def real : TopCommRing :=
+{ α := ℝ }
+noncomputable def complex : TopCommRing :=
+{ α := ℂ }
+
 /-- The forgetful functor to CommRing. -/
 def forget_to_CommRing : TopCommRing ⥤ CommRing :=
 { obj := λ R, { α := R, str := instances.TopCommRing_comm_ring R },
@@ -39,7 +51,7 @@ def forget_to_CommRing : TopCommRing ⥤ CommRing :=
 
 instance forget_to_CommRing_faithful : faithful (forget_to_CommRing) := by tidy
 
-instance forget_to_CommRing_is_Top (R : TopCommRing) : topological_space (forget_to_CommRing.obj R) :=
+instance forget_to_CommRing_topological_space (R : TopCommRing) : topological_space (forget_to_CommRing.obj R) :=
 R.is_topological_space
 
 /-- The forgetful functor to Top. -/
@@ -49,14 +61,23 @@ def forget_to_Top : TopCommRing ⥤ Top :=
 
 instance forget_to_Top_faithful : faithful (forget_to_Top) := by tidy
 
-instance forget_to_Top_is_CommRing (R : TopCommRing) : comm_ring (forget_to_Top.obj R) :=
+instance forget_to_Top_comm_ring (R : TopCommRing) : comm_ring (forget_to_Top.obj R) :=
 R.is_comm_ring
+instance forget_to_Top_topological_ring (R : TopCommRing) : topological_ring (forget_to_Top.obj R) :=
+R.is_topological_ring
 
 def forget : TopCommRing ⥤ (Type u) :=
 { obj := λ R, R,
   map := λ R S f, f.1 }
 
 instance forget_faithful : faithful (forget) := by tidy
+
+instance forget_topological_space (R : TopCommRing) : topological_space (forget.obj R) :=
+R.is_topological_space
+instance forget_comm_ring (R : TopCommRing) : comm_ring (forget.obj R) :=
+R.is_comm_ring
+instance forget_topological_ring (R : TopCommRing) : topological_ring (forget.obj R) :=
+R.is_topological_ring
 
 def forget_to_Type_via_Top : forget_to_Top ⋙ category_theory.forget ≅ forget := iso.refl _
 def forget_to_Type_via_CommRing : forget_to_Top ⋙ category_theory.forget ≅ forget := iso.refl _

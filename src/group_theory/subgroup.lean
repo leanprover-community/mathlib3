@@ -54,6 +54,13 @@ instance subtype.add_group {s : set β} [is_add_subgroup s] : add_group s :=
 by subtype_instance
 attribute [to_additive subtype.add_group] subtype.group
 
+instance subtype.comm_group {α : Type*} [comm_group α] {s : set α} [is_subgroup s] : comm_group s :=
+by subtype_instance
+
+instance subtype.add_comm_group {α : Type*} [add_comm_group α] {s : set α} [is_add_subgroup s] :
+  add_comm_group s := by subtype_instance
+attribute [to_additive subtype.add_comm_group] subtype.comm_group
+
 @[simp, to_additive is_add_subgroup.coe_neg]
 lemma is_subgroup.coe_inv {s : set α} [is_subgroup s] (a : s) : ((a⁻¹ : s) : α) = a⁻¹ := rfl
 
@@ -83,6 +90,16 @@ theorem is_add_subgroup.of_sub (s : set β)
   is_add_subgroup s :=
 multiplicative.is_subgroup_iff.1 $
 @is_subgroup.of_div (multiplicative β) _ _ zero_mem @sub_mem
+
+@[to_additive is_add_subgroup_Union_of_directed]
+lemma is_subgroup_Union_of_directed {ι : Type*} [hι : nonempty ι]
+  (s : ι → set α) [∀ i, is_subgroup (s i)]
+  (directed : ∀ i j, ∃ k, s i ⊆ s k ∧ s j ⊆ s k) :
+  is_subgroup (⋃i, s i) :=
+{ inv_mem := λ a ha,
+    let ⟨i, hi⟩ := set.mem_Union.1 ha in
+    set.mem_Union.2 ⟨i, is_subgroup.inv_mem hi⟩,
+  to_is_submonoid := is_submonoid_Union_of_directed s directed }
 
 def gpowers (x : α) : set α := set.range ((^) x : ℤ → α)
 def gmultiples (x : β) : set β := set.range (λ i, gsmul i x)

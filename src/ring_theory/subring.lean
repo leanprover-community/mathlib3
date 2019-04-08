@@ -26,13 +26,14 @@ namespace is_ring_hom
 instance {S : set R} [is_subring S] : is_ring_hom (@subtype.val R S) :=
 by refine {..} ; intros ; refl
 
+instance is_subring_preimage {R : Type u} {S : Type v} [ring R] [ring S]
+  (f : R → S) [is_ring_hom f] (s : set S) [is_subring s] : is_subring (f ⁻¹' s) := {}
+
+instance is_subring_image {R : Type u} {S : Type v} [ring R] [ring S]
+  (f : R → S) [is_ring_hom f] (s : set R) [is_subring s] : is_subring (f '' s) := {}
+
 instance is_subring_set_range {R : Type u} {S : Type v} [ring R] [ring S]
-  (f : R → S) [is_ring_hom f] : is_subring (set.range f) :=
-{ zero_mem := ⟨0, is_ring_hom.map_zero f⟩,
-  one_mem := ⟨1, is_ring_hom.map_one f⟩,
-  neg_mem := λ x ⟨p, hp⟩, ⟨-p, hp ▸ is_ring_hom.map_neg f⟩,
-  add_mem := λ x y ⟨p, hp⟩ ⟨q, hq⟩, ⟨p + q, hp ▸ hq ▸ is_ring_hom.map_add f⟩,
-  mul_mem := λ x y ⟨p, hp⟩ ⟨q, hq⟩, ⟨p * q, hp ▸ hq ▸ is_ring_hom.map_mul f⟩, }
+  (f : R → S) [is_ring_hom f] : is_subring (set.range f) := {}
 
 end is_ring_hom
 
@@ -45,6 +46,13 @@ instance subtype.comm_ring {S : set cR} [is_subring S] : comm_ring (subtype S) :
 
 instance subring.domain {D : Type*} [integral_domain D] (S : set D) [is_subring S] : integral_domain S :=
 by subtype_instance
+
+lemma is_subring_Union_of_directed {ι : Type*} [hι : nonempty ι]
+  (s : ι → set R) [∀ i, is_subring (s i)]
+  (directed : ∀ i j, ∃ k, s i ⊆ s k ∧ s j ⊆ s k) :
+  is_subring (⋃i, s i) :=
+{ to_is_add_subgroup := is_add_subgroup_Union_of_directed s directed,
+  to_is_submonoid := is_submonoid_Union_of_directed s directed }
 
 namespace ring
 

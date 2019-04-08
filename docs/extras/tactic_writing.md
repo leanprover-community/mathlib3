@@ -381,7 +381,7 @@ for using the second optional argument of `«have»` which is the expected type
 ```lean
 open interactive (loc.ns)
 open interactive.types (texpr location)
-meta def mul_left (q : parse texpr) : parse location → tactic unit
+meta def tactic.interactive.mul_left (q : parse texpr) : parse location → tactic unit
 | (loc.ns [some h]) := do
    e ← tactic.i_to_expr q,
    H ← get_local h,

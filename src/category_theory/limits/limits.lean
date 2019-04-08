@@ -251,21 +251,22 @@ variables (J C)
 
 /-- `C` has limits of shape `J` if we have chosen a particular limit of
   every functor `F : J ⥤ C`. -/
-@[class] def has_limits_of_shape := Π F : J ⥤ C, has_limit F
+class has_limits_of_shape :=
+(has_limit : Π F : J ⥤ C, has_limit F)
 
 /-- `C` has all (small) limits if it has limits of every shape. -/
-@[class] def has_limits :=
-Π {J : Type v} {𝒥 : small_category J}, by exactI has_limits_of_shape J C
+class has_limits :=
+(has_limits_of_shape : Π (J : Type v) [𝒥 : small_category J], has_limits_of_shape J C)
 
 variables {J C}
 
 instance has_limit_of_has_limits_of_shape
   {J : Type v} [small_category J] [H : has_limits_of_shape J C] (F : J ⥤ C) : has_limit F :=
-H F
+has_limits_of_shape.has_limit F
 
 instance has_limits_of_shape_of_has_limits
   {J : Type v} [small_category J] [H : has_limits.{v} C] : has_limits_of_shape J C :=
-H
+has_limits.has_limits_of_shape C J
 
 /- Interface to the `has_limit` class. -/
 
@@ -454,21 +455,22 @@ variables (J C)
 
 /-- `C` has colimits of shape `J` if we have chosen a particular colimit of
   every functor `F : J ⥤ C`. -/
-@[class] def has_colimits_of_shape := Π F : J ⥤ C, has_colimit F
+class has_colimits_of_shape :=
+(has_colimit : Π F : J ⥤ C, has_colimit F)
 
-/-- `C` has all (small) colimits if it has limits of every shape. -/
-@[class] def has_colimits :=
-Π {J : Type v} {𝒥 : small_category J}, by exactI has_colimits_of_shape J C
+/-- `C` has all (small) colimits if it has colimits of every shape. -/
+class has_colimits :=
+(has_colimits_of_shape : Π (J : Type v) [𝒥 : small_category J], has_colimits_of_shape J C)
 
 variables {J C}
 
 instance has_colimit_of_has_colimits_of_shape
   {J : Type v} [small_category J] [H : has_colimits_of_shape J C] (F : J ⥤ C) : has_colimit F :=
-H F
+has_colimits_of_shape.has_colimit F
 
 instance has_colimits_of_shape_of_has_colimits
   {J : Type v} [small_category J] [H : has_colimits.{v} C] : has_colimits_of_shape J C :=
-H
+has_colimits.has_colimits_of_shape C J
 
 /- Interface to the `has_colimit` class. -/
 

@@ -49,11 +49,14 @@ by refine is_limit.of_faithful forget (limit.is_limit _) (λ s, ⟨_, _⟩) (λ 
      induced_le_iff_le_coinduced.mpr $ continuous_iff_le_coinduced.mp (s.π.app j).property)
 
 instance : has_limits.{u} Top.{u} :=
-λ J 𝒥 F, by exactI { cone := limit F, is_limit := limit_is_limit F }
+{ has_limits_of_shape := λ J 𝒥,
+  { has_limit := λ F, by exactI { cone := limit F, is_limit := limit_is_limit F } } }
 
 instance : preserves_limits (forget : Top.{u} ⥤ Type u) :=
-λ J 𝒥 F, by exactI preserves_limit_of_preserves_limit_cone
-  (limit.is_limit F) (limit.is_limit (F ⋙ forget))
+{ preserves_limits_of_shape := λ J 𝒥,
+  { preserves_limit := λ F,
+    by exactI preserves_limit_of_preserves_limit_cone
+       (limit.is_limit F) (limit.is_limit (F ⋙ forget)) } }
 
 def colimit (F : J ⥤ Top.{u}) : cocone F :=
 { X := ⟨colimit (F ⋙ forget), ⨅ j, (F.obj j).str.coinduced (colimit.ι (F ⋙ forget) j)⟩,
@@ -67,11 +70,14 @@ by refine is_colimit.of_faithful forget (colimit.is_colimit _) (λ s, ⟨_, _⟩
      induced_le_iff_le_coinduced.mpr $ continuous_iff_le_coinduced.mp (s.ι.app j).property)
 
 instance : has_colimits.{u} Top.{u} :=
-λ J 𝒥 F, by exactI { cocone := colimit F, is_colimit := colimit_is_colimit F }
+{ has_colimits_of_shape := λ J 𝒥,
+  { has_colimit := λ F, by exactI { cocone := colimit F, is_colimit := colimit_is_colimit F } } }
 
 instance : preserves_colimits (forget : Top.{u} ⥤ Type u) :=
-λ J 𝒥 F, by exactI preserves_colimit_of_preserves_colimit_cocone
-  (colimit.is_colimit F) (colimit.is_colimit (F ⋙ forget))
+{ preserves_colimits_of_shape := λ J 𝒥,
+  { preserves_colimit := λ F,
+    by exactI preserves_colimit_of_preserves_colimit_cocone
+      (colimit.is_colimit F) (colimit.is_colimit (F ⋙ forget)) } }
 
 end
 

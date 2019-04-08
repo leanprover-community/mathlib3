@@ -11,8 +11,8 @@ open category_theory
 
 namespace category_theory.functor
 
-variables (J : Type u₁) [𝒥 : category.{v₁} J]
-variables {C : Type u₂} [𝒞 : category.{v₂} C]
+variables (J : Sort u₁) [𝒥 : category.{v₁} J]
+variables {C : Sort u₂} [𝒞 : category.{v₂} C]
 include 𝒥 𝒞
 
 def const : C ⥤ (J ⥤ C) :=
@@ -28,7 +28,7 @@ namespace const
 end const
 
 section
-variables {D : Type u₃} [𝒟 : category.{v₃} D]
+variables {D : Sort u₃} [𝒟 : category.{v₃} D]
 include 𝒟
 
 /-- These are actually equal, of course, but not definitionally equal

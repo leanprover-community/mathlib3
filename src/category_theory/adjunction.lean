@@ -16,7 +16,7 @@ universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `categor
 
 local attribute [elab_simple] whisker_left whisker_right
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
+variables {C : Sort u₁} [𝒞 : category.{v₁} C] {D : Sort u₂} [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
 /--
@@ -179,7 +179,7 @@ TODO
 -/
 
 section
-variables {E : Type u₃} [ℰ : category.{v₃} E] (H : D ⥤ E) (I : E ⥤ D)
+variables {E : Sort u₃} [ℰ : category.{v₃} E] (H : D ⥤ E) (I : E ⥤ D)
 
 def comp (adj₁ : adjunction F G) (adj₂ : adjunction H I) : adjunction (F ⋙ H) (I ⋙ G) :=
 { hom_equiv := λ X Z, equiv.trans (adj₂.hom_equiv _ _) (adj₁.hom_equiv _ _),
@@ -275,7 +275,7 @@ open category_theory.limits
 
 universes u₁ u₂ v
 
-variables {C : Type u₁} [𝒞 : category.{v} C] {D : Type u₂} [𝒟 : category.{v} D]
+variables {C : Sort u₁} [𝒞 : category.{v+1} C] {D : Sort u₂} [𝒟 : category.{v+1} D]
 include 𝒞 𝒟
 
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : adjunction F G)
@@ -310,10 +310,12 @@ def functoriality_is_left_adjoint :
 
 /-- A left adjoint preserves colimits. -/
 def left_adjoint_preserves_colimits : preserves_colimits F :=
-λ J 𝒥 K, by resetI; exact
-{ preserves := λ c hc, is_colimit_iso_unique_cocone_morphism.inv
-    (λ s, (((adj.functoriality_is_left_adjoint _).adj).hom_equiv _ _).unique_of_equiv $
-      is_colimit_iso_unique_cocone_morphism.hom hc _ ) }
+{ preserves_colimits_of_shape := λ J 𝒥,
+  { preserves_colimit := λ F,
+    by resetI; exact
+    { preserves := λ c hc, is_colimit_iso_unique_cocone_morphism.inv
+        (λ s, (((adj.functoriality_is_left_adjoint _).adj).hom_equiv _ _).unique_of_equiv $
+          is_colimit_iso_unique_cocone_morphism.hom hc _ ) } } }
 
 end preservation_colimits
 
@@ -346,10 +348,12 @@ def functoriality_is_right_adjoint :
 
 /-- A right adjoint preserves limits. -/
 def right_adjoint_preserves_limits : preserves_limits G :=
-λ J 𝒥 K, by resetI; exact
-{ preserves := λ c hc, is_limit_iso_unique_cone_morphism.inv
-    (λ s, (((adj.functoriality_is_right_adjoint _).adj).hom_equiv _ _).symm.unique_of_equiv $
-      is_limit_iso_unique_cone_morphism.hom hc _) }
+{ preserves_limits_of_shape := λ J 𝒥,
+  { preserves_limit := λ K,
+    by resetI; exact
+    { preserves := λ c hc, is_limit_iso_unique_cone_morphism.inv
+        (λ s, (((adj.functoriality_is_right_adjoint _).adj).hom_equiv _ _).symm.unique_of_equiv $
+          is_limit_iso_unique_cone_morphism.hom hc _) } } }
 
 end preservation_limits
 

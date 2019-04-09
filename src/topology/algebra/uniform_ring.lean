@@ -91,7 +91,7 @@ have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
       (continuous_add'.comp continuous_extension)
       (continuous_add (continuous_fst.comp continuous_extension) (continuous_snd.comp continuous_extension)))
     (assume a b,
-      by rw [← coe_add, extension_coe hf, extension_coe hf, extension_coe hf, is_add_group_hom.add f]),
+      by rw [← coe_add, extension_coe hf, extension_coe hf, extension_coe hf, is_add_group_hom.map_add f]),
   map_mul := assume a b, completion.induction_on₂ a b
     (is_closed_eq
       ((continuous_mul' α).comp continuous_extension)

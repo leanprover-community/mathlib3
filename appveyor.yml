@@ -6,6 +6,8 @@ build: off
 #     - appveyor.yml
 
 environment:
+  GITHUB_CRED:
+    secure: RPr/nQN2GbjWFfbUiBzpVeO/ojQYoAeqHjOAUhvzHk3DnrbY72zR6yUQQ8AETGtG
   matrix:
     - PYTHON: "Python36"
       PYTHON_VERSION: "3.6.x"
@@ -15,7 +17,7 @@ environment:
       PYTHON_ARCH: "64"
 
 test_script:
-    - sh -c "if [ '%GITHUB_TOKEN%' != '' ]; then git config --add github.oauthtoken %GITHUB_TOKEN%; echo setting up GitHub credentials; else echo no GitHub credentials available; fi"
+    - sh -c "if [ '%GITHUB_CRED%' != '' ]; then git config --add github.oauthtoken %GITHUB_CRED%; echo setting up GitHub credentials; else echo no GitHub credentials available; fi"
     - "SET PATH=C:\\Users\\appveyor\\AppData\\Roaming\\Python\\%PYTHON%\\Scripts;C:\\%PYTHON%;C:\\%PYTHON%\\Scripts; %PATH%"
     - sh -c "echo export PATH=\\\"/c/Users/appveyor/AppData/Roaming/Python/%PYTHON%/Scripts:/c/%PYTHON%:/c/%PYTHON%/Scripts:\$PATH\\\" >> $HOME/.profile"
     - "python --version"

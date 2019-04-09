@@ -3,9 +3,6 @@ import category_theory.limits.limits
 
 universes u v
 
--- lemma subtype.ext' {α : Sort u} {p : α → Prop} {a b : {x // p x}} (h : a.val = b.val) : a = b :=
--- subtype.ext.2 h
-
 open category_theory
 open category_theory.instances
 open category_theory.limits

@@ -344,7 +344,7 @@ def functoriality_is_right_adjoint :
     { app := λ c,
       { hom := adj.counit.app c.X,
         w' := λ j, by have := adj.counit.naturality (c.π.app j); tidy },
-      naturality' := λ _ _ f, by have := adj.counit.naturality (f.hom); tidy } } }.
+      naturality' := λ _ _ f, by have := adj.counit.naturality (f.hom); tidy } } }
 
 /-- A right adjoint preserves limits. -/
 def right_adjoint_preserves_limits : preserves_limits G :=

@@ -72,6 +72,24 @@ rfl
   whisker_right (α ⊟ β) F = (whisker_right α F) ⊟ (whisker_right β F) :=
 ((whiskering_right C D E).obj F).map_comp α β
 
+def iso_whisker_left (F : C ⥤ D) {G H : D ⥤ E} (α : G ≅ H) : (F ⋙ G) ≅ (F ⋙ H) :=
+((whiskering_left C D E).obj F).map_iso α
+@[simp] lemma iso_whisker_left_hom (F : C ⥤ D) {G H : D ⥤ E} (α : G ≅ H) :
+  (iso_whisker_left F α).hom = whisker_left F α.hom :=
+rfl
+@[simp] lemma iso_whisker_left_inv (F : C ⥤ D) {G H : D ⥤ E} (α : G ≅ H) :
+  (iso_whisker_left F α).inv = whisker_left F α.inv :=
+rfl
+
+def iso_whisker_right {G H : C ⥤ D} (α : G ≅ H) (F : D ⥤ E) : (G ⋙ F) ≅ (H ⋙ F) :=
+((whiskering_right C D E).obj F).map_iso α
+@[simp] lemma iso_whisker_right_hom {G H : C ⥤ D} (α : G ≅ H) (F : D ⥤ E) :
+  (iso_whisker_right α F).hom = whisker_right α.hom F :=
+rfl
+@[simp] lemma iso_whisker_right_inv {G H : C ⥤ D} (α : G ≅ H) (F : D ⥤ E) :
+  (iso_whisker_right α F).inv = whisker_right α.inv F :=
+rfl
+
 variables {B : Sort u₄} [ℬ : category.{v₄} B]
 include ℬ
 

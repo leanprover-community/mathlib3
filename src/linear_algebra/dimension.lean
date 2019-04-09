@@ -277,6 +277,14 @@ lemma exists_mem_ne_zero_of_dim_pos {s : submodule α β} (h : vector_space.dim 
   ∃ b : β, b ∈ s ∧ b ≠ 0 :=
 exists_mem_ne_zero_of_ne_bot $ assume eq, by rw [(>), eq, dim_bot] at h; exact lt_irrefl _ h
 
+lemma exists_is_basis_fintype (h : dim α β < cardinal.omega) :
+  ∃ s : (set β), (is_basis α s) ∧ nonempty (fintype s) :=
+begin
+  cases exists_is_basis α β with s hs,
+  rw [← is_basis.mk_eq_dim hs, cardinal.lt_omega_iff_fintype] at h,
+  exact ⟨s, hs, h⟩
+end
+
 def rank (f : β →ₗ[α] γ) : cardinal := dim α f.range
 
 lemma rank_le_domain (f : β →ₗ[α] γ) : rank f ≤ dim α β :=
@@ -320,3 +328,24 @@ lemma rank_comp_le2 (g : β →ₗ[α] γ) (f : γ →ₗ δ) : rank (f.comp g) 
 by rw [rank, rank, linear_map.range_comp]; exact dim_map_le _ _
 
 end vector_space
+
+section unconstrained_universes
+
+variables {γ' : Type w}
+variables [discrete_field α] [add_comm_group β] [vector_space α β]
+          [add_comm_group γ'] [vector_space α γ']
+open vector_space
+
+/-- Version of linear_equiv.dim_eq without universe constraints. -/
+theorem linear_equiv.dim_eq_lift (f : β ≃ₗ[α] γ') :
+  cardinal.lift.{v (max v w)} (dim α β) = cardinal.lift.{w (max v w)} (dim α γ') :=
+begin
+  cases exists_is_basis α β with b hb,
+  rw [← hb.mk_eq_dim, ← (f.is_basis hb).mk_eq_dim, cardinal.lift_mk, cardinal.lift_mk],
+  refine quotient.sound ⟨_⟩,
+  calc ulift.{max v w} b ≃ b : equiv.ulift
+                     ... ≃ _ : equiv.set.image _ _ f.to_equiv.injective
+                     ... ≃ _ : equiv.ulift.symm
+end
+
+end unconstrained_universes

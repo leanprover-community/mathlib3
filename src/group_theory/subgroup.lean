@@ -54,6 +54,13 @@ instance subtype.add_group {s : set β} [is_add_subgroup s] : add_group s :=
 by subtype_instance
 attribute [to_additive subtype.add_group] subtype.group
 
+instance subtype.comm_group {α : Type*} [comm_group α] {s : set α} [is_subgroup s] : comm_group s :=
+by subtype_instance
+
+instance subtype.add_comm_group {α : Type*} [add_comm_group α] {s : set α} [is_add_subgroup s] :
+  add_comm_group s := by subtype_instance
+attribute [to_additive subtype.add_comm_group] subtype.comm_group
+
 @[simp, to_additive is_add_subgroup.coe_neg]
 lemma is_subgroup.coe_inv {s : set α} [is_subgroup s] (a : s) : ((a⁻¹ : s) : α) = a⁻¹ := rfl
 

@@ -15,11 +15,11 @@ open classical function lattice filter finset metric
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 
-lemma has_sum_of_absolute_convergence_real {f : ℕ → ℝ} :
-  (∃r, tendsto (λn, (range n).sum (λi, abs (f i))) at_top (nhds r)) → has_sum f
+lemma summable_of_absolute_convergence_real {f : ℕ → ℝ} :
+  (∃r, tendsto (λn, (range n).sum (λi, abs (f i))) at_top (nhds r)) → summable f
 | ⟨r, hr⟩ :=
   begin
-    refine has_sum_of_has_sum_norm ⟨r, (is_sum_iff_tendsto_nat_of_nonneg _ _).2 _⟩,
+    refine summable_of_summable_norm ⟨r, (has_sum_iff_tendsto_nat_of_nonneg _ _).2 _⟩,
     exact assume i, norm_nonneg _,
     simpa only using hr
   end
@@ -78,20 +78,20 @@ lemma tendsto_one_div_add_at_top_nhds_0_nat :
 suffices tendsto (λ n : ℕ, 1 / (↑(n + 1) : ℝ)) at_top (nhds 0), by simpa,
 (tendsto_add_at_top_iff_nat 1).2 tendsto_one_div_at_top_nhds_0_nat
 
-lemma is_sum_geometric {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
-  is_sum (λn:ℕ, r ^ n) (1 / (1 - r)) :=
+lemma has_sum_geometric {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
+  has_sum (λn:ℕ, r ^ n) (1 / (1 - r)) :=
 have r ≠ 1, from ne_of_lt h₂,
 have r + -1 ≠ 0,
   by rw [←sub_eq_add_neg, ne, sub_eq_iff_eq_add]; simp; assumption,
 have tendsto (λn, (r ^ n - 1) * (r - 1)⁻¹) at_top (nhds ((0 - 1) * (r - 1)⁻¹)),
   from tendsto_mul
     (tendsto_sub (tendsto_pow_at_top_nhds_0_of_lt_1 h₁ h₂) tendsto_const_nhds) tendsto_const_nhds,
-(is_sum_iff_tendsto_nat_of_nonneg (pow_nonneg h₁) _).mpr $
+(has_sum_iff_tendsto_nat_of_nonneg (pow_nonneg h₁) _).mpr $
   by simp [neg_inv, geom_sum, div_eq_mul_inv, *] at *
 
-lemma is_sum_geometric_two (a : ℝ) : is_sum (λn:ℕ, (a / 2) / 2 ^ n) a :=
+lemma has_sum_geometric_two (a : ℝ) : has_sum (λn:ℕ, (a / 2) / 2 ^ n) a :=
 begin
-  convert is_sum_mul_left (a / 2) (is_sum_geometric
+  convert has_sum_mul_left (a / 2) (has_sum_geometric
     (le_of_lt one_half_pos) one_half_lt_one),
   { funext n, simp,
     rw ← pow_inv; [refl, exact two_ne_zero] },
@@ -99,15 +99,15 @@ begin
 end
 
 def pos_sum_of_encodable {ε : ℝ} (hε : 0 < ε)
-  (ι) [encodable ι] : {ε' : ι → ℝ // (∀ i, 0 < ε' i) ∧ ∃ c, is_sum ε' c ∧ c ≤ ε} :=
+  (ι) [encodable ι] : {ε' : ι → ℝ // (∀ i, 0 < ε' i) ∧ ∃ c, has_sum ε' c ∧ c ≤ ε} :=
 begin
   let f := λ n, (ε / 2) / 2 ^ n,
-  have hf : is_sum f ε := is_sum_geometric_two _,
+  have hf : has_sum f ε := has_sum_geometric_two _,
   have f0 : ∀ n, 0 < f n := λ n, div_pos (half_pos hε) (pow_pos two_pos _),
   refine ⟨f ∘ encodable.encode, λ i, f0 _, _⟩,
-  rcases has_sum_comp_of_has_sum_of_injective f (has_sum_spec hf) (@encodable.encode_injective ι _)
+  rcases summable_comp_of_summable_of_injective f (summable_spec hf) (@encodable.encode_injective ι _)
     with ⟨c, hg⟩,
-  refine ⟨c, hg, is_sum_le_inj _ (@encodable.encode_injective ι _) _ _ hg hf⟩,
+  refine ⟨c, hg, has_sum_le_inj _ (@encodable.encode_injective ι _) _ _ hg hf⟩,
   { assume i _, exact le_of_lt (f0 _) },
   { assume n, exact le_refl _ }
 end
@@ -115,9 +115,9 @@ end
 lemma cauchy_seq_of_le_geometric [metric_space α] (r C : ℝ) (hr : r < 1) {f : ℕ → α}
   (hu : ∀n, dist (f n) (f (n+1)) ≤ C * r^n) : cauchy_seq f :=
 begin
-  refine cauchy_seq_of_has_sum_dist (has_sum_of_norm_bounded (λn, C * r^n) _ _),
+  refine cauchy_seq_of_summable_dist (summable_of_norm_bounded (λn, C * r^n) _ _),
   { by_cases h : C = 0,
-    { simp [h, has_sum_zero] },
+    { simp [h, summable_zero] },
     { have Cpos : C > 0,
       { have := le_trans dist_nonneg (hu 0),
         simp only [mul_one, pow_zero] at this,
@@ -126,8 +126,8 @@ begin
       { have := le_trans dist_nonneg (hu 1),
         simp only [pow_one] at this,
         exact nonneg_of_mul_nonneg_left this Cpos },
-      refine has_sum_mul_left C _,
-      exact has_sum_spec (@is_sum_geometric r rnonneg hr) }},
+      refine summable_mul_left C _,
+      exact summable_spec (@has_sum_geometric r rnonneg hr) }},
   show ∀n, abs (dist (f n) (f (n+1))) ≤ C * r^n,
   { assume n, rw abs_of_nonneg (dist_nonneg), exact hu n }
 end
@@ -135,11 +135,11 @@ end
 namespace nnreal
 
 theorem exists_pos_sum_of_encodable {ε : nnreal} (hε : 0 < ε) (ι) [encodable ι] :
-  ∃ ε' : ι → nnreal, (∀ i, 0 < ε' i) ∧ ∃c, is_sum ε' c ∧ c < ε :=
+  ∃ ε' : ι → nnreal, (∀ i, 0 < ε' i) ∧ ∃c, has_sum ε' c ∧ c < ε :=
 let ⟨a, a0, aε⟩ := dense hε in
 let ⟨ε', hε', c, hc, hcε⟩ := pos_sum_of_encodable a0 ι in
 ⟨ λi, ⟨ε' i, le_of_lt $ hε' i⟩, assume i, nnreal.coe_lt.2 $ hε' i,
-  ⟨c, is_sum_le (assume i, le_of_lt $ hε' i) is_sum_zero hc ⟩, nnreal.is_sum_coe.1 hc,
+  ⟨c, has_sum_le (assume i, le_of_lt $ hε' i) has_sum_zero hc ⟩, nnreal.has_sum_coe.1 hc,
    lt_of_le_of_lt (nnreal.coe_le.1 hcε) aε ⟩
 
 end nnreal

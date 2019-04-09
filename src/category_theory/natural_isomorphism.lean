@@ -37,18 +37,6 @@ instance inv_app_is_iso (α : F ≅ G) (X : C) : is_iso (α.inv.app X) :=
   hom_inv_id' := begin rw [←functor.category.comp_app, iso.inv_hom_id, ←functor.category.id_app] end,
   inv_hom_id' := begin rw [←functor.category.comp_app, iso.hom_inv_id, ←functor.category.id_app] end }
 
--- TODO remove these
-@[simp] lemma hom_vcomp_inv (α : F ≅ G) : (α.hom ≫ α.inv) = nat_trans.id _ :=
-begin
-  rw iso.hom_inv_id,
-  refl
-end
-@[simp] lemma inv_vcomp_hom (α : F ≅ G) : (α.inv ≫ α.hom) = nat_trans.id _ :=
-begin
-  rw iso.inv_hom_id,
-  refl
-end
-
 @[simp] lemma hom_app_inv_app_id (α : F ≅ G) (X : C) : α.hom.app X ≫ α.inv.app X = 𝟙 _ :=
 begin
   rw ←functor.category.comp_app,

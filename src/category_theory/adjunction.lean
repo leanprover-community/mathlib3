@@ -74,11 +74,11 @@ end
 
 @[simp] lemma left_triangle_components :
   F.map (adj.unit.app X) ≫ adj.counit.app (F.obj X) = 𝟙 _ :=
-congr_arg (λ (t : _ ⟹ functor.id C ⋙ F), t.app X) adj.left_triangle
+congr_arg (λ (t : nat_trans _ (functor.id C ⋙ F)), t.app X) adj.left_triangle
 
 @[simp] lemma right_triangle_components {Y : D} :
   adj.unit.app (G.obj Y) ≫ G.map (adj.counit.app Y) = 𝟙 _ :=
-congr_arg (λ (t : _ ⟹ G ⋙ functor.id C), t.app Y) adj.right_triangle
+congr_arg (λ (t : nat_trans _ (G ⋙ functor.id C)), t.app Y) adj.right_triangle
 
 end
 
@@ -152,13 +152,13 @@ def mk_of_unit_counit (adj : core_unit_counit F G) : adjunction F G :=
       change F.map (_ ≫ _) ≫ _ = _,
       rw [F.map_comp, assoc, ←functor.comp_map, adj.counit.naturality, ←assoc],
       convert id_comp _ f,
-      exact congr_arg (λ t : _ ⟹ _, t.app _) adj.left_triangle
+      exact congr_arg (λ t : nat_trans _ _, t.app _) adj.left_triangle
     end,
     right_inv := λ g, begin
       change _ ≫ G.map (_ ≫ _) = _,
       rw [G.map_comp, ←assoc, ←functor.comp_map, ←adj.unit.naturality, assoc],
       convert comp_id _ g,
-      exact congr_arg (λ t : _ ⟹ _, t.app _) adj.right_triangle
+      exact congr_arg (λ t : nat_trans _ _, t.app _) adj.right_triangle
   end },
   .. adj }
 

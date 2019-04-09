@@ -186,7 +186,6 @@ have tendsto f a (nhds 0) ↔ tendsto (λ e, ∥ f e - 0 ∥) a (nhds 0) :=
 by simpa
 
 lemma lim_norm (x : α) : (λg:α, ∥g - x∥) →_{x} 0 :=
-
 tendsto_iff_norm_tendsto_zero.1 (continuous_iff_continuous_at.1 continuous_id x)
 
 lemma lim_norm_zero : (λg:α, ∥g∥) →_{0} 0 :=
@@ -328,14 +327,6 @@ end
 
 @[simp] lemma norm_inv {α : Type*} [normed_field α] (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ :=
 by simp only [inv_eq_one_div, norm_div, norm_one]
-
-@[simp] lemma normed_field.norm_pow {α : Type*} [normed_field α] (a : α) :
-  ∀ n : ℕ, ∥a^n∥ = ∥a∥^n
-| 0 := by simp
-| (k+1) := calc
-  ∥a ^ (k + 1)∥ = ∥a*(a^k)∥ : rfl
-           ... = ∥a∥*∥a^k∥ : by rw normed_field.norm_mul
-           ... = ∥a∥ ^ (k + 1) : by rw normed_field.norm_pow; simp [pow, monoid.pow]
 
 @[simp] lemma norm_fpow {α : Type*} [normed_field α] (a : α) : ∀n : ℤ,
   ∥a^n∥ = ∥a∥^n

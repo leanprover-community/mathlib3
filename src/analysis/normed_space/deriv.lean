@@ -304,7 +304,6 @@ set_option class.instance_max_depth 55
  neighbourhood filter of the point.-/
 lemma fderiv_at_filter_unique (f : E → F) (x₀ : E) {L : filter E} (h : nhds x₀ ≤ L) {A₁ A₂ : E → F} :
   has_fderiv_at_filter K f A₁ x₀ L → has_fderiv_at_filter K f A₂ x₀ L → A₁ = A₂ :=
-
 assume ⟨⟨A₁_linear, A₁_bounded₁⟩, (eq₁ : is_o (λ x, f x - f x₀ - A₁ (x - x₀)) (λ x, x - x₀) L)⟩
   ⟨⟨A₂_linear₂, A₂_bounded⟩, (eq₂ : is_o (λ x, f x - f x₀ - A₂ (x - x₀)) (λ x, x - x₀) L)⟩,
 
@@ -317,17 +316,13 @@ begin
   rw [←sub_eq_zero_iff_eq], symmetry,
   exact tendsto_nhds_unique at_top_ne_bot (this v) tendsto_const_nhds
 end,
-
 assume v,
-
 -- substract the equations eq₁ and eq₂ showing that A₁ and A₂ are differential
 have is_o (λ x, A₂ (x - x₀) - A₁ (x - x₀)) (λ x, x - x₀) L, by simpa using eq₁.sub eq₂,
-
 -- pick ξ ≠ 0, ∥ξ∥ < 1 and plugin in the sequence ξ^n + x₀, replace filter by at_top
 let ⟨ξ, _, _⟩ := exists_norm_lt_one K in
 have is_o (λ n, A₂ (ξ^n • v) - A₁ (ξ^n • v)) (λ n, ξ^n • v) (comap ((λ n, x₀ + ξ^n • v)) (nhds x₀)),
   by simpa [function.comp] using ((this.comp (λ (n : ℕ), ξ^n • v + x₀)).mono (comap_mono h)),
-
 -- refine the filter to at_top
 have at_top_is_finer : at_top ≤ comap (λ (n : ℕ), (ξ^n) • v + x₀) (nhds x₀),
 begin
@@ -338,17 +333,14 @@ begin
     ‹continuous (λ c : K, c • v + x₀)›.to_sequentially_continuous (λ n, ξ^n)
       (tendsto_pow_at_top_nhds_0_of_lt_1_normed_field ‹∥ξ∥ < 1›)
 end,
-
 -- and use monotonicity of little o
 have is_o (λ n : ℕ, A₂ (ξ^n • v) - A₁ (ξ^n • v)) (λ n, ξ^n • v) at_top,
   from is_o.mono at_top_is_finer (by simpa using this),
-
 -- the ξ^n factor cancels
 have is_o (λ (x : ℕ), A₂ v - A₁ v) (λ (x : ℕ), v) at_top,
   by simpa [‹is_linear_map K A₁›.smul, ‹is_linear_map K A₂›.smul,
             smul_add, smul_smul, inv_mul_cancel ((λ n, pow_ne_zero n ((norm_pos_iff ξ).mp ‹0 < ∥ξ∥›)) _), one_smul] using
      @is_o_smul _ _ _ _ _ _ _ (λ n : ℕ, (ξ^n)⁻¹) _ _ _ this,
-
 show tendsto (λ (n : ℕ), A₂ v - A₁ v) at_top (nhds 0),
   from is_o_one_iff.mp (this.trans_is_O (is_O_const_one v _) : is_o _ (λ n, (1:K)) _)
 

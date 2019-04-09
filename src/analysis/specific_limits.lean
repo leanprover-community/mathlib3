@@ -61,7 +61,8 @@ by_cases
         tendsto_inverse_at_top_nhds_0,
     tendsto.congr' (univ_mem_sets' $ by simp *) this)
 
-lemma tendsto_pow_at_top_nhds_0_of_lt_1_normed_field {K : Type*} [normed_field K] {ξ : K} (_ : ∥ξ∥ < 1) : tendsto (λ n : ℕ, ξ^n) at_top (nhds 0) :=
+lemma tendsto_pow_at_top_nhds_0_of_lt_1_normed_field {K : Type*} [normed_field K] {ξ : K}
+  (_ : ∥ξ∥ < 1) : tendsto (λ n : ℕ, ξ^n) at_top (nhds 0) :=
 begin
   rw[tendsto_iff_norm_tendsto_zero],
   convert tendsto_pow_at_top_nhds_0_of_lt_1 (norm_nonneg ξ) ‹∥ξ∥ < 1›,

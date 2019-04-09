@@ -194,7 +194,7 @@ protected definition op (α : F ⟶ G) : G.op ⟶ F.op :=
 { app         := λ X, (α.app (unop X)).op,
   naturality' := begin tidy, erw α.naturality, refl, end }
 
-@[simp] lemma op_app (α : F ⟶ G) (X) : (α.op).app X = (α.app (unop X)).op := rfl
+@[simp] lemma op_app (α : F ⟶ G) (X) : (nat_trans.op α).app X = (α.app (unop X)).op := rfl
 
 end nat_trans
 

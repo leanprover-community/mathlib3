@@ -54,13 +54,6 @@ lemma naturality_app {F G : C ⥤ (D ⥤ E)} (T : F ⟹ G) (Z : D) {X Y : C} (f 
   ((F.map f).app Z) ≫ ((T.app Y).app Z) = ((T.app X).app Z) ≫ ((G.map f).app Z) :=
 congr_fun (congr_arg app (T.naturality f)) Z
 
-@[simp] lemma map_vcomp {F : (C ⥤ D) ⥤ E} {G H K : C ⥤ D} {α : G ⟹ H} {β : H ⟹ K} :
-  F.map(α ⊟ β) = F.map α ≫ F.map β :=
-begin
-  rw ←F.map_comp,
-  refl,
-end
-
 end nat_trans
 
 end functor.category

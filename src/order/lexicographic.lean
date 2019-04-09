@@ -123,7 +123,7 @@ The 'pointwise' partial order `prod.has_le` doesn't make
 sense for dependent pairs, so it's safe to mark these as
 instances here.
 -/
-instance dlex_has_le [preorder α] [s : ∀ a, preorder (Z a)] : has_le (Σ' a, Z a) :=
+instance dlex_has_le [preorder α] [∀ a, preorder (Z a)] : has_le (Σ' a, Z a) :=
 { le := psigma.lex (<) (λ a, (≤)) }
 
 instance dlex_has_lt [preorder α] [∀ a, preorder (Z a)] : has_lt (Σ' a, Z a) :=

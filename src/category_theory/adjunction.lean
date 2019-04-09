@@ -27,7 +27,7 @@ structure adjunction (F : C ⥤ D) (G : D ⥤ C) :=
 (hom_equiv : Π (X Y), (F.obj X ⟶ Y) ≃ (X ⟶ G.obj Y))
 (unit : functor.id C ⟶ F.comp G)
 (counit : G.comp F ⟶ functor.id D)
-(hom_equiv_unit' : Π {X Y f}, (hom_equiv X Y) f = (unit : _ ⟹ _).app X ≫ G.map f . obviously)
+(hom_equiv_unit' : Π {X Y f}, (hom_equiv X Y) f = (unit : _ ⟶ _).app X ≫ G.map f . obviously)
 (hom_equiv_counit' : Π {X Y g}, (hom_equiv X Y).symm g = F.map g ≫ counit.app Y . obviously)
 
 namespace adjunction
@@ -57,7 +57,7 @@ by rw [hom_equiv_unit, G.map_comp, ← assoc, ←hom_equiv_unit]
 by rw [equiv.symm_apply_eq]; simp [-hom_equiv_counit]
 
 @[simp] lemma left_triangle :
-  (whisker_right adj.unit F).vcomp (whisker_left F adj.counit) = nat_trans.id _ :=
+  (whisker_right adj.unit F) ≫ (whisker_left F adj.counit) = nat_trans.id _ :=
 begin
   ext1 X, dsimp,
   erw [← adj.hom_equiv_counit, equiv.symm_apply_eq, adj.hom_equiv_unit],
@@ -65,7 +65,7 @@ begin
 end
 
 @[simp] lemma right_triangle :
-  (whisker_left G adj.unit).vcomp (whisker_right adj.counit G) = nat_trans.id _ :=
+  (whisker_left G adj.unit) ≫ (whisker_right adj.counit G) = nat_trans.id _ :=
 begin
   ext1 Y, dsimp,
   erw [← adj.hom_equiv_unit, ← equiv.eq_symm_apply, adj.hom_equiv_counit],
@@ -74,11 +74,11 @@ end
 
 @[simp] lemma left_triangle_components :
   F.map (adj.unit.app X) ≫ adj.counit.app (F.obj X) = 𝟙 _ :=
-congr_arg (λ (t : _ ⟹ functor.id C ⋙ F), t.app X) adj.left_triangle
+congr_arg (λ (t : nat_trans _ (functor.id C ⋙ F)), t.app X) adj.left_triangle
 
 @[simp] lemma right_triangle_components {Y : D} :
   adj.unit.app (G.obj Y) ≫ G.map (adj.counit.app Y) = 𝟙 _ :=
-congr_arg (λ (t : _ ⟹ G ⋙ functor.id C), t.app Y) adj.right_triangle
+congr_arg (λ (t : nat_trans _ (G ⋙ functor.id C)), t.app Y) adj.right_triangle
 
 end
 
@@ -110,8 +110,8 @@ end core_hom_equiv
 structure core_unit_counit (F : C ⥤ D) (G : D ⥤ C) :=
 (unit : functor.id C ⟶ F.comp G)
 (counit : G.comp F ⟶ functor.id D)
-(left_triangle' : (whisker_right unit F).vcomp (whisker_left F counit) = nat_trans.id _ . obviously)
-(right_triangle' : (whisker_left G unit).vcomp (whisker_right counit G) = nat_trans.id _ . obviously)
+(left_triangle' : (whisker_right unit F) ≫ (whisker_left F counit) = nat_trans.id _ . obviously)
+(right_triangle' : (whisker_left G unit) ≫ (whisker_right counit G) = nat_trans.id _ . obviously)
 
 namespace core_unit_counit
 
@@ -152,13 +152,13 @@ def mk_of_unit_counit (adj : core_unit_counit F G) : adjunction F G :=
       change F.map (_ ≫ _) ≫ _ = _,
       rw [F.map_comp, assoc, ←functor.comp_map, adj.counit.naturality, ←assoc],
       convert id_comp _ f,
-      exact congr_arg (λ t : _ ⟹ _, t.app _) adj.left_triangle
+      exact congr_arg (λ t : nat_trans _ _, t.app _) adj.left_triangle
     end,
     right_inv := λ g, begin
       change _ ≫ G.map (_ ≫ _) = _,
       rw [G.map_comp, ←assoc, ←functor.comp_map, ←adj.unit.naturality, assoc],
       convert comp_id _ g,
-      exact congr_arg (λ t : _ ⟹ _, t.app _) adj.right_triangle
+      exact congr_arg (λ t : nat_trans _ _, t.app _) adj.right_triangle
   end },
   .. adj }
 

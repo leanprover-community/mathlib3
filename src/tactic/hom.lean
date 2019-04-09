@@ -28,13 +28,25 @@ meta def instance_type : name → name
 | `field       := `is_field_hom
 | _ := name.anonymous
 
+/-
+TODO:
+* Put the map lemmas in the root namespace
+  - This also takes care of all the inference of classes like `is_monoid_hom` or `is_add_group_hom`.
+  - So we want map lemmas with names _root_.map_mul, _root_.map_smul, etc
+* I am afraid that this will not work for `is_field_hom.map_inv`
+* Generalise `map_prod` to mul_homs (idem for map_sum)
+* Add `is_anti_group_hom.{map_one,map_mul,map_prod}` [these lemmas are in mathlib]
+  - This might require some thought.
+  - Because `instance_type` currently has type `name → name`,
+  - and it maps `group` to `is_group_hom`. Maybe that should become list-valued?
+-/
 meta def map_types : name → (list name)
 | `has_mul     := [`is_mul_hom.map_mul]
 | `has_add     := [`is_add_hom.map_add]
 | `monoid      := [`is_monoid_hom.map_one, `is_monoid_hom.map_pow]
 | `add_monoid  := [`is_add_monoid_hom.map_zero, `is_add_monoid_hom.map_smul]
-| `group       := [`is_group_hom.map_inv]
-| `add_group   := [`is_add_group_hom.map_neg]
+| `group       := [`is_group_hom.map_inv, `is_group_hom.map_prod]
+| `add_group   := [`is_add_group_hom.map_neg, `is_add_group_hom.map_sum]
 | `field       := [`is_field_hom.map_div, `is_field_hom.map_inv]
 | _ := []
 

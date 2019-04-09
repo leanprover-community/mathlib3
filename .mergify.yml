@@ -1,0 +1,21 @@
+pull_request_rules:
+  - name: automatic merge on CI success and review
+    conditions:
+      - status-success=continuous-integration/travis-ci/pr
+      - status-success=continuous-integration/appveyor/pr
+      - "#changes-requested-reviews-by=0"
+      - base=master
+      - label=ready-to-merge
+      - approved-reviews-by=@leanprover-community/mathlib-maintainers
+    actions:
+     delete_head_branch: {}
+     merge:
+        method: squash
+        strict: smart
+        strict_method: merge
+  - name: remove outdated reviews
+    conditions:
+      - base=master
+    actions:
+      dismiss_reviews:
+        approved: True

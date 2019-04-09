@@ -19,19 +19,27 @@ do ctx ← local_context,
    ctx.mfilter (λ e, to_expr ``(%%cn %%e) >>= mk_instance >> pure true <|> pure false)
 
 meta def instance_type : name → name
-| `has_mul   := `is_mul_hom
-| `monoid    := `is_monoid_hom
-| `group     := `is_group_hom
+| `has_mul     := `is_mul_hom
+| `has_add     := `is_add_hom
+| `monoid      := `is_monoid_hom
+| `add_monoid  := `is_add_monoid_hom
+| `group       := `is_group_hom
+| `add_group   := `is_add_group_hom
+| `field       := `is_field_hom
 | _ := name.anonymous
 
 meta def map_types : name → (list name)
-| `has_mul   := [`is_mul_hom.map_mul]
-| `monoid    := [`is_monoid_hom.map_one, `is_monoid_hom.map_pow]
-| `group     := [`is_group_hom.map_inv]
+| `has_mul     := [`is_mul_hom.map_mul]
+| `has_add     := [`is_add_hom.map_add]
+| `monoid      := [`is_monoid_hom.map_one, `is_monoid_hom.map_pow]
+| `add_monoid  := [`is_add_monoid_hom.map_zero, `is_add_monoid_hom.map_smul]
+| `group       := [`is_group_hom.map_inv]
+| `add_group   := [`is_add_group_hom.map_neg]
+| `field       := [`is_field_hom.map_div, `is_field_hom.map_inv]
 | _ := []
 
 meta def types : list name :=
-[`has_mul, `monoid, `group]
+[`has_mul, `has_add, `monoid, `add_monoid, `group, `add_group, `field]
 
 meta def tactics_of_homs (p : name × tactic (list expr)) : tactic (list (list (tactic unit))) :=
 do let map_lemmas := map_types p.1,

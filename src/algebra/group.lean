@@ -625,16 +625,13 @@ lemma comp' {f : α → β} {g : β → γ} (hf : is_mul_hom f) (hg : is_mul_hom
 
 end is_mul_hom
 
-class is_monoid_hom [monoid α] [monoid β] (f : α → β) : Prop :=
+class is_monoid_hom [monoid α] [monoid β] (f : α → β) extends is_mul_hom f : Prop :=
 (map_one : f 1 = 1)
-(map_mul : ∀ {x y}, f (x * y) = f x * f y)
 
-class is_add_monoid_hom [add_monoid α] [add_monoid β] (f : α → β) : Prop :=
+class is_add_monoid_hom [add_monoid α] [add_monoid β] (f : α → β) extends is_add_hom f : Prop :=
 (map_zero : f 0 = 0)
-(map_add : ∀ {x y}, f (x + y) = f x + f y)
 
 attribute [to_additive is_add_monoid_hom] is_monoid_hom
-attribute [to_additive is_add_monoid_hom.map_add] is_monoid_hom.map_mul
 attribute [to_additive is_add_monoid_hom.mk] is_monoid_hom.mk
 attribute [to_additive is_add_monoid_hom.cases_on] is_monoid_hom.cases_on
 attribute [to_additive is_add_monoid_hom.dcases_on] is_monoid_hom.dcases_on
@@ -643,6 +640,24 @@ attribute [to_additive is_add_monoid_hom.drec] is_monoid_hom.drec
 attribute [to_additive is_add_monoid_hom.rec_on] is_monoid_hom.rec_on
 attribute [to_additive is_add_monoid_hom.drec_on] is_monoid_hom.drec_on
 attribute [to_additive is_add_monoid_hom.map_zero] is_monoid_hom.map_one
+
+namespace is_monoid_hom
+variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
+
+lemma map_mul {x y} : f (x * y) = f x * f y :=
+is_mul_hom.map_mul f
+
+end is_monoid_hom
+
+namespace is_add_monoid_hom
+variables [add_monoid α] [add_monoid β] (f : α → β) [is_add_monoid_hom f]
+
+lemma map_add {x y} : f (x + y) = f x + f y :=
+is_add_hom.map_add f
+
+attribute [to_additive is_add_monoid_hom.map_add] is_monoid_hom.map_mul
+
+end is_add_monoid_hom
 
 namespace is_monoid_hom
 variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
@@ -656,13 +671,19 @@ instance comp {γ} [monoid γ] (g : β → γ) [is_monoid_hom g] :
 { map_mul := λ x y, show g _ = g _ * g _, by rw [map_mul f, map_mul g],
   map_one := show g _ = 1, by rw [map_one f, map_one g] }
 
+end is_monoid_hom
+
+namespace is_add_monoid_hom
+variables [add_monoid α] [add_monoid β] (f : α → β) [is_add_monoid_hom f]
+
 instance is_add_monoid_hom_mul_left {γ : Type*} [semiring γ] (x : γ) : is_add_monoid_hom (λ y : γ, x * y) :=
-by refine_struct {..}; simp [mul_add]
+{ map_zero := mul_zero x, map_add := λ y z, mul_add x y z }
 
 instance is_add_monoid_hom_mul_right {γ : Type*} [semiring γ] (x : γ) : is_add_monoid_hom (λ y : γ, y * x) :=
-by refine_struct {..}; simp [add_mul]
+{ map_zero := zero_mul x, map_add := λ y z, add_mul y z x }
 
-end is_monoid_hom
+
+end is_add_monoid_hom
 
 -- TODO rename fields of is_group_hom: mul ↝ map_mul?
 
@@ -718,7 +739,7 @@ protected lemma is_conj (f : α → β) [is_group_hom f] {a b : α} : is_conj a 
 
 @[to_additive is_add_group_hom.to_is_add_monoid_hom]
 lemma to_is_monoid_hom (f : α → β) [is_group_hom f] : is_monoid_hom f :=
-⟨is_group_hom.one f, is_group_hom.mul f⟩
+{ map_one := is_group_hom.one f, map_mul := is_group_hom.mul f }
 
 @[to_additive is_add_group_hom.injective_iff]
 lemma injective_iff (f : α → β) [is_group_hom f] :
@@ -805,7 +826,7 @@ instance : is_group_hom (units.map f) :=
 ⟨λ a b, by ext; exact is_monoid_hom.map_mul f ⟩
 
 instance : is_monoid_hom (coe : units α → α) :=
-⟨by simp, by simp⟩
+{ map_one := rfl, map_mul := by simp }
 
 @[simp] lemma coe_map (u : units α) : (map f u : β) = f u := rfl
 

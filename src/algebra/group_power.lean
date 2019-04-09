@@ -165,10 +165,10 @@ theorem add_monoid.smul_add : ∀ (a b : β) (n : ℕ), n•(a + b) = n•a + n�
 attribute [to_additive add_monoid.add_smul] mul_pow
 
 instance pow.is_monoid_hom (n : ℕ) : is_monoid_hom ((^ n) : α → α) :=
-by refine_struct {..}; simp [mul_pow, one_pow]
+{ map_mul := λ _ _, mul_pow _ _ _, map_one := one_pow _ }
 
 instance add_monoid.smul.is_add_monoid_hom (n : ℕ) : is_add_monoid_hom (add_monoid.smul n : β → β) :=
-by refine_struct {..}; simp [add_monoid.smul_zero, add_monoid.smul_add]
+{ map_add := λ _ _, add_monoid.smul_add _ _ _, map_zero := add_monoid.smul_zero _ }
 
 attribute [to_additive add_monoid.smul.is_add_monoid_hom] pow.is_monoid_hom
 

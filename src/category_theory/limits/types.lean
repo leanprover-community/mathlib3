@@ -37,7 +37,7 @@ instance : has_limits.{u} (Type u) :=
 @[simp] lemma types_limit_pre
   (F : J ⥤ Type u) {K : Type u} [𝒦 : small_category K] (E : K ⥤ J) (g : (limit F).X) :
   limit.pre F E g = (⟨λ k, g.val (E.obj k), by obviously⟩ : (limit (E ⋙ F)).X) := rfl
-@[simp] lemma types_limit_map {F G : J ⥤ Type u} (α : F ⟹ G) (g : (limit F).X) :
+@[simp] lemma types_limit_map {F G : J ⥤ Type u} (α : F ⟶ G) (g : (limit F).X) :
   (lim.map α : (limit F).X → (limit G).X) g =
   (⟨λ j, (α.app j) (g.val j), λ j j' f,
     by rw [←functor_to_types.naturality, ←(g.property f)]⟩ : (limit G).X) := rfl
@@ -71,7 +71,7 @@ instance : has_colimits.{u} (Type u) :=
   (F : J ⥤ Type u) {K : Type u} [𝒦 : small_category K] (E : K ⥤ J) (g : (colimit (E ⋙ F)).X) :
   colimit.pre F E =
   quot.lift (λ p, quot.mk _ ⟨E.obj p.1, p.2⟩) (λ p p' ⟨f, h⟩, quot.sound ⟨E.map f, h⟩) := rfl
-@[simp] lemma types_colimit_map {F G : J ⥤ Type u} (α : F ⟹ G) :
+@[simp] lemma types_colimit_map {F G : J ⥤ Type u} (α : F ⟶ G) :
   (colim.map α : (colimit F).X → (colimit G).X) =
   quot.lift
     (λ p, quot.mk _ ⟨p.1, (α.app p.1) p.2⟩)

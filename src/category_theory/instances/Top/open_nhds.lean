@@ -9,6 +9,9 @@ universe u
 namespace topological_space.open_nhds
 variables {X Y : Top.{u}} (f : X ⟶ Y)
 
+def open_nhds (x : X.α) := { U : opens X // x ∈ U }
+instance open_nhds_category (x : X.α) : category.{u+1} (open_nhds x) := begin unfold open_nhds, apply_instance end
+
 def inclusion (x : X.α) : open_nhds x ⥤ opens X :=
 { obj := λ U, U.val,
   map := λ U V i, i }
@@ -19,14 +22,14 @@ def map (x : X) : open_nhds (f x) ⥤ open_nhds x :=
 { obj := λ U, ⟨(opens.map f).obj U.1, by tidy⟩,
   map := λ U V i, (opens.map f).map i }
 
-@[simp] lemma map_id_obj' {X : Top.{u}} (x : X) (U) (p) (q) : (map (𝟙 X) x).obj ⟨⟨U, p⟩, q⟩ = ⟨⟨U, p⟩, q⟩ :=
+@[simp] lemma map_id_obj' (x : X) (U) (p) (q) : (map (𝟙 X) x).obj ⟨⟨U, p⟩, q⟩ = ⟨⟨U, p⟩, q⟩ :=
 rfl
-@[simp] lemma map_id_obj {X : Top.{u}} (x : X) (U) : (map (𝟙 X) x).obj U = U :=
+@[simp] lemma map_id_obj (x : X) (U) : (map (𝟙 X) x).obj U = U :=
 by tidy
 
-@[simp] lemma map_id_obj_unop {X : Top.{u}} (x : X) (U : (open_nhds x)ᵒᵖ) : (map (𝟙 X) x).obj (unop U) = unop U :=
+@[simp] lemma map_id_obj_unop (x : X) (U : (open_nhds x)ᵒᵖ) : (map (𝟙 X) x).obj (unop U) = unop U :=
 by simp
-@[simp] lemma op_map_id_obj {X : Top.{u}} (x : X) (U : (open_nhds x)ᵒᵖ) : (map (𝟙 X) x).op.obj U = U :=
+@[simp] lemma op_map_id_obj (x : X) (U : (open_nhds x)ᵒᵖ) : (map (𝟙 X) x).op.obj U = U :=
 by simp
 
 def inclusion_map_iso (x : X) : inclusion (f x) ⋙ opens.map f ≅ map f x ⋙ inclusion x :=

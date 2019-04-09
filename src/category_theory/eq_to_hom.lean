@@ -39,10 +39,6 @@ begin
   cases h,
   refl
 end
-@[simp] lemma eq_to_hom_op_comp (X Y : C) (h : X = Y) (k : op X = op Y): (eq_to_hom h).op ≫ eq_to_hom k = 𝟙 _ :=
-begin
-  simp,
-end
 
 variables {D : Sort u'} [𝒟 : category.{v'} D]
 include 𝒟
@@ -74,15 +70,15 @@ by subst h; simp
 
 end functor
 
-lemma eq_to_hom_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
+@[simp] lemma eq_to_hom_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
   F.map (eq_to_hom p) = eq_to_hom (congr_arg F.obj p) :=
 by cases p; simp
 
-lemma eq_to_iso_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
+@[simp] lemma eq_to_iso_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
   F.map_iso (eq_to_iso p) = eq_to_iso (congr_arg F.obj p) :=
 by ext; cases p; simp
 
-lemma eq_to_hom_app {F G : C ⥤ D} (h : F = G) (X : C) :
+@[simp] lemma eq_to_hom_app {F G : C ⥤ D} (h : F = G) (X : C) :
   (eq_to_hom h : F ⟹ G).app X = eq_to_hom (functor.congr_obj h X) :=
 by subst h; refl
 

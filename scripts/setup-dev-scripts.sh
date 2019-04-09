@@ -8,7 +8,7 @@ if [[ $1 = "--global" ]]; then
     USER_MSG="(globally)"
 fi
 
-if ! which pip3; then
+if ! which pip3 > /dev/null; then
     if which apt-get; then
         read -p "update-mathlib needs to install python3 and pip3. Proceed?" -n 1 -r
         echo

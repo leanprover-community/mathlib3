@@ -64,12 +64,12 @@ rfl
   whisker_right (nat_trans.id G) F = nat_trans.id (G.comp F) :=
 ((whiskering_right C D E).obj F).map_id _
 
-@[simp] lemma whisker_left_vcomp (F : C ⥤ D) {G H K : D ⥤ E} (α : G ⟹ H) (β : H ⟹ K) :
-  whisker_left F (α ⊟ β) = (whisker_left F α) ⊟ (whisker_left F β) :=
+@[simp] lemma whisker_left_comp (F : C ⥤ D) {G H K : D ⥤ E} (α : G ⟹ H) (β : H ⟹ K) :
+  whisker_left F (α ≫ β) = (whisker_left F α) ≫ (whisker_left F β) :=
 rfl
 
-@[simp] lemma whisker_right_vcomp {G H K : C ⥤ D} (α : G ⟹ H) (β : H ⟹ K) (F : D ⥤ E)  :
-  whisker_right (α ⊟ β) F = (whisker_right α F) ⊟ (whisker_right β F) :=
+@[simp] lemma whisker_right_comp {G H K : C ⥤ D} (α : G ⟹ H) (β : H ⟹ K) (F : D ⥤ E)  :
+  whisker_right (α ≫ β) F = (whisker_right α F) ≫ (whisker_right β F) :=
 ((whiskering_right C D E).obj F).map_comp α β
 
 variables {B : Sort u₄} [ℬ : category.{v₄} B]
@@ -128,7 +128,7 @@ def associator (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D) : ((F ⋙ G) ⋙ H) ≅
 omit 𝒟
 
 lemma triangle (F : A ⥤ B) (G : B ⥤ C) :
-  (associator F (functor.id B) G).hom ⊟ (whisker_left F (left_unitor G).hom) =
+  (associator F (functor.id B) G).hom ≫ (whisker_left F (left_unitor G).hom) =
     (whisker_right (right_unitor F).hom G) :=
 begin
   ext1,
@@ -142,8 +142,8 @@ include 𝒟 ℰ
 variables (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D) (K : D ⥤ E)
 
 lemma pentagon :
-  (whisker_right (associator F G H).hom K) ⊟ (associator F (G ⋙ H) K).hom ⊟ (whisker_left F (associator G H K).hom) =
-    ((associator (F ⋙ G) H K).hom ⊟ (associator F G (H ⋙ K)).hom) :=
+  (whisker_right (associator F G H).hom K) ≫ (associator F (G ⋙ H) K).hom ≫ (whisker_left F (associator G H K).hom) =
+    ((associator (F ⋙ G) H K).hom ≫ (associator F G (H ⋙ K)).hom) :=
 begin
   ext1,
   dsimp [associator],

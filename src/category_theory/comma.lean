@@ -126,7 +126,7 @@ variables {X : comma L R}
 end
 
 def map_left_comp (l : L₁ ⟹ L₂) (l' : L₂ ⟹ L₃) :
-(map_left R (l ⊟ l')) ≅ (map_left R l') ⋙ (map_left R l) :=
+(map_left R (l ≫ l')) ≅ (map_left R l') ⋙ (map_left R l) :=
 { hom :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
   inv :=
@@ -173,7 +173,7 @@ variables {X : comma L R}
 @[simp] lemma map_right_id_inv_app_right : (((map_right_id L R).inv).app X).right = 𝟙 (X.right) := rfl
 end
 
-def map_right_comp (r : R₁ ⟹ R₂) (r' : R₂ ⟹ R₃) : (map_right L (r ⊟ r')) ≅ (map_right L r) ⋙ (map_right L r') :=
+def map_right_comp (r : R₁ ⟹ R₂) (r' : R₂ ⟹ R₃) : (map_right L (r ≫ r')) ≅ (map_right L r) ⋙ (map_right L r') :=
 { hom :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
   inv :=

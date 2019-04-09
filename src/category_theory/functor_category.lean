@@ -23,9 +23,11 @@ However if `C` and `D` are both large categories at the same universe level,
 this is a small category at the next higher level.
 -/
 instance functor.category : category.{(max u₁ v₂ 1)} (C ⥤ D) :=
-{ hom     := λ F G, F ⟹ G,
+{ hom     := λ F G, nat_trans F G,
   id      := λ F, nat_trans.id F,
-  comp    := λ _ _ _ α β, α ⊟ β }
+  comp    := λ _ _ _ α β, vcomp α β }
+
+notation F `⟹` G := (F : functor _ _) ⟶ (G : functor _ _)
 
 variables {C D} {E : Sort u₃} [ℰ : category.{v₃} E]
 

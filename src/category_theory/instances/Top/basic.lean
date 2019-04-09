@@ -30,14 +30,4 @@ def trivial : Type u ⥤ Top.{u} :=
   map := λ X Y f, ⟨f, continuous_bot⟩ }
 end Top
 
-variables {X : Top.{u}}
-
-instance opens_category : category.{u+1} (opens X) :=
-{ hom  := λ U V, ulift (plift (U ≤ V)),
-  id   := λ X, ⟨ ⟨ le_refl X ⟩ ⟩,
-  comp := λ X Y Z f g, ⟨ ⟨ le_trans f.down.down g.down.down ⟩ ⟩ }
-
-def open_nhds (x : X.α) := { U : opens X // x ∈ U }
-instance open_nhds_category (x : X.α) : category.{u+1} (open_nhds x) := begin unfold open_nhds, apply_instance end
-
 end category_theory.instances

@@ -1,10 +1,11 @@
-import category_theory.stalks
+import algebraic_geometry.stalks
 
 universes v₁ v₂ u₁ u₂
 
+open category_theory
 open category_theory.limits
 
-namespace category_theory
+namespace algebraic_geometry
 
 variables (C : Type u₁) [𝒞 : category.{v₁+1} C]
 variables (V : Type u₂) [𝒱 : category.{v₂+1} V]
@@ -57,4 +58,4 @@ instance category_of_structured_presheaves : category (StructuredStalkPresheafed
 
 end StructuredStalkPresheafedSpace
 
-end category_theory
+end algebraic_geometry

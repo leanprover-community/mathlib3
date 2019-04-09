@@ -1,4 +1,4 @@
-import category_theory.presheaf
+import algebraic_geometry.presheafed_space
 import category_theory.instances.Top.open_nhds
 import category_theory.limits.limits
 
@@ -7,7 +7,16 @@ universes v u v' u'
 open category_theory
 open category_theory.instances
 open category_theory.limits
+open algebraic_geometry
 open topological_space
+
+@[simp] lemma  go_away_vcomp
+  {C : Sort u} [𝒞 : category.{v} C] {D : Sort u'} [𝒟  : category.{v'} D]
+  (F G H : C ⥤ D) (α : F ⟹ G) (β : G ⟹ H) : α ⊟ β = (((α : F ⟶ G) ≫ (β : G ⟶ H)) : F ⟶ H) := rfl
+
+lemma eq_to_hom_op_comp  {C : Sort u} [𝒞 : category.{v} C] {X Y : C} (h : X = Y) (k : op X = op Y) :
+  (eq_to_hom h).op ≫ (eq_to_hom k) = 𝟙 (op Y) :=
+by simp
 
 variables {C : Type u} [𝒞 : category.{v+1} C]
 include 𝒞
@@ -16,7 +25,7 @@ variables [has_colimits.{v} C]
 
 variables {X : Top.{v}}
 
-namespace category_theory.presheaf_on_space
+namespace algebraic_geometry.presheaf_on_space
 
 variables (C)
 /-- Stalks are functorial with respect to morphisms of presheaves over a fixed `X`. -/
@@ -61,7 +70,6 @@ begin
   cases j,
   cases j_val,
   dsimp,
-  erw category_theory.functor.map_id,
   erw category.id_comp,
   refl,
 end
@@ -82,11 +90,11 @@ begin
   erw category.id_comp,
 end
 
-end category_theory.presheaf_on_space
+end algebraic_geometry.presheaf_on_space
 
-open category_theory.presheaf_on_space
+open algebraic_geometry.presheaf_on_space
 
-namespace category_theory.PresheafedSpace
+namespace algebraic_geometry.PresheafedSpace
 
 def stalk (F : PresheafedSpace.{v} C) (x : F.X.α) : C := F.𝒪.stalk x
 
@@ -103,6 +111,9 @@ namespace stalk_map
 
 -- The next two proofs are grotesque.
 
+
+
+set_option pp.proofs true
 @[simp] lemma id (F : PresheafedSpace.{v} C) (x : F.X) : stalk_map (𝟙 F) x = 𝟙 (F.stalk x) :=
 begin
   dsimp [stalk_map],
@@ -111,10 +122,11 @@ begin
   rw ←category_theory.functor.map_comp,
   convert (stalk_functor C x).map_id F.𝒪,
   tidy,
+  -- Shoot, this is why I wanted to take @[simp] off the eq_to_hom lemmas
+  conv { to_lhs, congr, skip, rw ←eq_to_hom_map },
   rw ←category_theory.functor.map_comp,
-  rw ←category_theory.functor.map_id,
   rw [eq_to_hom_op_comp],
-  refl,
+  erw category_theory.functor.map_id,
 end
 .
 
@@ -133,4 +145,4 @@ begin
 end
 end stalk_map
 
-end category_theory.PresheafedSpace
+end algebraic_geometry.PresheafedSpace

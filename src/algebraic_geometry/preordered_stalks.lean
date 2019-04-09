@@ -1,12 +1,13 @@
-import category_theory.stalks
+import algebraic_geometry.stalks
 import category_theory.limits.types
 
 universes v u
 
+open category_theory
 open category_theory.limits
-open category_theory.PresheafedSpace
+open algebraic_geometry.PresheafedSpace
 
-namespace category_theory
+namespace algebraic_geometry
 
 structure PreorderPresheaf extends PresheafedSpace.{v} (Type v) :=
 (preorder : Π x : X, preorder (to_PresheafedSpace.stalk x))
@@ -19,7 +20,7 @@ namespace PreorderPresheaf
 structure hom (F G : PreorderPresheaf.{v}) :=
 (hom : F.to_PresheafedSpace ⟶ G.to_PresheafedSpace)
 (monotone : Π (x : F.X) (a b : G.to_PresheafedSpace.stalk (PresheafedSpace.hom.f hom x)),
-   (a ≤ b) → ((stalk_map hom x) a ≤ (stalk_map hom x) b))
+   (a ≤ b) ↔ ((stalk_map hom x) a ≤ (stalk_map hom x) b))
 
 @[extensionality] lemma hom.ext
   (F G : PreorderPresheaf.{v}) {f g : hom F G}
@@ -31,16 +32,16 @@ end
 
 def id (F : PreorderPresheaf.{v}) : hom F F :=
 { hom := 𝟙 F.to_PresheafedSpace,
-  monotone := λ x a b h, begin simp, exact h, end  }
+  monotone := λ x a b, by simp  }
 
 def comp (F G H : PreorderPresheaf.{v}) (α : hom F G) (β : hom G H) : hom F H :=
 { hom := α.hom ≫ β.hom,
-  monotone := λ x a b h,
+  monotone := λ x a b,
   begin
     simp,
-    apply α.monotone,
+    transitivity,
     apply β.monotone,
-    exact h,
+    apply α.monotone,
   end  }
 
 section
@@ -57,4 +58,4 @@ end
 
 end PreorderPresheaf
 
-end category_theory
+end algebraic_geometry

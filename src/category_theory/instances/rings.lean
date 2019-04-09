@@ -53,7 +53,11 @@ instance hom_coe : has_coe_to_fun (R ⟶ S) :=
 { F := λ f, R → S,
   coe := λ f, f.1 }
 
-@[simp] lemma hom_coe_app (f : R ⟶ S) (r : R) : f r = f.val r := rfl
+@[extensionality] lemma hom.ext  {f g : R ⟶ S} : (∀ x : R, f x = g x) → f = g :=
+λ w, subtype.ext.2 $ funext w
+
+-- TODO remove
+-- @[simp] lemma hom_coe_app (f : R ⟶ S) (r : R) : f r = f.val r := rfl
 
 instance hom_is_ring_hom (f : R ⟶ S) : is_ring_hom (f : R → S) := f.2
 

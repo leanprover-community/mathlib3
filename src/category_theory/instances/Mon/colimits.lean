@@ -45,6 +45,10 @@ inductive prequotient
 open prequotient
 
 inductive relation : prequotient F → prequotient F → Prop
+-- Make it an equivalence relation:
+| refl : Π (x), relation x x
+| symm : Π (x y) (h : relation x y), relation y x
+| trans : Π (x y z) (h : relation x y) (k : relation y z), relation x z
 -- There's always a `map` relation
 | map : Π (j j' : J) (f : j ⟶ j') (x : (F.obj j).α), relation (of j' ((F.map f) x)) (of j x)
 -- Then one relation per operation, describing the interaction with `of`
@@ -58,7 +62,11 @@ inductive relation : prequotient F → prequotient F → Prop
 | one_mul : Π (x), relation (mul one x) x
 | mul_one : Π (x), relation (mul x one) x
 
-def colimit_type : Type v := quot (relation F)
+def colimit_setoid : setoid (prequotient F) :=
+{ r := relation F, iseqv := ⟨relation.refl, relation.symm, relation.trans⟩ }
+attribute [instance] colimit_setoid
+
+def colimit_type : Type v := quotient (colimit_setoid F)
 
 instance : monoid (colimit_type F) :=
 { mul :=
@@ -112,8 +120,8 @@ instance : monoid (colimit_type F) :=
     refl,
   end }
 
-@[simp] lemma quot_one : quot.mk (relation F) one = (1 : colimit_type F) := rfl
-@[simp] lemma quot_mul (x y) : quot.mk (relation F) (mul x y) = ((quot.mk _ x) * (quot.mk _ y) : colimit_type F) := rfl
+@[simp] lemma quot_one : quot.mk setoid.r one = (1 : colimit_type F) := rfl
+@[simp] lemma quot_mul (x y) : quot.mk setoid.r (mul x y) = ((quot.mk setoid.r x) * (quot.mk setoid.r y) : colimit_type F) := rfl
 
 def colimit : Mon := ⟨colimit_type F, by apply_instance⟩
 
@@ -163,7 +171,13 @@ begin
   fapply quot.lift,
   { exact desc_fun_lift F s },
   { intros x y r,
-    induction r; dsimp,
+    induction r; try { dsimp },
+    -- refl
+    { refl },
+    -- symm
+    { exact r_ih.symm },
+    -- trans
+    { exact eq.trans r_ih_h r_ih_k },
     -- map
     { rw cocone.naturality_bundled, },
     -- mul
@@ -205,14 +219,14 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
     induction x,
     { have w' := congr_fun (congr_arg (λ f : F.obj x_j ⟶ s.X, (f : F.obj x_j → s.X)) (w x_j)) x_x,
       erw w',
-      refl },
-    { simp,
+      refl, },
+    { simp only [desc_morphism, quot_one],
       erw is_monoid_hom.map_one ⇑m,
-      erw is_monoid_hom.map_one ⇑(desc_morphism F s), },
-    { simp,
-      erw is_monoid_hom.map_mul ⇑m,
-      erw is_monoid_hom.map_mul ⇑(desc_morphism F s),
-      rw [x_ih_a, x_ih_a_1], },
+      refl, },
+    { simp only [desc_morphism, quot_mul],
+      rw is_monoid_hom.map_mul ⇑m,
+      rw [x_ih_a, x_ih_a_1],
+      refl, },
     refl
   end }
 

@@ -80,7 +80,7 @@ by rw [h.hom_lift f, h.hom_lift f']; congr; exact funext w
 
 /-- The universal property of a limit cone: a map `W ⟶ X` is the same as
   a cone on `F` with vertex `W`. -/
-def hom_iso (h : is_limit t) (W : C) : (W ⟶ t.X) ≅ ((const J).obj W ⟹ F) :=
+def hom_iso (h : is_limit t) (W : C) : (W ⟶ t.X) ≅ ((const J).obj W ⟶ F) :=
 { hom := λ f, (t.extend f).π,
   inv := λ π, h.lift { X := W, π := π },
   hom_inv_id' := by ext f; apply h.hom_ext; intro j; simp; dsimp; refl }
@@ -191,7 +191,7 @@ by rw [h.hom_desc f, h.hom_desc f']; congr; exact funext w
 
 /-- The universal property of a colimit cocone: a map `X ⟶ W` is the same as
   a cocone on `F` with vertex `W`. -/
-def hom_iso (h : is_colimit t) (W : C) : (t.X ⟶ W) ≅ (F ⟹ (const J).obj W) :=
+def hom_iso (h : is_colimit t) (W : C) : (t.X ⟶ W) ≅ (F ⟶ (const J).obj W) :=
 { hom := λ f, (t.extend f).ι,
   inv := λ ι, h.desc { X := W, ι := ι },
   hom_inv_id' := by ext f; apply h.hom_ext; intro j; simp; dsimp; refl }
@@ -403,7 +403,7 @@ def lim : (J ⥤ C) ⥤ C :=
   map_comp' := λ F G H α β,
     by ext; erw [assoc, is_limit.fac, is_limit.fac, ←assoc, is_limit.fac, assoc]; refl }
 
-variables {F} {G : J ⥤ C} (α : F ⟹ G)
+variables {F} {G : J ⥤ C} (α : F ⟶ G)
 
 @[simp] lemma lim.map_π (j : J) : lim.map α ≫ limit.π G j = limit.π F j ≫ α.app j :=
 by apply is_limit.fac
@@ -417,7 +417,7 @@ lemma limit.map_pre {K : Type v} [small_category K] [has_limits_of_shape K C] (E
 by ext; rw [assoc, limit.pre_π, lim.map_π, assoc, lim.map_π, ←assoc, limit.pre_π]; refl
 
 lemma limit.map_pre' {K : Type v} [small_category K] [has_limits_of_shape.{v} K C]
-  (F : J ⥤ C) {E₁ E₂ : K ⥤ J} (α : E₁ ⟹ E₂) :
+  (F : J ⥤ C) {E₁ E₂ : K ⥤ J} (α : E₁ ⟶ E₂) :
   limit.pre F E₂ = limit.pre F E₁ ≫ lim.map (whisker_right α F) :=
 by ext1; simp [(category.assoc _ _ _ _).symm]
 
@@ -644,7 +644,7 @@ def colim : (J ⥤ C) ⥤ C :=
   map_comp' := λ F G H α β,
     by ext; erw [←assoc, is_colimit.fac, is_colimit.fac, assoc, is_colimit.fac, ←assoc]; refl }
 
-variables {F} {G : J ⥤ C} (α : F ⟹ G)
+variables {F} {G : J ⥤ C} (α : F ⟶ G)
 
 @[simp] lemma colim.ι_map (j : J) : colimit.ι F j ≫ colim.map α = α.app j ≫ colimit.ι G j :=
 by apply is_colimit.fac
@@ -662,7 +662,7 @@ lemma colimit.pre_map {K : Type v} [small_category K] [has_colimits_of_shape K C
 by ext; rw [←assoc, colimit.ι_pre, colim.ι_map, ←assoc, colim.ι_map, assoc, colimit.ι_pre]; refl
 
 lemma colimit.pre_map' {K : Type v} [small_category K] [has_colimits_of_shape.{v} K C]
-  (F : J ⥤ C) {E₁ E₂ : K ⥤ J} (α : E₁ ⟹ E₂) :
+  (F : J ⥤ C) {E₁ E₂ : K ⥤ J} (α : E₁ ⟶ E₂) :
   colimit.pre F E₁ = colim.map (whisker_right α F) ≫ colimit.pre F E₂ :=
 by ext1; simp [(category.assoc _ _ _ _).symm]
 

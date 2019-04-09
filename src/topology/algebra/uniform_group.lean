@@ -123,7 +123,7 @@ lemma uniform_continuous_of_tendsto_zero [uniform_space β] [add_group β] [unif
   uniform_continuous f :=
 begin
   have : ((λx:β×β, x.2 - x.1) ∘ (λx:α×α, (f x.1, f x.2))) = (λx:α×α, f (x.2 - x.1)),
-  { simp only [is_add_group_hom.sub f] },
+  { simp only [is_add_group_hom.map_sub f] },
   rw [uniform_continuous, uniformity_eq_comap_nhds_zero α, uniformity_eq_comap_nhds_zero β,
     tendsto_comap_iff, this],
   exact tendsto.comp tendsto_comap h
@@ -133,7 +133,7 @@ lemma uniform_continuous_of_continuous [uniform_space β] [add_group β] [unifor
   {f : α → β} [is_add_group_hom f] (h : continuous f) :
   uniform_continuous f :=
 uniform_continuous_of_tendsto_zero $
-  suffices tendsto f (nhds 0) (nhds (f 0)), by rwa [is_add_group_hom.zero f] at this,
+  suffices tendsto f (nhds 0) (nhds (f 0)), by rwa [is_add_group_hom.map_zero f] at this,
   h.tendsto 0
 
 end uniform_add_group
@@ -236,7 +236,7 @@ variables (f : α × β → γ) [is_Z_bilin f]
 
 instance is_Z_bilin.comp_hom {g : γ → δ} [add_comm_group δ] [is_add_group_hom g] :
   is_Z_bilin (g ∘ f) :=
-by constructor; simp [(∘), is_Z_bilin.add_left f, is_Z_bilin.add_right f, is_add_group_hom.add g]
+by constructor; simp [(∘), is_Z_bilin.add_left f, is_Z_bilin.add_right f, is_add_group_hom.map_add g]
 
 instance is_Z_bilin.comp_swap : is_Z_bilin (f ∘ prod.swap) :=
 ⟨λ a a' b, is_Z_bilin.add_right f b a a',
@@ -321,10 +321,10 @@ begin
   have comm : (λx:α×α, x.2-x.1) ∘ (λt:β×β, (e t.1, e t.2)) = e ∘ (λt:β×β, t.2 - t.1),
   { ext t,
     change e t.2 - e t.1 = e (t.2 - t.1),
-    rwa ← is_add_group_hom.sub e t.2 t.1 },
+    rwa ← is_add_group_hom.map_sub e t.2 t.1 },
   have lim : tendsto (λ x : α × α, x.2-x.1) (nhds (x₀, x₀)) (nhds (e 0)),
     { have := continuous.tendsto (continuous.comp continuous_swap continuous_sub') (x₀, x₀),
-      simpa [-sub_eq_add_neg, sub_self, eq.symm (is_add_group_hom.zero e)] using this },
+      simpa [-sub_eq_add_neg, sub_self, eq.symm (is_add_group_hom.map_zero e)] using this },
   have := de.tendsto_comap_nhds_nhds lim comm,
   simp [-sub_eq_add_neg, this]
 end

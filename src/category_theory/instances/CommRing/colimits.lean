@@ -34,7 +34,7 @@ comm_ring.left_distrib : ∀ {α : Type u} [c : comm_ring α] (a b c_1 : α), a 
 comm_ring.right_distrib : ∀ {α : Type u} [c : comm_ring α] (a b c_1 : α), (a + b) * c_1 = a * c_1 + b * c_1
 -/
 
-namespace comm_ring.colimits
+namespace category_theory.instances.CommRing.colimits
 
 variables {J : Type v} [small_category J] (F : J ⥤ CommRing.{v})
 
@@ -424,9 +424,9 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
   end }
 
 instance : has_colimits CommRing :=
-λ J 𝒥 F,
-by resetI; exact
-{ cocone := colimit_cocone F,
-  is_colimit := colimit_is_colimit F }
+{ has_colimits_of_shape := λ J 𝒥,
+  { has_colimit := λ F, by resetI; exact
+    { cocone := colimit_cocone F,
+      is_colimit := colimit_is_colimit F } } }
 
-end comm_ring.colimits
+end category_theory.instances.CommRing.colimits

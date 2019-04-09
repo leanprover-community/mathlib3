@@ -31,7 +31,7 @@ colimits of commutative rings.
 A slightly bolder claim is that we could do this with tactics, as well.
 -/
 
-namespace monoid.colimits
+namespace category_theory.instances.Mon.colimits
 
 variables {J : Type v} [small_category J] (F : J ⥤ Mon.{v})
 
@@ -231,9 +231,9 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
   end }
 
 instance : has_colimits Mon :=
-λ J 𝒥 F,
-by resetI; exact
-{ cocone := colimit_cocone F,
-  is_colimit := colimit_is_colimit F }
+{ has_colimits_of_shape := λ J 𝒥,
+  { has_colimit := λ F, by resetI; exact
+    { cocone := colimit_cocone F,
+      is_colimit := colimit_is_colimit F } } }
 
-end monoid.colimits
+end category_theory.instances.Mon.colimits

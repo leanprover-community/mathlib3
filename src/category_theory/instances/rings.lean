@@ -56,8 +56,7 @@ instance hom_coe : has_coe_to_fun (R ⟶ S) :=
 @[extensionality] lemma hom.ext  {f g : R ⟶ S} : (∀ x : R, f x = g x) → f = g :=
 λ w, subtype.ext.2 $ funext w
 
--- TODO remove
--- @[simp] lemma hom_coe_app (f : R ⟶ S) (r : R) : f r = f.val r := rfl
+@[simp] lemma hom_coe_app (val : R → S) (prop) (r : R) : (⟨val, prop⟩ : R ⟶ S) r = val r := rfl
 
 instance hom_is_ring_hom (f : R ⟶ S) : is_ring_hom (f : R → S) := f.2
 
@@ -114,6 +113,10 @@ noncomputable def polynomial : Type u ⥤ CommRing.{u} :=
 @[simp] lemma polynomial_map_val {α β : Type u} {f : α → β} :
   (CommRing.polynomial.map f).val = eval₂ C (X ∘ f) := rfl
 
+lemma hom_coe_app' (f : R ⟶ S) (r : R) : f r = f.val r := rfl
+-- this is usually a bad idea, as it forgets that `f` is ring homomorphism
+local attribute [simp] hom_coe_app'
+
 noncomputable def adj : adjunction polynomial (forget : CommRing ⥤ Type u) :=
 adjunction.mk_of_hom_equiv _ _
 { hom_equiv := λ α R,
@@ -126,7 +129,7 @@ adjunction.mk_of_hom_equiv _ _
       have H2 := λ p₁ p₂, (@is_ring_hom.map_mul _ _ _ _ f.val f.2 p₁ p₂).symm,
       apply mv_polynomial.induction_on p; intros;
       simp only [*, eval₂_add, eval₂_mul, eval₂_C, eval₂_X,
-        eq_self_iff_true, function.comp_app, hom_coe_app] at *
+        eq_self_iff_true, function.comp_app, hom_coe_app'] at *,
     end,
     right_inv := by tidy },
   hom_equiv_naturality_left_symm' := λ X' X Y f g, subtype.ext.mpr $ funext $ λ p,

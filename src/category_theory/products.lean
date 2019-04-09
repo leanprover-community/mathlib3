@@ -139,13 +139,13 @@ end functor
 namespace nat_trans
 
 /-- The cartesian product of two natural transformations. -/
-def prod {F G : A ⥤ B} {H I : C ⥤ D} (α : F ⟹ G) (β : H ⟹ I) : F.prod H ⟹ G.prod I :=
+def prod {F G : A ⥤ B} {H I : C ⥤ D} (α : F ⟶ G) (β : H ⟶ I) : F.prod H ⟶ G.prod I :=
 { app         := λ X, (α.app X.1, β.app X.2),
   naturality' := begin /- `obviously'` says: -/ intros, cases f, cases Y, cases X, dsimp at *, simp, split, rw naturality, rw naturality end }
 
 /- Again, it is inadvisable in Lean 3 to setup a notation `α × β`; use instead `α.prod β` or `nat_trans.prod α β`. -/
 
-@[simp] lemma prod_app  {F G : A ⥤ B} {H I : C ⥤ D} (α : F ⟹ G) (β : H ⟹ I) (a : A) (c : C) :
+@[simp] lemma prod_app  {F G : A ⥤ B} {H I : C ⥤ D} (α : F ⟶ G) (β : H ⟶ I) (a : A) (c : C) :
   (nat_trans.prod α β).app (a, c) = (α.app a, β.app c) := rfl
 end nat_trans
 

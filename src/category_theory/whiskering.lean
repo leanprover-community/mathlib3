@@ -73,7 +73,7 @@ rfl
 ((whiskering_right C D E).obj F).map_comp α β
 
 def iso_whisker_left (F : C ⥤ D) {G H : D ⥤ E} (α : G ≅ H) : (F ⋙ G) ≅ (F ⋙ H) :=
-((whiskering_left C D E).obj F).map_iso α
+((whiskering_left C D E).obj F).on_iso α
 @[simp] lemma iso_whisker_left_hom (F : C ⥤ D) {G H : D ⥤ E} (α : G ≅ H) :
   (iso_whisker_left F α).hom = whisker_left F α.hom :=
 rfl
@@ -82,7 +82,7 @@ rfl
 rfl
 
 def iso_whisker_right {G H : C ⥤ D} (α : G ≅ H) (F : D ⥤ E) : (G ⋙ F) ≅ (H ⋙ F) :=
-((whiskering_right C D E).obj F).map_iso α
+((whiskering_right C D E).obj F).on_iso α
 @[simp] lemma iso_whisker_right_hom {G H : C ⥤ D} (α : G ≅ H) (F : D ⥤ E) :
   (iso_whisker_right α F).hom = whisker_right α.hom F :=
 rfl

@@ -93,4 +93,4 @@ We use `F ⟶ G` (`\hom` or `-->`) to denote the type of natural transformations
 We use `F ≅ G` (`\iso`) to denote the type of natural isomorphisms.
 
 For vertical composition of natural transformations we just use `≫`. For horizontal composition,
-use `vcomp`.
+use `hcomp`.

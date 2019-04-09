@@ -27,6 +27,13 @@ instance concrete_is_monoid_hom : concrete_category @is_monoid_hom :=
 
 instance Mon_hom_is_monoid_hom {R S : Mon} (f : R ⟶ S) : is_monoid_hom (f : R → S) := f.2
 
+-- TODO more of these?
+@[simp] lemma map_one {R S : Mon} (f : R ⟶ S) : f 1 = 1 :=
+by rw is_monoid_hom.map_one f
+
+example {R S : Mon} (f : R ⟶ S) : f 1 = 1 :=
+by simp
+
 /-- The category of commutative monoids and monoid morphisms. -/
 @[reducible] def CommMon : Type (u+1) := bundled comm_monoid
 

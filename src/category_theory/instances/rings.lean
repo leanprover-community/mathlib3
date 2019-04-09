@@ -57,6 +57,8 @@ instance hom_coe : has_coe_to_fun (R ⟶ S) :=
 
 instance hom_is_ring_hom (f : R ⟶ S) : is_ring_hom (f : R → S) := f.2
 
+example (R S : CommRing) (f : R ⟶ S) : is_monoid_hom (f : R → S) := by apply_instance
+
 def Int : CommRing := ⟨ℤ, infer_instance⟩
 
 def Int.cast {R : CommRing} : Int ⟶ R := { val := int.cast, property := by apply_instance }

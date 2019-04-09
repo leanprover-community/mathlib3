@@ -409,21 +409,22 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
       erw is_ring_hom.map_one ⇑m,
       refl, },
     { simp only [desc_morphism, quot_neg],
-      rw is_ring_hom.map_neg ⇑m,
+      erw is_ring_hom.map_neg ⇑m,
       rw [x_ih],
       refl, },
     { simp only [desc_morphism, quot_add],
-      rw is_ring_hom.map_add ⇑m,
+      erw is_ring_hom.map_add ⇑m,
       rw [x_ih_a, x_ih_a_1],
       refl, },
     { simp only [desc_morphism, quot_mul],
-      rw is_ring_hom.map_mul ⇑m,
+      erw is_ring_hom.map_mul ⇑m,
       rw [x_ih_a, x_ih_a_1],
       refl, },
     refl
-  end }
+  end }.
 
-instance : has_colimits CommRing :=
+-- FIXME why is this infer_instance needed!?
+instance has_colimits_CommRing : @has_colimits CommRing.{v} infer_instance :=
 { has_colimits_of_shape := λ J 𝒥,
   { has_colimit := λ F, by resetI; exact
     { cocone := colimit_cocone F,

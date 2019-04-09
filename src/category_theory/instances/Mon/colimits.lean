@@ -1,7 +1,7 @@
 import category_theory.instances.monoids
 import category_theory.limits.limits
 
-universes u v
+universes v
 
 open category_theory
 open category_theory.instances
@@ -221,13 +221,14 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
       erw is_monoid_hom.map_one ⇑m,
       refl, },
     { simp only [desc_morphism, quot_mul],
-      rw is_monoid_hom.map_mul ⇑m,
+      erw is_monoid_hom.map_mul ⇑m,
       rw [x_ih_a, x_ih_a_1],
       refl, },
     refl
-  end }
+  end }.
 
-instance : has_colimits Mon :=
+-- FIXME why is this infer_instance needed!?
+instance has_colimits_Mon : @has_colimits Mon.{v} infer_instance :=
 { has_colimits_of_shape := λ J 𝒥,
   { has_colimit := λ F, by resetI; exact
     { cocone := colimit_cocone F,

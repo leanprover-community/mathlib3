@@ -1,4 +1,4 @@
-import category_theory.presheaf
+import algebraic_geometry.presheaf
 import category_theory.instances.TopCommRing
 import group_theory.submonoid
 import ring_theory.subring
@@ -11,9 +11,10 @@ open topological_space
 
 open category_theory
 open category_theory.instances
+open algebraic_geometry
 open topological_space
 
-namespace category_theory.presheaf_on_space
+namespace algebraic_geometry.presheaf_on_space
 
 variables (X : Top.{v})
 
@@ -113,4 +114,4 @@ presheaf_of_functions_to_TopCommRing Y TopCommRing.real
 noncomputable def presheaf_of_complex_functions (Y : Top) : presheaf_on_space CommRing Y :=
 presheaf_of_functions_to_TopCommRing Y TopCommRing.complex
 
-end category_theory.presheaf_on_space
+end algebraic_geometry.presheaf_on_space

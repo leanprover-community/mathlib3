@@ -29,10 +29,10 @@ instance underlying_space (F : PresheafedSpace.{v} C) : topological_space F := F
 
 structure hom (F G : PresheafedSpace.{v} C) :=
 (f : F.X ⟶ G.X)
-(c : G.𝒪 ⟹ F.𝒪.pushforward f)
+(c : G.𝒪 ⟶ F.𝒪.pushforward f)
 
 @[extensionality] lemma ext {F G : PresheafedSpace.{v} C} (α β : hom F G)
-  (w : α.f = β.f) (h : α.c ⊟ (whisker_right (nat_trans.op (opens.map_iso _ _ w).inv) F.𝒪) = β.c) :
+  (w : α.f = β.f) (h : α.c ≫ (whisker_right (nat_trans.op (opens.map_iso _ _ w).inv) F.𝒪) = β.c) :
   α = β :=
 begin
   cases α, cases β,
@@ -44,11 +44,11 @@ end
 
 def id (F : PresheafedSpace.{v} C) : hom F F :=
 { f := 𝟙 F.X,
-  c := ((functor.id_comp _).inv) ⊟ (whisker_right (nat_trans.op (opens.map_id _).hom) _) }
+  c := ((functor.id_comp _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id _).hom) _) }
 
 def comp (F G H : PresheafedSpace.{v} C) (α : hom F G) (β : hom G H) : hom F H :=
 { f := α.f ≫ β.f,
-  c := β.c ⊟ (whisker_left (opens.map β.f).op α.c) }
+  c := β.c ≫ (whisker_left (opens.map β.f).op α.c) }
 
 variables (C)
 
@@ -108,10 +108,10 @@ rfl
 
 -- We don't mark these as simp lemmas, because the innards are pretty unsightly.
 lemma id_c (F : PresheafedSpace.{v} C) :
-  ((𝟙 F) : F ⟶ F).c = (((functor.id_comp _).inv) ⊟ (whisker_right (nat_trans.op (opens.map_id _).hom) _)) :=
+  ((𝟙 F) : F ⟶ F).c = (((functor.id_comp _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id _).hom) _)) :=
 rfl
 lemma comp_c {F G H : PresheafedSpace.{v} C} (α : F ⟶ G) (β : G ⟶ H) :
-  (α ≫ β).c = (β.c ⊟ (whisker_left (opens.map β.f).op α.c)) :=
+  (α ≫ β).c = (β.c ≫ (whisker_left (opens.map β.f).op α.c)) :=
 rfl
 end PresheafedSpace
 
@@ -150,10 +150,10 @@ end functor
 
 namespace nat_trans
 
-def on_presheaf {F G : C ⥤ D} (α : F ⟹ G) : G.map_presheaf ⟹ F.map_presheaf :=
+def on_presheaf {F G : C ⥤ D} (α : F ⟶ G) : G.map_presheaf ⟶ F.map_presheaf :=
 { app := λ X,
   { f := 𝟙 _,
-    c := whisker_left X.𝒪 α ⊟ ((functor.id_comp _).inv) ⊟ (whisker_right (nat_trans.op (opens.map_id _).hom) _) },
+    c := whisker_left X.𝒪 α ≫ ((functor.id_comp _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id _).hom) _) },
   naturality' := λ X Y f,
   begin
     ext U,

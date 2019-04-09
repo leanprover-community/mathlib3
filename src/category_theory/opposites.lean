@@ -190,11 +190,11 @@ variables {D : Sort u₂} [𝒟 : category.{v₂} D]
 include 𝒟
 variables {F G : C ⥤ D}
 
-protected definition op (α : F ⟹ G) : G.op ⟹ F.op :=
+protected definition op (α : F ⟶ G) : G.op ⟶ F.op :=
 { app         := λ X, (α.app (unop X)).op,
   naturality' := begin tidy, erw α.naturality, refl, end }
 
-@[simp] lemma op_app (α : F ⟹ G) (X) : (α.op).app X = (α.app (unop X)).op := rfl
+@[simp] lemma op_app (α : F ⟶ G) (X) : (α.op).app X = (α.app (unop X)).op := rfl
 
 end nat_trans
 

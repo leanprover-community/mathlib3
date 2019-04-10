@@ -4,10 +4,10 @@ import tactic.chain
 
 open tactic
 
--- this instance can go once the hom-mul PR is merged
-instance is_mul_hom_of_is_monoid_hom {X Y : Type*} [monoid X] [monoid Y]
-  (f : X → Y) [I : is_monoid_hom f] : is_mul_hom f :=
-{..I}
+-- -- this instance can go once the hom-mul PR is merged
+-- instance is_mul_hom_of_is_monoid_hom {X Y : Type*} [monoid X] [monoid Y]
+--   (f : X → Y) [I : is_monoid_hom f] : is_mul_hom f :=
+-- {..I}
 
 meta def rw_map (map_lemma : name) (f : expr) :=
 do c ← mk_const map_lemma,

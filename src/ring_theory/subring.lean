@@ -37,6 +37,21 @@ instance is_subring_set_range {R : Type u} {S : Type v} [ring R] [ring S]
 
 end is_ring_hom
 
+instance subtype_val.is_ring_hom {s : set R} [is_subring s] :
+  is_ring_hom (subtype.val : s → R) :=
+{ ..subtype_val.is_add_group_hom, ..subtype_val.is_monoid_hom }
+
+instance coe.is_ring_hom {s : set R} [is_subring s] : is_ring_hom (coe : s → R) :=
+subtype_val.is_ring_hom
+
+instance subtype_mk.is_ring_hom {γ : Type*} [ring γ] {s : set R} [is_subring s] (f : γ → R)
+  [is_ring_hom f] (h : ∀ x, f x ∈ s) : is_ring_hom (λ x, (⟨f x, h x⟩ : s)) :=
+{ ..subtype_mk.is_add_group_hom f h, ..subtype_mk.is_monoid_hom f h }
+
+instance set_inclusion.is_ring_hom {s t : set R} [is_subring s] [is_subring t] (h : s ⊆ t) :
+  is_ring_hom (set.inclusion h) :=
+subtype_mk.is_ring_hom _ _
+
 variables {cR : Type u} [comm_ring cR]
 
 instance subset.comm_ring {S : set cR} [is_subring S] : comm_ring S :=

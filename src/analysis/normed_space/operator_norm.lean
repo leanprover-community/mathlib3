@@ -72,14 +72,14 @@ def comp (g : F →L[k] G) (f : E →L[k] F) : E →L[k] G :=
 
 end bounded_linear_map
 
-section operator_norm
+section op_norm
 open lattice set bounded_linear_map
 
 variables (c : k) (f g : E →L[k] F) (h : F →L[k] G) (x : E)
 
 /-- The operator norm of a bounded linear map is the inf of all its bounds. -/
-def operator_norm := real.Inf { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ }
-instance has_operator_norm: has_norm (E →L[k] F) := ⟨operator_norm⟩
+def op_norm := real.Inf { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ }
+instance has_op_norm: has_norm (E →L[k] F) := ⟨op_norm⟩
 
 -- So that invocations of real.Inf_le make sense: we show that the set of
 -- bounds is nonempty and bounded below.
@@ -91,57 +91,57 @@ lemma bounds_bdd_below {f : E →L[k] F} :
   bdd_below { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ } :=
   ⟨0, λ _ ⟨hn, _⟩, hn⟩
 
-lemma operator_norm_nonneg : 0 ≤ ∥f∥ :=
+lemma op_norm_nonneg : 0 ≤ ∥f∥ :=
   real.lb_le_Inf _ bounds_nonempty (λ _ ⟨hx, _⟩, hx)
 
 /-- This is the fundamental property of the operator norm: ∥f x∥ ≤ ∥f∥ * ∥x∥. -/
-theorem le_operator_norm : ∥f x∥ ≤ ∥f∥ * ∥x∥ :=
+theorem le_op_norm : ∥f x∥ ≤ ∥f∥ * ∥x∥ :=
   classical.by_cases
     (λ heq : x = 0, by rw heq; simp)
     (λ hne, have hlt : 0 < ∥x∥, from (norm_pos_iff _).2 hne,
       le_mul_of_div_le hlt ((real.le_Inf _ bounds_nonempty bounds_bdd_below).2
       (λ c ⟨_, hc⟩, div_le_of_le_mul hlt (by rw mul_comm; exact hc _))))
 
-lemma ratio_le_operator_norm : ∥f x∥ / ∥x∥ ≤ ∥f∥ :=
+lemma ratio_le_op_norm : ∥f x∥ / ∥x∥ ≤ ∥f∥ :=
   (or.elim (lt_or_eq_of_le (norm_nonneg _))
-  (λ hlt, div_le_of_le_mul hlt (by rw mul_comm; exact le_operator_norm _ _))
-  (λ heq, by rw [←heq, div_zero]; exact operator_norm_nonneg _))
+  (λ hlt, div_le_of_le_mul hlt (by rw mul_comm; exact le_op_norm _ _))
+  (λ heq, by rw [←heq, div_zero]; exact op_norm_nonneg _))
 
 /-- The image of the unit ball under a bounded linear map is bounded. -/
-lemma unit_le_operator_norm : ∥x∥ ≤ 1 → ∥f x∥ ≤ ∥f∥ :=
+lemma unit_le_op_norm : ∥x∥ ≤ 1 → ∥f x∥ ≤ ∥f∥ :=
   λ hx, by rw [←(mul_one ∥f∥)];
-  calc _ ≤ ∥f∥ * ∥x∥ : le_operator_norm _ _
-  ...    ≤ _ : mul_le_mul_of_nonneg_left hx (operator_norm_nonneg _)
+  calc _ ≤ ∥f∥ * ∥x∥ : le_op_norm _ _
+  ...    ≤ _ : mul_le_mul_of_nonneg_left hx (op_norm_nonneg _)
 
 /-- If one controls the norm of every A x, then one controls the norm of A. -/
-lemma bound_le_operator_norm {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ x, ∥f x∥ ≤ M * ∥x∥) :
+lemma bound_le_op_norm {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ x, ∥f x∥ ≤ M * ∥x∥) :
   ∥f∥ ≤ M := real.Inf_le _ bounds_bdd_below ⟨hMp, hM⟩
 
 /-- The operator norm satisfies the triangle inequality. -/
-theorem operator_norm_triangle : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=
+theorem op_norm_triangle : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=
   real.Inf_le _ bounds_bdd_below
-  ⟨add_nonneg (operator_norm_nonneg _) (operator_norm_nonneg _),
+  ⟨add_nonneg (op_norm_nonneg _) (op_norm_nonneg _),
     λ x, by rw add_mul;
     calc _ ≤ ∥f x∥ + ∥g x∥ : norm_triangle _ _
-    ...    ≤ _ : add_le_add (le_operator_norm _ _) (le_operator_norm _ _)⟩
+    ...    ≤ _ : add_le_add (le_op_norm _ _) (le_op_norm _ _)⟩
 
 /-- An operator is zero iff its norm vanishes. -/
-theorem operator_norm_zero_iff : ∥f∥ = 0 ↔ f = 0 :=
+theorem op_norm_zero_iff : ∥f∥ = 0 ↔ f = 0 :=
 iff.intro
   (λ hn, bounded_linear_map.ext (λ x, (norm_le_zero_iff _).1
-    (calc _ ≤ ∥f∥ * ∥x∥ : le_operator_norm _ _
+    (calc _ ≤ ∥f∥ * ∥x∥ : le_op_norm _ _
      ...     = _ : by rw [hn, zero_mul])))
   (λ hf, le_antisymm (real.Inf_le _ bounds_bdd_below
     ⟨ge_of_eq rfl, λ _, le_of_eq (by rw [zero_mul, hf]; exact norm_zero)⟩)
-    (operator_norm_nonneg _))
+    (op_norm_nonneg _))
 
 /-- The operator norm is homogeneous. -/
-lemma operator_norm_smul : ∥c • f∥ = ∥c∥ * ∥f∥ :=
+lemma op_norm_smul : ∥c • f∥ = ∥c∥ * ∥f∥ :=
   le_antisymm
     (real.Inf_le _ bounds_bdd_below
-      ⟨mul_nonneg (norm_nonneg _) (operator_norm_nonneg _),
+      ⟨mul_nonneg (norm_nonneg _) (op_norm_nonneg _),
       λ _, by erw [norm_smul, mul_assoc]; exact
-      mul_le_mul_of_nonneg_left (le_operator_norm _ _) (norm_nonneg _)⟩)
+      mul_le_mul_of_nonneg_left (le_op_norm _ _) (norm_nonneg _)⟩)
     (real.lb_le_Inf _ bounds_nonempty (λ _ ⟨hn, hc⟩,
       (or.elim (lt_or_eq_of_le (norm_nonneg c))
         (λ hlt, by rw mul_comm; exact
@@ -156,19 +156,19 @@ lemma operator_norm_smul : ∥c • f∥ = ∥c∥ * ∥f∥ :=
 noncomputable instance bounded_linear_map.to_normed_space :
   normed_space k (E →L[k] F) :=
   normed_space.of_core _ _
-  ⟨operator_norm_zero_iff, operator_norm_smul, operator_norm_triangle⟩
+  ⟨op_norm_zero_iff, op_norm_smul, op_norm_triangle⟩
 
 /-- The operator norm is submultiplicative. -/
 lemma op_norm_comp_le : ∥comp h f∥ ≤ ∥h∥ * ∥f∥ :=
   (real.Inf_le _ bounds_bdd_below
-  ⟨mul_nonneg (operator_norm_nonneg _) (operator_norm_nonneg _),
-  λ x, by rw mul_assoc; calc _ ≤ ∥h∥ * ∥f x∥: le_operator_norm _ _
+  ⟨mul_nonneg (op_norm_nonneg _) (op_norm_nonneg _),
+  λ x, by rw mul_assoc; calc _ ≤ ∥h∥ * ∥f x∥: le_op_norm _ _
   ... ≤ _ : mul_le_mul_of_nonneg_left
-            (le_operator_norm _ _) (operator_norm_nonneg _)⟩)
+            (le_op_norm _ _) (op_norm_nonneg _)⟩)
 
 /-- bounded linear maps are lipschitz continuous. -/
 theorem lipschitz : lipschitz_with ∥f∥ f :=
-  ⟨operator_norm_nonneg _, λ x y, by rw [dist_eq_norm, dist_eq_norm, ←map_sub];
-  exact le_operator_norm _ _⟩
+  ⟨op_norm_nonneg _, λ x y, by rw [dist_eq_norm, dist_eq_norm, ←map_sub];
+  exact le_op_norm _ _⟩
 
-end operator_norm
+end op_norm

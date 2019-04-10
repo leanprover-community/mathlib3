@@ -249,13 +249,14 @@ def vec_mul (v : m → α) (M : matrix m n α) : n → α
 
 instance mul_vec.is_add_monoid_hom_left (v : n → α) :
   is_add_monoid_hom (λM:matrix m n α, mul_vec M v) :=
-⟨by ext; simp [mul_vec]; refl,
+{ map_zero := by ext; simp [mul_vec]; refl,
+  map_add :=
   begin
     intros x y,
     ext m,
     rw pi.add_apply (mul_vec x v) (mul_vec y v) m,
     simp [mul_vec, finset.sum_add_distrib, right_distrib]
-  end⟩
+  end }
 
 lemma mul_vec_diagonal [decidable_eq m] (v w : m → α) (x : m) :
   mul_vec (diagonal v) w x = v x * w x :=

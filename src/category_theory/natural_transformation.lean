@@ -6,8 +6,8 @@ Authors: Tim Baumann, Stephen Morgan, Scott Morrison
 Defines natural transformations between functors.
 
 Introduces notations
-  `F ⟹ G` for the type of natural transformations between functors `F` and `G`,
   `τ.app X` for the components of natural transformations,
+  `F ⟶ G` for the type of natural transformations between functors `F` and `G`,
   `σ ≫ τ` for vertical compositions, and
   `σ ◫ τ` for horizontal compositions.
 -/

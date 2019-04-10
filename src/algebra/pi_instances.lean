@@ -230,10 +230,10 @@ instance [comm_group α] [comm_group β] : comm_group (α × β) :=
 
 @[to_additive fst.is_add_monoid_hom]
 lemma fst.is_monoid_hom [monoid α] [monoid β] : is_monoid_hom (prod.fst : α × β → α) :=
-by refine_struct {..}; simp
+{ map_mul := λ _ _, rfl, map_one := rfl }
 @[to_additive snd.is_add_monoid_hom]
 lemma snd.is_monoid_hom [monoid α] [monoid β] : is_monoid_hom (prod.snd : α × β → β) :=
-by refine_struct {..}; simp
+{ map_mul := λ _ _, rfl, map_one := rfl }
 
 @[to_additive fst.is_add_group_hom]
 lemma fst.is_group_hom [group α] [group β] : is_group_hom (prod.fst : α × β → α) :=

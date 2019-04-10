@@ -68,11 +68,11 @@ end functor
 by cases p; simp
 
 @[simp] lemma eq_to_iso_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
-  F.on_iso (eq_to_iso p) = eq_to_iso (congr_arg F.obj p) :=
+  F.map_iso (eq_to_iso p) = eq_to_iso (congr_arg F.obj p) :=
 by ext; cases p; simp
 
 @[simp] lemma eq_to_hom_app {F G : C ⥤ D} (h : F = G) (X : C) :
-  (eq_to_hom h : F ⟹ G).app X = eq_to_hom (functor.congr_obj h X) :=
+  (eq_to_hom h : F ⟶ G).app X = eq_to_hom (functor.congr_obj h X) :=
 by subst h; refl
 
 end category_theory

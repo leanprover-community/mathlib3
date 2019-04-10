@@ -1,4 +1,4 @@
-import category_theory.instances.rings
+import category_theory.instances.CommRing.basic
 import category_theory.limits.limits
 
 universes u v

@@ -5,7 +5,7 @@ Authors: Scott Morrison, Johannes Hölzl
 Introduce CommRing -- the category of commutative rings.
 -/
 
-import category_theory.instances.monoids
+import category_theory.instances.Mon.basic
 import category_theory.fully_faithful
 import algebra.ring
 import data.int.basic

@@ -1,4 +1,4 @@
-import category_theory.instances.monoids
+import category_theory.instances.Mon
 import category_theory.limits.limits
 
 universes v
@@ -65,7 +65,7 @@ attribute [instance] colimit_setoid
 
 def colimit_type : Type v := quotient (colimit_setoid F)
 
-instance : monoid (colimit_type F) :=
+instance monoid_colimit_type : monoid (colimit_type F) :=
 { mul :=
   begin
     fapply @quot.lift _ _ ((colimit_type F) → (colimit_type F)),

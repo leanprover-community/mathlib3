@@ -61,14 +61,14 @@ include ℰ
   (e.inverse).obj ((f.inverse).obj ((f.functor).obj ((e.functor).obj X))) ≅ X :=
 calc
   (e.inverse).obj ((f.inverse).obj ((f.functor).obj ((e.functor).obj X)))
-    ≅ (e.inverse).obj ((e.functor).obj X) : e.inverse.on_iso (nat_iso.app f.fun_inv_id _)
+    ≅ (e.inverse).obj ((e.functor).obj X) : e.inverse.map_iso (nat_iso.app f.fun_inv_id _)
 ... ≅ X                                   : nat_iso.app e.fun_inv_id _
 
 @[simp] private def feef_iso_id (e : C ≌ D) (f : D ≌ E) (X : E) :
   (f.functor).obj ((e.functor).obj ((e.inverse).obj ((f.inverse).obj X))) ≅ X :=
 calc
   (f.functor).obj ((e.functor).obj ((e.inverse).obj ((f.inverse).obj X)))
-    ≅ (f.functor).obj ((f.inverse).obj X) : f.functor.on_iso (nat_iso.app e.inv_fun_id _)
+    ≅ (f.functor).obj ((f.inverse).obj X) : f.functor.map_iso (nat_iso.app e.inv_fun_id _)
 ... ≅ X                                   : nat_iso.app f.inv_fun_id _
 
 @[trans] def trans (e : C ≌ D) (f : D ≌ E) : C ≌ E :=

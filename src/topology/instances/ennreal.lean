@@ -296,19 +296,19 @@ section tsum
 
 variables {f g : α → ennreal}
 
-protected lemma is_sum_coe {f : α → nnreal} {r : nnreal} :
-  is_sum (λa, (f a : ennreal)) ↑r ↔ is_sum f r :=
+protected lemma has_sum_coe {f : α → nnreal} {r : nnreal} :
+  has_sum (λa, (f a : ennreal)) ↑r ↔ has_sum f r :=
 have (λs:finset α, s.sum (coe ∘ f)) = (coe : nnreal → ennreal) ∘ (λs:finset α, s.sum f),
   from funext $ assume s, ennreal.coe_finset_sum.symm,
-by unfold is_sum; rw [this, tendsto_coe]
+by unfold has_sum; rw [this, tendsto_coe]
 
-protected lemma tsum_coe_eq {f : α → nnreal} (h : is_sum f r) : (∑a, (f a : ennreal)) = r :=
-tsum_eq_is_sum $ ennreal.is_sum_coe.2 $ h
+protected lemma tsum_coe_eq {f : α → nnreal} (h : has_sum f r) : (∑a, (f a : ennreal)) = r :=
+tsum_eq_has_sum $ ennreal.has_sum_coe.2 $ h
 
-protected lemma tsum_coe {f : α → nnreal} : has_sum f → (∑a, (f a : ennreal)) = ↑(tsum f)
-| ⟨r, hr⟩ := by rw [tsum_eq_is_sum hr, ennreal.tsum_coe_eq hr]
+protected lemma tsum_coe {f : α → nnreal} : summable f → (∑a, (f a : ennreal)) = ↑(tsum f)
+| ⟨r, hr⟩ := by rw [tsum_eq_has_sum hr, ennreal.tsum_coe_eq hr]
 
-protected lemma is_sum : is_sum f (⨆s:finset α, s.sum f) :=
+protected lemma has_sum : has_sum f (⨆s:finset α, s.sum f) :=
 tendsto_orderable.2
   ⟨assume a' ha',
     let ⟨s, hs⟩ := lt_supr_iff.mp ha' in
@@ -319,14 +319,14 @@ tendsto_orderable.2
       from le_supr (λ(s : finset α), s.sum f) s,
     lt_of_le_of_lt this ha'⟩
 
-@[simp] protected lemma has_sum : has_sum f := ⟨_, ennreal.is_sum⟩
+@[simp] protected lemma summable : summable f := ⟨_, ennreal.has_sum⟩
 
 protected lemma tsum_eq_supr_sum : (∑a, f a) = (⨆s:finset α, s.sum f) :=
-tsum_eq_is_sum ennreal.is_sum
+tsum_eq_has_sum ennreal.has_sum
 
 protected lemma tsum_sigma {β : α → Type*} (f : Πa, β a → ennreal) :
   (∑p:Σa, β a, f p.1 p.2) = (∑a b, f a b) :=
-tsum_sigma (assume b, ennreal.has_sum) ennreal.has_sum
+tsum_sigma (assume b, ennreal.summable) ennreal.summable
 
 protected lemma tsum_prod {f : α → β → ennreal} : (∑p:α×β, f p.1 p.2) = (∑a, ∑b, f a b) :=
 let j : α × β → (Σa:α, β) := λp, sigma.mk p.1 p.2 in
@@ -344,10 +344,10 @@ calc (∑a, ∑b, f a b) = (∑p:α×β, f' p) : ennreal.tsum_prod.symm
   ... = (∑b, ∑a, f' (prod.swap (b, a))) : @ennreal.tsum_prod β α (λb a, f' (prod.swap (b, a)))
 
 protected lemma tsum_add : (∑a, f a + g a) = (∑a, f a) + (∑a, g a) :=
-tsum_add ennreal.has_sum ennreal.has_sum
+tsum_add ennreal.summable ennreal.summable
 
 protected lemma tsum_le_tsum (h : ∀a, f a ≤ g a) : (∑a, f a) ≤ (∑a, g a) :=
-tsum_le_tsum h ennreal.has_sum ennreal.has_sum
+tsum_le_tsum h ennreal.summable ennreal.summable
 
 protected lemma tsum_eq_supr_nat {f : ℕ → ennreal} :
   (∑i:ℕ, f i) = (⨆i:ℕ, (finset.range i).sum f) :=
@@ -372,8 +372,8 @@ have sum_ne_0 : (∑i, f i) ≠ 0, from ne_of_gt $
 have tendsto (λs:finset α, s.sum ((*) a ∘ f)) at_top (nhds (a * (∑i, f i))),
   by rw [← show (*) a ∘ (λs:finset α, s.sum f) = λs, s.sum ((*) a ∘ f),
          from funext $ λ s, finset.mul_sum];
-  exact ennreal.tendsto_mul_right (is_sum_tsum ennreal.has_sum) (or.inl sum_ne_0),
-tsum_eq_is_sum this
+  exact ennreal.tendsto_mul_right (has_sum_tsum ennreal.summable) (or.inl sum_ne_0),
+tsum_eq_has_sum this
 
 protected lemma tsum_mul : (∑i, f i * a) = (∑i, f i) * a :=
 by simp [mul_comm, ennreal.mul_tsum]
@@ -391,12 +391,12 @@ le_antisymm
   (calc f a ≤ (⨆ (h : a = a), f a) : le_supr (λh:a=a, f a) rfl
     ... ≤ (∑b:α, ⨆ (h : a = b), f b) : ennreal.le_tsum _)
 
-lemma is_sum_iff_tendsto_nat {f : ℕ → ennreal} (r : ennreal) :
-  is_sum f r ↔ tendsto (λn:ℕ, (finset.range n).sum f) at_top (nhds r) :=
+lemma has_sum_iff_tendsto_nat {f : ℕ → ennreal} (r : ennreal) :
+  has_sum f r ↔ tendsto (λn:ℕ, (finset.range n).sum f) at_top (nhds r) :=
 begin
-  refine ⟨tendsto_sum_nat_of_is_sum, assume h, _⟩,
+  refine ⟨tendsto_sum_nat_of_has_sum, assume h, _⟩,
   rw [← supr_eq_of_tendsto _ h, ← ennreal.tsum_eq_supr_nat],
-  { exact is_sum_tsum ennreal.has_sum },
+  { exact has_sum_tsum ennreal.summable },
   { exact assume s t hst, finset.sum_le_sum_of_subset (finset.range_subset.2 hst) }
 end
 
@@ -406,41 +406,41 @@ end ennreal
 
 namespace nnreal
 
-lemma exists_le_is_sum_of_le {f g : β → nnreal} {r : nnreal}
-  (hgf : ∀b, g b ≤ f b) (hfr : is_sum f r) : ∃p≤r, is_sum g p :=
+lemma exists_le_has_sum_of_le {f g : β → nnreal} {r : nnreal}
+  (hgf : ∀b, g b ≤ f b) (hfr : has_sum f r) : ∃p≤r, has_sum g p :=
 have (∑b, (g b : ennreal)) ≤ r,
 begin
-  refine is_sum_le (assume b, _) (is_sum_tsum ennreal.has_sum) (ennreal.is_sum_coe.2 hfr),
+  refine has_sum_le (assume b, _) (has_sum_tsum ennreal.summable) (ennreal.has_sum_coe.2 hfr),
   exact ennreal.coe_le_coe.2 (hgf _)
 end,
 let ⟨p, eq, hpr⟩ := ennreal.le_coe_iff.1 this in
-⟨p, hpr, ennreal.is_sum_coe.1 $ eq ▸ is_sum_tsum ennreal.has_sum⟩
+⟨p, hpr, ennreal.has_sum_coe.1 $ eq ▸ has_sum_tsum ennreal.summable⟩
 
-lemma has_sum_of_le {f g : β → nnreal} (hgf : ∀b, g b ≤ f b) : has_sum f → has_sum g
-| ⟨r, hfr⟩ := let ⟨p, _, hp⟩ := exists_le_is_sum_of_le hgf hfr in has_sum_spec hp
+lemma summable_of_le {f g : β → nnreal} (hgf : ∀b, g b ≤ f b) : summable f → summable g
+| ⟨r, hfr⟩ := let ⟨p, _, hp⟩ := exists_le_has_sum_of_le hgf hfr in summable_spec hp
 
-lemma is_sum_iff_tendsto_nat {f : ℕ → nnreal} (r : nnreal) :
-  is_sum f r ↔ tendsto (λn:ℕ, (finset.range n).sum f) at_top (nhds r) :=
+lemma has_sum_iff_tendsto_nat {f : ℕ → nnreal} (r : nnreal) :
+  has_sum f r ↔ tendsto (λn:ℕ, (finset.range n).sum f) at_top (nhds r) :=
 begin
-  rw [← ennreal.is_sum_coe, ennreal.is_sum_iff_tendsto_nat],
+  rw [← ennreal.has_sum_coe, ennreal.has_sum_iff_tendsto_nat],
   simp only [ennreal.coe_finset_sum.symm],
   exact ennreal.tendsto_coe
 end
 
 end nnreal
 
-lemma has_sum_of_nonneg_of_le {f g : β → ℝ}
-  (hg : ∀b, 0 ≤ g b) (hgf : ∀b, g b ≤ f b) (hf : has_sum f) : has_sum g :=
+lemma summable_of_nonneg_of_le {f g : β → ℝ}
+  (hg : ∀b, 0 ≤ g b) (hgf : ∀b, g b ≤ f b) (hf : summable f) : summable g :=
 let f' (b : β) : nnreal := ⟨f b, le_trans (hg b) (hgf b)⟩ in
 let g' (b : β) : nnreal := ⟨g b, hg b⟩ in
-have has_sum f', from nnreal.has_sum_coe.1 hf,
-have has_sum g', from
-  nnreal.has_sum_of_le (assume b, (@nnreal.coe_le (g' b) (f' b)).2 $ hgf b) this,
-show has_sum (λb, g' b : β → ℝ), from nnreal.has_sum_coe.2 this
+have summable f', from nnreal.summable_coe.1 hf,
+have summable g', from
+  nnreal.summable_of_le (assume b, (@nnreal.coe_le (g' b) (f' b)).2 $ hgf b) this,
+show summable (λb, g' b : β → ℝ), from nnreal.summable_coe.2 this
 
-lemma is_sum_iff_tendsto_nat_of_nonneg {f : ℕ → ℝ} (hf : ∀i, 0 ≤ f i) (r : ℝ) :
-  is_sum f r ↔ tendsto (λn:ℕ, (finset.range n).sum f) at_top (nhds r) :=
-⟨tendsto_sum_nat_of_is_sum,
+lemma has_sum_iff_tendsto_nat_of_nonneg {f : ℕ → ℝ} (hf : ∀i, 0 ≤ f i) (r : ℝ) :
+  has_sum f r ↔ tendsto (λn:ℕ, (finset.range n).sum f) at_top (nhds r) :=
+⟨tendsto_sum_nat_of_has_sum,
   assume hfr,
   have 0 ≤ r := ge_of_tendsto at_top_ne_bot hfr $ univ_mem_sets' $ assume i,
     show 0 ≤ (finset.range i).sum f, from finset.zero_le_sum $ assume i _, hf i,
@@ -448,7 +448,7 @@ lemma is_sum_iff_tendsto_nat_of_nonneg {f : ℕ → ℝ} (hf : ∀i, 0 ≤ f i) 
   have f_eq : f = (λi:ℕ, (f' i : ℝ)) := rfl,
   have r_eq : r = r' := rfl,
   begin
-    rw [f_eq, r_eq, nnreal.is_sum_coe, nnreal.is_sum_iff_tendsto_nat, ← nnreal.tendsto_coe],
+    rw [f_eq, r_eq, nnreal.has_sum_coe, nnreal.has_sum_iff_tendsto_nat, ← nnreal.tendsto_coe],
     simp only [nnreal.sum_coe],
     exact hfr
   end⟩

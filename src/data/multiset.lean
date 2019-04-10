@@ -607,7 +607,7 @@ quot.induction_on s $ λ l, rfl
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ map_append _ _ _
 
 instance (f : α → β) : is_add_monoid_hom (map f) :=
-by refine_struct {..}; simp
+{ map_add := map_add _, map_zero := map_zero _ }
 
 @[simp] theorem mem_map {f : α → β} {b : β} {s : multiset α} :
   b ∈ map f s ↔ ∃ a, a ∈ s ∧ f a = b :=
@@ -735,7 +735,7 @@ theorem prod_add [comm_monoid α] (s t : multiset α) : prod (s + t) = prod s * 
 quotient.induction_on₂ s t $ λ l₁ l₂, by simp
 
 instance sum.is_add_monoid_hom [add_comm_monoid α] : is_add_monoid_hom (sum : multiset α → α) :=
-by refine_struct {..}; simp
+{ map_add := sum_add, map_zero := sum_zero }
 
 lemma prod_smul {α : Type*} [comm_monoid α] (m : multiset α) :
   ∀n, (add_monoid.smul n m).prod = m.prod ^ n
@@ -1714,7 +1714,7 @@ quot.induction_on s $ λ l, countp_eq_length_filter _
 by simp [countp_eq_card_filter]
 
 instance countp.is_add_monoid_hom : is_add_monoid_hom (countp p : multiset α → ℕ) :=
-by refine_struct {..}; simp
+{ map_add := countp_add, map_zero := countp_zero _ }
 
 theorem countp_pos {s} : 0 < countp p s ↔ ∃ a ∈ s, p a :=
 by simp [countp_eq_card_filter, card_pos_iff_exists_mem]

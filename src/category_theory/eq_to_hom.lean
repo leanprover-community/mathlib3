@@ -72,7 +72,7 @@ by cases p; simp
 by ext; cases p; simp
 
 @[simp] lemma eq_to_hom_app {F G : C ⥤ D} (h : F = G) (X : C) :
-  (eq_to_hom h : F ⟹ G).app X = eq_to_hom (functor.congr_obj h X) :=
+  (eq_to_hom h : F ⟶ G).app X = eq_to_hom (functor.congr_obj h X) :=
 by subst h; refl
 
 end category_theory

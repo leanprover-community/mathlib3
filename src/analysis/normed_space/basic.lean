@@ -308,7 +308,7 @@ eq_of_mul_eq_mul_left (ne_of_gt ((norm_pos_iff _).2 (by simp))) this
 normed_field.norm_mul a b
 
 instance normed_field.is_monoid_hom_norm [normed_field α] : is_monoid_hom (norm : α → ℝ) :=
-⟨norm_one, norm_mul⟩
+{ map_one := norm_one, map_mul := norm_mul }
 
 @[simp] lemma norm_pow [normed_field α] (a : α) : ∀ (n : ℕ), ∥a^n∥ = ∥a∥^n :=
 is_monoid_hom.map_pow norm a

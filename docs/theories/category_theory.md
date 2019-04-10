@@ -84,9 +84,13 @@ We use `F.map f` to denote the action of a functor on a morphism`.
 Functor composition can be written as `F ⋙ G`.
 
 ### Natural transformations
-We use `⟹` (`\nattrans` or `\==>`) to denote the type of natural transformations, e.g. `F ⟹ G`.
-We use `⇔` (`\<=>`) to denote the type of natural isomorphisms.
-
 We use `τ.app X` for the components of a natural transformation.
 
-For vertical and horiztonal composition of natural transformations we "cutely" use `⊟` (`\boxminus`) and `◫` (currently untypeable, but we could ask for `\boxvert`).
+Otherwise, we mostly use the notation for morphisms in any category:
+
+We use `F ⟶ G` (`\hom` or `-->`) to denote the type of natural transformations, between functors
+`F` and `G`.
+We use `F ≅ G` (`\iso`) to denote the type of natural isomorphisms.
+
+For vertical composition of natural transformations we just use `≫`. For horizontal composition,
+use `hcomp`.

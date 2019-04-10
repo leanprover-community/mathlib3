@@ -4,12 +4,13 @@
 
 import category_theory.isomorphism
 import category_theory.functor_category
+import category_theory.whiskering
 
 open category_theory
 
-namespace category_theory.nat_iso
+universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+namespace category_theory.nat_iso
 
 variables {C : Sort u₁} [𝒞 : category.{v₁} C] {D : Sort u₂} [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
@@ -37,29 +38,14 @@ instance inv_app_is_iso (α : F ≅ G) (X : C) : is_iso (α.inv.app X) :=
   hom_inv_id' := begin rw [←functor.category.comp_app, iso.inv_hom_id, ←functor.category.id_app] end,
   inv_hom_id' := begin rw [←functor.category.comp_app, iso.hom_inv_id, ←functor.category.id_app] end }
 
-@[simp] lemma hom_vcomp_inv (α : F ≅ G) : (α.hom ⊟ α.inv) = nat_trans.id _ :=
-begin
-  have h : (α.hom ⊟ α.inv) = α.hom ≫ α.inv := rfl,
-  rw h,
-  rw iso.hom_inv_id,
-  refl
-end
-@[simp] lemma inv_vcomp_hom (α : F ≅ G) : (α.inv ⊟ α.hom) = nat_trans.id _ :=
-begin
-  have h : (α.inv ⊟ α.hom) = α.inv ≫ α.hom := rfl,
-  rw h,
-  rw iso.inv_hom_id,
-  refl
-end
-
 @[simp] lemma hom_app_inv_app_id (α : F ≅ G) (X : C) : α.hom.app X ≫ α.inv.app X = 𝟙 _ :=
 begin
-  rw ←nat_trans.vcomp_app,
+  rw ←functor.category.comp_app,
   simp,
 end
 @[simp] lemma inv_app_hom_app_id (α : F ≅ G) (X : C) : α.inv.app X ≫ α.hom.app X = 𝟙 _ :=
 begin
-  rw ←nat_trans.vcomp_app,
+  rw ←functor.category.comp_app,
   simp,
 end
 
@@ -92,9 +78,9 @@ by tidy
 
 end category_theory.nat_iso
 
-namespace category_theory.functor
+open category_theory
 
-universes u₁ u₂ v₁ v₂
+namespace category_theory.functor
 
 section
 variables {C : Sort u₁} [𝒞 : category.{v₁} C]
@@ -108,7 +94,7 @@ include 𝒞 𝒟
 { hom := { app := λ X, 𝟙 (F.obj X) },
   inv := { app := λ X, 𝟙 (F.obj X) } }
 
-universes u₃ v₃ u₄ v₄
+universes v₄ u₄
 
 variables {A : Sort u₃} [𝒜 : category.{v₃} A]
           {B : Sort u₄} [ℬ : category.{v₄} B]

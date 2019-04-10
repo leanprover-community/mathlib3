@@ -306,7 +306,6 @@ lemma fderiv_at_filter_unique (f : E → F) (x₀ : E) {L : filter E} (h : nhds 
   has_fderiv_at_filter K f A₁ x₀ L → has_fderiv_at_filter K f A₂ x₀ L → A₁ = A₂ :=
 assume ⟨⟨A₁_linear, A₁_bounded₁⟩, (eq₁ : is_o (λ x, f x - f x₀ - A₁ (x - x₀)) (λ x, x - x₀) L)⟩
   ⟨⟨A₂_linear₂, A₂_bounded⟩, (eq₂ : is_o (λ x, f x - f x₀ - A₂ (x - x₀)) (λ x, x - x₀) L)⟩,
-
 -- To prove that A₁ = A₂, substract eq₁ and eq₂. After some calculation this implies
 -- that for ∀ v ∈ E, lim_{n→∞} A₂ v - A₁ v = 0. We first show that this implies the claim
 -- using the uniqueness of limits in normed spaces.

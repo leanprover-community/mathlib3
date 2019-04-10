@@ -1,5 +1,7 @@
 import algebra.ring
 import algebra.group_power
+import algebra.big_operators
+import algebra.field_power
 import tactic.chain
 
 open tactic
@@ -69,5 +71,17 @@ do let homs := types.map $ λ t, (t, lookup_homs (instance_type t)),
 example (X Y : Type) [ring X] [ring Y] (f : X → Y) [is_monoid_hom f] (n : ℕ)
   (x y : X) : f (x^n * y) = (f x)^n * f y :=
 begin
+  hom,
+end
+
+example (X Y Z W : Type*) [add_group X] [discrete_field Y] [ring Z] [discrete_field W]
+  (f : X → Y) [is_add_group_hom f] (g : Y → W) [is_field_hom g]
+  (h : X → Z) [is_add_group_hom h] (i : Z → W) [is_ring_hom i]
+  (k l m : ℕ) (a b : X) (c d : Y) (e : Z) :
+  g (f (a + gsmul k b) * c⁻¹ / d) = i (e^l + (h (b - a))^m) :=
+begin
+  -- Of course this is not provable,
+  -- but the rewrites should still happen.
+  -- However, we currently get a timeout
   hom,
 end

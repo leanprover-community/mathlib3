@@ -470,31 +470,35 @@ namespace func
 /- Definitions for using lists as finite 
    representations of functions with domain ℕ. -/
 
-@[simp] def set (a' a : α) : list α → ℕ → list α
+variables [inhabited α] [inhabited β]
+
+@[simp] def set (a : α) : list α → ℕ → list α
 | (_::as) 0     := a::as
 | []      0     := [a]
 | (h::as) (k+1) := h::(set as k)
-| []      (k+1) := a'::(set ([] : list α) k)
+| []      (k+1) := (default α)::(set ([] : list α) k)
 
-@[simp] def get (d : α): ℕ → list α → α
-| _ []          := d
+@[simp] def get : ℕ → list α → α
+| _ []          := default α
 | 0 (a::as)     := a
 | (n+1) (a::as) := get n as
 
-def equiv (a : α) (as1 as2 : list α) : Prop :=
-∀ (m : nat), get a m as1 = get a m as2
+def equiv (as1 as2 : list α) : Prop :=
+∀ (m : nat), get m as1 = get m as2
 
 def neg [has_neg α] (as : list α) := as.map (λ a, -a) 
 
-@[simp] def pointwise (a' : α) (b' : β) (f : α → β → γ) : list α → list β → list γ 
+@[simp] def pointwise (f : α → β → γ) : list α → list β → list γ 
 | []      []      := []
-| []      (b::bs) := map (f a') (b::bs)
-| (a::as) []      := map (λ x, f x b') (a::as)
+| []      (b::bs) := map (f $ default α) (b::bs)
+| (a::as) []      := map (λ x, f x $ default β) (a::as)
 | (a::as) (b::bs) := (f a b)::(pointwise as bs)
 
-def add [has_zero α] [has_add α] : list α → list α → list α := pointwise 0 0 (+)
+def add {α : Type u} [has_zero α] [has_add α] : list α → list α → list α := 
+@pointwise α α α ⟨0⟩ ⟨0⟩ (+) 
 
-def sub [has_zero α] [has_sub α] : list α → list α → list α := pointwise 0 0 (λ x y, x - y)
+def sub {α : Type u} [has_zero α] [has_sub α] : list α → list α → list α := 
+@pointwise α α α ⟨0⟩ ⟨0⟩ (@has_sub.sub α _)
 
 end func
 

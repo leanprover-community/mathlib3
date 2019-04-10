@@ -58,16 +58,16 @@ by rw [mul_symdiv_eq, sub_sub_cancel]
    constraint set, then (v ⟨n ↦ sgm v b as n⟩) satisfies the new
    constraint set after equality elimination. -/
 def sgm (v : nat → int) (b : int) (as : list int) (n : nat) :=
-let a_n : int := get 0 n as in
+let a_n : int := get n as in
 let m : int := a_n + 1 in
 ((symmod b m) + (coeffs.val v (as.map (λ x, symmod x m)))) / m
 
-local notation as `{` m `↦` a `;` a' `}` := set a' a as m
+local notation as `{` m `↦` a `}` := set a as m
 
 def rhs : nat → int → list int → term
 | n b as :=
-  let m := get 0 n as + 1 in
-  ⟨(symmod b m), (as.map (λ x, symmod x m)){n ↦ -m ; 0}⟩
+  let m := get n as + 1 in
+  ⟨(symmod b m), (as.map (λ x, symmod x m)) {n ↦ -m}⟩
 
 lemma rhs_correct_aux {v : nat → int} {m : int} {as : list int} :
 ∀ {k}, ∃ d, (m * d +
@@ -83,8 +83,8 @@ lemma rhs_correct_aux {v : nat → int} {m : int} {as : list int} :
     simp only [zero_add, coeffs.val_between, list.map], 
     cases @rhs_correct_aux k with d h1, rw ← h1,
     by_cases hk : k < as.length,
-    { rw [get_map (0 : int) hk, symmod_eq, sub_mul],
-      existsi (d + (symdiv (get 0 k as) m * v k)), 
+    { rw [get_map hk, symmod_eq, sub_mul],
+      existsi (d + (symdiv (get k as) m * v k)), 
       ring },
     { rw not_lt at hk,
       repeat {rw get_eq_default_of_le},
@@ -98,12 +98,12 @@ local notation v `⟨` m `↦` a `⟩` := update m a v
 
 lemma rhs_correct {v : nat → int}
   {b : int} {as : list int} (n : nat) :
-  0 < get 0 n as →
+  0 < get n as →
   0 = term.val v (b,as) →
   v n = term.val (v ⟨n ↦ sgm v b as n⟩) (rhs n b as) :=
 begin
   intros h0 h1,
-  let a_n := get 0 n as,
+  let a_n := get n as,
   let m := a_n + 1,
   have h3 : m ≠ 0,
   { apply ne_of_gt, apply lt_trans h0, simp [a_n, m] },
@@ -111,7 +111,7 @@ begin
     coeffs.val v (as.map (λ x, symmod x m)),
   { simp only [sgm, mul_comm m],
     rw [int.div_mul_cancel],
-    have h4 : ∃ c, m * c + (symmod b (get 0 n as + 1) +
+    have h4 : ∃ c, m * c + (symmod b (get n as + 1) +
       coeffs.val v (as.map (λ (x : ℤ), symmod x m))) = term.val v (b,as),
     { have h5: ∃ d,  m * d +
         (coeffs.val v (as.map (λ x, symmod x m))) = coeffs.val v as,
@@ -133,7 +133,7 @@ begin
           { by_contra hc, rw not_lt at hc,
             rw (get_eq_default_of_le n hc) at h0,
             cases h0 },
-          rw get_map _ hn, 
+          rw get_map hn, 
           simp only [a_n, m],
           rw [add_comm, symmod_add_one_self h0], 
           ring
@@ -156,18 +156,18 @@ symdiv b m + symmod b m
 
 def coeffs_reduce : nat → int → list int → term
 | n b as :=
-  let a := get 0 n as in
+  let a := get n as in
   let m := a + 1 in
-  (sym_sym m b, (as.map (sym_sym m)){n ↦ -a ; 0})
+  (sym_sym m b, (as.map (sym_sym m)) {n ↦ -a})
 
 lemma coeffs_reduce_correct
   {v : nat → int} {b : int} {as : list int} {n : nat} :
-  0 < get 0 n as →
+  0 < get n as →
   0 = term.val v (b,as) →
   0 = term.val (v ⟨n ↦ sgm v b as n⟩) (coeffs_reduce n b as) :=
 begin
   intros h1 h2,
-  let a_n := get 0 n as,
+  let a_n := get n as,
   let m := a_n + 1,
   have h3 : m ≠ 0, 
   { apply ne_of_gt, 
@@ -206,7 +206,7 @@ begin
             a + b + (c + d) = (a + c) + (b + d),
           { intros, ring }, rw h4,
           have h5 : add as (list.map (has_mul.mul a_n)
-            (list.map (λ (x : ℤ), symmod x (get 0 n as + 1)) as)) =
+            (list.map (λ (x : ℤ), symmod x (get n as + 1)) as)) =
             list.map (λ (a_i : ℤ), a_i + a_n * symmod a_i m) as,
           { rw [list.map_map, ←map_add_map],
             apply fun_mono_2,
@@ -262,14 +262,14 @@ end
 
 -- Requires : t1.coeffs[m] = 1
 def cancel (m : nat) (t1 t2 : term) : term :=
-term.add (t1.mul (-(get 0 m (t2.snd)))) t2
+term.add (t1.mul (-(get m (t2.snd)))) t2
 
 def subst (n : nat) (t1 t2 : term) : term :=
-term.add (t1.mul (get 0 n t2.snd)) (t2.fst,t2.snd{n ↦ 0 ; 0})
+term.add (t1.mul (get n t2.snd)) (t2.fst, t2.snd {n ↦ 0})
 
 lemma subst_correct {v : nat → int} {b : int}
  {as : list int} {t : term} {n : nat} :
-  0 < get 0 n as → 0 = term.val v (b,as) →
+  0 < get n as → 0 = term.val v (b,as) →
   term.val v t = term.val (v ⟨n ↦ sgm v b as n⟩) (subst n (rhs n b as) t) :=
 begin
   intros h1 h2, 
@@ -277,7 +277,7 @@ begin
   rw ← rhs_correct _ h1 h2, 
   cases t with b' as',
   simp only [term.val], 
-  have h3 : coeffs.val (v ⟨n ↦ sgm v b as n⟩) (as'{n ↦ 0 ; 0}) =
+  have h3 : coeffs.val (v ⟨n ↦ sgm v b as n⟩) (as' {n ↦ 0}) =
     coeffs.val_except n v as',
   { rw [← coeffs.val_except_add_eq n, get_set,
       zero_mul, add_zero, coeffs.val_except_update_set] },
@@ -326,7 +326,7 @@ def eq_elim : list ee → clause → clause
   then eq_elim es ((term.div i (b,as)::eqs), les)
   else ([],[])
 | (ee.reduce n::es) ((b,as)::eqs, les) :=
-  if 0 < get 0 n as
+  if 0 < get n as
   then let eq' := coeffs_reduce n b as in
        let r := rhs n b as in
        let eqs' := eqs.map (subst n r) in
@@ -391,7 +391,7 @@ lemma sat_eq_elim :
 | (ee.reduce n::es) ((b,as)::eqs, les) h1 :=
   begin
     simp only [eq_elim], 
-    by_cases h2 : 0 < get 0 n as,
+    by_cases h2 : 0 < get n as,
     tactic.rotate 1,
     { rw if_neg h2, apply sat_empty },
     rw if_pos h2, 

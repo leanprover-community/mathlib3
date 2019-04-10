@@ -107,13 +107,13 @@ def sub_free : preterm → Prop
 
 end preterm
 
-local notation as `{` m `↦` a `;` a' `}` := list.func.set a' a as m
+local notation as `{` m `↦` a `}` := list.func.set a as m
 
 @[simp] def canonize : preterm → term 
-| (& m)    := ⟨↑m,[]⟩  
-| (m ** n) := ⟨0,[]{n ↦ ↑m ; 0}⟩ 
+| (& m)    := ⟨↑m, []⟩  
+| (m ** n) := ⟨0, [] {n ↦ ↑m}⟩ 
 | (t +* s) := term.add (canonize t) (canonize s)
-| (_ -* _) := ⟨0,[]⟩ 
+| (_ -* _) := ⟨0, []⟩ 
 
 @[simp] lemma val_canonize {v : nat → nat} : 
   ∀ {t : preterm}, t.sub_free → 

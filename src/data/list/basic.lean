@@ -4407,44 +4407,41 @@ end choose
 
 namespace func
 
---variables {α β γ : Type} 
-variables {a a' : α} {b' : β} {c' : γ}
-variables {as as1 as2 as3 : list α} {bs : list β} 
-variable {f : α → β → γ}
+variables {a : α} 
+variables {as as1 as2 as3 : list α}
 
-local notation as `{` m `↦` a `;` a' `}` := set a' a as m
+local notation as `{` m `↦` a `}` := set a as m
 
 /- set -/
 
-lemma length_set {d a : α} :
-  ∀ {m : ℕ} {as : list α},
-  (as{m ↦ a ; d}).length = _root_.max as.length (m+1)
-| 0 [] := rfl
+lemma length_set [inhabited α] : ∀ {m : ℕ} {as : list α},
+  (as {m ↦ a}).length = _root_.max as.length (m+1)
+| 0 []          := rfl
 | 0 (a::as)     := by {rw max_eq_left, refl, simp [nat.le_add_right]}
 | (m+1) []      := by simp only [set, nat.zero_max, length, @length_set m]
 | (m+1) (a::as) := by simp only [set, nat.max_succ_succ, length, @length_set m]
 
-@[simp] lemma get_nil {d : α} {k : ℕ} : get d k [] = d :=
-begin cases k; refl end
+@[simp] lemma get_nil [inhabited α] {k : ℕ} : get k [] = default α := 
+by {cases k; refl} 
 
-lemma get_eq_default_of_le {d : α} :
-  ∀ (k : ℕ) {as : list α}, as.length ≤ k → get d k as = d
-| 0 [] h1 := rfl
-| 0 (a::as) h1 := by cases h1
-| (k+1) [] h1 := rfl
+lemma get_eq_default_of_le [inhabited α] :
+  ∀ (k : ℕ) {as : list α}, as.length ≤ k → get k as = default α
+| 0     []      h1 := rfl
+| 0     (a::as) h1 := by cases h1
+| (k+1) []      h1 := rfl
 | (k+1) (a::as) h1 :=
   begin
     apply get_eq_default_of_le k,
     rw ← nat.succ_le_succ_iff, apply h1,
   end
 
-@[simp] lemma get_set {d1 d2 a : α} :
-  ∀ {k : ℕ} {as : list α}, get d2 k (as{k ↦ a ; d1}) = a
-| 0 as     := begin cases as; refl end
+@[simp] lemma get_set [inhabited α] {a : α} :
+  ∀ {k : ℕ} {as : list α}, get k (as {k ↦ a}) = a
+| 0 as     := by {cases as; refl, }
 | (k+1) as := by {cases as; simp [get_set]} 
 
-lemma eq_get_of_mem {a : α} :
-  ∀ {as : list α}, a ∈ as → ∃ n : nat, ∀ d : α, a = (get d n as)
+lemma eq_get_of_mem [inhabited α] {a : α} :
+  ∀ {as : list α}, a ∈ as → ∃ n : nat, ∀ d : α, a = (get n as)
 | [] h := by cases h
 | (b::as) h :=
   begin
@@ -4454,8 +4451,8 @@ lemma eq_get_of_mem {a : α} :
       existsi (n+1), apply h2 }
   end
 
-lemma mem_get_of_le {d : α} :
-  ∀ {n : ℕ} {as : list α}, n < as.length → get d n as ∈ as
+lemma mem_get_of_le [inhabited α] :
+  ∀ {n : ℕ} {as : list α}, n < as.length → get n as ∈ as
 | _ [] h1 := by cases h1
 | 0 (a::as) _ := or.inl rfl
 | (n+1) (a::as) h1 :=
@@ -4465,9 +4462,9 @@ lemma mem_get_of_le {d : α} :
     apply nat.lt_of_succ_lt_succ h1,
   end
 
-lemma mem_get_of_ne_zero {d : α} :
+lemma mem_get_of_ne_zero [inhabited α] :
   ∀ {n : ℕ} {as : list α},
-  get d n as ≠ d → get d n as ∈ as
+  get n as ≠ default α → get n as ∈ as
 | _ [] h1 := begin exfalso, apply h1, rw get_nil end
 | 0 (a::as) h1 := or.inl rfl
 | (n+1) (a::as) h1 :=
@@ -4477,12 +4474,9 @@ lemma mem_get_of_ne_zero {d : α} :
     apply h1
   end
 
---lemma nat.succ_ne_succ_iff {m n : nat} :
---  m.succ ≠ n.succ ↔ m ≠ n := sorry
-
-lemma get_set_eq_of_ne {d a : α} :
+lemma get_set_eq_of_ne [inhabited α] {a : α} :
   ∀ {as : list α} (k : ℕ) (m : ℕ),
-  m ≠ k → get d m (as{k ↦ a ; d}) = get d m as
+  m ≠ k → get m (as {k ↦ a}) = get m as
 | as 0 m h1 :=
   by { cases m, contradiction, cases as; 
        simp only [set, get, get_nil] }
@@ -4490,7 +4484,7 @@ lemma get_set_eq_of_ne {d a : α} :
   begin
     cases as; cases m,
     simp only [set, get],
-    { have h3 : get d m (nil {k ↦ a ; d}) = d,
+    { have h3 : get m (nil {k ↦ a}) = default α,
       { rw [get_set_eq_of_ne k m, get_nil],
         intro hc, apply h1, simp [hc] },
       apply h3 },
@@ -4499,29 +4493,34 @@ lemma get_set_eq_of_ne {d a : α} :
       intro hc, apply h1, simp [hc], }
   end
 
-lemma get_map (a' : α) {b' : β} {f : α → β} : ∀ {n : ℕ} {as : list α},
-  n < as.length → get b' n (as.map f) = f (get a' n as)
+lemma get_map [inhabited α] [inhabited β] {f : α → β} : 
+  ∀ {n : ℕ} {as : list α}, n < as.length → 
+  get n (as.map f) = f (get n as)
 | _ [] h := by cases h
 | 0 (a::as) h := rfl
 | (n+1) (a::as) h1 :=
   begin
     have h2 : n < length as, 
-    { rw [← nat.succ_le_iff, ← nat.lt_succ_iff], apply h1 },
+    { rw [← nat.succ_le_iff, ← nat.lt_succ_iff], 
+      apply h1 },
     apply get_map h2,
   end
 
-lemma get_map' {a' : α} {b' : β} {f : α → β} {n : ℕ} {as : list α} :
-  f a' = b' → get b' n (as.map f) = f (get a' n as) :=
+lemma get_map' [inhabited α] [inhabited β] 
+  {f : α → β} {n : ℕ} {as : list α} :
+  f (default α) = (default β) → 
+  get n (as.map f) = f (get n as) :=
 begin
   intro h1, by_cases h2 : n < as.length,
-  { apply get_map a' h2, },
+  { apply get_map h2, },
   { rw not_lt at h2,
     rw [get_eq_default_of_le _ h2, get_eq_default_of_le, h1], 
     rw [length_map], apply h2 }
 end
 
-lemma forall_val_of_forall_mem {a' : α} {as : list α} {p : α → Prop} :
-  p a' → (∀ x ∈ as, p x) → (∀ n, p (get a' n as)) :=
+lemma forall_val_of_forall_mem [inhabited α] 
+  {as : list α} {p : α → Prop} :
+  p (default α) → (∀ x ∈ as, p x) → (∀ n, p (get n as)) :=
 begin
   intros h1 h2 n,
   by_cases h3 : n < as.length,
@@ -4532,21 +4531,21 @@ end
 
 /- equiv -/
 
-lemma equiv_refl : equiv a as as := λ k, rfl
+lemma equiv_refl [inhabited α] : equiv as as := λ k, rfl
 
-lemma equiv_symm : equiv a as1 as2 → equiv a as2 as1 := 
+lemma equiv_symm [inhabited α] : equiv as1 as2 → equiv as2 as1 := 
 λ h1 k, (h1 k).symm
 
-lemma equiv_trans :
-  equiv a as1 as2 → equiv a as2 as3 → equiv a as1 as3 :=
+lemma equiv_trans [inhabited α] :
+  equiv as1 as2 → equiv as2 as3 → equiv as1 as3 :=
 λ h1 h2 k, eq.trans (h1 k) (h2 k)
 
-lemma equiv_of_eq : as1 = as2 → equiv a as1 as2 := 
+lemma equiv_of_eq [inhabited α] : as1 = as2 → equiv as1 as2 := 
 begin intro h1, rw h1, apply equiv_refl end
 
-lemma eq_of_equiv :
+lemma eq_of_equiv [inhabited α] :
   ∀ {as1 as2 : list α}, as1.length = as2.length → 
-  equiv a as1 as2 → as1 = as2 
+  equiv as1 as2 → as1 = as2 
 | []     [] h1 h2 := rfl
 | (_::_) [] h1 h2 := by cases h1
 | [] (_::_) h1 h2 := by cases h1
@@ -4554,47 +4553,49 @@ lemma eq_of_equiv :
   begin
     congr,
     { apply h2 0 },
-    { have h3 : as1.length = as2.length, 
-      { simpa [add_left_inj, add_comm, length] using h1 },
-      apply eq_of_equiv h3,
-      intro m, apply h2 (m+1) }
+    have h3 : as1.length = as2.length, 
+    { simpa [add_left_inj, add_comm, length] using h1 },
+    apply eq_of_equiv h3,
+    intro m, apply h2 (m+1) 
   end
 
 /- neg -/
 
-@[simp] lemma get_neg {α : Type} [add_group α] 
-  {k : ℕ} {as : list α} : get 0 k (neg as) = -(get 0 k as) :=
-by {unfold neg, rw get_map', apply neg_zero}
+@[simp] lemma get_neg [inhabited α] [add_group α] 
+  {k : ℕ} {as : list α} : @get α ⟨0⟩ k (neg as) = -(@get α ⟨0⟩ k as) :=
+by {unfold neg, rw (@get_map' α α ⟨0⟩), apply neg_zero}
 
-@[simp] lemma length_neg [has_neg α] (as : list α) : 
+@[simp] lemma length_neg 
+  [inhabited α] [has_neg α] (as : list α) : 
   (neg as).length = as.length := 
 by simp only [neg, length_map]
 
 /- pointwise -/
 
-lemma nil_pointwise : 
-  ∀ bs : list β, pointwise a' b' f [] bs = bs.map (f a') 
+lemma nil_pointwise [inhabited α] [inhabited β] {f : α → β → γ} : 
+  ∀ bs : list β, pointwise f [] bs = bs.map (f $ default α) 
 | []      := rfl
 | (b::bs) := 
   by simp only [nil_pointwise bs, pointwise, 
      eq_self_iff_true, and_self, map] 
 
-lemma pointwise_nil : 
-  ∀ as : list α, pointwise a' b' f as [] = as.map (λ a, f a b') 
+lemma pointwise_nil [inhabited α] [inhabited β] {f : α → β → γ} : 
+  ∀ as : list α, pointwise f as [] = as.map (λ a, f a $ default β) 
 | []      := rfl
 | (a::as) := 
   by simp only [pointwise_nil as, pointwise, 
      eq_self_iff_true, and_self, list.map] 
 
-lemma get_pointwise (h1 : f a' b' = c') : 
+lemma get_pointwise [inhabited α] [inhabited β] [inhabited γ] 
+  {f : α → β → γ} (h1 : f (default α) (default β) = default γ) : 
   ∀ (k : nat) (as : list α) (bs : list β), 
-  get c' k (pointwise a' b' f as bs) = f (get a' k as) (get b' k bs) 
+  get k (pointwise f as bs) = f (get k as) (get k bs) 
 | k [] [] := by simp only [h1, get_nil, pointwise, get]
 | 0 [] (b::bs) := 
   by simp only [get_pointwise, get_nil, 
       pointwise, get, nat.nat_zero_eq_zero, map] 
 | (k+1) [] (b::bs) := 
-  by { have : get c' k (map (f a') bs) = f a' (get b' k bs),
+  by { have : get k (map (f $ default α) bs) = f (default α) (get k bs),
        { simpa [nil_pointwise, get_nil] using (get_pointwise k [] bs) },
        simpa [get, get_nil, pointwise, map] }
 | 0 (a::as) [] := 
@@ -4607,8 +4608,9 @@ lemma get_pointwise (h1 : f a' b' = c') :
 | (k+1) (a::as) (b::bs) := 
   by simp only [pointwise, get, get_pointwise k] 
 
-lemma length_pointwise : ∀ {as : list α} {bs : list β}, 
-  (pointwise a' b' f as bs).length = _root_.max as.length bs.length 
+lemma length_pointwise [inhabited α] [inhabited β] {f : α → β → γ} : 
+  ∀ {as : list α} {bs : list β}, 
+  (pointwise f as bs).length = _root_.max as.length bs.length 
 | []      []      := rfl
 | []      (b::bs) := 
   by simp only [pointwise, length, length_map,
@@ -4622,60 +4624,70 @@ lemma length_pointwise : ∀ {as : list α} {bs : list β},
 
 /- add -/
 
-@[simp] lemma get_add {α : Type} [add_monoid α] {k : ℕ} {xs ys : list α} :
-  get 0 k (add xs ys) = (get 0 k xs + get 0 k ys) :=
+@[simp] lemma get_add {α : Type u} [add_monoid α] {k : ℕ} {xs ys : list α} :
+  @get α ⟨0⟩ k (add xs ys) = ( @get α ⟨0⟩ k xs + @get α ⟨0⟩ k ys) :=
 by {apply get_pointwise, apply zero_add}
 
-@[simp] lemma length_add [has_zero α] [has_add α] {xs ys : list α} : 
+@[simp] lemma length_add {α : Type u} 
+  [has_zero α] [has_add α] {xs ys : list α} : 
   (add xs ys).length = _root_.max xs.length ys.length := 
-length_pointwise
+@length_pointwise α α α ⟨0⟩ ⟨0⟩ _ _ _
 
-@[simp] lemma nil_add {α : Type} [add_monoid α] 
+@[simp] lemma nil_add {α : Type u} [add_monoid α] 
   (as : list α) : add [] as = as := 
 begin
-  rw [add, nil_pointwise], 
-  apply eq.trans _ (map_id as), congr,
-  ext, rw zero_add, refl,
+  rw [add, @nil_pointwise α α α ⟨0⟩ ⟨0⟩],
+  apply eq.trans _ (map_id as), 
+  congr, ext, 
+  have : @default α ⟨0⟩ = 0 := rfl,
+  rw [this, zero_add], refl
 end
 
-@[simp] lemma add_nil {α : Type} [add_monoid α] 
+@[simp] lemma add_nil {α : Type u} [add_monoid α] 
   (as : list α) : add as [] = as := 
 begin
-  rw [add, pointwise_nil], 
-  apply eq.trans _ (map_id as), congr,
-  ext, rw add_zero, refl,
+  rw [add, @pointwise_nil α α α ⟨0⟩ ⟨0⟩], 
+  apply eq.trans _ (map_id as), 
+  congr, ext, 
+  have : @default α ⟨0⟩ = 0 := rfl,
+  rw [this, add_zero], refl
 end
 
-lemma map_add_map {α : Type} [add_monoid α] (f g : α → α) {as : list α} :
+lemma map_add_map {α : Type u} [add_monoid α] (f g : α → α) {as : list α} :
   add (as.map f) (as.map g) = as.map (λ x, f x + g x) :=
 begin
-  apply @eq_of_equiv _ (0 : α),
+  apply @eq_of_equiv _ (⟨0⟩ : inhabited α),
   { rw [length_map, length_add, max_eq_left, length_map],
-    apply le_of_eq, rw [length_map, length_map] },
-  intros m, rw [get_add], 
+    apply le_of_eq, 
+    rw [length_map, length_map] },
+  intros m, 
+  rw [get_add], 
   by_cases h : m < length as,
-  { repeat {rw [@get_map α α 0 0 _ _ _ h]} },
+  { repeat {rw [@get_map α α ⟨0⟩ ⟨0⟩ _ _ _ h]} },
   rw not_lt at h,
   repeat {rw [get_eq_default_of_le m]};
   try {rw length_map, apply h},
-  apply zero_add 
+  apply zero_add
 end
 
 /- sub -/
 
-@[simp] lemma get_sub {α : Type} [add_group α] {k : ℕ} {xs ys : list α} :
-  get 0 k (sub xs ys) = (get 0 k xs - get 0 k ys) :=
+@[simp] lemma get_sub {α : Type u} 
+  [add_group α] {k : ℕ} {xs ys : list α} :
+  @get α ⟨0⟩ k (sub xs ys) = (@get α ⟨0⟩ k xs - @get α ⟨0⟩ k ys) :=
 by {apply get_pointwise, apply sub_zero}
 
 @[simp] lemma length_sub [has_zero α] [has_sub α] {xs ys : list α} : 
   (sub xs ys).length = _root_.max xs.length ys.length := 
-length_pointwise
+@length_pointwise α α α ⟨0⟩ ⟨0⟩ _ _ _
 
 @[simp] lemma nil_sub {α : Type} [add_group α] 
-  (as : list α) : sub [] as = neg as := 
+  (as : list α) : sub [] as = @neg α ⟨0⟩ _ as := 
 begin
   rw [sub, nil_pointwise], 
-  congr, ext, rw zero_sub,
+  congr, ext, 
+  have : @default α ⟨0⟩ = 0 := rfl,
+  rw [this, zero_sub]
 end
 
 @[simp] lemma sub_nil {α : Type} [add_group α] 
@@ -4684,7 +4696,8 @@ begin
   rw [sub, pointwise_nil], 
   apply eq.trans _ (map_id as), 
   congr, ext, 
-  rw sub_zero, refl
+  have : @default α ⟨0⟩ = 0 := rfl,
+  rw [this, sub_zero], refl
 end
 
 end func

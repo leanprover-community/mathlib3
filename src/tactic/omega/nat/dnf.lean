@@ -78,12 +78,12 @@ def terms.vars : list term → list bool
 | []      := []
 | (t::ts) := bools.or (term.vars t) (terms.vars ts)
 
-local notation as `{` m `↦` a `;` a' `}` := list.func.set a' a as m
+local notation as `{` m `↦` a `}` := list.func.set a as m
 
 def nonneg_consts_core : nat → list bool → list term
 | _ [] := []
 | k (ff::bs) := nonneg_consts_core (k+1) bs
-| k (tt::bs) := ⟨0, []{k ↦ 1 ; 0}⟩::nonneg_consts_core (k+1) bs
+| k (tt::bs) := ⟨0, [] {k ↦ 1}⟩::nonneg_consts_core (k+1) bs
 
 def nonneg_consts (bs : list bool) : list term :=
 nonneg_consts_core 0 bs

@@ -19,17 +19,17 @@ meta def trisect (m : nat) :
 | [] := ([],[],[])
 | ((p,t)::pts) :=
   let (neg,zero,pos) := trisect pts in
-  if get 0 m t.snd < 0
+  if get m t.snd < 0
   then ((p,t)::neg,zero,pos)
-  else if get 0 m t.snd = 0
+  else if get m t.snd = 0
        then (neg,(p,t)::zero,pos)
        else (neg,zero,(p,t)::pos)
 
 meta def elim_var_aux (m : nat) :
   ((list nat × term) × (list nat × term)) → tactic (list nat × term)
 | ((p1,t1), (p2,t2)) :=
-  let n := int.nat_abs (get 0 m t1.snd) in
-  let o := int.nat_abs (get 0 m t2.snd) in
+  let n := int.nat_abs (get m t1.snd) in
+  let o := int.nat_abs (get m t2.snd) in
   let lcm := (nat.lcm n o) in
   let n' := lcm / n in
   let o' := lcm / o in
@@ -52,11 +52,9 @@ meta def find_scalars_core : nat → list (list nat × term) → tactic (list na
   do new ← elim_var m neg pos,
      find_scalars_core m (new ++ zero)
 
-local notation as `{` m `↦` a `;` a' `}` := list.func.set a' a as m
-
 meta def find_scalars (ts : list term) : tactic (list nat) :=
 find_scalars_core
   (ts.map (λ t : term, t.snd.length)).maximum
-  (ts.map_with_index (λ m t, ([]{m ↦ 1 ; 0}, t)))
+  (ts.map_with_index (λ m t, (list.func.set 1 [] m, t)))
 
 end omega

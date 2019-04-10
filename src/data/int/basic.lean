@@ -8,9 +8,13 @@ The integers, with addition, multiplication, and subtraction.
 import data.nat.basic data.list.basic algebra.char_zero algebra.order_functions
 open nat
 
+
 namespace int
 
-instance : inhabited ℤ := ⟨0⟩
+instance : inhabited ℤ := ⟨int.zero⟩
+
+@[simp] lemma default_eq_zero : default ℤ = 0 := rfl
+
 meta instance : has_to_format ℤ := ⟨λ z, int.rec_on z (λ k, ↑k) (λ k, "-("++↑k++"+1)")⟩
 meta instance : has_reflect ℤ := by tactic.mk_has_reflect_instance
 

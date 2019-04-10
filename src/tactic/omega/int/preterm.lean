@@ -47,11 +47,11 @@ def repr : preterm → string
 
 end preterm
 
-local notation as `{` m `↦` a `;` a' `}` := list.func.set a' a as m
+local notation as `{` m `↦` a `}` := list.func.set a as m
 
 @[simp] def canonize : preterm → term
-| (& i)      := ⟨i,[]⟩
-| (i ** n)   := ⟨0,[]{n ↦ i ; 0}⟩
+| (& i)      := ⟨i, []⟩
+| (i ** n)   := ⟨0, [] {n ↦ i}⟩
 | (t1 +* t2) := term.add (canonize t1) (canonize t2)
 
 @[simp] lemma val_canonize {v : nat → int} :

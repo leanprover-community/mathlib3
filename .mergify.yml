@@ -16,7 +16,7 @@ pull_request_rules:
  # second condition necessary, as mergify was failing if the travis "pr" build
  # finished before the travis "push" build due to branch protection setting requiring
  # the "push" build to complete before a merge
-   - name: automatic merge on CI success and review - push
+  - name: automatic merge on CI success and review - push
     conditions:
       - status-success=continuous-integration/travis-ci/push
       - status-success=continuous-integration/travis-ci/pr

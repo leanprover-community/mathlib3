@@ -484,7 +484,7 @@ instance angle.is_add_group_hom : is_add_group_hom (coe : ℝ → angle) :=
 @[simp] lemma coe_add (x y : ℝ) : ↑(x + y : ℝ) = (↑x + ↑y : angle) := rfl
 @[simp] lemma coe_neg (x : ℝ) : ↑(-x : ℝ) = -(↑x : angle) := rfl
 @[simp] lemma coe_sub (x y : ℝ) : ↑(x - y : ℝ) = (↑x - ↑y : angle) := rfl
-@[simp] lemma coe_gsmul (x : ℝ) (n : ℤ) : ↑(gsmul n x : ℝ) = gsmul n (↑x : angle) := is_add_group_hom.gsmul _ _ _
+@[simp] lemma coe_gsmul (x : ℝ) (n : ℤ) : ↑(gsmul n x : ℝ) = gsmul n (↑x : angle) := is_add_group_hom.map_gsmul _ _ _
 @[simp] lemma coe_two_pi : ↑(2 * π : ℝ) = (0 : angle) :=
 quotient.sound' ⟨-1, by dsimp only; rw [neg_one_gsmul, add_zero]⟩
 

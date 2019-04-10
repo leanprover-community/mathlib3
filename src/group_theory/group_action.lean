@@ -97,7 +97,7 @@ def to_perm (g : α) : equiv.perm β :=
 variables {α} {β}
 
 instance : is_group_hom (to_perm α β) :=
-{ mul := λ x y, equiv.ext _ _ (λ a, mul_action.mul_smul x y a) }
+{ map_mul := λ x y, equiv.ext _ _ (λ a, mul_action.mul_smul x y a) }
 
 lemma bijective (g : α) : function.bijective (λ b : β, g • b) :=
 (to_perm α β g).bijective

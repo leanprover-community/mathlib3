@@ -51,6 +51,9 @@ rfl
 @[simp] lemma whiskering_left_obj_map (F : C ⥤ D) {G H : D ⥤ E} (α : G ⟶ H) :
   ((whiskering_left C D E).obj F).map α = whisker_left F α :=
 rfl
+@[simp] lemma whiskering_left_map_app_app {F G : C ⥤ D} (τ : F ⟶ G) (H : D ⥤ E) (c) :
+  (((whiskering_left C D E).map τ).app H).app c = H.map (τ.app c) :=
+rfl
 
 @[simp] lemma whisker_left.app (F : C ⥤ D) {G H : D ⥤ E} (α : G ⟶ H) (X : C) :
   (whisker_left F α).app X = α.app (F.obj X) :=
@@ -64,6 +67,9 @@ def whisker_right {G H : C ⥤ D} (α : G ⟶ H) (F : D ⥤ E) : (G ⋙ F) ⟶ (
 rfl
 @[simp] lemma whiskering_right_obj_map {G H : C ⥤ D} (α : G ⟶ H) (F : D ⥤ E) :
   ((whiskering_right C D E).obj F).map α = whisker_right α F :=
+rfl
+@[simp] lemma whiskering_right_map_app_app (F : C ⥤ D) {G H : D ⥤ E} (τ : G ⟶ H) (c) :
+  (((whiskering_right C D E).map τ).app F).app c = τ.app (F.obj c) :=
 rfl
 
 @[simp] lemma whisker_right.app {G H : C ⥤ D} (α : G ⟶ H) (F : D ⥤ E) (X : C) :
@@ -91,6 +97,24 @@ rfl
 @[simp] lemma whisker_right_comp {G H K : C ⥤ D} (α : G ⟶ H) (β : H ⟶ K) (F : D ⥤ E)  :
   whisker_right (α ≫ β) F = (whisker_right α F) ≫ (whisker_right β F) :=
 ((whiskering_right C D E).obj F).map_comp α β
+
+def iso_whisker_left (F : C ⥤ D) {G H : D ⥤ E} (α : G ≅ H) : (F ⋙ G) ≅ (F ⋙ H) :=
+((whiskering_left C D E).obj F).map_iso α
+@[simp] lemma iso_whisker_left_hom (F : C ⥤ D) {G H : D ⥤ E} (α : G ≅ H) :
+  (iso_whisker_left F α).hom = whisker_left F α.hom :=
+rfl
+@[simp] lemma iso_whisker_left_inv (F : C ⥤ D) {G H : D ⥤ E} (α : G ≅ H) :
+  (iso_whisker_left F α).inv = whisker_left F α.inv :=
+rfl
+
+def iso_whisker_right {G H : C ⥤ D} (α : G ≅ H) (F : D ⥤ E) : (G ⋙ F) ≅ (H ⋙ F) :=
+((whiskering_right C D E).obj F).map_iso α
+@[simp] lemma iso_whisker_right_hom {G H : C ⥤ D} (α : G ≅ H) (F : D ⥤ E) :
+  (iso_whisker_right α F).hom = whisker_right α.hom F :=
+rfl
+@[simp] lemma iso_whisker_right_inv {G H : C ⥤ D} (α : G ≅ H) (F : D ⥤ E) :
+  (iso_whisker_right α F).inv = whisker_right α.inv F :=
+rfl
 
 variables {B : Sort u₄} [ℬ : category.{v₄} B]
 include ℬ

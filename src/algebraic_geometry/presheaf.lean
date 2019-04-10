@@ -30,17 +30,17 @@ def pushforward {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : presheaf_on_space C X) : pr
 
 def pushforward_eq {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : presheaf_on_space C X) :
   ℱ.pushforward f ≅ ℱ.pushforward g :=
-ℱ.map_nat_iso (nat_iso.op (opens.map_iso f g h).symm)
+iso_whisker_right (nat_iso.op (opens.map_iso f g h).symm) ℱ
 lemma pushforward_eq_eq {X Y : Top.{v}} {f g : X ⟶ Y} (h₁ h₂ : f = g) (ℱ : presheaf_on_space C X) :
   ℱ.pushforward_eq h₁ = ℱ.pushforward_eq h₂ :=
 rfl
 
 namespace pushforward
 def id {X : Top.{v}} (ℱ : presheaf_on_space C X) : ℱ.pushforward (𝟙 X) ≅ ℱ :=
-ℱ.map_nat_iso (nat_iso.op (opens.map_id X).symm) ≪≫ functor.left_unitor _
+(iso_whisker_right (nat_iso.op (opens.map_id X).symm) ℱ) ≪≫ functor.left_unitor _
 
 @[simp] lemma id_hom_app' {X : Top.{v}} (ℱ : presheaf_on_space C X) (U) (p) : (id ℱ).hom.app (op ⟨U, p⟩) = ℱ.map (𝟙 (op ⟨U, p⟩)) :=
-by { dsimp [id], simp, dsimp, simp }
+by { dsimp [id], simp, }
 
 @[simp] lemma id_hom_app {X : Top.{v}} (ℱ : presheaf_on_space C X) (U) : (id ℱ).hom.app U = ℱ.map (eq_to_hom (opens.op_map_id_obj U)) :=
 begin
@@ -55,26 +55,20 @@ begin
 end
 
 @[simp] lemma id_inv_app' {X : Top.{v}} (ℱ : presheaf_on_space C X) (U) (p) : (id ℱ).inv.app (op ⟨U, p⟩) = ℱ.map (𝟙 (op ⟨U, p⟩)) :=
-by { dsimp [id], simp, dsimp, simp }
+by { dsimp [id], simp, }
 
 def comp {X Y Z : Top.{v}}  (ℱ : presheaf_on_space C X) (f : X ⟶ Y) (g : Y ⟶ Z) : ℱ.pushforward (f ≫ g) ≅ (ℱ.pushforward f).pushforward g :=
-ℱ.map_nat_iso (nat_iso.op (opens.map_comp f g).symm)
+iso_whisker_right (nat_iso.op (opens.map_comp f g).symm) ℱ
 
 @[simp] lemma comp_hom_app {X Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) (ℱ : presheaf_on_space C X) (U) : (comp ℱ f g).hom.app U = 𝟙 _ :=
 begin
   dsimp [pushforward, comp],
-  simp,
   erw category_theory.functor.map_id, -- FIXME simp should do this
-  dsimp,
-  simp,
 end
 @[simp] lemma comp_inv_app {X Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) (ℱ : presheaf_on_space C X) (U) : (comp ℱ f g).inv.app U = 𝟙 _ :=
 begin
   dsimp [pushforward, comp],
-  simp,
   erw category_theory.functor.map_id,
-  dsimp,
-  simp,
 end
 
 end pushforward

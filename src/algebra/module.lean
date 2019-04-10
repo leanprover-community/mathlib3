@@ -38,7 +38,7 @@ variables (α)
 lemma smul_smul : r • s • x = (r * s) • x := (mul_smul _ _ _).symm
 
 instance smul.is_add_monoid_hom {r : α} : is_add_monoid_hom (λ x : β, r • x) :=
-by refine_struct {..}; simp [smul_add]
+{ map_add := smul_add _, map_zero := smul_zero _ }
 
 end semimodule
 

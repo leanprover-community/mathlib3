@@ -46,7 +46,7 @@ set_coe.ext $ funext h
 theorem ext_iff {f g : E →L[k] F} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, by rintro; rw h, ext⟩
 
-variables (c : k) (f g: E →L[k] F) (u v: E)
+variables (c : k) (f g: E →L[k] F) (h : F →L[k] G) (x u v: E)
 
 def to_linear_map : linear_map _ E F :=
 {to_fun := f.val, ..f.property}
@@ -71,12 +71,8 @@ lemma coe_zero : ((0 : E →L[k] F) : E → F) = 0 := rfl
 def comp (g : F →L[k] G) (f : E →L[k] F) : E →L[k] G :=
 ⟨_, is_bounded_linear_map.comp g.property f.property⟩
 
-end bounded_linear_map
-
 section op_norm
 open lattice set bounded_linear_map
-
-variables (c : k) (f g : E →L[k] F) (h : F →L[k] G) (x : E)
 
 /-- The operator norm of a bounded linear map is the inf of all its bounds. -/
 def op_norm := real.Inf { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ }
@@ -161,8 +157,7 @@ le_antisymm
 
 /-- Bounded linear maps themselves form a normed space with respect to
     the operator norm. -/
-noncomputable instance bounded_linear_map.to_normed_space :
-  normed_space k (E →L[k] F) :=
+instance to_normed_space : normed_space k (E →L[k] F) :=
 normed_space.of_core _ _
   ⟨op_norm_zero_iff, op_norm_smul, op_norm_triangle⟩
 
@@ -183,3 +178,6 @@ theorem lipschitz : lipschitz_with ∥f∥ f :=
   by { rw [dist_eq_norm, dist_eq_norm, ←map_sub], apply le_op_norm }⟩
 
 end op_norm
+
+end bounded_linear_map
+

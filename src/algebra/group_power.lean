@@ -370,7 +370,7 @@ theorem map_smul (a : α) (n : ℕ) : f (n • a) = n • f a :=
 is_add_monoid_hom.map_smul f a n
 
 theorem map_gsmul (a : α) (n : ℤ) : f (gsmul n a) = gsmul n (f a) :=
-@is_group_hom.gpow (multiplicative α) (multiplicative β) _ _ f _ a n
+@is_group_hom.map_gpow (multiplicative α) (multiplicative β) _ _ f _ a n
 
 end is_add_group_hom
 

@@ -81,19 +81,19 @@ lemma tendsto_sub {f : filter α} {m n : α → nnreal} {r p : nnreal}
   tendsto (λa, m a - n a) f (nhds (r - p)) :=
 tendsto_of_real $ tendsto_sub (tendsto_coe.2 hm) (tendsto_coe.2 hn)
 
-lemma is_sum_coe {f : α → nnreal} {r : nnreal} : is_sum (λa, (f a : ℝ)) (r : ℝ) ↔ is_sum f r :=
-by simp [is_sum, sum_coe.symm, tendsto_coe]
+lemma has_sum_coe {f : α → nnreal} {r : nnreal} : has_sum (λa, (f a : ℝ)) (r : ℝ) ↔ has_sum f r :=
+by simp [has_sum, sum_coe.symm, tendsto_coe]
 
-lemma has_sum_coe {f : α → nnreal} : has_sum (λa, (f a : ℝ)) ↔ has_sum f :=
+lemma summable_coe {f : α → nnreal} : summable (λa, (f a : ℝ)) ↔ summable f :=
 begin
-  simp [has_sum],
+  simp [summable],
   split,
-  exact assume ⟨a, ha⟩, ⟨⟨a, is_sum_le (λa, (f a).2) is_sum_zero ha⟩, is_sum_coe.1 ha⟩,
-  exact assume ⟨a, ha⟩, ⟨a.1, is_sum_coe.2 ha⟩
+  exact assume ⟨a, ha⟩, ⟨⟨a, has_sum_le (λa, (f a).2) has_sum_zero ha⟩, has_sum_coe.1 ha⟩,
+  exact assume ⟨a, ha⟩, ⟨a.1, has_sum_coe.2 ha⟩
 end
 
-lemma tsum_coe {f : α → nnreal} (hf : has_sum f) : (∑a, (f a : ℝ)) = ↑(∑a, f a) :=
-tsum_eq_is_sum $ is_sum_coe.2 $ is_sum_tsum $ hf
+lemma tsum_coe {f : α → nnreal} (hf : summable f) : (∑a, (f a : ℝ)) = ↑(∑a, f a) :=
+tsum_eq_has_sum $ has_sum_coe.2 $ has_sum_tsum $ hf
 
 end coe
 

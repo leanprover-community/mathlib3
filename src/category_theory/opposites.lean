@@ -45,6 +45,9 @@ def unop (X : Cᵒᵖ) : C := X
 
 attribute [irreducible] opposite
 
+def op_induction {F : Π (X : Cᵒᵖ), Sort v₁} (h : Π X, F (op X)) : Π X, F X :=
+λ X, h (unop X)
+
 @[simp] lemma unop_op (X : C) : unop (op X) = X := rfl
 @[simp] lemma op_unop (X : Cᵒᵖ) : op (unop X) = X := rfl
 

@@ -36,6 +36,7 @@ section
 @[simp] lemma id_app (F : C ⥤ D) (X : C) : (𝟙 F : F ⟶ F).app X = 𝟙 (F.obj X) := rfl
 @[simp] lemma comp_app {F G H : C ⥤ D} (α : F ⟶ G) (β : G ⟶ H) (X : C) :
   (α ≫ β).app X = α.app X ≫ β.app X := rfl
+
 end
 
 namespace nat_trans

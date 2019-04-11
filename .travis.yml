@@ -1,12 +1,13 @@
 language: c
 sudo: false
-go:
-- 1.11.x
 os:
     - linux
 branches:
   except:
     - /^lean-.*$/
+env:
+  global:
+  - secure: "HxnRtl6pMc+nbszQgDgvMuroMG5AuviULPb0MxPfEIZqYSwKALgc0ILXc89kJyf9rFfpsUdKGmtrGOytzXIp8Yuxvp+fnk/rtuuRyMLeWA0sJ75/Jn+l0BKVid6LNwl7bA4aMOSkjL85kaxU2e5HtlROUkiAgmdAcV10BoK7Vh7yC/S4Zl3kzyCQd8AGSxk0AbeQrb9vK7T1+gWVkEjUFtUsFJ3q5SGrO/j3825qLoRnYj/bKUgtYExQNKjTnTYMbeok+mKJEO1VbLeTk1ri8bLyO2x25lhGImaJSgdPOzuH905ALrf+EHkKm/FYvy5w+zERiuidwwFK5OqVOVWsD5W0G5rYKmDKpzSd39FNnrvb2Tzl2kCin70j6SDOXyZ+4k/iGJpBnOtx3+Ez4gsBDWLIba1c5EXvzhvPoycddgSLBY2LNz4EJI+YqbBTBxG7dVr4NmKKjPowFerVMLM10SgkH9ZZjbAVMxejUJTzp/4gxTanlWm/xds5uC0E0mraLY1H1yzGtwij/lVJN8RGbuhvW9jluLYQzfN7Hb/MReBXTKwdVo5SnsZzv9GEM56IsQXgIhzRoHAuDHd8rS1rfXGaOVfsbYK7pBjtx9j+Pq3BNSPlIL5u4j2JXH6QVJSNaK1npCq81S21dIBfYTP49ft28bhgVE0czkD7kl3fCCk="
 
 cache:
   directories:
@@ -33,20 +34,82 @@ install:
 
 jobs:
   include:
-    - stage: Pre-build-1
+    - env: TASK="check Lean proofs"
+      stage: Pre-build-1
       script:
         - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
 
-    - stage: Pre-build-2
+    - env: TASK="check Lean proofs"
+      stage: Pre-build-2
       script:
         - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
 
-    - stage: Test
+    - env: TASK="check Lean proofs"
+      stage: Test
       script:
-        - leanpkg test
+        - travis_long "leanpkg test"
         - lean --recursive --export=mathlib.txt src/
         - travis_long "leanchecker mathlib.txt"
         - sh scripts/deploy_nightly.sh
+
+    - env: TASK="check install scripts"
+      language: python
+      python:
+        - "3.6"
+      install:
+        - if [ "$GITHUB_CRED" != "" ]; then git config --add github.oauthtoken $GITHUB_CRED; echo setting up GitHub credentials; else echo no GitHub credentials available; fi
+      os:
+        - linux
+      script:
+        - cp scripts/leanpkg-example.toml leanpkg.toml
+        - sh scripts/remote-install-update-mathlib.sh --global
+        - source $HOME/.profile
+        - update-mathlib
+
+    - env: TASK="check install scripts"
+      language: sh
+      install:
+        - if [ "$GITHUB_CRED" != "" ]; then git config --add github.oauthtoken $GITHUB_CRED; echo setting up GitHub credentials; else echo no GitHub credentials available; fi
+      os:
+        - osx
+      script:
+        - cp scripts/leanpkg-example.toml leanpkg.toml
+        - sh scripts/remote-install-update-mathlib.sh
+        - source $HOME/.profile
+        - update-mathlib
+
+    - env: TASK="check dev scripts"
+      sudo: true
+      language: python
+      python:
+        - "3.6"
+      install:
+        - if [ "$GITHUB_CRED" != "" ]; then git config --add github.oauthtoken $GITHUB_CRED; echo setting up GitHub credentials; else echo no GitHub credentials available; fi
+      os:
+        - linux
+      script:
+        - cp scripts/leanpkg-example.toml leanpkg.toml
+        - cd scripts
+        - echo y | bash setup-dev-scripts.sh --global
+        - source $HOME/.profile
+        - update-mathlib
+        - cache-olean
+        - cache-olean --fetch
+
+    - env: TASK="check dev scripts"
+      language: sh
+      install:
+        - if [ "$GITHUB_CRED" != "" ]; then git config --add github.oauthtoken $GITHUB_CRED; echo setting up GitHub credentials; else echo no GitHub credentials available; fi
+      os:
+        - osx
+      script:
+        - cp scripts/leanpkg-example.toml leanpkg.toml
+        - cd scripts
+        - echo y | bash setup-dev-scripts.sh
+        - source $HOME/.profile
+        - update-mathlib
+        - cache-olean
+        - cache-olean --fetch
 
 notifications:
   webhooks:

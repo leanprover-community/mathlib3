@@ -52,6 +52,16 @@ def append_suffix : name → string → name
 
 end name
 
+namespace level
+
+meta def nonzero : level → bool
+| (succ _) := tt
+| (max l₁ l₂) := l₁.nonzero || l₂.nonzero
+| (imax _ l₂) := l₂.nonzero
+| _ := ff
+
+end level
+
 namespace expr
 open tactic
 

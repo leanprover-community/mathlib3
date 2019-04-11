@@ -1,5 +1,5 @@
-import category_theory.instances.rings
-import category_theory.instances.Top
+import category_theory.instances.CommRing.basic
+import category_theory.instances.Top.basic
 import topology.algebra.ring
 import data.real.basic
 import data.complex.basic

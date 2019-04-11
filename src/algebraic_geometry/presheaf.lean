@@ -39,19 +39,19 @@ namespace pushforward
 def id {X : Top.{v}} (ℱ : presheaf_on_space C X) : ℱ.pushforward (𝟙 X) ≅ ℱ :=
 (iso_whisker_right (nat_iso.op (opens.map_id X).symm) ℱ) ≪≫ functor.left_unitor _
 
-@[simp] lemma id_hom_app' {X : Top.{v}} (ℱ : presheaf_on_space C X) (U) (p) : (id ℱ).hom.app (op ⟨U, p⟩) = ℱ.map (𝟙 (op ⟨U, p⟩)) :=
+@[simp] lemma id_hom_app' {X : Top.{v}} (ℱ : presheaf_on_space C X) (U) (p) :
+  (id ℱ).hom.app (op ⟨U, p⟩) = ℱ.map (𝟙 (op ⟨U, p⟩)) :=
 by { dsimp [id], simp, }
 
-@[simp] lemma id_hom_app {X : Top.{v}} (ℱ : presheaf_on_space C X) (U) : (id ℱ).hom.app U = ℱ.map (eq_to_hom (opens.op_map_id_obj U)) :=
+@[simp] lemma id_hom_app {X : Top.{v}} (ℱ : presheaf_on_space C X) (U) :
+  (id ℱ).hom.app U = ℱ.map (eq_to_hom (opens.op_map_id_obj U)) :=
 begin
-  have w : U = op (unop U) := rfl,
-  revert w,
-  generalize : unop U = U',
-  intro w,
-  subst w,
-  cases U',
+  revert U,
+  apply op_induction,
+  intro U,
+  cases U,
   simp,
-  erw category_theory.functor.map_id,
+  apply category_theory.functor.map_id,
 end
 
 @[simp] lemma id_inv_app' {X : Top.{v}} (ℱ : presheaf_on_space C X) (U) (p) : (id ℱ).inv.app (op ⟨U, p⟩) = ℱ.map (𝟙 (op ⟨U, p⟩)) :=

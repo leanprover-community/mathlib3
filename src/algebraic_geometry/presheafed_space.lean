@@ -64,25 +64,18 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace.{v} C) :=
   -- I could just leave these out.
   comp_id' := λ X Y f,
   begin
-    ext,
-    { dsimp [opposite] at X_1,
-      cases X_1,
-      dsimp,
-      erw category_theory.functor.map_id,
-      erw category_theory.functor.map_id,
-      simp,
-      refl },
+    ext U,
+    { revert U,
+      apply op_induction,
+      tidy },
     { simp }
   end,
   id_comp' := λ X Y f,
   begin
-    ext,
-    { dsimp [opposite] at X_1,
-      cases X_1,
-      dsimp,
+    ext U,
+    { tidy,
       erw category_theory.functor.map_id,
-      erw category.comp_id,
-      simp, },
+      simp },
     { simp }
   end,
   assoc' := λ W X Y Z f g h,

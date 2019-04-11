@@ -58,7 +58,7 @@ by simp
 @[simp] lemma op_map_comp_obj (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (map (f ≫ g)).op.obj U = (map f).op.obj ((map g).op.obj U) :=
 by simp
 
-def map_comp(f : X ⟶ Y) (g : Y ⟶ Z) : map (f ≫ g) ≅ map g ⋙ map f :=
+def map_comp (f : X ⟶ Y) (g : Y ⟶ Z) : map (f ≫ g) ≅ map g ⋙ map f :=
 { hom := { app := λ U, eq_to_hom (map_comp_obj f g U) },
   inv := { app := λ U, eq_to_hom (map_comp_obj f g U).symm } }
 

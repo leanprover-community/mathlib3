@@ -180,6 +180,25 @@ by induction n; simp [*, pow_succ]
 by induction n; [refl, simp [*, succ_smul]]
 attribute [to_additive is_add_submonoid.smul_coe] is_submonoid.coe_pow
 
+@[to_additive subtype_val.is_add_monoid_hom]
+instance subtype_val.is_monoid_hom [is_submonoid s] : is_monoid_hom (subtype.val : s → α) :=
+{ map_one := rfl, map_mul := λ _ _, rfl }
+
+@[to_additive coe.is_add_monoid_hom]
+instance coe.is_monoid_hom [is_submonoid s] : is_monoid_hom (coe : s → α) :=
+subtype_val.is_monoid_hom
+
+@[to_additive subtype_mk.is_add_monoid_hom]
+instance subtype_mk.is_monoid_hom {γ : Type*} [monoid γ] [is_submonoid s] (f : γ → α)
+  [is_monoid_hom f] (h : ∀ x, f x ∈ s) : is_monoid_hom (λ x, (⟨f x, h x⟩ : s)) :=
+{ map_one := subtype.eq (is_monoid_hom.map_one f),
+  map_mul := λ _ _, subtype.eq (is_monoid_hom.map_mul f) }
+
+@[to_additive set_inclusion.is_add_monoid_hom]
+instance set_inclusion.is_monoid_hom (t : set α) [is_submonoid s] [is_submonoid t] (h : s ⊆ t) :
+  is_monoid_hom (set.inclusion h) :=
+subtype_mk.is_monoid_hom _ _
+
 namespace monoid
 
 inductive in_closure (s : set α) : α → Prop

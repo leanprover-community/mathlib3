@@ -11,14 +11,15 @@ open tactic
 --   (f : X → Y) [I : is_monoid_hom f] : is_mul_hom f :=
 -- {..I}
 
-meta def rw_map (map_lemma : name) (f : expr) :=
+meta def rw_map (map_lemma : name) (f : expr) : tactic expr :=
 do c ← mk_const map_lemma,
-   to_expr ``(%%c %%f) >>= rewrite_target
+   to_expr ``(%%c %%f)
 
 meta def lookup_homs (n : name) : tactic (list expr) :=
-do cn ← mk_const n,
-do ctx ← local_context,
-   ctx.mfilter (λ e, to_expr ``(%%cn %%e) >>= mk_instance >> pure true <|> pure false)
+do --cn ← mk_const n,
+   ctx ← local_context,
+  --  ctx.mfilter (λ e, to_expr ``(%%cn %%e) >>= mk_instance >> pure true <|> pure false)
+   ctx.mfilter (λ e, mk_app n [e] >>= mk_instance >> pure true <|> pure false)
 
 meta def instance_type : name → name
 | `has_mul     := `is_mul_hom
@@ -52,26 +53,33 @@ meta def map_types : name → (list name)
 | `field       := [`is_field_hom.map_div, `is_field_hom.map_inv]
 | _ := []
 
-meta def types : list name :=
+meta def algebraic_types : list name :=
 [`has_mul, `has_add, `monoid, `add_monoid, `group, `add_group, `field]
 
-meta def tactics_of_homs (p : name × tactic (list expr)) : tactic (list (list (tactic unit))) :=
-do let map_lemmas := map_types p.1,
-   fs ← p.2,
-   return $ map_lemmas.map $ λ l, fs.map $ λ f, rw_map l f
+meta def tactics_of_homs (p : name × list expr) : tactic (list (list expr)) :=
+let map_lemmas := map_types p.1 in
+map_lemmas.mmap $ λ l, p.2.mmap $ λ f, rw_map l f
 
 -- TODO: Enable `hom at hyp`.
 meta def hom : tactic unit :=
-do let homs := types.map $ λ t, (t, lookup_homs (instance_type t)),
+do homs ← algebraic_types.mmap $ λ t, (do h ← lookup_homs (instance_type t), return (t, h)),
+   trace homs,
    tactics ← homs.mmap tactics_of_homs,
    let flat_tactics := list.join $ list.join tactics,
-   chain flat_tactics,
-   try reflexivity
+   trace flat_tactics,
+   lemmas ← flat_tactics.mfoldl simp_lemmas.add simp_lemmas.mk,
+   trace lemmas,
+   simp_target lemmas [] {} skip,
+   skip
+  --  try reflexivity
+
+set_option profiler true
 
 example (X Y : Type) [ring X] [ring Y] (f : X → Y) [is_monoid_hom f] (n : ℕ)
   (x y : X) : f (x^n * y) = (f x)^n * f y :=
 begin
   hom,
+  set_goals [],
 end
 
 example (X Y Z W : Type*) [add_group X] [discrete_field Y] [ring Z] [discrete_field W]

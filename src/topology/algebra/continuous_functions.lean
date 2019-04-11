@@ -8,6 +8,7 @@ import ring_theory.subring
 
 universes u v
 
+local attribute [elab_simple] continuous.comp
 instance continuous_submonoid (α : Type u) (β : Type v) [topological_space α] [topological_space β]
   [monoid β] [topological_monoid β] : is_submonoid { f : α → β | continuous f } :=
 { one_mem :=
@@ -15,11 +16,7 @@ instance continuous_submonoid (α : Type u) (β : Type v) [topological_space α]
     dsimp [has_one.one, monoid.one],
     exact continuous_const,
   end,
-  mul_mem := λ f g fc gc,
-  begin
-    have q := continuous.comp (continuous.prod_mk fc gc) (topological_monoid.continuous_mul β),
-    exact q,
-  end }.
+  mul_mem := λ f g fc gc, continuous.comp (continuous.prod_mk fc gc) (topological_monoid.continuous_mul β) }.
 
 instance continuous_subring (α : Type u) (β : Type v) [topological_space α] [topological_space β]
   [ring β] [topological_ring β] : is_subring { f : α → β | continuous f } :=
@@ -28,16 +25,8 @@ instance continuous_subring (α : Type u) (β : Type v) [topological_space α] [
     dsimp [has_zero.zero, add_group.zero, add_monoid.zero, add_comm_group.zero, ring.zero],
     exact continuous_const,
   end,
-  add_mem := λ f g fc gc,
-  begin
-    have q := continuous.comp (continuous.prod_mk fc gc) (topological_add_monoid.continuous_add β),
-    exact q,
-  end,
-  neg_mem := λ f fc,
-  begin
-    have q := continuous.comp fc (topological_ring.continuous_neg β),
-    exact q,
-  end,
+  add_mem := λ f g fc gc, continuous.comp (continuous.prod_mk fc gc) (topological_add_monoid.continuous_add β),
+  neg_mem := λ f fc, continuous.comp fc (topological_ring.continuous_neg β),
   ..continuous_submonoid α β }.
 
 instance continuous_monoid {α : Type u} {β : Type v} [topological_space α] [topological_space β]

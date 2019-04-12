@@ -6,6 +6,8 @@ import tactic.chain
 
 open tactic
 
+universes v u
+
 meta def lookup_homs (n : name) : tactic (list expr) :=
 do ctx ← local_context,
    ctx.mfilter (λ e, mk_app n [e] >>= mk_instance >> pure true <|> pure false)
@@ -61,11 +63,11 @@ do homs ← algebraic_types.mmap $ λ t, (do h ← lookup_homs (instance_type t)
 
 set_option profiler true
 
-example (X Y : Type) [ring X] [ring Y] (f : X → Y) [is_monoid_hom f] (n : ℕ)
+example (X : Type 4) (Y : Type v) [ring X] [ring Y] (f : X → Y) [is_monoid_hom f] (n : ℕ)
   (x y : X) : f (x * y) = f x * f y :=
 by hom
 
-example (X Y : Type) [add_group X] [add_group Y]
+example (X : Type u) (Y : Type v) [add_group X] [add_group Y]
   (f : X → Y) [is_add_group_hom f]
   (a b : X) :
   f (a + b) = f a + f b :=
@@ -73,7 +75,7 @@ by hom
 
 set_option class.instance_max_depth 50
 
-example (X Y Z W : Type) [add_group X] [discrete_field Y] [ring Z] [discrete_field W]
+example (X Y Z W : Type u) [add_group X] [discrete_field Y] [ring Z] [discrete_field W]
   (f : X → Y) [is_add_group_hom f] (g : Y → W) [is_field_hom g]
   (h : X → Z) [is_add_group_hom h] (i : Z → W) [is_ring_hom i]
   (k l m : ℕ) (a b : X) (c d : Y) (e : Z) :

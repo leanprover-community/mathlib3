@@ -6,19 +6,8 @@ import tactic.chain
 
 open tactic
 
--- -- this instance can go once the hom-mul PR is merged
--- instance is_mul_hom_of_is_monoid_hom {X Y : Type*} [monoid X] [monoid Y]
---   (f : X → Y) [I : is_monoid_hom f] : is_mul_hom f :=
--- {..I}
-
-meta def rw_map (map_lemma : name) (f : expr) : tactic expr :=
-do c ← mk_const map_lemma,
-   to_expr ``(%%c %%f)
-
 meta def lookup_homs (n : name) : tactic (list expr) :=
-do --cn ← mk_const n,
-   ctx ← local_context,
-  --  ctx.mfilter (λ e, to_expr ``(%%cn %%e) >>= mk_instance >> pure true <|> pure false)
+do ctx ← local_context,
    ctx.mfilter (λ e, mk_app n [e] >>= mk_instance >> pure true <|> pure false)
 
 meta def instance_type : name → name
@@ -53,34 +42,20 @@ meta def map_types : name → (list name)
 | `field       := [`is_field_hom.map_div, `is_field_hom.map_inv]
 | _ := []
 
-#print is_add_group_hom.map_sub
-#print is_add_monoid_hom.map_smul
-#print is_add_group_hom.map_gsmul
-
 meta def algebraic_types : list name :=
 [`has_mul, `has_add, `monoid, `add_monoid, `group, `add_group, `field]
-
-#print is_monoid_hom.map_one
-#print is_monoid_hom.map_mul
-#print is_field_hom.map_inv
 
 meta def tactics_of_homs (p : name × list expr) : tactic (list (list expr)) :=
 let map_lemmas := map_types p.1 in
 map_lemmas.mmap $ λ l, p.2.mmap $ λ f,
-  -- do c ← mk_const l, to_expr ``(%%c %%f)
   do mk_mapp l [none, none, none, none, some f, none]
 
 -- TODO: Enable `hom at hyp`.
 meta def hom : tactic unit :=
 do homs ← algebraic_types.mmap $ λ t, (do h ← lookup_homs (instance_type t), return (t, h)),
-   num_goals >>= trace,
-   trace homs,
    tactics ← homs.mmap tactics_of_homs,
    let flat_tactics := list.join $ list.join tactics,
-   num_goals >>= trace,
-   trace flat_tactics,
    lemmas ← flat_tactics.mfoldl simp_lemmas.add simp_lemmas.mk,
-   trace lemmas,
    simp_target lemmas,
    try reflexivity
 

@@ -21,7 +21,8 @@ generalizations:
 * Archimedean fields
 
 -/
-import logic.function topology.metric_space.basic tactic.linarith
+import logic.function topology.metric_space.basic topology.algebra.uniform_group
+       topology.algebra.ring tactic.linarith
 
 noncomputable theory
 open classical set lattice filter topological_space metric

@@ -4,6 +4,7 @@
 
 import category_theory.products
 import category_theory.types
+import category_theory.natural_isomorphism
 
 namespace category_theory
 
@@ -31,13 +32,13 @@ universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.c
   (If Lean supported definitional eta equality for records, we could
   achieve the same goals using a structure with one field.)
 -/
-def opposite (C : Type u₁) : Type u₁ := C
+def opposite (C : Sort u₁) : Sort u₁ := C
 
 -- Use a high right binding power (like that of postfix ⁻¹) so that, for example,
 -- `presheaf Cᵒᵖ` parses as `presheaf (Cᵒᵖ)` and not `(presheaf C)ᵒᵖ`.
 notation C `ᵒᵖ`:std.prec.max_plus := opposite C
 
-variables {C : Type u₁}
+variables {C : Sort u₁}
 
 def op (X : C) : Cᵒᵖ := X
 def unop (X : Cᵒᵖ) : C := X
@@ -98,6 +99,8 @@ instance category.opposite : category.{v₁} Cᵒᵖ :=
 @[simp] lemma unop_comp {X Y Z : Cᵒᵖ} {f : X ⟶ Y} {g : Y ⟶ Z} :
   (f ≫ g).unop = g.unop ≫ f.unop := rfl
 @[simp] lemma unop_id {X : Cᵒᵖ} : (𝟙 X).unop = 𝟙 (unop X) := rfl
+@[simp] lemma unop_id_op {X : C} : (𝟙 (op X)).unop = 𝟙 X := rfl
+@[simp] lemma op_id_unop {X : Cᵒᵖ} : (𝟙 (unop X)).op = 𝟙 X := rfl
 
 def op_op : (Cᵒᵖ)ᵒᵖ ⥤ C :=
 { obj := λ X, unop (unop X),
@@ -109,7 +112,7 @@ namespace functor
 
 section
 
-variables {D : Type u₂} [𝒟 : category.{v₂} D]
+variables {D : Sort u₂} [𝒟 : category.{v₂} D]
 include 𝒟
 
 variables {C D}
@@ -163,38 +166,43 @@ end
 
 section
 
-variable (C)
+omit 𝒞
+variables (E : Type u₁) [ℰ : category.{v₁+1} E]
+include ℰ
 
 /-- `functor.hom` is the hom-pairing, sending (X,Y) to X → Y, contravariant in X and covariant in Y. -/
-definition hom : Cᵒᵖ × C ⥤ Type v₁ :=
+definition hom : Eᵒᵖ × E ⥤ Type v₁ :=
 { obj       := λ p, unop p.1 ⟶ p.2,
   map       := λ X Y f, λ h, f.1.unop ≫ h ≫ f.2 }
 
-@[simp] lemma hom_obj (X : Cᵒᵖ × C) : (functor.hom C).obj X = (unop X.1 ⟶ X.2) := rfl
-@[simp] lemma hom_pairing_map {X Y : Cᵒᵖ × C} (f : X ⟶ Y) :
-  (functor.hom C).map f = λ h, f.1.unop ≫ h ≫ f.2 := rfl
+@[simp] lemma hom_obj (X : Eᵒᵖ × E) : (functor.hom E).obj X = (unop X.1 ⟶ X.2) := rfl
+@[simp] lemma hom_pairing_map {X Y : Eᵒᵖ × E} (f : X ⟶ Y) :
+  (functor.hom E).map f = λ h, f.1.unop ≫ h ≫ f.2 := rfl
 
 end
 
 end functor
 
-omit 𝒞
+-- TODO the following definitions do not belong here
 
-instance opposite.has_one [has_one C] : has_one (Cᵒᵖ) :=
+omit 𝒞
+variables (E : Type u₁)
+
+instance opposite.has_one [has_one E] : has_one (Eᵒᵖ) :=
 { one := op 1 }
 
-instance opposite.has_mul [has_mul C] : has_mul (Cᵒᵖ) :=
+instance opposite.has_mul [has_mul E] : has_mul (Eᵒᵖ) :=
 { mul := λ x y, op $ unop y * unop  x }
 
-@[simp] lemma opposite.unop_one [has_one C] : unop (1 : Cᵒᵖ) = (1 : C) := rfl
+@[simp] lemma opposite.unop_one [has_one E] : unop (1 : Eᵒᵖ) = (1 : E) := rfl
 
-@[simp] lemma opposite.unop_mul [has_mul C] (xs ys : Cᵒᵖ) : unop (xs * ys) = (unop ys * unop xs : C) := rfl
+@[simp] lemma opposite.unop_mul [has_mul E] (xs ys : Eᵒᵖ) : unop (xs * ys) = (unop ys * unop xs : E) := rfl
 
-@[simp] lemma opposite.op_one [has_one C] : op (1 : C) = 1 := rfl
+@[simp] lemma opposite.op_one [has_one E] : op (1 : E) = 1 := rfl
 
-@[simp] lemma opposite.op_mul [has_mul C] (xs ys : C) : op (xs * ys) = (op ys * op xs) := rfl
+@[simp] lemma opposite.op_mul [has_mul E] (xs ys : E) : op (xs * ys) = (op ys * op xs) := rfl
 
-instance opposite.monoid [monoid C] : monoid (Cᵒᵖ) :=
+instance opposite.monoid [monoid E] : monoid (Eᵒᵖ) :=
 { one := op 1,
   mul := λ x y, op $ unop y * unop  x,
   mul_one := by { intros, apply unop_inj, simp },

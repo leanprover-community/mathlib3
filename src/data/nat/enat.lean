@@ -160,7 +160,8 @@ instance : canonically_ordered_monoid enat :=
           (λ hc, hc.symm ▸ show (a : enat) ≤ a + ⊤, by rw [add_top]; exact le_top)
           (λ c (hc : (b : enat) = a + c),
             coe_le_coe.2 (by rw [← coe_add, coe_inj] at hc;
-              rw hc; exact nat.le_add_right _ _)) hc)⟩))
+              rw hc; exact nat.le_add_right _ _)) hc)⟩)),
+  ..enat.semilattice_sup_bot,
   ..enat.ordered_comm_monoid }
 
 section with_top

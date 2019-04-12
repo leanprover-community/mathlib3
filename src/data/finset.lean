@@ -569,6 +569,12 @@ ext.2 $ assume a, by simp only [mem_filter, and_false]; refl
 lemma filter_congr {s : finset α} (H : ∀ x ∈ s, p x ↔ q x) : filter p s = filter q s :=
 eq_of_veq $ filter_congr H
 
+lemma filter_empty : filter p ∅ = ∅ :=
+subset_empty.1 $ filter_subset _
+
+lemma filter_subset_filter {s t : finset α} (h : s ⊆ t) : s.filter p ⊆ t.filter p :=
+assume a ha, mem_filter.2 ⟨h (mem_filter.1 ha).1, (mem_filter.1 ha).2⟩
+
 variable [decidable_eq α]
 theorem filter_union (s₁ s₂ : finset α) :
   (s₁ ∪ s₂).filter p = s₁.filter p ∪ s₂.filter p :=
@@ -696,6 +702,24 @@ finset.eq_of_veq erase_dup_cons
   to_finset (s + t) = to_finset s ∪ to_finset t :=
 finset.ext' $ by simp
 
+@[simp] lemma to_finset_smul (s : multiset α) :
+  ∀(n : ℕ) (hn : n ≠ 0), (add_monoid.smul n s).to_finset = s.to_finset
+| 0     h := by contradiction
+| (n+1) h :=
+  begin
+    by_cases n = 0,
+    { rw [h, zero_add, add_monoid.one_smul] },
+    { rw [add_monoid.add_smul, to_finset_add, add_monoid.one_smul, to_finset_smul n h,
+        finset.union_idempotent] }
+  end
+
+@[simp] lemma to_finset_inter (s t : multiset α) :
+  to_finset (s ∩ t) = to_finset s ∩ to_finset t :=
+finset.ext' $ by simp
+
+theorem to_finset_eq_empty {m : multiset α} : m.to_finset = ∅ ↔ m = 0 :=
+finset.val_inj.symm.trans multiset.erase_dup_eq_zero
+
 end multiset
 
 namespace list
@@ -796,6 +820,10 @@ lemma attach_map_val {s : finset α} : s.attach.map (embedding.subtype _) = s :=
 eq_of_veq $ by rw [map_val, attach_val]; exact attach_map_val _
 
 end map
+
+lemma range_add_one' (n : ℕ) :
+  range (n + 1) = insert 0 ((range n).map ⟨λi, i + 1, assume i j, nat.succ_inj⟩) :=
+by ext (⟨⟩ | ⟨n⟩); simp [nat.succ_eq_add_one, nat.zero_lt_succ n]
 
 section image
 variables [decidable_eq β]
@@ -948,7 +976,7 @@ calc card s = card ((range n).attach.image $ λi, f i.1 (mem_range.1 i.2)) :
   ... = card (range n) : card_attach
   ... = n : card_range n
 
-lemma card_eq_succ [decidable_eq α] {s : finset α} {a : α} {n : ℕ} :
+lemma card_eq_succ [decidable_eq α] {s : finset α} {n : ℕ} :
   s.card = n + 1 ↔ (∃a t, a ∉ t ∧ insert a t = s ∧ card t = n) :=
 iff.intro
   (assume eq,
@@ -1229,6 +1257,10 @@ variables {op} {f : α → β} {b : β} {s : finset α} {a : α}
 by unfold fold; rw [insert_val, ndinsert_of_not_mem h, map_cons, fold_cons_left]
 
 @[simp] theorem fold_singleton : (singleton a).fold op b f = f a * b := rfl
+
+@[simp] theorem fold_map [decidable_eq α] {g : γ ↪ α} {s : finset γ} :
+  (s.map g).fold op b f = s.fold op b (f ∘ g) :=
+by simp only [fold, map, multiset.map_map]
 
 @[simp] theorem fold_image [decidable_eq α] {g : γ → α} {s : finset γ}
   (H : ∀ (x ∈ s) (y ∈ s), g x = g y → x = y) : (s.image g).fold op b f = s.fold op b (f ∘ g) :=
@@ -1571,14 +1603,34 @@ by simp only [disjoint_left, mem_union, or_imp_distrib, forall_and_distrib]
   disjoint s (t ∪ u) ↔ disjoint s t ∧ disjoint s u :=
 by simp only [disjoint_right, mem_union, or_imp_distrib, forall_and_distrib]
 
-lemma disjoint_sdiff {s t : finset α} : disjoint (t \ s) s :=
+lemma sdiff_disjoint {s t : finset α} : disjoint (t \ s) s :=
 disjoint_left.2 $ assume a ha, (mem_sdiff.1 ha).2
 
-@[simp] theorem card_disjoint_union {s t : finset α} :
-    disjoint s t → card (s ∪ t) = card s + card t :=
-finset.induction_on s (λ _, by simp only [empty_union, card_empty, zero_add]) $ λ a s ha ih H,
-have h1 : a ∉ s ∪ t, from λ h, or.elim (mem_union.1 h) ha (disjoint_insert_left.1 H).1,
-by rw [insert_union, card_insert_of_not_mem h1, card_insert_of_not_mem ha, ih (disjoint_insert_left.1 H).2, add_right_comm]
+lemma disjoint_sdiff {s t : finset α} : disjoint s (t \ s) :=
+sdiff_disjoint.symm
+
+lemma disjoint_bind_left {ι : Type*} [decidable_eq ι]
+  (s : finset ι) (f : ι → finset α) (t : finset α) :
+  disjoint (s.bind f) t ↔ (∀i∈s, disjoint (f i) t) :=
+begin
+  refine s.induction _ _,
+  { simp only [forall_mem_empty_iff, bind_empty, disjoint_empty_left] },
+  { assume i s his ih,
+    simp only [disjoint_union_left, bind_insert, his, forall_mem_insert, ih] }
+end
+
+lemma disjoint_bind_right {ι : Type*} [decidable_eq ι]
+  (s : finset α) (t : finset ι) (f : ι → finset α) :
+  disjoint s (t.bind f) ↔ (∀i∈t, disjoint s (f i)) :=
+by simpa only [disjoint.comm] using disjoint_bind_left t f s
+
+@[simp] theorem card_disjoint_union {s t : finset α} (h : disjoint s t) :
+  card (s ∪ t) = card s + card t :=
+by rw [← card_union_add_card_inter, disjoint_iff_inter_eq_empty.1 h, card_empty, add_zero]
+
+theorem card_sdiff {s t : finset α} (h : s ⊆ t) : card (t \ s) = card t - card s :=
+suffices card (t \ s) = card ((t \ s) ∪ s) - card s, by rwa sdiff_union_of_subset h at this,
+by rw [card_disjoint_union sdiff_disjoint, nat.add_sub_cancel]
 
 end disjoint
 
@@ -1679,8 +1731,15 @@ namespace Ico
 @[simp] theorem to_finset (n m : ℕ) : (multiset.Ico n m).to_finset = Ico n m :=
 (multiset.to_finset_eq _).symm
 
-theorem map_add (n m k : ℕ) : (Ico n m).image ((+) k) = Ico (n + k) (m + k) :=
+theorem image_add (n m k : ℕ) : (Ico n m).image ((+) k) = Ico (n + k) (m + k) :=
 by simp [image, multiset.Ico.map_add]
+
+theorem image_sub (n m k : ℕ) (h : k ≤ n): (Ico n m).image (λ x, x - k) = Ico (n - k) (m - k) :=
+begin
+  dsimp [image],
+  rw [multiset.Ico.map_sub _ _ _ h, ←multiset.to_finset_eq],
+  refl,
+end
 
 theorem zero_bot (n : ℕ) : Ico 0 n = range n :=
 eq_of_veq $ multiset.Ico.zero_bot _
@@ -1705,16 +1764,30 @@ lemma union_consecutive {n m l : ℕ} (hnm : n ≤ m) (hml : m ≤ l) :
 by rw [← to_finset, ← to_finset, ← multiset.to_finset_add,
   multiset.Ico.add_consecutive hnm hml, to_finset]
 
+@[simp] lemma inter_consecutive {n m l : ℕ} : Ico n m ∩ Ico m l = ∅ :=
+begin
+  rw [← to_finset, ← to_finset, ← multiset.to_finset_inter, multiset.Ico.inter_consecutive],
+  simp,
+end
+
 @[simp] theorem succ_singleton {n : ℕ} : Ico n (n+1) = {n} :=
 eq_of_veq $ multiset.Ico.succ_singleton
 
 theorem succ_top {n m : ℕ} (h : n ≤ m) : Ico n (m + 1) = insert m (Ico n m) :=
 by rw [← to_finset, multiset.Ico.succ_top h, multiset.to_finset_cons, to_finset]
 
+theorem succ_top' {n m : ℕ} (h : n < m) : Ico n m = insert (m - 1) (Ico n (m - 1)) :=
+begin
+  have w : m = m - 1 + 1 := (nat.sub_add_cancel (nat.one_le_of_lt h)).symm,
+  conv { to_lhs, rw w },
+  rw succ_top,
+  exact nat.le_pred_of_lt h
+end
+
 theorem eq_cons {n m : ℕ} (h : n < m) : Ico n m = insert n (Ico (n + 1) m) :=
 by rw [← to_finset, multiset.Ico.eq_cons h, multiset.to_finset_cons, to_finset]
 
-theorem pred_singleton {m : ℕ} (h : m > 0) : Ico (m - 1) m = {m - 1} :=
+@[simp] theorem pred_singleton {m : ℕ} (h : m > 0) : Ico (m - 1) m = {m - 1} :=
 eq_of_veq $ multiset.Ico.pred_singleton h
 
 @[simp] theorem not_mem_top {n m : ℕ} : m ∉ Ico n m :=
@@ -1755,6 +1828,21 @@ by ext k; by_cases n ≤ k; simp [h, this]
 end Ico
 
 end finset
+
+namespace multiset
+
+lemma count_sup [decidable_eq β] (s : finset α) (f : α → multiset β) (b : β) :
+  count b (s.sup f) = s.sup (λa, count b (f a)) :=
+begin
+  letI := classical.dec_eq α,
+  refine s.induction _ _,
+  { exact count_zero _ },
+  { assume i s his ih,
+    rw [finset.sup_insert, sup_eq_union, count_union, finset.sup_insert, ih],
+    refl }
+end
+
+end multiset
 
 namespace list
 variable [decidable_eq α]

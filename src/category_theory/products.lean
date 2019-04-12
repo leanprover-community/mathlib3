@@ -9,15 +9,18 @@ import tactic.interactive
 namespace category_theory
 
 universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄ -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- Am awkward note on universes:
+-- we need to make sure we're in `Type`, not `Sort`
+-- for both objects and morphisms when taking products.
 
 section
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
+variables (C : Type u₁) [𝒞 : category.{v₁+1} C] (D : Type u₂) [𝒟 : category.{v₂+1} D]
 include 𝒞 𝒟
 
 /--
 `prod C D` gives the cartesian product of two categories.
 -/
-instance prod : category.{max v₁ v₂} (C × D) :=
+instance prod : category.{max (v₁+1) (v₂+1)} (C × D) :=
 { hom     := λ X Y, ((X.1) ⟶ (Y.1)) × ((X.2) ⟶ (Y.2)),
   id      := λ X, ⟨ 𝟙 (X.1), 𝟙 (X.2) ⟩,
   comp    := λ _ _ _ f g, (f.1 ≫ g.1, f.2 ≫ g.2) }
@@ -35,7 +38,7 @@ instance prod : category.{max v₁ v₂} (C × D) :=
 end
 
 section
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₁) [𝒟 : category.{v₁} D]
+variables (C : Type u₁) [𝒞 : category.{v₁+1} C] (D : Type u₁) [𝒟 : category.{v₁+1} D]
 include 𝒞 𝒟
 /--
 `prod.category.uniform C D` is an additional instance specialised so both factors have the same universe levels. This helps typeclass resolution.
@@ -46,7 +49,7 @@ end
 
 namespace prod
 
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
+variables (C : Type u₁) [𝒞 : category.{v₁+1} C] (D : Type u₂) [𝒟 : category.{v₂+1} D]
 include 𝒞 𝒟
 
 /-- `inl C Z` is the functor `X ↦ (X, Z)`. -/
@@ -84,7 +87,7 @@ def symmetry : swap C D ⋙ swap D C ≅ functor.id (C × D) :=
 end prod
 
 section
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
+variables (C : Sort u₁) [𝒞 : category.{v₁} C] (D : Sort u₂) [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
 @[simp] def evaluation : C ⥤ (C ⥤ D) ⥤ D :=
@@ -98,21 +101,26 @@ include 𝒞 𝒟
   begin
     ext, dsimp, rw functor.map_comp,
   end }
+end
+
+section
+variables (C : Type u₁) [𝒞 : category.{v₁+1} C] (D : Type u₂) [𝒟 : category.{v₂+1} D]
+include 𝒞 𝒟
 
 @[simp] def evaluation_uncurried : C × (C ⥤ D) ⥤ D :=
 { obj := λ p, p.2.obj p.1,
   map := λ x y f, (x.2.map f.1) ≫ (f.2.app y.1),
   map_comp' := begin
     intros X Y Z f g, cases g, cases f, cases Z, cases Y, cases X, dsimp at *, simp at *,
-    erw [←nat_trans.vcomp_app, nat_trans.naturality, category.assoc, nat_trans.naturality]
+    erw [←functor.category.comp_app, nat_trans.naturality, category.assoc, nat_trans.naturality]
   end }
 
 end
 
-variables {A : Type u₁} [𝒜 : category.{v₁} A]
-          {B : Type u₂} [ℬ : category.{v₂} B]
-          {C : Type u₃} [𝒞 : category.{v₃} C]
-          {D : Type u₄} [𝒟 : category.{v₄} D]
+variables {A : Type u₁} [𝒜 : category.{v₁+1} A]
+          {B : Type u₂} [ℬ : category.{v₂+1} B]
+          {C : Type u₃} [𝒞 : category.{v₃+1} C]
+          {D : Type u₄} [𝒟 : category.{v₄+1} D]
 include 𝒜 ℬ 𝒞 𝒟
 
 namespace functor
@@ -131,13 +139,13 @@ end functor
 namespace nat_trans
 
 /-- The cartesian product of two natural transformations. -/
-def prod {F G : A ⥤ B} {H I : C ⥤ D} (α : F ⟹ G) (β : H ⟹ I) : F.prod H ⟹ G.prod I :=
+def prod {F G : A ⥤ B} {H I : C ⥤ D} (α : F ⟶ G) (β : H ⟶ I) : F.prod H ⟶ G.prod I :=
 { app         := λ X, (α.app X.1, β.app X.2),
   naturality' := begin /- `obviously'` says: -/ intros, cases f, cases Y, cases X, dsimp at *, simp, split, rw naturality, rw naturality end }
 
 /- Again, it is inadvisable in Lean 3 to setup a notation `α × β`; use instead `α.prod β` or `nat_trans.prod α β`. -/
 
-@[simp] lemma prod_app  {F G : A ⥤ B} {H I : C ⥤ D} (α : F ⟹ G) (β : H ⟹ I) (a : A) (c : C) :
+@[simp] lemma prod_app  {F G : A ⥤ B} {H I : C ⥤ D} (α : F ⟶ G) (β : H ⟶ I) (a : A) (c : C) :
   (nat_trans.prod α β).app (a, c) = (α.app a, β.app c) := rfl
 end nat_trans
 

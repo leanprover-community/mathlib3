@@ -17,10 +17,10 @@ namespace category_theory
 
 universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
+variables {C : Sort u₁} [𝒞 : category.{v₁} C]
 include 𝒞
 
-def yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁) :=
+def yoneda : C ⥤ (Cᵒᵖ ⥤ Sort v₁) :=
 { obj := λ X,
   { obj := λ Y, unop Y ⟶ X,
     map := λ Y Y' f g, f.unop ≫ g,
@@ -28,7 +28,7 @@ def yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁) :=
     map_id' := λ Y, begin ext1, dsimp at *, erw [category.id_comp] end },
   map := λ X X' f, { app := λ Y g, g ≫ f } }
 
-def coyoneda : Cᵒᵖ ⥤ (C ⥤ Type v₁) :=
+def coyoneda : Cᵒᵖ ⥤ (C ⥤ Sort v₁) :=
 { obj := λ X,
   { obj := λ Y, unop X ⟶ Y,
     map := λ Y Y' f g, g ≫ f,
@@ -76,13 +76,6 @@ def ext (X Y : C)
 @preimage_iso _ _ _ _ yoneda _ _ _ _
   (nat_iso.of_components (λ Z, { hom := p, inv := q, }) (by tidy))
 
--- We need to help typeclass inference with some awkward universe levels here.
-instance prod_category_instance_1 : category ((Cᵒᵖ ⥤ Type v₁) × Cᵒᵖ) :=
-category_theory.prod.{(max u₁ v₁)  v₁} (Cᵒᵖ ⥤ Type v₁) Cᵒᵖ
-
-instance prod_category_instance_2 : category (Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) :=
-category_theory.prod.{v₁ (max u₁ v₁)} Cᵒᵖ (Cᵒᵖ ⥤ Type v₁)
-
 end yoneda
 
 namespace coyoneda
@@ -93,11 +86,29 @@ namespace coyoneda
   (coyoneda.map f).app X = λ g, f.unop ≫ g := rfl
 end coyoneda
 
-class representable (F : Cᵒᵖ ⥤ Type v₁) :=
+class representable (F : Cᵒᵖ ⥤ Sort v₁) :=
 (X : C)
 (w : yoneda.obj X ≅ F)
 
-variables (C)
+end category_theory
+
+namespace category_theory
+-- For the rest of the file, we are using product categories,
+-- so need to restrict to the case we are in 'Type', not 'Sort',
+-- for both objects and morphisms
+
+universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+
+variables (C : Type u₁) [𝒞 : category.{v₁+1} C]
+include 𝒞
+
+-- We need to help typeclass inference with some awkward universe levels here.
+instance prod_category_instance_1 : category ((Cᵒᵖ ⥤ Type v₁) × Cᵒᵖ) :=
+category_theory.prod.{(max u₁ v₁) v₁} (Cᵒᵖ ⥤ Type v₁) Cᵒᵖ
+
+instance prod_category_instance_2 : category (Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) :=
+category_theory.prod.{v₁ (max u₁ v₁)} Cᵒᵖ (Cᵒᵖ ⥤ Type v₁)
+
 open yoneda
 
 def yoneda_evaluation : Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁) ⥤ Type (max u₁ v₁) :=
@@ -162,11 +173,11 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
 
 variables {C}
 
-@[simp] def yoneda_sections (X : C) (F : Cᵒᵖ ⥤ Type v₁) : (yoneda.obj X ⟹ F) ≅ ulift.{u₁} (F.obj (op X)) :=
+@[simp] def yoneda_sections (X : C) (F : Cᵒᵖ ⥤ Type v₁) : (yoneda.obj X ⟶ F) ≅ ulift.{u₁} (F.obj (op X)) :=
 nat_iso.app (yoneda_lemma C) (op X, F)
 
 omit 𝒞
-@[simp] def yoneda_sections_small {C : Type u₁} [small_category C] (X : C) (F : Cᵒᵖ ⥤ Type u₁) : (yoneda.obj X ⟹ F) ≅ F.obj (op X) :=
+@[simp] def yoneda_sections_small {C : Type u₁} [small_category C] (X : C) (F : Cᵒᵖ ⥤ Type u₁) : (yoneda.obj X ⟶ F) ≅ F.obj (op X) :=
 yoneda_sections X F ≪≫ ulift_trivial _
 
 end category_theory

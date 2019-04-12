@@ -16,7 +16,7 @@ universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `categor
 
 local attribute [elab_simple] whisker_left whisker_right
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
+variables {C : Sort u₁} [𝒞 : category.{v₁} C] {D : Sort u₂} [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
 /--
@@ -27,7 +27,7 @@ structure adjunction (F : C ⥤ D) (G : D ⥤ C) :=
 (hom_equiv : Π (X Y), (F.obj X ⟶ Y) ≃ (X ⟶ G.obj Y))
 (unit : functor.id C ⟶ F.comp G)
 (counit : G.comp F ⟶ functor.id D)
-(hom_equiv_unit' : Π {X Y f}, (hom_equiv X Y) f = (unit : _ ⟹ _).app X ≫ G.map f . obviously)
+(hom_equiv_unit' : Π {X Y f}, (hom_equiv X Y) f = (unit : _ ⟶ _).app X ≫ G.map f . obviously)
 (hom_equiv_counit' : Π {X Y g}, (hom_equiv X Y).symm g = F.map g ≫ counit.app Y . obviously)
 
 namespace adjunction
@@ -57,7 +57,7 @@ by rw [hom_equiv_unit, G.map_comp, ← assoc, ←hom_equiv_unit]
 by rw [equiv.symm_apply_eq]; simp [-hom_equiv_counit]
 
 @[simp] lemma left_triangle :
-  (whisker_right adj.unit F).vcomp (whisker_left F adj.counit) = nat_trans.id _ :=
+  (whisker_right adj.unit F) ≫ (whisker_left F adj.counit) = nat_trans.id _ :=
 begin
   ext1 X, dsimp,
   erw [← adj.hom_equiv_counit, equiv.symm_apply_eq, adj.hom_equiv_unit],
@@ -65,7 +65,7 @@ begin
 end
 
 @[simp] lemma right_triangle :
-  (whisker_left G adj.unit).vcomp (whisker_right adj.counit G) = nat_trans.id _ :=
+  (whisker_left G adj.unit) ≫ (whisker_right adj.counit G) = nat_trans.id _ :=
 begin
   ext1 Y, dsimp,
   erw [← adj.hom_equiv_unit, ← equiv.eq_symm_apply, adj.hom_equiv_counit],
@@ -74,11 +74,11 @@ end
 
 @[simp] lemma left_triangle_components :
   F.map (adj.unit.app X) ≫ adj.counit.app (F.obj X) = 𝟙 _ :=
-congr_arg (λ (t : _ ⟹ functor.id C ⋙ F), t.app X) adj.left_triangle
+congr_arg (λ (t : nat_trans _ (functor.id C ⋙ F)), t.app X) adj.left_triangle
 
 @[simp] lemma right_triangle_components {Y : D} :
   adj.unit.app (G.obj Y) ≫ G.map (adj.counit.app Y) = 𝟙 _ :=
-congr_arg (λ (t : _ ⟹ G ⋙ functor.id C), t.app Y) adj.right_triangle
+congr_arg (λ (t : nat_trans _ (G ⋙ functor.id C)), t.app Y) adj.right_triangle
 
 end
 
@@ -110,8 +110,8 @@ end core_hom_equiv
 structure core_unit_counit (F : C ⥤ D) (G : D ⥤ C) :=
 (unit : functor.id C ⟶ F.comp G)
 (counit : G.comp F ⟶ functor.id D)
-(left_triangle' : (whisker_right unit F).vcomp (whisker_left F counit) = nat_trans.id _ . obviously)
-(right_triangle' : (whisker_left G unit).vcomp (whisker_right counit G) = nat_trans.id _ . obviously)
+(left_triangle' : (whisker_right unit F) ≫ (whisker_left F counit) = nat_trans.id _ . obviously)
+(right_triangle' : (whisker_left G unit) ≫ (whisker_right counit G) = nat_trans.id _ . obviously)
 
 namespace core_unit_counit
 
@@ -152,13 +152,13 @@ def mk_of_unit_counit (adj : core_unit_counit F G) : adjunction F G :=
       change F.map (_ ≫ _) ≫ _ = _,
       rw [F.map_comp, assoc, ←functor.comp_map, adj.counit.naturality, ←assoc],
       convert id_comp _ f,
-      exact congr_arg (λ t : _ ⟹ _, t.app _) adj.left_triangle
+      exact congr_arg (λ t : nat_trans _ _, t.app _) adj.left_triangle
     end,
     right_inv := λ g, begin
       change _ ≫ G.map (_ ≫ _) = _,
       rw [G.map_comp, ←assoc, ←functor.comp_map, ←adj.unit.naturality, assoc],
       convert comp_id _ g,
-      exact congr_arg (λ t : _ ⟹ _, t.app _) adj.right_triangle
+      exact congr_arg (λ t : nat_trans _ _, t.app _) adj.right_triangle
   end },
   .. adj }
 
@@ -179,7 +179,7 @@ TODO
 -/
 
 section
-variables {E : Type u₃} [ℰ : category.{v₃} E] (H : D ⥤ E) (I : E ⥤ D)
+variables {E : Sort u₃} [ℰ : category.{v₃} E] (H : D ⥤ E) (I : E ⥤ D)
 
 def comp (adj₁ : adjunction F G) (adj₂ : adjunction H I) : adjunction (F ⋙ H) (I ⋙ G) :=
 { hom_equiv := λ X Z, equiv.trans (adj₂.hom_equiv _ _) (adj₁.hom_equiv _ _),
@@ -216,8 +216,8 @@ def left_adjoint_of_equiv : C ⥤ D :=
 { obj := F_obj,
   map := λ X X' f, (e X (F_obj X')).symm (f ≫ e X' (F_obj X') (𝟙 _)),
   map_comp' := λ X X' X'' f f', begin
-    rw [equiv.symm_apply_eq, he, equiv.apply_inverse_apply],
-    conv { to_rhs, rw [assoc, ←he, id_comp, equiv.apply_inverse_apply] },
+    rw [equiv.symm_apply_eq, he, equiv.apply_symm_apply],
+    conv { to_rhs, rw [assoc, ←he, id_comp, equiv.apply_symm_apply] },
     simp
   end }
 
@@ -247,8 +247,8 @@ def right_adjoint_of_equiv : D ⥤ C :=
 { obj := G_obj,
   map := λ Y Y' g, (e (G_obj Y) Y') ((e (G_obj Y) Y).symm (𝟙 _) ≫ g),
   map_comp' := λ Y Y' Y'' g g', begin
-    rw [← equiv.eq_symm_apply, ← he' e he, equiv.inverse_apply_apply],
-    conv { to_rhs, rw [← assoc, he' e he, comp_id, equiv.inverse_apply_apply] },
+    rw [← equiv.eq_symm_apply, ← he' e he, equiv.symm_apply_apply],
+    conv { to_rhs, rw [← assoc, he' e he, comp_id, equiv.symm_apply_apply] },
     simp
   end }
 
@@ -259,7 +259,7 @@ mk_of_hom_equiv F (right_adjoint_of_equiv e he)
   hom_equiv_naturality_right' :=
   begin
     intros X Y Y' g h,
-    erw [←he, equiv.apply_eq_iff_eq, ←assoc, he' e he, comp_id, equiv.inverse_apply_apply]
+    erw [←he, equiv.apply_eq_iff_eq, ←assoc, he' e he, comp_id, equiv.symm_apply_apply]
   end }
 
 end construct_right
@@ -275,7 +275,7 @@ open category_theory.limits
 
 universes u₁ u₂ v
 
-variables {C : Type u₁} [𝒞 : category.{v} C] {D : Type u₂} [𝒟 : category.{v} D]
+variables {C : Sort u₁} [𝒞 : category.{v+1} C] {D : Sort u₂} [𝒟 : category.{v+1} D]
 include 𝒞 𝒟
 
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : adjunction F G)
@@ -310,10 +310,12 @@ def functoriality_is_left_adjoint :
 
 /-- A left adjoint preserves colimits. -/
 def left_adjoint_preserves_colimits : preserves_colimits F :=
-λ J 𝒥 K, by resetI; exact
-{ preserves := λ c hc, is_colimit_iso_unique_cocone_morphism.inv
-    (λ s, (((adj.functoriality_is_left_adjoint _).adj).hom_equiv _ _).unique_of_equiv $
-      is_colimit_iso_unique_cocone_morphism.hom hc _ ) }
+{ preserves_colimits_of_shape := λ J 𝒥,
+  { preserves_colimit := λ F,
+    by resetI; exact
+    { preserves := λ c hc, is_colimit_iso_unique_cocone_morphism.inv
+        (λ s, (((adj.functoriality_is_left_adjoint _).adj).hom_equiv _ _).unique_of_equiv $
+          is_colimit_iso_unique_cocone_morphism.hom hc _ ) } } }
 
 end preservation_colimits
 
@@ -346,10 +348,12 @@ def functoriality_is_right_adjoint :
 
 /-- A right adjoint preserves limits. -/
 def right_adjoint_preserves_limits : preserves_limits G :=
-λ J 𝒥 K, by resetI; exact
-{ preserves := λ c hc, is_limit_iso_unique_cone_morphism.inv
-    (λ s, (((adj.functoriality_is_right_adjoint _).adj).hom_equiv _ _).symm.unique_of_equiv $
-      is_limit_iso_unique_cone_morphism.hom hc _) }
+{ preserves_limits_of_shape := λ J 𝒥,
+  { preserves_limit := λ K,
+    by resetI; exact
+    { preserves := λ c hc, is_limit_iso_unique_cone_morphism.inv
+        (λ s, (((adj.functoriality_is_right_adjoint _).adj).hom_equiv _ _).symm.unique_of_equiv $
+          is_limit_iso_unique_cone_morphism.hom hc _) } } }
 
 end preservation_limits
 

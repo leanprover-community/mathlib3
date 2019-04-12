@@ -88,6 +88,29 @@ begin
   simp [A] {contextual := tt}
 end
 
+lemma subset_image_iff {s : set α} {t : set β} (f : α → β) :
+  t ⊆ f '' s ↔ ∃u⊆s, t = f '' u ∧ inj_on f u :=
+begin
+  split,
+  { assume h, choose g hg using h,
+    refine ⟨ {a | ∃ b (h : b ∈ t), g h = a }, _, set.ext $ assume b, ⟨_, _⟩, _⟩,
+    { rintros a ⟨b, hb, rfl⟩,
+      exact (hg hb).1 },
+    { rintros hb,
+      exact ⟨g hb, ⟨b, hb, rfl⟩, (hg hb).2⟩ },
+    { rintros ⟨c, ⟨b, hb, rfl⟩, rfl⟩,
+      rwa (hg hb).2 },
+    { rintros a₁ a₂ ⟨b₁, h₁, rfl⟩ ⟨b₂, h₂, rfl⟩ eq,
+      rw [(hg h₁).2, (hg h₂).2] at eq,
+      subst eq } },
+  { rintros ⟨u, hu, rfl, _⟩,
+    exact image_subset _ hu }
+end
+
+lemma subset_range_iff {s : set β} (f : α → β) :
+  s ⊆ set.range f ↔ ∃u, s = f '' u ∧ inj_on f u :=
+by rw [← image_univ, subset_image_iff]; simp
+
 /- surjectivity -/
 
 /-- `f` is surjective from `a` to `b` if `b` is contained in the image of `a`. -/

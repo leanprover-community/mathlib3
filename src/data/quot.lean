@@ -31,6 +31,8 @@ quot.hrec_on qa (λ a, quot.hrec_on qb (f a) (λ b₁ b₂ pb, cb pb)) $ λ a₁
       ... == f a₂ b                                     : ca pa
       ... == @quot.hrec_on _ _ (φ _) ⟦b⟧ (f a₂) (@cb _) : by simp
 
+protected def map {α} (r r' : α → α → Prop) (h : ∀a b, r a b → r' a b) (a : quot r) : quot r' :=
+quot.hrec_on a (quot.mk r') $ assume a b hab, by rw [quot.sound (h a b hab)]
 end quot
 
 namespace quotient
@@ -242,5 +244,4 @@ noncomputable def out' (a : quotient s₁) : α := quotient.out a
 
 theorem mk_out' (a : α) : @setoid.r α s₁ (quotient.mk' a : quotient s₁).out' a :=
 quotient.exact (quotient.out_eq _)
-
 end quotient

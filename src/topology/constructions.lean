@@ -3,543 +3,15 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 
-Continuous functions.
-
-Parts of the formalization is based on the books:
-  N. Bourbaki: General Topology
-  I. M. James: Topologies and Uniformities
-A major difference is that this formalization is heavily based on the filter library.
+Constructions of new topological spaces from old ones: product, sum, subtype, quotient, list, vector
 -/
-import topology.basic
+import topology.maps topology.subset_properties topology.separation topology.bases
 noncomputable theory
 
 open set filter lattice
 local attribute [instance] classical.prop_decidable
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
-
-section
-variables [topological_space α] [topological_space β] [topological_space γ]
-
-/-- A function between topological spaces is continuous if the preimage
-  of every open set is open. -/
-def continuous (f : α → β) := ∀s, is_open s → is_open (f ⁻¹' s)
-
-def continuous_at (f : α → β) (x : α) := tendsto f (nhds x) (nhds (f x))
-
-def continuous_at_within (f : α → β) (x : α) (s : set α) : Prop :=
-tendsto f (nhds_within x s) (nhds (f x))
-
-def continuous_on (f : α → β) (s : set α) : Prop := ∀ x ∈ s, continuous_at_within f x s
-
-lemma continuous_id : continuous (id : α → α) :=
-assume s h, h
-
-lemma continuous.comp {f : α → β} {g : β → γ} (hf : continuous f) (hg : continuous g):
-  continuous (g ∘ f) :=
-assume s h, hf _ (hg s h)
-
-lemma continuous.tendsto {f : α → β} (hf : continuous f) (x) :
-  tendsto f (nhds x) (nhds (f x)) | s :=
-show s ∈ (nhds (f x)).sets → s ∈ (map f (nhds x)).sets,
-by simp [nhds_sets]; exact
-assume t t_subset t_open fx_in_t,
-  ⟨f ⁻¹' t, preimage_mono t_subset, hf t t_open, fx_in_t⟩
-
-lemma continuous_iff_continuous_at {f : α → β} : continuous f ↔ ∀ x, continuous_at f x :=
-⟨continuous.tendsto,
-  assume hf : ∀x, tendsto f (nhds x) (nhds (f x)),
-  assume s, assume hs : is_open s,
-  have ∀a, f a ∈ s → s ∈ (nhds (f a)).sets,
-    by simp [nhds_sets]; exact assume a ha, ⟨s, subset.refl s, hs, ha⟩,
-  show is_open (f ⁻¹' s),
-    by simp [is_open_iff_nhds]; exact assume a ha, hf a (this a ha)⟩
-
-lemma continuous_const {b : β} : continuous (λa:α, b) :=
-continuous_iff_continuous_at.mpr $ assume a, tendsto_const_nhds
-
-lemma continuous_of_discrete_topology [discrete_topology α] {f : α → β} : continuous f :=
-λs hs, is_open_discrete _
-
-lemma continuous_iff_is_closed {f : α → β} :
-  continuous f ↔ (∀s, is_closed s → is_closed (f ⁻¹' s)) :=
-⟨assume hf s hs, hf (-s) hs,
-  assume hf s, by rw [←is_closed_compl_iff, ←is_closed_compl_iff]; exact hf _⟩
-
-lemma continuous_at_iff_ultrafilter {f : α → β} (x) : continuous_at f x ↔
-  ∀ g, is_ultrafilter g → g ≤ nhds x → g.map f ≤ nhds (f x) :=
-tendsto_iff_ultrafilter f (nhds x) (nhds (f x))
-
-lemma continuous_iff_ultrafilter {f : α → β} :
-  continuous f ↔ ∀ x g, is_ultrafilter g → g ≤ nhds x → g.map f ≤ nhds (f x) :=
-by simp only [continuous_iff_continuous_at, continuous_at_iff_ultrafilter]
-
-lemma continuous_if {p : α → Prop} {f g : α → β} {h : ∀a, decidable (p a)}
-  (hp : ∀a∈frontier {a | p a}, f a = g a) (hf : continuous f) (hg : continuous g) :
-  continuous (λa, @ite (p a) (h a) β (f a) (g a)) :=
-continuous_iff_is_closed.mpr $
-assume s hs,
-have (λa, ite (p a) (f a) (g a)) ⁻¹' s =
-    (closure {a | p a} ∩  f ⁻¹' s) ∪ (closure {a | ¬ p a} ∩ g ⁻¹' s),
-  from set.ext $ assume a,
-  classical.by_cases
-    (assume : a ∈ frontier {a | p a},
-      have hac : a ∈ closure {a | p a}, from this.left,
-      have hai : a ∈ closure {a | ¬ p a},
-        from have a ∈ - interior {a | p a}, from this.right, by rwa [←closure_compl] at this,
-      by by_cases p a; simp [h, hp a this, hac, hai, iff_def] {contextual := tt})
-    (assume hf : a ∈ - frontier {a | p a},
-      classical.by_cases
-        (assume : p a,
-          have hc : a ∈ closure {a | p a}, from subset_closure this,
-          have hnc : a ∉ closure {a | ¬ p a},
-            by show a ∉ closure (- {a | p a}); rw [closure_compl]; simpa [frontier, hc] using hf,
-          by simp [this, hc, hnc])
-        (assume : ¬ p a,
-          have hc : a ∈ closure {a | ¬ p a}, from subset_closure this,
-          have hnc : a ∉ closure {a | p a},
-            begin
-              have hc : a ∈ closure (- {a | p a}), from hc,
-              simp [closure_compl] at hc,
-              simpa [frontier, hc] using hf
-            end,
-          by simp [this, hc, hnc])),
-by rw [this]; exact is_closed_union
-  (is_closed_inter is_closed_closure $ continuous_iff_is_closed.mp hf s hs)
-  (is_closed_inter is_closed_closure $ continuous_iff_is_closed.mp hg s hs)
-
-theorem continuous_at_within_univ (f : α → β) (x : α) :
-   continuous_at_within f x set.univ ↔ continuous_at f x :=
-by rw [continuous_at, continuous_at_within, nhds_within_univ]
-
-theorem continuous_at_within_iff_continuous_at_restrict (f : α → β) {x : α} {s : set α} (h : x ∈ s) :
-  continuous_at_within f x s ↔ continuous_at (function.restrict f s) ⟨x, h⟩ :=
-tendsto_at_within_iff_subtype h f _
-
-theorem continuous_on_iff {f : α → β} {s : set α} :
-  continuous_on f s ↔ ∀ x ∈ s, ∀ t : set β, is_open t → f x ∈ t → ∃ u, is_open u ∧ x ∈ u ∧
-    u ∩ s ⊆ f ⁻¹' t :=
-by simp only [continuous_on, continuous_at_within, tendsto_nhds, mem_nhds_within]
-
-theorem continuous_on_iff_continuous_restrict {f : α → β} {s : set α} :
-  continuous_on f s ↔ continuous (function.restrict f s) :=
-begin
-  rw [continuous_on, continuous_iff_continuous_at], split,
-  { rintros h ⟨x, xs⟩,
-    exact (continuous_at_within_iff_continuous_at_restrict f xs).mp (h x xs) },
-  intros h x xs,
-  exact (continuous_at_within_iff_continuous_at_restrict f xs).mpr (h ⟨x, xs⟩)
-end
-
-theorem continuous_on_iff' {f : α → β} {s : set α} :
-  continuous_on f s ↔ ∀ t : set β, is_open t → ∃ u, is_open u ∧ f ⁻¹' t ∩ s = u ∩ s :=
-have ∀ t, is_open (function.restrict f s ⁻¹' t) ↔ ∃ (u : set α), is_open u ∧ f ⁻¹' t ∩ s = u ∩ s,
-  begin
-    intro t,
-    rw [is_open_induced_iff, function.restrict_eq, set.preimage_comp],
-    simp only [subtype.preimage_val_eq_preimage_val_iff],
-    split; { rintros ⟨u, ou, useq⟩, exact ⟨u, ou, useq.symm⟩ }
-  end,
-by rw [continuous_on_iff_continuous_restrict, continuous]; simp only [this]
-
-theorem continuous_at_within_iff_ptendsto_res (f : α → β) {x : α} {s : set α} (xs : x ∈ s) :
-  continuous_at_within f x s ↔ ptendsto (pfun.res f s) (nhds x) (nhds (f x)) :=
-tendsto_iff_ptendsto _ _ _ _
-
-/- Continuity and partial functions -/
-
-def pcontinuous (f : α →. β) := ∀ s, is_open s → is_open (f.preimage s)
-
-lemma open_dom_of_pcontinuous {f : α →. β} (h : pcontinuous f) : is_open f.dom :=
-by rw [←pfun.preimage_univ]; exact h _ is_open_univ
-
-lemma pcontinuous_iff' {f : α →. β} :
-  pcontinuous f ↔ ∀ {x y} (h : y ∈ f x), ptendsto' f (nhds x) (nhds y) :=
-begin
-  split,
-  { intros h x y h',
-    rw [ptendsto'_def, nhds_sets, nhds_sets],
-    rintros s ⟨t, tsubs, opent, yt⟩,
-    exact ⟨f.preimage t, pfun.preimage_mono _ tsubs, h _ opent, ⟨y, yt, h'⟩⟩
-  },
-  intros hf s os,
-  rw is_open_iff_nhds,
-  rintros x ⟨y, ys, fxy⟩ t,
-  rw [mem_principal_sets],
-  assume h : f.preimage s ⊆ t,
-  apply mem_sets_of_superset _ h,
-  have h' : ∀ s ∈ (nhds y).sets, f.preimage s ∈ (nhds x).sets,
-  { intros s hs,
-     have : ptendsto' f (nhds x) (nhds y) := hf fxy,
-     rw ptendsto'_def at this,
-     exact this s hs },
-  show f.preimage s ∈ (nhds x).sets,
-  apply h', rw nhds_sets, exact ⟨s, set.subset.refl _, os, ys⟩
-end
-
-lemma image_closure_subset_closure_image {f : α → β} {s : set α} (h : continuous f) :
-  f '' closure s ⊆ closure (f '' s) :=
-have ∀ (a : α), nhds a ⊓ principal s ≠ ⊥ → nhds (f a) ⊓ principal (f '' s) ≠ ⊥,
-  from assume a ha,
-  have h₁ : ¬ map f (nhds a ⊓ principal s) = ⊥,
-    by rwa[map_eq_bot_iff],
-  have h₂ : map f (nhds a ⊓ principal s) ≤ nhds (f a) ⊓ principal (f '' s),
-    from le_inf
-      (le_trans (map_mono inf_le_left) $ by rw [continuous_iff_continuous_at] at h; exact h a)
-      (le_trans (map_mono inf_le_right) $ by simp; exact subset.refl _),
-  neq_bot_of_le_neq_bot h₁ h₂,
-by simp [image_subset_iff, closure_eq_nhds]; assumption
-
-lemma mem_closure [topological_space α] [topological_space β]
-  {s : set α} {t : set β} {f : α → β} {a : α}
-  (hf : continuous f) (ha : a ∈ closure s) (ht : ∀a∈s, f a ∈ t) : f a ∈ closure t :=
-subset.trans (image_closure_subset_closure_image hf) (closure_mono $ image_subset_iff.2 ht) $
-  (mem_image_of_mem f ha)
-
-lemma compact_image {s : set α} {f : α → β} (hs : compact s) (hf : continuous f) : compact (f '' s) :=
-compact_of_finite_subcover $ assume c hco hcs,
-  have hdo : ∀t∈c, is_open (f ⁻¹' t), from assume t' ht, hf _ $ hco _ ht,
-  have hds : s ⊆ ⋃i∈c, f ⁻¹' i,
-    by simpa [subset_def, -mem_image] using hcs,
-  let ⟨d', hcd', hfd', hd'⟩ := compact_elim_finite_subcover_image hs hdo hds in
-  ⟨d', hcd', hfd', by simpa [subset_def, -mem_image, image_subset_iff] using hd'⟩
-
-lemma compact_range [compact_space α] {f : α → β} (hf : continuous f) : compact (range f) :=
-by rw ← image_univ; exact compact_image compact_univ hf
-
-end
-
-section constructions
-local notation `cont` := @continuous _ _
-local notation `tspace` := topological_space
-open topological_space
-
-variables {f : α → β} {ι : Sort*}
-
-lemma continuous_iff_le_coinduced {t₁ : tspace α} {t₂ : tspace β} :
-  cont t₁ t₂ f ↔ t₂ ≤ coinduced f t₁ := iff.rfl
-
-lemma continuous_iff_induced_le {t₁ : tspace α} {t₂ : tspace β} :
-  cont t₁ t₂ f ↔ induced f t₂ ≤ t₁ :=
-iff.trans continuous_iff_le_coinduced (gc_induced_coinduced f _ _).symm
-
-theorem continuous_generated_from {t : tspace α} {b : set (set β)}
-  (h : ∀s∈b, is_open (f ⁻¹' s)) : cont t (generate_from b) f :=
-continuous_iff_le_coinduced.2 $ generate_from_le h
-
-lemma continuous_induced_dom {t : tspace β} : cont (induced f t) t f :=
-assume s h, ⟨_, h, rfl⟩
-
-lemma continuous_induced_rng {g : γ → α} {t₂ : tspace β} {t₁ : tspace γ}
-  (h : cont t₁ t₂ (f ∘ g)) : cont t₁ (induced f t₂) g :=
-assume s ⟨t, ht, s_eq⟩, s_eq ▸ h t ht
-
-lemma continuous_coinduced_rng {t : tspace α} : cont t (coinduced f t) f :=
-assume s h, h
-
-lemma continuous_coinduced_dom {g : β → γ} {t₁ : tspace α} {t₂ : tspace γ}
-  (h : cont t₁ t₂ (g ∘ f)) : cont (coinduced f t₁) t₂ g :=
-assume s hs, h s hs
-
-lemma continuous_le_dom {t₁ t₂ : tspace α} {t₃ : tspace β}
-  (h₁ : t₁ ≤ t₂) (h₂ : cont t₁ t₃ f) : cont t₂ t₃ f :=
-assume s h, h₁ _ (h₂ s h)
-
-lemma continuous_le_rng {t₁ : tspace α} {t₂ t₃ : tspace β}
-  (h₁ : t₃ ≤ t₂) (h₂ : cont t₁ t₂ f) : cont t₁ t₃ f :=
-assume s h, h₂ s (h₁ s h)
-
-lemma continuous_inf_dom {t₁ t₂ : tspace α} {t₃ : tspace β}
-  (h₁ : cont t₁ t₃ f) (h₂ : cont t₂ t₃ f) : cont (t₁ ⊓ t₂) t₃ f :=
-assume s h, ⟨h₁ s h, h₂ s h⟩
-
-lemma continuous_inf_rng_left {t₁ : tspace α} {t₃ t₂ : tspace β} :
-  cont t₁ t₂ f → cont t₁ (t₂ ⊓ t₃) f :=
-continuous_le_rng inf_le_left
-
-lemma continuous_inf_rng_right {t₁ : tspace α} {t₃ t₂ : tspace β} :
-  cont t₁ t₃ f → cont t₁ (t₂ ⊓ t₃) f :=
-continuous_le_rng inf_le_right
-
-lemma continuous_Inf_dom {t₁ : set (tspace α)} {t₂ : tspace β}
-  (h : ∀t∈t₁, cont t t₂ f) : cont (Inf t₁) t₂ f :=
-continuous_iff_induced_le.2 $ le_Inf $ assume t ht, continuous_iff_induced_le.1 $ h t ht
-
-lemma continuous_Inf_rng {t₁ : tspace α} {t₂ : set (tspace β)} {t : tspace β}
-  (h₁ : t ∈ t₂) (hf : cont t₁ t f) : cont t₁ (Inf t₂) f :=
-continuous_iff_le_coinduced.2 $ Inf_le_of_le h₁ $ continuous_iff_le_coinduced.1 hf
-
-lemma continuous_infi_dom {t₁ : ι → tspace α} {t₂ : tspace β}
-  (h : ∀i, cont (t₁ i) t₂ f) : cont (infi t₁) t₂ f :=
-continuous_Inf_dom $ assume t ⟨i, (t_eq : t₁ i = t)⟩, t_eq ▸ h i
-
-lemma continuous_infi_rng {t₁ : tspace α} {t₂ : ι → tspace β} {i : ι}
-  (h : cont t₁ (t₂ i) f) : cont t₁ (infi t₂) f :=
-continuous_Inf_rng ⟨i, rfl⟩ h
-
-lemma continuous_sup_rng {t₁ : tspace α} {t₂ t₃ : tspace β}
-  (h₁ : cont t₁ t₂ f) (h₂ : cont t₁ t₃ f) : cont t₁ (t₂ ⊔ t₃) f :=
-continuous_iff_le_coinduced.2 $ sup_le
-  (continuous_iff_le_coinduced.1 h₁)
-  (continuous_iff_le_coinduced.1 h₂)
-
-lemma continuous_sup_dom_left {t₁ t₂ : tspace α} {t₃ : tspace β} :
-  cont t₁ t₃ f → cont (t₁ ⊔ t₂) t₃ f :=
-continuous_le_dom le_sup_left
-
-lemma continuous_sup_dom_right {t₁ t₂ : tspace α} {t₃ : tspace β} :
-  cont t₂ t₃ f → cont (t₁ ⊔ t₂) t₃ f :=
-continuous_le_dom le_sup_right
-
-lemma continuous_Sup_dom {t₁ : set (tspace α)} {t₂ : tspace β} {t : tspace α} (h₁ : t ∈ t₁) :
-  cont t t₂ f → cont (Sup t₁) t₂ f :=
-continuous_le_dom $ le_Sup h₁
-
-lemma continuous_Sup_rng {t₁ : tspace α} {t₂ : set (tspace β)}
-  (h : ∀t∈t₂, cont t₁ t f) : cont t₁ (Sup t₂) f :=
-continuous_iff_le_coinduced.2 $ Sup_le $ assume b hb, continuous_iff_le_coinduced.1 $ h b hb
-
-lemma continuous_supr_dom {t₁ : ι → tspace α} {t₂ : tspace β} {i : ι} :
-  cont (t₁ i) t₂ f → cont (supr t₁) t₂ f :=
-continuous_le_dom $ le_supr _ _
-
-lemma continuous_supr_rng {t₁ : tspace α} {t₂ : ι → tspace β}
-  (h : ∀i, cont t₁ (t₂ i) f) : cont t₁ (supr t₂) f :=
-continuous_iff_le_coinduced.2 $ supr_le $ assume i, continuous_iff_le_coinduced.1 $ h i
-
-lemma continuous_top {t : tspace β} : cont ⊤ t f :=
-continuous_iff_induced_le.2 $ le_top
-
-lemma continuous_bot {t : tspace α} : cont t ⊥ f :=
-continuous_iff_le_coinduced.2 $ bot_le
-
-end constructions
-
-section induced
-open topological_space
-variables [t : topological_space β] {f : α → β}
-
-theorem is_open_induced_eq {s : set α} :
-  @_root_.is_open _ (induced f t) s ↔ s ∈ preimage f '' {s | is_open s} :=
-iff.refl _
-
-theorem is_open_induced {s : set β} (h : is_open s) : (induced f t).is_open (f ⁻¹' s) :=
-⟨s, h, rfl⟩
-
-lemma nhds_induced_eq_comap {a : α} : @nhds α (induced f t) a = comap f (nhds (f a)) :=
-calc @nhds α (induced f t) a = (⨅ s (x : s ∈ preimage f '' set_of is_open ∧ a ∈ s), principal s) :
-    by simp [nhds, is_open_induced_eq, -mem_image, and_comm]
-  ... = (⨅ s (x : is_open s ∧ f a ∈ s), principal (f ⁻¹' s)) :
-    by simp only [infi_and, infi_image]; refl
-  ... = _ : by simp [nhds, comap_infi, and_comm]
-
-lemma map_nhds_induced_eq {a : α} (h : range f ∈ (nhds (f a)).sets) :
-  map f (@nhds α (induced f t) a) = nhds (f a) :=
-by rw [nhds_induced_eq_comap, filter.map_comap h]
-
-lemma closure_induced [t : topological_space β] {f : α → β} {a : α} {s : set α}
-  (hf : ∀x y, f x = f y → x = y) :
-  a ∈ @closure α (topological_space.induced f t) s ↔ f a ∈ closure (f '' s) :=
-have comap f (nhds (f a) ⊓ principal (f '' s)) ≠ ⊥ ↔ nhds (f a) ⊓ principal (f '' s) ≠ ⊥,
-  from ⟨assume h₁ h₂, h₁ $ h₂.symm ▸ comap_bot,
-    assume h,
-    forall_sets_neq_empty_iff_neq_bot.mp $
-      assume s₁ ⟨s₂, hs₂, (hs : f ⁻¹' s₂ ⊆ s₁)⟩,
-      have f '' s ∈ (nhds (f a) ⊓ principal (f '' s)).sets,
-        from mem_inf_sets_of_right $ by simp [subset.refl],
-      have s₂ ∩ f '' s ∈ (nhds (f a) ⊓ principal (f '' s)).sets,
-        from inter_mem_sets hs₂ this,
-      let ⟨b, hb₁, ⟨a, ha, ha₂⟩⟩ := inhabited_of_mem_sets h this in
-      ne_empty_of_mem $ hs $ by rwa [←ha₂] at hb₁⟩,
-calc a ∈ @closure α (topological_space.induced f t) s
-    ↔ (@nhds α (topological_space.induced f t) a) ⊓ principal s ≠ ⊥ : by rw [closure_eq_nhds]; refl
-  ... ↔ comap f (nhds (f a)) ⊓ principal (f ⁻¹' (f '' s)) ≠ ⊥ : by rw [nhds_induced_eq_comap, preimage_image_eq _ hf]
-  ... ↔ comap f (nhds (f a) ⊓ principal (f '' s)) ≠ ⊥ : by rw [comap_inf, ←comap_principal]
-  ... ↔ _ : by rwa [closure_eq_nhds]
-
-end induced
-
-section embedding
-
-/-- A function between topological spaces is an embedding if it is injective,
-  and for all `s : set α`, `s` is open iff it is the preimage of an open set. -/
-def embedding [tα : topological_space α] [tβ : topological_space β] (f : α → β) : Prop :=
-function.injective f ∧ tα = tβ.induced f
-
-variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
-
-lemma embedding_id : embedding (@id α) :=
-⟨assume a₁ a₂ h, h, induced_id.symm⟩
-
-lemma embedding_compose {f : α → β} {g : β → γ} (hf : embedding f) (hg : embedding g) :
-  embedding (g ∘ f) :=
-⟨assume a₁ a₂ h, hf.left $ hg.left h, by rw [hf.right, hg.right, induced_compose]⟩
-
-lemma embedding_prod_mk {f : α → β} {g : γ → δ} (hf : embedding f) (hg : embedding g) :
-  embedding (λx:α×γ, (f x.1, g x.2)) :=
-⟨assume ⟨x₁, x₂⟩ ⟨y₁, y₂⟩, by simp; exact assume h₁ h₂, ⟨hf.left h₁, hg.left h₂⟩,
-  by rw [prod.topological_space, prod.topological_space, hf.right, hg.right,
-         induced_compose, induced_compose, induced_sup, induced_compose, induced_compose]⟩
-
-lemma embedding_of_embedding_compose {f : α → β} {g : β → γ} (hf : continuous f) (hg : continuous g)
-  (hgf : embedding (g ∘ f)) : embedding f :=
-⟨assume a₁ a₂ h, hgf.left $ by simp [h, (∘)],
-  le_antisymm
-    (by rw [hgf.right, ← continuous_iff_induced_le];
-        apply continuous_induced_dom.comp hg)
-    (by rwa ← continuous_iff_induced_le)⟩
-
-lemma embedding_open {f : α → β} {s : set α}
-  (hf : embedding f) (h : is_open (range f)) (hs : is_open s) : is_open (f '' s) :=
-let ⟨t, ht, h_eq⟩ := by rw [hf.right] at hs; exact hs in
-have is_open (t ∩ range f), from is_open_inter ht h,
-h_eq ▸ by rwa [image_preimage_eq_inter_range]
-
-lemma embedding_is_closed {f : α → β} {s : set α}
-  (hf : embedding f) (h : is_closed (range f)) (hs : is_closed s) : is_closed (f '' s) :=
-let ⟨t, ht, h_eq⟩ := by rw [hf.right, is_closed_induced_iff] at hs; exact hs in
-have is_closed (t ∩ range f), from is_closed_inter ht h,
-h_eq.symm ▸ by rwa [image_preimage_eq_inter_range]
-
-lemma embedding.map_nhds_eq [topological_space α] [topological_space β] {f : α → β}
-  (hf : embedding f) (a : α) (h : range f ∈ (nhds (f a)).sets) : (nhds a).map f = nhds (f a) :=
-by rw [hf.2]; exact map_nhds_induced_eq h
-
-lemma embedding.tendsto_nhds_iff {ι : Type*}
-  {f : ι → β} {g : β → γ} {a : filter ι} {b : β} (hg : embedding g) :
-  tendsto f a (nhds b) ↔ tendsto (g ∘ f) a (nhds (g b)) :=
-by rw [tendsto, tendsto, hg.right, nhds_induced_eq_comap, ← map_le_iff_le_comap, filter.map_map]
-
-lemma embedding.continuous_iff {f : α → β} {g : β → γ} (hg : embedding g) :
-  continuous f ↔ continuous (g ∘ f) :=
-by simp [continuous_iff_continuous_at, continuous_at, embedding.tendsto_nhds_iff hg]
-
-lemma embedding.continuous {f : α → β} (hf : embedding f) : continuous f :=
-hf.continuous_iff.mp continuous_id
-
-lemma compact_iff_compact_image_of_embedding {s : set α} {f : α → β} (hf : embedding f) :
-  compact s ↔ compact (f '' s) :=
-iff.intro (assume h, compact_image h hf.continuous) $ assume h, begin
-  rw compact_iff_ultrafilter_le_nhds at ⊢ h,
-  intros u hu us',
-  let u' : filter β := map f u,
-  have : u' ≤ principal (f '' s), begin
-    rw [map_le_iff_le_comap, comap_principal], convert us',
-    exact preimage_image_eq _ hf.1
-  end,
-  rcases h u' (ultrafilter_map hu) this with ⟨_, ⟨a, ha, ⟨⟩⟩, _⟩,
-  refine ⟨a, ha, _⟩,
-  rwa [hf.2, nhds_induced_eq_comap, ←map_le_iff_le_comap]
-end
-
-lemma embedding.closure_eq_preimage_closure_image {e : α → β} (he : embedding e) (s : set α) :
-  closure s = e ⁻¹' closure (e '' s) :=
-by ext x; rw [set.mem_preimage_eq, ← closure_induced he.1, he.2]
-
-end embedding
-
-/-- A function between topological spaces is a quotient map if it is surjective,
-  and for all `s : set β`, `s` is open iff its preimage is an open set. -/
-def quotient_map [tα : topological_space α] [tβ : topological_space β] (f : α → β) : Prop :=
-function.surjective f ∧ tβ = tα.coinduced f
-
-namespace quotient_map
-variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
-
-protected lemma id : quotient_map (@id α) :=
-⟨assume a, ⟨a, rfl⟩, coinduced_id.symm⟩
-
-protected lemma comp {f : α → β} {g : β → γ} (hf : quotient_map f) (hg : quotient_map g) :
-  quotient_map (g ∘ f) :=
-⟨function.surjective_comp hg.left hf.left, by rw [hg.right, hf.right, coinduced_compose]⟩
-
-protected lemma of_quotient_map_compose {f : α → β} {g : β → γ}
-  (hf : continuous f) (hg : continuous g)
-  (hgf : quotient_map (g ∘ f)) : quotient_map g :=
-⟨assume b, let ⟨a, h⟩ := hgf.left b in ⟨f a, h⟩,
-  le_antisymm
-    (by rwa ← continuous_iff_le_coinduced)
-    (by rw [hgf.right, ← continuous_iff_le_coinduced];
-        apply hf.comp continuous_coinduced_rng)⟩
-
-protected lemma continuous_iff {f : α → β} {g : β → γ} (hf : quotient_map f) :
-  continuous g ↔ continuous (g ∘ f) :=
-by rw [continuous_iff_le_coinduced, continuous_iff_le_coinduced, hf.right, coinduced_compose]
-
-protected lemma continuous {f : α → β} (hf : quotient_map f) : continuous f :=
-hf.continuous_iff.mp continuous_id
-
-end quotient_map
-
-section is_open_map
-variables [topological_space α] [topological_space β]
-
-def is_open_map (f : α → β) := ∀ U : set α, is_open U → is_open (f '' U)
-
-lemma is_open_map_iff_nhds_le (f : α → β) : is_open_map f ↔ ∀(a:α), nhds (f a) ≤ (nhds a).map f :=
-begin
-  split,
-  { assume h a s hs,
-    rcases mem_nhds_sets_iff.1 hs with ⟨t, hts, ht, hat⟩,
-    exact filter.mem_sets_of_superset
-      (mem_nhds_sets (h t ht) (mem_image_of_mem _ hat))
-      (image_subset_iff.2 hts) },
-  { refine assume h s hs, is_open_iff_mem_nhds.2 _,
-    rintros b ⟨a, ha, rfl⟩,
-    exact h _ (filter.image_mem_map $ mem_nhds_sets hs ha) }
-end
-
-end is_open_map
-
-namespace is_open_map
-variables [topological_space α] [topological_space β] [topological_space γ]
-open function
-
-protected lemma id : is_open_map (@id α) := assume s hs, by rwa [image_id]
-
-protected lemma comp
-  {f : α → β} {g : β → γ} (hf : is_open_map f) (hg : is_open_map g) : is_open_map (g ∘ f) :=
-by intros s hs; rw [image_comp]; exact hg _ (hf _ hs)
-
-lemma of_inverse {f : α → β} {f' : β → α}
-  (h : continuous f') (l_inv : left_inverse f f') (r_inv : right_inverse f f') :
-  is_open_map f :=
-assume s hs,
-have f' ⁻¹' s = f '' s, by ext x; simp [mem_image_iff_of_inverse r_inv l_inv],
-this ▸ h s hs
-
-lemma to_quotient_map {f : α → β}
-  (open_map : is_open_map f) (cont : continuous f) (surj : function.surjective f) :
-  quotient_map f :=
-⟨ surj,
-  begin
-    ext s,
-    show is_open s ↔ is_open (f ⁻¹' s),
-    split,
-    { exact cont s },
-    { assume h,
-      rw ← @image_preimage_eq _ _ _ s surj,
-      exact open_map _ h }
-  end⟩
-
-end is_open_map
-
-section sierpinski
-variables [topological_space α]
-
-@[simp] lemma is_open_singleton_true : is_open ({true} : set Prop) :=
-topological_space.generate_open.basic _ (by simp)
-
-lemma continuous_Prop {p : α → Prop} : continuous p ↔ is_open {x | p x} :=
-⟨assume h : continuous p,
-  have is_open (p ⁻¹' {true}),
-    from h _ is_open_singleton_true,
-  by simp [preimage, eq_true] at this; assumption,
-  assume h : is_open {x | p x},
-  continuous_generated_from $ assume s (hs : s ∈ {{true}}),
-    by simp at hs; simp [hs, preimage, eq_true, h]⟩
-
-end sierpinski
 
 section prod
 open topological_space
@@ -571,7 +43,7 @@ instance [topological_space α] [discrete_topology α] [topological_space β] [d
   by rw [nhds_prod_eq, nhds_discrete α, nhds_discrete β, nhds_top, filter.prod_pure_pure]⟩
 
 lemma prod_mem_nhds_sets {s : set α} {t : set β} {a : α} {b : β}
-  (ha : s ∈ (nhds a).sets) (hb : t ∈ (nhds b).sets) : set.prod s t ∈ (nhds (a, b)).sets :=
+  (ha : s ∈ nhds a) (hb : t ∈ nhds b) : set.prod s t ∈ nhds (a, b) :=
 by rw [nhds_prod_eq]; exact prod_mem_prod ha hb
 
 lemma nhds_swap (a : α) (b : β) : nhds (a, b) = (nhds (b, a)).map prod.swap :=
@@ -731,6 +203,8 @@ is_closed_iff_nhds.mpr $ assume ⟨a₁, a₂⟩ h, eq_of_nhds_neq_bot $ assume 
   let ⟨t₁, ht₁, t₂, ht₂, (h' : t₁ ∩ t₂ ⊆ ∅)⟩ :=
     by rw [←empty_in_sets_eq_bot, mem_inf_sets] at this; exact this in
   begin
+    change t₁ ∈ nhds a₁ at ht₁,
+    change t₂ ∈ nhds a₂ at ht₂,
     rw [nhds_prod_eq, ←empty_in_sets_eq_bot],
     apply filter.sets_of_superset,
     apply inter_mem_inf_sets (prod_mem_prod ht₁ ht₂) (mem_principal_sets.mpr (subset.refl _)),
@@ -768,7 +242,7 @@ is_open_compl_iff.mpr $ is_open_iff_forall_mem_open.mpr $ assume x hx,
 ⟨v, this, vo, by simpa using xv⟩
 
 lemma locally_compact_of_compact_nhds [topological_space α] [t2_space α]
-  (h : ∀ x : α, ∃ s, s ∈ (nhds x).sets ∧ compact s) :
+  (h : ∀ x : α, ∃ s, s ∈ nhds x ∧ compact s) :
   locally_compact_space α :=
 ⟨assume x n hn,
   let ⟨u, un, uo, xu⟩ := mem_nhds_sets_iff.mp hn in
@@ -780,7 +254,7 @@ lemma locally_compact_of_compact_nhds [topological_space α] [t2_space α]
   let ⟨v, w, vo, wo, xv, kuw, vw⟩ :=
     compact_compact_separated compact_singleton (compact_diff kc uo)
       (by rw [singleton_inter_eq_empty]; exact λ h, h.2 xu) in
-  have wn : -w ∈ (nhds x).sets, from
+  have wn : -w ∈ nhds x, from
    mem_nhds_sets_iff.mpr
      ⟨v, subset_compl_iff_disjoint.mpr vw, vo, singleton_subset_iff.mp xv⟩,
   ⟨k - w,
@@ -914,11 +388,14 @@ lemma continuous_subtype_mk {f : β → α}
   (hp : ∀x, p (f x)) (h : continuous f) : continuous (λx, (⟨f x, hp x⟩ : subtype p)) :=
 continuous_induced_rng h
 
+lemma continuous_inclusion {s t : set α} (h : s ⊆ t) : continuous (inclusion h) := 
+continuous_subtype_mk _ continuous_subtype_val
+
 lemma continuous_at_subtype_val [topological_space α] {p : α → Prop} {a : subtype p} :
   continuous_at subtype.val a :=
 continuous_iff_continuous_at.mp continuous_subtype_val _
 
-lemma map_nhds_subtype_val_eq {a : α} (ha : p a) (h : {a | p a} ∈ (nhds a).sets) :
+lemma map_nhds_subtype_val_eq {a : α} (ha : p a) (h : {a | p a} ∈ nhds a) :
   map (@subtype.val α p) (nhds ⟨a, ha⟩) = nhds a :=
 map_nhds_induced_eq (by simp [subtype.val_image, h])
 
@@ -931,11 +408,11 @@ lemma tendsto_subtype_rng [topological_space α] {p : α → Prop} {b : filter �
 | ⟨a, ha⟩ := by rw [nhds_subtype_eq_comap, tendsto_comap_iff]
 
 lemma continuous_subtype_nhds_cover {ι : Sort*} {f : α → β} {c : ι → α → Prop}
-  (c_cover : ∀x:α, ∃i, {x | c i x} ∈ (nhds x).sets)
+  (c_cover : ∀x:α, ∃i, {x | c i x} ∈ nhds x)
   (f_cont  : ∀i, continuous (λ(x : subtype (c i)), f x.val)) :
   continuous f :=
 continuous_iff_continuous_at.mpr $ assume x,
-  let ⟨i, (c_sets : {x | c i x} ∈ (nhds x).sets)⟩ := c_cover x in
+  let ⟨i, (c_sets : {x | c i x} ∈ nhds x)⟩ := c_cover x in
   let x' : subtype (c i) := ⟨x, mem_of_nhds c_sets⟩ in
   calc map f (nhds x) = map f (map subtype.val (nhds x')) :
       congr_arg (map f) (map_nhds_subtype_val_eq _ $ c_sets).symm
@@ -972,6 +449,21 @@ continuous_iff_is_closed.mpr $
 lemma closure_subtype {x : {a // p a}} {s : set {a // p a}}:
   x ∈ closure s ↔ x.val ∈ closure (subtype.val '' s) :=
 closure_induced $ assume x y, subtype.eq
+
+lemma compact_iff_compact_image_of_embedding {s : set α} {f : α → β} (hf : embedding f) :
+  compact s ↔ compact (f '' s) :=
+iff.intro (assume h, compact_image h hf.continuous) $ assume h, begin
+  rw compact_iff_ultrafilter_le_nhds at ⊢ h,
+  intros u hu us',
+  let u' : filter β := map f u,
+  have : u' ≤ principal (f '' s), begin
+    rw [map_le_iff_le_comap, comap_principal], convert us',
+    exact preimage_image_eq _ hf.1
+  end,
+  rcases h u' (ultrafilter_map hu) this with ⟨_, ⟨a, ha, ⟨⟩⟩, _⟩,
+  refine ⟨a, ha, _⟩,
+  rwa [hf.2, nhds_induced_eq_comap, ←map_le_iff_le_comap]
+end
 
 lemma compact_iff_compact_in_subtype {s : set {a // p a}} :
   compact s ↔ compact (subtype.val '' s) :=
@@ -1275,182 +767,6 @@ continuous_iff_continuous_at.mpr $ assume ⟨a, l⟩, continuous_at_remove_nth
 
 end vector
 
--- TODO: use embeddings from above!
-structure dense_embedding [topological_space α] [topological_space β] (e : α → β) : Prop :=
-(dense   : ∀x, x ∈ closure (range e))
-(inj     : function.injective e)
-(induced : ∀a, comap e (nhds (e a)) = nhds a)
-
-theorem dense_embedding.mk'
-  [topological_space α] [topological_space β] (e : α → β)
-  (c     : continuous e)
-  (dense : ∀x, x ∈ closure (range e))
-  (inj   : function.injective e)
-  (H     : ∀ (a:α) s ∈ (nhds a).sets,
-    ∃t ∈ (nhds (e a)).sets, ∀ b, e b ∈ t → b ∈ s) :
-  dense_embedding e :=
-⟨dense, inj, λ a, le_antisymm
-  (by simpa [le_def] using H a)
-  (tendsto_iff_comap.1 $ c.tendsto _)⟩
-
-namespace dense_embedding
-variables [topological_space α] [topological_space β]
-variables {e : α → β} (de : dense_embedding e)
-
-protected lemma embedding (de : dense_embedding e) : embedding e :=
-⟨de.inj, eq_of_nhds_eq_nhds begin intro a, rw [← de.induced a, nhds_induced_eq_comap] end⟩
-
-protected lemma continuous_at (de : dense_embedding e) {a : α} : continuous_at e a :=
-by rw [continuous_at, ←de.induced a]; exact tendsto_comap
-
-protected lemma continuous (de : dense_embedding e) {a : α} : continuous e :=
-continuous_iff_continuous_at.mpr $ λ a, de.continuous_at
-
-lemma inj_iff (de : dense_embedding e) {x y} : e x = e y ↔ x = y := de.inj.eq_iff
-
-lemma closure_range : closure (range e) = univ :=
-let h := de.dense in
-set.ext $ assume x, ⟨assume _, trivial, assume _, @h x⟩
-
-lemma self_sub_closure_image_preimage_of_open {s : set β} (de : dense_embedding e) :
-  is_open s → s ⊆ closure (e '' (e ⁻¹' s)) :=
-begin
-  intros s_op b b_in_s,
-  rw [image_preimage_eq_inter_range, mem_closure_iff],
-  intros U U_op b_in,
-  rw ←inter_assoc,
-  have ne_e : U ∩ s ≠ ∅ := ne_empty_of_mem ⟨b_in, b_in_s⟩,
-  exact (dense_iff_inter_open.1 de.closure_range) _ (is_open_inter U_op s_op) ne_e
-end
-
-lemma closure_image_nhds_of_nhds {s : set α} {a : α} (de : dense_embedding e) :
-  s ∈ (nhds a).sets → closure (e '' s) ∈ (nhds (e a)).sets :=
-begin
-  rw [← de.induced a, mem_comap_sets],
-  intro h,
-  rcases h with ⟨t, t_nhd, sub⟩,
-  rw mem_nhds_sets_iff at t_nhd,
-  rcases t_nhd with ⟨U, U_sub, ⟨U_op, e_a_in_U⟩⟩,
-  have := calc e ⁻¹' U ⊆ e⁻¹' t : preimage_mono U_sub
-                   ... ⊆ s      : sub,
-  have := calc U ⊆ closure (e '' (e ⁻¹' U)) : self_sub_closure_image_preimage_of_open de U_op
-             ... ⊆ closure (e '' s)         : closure_mono (image_subset e this),
-  have U_nhd : U ∈ (nhds (e a)).sets := mem_nhds_sets U_op e_a_in_U,
-  exact (nhds (e a)).sets_of_superset U_nhd this
-end
-
-variables [topological_space δ] {f : γ → α} {g : γ → δ} {h : δ → β}
-/--
- γ -f→ α
-g↓     ↓e
- δ -h→ β
--/
-lemma tendsto_comap_nhds_nhds  {d : δ} {a : α} (de : dense_embedding e) (H : tendsto h (nhds d) (nhds (e a)))
-  (comm : h ∘ g = e ∘ f) : tendsto f (comap g (nhds d)) (nhds a) :=
-begin
-  have lim1 : map g (comap g (nhds d)) ≤ nhds d := map_comap_le,
-  replace lim1 : map h (map g (comap g (nhds d))) ≤ map h (nhds d) := map_mono lim1,
-  rw [filter.map_map, comm, ← filter.map_map, map_le_iff_le_comap] at lim1,
-  have lim2 :  comap e (map h (nhds d)) ≤  comap e  (nhds (e a)) := comap_mono H,
-  rw de.induced at lim2,
-  exact le_trans lim1 lim2,
-end
-
-protected lemma nhds_inf_neq_bot (de : dense_embedding e) {b : β} : nhds b ⊓ principal (range e) ≠ ⊥ :=
-begin
-  have h := de.dense,
-  simp [closure_eq_nhds] at h,
-  exact h _
-end
-
-lemma comap_nhds_neq_bot (de : dense_embedding e) {b : β} : comap e (nhds b) ≠ ⊥ :=
-forall_sets_neq_empty_iff_neq_bot.mp $
-assume s ⟨t, ht, (hs : e ⁻¹' t ⊆ s)⟩,
-have t ∩ range e ∈ (nhds b ⊓ principal (range e)).sets,
-  from inter_mem_inf_sets ht (subset.refl _),
-let ⟨_, ⟨hx₁, y, rfl⟩⟩ := inhabited_of_mem_sets de.nhds_inf_neq_bot this in
-subset_ne_empty hs $ ne_empty_of_mem hx₁
-
-variables [topological_space γ]
-/-- If `e : α → β` is a dense embedding, then any function `α → γ` extends to a function `β → γ`.
-It only extends the parts of `β` which are not mapped by `e`, everything else equal to `f (e a)`.
-This allows us to gain equality even if `γ` is not T2. -/
-def extend (de : dense_embedding e) (f : α → γ) (b : β) : γ :=
-have nonempty γ, from
-  let ⟨_, ⟨_, a, _⟩⟩ := exists_mem_of_ne_empty (mem_closure_iff.1 (de.dense b) _ is_open_univ trivial) in
-  ⟨f a⟩,
-if hb : b ∈ range e
-then f (classical.some hb)
-else @lim _ (classical.inhabited_of_nonempty this) _ (map f (comap e (nhds b)))
-
-lemma extend_e_eq {f : α → γ} (a : α) : de.extend f (e a) = f a :=
-have e a ∈ range e := ⟨a, rfl⟩,
-begin
-  simp [extend, this],
-  congr,
-  refine classical.some_spec2 (λx, x = a) _,
-  exact assume a h, de.inj h
-end
-
-lemma extend_eq [t2_space γ] {b : β} {c : γ} {f : α → γ} (hf : map f (comap e (nhds b)) ≤ nhds c) :
-  de.extend f b = c :=
-begin
-  by_cases hb : b ∈ range e,
-  { rcases hb with ⟨a, rfl⟩,
-    rw [extend_e_eq],
-    have f_a_c : tendsto f (pure a) (nhds c),
-    { rw [de.induced] at hf,
-      refine le_trans (map_mono _) hf,
-      exact pure_le_nhds a },
-    have f_a_fa : tendsto f (pure a) (nhds (f a)),
-    { rw [tendsto, filter.map_pure], exact pure_le_nhds _  },
-    exact tendsto_nhds_unique pure_neq_bot f_a_fa f_a_c },
-  { simp [extend, hb],
-    exact @lim_eq _ (id _) _ _ _ _ (by simp; exact comap_nhds_neq_bot de) hf }
-end
-
-lemma tendsto_extend [regular_space γ] {b : β} {f : α → γ} (de : dense_embedding e)
-  (hf : {b | ∃c, tendsto f (comap e $ nhds b) (nhds c)} ∈ (nhds b).sets) :
-  tendsto (de.extend f) (nhds b) (nhds (de.extend f b)) :=
-let φ := {b | tendsto f (comap e $ nhds b) (nhds $ de.extend f b)} in
-have hφ : φ ∈ (nhds b).sets,
-  from (nhds b).sets_of_superset hf $ assume b ⟨c, hc⟩,
-    show tendsto f (comap e (nhds b)) (nhds (de.extend f b)), from (de.extend_eq hc).symm ▸ hc,
-assume s hs,
-let ⟨s'', hs''₁, hs''₂, hs''₃⟩ := nhds_is_closed hs in
-let ⟨s', hs'₁, (hs'₂ : e ⁻¹' s' ⊆ f ⁻¹' s'')⟩ := mem_of_nhds hφ hs''₁ in
-let ⟨t, (ht₁ : t ⊆ φ ∩ s'), ht₂, ht₃⟩ := mem_nhds_sets_iff.mp $ inter_mem_sets hφ hs'₁ in
-have h₁ : closure (f '' (e ⁻¹' s')) ⊆ s'',
-  by rw [closure_subset_iff_subset_of_is_closed hs''₃, image_subset_iff]; exact hs'₂,
-have h₂ : t ⊆ de.extend f ⁻¹' closure (f '' (e ⁻¹' t)), from
-  assume b' hb',
-  have nhds b' ≤ principal t, by simp; exact mem_nhds_sets ht₂ hb',
-  have map f (comap e (nhds b')) ≤ nhds (de.extend f b') ⊓ principal (f '' (e ⁻¹' t)),
-    from calc _ ≤ map f (comap e (nhds b' ⊓ principal t)) : map_mono $ comap_mono $ le_inf (le_refl _) this
-      ... ≤ map f (comap e (nhds b')) ⊓ map f (comap e (principal t)) :
-        le_inf (map_mono $ comap_mono $ inf_le_left) (map_mono $ comap_mono $ inf_le_right)
-      ... ≤ map f (comap e (nhds b')) ⊓ principal (f '' (e ⁻¹' t)) : by simp [le_refl]
-      ... ≤ _ : inf_le_inf ((ht₁ hb').left) (le_refl _),
-  show de.extend f b' ∈ closure (f '' (e ⁻¹' t)),
-  begin
-    rw [closure_eq_nhds],
-    apply neq_bot_of_le_neq_bot _ this,
-    simp,
-    exact de.comap_nhds_neq_bot
-  end,
-(nhds b).sets_of_superset
-  (show t ∈ (nhds b).sets, from mem_nhds_sets ht₂ ht₃)
-  (calc t ⊆ de.extend f ⁻¹' closure (f '' (e ⁻¹' t)) : h₂
-    ... ⊆ de.extend f ⁻¹' closure (f '' (e ⁻¹' s')) :
-      preimage_mono $ closure_mono $ image_subset f $ preimage_mono $ subset.trans ht₁ $ inter_subset_right _ _
-    ... ⊆ de.extend f ⁻¹' s'' : preimage_mono h₁
-    ... ⊆ de.extend f ⁻¹' s : preimage_mono hs''₂)
-
-lemma continuous_extend [regular_space γ] {f : α → γ} (de : dense_embedding e)
-  (hf : ∀b, ∃c, tendsto f (comap e (nhds b)) (nhds c)) : continuous (de.extend f) :=
-continuous_iff_continuous_at.mpr $ assume b, de.tendsto_extend $ univ_mem_sets' hf
-
-end dense_embedding
 
 namespace dense_embedding
 variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
@@ -1604,11 +920,11 @@ lemma compact_preimage {s : set β} (h : α ≃ₜ β) : compact (h ⁻¹' s) �
 by rw ← image_symm; exact h.symm.compact_image
 
 protected lemma embedding (h : α ≃ₜ β) : embedding h :=
-⟨h.to_equiv.bijective.1, h.induced_eq.symm⟩
+⟨h.to_equiv.injective, h.induced_eq.symm⟩
 
 protected lemma dense_embedding (h : α ≃ₜ β) : dense_embedding h :=
 { dense   := assume a, by rw [h.range_coe, closure_univ]; trivial,
-  inj     := h.to_equiv.bijective.1,
+  inj     := h.to_equiv.injective,
   induced := assume a, by rw [← nhds_induced_eq_comap, h.induced_eq] }
 
 protected lemma is_open_map (h : α ≃ₜ β) : is_open_map h :=
@@ -1619,7 +935,7 @@ begin
 end
 
 protected lemma quotient_map (h : α ≃ₜ β) : quotient_map h :=
-⟨h.to_equiv.bijective.2, h.coinduced_eq.symm⟩
+⟨h.to_equiv.surjective, h.coinduced_eq.symm⟩
 
 def prod_congr (h₁ : α ≃ₜ β) (h₂ : γ ≃ₜ δ) : (α × γ) ≃ₜ (β × δ) :=
 { continuous_to_fun  :=

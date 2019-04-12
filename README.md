@@ -1,6 +1,11 @@
 # mathlib
 
 [![Build Status](https://travis-ci.org/leanprover-community/mathlib.svg?branch=master)](https://travis-ci.org/leanprover-community/mathlib)
+[![Mergify Status][mergify-status]][mergify]
+
+[mergify]: https://mergify.io
+[mergify-status]: https://gh.mergify.io/badges/leanprover-community/mathlib.png?style=cut
+[![Build status](https://ci.appveyor.com/api/projects/status/y0dfsknx5h4iq7pj/branch/master?svg=true)](https://ci.appveyor.com/project/cipher1024/mathlib/branch/master)
 
 ## Lean standard library
 
@@ -25,14 +30,16 @@ not specific to mathlib.
 
 ### Install the `update-mathlib` script
 
-*Linux/OS X/Cygwin/MSYS2/git bash*: run the following command in a terminal:
+Two options are avaiblable to install `update-mathlib`:
+
+ * *Linux/OS X/Cygwin/MSYS2/git bash*: run the following command in a terminal:
 
 ``` shell
 curl https://raw.githubusercontent.com/leanprover-community/mathlib/master/scripts/remote-install-update-mathlib.sh -sSf | sh
 ```
 
-*Any platform*: in the release section of this page, download
-`mathlib-scripts-###-###-###.tar.gz`, expand it and run `setup-update-mathlib.sh`.
+ * *Any platform*: in the release section of this page, download
+`mathlib-scripts-###-###-###.tar.gz`, expand it and run `setup-dev-scripts.sh`.
 
 ### Fetch mathlib binaries
 

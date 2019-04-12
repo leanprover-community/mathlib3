@@ -66,6 +66,9 @@ instance subsingleton_pempty : subsingleton pempty := ⟨λa, a.elim⟩
 lemma congr_arg_heq {α} {β : α → Sort*} (f : ∀ a, β a) : ∀ {a₁ a₂ : α}, a₁ = a₂ → f a₁ == f a₂
 | a _ rfl := heq.rfl
 
+lemma plift.down_inj {α : Sort*} : ∀ (a b : plift α), a.down = b.down → a = b
+| ⟨a⟩ ⟨b⟩ rfl := rfl
+
 end miscellany
 
 /-
@@ -361,6 +364,8 @@ lemma rec_heq_of_heq {β} {C : α → Sort*} {x : C a} {y : β} (eq : a = b) (h 
   @eq.rec α a C x b eq == y :=
 by subst eq; exact h
 
+@[simp] lemma {u} eq_mpr_heq {α β : Sort u} (h : β = α) (x : α) : eq.mpr h x == x :=
+by subst h; refl
 end equality
 
 /-

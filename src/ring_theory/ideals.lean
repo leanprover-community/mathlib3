@@ -322,7 +322,7 @@ end
 
 /-- quotient by maximal ideal is a field. def rather than instance, since users will have
 computable inverses in some applications -/
-protected noncomputable def field (I : ideal α) [hI : I.is_maximal] : field I.quotient :=
+protected noncomputable def field (I : ideal α) [hI : I.is_maximal] : discrete_field I.quotient :=
 { inv := λ a, if ha : a = 0 then 0 else classical.some (exists_inv ha),
   mul_inv_cancel := λ a (ha : a ≠ 0), show a * dite _ _ _ = _,
     by rw dif_neg ha;
@@ -330,6 +330,8 @@ protected noncomputable def field (I : ideal α) [hI : I.is_maximal] : field I.q
   inv_mul_cancel := λ a (ha : a ≠ 0), show dite _ _ _ * a = _,
     by rw [mul_comm, dif_neg ha];
     exact classical.some_spec (exists_inv ha),
+  inv_zero := dif_pos rfl,
+  has_decidable_eq := classical.dec_eq _,
   ..quotient.integral_domain I }
 
 variable [comm_ring β]

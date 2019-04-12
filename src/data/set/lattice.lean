@@ -382,6 +382,10 @@ theorem sInter_pair (s t : set α) : ⋂₀ {s, t} = s ∩ t :=
 
 @[simp] theorem sInter_image (f : α → set β) (s : set α) : ⋂₀ (f '' s) = ⋂ x ∈ s, f x := Inf_image
 
+@[simp] theorem sUnion_range (f : ι → set β) : ⋃₀ (range f) = ⋃ x, f x := Sup_range
+
+@[simp] theorem sInter_range (f : ι → set β) : ⋂₀ (range f) = ⋂ x, f x := Inf_range
+
 theorem compl_sUnion (S : set (set α)) :
   - ⋃₀ S = ⋂₀ (compl '' S) :=
 set.ext $ assume x,
@@ -477,6 +481,50 @@ instance : complete_boolean_algebra (set α) :=
     by simp [-and_imp, and.left_comm],
   ..set.lattice_set }
 
+lemma sInter_union_sInter {S T : set (set α)} :
+  (⋂₀S) ∪ (⋂₀T) = (⋂p ∈ set.prod S T, (p : (set α) × (set α)).1 ∪ p.2) :=
+Inf_sup_Inf
+
+lemma sUnion_inter_sUnion {s t : set (set α)} :
+  (⋃₀s) ∩ (⋃₀t) = (⋃p ∈ set.prod s t, (p : (set α) × (set α )).1 ∩ p.2) :=
+Sup_inf_Sup
+
+lemma sInter_bUnion {S : set (set α)} {T : set α → set (set α)} (hT : ∀s∈S, s = ⋂₀ T s) :
+  ⋂₀ (⋃s∈S, T s) = ⋂₀ S :=
+begin
+  ext,
+  simp only [and_imp, exists_prop, set.mem_sInter, set.mem_Union, exists_imp_distrib],
+  split,
+  { assume H s sS,
+    rw [hT s sS, mem_sInter],
+    assume t tTs,
+    apply H t s sS tTs },
+  { assume H t s sS tTs,
+    have xs : x ∈ s := H s sS,
+    have : s ⊆ t,
+    { have Z := hT s sS,
+      rw sInter_eq_bInter at Z,
+      rw Z, apply bInter_subset_of_mem,
+      exact tTs },
+    exact this xs }
+end
+
+lemma sUnion_bUnion {S : set (set α)} {T : set α → set (set α)} (hT : ∀s∈S, s = ⋃₀ T s) :
+  ⋃₀ (⋃s∈S, T s) = ⋃₀ S :=
+begin
+  ext,
+  simp only [exists_prop, set.mem_Union, set.mem_set_of_eq],
+  split,
+  { rintros ⟨t, ⟨⟨s, ⟨sS, tTs⟩⟩, xt⟩⟩,
+    refine ⟨s, ⟨sS, _⟩⟩,
+    rw hT s sS,
+    exact subset_sUnion_of_mem tTs xt },
+  { rintros ⟨s, ⟨sS, xs⟩⟩,
+    rw hT s sS at xs,
+    rcases mem_sUnion.1 xs with ⟨t, tTs, xt⟩,
+    exact ⟨t, ⟨⟨s, ⟨sS, tTs⟩⟩, xt⟩⟩ }
+end
+
 @[simp] theorem sub_eq_diff (s t : set α) : s - t = s \ t := rfl
 
 section
@@ -508,6 +556,26 @@ end
 
 lemma univ_subtype {p : α → Prop} : (univ : set (subtype p)) = (⋃x (h : p x), {⟨x, h⟩})  :=
 set.ext $ assume ⟨x, h⟩, by simp [h]
+
+lemma range_eq_Union {ι} (f : ι → α) : range f = (⋃i, {f i}) :=
+set.ext $ assume a, by simp [@eq_comm α a]
+
+lemma image_eq_Union (f : α → β) (s : set α) : f '' s = (⋃i∈s, {f i}) :=
+set.ext $ assume b, by simp [@eq_comm β b]
+
+lemma bUnion_range {f : ι → α} {g : α → set β} : (⋃x ∈ range f, g x) = (⋃y, g (f y)) :=
+by rw [← sUnion_image, ← range_comp, sUnion_range]
+
+lemma bInter_range {f : ι → α} {g : α → set β} : (⋂x ∈ range f, g x) = (⋂y, g (f y)) :=
+by rw [← sInter_image, ← range_comp, sInter_range]
+
+variables {s : set γ} {f : γ → α} {g : α → set β}
+
+lemma bUnion_image : (⋃x∈ (f '' s), g x) = (⋃y ∈ s, g (f y)) :=
+by rw [← sUnion_image, ← image_comp, sUnion_image]
+
+lemma bInter_image : (⋂x∈ (f '' s), g x) = (⋂y ∈ s, g (f y)) :=
+by rw [← sInter_image, ← image_comp, sInter_image]
 
 end image
 
@@ -643,6 +711,7 @@ end set
 
 section disjoint
 variable [semilattice_inf_bot α]
+
 /-- Two elements of a lattice are disjoint if their inf is the bottom element.
   (This generalizes disjoint sets, viewed as members of the subset lattice.) -/
 def disjoint (a b : α) : Prop := a ⊓ b ≤ ⊥
@@ -673,8 +742,26 @@ disjoint_mono (le_refl _) h
 
 end disjoint
 
-theorem set.disjoint_diff {a b : set α} : disjoint a (b \ a) :=
+namespace set
+
+protected theorem disjoint_iff {s t : set α} : disjoint s t ↔ s ∩ t ⊆ ∅ := iff.refl _
+
+theorem disjoint_diff {a b : set α} : disjoint a (b \ a) :=
 disjoint_iff.2 (inter_diff_self _ _)
+
+theorem disjoint_compl (s : set α) : disjoint s (-s) := assume a ⟨h₁, h₂⟩, h₂ h₁
+
+theorem disjoint_singleton_left {a : α} {s : set α} : disjoint {a} s ↔ a ∉ s :=
+by simp [set.disjoint_iff, subset_def]; exact iff.rfl
+
+theorem disjoint_singleton_right {a : α} {s : set α} : disjoint s {a} ↔ a ∉ s :=
+by rw [disjoint.comm]; exact disjoint_singleton_left
+
+theorem disjoint_image_image {f : β → α} {g : γ → α} {s : set β} {t : set γ}
+  (h : ∀b∈s, ∀c∈t, f b ≠ g c) : disjoint (f '' s) (g '' t) :=
+by rintros a ⟨⟨b, hb, eq⟩, ⟨c, hc, rfl⟩⟩; exact h b hb c hc eq
+
+end set
 
 namespace set
 variables (t : α → set β)

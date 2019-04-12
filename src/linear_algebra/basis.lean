@@ -120,6 +120,30 @@ linear_independent_Union_of_directed
   ((directed_comp _ _ _).2 $ (directed_on_iff_directed _).1 hs)
   (by simpa using h)
 
+lemma linear_independent_Union_finite {ι : Type*} {f : ι → set β}
+  (hl : ∀i, linear_independent α (f i))
+  (hd : ∀i, ∀t:set ι, finite t → i ∉ t → disjoint (span α (f i)) (⨆i∈t, span α (f i))) :
+  linear_independent α (⋃i, f i) :=
+begin
+  classical,
+  rw [Union_eq_Union_finset f],
+  refine linear_independent_Union_of_directed (directed_of_sup _) _,
+  exact (assume t₁ t₂ ht, Union_subset_Union $ assume i, Union_subset_Union_const $ assume h, ht h),
+  assume t, rw [set.Union, ← finset.sup_eq_supr],
+  refine t.induction_on _ _,
+  { exact linear_independent_empty },
+  { rintros ⟨i⟩ s his ih,
+    rw [finset.sup_insert],
+    refine linear_independent_union (hl _) ih _,
+    rw [finset.sup_eq_supr],
+    refine disjoint_mono (le_refl _) _ (hd i _ _ his),
+    { simp only [(span_Union _).symm],
+      refine span_mono (@supr_le_supr2 (set β) _ _ _ _ _ _),
+      rintros ⟨i⟩, exact ⟨i, le_refl _⟩ },
+    { change finite (plift.up ⁻¹' s.to_set),
+      exact finite_preimage (assume i j, plift.up.inj) s.finite_to_set } }
+end
+
 section repr
 variables (hs : linear_independent α s)
 
@@ -277,6 +301,14 @@ by  rw [is_basis.repr, linear_map.range, submodule.map_comp,
 lemma is_basis.repr_supported (x) : hs.repr x ∈ lc.supported α s :=
 hs.1.repr_supported ⟨x, _⟩
 
+lemma is_basis.repr_total (x) (hx : x ∈ lc.supported α s) :
+  hs.repr (lc.total α β x) = x :=
+begin
+  rw [← hs.repr_range, linear_map.mem_range] at hx,
+  cases hx with v hv,
+  rw [← hv, hs.total_repr],
+end
+
 lemma is_basis.repr_eq_single {x} : x ∈ s → hs.repr x = finsupp.single x 1 :=
 hs.1.repr_eq_single ⟨x, _⟩
 
@@ -402,6 +434,8 @@ open submodule
 /- TODO: some of the following proofs can generalized with a zero_ne_one predicate type class
    (instead of a data containing type classs) -/
 
+set_option class.instance_max_depth 36
+
 lemma mem_span_insert_exchange : x ∈ span α (insert y s) → x ∉ span α s → y ∈ span α (insert x s) :=
 begin
   simp [mem_span_insert],
@@ -410,6 +444,8 @@ begin
   have a0 : a ≠ 0, {rintro rfl, simp * at *},
   simp [a0, smul_add, smul_smul]
 end
+
+set_option class.instance_max_depth 32
 
 lemma linear_independent_iff_not_mem_span : linear_independent α s ↔ (∀x∈s, x ∉ span α (s \ {x})) :=
 linear_independent_iff_not_smul_mem_span.trans
@@ -562,6 +598,63 @@ begin
     simpa using sub_mem p hy (fp x) },
   { refine subtype.coe_ext.2 _,
     simp [mkf, (submodule.quotient.mk_eq_zero p).2 hy] }
-end.
+end
+
+open fintype
+variables (b : set β) (h : is_basis α b)
+
+noncomputable def equiv_fun_basis [fintype b] : β ≃ (b → α) :=
+calc β ≃ lc.supported α b : (module_equiv_lc h).to_equiv
+   ... ≃ (b →₀ α)         : finsupp.restrict_support_equiv b
+   ... ≃ (b → α)          : finsupp.equiv_fun_on_fintype
+
+theorem vector_space.card_fintype [fintype α] [fintype β] : card β = (card α) ^ (card b) :=
+calc card β = card (b → α)    : card_congr (equiv_fun_basis b h)
+        ... = card α ^ card b : card_fun
+
+theorem vector_space.card_fintype' [fintype α] [fintype β] : ∃ n : ℕ, card β = (card α) ^ n :=
+let ⟨b, hb⟩ := exists_is_basis α β in ⟨card b, vector_space.card_fintype b hb⟩
 
 end vector_space
+
+namespace pi
+open set linear_map
+
+section module
+variables {ι : Type*} {φ : ι → Type*}
+variables [ring α] [∀i, add_comm_group (φ i)] [∀i, module α (φ i)] [fintype ι] [decidable_eq ι]
+
+lemma linear_independent_std_basis (s : Πi, set (φ i)) (hs : ∀i, linear_independent α (s i)) :
+  linear_independent α (⋃i, std_basis α φ i '' s i) :=
+begin
+  refine linear_independent_Union_finite _ _,
+  { assume i,
+    refine (linear_independent_image_iff _).2 (hs i),
+    simp only [ker_std_basis, disjoint_bot_right] },
+  { assume i J _ hiJ,
+    simp [(set.Union.equations._eqn_1 _).symm, submodule.span_image, submodule.span_Union],
+    have h₁ : map (std_basis α φ i) (span α (s i)) ≤ (⨆j∈({i} : set ι), range (std_basis α φ j)),
+    { exact (le_supr_of_le i $ le_supr_of_le (set.mem_singleton _) $ map_mono $ le_top) },
+    have h₂ : (⨆j∈J, map (std_basis α φ j) (span α (s j))) ≤ (⨆j∈J, range (std_basis α φ j)),
+    { exact supr_le_supr (assume i, supr_le_supr $ assume hi, map_mono $ le_top) },
+    exact disjoint_mono h₁ h₂
+      (disjoint_std_basis_std_basis _ _ _ _ $ set.disjoint_singleton_left.2 hiJ) }
+end
+
+lemma is_basis_std_basis [fintype ι] (s : Πi, set (φ i)) (hs : ∀i, is_basis α (s i)) :
+  is_basis α (⋃i, std_basis α φ i '' s i) :=
+begin
+  refine ⟨linear_independent_std_basis _ (assume i, (hs i).1), _⟩,
+  simp only [submodule.span_Union, submodule.span_image, (assume i, (hs i).2), submodule.map_top,
+    supr_range_std_basis]
+end
+
+section
+variables (α ι)
+lemma is_basis_fun [fintype ι] : is_basis α (⋃i, std_basis α (λi:ι, α) i '' {1}) :=
+is_basis_std_basis _ (assume i, is_basis_singleton_one _)
+end
+
+end module
+
+end pi

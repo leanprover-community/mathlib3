@@ -115,11 +115,17 @@ by rw [val_cast_nat, nat.mod_eq_of_lt h]
 @[simp] lemma cast_mod_nat (n : ℕ+) (a : ℕ) : ((a % n : ℕ) : zmod n) = a :=
 by conv {to_rhs, rw ← nat.mod_add_div a n}; simp
 
+@[simp] lemma cast_mod_nat' {n : ℕ} (hn : 0 < n) (a : ℕ) : ((a % n : ℕ) : zmod ⟨n, hn⟩) = a :=
+cast_mod_nat _ _
+
 @[simp] lemma cast_val {n : ℕ+} (a : zmod n) : (a.val : zmod n) = a :=
 by cases a; simp [mk_eq_cast]
 
 @[simp] lemma cast_mod_int (n : ℕ+) (a : ℤ) : ((a % (n : ℕ) : ℤ) : zmod n) = a :=
 by conv {to_rhs, rw ← int.mod_add_div a n}; simp
+
+@[simp] lemma cast_mod_int' {n : ℕ} (hn : 0 < n) (a : ℤ) :
+  ((a % (n : ℕ) : ℤ) : zmod ⟨n, hn⟩) = a := cast_mod_int _ _
 
 lemma val_cast_int {n : ℕ+} (a : ℤ) : (a : zmod n).val = (a % (n : ℕ)).nat_abs :=
 have h : nat_abs (a % (n : ℕ)) < n := int.coe_nat_lt.1 begin
@@ -140,6 +146,9 @@ lemma eq_iff_modeq_nat {n : ℕ+} {a b : ℕ} : (a : zmod n) = b ↔ a ≡ b [MO
   rwa [val_cast_nat, val_cast_nat] at this,
 λ h, fin.eq_of_veq $ by rwa [val_cast_nat, val_cast_nat]⟩
 
+lemma eq_iff_modeq_nat' {n : ℕ} (hn : 0 < n) {a b : ℕ} : (a : zmod ⟨n, hn⟩) = b ↔ a ≡ b [MOD n] :=
+eq_iff_modeq_nat
+
 lemma eq_iff_modeq_int {n : ℕ+} {a b : ℤ} : (a : zmod n) = b ↔ a ≡ b [ZMOD (n : ℕ)] :=
 ⟨λ h, by have := fin.veq_of_eq h;
   rwa [val_cast_int, val_cast_int, ← int.coe_nat_eq_coe_nat_iff,
@@ -147,6 +156,9 @@ lemma eq_iff_modeq_int {n : ℕ+} {a b : ℤ} : (a : zmod n) = b ↔ a ≡ b [ZM
     nat_abs_of_nonneg (int.mod_nonneg _ (int.coe_nat_ne_zero_iff_pos.2 n.pos))] at this,
 λ h : a % (n : ℕ) = b % (n : ℕ),
   by rw [← cast_mod_int n a, ← cast_mod_int n b, h]⟩
+
+lemma eq_iff_modeq_int' {n : ℕ} (hn : 0 < n) {a b : ℤ} :
+  (a : zmod ⟨n, hn⟩) = b ↔ a ≡ b [ZMOD (n : ℕ)] := eq_iff_modeq_int
 
 lemma eq_zero_iff_dvd_nat {n : ℕ+} {a : ℕ} : (a : zmod n) = 0 ↔ (n : ℕ) ∣ a :=
 by rw [← @nat.cast_zero (zmod n), eq_iff_modeq_nat, nat.modeq.modeq_zero_iff]
@@ -214,6 +226,13 @@ def units_equiv_coprime {n : ℕ+} : units (zmod n) ≃ {x : zmod n // nat.copri
     ⟨x.1, gcd_a x.1.1 n, this, by simpa [mul_comm] using this⟩,
   left_inv := λ ⟨_, _, _, _⟩, units.ext rfl,
   right_inv := λ ⟨_, _⟩, rfl }
+
+section
+variables {α : Type*} [has_zero α] [has_one α] [has_add α] {n : ℕ+}
+
+def cast : zmod n → α := nat.cast ∘ fin.val
+
+end
 
 end zmod
 

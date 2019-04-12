@@ -861,7 +861,7 @@ associated with `α`. This means that the measure of the complementary of `p` is
 
 In a probability measure, the measure of `p` is `1`, when `p` is measurable.
 -/
-def all_ae (p : α → Prop) : Prop := { a | p a } ∈ (@measure_space.μ α _).a_e.sets
+def all_ae (p : α → Prop) : Prop := { a | p a } ∈ (@measure_space.μ α _).a_e
 
 notation `∀ₘ` binders `, ` r:(scoped P, all_ae P) := r
 

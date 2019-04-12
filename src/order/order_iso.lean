@@ -224,10 +224,10 @@ rfl
 @[simp] theorem trans_apply : ∀ (f : r ≃o s) (g : s ≃o t) (a : α), (f.trans g) a = g (f a)
 | ⟨f₁, o₁⟩ ⟨f₂, o₂⟩ a := equiv.trans_apply _ _ _
 
-@[simp] theorem apply_inverse_apply : ∀ (e : r ≃o s) (x : β), e (e.symm x) = x
+@[simp] theorem apply_symm_apply : ∀ (e : r ≃o s) (x : β), e (e.symm x) = x
 | ⟨f₁, o₁⟩ x := by simp
 
-@[simp] theorem inverse_apply_apply : ∀ (e : r ≃o s) (x : α), e.symm (e x) = x
+@[simp] theorem symm_apply_apply : ∀ (e : r ≃o s) (x : α), e.symm (e x) = x
 | ⟨f₁, o₁⟩ x := by simp
 
 /-- Any equivalence lifts to an order isomorphism between `s` and its preimage. -/
@@ -261,7 +261,7 @@ theorem prod_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
   { generalize e : f b₁ = fb₁,
     intro h, cases h with _ _ _ _ h _ _ _ h,
     { subst e, left, exact hf.2 h },
-    { have := f.bijective.1 e, subst b₁,
+    { have := f.injective e, subst b₁,
       right, exact hg.2 h } }
 end⟩
 

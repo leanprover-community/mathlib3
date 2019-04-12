@@ -24,6 +24,23 @@ def split_at : ℕ → list α → list α × list α
 | (succ n) []        := ([], [])
 | (succ n) (x :: xs) := let (l, r) := split_at n xs in (x :: l, r)
 
+
+def split_on_p_aux {α : Type u} (P : α → Prop) [decidable_pred P] : list α → (list α → list α) → list (list α)
+| [] f       := [f []]
+| (h :: t) f :=
+  if P h then f [] :: split_on_p_aux t id
+  else split_on_p_aux t (λ l, f (h :: l))
+
+/-- Split a list at every element satisfying a predicate. -/
+def split_on_p {α : Type u} (P : α → Prop) [decidable_pred P] (l : list α) : list (list α) :=
+split_on_p_aux P l id
+
+/-- Split a list at every occurrence of an element.
+
+    [1,1,2,3,2,4,4].split_on 2 = [[1,1],[3],[4,4]] -/
+def split_on {α : Type u} [decidable_eq α] (a : α) (as : list α) : list (list α) :=
+as.split_on_p (=a)
+
 /-- Concatenate an element at the end of a list.
 
      concat [a, b] c = [a, b, c] -/

@@ -165,7 +165,7 @@ e.symm ▸ ⟨(l₁++l₂ : list α), quot.sound perm_middle⟩
 @[simp] theorem not_mem_zero (a : α) : a ∉ (0 : multiset α) := id
 
 theorem eq_zero_of_forall_not_mem {s : multiset α} : (∀x, x ∉ s) → s = 0 :=
-quot.induction_on s $ λ l H, by rw eq_nil_of_forall_not_mem H; refl
+quot.induction_on s $ λ l H, by rw eq_nil_iff_forall_not_mem.mpr H; refl
 
 theorem exists_mem_of_ne_zero {s : multiset α} : s ≠ 0 → ∃ a : α, a ∈ s :=
 quot.induction_on s $ assume l hl,
@@ -452,6 +452,8 @@ theorem le_iff_exists_add {s t : multiset α} : s ≤ t ↔ ∃ u, t = s + u :=
 instance : canonically_ordered_monoid (multiset α) :=
 { lt_of_add_lt_add_left := @lt_of_add_lt_add_left _ _,
   le_iff_exists_add     := @le_iff_exists_add _,
+  bot                   := 0,
+  bot_le                := multiset.zero_le,
   ..multiset.ordered_cancel_comm_monoid }
 
 /- repeat -/
@@ -605,7 +607,7 @@ quot.induction_on s $ λ l, rfl
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ map_append _ _ _
 
 instance (f : α → β) : is_add_monoid_hom (map f) :=
-by refine_struct {..}; simp
+{ map_add := map_add _, map_zero := map_zero _ }
 
 @[simp] theorem mem_map {f : α → β} {b : β} {s : multiset α} :
   b ∈ map f s ↔ ∃ a, a ∈ s ∧ f a = b :=
@@ -733,7 +735,13 @@ theorem prod_add [comm_monoid α] (s t : multiset α) : prod (s + t) = prod s * 
 quotient.induction_on₂ s t $ λ l₁ l₂, by simp
 
 instance sum.is_add_monoid_hom [add_comm_monoid α] : is_add_monoid_hom (sum : multiset α → α) :=
-by refine_struct {..}; simp
+{ map_add := sum_add, map_zero := sum_zero }
+
+lemma prod_smul {α : Type*} [comm_monoid α] (m : multiset α) :
+  ∀n, (add_monoid.smul n m).prod = m.prod ^ n
+| 0       := rfl
+| (n + 1) :=
+  by rw [add_monoid.add_smul, add_monoid.one_smul, _root_.pow_add, _root_.pow_one, prod_add, prod_smul n]
 
 @[simp] theorem prod_repeat [comm_monoid α] (a : α) (n : ℕ) : prod (multiset.repeat a n) = a ^ n :=
 by simp [repeat, list.prod_repeat]
@@ -784,6 +792,17 @@ lemma sum_hom [add_comm_monoid α] [add_comm_monoid β] (f : α → β) [is_add_
 multiset.induction_on s (by simp [is_add_monoid_hom.map_zero f])
   (by simp [is_add_monoid_hom.map_add f] {contextual := tt})
 attribute [to_additive multiset.sum_hom] multiset.prod_hom
+
+lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_comm_monoid β]
+  (f : α → β) (h_zero : f 0 = 0) (h_add : ∀x y, f (x + y) ≤ f x + f y) (s : multiset α) :
+  f s.sum ≤ (s.map f).sum :=
+multiset.induction_on s (le_of_eq h_zero) $
+  assume a s ih, by rw [sum_cons, map_cons, sum_cons];
+    from le_trans (h_add a s.sum) (add_le_add_left' ih)
+
+lemma abs_sum_le_sum_abs [discrete_linear_ordered_field α] {s : multiset α} :
+  abs s.sum ≤ (s.map abs).sum :=
+le_sum_of_subadditive _ abs_zero abs_add s
 
 /- join -/
 
@@ -1695,7 +1714,7 @@ quot.induction_on s $ λ l, countp_eq_length_filter _
 by simp [countp_eq_card_filter]
 
 instance countp.is_add_monoid_hom : is_add_monoid_hom (countp p : multiset α → ℕ) :=
-by refine_struct {..}; simp
+{ map_add := countp_add, map_zero := countp_zero _ }
 
 theorem countp_pos {s} : 0 < countp p s ↔ ∃ a ∈ s, p a :=
 by simp [countp_eq_card_filter, card_pos_iff_exists_mem]
@@ -1814,6 +1833,9 @@ quotient.induction_on₂ s t $ λ l₁ l₂, quotient.eq.trans perm_iff_count
 @[extensionality]
 theorem ext' {s t : multiset α} : (∀ a, count a s = count a t) → s = t :=
 ext.2
+
+@[simp] theorem coe_inter (s t : list α) : (s ∩ t : multiset α) = (s.bag_inter t : list α) :=
+by ext; simp
 
 theorem le_iff_count {s t : multiset α} : s ≤ t ↔ ∀ a, count a s ≤ count a t :=
 ⟨λ h a, count_le_of_le a h, λ al,
@@ -2298,6 +2320,10 @@ quot.induction_on s nodup_erase_dup
 theorem erase_dup_eq_self {s : multiset α} : erase_dup s = s ↔ nodup s :=
 ⟨λ e, e ▸ nodup_erase_dup s,
  quot.induction_on s $ λ l h, congr_arg coe $ erase_dup_eq_self.2 h⟩
+
+theorem erase_dup_eq_zero {s : multiset α} : erase_dup s = 0 ↔ s = 0 :=
+⟨λ h, eq_zero_of_subset_zero $ h ▸ subset_erase_dup _,
+ λ h, h.symm ▸ erase_dup_zero⟩
 
 @[simp] theorem erase_dup_singleton {a : α} : erase_dup (a :: 0) = a :: 0 :=
 erase_dup_eq_self.2 $ nodup_singleton _
@@ -2868,6 +2894,17 @@ begin
   case perm.trans { simp [*] }
 end
 
+instance : monad multiset :=
+{ pure := λ α x, x::0,
+  bind := @bind,
+  .. multiset.functor }
+
+instance : is_lawful_monad multiset :=
+{ bind_pure_comp_eq_map := λ α β f s, multiset.induction_on s rfl $ λ a s ih,
+    by rw [bind_cons, map_cons, bind_zero, add_zero],
+  pure_bind := λ α β x f, by simp only [cons_bind, zero_bind, add_zero],
+  bind_assoc := @bind_assoc }
+
 open functor
 open traversable is_lawful_traversable
 
@@ -2969,6 +3006,9 @@ namespace Ico
 theorem map_add (n m k : ℕ) : (Ico n m).map ((+) k) = Ico (n + k) (m + k) :=
 congr_arg coe $ list.Ico.map_add _ _ _
 
+theorem map_sub (n m k : ℕ) (h : k ≤ n) : (Ico n m).map (λ x, x - k) = Ico (n - k) (m - k) :=
+congr_arg coe $ list.Ico.map_sub _ _ _ h
+
 theorem zero_bot (n : ℕ) : Ico 0 n = range n :=
 congr_arg coe $ list.Ico.zero_bot _
 
@@ -2993,6 +3033,9 @@ lemma add_consecutive {n m l : ℕ} (hnm : n ≤ m) (hml : m ≤ l) :
   Ico n m + Ico m l = Ico n l :=
 congr_arg coe $ list.Ico.append_consecutive hnm hml
 
+@[simp] lemma inter_consecutive (n m l : ℕ) : Ico n m ∩ Ico m l = 0 :=
+congr_arg coe $ list.Ico.bag_inter_consecutive n m l
+
 @[simp] theorem succ_singleton {n : ℕ} : Ico n (n+1) = {n} :=
 congr_arg coe $ list.Ico.succ_singleton
 
@@ -3002,7 +3045,7 @@ by rw [Ico, list.Ico.succ_top h, ← coe_add, add_comm]; refl
 theorem eq_cons {n m : ℕ} (h : n < m) : Ico n m = n :: Ico (n + 1) m :=
 congr_arg coe $ list.Ico.eq_cons h
 
-theorem pred_singleton {m : ℕ} (h : m > 0) : Ico (m - 1) m = {m - 1} :=
+@[simp] theorem pred_singleton {m : ℕ} (h : m > 0) : Ico (m - 1) m = {m - 1} :=
 congr_arg coe $ list.Ico.pred_singleton h
 
 @[simp] theorem not_mem_top {n m : ℕ} : m ∉ Ico n m :=

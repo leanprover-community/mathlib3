@@ -456,6 +456,8 @@ theorem singleton_def (a : α) : ({a} : set α) = insert a ∅ := rfl
 @[simp] theorem mem_singleton_iff {a b : α} : a ∈ ({b} : set α) ↔ a = b :=
 by finish [singleton_def]
 
+lemma set_of_eq_eq_singleton {a : α} : {n | n = a} = {a} := set.ext $ λ n, (set.mem_singleton_iff).symm
+
 -- TODO: again, annotation needed
 @[simp] theorem mem_singleton (a : α) : a ∈ ({a} : set α) := by finish
 
@@ -1261,5 +1263,25 @@ begin
 end
 
 end pi
+
+section inclusion
+variable {α : Type*}
+
+/-- `inclusion` is the "identity" function between two subsets `s` and `t`, where `s ⊆ t` -/
+def inclusion {s t : set α} (h : s ⊆ t) : s → t :=
+λ x : s, (⟨x, h x.2⟩ : t)
+
+@[simp] lemma inclusion_self {s : set α} (x : s) :
+  inclusion (set.subset.refl _) x = x := by cases x; refl
+
+@[simp] lemma inclusion_inclusion {s t u : set α} (hst : s ⊆ t) (htu : t ⊆ u)
+  (x : s) : inclusion htu (inclusion hst x) = inclusion (set.subset.trans hst htu) x :=
+by cases x; refl
+
+lemma inclusion_injective {s t : set α} (h : s ⊆ t) :
+  function.injective (inclusion h)
+| ⟨_, _⟩ ⟨_, _⟩ := subtype.ext.2 ∘ subtype.ext.1
+
+end inclusion
 
 end set

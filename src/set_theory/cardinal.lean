@@ -239,14 +239,15 @@ theorem le_iff_exists_add {a b : cardinal} : a ≤ b ↔ ∃ c, b = a + c :=
 
 end order_properties
 
+instance : order_bot cardinal.{u} :=
+{ bot := 0, bot_le := zero_le, ..cardinal.linear_order }
+
 instance : canonically_ordered_monoid cardinal.{u} :=
 { add_le_add_left       := λ a b h c, add_le_add_left _ h,
   lt_of_add_lt_add_left := λ a b c, lt_imp_lt_of_le_imp_le (add_le_add_left _),
   le_iff_exists_add     := @le_iff_exists_add,
+  ..cardinal.lattice.order_bot,
   ..cardinal.comm_semiring, ..cardinal.linear_order }
-
-instance : order_bot cardinal.{u} :=
-{ bot := 0, bot_le := zero_le, ..cardinal.linear_order }
 
 theorem cantor : ∀(a : cardinal.{u}), a < 2 ^ a :=
 by rw ← prop_eq_two; rintros ⟨a⟩; exact ⟨

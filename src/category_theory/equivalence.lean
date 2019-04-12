@@ -3,7 +3,6 @@
 -- Authors: Tim Baumann, Stephen Morgan, Scott Morrison
 
 import category_theory.fully_faithful
-import category_theory.functor_category
 import category_theory.natural_isomorphism
 import tactic.slice
 import tactic.converter.interactive
@@ -12,7 +11,7 @@ namespace category_theory
 
 universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-structure equivalence (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D] :=
+structure equivalence (C : Sort u₁) [category.{v₁} C] (D : Sort u₂) [category.{v₂} D] :=
 (functor : C ⥤ D)
 (inverse : D ⥤ C)
 (fun_inv_id' : (functor ⋙ inverse) ≅ (category_theory.functor.id C) . obviously)
@@ -25,14 +24,14 @@ infixr ` ≌ `:10  := equivalence
 
 namespace equivalence
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
+variables {C : Sort u₁} [𝒞 : category.{v₁} C]
 include 𝒞
 
 @[refl] def refl : C ≌ C :=
 { functor := functor.id C,
   inverse := functor.id C }
 
-variables {D : Type u₂} [𝒟 : category.{v₂} D]
+variables {D : Sort u₂} [𝒟 : category.{v₂} D]
 include 𝒟
 
 @[symm] def symm (e : C ≌ D) : D ≌ C :=
@@ -54,21 +53,21 @@ begin
   refl
 end
 
-variables {E : Type u₃} [ℰ : category.{v₃} E]
+variables {E : Sort u₃} [ℰ : category.{v₃} E]
 include ℰ
 
 @[simp] private def effe_iso_id (e : C ≌ D) (f : D ≌ E) (X : C) :
   (e.inverse).obj ((f.inverse).obj ((f.functor).obj ((e.functor).obj X))) ≅ X :=
 calc
   (e.inverse).obj ((f.inverse).obj ((f.functor).obj ((e.functor).obj X)))
-    ≅ (e.inverse).obj ((e.functor).obj X) : e.inverse.on_iso (nat_iso.app f.fun_inv_id _)
+    ≅ (e.inverse).obj ((e.functor).obj X) : e.inverse.map_iso (nat_iso.app f.fun_inv_id _)
 ... ≅ X                                   : nat_iso.app e.fun_inv_id _
 
 @[simp] private def feef_iso_id (e : C ≌ D) (f : D ≌ E) (X : E) :
   (f.functor).obj ((e.functor).obj ((e.inverse).obj ((f.inverse).obj X))) ≅ X :=
 calc
   (f.functor).obj ((e.functor).obj ((e.inverse).obj ((f.inverse).obj X)))
-    ≅ (f.functor).obj ((f.inverse).obj X) : f.functor.on_iso (nat_iso.app e.inv_fun_id _)
+    ≅ (f.functor).obj ((f.inverse).obj X) : f.functor.map_iso (nat_iso.app e.inv_fun_id _)
 ... ≅ X                                   : nat_iso.app f.inv_fun_id _
 
 @[trans] def trans (e : C ≌ D) (f : D ≌ E) : C ≌ E :=
@@ -94,11 +93,11 @@ calc
 
 end equivalence
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
+variables {C : Sort u₁} [𝒞 : category.{v₁} C]
 include 𝒞
 
 section
-variables {D : Type u₂} [𝒟 : category.{v₂} D]
+variables {D : Sort u₂} [𝒟 : category.{v₂} D]
 include 𝒟
 
 class is_equivalence (F : C ⥤ D) :=
@@ -111,7 +110,7 @@ restate_axiom is_equivalence.inv_fun_id'
 end
 
 namespace is_equivalence
-variables {D : Type u₂} [𝒟 : category.{v₂} D]
+variables {D : Sort u₂} [𝒟 : category.{v₂} D]
 include 𝒟
 
 instance of_equivalence (F : C ≌ D) : is_equivalence (F.functor) :=
@@ -129,7 +128,7 @@ instance is_equivalence_refl : is_equivalence (functor.id C) :=
 { inverse := functor.id C }
 end functor
 
-variables {D : Type u₂} [𝒟 : category.{v₂} D]
+variables {D : Sort u₂} [𝒟 : category.{v₂} D]
 include 𝒟
 
 namespace functor
@@ -153,7 +152,7 @@ def as_equivalence (F : C ⥤ D) [is_equivalence F] : C ≌ D :=
   fun_inv_id' := is_equivalence.fun_inv_id F,
   inv_fun_id' := is_equivalence.inv_fun_id F }
 
-variables {E : Type u₃} [ℰ : category.{v₃} E]
+variables {E : Sort u₃} [ℰ : category.{v₃} E]
 include ℰ
 
 instance is_equivalence_trans (F : C ⥤ D) (G : D ⥤ E) [is_equivalence F] [is_equivalence G] :

@@ -114,7 +114,7 @@ end
 
 variables (α : Type u)
 
-instance category_of_preorder [preorder α] : small_category α :=
+instance [preorder α] : small_category α :=
 { hom  := λ U V, ulift (plift (U ≤ V)),
   id   := λ X, ⟨ ⟨ le_refl X ⟩ ⟩,
   comp := λ X Y Z f g, ⟨ ⟨ le_trans f.down.down g.down.down ⟩ ⟩ }

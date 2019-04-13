@@ -124,6 +124,7 @@ end
 
 end monotone
 
+
 def order_dual (α : Type*) := α
 
 namespace order_dual

@@ -33,7 +33,7 @@ end functor
 namespace nat_trans
 
 @[simp] def of_function {I : Type u₁} {F G : I → C} (f : Π i : I, F i ⟶ G i) :
-  (functor.of_function F) ⟹ (functor.of_function G) :=
+  (functor.of_function F) ⟶ (functor.of_function G) :=
 { app := λ i, f i,
   naturality' := λ X Y g,
   begin

@@ -38,7 +38,7 @@ variables (α)
 lemma smul_smul : r • s • x = (r * s) • x := (mul_smul _ _ _).symm
 
 instance smul.is_add_monoid_hom {r : α} : is_add_monoid_hom (λ x : β, r • x) :=
-by refine_struct {..}; simp [smul_add]
+{ map_add := smul_add _, map_zero := smul_zero _ }
 
 end semimodule
 
@@ -200,6 +200,21 @@ begin
   intros _ _,
   simp [smul_smul]
 end
+
+variables {f : β → γ} (lin : is_linear_map α f)
+include β γ lin
+
+@[simp] lemma map_zero : f (0 : β) = (0 : γ) :=
+by rw [← zero_smul α (0 : β), lin.smul, zero_smul]
+
+@[simp] lemma map_add (x y : β) : f (x + y) = f x + f y :=
+by rw [lin.add]
+
+@[simp] lemma map_neg (x : β) : f (- x) = - f x :=
+by rw [← neg_one_smul α, lin.smul, neg_one_smul]
+
+@[simp] lemma map_sub (x y : β) : f (x - y) = f x - f y :=
+by simp [lin.map_neg, lin.map_add]
 
 end is_linear_map
 

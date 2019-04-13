@@ -95,7 +95,7 @@ theorem le_sub_one_iff {a b : ℤ} : a ≤ b - 1 ↔ a < b :=
 le_sub_iff_add_le
 
 @[elab_as_eliminator] protected lemma induction_on {p : ℤ → Prop}
-  (i : ℤ) (hz : p 0) (hp : ∀i, p i → p (i + 1)) (hn : ∀i, p i → p (i - 1)) : p i :=
+  (i : ℤ) (hz : p 0) (hp : ∀i : ℕ, p i → p (i + 1)) (hn : ∀i : ℕ, p (-i) → p (-i - 1)) : p i :=
 begin
   induction i,
   { induction i,
@@ -106,6 +106,22 @@ begin
       { simp [hz] },
       { have := hn _ n_ih, simpa } },
     exact this (i + 1) }
+end
+
+protected def induction_on' {C : ℤ → Sort*} (z : ℤ) (b : ℤ) : 
+  C b → (∀ k ≥ b, C k → C (k + 1)) → (∀ k ≤ b, C k → C (k - 1)) → C z :=
+λ H0 Hs Hp, 
+begin
+  rw ←sub_add_cancel z b,
+  induction (z - b),
+  { induction a with n ih, { rwa [of_nat_zero, zero_add] },
+    rw [of_nat_succ, add_assoc, add_comm 1 b, ←add_assoc],
+    exact Hs _ (le_add_of_nonneg_left (of_nat_nonneg _)) ih },
+  { induction a with n ih,
+    { rw [neg_succ_of_nat_eq, ←of_nat_eq_coe, of_nat_zero, zero_add, neg_add_eq_sub],
+      exact Hp _ (le_refl _) H0 },
+    { rw [neg_succ_of_nat_coe', nat.succ_eq_add_one, ←neg_succ_of_nat_coe, sub_add_eq_add_sub], 
+      exact Hp _ (le_of_lt (add_lt_of_neg_of_le (neg_succ_lt_zero _) (le_refl _))) ih } }
 end
 
 /- nat abs -/

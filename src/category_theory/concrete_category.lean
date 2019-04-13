@@ -66,6 +66,7 @@ instance : has_coe_to_fun (X ⟶ Y) :=
 { F   := λ f, X → Y,
   coe := λ f, f.1 }
 
+@[simp] lemma coe_id {X : bundled c} : ((𝟙 X) : X → X) = id := rfl
 @[simp] lemma bundled_hom_coe {X Y : bundled c} (val : X → Y) (prop) (x : X) :
   (⟨val, prop⟩ : X ⟶ Y) x = val x := rfl
 

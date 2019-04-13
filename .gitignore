@@ -1,3 +1,4 @@
 *.olean
 /_target
 /leanpkg.path
+/_cache/

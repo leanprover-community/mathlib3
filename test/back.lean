@@ -310,4 +310,7 @@ by library_search
 -- onec : 1 ≠ c
 -- ⊢ c ∣ succ n ↔ c = 1 ∨ c = succ n
 
+-- Doesn't work
+-- example (m n : ℕ) (h : 2*m ≤ n) : m ≤ n/2 := by library_search
+
 end nat

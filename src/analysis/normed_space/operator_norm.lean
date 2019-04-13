@@ -51,6 +51,8 @@ variables (c : k) (f g: E →L[k] F) (h : F →L[k] G) (x u v: E)
 def to_linear_map : linear_map _ E F :=
 {to_fun := f.val, ..f.property}
 
+instance : has_coe (E →L[k] F) (E→ₗ[k] F) := ⟨to_linear_map⟩
+
 -- make some straightforward lemmas available to `simp`.
 @[simp] lemma map_zero : f (0 : E) = 0 := (to_linear_map _).map_zero
 @[simp] lemma map_add  : f (u + v) = f u + f v := (to_linear_map _).map_add _ _

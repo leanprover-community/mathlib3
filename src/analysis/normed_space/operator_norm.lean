@@ -72,10 +72,10 @@ def comp (g : F →L[k] G) (f : E →L[k] F) : E →L[k] G :=
 ⟨_, is_bounded_linear_map.comp g.property f.property⟩
 
 section op_norm
-open lattice set bounded_linear_map
+open set real bounded_linear_map
 
 /-- The operator norm of a bounded linear map is the inf of all its bounds. -/
-def op_norm := real.Inf { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ }
+def op_norm := Inf { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ }
 instance has_op_norm: has_norm (E →L[k] F) := ⟨op_norm⟩
 
 -- So that invocations of real.Inf_le make sense: we show that the set of
@@ -89,14 +89,14 @@ lemma bounds_bdd_below {f : E →L[k] F} :
 ⟨0, λ _ ⟨hn, _⟩, hn⟩
 
 lemma op_norm_nonneg : 0 ≤ ∥f∥ :=
-real.lb_le_Inf _ bounds_nonempty (λ _ ⟨hx, _⟩, hx)
+lb_le_Inf _ bounds_nonempty (λ _ ⟨hx, _⟩, hx)
 
-/-- This is the fundamental property of the operator norm: ∥f x∥ ≤ ∥f∥ * ∥x∥. -/
+/-- The fundamental property of the operator norm: ∥f x∥ ≤ ∥f∥ * ∥x∥. -/
 theorem le_op_norm : ∥f x∥ ≤ ∥f∥ * ∥x∥ :=
 classical.by_cases
   (λ heq : x = 0, by { rw heq, simp })
   (λ hne, have hlt : 0 < ∥x∥, from (norm_pos_iff _).2 hne,
-    le_mul_of_div_le hlt ((real.le_Inf _ bounds_nonempty bounds_bdd_below).2
+    le_mul_of_div_le hlt ((le_Inf _ bounds_nonempty bounds_bdd_below).2
     (λ c ⟨_, hc⟩, div_le_of_le_mul hlt (by { rw mul_comm, apply hc }))))
 
 lemma ratio_le_op_norm : ∥f x∥ / ∥x∥ ≤ ∥f∥ :=
@@ -115,11 +115,11 @@ end
 /-- If one controls the norm of every A x, then one controls the norm of A. -/
 lemma bound_le_op_norm {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ x, ∥f x∥ ≤ M * ∥x∥) :
   ∥f∥ ≤ M :=
-real.Inf_le _ bounds_bdd_below ⟨hMp, hM⟩
+Inf_le _ bounds_bdd_below ⟨hMp, hM⟩
 
 /-- The operator norm satisfies the triangle inequality. -/
 theorem op_norm_triangle : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=
-real.Inf_le _ bounds_bdd_below
+Inf_le _ bounds_bdd_below
   ⟨add_nonneg (op_norm_nonneg _) (op_norm_nonneg _), λ x, by { rw add_mul,
     calc _ ≤ ∥f x∥ + ∥g x∥ : norm_triangle _ _
     ...    ≤ _             : add_le_add (le_op_norm _ _) (le_op_norm _ _) }⟩
@@ -130,25 +130,25 @@ iff.intro
   (λ hn, bounded_linear_map.ext (λ x, (norm_le_zero_iff _).1
     (calc _ ≤ ∥f∥ * ∥x∥ : le_op_norm _ _
      ...     = _ : by rw [hn, zero_mul])))
-  (λ hf, le_antisymm (real.Inf_le _ bounds_bdd_below
+  (λ hf, le_antisymm (Inf_le _ bounds_bdd_below
     ⟨ge_of_eq rfl, λ _, le_of_eq (by { rw [zero_mul, hf], exact norm_zero })⟩)
     (op_norm_nonneg _))
 
 /-- The operator norm is homogeneous. -/
 lemma op_norm_smul : ∥c • f∥ = ∥c∥ * ∥f∥ :=
 le_antisymm
-  (real.Inf_le _ bounds_bdd_below
+  (Inf_le _ bounds_bdd_below
     ⟨mul_nonneg (norm_nonneg _) (op_norm_nonneg _), λ _,
     begin
       erw [norm_smul, mul_assoc],
       exact mul_le_mul_of_nonneg_left (le_op_norm _ _) (norm_nonneg _)
     end⟩)
-  (real.lb_le_Inf _ bounds_nonempty (λ _ ⟨hn, hc⟩,
+  (lb_le_Inf _ bounds_nonempty (λ _ ⟨hn, hc⟩,
     (or.elim (lt_or_eq_of_le (norm_nonneg c))
       (λ hlt,
         begin
           rw mul_comm,
-          exact mul_le_of_le_div hlt (real.Inf_le _ bounds_bdd_below
+          exact mul_le_of_le_div hlt (Inf_le _ bounds_bdd_below
           ⟨div_nonneg hn hlt, λ _,
           (by { rw div_mul_eq_mul_div, exact le_div_of_mul_le hlt
           (by { rw [ mul_comm, ←norm_smul ], exact hc _ }) })⟩)
@@ -163,7 +163,7 @@ normed_space.of_core _ _
 
 /-- The operator norm is submultiplicative. -/
 lemma op_norm_comp_le : ∥comp h f∥ ≤ ∥h∥ * ∥f∥ :=
-(real.Inf_le _ bounds_bdd_below
+(Inf_le _ bounds_bdd_below
   ⟨mul_nonneg (op_norm_nonneg _) (op_norm_nonneg _), λ x,
   begin
     rw mul_assoc,
@@ -172,7 +172,7 @@ lemma op_norm_comp_le : ∥comp h f∥ ≤ ∥h∥ * ∥f∥ :=
               (le_op_norm _ _) (op_norm_nonneg _)
   end⟩)
 
-/-- bounded linear maps are lipschitz continuous. -/
+/-- Bounded linear maps are Lipschitz continuous. -/
 theorem lipschitz : lipschitz_with ∥f∥ f :=
 ⟨op_norm_nonneg _, λ x y,
   by { rw [dist_eq_norm, dist_eq_norm, ←map_sub], apply le_op_norm }⟩

@@ -313,4 +313,5 @@ by library_search
 -- Doesn't work
 -- example (m n : ℕ) (h : 2*m ≤ n) : m ≤ n/2 := by library_search
 
+-- example (m n : ℕ) : m = 2 * m / 2 := by library_search
 end nat

@@ -81,6 +81,35 @@ lemma coe_zero : ((0 : E →L[k] F) : E → F) = 0 := rfl
 def comp (g : F →L[k] G) (f : E →L[k] F) : E →L[k] G :=
 ⟨_, is_bounded_linear_map.comp g.property f.property⟩
 
+
+-- restate some analysis results about bounded linear maps
+-- in terms of the type here defined
+
+protected theorem continuous : continuous f :=
+is_bounded_linear_map.continuous f.property
+
+local notation f ` →_{`:50 a `} `:0 b := filter.tendsto f (nhds a) (nhds b)
+
+theorem tendsto : f →_{x} (f x) :=
+continuous_iff_continuous_at.1 (bounded_linear_map.continuous f) _
+
+section
+open asymptotics filter
+
+theorem is_O_id (l : filter E): is_O f (λ x, x) l :=
+let ⟨hfl, M, hMp, hM⟩ := f.property in
+  ⟨M, hMp, mem_sets_of_superset univ_mem_sets (λ x _, hM x)⟩
+
+theorem is_O_comp (g : F →L[k] G) (f : E → F) (l : filter E) :
+  is_O (λ x', g (f x')) f l :=
+((g.is_O_id ⊤).comp _).mono (map_le_iff_le_comap.mp lattice.le_top)
+
+theorem is_O_sub (f : E →L[k] F) (l : filter E) (x : E):
+  is_O (λ x', f (x' - x)) (λ x', x' - x) l :=
+is_O_comp f _ l
+
+end
+
 section op_norm
 open set real bounded_linear_map
 

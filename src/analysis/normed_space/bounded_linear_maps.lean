@@ -89,7 +89,7 @@ let ⟨hlf, Mf, hMfp, hMf⟩ := hf in
 ((hlg.mk' _).comp (hlf.mk' _)).is_linear.with_bound (Mg * Mf) $ assume x,
   calc ∥g (f x)∥ ≤ Mg * ∥f x∥ : hMg _
     ... ≤ Mg * (Mf * ∥x∥) : mul_le_mul_of_nonneg_left (hMf _) (le_of_lt hMgp)
-    ... = Mg * Mf * ∥x∥ : (mul_assoc _ _ _).symm
+    ... = Mg * Mf * ∥x∥   : (mul_assoc _ _ _).symm
 
 lemma tendsto (x : E) (hf : is_bounded_linear_map k f) : f →_{x} (f x) :=
 let ⟨hf, M, hMp, hM⟩ := hf in

@@ -76,11 +76,52 @@ do env ← get_env,
    return $ env.decl_filter_map (process_declaration hs)
 
 meta def apply_and_solve (e : expr) :=
-apply e >> (done <|> solve_by_elim { all_goals := tt })
+apply e >>
+(done <|>
+ solve_by_elim
+ { all_goals := tt })
+
+-- meta def update_univ (p : list (level × level)) (l : level) : level :=
+-- ((p.find (λ q : level × level, q.1 = l)).map prod.snd).get_or_else l
+
+-- meta def update_univs (p : list (level × level)) : expr → expr
+-- | (expr.var n)        := expr.var n
+-- | (expr.sort l)       := expr.sort (update_univ p l)
+-- | (expr.const n ls)   := expr.const n (ls.map (update_univ p))
+-- | (expr.mvar n m e)   := expr.mvar n m (update_univs e)
+-- | (expr.local_const n m bi e) := expr.local_const n m bi (update_univs e)
+-- | (expr.app f x)      := expr.app (update_univs f) (update_univs x)
+-- | (expr.lam n bi d t) := expr.lam n bi (update_univs d) (update_univs t)
+-- | (expr.pi n bi d t)  := expr.pi n bi (update_univs d) (update_univs t)
+-- | (expr.elet n a b c) := expr.elet n (update_univs a) (update_univs b) (update_univs c)
+-- | (expr.macro d es)   := expr.macro d (es.map update_univs)
+
+-- /--
+-- Returns a pair (e, t), where `e ← mk_const d.n`, and `t = d.type`,
+-- but with universe params updated to match the fresh universe metavariables in `e`.
+
+-- This is ever so slightly faster than just using `t ← infer_type e`.
+-- -/
+-- meta def decl_mk_const (d : declaration) : tactic (expr × expr) :=
+-- do let old := d.univ_params.map level.param,
+--    e ← mk_const d.to_name,
+--    new ← match e with
+--    | (expr.const _ l) := some l
+--    | _ := none
+--    end,
+--    trace old,
+--    trace new,
+--    return (e, update_univs (old.zip new) d.type)
 
 meta def apply_declaration (d : decl_data) : tactic unit :=
-do e ← mk_const d.n,
-   let t := d.d.type,
+do
+   /- `decl_mk_const` should be slightly fast than calling `infer_type`,
+      however I just can't get it to work. The relevant test case is in
+      test/library_search/ordered_ring.lean -/
+   -- (e, t) ← decl_mk_const d.d,
+
+   e ← mk_const d.n,
+   t ← infer_type e,
    match d.m with
    | ex := apply_and_solve e
    | mp :=
@@ -90,10 +131,10 @@ do e ← mk_const d.n,
       do l ← iff_mpr_core e t,
          apply_and_solve l
    | both :=
-      do l ← iff_mp_core e t,
-         apply_and_solve l <|>
-         do l ← iff_mpr_core e t,
-            apply_and_solve l
+      (do l ← iff_mp_core e t,
+         apply_and_solve l) <|>
+      (do l ← iff_mpr_core e t,
+         apply_and_solve l)
    end
 
 end library_search

@@ -529,7 +529,9 @@ open nat
 
 meta def solve_by_elim_aux (discharger : tactic unit) (asms : tactic (list expr))  : ℕ → tactic unit
 | 0 := done
-| (succ n) := discharger <|> (apply_assumption asms $ solve_by_elim_aux n)
+| (succ n) := done <|>
+              (discharger >> solve_by_elim_aux n) <|>
+              (apply_assumption asms $ solve_by_elim_aux n)
 
 meta structure by_elim_opt :=
   (all_goals : bool := ff)

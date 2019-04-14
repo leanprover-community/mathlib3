@@ -111,7 +111,7 @@ begin
   has no preimage yet. We will iterate this process, taking the approximate preimage of `h y`,
   leaving only `h^2 y` without preimage yet, and so on. Let `u n` be the approximate preimage
   of `h^n y`. Then `u` is a converging series, and by design the sum of the series is a
-  preimage of `y`. -/
+  preimage of `y`. This uses completeness of `E`. -/
   choose g hg using hC,
   let h := λy, y - f (g y),
   have hle : ∀y, ∥h y∥ ≤ (1/2) * ∥y∥,

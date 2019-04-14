@@ -36,6 +36,11 @@ namespace bounded_linear_map
 
 notation E ` →L[`:25 k `] ` F := bounded_linear_map k E F
 
+/-- Construct bounded linear map from is_bounded_linear_map -/
+def from_is_bounded_linear_map (f : E → F) (hf : is_bounded_linear_map k f) :
+  bounded_linear_map k E F :=
+{ val := f, property := hf }
+
 /-- Coerce bounded linear maps to functions. -/
 instance to_fun : has_coe_to_fun $ E →L[k] F :=
 {F :=  λ _, (E → F), coe := (λ f, f.val)}

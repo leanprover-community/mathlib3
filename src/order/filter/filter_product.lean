@@ -53,9 +53,9 @@ def lift_rel (R : β → Prop) : β* → Prop :=
 /-- Lift binary relations to filter product -/
 def lift_rel₂ (R : β → β → Prop) : β* → β* → Prop :=
 λ x y, quotient.lift_on₂' x y (λ a b, {i : α | R (a i) (b i)} ∈ φ) $
-  λ a₁ a₂ b₁ b₂ h₁ h₂, propext 
-  ⟨ λ ha, by filter_upwards [h₁, h₂, ha] λ i hi1 hi2 hia, by simpa [hi1.symm, hi2.symm],
-    λ hb, by filter_upwards [h₁, h₂, hb] λ i hi1 hi2 hib, by simpa [hi1.symm.symm, hi2.symm.symm] ⟩
+λ a₁ a₂ b₁ b₂ h₁ h₂, propext 
+⟨ λ ha, by filter_upwards [h₁, h₂, ha] λ i hi1 hi2 hia, by simpa [hi1.symm, hi2.symm],
+  λ hb, by filter_upwards [h₁, h₂, hb] λ i hi1 hi2 hib, by simpa [hi1.symm.symm, hi2.symm.symm] ⟩
 
 instance coe_filterprod : has_coe β β* := ⟨ of ⟩
 
@@ -67,7 +67,8 @@ instance [has_neg β] : has_neg β* := { neg := lift has_neg.neg }
 
 instance [add_semigroup β] : add_semigroup β* :=
 { add_assoc := λ x y z, quotient.induction_on₃' x y z $ λ a b c, quotient.sound' $
-    show {n | _ + _ + _ = _ + (_ + _)} ∈ _, by simp only [add_assoc, eq_self_iff_true]; exact φ.univ_sets, 
+    show {n | _ + _ + _ = _ + (_ + _)} ∈ _, by simp only [add_assoc, eq_self_iff_true]; 
+    exact φ.univ_sets, 
   ..filter_product.has_add }
 
 instance [add_left_cancel_semigroup β] : add_left_cancel_semigroup β* :=
@@ -117,7 +118,8 @@ instance [has_inv β] : has_inv β* := { inv := lift has_inv.inv }
 
 instance [semigroup β] : semigroup β* :=
 { mul_assoc := λ x y z, quotient.induction_on₃' x y z $ λ a b c, quotient.sound' $
-    show {n | _ * _ * _ = _ * (_ * _)} ∈ _, by simp only [mul_assoc, eq_self_iff_true]; exact φ.univ_sets, 
+    show {n | _ * _ * _ = _ * (_ * _)} ∈ _, by simp only [mul_assoc, eq_self_iff_true]; 
+    exact φ.univ_sets, 
   ..filter_product.has_mul }
 
 instance [monoid β] : monoid β* :=
@@ -256,13 +258,15 @@ theorem of_seq_fun₂ (f g₁ g₂ : α → β) (h : β → β → β) (H : {n :
 
 @[simp] lemma of_seq_zero [has_zero β] (f : α → β) : of_seq 0 = (0 : β*) := rfl
 
-@[simp] lemma of_seq_add [has_add β] (f g : α → β) : of_seq (f + g) = of_seq f + (of_seq g : β*) := rfl
+@[simp] lemma of_seq_add [has_add β] (f g : α → β) : of_seq (f + g) = of_seq f + (of_seq g : β*) 
+:= rfl
 
 @[simp] lemma of_seq_neg [has_neg β] (f : α → β) : of_seq (-f) = - (of_seq f : β*) := rfl
 
 @[simp] lemma of_seq_one [has_one β] (f : α → β) : of_seq 1 = (1 : β*) := rfl
 
-@[simp] lemma of_seq_mul [has_mul β] (f g : α → β) : of_seq (f * g) = of_seq f * (of_seq g : β*) := rfl
+@[simp] lemma of_seq_mul [has_mul β] (f g : α → β) : of_seq (f * g) = of_seq f * (of_seq g : β*) 
+:= rfl
 
 @[simp] lemma of_seq_inv [has_inv β] (f : α → β) : of_seq (f⁻¹) = (of_seq f : β*)⁻¹ := rfl
 
@@ -270,9 +274,11 @@ lemma of_eq_coe (x : β) : of x = (↑x : β*) := rfl
 
 @[simp] lemma of_id (x : β) : of x = (x : β*) := rfl
 
-lemma of_eq (x y : β) (NT : φ ≠ ⊥) : x = y ↔ of x = (of y : β*) := ⟨λ h, by rw h, by apply of_inj NT⟩
+lemma of_eq (x y : β) (NT : φ ≠ ⊥) : x = y ↔ of x = (of y : β*) := 
+⟨ λ h, by rw h, by apply of_inj NT ⟩
 
-lemma of_ne (x y : β) (NT : φ ≠ ⊥) : x ≠ y ↔ of x ≠ (of y : β*) := by show ¬ x = y ↔ of x ≠ of y; rwa [of_eq]
+lemma of_ne (x y : β) (NT : φ ≠ ⊥) : x ≠ y ↔ of x ≠ (of y : β*) := 
+by show ¬ x = y ↔ of x ≠ of y; rwa [of_eq]
 
 lemma of_eq_zero [has_zero β] (NT : φ ≠ ⊥) (x : β) : x = 0 ↔ of x = (0 : β*) := of_eq _ _ NT
 
@@ -293,7 +299,8 @@ lemma of_ne_zero [has_zero β] (NT : φ ≠ ⊥) (x : β) : x ≠ 0 ↔ of x ≠
 @[simp] lemma of_inv [has_inv β] (x : β) : of (x⁻¹) = (of x : β*)⁻¹ := rfl
 
 @[simp] lemma of_div [division_ring β] (U : is_ultrafilter φ) (x y : β) : 
-  of (x / y) = @has_div.div _ (@division_ring_has_div _ (filter_product.division_ring U) (filter_product.division_ring U)) 
+  of (x / y) = @has_div.div _ 
+  (@division_ring_has_div _ (filter_product.division_ring U) (filter_product.division_ring U)) 
   (of x) (of y) := 
 rfl
 
@@ -350,18 +357,22 @@ instance [ordered_comm_group β] (U : is_ultrafilter φ) : ordered_comm_group β
 { add_le_add_left := λ x y hxy z, by revert hxy; exact quotient.induction_on₃' x y z 
     (λ a b c hab, by filter_upwards [hab] λ i hi, by simpa),
   add_lt_add_left := λ x y hxy z, by revert hxy; exact quotient.induction_on₃' x y z
-    (λ a b c hab, by rw lt_def U at hab ⊢; filter_upwards [hab] λ i hi, add_lt_add_left hi (c i)),
+    (λ a b c hab, by rw lt_def U at hab ⊢; 
+    filter_upwards [hab] λ i hi, add_lt_add_left hi (c i)),
   ..filter_product.partial_order, ..filter_product.add_comm_group }
 
 instance [ordered_ring β] (U : is_ultrafilter φ) : ordered_ring β* :=
 { mul_nonneg := λ x y, quotient.induction_on₂' x y $
-    λ a b ha hb, by filter_upwards [ha, hb] λ i, by simp only [set.mem_set_of_eq]; exact mul_nonneg,
+    λ a b ha hb, by filter_upwards [ha, hb] λ i, by simp only [set.mem_set_of_eq]; 
+    exact mul_nonneg,
   mul_pos := λ x y, quotient.induction_on₂' x y $
     λ a b ha hb, by rw lt_def U at ha hb ⊢; filter_upwards [ha, hb] λ i, mul_pos,
-  ..filter_product.ring, ..filter_product.ordered_comm_group U, ..filter_product.zero_ne_one_class U.1 }
+  ..filter_product.ring, ..filter_product.ordered_comm_group U, 
+  ..filter_product.zero_ne_one_class U.1 }
 
 instance [linear_ordered_ring β] (U : is_ultrafilter φ) : linear_ordered_ring β* :=
-{ zero_lt_one := by rw lt_def U; show {i | (0 : β) < 1} ∈ _; simp only [zero_lt_one, (set.univ_def).symm, univ_sets],
+{ zero_lt_one := by rw lt_def U; show {i | (0 : β) < 1} ∈ _; 
+  simp only [zero_lt_one, (set.univ_def).symm, univ_sets],
   ..filter_product.ordered_ring U, ..filter_product.linear_order U }
 
 instance [linear_ordered_field β] (U : is_ultrafilter φ) : linear_ordered_field β* :=
@@ -370,23 +381,30 @@ instance [linear_ordered_field β] (U : is_ultrafilter φ) : linear_ordered_fiel
 instance [linear_ordered_comm_ring β] (U : is_ultrafilter φ) : linear_ordered_comm_ring β* :=
 { ..filter_product.linear_ordered_ring U, ..filter_product.comm_monoid }
 
-noncomputable instance [decidable_linear_order β] (U : is_ultrafilter φ) : decidable_linear_order β* :=
+noncomputable instance [decidable_linear_order β] (U : is_ultrafilter φ) : 
+  decidable_linear_order β* :=
 { decidable_le := by apply_instance,
   ..filter_product.linear_order U }
 
-noncomputable instance [decidable_linear_ordered_comm_group β] (U : is_ultrafilter φ) : decidable_linear_ordered_comm_group β* :=
+noncomputable instance [decidable_linear_ordered_comm_group β] (U : is_ultrafilter φ) : 
+  decidable_linear_ordered_comm_group β* :=
 { ..filter_product.ordered_comm_group U, ..filter_product.decidable_linear_order U }
 
-noncomputable instance [decidable_linear_ordered_comm_ring β] (U : is_ultrafilter φ) : decidable_linear_ordered_comm_ring β* :=
-{ ..filter_product.linear_ordered_comm_ring U, ..filter_product.decidable_linear_ordered_comm_group U }
+noncomputable instance [decidable_linear_ordered_comm_ring β] (U : is_ultrafilter φ) : 
+  decidable_linear_ordered_comm_ring β* :=
+{ ..filter_product.linear_ordered_comm_ring U, 
+  ..filter_product.decidable_linear_ordered_comm_group U }
 
-noncomputable instance [discrete_linear_ordered_field β] (U : is_ultrafilter φ) : discrete_linear_ordered_field β* :=
-{ ..filter_product.linear_ordered_field U, ..filter_product.decidable_linear_ordered_comm_ring U, ..filter_product.discrete_field U }
+noncomputable instance [discrete_linear_ordered_field β] (U : is_ultrafilter φ) : 
+  discrete_linear_ordered_field β* :=
+{ ..filter_product.linear_ordered_field U, ..filter_product.decidable_linear_ordered_comm_ring U, 
+  ..filter_product.discrete_field U }
 
 instance [ordered_cancel_comm_monoid β] : ordered_cancel_comm_monoid β* :=
 { add_le_add_left := λ x y hxy z, by revert hxy; exact quotient.induction_on₃' x y z 
     (λ a b c hab, by filter_upwards [hab] λ i hi, by simpa),
-  le_of_add_le_add_left := λ x y z, quotient.induction_on₃' x y z $ λ x y z h, by filter_upwards [h] λ i, le_of_add_le_add_left,
+  le_of_add_le_add_left := λ x y z, quotient.induction_on₃' x y z $ λ x y z h, 
+  by filter_upwards [h] λ i, le_of_add_le_add_left,
   ..filter_product.add_comm_monoid, ..filter_product.add_left_cancel_semigroup, 
   ..filter_product.add_right_cancel_semigroup, ..filter_product.partial_order }
 
@@ -396,7 +414,8 @@ quotient.induction_on₂' x y $ λ a b, by unfold max;
 begin
   split_ifs,
   exact quotient.sound'(by filter_upwards [h] λ i hi, (max_eq_right hi).symm),
-  exact quotient.sound'(by filter_upwards [@le_of_not_le _ (filter_product.linear_order U) _ _ h] λ i hi, (max_eq_left hi).symm),
+  exact quotient.sound'(by filter_upwards [@le_of_not_le _ (filter_product.linear_order U) _ _ h] 
+    λ i hi, (max_eq_left hi).symm),
 end
 
 lemma min_def [K : decidable_linear_order β] (U : is_ultrafilter φ) (x y : β*) : 
@@ -405,12 +424,14 @@ quotient.induction_on₂' x y $ λ a b, by unfold min;
 begin
   split_ifs,
   exact quotient.sound'(by filter_upwards [h] λ i hi, (min_eq_left hi).symm),
-  exact quotient.sound'(by filter_upwards [@le_of_not_le _ (filter_product.linear_order U) _ _ h] λ i hi, (min_eq_right hi).symm),
+  exact quotient.sound'(by filter_upwards [@le_of_not_le _ (filter_product.linear_order U) _ _ h] 
+    λ i hi, (min_eq_right hi).symm),
 end
 
 lemma abs_def [decidable_linear_ordered_comm_group β] (U : is_ultrafilter φ) (x y : β*) :
   @abs _ (filter_product.decidable_linear_ordered_comm_group U) x = (lift abs) x :=
-quotient.induction_on' x $ λ a, by unfold abs; rw max_def; exact quotient.sound' (by show {i | abs _ = _} ∈ _; 
+quotient.induction_on' x $ λ a, by unfold abs; rw max_def; 
+exact quotient.sound' (by show {i | abs _ = _} ∈ _; 
 simp only [eq_self_iff_true, set.univ_def.symm]; exact univ_mem_sets)
 
 @[simp] lemma of_max [decidable_linear_order β] (U : is_ultrafilter φ) (x y : β) : 

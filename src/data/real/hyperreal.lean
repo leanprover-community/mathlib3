@@ -416,7 +416,8 @@ have hx' : _ := exist_st_of_not_infinite hx, have hy' : _ := exist_st_of_not_inf
 Exists.cases_on hx' $ Exists.cases_on hy' $ 
 λ r hr s hs, not_infinite_of_exist_st $ ⟨s + r, is_st_add hs hr⟩
 
-theorem not_infinite_iff_exist_lt_gt {x : ℝ*} : ¬ infinite x ↔ ∃ r s : ℝ, ↑r < x ∧ x < s := ⟨ λ hni, 
+theorem not_infinite_iff_exist_lt_gt {x : ℝ*} : ¬ infinite x ↔ ∃ r s : ℝ, ↑r < x ∧ x < s := 
+⟨ λ hni, 
 Exists.dcases_on (not_forall.mp (not_or_distrib.mp hni).1) $
 Exists.dcases_on (not_forall.mp (not_or_distrib.mp hni).2) $ λ r hr s hs, 
 by rw [not_lt] at hr hs; exact ⟨r - 1, s + 1, 

@@ -41,7 +41,6 @@ def hom.comp : Π (X Y Z : walking_cospan) (f : hom X Y) (g : hom Y Z), hom X Z
 | _ _ _ inr    (id one) := inr
 .
 
-
 instance category_struct : category_struct walking_cospan :=
 { hom  := hom,
   id   := hom.id,

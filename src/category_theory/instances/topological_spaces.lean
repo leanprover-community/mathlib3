@@ -29,6 +29,8 @@ instance (x : Top) : topological_space x := x.str
 namespace Top
 instance : concrete_category @continuous := ⟨@continuous_id, @continuous.comp⟩
 
+def of (X : Type u) [topological_space X] : Top := ⟨X, by apply_instance⟩
+
 -- local attribute [class] continuous
 -- instance {R S : Top} (f : R ⟶ S) : continuous (f : R → S) := f.2
 

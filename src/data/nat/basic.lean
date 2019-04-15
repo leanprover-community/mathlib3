@@ -260,16 +260,16 @@ iff.intro eq_zero_of_mul_eq_zero (by simp [or_imp_distrib] {contextual := tt})
 @[simp] protected theorem zero_eq_mul {a b : ℕ} : 0 = a * b ↔ a = 0 ∨ b = 0 :=
 by rw [eq_comm, nat.mul_eq_zero]
 
-lemma le_mul_pos_left {m n : ℕ} (h : n > 0) : m ≤ n * m :=
+lemma le_mul_of_pos_left {m n : ℕ} (h : n > 0) : m ≤ n * m :=
 begin
-conv {to_lhs, rw [← one_mul(m)]},
-exact mul_le_mul_of_nonneg_right (nat.succ_le_of_lt h) dec_trivial,
+  conv {to_lhs, rw [← one_mul(m)]},
+  exact mul_le_mul_of_nonneg_right (nat.succ_le_of_lt h) dec_trivial,
 end
 
-lemma le_mul_pos_right {m n : ℕ} (h : n > 0) : m ≤ m * n :=
+lemma le_mul_of_pos_right {m n : ℕ} (h : n > 0) : m ≤ m * n :=
 begin
-conv {to_lhs, rw [← mul_one(m)]},
-exact mul_le_mul_of_nonneg_left (nat.succ_le_of_lt h) dec_trivial,
+  conv {to_lhs, rw [← mul_one(m)]},
+  exact mul_le_mul_of_nonneg_left (nat.succ_le_of_lt h) dec_trivial,
 end
 
 @[elab_as_eliminator]
@@ -323,8 +323,8 @@ protected theorem div_le_div_right {n m : ℕ} (h : n ≤ m) {k : ℕ} : n / k �
 (nat.eq_zero_or_pos k).elim (λ k0, by simp [k0]) $ λ hk,
 (le_div_iff_mul_le' hk).2 $ le_trans (nat.div_mul_le_self' _ _) h
 
-lemma lt_of_div_lt_div (m n k : ℕ) : m / k < n / k → m < n :=
-λ h₁, by_contradiction $ λ h₂, absurd h₁ (not_lt_of_ge (nat.div_le_div_right (not_lt.1 h₂)))
+lemma lt_of_div_lt_div (m n k : ℕ) (h : m / k < n / k) : m < n :=
+by_contradiction $ λ h₁, absurd h (not_lt_of_ge (nat.div_le_div_right (not_lt.1 h₁)))
 
 protected theorem eq_mul_of_div_eq_right {a b c : ℕ} (H1 : b ∣ a) (H2 : a / b = c) :
   a = b * c :=

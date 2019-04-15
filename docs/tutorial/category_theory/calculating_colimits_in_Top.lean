@@ -36,7 +36,13 @@ limit.lift (functor.of_function (pair X I))
     | walking_pair.right := to_pt X ≫ I_1
     end }}
 def mapping_cylinder {X Y : Top} (f : X ⟶ Y) : Top := colimit (span (𝟙 X) (cylinder_1 X))
-
+-- TODO
+-- Do the mapping cone, too, both as an iterated colimit of spans,
+-- and as the colimit of a diagram
+--    X        X
+--   / \      / \
+--  Y   (X x I)  pt
+-- Make sure there's an API which can cope with this!
 end MappingCylinder
 
 section Gluing

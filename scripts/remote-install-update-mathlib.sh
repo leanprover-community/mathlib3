@@ -33,7 +33,7 @@ if ! which pip3; then
             exit -1
         fi
     elif which brew; then
-        read -p "update-mathlib needs to install python3 and pip3. Proceed?" -n 1 -r
+        read -p "update-mathlib needs to install python3 and pip3. Proceed?" -n 1 -r </dev/tty
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             brew install python3

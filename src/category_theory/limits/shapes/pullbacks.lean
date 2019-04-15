@@ -158,7 +158,7 @@ def mk {W : C} (π₁ : W ⟶ X) (π₂ : W ⟶ Y)
 { X := W,
   π :=
   { app := λ j, walking_cospan.cases_on j π₁ π₂ (π₁ ≫ f),
-    naturality' := λ j j' f, begin cases f; obviously end } }
+    naturality' := λ j j' f, by cases f; obviously } }
 
 def condition (t : pullback_cone f g) : (π₁ t) ≫ f = (π₂ t) ≫ g :=
 begin

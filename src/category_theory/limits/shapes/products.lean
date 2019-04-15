@@ -17,7 +17,7 @@ include 𝒞
 
 def fan (f : β → C) := cone (functor.of_function f)
 
-@[simp] def fan.of_function
+def fan.of_function
   {f : β → C} {P : C} (p : Π b, P ⟶ f b) : fan f :=
 { X := P,
   π := { app := p } }
@@ -32,7 +32,7 @@ def fan.of_cone {β : Type v} {F : (discrete β) ⥤ C} (t : cone F) : fan (F.ob
 
 def cofan (f : β → C) := cocone (functor.of_function f)
 
-@[simp] def cofan.of_function
+def cofan.of_function
   {f : β → C} {P : C} (p : Π b, f b ⟶ P) : cofan f :=
 { X := P,
   ι := { app := p } }

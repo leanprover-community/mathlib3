@@ -12,38 +12,41 @@ local attribute [tidy] tactic.case_bash
 
 universes v u
 
-@[derive decidable_eq] inductive walking_pair : Type v
+@[derive decidable_eq] inductive walking_parallel_pair : Type v
 | zero | one
 
-open walking_pair
+open walking_parallel_pair
 
-inductive walking_pair_hom : walking_pair → walking_pair → Type v
-| left : walking_pair_hom zero one
-| right : walking_pair_hom zero one
-| id : Π X : walking_pair.{v}, walking_pair_hom X X
+inductive walking_parallel_pair_hom : walking_parallel_pair → walking_parallel_pair → Type v
+| left : walking_parallel_pair_hom zero one
+| right : walking_parallel_pair_hom zero one
+| id : Π X : walking_parallel_pair.{v}, walking_parallel_pair_hom X X
 
-open walking_pair_hom
+open walking_parallel_pair_hom
 
-def walking_pair_comp :
-  Π (X Y Z : walking_pair) (f : walking_pair_hom X Y) (g : walking_pair_hom Y Z),
-    walking_pair_hom X Z
+def walking_parallel_pair_hom.comp :
+  Π (X Y Z : walking_parallel_pair)
+    (f : walking_parallel_pair_hom X Y) (g : walking_parallel_pair_hom Y Z),
+    walking_parallel_pair_hom X Z
   | _ _ _ (id _) h := h
   | _ _ _ left   (id one) := left
   | _ _ _ right  (id one) := right
 .
 
-instance walking_pair_category : small_category.{v+1} walking_pair :=
-{ hom  := walking_pair_hom,
-  id   := walking_pair_hom.id,
-  comp := walking_pair_comp }
+instance walking_parallel_pair_hom_category : small_category.{v+1} walking_parallel_pair :=
+{ hom  := walking_parallel_pair_hom,
+  id   := walking_parallel_pair_hom.id,
+  comp := walking_parallel_pair_hom.comp }
 
-lemma walking_pair_hom_id (X : walking_pair.{v}) : walking_pair_hom.id X = 𝟙 X := rfl
+lemma walking_parallel_pair_hom_id (X : walking_parallel_pair.{v}) :
+  walking_parallel_pair_hom.id X = 𝟙 X :=
+rfl
 
 variables {C : Sort u} [𝒞 : category.{v+1} C]
 include 𝒞
 variables {X Y : C}
 
-def pair (f g : X ⟶ Y) : walking_pair.{v} ⥤ C :=
+def parallel_pair (f g : X ⟶ Y) : walking_parallel_pair.{v} ⥤ C :=
 { obj := λ x, match x with
   | zero := X
   | one := Y
@@ -54,21 +57,22 @@ def pair (f g : X ⟶ Y) : walking_pair.{v} ⥤ C :=
   | _, _, right := g
   end }.
 
-@[simp] lemma pair_map_left (f g : X ⟶ Y) : (pair f g).map left = f := rfl
-@[simp] lemma pair_map_right (f g : X ⟶ Y) : (pair f g).map right = g := rfl
+@[simp] lemma parallel_pair_map_left (f g : X ⟶ Y) : (parallel_pair f g).map left = f := rfl
+@[simp] lemma parallel_pair_map_right (f g : X ⟶ Y) : (parallel_pair f g).map right = g := rfl
 
-@[simp] lemma pair_functor_obj {F : walking_pair.{v} ⥤ C} (j : walking_pair.{v}) :
-  (pair (F.map left) (F.map right)).obj j = F.obj j :=
+@[simp] lemma parallel_pair_functor_obj
+  {F : walking_parallel_pair.{v} ⥤ C} (j : walking_parallel_pair.{v}) :
+  (parallel_pair (F.map left) (F.map right)).obj j = F.obj j :=
 begin
   cases j; refl
 end
 
-def fork (f g : X ⟶ Y) := cone (pair f g)
-def cofork (f g : X ⟶ Y) := cocone (pair f g)
+def fork (f g : X ⟶ Y) := cone (parallel_pair f g)
+def cofork (f g : X ⟶ Y) := cocone (parallel_pair f g)
 
 variables {f g : X ⟶ Y}
 
-attribute [simp] walking_pair_hom_id
+attribute [simp] walking_parallel_pair_hom_id
 
 def fork.of_ι {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) : fork f g :=
 { X := P,
@@ -106,7 +110,7 @@ begin
 end
 
 def cone.of_fork
-  {F : walking_pair.{v} ⥤ C} (t : fork (F.map left) (F.map right)) : cone F :=
+  {F : walking_parallel_pair.{v} ⥤ C} (t : fork (F.map left) (F.map right)) : cone F :=
 { X := t.X,
   π :=
   { app := λ X, t.π.app X ≫ eq_to_hom (by tidy),
@@ -117,7 +121,7 @@ def cone.of_fork
       erw ← t.w right, refl,
     end } }.
 def cocone.of_cofork
-  {F : walking_pair.{v} ⥤ C} (t : cofork (F.map left) (F.map right)) : cocone F :=
+  {F : walking_parallel_pair.{v} ⥤ C} (t : cofork (F.map left) (F.map right)) : cocone F :=
 { X := t.X,
   ι :=
   { app := λ X, eq_to_hom (by tidy) ≫ t.ι.app X,
@@ -129,25 +133,25 @@ def cocone.of_cofork
     end } }.
 
 @[simp] lemma cone.of_fork_π
-  {F : walking_pair.{v} ⥤ C} (t : fork (F.map left) (F.map right)) (j):
+  {F : walking_parallel_pair.{v} ⥤ C} (t : fork (F.map left) (F.map right)) (j):
   (cone.of_fork t).π.app j = t.π.app j ≫ eq_to_hom (by tidy) := rfl
 
 @[simp] lemma cocone.of_cofork_ι
-  {F : walking_pair.{v} ⥤ C} (t : cofork (F.map left) (F.map right)) (j):
+  {F : walking_parallel_pair.{v} ⥤ C} (t : cofork (F.map left) (F.map right)) (j):
   (cocone.of_cofork t).ι.app j = eq_to_hom (by tidy) ≫ t.ι.app j := rfl
 
 def fork.of_cone
-  {F : walking_pair.{v} ⥤ C} (t : cone F) : fork (F.map left) (F.map right) :=
+  {F : walking_parallel_pair.{v} ⥤ C} (t : cone F) : fork (F.map left) (F.map right) :=
 { X := t.X,
   π := { app := λ X, t.π.app X ≫ eq_to_hom (by tidy) } }
 def cofork.of_cocone
-  {F : walking_pair.{v} ⥤ C} (t : cocone F) : cofork (F.map left) (F.map right) :=
+  {F : walking_parallel_pair.{v} ⥤ C} (t : cocone F) : cofork (F.map left) (F.map right) :=
 { X := t.X,
   ι := { app := λ X, eq_to_hom (by tidy) ≫ t.ι.app X } }
 
-@[simp] lemma fork.of_cone_π {F : walking_pair.{v} ⥤ C} (t : cone F) (j) :
+@[simp] lemma fork.of_cone_π {F : walking_parallel_pair.{v} ⥤ C} (t : cone F) (j) :
   (fork.of_cone t).π.app j = t.π.app j ≫ eq_to_hom (by tidy) := rfl
-@[simp] lemma cofork.of_cocone_ι {F : walking_pair.{v} ⥤ C} (t : cocone F) (j) :
+@[simp] lemma cofork.of_cocone_ι {F : walking_parallel_pair.{v} ⥤ C} (t : cocone F) (j) :
   (cofork.of_cocone t).ι.app j = eq_to_hom (by tidy) ≫ t.ι.app j := rfl
 
 end category_theory.limits

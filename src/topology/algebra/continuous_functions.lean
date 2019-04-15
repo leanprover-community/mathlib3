@@ -10,45 +10,33 @@ universes u v
 
 local attribute [elab_simple] continuous.comp
 
-instance continuous_add_submonoid (α : Type u) (β : Type v) [topological_space α] [topological_space β]
-  [add_monoid β] [topological_add_monoid β] : is_add_submonoid { f : α → β | continuous f } :=
-{ zero_mem :=
-  begin
-    dsimp [has_zero.zero, add_group.zero, add_monoid.zero, add_comm_group.zero, ring.zero],
-    exact continuous_const,
-  end,
-  add_mem := λ f g fc gc, continuous.comp (continuous.prod_mk fc gc) (topological_add_monoid.continuous_add β), }.
-
-instance continuous_add_subgroup (α : Type u) (β : Type v) [topological_space α] [topological_space β]
-  [add_group β] [topological_add_group β] : is_add_subgroup { f : α → β | continuous f } :=
-{ neg_mem := λ f fc, continuous.comp fc (topological_add_group.continuous_neg β),
-  ..continuous_add_submonoid α β, }.
-
+@[to_additive continuous_add_submonoid]
 instance continuous_submonoid (α : Type u) (β : Type v) [topological_space α] [topological_space β]
   [monoid β] [topological_monoid β] : is_submonoid { f : α → β | continuous f } :=
-{ one_mem :=
-  begin
-    dsimp [has_one.one, monoid.one],
-    exact continuous_const,
-  end,
-  mul_mem := λ f g fc gc, continuous.comp (continuous.prod_mk fc gc) (topological_monoid.continuous_mul β) }.
+{ one_mem := @continuous_const _ _ _ _ 1,
+  mul_mem :=
+  λ f g fc gc, continuous.comp (continuous.prod_mk fc gc) (topological_monoid.continuous_mul β) }.
+
+@[to_additive continuous_add_subgroup]
+instance continuous_subgroup (α : Type u) (β : Type v) [topological_space α] [topological_space β]
+  [group β] [topological_group β] : is_subgroup { f : α → β | continuous f } :=
+{ inv_mem := λ f fc, continuous.comp fc (topological_group.continuous_inv β),
+  ..continuous_submonoid α β, }.
+
+@[to_additive continuous_add_monoid]
+instance continuous_monoid {α : Type u} {β : Type v} [topological_space α] [topological_space β]
+  [monoid β] [topological_monoid β] : monoid { f : α → β | continuous f } :=
+subtype.monoid
+
+@[to_additive continuous_add_group]
+instance continuous_group {α : Type u} {β : Type v} [topological_space α] [topological_space β]
+  [group β] [topological_group β] : group { f : α → β | continuous f } :=
+subtype.group
 
 instance continuous_subring (α : Type u) (β : Type v) [topological_space α] [topological_space β]
   [ring β] [topological_ring β] : is_subring { f : α → β | continuous f } :=
 { ..continuous_add_subgroup α β,
   ..continuous_submonoid α β }.
-
-instance continuous_add_monoid {α : Type u} {β : Type v} [topological_space α] [topological_space β]
-  [add_monoid β] [topological_add_monoid β] : add_monoid { f : α → β | continuous f } :=
-subtype.add_monoid
-
-instance continuous_add_group {α : Type u} {β : Type v} [topological_space α] [topological_space β]
-  [add_group β] [topological_add_group β] : add_group { f : α → β | continuous f } :=
-subtype.add_group
-
-instance continuous_monoid {α : Type u} {β : Type v} [topological_space α] [topological_space β]
-  [monoid β] [topological_monoid β] : monoid { f : α → β | continuous f } :=
-subtype.monoid
 
 instance continuous_ring {α : Type u} {β : Type v} [topological_space α] [topological_space β]
   [ring β] [topological_ring β] : ring { f : α → β | continuous f } :=

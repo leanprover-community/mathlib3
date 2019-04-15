@@ -53,6 +53,19 @@ by subtype_instance
 instance subtype.add_group {s : set β} [is_add_subgroup s] : add_group s :=
 by subtype_instance
 attribute [to_additive subtype.add_group] subtype.group
+attribute [to_additive subtype.add_group._proof_1] subtype.group._proof_1
+attribute [to_additive subtype.add_group._proof_2] subtype.group._proof_2
+attribute [to_additive subtype.add_group._proof_3] subtype.group._proof_3
+attribute [to_additive subtype.add_group._proof_4] subtype.group._proof_4
+attribute [to_additive subtype.add_group._proof_5] subtype.group._proof_5
+attribute [to_additive subtype.add_group.equations._eqn_1] subtype.group.equations._eqn_1
+
+instance subtype.comm_group {α : Type*} [comm_group α] {s : set α} [is_subgroup s] : comm_group s :=
+by subtype_instance
+
+instance subtype.add_comm_group {α : Type*} [add_comm_group α] {s : set α} [is_add_subgroup s] :
+  add_comm_group s := by subtype_instance
+attribute [to_additive subtype.add_comm_group] subtype.comm_group
 
 @[simp, to_additive is_add_subgroup.coe_neg]
 lemma is_subgroup.coe_inv {s : set α} [is_subgroup s] (a : s) : ((a⁻¹ : s) : α) = a⁻¹ := rfl
@@ -83,6 +96,16 @@ theorem is_add_subgroup.of_sub (s : set β)
   is_add_subgroup s :=
 multiplicative.is_subgroup_iff.1 $
 @is_subgroup.of_div (multiplicative β) _ _ zero_mem @sub_mem
+
+@[to_additive is_add_subgroup_Union_of_directed]
+lemma is_subgroup_Union_of_directed {ι : Type*} [hι : nonempty ι]
+  (s : ι → set α) [∀ i, is_subgroup (s i)]
+  (directed : ∀ i j, ∃ k, s i ⊆ s k ∧ s j ⊆ s k) :
+  is_subgroup (⋃i, s i) :=
+{ inv_mem := λ a ha,
+    let ⟨i, hi⟩ := set.mem_Union.1 ha in
+    set.mem_Union.2 ⟨i, is_subgroup.inv_mem hi⟩,
+  to_is_submonoid := is_submonoid_Union_of_directed s directed }
 
 def gpowers (x : α) : set α := set.range ((^) x : ℤ → α)
 def gmultiples (x : β) : set β := set.range (λ i, gsmul i x)
@@ -427,53 +450,53 @@ attribute [to_additive is_add_group_hom.ker.equations._eqn_1] ker.equations._eqn
 lemma mem_ker (f : α → β) [is_group_hom f] {x : α} : x ∈ ker f ↔ f x = 1 :=
 mem_trivial
 
-@[to_additive is_add_group_hom.zero_ker_neg]
+@[to_additive is_add_group_hom.map_zero_ker_neg]
 lemma one_ker_inv (f : α → β) [is_group_hom f] {a b : α} (h : f (a * b⁻¹) = 1) : f a = f b :=
 begin
-  rw [mul f, inv f] at h,
+  rw [map_mul f, map_inv f] at h,
   rw [←inv_inv (f b), eq_inv_of_mul_eq_one h]
 end
 
-@[to_additive is_add_group_hom.zero_ker_neg']
+@[to_additive is_add_group_hom.map_zero_ker_neg']
 lemma one_ker_inv' (f : α → β) [is_group_hom f] {a b : α} (h : f (a⁻¹ * b) = 1) : f a = f b :=
 begin
-  rw [mul f, inv f] at h,
+  rw [map_mul f, map_inv f] at h,
   apply eq_of_inv_eq_inv,
   rw eq_inv_of_mul_eq_one h
 end
 
-@[to_additive is_add_group_hom.neg_ker_zero]
+@[to_additive is_add_group_hom.map_neg_ker_zero]
 lemma inv_ker_one (f : α → β) [is_group_hom f] {a b : α} (h : f a = f b) : f (a * b⁻¹) = 1 :=
 have f a * (f b)⁻¹ = 1, by rw [h, mul_right_inv],
-by rwa [←inv f, ←mul f] at this
+by rwa [←map_inv f, ←map_mul f] at this
 
-@[to_additive is_add_group_hom.neg_ker_zero']
+@[to_additive is_add_group_hom.map_neg_ker_zero']
 lemma inv_ker_one' (f : α → β) [is_group_hom f] {a b : α} (h : f a = f b) : f (a⁻¹ * b) = 1 :=
 have (f a)⁻¹ * f b = 1, by rw [h, mul_left_inv],
-by rwa [←inv f, ←mul f] at this
+by rwa [←map_inv f, ←map_mul f] at this
 
-@[to_additive is_add_group_hom.zero_iff_ker_neg]
+@[to_additive is_add_group_hom.map_zero_iff_ker_neg]
 lemma one_iff_ker_inv (f : α → β) [is_group_hom f] (a b : α) : f a = f b ↔ f (a * b⁻¹) = 1 :=
 ⟨inv_ker_one f, one_ker_inv f⟩
 
-@[to_additive is_add_group_hom.zero_iff_ker_neg']
+@[to_additive is_add_group_hom.map_zero_iff_ker_neg']
 lemma one_iff_ker_inv' (f : α → β) [is_group_hom f] (a b : α) : f a = f b ↔ f (a⁻¹ * b) = 1 :=
 ⟨inv_ker_one' f, one_ker_inv' f⟩
 
-@[to_additive is_add_group_hom.neg_iff_ker]
+@[to_additive is_add_group_hom.map_neg_iff_ker]
 lemma inv_iff_ker (f : α → β) [w : is_group_hom f] (a b : α) : f a = f b ↔ a * b⁻¹ ∈ ker f :=
 by rw [mem_ker]; exact one_iff_ker_inv _ _ _
 
-@[to_additive is_add_group_hom.neg_iff_ker']
+@[to_additive is_add_group_hom.map_neg_iff_ker']
 lemma inv_iff_ker' (f : α → β) [w : is_group_hom f] (a b : α) : f a = f b ↔ a⁻¹ * b ∈ ker f :=
 by rw [mem_ker]; exact one_iff_ker_inv' _ _ _
 
 instance image_subgroup (f : α → β) [is_group_hom f] (s : set α) [is_subgroup s] :
   is_subgroup (f '' s) :=
 { mul_mem := assume a₁ a₂ ⟨b₁, hb₁, eq₁⟩ ⟨b₂, hb₂, eq₂⟩,
-             ⟨b₁ * b₂, mul_mem hb₁ hb₂, by simp [eq₁, eq₂, mul f]⟩,
-  one_mem := ⟨1, one_mem s, one f⟩,
-  inv_mem := assume a ⟨b, hb, eq⟩, ⟨b⁻¹, inv_mem hb, by rw inv f; simp *⟩ }
+             ⟨b₁ * b₂, mul_mem hb₁ hb₂, by simp [eq₁, eq₂, map_mul f]⟩,
+  one_mem := ⟨1, one_mem s, map_one f⟩,
+  inv_mem := assume a ⟨b, hb, eq⟩, ⟨b⁻¹, inv_mem hb, by rw map_inv f; simp *⟩ }
 attribute [to_additive is_add_group_hom.image_add_subgroup._match_1] is_group_hom.image_subgroup._match_1
 attribute [to_additive is_add_group_hom.image_add_subgroup._match_2] is_group_hom.image_subgroup._match_2
 attribute [to_additive is_add_group_hom.image_add_subgroup._match_3] is_group_hom.image_subgroup._match_3
@@ -492,13 +515,13 @@ local attribute [simp] one_mem inv_mem mul_mem normal_subgroup.normal
 
 instance preimage (f : α → β) [is_group_hom f] (s : set β) [is_subgroup s] :
   is_subgroup (f ⁻¹' s) :=
-by refine {..}; simp [mul f, one f, inv f, @inv_mem β _ s] {contextual:=tt}
+by refine {..}; simp [map_mul f, map_one f, map_inv f, @inv_mem β _ s] {contextual:=tt}
 attribute [to_additive is_add_group_hom.preimage] is_group_hom.preimage
 attribute [to_additive is_add_group_hom.preimage.equations._eqn_1] is_group_hom.preimage.equations._eqn_1
 
 instance preimage_normal (f : α → β) [is_group_hom f] (s : set β) [normal_subgroup s] :
   normal_subgroup (f ⁻¹' s) :=
-⟨by simp [mul f, inv f] {contextual:=tt}⟩
+⟨by simp [map_mul f, map_inv f] {contextual:=tt}⟩
 attribute [to_additive is_add_group_hom.preimage_normal] is_group_hom.preimage_normal
 attribute [to_additive is_add_group_hom.preimage_normal.equations._eqn_1] is_group_hom.preimage_normal.equations._eqn_1
 
@@ -521,17 +544,48 @@ lemma trivial_ker_of_inj (f : α → β) [is_group_hom f] (h : function.injectiv
 set.ext $ assume x, iff.intro
   (assume hx,
     suffices f x = f 1, by simpa using h this,
-    by simp [one f]; rwa [mem_ker] at hx)
-  (by simp [mem_ker, is_group_hom.one f] {contextual := tt})
+    by simp [map_one f]; rwa [mem_ker] at hx)
+  (by simp [mem_ker, is_group_hom.map_one f] {contextual := tt})
 
 lemma inj_iff_trivial_ker (f : α → β) [is_group_hom f] :
   function.injective f ↔ ker f = trivial α :=
 ⟨trivial_ker_of_inj f, inj_of_trivial_ker f⟩
 
-instance (s : set α) [is_subgroup s] : is_group_hom (subtype.val : s → α) :=
-⟨λ _ _, rfl⟩
-
 end is_group_hom
+
+instance subtype_val.is_group_hom [group α] {s : set α} [is_subgroup s] :
+  is_group_hom (subtype.val : s → α) := { ..subtype_val.is_monoid_hom }
+
+instance subtype_val.is_add_group_hom [add_group α] {s : set α} [is_add_subgroup s] :
+  is_add_group_hom (subtype.val : s → α) := { ..subtype_val.is_add_monoid_hom }
+attribute [to_additive subtype_val.is_group_hom] subtype_val.is_add_group_hom
+
+instance coe.is_group_hom [group α] {s : set α} [is_subgroup s] :
+  is_group_hom (coe : s → α) := { ..subtype_val.is_monoid_hom }
+
+instance coe.is_add_group_hom [add_group α] {s : set α} [is_add_subgroup s] :
+  is_add_group_hom (coe : s → α) :=
+{ ..subtype_val.is_add_monoid_hom }
+attribute [to_additive coe.is_group_hom] coe.is_add_group_hom
+
+instance subtype_mk.is_group_hom [group α] [group β] {s : set α}
+  [is_subgroup s] (f : β → α) [is_group_hom f] (h : ∀ x, f x ∈ s) :
+  is_group_hom (λ x, (⟨f x, h x⟩ : s)) := { ..subtype_mk.is_monoid_hom f h }
+
+instance subtype_mk.is_add_group_hom [add_group α] [add_group β] {s : set α}
+  [is_add_subgroup s] (f : β → α) [is_add_group_hom f] (h : ∀ x, f x ∈ s) :
+  is_add_group_hom (λ x, (⟨f x, h x⟩ : s)) :=
+{ ..subtype_mk.is_add_monoid_hom f h }
+attribute [to_additive subtype_mk.is_group_hom] subtype_mk.is_add_group_hom
+
+instance set_inclusion.is_group_hom [group α] {s t : set α}
+  [is_subgroup s] [is_subgroup t] (h : s ⊆ t) : is_group_hom (set.inclusion h) :=
+subtype_mk.is_group_hom _ _
+
+instance set_inclusion.is_add_group_hom [add_group α] {s t : set α}
+  [is_add_subgroup s] [is_add_subgroup t] (h : s ⊆ t) : is_add_group_hom (set.inclusion h) :=
+subtype_mk.is_add_group_hom _ _
+attribute [to_additive set_inclusion.is_group_hom] set_inclusion.is_add_group_hom
 
 section simple_group
 
@@ -568,7 +622,7 @@ lemma simple_group_of_surjective [group α] [group β] [simple_group α] (f : α
     { refine or.inl (is_subgroup.eq_trivial_iff.2 (λ x hx, _)),
       cases hf x with y hy,
       rw ← hy at hx,
-      rw [← hy, is_subgroup.eq_trivial_iff.1 h y hx, is_group_hom.one f] },
+      rw [← hy, is_subgroup.eq_trivial_iff.1 h y hx, is_group_hom.map_one f] },
     { refine or.inr (set.eq_univ_of_forall (λ x, _)),
       cases hf x with y hy,
       rw set.eq_univ_iff_forall at h,

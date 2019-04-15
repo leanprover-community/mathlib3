@@ -241,7 +241,7 @@ finsupp.sum_add_index
 by rw [← C_1, eval₂_C, map_one f]
 
 instance eval₂.is_add_monoid_hom : is_add_monoid_hom (eval₂ f x) :=
-⟨eval₂_zero _ _, λ _ _, eval₂_add _ _⟩
+{ map_zero := eval₂_zero _ _, map_add := λ _ _, eval₂_add _ _ }
 
 end eval₂
 
@@ -1161,6 +1161,14 @@ by unfold degree; rw support_neg
 @[simp] lemma coeff_neg (p : polynomial α) (n : ℕ) : coeff (-p) n = -coeff p n := rfl
 
 @[simp] lemma coeff_sub (p q : polynomial α) (n : ℕ) : coeff (p - q) n = coeff p n - coeff q n := rfl
+
+@[simp] lemma eval₂_neg {β} [comm_ring β] (f : α → β) [is_ring_hom f] {x : β} :
+  (-p).eval₂ f x = -p.eval₂ f x :=
+is_ring_hom.map_neg _
+
+@[simp] lemma eval₂_sub {β} [comm_ring β] (f : α → β) [is_ring_hom f] {x : β} :
+  (p - q).eval₂ f x = p.eval₂ f x - q.eval₂ f x :=
+is_ring_hom.map_sub _
 
 @[simp] lemma eval_neg (p : polynomial α) (x : α) : (-p).eval x = -p.eval x :=
 is_ring_hom.map_neg _
@@ -2105,7 +2113,7 @@ by refine finsupp.sum_add_index _ _; intros;
 simp only [add_mul, zero_mul, C_0, C_add, C_mul]
 
 instance : is_add_monoid_hom (derivative : polynomial α → polynomial α) :=
-by refine_struct {..}; simp
+{ map_add := λ _ _, derivative_add, map_zero := derivative_zero }
 
 @[simp] lemma derivative_sum {s : finset β} {f : β → polynomial α} :
   derivative (s.sum f) = s.sum (λb, derivative (f b)) :=

@@ -70,7 +70,7 @@ by { rw[←dist_zero_right], exact dist_eq_zero }
 lemma norm_triangle_sum {β} : ∀(s : finset β) (f : β → α), ∥s.sum f∥ ≤ s.sum (λa, ∥ f a ∥) :=
 finset.le_sum_of_subadditive norm norm_zero norm_triangle
 
-lemma norm_pos_iff (g : α) : ∥ g ∥ > 0 ↔ g ≠ 0 :=
+lemma norm_pos_iff (g : α) : 0 < ∥ g ∥ ↔ g ≠ 0 :=
 begin
   split ; intro h ; rw[←dist_zero_right] at *,
   { exact dist_pos.1 h },
@@ -86,6 +86,15 @@ calc ∥-g∥ = ∥0 - g∥ : by simp
       ... = dist g 0 : dist_comm _ _
       ... = ∥g - 0∥ : (dist_eq_norm g 0)
       ... = ∥g∥ : by simp
+
+lemma norm_reverse_triangle' (a b : α) : ∥a∥ - ∥b∥ ≤ ∥a - b∥ :=
+by simpa using add_le_add (norm_triangle (a - b) (b)) (le_refl (-∥b∥))
+
+lemma norm_reverse_triangle (a b : α) : abs(∥a∥ - ∥b∥) ≤ ∥a - b∥ :=
+suffices -(∥a∥ - ∥b∥) ≤ ∥a - b∥, from abs_le_of_le_of_neg_le (norm_reverse_triangle' a b) this,
+calc -(∥a∥ - ∥b∥) = ∥b∥ - ∥a∥ : by abel
+             ... ≤ ∥b - a∥ : norm_reverse_triangle' b a
+             ... = ∥a - b∥ : by rw ← norm_neg (a - b); simp
 
 lemma norm_triangle_sub {a b : α} : ∥a - b∥ ≤ ∥a∥ + ∥b∥ :=
 by simpa only [sub_eq_add_neg, norm_neg] using norm_triangle a (-b)
@@ -283,6 +292,9 @@ class normed_field (α : Type*) extends has_norm α, discrete_field α, metric_s
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 (norm_mul : ∀ a b, norm (a * b) = norm a * norm b)
 
+class nondiscrete_normed_field (α : Type*) extends normed_field α :=
+(non_trivial : ∃x:α, 1<∥x∥)
+
 instance normed_field.to_normed_ring [i : normed_field α] : normed_ring α :=
 { norm_mul := by finish [i.norm_mul], ..i }
 
@@ -296,7 +308,7 @@ eq_of_mul_eq_mul_left (ne_of_gt ((norm_pos_iff _).2 (by simp))) this
 normed_field.norm_mul a b
 
 instance normed_field.is_monoid_hom_norm [normed_field α] : is_monoid_hom (norm : α → ℝ) :=
-⟨norm_one, norm_mul⟩
+{ map_one := norm_one, map_mul := norm_mul }
 
 @[simp] lemma norm_pow [normed_field α] (a : α) : ∀ (n : ℕ), ∥a^n∥ = ∥a∥^n :=
 is_monoid_hom.map_pow norm a
@@ -316,10 +328,33 @@ end
 @[simp] lemma norm_inv {α : Type*} [normed_field α] (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ :=
 by simp only [inv_eq_one_div, norm_div, norm_one]
 
+@[simp] lemma norm_fpow {α : Type*} [normed_field α] (a : α) : ∀n : ℤ,
+  ∥a^n∥ = ∥a∥^n
+| (n : ℕ) := norm_pow a n
+| -[1+ n] := by simp [fpow_neg_succ_of_nat]
+
+lemma exists_one_lt_norm (α : Type*) [i : nondiscrete_normed_field α] : ∃x : α, 1 < ∥x∥ :=
+i.non_trivial
+
+lemma exists_norm_lt_one (α : Type*) [nondiscrete_normed_field α] : ∃x : α, 0 < ∥x∥ ∧ ∥x∥ < 1 :=
+begin
+  rcases exists_one_lt_norm α with ⟨y, hy⟩,
+  refine ⟨y⁻¹, _, _⟩,
+  { simp only [inv_eq_zero, ne.def, norm_pos_iff],
+    assume h,
+    rw ← norm_eq_zero at h,
+    rw h at hy,
+    exact lt_irrefl _ (lt_trans zero_lt_one hy) },
+  { simp [inv_lt_one hy] }
+end
+
 instance : normed_field ℝ :=
 { norm := λ x, abs x,
   dist_eq := assume x y, rfl,
   norm_mul := abs_mul }
+
+instance : nondiscrete_normed_field ℝ :=
+{ non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
 
 lemma real.norm_eq_abs (r : ℝ): norm r = abs r := rfl
 
@@ -388,6 +423,33 @@ lemma continuous_smul [topological_space γ] {f : γ → α} {g : γ → E}
 continuous_iff_continuous_at.2 $ assume c,
   tendsto_smul (continuous_iff_continuous_at.1 hf _) (continuous_iff_continuous_at.1 hg _)
 
+/-- If there is a scalar `c` with `∥c∥>1`, then any element can be moved by scalar multiplication to
+any shell of width `∥c∥`. Also recap information on the norm of the rescaling element that shows
+up in applications. -/
+lemma rescale_to_shell {c : α} (hc : 1 < ∥c∥) {ε : ℝ} (εpos : 0 < ε) {x : E} (hx : x ≠ 0) :
+  ∃d:α, d ≠ 0 ∧ ∥d • x∥ ≤ ε ∧ (ε/∥c∥ ≤ ∥d • x∥) ∧ (∥d∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥) :=
+begin
+  have xεpos : 0 < ∥x∥/ε := div_pos_of_pos_of_pos ((norm_pos_iff _).2 hx) εpos,
+  rcases exists_int_pow_near xεpos hc with ⟨n, hn⟩,
+  have cpos : 0 < ∥c∥ := lt_trans (zero_lt_one : (0 :ℝ) < 1) hc,
+  have cnpos : 0 < ∥c^(n+1)∥ := by { rw norm_fpow, exact lt_trans xεpos hn.2 },
+  refine ⟨(c^(n+1))⁻¹, _, _, _, _⟩,
+  show (c ^ (n + 1))⁻¹  ≠ 0,
+    by rwa [ne.def, inv_eq_zero, ← ne.def, ← norm_pos_iff],
+  show ∥(c ^ (n + 1))⁻¹ • x∥ ≤ ε,
+  { rw [norm_smul, norm_inv, ← div_eq_inv_mul, div_le_iff cnpos, mul_comm, norm_fpow],
+    exact (div_le_iff εpos).1 (le_of_lt (hn.2)) },
+  show ε / ∥c∥ ≤ ∥(c ^ (n + 1))⁻¹ • x∥,
+  { rw [div_le_iff cpos, norm_smul, norm_inv, norm_fpow, fpow_add (ne_of_gt cpos),
+        fpow_one, mul_inv', mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
+        one_mul, ← div_eq_inv_mul, le_div_iff (fpow_pos_of_pos cpos _), mul_comm],
+    exact (le_div_iff εpos).1 hn.1 },
+  show ∥(c ^ (n + 1))⁻¹∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥,
+  { have : ε⁻¹ * ∥c∥ * ∥x∥ = ε⁻¹ * ∥x∥ * ∥c∥, by ring,
+    rw [norm_inv, inv_inv', norm_fpow, fpow_add (ne_of_gt cpos), fpow_one, this, ← div_eq_inv_mul],
+    exact mul_le_mul_of_nonneg_right hn.1 (norm_nonneg _) }
+end
+
 instance : normed_space α (E × F) :=
 { norm_smul :=
   begin
@@ -440,15 +502,15 @@ noncomputable def normed_space.of_core (α : Type*) (β : Type*)
 
 end normed_space
 
-section has_sum
+section summable
 local attribute [instance] classical.prop_decidable
 open finset filter
 variables [normed_group α] [complete_space α]
 
-lemma has_sum_iff_vanishing_norm {f : ι → α} :
-  has_sum f ↔ ∀ε>0, (∃s:finset ι, ∀t, disjoint t s → ∥ t.sum f ∥ < ε) :=
+lemma summable_iff_vanishing_norm {f : ι → α} :
+  summable f ↔ ∀ε>0, (∃s:finset ι, ∀t, disjoint t s → ∥ t.sum f ∥ < ε) :=
 begin
-  simp only [has_sum_iff_vanishing, metric.mem_nhds_iff, exists_imp_distrib],
+  simp only [summable_iff_vanishing, metric.mem_nhds_iff, exists_imp_distrib],
   split,
   { assume h ε hε, refine h {x | ∥x∥ < ε} ε hε _, rw [ball_0_eq ε] },
   { assume h s ε hε hs,
@@ -458,27 +520,27 @@ begin
     exact ht u hu }
 end
 
-lemma has_sum_of_norm_bounded {f : ι → α} (g : ι → ℝ) (hf : has_sum g) (h : ∀i, ∥f i∥ ≤ g i) :
-  has_sum f :=
-has_sum_iff_vanishing_norm.2 $ assume ε hε,
-  let ⟨s, hs⟩ := has_sum_iff_vanishing_norm.1 hf ε hε in
+lemma summable_of_norm_bounded {f : ι → α} (g : ι → ℝ) (hf : summable g) (h : ∀i, ∥f i∥ ≤ g i) :
+  summable f :=
+summable_iff_vanishing_norm.2 $ assume ε hε,
+  let ⟨s, hs⟩ := summable_iff_vanishing_norm.1 hf ε hε in
   ⟨s, assume t ht,
     have ∥t.sum g∥ < ε := hs t ht,
     have nn : 0 ≤ t.sum g := finset.zero_le_sum (assume a _, le_trans (norm_nonneg _) (h a)),
     lt_of_le_of_lt (norm_triangle_sum t f) $ lt_of_le_of_lt (finset.sum_le_sum $ assume i _, h i) $
       by rwa [real.norm_eq_abs, abs_of_nonneg nn] at this⟩
 
-lemma has_sum_of_has_sum_norm {f : ι → α} (hf : has_sum (λa, ∥f a∥)) : has_sum f :=
-has_sum_of_norm_bounded _ hf (assume i, le_refl _)
+lemma summable_of_summable_norm {f : ι → α} (hf : summable (λa, ∥f a∥)) : summable f :=
+summable_of_norm_bounded _ hf (assume i, le_refl _)
 
-lemma norm_tsum_le_tsum_norm {f : ι → α} (hf : has_sum (λi, ∥f i∥)) : ∥(∑i, f i)∥ ≤ (∑ i, ∥f i∥) :=
+lemma norm_tsum_le_tsum_norm {f : ι → α} (hf : summable (λi, ∥f i∥)) : ∥(∑i, f i)∥ ≤ (∑ i, ∥f i∥) :=
 have h₁ : tendsto (λs:finset ι, ∥s.sum f∥) at_top (nhds ∥(∑ i, f i)∥) :=
-  (is_sum_tsum $ has_sum_of_has_sum_norm hf).comp (continuous_norm.tendsto _),
+  (has_sum_tsum $ summable_of_summable_norm hf).comp (continuous_norm.tendsto _),
 have h₂ : tendsto (λs:finset ι, s.sum (λi, ∥f i∥)) at_top (nhds (∑ i, ∥f i∥)) :=
-  is_sum_tsum hf,
+  has_sum_tsum hf,
 le_of_tendsto_of_tendsto at_top_ne_bot h₁ h₂ $ univ_mem_sets' $ assume s, norm_triangle_sum _ _
 
-end has_sum
+end summable
 
 namespace complex
 
@@ -487,6 +549,9 @@ instance : normed_field ℂ :=
   dist_eq := λ _ _, rfl,
   norm_mul := complex.abs_mul,
   .. complex.discrete_field }
+
+instance : nondiscrete_normed_field ℂ :=
+{ non_trivial := ⟨2, by simp [norm]; norm_num⟩ }
 
 @[simp] lemma norm_real (r : ℝ) : ∥(r : ℂ)∥ = ∥r∥ := complex.abs_of_real _
 

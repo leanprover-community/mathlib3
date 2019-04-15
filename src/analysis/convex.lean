@@ -749,8 +749,9 @@ calc
   ... ≤ max (f x) (f y) : by rw [←add_mul, hab, one_mul]
 
 /- This instance is necessary to guide class instance search in the lemma below. -/
-noncomputable instance real_normed_space.to_has_scalar (α : Type) [normed_space ℝ α] : has_scalar ℝ α :=
+noncomputable def real_normed_space.to_has_scalar (α : Type) [normed_space ℝ α] : has_scalar ℝ α :=
 mul_action.to_has_scalar ℝ α
+local attribute [instance] real_normed_space.to_has_scalar
 
 lemma convex_on_dist {α : Type} [normed_space ℝ α] (z : α) (D : set α) (hD : convex D) :
   convex_on D (λz', dist z' z) :=

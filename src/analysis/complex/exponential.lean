@@ -431,6 +431,40 @@ lemma exists_sin_eq {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : ∃ y, -(π
   (by rwa [sin_neg, sin_pi_div_two]) (by rwa sin_pi_div_two)
   (le_trans (neg_nonpos.2 (le_of_lt pi_div_two_pos)) (le_of_lt pi_div_two_pos))
 
+lemma sin_lt {x : ℝ} (h : 0 < x) : sin x < x :=
+begin
+  cases le_or_gt x 1 with h' h',
+  { have hx : abs x = x := abs_of_nonneg (le_of_lt h),
+    have : abs x ≤ 1, rwa [hx],
+    have := sin_bound this, rw [abs_le] at this,
+    have := this.2, rw [sub_le_iff_le_add', hx] at this,
+    apply lt_of_le_of_lt this, rw [sub_add], apply lt_of_lt_of_le _ (le_of_eq (sub_zero x)),
+    apply sub_lt_sub_left, rw sub_pos, apply mul_lt_mul',
+    { rw [pow_succ x 3], refine le_trans _ (le_of_eq (one_mul _)),
+      rw mul_le_mul_right, exact h', apply pow_pos h },
+    norm_num, norm_num, apply pow_pos h },
+  exact lt_of_le_of_lt (sin_le_one x) h'
+end
+
+/- note 1: this inequality is not tight, the tighter inequality is sin x > x - x ^ 3 / 6.
+   note 2: this is also true for x > 1, but it's nontrivial for x just above 1. -/
+lemma sin_gt_sub_cube {x : ℝ} (h : 0 < x) (h' : x ≤ 1) : sin x > x - x ^ 3 / 4 :=
+begin
+  have hx : abs x = x := abs_of_nonneg (le_of_lt h),
+  have : abs x ≤ 1, rwa [hx],
+  have := sin_bound this, rw [abs_le] at this,
+  have := this.1, rw [le_sub_iff_add_le, hx] at this,
+  refine lt_of_lt_of_le _ this,
+  rw [add_comm, sub_add, sub_neg_eq_add], apply sub_lt_sub_left,
+  apply add_lt_of_lt_sub_left,
+  rw (show x ^ 3 / 4 - x ^ 3 / 6 = x ^ 3 / 12,
+    by simp [div_eq_mul_inv, (mul_sub _ _ _).symm, -sub_eq_add_neg]; congr; norm_num),
+  apply mul_lt_mul',
+  { rw [pow_succ x 3], refine le_trans _ (le_of_eq (one_mul _)),
+    rw mul_le_mul_right, exact h', apply pow_pos h },
+  norm_num, norm_num, apply pow_pos h
+end
+
 namespace angle
 
 /-- The type of angles -/
@@ -450,7 +484,7 @@ instance angle.is_add_group_hom : is_add_group_hom (coe : ℝ → angle) :=
 @[simp] lemma coe_add (x y : ℝ) : ↑(x + y : ℝ) = (↑x + ↑y : angle) := rfl
 @[simp] lemma coe_neg (x : ℝ) : ↑(-x : ℝ) = -(↑x : angle) := rfl
 @[simp] lemma coe_sub (x y : ℝ) : ↑(x - y : ℝ) = (↑x - ↑y : angle) := rfl
-@[simp] lemma coe_gsmul (x : ℝ) (n : ℤ) : ↑(gsmul n x : ℝ) = gsmul n (↑x : angle) := is_add_group_hom.gsmul _ _ _
+@[simp] lemma coe_gsmul (x : ℝ) (n : ℤ) : ↑(gsmul n x : ℝ) = gsmul n (↑x : angle) := is_add_group_hom.map_gsmul _ _ _
 @[simp] lemma coe_two_pi : ↑(2 * π : ℝ) = (0 : angle) :=
 quotient.sound' ⟨-1, by dsimp only; rw [neg_one_gsmul, add_zero]⟩
 

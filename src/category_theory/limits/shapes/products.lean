@@ -15,10 +15,12 @@ variables {β : Type v}
 variables {C : Sort u} [𝒞 : category.{v+1} C]
 include 𝒞
 
+-- We don't need an analogue of `pair` (for binary products), `parallel_pair` (for equalizers),
+-- or `(co)span`, since we already have `functor.of_function`.
+
 def fan (f : β → C) := cone (functor.of_function f)
 
-def fan.of_function
-  {f : β → C} {P : C} (p : Π b, P ⟶ f b) : fan f :=
+def fan.of_function {f : β → C} {P : C} (p : Π b, P ⟶ f b) : fan f :=
 { X := P,
   π := { app := p } }
 
@@ -32,8 +34,7 @@ def fan.of_cone {β : Type v} {F : (discrete β) ⥤ C} (t : cone F) : fan (F.ob
 
 def cofan (f : β → C) := cocone (functor.of_function f)
 
-def cofan.of_function
-  {f : β → C} {P : C} (p : Π b, f b ⟶ P) : cofan f :=
+def cofan.of_function {f : β → C} {P : C} (p : Π b, f b ⟶ P) : cofan f :=
 { X := P,
   ι := { app := p } }
 

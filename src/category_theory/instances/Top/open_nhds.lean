@@ -13,8 +13,7 @@ def open_nhds (x : X.α) := { U : opens X // x ∈ U }
 instance open_nhds_category (x : X.α) : category.{u+1} (open_nhds x) := by {unfold open_nhds, apply_instance}
 
 def inclusion (x : X.α) : open_nhds x ⥤ opens X :=
-{ obj := λ U, U.val,
-  map := λ U V i, i }
+full_subcategory_inclusion _
 
 @[simp] lemma inclusion_obj (x : X.α) (U) (p) : (inclusion x).obj ⟨U,p⟩ = U := rfl
 

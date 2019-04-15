@@ -10,7 +10,7 @@ namespace topological_space.open_nhds
 variables {X Y : Top.{u}} (f : X ⟶ Y)
 
 def open_nhds (x : X.α) := { U : opens X // x ∈ U }
-instance open_nhds_category (x : X.α) : category.{u+1} (open_nhds x) := begin unfold open_nhds, apply_instance end
+instance open_nhds_category (x : X.α) : category.{u+1} (open_nhds x) := by {unfold open_nhds, apply_instance}
 
 def inclusion (x : X.α) : open_nhds x ⥤ opens X :=
 { obj := λ U, U.val,

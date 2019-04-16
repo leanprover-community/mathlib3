@@ -1240,6 +1240,29 @@ mem_powerset.2 (subset.refl _)
 
 end powerset
 
+section powerset_len
+
+def powerset_len (n : ℕ) (s : finset α) : finset (finset α) :=
+⟨(s.1.powerset_len n).pmap finset.mk
+  (λ t h, nodup_of_le (mem_powerset_len.1 h).1 s.2),
+ nodup_pmap (λ a ha b hb, congr_arg finset.val)
+   (nodup_powerset_len s.2)⟩
+
+theorem mem_powerset_len {n} {s t : finset α} :
+  s ∈ powerset_len n t ↔ s ⊆ t ∧ card s = n :=
+by cases s; simp [powerset_len, val_le_iff.symm]; refl
+
+@[simp] theorem powerset_len_mono {n} {s t : finset α} (h : s ⊆ t) :
+  powerset_len n s ⊆ powerset_len n t :=
+λ u h', mem_powerset_len.2 $
+  and.imp (λ h₂, subset.trans h₂ h) id (mem_powerset_len.1 h')
+
+@[simp] theorem card_powerset_len (n : ℕ) (s : finset α) :
+  card (powerset_len n s) = nat.choose (card s) n :=
+(card_pmap _ _ _).trans (card_powerset_len n s.1)
+
+end powerset_len
+
 section fold
 variables (op : β → β → β) [hc : is_commutative β op] [ha : is_associative β op]
 local notation a * b := op a b

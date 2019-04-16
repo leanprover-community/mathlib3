@@ -56,22 +56,14 @@ def Ioi (a : α) := {x | a < x}
 @[simp] lemma mem_Ici : x ∈ Ici a ↔ a ≤ x := iff.rfl
 @[simp] lemma mem_Ioi : x ∈ Ioi a ↔ a < x := iff.rfl
 
-@[simp] lemma left_mem_Ioo : a ∈ Ioo a b ↔ false :=
-⟨λ h, lt_irrefl a h.1, λ h, false.elim h⟩
-@[simp] lemma left_mem_Ico : a ∈ Ico a b ↔ a < b :=
-⟨λ h, h.2, λ h, ⟨le_refl _, h⟩⟩
-@[simp] lemma left_mem_Icc : a ∈ Icc a b ↔ a ≤ b :=
-⟨λ h, h.2, λ h, ⟨le_refl _, h⟩⟩
-@[simp] lemma left_mem_Ioc : a ∈ Ioc a b ↔ false :=
-⟨λ h, lt_irrefl a h.1, λ h, false.elim h⟩
-@[simp] lemma right_mem_Ioo : b ∈ Ioo a b ↔ false :=
-⟨λ h, lt_irrefl b h.2, λ h, false.elim h⟩
-@[simp] lemma right_mem_Ico : b ∈ Ico a b ↔ false :=
-⟨λ h, lt_irrefl b h.2, λ h, false.elim h⟩
-@[simp] lemma right_mem_Icc : b ∈ Icc a b ↔ a ≤ b :=
-⟨λ h, h.1, λ h, ⟨h, le_refl _⟩⟩
-@[simp] lemma right_mem_Ioc : b ∈ Ioc a b ↔ a < b :=
-⟨λ h, h.1, λ h, ⟨h, le_refl _⟩⟩
+@[simp] lemma left_mem_Ioo : a ∈ Ioo a b ↔ false := ⟨λ h, lt_irrefl a h.1, λ h, false.elim h⟩
+@[simp] lemma left_mem_Ico : a ∈ Ico a b ↔ a < b := ⟨λ h, h.2, λ h, ⟨le_refl _, h⟩⟩
+@[simp] lemma left_mem_Icc : a ∈ Icc a b ↔ a ≤ b := ⟨λ h, h.2, λ h, ⟨le_refl _, h⟩⟩
+@[simp] lemma left_mem_Ioc : a ∈ Ioc a b ↔ false := ⟨λ h, lt_irrefl a h.1, λ h, false.elim h⟩
+@[simp] lemma right_mem_Ioo : b ∈ Ioo a b ↔ false := ⟨λ h, lt_irrefl b h.2, λ h, false.elim h⟩
+@[simp] lemma right_mem_Ico : b ∈ Ico a b ↔ false := ⟨λ h, lt_irrefl b h.2, λ h, false.elim h⟩
+@[simp] lemma right_mem_Icc : b ∈ Icc a b ↔ a ≤ b := ⟨λ h, h.1, λ h, ⟨h, le_refl _⟩⟩
+@[simp] lemma right_mem_Ioc : b ∈ Ioc a b ↔ a < b := ⟨λ h, h.1, λ h, ⟨h, le_refl _⟩⟩
 
 @[simp] lemma Ioo_eq_empty (h : b ≤ a) : Ioo a b = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ x ⟨h₁, h₂⟩, not_le_of_lt (lt_trans h₁ h₂) h

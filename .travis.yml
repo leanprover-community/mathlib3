@@ -85,7 +85,7 @@ jobs:
       sudo: true
       language: python
       python:
-        - "3.6"
+        - "3.4"
       install:
         - if [ "$GITHUB_CRED" != "" ]; then git config --add github.oauthtoken $GITHUB_CRED; echo setting up GitHub credentials; else echo no GitHub credentials available; fi
       os:

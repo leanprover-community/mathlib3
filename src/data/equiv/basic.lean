@@ -495,6 +495,12 @@ def subtype_congr {p : α → Prop} {q : β → Prop}
  λ ⟨x, h⟩, subtype.eq' $ by simp,
  λ ⟨y, h⟩, subtype.eq' $ by simp⟩
 
+def subtype_congr_right {p q : α → Prop} (e : ∀x, p x ↔ q x) : subtype p ≃ subtype q :=
+subtype_congr (equiv.refl _) e
+
+@[simp] lemma subtype_congr_right_mk {p q : α → Prop} (e : ∀x, p x ↔ q x)
+  {x : α} (h : p x) : subtype_congr_right e ⟨x, h⟩ = ⟨x, (e x).1 h⟩ := rfl
+
 def subtype_equiv_of_subtype' {p : α → Prop} (e : α ≃ β) :
   {a : α // p a} ≃ {b : β // p (e.symm b)} :=
 subtype_congr e $ by simp
@@ -633,6 +639,9 @@ protected noncomputable def range {α β} (f : α → β) (H : injective f) :
   set.range f H a = ⟨f a, set.mem_range_self _⟩ :=
 by dunfold equiv.set.range equiv.set.univ;
    simp [set_coe_cast, -image_univ, image_univ.symm]
+
+protected def congr {α β : Type*} (e : α ≃ β) : set α ≃ set β :=
+⟨λ s, e '' s, λ t, e.symm '' t, symm_image_image e, symm_image_image e.symm⟩
 
 end set
 

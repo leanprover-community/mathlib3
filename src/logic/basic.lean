@@ -366,6 +366,15 @@ by subst eq; exact h
 
 @[simp] lemma {u} eq_mpr_heq {α β : Sort u} (h : β = α) (x : α) : eq.mpr h x == x :=
 by subst h; refl
+
+protected lemma eq.congr {x₁ x₂ y₁ y₂ : α} (h₁ : x₁ = y₁) (h₂ : x₂ = y₂) :
+  (x₁ = x₂) ↔ (y₁ = y₂) :=
+by { subst h₁, subst h₂ }
+
+lemma congr_arg2 {α β γ : Type*} (f : α → β → γ) {x x' : α} {y y' : β}
+  (hx : x = x') (hy : y = y') : f x y = f x' y' :=
+by { subst hx, subst hy }
+
 end equality
 
 /-
@@ -543,6 +552,10 @@ lemma some_spec2 {α : Type*} {p : α → Prop} {h : ∃a, p a}
   (q : α → Prop) (hpq : ∀a, p a → q a) : q (some h) :=
 hpq _ $ some_spec _
 
+/-- A version of classical.indefinite_description which is definitionally equal to a pair -/
+noncomputable def subtype_of_exists {α : Type*} {P : α → Prop} (h : ∃ x, P x) : {x // P x} :=
+⟨classical.some h, classical.some_spec h⟩
+
 end classical
 
 @[elab_as_eliminator]
@@ -636,7 +649,7 @@ theorem not_ball {α : Sort*} {p : α → Prop} {P : Π (x : α), p x → Prop} 
 end classical
 
 section nonempty
-universes u v w
+universe variables u v w
 variables {α : Type u} {β : Type v} {γ : α → Type w}
 
 attribute [simp] nonempty_of_inhabited
@@ -707,5 +720,12 @@ noncomputable def classical.inhabited_of_nonempty' {α : Sort u} [h : nonempty �
 -- `nonempty` cannot be a `functor`, because `functor` is restricted to Types.
 lemma nonempty.map {α : Sort u} {β : Sort v} (f : α → β) : nonempty α → nonempty β
 | ⟨h⟩ := ⟨f h⟩
+
+protected lemma nonempty.map2 {α β γ : Sort*} (f : α → β → γ) : nonempty α → nonempty β → nonempty γ
+| ⟨x⟩ ⟨y⟩ := ⟨f x y⟩
+
+protected lemma nonempty.congr {α : Sort u} {β : Sort v} (f : α → β) (g : β → α) :
+  nonempty α ↔ nonempty β :=
+⟨nonempty.map f, nonempty.map g⟩
 
 end nonempty

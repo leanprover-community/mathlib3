@@ -270,9 +270,7 @@ theorem of_seq_fun₂ (f g₁ g₂ : α → β) (h : β → β → β) (H : {n :
 
 @[simp] lemma of_seq_inv [has_inv β] (f : α → β) : of_seq (f⁻¹) = (of_seq f : β*)⁻¹ := rfl
 
-lemma of_eq_coe (x : β) : of x = (↑x : β*) := rfl
-
-@[simp] lemma of_id (x : β) : of x = (x : β*) := rfl
+@[simp] lemma of_eq_coe (x : β) : of x = (x : β*) := rfl
 
 lemma of_eq (x y : β) (NT : φ ≠ ⊥) : x = y ↔ of x = (of y : β*) := 
 ⟨ λ h, by rw h, by apply of_inj NT ⟩

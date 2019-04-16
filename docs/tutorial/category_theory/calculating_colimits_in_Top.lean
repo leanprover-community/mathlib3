@@ -2,9 +2,7 @@ import category_theory.instances.Top
 import category_theory.limits.shapes
 import topology.instances.real
 
-/- This file contains some demos of using the limits API to do topology.
-   Because we haven't provided much support for limits of special shapes,
-   it's a bit cumbersome at present. -/
+/- This file contains some demos of using the (co)limits API to do topology. -/
 
 noncomputable theory
 

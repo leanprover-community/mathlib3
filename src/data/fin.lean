@@ -13,7 +13,7 @@ open fin nat
 def fin_zero_elim {C : Sort*} : fin 0 → C :=
 λ x, false.elim $ nat.not_lt_zero x.1 x.2
 
-def fin_zero_elim' {α : fin 0 → Sort u} : ∀(x : fin 0), α x
+def {u} fin_zero_elim' {α : fin 0 → Sort u} : ∀(x : fin 0), α x
 | ⟨n, hn⟩ := false.elim (nat.not_lt_zero n hn)
 
 namespace fin

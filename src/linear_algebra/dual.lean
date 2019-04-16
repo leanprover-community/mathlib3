@@ -60,7 +60,7 @@ by erw [constr_basis h ‹v ∈ B›, constr_basis h ‹w ∈ B›]
 def to_dual_flip (v : V) : (V →ₗ[K] K) := (linear_map.flip h.to_dual).to_fun v
 
 omit h
-def eval_lc_at (v : V) : (lc K V) →ₗ[K] K :=
+def eval_lc_at (v : V) : (lc V K) →ₗ[K] K :=
 { to_fun := λ f, f v,
   add := by intros; rw finsupp.add_apply,
   smul := by intros; rw finsupp.smul_apply }
@@ -112,7 +112,7 @@ begin
   rw linear_map.mem_range,
   let lin_comb : B →₀ K := finsupp.on_finset fin.elems (λ b, f.to_fun b) _,
   let emb := embedding.subtype B,
-  { use lc.total K V (finsupp.emb_domain emb lin_comb),
+  { use lc.total V K V id (finsupp.emb_domain emb lin_comb),
     apply h.ext,
     intros x hx,
     rw [h.to_dual_eq_repr _ x hx, repr_total _],
@@ -126,7 +126,7 @@ end
 
 def dual_basis : set (dual K V) := h.to_dual '' B
 
-theorem dual_lin_independent : linear_independent K h.dual_basis :=
+theorem dual_lin_independent : linear_independent K _ id h.dual_basis :=
 begin
   apply linear_independent.image h.1,
   rw to_dual_ker,

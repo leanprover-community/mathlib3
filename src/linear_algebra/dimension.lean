@@ -79,7 +79,7 @@ lemma dim_of_field (α : Type*) [discrete_field α] : dim α α = 1 :=
 by rw [← (is_basis_singleton_one α).mk_eq_dim, cardinal.mk_singleton]
 
 set_option class.instance_max_depth 37
-lemma dim_span {s : set β} (hs : linear_independent α s) : dim α ↥(span α s) = cardinal.mk s :=
+lemma dim_span {s : set β} (hs : linear_independent α β id s) : dim α ↥(span α s) = cardinal.mk s :=
 have (span α s).subtype '' ((span α s).subtype ⁻¹' s) = s :=
   image_preimage_eq_of_subset $ by rw [← linear_map.range_coe, range_subtype]; exact subset_span,
 begin
@@ -93,7 +93,7 @@ set_option class.instance_max_depth 32
 
 lemma dim_span_le (s : set β) : dim α (span α s) ≤ cardinal.mk s :=
 let ⟨b, hb, _, hsb, hlib⟩ :=
-  exists_linear_independent (@linear_independent_empty α _ _ _ _) (set.empty_subset s) in
+  exists_linear_independent (@linear_independent_empty β α β id _ _ _) (set.empty_subset s) in
 have hsab : span α s = span α b, from span_eq_of_le _ hsb (span_le.2 (λ x hx, subset_span (hb hx))),
 calc dim α (span α s) = dim α (span α b) : by rw hsab
                   ... = cardinal.mk b : dim_span hlib
@@ -114,7 +114,7 @@ begin
   { exact prod.injective_inr },
   { exact prod.injective_inl },
   { rintro _ ⟨⟨x, hx, rfl⟩, ⟨y, hy, ⟨⟩⟩⟩,
-    exact zero_not_mem_of_linear_independent (@zero_ne_one α _) hb.1 hx }
+    exact zero_not_mem_of_linear_independent (@zero_ne_one α _) hb.1 rfl hx }
 end
 
 theorem dim_quotient (p : submodule α β) : dim α p.quotient + dim α p = dim α β :=
@@ -154,9 +154,9 @@ set_option class.instance_max_depth 37
 lemma dim_submodule_le (s : submodule α β) : dim α s ≤ dim α β :=
 begin
   rcases exists_is_basis α s with ⟨bs, hbs⟩,
-  have : linear_independent α (submodule.subtype s '' bs) :=
+  have : linear_independent α β id (submodule.subtype s '' bs) :=
     hbs.1.image (linear_map.disjoint_ker'.2 $ assume x y _ _ eq, subtype.val_injective eq),
-  have : linear_independent α ((coe : s → β) '' bs) := this,
+  have : linear_independent α β id ((coe : s → β) '' bs) := this,
   rcases exists_subset_is_basis this with ⟨b, hbs_b, hb⟩,
   rw [← is_basis.mk_eq_dim hbs, ← is_basis.mk_eq_dim hb],
   calc cardinal.mk ↥bs = cardinal.mk ((coe : s → β) '' bs) :
@@ -254,7 +254,7 @@ begin
   replace eq := congr_fun eq i,
   rw [std_basis_same, std_basis_ne α φ _ _ h] at eq,
   subst eq,
-  exact (zero_not_mem_of_linear_independent (zero_ne_one : (0:α) ≠ 1) (hb i).1 hx).elim
+  exact (zero_not_mem_of_linear_independent (zero_ne_one : (0:α) ≠ 1) (hb i).1 rfl hx).elim
 end
 
 lemma dim_fun {β : Type u} [add_comm_group β] [vector_space α β] :

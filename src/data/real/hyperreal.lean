@@ -21,7 +21,8 @@ namespace hyperreal
 notation `ℝ*` := hyperreal
 
 private def U := is_ultrafilter_hyperfilter set.infinite_univ_nat
-noncomputable instance : discrete_linear_ordered_field ℝ* := filter_product.discrete_linear_ordered_field U
+noncomputable instance : discrete_linear_ordered_field ℝ* := 
+filter_product.discrete_linear_ordered_field U
 
 /-- A sample infinitesimal hyperreal-/
 noncomputable def epsilon : ℝ* := of_seq (λ n, n⁻¹)
@@ -153,14 +154,16 @@ unfold st, split_ifs,
 { cases not_imp_comm.mp exist_st_of_not_infinite h with H H,
   { rw (set.ext (λ i, ⟨λ hi, set.mem_univ i, λ hi, H i⟩) : {y : ℝ | of y < x} = set.univ),
     exact (real.Sup_univ).symm },
-  { rw (set.ext (λ i, ⟨λ hi, false.elim (not_lt_of_lt (H i) hi), λ hi, false.elim (set.not_mem_empty i hi)⟩) : {y : ℝ | of y < x} = ∅),
+  { rw (set.ext (λ i, ⟨λ hi, false.elim (not_lt_of_lt (H i) hi), 
+    λ hi, false.elim (set.not_mem_empty i hi)⟩) : {y : ℝ | of y < x} = ∅),
     exact (real.Sup_empty).symm } }
 end
 
 theorem exist_st_iff_not_infinite {x : ℝ*} : (∃ r : ℝ, is_st x r) ↔ ¬ infinite x := 
 ⟨ not_infinite_of_exist_st, exist_st_of_not_infinite ⟩
 
-theorem infinite_iff_not_exist_st {x : ℝ*} : infinite x ↔ ¬ ∃ r : ℝ, is_st x r := iff_not_comm.mp exist_st_iff_not_infinite
+theorem infinite_iff_not_exist_st {x : ℝ*} : infinite x ↔ ¬ ∃ r : ℝ, is_st x r := 
+iff_not_comm.mp exist_st_iff_not_infinite
 
 theorem st_infinite {x : ℝ*} (hi : infinite x) : st x = 0 := 
 begin
@@ -213,7 +216,8 @@ eq.trans (eq_of_is_st_real h1) (eq_of_is_st_real h2).symm
 
 lemma is_st_iff_abs_sub_lt_delta {x : ℝ*} {r : ℝ} : 
   is_st x r ↔ ∀ (δ : ℝ), δ > 0 → abs (x - r) < δ :=
-by simp only [abs_sub_lt_iff, @sub_lt _ _ (r : ℝ*) x _, @sub_lt_iff_lt_add' _ _ x (r : ℝ*) _, and_comm]; refl
+by simp only [abs_sub_lt_iff, @sub_lt _ _ (r : ℝ*) x _, 
+    @sub_lt_iff_lt_add' _ _ x (r : ℝ*) _, and_comm]; refl
 
 lemma is_st_add {x y : ℝ*} {r s : ℝ} : is_st x r → is_st y s → is_st (x + y) (r + s) := 
 λ hxr hys d hd, 
@@ -390,7 +394,7 @@ lemma infinite_neg_add_not_infinite {x y : ℝ*} :
 
 theorem infinite_pos_of_tendsto_top {f : ℕ → ℝ} (hf : tendsto f at_top at_top) : 
   infinite_pos (of_seq f) := 
-λ r, have hf' : _ := (tendsto_at_top_at_top (λ x y, ⟨max x y, ⟨le_max_left _ _, le_max_right _ _⟩⟩) _).mp hf,
+λ r, have hf' : _ := (tendsto_at_top_at_top _).mp hf,
 Exists.cases_on (hf' (r + 1)) $ λ i hi,
   have hi' : ∀ (a : ℕ), f a < (r + 1) → a < i := 
     λ a, by rw [←not_le, ←not_le]; exact not_imp_not.mpr (hi a),

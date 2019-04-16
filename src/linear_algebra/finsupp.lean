@@ -109,7 +109,7 @@ lemma span_single_image (s : set β) (a : α) :
 by rw ← span_image; refl
 
 lemma linear_independent_single {f : α → set β}
-  (hf : ∀a, linear_independent γ (f a)) : linear_independent γ (⋃a, single a '' f a) :=
+  (hf : ∀a, linear_independent γ β id (f a)) : linear_independent γ _ id (⋃a, single a '' f a) :=
 begin
   refine linear_independent_Union_finite _ _ ,
   { refine assume a, @linear_independent.image _ _ _ _ _ _ _ _ _ (lsingle a) (hf a) _,
@@ -120,8 +120,8 @@ begin
     { simp only [span_single_image],
       exact assume a, map_mono le_top },
     refine disjoint_mono _ _ (disjoint_lsingle_lsingle {a} s _),
-    { simp only [supr_singleton, this] },
-    { exact supr_le_supr (assume a, supr_le_supr (assume ha, this a)) },
+    { simp only [set.image_id, supr_singleton, this] },
+    { exact supr_le_supr (assume a, by rw set.image_id; exact supr_le_supr (assume ha, this a)) },
     { rwa [disjoint_singleton_left] } }
 end
 
@@ -188,7 +188,7 @@ begin
   { simp only [cardinal.mk_image_eq (injective_single.{u u} _), cardinal.sum_const] },
   { refine assume i j h, disjoint_image_image (assume b hb c hc, _),
     simp only [(≠), single_eq_single_iff, not_or_distrib, not_and_distrib],
-    have : (0:β) ∉ bs := zero_not_mem_of_linear_independent (zero_ne_one : (0:γ) ≠ 1) hbs.1,
+    have : (0:β) ∉ bs := zero_not_mem_of_linear_independent (zero_ne_one : (0:γ) ≠ 1) hbs.1 rfl,
     exact ⟨or.inl h, or.inl (assume eq, this $ eq ▸ hb)⟩ }
 end
 
@@ -203,11 +203,15 @@ variables [ring α]
 variables [add_comm_group β] [module α β]
 variables [add_comm_group γ] [module α γ]
 
-noncomputable def congr (s : set β) (t : set γ) (e : s ≃ t) : supported α s ≃ₗ[α] supported α t :=
+-- needed for the next lemma to find the right instance:
+local attribute [instance] finsupp.add_comm_group
+
+noncomputable def congr (s : set β) (t : set γ) (e : s ≃ t) :
+  supported α s ≃ₗ[α] supported α t :=
 begin
   show (finsupp.restrict_dom α α s) ≃ₗ[α] (finsupp.restrict_dom α α t),
   refine linear_equiv.trans (finsupp.restrict_dom_equiv_finsupp α α s)
-    (linear_equiv.trans _ (finsupp.restrict_dom_equiv_finsupp α α t).symm),
+      (linear_equiv.trans _ (finsupp.restrict_dom_equiv_finsupp α α t).symm),
   exact finsupp.dom_lcongr e
 end
 
@@ -270,6 +274,7 @@ universes u
 
 open vector_space
 set_option class.instance_max_depth 100
+local attribute [instance] finsupp.add_comm_group
 
 lemma cardinal_mk_eq_cardinal_mk_field_pow_dim
   {α β : Type u} [discrete_field α] [add_comm_group β] [vector_space α β]

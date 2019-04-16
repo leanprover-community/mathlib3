@@ -20,62 +20,77 @@ section MappingCylinder
 -- Let's construct the mapping cylinder.
 def to_pt (X : Top) : X ⟶ pt :=
 { val := λ _, unit.star, property := continuous_const }
+def I_0 : pt ⟶ I :=
+{ val := λ _, ⟨(0 : ℝ), begin simp, split; norm_num, end⟩,
+  property := continuous_const }
 def I_1 : pt ⟶ I :=
 { val := λ _, ⟨(1 : ℝ), begin simp, split; norm_num, end⟩,
   property := continuous_const }
 
-def cylinder (X : Top) : Top := limit (functor.of_function (pair X I))
-def cylinder_1 (X : Top) : X ⟶ cylinder X :=
+def cylinder (X : Top) : Top := limit (pair X I)
 -- To define a map to the cylinder, we give a map to each factor.
--- There's no nice API for this yet, so you just have to use the general limits API for now.
-limit.lift (functor.of_function (pair X I))
-{ X := X,
-  π :=
-  { app := λ j : walking_pair, match j with
-    | walking_pair.left := 𝟙 X
-    | walking_pair.right := to_pt X ≫ I_1
-    end }}
-def mapping_cylinder {X Y : Top} (f : X ⟶ Y) : Top := colimit (span (𝟙 X) (cylinder_1 X))
--- TODO
--- Do the mapping cone, too, both as an iterated colimit of spans,
--- and as the colimit of a diagram
+-- `binary_fan` is a helper method for constructing a `cone` over `pair X Y`.
+def cylinder_0 (X : Top) : X ⟶ cylinder X :=
+limit.lift (pair X I) (binary_fan (𝟙 X) (to_pt X ≫ I_0))
+def cylinder_1 (X : Top) : X ⟶ cylinder X :=
+limit.lift (pair X I) (binary_fan (𝟙 X) (to_pt X ≫ I_1))
+
+-- The mapping cylinder is the colimit of the diagram
+--    X
+--   / \
+--  Y   (X x I)
+def mapping_cylinder {X Y : Top} (f : X ⟶ Y) : Top := colimit (span f (cylinder_1 X))
+
+-- The mapping cone is the colimit of the diagram
 --    X        X
 --   / \      / \
 --  Y   (X x I)  pt
--- Make sure there's an API which can cope with this!
+-- Here we'll calculate it as an iterated colimit, as the colimit of
+--         X
+--        / \
+-- (Cyl f)   (X x I)
+
+def mapping_cylinder_0 {X Y : Top} (f : X ⟶ Y) : X ⟶ mapping_cylinder f :=
+cylinder_0 X ≫ colimit.ι (span f (cylinder_1 X)) walking_span.right
+
+def mapping_cone {X Y : Top} (f : X ⟶ Y) : Top := colimit (span (mapping_cylinder_0 f) (to_pt X))
+
+-- TODO Hopefully someone will write a nice tactic for generating diagrams quickly,
+-- and we'll be able to verify that this iterated construction is the same as the colimit
+-- over a single diagram.
 end MappingCylinder
 
 section Gluing
--- Similarly, here's two copies of the real line glued together at a point.
+
+-- Here's two copies of the real line glued together at a point.
 def f : pt ⟶ R := { val := λ _, (0 : ℝ), property := continuous_const }
 def X : Top := colimit (span f f)
 
 -- To define a map out of it, we define maps out of each copy of the line,
 -- and check the maps agree at 0.
-
--- We're still discussing the best API for this, so for now it's quite gross:
-local attribute [tidy] tactic.case_bash
-
+-- `pushout_cocone.mk` is a helper method for constructing cocones over a span.
 def g : X ⟶ R :=
-colimit.desc (span f f)
-{ X := R,
-  ι :=
-  { app := λ j : walking_span, match j with
-    | walking_span.zero  := f
-    | walking_span.left  := 𝟙 _
-    | walking_span.right := 𝟙 _
-    end } }.
+colimit.desc (span f f) (pushout_cocone.mk (𝟙 _) (𝟙 _) rfl).
+
 end Gluing
 
+universes v u w
+
 section Products
--- Let's construct an infinite product of copies of ℝ
-def Y : Top := limit (functor.of_function (λ n : ℕ, R))
--- As above, for now we need to use the general limits API.
--- To construct of point of Y, we give points in each factor.
+
+def d : discrete ℕ ⥤ Top := functor.of_function (λ n : ℕ, R)
+/- (There is a coercion that lets us omit `functor.of_function`, but since you usually
+   need explicitly stated universes before Lean inserts the coercion correctly,
+   it's not really worth it: -/
+-- def d' : discrete ℕ ⥤ Top.{0} := (λ n : ℕ, R)
+
+def Y : Top := limit d
+
+def w : cone d := fan.of_function (λ (n : ℕ), ⟨λ (_ : pt), (n : ℝ), continuous_const⟩)
+
 def q : pt ⟶ Y :=
-limit.lift (functor.of_function (λ n : ℕ, R))
-{ X := pt,
-  π := { app := λ n : ℕ, { val := λ _, (n : ℝ), property := continuous_const } } }.
+limit.lift d w
 
 example : (q.val ()).val (57 : ℕ) = ((57 : ℕ) : ℝ) := rfl
+
 end Products

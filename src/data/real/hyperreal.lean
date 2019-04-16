@@ -543,7 +543,7 @@ theorem abs_lt_real_iff_infinitesimal {x : ℝ*} :
 ⟨ λ hi r hr, abs_lt.mpr (by rw [←of_eq_coe, ←of_abs U]; 
   exact infinitesimal_def.mp hi (abs r) (abs_pos_of_ne_zero hr)),
   λ hR, infinitesimal_def.mpr $ λ r hr, abs_lt.mp $ 
-  (abs_of_pos $ of_lt_of_lt U hr : abs (of r) = (of r)) ▸ hR r $ ne_of_gt hr ⟩ 
+  (abs_of_pos $ of_lt_of_lt U hr : abs (r : ℝ*) = r) ▸ hR r $ ne_of_gt hr ⟩ 
 
 lemma infinitesimal_zero : infinitesimal 0 := is_st_refl_real 0
 

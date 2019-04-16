@@ -1,4 +1,4 @@
-import category_theory.instances.topological_spaces
+import category_theory.instances.Top
 import category_theory.limits.shapes
 import topology.instances.real
 

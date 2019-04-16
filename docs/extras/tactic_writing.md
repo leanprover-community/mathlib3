@@ -381,7 +381,7 @@ for using the second optional argument of `«have»` which is the expected type
 ```lean
 open interactive (loc.ns)
 open interactive.types (texpr location)
-meta def mul_left (q : parse texpr) : parse location → tactic unit
+meta def tactic.interactive.mul_left (q : parse texpr) : parse location → tactic unit
 | (loc.ns [some h]) := do
    e ← tactic.i_to_expr q,
    H ← get_local h,
@@ -403,7 +403,7 @@ one if the tactic name is followed by `!`. This is the opportunity to use
 `when` which is the monadic version of `ite` (with else branch doing nothing).
 See [category/combinators.lean](https://github.com/leanprover/lean/blob/master/library/init/category/combinators.lean) in core library for other variations on this idea.
 ```lean
-meta def mul_left_bis (clear_hyp : parse (optional $ tk "!")) (q : parse texpr) :
+meta def tactic.interactive.mul_left_bis (clear_hyp : parse (optional $ tk "!")) (q : parse texpr) :
 parse location → tactic unit
 | (loc.ns [some h]) := do
    e ← tactic.i_to_expr q,

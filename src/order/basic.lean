@@ -220,6 +220,9 @@ instance prod.preorder (α : Type u) (β : Type v) [preorder α] [preorder β] :
     ⟨le_trans hac hce, le_trans hbd hdf⟩,
   .. prod.has_le α β }
 
+/-- The pointwise partial order on a product.
+    (The lexicographic ordering is defined in order/lexicographic.lean, and the instances are
+    available via the type synonym `lex α β = α × β`.) -/
 instance prod.partial_order (α : Type u) (β : Type v) [partial_order α] [partial_order β] :
   partial_order (α × β) :=
 { le_antisymm := assume ⟨a, b⟩ ⟨c, d⟩ ⟨hac, hbd⟩ ⟨hca, hdb⟩,

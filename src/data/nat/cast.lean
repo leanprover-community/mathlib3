@@ -33,7 +33,7 @@ end
 | (n+1) := show ((m + n : ℕ) : α) + 1 = m + (n + 1), by rw [cast_add n, add_assoc]
 
 instance [add_monoid α] [has_one α] : is_add_monoid_hom (coe : ℕ → α) :=
-by refine_struct {..}; simp
+{ map_zero := cast_zero, map_add := cast_add }
 
 @[simp] theorem cast_bit0 [add_monoid α] [has_one α] (n : ℕ) : ((bit0 n : ℕ) : α) = bit0 n := cast_add _ _
 

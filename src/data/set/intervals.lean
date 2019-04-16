@@ -15,7 +15,6 @@ Each interval has the name `I` + letter for left side + letter for right side
 TODO: This is just the beginning; a lot of rules are missing
 -/
 import data.set.lattice algebra.order algebra.order_functions
-import tactic.linarith
 
 namespace set
 
@@ -57,6 +56,23 @@ def Ioi (a : α) := {x | a < x}
 @[simp] lemma mem_Ici : x ∈ Ici a ↔ a ≤ x := iff.rfl
 @[simp] lemma mem_Ioi : x ∈ Ioi a ↔ a < x := iff.rfl
 
+@[simp] lemma left_mem_Ioo : a ∈ Ioo a b ↔ false :=
+⟨λ h, lt_irrefl a h.1, λ h, false.elim h⟩
+@[simp] lemma left_mem_Ico : a ∈ Ico a b ↔ a < b :=
+⟨λ h, h.2, λ h, ⟨le_refl _, h⟩⟩
+@[simp] lemma left_mem_Icc : a ∈ Icc a b ↔ a ≤ b :=
+⟨λ h, h.2, λ h, ⟨le_refl _, h⟩⟩
+@[simp] lemma left_mem_Ioc : a ∈ Ioc a b ↔ false :=
+⟨λ h, lt_irrefl a h.1, λ h, false.elim h⟩
+@[simp] lemma right_mem_Ioo : b ∈ Ioo a b ↔ false :=
+⟨λ h, lt_irrefl b h.2, λ h, false.elim h⟩
+@[simp] lemma right_mem_Ico : b ∈ Ico a b ↔ false :=
+⟨λ h, lt_irrefl b h.2, λ h, false.elim h⟩
+@[simp] lemma right_mem_Icc : b ∈ Icc a b ↔ a ≤ b :=
+⟨λ h, h.1, λ h, ⟨h, le_refl _⟩⟩
+@[simp] lemma right_mem_Ioc : b ∈ Ioc a b ↔ a < b :=
+⟨λ h, h.1, λ h, ⟨h, le_refl _⟩⟩
+
 @[simp] lemma Ioo_eq_empty (h : b ≤ a) : Ioo a b = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ x ⟨h₁, h₂⟩, not_le_of_lt (lt_trans h₁ h₂) h
 
@@ -71,6 +87,7 @@ eq_empty_iff_forall_not_mem.2 $ λ x ⟨h₁, h₂⟩, not_lt_of_le (le_trans h�
 
 @[simp] lemma Ioo_self (a : α) : Ioo a a = ∅ := Ioo_eq_empty $ le_refl _
 @[simp] lemma Ico_self (a : α) : Ico a a = ∅ := Ico_eq_empty $ le_refl _
+@[simp] lemma Ioc_self (a : α) : Ioc a a = ∅ := Ioc_eq_empty $ le_refl _
 
 lemma Iio_ne_empty [no_bot_order α] (a : α) : Iio a ≠ ∅ :=
 ne_empty_iff_exists_mem.2 (no_bot a)
@@ -113,6 +130,16 @@ Icc_subset_Icc h (le_refl _)
 
 lemma Icc_subset_Icc_right (h : b₁ ≤ b₂) : Icc a b₁ ⊆ Icc a b₂ :=
 Icc_subset_Icc (le_refl _) h
+
+lemma Ioc_subset_Ioc (h₁ : a₂ ≤ a₁) (h₂ : b₁ ≤ b₂) :
+  Ioc a₁ b₁ ⊆ Ioc a₂ b₂ :=
+λ x ⟨hx₁, hx₂⟩, ⟨lt_of_le_of_lt h₁ hx₁, le_trans hx₂ h₂⟩
+
+lemma Ioc_subset_Ioc_left (h : a₁ ≤ a₂) : Ioc a₂ b ⊆ Ioc a₁ b :=
+Ioc_subset_Ioc h (le_refl _)
+
+lemma Ioc_subset_Ioc_right (h : b₁ ≤ b₂) : Ioc a b₁ ⊆ Ioc a b₂ :=
+Ioc_subset_Ioc (le_refl _) h
 
 lemma Ico_subset_Ioo_left (h₁ : a₁ < a₂) : Ico a₂ b ⊆ Ioo a₁ b :=
 λ x, and.imp_left $ lt_of_lt_of_le h₁

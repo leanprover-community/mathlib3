@@ -66,7 +66,7 @@ have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
   (is_closed_eq
     (continuous_add'.comp continuous_extension)
     (continuous_add (continuous_fst.comp continuous_extension) (continuous_snd.comp continuous_extension)))
-  (assume a b, by rw [← coe_add, extension_coe hf, extension_coe hf, extension_coe hf, is_add_group_hom.add f])⟩
+  (assume a b, by rw [← coe_add, extension_coe hf, extension_coe hf, extension_coe hf, is_add_group_hom.map_add f])⟩
 
 lemma is_add_group_hom_map [add_group β] [uniform_add_group β]
   {f : α → β} [is_add_group_hom f] (hf : continuous f) : is_add_group_hom (completion.map f) :=

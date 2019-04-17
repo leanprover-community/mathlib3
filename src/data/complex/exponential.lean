@@ -381,12 +381,12 @@ have hj : ∀ j : ℕ, (range j).sum
     finset.sum_congr rfl (λ m hm, begin
       rw [add_pow, div_eq_mul_inv, sum_mul],
       refine finset.sum_congr rfl (λ i hi, _),
-      have h₁ : (choose m i : ℂ) ≠ 0 := nat.cast_ne_zero.2
-        (nat.pos_iff_ne_zero.1 (choose_pos (nat.le_of_lt_succ (mem_range.1 hi)))),
-      have h₂ := choose_mul_fact_mul_fact (nat.le_of_lt_succ $ finset.mem_range.1 hi),
+      have h₁ : (nat.choose m i : ℂ) ≠ 0 := nat.cast_ne_zero.2
+        (nat.pos_iff_ne_zero.1 (nat.choose_pos (nat.le_of_lt_succ (mem_range.1 hi)))),
+      have h₂ := nat.choose_mul_fact_mul_fact (nat.le_of_lt_succ $ finset.mem_range.1 hi),
       rw [← h₂, nat.cast_mul, nat.cast_mul, mul_inv', mul_inv'],
-      simp only [mul_left_comm (choose m i : ℂ), mul_assoc, mul_left_comm (choose m i : ℂ)⁻¹,
-        mul_comm (choose m i : ℂ)],
+      simp only [mul_left_comm (nat.choose m i : ℂ), mul_assoc, mul_left_comm (nat.choose m i : ℂ)⁻¹,
+        mul_comm (nat.choose m i : ℂ)],
       rw inv_mul_cancel h₁,
       simp [div_eq_mul_inv, mul_comm, mul_assoc, mul_left_comm]
     end),

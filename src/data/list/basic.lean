@@ -659,6 +659,11 @@ end
 ⟨λ h, by have := reverse_sublist h; simp only [reverse_append, append_sublist_append_left, reverse_sublist_iff] at this; assumption,
  λ h, append_sublist_append_of_sublist_right h l⟩
 
+theorem append_sublist_append {α} {l₁ l₂ r₁ r₂ : list α}
+  (hl : l₁ <+ l₂) (hr : r₁ <+ r₂) : l₁ ++ r₁ <+ l₂ ++ r₂ :=
+(append_sublist_append_of_sublist_right hl _).trans
+  ((append_sublist_append_left _).2 hr)
+
 theorem subset_of_sublist : Π {l₁ l₂ : list α}, l₁ <+ l₂ → l₁ ⊆ l₂
 | ._ ._ sublist.slnil             b h := h
 | ._ ._ (sublist.cons  l₁ l₂ a s) b h := mem_cons_of_mem _ (subset_of_sublist s h)
@@ -2270,6 +2275,107 @@ reverse_rec_on l (nil_sublist _) $
 ((append_sublist_append_left _).2 $ singleton_sublist.2 $
   mem_map.2 ⟨[], mem_sublists.2 (nil_sublist _), by refl⟩).trans
 ((append_sublist_append_right _).2 IH)
+
+/- sublists_len -/
+
+def sublists_len_aux {α β : Type*} : ℕ → list α → (list α → β) → list β → list β
+| 0     l      f r := f [] :: r
+| (n+1) []     f r := r
+| (n+1) (a::l) f r := sublists_len_aux (n + 1) l f
+  (sublists_len_aux n l (f ∘ list.cons a) r)
+
+def sublists_len {α : Type*} (n : ℕ) (l : list α) : list (list α) :=
+sublists_len_aux n l id []
+
+lemma sublists_len_aux_append {α β γ : Type*} :
+  ∀ (n : ℕ) (l : list α) (f : list α → β) (g : β → γ) (r : list β) (s : list γ),
+  sublists_len_aux n l (g ∘ f) (r.map g ++ s) =
+  (sublists_len_aux n l f r).map g ++ s
+| 0     l      f g r s := rfl
+| (n+1) []     f g r s := rfl
+| (n+1) (a::l) f g r s := begin
+  unfold sublists_len_aux,
+  rw [show ((g ∘ f) ∘ list.cons a) = (g ∘ f ∘ list.cons a), by refl,
+    sublists_len_aux_append, sublists_len_aux_append]
+end
+
+lemma sublists_len_aux_eq {α β : Type*} (l : list α) (n) (f : list α → β) (r) :
+  sublists_len_aux n l f r = (sublists_len n l).map f ++ r :=
+by rw [sublists_len, ← sublists_len_aux_append]; refl
+
+lemma sublists_len_aux_zero {α : Type*} (l : list α) (f : list α → β) (r) :
+  sublists_len_aux 0 l f r = f [] :: r := by cases l; refl
+
+@[simp] lemma sublists_len_zero {α : Type*} (l : list α) :
+  sublists_len 0 l = [[]] := sublists_len_aux_zero _ _ _
+
+@[simp] lemma sublists_len_succ_nil {α : Type*} (n) :
+  sublists_len (n+1) (@nil α) = [] := rfl
+
+@[simp] lemma sublists_len_succ_cons {α : Type*} (n) (a : α) (l) :
+  sublists_len (n + 1) (a::l) =
+  sublists_len (n + 1) l ++ (sublists_len n l).map (cons a) :=
+by rw [sublists_len, sublists_len_aux, sublists_len_aux_eq,
+  sublists_len_aux_eq, map_id, append_nil]; refl
+
+@[simp] lemma length_sublists_len {α : Type*} : ∀ n (l : list α),
+  length (sublists_len n l) = nat.choose (length l) n
+| 0     l      := by simp
+| (n+1) []     := by simp
+| (n+1) (a::l) := by simp [-add_comm, nat.choose, *]; apply add_comm
+
+lemma sublists_len_sublist_sublists' {α : Type*} : ∀ n (l : list α),
+  sublists_len n l <+ sublists' l
+| 0     l      := singleton_sublist.2 (mem_sublists'.2 (nil_sublist _))
+| (n+1) []     := nil_sublist _
+| (n+1) (a::l) := begin
+  rw [sublists_len_succ_cons, sublists'_cons],
+  exact append_sublist_append
+    (sublists_len_sublist_sublists' _ _)
+    (map_sublist_map _ (sublists_len_sublist_sublists' _ _))
+end
+
+lemma sublists_len_sublist_of_sublist
+  {α : Type*} (n) {l₁ l₂ : list α} (h : l₁ <+ l₂) : sublists_len n l₁ <+ sublists_len n l₂ :=
+begin
+  induction n with n IHn generalizing l₁ l₂, {simp},
+  induction h with l₁ l₂ a s IH l₁ l₂ a s IH, {refl},
+  { refine IH.trans _,
+    rw sublists_len_succ_cons,
+    apply sublist_append_left },
+  { simp [sublists_len_succ_cons],
+    exact append_sublist_append IH (map_sublist_map _ (IHn s)) }
+end
+
+lemma length_of_sublists_len {α : Type*} : ∀ {n} {l l' : list α},
+  l' ∈ sublists_len n l → length l' = n
+| 0     l      l' (or.inl rfl) := rfl
+| (n+1) (a::l) l' h := begin
+  rw [sublists_len_succ_cons, mem_append, mem_map] at h,
+  rcases h with h | ⟨l', h, rfl⟩,
+  { exact length_of_sublists_len h },
+  { exact congr_arg (+1) (length_of_sublists_len h) },
+end
+
+lemma mem_sublists_len_self {α : Type*} {l l' : list α}
+  (h : l' <+ l) : l' ∈ sublists_len (length l') l :=
+begin
+  induction h with l₁ l₂ a s IH l₁ l₂ a s IH,
+  { exact or.inl rfl },
+  { cases l₁ with b l₁,
+    { exact or.inl rfl },
+    { rw [length, sublists_len_succ_cons],
+      exact mem_append_left _ IH } },
+  { rw [length, sublists_len_succ_cons],
+    exact mem_append_right _ (mem_map.2 ⟨_, IH, rfl⟩) }
+end
+
+@[simp] lemma mem_sublists_len {α : Type*} {n} {l l' : list α} :
+  l' ∈ sublists_len n l ↔ l' <+ l ∧ length l' = n :=
+⟨λ h, ⟨mem_sublists'.1
+    (subset_of_sublist (sublists_len_sublist_sublists' _ _) h),
+  length_of_sublists_len h⟩,
+λ ⟨h₁, h₂⟩, h₂ ▸ mem_sublists_len_self h₁⟩
 
 /- forall₂ -/
 
@@ -3884,6 +3990,10 @@ nodup_filter _
 @[simp] theorem nodup_sublists' {l : list α} : nodup (sublists' l) ↔ nodup l :=
 by rw [sublists'_eq_sublists, nodup_map_iff reverse_injective,
        nodup_sublists, nodup_reverse]
+
+lemma nodup_sublists_len {α : Type*} (n) {l : list α}
+  (nd : nodup l) : (sublists_len n l).nodup :=
+nodup_of_sublist (sublists_len_sublist_sublists' _ _) (nodup_sublists'.2 nd)
 
 end nodup
 

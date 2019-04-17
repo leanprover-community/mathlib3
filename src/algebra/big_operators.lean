@@ -57,7 +57,7 @@ lemma prod_image [decidable_eq α] {s : finset γ} {g : γ → α} :
 fold_image
 
 @[simp, to_additive sum_map]
-lemma prod_map [comm_monoid γ] (s : finset α) (e : α ↪ β) (f : β → γ):
+lemma prod_map (s : finset α) (e : α ↪ γ) (f : γ → β):
   (s.map e).prod f = s.prod (λa, f (e a)) :=
 by rw [finset.prod, finset.map_val, multiset.map_map]; refl
 
@@ -615,18 +615,18 @@ section group
 open list
 variables [group α] [group β]
 
-@[to_additive is_add_group_hom.sum]
-theorem is_group_hom.prod (f : α → β) [is_group_hom f] (l : list α) :
+@[to_additive is_add_group_hom.map_sum]
+theorem is_group_hom.map_prod (f : α → β) [is_group_hom f] (l : list α) :
   f (prod l) = prod (map f l) :=
-by induction l; simp only [*, is_group_hom.mul f, is_group_hom.one f, prod_nil, prod_cons, map]
+by induction l; simp only [*, is_group_hom.map_mul f, is_group_hom.map_one f, prod_nil, prod_cons, map]
 
-theorem is_group_anti_hom.prod (f : α → β) [is_group_anti_hom f] (l : list α) :
+theorem is_group_anti_hom.map_prod (f : α → β) [is_group_anti_hom f] (l : list α) :
   f (prod l) = prod (map f (reverse l)) :=
-by induction l with hd tl ih; [exact is_group_anti_hom.one f,
-  simp only [prod_cons, is_group_anti_hom.mul f, ih, reverse_cons, map_append, prod_append, map_singleton, prod_cons, prod_nil, mul_one]]
+by induction l with hd tl ih; [exact is_group_anti_hom.map_one f,
+  simp only [prod_cons, is_group_anti_hom.map_mul f, ih, reverse_cons, map_append, prod_append, map_singleton, prod_cons, prod_nil, mul_one]]
 
 theorem inv_prod : ∀ l : list α, (prod l)⁻¹ = prod (map (λ x, x⁻¹) (reverse l)) :=
-λ l, @is_group_anti_hom.prod _ _ _ _ _ inv_is_group_anti_hom l -- TODO there is probably a cleaner proof of this
+λ l, @is_group_anti_hom.map_prod _ _ _ _ _ inv_is_group_anti_hom l -- TODO there is probably a cleaner proof of this
 
 end group
 
@@ -634,19 +634,19 @@ section comm_group
 variables [comm_group α] [comm_group β] (f : α → β) [is_group_hom f]
 
 @[to_additive is_add_group_hom.multiset_sum]
-lemma is_group_hom.multiset_prod (m : multiset α) : f m.prod = (m.map f).prod :=
-quotient.induction_on m $ assume l, by simp [is_group_hom.prod f l]
+lemma is_group_hom.map_multiset_prod (m : multiset α) : f m.prod = (m.map f).prod :=
+quotient.induction_on m $ assume l, by simp [is_group_hom.map_prod f l]
 
 @[to_additive is_add_group_hom.finset_sum]
 lemma is_group_hom.finset_prod (g : γ → α) (s : finset γ) : f (s.prod g) = s.prod (f ∘ g) :=
-show f (s.val.map g).prod = (s.val.map (f ∘ g)).prod, by rw [is_group_hom.multiset_prod f]; simp
+show f (s.val.map g).prod = (s.val.map (f ∘ g)).prod, by rw [is_group_hom.map_multiset_prod f]; simp
 
 end comm_group
 
 @[to_additive is_add_group_hom_finset_sum]
 lemma is_group_hom_finset_prod {α β γ} [group α] [comm_group β] (s : finset γ)
   (f : γ → α → β) [∀c, is_group_hom (f c)] : is_group_hom (λa, s.prod (λc, f c a)) :=
-⟨assume a b, by simp only [λc, is_group_hom.mul (f c), finset.prod_mul_distrib]⟩
+⟨assume a b, by simp only [λc, is_group_hom.map_mul (f c), finset.prod_mul_distrib]⟩
 
 attribute [instance] is_group_hom_finset_prod is_add_group_hom_finset_sum
 

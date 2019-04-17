@@ -49,7 +49,7 @@ An object corepresenting this functor is a colimit of `F`.
 -/
 def cocones : C ⥤ Type v := const J ⋙ coyoneda.obj (op F)
 
-lemma cocones_obj (X : C) : F.cocones.obj X = (F ⟹ (const J).obj X) := rfl
+lemma cocones_obj (X : C) : F.cocones.obj X = (F ⟶ (const J).obj X) := rfl
 
 @[simp] lemma cocones_map_app {X₁ X₂ : C} (f : X₁ ⟶ X₂) (t : F.cocones.obj X₁) (j : J) :
   (F.cocones.map f t).app j = t.app j ≫ f := rfl
@@ -84,13 +84,13 @@ namespace limits
 /--
 A `c : cone F` is:
 * an object `c.X` and
-* a natural transformation `c.π : c.X ⟹ F` from the constant `c.X` functor to `F`.
+* a natural transformation `c.π : c.X ⟶ F` from the constant `c.X` functor to `F`.
 
 `cone F` is equivalent, in the obvious way, to `Σ X, F.cones.obj X`.
 -/
 structure cone (F : J ⥤ C) :=
 (X : C)
-(π : (const J).obj X ⟹ F)
+(π : (const J).obj X ⟶ F)
 
 @[simp] lemma cone.w {F : J ⥤ C} (c : cone F) {j j' : J} (f : j ⟶ j') :
   c.π.app j ≫ F.map f = c.π.app j' :=
@@ -99,13 +99,13 @@ by convert ←(c.π.naturality f).symm; apply id_comp
 /--
 A `c : cocone F` is
 * an object `c.X` and
-* a natural transformation `c.ι : F ⟹ c.X` from `F` to the constant `c.X` functor.
+* a natural transformation `c.ι : F ⟶ c.X` from `F` to the constant `c.X` functor.
 
 `cocone F` is equivalent, in the obvious way, to `Σ X, F.cocones.obj X`.
 -/
 structure cocone (F : J ⥤ C) :=
 (X : C)
-(ι : F ⟹ (const J).obj X)
+(ι : F ⟶ (const J).obj X)
 
 @[simp] lemma cocone.w {F : J ⥤ C} (c : cocone F) {j j' : J} (f : j ⟶ j') :
   F.map f ≫ c.ι.app j' = c.ι.app j :=
@@ -189,7 +189,7 @@ namespace cones
   inv := { hom := φ.inv, w' := λ j, φ.inv_comp_eq.mpr (w j) } }
 
 def postcompose {G : J ⥤ C} (α : F ⟶ G) : cone F ⥤ cone G :=
-{ obj := λ c, { X := c.X, π := c.π ⊟ α },
+{ obj := λ c, { X := c.X, π := c.π ≫ α },
   map := λ c₁ c₂ f, { hom := f.hom, w' :=
   by intro; erw ← category.assoc; simp [-category.assoc] } }
 
@@ -197,7 +197,7 @@ def postcompose {G : J ⥤ C} (α : F ⟶ G) : cone F ⥤ cone G :=
   ((postcompose α).obj c).X = c.X := rfl
 
 @[simp] lemma postcompose_obj_π {G : J ⥤ C} (α : F ⟶ G) (c : cone F) :
-  ((postcompose α).obj c).π = c.π ⊟ α := rfl
+  ((postcompose α).obj c).π = c.π ≫ α := rfl
 
 @[simp] lemma postcompose_map_hom {G : J ⥤ C} (α : F ⟶ G) {c₁ c₂ : cone F} (f : c₁ ⟶ c₂):
   ((postcompose α).map f).hom = f.hom := rfl
@@ -255,14 +255,14 @@ namespace cocones
   inv := { hom := φ.inv, w' := λ j, φ.comp_inv_eq.mpr (w j).symm } }
 
 def precompose {G : J ⥤ C} (α : G ⟶ F) : cocone F ⥤ cocone G :=
-{ obj := λ c, { X := c.X, ι := α ⊟ c.ι },
+{ obj := λ c, { X := c.X, ι := α ≫ c.ι },
   map := λ c₁ c₂ f, { hom := f.hom } }
 
 @[simp] lemma precompose_obj_X {G : J ⥤ C} (α : G ⟶ F) (c : cocone F) :
   ((precompose α).obj c).X = c.X := rfl
 
 @[simp] lemma precompose_obj_ι {G : J ⥤ C} (α : G ⟶ F) (c : cocone F) :
-  ((precompose α).obj c).ι = α ⊟ c.ι := rfl
+  ((precompose α).obj c).ι = α ≫ c.ι := rfl
 
 @[simp] lemma precompose_map_hom {G : J ⥤ C} (α : G ⟶ F) {c₁ c₂ : cocone F} (f : c₁ ⟶ c₂) :
   ((precompose α).map f).hom = f.hom := rfl

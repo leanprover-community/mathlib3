@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Injective functions.
 -/
-import data.equiv.basic data.option.basic
+import data.equiv.basic data.option.basic data.subtype
 
 universes u v w x
 
@@ -154,6 +154,14 @@ let f' : (α → γ) → (β → γ) := λf b, if h : ∃c, e c = b then f (clas
   have eq_b : classical.some this = c, from e.inj $ classical.some_spec this,
   by simp [f', this, if_pos, eq_b] at eq'; assumption⟩
 
+protected def subtype_map {α β} {p : α → Prop} {q : β → Prop} (f : α ↪ β)
+  (h : ∀{{x}}, p x → q (f x)) : {x : α // p x} ↪ {y : β // q y} :=
+⟨subtype.map f h, subtype.map_injective h f.2⟩
+
+open set
+protected def image {α β} (f : α ↪ β) : set α ↪ set β :=
+⟨image f, injective_image f.2⟩
+
 end embedding
 end function
 
@@ -162,5 +170,6 @@ namespace set
 /-- The injection map is an embedding between subsets. -/
 def embedding_of_subset {α} {s t : set α} (h : s ⊆ t) : s ↪ t :=
 ⟨λ x, ⟨x.1, h x.2⟩, λ ⟨x, hx⟩ ⟨y, hy⟩ h, by congr; injection h⟩
+
 
 end set

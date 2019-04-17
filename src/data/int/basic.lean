@@ -8,10 +8,15 @@ The integers, with addition, multiplication, and subtraction.
 import data.nat.basic data.list.basic algebra.char_zero algebra.order_functions
 open nat
 
+
 namespace int
 
-instance : inhabited ℤ := ⟨0⟩
+instance : inhabited ℤ := ⟨int.zero⟩
+
+@[simp] lemma default_eq_zero : default ℤ = 0 := rfl
+
 meta instance : has_to_format ℤ := ⟨λ z, int.rec_on z (λ k, ↑k) (λ k, "-("++↑k++"+1)")⟩
+meta instance : has_reflect ℤ := by tactic.mk_has_reflect_instance
 
 attribute [simp] int.coe_nat_add int.coe_nat_mul int.coe_nat_zero int.coe_nat_one int.coe_nat_succ
 
@@ -557,6 +562,18 @@ int.div_eq_of_eq_mul_right H1 (by rw [mul_comm, H2])
 theorem neg_div_of_dvd : ∀ {a b : ℤ} (H : b ∣ a), -a / b = -(a / b)
 | ._ b ⟨c, rfl⟩ := if bz : b = 0 then by simp [bz] else
   by rw [neg_mul_eq_mul_neg, int.mul_div_cancel_left _ bz, int.mul_div_cancel_left _ bz]
+
+lemma add_div_of_dvd {a b c : ℤ} :
+  c ∣ a → c ∣ b → (a + b) / c = a / c + b / c :=
+begin
+  intros h1 h2,
+  by_cases h3 : c = 0,
+  { rw [h3, zero_dvd_iff] at *,
+    rw [h1, h2, h3], refl },
+  { apply eq_of_mul_eq_mul_right h3,
+    rw add_mul, repeat {rw [int.div_mul_cancel]};
+    try {apply dvd_add}; assumption }
+end
 
 theorem div_sign : ∀ a b, a / sign b = a * sign b
 | a (n+1:ℕ) := by unfold sign; simp

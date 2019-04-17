@@ -59,7 +59,7 @@ theorem ring_char.eq (α : Type u) [semiring α] {p : ℕ} (C : char_p α p) : p
 theorem add_pow_char (α : Type u) [comm_ring α] {p : ℕ} (hp : nat.prime p)
   [char_p α p] (x y : α) : (x + y)^p = x^p + y^p :=
 begin
-  rw [add_pow, finset.sum_range_succ, nat.sub_self, pow_zero, choose_self],
+  rw [add_pow, finset.sum_range_succ, nat.sub_self, pow_zero, nat.choose_self],
   rw [nat.cast_one, mul_one, mul_one, add_left_inj],
   transitivity,
   { refine finset.sum_eq_single 0 _ _,
@@ -68,7 +68,7 @@ begin
       rw [← nat.div_mul_cancel this, nat.cast_mul, char_p.cast_eq_zero α p],
       simp only [mul_zero] },
     { intro H, exfalso, apply H, exact finset.mem_range.2 hp.pos } },
-  rw [pow_zero, nat.sub_zero, one_mul, choose_zero_right, nat.cast_one, mul_one]
+  rw [pow_zero, nat.sub_zero, one_mul, nat.choose_zero_right, nat.cast_one, mul_one]
 end
 
 /-- The frobenius map that sends x to x^p -/

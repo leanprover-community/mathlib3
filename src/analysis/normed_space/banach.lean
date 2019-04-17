@@ -134,18 +134,16 @@ begin
     apply le_trans (hg _).2 _,
     calc C * ∥(h^[n]) y∥ ≤ C * ((1/2)^n * ∥y∥) : mul_le_mul_of_nonneg_left (hnle n) C0
          ... = (1 / 2) ^ n * (C * ∥y∥) : by ring },
-  have sNu : has_sum (λn, ∥u n∥),
-  { refine has_sum_of_nonneg_of_le _ ule _,
-    exact λn, norm_nonneg _,
-    apply has_sum_mul_right,
-    exact has_sum_geometric (by norm_num) (by norm_num) },
-  have su : has_sum u := has_sum_of_has_sum_norm sNu,
+  have sNu : summable (λn, ∥u n∥),
+  { refine summable_of_nonneg_of_le (λn, norm_nonneg _) ule _,
+    exact summable_mul_right _ (summable_geometric (by norm_num) (by norm_num)) },
+  have su : summable u := summable_of_summable_norm sNu,
   let x := tsum u,
   have x_ineq : ∥x∥ ≤ (2 * C + 1) * ∥y∥ := calc
     ∥x∥ ≤ (∑n, ∥u n∥) : norm_tsum_le_tsum_norm sNu
     ... ≤ (∑n, (1/2)^n * (C * ∥y∥)) :
-      tsum_le_tsum ule sNu (has_sum_mul_right _ has_sum_geometric_two)
-    ... = (∑n, (1/2)^n) * (C * ∥y∥) : by { rw tsum_mul_right, exact has_sum_geometric_two }
+      tsum_le_tsum ule sNu (summable_mul_right _ summable_geometric_two)
+    ... = (∑n, (1/2)^n) * (C * ∥y∥) : by { rw tsum_mul_right, exact summable_geometric_two }
     ... = 2 * (C * ∥y∥) : by rw tsum_geometric_two
     ... = 2 * C * ∥y∥ + 0 : by rw [add_zero, mul_assoc]
     ... ≤ 2 * C * ∥y∥ + ∥y∥ : add_le_add (le_refl _) (norm_nonneg _)
@@ -157,7 +155,7 @@ begin
     { rw [sum_range_succ, lin.add, IH, nat.iterate_succ'],
       simp [u, h] } },
   have : tendsto (λn, (range n).sum u) at_top (nhds x) :=
-    tendsto_sum_nat_of_is_sum (is_sum_tsum su),
+    tendsto_sum_nat_of_has_sum (has_sum_tsum su),
   have L₁ : tendsto (λn, f((range n).sum u)) at_top (nhds (f x)) :=
     tendsto.comp this (hf.continuous.tendsto _),
   simp only [fsumeq] at L₁,
@@ -212,5 +210,4 @@ theorem linear_equiv.is_bounded_inv (e : linear_equiv k E F) (h : is_bounded_lin
     have : x = e.inv_fun y, by { rw ← hx, exact (e.symm_apply_apply _).symm },
     rwa ← this
   end,
-  ..e.symm
-}
+  ..e.symm }

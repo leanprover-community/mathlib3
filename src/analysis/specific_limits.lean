@@ -102,16 +102,16 @@ lemma summable_geometric {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) : summable (�
 ⟨_, has_sum_geometric h₁ h₂⟩
 
 lemma tsum_geometric {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) : (∑n:ℕ, r ^ n) = 1 / (1 - r) :=
-tsum_eq_is_sum (is_sum_geometric h₁ h₂)
+tsum_eq_has_sum (has_sum_geometric h₁ h₂)
 
 lemma has_sum_geometric_two : has_sum (λn:ℕ, ((1:ℝ)/2) ^ n) 2 :=
 by convert has_sum_geometric _ _; norm_num
 
 lemma summable_geometric_two : summable (λn:ℕ, ((1:ℝ)/2) ^ n) :=
-⟨_, is_sum_geometric_two⟩
+⟨_, has_sum_geometric_two⟩
 
 lemma tsum_geometric_two : (∑n:ℕ, ((1:ℝ)/2) ^ n) = 2 :=
-tsum_eq_is_sum is_sum_geometric_two
+tsum_eq_has_sum has_sum_geometric_two
 
 lemma has_sum_geometric_two' (a : ℝ) : has_sum (λn:ℕ, (a / 2) / 2 ^ n) a :=
 begin
@@ -126,7 +126,7 @@ def pos_sum_of_encodable {ε : ℝ} (hε : 0 < ε)
   (ι) [encodable ι] : {ε' : ι → ℝ // (∀ i, 0 < ε' i) ∧ ∃ c, has_sum ε' c ∧ c ≤ ε} :=
 begin
   let f := λ n, (ε / 2) / 2 ^ n,
-  have hf : is_sum f ε := is_sum_geometric_two' _,
+  have hf : has_sum f ε := has_sum_geometric_two' _,
   have f0 : ∀ n, 0 < f n := λ n, div_pos (half_pos hε) (pow_pos two_pos _),
   refine ⟨f ∘ encodable.encode, λ i, f0 _, _⟩,
   rcases summable_comp_of_summable_of_injective f (summable_spec hf) (@encodable.encode_injective ι _)

@@ -136,7 +136,7 @@ protected lemma subset_image {α β} (e : α ≃ β) (s : set α) (t : set β) :
 by rw [set.image_subset_iff, e.image_eq_preimage]
 
 lemma symm_image_image {α β} (f : equiv α β) (s : set α) : f.symm '' (f '' s) = s :=
-by rw [← set.image_comp]; simpa using set.image_id s
+by { rw [← set.image_comp], simp }
 
 protected lemma image_compl {α β} (f : equiv α β) (s : set α) :
   f '' -s = -(f '' s) :=

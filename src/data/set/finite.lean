@@ -58,7 +58,7 @@ noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=
 lemma finite.coe_to_finset {α} {s : set α} (h : finite s) : ↑h.to_finset = s :=
 by { ext, apply mem_to_finset }
 
-lemma exists_finset_of_finite {s : set α} (h : finite s) : ∃(s' : finset α), s'.to_set = s :=
+lemma exists_finset_of_finite {s : set α} (h : finite s) : ∃(s' : finset α), ↑s' = s :=
 ⟨h.to_finset, h.coe_to_finset⟩
 
 theorem finite.exists_finset {s : set α} : finite s →

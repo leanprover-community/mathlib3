@@ -143,7 +143,7 @@ exists_mem_of_ne_zero (mt val_eq_zero.1 h)
 
 @[simp] lemma coe_empty : ↑(∅ : finset α) = (∅ : set α) := rfl
 
-lemma coe_nonempty_iff_ne_empty (s : finset α) : nonempty (↑s : set α) ↔ s ≠ ∅  :=
+lemma nonempty_iff_ne_empty (s : finset α) : nonempty (↑s : set α) ↔ s ≠ ∅  :=
 begin
   rw [set.coe_nonempty_iff_ne_empty, ←coe_empty],
   apply not_congr, apply function.injective.eq_iff, exact to_set_injective
@@ -518,7 +518,7 @@ by simpa only [subset_iff, mem_sdiff, and_imp] using λ a m₁ m₂, and.intro (
 @[simp] lemma coe_sdiff (s₁ s₂ : finset α) : ↑(s₁ \ s₂) = (↑s₁ \ ↑s₂ : set α) :=
 set.ext $ λ _, mem_sdiff
 
-lemma to_set_sdiff (s t : finset α) : (s \ t).to_set = s.to_set \ t.to_set :=
+@[simp] lemma to_set_sdiff (s t : finset α) : (s \ t).to_set = s.to_set \ t.to_set :=
 by apply finset.coe_sdiff
 
 end decidable_eq

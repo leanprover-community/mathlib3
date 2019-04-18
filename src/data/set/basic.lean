@@ -565,10 +565,10 @@ by finish [ext_iff]
 lemma compl_empty_iff {s : set α} : -s = ∅ ↔ s = univ :=
 by { split, intro h, rw [←compl_compl s, h, compl_empty], intro h, rw [h, compl_univ] }
 
-lemma compl_univ_iff {s : set α} : -s = ∅ ↔ s = univ :=
-by { split, intro h, rw [←compl_compl s, h, compl_empty], intro h, rw [h, compl_univ] }
+lemma compl_univ_iff {s : set α} : -s = univ ↔ s = ∅ :=
+by rw [←compl_empty_iff, compl_compl]
 
-lemma nonempty_compl {s : set α} : s ≠ univ ↔ nonempty (-s : set α) :=
+lemma nonempty_compl {s : set α} : nonempty (-s : set α) ↔ s ≠ univ :=
 by { rw [coe_nonempty_iff_ne_empty], apply not_congr,
      split, intro h, rw [h, compl_univ],
      intro h, rw [←compl_compl s, h, compl_empty] }
@@ -722,6 +722,9 @@ diff_eq_self.2 $ by simp [singleton_inter_eq_empty.2 h]
 by simp [insert_eq, union_diff_self, -union_singleton, -singleton_union]
 
 @[simp] lemma diff_self {s : set α} : s \ s = ∅ := ext $ by simp
+
+lemma mem_diff_singleton {s s' : set α} {t : set (set α)} : s ∈ t \ {s'} ↔ (s ∈ t ∧ s ≠ s') :=
+by simp
 
 lemma mem_diff_singleton_empty {s : set α} {t : set (set α)} :
   s ∈ t \ {∅} ↔ (s ∈ t ∧ nonempty s) :=
@@ -1163,14 +1166,6 @@ theorem pairwise_on.mono' {s : set α} {r r' : α → α → Prop}
   (H : ∀ a b, r a b → r' a b) (hp : pairwise_on s r) : pairwise_on s r' :=
 λ x xs y ys h, H _ _ (hp x xs y ys h)
 
-/- Disjoint sets and pairwise disjoint collections of sets -/
-lemma disjoint_of_subset {s t s' t' : set α} (hst : s ∩ t = ∅) (hs : s' ⊆ s) (ht : t' ⊆ t) :
-  s' ∩ t' = ∅ :=
-by { apply subset.antisymm, convert inter_subset_inter hs ht, rw hst, apply empty_subset }
-
-lemma ne_of_disjoint {s t : set α} (hs : nonempty s) (hst : s ∩ t = ∅) : s ≠ t :=
-by { intro h, rw [←h, inter_self] at hst, rw [coe_nonempty_iff_ne_empty] at hs, exact hs hst }
-
 def pairwise_disjoint (s : set (set α)) : Prop :=
 pairwise_on s (λ x y, x ∩ y = ∅)
 
@@ -1191,7 +1186,7 @@ lemma pairwise_disjoint_elim {s : set (set α)} (h : pairwise_disjoint s) {x y :
 begin
   haveI := classical.prop_decidable, by_contra,
   have : x ∩ y ≠ ∅, { rw [ne_empty_iff_exists_mem], exact ⟨z, ⟨hzx, hzy⟩⟩ },
-  exact this (h hx hy a)
+  exact this (h x hx y hy a)
 end
 
 end set
@@ -1213,7 +1208,7 @@ set.ext $ assume a,
   set.range (@subtype.val _ p) = {x | p x} :=
 by rw ← set.image_univ; simp [-set.image_univ, val_image]
 
-lemma range_val (s : set α) : range (subtype.val : s → α) = s :=
+@[simp] lemma range_val (s : set α) : range (subtype.val : s → α) = s :=
 val_range
 
 theorem val_image_subset (s : set α) (t : set (subtype s)) : t.image val ⊆ s :=

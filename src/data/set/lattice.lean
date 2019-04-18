@@ -766,6 +766,12 @@ disjoint_mono h (le_refl _)
 theorem disjoint_mono_right {a b c : α} (h : b ≤ c) : disjoint a c → disjoint a b :=
 disjoint_mono (le_refl _) h
 
+@[simp] lemma disjoint_self {a : α} : disjoint a a ↔ a = ⊥ :=
+by simp [disjoint]
+
+lemma ne_of_disjoint {a b : α} (ha : a ≠ ⊥) (hab : disjoint a b) : a ≠ b :=
+by { intro h, rw [←h, disjoint_self] at hab, exact ha hab }
+
 end disjoint
 
 namespace set

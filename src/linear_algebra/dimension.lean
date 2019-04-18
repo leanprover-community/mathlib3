@@ -9,7 +9,7 @@ import linear_algebra.basis
 import set_theory.ordinal
 noncomputable theory
 
-local attribute [instance, priority 0] classical.prop_decidable
+local attribute [instance] classical.prop_decidable
 
 universes u v w
 variables {α : Type u} {β γ δ ε : Type v}
@@ -28,14 +28,17 @@ cardinal.min
 variables {α β}
 open vector_space
 
+local attribute [instance] finsupp.to_module
+set_option class.instance_max_depth 40
+
 theorem is_basis.le_span {I J : set β} (hI : is_basis α I) (hJ : span α J = ⊤) : cardinal.mk I ≤ cardinal.mk J :=
 begin
   cases le_or_lt cardinal.omega (cardinal.mk J) with oJ oJ,
   { refine le_of_not_lt (λ IJ, _),
-    let S : J → set β := λ j, ↑(hI.repr j).support,
+    let S : J → set β := λ j, ↑((is_basis.repr hI) j).support,
     have hs : I ⊆ ⋃ j, S j,
     { intros i hi,
-      have : span α J ≤ comap hI.repr (lc.supported α (⋃ j, S j)) :=
+      have : span α J ≤ comap hI.repr (finsupp.supported α α (⋃ j, S j)) :=
         span_le.2 (λ j hj x hx, ⟨_, ⟨⟨j, hj⟩, rfl⟩, hx⟩),
       rw hJ at this, replace : hI.repr i ∈ _ := this trivial,
       rw hI.repr_eq_single hi at this,
@@ -52,6 +55,8 @@ begin
         cardinal.finset_card, finset.coe_to_finset] at hi },
     { rw hJ, apply set.subset_univ } },
 end
+
+set_option class.instance_max_depth 32
 
 /-- dimension theorem -/
 theorem mk_eq_mk_of_basis {I J : set β} (hI : is_basis α I) (hJ : is_basis α J) : cardinal.mk I = cardinal.mk J :=

@@ -10,7 +10,7 @@ import linear_algebra.dimension
 import linear_algebra.tensor_product
 noncomputable theory
 
-local attribute [instance, priority 0] classical.prop_decidable
+local attribute [instance] classical.prop_decidable
 
 namespace module
 variables (R : Type*) (M : Type*)
@@ -59,14 +59,18 @@ by erw [constr_basis h ‹v ∈ B›, constr_basis h ‹w ∈ B›]
 
 def to_dual_flip (v : V) : (V →ₗ[K] K) := (linear_map.flip h.to_dual).to_fun v
 
+local attribute [instance] finsupp.to_module
+
 omit h
-def eval_lc_at (v : V) : (lc V K) →ₗ[K] K :=
+def eval_finsupp_at (v : V) : (V →₀ K) →ₗ[K] K :=
 { to_fun := λ f, f v,
   add := by intros; rw finsupp.add_apply,
   smul := by intros; rw finsupp.smul_apply }
 include h
 
-def coord_fun (v : V) : (V →ₗ[K] K) := (eval_lc_at v).comp h.repr
+set_option class.instance_max_depth 50
+
+def coord_fun (v : V) : (V →ₗ[K] K) := (eval_finsupp_at v).comp h.repr
 
 lemma coord_fun_eq_repr (v w : V) : h.coord_fun v w = h.repr w v := rfl
 
@@ -112,13 +116,13 @@ begin
   rw linear_map.mem_range,
   let lin_comb : B →₀ K := finsupp.on_finset fin.elems (λ b, f.to_fun b) _,
   let emb := embedding.subtype B,
-  { use lc.total V K V id (finsupp.emb_domain emb lin_comb),
+  { use finsupp.total V V K id (finsupp.emb_domain emb lin_comb),
     apply h.ext,
     intros x hx,
     rw [h.to_dual_eq_repr _ x hx, repr_total _],
     have emb_x : x = emb ⟨x, hx⟩, from rfl,
     { rw [emb_x, finsupp.emb_domain_apply emb lin_comb _, ← emb_x], simpa },
-    { rw [lc.mem_supported, finsupp.support_emb_domain, finset.map_eq_image, finset.coe_image],
+    { rw [finsupp.mem_supported, finsupp.support_emb_domain, finset.map_eq_image, finset.coe_image],
       apply subtype.val_image_subset } },
   { intros a _,
     apply fin.complete }

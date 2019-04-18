@@ -605,6 +605,10 @@ span_eq_bot.trans $ by simp
 span_eq_of_le _ (image_subset _ subset_span) $ map_le_iff_le_comap.2 $
 span_le.2 $ image_subset_iff.1 subset_span
 
+lemma linear_eq_on (s : set β) {f g : β →ₗ[α] γ} (H : ∀x∈s, f x = g x) {x} (h : x ∈ span α s) :
+  f x = g x :=
+by apply span_induction h H; simp {contextual := tt}
+
 def prod : submodule α (β × γ) :=
 { carrier := set.prod p q,
   zero := ⟨zero_mem _, zero_mem _⟩,

@@ -1163,6 +1163,9 @@ def to_semimodule {R:semiring γ} [add_comm_monoid β] [semimodule γ β] : semi
 def to_module {R:ring γ} [add_comm_group β] [module γ β] : module γ (α →₀ β) :=
 { ..to_semimodule α β }
 
+def to_vector_space {R:discrete_field γ} [add_comm_group β] [vector_space γ β] : vector_space γ (α →₀ β) :=
+{ ..to_module α β }
+
 variables {α β}
 lemma support_smul {R:semiring γ} [add_comm_monoid β] [semimodule γ β] {b : γ} {g : α →₀ β} :
   (b • g).support ⊆ g.support :=

@@ -328,10 +328,6 @@ theorem mem_sUnion_of_mem {x : α} {t : set α} {S : set (set α)} (hx : x ∈ t
 
 @[simp] theorem mem_sUnion {x : α} {S : set (set α)} : x ∈ ⋃₀ S ↔ ∃t ∈ S, x ∈ t := iff.rfl
 
-lemma subset_sUnion_of_subset {s : set α} (t : set (set α)) (u : set α) (h₁ : s ⊆ u)
-  (h₂ : u ∈ t) : s ⊆ ⋃₀ t :=
-subset.trans h₁ (subset_sUnion_of_mem h₂)
-
 -- is this theorem really necessary?
 theorem not_mem_of_not_mem_sUnion {x : α} {t : set α} {S : set (set α)}
   (hx : x ∉ ⋃₀ S) (ht : t ∈ S) : x ∉ t :=
@@ -344,6 +340,10 @@ Inf_le tS
 
 theorem subset_sUnion_of_mem {S : set (set α)} {t : set α} (tS : t ∈ S) : t ⊆ ⋃₀ S :=
 le_Sup tS
+
+lemma subset_sUnion_of_subset {s : set α} (t : set (set α)) (u : set α) (h₁ : s ⊆ u)
+  (h₂ : u ∈ t) : s ⊆ ⋃₀ t :=
+subset.trans h₁ (subset_sUnion_of_mem h₂)
 
 theorem sUnion_subset {S : set (set α)} {t : set α} (h : ∀t' ∈ S, t' ⊆ t) : (⋃₀ S) ⊆ t :=
 Sup_le h
@@ -793,6 +793,28 @@ theorem disjoint_image_image {f : β → α} {g : γ → α} {s : set β} {t : s
   (h : ∀b∈s, ∀c∈t, f b ≠ g c) : disjoint (f '' s) (g '' t) :=
 by rintros a ⟨⟨b, hb, eq⟩, ⟨c, hc, rfl⟩⟩; exact h b hb c hc eq
 
+def pairwise_disjoint (s : set (set α)) : Prop :=
+pairwise_on s disjoint
+
+lemma pairwise_disjoint_subset {s t : set (set α)} (h : s ⊆ t)
+  (ht : pairwise_disjoint t) : pairwise_disjoint s :=
+pairwise_on.mono h ht
+
+lemma pairwise_disjoint_range {s : set (set α)} (f : s → set α) (hf : ∀(x : s), f x ⊆ x.1)
+  (ht : pairwise_disjoint s) : pairwise_disjoint (range f) :=
+begin
+  rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ hxy, refine disjoint_mono (hf x) (hf y) (ht _ x.2 _ y.2 _),
+  intro h, apply hxy, apply congr_arg f, exact subtype.eq h
+end
+
+/- warning: classical -/
+lemma pairwise_disjoint_elim {s : set (set α)} (h : pairwise_disjoint s) {x y : set α}
+  (hx : x ∈ s) (hy : y ∈ s) (z : α) (hzx : z ∈ x) (hzy : z ∈ y) : x = y :=
+begin
+  haveI := classical.prop_decidable, by_contra,
+  have : x ∩ y ≠ ∅, { rw [ne_empty_iff_exists_mem], exact ⟨z, ⟨hzx, hzy⟩⟩ },
+  apply this, exact disjoint_iff.mp (h x hx y hy a),
+end
 end set
 
 namespace set

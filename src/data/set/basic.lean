@@ -569,7 +569,7 @@ lemma compl_univ_iff {s : set α} : -s = univ ↔ s = ∅ :=
 by rw [←compl_empty_iff, compl_compl]
 
 lemma nonempty_compl {s : set α} : nonempty (-s : set α) ↔ s ≠ univ :=
-by { rw [coe_nonempty_iff_ne_empty], apply not_congr,
+by { symmetry, rw [coe_nonempty_iff_ne_empty], apply not_congr,
      split, intro h, rw [h, compl_univ],
      intro h, rw [←compl_compl s, h, compl_empty] }
 
@@ -1165,29 +1165,6 @@ theorem pairwise_on.mono {s t : set α} {r}
 theorem pairwise_on.mono' {s : set α} {r r' : α → α → Prop}
   (H : ∀ a b, r a b → r' a b) (hp : pairwise_on s r) : pairwise_on s r' :=
 λ x xs y ys h, H _ _ (hp x xs y ys h)
-
-def pairwise_disjoint (s : set (set α)) : Prop :=
-pairwise_on s (λ x y, x ∩ y = ∅)
-
-lemma pairwise_disjoint_subset {s t : set (set α)} (h : s ⊆ t)
-  (ht : pairwise_disjoint t) : pairwise_disjoint s :=
-pairwise_on.mono h ht
-
-lemma pairwise_disjoint_range {s : set (set α)} (f : s → set α) (hf : ∀(x : s), f x ⊆ x.1)
-  (ht : pairwise_disjoint s) : pairwise_disjoint (range f) :=
-begin
-  rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ hxy, refine disjoint_of_subset (ht _ x.2 _ y.2 _) (hf x) (hf y),
-  intro h, apply hxy, apply congr_arg f, exact subtype.eq h
-end
-
-/- warning: classical -/
-lemma pairwise_disjoint_elim {s : set (set α)} (h : pairwise_disjoint s) {x y : set α}
-  (hx : x ∈ s) (hy : y ∈ s) (z : α) (hzx : z ∈ x) (hzy : z ∈ y) : x = y :=
-begin
-  haveI := classical.prop_decidable, by_contra,
-  have : x ∩ y ≠ ∅, { rw [ne_empty_iff_exists_mem], exact ⟨z, ⟨hzx, hzy⟩⟩ },
-  exact this (h x hx y hy a)
-end
 
 end set
 open set

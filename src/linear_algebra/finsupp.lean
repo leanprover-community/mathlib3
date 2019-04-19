@@ -8,8 +8,6 @@ Linear structures on function with finite support `α →₀ β`.
 import data.finsupp linear_algebra.basic
 noncomputable theory
 
-local attribute [instance, priority 0] classical.prop_decidable
-
 open lattice set linear_map submodule
 
 namespace finsupp
@@ -106,15 +104,16 @@ variables {β}
 lemma mem_supported {s : set α} (p : α →₀ β) : p ∈ (supported β γ s) ↔ ↑p.support ⊆ s :=
 iff.rfl
 
-lemma mem_supported' {s : set α} (p : α →₀ β) :
+lemma mem_supported' {s : set α}  (p : α →₀ β) :
   p ∈ supported β γ s ↔ ∀ x ∉ s, p x = 0 :=
-by simp [mem_supported, set.subset_def, not_imp_comm]
+by haveI := classical.dec_pred (λ (x : α), x ∈ s);
+   simp [mem_supported, set.subset_def, not_imp_comm]
 
 lemma single_mem_supported {s : set α} {a : α} (b : β) (h : a ∈ s) :
   single a b ∈ supported β γ s :=
 set.subset.trans support_single_subset (set.singleton_subset_iff.2 h)
 
-lemma supported_eq_span_single [has_one β] (s : set α) :
+lemma supported_eq_span_single [decidable_eq γ] [has_one β] (s : set α) :
   supported γ γ s = span γ ((λ i, single i 1) '' s) :=
 begin
   refine (span_eq_of_le _ _ (le_def'.2 $ λ l hl, _)).symm,
@@ -129,7 +128,7 @@ end
 
 variables (β γ)
 
-def restrict_dom (s : set α) : α →₀ β →ₗ supported β γ s :=
+def restrict_dom (s : set α) [decidable_pred (λ x, x ∈ s)]: α →₀ β →ₗ supported β γ s :=
 linear_map.cod_restrict _
   { to_fun := filter (∈ s),
     add := λ l₁ l₂, filter_add,
@@ -139,16 +138,25 @@ linear_map.cod_restrict _
 variables {β γ}
 
 set_option class.instance_max_depth 50
-@[simp] theorem restrict_dom_apply (s : set α) (l : α →₀ β) :
+@[simp] theorem restrict_dom_apply (s : set α) [decidable_pred (λ x, x ∈ s)] (l : α →₀ β) :
   ↑((restrict_dom β γ s : α →₀ β →ₗ supported β γ s) l) = finsupp.filter (∈ s) l := rfl
 set_option class.instance_max_depth 32
 
-theorem restrict_dom_comp_subtype (s : set α) :
+theorem restrict_dom_comp_subtype (s : set α) [decidable_pred (λ x, x ∈ s)] :
   (restrict_dom β γ s).comp (submodule.subtype _) = linear_map.id :=
-by ext l; apply subtype.coe_ext.2; simp; ext a;
-   by_cases a ∈ s; simp [h]; exact ((mem_supported' γ l.1).1 l.2 a h).symm
+begin
+  ext l,
+  apply subtype.coe_ext.2,
+  simp,
+  ext a,
+  by_cases a ∈ s,
+  { simp [h] },
+  { rw [filter_apply_neg (λ x, x ∈ s) _ h],
+    exact ((mem_supported' γ l.1).1 l.2 a h).symm }
+end
 
-theorem range_restrict_dom (s : set α) : (restrict_dom β γ s).range = ⊤ :=
+theorem range_restrict_dom (s : set α) [decidable_pred (λ x, x ∈ s)] :
+  (restrict_dom β γ s).range = ⊤ :=
 begin
   have := linear_map.range_comp (submodule.subtype _) (restrict_dom β γ s),
   rw [restrict_dom_comp_subtype, linear_map.range_id] at this,
@@ -170,15 +178,20 @@ theorem supported_Union {δ : Type*} (s : δ → set α) :
   supported β γ (⋃ i, s i) = ⨆ i, supported β γ (s i) :=
 begin
   refine le_antisymm _ (supr_le $ λ i, supported_mono $ set.subset_Union _ _),
+  haveI := classical.dec_pred (λ x, x ∈ (⋃ i, s i)),
   suffices : ((submodule.subtype _).comp (restrict_dom β γ (⋃ i, s i))).range ≤ ⨆ i, supported β γ (s i),
   { rwa [linear_map.range_comp, range_restrict_dom, map_top, range_subtype] at this },
   rw [range_le_iff_comap, eq_top_iff],
   rintro l ⟨⟩, rw mem_coe,
   apply finsupp.induction l, {exact zero_mem _},
   refine λ x a l hl a0, add_mem _ _,
+  haveI := classical.dec_pred (λ x, ∃ i, x ∈ s i),
   by_cases (∃ i, x ∈ s i); simp [h],
-  cases h with i hi,
-  exact le_supr (λ i, supported β γ (s i)) i (single_mem_supported γ _ hi)
+  { cases h with i hi,
+    exact le_supr (λ i, supported β γ (s i)) i (single_mem_supported γ _ hi) },
+  { rw filter_single_of_neg,
+    { simp },
+    { exact h } }
 end
 
 theorem supported_union (s t : set α) :
@@ -204,12 +217,12 @@ begin
 end
 set_option class.instance_max_depth 32
 
-def lsum (f : α → γ →ₗ[γ] β) : α →₀ γ →ₗ[γ] β :=
+def lsum [decidable_eq γ] (f : α → γ →ₗ[γ] β) : α →₀ γ →ₗ[γ] β :=
 ⟨λ d, d.sum (λ i, f i),
   assume d₁ d₂, by simp [sum_add_index],
   assume a d, by simp [sum_smul_index, smul_sum, -smul_eq_mul, smul_eq_mul.symm]⟩
 
-@[simp] theorem lsum_apply (f : α → γ →ₗ[γ] β) (l : α →₀ γ) :
+@[simp] theorem lsum_apply [decidable_eq γ] (f : α → γ →ₗ[γ] β) (l : α →₀ γ) :
   (finsupp.lsum f : α →₀ γ →ₗ β) l = l.sum (λ b, f b) := rfl
 
 section lmap_domain
@@ -258,6 +271,7 @@ begin
   rintro l ⟨h₁, h₂⟩,
   rw [mem_coe, mem_ker, map_apply, map_domain] at h₂,
   simp, ext x,
+  haveI := classical.dec_pred (λ x, x ∈ s),
   by_cases xs : x ∈ s,
   { have : finsupp.sum l (λ a, finsupp.single (f a)) (f x) = 0, {rw h₂, refl},
     rw [finsupp.sum_apply, finsupp.sum, finset.sum_eq_single x] at this,
@@ -271,7 +285,7 @@ end lmap_domain
 
 section total
 variables (α) {α' : Type*} (β) {β' : Type*} (γ)
-          [decidable_eq α'] [decidable_eq β'] [add_comm_group β'] [module γ β']
+          [decidable_eq α'] [decidable_eq β'] [add_comm_group β'] [decidable_eq γ] [module γ β']
           (v : α → β) {v' : α' → β'}
 
 /-- Interprets (l : α →₀ γ) as linear combination of the elements in the family (v : α → β) and
@@ -310,7 +324,9 @@ begin
     exact ⟨_, finsupp.single_mem_supported γ 1 hi.1, by simp [hi.2]⟩ },
   { refine map_le_iff_le_comap.2 (λ z hz, _),
     have : ∀i, z i • v i ∈ span γ (v '' s),
-    { intro c, by_cases c ∈ s,
+    { intro c,
+      haveI := classical.dec_pred (λ x, x ∈ s),
+      by_cases c ∈ s,
       { exact smul_mem _ _ (subset_span (set.mem_image_of_mem _ h)) },
       { simp [(finsupp.mem_supported' γ _).1 hz _ h] } },
     refine sum_mem _ _, simp [this] }
@@ -341,9 +357,11 @@ begin
   exact linear_map.is_linear _
 end
 
-noncomputable def congr {α' : Type*} (s : set α) (t : set α') (e : s ≃ t) :
+noncomputable def congr {α' : Type*} [decidable_eq α'] (s : set α) (t : set α') (e : s ≃ t) :
   supported β γ s ≃ₗ[γ] supported β γ t :=
 begin
+  haveI := classical.dec_pred (λ x, x ∈ s),
+  haveI := classical.dec_pred (λ x, x ∈ t),
   refine linear_equiv.trans (finsupp.supported_equiv_finsupp s)
       (linear_equiv.trans _ (finsupp.supported_equiv_finsupp t).symm),
   exact finsupp.dom_lcongr e

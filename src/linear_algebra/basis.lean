@@ -25,9 +25,10 @@ import linear_algebra.basic linear_algebra.finsupp order.zorn
 noncomputable theory
 
 open function lattice set submodule
-local attribute [instance] classical.prop_decidable
+
 variables {ι : Type*} {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
           {v : ι → β}
+variables [decidable_eq ι] [decidable_eq α] [decidable_eq β] [decidable_eq γ] [decidable_eq δ]
 
 section module
 variables [ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group δ]
@@ -104,6 +105,7 @@ lemma linear_independent_Union_of_directed {η : Type*}
   {s : η → set ι} (hs : directed (⊆) s)
   (h : ∀ i, linear_independent α β v (s i)) : linear_independent α β v (⋃ i, s i) :=
 begin
+  haveI := classical.dec (nonempty η),
   by_cases hη : nonempty η,
   { refine linear_independent_of_finite (λ t ht ft, _),
     rcases finite_subset_Union ft ht with ⟨I, fi, hI⟩,
@@ -135,7 +137,7 @@ lemma linear_independent_Union_finite {η : Type*} {f : η → set ι}
   disjoint (span α (v '' (f i))) (⨆i∈t, span α (v '' (f i)))) :
   linear_independent α β v (⋃i, f i) :=
 begin
-  classical,
+  haveI := classical.dec_eq η,
   rw [Union_eq_Union_finset f],
   refine linear_independent_Union_of_directed (directed_of_sup _) _,
   exact (assume t₁ t₂ ht, Union_subset_Union $ assume i, Union_subset_Union_const $ assume h, ht h),
@@ -190,7 +192,6 @@ def linear_independent.total_equiv : finsupp.supported α α s ≃ₗ span α (v
 linear_equiv.of_bijective (finsupp.total_on ι β α v s)
   (linear_independent_iff_total_on.1 hs) (finsupp.total_on_range _ _)
 
--- TODO(Alex): How to add a local instance?
 private def aux_linear_equiv_to_linear_map:
   has_coe (span α (v '' s) ≃ₗ[α] finsupp.supported α α s)
           (span α (v '' s) →ₗ[α] finsupp.supported α α s) :=
@@ -295,7 +296,7 @@ begin
   refine le_trans (le_inf inf_le_left _) (finsupp.map_disjoint_ker _ _ f hf_inj),
   haveI : inhabited β := ⟨0⟩,
   rw [linear_independent, disjoint_iff, ← finsupp.map_supported α α f t] at ht,
-  rw [← @finsupp.map_total _ _ α _ _ _ _ _ _ _ _ _ _ _ id id f f (by simp), le_ker_iff_map],
+  rw [← @finsupp.map_total _ _ α _ _ _ _ _ _ _ _ _ _ _ _ id id f f (by simp), le_ker_iff_map],
   refine eq_bot_mono (le_inf (map_mono inf_le_left) _) ht,
   rw [map_le_iff_le_comap, ← ker_comp], exact inf_le_right,
 end
@@ -325,7 +326,7 @@ begin
     map_le_iff_le_comap, comap_bot] at hf_inj,
   haveI : inhabited β := ⟨0⟩,
   rw [linear_independent, disjoint, ← finsupp.map_supported _ _ f, map_inf_eq_map_inf_comap,
-      map_le_iff_le_comap, ← ker_comp, @finsupp.map_total _ _ α _ _ _ _ _ _ _ _ _ _ _ id id, ker_comp],
+      map_le_iff_le_comap, ← ker_comp, @finsupp.map_total _ _ α _ _ _ _ _ _ _ _ _ _ _ _ id id, ker_comp],
   { exact le_trans (le_inf inf_le_left hf_inj) (le_trans hs bot_le) },
   { simp }
 end
@@ -426,7 +427,7 @@ lemma constr_sub {g f : β → γ} (hs : is_basis α s) :
 by simp [constr_add, constr_neg]
 
 -- this only works on functions if `α` is a commutative ring
-lemma constr_smul {α β γ} [comm_ring α]
+lemma constr_smul {α β γ} [decidable_eq α] [decidable_eq β] [decidable_eq γ] [comm_ring α]
   [add_comm_group β] [add_comm_group γ] [module α β] [module α γ]
   {f : β → γ} {a : α} {s : set β} (hs : is_basis α s) {b : β} :
   hs.constr (λb, a • f b) = a • hs.constr f :=
@@ -463,7 +464,7 @@ lemma is_basis_inl_union_inr {s : set β} {t : set γ}
 
 end is_basis
 
-lemma is_basis_singleton_one (α : Type*) [ring α] : is_basis α ({1} : set α) :=
+lemma is_basis_singleton_one (α : Type*) [decidable_eq α] [ring α] : is_basis α ({1} : set α) :=
 ⟨ by simp [linear_independent_iff_not_smul_mem_span],
   top_unique $ assume a h, by simp [submodule.mem_span_singleton]⟩
 
@@ -545,8 +546,8 @@ begin
   rw ← union_singleton,
   have x0 : x ≠ 0 := mt (by rintro rfl; apply zero_mem _) hx,
   apply linear_independent_union hs (linear_independent_singleton x0),
-  rw [set.image_id, set.image_id, disjoint_span_singleton x0],
-  exact hx
+  rwa [set.image_id, set.image_id, disjoint_span_singleton x0],
+  exact classical.dec_eq α
 end
 
 lemma exists_linear_independent (hs : linear_independent α β id s) (hst : s ⊆ t) :
@@ -555,6 +556,7 @@ begin
   rcases zorn.zorn_subset₀ {b | b ⊆ t ∧ linear_independent α β id b} _ _
     ⟨hst, hs⟩ with ⟨b, ⟨bt, bi⟩, sb, h⟩,
   { refine ⟨b, bt, sb, λ x xt, _, bi⟩,
+    haveI := classical.dec (x ∈ span α b),
     by_contra hn,
     apply hn,
     rw ← h _ ⟨insert_subset.2 ⟨xt, bt⟩, bi.insert hn⟩ (subset_insert _ _),
@@ -618,12 +620,18 @@ assume t, finset.induction_on t
         let ⟨u, hust, hsu, eq⟩ := ih _ (by simp [insert_subset, hb₂s, hs']) hst this in
         ⟨u, subset.trans hust $ union_subset_union (subset.refl _) (by simp [subset_insert]),
           hsu, by rw [finset.union_comm] at hb₂t'; simp [eq, hb₂t', hb₁t, hb₁s']⟩)),
-have eq : t.filter (λx, x ∈ s) ∪ t.filter (λx, x ∉ s) = t,
-  from finset.ext.mpr $ assume x, by by_cases x ∈ s; simp *,
-let ⟨u, h₁, h₂, h⟩ := this (t.filter (λx, x ∉ s)) (t.filter (λx, x ∈ s))
-  (by simp [set.subset_def]) (by simp [set.ext_iff] {contextual := tt}) (by rwa [eq]) in
-⟨u, subset.trans h₁ (by simp [subset_def, and_imp, or_imp_distrib] {contextual:=tt}),
-  h₂, by rwa [eq] at h⟩
+begin
+  letI := classical.dec_pred (λx, x ∈ s),
+  have eq : t.filter (λx, x ∈ s) ∪ t.filter (λx, x ∉ s) = t,
+  { apply finset.ext.mpr,
+    intro x,
+    by_cases x ∈ s; simp *, finish },
+  apply exists.elim (this (t.filter (λx, x ∉ s)) (t.filter (λx, x ∈ s))
+    (by simp [set.subset_def]) (by simp [set.ext_iff] {contextual := tt}) (by rwa [eq])),
+  intros u h,
+  exact ⟨u, subset.trans h.1 (by simp [subset_def, and_imp, or_imp_distrib] {contextual:=tt}),
+    h.2.1, by simp only [h.2.2, eq]⟩
+end
 
 lemma exists_finite_card_le_of_finite_of_linear_independent_of_span
   (ht : finite t) (hs : linear_independent α β id s) (hst : s ⊆ span α t) :
@@ -662,6 +670,7 @@ open submodule linear_map
 theorem quotient_prod_linear_equiv (p : submodule α β) :
   nonempty ((p.quotient × p) ≃ₗ[α] β) :=
 begin
+  haveI := classical.dec_eq (quotient p),
   rcases exists_right_inverse_linear_map_of_surjective p.range_mkq with ⟨f, hf⟩,
   have mkf : ∀ x, submodule.quotient.mk (f x) = x := linear_map.ext_iff.1 hf,
   have fp : ∀ x, x - f (p.mkq x) ∈ p :=
@@ -687,12 +696,20 @@ calc β ≃ finsupp.supported α α b : (module_equiv_finsupp h).to_equiv
    ... ≃ (b →₀ α)                : finsupp.restrict_support_equiv b
    ... ≃ (b → α)                 : finsupp.equiv_fun_on_fintype
 
-theorem vector_space.card_fintype [fintype α] [fintype β] : card β = (card α) ^ (card b) :=
+theorem vector_space.card_fintype [fintype α] [fintype β] [decidable_pred (λ x, x ∈ b)] :
+  card β = (card α) ^ (card b) :=
 calc card β = card (b → α)    : card_congr (equiv_fun_basis b h)
         ... = card α ^ card b : card_fun
 
-theorem vector_space.card_fintype' [fintype α] [fintype β] : ∃ n : ℕ, card β = (card α) ^ n :=
-let ⟨b, hb⟩ := exists_is_basis α β in ⟨card b, vector_space.card_fintype b hb⟩
+theorem vector_space.card_fintype' [fintype α] [fintype β] :
+  ∃ n : ℕ, card β = (card α) ^ n :=
+begin
+  apply exists.elim (exists_is_basis α β),
+  intros b hb,
+  haveI := classical.dec_pred (λ x, x ∈ b),
+  use card b,
+  exact  vector_space.card_fintype b hb,
+end
 
 end vector_space
 
@@ -703,7 +720,8 @@ section module
 variables {φ : ι → Type*}
 variables [ring α] [∀i, add_comm_group (φ i)] [∀i, module α (φ i)] [fintype ι] [decidable_eq ι]
 
-lemma linear_independent_std_basis (s : Πi, set (φ i)) (hs : ∀i, linear_independent α _ id (s i)) :
+lemma linear_independent_std_basis [∀ i, decidable_eq (φ i)]
+  (s : Πi, set (φ i)) (hs : ∀i, linear_independent α _ id (s i)) :
   linear_independent α _ id (⋃i, std_basis α φ i '' s i) :=
 begin
   refine linear_independent_Union_finite _ _,
@@ -721,7 +739,8 @@ begin
       (disjoint_std_basis_std_basis _ _ _ _ $ set.disjoint_singleton_left.2 hiJ) }
 end
 
-lemma is_basis_std_basis [fintype ι] (s : Πi, set (φ i)) (hs : ∀i, is_basis α (s i)) :
+lemma is_basis_std_basis [fintype ι] [∀ i, decidable_eq (φ i)]
+  (s : Πi, set (φ i)) (hs : ∀i, is_basis α (s i)) :
   is_basis α (⋃i, std_basis α φ i '' s i) :=
 begin
   refine ⟨linear_independent_std_basis _ (assume i, (hs i).1), _⟩,

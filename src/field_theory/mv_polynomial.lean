@@ -17,8 +17,6 @@ namespace mv_polynomial
 universes u v
 variables {σ : Type u} {α : Type v} [decidable_eq σ]
 
-local attribute [instance, priority 0] classical.prop_decidable
-
 instance [discrete_field α] : vector_space α (mv_polynomial σ α) :=
 finsupp.to_vector_space _ _
 

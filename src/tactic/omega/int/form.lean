@@ -19,11 +19,11 @@ inductive form
 | or  : form → form → form
 | and : form → form → form
 
-local notation x `=*` y := form.eq x y
-local notation x `≤*` y := form.le x y
-local notation `¬*` p   := form.not p
-local notation p `∨*` q := form.or p q
-local notation p `∧*` q := form.and p q
+local notation x ` =* ` y := form.eq x y
+local notation x ` ≤* ` y := form.le x y
+local notation `¬* ` p   := form.not p
+local notation p ` ∨* ` q := form.or p q
+local notation p ` ∧* ` q := form.and p q
 
 namespace form
 
@@ -81,7 +81,7 @@ def repr : form → string
 | (t =* s) := "(" ++ t.repr ++ " = " ++ s.repr ++ ")"
 | (t ≤* s) := "(" ++ t.repr ++ " ≤ " ++ s.repr ++ ")"
 | (¬* p)   := "¬" ++ p.repr
-| (p ∨* q) := "(" ++ p.repr ++ " ∨  " ++ q.repr ++ ")"
+| (p ∨* q) := "(" ++ p.repr ++ " ∨ " ++ q.repr ++ ")"
 | (p ∧* q) := "(" ++ p.repr ++ " ∧ " ++ q.repr ++ ")"
 
 instance has_repr : has_repr form := ⟨repr⟩

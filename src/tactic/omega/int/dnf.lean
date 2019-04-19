@@ -3,7 +3,7 @@ Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
 
-DNF transformation. 
+DNF transformation.
 -/
 
 import tactic.omega.clause
@@ -12,11 +12,11 @@ import tactic.omega.int.form
 namespace omega
 namespace int
 
-local notation x `=*` y := form.eq x y
-local notation x `≤*` y := form.le x y
-local notation `¬*` p   := form.not p
-local notation p `∨*` q := form.or p q
-local notation p `∧*` q := form.and p q
+local notation x ` =* ` y := form.eq x y
+local notation x ` ≤* ` y := form.le x y
+local notation `¬* ` p   := form.not p
+local notation p ` ∨* ` q := form.or p q
+local notation p ` ∧* ` q := form.and p q
 
 @[simp] def push_neg : form → form
 | (p ∨* q) := (push_neg p) ∧* (push_neg q)
@@ -108,14 +108,14 @@ begin
   form.induce `[intros v h, try {apply h}],
   { cases p with t s t s; try {apply h},
     { simp only [le_and_le_iff_eq.symm,
-        classical.not_and_distrib, not_le, 
+        classical.not_and_distrib, not_le,
         preterm.val, form.holds] at h,
-      simp only [int.add_one_le_iff, preterm.add_one, 
+      simp only [int.add_one_le_iff, preterm.add_one,
         preterm.val, form.holds, neg_elim],
       rw or_comm, assumption },
-    { simp only [not_le, int.add_one_le_iff, 
-        preterm.add_one, not_le, preterm.val, 
-        form.holds, neg_elim] at *, 
+    { simp only [not_le, int.add_one_le_iff,
+        preterm.add_one, not_le, preterm.val,
+        form.holds, neg_elim] at *,
       assumption} },
   { simp only [neg_elim], cases h; [{left, apply ihp},
     {right, apply ihq}]; assumption },
@@ -140,7 +140,7 @@ begin
   form.induce `[intros h1 h2],
   { apply list.exists_mem_cons_of, constructor,
     { simp only [preterm.val, form.holds] at h2,
-      rw [list.forall_mem_singleton], 
+      rw [list.forall_mem_singleton],
       simp only [h2, omega.int.val_canonize,
         omega.term.val_sub, sub_self] },
     { apply list.forall_mem_nil } },
@@ -148,7 +148,7 @@ begin
     { apply list.forall_mem_nil },
     { simp only [preterm.val, form.holds] at h2 ,
       rw [list.forall_mem_singleton],
-      simp only [val_canonize, 
+      simp only [val_canonize,
         preterm.val, term.val_sub],
       rw [le_sub, sub_zero], assumption } },
     { cases h1 },
@@ -163,7 +163,7 @@ begin
       refine ⟨clause.append cp cq, ⟨_, clause.holds_append hp2 hq2⟩⟩,
       simp only [dnf_core, list.mem_map],
       refine ⟨(cp,cq),⟨_,rfl⟩⟩,
-      rw list.mem_product, 
+      rw list.mem_product,
       constructor; assumption }
 end
 

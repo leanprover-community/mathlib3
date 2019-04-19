@@ -12,11 +12,11 @@ import tactic.omega.nat.sub_elim
 namespace omega
 namespace nat
 
-local notation x `=*` y := form.eq x y
-local notation x `≤*` y := form.le x y
-local notation `¬*` p   := form.not p
-local notation p `∨*` q := form.or p q
-local notation p `∧*` q := form.and p q
+local notation x ` =* ` y := form.eq x y
+local notation x ` ≤* ` y := form.le x y
+local notation `¬* ` p   := form.not p
+local notation p ` ∨* ` q := form.or p q
+local notation p ` ∧* ` q := form.and p q
 
 @[simp] def dnf_core : form → list clause
 | (p ∨* q) := (dnf_core p) ++ (dnf_core q)
@@ -35,17 +35,17 @@ begin
   form.induce `[intros h1 h0 h2],
   { apply list.exists_mem_cons_of,
     constructor, rw list.forall_mem_singleton,
-    cases h0 with ht hs, 
-    simp only [val_canonize ht, val_canonize hs, 
+    cases h0 with ht hs,
+    simp only [val_canonize ht, val_canonize hs,
       term.val_sub, form.holds, sub_eq_add_neg] at *,
     rw [h2, add_neg_self], apply list.forall_mem_nil },
   { apply list.exists_mem_cons_of,
-    constructor, 
+    constructor,
     apply list.forall_mem_nil,
     rw list.forall_mem_singleton,
     simp only [val_canonize (h0.left), val_canonize (h0.right),
       term.val_sub, form.holds, sub_eq_add_neg] at *,
-    rw [←sub_eq_add_neg, le_sub, sub_zero, int.coe_nat_le], 
+    rw [←sub_eq_add_neg, le_sub, sub_zero, int.coe_nat_le],
     assumption },
   { cases h1 },
   { cases h2 with h2 h2;
@@ -59,7 +59,7 @@ begin
     refine ⟨clause.append cp cq, ⟨_, clause.holds_append hp2 hq2⟩⟩,
     simp only [dnf_core, list.mem_map],
     refine ⟨(cp,cq),⟨_,rfl⟩⟩,
-    rw list.mem_product, 
+    rw list.mem_product,
     constructor; assumption }
 end
 
@@ -78,7 +78,7 @@ def terms.vars : list term → list bool
 | []      := []
 | (t::ts) := bools.or (term.vars t) (terms.vars ts)
 
-local notation as `{` m `↦` a `}` := list.func.set a as m
+local notation as ` {` m ` ↦ ` a `}` := list.func.set a as m
 
 def nonneg_consts_core : nat → list bool → list term
 | _ [] := []
@@ -104,9 +104,9 @@ lemma holds_nonneg_consts_core {v : nat → int} (h1 : ∀ x, 0 ≤ v x) :
 | k (tt::bs) :=
   begin
     simp only [nonneg_consts_core],
-    rw list.forall_mem_cons, 
+    rw list.forall_mem_cons,
     constructor,
-    { simp only [term.val, one_mul, zero_add, coeffs.val_set], 
+    { simp only [term.val, one_mul, zero_add, coeffs.val_set],
       apply h1 },
     { apply holds_nonneg_consts_core (k+1) bs }
   end

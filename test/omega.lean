@@ -1,5 +1,5 @@
-/- 
-Test cases for omega. Most of the examples are from John Harrison's 
+/-
+Test cases for omega. Most of the examples are from John Harrison's
 Handbook of Practical Logic and Automated Reasoning.
 -/
 
@@ -33,13 +33,13 @@ example (x y z : nat) : (x ≤ y) → (z > y) → (x - z = 0) := by omega
 example (x y z : nat) : x - 5 > 122 → y ≤ 127 → y < x := by omega
 example : ∀ (x y : nat), x ≤ y ↔ x - y = 0 := by omega
 
-/- 
-Use `omega manual` to disable automatic reverts, 
-and `omega int` or `omega nat` to specify the domain. 
+/-
+Use `omega manual` to disable automatic reverts,
+and `omega int` or `omega nat` to specify the domain.
 -/
 example (i : int) (n : nat) (h1 : n = 0) (h2 : i < i) : false := by omega int
 example (i : int) (n : nat) (h1 : i = 0) (h2 : n < n) : false := by omega nat
-example (x y z w : int) (h1 : 3 * y ≥ x) (h2 : z > 19 * w) : 3 * x ≤ 9 * y := 
+example (x y z w : int) (h1 : 3 * y ≥ x) (h2 : z > 19 * w) : 3 * x ≤ 9 * y :=
 by {revert h1 x y, omega manual}
-example (n : nat) (h1 : n < 34) (i : int) (h2 : i * 9 = -72) : i = -8 := 
+example (n : nat) (h1 : n < 34) (i : int) (h2 : i * 9 = -72) : i = -8 :=
 by {revert h2 i, omega manual int}

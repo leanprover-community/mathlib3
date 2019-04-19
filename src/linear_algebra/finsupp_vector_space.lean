@@ -8,8 +8,6 @@ Linear structures on function with finite support `α →₀ β`.
 import data.finsupp data.mv_polynomial linear_algebra.dimension
 noncomputable theory
 
-local attribute [instance] classical.prop_decidable
-
 open lattice set linear_map submodule
 
 namespace finsupp
@@ -20,11 +18,11 @@ variables [decidable_eq α] [decidable_eq β] [ring γ] [add_comm_group β] [mod
 
 local attribute [instance] finsupp.to_module
 
-lemma linear_independent_single {f : α → set β}
+lemma linear_independent_single [decidable_eq γ] {f : α → set β}
   (hf : ∀a, linear_independent γ β id (f a)) : linear_independent γ _ id (⋃a, single a '' f a) :=
 begin
   refine linear_independent_Union_finite _ _ ,
-  { refine assume a, @linear_independent.image _ _ _ _ _ _ _ _ _ (lsingle a) (hf a) _,
+  { refine assume a, @linear_independent.image _ _ _ _ _ _ _ _ _ _ _ _ (lsingle a) (hf a) _,
     rw ker_lsingle,
     exact disjoint_bot_right },
   { assume a s hs hat,
@@ -61,7 +59,7 @@ variables [decidable_eq α] [decidable_eq β] [discrete_field γ] [add_comm_grou
 
 local attribute [instance] finsupp.to_vector_space
 
-lemma dim_eq : @vector_space.dim γ (α →₀ β) _ _ (finsupp.to_vector_space _ _) = cardinal.mk α * vector_space.dim γ β :=
+lemma dim_eq : @vector_space.dim γ (α →₀ β) _ _ (finsupp.to_vector_space _ _) _ = cardinal.mk α * vector_space.dim γ β :=
 begin
   rcases exists_is_basis γ β with ⟨bs, hbs⟩,
   rw [← hbs.mk_eq_dim, ← (is_basis_single (λa:α, hbs)).mk_eq_dim, cardinal.mk_Union_eq_sum_mk],
@@ -88,7 +86,7 @@ open vector_space
 set_option class.instance_max_depth 70
 local attribute [instance] finsupp.to_vector_space
 
-lemma equiv_of_dim_eq_dim (h : dim α β = dim α γ) : nonempty (β ≃ₗ[α] γ) :=
+lemma equiv_of_dim_eq_dim [decidable_eq β] [decidable_eq γ] (h : dim α β = dim α γ) : nonempty (β ≃ₗ[α] γ) :=
 begin
   rcases exists_is_basis α β with ⟨b, hb⟩,
   rcases exists_is_basis α γ with ⟨c, hc⟩,
@@ -98,14 +96,14 @@ begin
       (linear_equiv.trans (finsupp.congr b c e) (module_equiv_finsupp hc).symm) ⟩
 end
 
-lemma eq_bot_iff_dim_eq_zero (p : submodule α β) (h : dim α p = 0) : p = ⊥ :=
+lemma eq_bot_iff_dim_eq_zero [decidable_eq β] (p : submodule α β) (h : dim α p = 0) : p = ⊥ :=
 begin
   have : dim α p = dim α (⊥ : submodule α β) := by rwa [dim_bot],
   rcases equiv_of_dim_eq_dim this with ⟨e⟩,
   exact e.eq_bot_of_equiv _
 end
 
-lemma injective_of_surjective (f : β →ₗ[α] γ)
+lemma injective_of_surjective [decidable_eq β] [decidable_eq γ] (f : β →ₗ[α] γ)
   (hβ : dim α β < cardinal.omega) (heq : dim α γ = dim α β) (hf : f.range = ⊤) : f.ker = ⊥ :=
 have hk : dim α f.ker < cardinal.omega := lt_of_le_of_lt (dim_submodule_le _) hβ,
 begin
@@ -131,7 +129,7 @@ local attribute [instance] finsupp.to_module
 local attribute [instance] submodule.module
 
 lemma cardinal_mk_eq_cardinal_mk_field_pow_dim
-  {α β : Type u} [discrete_field α] [add_comm_group β] [vector_space α β]
+  {α β : Type u} [decidable_eq β] [discrete_field α] [add_comm_group β] [vector_space α β]
   (h : dim α β < cardinal.omega) : cardinal.mk β = cardinal.mk α ^ dim α β  :=
 begin
   rcases exists_is_basis α β with ⟨s, hs⟩,
@@ -143,15 +141,14 @@ begin
     ... = cardinal.mk (s →₀ α) :
     begin
       refine quotient.sound ⟨@linear_equiv.to_equiv α _ _ _ _ _ _ _ _⟩,
-      convert @finsupp.supported_equiv_finsupp β α α _ _ _ _ _ s _,
-      { funext, exact subsingleton.elim _ _ },
+      exact @finsupp.supported_equiv_finsupp β α α _ _ _ _ _ s _
     end
     ... = cardinal.mk (s → α) : quotient.sound ⟨finsupp.equiv_fun_on_fintype⟩
     ... = _ : by rw [← hs.mk_eq_dim, cardinal.power_def]
 end
 
 lemma cardinal_lt_omega_of_dim_lt_omega
-  {α β : Type u} [discrete_field α] [add_comm_group β] [vector_space α β] [fintype α]
+  {α β : Type u} [decidable_eq β] [discrete_field α] [add_comm_group β] [vector_space α β] [fintype α]
   (h : dim α β < cardinal.omega) : cardinal.mk β < cardinal.omega :=
 begin
   rw [cardinal_mk_eq_cardinal_mk_field_pow_dim h],

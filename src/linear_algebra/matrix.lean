@@ -9,8 +9,6 @@ import data.matrix
 import linear_algebra.dimension linear_algebra.tensor_product
 noncomputable theory
 
-local attribute [instance, priority 0] classical.prop_decidable
-
 open lattice set linear_map submodule
 
 namespace matrix
@@ -135,16 +133,16 @@ begin
   rw [← linear_map.range_comp, diagonal_comp_std_basis, range_smul'],
 end
 
-local attribute [instance] classical.prop_decidable
 lemma rank_diagonal [decidable_eq m] [decidable_eq α] (w : m → α) :
   rank (diagonal w).to_lin = fintype.card { i // w i ≠ 0 } :=
 begin
   have hu : univ ⊆ - {i : m | w i = 0} ∪ {i : m | w i = 0}, { rw set.compl_union_self },
   have hd : disjoint {i : m | w i ≠ 0} {i : m | w i = 0} := (disjoint_compl {i | w i = 0}).symm,
   have h₁ := supr_range_std_basis_eq_infi_ker_proj α (λi:m, α) hd hu (finite.of_fintype _),
-  have h₂ := infi_ker_proj_equiv α (λi:m, α) hd hu,
-  rw [rank, range_diagonal, h₁, (linear_equiv.dim_eq.{u u} h₂)],
-  exact dim_fun'
+  have h₂ := @infi_ker_proj_equiv α _ _ (λi:m, α) _ _ _ _ (by simp; apply_instance) hd hu,
+  rw [rank, range_diagonal, h₁, ←@dim_fun' α],
+  apply linear_equiv.dim_eq,
+  apply h₂,
 end
 
 end vector_space

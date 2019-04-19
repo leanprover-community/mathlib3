@@ -82,7 +82,6 @@ fg_def.2 ⟨prod.inl '' tb ∪ prod.inr '' tc,
   finite_union (finite_image _ htb.1) (finite_image _ htc.1),
   by rw [linear_map.span_inl_union_inr, htb.2, htc.2]⟩
 
-local attribute [instance, priority 0] classical.prop_decidable
 local attribute [instance] finsupp.add_comm_group
 local attribute [instance] finsupp.to_module
 
@@ -92,7 +91,7 @@ finitely generated then so is M. -/
 theorem fg_of_fg_map_of_fg_inf_ker {s : submodule α β}
   (hs1 : (s.map f).fg) (hs2 : (s ⊓ f.ker).fg) : s.fg :=
 begin
-  --letI := classical.dec_eq α, haveI := classical.dec_eq β, letI := classical.dec_eq γ,
+  haveI := classical.dec_eq α, haveI := classical.dec_eq β, haveI := classical.dec_eq γ,
   cases hs1 with t1 ht1, cases hs2 with t2 ht2,
   have : ∀ y ∈ t1, ∃ x ∈ s, f x = y,
   { intros y hy,
@@ -330,6 +329,7 @@ theorem is_noetherian_of_fg_of_noetherian {R M} [ring R] [add_comm_group M] [mod
 let ⟨s, hs⟩ := hN in
 begin
   haveI := classical.dec_eq M,
+  haveI := classical.dec_eq R,
   letI : is_noetherian R R := by apply_instance,
   have : ∀ x ∈ s, x ∈ N, from λ x hx, hs ▸ submodule.subset_span hx,
   refine @@is_noetherian_of_surjective ((↑s : set M) → R) _ _ _ (pi.module _)

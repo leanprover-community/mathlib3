@@ -10,8 +10,6 @@ import linear_algebra.dimension
 import linear_algebra.tensor_product
 noncomputable theory
 
-local attribute [instance] classical.prop_decidable
-
 namespace module
 variables (R : Type*) (M : Type*)
 variables [comm_ring R] [add_comm_group M] [module R M]
@@ -42,7 +40,8 @@ end module
 namespace is_basis
 universes u v
 variables {K : Type u} {V : Type v}
-variables [discrete_field K] [add_comm_group V] [vector_space K V]
+variables [decidable_eq V] [discrete_field K] [add_comm_group V] [vector_space K V]
+variables [decidable_eq (module.dual K V)]
 variables {B : set V} (h : is_basis K B)
 open vector_space module module.dual submodule linear_map cardinal function
 
@@ -83,12 +82,13 @@ begin
   dsimp,
   congr',
   apply h.ext,
-  intros,
-  rw [to_dual_swap_eq_to_dual, to_dual_apply],
-  { split_ifs with hx,
-    { rwa [hx, coord_fun_eq_repr, repr_eq_single, finsupp.single_apply, if_pos rfl] },
-    { rwa [coord_fun_eq_repr, repr_eq_single, finsupp.single_apply, if_neg (ne.symm hx)] } },
-  assumption'
+  { intros,
+    rw [to_dual_swap_eq_to_dual, to_dual_apply],
+    { split_ifs with hx,
+      { rwa [hx, coord_fun_eq_repr, repr_eq_single, finsupp.single_apply, if_pos rfl] },
+      { rwa [coord_fun_eq_repr, repr_eq_single, finsupp.single_apply, if_neg (ne.symm hx)] } },
+    assumption' },
+  { exact classical.dec_eq K }
 end
 
 lemma to_dual_inj (v : V) (a : h.to_dual v = 0) : v = 0 :=
@@ -96,6 +96,7 @@ begin
   rw [← mem_bot K, ← h.repr_ker, mem_ker],
   apply finsupp.ext,
   intro b,
+  haveI := classical.dec (b ∈ B),
   by_cases hb : b ∈ B,
   { rw [←to_dual_eq_repr _ _ _ hb, a],
     refl },
@@ -118,12 +119,13 @@ begin
   let emb := embedding.subtype B,
   { use finsupp.total V V K id (finsupp.emb_domain emb lin_comb),
     apply h.ext,
-    intros x hx,
-    rw [h.to_dual_eq_repr _ x hx, repr_total _],
-    have emb_x : x = emb ⟨x, hx⟩, from rfl,
-    { rw [emb_x, finsupp.emb_domain_apply emb lin_comb _, ← emb_x], simpa },
-    { rw [finsupp.mem_supported, finsupp.support_emb_domain, finset.map_eq_image, finset.coe_image],
-      apply subtype.val_image_subset } },
+    { intros x hx,
+      rw [h.to_dual_eq_repr _ x hx, repr_total _],
+      have emb_x : x = emb ⟨x, hx⟩, from rfl,
+      { rw [emb_x, finsupp.emb_domain_apply emb lin_comb _, ← emb_x], simpa },
+      { rw [finsupp.mem_supported, finsupp.support_emb_domain, finset.map_eq_image, finset.coe_image],
+        apply subtype.val_image_subset } },
+    { exact classical.dec_eq K } },
   { intros a _,
     apply fin.complete }
 end
@@ -143,12 +145,12 @@ linear_equiv.of_bijective h.to_dual h.to_dual_ker h.to_dual_range
 theorem dual_basis_is_basis [fintype B] : is_basis K h.dual_basis :=
 h.to_dual_equiv.is_basis h
 
-@[simp] lemma to_dual_to_dual [fintype B] :
+@[simp] lemma to_dual_to_dual [decidable_eq (dual K (dual K V))] [fintype B] :
   (h.dual_basis_is_basis.to_dual).comp h.to_dual = eval K V :=
 begin
-  apply h.ext,
+  apply @is_basis.ext _ _ _ _ _ (classical.dec_eq _) _ _ _ _ _ _ _ _ h,
   intros b hb,
-  apply h.dual_basis_is_basis.ext,
+  apply @is_basis.ext _ _ _ _ _ (classical.dec_eq _) _ _ _ _ _ _ _ _ h.dual_basis_is_basis,
   intros c hc,
   dunfold eval,
   rw [linear_map.flip_apply, linear_map.id_apply, linear_map.comp_apply,
@@ -180,6 +182,9 @@ open module module.dual submodule linear_map cardinal is_basis
 
 theorem eval_ker : (eval K V).ker = ⊥ :=
 begin
+  haveI := classical.dec_eq K,
+  haveI := classical.dec_eq V,
+  haveI := classical.dec_eq (dual K V),
   rw ker_eq_bot',
   intros v h,
   rw linear_map.ext_iff at h,
@@ -192,7 +197,7 @@ begin
   exact one_ne_zero hx
 end
 
-theorem dual_dim_eq (h : dim K V < omega) :
+theorem dual_dim_eq [decidable_eq V] [decidable_eq (dual K V)] (h : dim K V < omega) :
   cardinal.lift.{v (max u v)} (dim K V) = dim K (dual K V) :=
 begin
   rcases exists_is_basis_fintype h with ⟨b, hb, ⟨hf⟩⟩,
@@ -202,8 +207,10 @@ end
 
 set_option class.instance_max_depth 70
 
-lemma eval_range (h : dim K V < omega) : (eval K V).range = ⊤ :=
+lemma eval_range [decidable_eq V] (h : dim K V < omega) : (eval K V).range = ⊤ :=
 begin
+  haveI := classical.dec_eq (dual K V),
+  haveI := classical.dec_eq (dual K (dual K V)),
   rcases exists_is_basis_fintype h with ⟨b, hb, ⟨hf⟩⟩,
   resetI,
   rw [← hb.to_dual_to_dual, range_comp, hb.to_dual_range, map_top, to_dual_range _],
@@ -211,7 +218,7 @@ begin
   apply_instance
 end
 
-def eval_equiv (h : dim K V < omega) : V ≃ₗ[K] dual K (dual K V) :=
+def eval_equiv [decidable_eq V] (h : dim K V < omega) : V ≃ₗ[K] dual K (dual K V) :=
 linear_equiv.of_bijective (eval K V) eval_ker (eval_range h)
 
 end vector_space

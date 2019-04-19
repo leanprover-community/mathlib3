@@ -9,7 +9,7 @@ See 5.5 of http://www.decision-procedures.org/ for details.
 
 import tactic.omega.clause
 
-open list.func 
+open list.func
 
 namespace omega
 
@@ -29,10 +29,10 @@ begin
   intro h1,
   unfold symmod,
   rw [int.mod_eq_of_lt (le_of_lt h1) (lt_add_one _), if_neg],
-  simp only [add_comm, add_neg_cancel_left, 
+  simp only [add_comm, add_neg_cancel_left,
     neg_add_rev, sub_eq_add_neg],
   have h2 : 2 * i = (1 + 1) * i := rfl,
-  simpa only [h2, add_mul, one_mul, 
+  simpa only [h2, add_mul, one_mul,
     add_lt_add_iff_left, not_lt] using h1
 end
 
@@ -52,7 +52,7 @@ lemma symmod_eq {i j : int} :
   symmod i j = i - j * (symdiv i j) :=
 by rw [mul_symdiv_eq, sub_sub_cancel]
 
-/- (sgm v b as n) is the new value assigned to the nth variable 
+/- (sgm v b as n) is the new value assigned to the nth variable
    after a single step of equality elimination using valuation v,
    term ⟨b, as⟩, and variable index n. If v satisfies the initial
    constraint set, then (v ⟨n ↦ sgm v b as n⟩) satisfies the new
@@ -62,7 +62,7 @@ let a_n : int := get n as in
 let m : int := a_n + 1 in
 ((symmod b m) + (coeffs.val v (as.map (λ x, symmod x m)))) / m
 
-local notation as `{` m `↦` a `}` := set a as m
+local notation as ` {` m ` ↦ ` a `}` := set a as m
 
 def rhs : nat → int → list int → term
 | n b as :=
@@ -73,28 +73,28 @@ lemma rhs_correct_aux {v : nat → int} {m : int} {as : list int} :
 ∀ {k}, ∃ d, (m * d +
   coeffs.val_between v (as.map (λ (x : ℤ), symmod x m)) 0 k =
       coeffs.val_between v as 0 k)
-| 0 := 
-  begin 
-    existsi (0 : int), 
+| 0 :=
+  begin
+    existsi (0 : int),
     simp only [add_zero, mul_zero, coeffs.val_between]
   end
 | (k+1) :=
   begin
-    simp only [zero_add, coeffs.val_between, list.map], 
+    simp only [zero_add, coeffs.val_between, list.map],
     cases @rhs_correct_aux k with d h1, rw ← h1,
     by_cases hk : k < as.length,
     { rw [get_map hk, symmod_eq, sub_mul],
-      existsi (d + (symdiv (get k as) m * v k)), 
+      existsi (d + (symdiv (get k as) m * v k)),
       ring },
     { rw not_lt at hk,
       repeat {rw get_eq_default_of_le},
-      existsi d, 
-      rw add_assoc, 
+      existsi d,
+      rw add_assoc,
       exact hk,
       simp only [hk, list.length_map] }
   end
 
-local notation v `⟨` m `↦` a `⟩` := update m a v
+local notation v ` ⟨` m ` ↦ ` a `⟩` := update m a v
 
 lemma rhs_correct {v : nat → int}
   {b : int} {as : list int} (n : nat) :
@@ -119,7 +119,7 @@ begin
       cases h5 with d h5, rw symmod_eq,
       existsi (symdiv b m + d),
       unfold term.val, rw ← h5,
-      simp only [term.val, mul_add, add_mul, m, a_n], 
+      simp only [term.val, mul_add, add_mul, m, a_n],
       ring },
     cases h4 with c h4,
     rw [dvd_add_iff_right (dvd_mul_right m c), h4, ← h1],
@@ -133,9 +133,9 @@ begin
           { by_contra hc, rw not_lt at hc,
             rw (get_eq_default_of_le n hc) at h0,
             cases h0 },
-          rw get_map hn, 
+          rw get_map hn,
           simp only [a_n, m],
-          rw [add_comm, symmod_add_one_self h0], 
+          rw [add_comm, symmod_add_one_self h0],
           ring
         end
   ... = term.val (v⟨n↦sgm v b as n⟩) (rhs n b as) :
@@ -143,8 +143,8 @@ begin
           unfold rhs, unfold term.val,
           rw [← coeffs.val_except_add_eq n, get_set, update_eq],
           have h2 : ∀ a b c : int, a + b + c = b + (c + a) := by {intros, ring},
-          rw (h2 (- _)), 
-          apply fun_mono_2 rfl, 
+          rw (h2 (- _)),
+          apply fun_mono_2 rfl,
           apply fun_mono_2,
           { rw coeffs.val_except_update_set },
           { simp only [m, a_n], ring }
@@ -169,8 +169,8 @@ begin
   intros h1 h2,
   let a_n := get n as,
   let m := a_n + 1,
-  have h3 : m ≠ 0, 
-  { apply ne_of_gt, 
+  have h3 : m ≠ 0,
+  { apply ne_of_gt,
     apply lt_trans h1,
     simp only [m, lt_add_iff_pos_right] },
   have h4 : 0 = (term.val (v⟨n↦sgm v b as n⟩) (coeffs_reduce n b as)) * m :=
@@ -183,13 +183,13 @@ begin
           rw [← coeffs.val_except_add_eq n, rhs_correct n h1 h2],
           simp only [a_n, add_assoc],
         end
-  ... = -(m * a_n * sgm v b as n) + (b + a_n * (symmod b m)) + 
-        (coeffs.val_except n v as + 
+  ... = -(m * a_n * sgm v b as n) + (b + a_n * (symmod b m)) +
+        (coeffs.val_except n v as +
         a_n * coeffs.val_except n v (as.map (λ x, symmod x m))) :
           begin
             simp only [term.val, rhs, mul_add, m, a_n,
               add_assoc, add_left_inj, add_comm, add_left_comm],
-            rw [← coeffs.val_except_add_eq n, 
+            rw [← coeffs.val_except_add_eq n,
               get_set, update_eq, mul_add],
             apply fun_mono_2,
             { rw coeffs.val_except_eq_val_except
@@ -226,7 +226,7 @@ begin
           rw ← add_assoc,
           have h4 : ∀ (x : ℤ), x + a_n * symmod x m = m * sym_sym m x,
           { intro x, have h5 : a_n = m - 1,
-            { simp only [m], 
+            { simp only [m],
               rw add_sub_cancel },
             rw [h5, sub_mul, one_mul, add_sub,
               add_comm, add_sub_assoc, ← mul_symdiv_eq],
@@ -235,27 +235,27 @@ begin
           apply coeffs.val_except_eq_val_except; intros x h5, refl,
           apply congr_arg,
           apply fun_mono_2 _ rfl,
-          rw function.funext_iff, 
+          rw function.funext_iff,
           apply h4
         end
   ... = (-(a_n * sgm v b as n) + (sym_sym m b)
         + coeffs.val_except n v (as.map (sym_sym m))) * m :
         begin
-          simp only [add_mul _ _ m], 
+          simp only [add_mul _ _ m],
           apply fun_mono_2, ring,
           simp only [coeffs.val_except, add_mul _ _ m],
           apply fun_mono_2,
           { rw [mul_comm _ m, ← coeffs.val_between_map_mul, list.map_map] },
           simp only [list.length_map, mul_comm _ m],
-          rw [← coeffs.val_between_map_mul, list.map_map] 
+          rw [← coeffs.val_between_map_mul, list.map_map]
         end
-  ... = (sym_sym m b + (coeffs.val_except n v (as.map (sym_sym m)) + 
+  ... = (sym_sym m b + (coeffs.val_except n v (as.map (sym_sym m)) +
           (-a_n * sgm v b as n))) * m : by ring
   ... = (term.val (v ⟨n ↦ sgm v b as n⟩) (coeffs_reduce n b as)) * m :
         begin
           simp only [coeffs_reduce, term.val, m, a_n],
-          rw [← coeffs.val_except_add_eq n, 
-            coeffs.val_except_update_set, get_set, update_eq] 
+          rw [← coeffs.val_except_add_eq n,
+            coeffs.val_except_update_set, get_set, update_eq]
         end,
   rw [← int.mul_div_cancel (term.val _ _) h3, ← h4, int.zero_div]
 end
@@ -272,11 +272,11 @@ lemma subst_correct {v : nat → int} {b : int}
   0 < get n as → 0 = term.val v (b,as) →
   term.val v t = term.val (v ⟨n ↦ sgm v b as n⟩) (subst n (rhs n b as) t) :=
 begin
-  intros h1 h2, 
+  intros h1 h2,
   simp only [subst, term.val, term.val_add, term.val_mul],
-  rw ← rhs_correct _ h1 h2, 
+  rw ← rhs_correct _ h1 h2,
   cases t with b' as',
-  simp only [term.val], 
+  simp only [term.val],
   have h3 : coeffs.val (v ⟨n ↦ sgm v b as n⟩) (as' {n ↦ 0}) =
     coeffs.val_except n v as',
   { rw [← coeffs.val_except_add_eq n, get_set,
@@ -356,14 +356,14 @@ lemma sat_eq_elim :
 | (ee.neg::es) ((eq::eqs), les) h1 :=
   begin
     simp only [eq_elim], apply sat_eq_elim,
-    cases h1 with v h1, 
+    cases h1 with v h1,
     existsi v,
-    cases h1 with hl hr, 
+    cases h1 with hl hr,
     apply and.intro _ hr,
     rw list.forall_mem_cons at *,
     apply and.intro _ hl.right,
-    rw term.val_neg, 
-    rw ← hl.left, 
+    rw term.val_neg,
+    rw ← hl.left,
     refl
   end
 | (ee.nondiv i::es) ((b,as)::eqs, les) h1 :=
@@ -375,7 +375,7 @@ lemma sat_eq_elim :
       have h4 : i ∣ coeffs.val v as     := coeffs.dvd_val h2.right,
       have h5 : i ∣ b + coeffs.val v as := by { rw ← h3, apply dvd_zero },
       rw ← dvd_add_iff_left h4 at h5, apply h2.left h5 },
-    rw if_neg h2, apply sat_empty 
+    rw if_neg h2, apply sat_empty
   end
 | (ee.factor i::es) ((b,as)::eqs, les) h1 :=
   begin
@@ -390,18 +390,18 @@ lemma sat_eq_elim :
   end
 | (ee.reduce n::es) ((b,as)::eqs, les) h1 :=
   begin
-    simp only [eq_elim], 
+    simp only [eq_elim],
     by_cases h2 : 0 < get n as,
     tactic.rotate 1,
     { rw if_neg h2, apply sat_empty },
-    rw if_pos h2, 
+    rw if_pos h2,
     apply sat_eq_elim,
     cases h1 with v h1,
-    existsi v ⟨n ↦ sgm v b as n⟩, 
+    existsi v ⟨n ↦ sgm v b as n⟩,
     cases h1 with h1 h3,
-    rw list.forall_mem_cons at h1, 
+    rw list.forall_mem_cons at h1,
     cases h1 with h4 h5,
-    constructor, 
+    constructor,
     { rw list.forall_mem_cons,
       constructor,
       { apply coeffs_reduce_correct h2 h4 },
@@ -414,22 +414,22 @@ lemma sat_eq_elim :
    end
 | (ee.cancel m::es) ((eq::eqs), les) h1 :=
   begin
-    unfold eq_elim, 
+    unfold eq_elim,
     apply sat_eq_elim,
-    cases h1 with v h1, 
-    existsi v, 
+    cases h1 with v h1,
+    existsi v,
     cases h1 with h1 h2,
     rw list.forall_mem_cons at h1, cases h1 with h1 h3,
     constructor; intros t h4; rw list.mem_map at h4;
     rcases h4 with ⟨s,h4,h5⟩; rw ← h5;
     simp only [term.val_add, term.val_mul, cancel];
     rw [← h1, mul_zero, zero_add],
-    { apply h3 _ h4 }, 
+    { apply h3 _ h4 },
     { apply h2 _ h4 }
   end
 
 lemma unsat_of_unsat_eq_elim (ee : list ee) (c : clause) :
   (eq_elim ee c).unsat → c.unsat :=
-by {intros h1 h2, apply h1, apply sat_eq_elim h2} 
+by {intros h1 h2, apply h1, apply sat_eq_elim h2}
 
 end omega

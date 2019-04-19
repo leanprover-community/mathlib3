@@ -18,7 +18,7 @@ inductive preterm : Type
 | add : preterm → preterm → preterm
 
 local notation `&` k    := preterm.cst k
-local infix `**`  : 300 := preterm.var
+local infix ` ** ` : 300 := preterm.var
 local notation t `+*` s := preterm.add t s
 
 namespace preterm
@@ -47,7 +47,7 @@ def repr : preterm → string
 
 end preterm
 
-local notation as `{` m `↦` a `}` := list.func.set a as m
+local notation as ` {` m ` ↦ ` a `}` := list.func.set a as m
 
 @[simp] def canonize : preterm → term
 | (& i)      := ⟨i, []⟩
@@ -56,19 +56,19 @@ local notation as `{` m `↦` a `}` := list.func.set a as m
 
 @[simp] lemma val_canonize {v : nat → int} :
   ∀ {t : preterm}, (canonize t).val v = t.val v
-| (& i) := 
+| (& i) :=
   by simp only [preterm.val, add_zero, term.val, canonize, coeffs.val_nil]
 | (i ** n)   :=
   begin
-    simp only [coeffs.val_set, canonize, 
+    simp only [coeffs.val_set, canonize,
       preterm.val, zero_add, term.val],
     split_ifs with h1 h2,
     { simp only [one_mul, h1] },
     { simp only [neg_mul_eq_neg_mul_symm, one_mul, h2] },
     { rw mul_comm }
   end
-| (t +* s) := 
-  by simp only [canonize, val_canonize, 
+| (t +* s) :=
+  by simp only [canonize, val_canonize,
      term.val_add, preterm.val]
 
 end int

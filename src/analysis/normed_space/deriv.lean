@@ -287,21 +287,14 @@ variables {F : Type*} [normed_space k F]
 open topological_space
 
 set_option class.instance_max_depth 55
-/-
+
 /-- The differential of a map at a point along a filter is unique, given that filter is coarser than the
  neighbourhood filter of the point.-/
-
-lemma fderiv_at_filter_unique (f : E → F) (x₀ : E) {L : filter E} (h : nhds x₀ ≤ L) {A₁ A₂ : E → F} :
-  has_fderiv_at_filter k f A₁ x₀ L → has_fderiv_at_filter k f A₂ x₀ L → A₁ = A₂ :=
--/
-
 lemma fderiv_at_filter_unique
 (f : E → F) (x₀ : E) {L : filter E} (h : nhds x₀ ≤ L) {A₁ A₂ : E →L[k] F} :
   has_fderiv_at_filter f A₁ x₀ L → has_fderiv_at_filter f A₂ x₀ L → A₁ = A₂ :=
-sorry
-/-
-assume ⟨⟨A₁_linear, A₁_bounded₁⟩, (eq₁ : is_o (λ x, f x - f x₀ - A₁ (x - x₀)) (λ x, x - x₀) L)⟩
-  ⟨⟨A₂_linear₂, A₂_bounded⟩, (eq₂ : is_o (λ x, f x - f x₀ - A₂ (x - x₀)) (λ x, x - x₀) L)⟩,
+assume (eq₁ : is_o (λ x, f x - f x₀ - A₁ (x - x₀)) (λ x, x - x₀) L)
+  (eq₂ : is_o (λ x, f x - f x₀ - A₂ (x - x₀)) (λ x, x - x₀) L),
 -- To prove that A₁ = A₂, substract eq₁ and eq₂. After some calculation this implies
 -- that for ∀ v ∈ E, lim_{n→∞} A₂ v - A₁ v = 0. We first show that this implies the claim
 -- using the uniqueness of limits in normed spaces.
@@ -316,7 +309,7 @@ assume v,
 have is_o (λ x, A₂ (x - x₀) - A₁ (x - x₀)) (λ x, x - x₀) L, by simpa using eq₁.sub eq₂,
 -- pick ξ ≠ 0, ∥ξ∥ < 1 and plugin in the sequence ξ^n + x₀, replace filter by at_top
 let ⟨ξ, _, _⟩ := exists_norm_lt_one k in
-have is_o (λ n, A₂ (ξ^n • v) - A₁ (ξ^n • v)) (λ n, ξ^n • v) (comap ((λ n, x₀ + ξ^n • v)) (nhds x₀)),
+have is_o (λ n, A₂ (ξ^n • v) - A₁ (ξ^n • v)) (λ n, ξ^n • v) (comap ((λ n:ℕ, x₀ + ξ^n • v)) (nhds x₀)),
   by simpa [function.comp] using ((this.comp (λ (n : ℕ), ξ^n • v + x₀)).mono (comap_mono h)),
 -- refine the filter to at_top
 have at_top_is_finer : at_top ≤ comap (λ (n : ℕ), (ξ^n) • v + x₀) (nhds x₀),
@@ -324,7 +317,7 @@ begin
   rw ←tendsto_iff_comap,
   have : continuous (λ c : k, c • v + x₀) := continuous_add
     (continuous_smul continuous_id continuous_const) continuous_const,
-  simpa only [zero_add, zero_smul, function.comp] using
+  simpa using
     ‹continuous (λ c : k, c • v + x₀)›.to_sequentially_continuous (λ n, ξ^n)
       (tendsto_pow_at_top_nhds_0_of_lt_1_normed_field ‹∥ξ∥ < 1›)
 end,
@@ -332,13 +325,14 @@ end,
 have is_o (λ n : ℕ, A₂ (ξ^n • v) - A₁ (ξ^n • v)) (λ n, ξ^n • v) at_top,
   from is_o.mono at_top_is_finer (by simpa using this),
 -- the ξ^n factor cancels
-have is_o (λ (x : ℕ), A₂ v - A₁ v) (λ (x : ℕ), v) at_top,
-  by simpa [‹is_linear_map k A₁›.smul, ‹is_linear_map k A₂›.smul,
-            smul_add, smul_smul, inv_mul_cancel ((λ n, pow_ne_zero n ((norm_pos_iff ξ).mp ‹0 < ∥ξ∥›)) _), one_smul] using
-     @is_o_smul _ _ _ _ _ _ _ (λ n : ℕ, (ξ^n)⁻¹) _ _ _ this,
+have is_o (λ (x : ℕ), A₂ v - A₁ v) (λ (x : ℕ), v) at_top, 
+begin
+  convert @is_o_smul _ _ _ _ _ _ _ (λ n : ℕ, (ξ^n)⁻¹) _ _ _ this using 1;
+  simp [smul_smul, smul_add, inv_mul_cancel ((λ n, pow_ne_zero n ((norm_pos_iff ξ).mp ‹0 < ∥ξ∥›)) _)]
+end,
 show tendsto (λ (n : ℕ), A₂ v - A₁ v) at_top (nhds 0),
   from is_o_one_iff.mp (this.trans_is_O (is_O_const_one v _) : is_o _ (λ n, (1:k)) _)
--/
+
 theorem fderiv_at_unique (f : E → F) (x₀ : E) {A₁ A₂ : E →L[k] F} :
   has_fderiv_at f A₁ x₀ → has_fderiv_at f A₂ x₀ → A₁ = A₂ :=
 assume H₁ H₂, fderiv_at_filter_unique k f x₀ (le_refl (nhds x₀)) H₁ H₂

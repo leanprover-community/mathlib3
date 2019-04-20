@@ -8,7 +8,7 @@ Normalized linear integer arithmetic terms.
 
 import tactic.omega.coeffs
 
-namespace omega 
+namespace omega
 
 def term : Type := int × list int
 
@@ -35,15 +35,15 @@ namespace term
 lemma val_neg {v : nat → int} {t : term} :
 (neg t).val v = -(t.val v) :=
 begin
-  cases t with b as, 
-  simp only [val, neg_add, neg, val, coeffs.val_neg] 
+  cases t with b as,
+  simp only [val, neg_add, neg, val, coeffs.val_neg]
 end
 
 @[simp] lemma val_sub {v : nat → int} {t1 t2 : term} :
 (sub t1 t2).val v = t1.val v - t2.val v :=
 begin
   cases t1, cases t2,
-  simp only [add_assoc, coeffs.val_sub, neg_add_rev, 
+  simp only [add_assoc, coeffs.val_sub, neg_add_rev,
     val, sub, add_comm, add_left_comm, sub_eq_add_neg]
 end
 
@@ -51,7 +51,7 @@ end
 (add t1 t2).val v = t1.val v + t2.val v :=
 begin
   cases t1, cases t2,
-  simp only [coeffs.val_add, add, 
+  simp only [coeffs.val_add, add,
     val, add_comm, add_left_comm]
 end
 
@@ -74,6 +74,12 @@ begin
 end
 
 def fresh_index (t : term) : nat := t.snd.length
+
+def to_string (t : term) : string :=
+t.2.enum.foldr (λ ⟨i, n⟩ r,
+  to_string n ++ " * x" ++ to_string i ++ " + " ++ r) (to_string t.1)
+
+instance : has_to_string term := ⟨to_string⟩
 
 end term
 

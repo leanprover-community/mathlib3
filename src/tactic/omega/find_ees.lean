@@ -3,7 +3,7 @@ Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
 
-A tactic for finding a sequence of equality 
+A tactic for finding a sequence of equality
 elimination rules for a given set of constraints.
 -/
 
@@ -15,7 +15,7 @@ open tactic
 
 namespace omega
 
-meta structure ee_state :=
+structure ee_state :=
 (eqs : list term)
 (les : list term)
 (ees : list ee)
@@ -95,9 +95,7 @@ t ← head_eq,
 i ← get_gcd t,
     factor i t !>>= (set_eqs [] >> add_ee (ee.nondiv i)) ;
 λ s, find_min_coeff s !>>= add_ee ee.drop ;
-λ x, let i : int := x.fst in
-     let n : nat := x.snd.fst in
-     let u : term := x.snd.snd in
+λ ⟨i, n, u⟩,
 if i = 1
 then do eqs ← get_eqs,
         les ← get_les,

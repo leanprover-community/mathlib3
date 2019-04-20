@@ -740,5 +740,14 @@ do let vt := match tp with | some t := t | none := pexpr.mk_placeholder end,
    | none := skip
    end
 
+/--
+`clear_except h₀ h₁` deletes all the assumptions it can except for `h₀` and `h₁`.
+-/
+meta def clear_except (xs : parse ident *) : tactic unit :=
+do let ns := name_set.of_list xs,
+   local_context >>= mmap' (λ h : expr,
+     when (¬ ns.contains h.local_pp_name) $
+       try $ tactic.clear h) ∘ list.reverse
+
 end interactive
 end tactic

@@ -34,7 +34,7 @@ structure finsupp (α : Type*) (β : Type*) [has_zero β] :=
 (to_fun             : α → β)
 (mem_support_to_fun : ∀a, a ∈ support ↔ to_fun a ≠ 0)
 
-infix →₀ := finsupp
+infixr →₀ := finsupp
 
 namespace finsupp
 
@@ -1092,7 +1092,7 @@ private lemma right_distrib (a b c : α →₀ β) : (a + b) * c = a * c + b * c
 by simp only [mul_def, sum_add_index, add_mul, _root_.mul_zero, _root_.zero_mul, single_zero, single_add,
   eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero, sum_add]
 
-def to_semiring : semiring (α →₀ β) :=
+instance : semiring (α →₀ β) :=
 { one       := 1,
   mul       := (*),
   one_mul   := assume f, by simp only [mul_def, one_def, sum_single_index, _root_.zero_mul, single_zero, sum_zero,
@@ -1110,26 +1110,22 @@ def to_semiring : semiring (α →₀ β) :=
 
 end
 
-local attribute [instance] to_semiring
-
-def to_comm_semiring [add_comm_monoid α] [comm_semiring β] : comm_semiring (α →₀ β) :=
+instance [add_comm_monoid α] [comm_semiring β] : comm_semiring (α →₀ β) :=
 { mul_comm := assume f g,
   begin
     simp only [mul_def, finsupp.sum, mul_comm],
     rw [finset.sum_comm],
     simp only [add_comm]
   end,
-  .. finsupp.to_semiring }
+  .. finsupp.semiring }
 
-local attribute [instance] to_comm_semiring
-
-def to_ring [add_monoid α] [ring β] : ring (α →₀ β) :=
+instance [add_monoid α] [ring β] : ring (α →₀ β) :=
 { neg := has_neg.neg,
   add_left_neg := add_left_neg,
-  .. finsupp.to_semiring }
+  .. finsupp.semiring }
 
-def to_comm_ring [add_comm_monoid α] [comm_ring β] : comm_ring (α →₀ β) :=
-{ mul_comm := mul_comm, .. finsupp.to_ring}
+instance [add_comm_monoid α] [comm_ring β] : comm_ring (α →₀ β) :=
+{ mul_comm := mul_comm, .. finsupp.ring}
 
 lemma single_mul_single [has_add α] [semiring β] {a₁ a₂ : α} {b₁ b₂ : β}:
   single a₁ b₁ * single a₂ b₂ = single (a₁ + a₂) (b₁ * b₂) :=
@@ -1143,15 +1139,15 @@ finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
   single_mul_single, sum_insert has, prod_insert has]
 
 section
-variables (α β)
 
-def to_has_scalar' [R:semiring γ] [add_comm_monoid β] [semimodule γ β] : has_scalar γ (α →₀ β) := ⟨λa v, v.map_range ((•) a) (smul_zero _)⟩
-local attribute [instance] to_has_scalar'
+instance [semiring γ] [add_comm_monoid β] [semimodule γ β] : has_scalar γ (α →₀ β) := ⟨λa v, v.map_range ((•) a) (smul_zero _)⟩
+
+variables (α β)
 
 @[simp] lemma smul_apply' {R:semiring γ} [add_comm_monoid β] [semimodule γ β] {a : α} {b : γ} {v : α →₀ β} :
   (b • v) a = b • (v a) := rfl
 
-def to_semimodule {R:semiring γ} [add_comm_monoid β] [semimodule γ β] : semimodule γ (α →₀ β) :=
+instance [semiring γ] [add_comm_monoid β] [semimodule γ β] : semimodule γ (α →₀ β) :=
 { smul      := (•),
   smul_add  := λ a x y, finsupp.ext $ λ _, smul_add _ _ _,
   add_smul  := λ a x y, finsupp.ext $ λ _, add_smul _ _ _,
@@ -1160,11 +1156,11 @@ def to_semimodule {R:semiring γ} [add_comm_monoid β] [semimodule γ β] : semi
   zero_smul := λ x, finsupp.ext $ λ _, zero_smul _ _,
   smul_zero := λ x, finsupp.ext $ λ _, smul_zero _ }
 
-def to_module {R:ring γ} [add_comm_group β] [module γ β] : module γ (α →₀ β) :=
-{ ..to_semimodule α β }
+instance [ring γ] [add_comm_group β] [module γ β] : module γ (α →₀ β) :=
+{ ..finsupp.semimodule α β }
 
-def to_vector_space {R:discrete_field γ} [add_comm_group β] [vector_space γ β] : vector_space γ (α →₀ β) :=
-{ ..to_module α β }
+instance [discrete_field γ] [add_comm_group β] [vector_space γ β] : vector_space γ (α →₀ β) :=
+{ ..finsupp.module α β }
 
 variables {α β}
 lemma support_smul {R:semiring γ} [add_comm_monoid β] [semimodule γ β] {b : γ} {g : α →₀ β} :
@@ -1195,9 +1191,6 @@ end
 ext $ λ a', by by_cases a = a'; [{subst h, simp}, simp [h]]
 
 end
-
-def to_has_scalar [ring β] : has_scalar β (α →₀ β) := to_has_scalar' α β
-local attribute [instance] to_has_scalar
 
 @[simp] lemma smul_apply [ring β] {a : α} {b : β} {v : α →₀ β} :
   (b • v) a = b • (v a) := rfl

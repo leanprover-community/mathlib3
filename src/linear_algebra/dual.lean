@@ -58,8 +58,6 @@ by erw [constr_basis h ‹v ∈ B›, constr_basis h ‹w ∈ B›]
 
 def to_dual_flip (v : V) : (V →ₗ[K] K) := (linear_map.flip h.to_dual).to_fun v
 
-local attribute [instance] finsupp.to_module
-
 omit h
 def eval_finsupp_at (v : V) : (V →₀ K) →ₗ[K] K :=
 { to_fun := λ f, f v,
@@ -132,7 +130,7 @@ end
 
 def dual_basis : set (dual K V) := h.to_dual '' B
 
-theorem dual_lin_independent : linear_independent K _ id h.dual_basis :=
+theorem dual_lin_independent : linear_independent K id h.dual_basis :=
 begin
   apply linear_independent.image h.1,
   rw to_dual_ker,

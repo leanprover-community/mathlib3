@@ -82,9 +82,6 @@ fg_def.2 ⟨prod.inl '' tb ∪ prod.inr '' tc,
   finite_union (finite_image _ htb.1) (finite_image _ htc.1),
   by rw [linear_map.span_inl_union_inr, htb.2, htc.2]⟩
 
-local attribute [instance] finsupp.add_comm_group
-local attribute [instance] finsupp.to_module
-
 variable (f)
 /-- If 0 → M' → M → M'' → 0 is exact and M' and M'' are
 finitely generated then so is M. -/
@@ -121,17 +118,17 @@ begin
     x - finsupp.total β β α id ((finsupp.lmap_domain α α g : γ →₀ α → β →₀ α) l), _, add_sub_cancel'_right _ _⟩,
   { rw [← set.image_id (g '' ↑t1), finsupp.mem_span_iff_total], refine ⟨_, _, rfl⟩,
     haveI : inhabited γ := ⟨0⟩,
-    rw [← finsupp.map_supported _ _ g, mem_map],
+    rw [← finsupp.lmap_domain_supported _ _ g, mem_map],
     refine ⟨l, hl1, _⟩,
     refl, },
   rw [ht2, mem_inf], split,
   { apply s.sub_mem hx,
-    rw [finsupp.total_apply, finsupp.map_apply, finsupp.sum_map_domain_index],
+    rw [finsupp.total_apply, finsupp.lmap_domain_apply, finsupp.sum_map_domain_index],
     refine s.sum_mem _,
     { intros y hy, exact s.smul_mem _ (hg y (hl1 hy)).1 },
     { exact zero_smul _ }, { exact λ _ _ _, add_smul _ _ _ } },
   { rw [linear_map.mem_ker, f.map_sub, ← hl2],
-    rw [finsupp.total_apply, finsupp.total_apply, finsupp.map_apply],
+    rw [finsupp.total_apply, finsupp.total_apply, finsupp.lmap_domain_apply],
     rw [finsupp.sum_map_domain_index, finsupp.sum, finsupp.sum, f.map_sum],
     rw sub_eq_zero,
     refine finset.sum_congr rfl (λ y hy, _),

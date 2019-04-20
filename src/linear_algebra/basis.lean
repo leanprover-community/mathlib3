@@ -9,7 +9,7 @@ This file is inspired by Isabelle/HOL's linear algebra, and hence indirectly by 
 
 We define the following concepts:
 
-* `linear_independent α β v s`: states that the elements indexed by `s` are linear independent
+* `linear_independent α v s`: states that the elements indexed by `s` are linear independent
 
 * `linear_independent.repr s b`: choose the linear combination representing `b` on the linear
   independent vectors `s`. `b` should be in `span α b` (uses classical choice)
@@ -39,36 +39,34 @@ include α
 section indexed
 variables {s t : set ι}
 
-local attribute [instance] finsupp.to_module
-
-variables (α) (β) (v)
+variables (α) (v)
 /-- Linearly independent set of vectors -/
 def linear_independent (s : set ι) : Prop :=
 disjoint (finsupp.supported α α s) (finsupp.total ι β α v).ker
-variables {α} {β} {v}
+variables {α} {v}
 
-theorem linear_independent_iff : linear_independent α β v s ↔
+theorem linear_independent_iff : linear_independent α v s ↔
   ∀l ∈ finsupp.supported α α s, finsupp.total ι β α v l = 0 → l = 0 :=
 by simp [linear_independent, linear_map.disjoint_ker]
 
-theorem linear_independent_iff_total_on : linear_independent α β v s ↔ (finsupp.total_on ι β α v s).ker = ⊥ :=
+theorem linear_independent_iff_total_on : linear_independent α v s ↔ (finsupp.total_on ι β α v s).ker = ⊥ :=
 by rw [finsupp.total_on, linear_map.ker, linear_map.comap_cod_restrict, map_bot, comap_bot,
   linear_map.ker_comp, linear_independent, disjoint, ← map_comap_subtype, map_le_iff_le_comap,
   comap_bot, ker_subtype, le_bot_iff]
 
-lemma linear_independent_empty : linear_independent α β v (∅ : set ι) :=
+lemma linear_independent_empty : linear_independent α v (∅ : set ι) :=
 by simp [linear_independent]
 
-lemma linear_independent.mono (h : t ⊆ s) : linear_independent α β v s → linear_independent α β v t :=
+lemma linear_independent.mono (h : t ⊆ s) : linear_independent α v s → linear_independent α v t :=
 disjoint_mono_left (finsupp.supported_mono h)
 
-lemma linear_independent.unique (hs : linear_independent α β v s) {l₁ l₂ : ι  →₀ α} :
+lemma linear_independent.unique (hs : linear_independent α v s) {l₁ l₂ : ι  →₀ α} :
   l₁ ∈ finsupp.supported α α s → l₂ ∈ finsupp.supported α α s →
   finsupp.total ι β α v l₁ = finsupp.total ι β α v l₂ → l₁ = l₂ :=
 linear_map.disjoint_ker'.1 hs _ _
 
 lemma zero_not_mem_of_linear_independent
-  {i : ι} (ne : 0 ≠ (1:α)) (hs : linear_independent α β v s) (hi : v i = 0) :
+  {i : ι} (ne : 0 ≠ (1:α)) (hs : linear_independent α v s) (hi : v i = 0) :
     i ∉ s :=
 λ h, ne $ eq.symm begin
   suffices : (finsupp.single i 1 : ι →₀ α) i = 0, {simpa},
@@ -77,9 +75,9 @@ lemma zero_not_mem_of_linear_independent
 end
 
 lemma linear_independent_union
-  (hs : linear_independent α β v s) (ht : linear_independent α β v t)
+  (hs : linear_independent α v s) (ht : linear_independent α v t)
   (hst : disjoint (span α (v '' s)) (span α (v '' t))) :
-  linear_independent α β v (s ∪ t) :=
+  linear_independent α v (s ∪ t) :=
 begin
   rw [linear_independent, disjoint_def, finsupp.supported_union],
   intros l h₁ h₂, rw mem_sup at h₁,
@@ -96,14 +94,14 @@ begin
 end
 
 lemma linear_independent_of_finite
-  (H : ∀ t ⊆ s, finite t → linear_independent α β v t) :
-  linear_independent α β v s :=
+  (H : ∀ t ⊆ s, finite t → linear_independent α v t) :
+  linear_independent α v s :=
 linear_independent_iff.2 $ λ l hl,
 linear_independent_iff.1 (H _ hl (finset.finite_to_set _)) l (subset.refl _)
 
 lemma linear_independent_Union_of_directed {η : Type*}
   {s : η → set ι} (hs : directed (⊆) s)
-  (h : ∀ i, linear_independent α β v (s i)) : linear_independent α β v (⋃ i, s i) :=
+  (h : ∀ i, linear_independent α v (s i)) : linear_independent α v (⋃ i, s i) :=
 begin
   haveI := classical.dec (nonempty η),
   by_cases hη : nonempty η,
@@ -118,24 +116,24 @@ end
 
 lemma linear_independent_sUnion_of_directed {s : set (set ι)}
   (hs : directed_on (⊆) s)
-  (h : ∀ a ∈ s, linear_independent α β v a) : linear_independent α β v (⋃₀ s) :=
+  (h : ∀ a ∈ s, linear_independent α v a) : linear_independent α v (⋃₀ s) :=
 by rw sUnion_eq_Union; exact
 linear_independent_Union_of_directed
   ((directed_on_iff_directed _).1 hs) (by simpa using h)
 
 lemma linear_independent_bUnion_of_directed {η} {s : set η} {t : η → set ι}
-  (hs : directed_on (t ⁻¹'o (⊆)) s) (h : ∀a∈s, linear_independent α β v (t a)) :
-  linear_independent α β v (⋃a∈s, t a) :=
+  (hs : directed_on (t ⁻¹'o (⊆)) s) (h : ∀a∈s, linear_independent α v (t a)) :
+  linear_independent α v (⋃a∈s, t a) :=
 by rw bUnion_eq_Union; exact
 linear_independent_Union_of_directed
   ((directed_comp _ _ _).2 $ (directed_on_iff_directed _).1 hs)
   (by simpa using h)
 
 lemma linear_independent_Union_finite {η : Type*} {f : η → set ι}
-  (hl : ∀i, linear_independent α β v (f i))
+  (hl : ∀i, linear_independent α v (f i))
   (hd : ∀i, ∀t:set η, finite t → i ∉ t →
   disjoint (span α (v '' (f i))) (⨆i∈t, span α (v '' (f i)))) :
-  linear_independent α β v (⋃i, f i) :=
+  linear_independent α v (⋃i, f i) :=
 begin
   haveI := classical.dec_eq η,
   rw [Union_eq_Union_finset f],
@@ -157,10 +155,10 @@ begin
 end
 
 section repr
-variables (hs : linear_independent α β v s)
+variables (hs : linear_independent α v s)
 
 lemma linear_independent.injective (zero_ne_one : (0 : α) ≠ 1)
-  (hs : linear_independent α β v s) (i j : ι) (hi : i ∈ s) (hi : j ∈ s)
+  (hs : linear_independent α v s) (i j : ι) (hi : i ∈ s) (hi : j ∈ s)
   (hij: v i = v j) : i = j :=
 begin
   let l : ι →₀ α := finsupp.single i (1 : α) - finsupp.single j 1,
@@ -242,7 +240,7 @@ eq.symm $ hs.repr_eq (finsupp.supported_mono h ((hs.mono h).repr_supported _) : 
   (by rw [← e, (hs.mono h).total_repr]).
 
 lemma linear_independent_iff_not_smul_mem_span :
-  linear_independent α β v s ↔ (∀ (i ∈ s) (a : α), a • (v i) ∈ span α (v '' (s \ {i})) → a = 0) :=
+  linear_independent α v s ↔ (∀ (i ∈ s) (a : α), a • (v i) ∈ span α (v '' (s \ {i})) → a = 0) :=
 ⟨λ hs i hi a ha, begin
   rw [finsupp.span_eq_map_total, mem_map] at ha,
   rcases ha with ⟨l, hl, e⟩,
@@ -268,7 +266,7 @@ end⟩
 end repr
 
 lemma eq_of_linear_independent_of_span (nz : (1 : α) ≠ 0)
-  (hs : linear_independent α β v s) (h : t ⊆ s) (hst : v '' s ⊆ span α (v '' t)) : s = t :=
+  (hs : linear_independent α v s) (h : t ⊆ s) (hst : v '' s ⊆ span α (v '' t)) : s = t :=
 begin
   refine subset.antisymm (λ i hi, _) h,
   have : (hs.mono h).repr ⟨v i, hst (set.mem_image_of_mem _ hi)⟩ = finsupp.single i 1 :=
@@ -284,24 +282,22 @@ end indexed
 section
 variables {s t : set β} {f : β →ₗ[α] γ}
 variables (hf_inj : ∀ x y ∈ t, f x = f y → x = y)
-variables (ht : linear_independent α γ id (f '' t))
+variables (ht : linear_independent α id (f '' t))
 include hf_inj ht
 open linear_map
-
-local attribute [instance] finsupp.to_module
 
 lemma linear_independent.supported_disjoint_ker :
   disjoint (finsupp.supported α α t) (ker (f.comp (finsupp.total _ _ _ id))) :=
 begin
-  refine le_trans (le_inf inf_le_left _) (finsupp.map_disjoint_ker _ _ f hf_inj),
+  refine le_trans (le_inf inf_le_left _) (finsupp.lmap_domain_disjoint_ker _ _ f hf_inj),
   haveI : inhabited β := ⟨0⟩,
-  rw [linear_independent, disjoint_iff, ← finsupp.map_supported α α f t] at ht,
-  rw [← @finsupp.map_total _ _ α _ _ _ _ _ _ _ _ _ _ _ _ id id f f (by simp), le_ker_iff_map],
+  rw [linear_independent, disjoint_iff, ← finsupp.lmap_domain_supported α α f t] at ht,
+  rw [← @finsupp.lmap_domain_total _ _ α _ _ _ _ _ _ _ _ _ _ _ _ id id f f (by simp), le_ker_iff_map],
   refine eq_bot_mono (le_inf (map_mono inf_le_left) _) ht,
   rw [map_le_iff_le_comap, ← ker_comp], exact inf_le_right,
 end
 
-lemma linear_independent.of_image : linear_independent α β id t :=
+lemma linear_independent.of_image : linear_independent α (id : β → β) t :=
 disjoint_mono_right (ker_le_ker_comp _ _) (ht.supported_disjoint_ker hf_inj)
 
 lemma linear_independent.disjoint_ker : disjoint (span α t) f.ker :=
@@ -312,41 +308,40 @@ end
 
 lemma linear_independent.inj_span_iff_inj
   {t : set β} {f : β →ₗ[α] γ}
-  (ht : linear_independent α γ id (f '' t)) :
+  (ht : linear_independent α id (f '' t)) :
   disjoint (span α t) f.ker ↔ (∀ x y ∈ t, f x = f y → x = y) :=
 ⟨linear_map.inj_of_disjoint_ker subset_span, λ h, ht.disjoint_ker h⟩
 
 open linear_map
-local attribute [instance] finsupp.to_module
 
-lemma linear_independent.image {s : set β} {f : β →ₗ γ} (hs : linear_independent α β id s)
-  (hf_inj : disjoint (span α s) f.ker) : linear_independent α γ id (f '' s) :=
+lemma linear_independent.image {s : set β} {f : β →ₗ γ} (hs : linear_independent α id s)
+  (hf_inj : disjoint (span α s) f.ker) : linear_independent α id (f '' s) :=
 begin
   rw [disjoint, ← set.image_id s, finsupp.span_eq_map_total, map_inf_eq_map_inf_comap,
     map_le_iff_le_comap, comap_bot] at hf_inj,
   haveI : inhabited β := ⟨0⟩,
-  rw [linear_independent, disjoint, ← finsupp.map_supported _ _ f, map_inf_eq_map_inf_comap,
-      map_le_iff_le_comap, ← ker_comp, @finsupp.map_total _ _ α _ _ _ _ _ _ _ _ _ _ _ _ id id, ker_comp],
+  rw [linear_independent, disjoint, ← finsupp.lmap_domain_supported _ _ f, map_inf_eq_map_inf_comap,
+      map_le_iff_le_comap, ← ker_comp, @finsupp.lmap_domain_total _ _ α _ _ _ _ _ _ _ _ _ _ _ _ id id, ker_comp],
   { exact le_trans (le_inf inf_le_left hf_inj) (le_trans hs bot_le) },
   { simp }
 end
 
 lemma linear_map.linear_independent_image_iff {s : set β} {f : β →ₗ γ}
   (hf_inj : disjoint (span α s) f.ker) :
-  linear_independent α γ id (f '' s) ↔ linear_independent α β id s :=
+  linear_independent α id (f '' s) ↔ linear_independent α id s :=
 ⟨λ hs, hs.of_image (linear_map.inj_of_disjoint_ker subset_span hf_inj),
  λ hs, hs.image hf_inj⟩
 
 lemma linear_independent_inl_union_inr {s : set β} {t : set γ}
-  (hs : linear_independent α β id s) (ht : linear_independent α γ id t) :
-  linear_independent α (β × γ) id (inl α β γ '' s ∪ inr α β γ '' t) :=
+  (hs : linear_independent α id s) (ht : linear_independent α id t) :
+  linear_independent α id (inl α β γ '' s ∪ inr α β γ '' t) :=
 linear_independent_union (hs.image $ by simp) (ht.image $ by simp) $
 by rw [set.image_id, span_image, set.image_id, span_image];
     simp [disjoint_iff, prod_inf_prod]
 
 variables (α)
 /-- A set of vectors is a basis if it is linearly independent and all vectors are in the span α -/
-def is_basis (s : set β) := linear_independent α β id s ∧ span α s = ⊤
+def is_basis (s : set β) := linear_independent α id s ∧ span α s = ⊤
 variables {α}
 
 section is_basis
@@ -437,7 +432,7 @@ lemma constr_range (hs : is_basis α s) {f : β → γ} :
   (hs.constr f).range = span α (f '' s) :=
 by haveI : inhabited β := ⟨0⟩;
   rw [is_basis.constr, linear_map.range_comp, linear_map.range_comp, is_basis.repr_range,
-    finsupp.map_supported, ←set.image_id (f '' s), finsupp.span_eq_map_total, set.image_id (f '' s)]
+    finsupp.lmap_domain_supported, ←set.image_id (f '' s), finsupp.span_eq_map_total, set.image_id (f '' s)]
 
 def module_equiv_finsupp (hs : is_basis α s) : β ≃ₗ finsupp.supported α α s :=
 (hs.1.total_equiv.trans (linear_equiv.of_top _ (by rw set.image_id; exact hs.2))).symm
@@ -474,11 +469,11 @@ show is_basis α ((f : β →ₗ[α] γ) '' s), from
 ⟨hs.1.image $ by simp, by rw [span_image, hs.2, map_top, f.range]⟩
 
 lemma is_basis_injective {s : set γ} {f : β →ₗ[α] γ}
-  (hs : linear_independent α γ id s) (h : function.injective f) (hfs : span α s = f.range) :
+  (hs : linear_independent α id s) (h : function.injective f) (hfs : span α s = f.range) :
   is_basis α (f ⁻¹' s) :=
 have s_eq : f '' (f ⁻¹' s) = s :=
   image_preimage_eq_of_subset $ by rw [← linear_map.range_coe, ← hfs]; exact subset_span,
-have linear_independent α γ id (f '' (f ⁻¹' s)), from hs.mono (image_preimage_subset _ _),
+have linear_independent α id (f '' (f ⁻¹' s)), from hs.mono (image_preimage_subset _ _),
 begin
   split,
   exact (this.of_image $ assume a ha b hb eq, h eq),
@@ -487,7 +482,7 @@ begin
   exact le_refl _
 end
 
-lemma is_basis_span {s : set β} (hs : linear_independent α β id s) : is_basis α ((span α s).subtype ⁻¹' s) :=
+lemma is_basis_span {s : set β} (hs : linear_independent α id s) : is_basis α ((span α s).subtype ⁻¹' s) :=
 is_basis_injective hs subtype.val_injective (range_subtype _).symm
 
 lemma is_basis_empty (h : ∀x:β, x = 0) : is_basis α (∅ : set β) :=
@@ -521,13 +516,13 @@ end
 
 set_option class.instance_max_depth 32
 
-lemma linear_independent_iff_not_mem_span : linear_independent α β id s ↔ (∀x∈s, x ∉ span α (s \ {x})) :=
+lemma linear_independent_iff_not_mem_span : linear_independent α id s ↔ (∀x∈s, x ∉ span α (s \ {x})) :=
 linear_independent_iff_not_smul_mem_span.trans
 ⟨λ H x xs hx, one_ne_zero (H x xs 1 $ by rw set.image_id; simpa),
  λ H x xs a hx, classical.by_contradiction $ λ a0,
    H x xs (by rw [← set.image_id (s \ {x})]; exact (smul_mem_iff _ a0).1 hx)⟩
 
-lemma linear_independent_singleton {x : β} (hx : x ≠ 0) : linear_independent α β id ({x} : set β) :=
+lemma linear_independent_singleton {x : β} (hx : x ≠ 0) : linear_independent α id ({x} : set β) :=
 linear_independent_iff_not_mem_span.mpr $ by simp [hx] {contextual := tt}
 
 lemma disjoint_span_singleton {p : submodule α β} {x : β} (x0 : x ≠ 0) :
@@ -540,8 +535,8 @@ begin
   exact xp.elim ((smul_mem_iff p a0).1 yp),
 end⟩
 
-lemma linear_independent.insert (hs : linear_independent α β id s) (hx : x ∉ span α s) :
-  linear_independent α β id (insert x s) :=
+lemma linear_independent.insert (hs : linear_independent α id s) (hx : x ∉ span α s) :
+  linear_independent α id (insert x s) :=
 begin
   rw ← union_singleton,
   have x0 : x ≠ 0 := mt (by rintro rfl; apply zero_mem _) hx,
@@ -550,10 +545,10 @@ begin
   exact classical.dec_eq α
 end
 
-lemma exists_linear_independent (hs : linear_independent α β id s) (hst : s ⊆ t) :
-  ∃b⊆t, s ⊆ b ∧ t ⊆ span α b ∧ linear_independent α β id b :=
+lemma exists_linear_independent (hs : linear_independent α id s) (hst : s ⊆ t) :
+  ∃b⊆t, s ⊆ b ∧ t ⊆ span α b ∧ linear_independent α id b :=
 begin
-  rcases zorn.zorn_subset₀ {b | b ⊆ t ∧ linear_independent α β id b} _ _
+  rcases zorn.zorn_subset₀ {b | b ⊆ t ∧ linear_independent α id b} _ _
     ⟨hst, hs⟩ with ⟨b, ⟨bt, bi⟩, sb, h⟩,
   { refine ⟨b, bt, sb, λ x xt, _, bi⟩,
     haveI := classical.dec (x ∈ span α b),
@@ -567,7 +562,7 @@ begin
     { exact subset_sUnion_of_mem } }
 end
 
-lemma exists_subset_is_basis (hs : linear_independent α β id s) : ∃b, s ⊆ b ∧ is_basis α b :=
+lemma exists_subset_is_basis (hs : linear_independent α id s) : ∃b, s ⊆ b ∧ is_basis α b :=
 let ⟨b, hb₀, hx, hb₂, hb₃⟩ := exists_linear_independent hs (@subset_univ _ _) in
 ⟨b, hx, hb₃, eq_top_iff.2 hb₂⟩
 
@@ -578,7 +573,7 @@ variables {α β}
 
 -- TODO(Mario): rewrite?
 lemma exists_of_linear_independent_of_finite_span {t : finset β}
-  (hs : linear_independent α β id s) (hst : s ⊆ (span α ↑t : submodule α β)) :
+  (hs : linear_independent α id s) (hst : s ⊆ (span α ↑t : submodule α β)) :
   ∃t':finset β, ↑t' ⊆ s ∪ ↑t ∧ s ⊆ ↑t' ∧ t'.card = t.card :=
 have ∀t, ∀(s' : finset β), ↑s' ⊆ s → s ∩ ↑t = ∅ → s ⊆ (span α ↑(s' ∪ t) : submodule α β) →
   ∃t':finset β, ↑t' ⊆ s ∪ ↑t ∧ s ⊆ ↑t' ∧ t'.card = (s' ∪ t).card :=
@@ -634,7 +629,7 @@ begin
 end
 
 lemma exists_finite_card_le_of_finite_of_linear_independent_of_span
-  (ht : finite t) (hs : linear_independent α β id s) (hst : s ⊆ span α t) :
+  (ht : finite t) (hs : linear_independent α id s) (hst : s ⊆ span α t) :
   ∃h : finite s, h.to_finset.card ≤ ht.to_finset.card :=
 have s ⊆ (span α ↑(ht.to_finset) : submodule α β), by simp; assumption,
 let ⟨u, hust, hsu, eq⟩ := exists_of_linear_independent_of_finite_span hs this in
@@ -645,7 +640,7 @@ lemma exists_left_inverse_linear_map_of_injective {f : β →ₗ[α] γ}
   (hf_inj : f.ker = ⊥) : ∃g:γ →ₗ β, g.comp f = linear_map.id :=
 begin
   rcases exists_is_basis α β with ⟨B, hB⟩,
-  have : linear_independent α γ id (f '' B) :=
+  have : linear_independent α id (f '' B) :=
     hB.1.image (by simp [hf_inj]),
   rcases exists_subset_is_basis this with ⟨C, BC, hC⟩,
   haveI : inhabited β := ⟨0⟩,
@@ -688,7 +683,6 @@ end
 open fintype
 variables (b : set β) (h : is_basis α b)
 
-local attribute [instance] finsupp.to_module
 local attribute [instance] submodule.module
 
 noncomputable def equiv_fun_basis [fintype b] : β ≃ (b → α) :=
@@ -721,8 +715,8 @@ variables {φ : ι → Type*}
 variables [ring α] [∀i, add_comm_group (φ i)] [∀i, module α (φ i)] [fintype ι] [decidable_eq ι]
 
 lemma linear_independent_std_basis [∀ i, decidable_eq (φ i)]
-  (s : Πi, set (φ i)) (hs : ∀i, linear_independent α _ id (s i)) :
-  linear_independent α _ id (⋃i, std_basis α φ i '' s i) :=
+  (s : Πi, set (φ i)) (hs : ∀i, linear_independent α id (s i)) :
+  linear_independent α id (⋃i, std_basis α φ i '' s i) :=
 begin
   refine linear_independent_Union_finite _ _,
   { assume i,

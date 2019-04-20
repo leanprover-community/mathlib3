@@ -16,10 +16,8 @@ section module
 variables {α : Type*} {β : Type*} {γ : Type*}
 variables [decidable_eq α] [decidable_eq β] [ring γ] [add_comm_group β] [module γ β]
 
-local attribute [instance] finsupp.to_module
-
 lemma linear_independent_single [decidable_eq γ] {f : α → set β}
-  (hf : ∀a, linear_independent γ β id (f a)) : linear_independent γ _ id (⋃a, single a '' f a) :=
+  (hf : ∀a, linear_independent γ id (f a)) : linear_independent γ id (⋃a, single a '' f a) :=
 begin
   refine linear_independent_Union_finite _ _ ,
   { refine assume a, @linear_independent.image _ _ _ _ _ _ _ _ _ _ _ _ (lsingle a) (hf a) _,
@@ -43,8 +41,6 @@ variables [decidable_eq α] [decidable_eq β] [discrete_field γ] [add_comm_grou
 
 open linear_map submodule
 
-local attribute [instance] finsupp.to_vector_space
-
 lemma is_basis_single {f : α → set β} (hf : ∀a, is_basis γ (f a)) :
   is_basis γ (⋃a, single a '' f a) :=
 ⟨linear_independent_single $ assume a, (hf a).1,
@@ -57,9 +53,7 @@ universes u v
 variables {α : Type u} {β : Type u} {γ : Type v}
 variables [decidable_eq α] [decidable_eq β] [discrete_field γ] [add_comm_group β] [vector_space γ β]
 
-local attribute [instance] finsupp.to_vector_space
-
-lemma dim_eq : @vector_space.dim γ (α →₀ β) _ _ (finsupp.to_vector_space _ _) _ = cardinal.mk α * vector_space.dim γ β :=
+lemma dim_eq : vector_space.dim γ (α →₀ β) = cardinal.mk α * vector_space.dim γ β :=
 begin
   rcases exists_is_basis γ β with ⟨bs, hbs⟩,
   rw [← hbs.mk_eq_dim, ← (is_basis_single (λa:α, hbs)).mk_eq_dim, cardinal.mk_Union_eq_sum_mk],
@@ -84,7 +78,6 @@ variables [add_comm_group γ] [vector_space α γ]
 open vector_space
 
 set_option class.instance_max_depth 70
-local attribute [instance] finsupp.to_vector_space
 
 lemma equiv_of_dim_eq_dim [decidable_eq β] [decidable_eq γ] (h : dim α β = dim α γ) : nonempty (β ≃ₗ[α] γ) :=
 begin
@@ -123,9 +116,7 @@ section vector_space
 universes u
 
 open vector_space
-set_option class.instance_max_depth 40
-local attribute [instance] finsupp.add_comm_group
-local attribute [instance] finsupp.to_module
+set_option class.instance_max_depth 50
 local attribute [instance] submodule.module
 
 lemma cardinal_mk_eq_cardinal_mk_field_pow_dim

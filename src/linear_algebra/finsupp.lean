@@ -15,8 +15,6 @@ namespace finsupp
 variables {α : Type*} {β : Type*} {γ : Type*}
 variables [decidable_eq α] [decidable_eq β] [ring γ] [add_comm_group β] [module γ β]
 
-local attribute [instance] finsupp.to_module
-
 def lsingle (a : α) : β →ₗ[γ] (α →₀ β) :=
 ⟨single a, assume a b, single_add, assume c b, (smul_single _ _ _).symm⟩
 
@@ -128,7 +126,7 @@ end
 
 variables (β γ)
 
-def restrict_dom (s : set α) [decidable_pred (λ x, x ∈ s)]: α →₀ β →ₗ supported β γ s :=
+def restrict_dom (s : set α) [decidable_pred (λ x, x ∈ s)]: (α →₀ β) →ₗ supported β γ s :=
 linear_map.cod_restrict _
   { to_fun := filter (∈ s),
     add := λ l₁ l₂, filter_add,
@@ -231,17 +229,17 @@ variables {α' : Type*} [decidable_eq α'] {α'' : Type*} [decidable_eq α''] (�
 def lmap_domain (f : α → α') : (α →₀ β) →ₗ[γ] (α' →₀ β) :=
 ⟨map_domain f, assume a b, map_domain_add, map_domain_smul⟩
 
-@[simp] theorem map_apply (f : α → α') (l : α →₀ β) :
+@[simp] theorem lmap_domain_apply (f : α → α') (l : α →₀ β) :
   (lmap_domain β γ f : (α →₀ β) →ₗ[γ] (α' →₀ β)) l = map_domain f l := rfl
 
-@[simp] theorem map_id : (lmap_domain β γ id : α →₀ β →ₗ[γ] α →₀ β) = linear_map.id :=
+@[simp] theorem lmap_domain_id : (lmap_domain β γ id : α →₀ β →ₗ[γ] α →₀ β) = linear_map.id :=
 linear_map.ext $ λ l, map_domain_id
 
-theorem map_comp (f : α → α') (g : α' → α'') :
+theorem lmap_domain_comp (f : α → α') (g : α' → α'') :
   lmap_domain β γ (g ∘ f) = (lmap_domain β γ g).comp (lmap_domain β γ f) :=
 linear_map.ext $ λ l, map_domain_comp
 
-theorem supported_comap_map (f : α → α') (s : set α') :
+theorem supported_comap_lmap_domain (f : α → α') (s : set α') :
   supported β γ (f ⁻¹' s) ≤ (supported β γ s).comap (lmap_domain β γ f) :=
 λ l (hl : ↑l.support ⊆ f ⁻¹' s),
 show ↑(map_domain f l).support ⊆ s, begin
@@ -249,27 +247,27 @@ show ↑(map_domain f l).support ⊆ s, begin
   exact set.subset.trans map_domain_support hl
 end
 
-theorem map_supported [inhabited α] (f : α → α') (s : set α) :
+theorem lmap_domain_supported [inhabited α] (f : α → α') (s : set α) :
   (supported β γ s).map (lmap_domain β γ f) = supported β γ (f '' s) :=
 begin
   refine le_antisymm (map_le_iff_le_comap.2 $
     le_trans (supported_mono $ set.subset_preimage_image _ _)
-       (supported_comap_map _ _ _ _)) _,
+       (supported_comap_lmap_domain _ _ _ _)) _,
   intros l hl,
   refine ⟨(lmap_domain β γ (function.inv_fun_on f s) : α' →₀ β →ₗ α →₀ β) l, λ x hx, _, _⟩,
   { rcases finset.mem_image.1 (map_domain_support hx) with ⟨c, hc, rfl⟩,
     exact function.inv_fun_on_mem (by simpa using hl hc) },
-  { rw [← linear_map.comp_apply, ← map_comp],
+  { rw [← linear_map.comp_apply, ← lmap_domain_comp],
     refine (map_domain_congr $ λ c hc, _).trans map_domain_id,
     exact function.inv_fun_on_eq (by simpa using hl hc) }
 end
 
-theorem map_disjoint_ker (f : α → α') {s : set α}
+theorem lmap_domain_disjoint_ker (f : α → α') {s : set α}
   (H : ∀ a b ∈ s, f a = f b → a = b) :
   disjoint (supported β γ s) (lmap_domain β γ f).ker :=
 begin
   rintro l ⟨h₁, h₂⟩,
-  rw [mem_coe, mem_ker, map_apply, map_domain] at h₂,
+  rw [mem_coe, mem_ker, lmap_domain_apply, map_domain] at h₂,
   simp, ext x,
   haveI := classical.dec_pred (λ x, x ∈ s),
   by_cases xs : x ∈ s,
@@ -309,7 +307,7 @@ begin
   exact λ i hi, ⟨single i 1, by simp [hi]⟩
 end
 
-theorem map_total (f : α → α') (g : β →ₗ[γ] β') (h : ∀ i, g (v i) = v' (f i)) :
+theorem lmap_domain_total (f : α → α') (g : β →ₗ[γ] β') (h : ∀ i, g (v i) = v' (f i)) :
   (finsupp.total α' β' γ v').comp (lmap_domain γ γ f) = g.comp (finsupp.total α β γ v) :=
 by ext l; simp [total_apply, finsupp.sum_map_domain_index, add_smul, h]
 

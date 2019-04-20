@@ -18,7 +18,7 @@ universes u v
 variables {σ : Type u} {α : Type v} [decidable_eq σ]
 
 instance [discrete_field α] : vector_space α (mv_polynomial σ α) :=
-finsupp.to_vector_space _ _
+finsupp.vector_space _ _
 
 section
 variables (σ α) [discrete_field α] (m : ℕ)
@@ -204,8 +204,6 @@ instance R.add_comm_group : add_comm_group (R σ α) := by dunfold R; apply_inst
 instance R.vector_space : vector_space α (R σ α) := by dunfold R; apply_instance
 
 set_option class.instance_max_depth 60
-local attribute [instance] finsupp.add_comm_group
-local attribute [instance] finsupp.to_vector_space
 lemma dim_R : vector_space.dim α (R σ α) = fintype.card (σ → α) :=
 calc vector_space.dim α (R σ α) =
   vector_space.dim α (↥{s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card α - 1} →₀ α) :

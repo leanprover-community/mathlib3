@@ -9,11 +9,6 @@ import algebra.field
 import analysis.normed_space.basic
 import analysis.asymptotics
 
-@[simp] lemma mul_inv_eq' {α} [discrete_field α] (a b : α) : (a * b)⁻¹ = b⁻¹ * a⁻¹ :=
-classical.by_cases (assume : a = 0, by simp [this]) $ assume ha,
-classical.by_cases (assume : b = 0, by simp [this]) $ assume hb,
-mul_inv_eq hb ha
-
 noncomputable theory
 local attribute [instance] classical.prop_decidable
 

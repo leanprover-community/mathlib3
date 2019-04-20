@@ -125,7 +125,7 @@ lemma generate_from_mono {α} {g₁ g₂ : set (set α)} (h : g₁ ⊆ g₂) :
 instance {α : Type u} : complete_lattice (topological_space α) :=
 (gi_generate_from α).lift_complete_lattice
 
-class discrete_topology (α : Type*) [t : topological_space α] :=
+class discrete_topology (α : Type*) [t : topological_space α] : Prop :=
 (eq_top : t = ⊤)
 
 @[simp] lemma is_open_discrete [topological_space α] [discrete_topology α] (s : set α) :

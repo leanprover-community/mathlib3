@@ -26,8 +26,7 @@ cardinal.min
 variables {α β}
 open vector_space
 
-local attribute [instance] finsupp.to_module
-set_option class.instance_max_depth 40
+set_option class.instance_max_depth 50
 
 theorem is_basis.le_span [decidable_eq β] {I J : set β} (hI : is_basis α I) (hJ : span α J = ⊤) : cardinal.mk I ≤ cardinal.mk J :=
 begin
@@ -84,7 +83,7 @@ lemma dim_of_field (α : Type*) [discrete_field α] : dim α α = 1 :=
 by rw [← (is_basis_singleton_one α).mk_eq_dim, cardinal.mk_singleton]
 
 set_option class.instance_max_depth 37
-lemma dim_span [decidable_eq β] {s : set β} (hs : linear_independent α β id s) :
+lemma dim_span [decidable_eq β] {s : set β} (hs : linear_independent α id s) :
   dim α ↥(span α s) = cardinal.mk s :=
 have (span α s).subtype '' ((span α s).subtype ⁻¹' s) = s :=
   image_preimage_eq_of_subset $ by rw [← linear_map.range_coe, range_subtype]; exact subset_span,
@@ -172,9 +171,9 @@ set_option class.instance_max_depth 37
 lemma dim_submodule_le [decidable_eq β] (s : submodule α β) : dim α s ≤ dim α β :=
 begin
   rcases exists_is_basis α s with ⟨bs, hbs⟩,
-  have : linear_independent α β id (submodule.subtype s '' bs) :=
+  have : linear_independent α id (submodule.subtype s '' bs) :=
     hbs.1.image (linear_map.disjoint_ker'.2 $ assume x y _ _ eq, subtype.val_injective eq),
-  have : linear_independent α β id ((coe : s → β) '' bs) := this,
+  have : linear_independent α id ((coe : s → β) '' bs) := this,
   rcases exists_subset_is_basis this with ⟨b, hbs_b, hb⟩,
   rw [← is_basis.mk_eq_dim hbs, ← is_basis.mk_eq_dim hb],
   calc cardinal.mk ↥bs = cardinal.mk ((coe : s → β) '' bs) :

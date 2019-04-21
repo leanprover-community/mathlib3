@@ -310,7 +310,7 @@ do v ← mk_mvar,
      else refine ``(eq.mpr %%v %%r),
    gs ← get_goals,
    set_goals [v],
-   congr' n,
+   try (congr' n),
    gs' ← get_goals,
    set_goals $ gs' ++ gs
 

@@ -13,8 +13,9 @@ particular
     on bounded linear maps.
 -/
 import algebra.module
-import analysis.normed_space.bounded_linear_maps ring_theory.algebra
+import ring_theory.algebra
 import topology.metric_space.lipschitz
+import analysis.asymptotics
 
 variables (k : Type*) (E : Type*) (F : Type*) (G : Type*)
 
@@ -35,12 +36,6 @@ lemma exists_pos_bound_of_bound {f : E → F} (M : ℝ) (h : ∀x, ∥f x∥ ≤
   ∥f x∥ ≤ M * ∥x∥ : h x
   ... ≤ max M 1 * ∥x∥ : mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg _) ⟩
 
-/-- Construct a bounded linear map from is_bounded_linear_map -/
-def is_bounded_linear_map.to_bounded_linear_map {f : E → F}
-  (hf : is_bounded_linear_map k f) : bounded_linear_map k E F :=
-{ bound := hf.bound,
-  ..is_bounded_linear_map.to_linear_map f hf }
-
 namespace bounded_linear_map
 
 notation E ` →L[`:25 k `] ` F := bounded_linear_map k E F
@@ -59,16 +54,14 @@ theorem ext_iff {f g : E →L[k] F} : f = g ↔ ∀ x, f x = g x :=
 
 variables (c : k) (f g : E →L[k] F) (h : F →L[k] G) (x u v : E)
 
-/-- A bounded linear map satisfies `is_bounded_linear_map` -/
-lemma is_bounded_linear_map : is_bounded_linear_map k f := {..f}
-
-
 -- make some straightforward lemmas available to `simp`.
 @[simp] lemma map_zero : f (0 : E) = 0 := (to_linear_map _).map_zero
 @[simp] lemma map_add  : f (u + v) = f u + f v := (to_linear_map _).map_add _ _
 @[simp] lemma map_sub  : f (u - v) = f u - f v := (to_linear_map _).map_sub _ _
 @[simp] lemma map_smul : f (c • u) = c • f u := (to_linear_map _).map_smul _ _
 @[simp] lemma map_neg  : f (-u) = - (f u) := (to_linear_map _).map_neg _
+
+@[simp] lemma coe_coe : ((f : E →ₗ[k] F) : (E → F)) = (f : E → F) := rfl
 
 /-- The bounded map that is constantly zero. -/
 def zero : E →L[k] F :=
@@ -77,6 +70,8 @@ def zero : E →L[k] F :=
 instance : has_zero (E →L[k] F) := ⟨zero⟩
 
 @[simp] lemma zero_apply : (0 : E →L[k] F) u = 0 := rfl
+@[simp] lemma coe_zero : ((0 : E →L[k] F) : E →ₗ[k] F) = 0 := rfl
+@[simp] lemma coe_zero' : ((0 : E →L[k] F) : E → F) = 0 := rfl
 
 /-- the identity map as a bounded linear map. -/
 def id : E →L[k] E :=
@@ -85,6 +80,8 @@ def id : E →L[k] E :=
 instance : has_one (E →L[k] E) := ⟨id⟩
 
 @[simp] lemma id_apply : (id : E →L[k] E) u = u := rfl
+@[simp] lemma coe_id : ((id : E →L[k] E) : E →ₗ[k] E) = linear_map.id := rfl
+@[simp] lemma coe_id' : ((id : E →L[k] E) : E → E) = _root_.id := rfl
 
 instance : has_add (E →L[k] F) :=
 ⟨λ f g, ⟨f + g,
@@ -95,6 +92,8 @@ instance : has_add (E →L[k] F) :=
 ...      = (Mf + Mg) * ∥x∥     : (add_mul _ _ _).symm ⟩⟩⟩
 
 @[simp] lemma add_apply : (f + g) u = f u + g u := rfl
+@[simp] lemma coe_add : ((f + g) : E →ₗ[k] F) = (f : E →ₗ[k] F) + g := rfl
+@[simp] lemma coe_add' : ((f + g) : E → F) = (f : E → F) + g := rfl
 
 instance : has_scalar k (E →L[k] F) :=
 ⟨λ c f, ⟨c • f, let ⟨M, Mpos, hM⟩ := f.bound in ⟨∥c∥ * M + 1,
@@ -108,6 +107,8 @@ instance : has_scalar k (E →L[k] F) :=
     mul_le_mul_of_nonneg_right (add_le_add (le_refl _) zero_le_one) (norm_nonneg _) ⟩⟩⟩
 
 @[simp] lemma smul_apply : (c • f) u = c • (f u) := rfl
+@[simp] lemma coe_apply : ((c • f) : E →ₗ[k] F) = c • (f : E →ₗ[k] F) := rfl
+@[simp] lemma coe_apply' : ((c • f) : E → F) = c • (f : E → F) := rfl
 
 instance : has_neg (E →L[k] F) := ⟨λ f, (-1 : k) • f⟩
 instance : has_sub (E →L[k] F) := ⟨λ f g, f + (-g)⟩
@@ -115,8 +116,14 @@ instance : has_sub (E →L[k] F) := ⟨λ f g, f + (-g)⟩
 @[simp] lemma neg_apply : (-f) u = - (f u) :=
 by erw [smul_apply, neg_smul, one_smul]
 
+@[simp] lemma coe_neg : ((-f) : E →ₗ[k] F) = -(f : E →ₗ[k] F) := rfl
+@[simp] lemma coe_neg' : ((-f) : E → F) = -(f : E → F) := rfl
+
 @[simp] lemma sub_apply : (f - g) u = f u - g u :=
 by { dunfold has_sub.sub, simp }
+
+@[simp] lemma coe_sub : ((f - g) : E →ₗ[k] F) = (f : E →ₗ[k] F) - g := rfl
+@[simp] lemma coe_sub' : ((f - g) : E → F) = (f : E → F) - g := rfl
 
 instance : add_comm_group (E →L[k] F) :=
 { add       := (+),
@@ -144,6 +151,9 @@ def comp (g : F →L[k] G) (f : E →L[k] F) : E →L[k] G :=
   let ⟨Mf, Mfpos, hMfb⟩ := f.bound in ⟨Mg * Mf, mul_pos Mgpos Mfpos,
     λ x, by rw mul_assoc;
   exact le_trans (hMgb _) ((mul_le_mul_left Mgpos).2 (hMfb _))⟩⟩
+
+@[simp] lemma coe_comp : ((h.comp f) : (E →ₗ[k] G)) = (h : F →ₗ[k] G).comp f := rfl
+@[simp] lemma coe_comp' : ((h.comp f) : (E → G)) = (h : F → G) ∘ f := rfl
 
 instance : has_mul (bounded_linear_map k E E) := ⟨comp⟩
 

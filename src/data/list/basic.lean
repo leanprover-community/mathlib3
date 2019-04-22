@@ -857,11 +857,12 @@ theorem nth_le_reverse_aux1 : ∀ (l r : list α) (i h1 h2), nth_le (reverse_cor
   λh1 h2, nth_le_reverse_aux1 l (a :: r) (i+1) h1 (succ_lt_succ h2)
 
 lemma index_of_inj [decidable_eq α] {l : list α} {x y : α}
-  (hx : x ∈ l) (hy : y ∈ l) (h : index_of x l = index_of y l) : x = y :=
-have nth_le l (index_of x l) (index_of_lt_length.2 hx) =
-    nth_le l (index_of y l) (index_of_lt_length.2 hy),
-  by simp only [h],
-by simpa only [index_of_nth_le]
+  (hx : x ∈ l) (hy : y ∈ l) : index_of x l = index_of y l ↔ x = y :=
+⟨λ h, have nth_le l (index_of x l) (index_of_lt_length.2 hx) =
+        nth_le l (index_of y l) (index_of_lt_length.2 hy),
+      by simp only [h],
+    by simpa only [index_of_nth_le],
+  λ h, by subst h⟩
 
 theorem nth_le_reverse_aux2 : ∀ (l r : list α) (i : nat) (h1) (h2),
   nth_le (reverse_core l r) (length l - 1 - i) h1 = nth_le l i h2

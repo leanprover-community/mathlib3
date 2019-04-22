@@ -641,9 +641,6 @@ protected noncomputable def range {α β} (f : α → β) (H : injective f) :
 @[simp] theorem range_apply {α β} (f : α → β) (H : injective f) (a) :
   set.range f H a = ⟨f a, set.mem_range_self _⟩ := rfl
 
-@[simp] theorem range_apply {α β} (f : α → β) (H : injective f) (a) :
-  set.range f H a = ⟨f a, set.mem_range_self _⟩ := rfl
-
 protected def congr {α β : Type*} (e : α ≃ β) : set α ≃ set β :=
 ⟨λ s, e '' s, λ t, e.symm '' t, symm_image_image e, symm_image_image e.symm⟩
 

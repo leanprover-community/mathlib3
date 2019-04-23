@@ -8,12 +8,13 @@ Cardinal arithmetic.
 Cardinals are represented as quotient over equinumerous types.
 -/
 
-import data.set.finite data.quot logic.function set_theory.schroeder_bernstein
+import data.set.countable data.quot logic.function set_theory.schroeder_bernstein
 
 open function lattice set
 local attribute [instance] classical.prop_decidable
 
 universes u v w x
+variables {α β : Type u}
 
 instance cardinal.is_equivalent : setoid (Type u) :=
 { r := λα β, nonempty (α ≃ β),
@@ -52,6 +53,9 @@ theorem le_mk_iff_exists_set {c : cardinal} {α : Type u} :
 ⟨quotient.induction_on c $ λ β ⟨⟨f, hf⟩⟩,
   ⟨set.range f, eq.symm $ quot.sound ⟨equiv.set.range f hf⟩⟩,
 λ ⟨p, e⟩, e ▸ ⟨⟨subtype.val, λ a b, subtype.eq⟩⟩⟩
+
+def out_embedding {c c' : cardinal} : c ≤ c' ↔ nonempty (c.out ↪ c'.out) :=
+by { transitivity _, rw [←quotient.out_eq c, ←quotient.out_eq c'], refl }
 
 instance : linear_order cardinal.{u} :=
 { le          := (≤),
@@ -197,6 +201,9 @@ by simp [lt_iff_le_and_ne, eq_comm, zero_le]
 theorem zero_lt_one : (0 : cardinal) < 1 :=
 lt_of_le_of_ne (zero_le _) zero_ne_one
 
+lemma zero_power_le (c : cardinal.{u}) : (0 : cardinal.{u}) ^ c ≤ 1 :=
+by { by_cases h : c = 0, rw [h, power_zero], rw [zero_power h], apply zero_le }
+
 theorem add_le_add : ∀{a b c d : cardinal}, a ≤ b → c ≤ d → a + c ≤ b + d :=
 by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨embedding.sum_congr e₁ e₂⟩
 
@@ -321,6 +328,9 @@ begin
     { exact nex.elim ⟨_, h.symm⟩ },
     { refl } }
 end
+
+lemma succ_ne_zero (c : cardinal) : succ c ≠ 0 :=
+by { rw [←pos_iff_ne_zero, lt_succ], apply zero_le }
 
 /-- The indexed sum of cardinals is the cardinality of the
   indexed disjoint union, i.e. sigma type. -/
@@ -622,6 +632,22 @@ match a, b, lt_omega.1 ha, lt_omega.1 hb with
 | _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat_cast_pow]; apply nat_lt_omega
 end
 
+lemma countable_iff (s : set α) : countable s ↔ mk s ≤ omega :=
+begin
+  rw [countable_iff_exists_injective], split,
+  rintro ⟨f, hf⟩, exact ⟨embedding.trans ⟨f, hf⟩ equiv.ulift.symm.to_embedding⟩,
+  rintro ⟨f'⟩, cases embedding.trans f' equiv.ulift.to_embedding with f hf, exact ⟨f, hf⟩
+end
+
+lemma exists_two_elements (h : (2 : cardinal) ≤ mk α) : ∃x y : α, x ≠ y :=
+by { cases h with f, refine ⟨f $ sum.inl ⟨⟩, f $ sum.inr ⟨⟩, _⟩, intro h, cases f.2 h }
+
+lemma exists_unequal_element (h : (2 : cardinal) ≤ mk α) (x : α) : ∃y : α, x ≠ y :=
+begin
+  rcases exists_two_elements h with ⟨y, z, h⟩,
+  refine classical.by_cases (λ(h' : x = y), _) (λ h', ⟨y, h'⟩), rw [←h'] at h, exact ⟨z, h⟩
+end
+
 /-- König's theorem -/
 theorem sum_lt_prod {ι} (f g : ι → cardinal) (H : ∀ i, f i < g i) : sum f < prod g :=
 lt_of_not_ge $ λ ⟨F⟩, begin
@@ -697,10 +723,13 @@ quotient.sound ⟨equiv.set.univ α⟩
 theorem mk_image_le {α β : Type u} {f : α → β} {s : set α} : mk (f '' s) ≤ mk s :=
 mk_le_of_surjective surjective_onto_image
 
-theorem mk_range_le {α β : Type u} {f : α → β} {s : set α} : mk (range f) ≤ mk α :=
+theorem mk_range_le {α β : Type u} {f : α → β} : mk (range f) ≤ mk α :=
 mk_le_of_surjective surjective_onto_range
 
-theorem mk_eq_of_injective {α β : Type u} {f : α → β} {s : set α} (hf : injective f) :
+lemma mk_range_eq (f : α → β) (h : injective f) : mk (range f) = mk α :=
+quotient.sound ⟨(equiv.set.range f h).symm⟩
+
+theorem mk_image_eq {α β : Type u} {f : α → β} {s : set α} (hf : injective f) :
   mk (f '' s) = mk s :=
 quotient.sound ⟨(equiv.set.image f s hf).symm⟩
 
@@ -713,8 +742,23 @@ theorem mk_Union_eq_sum_mk {α ι : Type u} {f : ι → set α} (h : ∀i j, i �
 calc mk (⋃ i, f i) = mk (Σi, f i) : quot.sound ⟨set.Union_eq_sigma_of_disjoint h⟩
   ... = sum (λi, mk (f i)) : (sum_mk _).symm
 
+lemma mk_Union_le {α ι : Type u} (f : ι → set α) :
+  mk (⋃ i, f i) ≤ mk ι * cardinal.sup.{u u} (λ i, mk (f i)) :=
+le_trans mk_Union_le_sum_mk (sum_le_sup _)
+
+lemma mk_sUnion_le {α : Type u} (A : set (set α)) :
+  mk (⋃₀ A) ≤ mk A * cardinal.sup.{u u} (λ s : A, mk s) :=
+by { rw [sUnion_eq_Union], apply mk_Union_le }
+
+lemma mk_bUnion_le {ι α : Type u} (A : ι → set α) (s : set ι) :
+  mk (⋃(x ∈ s), A x) ≤ mk s * cardinal.sup.{u u} (λ x : s, mk (A x.1)) :=
+by { rw [bUnion_eq_Union], apply mk_Union_le }
+
 @[simp] lemma finset_card {α : Type u} {s : finset α} : ↑(finset.card s) = mk (↑s : set α) :=
 by rw [fintype_card, nat_cast_inj, fintype.card_coe]
+
+lemma finset_card_lt_omega (s : finset α) : mk (↑s : set α) < omega :=
+by { rw [lt_omega_iff_fintype], exact ⟨finset.subtype.fintype s⟩ }
 
 theorem mk_union_add_mk_inter {α : Type u} {S T : set α} : mk (S ∪ T : set α) + mk (S ∩ T : set α) = mk S + mk T :=
 quot.sound ⟨equiv.set.union_sum_inter S T⟩
@@ -724,5 +768,127 @@ quot.sound ⟨equiv.set.union (disjoint_iff.1 H)⟩
 
 lemma mk_le_mk_of_subset {α} {s t : set α} (h : s ⊆ t) : mk s ≤ mk t :=
 ⟨ set.embedding_of_subset h ⟩
+
+lemma mk_le_of_subproperty {p q : α → Prop} (h : ∀x, p x → q x) : mk {x // p x} ≤ mk {x // q x} :=
+⟨embedding_of_subset h⟩
+
+lemma mk_set_le (s : set α) : mk s ≤ mk α :=
+⟨⟨subtype.val, subtype.val_injective⟩⟩
+
+lemma mk_image_eq_lift {α : Type u} {β : Type v} (f : α → β) (s : set α) (h : injective f) :
+  lift.{v u} (mk (f '' s)) = lift.{u v} (mk s) :=
+quotient.sound ⟨equiv.ulift.trans ((equiv.set.image f s h).symm.trans equiv.ulift.symm)⟩
+
+lemma mk_image_eq_of_inj_on {α β : Type u} (f : α → β) (s : set α) (h : inj_on f s) :
+  mk (f '' s) = mk s :=
+le_antisymm mk_image_le $ ⟨⟨λ⟨x, hx⟩, ⟨f x, mem_image_of_mem f hx⟩,
+  λ⟨x, hx⟩ ⟨x', hx'⟩ hxx', subtype.eq $ h hx hx' $ by apply congr_arg subtype.val hxx'⟩⟩
+
+lemma mk_subtype_of_equiv {α β : Type u} (p : α → Prop) (e : α ≃ β) :
+  mk {a : α // p a} = mk {b : β // p (e.symm b)} :=
+quotient.sound ⟨equiv.subtype_equiv_of_subtype' e⟩
+
+lemma mk_sep (s : set α) (t : α → Prop) : mk ({ x ∈ s | t x } : set α)  = mk { x : s | t x.1 } :=
+by { refine quotient.sound ⟨_⟩, symmetry, apply (equiv.subtype_subtype_equiv_subtype _ _).trans _,
+     simp only [exists_prop, mem_sep_eq, set_coe_eq_subtype, mem_set_of_eq] }
+
+lemma mk_preimage_of_injective_lift {α : Type u} {β : Type v} (f : α → β) (s : set β)
+  (h : injective f) : lift.{u v} (mk (f ⁻¹' s)) ≤ lift.{v u} (mk s) :=
+begin
+  constructor, apply embedding.congr equiv.ulift.symm equiv.ulift.symm,
+  use subtype.coind (λ x, f x.1) (λ x, x.2),
+  apply subtype.coind_injective, exact injective_comp h subtype.val_injective
+end
+
+lemma mk_preimage_of_onto_lift {α : Type u} {β : Type v} (f : α → β) (s : set β)
+  (h : s ⊆ range f) : lift.{v u} (mk s) ≤ lift.{u v} (mk (f ⁻¹' s)) :=
+begin
+  constructor, apply embedding.congr equiv.ulift.symm equiv.ulift.symm,
+  fsplit,
+  { rintro ⟨y, hy⟩, rcases classical.subtype_of_exists (h hy) with ⟨x, rfl⟩, exact ⟨x, hy⟩ },
+  rintro ⟨y, hy⟩ ⟨y', hy'⟩, dsimp,
+  rcases classical.subtype_of_exists (h hy) with ⟨x, rfl⟩,
+  rcases classical.subtype_of_exists (h hy') with ⟨x', rfl⟩,
+  simp, intro hxx', rw hxx'
+end
+
+lemma mk_preimage_of_injective_of_onto_lift {α : Type u} {β : Type v} (f : α → β) (s : set β)
+  (h : injective f) (h2 : s ⊆ range f) : lift.{u v} (mk (f ⁻¹' s)) = lift.{v u} (mk s) :=
+by { apply le_antisymm (mk_preimage_of_injective_lift f s h) (mk_preimage_of_onto_lift f s h2) }
+
+lemma mk_preimage_of_injective (f : α → β) (s : set β) (h : injective f) :
+  mk (f ⁻¹' s) ≤ mk s :=
+by { convert mk_preimage_of_injective_lift.{u u} f s h using 1; rw [lift_id] }
+
+lemma mk_preimage_of_onto (f : α → β) (s : set β) (h : s ⊆ range f) :
+  mk s ≤ mk (f ⁻¹' s) :=
+by { convert mk_preimage_of_onto_lift.{u u} f s h using 1; rw [lift_id] }
+
+lemma mk_preimage_of_injective_of_onto (f : α → β) (s : set β)
+  (h : injective f) (h2 : s ⊆ range f) : mk (f ⁻¹' s) = mk s :=
+by { convert mk_preimage_of_injective_of_onto_lift.{u u} f s h h2 using 1; rw [lift_id] }
+
+lemma mk_subset_ge_of_subset_image_lift {α : Type u} {β : Type v} (f : α → β) {s : set α}
+  {t : set β} (h : t ⊆ f '' s) :
+    lift.{v u} (mk t) ≤ lift.{u v} (mk ({ x ∈ s | f x ∈ t } : set α)) :=
+by { rw [image_eq_range] at h, convert mk_preimage_of_onto_lift _ _ h using 1, rw [mk_sep], refl }
+
+lemma mk_subset_ge_of_subset_image (f : α → β) {s : set α} {t : set β} (h : t ⊆ f '' s) :
+  mk t ≤ mk ({ x ∈ s | f x ∈ t } : set α) :=
+by { rw [image_eq_range] at h, convert mk_preimage_of_onto _ _ h using 1, rw [mk_sep], refl }
+
+theorem le_mk_iff_exists_subset {c : cardinal} {α : Type u} {s : set α} :
+  c ≤ mk s ↔ ∃ p : set α, p ⊆ s ∧ mk p = c :=
+begin
+  rw [le_mk_iff_exists_set, ←subtype.exists_set_subtype],
+  apply exists_congr, intro t, rw [mk_image_eq], apply subtype.val_injective
+end
+
+/-- The function α^{<β}, defined to be sup_{γ < β} α^γ.
+  We index over {s : set β.out // mk s < β } instead of {γ // γ < β}, because the latter lives in a
+  higher universe -/
+noncomputable def powerlt (α β : cardinal.{u}) : cardinal.{u} :=
+sup.{u u} (λ(s : {s : set β.out // mk s < β}), α ^ mk.{u} s)
+
+infix ` ^< `:80 := powerlt
+
+def powerlt_helper {c c' : cardinal} (h : c < c') :
+  ∃(s : {s : set c'.out // mk s < c'}), mk s = c :=
+begin
+  cases out_embedding.mp (le_of_lt h) with f,
+  have : mk ↥(range ⇑f) = c, { rwa [mk_range_eq, mk, quotient.out_eq c], exact f.2 },
+  exact ⟨⟨range f, by convert h⟩, this⟩
+end
+
+lemma le_powerlt {c₁ c₂ c₃ : cardinal} (h : c₂ < c₃) : c₁ ^ c₂ ≤ c₁ ^< c₃ :=
+by { rcases powerlt_helper h with ⟨s, rfl⟩, apply le_sup _ s }
+
+lemma powerlt_le {c₁ c₂ c₃ : cardinal} : c₁ ^< c₂ ≤ c₃ ↔ ∀(c₄ < c₂), c₁ ^ c₄ ≤ c₃ :=
+begin
+  rw [powerlt, sup_le],
+  split,
+  { intros h c₄ hc₄, rcases powerlt_helper hc₄ with ⟨s, rfl⟩, exact h s },
+  intros h s, exact h _ s.2
+end
+
+lemma powerlt_le_powerlt_left {a b c : cardinal} (h : b ≤ c) : a ^< b ≤ a ^< c :=
+by { rw [powerlt, sup_le], rintro ⟨s, hs⟩, apply le_powerlt, exact lt_of_lt_of_le hs h }
+
+lemma powerlt_succ {c₁ c₂ : cardinal} (h : c₁ ≠ 0) : c₁ ^< c₂.succ = c₁ ^ c₂ :=
+begin
+  apply le_antisymm,
+  { rw powerlt_le, intros c₃ h2, apply power_le_power_left h, rwa [←lt_succ] },
+  { apply le_powerlt, apply lt_succ_self }
+end
+
+lemma powerlt_max {c₁ c₂ c₃ : cardinal} : c₁ ^< max c₂ c₃ = max (c₁ ^< c₂) (c₁ ^< c₃) :=
+by { cases le_total c₂ c₃; simp only [max_eq_left, max_eq_right, h, powerlt_le_powerlt_left] }
+
+lemma zero_powerlt {a : cardinal} (h : a ≠ 0) : 0 ^< a = 1 :=
+begin
+  apply le_antisymm,
+  { rw [powerlt_le], intros c hc, apply zero_power_le },
+  convert le_powerlt (pos_iff_ne_zero.2 h), rw [power_zero]
+end
 
 end cardinal

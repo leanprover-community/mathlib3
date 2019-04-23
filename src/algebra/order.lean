@@ -35,6 +35,9 @@ lt_of_le_not_le ((le_total _ _).resolve_right h) h
 lemma lt_iff_not_ge' [linear_order α] {x y : α} : x < y ↔ ¬ y ≤ x :=
 ⟨not_le_of_gt, lt_of_not_ge'⟩
 
+lemma le_iff_not_gt [linear_order α] (x y : α) : x ≤ y ↔ ¬x > y :=
+⟨not_lt_of_ge, le_of_not_gt⟩
+
 @[simp] lemma not_lt [linear_order α] {a b : α} : ¬ a < b ↔ b ≤ a := ⟨le_of_not_gt, not_lt_of_ge⟩
 
 lemma le_of_not_lt [linear_order α] {a b : α} : ¬ a < b → b ≤ a := not_lt.1

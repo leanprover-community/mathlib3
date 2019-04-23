@@ -638,12 +638,12 @@ calc (s ⊕ (-s : set α)) ≃ ↥(s ∪ -s) : (equiv.set.union (by simp [set.ex
 @[simp] lemma sum_compl_apply_inr {α : Type u} (s : set α) [decidable_pred s] (x : -s) :
   equiv.set.sum_compl s (sum.inr x) = x := rfl
 
-lemma sum_compl_symm_apply_of_mem {α : Type u} (s : set α) [decidable_pred s] (x : α)
+lemma sum_compl_symm_apply_of_mem {α : Type u} {s : set α} [decidable_pred s] {x : α}
   (hx : x ∈ s) : (equiv.set.sum_compl s).symm x = sum.inl ⟨x, hx⟩ :=
 have ↑(⟨x, or.inl hx⟩ : (s ∪ -s : set α)) ∈ s, from hx,
 by rw [equiv.set.sum_compl]; simpa using set.union_apply_left _ this
 
-lemma sum_compl_apply_of_not_mem {α : Type u} (s : set α) [decidable_pred s] (x : α)
+lemma sum_compl_symm_apply_of_not_mem {α : Type u} {s : set α} [decidable_pred s] {x : α}
   (hx : x ∉ s) : (equiv.set.sum_compl s).symm x = sum.inr ⟨x, hx⟩ :=
 have ↑(⟨x, or.inr hx⟩ : (s ∪ -s : set α)) ∈ -s, from hx,
 by rw [equiv.set.sum_compl]; simpa using set.union_apply_right _ this

@@ -105,6 +105,8 @@ lemma eq_symm_apply {α β} (e : α ≃ β) {x y} : y = e.symm x ↔ e y = x :=
 
 @[simp] theorem symm_symm (e : α ≃ β) : e.symm.symm = e := by cases e; refl
 
+@[simp] theorem symm_symm_apply (e : α ≃ β) (a : α) : e.symm.symm a = e a := by cases e; refl
+
 @[simp] theorem trans_refl (e : α ≃ β) : e.trans (equiv.refl β) = e := by cases e; refl
 
 @[simp] theorem refl_trans (e : α ≃ β) : (equiv.refl α).trans e = e := by cases e; refl
@@ -559,6 +561,12 @@ open set
 protected def univ (α) : @univ α ≃ α :=
 ⟨subtype.val, λ a, ⟨a, trivial⟩, λ ⟨a, _⟩, rfl, λ a, rfl⟩
 
+@[simp] lemma univ_apply {α : Type u} (x : @univ α) :
+  equiv.set.univ α x = x := rfl
+
+@[simp] lemma univ_symm_apply {α : Type u} (x : α) :
+  (equiv.set.univ α).symm x = ⟨x, trivial⟩ := rfl
+
 protected def empty (α) : (∅ : set α) ≃ empty :=
 equiv_empty $ λ ⟨x, h⟩, not_mem_empty x h
 
@@ -569,36 +577,76 @@ protected def union' {α} {s t : set α}
   (p : α → Prop) [decidable_pred p]
   (hs : ∀ x ∈ s, p x)
   (ht : ∀ x ∈ t, ¬ p x) : (s ∪ t : set α) ≃ (s ⊕ t) :=
-⟨λ ⟨x, h⟩, if hp : p x
-  then sum.inl ⟨_, h.resolve_right (λ xt, ht _ xt hp)⟩
-  else sum.inr ⟨_, h.resolve_left (λ xs, hp (hs _ xs))⟩,
- λ o, match o with
- | (sum.inl ⟨x, h⟩) := ⟨x, or.inl h⟩
- | (sum.inr ⟨x, h⟩) := ⟨x, or.inr h⟩
- end,
- λ ⟨x, h'⟩, by by_cases p x; simp [union'._match_1, union'._match_2, h]; congr,
- λ o, by rcases o with ⟨x, h⟩ | ⟨x, h⟩; simp [union'._match_1, union'._match_2, h];
-   [simp [hs _ h], simp [ht _ h]]⟩
+{ to_fun := λ x, if hp : p x.1
+    then sum.inl ⟨_, x.2.resolve_right (λ xt, ht _ xt hp)⟩
+    else sum.inr ⟨_, x.2.resolve_left (λ xs, hp (hs _ xs))⟩,
+  inv_fun := λ o, match o with
+    | (sum.inl x) := ⟨x.1, or.inl x.2⟩
+    | (sum.inr x) := ⟨x.1, or.inr x.2⟩
+  end,
+  left_inv := λ ⟨x, h'⟩, by by_cases p x; simp [union'._match_1, h]; congr,
+  right_inv := λ o, begin
+    rcases o with ⟨x, h⟩ | ⟨x, h⟩;
+    dsimp [union'._match_1];
+    [simp [hs _ h], simp [ht _ h]]
+  end }
 
 protected def union {α} {s t : set α} [decidable_pred s] (H : s ∩ t = ∅) :
   (s ∪ t : set α) ≃ (s ⊕ t) :=
 set.union' s (λ _, id) (λ x xt xs, subset_empty_iff.2 H ⟨xs, xt⟩)
+
+lemma union_apply_left {α} {s t : set α} [decidable_pred s] (H : s ∩ t = ∅)
+  {a : (s ∪ t : set α)} (ha : ↑a ∈ s) : equiv.set.union H a = sum.inl ⟨a, ha⟩ :=
+dif_pos ha
+
+lemma union_apply_right {α} {s t : set α} [decidable_pred s] (H : s ∩ t = ∅)
+  {a : (s ∪ t : set α)} (ha : ↑a ∈ t) : equiv.set.union H a = sum.inr ⟨a, ha⟩ :=
+dif_neg (show ↑a ∉ s, by finish [set.ext_iff])
 
 protected def singleton {α} (a : α) : ({a} : set α) ≃ punit.{u} :=
 ⟨λ _, punit.star, λ _, ⟨a, mem_singleton _⟩,
  λ ⟨x, h⟩, by simp at h; subst x,
  λ ⟨⟩, rfl⟩
 
+protected def of_eq {α : Type u} {s t : set α} (h : s = t) : s ≃ t :=
+{ to_fun := λ x, ⟨x.1, h ▸ x.2⟩,
+  inv_fun := λ x, ⟨x.1, h.symm ▸ x.2⟩,
+  left_inv := λ _, subtype.eq rfl,
+  right_inv := λ _, subtype.eq rfl }
+
+@[simp] lemma of_eq_apply {α : Type u} {s t : set α} (h : s = t) (a : s) :
+  equiv.set.of_eq h a = ⟨a, h ▸ a.2⟩ := rfl
+
+@[simp] lemma of_eq_symm_apply {α : Type u} {s t : set α} (h : s = t) (a : t) :
+  (equiv.set.of_eq h).symm a = ⟨a, h.symm ▸ a.2⟩ := rfl
+
 protected def insert {α} {s : set.{u} α} [decidable_pred s] {a : α} (H : a ∉ s) :
   (insert a s : set α) ≃ (s ⊕ punit.{u+1}) :=
-by rw ← union_singleton; exact
-(set.union $ inter_singleton_eq_empty.2 H).trans
-  (sum_congr (equiv.refl _) (set.singleton _))
+calc (insert a s : set α) ≃ ↥(s ∪ {a}) : equiv.set.of_eq (by simp)
+... ≃ (s ⊕ ({a} : set α)) : equiv.set.union (by finish [set.ext_iff])
+... ≃ (s ⊕ punit.{u+1}) : sum_congr (equiv.refl _) (equiv.set.singleton _)
 
 protected def sum_compl {α} (s : set α) [decidable_pred s] :
   (s ⊕ (-s : set α)) ≃ α :=
-(set.union (inter_compl_self _)).symm.trans
-  (by rw union_compl_self; exact set.univ _)
+calc (s ⊕ (-s : set α)) ≃ ↥(s ∪ -s) : (equiv.set.union (by simp [set.ext_iff])).symm
+... ≃ @univ α : equiv.set.of_eq (by simp)
+... ≃ α : equiv.set.univ _
+
+@[simp] lemma sum_compl_apply_inl {α : Type u} (s : set α) [decidable_pred s] (x : s) :
+  equiv.set.sum_compl s (sum.inl x) = x := rfl
+
+@[simp] lemma sum_compl_apply_inr {α : Type u} (s : set α) [decidable_pred s] (x : -s) :
+  equiv.set.sum_compl s (sum.inr x) = x := rfl
+
+lemma sum_compl_symm_apply_of_mem {α : Type u} (s : set α) [decidable_pred s] (x : α)
+  (hx : x ∈ s) : (equiv.set.sum_compl s).symm x = sum.inl ⟨x, hx⟩ :=
+have ↑(⟨x, or.inl hx⟩ : (s ∪ -s : set α)) ∈ s, from hx,
+by rw [equiv.set.sum_compl]; simpa using set.union_apply_left _ this
+
+lemma sum_compl_apply_of_not_mem {α : Type u} (s : set α) [decidable_pred s] (x : α)
+  (hx : x ∉ s) : (equiv.set.sum_compl s).symm x = sum.inr ⟨x, hx⟩ :=
+have ↑(⟨x, or.inr hx⟩ : (s ∪ -s : set α)) ∈ -s, from hx,
+by rw [equiv.set.sum_compl]; simpa using set.union_apply_right _ this
 
 protected def union_sum_inter {α : Type u} (s t : set α) [decidable_pred s] :
   ((s ∪ t : set α) ⊕ (s ∩ t : set α)) ≃ (s ⊕ t) :=

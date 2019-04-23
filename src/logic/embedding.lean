@@ -30,6 +30,12 @@ protected def equiv.to_embedding {α : Sort u} {β : Sort v} (f : α ≃ β) : �
 namespace function
 namespace embedding
 
+@[extensionality] lemma ext {α β} {f g : embedding α β} (h : ∀ x, f x = g x) : f = g :=
+by cases f; cases g; simpa using funext h
+
+lemma ext_iff {α β} {f g : embedding α β} : (∀ x, f x = g x) ↔ f = g :=
+⟨ext, λ h _, by rw h⟩
+
 @[simp] theorem to_fun_eq_coe {α β} (f : α ↪ β) : to_fun f = f := rfl
 
 @[simp] theorem coe_fn_mk {α β} (f : α → β) (i) :

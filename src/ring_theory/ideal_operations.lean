@@ -309,7 +309,7 @@ def radical (I : ideal R) : ideal R :=
   zero := ⟨1, (pow_one (0:R)).symm ▸ I.zero_mem⟩,
   add := λ x y ⟨m, hxmi⟩ ⟨n, hyni⟩, ⟨m + n,
     (add_pow x y (m + n)).symm ▸ I.sum_mem $
-    show ∀ c ∈ finset.range (nat.succ (m + n)), x ^ c * y ^ (m + n - c) * (choose (m + n) c) ∈ I,
+    show ∀ c ∈ finset.range (nat.succ (m + n)), x ^ c * y ^ (m + n - c) * (nat.choose (m + n) c) ∈ I,
     from λ c hc, or.cases_on (le_total c m)
       (λ hcm, I.mul_mem_right $ I.mul_mem_left $ nat.add_comm n m ▸ (nat.add_sub_assoc hcm n).symm ▸
         (pow_add y n (m-c)).symm ▸ I.mul_mem_right hyni)

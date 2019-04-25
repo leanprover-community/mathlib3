@@ -6,13 +6,7 @@ Authors: Patrick Massot, Johannes Hölzl
 Continuous linear functions -- functions between normed vector spaces which are bounded and linear.
 -/
 import algebra.field
-import analysis.normed_space.basic
-import analysis.asymptotics
-
-@[simp] lemma mul_inv_eq' {α} [discrete_field α] (a b : α) : (a * b)⁻¹ = b⁻¹ * a⁻¹ :=
-classical.by_cases (assume : a = 0, by simp [this]) $ assume ha,
-classical.by_cases (assume : b = 0, by simp [this]) $ assume hb,
-mul_inv_eq hb ha
+import analysis.normed_space.operator_norm
 
 noncomputable theory
 local attribute [instance] classical.prop_decidable
@@ -40,10 +34,17 @@ lemma is_linear_map.with_bound
     le_trans (h x) $ mul_le_mul_of_nonneg_right (le_trans this zero_le_one) (norm_nonneg x)⟩)
   (assume : ¬ M ≤ 0, ⟨M, lt_of_not_ge this, h⟩)⟩
 
+/-- A bounded linear map satisfies `is_bounded_linear_map` -/
+lemma bounded_linear_map.is_bounded_linear_map (f : E →L[k] F) : is_bounded_linear_map k f := {..f}
+
 namespace is_bounded_linear_map
 
 def to_linear_map (f : E → F) (h : is_bounded_linear_map k f) : E →ₗ[k] F :=
 (is_linear_map.mk' _ h.to_is_linear_map)
+
+/-- Construct a bounded linear map from is_bounded_linear_map -/
+def to_bounded_linear_map {f : E → F} (hf : is_bounded_linear_map k f) : E →L[k] F :=
+{ bound := hf.bound, ..is_bounded_linear_map.to_linear_map f hf }
 
 lemma zero : is_bounded_linear_map k (λ (x:E), (0:F)) :=
 (0 : E →ₗ F).is_linear.with_bound 0 $ by simp [le_refl]

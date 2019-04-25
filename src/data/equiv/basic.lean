@@ -633,12 +633,13 @@ protected noncomputable def image {α β} (f : α → β) (s : set α) (H : inje
 
 protected noncomputable def range {α β} (f : α → β) (H : injective f) :
   α ≃ range f :=
-(set.univ _).symm.trans $ (set.image f univ H).trans (equiv.cast $ by rw image_univ)
+{ to_fun := λ x, ⟨f x, mem_range_self _⟩,
+  inv_fun := λ x, classical.some x.2,
+  left_inv := λ x, H (classical.some_spec (show f x ∈ range f, from mem_range_self _)),
+  right_inv := λ x, subtype.eq $ classical.some_spec x.2 }
 
 @[simp] theorem range_apply {α β} (f : α → β) (H : injective f) (a) :
-  set.range f H a = ⟨f a, set.mem_range_self _⟩ :=
-by dunfold equiv.set.range equiv.set.univ;
-   simp [set_coe_cast, -image_univ, image_univ.symm]
+  set.range f H a = ⟨f a, set.mem_range_self _⟩ := rfl
 
 protected def congr {α β : Type*} (e : α ≃ β) : set α ≃ set β :=
 ⟨λ s, e '' s, λ t, e.symm '' t, symm_image_image e, symm_image_image e.symm⟩

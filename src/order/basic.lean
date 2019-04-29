@@ -449,19 +449,19 @@ def unbounded (r : α → α → Prop) (s : set α) : Prop := ∀ a, ∃ b ∈ s
 /-- A bounded or final set -/
 def bounded (r : α → α → Prop) (s : set α) : Prop := ∃a, ∀ b ∈ s, r b a
 
-section
-local attribute [instance, priority 0] classical.prop_decidable
 @[simp] lemma not_bounded_iff {r : α → α → Prop} (s : set α) : ¬bounded r s ↔ unbounded r s :=
-by simp only [bounded, unbounded, not_forall, not_exists, exists_prop, not_and, not_not]
+begin
+  classical,
+  simp only [bounded, unbounded, not_forall, not_exists, exists_prop, not_and, not_not]
+end
 
 @[simp] lemma not_unbounded_iff {r : α → α → Prop} (s : set α) : ¬unbounded r s ↔ bounded r s :=
-by rw [not_iff_comm, not_bounded_iff]
-end
+by { classical, rw [not_iff_comm, not_bounded_iff] }
 
 namespace well_founded
 theorem has_min {α} {r : α → α → Prop} (H : well_founded r)
   (p : set α) : p ≠ ∅ → ∃ a ∈ p, ∀ x ∈ p, ¬ r x a :=
-by haveI := classical.prop_decidable; exact
+by classical; exact
 not_imp_comm.1 (λ he, set.eq_empty_iff_forall_not_mem.2 $ λ a,
 acc.rec_on (H.apply a) $ λ a H IH h,
 he ⟨_, h, λ y, imp_not_comm.1 (IH y)⟩)

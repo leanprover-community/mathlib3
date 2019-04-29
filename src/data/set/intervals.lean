@@ -14,7 +14,8 @@ Each interval has the name `I` + letter for left side + letter for right side
 
 TODO: This is just the beginning; a lot of rules are missing
 -/
-import data.set.lattice algebra.order algebra.order_functions
+import algebra.order algebra.order_functions
+import tactic.tauto
 
 namespace set
 

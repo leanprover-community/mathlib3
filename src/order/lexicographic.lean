@@ -6,7 +6,7 @@ Author: Scott Morrison, Minchao Wu
 Lexicographic preorder / partial_order / linear_order / decidable_linear_order,
 for pairs and dependent pairs.
 -/
-import order.basic
+import algebra.order
 import tactic.interactive
 
 universes u v
@@ -24,8 +24,8 @@ instance lex_has_lt [preorder α] [preorder β] : has_lt (lex α β) :=
 
 /-- Dictionary / lexicographic preorder for pairs. -/
 instance lex_preorder [preorder α] [preorder β] : preorder (lex α β) :=
-{ le_refl := λ ⟨l, r⟩, by { right, apply le_refl }, 
-  le_trans := 
+{ le_refl := λ ⟨l, r⟩, by { right, apply le_refl },
+  le_trans :=
   begin
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ ⟨a₃, b₃⟩ ⟨h₁l, h₁r⟩ ⟨h₂l, h₂r⟩,
     { left, apply lt_trans, repeat { assumption } },
@@ -33,25 +33,25 @@ instance lex_preorder [preorder α] [preorder β] : preorder (lex α β) :=
     { left, assumption },
     { right, apply le_trans, repeat { assumption } }
   end,
-  lt_iff_le_not_le := 
+  lt_iff_le_not_le :=
   begin
-    rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩, 
+    rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
     split,
     { rintros (⟨_, _, _, _, hlt⟩ | ⟨_, _, _, hlt⟩),
-     { split, 
-       { left, assumption }, 
-       { rintro ⟨l,r⟩, 
-         { apply lt_asymm hlt, assumption }, 
+     { split,
+       { left, assumption },
+       { rintro ⟨l,r⟩,
+         { apply lt_asymm hlt, assumption },
          { apply lt_irrefl _ hlt } } },
-     { split, 
-       { right, rw lt_iff_le_not_le at hlt, exact hlt.1 }, 
-       { rintro ⟨l,r⟩, 
-         { apply lt_irrefl a₁, assumption }, 
+     { split,
+       { right, rw lt_iff_le_not_le at hlt, exact hlt.1 },
+       { rintro ⟨l,r⟩,
+         { apply lt_irrefl a₁, assumption },
          { rw lt_iff_le_not_le at hlt, apply hlt.2, assumption } } } },
-    { rintros ⟨⟨h₁ll, h₁lr⟩, h₂r⟩, 
-      { left, assumption }, 
-      { right, rw lt_iff_le_not_le, split, 
-        { assumption }, 
+    { rintros ⟨⟨h₁ll, h₁lr⟩, h₂r⟩,
+      { left, assumption },
+      { right, rw lt_iff_le_not_le, split,
+        { assumption },
         { intro h, apply h₂r, right, exact h } } }
   end,
   .. lex_has_le,
@@ -62,9 +62,9 @@ instance lex_partial_order [partial_order α] [partial_order β] : partial_order
 { le_antisymm :=
   begin
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ (⟨_, _, _, _, hlt₁⟩ | ⟨_, _, _, hlt₁⟩) (⟨_, _, _, _, hlt₂⟩ | ⟨_, _, _, hlt₂⟩),
-    { exfalso, exact lt_irrefl a₁ (lt_trans hlt₁ hlt₂) }, 
-    { exfalso, exact lt_irrefl a₁ hlt₁ }, 
-    { exfalso, exact lt_irrefl a₁ hlt₂ }, 
+    { exfalso, exact lt_irrefl a₁ (lt_trans hlt₁ hlt₂) },
+    { exfalso, exact lt_irrefl a₁ hlt₁ },
+    { exfalso, exact lt_irrefl a₁ hlt₂ },
     { have := le_antisymm hlt₁ hlt₂, simp [this] }
   end
   .. lex_preorder }
@@ -97,16 +97,16 @@ instance lex_decidable_linear_order [decidable_linear_order α] [decidable_linea
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
     rcases decidable_linear_order.decidable_le α a₁ a₂ with a_lt | a_le,
     { -- a₂ < a₁
-      left, rw not_le at a_lt, rintro ⟨l, r⟩, 
-      { apply lt_irrefl a₂, apply lt_trans, repeat { assumption } }, 
+      left, rw not_le at a_lt, rintro ⟨l, r⟩,
+      { apply lt_irrefl a₂, apply lt_trans, repeat { assumption } },
       { apply lt_irrefl a₁, assumption } },
     { -- a₁ ≤ a₂
       by_cases h : a₁ = a₂,
-      { rw h, 
+      { rw h,
         rcases decidable_linear_order.decidable_le _ b₁ b₂ with b_lt | b_le,
         { -- b₂ < b₁
-          left, rw not_le at b_lt, rintro ⟨l, r⟩, 
-          { apply lt_irrefl a₂, assumption }, 
+          left, rw not_le at b_lt, rintro ⟨l, r⟩,
+          { apply lt_irrefl a₂, assumption },
           { apply lt_irrefl b₂, apply lt_of_lt_of_le, repeat { assumption } } },
           -- b₁ ≤ b₂
          { right, right, assumption } },
@@ -131,7 +131,7 @@ instance dlex_has_lt [preorder α] [∀ a, preorder (Z a)] : has_lt (Σ' a, Z a)
 
 /-- Dictionary / lexicographic preorder on dependent pairs. -/
 instance dlex_preorder [preorder α] [∀ a, preorder (Z a)] : preorder (Σ' a, Z a) :=
-{ le_refl := λ ⟨l, r⟩, by { right, apply le_refl }, 
+{ le_refl := λ ⟨l, r⟩, by { right, apply le_refl },
   le_trans :=
   begin
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ ⟨a₃, b₃⟩ ⟨h₁l, h₁r⟩ ⟨h₂l, h₂r⟩,
@@ -142,23 +142,23 @@ instance dlex_preorder [preorder α] [∀ a, preorder (Z a)] : preorder (Σ' a, 
   end,
   lt_iff_le_not_le :=
   begin
-    rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩, 
+    rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
     split,
     { rintros (⟨_, _, _, _, hlt⟩ | ⟨_, _, _, hlt⟩),
-     { split, 
-       { left, assumption }, 
-       { rintro ⟨l,r⟩, 
-         { apply lt_asymm hlt, assumption }, 
+     { split,
+       { left, assumption },
+       { rintro ⟨l,r⟩,
+         { apply lt_asymm hlt, assumption },
          { apply lt_irrefl _ hlt } } },
-     { split, 
-       { right, rw lt_iff_le_not_le at hlt, exact hlt.1 }, 
-       { rintro ⟨l,r⟩, 
-         { apply lt_irrefl a₁, assumption }, 
+     { split,
+       { right, rw lt_iff_le_not_le at hlt, exact hlt.1 },
+       { rintro ⟨l,r⟩,
+         { apply lt_irrefl a₁, assumption },
          { rw lt_iff_le_not_le at hlt, apply hlt.2, assumption } } } },
-    { rintros ⟨⟨h₁ll, h₁lr⟩, h₂r⟩, 
-      { left, assumption }, 
-      { right, rw lt_iff_le_not_le, split, 
-        { assumption }, 
+    { rintros ⟨⟨h₁ll, h₁lr⟩, h₂r⟩,
+      { left, assumption },
+      { right, rw lt_iff_le_not_le, split,
+        { assumption },
         { intro h, apply h₂r, right, exact h } } }
   end,
   .. dlex_has_le,
@@ -169,9 +169,9 @@ instance dlex_partial_order [partial_order α] [∀ a, partial_order (Z a)] : pa
 { le_antisymm :=
   begin
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ (⟨_, _, _, _, hlt₁⟩ | ⟨_, _, _, hlt₁⟩) (⟨_, _, _, _, hlt₂⟩ | ⟨_, _, _, hlt₂⟩),
-    { exfalso, exact lt_irrefl a₁ (lt_trans hlt₁ hlt₂) }, 
-    { exfalso, exact lt_irrefl a₁ hlt₁ }, 
-    { exfalso, exact lt_irrefl a₁ hlt₂ }, 
+    { exfalso, exact lt_irrefl a₁ (lt_trans hlt₁ hlt₂) },
+    { exfalso, exact lt_irrefl a₁ hlt₁ },
+    { exfalso, exact lt_irrefl a₁ hlt₂ },
     { have := le_antisymm hlt₁ hlt₂, simp [this] }
   end
   .. dlex_preorder }
@@ -204,16 +204,16 @@ instance dlex_decidable_linear_order [decidable_linear_order α] [∀ a, decidab
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
     rcases decidable_linear_order.decidable_le α a₁ a₂ with a_lt | a_le,
     { -- a₂ < a₁
-      left, rw not_le at a_lt, rintro ⟨l, r⟩, 
-      { apply lt_irrefl a₂, apply lt_trans, repeat { assumption } }, 
+      left, rw not_le at a_lt, rintro ⟨l, r⟩,
+      { apply lt_irrefl a₂, apply lt_trans, repeat { assumption } },
       { apply lt_irrefl a₁, assumption } },
     { -- a₁ ≤ a₂
       by_cases h : a₁ = a₂,
-      { subst h, 
+      { subst h,
         rcases decidable_linear_order.decidable_le _ b₁ b₂ with b_lt | b_le,
         { -- b₂ < b₁
-          left, rw not_le at b_lt, rintro ⟨l, r⟩, 
-          { apply lt_irrefl a₁, assumption }, 
+          left, rw not_le at b_lt, rintro ⟨l, r⟩,
+          { apply lt_irrefl a₁, assumption },
           { apply lt_irrefl b₂, apply lt_of_lt_of_le, repeat { assumption } } },
           -- b₁ ≤ b₂
          { right, right, assumption } },

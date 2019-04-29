@@ -323,14 +323,10 @@ do l ← intros,
     set_goals gs,
     pure p
 
-section interactive
-open interactive interactive.types expr
+setup_tactic_parser
 
 local notation `listΣ` := list_Sigma
 local notation `listΠ` := list_Pi
-
-local postfix `?`:9001 := optional
-local postfix *:9001 := many
 
 meta def rcases_patt_parse_core
   (rcases_patt_parse_list : parser (listΣ rcases_patt_inverted)) :
@@ -374,5 +370,4 @@ meta def ext_parse : parser ext_patt :=
   (brackets "(" ")" rcases_patt_parse_list <|>
   (λ x, [x]) <$> rcases_patt_parse))*
 
-end interactive
 end tactic

@@ -6,7 +6,7 @@ Authors: Robert Y. Lewis
 Integer power operation on fields.
 -/
 
-import algebra.group_power tactic.wlog
+import algebra.group_power algebra.ordered_field tactic.wlog
 
 universe u
 

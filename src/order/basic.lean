@@ -449,16 +449,13 @@ def unbounded (r : α → α → Prop) (s : set α) : Prop := ∀ a, ∃ b ∈ s
 /-- A bounded or final set -/
 def bounded (r : α → α → Prop) (s : set α) : Prop := ∃a, ∀ b ∈ s, r b a
 
+section
+local attribute [instance, priority 0] classical.prop_decidable
 @[simp] lemma not_bounded_iff {r : α → α → Prop} (s : set α) : ¬bounded r s ↔ unbounded r s :=
-begin
-  haveI := classical.prop_decidable,
-  simp only [bounded, unbounded, not_forall, not_exists, exists_prop, not_and, not_not]
-end
+by simp only [bounded, unbounded, not_forall, not_exists, exists_prop, not_and, not_not]
 
 @[simp] lemma not_unbounded_iff {r : α → α → Prop} (s : set α) : ¬unbounded r s ↔ bounded r s :=
-begin
-  haveI := classical.prop_decidable,
-  simp only [bounded, unbounded, not_forall, not_exists, exists_prop, not_and, not_not]
+by rw [not_iff_comm, not_bounded_iff]
 end
 
 namespace well_founded
@@ -491,19 +488,23 @@ protected def lt_sup {α} {r : α → α → Prop} (wf : well_founded r) {s : se
   {x} (hx : x ∈ s) : r x (wf.sup s h) :=
 min_mem wf { x | ∀a ∈ s, r a x } (ne_empty_iff_exists_mem.mpr h) x hx
 
-protected noncomputable def succ {α} {r : α → α → Prop} (wf : well_founded r) (x : α)
-  (h : ∃y, r x y) : α :=
-wf.min { y | r x y } (ne_empty_iff_exists_mem.mpr h)
+section
+local attribute [instance, priority 0] classical.prop_decidable
+protected noncomputable def succ {α} {r : α → α → Prop} (wf : well_founded r) (x : α) : α :=
+if h : ∃y, r x y then wf.min { y | r x y } (ne_empty_iff_exists_mem.mpr h) else x
 
 protected lemma lt_succ {α} {r : α → α → Prop} (wf : well_founded r) {x : α} (h : ∃y, r x y) :
-  r x (wf.succ x h) :=
-min_mem _ _ _
+  r x (wf.succ x) :=
+by { rw [well_founded.succ, dif_pos h], apply min_mem }
+end
 
 protected lemma lt_succ_iff {α} {r : α → α → Prop} [wo : is_well_order α r] {x : α} (h : ∃y, r x y)
-  (y : α) : r y (wo.wf.succ x h) ↔ r y x ∨ y = x :=
+  (y : α) : r y (wo.wf.succ x) ↔ r y x ∨ y = x :=
 begin
   split,
-  { intro h, have : ¬r x y, intro hy, exact wo.wf.not_lt_min _ _ hy h,
+  { intro h', have : ¬r x y,
+    { intro hy, rw [well_founded.succ, dif_pos] at h',
+      exact wo.wf.not_lt_min _ (ne_empty_iff_exists_mem.mpr h) hy h' },
     rcases trichotomous_of r x y with hy | hy | hy,
     exfalso, exact this hy,
     right, exact hy.symm,

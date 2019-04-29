@@ -72,8 +72,7 @@ quot.lift_on o (λ ⟨α, r, _⟩, by exactI strict_order.cof r) $
   exact ⟨f, λ a b, not_congr hf⟩,
 end
 
-lemma cof_type (r : α → α → Prop) [is_well_order α r] : (type r).cof = strict_order.cof r :=
-rfl
+lemma cof_type (r : α → α → Prop) [is_well_order α r] : (type r).cof = strict_order.cof r := rfl
 
 theorem le_cof_type [is_well_order α r] {c} : c ≤ cof (type r) ↔
   ∀ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) → c ≤ mk S :=
@@ -327,11 +326,11 @@ le_antisymm (cof_le_card _) begin
   apply le_sup
 end
 
-theorem sup_lt_ord {ι} (f : ι → ordinal) {c : cardinal} (H1 : cardinal.mk ι < c.ord.cof)
-  (H2 : ∀ i, f i < c.ord) : sup.{u u} f < c.ord :=
+theorem sup_lt_ord {ι} (f : ι → ordinal) {c : ordinal} (H1 : cardinal.mk ι < c.cof)
+  (H2 : ∀ i, f i < c) : sup.{u u} f < c :=
 begin
   apply lt_of_le_of_ne,
-  rw [sup_le], exact λ i, le_of_lt (H2 i),
+  { rw [sup_le], exact λ i, le_of_lt (H2 i) },
   rintro h, apply not_le_of_lt H1,
   simpa [sup_ord, H2, h] using cof_sup_le.{u} f
 end

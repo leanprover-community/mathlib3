@@ -499,7 +499,7 @@ theorem type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] :
   type r = type s ↔ nonempty (r ≃o s) := quotient.eq
 
-lemma type_out (o : ordinal) : type o.out.r = o :=
+@[simp] lemma type_out (o : ordinal) : type o.out.r = o :=
 by { refine eq.trans _ (by rw [←quotient.out_eq o]), cases quotient.out o, refl }
 
 @[elab_as_eliminator] theorem induction_on {C : ordinal → Prop}
@@ -622,11 +622,7 @@ injective_of_increasing r (<) (typein r) (λ x y, (typein_lt_typein r).2)
 
 theorem typein_inj (r : α → α → Prop) [is_well_order α r]
   {a b} : typein r a = typein r b ↔ a = b :=
-⟨λ h, ((@trichotomous _ r _ a b)
-  .resolve_left (λ hn, ne_of_lt ((typein_lt_typein r).2 hn) h))
-  .resolve_right (λ hn, ne_of_gt ((typein_lt_typein r).2 hn) h),
-congr_arg _⟩
-
+injective.eq_iff (injective_typein r)
 
 /-- `enum r o h` is the `o`-th element of `α` ordered by `r`.
   That is, `enum` maps an initial segment of the ordinals, those
@@ -705,8 +701,7 @@ quot.lift_on o (λ ⟨α, r, _⟩, mk α) $
   card (type r) = mk α := rfl
 
 lemma card_typein {r : α → α → Prop} [wo : is_well_order α r] (x : α) :
-  mk {y // r y x} = (typein r x).card :=
-rfl
+  mk {y // r y x} = (typein r x).card := rfl
 
 theorem card_le_card {o₁ o₂ : ordinal} : o₁ ≤ o₂ → card o₁ ≤ card o₂ :=
 induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _ ⟨⟨⟨f, _⟩, _⟩⟩, ⟨f⟩
@@ -1033,11 +1028,11 @@ instance : decidable_linear_order ordinal :=
 
 @[simp] lemma typein_le_typein (r : α → α → Prop) [is_well_order α r] {x x' : α} :
   typein r x ≤ typein r x' ↔ ¬r x' x :=
-by rw [le_iff_not_gt, not_iff_not, gt, typein_lt_typein]
+by rw [←not_lt, typein_lt_typein]
 
 lemma enum_le_enum (r : α → α → Prop) [is_well_order α r] {o o' : ordinal}
   (ho : o < type r) (ho' : o' < type r) : ¬r (enum r o' ho') (enum r o ho) ↔ o ≤ o' :=
-by rw [le_iff_not_gt o o', not_iff_not, gt, enum_lt ho']
+by rw [←@not_lt _ _ o' o, enum_lt ho']
 
 theorem lt_succ {a b : ordinal} : a < succ b ↔ a ≤ b :=
 by rw [← not_le, succ_le, not_lt]
@@ -1218,11 +1213,10 @@ by rw [limit_rec_on, well_founded.fix_eq,
 
 lemma has_succ_of_is_limit {α} {r : α → α → Prop} [wo : is_well_order α r]
   (h : (type r).is_limit) (x : α) : ∃y, r x y :=
-let z : ordinal := typein r x in
-let sz : ordinal := z.succ in
-have sz_lt : sz < type r, from h.2 _ $ typein_lt_type r x,
-let ⟨y, hy⟩ := typein_surj r sz_lt in
-⟨y, (typein_lt_typein r).mp (by {rw [hy], apply lt_succ_self})⟩
+begin
+  use enum r (typein r x).succ (h.2 _ (typein_lt_type r x)),
+  convert (enum_lt (typein_lt_type r x) _).mpr (lt_succ_self _), rw [enum_typein]
+end
 
 lemma type_subrel_lt (o : ordinal.{u}) :
   type (subrel (<) {o' : ordinal | o' < o}) = ordinal.lift.{u u+1} o :=

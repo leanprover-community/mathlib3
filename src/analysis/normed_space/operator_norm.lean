@@ -236,7 +236,7 @@ lemma unit_le_op_norm : ∥x∥ ≤ 1 → ∥f x∥ ≤ ∥f∥ :=
 end
 
 /-- If one controls the norm of every A x, then one controls the norm of A. -/
-lemma bound_le_op_norm {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ x, ∥f x∥ ≤ M * ∥x∥) :
+lemma op_norm_le_bound {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ x, ∥f x∥ ≤ M * ∥x∥) :
   ∥f∥ ≤ M :=
 Inf_le _ bounds_bdd_below ⟨hMp, hM⟩
 

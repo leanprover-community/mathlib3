@@ -2,7 +2,7 @@
 BRANCH=master
 USER="--user"
 USER_MSG="(at user level)"
-PYTHON_DEPS="setuptools toml PyGithub urllib3 certifi gitpython"
+PYTHON_DEPS="toml PyGithub urllib3 certifi gitpython"
 
 for i in "$@"
 do
@@ -54,6 +54,7 @@ if ! which pip3; then
     fi
 fi
 
+pip3 install --upgrade $USER setuptools || exit -1
 pip3 install --upgrade $USER $PYTHON_DEPS || exit -1
 echo "Fetching the update-mathlib script"
 curl -o update-mathlib.py https://raw.githubusercontent.com/leanprover-community/mathlib/$BRANCH/scripts/update-mathlib.py

@@ -1,4 +1,5 @@
 import data.stream data.lazy_list data.seq.computation logic.basic tactic.interactive
+
 universes u v w
 
 /-
@@ -85,7 +86,7 @@ begin
   dsimp [destruct],
   induction f0 : nth s 0 with a'; intro h,
   { contradiction },
-  { unfold functor.map at h, dsimp at h,
+  { unfold functor.map at h,
     cases s with f al,
     injections with _ h1 h2,
     rw ←h2, apply subtype.eq, dsimp [tail, cons],

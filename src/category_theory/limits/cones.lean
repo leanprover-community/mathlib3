@@ -2,7 +2,6 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Stephen Morgan, Scott Morrison
 
-import category_theory.natural_isomorphism
 import category_theory.whiskering
 import category_theory.const
 import category_theory.opposites

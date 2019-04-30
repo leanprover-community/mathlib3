@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 Bases of topologies. Countability axioms.
 -/
 
-import topology.order
+import topology.order data.set.countable
 
 open set filter lattice classical
 

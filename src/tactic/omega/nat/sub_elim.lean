@@ -14,15 +14,15 @@ namespace omega
 namespace nat
 
 local notation `&` k    := preterm.cst k
-local infix `**`  : 300 := preterm.var 
-local notation t `+*` s := preterm.add t s
-local notation t `-*` s := preterm.sub t s
+local infix ` ** ` : 300 := preterm.var
+local notation t ` +* ` s := preterm.add t s
+local notation t ` -* ` s := preterm.sub t s
 
-local notation x `=*` y := form.eq x y
-local notation x `≤*` y := form.le x y
-local notation `¬*` p   := form.not p
-local notation p `∨*` q := form.or p q
-local notation p `∧*` q := form.and p q
+local notation x ` =* ` y := form.eq x y
+local notation x ` ≤* ` y := form.le x y
+local notation `¬* ` p   := form.not p
+local notation p ` ∨* ` q := form.or p q
+local notation p ` ∧* ` q := form.and p q
 
 namespace preterm
 
@@ -47,7 +47,7 @@ lemma val_sub_subst {k : nat} {x y : preterm} {v : nat → nat} :
 | (m ** n) h1 :=
   begin
     have h2 : n ≠ k := ne_of_lt h1,
-    simp only [sub_subst, preterm.val], 
+    simp only [sub_subst, preterm.val],
     rw update_eq_of_ne _ h2,
  end
 | (t +* s) h1 :=
@@ -62,7 +62,7 @@ lemma val_sub_subst {k : nat} {x y : preterm} {v : nat → nat} :
     by_cases h2 : t = x ∧ s = y,
     { rw if_pos h2, simp only [val_var, one_mul],
       rw [update_eq, h2.left, h2.right] },
-    { rw if_neg h2, 
+    { rw if_neg h2,
       simp only [val_sub, sub_subst],
       apply fun_mono_2;
       apply val_sub_subst (le_trans _ h1),
@@ -95,7 +95,7 @@ def is_diff (t s : preterm) (k : nat) : form :=
 lemma holds_is_diff {t s : preterm} {k : nat} {v : nat → nat} :
   v k = t.val v - s.val v → (is_diff t s k).holds v :=
 begin
-  intro h1, 
+  intro h1,
   simp only [form.holds, is_diff, if_pos (eq.refl 1),
     preterm.val_add, preterm.val_var, preterm.val_const],
   by_cases h2 : t.val v ≤ s.val v,
@@ -119,14 +119,14 @@ lemma sub_subst_equiv {k : nat} {x y : preterm} {v : nat → nat} :
     (update k (x.val v - y.val v) v) ↔ (p.holds v))
 | (t =* s) h1 :=
   begin
-    simp only [form.holds, form.sub_subst], 
+    simp only [form.holds, form.sub_subst],
     apply pred_mono_2;
     apply preterm.val_sub_subst (le_trans _ h1),
     apply le_max_left, apply le_max_right
   end
 | (t ≤* s) h1 :=
   begin
-    simp only [form.holds, form.sub_subst], 
+    simp only [form.holds, form.sub_subst],
     apply pred_mono_2;
     apply preterm.val_sub_subst (le_trans _ h1),
     apply le_max_left, apply le_max_right
@@ -135,14 +135,14 @@ lemma sub_subst_equiv {k : nat} {x y : preterm} {v : nat → nat} :
   by { apply not_iff_not_of_iff, apply sub_subst_equiv p h1 }
 | (p ∨* q) h1 :=
   begin
-    simp only [form.holds, form.sub_subst], 
+    simp only [form.holds, form.sub_subst],
     apply pred_mono_2; apply propext;
     apply sub_subst_equiv _ (le_trans _ h1),
     apply le_max_left, apply le_max_right
   end
 | (p ∧* q) h1 :=
   begin
-    simp only [form.holds, form.sub_subst], 
+    simp only [form.holds, form.sub_subst],
     apply pred_mono_2; apply propext;
     apply sub_subst_equiv _ (le_trans _ h1),
     apply le_max_left, apply le_max_right

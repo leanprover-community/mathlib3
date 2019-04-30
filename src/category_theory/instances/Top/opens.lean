@@ -2,6 +2,7 @@ import category_theory.instances.Top.basic
 import category_theory.natural_isomorphism
 import category_theory.opposites
 import category_theory.eq_to_hom
+import topology.opens
 
 open category_theory
 open category_theory.instances

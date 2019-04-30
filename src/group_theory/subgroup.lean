@@ -412,6 +412,7 @@ attribute [to_additive is_add_subgroup.mem_norm_comm_iff] is_subgroup.mem_norm_c
 /-- The trivial subgroup -/
 def trivial (α : Type*) [add_group α] : set α := {0}
 attribute [to_additive is_add_subgroup.trivial] is_subgroup.trivial
+attribute [to_additive is_add_subgroup.trivial.equations._eqn_1] is_subgroup.trivial.equations._eqn_1
 
 attribute [to_additive is_add_subgroup.mem_trivial] is_subgroup.mem_trivial
 
@@ -530,6 +531,7 @@ is_group_hom.preimage_normal f (trivial β)
 attribute [to_additive is_add_group_hom.normal_subgroup_ker] is_group_hom.normal_subgroup_ker
 attribute [to_additive is_add_group_hom.normal_subgroup_ker.equations._eqn_1] is_group_hom.normal_subgroup_ker.equations._eqn_1
 
+@[to_additive is_add_group_hom.inj_of_trivial_ker]
 lemma inj_of_trivial_ker (f : α → β) [is_group_hom f] (h : ker f = trivial α) :
   function.injective f :=
 begin
@@ -539,6 +541,7 @@ begin
   rw [eq_inv_of_mul_eq_one ha, inv_inv a₂]
 end
 
+@[to_additive is_add_group_hom.trivial_ker_of_inj]
 lemma trivial_ker_of_inj (f : α → β) [is_group_hom f] (h : function.injective f) :
   ker f = trivial α :=
 set.ext $ assume x, iff.intro
@@ -547,6 +550,7 @@ set.ext $ assume x, iff.intro
     by simp [map_one f]; rwa [mem_ker] at hx)
   (by simp [mem_ker, is_group_hom.map_one f] {contextual := tt})
 
+@[to_additive is_add_group_hom.inj_iff_trivial_ker]
 lemma inj_iff_trivial_ker (f : α → β) [is_group_hom f] :
   function.injective f ↔ ker f = trivial α :=
 ⟨trivial_ker_of_inj f, inj_of_trivial_ker f⟩

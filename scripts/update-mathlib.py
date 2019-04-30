@@ -20,7 +20,7 @@ if self_update:
     mathlib_url = 'https://raw.githubusercontent.com/leanprover-community/mathlib'
     branch  = 'master'
     installer_path = 'scripts/remote-install-update-mathlib.sh'
-    os.system(f"curl {mathlib_url}/{branch}/{installer_path} -sSf | sh")
+    os.system("curl {%s}/{%s}/{%s} -sSf | sh" % (mathlib_url,branch,installer_path))
 else:
     # find root of project and leanpkg.toml
     cwd = os.getcwd()

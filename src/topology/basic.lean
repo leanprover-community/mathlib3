@@ -10,7 +10,7 @@ Parts of the formalization is based on the books:
   I. M. James: Topologies and Uniformities
 A major difference is that this formalization is heavily based on the filter library.
 -/
-import order.filter data.set.countable tactic
+import order.filter
 
 open set filter lattice classical
 local attribute [instance] prop_decidable

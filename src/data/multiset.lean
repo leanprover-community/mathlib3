@@ -1690,6 +1690,91 @@ begin
   { assume a s ih, simp [ih, add_mul, mul_comm, mul_left_comm, mul_assoc, sum_map_mul_left.symm] },
 end
 
+/- powerset_len -/
+
+def powerset_len_aux (n : ℕ) (l : list α) : list (multiset α) :=
+sublists_len_aux n l coe []
+
+theorem powerset_len_aux_eq_map_coe {n} {l : list α} :
+  powerset_len_aux n l = (sublists_len n l).map coe :=
+by rw [powerset_len_aux, sublists_len_aux_eq, append_nil]
+
+@[simp] theorem mem_powerset_len_aux {n} {l : list α} {s} :
+  s ∈ powerset_len_aux n l ↔ s ≤ ↑l ∧ card s = n :=
+quotient.induction_on s $
+by simp [powerset_len_aux_eq_map_coe, subperm]; exact
+  λ l₁, ⟨λ ⟨l₂, ⟨s, e⟩, p⟩, ⟨⟨_, p, s⟩, (perm_length p.symm).trans e⟩,
+    λ ⟨⟨l₂, p, s⟩, e⟩, ⟨_, ⟨s, (perm_length p).trans e⟩, p⟩⟩
+
+@[simp] theorem powerset_len_aux_zero (l : list α) :
+  powerset_len_aux 0 l = [0] :=
+by simp [powerset_len_aux_eq_map_coe]
+
+@[simp] theorem powerset_len_aux_nil (n : ℕ) :
+  powerset_len_aux (n+1) (@nil α) = [] := rfl
+
+@[simp] theorem powerset_len_aux_cons (n : ℕ) (a : α) (l : list α) :
+  powerset_len_aux (n+1) (a::l) =
+  powerset_len_aux (n+1) l ++ list.map (cons a) (powerset_len_aux n l) :=
+by simp [powerset_len_aux_eq_map_coe]; refl
+
+theorem powerset_len_aux_perm {n} {l₁ l₂ : list α} (p : l₁ ~ l₂) :
+  powerset_len_aux n l₁ ~ powerset_len_aux n l₂ :=
+begin
+  induction n with n IHn generalizing l₁ l₂, {simp},
+  induction p with a l₁ l₂ p IH a b l l₁ l₂ l₃ p₁ p₂ IH₁ IH₂, {refl},
+  { simp, exact perm_app IH (perm_map _ (IHn p)) },
+  { simp, apply perm_app_right,
+    cases n, {simp, apply perm.swap},
+    simp,
+    rw [← append_assoc, ← append_assoc,
+        (by funext s; simp [cons_swap] : cons b ∘ cons a = cons a ∘ cons b)],
+    exact perm_app_left _ perm_app_comm },
+  { exact IH₁.trans IH₂ }
+end
+
+def powerset_len (n : ℕ) (s : multiset α) : multiset (multiset α) :=
+quot.lift_on s
+  (λ l, (powerset_len_aux n l : multiset (multiset α)))
+  (λ l₁ l₂ h, quot.sound (powerset_len_aux_perm h))
+
+theorem powerset_len_coe' (n) (l : list α) :
+  @powerset_len α n l = powerset_len_aux n l := rfl
+
+theorem powerset_len_coe (n) (l : list α) :
+  @powerset_len α n l = ((sublists_len n l).map coe : list (multiset α)) :=
+congr_arg coe powerset_len_aux_eq_map_coe
+
+@[simp] theorem powerset_len_zero_left (s : multiset α) :
+  powerset_len 0 s = 0::0 :=
+quotient.induction_on s $ λ l, by simp [powerset_len_coe']; refl
+
+@[simp] theorem powerset_len_zero_right (n : ℕ) :
+  @powerset_len α (n + 1) 0 = 0 := rfl
+
+@[simp] theorem powerset_len_cons (n : ℕ) (a : α) (s) :
+  powerset_len (n + 1) (a::s) =
+  powerset_len (n + 1) s + map (cons a) (powerset_len n s) :=
+quotient.induction_on s $ λ l, by simp [powerset_len_coe']; refl
+
+@[simp] theorem mem_powerset_len {n : ℕ} {s t : multiset α} :
+  s ∈ powerset_len n t ↔ s ≤ t ∧ card s = n :=
+quotient.induction_on t $ λ l, by simp [powerset_len_coe']
+
+@[simp] theorem card_powerset_len (n : ℕ) (s : multiset α) :
+  card (powerset_len n s) = nat.choose (card s) n :=
+quotient.induction_on s $ by simp [powerset_len_coe]
+
+theorem powerset_len_le_powerset (n : ℕ) (s : multiset α) :
+  powerset_len n s ≤ powerset s :=
+quotient.induction_on s $ λ l, by simp [powerset_len_coe]; exact
+  subperm_of_sublist (map_sublist_map _ (sublists_len_sublist_sublists' _ _))
+
+theorem powerset_len_mono (n : ℕ) {s t : multiset α} (h : s ≤ t) :
+  powerset_len n s ≤ powerset_len n t :=
+le_induction_on h $ λ l₁ l₂ h, by simp [powerset_len_coe]; exact
+  subperm_of_sublist (map_sublist_map _ (sublists_len_sublist_of_sublist _ h))
+
 /- countp -/
 
 /-- `countp p s` counts the number of elements of `s` (with multiplicity) that
@@ -2248,6 +2333,10 @@ nodup_of_le $ inter_le_right _ _
   λ x sx y sy e,
     (perm_ext_sublist_nodup h (mem_sublists'.1 sx) (mem_sublists'.1 sy)).1
       (quotient.exact e)⟩
+
+theorem nodup_powerset_len {n : ℕ} {s : multiset α}
+  (h : nodup s) : nodup (powerset_len n s) :=
+nodup_of_le (powerset_len_le_powerset _ _) (nodup_powerset.2 h)
 
 @[simp] lemma nodup_bind {s : multiset α} {t : α → multiset β} :
   nodup (bind s t) ↔ ((∀a∈s, nodup (t a)) ∧ (s.pairwise (λa b, disjoint (t a) (t b)))) :=

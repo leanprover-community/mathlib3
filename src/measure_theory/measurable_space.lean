@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Measurable spaces -- σ-algberas
 -/
-import data.set.disjointed data.finset order.galois_connection data.set.countable
+import data.set.disjointed order.galois_connection data.set.countable
 open set lattice encodable
 local attribute [instance] classical.prop_decidable
 

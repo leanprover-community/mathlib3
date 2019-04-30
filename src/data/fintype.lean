@@ -5,7 +5,7 @@ Author: Mario Carneiro
 
 Finite types.
 -/
-import data.finset algebra.big_operators data.array.lemmas data.vector2 data.equiv.encodable
+import data.finset algebra.big_operators data.array.lemmas
 universes u v
 
 variables {α : Type*} {β : Type*} {γ : Type*}

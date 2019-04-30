@@ -10,7 +10,7 @@ here that the uniform space completion of a metric space inherits a metric space
 by extending the distance to the completion and checking that it is indeed a distance, and that
 it defines the same uniformity as the already defined uniform structure on the completion
 -/
-import topology.uniform_space.completion topology.instances.real topology.metric_space.isometry
+import topology.uniform_space.completion topology.metric_space.isometry
 open lattice set filter uniform_space uniform_space.completion
 noncomputable theory
 

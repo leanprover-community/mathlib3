@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 Basic setup for measurable spaces.
 -/
 
-import category_theory.instances.topological_spaces
+import category_theory.instances.Top.basic
 import measure_theory.borel_space
 
 open category_theory

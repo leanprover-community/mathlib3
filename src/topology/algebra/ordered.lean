@@ -6,10 +6,9 @@ Authors: Johannes Hölzl, Mario Carneiro
 Theory of ordered topology.
 -/
 import order.liminf_limsup
-import algebra.big_operators algebra.group algebra.pi_instances
-import data.set.intervals data.equiv.algebra
+import data.set.intervals
 import topology.algebra.group
-import topology.constructions topology.uniform_space.uniform_embedding topology.uniform_space.separation
+import topology.constructions
 
 open classical set lattice filter topological_space
 local attribute [instance] classical.prop_decidable

@@ -6,8 +6,9 @@ Authors: Kenny Lau
 Multiplication of submodules of an algebra.
 -/
 
-import ring_theory.algebra algebra.pointwise ring_theory.ideals
+import ring_theory.algebra algebra.pointwise
 import tactic.chain
+import tactic.monotonicity.basic
 
 universes u v
 

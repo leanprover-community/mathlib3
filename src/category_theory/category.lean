@@ -18,9 +18,9 @@ import tactic.restate_axiom
 import tactic.interactive
 import tactic.tidy
 
-namespace category_theory
-
 universes v u  -- The order in this declaration matters: v often needs to be explicitly specified while u often can be omitted
+
+namespace category_theory
 
 /-
 The propositional fields of `category` are annotated with the auto_param `obviously`,
@@ -111,13 +111,6 @@ instance ulift_category : category.{v} (ulift.{u'} C) :=
 example (D : Type u) [small_category D] : large_category (ulift.{u+1} D) := by apply_instance
 end
 
-variables (α : Type u)
-
-instance [preorder α] : small_category α :=
-{ hom  := λ U V, ulift (plift (U ≤ V)),
-  id   := λ X, ⟨ ⟨ le_refl X ⟩ ⟩,
-  comp := λ X Y Z f g, ⟨ ⟨ le_trans f.down.down g.down.down ⟩ ⟩ }
-
 section
 variables {C : Type u}
 
@@ -135,3 +128,16 @@ by refine { .. End.has_one, .. End.has_mul, .. }; dsimp [has_mul.mul,has_one.one
 end
 
 end category_theory
+
+open category_theory
+
+namespace preorder
+
+variables (α : Type u)
+
+instance small_category [preorder α] : small_category α :=
+{ hom  := λ U V, ulift (plift (U ≤ V)),
+  id   := λ X, ⟨ ⟨ le_refl X ⟩ ⟩,
+  comp := λ X Y Z f g, ⟨ ⟨ le_trans _ _ _ f.down.down g.down.down ⟩ ⟩ }
+
+end preorder

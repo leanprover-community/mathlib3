@@ -54,7 +54,8 @@ if ! which pip3; then
     fi
 fi
 
-pip3 install $USER $PYTHON_DEPS || exit -1
+pip3 install --upgrade $USER setuptools || exit -1
+pip3 install --upgrade $USER $PYTHON_DEPS || exit -1
 echo "Fetching the update-mathlib script"
 curl -o update-mathlib.py https://raw.githubusercontent.com/leanprover-community/mathlib/$BRANCH/scripts/update-mathlib.py
 curl -o cache-olean.py https://raw.githubusercontent.com/leanprover-community/mathlib/$BRANCH/scripts/cache-olean.py

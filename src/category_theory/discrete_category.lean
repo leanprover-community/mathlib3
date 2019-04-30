@@ -3,8 +3,6 @@
 -- Authors: Stephen Morgan, Scott Morrison
 
 import data.ulift
-import category_theory.natural_transformation
-import category_theory.isomorphism
 import category_theory.functor_category
 
 namespace category_theory

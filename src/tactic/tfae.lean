@@ -8,7 +8,7 @@ Tactic for proving the equivalence of a set of proposition
 using various implications between them.
 -/
 
-import tactic.basic tactic.interactive data.list.basic
+import tactic.interactive data.list.basic
 import tactic.scc
 
 open expr tactic lean lean.parser

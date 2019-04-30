@@ -3,7 +3,8 @@
 -- Authors: Tim Baumann, Stephen Morgan, Scott Morrison
 
 import category_theory.functor_category
-import category_theory.whiskering
+import category_theory.isomorphism
+import tactic.simpa
 
 open category_theory
 

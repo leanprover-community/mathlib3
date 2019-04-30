@@ -7,7 +7,7 @@ The (classical) real numbers ℝ. This is a direct construction
 from Cauchy sequences.
 -/
 import order.conditionally_complete_lattice data.real.cau_seq_completion
-  algebra.big_operators algebra.archimedean order.bounds
+  algebra.archimedean order.bounds
 
 def real := @cau_seq.completion.Cauchy ℚ _ _ _ abs _
 notation `ℝ` := real

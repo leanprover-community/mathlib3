@@ -4,6 +4,7 @@
 
 import category_theory.functor_category
 import category_theory.fully_faithful
+import data.equiv.basic
 
 namespace category_theory
 
@@ -21,7 +22,7 @@ instance types : large_category (Sort u) :=
 namespace functor_to_types
 variables {C : Sort u} [𝒞 : category.{v} C] (F G H : C ⥤ Sort w) {X Y Z : C}
 include 𝒞
-variables (σ : F ⟹ G) (τ : G ⟹ H)
+variables (σ : F ⟶ G) (τ : G ⟶ H)
 
 @[simp] lemma map_comp (f : X ⟶ Y) (g : Y ⟶ Z) (a : F.obj X) : (F.map (f ≫ g)) a = (F.map g) ((F.map f) a) :=
 by simp
@@ -32,9 +33,9 @@ by simp
 lemma naturality (f : X ⟶ Y) (x : F.obj X) : σ.app Y ((F.map f) x) = (G.map f) (σ.app X x) :=
 congr_fun (σ.naturality f) x
 
-@[simp] lemma vcomp (x : F.obj X) : (σ ⊟ τ).app X x = τ.app X (σ.app X x) := rfl
+@[simp] lemma comp (x : F.obj X) : (σ ≫ τ).app X x = τ.app X (σ.app X x) := rfl
 
-variables {D : Sort u'} [𝒟 : category.{u'} D] (I J : D ⥤ C) (ρ : I ⟹ J) {W : D}
+variables {D : Sort u'} [𝒟 : category.{u'} D] (I J : D ⥤ C) (ρ : I ⟶ J) {W : D}
 
 @[simp] lemma hcomp (x : (I ⋙ F).obj W) : (ρ ◫ σ).app W x = (G.map (ρ.app W)) (σ.app (I.obj W) x) := rfl
 

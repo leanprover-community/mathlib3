@@ -382,7 +382,7 @@ instance : add_monoid (α →₀ β) :=
   add_zero  := assume ⟨s, f, hf⟩, ext $ assume a, add_zero _ }
 
 instance (a : α) : is_add_monoid_hom (λ g : α →₀ β, g a) :=
-by refine_struct {..}; simp
+{ map_add := λ _ _, add_apply, map_zero := zero_apply }
 
 lemma single_add_erase {a : α} {f : α →₀ β} : single a (f a) + f.erase a = f :=
 ext $ λ a',
@@ -608,15 +608,15 @@ variables
   (f : β₁ → β₂) [hf : is_add_monoid_hom f]
 
 instance is_add_monoid_hom_map_range :
-  is_add_monoid_hom (map_range f hf.1 : (α →₀ β₁) → (α →₀ β₂)) :=
-⟨map_range_zero, assume a b, map_range_add hf.2 _ _⟩
+  is_add_monoid_hom (map_range f hf.map_zero : (α →₀ β₁) → (α →₀ β₂)) :=
+{ map_zero := map_range_zero, map_add := λ a b, map_range_add hf.map_add _ _ }
 
 lemma map_range_multiset_sum (m : multiset (α →₀ β₁)) :
-  map_range f hf.1 m.sum = (m.map $ λx, map_range f hf.1 x).sum :=
-(m.sum_hom (map_range f hf.1)).symm
+  map_range f hf.map_zero m.sum = (m.map $ λx, map_range f hf.map_zero x).sum :=
+(m.sum_hom (map_range f hf.map_zero)).symm
 
 lemma map_range_finset_sum {ι : Type*} [decidable_eq ι] (s : finset ι) (g : ι → (α →₀ β₁))  :
-  map_range f hf.1 (s.sum g) = s.sum (λx, map_range f hf.1 (g x)) :=
+  map_range f hf.map_zero (s.sum g) = s.sum (λx, map_range f hf.map_zero (g x)) :=
 by rw [finset.sum.equations._eqn_1, map_range_multiset_sum, multiset.map_map]; refl
 
 end map_range
@@ -849,7 +849,7 @@ ext $ λ _, rfl
 
 instance subtype_domain.is_add_monoid_hom [add_monoid β] :
   is_add_monoid_hom (subtype_domain p : (α →₀ β) → subtype p →₀ β) :=
-by refine_struct {..}; simp
+{ map_add := λ _ _, subtype_domain_add, map_zero := subtype_domain_zero }
 
 @[simp] lemma filter_add {v v' : α →₀ β} :
   (v + v').filter p = v.filter p + v'.filter p :=
@@ -857,7 +857,7 @@ ext $ λ a, by by_cases p a; simp [h]
 
 instance filter.is_add_monoid_hom (p : α → Prop) [decidable_pred p] :
   is_add_monoid_hom (filter p : (α →₀ β) → (α →₀ β)) :=
-⟨filter_zero p, assume x y, filter_add⟩
+{ map_zero := filter_zero p, map_add := λ x y, filter_add }
 
 end monoid
 
@@ -909,7 +909,7 @@ lemma to_multiset_single (a : α) (n : ℕ) : to_multiset (single a n) = add_mon
 by rw [to_multiset, sum_single_index]; apply add_monoid.zero_smul
 
 instance is_add_monoid_hom.to_multiset : is_add_monoid_hom (to_multiset : _ → multiset α) :=
-⟨to_multiset_zero, to_multiset_add⟩
+{ map_zero := to_multiset_zero, map_add := to_multiset_add }
 
 lemma card_to_multiset (f : α →₀ ℕ) : f.to_multiset.card = f.sum (λa, id) :=
 begin

@@ -98,6 +98,8 @@ instance category.opposite : category.{v₁} Cᵒᵖ :=
 @[simp] lemma unop_comp {X Y Z : Cᵒᵖ} {f : X ⟶ Y} {g : Y ⟶ Z} :
   (f ≫ g).unop = g.unop ≫ f.unop := rfl
 @[simp] lemma unop_id {X : Cᵒᵖ} : (𝟙 X).unop = 𝟙 (unop X) := rfl
+@[simp] lemma unop_id_op {X : C} : (𝟙 (op X)).unop = 𝟙 X := rfl
+@[simp] lemma op_id_unop {X : Cᵒᵖ} : (𝟙 (unop X)).op = 𝟙 X := rfl
 
 def op_op : (Cᵒᵖ)ᵒᵖ ⥤ C :=
 { obj := λ X, unop (unop X),

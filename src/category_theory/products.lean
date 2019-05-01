@@ -112,7 +112,7 @@ include 𝒞 𝒟
   map := λ x y f, (x.2.map f.1) ≫ (f.2.app y.1),
   map_comp' := begin
     intros X Y Z f g, cases g, cases f, cases Z, cases Y, cases X, dsimp at *, simp at *,
-    erw [←nat_trans.vcomp_app, nat_trans.naturality, category.assoc, nat_trans.naturality]
+    erw [←functor.category.comp_app, nat_trans.naturality, category.assoc, nat_trans.naturality]
   end }
 
 end
@@ -139,13 +139,13 @@ end functor
 namespace nat_trans
 
 /-- The cartesian product of two natural transformations. -/
-def prod {F G : A ⥤ B} {H I : C ⥤ D} (α : F ⟹ G) (β : H ⟹ I) : F.prod H ⟹ G.prod I :=
+def prod {F G : A ⥤ B} {H I : C ⥤ D} (α : F ⟶ G) (β : H ⟶ I) : F.prod H ⟶ G.prod I :=
 { app         := λ X, (α.app X.1, β.app X.2),
   naturality' := begin /- `obviously'` says: -/ intros, cases f, cases Y, cases X, dsimp at *, simp, split, rw naturality, rw naturality end }
 
 /- Again, it is inadvisable in Lean 3 to setup a notation `α × β`; use instead `α.prod β` or `nat_trans.prod α β`. -/
 
-@[simp] lemma prod_app  {F G : A ⥤ B} {H I : C ⥤ D} (α : F ⟹ G) (β : H ⟹ I) (a : A) (c : C) :
+@[simp] lemma prod_app  {F G : A ⥤ B} {H I : C ⥤ D} (α : F ⟶ G) (β : H ⟶ I) (a : A) (c : C) :
   (nat_trans.prod α β).app (a, c) = (α.app a, β.app c) := rfl
 end nat_trans
 

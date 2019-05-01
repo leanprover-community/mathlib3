@@ -8,7 +8,6 @@ isomorphisms of C.
 -/
 
 import category_theory.groupoid
-import category_theory.equivalence
 import category_theory.whiskering
 
 namespace category_theory

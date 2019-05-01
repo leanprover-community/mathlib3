@@ -23,9 +23,9 @@ However if `C` and `D` are both large categories at the same universe level,
 this is a small category at the next higher level.
 -/
 instance functor.category : category.{(max u₁ v₂ 1)} (C ⥤ D) :=
-{ hom     := λ F G, F ⟹ G,
+{ hom     := λ F G, nat_trans F G,
   id      := λ F, nat_trans.id F,
-  comp    := λ _ _ _ α β, α ⊟ β }
+  comp    := λ _ _ _ α β, vcomp α β }
 
 variables {C D} {E : Sort u₃} [ℰ : category.{v₃} E]
 
@@ -33,9 +33,10 @@ namespace functor.category
 
 section
 
-@[simp] lemma id_app (F : C ⥤ D) (X : C) : (𝟙 F : F ⟹ F).app X = 𝟙 (F.obj X) := rfl
+@[simp] lemma id_app (F : C ⥤ D) (X : C) : (𝟙 F : F ⟶ F).app X = 𝟙 (F.obj X) := rfl
 @[simp] lemma comp_app {F G H : C ⥤ D} (α : F ⟶ G) (β : G ⟶ H) (X : C) :
   (α ≫ β).app X = α.app X ≫ β.app X := rfl
+
 end
 
 namespace nat_trans
@@ -45,11 +46,11 @@ namespace nat_trans
 
 include ℰ
 
-lemma app_naturality {F G : C ⥤ (D ⥤ E)} (T : F ⟹ G) (X : C) {Y Z : D} (f : Y ⟶ Z) :
+lemma app_naturality {F G : C ⥤ (D ⥤ E)} (T : F ⟶ G) (X : C) {Y Z : D} (f : Y ⟶ Z) :
   ((F.obj X).map f) ≫ ((T.app X).app Z) = ((T.app X).app Y) ≫ ((G.obj X).map f) :=
 (T.app X).naturality f
 
-lemma naturality_app {F G : C ⥤ (D ⥤ E)} (T : F ⟹ G) (Z : D) {X Y : C} (f : X ⟶ Y) :
+lemma naturality_app {F G : C ⥤ (D ⥤ E)} (T : F ⟶ G) (Z : D) {X Y : C} (f : X ⟶ Y) :
   ((F.map f).app Z) ≫ ((T.app Y).app Z) = ((T.app X).app Z) ≫ ((G.map f).app Z) :=
 congr_fun (congr_arg app (T.naturality f)) Z
 

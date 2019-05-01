@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Some big operators for lists and finite sets.
 -/
-import data.list.basic data.list.perm data.finset
+import tactic.tauto data.list.basic data.finset
 import algebra.group algebra.ordered_group algebra.group_power
 
 universes u v w

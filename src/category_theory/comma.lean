@@ -2,12 +2,8 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Scott Morrison, Johan Commelin
 
-import category_theory.types
 import category_theory.isomorphism
-import category_theory.whiskering
-import category_theory.opposites
 import category_theory.punit
-import category_theory.equivalence
 
 namespace category_theory
 

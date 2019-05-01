@@ -9,7 +9,7 @@ Classical versions are in the namespace "classical".
 Note: in the presence of automation, this whole file may be unnecessary. On the other hand,
 maybe it is useful for writing automation.
 -/
-import data.prod tactic.cache
+import tactic.cache
 
 /-
     miscellany
@@ -542,9 +542,9 @@ protected lemma not_not {p : Prop} : ¬¬p ↔ p := not_not
 
 protected lemma not_and_distrib {p q : Prop}: ¬(p ∧ q) ↔ ¬p ∨ ¬q := not_and_distrib
 
-protected lemma imp_iff_not_or {a b : Prop} : a → b ↔ ¬a ∨ b := imp_iff_not_or 
+protected lemma imp_iff_not_or {a b : Prop} : a → b ↔ ¬a ∨ b := imp_iff_not_or
 
-lemma iff_iff_not_or_and_or_not {a b : Prop} : (a ↔ b) ↔ ((¬a ∨ b) ∧ (a ∨ ¬b)) := 
+lemma iff_iff_not_or_and_or_not {a b : Prop} : (a ↔ b) ↔ ((¬a ∨ b) ∧ (a ∨ ¬b)) :=
 begin
   rw [iff_iff_implies_and_implies a b],
   simp only [imp_iff_not_or, or.comm]

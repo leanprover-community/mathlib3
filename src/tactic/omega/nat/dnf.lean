@@ -7,7 +7,7 @@ DNF transformation.
 -/
 
 import tactic.omega.clause
-import tactic.omega.nat.sub_elim
+import tactic.omega.nat.form
 
 namespace omega
 namespace nat

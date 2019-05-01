@@ -5,7 +5,7 @@ Author: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 
 Finite sets.
 -/
-import logic.embedding order.boolean_algebra algebra.order_functions
+import logic.embedding algebra.order_functions
   data.multiset data.sigma.basic data.set.lattice
 
 open multiset subtype nat lattice

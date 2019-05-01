@@ -4,6 +4,7 @@
 
 import category_theory.functor_category
 import category_theory.fully_faithful
+import data.equiv.basic
 
 namespace category_theory
 

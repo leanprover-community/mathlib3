@@ -21,7 +21,7 @@ generalizations:
 * Archimedean fields
 
 -/
-import logic.function topology.metric_space.basic topology.algebra.uniform_group
+import topology.metric_space.basic topology.algebra.uniform_group
        topology.algebra.ring tactic.linarith
 
 noncomputable theory

@@ -5,7 +5,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 
 Extra definitions on lists.
 -/
-import data.option.defs logic.basic logic.relator
+import data.option.defs logic.basic
 
 namespace list
 
@@ -233,7 +233,6 @@ def sublists_aux₁ : list α → (list α → list β) → list β
 
 section forall₂
 variables {r : α → β → Prop} {p : γ → δ → Prop}
-open relator
 
 inductive forall₂ (R : α → β → Prop) : list α → list β → Prop
 | nil {} : forall₂ [] []

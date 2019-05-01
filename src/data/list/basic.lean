@@ -6,11 +6,11 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 Basic properties of lists.
 -/
 import
-  tactic.interactive tactic.mk_iff_of_inductive_prop tactic.split_ifs
-  logic.basic logic.function logic.relation
+  tactic.interactive tactic.mk_iff_of_inductive_prop
+  logic.basic logic.function logic.relator
   algebra.group order.basic
   data.list.defs data.nat.basic data.option.basic
-  data.bool data.prod data.sigma data.fin
+  data.bool data.prod data.fin
 open function nat
 
 namespace list
@@ -855,6 +855,14 @@ theorem nth_le_reverse_aux1 : ∀ (l r : list α) (i h1 h2), nth_le (reverse_cor
 | []       r i := λh1 h2, rfl
 | (a :: l) r i := by rw (show i + length (a :: l) = i + 1 + length l, from add_right_comm i (length l) 1); exact
   λh1 h2, nth_le_reverse_aux1 l (a :: r) (i+1) h1 (succ_lt_succ h2)
+
+lemma index_of_inj [decidable_eq α] {l : list α} {x y : α}
+  (hx : x ∈ l) (hy : y ∈ l) : index_of x l = index_of y l ↔ x = y :=
+⟨λ h, have nth_le l (index_of x l) (index_of_lt_length.2 hx) =
+        nth_le l (index_of y l) (index_of_lt_length.2 hy),
+      by simp only [h],
+    by simpa only [index_of_nth_le],
+  λ h, by subst h⟩
 
 theorem nth_le_reverse_aux2 : ∀ (l r : list α) (i : nat) (h1) (h2),
   nth_le (reverse_core l r) (length l - 1 - i) h1 = nth_le l i h2
@@ -2381,7 +2389,7 @@ end
 
 section forall₂
 variables {r : α → β → Prop} {p : γ → δ → Prop}
-open relator relation
+open relator
 
 run_cmd tactic.mk_iff_of_inductive_prop `list.forall₂ `list.forall₂_iff
 

@@ -561,11 +561,6 @@ lemma trivial_ker_iff_eq_one (f : α → β) [is_group_hom f] :
 by rw set.ext_iff; simp [ker]; exact
 ⟨λ h x hx, (h x).1 hx, λ h x, ⟨h x, λ hx, by rw [hx, map_one f]⟩⟩
 
-@[to_additive is_add_group_hom.inj_iff_eq_zero]
-lemma inj_iff_eq_one (f : α → β) [is_group_hom f] :
-  function.injective f ↔ ∀ x, f x = 1 → x = 1 :=
-iff.trans (inj_iff_trivial_ker f) (trivial_ker_iff_eq_one f)
-
 end is_group_hom
 
 instance subtype_val.is_group_hom [group α] {s : set α} [is_subgroup s] :

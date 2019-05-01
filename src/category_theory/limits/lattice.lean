@@ -3,7 +3,7 @@
 -- Authors: Scott Morrison
 
 import category_theory.limits.limits
-import order.bounded_lattice
+import order.complete_lattice
 
 universes u
 

@@ -54,6 +54,19 @@ lemma tendsto_prod_mk_nhds {γ} {a : α} {b : β} {f : filter γ} {ma : γ → �
   tendsto (λc, (ma c, mb c)) f (nhds (a, b)) :=
 by rw [nhds_prod_eq]; exact filter.tendsto.prod_mk ha hb
 
+lemma continuous_at_within.prod {f : α → β} {g : α → γ} {s : set α} {x : α}
+  (hf : continuous_at_within f x s) (hg : continuous_at_within g x s) :
+  continuous_at_within (λx, (f x, g x)) x s :=
+tendsto_prod_mk_nhds hf hg
+
+lemma continuous_at.prod {f : α → β} {g : α → γ} {s : set α} {x : α}
+  (hf : continuous_at f x) (hg : continuous_at g x) : continuous_at (λx, (f x, g x)) x :=
+tendsto_prod_mk_nhds hf hg
+
+lemma continuous_on.prod {f : α → β} {g : α → γ} {s : set α}
+  (hf : continuous_on f s) (hg : continuous_on g s) : continuous_on (λx, (f x, g x)) s :=
+λx hx, continuous_at_within.prod (hf x hx) (hg x hx)
+
 lemma prod_generate_from_generate_from_eq {s : set (set α)} {t : set (set β)}
   (hs : ⋃₀ s = univ) (ht : ⋃₀ t = univ) :
   @prod.topological_space α β (generate_from s) (generate_from t) =
@@ -388,7 +401,7 @@ lemma continuous_subtype_mk {f : β → α}
   (hp : ∀x, p (f x)) (h : continuous f) : continuous (λx, (⟨f x, hp x⟩ : subtype p)) :=
 continuous_induced_rng h
 
-lemma continuous_inclusion {s t : set α} (h : s ⊆ t) : continuous (inclusion h) := 
+lemma continuous_inclusion {s t : set α} (h : s ⊆ t) : continuous (inclusion h) :=
 continuous_subtype_mk _ continuous_subtype_val
 
 lemma continuous_at_subtype_val [topological_space α] {p : α → Prop} {a : subtype p} :

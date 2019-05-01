@@ -596,7 +596,7 @@ theorem tendsto_nhds_within_iff_subtype {s : set α} {a : α} (h : a ∈ s) (f :
 by rw [tendsto, tendsto, function.restrict, nhds_within_eq_map_subtype_val h,
     ←(@filter.map_map _ _ _ _ subtype.val)]
 
-variables [tspace β]
+variables [tspace β] [tspace γ]
 
 theorem continuous_at_within_univ (f : α → β) (x : α) :
    continuous_at_within f x set.univ ↔ continuous_at f x :=
@@ -646,6 +646,93 @@ map_le_iff_le_comap.1 ctsf.tendsto_nhds_within_image
 theorem continuous_at_within_iff_ptendsto_res (f : α → β) {x : α} {s : set α} (xs : x ∈ s) :
   continuous_at_within f x s ↔ ptendsto (pfun.res f s) (nhds x) (nhds (f x)) :=
 tendsto_iff_ptendsto _ _ _ _
+
+def continuous_iff_continuous_on_univ {f : α → β} : continuous f ↔ continuous_on f univ :=
+by simp [continuous_iff_continuous_at, continuous_on, continuous_at, continuous_at_within,
+         nhds_within_univ]
+
+lemma continuous_at_within.mono {f : α → β} {s t : set α} {x : α} (h : continuous_at_within f x t)
+  (hs : s ⊆ t) : continuous_at_within f x s :=
+tendsto_le_left (nhds_within_mono x hs) h
+
+lemma continuous_on.congr_mono {f g : α → β} {s s₁ : set α} (h : continuous_on f s)
+  (h' : ∀x ∈ s₁, g x = f x) (h₁ : s₁ ⊆ s) : continuous_on g s₁ :=
+begin
+  assume x hx,
+  unfold continuous_at_within,
+  have A := (h x (h₁ hx)).mono h₁,
+  unfold continuous_at_within at A,
+  rw ← h' x hx at A,
+  have : {x : α | g x = f x} ∈ nhds_within x s₁ := mem_inf_sets_of_right h',
+  apply tendsto.congr' _ A,
+  convert this,
+  ext,
+  finish
+end
+
+lemma continuous_at.continuous_at_within {f : α → β} {s : set α} {x : α} (h : continuous_at f x) :
+  continuous_at_within f x s :=
+continuous_at_within.mono ((continuous_at_within_univ f x).2 h) (subset_univ _)
+
+lemma continuous_on.comp {f : α → β} {g : β → γ} {s : set α} {t : set β}
+  (hf : continuous_on f s) (hg : continuous_on g t) (h : f '' s ⊆ t) :
+  continuous_on (g ∘ f) s :=
+begin
+  assume x hx,
+  have : tendsto f (principal s) (principal t),
+    by { rw tendsto_principal_principal, exact λx hx, h (mem_image_of_mem _ hx) },
+  have : tendsto f (nhds_within x s) (principal t) :=
+    tendsto_le_left lattice.inf_le_right this,
+  have : tendsto f (nhds_within x s) (nhds_within (f x) t) :=
+    tendsto_inf.2 ⟨hf x hx, this⟩,
+  exact tendsto.comp this (hg _ (h (mem_image_of_mem _ hx)))
+end
+
+lemma continuous_on.mono {f : α → β} {s t : set α} (hf : continuous_on f s) (h : t ⊆ s)  :
+  continuous_on f t :=
+λx hx, tendsto_le_left (nhds_within_mono _ h) (hf x (h hx))
+
+lemma continuous.continuous_on {f : α → β} {s : set α} (h : continuous f) :
+  continuous_on f s :=
+begin
+  rw continuous_iff_continuous_on_univ at h,
+  exact h.mono (subset_univ _)
+end
+
+lemma continuous_on_const {s : set α} {c : β} : continuous_on (λx, c) s :=
+begin
+  apply continuous_on.mono _ (subset_univ _),
+  rw ← continuous_iff_continuous_on_univ,
+  exact continuous_const,
+end
+
+lemma continuous_on.preimage_open_of_open {f : α → β} {s : set α} {t : set β}
+  (hf : continuous_on f s) (hs : is_open s) (ht : is_open t) : is_open (s ∩ f⁻¹' t) :=
+begin
+  rcases continuous_on_iff'.1 hf t ht with ⟨u, hu⟩,
+  rw [inter_comm, hu.2],
+  apply is_open_inter hu.1 hs
+end
+
+lemma continuous_on.preimage_interior_subset_interior_preimage {f : α → β} {s : set α} {t : set β}
+  (hf : continuous_on f s) (hs : is_open s) : s ∩ f⁻¹' (interior t) ⊆ s ∩ interior (f⁻¹' t) :=
+calc s ∩ f ⁻¹' (interior t)
+     = interior (s ∩ f ⁻¹' (interior t)) :
+       (interior_eq_of_open (hf.preimage_open_of_open hs is_open_interior)).symm
+    ... ⊆ interior (s ∩ f ⁻¹' t) :
+        interior_mono (inter_subset_inter (subset.refl _) (preimage_mono interior_subset))
+    ... = s ∩ interior (f ⁻¹' t) :
+      by rw [interior_inter, interior_eq_of_open hs]
+
+lemma continuous_on_of_locally_continuous_on {f : α → β} {s : set α}
+  (h : ∀x∈s, ∃t, is_open t ∧ x ∈ t ∧ continuous_on f (s ∩ t)) : continuous_on f s :=
+begin
+  assume x xs,
+  rcases h x xs with ⟨t, open_t, xt, ct⟩,
+  have := ct x ⟨xs, xt⟩,
+  rwa [continuous_at_within, ← nhds_within_restrict _ xt open_t] at this
+end
+
 end topα
 
 end constructions

@@ -553,8 +553,8 @@ by rw [←submodule.ext'_iff, ker_eq]; exact is_add_group_hom.inj_iff_trivial_ke
 lemma ker_eq_bot_iff_eq_zero : ker f = ⊥ ↔ ∀ x, f x = 0 → x = 0 :=
 by rw [←submodule.ext'_iff, ker_eq]; exact is_add_group_hom.trivial_ker_iff_eq_zero f
 
-lemma inj_iff_eq_zero : function.injective f ↔ ∀ x, f x = 0 → x = 0 :=
-is_add_group_hom.inj_iff_eq_zero f
+lemma injective_iff : function.injective f ↔ ∀ x, f x = 0 → x = 0 :=
+is_add_group_hom.injective_iff f
 
 end is_ring_hom
 

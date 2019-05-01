@@ -2,7 +2,8 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Scott Morrison, Mario Carneiro
 
-import tactic
+import tactic.basic
+import tactic.ext
 import data.option.defs
 
 open interactive

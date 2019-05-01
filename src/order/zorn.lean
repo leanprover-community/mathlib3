@@ -7,7 +7,7 @@ Zorn's lemmas.
 
 Ported from Isabelle/HOL (written by Jacques D. Fleuriot, Tobias Nipkow, and Christian Sternagel).
 -/
-import data.set.lattice order.order_iso
+import data.set.lattice
 noncomputable theory
 
 universes u

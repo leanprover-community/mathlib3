@@ -4,7 +4,6 @@
 
 import category_theory.products
 import category_theory.types
-import category_theory.natural_isomorphism
 
 namespace category_theory
 

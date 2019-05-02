@@ -26,10 +26,6 @@ namespace functor
 { obj := F,
   map := λ X Y f, begin cases f, cases f, cases f, exact 𝟙 (F X) end }
 
-instance of_function_coe {α : Type u₁} {β : Type u₂} [category.{v₂} β] :
-  has_coe (α → β) (discrete α ⥤ β) :=
-{ coe := functor.of_function }
-
 end functor
 
 namespace nat_trans

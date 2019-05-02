@@ -601,6 +601,13 @@ do l ← local_context,
 
 run_cmd add_interactive [`injections_and_clear]
 
+/-- calls `cases` on every local hypothesis, succeeding if
+    it succeeds on at least one hypothesis. -/
+meta def case_bash : tactic unit :=
+do l ← local_context,
+   r ← successes (l.reverse.map (λ h, cases h >> skip)),
+   when (r.empty) failed
+
 meta def note_anon (e : expr) : tactic unit :=
 do n ← get_unused_name "lh",
    note n none e, skip

@@ -8,13 +8,6 @@ import category_theory.sparse
 
 open category_theory
 
-namespace tactic
-meta def case_bash : tactic unit :=
-do l ← local_context,
-   r ← successes (l.reverse.map (λ h, cases h >> skip)),
-   when (r.empty) failed
-end tactic
-
 namespace category_theory.limits
 
 universes v u
@@ -165,7 +158,7 @@ def mk {W : C} (π₁ : W ⟶ X) (π₂ : W ⟶ Y)
   { app := λ j, walking_cospan.cases_on j π₁ π₂ (π₁ ≫ f),
     naturality' := λ j j' f, by cases f; obviously } }
 
-def condition (t : pullback_cone f g) : (π₁ t) ≫ f = (π₂ t) ≫ g :=
+lemma condition (t : pullback_cone f g) : (π₁ t) ≫ f = (π₂ t) ≫ g :=
 begin
   erw [t.w inl, ← t.w inr], refl
 end
@@ -189,7 +182,7 @@ def mk {W : C} (ι₁ : Y ⟶ W) (ι₂ : Z ⟶ W)
   { app := λ j, walking_span.cases_on j (f ≫ ι₁) ι₁ ι₂,
     naturality' := λ j j' f, by cases f; obviously } }
 
-def condition (t : pushout_cocone f g) : f ≫ (ι₁ t) = g ≫ (ι₂ t) :=
+lemma condition (t : pushout_cocone f g) : f ≫ (ι₁ t) = g ≫ (ι₂ t) :=
 begin
   erw [t.w fst, ← t.w snd], refl
 end

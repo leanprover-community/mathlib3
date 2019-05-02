@@ -6,7 +6,6 @@ Authors: Kenny Lau
 Instances on punit.
 -/
 
-import order.basic
 import algebra.module algebra.group
 
 universes u

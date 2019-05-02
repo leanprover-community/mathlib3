@@ -8,7 +8,7 @@ the edistance (on metric spaces, these are exactly the maps that preserve distan
 and prove their basic properties. We also introduce isometric bijections.
 -/
 
-import topology.metric_space.basic topology.instances.real
+import topology.metric_space.basic
 topology.bounded_continuous_function analysis.normed_space.basic topology.opens
 
 noncomputable theory

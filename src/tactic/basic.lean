@@ -974,4 +974,17 @@ meta def clear_aux_decl_aux : list expr → tactic unit
 meta def clear_aux_decl : tactic unit :=
 local_context >>= clear_aux_decl_aux
 
+precedence `setup_tactic_parser`:0
+
+@[user_command]
+meta def setup_tactic_parser_cmd (_ : interactive.parse $ tk "setup_tactic_parser") : lean.parser unit :=
+emit_code_here "
+open lean
+open lean.parser
+open interactive interactive.types
+
+local postfix `?`:9001 := optional
+local postfix *:9001 := many .
+"
+
 end tactic

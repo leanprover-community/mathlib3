@@ -26,9 +26,8 @@ echo "Installing python dependencies $USER_MSG"
 if ! which pip3; then
     if which apt-get; then
         read -p "update-mathlib needs to install python3 and pip3. Proceed?" -n 1 -r </dev/tty
-        echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
-            sudo apt-get install python3 python3-pip
+            sudo apt-get -y install python3 python3-pip
         else
             exit -1
         fi

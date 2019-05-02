@@ -23,12 +23,15 @@ include 𝒞
 def pair (X Y : C) : discrete walking_pair ⥤ C :=
 functor.of_function (pair_function X Y)
 
+abbreviation binary_fan (X Y : C) := cone (pair X Y)
+abbreviation binary_cofan (X Y : C) := cocone (pair X Y)
+
 variables {X Y : C}
 
-def binary_fan {P : C} (π₁ : P ⟶ X) (π₂ : P ⟶ Y) : cone (pair X Y) :=
+def binary_fan.mk {P : C} (π₁ : P ⟶ X) (π₂ : P ⟶ Y) : binary_fan X Y :=
 { X := P,
   π := { app := λ j, walking_pair.cases_on j π₁ π₂ }}
-def binary_cofan {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) : cocone (pair X Y) :=
+def binary_cofan.mk {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) : binary_cofan X Y :=
 { X := P,
   ι := { app := λ j, walking_pair.cases_on j ι₁ ι₂ }}
 

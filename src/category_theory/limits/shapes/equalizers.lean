@@ -67,8 +67,8 @@ begin
   cases j; refl
 end
 
-def fork (f g : X ⟶ Y) := cone (parallel_pair f g)
-def cofork (f g : X ⟶ Y) := cocone (parallel_pair f g)
+abbreviation fork (f g : X ⟶ Y) := cone (parallel_pair f g)
+abbreviation cofork (f g : X ⟶ Y) := cocone (parallel_pair f g)
 
 variables {f g : X ⟶ Y}
 

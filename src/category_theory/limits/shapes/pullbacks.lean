@@ -142,7 +142,7 @@ variables {X Y Z : C}
 
 attribute [simp] walking_cospan.hom_id walking_span.hom_id
 
-def pullback_cone (f : X ⟶ Z) (g : Y ⟶ Z) := cone (cospan f g)
+abbreviation pullback_cone (f : X ⟶ Z) (g : Y ⟶ Z) := cone (cospan f g)
 
 namespace pullback_cone
 variables {f : X ⟶ Z} {g : Y ⟶ Z}
@@ -150,9 +150,7 @@ variables {f : X ⟶ Z} {g : Y ⟶ Z}
 def π₁ (t : pullback_cone f g) : t.X ⟶ X := t.π.app left
 def π₂ (t : pullback_cone f g) : t.X ⟶ Y := t.π.app right
 
-def mk {W : C} (π₁ : W ⟶ X) (π₂ : W ⟶ Y)
-  (eq : π₁ ≫ f = π₂ ≫ g) :
-  pullback_cone f g :=
+def mk {W : C} (π₁ : W ⟶ X) (π₂ : W ⟶ Y) (eq : π₁ ≫ f = π₂ ≫ g) : pullback_cone f g :=
 { X := W,
   π :=
   { app := λ j, walking_cospan.cases_on j π₁ π₂ (π₁ ≫ f),
@@ -165,7 +163,7 @@ end
 
 end pullback_cone
 
-def pushout_cocone (f : X ⟶ Y) (g : X ⟶ Z) := cocone (span f g)
+abbreviation pushout_cocone (f : X ⟶ Y) (g : X ⟶ Z) := cocone (span f g)
 
 namespace pushout_cocone
 
@@ -174,9 +172,7 @@ variables {f : X ⟶ Y} {g : X ⟶ Z}
 def ι₁ (t : pushout_cocone f g) : Y ⟶ t.X := t.ι.app left
 def ι₂ (t : pushout_cocone f g) : Z ⟶ t.X := t.ι.app right
 
-def mk {W : C} (ι₁ : Y ⟶ W) (ι₂ : Z ⟶ W)
-  (eq : f ≫ ι₁ = g ≫ ι₂) :
-  pushout_cocone f g :=
+def mk {W : C} (ι₁ : Y ⟶ W) (ι₂ : Z ⟶ W) (eq : f ≫ ι₁ = g ≫ ι₂) : pushout_cocone f g :=
 { X := W,
   ι :=
   { app := λ j, walking_span.cases_on j (f ≫ ι₁) ι₁ ι₂,

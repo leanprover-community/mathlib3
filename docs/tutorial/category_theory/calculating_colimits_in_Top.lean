@@ -27,11 +27,11 @@ def I_1 : pt ⟶ I :=
 
 def cylinder (X : Top) : Top := limit (pair X I)
 -- To define a map to the cylinder, we give a map to each factor.
--- `binary_fan` is a helper method for constructing a `cone` over `pair X Y`.
+-- `binary_fan.mk` is a helper method for constructing a `cone` over `pair X Y`.
 def cylinder_0 (X : Top) : X ⟶ cylinder X :=
-limit.lift (pair X I) (binary_fan (𝟙 X) (to_pt X ≫ I_0))
+limit.lift (pair X I) (binary_fan.mk (𝟙 X) (to_pt X ≫ I_0))
 def cylinder_1 (X : Top) : X ⟶ cylinder X :=
-limit.lift (pair X I) (binary_fan (𝟙 X) (to_pt X ≫ I_1))
+limit.lift (pair X I) (binary_fan.mk (𝟙 X) (to_pt X ≫ I_1))
 
 -- The mapping cylinder is the colimit of the diagram
 --    X
@@ -80,7 +80,7 @@ def d : discrete ℕ ⥤ Top := functor.of_function (λ n : ℕ, R)
 
 def Y : Top := limit d
 
-def w : cone d := fan.of_function (λ (n : ℕ), ⟨λ (_ : pt), (n : ℝ), continuous_const⟩)
+def w : cone d := fan.mk (λ (n : ℕ), ⟨λ (_ : pt), (n : ℝ), continuous_const⟩)
 
 def q : pt ⟶ Y :=
 limit.lift d w

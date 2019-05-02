@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 BRANCH=master
 USER="--user"
 USER_MSG="(at user level)"

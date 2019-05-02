@@ -1,8 +1,8 @@
-#! /bin/sh
+#! /bin/bash
 BRANCH=master
 USER="--user"
 USER_MSG="(at user level)"
-PYTHON_DEPS="toml PyGithub urllib3 certifi gitpython"
+PYTHON_DEPS="toml PyGithub certifi gitpython requests"
 
 for i in "$@"
 do
@@ -25,7 +25,7 @@ done
 echo "Installing python dependencies $USER_MSG"
 if ! which pip3; then
     if which apt-get; then
-        read -p "update-mathlib needs to install python3 and pip3. Proceed?" -n 1 -r
+        read -p "update-mathlib needs to install python3 and pip3. Proceed?" -n 1 -r </dev/tty
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             sudo apt-get install python3 python3-pip
@@ -33,7 +33,7 @@ if ! which pip3; then
             exit -1
         fi
     elif which brew; then
-        read -p "update-mathlib needs to install python3 and pip3. Proceed?" -n 1 -r
+        read -p "update-mathlib needs to install python3 and pip3. Proceed?" -n 1 -r </dev/tty
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             brew install python3
@@ -41,7 +41,7 @@ if ! which pip3; then
             exit -1
         fi
     elif which choco; then
-        read -p "update-mathlib needs to install python3 and pip3. Proceed?" -n 1 -r
+        read -p "update-mathlib needs to install python3 and pip3. Proceed?" -n 1 -r </dev/tty
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             choco install python
@@ -88,3 +88,4 @@ else
     ls $HOME/.profile
     echo "You should now run \"source $HOME/.profile\""
 fi
+

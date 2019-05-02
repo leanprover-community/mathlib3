@@ -351,6 +351,9 @@ by rw lt_def U; apply of_rel_of_rel₂
 lemma of_lt [preorder β] {x y : β} (U : is_ultrafilter φ) : x < y ↔ of x < (of y : β*) := 
 by rw lt_def U; exact of_rel₂ U.1
 
+lemma lift_id : lift id = (id : β* → β*) :=
+funext $ λ x, quotient.induction_on' x $ by apply λ a, quotient.sound (setoid.refl _)
+
 instance [ordered_comm_group β] (U : is_ultrafilter φ) : ordered_comm_group β* :=
 { add_le_add_left := λ x y hxy z, by revert hxy; exact quotient.induction_on₃' x y z 
     (λ a b c hab, by filter_upwards [hab] λ i hi, by simpa),

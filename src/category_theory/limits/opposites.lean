@@ -33,10 +33,9 @@ instance [has_colimit.{v} F.left_op] : has_limit.{v} F :=
       have u := (colimit.is_colimit F.left_op).uniq (cocone_left_op_of_cone s) (m.unop),
       convert congr_arg (λ f : _ ⟶ _, f.op) (u _), clear u,
       intro j,
-      dsimp,
+      rw [cocone_left_op_of_cone_ι_app, colimit.cocone_ι],
       convert congr_arg (λ f : _ ⟶ _, f.unop) (w (unop j)), clear w,
-      dsimp,
-      simp,
+      rw [cone_of_cocone_left_op_π_app, colimit.cocone_ι, has_hom.hom.unop_op],
       refl,
     end } }
 
@@ -60,10 +59,9 @@ instance [has_limit.{v} F.left_op] : has_colimit.{v} F :=
       have u := (limit.is_limit F.left_op).uniq (cone_left_op_of_cocone s) (m.unop),
       convert congr_arg (λ f : _ ⟶ _, f.op) (u _), clear u,
       intro j,
-      dsimp,
+      rw [cone_left_op_of_cocone_π_app, limit.cone_π],
       convert congr_arg (λ f : _ ⟶ _, f.unop) (w (unop j)), clear w,
-      dsimp,
-      simp,
+      rw [cocone_of_cone_left_op_ι_app, limit.cone_π, has_hom.hom.unop_op],
       refl,
     end } }
 

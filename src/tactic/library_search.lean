@@ -85,7 +85,7 @@ meta def apply_declaration (d : decl_data) : tactic unit :=
 do
    e ← mk_const d.n,
    -- It should be possible to avoid calling `infer_type` here,
-   -- which would result in a slight improvement in speed.
+   -- which would result in a slight improvement in speed. See #967
    t ← infer_type e,
    match d.m with
    | ex := apply_and_solve e

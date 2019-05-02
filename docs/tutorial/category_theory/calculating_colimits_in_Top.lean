@@ -77,10 +77,6 @@ universes v u w
 section Products
 
 def d : discrete ℕ ⥤ Top := functor.of_function (λ n : ℕ, R)
-/- (There is a coercion that lets us omit `functor.of_function`, but since you usually
-   need explicitly stated universes before Lean inserts the coercion correctly,
-   it's not really worth it: -/
--- def d' : discrete ℕ ⥤ Top.{0} := (λ n : ℕ, R)
 
 def Y : Top := limit d
 

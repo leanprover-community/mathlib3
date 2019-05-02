@@ -7,7 +7,6 @@ Authors: Patrick Massot, Johannes Hölzl
 -/
 
 import algebra.pi_instances
-import linear_algebra.basic
 import topology.instances.nnreal topology.instances.complex
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
@@ -502,15 +501,15 @@ noncomputable def normed_space.of_core (α : Type*) (β : Type*)
 
 end normed_space
 
-section has_sum
+section summable
 local attribute [instance] classical.prop_decidable
 open finset filter
 variables [normed_group α] [complete_space α]
 
-lemma has_sum_iff_vanishing_norm {f : ι → α} :
-  has_sum f ↔ ∀ε>0, (∃s:finset ι, ∀t, disjoint t s → ∥ t.sum f ∥ < ε) :=
+lemma summable_iff_vanishing_norm {f : ι → α} :
+  summable f ↔ ∀ε>0, (∃s:finset ι, ∀t, disjoint t s → ∥ t.sum f ∥ < ε) :=
 begin
-  simp only [has_sum_iff_vanishing, metric.mem_nhds_iff, exists_imp_distrib],
+  simp only [summable_iff_vanishing, metric.mem_nhds_iff, exists_imp_distrib],
   split,
   { assume h ε hε, refine h {x | ∥x∥ < ε} ε hε _, rw [ball_0_eq ε] },
   { assume h s ε hε hs,
@@ -520,27 +519,27 @@ begin
     exact ht u hu }
 end
 
-lemma has_sum_of_norm_bounded {f : ι → α} (g : ι → ℝ) (hf : has_sum g) (h : ∀i, ∥f i∥ ≤ g i) :
-  has_sum f :=
-has_sum_iff_vanishing_norm.2 $ assume ε hε,
-  let ⟨s, hs⟩ := has_sum_iff_vanishing_norm.1 hf ε hε in
+lemma summable_of_norm_bounded {f : ι → α} (g : ι → ℝ) (hf : summable g) (h : ∀i, ∥f i∥ ≤ g i) :
+  summable f :=
+summable_iff_vanishing_norm.2 $ assume ε hε,
+  let ⟨s, hs⟩ := summable_iff_vanishing_norm.1 hf ε hε in
   ⟨s, assume t ht,
     have ∥t.sum g∥ < ε := hs t ht,
     have nn : 0 ≤ t.sum g := finset.zero_le_sum (assume a _, le_trans (norm_nonneg _) (h a)),
     lt_of_le_of_lt (norm_triangle_sum t f) $ lt_of_le_of_lt (finset.sum_le_sum $ assume i _, h i) $
       by rwa [real.norm_eq_abs, abs_of_nonneg nn] at this⟩
 
-lemma has_sum_of_has_sum_norm {f : ι → α} (hf : has_sum (λa, ∥f a∥)) : has_sum f :=
-has_sum_of_norm_bounded _ hf (assume i, le_refl _)
+lemma summable_of_summable_norm {f : ι → α} (hf : summable (λa, ∥f a∥)) : summable f :=
+summable_of_norm_bounded _ hf (assume i, le_refl _)
 
-lemma norm_tsum_le_tsum_norm {f : ι → α} (hf : has_sum (λi, ∥f i∥)) : ∥(∑i, f i)∥ ≤ (∑ i, ∥f i∥) :=
+lemma norm_tsum_le_tsum_norm {f : ι → α} (hf : summable (λi, ∥f i∥)) : ∥(∑i, f i)∥ ≤ (∑ i, ∥f i∥) :=
 have h₁ : tendsto (λs:finset ι, ∥s.sum f∥) at_top (nhds ∥(∑ i, f i)∥) :=
-  (is_sum_tsum $ has_sum_of_has_sum_norm hf).comp (continuous_norm.tendsto _),
+  (has_sum_tsum $ summable_of_summable_norm hf).comp (continuous_norm.tendsto _),
 have h₂ : tendsto (λs:finset ι, s.sum (λi, ∥f i∥)) at_top (nhds (∑ i, ∥f i∥)) :=
-  is_sum_tsum hf,
+  has_sum_tsum hf,
 le_of_tendsto_of_tendsto at_top_ne_bot h₁ h₂ $ univ_mem_sets' $ assume s, norm_triangle_sum _ _
 
-end has_sum
+end summable
 
 namespace complex
 

@@ -4,7 +4,6 @@
 
 -- Preservation and reflection of (co)limits.
 
-import category_theory.whiskering
 import category_theory.limits.limits
 
 open category_theory

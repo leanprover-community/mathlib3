@@ -79,10 +79,10 @@ When you installed `elan`, it downloaded the latest stable release of Lean.
 That may be too recent or too old for mathlib, and you really want mathlib.
 
 1. Decide on a name for your package. We will use `my_playground`.
-2. Run `leanpkg +nightly new my_playground`.
+2. Run `leanpkg +3.4.2 new my_playground`.
    This will create a `my_playground` directory with a Lean project layout.
 3. Run `cd my_playground`.
-4. Run `leanpkg add leanprover/mathlib`.
+4. Run `leanpkg add leanprover-community/mathlib`.
    This will download mathlib and put it inside `my_playground/_target/deps/mathlib/`.
 
 That's it.

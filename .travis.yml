@@ -23,6 +23,10 @@ install:
   - source ~/.elan/env
   - mkdir $HOME/scripts || echo ""
   - export PATH="$HOME/scripts:$PATH"
+  - export OLEAN_RS=https://github.com/cipher1024/olean-rs/releases
+  - export latest=$(curl -sSf "$OLEAN_RS/latest" | cut -d'"' -f2 | awk -F/ '{print $NF}')
+  - curl -sSfL "$OLEAN_RS/download/$latest/olean-rs-linux" -o "$HOME/scripts/olean-rs"
+  - chmod +x $HOME/scripts/olean-rs
   - cp travis_long.sh $HOME/scripts/travis_long
   - chmod +x $HOME/scripts/travis_long
   - (git status | grep  -e "Changes not staged for commit:"); RESULT=$?
@@ -50,9 +54,14 @@ jobs:
         - travis_long "leanpkg test"
         - lean --recursive --export=mathlib.txt src/
         - travis_long "leanchecker mathlib.txt"
+        - cd src
+        - olean-rs -m
+        - make unused
+        - cd ..
         - sh scripts/deploy_nightly.sh
 
     - env: TASK="check install scripts"
+      if: type != pull_request OR head_repo = leanprover-community/mathlib
       language: python
       python:
         - "3.6"
@@ -67,6 +76,7 @@ jobs:
         - update-mathlib
 
     - env: TASK="check install scripts"
+      if: type != pull_request OR head_repo = leanprover-community/mathlib
       language: sh
       install:
         - if [ "$GITHUB_CRED" != "" ]; then git config --add github.oauthtoken $GITHUB_CRED; echo setting up GitHub credentials; else echo no GitHub credentials available; fi
@@ -79,10 +89,11 @@ jobs:
         - update-mathlib
 
     - env: TASK="check dev scripts"
+      if: type != pull_request OR head_repo = leanprover-community/mathlib
       sudo: true
       language: python
       python:
-        - "3.6"
+        - "3.4"
       install:
         - if [ "$GITHUB_CRED" != "" ]; then git config --add github.oauthtoken $GITHUB_CRED; echo setting up GitHub credentials; else echo no GitHub credentials available; fi
       os:
@@ -97,6 +108,7 @@ jobs:
         - cache-olean --fetch
 
     - env: TASK="check dev scripts"
+      if: type != pull_request OR head_repo = leanprover-community/mathlib
       language: sh
       install:
         - if [ "$GITHUB_CRED" != "" ]; then git config --add github.oauthtoken $GITHUB_CRED; echo setting up GitHub credentials; else echo no GitHub credentials available; fi

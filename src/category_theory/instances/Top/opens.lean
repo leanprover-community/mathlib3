@@ -1,6 +1,12 @@
+-- Copyright (c) 2019 Scott Morrison. All rights reserved.
+-- Released under Apache 2.0 license as described in the file LICENSE.
+-- Authors: Scott Morrison
+
 import category_theory.instances.Top.basic
+import category_theory.natural_isomorphism
 import category_theory.opposites
 import category_theory.eq_to_hom
+import topology.opens
 
 open category_theory
 open category_theory.instances
@@ -57,7 +63,7 @@ by simp
 @[simp] lemma op_map_comp_obj (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (map (f ≫ g)).op.obj U = (map f).op.obj ((map g).op.obj U) :=
 by simp
 
-def map_comp(f : X ⟶ Y) (g : Y ⟶ Z) : map (f ≫ g) ≅ map g ⋙ map f :=
+def map_comp (f : X ⟶ Y) (g : Y ⟶ Z) : map (f ≫ g) ≅ map g ⋙ map f :=
 { hom := { app := λ U, eq_to_hom (map_comp_obj f g U) },
   inv := { app := λ U, eq_to_hom (map_comp_obj f g U).symm } }
 

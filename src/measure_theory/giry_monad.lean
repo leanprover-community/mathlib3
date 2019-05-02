@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Giry monad: `measure` is a monad in the category of `measurable_space` and `measurable` functions.
 -/
-import measure_theory.integration data.sum
+import measure_theory.integration
 noncomputable theory
 local attribute [instance, priority 0] classical.prop_decidable
 

@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import group_theory.order_of_element data.nat.totient data.polynomial data.equiv.algebra
+import group_theory.order_of_element data.polynomial data.equiv.algebra
 
 universes u v
 variables {α : Type u} {β : Type v}

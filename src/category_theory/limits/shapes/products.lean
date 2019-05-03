@@ -5,11 +5,11 @@
 import category_theory.limits.cones
 import category_theory.discrete_category
 
+universes v u
+
 open category_theory
 
 namespace category_theory.limits
-
-universes v u
 
 variables {β : Type v}
 variables {C : Sort u} [𝒞 : category.{v+1} C]

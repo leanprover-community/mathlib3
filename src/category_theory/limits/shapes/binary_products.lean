@@ -2,7 +2,8 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Scott Morrison
 
-import category_theory.limits.shapes.products
+import category_theory.limits.cones
+import category_theory.discrete_category
 
 universes v u
 

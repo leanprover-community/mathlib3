@@ -3,6 +3,7 @@
 -- Authors: Scott Morrison
 
 import tactic.basic
+import tactic.decl_mk_const
 import data.list.defs
 
 /-
@@ -79,8 +80,7 @@ meta def apply_and_solve (e : expr) :=
 apply e >> (done <|> solve_by_elim { all_goals := tt })
 
 meta def apply_declaration (d : decl_data) : tactic unit :=
-do e ← mk_const d.n,
-   let t := d.d.type,
+do (e, t) ← decl_mk_const d.d,
    match d.m with
    | ex := apply_and_solve e
    | mp :=

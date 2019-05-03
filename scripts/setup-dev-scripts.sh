@@ -7,17 +7,20 @@ if [[ $1 = "--global" ]]; then
     USER=""
     USER_MSG="(globally)"
 fi
-
-if ! which pip3 > /dev/null; then
-    if which apt-get; then
-        read -p "update-mathlib needs to install python3 and pip3. Proceed?" -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            sudo apt-get install python3 python3-pip
-        else
-            exit -1
-        fi
-    elif which brew; then
+which apt-get > /dev/null
+USE_APT_GET=$?
+CMD_INSTALL="pip3 install $USER"
+PKG_CHECK="pip3 show"
+if $USE_APT_GET; then
+    CMD_INSTALL="sudo apt-get install"
+    OLD_PYTHON_DEPS=$PYTHON_DEPS
+    PYTHON_DEPS=
+    for dep in $PYTHON_DEPS; do
+        PYTHON_DEPS=$PYTHON_DEPS python3-$dep
+    done
+    PKG_CHECK="apt-cache policy"
+elif ! which pip3 > /dev/null; then
+    if which brew; then
         read -p "update-mathlib needs to install python3 and pip3. Proceed?" -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -41,7 +44,7 @@ fi
 
 PYTHON_DEPS_AVAILABLE=0
 for dep in $PYTHON_DEPS ; do
-	if ! pip3 show $dep > /dev/null ; then
+	if ! $PKG_CHECK $dep > /dev/null ; then
 		PYTHON_DEPS_AVAILABLE=1
 	fi
 done
@@ -52,7 +55,7 @@ SCRIPTS_ON_PATH=$?
 
 echo "This script will:"
 if [[ $PYTHON_DEPS_AVAILABLE -ne 0 ]]; then
-	echo "* use 'pip3 install $USER' to install required python dependencies"
+	echo "* use '$CMD_INSTALL' to install required python dependencies"
 fi
 echo "* copy the mathlib dev scripts to ~/.mathlib/bin"
 echo "* copy the mathlib git hooks to ~/.mathlib/hooks"
@@ -67,7 +70,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]
 then
 	if [[ $PYTHON_DEPS_AVAILABLE -ne 0 ]]; then
 		echo "... Installing python dependencies $USER_MSG"
-		pip3 install $USER $PYTHON_DEPS
+		$CMD_INSTALL $PYTHON_DEPS
 	else
 		echo "... Python dependencies already available"
 	fi
@@ -82,6 +85,9 @@ then
 	cp update-mathlib.py       $HOME/.mathlib/bin/update-mathlib
 	cp cache-olean.py          $HOME/.mathlib/bin/cache-olean
 	cp setup-lean-git-hooks.sh $HOME/.mathlib/bin/setup-lean-git-hooks
+        chmod +x $HOME/.mathlib/bin/update-mathlib
+        chmod +x $HOME/.mathlib/bin/cache-olean
+        chmod +x $HOME/.mathlib/bin/setup-lean-git-hooks
 	cp post-commit   $HOME/.mathlib/hooks/
 	cp post-checkout $HOME/.mathlib/hooks/
 	if [[ $SCRIPTS_ON_PATH -eq 0 ]]

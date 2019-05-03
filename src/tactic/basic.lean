@@ -529,7 +529,9 @@ open nat
 
 meta def solve_by_elim_aux (discharger : tactic unit) (asms : tactic (list expr))  : ℕ → tactic unit
 | 0 := done
-| (succ n) := discharger <|> (apply_assumption asms $ solve_by_elim_aux n)
+| (succ n) := done <|>
+              (discharger >> solve_by_elim_aux n) <|>
+              (apply_assumption asms $ solve_by_elim_aux n)
 
 meta structure by_elim_opt :=
   (all_goals : bool := ff)
@@ -600,6 +602,13 @@ do l ← local_context,
    when (results.empty) (fail "could not use `injection` then `clear` on any hypothesis")
 
 run_cmd add_interactive [`injections_and_clear]
+
+/-- calls `cases` on every local hypothesis, succeeding if
+    it succeeds on at least one hypothesis. -/
+meta def case_bash : tactic unit :=
+do l ← local_context,
+   r ← successes (l.reverse.map (λ h, cases h >> skip)),
+   when (r.empty) failed
 
 meta def note_anon (e : expr) : tactic unit :=
 do n ← get_unused_name "lh",
@@ -971,5 +980,18 @@ meta def clear_aux_decl_aux : list expr → tactic unit
 
 meta def clear_aux_decl : tactic unit :=
 local_context >>= clear_aux_decl_aux
+
+precedence `setup_tactic_parser`:0
+
+@[user_command]
+meta def setup_tactic_parser_cmd (_ : interactive.parse $ tk "setup_tactic_parser") : lean.parser unit :=
+emit_code_here "
+open lean
+open lean.parser
+open interactive interactive.types
+
+local postfix `?`:9001 := optional
+local postfix *:9001 := many .
+"
 
 end tactic

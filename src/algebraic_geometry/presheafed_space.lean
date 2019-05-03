@@ -91,7 +91,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace.{v} C) :=
     { op_induction U,
       cases U,
       dsimp,
-      simp,
+      simp only [category.assoc],
       erw [category_theory.functor.map_id],
       simp, },
     { simp }
@@ -102,7 +102,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace.{v} C) :=
     { op_induction U,
       cases U,
       dsimp,
-      simp,
+      simp only [category.assoc],
       erw [category_theory.functor.map_id],
       simp, },
     { refl }
@@ -173,7 +173,7 @@ def on_presheaf {F G : C ⥤ D} (α : F ⟶ G) : G.map_presheaf ⟶ F.map_preshe
     { op_induction U,
       cases U,
       dsimp,
-      simp,
+      simp only [functor.map_id, category.id_comp, category.comp_id, category.assoc],
       erw category_theory.functor.map_id,
       erw category_theory.functor.map_id,
       simp only [category.comp_id],

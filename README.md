@@ -2,10 +2,10 @@
 
 [![Build Status](https://travis-ci.org/leanprover-community/mathlib.svg?branch=master)](https://travis-ci.org/leanprover-community/mathlib)
 [![Mergify Status][mergify-status]][mergify]
+[![Build status](https://ci.appveyor.com/api/projects/status/y0dfsknx5h4iq7pj/branch/master?svg=true)](https://ci.appveyor.com/project/cipher1024/mathlib/branch/master)
 
 [mergify]: https://mergify.io
 [mergify-status]: https://gh.mergify.io/badges/leanprover-community/mathlib.png?style=cut
-[![Build status](https://ci.appveyor.com/api/projects/status/y0dfsknx5h4iq7pj/branch/master?svg=true)](https://ci.appveyor.com/project/cipher1024/mathlib/branch/master)
 
 ## Lean standard library
 

@@ -2,51 +2,28 @@
 
 This document explains how to get started with Lean and mathlib if you
 are using a Linux distribution derived from Debian (Debian itself,
-Ubuntu, LMDE,...). All commands below should be typed inside a terminal.
-This document has three parts: installing Lean, creating a new project,
-and working on an existing project.
+Ubuntu, LMDE,...). This document has three parts: installing Lean,
+creating a new project, and working on an existing project.
 
-If you get stuck, please come to [the chat room](https://leanprover.zulipchat.com/) to ask for
-assistance.
+If you get stuck, please come to [the chat room](https://leanprover.zulipchat.com/) to ask for assistance.
 
-## Installing Lean
+## Installing Lean and mathlib
 
-* Lean itself doesn't depend on much infrastructure, but supporting tools
-  needed by most users require `git`, `curl`, and `python`. So the first step is:
-  ```bash
-  sudo apt install git curl python3 python3-pip
-  ```
+Here we will discuss the fast way, assuming a lot of trust from you.
+If you don't like that, there is a 
+[detailed webpage](install_debian_details.md) which will decompose the
+process into described stages, and won't ask for a blind `sudo`. 
 
-* You will also new a code editor that has a Lean plugin. The
-  recommended choice for is [Visual Studio Code](https://code.visualstudio.com/).
-  The alternative is to use Emacs, see https://github.com/leanprover/lean-mode.
-  ```bash
-  curl https://go.microsoft.com/fwlink/?LinkID=760868
-  sudo apt install ./code_*.deb
-  code --install-extension jroesch.lean
-  ```
-  Everything else will be installed in user-space (no sudo required).
-
-* The next step installs a small tool called `elan` which will handle
-  updating Lean according to the need of your current project (hit Enter
-  when a question is asked). It will live in `$HOME/.elan` and add a
-  line to `$HOME/.profile`.
-  ```bash
-  curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh
-  ```
-
-* Then we install a small tool called `update-mathlib` that which will handle
-  updating mathlib according to the need of your current project.
-  It will live in `$HOME/.mathlib` and add a line to `$HOME/.profile`.
-  ```bash
-  curl https://raw.githubusercontent.com/leanprover-community/mathlib/master/scripts/remote-install-update-mathlib.sh -sSf | bash
-  ```
+The fast way is: open a terminal and type:
+```bash
+wget -q https://raw.githubusercontent.com/leanprover-community/mathlib/master/scripts/install_debian.sh && bash install_debian.sh ; rm -f install_debian.sh && source ~/.profile
+```
 
 ## Creating a Lean project
 
 Lean files are organized in projects called packages. The tool `leanpkg`
 manages project creation and dependencies. We will now create a new
-project depending on mathlib. The following commands should be type in a
+project depending on mathlib. The following commands should be typed in a
 terminal.
 
 * If you have not logged in since you installed Lean and mathlib, then
@@ -67,9 +44,8 @@ terminal.
 * On the main screen, or in the File menu, click "Open folder", and
   choose the folder `my_project` (*not* one of its subfolders).
 
-* Your Lean code should now be put inside files with extension `.lean`
-  living in `my_project/src/` or a subfolder thereof.
-
+* Your Lean code should now be put inside files with extension `.lean` living in `my_project/src/` or a subfolder thereof. In the file explorer on the left-hand side of VScode, you can right-click on `src`, choose `New file`, and type a filename to create a file there.
+ 
 If you want to make sure everything is working, you can start my
 creating, say `my_project/src/test.lean` containing:
 ```lean
@@ -84,12 +60,13 @@ should display a "Lean messages" area saying:
 If, for some reason, you happen to loose the "Lean messages" area, you
 can get it back with "Ctrl-Shift-Enter". Also, you can get the Lean
 documentation inside VScode using "Ctrl-Shift-p" and then, inside the
-text field that appeared, type "lean doc" and hit Enter.
+text field that appeared, type "lean doc" and hit Enter. Then click
+"Theorem proving in Lean" and enjoy.
 
 ## Working on an existing package
 
 Suppose you want to work on an existing project.
-As example, we will take [Perfectoid spaces](https://github.com/leanprover-community/lean-perfectoid-spaces).
+As example, we will take [Perfectoid spaces](https://github.com/leanprover-community/lean-perfectoid-spaces). Open a terminal.
 
 * If you have not logged in since you installed Lean and mathlib, then
   you need to first type `source ~/.profile`. 
@@ -98,7 +75,10 @@ As example, we will take [Perfectoid spaces](https://github.com/leanprover-commu
 
 * Run `git clone https://github.com/leanprover-community/lean-perfectoid-spaces.git`.
 
-* This gives you a directory named `lean-perfectoid-spaces`. Enter it.
+* This creates a directory named `lean-perfectoid-spaces`. Enter it
+  with `cd lean-perfectoid-spaces`.
+
+* Type `leanpkg configure` to get `leanpkg` ready for use in this project.
 
 * Type `update-mathlib` to get mathlib ready for use in this project.
 

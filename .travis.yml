@@ -54,10 +54,6 @@ jobs:
         - travis_long "leanpkg test"
         - lean --recursive --export=mathlib.txt src/
         - travis_long "leanchecker mathlib.txt"
-        - cd src
-        - olean-rs -m
-        - make unused
-        - cd ..
         - sh scripts/deploy_nightly.sh
 
     - env: TASK="check install scripts"

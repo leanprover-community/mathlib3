@@ -1,7 +1,7 @@
 -- Copyright (c) 2019 Scott Morrison. All rights reserved.
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Scott Morrison
-import algebraic_geometry.presheaf
+import category_theory.instances.Top.presheaf
 
 universes v u
 
@@ -19,12 +19,12 @@ structure PresheafedSpace :=
 (X : Top.{v})
 (𝒪 : X.presheaf C)
 
-instance : has_coe_to_sort (PresheafedSpace.{v} C) :=
-{ S := Type v, coe := λ F, F.X.α }
-
 variables {C}
 
 namespace PresheafedSpace
+
+instance : has_coe_to_sort (PresheafedSpace.{v} C) :=
+{ S := Type v, coe := λ F, F.X.α }
 
 instance (F : PresheafedSpace.{v} C) : topological_space F := F.X.str
 

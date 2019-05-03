@@ -28,8 +28,6 @@ def continuous_functions (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) : CommRing.{v
   str := _root_.continuous_comm_ring } -- but infer_instance doesn't work?
 
 namespace continuous_functions
--- FIXME why do we have to state these about monoid.one and comm_ring.add, instead
--- of using notation
 @[simp] def one (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (x) :
   (monoid.one ↥(continuous_functions X R)).val x = 1 :=
 rfl
@@ -54,9 +52,11 @@ def map (X : Topᵒᵖ) {R S : TopCommRing} (φ : R ⟶ S) :
   continuous_functions X R ⟶ continuous_functions X S :=
 { val := λ g, g ≫ (TopCommRing.forget_to_Top.map φ),
   property :=
-  { map_one := begin ext1, ext1, dsimp, simp, exact φ.2.1.map_one end,
-    map_add := λ x y, begin ext1, ext1, dsimp, simp, apply φ.2.1.map_add end,
-    map_mul := λ x y, begin ext1, ext1, dsimp, simp, apply φ.2.1.map_mul end } }
+  { map_one := begin ext1, ext1, simp only [one], exact φ.2.1.map_one end,
+    map_add := λ x y,
+    begin ext1, ext1, simp only [function.comp_app, add], apply φ.2.1.map_add end,
+    map_mul := λ x y,
+    begin ext1, ext1, simp only [function.comp_app, mul], apply φ.2.1.map_mul end } }
 end continuous_functions
 
 local attribute [extensionality] subtype.eq

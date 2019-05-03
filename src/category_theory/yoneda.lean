@@ -161,7 +161,8 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
     erw [←functor_to_types.naturality,
          obj_map_id,
          functor_to_types.naturality,
-         functor_to_types.map_id], refl,
+         functor_to_types.map_id],
+    refl,
   end,
   inv_hom_id' :=
   begin

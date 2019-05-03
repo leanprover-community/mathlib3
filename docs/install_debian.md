@@ -9,8 +9,12 @@ If you get stuck, please come to [the chat room](https://leanprover.zulipchat.co
 
 ## Installing Lean and mathlib
 
-Here we will discuss the fast way, assuming a lot of trust from you.
-If you don't like that, there is a 
+Here we will discuss the fast way, assuming a lot of trust from you. It
+will install Lean, with supporting tools `elan` and `leanpkg`,
+the supporting tool `update-mathlib` for Lean's mathematical
+library, as well as the code editor VScode and its Lean plugin, and
+other dependencies you probably already have, like `curl`, `git`,
+`python3`, and `pip3`. If you don't like this method, there is a 
 [detailed webpage](install_debian_details.md) which will decompose the
 process into described stages, and won't ask for a blind `sudo`. 
 
@@ -46,7 +50,7 @@ terminal.
 
 * Your Lean code should now be put inside files with extension `.lean` living in `my_project/src/` or a subfolder thereof. In the file explorer on the left-hand side of VScode, you can right-click on `src`, choose `New file`, and type a filename to create a file there.
  
-If you want to make sure everything is working, you can start my
+If you want to make sure everything is working, you can start by
 creating, say `my_project/src/test.lean` containing:
 ```lean
 import topology.basic

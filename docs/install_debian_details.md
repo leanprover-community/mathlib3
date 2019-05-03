@@ -1,4 +1,4 @@
-# Contolled installation of Lean and mathlib on Debian/Ubuntu
+# Controlled installation of Lean and mathlib on Debian/Ubuntu
 
 This document explains a more controlled installation procedure 
 for Lean and mathlib on Linux distributions derived from Debian (Debian itself,
@@ -17,7 +17,7 @@ All commands below should be typed inside a terminal.
   ```
 
 * You will also new a code editor that has a Lean plugin. The
-  recommended choice for is [Visual Studio Code](https://code.visualstudio.com/).
+  recommended choice is [Visual Studio Code](https://code.visualstudio.com/).
   The alternative is to use Emacs, and its [lean-mode](https://github.com/leanprover/lean-mode).
   ```bash
   wget -O code.deb https://go.microsoft.com/fwlink/?LinkID=760868
@@ -28,7 +28,7 @@ All commands below should be typed inside a terminal.
   Everything else will be installed in user-space (no sudo required).
 
 * The next step installs a small tool called `elan` which will handle
-  updating Lean according to the need of your current project (hit Enter
+  updating Lean according to the needs of your current project (hit Enter
   when a question is asked). It will live in `$HOME/.elan` and add a
   line to `$HOME/.profile`.
   ```bash
@@ -36,7 +36,7 @@ All commands below should be typed inside a terminal.
   ```
 
 * Then we install a small tool called `update-mathlib` that which will handle
-  updating mathlib according to the need of your current project.
+  updating mathlib according to the needs of your current project.
   It will live in `$HOME/.mathlib` and add a line to `$HOME/.profile`.
   ```bash
   curl https://raw.githubusercontent.com/leanprover-community/mathlib/master/scripts/remote-install-update-mathlib.sh -sSf | bash

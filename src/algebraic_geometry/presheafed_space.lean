@@ -25,7 +25,7 @@ variables {C}
 
 namespace PresheafedSpace
 
-instance underlying_space (F : PresheafedSpace.{v} C) : topological_space F := F.X.str
+instance (F : PresheafedSpace.{v} C) : topological_space F := F.X.str
 
 structure hom (F G : PresheafedSpace.{v} C) :=
 (f : F.X ⟶ G.X)

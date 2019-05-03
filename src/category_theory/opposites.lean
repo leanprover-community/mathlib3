@@ -6,9 +6,9 @@ import category_theory.products
 import category_theory.types
 import category_theory.natural_isomorphism
 
-namespace category_theory
-
 universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+
+namespace category_theory
 
 /-- The type of objects of the opposite of C (which should be a category).
 
@@ -45,9 +45,6 @@ def unop (X : Cᵒᵖ) : C := X
 
 attribute [irreducible] opposite
 
-def op_induction {F : Π (X : Cᵒᵖ), Sort v₁} (h : Π X, F (op X)) : Π X, F X :=
-λ X, h (unop X)
-
 @[simp] lemma unop_op (X : C) : unop (op X) = X := rfl
 @[simp] lemma op_unop (X : Cᵒᵖ) : op (unop X) = X := rfl
 
@@ -55,6 +52,31 @@ lemma op_inj : function.injective (@op C) :=
 by { rintros _ _ ⟨ ⟩, refl }
 lemma unop_inj : function.injective (@unop C) :=
 by { rintros _ _ ⟨ ⟩, refl }
+
+def op_induction {F : Π (X : Cᵒᵖ), Sort v₁} (h : Π X, F (op X)) : Π X, F X :=
+λ X, h (unop X)
+
+end category_theory
+
+namespace tactic.interactive
+
+open interactive
+open interactive.types
+open lean.parser
+open tactic
+
+meta def op_induction (h : parse ident) : tactic unit :=
+do h' ← tactic.get_local h,
+   revert_lst [h'],
+   applyc `category_theory.op_induction,
+   tactic.intro h,
+   skip
+
+end tactic.interactive
+
+namespace category_theory
+
+variables {C : Sort u₁}
 
 section has_hom
 

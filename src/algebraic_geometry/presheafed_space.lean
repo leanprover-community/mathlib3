@@ -7,16 +7,30 @@ universes v u
 
 open category_theory
 open category_theory.instances
+open category_theory.instances.Top
 open topological_space
 
 variables (C : Type u) [𝒞 : category.{v+1} C]
 include 𝒞
 
+namespace category_theory
+universes v' u'
+variables (D : Type u') [𝒟 : category.{v'+1} D]
+include 𝒟
+@[simp] lemma comp_map_id {X : D} {Y : C} (F : C ⥤ D) (f : X ⟶ F.obj Y) : f ≫ F.map (𝟙 Y) = f :=
+by simp
+@[simp] lemma comp_map_id_assoc {X : D} {Y : C} {Z : D} (F : C ⥤ D) (f : X ⟶ F.obj Y) (g : F.obj Y ⟶ Z) : f ≫ F.map (𝟙 Y) ≫ g = f ≫ g :=
+by simp
+@[simp] lemma map_id_comp {X : C} {Y : D} (F : C ⥤ D) (f : F.obj X ⟶ Y) : F.map (𝟙 X) ≫ f = f :=
+by simp
+
+end category_theory
+
 namespace algebraic_geometry
 
 structure PresheafedSpace :=
 (X : Top.{v})
-(𝒪 : presheaf_on_space C X)
+(𝒪 : X.presheaf C)
 
 instance : has_coe_to_sort (PresheafedSpace.{v} C) :=
 { S := Type v, coe := λ F, F.X.α }
@@ -29,7 +43,7 @@ instance (F : PresheafedSpace.{v} C) : topological_space F := F.X.str
 
 structure hom (F G : PresheafedSpace.{v} C) :=
 (f : F.X ⟶ G.X)
-(c : G.𝒪 ⟶ F.𝒪.pushforward f)
+(c : G.𝒪 ⟶ f _* F.𝒪)
 
 @[extensionality] lemma ext {F G : PresheafedSpace.{v} C} (α β : hom F G)
   (w : α.f = β.f) (h : α.c ≫ (whisker_right (nat_trans.op (opens.map_iso _ _ w).inv) F.𝒪) = β.c) :
@@ -37,14 +51,14 @@ structure hom (F G : PresheafedSpace.{v} C) :=
 begin
   cases α, cases β,
   dsimp at w,
-  dsimp [presheaf_on_space.pushforward] at *,
+  dsimp [presheaf.pushforward] at *,
   tidy, -- TODO including `injections` would make tidy work earlier.
 end
 .
 
 def id (F : PresheafedSpace.{v} C) : hom F F :=
 { f := 𝟙 F.X,
-  c := ((functor.id_comp _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id _).hom) _) }
+  c := ((functor.left_unitor _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id _).hom) _) }
 
 def comp (F G H : PresheafedSpace.{v} C) (α : hom F G) (β : hom G H) : hom F H :=
 { f := α.f ≫ β.f,
@@ -53,7 +67,7 @@ def comp (F G H : PresheafedSpace.{v} C) (α : hom F G) (β : hom G H) : hom F H
 variables (C)
 
 section
-local attribute [simp] id comp presheaf_on_space.pushforward
+local attribute [simp] id comp presheaf.pushforward
 
 instance category_of_PresheafedSpaces : category (PresheafedSpace.{v} C) :=
 { hom  := hom,
@@ -65,25 +79,33 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace.{v} C) :=
   comp_id' := λ X Y f,
   begin
     ext U,
-    { revert U,
-      apply op_induction,
-      tidy },
+    { op_induction U,
+      cases U,
+      dsimp,
+      simp, },
     { simp }
   end,
   id_comp' := λ X Y f,
   begin
     ext U,
-    { tidy,
-      erw category_theory.functor.map_id,
-      simp },
+    { op_induction U,
+      cases U,
+      dsimp,
+      simp,
+      erw [category_theory.functor.map_id],
+      simp, },
     { simp }
   end,
   assoc' := λ W X Y Z f g h,
   begin
-    tidy,
-    erw category_theory.functor.map_id,
-    simp,
-    refl,
+    ext U,
+    { op_induction U,
+      cases U,
+      dsimp,
+      simp,
+      erw [category_theory.functor.map_id],
+      simp, },
+    { refl }
   end }
 end
 .
@@ -97,7 +119,8 @@ rfl
 
 -- We don't mark these as simp lemmas, because the innards are pretty unsightly.
 lemma id_c (F : PresheafedSpace.{v} C) :
-  ((𝟙 F) : F ⟶ F).c = (((functor.id_comp _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id _).hom) _)) :=
+  ((𝟙 F) : F ⟶ F).c =
+  (((functor.left_unitor _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id _).hom) _)) :=
 rfl
 lemma comp_c {F G H : PresheafedSpace.{v} C} (α : F ⟶ G) (β : G ⟶ H) :
   (α ≫ β).c = (β.c ≫ (whisker_left (opens.map β.f).op α.c)) :=
@@ -114,7 +137,7 @@ namespace category_theory
 variables {D : Type u} [𝒟 : category.{v+1} D]
 include 𝒟
 
-local attribute [simp] PresheafedSpace.id_c PresheafedSpace.comp_c presheaf_on_space.pushforward
+local attribute [simp] PresheafedSpace.id_c PresheafedSpace.comp_c presheaf.pushforward
 
 namespace functor
 
@@ -142,21 +165,18 @@ namespace nat_trans
 def on_presheaf {F G : C ⥤ D} (α : F ⟶ G) : G.map_presheaf ⟶ F.map_presheaf :=
 { app := λ X,
   { f := 𝟙 _,
-    c := whisker_left X.𝒪 α ≫ ((functor.id_comp _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id _).hom) _) },
+    c := whisker_left X.𝒪 α ≫ ((functor.left_unitor _).inv) ≫
+           (whisker_right (nat_trans.op (opens.map_id _).hom) _) },
   naturality' := λ X Y f,
   begin
     ext U,
-    { dsimp [opposite] at U,
-      cases U, -- it would be nice to do without this
+    { op_induction U,
+      cases U,
       dsimp,
       simp,
       erw category_theory.functor.map_id,
       erw category_theory.functor.map_id,
-      erw category_theory.functor.map_id,
-      erw category_theory.functor.map_id,
-      erw category.comp_id,
-      erw category.comp_id,
-      simp,
+      simp only [category.comp_id],
       exact (α.naturality _).symm, },
     { refl, }
   end }.

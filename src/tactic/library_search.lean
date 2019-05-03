@@ -77,7 +77,10 @@ do env ← get_env,
    return $ env.decl_filter_map (process_declaration hs)
 
 meta def apply_and_solve (e : expr) :=
-apply e >> (done <|> solve_by_elim { all_goals := tt })
+apply e >>
+(done <|>
+ solve_by_elim
+ { all_goals := tt })
 
 meta def apply_declaration (d : decl_data) : tactic unit :=
 do (e, t) ← decl_mk_const d.d,
@@ -90,10 +93,10 @@ do (e, t) ← decl_mk_const d.d,
       do l ← iff_mpr_core e t,
          apply_and_solve l
    | both :=
-      do l ← iff_mp_core e t,
-         apply_and_solve l <|>
-         do l ← iff_mpr_core e t,
-            apply_and_solve l
+      (do l ← iff_mp_core e t,
+         apply_and_solve l) <|>
+      (do l ← iff_mpr_core e t,
+         apply_and_solve l)
    end
 
 end library_search

@@ -2,7 +2,8 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Scott Morrison
 
-import category_theory.limits.shapes.pullbacks
+import category_theory.eq_to_hom
+import category_theory.limits.cones
 
 open category_theory
 

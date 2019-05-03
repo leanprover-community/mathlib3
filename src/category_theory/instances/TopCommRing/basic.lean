@@ -13,7 +13,7 @@ open category_theory
 namespace category_theory.instances
 
 structure TopCommRing :=
-{α : Type u}
+(α : Type u)
 [is_comm_ring : comm_ring α]
 [is_topological_space : topological_space α]
 [is_topological_ring : topological_ring α]
@@ -37,12 +37,12 @@ instance TopCommRing_category : category TopCommRing :=
 
 namespace TopCommRing
 
-noncomputable def rational : TopCommRing :=
-{ α := ℚ }
-noncomputable def real : TopCommRing :=
-{ α := ℝ }
-noncomputable def complex : TopCommRing :=
-{ α := ℂ }
+def of (X : Type u) [comm_ring X] [topological_space X] [topological_ring X] : TopCommRing :=
+{ α := X }
+
+noncomputable example : TopCommRing := TopCommRing.of ℚ
+noncomputable example : TopCommRing := TopCommRing.of ℝ
+noncomputable example : TopCommRing := TopCommRing.of ℂ
 
 /-- The forgetful functor to CommRing. -/
 def forget_to_CommRing : TopCommRing ⥤ CommRing :=

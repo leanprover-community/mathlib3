@@ -41,6 +41,8 @@ instance : category CommRing :=
 namespace CommRing
 variables {R S T : CommRing.{u}}
 
+def of (α : Type u) [comm_ring α] : CommRing := ⟨α, by apply_instance⟩
+
 @[simp] lemma id_val : subtype.val (𝟙 R) = id := rfl
 @[simp] lemma comp_val (f : R ⟶ S) (g : S ⟶ T) :
   (f ≫ g).val = g.val ∘ f.val := rfl

@@ -1,4 +1,4 @@
-import algebraic_geometry.presheaf
+import category_theory.instances.Top.presheaf
 import category_theory.instances.TopCommRing.basic
 import category_theory.yoneda
 import group_theory.submonoid
@@ -13,19 +13,14 @@ open topological_space
 
 open category_theory
 open category_theory.instances
-open algebraic_geometry
 open topological_space
 
-namespace algebraic_geometry.presheaf_on_space
+namespace category_theory.instances.Top
 
 variables (X : Top.{v})
 
-def presheaf_of_functions_to (T : Top.{v}) : presheaf_on_space (Type v) X :=
+def continuous_presheaf (T : Top.{v}) : X.presheaf (Type v) :=
 (opens.to_Top X).op ⋙ (yoneda.obj T)
-
-instance continuous_comm_ring {α : Type u} {β : Type v} [topological_space α] [topological_space β]
-  [comm_ring β] [topological_ring β] : comm_ring { f : α → β | continuous f } :=
-@subtype.comm_ring _ _ _ (continuous_subring α β) -- infer_instance doesn't work?!
 
 def continuous_functions (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) : CommRing.{v} :=
 { α := (unop X) ⟶ (TopCommRing.forget_to_Top.obj R),
@@ -67,17 +62,16 @@ def CommRing_yoneda : TopCommRing ⥤ (Topᵒᵖ ⥤ CommRing) :=
   { app := λ X, continuous_functions.map X φ } }
 
 def presheaf_of_functions_to_TopCommRing (T : TopCommRing.{v}) :
-  presheaf_on_space CommRing.{v} X :=
+  X.presheaf CommRing.{v} :=
 (opens.to_Top X).op ⋙ (CommRing_yoneda.obj T)
 
+noncomputable def presheaf_of_rational_functions (Y : Top.{0}) : Y.presheaf CommRing :=
+presheaf_of_functions_to_TopCommRing Y (TopCommRing.of ℚ)
 
-noncomputable def presheaf_of_rational_functions (Y : Top.{0}) : presheaf_on_space CommRing Y :=
-presheaf_of_functions_to_TopCommRing Y TopCommRing.rational
+noncomputable def presheaf_of_real_functions (Y : Top) : Y.presheaf CommRing :=
+presheaf_of_functions_to_TopCommRing Y (TopCommRing.of ℝ)
 
-noncomputable def presheaf_of_real_functions (Y : Top) : presheaf_on_space CommRing Y :=
-presheaf_of_functions_to_TopCommRing Y TopCommRing.real
-
-noncomputable def presheaf_of_complex_functions (Y : Top) : presheaf_on_space CommRing Y :=
-presheaf_of_functions_to_TopCommRing Y TopCommRing.complex
+noncomputable def presheaf_of_complex_functions (Y : Top) : Y.presheaf CommRing :=
+presheaf_of_functions_to_TopCommRing Y (TopCommRing.of ℂ)
 
 end algebraic_geometry.presheaf_on_space

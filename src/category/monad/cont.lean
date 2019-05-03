@@ -8,7 +8,7 @@ Haskell's `Cont`, `ContT` and `MonadCont`:
 http://hackage.haskell.org/package/mtl-2.2.2/docs/Control-Monad-Cont.html
 -/
 
-import tactic.interactive
+import tactic.ext
 
 universes u v w
 

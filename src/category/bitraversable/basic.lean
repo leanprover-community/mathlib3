@@ -6,8 +6,7 @@ Author: Simon Hudon
 Functors with two arguments
 -/
 
-import data.sum
-       category.basic category.functor
+import category.functor
        category.bifunctor
        category.traversable.basic
        tactic.basic

@@ -16,7 +16,8 @@ somehow well-behaved on non-measurable sets.
 This allows us for the `lebesgue` measure space to have the `borel` measurable space, but still be
 a complete measure.
 -/
-import data.set order.galois_connection topology.instances.ennreal
+import data.set.lattice data.set.finite
+import topology.instances.ennreal
        measure_theory.outer_measure
 
 noncomputable theory

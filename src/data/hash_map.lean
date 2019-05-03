@@ -4,6 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.list.basic data.pnat data.array.lemmas
+   logic.basic algebra.group
+   data.list.defs data.nat.basic data.option.basic
+   data.bool data.prod
+import tactic.finish data.sigma.basic
 
 universes u v w
 

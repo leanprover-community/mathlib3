@@ -10,7 +10,6 @@ Copied from monoids.lean.
 
 import algebra.punit_instances
 import category_theory.concrete_category
-import category_theory.fully_faithful
 
 universes u v
 

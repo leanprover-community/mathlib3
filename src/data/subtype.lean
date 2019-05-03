@@ -5,6 +5,7 @@ Author: Johannes Hölzl
 -/
 
 -- Lean complains if this section is turned into a namespace
+open function
 section subtype
 variables {α : Sort*} {p : α → Prop}
 
@@ -30,8 +31,31 @@ lemma ext {a1 a2 : {x // p x}} : a1 = a2 ↔ a1.val = a2.val :=
 lemma coe_ext {a1 a2 : {x // p x}} : a1 = a2 ↔ (a1 : α) = a2 :=
 ext
 
-theorem val_injective : function.injective (@val _ p) :=
+theorem val_injective : injective (@val _ p) :=
 λ a b, subtype.eq'
+
+/- Restrict a (dependent) function to a subtype -/
+def restrict {α} {β : α → Type*} (f : ∀x, β x) (p : α → Prop) (x : subtype p) : β x.1 :=
+f x.1
+
+lemma restrict_apply {α} {β : α → Type*} (f : ∀x, β x) (p : α → Prop) (x : subtype p) :
+  restrict f p x = f x.1 :=
+by refl
+
+lemma restrict_def {α β} (f : α → β) (p : α → Prop) : restrict f p = f ∘ subtype.val :=
+by refl
+
+lemma restrict_injective {α β} {f : α → β} (p : α → Prop) (h : injective f) :
+  injective (restrict f p) :=
+injective_comp h subtype.val_injective
+
+/-- Defining a map into a subtype, this can be seen as an "coinduction principle" of `subtype`-/
+def coind {α β} (f : α → β) {p : β → Prop} (h : ∀a, p (f a)) : α → subtype p :=
+λ a, ⟨f a, h a⟩
+
+theorem coind_injective {α β} {f : α → β} {p : β → Prop} (h : ∀a, p (f a))
+  (hf : injective f) : injective (coind f h) :=
+λ x y hxy, hf $ by apply congr_arg subtype.val hxy
 
 /-- Restriction of a function to a function on subtypes. -/
 def map {p : α → Prop} {q : β → Prop} (f : α → β) (h : ∀a, p a → q (f a)) :
@@ -45,6 +69,10 @@ rfl
 
 theorem map_id {p : α → Prop} {h : ∀a, p a → p (id a)} : map (@id α) h = id :=
 funext $ assume ⟨v, h⟩, rfl
+
+lemma map_injective {p : α → Prop} {q : β → Prop} {f : α → β} (h : ∀a, p a → q (f a))
+  (hf : injective f) : injective (map f h) :=
+coind_injective _ $ injective_comp hf val_injective
 
 instance [has_equiv α] (p : α → Prop) : has_equiv (subtype p) :=
 ⟨λ s t, s.val ≈ t.val⟩

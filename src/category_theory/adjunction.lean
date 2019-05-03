@@ -6,7 +6,6 @@ Authors: Reid Barton, Johan Commelin
 
 import category_theory.limits.preserves
 import category_theory.whiskering
-import category_theory.equivalence
 
 namespace category_theory
 open category

@@ -11,7 +11,7 @@ a^n is used for the first, but users can locally redefine it to gpow when needed
 
 Note: power adopts the convention that 0^0=1.
 -/
-import algebra.char_zero algebra.group algebra.ordered_field
+import algebra.group
 import data.int.basic data.list.basic
 
 universes u v
@@ -370,12 +370,7 @@ theorem map_smul (a : α) (n : ℕ) : f (n • a) = n • f a :=
 is_add_monoid_hom.map_smul f a n
 
 theorem map_gsmul (a : α) (n : ℤ) : f (gsmul n a) = gsmul n (f a) :=
-begin
-  induction n using int.induction_on with z ih z ih,
-  { simp [is_add_group_hom.map_zero f] },
-  { simp [is_add_group_hom.map_add f, add_gsmul, ih] },
-  { simp [is_add_group_hom.map_add f, is_add_group_hom.map_neg f, add_gsmul, ih] }
-end
+@is_group_hom.map_gpow (multiplicative α) (multiplicative β) _ _ f _ a n
 
 end is_add_group_hom
 

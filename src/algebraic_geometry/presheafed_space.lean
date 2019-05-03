@@ -13,19 +13,6 @@ open topological_space
 variables (C : Type u) [𝒞 : category.{v+1} C]
 include 𝒞
 
-namespace category_theory
-universes v' u'
-variables (D : Type u') [𝒟 : category.{v'+1} D]
-include 𝒟
-@[simp] lemma comp_map_id {X : D} {Y : C} (F : C ⥤ D) (f : X ⟶ F.obj Y) : f ≫ F.map (𝟙 Y) = f :=
-by simp
-@[simp] lemma comp_map_id_assoc {X : D} {Y : C} {Z : D} (F : C ⥤ D) (f : X ⟶ F.obj Y) (g : F.obj Y ⟶ Z) : f ≫ F.map (𝟙 Y) ≫ g = f ≫ g :=
-by simp
-@[simp] lemma map_id_comp {X : C} {Y : D} (F : C ⥤ D) (f : F.obj X ⟶ Y) : F.map (𝟙 X) ≫ f = f :=
-by simp
-
-end category_theory
-
 namespace algebraic_geometry
 
 structure PresheafedSpace :=

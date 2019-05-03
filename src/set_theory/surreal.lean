@@ -1,10 +1,31 @@
+/-
+Copyright (c) 2019 Mario Carneiro. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Mario Carneiro
+
+The basic theory of surreal numbers.
+-/
 import tactic.interactive data.nat.cast
 
+/-- The type of pre-surreal numbers, before we have quotiented
+  by extensionality. In ZFC, a surreal number is constructed from
+  two sets of surreal numbers that have been constructed at an earlier
+  stage. To do this in type theory, we say that a pre-surreal is built
+  inductively from two families of pre-surreals indexed over any type
+  in Type u. The resulting type `pSurreal.{u}` lives in `Type (u+1)`,
+  reflecting that it is a proper class in ZFC. -/
 inductive {u} pSurreal : Type (u+1)
 | mk : ∀ α β : Type u, (α → pSurreal) → (β → pSurreal) → pSurreal
 
 namespace pSurreal
 
+/-- Define simultaneously by mutual induction the `<=` and `<`
+  relation on surreals. The ZFC definition says that `x = {xL | xR}`
+  is less or equal to `y = {yL | yR}` if `∀ x₁ ∈ xL, x₁ < y`
+  and `∀ y₂ ∈ yR, x < y₂`, where `x < y` is the same as `¬ y <= x`.
+  This is a tricky induction because it only decreases one side at
+  a time, and it also swaps the arguments in the definition of `<`.
+  So we define `x < y` and `x <= y` simultaneously. -/
 def le_lt (x y : pSurreal) : Prop × Prop :=
 begin
   induction x with xl xr xL xR IHxl IHxr generalizing y,
@@ -17,11 +38,13 @@ end
 instance : has_le pSurreal := ⟨λ x y, (le_lt x y).1⟩
 instance : has_lt pSurreal := ⟨λ x y, (le_lt x y).2⟩
 
+/-- Definition of `x ≤ y` on pre-surreals. -/
 @[simp] theorem mk_le_mk {xl xr xL xR yl yr yL yR} :
   (⟨xl, xr, xL, xR⟩ : pSurreal) ≤ ⟨yl, yr, yL, yR⟩ ↔
   (∀ i, xL i < ⟨yl, yr, yL, yR⟩) ∧
   (∀ i, (⟨xl, xr, xL, xR⟩ : pSurreal) < yR i) := iff.rfl
 
+/-- Definition of `x < y` on pre-surreals. -/
 @[simp] theorem mk_lt_mk {xl xr xL xR yl yr yL yR} :
   (⟨xl, xr, xL, xR⟩ : pSurreal) < ⟨yl, yr, yL, yR⟩ ↔
   (∃ i, xR i ≤ ⟨yl, yr, yL, yR⟩) ∨
@@ -66,6 +89,9 @@ not_lt.2 (le_refl _)
 theorem ne_of_lt : ∀ {x y : pSurreal}, x < y → x ≠ y
 | x _ h rfl := lt_irrefl x h
 
+/-- A pre-surreal is valid (wikipedia calls this "numeric") if
+  everything in the L set is less than everything in the R set,
+  and all the elements of L and R are also valid. -/
 def ok : pSurreal → Prop
 | ⟨l, r, L, R⟩ :=
   (∀ i j, L i < R j) ∧ (∀ i, ok (L i)) ∧ (∀ i, ok (R i))
@@ -125,6 +151,8 @@ theorem lt_iff_le_not_le {x y : pSurreal}
   (ox : ok x) (oy : ok y) : x < y ↔ x ≤ y ∧ ¬ y ≤ x :=
 ⟨λ h, ⟨le_of_lt ox oy h, not_le.2 h⟩, λ h, not_le.1 h.2⟩
 
+/-- Define the equivalence relation on pre-surreals. Two pre-surreals
+  `x`, `y` are equivalent if `x ≤ y` and `y ≤ x`. -/
 def equiv (x y : pSurreal) : Prop := x ≤ y ∧ y ≤ x
 
 theorem equiv_refl (x) : equiv x x := ⟨le_refl _, le_refl _⟩
@@ -139,15 +167,20 @@ theorem le_congr {x₁ y₁ x₂ y₂} : equiv x₁ x₂ → equiv y₁ y₂ →
 theorem lt_congr {x₁ y₁ x₂ y₂} (hx : equiv x₁ x₂) (hy : equiv y₁ y₂) : x₁ < y₁ ↔ x₂ < y₂ :=
 not_le.symm.trans $ (not_congr (le_congr hy hx)).trans not_le
 
+/-- The pre-surreal zero is defined by `0 = { | }`. -/
 instance : has_zero pSurreal := ⟨⟨pempty, pempty, pempty.elim, pempty.elim⟩⟩
 
+/-- The pre-surreal one is defined by `1 = { 0 | }`. -/
 instance : has_one pSurreal := ⟨⟨punit, pempty, λ _, 0, pempty.elim⟩⟩
 
+/-- The negation of `{L | R}` is `{-R | -L}`. -/
 def neg : pSurreal → pSurreal
 | ⟨l, r, L, R⟩ := ⟨r, l, λ i, neg (R i), λ i, neg (L i)⟩
 
 instance : has_neg pSurreal := ⟨neg⟩
 
+/-- The sum of `x = {xL | xR}` and `y = {yL | yR}` is
+  `{xL + y, x + yL | xR + y, x + yR}`. -/
 def add (x y : pSurreal) : pSurreal :=
 begin
   induction x with xl xr xL xR IHxl IHxr generalizing y,
@@ -164,6 +197,9 @@ instance : has_add pSurreal := ⟨add⟩
 
 instance : has_sub pSurreal := ⟨λ x y, x + -y⟩
 
+/-- The product of `x = {xL | xR}` and `y = {yL | yR}` is
+  `{xL*y + x*yL - xL*yL, xR*y + x*yR - xR*yR |
+    xL*y + x*yR - xL*yR, x*yL + xR*y - xR*yL }`. -/
 def mul (x y : pSurreal) : pSurreal :=
 begin
   induction x with xl xr xL xR IHxl IHxr generalizing y,
@@ -178,6 +214,9 @@ end
 
 instance : has_mul pSurreal := ⟨mul⟩
 
+/-- Because the two halves of the definition of inv produce more elements
+  of each side, we have to define the two families inductively.
+  This is the indexing set for the function, and `inv_val` is the function part. -/
 inductive {u} inv_ty (l r : Type u) : bool → Type u
 | zero {} : inv_ty ff
 | left₁ : r → inv_ty ff → inv_ty ff
@@ -185,6 +224,9 @@ inductive {u} inv_ty (l r : Type u) : bool → Type u
 | right₁ : l → inv_ty ff → inv_ty tt
 | right₂ : r → inv_ty tt → inv_ty tt
 
+/-- Because the two halves of the definition of inv produce more elements
+  of each side, we have to define the two families inductively.
+  This is the function part, defined by recursion on `inv_ty`. -/
 def inv_val {l r} (L : l → pSurreal) (R : r → pSurreal)
   (IHl : l → pSurreal) (IHr : r → pSurreal) : ∀ {b}, inv_ty l r b → pSurreal
 | _ inv_ty.zero := 0
@@ -193,6 +235,12 @@ def inv_val {l r} (L : l → pSurreal) (R : r → pSurreal)
 | _ (inv_ty.right₁ i j) := (1 + (L i - mk l r L R) * inv_val j) * IHl i
 | _ (inv_ty.right₂ i j) := (1 + (R i - mk l r L R) * inv_val j) * IHr i
 
+/-- The inverse of a positive surreal number `x = {L | R}` is
+  given by `x⁻¹ = {0,
+    (1 + (R - x) * x⁻¹L) * R, (1 + (L - x) * x⁻¹R) * L |
+    (1 + (L - x) * x⁻¹L) * L, (1 + (R - x) * x⁻¹R) * R}`.
+  Because the two halves `x⁻¹L, x⁻¹R` of `x⁻¹` are used in their own
+  definition, the sets and elements are inductively generated. -/
 def inv' : pSurreal → pSurreal
 | ⟨l, r, L, R⟩ :=
   let l' := {i // 0 < L i},
@@ -202,6 +250,8 @@ def inv' : pSurreal → pSurreal
   ⟨inv_ty l' r ff, inv_ty l' r tt,
     inv_val L' R IHl' IHr, inv_val L' R IHl' IHr⟩
 
+/-- The inverse of a surreal number in terms of the inverse on
+  positive surreals. -/
 noncomputable def inv (x : pSurreal) : pSurreal :=
 by classical; exact
 if x = 0 then 0 else if 0 < x then inv' x else inv' (-x)
@@ -209,10 +259,13 @@ if x = 0 then 0 else if 0 < x then inv' x else inv' (-x)
 noncomputable instance : has_inv pSurreal := ⟨inv⟩
 noncomputable instance : has_div pSurreal := ⟨λ x y, x * y⁻¹⟩
 
+/-- The pre-surreal number `ω`. (In fact all ordinals have surreal
+  representatives.) -/
 def omega : pSurreal := ⟨ulift ℕ, pempty, λ n, ↑n.1, pempty.elim⟩
 
 end pSurreal
 
+/-- The equivalence on valid pre-surreal numbers. -/
 def surreal.equiv (x y : {x // pSurreal.ok x}) : Prop := x.1.equiv y.1
 local infix ` ≈ ` := surreal.equiv
 
@@ -222,25 +275,38 @@ instance surreal.setoid : setoid {x // pSurreal.ok x} :=
  λ x y, pSurreal.equiv_symm,
  λ x y z, pSurreal.equiv_trans⟩
 
+/-- The type of surreal numbers. In ZFC, a surreal number is constructed from
+  two sets of surreal numbers that have been constructed at an earlier
+  stage. To do this in type theory, we say that a pre-surreal is built
+  inductively from two families of pre-surreals indexed over any type
+  in Type u. The resulting type `pSurreal.{u}` lives in `Type (u+1)`,
+  reflecting that it is a proper class in ZFC.
+  A surreal number is then constructed by discarding the invalid pre-surreals
+  and quotienting by equivalence so that the ordering becomes a total order. -/
 def surreal := quotient surreal.setoid
 
 namespace surreal
 open pSurreal
 
+/-- Construct a surreal number from a valid pre-surreal. -/
 def mk (x : pSurreal) (h : x.ok) : surreal := quotient.mk ⟨x, h⟩
 
+/-- Lift an equivalence-respecting function on pre-surreals to surreals. -/
 def lift {α} (f : ∀ x, ok x → α) (H : ∀ {x y} (hx : ok x) (hy : ok y), x.equiv y → f x hx = f y hy) : surreal → α :=
 quotient.lift (λ x : {x // ok x}, f x.1 x.2) (λ x y, H x.2 y.2)
 
+/-- Lift a binary equivalence-respecting function on pre-surreals to surreals. -/
 def lift₂ {α} (f : ∀ x y, ok x → ok y → α)
   (H : ∀ {x₁ y₁ x₂ y₂} (ox₁ : ok x₁) (oy₁ : ok y₁) (ox₂ : ok x₂) (oy₂ : ok y₂),
     x₁.equiv x₂ → y₁.equiv y₂ → f x₁ y₁ ox₁ oy₁ = f x₂ y₂ ox₂ oy₂) : surreal → surreal → α :=
 lift (λ x ox, lift (λ y oy, f x y ox oy) (λ y₁ y₂ oy₁ oy₂ h, H _ _ _ _ (equiv_refl _) h))
   (λ x₁ x₂ ox₁ ox₂ h, funext $ quotient.ind $ by exact λ ⟨y, oy⟩, H _ _ _ _ h (equiv_refl _))
 
+/-- The relation `x ≤ y` on surreals. -/
 def le : surreal → surreal → Prop :=
 lift₂ (λ x y _ _, x ≤ y) (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, propext (le_congr hx hy))
 
+/-- The relation `x < y` on surreals. -/
 def lt : surreal → surreal → Prop :=
 lift₂ (λ x y _ _, x < y) (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, propext (lt_congr hx hy))
 

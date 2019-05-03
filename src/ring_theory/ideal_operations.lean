@@ -538,6 +538,26 @@ end map_and_comap
 
 end ideal
 
+namespace is_ring_hom
+
+variables {R : Type u} {S : Type v} [comm_ring R] [comm_ring S]
+variables (f : R → S) [is_ring_hom f]
+
+def ker : ideal R := ideal.comap f ⊥
+
+lemma ker_eq : ((ker f) : set R) = is_add_group_hom.ker f := rfl
+
+lemma inj_iff_ker_eq_bot : function.injective f ↔ ker f = ⊥ :=
+by rw [←submodule.ext'_iff, ker_eq]; exact is_add_group_hom.inj_iff_trivial_ker f
+
+lemma ker_eq_bot_iff_eq_zero : ker f = ⊥ ↔ ∀ x, f x = 0 → x = 0 :=
+by rw [←submodule.ext'_iff, ker_eq]; exact is_add_group_hom.trivial_ker_iff_eq_zero f
+
+lemma injective_iff : function.injective f ↔ ∀ x, f x = 0 → x = 0 :=
+is_add_group_hom.injective_iff f
+
+end is_ring_hom
+
 namespace submodule
 
 variables {R : Type u} {M : Type v}

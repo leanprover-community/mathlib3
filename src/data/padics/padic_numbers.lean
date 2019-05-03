@@ -724,12 +724,14 @@ instance : nondiscrete_normed_field ℚ_[p] :=
     have h1 : 1 < p := prime.gt_one hp,
     rw [← padic.cast_eq_of_rat, eq_padic_norm],
     simp only [padic_norm, inv_eq_zero],
-    simp only [if_neg] {discharger := tactic.assumption_mod_cast}, -- TODO: use exact_mod_cast
+    rw if_neg,
+    swap, exact_mod_cast h0,
     norm_cast,
-    simp only [padic_val_rat.inv] {discharger := tactic.assumption_mod_cast}, -- TODO: use exact_mod_cast
+    rw padic_val_rat.inv,
+    swap, exact_mod_cast h0,
     rw [neg_neg, padic_val_rat.padic_val_rat_self h1],
     erw _root_.pow_one,
-    exact_mod_cast h1
+    exact_mod_cast h1,
   end⟩ }
 
 

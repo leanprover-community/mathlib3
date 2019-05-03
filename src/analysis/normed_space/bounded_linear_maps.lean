@@ -6,14 +6,7 @@ Authors: Patrick Massot, Johannes Hölzl
 Continuous linear functions -- functions between normed vector spaces which are bounded and linear.
 -/
 import algebra.field
-import tactic.norm_num
-import analysis.normed_space.basic
-import ..asymptotics
-
-@[simp] lemma mul_inv_eq' {α} [discrete_field α] (a b : α) : (a * b)⁻¹ = b⁻¹ * a⁻¹ :=
-classical.by_cases (assume : a = 0, by simp [this]) $ assume ha,
-classical.by_cases (assume : b = 0, by simp [this]) $ assume hb,
-mul_inv_eq hb ha
+import analysis.normed_space.operator_norm
 
 noncomputable theory
 local attribute [instance] classical.prop_decidable
@@ -28,122 +21,145 @@ variables {E : Type*} [normed_space k E]
 variables {F : Type*} [normed_space k F]
 variables {G : Type*} [normed_space k G]
 
-structure is_bounded_linear_map {k : Type*}
-  [normed_field k] {E : Type*} [normed_space k E] {F : Type*} [normed_space k F] (L : E → F)
-  extends is_linear_map k L : Prop :=
-(bound : ∃ M, M > 0 ∧ ∀ x : E, ∥ L x ∥ ≤ M * ∥ x ∥)
-
-include k
+structure is_bounded_linear_map (k : Type*) [normed_field k] {E : Type*}
+  [normed_space k E] {F : Type*} [normed_space k F] (f : E → F)
+  extends is_linear_map k f : Prop :=
+(bound : ∃ M > 0, ∀ x : E, ∥ f x ∥ ≤ M * ∥ x ∥)
 
 lemma is_linear_map.with_bound
-  {L : E → F} (hf : is_linear_map k L) (M : ℝ) (h : ∀ x : E, ∥ L x ∥ ≤ M * ∥ x ∥) :
-  is_bounded_linear_map L :=
+  {f : E → F} (hf : is_linear_map k f) (M : ℝ) (h : ∀ x : E, ∥ f x ∥ ≤ M * ∥ x ∥) :
+  is_bounded_linear_map k f :=
 ⟨ hf, classical.by_cases
   (assume : M ≤ 0, ⟨1, zero_lt_one, assume x,
     le_trans (h x) $ mul_le_mul_of_nonneg_right (le_trans this zero_le_one) (norm_nonneg x)⟩)
   (assume : ¬ M ≤ 0, ⟨M, lt_of_not_ge this, h⟩)⟩
 
+/-- A bounded linear map satisfies `is_bounded_linear_map` -/
+lemma bounded_linear_map.is_bounded_linear_map (f : E →L[k] F) : is_bounded_linear_map k f := {..f}
+
 namespace is_bounded_linear_map
 
-def to_linear_map (f : E → F) (h : is_bounded_linear_map f) : E →ₗ[k] F :=
+def to_linear_map (f : E → F) (h : is_bounded_linear_map k f) : E →ₗ[k] F :=
 (is_linear_map.mk' _ h.to_is_linear_map)
 
-lemma zero : is_bounded_linear_map (λ (x:E), (0:F)) :=
+/-- Construct a bounded linear map from is_bounded_linear_map -/
+def to_bounded_linear_map {f : E → F} (hf : is_bounded_linear_map k f) : E →L[k] F :=
+{ bound := hf.bound, ..is_bounded_linear_map.to_linear_map f hf }
+
+lemma zero : is_bounded_linear_map k (λ (x:E), (0:F)) :=
 (0 : E →ₗ F).is_linear.with_bound 0 $ by simp [le_refl]
 
-lemma id : is_bounded_linear_map (λ (x:E), x) :=
+lemma id : is_bounded_linear_map k (λ (x:E), x) :=
 linear_map.id.is_linear.with_bound 1 $ by simp [le_refl]
 
-lemma smul {f : E → F} (c : k) : is_bounded_linear_map f → is_bounded_linear_map (λ e, c • f e)
-| ⟨hf, ⟨M, hM, h⟩⟩ := (c • hf.mk' f).is_linear.with_bound (∥c∥ * M) $ assume x,
-  calc ∥c • f x∥ = ∥c∥ * ∥f x∥ : norm_smul c (f x)
-    ... ≤ ∥c∥ * (M * ∥x∥) : mul_le_mul_of_nonneg_left (h x) (norm_nonneg c)
-    ... = (∥c∥ * M) * ∥x∥ : (mul_assoc _ _ _).symm
+set_option class.instance_max_depth 43
+variables { f g : E → F }
 
-lemma neg {f : E → F} (hf : is_bounded_linear_map f) : is_bounded_linear_map (λ e, -f e) :=
+lemma smul (c : k) (hf : is_bounded_linear_map k f) :
+  is_bounded_linear_map k (λ e, c • f e) :=
+let ⟨hlf, M, hMp, hM⟩ := hf in
+(c • hlf.mk' f).is_linear.with_bound (∥c∥ * M) $ assume x,
+  calc ∥c • f x∥ = ∥c∥ * ∥f x∥ : norm_smul c (f x)
+  ... ≤ ∥c∥ * (M * ∥x∥)        : mul_le_mul_of_nonneg_left (hM _) (norm_nonneg _)
+  ... = (∥c∥ * M) * ∥x∥        : (mul_assoc _ _ _).symm
+
+lemma neg (hf : is_bounded_linear_map k f) :
+  is_bounded_linear_map k (λ e, -f e) :=
 begin
   rw show (λ e, -f e) = (λ e, (-1 : k) • f e), { funext, simp },
   exact smul (-1) hf
 end
 
-lemma add {f : E → F} {g : E → F} :
-  is_bounded_linear_map f → is_bounded_linear_map g → is_bounded_linear_map (λ e, f e + g e)
-| ⟨hlf, Mf, hMf, hf⟩  ⟨hlg, Mg, hMg, hg⟩ := (hlf.mk' _ + hlg.mk' _).is_linear.with_bound (Mf + Mg) $ assume x,
+lemma add (hf : is_bounded_linear_map k f) (hg : is_bounded_linear_map k g) :
+  is_bounded_linear_map k (λ e, f e + g e) :=
+let ⟨hlf, Mf, hMfp, hMf⟩ := hf in
+let ⟨hlg, Mg, hMgp, hMg⟩ := hg in
+(hlf.mk' _ + hlg.mk' _).is_linear.with_bound (Mf + Mg) $ assume x,
   calc ∥f x + g x∥ ≤ ∥f x∥ + ∥g x∥ : norm_triangle _ _
-    ... ≤ Mf * ∥x∥ + Mg * ∥x∥ : add_le_add (hf x) (hg x)
-    ... ≤ (Mf + Mg) * ∥x∥ : by rw add_mul
+  ... ≤ Mf * ∥x∥ + Mg * ∥x∥        : add_le_add (hMf x) (hMg x)
+  ... ≤ (Mf + Mg) * ∥x∥            : by rw add_mul
 
-lemma sub {f : E → F} {g : E → F} (hf : is_bounded_linear_map f) (hg : is_bounded_linear_map g) :
-  is_bounded_linear_map (λ e, f e - g e) := add hf (neg hg)
+lemma sub (hf : is_bounded_linear_map k f) (hg : is_bounded_linear_map k g) :
+  is_bounded_linear_map k (λ e, f e - g e) := add hf (neg hg)
 
-lemma comp {f : E → F} {g : F → G} :
-  is_bounded_linear_map g → is_bounded_linear_map f → is_bounded_linear_map (g ∘ f)
-| ⟨hlg, Mg, hMg, hg⟩ ⟨hlf, Mf, hMf, hf⟩ := ((hlg.mk' _).comp (hlf.mk' _)).is_linear.with_bound (Mg * Mf) $ assume x,
-  calc ∥g (f x)∥ ≤ Mg * ∥f x∥ : hg _
-    ... ≤ Mg * (Mf * ∥x∥) : mul_le_mul_of_nonneg_left (hf _) (le_of_lt hMg)
-    ... = Mg * Mf * ∥x∥ : (mul_assoc _ _ _).symm
+lemma comp {g : F → G}
+  (hg : is_bounded_linear_map k g) (hf : is_bounded_linear_map k f) :
+  is_bounded_linear_map k (g ∘ f) :=
+let ⟨hlg, Mg, hMgp, hMg⟩ := hg in
+let ⟨hlf, Mf, hMfp, hMf⟩ := hf in
+((hlg.mk' _).comp (hlf.mk' _)).is_linear.with_bound (Mg * Mf) $ assume x,
+  calc ∥g (f x)∥ ≤ Mg * ∥f x∥ : hMg _
+    ... ≤ Mg * (Mf * ∥x∥) : mul_le_mul_of_nonneg_left (hMf _) (le_of_lt hMgp)
+    ... = Mg * Mf * ∥x∥   : (mul_assoc _ _ _).symm
 
-lemma tendsto {L : E → F} (x : E) : is_bounded_linear_map L → L →_{x} (L x)
-| ⟨hL, M, hM, h_ineq⟩ := tendsto_iff_norm_tendsto_zero.2 $
+lemma tendsto (x : E) (hf : is_bounded_linear_map k f) : f →_{x} (f x) :=
+let ⟨hf, M, hMp, hM⟩ := hf in
+tendsto_iff_norm_tendsto_zero.2 $
   squeeze_zero (assume e, norm_nonneg _)
-    (assume e, calc ∥L e - L x∥ = ∥hL.mk' L (e - x)∥ : by rw (hL.mk' _).map_sub e x; refl
-      ... ≤ M*∥e-x∥ : h_ineq (e-x))
+    (assume e,
+      calc ∥f e - f x∥ = ∥hf.mk' f (e - x)∥ : by rw (hf.mk' _).map_sub e x; refl
+                   ... ≤ M * ∥e - x∥        : hM (e - x))
     (suffices (λ (e : E), M * ∥e - x∥) →_{x} (M * 0), by simpa,
       tendsto_mul tendsto_const_nhds (lim_norm _))
 
-lemma continuous {L : E → F} (hL : is_bounded_linear_map L) : continuous L :=
-continuous_iff_continuous_at.2 $ assume x, hL.tendsto x
+lemma continuous (hf : is_bounded_linear_map k f) : continuous f :=
+continuous_iff_continuous_at.2 $ λ _, hf.tendsto _
 
-lemma lim_zero_bounded_linear_map {L : E → F} (H : is_bounded_linear_map L) : (L →_{0} 0) :=
-(H.1.mk' _).map_zero ▸ continuous_iff_continuous_at.1 H.continuous 0
+lemma lim_zero_bounded_linear_map (hf : is_bounded_linear_map k f) :
+  (f →_{0} 0) :=
+(hf.1.mk' _).map_zero ▸ continuous_iff_continuous_at.1 hf.continuous 0
 
 section
 open asymptotics filter
 
-theorem is_O_id {L : E → F} (h : is_bounded_linear_map L) (l : filter E) :
-  is_O L (λ x, x) l :=
-let ⟨M, Mpos, hM⟩ := h.bound in
-⟨M, Mpos, mem_sets_of_superset univ_mem_sets (λ x _, hM x)⟩
+theorem is_O_id {f : E → F} (h : is_bounded_linear_map k f) (l : filter E) :
+  is_O f (λ x, x) l :=
+let ⟨M, hMp, hM⟩ := h.bound in
+⟨M, hMp, mem_sets_of_superset univ_mem_sets (λ x _, hM x)⟩
 
-theorem is_O_comp {L : F → G} (h : is_bounded_linear_map L)
-  {f : E → F} (l : filter E) : is_O (λ x', L (f x')) f l :=
-((h.is_O_id ⊤).comp _).mono (map_le_iff_le_comap.mp lattice.le_top)
+theorem is_O_comp {g : F → G} (hg : is_bounded_linear_map k g)
+  {f : E → F} (l : filter E) : is_O (λ x', g (f x')) f l :=
+((hg.is_O_id ⊤).comp _).mono (map_le_iff_le_comap.mp lattice.le_top)
 
-theorem is_O_sub {L : E → F} (h : is_bounded_linear_map L) (l : filter E) (x : E) :
-  is_O (λ x', L (x' - x)) (λ x', x' - x) l :=
+theorem is_O_sub {f : E → F} (h : is_bounded_linear_map k f)
+  (l : filter E) (x : E) : is_O (λ x', f (x' - x)) (λ x', x' - x) l :=
 is_O_comp h l
 
 end
 
 end is_bounded_linear_map
 
--- Next lemma is stated for real normed space but it would work as soon as the base field is an extension of ℝ
-lemma bounded_continuous_linear_map
-  {E : Type*} [normed_space ℝ E] {F : Type*} [normed_space ℝ F] {L : E → F}
-  (lin : is_linear_map ℝ L) (cont : continuous L) : is_bounded_linear_map L :=
-let ⟨δ, δ_pos, hδ⟩ := exists_delta_of_continuous cont zero_lt_one 0 in
-have HL0 : L 0 = 0, from (lin.mk' _).map_zero,
-have H : ∀{a}, ∥a∥ ≤ δ → ∥L a∥ < 1, by simpa only [HL0, dist_zero_right] using hδ,
-lin.with_bound (δ⁻¹) $ assume x,
-classical.by_cases (assume : x = 0, by simp only [this, HL0, norm_zero, mul_zero]) $
-assume h : x ≠ 0,
-let p := ∥x∥ * δ⁻¹, q := p⁻¹ in
-have p_inv : p⁻¹ = δ*∥x∥⁻¹, by simp,
+set_option class.instance_max_depth 60
 
-have norm_x_pos : ∥x∥ > 0 := (norm_pos_iff x).2 h,
-have norm_x : ∥x∥ ≠ 0 := mt (norm_eq_zero x).1 h,
-
-have p_pos : p > 0 := mul_pos norm_x_pos (inv_pos δ_pos),
-have p0 : _ := ne_of_gt p_pos,
-have q_pos : q > 0 := inv_pos p_pos,
-have q0 : _ := ne_of_gt q_pos,
-
-have ∥p⁻¹ • x∥ = δ := calc
-  ∥p⁻¹ • x∥ = abs p⁻¹ * ∥x∥ : by rw norm_smul; refl
-  ... = p⁻¹ * ∥x∥ : by rw [abs_of_nonneg $ le_of_lt q_pos]
-  ... = δ : by simp [mul_assoc, inv_mul_cancel norm_x],
-
-calc ∥L x∥ = (p * q) * ∥L x∥ : begin dsimp [q], rw [mul_inv_cancel p0, one_mul] end
-  ... = p * ∥L (q • x)∥ : by simp [lin.smul, norm_smul, real.norm_eq_abs, abs_of_pos q_pos, mul_assoc]
-  ... ≤ p * 1 : mul_le_mul_of_nonneg_left (le_of_lt $ H $ le_of_eq $ this) (le_of_lt p_pos)
-  ... = δ⁻¹ * ∥x∥ : by rw [mul_one, mul_comm]
+/-- A continuous linear map between normed spaces is bounded when the field is nondiscrete.
+The continuity ensures boundedness on a ball of some radius δ. The nondiscreteness is then
+used to rescale any element into an element of norm in [δ/C, δ], whose image has a controlled norm.
+The norm control for the original element follows by rescaling. -/
+theorem is_linear_map.bounded_of_continuous_at {k : Type*} [nondiscrete_normed_field k]
+  {E : Type*} [normed_space k E] {F : Type*} [normed_space k F] {f : E → F} {x₀ : E}
+  (lin : is_linear_map k f) (cont : continuous_at f x₀) : is_bounded_linear_map k f :=
+begin
+  rcases tendsto_nhds_nhds.1 cont 1 zero_lt_one with ⟨ε, ε_pos, hε⟩,
+  let δ := ε/2,
+  have δ_pos : δ > 0 := half_pos ε_pos,
+  have H : ∀{a}, ∥a∥ ≤ δ → ∥f a∥ ≤ 1,
+  { assume a ha,
+    have : dist (f (x₀+a)) (f x₀) ≤ 1,
+    { apply le_of_lt (hε _),
+      have : dist x₀ (x₀ + a) = ∥a∥, by { rw dist_eq_norm, simp },
+      rw [dist_comm, this],
+      exact lt_of_le_of_lt ha (half_lt_self ε_pos) },
+    simpa [dist_eq_norm, lin.add] using this },
+  rcases exists_one_lt_norm k with ⟨c, hc⟩,
+  refine lin.with_bound (δ⁻¹ * ∥c∥) (λx, _),
+  by_cases h : x = 0,
+  { simp only [h, lin.map_zero, norm_zero, mul_zero] },
+  { rcases rescale_to_shell hc δ_pos h with ⟨d, hd, dxle, ledx, dinv⟩,
+    calc ∥f x∥
+      = ∥f ((d⁻¹ * d) • x)∥ : by rwa [inv_mul_cancel, one_smul]
+      ... = ∥d∥⁻¹ * ∥f (d • x)∥ :
+        by rw [mul_smul, lin.smul, norm_smul, norm_inv]
+      ... ≤ ∥d∥⁻¹ * 1 :
+        mul_le_mul_of_nonneg_left (H dxle) (by { rw ← norm_inv, exact norm_nonneg _ })
+      ... ≤ δ⁻¹ * ∥c∥ * ∥x∥ : by { rw mul_one, exact dinv } }
+end

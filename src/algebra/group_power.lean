@@ -11,7 +11,7 @@ a^n is used for the first, but users can locally redefine it to gpow when needed
 
 Note: power adopts the convention that 0^0=1.
 -/
-import algebra.char_zero algebra.group algebra.ordered_field
+import algebra.group
 import data.int.basic data.list.basic
 
 universes u v
@@ -165,10 +165,10 @@ theorem add_monoid.smul_add : ∀ (a b : β) (n : ℕ), n•(a + b) = n•a + n�
 attribute [to_additive add_monoid.add_smul] mul_pow
 
 instance pow.is_monoid_hom (n : ℕ) : is_monoid_hom ((^ n) : α → α) :=
-by refine_struct {..}; simp [mul_pow, one_pow]
+{ map_mul := λ _ _, mul_pow _ _ _, map_one := one_pow _ }
 
 instance add_monoid.smul.is_add_monoid_hom (n : ℕ) : is_add_monoid_hom (add_monoid.smul n : β → β) :=
-by refine_struct {..}; simp [add_monoid.smul_zero, add_monoid.smul_add]
+{ map_add := λ _ _, add_monoid.smul_add _ _ _, map_zero := add_monoid.smul_zero _ }
 
 attribute [to_additive add_monoid.smul.is_add_monoid_hom] pow.is_monoid_hom
 
@@ -354,28 +354,23 @@ end group
 namespace is_group_hom
 variables {β : Type v} [group α] [group β] (f : α → β) [is_group_hom f]
 
-theorem pow (a : α) (n : ℕ) : f (a ^ n) = f a ^ n :=
+theorem map_pow (a : α) (n : ℕ) : f (a ^ n) = f a ^ n :=
 is_monoid_hom.map_pow f a n
 
-theorem gpow (a : α) (n : ℤ) : f (a ^ n) = f a ^ n :=
-by cases n; [exact is_group_hom.pow f _ _,
-  exact (is_group_hom.inv f _).trans (congr_arg _ $ is_group_hom.pow f _ _)]
+theorem map_gpow (a : α) (n : ℤ) : f (a ^ n) = f a ^ n :=
+by cases n; [exact is_group_hom.map_pow f _ _,
+  exact (is_group_hom.map_inv f _).trans (congr_arg _ $ is_group_hom.map_pow f _ _)]
 
 end is_group_hom
 
 namespace is_add_group_hom
 variables {β : Type v} [add_group α] [add_group β] (f : α → β) [is_add_group_hom f]
 
-theorem smul (a : α) (n : ℕ) : f (n • a) = n • f a :=
+theorem map_smul (a : α) (n : ℕ) : f (n • a) = n • f a :=
 is_add_monoid_hom.map_smul f a n
 
-theorem gsmul (a : α) (n : ℤ) : f (gsmul n a) = gsmul n (f a) :=
-begin
-  induction n using int.induction_on with z ih z ih,
-  { simp [is_add_group_hom.zero f] },
-  { simp [is_add_group_hom.add f, add_gsmul, ih] },
-  { simp [is_add_group_hom.add f, is_add_group_hom.neg f, add_gsmul, ih] }
-end
+theorem map_gsmul (a : α) (n : ℤ) : f (gsmul n a) = gsmul n (f a) :=
+@is_group_hom.map_gpow (multiplicative α) (multiplicative β) _ _ f _ a n
 
 end is_add_group_hom
 
@@ -407,10 +402,10 @@ end comm_monoid
 section group
 
 @[instance]
-theorem is_add_group_hom_gsmul
+theorem is_add_group_hom.gsmul
   {α β} [add_group α] [add_comm_group β] (f : α → β) [is_add_group_hom f] (z : ℤ) :
   is_add_group_hom (λa, gsmul z (f a)) :=
-⟨assume a b, by rw [is_add_group_hom.add f, gsmul_add]⟩
+⟨assume a b, by rw [is_add_group_hom.map_add f, gsmul_add]⟩
 
 end group
 
@@ -582,9 +577,20 @@ calc a ^ n = a ^ n * 1 : (mul_one _).symm
     (pow_nonneg (le_trans zero_le_one ha) _)
   ... = a ^ m : by rw [←hk, pow_add]
 
-lemma pow_le_pow_of_le_left  {a b : α} (ha : 0 ≤ a) (hab : a ≤ b) : ∀ i : ℕ, a^i ≤ b^i
-| 0 := by simp
+lemma pow_lt_pow {a : α} {n m : ℕ} (h : 1 < a) (h2 : n < m) : a ^ n < a ^ m :=
+begin
+  have h' : 1 ≤ a := le_of_lt h,
+  have h'' : 0 < a := lt_trans zero_lt_one h,
+  cases m, cases h2, rw [pow_succ, ←one_mul (a ^ n)],
+  exact mul_lt_mul h (pow_le_pow h' (nat.le_of_lt_succ h2)) (pow_pos h'' _) (le_of_lt h'')
+end
+
+lemma pow_le_pow_of_le_left {a b : α} (ha : 0 ≤ a) (hab : a ≤ b) : ∀ i : ℕ, a^i ≤ b^i
+| 0     := by simp
 | (k+1) := mul_le_mul hab (pow_le_pow_of_le_left _) (pow_nonneg ha _) (le_trans ha hab)
+
+lemma lt_of_pow_lt_pow {a b : α} (n : ℕ) (hb : 0 ≤ b) (h : a ^ n < b ^ n) : a < b :=
+lt_of_not_ge $ λ hn, not_lt_of_ge (pow_le_pow_of_le_left hb hn _) h
 
 private lemma pow_lt_pow_of_lt_one_aux {a : α} (h : 0 < a) (ha : a < 1) (i : ℕ) :
   ∀ k : ℕ, a ^ (i + k + 1) < a ^ i
@@ -618,6 +624,7 @@ lemma pow_le_one {x : α} : ∀ (n : ℕ) (h0 : 0 ≤ x) (h1 : x ≤ 1), x ^ n �
 | (n+1) h0 h1 := mul_le_one h1 (pow_nonneg h0 _) (pow_le_one n h0 h1)
 
 end linear_ordered_semiring
+
 theorem pow_two_nonneg [linear_ordered_ring α] (a : α) : 0 ≤ a ^ 2 :=
 by rw pow_two; exact mul_self_nonneg _
 

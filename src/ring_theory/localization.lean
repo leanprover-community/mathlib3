@@ -285,7 +285,7 @@ by simp [lift', quotient.lift_on_beta, of, mk, this]
 have g = (λ s, units.map f (to_units s)),
   from funext $ λ x, units.ext_iff.2 $ (hg x).symm ▸ rfl,
 funext $ λ x, localization.induction_on x
-  (λ r s, by subst this; rw [lift'_mk, ← is_group_hom.inv (units.map f), units.coe_map];
+  (λ r s, by subst this; rw [lift'_mk, ← is_group_hom.map_inv (units.map f), units.coe_map];
     simp [is_ring_hom.map_mul f])
 
 @[simp] lemma lift_apply_coe (f : localization α S → β) [is_ring_hom f] :
@@ -557,7 +557,7 @@ begin
   rw [equiv.image_eq_preimage, set.preimage, set.mem_set_of_eq,
     mem_non_zero_divisors_iff_ne_zero, mem_non_zero_divisors_iff_ne_zero, ne.def],
   exact ⟨mt (λ h, h.symm ▸ is_ring_hom.map_zero _),
-    mt ((is_add_group_hom.injective_iff _).1 h.to_equiv.symm.bijective.1 _)⟩
+    mt ((is_add_group_hom.injective_iff _).1 h.to_equiv.symm.injective _)⟩
 end
 
 end map

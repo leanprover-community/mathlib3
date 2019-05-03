@@ -1,6 +1,11 @@
 # mathlib
 
 [![Build Status](https://travis-ci.org/leanprover-community/mathlib.svg?branch=master)](https://travis-ci.org/leanprover-community/mathlib)
+[![Mergify Status][mergify-status]][mergify]
+[![Build status](https://ci.appveyor.com/api/projects/status/y0dfsknx5h4iq7pj/branch/master?svg=true)](https://ci.appveyor.com/project/cipher1024/mathlib/branch/master)
+
+[mergify]: https://mergify.io
+[mergify-status]: https://gh.mergify.io/badges/leanprover-community/mathlib.png?style=cut
 
 ## Lean standard library
 
@@ -15,8 +20,6 @@ Besides [Lean's general documentation](https://leanprover.github.io/documentatio
   to find or contribute definitions and lemmas.
 - A [style guide](docs/style.md) for contributors
 - An outline of [how to contribute](docs/howto-contribute.md) to mathlib.
-- A tentative list of [work in progress](docs/wip.md) to make sure
-  efforts are not duplicated without collaboration.
 
 This repository also contains [extra Lean documentation](docs/extras.md)
 not specific to mathlib.
@@ -25,14 +28,16 @@ not specific to mathlib.
 
 ### Install the `update-mathlib` script
 
-*Linux/OS X/Cygwin/MSYS2/git bash*: run the following command in a terminal:
+Two options are avaiblable to install `update-mathlib`:
+
+ * *Linux/OS X/Cygwin/MSYS2/git bash*: run the following command in a terminal:
 
 ``` shell
-curl https://raw.githubusercontent.com/leanprover-community/mathlib/master/scripts/remote-install-update-mathlib.sh -sSf | sh
+curl https://raw.githubusercontent.com/leanprover-community/mathlib/master/scripts/remote-install-update-mathlib.sh -sSf | bash
 ```
 
-*Any platform*: in the release section of this page, download
-`mathlib-scripts-###-###-###.tar.gz`, expand it and run `setup-update-mathlib.sh`.
+ * *Any platform*: in the release section of this page, download
+`mathlib-scripts-###-###-###.tar.gz`, expand it and run `setup-dev-scripts.sh`.
 
 ### Fetch mathlib binaries
 
@@ -62,7 +67,9 @@ chmod +x .git/hooks/post-checkout
 * Jeremy Avigad (@avigad): analysis
 * Reid Barton (@rwbarton): category theory, topology
 * Mario Carneiro (@digama0): all (lead maintainer)
+* Johan Commelin (@jcommelin): algebra
+* Sébastien Gouëzel (@sgouezel): topology, calculus
 * Simon Hudon (@cipher1024): all
 * Chris Hughes (@ChrisHughes24): group_theory, ring_theory, field_theory
 * Robert Y. Lewis (@robertylewis): all
-* Patrick Massot (@patrickmassot): documentation
+* Patrick Massot (@patrickmassot): documentation, topology

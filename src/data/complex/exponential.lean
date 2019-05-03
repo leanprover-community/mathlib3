@@ -381,12 +381,12 @@ have hj : ∀ j : ℕ, (range j).sum
     finset.sum_congr rfl (λ m hm, begin
       rw [add_pow, div_eq_mul_inv, sum_mul],
       refine finset.sum_congr rfl (λ i hi, _),
-      have h₁ : (choose m i : ℂ) ≠ 0 := nat.cast_ne_zero.2
-        (nat.pos_iff_ne_zero.1 (choose_pos (nat.le_of_lt_succ (mem_range.1 hi)))),
-      have h₂ := choose_mul_fact_mul_fact (nat.le_of_lt_succ $ finset.mem_range.1 hi),
+      have h₁ : (nat.choose m i : ℂ) ≠ 0 := nat.cast_ne_zero.2
+        (nat.pos_iff_ne_zero.1 (nat.choose_pos (nat.le_of_lt_succ (mem_range.1 hi)))),
+      have h₂ := nat.choose_mul_fact_mul_fact (nat.le_of_lt_succ $ finset.mem_range.1 hi),
       rw [← h₂, nat.cast_mul, nat.cast_mul, mul_inv', mul_inv'],
-      simp only [mul_left_comm (choose m i : ℂ), mul_assoc, mul_left_comm (choose m i : ℂ)⁻¹,
-        mul_comm (choose m i : ℂ)],
+      simp only [mul_left_comm (nat.choose m i : ℂ), mul_assoc, mul_left_comm (nat.choose m i : ℂ)⁻¹,
+        mul_comm (nat.choose m i : ℂ)],
       rw inv_mul_cancel h₁,
       simp [div_eq_mul_inv, mul_comm, mul_assoc, mul_left_comm]
     end),
@@ -549,6 +549,12 @@ by rw [two_mul, cos_add, ← pow_two, ← pow_two, eq_sub_iff_add_eq.2 (sin_pow_
 
 lemma sin_two_mul : sin (2 * x) = 2 * sin x * cos x :=
 by rw [two_mul, sin_add, two_mul, add_mul, mul_comm]
+
+lemma cos_square : cos x ^ 2 = 1 / 2 + cos (2 * x) / 2 :=
+by simp [cos_two_mul, div_add_div_same, mul_div_cancel_left, two_ne_zero', -one_div_eq_inv]
+
+lemma sin_square : sin x ^ 2 = 1 - cos x ^ 2 :=
+by { rw [←sin_pow_two_add_cos_pow_two x], simp }
 
 lemma exp_mul_I : exp (x * I) = cos x + sin x * I :=
 by rw [cos, sin, mul_comm (_ / 2) I, ← mul_div_assoc, mul_left_comm I, I_mul_I,
@@ -760,6 +766,13 @@ by rw ← of_real_inj; simp [cos_two_mul, cos, pow_two]
 
 lemma sin_two_mul : sin (2 * x) = 2 * sin x * cos x :=
 by rw ← of_real_inj; simp [sin_two_mul, sin, pow_two]
+
+lemma cos_square : cos x ^ 2 = 1 / 2 + cos (2 * x) / 2 :=
+by simp [cos_two_mul, div_add_div_same, mul_div_cancel_left, two_ne_zero, -one_div_eq_inv]
+
+lemma sin_square : sin x ^ 2 = 1 - cos x ^ 2 :=
+by { rw [←sin_pow_two_add_cos_pow_two x], simp }
+
 
 @[simp] lemma sinh_zero : sinh 0 = 0 := by simp [sinh]
 

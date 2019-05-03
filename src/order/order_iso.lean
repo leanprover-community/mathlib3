@@ -11,6 +11,17 @@ universes u v w
 variables {α : Type*} {β : Type*} {γ : Type*}
   {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop}
 
+/-- An increasing function is injective -/
+lemma injective_of_increasing (r : α → α → Prop) (s : β → β → Prop) [is_trichotomous α r]
+  [is_irrefl β s] (f : α → β) (hf : ∀{x y}, r x y → s (f x) (f y)) : injective f :=
+begin
+  intros x y hxy,
+  rcases trichotomous_of r x y with h | h | h,
+  have := hf h, rw hxy at this, exfalso, exact irrefl_of s (f y) this,
+  exact h,
+  have := hf h, rw hxy at this, exfalso, exact irrefl_of s (f y) this
+end
+
 structure order_embedding {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends α ↪ β :=
 (ord : ∀ {a b}, r a b ↔ s (to_embedding a) (to_embedding b))
 
@@ -261,7 +272,7 @@ theorem prod_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
   { generalize e : f b₁ = fb₁,
     intro h, cases h with _ _ _ _ h _ _ _ h,
     { subst e, left, exact hf.2 h },
-    { have := f.bijective.1 e, subst b₁,
+    { have := f.injective e, subst b₁,
       right, exact hg.2 h } }
 end⟩
 

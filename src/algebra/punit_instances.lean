@@ -6,7 +6,6 @@ Authors: Kenny Lau
 Instances on punit.
 -/
 
-import order.basic
 import algebra.module algebra.group
 
 universes u
@@ -90,10 +89,10 @@ attribute [to_additive punit.neg_eq] punit.inv_eq
 @[simp] lemma not_lt : ¬(x < y) := not_false
 
 instance {α : Type*} [monoid α] (f : α → punit) : is_monoid_hom f :=
-⟨subsingleton.elim _ _, λ _ _, subsingleton.elim _ _⟩
+{ map_one := subsingleton.elim _ _, map_mul := λ _ _, subsingleton.elim _ _ }
 
 instance {α : Type*} [add_monoid α] (f : α → punit) : is_add_monoid_hom f :=
-⟨subsingleton.elim _ _, λ _ _, subsingleton.elim _ _⟩
+{ map_zero := subsingleton.elim _ _, map_add := λ _ _, subsingleton.elim _ _ }
 
 instance {α : Type*} [group α] (f : α → punit) : is_group_hom f :=
 ⟨λ _ _, subsingleton.elim _ _⟩

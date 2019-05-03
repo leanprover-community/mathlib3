@@ -388,6 +388,9 @@ lemma continuous_subtype_mk {f : β → α}
   (hp : ∀x, p (f x)) (h : continuous f) : continuous (λx, (⟨f x, hp x⟩ : subtype p)) :=
 continuous_induced_rng h
 
+lemma continuous_inclusion {s t : set α} (h : s ⊆ t) : continuous (inclusion h) := 
+continuous_subtype_mk _ continuous_subtype_val
+
 lemma continuous_at_subtype_val [topological_space α] {p : α → Prop} {a : subtype p} :
   continuous_at subtype.val a :=
 continuous_iff_continuous_at.mp continuous_subtype_val _
@@ -917,11 +920,11 @@ lemma compact_preimage {s : set β} (h : α ≃ₜ β) : compact (h ⁻¹' s) �
 by rw ← image_symm; exact h.symm.compact_image
 
 protected lemma embedding (h : α ≃ₜ β) : embedding h :=
-⟨h.to_equiv.bijective.1, h.induced_eq.symm⟩
+⟨h.to_equiv.injective, h.induced_eq.symm⟩
 
 protected lemma dense_embedding (h : α ≃ₜ β) : dense_embedding h :=
 { dense   := assume a, by rw [h.range_coe, closure_univ]; trivial,
-  inj     := h.to_equiv.bijective.1,
+  inj     := h.to_equiv.injective,
   induced := assume a, by rw [← nhds_induced_eq_comap, h.induced_eq] }
 
 protected lemma is_open_map (h : α ≃ₜ β) : is_open_map h :=
@@ -932,7 +935,7 @@ begin
 end
 
 protected lemma quotient_map (h : α ≃ₜ β) : quotient_map h :=
-⟨h.to_equiv.bijective.2, h.coinduced_eq.symm⟩
+⟨h.to_equiv.surjective, h.coinduced_eq.symm⟩
 
 def prod_congr (h₁ : α ≃ₜ β) (h₂ : γ ≃ₜ δ) : (α × γ) ≃ₜ (β × δ) :=
 { continuous_to_fun  :=

@@ -5,7 +5,7 @@ Author: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 
 Finite sets.
 -/
-import logic.embedding order.boolean_algebra algebra.order_functions
+import logic.embedding algebra.order_functions
   data.multiset data.sigma.basic data.set.lattice
 
 open multiset subtype nat lattice
@@ -64,6 +64,9 @@ ext.2
 
 @[simp] theorem coe_inj {s₁ s₂ : finset α} : (↑s₁ : set α) = ↑s₂ ↔ s₁ = s₂ :=
 (set.ext_iff _ _).trans ext.symm
+
+lemma to_set_injective {α} : function.injective (finset.to_set : finset α → set α) :=
+λ s t, coe_inj.1
 
 /- subset -/
 
@@ -139,6 +142,12 @@ theorem exists_mem_of_ne_empty {s : finset α} (h : s ≠ ∅) : ∃ a : α, a �
 exists_mem_of_ne_zero (mt val_eq_zero.1 h)
 
 @[simp] lemma coe_empty : ↑(∅ : finset α) = (∅ : set α) := rfl
+
+lemma nonempty_iff_ne_empty (s : finset α) : nonempty (↑s : set α) ↔ s ≠ ∅  :=
+begin
+  rw [set.coe_nonempty_iff_ne_empty, ←coe_empty],
+  apply not_congr, apply function.injective.eq_iff, exact to_set_injective
+end
 
 /-- `singleton a` is the set `{a}` containing `a` and nothing else. -/
 def singleton (a : α) : finset α := ⟨_, nodup_singleton a⟩
@@ -509,6 +518,9 @@ by simpa only [subset_iff, mem_sdiff, and_imp] using λ a m₁ m₂, and.intro (
 @[simp] lemma coe_sdiff (s₁ s₂ : finset α) : ↑(s₁ \ s₂) = (↑s₁ \ ↑s₂ : set α) :=
 set.ext $ λ _, mem_sdiff
 
+@[simp] lemma to_set_sdiff (s t : finset α) : (s \ t).to_set = s.to_set \ t.to_set :=
+by apply finset.coe_sdiff
+
 end decidable_eq
 
 /- attach -/
@@ -580,6 +592,10 @@ theorem filter_union (s₁ s₂ : finset α) :
   (s₁ ∪ s₂).filter p = s₁.filter p ∪ s₂.filter p :=
 ext.2 $ λ _, by simp only [mem_filter, mem_union, or_and_distrib_right]
 
+theorem filter_union_right (p q : α → Prop) [decidable_pred p] [decidable_pred q] (s : finset α) :
+  s.filter p ∪ s.filter q = s.filter (λx, p x ∨ q x) :=
+ext.2 $ λ x, by simp only [mem_filter, mem_union, and_or_distrib_left.symm]
+
 theorem filter_or (s : finset α) : s.filter (λ a, p a ∨ q a) = s.filter p ∪ s.filter q :=
 ext.2 $ λ _, by simp only [mem_filter, mem_union, and_or_distrib_left]
 
@@ -601,6 +617,15 @@ by simp only [filter_not, inter_sdiff_self]
 
 @[simp] lemma coe_filter (s : finset α) : ↑(s.filter p) = ({x ∈ ↑s | p x} : set α) :=
 set.ext $ λ _, mem_filter
+
+lemma subset_union_elim {s : finset α} {t₁ t₂ : set α} [decidable_pred (∈ t₁)] (h : ↑s ⊆ t₁ ∪ t₂) :
+  ∃s₁ s₂ : finset α, s₁ ∪ s₂ = s ∧ ↑s₁ ⊆ t₁ ∧ ↑s₂ ⊆ t₂ \ t₁ :=
+begin
+  refine ⟨s.filter (∈ t₁), s.filter (∉ t₁), _, _ , _⟩,
+  { simp [filter_union_right, classical.or_not] },
+  { intro x, simp },
+  { intro x, simp, intros hx hx₂, refine ⟨or.resolve_left (h hx) hx₂, hx₂⟩ }
+end
 
 end filter
 
@@ -717,6 +742,9 @@ finset.ext' $ by simp
   to_finset (s ∩ t) = to_finset s ∩ to_finset t :=
 finset.ext' $ by simp
 
+theorem to_finset_eq_empty {m : multiset α} : m.to_finset = ∅ ↔ m = 0 :=
+finset.val_inj.symm.trans multiset.erase_dup_eq_zero
+
 end multiset
 
 namespace list
@@ -818,6 +846,10 @@ eq_of_veq $ by rw [map_val, attach_val]; exact attach_map_val _
 
 end map
 
+lemma range_add_one' (n : ℕ) :
+  range (n + 1) = insert 0 ((range n).map ⟨λi, i + 1, assume i j, nat.succ_inj⟩) :=
+by ext (⟨⟩ | ⟨n⟩); simp [nat.succ_eq_add_one, nat.zero_lt_succ n]
+
 section image
 variables [decidable_eq β]
 
@@ -904,6 +936,21 @@ protected def subtype {α} (p : α → Prop) [decidable_pred p] (s : finset α) 
 @[simp] lemma mem_subtype {p : α → Prop} [decidable_pred p] {s : finset α} :
   ∀{a : subtype p}, a ∈ s.subtype p ↔ a.val ∈ s
 | ⟨a, ha⟩ := by simp [finset.subtype, ha]
+
+lemma subset_image_iff [decidable_eq α] [decidable_eq β] {f : α → β}
+  {s : finset β} {t : set α} : ↑s ⊆ f '' t ↔ ∃s' : finset α, ↑s' ⊆ t ∧ s'.image f = s :=
+begin
+  split, swap,
+  { rintro ⟨s, hs, rfl⟩, rw [coe_image], exact set.image_subset f hs },
+  intro h, induction s using finset.induction with a s has ih h,
+  { exact ⟨∅, set.empty_subset _, finset.image_empty _⟩ },
+  rw [finset.coe_insert, set.insert_subset] at h,
+  rcases ih h.2 with ⟨s', hst, hsi⟩,
+  rcases h.1 with ⟨x, hxt, rfl⟩,
+  refine ⟨insert x s', _, _⟩,
+  { rw [finset.coe_insert, set.insert_subset], exact ⟨hxt, hst⟩ },
+  rw [finset.image_insert, hsi]
+end
 
 end image
 
@@ -1232,6 +1279,29 @@ mem_powerset.2 (subset.refl _)
 (card_pmap _ _ _).trans (card_powerset s.1)
 
 end powerset
+
+section powerset_len
+
+def powerset_len (n : ℕ) (s : finset α) : finset (finset α) :=
+⟨(s.1.powerset_len n).pmap finset.mk
+  (λ t h, nodup_of_le (mem_powerset_len.1 h).1 s.2),
+ nodup_pmap (λ a ha b hb, congr_arg finset.val)
+   (nodup_powerset_len s.2)⟩
+
+theorem mem_powerset_len {n} {s t : finset α} :
+  s ∈ powerset_len n t ↔ s ⊆ t ∧ card s = n :=
+by cases s; simp [powerset_len, val_le_iff.symm]; refl
+
+@[simp] theorem powerset_len_mono {n} {s t : finset α} (h : s ⊆ t) :
+  powerset_len n s ⊆ powerset_len n t :=
+λ u h', mem_powerset_len.2 $
+  and.imp (λ h₂, subset.trans h₂ h) id (mem_powerset_len.1 h')
+
+@[simp] theorem card_powerset_len (n : ℕ) (s : finset α) :
+  card (powerset_len n s) = nat.choose (card s) n :=
+(card_pmap _ _ _).trans (card_powerset_len n s.1)
+
+end powerset_len
 
 section fold
 variables (op : β → β → β) [hc : is_commutative β op] [ha : is_associative β op]

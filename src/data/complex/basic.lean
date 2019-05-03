@@ -75,6 +75,9 @@ instance : has_mul ℂ := ⟨λ z w, ⟨z.re * w.re - z.im * w.im, z.re * w.im +
 @[simp] lemma mul_im (z w : ℂ) : (z * w).im = z.re * w.im + z.im * w.re := rfl
 @[simp] lemma of_real_mul (r s : ℝ) : ((r * s : ℝ) : ℂ) = r * s := ext_iff.2 $ by simp
 
+lemma smul_re (r : ℝ) (z : ℂ) : (↑r * z).re = r * z.re := by simp
+lemma smul_im (r : ℝ) (z : ℂ) : (↑r * z).im = r * z.im := by simp
+
 @[simp] lemma I_mul_I : I * I = -1 := ext_iff.2 $ by simp
 
 lemma I_ne_zero : (I : ℂ) ≠ 0 := mt (congr_arg im) zero_ne_one.symm
@@ -246,6 +249,11 @@ by refine_struct {..}; simp
 instance of_real.is_ring_hom : is_ring_hom (coe : ℝ → ℂ) :=
 by refine_struct {..}; simp
 
+lemma div_re (z w : ℂ) : (z / w).re = z.re * w.re / norm_sq w + z.im * w.im / norm_sq w :=
+by simp [div_eq_mul_inv, mul_assoc]
+lemma div_im (z w : ℂ) : (z / w).im = z.im * w.re / norm_sq w - z.re * w.im / norm_sq w :=
+by simp [div_eq_mul_inv, mul_assoc]
+
 @[simp] lemma of_real_div (r s : ℝ) : ((r / s : ℝ) : ℂ) = r / s :=
 is_field_hom.map_div coe
 
@@ -316,6 +324,10 @@ by simp [abs, norm_sq_of_real, real.sqrt_mul_self_eq_abs]
 
 lemma abs_of_nonneg {r : ℝ} (h : 0 ≤ r) : abs r = r :=
 (abs_of_real _).trans (abs_of_nonneg h)
+
+@[simp] lemma abs_of_nat (n : ℕ) : complex.abs n = n :=
+calc complex.abs n = complex.abs (n:ℝ) : by rw [of_real_nat_cast]
+  ... = _ : abs_of_nonneg (nat.cast_nonneg n)
 
 lemma mul_self_abs (z : ℂ) : abs z * abs z = norm_sq z :=
 real.mul_self_sqrt (norm_sq_nonneg _)

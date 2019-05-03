@@ -9,6 +9,10 @@ open set
 universe u
 variables {α : Type u}
 
+-- Default priority sufficient as core version has custom-set lower priority (100)
+/-- Core version `division_ring_has_div` erratically requires two instances of `division_ring` -/
+instance division_ring_has_div' [division_ring α] : has_div α := ⟨algebra.div⟩
+
 instance division_ring.to_domain [s : division_ring α] : domain α :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h,
     classical.by_contradiction $ λ hn,
@@ -31,6 +35,9 @@ def mk0 (a : α) (ha : a ≠ 0) : units α :=
 @[simp] theorem mk0_val (ha : a ≠ 0) : (mk0 a ha : α) = a := rfl
 
 @[simp] theorem mk0_inv (ha : a ≠ 0) : ((mk0 a ha)⁻¹ : α) = a⁻¹ := rfl
+
+@[simp] lemma mk0_coe (u : units α) (h : (u : α) ≠ 0) : mk0 (u : α) h = u :=
+units.ext rfl
 
 @[simp] lemma units.mk0_inj [field α] {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) :
   units.mk0 a ha = units.mk0 b hb ↔ a = b :=
@@ -172,8 +179,15 @@ lemma div_div_cancel (ha : a ≠ 0) : a / (a / b) = b :=
 if b0 : b = 0 then by simp only [b0, div_zero] else
 field.div_div_cancel ha b0
 
-@[simp] lemma inv_eq_zero {α} [discrete_field α] (a : α) : a⁻¹ = 0 ↔ a = 0 :=
+@[simp] lemma inv_eq_zero (a : α) : a⁻¹ = 0 ↔ a = 0 :=
 classical.by_cases (assume : a = 0, by simp [*])(assume : a ≠ 0, by simp [*, inv_ne_zero])
+
+lemma neg_inv' (a : α) : (-a)⁻¹ = - a⁻¹ :=
+begin
+  by_cases a = 0,
+  { rw [h, neg_zero, inv_zero, neg_zero] },
+  { rw [neg_inv h] }
+end
 
 end
 

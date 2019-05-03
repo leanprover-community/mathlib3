@@ -33,7 +33,7 @@ variables [topological_space α] [topological_space β]
 
 /-- A sequence converges in the sence of topological spaces iff the associated statement for filter
 holds. -/
-@[simp] lemma topological_space.seq_tendsto_iff {x : ℕ → α} {limit : α} :
+lemma topological_space.seq_tendsto_iff {x : ℕ → α} {limit : α} :
   tendsto x at_top (nhds limit) ↔
     ∀ U : set α, limit ∈ U → is_open U → ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U :=
 iff.intro

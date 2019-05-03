@@ -10,7 +10,7 @@ Parts of the formalization is based on the books:
   I. M. James: Topologies and Uniformities
 A major difference is that this formalization is heavily based on the filter library.
 -/
-import order.filter data.set.countable tactic
+import order.filter
 
 open set filter lattice classical
 local attribute [instance] prop_decidable
@@ -533,7 +533,7 @@ theorem nhds_within_eq_nhds_within {a : α} {s t u : set α}
   nhds_within a t = nhds_within a u :=
 by rw [nhds_within_restrict t h₀ h₁, nhds_within_restrict u h₀ h₁, h₂]
 
-theorem nhs_within_eq_of_open {a : α} {s : set α} (h₀ : a ∈ s) (h₁ : is_open s) :
+theorem nhds_within_eq_of_open {a : α} {s : set α} (h₀ : a ∈ s) (h₁ : is_open s) :
   nhds_within a s = nhds a :=
 by rw [←nhds_within_univ]; apply nhds_within_eq_nhds_within h₀ h₁;
      rw [set.univ_inter, set.inter_self]

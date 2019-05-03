@@ -8,7 +8,7 @@ universes v u -- declare the `v`'s first; see `category_theory.category` for an 
 
 namespace category_theory
 
-structure iso {C : Type u} [category.{v} C] (X Y : C) :=
+structure iso {C : Sort u} [category.{v} C] (X Y : C) :=
 (hom : X ⟶ Y)
 (inv : Y ⟶ X)
 (hom_inv_id' : hom ≫ inv = 𝟙 X . obviously)
@@ -20,7 +20,7 @@ attribute [simp] iso.hom_inv_id iso.inv_hom_id
 
 infixr ` ≅ `:10  := iso             -- type as \cong or \iso
 
-variables {C : Type u} [𝒞 : category.{v} C]
+variables {C : Sort u} [𝒞 : category.{v} C]
 include 𝒞
 variables {X Y Z : C}
 
@@ -48,6 +48,10 @@ calc α.inv
 @[simp] lemma symm_hom (α : X ≅ Y) : α.symm.hom = α.inv := rfl
 @[simp] lemma symm_inv (α : X ≅ Y) : α.symm.inv = α.hom := rfl
 
+@[simp] lemma symm_mk {X Y : C} (hom : X ⟶ Y) (inv : Y ⟶ X) (hom_inv_id) (inv_hom_id) :
+  iso.symm {hom := hom, inv := inv, hom_inv_id' := hom_inv_id, inv_hom_id' := inv_hom_id} =
+    {hom := inv, inv := hom, hom_inv_id' := inv_hom_id, inv_hom_id' := hom_inv_id} := rfl
+
 @[refl] def refl (X : C) : X ≅ X :=
 { hom := 𝟙 X,
   inv := 𝟙 X }
@@ -63,6 +67,15 @@ infixr ` ≪≫ `:80 := iso.trans -- type as `\ll \gg`.
 
 @[simp] lemma trans_hom (α : X ≅ Y) (β : Y ≅ Z) : (α ≪≫ β).hom = α.hom ≫ β.hom := rfl
 @[simp] lemma trans_inv (α : X ≅ Y) (β : Y ≅ Z) : (α ≪≫ β).inv = β.inv ≫ α.inv := rfl
+
+@[simp] lemma trans_mk {X Y Z : C}
+  (hom : X ⟶ Y) (inv : Y ⟶ X) (hom_inv_id) (inv_hom_id)
+  (hom' : Y ⟶ Z) (inv' : Z ⟶ Y) (hom_inv_id') (inv_hom_id') (hom_inv_id'') (inv_hom_id'') :
+  iso.trans
+    {hom := hom, inv := inv, hom_inv_id' := hom_inv_id, inv_hom_id' := inv_hom_id}
+    {hom := hom', inv := inv', hom_inv_id' := hom_inv_id', inv_hom_id' := inv_hom_id'} =
+  {hom := hom ≫ hom', inv := inv' ≫ inv, hom_inv_id' := hom_inv_id'', inv_hom_id' := inv_hom_id''} :=
+rfl
 
 @[simp] lemma refl_symm (X : C) : (iso.refl X).hom = 𝟙 X := rfl
 @[simp] lemma trans_symm (α : X ≅ Y) (β : Y ≅ Z) : (α ≪≫ β).inv = β.inv ≫ α.inv := rfl
@@ -127,24 +140,35 @@ instance (f : X ⟶ Y) : subsingleton (is_iso f) :=
 namespace functor
 
 universes u₁ v₁ u₂ v₂
-variables {D : Type u₂}
+variables {D : Sort u₂}
 
 variables [𝒟 : category.{v₂} D]
 include 𝒟
 
-def on_iso (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : F.obj X ≅ F.obj Y :=
+def map_iso (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : F.obj X ≅ F.obj Y :=
 { hom := F.map i.hom,
   inv := F.map i.inv,
   hom_inv_id' := by rw [←map_comp, iso.hom_inv_id, ←map_id],
   inv_hom_id' := by rw [←map_comp, iso.inv_hom_id, ←map_id] }
 
-@[simp] lemma on_iso_hom (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : (F.on_iso i).hom = F.map i.hom := rfl
-@[simp] lemma on_iso_inv (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : (F.on_iso i).inv = F.map i.inv := rfl
+@[simp] lemma map_iso_hom (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : (F.map_iso i).hom = F.map i.hom := rfl
+@[simp] lemma map_iso_inv (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : (F.map_iso i).inv = F.map i.inv := rfl
 
 instance (F : C ⥤ D) (f : X ⟶ Y) [is_iso f] : is_iso (F.map f) :=
 { inv := F.map (inv f),
   hom_inv_id' := by rw [← F.map_comp, is_iso.hom_inv_id, map_id],
   inv_hom_id' := by rw [← F.map_comp, is_iso.inv_hom_id, map_id] }
+
+@[simp] lemma map_hom_inv (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) [is_iso f] :
+  F.map f ≫ F.map (inv f) = 𝟙 (F.obj X) :=
+begin
+  rw [←map_comp, is_iso.hom_inv_id, map_id],
+end
+@[simp] lemma map_inv_hom (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) [is_iso f] :
+  F.map (inv f) ≫ F.map f = 𝟙 (F.obj Y) :=
+begin
+  rw [←map_comp, is_iso.inv_hom_id, map_id],
+end
 
 end functor
 
@@ -163,6 +187,14 @@ instance mono_of_iso (f : X ⟶ Y) [is_iso f] : mono f :=
                          rw [← is_iso.hom_inv_id f],
                          rw [←category.assoc, w, ←category.assoc]
                        end }
+
+end category_theory
+
+namespace category_theory
+
+ -- We need to get the morphism universe level up into `Type`, in order to have group structures.
+variables {C : Sort u} [𝒞 : category.{v+1} C]
+include 𝒞
 
 def Aut (X : C) := X ≅ X
 

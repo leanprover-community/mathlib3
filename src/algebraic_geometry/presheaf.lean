@@ -4,7 +4,6 @@
 
 import category_theory.instances.Top.opens
 import category_theory.whiskering
-import category_theory.natural_isomorphism
 
 universes v u
 

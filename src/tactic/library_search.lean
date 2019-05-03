@@ -3,7 +3,6 @@
 -- Authors: Scott Morrison
 
 import tactic.basic
-import tactic.decl_mk_const
 import data.list.defs
 
 /-

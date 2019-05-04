@@ -159,6 +159,23 @@ do e ← tactic.get_env,
              then s.insert d.to_name d else s),
    pure xs
 
+/--
+Returns a pair (e, t), where `e ← mk_const d.to_name`, and `t = d.type`
+but with universe params updated to match the fresh universe metavariables in `e`.
+
+This should have the same effect as just
+```
+do e ← mk_const d.to_name,
+   t ← infer_type e,
+   return (e, t)
+```
+but is hopefully faster.
+-/
+meta def decl_mk_const (d : declaration) : tactic (expr × expr) :=
+do subst ← d.univ_params.mmap $ λ u, prod.mk u <$> mk_meta_univ,
+   let e : expr := expr.const d.to_name (prod.snd <$> subst),
+   return (e, d.type.instantiate_univ_params subst)
+
 meta def simp_lemmas_from_file : tactic name_set :=
 do s ← local_decls,
    let s := s.map (expr.list_constant ∘ declaration.value),
@@ -529,7 +546,9 @@ open nat
 
 meta def solve_by_elim_aux (discharger : tactic unit) (asms : tactic (list expr))  : ℕ → tactic unit
 | 0 := done
-| (succ n) := discharger <|> (apply_assumption asms $ solve_by_elim_aux n)
+| (succ n) := done <|>
+              (discharger >> solve_by_elim_aux n) <|>
+              (apply_assumption asms $ solve_by_elim_aux n)
 
 meta structure by_elim_opt :=
   (all_goals : bool := ff)
@@ -600,6 +619,13 @@ do l ← local_context,
    when (results.empty) (fail "could not use `injection` then `clear` on any hypothesis")
 
 run_cmd add_interactive [`injections_and_clear]
+
+/-- calls `cases` on every local hypothesis, succeeding if
+    it succeeds on at least one hypothesis. -/
+meta def case_bash : tactic unit :=
+do l ← local_context,
+   r ← successes (l.reverse.map (λ h, cases h >> skip)),
+   when (r.empty) failed
 
 meta def note_anon (e : expr) : tactic unit :=
 do n ← get_unused_name "lh",

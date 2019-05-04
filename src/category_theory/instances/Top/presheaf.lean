@@ -68,6 +68,7 @@ begin
   dsimp [pushforward, comp],
   erw category_theory.functor.map_id, -- FIXME simp should do this
 end
+
 @[simp] lemma comp_inv_app {Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (comp ℱ f g).inv.app U = 𝟙 _ :=
 begin
   dsimp [pushforward, comp],

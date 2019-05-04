@@ -100,9 +100,15 @@ end
 
 variables {C}
 
+instance {X Y : PresheafedSpace.{v} C} : has_coe (X ⟶ Y) (X.to_Top ⟶ Y.to_Top) :=
+{ coe := λ α, α.f }
+
 @[simp] lemma id_f (X : PresheafedSpace.{v} C) : ((𝟙 X) : X ⟶ X).f = 𝟙 X.to_Top := rfl
 @[simp] lemma comp_f {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) :
   (α ≫ β).f = α.f ≫ β.f :=
+rfl
+@[simp] lemma comp_coe {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) :
+  ((α ≫ β : X ⟶ Z) : X.to_Top ⟶ Z.to_Top) = (α : X.to_Top ⟶ Y.to_Top) ≫ (β : Y.to_Top ⟶ Z.to_Top) :=
 rfl
 
 -- We don't mark these as simp lemmas, because the innards are pretty unsightly.
@@ -116,7 +122,7 @@ rfl
 
 def forget : PresheafedSpace.{v} C ⥤ Top :=
 { obj := λ X, X.to_Top,
-  map := λ X Y f, f.f }
+  map := λ X Y f, f }
 
 end PresheafedSpace
 
@@ -145,7 +151,7 @@ rfl
   (F.map_presheaf.obj X).𝒪 = X.𝒪 ⋙ F :=
 rfl
 @[simp] lemma map_presheaf_map_f (F : C ⥤ D) {X Y : PresheafedSpace.{v} C} (f : X ⟶ Y) :
-  (F.map_presheaf.map f).f = f.f :=
+  (F.map_presheaf.map f).f = f :=
 rfl
 @[simp] lemma map_presheaf_map_c (F : C ⥤ D) {X Y : PresheafedSpace.{v} C} (f : X ⟶ Y) :
   (F.map_presheaf.map f).c = whisker_right f.c F :=

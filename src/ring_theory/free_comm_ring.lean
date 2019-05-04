@@ -1,4 +1,5 @@
-import group_theory.free_abelian_group data.equiv.algebra data.polynomial ring_theory.ideal_operations
+import group_theory.free_abelian_group data.equiv.algebra data.polynomial
+import ring_theory.ideal_operations ring_theory.free_ring
 
 universes u v
 
@@ -202,7 +203,6 @@ def free_comm_ring_punit_equiv_polynomial_int : free_comm_ring punit.{u+1} ≃r 
         free_comm_ring.lift_mul, free_comm_ring.lift_pow, free_comm_ring.lift_of, this])
   end,
   hom := by apply_instance }
-.
 
 variables (α : Type u) [decidable_eq α]
 
@@ -250,4 +250,16 @@ def free_comm_ring_equiv_mv_polynomial_int :
     { intros p a ih,
       rw [mv_polynomial.eval₂_mul, mv_polynomial.eval₂_X,
         free_comm_ring.lift_mul, free_comm_ring.lift_of, ih] }
+  end }
+
+instance free_ring_to_free_comm_ring : has_coe (free_ring α) (free_comm_ring α) :=
+⟨@functor.map free_abelian_group _ _ _ coe⟩
+
+instance free_ring_to_free_comm_ring_is_ring_hom :
+  is_ring_hom (coe : free_ring α → free_comm_ring α) :=
+{ map_add := free_abelian_group.map_add _,
+  map_one := rfl,
+  map_mul := λ x y,
+  begin
+    sorry
   end }

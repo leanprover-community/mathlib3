@@ -7,6 +7,7 @@ Adjoining elements to form subalgebras.
 -/
 
 import ring_theory.algebra_operations ring_theory.polynomial ring_theory.principal_ideal_domain
+import algebra.pointwise
 
 universes u v w
 
@@ -88,7 +89,7 @@ le_antisymm
     (λ n r ih, by rw [pow_succ', ← ring.mul_assoc, alg_hom.map_mul, polynomial.aeval_def _ _ _ polynomial.X,
       polynomial.eval₂_X]; exact is_submonoid.mul_mem ih (subset_adjoin $ or.inl rfl)))
 
-theorem madjoin_union : (adjoin R (s ∪ t) : submodule R A) =
+theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t) : submodule R A) =
   (adjoin R s) * (adjoin R t) :=
 begin
   rw [adjoin_eq_span, adjoin_eq_span, adjoin_eq_span, span_mul_span],
@@ -103,16 +104,17 @@ variables {R s t}
 theorem adjoin_int (s : set R) : adjoin ℤ s = subalgebra_of_subring (ring.closure s) :=
 le_antisymm (adjoin_le subset_closure) (closure_subset subset_adjoin)
 
+local attribute [instance] set.pointwise_mul_semiring
+
 theorem fg_trans (h1 : (adjoin R s : submodule R A).fg)
   (h2 : (adjoin (adjoin R s) t : submodule (adjoin R s) A).fg) :
   (adjoin R (s ∪ t) : submodule R A).fg :=
 begin
   rcases fg_def.1 h1 with ⟨p, hp, hp'⟩,
   rcases fg_def.1 h2 with ⟨q, hq, hq'⟩,
-  refine fg_def.2 ⟨set.image (λ z : A × A, z.1 * z.2) (p.prod q),
-    set.finite_image _ (set.finite_prod hp hq), le_antisymm _ _⟩,
-  { rw [span_le, set.image_subset_iff],
-    rintros ⟨x, y⟩ ⟨hx, hy⟩,
+  refine fg_def.2 ⟨p * q, set.pointwise_mul_finite hp hq, le_antisymm _ _⟩,
+  { rw [span_le],
+    rintros _ ⟨x, hx, y, hy, rfl⟩,
     change x * y ∈ _,
     refine is_submonoid.mul_mem _ _,
     { have : x ∈ (adjoin R s : submodule R A),
@@ -121,20 +123,20 @@ begin
     have : y ∈ (adjoin (adjoin R s) t : submodule (adjoin R s) A),
     { rw ← hq', exact subset_span hy },
     change y ∈ adjoin R (s ∪ t), rwa adjoin_union },
-  intros r hr,
-  change r ∈ adjoin R (s ∪ t) at hr,
-  rw adjoin_union at hr,
-  change r ∈ (adjoin (adjoin R s) t : submodule (adjoin R s) A) at hr,
-  rw [← hq', mem_span_iff_lc] at hr,
-  rcases hr with ⟨l, hlq, rfl⟩,
-  haveI := classical.dec_eq A,
-  rw [lc.total_apply, finsupp.sum, mem_coe], refine sum_mem _ _,
-  intros z hz, change (l z).1 * _ ∈ _,
-  have : (l z).1 ∈ (adjoin R s : submodule R A) := (l z).2,
-  rw [← hp', mem_span_iff_lc] at this, rcases this with ⟨l2, hlp, hl⟩, rw ← hl,
-  rw [lc.total_apply, finsupp.sum_mul], refine sum_mem _ _,
-  intros t ht, change _ * _ ∈ _, rw smul_mul_assoc, refine smul_mem _ _ _,
-  exact subset_span ⟨⟨t, z⟩, ⟨hlp ht, hlq hz⟩, rfl⟩
+  { intros r hr,
+    change r ∈ adjoin R (s ∪ t) at hr,
+    rw adjoin_union at hr,
+    change r ∈ (adjoin (adjoin R s) t : submodule (adjoin R s) A) at hr,
+    rw [← hq', mem_span_iff_lc] at hr,
+    rcases hr with ⟨l, hlq, rfl⟩,
+    haveI := classical.dec_eq A,
+    rw [lc.total_apply, finsupp.sum, mem_coe], refine sum_mem _ _,
+    intros z hz, change (l z).1 * _ ∈ _,
+    have : (l z).1 ∈ (adjoin R s : submodule R A) := (l z).2,
+    rw [← hp', mem_span_iff_lc] at this, rcases this with ⟨l2, hlp, hl⟩, rw ← hl,
+    rw [lc.total_apply, finsupp.sum_mul], refine sum_mem _ _,
+    intros t ht, change _ * _ ∈ _, rw smul_mul_assoc, refine smul_mem _ _ _,
+    exact subset_span ⟨t, hlp ht, z, hlq hz, rfl⟩ }
 end
 
 end algebra

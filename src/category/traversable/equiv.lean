@@ -100,7 +100,7 @@ by simp [equiv.traverse,comp_traverse] with functor_norm; congr; ext; simp
 
 protected lemma naturality (f : α → F β) (x : t' α) :
   η (equiv.traverse eqv f x) = equiv.traverse eqv (@η _ ∘ f) x :=
-by simp [equiv.traverse] with functor_norm
+by simp only [equiv.traverse] with functor_norm
 
 protected def is_lawful_traversable :
   @is_lawful_traversable t' (equiv.traversable eqv) :=

@@ -3,8 +3,6 @@
 -- Authors: Stephen Morgan, Scott Morrison
 
 import data.ulift
-import category_theory.natural_transformation
-import category_theory.isomorphism
 import category_theory.functor_category
 
 namespace category_theory
@@ -33,7 +31,7 @@ end functor
 namespace nat_trans
 
 @[simp] def of_function {I : Type u₁} {F G : I → C} (f : Π i : I, F i ⟶ G i) :
-  (functor.of_function F) ⟹ (functor.of_function G) :=
+  (functor.of_function F) ⟶ (functor.of_function G) :=
 { app := λ i, f i,
   naturality' := λ X Y g,
   begin
@@ -50,10 +48,10 @@ def lift {α : Type u₁} {β : Type u₂} (f : α → β) : (discrete α) ⥤ (
 functor.of_function f
 
 include 𝒞
-variables (J : Type v₂)
+variables {J : Type v₁}
 
 @[simp] lemma functor_map_id
-  (F : discrete J ⥤ C) (j : discrete J) (f : j ⟶ j) : F.map f = 𝟙 (F.obj j) :=
+  (F : discrete J ⥤ C) {j : discrete J} (f : j ⟶ j) : F.map f = 𝟙 (F.obj j) :=
 begin
   have h : f = 𝟙 j, cases f, cases f, ext,
   rw h,

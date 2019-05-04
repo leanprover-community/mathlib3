@@ -5,7 +5,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 
 List permutations.
 -/
-import data.list.basic
+import data.list.basic logic.relation
 
 namespace list
 universe variables uu vv
@@ -263,6 +263,9 @@ section subperm
 def subperm (l₁ l₂ : list α) : Prop := ∃ l ~ l₁, l <+ l₂
 
 infix ` <+~ `:50 := subperm
+
+theorem nil_subperm {l : list α} : [] <+~ l :=
+⟨[], perm.nil, by simp⟩
 
 theorem perm.subperm_left {l l₁ l₂ : list α} (p : l₁ ~ l₂) : l <+~ l₁ ↔ l <+~ l₂ :=
 suffices ∀ {l₁ l₂ : list α}, l₁ ~ l₂ → l <+~ l₁ → l <+~ l₂,

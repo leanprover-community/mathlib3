@@ -76,8 +76,8 @@ do { ei ← es.find e,
 <|> return deps
 
 meta def may_be_proof (e : expr) : tactic bool :=
-is_proof e >>= λ b, return $
-b || is_app e || is_local_constant e || is_pi e || is_lambda e
+do expr.sort u ← infer_type e >>= infer_type,
+   return $ bnot u.nonzero
 
 end explode
 open explode

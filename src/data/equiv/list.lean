@@ -6,7 +6,7 @@ Author: Mario Carneiro
 Additional equiv and encodable instances for lists and finsets.
 -/
 import data.equiv.denumerable data.nat.pairing order.order_iso
-  data.vector2 data.array.lemmas data.fintype
+  data.array.lemmas data.fintype
 
 open nat list
 

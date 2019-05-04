@@ -9,8 +9,8 @@ Main result: Hilbert basis theorem, that if a ring is noetherian then so is its 
 -/
 
 import data.polynomial data.mv_polynomial
-import ring_theory.principal_ideal_domain
 import ring_theory.subring
+import ring_theory.ideals ring_theory.noetherian
 
 universes u v w
 

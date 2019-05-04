@@ -8,7 +8,8 @@ the edistance (on metric spaces, these are exactly the maps that preserve distan
 and prove their basic properties. We also introduce isometric bijections.
 -/
 
-import topology.metric_space.basic topology.instances.real
+import topology.metric_space.basic
+topology.bounded_continuous_function analysis.normed_space.basic topology.opens
 
 noncomputable theory
 
@@ -203,3 +204,101 @@ begin
   rw ← equiv.set.range_apply f h.injective x,
   refl
 end
+
+namespace Kuratowski_embedding
+/- In this section, we show that any separable metric space can be embedded isometrically
+in ℓ^∞(ℝ) -/
+
+@[reducible] def ℓ_infty_ℝ : Type := bounded_continuous_function ℕ ℝ
+open bounded_continuous_function metric topological_space
+
+variables {f g : ℓ_infty_ℝ} {n : ℕ} {C : ℝ} [metric_space α] (x : ℕ → α) (a b : α)
+
+/-- A metric space can be embedded in `l^∞(ℝ)` via the distances to points in
+a fixed countable set, if this set is dense. This map is given in the next definition,
+without density assumptions. -/
+def embedding_of_subset : ℓ_infty_ℝ :=
+of_normed_group_discrete (λn, dist a (x n) - dist (x 0) (x n)) (dist a (x 0)) (λ_, abs_dist_sub_le _ _ _)
+
+lemma embedding_of_subset_coe : embedding_of_subset x a n = dist a (x n) - dist (x 0) (x n) := rfl
+
+/-- The embedding map is always a semi-contraction. -/
+lemma embedding_of_subset_dist_le (a b : α) :
+  dist (embedding_of_subset x a) (embedding_of_subset x b) ≤ dist a b :=
+begin
+  refine (dist_le dist_nonneg).2 (λn, _),
+  have A : dist a (x n) + (dist (x 0) (x n) + (-dist b (x n) + -dist (x 0) (x n)))
+    = dist a (x n) - dist b (x n), by ring,
+  simp only [embedding_of_subset_coe, real.dist_eq, A, add_comm, neg_add_rev, _root_.neg_neg,
+             sub_eq_add_neg, add_left_comm],
+  exact abs_dist_sub_le _ _ _
+end
+
+/-- When the reference set is dense, the embedding map is an isometry on its image. -/
+lemma embedding_of_subset_isometry (H : closure (range x) = univ) : isometry (embedding_of_subset x) :=
+begin
+  refine isometry_emetric_iff_metric.2 (λa b, _),
+  refine le_antisymm (embedding_of_subset_dist_le x a b) (real.le_of_forall_epsilon_le (λe epos, _)),
+  /- First step: find n with dist a (x n) < e -/
+  have A : a ∈ closure (range x), by { have B := mem_univ a, rwa [← H] at B },
+  rcases mem_closure_iff'.1 A (e/2) (half_pos epos) with ⟨d, ⟨drange, hd⟩⟩,
+  cases drange with n dn,
+  rw [← dn] at hd,
+  /- Second step: use the norm control at index n to conclude -/
+  have C : dist b (x n) - dist a (x n) = embedding_of_subset x b n - embedding_of_subset x a n :=
+    by { simp [embedding_of_subset_coe], ring },
+  have := calc
+    dist a b ≤ dist a (x n) + dist (x n) b : dist_triangle _ _ _
+    ...    = 2 * dist a (x n) + (dist b (x n) - dist a (x n)) : by { simp [dist_comm], ring }
+    ...    ≤ 2 * dist a (x n) + abs (dist b (x n) - dist a (x n)) :
+      by apply_rules [add_le_add_left, le_abs_self]
+    ...    ≤ 2 * (e/2) + abs (embedding_of_subset x b n - embedding_of_subset x a n) :
+      begin rw [C], apply_rules [add_le_add, mul_le_mul_of_nonneg_left, le_of_lt hd, le_refl], norm_num end
+    ...    ≤ 2 * (e/2) + dist (embedding_of_subset x b) (embedding_of_subset x a) :
+      begin rw [← coe_diff], apply add_le_add_left, rw [coe_diff, ←real.dist_eq], apply dist_coe_le_dist end
+    ...    = dist (embedding_of_subset x b) (embedding_of_subset x a) + e : by ring,
+  simpa [dist_comm] using this
+end
+
+/-- Every separable metric space embeds isometrically in ℓ_infty_ℝ. -/
+theorem exists_isometric_embedding (α : Type u) [metric_space α] [separable_space α] :
+  ∃(f : α → ℓ_infty_ℝ), isometry f :=
+begin
+  classical,
+  by_cases h : (univ : set α) = ∅,
+  { use (λ_, 0), assume x, exact (ne_empty_of_mem (mem_univ x) h).elim },
+  { /- We construct a map x : ℕ → α with dense image -/
+    rcases exists_mem_of_ne_empty h with basepoint,
+    haveI : inhabited α := ⟨basepoint⟩,
+    have : ∃s:set α, countable s ∧ closure s = univ := separable_space.exists_countable_closure_eq_univ _,
+    rcases this with ⟨S, ⟨S_countable, S_dense⟩⟩,
+    rcases countable_iff_exists_surjective.1 S_countable with ⟨x, x_range⟩,
+    have : closure (range x) = univ :=
+      univ_subset_iff.1 (by { rw [← S_dense], apply closure_mono, assumption }),
+    /- Use embedding_of_subset to construct the desired isometry -/
+    exact ⟨embedding_of_subset x, embedding_of_subset_isometry x this⟩ }
+end
+
+/-- The Kuratowski embedding is an isometric embedding of a separable metric space in ℓ^∞(ℝ) -/
+def Kuratowski_embedding (α : Type u) [metric_space α] [separable_space α] : α → ℓ_infty_ℝ :=
+  classical.some (exists_isometric_embedding α)
+
+/-- The Kuratowski embedding is an isometry -/
+lemma Kuratowski_embedding_isometry (α : Type u) [metric_space α] [separable_space α] :
+  isometry (Kuratowski_embedding α) :=
+classical.some_spec (exists_isometric_embedding α)
+
+/-- Version of the Kuratowski embedding for nonempty compacts -/
+def nonempty_compacts.Kuratowski_embedding (α : Type u) [metric_space α] [compact_space α] [nonempty α] :
+  nonempty_compacts ℓ_infty_ℝ :=
+⟨range (Kuratowski_embedding α),
+begin
+  split,
+  { rcases exists_mem_of_nonempty α with ⟨x, hx⟩,
+    have A : Kuratowski_embedding α x ∈ range (Kuratowski_embedding α) := ⟨x, by simp⟩,
+    apply ne_empty_of_mem A },
+  { rw ← image_univ,
+    exact compact_image compact_univ (Kuratowski_embedding_isometry α).continuous },
+end⟩
+
+end Kuratowski_embedding --namespace

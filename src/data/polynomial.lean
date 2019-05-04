@@ -241,7 +241,7 @@ finsupp.sum_add_index
 by rw [← C_1, eval₂_C, map_one f]
 
 instance eval₂.is_add_monoid_hom : is_add_monoid_hom (eval₂ f x) :=
-⟨eval₂_zero _ _, λ _ _, eval₂_add _ _⟩
+{ map_zero := eval₂_zero _ _, map_add := λ _ _, eval₂_add _ _ }
 
 end eval₂
 
@@ -825,8 +825,14 @@ by rw [ne.def, ← degree_eq_bot];
 @[simp] lemma coeff_mul_X_zero (p : polynomial α) : coeff (p * X) 0 = 0 :=
 by rw [coeff_mul_left, sum_range_succ]; simp
 
-instance [subsingleton α] : subsingleton (polynomial α) :=
+end comm_semiring
+
+instance subsingleton [subsingleton α] [comm_semiring α] : subsingleton (polynomial α) :=
 ⟨λ _ _, polynomial.ext.2 (λ _, subsingleton.elim _ _)⟩
+
+section comm_semiring
+
+variables [decidable_eq α] [comm_semiring α] {p q r : polynomial α}
 
 lemma ne_zero_of_monic_of_zero_ne_one (hp : monic p) (h : (0 : α) ≠ 1) :
   p ≠ 0 := mt (congr_arg leading_coeff) $ by rw [monic.def.1 hp, leading_coeff_zero]; cc
@@ -988,7 +994,7 @@ lemma ne_zero_of_monic (h : monic p) : p ≠ 0 :=
 end nonzero_comm_semiring
 
 section comm_semiring
-variables [comm_semiring α] [decidable_eq α] {p q : polynomial α}
+variables [decidable_eq α] [comm_semiring α] {p q : polynomial α}
 
 /-- `dix_X p` return a polynomial `q` such that `q * X + C (p.coeff 0) = p`.
   It can be used in a semiring where the usual division algorithm is not possible -/
@@ -2113,7 +2119,7 @@ by refine finsupp.sum_add_index _ _; intros;
 simp only [add_mul, zero_mul, C_0, C_add, C_mul]
 
 instance : is_add_monoid_hom (derivative : polynomial α → polynomial α) :=
-by refine_struct {..}; simp
+{ map_add := λ _ _, derivative_add, map_zero := derivative_zero }
 
 @[simp] lemma derivative_sum {s : finset β} {f : β → polynomial α} :
   derivative (s.sum f) = s.sum (λb, derivative (f b)) :=
@@ -2200,7 +2206,7 @@ def pow_add_expansion {α : Type*} [comm_semiring α] (x y : α) : ∀ (n : ℕ)
     rw [_root_.pow_succ, hz],
     existsi (x*z + (n+1)*x^n+z*y),
     simp [_root_.pow_succ],
-    ring -- expensive!
+    ring
   end
 
 variables [comm_ring α] [decidable_eq α]
@@ -2238,7 +2244,7 @@ begin
 end
 
 def pow_sub_pow_factor (x y : α) : Π {i : ℕ},{z : α // x^i - y^i = z*(x - y)}
-| 0 := ⟨0, by simp⟩ --sorry --false.elim $ not_lt_of_ge h zero_lt_one
+| 0 := ⟨0, by simp⟩
 | 1 := ⟨1, by simp⟩
 | (k+2) :=
   begin

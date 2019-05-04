@@ -24,7 +24,7 @@ The formalization is mostly based on the books:
   I. M. James: Topologies and Uniformities
 A major difference is that this formalization is heavily based on the filter library.
 -/
-import order.filter order.filter.lift data.quot topology.constructions
+import order.filter.basic order.filter.lift topology.constructions
 
 open set lattice filter classical
 local attribute [instance, priority 0] prop_decidable
@@ -696,7 +696,7 @@ uniform_space.of_core_eq
       by rw [to_topological_space_sup, to_topological_space_comap, to_topological_space_comap]; refl
     ... = _ : by rw [uniform_space.to_core_to_topological_space])
 
-theorem uniformity_prod [uniform_space α] [uniform_space β] : @uniformity (α × β) _ =
+theorem uniformity_prod [uniform_space α] [uniform_space β] : 𝓤 (α × β) =
   (𝓤 α).comap (λp:(α × β) × α × β, (p.1.1, p.2.1)) ⊓
   (𝓤 β).comap (λp:(α × β) × α × β, (p.1.2, p.2.2)) :=
 sup_uniformity

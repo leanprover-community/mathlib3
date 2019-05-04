@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Robert Y. Lewis
+Authors: Robert Y. Lewis, Keeley Hoek
 
 More about finite numbers.
 -/
@@ -12,6 +12,9 @@ open fin nat
 /-- `fin 0` is empty -/
 def fin_zero_elim {C : Sort*} : fin 0 → C :=
 λ x, false.elim $ nat.not_lt_zero x.1 x.2
+
+def {u} fin_zero_elim' {α : fin 0 → Sort u} : ∀(x : fin 0), α x
+| ⟨n, hn⟩ := false.elim (nat.not_lt_zero n hn)
 
 namespace fin
 variables {n m : ℕ} {a b : fin n}
@@ -70,7 +73,7 @@ def cast_lt (i : fin m) (h : i.1 < n) : fin n := ⟨i.1, h⟩
 def cast_le (h : n ≤ m) (a : fin n) : fin m := cast_lt a (lt_of_lt_of_le a.2 h)
 
 /-- `cast eq i` embeds `i` into a equal `fin` type. -/
-def cast (eq : n = m): fin n → fin m := cast_le $ le_of_eq eq
+def cast (eq : n = m) : fin n → fin m := cast_le $ le_of_eq eq
 
 /-- `cast_add m i` embedds `i` in `fin (n+m)`. -/
 def cast_add (m) : fin n → fin (n + m) := cast_le $ le_add_right n m
@@ -105,6 +108,8 @@ def nat_add (n) {m} (i : fin m) : fin (n + m) :=
 theorem le_last (i : fin (n+1)) : i ≤ last n :=
 le_of_lt_succ i.is_lt
 
+@[simp] lemma cast_val (k : fin n) (h : n = m) : (fin.cast h k).val = k.val := rfl
+
 @[simp] lemma cast_succ_val (k : fin n) : k.cast_succ.val = k.val := rfl
 
 @[simp] lemma cast_lt_val (k : fin m) (h : k.1 < n) : (k.cast_lt h).val = k.val := rfl
@@ -120,6 +125,11 @@ rfl
 
 @[simp] lemma cast_succ_inj {a b : fin n} : a.cast_succ = b.cast_succ ↔ a = b :=
 by simp [eq_iff_veq]
+
+def clamp (n m : ℕ) : fin (m + 1) := fin.of_nat $ min n m
+
+@[simp] lemma clamp_val (n m : ℕ) : (clamp n m).val = min n m :=
+nat.mod_eq_of_lt $ nat.lt_succ_iff.mpr $ min_le_right _ _
 
 lemma injective_cast_le {n₁ n₂ : ℕ} (h : n₁ ≤ n₂) : function.injective (fin.cast_le h)
 | ⟨i₁, h₁⟩ ⟨i₂, h₂⟩ eq := fin.eq_of_veq $ show i₁ = i₂, from fin.veq_of_eq eq

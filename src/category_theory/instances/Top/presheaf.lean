@@ -49,9 +49,7 @@ by { dsimp [id], simp, }
 @[simp] lemma id_hom_app (U) :
   (id ℱ).hom.app U = ℱ.map (eq_to_hom (opens.op_map_id_obj U)) :=
 begin
-  revert U,
-  apply op_induction,
-  intro U,
+  op_induction U,
   cases U,
   simp,
   apply category_theory.functor.map_id,

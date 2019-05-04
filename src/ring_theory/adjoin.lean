@@ -6,7 +6,7 @@ Authors: Kenny Lau
 Adjoining elements to form subalgebras.
 -/
 
-import ring_theory.algebra_operations ring_theory.polynomial
+import ring_theory.algebra_operations ring_theory.polynomial ring_theory.principal_ideal_domain
 
 universes u v w
 
@@ -92,9 +92,8 @@ theorem madjoin_union : (adjoin R (s ∪ t)).to_submodule =
   (adjoin R s).to_submodule * (adjoin R t).to_submodule :=
 begin
   rw [madjoin_eq_span, madjoin_eq_span, madjoin_eq_span, span_mul_span], congr' 1, ext z,
-  rw monoid.mem_closure_union_iff, split,
-  { rintro ⟨y, hys, z, hzt, rfl⟩, exact ⟨(_, _), ⟨hys, hzt⟩, rfl⟩ },
-  { rintro ⟨⟨y, z⟩, ⟨hys, hzt⟩, rfl⟩, exact ⟨_, hys, _, hzt, rfl⟩ }
+  rw monoid.mem_closure_union_iff, split;
+  { rintro ⟨y, hys, z, hzt, rfl⟩, exact ⟨_, hys, _, hzt, rfl⟩ }
 end
 variables {R s t}
 
@@ -158,9 +157,11 @@ variables [decidable_eq R] [decidable_eq A]
 theorem is_noetherian_ring_of_fg {S : subalgebra R A} (HS : S.fg)
   [is_noetherian_ring R] : is_noetherian_ring S :=
 let ⟨t, ht⟩ := HS in ht ▸ (algebra.adjoin_eq_range R (↑t : set A)).symm ▸
-by haveI : is_noetherian_ring (mv_polynomial (↑t : set A) R) := is_noetherian_ring_mv_polynomial_of_fintype;
+by haveI : is_noetherian_ring (mv_polynomial (↑t : set A) R) :=
+is_noetherian_ring_mv_polynomial_of_fintype;
 convert alg_hom.is_noetherian_ring_range _; apply_instance
 
-theorem is_noetherian_ring_closure (s : set R) (hs : s.finite) : is_noetherian_ring (ring.closure s) :=
+theorem is_noetherian_ring_closure (s : set R) (hs : s.finite) :
+  is_noetherian_ring (ring.closure s) :=
 show is_noetherian_ring (subalgebra_of_subring (ring.closure s)), from
 algebra.adjoin_int s ▸ is_noetherian_ring_of_fg (subalgebra.fg_def.2 ⟨s, hs, rfl⟩)

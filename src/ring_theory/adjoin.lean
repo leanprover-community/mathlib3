@@ -45,7 +45,7 @@ le_antisymm
     (set.range_subset_iff.2 $ λ x, adjoin_mono (set.subset_union_left _ _) x.2)
     (set.subset.trans (set.subset_union_right _ _) subset_adjoin))
 
-theorem madjoin_eq_span : (adjoin R s).to_submodule = span R (monoid.closure s) :=
+theorem adjoin_eq_span : (adjoin R s : submodule R A) = span R (monoid.closure s) :=
 begin
   apply le_antisymm,
   { intros r hr, rcases ring.exists_list_of_mem_closure hr with ⟨L, HL, rfl⟩, clear hr,
@@ -88,11 +88,14 @@ le_antisymm
     (λ n r ih, by rw [pow_succ', ← ring.mul_assoc, alg_hom.map_mul, polynomial.aeval_def _ _ _ polynomial.X,
       polynomial.eval₂_X]; exact is_submonoid.mul_mem ih (subset_adjoin $ or.inl rfl)))
 
-theorem madjoin_union : (adjoin R (s ∪ t)).to_submodule =
-  (adjoin R s).to_submodule * (adjoin R t).to_submodule :=
+theorem madjoin_union : (adjoin R (s ∪ t) : submodule R A) =
+  (adjoin R s) * (adjoin R t) :=
 begin
-  rw [madjoin_eq_span, madjoin_eq_span, madjoin_eq_span, span_mul_span], congr' 1, ext z,
-  rw monoid.mem_closure_union_iff, split;
+  rw [adjoin_eq_span, adjoin_eq_span, adjoin_eq_span, span_mul_span],
+  congr' 1,
+  ext z,
+  rw monoid.mem_closure_union_iff,
+  split;
   { rintro ⟨y, hys, z, hzt, rfl⟩, exact ⟨_, hys, _, hzt, rfl⟩ }
 end
 variables {R s t}
@@ -100,26 +103,34 @@ variables {R s t}
 theorem adjoin_int (s : set R) : adjoin ℤ s = subalgebra_of_subring (ring.closure s) :=
 le_antisymm (adjoin_le subset_closure) (closure_subset subset_adjoin)
 
-theorem fg_trans (h1 : (adjoin R s).to_submodule.fg) (h2 : (adjoin (adjoin R s) t).to_submodule.fg) :
-  (adjoin R (s ∪ t)).to_submodule.fg :=
+theorem fg_trans (h1 : (adjoin R s : submodule R A).fg)
+  (h2 : (adjoin (adjoin R s) t : submodule (adjoin R s) A).fg) :
+  (adjoin R (s ∪ t) : submodule R A).fg :=
 begin
   rcases fg_def.1 h1 with ⟨p, hp, hp'⟩,
   rcases fg_def.1 h2 with ⟨q, hq, hq'⟩,
   refine fg_def.2 ⟨set.image (λ z : A × A, z.1 * z.2) (p.prod q),
     set.finite_image _ (set.finite_prod hp hq), le_antisymm _ _⟩,
-  { rw [span_le, set.image_subset_iff], rintros ⟨x, y⟩ ⟨hx, hy⟩,
-    change x * y ∈ _, refine is_submonoid.mul_mem _ _,
-    { have : x ∈ (adjoin R s).to_submodule, { rw ← hp', exact subset_span hx },
+  { rw [span_le, set.image_subset_iff],
+    rintros ⟨x, y⟩ ⟨hx, hy⟩,
+    change x * y ∈ _,
+    refine is_submonoid.mul_mem _ _,
+    { have : x ∈ (adjoin R s : submodule R A),
+      { rw ← hp', exact subset_span hx },
       exact adjoin_mono (set.subset_union_left _ _) this },
-    have : y ∈ (adjoin (adjoin R s) t).to_submodule, { rw ← hq', exact subset_span hy },
-    change y ∈ adjoin R (s ∪ t), rw adjoin_union, exact this },
-  intros r hr, change r ∈ adjoin R (s ∪ t) at hr, rw adjoin_union at hr,
-  change r ∈ (adjoin (adjoin R s) t).to_submodule at hr,
-  rw [← hq', mem_span_iff_lc] at hr, rcases hr with ⟨l, hlq, rfl⟩,
+    have : y ∈ (adjoin (adjoin R s) t : submodule (adjoin R s) A),
+    { rw ← hq', exact subset_span hy },
+    change y ∈ adjoin R (s ∪ t), rwa adjoin_union },
+  intros r hr,
+  change r ∈ adjoin R (s ∪ t) at hr,
+  rw adjoin_union at hr,
+  change r ∈ (adjoin (adjoin R s) t : submodule (adjoin R s) A) at hr,
+  rw [← hq', mem_span_iff_lc] at hr,
+  rcases hr with ⟨l, hlq, rfl⟩,
   haveI := classical.dec_eq A,
   rw [lc.total_apply, finsupp.sum, mem_coe], refine sum_mem _ _,
   intros z hz, change (l z).1 * _ ∈ _,
-  have : (l z).1 ∈ (adjoin R s).to_submodule := (l z).2,
+  have : (l z).1 ∈ (adjoin R s : submodule R A) := (l z).2,
   rw [← hp', mem_span_iff_lc] at this, rcases this with ⟨l2, hlp, hl⟩, rw ← hl,
   rw [lc.total_apply, finsupp.sum_mul], refine sum_mem _ _,
   intros t ht, change _ * _ ∈ _, rw smul_mul_assoc, refine smul_mem _ _ _,

@@ -112,6 +112,11 @@ rfl
 lemma comp_c {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) :
   (α ≫ β).c = (β.c ≫ (whisker_left (opens.map β.f).op α.c)) :=
 rfl
+
+def forget : PresheafedSpace.{v} C ⥤ Top :=
+{ obj := λ X, X.to_Top,
+  map := λ X Y f, f.f }
+
 end PresheafedSpace
 
 end algebraic_geometry

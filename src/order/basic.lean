@@ -3,7 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro
 -/
-import tactic.interactive logic.basic data.sum data.set.basic algebra.order
+import logic.basic data.sum data.set.basic algebra.order
 open function
 
 /- TODO: automatic construction of dual definitions / theorems -/
@@ -128,11 +128,14 @@ def order_dual (α : Type*) := α
 
 namespace order_dual
 instance (α : Type*) [has_le α] : has_le (order_dual α) := ⟨λx y:α, y ≤ x⟩
+instance (α : Type*) [has_lt α] : has_lt (order_dual α) := ⟨λx y:α, y < x⟩
 
 instance (α : Type*) [preorder α] : preorder (order_dual α) :=
 { le_refl  := le_refl,
   le_trans := assume a b c hab hbc, le_trans hbc hab,
-  .. order_dual.has_le α }
+  lt_iff_le_not_le := λ _ _, lt_iff_le_not_le,
+  .. order_dual.has_le α,
+  .. order_dual.has_lt α }
 
 instance (α : Type*) [partial_order α] : partial_order (order_dual α) :=
 { le_antisymm := assume a b hab hba, @le_antisymm α _ a b hba hab, .. order_dual.preorder α }
@@ -142,6 +145,7 @@ instance (α : Type*) [linear_order α] : linear_order (order_dual α) :=
 
 instance (α : Type*) [decidable_linear_order α] : decidable_linear_order (order_dual α) :=
 { decidable_le := show decidable_rel (λa b:α, b ≤ a), by apply_instance,
+  decidable_lt := show decidable_rel (λa b:α, b < a), by apply_instance,
   .. order_dual.linear_order α }
 
 end order_dual
@@ -216,6 +220,9 @@ instance prod.preorder (α : Type u) (β : Type v) [preorder α] [preorder β] :
     ⟨le_trans hac hce, le_trans hbd hdf⟩,
   .. prod.has_le α β }
 
+/-- The pointwise partial order on a product.
+    (The lexicographic ordering is defined in order/lexicographic.lean, and the instances are
+    available via the type synonym `lex α β = α × β`.) -/
 instance prod.partial_order (α : Type u) (β : Type v) [partial_order α] [partial_order β] :
   partial_order (α × β) :=
 { le_antisymm := assume ⟨a, b⟩ ⟨c, d⟩ ⟨hac, hbd⟩ ⟨hca, hdb⟩,
@@ -271,6 +278,19 @@ classical.or_iff_not_imp_left.2 $ assume h,
   ⟨assume a ha₁, le_of_not_gt $ assume ha₂, h ⟨a, ha₁, ha₂⟩,
     assume a ha₂, le_of_not_gt $ assume ha₁, h ⟨a, ha₁, ha₂⟩⟩
 
+lemma trans_trichotomous_left [is_trans α r] [is_trichotomous α r] {a b c : α} :
+  ¬r b a → r b c → r a c :=
+begin
+  intros h₁ h₂, rcases trichotomous_of r a b with h₃|h₃|h₃,
+  exact trans h₃ h₂, rw h₃, exact h₂, exfalso, exact h₁ h₃
+end
+
+lemma trans_trichotomous_right [is_trans α r] [is_trichotomous α r] {a b c : α} :
+  r a b → ¬r c b → r a c :=
+begin
+  intros h₁ h₂, rcases trichotomous_of r b c with h₃|h₃|h₃,
+  exact trans h₁ h₃, rw ←h₃, exact h₁, exfalso, exact h₂ h₃
+end
 section
 variables {s : β → β → Prop} {t : γ → γ → Prop}
 
@@ -383,6 +403,10 @@ instance is_well_order.is_trans {α} (r : α → α → Prop) [is_well_order α 
 instance is_well_order.is_irrefl {α} (r : α → α → Prop) [is_well_order α r] : is_irrefl α r := by apply_instance
 instance is_well_order.is_asymm {α} (r : α → α → Prop) [is_well_order α r] : is_asymm α r := by apply_instance
 
+noncomputable def decidable_linear_order_of_is_well_order (r : α → α → Prop) [is_well_order α r] :
+  decidable_linear_order α :=
+by { haveI := linear_order_of_STO' r, exact classical.DLO α }
+
 instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty_relation :=
 { trichotomous := λ a b, or.inr $ or.inl $ subsingleton.elim _ _,
   irrefl       := λ a, id,
@@ -419,6 +443,12 @@ instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] : is_w
     { exact prod.lex.right _ _ (trans ab bc) }
   end,
   wf := prod.lex_wf (is_well_order.wf r) (is_well_order.wf s) }
+
+/-- An unbounded or cofinal set -/
+def unbounded (r : α → α → Prop) (s : set α) : Prop := ∀ a, ∃ b ∈ s, ¬ r b a
+/-- A bounded or final set -/
+def bounded (r : α → α → Prop) (s : set α) : Prop := ∃a, ∀ b ∈ s, r b a
+
 
 theorem well_founded.has_min {α} {r : α → α → Prop} (H : well_founded r)
   (p : set α) : p ≠ ∅ → ∃ a ∈ p, ∀ x ∈ p, ¬ r x a :=

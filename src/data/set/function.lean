@@ -62,18 +62,22 @@ theorem inj_on_of_eq_on {f1 f2 : α → β} {a : set α} (h₁ : eq_on f1 f2 a)
   inj_on f2 a :=
 λ _ _ h₁' h₂' heq, by apply h₂ h₁' h₂'; rw [h₁, heq, ←h₁]; repeat {assumption}
 
-theorem inj_on_comp {g : β → γ} {f : α → β} {a : set α} {b : set β}
-    (h₁ : maps_to f a b) (h₂ : inj_on g b) (h₃: inj_on f a) :
-  inj_on (g ∘ f) a :=
-λ _ _ h₁' h₂' heq,
-by apply h₃ h₁' h₂'; apply h₂; repeat {apply h₁, assumption}; assumption
-
 theorem inj_on_of_inj_on_of_subset {f : α → β} {a b : set α} (h₁ : inj_on f b) (h₂ : a ⊆ b) :
   inj_on f a :=
 λ _ _ h₁' h₂' heq, h₁ (h₂ h₁') (h₂ h₂') heq
 
 lemma injective_iff_inj_on_univ {f : α → β} : injective f ↔ inj_on f univ :=
 iff.intro (λ h _ _ _ _ heq, h heq) (λ h _ _ heq, h trivial trivial heq)
+
+theorem inj_on_comp {g : β → γ} {f : α → β} {a : set α} {b : set β}
+    (h₁ : maps_to f a b) (h₂ : inj_on g b) (h₃: inj_on f a) :
+  inj_on (g ∘ f) a :=
+λ _ _ h₁' h₂' heq,
+by apply h₃ h₁' h₂'; apply h₂; repeat {apply h₁, assumption}; assumption
+
+lemma inj_on_comp_of_injective_left {g : β → γ} {f : α → β} {a : set α} (hg : injective g)
+  (hf : inj_on f a) : inj_on (g ∘ f) a :=
+inj_on_comp (maps_to_univ _ _) (injective_iff_inj_on_univ.mp hg) hf
 
 lemma inj_on_iff_injective {f : α → β} {s : set α} : inj_on f s ↔ injective (λ x:s, f x.1) :=
 ⟨λ H a b h, subtype.eq $ H a.2 b.2 h,
@@ -87,6 +91,36 @@ begin
   ext,
   simp [A] {contextual := tt}
 end
+
+lemma inj_on_preimage {f : α → β} {B : set (set β)} (hB : B ⊆ powerset (range f)) :
+  inj_on (preimage f) B :=
+begin
+  intros s t hs ht hst,
+  rw [←image_preimage_eq_of_subset (hB hs), ←image_preimage_eq_of_subset (hB ht), hst]
+end
+
+lemma subset_image_iff {s : set α} {t : set β} (f : α → β) :
+  t ⊆ f '' s ↔ ∃u⊆s, t = f '' u ∧ inj_on f u :=
+begin
+  split,
+  { assume h, choose g hg using h,
+    refine ⟨ {a | ∃ b (h : b ∈ t), g h = a }, _, set.ext $ assume b, ⟨_, _⟩, _⟩,
+    { rintros a ⟨b, hb, rfl⟩,
+      exact (hg hb).1 },
+    { rintros hb,
+      exact ⟨g hb, ⟨b, hb, rfl⟩, (hg hb).2⟩ },
+    { rintros ⟨c, ⟨b, hb, rfl⟩, rfl⟩,
+      rwa (hg hb).2 },
+    { rintros a₁ a₂ ⟨b₁, h₁, rfl⟩ ⟨b₂, h₂, rfl⟩ eq,
+      rw [(hg h₁).2, (hg h₂).2] at eq,
+      subst eq } },
+  { rintros ⟨u, hu, rfl, _⟩,
+    exact image_subset _ hu }
+end
+
+lemma subset_range_iff {s : set β} (f : α → β) :
+  s ⊆ set.range f ↔ ∃u, s = f '' u ∧ inj_on f u :=
+by rw [← image_univ, subset_image_iff]; simp
 
 /- surjectivity -/
 

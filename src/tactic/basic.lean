@@ -83,6 +83,57 @@ meta def emit_code_here : string → lean.parser unit
 
 end lean.parser
 
+namespace name
+
+meta def head : name → string
+| (mk_string s anonymous) := s
+| (mk_string s p)         := head p
+| (mk_numeral n p)        := head p
+| anonymous               := "[anonymous]"
+
+meta def is_private (n : name) : bool :=
+n.head = "_private"
+
+meta def last : name → string
+| (mk_string s _)  := s
+| (mk_numeral n _) := repr n
+| anonymous        := "[anonymous]"
+
+meta def length : name → ℕ
+| (mk_string s anonymous) := s.length
+| (mk_string s p)         := s.length + 1 + p.length
+| (mk_numeral n p)        := p.length
+| anonymous               := "[anonymous]".length
+
+end name
+
+namespace environment
+meta def decl_filter_map {α : Type} (e : environment) (f : declaration → option α) : list α :=
+  e.fold [] $ λ d l, match f d with
+                     | some r := r :: l
+                     | none := l
+                     end
+
+meta def decl_map {α : Type} (e : environment) (f : declaration → α) : list α :=
+  e.decl_filter_map $ λ d, some (f d)
+
+meta def get_decls (e : environment) : list declaration :=
+  e.decl_map id
+
+meta def get_trusted_decls (e : environment) : list declaration :=
+  e.decl_filter_map (λ d, if d.is_trusted then some d else none)
+
+meta def get_decl_names (e : environment) : list name :=
+  e.decl_map declaration.to_name
+end environment
+
+namespace format
+
+meta def intercalate (x : format) : list format → format :=
+format.join ∘ list.intersperse x
+
+end format
+
 namespace tactic
 
 meta def eval_expr' (α : Type*) [_inst_1 : reflected α] (e : expr) : tactic α :=
@@ -93,7 +144,7 @@ mk_app ``id [e] >>= eval_expr α
 -- useful source of random names provided by `mk_fresh_name` into
 -- names which are usable by tactic programs.
 --
--- The returned name has four components.
+-- The returned name has four components which are all strings.
 meta def mk_user_fresh_name : tactic name :=
 do nm ← mk_fresh_name,
    return $ `user__ ++ nm.pop_prefix.sanitize_name ++ `user__
@@ -108,11 +159,28 @@ do e ← tactic.get_env,
              then s.insert d.to_name d else s),
    pure xs
 
+/--
+Returns a pair (e, t), where `e ← mk_const d.to_name`, and `t = d.type`
+but with universe params updated to match the fresh universe metavariables in `e`.
+
+This should have the same effect as just
+```
+do e ← mk_const d.to_name,
+   t ← infer_type e,
+   return (e, t)
+```
+but is hopefully faster.
+-/
+meta def decl_mk_const (d : declaration) : tactic (expr × expr) :=
+do subst ← d.univ_params.mmap $ λ u, prod.mk u <$> mk_meta_univ,
+   let e : expr := expr.const d.to_name (prod.snd <$> subst),
+   return (e, d.type.instantiate_univ_params subst)
+
 meta def simp_lemmas_from_file : tactic name_set :=
 do s ← local_decls,
    let s := s.map (expr.list_constant ∘ declaration.value),
    xs ← s.to_list.mmap ((<$>) name_set.of_list ∘ mfilter tactic.is_simp_lemma ∘ name_set.to_list ∘ prod.snd),
-   return $ name_set.filter (xs.foldl name_set.union mk_name_set) (λ x, ¬ s.contains x)
+   return $ name_set.filter (λ x, ¬ s.contains x) (xs.foldl name_set.union mk_name_set)
 
 meta def file_simp_attribute_decl (attr : name) : tactic unit :=
 do s ← simp_lemmas_from_file,
@@ -354,6 +422,15 @@ meta def mk_mvar_list : ℕ → tactic (list expr)
 | 0 := pure []
 | (succ n) := (::) <$> mk_mvar <*> mk_mvar_list n
 
+/-- Returns the only goal, or fails if there isn't just one goal. -/
+meta def get_goal : tactic expr :=
+do gs ← get_goals,
+   match gs with
+   | [a] := return a
+   | []  := fail "there are no goals"
+   | _   := fail "there are too many goals"
+   end
+
 /--`iterate_at_most_on_all_goals n t`: repeat the given tactic at most `n` times on all goals,
 or until it fails. Always succeeds. -/
 meta def iterate_at_most_on_all_goals : nat → tactic unit → tactic unit
@@ -399,6 +476,41 @@ do h' ← get_local h,
    note h none p,
    clear h'
 
+/-- Auxiliary function for `iff_mp` and `iff_mpr`. Takes a name, which should be either `` `iff.mp``
+or `` `iff.mpr``. If the passed expression is an iterated function type eventually producing an
+`iff`, returns an expression with the `iff` converted to either the forwards or backwards
+implication, as requested. -/
+meta def mk_iff_mp_app (iffmp : name) : expr → (nat → expr) → option expr
+| (expr.pi n bi e t) f := expr.lam n bi e <$> mk_iff_mp_app t (λ n, f (n+1) (expr.var n))
+| `(%%a ↔ %%b) f := some $ @expr.const tt iffmp [] a b (f 0)
+| _ f := none
+
+meta def iff_mp_core (e ty: expr) : option expr :=
+mk_iff_mp_app `iff.mp ty (λ_, e)
+
+meta def iff_mpr_core (e ty: expr) : option expr :=
+mk_iff_mp_app `iff.mpr ty (λ_, e)
+
+/-- Given an expression whose type is (a possibly iterated function producing) an `iff`,
+create the expression which is the forward implication. -/
+meta def iff_mp (e : expr) : tactic expr :=
+do t ← infer_type e,
+   iff_mp_core e t <|> fail "Target theorem must have the form `Π x y z, a ↔ b`"
+
+/-- Given an expression whose type is (a possibly iterated function producing) an `iff`,
+create the expression which is the reverse implication. -/
+meta def iff_mpr (e : expr) : tactic expr :=
+do t ← infer_type e,
+   iff_mpr_core e t <|> fail "Target theorem must have the form `Π x y z, a ↔ b`"
+
+/--
+Attempts to apply `e`, and if that fails, if `e` is an `iff`,
+try applying both directions separately.
+-/
+meta def apply_iff (e : expr) : tactic (list (name × expr)) :=
+let ap e := tactic.apply e {new_goals := new_goals.non_dep_only} in
+ap e <|> (iff_mp e >>= ap) <|> (iff_mpr e >>= ap)
+
 meta def symm_apply (e : expr) (cfg : apply_cfg := {}) : tactic (list (name × expr)) :=
 tactic.apply e cfg <|> (symmetry >> tactic.apply e cfg)
 
@@ -434,9 +546,12 @@ open nat
 
 meta def solve_by_elim_aux (discharger : tactic unit) (asms : tactic (list expr))  : ℕ → tactic unit
 | 0 := done
-| (succ n) := discharger <|> (apply_assumption asms $ solve_by_elim_aux n)
+| (succ n) := done <|>
+              (discharger >> solve_by_elim_aux n) <|>
+              (apply_assumption asms $ solve_by_elim_aux n)
 
 meta structure by_elim_opt :=
+  (all_goals : bool := ff)
   (discharger : tactic unit := done)
   (assumptions : tactic (list expr) := local_context)
   (max_rep : ℕ := 3)
@@ -444,7 +559,7 @@ meta structure by_elim_opt :=
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
 do
   tactic.fail_if_no_goals,
-  focus1 $
+  (if opt.all_goals then id else focus1) $
     solve_by_elim_aux opt.discharger opt.assumptions opt.max_rep
 
 meta def metavariables : tactic (list expr) :=
@@ -504,6 +619,13 @@ do l ← local_context,
    when (results.empty) (fail "could not use `injection` then `clear` on any hypothesis")
 
 run_cmd add_interactive [`injections_and_clear]
+
+/-- calls `cases` on every local hypothesis, succeeding if
+    it succeeds on at least one hypothesis. -/
+meta def case_bash : tactic unit :=
+do l ← local_context,
+   r ← successes (l.reverse.map (λ h, cases h >> skip)),
+   when (r.empty) failed
 
 meta def note_anon (e : expr) : tactic unit :=
 do n ← get_unused_name "lh",
@@ -603,9 +725,24 @@ instance : monad id :=
      env ← get_env,
      fs ← expanded_field_list cl,
      let fs := fs.map prod.snd,
-     let fs := list.intersperse (",\n  " : format) $ fs.map (λ fn, format!"{fn} := _"),
-     let out := format.to_string format!"{{ {format.join fs} }",
+     let fs := format.intercalate (",\n  " : format) $ fs.map (λ fn, format!"{fn} := _"),
+     let out := format.to_string format!"{{ {fs} }",
      return [(out,"")] }
+
+meta def strip_prefix' (n : name) : list string → name → tactic name
+| s name.anonymous := pure $ s.foldl (flip name.mk_string) name.anonymous
+| s (name.mk_string a p) :=
+  do let n' := s.foldl (flip name.mk_string) name.anonymous,
+     do { n'' ← tactic.resolve_constant n',
+          if n'' = n
+            then pure n'
+            else strip_prefix' (a :: s) p }
+     <|> strip_prefix' (a :: s) p
+| s (name.mk_numeral a p) := interaction_monad.failed
+
+meta def strip_prefix : name → tactic name
+| n@(name.mk_string a a_1) := strip_prefix' n [a] a_1
+| _ := interaction_monad.failed
 
 meta def is_default_local : expr → bool
 | (expr.local_const _ _ binder_info.default _) := tt
@@ -624,6 +761,7 @@ do let cl := t.get_app_fn.const_name,
                pure v' ),
           vs.mmap' $ λ v, get_local v >>= clear,
           let args := list.intersperse (" " : format) $ vs.map to_fmt,
+          f ← strip_prefix f,
           if args.empty
             then pure $ format!"| {f} := _\n"
             else pure format!"| ({f} {format.join args}) := _\n" }
@@ -774,9 +912,10 @@ sum.inr : ℕ → ℤ ⊕ ℕ
      ts ← cs.mmap $ λ c,
        do { e ← mk_const c,
             t ← infer_type (e.mk_app args) >>= pp,
+            c ← strip_prefix c,
             pure format!"\n{c} : {t}\n" },
-     let fs := list.intersperse (", " : format) $ cs.map to_fmt,
-     let out := format.to_string format!"{{! {format.join fs} !}",
+     fs ← format.intercalate ", " <$> cs.mmap (strip_prefix >=> pure ∘ to_fmt),
+     let out := format.to_string format!"{{! {fs} !}",
      trace (format.join ts).to_string,
      return [(out,"")] }
 
@@ -858,5 +997,18 @@ meta def clear_aux_decl_aux : list expr → tactic unit
 
 meta def clear_aux_decl : tactic unit :=
 local_context >>= clear_aux_decl_aux
+
+precedence `setup_tactic_parser`:0
+
+@[user_command]
+meta def setup_tactic_parser_cmd (_ : interactive.parse $ tk "setup_tactic_parser") : lean.parser unit :=
+emit_code_here "
+open lean
+open lean.parser
+open interactive interactive.types
+
+local postfix `?`:9001 := optional
+local postfix *:9001 := many .
+"
 
 end tactic

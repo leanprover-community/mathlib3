@@ -6,7 +6,9 @@ Authors: Chris Hughes
 Definition of splitting fields, and definition of homomorphism into any field that splits
 -/
 
-import ring_theory.adjoin_root ring_theory.unique_factorization_domain
+import ring_theory.unique_factorization_domain
+import data.polynomial ring_theory.principal_ideal_domain
+       algebra.euclidean_domain
 
 universes u v w
 
@@ -17,7 +19,7 @@ namespace polynomial
 noncomputable theory
 local attribute [instance, priority 0] classical.prop_decidable
 variables [discrete_field α] [discrete_field β] [discrete_field γ]
-open polynomial adjoin_root
+open polynomial
 
 section splits
 
@@ -62,7 +64,7 @@ end
 lemma splits_mul {f g : polynomial α} (hf : splits i f) (hg : splits i g) : splits i (f * g) :=
 if h : f * g = 0 then by simp [h]
 else or.inr $ λ p hp hpf, ((principal_ideal_domain.irreducible_iff_prime.1 hp).2.2 _ _
-    (show p ∣ map i f * map i g, by convert hpf; rw map_mul)).elim
+    (show p ∣ map i f * map i g, by convert hpf; rw polynomial.map_mul)).elim
   (hf.resolve_left (λ hf, by simpa [hf] using h) hp)
   (hg.resolve_left (λ hg, by simpa [hg] using h) hp)
 

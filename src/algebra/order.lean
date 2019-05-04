@@ -160,6 +160,14 @@ lemma lt_trichotomy [decidable_linear_order α] (a b : α) : a < b ∨ a = b ∨
 lemma lt_or_gt_of_ne [decidable_linear_order α] {a b : α} (h : a ≠ b) : a < b ∨ b < a :=
 (lt_trichotomy a b).imp_right $ λ h', h'.resolve_left h
 
+def lt_by_cases [decidable_linear_order α] (x y : α) {P : Sort*}
+  (h₁ : x < y → P) (h₂ : x = y → P) (h₃ : y < x → P) : P :=
+begin
+  by_cases h : x < y, { exact h₁ h },
+  by_cases h' : y < x, { exact h₃ h' },
+  apply h₂, apply le_antisymm; apply le_of_not_gt; assumption
+end
+
 lemma ne_iff_lt_or_gt [decidable_linear_order α] {a b : α} : a ≠ b ↔ a < b ∨ a > b :=
 ⟨lt_or_gt_of_ne, λo, o.elim ne_of_lt ne_of_gt⟩
 

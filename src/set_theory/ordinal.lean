@@ -42,7 +42,7 @@ theorem init_iff (f : r ≼i s) {a : α} {b : β} : s b (f a) ↔ ∃ a', f a' =
 
 /-- An order isomorphism is an initial segment -/
 def of_iso (f : r ≃o s) : r ≼i s :=
-⟨f, λ a b h, ⟨f.symm b, order_iso.apply_inverse_apply f _⟩⟩
+⟨f, λ a b h, ⟨f.symm b, order_iso.apply_symm_apply f _⟩⟩
 
 @[refl] protected def refl (r : α → α → Prop) : r ≼i r :=
 ⟨order_embedding.refl _, λ a b h, ⟨_, rfl⟩⟩
@@ -181,7 +181,7 @@ lt_le_apply _ _ _
 def equiv_lt [is_trans β s] [is_trans γ t] (f : r ≃o s) (g : s ≺i t) : r ≺i t :=
 ⟨@order_embedding.trans _ _ _ r s t f g, g.top, λ c,
  by simp only [g.down', coe_fn_coe_base, order_embedding.trans_apply]; exact
- ⟨λ ⟨b, h⟩, ⟨f.symm b, by simp only [h, order_iso.apply_inverse_apply, order_iso.coe_coe_fn]⟩, λ ⟨a, h⟩, ⟨f a, h⟩⟩⟩
+ ⟨λ ⟨b, h⟩, ⟨f.symm b, by simp only [h, order_iso.apply_symm_apply, order_iso.coe_coe_fn]⟩, λ ⟨a, h⟩, ⟨f a, h⟩⟩⟩
 
 @[simp] theorem equiv_lt_apply [is_trans β s] [is_trans γ t] (f : r ≃o s) (g : s ≺i t) (a : α) : (equiv_lt f g) a = g (f a) :=
 order_embedding.trans_apply _ _ _
@@ -2767,10 +2767,10 @@ aleph'.order_iso.ord'.symm
 le_iff_le_iff_lt_iff_lt.2 aleph'_lt
 
 @[simp] theorem aleph'_aleph_idx (c : cardinal.{u}) : aleph' c.aleph_idx = c :=
-cardinal.aleph_idx.order_iso.to_equiv.inverse_apply_apply c
+cardinal.aleph_idx.order_iso.to_equiv.symm_apply_apply c
 
 @[simp] theorem aleph_idx_aleph' (o : ordinal.{u}) : (aleph' o).aleph_idx = o :=
-cardinal.aleph_idx.order_iso.to_equiv.apply_inverse_apply o
+cardinal.aleph_idx.order_iso.to_equiv.apply_symm_apply o
 
 @[simp] theorem aleph'_zero : aleph' 0 = 0 :=
 by rw [← le_zero, ← aleph'_aleph_idx 0, aleph'_le];

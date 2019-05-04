@@ -109,7 +109,7 @@ This is a "finishing" tactic modification of `simp`. It has two forms.
   more robust under changes to the simp lemma set.
 
 * `simpa [rules, ...]` will simplify the goal and the type of a
-  hypothesis `this` if present, then try to close the goal using
+  hypothesis `this` if present in the context, then try to close the goal using
   the `assumption` tactic.
 
 ### replace
@@ -142,8 +142,8 @@ The procedures *do* split on disjunctions and recreate the smt state for each te
 they are only meant to be used on small, straightforward problems.
 
 * finish:  solves the goal or fails
-* clarify:  makes as much progress as possible while not leaving more than one goal
-* safe:     splits freely, finishes off whatever subgoals it can, and leaves the rest
+* clarify: makes as much progress as possible while not leaving more than one goal
+* safe:    splits freely, finishes off whatever subgoals it can, and leaves the rest
 
 All accept an optional list of simplifier rules, typically definitions that should be expanded.
 (The equations and identities should not refer to the local context.)
@@ -199,22 +199,57 @@ Unfold coercion-related definitions
 
 ### Instance cache tactics
 
-* `resetI`: Reset the instance cache. This allows any new instances
-  added to the context to be used in typeclass inference.
+For performance reasons, Lean does not automatically update its database
+of class instances during a proof. The group of tactics described below
+helps forcing such updates. For a simple (but very artificial) example,
+consider the function `default` from the core library. It has type 
+`Π (α : Sort u) [inhabited α], α`, so one can use `default α` only if Lean 
+can find a registered instance of `inhabited α`. Because the database of
+such instance is not automatically updated during a proof, the following
+attempt won't work (Lean will not pick up the instance from the local
+context):
+```lean
+def my_id (α : Type) : α → α :=
+begin
+  intro x,
+  have : inhabited α := ⟨x⟩,
+  exact default α, -- Won't work!
+end
+```
+However, it will work, producing the identity function, if one replaces have by its variant `haveI` described below.
+
+* `resetI`: Reset the instance cache. This allows any instances
+  currently in the context to be used in typeclass inference.
 
 * `unfreezeI`: Unfreeze local instances, which allows us to revert
   instances in the context
 
-* `introI`/`introsI`: Like `intro`/`intros`, but uses the introduced variable
-  in typeclass inference.
+* `introI`/`introsI`: `intro`/`intros` followed by `resetI`. Like
+  `intro`/`intros`, but uses the introduced variable in typeclass inference.
 
-* `haveI`/`letI`: Used to add typeclasses to the context so that they can
-  be used in typeclass inference. The syntax is the same as
-  `have`/`letI`, but the proof-omitted version of `have` is not supported
-  (for this one must write `have : t, { <proof> }, resetI, <proof>`).
+* `haveI`/`letI`: `have`/`let` followed by `resetI`. Used to add typeclasses
+  to the context so that they can be used in typeclass inference. The syntax
+  `haveI := <proof>` and `haveI : t := <proof>` is supported, but
+  `haveI : t, from _` and `haveI : t, { <proof> }` are not; in these cases
+  use `have : t, { <proof> }, resetI` directly).
 
-* `exactI`: Like `exact`, but uses all variables in the context
-  for typeclass inference.
+* `exactI`: `resetI` followed by `exact`. Like `exact`, but uses all
+  variables in the context for typeclass inference.
+
+### library_search
+
+`library_search` is a tactic to identify existing lemmas in the library. It tries to close the
+current goal by applying a lemma from the library, then discharging any new goals using
+`solve_by_elim`.
+
+Typical usage is:
+```
+example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
+by library_search -- exact nat.mul_sub_left_distrib n m k
+```
+
+`library_search` prints a trace message showing the proof it found, shown above as a comment.
+Typically you will then copy and paste this proof, replacing the call to `library_search`.
 
 ### find
 
@@ -235,6 +270,9 @@ The tactic `solve_by_elim` repeatedly applies assumptions to the current goal, a
 solve_by_elim { discharger := `[cc] }
 ```
 also attempts to discharge the goal using congruence closure before each round of applying assumptions.
+
+`solve_by_elim*` tries to solve all goals together, using backtracking if a solution for one goal
+makes other goals impossible.
 
 By default `solve_by_elim` also applies `congr_fun` and `congr_arg` against the goal.
 
@@ -505,8 +543,8 @@ This list can be overriden using `tidy { tactics :=  ... }`. (The list must be a
 
 `linarith` attempts to find a contradiction between hypotheses that are linear (in)equalities.
 Equivalently, it can prove a linear inequality by assuming its negation and proving `false`.
-This tactic is currently work in progress, and has various limitations. In particular,
-it will not work on `nat`. The tactic can be made much more efficient.
+
+In theory, `linarith` should prove any goal that is true in the theory of linear arithmetic over the rationals. While there is some special handling for non-dense orders like `nat` and `int`, this tactic is not complete for these theories and will not prove every true goal.
 
 An example:
 ```lean
@@ -603,15 +641,21 @@ Known limitation(s):
     combined by concatenating their list of lemmas.
 
 ## fin_cases
-Performs cases analysis on a `fin n` hypothesis. As an example, in
+`fin_cases h` performs case analysis on a hypothesis of the form
+1) `h : A`, where `[fintype A]` is available, or
+2) `h ∈ A`, where `A : finset X`, `A : multiset X` or `A : list X`.
+
+`fin_cases *` performs case analysis on all suitable hypotheses.
+
+As an example, in
 ```
 example (f : ℕ → Prop) (p : fin 3) (h0 : f 0) (h1 : f 1) (h2 : f 2) : f p.val :=
 begin
-  fin_cases p,
+  fin_cases p; simp,
   all_goals { assumption }
 end
 ```
-after `fin_cases p`, there are three goals, `f 0`, `f 1`, and `f 2`.
+after `fin_cases p; simp`, there are three goals, `f 0`, `f 1`, and `f 2`.
 
 ## conv
 The `conv` tactic is built-in to lean. Currently mathlib additionally provides
@@ -800,3 +844,47 @@ h : y = 3
 -/
 end
 ```
+
+## omega
+
+`omega` attempts to discharge goals in the quantifier-free fragment of linear integer and natural number arithmetic using the Omega test. In other words, the core procedure of `omega` works with goals of the form
+```lean
+∀ x₁, ... ∀ xₖ, P
+```
+where `x₁, ... xₖ` are integer (resp. natural number) variables, and `P` is a quantifier-free formula of linear integer (resp. natural number) arithmetic. For instance:
+```lean
+example : ∀ (x y : int), (x ≤ 5 ∧ y ≤ 3) → x + y ≤ 8 := by omega
+```
+By default, `omega` tries to guess the correct domain by looking at the goal and hypotheses, and then reverts all relevant hypotheses and variables (e.g., all variables of type `nat` and `Prop`s in linear natural number arithmetic, if the domain was determined to be `nat`) to universally close the goal before calling the main procedure. Therefore, `omega` will often work even if the goal is not in the above form:
+```lean
+example (x y : nat) (h : 2 * x + 1 = 2 * y) : false := by omega
+```
+But this behaviour is not always optimal, since it may revert irrelevant hypotheses or incorrectly guess the domain. Use `omega manual` to disable automatic reverts, and `omega int` or `omega nat` to specify the domain. 
+```lean
+example (x y z w : int) (h1 : 3 * y ≥ x) (h2 : z > 19 * w) : 3 * x ≤ 9 * y := 
+by {revert h1 x y, omega manual}
+
+example (i : int) (n : nat) (h1 : i = 0) (h2 : n < n) : false := by omega nat
+
+example (n : nat) (h1 : n < 34) (i : int) (h2 : i * 9 = -72) : i = -8 := 
+by {revert h2 i, omega manual int}
+```
+`omega` handles `nat` subtraction by repeatedly rewriting goals of the form `P[t-s]` into `P[x] ∧ (t = s + x ∨ (t ≤ s ∧ x = 0))`, where `x` is fresh. This means that each (distinct) occurrence of subtraction will cause the goal size to double during DNF transformation.
+
+`omega` implements the real shadow step of the Omega test, but not the dark and gray shadows. Therefore, it should (in principle) succeed whenever the negation of the goal has no real solution, but it may fail if a real solution exists, even if there is no integer/natural number solution.
+### push_neg
+
+This tactic pushes negations inside expressions. For instance, given an assumption
+```lean
+h : ¬ ∀ ε > 0, ∃ δ > 0, ∀ x, |x - x₀| ≤ δ → |f x - y₀| ≤ ε)
+```
+writing `push_neg at h` will turn `h` into
+```lean
+h : ∃ ε, ε > 0 ∧ ∀ δ, δ > 0 → (∃ x, |x - x₀| ≤ δ ∧ ε < |f x - y₀|),
+```
+(the pretty printer does *not* use the abreviations `∀ δ > 0` and `∃ ε > 0` but this issue
+has nothing to do with `push_neg`).
+Note that names are conserved by this tactic, contrary to what would happen with `simp`
+using the relevant lemmas. One can also use this tactic at the goal using `push_neg`,
+at every assumption and the goal using `push_neg at *` or at selected assumptions and the goal
+using say `push_neg at h h' ⊢` as usual.

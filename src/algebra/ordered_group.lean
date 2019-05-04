@@ -26,7 +26,7 @@ class ordered_comm_monoid (α : Type*) extends add_comm_monoid α, partial_order
   which is to say, `a ≤ b` iff there exists `c` with `b = a + c`.
   This is satisfied by the natural numbers, for example, but not
   the integers or other ordered groups. -/
-class canonically_ordered_monoid (α : Type*) extends ordered_comm_monoid α :=
+class canonically_ordered_monoid (α : Type*) extends ordered_comm_monoid α, lattice.order_bot α :=
 (le_iff_exists_add : ∀a b:α, a ≤ b ↔ ∃c, b = a + c)
 
 end old_structure_cmd
@@ -292,6 +292,7 @@ instance [canonically_ordered_monoid α] : canonically_ordered_monoid (with_top 
     end
   | none, some b := show (⊤ : with_top α) ≤ b ↔ ∃c:with_top α, ↑b = ⊤ + c, by simp
   end,
+  .. with_top.order_bot,
   .. with_top.ordered_comm_monoid }
 
 end with_top
@@ -350,6 +351,9 @@ canonically_ordered_monoid.le_iff_exists_add a b
 
 @[simp] lemma zero_le (a : α) : 0 ≤ a := le_iff_exists_add.mpr ⟨a, by simp⟩
 
+lemma bot_eq_zero : (⊥ : α) = 0 :=
+le_antisymm lattice.bot_le (zero_le ⊥)
+
 @[simp] lemma add_eq_zero_iff : a + b = 0 ↔ a = 0 ∧ b = 0 :=
 add_eq_zero_iff' (zero_le _) (zero_le _)
 
@@ -385,7 +389,9 @@ instance with_zero.canonically_ordered_monoid :
         { exact ⟨_, (add_zero _).symm⟩ },
         { exact ⟨_, rfl⟩ } } }
   end,
-  ..with_zero.ordered_comm_monoid zero_le }
+  bot    := 0,
+  bot_le := assume a a' h, option.no_confusion h,
+  .. with_zero.ordered_comm_monoid zero_le }
 
 end canonically_ordered_monoid
 

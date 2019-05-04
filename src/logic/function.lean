@@ -38,6 +38,9 @@ lemma comp_apply {α : Sort u} {β : Sort v} {φ : Sort w} (f : β → φ) (g : 
   f a = f b ↔ a = b :=
 ⟨@I _ _, congr_arg f⟩
 
+lemma injective.ne (hf : function.injective f) {a₁ a₂ : α} : a₁ ≠ a₂ → f a₁ ≠ f a₂ :=
+mt (assume h, hf h)
+
 def injective.decidable_eq [decidable_eq β] (I : injective f) : decidable_eq α
 | a b := decidable_of_iff _ I.eq_iff
 
@@ -137,6 +140,9 @@ noncomputable def inv_fun (f : α → β) : β → α := inv_fun_on f set.univ
 
 theorem inv_fun_eq (h : ∃a, f a = b) : f (inv_fun f b) = b :=
 inv_fun_on_eq $ let ⟨a, ha⟩ := h in ⟨a, trivial, ha⟩
+
+lemma inv_fun_neg (h : ¬ ∃ a, f a = b) : inv_fun f b = default α :=
+by refine inv_fun_on_neg (mt _ h); exact assume ⟨a, _, ha⟩, ⟨a, ha⟩
 
 theorem inv_fun_eq_of_injective_of_right_inverse {g : β → α}
   (hf : injective f) (hg : right_inverse g f) : inv_fun f = g :=

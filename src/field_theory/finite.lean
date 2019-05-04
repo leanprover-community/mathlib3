@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import group_theory.order_of_element data.nat.totient data.polynomial data.equiv.algebra
+import group_theory.order_of_element data.polynomial data.equiv.algebra
 
 universes u v
 variables {α : Type u} {β : Type v}
@@ -29,19 +29,20 @@ end
 
 namespace finite_field
 
-def field_of_integral_domain [fintype α] [decidable_eq α] [integral_domain α] : 
+def field_of_integral_domain [fintype α] [decidable_eq α] [integral_domain α] :
   discrete_field α :=
 { has_decidable_eq := by apply_instance,
   inv := λ a, if h : a = 0 then 0
-    else fintype.bij_inv (show function.bijective (* a), 
+    else fintype.bij_inv (show function.bijective (* a),
       from fintype.injective_iff_bijective.1 $ λ _ _, (domain.mul_right_inj h).1) 1,
-  inv_mul_cancel := λ a ha, show dite _ _ _ * a = _, by rw dif_neg ha; 
+  inv_mul_cancel := λ a ha, show dite _ _ _ * a = _, by rw dif_neg ha;
     exact fintype.right_inverse_bij_inv (show function.bijective (* a), from _) 1,
-  mul_inv_cancel :=  λ a ha, show a * dite _ _ _ = _, by rw [dif_neg ha, mul_comm]; 
+  mul_inv_cancel :=  λ a ha, show a * dite _ _ _ = _, by rw [dif_neg ha, mul_comm];
     exact fintype.right_inverse_bij_inv (show function.bijective (* a), from _) 1,
   inv_zero := dif_pos rfl,
   ..show integral_domain α, by apply_instance }
 
+section
 variables [field α] [fintype α]
 
 instance [decidable_eq α] : fintype (units α) :=
@@ -74,5 +75,13 @@ from prod_involution (λ x _, x⁻¹) (by simp)
   (by simp),
 by rw [← insert_erase (mem_univ (-1 : units α)), prod_insert (not_mem_erase _ _),
     this, mul_one]
+
+end
+
+lemma pow_card_sub_one_eq_one [discrete_field α] [fintype α] (a : α) (ha : a ≠ 0) :
+  a ^ (fintype.card α - 1) = 1 :=
+calc a ^ (fintype.card α - 1) = (units.mk0 a ha ^ (fintype.card α - 1) : units α) :
+    by rw [units.coe_pow, units.mk0_val]
+  ... = 1 : by rw [← card_units, pow_card_eq_one]; refl
 
 end finite_field

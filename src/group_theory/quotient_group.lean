@@ -51,6 +51,16 @@ instance : is_group_hom (mk : G → quotient N) := ⟨λ _ _, rfl⟩
 attribute [to_additive quotient_add_group.is_add_group_hom] quotient_group.is_group_hom
 attribute [to_additive quotient_add_group.is_add_group_hom.equations._eqn_1] quotient_group.is_group_hom.equations._eqn_1
 
+@[simp] lemma ker_mk :
+  is_group_hom.ker (quotient_group.mk : G → quotient_group.quotient N) = N :=
+begin
+  ext g,
+  rw [is_group_hom.mem_ker, eq_comm],
+  show (((1 : G) : quotient_group.quotient N)) = g ↔ _,
+  rw [quotient_group.eq, one_inv, one_mul],
+end
+attribute [to_additive quotient_add_group.ker_mk] quotient_group.ker_mk
+
 instance {G : Type*} [comm_group G] (s : set G) [is_subgroup s] : comm_group (quotient s) :=
 { mul_comm := λ a b, quotient.induction_on₂' a b
     (λ a b, congr_arg mk (mul_comm a b)),
@@ -68,14 +78,14 @@ attribute [to_additive quotient_add_group.add_comm_group.equations._eqn_1] quoti
 @[simp] lemma coe_mul (a b : G) : ((a * b : G) : quotient N) = a * b := rfl
 @[simp] lemma coe_inv (a : G) : ((a⁻¹ : G) : quotient N) = a⁻¹ := rfl
 @[simp] lemma coe_pow (a : G) (n : ℕ) : ((a ^ n : G) : quotient N) = a ^ n :=
-@is_group_hom.pow _ _ _ _ mk _ a n
+@is_group_hom.map_pow _ _ _ _ mk _ a n
 
 attribute [to_additive quotient_add_group.coe_zero] coe_one
 attribute [to_additive quotient_add_group.coe_add] coe_mul
 attribute [to_additive quotient_add_group.coe_neg] coe_inv
 
 @[simp] lemma coe_gpow (a : G) (n : ℤ) : ((a ^ n : G) : quotient N) = a ^ n :=
-@is_group_hom.gpow _ _ _ _ mk _ a n
+@is_group_hom.map_gpow _ _ _ _ mk _ a n
 
 local notation ` Q ` := quotient N
 
@@ -83,7 +93,7 @@ def lift (φ : G → H) [is_group_hom φ] (HN : ∀x∈N, φ x = 1) (q : Q) : H 
 q.lift_on' φ $ assume a b (hab : a⁻¹ * b ∈ N),
 (calc φ a = φ a * 1           : by simp
 ...       = φ a * φ (a⁻¹ * b) : by rw HN (a⁻¹ * b) hab
-...       = φ (a * (a⁻¹ * b)) : by rw is_group_hom.mul φ a (a⁻¹ * b)
+...       = φ (a * (a⁻¹ * b)) : by rw is_group_hom.map_mul φ a (a⁻¹ * b)
 ...       = φ b               : by simp)
 attribute [to_additive quotient_add_group.lift._proof_1] lift._proof_1
 attribute [to_additive quotient_add_group.lift] lift
@@ -117,17 +127,43 @@ variables (φ : G → H) [is_group_hom φ] (HN : ∀x∈N, φ x = 1)
 instance is_group_hom_quotient_lift  :
   is_group_hom (lift N φ HN) :=
 ⟨λ q r, quotient.induction_on₂' q r $ λ a b,
-  show φ (a * b) = φ a * φ b, from is_group_hom.mul φ a b⟩
+  show φ (a * b) = φ a * φ b, from is_group_hom.map_mul φ a b⟩
 attribute [to_additive quotient_add_group.is_add_group_hom_quotient_lift] quotient_group.is_group_hom_quotient_lift
 attribute [to_additive quotient_add_group.is_add_group_hom_quotient_lift.equations._eqn_1] quotient_group.is_group_hom_quotient_lift.equations._eqn_1
 
+@[to_additive quotient_add_group.map_is_add_group_hom]
+instance map_is_group_hom (M : set H) [normal_subgroup M]
+(f : G → H) [is_group_hom f] (h : N ⊆ f ⁻¹' M) : is_group_hom (map N M f h) :=
+quotient_group.is_group_hom_quotient_lift _ _ _
+
 open function is_group_hom
 
+/-- The induced map from the quotient by the kernel to the codomain. -/
+def ker_lift : quotient (ker φ) → H :=
+lift _ φ $ λ g, (mem_ker φ).mp
+
+attribute [to_additive quotient_add_group.ker_lift._proof_1] quotient_group.ker_lift._proof_1
+attribute [to_additive quotient_add_group.ker_lift._proof_2] quotient_group.ker_lift._proof_2
+attribute [to_additive quotient_add_group.ker_lift] quotient_group.ker_lift
+attribute [to_additive quotient_add_group.ker_lift.equations._eqn_1] quotient_group.ker_lift.equations._eqn_1
+
+@[simp, to_additive quotient_add_group.ker_lift_mk]
+lemma ker_lift_mk (g : G) : (ker_lift φ) g = φ g :=
+lift_mk _ _ _
+
+@[simp, to_additive quotient_add_group.ker_lift_mk']
+lemma ker_lift_mk' (g : G) : (ker_lift φ) (mk g) = φ g :=
+lift_mk' _ _ _
+
+@[to_additive quotient_add_group.ker_lift_is_add_group_hom]
+instance ker_lift_is_group_hom : is_group_hom (ker_lift φ) :=
+quotient_group.is_group_hom_quotient_lift _ _ _
+
 @[to_additive quotient_add_group.injective_ker_lift]
-lemma injective_ker_lift : injective (lift (ker φ) φ $ λ x h, (mem_ker φ).1 h) :=
+lemma injective_ker_lift : injective (ker_lift φ) :=
 assume a b, quotient.induction_on₂' a b $ assume a b (h : φ a = φ b), quotient.sound' $
 show a⁻¹ * b ∈ ker φ, by rw [mem_ker φ,
-  is_group_hom.mul φ, ← h, is_group_hom.inv φ, inv_mul_self]
+  is_group_hom.map_mul φ, ← h, is_group_hom.map_inv φ, inv_mul_self]
 
 --@[to_additive quotient_add_group.quotient_ker_equiv_range]
 noncomputable def quotient_ker_equiv_range : (quotient (ker φ)) ≃ set.range φ :=

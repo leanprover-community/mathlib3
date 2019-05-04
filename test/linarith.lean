@@ -99,6 +99,14 @@ by linarith
 example (a b i : ℕ) (h1 :  ¬ a < i) (h2 : b < i) (h3 : a ≤ b) : false :=
 by linarith
 
+example (n : ℕ) (h1 : n ≤ 3) (h2 : n > 2) : n = 3 := by linarith
+
+example (z : ℕ) (hz : ¬ z ≥ 2) (h2 : ¬ z + 1 ≤ 2) : false :=
+by linarith
+
+example (z : ℕ) (hz : ¬ z ≥ 2) : z + 1 ≤ 2 :=
+by linarith
+
 example (a b c : ℚ) (h1 : 1 / a < b) (h2 : b < c) : 1 / a < c :=
 by linarith
 
@@ -112,4 +120,10 @@ by linarith
 
 example (d : ℚ) (q n : ℕ) (h1 : ((q : ℚ) - 1)*n ≥ 0) (h2 : d = 2/3*(((q : ℚ) - 1)*n)) :
   ((q : ℚ) - 1)*n - d = 1/3 * (((q : ℚ) - 1)*n) :=
+by linarith
+
+example (a : ℚ) (ha : 0 ≤ a): 0 * 0 ≤ 2 * a :=
+by linarith
+
+example (x : ℚ) : id x ≥ x :=
 by linarith

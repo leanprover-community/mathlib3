@@ -12,7 +12,7 @@ open nat roption
 
 /-- `multiplicity a b` returns the largest natural number `n` such that
   `a ^ n ∣ b`, as an `enat` or natural with infinity. If `∀ n, a ^ n ∣ b`,
-  the it return `⊤`-/
+  then it returns `⊤`-/
 def multiplicity [comm_semiring α] [decidable_rel ((∣) : α → α → Prop)] (a b : α) : enat :=
 ⟨∃ n : ℕ, ¬a ^ (n + 1) ∣ b, λ h, nat.find h⟩
 

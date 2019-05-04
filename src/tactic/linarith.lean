@@ -8,8 +8,6 @@ A tactic for discharging linear arithmetic goals using Fourier-Motzkin eliminati
 `linarith` is (in principle) complete for ℚ and ℝ. It is not complete for non-dense orders, i.e. ℤ.
 
 @TODO: investigate storing comparisons in a list instead of a set, for possible efficiency gains
-@TODO: perform slightly better on ℤ by strengthening t < 0 hyps to t + 1 ≤ 0
-@TODO: alternative discharger to `ring`
 @TODO: delay proofs of denominator normalization and nat casting until after contradiction is found
 -/
 
@@ -279,24 +277,31 @@ meta def map_of_expr_mul_aux (c1 c2 : rb_map ℕ ℤ) : option (rb_map ℕ ℤ) 
 match c1.keys, c2.keys with
 | [0], _ := some $ c2.scale (c1.zfind 0)
 | _, [0] := some $ c1.scale (c2.zfind 0)
+| [], _ := some mk_rb_map
+| _, [] := some mk_rb_map
 | _, _ := none
 end
+
+meta def list.mfind {α} (tac : α → tactic unit) : list α → tactic α
+| [] := failed
+| (h::t) := tac h >> return h <|> list.mfind t
+
+meta def rb_map.find_defeq {v} (m : expr_map v) (e : expr) : tactic v :=
+prod.snd <$> list.mfind (λ p, is_def_eq e p.1) m.to_list
 
 /--
   Turns an expression into a map from ℕ to ℤ, for use in a comp object.
     The expr_map ℕ argument identifies which expressions have already been assigned numbers.
     Returns a new map.
 -/
-meta def map_of_expr : expr_map ℕ → expr → option (expr_map ℕ × rb_map ℕ ℤ)
+meta def map_of_expr : expr_map ℕ → expr → tactic (expr_map ℕ × rb_map ℕ ℤ)
 | m e@`(%%e1 * %%e2) :=
    (do (m', comp1) ← map_of_expr m e1,
       (m', comp2) ← map_of_expr m' e2,
       mp ← map_of_expr_mul_aux comp1 comp2,
       return (m', mp)) <|>
-   (match m.find e with
-    | some k := return (m, mk_rb_map.insert k 1)
-    | none := let n := m.size + 1 in return (m.insert e n, mk_rb_map.insert n 1)
-    end)
+   (do k ← rb_map.find_defeq m e, return (m, mk_rb_map.insert k 1)) <|>
+   (let n := m.size + 1 in return (m.insert e n, mk_rb_map.insert n 1))
 | m `(%%e1 + %%e2) :=
    do (m', comp1) ← map_of_expr m e1,
       (m', comp2) ← map_of_expr m' e2,
@@ -307,12 +312,12 @@ meta def map_of_expr : expr_map ℕ → expr → option (expr_map ℕ × rb_map 
       return (m', comp1.add (comp2.scale (-1)))
 | m `(-%%e) := do (m', comp) ← map_of_expr m e, return (m', comp.scale (-1))
 | m e :=
-  match e.to_int, m.find e with
-  | some 0, _ := return ⟨m, mk_rb_map⟩
-  | some z, _ := return ⟨m, mk_rb_map.insert 0 z⟩
-  | none, some k := return (m, mk_rb_map.insert k 1)
-  | none, none := let n := m.size + 1 in
-    return (m.insert e n, mk_rb_map.insert n 1)
+  match e.to_int with
+  | some 0 := return ⟨m, mk_rb_map⟩
+  | some z := return ⟨m, mk_rb_map.insert 0 z⟩
+  | none :=
+    (do k ← rb_map.find_defeq m e, return (m, mk_rb_map.insert k 1)) <|>
+    (let n := m.size + 1 in return (m.insert e n, mk_rb_map.insert n 1))
   end
 
 meta def parse_into_comp_and_expr : expr → option (ineq × expr)
@@ -321,26 +326,27 @@ meta def parse_into_comp_and_expr : expr → option (ineq × expr)
 | `(%%e = 0) := (ineq.eq, e)
 | _ := none
 
-meta def to_comp (e : expr) (m : expr_map ℕ) : option (comp × expr_map ℕ) :=
+meta def to_comp (e : expr) (m : expr_map ℕ) : tactic (comp × expr_map ℕ) :=
 do (iq, e) ← parse_into_comp_and_expr e,
    (m', comp') ← map_of_expr m e,
    return ⟨⟨iq, comp'⟩, m'⟩
 
 meta def to_comp_fold : expr_map ℕ → list expr →
-      (list (option comp) × expr_map ℕ)
-| m [] := ([], m)
+      tactic (list (option comp) × expr_map ℕ)
+| m [] := return ([], m)
 | m (h::t) :=
-  match to_comp h m with
-  | some (c, m') := let (l, mp) := to_comp_fold m' t in (c::l, mp)
-  | none := let (l, mp) := to_comp_fold m t in (none::l, mp)
-  end
+  (do (c, m') ← to_comp h m,
+      (l, mp) ← to_comp_fold m' t,
+      return (c::l, mp)) <|>
+  (do (l, mp) ← to_comp_fold m t,
+      return (none::l, mp))
 
 /--
   Takes a list of proofs of props of the form t {<, ≤, =} 0, and creates a linarith_structure.
 -/
 meta def mk_linarith_structure (l : list expr) : tactic (linarith_structure × rb_map ℕ (expr × expr)) :=
 do pftps ← l.mmap infer_type,
-  let (l', map) := to_comp_fold mk_rb_map pftps,
+  (l', map) ← to_comp_fold mk_rb_map pftps,
   let lz := list.enum $ ((l.zip pftps).zip l').filter_map (λ ⟨a, b⟩, prod.mk a <$> b),
   let prmap := rb_map.of_list $ lz.map (λ ⟨n, x⟩, (n, x.1)),
   let vars : rb_set ℕ := rb_map.set_of_list $ list.range map.size.succ,
@@ -689,7 +695,17 @@ match tp with
 | `(¬ %%a < %%b) := do pf' ← mk_app ``le_of_not_gt [pf], mk_cast_eq_and_nonneg_prfs pf' b a ``nat_le_subst
 | `(¬ %%a ≥ %%b) := do pf' ← mk_app ``lt_of_not_ge [pf], mk_cast_eq_and_nonneg_prfs pf' a b ``nat_lt_subst
 | `(¬ %%a > %%b) := do pf' ← mk_app ``le_of_not_gt [pf], mk_cast_eq_and_nonneg_prfs pf' a b ``nat_le_subst
-| _ := fail "mk_coe_comp_prf failed: proof is not an inequality"
+| _ := fail "mk_int_pfs_of_nat_pf failed: proof is not an inequality"
+end
+
+meta def mk_non_strict_int_pf_of_strict_int_pf (pf : expr) : tactic expr :=
+do tp ← infer_type pf,
+match tp with
+| `(%%a < %%b) := to_expr ``(@cast (%%a < %%b) (%%a + 1 ≤ %%b) (by refl) %%pf)
+| `(%%a > %%b) := to_expr ``(@cast (%%a > %%b) (%%a ≥ %%b + 1) (by refl) %%pf)
+| `(¬ %%a ≤ %%b) := to_expr ``(@cast (%%a > %%b) (%%a ≥ %%b + 1) (by refl) (lt_of_not_ge %%pf))
+| `(¬ %%a ≥ %%b) := to_expr ``(@cast (%%a < %%b) (%%a + 1 ≤ %%b) (by refl) (lt_of_not_ge %%pf))
+| _ := fail "mk_non_strict_int_pf_of_strict_int_pf failed: proof is not an inequality"
 end
 
 meta def guard_is_nat_prop : expr → tactic unit
@@ -701,12 +717,26 @@ meta def guard_is_nat_prop : expr → tactic unit
 | `(¬ %%p) := guard_is_nat_prop p
 | _ := failed
 
+meta def guard_is_strict_int_prop : expr → tactic unit
+| `(%%a < _) := infer_type a >>= unify `(ℤ)
+| `(%%a > _) := infer_type a >>= unify `(ℤ)
+| `(¬ %%a ≤ _) := infer_type a >>= unify `(ℤ)
+| `(¬ %%a ≥ _) := infer_type a >>= unify `(ℤ)
+| _ := failed
+
 meta def replace_nat_pfs : list expr → tactic (list expr)
 | [] := return []
 | (h::t) :=
   (do infer_type h >>= guard_is_nat_prop,
       ls ← mk_int_pfs_of_nat_pf h,
       list.append ls <$> replace_nat_pfs t) <|> list.cons h <$> replace_nat_pfs t
+
+meta def replace_strict_int_pfs : list expr → tactic (list expr)
+| [] := return []
+| (h::t) :=
+  (do infer_type h >>= guard_is_strict_int_prop,
+      l ← mk_non_strict_int_pf_of_strict_int_pf h,
+      list.cons l <$> replace_strict_int_pfs t) <|> list.cons h <$> replace_strict_int_pfs t
 
 meta def partition_by_type_aux : rb_lmap expr expr → list expr → tactic (rb_lmap expr expr)
 | m [] := return m
@@ -726,7 +756,8 @@ private meta def try_linarith_on_lists (cfg : linarith_config) (ls : list (list 
 -/
 meta def prove_false_by_linarith (cfg : linarith_config) (pref_type : option expr) (l : list expr) : tactic unit :=
 do l' ← replace_nat_pfs l,
-   ls ← list.reduce_option <$> l'.mmap (λ h, (do s ← norm_hyp h, return (some s)) <|> return none)
+   l'' ← replace_strict_int_pfs l',
+   ls ← list.reduce_option <$> l''.mmap (λ h, (do s ← norm_hyp h, return (some s)) <|> return none)
           >>= partition_by_type,
    pref_type ← (unify pref_type.iget `(ℕ) >> return (some `(ℤ) : option expr)) <|> return pref_type,
    match cfg.restrict_type, ls.values, pref_type with

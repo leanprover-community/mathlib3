@@ -6,7 +6,7 @@ Authors: Robert Y. Lewis
 Integer power operation on fields.
 -/
 
-import algebra.group_power tactic.wlog
+import algebra.group_power algebra.ordered_field tactic.wlog
 
 universe u
 
@@ -49,6 +49,13 @@ pow_zero a
 lemma fpow_add {a : α} (ha : a ≠ 0) (z1 z2 : ℤ) : a ^ (z1 + z2) = a ^ z1 * a ^ z2 :=
 begin simp only [fpow_eq_gpow ha], rw ← units.coe_mul, congr, apply gpow_add end
 
+@[simp] lemma one_fpow : ∀(i : ℤ), (1 : α) ^ i = 1
+| (int.of_nat n) := _root_.one_pow n
+| -[1+n]         := show 1/(1 ^ (n+1) : α) = 1, by simp
+
+@[simp] lemma fpow_one (a : α) : a^(1:ℤ) = a :=
+pow_one a
+
 end field_power
 
 namespace is_field_hom
@@ -61,7 +68,7 @@ lemma map_fpow {α β : Type*} [discrete_field α] [discrete_field β] (f : α �
 end is_field_hom
 
 section discrete_field_power
-open int nat
+open int
 variables {α : Type u} [discrete_field α]
 
 lemma zero_fpow : ∀ z : ℤ, z ≠ 0 → (0 : α) ^ z = 0
@@ -75,6 +82,24 @@ lemma fpow_neg (a : α) : ∀ n : ℤ, a ^ (-n) = 1 / a ^ n
 
 lemma fpow_sub {a : α} (ha : a ≠ 0) (z1 z2 : ℤ) : a ^ (z1 - z2) = a ^ z1 / a ^ z2 :=
 by rw [sub_eq_add_neg, fpow_add ha, fpow_neg, ←div_eq_mul_one_div]
+
+lemma fpow_mul (a : α) (i j : ℤ) : a ^ (i * j) = (a ^ i) ^ j :=
+begin
+  by_cases a = 0,
+  { subst h,
+    have : ¬ i = 0 → ¬ j = 0 → ¬ i * j = 0, begin rw [mul_eq_zero, not_or_distrib], exact and.intro end,
+    by_cases hi : i = 0; by_cases hj : j = 0;
+      simp [hi, hj, zero_fpow i, zero_fpow j, zero_fpow _ (this _ _), one_fpow] },
+  rw [fpow_eq_gpow h, fpow_eq_gpow h, fpow_eq_gpow (units.ne_zero _), units.mk0_coe],
+  fapply congr_arg coe _, -- TODO: uh oh
+  exact gpow_mul (units.mk0 a h) i j
+end
+
+lemma mul_fpow (a b : α) : ∀(i : ℤ), (a * b) ^ i = (a ^ i) * (b ^ i)
+| (int.of_nat n) := _root_.mul_pow a b n
+| -[1+n] :=
+  by rw [fpow_neg_succ_of_nat, fpow_neg_succ_of_nat, fpow_neg_succ_of_nat,
+      mul_pow, div_mul_div, one_mul]
 
 end discrete_field_power
 

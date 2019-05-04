@@ -25,6 +25,14 @@ metric space structure on α ⊕ β, without the need to take a quotient. In par
 α and β are inhabited, this gives a natural metric space structure on α ⊕ β, where the basepoints
 are at distance 1, say, and the distances between other points are obtained by going through the
 two basepoints.
+
+We also define the inductive limit of metric spaces. Given
+     f 0        f 1        f 2        f 3
+X 0 -----> X 1 -----> X 2 -----> X 3 -----> ...
+where the X n are metric spaces and f n isometric embeddings, we define the inductive
+limit of the X n, also known as the increasing union of the X n in this context, if we
+identify X n and X (n+1) through f n. This is a metric space in which all X n embed
+isometrically and in a way compatible with f n.
 -/
 
 import topology.metric_space.isometry topology.metric_space.premetric_space
@@ -353,4 +361,113 @@ lemma to_glue_r_isometry (hΦ : isometry Φ) (hΨ : isometry Ψ) : isometry (to_
 isometry_emetric_iff_metric.2 $ λ_ _, rfl
 
 end gluing --section
+
+section inductive_limit
+/- In this section, we define the inductive limit of
+     f 0        f 1        f 2        f 3
+X 0 -----> X 1 -----> X 2 -----> X 3 -----> ...
+where the X n are metric spaces and f n isometric embeddings. We do it by defining a premetric
+space structure on Σn, X n, where the predistance dist x y is obtained by pushing x and y in a
+common X k using composition by the f n, and taking the distance there. This does not depend on
+the choice of k as the f n are isometries. The metric space associated to this premetric space
+is the desired inductive limit.-/
+open nat
+
+variables {X : ℕ → Type u} [∀n, metric_space (X n)] {f : Πn, X n → X (n+1)}
+
+/-- Predistance on the disjoint union Σn, X n. -/
+def inductive_limit_dist (f : Πn, X n → X (n+1)) (x y : Σn, X n) : ℝ :=
+dist (le_rec_on (le_max_left  x.1 y.1) f x.2 : X (max x.1 y.1))
+     (le_rec_on (le_max_right x.1 y.1) f y.2 : X (max x.1 y.1))
+
+/-- The predistance on the disjoint union Σn, X n can be computed in any X k for large enough k.-/
+lemma inductive_limit_dist_eq_dist (I : ∀n, isometry (f n))
+  (x y : Σn, X n) (m : ℕ) : ∀hx : x.1 ≤ m, ∀hy : y.1 ≤ m,
+  inductive_limit_dist f x y = dist (le_rec_on hx f x.2 : X m) (le_rec_on hy f y.2 : X m) :=
+begin
+  induction m with m hm,
+  { assume hx hy,
+    have A : max x.1 y.1 = 0, { rw [le_zero_iff_eq.1 hx, le_zero_iff_eq.1 hy], simp },
+    unfold inductive_limit_dist,
+    congr; simp only [A] },
+  { assume hx hy,
+    by_cases h : max x.1 y.1 = m.succ,
+    { unfold inductive_limit_dist,
+      congr; simp only [h] },
+    { have : max x.1 y.1 ≤ succ m := by simp [hx, hy],
+      have : max x.1 y.1 ≤ m := by simpa [h] using of_le_succ this,
+      have xm : x.1 ≤ m := le_trans (le_max_left _ _) this,
+      have ym : y.1 ≤ m := le_trans (le_max_right _ _) this,
+      rw [le_rec_on_succ xm, le_rec_on_succ ym, (I m).dist_eq],
+      exact hm xm ym }}
+end
+
+/-- Premetric space structure on Σn, X n.-/
+def inductive_premetric (I : ∀n, isometry (f n)) :
+  premetric_space (Σn, X n) :=
+{ dist          := inductive_limit_dist f,
+  dist_self     := λx, by simp [dist, inductive_limit_dist],
+  dist_comm     := λx y, begin
+    let m := max x.1 y.1,
+    have hx : x.1 ≤ m := le_max_left _ _,
+    have hy : y.1 ≤ m := le_max_right _ _,
+    unfold dist,
+    rw [inductive_limit_dist_eq_dist I x y m hx hy, inductive_limit_dist_eq_dist I y x m hy hx,
+        dist_comm]
+  end,
+  dist_triangle := λx y z, begin
+    let m := max (max x.1 y.1) z.1,
+    have hx : x.1 ≤ m := le_trans (le_max_left _ _) (le_max_left _ _),
+    have hy : y.1 ≤ m := le_trans (le_max_right _ _) (le_max_left _ _),
+    have hz : z.1 ≤ m := le_max_right _ _,
+    calc inductive_limit_dist f x z
+      = dist (le_rec_on hx f x.2 : X m) (le_rec_on hz f z.2 : X m) :
+        inductive_limit_dist_eq_dist I x z m hx hz
+      ... ≤ dist (le_rec_on hx f x.2 : X m) (le_rec_on hy f y.2 : X m)
+          + dist (le_rec_on hy f y.2 : X m) (le_rec_on hz f z.2 : X m) :
+        dist_triangle _ _ _
+      ... = inductive_limit_dist f x y + inductive_limit_dist f y z :
+         by rw [inductive_limit_dist_eq_dist I x y m hx hy,
+                inductive_limit_dist_eq_dist I y z m hy hz]
+  end }
+
+local attribute [instance] inductive_premetric premetric.dist_setoid
+
+/-- The type giving the inductive limit in a metric space context. -/
+def inductive_limit (I : ∀n, isometry (f n)) : Type* :=
+@metric_quot _ (inductive_premetric I)
+
+/-- Metric space structure on the inductive limit. -/
+instance metric_space_inductive_limit (I : ∀n, isometry (f n)) :
+  metric_space (inductive_limit I) :=
+@premetric.metric_space_quot _ (inductive_premetric I)
+
+/-- Mapping each `X n` to the inductive limit. -/
+def to_inductive_limit (I : ∀n, isometry (f n)) (n : ℕ) (x : X n) : metric.inductive_limit I :=
+by letI : premetric_space (Σn, X n) := inductive_premetric I; exact ⟦sigma.mk n x⟧
+
+/-- The map `to_inductive_limit n` mapping `X n` to the inductive limit is an isometry. -/
+lemma to_inductive_limit_isometry (I : ∀n, isometry (f n)) (n : ℕ) :
+  isometry (to_inductive_limit I n) := isometry_emetric_iff_metric.2 $ λx y,
+begin
+  change inductive_limit_dist f ⟨n, x⟩ ⟨n, y⟩ = dist x y,
+  rw [inductive_limit_dist_eq_dist I ⟨n, x⟩ ⟨n, y⟩ n (le_refl n) (le_refl n),
+      le_rec_on_self, le_rec_on_self]
+end
+
+/-- The maps `to_inductive_limit n` are compatible with the maps `f n`. -/
+lemma to_inductive_limit_commute (I : ∀n, isometry (f n)) (n : ℕ) :
+  (to_inductive_limit I n.succ) ∘ (f n) = to_inductive_limit I n :=
+begin
+  funext,
+  simp only [comp, to_inductive_limit, quotient.eq],
+  show inductive_limit_dist f ⟨n.succ, f n x⟩ ⟨n, x⟩ = 0,
+  { rw [inductive_limit_dist_eq_dist I ⟨n.succ, f n x⟩ ⟨n, x⟩ n.succ,
+        le_rec_on_self, le_rec_on_succ, le_rec_on_self, dist_self],
+    exact le_refl _,
+    exact le_refl _,
+    exact le_succ _ }
+end
+
+end inductive_limit --section
 end metric --namespace

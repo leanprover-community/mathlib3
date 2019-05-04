@@ -8,12 +8,20 @@ The integers, with addition, multiplication, and subtraction.
 import data.nat.basic data.list.basic algebra.char_zero algebra.order_functions
 open nat
 
+
 namespace int
 
-instance : inhabited ℤ := ⟨0⟩
+instance : inhabited ℤ := ⟨int.zero⟩
+
+@[simp] lemma default_eq_zero : default ℤ = 0 := rfl
+
 meta instance : has_to_format ℤ := ⟨λ z, int.rec_on z (λ k, ↑k) (λ k, "-("++↑k++"+1)")⟩
+meta instance : has_reflect ℤ := by tactic.mk_has_reflect_instance
 
 attribute [simp] int.coe_nat_add int.coe_nat_mul int.coe_nat_zero int.coe_nat_one int.coe_nat_succ
+
+@[simp] theorem add_def {a b : ℤ} : int.add a b = a + b := rfl
+@[simp] theorem mul_def {a b : ℤ} : int.mul a b = a * b := rfl
 
 @[simp] theorem coe_nat_mul_neg_succ (m n : ℕ) : (m : ℤ) * -[1+ n] = -(m * succ n) := rfl
 @[simp] theorem neg_succ_mul_coe_nat (m n : ℕ) : -[1+ m] * n = -(succ m * n) := rfl
@@ -92,7 +100,7 @@ theorem le_sub_one_iff {a b : ℤ} : a ≤ b - 1 ↔ a < b :=
 le_sub_iff_add_le
 
 @[elab_as_eliminator] protected lemma induction_on {p : ℤ → Prop}
-  (i : ℤ) (hz : p 0) (hp : ∀i, p i → p (i + 1)) (hn : ∀i, p i → p (i - 1)) : p i :=
+  (i : ℤ) (hz : p 0) (hp : ∀i : ℕ, p i → p (i + 1)) (hn : ∀i : ℕ, p (-i) → p (-i - 1)) : p i :=
 begin
   induction i,
   { induction i,
@@ -103,6 +111,22 @@ begin
       { simp [hz] },
       { have := hn _ n_ih, simpa } },
     exact this (i + 1) }
+end
+
+protected def induction_on' {C : ℤ → Sort*} (z : ℤ) (b : ℤ) : 
+  C b → (∀ k ≥ b, C k → C (k + 1)) → (∀ k ≤ b, C k → C (k - 1)) → C z :=
+λ H0 Hs Hp, 
+begin
+  rw ←sub_add_cancel z b,
+  induction (z - b),
+  { induction a with n ih, { rwa [of_nat_zero, zero_add] },
+    rw [of_nat_succ, add_assoc, add_comm 1 b, ←add_assoc],
+    exact Hs _ (le_add_of_nonneg_left (of_nat_nonneg _)) ih },
+  { induction a with n ih,
+    { rw [neg_succ_of_nat_eq, ←of_nat_eq_coe, of_nat_zero, zero_add, neg_add_eq_sub],
+      exact Hp _ (le_refl _) H0 },
+    { rw [neg_succ_of_nat_coe', nat.succ_eq_add_one, ←neg_succ_of_nat_coe, sub_add_eq_add_sub], 
+      exact Hp _ (le_of_lt (add_lt_of_neg_of_le (neg_succ_lt_zero _) (le_refl _))) ih } }
 end
 
 /- nat abs -/
@@ -128,7 +152,10 @@ theorem nat_abs_neg_of_nat (n : ℕ) : nat_abs (neg_of_nat n) = n :=
 by cases n; refl
 
 theorem nat_abs_mul (a b : ℤ) : nat_abs (a * b) = (nat_abs a) * (nat_abs b) :=
-by cases a; cases b; simp [(*), int.mul, nat_abs_neg_of_nat]
+by cases a; cases b; simp only [(*), int.mul, nat_abs_neg_of_nat, eq_self_iff_true, int.nat_abs]
+
+@[simp] lemma nat_abs_mul_self' (a : ℤ) : (nat_abs a * nat_abs a : ℤ) = a * a :=
+by rw [← int.coe_nat_mul, nat_abs_mul_self]
 
 theorem neg_succ_of_nat_eq' (m : ℕ) : -[1+ m] = -m - 1 :=
 by simp [neg_succ_of_nat_eq]
@@ -535,6 +562,18 @@ int.div_eq_of_eq_mul_right H1 (by rw [mul_comm, H2])
 theorem neg_div_of_dvd : ∀ {a b : ℤ} (H : b ∣ a), -a / b = -(a / b)
 | ._ b ⟨c, rfl⟩ := if bz : b = 0 then by simp [bz] else
   by rw [neg_mul_eq_mul_neg, int.mul_div_cancel_left _ bz, int.mul_div_cancel_left _ bz]
+
+lemma add_div_of_dvd {a b c : ℤ} :
+  c ∣ a → c ∣ b → (a + b) / c = a / c + b / c :=
+begin
+  intros h1 h2,
+  by_cases h3 : c = 0,
+  { rw [h3, zero_dvd_iff] at *,
+    rw [h1, h2, h3], refl },
+  { apply eq_of_mul_eq_mul_right h3,
+    rw add_mul, repeat {rw [int.div_mul_cancel]};
+    try {apply dvd_add}; assumption }
+end
 
 theorem div_sign : ∀ a b, a / sign b = a * sign b
 | a (n+1:ℕ) := by unfold sign; simp
@@ -996,7 +1035,7 @@ section cast
 variables {α : Type*}
 
 section
-variables [has_zero α] [has_one α] [has_add α] [has_neg α]
+variables [has_neg α] [has_zero α] [has_one α] [has_add α]
 
 /-- Canonical homomorphism from the integers to any ring(-like) structure `α` -/
 protected def cast : ℤ → α

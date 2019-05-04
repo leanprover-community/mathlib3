@@ -7,7 +7,8 @@ Type of bounded continuous functions taking values in a metric space, with
 the uniform distance.
  -/
 
-import analysis.normed_space.basic topology.metric_space.cau_seq_filter topology.metric_space.lipschitz
+import analysis.normed_space.basic topology.metric_space.cau_seq_filter
+       topology.metric_space.lipschitz
 
 noncomputable theory
 local attribute [instance] classical.decidable_inhabited classical.prop_decidable
@@ -20,7 +21,7 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 /-- A locally uniform limit of continuous functions is continuous -/
 lemma continuous_of_locally_uniform_limit_of_continuous [topological_space α] [metric_space β]
   {F : ℕ → α → β} {f : α → β}
-  (L : ∀x:α, ∃s ∈ (nhds x).sets, ∀ε>(0:ℝ), ∃n, ∀y∈s, dist (F n y) (f y) ≤ ε)
+  (L : ∀x:α, ∃s ∈ nhds x, ∀ε>(0:ℝ), ∃n, ∀y∈s, dist (F n y) (f y) ≤ ε)
   (C : ∀ n, continuous (F n)) : continuous f :=
 continuous_iff'.2 $ λ x ε ε0, begin
   rcases L x with ⟨r, rx, hr⟩,
@@ -130,7 +131,7 @@ theorem continuous_eval : continuous (λ p : (α →ᵇ β) × α, p.1 p.2) :=
 continuous_iff'.2 $ λ ⟨f, x⟩ ε ε0,
 /- use the continuity of `f` to find a neighborhood of `x` where it varies at most by ε/2 -/
 let ⟨s, sx, Hs⟩ := continuous_iff'.1 f.2.1 x (ε/2) (half_pos ε0) in
-/- s : set α, sx : s ∈ (nhds x).sets, Hs : ∀ (b : α), b ∈ s → dist (f.val b) (f.val x) < ε / 2 -/
+/- s : set α, sx : s ∈ nhds x, Hs : ∀ (b : α), b ∈ s → dist (f.val b) (f.val x) < ε / 2 -/
 ⟨set.prod (ball f (ε/2)) s, prod_mem_nhds_sets (ball_mem_nhds _ (half_pos ε0)) sx,
 λ ⟨g, y⟩ ⟨hg, hy⟩, calc dist (g y) (f x)
       ≤ dist (g y) (f y) + dist (f y) (f x) : dist_triangle _ _ _
@@ -219,7 +220,7 @@ and several useful variations around it. -/
 theorem arzela_ascoli₁ [compact_space β]
   (A : set (α →ᵇ β))
   (closed : is_closed A)
-  (H : ∀ (x:α) (ε > 0), ∃U ∈ (nhds x).sets, ∀ (y z ∈ U) (f : α →ᵇ β),
+  (H : ∀ (x:α) (ε > 0), ∃U ∈ nhds x, ∀ (y z ∈ U) (f : α →ᵇ β),
     f ∈ A → dist (f y) (f z) < ε) :
   compact A :=
 begin
@@ -284,7 +285,7 @@ theorem arzela_ascoli₂
   (A : set (α →ᵇ β))
   (closed : is_closed A)
   (in_s : ∀(f : α →ᵇ β) (x : α), f ∈ A → f x ∈ s)
-  (H : ∀(x:α) (ε > 0), ∃U ∈ (nhds x).sets, ∀ (y z ∈ U) (f : α →ᵇ β),
+  (H : ∀(x:α) (ε > 0), ∃U ∈ nhds x, ∀ (y z ∈ U) (f : α →ᵇ β),
     f ∈ A → dist (f y) (f z) < ε) :
   compact A :=
 /- This version is deduced from the previous one by restricting to the compact type in the target,
@@ -310,7 +311,7 @@ theorem arzela_ascoli
   (s : set β) (hs : compact s)
   (A : set (α →ᵇ β))
   (in_s : ∀(f : α →ᵇ β) (x : α), f ∈ A → f x ∈ s)
-  (H : ∀(x:α) (ε > 0), ∃U ∈ (nhds x).sets, ∀ (y z ∈ U) (f : α →ᵇ β),
+  (H : ∀(x:α) (ε > 0), ∃U ∈ nhds x, ∀ (y z ∈ U) (f : α →ᵇ β),
     f ∈ A → dist (f y) (f z) < ε) :
   compact (closure A) :=
 /- This version is deduced from the previous one by checking that the closure of A, in
@@ -319,7 +320,7 @@ arzela_ascoli₂ s hs (closure A) is_closed_closure
   (λ f x hf, (mem_of_closed' (closed_of_compact _ hs)).2 $ λ ε ε0,
     let ⟨g, gA, dist_fg⟩ := mem_closure_iff'.1 hf ε ε0 in
     ⟨g x, in_s g x gA, lt_of_le_of_lt (dist_coe_le_dist _) dist_fg⟩)
-  (λ x ε ε0, show ∃ U ∈ (nhds x).sets,
+  (λ x ε ε0, show ∃ U ∈ nhds x,
       ∀ y z ∈ U, ∀ (f : α →ᵇ β), f ∈ closure A → dist (f y) (f z) < ε,
     begin
       refine bex.imp_right (λ U U_set hU y z hy hz f hf, _) (H x (ε/2) (half_pos ε0)),
@@ -339,7 +340,7 @@ lemma equicontinuous_of_continuity_modulus {α : Type u} [metric_space α]
   (b : ℝ → ℝ) (b_lim : tendsto b (nhds 0) (nhds 0))
   (A : set (α →ᵇ β))
   (H : ∀(x y:α) (f : α →ᵇ β), f ∈ A → dist (f x) (f y) ≤ b (dist x y))
-  (x:α) (ε : ℝ) (ε0 : ε > 0) : ∃U ∈ (nhds x).sets, ∀ (y z ∈ U) (f : α →ᵇ β),
+  (x:α) (ε : ℝ) (ε0 : ε > 0) : ∃U ∈ nhds x, ∀ (y z ∈ U) (f : α →ᵇ β),
     f ∈ A → dist (f y) (f z) < ε :=
 begin
   rcases tendsto_nhds_nhds.1 b_lim ε ε0 with ⟨δ, δ0, hδ⟩,

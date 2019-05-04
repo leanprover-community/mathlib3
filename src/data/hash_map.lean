@@ -4,6 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.list.basic data.pnat data.array.lemmas
+   logic.basic algebra.group
+   data.list.defs data.nat.basic data.option.basic
+   data.bool data.prod
+import tactic.finish data.sigma.basic
 
 universes u v w
 
@@ -149,7 +153,7 @@ begin
 end
 
 theorem mk_as_list (n : ℕ+) : bucket_array.as_list (mk_array n.1 [] : bucket_array α β n) = [] :=
-list.eq_nil_of_forall_not_mem $ λ x m,
+list.eq_nil_iff_forall_not_mem.mpr $ λ x m,
 let ⟨i, h⟩ := (bucket_array.mem_as_list _).1 m in h
 
 theorem mk_valid (n : ℕ+) : @valid n (mk_array n.1 []) 0 :=

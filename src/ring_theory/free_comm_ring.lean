@@ -202,3 +202,52 @@ def free_comm_ring_punit_equiv_polynomial_int : free_comm_ring punit.{u+1} ≃r 
         free_comm_ring.lift_mul, free_comm_ring.lift_pow, free_comm_ring.lift_of, this])
   end,
   hom := by apply_instance }
+.
+
+variables (α : Type u) [decidable_eq α]
+
+def free_comm_ring_equiv_mv_polynomial_int :
+  free_comm_ring α ≃r mv_polynomial α ℤ :=
+{ to_fun  := free_comm_ring.lift $ λ a, mv_polynomial.X a,
+  inv_fun := mv_polynomial.eval₂ coe free_comm_ring.of,
+  hom := by apply_instance,
+  left_inv :=
+  begin
+    intro x,
+    haveI : is_semiring_hom (coe : int → free_comm_ring α) :=
+      @@is_ring_hom.is_semiring_hom _ _ _ (@@int.cast.is_ring_hom _),
+    refine free_abelian_group.induction_on x rfl _ _ _,
+    { intro s,
+      refine multiset.induction_on s rfl _,
+      intros hd tl ih,
+      show mv_polynomial.eval₂ coe free_comm_ring.of
+        (free_comm_ring.lift (λ a, mv_polynomial.X a)
+        (free_comm_ring.of hd * free_abelian_group.of tl)) =
+        free_comm_ring.of hd * free_abelian_group.of tl,
+      rw [free_comm_ring.lift_mul, free_comm_ring.lift_of,
+        mv_polynomial.eval₂_mul, mv_polynomial.eval₂_X, ih] },
+    { intros s ih,
+      rw [free_comm_ring.lift_neg, ← neg_one_mul, mv_polynomial.eval₂_mul,
+        ← mv_polynomial.C_1, ← mv_polynomial.C_neg, mv_polynomial.eval₂_C,
+        int.cast_neg, int.cast_one, neg_one_mul, ih] },
+    { intros x₁ x₂ ih₁ ih₂, rw [free_comm_ring.lift_add, mv_polynomial.eval₂_add, ih₁, ih₂] }
+  end,
+  right_inv :=
+  begin
+    intro x,
+    haveI : is_semiring_hom (coe : int → free_comm_ring α) :=
+      @@is_ring_hom.is_semiring_hom _ _ _ (@@int.cast.is_ring_hom _),
+    have : ∀ i : ℤ, free_comm_ring.lift (λ (a : α), mv_polynomial.X a) ↑i = mv_polynomial.C i,
+    { exact λ i, int.induction_on i
+      (by rw [int.cast_zero, free_comm_ring.lift_zero, mv_polynomial.C_0])
+      (λ i ih, by rw [int.cast_add, int.cast_one, free_comm_ring.lift_add,
+        free_comm_ring.lift_one, ih, mv_polynomial.C_add, mv_polynomial.C_1])
+      (λ i ih, by rw [int.cast_sub, int.cast_one, free_comm_ring.lift_sub,
+        free_comm_ring.lift_one, ih, mv_polynomial.C_sub, mv_polynomial.C_1]) },
+    apply mv_polynomial.induction_on x,
+    { intro i, rw [mv_polynomial.eval₂_C, this] },
+    { intros p q ihp ihq, rw [mv_polynomial.eval₂_add, free_comm_ring.lift_add, ihp, ihq] },
+    { intros p a ih,
+      rw [mv_polynomial.eval₂_mul, mv_polynomial.eval₂_X,
+        free_comm_ring.lift_mul, free_comm_ring.lift_of, ih] }
+  end }

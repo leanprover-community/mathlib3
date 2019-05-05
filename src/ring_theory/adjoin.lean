@@ -32,7 +32,7 @@ theorem adjoin_mono (H : s ⊆ t) : adjoin R s ≤ adjoin R t :=
 closure_subset (set.subset.trans (set.union_subset_union_right _ H) subset_closure)
 
 variables (R A)
-theorem adjoin_empty : adjoin R (∅ : set A) = ⊥ :=
+@[simp] theorem adjoin_empty : adjoin R (∅ : set A) = ⊥ :=
 eq_bot_iff.2 $ adjoin_le $ set.empty_subset _
 variables {A}
 

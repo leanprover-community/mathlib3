@@ -3,7 +3,8 @@
 -- Authors: Patrick Massot, Scott Morrison, Mario Carneiro
 
 import category_theory.concrete_category
-import topology.order
+import category_theory.full_subcategory
+import topology.opens
 
 open category_theory
 open topological_space

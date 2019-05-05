@@ -4,10 +4,11 @@
 
 import category_theory.products
 import category_theory.types
-
-namespace category_theory
+import category_theory.natural_isomorphism
 
 universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+
+namespace category_theory
 
 /-- The type of objects of the opposite of C (which should be a category).
 
@@ -51,6 +52,28 @@ lemma op_inj : function.injective (@op C) :=
 by { rintros _ _ ⟨ ⟩, refl }
 lemma unop_inj : function.injective (@unop C) :=
 by { rintros _ _ ⟨ ⟩, refl }
+
+def op_induction {F : Π (X : Cᵒᵖ), Sort v₁} (h : Π X, F (op X)) : Π X, F X :=
+λ X, h (unop X)
+
+end category_theory
+
+namespace tactic.interactive
+
+open interactive interactive.types lean.parser tactic
+
+meta def op_induction (h : parse ident) : tactic unit :=
+do h' ← tactic.get_local h,
+   revert_lst [h'],
+   applyc `category_theory.op_induction,
+   tactic.intro h,
+   skip
+
+end tactic.interactive
+
+namespace category_theory
+
+variables {C : Sort u₁}
 
 section has_hom
 
@@ -248,6 +271,23 @@ rfl
 
 end
 end nat_trans
+
+namespace nat_iso
+
+variables {D : Sort u₂} [𝒟 : category.{v₂} D]
+include 𝒟
+variables {F G : C ⥤ D}
+
+protected definition op (α : F ≅ G) : G.op ≅ F.op :=
+{ hom := nat_trans.op α.hom,
+  inv := nat_trans.op α.inv,
+  hom_inv_id' := begin ext, dsimp, rw ←op_comp, rw inv_hom_id_app, refl, end,
+  inv_hom_id' := begin ext, dsimp, rw ←op_comp, rw hom_inv_id_app, refl, end }
+
+@[simp] lemma op_hom (α : F ≅ G) : (nat_iso.op α).hom = nat_trans.op α.hom := rfl
+@[simp] lemma op_inv (α : F ≅ G) : (nat_iso.op α).inv = nat_trans.op α.inv := rfl
+
+end nat_iso
 
 -- TODO the following definitions do not belong here
 

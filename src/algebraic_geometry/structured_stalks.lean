@@ -75,9 +75,12 @@ instance category_of_structured_presheaves : category (StructuredStalkPresheafed
 { hom  := hom,
   id   := id,
   comp := comp,
-  comp_id' := begin tidy, op_induction X_1, cases X_1, tidy, erw category.comp_id, erw category.id_comp, refl, end,
-  id_comp' := begin tidy, op_induction X_1, cases X_1, tidy, erw category.id_comp, erw category_theory.functor.map_id, erw category.comp_id, erw category.comp_id, end,
-  assoc' := begin tidy, op_induction X_1, cases X_1, tidy, erw category_theory.functor.map_id, erw category.comp_id, end }
+  comp_id' := λ X Y f,
+  begin
+    ext1, swap,
+    { simp, },
+    { dsimp, erw category.id_comp, refl, },
+  end }
 
 
 end StructuredStalkPresheafedSpace

@@ -117,6 +117,7 @@ rfl
 rfl
 
 -- We don't mark these as simp lemmas, because the innards are pretty unsightly.
+-- TODO add @[simp] lemmas id_c_app and comp_c_app?
 lemma id_c (X : PresheafedSpace.{v} C) :
   ((𝟙 X) : X ⟶ X).c =
   (((functor.left_unitor _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id _).hom) _)) :=

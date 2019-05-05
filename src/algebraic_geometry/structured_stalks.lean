@@ -29,15 +29,19 @@ instance : has_coe (StructuredStalkPresheafedSpace.{v₁ v₂} C V F) (Presheafe
 
 structure hom (X Y : StructuredStalkPresheafedSpace.{v₁ v₂} C V F) :=
 (hom : X.to_PresheafedSpace ⟶ Y.to_PresheafedSpace)
-(structured_stalk_map : Π (x : X.to_Top), Y.structured_stalk ((hom : X.to_Top → Y.to_Top) x) ⟶ X.structured_stalk x)
-(compatible' : Π (x : X.to_Top), F.map (structured_stalk_map x) = (Y.compatible (hom x)).hom ≫ PresheafedSpace.stalk_map hom x ≫ (X.compatible x).inv . obviously)
+(structured_stalk_map :
+  Π (x : X.to_Top), Y.structured_stalk ((hom : X.to_Top → Y.to_Top) x) ⟶ X.structured_stalk x)
+(compatible' : Π (x : X.to_Top),
+  F.map (structured_stalk_map x) =
+    (Y.compatible (hom x)).hom ≫ PresheafedSpace.stalk_map hom x ≫ (X.compatible x).inv . obviously)
 
 restate_axiom hom.compatible'
 attribute [simp] hom.compatible
 
 @[extensionality] lemma hom.ext
   {X Y : StructuredStalkPresheafedSpace.{v₁ v₂} C V F} {f g : hom X Y}
-  (w : f.hom = g.hom) (h : ∀ x, f.structured_stalk_map x = by { convert g.structured_stalk_map x, rw w }) : f = g :=
+  (w : f.hom = g.hom)
+  (h : ∀ x, f.structured_stalk_map x = by { convert g.structured_stalk_map x, rw w }) : f = g :=
 begin
   cases f, cases g,
   dsimp at w,
@@ -46,21 +50,25 @@ begin
   exact funext h,
 end
 
-
 def id (X : StructuredStalkPresheafedSpace.{v₁ v₂} C V F) : hom X X :=
 { hom := 𝟙 _,
   structured_stalk_map := λ x, 𝟙 _ }
 
 @[simp] lemma id_hom (X : StructuredStalkPresheafedSpace.{v₁ v₂} C V F) : X.id.hom = 𝟙 _ :=
 rfl
-@[simp] lemma id_map (X : StructuredStalkPresheafedSpace.{v₁ v₂} C V F) (x : X) : X.id.structured_stalk_map x = 𝟙 _ :=
+@[simp] lemma id_map (X : StructuredStalkPresheafedSpace.{v₁ v₂} C V F) (x : X) :
+  X.id.structured_stalk_map x = 𝟙 _ :=
 rfl
 
-def comp (X Y Z : StructuredStalkPresheafedSpace.{v₁ v₂} C V F) (f : hom X Y) (g : hom Y Z) : hom X Z :=
+def comp (X Y Z : StructuredStalkPresheafedSpace.{v₁ v₂} C V F) (f : hom X Y) (g : hom Y Z) :
+  hom X Z :=
 { hom := f.hom ≫ g.hom,
-  structured_stalk_map := λ x, g.structured_stalk_map ((f.hom : X.to_Top → Y.to_Top) x) ≫ f.structured_stalk_map x }
+  structured_stalk_map :=
+  λ x, g.structured_stalk_map ((f.hom : X.to_Top → Y.to_Top) x) ≫ f.structured_stalk_map x }
 
-@[simp] lemma comp_hom (X Y Z : StructuredStalkPresheafedSpace.{v₁ v₂} C V F) (f : hom X Y) (g : hom Y Z) : (comp X Y Z f g).hom = f.hom ≫ g.hom :=
+@[simp] lemma comp_hom
+  (X Y Z : StructuredStalkPresheafedSpace.{v₁ v₂} C V F)
+  (f : hom X Y) (g : hom Y Z) : (comp X Y Z f g).hom = f.hom ≫ g.hom :=
 rfl
 @[simp] lemma comp_map
   (X Y Z : StructuredStalkPresheafedSpace.{v₁ v₂} C V F) (f : hom X Y) (g : hom Y Z) (x) :
@@ -70,7 +78,8 @@ rfl
 
 local attribute [simp] PresheafedSpace.id_c PresheafedSpace.comp_c
 
-instance category_of_structured_presheaves : category (StructuredStalkPresheafedSpace.{v₁ v₂} C V F) :=
+instance category_of_structured_presheaves :
+  category (StructuredStalkPresheafedSpace.{v₁ v₂} C V F) :=
 { hom  := hom,
   id   := id,
   comp := comp,
@@ -80,7 +89,6 @@ instance category_of_structured_presheaves : category (StructuredStalkPresheafed
     { simp, },
     { dsimp, erw category.id_comp, refl, },
   end }
-
 
 end StructuredStalkPresheafedSpace
 

@@ -486,6 +486,13 @@ theorem forall_or_distrib_left {q : Prop} {p : α → Prop} [decidable q] :
 ⟨λ h, if hq : q then or.inl hq else or.inr $ λ x, (h x).resolve_left hq,
   forall_or_of_or_forall⟩
 
+/-- A predicate holds everywhere on the image of a surjective functions iff
+    it holds everywhere. -/
+theorem forall_iff_forall_surj
+  {α β : Type*} {f : α → β} (h : function.surjective f) {P : β → Prop} :
+  (∀ a, P (f a)) ↔ ∀ b, P b :=
+⟨λ ha b, by cases h b with a hab; rw ←hab; exact ha a, λ hb a, hb $ f a⟩
+
 @[simp] theorem exists_prop {p q : Prop} : (∃ h : p, q) ↔ p ∧ q :=
 ⟨λ ⟨h₁, h₂⟩, ⟨h₁, h₂⟩, λ ⟨h₁, h₂⟩, ⟨h₁, h₂⟩⟩
 

@@ -8,7 +8,7 @@ the uniform distance.
  -/
 
 import analysis.normed_space.basic topology.metric_space.cau_seq_filter
-       topology.metric_space.lipschitz topology.instances.real
+       topology.metric_space.lipschitz
 
 noncomputable theory
 local attribute [instance] classical.decidable_inhabited classical.prop_decidable

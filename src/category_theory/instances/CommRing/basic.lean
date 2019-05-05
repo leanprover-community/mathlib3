@@ -5,7 +5,7 @@ Authors: Scott Morrison, Johannes Hölzl
 Introduce CommRing -- the category of commutative rings.
 -/
 
-import category_theory.instances.monoids
+import category_theory.instances.Mon.basic
 import category_theory.fully_faithful
 import algebra.ring
 import data.int.basic
@@ -50,7 +50,10 @@ instance hom_coe : has_coe_to_fun (R ⟶ S) :=
 { F := λ f, R → S,
   coe := λ f, f.1 }
 
-@[simp] lemma hom_coe_app (f : R ⟶ S) (r : R) : f r = f.val r := rfl
+@[extensionality] lemma hom.ext  {f g : R ⟶ S} : (∀ x : R, f x = g x) → f = g :=
+λ w, subtype.ext.2 $ funext w
+
+@[simp] lemma hom_coe_app (val : R → S) (prop) (r : R) : (⟨val, prop⟩ : R ⟶ S) r = val r := rfl
 
 instance hom_is_ring_hom (f : R ⟶ S) : is_ring_hom (f : R → S) := f.2
 

@@ -14,7 +14,7 @@ This files introduces:
 `Hausdorff_dist`.
 -/
 
-import topology.metric_space.isometry topology.instances.ennreal topology.metric_space.cau_seq_filter
+import topology.metric_space.isometry topology.instances.ennreal
        topology.metric_space.lipschitz
 noncomputable theory
 local attribute [instance, priority 0] classical.prop_decidable

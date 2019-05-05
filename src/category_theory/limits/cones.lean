@@ -2,11 +2,11 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Stephen Morgan, Scott Morrison
 
-import category_theory.natural_isomorphism
 import category_theory.whiskering
 import category_theory.const
 import category_theory.opposites
 import category_theory.yoneda
+import category_theory.concrete_category
 
 universes v u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
 
@@ -134,6 +134,18 @@ def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cone F) : cone (E
 
 @[simp] lemma whisker_π_app (c : cone F) {K : Type v} [small_category K] (E : K ⥤ J) (k : K) :
   (c.whisker E).π.app k = (c.π).app (E.obj k) := rfl
+
+section
+omit 𝒞
+variables {m : Type v → Type v}
+variables (hom : ∀ {α β : Type v}, m α → m β → (α → β) → Prop)
+variables [h : concrete_category @hom]
+include h
+
+@[simp] lemma naturality_bundled {G : J ⥤ bundled m} (s : cone G) {j j' : J} (f : j ⟶ j') (x : s.X) :
+   (G.map f) ((s.π.app j) x) = (s.π.app j') x :=
+congr_fun (congr_arg (λ k : s.X ⟶ G.obj j', (k : s.X → G.obj j')) (s.π.naturality f).symm) x
+end
 end cone
 
 namespace cocone
@@ -155,6 +167,19 @@ def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cocone F) : cocon
 
 @[simp] lemma whisker_ι_app (c : cocone F) {K : Type v} [small_category K] (E : K ⥤ J) (k : K) :
   (c.whisker E).ι.app k = (c.ι).app (E.obj k) := rfl
+
+section
+omit 𝒞
+variables {m : Type v → Type v}
+variables (hom : ∀ {α β : Type v}, m α → m β → (α → β) → Prop)
+variables [h : concrete_category @hom]
+include h
+
+@[simp] lemma naturality_bundled {G : J ⥤ bundled m} (s : cocone G) {j j' : J} (f : j ⟶ j') (x : G.obj j) :
+  (s.ι.app j') ((G.map f) x) = (s.ι.app j) x :=
+congr_fun (congr_arg (λ k : G.obj j ⟶ s.X, (k : G.obj j → s.X)) (s.ι.naturality f)) x
+end
+
 end cocone
 
 structure cone_morphism (A B : cone F) :=
@@ -314,3 +339,53 @@ def map_cocone_morphism {c c' : cocone F} (f : cocone_morphism c c') :
 end functor
 
 end category_theory
+
+namespace category_theory.limits
+
+variables {F : J ⥤ Cᵒᵖ}
+
+def cone_of_cocone_left_op (c : cocone F.left_op) : cone F :=
+{ X := op c.X,
+  π := nat_trans.right_op (c.ι ≫ (const.op_obj_unop (op c.X)).hom) }
+
+@[simp] lemma cone_of_cocone_left_op_X (c : cocone F.left_op) :
+  (cone_of_cocone_left_op c).X = op c.X :=
+rfl
+@[simp] lemma cone_of_cocone_left_op_π_app (c : cocone F.left_op) (j) :
+  (cone_of_cocone_left_op c).π.app j = (c.ι.app (op j)).op :=
+by { dsimp [cone_of_cocone_left_op], simp }
+
+def cocone_left_op_of_cone (c : cone F) : cocone (F.left_op) :=
+{ X := unop c.X,
+  ι := nat_trans.left_op c.π }
+
+@[simp] lemma cocone_left_op_of_cone_X (c : cone F) :
+  (cocone_left_op_of_cone c).X = unop c.X :=
+rfl
+@[simp] lemma cocone_left_op_of_cone_ι_app (c : cone F) (j) :
+  (cocone_left_op_of_cone c).ι.app j = (c.π.app (unop j)).unop :=
+by { dsimp [cocone_left_op_of_cone], simp }
+
+def cocone_of_cone_left_op (c : cone F.left_op) : cocone F :=
+{ X := op c.X,
+  ι := nat_trans.right_op ((const.op_obj_unop (op c.X)).hom ≫ c.π) }
+
+@[simp] lemma cocone_of_cone_left_op_X (c : cone F.left_op) :
+  (cocone_of_cone_left_op c).X = op c.X :=
+rfl
+@[simp] lemma cocone_of_cone_left_op_ι_app (c : cone F.left_op) (j) :
+  (cocone_of_cone_left_op c).ι.app j = (c.π.app (op j)).op :=
+by { dsimp [cocone_of_cone_left_op], simp }
+
+def cone_left_op_of_cocone (c : cocone F) : cone (F.left_op) :=
+{ X := unop c.X,
+  π := nat_trans.left_op c.ι }
+
+@[simp] lemma cone_left_op_of_cocone_X (c : cocone F) :
+  (cone_left_op_of_cocone c).X = unop c.X :=
+rfl
+@[simp] lemma cone_left_op_of_cocone_π_app (c : cocone F) (j) :
+  (cone_left_op_of_cocone c).π.app j = (c.ι.app (unop j)).unop :=
+by { dsimp [cone_left_op_of_cocone], simp }
+
+end category_theory.limits

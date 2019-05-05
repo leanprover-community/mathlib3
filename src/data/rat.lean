@@ -7,8 +7,9 @@ Introduces the rational numbers as discrete, linear ordered field.
 -/
 
 import
-  data.nat.gcd data.pnat data.int.sqrt data.equiv.encodable order.basic
-  algebra.ordered_field data.real.cau_seq
+  data.nat.gcd data.pnat data.int.sqrt data.equiv.encodable
+  algebra.group algebra.ordered_group algebra.group_power
+  algebra.ordered_field
 
 /- rational numbers -/
 

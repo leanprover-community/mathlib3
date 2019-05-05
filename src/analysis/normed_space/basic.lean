@@ -7,7 +7,6 @@ Authors: Patrick Massot, Johannes Hölzl
 -/
 
 import algebra.pi_instances
-import linear_algebra.basic
 import topology.instances.nnreal topology.instances.complex
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 

@@ -24,9 +24,8 @@ namespace StructuredStalkPresheafedSpace
 variables {C V}
 variables {F : V ⥤ C}
 
--- TODO can this just work in steps?
-instance : has_coe_to_sort (StructuredStalkPresheafedSpace.{v₁ v₂} C V F) :=
-{ S := Type v₁, coe := λ F, F.to_PresheafedSpace.to_Top.α }
+instance : has_coe (StructuredStalkPresheafedSpace.{v₁ v₂} C V F) (PresheafedSpace.{v₁} C) :=
+{ coe := λ X, X.to_PresheafedSpace }
 
 structure hom (X Y : StructuredStalkPresheafedSpace.{v₁ v₂} C V F) :=
 (hom : X.to_PresheafedSpace ⟶ Y.to_PresheafedSpace)

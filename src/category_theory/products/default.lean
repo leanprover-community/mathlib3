@@ -79,10 +79,20 @@ def swap : C × D ⥤ D × C :=
 def symmetry : swap C D ⋙ swap D C ≅ functor.id (C × D) :=
 { hom :=
   { app := λ X, 𝟙 X,
-    naturality' := begin intros, erw [category.comp_id (C × D), category.id_comp (C × D)], dsimp [swap], simp, end },
+    naturality' := λ X Y f,
+    begin
+      erw [category.comp_id (C × D), category.id_comp (C × D)],
+      dsimp [swap],
+      simp,
+    end },
   inv :=
   { app := λ X, 𝟙 X,
-    naturality' := begin intros, erw [category.comp_id (C × D), category.id_comp (C × D)], dsimp [swap], simp, end } }
+    naturality' := λ X Y f,
+    begin
+      erw [category.comp_id (C × D), category.id_comp (C × D)],
+      dsimp [swap],
+      simp,
+    end } }
 
 end prod
 

@@ -49,9 +49,7 @@ by { dsimp [id], simp, }
 @[simp] lemma id_hom_app (U) :
   (id ℱ).hom.app U = ℱ.map (eq_to_hom (opens.op_map_id_obj U)) :=
 begin
-  revert U,
-  apply op_induction,
-  intro U,
+  op_induction U,
   cases U,
   simp,
   apply category_theory.functor.map_id,
@@ -68,6 +66,7 @@ begin
   dsimp [pushforward, comp],
   erw category_theory.functor.map_id, -- FIXME simp should do this
 end
+
 @[simp] lemma comp_inv_app {Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (comp ℱ f g).inv.app U = 𝟙 _ :=
 begin
   dsimp [pushforward, comp],

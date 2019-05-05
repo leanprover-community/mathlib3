@@ -60,10 +60,7 @@ end category_theory
 
 namespace tactic.interactive
 
-open interactive
-open interactive.types
-open lean.parser
-open tactic
+open interactive interactive.types lean.parser tactic
 
 meta def op_induction (h : parse ident) : tactic unit :=
 do h' ← tactic.get_local h,

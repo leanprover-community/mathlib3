@@ -16,38 +16,37 @@ include 𝒞
 namespace algebraic_geometry
 
 structure PresheafedSpace :=
-(X : Top.{v})
-(𝒪 : X.presheaf C)
+(to_Top : Top.{v})
+(𝒪 : to_Top.presheaf C)
 
 variables {C}
 
 namespace PresheafedSpace
 
 instance : has_coe_to_sort (PresheafedSpace.{v} C) :=
-{ S := Type v, coe := λ F, F.X.α }
+{ S := Type v, coe := λ F, F.to_Top.α }
 
-instance (F : PresheafedSpace.{v} C) : topological_space F := F.X.str
+instance (X : PresheafedSpace.{v} C) : topological_space X := X.to_Top.str
 
-structure hom (F G : PresheafedSpace.{v} C) :=
-(f : F.X ⟶ G.X)
-(c : G.𝒪 ⟶ f _* F.𝒪)
+structure hom (X Y : PresheafedSpace.{v} C) :=
+(f : X.to_Top ⟶ Y.to_Top)
+(c : Y.𝒪 ⟶ f _* X.𝒪)
 
-@[extensionality] lemma ext {F G : PresheafedSpace.{v} C} (α β : hom F G)
-  (w : α.f = β.f) (h : α.c ≫ (whisker_right (nat_trans.op (opens.map_iso _ _ w).inv) F.𝒪) = β.c) :
+@[extensionality] lemma ext {X Y : PresheafedSpace.{v} C} (α β : hom X Y)
+  (w : α.f = β.f) (h : α.c ≫ (whisker_right (nat_trans.op (opens.map_iso _ _ w).inv) X.𝒪) = β.c) :
   α = β :=
 begin
   cases α, cases β,
-  dsimp at w,
   dsimp [presheaf.pushforward] at *,
   tidy, -- TODO including `injections` would make tidy work earlier.
 end
 .
 
-def id (F : PresheafedSpace.{v} C) : hom F F :=
-{ f := 𝟙 F.X,
+def id (X : PresheafedSpace.{v} C) : hom X X :=
+{ f := 𝟙 X.to_Top,
   c := ((functor.left_unitor _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id _).hom) _) }
 
-def comp (F G H : PresheafedSpace.{v} C) (α : hom F G) (β : hom G H) : hom F H :=
+def comp (X Y Z : PresheafedSpace.{v} C) (α : hom X Y) (β : hom Y Z) : hom X Z :=
 { f := α.f ≫ β.f,
   c := β.c ≫ (whisker_left (opens.map β.f).op α.c) }
 
@@ -61,8 +60,8 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace.{v} C) :=
   id   := id,
   comp := comp,
   -- I'm still grumpy about these proofs.
-  -- When I turned the category of open sets upside down by hand,
-  -- I could just leave these out.
+  -- The obstacle here is the mysterious need to use `erw` for some `simp` lemmas.
+  -- If we could avoid that, locally adding `op_induction` to `tidy` would discharge these.
   comp_id' := λ X Y f,
   begin
     ext U,
@@ -79,6 +78,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace.{v} C) :=
       cases U,
       dsimp,
       simp only [category.assoc],
+      -- This should be done by `simp`, but unfortunately isn't.
       erw [category_theory.functor.map_id],
       simp, },
     { simp }
@@ -90,6 +90,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace.{v} C) :=
       cases U,
       dsimp,
       simp only [category.assoc],
+      -- This should be done by `simp`, but unfortunately isn't.
       erw [category_theory.functor.map_id],
       simp, },
     { refl }
@@ -99,19 +100,30 @@ end
 
 variables {C}
 
-@[simp] lemma id_f (F : PresheafedSpace.{v} C) : ((𝟙 F) : F ⟶ F).f = 𝟙 F.X := rfl
-@[simp] lemma comp_f {F G H : PresheafedSpace.{v} C} (α : F ⟶ G) (β : G ⟶ H) :
+instance {X Y : PresheafedSpace.{v} C} : has_coe (X ⟶ Y) (X.to_Top ⟶ Y.to_Top) :=
+{ coe := λ α, α.f }
+
+@[simp] lemma id_f (X : PresheafedSpace.{v} C) : ((𝟙 X) : X ⟶ X).f = 𝟙 X.to_Top := rfl
+@[simp] lemma comp_f {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) :
   (α ≫ β).f = α.f ≫ β.f :=
+rfl
+@[simp] lemma comp_coe {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) :
+  ((α ≫ β : X ⟶ Z) : X.to_Top ⟶ Z.to_Top) = (α : X.to_Top ⟶ Y.to_Top) ≫ (β : Y.to_Top ⟶ Z.to_Top) :=
 rfl
 
 -- We don't mark these as simp lemmas, because the innards are pretty unsightly.
-lemma id_c (F : PresheafedSpace.{v} C) :
-  ((𝟙 F) : F ⟶ F).c =
+lemma id_c (X : PresheafedSpace.{v} C) :
+  ((𝟙 X) : X ⟶ X).c =
   (((functor.left_unitor _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id _).hom) _)) :=
 rfl
-lemma comp_c {F G H : PresheafedSpace.{v} C} (α : F ⟶ G) (β : G ⟶ H) :
+lemma comp_c {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) :
   (α ≫ β).c = (β.c ≫ (whisker_left (opens.map β.f).op α.c)) :=
 rfl
+
+def forget : PresheafedSpace.{v} C ⥤ Top :=
+{ obj := λ X, X.to_Top,
+  map := λ X Y f, f }
+
 end PresheafedSpace
 
 end algebraic_geometry
@@ -129,17 +141,17 @@ local attribute [simp] PresheafedSpace.id_c PresheafedSpace.comp_c presheaf.push
 namespace functor
 
 def map_presheaf (F : C ⥤ D) : PresheafedSpace.{v} C ⥤ PresheafedSpace.{v} D :=
-{ obj := λ X, { X := X.X, 𝒪 := X.𝒪 ⋙ F },
+{ obj := λ X, { to_Top := X.to_Top, 𝒪 := X.𝒪 ⋙ F },
   map := λ X Y f, { f := f.f, c := whisker_right f.c F } }.
 
 @[simp] lemma map_presheaf_obj_X (F : C ⥤ D) (X : PresheafedSpace.{v} C) :
-  (F.map_presheaf.obj X).X = X.X :=
+  (F.map_presheaf.obj X).to_Top = X.to_Top :=
 rfl
 @[simp] lemma map_presheaf_obj_𝒪 (F : C ⥤ D) (X : PresheafedSpace.{v} C) :
   (F.map_presheaf.obj X).𝒪 = X.𝒪 ⋙ F :=
 rfl
 @[simp] lemma map_presheaf_map_f (F : C ⥤ D) {X Y : PresheafedSpace.{v} C} (f : X ⟶ Y) :
-  (F.map_presheaf.map f).f = f.f :=
+  (F.map_presheaf.map f).f = f :=
 rfl
 @[simp] lemma map_presheaf_map_c (F : C ⥤ D) {X Y : PresheafedSpace.{v} C} (f : X ⟶ Y) :
   (F.map_presheaf.map f).c = whisker_right f.c F :=
@@ -161,6 +173,7 @@ def on_presheaf {F G : C ⥤ D} (α : F ⟶ G) : G.map_presheaf ⟶ F.map_preshe
       cases U,
       dsimp,
       simp only [functor.map_id, category.id_comp, category.comp_id, category.assoc],
+      -- This should be done by `simp`, but unfortunately isn't.
       erw category_theory.functor.map_id,
       erw category_theory.functor.map_id,
       simp only [category.comp_id],

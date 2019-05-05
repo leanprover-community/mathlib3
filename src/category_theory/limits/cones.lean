@@ -6,6 +6,7 @@ import category_theory.whiskering
 import category_theory.const
 import category_theory.opposites
 import category_theory.yoneda
+import category_theory.concrete_category
 
 universes v u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
 
@@ -133,6 +134,18 @@ def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cone F) : cone (E
 
 @[simp] lemma whisker_π_app (c : cone F) {K : Type v} [small_category K] (E : K ⥤ J) (k : K) :
   (c.whisker E).π.app k = (c.π).app (E.obj k) := rfl
+
+section
+omit 𝒞
+variables {m : Type v → Type v}
+variables (hom : ∀ {α β : Type v}, m α → m β → (α → β) → Prop)
+variables [h : concrete_category @hom]
+include h
+
+@[simp] lemma naturality_bundled {G : J ⥤ bundled m} (s : cone G) {j j' : J} (f : j ⟶ j') (x : s.X) :
+   (G.map f) ((s.π.app j) x) = (s.π.app j') x :=
+congr_fun (congr_arg (λ k : s.X ⟶ G.obj j', (k : s.X → G.obj j')) (s.π.naturality f).symm) x
+end
 end cone
 
 namespace cocone
@@ -154,6 +167,19 @@ def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cocone F) : cocon
 
 @[simp] lemma whisker_ι_app (c : cocone F) {K : Type v} [small_category K] (E : K ⥤ J) (k : K) :
   (c.whisker E).ι.app k = (c.ι).app (E.obj k) := rfl
+
+section
+omit 𝒞
+variables {m : Type v → Type v}
+variables (hom : ∀ {α β : Type v}, m α → m β → (α → β) → Prop)
+variables [h : concrete_category @hom]
+include h
+
+@[simp] lemma naturality_bundled {G : J ⥤ bundled m} (s : cocone G) {j j' : J} (f : j ⟶ j') (x : G.obj j) :
+  (s.ι.app j') ((G.map f) x) = (s.ι.app j) x :=
+congr_fun (congr_arg (λ k : G.obj j ⟶ s.X, (k : G.obj j → s.X)) (s.ι.naturality f)) x
+end
+
 end cocone
 
 structure cone_morphism (A B : cone F) :=

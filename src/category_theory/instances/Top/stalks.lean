@@ -1,3 +1,7 @@
+-- Copyright (c) 2019 Scott Morrison. All rights reserved.
+-- Released under Apache 2.0 license as described in the file LICENSE.
+-- Authors: Scott Morrison
+
 import category_theory.instances.Top.open_nhds
 import category_theory.instances.Top.presheaf
 import category_theory.limits.limits
@@ -9,10 +13,6 @@ open category_theory.instances
 open category_theory.instances.Top
 open category_theory.limits
 open topological_space
-
-lemma eq_to_hom_op_comp  {C : Sort u} [𝒞 : category.{v} C] {X Y : C} (h : X = Y) (k : op X = op Y) :
-  (eq_to_hom h).op ≫ (eq_to_hom k) = 𝟙 (op Y) :=
-by simp
 
 variables {C : Type u} [𝒞 : category.{v+1} C]
 include 𝒞

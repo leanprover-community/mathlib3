@@ -98,16 +98,17 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace.{v} C) :=
 end
 .
 
-instance (X Y : PresheafedSpace.{v} C) : has_coe_to_fun (X ⟶ Y) :=
-{ F   := λ f, X.X → Y.X,
-  coe := λ f, f.f }
-
 variables {C}
 
 instance {X Y : PresheafedSpace.{v} C} : has_coe (X ⟶ Y) (X.to_Top ⟶ Y.to_Top) :=
 { coe := λ α, α.f }
 
-@[simp] lemma id_f (X : PresheafedSpace.{v} C) : ((𝟙 X) : X ⟶ X).f = 𝟙 X.to_Top := rfl
+@[simp] lemma id_f (X : PresheafedSpace.{v} C) :
+  ((𝟙 X) : X ⟶ X).f = 𝟙 X.to_Top :=
+rfl
+@[simp] lemma id_coe (X : PresheafedSpace.{v} C) :
+  (((𝟙 X) : X ⟶ X) : X.to_Top ⟶ X.to_Top) = 𝟙 X.to_Top :=
+rfl
 @[simp] lemma comp_f {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) :
   (α ≫ β).f = α.f ≫ β.f :=
 rfl

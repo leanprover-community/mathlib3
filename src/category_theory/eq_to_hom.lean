@@ -40,6 +40,10 @@ begin
   refl
 end
 
+lemma eq_to_hom_op_comp  {C : Sort u} [𝒞 : category.{v} C] {X Y : C} (h : X = Y) (k : op X = op Y) :
+  (eq_to_hom h).op ≫ (eq_to_hom k) = 𝟙 (op Y) :=
+by simp
+
 variables {D : Sort u'} [𝒟 : category.{v'} D]
 include 𝒟
 

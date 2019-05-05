@@ -48,7 +48,7 @@ open nat eq.ops
 
 ### Structuring definitions and theorems ###
 
-Use spaces around ":" and ":=". Put them before a line break rather
+Use spaces around ":", ":=" or infix operators. Put them before a line break rather
 than at the beginning of the next line.
 
 Use two spaces to indent. You can use an extra indent when a long line
@@ -253,7 +253,7 @@ theorem reverse_reverse : ∀ (l : list α), reverse (reverse l) = l
 ```
 
 
-### Tactic mode ###
+### Tactic mode ###
 
 When opening a tactic block, `begin` is not indented but everything
 inside is indented, as in:

@@ -84,5 +84,5 @@ example (a b : ℤ) (α : Type) [ring α] : (((a + b) : ℤ) : α) = (a : α) + 
 
 open nat 
 
-example (m n : ℕ) : int.gcd m n = m * (gcd_a m n) + n * (gcd_b m n) := gcd_eq_gcd_ab
+example (m n : ℕ) : (nat.gcd m n : ℤ) = m * (gcd_a m n) + n * (gcd_b m n) := gcd_eq_gcd_ab m n
 ```

@@ -572,6 +572,27 @@ do goals ← get_goals,
    p ← is_proof goals.head,
    guard p
 
+/-- Succeeds only if we can construct an instance showing the
+    current goal is a subsingleton type. -/
+meta def subsingleton_goal : tactic unit :=
+do goals ← get_goals,
+   ty ← infer_type goals.head >>= instantiate_mvars,
+   to_expr ``(subsingleton %%ty) >>= mk_instance >> skip
+
+/-- Succeeds only if the current goal is "terminal", in the sense
+    that no other goals depend on it. -/
+meta def terminal_goal : tactic unit :=
+-- We can't merely test for subsingletons, as sometimes in the presence of metavariables
+-- `propositional_goal` succeeds while `subsingleton_goal` does not.
+propositional_goal <|> subsingleton_goal <|>
+do g :: gs ← get_goals,
+   mvars ← (λ L, list.erase L g) <$> metavariables,
+   mvars.mmap' $ λ g, do
+     t ← infer_type g >>= instantiate_mvars,
+     d ← kdepends_on t g,
+     monad.whenb d $
+       pp t >>= λ s, fail ("The current goal is not terminal: " ++ s.to_string ++ " depends on it.")
+
 meta def triv' : tactic unit := do c ← mk_const `trivial, exact c reducible
 
 variable {α : Type}

@@ -30,14 +30,10 @@ def uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E) :=
   { app := λ X, (T.app X.1).app X.2,
     naturality' := λ X Y f,
     begin
-      simp only [prod_comp_fst,
-        prod_comp_snd,
-        category.comp_id,
-        category.assoc,
-        functor.map_id,
-        functor.map_comp,
-        functor.category.id_app,
-        functor.category.comp_app],
+      simp only [prod_comp_fst, prod_comp_snd,
+        category.comp_id, category.assoc,
+        functor.map_id, functor.map_comp,
+        functor.category.id_app, functor.category.comp_app],
       slice_lhs 2 3 { rw nat_trans.naturality },
       slice_lhs 1 2 {
         rw [←functor.category.comp_app, nat_trans.naturality,

@@ -100,6 +100,6 @@ def currying : equivalence (C ⥤ (D ⥤ E)) ((C × D) ⥤ E) :=
     (λ X, nat_iso.of_components (λ Y, as_iso (𝟙 _)) (by tidy)) (by tidy)) (by tidy),
   inv_fun_id' :=
   nat_iso.of_components (λ F, nat_iso.of_components
-    (λ X, eq_to_iso begin dsimp, simp end) (by tidy)) (by tidy) }
+    (λ X, eq_to_iso (by {dsimp, simp})) (by tidy)) (by tidy) }
 
 end category_theory

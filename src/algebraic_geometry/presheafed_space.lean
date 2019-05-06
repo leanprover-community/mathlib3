@@ -69,7 +69,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace.{v} C) :=
       cases U,
       dsimp,
       simp, },
-    { simp }
+    { dsimp [comp], simp }
   end,
   id_comp' := λ X Y f,
   begin

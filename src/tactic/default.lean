@@ -13,12 +13,13 @@ Because this file imports some complicated tactics, it has many transitive depen
 
 As (non-exhaustive) examples, these includes things like:
 * algebra.group_power
+* algebra.ordered_ring
 * data.rat
-* data.nat.gcd
 * data.nat.prime
-* data.list.basic
 * data.list.perm
-* data.set.basic
+* data.set.lattice
+* data.equiv.encodable
+* order.complete_lattice
 -/
 import
   tactic.basic

@@ -3,10 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Sebastien Gouezel, Scott Morrison
 -/
-import data.list.defs tactic.rcases tactic.generalize_proofs tactic.tauto
-  tactic.basic tactic.rcases tactic.generalize_proofs
-  tactic.split_ifs logic.basic tactic.ext tactic.tauto
-  tactic.replacer tactic.simpa tactic.squeeze tactic.library_search
+import tactic.basic data.list.defs
 
 open lean
 open lean.parser
@@ -17,64 +14,6 @@ local postfix *:9001 := many
 namespace tactic
 namespace interactive
 open interactive interactive.types expr
-
-/--
-The `rcases` tactic is the same as `cases`, but with more flexibility in the
-`with` pattern syntax to allow for recursive case splitting. The pattern syntax
-uses the following recursive grammar:
-
-```
-patt ::= (patt_list "|")* patt_list
-patt_list ::= id | "_" | "⟨" (patt ",")* patt "⟩"
-```
-
-A pattern like `⟨a, b, c⟩ | ⟨d, e⟩` will do a split over the inductive datatype,
-naming the first three parameters of the first constructor as `a,b,c` and the
-first two of the second constructor `d,e`. If the list is not as long as the
-number of arguments to the constructor or the number of constructors, the
-remaining variables will be automatically named. If there are nested brackets
-such as `⟨⟨a⟩, b | c⟩ | d` then these will cause more case splits as necessary.
-If there are too many arguments, such as `⟨a, b, c⟩` for splitting on
-`∃ x, ∃ y, p x`, then it will be treated as `⟨a, ⟨b, c⟩⟩`, splitting the last
-parameter as necessary.
-
-`rcases` also has special support for quotient types: quotient induction into Prop works like
-matching on the constructor `quot.mk`.
-
-`rcases? e` will perform case splits on `e` in the same way as `rcases e`,
-but rather than accepting a pattern, it does a maximal cases and prints the
-pattern that would produce this case splitting. The default maximum depth is 5,
-but this can be modified with `rcases? e : n`.
--/
-meta def rcases : parse rcases_parse → tactic unit
-| (p, sum.inl ids) := tactic.rcases p ids
-| (p, sum.inr depth) := do
-  patt ← tactic.rcases_hint p depth,
-  pe ← pp p,
-  trace $ ↑"snippet: rcases " ++ pe ++ " with " ++ to_fmt patt
-
-/--
-The `rintro` tactic is a combination of the `intros` tactic with `rcases` to
-allow for destructuring patterns while introducing variables. See `rcases` for
-a description of supported patterns. For example, `rintros (a | ⟨b, c⟩) ⟨d, e⟩`
-will introduce two variables, and then do case splits on both of them producing
-two subgoals, one with variables `a d e` and the other with `b c d e`.
-
-`rintro?` will introduce and case split on variables in the same way as
-`rintro`, but will also print the `rintro` invocation that would have the same
-result. Like `rcases?`, `rintro? : n` allows for modifying the
-depth of splitting; the default is 5.
--/
-meta def rintro : parse rintro_parse → tactic unit
-| (sum.inl []) := intros []
-| (sum.inl l)  := tactic.rintro l
-| (sum.inr depth) := do
-  ps ← tactic.rintro_hint depth,
-  trace $ ↑"snippet: rintro" ++ format.join (ps.map $ λ p,
-    format.space ++ format.group (p.format tt))
-
-/-- Alias for `rintro`. -/
-meta def rintros := rintro
 
 /-- `try_for n { tac }` executes `tac` for `n` ticks, otherwise uses `sorry` to close the goal.
 Never fails. Useful for debugging. -/
@@ -126,10 +65,6 @@ do gs ← get_goals,
    | _        := skip
    end
 
-/-- Generalize proofs in the goal, naming them with the provided list. -/
-meta def generalize_proofs : parse ident_* → tactic unit :=
-tactic.generalize_proofs
-
 /-- Clear all hypotheses starting with `_`, like `_match` and `_let_match`. -/
 meta def clear_ : tactic unit := tactic.repeat $ do
   l ← local_context,
@@ -177,87 +112,6 @@ do let h := h.get_or_else `this,
   | some o, some _ := tactic.clear o
   | some o, none   := swap >> tactic.clear o >> swap
   end
-
-/--
-`apply_assumption` looks for an assumption of the form `... → ∀ _, ... → head`
-where `head` matches the current goal.
-
-alternatively, when encountering an assumption of the form `sg₀ → ¬ sg₁`,
-after the main approach failed, the goal is dismissed and `sg₀` and `sg₁`
-are made into the new goal.
-
-optional arguments:
-- asms: list of rules to consider instead of the local constants
-- tac:  a tactic to run on each subgoals after applying an assumption; if
-        this tactic fails, the corresponding assumption will be rejected and
-        the next one will be attempted.
--/
-meta def apply_assumption
-  (asms : tactic (list expr) := local_context)
-  (tac : tactic unit := return ()) : tactic unit :=
-tactic.apply_assumption asms tac
-
-open nat
-
-meta def mk_assumption_set (no_dflt : bool) (hs : list simp_arg_type) (attr : list name): tactic (list expr) :=
-do (hs, gex, hex, all_hyps) ← decode_simp_arg_list hs,
-   hs ← hs.mmap i_to_expr_for_apply,
-   l ← attr.mmap $ λ a, attribute.get_instances a,
-   let l := l.join,
-   m ← list.mmap mk_const l,
-   let hs := (hs ++ m).filter $ λ h, expr.const_name h ∉ gex,
-   hs ← if no_dflt then
-          return hs
-        else
-          do { congr_fun ← mk_const `congr_fun,
-               congr_arg ← mk_const `congr_arg,
-               return (congr_fun :: congr_arg :: hs) },
-   if ¬ no_dflt ∨ all_hyps then do
-    ctx ← local_context,
-    return $ hs.append (ctx.filter (λ h, h.local_uniq_name ∉ hex)) -- remove local exceptions
-   else return hs
-
-/--
-`solve_by_elim` calls `apply_assumption` on the main goal to find an assumption whose head matches
-and then repeatedly calls `apply_assumption` on the generated subgoals until no subgoals remain,
-performing at most `max_rep` recursive steps.
-
-`solve_by_elim` discharges the current goal or fails
-
-`solve_by_elim` performs back-tracking if `apply_assumption` chooses an unproductive assumption
-
-By default, the assumptions passed to apply_assumption are the local context, `congr_fun` and
-`congr_arg`.
-
-`solve_by_elim [h₁, h₂, ..., hᵣ]` also applies the named lemmas.
-
-`solve_by_elim with attr₁ ... attrᵣ also applied all lemmas tagged with the specified attributes.
-
-`solve_by_elim only [h₁, h₂, ..., hᵣ]` does not include the local context, `congr_fun`, or `congr_arg`
-unless they are explicitly included.
-
-`solve_by_elim [-id]` removes a specified assumption.
-
-`solve_by_elim*` tries to solve all goals together, using backtracking if a solution for one goal
-makes other goals impossible.
-
-optional arguments:
-- discharger: a subsidiary tactic to try at each step (e.g. `cc` may be helpful)
-- max_rep: number of attempts at discharging generated sub-goals
--/
-meta def solve_by_elim (all_goals : parse $ (tk "*")?) (no_dflt : parse only_flag) (hs : parse simp_arg_list)  (attr_names : parse with_ident_list) (opt : by_elim_opt := { }) : tactic unit :=
-do asms ← mk_assumption_set no_dflt hs attr_names,
-   tactic.solve_by_elim { all_goals := all_goals.is_some, assumptions := return asms, ..opt }
-
-/--
-`tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
-and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
-using `reflexivity` or `solve_by_elim`
--/
-meta def tautology (c : parse $ (tk "!")?) := tactic.tautology c.is_some
-
-/-- Shorter name for the tactic `tautology`. -/
-meta def tauto (c : parse $ (tk "!")?) := tautology c
 
 /-- Make every propositions in the context decidable -/
 meta def classical := tactic.classical

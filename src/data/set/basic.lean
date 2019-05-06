@@ -3,7 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad, Leonardo de Moura
 -/
-import tactic.finish data.subtype tactic.interactive
+import tactic.finish tactic.ext tactic.simpa tactic.interactive data.subtype
 open function
 
 

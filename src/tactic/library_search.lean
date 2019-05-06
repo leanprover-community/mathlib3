@@ -2,7 +2,7 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Scott Morrison
 
-import tactic.basic
+import tactic.solve_by_elim
 import data.list.defs
 
 /-

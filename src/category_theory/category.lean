@@ -15,6 +15,7 @@ local notation f ` ⊚ `:80 g:80 := category.comp g f    -- type as \oo
 -/
 
 import tactic.restate_axiom
+import tactic.replacer
 import tactic.interactive
 import tactic.tidy
 

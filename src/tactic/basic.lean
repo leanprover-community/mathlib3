@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
-import data.dlist.basic category.basic meta.expr meta.rb_map
+import data.dlist.basic category.basic meta.expr meta.rb_map tactic.cache
 
 namespace expr
 open tactic
@@ -310,9 +310,6 @@ do d ← get_decl n,
 
 end instance_cache
 
-/-- Reset the instance cache for the main goal. -/
-meta def reset_instance_cache : tactic unit := unfreeze_local_instances
-
 meta def match_head (e : expr) : expr → tactic unit
 | e' :=
     unify e e'
@@ -541,26 +538,6 @@ do h ← get_local hyp,
    olde ← to_expr olde, newe ← to_expr newe,
    let repl_tp := tp.replace (λ a n, if a = olde then some newe else none),
    change_core repl_tp (some h)
-
-open nat
-
-meta def solve_by_elim_aux (discharger : tactic unit) (asms : tactic (list expr))  : ℕ → tactic unit
-| 0 := done
-| (succ n) := done <|>
-              (discharger >> solve_by_elim_aux n) <|>
-              (apply_assumption asms $ solve_by_elim_aux n)
-
-meta structure by_elim_opt :=
-  (all_goals : bool := ff)
-  (discharger : tactic unit := done)
-  (assumptions : tactic (list expr) := local_context)
-  (max_rep : ℕ := 3)
-
-meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
-do
-  tactic.fail_if_no_goals,
-  (if opt.all_goals then id else focus1) $
-    solve_by_elim_aux opt.discharger opt.assumptions opt.max_rep
 
 meta def metavariables : tactic (list expr) :=
 do r ← result,

@@ -1,3 +1,6 @@
+-- Copyright (c) 2019 Keeley Hoek. All rights reserved.
+-- Released under Apache 2.0 license as described in the file LICENSE.
+-- Authors: Keeley Hoek
 import tactic.basic tactic.norm_num
 
 namespace tactic
@@ -205,7 +208,7 @@ open local_cache local_cache.internal
     of the caching being inherited by child tactic blocks) we return the
     cached result directly.
 
-    You can configure the cached scope to be entire `def`/`lemma`s chaning
+    You can configure the cached scope to be entire `def`/`lemma`s changing
     the optional cache_scope argument to `cache_scope.def_local`.
     Note: the caches backing each scope are different.
 

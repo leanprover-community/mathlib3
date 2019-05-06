@@ -39,8 +39,7 @@ namespace nat_trans
 
 @[simp] def of_homs {I : Type u₁} {F G : discrete I ⥤ C}
   (f : Π i : discrete I, F.obj i ⟶ G.obj i) : F ⟶ G :=
-{ app := λ i, f i,
-  naturality' := by { rintro X _ ⟨⟨rfl⟩⟩, dsimp, simp } }
+{ app := f }
 
 @[simp] def of_function {I : Type u₁} {F G : I → C} (f : Π i : I, F i ⟶ G i) :
   (functor.of_function F) ⟶ (functor.of_function G) :=
@@ -52,7 +51,7 @@ namespace nat_iso
 
 @[simp] def of_isos {I : Type u₁} {F G : discrete I ⥤ C}
   (f : Π i : discrete I, F.obj i ≅ G.obj i) : F ≅ G :=
-of_components f (by { rintro X _ ⟨⟨rfl⟩⟩, dsimp, simp })
+of_components f (by tidy)
 
 end nat_iso
 

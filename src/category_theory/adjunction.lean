@@ -29,6 +29,8 @@ structure adjunction (F : C ⥤ D) (G : D ⥤ C) :=
 (hom_equiv_unit' : Π {X Y f}, (hom_equiv X Y) f = (unit : _ ⟶ _).app X ≫ G.map f . obviously)
 (hom_equiv_counit' : Π {X Y g}, (hom_equiv X Y).symm g = F.map g ≫ counit.app Y . obviously)
 
+infix ` ⊣ `:15 := adjunction
+
 namespace adjunction
 
 restate_axiom hom_equiv_unit'
@@ -109,8 +111,8 @@ end core_hom_equiv
 structure core_unit_counit (F : C ⥤ D) (G : D ⥤ C) :=
 (unit : functor.id C ⟶ F.comp G)
 (counit : G.comp F ⟶ functor.id D)
-(left_triangle' : (whisker_right unit F) ≫ (whisker_left F counit) = nat_trans.id _ . obviously)
-(right_triangle' : (whisker_left G unit) ≫ (whisker_right counit G) = nat_trans.id _ . obviously)
+(left_triangle' : whisker_right unit F ≫ whisker_left F counit = nat_trans.id _ . obviously)
+(right_triangle' : whisker_left G unit ≫ whisker_right counit G = nat_trans.id _ . obviously)
 
 namespace core_unit_counit
 
@@ -120,7 +122,7 @@ attribute [simp] left_triangle right_triangle
 
 end core_unit_counit
 
-variables (F : C ⥤ D) (G : D ⥤ C)
+variables {F : C ⥤ D} {G : D ⥤ C}
 
 def mk_of_hom_equiv (adj : core_hom_equiv F G) : adjunction F G :=
 { unit :=
@@ -171,12 +173,6 @@ def id : adjunction (functor.id C) (functor.id C) :=
 
 end
 
-/-
-TODO
-* define adjoint equivalences
-* show that every equivalence can be improved into an adjoint equivalence
--/
-
 section
 variables {E : Sort u₃} [ℰ : category.{v₃} E] (H : D ⥤ E) (I : E ⥤ D)
 
@@ -221,7 +217,7 @@ def left_adjoint_of_equiv : C ⥤ D :=
   end }
 
 def adjunction_of_equiv_left : adjunction (left_adjoint_of_equiv e he) G :=
-mk_of_hom_equiv (left_adjoint_of_equiv e he) G
+mk_of_hom_equiv
 { hom_equiv := e,
   hom_equiv_naturality_left_symm' :=
   begin
@@ -252,7 +248,7 @@ def right_adjoint_of_equiv : D ⥤ C :=
   end }
 
 def adjunction_of_equiv_right : adjunction F (right_adjoint_of_equiv e he) :=
-mk_of_hom_equiv F (right_adjoint_of_equiv e he)
+mk_of_hom_equiv
 { hom_equiv := e,
   hom_equiv_naturality_left_symm' := by intros; rw [equiv.symm_apply_eq, he]; simp,
   hom_equiv_naturality_right' :=
@@ -262,6 +258,14 @@ mk_of_hom_equiv F (right_adjoint_of_equiv e he)
   end }
 
 end construct_right
+
+namespace equivalence
+
+def to_adjunction (e : C ≌ D) : e.functor ⊣ e.inverse :=
+mk_of_unit_counit ⟨e.unit, e.counit, by { ext, exact e.functor_unit_comp X },
+  by { ext, exact e.unit_inverse_comp X }⟩
+
+end equivalence
 
 end adjunction
 
@@ -287,7 +291,7 @@ def functoriality_is_left_adjoint :
   is_left_adjoint (@cocones.functoriality _ _ _ _ K _ _ F) :=
 { right := (cocones.functoriality G) ⋙ (cocones.precompose
     (K.right_unitor.inv ≫ (whisker_left K adj.unit) ≫ (associator _ _ _).inv)),
-  adj := mk_of_unit_counit _ _
+  adj := mk_of_unit_counit
   { unit :=
     { app := λ c,
       { hom := adj.unit.app c.X,
@@ -325,7 +329,7 @@ def functoriality_is_right_adjoint :
   is_right_adjoint (@cones.functoriality _ _ _ _ K _ _ G) :=
 { left := (cones.functoriality F) ⋙ (cones.postcompose
     ((associator _ _ _).hom ≫ (whisker_left K adj.counit) ≫ K.right_unitor.hom)),
-  adj := mk_of_unit_counit _ _
+  adj := mk_of_unit_counit
   { unit :=
     { app := λ c,
       { hom := adj.unit.app c.X,

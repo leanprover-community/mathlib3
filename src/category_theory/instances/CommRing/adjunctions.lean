@@ -40,7 +40,7 @@ lemma hom_coe_app' {R S : CommRing} (f : R ⟶ S) (r : R) : f r = f.val r := rfl
 local attribute [simp] hom_coe_app'
 
 noncomputable def adj : adjunction polynomial_ring (forget : CommRing ⥤ Type u) :=
-adjunction.mk_of_hom_equiv _ _
+adjunction.mk_of_hom_equiv
 { hom_equiv := λ α R,
   { to_fun := λ f, f ∘ X,
     inv_fun := λ f, ⟨eval₂ int.cast f, by apply_instance⟩,

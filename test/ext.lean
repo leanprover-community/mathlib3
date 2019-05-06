@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
 
-import tactic.basic
+import tactic.core
 import tactic.ext
 import tactic.solve_by_elim
 import data.set.basic data.stream.basic

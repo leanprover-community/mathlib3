@@ -23,23 +23,11 @@ As (non-exhaustive) examples, these includes things like:
 -/
 import
   tactic.basic
-  tactic.mk_iff_of_inductive_prop
-  tactic.generalize_proofs
-  tactic.alias
-  tactic.replacer
-  tactic.interactive
   tactic.monotonicity.interactive
-  tactic.library_search
-  tactic.where
-  tactic.simpa
-  tactic.squeeze
   tactic.finish
   tactic.tauto
   tactic.tidy
   tactic.abel tactic.ring
   tactic.linarith tactic.omega
   tactic.wlog
-  tactic.split_ifs
-  tactic.ext
   tactic.tfae
-  tactic.rcases

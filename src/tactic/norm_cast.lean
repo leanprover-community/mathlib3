@@ -3,7 +3,7 @@ Copyright (c) 2019 Paul-Nicolas Madelaine. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Paul-Nicolas Madelaine
 
-Normalizing casts in arithmetic expressions.
+Normalizing casts inside expressions.
 -/
 
 import tactic.basic tactic.interactive tactic.converter.interactive
@@ -439,18 +439,6 @@ attribute [norm_cast] rat.cast_pow
 attribute [norm_cast] complex.of_real_pow
 attribute [norm_cast] complex.of_real_fpow
 
-attribute [norm_cast] nat.cast_bit0
-@[norm_cast] lemma int.coe_nat_bit0 (n : ℕ) : (↑(bit0 n) : ℤ) = bit0 ↑n := by {unfold bit0, simp}
-attribute [norm_cast] int.cast_bit0
-attribute [norm_cast] rat.cast_bit0
-attribute [norm_cast] complex.of_real_bit0
-
-attribute [norm_cast] nat.cast_bit1
-@[norm_cast] lemma int.coe_nat_bit1 (n : ℕ) : (↑(bit1 n) : ℤ) = bit1 ↑n := by {unfold bit1, unfold bit0, simp}
-attribute [norm_cast] int.cast_bit1
-attribute [norm_cast] rat.cast_bit1
-attribute [norm_cast] complex.of_real_bit1
-
 /- equivalence norm_cast lemmas -/
 
 attribute [norm_cast] nat.cast_inj
@@ -472,6 +460,20 @@ attribute [norm_cast] rat.cast_lt
 attribute [norm_cast] enat.coe_lt_coe
 
 attribute [norm_cast] int.coe_nat_dvd
+
+/- special lemmas for numerals handling -/
+
+attribute [norm_cast, simp_cast] nat.cast_bit0
+@[norm_cast, simp_cast] lemma int.coe_nat_bit0 (n : ℕ) : (↑(bit0 n) : ℤ) = bit0 ↑n := by {unfold bit0, simp}
+attribute [norm_cast, simp_cast] int.cast_bit0
+attribute [norm_cast, simp_cast] rat.cast_bit0
+attribute [norm_cast, simp_cast] complex.of_real_bit0
+
+attribute [norm_cast, simp_cast] nat.cast_bit1
+@[norm_cast, simp_cast] lemma int.coe_nat_bit1 (n : ℕ) : (↑(bit1 n) : ℤ) = bit1 ↑n := by {unfold bit1, unfold bit0, simp}
+attribute [norm_cast, simp_cast] int.cast_bit1
+attribute [norm_cast, simp_cast] rat.cast_bit1
+attribute [norm_cast, simp_cast] complex.of_real_bit1
 
 /- special lemmas to unfold ≥, > and ≠ -/
 

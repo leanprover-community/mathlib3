@@ -59,7 +59,7 @@ lemma continuous_at_within.prod {f : α → β} {g : α → γ} {s : set α} {x 
   continuous_at_within (λx, (f x, g x)) x s :=
 tendsto_prod_mk_nhds hf hg
 
-lemma continuous_at.prod {f : α → β} {g : α → γ} {s : set α} {x : α}
+lemma continuous_at.prod {f : α → β} {g : α → γ} {x : α}
   (hf : continuous_at f x) (hg : continuous_at g x) : continuous_at (λx, (f x, g x)) x :=
 tendsto_prod_mk_nhds hf hg
 

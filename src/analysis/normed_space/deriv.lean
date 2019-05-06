@@ -92,10 +92,10 @@ def fderiv_at (f : E → F) (x : E) : E →L[k] F :=
 if h : ∃f', has_fderiv_at f f' x then classical.some h else 0
 
 def differentiable_on (f : E → F) (s : set E) :=
-  ∀x ∈ s, differentiable_at_within k f x s
+∀x ∈ s, differentiable_at_within k f x s
 
 def differentiable (f : E → F) :=
-  ∀x, differentiable_at k f x
+∀x, differentiable_at k f x
 
 /- A notation for sets on which the differential has to be unique. This is for instance the case
 on open sets, which is the main case of applications, but also
@@ -106,14 +106,20 @@ The differential is unique when the tangent directions (called the tangent cone 
 dense subset of the underlying normed space. -/
 
 def tangent_cone_at (x : E) (s : set E) : set E :=
-  {y : E | ∃(c:ℕ → k), ∃(d: ℕ → E), {n:ℕ | x + d n ∈ s} ∈ (@at_top ℕ _) ∧
-    (tendsto (λn, ∥c n∥) at_top at_top) ∧ (tendsto (λn, c n • d n) at_top (nhds y))}
+{y : E | ∃(c:ℕ → k) (d: ℕ → E), {n:ℕ | x + d n ∈ s} ∈ (at_top : filter ℕ) ∧
+  (tendsto (λn, ∥c n∥) at_top at_top) ∧ (tendsto (λn, c n • d n) at_top (nhds y))}
 
+/-- A property ensuring that the tangent cone to `s` at `x` spans a dense subset of the whole space.
+The main role of this property is to ensure that the differential along `s` as `x` is unique,
+hence this name. The uniqueness it asserts is proved in `unique_diff_at_on.eq` -/
 def unique_diff_at_on (x : E) (s : set E) : Prop :=
-  closure ((submodule.span k (tangent_cone_at k x s)) : set E) = univ
+closure ((submodule.span k (tangent_cone_at k x s)) : set E) = univ
 
+/-- A property ensuring that the tangent cone to `s` at any of its points spans a dense subset of
+the whole space.  The main role of this property is to ensure that the differential along `s` is
+unique, hence this name. The uniqueness it asserts is proved in `unique_diff_on.eq` -/
 def unique_diff_on (s : set E) : Prop :=
-  ∀x ∈ s, unique_diff_at_on k x s
+∀x ∈ s, unique_diff_at_on k x s
 
 variables {k}
 variables {f f₀ f₁ g : E → F}
@@ -205,7 +211,6 @@ begin
       { apply tendsto_add tendsto_const_nhds (tangent_cone_at.lim_zero hc ylim) },
       { rwa tendsto_principal } },
     rw add_zero at at_top_is_finer,
-
     have : is_o (λ y, f₁' (y - x) - f' (y - x)) (λ y, y - x) (nhds_within x s),
       by simpa using h.sub h₁,
     have : is_o (λ n:ℕ, f₁' ((x + d n) - x) - f' ((x + d n) - x)) (λ n, (x + d n)  - x)
@@ -220,13 +225,11 @@ begin
       L3.trans_is_O (is_O_one_of_tendsto ylim),
     have L : tendsto (λn:ℕ, c n • (f₁' (d n) - f' (d n))) at_top (nhds 0) :=
       is_o_one_iff.1 L4,
-
     have L' : tendsto (λ (n : ℕ), c n • (f₁' (d n) - f' (d n))) at_top (nhds (f₁' y - f' y)),
     { simp only [smul_sub, (bounded_linear_map.map_smul _ _ _).symm],
       apply tendsto_sub (ylim.comp (f₁'.continuous.tendsto _)) (ylim.comp (f'.continuous.tendsto _)) },
     have : f₁' y - f' y = 0 := tendsto_nhds_unique (by simp) L' L,
     exact (sub_eq_zero_iff_eq.1 this).symm },
-
   have B : ∀y ∈ submodule.span k (tangent_cone_at k x s), f' y = f₁' y,
   { assume y hy,
     apply submodule.span_induction hy,
@@ -292,13 +295,11 @@ begin
 end
 
 theorem has_fderiv_at_within_iff_tendsto : has_fderiv_at_within f f' x s ↔
-  tendsto
-  (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - f' (x' - x)∥) (nhds_within x s) (nhds 0) :=
+  tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - f' (x' - x)∥) (nhds_within x s) (nhds 0) :=
 has_fderiv_at_filter_iff_tendsto
 
-theorem has_fderiv_at_iff_tendsto :
-  has_fderiv_at f f' x ↔ tendsto
-  (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - f' (x' - x)∥) (nhds x) (nhds 0) :=
+theorem has_fderiv_at_iff_tendsto : has_fderiv_at f f' x ↔
+  tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - f' (x' - x)∥) (nhds x) (nhds 0) :=
 has_fderiv_at_filter_iff_tendsto
 
 theorem has_fderiv_at_filter.mono (h : has_fderiv_at_filter f f' x L₂) (hst : L₁ ≤ L₂) :
@@ -352,8 +353,7 @@ end
 lemma differentiable_at_within_univ :
   differentiable_at_within k f x univ ↔ differentiable_at k f x :=
 begin
-  unfold differentiable_at_within,
-  unfold has_fderiv_at_within,
+  unfold differentiable_at_within has_fderiv_at_within,
   rw nhds_within_univ,
   refl
 end
@@ -1073,14 +1073,10 @@ begin
   exact ⟨bounded_linear_map.comp g' f', has_fderiv_at_within.comp hf' (hg'.mono h)⟩
 end
 
-lemma differentiable_at.comp {g : F → G} {t : set F}
+lemma differentiable_at.comp {g : F → G}
   (hf : differentiable_at k f x) (hg : differentiable_at k g (f x)) :
   differentiable_at k (g ∘ f) x :=
-begin
-  rcases hf with ⟨f', hf'⟩,
-  rcases hg with ⟨g', hg'⟩,
-  exact ⟨bounded_linear_map.comp g' f', has_fderiv_at.comp hf' hg'⟩
-end
+(hf.has_fderiv_at.comp hg.has_fderiv_at).differentiable_at
 
 lemma fderiv_at_within.comp {g : F → G} {t : set F}
   (hf : differentiable_at_within k f x s) (hg : differentiable_at_within k g (f x) t)
@@ -1093,7 +1089,7 @@ begin
   apply hg.has_fderiv_at_within.mono h
 end
 
-lemma fderiv_at.comp {g : F → G} {t : set F}
+lemma fderiv_at.comp {g : F → G}
   (hf : differentiable_at k f x) (hg : differentiable_at k g (f x)) :
   fderiv_at k (g ∘ f) x = bounded_linear_map.comp (fderiv_at k g (f x)) (fderiv_at k f x) :=
 begin
@@ -1104,7 +1100,7 @@ end
 lemma differentiable_on.comp {g : F → G} {t : set F}
   (hf : differentiable_on k f s) (hg : differentiable_on k g t) (st : f '' s ⊆ t) :
   differentiable_on k (g ∘ f) s :=
-λ x hx, differentiable_at_within.comp (hf x hx) (hg (f x) (st (mem_image_of_mem _ hx))) st
+λx hx, differentiable_at_within.comp (hf x hx) (hg (f x) (st (mem_image_of_mem _ hx))) st
 
 end composition
 

@@ -700,11 +700,7 @@ begin
 end
 
 lemma continuous_on_const {s : set α} {c : β} : continuous_on (λx, c) s :=
-begin
-  apply continuous_on.mono _ (subset_univ _),
-  rw ← continuous_iff_continuous_on_univ,
-  exact continuous_const,
-end
+continuous_const.continuous_on
 
 lemma continuous_on.preimage_open_of_open {f : α → β} {s : set α} {t : set β}
   (hf : continuous_on f s) (hs : is_open s) (ht : is_open t) : is_open (s ∩ f⁻¹' t) :=

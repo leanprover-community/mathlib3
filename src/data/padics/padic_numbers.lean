@@ -788,12 +788,11 @@ set_option eqn_compiler.zeta true
 instance complete : cau_seq.is_complete ℚ_[p] norm :=
 begin
   split, intro f,
-  have cau_seq_norm_e : is_cau_seq padic_norm_e f, by {
-    intros ε hε,
+  have cau_seq_norm_e : is_cau_seq padic_norm_e f,
+  { intros ε hε,
     let h := is_cau f ε (by exact_mod_cast hε),
     unfold norm at h,
-    apply_mod_cast h,
-  },
+    apply_mod_cast h },
   cases padic.complete' ⟨f, cau_seq_norm_e⟩ with q hq,
   existsi q,
   intros ε hε,

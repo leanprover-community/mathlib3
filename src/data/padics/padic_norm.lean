@@ -217,7 +217,7 @@ else
   begin
     unfold padic_norm; split_ifs,
     apply fpow_nonneg_of_nonneg,
-    norm_cast, simp
+    exact_mod_cast nat.zero_le _
   end
 
 @[simp] protected theorem mul (q r : ℚ) : padic_norm p (q*r) = padic_norm p q * padic_norm p r :=
@@ -227,7 +227,7 @@ else if hr : r = 0 then
   by simp [hr]
 else
   have q*r ≠ 0, from mul_ne_zero hq hr,
-  have (↑p : ℚ) ≠ 0, by simp [prime.ne_zero hp],
+  have (↑p : ℚ) ≠ 0, by exact_mod_cast prime.ne_zero hp,
   by simp [padic_norm, *, padic_val_rat.mul, fpow_add this]
 
 @[simp] protected theorem div (q r : ℚ) : padic_norm p (q / r) = padic_norm p q / padic_norm p r :=

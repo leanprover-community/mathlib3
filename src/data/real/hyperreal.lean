@@ -463,8 +463,8 @@ is_st_iff_abs_sub_lt_delta.mpr $ λ d hd,
   ... ≤ abs x * of ((d / t) / 2) + of ((d / abs s) / 2) * abs (of s) : by
       { mono, { mono, exact le_of_lt (hys' _ (half_pos (div_pos hd ((of_lt U).mpr 
         (lt_of_le_of_lt (abs_nonneg _) ht))))), apply abs_nonneg, apply abs_nonneg },
-      { mono, exact le_of_lt (hxr' _ (half_pos (div_pos hd (abs_pos_of_ne_zero hs)))),
-        apply abs_nonneg, 
+      { mono with 0 ≤ abs (of s), apply abs_nonneg, 
+        exact le_of_lt (hxr' _ (half_pos (div_pos hd (abs_pos_of_ne_zero hs)))),
         exact of_le_of_le (div_nonneg (div_nonneg' (le_of_lt hd) (abs_nonneg _)) two_pos) } }
   ... = (of d) / 2 * (abs x / of t) + ((of d) / 2) : by
       { rw [div_div_eq_div_mul, mul_comm t 2, ←div_div_eq_div_mul, 

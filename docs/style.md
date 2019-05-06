@@ -208,10 +208,9 @@ instance : partial_order (topological_space α) :=
 ### Binders ###
 
 Use a space after binders:
-or this:
 ```lean
-example : ∀ α : Type, ∀ x : α, ∃ y, (λ u, u) x ` y :`
-take (α : Type) (x : α), exists.intro x rfl
+example : ∀ α : Type, ∀ x : α, ∃ y, y = x :=
+λ (α : Type) (x : α), exists.intro x rfl
 ```
 
 ### Calculations ###

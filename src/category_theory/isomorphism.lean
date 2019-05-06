@@ -1,12 +1,13 @@
 -- Copyright (c) 2017 Scott Morrison. All rights reserved.
 -- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Tim Baumann, Stephen Morgan, Scott Morrison
+-- Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
 
 import category_theory.functor
 
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory
+open category
 
 structure iso {C : Sort u} [category.{v} C] (X Y : C) :=
 (hom : X ⟶ Y)
@@ -92,6 +93,19 @@ lemma comp_inv_eq (α : X ≅ Y) {f : Z ⟶ Y} {g : Z ⟶ X} : f ≫ α.inv = g 
 lemma eq_comp_inv (α : X ≅ Y) {f : Z ⟶ Y} {g : Z ⟶ X} : g = f ≫ α.inv ↔ g ≫ α.hom = f :=
 (comp_inv_eq α.symm).symm
 
+lemma inv_eq_inv (f g : X ≅ Y) : f.inv = g.inv ↔ f.hom = g.hom :=
+have ∀{X Y : C} (f g : X ≅ Y), f.hom = g.hom → f.inv = g.inv, from λ X Y f g h, by rw [ext _ _ h],
+⟨this f.symm g.symm, this f g⟩
+
+lemma hom_comp_eq_id (α : X ≅ Y) {f : Y ⟶ X} : α.hom ≫ f = 𝟙 X ↔ f = α.inv :=
+by rw [←eq_inv_comp, comp_id]
+
+lemma comp_hom_eq_id (α : X ≅ Y) {f : Y ⟶ X} : f ≫ α.hom = 𝟙 Y ↔ f = α.inv :=
+by rw [←eq_comp_inv, id_comp]
+
+lemma hom_eq_inv (α : X ≅ Y) (β : Y ≅ X) : α.hom = β.inv ↔ β.hom = α.inv :=
+by { erw [inv_eq_inv α.symm β, eq_comm], refl }
+
 end iso
 
 /-- `is_iso` typeclass expressing that a morphism is invertible.
@@ -136,6 +150,14 @@ instance (f : X ⟶ Y) : subsingleton (is_iso f) :=
  suffices a.inv = b.inv, by cases a; cases b; congr; exact this,
  show (@as_iso C _ _ _ f a).inv = (@as_iso C _ _ _ f b).inv,
  by congr' 1; ext; refl⟩
+
+lemma is_iso.inv_eq_inv {f g : X ⟶ Y} [is_iso f] [is_iso g] : inv f = inv g ↔ f = g :=
+iso.inv_eq_inv (as_iso f) (as_iso g)
+
+instance is_iso_comp (f : X ⟶ Y) (g : Y ⟶ Z) [is_iso f] [is_iso g] : is_iso (f ≫ g) :=
+{ inv := inv g ≫ inv f }
+
+instance is_iso_id : is_iso (𝟙 X) := { inv := 𝟙 X }
 
 namespace functor
 

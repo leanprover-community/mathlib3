@@ -325,12 +325,11 @@ instance : is_absolute_value (padic_norm p) :=
   abv_mul := padic_norm.mul p }
 
 lemma le_of_dvd {n : ℕ} {z : ℤ} (hd : ↑(p^n) ∣ z) : padic_norm p z ≤ ↑p ^ (-n : ℤ) :=
-have hp' : (↑p : ℚ) ≥ 1, from show ↑p ≥ ↑(1 : ℕ), by exact_mod_cast le_of_lt hp.gt_one,
-have hpn : (↑p : ℚ) ≥ 0, from le_trans zero_le_one hp',
 begin
   unfold padic_norm, split_ifs with hz hz,
-  { simpa [padic_norm, hz] using fpow_nonneg_of_nonneg hpn _ },
-  { apply fpow_le_of_le hp',
+  {apply fpow_nonneg_of_nonneg, exact_mod_cast le_of_lt hp.pos, },
+  { apply fpow_le_of_le,
+    exact_mod_cast le_of_lt hp.gt_one,
     apply neg_le_neg,
     rw padic_val_rat_of_int _ hp.ne_one _,
     { norm_cast,

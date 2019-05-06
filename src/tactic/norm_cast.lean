@@ -307,7 +307,7 @@ meta def rw_mod_cast (rs : parse rw_rules) (loc : parse location) : tactic unit 
 ) <|> fail "rw_mod_cast failed"
 
 /--
-Normalize the goal and the givin expression,
+Normalize the goal and the given expression,
 then close the goal with exact.
 -/
 meta def exact_mod_cast (e : parse texpr) : tactic unit :=
@@ -475,19 +475,17 @@ attribute [norm_cast] int.coe_nat_dvd
 
 /- special lemmas to unfold ≥, > and ≠ -/
 
-@[norm_cast] lemma ge_from_le {α} [has_le α] : ∀ (x y : α), x ≥ y ↔ y ≤ x := by simp
-@[norm_cast] lemma gt_from_lt {α} [has_lt α] : ∀ (x y : α), x > y ↔ y < x := by simp
-@[norm_cast] lemma ne_from_not_eq {α} : ∀ (x y : α), x ≠ y ↔ ¬(x = y) := by simp
+@[norm_cast] lemma ge_from_le {α} [has_le α] : ∀ (x y : α), x ≥ y ↔ y ≤ x := λ _ _, iff.rfl
+@[norm_cast] lemma gt_from_lt {α} [has_lt α] : ∀ (x y : α), x > y ↔ y < x := λ _ _, iff.rfl
+@[norm_cast] lemma ne_from_not_eq {α} : ∀ (x y : α), x ≠ y ↔ ¬(x = y) := λ _ _, iff.rfl
 
 /- more specific norm_cast lemmas -/
 
 @[norm_cast]
 lemma ite_lemma {α β : Type} [has_coe α β] {c : Prop} [decidable c] {a b : α} :
     ↑(ite c a b) = ite c (↑a : β) (↑b : β) :=
-if h : c then
-    by simp [h]
-else
-    by simp [h]
+by by_cases h : c; simp [h]
+
 open multiplicity
 
 theorem nat.find_le {p q : ℕ → Prop} [decidable_pred p] [decidable_pred q]

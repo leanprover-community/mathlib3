@@ -889,3 +889,29 @@ Note that names are conserved by this tactic, contrary to what would happen with
 using the relevant lemmas. One can also use this tactic at the goal using `push_neg`,
 at every assumption and the goal using `push_neg at *` or at selected assumptions and the goal
 using say `push_neg at h h' ⊢` as usual.
+
+### norm_cast
+
+This tactic normalizes casts inside expressions.
+It is basically a simp tactic with a specific set of lemmas to move casts
+upwards in the expression.
+Therefore it can be used more safely as a non-terminating tactic.
+It also has special handling of numerals.
+
+For instance, given an assumption
+```lean
+a b : ℤ
+h : ↑a + ↑b < (10 : ℚ)
+```
+
+writing `norm_cast at h` will turn `h` into
+```lean
+h : a + b < 10
+```
+
+You can also use `exact_mod_cast`, `apply_mod_cast`, `rw_mod_cast`
+or `assumption_mod_cast`.
+Writing `exact_mod_cast h` and `apply_mod_cast h` will normalize the goal and h before using `exact h` or `apply h`.
+Writing `assumption_mod_cast` will normalize everything in the context
+and close the goal with `assumption`.
+`rw_mod_cast` acts like the `rw` tactic but it applies `norm_cast` between steps.

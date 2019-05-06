@@ -18,7 +18,7 @@ include 𝒞 𝒟 ℰ
 def uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E) :=
 { obj := λ F,
   { obj := λ X, (F.obj X.1).obj X.2,
-    map := λ X Y f, ((F.map f.1).app X.2) ≫ ((F.obj Y.1).map f.2),
+    map := λ X Y f, (F.map f.1).app X.2 ≫ (F.obj Y.1).map f.2,
     map_comp' := λ X Y Z f g,
     begin
       simp only [prod_comp_fst, prod_comp_snd, functor.map_comp,
@@ -42,7 +42,7 @@ def uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E) :=
       rw category.assoc,
     end } }.
 
-def curry_obj (F : ((C × D) ⥤ E)) : (C ⥤ (D ⥤ E)) :=
+def curry_obj (F : (C × D) ⥤ E) : C ⥤ (D ⥤ E) :=
 { obj := λ X,
     { obj := λ Y, F.obj (X, Y),
       map := λ Y Y' g, F.map (𝟙 X, g) },
@@ -88,7 +88,7 @@ rfl
   ((curry.map α).app X).app Y = α.app (X, Y) :=
 rfl
 
-def currying : equivalence (C ⥤ (D ⥤ E)) ((C × D) ⥤ E) :=
+def currying : (C ⥤ (D ⥤ E)) ≌ ((C × D) ⥤ E) :=
 { functor := uncurry,
   inverse := curry,
   fun_inv_id' :=

@@ -14,23 +14,6 @@ noncomputable theory
 local attribute [instance, priority 1] classical.prop_decidable
 
 open nat multiplicity padic_norm cau_seq cau_seq.completion metric
-
-theorem nat.find_le {p q : ℕ → Prop} [decidable_pred p] [decidable_pred q]
-    (h : ∀ n, q n → p n) (hp : ∃ n, p n) (hq : ∃ n, q n) :
-    nat.find hp ≤ nat.find hq :=
-nat.find_min' _ ((h _) (nat.find_spec hq))
-
-@[norm_cast]
-theorem int.coe_nat_multiplicity (a b : ℕ) :
-    multiplicity a b = multiplicity (a : ℤ) (b : ℤ) :=
-begin
-    apply roption.ext',
-    { repeat {rw [← finite_iff_dom, finite_def]},
-      norm_cast, simp },
-    { intros h1 h2,
-      apply _root_.le_antisymm; { apply nat.find_le, norm_cast, simp }}
-end
-
 @[reducible] def padic_seq (p : ℕ) [p.prime] := cau_seq _ (padic_norm p)
 
 namespace padic_seq

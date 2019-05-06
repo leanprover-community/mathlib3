@@ -7,7 +7,7 @@ Normalizing casts in arithmetic expressions.
 -/
 
 import tactic.basic tactic.interactive tactic.converter.interactive
-import data.complex.basic data.nat.enat
+import data.complex.basic data.nat.enat ring_theory.multiplicity
 
 namespace tactic
 
@@ -451,14 +451,6 @@ attribute [norm_cast] int.cast_bit1
 attribute [norm_cast] rat.cast_bit1
 attribute [norm_cast] complex.of_real_bit1
 
-@[norm_cast]
-lemma ite_lemma {α β : Type} [has_coe α β] {c : Prop} [decidable c] {a b : α} :
-    ↑(ite c a b) = ite c (↑a : β) (↑b : β) :=
-if h : c then
-    by simp [h]
-else
-    by simp [h]
-
 /- equivalence norm_cast lemmas -/
 
 attribute [norm_cast] nat.cast_inj
@@ -486,3 +478,30 @@ attribute [norm_cast] int.coe_nat_dvd
 @[norm_cast] lemma ge_from_le {α} [has_le α] : ∀ (x y : α), x ≥ y ↔ y ≤ x := by simp
 @[norm_cast] lemma gt_from_lt {α} [has_lt α] : ∀ (x y : α), x > y ↔ y < x := by simp
 @[norm_cast] lemma ne_from_not_eq {α} : ∀ (x y : α), x ≠ y ↔ ¬(x = y) := by simp
+
+/- more specific norm_cast lemmas -/
+
+@[norm_cast]
+lemma ite_lemma {α β : Type} [has_coe α β] {c : Prop} [decidable c] {a b : α} :
+    ↑(ite c a b) = ite c (↑a : β) (↑b : β) :=
+if h : c then
+    by simp [h]
+else
+    by simp [h]
+open multiplicity
+
+theorem nat.find_le {p q : ℕ → Prop} [decidable_pred p] [decidable_pred q]
+    (h : ∀ n, q n → p n) (hp : ∃ n, p n) (hq : ∃ n, q n) :
+    nat.find hp ≤ nat.find hq :=
+nat.find_min' _ ((h _) (nat.find_spec hq))
+
+@[norm_cast]
+theorem int.coe_nat_multiplicity (a b : ℕ) :
+    multiplicity a b = multiplicity (a : ℤ) (b : ℤ) :=
+begin
+    apply roption.ext',
+    { repeat {rw [← finite_iff_dom, finite_def]},
+      norm_cast, simp },
+    { intros h1 h2,
+      apply _root_.le_antisymm; { apply nat.find_le, norm_cast, simp }}
+end

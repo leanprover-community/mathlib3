@@ -186,7 +186,7 @@ begin
 end
 
 def fun_inv_id_assoc (e : C ≌ D) (F : C ⥤ E) : e.functor ⋙ e.inverse ⋙ F ≅ F :=
-(functor.assoc _ _ _).symm ≪≫ iso_whisker_right e.unit_iso.symm F ≪≫ F.id_comp
+(functor.associator _ _ _).symm ≪≫ iso_whisker_right e.unit_iso.symm F ≪≫ F.left_unitor
 
 @[simp] lemma fun_inv_id_assoc_hom_app (e : C ≌ D) (F : C ⥤ E) (X : C) :
   (fun_inv_id_assoc e F).hom.app X = F.map (e.unit_inv.app X) :=
@@ -197,7 +197,7 @@ by { dsimp [fun_inv_id_assoc], tidy }
 by { dsimp [fun_inv_id_assoc], tidy }
 
 def inv_fun_id_assoc (e : C ≌ D) (F : D ⥤ E) : e.inverse ⋙ e.functor ⋙ F ≅ F :=
-(functor.assoc _ _ _).symm ≪≫ iso_whisker_right e.counit_iso F ≪≫ F.id_comp
+(functor.associator _ _ _).symm ≪≫ iso_whisker_right e.counit_iso F ≪≫ F.left_unitor
 
 @[simp] lemma inv_fun_id_assoc_hom_app (e : C ≌ D) (F : D ⥤ E) (X : D) :
   (inv_fun_id_assoc e F).hom.app X = F.map (e.counit.app X) :=

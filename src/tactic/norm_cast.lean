@@ -228,16 +228,16 @@ namespace tactic
 open tactic expr
 open norm_cast
 
-private meta def aux_mod_cast (e : expr) : tactic expr :=
+private meta def aux_mod_cast (e : expr) (include_goal : bool := tt) : tactic expr :=
 match e with
 | local_const _ lc _ _ := do
     e ← get_local lc,
-    replace_at derive [e] tt,
+    replace_at derive [e] include_goal,
     get_local lc
 | e := do
     t ← infer_type e,
     e ← assertv `this t e,
-    replace_at derive [e] tt,
+    replace_at derive [e] include_goal,
     get_local `this
 end
 
@@ -261,9 +261,9 @@ do {
         canonize_proofs := ff,
         proj := ff
     },
+    replace_at derive [] tt,
     ctx ← local_context,
-    replace_at derive ctx tt,
-    assumption
+    try_lst $ ctx.map (λ h, aux_mod_cast h ff >>= tactic.exact)
 } <|> fail "assumption_mod_cast failed"
 
 end tactic

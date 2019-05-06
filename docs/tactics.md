@@ -912,6 +912,7 @@ h : a + b < 10
 You can also use `exact_mod_cast`, `apply_mod_cast`, `rw_mod_cast`
 or `assumption_mod_cast`.
 Writing `exact_mod_cast h` and `apply_mod_cast h` will normalize the goal and h before using `exact h` or `apply h`.
-Writing `assumption_mod_cast` will normalize everything in the context
-and close the goal with `assumption`.
+Writing `assumption_mod_cast` will normalize the goal and for every
+expression `h` in the context it will try to normalize `h` and use
+`exact h`.
 `rw_mod_cast` acts like the `rw` tactic but it applies `norm_cast` between steps.

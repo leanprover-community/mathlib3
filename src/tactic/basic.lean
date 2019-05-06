@@ -585,11 +585,11 @@ meta def terminal_goal : tactic unit :=
 -- We can't merely test for subsingletons, as sometimes in the presence of metavariables
 -- `propositional_goal` succeeds while `subsingleton_goal` does not.
 propositional_goal <|> subsingleton_goal <|>
-do g :: gs ← get_goals,
-   mvars ← (λ L, list.erase L g) <$> metavariables,
+do g₀ :: _ ← get_goals,
+   mvars ← (λ L, list.erase L g₀) <$> metavariables,
    mvars.mmap' $ λ g, do
      t ← infer_type g >>= instantiate_mvars,
-     d ← kdepends_on t g,
+     d ← kdepends_on t g₀,
      monad.whenb d $
        pp t >>= λ s, fail ("The current goal is not terminal: " ++ s.to_string ++ " depends on it.")
 

@@ -3,10 +3,9 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Scott Morrison
 -/
-import tactic data.set.lattice data.prod data.vector
+import tactic
        tactic.rewrite data.stream.basic
        tactic.tfae tactic.converter.interactive
-       tactic.ring tactic.ring2
 
 section tauto₀
 variables p q r : Prop
@@ -476,7 +475,7 @@ end
 end ext
 
 section terminal_goal
-open tactic   
+open tactic
 
 structure C :=
  ( w : Type )
@@ -487,7 +486,7 @@ structure C :=
 def test_terminal_goal_1 : C :=
  begin
     fapply C.mk, -- We don't just split here, as we want the goals in order.
-    success_if_fail { terminal_goal },
+    success_if_fail { tactic.terminal_goal },
     exact ℕ,
     terminal_goal,
     exact [],
@@ -495,14 +494,14 @@ def test_terminal_goal_1 : C :=
     exact bool,
     terminal_goal,
     exact (0, tt)
- end     
+ end
 
  -- verifying that terminal_goal correctly considers all propositional goals as terminal
 structure terminal_goal_struct :=
 (x : ℕ)
 (p : x = 0)
 
-lemma test_terminal_goal_2 : ∃ F : terminal_goal_struct, F = ⟨ 0, by refl ⟩ := 
+lemma test_terminal_goal_2 : ∃ F : terminal_goal_struct, F = ⟨ 0, by refl ⟩ :=
 begin
   split,
   swap,
@@ -518,7 +517,7 @@ end
 structure terminal_goal_struct' :=
  ( w : ℕ → Type )
  ( x : list (w 0) )
- 
+
 def test_terminal_goal_3 : terminal_goal_struct' :=
 begin
   split,
@@ -528,9 +527,9 @@ begin
   success_if_fail { terminal_goal },
   exact ℕ,
   exact []
-end     
+end
 
-def f : unit → Type := λ _, ℕ 
+def f : unit → Type := λ _, ℕ
 
 def test_terminal_goal_4 : Σ x : unit, f x :=
 begin
@@ -541,7 +540,7 @@ begin
   exact (),
   dsimp [f],
   exact 0
-end     
+end
 
 def test_subsingleton_goal_1 : 0 = 0 :=
 begin

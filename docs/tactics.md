@@ -916,3 +916,15 @@ Writing `assumption_mod_cast` will normalize the goal and for every
 expression `h` in the context it will try to normalize `h` and use
 `exact h`.
 `rw_mod_cast` acts like the `rw` tactic but it applies `norm_cast` between steps.
+
+These tactics work with two attributes, `norm_cast` and `simp_cast`.
+
+`norm_cast` is an attribute for simplification rules that are going to be
+used to normalize casts.
+Equation lemmas are compositional lemmas of the shape Π ..., ↑(P a1 ... an) = P ↑a1 ... ↑an.
+Equivalence lemmas are of the shape Π ..., P ↑a1 ... ↑an ↔ P a1 ... an.
+Note that the goal of normalization is to move casts "upwards" in the
+expression, but compositional rules are written in a "downwards" fashion.
+
+`simp_cast` is an attribute given to the lemmas of the shape Π ..., ↑↑a = ↑a or  Π ..., ↑a = a.
+They are used in a heuristic to infer intermediate casts.

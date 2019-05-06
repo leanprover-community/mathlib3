@@ -81,11 +81,10 @@ used to normalize casts.
 Equation lemmas are compositional lemmas of the shape
     Π ..., ↑(P a1 ... an) = P ↑a1 ... ↑an
 Equivalence lemmas are of the shape
-    Π ..., P ↑a ↑b ↔ P a b
+    Π ..., P ↑a1 ... ↑an ↔ P a1 ... an
 
 Note that the goal of normalization is to move casts "upwards" in the
-expression, but compositional rules are written in a "downwards"
-fashion.
+expression, but compositional rules are written in a "downwards" fashion.
 -/
 @[user_attribute]
 meta def norm_cast_attr : user_attribute simp_lemmas :=

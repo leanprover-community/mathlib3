@@ -13,8 +13,13 @@ open category_theory.functor nat_iso category
 universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 /-- We define an equivalence as a (half)-adjoint equivalence, a pair of functors with
-  a unit and counit which are natural isomorphisms and the triangle law `Fη ≫ εF = 1`, or in other words the composite `F ⟶ FGF ⟶ F` is the identity.
-  The triangle equation is written as a family of equalities between morphisms, it is more complicated if we write it as an equality of natural transformations, because then we would have to insert natural transformations like `F ⟶ F1`. -/
+  a unit and counit which are natural isomorphisms and the triangle law `Fη ≫ εF = 1`, or in other
+  words the composite `F ⟶ FGF ⟶ F` is the identity.
+
+  The triangle equation is written as a family of equalities between morphisms, it is more
+  complicated if we write it as an equality of natural transformations, because then we would have
+  to insert natural transformations like `F ⟶ F1`.
+-/
 structure equivalence (C : Sort u₁) [category.{v₁} C] (D : Sort u₂) [category.{v₂} D] :=
 mk' ::
 (functor : C ⥤ D)

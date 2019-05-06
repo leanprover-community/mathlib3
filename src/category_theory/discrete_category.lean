@@ -67,7 +67,8 @@ protected def opposite (α : Type u₁) : (discrete α)ᵒᵖ ≌ discrete α :=
 let F : discrete α ⥤ (discrete α)ᵒᵖ := functor.of_function (λ x, op x) in
 begin
   refine equivalence.mk (functor.left_op F) F _ (nat_iso.of_isos $ λ X, by simp [F]),
-  refine nat_iso.of_components (λ X, by simp [F]) _, tidy
+  refine nat_iso.of_components (λ X, by simp [F]) _,
+  tidy
 end
 include 𝒞
 

@@ -53,9 +53,9 @@ def lift_rel (R : β → Prop) : β* → Prop :=
 /-- Lift binary relations to filter product -/
 def lift_rel₂ (R : β → β → Prop) : β* → β* → Prop :=
 λ x y, quotient.lift_on₂' x y (λ a b, {i : α | R (a i) (b i)} ∈ φ) $
-λ a₁ a₂ b₁ b₂ h₁ h₂, propext 
-⟨ λ ha, by filter_upwards [h₁, h₂, ha] λ i hi1 hi2 hia, by simpa [hi1.symm, hi2.symm],
-  λ hb, by filter_upwards [h₁, h₂, hb] λ i hi1 hi2 hib, by simpa [hi1.symm.symm, hi2.symm.symm] ⟩
+  λ a₁ a₂ b₁ b₂ h₁ h₂, propext 
+  ⟨ λ ha, by filter_upwards [h₁, h₂, ha] λ i hi1 hi2 hia, by simpa [hi1.symm, hi2.symm],
+    λ hb, by filter_upwards [h₁, h₂, hb] λ i hi1 hi2 hib, by simpa [hi1.symm.symm, hi2.symm.symm] ⟩
 
 instance coe_filterprod : has_coe β β* := ⟨ of ⟩
 

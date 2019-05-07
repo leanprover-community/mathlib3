@@ -6,7 +6,6 @@ Construction of the hyperreal numbers as an ultraproduct of real sequences.
 -/
 
 import data.real.basic algebra.field order.filter.filter_product analysis.specific_limits 
-import tactic.monotonicity
 
 local attribute [instance] classical.prop_decidable
 
@@ -460,11 +459,11 @@ is_st_iff_abs_sub_lt_delta.mpr $ λ d hd,
         by rw [mul_sub, sub_mul, add_sub, sub_add_cancel]
   ... ≤ abs (x * (y - of s)) + abs ((x - of r) * (of s)) : abs_add _ _
   ... ≤ abs x * abs (y - of s) + abs (x - of r) * abs (of s) : by simp only [abs_mul]
-  ... ≤ abs x * of ((d / t) / 2) + of ((d / abs s) / 2) * abs (of s) : by
-      { mono, { mono, exact le_of_lt (hys' _ (half_pos (div_pos hd ((of_lt U).mpr 
-        (lt_of_le_of_lt (abs_nonneg _) ht))))), apply abs_nonneg, apply abs_nonneg },
-      { mono with 0 ≤ abs (of s), apply abs_nonneg, 
-        exact le_of_lt (hxr' _ (half_pos (div_pos hd (abs_pos_of_ne_zero hs)))) } }
+  ... ≤ abs x * of ((d / t) / 2) + of ((d / abs s) / 2) * abs (of s) : add_le_add
+        (mul_le_mul_of_nonneg_left (le_of_lt $ hys' _ $ half_pos $ div_pos hd $ 
+          (of_lt U).mpr $ lt_of_le_of_lt (abs_nonneg _) ht) $ abs_nonneg _ )
+        (mul_le_mul_of_nonneg_right (le_of_lt $ hxr' _ $ half_pos $ div_pos hd $ 
+          abs_pos_of_ne_zero hs) $ abs_nonneg _)
   ... = (of d) / 2 * (abs x / of t) + ((of d) / 2) : by
       { rw [div_div_eq_div_mul, mul_comm t 2, ←div_div_eq_div_mul, 
             of_div U, div_div_eq_div_mul, mul_comm (abs s) 2, 
@@ -475,7 +474,7 @@ is_st_iff_abs_sub_lt_delta.mpr $ λ d hd,
         ((div_lt_one_iff_lt $ lt_of_le_of_lt (abs_nonneg x) ht).mpr ht) $
         half_pos $ of_lt_of_lt U hd) _
   ... = of d : by rw [mul_one, add_halves]
-
+  
 lemma is_st_mul {x y : ℝ*} {r s : ℝ} (hxr : is_st x r) (hys : is_st y s) : 
   is_st (x * y) (r * s) := 
 have h : _ := not_infinite_iff_exist_lt_gt.mp $ 

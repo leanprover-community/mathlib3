@@ -24,14 +24,8 @@ try_for 1000 (mk_instance e)
 
 end tactic
 
-
-namespace norm_cast
+namespace expr
 open tactic expr
-
-private meta def new_name : name → name
-| name.anonymous        := name.mk_string "norm_cast" name.anonymous
-| (name.mk_string s n)  := name.mk_string s (new_name n)
-| (name.mk_numeral i n) := name.mk_numeral i (new_name n)
 
 /-
 let ty an expression of the shape Π (x1 : t1) ... (x2 : tn), a = b
@@ -41,9 +35,9 @@ then flip_equation ty returns a couple (new_ty, f) such that
     f e = λ (x1 : t1) ... (xn : tn), eq.symm (e x1 ... xn)
 if ty is not of the correct shape, then the tactic fails
 -/
-private meta def flip_equation : expr → tactic (expr × (expr → expr))
+meta def flip_eq : expr → tactic (expr × (expr → expr))
 | (pi n bi d b) := do
-    (ty, f) ← flip_equation $ instantiate_var b (local_const n n bi d),
+    (ty, f) ← flip_eq $ instantiate_var b (local_const n n bi d),
     return $ (
         pi n bi d $ abstract_local ty n,
         λ e, lam n bi d $ abstract_local ( f $ e (local_const n n bi d) ) n
@@ -51,9 +45,20 @@ private meta def flip_equation : expr → tactic (expr × (expr → expr))
 | ty := do
     `(%%a = %%b) ← return ty | failure,
     α ← infer_type a,
-    symm ← to_expr ``(@eq.symm %%α %%a %%b),
+    f ← to_expr ``(@eq.symm %%α %%a %%b),
     new_ty ← to_expr ``(%%b = %%a),
-    return (new_ty, symm)
+    return (new_ty, ⇑f)
+
+end expr
+
+namespace norm_cast
+open tactic expr
+
+private meta def new_name : name → name
+| name.anonymous        := name.mk_string "norm_cast" name.anonymous
+| (name.mk_string s n)  := name.mk_string s (new_name n)
+| (name.mk_numeral i n) := name.mk_numeral i (new_name n)
+
 
 private meta def after_set (decl : name) (prio : ℕ) (pers : bool) : tactic unit :=
 do
@@ -64,7 +69,7 @@ do
         equation lemmas have to be flipped before
         being added to the set of norm_cast lemmas
         -/
-        (new_ty, f) ← flip_equation ty,
+        (new_ty, f) ← flip_eq ty,
         let task_new_e := task.map f task_e,
         add_decl (declaration.thm new_n l new_ty task_new_e)
     ) <|> ( do

@@ -154,13 +154,12 @@ include ℰ
   X ≅ (e.inverse).obj ((f.inverse).obj ((f.functor).obj ((e.functor).obj X))) :=
 calc
  X ≅ (e.inverse).obj ((e.functor).obj X) : e.unit_iso.app _
-... ≅ (e.inverse).obj ((f.inverse).obj ((f.functor).obj ((e.functor).obj X)))                                   : e.inverse.map_iso (f.unit_iso.app _)
+... ≅ _                                  : e.inverse.map_iso (f.unit_iso.app _)
 
 @[simp] private def feef_iso_id (e : C ≌ D) (f : D ≌ E) (X : E) :
   (f.functor).obj ((e.functor).obj ((e.inverse).obj ((f.inverse).obj X))) ≅ X :=
 calc
-  (f.functor).obj ((e.functor).obj ((e.inverse).obj ((f.inverse).obj X)))
-    ≅ (f.functor).obj ((f.inverse).obj X) : f.functor.map_iso (e.counit_iso.app _)
+  _ ≅ (f.functor).obj ((f.inverse).obj X) : f.functor.map_iso (e.counit_iso.app _)
 ... ≅ X                                   : f.counit_iso.app _
 
 @[trans] def trans (e : C ≌ D) (f : D ≌ E) : C ≌ E :=
@@ -217,10 +216,7 @@ restate_axiom is_equivalence.functor_unit_iso_comp'
 namespace is_equivalence
 
 instance of_equivalence (F : C ≌ D) : is_equivalence F.functor :=
-{ inverse := F.inverse,
-  unit_iso := F.unit_iso,
-  counit_iso := F.counit_iso,
-  functor_unit_iso_comp' := F.functor_unit_iso_comp }
+{ ..F }
 
 instance of_equivalence_inverse (F : C ≌ D) : is_equivalence F.inverse :=
 is_equivalence.of_equivalence F.symm

@@ -457,7 +457,8 @@ end ordered_cancel_comm_monoid
 section ordered_comm_group
 variables [ordered_comm_group α] {a b c : α}
 
-lemma neg_neg_iff_pos {α : Type} [_inst_1 : ordered_comm_group α] {a : α} : -a < 0 ↔ 0 < a := ⟨ pos_of_neg_neg, neg_neg_of_pos ⟩
+lemma neg_neg_iff_pos {α : Type} [_inst_1 : ordered_comm_group α] {a : α} : -a < 0 ↔ 0 < a := 
+⟨ pos_of_neg_neg, neg_neg_of_pos ⟩
 
 @[simp] lemma neg_le_neg_iff : -a ≤ -b ↔ b ≤ a :=
 have a + b + -a ≤ a + b + -b ↔ -a ≤ -b, from add_le_add_iff_left _,

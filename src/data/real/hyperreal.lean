@@ -120,7 +120,7 @@ begin
   { exact false.elim (is_st_unique' x s r hs hr h) }
 end
 
-theorem not_infinite_of_exist_st {x : ℝ*} : (∃ r : ℝ, is_st x r) → ¬ infinite x := 
+theorem not_infinite_of_exists_st {x : ℝ*} : (∃ r : ℝ, is_st x r) → ¬ infinite x := 
 λ he hi, Exists.dcases_on he $ λ r hr, hi.elim 
    (λ hip, not_lt_of_lt (hr 2 two_pos).2 (hip $ r + 2))
    (λ hin, not_lt_of_lt (hr 2 two_pos).1 (hin $ r - 2))
@@ -144,14 +144,14 @@ have HR₂ : ∃ z : ℝ, ∀ y ∈ S, y ≤ z :=
         lt_of_lt_of_le (add_lt_add_left (of_lt_of_lt U (half_lt_self hδ)) (of R)) c,
       not_lt_of_le (real.le_Sup _ HR₂ hc) $ (lt_add_iff_pos_right _).mpr $ half_pos hδ⟩
 
-theorem exist_st_of_not_infinite {x : ℝ*} (hni : ¬ infinite x) : ∃ r : ℝ, is_st x r := 
+theorem exists_st_of_not_infinite {x : ℝ*} (hni : ¬ infinite x) : ∃ r : ℝ, is_st x r := 
 ⟨ real.Sup {y : ℝ | of y < x}, is_st_Sup hni ⟩
 
 theorem st_eq_Sup {x : ℝ*} : st x = real.Sup {y : ℝ | of y < x} :=
 begin
 unfold st, split_ifs,
-{ exact is_st_unique (classical.some_spec h) (is_st_Sup (not_infinite_of_exist_st h)) },
-{ cases not_imp_comm.mp exist_st_of_not_infinite h with H H,
+{ exact is_st_unique (classical.some_spec h) (is_st_Sup (not_infinite_of_exists_st h)) },
+{ cases not_imp_comm.mp exists_st_of_not_infinite h with H H,
   { rw (set.ext (λ i, ⟨λ hi, set.mem_univ i, λ hi, H i⟩) : {y : ℝ | of y < x} = set.univ),
     exact (real.Sup_univ).symm },
   { rw (set.ext (λ i, ⟨λ hi, false.elim (not_lt_of_lt (H i) hi), 
@@ -159,16 +159,16 @@ unfold st, split_ifs,
     exact (real.Sup_empty).symm } }
 end
 
-theorem exist_st_iff_not_infinite {x : ℝ*} : (∃ r : ℝ, is_st x r) ↔ ¬ infinite x := 
-⟨ not_infinite_of_exist_st, exist_st_of_not_infinite ⟩
+theorem exists_st_iff_not_infinite {x : ℝ*} : (∃ r : ℝ, is_st x r) ↔ ¬ infinite x := 
+⟨ not_infinite_of_exists_st, exists_st_of_not_infinite ⟩
 
-theorem infinite_iff_not_exist_st {x : ℝ*} : infinite x ↔ ¬ ∃ r : ℝ, is_st x r := 
-iff_not_comm.mp exist_st_iff_not_infinite
+theorem infinite_iff_not_exists_st {x : ℝ*} : infinite x ↔ ¬ ∃ r : ℝ, is_st x r := 
+iff_not_comm.mp exists_st_iff_not_infinite
 
 theorem st_infinite {x : ℝ*} (hi : infinite x) : st x = 0 := 
 begin
   unfold st, split_ifs,
-  { exact false.elim ((infinite_iff_not_exist_st.mp hi) h) },
+  { exact false.elim ((infinite_iff_not_exists_st.mp hi) h) },
   { refl }
 end
 
@@ -193,7 +193,7 @@ begin
 end
 
 lemma is_st_st' {x : ℝ*} (hx : ¬ infinite x) : is_st x (st x) := 
-is_st_st_of_exists_st $ exist_st_of_not_infinite hx
+is_st_st_of_exists_st $ exists_st_of_not_infinite hx
 
 lemma is_st_refl_real (r : ℝ) : is_st r r := 
 λ δ hδ, ⟨ sub_lt_self _ (of_lt_of_lt U hδ), (lt_add_of_pos_right _ (of_lt_of_lt U hδ)) ⟩
@@ -421,9 +421,9 @@ not_imp_not.mpr infinite_iff_infinite_neg.mpr
 
 lemma not_infinite_add {x y : ℝ*} (hx : ¬ infinite x) (hy : ¬ infinite y) : 
   ¬ infinite (x + y) := 
-have hx' : _ := exist_st_of_not_infinite hx, have hy' : _ := exist_st_of_not_infinite hy,
+have hx' : _ := exists_st_of_not_infinite hx, have hy' : _ := exists_st_of_not_infinite hy,
 Exists.cases_on hx' $ Exists.cases_on hy' $ 
-λ r hr s hs, not_infinite_of_exist_st $ ⟨s + r, is_st_add hs hr⟩
+λ r hr s hs, not_infinite_of_exists_st $ ⟨s + r, is_st_add hs hr⟩
 
 theorem not_infinite_iff_exist_lt_gt {x : ℝ*} : ¬ infinite x ↔ ∃ r s : ℝ, (r : ℝ*) < x ∧ x < s := 
 ⟨ λ hni, 
@@ -450,7 +450,7 @@ private lemma is_st_mul' {x y : ℝ*} {r s : ℝ} (hxr : is_st x r) (hys : is_st
 have hxr' : _ := is_st_iff_abs_sub_lt_delta.mp hxr,
 have hys' : _ := is_st_iff_abs_sub_lt_delta.mp hys,
 have h : _ := not_infinite_iff_exist_lt_gt.mp $ not_imp_not.mpr infinite_iff_infinite_abs.mpr $
-not_infinite_of_exist_st ⟨r, hxr⟩,
+not_infinite_of_exists_st ⟨r, hxr⟩,
 Exists.cases_on h $ λ u h', Exists.cases_on h' $ λ t ⟨hu, ht⟩, 
 is_st_iff_abs_sub_lt_delta.mpr $ λ d hd, 
    calc abs (x * y - of (r * s)) 
@@ -478,7 +478,7 @@ is_st_iff_abs_sub_lt_delta.mpr $ λ d hd,
 lemma is_st_mul {x y : ℝ*} {r s : ℝ} (hxr : is_st x r) (hys : is_st y s) : 
   is_st (x * y) (r * s) := 
 have h : _ := not_infinite_iff_exist_lt_gt.mp $ 
-  not_imp_not.mpr infinite_iff_infinite_abs.mpr $ not_infinite_of_exist_st ⟨r, hxr⟩,
+  not_imp_not.mpr infinite_iff_infinite_abs.mpr $ not_infinite_of_exists_st ⟨r, hxr⟩,
 Exists.cases_on h $ λ u h', Exists.cases_on h' $ λ t ⟨hu, ht⟩,
 begin
   by_cases hs : s = 0,
@@ -496,8 +496,8 @@ end
 --AN INFINITE LEMMA THAT REQUIRES SOME MORE ST MACHINERY
 lemma not_infinite_mul {x y : ℝ*} (hx : ¬ infinite x) (hy : ¬ infinite y) : 
   ¬ infinite (x * y) := 
-have hx' : _ := exist_st_of_not_infinite hx, have hy' : _ := exist_st_of_not_infinite hy,
-Exists.cases_on hx' $ Exists.cases_on hy' $ λ r hr s hs, not_infinite_of_exist_st $ 
+have hx' : _ := exists_st_of_not_infinite hx, have hy' : _ := exists_st_of_not_infinite hy,
+Exists.cases_on hx' $ Exists.cases_on hy' $ λ r hr s hs, not_infinite_of_exists_st $ 
 ⟨s * r, is_st_mul hs hr⟩
 ---
 
@@ -656,7 +656,7 @@ exact is_st_add (infinitesimal_of_tendsto_zero hg) (is_st_refl_real r)
 
 lemma is_st_inv {x : ℝ*} {r : ℝ} (hi : ¬ infinitesimal x) : is_st x r → is_st x⁻¹ r⁻¹ := 
 λ hxr, have h : x ≠ 0 := (λ h, hi (h.symm ▸ infinitesimal_zero)),
-have H : _ := exist_st_of_not_infinite $ not_imp_not.mpr (infinitesimal_iff_infinite_inv h).mpr hi,
+have H : _ := exists_st_of_not_infinite $ not_imp_not.mpr (infinitesimal_iff_infinite_inv h).mpr hi,
 Exists.cases_on H $ λ s hs, 
 have H' : is_st 1 (r * s) := mul_inv_cancel h ▸ is_st_mul hxr hs,
 have H'' : s = r⁻¹ := one_div_eq_inv r ▸ eq_one_div_of_mul_eq_one (eq_of_is_st_real H').symm,

@@ -14,8 +14,8 @@ def functor.elements (F : C ⥤ Type u) := (Σ c : C, F.obj c)
 
 instance category_of_elements (F : C ⥤ Type u) : category F.elements :=
 { hom := λ p q, { f : p.1 ⟶ q.1 // (F.map f) p.2 = q.2 },
-  id := λ p, ⟨ 𝟙 p.1, by obviously ⟩,
-  comp := λ p q r f g, ⟨ f.val ≫ g.val, by obviously ⟩ }
+  id := λ p, ⟨𝟙 p.1, by obviously⟩,
+  comp := λ p q r f g, ⟨f.val ≫ g.val, by obviously⟩ }
 
 namespace category_of_elements
 variable (F : C ⥤ Type u)

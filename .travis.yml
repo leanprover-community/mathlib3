@@ -40,19 +40,49 @@ install:
 
 jobs:
   include:
-    - env: TASK="check Lean proofs"
-      stage: Pre-build-1
+    - stage: Pre-build-1
+      if: type != cron
+      env: TASK="check Lean proofs"
       script:
         - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
 
-    - env: TASK="check Lean proofs"
-      stage: Pre-build-2
+    - stage: Pre-build-1
+      env: TASK="check Lean proofs" LEAN="nightly"
+      if: type = cron
+      script:
+        - elan toolchain install leanprover-community/lean:nightly
+        - elan override set leanprover-community/lean:nightly
+        - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
+
+    - stage: Pre-build-2
+      if: type != cron
+      env: TASK="check Lean proofs"
       script:
         - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
 
-    - env: TASK="check Lean proofs"
-      stage: Test
+    - stage: Pre-build-2
+      env: TASK="check Lean proofs" LEAN="nightly"
+      if: type = cron
       script:
+        - elan toolchain install leanprover-community/lean:nightly
+        - elan override set leanprover-community/lean:nightly
+        - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
+
+    - stage: Test
+      env: TASK="check Lean proofs"
+      if: type != cron
+      script:
+        - travis_long "leanpkg test"
+        - lean --recursive --export=mathlib.txt src/
+        - travis_long "leanchecker mathlib.txt"
+        - sh scripts/deploy_nightly.sh
+
+    - stage: Test
+      env: TASK="check Lean proofs" LEAN="nightly"
+      if: type = cron
+      script:
+        - elan toolchain install leanprover-community/lean:nightly
+        - elan override set leanprover-community/lean:nightly
         - travis_long "leanpkg test"
         - lean --recursive --export=mathlib.txt src/
         - travis_long "leanchecker mathlib.txt"
@@ -60,6 +90,7 @@ jobs:
 
     - env: TASK="check install scripts"
       if: type != pull_request OR head_repo = leanprover-community/mathlib
+      if: type != cron
       language: python
       python:
         - "3.6"
@@ -75,6 +106,7 @@ jobs:
 
     - env: TASK="check install scripts"
       if: type != pull_request OR head_repo = leanprover-community/mathlib
+      if: type != cron
       language: sh
       install:
         - if [ "$GITHUB_CRED" != "" ]; then git config --add github.oauthtoken $GITHUB_CRED; echo setting up GitHub credentials; else echo no GitHub credentials available; fi
@@ -88,6 +120,7 @@ jobs:
 
     - env: TASK="check dev scripts"
       if: type != pull_request OR head_repo = leanprover-community/mathlib
+      if: type != cron
       sudo: true
       language: python
       python:
@@ -107,6 +140,7 @@ jobs:
 
     - env: TASK="check dev scripts"
       if: type != pull_request OR head_repo = leanprover-community/mathlib
+      if: type != cron
       language: sh
       install:
         - if [ "$GITHUB_CRED" != "" ]; then git config --add github.oauthtoken $GITHUB_CRED; echo setting up GitHub credentials; else echo no GitHub credentials available; fi
@@ -120,6 +154,9 @@ jobs:
         - update-mathlib
         - cache-olean
         - cache-olean --fetch
+
+  # allow_failures:
+  #   - env: TASK="check Lean proofs" LEAN="nightly"
 
 notifications:
   webhooks:

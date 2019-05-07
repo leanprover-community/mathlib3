@@ -124,7 +124,23 @@ if __name__ == "__main__":
             fn = os.path.join(cache_dir, 'olean-' + rev + ".bz2")
             os.system('leanpkg build')
             make_cache(fn) # we make the cache even if the build failed
+    elif sys.argv[1:] == ['--build-new']:
+        for b in repo.branches:
+            rev = b.commit.hexsha
+            fn = os.path.join(cache_dir, 'olean-' + rev + ".bz2")
+            if os.path.exists(fn):
+                print("Branch already built: " + b.name)
+            else:
+                print("Building branch: " + b.name)
+                try:
+                    b.checkout()
+                except Exception as e:
+                    print("Failed to switch branch:")
+                    print(repr(e))
+                    continue
+                os.system('leanpkg build')
+                make_cache(fn) # we make the cache even if the build failed
     elif sys.argv[1:] == []:
         make_cache(fn)
     else:
-        print('usage: cache_olean [--fetch | --build | --build-all]')
+        print('usage: cache-olean [--fetch | --build | --build-all | --build-new]')

@@ -40,6 +40,11 @@ def from_comma : comma (functor.of.obj punit) F ⥤ F.elements :=
 { obj := λ X, ⟨X.right, X.hom (punit.star)⟩,
   map := λ X Y f, ⟨f.right, congr_fun f.w'.symm punit.star⟩ }
 
+@[simp] lemma from_comma_obj (X) :
+  (from_comma F).obj X = ⟨X.right, X.hom (punit.star)⟩ := rfl
+@[simp] lemma from_comma_map {X Y} (f : X ⟶ Y) :
+  (from_comma F).map f = ⟨f.right, congr_fun f.w'.symm punit.star⟩ := rfl
+
 section
 def comma_equivalence : F.elements ≌ comma (functor.of.obj punit) F :=
 { functor := to_comma F,

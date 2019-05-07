@@ -35,20 +35,57 @@ def mathlib_asset(repo, rev):
     tags = {tag.name: tag.commit.sha for tag in repo.get_tags()}
     try:
         release = next(r for r in repo.get_releases()
-                           if r.tag_name.startswith('nightly-') and
-                           tags[r.tag_name] == rev)
+                         if r.tag_name.startswith('nightly-') and
+                            tags[r.tag_name] == rev)
     except StopIteration:
         print('Error: no nightly archive found')
         return None
 
     try:
         asset = next(x for x in release.get_assets()
-                     if x.name.startswith('mathlib-olean-nightly-'))
+                       if x.name.startswith('mathlib-olean-nightly-'))
     except StopIteration:
         print("Error: Release " + release.tag_name + " does not contains a olean "
               "archive (this shouldn't happen...)")
         return None
     return asset
+
+class PushDir:
+    def __init__(self, new):
+        self.__cd = os.getcwd()
+        os.chdir(new)
+    def __enter__(self):
+        return self
+    def __exit__(self):
+        os.chdir(self.__cd)
+
+def query_remote_cache(root, rev):
+    print ('Querying remote Mathlib cache...')
+    name = 'olean-%s.bz2' % rev
+    url = 'https://tqft.net/lean/mathlib/%s' % name
+    to_file =  os.path.join(root, '_cache', name)
+    http = urllib3.PoolManager(
+        cert_reqs='CERT_REQUIRED',
+        ca_certs=certifi.where())
+    try:
+        req = http.request('GET', url)
+        if req.status != 200:
+            print ('Error: revision not found')
+            return False
+    except:
+        print ('Error: revision not found')
+        return False
+
+    with DelayedInterrupt([signal.SIGTERM, signal.SIGINT]):
+        with open(to_file, 'wb') as f:
+            f.write(req.data)
+
+    print('using remote Mathlib cache...')
+    with DelayedInterrupt([signal.SIGTERM, signal.SIGINT]):
+        ar = tarfile.open(to_file)
+        ar.extractall(root)
+        print("... successfully extracted olean archive.")
+    return True
 
 def fetch_mathlib(asset):
     mathlib_dir = os.path.join(os.environ['HOME'], '.mathlib')
@@ -57,16 +94,14 @@ def fetch_mathlib(asset):
 
     if not os.path.isfile(os.path.join(mathlib_dir, asset.name)):
         print("Downloading nightly...")
-        cd = os.getcwd()
-        os.chdir(mathlib_dir)
-        http = urllib3.PoolManager(
-            cert_reqs='CERT_REQUIRED',
-            ca_certs=certifi.where())
-        req = http.request('GET', asset.browser_download_url)
-        with DelayedInterrupt([signal.SIGTERM, signal.SIGINT]):
-            with open(asset.name, 'wb') as f:
-                f.write(req.data)
-        os.chdir(cd)
+        with PushDir(mathlib_dir):
+            http = urllib3.PoolManager(
+                cert_reqs='CERT_REQUIRED',
+                ca_certs=certifi.where())
+            req = http.request('GET', asset.browser_download_url)
+            with DelayedInterrupt([signal.SIGTERM, signal.SIGINT]):
+                with open(asset.name, 'wb') as f:
+                    f.write(req.data)
     else:
         print("Reusing cached olean archive")
 
@@ -102,6 +137,8 @@ if __name__ == "__main__":
             ar.extractall(root_dir)
             ar.close()
             print('... successfully fetched local cache.')
+        elif query_remote_cache(root_dir, rev):
+            pass
         else:
             asset = mathlib_asset(repo, rev)
             if asset:
@@ -140,6 +177,12 @@ if __name__ == "__main__":
                     continue
                 os.system('leanpkg build')
                 make_cache(fn) # we make the cache even if the build failed
+    elif sys.argv[1:] == ['--delete']:
+        if os.path.exists(fn):
+            print('Deleting %s...' % ('_cache/olean-' + rev + ".bz2"))
+            os.remove(fn)
+        else:
+            print('Error: %s does not exist' % ('_cache/olean-' + rev + ".bz2"))
     elif sys.argv[1:] == []:
         make_cache(fn)
     else:

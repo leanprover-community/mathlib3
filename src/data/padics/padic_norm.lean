@@ -227,14 +227,9 @@ if hq : q = 0 then
 else if hr : r = 0 then
   by simp [hr]
 else
-  have hqr : q*r ≠ 0, from mul_ne_zero hq hr,
-  begin
-    unfold padic_norm,
-    rw [if_neg hqr, if_neg hq, if_neg hr],
-    rw [padic_val_rat.mul p hq hr, ← fpow_add],
-    simp,
-    exact_mod_cast prime.ne_zero hp
-  end
+  have q*r ≠ 0, from mul_ne_zero hq hr,
+  have (↑p : ℚ) ≠ 0, by simp [prime.ne_zero hp],
+  by simp [padic_norm, *, padic_val_rat.mul, fpow_add this]
 
 @[simp] protected theorem div (q r : ℚ) : padic_norm p (q / r) = padic_norm p q / padic_norm p r :=
 if hr : r = 0 then by simp [hr] else

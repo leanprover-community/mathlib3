@@ -258,15 +258,15 @@ theorem of_seq_fun₂ (f g₁ g₂ : α → β) (h : β → β → β) (H : {n :
 
 @[simp] lemma of_seq_zero [has_zero β] (f : α → β) : of_seq 0 = (0 : β*) := rfl
 
-@[simp] lemma of_seq_add [has_add β] (f g : α → β) : of_seq (f + g) = of_seq f + (of_seq g : β*) 
-:= rfl
+@[simp] lemma of_seq_add [has_add β] (f g : α → β) : 
+  of_seq (f + g) = of_seq f + (of_seq g : β*) := rfl
 
 @[simp] lemma of_seq_neg [has_neg β] (f : α → β) : of_seq (-f) = - (of_seq f : β*) := rfl
 
 @[simp] lemma of_seq_one [has_one β] (f : α → β) : of_seq 1 = (1 : β*) := rfl
 
-@[simp] lemma of_seq_mul [has_mul β] (f g : α → β) : of_seq (f * g) = of_seq f * (of_seq g : β*) 
-:= rfl
+@[simp] lemma of_seq_mul [has_mul β] (f g : α → β) : 
+  of_seq (f * g) = of_seq f * (of_seq g : β*) := rfl
 
 @[simp] lemma of_seq_inv [has_inv β] (f : α → β) : of_seq (f⁻¹) = (of_seq f : β*)⁻¹ := rfl
 

@@ -25,7 +25,7 @@ def π : (Σ c : C, F.obj c) ⥤ C :=
 
 def to_comma : (Σ c : C, F.obj c) ⥤ comma (functor.of.obj punit) F :=
 { obj := λ X, { left := punit.star, right := X.1, hom := λ _, X.2 },
-  map := λ X Y f, { right := f.val, } }
+  map := λ X Y f, { right := f.val } }
 
 def from_comma : comma (functor.of.obj punit) F ⥤ (Σ c : C, F.obj c) :=
 { obj := λ X, ⟨X.right, X.hom (punit.star)⟩,

@@ -20,6 +20,11 @@ option.some.inj $ ha.symm.trans hb
 theorem injective_some (α : Type*) : function.injective (@some α) :=
 λ _ _, some_inj.mp
 
+/-- `option.map f` is injective if `f` is injective. -/
+theorem injective_map {f : α → β} (Hf : function.injective f) : function.injective (option.map f)
+| none      none      H := rfl
+| (some a₁) (some a₂) H := by rw Hf (option.some.inj H)
+
 @[extensionality] theorem ext : ∀ {o₁ o₂ : option α}, (∀ a, a ∈ o₁ ↔ a ∈ o₂) → o₁ = o₂
 | none     none     H := rfl
 | (some a) o        H := ((H _).1 rfl).symm

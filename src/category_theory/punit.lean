@@ -28,10 +28,8 @@ namespace of
 end of
 
 def star : C ⥤ punit.{w+1} := (const C).obj punit.star
-namespace star
-@[simp] lemma obj (X : C) : star.obj X = punit.star := rfl
-@[simp] lemma map {X Y : C} (f : X ⟶ Y) : star.map f = 𝟙 _ := rfl
-end star
+@[simp] lemma star_obj (X : C) : star.obj X = punit.star := rfl
+@[simp] lemma star_map {X Y : C} (f : X ⟶ Y) : star.map f = 𝟙 _ := rfl
 
 end functor
 

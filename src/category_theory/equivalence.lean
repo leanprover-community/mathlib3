@@ -119,24 +119,12 @@ section
 open category_theory
 variables {F : C ⥤ D} {G : D ⥤ C} (η : 𝟭 C ≅ F ⋙ G) (ε : G ⋙ F ≅ 𝟭 D)
 
-def adjointify_η (X : C) : X ≅ G.obj (F.obj X) :=
-η.app X ≪≫ G.map_iso (ε.app (F.obj X)).symm ≪≫ G.map_iso (F.map_iso (η.app X).symm)
-
-lemma adjointify_η_natural {{X Y : C}} (f : X ⟶ Y) :
-  f ≫ (adjointify_η η ε Y).hom = (adjointify_η η ε X).hom ≫ G.map (F.map f) :=
-begin
-  dsimp [adjointify_η], simp,
-  rw [assoc_symm], have := η.hom.naturality f, dsimp at this, rw [this], clear this,
-  rw [assoc], congr' 1,
-  rw [←map_comp, ←map_comp, ←map_comp, ←map_comp], congr' 1,
-  rw [assoc_symm], have := ε.inv.naturality (F.map f), dsimp at this, rw [this], clear this,
-  rw [assoc], congr' 1,
-  rw [←map_comp, ←map_comp], congr' 1,
-  have := η.inv.naturality f, dsimp at this, rw [this]
-end
+def adjointify_η : 𝟭 C ≅ F ⋙ G :=
+η ≪≫ iso_whisker_left F ((left_unitor G).symm ≪≫
+  iso_whisker_right ε.symm G) ≪≫ iso_whisker_right η.symm (F ⋙ G)
 
 lemma adjointify_ε_η (X : C) :
-  F.map (adjointify_η η ε X).hom ≫ ε.hom.app (F.obj X) = 𝟙 (F.obj X) :=
+  F.map ((adjointify_η η ε).hom.app X) ≫ ε.hom.app (F.obj X) = 𝟙 (F.obj X) :=
 begin
   dsimp [adjointify_η], simp,
   have := ε.hom.naturality (F.map (η.inv.app X)), dsimp at this, rw [this], clear this,
@@ -150,7 +138,7 @@ end
 
 protected definition mk (F : C ⥤ D) (G : D ⥤ C)
   (η : 𝟭 C ≅ F ⋙ G) (ε : G ⋙ F ≅ 𝟭 D) : C ≌ D :=
-⟨F, G, of_components (adjointify_η η ε) (adjointify_η_natural η ε), ε, adjointify_ε_η η ε⟩
+⟨F, G, adjointify_η η ε, ε, adjointify_ε_η η ε⟩
 
 omit 𝒟
 @[refl] def refl : C ≌ C := equivalence.mk (𝟭 C) (𝟭 C) (iso.refl _) (iso.refl _)
@@ -240,7 +228,7 @@ is_equivalence.of_equivalence F.symm
 open equivalence
 protected definition mk {F : C ⥤ D} (G : D ⥤ C)
   (η : 𝟭 C ≅ F ⋙ G) (ε : G ⋙ F ≅ 𝟭 D) : is_equivalence F :=
-⟨G, of_components (adjointify_η η ε) (adjointify_η_natural η ε), ε, adjointify_ε_η η ε⟩
+⟨G, adjointify_η η ε, ε, adjointify_ε_η η ε⟩
 
 end is_equivalence
 

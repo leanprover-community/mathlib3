@@ -204,12 +204,13 @@ if hq : q = 0 then by simp [hq]
 else by simp [padic_norm, hq, hp.gt_one]
 
 lemma zero_of_padic_norm_eq_zero {q : ℚ} (h : padic_norm p q = 0) : q = 0 :=
-by_contradiction $
-  assume hq : q ≠ 0,
-  have padic_norm p q = p ^ (-(padic_val_rat p q)), by simp [hq],
-  fpow_ne_zero_of_ne_zero
-    (show (↑p : ℚ) ≠ 0, by simp [prime.ne_zero hp])
-    (-(padic_val_rat p q)) (by rw [←this, h])
+begin
+  apply by_contradiction, intro hq,
+  unfold padic_norm at h, rw if_neg hq at h,
+  apply absurd h,
+  apply fpow_ne_zero_of_ne_zero,
+  exact_mod_cast hp.ne_zero
+end
 
 protected lemma nonneg (q : ℚ) : padic_norm p q ≥ 0 :=
 if hq : q = 0 then by simp [hq]
@@ -226,9 +227,14 @@ if hq : q = 0 then
 else if hr : r = 0 then
   by simp [hr]
 else
-  have q*r ≠ 0, from mul_ne_zero hq hr,
-  have (↑p : ℚ) ≠ 0, by exact_mod_cast prime.ne_zero hp,
-  by simp [padic_norm, *, padic_val_rat.mul, fpow_add this]
+  have hqr : q*r ≠ 0, from mul_ne_zero hq hr,
+  begin
+    unfold padic_norm,
+    rw [if_neg hqr, if_neg hq, if_neg hr],
+    rw [padic_val_rat.mul p hq hr, ← fpow_add],
+    simp,
+    exact_mod_cast prime.ne_zero hp
+  end
 
 @[simp] protected theorem div (q r : ℚ) : padic_norm p (q / r) = padic_norm p q / padic_norm p r :=
 if hr : r = 0 then by simp [hr] else

@@ -5,6 +5,7 @@ os:
 branches:
   only:
     - master
+    - push-cache
   # except:
   #   - /^lean-.*$/
 env:
@@ -77,6 +78,7 @@ jobs:
         - lean --recursive --export=mathlib.txt src/
         - travis_long "leanchecker mathlib.txt"
         - sh scripts/deploy_nightly.sh
+        - export CACHE_FILE=cache-olean-$TRAVIS_COMMIT.bz2
 
     - stage: Test
       env: TASK="check Lean proofs" LEAN="nightly"
@@ -158,6 +160,18 @@ jobs:
 
   # allow_failures:
   #   - env: TASK="check Lean proofs" LEAN="nightly"
+before_deploy:
+  - tar cvfj $CACHE_FILE src/ test/
+
+deploy:
+  provider: s3
+  access_key_id: AKIAXISQTP7JENN47UHB
+  secret_access_key: $AWS_SECRET_KEY
+  bucket: "cache-olean"
+  skip_cleanup: true
+  file: $CACHE_FILE
+  on:
+    condition: $CACHE_FILE != ""
 
 notifications:
   webhooks:

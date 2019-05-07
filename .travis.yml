@@ -52,6 +52,7 @@ jobs:
       script:
         - elan toolchain install leanprover-community/lean:nightly
         - elan override set leanprover-community/lean:nightly
+        - find . -name *.olean -delete
         - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
 
     - stage: Pre-build-2

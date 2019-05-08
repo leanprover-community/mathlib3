@@ -323,24 +323,27 @@ instance has_lt [has_lt α] : has_lt (with_bot α) :=
   @has_lt.lt (with_bot α) _ (some a) (some b) ↔ a < b :=
 by simp [(<)]
 
-instance partial_order [partial_order α] : partial_order (with_bot α) :=
+instance [preorder α] : preorder (with_bot α) :=
 { le          := λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b,
   lt          := (<),
   lt_iff_le_not_le := by intros; cases a; cases b;
-                         simp [lt_iff_le_not_le]; simp [(<)];
-                         split; refl,
+                         simp [lt_iff_le_not_le];
+                         split; try {exact id}; refl,
   le_refl     := λ o a ha, ⟨a, ha, le_refl _⟩,
   le_trans    := λ o₁ o₂ o₃ h₁ h₂ a ha,
     let ⟨b, hb, ab⟩ := h₁ a ha, ⟨c, hc, bc⟩ := h₂ b hb in
-    ⟨c, hc, le_trans ab bc⟩,
-  le_antisymm := λ o₁ o₂ h₁ h₂, begin
+    ⟨c, hc, le_trans ab bc⟩ }
+
+instance partial_order [partial_order α] : partial_order (with_bot α) :=
+{ le_antisymm := λ o₁ o₂ h₁ h₂, begin
     cases o₁ with a,
     { cases o₂ with b, {refl},
       rcases h₂ b rfl with ⟨_, ⟨⟩, _⟩ },
     { rcases h₁ a rfl with ⟨b, ⟨⟩, h₁'⟩,
       rcases h₂ b rfl with ⟨_, ⟨⟩, h₂'⟩,
       rw le_antisymm h₁' h₂' }
-  end }
+  end,
+  .. with_bot.preorder }
 
 instance order_bot [partial_order α] : order_bot (with_bot α) :=
 { bot_le := λ a a' h, option.no_confusion h,

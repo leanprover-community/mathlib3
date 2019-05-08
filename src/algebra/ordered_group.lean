@@ -151,8 +151,8 @@ partial_order.lift (coe : units α → α) (by ext) i
 instance [monoid α] [i : linear_order α] : linear_order (units α) :=
 linear_order.lift (coe : units α → α) (by ext) i
 
-instance [monoid α] [decidable_linear_order α] : decidable_linear_order (units α) :=
-decidable_linear_order.lift (coe : units α → α) (by ext)
+instance [monoid α] [i : decidable_linear_order α] : decidable_linear_order (units α) :=
+decidable_linear_order.lift (coe : units α → α) (by ext) i
 
 theorem max_coe [monoid α] [decidable_linear_order α] {a b : units α} :
   (↑(max a b) : α) = max a b :=

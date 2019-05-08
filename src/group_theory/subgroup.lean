@@ -97,6 +97,12 @@ theorem is_add_subgroup.of_sub (s : set β)
 multiplicative.is_subgroup_iff.1 $
 @is_subgroup.of_div (multiplicative β) _ _ zero_mem @sub_mem
 
+@[to_additive is_add_subgroup.inter]
+instance is_subgroup.inter (s₁ s₂ : set α) [is_subgroup s₁] [is_subgroup s₂] :
+  is_subgroup (s₁ ∩ s₂) :=
+{ inv_mem := λ x hx, ⟨is_subgroup.inv_mem hx.1, is_subgroup.inv_mem hx.2⟩,
+  ..is_submonoid.inter s₁ s₂ }
+
 @[to_additive is_add_subgroup_Union_of_directed]
 lemma is_subgroup_Union_of_directed {ι : Type*} [hι : nonempty ι]
   (s : ι → set α) [∀ i, is_subgroup (s i)]

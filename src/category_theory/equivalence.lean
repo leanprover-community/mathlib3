@@ -193,11 +193,11 @@ def inv_fun_id_assoc (e : C ≌ D) (F : D ⥤ E) : e.inverse ⋙ e.functor ⋙ F
 
 @[simp] lemma inv_fun_id_assoc_hom_app (e : C ≌ D) (F : D ⥤ E) (X : D) :
   (inv_fun_id_assoc e F).hom.app X = F.map (e.counit.app X) :=
-by { dsimp [inv_fun_id_assoc, nat_iso.hcomp], tidy }
+by { dsimp [inv_fun_id_assoc], tidy }
 
 @[simp] lemma inv_fun_id_assoc_inv_app (e : C ≌ D) (F : D ⥤ E) (X : D) :
   (inv_fun_id_assoc e F).inv.app X = F.map (e.counit_inv.app X) :=
-by { dsimp [inv_fun_id_assoc, nat_iso.hcomp], tidy }
+by { dsimp [inv_fun_id_assoc], tidy }
 
 end equivalence
 

@@ -98,9 +98,10 @@ begin
   { ext, rw [←nat_trans.exchange], simp, refl },
   ext, rw [←nat_trans.exchange], simp, refl
 end
-
-infix ` ■ `:80 := hcomp
 omit ℰ
+-- suggested local notation for nat_iso.hcomp. Currently unused.
+local infix ` ■ `:80 := hcomp
+
 
 end nat_iso
 

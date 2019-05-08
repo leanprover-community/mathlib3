@@ -15,7 +15,7 @@ def discrete (α : Type u₁) := α
 instance discrete_category (α : Type u₁) : small_category (discrete α) :=
 { hom  := λ X Y, ulift (plift (X = Y)),
   id   := λ X, ulift.up (plift.up rfl),
-  comp := by tidy }
+  comp := λ X Y Z g f, by { rcases f with ⟨⟨rfl⟩⟩, exact g } }
 
 namespace discrete
 

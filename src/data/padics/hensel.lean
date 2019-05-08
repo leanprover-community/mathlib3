@@ -9,7 +9,7 @@ http://www.math.uconn.edu/~kconrad/blurbs/gradnumthy/hensel.pdf
 
 import data.padics.padic_integers data.polynomial topology.metric_space.cau_seq_filter
 import analysis.specific_limits topology.instances.polynomial
-import tactic.simpa
+import tactic.basic
 
 noncomputable theory
 

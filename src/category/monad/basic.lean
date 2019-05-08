@@ -1,5 +1,5 @@
 
-import tactic.interactive
+import tactic.basic
 
 attribute [extensionality] reader_t.ext state_t.ext except_t.ext option_t.ext
 attribute [functor_norm]   bind_assoc pure_bind bind_pure

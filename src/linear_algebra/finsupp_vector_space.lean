@@ -16,21 +16,32 @@ section module
 variables {α : Type*} {β : Type*} {γ : Type*}
 variables [decidable_eq α] [decidable_eq β] [ring γ] [add_comm_group β] [module γ β]
 
-lemma linear_independent_single [decidable_eq γ] {f : α → set β}
-  (hf : ∀a, linear_independent γ id (f a)) : linear_independent γ id (⋃a, single a '' f a) :=
+lemma linear_independent_single [decidable_eq γ] {φ : α → Type*} [∀ a, decidable_eq (φ a)]
+  {f : Π α, φ α → β} (hf : ∀a, linear_independent γ (f a) univ) :
+  linear_independent γ (λ ax : Σ a, φ a, single ax.1 (f ax.1 ax.2)) univ :=
 begin
-  refine linear_independent_Union_finite _ _ ,
-  { refine assume a, @linear_independent.image _ _ _ _ _ _ _ _ _ _ _ _ (lsingle a) (hf a) _,
-    rw ker_lsingle,
-    exact disjoint_bot_right },
-  { assume a s hs hat,
-    have : ∀a, span γ (single a '' f a) ≤ range (lsingle a),
-    { simp only [span_single_image],
-      exact assume a, map_mono le_top },
-    refine disjoint_mono _ _ (disjoint_lsingle_lsingle {a} s _),
-    { simp only [set.image_id, supr_singleton, this] },
-    { exact supr_le_supr (assume a, by rw set.image_id; exact supr_le_supr (assume ha, this a)) },
-    { rwa [disjoint_singleton_left] } }
+  apply @linear_independent_Union_finite γ _ _ _ _ _ _ α φ _ _ (λ a x, single a (f a x)),
+  { assume a,
+    have h_disjoint : disjoint (span γ (range (f a))) (ker (lsingle a)),
+    { rw ker_lsingle,
+      exact disjoint_bot_right },
+    apply linear_independent.image' (hf a) h_disjoint },
+  { intros s g hs hg l hl,
+    apply pi.almost_linindep_of_disjoint,
+    { apply disjoint_lsingle_lsingle },
+    { intro i,
+      rw ←span_eq (range (lsingle ↑i)),
+      rw mem_span,
+      intros p hp,
+      apply mem_span.1 (hg i) p,
+      apply subset.trans _ hp,
+      intros x hx,
+      rw range_coe,
+      rw set.mem_range,
+      rcases set.mem_range.1 hx  with ⟨y, hy⟩,
+      existsi (f i y),
+      apply hy },
+    { exact hl } }
 end
 
 end module
@@ -41,10 +52,18 @@ variables [decidable_eq α] [decidable_eq β] [discrete_field γ] [add_comm_grou
 
 open linear_map submodule
 
-lemma is_basis_single {f : α → set β} (hf : ∀a, is_basis γ (f a)) :
-  is_basis γ (⋃a, single a '' f a) :=
-⟨linear_independent_single $ assume a, (hf a).1,
-  by simp only [span_Union, span_single_image, (hf _).2, map_top, supr_lsingle_range]⟩
+
+lemma is_basis_single {φ : α → Type*} [∀ a, decidable_eq (φ a)] (f : Π α, φ α → β)
+  (hf : ∀a, is_basis γ (f a)) :
+  is_basis γ (λ ax : Σ a, φ a, single ax.1 (f ax.1 ax.2)) :=
+begin
+  split,
+  { apply linear_independent_single,
+    exact λ a, (hf a).1 },
+  { rw [range_sigma_eq_Union_range, span_Union],
+    simp only [image_univ.symm, λ i, image_comp (single i) (f i), span_single_image],
+    simp only [image_univ, (hf _).2, map_top, supr_lsingle_range] }
+end
 
 end vector_space
 
@@ -56,12 +75,10 @@ variables [decidable_eq α] [decidable_eq β] [discrete_field γ] [add_comm_grou
 lemma dim_eq : vector_space.dim γ (α →₀ β) = cardinal.mk α * vector_space.dim γ β :=
 begin
   rcases exists_is_basis γ β with ⟨bs, hbs⟩,
-  rw [← hbs.mk_eq_dim, ← (is_basis_single (λa:α, hbs)).mk_eq_dim, cardinal.mk_Union_eq_sum_mk],
-  { simp only [cardinal.mk_eq_of_injective (injective_single.{u u} _), cardinal.sum_const] },
-  { refine assume i j h, disjoint_image_image (assume b hb c hc, _),
-    simp only [(≠), single_eq_single_iff, not_or_distrib, not_and_distrib],
-    have : (0:β) ∉ bs := zero_not_mem_of_linear_independent (zero_ne_one : (0:γ) ≠ 1) hbs.1 rfl,
-    exact ⟨or.inl h, or.inl (assume eq, this $ eq ▸ hb)⟩ }
+  rw [← cardinal.lift_inj, cardinal.lift_mul, ← hbs.mk_eq_dim,
+      ← (is_basis_single _ (λa:α, hbs)).mk_eq_dim, ← cardinal.sum_mk,
+      ← cardinal.lift_mul, cardinal.lift_inj],
+  { simp only [cardinal.mk_image_eq (injective_single.{u u} _), cardinal.sum_const] }
 end
 
 end dim
@@ -79,14 +96,19 @@ open vector_space
 
 set_option class.instance_max_depth 70
 
-lemma equiv_of_dim_eq_dim [decidable_eq β] [decidable_eq γ] (h : dim α β = dim α γ) : nonempty (β ≃ₗ[α] γ) :=
+lemma equiv_of_dim_eq_dim [decidable_eq β] [decidable_eq γ] (h : dim α β = dim α γ) :
+  nonempty (β ≃ₗ[α] γ) :=
 begin
   rcases exists_is_basis α β with ⟨b, hb⟩,
   rcases exists_is_basis α γ with ⟨c, hc⟩,
-  rw [← hb.mk_eq_dim, ← hc.mk_eq_dim] at h,
+  rw [← cardinal.lift_inj, ← hb.mk_eq_dim, ← hc.mk_eq_dim, cardinal.lift_inj] at h,
   rcases quotient.exact h with ⟨e⟩,
+  rw [← subtype.val_image_univ b, ← subtype.val_image_univ c] at e,
+  have e' : (univ : set b) ≃ (univ : set c) :=
+    ((equiv.set.image subtype.val (univ : set b) subtype.val_injective).trans e).trans
+        (equiv.set.image subtype.val (univ : set c) subtype.val_injective).symm,
   exact ⟨ (module_equiv_finsupp hb).trans
-      (linear_equiv.trans (finsupp.congr b c e) (module_equiv_finsupp hc).symm) ⟩
+      (linear_equiv.trans (finsupp.congr univ univ e') (module_equiv_finsupp hc).symm) ⟩
 end
 
 lemma eq_bot_iff_dim_eq_zero [decidable_eq β] (p : submodule α β) (h : dim α p = 0) : p = ⊥ :=
@@ -119,23 +141,30 @@ open vector_space
 set_option class.instance_max_depth 50
 local attribute [instance] submodule.module
 
+set_option pp.universes true
+
 lemma cardinal_mk_eq_cardinal_mk_field_pow_dim
   {α β : Type u} [decidable_eq β] [discrete_field α] [add_comm_group β] [vector_space α β]
   (h : dim α β < cardinal.omega) : cardinal.mk β = cardinal.mk α ^ dim α β  :=
 begin
   rcases exists_is_basis α β with ⟨s, hs⟩,
   have : nonempty (fintype s),
-  { rwa [← cardinal.lt_omega_iff_fintype, hs.mk_eq_dim] },
+  { rwa [← cardinal.lt_omega_iff_fintype, cardinal.lift_inj.1 hs.mk_eq_dim] },
   cases this with hsf, letI := hsf,
   calc cardinal.mk β = cardinal.mk (↥(finsupp.supported α α s)) :
-    quotient.sound ⟨(module_equiv_finsupp hs).to_equiv⟩
+        begin
+          rw ←subtype.val_image_univ s,
+          exact quotient.sound ⟨((module_equiv_finsupp hs).trans
+              (finsupp.congr univ (subtype.val '' univ)
+              (equiv.set.image subtype.val (univ : set s) subtype.val_injective))).to_equiv⟩
+        end
     ... = cardinal.mk (s →₀ α) :
-    begin
-      refine quotient.sound ⟨@linear_equiv.to_equiv α _ _ _ _ _ _ _ _⟩,
-      exact @finsupp.supported_equiv_finsupp β α α _ _ _ _ _ s _
-    end
+        begin
+          refine quotient.sound ⟨@linear_equiv.to_equiv α _ _ _ _ _ _ _ _⟩,
+          exact @finsupp.supported_equiv_finsupp β α α _ _ _ _ _ s _
+        end
     ... = cardinal.mk (s → α) : quotient.sound ⟨finsupp.equiv_fun_on_fintype⟩
-    ... = _ : by rw [← hs.mk_eq_dim, cardinal.power_def]
+    ... = _ : by rw [← cardinal.lift_inj.1 hs.mk_eq_dim, cardinal.power_def]
 end
 
 lemma cardinal_lt_omega_of_dim_lt_omega

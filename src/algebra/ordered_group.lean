@@ -167,6 +167,7 @@ end units
 namespace with_zero
 open lattice
 
+instance [preorder α] : preorder (with_zero α) := with_bot.preorder
 instance [partial_order α] : partial_order (with_zero α) := with_bot.partial_order
 instance [partial_order α] : order_bot (with_zero α) := with_bot.order_bot
 instance [lattice α] : lattice (with_zero α) := with_bot.lattice

@@ -265,8 +265,9 @@ lemma is_bounded_bilinear_map_comp :
 /-- Definition of the derivative of a bilinear map `f`, given at a point `p` by
 `q ↦ f(p.1, q.2) + f(q.1, p.2)` as in the standard formula for the derivative of a product.
 We define this function here a bounded linear map from `E × F` to `G`. The fact that this
-is indeed the derivative of `f` is proved below in `is_bounded_bilinear_map.has_fderiv_at` -/
-def is_bounded_bilinear_map.fderiv (h : is_bounded_bilinear_map k f) (p : E × F) : (E × F) →L[k] G :=
+is indeed the derivative of `f` is proved in `is_bounded_bilinear_map.has_fderiv_at` in
+`deriv.lean`-/
+def is_bounded_bilinear_map.deriv (h : is_bounded_bilinear_map k f) (p : E × F) : (E × F) →L[k] G :=
 { to_fun := λq, f(p.1, q.2) + f (q.1, p.2),
   add := λq₁ q₂, begin
     change f (p.1, q₁.2 + q₂.2) + f (q₁.1 + q₂.1, p.2) =
@@ -294,8 +295,8 @@ def is_bounded_bilinear_map.fderiv (h : is_bounded_bilinear_map k f) (p : E × F
 
 /-- Given a bounded bilinear map `f`, the map associating to a point `p` the derivative of `f` at
 `p` is itself a bounded linear map. -/
-lemma is_bounded_bilinear_map.is_bounded_linear_map_fderiv (h : is_bounded_bilinear_map k f) :
-  is_bounded_linear_map k (λp : E × F, h.fderiv p) :=
+lemma is_bounded_bilinear_map.is_bounded_linear_map_deriv (h : is_bounded_bilinear_map k f) :
+  is_bounded_linear_map k (λp : E × F, h.deriv p) :=
 begin
   rcases h.bound with ⟨C, Cpos, hC⟩,
   refine is_linear_map.with_bound ⟨λp₁ p₂, _, λc p, _⟩ (C + C) (λp, _),
@@ -306,7 +307,7 @@ begin
   { ext q,
     change f(c • p.1, q.2) + f(q.1, c • p.2) = c • (f(p.1, q.2) + f(q.1, p.2)),
     simp [h.smul_left, h.smul_right, smul_add] },
-  { dunfold is_bounded_bilinear_map.fderiv,
+  { dunfold is_bounded_bilinear_map.deriv,
     refine bounded_linear_map.op_norm_le_bound _
       (mul_nonneg (add_nonneg (le_of_lt Cpos) (le_of_lt Cpos)) (norm_nonneg _)) (λq, _),
     calc ∥f(p.1, q.2) + f(q.1, p.2)∥

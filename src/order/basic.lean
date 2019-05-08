@@ -176,40 +176,40 @@ assume a a' h, m h b
 
 end monotone
 
-def preorder.lift {α β} [preorder β] (f : α → β) : preorder α :=
+def preorder.lift {α β} (f : α → β) (preorder β) : preorder α :=
 { le := λx y, f x ≤ f y,
   le_refl := λ a, le_refl _,
   le_trans := λ a b c, le_trans,
   lt := λx y, f x < f y,
   lt_iff_le_not_le := λ a b, lt_iff_le_not_le }
 
-def partial_order.lift {α β} [partial_order β]
-  (f : α → β) (inj : injective f) : partial_order α :=
+def partial_order.lift {α β} (f : α → β) (inj : injective f)
+  (partial_order β) : partial_order α :=
 { le_antisymm := λ a b h₁ h₂, inj (le_antisymm h₁ h₂), .. preorder.lift f }
 
-def linear_order.lift {α β} [linear_order β]
-  (f : α → β) (inj : injective f) : linear_order α :=
+def linear_order.lift {α β} (f : α → β) (inj : injective f)
+  (linear_order β) : linear_order α :=
 { le_total := λx y, le_total (f x) (f y), .. partial_order.lift f inj }
 
-def decidable_linear_order.lift {α β} [decidable_linear_order β]
-  (f : α → β) (inj : injective f) : decidable_linear_order α :=
+def decidable_linear_order.lift {α β} (f : α → β) (inj : injective f)
+  (decidable_linear_order β) : decidable_linear_order α :=
 { decidable_le := λ x y, show decidable (f x ≤ f y), by apply_instance,
   decidable_lt := λ x y, show decidable (f x < f y), by apply_instance,
   decidable_eq := λ x y, decidable_of_iff _ ⟨@inj x y, congr_arg f⟩,
   .. linear_order.lift f inj }
 
-instance subtype.preorder {α} [preorder α] (p : α → Prop) : preorder (subtype p) :=
-preorder.lift subtype.val
+instance subtype.preorder {α} [i : preorder α] (p : α → Prop) : preorder (subtype p) :=
+preorder.lift subtype.val i
 
-instance subtype.partial_order {α} [partial_order α] (p : α → Prop) : partial_order (subtype p) :=
-partial_order.lift subtype.val $ λ x y, subtype.eq'
+instance subtype.partial_order {α} [i : partial_order α] (p : α → Prop) : partial_order (subtype p) :=
+partial_order.lift subtype.val subtype.val_injective i
 
-instance subtype.linear_order {α} [linear_order α] (p : α → Prop) : linear_order (subtype p) :=
-linear_order.lift subtype.val $ λ x y, subtype.eq'
+instance subtype.linear_order {α} [i : linear_order α] (p : α → Prop) : linear_order (subtype p) :=
+linear_order.lift subtype.val subtype.val_injective i
 
-instance subtype.decidable_linear_order {α} [decidable_linear_order α] (p : α → Prop) :
+instance subtype.decidable_linear_order {α} [i : decidable_linear_order α] (p : α → Prop) :
   decidable_linear_order (subtype p) :=
-decidable_linear_order.lift subtype.val $ λ x y, subtype.eq'
+decidable_linear_order.lift subtype.val subtype.val_injective i
 
 instance prod.has_le (α : Type u) (β : Type v) [has_le α] [has_le β] : has_le (α × β) :=
 ⟨λp q, p.1 ≤ q.1 ∧ p.2 ≤ q.2⟩

@@ -7,7 +7,6 @@ Normalizing casts inside expressions.
 -/
 
 import tactic.basic tactic.interactive tactic.converter.interactive
-import data.complex.basic data.nat.enat ring_theory.multiplicity
 
 namespace tactic
 
@@ -29,10 +28,10 @@ open tactic expr
 
 /-
 let ty an expression of the shape Π (x1 : t1) ... (x2 : tn), a = b
-let e an expression of type ty
+let pr an expression of type ty
 then flip_equation ty returns a couple (new_ty, f) such that
     new_ty = Π A1 .. An, b = a
-    f e = λ (x1 : t1) ... (xn : tn), eq.symm (e x1 ... xn)
+    f pr = λ (x1 : t1) ... (xn : tn), eq.symm (e x1 ... xn)
 if ty is not of the correct shape, then the tactic fails
 -/
 meta def flip_eq : expr → tactic (expr × (expr → expr))
@@ -227,7 +226,6 @@ do
 
 end norm_cast
 
-
 namespace tactic
 open tactic expr
 open norm_cast
@@ -271,7 +269,6 @@ do {
 } <|> fail "assumption_mod_cast failed"
 
 end tactic
-
 
 namespace tactic.interactive
 open tactic interactive tactic.interactive interactive.types expr lean.parser
@@ -352,160 +349,20 @@ meta def norm_cast : conv unit := replace_lhs derive
 
 end conv.interactive
 
-/- simp_cast lemmas -/
-
-attribute [simp_cast] nat.cast_zero
 attribute [simp_cast] int.coe_nat_zero
-attribute [simp_cast] int.cast_zero
-attribute [simp_cast] rat.cast_zero
-attribute [simp_cast] complex.of_real_zero
-
-attribute [simp_cast] nat.cast_one
 attribute [simp_cast] int.coe_nat_one
-attribute [simp_cast] int.cast_one
-attribute [simp_cast] rat.cast_one
-attribute [simp_cast] complex.of_real_one
 
-attribute [simp_cast] nat.cast_id
-attribute [simp_cast] int.cast_id
-attribute [simp_cast] rat.cast_id
-
-attribute [simp_cast] int.cast_coe_nat
-attribute [simp_cast] int.cast_coe_nat'
-attribute [simp_cast] rat.cast_coe_nat
-attribute [simp_cast] rat.cast_coe_int
-attribute [simp_cast] complex.of_real_int_cast
-attribute [simp_cast] complex.of_real_nat_cast
-attribute [simp_cast] complex.of_real_rat_cast
-
-attribute [simp_cast] enat.coe_zero
-attribute [simp_cast] enat.coe_one
-attribute [simp_cast] enat.coe_get
-
-attribute [simp_cast] rat.coe_nat_num
-attribute [simp_cast] rat.coe_int_num
-attribute [simp_cast] rat.coe_nat_denom
-
-/- compositional norm_cast lemmas -/
-
-attribute [norm_cast] nat.cast_succ
 attribute [norm_cast] int.coe_nat_succ
-
-attribute [norm_cast] nat.cast_add
 attribute [norm_cast] int.coe_nat_add
-attribute [norm_cast] int.cast_add
-attribute [norm_cast] rat.cast_add
-attribute [norm_cast] complex.of_real_add
-attribute [norm_cast] enat.coe_add
-
-attribute [norm_cast] int.cast_neg_succ_of_nat
-attribute [norm_cast] int.cast_neg_of_nat
-attribute [norm_cast] int.cast_neg
-attribute [norm_cast] rat.cast_neg
-attribute [norm_cast] complex.of_real_neg
-
-attribute [norm_cast] nat.cast_sub
-attribute [norm_cast] int.cast_sub_nat_nat
 attribute [norm_cast] int.coe_nat_sub
-attribute [norm_cast] int.cast_sub
-attribute [norm_cast] rat.cast_sub
-attribute [norm_cast] complex.of_real_sub
-
-attribute [norm_cast] nat.cast_mul
 attribute [norm_cast] int.coe_nat_mul
-attribute [norm_cast] int.cast_mul
-attribute [norm_cast] rat.cast_mul
-attribute [norm_cast] complex.of_real_mul
-
-attribute [norm_cast] rat.cast_inv
-attribute [norm_cast] complex.of_real_inv
-
-attribute [norm_cast] int.coe_nat_div
-attribute [norm_cast] rat.cast_div
-attribute [norm_cast] complex.of_real_div
-
-attribute [norm_cast] nat.cast_min
-attribute [norm_cast] int.cast_min
-attribute [norm_cast] rat.cast_min
-
-attribute [norm_cast] nat.cast_max
-attribute [norm_cast] int.cast_max
-attribute [norm_cast] rat.cast_max
-
-attribute [norm_cast] int.coe_nat_abs
-attribute [norm_cast] int.cast_abs
-attribute [norm_cast] rat.cast_abs
-
-attribute [norm_cast] nat.cast_pow
-attribute [norm_cast] int.coe_nat_pow
-attribute [norm_cast] int.cast_pow
-attribute [norm_cast] rat.cast_pow
-attribute [norm_cast] complex.of_real_pow
-attribute [norm_cast] complex.of_real_fpow
-
-/- equivalence norm_cast lemmas -/
-
-attribute [norm_cast] nat.cast_inj
-attribute [norm_cast] int.coe_nat_inj'
-attribute [norm_cast] int.cast_inj
-attribute [norm_cast] rat.cast_inj
-attribute [norm_cast] complex.of_real_inj
-
-attribute [norm_cast] nat.cast_le
-attribute [norm_cast] int.coe_nat_le
-attribute [norm_cast] int.cast_le
-attribute [norm_cast] rat.cast_le
-attribute [norm_cast] enat.coe_le_coe
-
-attribute [norm_cast] nat.cast_lt
-attribute [norm_cast] int.coe_nat_lt
-attribute [norm_cast] int.cast_lt
-attribute [norm_cast] rat.cast_lt
-attribute [norm_cast] enat.coe_lt_coe
-
-attribute [norm_cast] int.coe_nat_dvd
-
-/- special lemmas for numerals handling -/
-
-attribute [norm_cast, simp_cast] nat.cast_bit0
-@[norm_cast, simp_cast] lemma int.coe_nat_bit0 (n : ℕ) : (↑(bit0 n) : ℤ) = bit0 ↑n := by {unfold bit0, simp}
-attribute [norm_cast, simp_cast] int.cast_bit0
-attribute [norm_cast, simp_cast] rat.cast_bit0
-attribute [norm_cast, simp_cast] complex.of_real_bit0
-
-attribute [norm_cast, simp_cast] nat.cast_bit1
-@[norm_cast, simp_cast] lemma int.coe_nat_bit1 (n : ℕ) : (↑(bit1 n) : ℤ) = bit1 ↑n := by {unfold bit1, unfold bit0, simp}
-attribute [norm_cast, simp_cast] int.cast_bit1
-attribute [norm_cast, simp_cast] rat.cast_bit1
-attribute [norm_cast, simp_cast] complex.of_real_bit1
-
-/- special lemmas to unfold ≥, > and ≠ -/
-
-@[norm_cast] lemma ge_from_le {α} [has_le α] : ∀ (x y : α), x ≥ y ↔ y ≤ x := λ _ _, iff.rfl
-@[norm_cast] lemma gt_from_lt {α} [has_lt α] : ∀ (x y : α), x > y ↔ y < x := λ _ _, iff.rfl
-@[norm_cast] lemma ne_from_not_eq {α} : ∀ (x y : α), x ≠ y ↔ ¬(x = y) := λ _ _, iff.rfl
-
-/- more specific norm_cast lemmas -/
 
 @[norm_cast]
-lemma ite_lemma {α β : Type} [has_coe α β] {c : Prop} [decidable c] {a b : α} :
+lemma ite_cast {α β : Type} [has_coe α β] {c : Prop} [decidable c] {a b : α} :
     ↑(ite c a b) = ite c (↑a : β) (↑b : β) :=
 by by_cases h : c; simp [h]
 
-open multiplicity
-
-theorem nat.find_le {p q : ℕ → Prop} [decidable_pred p] [decidable_pred q]
-    (h : ∀ n, q n → p n) (hp : ∃ n, p n) (hq : ∃ n, q n) :
-    nat.find hp ≤ nat.find hq :=
-nat.find_min' _ ((h _) (nat.find_spec hq))
-
-@[norm_cast]
-theorem int.coe_nat_multiplicity (a b : ℕ) :
-    multiplicity a b = multiplicity (a : ℤ) (b : ℤ) :=
-begin
-    apply roption.ext',
-    { repeat {rw [← finite_iff_dom, finite_def]},
-      norm_cast, simp },
-    { intros h1 h2,
-      apply _root_.le_antisymm; { apply nat.find_le, norm_cast, simp }}
-end
+/- special lemmas to unfold ≥, > and ≠ -/
+@[norm_cast] lemma ge_from_le {α} [has_le α] : ∀ (x y : α), x ≥ y ↔ y ≤ x := λ _ _, iff.rfl
+@[norm_cast] lemma gt_from_lt {α} [has_lt α] : ∀ (x y : α), x > y ↔ y < x := λ _ _, iff.rfl
+@[norm_cast] lemma ne_from_not_eq {α} : ∀ (x y : α), x ≠ y ↔ ¬(x = y) := λ _ _, iff.rfl

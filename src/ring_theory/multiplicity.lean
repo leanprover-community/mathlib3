@@ -5,10 +5,16 @@ Authors: Robert Y. Lewis, Chris Hughes
 -/
 import algebra.associated data.int.gcd data.nat.enat
 import tactic.converter.interactive
+import tactic.norm_cast
 
 variables {α : Type*}
 
 open nat roption
+
+theorem nat.find_le {p q : ℕ → Prop} [decidable_pred p] [decidable_pred q]
+    (h : ∀ n, q n → p n) (hp : ∃ n, p n) (hq : ∃ n, q n) :
+    nat.find hp ≤ nat.find hq :=
+nat.find_min' _ ((h _) (nat.find_spec hq))
 
 /-- `multiplicity a b` returns the largest natural number `n` such that
   `a ^ n ∣ b`, as an `enat` or natural with infinity. If `∀ n, a ^ n ∣ b`,
@@ -27,6 +33,17 @@ lemma finite_iff_dom [decidable_rel ((∣) : α → α → Prop)] {a b : α} :
   finite a b ↔ (multiplicity a b).dom := iff.rfl
 
 lemma finite_def {a b : α} : finite a b ↔ ∃ n : ℕ, ¬a ^ (n + 1) ∣ b := iff.rfl
+
+@[norm_cast]
+theorem int.coe_nat_multiplicity (a b : ℕ) :
+    multiplicity a b = multiplicity (a : ℤ) (b : ℤ) :=
+begin
+    apply roption.ext',
+    { repeat {rw [← finite_iff_dom, finite_def]},
+      norm_cast, simp },
+    { intros h1 h2,
+      apply _root_.le_antisymm; { apply nat.find_le, norm_cast, simp }}
+end
 
 lemma not_finite_iff_forall {a b : α} : (¬ finite a b) ↔ ∀ n : ℕ, a ^ n ∣ b :=
 ⟨λ h n, nat.cases_on n (one_dvd _) (by simpa [finite, classical.not_not] using h),

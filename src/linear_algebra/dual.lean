@@ -38,11 +38,11 @@ end dual
 end module
 
 namespace is_basis
-universes u v
-variables {K : Type u} {V : Type v}
+universes u v w
+variables {K : Type u} {V : Type v} {ι : Type w}
 variables [decidable_eq V] [discrete_field K] [add_comm_group V] [vector_space K V]
-variables [decidable_eq (module.dual K V)]
-variables {B : set V} (h : is_basis K B)
+variables [decidable_eq (module.dual K V)] [decidable_eq ι]
+variables {B : ι → V} (h : is_basis K B)
 open vector_space module module.dual submodule linear_map cardinal function
 
 instance dual.vector_space : vector_space K (dual K V) := {..dual.module K V}
@@ -52,28 +52,28 @@ include h
 def to_dual : V →ₗ[K] module.dual K V :=
 h.constr $ λ v, h.constr $ λ w, if w = v then 1 else 0
 
-lemma to_dual_apply (v ∈ B) (w ∈ B) :
-  (h.to_dual v) w = if w = v then 1 else 0 :=
-by erw [constr_basis h ‹v ∈ B›, constr_basis h ‹w ∈ B›]
+lemma to_dual_apply (i j : ι) :
+  (h.to_dual (B i)) (B j) = if i = j then 1 else 0 :=
+  by erw [constr_basis h, constr_basis h]; ac_refl
 
 def to_dual_flip (v : V) : (V →ₗ[K] K) := (linear_map.flip h.to_dual).to_fun v
 
 omit h
-def eval_finsupp_at (v : V) : (V →₀ K) →ₗ[K] K :=
-{ to_fun := λ f, f v,
+def eval_finsupp_at (i : ι) : (ι →₀ K) →ₗ[K] K :=
+{ to_fun := λ f, f i,
   add := by intros; rw finsupp.add_apply,
   smul := by intros; rw finsupp.smul_apply }
 include h
 
 set_option class.instance_max_depth 50
 
-def coord_fun (v : V) : (V →ₗ[K] K) := (eval_finsupp_at v).comp h.repr
+def coord_fun (i : ι) : (V →ₗ[K] K) := (eval_finsupp_at i).comp h.repr
 
-lemma coord_fun_eq_repr (v w : V) : h.coord_fun v w = h.repr w v := rfl
+lemma coord_fun_eq_repr (v : V) (i : ι) : h.coord_fun i v = h.repr v i := rfl
 
 lemma to_dual_swap_eq_to_dual (v w : V) : h.to_dual_flip v w = h.to_dual w v := rfl
 
-lemma to_dual_eq_repr (v : V) (b ∈ B) : (h.to_dual v) b = h.repr v b :=
+lemma to_dual_eq_repr (v : V) (i : ι) : (h.to_dual v) (B i) = h.repr v i :=
 begin
   rw [←coord_fun_eq_repr, ←to_dual_swap_eq_to_dual],
   apply congr_fun,
@@ -84,8 +84,7 @@ begin
     rw [to_dual_swap_eq_to_dual, to_dual_apply],
     { split_ifs with hx,
       { rwa [hx, coord_fun_eq_repr, repr_eq_single, finsupp.single_apply, if_pos rfl] },
-      { rwa [coord_fun_eq_repr, repr_eq_single, finsupp.single_apply, if_neg (ne.symm hx)] } },
-    assumption' },
+      { rwa [coord_fun_eq_repr, repr_eq_single, finsupp.single_apply, if_neg hx] } } },
   { exact classical.dec_eq K }
 end
 
@@ -94,80 +93,72 @@ begin
   rw [← mem_bot K, ← h.repr_ker, mem_ker],
   apply finsupp.ext,
   intro b,
-  haveI := classical.dec (b ∈ B),
-  by_cases hb : b ∈ B,
-  { rw [←to_dual_eq_repr _ _ _ hb, a],
-    refl },
-  { dsimp,
-    rw ←finsupp.not_mem_support_iff,
-    by_contradiction hb,
-    have nhb : b ∈ B := set.mem_of_subset_of_mem (h.repr_supported v) hb,
-    contradiction }
+  rw [←to_dual_eq_repr _ _ _, a],
+  refl
 end
 
 theorem to_dual_ker : h.to_dual.ker = ⊥ :=
 ker_eq_bot'.mpr h.to_dual_inj
 
-theorem to_dual_range [fin : fintype B] : h.to_dual.range = ⊤ :=
+theorem to_dual_range [fin : fintype ι] : h.to_dual.range = ⊤ :=
 begin
   rw eq_top_iff',
   intro f,
   rw linear_map.mem_range,
-  let lin_comb : B →₀ K := finsupp.on_finset fin.elems (λ b, f.to_fun b) _,
-  let emb := embedding.subtype B,
-  { use finsupp.total V V K id (finsupp.emb_domain emb lin_comb),
+  let lin_comb : ι →₀ K := finsupp.on_finset fin.elems (λ i, f.to_fun (B i)) _,
+  --let emb := embedding.subtype B,
+  { use finsupp.total ι V K B lin_comb,
     apply h.ext,
-    { intros x hx,
-      rw [h.to_dual_eq_repr _ x hx, repr_total _],
-      have emb_x : x = emb ⟨x, hx⟩, from rfl,
-      { rw [emb_x, finsupp.emb_domain_apply emb lin_comb _, ← emb_x], simpa },
-      { rw [finsupp.mem_supported, finsupp.support_emb_domain, finset.map_eq_image, finset.coe_image],
-        apply subtype.val_image_subset } },
+    { intros i,
+      rw [h.to_dual_eq_repr _ i, repr_total h],
+      { simpa },
+      { rw [finsupp.mem_supported],
+        exact λ _ _, set.mem_univ _ } },
     { exact classical.dec_eq K } },
   { intros a _,
     apply fin.complete }
 end
 
-def dual_basis : set (dual K V) := h.to_dual '' B
+def dual_basis : ι → dual K V := λ i, h.to_dual (B i)
 
-theorem dual_lin_independent : linear_independent K id h.dual_basis :=
+theorem dual_lin_independent : linear_independent K h.dual_basis set.univ :=
 begin
-  apply linear_independent.image h.1,
+  apply linear_independent.image' h.1,
   rw to_dual_ker,
   exact disjoint_bot_right
 end
 
-def to_dual_equiv [fintype B] : V ≃ₗ[K] (dual K V) :=
+def to_dual_equiv [fintype ι] : V ≃ₗ[K] (dual K V) :=
 linear_equiv.of_bijective h.to_dual h.to_dual_ker h.to_dual_range
 
-theorem dual_basis_is_basis [fintype B] : is_basis K h.dual_basis :=
+theorem dual_basis_is_basis [fintype ι] : is_basis K h.dual_basis :=
 h.to_dual_equiv.is_basis h
 
-@[simp] lemma to_dual_to_dual [decidable_eq (dual K (dual K V))] [fintype B] :
+@[simp] lemma to_dual_to_dual [decidable_eq (dual K (dual K V))] [fintype ι] :
   (h.dual_basis_is_basis.to_dual).comp h.to_dual = eval K V :=
 begin
-  apply @is_basis.ext _ _ _ _ _ (classical.dec_eq _) _ _ _ _ _ _ _ _ h,
-  intros b hb,
-  apply @is_basis.ext _ _ _ _ _ (classical.dec_eq _) _ _ _ _ _ _ _ _ h.dual_basis_is_basis,
-  intros c hc,
+  apply @is_basis.ext _ _ _ _ _ _ _ _ (classical.dec_eq (dual K (dual K V))) _ _ _ _ _ _ _ h,
+  intros i,
+  apply @is_basis.ext _ _ _ _ _ _ _ _ (classical.dec_eq _) _ _ _ _ _ _ _ h.dual_basis_is_basis,
+  intros j,
   dunfold eval,
-  rw [linear_map.flip_apply, linear_map.id_apply, linear_map.comp_apply,
-      to_dual_apply h.dual_basis_is_basis (h.to_dual b) _ c hc],
-  { dsimp [dual_basis] at hc,
-    rw set.mem_image at hc,
-    rcases hc with ⟨b', hb', rfl⟩,
+  rw [linear_map.flip_apply, linear_map.id_apply, linear_map.comp_apply],
+  apply eq.trans (to_dual_apply h.dual_basis_is_basis i j),
+  { dunfold dual_basis,
     rw to_dual_apply,
     split_ifs with h₁ h₂; try {refl},
-    { have hh : b = b', from (ker_eq_bot.1 h.to_dual_ker h₁).symm, contradiction },
-    { subst h_1, contradiction },
-    assumption' },
-  { dunfold dual_basis,
-    exact set.mem_image_of_mem h.to_dual hb }
+    { exfalso, apply h₂ h₁.symm },
+    { exfalso, apply ne.symm h₁ (by assumption) } }
 end
 
-theorem dual_dim_eq [fintype B] :
-  cardinal.lift.{v (max u v)} (dim K V) = dim K (dual K V) :=
-by { rw linear_equiv.dim_eq_lift h.to_dual_equiv, apply cardinal.lift_id }
+theorem dual_dim_eq [fintype ι] :
+  cardinal.lift.{v u} (dim K V) = dim K (dual K V) :=
+begin
+  have :=  linear_equiv.dim_eq_lift  h.to_dual_equiv,
+  simp only [cardinal.lift_umax] at this,
+  rw [this, ← cardinal.lift_umax],
+  apply cardinal.lift_id,
+end
 
 end is_basis
 
@@ -189,14 +180,14 @@ begin
   by_contradiction H,
   rcases exists_subset_is_basis (linear_independent_singleton H) with ⟨b, hv, hb⟩,
   swap 4, assumption,
-  have hv' : v ∈ b := hv (set.mem_singleton v),
+  have hv' : v = (λ (i : b), i.val) ⟨v, hv (set.mem_singleton v)⟩ := rfl,
   let hx := h (hb.to_dual v),
-  erw [eval_apply, to_dual_apply _ _ hv' _ hv', if_pos rfl, zero_apply _] at hx,
+  erw [eval_apply, hv', to_dual_apply, if_pos rfl, zero_apply _] at hx,
   exact one_ne_zero hx
 end
 
 theorem dual_dim_eq [decidable_eq V] [decidable_eq (dual K V)] (h : dim K V < omega) :
-  cardinal.lift.{v (max u v)} (dim K V) = dim K (dual K V) :=
+  cardinal.lift.{v u} (dim K V) = dim K (dual K V) :=
 begin
   rcases exists_is_basis_fintype h with ⟨b, hb, ⟨hf⟩⟩,
   resetI,

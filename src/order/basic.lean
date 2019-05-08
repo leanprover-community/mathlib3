@@ -176,27 +176,28 @@ assume a a' h, m h b
 
 end monotone
 
-def preorder.lift {α β} (f : α → β) (preorder β) : preorder α :=
+def preorder.lift {α β} (f : α → β) (i : preorder β) : preorder α :=
+by exactI
 { le := λx y, f x ≤ f y,
   le_refl := λ a, le_refl _,
   le_trans := λ a b c, le_trans,
   lt := λx y, f x < f y,
   lt_iff_le_not_le := λ a b, lt_iff_le_not_le }
 
-def partial_order.lift {α β} (f : α → β) (inj : injective f)
-  (partial_order β) : partial_order α :=
-{ le_antisymm := λ a b h₁ h₂, inj (le_antisymm h₁ h₂), .. preorder.lift f }
+def partial_order.lift {α β} (f : α → β) (inj : injective f) (i : partial_order β) :
+  partial_order α :=
+{ le_antisymm := λ a b h₁ h₂, inj (le_antisymm h₁ h₂), .. preorder.lift f i }
 
-def linear_order.lift {α β} (f : α → β) (inj : injective f)
-  (linear_order β) : linear_order α :=
-{ le_total := λx y, le_total (f x) (f y), .. partial_order.lift f inj }
+def linear_order.lift {α β} (f : α → β) (inj : injective f) (i : linear_order β) :
+  linear_order α :=
+{ le_total := λx y, le_total (f x) (f y), .. partial_order.lift f inj i }
 
-def decidable_linear_order.lift {α β} (f : α → β) (inj : injective f)
-  (decidable_linear_order β) : decidable_linear_order α :=
+def decidable_linear_order.lift {α β} (f : α → β) (inj : injective f) (i : decidable_linear_order β) :
+  decidable_linear_order α :=
 { decidable_le := λ x y, show decidable (f x ≤ f y), by apply_instance,
   decidable_lt := λ x y, show decidable (f x < f y), by apply_instance,
   decidable_eq := λ x y, decidable_of_iff _ ⟨@inj x y, congr_arg f⟩,
-  .. linear_order.lift f inj }
+  .. linear_order.lift f inj i }
 
 instance subtype.preorder {α} [i : preorder α] (p : α → Prop) : preorder (subtype p) :=
 preorder.lift subtype.val i

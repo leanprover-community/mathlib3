@@ -200,7 +200,7 @@ by exactI
 { decidable_le := λ x y, show decidable (f x ≤ f y), by apply_instance,
   decidable_lt := λ x y, show decidable (f x < f y), by apply_instance,
   decidable_eq := λ x y, decidable_of_iff _ ⟨@inj x y, congr_arg f⟩,
-  .. linear_order.lift f inj (by apply_instance} }
+  .. linear_order.lift f inj (by apply_instance) }
 
 instance subtype.preorder {α} [i : preorder α] (p : α → Prop) : preorder (subtype p) :=
 preorder.lift subtype.val i

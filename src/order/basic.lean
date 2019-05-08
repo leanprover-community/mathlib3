@@ -186,18 +186,21 @@ by exactI
 
 def partial_order.lift {α β} (f : α → β) (inj : injective f) (i : partial_order β) :
   partial_order α :=
-{ le_antisymm := λ a b h₁ h₂, inj (le_antisymm h₁ h₂), .. preorder.lift f i }
+by exactI
+{ le_antisymm := λ a b h₁ h₂, inj (le_antisymm h₁ h₂), .. preorder.lift f (by apply_instance) }
 
 def linear_order.lift {α β} (f : α → β) (inj : injective f) (i : linear_order β) :
   linear_order α :=
-{ le_total := λx y, le_total (f x) (f y), .. partial_order.lift f inj i }
+by exactI
+{ le_total := λx y, le_total (f x) (f y), .. partial_order.lift f inj (by apply_instance) }
 
-def decidable_linear_order.lift {α β} (f : α → β) (inj : injective f) (i : decidable_linear_order β) :
-  decidable_linear_order α :=
+def decidable_linear_order.lift {α β} (f : α → β) (inj : injective f)
+  (i : decidable_linear_order β) : decidable_linear_order α :=
+by exactI
 { decidable_le := λ x y, show decidable (f x ≤ f y), by apply_instance,
   decidable_lt := λ x y, show decidable (f x < f y), by apply_instance,
   decidable_eq := λ x y, decidable_of_iff _ ⟨@inj x y, congr_arg f⟩,
-  .. linear_order.lift f inj i }
+  .. linear_order.lift f inj (by apply_instance} }
 
 instance subtype.preorder {α} [i : preorder α] (p : α → Prop) : preorder (subtype p) :=
 preorder.lift subtype.val i

@@ -6,9 +6,7 @@ Authors: Johan Commelin
 Pointwise addition and multiplication of sets
 -/
 
-import data.set.finite
-import data.set.lattice
-import group_theory.group_action
+import data.set.finite data.set.lattice group_theory.group_action
 
 namespace set
 open function
@@ -210,6 +208,8 @@ def pointwise_mul_image_is_semiring_hom : is_semiring_hom (image f) :=
       apply is_monoid_hom.map_mul f }
   end }
 
+local attribute [instance] singleton.is_monoid_hom
+
 def pointwise_mul_action : mul_action α (set α) :=
 { smul := λ a s, ({a} : set α) * s,
   one_smul := one_mul,
@@ -236,3 +236,4 @@ end
 end monoid
 
 end set
+

@@ -8,7 +8,7 @@ Pointwise addition and multiplication of sets
 
 import data.set.finite
 import data.set.lattice
-import algebra.group
+import group_theory.group_action
 
 namespace set
 open function
@@ -29,7 +29,7 @@ mem_singleton_iff
 def pointwise_mul [has_mul α] : has_mul (set α) :=
   ⟨λ s t, {a | ∃ x ∈ s, ∃ y ∈ t, a = x * y}⟩
 
-local attribute [instance] pointwise_one pointwise_mul
+local attribute [instance] pointwise_one pointwise_mul pointwise_add
 
 @[to_additive set.mem_pointwise_add]
 lemma mem_pointwise_mul [has_mul α] {s t : set α} {a : α} :

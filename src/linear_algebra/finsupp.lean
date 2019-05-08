@@ -311,6 +311,20 @@ theorem lmap_domain_total (f : α → α') (g : β →ₗ[γ] β') (h : ∀ i, g
   (finsupp.total α' β' γ v').comp (lmap_domain γ γ f) = g.comp (finsupp.total α β γ v) :=
 by ext l; simp [total_apply, finsupp.sum_map_domain_index, add_smul, h]
 
+theorem total_emb_domain (f : α ↪ α') (l : α →₀ γ) :
+  (finsupp.total α' β' γ v') (emb_domain f l) = (finsupp.total α β' γ (v' ∘ f)) l :=
+by simp [total_apply, finsupp.sum, support_emb_domain, emb_domain_apply]
+
+theorem total_map_domain (f : α → α') (hf : function.injective f) (l : α →₀ γ) :
+  (finsupp.total α' β' γ v') (map_domain f l) = (finsupp.total α β' γ (v' ∘ f)) l :=
+begin
+  have : map_domain f l = emb_domain ⟨f, hf⟩ l,
+  { rw emb_domain_eq_map_domain ⟨f, hf⟩,
+    refl },
+  rw this,
+  apply total_emb_domain γ ⟨f, hf⟩ l
+end
+
 theorem span_eq_map_total (s : set α):
   span γ (v '' s) = submodule.map (finsupp.total α β γ v) (supported γ γ s) :=
 begin
@@ -343,6 +357,19 @@ variables {α} {β} {v}
 theorem total_on_range (s : set α) : (finsupp.total_on α β γ v s).range = ⊤ :=
 by rw [finsupp.total_on, linear_map.range, linear_map.map_cod_restrict, ← linear_map.range_le_iff_comap,
   range_subtype, map_top, linear_map.range_comp, range_subtype]; exact le_of_eq (span_eq_map_total _ _)
+
+theorem total_comp (f : α' → α) :
+  (finsupp.total α' β γ (v ∘ f)) = (finsupp.total α β γ v).comp (lmap_domain γ γ f) :=
+begin
+ ext l,
+ simp [total_apply],
+ rw sum_map_domain_index; simp [add_smul],
+end
+
+lemma total_comap_domain
+ (f : α → α') (l : α' →₀ γ) (hf : set.inj_on f (f ⁻¹' l.support.to_set)) :
+ finsupp.total α β γ v (finsupp.comap_domain f l hf) = (l.support.preimage hf).sum (λ i, (l (f i)) • (v i)) :=
+by rw finsupp.total_apply; refl
 
 end total
 

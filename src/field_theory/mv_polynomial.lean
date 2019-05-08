@@ -74,10 +74,22 @@ end
 section
 variables (σ α)
 lemma is_basis_monomials [discrete_field α] :
-  is_basis α (range (λs, monomial s 1) : set (mv_polynomial σ α)) :=
-suffices is_basis α (⋃i, (monomial i : α → mv_polynomial σ α) '' {1}),
-  by simpa only [range_eq_Union, image_singleton],
-finsupp.is_basis_single (assume s, is_basis_singleton_one α)
+  is_basis α ((λs, (monomial s 1 : mv_polynomial σ α))) :=
+suffices is_basis α (λ (sa : Σ _, unit), (monomial sa.1 1 : mv_polynomial σ α)),
+begin
+  apply is_basis.comp this (λ (s : σ →₀ ℕ), ⟨s, punit.star⟩),
+  split,
+  { intros x y hxy,
+    simpa using hxy },
+  { intros x,
+    rcases x with ⟨x₁, x₂⟩,
+    use x₁,
+    rw punit_eq punit.star x₂ }
+end,
+begin
+  apply finsupp.is_basis_single (λ _ _, (1 : α)),
+  intro _,
+  apply is_basis_singleton_one, end
 end
 
 end mv_polynomial
@@ -89,14 +101,7 @@ variables (σ : Type u) (α : Type u) [decidable_eq σ] [discrete_field α]
 local attribute [instance, priority 0] classical.prop_decidable
 
 lemma dim_mv_polynomial : vector_space.dim α (mv_polynomial σ α) = cardinal.mk (σ →₀ ℕ) :=
-begin
-  rw [← (is_basis_monomials σ α).mk_eq_dim, ← set.image_univ, cardinal.mk_eq_of_injective,
-    cardinal.mk_univ],
-  assume a b h,
-  rcases (finsupp.single_eq_single_iff _ _ _ _).1 h with ⟨rfl, _⟩ | ⟨h, _⟩,
-  { refl },
-  { exact (zero_ne_one.symm h).elim }
-end
+by rw [← cardinal.lift_inj, ← (is_basis_monomials σ α).mk_eq_dim]
 
 end mv_polynomial
 

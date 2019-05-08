@@ -119,6 +119,9 @@ cons $ do (xs,r) ← l,
        | cons m := do (a,n) ← m, return (a, join (cons $ return (n, r)))
        end
 
+meta def squash {α} (t : m (mllist m α)) : mllist m α :=
+(mllist.m_of_list [t]).join
+
 meta def enum_from {α : Type u} : ℕ → mllist m α → mllist m (ℕ × α)
 | _ nil := nil
 | n (cons l) :=

@@ -108,11 +108,11 @@ do -- We first restore all the "other" metavariables to their original values.
 meta def all_rewrites_core (t eq : expr) (symm : bool) : mllist tactic (tracked_rewrite × list expr) :=
 mllist.squash $
 do ty ← infer_type eq,
-  let matcher := get_lhs ty symm [],
-  let lhs := replacer ty symm,
-  let rhs := replacer ty ¬ symm,
-  let L := kabstracter matcher lhs t,
-  return $ L.mfilter_map (λ p, do_substitutions eq symm t lhs rhs p.1 p.2.head p.2.tail)
+   let matcher := get_lhs ty symm [],
+   let lhs := replacer ty symm,
+   let rhs := replacer ty ¬ symm,
+   let L := kabstracter matcher lhs t,
+   return $ L.mfilter_map (λ p, do_substitutions eq symm t lhs rhs p.1 p.2.head p.2.tail)
 
 end rewrite_all
 

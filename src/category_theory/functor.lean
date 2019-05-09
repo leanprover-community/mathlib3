@@ -14,7 +14,6 @@ Introduces notations
 -/
 
 import category_theory.category
-import tactic.tidy
 
 namespace category_theory
 

@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura
 
 Various multiplicative and additive structures.
 -/
-import tactic.interactive data.option.defs
+import tactic.basic data.option.defs
 
 section pending_1857
 

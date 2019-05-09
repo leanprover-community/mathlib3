@@ -10,8 +10,7 @@ namespace free_comm_ring
 
 variables (α : Type u)
 
-instance : add_comm_group (free_comm_ring α) :=
-{ .. free_abelian_group.add_comm_group (multiset α) }
+instance : comm_ring (free_comm_ring α) := free_abelian_group.comm_ring _
 
 instance : semigroup (free_comm_ring α) :=
 { mul := λ x, free_abelian_group.lift $ λ s2, free_abelian_group.lift (λ s1, free_abelian_group.of $ s1 + s2) x,
@@ -60,19 +59,6 @@ instance : ring (free_comm_ring α) :=
   end,
   .. free_comm_ring.add_comm_group α,
   .. free_comm_ring.semigroup α }
-
-instance : comm_ring (free_comm_ring α) :=
-{ mul_comm := λ x y, begin
-    refine free_abelian_group.induction_on x (zero_mul y) _ _ _,
-    { intros s, refine free_abelian_group.induction_on y (zero_mul _).symm _ _ _,
-      { intros t, unfold has_mul.mul semigroup.mul ring.mul,
-        iterate 4 { rw free_abelian_group.lift.of }, rw add_comm },
-      { intros t ih, rw [mul_neg_eq_neg_mul_symm, ih, neg_mul_eq_neg_mul] },
-      { intros y1 y2 ih1 ih2, rw [mul_add, add_mul, ih1, ih2] } },
-    { intros s ih, rw [neg_mul_eq_neg_mul_symm, ih, neg_mul_eq_mul_neg] },
-    { intros x1 x2 ih1 ih2, rw [add_mul, mul_add, ih1, ih2] }
-  end
-  .. free_comm_ring.ring α }
 
 variables {α}
 def of (x : α) : free_comm_ring α :=
@@ -209,48 +195,10 @@ def free_comm_ring_equiv_mv_polynomial_int :
   end }
 
 def free_comm_ring_pempty_equiv_int : free_comm_ring pempty.{u+1} ≃r ℤ :=
-{ to_fun := free_comm_ring.lift $ pempty.rec _,
-  inv_fun := coe,
-  left_inv := λ x, free_abelian_group.induction_on x rfl
-    (λ s, multiset.induction_on s rfl $ pempty.rec _)
-    (λ s ih, by rw [free_comm_ring.lift_neg, int.cast_neg, ih])
-    (λ x1 x2 ih1 ih2, by rw [free_comm_ring.lift_add, int.cast_add, ih1, ih2]),
-  right_inv := λ i, int.induction_on i rfl
-    (λ i ih, by rw [int.cast_add, int.cast_one, free_comm_ring.lift_add, free_comm_ring.lift_one, ih])
-    (λ i ih, by rw [int.cast_sub, int.cast_one, free_comm_ring.lift_sub, free_comm_ring.lift_one, ih]),
-  hom := by apply_instance }
+ring_equiv.trans (free_comm_ring_equiv_mv_polynomial_int _) (mv_polynomial.pempty_ring_equiv _)
 
 def free_comm_ring_punit_equiv_polynomial_int : free_comm_ring punit.{u+1} ≃r polynomial ℤ :=
-{ to_fun := free_comm_ring.lift $ λ _, polynomial.X,
-  inv_fun := polynomial.eval₂ coe (free_comm_ring.of punit.star),
-  left_inv := λ x, begin
-    haveI : is_semiring_hom (coe : int → free_comm_ring punit.{u+1}) :=
-      @@is_ring_hom.is_semiring_hom _ _ _ (@@int.cast.is_ring_hom _),
-    exact free_abelian_group.induction_on x rfl
-    (λ s, multiset.induction_on s rfl $ λ hd tl ih, show polynomial.eval₂ coe (free_comm_ring.of punit.star)
-          (free_comm_ring.lift (λ (_x : punit), polynomial.X) (free_comm_ring.of hd * free_abelian_group.of tl)) =
-        free_comm_ring.of hd * free_abelian_group.of tl,
-      by cases hd; rw [free_comm_ring.lift_mul, free_comm_ring.lift_of, polynomial.eval₂_mul, polynomial.eval₂_X, ih])
-    (λ s ih, by rw [free_comm_ring.lift_neg, ← neg_one_mul, polynomial.eval₂_mul,
-        ← polynomial.C_1, ← polynomial.C_neg, polynomial.eval₂_C,
-        int.cast_neg, int.cast_one, neg_one_mul, ih])
-    (λ x1 x2 ih1 ih2, by rw [free_comm_ring.lift_add, polynomial.eval₂_add, ih1, ih2])
-  end,
-  right_inv := λ x, begin
-    haveI : is_semiring_hom (coe : int → free_comm_ring punit.{u+1}) :=
-      @@is_ring_hom.is_semiring_hom _ _ _ (@@int.cast.is_ring_hom _),
-    have : ∀ i : ℤ, free_comm_ring.lift (λ _ : punit, polynomial.X) ↑i = polynomial.C i,
-    { exact λ i, int.induction_on i
-      (by rw [int.cast_zero, free_comm_ring.lift_zero, polynomial.C_0])
-      (λ i ih, by rw [int.cast_add, int.cast_one, free_comm_ring.lift_add, free_comm_ring.lift_one, ih, polynomial.C_add, polynomial.C_1])
-      (λ i ih, by rw [int.cast_sub, int.cast_one, free_comm_ring.lift_sub, free_comm_ring.lift_one, ih, polynomial.C_sub, polynomial.C_1]) },
-    exact polynomial.induction_on x
-    (λ i, by rw [polynomial.eval₂_C, this])
-    (λ p q ihp ihq, by rw [polynomial.eval₂_add, free_comm_ring.lift_add, ihp, ihq])
-    (λ n i ih, by rw [polynomial.eval₂_mul, polynomial.eval₂_pow, polynomial.eval₂_C, polynomial.eval₂_X,
-        free_comm_ring.lift_mul, free_comm_ring.lift_pow, free_comm_ring.lift_of, this])
-  end,
-  hom := by apply_instance }
+ring_equiv.trans (free_comm_ring_equiv_mv_polynomial_int _) (mv_polynomial.punit_ring_equiv _)
 
 instance free_ring_to_free_comm_ring : has_coe (free_ring α) (free_comm_ring α) :=
 ⟨free_ring.lift free_comm_ring.of⟩
@@ -261,30 +209,51 @@ open function
 instance : is_ring_hom (coe : free_ring α → free_comm_ring α) :=
 free_ring.is_ring_hom free_comm_ring.of
 
-@[simp] lemma coe_zero : ↑(0 : free_ring α) = (0 : free_comm_ring α) := rfl
-@[simp] lemma coe_one : ↑(1 : free_ring α) = (1 : free_comm_ring α) := rfl
+@[simp] protected lemma coe_zero : ↑(0 : free_ring α) = (0 : free_comm_ring α) := rfl
+@[simp] protected lemma coe_one : ↑(1 : free_ring α) = (1 : free_comm_ring α) := rfl
 
 variable {α}
 
-@[simp] lemma coe_neg (x : free_ring α) : ↑(-x) = -(x : free_comm_ring α) :=
+@[simp] protected lemma coe_of (a : α) : ↑(free_ring.of a) = free_comm_ring.of a :=
+free_ring.lift_of _ _
+@[simp] protected lemma coe_neg (x : free_ring α) : ↑(-x) = -(x : free_comm_ring α) :=
 free_ring.lift_neg _ _
-@[simp] lemma coe_add (x y : free_ring α) : ↑(x + y) = (x : free_comm_ring α) + y :=
+@[simp] protected lemma coe_add (x y : free_ring α) : ↑(x + y) = (x : free_comm_ring α) + y :=
 free_ring.lift_add _ _ _
-@[simp] lemma coe_sub (x y : free_ring α) : ↑(x - y) = (x : free_comm_ring α) - y :=
+@[simp] protected lemma coe_sub (x y : free_ring α) : ↑(x - y) = (x : free_comm_ring α) - y :=
 free_ring.lift_sub _ _ _
-@[simp] lemma coe_mul (x y : free_ring α) : ↑(x * y) = (x : free_comm_ring α) * y :=
+@[simp] protected lemma coe_mul (x y : free_ring α) : ↑(x * y) = (x : free_comm_ring α) * y :=
 free_ring.lift_mul _ _ _
 
 variable (α)
 
-lemma surjective : surjective (coe : free_ring α → free_comm_ring α) :=
+@[simp] protected lemma free_abelian_group_map_eq_coe :
+  (@functor.map free_abelian_group _ _ _ coe : free_ring α → free_comm_ring α) =
+  (coe : free_ring α → free_comm_ring α) :=
+begin
+  funext x,
+  apply free_abelian_group.induction_on x; intros,
+  { refl },
+  { erw free_abelian_group.map_pure,
+    induction x_1, {refl},
+    show _ = ↑(free_ring.of _ * pure _), },
+  { erw free_abelian_group.map_neg, simp *, },
+  { erw free_abelian_group.map_add, simp *, },
+end
+
+
+protected lemma surjective : surjective (coe : free_ring α → free_comm_ring α) :=
 λ x,
 begin
   apply free_comm_ring.induction_on x,
   { use -1, refl },
   { intro x, use free_ring.of x, refl },
-  { rintros _ _ ⟨x, rfl⟩ ⟨y, rfl⟩, use x + y, exact coe_add _ _ },
-  { rintros _ _ ⟨x, rfl⟩ ⟨y, rfl⟩, use x * y, exact coe_mul _ _ }
+  { rintros _ _ ⟨x, rfl⟩ ⟨y, rfl⟩, use x + y, exact free_ring.lift_add _ _ _ },
+  { rintros _ _ ⟨x, rfl⟩ ⟨y, rfl⟩, use x * y, exact free_ring.lift_mul _ _ _ }
 end
+
+def subsingleton_equiv [subsingleton α] : free_ring α ≃r free_comm_ring α :=
+{ to_equiv := _,
+  hom := free_ring_to_free_comm_ring.is_ring_hom α }
 
 end free_ring_to_free_comm_ring

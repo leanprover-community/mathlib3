@@ -125,22 +125,25 @@ instance of_iso_inverse (f : X ≅ Y) : is_iso f.inv :=
 
 variables {f g : X ⟶ Y} {h : Y ⟶ Z}
 
-instance inv_is_iso [is_iso f] : is_iso (inv f) :=
+instance inv_is_iso [is_iso f] : is_iso (category_theory.inv f) :=
 { inv := f,
   hom_inv_id' := inv_hom_id f,
   inv_hom_id' := hom_inv_id f }
 instance comp_is_iso [is_iso f] [is_iso h] : is_iso (f ≫ h) :=
-{ inv := inv h ≫ inv f,
+{ inv := category_theory.inv h ≫ category_theory.inv f,
   hom_inv_id' := begin erw [category.assoc, hom_inv_id_assoc], exact hom_inv_id f, end,
-  inv_hom_id' := begin erw [category.assoc, hom_inv_id_assoc], exact inv_hom_id h, end }
+  inv_hom_id' := begin erw [category.assoc, inv_hom_id_assoc], exact inv_hom_id h, end }
 
 @[simp] lemma inv_id : inv (𝟙 X) = 𝟙 X := rfl
-@[simp] lemma inv_comp [is_iso f] [is_iso h] : inv (f ≫ h) = inv h ≫ inv f := rfl
-@[simp] lemma is_iso.inv_inv [is_iso f] : inv (inv f) = f := rfl
-@[simp] lemma iso.inv_inv (f : X ≅ Y) : inv (f.inv) = f.hom := rfl
-@[simp] lemma iso.inv_hom (f : X ≅ Y) : inv (f.hom) = f.inv := rfl
+@[simp] lemma inv_comp [is_iso f] [is_iso h] :
+  category_theory.inv (f ≫ h) = category_theory.inv h ≫ category_theory.inv f := rfl
+@[simp] lemma is_iso.inv_inv [is_iso f] : category_theory.inv (category_theory.inv f) = f := rfl
+@[simp] lemma iso.inv_inv (f : X ≅ Y) :
+  category_theory.inv (f.inv) = f.hom := rfl
+@[simp] lemma iso.inv_hom (f : X ≅ Y) :
+  category_theory.inv (f.hom) = f.inv := rfl
 
-instance epi_of_iso  (f : X ⟶ Y) [is_iso f] : epi f  :=
+instance epi_of_iso (f : X ⟶ Y) [is_iso f] : epi f  :=
 { left_cancellation := λ Z g h w,
   -- This is an interesting test case for better rewrite automation.
   by rw [←category.id_comp C g, ←category.id_comp C h, ←is_iso.inv_hom_id f, category.assoc, w, category.assoc] }
@@ -148,13 +151,15 @@ instance mono_of_iso (f : X ⟶ Y) [is_iso f] : mono f :=
 { right_cancellation := λ Z g h w,
   by rw [←category.comp_id C g, ←category.comp_id C h, ←is_iso.hom_inv_id f, ←category.assoc, w, ←category.assoc] }
 
-lemma eq_of_inv_eq [is_iso f] [is_iso g] (p : inv f = inv g) : f = g :=
+end is_iso
+
+open is_iso
+
+lemma eq_of_inv_eq_inv {f g : X ⟶ Y} [is_iso f] [is_iso g] (p : inv f = inv g) : f = g :=
 begin
   apply (cancel_epi (inv f)).1,
   erw [inv_hom_id, p, inv_hom_id],
 end
-
-end is_iso
 
 def as_iso (f : X ⟶ Y) [is_iso f] : X ≅ Y :=
 { hom := f, inv := inv f }

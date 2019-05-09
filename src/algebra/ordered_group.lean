@@ -136,8 +136,8 @@ end ordered_comm_monoid
 
 namespace units
 
-instance [monoid α] [preorder α] : preorder (units α) :=
-preorder.lift (coe : units α → α)
+instance [monoid α] [i : preorder α] : preorder (units α) :=
+preorder.lift (coe : units α → α) i
 
 @[simp] theorem coe_le_coe [monoid α] [preorder α] {a b : units α} :
   (a : α) ≤ b ↔ a ≤ b := iff.rfl
@@ -145,14 +145,14 @@ preorder.lift (coe : units α → α)
 @[simp] theorem coe_lt_coe [monoid α] [preorder α] {a b : units α} :
   (a : α) < b ↔ a < b := iff.rfl
 
-instance [monoid α] [partial_order α] : partial_order (units α) :=
-partial_order.lift (coe : units α → α) (by ext)
+instance [monoid α] [i : partial_order α] : partial_order (units α) :=
+partial_order.lift (coe : units α → α) (by ext) i
 
-instance [monoid α] [linear_order α] : linear_order (units α) :=
-linear_order.lift (coe : units α → α) (by ext)
+instance [monoid α] [i : linear_order α] : linear_order (units α) :=
+linear_order.lift (coe : units α → α) (by ext) i
 
-instance [monoid α] [decidable_linear_order α] : decidable_linear_order (units α) :=
-decidable_linear_order.lift (coe : units α → α) (by ext)
+instance [monoid α] [i : decidable_linear_order α] : decidable_linear_order (units α) :=
+decidable_linear_order.lift (coe : units α → α) (by ext) i
 
 theorem max_coe [monoid α] [decidable_linear_order α] {a b : units α} :
   (↑(max a b) : α) = max a b :=
@@ -167,6 +167,7 @@ end units
 namespace with_zero
 open lattice
 
+instance [preorder α] : preorder (with_zero α) := with_bot.preorder
 instance [partial_order α] : partial_order (with_zero α) := with_bot.partial_order
 instance [partial_order α] : order_bot (with_zero α) := with_bot.order_bot
 instance [lattice α] : lattice (with_zero α) := with_bot.lattice

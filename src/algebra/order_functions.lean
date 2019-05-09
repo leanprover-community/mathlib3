@@ -12,8 +12,8 @@ variables {α : Type u} {β : Type v}
 
 attribute [simp] max_eq_left max_eq_right min_eq_left min_eq_right
 
-/-- A function `f` between preorders is strictly monotone if `a < b` implies `f a < f b`. -/
-def strict_mono [preorder α] [preorder β] (f : α → β) : Prop :=
+/-- A function `f` is strictly monotone if `a < b` implies `f a < f b`. -/
+def strict_mono [has_lt α] [has_lt β] (f : α → β) : Prop :=
 ∀ a b, a < b → f a < f b
 
 namespace strict_mono

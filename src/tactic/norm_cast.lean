@@ -79,13 +79,13 @@ used to normalize casts.
 
 Let r be = or ↔, then elimination lemmas of the shape
 Π ..., P ↑a1 ... ↑an r P a1 ... an should be given the
-attribute norm_cast.
+attribute elim_cast.
 -/
 @[user_attribute]
-meta def norm_cast_attr : user_attribute simp_lemmas :=
+meta def elim_cast_attr : user_attribute simp_lemmas :=
 {
-    name      := `norm_cast,
-    descr     := "attribute for cast normalization",
+    name      := `elim_cast,
+    descr     := "attribute for lemmas of the shape Π ..., P ↑a1 ... ↑an = P a1 ... an",
     cache_cfg :=
         { mk_cache     := mk_cache,
           dependencies := [], },
@@ -97,36 +97,36 @@ used to normalize casts.
 
 Let r be = or ↔, then compositional lemmas of the shape
 Π ..., ↑(P a1 ... an) r P ↑a1 ... ↑an should be given the
-attribute norm_cast_rev.
+attribute move_cast.
 -/
 @[user_attribute]
-meta def norm_cast_rev_attr : user_attribute simp_lemmas :=
+meta def move_cast_attr : user_attribute simp_lemmas :=
 {
-    name      := `norm_cast_rev,
-    descr     := "attribute for cast normalization",
+    name      := `move_cast,
+    descr     := "attribute for lemmas of the shape Π ..., ↑(P a1 ... an) = P ↑a1 ... ↑an",
     after_set := some after_set,
     cache_cfg :=
         { mk_cache     := mk_cache ∘ (list.map new_name),
           dependencies := [], },
 }
 
-private meta def get_norm_cast_cache : tactic simp_lemmas :=
+private meta def get_cache : tactic simp_lemmas :=
 do
-    a ← norm_cast_attr.get_cache,
-    b ← norm_cast_rev_attr.get_cache,
+    a ← elim_cast_attr.get_cache,
+    b ← move_cast_attr.get_cache,
     return $ simp_lemmas.join a b
 
 /--
-This is an attribute for simplifications rules of the shape
+This is an attribute for simplification rules of the shape
 Π ..., ↑↑a = ↑a or  Π ..., ↑a = a.
 
 They are used in a heuristic to infer intermediate casts.
 -/
 @[user_attribute]
-meta def simp_cast_attr : user_attribute simp_lemmas :=
+meta def squash_cast_attr : user_attribute simp_lemmas :=
 {
-    name      := `simp_cast,
-    descr     := "attribute for cast simplification",
+    name      := `squash_cast,
+    descr     := "attribute for lemmas of the shape Π ..., ↑↑a = ↑a",
     after_set := none,
     cache_cfg := {
         mk_cache     := monad.foldl simp_lemmas.add_simp simp_lemmas.mk,
@@ -136,11 +136,11 @@ meta def simp_cast_attr : user_attribute simp_lemmas :=
 
 /-
 This is an auxiliary function that proves e = new_e
-using only simp_cast lemmas
+using only squash_cast lemmas
 -/
 private meta def aux_simp (e new_e : expr) : tactic expr :=
 do
-    s ← simp_cast_attr.get_cache,
+    s ← squash_cast_attr.get_cache,
     (e', pr) ← s.rewrite new_e,
     is_def_eq e e',
     mk_eq_symm pr
@@ -168,10 +168,10 @@ match e with
 end
 
 /-
-This is the main heuristic used alongside the norm_cast lemmas.
+This is the main heuristic used alongside the elim_cast and move_cast lemmas.
 An expression of the shape: op (↑(x : α) : γ) (↑(y : β) : γ)
 is rewritten as:            op (↑(↑(x : α) : β) : γ) (↑(y : β) : γ)
-when the simp_cast lemmas can prove that (↑(x : α) : γ) = (↑(↑(x : α) : β) : γ)
+when the squash_cast lemmas can prove that (↑(x : α) : γ) = (↑(↑(x : α) : β) : γ)
 -/
 private meta def heur (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
 match e with
@@ -223,17 +223,17 @@ Core function
 -/
 meta def derive (e : expr) : tactic (expr × expr) :=
 do
-    s ← get_norm_cast_cache,
+    s ← get_cache,
     e ← instantiate_mvars e,
     let cfg : simp_config := {fail_if_unchanged := ff},
 
-    -- step 1: casts are moved outwards as much as possible using norm_cast lemmas
+    -- step 1: casts are moved upwards and eliminated
     ((), new_e, pr1) ← simplify_bottom_up ()
         (λ a e, post s a e <|> heur a e <|> aux_num a e)
         e cfg,
 
-    -- step 2: casts are simplified using simp_cast lemmas
-    s ← simp_cast_attr.get_cache,
+    -- step 2: casts are squashed
+    s ← squash_cast_attr.get_cache,
     (new_e, pr2) ← simplify s [] new_e cfg,
 
     guard (¬ new_e =ₐ e),
@@ -365,19 +365,19 @@ meta def norm_cast : conv unit := replace_lhs derive
 
 end conv.interactive
 
-@[norm_cast] lemma ge_from_le {α} [has_le α] : ∀ (x y : α), x ≥ y ↔ y ≤ x := λ _ _, iff.rfl
-@[norm_cast] lemma gt_from_lt {α} [has_lt α] : ∀ (x y : α), x > y ↔ y < x := λ _ _, iff.rfl
-@[norm_cast] lemma ne_from_not_eq {α} : ∀ (x y : α), x ≠ y ↔ ¬(x = y) := λ _ _, iff.rfl
+@[elim_cast] lemma ge_from_le {α} [has_le α] : ∀ (x y : α), x ≥ y ↔ y ≤ x := λ _ _, iff.rfl
+@[elim_cast] lemma gt_from_lt {α} [has_lt α] : ∀ (x y : α), x > y ↔ y < x := λ _ _, iff.rfl
+@[elim_cast] lemma ne_from_not_eq {α} : ∀ (x y : α), x ≠ y ↔ ¬(x = y) := λ _ _, iff.rfl
 
-attribute [simp_cast] int.coe_nat_zero
-attribute [simp_cast] int.coe_nat_one
+attribute [squash_cast] int.coe_nat_zero
+attribute [squash_cast] int.coe_nat_one
 
-attribute [norm_cast_rev] int.coe_nat_succ
-attribute [norm_cast_rev] int.coe_nat_add
-attribute [norm_cast_rev] int.coe_nat_sub
-attribute [norm_cast_rev] int.coe_nat_mul
+attribute [move_cast] int.coe_nat_succ
+attribute [move_cast] int.coe_nat_add
+attribute [move_cast] int.coe_nat_sub
+attribute [move_cast] int.coe_nat_mul
 
-@[norm_cast_rev] lemma ite_cast {α β : Type} [has_coe α β]
+@[move_cast] lemma ite_cast {α β : Type} [has_coe α β]
     {c : Prop} [decidable c] {a b : α} :
     ↑(ite c a b) = ite c (↑a : β) (↑b : β) :=
 by by_cases h : c; simp [h]

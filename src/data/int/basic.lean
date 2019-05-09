@@ -27,9 +27,9 @@ attribute [simp] int.coe_nat_add int.coe_nat_mul int.coe_nat_zero int.coe_nat_on
 @[simp] theorem neg_succ_mul_coe_nat (m n : ℕ) : -[1+ m] * n = -(succ m * n) := rfl
 @[simp] theorem neg_succ_mul_neg_succ (m n : ℕ) : -[1+ m] * -[1+ n] = succ m * succ n := rfl
 
-@[simp, norm_cast] theorem coe_nat_le {m n : ℕ} : (↑m : ℤ) ≤ ↑n ↔ m ≤ n := coe_nat_le_coe_nat_iff m n
-@[simp, norm_cast] theorem coe_nat_lt {m n : ℕ} : (↑m : ℤ) < ↑n ↔ m < n := coe_nat_lt_coe_nat_iff m n
-@[simp, norm_cast] theorem coe_nat_inj' {m n : ℕ} : (↑m : ℤ) = ↑n ↔ m = n := int.coe_nat_eq_coe_nat_iff m n
+@[simp, elim_cast] theorem coe_nat_le {m n : ℕ} : (↑m : ℤ) ≤ ↑n ↔ m ≤ n := coe_nat_le_coe_nat_iff m n
+@[simp, elim_cast] theorem coe_nat_lt {m n : ℕ} : (↑m : ℤ) < ↑n ↔ m < n := coe_nat_lt_coe_nat_iff m n
+@[simp, elim_cast] theorem coe_nat_inj' {m n : ℕ} : (↑m : ℤ) = ↑n ↔ m = n := int.coe_nat_eq_coe_nat_iff m n
 
 @[simp] theorem coe_nat_pos {n : ℕ} : (0 : ℤ) < n ↔ 0 < n :=
 by rw [← int.coe_nat_zero, coe_nat_lt]
@@ -48,7 +48,7 @@ lemma coe_nat_ne_zero_iff_pos {n : ℕ} : (n : ℤ) ≠ 0 ↔ 0 < n :=
 
 lemma coe_nat_succ_pos (n : ℕ) : 0 < (n.succ : ℤ) := int.coe_nat_pos.2 (succ_pos n)
 
-@[simp, norm_cast] theorem coe_nat_abs (n : ℕ) : abs (n : ℤ) = n :=
+@[simp, elim_cast] theorem coe_nat_abs (n : ℕ) : abs (n : ℤ) = n :=
 abs_of_nonneg (coe_nat_nonneg n)
 
 /- succ and pred -/
@@ -167,7 +167,7 @@ lemma nat_abs_ne_zero_of_ne_zero {z : ℤ} (hz : z ≠ 0) : z.nat_abs ≠ 0 :=
 
 @[simp] theorem of_nat_div (m n : ℕ) : of_nat (m / n) = (of_nat m) / (of_nat n) := rfl
 
-@[simp, norm_cast_rev] theorem coe_nat_div (m n : ℕ) : ((m / n : ℕ) : ℤ) = m / n := rfl
+@[simp, move_cast] theorem coe_nat_div (m n : ℕ) : ((m / n : ℕ) : ℤ) = m / n := rfl
 
 theorem neg_succ_of_nat_div (m : ℕ) {b : ℤ} (H : b > 0) :
   -[1+m] / b = -(m / b + 1) :=
@@ -480,7 +480,7 @@ end
 
 /- dvd -/
 
-@[norm_cast] theorem coe_nat_dvd {m n : ℕ} : (↑m : ℤ) ∣ ↑n ↔ m ∣ n :=
+@[elim_cast] theorem coe_nat_dvd {m n : ℕ} : (↑m : ℤ) ∣ ↑n ↔ m ∣ n :=
 ⟨λ ⟨a, ae⟩, m.eq_zero_or_pos.elim
   (λm0, by simp [m0] at ae; simp [ae, m0])
   (λm0l, by {
@@ -1044,21 +1044,21 @@ protected def cast : ℤ → α
 
 @[priority 0] instance cast_coe : has_coe ℤ α := ⟨int.cast⟩
 
-@[simp, simp_cast] theorem cast_zero : ((0 : ℤ) : α) = 0 := rfl
+@[simp, squash_cast] theorem cast_zero : ((0 : ℤ) : α) = 0 := rfl
 
 @[simp] theorem cast_of_nat (n : ℕ) : (of_nat n : α) = n := rfl
-@[simp, simp_cast] theorem cast_coe_nat (n : ℕ) : ((n : ℤ) : α) = n := rfl
+@[simp, squash_cast] theorem cast_coe_nat (n : ℕ) : ((n : ℤ) : α) = n := rfl
 @[simp] theorem cast_coe_nat' (n : ℕ) :
   (@coe ℕ ℤ (@coe_to_lift _ _ (@coe_base _ _ nat.cast_coe)) n : α) = n :=
 by simp
 
-@[simp, norm_cast_rev] theorem cast_neg_succ_of_nat (n : ℕ) : (-[1+ n] : α) = -(n + 1) := rfl
+@[simp, move_cast] theorem cast_neg_succ_of_nat (n : ℕ) : (-[1+ n] : α) = -(n + 1) := rfl
 
 end
 
-@[simp, simp_cast] theorem cast_one [add_monoid α] [has_one α] [has_neg α] : ((1 : ℤ) : α) = 1 := nat.cast_one
+@[simp, squash_cast] theorem cast_one [add_monoid α] [has_one α] [has_neg α] : ((1 : ℤ) : α) = 1 := nat.cast_one
 
-@[simp, norm_cast_rev] theorem cast_sub_nat_nat [add_group α] [has_one α] (m n) : ((int.sub_nat_nat m n : ℤ) : α) = m - n :=
+@[simp, move_cast] theorem cast_sub_nat_nat [add_group α] [has_one α] (m n) : ((int.sub_nat_nat m n : ℤ) : α) = m - n :=
 begin
   unfold sub_nat_nat, cases e : n - m,
   { simp [sub_nat_nat, e, nat.le_of_sub_eq_zero e] },
@@ -1066,11 +1066,11 @@ begin
         nat.cast_sub $ _root_.le_of_lt $ nat.lt_of_sub_eq_succ e, neg_sub] },
 end
 
-@[simp, norm_cast_rev] theorem cast_neg_of_nat [add_group α] [has_one α] : ∀ n, ((neg_of_nat n : ℤ) : α) = -n
+@[simp, move_cast] theorem cast_neg_of_nat [add_group α] [has_one α] : ∀ n, ((neg_of_nat n : ℤ) : α) = -n
 | 0     := neg_zero.symm
 | (n+1) := rfl
 
-@[simp, norm_cast_rev] theorem cast_add [add_group α] [has_one α] : ∀ m n, ((m + n : ℤ) : α) = m + n
+@[simp, move_cast] theorem cast_add [add_group α] [has_one α] : ∀ m n, ((m + n : ℤ) : α) = m + n
 | (m : ℕ) (n : ℕ) := nat.cast_add _ _
 | (m : ℕ) -[1+ n] := cast_sub_nat_nat _ _
 | -[1+ m] (n : ℕ) := (cast_sub_nat_nat _ _).trans $ sub_eq_of_eq_add $
@@ -1081,11 +1081,11 @@ end
   by rw [← neg_add_rev, ← nat.cast_add_one, ← nat.cast_add_one, ← nat.cast_add];
      apply congr_arg (λ x:ℕ, -(x:α)); simp
 
-@[simp, norm_cast_rev] theorem cast_neg [add_group α] [has_one α] : ∀ n, ((-n : ℤ) : α) = -n
+@[simp, move_cast] theorem cast_neg [add_group α] [has_one α] : ∀ n, ((-n : ℤ) : α) = -n
 | (n : ℕ) := cast_neg_of_nat _
 | -[1+ n] := (neg_neg _).symm
 
-@[norm_cast_rev] theorem cast_sub [add_group α] [has_one α] (m n) : ((m - n : ℤ) : α) = m - n :=
+@[move_cast] theorem cast_sub [add_group α] [has_one α] (m n) : ((m - n : ℤ) : α) = m - n :=
 by simp
 
 @[simp] theorem cast_eq_zero [add_group α] [has_one α] [char_zero α] {n : ℤ} : (n : α) = 0 ↔ n = 0 :=
@@ -1095,7 +1095,7 @@ by simp
     contradiction }
 end, λ h, by rw [h, cast_zero]⟩
 
-@[simp, norm_cast] theorem cast_inj [add_group α] [has_one α] [char_zero α] {m n : ℤ} : (m : α) = n ↔ m = n :=
+@[simp, elim_cast] theorem cast_inj [add_group α] [has_one α] [char_zero α] {m n : ℤ} : (m : α) = n ↔ m = n :=
 by rw [← sub_eq_zero, ← cast_sub, cast_eq_zero, sub_eq_zero]
 
 theorem cast_injective [add_group α] [has_one α] [char_zero α] : function.injective (coe : ℤ → α)
@@ -1104,7 +1104,7 @@ theorem cast_injective [add_group α] [has_one α] [char_zero α] : function.inj
 @[simp] theorem cast_ne_zero [add_group α] [has_one α] [char_zero α] {n : ℤ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
 not_congr cast_eq_zero
 
-@[simp, norm_cast_rev] theorem cast_mul [ring α] : ∀ m n, ((m * n : ℤ) : α) = m * n
+@[simp, move_cast] theorem cast_mul [ring α] : ∀ m n, ((m * n : ℤ) : α) = m * n
 | (m : ℕ) (n : ℕ) := nat.cast_mul _ _
 | (m : ℕ) -[1+ n] := (cast_neg_of_nat _).trans $
   show (-(m * (n + 1) : ℕ) : α) = m * -(n + 1),
@@ -1122,13 +1122,13 @@ instance cast.is_ring_hom [ring α] :
 theorem mul_cast_comm [ring α] (a : α) (n : ℤ) : a * n = n * a :=
 by cases n; simp [nat.mul_cast_comm, left_distrib, right_distrib, *]
 
-@[simp, simp_cast, norm_cast_rev] theorem coe_nat_bit0 (n : ℕ) : (↑(bit0 n) : ℤ) = bit0 ↑n := by {unfold bit0, simp}
+@[simp, squash_cast, move_cast] theorem coe_nat_bit0 (n : ℕ) : (↑(bit0 n) : ℤ) = bit0 ↑n := by {unfold bit0, simp}
 
-@[simp, simp_cast, norm_cast_rev] theorem coe_nat_bit1 (n : ℕ) : (↑(bit1 n) : ℤ) = bit1 ↑n := by {unfold bit1, unfold bit0, simp}
+@[simp, squash_cast, move_cast] theorem coe_nat_bit1 (n : ℕ) : (↑(bit1 n) : ℤ) = bit1 ↑n := by {unfold bit1, unfold bit0, simp}
 
-@[simp, simp_cast, norm_cast_rev] theorem cast_bit0 [ring α] (n : ℤ) : ((bit0 n : ℤ) : α) = bit0 n := cast_add _ _
+@[simp, squash_cast, move_cast] theorem cast_bit0 [ring α] (n : ℤ) : ((bit0 n : ℤ) : α) = bit0 n := cast_add _ _
 
-@[simp, simp_cast, norm_cast_rev] theorem cast_bit1 [ring α] (n : ℤ) : ((bit1 n : ℤ) : α) = bit1 n :=
+@[simp, squash_cast, move_cast] theorem cast_bit1 [ring α] (n : ℤ) : ((bit1 n : ℤ) : α) = bit1 n :=
 by rw [bit1, cast_add, cast_one, cast_bit0]; refl
 
 lemma cast_two [ring α] : ((2 : ℤ) : α) = 2 := by simp
@@ -1138,10 +1138,10 @@ theorem cast_nonneg [linear_ordered_ring α] : ∀ {n : ℤ}, (0 : α) ≤ n ↔
 | -[1+ n] := by simpa [not_le_of_gt (neg_succ_lt_zero n)] using
              show -(n:α) < 1, from lt_of_le_of_lt (by simp) zero_lt_one
 
-@[simp, norm_cast] theorem cast_le [linear_ordered_ring α] {m n : ℤ} : (m : α) ≤ n ↔ m ≤ n :=
+@[simp, elim_cast] theorem cast_le [linear_ordered_ring α] {m n : ℤ} : (m : α) ≤ n ↔ m ≤ n :=
 by rw [← sub_nonneg, ← cast_sub, cast_nonneg, sub_nonneg]
 
-@[simp, norm_cast] theorem cast_lt [linear_ordered_ring α] {m n : ℤ} : (m : α) < n ↔ m < n :=
+@[simp, elim_cast] theorem cast_lt [linear_ordered_ring α] {m n : ℤ} : (m : α) < n ↔ m < n :=
 by simpa [-cast_le] using not_congr (@cast_le α _ n m)
 
 @[simp] theorem cast_nonpos [linear_ordered_ring α] {n : ℤ} : (n : α) ≤ 0 ↔ n ≤ 0 :=
@@ -1165,16 +1165,16 @@ begin
       Hadd, show f (n+1) = n+1, from H (n+1)]
 end
 
-@[simp, simp_cast] theorem cast_id (n : ℤ) : ↑n = n :=
+@[simp, squash_cast] theorem cast_id (n : ℤ) : ↑n = n :=
 (eq_cast id rfl (λ _ _, rfl) n).symm
 
-@[simp, norm_cast_rev] theorem cast_min [decidable_linear_ordered_comm_ring α] {a b : ℤ} : (↑(min a b) : α) = min a b :=
+@[simp, move_cast] theorem cast_min [decidable_linear_ordered_comm_ring α] {a b : ℤ} : (↑(min a b) : α) = min a b :=
 by by_cases a ≤ b; simp [h, min]
 
-@[simp, norm_cast_rev] theorem cast_max [decidable_linear_ordered_comm_ring α] {a b : ℤ} : (↑(max a b) : α) = max a b :=
+@[simp, move_cast] theorem cast_max [decidable_linear_ordered_comm_ring α] {a b : ℤ} : (↑(max a b) : α) = max a b :=
 by by_cases a ≤ b; simp [h, max]
 
-@[simp, norm_cast_rev] theorem cast_abs [decidable_linear_ordered_comm_ring α] {q : ℤ} : ((abs q : ℤ) : α) = abs q :=
+@[simp, move_cast] theorem cast_abs [decidable_linear_ordered_comm_ring α] {q : ℤ} : ((abs q : ℤ) : α) = abs q :=
 by simp [abs]
 
 end cast

@@ -918,18 +918,13 @@ expression `h` in the context it will try to normalize `h` and use
 `rw_mod_cast` acts like the `rw` tactic but it applies `norm_cast` between steps.
 
 These tactics work with three attributes,
-`norm_cast`, `norm_cast_rev` and `simp_cast`.
+`elim_cast`, `move_cast` and `squash_cast`.
 
-`norm_cast` and `norm_cast_rev` are attributes for simplification
-rules that are used to normalize casts.
-Let r be = or ↔, then:
--elimination lemmas of the shape
- Π ..., P ↑a1 ... ↑an r P a1 ... an should be given the
- attribute `norm_cast`.
--compositional lemmas of the shape
- Π ..., ↑(P a1 ... an) r P ↑a1 ... ↑an should be given the
- attribute `norm_cast_rev`.
+`elim_cast` is for elimination lemmas of the shape
+Π ..., P ↑a1 ... ↑an = P a1 ... an
 
-`simp_cast` is an attribute given to the lemmas of the shape
-Π ..., ↑↑a = ↑a or  Π ..., ↑a = a.
-They are used in a heuristic to infer intermediate casts.
+`move_cast` is for compositional lemmas of the shape
+Π ..., ↑(P a1 ... an) = P ↑a1 ... ↑an
+
+`squash_cast` is for lemmas of the shape
+Π ..., ↑↑a = ↑a

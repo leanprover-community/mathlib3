@@ -56,27 +56,27 @@ instance : has_coe ℤ_[p] ℚ_[p] := ⟨subtype.val⟩
 
 @[simp] lemma val_eq_coe (z : ℤ_[p]) : z.val = ↑z := rfl
 
-@[simp, norm_cast_rev] lemma coe_add : ∀ (z1 z2 : ℤ_[p]), (↑(z1 + z2) : ℚ_[p]) = ↑z1 + ↑z2
+@[simp, move_cast] lemma coe_add : ∀ (z1 z2 : ℤ_[p]), (↑(z1 + z2) : ℚ_[p]) = ↑z1 + ↑z2
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
-@[simp, norm_cast_rev] lemma coe_mul : ∀ (z1 z2 : ℤ_[p]), (↑(z1 * z2) : ℚ_[p]) = ↑z1 * ↑z2
+@[simp, move_cast] lemma coe_mul : ∀ (z1 z2 : ℤ_[p]), (↑(z1 * z2) : ℚ_[p]) = ↑z1 * ↑z2
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
-@[simp, norm_cast_rev] lemma coe_neg : ∀ (z1 : ℤ_[p]), (↑(-z1) : ℚ_[p]) = -↑z1
+@[simp, move_cast] lemma coe_neg : ∀ (z1 : ℤ_[p]), (↑(-z1) : ℚ_[p]) = -↑z1
 | ⟨_, _⟩ := rfl
 
-@[simp, norm_cast_rev] lemma coe_sub : ∀ (z1 z2 : ℤ_[p]), (↑(z1 - z2) : ℚ_[p]) = ↑z1 - ↑z2
+@[simp, move_cast] lemma coe_sub : ∀ (z1 z2 : ℤ_[p]), (↑(z1 - z2) : ℚ_[p]) = ↑z1 - ↑z2
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
-@[simp, simp_cast] lemma coe_one : (↑(1 : ℤ_[p]) : ℚ_[p]) = 1 := rfl
+@[simp, squash_cast] lemma coe_one : (↑(1 : ℤ_[p]) : ℚ_[p]) = 1 := rfl
 
-@[simp, simp_cast] lemma coe_coe : ∀ n : ℕ, (↑(↑n : ℤ_[p]) : ℚ_[p]) = (↑n : ℚ_[p])
+@[simp, squash_cast] lemma coe_coe : ∀ n : ℕ, (↑(↑n : ℤ_[p]) : ℚ_[p]) = (↑n : ℚ_[p])
 | 0 := rfl
 | (k+1) := by simp [coe_coe]
 
-@[simp, simp_cast] lemma coe_zero : (↑(0 : ℤ_[p]) : ℚ_[p]) = 0 := rfl
+@[simp, squash_cast] lemma coe_zero : (↑(0 : ℤ_[p]) : ℚ_[p]) = 0 := rfl
 
-@[simp, norm_cast_rev] lemma cast_pow (x : ℤ_[p]) : ∀ (n : ℕ), (↑(x^n) : ℚ_[p]) = (↑x : ℚ_[p])^n
+@[simp, move_cast] lemma cast_pow (x : ℤ_[p]) : ∀ (n : ℕ), (↑(x^n) : ℚ_[p]) = (↑x : ℚ_[p])^n
 | 0 := by simp
 | (k+1) := by simp [monoid.pow, pow]; congr; apply cast_pow
 

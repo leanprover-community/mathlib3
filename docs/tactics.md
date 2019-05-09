@@ -925,10 +925,10 @@ rules that are used to normalize casts.
 Let r be = or ↔, then:
 -elimination lemmas of the shape
  Π ..., P ↑a1 ... ↑an r P a1 ... an should be given the
- attribute norm_cast.
+ attribute `norm_cast`.
 -compositional lemmas of the shape
  Π ..., ↑(P a1 ... an) r P ↑a1 ... ↑an should be given the
- attribute norm_cast_rev.
+ attribute `norm_cast_rev`.
 
 `simp_cast` is an attribute given to the lemmas of the shape
 Π ..., ↑↑a = ↑a or  Π ..., ↑a = a.

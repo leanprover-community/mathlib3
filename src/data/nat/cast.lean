@@ -24,32 +24,32 @@ protected def cast : ℕ → α
 @[simp, simp_cast] theorem cast_zero : ((0 : ℕ) : α) = 0 := rfl
 
 theorem cast_add_one (n : ℕ) : ((n + 1 : ℕ) : α) = n + 1 := rfl
-@[simp, norm_cast] theorem cast_succ (n : ℕ) : ((succ n : ℕ) : α) = n + 1 := rfl
+@[simp, norm_cast_rev] theorem cast_succ (n : ℕ) : ((succ n : ℕ) : α) = n + 1 := rfl
 end
 
 @[simp, simp_cast] theorem cast_one [add_monoid α] [has_one α] : ((1 : ℕ) : α) = 1 := zero_add _
 
-@[simp, norm_cast] theorem cast_add [add_monoid α] [has_one α] (m) : ∀ n, ((m + n : ℕ) : α) = m + n
+@[simp, norm_cast_rev] theorem cast_add [add_monoid α] [has_one α] (m) : ∀ n, ((m + n : ℕ) : α) = m + n
 | 0     := (add_zero _).symm
 | (n+1) := show ((m + n : ℕ) : α) + 1 = m + (n + 1), by rw [cast_add n, add_assoc]
 
 instance [add_monoid α] [has_one α] : is_add_monoid_hom (coe : ℕ → α) :=
 { map_zero := cast_zero, map_add := cast_add }
 
-@[simp, simp_cast, norm_cast] theorem cast_bit0 [add_monoid α] [has_one α] (n : ℕ) : ((bit0 n : ℕ) : α) = bit0 n := cast_add _ _
+@[simp, simp_cast, norm_cast_rev] theorem cast_bit0 [add_monoid α] [has_one α] (n : ℕ) : ((bit0 n : ℕ) : α) = bit0 n := cast_add _ _
 
-@[simp, simp_cast, norm_cast] theorem cast_bit1 [add_monoid α] [has_one α] (n : ℕ) : ((bit1 n : ℕ) : α) = bit1 n :=
+@[simp, simp_cast, norm_cast_rev] theorem cast_bit1 [add_monoid α] [has_one α] (n : ℕ) : ((bit1 n : ℕ) : α) = bit1 n :=
 by rw [bit1, cast_add_one, cast_bit0]; refl
 
 lemma cast_two {α : Type*} [semiring α] : ((2 : ℕ) : α) = 2 := by simp
 
-@[simp] theorem cast_pred [add_group α] [has_one α] : ∀ {n}, n > 0 → ((n - 1 : ℕ) : α) = n - 1
+@[simp, norm_cast_rev] theorem cast_pred [add_group α] [has_one α] : ∀ {n}, n > 0 → ((n - 1 : ℕ) : α) = n - 1
 | (n+1) h := (add_sub_cancel (n:α) 1).symm
 
-@[simp, norm_cast] theorem cast_sub [add_group α] [has_one α] {m n} (h : m ≤ n) : ((n - m : ℕ) : α) = n - m :=
+@[simp, norm_cast_rev] theorem cast_sub [add_group α] [has_one α] {m n} (h : m ≤ n) : ((n - m : ℕ) : α) = n - m :=
 eq_sub_of_add_eq $ by rw [← cast_add, nat.sub_add_cancel h]
 
-@[simp, norm_cast] theorem cast_mul [semiring α] (m) : ∀ n, ((m * n : ℕ) : α) = m * n
+@[simp, norm_cast_rev] theorem cast_mul [semiring α] (m) : ∀ n, ((m * n : ℕ) : α) = m * n
 | 0     := (mul_zero _).symm
 | (n+1) := (cast_add _ _).trans $
 show ((m * n : ℕ) : α) + m = m * (n + 1), by rw [cast_mul n, left_distrib, mul_one]
@@ -90,13 +90,13 @@ eq_cast _ (by rw [← add_left_inj (f 0), add_zero, ← Hadd]) H1 Hadd
 @[simp, simp_cast] theorem cast_id (n : ℕ) : ↑n = n :=
 (eq_cast id rfl rfl (λ _ _, rfl) n).symm
 
-@[simp, norm_cast] theorem cast_min [decidable_linear_ordered_semiring α] {a b : ℕ} : (↑(min a b) : α) = min a b :=
+@[simp, norm_cast_rev] theorem cast_min [decidable_linear_ordered_semiring α] {a b : ℕ} : (↑(min a b) : α) = min a b :=
 by by_cases a ≤ b; simp [h, min]
 
-@[simp, norm_cast] theorem cast_max [decidable_linear_ordered_semiring α] {a b : ℕ} : (↑(max a b) : α) = max a b :=
+@[simp, norm_cast_rev] theorem cast_max [decidable_linear_ordered_semiring α] {a b : ℕ} : (↑(max a b) : α) = max a b :=
 by by_cases a ≤ b; simp [h, max]
 
-@[simp] theorem abs_cast [decidable_linear_ordered_comm_ring α] (a : ℕ) : abs (a : α) = a :=
+@[simp, norm_cast] theorem abs_cast [decidable_linear_ordered_comm_ring α] (a : ℕ) : abs (a : α) = a :=
 abs_of_nonneg (cast_nonneg a)
 
 end nat

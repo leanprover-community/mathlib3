@@ -47,7 +47,12 @@ example : ((an + 5 : ℕ) : ℤ) < 10 → an + 5 < 10 := λ h, by exact_mod_cast
 example : an + 5 < 10 → ((an + 5 : ℕ) : ℤ) < 10 := λ h, by exact_mod_cast h
 
 example (h : (cz : ℚ) = az / bz) : (cz : ℝ) = az / bz :=
-by rw_mod_cast [← rat.cast_coe_int az, h]
+begin
+  rw ← rat.cast_coe_int az,
+  exact_mod_cast h
+end
 
 example (h : bn ≤ an) : an - bn = 1 ↔ (an - bn : ℤ) = 1 :=
 by norm_cast
+
+example (h : an = 0) : (an : ℝ) = (bn : ℂ).im := by exact_mod_cast h

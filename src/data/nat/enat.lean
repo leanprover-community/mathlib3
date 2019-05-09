@@ -49,7 +49,7 @@ by rw [add_comm, top_add]
 
 @[simp, simp_cast] lemma coe_one : ((1 : ℕ) : enat) = 1 := rfl
 
-@[simp, norm_cast] lemma coe_add (x y : ℕ) : ((x + y : ℕ) : enat) = x + y :=
+@[simp, norm_cast_rev] lemma coe_add (x y : ℕ) : ((x + y : ℕ) : enat) = x + y :=
 roption.ext' (and_true _).symm (λ _ _, rfl)
 
 @[simp] lemma coe_add_get {x : ℕ} {y : enat} (h : ((x : enat) + y).dom) :

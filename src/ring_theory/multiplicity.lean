@@ -34,7 +34,7 @@ lemma finite_iff_dom [decidable_rel ((∣) : α → α → Prop)] {a b : α} :
 
 lemma finite_def {a b : α} : finite a b ↔ ∃ n : ℕ, ¬a ^ (n + 1) ∣ b := iff.rfl
 
-@[norm_cast]
+@[norm_cast_rev]
 theorem int.coe_nat_multiplicity (a b : ℕ) :
     multiplicity a b = multiplicity (a : ℤ) (b : ℤ) :=
 begin

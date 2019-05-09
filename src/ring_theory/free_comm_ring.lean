@@ -4,13 +4,13 @@ import ring_theory.ideal_operations ring_theory.free_ring
 universes u v
 
 def free_comm_ring (α : Type u) : Type u :=
-free_abelian_group $ free_comm_monoid α
+free_abelian_group $ multiset α
 
 namespace free_comm_ring
 
 variables (α : Type u)
 
-instance : comm_ring (free_comm_ring α) := free_abelian_group.comm_ring _
+instance : add_comm_group (free_comm_ring α) := free_abelian_group.add_comm_group _
 
 instance : semigroup (free_comm_ring α) :=
 { mul := λ x, free_abelian_group.lift $ λ s2, free_abelian_group.lift (λ s1, free_abelian_group.of $ s1 + s2) x,

@@ -1,7 +1,7 @@
 import category.bitraversable.basic
        category.bitraversable.lemmas
        category.traversable.lemmas
-       tactic.interactive
+       tactic.solve_by_elim
 
 universes u v w
 

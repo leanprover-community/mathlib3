@@ -30,9 +30,8 @@ def le_lt (x y : pSurreal) : Prop × Prop :=
 begin
   induction x with xl xr xL xR IHxl IHxr generalizing y,
   induction y with yl yr yL yR IHyl IHyr,
-  exact (
-    (∀ i, (IHxl i ⟨yl, yr, yL, yR⟩).2) ∧ (∀ i, (IHyr i).2),
-    (∃ i, (IHxr i ⟨yl, yr, yL, yR⟩).1) ∨ (∃ i, (IHyl i).1))
+  exact ((∀ i, (IHxl i ⟨yl, yr, yL, yR⟩).2) ∧ (∀ i, (IHyr i).2),
+         (∃ i, (IHxr i ⟨yl, yr, yL, yR⟩).1) ∨ (∃ i, (IHyl i).1))
 end
 
 instance : has_le pSurreal := ⟨λ x y, (le_lt x y).1⟩
@@ -89,22 +88,6 @@ not_lt.2 (le_refl _)
 theorem ne_of_lt : ∀ {x y : pSurreal}, x < y → x ≠ y
 | x _ h rfl := lt_irrefl x h
 
-/-- A pre-surreal is valid (wikipedia calls this "numeric") if
-  everything in the L set is less than everything in the R set,
-  and all the elements of L and R are also valid. -/
-def ok : pSurreal → Prop
-| ⟨l, r, L, R⟩ :=
-  (∀ i j, L i < R j) ∧ (∀ i, ok (L i)) ∧ (∀ i, ok (R i))
-
-@[elab_as_eliminator]
-theorem ok_rec {C : pSurreal → Prop}
-  (H : ∀ l r (L : l → pSurreal) (R : r → pSurreal),
-    (∀ i j, L i < R j) → (∀ i, ok (L i)) → (∀ i, ok (R i)) →
-    (∀ i, C (L i)) → (∀ i, C (R i)) → C ⟨l, r, L, R⟩) :
-  ∀ x, ok x → C x
-| ⟨l, r, L, R⟩ ⟨h, hl, hr⟩ :=
-  H _ _ _ _ h hl hr (λ i, ok_rec _ (hl i)) (λ i, ok_rec _ (hr i))
-
 theorem le_trans_aux
   {xl xr} {xL : xl → pSurreal} {xR : xr → pSurreal}
   {yl yr} {yL : yl → pSurreal} {yR : yr → pSurreal}
@@ -132,8 +115,23 @@ from this.1, begin
     le_trans_aux (λ i, (IHzl _).1) (λ i, (IHyr _).2.1)⟩,
 end
 
-theorem lt_asymm {x y : pSurreal}
-  (ox : ok x) (oy : ok y) : x < y → ¬ y < x :=
+/-- A pre-surreal is valid (wikipedia calls this "numeric") if
+  everything in the L set is less than everything in the R set,
+  and all the elements of L and R are also valid. -/
+def ok : pSurreal → Prop
+| ⟨l, r, L, R⟩ :=
+  (∀ i j, L i < R j) ∧ (∀ i, ok (L i)) ∧ (∀ i, ok (R i))
+
+@[elab_as_eliminator]
+theorem ok_rec {C : pSurreal → Prop}
+  (H : ∀ l r (L : l → pSurreal) (R : r → pSurreal),
+    (∀ i j, L i < R j) → (∀ i, ok (L i)) → (∀ i, ok (R i)) →
+    (∀ i, C (L i)) → (∀ i, C (R i)) → C ⟨l, r, L, R⟩) :
+  ∀ x, ok x → C x
+| ⟨l, r, L, R⟩ ⟨h, hl, hr⟩ :=
+  H _ _ _ _ h hl hr (λ i, ok_rec _ (hl i)) (λ i, ok_rec _ (hr i))
+
+theorem lt_asymm {x y : pSurreal} (ox : ok x) (oy : ok y) : x < y → ¬ y < x :=
 begin
   refine ok_rec (λ xl xr xL xR hx oxl oxr IHxl IHxr, _) x ox y oy,
   refine ok_rec (λ yl yr yL yR hy oyl oyr IHyl IHyr, _),
@@ -147,8 +145,7 @@ end
 theorem le_of_lt {x y : pSurreal} (ox : ok x) (oy : ok y) (h : x < y) : x ≤ y :=
 not_lt.1 (lt_asymm ox oy h)
 
-theorem lt_iff_le_not_le {x y : pSurreal}
-  (ox : ok x) (oy : ok y) : x < y ↔ x ≤ y ∧ ¬ y ≤ x :=
+theorem lt_iff_le_not_le {x y : pSurreal} (ox : ok x) (oy : ok y) : x < y ↔ x ≤ y ∧ ¬ y ≤ x :=
 ⟨λ h, ⟨le_of_lt ox oy h, not_le.2 h⟩, λ h, not_le.1 h.2⟩
 
 /-- Define the equivalence relation on pre-surreals. Two pre-surreals
@@ -161,8 +158,7 @@ theorem equiv_trans {x y z} : equiv x y → equiv y z → equiv x z
 | ⟨xy, yx⟩ ⟨yz, zy⟩ := ⟨le_trans xy yz, le_trans zy yx⟩
 
 theorem le_congr {x₁ y₁ x₂ y₂} : equiv x₁ x₂ → equiv y₁ y₂ → (x₁ ≤ y₁ ↔ x₂ ≤ y₂)
-| ⟨x12, x21⟩ ⟨y12, y21⟩ :=
-  ⟨λ h, le_trans x21 (le_trans h y12), λ h, le_trans x12 (le_trans h y21)⟩
+| ⟨x12, x21⟩ ⟨y12, y21⟩ := ⟨λ h, le_trans x21 (le_trans h y12), λ h, le_trans x12 (le_trans h y21)⟩
 
 theorem lt_congr {x₁ y₁ x₂ y₂} (hx : equiv x₁ x₂) (hy : equiv y₁ y₂) : x₁ < y₁ ↔ x₂ < y₂ :=
 not_le.symm.trans $ (not_congr (le_congr hy hx)).trans not_le
@@ -179,17 +175,15 @@ def neg : pSurreal → pSurreal
 
 instance : has_neg pSurreal := ⟨neg⟩
 
-/-- The sum of `x = {xL | xR}` and `y = {yL | yR}` is
-  `{xL + y, x + yL | xR + y, x + yR}`. -/
+/-- The sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
 def add (x y : pSurreal) : pSurreal :=
 begin
-  induction x with xl xr xL xR IHxl IHxr generalizing y,
+  induction x with xl xr xL xR IHxl IHxr,
   induction y with yl yr yL yR IHyl IHyr,
-  have y := mk yl yr yL yR,
   refine ⟨xl ⊕ yl, xr ⊕ yr, sum.rec _ _, sum.rec _ _⟩,
-  { exact λ i, IHxl i y },
+  { exact λ i, IHxl i },
   { exact λ i, IHyl i },
-  { exact λ i, IHxr i y },
+  { exact λ i, IHxr i },
   { exact λ i, IHyr i }
 end
 
@@ -198,8 +192,7 @@ instance : has_add pSurreal := ⟨add⟩
 instance : has_sub pSurreal := ⟨λ x y, x + -y⟩
 
 /-- The product of `x = {xL | xR}` and `y = {yL | yR}` is
-  `{xL*y + x*yL - xL*yL, xR*y + x*yR - xR*yR |
-    xL*y + x*yR - xL*yR, x*yL + xR*y - xR*yL }`. -/
+  `{xL*y + x*yL - xL*yL, xR*y + x*yR - xR*yR | xL*y + x*yR - xL*yR, x*yL + xR*y - xR*yL }`. -/
 def mul (x y : pSurreal) : pSurreal :=
 begin
   induction x with xl xr xL xR IHxl IHxr generalizing y,
@@ -292,7 +285,8 @@ open pSurreal
 def mk (x : pSurreal) (h : x.ok) : surreal := quotient.mk ⟨x, h⟩
 
 /-- Lift an equivalence-respecting function on pre-surreals to surreals. -/
-def lift {α} (f : ∀ x, ok x → α) (H : ∀ {x y} (hx : ok x) (hy : ok y), x.equiv y → f x hx = f y hy) : surreal → α :=
+def lift {α} (f : ∀ x, ok x → α)
+  (H : ∀ {x y} (hx : ok x) (hy : ok y), x.equiv y → f x hx = f y hy) : surreal → α :=
 quotient.lift (λ x : {x // ok x}, f x.1 x.2) (λ x y, H x.2 y.2)
 
 /-- Lift a binary equivalence-respecting function on pre-surreals to surreals. -/

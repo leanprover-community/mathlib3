@@ -92,22 +92,8 @@ def swap : C × D ⥤ D × C :=
 @[simp] lemma swap_map {X Y : C × D} {f : X ⟶ Y} : (swap C D).map f = (f.2, f.1) := rfl
 
 def symmetry : swap C D ⋙ swap D C ≅ functor.id (C × D) :=
-{ hom :=
-  { app := λ X, 𝟙 X,
-    naturality' := λ X Y f,
-    begin
-      erw [category.comp_id (C × D), category.id_comp (C × D)],
-      dsimp [swap],
-      simp,
-    end },
-  inv :=
-  { app := λ X, 𝟙 X,
-    naturality' := λ X Y f,
-    begin
-      erw [category.comp_id (C × D), category.id_comp (C × D)],
-      dsimp [swap],
-      simp,
-    end } }
+{ hom := { app := λ X, 𝟙 X },
+  inv := { app := λ X, 𝟙 X } }
 
 end prod
 
@@ -121,11 +107,7 @@ def evaluation : C ⥤ (C ⥤ D) ⥤ D :=
     map := λ F G α, α.app X, },
   map := λ X Y f,
   { app := λ F, F.map f,
-    naturality' := λ F G α, eq.symm (α.naturality f) },
-  map_comp' := λ X Y Z f g,
-  begin
-    ext, dsimp, rw functor.map_comp,
-  end }
+    naturality' := λ F G α, eq.symm (α.naturality f) } }
 
 @[simp] lemma evaluation_obj_obj (X) (F) : ((evaluation C D).obj X).obj F = F.obj X := rfl
 @[simp] lemma evaluation_obj_map (X) {F G} (α : F ⟶ G) :
@@ -141,8 +123,9 @@ include 𝒞 𝒟
 def evaluation_uncurried : C × (C ⥤ D) ⥤ D :=
 { obj := λ p, p.2.obj p.1,
   map := λ x y f, (x.2.map f.1) ≫ (f.2.app y.1),
-  map_comp' := begin
-    intros X Y Z f g, cases g, cases f, cases Z, cases Y, cases X, dsimp at *, simp at *,
+  map_comp' := λ X Y Z f g,
+  begin
+    cases g, cases f, cases Z, cases Y, cases X, dsimp at *, simp at *,
     rw [←functor.category.comp_app, nat_trans.naturality, functor.category.comp_app,
         category.assoc, nat_trans.naturality]
   end }

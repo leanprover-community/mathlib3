@@ -4,7 +4,6 @@
 
 import category_theory.functor_category
 import category_theory.isomorphism
-import tactic.simpa
 
 open category_theory
 

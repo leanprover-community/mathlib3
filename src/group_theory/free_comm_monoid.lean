@@ -9,8 +9,14 @@ import data.multiset
 def free_comm_monoid (α) := multiset α
 
 namespace free_comm_monoid
-variables {α}
+variables {α : Type*}
 
-instance : comm_monoid (free_comm_monoid α)
+instance : comm_monoid (free_comm_monoid α) :=
+{ mul := λ x y, multiset.union x y,
+  mul_assoc := _,
+  one := [],
+  one_mul := _,
+  mul_one := _,
+  mul_comm := _ }
 
 end free_comm_monoid

@@ -4,7 +4,7 @@ import ring_theory.ideal_operations ring_theory.free_ring
 universes u v
 
 def free_comm_ring (α : Type u) : Type u :=
-free_abelian_group $ multiset α
+free_abelian_group $ free_comm_monoid α
 
 namespace free_comm_ring
 

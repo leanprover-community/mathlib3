@@ -9,7 +9,7 @@ namespace free_ring
 
 variables (α : Type u)
 
-instance : ring (free_ring α) := free_abelian_group.ring α
+instance : ring (free_ring α) := free_abelian_group.ring _
 
 variables {α}
 def of (x : α) : free_ring α :=

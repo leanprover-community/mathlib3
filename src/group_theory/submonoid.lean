@@ -41,6 +41,13 @@ theorem multiplicative.is_submonoid_iff
   {s : set β} : @is_submonoid (multiplicative β) _ s ↔ is_add_submonoid s :=
 ⟨λ ⟨h₁, h₂⟩, ⟨h₁, @h₂⟩, λ h, by resetI; apply_instance⟩
 
+@[to_additive is_add_submonoid.inter]
+lemma is_submonoid.inter (s₁ s₂ : set α) [is_submonoid s₁] [is_submonoid s₂] :
+  is_submonoid (s₁ ∩ s₂) :=
+{ one_mem := ⟨is_submonoid.one_mem _, is_submonoid.one_mem _⟩,
+  mul_mem := λ x y hx hy,
+    ⟨is_submonoid.mul_mem hx.1 hy.1, is_submonoid.mul_mem hx.2 hy.2⟩ }
+
 lemma is_submonoid_Union_of_directed {ι : Type*} [hι : nonempty ι]
   (s : ι → set α) [∀ i, is_submonoid (s i)]
   (directed : ∀ i j, ∃ k, s i ⊆ s k ∧ s j ⊆ s k) :

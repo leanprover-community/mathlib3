@@ -418,7 +418,10 @@ def to_submodule : submodule R A :=
   add := λ x y hx hy, (⟨x, hx⟩ + ⟨y, hy⟩ : S).2,
   smul := λ c x hx, (algebra.smul_def c x).symm ▸ (⟨algebra_map A c, S.range_le ⟨c, rfl⟩⟩ * ⟨x, hx⟩:S).2 }
 
-instance to_submodule.is_subring : is_subring (S.to_submodule : set A) := S.2
+instance coe_to_submodule : has_coe (subalgebra R A) (submodule R A) :=
+⟨to_submodule⟩
+
+instance to_submodule.is_subring : is_subring ((S : submodule R A) : set A) := S.2
 
 instance : partial_order (subalgebra R A) :=
 { le := λ S T, S.carrier ≤ T.carrier,
@@ -432,6 +435,8 @@ def comap {R : Type u} {S : Type v} {A : Type w}
 { carrier := (iSB : set A),
   subring := iSB.is_subring,
   range_le := λ a ⟨r, hr⟩, hr ▸ iSB.range_le ⟨_, rfl⟩ }
+
+set_option class.instance_max_depth 48
 
 def under {R : Type u} {A : Type v} [comm_ring R] [comm_ring A]
   {i : algebra R A} (S : subalgebra R A)

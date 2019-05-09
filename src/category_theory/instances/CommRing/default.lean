@@ -6,3 +6,4 @@ Authors: Scott Morrison
 
 import category_theory.instances.CommRing.basic
 import category_theory.instances.CommRing.adjunctions
+import category_theory.instances.CommRing.colimits

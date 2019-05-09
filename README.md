@@ -2,10 +2,10 @@
 
 [![Build Status](https://travis-ci.org/leanprover-community/mathlib.svg?branch=master)](https://travis-ci.org/leanprover-community/mathlib)
 [![Mergify Status][mergify-status]][mergify]
+[![Build status](https://ci.appveyor.com/api/projects/status/y0dfsknx5h4iq7pj/branch/master?svg=true)](https://ci.appveyor.com/project/cipher1024/mathlib/branch/master)
 
 [mergify]: https://mergify.io
 [mergify-status]: https://gh.mergify.io/badges/leanprover-community/mathlib.png?style=cut
-[![Build status](https://ci.appveyor.com/api/projects/status/y0dfsknx5h4iq7pj/branch/master?svg=true)](https://ci.appveyor.com/project/cipher1024/mathlib/branch/master)
 
 ## Lean standard library
 
@@ -20,8 +20,6 @@ Besides [Lean's general documentation](https://leanprover.github.io/documentatio
   to find or contribute definitions and lemmas.
 - A [style guide](docs/style.md) for contributors
 - An outline of [how to contribute](docs/howto-contribute.md) to mathlib.
-- A tentative list of [work in progress](docs/wip.md) to make sure
-  efforts are not duplicated without collaboration.
 
 This repository also contains [extra Lean documentation](docs/extras.md)
 not specific to mathlib.
@@ -35,7 +33,7 @@ Two options are avaiblable to install `update-mathlib`:
  * *Linux/OS X/Cygwin/MSYS2/git bash*: run the following command in a terminal:
 
 ``` shell
-curl https://raw.githubusercontent.com/leanprover-community/mathlib/master/scripts/remote-install-update-mathlib.sh -sSf | sh
+curl https://raw.githubusercontent.com/leanprover-community/mathlib/master/scripts/remote-install-update-mathlib.sh -sSf | bash
 ```
 
  * *Any platform*: in the release section of this page, download

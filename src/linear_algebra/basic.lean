@@ -223,7 +223,7 @@ variables {r : α} {x y : β}
 open set lattice
 
 instance : partial_order (submodule α β) :=
-partial_order.lift (coe : submodule α β → set β) $ λ a b, ext'
+partial_order.lift (coe : submodule α β → set β) (λ a b, ext') (by apply_instance)
 
 lemma le_def {p p' : submodule α β} : p ≤ p' ↔ (p : set β) ⊆ p' := iff.rfl
 

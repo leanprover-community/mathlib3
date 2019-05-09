@@ -1,5 +1,9 @@
-
-import tactic.basic data.list.defs data.prod data.sum tactic.rcases
+/-
+Copyright (c) 2018 Simon Hudon. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Simon Hudon
+-/
+import tactic.rcases data.list.defs data.prod data.sum
 universes u₁ u₂
 
 open interactive interactive.types

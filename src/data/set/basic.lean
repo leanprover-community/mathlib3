@@ -3,7 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad, Leonardo de Moura
 -/
-import tactic.finish data.subtype tactic.interactive
+import tactic.basic tactic.finish data.subtype
 open function
 
 
@@ -1253,6 +1253,11 @@ theorem mem_prod_eq {p : α × β} : p ∈ set.prod s t = (p.1 ∈ s ∧ p.2 ∈
 @[simp] theorem mem_prod {p : α × β} : p ∈ set.prod s t ↔ p.1 ∈ s ∧ p.2 ∈ t := iff.rfl
 
 lemma mk_mem_prod {a : α} {b : β} (a_in : a ∈ s) (b_in : b ∈ t) : (a, b) ∈ set.prod s t := ⟨a_in, b_in⟩
+
+lemma prod_subset_iff {P : set (α × β)} :
+  (set.prod s t ⊆ P) ↔ ∀ (x ∈ s) (y ∈ t), (x, y) ∈ P :=
+⟨λ h _ xin _ yin, h (mk_mem_prod xin yin),
+ λ h _ pin, by { cases mem_prod.1 pin with hs ht, simpa using h _ hs _ ht }⟩
 
 @[simp] theorem prod_empty {s : set α} : set.prod s ∅ = (∅ : set (α × β)) :=
 ext $ by simp [set.prod]

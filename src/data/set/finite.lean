@@ -298,14 +298,14 @@ theorem finite_bind {α β} {s : set α} {f : α → set β} :
   finite s → (∀ a ∈ s, finite (f a)) → finite (s >>= f)
 | ⟨hs⟩ H := ⟨@fintype_bind _ _ (classical.dec_eq β) _ hs _ (λ a ha, (H a ha).fintype)⟩
 
-def fintype_seq {α β : Type u} [decidable_eq β]
+instance fintype_seq {α β : Type u} [decidable_eq β]
   (f : set (α → β)) (s : set α) [fintype f] [fintype s] :
   fintype (f <*> s) :=
 by rw seq_eq_bind_map; apply set.fintype_bind'
 
 theorem finite_seq {α β : Type u} {f : set (α → β)} {s : set α} :
   finite f → finite s → finite (f <*> s)
-| ⟨hf⟩ ⟨hs⟩ := by haveI := classical.dec_eq β; exactI ⟨fintype_seq _ _⟩
+| ⟨hf⟩ ⟨hs⟩ := by { haveI := classical.dec_eq β, exactI ⟨set.fintype_seq _ _⟩ }
 
 /-- There are finitely many subsets of a given finite set -/
 lemma finite_subsets_of_finite {α : Type u} {a : set α} (h : finite a) : finite {b | b ⊆ a} :=

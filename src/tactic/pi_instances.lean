@@ -6,7 +6,7 @@ Author: Simon Hudon
 Automation for creating instances of mathematical structures for pi types
 -/
 
-import tactic.interactive order.basic
+import tactic.solve_by_elim order.basic
 
 namespace tactic
 

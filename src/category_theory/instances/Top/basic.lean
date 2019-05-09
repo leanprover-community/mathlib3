@@ -3,7 +3,8 @@
 -- Authors: Patrick Massot, Scott Morrison, Mario Carneiro
 
 import category_theory.concrete_category
-import topology.order
+import category_theory.full_subcategory
+import topology.opens
 
 open category_theory
 open topological_space
@@ -19,6 +20,8 @@ instance topological_space_unbundled (x : Top) : topological_space x := x.str
 
 namespace Top
 instance concrete_category_continuous : concrete_category @continuous := ⟨@continuous_id, @continuous.comp⟩
+
+def of (X : Type u) [topological_space X] : Top := ⟨X, by apply_instance⟩
 
 def discrete : Type u ⥤ Top.{u} :=
 { obj := λ X, ⟨X, ⊤⟩,

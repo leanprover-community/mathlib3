@@ -11,21 +11,8 @@ open tactic
 
 universes v u
 
-open category_theory.category
-
-namespace category_theory
-section -- TODO these should be the original lemmas!?
-variables {C : Sort u} [𝒞 : category.{v} C]
-include 𝒞
-variables {X Y Z : C}
-
-lemma cancel_epi'  (f : X ⟶ Y) [epi f]  {g h : Y ⟶ Z} (p : f ≫ g = f ≫ h) : g = h :=
-epi.left_cancellation g h p
-lemma cancel_mono' (f : X ⟶ Y) [mono f] {g h : Z ⟶ X} (p : g ≫ f = h ≫ f) : g = h :=
-mono.right_cancellation g h p
-end
-
 open category_theory
+open category_theory.category
 open category_theory.iso
 open category_theory.monoidal
 
@@ -136,7 +123,7 @@ by { rw [←interchange, ←interchange], simp }
 lemma left_unitor_inv_naturality {X X' : C} (f : X ⟶ X') :
   f ≫ (left_unitor X').inv = (left_unitor X).inv ≫ (𝟙 _ ⊗ f) :=
 begin
-  apply cancel_mono' (left_unitor X').hom,
+  apply (cancel_mono (left_unitor X').hom).1,
   simp only [assoc, comp_id, iso.inv_hom_id],
   conv_rhs { congr, skip, rw [left_unitor_naturality] },
   conv_rhs { rw [←category.assoc], congr, rw [iso.inv_hom_id] },
@@ -146,7 +133,7 @@ end
 lemma right_unitor_inv_naturality {X X' : C} (f : X ⟶ X') :
   f ≫ (right_unitor X').inv = (right_unitor X).inv ≫ (f ⊗ 𝟙 _) :=
 begin
-  apply cancel_mono' (right_unitor X').hom,
+  apply (cancel_mono (right_unitor X').hom).1,
   simp only [assoc, comp_id, iso.inv_hom_id],
   conv_rhs { congr, skip, rw [right_unitor_naturality] },
   conv_rhs { rw [←category.assoc], congr, rw [iso.inv_hom_id] },
@@ -163,7 +150,7 @@ begin
     dsimp at h',
     rw ←left_unitor_inv_naturality at h',
     rw ←left_unitor_inv_naturality at h',
-    apply cancel_mono' _ h', },
+    exact (cancel_mono _).1 h', },
   { intro h, subst h, }
 end
 
@@ -177,7 +164,7 @@ begin
     dsimp at h',
     rw ←right_unitor_inv_naturality at h',
     rw ←right_unitor_inv_naturality at h',
-    apply cancel_mono' _ h', },
+    exact (cancel_mono _).1 h' },
   { intro h, subst h, }
 end
 
@@ -307,7 +294,7 @@ eq_of_inv_eq_inv (by simp)
 lemma associator_inv_naturality {X Y Z X' Y' Z' : C} (f : X ⟶ X') (g : Y ⟶ Y') (h : Z ⟶ Z') :
   (f ⊗ (g ⊗ h)) ≫ (associator X' Y' Z').inv = (associator X Y Z).inv ≫ ((f ⊗ g) ⊗ h) :=
 begin
-  apply cancel_mono' (associator X' Y' Z').hom,
+  apply (cancel_mono (associator X' Y' Z').hom).1,
   simp only [assoc, comp_id, iso.inv_hom_id],
   conv_rhs { congr, skip, rw [associator_naturality] },
   conv_rhs { rw [←category.assoc], congr, rw [iso.inv_hom_id] },
@@ -318,7 +305,7 @@ lemma pentagon_inv (W X Y Z : C) :
   ((𝟙 W) ⊗ (associator X Y Z).inv) ≫ (associator W (X ⊗ Y) Z).inv ≫ ((associator W X Y).inv ⊗ (𝟙 Z))
     = (associator W X (Y ⊗ Z)).inv ≫ (associator (W ⊗ X) Y Z).inv :=
 begin
-  apply eq_of_inv_eq_inv,
+  apply category_theory.eq_of_inv_eq_inv,
   dsimp,
   rw [category.assoc, monoidal_category.pentagon]
 end
@@ -338,7 +325,7 @@ end
 @[simp] lemma triangle_3 (X Y : C) :
   ((right_unitor X).inv ⊗ 𝟙 Y) ≫ (associator X (tensor_unit C) Y).hom = ((𝟙 X) ⊗ (left_unitor Y).inv) :=
 begin
-  apply cancel_mono' (𝟙 X ⊗ (left_unitor Y).hom),
+  apply (cancel_mono (𝟙 X ⊗ (left_unitor Y).hom)).1,
   simp only [assoc, triangle_1],
   conv_lhs { rw [←interchange_left_identity, iso.inv_hom_id] },
   conv_rhs { rw [←interchange_right_identity, iso.inv_hom_id] }
@@ -347,7 +334,7 @@ end
 @[simp] lemma triangle_4 (X Y : C) :
   ((𝟙 X) ⊗ (left_unitor Y).inv) ≫ (associator X (tensor_unit C) Y).inv = ((right_unitor X).inv ⊗ 𝟙 Y) :=
 begin
-  apply cancel_mono' ((right_unitor X).hom ⊗ 𝟙 Y),
+  apply (cancel_mono ((right_unitor X).hom ⊗ 𝟙 Y)).1,
   simp only [triangle_2, assoc],
   conv_lhs { rw [←interchange_right_identity, iso.inv_hom_id] },
   conv_rhs { rw [←interchange_left_identity, iso.inv_hom_id] }
@@ -363,7 +350,7 @@ namespace monoidal_category
 variables (C : Type u) [𝒞 : monoidal_category.{v+1} C]
 include 𝒞
 
-def monoidal_category.tensor : (C × C) ⥤ C :=
+def tensor : (C × C) ⥤ C :=
 { obj := λ X, tensor_obj X.1 X.2,
   map := λ {X Y : C × C} (f : X ⟶ Y), tensor_hom f.1 f.2 }
 

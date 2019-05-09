@@ -292,7 +292,7 @@ by rw [←tensor_left_iff, interchange_right_identity, left_unitor_product_aux]
 @[simp] lemma left_unitor_product_inv (X Y : C) :
   ((left_unitor (X ⊗ Y)).inv) ≫ ((associator (tensor_unit C) X Y).inv) =
     ((left_unitor X).inv ⊗ (𝟙 Y)) :=
-eq_of_inv_eq _ _ (by simp)
+eq_of_inv_eq_inv (by simp)
 
 @[simp] lemma right_unitor_product (X Y : C) :
   ((associator X Y (tensor_unit C)).hom) ≫ ((𝟙 X) ⊗ (right_unitor Y).hom) =
@@ -302,7 +302,7 @@ by rw [←tensor_right_iff, interchange_left_identity, right_unitor_product_aux]
 @[simp] lemma right_unitor_product_inv (X Y : C) :
   ((𝟙 X) ⊗ (right_unitor Y).inv) ≫ ((associator X Y (tensor_unit C)).inv) =
     ((right_unitor (X ⊗ Y)).inv) :=
-eq_of_inv_eq _ _ (by simp)
+eq_of_inv_eq_inv (by simp)
 
 lemma associator_inv_naturality {X Y Z X' Y' Z' : C} (f : X ⟶ X') (g : Y ⟶ Y') (h : Z ⟶ Z') :
   (f ⊗ (g ⊗ h)) ≫ (associator X' Y' Z').inv = (associator X Y Z).inv ≫ ((f ⊗ g) ⊗ h) :=
@@ -318,7 +318,7 @@ lemma pentagon_inv (W X Y Z : C) :
   ((𝟙 W) ⊗ (associator X Y Z).inv) ≫ (associator W (X ⊗ Y) Z).inv ≫ ((associator W X Y).inv ⊗ (𝟙 Z))
     = (associator W X (Y ⊗ Z)).inv ≫ (associator (W ⊗ X) Y Z).inv :=
 begin
-  apply eq_of_inv_eq,
+  apply eq_of_inv_eq_inv,
   dsimp,
   rw [category.assoc, monoidal_category.pentagon]
 end

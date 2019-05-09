@@ -134,7 +134,7 @@ instance comp_is_iso [is_iso f] [is_iso h] : is_iso (f ≫ h) :=
   hom_inv_id' := begin erw [category.assoc, hom_inv_id_assoc], exact hom_inv_id f, end,
   inv_hom_id' := begin erw [category.assoc, inv_hom_id_assoc], exact inv_hom_id h, end }
 
-@[simp] lemma inv_id : inv (𝟙 X) = 𝟙 X := rfl
+@[simp] lemma category_theory.inv_id : inv (𝟙 X) = 𝟙 X := rfl
 @[simp] lemma inv_comp [is_iso f] [is_iso h] :
   category_theory.inv (f ≫ h) = category_theory.inv h ≫ category_theory.inv f := rfl
 @[simp] lemma is_iso.inv_inv [is_iso f] : category_theory.inv (category_theory.inv f) = f := rfl

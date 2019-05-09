@@ -19,7 +19,7 @@ def presheaf_to_Top (T : Top.{v}) : X.presheaf (Type v) :=
 
 -- TODO upgrade the result to TopCommRing?
 def continuous_functions (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) : CommRing.{v} :=
-{ α := (unop X) ⟶ (TopCommRing.forget_to_Top.obj R),
+{ α := unop X ⟶ TopCommRing.forget_to_Top.obj R,
   str := _root_.continuous_comm_ring }
 
 namespace continuous_functions

@@ -202,7 +202,7 @@ end category_theory
 
 namespace category_theory
 
- -- We need to get the morphism universe level up into `Type`, in order to have group structures.
+-- We need to get the morphism universe level up into `Type`, in order to have group structures.
 variables {C : Sort u} [𝒞 : category.{v+1} C]
 include 𝒞
 

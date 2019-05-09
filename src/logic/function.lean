@@ -222,17 +222,22 @@ def restrict {α β} (f : α → β) (s : set α) : subtype s → β := λ x, f 
 
 theorem restrict_eq {α β} (f : α → β) (s : set α): function.restrict f s = f ∘ (@subtype.val _ s) := rfl
 
-section comp₂
-variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
+section bicomp
+variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ε : Type*}
 
-def comp₂ (f : α → β → γ) (g : γ → δ) : α → β → δ := λ x y, g (f x y)
+def bicompl (f : γ → δ → ε) (g : α → γ) (h : β → δ) (a b) :=
+f (g a) (h b)
 
-notation g `∘₂` f := comp₂ f g
+def bicompr (f : γ → δ) (g : α → β → γ) (a b) :=
+f (g a b)
 
-lemma uncurry_comp₂ (f : α → β → γ) (g : γ → δ) :
+-- Suggested local notation:
+local notation f `∘₂` g := bicompr f g
+
+lemma uncurry_bicompr (f : α → β → γ) (g : γ → δ) :
   uncurry (g ∘₂ f) = (g ∘ uncurry f) :=
 funext $ λ ⟨p, q⟩, rfl
 
-end comp₂
+end bicomp
 
 end function

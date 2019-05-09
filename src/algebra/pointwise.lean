@@ -37,6 +37,7 @@ lemma mem_pointwise_mul [has_mul α] {s t : set α} {a : α} :
 lemma mul_mem_pointwise_mul [has_mul α] {s t : set α} {a b : α} (ha : a ∈ s) (hb : b ∈ t) :
   a * b ∈ s * t := ⟨_, ha, _, hb, rfl⟩
 
+@[to_additive set.add_subset_add]
 lemma mul_subset_mul [has_mul α] {s₁ s₂ t₁ t₂ : set α} (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) :
   s₁ * t₁ ⊆ s₂ * t₂ :=
 by { rintros _ ⟨a, ha, b, hb, rfl⟩, exact ⟨a, hs ha, b, ht hb, rfl⟩ }
@@ -162,6 +163,16 @@ begin
       simp * } }
 end
 
+def pointwise_mul_fintype [has_mul α] [decidable_eq α] (s t : set α) [hs : fintype s] [ht : fintype t] :
+  fintype (s * t : set α) := by { rw pointwise_mul_eq_image, apply set.fintype_image }
+
+def pointwise_add_fintype [has_add α] [decidable_eq α] (s t : set α) [hs : fintype s] [ht : fintype t] :
+  fintype (s + t : set α) := by { rw pointwise_add_eq_image, apply set.fintype_image }
+
+attribute [to_additive set.pointwise_add_fintype] set.pointwise_mul_fintype
+
+section monoid
+
 def pointwise_mul_semiring [monoid α] : semiring (set α) :=
 { add := (⊔),
   zero := ∅,
@@ -177,20 +188,11 @@ def pointwise_mul_semiring [monoid α] : semiring (set α) :=
 
 def pointwise_mul_comm_semiring [comm_monoid α] : comm_semiring (set α) :=
 { mul_comm := λ s t, set.ext $ λ a,
-  by split; { rintros ⟨_, _, _, _, rfl⟩, rw mul_comm, exact ⟨_, ‹_›, _, ‹_›, rfl⟩ },
+  by split; { rintros ⟨_, _, _, _, rfl⟩, exact ⟨_, ‹_›, _, ‹_›, mul_comm _ _⟩ },
   ..pointwise_mul_semiring }
 
 local attribute [instance] pointwise_mul_semiring
 
-def pointwise_mul_fintype [has_mul α] [decidable_eq α] (s t : set α) [hs : fintype s] [ht : fintype t] :
-  fintype (s * t : set α) := by {rw pointwise_mul_eq_image, apply set.fintype_image}
-
-def pointwise_add_fintype [has_add α] [decidable_eq α] (s t : set α) [hs : fintype s] [ht : fintype t] :
-  fintype (s + t : set α) := by {rw pointwise_add_eq_image, apply set.fintype_image}
-
-attribute [to_additive set.pointwise_add_fintype] set.pointwise_mul_fintype
-
-section monoid
 variables [monoid α] [monoid β] [is_monoid_hom f]
 
 def pointwise_mul_image_is_semiring_hom : is_semiring_hom (image f) :=
@@ -236,4 +238,3 @@ end
 end monoid
 
 end set
-

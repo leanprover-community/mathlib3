@@ -295,7 +295,7 @@ begin
   intros h₁ h₂, rcases trichotomous_of r b c with h₃|h₃|h₃,
   exact trans h₁ h₃, rw ←h₃, exact h₁, exfalso, exact h₂ h₃
 end
-section
+
 variables {s : β → β → Prop} {t : γ → γ → Prop}
 
 theorem is_irrefl_of_is_asymm [is_asymm α r] : is_irrefl α r :=
@@ -453,26 +453,70 @@ def unbounded (r : α → α → Prop) (s : set α) : Prop := ∀ a, ∃ b ∈ s
 /-- A bounded or final set -/
 def bounded (r : α → α → Prop) (s : set α) : Prop := ∃a, ∀ b ∈ s, r b a
 
+@[simp] lemma not_bounded_iff {r : α → α → Prop} (s : set α) : ¬bounded r s ↔ unbounded r s :=
+begin
+  classical,
+  simp only [bounded, unbounded, not_forall, not_exists, exists_prop, not_and, not_not]
+end
 
-theorem well_founded.has_min {α} {r : α → α → Prop} (H : well_founded r)
+@[simp] lemma not_unbounded_iff {r : α → α → Prop} (s : set α) : ¬unbounded r s ↔ bounded r s :=
+by { classical, rw [not_iff_comm, not_bounded_iff] }
+
+namespace well_founded
+theorem has_min {α} {r : α → α → Prop} (H : well_founded r)
   (p : set α) : p ≠ ∅ → ∃ a ∈ p, ∀ x ∈ p, ¬ r x a :=
-by haveI := classical.prop_decidable; exact
+by classical; exact
 not_imp_comm.1 (λ he, set.eq_empty_iff_forall_not_mem.2 $ λ a,
 acc.rec_on (H.apply a) $ λ a H IH h,
 he ⟨_, h, λ y, imp_not_comm.1 (IH y)⟩)
 
 /-- The minimum element of a nonempty set in a well-founded order -/
-noncomputable def well_founded.min {α} {r : α → α → Prop} (H : well_founded r)
+noncomputable def min {α} {r : α → α → Prop} (H : well_founded r)
   (p : set α) (h : p ≠ ∅) : α :=
 classical.some (H.has_min p h)
 
-theorem well_founded.min_mem {α} {r : α → α → Prop} (H : well_founded r)
+theorem min_mem {α} {r : α → α → Prop} (H : well_founded r)
   (p : set α) (h : p ≠ ∅) : H.min p h ∈ p :=
 let ⟨h, _⟩ := classical.some_spec (H.has_min p h) in h
 
-theorem well_founded.not_lt_min {α} {r : α → α → Prop} (H : well_founded r)
+theorem not_lt_min {α} {r : α → α → Prop} (H : well_founded r)
   (p : set α) (h : p ≠ ∅) {x} (xp : x ∈ p) : ¬ r x (H.min p h) :=
 let ⟨_, h'⟩ := classical.some_spec (H.has_min p h) in h' _ xp
+
+open set
+protected noncomputable def sup {α} {r : α → α → Prop} (wf : well_founded r) (s : set α)
+  (h : bounded r s) : α :=
+wf.min { x | ∀a ∈ s, r a x } (ne_empty_iff_exists_mem.mpr h)
+
+protected def lt_sup {α} {r : α → α → Prop} (wf : well_founded r) {s : set α} (h : bounded r s)
+  {x} (hx : x ∈ s) : r x (wf.sup s h) :=
+min_mem wf { x | ∀a ∈ s, r a x } (ne_empty_iff_exists_mem.mpr h) x hx
+
+section
+local attribute [instance, priority 0] classical.prop_decidable
+protected noncomputable def succ {α} {r : α → α → Prop} (wf : well_founded r) (x : α) : α :=
+if h : ∃y, r x y then wf.min { y | r x y } (ne_empty_iff_exists_mem.mpr h) else x
+
+protected lemma lt_succ {α} {r : α → α → Prop} (wf : well_founded r) {x : α} (h : ∃y, r x y) :
+  r x (wf.succ x) :=
+by { rw [well_founded.succ, dif_pos h], apply min_mem }
+end
+
+protected lemma lt_succ_iff {α} {r : α → α → Prop} [wo : is_well_order α r] {x : α} (h : ∃y, r x y)
+  (y : α) : r y (wo.wf.succ x) ↔ r y x ∨ y = x :=
+begin
+  split,
+  { intro h', have : ¬r x y,
+    { intro hy, rw [well_founded.succ, dif_pos] at h',
+      exact wo.wf.not_lt_min _ (ne_empty_iff_exists_mem.mpr h) hy h' },
+    rcases trichotomous_of r x y with hy | hy | hy,
+    exfalso, exact this hy,
+    right, exact hy.symm,
+    left, exact hy },
+  rintro (hy | rfl), exact trans hy (wo.wf.lt_succ h), exact wo.wf.lt_succ h
+end
+
+end well_founded
 
 variable (r)
 local infix `≼` : 50 := r
@@ -493,5 +537,3 @@ theorem directed_comp {ι} (f : ι → β) (g : β → α) :
 theorem directed_mono {s : α → α → Prop} {ι} (f : ι → α)
   (H : ∀ a b, r a b → s a b) (h : directed r f) : directed s f :=
 λ a b, let ⟨c, h₁, h₂⟩ := h a b in ⟨c, H _ _ h₁, H _ _ h₂⟩
-
-end

@@ -195,8 +195,7 @@ protected lemma nonzero {q : ℚ} (hq : q ≠ 0) : padic_norm p q ≠ 0 :=
 begin
   rw padic_norm.eq_fpow_of_nonzero p hq,
   apply fpow_ne_zero_of_ne_zero,
-  apply ne_of_gt,
-  exact_mod_cast hp.pos
+  exact_mod_cast ne_of_gt hp.pos
 end
 
 @[simp] protected lemma neg (q : ℚ) : padic_norm p (-q) = padic_norm p q :=

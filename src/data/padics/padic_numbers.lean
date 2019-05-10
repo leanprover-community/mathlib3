@@ -423,8 +423,7 @@ lemma of_rat_eq {q r : ℚ} : of_rat p q = of_rat p r ↔ q = r :=
 @[elim_cast] lemma coe_inj {q r : ℚ} : (↑q : ℚ_[p]) = ↑r ↔ q = r := by simp [cast_eq_of_rat, of_rat_eq]
 
 instance : char_zero ℚ_[p] :=
-have ∀ n : ℕ, (↑(↑n : ℚ) : ℚ_[p]) = ↑n, by simp,
-⟨λ m n, by {rw_mod_cast ← this, refl}⟩
+⟨λ m n, by { rw ← rat.cast_coe_nat, norm_cast }⟩
 
 end completion
 end padic

@@ -203,23 +203,33 @@ begin
   { rintros _ _ ⟨x, rfl⟩ ⟨y, rfl⟩, use x * y, exact free_ring.lift_mul _ _ _ }
 end
 
-noncomputable def subsingleton_equiv' [subsingleton α] : free_ring α ≃ free_comm_ring α :=
-@functor.map_equiv _ _ free_abelian_group _ _
-{ to_fun := λ (l : list α), (l : multiset α),
-  inv_fun := quot.out,
-  left_inv := λ l, list.ext_le
-    (by { rw [← multiset.coe_card, ← multiset.coe_card], congr' 1, exact quot.out_eq _ }) $
-    λ n h₁ h₂, subsingleton.elim _ _,
-  right_inv := λ l, quot.out_eq _ }
+lemma coe_eq :
+  (coe : free_ring α → free_comm_ring α) =
+  @functor.map free_abelian_group _ _ _ (λ (l : list α), (l : multiset α)) :=
+begin
+  funext,
+  apply @free_abelian_group.lift.ext _ _ _
+    (coe : free_ring α → free_comm_ring α) _ _ (free_abelian_group.lift.is_add_group_hom _),
+  intros x,
+  change free_ring.lift free_comm_ring.of (free_abelian_group.of x) = _,
+  change _ = free_abelian_group.of (↑x),
+  induction x with hd tl ih, {refl},
+  simp only [*, free_ring.lift, free_comm_ring.of, free_abelian_group.of, free_abelian_group.lift,
+    free_group.of, free_group.to_group, free_group.to_group.aux,
+    mul_one, free_group.quot_lift_mk, abelianization.lift.of, bool.cond_tt, list.prod_cons,
+    cond, list.prod_nil, list.map] at *,
+  refl
+end
 
 noncomputable def subsingleton_equiv [subsingleton α] :
   free_ring α ≃r free_comm_ring α :=
-{ to_equiv := subsingleton_equiv' α,
+{ to_equiv := @functor.map_equiv _ _ free_abelian_group _ _ $ multiset.subsingleton_equiv α,
   hom :=
   begin
-    delta subsingleton_equiv' functor.map_equiv,
-    dsimp,
-    sorry
+    delta functor.map_equiv,
+    rw congr_arg is_ring_hom _,
+    work_on_goal 2 { symmetry, exact coe_eq α },
+    apply_instance
   end }
 
 end free_ring_to_free_comm_ring

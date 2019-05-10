@@ -6,7 +6,7 @@ Author: Mario Carneiro
 Multisets.
 -/
 import logic.function order.boolean_algebra
-  data.list.basic data.list.perm data.list.sort data.quot data.string
+  data.equiv.basic data.list.basic data.list.perm data.list.sort data.quot data.string
   algebra.order_functions algebra.group_power algebra.ordered_group
   category.traversable.lemmas tactic.interactive
   category.traversable.instances category.basic
@@ -3165,5 +3165,15 @@ congr_arg coe $ list.Ico.filter_ge_of_ge hnl
 congr_arg coe $ list.Ico.filter_ge n m l
 
 end Ico
+
+variable (α)
+
+noncomputable def subsingleton_equiv [subsingleton α] : list α ≃ multiset α :=
+{ to_fun := coe,
+  inv_fun := quot.out,
+  left_inv := λ l, list.ext_le
+    (by { rw [← multiset.coe_card, ← multiset.coe_card], congr' 1, exact quot.out_eq _ }) $
+    λ n h₁ h₂, subsingleton.elim _ _,
+  right_inv := λ l, quot.out_eq _ }
 
 end multiset

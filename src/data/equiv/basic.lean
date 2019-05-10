@@ -8,7 +8,7 @@ We say two types are equivalent if they are isomorphic.
 
 Two equivalent types have the same cardinality.
 -/
-import tactic.split_ifs logic.function logic.unique data.set.basic data.bool data.quot
+import tactic.split_ifs logic.function logic.unique data.set.function data.bool data.quot
 
 open function
 
@@ -669,12 +669,16 @@ protected def prod {α β} (s : set α) (t : set β) :
  λ ⟨⟨x, y⟩, ⟨h₁, h₂⟩⟩, rfl,
  λ ⟨⟨x, h₁⟩, ⟨y, h₂⟩⟩, rfl⟩
 
-protected noncomputable def image {α β} (f : α → β) (s : set α) (H : injective f) :
+protected noncomputable def image_of_inj_on {α β} (f : α → β) (s : set α) (H : inj_on f s) :
   s ≃ (f '' s) :=
-⟨λ ⟨x, h⟩, ⟨f x, mem_image_of_mem _ h⟩,
+⟨λ ⟨x, h⟩, ⟨f x, mem_image_of_mem f h⟩,
  λ ⟨y, h⟩, ⟨classical.some h, (classical.some_spec h).1⟩,
- λ ⟨x, h⟩, subtype.eq (H (classical.some_spec (mem_image_of_mem f h)).2),
+ λ ⟨x, h⟩, subtype.eq (H (classical.some_spec (mem_image_of_mem f h)).1 h
+   (classical.some_spec (mem_image_of_mem f h)).2),
  λ ⟨y, h⟩, subtype.eq (classical.some_spec h).2⟩
+
+protected noncomputable def image {α β} (f : α → β) (s : set α) (H : injective f) : s ≃ (f '' s) :=
+equiv.set.image_of_inj_on f s (λ x y hx hy hxy, H hxy)
 
 @[simp] theorem image_apply {α β} (f : α → β) (s : set α) (H : injective f) (a h) :
   set.image f s H ⟨a, h⟩ = ⟨f a, mem_image_of_mem _ h⟩ := rfl
@@ -691,6 +695,13 @@ protected noncomputable def range {α β} (f : α → β) (H : injective f) :
 
 protected def congr {α β : Type*} (e : α ≃ β) : set α ≃ set β :=
 ⟨λ s, e '' s, λ t, e.symm '' t, symm_image_image e, symm_image_image e.symm⟩
+
+protected def sep {α : Type u} (s : set α) (t : α → Prop) :
+  ({ x ∈ s | t x } : set α) ≃ { x : s | t x.1 } :=
+begin
+  symmetry, apply (equiv.subtype_subtype_equiv_subtype _ _).trans _,
+  simp only [mem_set_of_eq, exists_prop], refl
+end
 
 end set
 

@@ -220,13 +220,13 @@ variable {k}
 variable {f : E × F → G}
 
 lemma is_bounded_bilinear_map.map_sub_left (h : is_bounded_bilinear_map k f) {x y : E} {z : F} :
-  f (x-y, z) = f (x, z) - f(y, z) :=
-calc f (x-y, z) = f (x + (-1 : k) • y, z) : by simp
+  f (x - y, z) = f (x, z) -  f(y, z) :=
+calc f (x - y, z) = f (x + (-1 : k) • y, z) : by simp
 ... = f (x, z) + (-1 : k) • f (y, z) : by simp only [h.add_left, h.smul_left]
 ... = f (x, z) - f (y, z) : by simp
 
 lemma is_bounded_bilinear_map.map_sub_right (h : is_bounded_bilinear_map k f) {x : E} {y z : F} :
-  f (x, y - z) = f (x, y) - f(x, z) :=
+  f (x, y - z) = f (x, y) - f (x, z) :=
 calc f (x, y - z) = f (x, y + (-1 : k) • z) : by simp
 ... = f (x, y) + (-1 : k) • f (x, z) : by simp only [h.add_right, h.smul_right]
 ... = f (x, y) - f (x, z) : by simp
@@ -268,7 +268,7 @@ We define this function here a bounded linear map from `E × F` to `G`. The fact
 is indeed the derivative of `f` is proved in `is_bounded_bilinear_map.has_fderiv_at` in
 `deriv.lean`-/
 def is_bounded_bilinear_map.deriv (h : is_bounded_bilinear_map k f) (p : E × F) : (E × F) →L[k] G :=
-{ to_fun := λq, f(p.1, q.2) + f (q.1, p.2),
+{ to_fun := λq, f (p.1, q.2) + f (q.1, p.2),
   add := λq₁ q₂, begin
     change f (p.1, q₁.2 + q₂.2) + f (q₁.1 + q₂.1, p.2) =
       f (p.1, q₁.2) + f (q₁.1, p.2) + (f (p.1, q₂.2) + f (q₂.1, p.2)),
@@ -301,17 +301,17 @@ begin
   rcases h.bound with ⟨C, Cpos, hC⟩,
   refine is_linear_map.with_bound ⟨λp₁ p₂, _, λc p, _⟩ (C + C) (λp, _),
   { ext q,
-    change f(p₁.1 + p₂.1, q.2) + f(q.1, p₁.2 + p₂.2) =
-      (f(p₁.1, q.2) + f(q.1, p₁.2)) + ((f(p₂.1, q.2) + f(q.1, p₂.2))),
+    change f (p₁.1 + p₂.1, q.2) + f (q.1, p₁.2 + p₂.2) =
+      (f (p₁.1, q.2) + f (q.1, p₁.2)) + ((f (p₂.1, q.2) + f (q.1, p₂.2))),
     simp [h.add_left, h.add_right] },
   { ext q,
-    change f(c • p.1, q.2) + f(q.1, c • p.2) = c • (f(p.1, q.2) + f(q.1, p.2)),
+    change f (c • p.1, q.2) + f (q.1, c • p.2) = c • (f (p.1, q.2) + f (q.1, p.2)),
     simp [h.smul_left, h.smul_right, smul_add] },
   { dunfold is_bounded_bilinear_map.deriv,
     refine bounded_linear_map.op_norm_le_bound _
       (mul_nonneg (add_nonneg (le_of_lt Cpos) (le_of_lt Cpos)) (norm_nonneg _)) (λq, _),
-    calc ∥f(p.1, q.2) + f(q.1, p.2)∥
-      ≤ ∥f(p.1, q.2)∥ + ∥f(q.1, p.2)∥ : norm_triangle _ _
+    calc ∥f (p.1, q.2) + f (q.1, p.2)∥
+      ≤ ∥f (p.1, q.2)∥ + ∥f (q.1, p.2)∥ : norm_triangle _ _
     ... ≤ C * ∥p.1∥ * ∥q.2∥ + C * ∥q.1∥ * ∥p.2∥ : add_le_add (hC _ _) (hC _ _)
     ... ≤ C * ∥p∥ * ∥q∥ + C * ∥q∥ * ∥p∥ : by apply_rules [add_le_add, mul_le_mul, norm_nonneg,
       le_of_lt Cpos, le_refl, le_max_left, le_max_right, mul_nonneg, norm_nonneg, norm_nonneg,

@@ -98,19 +98,19 @@ def differentiable (f : E → F) :=
 ∀x, differentiable_at k f x
 
 /- A notation for sets on which the differential has to be unique. This is for instance the case
-on open sets, which is the main case of applications, but also
-on closed halfspaces or closed disks. It is only on such sets that it makes sense to talk about
-"the" derivative, and to talk about higher smoothness.
+on open sets, which is the main case of applications, but also on closed halfspaces or closed
+disks. It is only on such sets that it makes sense to talk about "the" derivative, and to talk
+about higher smoothness.
 
 The differential is unique when the tangent directions (called the tangent cone below) spans a
 dense subset of the underlying normed space. -/
 
-def tangent_cone_at (s : set E)(x : E)  : set E :=
+def tangent_cone_at (s : set E) (x : E) : set E :=
 {y : E | ∃(c:ℕ → k) (d: ℕ → E), {n:ℕ | x + d n ∈ s} ∈ (at_top : filter ℕ) ∧
   (tendsto (λn, ∥c n∥) at_top at_top) ∧ (tendsto (λn, c n • d n) at_top (nhds y))}
 
 /-- A property ensuring that the tangent cone to `s` at `x` spans a dense subset of the whole space.
-The main role of this property is to ensure that the differential along `s` as `x` is unique,
+The main role of this property is to ensure that the differential within `s` at `x` is unique,
 hence this name. The uniqueness it asserts is proved in `unique_diff_within_at.eq` -/
 def unique_diff_within_at (s : set E) (x : E) : Prop :=
 closure ((submodule.span k (tangent_cone_at k s x)) : set E) = univ

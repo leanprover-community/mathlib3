@@ -298,7 +298,7 @@ lemma of_ne_zero [has_zero β] (NT : φ ≠ ⊥) (x : β) : x ≠ 0 ↔ of x ≠
 
 @[simp] lemma of_div [division_ring β] (U : is_ultrafilter φ) (x y : β) :
   of (x / y) = @has_div.div _
-  (@has_div_of_filter_product _ (filter_product.division_ring U))
+  (@has_div_of_division_ring _ (filter_product.division_ring U))
   (of x) (of y) :=
 rfl
 

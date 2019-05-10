@@ -120,8 +120,7 @@ jobs:
         - update-mathlib
 
     - env: TASK="check dev scripts"
-      if: type != pull_request OR head_repo = leanprover-community/mathlib
-      if: type != cron
+      if: type != cron && (type != pull_request OR head_repo = leanprover-community/mathlib)
       sudo: true
       language: python
       python:

@@ -66,7 +66,7 @@ variables [add_comm_group γ] [vector_space α γ]
 theorem linear_equiv.dim_eq (f : β ≃ₗ[α] γ) : dim α β = dim α γ :=
 let ⟨b, hb⟩ := exists_is_basis α β in
 hb.mk_eq_dim.symm.trans $
-  (cardinal.mk_eq_of_injective f.to_equiv.injective).symm.trans $
+  (cardinal.mk_image_eq f.to_equiv.injective).symm.trans $
 (f.is_basis hb).mk_eq_dim
 
 lemma dim_bot : dim α (⊥ : submodule α β) = 0 :=
@@ -86,7 +86,7 @@ begin
   rw [← (is_basis_span hs).mk_eq_dim],
   calc cardinal.mk ↥((submodule.subtype (span α s) : span α s →ₗ[α] β) ⁻¹' s) =
       cardinal.mk ↥((submodule.subtype (span α s)) '' ((submodule.subtype (span α s)) ⁻¹' s)) :
-      (cardinal.mk_eq_of_injective subtype.val_injective).symm
+      (cardinal.mk_image_eq subtype.val_injective).symm
     ... = cardinal.mk ↥s : by rw this
 end
 set_option class.instance_max_depth 32
@@ -110,7 +110,7 @@ begin
   rcases exists_is_basis α γ with ⟨c, hc⟩,
   rw [← @is_basis.mk_eq_dim α (β × γ) _ _ _ _ (is_basis_inl_union_inr hb hc),
     ← hb.mk_eq_dim, ← hc.mk_eq_dim, cardinal.mk_union_of_disjoint,
-    cardinal.mk_eq_of_injective, cardinal.mk_eq_of_injective],
+    cardinal.mk_image_eq, cardinal.mk_image_eq],
   { exact prod.injective_inr },
   { exact prod.injective_inl },
   { rintro _ ⟨⟨x, hx, rfl⟩, ⟨y, hy, ⟨⟩⟩⟩,
@@ -160,7 +160,7 @@ begin
   rcases exists_subset_is_basis this with ⟨b, hbs_b, hb⟩,
   rw [← is_basis.mk_eq_dim hbs, ← is_basis.mk_eq_dim hb],
   calc cardinal.mk ↥bs = cardinal.mk ((coe : s → β) '' bs) :
-      (cardinal.mk_eq_of_injective $ subtype.val_injective).symm
+      (cardinal.mk_image_eq $ subtype.val_injective).symm
     ... ≤ cardinal.mk ↥b :
       nonempty.intro (embedding_of_subset hbs_b)
 end
@@ -248,7 +248,7 @@ begin
   have : is_basis α (⋃i, std_basis α φ i '' b i) := pi.is_basis_std_basis b hb,
   rw [← this.mk_eq_dim, cardinal.mk_Union_eq_sum_mk],
   { congr, funext i,
-    rw [cardinal.mk_eq_of_injective, (hb i).mk_eq_dim],
+    rw [cardinal.mk_image_eq, (hb i).mk_eq_dim],
     exact ker_eq_bot.1 (ker_std_basis α _ i) },
   rintros i j h b ⟨⟨x, hx, rfl⟩, ⟨y, hy, eq⟩⟩,
   replace eq := congr_fun eq i,

@@ -5,7 +5,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 
 Extra definitions on lists.
 -/
-import data.option.defs logic.basic
+import data.option.defs logic.basic tactic.cache
 
 namespace list
 
@@ -466,7 +466,7 @@ end choose
 
 namespace func
 
-/- Definitions for using lists as finite 
+/- Definitions for using lists as finite
    representations of functions with domain ℕ. -/
 
 variables [inhabited α] [inhabited β]
@@ -485,18 +485,18 @@ variables [inhabited α] [inhabited β]
 def equiv (as1 as2 : list α) : Prop :=
 ∀ (m : nat), get m as1 = get m as2
 
-def neg [has_neg α] (as : list α) := as.map (λ a, -a) 
+def neg [has_neg α] (as : list α) := as.map (λ a, -a)
 
-@[simp] def pointwise (f : α → β → γ) : list α → list β → list γ 
+@[simp] def pointwise (f : α → β → γ) : list α → list β → list γ
 | []      []      := []
 | []      (b::bs) := map (f $ default α) (b::bs)
 | (a::as) []      := map (λ x, f x $ default β) (a::as)
 | (a::as) (b::bs) := (f a b)::(pointwise as bs)
 
-def add {α : Type u} [has_zero α] [has_add α] : list α → list α → list α := 
-@pointwise α α α ⟨0⟩ ⟨0⟩ (+) 
+def add {α : Type u} [has_zero α] [has_add α] : list α → list α → list α :=
+@pointwise α α α ⟨0⟩ ⟨0⟩ (+)
 
-def sub {α : Type u} [has_zero α] [has_sub α] : list α → list α → list α := 
+def sub {α : Type u} [has_zero α] [has_sub α] : list α → list α → list α :=
 @pointwise α α α ⟨0⟩ ⟨0⟩ (@has_sub.sub α _)
 
 end func

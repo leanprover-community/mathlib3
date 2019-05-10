@@ -232,6 +232,15 @@ noncomputable def subsingleton_equiv [subsingleton α] :
     apply_instance
   end }
 
+instance [subsingleton α] : comm_ring (free_ring α) :=
+{ mul_comm := λ x y,
+  by rw [← (subsingleton_equiv α).left_inv (y * x),
+        is_ring_hom.map_mul ((subsingleton_equiv α).to_equiv).to_fun,
+        mul_comm,
+        ← is_ring_hom.map_mul ((subsingleton_equiv α).to_equiv).to_fun,
+        (subsingleton_equiv α).left_inv],
+  .. free_ring.ring α }
+
 end free_ring_to_free_comm_ring
 
 variables [decidable_eq α]
@@ -287,3 +296,35 @@ ring_equiv.trans (free_comm_ring_equiv_mv_polynomial_int _) (mv_polynomial.pempt
 
 def free_comm_ring_punit_equiv_polynomial_int : free_comm_ring punit.{u+1} ≃r polynomial ℤ :=
 ring_equiv.trans (free_comm_ring_equiv_mv_polynomial_int _) (mv_polynomial.punit_ring_equiv _)
+
+def free_ring_punit_equiv_polynomial_int : free_ring punit.{u+1} ≃r polynomial ℤ :=
+{ to_fun := free_ring.lift $ λ _, polynomial.X,
+  inv_fun := polynomial.eval₂ coe (free_ring.of punit.star),
+  left_inv := λ x, begin
+    haveI : is_semiring_hom (coe : int → free_ring punit.{u+1}) :=
+      @@is_ring_hom.is_semiring_hom _ _ _ (@@int.cast.is_ring_hom _),
+    exact free_abelian_group.induction_on x rfl
+    (λ L, list.rec_on L rfl $ λ hd tl ih, show polynomial.eval₂ coe (free_ring.of punit.star)
+          (free_ring.lift (λ (_x : punit), polynomial.X) (free_ring.of hd * free_abelian_group.of tl)) =
+        free_ring.of hd * free_abelian_group.of tl,
+      by cases hd; rw [free_ring.lift_mul, free_ring.lift_of, polynomial.eval₂_mul, polynomial.eval₂_X, ih])
+    (λ L ih, by rw [free_ring.lift_neg, ← neg_one_mul, polynomial.eval₂_mul,
+        ← polynomial.C_1, ← polynomial.C_neg, polynomial.eval₂_C,
+        int.cast_neg, int.cast_one, neg_one_mul, ih])
+    (λ x1 x2 ih1 ih2, by rw [free_ring.lift_add, polynomial.eval₂_add, ih1, ih2])
+  end,
+  right_inv := λ x, begin
+    haveI : is_semiring_hom (coe : int → free_ring punit.{u+1}) :=
+      @@is_ring_hom.is_semiring_hom _ _ _ (@@int.cast.is_ring_hom _),
+    have : ∀ i : ℤ, free_ring.lift (λ _ : punit, polynomial.X) ↑i = polynomial.C i,
+    { exact λ i, int.induction_on i
+      (by rw [int.cast_zero, free_ring.lift_zero, polynomial.C_0])
+      (λ i ih, by rw [int.cast_add, int.cast_one, free_ring.lift_add, free_ring.lift_one, ih, polynomial.C_add, polynomial.C_1])
+      (λ i ih, by rw [int.cast_sub, int.cast_one, free_ring.lift_sub, free_ring.lift_one, ih, polynomial.C_sub, polynomial.C_1]) },
+    exact polynomial.induction_on x
+    (λ i, by rw [polynomial.eval₂_C, this])
+    (λ p q ihp ihq, by rw [polynomial.eval₂_add, free_ring.lift_add, ihp, ihq])
+    (λ n i ih, by rw [polynomial.eval₂_mul, polynomial.eval₂_pow, polynomial.eval₂_C, polynomial.eval₂_X,
+        free_ring.lift_mul, free_ring.lift_pow, free_ring.lift_of, this])
+  end,
+  hom := by apply_instance }

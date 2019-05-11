@@ -136,7 +136,7 @@ by simp [irreducible]
 | ⟨hn0, h⟩ := have is_unit (0:α) ∨ is_unit (0:α), from h 0 0 ((mul_zero 0).symm),
   this.elim hn0 hn0
 
-theorem nonzero_of_irreducible [semiring α] : ∀ {p:α}, irreducible p → p ≠ 0
+theorem ne_zero_of_irreducible [semiring α] : ∀ {p:α}, irreducible p → p ≠ 0
 | _ hp rfl := not_irreducible_zero hp
 
 theorem of_irreducible_mul {α} [monoid α] {x y : α} :

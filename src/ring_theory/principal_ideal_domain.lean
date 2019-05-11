@@ -127,7 +127,7 @@ lemma is_maximal_of_irreducible {p : α} (hp : irreducible p) :
 end⟩
 
 lemma irreducible_iff_prime {p : α} : irreducible p ↔ prime p :=
-⟨λ hp, (span_singleton_prime $ nonzero_of_irreducible hp).1 $
+⟨λ hp, (span_singleton_prime $ ne_zero_of_irreducible hp).1 $
     (is_maximal_of_irreducible hp).is_prime,
   irreducible_of_prime⟩
 

@@ -3168,12 +3168,11 @@ end Ico
 
 variable (α)
 
-noncomputable def subsingleton_equiv [subsingleton α] : list α ≃ multiset α :=
+def subsingleton_equiv [subsingleton α] : list α ≃ multiset α :=
 { to_fun := coe,
-  inv_fun := quot.out,
-  left_inv := λ l, list.ext_le
-    (by { rw [← multiset.coe_card, ← multiset.coe_card], congr' 1, exact quot.out_eq _ }) $
-    λ n h₁ h₂, subsingleton.elim _ _,
-  right_inv := λ l, quot.out_eq _ }
+  inv_fun := quot.lift id $ λ (a b : list α) (h : a ~ b),
+    list.ext_le (perm_length h) $ λ n h₁ h₂, subsingleton.elim _ _,
+  left_inv := λ l, rfl,
+  right_inv := λ m, quot.induction_on m $ λ l, rfl }
 
 end multiset

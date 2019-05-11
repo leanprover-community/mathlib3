@@ -98,15 +98,3 @@ lift $ of ∘ f
 @[simp] lemma map_pow (x) (n : ℕ) : map f (x ^ n) = (map f x) ^ n := lift_pow _ _ _
 
 end free_ring
-
-def free_ring_pempty_equiv_int : free_ring pempty.{u+1} ≃r ℤ :=
-{ to_fun := free_ring.lift $ pempty.rec _,
-  inv_fun := coe,
-  left_inv := λ x, free_abelian_group.induction_on x rfl
-    (λ L, list.rec_on L rfl $ pempty.rec _)
-    (λ L ih, by rw [free_ring.lift_neg, int.cast_neg, ih])
-    (λ x1 x2 ih1 ih2, by rw [free_ring.lift_add, int.cast_add, ih1, ih2]),
-  right_inv := λ i, int.induction_on i rfl
-    (λ i ih, by rw [int.cast_add, int.cast_one, free_ring.lift_add, free_ring.lift_one, ih])
-    (λ i ih, by rw [int.cast_sub, int.cast_one, free_ring.lift_sub, free_ring.lift_one, ih]),
-  hom := by apply_instance }

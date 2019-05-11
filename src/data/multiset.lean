@@ -17,13 +17,10 @@ variables {α : Type*} {β : Type*} {γ : Type*}
 
 local infix ` • ` := add_monoid.smul
 
-instance list.perm.setoid (α : Type*) : setoid (list α) :=
-setoid.mk perm ⟨perm.refl, @perm.symm _, @perm.trans _⟩
-
 /-- `multiset α` is the quotient of `list α` by list permutation. The result
   is a type of finite sets with duplicates allowed.  -/
 def {u} multiset (α : Type u) : Type u :=
-quotient (list.perm.setoid α)
+quotient (list.is_setoid α)
 
 namespace multiset
 

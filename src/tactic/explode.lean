@@ -6,7 +6,7 @@ Author: Mario Carneiro
 Displays a proof term in a line by line format somewhat akin to a Fitch style
 proof or the Metamath proof style.
 -/
-import tactic.basic meta.coinductive_predicates
+import tactic.core meta.coinductive_predicates
 open expr tactic
 
 namespace tactic
@@ -76,8 +76,8 @@ do { ei ← es.find e,
 <|> return deps
 
 meta def may_be_proof (e : expr) : tactic bool :=
-is_proof e >>= λ b, return $
-b || is_app e || is_local_constant e || is_pi e || is_lambda e
+do expr.sort u ← infer_type e >>= infer_type,
+   return $ bnot u.nonzero
 
 end explode
 open explode

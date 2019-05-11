@@ -13,6 +13,9 @@ open fin nat
 def fin_zero_elim {C : Sort*} : fin 0 → C :=
 λ x, false.elim $ nat.not_lt_zero x.1 x.2
 
+def {u} fin_zero_elim' {α : fin 0 → Sort u} : ∀(x : fin 0), α x
+| ⟨n, hn⟩ := false.elim (nat.not_lt_zero n hn)
+
 namespace fin
 variables {n m : ℕ} {a b : fin n}
 
@@ -30,7 +33,7 @@ instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨fin.val⟩
 @[simp] def mk_val {m n : ℕ} (h : m < n) : (⟨m, h⟩ : fin n).val = m := rfl
 
 instance {n : ℕ} : decidable_linear_order (fin n) :=
-decidable_linear_order.lift fin.val (@fin.eq_of_veq _)
+decidable_linear_order.lift fin.val (@fin.eq_of_veq _) (by apply_instance)
 
 lemma zero_le (a : fin (n + 1)) : 0 ≤ a := zero_le a.1
 

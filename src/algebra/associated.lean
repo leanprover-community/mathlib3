@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Jens Wagemaker
 
 Associated and irreducible elements.
 -/
-import order.galois_connection algebra.group data.equiv.basic data.multiset
+import algebra.group data.multiset
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 open lattice

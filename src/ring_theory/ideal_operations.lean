@@ -309,7 +309,7 @@ def radical (I : ideal R) : ideal R :=
   zero := ⟨1, (pow_one (0:R)).symm ▸ I.zero_mem⟩,
   add := λ x y ⟨m, hxmi⟩ ⟨n, hyni⟩, ⟨m + n,
     (add_pow x y (m + n)).symm ▸ I.sum_mem $
-    show ∀ c ∈ finset.range (nat.succ (m + n)), x ^ c * y ^ (m + n - c) * (choose (m + n) c) ∈ I,
+    show ∀ c ∈ finset.range (nat.succ (m + n)), x ^ c * y ^ (m + n - c) * (nat.choose (m + n) c) ∈ I,
     from λ c hc, or.cases_on (le_total c m)
       (λ hcm, I.mul_mem_right $ I.mul_mem_left $ nat.add_comm n m ▸ (nat.add_sub_assoc hcm n).symm ▸
         (pow_add y n (m-c)).symm ▸ I.mul_mem_right hyni)
@@ -537,6 +537,26 @@ end surjective
 end map_and_comap
 
 end ideal
+
+namespace is_ring_hom
+
+variables {R : Type u} {S : Type v} [comm_ring R] [comm_ring S]
+variables (f : R → S) [is_ring_hom f]
+
+def ker : ideal R := ideal.comap f ⊥
+
+lemma ker_eq : ((ker f) : set R) = is_add_group_hom.ker f := rfl
+
+lemma inj_iff_ker_eq_bot : function.injective f ↔ ker f = ⊥ :=
+by rw [←submodule.ext'_iff, ker_eq]; exact is_add_group_hom.inj_iff_trivial_ker f
+
+lemma ker_eq_bot_iff_eq_zero : ker f = ⊥ ↔ ∀ x, f x = 0 → x = 0 :=
+by rw [←submodule.ext'_iff, ker_eq]; exact is_add_group_hom.trivial_ker_iff_eq_zero f
+
+lemma injective_iff : function.injective f ↔ ∀ x, f x = 0 → x = 0 :=
+is_add_group_hom.injective_iff f
+
+end is_ring_hom
 
 namespace submodule
 

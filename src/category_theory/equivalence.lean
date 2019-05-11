@@ -3,7 +3,6 @@
 -- Authors: Tim Baumann, Stephen Morgan, Scott Morrison
 
 import category_theory.fully_faithful
-import category_theory.functor_category
 import category_theory.natural_isomorphism
 import tactic.slice
 import tactic.converter.interactive

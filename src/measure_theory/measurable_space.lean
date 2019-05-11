@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Measurable spaces -- σ-algberas
 -/
-import data.set.disjointed data.finset order.galois_connection data.set.countable
+import data.set.disjointed order.galois_connection data.set.countable
 open set lattice encodable
 local attribute [instance] classical.prop_decidable
 
@@ -598,7 +598,7 @@ noncomputable def set.image [measurable_space α] [measurable_space β]
       have : ∀(a ∈ s) (h : ∃a', a' ∈ s ∧ a' = a), classical.some h = a :=
         λa ha h, (classical.some_spec h).2,
       rw show {x:f '' s | ((equiv.set.image f s hf).inv_fun x).val ∈ u} = subtype.val ⁻¹' (f '' u),
-        by ext ⟨b, a, hbs, rfl⟩; simp [equiv.set.image, hf, this _ hbs],
+        by ext ⟨b, a, hbs, rfl⟩; simp [equiv.set.image, equiv.set.image_of_inj_on, hf, this _ hbs],
       exact (measurable_subtype_val measurable_id) (f '' u) (hfi u hu)
     end }
 

@@ -2,9 +2,8 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Tim Baumann, Stephen Morgan, Scott Morrison
 
-import category_theory.isomorphism
 import category_theory.functor_category
-import category_theory.whiskering
+import category_theory.isomorphism
 
 open category_theory
 
@@ -27,6 +26,12 @@ def app {F G : C ⥤ D} (α : F ≅ G) (X : C) : F.obj X ≅ G.obj X :=
 @[simp] lemma app_hom {F G : C ⥤ D} (α : F ≅ G) (X : C) : (app α X).hom = α.hom.app X := rfl
 @[simp] lemma app_inv {F G : C ⥤ D} (α : F ≅ G) (X : C) : (app α X).inv = α.inv.app X := rfl
 
+@[simp] lemma hom_inv_id_app {F G : C ⥤ D} (α : F ≅ G) (X : C) : α.hom.app X ≫ α.inv.app X = 𝟙 (F.obj X) :=
+congr_fun (congr_arg nat_trans.app α.hom_inv_id) X
+
+@[simp] lemma inv_hom_id_app {F G : C ⥤ D} (α : F ≅ G) (X : C) : α.inv.app X ≫ α.hom.app X = 𝟙 (G.obj X) :=
+congr_fun (congr_arg nat_trans.app α.inv_hom_id) X
+
 variables {F G : C ⥤ D}
 
 instance hom_app_is_iso (α : F ≅ G) (X : C) : is_iso (α.hom.app X) :=
@@ -38,29 +43,14 @@ instance inv_app_is_iso (α : F ≅ G) (X : C) : is_iso (α.inv.app X) :=
   hom_inv_id' := begin rw [←functor.category.comp_app, iso.inv_hom_id, ←functor.category.id_app] end,
   inv_hom_id' := begin rw [←functor.category.comp_app, iso.hom_inv_id, ←functor.category.id_app] end }
 
-@[simp] lemma hom_vcomp_inv (α : F ≅ G) : (α.hom ⊟ α.inv) = nat_trans.id _ :=
-begin
-  have h : (α.hom ⊟ α.inv) = α.hom ≫ α.inv := rfl,
-  rw h,
-  rw iso.hom_inv_id,
-  refl
-end
-@[simp] lemma inv_vcomp_hom (α : F ≅ G) : (α.inv ⊟ α.hom) = nat_trans.id _ :=
-begin
-  have h : (α.inv ⊟ α.hom) = α.inv ≫ α.hom := rfl,
-  rw h,
-  rw iso.inv_hom_id,
-  refl
-end
-
 @[simp] lemma hom_app_inv_app_id (α : F ≅ G) (X : C) : α.hom.app X ≫ α.inv.app X = 𝟙 _ :=
 begin
-  rw ←nat_trans.vcomp_app,
+  rw ←functor.category.comp_app,
   simp,
 end
 @[simp] lemma inv_app_hom_app_id (α : F ≅ G) (X : C) : α.inv.app X ≫ α.hom.app X = 𝟙 _ :=
 begin
-  rw ←nat_trans.vcomp_app,
+  rw ←functor.category.comp_app,
   simp,
 end
 
@@ -97,35 +87,6 @@ open category_theory
 
 namespace category_theory.functor
 
-section
-variables {C : Sort u₁} [𝒞 : category.{v₁} C]
-          {D : Sort u₂} [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
-
-@[simp] protected def id_comp (F : C ⥤ D) : functor.id C ⋙ F ≅ F :=
-{ hom := { app := λ X, 𝟙 (F.obj X) },
-  inv := { app := λ X, 𝟙 (F.obj X) } }
-@[simp] protected def comp_id (F : C ⥤ D) : F ⋙ functor.id D ≅ F :=
-{ hom := { app := λ X, 𝟙 (F.obj X) },
-  inv := { app := λ X, 𝟙 (F.obj X) } }
-
-universes v₄ u₄
-
-variables {A : Sort u₃} [𝒜 : category.{v₃} A]
-          {B : Sort u₄} [ℬ : category.{v₄} B]
-include 𝒜 ℬ
-variables (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D)
-
-@[simp] protected def assoc : (F ⋙ G) ⋙ H ≅ F ⋙ (G ⋙ H ):=
-{ hom := { app := λ X, 𝟙 (H.obj (G.obj (F.obj X))) },
-  inv := { app := λ X, 𝟙 (H.obj (G.obj (F.obj X))) } }
-
--- When it's time to define monoidal categories and 2-categories,
--- we'll need to add lemmas relating these natural isomorphisms,
--- in particular the pentagon for the associator.
-end
-
-section
 variables {C : Type u₁} [𝒞 : category.{v₁} C]
 include 𝒞
 
@@ -136,7 +97,5 @@ def ulift_down_up : ulift_down.{v₁} C ⋙ ulift_up C ≅ functor.id (ulift.{u�
 def ulift_up_down : ulift_up.{v₁} C ⋙ ulift_down C ≅ functor.id C :=
 { hom := { app := λ X, 𝟙 X },
   inv := { app := λ X, 𝟙 X } }
-
-end
 
 end category_theory.functor

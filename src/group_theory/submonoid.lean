@@ -41,6 +41,13 @@ theorem multiplicative.is_submonoid_iff
   {s : set β} : @is_submonoid (multiplicative β) _ s ↔ is_add_submonoid s :=
 ⟨λ ⟨h₁, h₂⟩, ⟨h₁, @h₂⟩, λ h, by resetI; apply_instance⟩
 
+@[to_additive is_add_submonoid.inter]
+lemma is_submonoid.inter (s₁ s₂ : set α) [is_submonoid s₁] [is_submonoid s₂] :
+  is_submonoid (s₁ ∩ s₂) :=
+{ one_mem := ⟨is_submonoid.one_mem _, is_submonoid.one_mem _⟩,
+  mul_mem := λ x y hx hy,
+    ⟨is_submonoid.mul_mem hx.1 hy.1, is_submonoid.mul_mem hx.2 hy.2⟩ }
+
 lemma is_submonoid_Union_of_directed {ι : Type*} [hι : nonempty ι]
   (s : ι → set α) [∀ i, is_submonoid (s i)]
   (directed : ∀ i j, ∃ k, s i ⊆ s k ∧ s j ⊆ s k) :
@@ -179,6 +186,25 @@ by induction n; simp [*, pow_succ]
   [is_add_submonoid s] (a : s) (n : ℕ) : ((add_monoid.smul n a : s) : β) = add_monoid.smul n a :=
 by induction n; [refl, simp [*, succ_smul]]
 attribute [to_additive is_add_submonoid.smul_coe] is_submonoid.coe_pow
+
+@[to_additive subtype_val.is_add_monoid_hom]
+instance subtype_val.is_monoid_hom [is_submonoid s] : is_monoid_hom (subtype.val : s → α) :=
+{ map_one := rfl, map_mul := λ _ _, rfl }
+
+@[to_additive coe.is_add_monoid_hom]
+instance coe.is_monoid_hom [is_submonoid s] : is_monoid_hom (coe : s → α) :=
+subtype_val.is_monoid_hom
+
+@[to_additive subtype_mk.is_add_monoid_hom]
+instance subtype_mk.is_monoid_hom {γ : Type*} [monoid γ] [is_submonoid s] (f : γ → α)
+  [is_monoid_hom f] (h : ∀ x, f x ∈ s) : is_monoid_hom (λ x, (⟨f x, h x⟩ : s)) :=
+{ map_one := subtype.eq (is_monoid_hom.map_one f),
+  map_mul := λ _ _, subtype.eq (is_monoid_hom.map_mul f) }
+
+@[to_additive set_inclusion.is_add_monoid_hom]
+instance set_inclusion.is_monoid_hom (t : set α) [is_submonoid s] [is_submonoid t] (h : s ⊆ t) :
+  is_monoid_hom (set.inclusion h) :=
+subtype_mk.is_monoid_hom _ _
 
 namespace monoid
 

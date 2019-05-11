@@ -5,7 +5,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 
 Extra definitions on lists.
 -/
-import data.option.defs logic.basic logic.relator
+import data.option.defs logic.basic tactic.cache
 
 namespace list
 
@@ -153,6 +153,13 @@ def lookmap (f : α → option α) : list α → list α
   | none   := a :: lookmap l
   end
 
+def map_with_index_core (f : ℕ → α → β) : ℕ → list α → list β
+| k []      := []
+| k (a::as) := f k a::(map_with_index_core (k+1) as)
+
+def map_with_index (f : ℕ → α → β) (as : list α) : list β :=
+map_with_index_core f 0 as
+
 /-- `indexes_of a l` is the list of all indexes of `a` in `l`.
 
      indexes_of a [a, b, a, a] = [0, 2, 3] -/
@@ -226,7 +233,6 @@ def sublists_aux₁ : list α → (list α → list β) → list β
 
 section forall₂
 variables {r : α → β → Prop} {p : γ → δ → Prop}
-open relator
 
 inductive forall₂ (R : α → β → Prop) : list α → list β → Prop
 | nil {} : forall₂ [] []
@@ -457,5 +463,42 @@ let ⟨a, ⟨a_mem_ls, pa⟩⟩ := choose_x ls (hp.imp
 def choose (hp : ∃ a, a ∈ l ∧ p a) : α := choose_x p l hp
 
 end choose
+
+namespace func
+
+/- Definitions for using lists as finite
+   representations of functions with domain ℕ. -/
+
+variables [inhabited α] [inhabited β]
+
+@[simp] def set (a : α) : list α → ℕ → list α
+| (_::as) 0     := a::as
+| []      0     := [a]
+| (h::as) (k+1) := h::(set as k)
+| []      (k+1) := (default α)::(set ([] : list α) k)
+
+@[simp] def get : ℕ → list α → α
+| _ []          := default α
+| 0 (a::as)     := a
+| (n+1) (a::as) := get n as
+
+def equiv (as1 as2 : list α) : Prop :=
+∀ (m : nat), get m as1 = get m as2
+
+def neg [has_neg α] (as : list α) := as.map (λ a, -a)
+
+@[simp] def pointwise (f : α → β → γ) : list α → list β → list γ
+| []      []      := []
+| []      (b::bs) := map (f $ default α) (b::bs)
+| (a::as) []      := map (λ x, f x $ default β) (a::as)
+| (a::as) (b::bs) := (f a b)::(pointwise as bs)
+
+def add {α : Type u} [has_zero α] [has_add α] : list α → list α → list α :=
+@pointwise α α α ⟨0⟩ ⟨0⟩ (+)
+
+def sub {α : Type u} [has_zero α] [has_sub α] : list α → list α → list α :=
+@pointwise α α α ⟨0⟩ ⟨0⟩ (@has_sub.sub α _)
+
+end func
 
 end list

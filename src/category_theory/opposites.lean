@@ -4,10 +4,11 @@
 
 import category_theory.products
 import category_theory.types
-
-namespace category_theory
+import category_theory.natural_isomorphism
 
 universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+
+namespace category_theory
 
 /-- The type of objects of the opposite of C (which should be a category).
 
@@ -51,6 +52,28 @@ lemma op_inj : function.injective (@op C) :=
 by { rintros _ _ ⟨ ⟩, refl }
 lemma unop_inj : function.injective (@unop C) :=
 by { rintros _ _ ⟨ ⟩, refl }
+
+def op_induction {F : Π (X : Cᵒᵖ), Sort v₁} (h : Π X, F (op X)) : Π X, F X :=
+λ X, h (unop X)
+
+end category_theory
+
+namespace tactic.interactive
+
+open interactive interactive.types lean.parser tactic
+
+meta def op_induction (h : parse ident) : tactic unit :=
+do h' ← tactic.get_local h,
+   revert_lst [h'],
+   applyc `category_theory.op_induction,
+   tactic.intro h,
+   skip
+
+end tactic.interactive
+
+namespace category_theory
+
+variables {C : Sort u₁}
 
 section has_hom
 
@@ -98,6 +121,9 @@ instance category.opposite : category.{v₁} Cᵒᵖ :=
 @[simp] lemma unop_comp {X Y Z : Cᵒᵖ} {f : X ⟶ Y} {g : Y ⟶ Z} :
   (f ≫ g).unop = g.unop ≫ f.unop := rfl
 @[simp] lemma unop_id {X : Cᵒᵖ} : (𝟙 X).unop = 𝟙 (unop X) := rfl
+
+@[simp] lemma unop_id_op {X : C} : (𝟙 (op X)).unop = 𝟙 X := rfl
+@[simp] lemma op_id_unop {X : Cᵒᵖ} : (𝟙 (unop X)).op = 𝟙 X := rfl
 
 def op_op : (Cᵒᵖ)ᵒᵖ ⥤ C :=
 { obj := λ X, unop (unop X),
@@ -152,6 +178,28 @@ definition op_inv : (Cᵒᵖ ⥤ Dᵒᵖ) ⥤ (C ⥤ D)ᵒᵖ :=
 
 -- TODO show these form an equivalence
 
+variables {C D}
+
+protected definition left_op (F : C ⥤ Dᵒᵖ) : Cᵒᵖ ⥤ D :=
+{ obj := λ X, unop (F.obj (unop X)),
+  map := λ X Y f, (F.map f.unop).unop }
+
+@[simp] lemma left_op_obj (F : C ⥤ Dᵒᵖ) (X : Cᵒᵖ) : (F.left_op).obj X = unop (F.obj (unop X)) := rfl
+@[simp] lemma left_op_map (F : C ⥤ Dᵒᵖ) {X Y : Cᵒᵖ} (f : X ⟶ Y) :
+  (F.left_op).map f = (F.map f.unop).unop :=
+rfl
+
+protected definition right_op (F : Cᵒᵖ ⥤ D) : C ⥤ Dᵒᵖ :=
+{ obj := λ X, op (F.obj (op X)),
+  map := λ X Y f, (F.map f.op).op }
+
+@[simp] lemma right_op_obj (F : Cᵒᵖ ⥤ D) (X : C) : (F.right_op).obj X = op (F.obj (op X)) := rfl
+@[simp] lemma right_op_map (F : Cᵒᵖ ⥤ D) {X Y : C} (f : X ⟶ Y) :
+  (F.right_op).map f = (F.map f.op).op :=
+rfl
+
+-- TODO show these form an equivalence
+
 instance {F : C ⥤ D} [full F] : full F.op :=
 { preimage := λ X Y f, (F.preimage f.unop).op }
 
@@ -180,30 +228,65 @@ end
 
 end functor
 
--- TODO the following definitions do not belong here
+namespace nat_trans
 
-omit 𝒞
-variables (E : Type u₁)
+variables {D : Sort u₂} [𝒟 : category.{v₂} D]
+include 𝒟
 
-instance opposite.has_one [has_one E] : has_one (Eᵒᵖ) :=
-{ one := op 1 }
+section
+variables {F G : C ⥤ D}
 
-instance opposite.has_mul [has_mul E] : has_mul (Eᵒᵖ) :=
-{ mul := λ x y, op $ unop y * unop  x }
+protected definition op (α : F ⟶ G) : G.op ⟶ F.op :=
+{ app         := λ X, (α.app (unop X)).op,
+  naturality' := begin tidy, erw α.naturality, refl, end }
 
-@[simp] lemma opposite.unop_one [has_one E] : unop (1 : Eᵒᵖ) = (1 : E) := rfl
+@[simp] lemma op_app (α : F ⟶ G) (X) : (nat_trans.op α).app X = (α.app (unop X)).op := rfl
 
-@[simp] lemma opposite.unop_mul [has_mul E] (xs ys : Eᵒᵖ) : unop (xs * ys) = (unop ys * unop xs : E) := rfl
+protected definition unop (α : F.op ⟶ G.op) : G ⟶ F :=
+{ app         := λ X, (α.app (op X)).unop,
+  naturality' := begin tidy, erw α.naturality, refl, end }
 
-@[simp] lemma opposite.op_one [has_one E] : op (1 : E) = 1 := rfl
+@[simp] lemma unop_app (α : F.op ⟶ G.op) (X) : (nat_trans.unop α).app X = (α.app (op X)).unop := rfl
 
-@[simp] lemma opposite.op_mul [has_mul E] (xs ys : E) : op (xs * ys) = (op ys * op xs) := rfl
+end
 
-instance opposite.monoid [monoid E] : monoid (Eᵒᵖ) :=
-{ one := op 1,
-  mul := λ x y, op $ unop y * unop  x,
-  mul_one := by { intros, apply unop_inj, simp },
-  one_mul := by { intros, simp },
-  mul_assoc := by { intros, simp [mul_assoc], } }
+section
+variables {F G : C ⥤ Dᵒᵖ}
+
+protected definition left_op (α : F ⟶ G) : G.left_op ⟶ F.left_op :=
+{ app         := λ X, (α.app (unop X)).unop,
+  naturality' := begin tidy, erw α.naturality, refl, end }
+
+@[simp] lemma left_op_app (α : F ⟶ G) (X) :
+  (nat_trans.left_op α).app X = (α.app (unop X)).unop :=
+rfl
+
+protected definition right_op (α : F.left_op ⟶ G.left_op) : G ⟶ F :=
+{ app         := λ X, (α.app (op X)).op,
+  naturality' := begin tidy, erw α.naturality, refl, end }
+
+@[simp] lemma right_op_app (α : F.left_op ⟶ G.left_op) (X) :
+  (nat_trans.right_op α).app X = (α.app (op X)).op :=
+rfl
+
+end
+end nat_trans
+
+namespace nat_iso
+
+variables {D : Sort u₂} [𝒟 : category.{v₂} D]
+include 𝒟
+variables {F G : C ⥤ D}
+
+protected definition op (α : F ≅ G) : G.op ≅ F.op :=
+{ hom := nat_trans.op α.hom,
+  inv := nat_trans.op α.inv,
+  hom_inv_id' := begin ext, dsimp, rw ←op_comp, rw inv_hom_id_app, refl, end,
+  inv_hom_id' := begin ext, dsimp, rw ←op_comp, rw hom_inv_id_app, refl, end }
+
+@[simp] lemma op_hom (α : F ≅ G) : (nat_iso.op α).hom = nat_trans.op α.hom := rfl
+@[simp] lemma op_inv (α : F ≅ G) : (nat_iso.op α).inv = nat_trans.op α.inv := rfl
+
+end nat_iso
 
 end category_theory

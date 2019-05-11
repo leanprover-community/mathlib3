@@ -161,7 +161,8 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
     erw [←functor_to_types.naturality,
          obj_map_id,
          functor_to_types.naturality,
-         functor_to_types.map_id], refl,
+         functor_to_types.map_id],
+    refl,
   end,
   inv_hom_id' :=
   begin
@@ -173,11 +174,11 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
 
 variables {C}
 
-@[simp] def yoneda_sections (X : C) (F : Cᵒᵖ ⥤ Type v₁) : (yoneda.obj X ⟹ F) ≅ ulift.{u₁} (F.obj (op X)) :=
+@[simp] def yoneda_sections (X : C) (F : Cᵒᵖ ⥤ Type v₁) : (yoneda.obj X ⟶ F) ≅ ulift.{u₁} (F.obj (op X)) :=
 nat_iso.app (yoneda_lemma C) (op X, F)
 
 omit 𝒞
-@[simp] def yoneda_sections_small {C : Type u₁} [small_category C] (X : C) (F : Cᵒᵖ ⥤ Type u₁) : (yoneda.obj X ⟹ F) ≅ F.obj (op X) :=
+@[simp] def yoneda_sections_small {C : Type u₁} [small_category C] (X : C) (F : Cᵒᵖ ⥤ Type u₁) : (yoneda.obj X ⟶ F) ≅ F.obj (op X) :=
 yoneda_sections X F ≪≫ ulift_trivial _
 
 end category_theory

@@ -55,6 +55,12 @@ noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=
 @[simp] theorem finite.mem_to_finset {s : set α} {h : finite s} {a : α} : a ∈ h.to_finset ↔ a ∈ s :=
 @mem_to_finset _ _ (finite.fintype h) _
 
+lemma finite.coe_to_finset {α} {s : set α} (h : finite s) : ↑h.to_finset = s :=
+by { ext, apply mem_to_finset }
+
+lemma exists_finset_of_finite {s : set α} (h : finite s) : ∃(s' : finset α), ↑s' = s :=
+⟨h.to_finset, h.coe_to_finset⟩
+
 theorem finite.exists_finset {s : set α} : finite s →
   ∃ s' : finset α, ∀ a : α, a ∈ s' ↔ a ∈ s
 | ⟨h⟩ := by exactI ⟨to_finset s, λ _, mem_to_finset⟩
@@ -260,6 +266,10 @@ theorem finite_bUnion {α} {ι : Type*} {s : set ι} {f : ι → set α} :
   finite s → (∀i, finite (f i)) → finite (⋃ i∈s, f i)
 | ⟨hs⟩ h := by rw [bUnion_eq_Union]; exactI finite_Union (λ i, h _)
 
+theorem finite_bUnion' {α} {ι : Type*} {s : set ι} (f : ι → set α) :
+  finite s → (∀i ∈ s, finite (f i)) → finite (⋃ i∈s, f i)
+| ⟨hs⟩ h := by { rw [bUnion_eq_Union], exactI finite_Union (λ i, h i.1 i.2) }
+
 instance fintype_lt_nat (n : ℕ) : fintype {i | i < n} :=
 fintype_of_finset (finset.range n) $ by simp
 
@@ -288,14 +298,14 @@ theorem finite_bind {α β} {s : set α} {f : α → set β} :
   finite s → (∀ a ∈ s, finite (f a)) → finite (s >>= f)
 | ⟨hs⟩ H := ⟨@fintype_bind _ _ (classical.dec_eq β) _ hs _ (λ a ha, (H a ha).fintype)⟩
 
-def fintype_seq {α β : Type u} [decidable_eq β]
+instance fintype_seq {α β : Type u} [decidable_eq β]
   (f : set (α → β)) (s : set α) [fintype f] [fintype s] :
   fintype (f <*> s) :=
 by rw seq_eq_bind_map; apply set.fintype_bind'
 
 theorem finite_seq {α β : Type u} {f : set (α → β)} {s : set α} :
   finite f → finite s → finite (f <*> s)
-| ⟨hf⟩ ⟨hs⟩ := by haveI := classical.dec_eq β; exactI ⟨fintype_seq _ _⟩
+| ⟨hf⟩ ⟨hs⟩ := by { haveI := classical.dec_eq β, exactI ⟨set.fintype_seq _ _⟩ }
 
 /-- There are finitely many subsets of a given finite set -/
 lemma finite_subsets_of_finite {α : Type u} {a : set α} (h : finite a) : finite {b | b ⊆ a} :=

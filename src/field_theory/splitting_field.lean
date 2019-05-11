@@ -6,7 +6,9 @@ Authors: Chris Hughes
 Definition of splitting fields, and definition of homomorphism into any field that splits
 -/
 
-import ring_theory.adjoin_root ring_theory.unique_factorization_domain
+import ring_theory.unique_factorization_domain
+import data.polynomial ring_theory.principal_ideal_domain
+       algebra.euclidean_domain
 
 universes u v w
 
@@ -17,7 +19,7 @@ namespace polynomial
 noncomputable theory
 local attribute [instance, priority 0] classical.prop_decidable
 variables [discrete_field α] [discrete_field β] [discrete_field γ]
-open polynomial adjoin_root
+open polynomial
 
 section splits
 

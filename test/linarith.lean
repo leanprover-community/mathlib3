@@ -124,3 +124,6 @@ by linarith
 
 example (a : ℚ) (ha : 0 ≤ a): 0 * 0 ≤ 2 * a :=
 by linarith
+
+example (x : ℚ) : id x ≥ x :=
+by linarith

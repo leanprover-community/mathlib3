@@ -16,7 +16,7 @@ All commands below should be typed inside a terminal.
   sudo apt install git curl python3 python3-pip
   ```
 
-* You will also new a code editor that has a Lean plugin. The
+* You will also need a code editor that has a Lean plugin. The
   recommended choice is [Visual Studio Code](https://code.visualstudio.com/).
   The alternative is to use Emacs, and its [lean-mode](https://github.com/leanprover/lean-mode).
   ```bash
@@ -42,4 +42,4 @@ All commands below should be typed inside a terminal.
   curl https://raw.githubusercontent.com/leanprover-community/mathlib/master/scripts/remote-install-update-mathlib.sh -sSf | bash
   ```
 
-You can now return to the main [install page](install_debian.md) for help about creating of Lean project, or work on an existing one.
+You can now read instructions about creating and working on [Lean projects](project.md)

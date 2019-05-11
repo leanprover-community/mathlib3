@@ -185,7 +185,7 @@ lemma dim_eq : vector_space.dim γ (α →₀ β) = cardinal.mk α * vector_spac
 begin
   rcases exists_is_basis γ β with ⟨bs, hbs⟩,
   rw [← hbs.mk_eq_dim, ← (is_basis_single (λa:α, hbs)).mk_eq_dim, cardinal.mk_Union_eq_sum_mk],
-  { simp only [cardinal.mk_eq_of_injective (injective_single.{u u} _), cardinal.sum_const] },
+  { simp only [cardinal.mk_image_eq (injective_single.{u u} _), cardinal.sum_const] },
   { refine assume i j h, disjoint_image_image (assume b hb c hc, _),
     simp only [(≠), single_eq_single_iff, not_or_distrib, not_and_distrib],
     have : (0:β) ∉ bs := zero_not_mem_of_linear_independent (zero_ne_one : (0:γ) ≠ 1) hbs.1,
@@ -376,7 +376,7 @@ variables (σ : Type u) (α : Type u) [decidable_eq σ] [discrete_field α]
 
 lemma dim_mv_polynomial : vector_space.dim α (mv_polynomial σ α) = cardinal.mk (σ →₀ ℕ) :=
 begin
-  rw [← (is_basis_monomials σ α).mk_eq_dim, ← set.image_univ, cardinal.mk_eq_of_injective,
+  rw [← (is_basis_monomials σ α).mk_eq_dim, ← set.image_univ, cardinal.mk_image_eq,
     cardinal.mk_univ],
   assume a b h,
   rcases (finsupp.single_eq_single_iff _ _ _ _).1 h with ⟨rfl, _⟩ | ⟨h, _⟩,

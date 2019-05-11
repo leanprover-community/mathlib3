@@ -289,30 +289,4 @@ protected definition op (α : F ≅ G) : G.op ≅ F.op :=
 
 end nat_iso
 
--- TODO the following definitions do not belong here
-
-omit 𝒞
-variables (E : Type u₁)
-
-instance opposite.has_one [has_one E] : has_one (Eᵒᵖ) :=
-{ one := op 1 }
-
-instance opposite.has_mul [has_mul E] : has_mul (Eᵒᵖ) :=
-{ mul := λ x y, op $ unop y * unop  x }
-
-@[simp] lemma opposite.unop_one [has_one E] : unop (1 : Eᵒᵖ) = (1 : E) := rfl
-
-@[simp] lemma opposite.unop_mul [has_mul E] (xs ys : Eᵒᵖ) : unop (xs * ys) = (unop ys * unop xs : E) := rfl
-
-@[simp] lemma opposite.op_one [has_one E] : op (1 : E) = 1 := rfl
-
-@[simp] lemma opposite.op_mul [has_mul E] (xs ys : E) : op (xs * ys) = (op ys * op xs) := rfl
-
-instance opposite.monoid [monoid E] : monoid (Eᵒᵖ) :=
-{ one := op 1,
-  mul := λ x y, op $ unop y * unop  x,
-  mul_one := by { intros, apply unop_inj, simp },
-  one_mul := by { intros, simp },
-  mul_assoc := by { intros, simp [mul_assoc], } }
-
 end category_theory

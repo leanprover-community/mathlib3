@@ -297,8 +297,10 @@ ring_equiv.trans (free_comm_ring_equiv_mv_polynomial_int _) (mv_polynomial.pempt
 def free_comm_ring_punit_equiv_polynomial_int : free_comm_ring punit.{u+1} ≃r polynomial ℤ :=
 ring_equiv.trans (free_comm_ring_equiv_mv_polynomial_int _) (mv_polynomial.punit_ring_equiv _)
 
+open free_ring_to_free_comm_ring
+
 def free_ring_pempty_equiv_int : free_ring pempty.{u+1} ≃r ℤ :=
-ring_equiv.trans (subsingleton_equiv _) (free_comm_ring_pempty_equiv_int _)
+ring_equiv.trans (subsingleton_equiv _) free_comm_ring_pempty_equiv_int
 
 def free_ring_punit_equiv_polynomial_int : free_ring punit.{u+1} ≃r polynomial ℤ :=
-ring_equiv.trans (subsingleton_equiv _) (free_comm_ring_punit_equiv_polynomial_int _)
+ring_equiv.trans (subsingleton_equiv _) free_comm_ring_punit_equiv_polynomial_int

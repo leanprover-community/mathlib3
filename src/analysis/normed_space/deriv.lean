@@ -373,6 +373,18 @@ lemma differentiable_at.differentiable_within_at
   (h : differentiable_at k f x) : differentiable_within_at k f s x :=
 differentiable_within_at.mono (subset_univ _) (differentiable_within_univ_at.2 h)
 
+lemma differentiable_within_at.differentiable_at'
+  (h : differentiable_within_at k f s x) (hs : s ∈ nhds x) : differentiable_at k f x :=
+begin
+  unfold differentiable_within_at has_fderiv_within_at at h,
+  have : nhds_within x s = nhds x := lattice.inf_of_le_left (le_principal_iff.2 hs),
+  rwa this at h,
+end
+
+lemma differentiable_within_at.differentiable_at
+  (h : differentiable_within_at k f s x) (hx : x ∈ s) (hs : is_open s) : differentiable_at k f x :=
+h.differentiable_at' (mem_nhds_sets hs hx)
+
 lemma has_fderiv_within_at.fderiv_within {f' : E →L[k] F}
   (h : has_fderiv_within_at f f' s x) (hxs : unique_diff_within_at k s x) :
   fderiv_within k f s x = f' :=

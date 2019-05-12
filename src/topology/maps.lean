@@ -354,7 +354,7 @@ namespace is_closed_map
 variables [topological_space α] [topological_space β] [topological_space γ]
 open function
 
-protected lemma id : is_open_map (@id α) := assume s hs, by rwa image_id
+protected lemma id : is_closed_map (@id α) := assume s hs, by rwa image_id
 
 protected lemma comp {f : α → β} {g : β → γ} (hf : is_closed_map f) (hg : is_closed_map g) :
   is_closed_map (g ∘ f) :=

@@ -26,3 +26,31 @@ begin
   guard_hyp_strict h := ∃ (ε : ℤ), ε > 0 ∧ ∀ δ > 0, (∃ (x : ℤ), |x - x₀| ≤ δ ∧ ε < |f x - y₀| ),
   trivial
 end
+
+example (n) : n*n ≠ 1 → n ≠ 1 :=
+begin
+  contrapose,
+  rw [not_not, not_not],
+  intro h,
+  rw [h, one_mul]
+end
+
+example (n) : n*n ≠ 1 → n ≠ 1 :=
+begin
+  contrapose!,
+  intro h,
+  rw [h, one_mul]
+end
+
+example (n) (h : n*n ≠ 1) : n ≠ 1 :=
+begin
+  contrapose h,
+  rw not_not at *,
+  rw [h, one_mul]
+end
+
+example (n) (h : n*n ≠ 1) : n ≠ 1 :=
+begin
+  contrapose! h,
+  rw [h, one_mul]
+end

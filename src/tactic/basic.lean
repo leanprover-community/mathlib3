@@ -15,3 +15,4 @@ import
   tactic.restate_axiom
   tactic.interactive
   tactic.converter.interactive
+  tactic.push_neg

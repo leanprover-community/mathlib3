@@ -202,8 +202,8 @@ Unfold coercion-related definitions
 For performance reasons, Lean does not automatically update its database
 of class instances during a proof. The group of tactics described below
 helps forcing such updates. For a simple (but very artificial) example,
-consider the function `default` from the core library. It has type 
-`Π (α : Sort u) [inhabited α], α`, so one can use `default α` only if Lean 
+consider the function `default` from the core library. It has type
+`Π (α : Sort u) [inhabited α], α`, so one can use `default α` only if Lean
 can find a registered instance of `inhabited α`. Because the database of
 such instance is not automatically updated during a proof, the following
 attempt won't work (Lean will not pick up the instance from the local
@@ -859,19 +859,20 @@ By default, `omega` tries to guess the correct domain by looking at the goal and
 ```lean
 example (x y : nat) (h : 2 * x + 1 = 2 * y) : false := by omega
 ```
-But this behaviour is not always optimal, since it may revert irrelevant hypotheses or incorrectly guess the domain. Use `omega manual` to disable automatic reverts, and `omega int` or `omega nat` to specify the domain. 
+But this behaviour is not always optimal, since it may revert irrelevant hypotheses or incorrectly guess the domain. Use `omega manual` to disable automatic reverts, and `omega int` or `omega nat` to specify the domain.
 ```lean
-example (x y z w : int) (h1 : 3 * y ≥ x) (h2 : z > 19 * w) : 3 * x ≤ 9 * y := 
+example (x y z w : int) (h1 : 3 * y ≥ x) (h2 : z > 19 * w) : 3 * x ≤ 9 * y :=
 by {revert h1 x y, omega manual}
 
 example (i : int) (n : nat) (h1 : i = 0) (h2 : n < n) : false := by omega nat
 
-example (n : nat) (h1 : n < 34) (i : int) (h2 : i * 9 = -72) : i = -8 := 
+example (n : nat) (h1 : n < 34) (i : int) (h2 : i * 9 = -72) : i = -8 :=
 by {revert h2 i, omega manual int}
 ```
 `omega` handles `nat` subtraction by repeatedly rewriting goals of the form `P[t-s]` into `P[x] ∧ (t = s + x ∨ (t ≤ s ∧ x = 0))`, where `x` is fresh. This means that each (distinct) occurrence of subtraction will cause the goal size to double during DNF transformation.
 
 `omega` implements the real shadow step of the Omega test, but not the dark and gray shadows. Therefore, it should (in principle) succeed whenever the negation of the goal has no real solution, but it may fail if a real solution exists, even if there is no integer/natural number solution.
+
 ### push_neg
 
 This tactic pushes negations inside expressions. For instance, given an assumption
@@ -888,3 +889,16 @@ Note that names are conserved by this tactic, contrary to what would happen with
 using the relevant lemmas. One can also use this tactic at the goal using `push_neg`,
 at every assumption and the goal using `push_neg at *` or at selected assumptions and the goal
 using say `push_neg at h h' ⊢` as usual.
+
+### contrapose
+
+Transforms the goal into its contrapositive.
+
+`contrapose`     turns a goal `P → Q` into `¬ Q → ¬ P`
+
+`contrapose!`    turns a goal `P → Q` into `¬ Q → ¬ P` and pushes negations inside `P` and `Q`
+                 using `push_neg`
+
+`contrapose h`   first reverts the local assumption `h`, and then uses `contrapose` and `intro h`
+
+`contrapose! h`  first reverts the local assumption `h`, and then uses `contrapose!` and `intro h`

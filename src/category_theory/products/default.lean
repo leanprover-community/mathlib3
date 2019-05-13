@@ -163,7 +163,11 @@ namespace nat_trans
 def prod {F G : A ⥤ B} {H I : C ⥤ D} (α : F ⟶ G) (β : H ⟶ I) : F.prod H ⟶ G.prod I :=
 { app         := λ X, (α.app X.1, β.app X.2),
   naturality' := λ X Y f,
-  begin cases f, cases Y, cases X, simp, split, rw naturality, rw naturality end }
+  begin
+    cases X, cases Y,
+    simp only [functor.prod_map, prod.mk.inj_iff, prod_comp],
+    split; rw naturality
+  end }
 
 /- Again, it is inadvisable in Lean 3 to setup a notation `α × β`;
    use instead `α.prod β` or `nat_trans.prod α β`. -/

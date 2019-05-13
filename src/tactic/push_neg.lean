@@ -156,7 +156,8 @@ meta def tactic.interactive.contrapose (push : parse (tk "!" )?) : parse ident? 
   do tgt ← target,
   let err := "The goal is not an implication, and you didn't specify an assumption",
   match tgt with
-  | `(%%P → %%Q) := do (is_prop P >> is_prop Q) <|> fail err,
+  | `(%%P → %%Q) := do Pprop ← is_prop P, Qprop ← is_prop Q,
+                       when (¬ (Pprop ∧ Qprop)) (fail err),
                        mk_mapp `imp_of_not_imp_not [P, Q] >>= apply
   | _ := fail err
   end,

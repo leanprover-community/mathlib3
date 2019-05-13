@@ -90,16 +90,9 @@ lemma eq_of_comp_right_eq {f g : Y ⟶ Z} (w : ∀ {X : C} (h : X ⟶ Y), h ≫ 
 by { convert w (𝟙 Y), tidy }
 
 lemma eq_of_comp_left_eq' (f g : X ⟶ Y) (w : (λ {Z : C} (h : Y ⟶ Z), f ≫ h) = (λ {Z : C} (h : Y ⟶ Z), g ≫ h)) : f = g :=
-eq_of_comp_left_eq (λ Z h, begin
- have p := congr_fun w Z,
- exact congr_fun p h,
-end)
+eq_of_comp_left_eq (λ Z h, by convert congr_fun (congr_fun w Z) h)
 lemma eq_of_comp_right_eq' (f g : Y ⟶ Z) (w : (λ {X : C} (h : X ⟶ Y), h ≫ f) = (λ {X : C} (h : X ⟶ Y), h ≫ g)) : f = g :=
-eq_of_comp_right_eq (λ X h, begin
- have p := congr_fun w X,
- have q := congr_fun p h,
- exact q
-end)
+eq_of_comp_right_eq (λ X h, by convert congr_fun (congr_fun w X) h)
 
 lemma id_of_comp_left_id (f : X ⟶ X) (w : ∀ {Y : C} (g : X ⟶ Y), f ≫ g = g) : f = 𝟙 X :=
 by { convert w (𝟙 X), tidy }

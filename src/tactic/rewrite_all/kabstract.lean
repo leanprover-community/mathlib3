@@ -36,7 +36,7 @@ meta def kabstracter
   (lhs_replacer : list expr → tactic expr) (t : expr) : mllist tactic (expr × list (expr × list expr)) :=
 mllist.fix (kabstracter_aux pattern lhs_replacer) (t, [])
 
-meta def get_lhs : expr -> bool → list expr -> tactic (expr × expr × list expr)
+meta def get_lhs : expr → bool → list expr → tactic (expr × expr × list expr)
 | (expr.pi n bi d b) symm mvars :=
 do v <- mk_meta_var d,
    b' <- whnf $ b.instantiate_var v,
@@ -47,7 +47,7 @@ do v <- mk_meta_var d,
      return (a, ty, mvars)
 | _ _ _ := failed
 
-meta def replacer : expr -> bool → list expr -> tactic expr
+meta def replacer : expr → bool → list expr → tactic expr
 | (expr.pi n bi d b) symm values := replacer b symm values
 | `(%%a = %%b) symm values :=
   do let (a, b) := if symm then (b, a) else (a, b),
@@ -118,10 +118,10 @@ end rewrite_all
 
 open rewrite_all
 
-meta def rewrite_all_lazy (r : expr × bool) (t : expr) (cfg : rewrite_all.cfg := {}) : mllist tactic tracked_rewrite :=
+meta def rewrite_all_lazy (t : expr) (r : expr × bool) (cfg : rewrite_all.cfg := {}) : mllist tactic tracked_rewrite :=
 (all_rewrites_core t r.1 r.2).filter_map (λ p, if p.2 = [] then some p.1 else none)
 
-meta def rewrite_all (r : expr × bool) (t : expr) (cfg : rewrite_all.cfg := {}) : tactic (list tracked_rewrite) :=
-mllist.force $ rewrite_all_lazy r t cfg
+meta def rewrite_all (t : expr) (r : expr × bool) (cfg : rewrite_all.cfg := {}) : tactic (list tracked_rewrite) :=
+mllist.force $ rewrite_all_lazy t r cfg
 
 end tactic

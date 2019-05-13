@@ -58,11 +58,11 @@ meta def expr_lens.to_tactic_string : expr_lens → tactic string
 | (app_fun l f) := do
   pp ← pp f,
   rest ← l.to_tactic_string,
-  return $ to_string format!"(fun \"{pp}\" {rest})"
+  return sformat!"(fun \"{pp}\" {rest})"
 | (app_arg l x) := do
   pp ← pp x,
   rest ← l.to_tactic_string,
-  return $ to_string format!"(arg \"{pp}\" {rest})"
+  return sformat!"(arg \"{pp}\" {rest})"
 
 private meta def app_map_aux {α} (F : expr_lens → expr → tactic (list α)) :
   expr_lens → expr → tactic (list α)
@@ -120,12 +120,12 @@ end rewrite_all
 
 open rewrite_all
 
-meta def rewrite_all (r : expr × bool) (e : expr) (cfg : rewrite_all.cfg := {}) :
+meta def rewrite_all (e : expr) (r : expr × bool) (cfg : rewrite_all.cfg := {}) :
   tactic (list tracked_rewrite) :=
 app_map (rewrite_at_lens cfg r) e
 
-meta def rewrite_all_lazy (r : expr × bool) (e : expr) (cfg : rewrite_all.cfg := {}) :
+meta def rewrite_all_lazy (e : expr) (r : expr × bool) (cfg : rewrite_all.cfg := {}) :
   mllist tactic tracked_rewrite :=
-mllist.squash $ mllist.of_list <$> rewrite_all r e cfg
+mllist.squash $ mllist.of_list <$> rewrite_all e r cfg
 
 end tactic

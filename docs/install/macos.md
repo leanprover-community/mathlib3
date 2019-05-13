@@ -24,7 +24,7 @@ all users.
    `curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh`
 
    and hit enter when a question is asked.
-   
+
    It is recommended that you re-login, so that your environment knows about `elan`.
    (Alternatively, type `source $HOME/.elan/env` to update the current terminal.)
 
@@ -33,7 +33,7 @@ all users.
 In order to use mathlib supporting tools, you need to [get python](https://www.python.org/downloads/) first.
 Then, at a terminal, run the command
   ```bash
-  curl https://raw.githubusercontent.com/leanprover-community/mathlib/master/scripts/remote-install-update-mathlib.sh -sSf | bash
+  curl https://raw.githubusercontent.com/leanprover-community/mathlib-tools/master/scripts/remote-install-update-mathlib.sh -sSf | bash
   ```
 
 ### Installing and configuring an editor

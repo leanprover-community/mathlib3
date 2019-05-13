@@ -37,7 +37,7 @@ all users.
 In order to use mathlib supporting tools, you need to [get python](https://www.python.org/downloads/) first.
 Then, at a terminal, run the command
   ```bash
-  curl https://raw.githubusercontent.com/leanprover-community/mathlib/master/scripts/remote-install-update-mathlib.sh -sSf | bash
+  curl https://raw.githubusercontent.com/leanprover-community/mathlib-tools/master/scripts/remote-install-update-mathlib.sh -sSf | bash
   ```
 
 ### Installing and configuring an editor

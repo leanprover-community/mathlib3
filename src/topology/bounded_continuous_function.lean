@@ -258,7 +258,7 @@ begin
 
   /- Associate to every function a discrete approximation, mapping each point in `tα`
   to a point in `tβ` close to its true image by the function. -/
-  refine ⟨tα → tβ, by apply_instance, λ f a, ⟨F (f a), (hF (f a)).fst⟩, _⟩,
+  refine ⟨tα → tβ, by apply_instance, λ f a, ⟨F (f a), (hF (f a)).1⟩, _⟩,
   rintro ⟨f, hf⟩ ⟨g, hg⟩ f_eq_g,
   /- If two functions have the same approximation, then they are within distance ε -/
   refine lt_of_le_of_lt ((dist_le $ le_of_lt ε₁0).2 (λ x, _)) εε₁,
@@ -275,7 +275,7 @@ begin
     calc dist (f x') (g x')
           ≤ dist (f x') (F (f x')) + dist (g x') (F (f x')) : dist_triangle_right _ _ _
       ... = dist (f x') (F (f x')) + dist (g x') (F (g x')) : by rw F_f_g
-      ... < ε₂ + ε₂ : add_lt_add (hF (f x')).snd (hF (g x')).snd
+      ... < ε₂ + ε₂ : add_lt_add (hF (f x')).2 (hF (g x')).2
       ... = ε₁/2 : add_halves _ }
 end
 

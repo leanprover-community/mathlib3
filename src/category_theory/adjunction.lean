@@ -368,7 +368,20 @@ nat_iso.of_components (λ Y,
       naturality' := λ j j' f, begin
         erw [← adj.hom_equiv_naturality_left_symm, ← adj.hom_equiv_naturality_right_symm, t.naturality],
         dsimp, simp
-      end } } )
+      end },
+  hom_inv_id' :=
+  begin
+    ext, dsimp,
+    simp only [left_triangle_components, hom_equiv_unit, hom_equiv_counit, hom_equiv_naturality_right_symm],
+    dsimp, simp,
+  end,
+  inv_hom_id' :=
+  begin
+    ext, dsimp,
+    simp only [right_triangle_components, hom_equiv_naturality_left, hom_equiv_unit, hom_equiv_counit, map_comp],
+    erw [←category.assoc, ←adj.unit.naturality],
+    simp only [category.comp_id, functor.id_map, right_triangle_components, category.assoc],
+  end, } )
 begin
   intros Y₁ Y₂ f,
   ext1 t,
@@ -390,7 +403,24 @@ nat_iso.of_components (λ X,
   { app := λ j, (adj.hom_equiv (unop X) (K.obj j)).symm (t.app j),
     naturality' := λ j j' f, begin
       erw [← adj.hom_equiv_naturality_right_symm, ← t.naturality, category.id_comp, category.id_comp]
-    end } } )
-(by tidy)
+    end },
+  hom_inv_id' :=
+  begin
+    ext, dsimp,
+    simp only [left_triangle_components, hom_equiv_unit, hom_equiv_counit, hom_equiv_naturality_right_symm],
+    dsimp, simp,
+  end,
+  inv_hom_id' :=
+  begin
+    ext, dsimp,
+    simp only [right_triangle_components, hom_equiv_naturality_left, hom_equiv_unit, hom_equiv_counit],
+    dsimp, simp,
+  end, } )
+begin
+  intros Y₁ Y₂ f,
+  ext1 t,
+  ext1 j,
+  apply adj.hom_equiv_naturality_left
+end
 
 end category_theory.adjunction

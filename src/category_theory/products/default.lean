@@ -125,9 +125,10 @@ def evaluation_uncurried : C × (C ⥤ D) ⥤ D :=
   map := λ x y f, (x.2.map f.1) ≫ (f.2.app y.1),
   map_comp' := λ X Y Z f g,
   begin
-    cases g, cases f, cases Z, cases Y, cases X, dsimp at *, simp at *,
+    cases g, cases f, cases Z, cases Y, cases X,
+    simp only [prod_comp, functor.category.comp_app, functor.map_comp, category.assoc],
     rw [←functor.category.comp_app, nat_trans.naturality, functor.category.comp_app,
-        category.assoc, nat_trans.naturality]
+        category.assoc, nat_trans.naturality],
   end }
 
 @[simp] lemma evaluation_uncurried_obj (p) : (evaluation_uncurried C D).obj p = p.2.obj p.1 := rfl

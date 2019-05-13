@@ -23,7 +23,7 @@ All commands below should be typed inside a terminal.
   updating mathlib according to the needs of your current project.
   It will live in `$HOME/.mathlib` and add a line to `$HOME/.profile`.
   ```bash
-  curl https://raw.githubusercontent.com/leanprover-community/mathlib/master/scripts/remote-install-update-mathlib.sh -sSf | bash
+  curl https://raw.githubusercontent.com/leanprover-community/mathlib-tools/master/scripts/remote-install-update-mathlib.sh -sSf | bash
   ```
 
 You can now read instructions about creating and working on [Lean projects](project.md)

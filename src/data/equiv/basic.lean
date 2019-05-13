@@ -73,6 +73,9 @@ protected theorem subsingleton (e : α ≃ β) : ∀ [subsingleton β], subsingl
 protected def decidable_eq (e : α ≃ β) [H : decidable_eq β] : decidable_eq α
 | a b := decidable_of_iff _ e.injective.eq_iff
 
+lemma nonempty_iff_nonempty : α ≃ β → (nonempty α ↔ nonempty β)
+| ⟨f, g, _, _⟩ := nonempty.congr f g
+
 protected def cast {α β : Sort*} (h : α = β) : α ≃ β :=
 ⟨cast h, cast h.symm, λ x, by cases h; refl, λ x, by cases h; refl⟩
 

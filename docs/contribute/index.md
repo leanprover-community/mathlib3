@@ -7,11 +7,11 @@ for a good introduction.
 Here are some tips and tricks
 to make the process of contributing as smooth as possible.
 
-1. Use Zulip: https://leanprover.zulipchat.com/
-   Discuss your contribution while you are working on it.
+1. Use [Zulip](https://leanprover.zulipchat.com/) to
+   discuss your contribution before and while you are working on it.
 2. Adhere to the guidelines:
-   - The [style guide](/docs/style.md) for contributors.
-   - The explanation of [naming conventions](/docs/naming.md).
+   - The [style guide](style.md) for contributors.
+   - The explanation of [naming conventions](naming.md).
    - The [git commit conventions](https://github.com/leanprover/lean/blob/master/doc/commit_convention.md).
 3. Create a pull request from a feature branch on your personal fork,
    as explained in the link above, or from a branch of the main repository if you have commit access (you can ask for access on Zulip).
@@ -26,7 +26,7 @@ for more details.
 
 ## Caching compilation
 
-In the `mathlib` git repository, run the following in a terminal:
+In the `mathlib` git repository, you can run the following in a terminal:
 
 ```sh
 $ scripts/setup-dev-scripts.sh

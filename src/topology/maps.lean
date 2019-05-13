@@ -342,6 +342,33 @@ lemma to_quotient_map {f : α → β}
 
 end is_open_map
 
+section is_closed_map
+variables [topological_space α] [topological_space β]
+
+def is_closed_map (f : α → β) := ∀ U : set α, is_closed U → is_closed (f '' U)
+
+end is_closed_map
+
+namespace is_closed_map
+
+variables [topological_space α] [topological_space β] [topological_space γ]
+open function
+
+protected lemma id : is_closed_map (@id α) := assume s hs, by rwa image_id
+
+protected lemma comp {f : α → β} {g : β → γ} (hf : is_closed_map f) (hg : is_closed_map g) :
+  is_closed_map (g ∘ f) :=
+by { intros s hs, rw image_comp, exact hg _ (hf _ hs) }
+
+lemma of_inverse {f : α → β} {f' : β → α}
+  (h : continuous f') (l_inv : left_inverse f f') (r_inv : right_inverse f f') :
+  is_closed_map f :=
+assume s hs,
+have f' ⁻¹' s = f '' s, by ext x; simp [mem_image_iff_of_inverse r_inv l_inv],
+this ▸ continuous_iff_is_closed.mp h s hs
+
+end is_closed_map
+
 section sierpinski
 variables [topological_space α]
 
@@ -358,3 +385,48 @@ lemma continuous_Prop {p : α → Prop} : continuous p ↔ is_open {x | p x} :=
     by simp at hs; simp [hs, preimage, eq_true, h]⟩
 
 end sierpinski
+
+section closed_embedding
+variables [topological_space α] [topological_space β] [topological_space γ]
+
+/-- A closed embedding is an embedding with closed image. -/
+def closed_embedding (f : α → β) : Prop := embedding f ∧ is_closed (range f)
+
+lemma closed_embedding.closed_iff_image_closed {f : α → β} (hf : closed_embedding f)
+  {s : set α} : is_closed s ↔ is_closed (f '' s) :=
+⟨embedding_is_closed hf.1 hf.2,
+ λ h, begin
+   convert ←continuous_iff_is_closed.mp hf.1.continuous _ h,
+   apply preimage_image_eq _ hf.1.1
+ end⟩
+
+lemma closed_embedding.closed_iff_preimage_closed {f : α → β} (hf : closed_embedding f)
+  {s : set β} (hs : s ⊆ range f) : is_closed s ↔ is_closed (f ⁻¹' s) :=
+begin
+  convert ←hf.closed_iff_image_closed.symm,
+  rwa [image_preimage_eq_inter_range, inter_eq_self_of_subset_left]
+end
+
+lemma closed_embedding_of_continuous_injective_closed {f : α → β} (h₁ : continuous f)
+  (h₂ : function.injective f) (h₃ : is_closed_map f) : closed_embedding f :=
+begin
+  refine ⟨⟨h₂, _⟩, by convert h₃ univ is_closed_univ; simp⟩,
+  apply le_antisymm _ (continuous_iff_induced_le.mp h₁),
+  intro s',
+  change is_open _ ≤ is_open _,
+  rw [←is_closed_compl_iff, ←is_closed_compl_iff],
+  generalize : -s' = s,
+  rw is_closed_induced_iff,
+  refine λ hs, ⟨f '' s, h₃ s hs, _⟩,
+  rw preimage_image_eq _ h₂
+end
+
+lemma closed_embedding_id : closed_embedding (@id α) :=
+⟨embedding_id, by convert is_closed_univ; apply range_id⟩
+
+lemma closed_embedding_compose {f : α → β} {g : β → γ}
+  (hf : closed_embedding f) (hg : closed_embedding g) : closed_embedding (g ∘ f) :=
+⟨embedding_compose hf.1 hg.1, show is_closed (range (g ∘ f)),
+ by rw [range_comp, ←hg.closed_iff_image_closed]; exact hf.2⟩
+
+end closed_embedding

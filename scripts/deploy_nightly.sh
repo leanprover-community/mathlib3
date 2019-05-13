@@ -54,9 +54,10 @@ go get github.com/itchio/gothub
 # Build olean and script tarballs.
 OLEAN_ARCHIVE=mathlib-olean-$MATHLIB_VERSION_STRING.tar.gz
 SCRIPT_ARCHIVE=mathlib-scripts-$MATHLIB_VERSION_STRING.tar.gz
+git clone https://github.com/leanprover-community/mathlib-tools
 tar czf $OLEAN_ARCHIVE src
 rm -rf mathlib-scripts
-cp -a scripts mathlib-scripts
+cp -a mathlib-tools/scripts mathlib-scripts
 tar czf $SCRIPT_ARCHIVE mathlib-scripts
 ls *.tar.gz
 

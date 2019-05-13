@@ -121,7 +121,8 @@ include 𝒞 𝒟
 { obj := λ p, p.2.obj p.1,
   map := λ x y f, (x.2.map f.1) ≫ (f.2.app y.1),
   map_comp' := begin
-    intros X Y Z f g, cases g, cases f, cases Z, cases Y, cases X, dsimp at *, simp at *,
+    intros X Y Z f g, cases g, cases f, cases Z, cases Y, cases X, dsimp,
+    simp only [functor.map_comp, category.assoc],
     erw [←functor.category.comp_app, nat_trans.naturality, category.assoc, nat_trans.naturality]
   end }
 

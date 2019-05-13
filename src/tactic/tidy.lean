@@ -5,6 +5,7 @@
 import tactic.ext
 import tactic.auto_cases
 import tactic.chain
+import tactic.solve_by_elim
 import tactic.interactive
 
 namespace tactic

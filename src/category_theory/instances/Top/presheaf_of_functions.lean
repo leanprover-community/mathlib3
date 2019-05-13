@@ -1,15 +1,10 @@
 import category_theory.instances.Top.presheaf
 import category_theory.instances.TopCommRing.basic
 import category_theory.yoneda
-import group_theory.submonoid
 import ring_theory.subring
 import topology.algebra.continuous_functions
 
 universes v u
-
-open category_theory
-open category_theory.instances
-open topological_space
 
 open category_theory
 open category_theory.instances
@@ -24,19 +19,16 @@ def presheaf_to_Top (T : Top.{v}) : X.presheaf (Type v) :=
 
 -- TODO upgrade the result to TopCommRing?
 def continuous_functions (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) : CommRing.{v} :=
-{ α := (unop X) ⟶ (TopCommRing.forget_to_Top.obj R),
-  str := _root_.continuous_comm_ring } -- but infer_instance doesn't work?
+{ α := unop X ⟶ TopCommRing.forget_to_Top.obj R,
+  str := _root_.continuous_comm_ring }
 
 namespace continuous_functions
-@[simp] def one (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (x) :
-  (monoid.one ↥(continuous_functions X R)).val x = 1 :=
-rfl
-@[simp] def add (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (f g : continuous_functions X R) (x) :
-  (comm_ring.add f g).val x = f.1 x + g.1 x :=
-rfl
-@[simp] def mul (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (f g : continuous_functions X R) (x) :
-  (ring.mul f g).val x = f.1 x * g.1 x :=
-rfl
+@[simp] lemma one (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (x) :
+  (monoid.one ↥(continuous_functions X R)).val x = 1 := rfl
+@[simp] lemma add (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (f g : continuous_functions X R) (x) :
+  (comm_ring.add f g).val x = f.1 x + g.1 x := rfl
+@[simp] lemma mul (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (f g : continuous_functions X R) (x) :
+  (ring.mul f g).val x = f.1 x * g.1 x := rfl
 
 def pullback {X Y : Topᵒᵖ} (f : X ⟶ Y) (R : TopCommRing) :
   continuous_functions X R ⟶ continuous_functions Y R :=
@@ -58,8 +50,6 @@ def map (X : Topᵒᵖ) {R S : TopCommRing} (φ : R ⟶ S) :
     map_mul := λ x y,
     begin ext1, ext1, simp only [function.comp_app, mul], apply φ.2.1.map_mul end } }
 end continuous_functions
-
-local attribute [extensionality] subtype.eq
 
 def CommRing_yoneda : TopCommRing ⥤ (Topᵒᵖ ⥤ CommRing) :=
 { obj := λ R,

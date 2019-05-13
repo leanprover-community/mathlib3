@@ -6,6 +6,7 @@ import tactic.library_search
 import ring_theory.principal_ideal_domain
 import ring_theory.polynomial
 
+/- Turn off trace messages so they don't pollute the test build: -/
 set_option trace.silence_library_search true
 
 example {α : Type} [euclidean_domain α] {S : ideal α} {x y : α} (hy : y ∈ S) : x % y ∈ S ↔ x ∈ S :=

@@ -413,8 +413,9 @@ nat_iso.of_components (λ X,
   inv_hom_id' :=
   begin
     ext, dsimp,
-    simp only [right_triangle_components, hom_equiv_naturality_left, hom_equiv_unit, hom_equiv_counit],
-    dsimp, simp,
+    simp only [right_triangle_components, hom_equiv_naturality_left, hom_equiv_unit, hom_equiv_counit, map_comp],
+    erw [←category.assoc, ←adj.unit.naturality],
+    simp only [category.comp_id, functor.id_map, right_triangle_components, category.assoc],
   end, } )
 begin
   intros Y₁ Y₂ f,

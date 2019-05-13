@@ -14,3 +14,4 @@ import
   tactic.replacer
   tactic.restate_axiom
   tactic.interactive
+  tactic.converter.interactive

@@ -694,3 +694,36 @@ calc a ∈ @closure α (topological_space.induced f t) s
   ... ↔ _ : by rwa [closure_eq_nhds]
 
 end induced
+
+section sierpinski
+variables {α : Type*} [topological_space α]
+
+@[simp] lemma is_open_singleton_true : is_open ({true} : set Prop) :=
+topological_space.generate_open.basic _ (by simp)
+
+lemma continuous_Prop {p : α → Prop} : continuous p ↔ is_open {x | p x} :=
+⟨assume h : continuous p,
+  have is_open (p ⁻¹' {true}),
+    from h _ is_open_singleton_true,
+  by simp [preimage, eq_true] at this; assumption,
+  assume h : is_open {x | p x},
+  continuous_generated_from $ assume s (hs : s ∈ {{true}}),
+    by simp at hs; simp [hs, preimage, eq_true, h]⟩
+
+end sierpinski
+
+section infi
+variables {α : Type u} {ι : Type v} {t : ι → topological_space α}
+
+lemma is_open_infi_iff {s : set α} : @is_open _ (⨅ i, t i) s ↔ ∀ i, @is_open _ (t i) s :=
+begin
+  -- s defines a map from α to Prop, which is continuous iff s is open.
+  suffices : @continuous _ _ (⨅ i, t i) _ s ↔ ∀ i, @continuous _ _ (t i) _ s,
+  { simpa only [continuous_Prop] using this },
+  simp only [continuous_iff_induced_le, le_infi_iff]
+end
+
+lemma is_closed_infi_iff {s : set α} : @is_closed _ (⨅ i, t i) s ↔ ∀ i, @is_closed _ (t i) s :=
+is_open_infi_iff
+
+end infi

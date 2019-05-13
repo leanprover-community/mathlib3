@@ -151,7 +151,7 @@ by rw [nat.sub_sub, ←nat.add_sub_assoc h₂, nat.add_sub_cancel_left]
 lemma add_sub_cancel_right (n m k : ℕ) : n + (m + k) - k = n + m :=
 by { rw [nat.add_sub_assoc, nat.add_sub_cancel], apply k.le_add_left }
 
-lemma sub_add_eq_add_sub {a b c : ℕ} (h : b ≤ a) : (a - b) + c = (a + c) - b :=
+protected lemma sub_add_eq_add_sub {a b c : ℕ} (h : b ≤ a) : (a - b) + c = (a + c) - b :=
 by rw [add_comm a, nat.add_sub_assoc h, add_comm]
 
 theorem sub_min (n m : ℕ) : n - min n m = n - m :=

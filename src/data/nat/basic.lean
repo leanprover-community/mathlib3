@@ -412,28 +412,19 @@ lt_of_mul_lt_mul_left
   (nat.zero_le n)
 
 lemma lt_mul_of_div_lt {a b c : ℕ} (h : a / c < b) (w : 0 < c) : a < b * c :=
-begin
-  by_contradiction p,
-  simp at p,
-  replace p : (b * c) / c ≤ a / c := nat.div_le_div_right p,
-  have q : b * c / c = b := nat.mul_div_left b w,
-  rw q at p,
-  exact lt_irrefl _ (lt_of_le_of_lt p h)
-end
+lt_of_not_ge $ not_le_of_gt h ∘ (nat.le_div_iff_mul_le _ _ w).2
 
 protected lemma div_eq_zero_iff {a b : ℕ} (hb : 0 < b) : a / b = 0 ↔ a < b :=
 ⟨λ h, by rw [← mod_add_div a b, h, mul_zero, add_zero]; exact mod_lt _ hb,
   λ h, by rw [← nat.mul_left_inj hb, ← @add_left_cancel_iff _ _ (a % b), mod_add_div,
     mod_eq_of_lt h, mul_zero, add_zero]⟩
 
+lemma eq_zero_of_le_div {a b : ℕ} (hb : 2 ≤ b) (h : a ≤ a / b) : a = 0 :=
+eq_zero_of_mul_le hb $
+  by rw mul_comm; exact (nat.le_div_iff_mul_le' (lt_of_lt_of_le dec_trivial hb)).1 h
+
 lemma eq_zero_of_le_half {a : ℕ} (h : a ≤ a / 2) : a = 0 :=
-begin
-  replace h : a * 2 ≤ a / 2 * 2 := nat.mul_le_mul_right 2 h,
-  have p : a / 2 * 2 ≤ a := nat.div_mul_le_self a 2,
-  have q := le_trans h p,
-  rw mul_comm at q,
-  exact eq_zero_of_double_le q
-end
+eq_zero_of_le_div (le_refl _) h
 
 lemma mod_mul_right_div_self (a b c : ℕ) : a % (b * c) / b = (a / b) % c :=
 if hb : b = 0 then by simp [hb] else if hc : c = 0 then by simp [hc]

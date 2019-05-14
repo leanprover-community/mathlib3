@@ -174,28 +174,23 @@ lemma induction_on {C : quotient s → Prop} (x : quotient s)
 quotient.induction_on' x H
 attribute [elab_as_eliminator] quotient_add_group.induction_on
 
-@[to_additive quotient_add_group.has_coe]
-instance : has_coe α (quotient s) := ⟨mk⟩
-attribute [to_additive quotient_add_group.has_coe.equations._eqn_1] has_coe.equations._eqn_1
-
 @[elab_as_eliminator, to_additive quotient_add_group.induction_on']
 lemma induction_on' {C : quotient s → Prop} (x : quotient s)
-  (H : ∀ z : α, C z) : C x :=
+  (H : ∀ z : α, C (mk z)) : C x :=
 quotient.induction_on' x H
 attribute [elab_as_eliminator] quotient_add_group.induction_on'
 
 @[to_additive quotient_add_group.inhabited]
-instance [group α] (s : set α) [is_subgroup s] : inhabited (quotient s) :=
-⟨((1 : α) : quotient s)⟩
+instance [group α] (s : set α) [is_subgroup s] : inhabited (quotient s) := ⟨mk 1⟩
 attribute [to_additive quotient_add_group.inhabited.equations._eqn_1] inhabited.equations._eqn_1
 
 @[to_additive quotient_add_group.eq]
-protected lemma eq {a b : α} : (a : quotient s) = b ↔ a⁻¹ * b ∈ s :=
+protected lemma eq {a b : α} : (mk a : quotient s) = mk b ↔ a⁻¹ * b ∈ s :=
 quotient.eq'
 
 @[to_additive quotient_add_group.eq_class_eq_left_coset]
 lemma eq_class_eq_left_coset [group α] (s : set α) [is_subgroup s] (g : α) :
-  {x : α | (x : quotient s) = g} = left_coset g s :=
+  {x : α | (mk x : quotient s) = mk g} = left_coset g s :=
 set.ext $ λ z, by rw [mem_left_coset_iff, set.mem_set_of_eq, eq_comm, quotient_group.eq]
 
 end quotient_group
@@ -222,7 +217,7 @@ attribute [to_additive is_add_subgroup.left_add_coset_equiv_subgroup._match_2.eq
 
 noncomputable def group_equiv_quotient_times_subgroup (hs : is_subgroup s) :
   α ≃ (quotient s × s) :=
-calc α ≃ Σ L : quotient s, {x : α // (x : quotient s)= L} :
+calc α ≃ Σ L : quotient s, {x : α // quotient_group.mk x = L} :
   equiv.equiv_fib quotient_group.mk
     ... ≃ Σ L : quotient s, left_coset (quotient.out' L) s :
   equiv.sigma_congr_right (λ L,

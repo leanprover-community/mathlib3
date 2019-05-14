@@ -65,7 +65,7 @@ restate_axiom category.assoc'
 attribute [simp] category.id_comp category.comp_id category.assoc
 attribute [trans] category_struct.comp
 
-lemma category.assoc_symm {C : Type u} [category.{v} C] {W X Y Z : C} (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z) :
+lemma category.assoc_symm {C : Sort u} [category.{v} C] {W X Y Z : C} (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z) :
   f ≫ (g ≫ h) = (f ≫ g) ≫ h :=
 by rw ←category.assoc
 

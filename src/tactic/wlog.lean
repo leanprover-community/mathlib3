@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Without loss of generality tactic.
 -/
-import tactic.tauto tactic.basic data.list.perm
+import tactic.tauto tactic.core data.list.perm
 
 open expr tactic lean lean.parser
 

@@ -53,7 +53,13 @@ begin
   dsimp [stalk_pushforward, stalk_functor],
   ext U,
   op_induction U,
-  tidy,
+  cases U,
+  cases U_val,
+  dsimp,
+  rw colim.ι_map_assoc,
+  ext,
+  rw colim.ι_pre,
+  -- tidy,
 end
 
 @[simp] lemma comp (ℱ : X.presheaf C) (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :

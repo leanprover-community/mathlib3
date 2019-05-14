@@ -107,7 +107,7 @@ instance {X Y : PresheafedSpace.{v} C} : has_coe (X ⟶ Y) (X.to_Top ⟶ Y.to_To
   ((𝟙 X) : X ⟶ X).f = 𝟙 (X : Top) :=
 rfl
 @[simp] lemma id_coe (X : PresheafedSpace.{v} C) :
-  (((𝟙 X) : X ⟶ X) : X.to_Top ⟶ X.to_Top) = 𝟙 X.to_Top :=
+  (((𝟙 X) : X ⟶ X) : X.to_Top ⟶ X.to_Top) = 𝟙 (X :Top) :=
 rfl
 @[simp] lemma comp_f {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) :
   (α ≫ β).f = α.f ≫ β.f :=

@@ -18,6 +18,8 @@ def strict_mono [has_lt α] [has_lt β] (f : α → β) : Prop :=
 
 namespace strict_mono
 open ordering function
+
+section
 variables [linear_order α] [preorder β] {f : α → β}
 
 lemma lt_iff_lt (H : strict_mono f) {a b} :
@@ -41,9 +43,12 @@ lemma le_iff_le (H : strict_mono f) {a b} :
   f a ≤ f b ↔ a ≤ b :=
 ⟨λ h, le_of_not_gt $ λ h', not_le_of_lt (H b a h') h,
  λ h, (lt_or_eq_of_le h).elim (λ h', le_of_lt (H _ _ h')) (λ h', h' ▸ le_refl _)⟩
+end
 
-lemma monotone (H : strict_mono f) : monotone f :=
-λ a b, iff.mpr $ H.le_iff_le
+-- `preorder α` isn't strong enough: if the preorder on α is an equivalence relation,
+-- then `strict_mono f` is vacuously true.
+lemma monotone [partial_order α] [preorder β] {f : α → β} (H : strict_mono f) : monotone f :=
+λ a b h, (lt_or_eq_of_le h).rec (le_of_lt ∘ (H _ _)) (by rintro rfl; refl)
 
 end strict_mono
 

@@ -55,6 +55,25 @@ instance ulift_functor_faithful : fully_faithful ulift_functor :=
   injectivity' := λ X Y f g p, funext $ λ x,
     congr_arg ulift.down ((congr_fun p (ulift.up x)) : ((ulift.up (f x)) = (ulift.up (g x)))) }
 
+def hom_of_element {X : Type u} (x : X) : punit ⟶ X := λ _, x
+
+lemma hom_of_element_eq_iff {X : Type u} (x y : X) :
+  hom_of_element x = hom_of_element y ↔ x = y :=
+⟨λ H, congr_fun H punit.star, by cc⟩
+
+lemma mono_iff_injective {X Y : Type u} (f : X ⟶ Y) : mono f ↔ function.injective f :=
+begin
+  split,
+  { intros H x x' h,
+    resetI,
+    rw ←hom_of_element_eq_iff at ⊢ h,
+    exact (cancel_mono _ _ _).mp h },
+  { refine λ H, ⟨λ Z g h H₂, _⟩,
+    ext z,
+    replace H₂ := congr_fun H₂ z,
+    exact H H₂ }
+end
+
 end category_theory
 
 -- Isomorphisms in Type and equivalences.

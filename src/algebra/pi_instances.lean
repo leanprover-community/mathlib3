@@ -131,7 +131,6 @@ def is_ring_hom_pi
   (f : Π a : α, γ → β a) [Rh : Π a : α, is_ring_hom (f a)] :
   is_ring_hom (λ x b, f b x) :=
 begin
-  dsimp at *,
   split,
   -- It's a pity that these can't be done using `simp` lemmas.
   { ext, rw [is_ring_hom.map_one (f x)], refl, },

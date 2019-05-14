@@ -6,7 +6,7 @@ Author: Mario Carneiro
 Multisets.
 -/
 import logic.function order.boolean_algebra
-  data.list.basic data.list.perm data.list.sort data.quot data.string
+  data.equiv.basic data.list.basic data.list.perm data.list.sort data.quot data.string
   algebra.order_functions algebra.group_power algebra.ordered_group
   category.traversable.lemmas tactic.interactive
   category.traversable.instances category.basic
@@ -17,13 +17,10 @@ variables {α : Type*} {β : Type*} {γ : Type*}
 
 local infix ` • ` := add_monoid.smul
 
-instance list.perm.setoid (α : Type*) : setoid (list α) :=
-setoid.mk perm ⟨perm.refl, @perm.symm _, @perm.trans _⟩
-
 /-- `multiset α` is the quotient of `list α` by list permutation. The result
   is a type of finite sets with duplicates allowed.  -/
 def {u} multiset (α : Type u) : Type u :=
-quotient (list.perm.setoid α)
+quotient (list.is_setoid α)
 
 namespace multiset
 
@@ -3165,5 +3162,14 @@ congr_arg coe $ list.Ico.filter_ge_of_ge hnl
 congr_arg coe $ list.Ico.filter_ge n m l
 
 end Ico
+
+variable (α)
+
+def subsingleton_equiv [subsingleton α] : list α ≃ multiset α :=
+{ to_fun := coe,
+  inv_fun := quot.lift id $ λ (a b : list α) (h : a ~ b),
+    list.ext_le (perm_length h) $ λ n h₁ h₂, subsingleton.elim _ _,
+  left_inv := λ l, rfl,
+  right_inv := λ m, quot.induction_on m $ λ l, rfl }
 
 end multiset

@@ -369,23 +369,6 @@ this ▸ continuous_iff_is_closed.mp h s hs
 
 end is_closed_map
 
-section sierpinski
-variables [topological_space α]
-
-@[simp] lemma is_open_singleton_true : is_open ({true} : set Prop) :=
-topological_space.generate_open.basic _ (by simp)
-
-lemma continuous_Prop {p : α → Prop} : continuous p ↔ is_open {x | p x} :=
-⟨assume h : continuous p,
-  have is_open (p ⁻¹' {true}),
-    from h _ is_open_singleton_true,
-  by simp [preimage, eq_true] at this; assumption,
-  assume h : is_open {x | p x},
-  continuous_generated_from $ assume s (hs : s ∈ {{true}}),
-    by simp at hs; simp [hs, preimage, eq_true, h]⟩
-
-end sierpinski
-
 section closed_embedding
 variables [topological_space α] [topological_space β] [topological_space γ]
 

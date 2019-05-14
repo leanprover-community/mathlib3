@@ -22,7 +22,7 @@ def uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E) :=
     map_comp' := λ X Y Z f g,
     begin
       simp only [prod_comp_fst, prod_comp_snd, functor.map_comp,
-                 functor.category.comp_app, category.assoc],
+                 nat_trans.comp_app, category.assoc],
       slice_lhs 2 3 { rw ← nat_trans.naturality },
       rw category.assoc,
     end },
@@ -30,14 +30,12 @@ def uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E) :=
   { app := λ X, (T.app X.1).app X.2,
     naturality' := λ X Y f,
     begin
-      simp only [prod_comp_fst, prod_comp_snd,
-        category.comp_id, category.assoc,
-        functor.map_id, functor.map_comp,
-        functor.category.id_app, functor.category.comp_app],
+      simp only [prod_comp_fst, prod_comp_snd, category.comp_id, category.assoc,
+        functor.map_id, functor.map_comp, nat_trans.id_app, nat_trans.comp_app],
       slice_lhs 2 3 { rw nat_trans.naturality },
       slice_lhs 1 2 {
-        rw [←functor.category.comp_app, nat_trans.naturality,
-            functor.category.comp_app],
+        rw [←nat_trans.comp_app, nat_trans.naturality,
+            nat_trans.comp_app],
       },
       rw category.assoc,
     end } }.
@@ -82,13 +80,10 @@ def curry : ((C × D) ⥤ E) ⥤ (C ⥤ (D ⥤ E)) :=
   ((curry.map α).app X).app Y = α.app (X, Y) := rfl
 
 def currying : (C ⥤ (D ⥤ E)) ≌ ((C × D) ⥤ E) :=
-{ functor := uncurry,
-  inverse := curry,
-  fun_inv_id' :=
-  nat_iso.of_components (λ F, nat_iso.of_components
-    (λ X, nat_iso.of_components (λ Y, as_iso (𝟙 _)) (by tidy)) (by tidy)) (by tidy),
-  inv_fun_id' :=
-  nat_iso.of_components (λ F, nat_iso.of_components
-    (λ X, eq_to_iso (by {dsimp, simp})) (by tidy)) (by tidy) }
+equivalence.mk uncurry curry
+  (nat_iso.of_components (λ F, nat_iso.of_components
+    (λ X, nat_iso.of_components (λ Y, as_iso (𝟙 _)) (by tidy)) (by tidy)) (by tidy))
+  (nat_iso.of_components (λ F, nat_iso.of_components
+    (λ X, eq_to_iso (by {dsimp, simp})) (by tidy)) (by tidy))
 
 end category_theory

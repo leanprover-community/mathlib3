@@ -22,8 +22,8 @@ def whiskering_left : (C ⥤ D) ⥤ ((D ⥤ E) ⥤ (C ⥤ E)) :=
   map := λ F G τ,
   { app := λ H,
     { app := λ c, H.map (τ.app c),
-      naturality' := λ X Y f, begin dsimp at *, rw [←H.map_comp, ←H.map_comp, ←τ.naturality] end },
-    naturality' := λ X Y f, begin ext1, dsimp at *, rw [←nat_trans.naturality] end } }
+      naturality' := λ X Y f, begin dsimp, rw [←H.map_comp, ←H.map_comp, ←τ.naturality] end },
+    naturality' := λ X Y f, begin ext1, dsimp, rw [f.naturality] end } }
 
 def whiskering_right : (D ⥤ E) ⥤ ((C ⥤ D) ⥤ (C ⥤ E)) :=
 { obj := λ H,
@@ -35,8 +35,8 @@ def whiskering_right : (D ⥤ E) ⥤ ((C ⥤ D) ⥤ (C ⥤ E)) :=
   map := λ G H τ,
   { app := λ F,
     { app := λ c, τ.app (F.obj c),
-      naturality' := λ X Y f, begin dsimp at *, rw [τ.naturality] end },
-    naturality' := λ X Y f, begin ext1, dsimp at *, rw [←nat_trans.naturality] end } }
+      naturality' := λ X Y f, begin dsimp, rw [τ.naturality] end },
+    naturality' := λ X Y f, begin ext1, dsimp, rw [←nat_trans.naturality] end } }
 
 variables {C} {D} {E}
 

@@ -125,7 +125,7 @@ lemma comp_c {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) :
 rfl
 @[simp] lemma id_c_app (X : PresheafedSpace.{v} C) (U):
   ((𝟙 X) : X ⟶ X).c.app U =
-  eq_to_hom begin dsimp, op_induction U, cases U, refl end :=
+  eq_to_hom by { dsimp, op_induction U, cases U, refl } :=
 begin
   simp only [id_c],
   op_induction U,

@@ -24,19 +24,19 @@ def yoneda : C ⥤ (Cᵒᵖ ⥤ Sort v₁) :=
 { obj := λ X,
   { obj := λ Y, unop Y ⟶ X,
     map := λ Y Y' f g, f.unop ≫ g,
-    map_comp' := λ _ _ _ f g, begin ext1, dsimp at *, erw [category.assoc] end,
-    map_id' := λ Y, begin ext1, dsimp at *, erw [category.id_comp] end },
+    map_comp' := λ _ _ _ f g, begin ext1, dsimp, erw [category.assoc] end,
+    map_id' := λ Y, begin ext1, dsimp, erw [category.id_comp] end },
   map := λ X X' f, { app := λ Y g, g ≫ f } }
 
 def coyoneda : Cᵒᵖ ⥤ (C ⥤ Sort v₁) :=
 { obj := λ X,
   { obj := λ Y, unop X ⟶ Y,
     map := λ Y Y' f g, g ≫ f,
-    map_comp' := λ _ _ _ f g, begin ext1, dsimp at *, erw [category.assoc] end,
-    map_id' := λ Y, begin ext1, dsimp at *, erw [category.comp_id] end },
+    map_comp' := λ _ _ _ f g, begin ext1, dsimp, erw [category.assoc] end,
+    map_id' := λ Y, begin ext1, dsimp, erw [category.comp_id] end },
   map := λ X X' f, { app := λ Y g, f.unop ≫ g },
-  map_comp' := λ _ _ _ f g, begin ext1, ext1, dsimp at *, erw [category.assoc] end,
-  map_id' := λ X, begin ext1, ext1, dsimp at *, erw [category.id_comp] end }
+  map_comp' := λ _ _ _ f g, begin ext1, ext1, dsimp, erw [category.assoc] end,
+  map_id' := λ X, begin ext1, ext1, dsimp, erw [category.id_comp] end }
 
 namespace yoneda
 @[simp] lemma obj_obj (X : C) (Y : Cᵒᵖ) : (yoneda.obj X).obj Y = (unop Y ⟶ X) := rfl
@@ -132,8 +132,9 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
     begin
       intros X Y f, ext1, ext1,
       cases f, cases Y, cases X,
-      dsimp at *, simp at *,
-      erw [←functor_to_types.naturality,
+      dsimp,
+      erw [category.id_comp,
+           ←functor_to_types.naturality,
            obj_map_id,
            functor_to_types.naturality,
            functor_to_types.map_id]
@@ -145,19 +146,19 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
       begin
         intros X Y f, ext1,
         cases x, cases F,
-        dsimp at *,
+        dsimp,
         erw [functor_to_types.map_comp]
       end },
     naturality' :=
     begin
       intros X Y f, ext1, ext1, ext1,
       cases x, cases f, cases Y, cases X,
-      dsimp at *,
+      dsimp,
       erw [←functor_to_types.naturality, functor_to_types.map_comp]
     end },
   hom_inv_id' :=
   begin
-    ext1, ext1, ext1, ext1, cases X, dsimp at *,
+    ext1, ext1, ext1, ext1, cases X, dsimp,
     erw [←functor_to_types.naturality,
          obj_map_id,
          functor_to_types.naturality,
@@ -168,7 +169,7 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
   begin
     ext1, ext1, ext1,
     cases x, cases X,
-    dsimp at *,
+    dsimp,
     erw [functor_to_types.map_id]
   end }.
 

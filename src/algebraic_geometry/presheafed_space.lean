@@ -145,17 +145,13 @@ def map_presheaf (F : C ⥤ D) : PresheafedSpace.{v} C ⥤ PresheafedSpace.{v} D
   map := λ X Y f, { f := f.f, c := whisker_right f.c F } }.
 
 @[simp] lemma map_presheaf_obj_X (F : C ⥤ D) (X : PresheafedSpace.{v} C) :
-  (F.map_presheaf.obj X).to_Top = X.to_Top :=
-rfl
+  (F.map_presheaf.obj X).to_Top = X.to_Top := rfl
 @[simp] lemma map_presheaf_obj_𝒪 (F : C ⥤ D) (X : PresheafedSpace.{v} C) :
-  (F.map_presheaf.obj X).𝒪 = X.𝒪 ⋙ F :=
-rfl
+  (F.map_presheaf.obj X).𝒪 = X.𝒪 ⋙ F := rfl
 @[simp] lemma map_presheaf_map_f (F : C ⥤ D) {X Y : PresheafedSpace.{v} C} (f : X ⟶ Y) :
-  (F.map_presheaf.map f).f = f :=
-rfl
+  (F.map_presheaf.map f).f = f := rfl
 @[simp] lemma map_presheaf_map_c (F : C ⥤ D) {X Y : PresheafedSpace.{v} C} (f : X ⟶ Y) :
-  (F.map_presheaf.map f).c = whisker_right f.c F :=
-rfl
+  (F.map_presheaf.map f).c = whisker_right f.c F := rfl
 
 end functor
 

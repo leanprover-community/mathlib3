@@ -299,8 +299,7 @@ instance faithful_of_equivalence (F : C ⥤ D) [is_equivalence F] : faithful F :
 { injectivity' := λ X Y f g w,
   begin
     have p := congr_arg (@category_theory.functor.map _ _ _ _ F.inv _ _) w,
-    simp at *,
-    assumption
+    simpa only [cancel_epi, cancel_mono, is_equivalence.inv_fun_map] using p
   end }.
 
 instance full_of_equivalence (F : C ⥤ D) [is_equivalence F] : full F :=

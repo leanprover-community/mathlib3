@@ -27,7 +27,7 @@ theorem succ_inj' {n m : ℕ} : succ n = succ m ↔ n = m :=
 theorem succ_le_succ_iff {m n : ℕ} : succ m ≤ succ n ↔ m ≤ n :=
 ⟨le_of_succ_le_succ, succ_le_succ⟩
 
-lemma zero_max {m : nat} : max 0 m = m := 
+lemma zero_max {m : nat} : max 0 m = m :=
 max_eq_right (zero_le _)
 
 theorem max_succ_succ {m n : ℕ} :
@@ -45,7 +45,7 @@ succ_le_succ_iff
 lemma succ_le_iff {m n : ℕ} : succ m ≤ n ↔ m < n :=
 ⟨lt_of_succ_le, succ_le_of_lt⟩
 
-lemma lt_iff_add_one_le {m n : ℕ} : m < n ↔ m + 1 ≤ n := 
+lemma lt_iff_add_one_le {m n : ℕ} : m < n ↔ m + 1 ≤ n :=
 by rw succ_le_iff
 
 theorem of_le_succ {n m : ℕ} (H : n ≤ m.succ) : n ≤ m ∨ n = m.succ :=
@@ -1060,5 +1060,27 @@ lemma with_bot.add_eq_one_iff : ∀ {n m : with_bot ℕ}, n + m = 1 ↔ (n = 0 �
 @[elab_as_eliminator] lemma le_induction {P : nat → Prop} {m} (h0 : P m) (h1 : ∀ n ≥ m, P n → P (n + 1)) :
   ∀ n ≥ m, P n :=
 by apply nat.less_than_or_equal.rec h0; exact h1
+
+@[elab_as_eliminator]
+lemma decreasing_induction {P : ℕ → Prop} (h : ∀n, P (n+1) → P n) {m n : ℕ} (nm : m ≤ n) (hP : P n) :
+  P m :=
+begin
+  have : ∀i, P (n-i),
+  { assume i,
+    induction i with i IH,
+    { exact hP },
+    { by_cases ile : i < n,
+      { have : 0 < n-i := nat.lt_sub_left_of_add_lt ile,
+        have : n - i = nat.succ (nat.pred (n-i)) := (nat.succ_pred_eq_of_pos this).symm,
+        rw this at IH,
+        exact h _ IH },
+      { simp at ile,
+        have A : n - i = 0 := nat.sub_eq_zero_of_le ile,
+        have : n ≤ nat.succ i := le_trans ile (nat.le_succ i),
+        have B : n - nat.succ i = 0 := nat.sub_eq_zero_of_le this,
+        rw A at IH,
+        rwa B } } },
+  simpa only [nat.sub_sub_self nm] using this (n-m)
+end
 
 end nat

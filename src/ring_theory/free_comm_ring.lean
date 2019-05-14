@@ -12,69 +12,6 @@ namespace free_comm_ring
 
 instance : comm_ring (free_comm_ring α) := free_abelian_group.comm_ring _
 
--- instance : add_comm_group (free_comm_ring α) := free_abelian_group.add_comm_group _
-
--- instance : semigroup (free_comm_ring α) :=
--- { mul := λ x, free_abelian_group.lift $ λ s2, free_abelian_group.lift (λ s1, free_abelian_group.of $ s1 + s2) x,
---   mul_assoc := λ x y z, begin
---     unfold has_mul.mul,
---     refine free_abelian_group.induction_on z rfl _ _ _,
---     { intros s3, rw [free_abelian_group.lift.of, free_abelian_group.lift.of],
---       refine free_abelian_group.induction_on y rfl _ _ _,
---       { intros s2, iterate 3 { rw free_abelian_group.lift.of },
---         refine free_abelian_group.induction_on x rfl _ _ _,
---         { intros s1, iterate 3 { rw free_abelian_group.lift.of }, rw add_assoc },
---         { intros s1 ih, iterate 3 { rw free_abelian_group.lift.neg }, rw ih },
---         { intros x1 x2 ih1 ih2, iterate 3 { rw free_abelian_group.lift.add }, rw [ih1, ih2] } },
---       { intros s2 ih, iterate 4 { rw free_abelian_group.lift.neg }, rw ih },
---       { intros y1 y2 ih1 ih2, iterate 4 { rw free_abelian_group.lift.add }, rw [ih1, ih2] } },
---     { intros s3 ih, iterate 3 { rw free_abelian_group.lift.neg }, rw ih },
---     { intros z1 z2 ih1 ih2, iterate 2 { rw free_abelian_group.lift.add }, rw [ih1, ih2],
---       exact (free_abelian_group.lift.add _ _ _).symm }
---   end }
-
--- instance : ring (free_comm_ring α) :=
--- { one := free_abelian_group.of 0,
---   mul_one := λ x, begin
---     unfold has_mul.mul semigroup.mul has_one.one,
---     rw free_abelian_group.lift.of,
---     refine free_abelian_group.induction_on x rfl _ _ _,
---     { intros s, rw [free_abelian_group.lift.of, add_zero] },
---     { intros s ih, rw [free_abelian_group.lift.neg, ih] },
---     { intros x1 x2 ih1 ih2, rw [free_abelian_group.lift.add, ih1, ih2] }
---   end,
---   one_mul := λ x, begin
---     unfold has_mul.mul semigroup.mul has_one.one,
---     refine free_abelian_group.induction_on x rfl _ _ _,
---     { intros s, rw [free_abelian_group.lift.of, free_abelian_group.lift.of, zero_add] },
---     { intros s ih, rw [free_abelian_group.lift.neg, ih] },
---     { intros x1 x2 ih1 ih2, rw [free_abelian_group.lift.add, ih1, ih2] }
---   end,
---   left_distrib := λ x y z, free_abelian_group.lift.add _ _ _,
---   right_distrib := λ x y z, begin
---     unfold has_mul.mul semigroup.mul,
---     refine free_abelian_group.induction_on z rfl _ _ _,
---     { intros s, iterate 3 { rw free_abelian_group.lift.of }, rw free_abelian_group.lift.add, refl },
---     { intros s ih, iterate 3 { rw free_abelian_group.lift.neg }, rw [ih, neg_add], refl },
---     { intros z1 z2 ih1 ih2, iterate 3 { rw free_abelian_group.lift.add }, rw [ih1, ih2],
---       rw [add_assoc, add_assoc], congr' 1, apply add_left_comm }
---   end,
---   .. free_comm_ring.add_comm_group α,
---   .. free_comm_ring.semigroup α }
-
--- instance : comm_ring (free_comm_ring α) :=
--- { mul_comm := λ x y, begin
---     refine free_abelian_group.induction_on x (zero_mul y) _ _ _,
---     { intros s, refine free_abelian_group.induction_on y (zero_mul _).symm _ _ _,
---       { intros t, unfold has_mul.mul semigroup.mul ring.mul,
---         iterate 4 { rw free_abelian_group.lift.of }, congr' 1, exact add_comm _ _ },
---       { intros t ih, rw [mul_neg_eq_neg_mul_symm, ih, neg_mul_eq_neg_mul] },
---       { intros y1 y2 ih1 ih2, rw [mul_add, add_mul, ih1, ih2] } },
---     { intros s ih, rw [neg_mul_eq_neg_mul_symm, ih, neg_mul_eq_mul_neg] },
---     { intros x1 x2 ih1 ih2, rw [add_mul, mul_add, ih1, ih2] }
---   end
---   .. free_comm_ring.ring α }
-
 variables {α}
 def of (x : α) : free_comm_ring α :=
 free_abelian_group.of ([x] : multiset α)

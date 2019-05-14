@@ -1069,7 +1069,7 @@ lemma with_bot.add_eq_one_iff : ∀ {n m : with_bot ℕ}, n + m = 1 ↔ (n = 0 �
 by apply nat.less_than_or_equal.rec h0; exact h1
 
 @[elab_as_eliminator]
-lemma decreasing_induction {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) {m n : ℕ} (mn : m ≤ n)
+def decreasing_induction {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) {m n : ℕ} (mn : m ≤ n)
   (hP : P n) : P m :=
 le_rec_on mn (λ k ih hsk, ih $ h k hsk) (λ h, h) hP
 

@@ -42,13 +42,9 @@ def stalk (ℱ : X.presheaf C) (x : X) : C :=
 variables (C)
 
 def stalk_pushforward (f : X ⟶ Y) (ℱ : X.presheaf C) (x : X) : (f _* ℱ).stalk (f x) ⟶ ℱ.stalk x :=
-begin
-  -- This is a hack; Lean doesn't like to elaborate the term written directly.
-  transitivity,
-  swap,
-  exact colimit.pre _ (open_nhds.map f x).op,
-  exact colim.map (whisker_right (nat_trans.op (open_nhds.inclusion_map_iso f x).inv) ℱ),
-end
+colim.map ((functor.associator _ _ _).inv ≫
+  whisker_right (nat_trans.op (open_nhds.inclusion_map_iso f x).inv) ℱ) ≫
+colimit.pre ((open_nhds.inclusion x).op ⋙ ℱ) (open_nhds.map f x).op
 
 namespace stalk_pushforward
 @[simp] lemma id (ℱ : X.presheaf C) (x : X) :

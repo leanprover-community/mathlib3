@@ -16,6 +16,7 @@ import algebra.module
 import ring_theory.algebra
 import topology.metric_space.lipschitz
 import analysis.asymptotics
+import linear_algebra.basic
 
 variables (k : Type*) (E : Type*) (F : Type*) (G : Type*)
 
@@ -305,5 +306,29 @@ theorem continuous : continuous f :=
 f.lipschitz.to_continuous
 
 end op_norm
+
+section constructions
+
+/-- The cartesian product of two bounded linear maps, as a bounded linear map. -/
+def prod (f₁ : E →L[k] F) (f₂ : E →L[k] G) : E →L[k] (F × G) :=
+{ bound := exists_pos_bound_of_bound (max ∥f₁∥ ∥f₂∥) $ λx, begin
+    simp only [norm, max_le_iff],
+    split,
+    { exact le_trans (le_op_norm _ _) (mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg _)) },
+    { exact le_trans (le_op_norm _ _) (mul_le_mul_of_nonneg_right (le_max_right _ _) (norm_nonneg _)) }
+  end,
+  ..f₁.to_linear_map.prod f₂.to_linear_map }
+
+/-- Associating to a scalar-valued linear map and an element of `F` the
+`F`-valued linear map obtained by multiplying the two (a.k.a. tensoring by `F`) -/
+def scalar_prod_space_iso (c : E →L[k] k) (f : F) : E →L[k] F :=
+{ bound := exists_pos_bound_of_bound (∥c∥ * ∥f∥) $ λx, calc
+     ∥(c x) • f∥ = ∥c x∥ * ∥f∥ : norm_smul _ _
+     ... ≤ (∥c∥ * ∥x∥) * ∥f∥ :
+       mul_le_mul_of_nonneg_right (le_op_norm _ _) (norm_nonneg _)
+     ... = ∥c∥ * ∥f∥ * ∥x∥ : by ring,
+  ..c.to_linear_map.scalar_prod_space_iso f }
+
+end constructions
 
 end bounded_linear_map

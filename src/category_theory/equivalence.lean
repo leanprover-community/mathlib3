@@ -116,14 +116,14 @@ by { erw [←iso.hom_comp_eq_id (e.unit_iso.app _), unit_inverse_comp], refl }
 (nat_iso.naturality_1 (e.unit_iso) f).symm
 
 section
-open category_theory
+-- In this section we convert an arbitrary equivalence to a half-adjoint equivalence.
 variables {F : C ⥤ D} {G : D ⥤ C} (η : 𝟭 C ≅ F ⋙ G) (ε : G ⋙ F ≅ 𝟭 D)
 
 def adjointify_η : 𝟭 C ≅ F ⋙ G :=
 η ≪≫ iso_whisker_left F ((left_unitor G).symm ≪≫
   iso_whisker_right ε.symm G) ≪≫ iso_whisker_right η.symm (F ⋙ G)
 
-lemma adjointify_ε_η (X : C) :
+lemma adjointify_η_ε (X : C) :
   F.map ((adjointify_η η ε).hom.app X) ≫ ε.hom.app (F.obj X) = 𝟙 (F.obj X) :=
 begin
   dsimp [adjointify_η], simp,
@@ -138,7 +138,7 @@ end
 
 protected definition mk (F : C ⥤ D) (G : D ⥤ C)
   (η : 𝟭 C ≅ F ⋙ G) (ε : G ⋙ F ≅ 𝟭 D) : C ≌ D :=
-⟨F, G, adjointify_η η ε, ε, adjointify_ε_η η ε⟩
+⟨F, G, adjointify_η η ε, ε, adjointify_η_ε η ε⟩
 
 omit 𝒟
 @[refl] def refl : C ≌ C := equivalence.mk (𝟭 C) (𝟭 C) (iso.refl _) (iso.refl _)
@@ -169,12 +169,12 @@ begin
     intros X Y g, dsimp at *, simp at *, dsimp at *,
     slice_rhs 2 3 { erw [is_iso.hom_inv_id] }, rw [id_comp],
     slice_rhs 1 2 { erw [is_iso.hom_inv_id] }, rw [id_comp, assoc] },
-  fapply of_components, exact feef_iso_id e f,
-  /- `tidy` says -/
-  intros X Y g, dsimp at *, simp at *, dsimp at *,
-  /- `rewrite_search` says -/
-  slice_lhs 3 4 { erw [is_iso.hom_inv_id] },
-  erw [id_comp, is_iso.hom_inv_id, comp_id]
+  { fapply of_components, exact feef_iso_id e f,
+    /- `tidy` says -/
+    intros X Y g, dsimp at *, simp at *, dsimp at *,
+    /- `rewrite_search` says -/
+    slice_lhs 3 4 { erw [is_iso.hom_inv_id] },
+    erw [id_comp, is_iso.hom_inv_id, comp_id] }
 end
 
 def fun_inv_id_assoc (e : C ≌ D) (F : C ⥤ E) : e.functor ⋙ e.inverse ⋙ F ≅ F :=
@@ -224,7 +224,7 @@ is_equivalence.of_equivalence F.symm
 open equivalence
 protected definition mk {F : C ⥤ D} (G : D ⥤ C)
   (η : 𝟭 C ≅ F ⋙ G) (ε : G ⋙ F ≅ 𝟭 D) : is_equivalence F :=
-⟨G, adjointify_η η ε, ε, adjointify_ε_η η ε⟩
+⟨G, adjointify_η η ε, ε, adjointify_η_ε η ε⟩
 
 end is_equivalence
 

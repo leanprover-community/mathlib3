@@ -126,8 +126,8 @@ def evaluation_uncurried : C × (C ⥤ D) ⥤ D :=
   map_comp' := λ X Y Z f g,
   begin
     cases g, cases f, cases Z, cases Y, cases X,
-    simp only [prod_comp, ←nat_trans.comp_app, functor.map_comp, category.assoc],
-    rw [←←nat_trans.comp_app, nat_trans.naturality, ←nat_trans.comp_app,
+    simp only [prod_comp, nat_trans.comp_app, functor.map_comp, category.assoc],
+    rw [←nat_trans.comp_app, nat_trans.naturality, nat_trans.comp_app,
         category.assoc, nat_trans.naturality],
   end }
 

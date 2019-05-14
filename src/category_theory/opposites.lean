@@ -272,6 +272,21 @@ rfl
 end
 end nat_trans
 
+namespace iso
+
+variables {X Y : C}
+
+protected definition op (α : X ≅ Y) : op Y ≅ op X :=
+{ hom := α.hom.op,
+  inv := α.inv.op,
+  hom_inv_id' := has_hom.hom.unop_inj α.inv_hom_id,
+  inv_hom_id' := has_hom.hom.unop_inj α.hom_inv_id }
+
+@[simp] lemma op_hom {α : X ≅ Y} : α.op.hom = α.hom.op := rfl
+@[simp] lemma op_inv {α : X ≅ Y} : α.op.inv = α.inv.op := rfl
+
+end iso
+
 namespace nat_iso
 
 variables {D : Sort u₂} [𝒟 : category.{v₂} D]

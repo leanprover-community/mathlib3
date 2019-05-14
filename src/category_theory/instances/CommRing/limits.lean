@@ -77,9 +77,9 @@ instance limit_condition_subring (F : J ⥤ CommRing.{u}) : is_subring (types.li
 
 instance limit_comm_ring (F : J ⥤ CommRing.{u}) : comm_ring (limit (F ⋙ forget)) := @subtype.comm_ring ((Π (j : J), (F ⋙ forget).obj j)) (by apply_instance) _ (by convert (CommRing.limit_condition_subring F))
 instance limit_π_is_ring_hom (F : J ⥤ CommRing.{u}) (j) : is_ring_hom (limit.π (F ⋙ CommRing.forget) j) :=
-{ map_one := begin simp only [types.types_limit_π], refl, end,
-  map_mul := λ x y, begin simp only [types.types_limit_π], refl, end,
-  map_add := λ x y, begin simp only [types.types_limit_π], refl, end, }
+{ map_one := by { simp only [types.types_limit_π], refl },
+  map_mul := λ x y, by { simp only [types.types_limit_π], refl },
+  map_add := λ x y, by { simp only [types.types_limit_π], refl } }
 
 def limit (F : J ⥤ CommRing.{u}) : cone F :=
 { X := ⟨limit (F ⋙ forget), by apply_instance⟩,

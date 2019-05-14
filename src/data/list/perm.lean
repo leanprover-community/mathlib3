@@ -39,10 +39,10 @@ trans (swap _ _ _) (skip _ $ skip _ p)
 
 attribute [trans] perm.trans
 
-theorem perm.eqv (α : Type) : equivalence (@perm α) :=
+theorem perm.eqv (α : Type uu) : equivalence (@perm α) :=
 mk_equivalence (@perm α) (@perm.refl α) (@perm.symm α) (@perm.trans α)
 
-instance is_setoid (α : Type) : setoid (list α) :=
+instance is_setoid (α : Type uu) : setoid (list α) :=
 setoid.mk (@perm α) (perm.eqv α)
 
 theorem perm_subset {l₁ l₂ : list α} (p : l₁ ~ l₂) : l₁ ⊆ l₂ :=

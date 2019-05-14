@@ -922,9 +922,15 @@ These tactics work with three attributes,
 
 `elim_cast` is for elimination lemmas of the shape
 Π ..., P ↑a1 ... ↑an = P a1 ... an
+example: `int.coe_nat_inj' : ∀ {m n : ℕ}, ↑m = ↑n ↔ m = n`
+example: `rat.coe_int_denom : ∀ (n : ℤ), ↑n.denom = 1`
 
 `move_cast` is for compositional lemmas of the shape
 Π ..., ↑(P a1 ... an) = P ↑a1 ... ↑an
+example: `int.coe_nat_add : ∀ (m n : ℕ), ↑(m + n) = ↑m + ↑n`
+example: `nat.cast_sub : ∀ {α : Type u_1} [_inst_1 : add_group α] [_inst_2 : has_one α] {m n : ℕ}, m ≤ n → ↑(n - m) = ↑n - ↑m`
 
 `squash_cast` is for lemmas of the shape
 Π ..., ↑↑a = ↑a
+example: `int.cast_coe_nat : ∀ (n : ℕ), ↑↑n = ↑n`
+example: `int.cats_id : int.cast_id : ∀ (n : ℤ), ↑n = n`

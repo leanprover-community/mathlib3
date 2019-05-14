@@ -1064,23 +1064,6 @@ by apply nat.less_than_or_equal.rec h0; exact h1
 @[elab_as_eliminator]
 lemma decreasing_induction {P : ℕ → Prop} (h : ∀n, P (n+1) → P n) {m n : ℕ} (nm : m ≤ n) (hP : P n) :
   P m :=
-begin
-  have : ∀i, P (n-i),
-  { assume i,
-    induction i with i IH,
-    { exact hP },
-    { by_cases ile : i < n,
-      { have : 0 < n-i := nat.lt_sub_left_of_add_lt ile,
-        have : n - i = nat.succ (nat.pred (n-i)) := (nat.succ_pred_eq_of_pos this).symm,
-        rw this at IH,
-        exact h _ IH },
-      { simp at ile,
-        have A : n - i = 0 := nat.sub_eq_zero_of_le ile,
-        have : n ≤ nat.succ i := le_trans ile (nat.le_succ i),
-        have B : n - nat.succ i = 0 := nat.sub_eq_zero_of_le this,
-        rw A at IH,
-        rwa B } } },
-  simpa only [nat.sub_sub_self nm] using this (n-m)
-end
+by { induction nm with n nm ih, exact hP, exact ih (h _ hP) }
 
 end nat

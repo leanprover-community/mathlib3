@@ -372,6 +372,8 @@ end conv.interactive
 attribute [squash_cast] int.coe_nat_zero
 attribute [squash_cast] int.coe_nat_one
 
+attribute [elim_cast] int.nat_abs_of_nat
+
 attribute [move_cast] int.coe_nat_succ
 attribute [move_cast] int.coe_nat_add
 attribute [move_cast] int.coe_nat_sub

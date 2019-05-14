@@ -282,15 +282,11 @@ iff.intro eq_zero_of_mul_eq_zero (by simp [or_imp_distrib] {contextual := tt})
 by rw [eq_comm, nat.mul_eq_zero]
 
 lemma eq_zero_of_double_le {a : ℕ} (h : 2 * a ≤ a) : a = 0 :=
-begin
-  induction a,
-  refl,
-  rw nat.succ_eq_add_one at h,
-  rw mul_add at h,
-  have p := a_ih _,
-  { subst p, simp at h, cases h, cases h_a },
-  exact le_trans (nat.le_succ (2 * a_n)) (nat.lt_succ_iff.mp h),
-end
+nat.eq_zero_of_le_zero $
+  by rwa [two_mul, nat.add_le_to_le_sub, nat.sub_self] at h; refl
+
+lemma eq_zero_of_mul_le {a b : ℕ} (hb : 2 ≤ b) (h : b * a ≤ a) : a = 0 :=
+eq_zero_of_double_le $ le_trans (nat.mul_le_mul_right _ hb) h
 
 lemma le_mul_of_pos_left {m n : ℕ} (h : n > 0) : m ≤ n * m :=
 begin
@@ -415,11 +411,11 @@ lt_of_mul_lt_mul_left
     ... < n * k : h)
   (nat.zero_le n)
 
-lemma le_mul_of_div_lt {a b c : ℕ} (h : a / c < b) (w : 0 < c) : a ≤ b * c :=
+lemma lt_mul_of_div_lt {a b c : ℕ} (h : a / c < b) (w : 0 < c) : a < b * c :=
 begin
   by_contradiction p,
   simp at p,
-  replace p : (b * c) / c ≤ a / c := nat.div_le_div_right (le_of_lt p),
+  replace p : (b * c) / c ≤ a / c := nat.div_le_div_right p,
   have q : b * c / c = b := nat.mul_div_left b w,
   rw q at p,
   exact lt_irrefl _ (lt_of_le_of_lt p h)

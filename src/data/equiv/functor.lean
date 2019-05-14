@@ -14,9 +14,7 @@ open functor equiv function is_lawful_functor
 def functor.map_equiv (h : α ≃ β) : f α ≃ f β :=
 { to_fun    := map h,
   inv_fun   := map h.symm,
-  left_inv  := λ x, by { rw map_map, transitivity id <$> x,
-                        { congr, ext a, simp only [id.def, symm_apply_apply, comp_app] },
-                        { simp only [is_lawful_functor.id_map] } },
-  right_inv := λ x, by { rw map_map, transitivity id <$> x,
-                        { congr, ext a, simp only [id.def, apply_symm_apply, comp_app] },
-                        { simp only [is_lawful_functor.id_map] } } }
+  left_inv  := λ x,
+    by { rw map_map, convert is_lawful_functor.id_map x, ext a, apply symm_apply_apply },
+  right_inv := λ x,
+    by { rw map_map, convert is_lawful_functor.id_map x, ext a, apply apply_symm_apply } }

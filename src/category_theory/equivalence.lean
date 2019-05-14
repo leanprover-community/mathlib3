@@ -76,7 +76,7 @@ calc
   fun_inv_id' := nat_iso.of_components (effe_iso_id e f)
   begin
     /- `tidy` says -/
-    intros X Y f_1, dsimp at *, simp at *, dsimp at *,
+    intros X Y f_1, dsimp, simp only [cancel_epi, functor.map_comp, inv_fun_map, category.assoc],
     /- `rewrite_search` says -/
     slice_lhs 3 4 { erw [is_iso.hom_inv_id] },
     erw [category.id_comp, is_iso.hom_inv_id, category.comp_id],
@@ -84,7 +84,7 @@ calc
   inv_fun_id' := nat_iso.of_components (feef_iso_id e f)
   begin
     /- `tidy` says -/
-    intros X Y f_1, dsimp at *, simp at *, dsimp at *,
+    intros X Y f_1, dsimp, simp only [fun_inv_map, cancel_epi, functor.map_comp, category.assoc],
     /- `rewrite_search` says -/
     slice_lhs 3 4 { erw [is_iso.hom_inv_id] },
     erw [category.id_comp, is_iso.hom_inv_id, category.comp_id]
@@ -207,8 +207,7 @@ instance faithful_of_equivalence (F : C ⥤ D) [is_equivalence F] : faithful F :
 { injectivity' := λ X Y f g w,
   begin
     have p := congr_arg (@category_theory.functor.map _ _ _ _ F.inv _ _) w,
-    simp at *,
-    assumption
+    simpa only [cancel_epi, cancel_mono, is_equivalence.inv_fun_map] using p
   end }.
 
 instance full_of_equivalence (F : C ⥤ D) [is_equivalence F] : full F :=

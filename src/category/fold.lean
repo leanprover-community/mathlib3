@@ -42,15 +42,15 @@ but the author cannot think of instances of `foldable` that are not also
 
 -/
 import tactic.squeeze
-import algebra.group
+import algebra.group algebra.opposites
 import data.list.basic
 import category.traversable.instances category.traversable.lemmas
-import category_theory.category category_theory.types category_theory.opposites category_theory.instances.kleisli
+import category_theory.category category_theory.types category_theory.instances.kleisli
 import category.applicative
 
 universes u v
 
-open ulift category_theory
+open ulift category_theory opposite
 
 namespace monoid
 variables {m : Type u → Type u} [monad m]
@@ -91,7 +91,7 @@ def foldl.mk (f : α → α) : foldl α := f
 def foldl.of_free_monoid (f : β → α → β) (xs : free_monoid α) : monoid.foldl β :=
 flip (list.foldl f) xs
 
-@[reducible] def foldr (α : Type u) : Type u := (End α)ᵒᵖ
+@[reducible] def foldr (α : Type u) : Type u := opposite (End α)
 def foldr.mk (f : α → α) : foldr α := op f
 def foldr.get (x : foldr α) : α → α := unop x
 def foldr.of_free_monoid (f : α → β → β) (xs : free_monoid α) : monoid.foldr β :=
@@ -102,7 +102,8 @@ def mfoldl.mk (f : α → m α) : mfoldl m α := f
 def mfoldl.of_free_monoid (f : β → α → m β) (xs : free_monoid α) : monoid.mfoldl m β :=
 flip (list.mfoldl f) xs
 
-@[reducible] def mfoldr (m : Type u → Type u) [monad m] (α : Type u) : Type u := (End $ Kleisli.mk m α)ᵒᵖ
+@[reducible] def mfoldr (m : Type u → Type u) [monad m] (α : Type u) : Type u :=
+opposite (End $ Kleisli.mk m α)
 def mfoldr.mk (f : α → m α) : mfoldr m α := op f
 def mfoldr.get (x : mfoldr m α) : α → m α := unop x
 def mfoldr.of_free_monoid (f : α → β → m β) (xs : free_monoid α) : monoid.mfoldr m β :=
@@ -257,7 +258,7 @@ by { ext, simp only [(∘), mfoldl.of_free_monoid, mfoldl.mk, flip, fold_mfoldl_
 
 @[simp]
 lemma mfoldr.of_free_monoid_comp_free_mk {m} [monad m] [is_lawful_monad m] (f : β → α → m α) : mfoldr.of_free_monoid f ∘ free.mk = mfoldr.mk ∘ f :=
-by { ext, apply unop_inj, ext, simp only [(∘),mfoldr.of_free_monoid,mfoldr.mk,flip,fold_mfoldr_cons] }
+by { ext, apply unop_inj, simp only [(∘),mfoldr.of_free_monoid,mfoldr.mk,flip,fold_mfoldr_cons] }
 
 lemma to_list_spec (xs : t α) :
   to_list xs = (fold_map free.mk xs : free_monoid _) :=

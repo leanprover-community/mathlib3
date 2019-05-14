@@ -51,7 +51,7 @@ begin
 end
 
 namespace stalk_pushforward
-@[simp] def id (ℱ : X.presheaf C) (x : X) :
+@[simp] lemma id (ℱ : X.presheaf C) (x : X) :
   ℱ.stalk_pushforward C (𝟙 X) x = (stalk_functor C x).map ((pushforward.id ℱ).hom) :=
 begin
   dsimp [stalk_pushforward, stalk_functor],
@@ -60,7 +60,7 @@ begin
   tidy,
 end
 
-@[simp] def comp (ℱ : X.presheaf C) (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
+@[simp] lemma comp (ℱ : X.presheaf C) (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
   ℱ.stalk_pushforward C (f ≫ g) x =
   ((f _* ℱ).stalk_pushforward C g (f x)) ≫ (ℱ.stalk_pushforward C f x) :=
 begin

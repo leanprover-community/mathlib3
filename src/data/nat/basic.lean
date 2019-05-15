@@ -74,8 +74,9 @@ begin
   rw [le_rec_on_succ (le_trans hnm hmk), ih, le_rec_on_succ]
 end
 
-theorem le_rec_on_succ_left {C : ℕ → Sort u} {n m} (h1 : n ≤ m) (h2 : n+1 ≤ m) {next} (x : C n) :
-  (le_rec_on h2 @next (next x) : C m) = (le_rec_on h1 @next x : C m) :=
+theorem le_rec_on_succ_left {C : ℕ → Sort u} {n m} (h1 : n ≤ m) (h2 : n+1 ≤ m)
+  {next : Π{{k}}, C k → C (k+1)} (x : C n) :
+  (le_rec_on h2 next (next x) : C m) = (le_rec_on h1 next x : C m) :=
 begin
   rw [subsingleton.elim h1 (le_trans (le_succ n) h2),
       le_rec_on_trans (le_succ n) h2, le_rec_on_succ']
@@ -1073,8 +1074,8 @@ def decreasing_induction {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) {m n : 
   (hP : P n) : P m :=
 le_rec_on mn (λ k ih hsk, ih $ h k hsk) (λ h, h) hP
 
-lemma decreasing_induction_self {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) {n : ℕ} (nn : n ≤ n)
-  (hP : P n) : (decreasing_induction h nn hP : P n) = hP :=
+@[simp] lemma decreasing_induction_self {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) {n : ℕ}
+  (nn : n ≤ n) (hP : P n) : (decreasing_induction h nn hP : P n) = hP :=
 by { dunfold decreasing_induction, rw [le_rec_on_self] }
 
 lemma decreasing_induction_succ {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) {m n : ℕ} (mn : m ≤ n)
@@ -1082,8 +1083,8 @@ lemma decreasing_induction_succ {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) 
   (decreasing_induction h msn hP : P m) = decreasing_induction h mn (h n hP) :=
 by { dunfold decreasing_induction, rw [le_rec_on_succ] }
 
-lemma decreasing_induction_succ' {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) {m : ℕ} (msm : m ≤ m + 1)
-  (hP : P (m+1)) : (decreasing_induction h msm hP : P m) = h m hP :=
+@[simp] lemma decreasing_induction_succ' {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) {m : ℕ}
+  (msm : m ≤ m + 1) (hP : P (m+1)) : (decreasing_induction h msm hP : P m) = h m hP :=
 by { dunfold decreasing_induction, rw [le_rec_on_succ'] }
 
 lemma decreasing_induction_trans {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) {m n k : ℕ}

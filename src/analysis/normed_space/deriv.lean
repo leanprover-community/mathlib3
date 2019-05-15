@@ -866,23 +866,23 @@ begin
   exact this.congr (by simp)
 end
 
-theorem has_fderiv_within_at.continuous_at_within
-  (h : has_fderiv_within_at f f' s x) : continuous_at_within f x s :=
+theorem has_fderiv_within_at.continuous_within_at
+  (h : has_fderiv_within_at f f' s x) : continuous_within_at f s x :=
 has_fderiv_at_filter.tendsto_nhds lattice.inf_le_left h
 
 theorem has_fderiv_at.continuous_at (h : has_fderiv_at f f' x) :
   continuous_at f x :=
 has_fderiv_at_filter.tendsto_nhds (le_refl _) h
 
-lemma differentiable_within_at.continuous_at_within (h : differentiable_within_at k f s x) :
-  continuous_at_within f x s :=
-let ⟨f', hf'⟩ := h in hf'.continuous_at_within
+lemma differentiable_within_at.continuous_within_at (h : differentiable_within_at k f s x) :
+  continuous_within_at f s x :=
+let ⟨f', hf'⟩ := h in hf'.continuous_within_at
 
 lemma differentiable_at.continuous_at (h : differentiable_at k f x) : continuous_at f x :=
 let ⟨f', hf'⟩ := h in hf'.continuous_at
 
 lemma differentiable_on.continuous_on (h : differentiable_on k f s) : continuous_on f s :=
-λx hx, (h x hx).continuous_at_within
+λx hx, (h x hx).continuous_within_at
 
 lemma differentiable.continuous (h : differentiable k f) : continuous f :=
 continuous_iff_continuous_at.2 $ λx, (h x).continuous_at
@@ -1071,7 +1071,7 @@ theorem has_fderiv_within_at.comp {g : F → G} {g' : F →L[k] G}
   (hg : has_fderiv_within_at g g' (f '' s) (f x)) :
   has_fderiv_within_at (g ∘ f) (g'.comp f') s x :=
 hf.comp (has_fderiv_at_filter.mono hg
-  hf.continuous_at_within.tendsto_nhds_within_image)
+  hf.continuous_within_at.tendsto_nhds_within_image)
 
 /-- The chain rule. -/
 theorem has_fderiv_at.comp {g : F → G} {g' : F →L[k] G}

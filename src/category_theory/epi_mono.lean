@@ -19,7 +19,7 @@ namespace category_theory
 variables {C : Sort u₁} [𝒞 : category.{v₁} C] {D : Sort u₂} [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
-lemma left_adjoint_preserves_epi {F : C ⥤ D} {G : D ⥤ C} (adj : adjunction F G)
+lemma left_adjoint_preserves_epi {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G)
   {X Y : C} {f : X ⟶ Y} (hf : epi f) : epi (F.map f) :=
 begin
   constructor,
@@ -29,7 +29,7 @@ begin
     cancel_epi, equiv.apply_eq_iff_eq] at H
 end
 
-lemma right_adjoint_preserves_mono {F : C ⥤ D} {G : D ⥤ C} (adj : adjunction F G)
+lemma right_adjoint_preserves_mono {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G)
   {X Y : D} {f : X ⟶ Y} (hf : mono f) : mono (G.map f) :=
 begin
   constructor,

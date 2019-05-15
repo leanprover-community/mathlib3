@@ -54,9 +54,9 @@ lemma tendsto_prod_mk_nhds {γ} {a : α} {b : β} {f : filter γ} {ma : γ → �
   tendsto (λc, (ma c, mb c)) f (nhds (a, b)) :=
 by rw [nhds_prod_eq]; exact filter.tendsto.prod_mk ha hb
 
-lemma continuous_at_within.prod {f : α → β} {g : α → γ} {s : set α} {x : α}
-  (hf : continuous_at_within f x s) (hg : continuous_at_within g x s) :
-  continuous_at_within (λx, (f x, g x)) x s :=
+lemma continuous_within_at.prod {f : α → β} {g : α → γ} {s : set α} {x : α}
+  (hf : continuous_within_at f s x) (hg : continuous_within_at g s x) :
+  continuous_within_at (λx, (f x, g x)) s x :=
 tendsto_prod_mk_nhds hf hg
 
 lemma continuous_at.prod {f : α → β} {g : α → γ} {x : α}
@@ -65,7 +65,7 @@ tendsto_prod_mk_nhds hf hg
 
 lemma continuous_on.prod {f : α → β} {g : α → γ} {s : set α}
   (hf : continuous_on f s) (hg : continuous_on g s) : continuous_on (λx, (f x, g x)) s :=
-λx hx, continuous_at_within.prod (hf x hx) (hg x hx)
+λx hx, continuous_within_at.prod (hf x hx) (hg x hx)
 
 lemma prod_generate_from_generate_from_eq {s : set (set α)} {t : set (set β)}
   (hs : ⋃₀ s = univ) (ht : ⋃₀ t = univ) :

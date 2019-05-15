@@ -93,7 +93,7 @@ begin
 end
 
 lemma continuous_of_real : continuous ennreal.of_real :=
-continuous.comp nnreal.continuous_of_real (continuous_coe.2 continuous_id)
+(continuous_coe.2 continuous_id).comp nnreal.continuous_of_real
 
 lemma tendsto_of_real {f : filter α} {m : α → ℝ} {a : ℝ} (h : tendsto m f (nhds a)) :
   tendsto (λa, ennreal.of_real (m a)) f (nhds (ennreal.of_real a)) :=
@@ -601,7 +601,7 @@ end
 
 theorem continuous_edist [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, edist (f b) (g b)) :=
-(hf.prod_mk hg).comp continuous_edist'
+continuous_edist'.comp (hf.prod_mk hg)
 
 theorem tendsto_edist {f g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) :

@@ -1,7 +1,5 @@
 import algebraic_geometry.presheafed_space
-import category_theory.instances.Top.open_nhds
 import category_theory.instances.Top.stalks
-import category_theory.limits.limits
 
 universes v u v' u'
 

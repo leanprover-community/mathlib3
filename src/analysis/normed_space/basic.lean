@@ -7,6 +7,7 @@ Authors: Patrick Massot, Johannes Hölzl
 -/
 
 import algebra.pi_instances
+import linear_algebra.basic
 import topology.instances.nnreal topology.instances.complex
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
@@ -177,8 +178,7 @@ lemma tendsto_iff_norm_tendsto_zero {f : ι → β} {a : filter ι} {b : β} :
   tendsto f a (nhds b) ↔ tendsto (λ e, ∥ f e - b ∥) a (nhds 0) :=
 by rw tendsto_iff_dist_tendsto_zero ; simp only [(dist_eq_norm _ _).symm]
 
-lemma tendsto_zero_iff_norm_tendsto_zero [normed_group α] [normed_group β]
-  {f : γ → β} {a : filter γ} :
+lemma tendsto_zero_iff_norm_tendsto_zero {f : γ → β} {a : filter γ} :
   tendsto f a (nhds 0) ↔ tendsto (λ e, ∥ f e ∥) a (nhds 0) :=
 have tendsto f a (nhds 0) ↔ tendsto (λ e, ∥ f e - 0 ∥) a (nhds 0) :=
   tendsto_iff_norm_tendsto_zero,

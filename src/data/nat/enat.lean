@@ -6,6 +6,7 @@ Authors: Chris Hughes
 Natural numbers with infinity, represented as roption ℕ.
 -/
 import data.pfun algebra.ordered_group
+import tactic.norm_cast
 
 open roption lattice
 
@@ -44,11 +45,11 @@ roption.ext' (false_and _) (λ h, h.left.elim)
 @[simp] lemma add_top (x : enat) : x + ⊤ = ⊤ :=
 by rw [add_comm, top_add]
 
-@[simp] lemma coe_zero : ((0 : ℕ) : enat) = 0 := rfl
+@[simp, squash_cast] lemma coe_zero : ((0 : ℕ) : enat) = 0 := rfl
 
-@[simp] lemma coe_one : ((1 : ℕ) : enat) = 1 := rfl
+@[simp, squash_cast] lemma coe_one : ((1 : ℕ) : enat) = 1 := rfl
 
-@[simp] lemma coe_add (x y : ℕ) : ((x + y : ℕ) : enat) = x + y :=
+@[simp, move_cast] lemma coe_add (x y : ℕ) : ((x + y : ℕ) : enat) = x + y :=
 roption.ext' (and_true _).symm (λ _ _, rfl)
 
 @[simp] lemma coe_add_get {x : ℕ} {y : enat} (h : ((x : enat) + y).dom) :
@@ -57,7 +58,7 @@ roption.ext' (and_true _).symm (λ _ _, rfl)
 @[simp] lemma get_add {x y : enat} (h : (x + y).dom) :
   get (x + y) h = x.get h.1 + y.get h.2 := rfl
 
-@[simp] lemma coe_get {x : enat} (h : x.dom) : (x.get h : enat) = x :=
+@[simp, squash_cast] lemma coe_get {x : enat} (h : x.dom) : (x.get h : enat) = x :=
 roption.ext' (iff_of_true trivial h) (λ _ _, rfl)
 
 @[simp] lemma get_zero (h : (0 : enat).dom) : (0 : enat).get h = 0 := rfl
@@ -75,10 +76,10 @@ instance : partial_order enat :=
   le_antisymm := λ x y ⟨hxy₁, hxy₂⟩ ⟨hyx₁, hyx₂⟩, roption.ext' ⟨hyx₁, hxy₁⟩
     (λ _ _, le_antisymm (hxy₂ _) (hyx₂ _)) }
 
-@[simp] lemma coe_le_coe {x y : ℕ} : (x : enat) ≤ y ↔ x ≤ y :=
+@[simp, elim_cast] lemma coe_le_coe {x y : ℕ} : (x : enat) ≤ y ↔ x ≤ y :=
 ⟨λ ⟨_, h⟩, h trivial, λ h, ⟨λ _, trivial, λ _, h⟩⟩
 
-@[simp] lemma coe_lt_coe {x y : ℕ} : (x : enat) < y ↔ x < y :=
+@[simp, elim_cast] lemma coe_lt_coe {x y : ℕ} : (x : enat) < y ↔ x < y :=
 by rw [lt_iff_le_not_le, lt_iff_le_not_le, coe_le_coe, coe_le_coe]
 
 lemma get_le_get {x y : enat} {hx : x.dom} {hy : y.dom} :

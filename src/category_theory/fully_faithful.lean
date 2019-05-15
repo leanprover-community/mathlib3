@@ -40,8 +40,8 @@ variables {F : C ⥤ D} [full F] [faithful F] {X Y : C}
 def preimage_iso (f : (F.obj X) ≅ (F.obj Y)) : X ≅ Y :=
 { hom := F.preimage f.hom,
   inv := F.preimage f.inv,
-  hom_inv_id' := begin apply @faithful.injectivity _ _ _ _ F, obviously, end,
-  inv_hom_id' := begin apply @faithful.injectivity _ _ _ _ F, obviously, end, }
+  hom_inv_id' := begin apply @faithful.injectivity _ _ _ _ F, obviously end,
+  inv_hom_id' := begin apply @faithful.injectivity _ _ _ _ F, obviously end, }
 
 @[simp] lemma preimage_iso_hom (f : (F.obj X) ≅ (F.obj Y)) :
   (preimage_iso f).hom = F.preimage f.hom := rfl

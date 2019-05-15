@@ -5,7 +5,7 @@ Authors: Leonardo de Moura, Keeley Hoek
 
 Converter monad for building simplifiers.
 -/
-import tactic.basic tactic.converter.old_conv
+import tactic.core tactic.converter.old_conv
 
 namespace old_conv
 meta def save_info (p : pos) : old_conv unit :=

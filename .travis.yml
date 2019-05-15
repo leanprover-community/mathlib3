@@ -40,86 +40,56 @@ install:
 
 jobs:
   include:
-    - env: TASK="check Lean proofs"
-      stage: Pre-build-1
+    - stage: Pre-build-1
+      if: type != cron
+      env: TASK="check Lean proofs"
       script:
         - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
 
-    - env: TASK="check Lean proofs"
-      stage: Pre-build-2
+    - stage: Pre-build-1
+      env: TASK="check Lean proofs" LEAN="nightly"
+      if: type = cron
+      script:
+        - elan toolchain install leanprover-community/lean:nightly
+        - elan override set leanprover-community/lean:nightly
+        - find . -name *.olean -delete
+        - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
+
+    - stage: Pre-build-2
+      if: type != cron
+      env: TASK="check Lean proofs"
       script:
         - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
 
-    - env: TASK="check Lean proofs"
-      stage: Test
+    - stage: Pre-build-2
+      env: TASK="check Lean proofs" LEAN="nightly"
+      if: type = cron
+      script:
+        - elan toolchain install leanprover-community/lean:nightly
+        - elan override set leanprover-community/lean:nightly
+        - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
+
+    - stage: Test
+      env: TASK="check Lean proofs"
+      if: type != cron
       script:
         - travis_long "leanpkg test"
         - lean --recursive --export=mathlib.txt src/
         - travis_long "leanchecker mathlib.txt"
         - sh scripts/deploy_nightly.sh
 
-    - env: TASK="check install scripts"
-      if: type != pull_request OR head_repo = leanprover-community/mathlib
-      language: python
-      python:
-        - "3.6"
-      install:
-        - if [ "$GITHUB_CRED" != "" ]; then git config --add github.oauthtoken $GITHUB_CRED; echo setting up GitHub credentials; else echo no GitHub credentials available; fi
-      os:
-        - linux
+    - stage: Test
+      env: TASK="check Lean proofs" LEAN="nightly"
+      if: type = cron
       script:
-        - cp scripts/leanpkg-example.toml leanpkg.toml
-        - sh scripts/remote-install-update-mathlib.sh --global
-        - source $HOME/.profile
-        - update-mathlib
+        - elan toolchain install leanprover-community/lean:nightly
+        - elan override set leanprover-community/lean:nightly
+        - travis_long "leanpkg test"
+        - lean --recursive --export=mathlib.txt src/
+        - travis_long "leanchecker mathlib.txt"
 
-    - env: TASK="check install scripts"
-      if: type != pull_request OR head_repo = leanprover-community/mathlib
-      language: sh
-      install:
-        - if [ "$GITHUB_CRED" != "" ]; then git config --add github.oauthtoken $GITHUB_CRED; echo setting up GitHub credentials; else echo no GitHub credentials available; fi
-      os:
-        - osx
-      script:
-        - cp scripts/leanpkg-example.toml leanpkg.toml
-        - sh scripts/remote-install-update-mathlib.sh
-        - source $HOME/.profile
-        - update-mathlib
-
-    - env: TASK="check dev scripts"
-      if: type != pull_request OR head_repo = leanprover-community/mathlib
-      sudo: true
-      language: python
-      python:
-        - "3.4"
-      install:
-        - if [ "$GITHUB_CRED" != "" ]; then git config --add github.oauthtoken $GITHUB_CRED; echo setting up GitHub credentials; else echo no GitHub credentials available; fi
-      os:
-        - linux
-      script:
-        - cp scripts/leanpkg-example.toml leanpkg.toml
-        - cd scripts
-        - echo y | bash setup-dev-scripts.sh --global
-        - source $HOME/.profile
-        - update-mathlib
-        - cache-olean
-        - cache-olean --fetch
-
-    - env: TASK="check dev scripts"
-      if: type != pull_request OR head_repo = leanprover-community/mathlib
-      language: sh
-      install:
-        - if [ "$GITHUB_CRED" != "" ]; then git config --add github.oauthtoken $GITHUB_CRED; echo setting up GitHub credentials; else echo no GitHub credentials available; fi
-      os:
-        - osx
-      script:
-        - cp scripts/leanpkg-example.toml leanpkg.toml
-        - cd scripts
-        - echo y | bash setup-dev-scripts.sh
-        - source $HOME/.profile
-        - update-mathlib
-        - cache-olean
-        - cache-olean --fetch
+  # allow_failures:
+  #   - env: TASK="check Lean proofs" LEAN="nightly"
 
 notifications:
   webhooks:

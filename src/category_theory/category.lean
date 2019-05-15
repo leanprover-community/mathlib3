@@ -14,8 +14,7 @@ local notation f ` ⊚ `:80 g:80 := category.comp g f    -- type as \oo
 ```
 -/
 
-import tactic.restate_axiom
-import tactic.interactive
+import tactic.basic
 import tactic.tidy
 
 universes v u  -- The order in this declaration matters: v often needs to be explicitly specified while u often can be omitted
@@ -66,7 +65,7 @@ restate_axiom category.assoc'
 attribute [simp] category.id_comp category.comp_id category.assoc
 attribute [trans] category_struct.comp
 
-lemma category.assoc_symm {C : Type u} [category.{v} C] {W X Y Z : C} (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z) :
+lemma category.assoc_symm {C : Sort u} [category.{v} C] {W X Y Z : C} (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z) :
   f ≫ (g ≫ h) = (f ≫ g) ≫ h :=
 by rw ←category.assoc
 
@@ -85,14 +84,29 @@ section
 variables {C : Sort u} [𝒞 : category.{v} C] {X Y Z : C}
 include 𝒞
 
+lemma eq_of_comp_left_eq {f g : X ⟶ Y} (w : ∀ {Z : C} (h : Y ⟶ Z), f ≫ h = g ≫ h) : f = g :=
+by { convert w (𝟙 Y), tidy }
+lemma eq_of_comp_right_eq {f g : Y ⟶ Z} (w : ∀ {X : C} (h : X ⟶ Y), h ≫ f = h ≫ g) : f = g :=
+by { convert w (𝟙 Y), tidy }
+
+lemma eq_of_comp_left_eq' (f g : X ⟶ Y) (w : (λ {Z : C} (h : Y ⟶ Z), f ≫ h) = (λ {Z : C} (h : Y ⟶ Z), g ≫ h)) : f = g :=
+eq_of_comp_left_eq (λ Z h, by convert congr_fun (congr_fun w Z) h)
+lemma eq_of_comp_right_eq' (f g : Y ⟶ Z) (w : (λ {X : C} (h : X ⟶ Y), h ≫ f) = (λ {X : C} (h : X ⟶ Y), h ≫ g)) : f = g :=
+eq_of_comp_right_eq (λ X h, by convert congr_fun (congr_fun w X) h)
+
+lemma id_of_comp_left_id (f : X ⟶ X) (w : ∀ {Y : C} (g : X ⟶ Y), f ≫ g = g) : f = 𝟙 X :=
+by { convert w (𝟙 X), tidy }
+lemma id_of_comp_right_id (f : X ⟶ X) (w : ∀ {Y : C} (g : Y ⟶ X), g ≫ f = g) : f = 𝟙 X :=
+by { convert w (𝟙 X), tidy }
+
 class epi  (f : X ⟶ Y) : Prop :=
 (left_cancellation : Π {Z : C} (g h : Y ⟶ Z) (w : f ≫ g = f ≫ h), g = h)
 class mono (f : X ⟶ Y) : Prop :=
 (right_cancellation : Π {Z : C} (g h : Z ⟶ X) (w : g ≫ f = h ≫ f), g = h)
 
-@[simp] lemma cancel_epi  (f : X ⟶ Y) [epi f]  (g h : Y ⟶ Z) : (f ≫ g = f ≫ h) ↔ g = h :=
+@[simp] lemma cancel_epi  (f : X ⟶ Y) [epi f]  {g h : Y ⟶ Z} : (f ≫ g = f ≫ h) ↔ g = h :=
 ⟨ λ p, epi.left_cancellation g h p, begin intro a, subst a end ⟩
-@[simp] lemma cancel_mono (f : X ⟶ Y) [mono f] (g h : Z ⟶ X) : (g ≫ f = h ≫ f) ↔ g = h :=
+@[simp] lemma cancel_mono (f : X ⟶ Y) [mono f] {g h : Z ⟶ X} : (g ≫ f = h ≫ f) ↔ g = h :=
 ⟨ λ p, mono.right_cancellation g h p, begin intro a, subst a end ⟩
 end
 

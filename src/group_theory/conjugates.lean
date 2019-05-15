@@ -23,12 +23,21 @@ begin
   repeat {rw mul_assoc},
 end
 
+<<<<<<< HEAD
 /--The normal closure of a set s is the subgroup closure of all the conjugates of
 elements of s. It is the smallest normal subgroup containing s. -/
 
 variables {s : set α}
 
 /-- Given an element a, conjugates a is the set of conjugates. -/
+=======
+/-- Here the normal closure of a set is defined as the subgroup closure
+  of the set of conjugates of the given set -/
+
+variables {s : set α}
+
+/-- Given an element a, conjugates a is the set of conjugates -/
+>>>>>>> c423f8dcc89ded168e4597860ebd221e2596a9b5
 def conjugates (a : α) : set α := {b | is_conj a b}
 
 lemma mem_conjugates_self {a : α} : a ∈ conjugates a := is_conj_refl _
@@ -57,8 +66,12 @@ theorem conjugates_of_set_subset {s t : set α} [normal_subgroup t] (h : s ⊆ t
 
 open group
 
+<<<<<<< HEAD
 /-- The normal closure of a set s is the subgroup closure of all the conjugates of
 elements of s. It is the smallest normal subgroup containing s. -/
+=======
+/-- Defining the normal_closure as described above. -/
+>>>>>>> c423f8dcc89ded168e4597860ebd221e2596a9b5
 def normal_closure (s : set α) : set α := closure (conjugates_of_set s)
 
 theorem conjugates_of_set_subset_normal_closure : conjugates_of_set s ⊆ normal_closure s :=
@@ -71,12 +84,20 @@ set.subset.trans subset_conjugates_of_set conjugates_of_set_subset_normal_closur
 instance normal_closure.is_subgroup (s : set α): is_subgroup (normal_closure s) :=
 closure.is_subgroup (conjugates_of_set s)
 
+<<<<<<< HEAD
 /-- The set of conjugates of s is closed under conjugation. -/
+=======
+/-- The set of conjugates is closed under conjugation. -/
+>>>>>>> c423f8dcc89ded168e4597860ebd221e2596a9b5
 lemma conj_mem_conjugates_of_set {x c : α}: x ∈ conjugates_of_set s →
     (c * x * c⁻¹ ∈ conjugates_of_set s) :=
     λ ⟨a, H, h⟩, ⟨a , H, is_conj_trans h ⟨c, rfl⟩⟩
 
+<<<<<<< HEAD
 /-- The normal closure of s is a normal subgroup. -/
+=======
+/-- The normal closure is a normal subgroup. -/
+>>>>>>> c423f8dcc89ded168e4597860ebd221e2596a9b5
 instance normal_closure.is_normal : normal_subgroup (normal_closure s) :=
 ⟨ λ n h g,
 begin
@@ -89,7 +110,11 @@ begin
    exact (is_submonoid.mul_mem ihx ihy)},
 end ⟩
 
+<<<<<<< HEAD
 /-- The normal closure of s is the smallest normal subgroup containing s. -/
+=======
+/-- The normal closure is the smallest normal subgroup. -/
+>>>>>>> c423f8dcc89ded168e4597860ebd221e2596a9b5
 theorem normal_closure_subset {s t : set α} [normal_subgroup t] (h : s ⊆ t) :
   normal_closure s ⊆ t :=
 λ a w,
@@ -102,7 +127,14 @@ begin
 end
 
 lemma normal_closure_subset_iff {s t : set α} [normal_subgroup t] : s ⊆ t ↔ normal_closure s ⊆ t :=
+<<<<<<< HEAD
 ⟨normal_closure_subset, set.subset.trans (subset_normal_closure)⟩
 
 theorem normal_closure_mono {s t : set α} : s ⊆ t → normal_closure s ⊆ normal_closure t :=
 λ h, normal_closure_subset (set.subset.trans h (subset_normal_closure))
+=======
+⟨normal_closure_subset, set.subset.trans (self_subset_normal_closure)⟩
+
+theorem normal_closure_mono {s t : set α} : s ⊆ t → normal_closure s ⊆ normal_closure t :=
+λ h, normal_closure_subset (set.subset.trans h (self_subset_normal_closure))
+>>>>>>> c423f8dcc89ded168e4597860ebd221e2596a9b5

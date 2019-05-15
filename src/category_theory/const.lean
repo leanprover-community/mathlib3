@@ -3,7 +3,6 @@
 -- Authors: Scott Morrison
 
 import category_theory.functor_category
-import category_theory.isomorphism
 import category_theory.opposites
 
 universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation

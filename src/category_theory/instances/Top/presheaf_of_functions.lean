@@ -65,8 +65,8 @@ def presheaf_to_TopCommRing (T : TopCommRing.{v}) :
   X.presheaf CommRing.{v} :=
 (opens.to_Top X).op ⋙ (CommRing_yoneda.obj T)
 
-noncomputable def presheaf_ℚ (Y : Top) : Y.presheaf CommRing :=
-presheaf_to_TopCommRing Y (TopCommRing.of ℚ)
+noncomputable def presheaf_ℤ (Y : Top) : Y.presheaf CommRing :=
+presheaf_to_TopCommRing Y (TopCommRing.of ℤ)
 
 noncomputable def presheaf_ℝ (Y : Top) : Y.presheaf CommRing :=
 presheaf_to_TopCommRing Y (TopCommRing.of ℝ)

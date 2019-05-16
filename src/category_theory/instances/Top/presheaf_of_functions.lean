@@ -9,6 +9,7 @@ universes v u
 open category_theory
 open category_theory.instances
 open topological_space
+open opposite
 
 namespace category_theory.instances.Top
 

@@ -14,7 +14,7 @@ open topological_space
 
 universe u
 
-open category_theory.instances
+open category_theory.instances opposite
 
 namespace topological_space.opens
 

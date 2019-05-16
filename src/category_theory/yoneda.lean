@@ -14,6 +14,7 @@ import category_theory.fully_faithful
 import category_theory.natural_isomorphism
 
 namespace category_theory
+open opposite
 
 universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
@@ -98,6 +99,8 @@ namespace category_theory
 -- for both objects and morphisms
 
 universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+
+open opposite
 
 variables (C : Type u₁) [𝒞 : category.{v₁+1} C]
 include 𝒞

@@ -24,7 +24,7 @@ by { dsimp, apply_instance }
 instance (F : J ⥤ CommRing.{u}) (j j') (f : j ⟶ j') : is_ring_hom ((F ⋙ CommRing.forget).map f) :=
 by { dsimp, apply_instance }
 
-instance limit_condition_submonoid (F : J ⥤ CommRing.{u}) : is_submonoid (types.limit_condition (F ⋙ forget)) :=
+instance sections_submonoid (F : J ⥤ CommRing.{u}) : is_submonoid (types.sections (F ⋙ forget)) :=
 { one_mem := λ j j' f,
   begin
     simp only [functor.comp_map],
@@ -35,14 +35,14 @@ instance limit_condition_submonoid (F : J ⥤ CommRing.{u}) : is_submonoid (type
   begin
     simp only [functor.comp_map],
     erw is_ring_hom.map_mul (CommRing.forget.map (F.map f)),
-    dsimp [types.limit_condition] at ah,
+    dsimp [types.sections] at ah,
     rw ah f,
-    dsimp [types.limit_condition] at bh,
+    dsimp [types.sections] at bh,
     rw bh f,
     refl,
   end }
 
-instance limit_condition_add_submonoid (F : J ⥤ CommRing.{u}) : is_add_submonoid (types.limit_condition (F ⋙ forget)) :=
+instance sections_add_submonoid (F : J ⥤ CommRing.{u}) : is_add_submonoid (types.sections (F ⋙ forget)) :=
 { zero_mem := λ j j' f,
   begin
     simp only [functor.comp_map],
@@ -53,29 +53,32 @@ instance limit_condition_add_submonoid (F : J ⥤ CommRing.{u}) : is_add_submono
   begin
     simp only [functor.comp_map],
     erw is_ring_hom.map_add (CommRing.forget.map (F.map f)),
-    dsimp [types.limit_condition] at ah,
+    dsimp [types.sections] at ah,
     rw ah f,
-    dsimp [types.limit_condition] at bh,
+    dsimp [types.sections] at bh,
     rw bh f,
     refl,
   end }
 
-instance limit_condition_add_subgroup (F : J ⥤ CommRing.{u}) : is_add_subgroup (types.limit_condition (F ⋙ forget)) :=
+instance sections_add_subgroup (F : J ⥤ CommRing.{u}) : is_add_subgroup (types.sections (F ⋙ forget)) :=
 { neg_mem := λ a ah j j' f,
   begin
     simp only [functor.comp_map],
     erw is_ring_hom.map_neg (CommRing.forget.map (F.map f)),
-    dsimp [types.limit_condition] at ah,
+    dsimp [types.sections] at ah,
     rw ah f,
     refl,
   end,
-  ..(CommRing.limit_condition_add_submonoid F) }
+  ..(CommRing.sections_add_submonoid F) }
 
-instance limit_condition_subring (F : J ⥤ CommRing.{u}) : is_subring (types.limit_condition (F ⋙ forget)) :=
-{ ..(CommRing.limit_condition_submonoid F),
-  ..(CommRing.limit_condition_add_subgroup F) }
+instance sections_subring (F : J ⥤ CommRing.{u}) : is_subring (types.sections (F ⋙ forget)) :=
+{ ..(CommRing.sections_submonoid F),
+  ..(CommRing.sections_add_subgroup F) }
 
-instance limit_comm_ring (F : J ⥤ CommRing.{u}) : comm_ring (limit (F ⋙ forget)) := @subtype.comm_ring ((Π (j : J), (F ⋙ forget).obj j)) (by apply_instance) _ (by convert (CommRing.limit_condition_subring F))
+instance limit_comm_ring (F : J ⥤ CommRing.{u}) : comm_ring (limit (F ⋙ forget)) :=
+@subtype.comm_ring ((Π (j : J), (F ⋙ forget).obj j)) (by apply_instance) _
+  (by convert (CommRing.sections_subring F))
+
 instance limit_π_is_ring_hom (F : J ⥤ CommRing.{u}) (j) : is_ring_hom (limit.π (F ⋙ CommRing.forget) j) :=
 { map_one := by { simp only [types.types_limit_π], refl },
   map_mul := λ x y, by { simp only [types.types_limit_π], refl },

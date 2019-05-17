@@ -63,6 +63,8 @@ omit 𝒞
 def lift {α : Type u₁} {β : Type u₂} (f : α → β) : (discrete α) ⥤ (discrete β) :=
 functor.of_function f
 
+open opposite
+
 protected def opposite (α : Type u₁) : (discrete α)ᵒᵖ ≌ discrete α :=
 let F : discrete α ⥤ (discrete α)ᵒᵖ := functor.of_function (λ x, op x) in
 begin

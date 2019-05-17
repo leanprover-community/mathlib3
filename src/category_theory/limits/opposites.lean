@@ -8,6 +8,7 @@ universes v u
 
 open category_theory
 open category_theory.functor
+open opposite
 
 namespace category_theory.limits
 

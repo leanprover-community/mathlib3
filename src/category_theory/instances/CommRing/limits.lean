@@ -24,7 +24,7 @@ by { dsimp, apply_instance }
 instance (F : J ⥤ CommRing.{u}) (j j') (f : j ⟶ j') : is_ring_hom ((F ⋙ CommRing.forget).map f) :=
 by { dsimp, apply_instance }
 
-instance sections_submonoid (F : J ⥤ CommRing.{u}) : is_submonoid (types.sections (F ⋙ forget)) :=
+instance sections_submonoid (F : J ⥤ CommRing.{u}) : is_submonoid (F ⋙ forget).sections :=
 { one_mem := λ j j' f,
   begin
     simp only [functor.comp_map],
@@ -35,14 +35,14 @@ instance sections_submonoid (F : J ⥤ CommRing.{u}) : is_submonoid (types.secti
   begin
     simp only [functor.comp_map],
     erw is_ring_hom.map_mul (CommRing.forget.map (F.map f)),
-    dsimp [types.sections] at ah,
+    dsimp [functor.sections] at ah,
     rw ah f,
-    dsimp [types.sections] at bh,
+    dsimp [functor.sections] at bh,
     rw bh f,
     refl,
   end }
 
-instance sections_add_submonoid (F : J ⥤ CommRing.{u}) : is_add_submonoid (types.sections (F ⋙ forget)) :=
+instance sections_add_submonoid (F : J ⥤ CommRing.{u}) : is_add_submonoid (F ⋙ forget).sections :=
 { zero_mem := λ j j' f,
   begin
     simp only [functor.comp_map],
@@ -53,25 +53,25 @@ instance sections_add_submonoid (F : J ⥤ CommRing.{u}) : is_add_submonoid (typ
   begin
     simp only [functor.comp_map],
     erw is_ring_hom.map_add (CommRing.forget.map (F.map f)),
-    dsimp [types.sections] at ah,
+    dsimp [functor.sections] at ah,
     rw ah f,
-    dsimp [types.sections] at bh,
+    dsimp [functor.sections] at bh,
     rw bh f,
     refl,
   end }
 
-instance sections_add_subgroup (F : J ⥤ CommRing.{u}) : is_add_subgroup (types.sections (F ⋙ forget)) :=
+instance sections_add_subgroup (F : J ⥤ CommRing.{u}) : is_add_subgroup (F ⋙ forget).sections :=
 { neg_mem := λ a ah j j' f,
   begin
     simp only [functor.comp_map],
     erw is_ring_hom.map_neg (CommRing.forget.map (F.map f)),
-    dsimp [types.sections] at ah,
+    dsimp [functor.sections] at ah,
     rw ah f,
     refl,
   end,
   ..(CommRing.sections_add_submonoid F) }
 
-instance sections_subring (F : J ⥤ CommRing.{u}) : is_subring (types.sections (F ⋙ forget)) :=
+instance sections_subring (F : J ⥤ CommRing.{u}) : is_subring (F ⋙ forget).sections :=
 { ..(CommRing.sections_submonoid F),
   ..(CommRing.sections_add_subgroup F) }
 

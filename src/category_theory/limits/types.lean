@@ -13,11 +13,8 @@ namespace category_theory.limits.types
 
 variables {J : Type u} [small_category J]
 
-def sections (F : J ⥤ Type u) : set (Π j, F.obj j) :=
-λ u, ∀ {j j'} (f : j ⟶ j'), F.map f (u j) = u j'
-
 def limit (F : J ⥤ Type u) : cone F :=
-{ X := sections F,
+{ X := F.sections,
   π := { app := λ j u, u.val j } }
 
 local attribute [elab_simple] congr_fun

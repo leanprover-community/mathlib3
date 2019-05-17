@@ -365,6 +365,15 @@ instance [add_comm_monoid α] : comm_monoid (multiplicative α) :=
 { mul_comm := @add_comm α _,
   ..multiplicative.monoid }
 
+section comm_monoid
+  variables [comm_monoid α] {a b c d : α}
+
+  @[to_additive add_add_add_comm]
+  theorem mul_mul_mul_comm : (a * b) * (c * d) = (a * c) * (b * d) :=
+  by simp [mul_left_comm, mul_assoc]
+
+end comm_monoid
+
 instance [group α] : add_group (additive α) :=
 { neg := @has_inv.inv α _,
   add_left_neg := @mul_left_inv _ _,
@@ -554,8 +563,17 @@ section add_comm_group
   lemma sub_right_comm (a b c : α) : a - b - c = a - c - b :=
   add_right_comm _ _ _
 
+  lemma add_add_sub_cancel (a b c : α) : (a + c) + (b - c) = a + b :=
+  by rw [add_assoc, add_sub_cancel'_right]
+
+  lemma sub_add_add_cancel (a b c : α) : (a - c) + (b + c) = a + b :=
+  by rw [add_left_comm, sub_add_cancel, add_comm]
+
   lemma sub_add_sub_cancel' (a b c : α) : (a - b) + (c - a) = c - b :=
   by rw add_comm; apply sub_add_sub_cancel
+
+  lemma add_sub_sub_cancel (a b c : α) : (a + b) - (a - c) = b + c :=
+  by rw [← sub_add, add_sub_cancel']
 
   lemma sub_sub_sub_cancel_left (a b c : α) : (c - a) - (c - b) = b - a :=
   by rw [← neg_sub b c, sub_neg_eq_add, add_comm, sub_add_sub_cancel]

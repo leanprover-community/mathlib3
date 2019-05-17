@@ -33,7 +33,7 @@ instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨fin.val⟩
 @[simp] def mk_val {m n : ℕ} (h : m < n) : (⟨m, h⟩ : fin n).val = m := rfl
 
 instance {n : ℕ} : decidable_linear_order (fin n) :=
-decidable_linear_order.lift fin.val (@fin.eq_of_veq _)
+decidable_linear_order.lift fin.val (@fin.eq_of_veq _) (by apply_instance)
 
 lemma zero_le (a : fin (n + 1)) : 0 ≤ a := zero_le a.1
 
@@ -148,7 +148,9 @@ end
   begin
     have : i + 1 ≠ p, by rwa [(≠), fin.ext_iff] at h,
     unfold succ_above pred_above,
-    split_ifs with h1 h2; simp at *,
+    split_ifs with h1 h2;
+      simp only [fin.cast_succ_cast_lt, add_right_inj, pred_val, ne.def, cast_succ_val,
+                 nat.pred_succ, fin.succ_pred, add_right_inj] at *,
     exact (this (le_antisymm h2 (le_of_not_gt h1))).elim
   end
 

@@ -100,7 +100,7 @@ is_noetherian_ring.irreducible_induction_on (f.map i)
     by conv_lhs { rw eq_C_of_degree_eq_zero (is_unit_iff_degree_eq_zero.1 hu) };
       simp [leading_coeff, nat_degree_eq_of_degree_eq_some (is_unit_iff_degree_eq_zero.1 hu)]⟩)
   (λ f p hf0 hp ih hfs,
-    have hpf0 : p * f ≠ 0, from mul_ne_zero (nonzero_of_irreducible hp) hf0,
+    have hpf0 : p * f ≠ 0, from mul_ne_zero (ne_zero_of_irreducible hp) hf0,
     let ⟨s, hs⟩ := ih (splits_of_splits_mul _ hpf0 hfs).2 in
     ⟨-(p * norm_unit p).coeff 0 :: s,
       have hp1 : degree p = 1, from hfs.resolve_left hpf0 hp (by simp),
@@ -108,10 +108,10 @@ is_noetherian_ring.irreducible_induction_on (f.map i)
         rw [multiset.map_cons, multiset.prod_cons, leading_coeff_mul, C_mul, mul_assoc,
           mul_left_comm (C f.leading_coeff), ← hs, ← mul_assoc, domain.mul_right_inj hf0],
         conv_lhs {rw eq_X_add_C_of_degree_eq_one hp1},
-        simp only [mul_add, coe_norm_unit (nonzero_of_irreducible hp), mul_comm p, coeff_neg,
+        simp only [mul_add, coe_norm_unit (ne_zero_of_irreducible hp), mul_comm p, coeff_neg,
           C_neg, sub_eq_add_neg, neg_neg, coeff_C_mul, (mul_assoc _ _ _).symm, C_mul.symm,
           mul_inv_cancel (show p.leading_coeff ≠ 0, from mt leading_coeff_eq_zero.1
-            (nonzero_of_irreducible hp)), one_mul],
+            (ne_zero_of_irreducible hp)), one_mul],
       end⟩)
 
 section UFD

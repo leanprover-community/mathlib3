@@ -14,7 +14,6 @@ Introduces notations
 -/
 
 import category_theory.category
-import tactic.tidy
 
 namespace category_theory
 
@@ -54,6 +53,8 @@ include 𝒞
 protected def id : C ⥤ C :=
 { obj := λ X, X,
   map := λ _ _ f, f }
+
+notation `𝟭` := functor.id
 
 variable {C}
 

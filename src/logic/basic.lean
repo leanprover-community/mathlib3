@@ -9,7 +9,6 @@ Classical versions are in the namespace "classical".
 Note: in the presence of automation, this whole file may be unnecessary. On the other hand,
 maybe it is useful for writing automation.
 -/
-import tactic.cache
 
 /-
     miscellany
@@ -415,8 +414,7 @@ theorem not_forall {p : α → Prop}
 
 @[simp] theorem not_forall_not [decidable (∃ x, p x)] :
   (¬ ∀ x, ¬ p x) ↔ ∃ x, p x :=
-by haveI := decidable_of_iff (¬ ∃ x, p x) not_exists;
-   exact not_iff_comm.1 not_exists
+(@not_iff_comm _ _ _ (decidable_of_iff (¬ ∃ x, p x) not_exists)).1 not_exists
 
 @[simp] theorem not_exists_not [∀ x, decidable (p x)] :
   (¬ ∃ x, ¬ p x) ↔ ∀ x, p x :=
@@ -485,6 +483,13 @@ theorem forall_or_distrib_left {q : Prop} {p : α → Prop} [decidable q] :
   (∀x, q ∨ p x) ↔ q ∨ (∀x, p x) :=
 ⟨λ h, if hq : q then or.inl hq else or.inr $ λ x, (h x).resolve_left hq,
   forall_or_of_or_forall⟩
+
+/-- A predicate holds everywhere on the image of a surjective functions iff
+    it holds everywhere. -/
+theorem forall_iff_forall_surj
+  {α β : Type*} {f : α → β} (h : function.surjective f) {P : β → Prop} :
+  (∀ a, P (f a)) ↔ ∀ b, P b :=
+⟨λ ha b, by cases h b with a hab; rw ←hab; exact ha a, λ hb a, hb $ f a⟩
 
 @[simp] theorem exists_prop {p q : Prop} : (∃ h : p, q) ↔ p ∧ q :=
 ⟨λ ⟨h₁, h₂⟩, ⟨h₁, h₂⟩, λ ⟨h₁, h₂⟩, ⟨h₁, h₂⟩⟩

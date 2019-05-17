@@ -7,6 +7,8 @@ Authors: Reid Barton, Johan Commelin
 import category_theory.limits.preserves
 import category_theory.whiskering
 
+open opposite
+
 namespace category_theory
 open category
 open category_theory.limits
@@ -19,7 +21,7 @@ variables {C : Sort u₁} [𝒞 : category.{v₁} C] {D : Sort u₂} [𝒟 : cat
 include 𝒞 𝒟
 
 /--
-`adjunction F G` represents the data of an adjunction between two functors
+`F ⊣ G` represents the data of an adjunction between two functors
 `F : C ⥤ D` and `G : D ⥤ C`. `F` is the left adjoint and `G` is the right adjoint.
 -/
 structure adjunction (F : C ⥤ D) (G : D ⥤ C) :=
@@ -29,6 +31,8 @@ structure adjunction (F : C ⥤ D) (G : D ⥤ C) :=
 (hom_equiv_unit' : Π {X Y f}, (hom_equiv X Y) f = (unit : _ ⟶ _).app X ≫ G.map f . obviously)
 (hom_equiv_counit' : Π {X Y g}, (hom_equiv X Y).symm g = F.map g ≫ counit.app Y . obviously)
 
+infix ` ⊣ `:15 := adjunction
+
 namespace adjunction
 
 restate_axiom hom_equiv_unit'
@@ -37,7 +41,7 @@ attribute [simp, priority 1] hom_equiv_unit hom_equiv_counit
 
 section
 
-variables {F : C ⥤ D} {G : D ⥤ C} (adj : adjunction F G) {X' X : C} {Y Y' : D}
+variables {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G) {X' X : C} {Y Y' : D}
 
 @[simp, priority 1] lemma hom_equiv_naturality_left_symm (f : X' ⟶ X) (g : X ⟶ G.obj Y) :
   (adj.hom_equiv X' Y).symm (f ≫ g) = F.map f ≫ (adj.hom_equiv X Y).symm g :=
@@ -109,8 +113,8 @@ end core_hom_equiv
 structure core_unit_counit (F : C ⥤ D) (G : D ⥤ C) :=
 (unit : functor.id C ⟶ F.comp G)
 (counit : G.comp F ⟶ functor.id D)
-(left_triangle' : (whisker_right unit F) ≫ (whisker_left F counit) = nat_trans.id _ . obviously)
-(right_triangle' : (whisker_left G unit) ≫ (whisker_right counit G) = nat_trans.id _ . obviously)
+(left_triangle' : whisker_right unit F ≫ whisker_left F counit = nat_trans.id _ . obviously)
+(right_triangle' : whisker_left G unit ≫ whisker_right counit G = nat_trans.id _ . obviously)
 
 namespace core_unit_counit
 
@@ -120,9 +124,9 @@ attribute [simp] left_triangle right_triangle
 
 end core_unit_counit
 
-variables (F : C ⥤ D) (G : D ⥤ C)
+variables {F : C ⥤ D} {G : D ⥤ C}
 
-def mk_of_hom_equiv (adj : core_hom_equiv F G) : adjunction F G :=
+def mk_of_hom_equiv (adj : core_hom_equiv F G) : F ⊣ G :=
 { unit :=
   { app := λ X, (adj.hom_equiv X (F.obj X)) (𝟙 (F.obj X)),
     naturality' :=
@@ -143,7 +147,7 @@ def mk_of_hom_equiv (adj : core_hom_equiv F G) : adjunction F G :=
   hom_equiv_counit' := λ X Y f, by erw [← adj.hom_equiv_naturality_left_symm]; simp,
   .. adj }
 
-def mk_of_unit_counit (adj : core_unit_counit F G) : adjunction F G :=
+def mk_of_unit_counit (adj : core_unit_counit F G) : F ⊣ G :=
 { hom_equiv := λ X Y,
   { to_fun := λ f, adj.unit.app X ≫ G.map f,
     inv_fun := λ g, F.map g ≫ adj.counit.app Y,
@@ -164,23 +168,17 @@ def mk_of_unit_counit (adj : core_unit_counit F G) : adjunction F G :=
 section
 omit 𝒟
 
-def id : adjunction (functor.id C) (functor.id C) :=
+def id : functor.id C ⊣ functor.id C :=
 { hom_equiv := λ X Y, equiv.refl _,
   unit := 𝟙 _,
   counit := 𝟙 _ }
 
 end
 
-/-
-TODO
-* define adjoint equivalences
-* show that every equivalence can be improved into an adjoint equivalence
--/
-
 section
 variables {E : Sort u₃} [ℰ : category.{v₃} E] (H : D ⥤ E) (I : E ⥤ D)
 
-def comp (adj₁ : adjunction F G) (adj₂ : adjunction H I) : adjunction (F ⋙ H) (I ⋙ G) :=
+def comp (adj₁ : F ⊣ G) (adj₂ : H ⊣ I) : F ⋙ H ⊣ I ⋙ G :=
 { hom_equiv := λ X Z, equiv.trans (adj₂.hom_equiv _ _) (adj₁.hom_equiv _ _),
   unit := adj₁.unit ≫
   (whisker_left F $ whisker_right adj₂.unit G) ≫ (functor.associator _ _ _).inv,
@@ -191,11 +189,11 @@ end
 
 structure is_left_adjoint (left : C ⥤ D) :=
 (right : D ⥤ C)
-(adj : adjunction left right)
+(adj : left ⊣ right)
 
 structure is_right_adjoint (right : D ⥤ C) :=
 (left : C ⥤ D)
-(adj : adjunction left right)
+(adj : left ⊣ right)
 
 section construct_left
 -- Construction of a left adjoint. In order to construct a left
@@ -220,8 +218,8 @@ def left_adjoint_of_equiv : C ⥤ D :=
     simp
   end }
 
-def adjunction_of_equiv_left : adjunction (left_adjoint_of_equiv e he) G :=
-mk_of_hom_equiv (left_adjoint_of_equiv e he) G
+def adjunction_of_equiv_left : left_adjoint_of_equiv e he ⊣ G :=
+mk_of_hom_equiv
 { hom_equiv := e,
   hom_equiv_naturality_left_symm' :=
   begin
@@ -251,8 +249,8 @@ def right_adjoint_of_equiv : D ⥤ C :=
     simp
   end }
 
-def adjunction_of_equiv_right : adjunction F (right_adjoint_of_equiv e he) :=
-mk_of_hom_equiv F (right_adjoint_of_equiv e he)
+def adjunction_of_equiv_right : F ⊣ right_adjoint_of_equiv e he :=
+mk_of_hom_equiv
 { hom_equiv := e,
   hom_equiv_naturality_left_symm' := by intros; rw [equiv.symm_apply_eq, he]; simp,
   hom_equiv_naturality_right' :=
@@ -262,6 +260,14 @@ mk_of_hom_equiv F (right_adjoint_of_equiv e he)
   end }
 
 end construct_right
+
+namespace equivalence
+
+def to_adjunction (e : C ≌ D) : e.functor ⊣ e.inverse :=
+mk_of_unit_counit ⟨e.unit, e.counit, by { ext, exact e.functor_unit_comp X },
+  by { ext, exact e.unit_inverse_comp X }⟩
+
+end equivalence
 
 end adjunction
 
@@ -277,7 +283,7 @@ universes u₁ u₂ v
 variables {C : Sort u₁} [𝒞 : category.{v+1} C] {D : Sort u₂} [𝒟 : category.{v+1} D]
 include 𝒞 𝒟
 
-variables {F : C ⥤ D} {G : D ⥤ C} (adj : adjunction F G)
+variables {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G)
 include adj
 
 section preservation_colimits
@@ -287,7 +293,7 @@ def functoriality_is_left_adjoint :
   is_left_adjoint (@cocones.functoriality _ _ _ _ K _ _ F) :=
 { right := (cocones.functoriality G) ⋙ (cocones.precompose
     (K.right_unitor.inv ≫ (whisker_left K adj.unit) ≫ (associator _ _ _).inv)),
-  adj := mk_of_unit_counit _ _
+  adj := mk_of_unit_counit
   { unit :=
     { app := λ c,
       { hom := adj.unit.app c.X,
@@ -325,7 +331,7 @@ def functoriality_is_right_adjoint :
   is_right_adjoint (@cones.functoriality _ _ _ _ K _ _ G) :=
 { left := (cones.functoriality F) ⋙ (cones.postcompose
     ((associator _ _ _).hom ≫ (whisker_left K adj.counit) ≫ K.right_unitor.hom)),
-  adj := mk_of_unit_counit _ _
+  adj := mk_of_unit_counit
   { unit :=
     { app := λ c,
       { hom := adj.unit.app c.X,

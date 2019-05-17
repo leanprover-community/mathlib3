@@ -1,70 +1,47 @@
-# mathlib
+# Lean mathlib
 
 [![Build Status](https://travis-ci.org/leanprover-community/mathlib.svg?branch=master)](https://travis-ci.org/leanprover-community/mathlib)
 [![Mergify Status][mergify-status]][mergify]
+[![Build status](https://ci.appveyor.com/api/projects/status/y0dfsknx5h4iq7pj/branch/master?svg=true)](https://ci.appveyor.com/project/cipher1024/mathlib/branch/master)
 
 [mergify]: https://mergify.io
 [mergify-status]: https://gh.mergify.io/badges/leanprover-community/mathlib.png?style=cut
-[![Build status](https://ci.appveyor.com/api/projects/status/y0dfsknx5h4iq7pj/branch/master?svg=true)](https://ci.appveyor.com/project/cipher1024/mathlib/branch/master)
 
-## Lean standard library
+Mathlib is a user maintained library for the [Lean theorem prover](https://leanprover.github.io). 
+It contains both programming infrastructure and mathematics, as well as tactics that use the former and allow to develop the later.
 
-Besides [Lean's general documentation](https://leanprover.github.io/documentation/), the documentation of mathlib consists of:
+## Installation
 
-- A [guide](docs/elan.md) on installing Lean and mathlib with elan.
+You can find detailed instructions to install Lean, mathlib, and supporting tools:
+* On [Debian-derived Linux](docs/install/debian.md) (Debian, Ubuntu, LMDE...)
+* On [other Linux](docs/install/linux.md) distributions
+* On [MacOS](docs/install/macos.md)
+* On [Windows](docs/install/windows.md)
+
+## Documentation
+
+Besides the installation guides above and [Lean's general
+documentation](https://leanprover.github.io/documentation/), the documentation
+of mathlib consists of:
+
 - A description of [currently covered theories](docs/theories.md),
   as well as an [overview](docs/mathlib-overview.md) for mathematicians.
+- A couple of [tutorials](docs/tutorial/)
+- Some [extra Lean documentation](docs/extras.md) not specific to mathlib
 - A description of [tactics](docs/tactics.md) introduced in mathlib,
   and available [hole commands](docs/holes.md).
-- An explanation of [naming conventions](docs/naming.md) that is useful
-  to find or contribute definitions and lemmas.
-- A [style guide](docs/style.md) for contributors
-- An outline of [how to contribute](docs/howto-contribute.md) to mathlib.
-- A tentative list of [work in progress](docs/wip.md) to make sure
-  efforts are not duplicated without collaboration.
+- Documentation for people who would like to [contribute to mathlib](docs/contribute/index.md)
 
-This repository also contains [extra Lean documentation](docs/extras.md)
-not specific to mathlib.
+Much of the discussion surrounding mathlib occurs in a 
+[Zulip chat room](https://leanprover.zulipchat.com/). Since this
+chatroom is only visible to registered users, we provide an 
+[openly accessible archive](https://leanprover-community.github.io/archive/) 
+of the public discussions. This is useful for quick reference; for a
+better browsing interface, and to participate in the discussions, we strongly
+suggest joining the chat. Questions from users at all levels of expertise are
+welcomed.
 
-## Obtaining binaries
-
-### Install the `update-mathlib` script
-
-Two options are avaiblable to install `update-mathlib`:
-
- * *Linux/OS X/Cygwin/MSYS2/git bash*: run the following command in a terminal:
-
-``` shell
-curl https://raw.githubusercontent.com/leanprover-community/mathlib/master/scripts/remote-install-update-mathlib.sh -sSf | bash
-```
-
- * *Any platform*: in the release section of this page, download
-`mathlib-scripts-###-###-###.tar.gz`, expand it and run `setup-dev-scripts.sh`.
-
-### Fetch mathlib binaries
-
-In a terminal, in the directory of a project depending on mathlib, run
-the following:
-
-``` shell
-update-mathlib
-```
-
-The existing `_target/deps/mathlib` will be rewritten with a compiled
-version of mathlib.
-
-### Automatic update of the binaries
-
-The following command, run on each project, sets up an automatic
-update of the mathlib binaries after every `git checkout`.
-
-``` shell
-echo \#! /bin/sh > .git/hooks/post-checkout
-echo update-mathlib >> .git/hooks/post-checkout
-chmod +x .git/hooks/post-checkout
-```
-
-## Maintainers (topics):
+## Maintainers:
 
 * Jeremy Avigad (@avigad): analysis
 * Reid Barton (@rwbarton): category theory, topology
@@ -72,6 +49,6 @@ chmod +x .git/hooks/post-checkout
 * Johan Commelin (@jcommelin): algebra
 * Sébastien Gouëzel (@sgouezel): topology, calculus
 * Simon Hudon (@cipher1024): all
-* Chris Hughes (@ChrisHughes24): group_theory, ring_theory, field_theory
+* Chris Hughes (@ChrisHughes24): group theory, ring theory, field theory
 * Robert Y. Lewis (@robertylewis): all
 * Patrick Massot (@patrickmassot): documentation, topology

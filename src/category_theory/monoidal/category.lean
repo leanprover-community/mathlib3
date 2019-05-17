@@ -104,21 +104,17 @@ variables {U V W X Y Z : C}
 -- left_unitor_inv_naturality
 -- right_unitor_inv_naturality
 
-lemma interchange (f : U ⟶ V) (g : V ⟶ W) (h : X ⟶ Y) (k : Y ⟶ Z)
-  : (f ≫ g) ⊗ (h ≫ k) = (f ⊗ h) ≫ (g ⊗ k) :=
-tensor_comp C f h g k
-
-@[simp] lemma interchange_left_identity (f : W ⟶ X) (g : X ⟶ Y) :
+@[simp] lemma tensor_comp_id (f : W ⟶ X) (g : X ⟶ Y) :
   (f ≫ g) ⊗ (𝟙 Z) = (f ⊗ (𝟙 Z)) ≫ (g ⊗ (𝟙 Z)) :=
-by { rw ←interchange, simp }
+by { rw ←tensor_comp, simp }
 
-@[simp] lemma interchange_right_identity (f : W ⟶ X) (g : X ⟶ Y) :
+@[simp] lemma tensor_id_comp (f : W ⟶ X) (g : X ⟶ Y) :
   (𝟙 Z) ⊗ (f ≫ g) = (𝟙 Z ⊗ f) ≫ (𝟙 Z ⊗ g) :=
-by { rw ←interchange, simp }
+by { rw ←tensor_comp, simp }
 
-lemma interchange_identities (f : W ⟶ X) (g : Y ⟶ Z) :
+lemma comp_id_tensor_tensor_id (f : W ⟶ X) (g : Y ⟶ Z) :
   ((𝟙 Y) ⊗ f) ≫ (g ⊗ (𝟙 X)) = (g ⊗ (𝟙 W)) ≫ ((𝟙 Z) ⊗ f) :=
-by { rw [←interchange, ←interchange], simp }
+by { rw [←tensor_comp, ←tensor_comp], simp }
 
 lemma left_unitor_inv_naturality {X X' : C} (f : X ⟶ X') :
   f ≫ (left_unitor X').inv = (left_unitor X).inv ≫ (𝟙 _ ⊗ f) :=
@@ -195,7 +191,7 @@ lemma left_unitor_product_aux_triangle (X Y : C) :
     (((𝟙 (tensor_unit C)) ⊗ (left_unitor X).hom) ⊗ (𝟙 Y))
   = ((right_unitor (tensor_unit C)).hom ⊗ (𝟙 X)) ⊗ (𝟙 Y) :=
 begin
-  conv_lhs { rw [←interchange_left_identity] },
+  conv_lhs { rw [←tensor_comp_id] },
   conv_rhs { congr, rw [←monoidal_category.triangle] }
 end
 
@@ -246,7 +242,7 @@ lemma right_unitor_product_aux_triangle (X Y : C) :
     ((𝟙 X) ⊗ (𝟙 Y) ⊗ (left_unitor (tensor_unit C)).hom)
   = (𝟙 X) ⊗ (right_unitor Y).hom ⊗ (𝟙 (tensor_unit C)) :=
 begin
-  conv_lhs { rw [←interchange_right_identity] },
+  conv_lhs { rw [←tensor_id_comp] },
   conv_rhs { congr, skip, rw [←monoidal_category.triangle] }
 end
 
@@ -274,7 +270,7 @@ end
 @[simp] lemma left_unitor_product (X Y : C) :
   ((associator (tensor_unit C) X Y).hom) ≫ ((left_unitor (X ⊗ Y)).hom) =
     ((left_unitor X).hom ⊗ (𝟙 Y)) :=
-by rw [←tensor_left_iff, interchange_right_identity, left_unitor_product_aux]
+by rw [←tensor_left_iff, tensor_id_comp, left_unitor_product_aux]
 
 @[simp] lemma left_unitor_product_inv (X Y : C) :
   ((left_unitor (X ⊗ Y)).inv) ≫ ((associator (tensor_unit C) X Y).inv) =
@@ -284,7 +280,7 @@ eq_of_inv_eq_inv (by simp)
 @[simp] lemma right_unitor_product (X Y : C) :
   ((associator X Y (tensor_unit C)).hom) ≫ ((𝟙 X) ⊗ (right_unitor Y).hom) =
     ((right_unitor (X ⊗ Y)).hom) :=
-by rw [←tensor_right_iff, interchange_left_identity, right_unitor_product_aux]
+by rw [←tensor_right_iff, tensor_comp_id, right_unitor_product_aux]
 
 @[simp] lemma right_unitor_product_inv (X Y : C) :
   ((𝟙 X) ⊗ (right_unitor Y).inv) ≫ ((associator X Y (tensor_unit C)).inv) =
@@ -327,8 +323,8 @@ end
 begin
   apply (cancel_mono (𝟙 X ⊗ (left_unitor Y).hom)).1,
   simp only [assoc, triangle_1],
-  conv_lhs { rw [←interchange_left_identity, iso.inv_hom_id] },
-  conv_rhs { rw [←interchange_right_identity, iso.inv_hom_id] }
+  conv_lhs { rw [←tensor_comp_id, iso.inv_hom_id] },
+  conv_rhs { rw [←tensor_id_comp, iso.inv_hom_id] }
 end
 
 @[simp] lemma triangle_4 (X Y : C) :
@@ -336,8 +332,8 @@ end
 begin
   apply (cancel_mono ((right_unitor X).hom ⊗ 𝟙 Y)).1,
   simp only [triangle_2, assoc],
-  conv_lhs { rw [←interchange_right_identity, iso.inv_hom_id] },
-  conv_rhs { rw [←interchange_left_identity, iso.inv_hom_id] }
+  conv_lhs { rw [←tensor_id_comp, iso.inv_hom_id] },
+  conv_rhs { rw [←tensor_comp_id, iso.inv_hom_id] }
 end
 
 end

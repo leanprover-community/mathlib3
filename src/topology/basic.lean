@@ -654,7 +654,7 @@ def continuous_on (f : α → β) (s : set α) : Prop := ∀ x ∈ s, continuous
 lemma continuous_id : continuous (id : α → α) :=
 assume s h, h
 
-lemma continuous.comp {f : α → β} {g : β → γ} (hf : continuous f) (hg : continuous g):
+lemma continuous.comp {g : β → γ} {f : α → β} (hg : continuous g) (hf : continuous f) :
   continuous (g ∘ f) :=
 assume s h, hf _ (hg s h)
 

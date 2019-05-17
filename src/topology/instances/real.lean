@@ -153,7 +153,7 @@ continuous_iff_continuous_at.mpr $ assume ⟨r, hr⟩,
 lemma real.continuous_inv [topological_space α] {f : α → ℝ} (h : ∀a, f a ≠ 0) (hf : continuous f) :
   continuous (λa, (f a)⁻¹) :=
 show continuous ((has_inv.inv ∘ @subtype.val ℝ (λr, r ≠ 0)) ∘ λa, ⟨f a, h a⟩),
-  from (continuous_subtype_mk _ hf).comp real.continuous_inv'
+  from real.continuous_inv'.comp (continuous_subtype_mk _ hf)
 
 lemma real.uniform_continuous_mul_const {x : ℝ} : uniform_continuous ((*) x) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0, begin
@@ -194,8 +194,8 @@ instance : topological_semiring ℝ := by apply_instance
 
 lemma rat.continuous_mul : continuous (λp : ℚ × ℚ, p.1 * p.2) :=
 embedding_of_rat.continuous_iff.2 $ by simp [(∘)]; exact
-((continuous_fst.comp continuous_of_rat).prod_mk
-  (continuous_snd.comp continuous_of_rat)).comp real.continuous_mul
+real.continuous_mul.comp ((continuous_of_rat.comp continuous_fst).prod_mk
+  (continuous_of_rat.comp continuous_snd))
 
 instance : topological_ring ℚ :=
 { continuous_mul := rat.continuous_mul, ..rat.topological_add_group }

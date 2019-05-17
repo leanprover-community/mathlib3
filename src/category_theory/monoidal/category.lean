@@ -24,9 +24,9 @@ class monoidal_category (C : Sort u) extends category.{v} C :=
 (tensor_hom               :
   Π {X₁ Y₁ X₂ Y₂ : C}, hom X₁ Y₁ → hom X₂ Y₂ → hom (tensor_obj X₁ X₂) (tensor_obj Y₁ Y₂))
 -- tensor product laws:
-(tensor_map_id'           :
+(tensor_id'               :
   ∀ (X₁ X₂ : C), tensor_hom (𝟙 X₁) (𝟙 X₂) = 𝟙 (tensor_obj X₁ X₂) . obviously)
-(tensor_map_comp'         :
+(tensor_comp'             :
   ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : C} (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (g₁ : Y₁ ⟶ Z₁) (g₂ : Y₂ ⟶ Z₂),
   tensor_hom (f₁ ≫ g₁) (f₂ ≫ g₂) = (tensor_hom f₁ f₂) ≫ (tensor_hom g₁ g₂) . obviously)
 -- tensor unit:
@@ -50,10 +50,10 @@ class monoidal_category (C : Sort u) extends category.{v} C :=
 (triangle'                :
   triangle @tensor_hom left_unitor right_unitor associator . obviously)
 
-restate_axiom monoidal_category.tensor_map_id'
-attribute [simp] monoidal_category.tensor_map_id
-restate_axiom monoidal_category.tensor_map_comp'
-attribute [simp] monoidal_category.tensor_map_comp
+restate_axiom monoidal_category.tensor_id'
+attribute [simp] monoidal_category.tensor_id
+restate_axiom monoidal_category.tensor_comp'
+attribute [simp] monoidal_category.tensor_comp
 restate_axiom monoidal_category.associator_naturality'
 restate_axiom monoidal_category.left_unitor_naturality'
 restate_axiom monoidal_category.right_unitor_naturality'
@@ -70,8 +70,8 @@ def tensor_iso {C : Sort u} {X Y X' Y' : C} [monoidal_category.{v} C] (f : X ≅
     X ⊗ X' ≅ Y ⊗ Y' :=
 { hom := f.hom ⊗ g.hom,
   inv := f.inv ⊗ g.inv,
-  hom_inv_id' := by rw [←tensor_map_comp, iso.hom_inv_id, iso.hom_inv_id, ←tensor_map_id],
-  inv_hom_id' := by rw [←tensor_map_comp, iso.inv_hom_id, iso.inv_hom_id, ←tensor_map_id] }
+  hom_inv_id' := by rw [←tensor_comp, iso.hom_inv_id, iso.hom_inv_id, ←tensor_id],
+  inv_hom_id' := by rw [←tensor_comp, iso.inv_hom_id, iso.inv_hom_id, ←tensor_id] }
 
 infixr ` ⊗ `:70 := tensor_iso
 
@@ -91,7 +91,7 @@ variables {U V W X Y Z : C}
 
 -- When `rewrite_search` lands, add @[search] attributes to
 
--- monoidal_category.tensor_map_id monoidal_category.tensor_map_comp monoidal_category.associator_naturality
+-- monoidal_category.tensor_id monoidal_category.tensor_comp monoidal_category.associator_naturality
 -- monoidal_category.left_unitor_naturality monoidal_category.right_unitor_naturality
 -- monoidal_category.pentagon monoidal_category.triangle
 
@@ -106,7 +106,7 @@ variables {U V W X Y Z : C}
 
 lemma interchange (f : U ⟶ V) (g : V ⟶ W) (h : X ⟶ Y) (k : Y ⟶ Z)
   : (f ≫ g) ⊗ (h ≫ k) = (f ⊗ h) ≫ (g ⊗ k) :=
-tensor_map_comp C f h g k
+tensor_comp C f h g k
 
 @[simp] lemma interchange_left_identity (f : W ⟶ X) (g : X ⟶ Y) :
   (f ≫ g) ⊗ (𝟙 Z) = (f ⊗ (𝟙 Z)) ≫ (g ⊗ (𝟙 Z)) :=
@@ -185,7 +185,7 @@ lemma left_unitor_product_aux_perimeter (X Y : C) :
 begin
   conv_lhs { congr, skip, rw [←category.assoc] },
   conv_lhs { rw [←category.assoc], congr, rw [monoidal_category.pentagon] },
-  conv_rhs { rw [associator_naturality], congr, skip, congr, skip, rw [tensor_map_id] },
+  conv_rhs { rw [associator_naturality], congr, skip, congr, skip, rw [tensor_id] },
   conv_rhs { congr, skip, rw [←monoidal_category.triangle] },
   conv_rhs { rw [←category.assoc] }
 end
@@ -236,7 +236,7 @@ begin
   { conv_lhs { congr, rw [monoidal_category.pentagon] },
     conv_rhs { congr, rw [←monoidal_category.triangle] },
     conv_rhs { rw [category.assoc] },
-    conv_rhs { congr, skip, congr, congr, rw [←tensor_map_id] },
+    conv_rhs { congr, skip, congr, congr, rw [←tensor_id] },
     conv_rhs { congr, skip, rw [associator_naturality] },
     conv_rhs { rw [←category.assoc] } }
 end

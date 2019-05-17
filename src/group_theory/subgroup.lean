@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mitchell Rowett, Scott Morrison, Johan Commelin, Mario Carneiro
 -/
 import group_theory.submonoid
-import tactic.rewrite
 open set function
 
 variables {α : Type*} {β : Type*} {a a₁ a₂ b c: α}

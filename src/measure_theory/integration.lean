@@ -265,7 +265,7 @@ lemma approx_comp [ordered_topology β] [measurable_space γ]
   {i : ℕ → β} {f : γ → β} {g : α → γ} {n : ℕ} (a : α)
   (hf : _root_.measurable f) (hg : _root_.measurable g) :
   (approx i (f ∘ g) n : α →ₛ β) a = (approx i f n : γ →ₛ β) (g a) :=
-by rw [approx_apply _ hf, approx_apply _ (hg.comp hf)]
+by rw [approx_apply _ hf, approx_apply _ (hf.comp hg)]
 
 end
 
@@ -849,7 +849,7 @@ begin
     { exact hg },
     { assume a, exact congr_fun (simple_func.eapprox_comp hf hg) a },
     { assume s hs, exact map_apply hg hs } },
-  exact hg.comp hf,
+  exact hf.comp hg,
   assumption
 end
 

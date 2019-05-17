@@ -44,7 +44,7 @@ topological_group.continuous_inv α
 @[to_additive continuous_neg]
 lemma continuous_inv [topological_group α] [topological_space β] {f : β → α}
   (hf : continuous f) : continuous (λx, (f x)⁻¹) :=
-hf.comp continuous_inv'
+continuous_inv'.comp hf
 
 @[to_additive tendsto_neg]
 lemma tendsto_inv [topological_group α] {f : β → α} {x : filter β} {a : α}
@@ -200,13 +200,13 @@ end
 instance topological_group_quotient : topological_group (quotient N) :=
 { continuous_mul := begin
     have cont : continuous ((coe : α → quotient N) ∘ (λ (p : α × α), p.fst * p.snd)) :=
-      continuous.comp continuous_mul' continuous_quot_mk,
+      continuous_quot_mk.comp continuous_mul',
     have quot : quotient_map (λ p : α × α, ((p.1:quotient N), (p.2:quotient N))),
     { apply is_open_map.to_quotient_map,
       { exact is_open_map.prod (quotient_group.open_coe N) (quotient_group.open_coe N) },
       { apply continuous.prod_mk,
-        { exact continuous.comp continuous_fst continuous_quot_mk },
-        { exact continuous.comp continuous_snd continuous_quot_mk } },
+        { exact continuous_quot_mk.comp continuous_fst },
+        { exact continuous_quot_mk.comp continuous_snd } },
       { rintro ⟨⟨x⟩, ⟨y⟩⟩,
         exact ⟨(x, y), rfl⟩ } },
     exact (quotient_map.continuous_iff quot).2 cont,
@@ -214,7 +214,7 @@ instance topological_group_quotient : topological_group (quotient N) :=
   continuous_inv := begin
     apply continuous_quotient_lift,
     change continuous ((coe : α → quotient N) ∘ (λ (a : α), a⁻¹)),
-    exact continuous.comp continuous_inv' continuous_quot_mk
+    exact continuous_quot_mk.comp continuous_inv'
   end }
 
 attribute [instance] topological_add_group_quotient

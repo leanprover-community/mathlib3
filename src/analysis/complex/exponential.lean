@@ -37,36 +37,36 @@ lemma continuous_sin : continuous sin :=
 continuous_mul
   (continuous_mul
     (continuous_sub
-      ((continuous_mul continuous_neg' continuous_const).comp continuous_exp)
-      ((continuous_mul continuous_id continuous_const).comp continuous_exp))
+      (continuous_exp.comp (continuous_mul continuous_neg' continuous_const))
+      (continuous_exp.comp (continuous_mul continuous_id continuous_const)))
     continuous_const)
   continuous_const
 
 lemma continuous_cos : continuous cos :=
 continuous_mul
   (continuous_add
-    ((continuous_mul continuous_id continuous_const).comp continuous_exp)
-    ((continuous_mul continuous_neg' continuous_const).comp continuous_exp))
+    (continuous_exp.comp (continuous_mul continuous_id continuous_const))
+    (continuous_exp.comp (continuous_mul continuous_neg' continuous_const)))
   continuous_const
 
 lemma continuous_tan : continuous (λ x : {x // cos x ≠ 0}, tan x) :=
 continuous_mul
-  (continuous_subtype_val.comp continuous_sin)
+  (continuous_sin.comp continuous_subtype_val)
   (continuous_inv subtype.property
-    (continuous_subtype_val.comp continuous_cos))
+    (continuous_cos.comp continuous_subtype_val))
 
 lemma continuous_sinh : continuous sinh :=
 continuous_mul
   (continuous_sub
     continuous_exp
-    (continuous_neg'.comp continuous_exp))
+    (continuous_exp.comp continuous_neg'))
   continuous_const
 
 lemma continuous_cosh : continuous cosh :=
 continuous_mul
   (continuous_add
     continuous_exp
-    (continuous_neg'.comp continuous_exp))
+    (continuous_exp.comp continuous_neg'))
   continuous_const
 
 end complex
@@ -74,31 +74,33 @@ end complex
 namespace real
 
 lemma continuous_exp : continuous exp :=
-(complex.continuous_of_real.comp complex.continuous_exp).comp
-  complex.continuous_re
+complex.continuous_re.comp
+  (complex.continuous_exp.comp complex.continuous_of_real)
 
 lemma continuous_sin : continuous sin :=
-(complex.continuous_of_real.comp complex.continuous_sin).comp
-  complex.continuous_re
+complex.continuous_re.comp
+  (complex.continuous_sin.comp complex.continuous_of_real)
 
 lemma continuous_cos : continuous cos :=
-(complex.continuous_of_real.comp complex.continuous_cos).comp
-  complex.continuous_re
+complex.continuous_re.comp
+  (complex.continuous_cos.comp complex.continuous_of_real)
 
 lemma continuous_tan : continuous (λ x : {x // cos x ≠ 0}, tan x) :=
 by simp only [tan_eq_sin_div_cos]; exact
 continuous_mul
-  (continuous_subtype_val.comp continuous_sin)
+  (continuous_sin.comp continuous_subtype_val)
   (continuous_inv subtype.property
-    (continuous_subtype_val.comp continuous_cos))
+    (continuous_cos.comp continuous_subtype_val))
 
 lemma continuous_sinh : continuous sinh :=
-(complex.continuous_of_real.comp complex.continuous_sinh).comp
-  complex.continuous_re
+complex.continuous_re.comp
+  (complex.continuous_sinh.comp complex.continuous_of_real)
+
 
 lemma continuous_cosh : continuous cosh :=
-(complex.continuous_of_real.comp complex.continuous_cosh).comp
-  complex.continuous_re
+complex.continuous_re.comp
+  (complex.continuous_cosh.comp complex.continuous_of_real)
+
 
 private lemma exists_exp_eq_of_one_le {x : ℝ} (hx : 1 ≤ x) : ∃ y, exp y = x :=
 let ⟨y, hy⟩ := @intermediate_value real.exp 0 (x - 1) x

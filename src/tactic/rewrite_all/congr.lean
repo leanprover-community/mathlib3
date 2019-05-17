@@ -8,7 +8,7 @@ namespace tactic
 -- Sometimes `mk_congr_arg` fails, when the function is 'superficially dependent'.
 -- This hack `dsimp`s the function before building the `congr_arg` expression.
 -- Unfortunately it creates some dummy hypotheses that I can't work out how to dispose of cleanly.
-meta def mk_congr_arg_using_dsimp (G W : expr) (u : list name) : tactic expr :=
+meta def mk_congr_arg_using_dsimp' (G W : expr) (u : list name) : tactic expr :=
 do s ← simp_lemmas.mk_default,
    t ← infer_type G,
    t' ← s.dsimplify u t {fail_if_unchanged := ff},
@@ -46,7 +46,7 @@ meta def expr_lens.congr : expr_lens → expr → tactic expr
 | (app_fun l f) x_eq := do
   fx_eq ← try_core $
     mk_congr_arg f x_eq
-    <|> mk_congr_arg_using_dsimp f x_eq [`has_coe_to_fun.F],
+    <|> mk_congr_arg_using_dsimp' f x_eq [`has_coe_to_fun.F],
   match fx_eq with
   | (some fx_eq) := expr_lens.congr l fx_eq
   | none         := trace_congr_error f x_eq >> failed

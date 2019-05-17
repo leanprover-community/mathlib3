@@ -31,13 +31,11 @@ def generate_from (g : set (set α)) : topological_space α :=
 
 lemma nhds_generate_from {g : set (set α)} {a : α} :
   @nhds α (generate_from g) a = (⨅s∈{s | a ∈ s ∧ s ∈ g}, principal s) :=
-le_antisymm
+by rw nhds_def; exact le_antisymm
   (infi_le_infi $ assume s, infi_le_infi_const $ assume ⟨as, sg⟩, ⟨as, generate_open.basic _ sg⟩)
   (le_infi $ assume s, le_infi $ assume ⟨as, hs⟩,
-    have ∀s, generate_open g s → a ∈ s → (⨅s∈{s | a ∈ s ∧ s ∈ g}, principal s) ≤ principal s,
     begin
-      intros s hs,
-      induction hs,
+      revert as, clear_, induction hs,
       case generate_open.basic : s hs
       { exact assume as, infi_le_of_le s $ infi_le _ ⟨as, hs⟩ },
       case generate_open.univ
@@ -49,8 +47,7 @@ le_antisymm
       case generate_open.sUnion : k hk' hk
       { exact λ ⟨t, htk, hat⟩, calc _ ≤ principal t : hk t htk hat
           ... ≤ _ : le_principal_iff.2 $ subset_sUnion_of_mem htk }
-    end,
-    this s hs as)
+    end)
 
 lemma tendsto_nhds_generate_from {β : Type*} {m : α → β} {f : filter α} {g : set (set β)} {b : β}
   (h : ∀s∈g, b ∈ s → m ⁻¹' s ∈ f) : tendsto m f (@nhds β (generate_from g) b) :=
@@ -161,7 +158,7 @@ le_antisymm
 
 lemma eq_top_of_singletons_open {t : topological_space α} (h : ∀ x, t.is_open {x}) : t = ⊤ :=
 top_unique $ le_of_nhds_le_nhds $ assume x,
-  have nhds x ≤ pure x, from infi_le_of_le {x} (infi_le _ (by simpa using h x)),
+  have nhds x ≤ pure x, from nhds_le_of_le (mem_singleton _) (h x) (by simp),
   le_trans this (@pure_le_nhds _ ⊤ x)
 
 end lattice
@@ -392,9 +389,8 @@ protected def topological_space.nhds_adjoint (a : α) (f : filter α) : topologi
 
 lemma gc_nhds (a : α) :
   @galois_connection _ (order_dual (filter α)) _ _ (λt, @nhds α t a) (topological_space.nhds_adjoint a) :=
-assume t (f : filter α), show f ≤ @nhds α t a ↔ _, from iff.intro
-  (assume h s hs has, h $ @mem_nhds_sets α t a s hs has)
-  (assume h, le_infi $ assume u, le_infi $ assume ⟨hau, hu⟩, le_principal_iff.2 $ h _ hu hau)
+assume t (f : filter α), show f ≤ @nhds α t a ↔ _,
+by rw le_nhds_iff; exact ⟨λ H s hs has, H _ has hs, λ H s has hs, H _ hs has⟩
 
 lemma nhds_mono {t₁ t₂ : topological_space α} {a : α} (h : t₁ ≤ t₂) :
   @nhds α t₂ a ≤ @nhds α t₁ a := (gc_nhds a).monotone_l h
@@ -810,5 +806,3 @@ lemma is_closed_infi_iff {s : set α} : @is_closed _ (⨅ i, t i) s ↔ ∀ i, @
 is_open_infi_iff
 
 end infi
-
-attribute [irreducible] nhds

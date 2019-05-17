@@ -67,5 +67,3 @@ do h' ← tactic.get_local h,
    skip
 
 end tactic.interactive
-
-

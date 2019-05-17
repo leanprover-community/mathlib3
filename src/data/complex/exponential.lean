@@ -394,6 +394,8 @@ by rw lim_mul_lim;
   exact eq.symm (lim_eq_lim_of_equiv (by dsimp; simp only [hj];
     exact cauchy_product (is_cau_abs_exp x) (is_cau_exp y)))
 
+attribute [irreducible] complex.exp
+
 lemma exp_nat_mul (x : ℂ) : ∀ n : ℕ, exp(n*x) = (exp x)^n
 | 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]
 | (nat.succ n) := by rw [pow_succ', nat.cast_add_one, add_mul, exp_add, ←exp_nat_mul, one_mul]

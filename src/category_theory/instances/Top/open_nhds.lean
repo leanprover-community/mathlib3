@@ -8,6 +8,7 @@ import category_theory.full_subcategory
 open category_theory
 open category_theory.instances
 open topological_space
+open opposite
 
 universe u
 

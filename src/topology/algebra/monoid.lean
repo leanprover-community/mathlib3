@@ -9,6 +9,7 @@ TODO: generalize `topological_monoid` and `topological_add_monoid` to semigroups
 `topological_operator α (*)`.
 -/
 import topology.constructions
+import algebra.pi_instances
 
 open classical set lattice filter topological_space
 local attribute [instance] classical.prop_decidable

@@ -22,6 +22,8 @@ def const : C ⥤ (J ⥤ C) :=
   map := λ X Y f, { app := λ j, f } }
 
 namespace const
+open opposite
+
 variables {J}
 
 @[simp] lemma obj_obj (X : C) (j : J) : ((const J).obj X).obj j = X := rfl

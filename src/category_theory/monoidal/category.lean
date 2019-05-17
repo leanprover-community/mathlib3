@@ -84,8 +84,7 @@ instance tensor_is_iso {W X Y Z : C} (f : W ⟶ X) [is_iso f] (g : Y ⟶ Z) [is_
 { ..(as_iso f ⊗ as_iso g) }
 
 @[simp] lemma inv_tensor {W X Y Z : C} (f : W ⟶ X) [is_iso f] (g : Y ⟶ Z) [is_iso g] :
-  inv (f ⊗ g) = inv f ⊗ inv g
-:= rfl
+  inv (f ⊗ g) = inv f ⊗ inv g := rfl
 
 variables {U V W X Y Z : C}
 

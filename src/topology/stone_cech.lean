@@ -257,12 +257,13 @@ begin
   apply quotient.sound,
   intros γ tγ h₁ h₂ f hf,
   resetI,
-  change stone_cech_extend hf ⟦x⟧ = stone_cech_extend hf ⟦y⟧,
-  refine tendsto_nhds_unique u.1 _ _,
-  { exact stone_cech_extend hf },
-  all_goals
-  { refine le_trans (map_mono _) ((continuous_stone_cech_extend hf).tendsto _),
-    assumption }
+  let ff := stone_cech_extend hf,
+  change ff ⟦x⟧ = ff ⟦y⟧,
+  have lim : ∀ z : ultrafilter α, g ≤ nhds ⟦z⟧ → tendsto ff g (nhds (ff ⟦z⟧)) :=
+  assume z gz,
+    calc map ff g ≤ map ff (nhds ⟦z⟧) : map_mono gz
+              ... ≤ nhds (ff ⟦z⟧) : (continuous_stone_cech_extend hf).tendsto _,
+  exact tendsto_nhds_unique u.1 (lim x gx) (lim y gy)
 end
 
 instance stone_cech.compact_space : compact_space (stone_cech α) :=

@@ -1,8 +1,8 @@
 -- Copyright (c) 2019 Scott Morrison. All rights reserved.
 -- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison
+-- Authors: Scott Morrison, Floris van Doorn
 
-import category_theory.limits.limits
+import category_theory.limits.limits category_theory.discrete_category
 
 universes v u
 
@@ -70,5 +70,21 @@ instance [has_limits_of_shape.{v} Jᵒᵖ C] : has_colimits_of_shape.{v} J Cᵒ�
 
 instance [has_limits.{v} C] : has_colimits.{v} Cᵒᵖ :=
 { has_colimits_of_shape := λ J 𝒥, by { resetI, apply_instance } }
+
+variables (X : Type v)
+instance has_coproducts_opposite [has_limits_of_shape (discrete X) C] :
+  has_colimits_of_shape (discrete X) Cᵒᵖ :=
+begin
+  haveI : has_limits_of_shape (discrete X)ᵒᵖ C :=
+    has_limits_of_shape_of_equivalence(discrete.opposite X).symm, apply_instance
+end
+
+instance has_products_opposite [has_colimits_of_shape (discrete X) C] :
+  has_limits_of_shape (discrete X) Cᵒᵖ :=
+begin
+  haveI : has_colimits_of_shape (discrete X)ᵒᵖ C :=
+    has_colimits_of_shape_of_equivalence(discrete.opposite X).symm, apply_instance
+end
+
 
 end category_theory.limits

@@ -1,12 +1,11 @@
 -- Copyright (c) 2017 Scott Morrison. All rights reserved.
 -- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Stephen Morgan, Scott Morrison
+-- Authors: Stephen Morgan, Scott Morrison, Floris van Doorn
 
-import category_theory.whiskering
 import category_theory.const
-import category_theory.opposites
 import category_theory.yoneda
 import category_theory.concrete_category
+import category_theory.equivalence
 
 universes v u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
 
@@ -150,7 +149,7 @@ end cone
 
 namespace cocone
 @[simp] def extensions (c : cocone F) : coyoneda.obj (op c.X) ⟶ F.cocones :=
-{ app := λ X f, c.ι ≫ ((const J).map f) }
+{ app := λ X f, c.ι ≫ (const J).map f }
 
 /-- A map from the vertex of a cocone induces a cocone by composition. -/
 @[simp] def extend (c : cocone F) {X : C} (f : c.X ⟶ X) : cocone F :=
@@ -213,6 +212,9 @@ namespace cones
 { hom := { hom := φ.hom },
   inv := { hom := φ.inv, w' := λ j, φ.inv_comp_eq.mpr (w j) } }
 
+@[simp] lemma ext_hom_hom {c c' : cone F} (φ : c.X ≅ c'.X)
+  (w : ∀ j, c.π.app j = φ.hom ≫ c'.π.app j) : (ext φ w).hom.hom = φ.hom := rfl
+
 def postcompose {G : J ⥤ C} (α : F ⟶ G) : cone F ⥤ cone G :=
 { obj := λ c, { X := c.X, π := c.π ≫ α },
   map := λ c₁ c₂ f, { hom := f.hom, w' :=
@@ -226,6 +228,21 @@ def postcompose {G : J ⥤ C} (α : F ⟶ G) : cone F ⥤ cone G :=
 
 @[simp] lemma postcompose_map_hom {G : J ⥤ C} (α : F ⟶ G) {c₁ c₂ : cone F} (f : c₁ ⟶ c₂):
   ((postcompose α).map f).hom = f.hom := rfl
+
+def postcompose_comp {G H : J ⥤ C} (α : F ⟶ G) (β : G ⟶ H) :
+  postcompose (α ≫ β) ≅ postcompose α ⋙ postcompose β :=
+by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obviously }
+
+def postcompose_id : postcompose (𝟙 F) ≅ functor.id (cone F) :=
+by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obviously }
+
+def postcompose_equivalence {G : J ⥤ C} (α : F ≅ G) : cone F ≌ cone G :=
+begin
+  refine equivalence.mk (postcompose α.hom) (postcompose α.inv) _ _,
+  { symmetry,
+    refine (postcompose_comp _ _).symm.trans _, rw [iso.hom_inv_id], exact postcompose_id },
+  { refine (postcompose_comp _ _).symm.trans _, rw [iso.inv_hom_id], exact postcompose_id }
+end
 
 def forget : cone F ⥤ C :=
 { obj := λ t, t.X, map := λ s t f, f.hom }
@@ -279,6 +296,9 @@ namespace cocones
 { hom := { hom := φ.hom },
   inv := { hom := φ.inv, w' := λ j, φ.comp_inv_eq.mpr (w j).symm } }
 
+@[simp] lemma ext_hom_hom {c c' : cocone F} (φ : c.X ≅ c'.X)
+  (w : ∀ j, c.ι.app j ≫ φ.hom = c'.ι.app j) : (ext φ w).hom.hom = φ.hom := rfl
+
 def precompose {G : J ⥤ C} (α : G ⟶ F) : cocone F ⥤ cocone G :=
 { obj := λ c, { X := c.X, ι := α ≫ c.ι },
   map := λ c₁ c₂ f, { hom := f.hom } }
@@ -291,6 +311,20 @@ def precompose {G : J ⥤ C} (α : G ⟶ F) : cocone F ⥤ cocone G :=
 
 @[simp] lemma precompose_map_hom {G : J ⥤ C} (α : G ⟶ F) {c₁ c₂ : cocone F} (f : c₁ ⟶ c₂) :
   ((precompose α).map f).hom = f.hom := rfl
+
+def precompose_comp {G H : J ⥤ C} (α : F ⟶ G) (β : G ⟶ H) :
+  precompose (α ≫ β) ≅ precompose β ⋙ precompose α :=
+by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obviously }
+
+def precompose_id : precompose (𝟙 F) ≅ functor.id (cocone F) :=
+by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obviously }
+
+def precompose_equivalence {G : J ⥤ C} (α : G ≅ F) : cocone F ≌ cocone G :=
+begin
+  refine equivalence.mk (precompose α.hom) (precompose α.inv) _ _,
+  { symmetry, refine (precompose_comp _ _).symm.trans _, rw [iso.inv_hom_id], exact precompose_id },
+  { refine (precompose_comp _ _).symm.trans _, rw [iso.hom_inv_id], exact precompose_id }
+end
 
 def forget : cocone F ⥤ C :=
 { obj := λ t, t.X, map := λ s t f, f.hom }

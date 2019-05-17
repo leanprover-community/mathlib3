@@ -1854,6 +1854,16 @@ end
 lemma degree_eq_degree_of_associated (h : associated p q) : degree p = degree q :=
 let ⟨u, hu⟩ := h in by simp [hu.symm]
 
+lemma degree_eq_one_of_irreducible_of_root (hi : irreducible p) {x : α} (hx : is_root p x) :
+  degree p = 1 :=
+let ⟨g, hg⟩ := dvd_iff_is_root.2 hx in
+have is_unit (X - C x) ∨ is_unit g, from hi.2 _ _ hg,
+this.elim
+  (λ h, have h₁ : degree (X - C x) = 1, from degree_X_sub_C x,
+    have h₂ : degree (X - C x) = 0, from degree_eq_zero_of_is_unit h,
+    by rw h₁ at h₂; exact absurd h₂ dec_trivial)
+  (λ hgu, by rw [hg, degree_mul_eq, degree_X_sub_C, degree_eq_zero_of_is_unit hgu, add_zero])
+
 end integral_domain
 
 section field

@@ -223,7 +223,7 @@ variables {r : α} {x y : β}
 open set lattice
 
 instance : partial_order (submodule α β) :=
-partial_order.lift (coe : submodule α β → set β) $ λ a b, ext'
+partial_order.lift (coe : submodule α β → set β) (λ a b, ext') (by apply_instance)
 
 lemma le_def {p p' : submodule α β} : p ≤ p' ↔ (p : set β) ⊆ p' := iff.rfl
 
@@ -1286,6 +1286,35 @@ noncomputable def sup_quotient_equiv_quotient_inf (p p' : submodule α β) :
       use [⟨y, hy⟩, trivial], apply (submodule.quotient.eq _).2,
       change y - (y + z) ∈ p', rwa [sub_add_eq_sub_sub, sub_self, zero_sub, neg_mem_iff]
     end }
+
+section prod
+
+def prod {α β γ δ : Type*} [ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group δ]
+  [module α β] [module α γ] [module α δ]
+  (f₁ : β →ₗ[α] γ) (f₂ : β →ₗ[α] δ) : β →ₗ[α] (γ × δ) :=
+{ to_fun := λx, (f₁ x, f₂ x),
+  add := λx y, begin
+    change (f₁ (x + y), f₂ (x+y)) = (f₁ x, f₂ x) + (f₁ y, f₂ y),
+    simp only [linear_map.map_add],
+    refl
+  end,
+  smul := λc x, by simp only [linear_map.map_smul] }
+
+lemma is_linear_map_prod_iso {α β γ δ : Type*} [comm_ring α] [add_comm_group β] [add_comm_group γ]
+  [add_comm_group δ] [module α β] [module α γ] [module α δ] :
+  is_linear_map α (λ(p : (β →ₗ[α] γ) × (β →ₗ[α] δ)), (linear_map.prod p.1 p.2 : (β →ₗ[α] (γ × δ)))) :=
+⟨λu v, rfl, λc u, rfl⟩
+
+def scalar_prod_space_iso {α β γ : Type*} [comm_ring α] [add_comm_group β] [add_comm_group γ]
+  [module α β] [module α γ] (c : β →ₗ[α] α) (f : γ) : β →ₗ[α] γ :=
+{ to_fun := λx, (c x) • f,
+  add := λx y, begin
+    change c (x + y) • f = (c x) • f + (c y) • f,
+    simp [add_smul],
+  end,
+  smul := λa x, by simp [smul_smul] }
+
+end prod
 
 section pi
 universe i

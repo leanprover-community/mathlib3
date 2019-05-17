@@ -232,7 +232,7 @@ neg_nonneg.1 $ sin_neg x ▸ sin_nonneg_of_nonneg_of_le_pi (neg_nonneg.2 hx0) (n
 
 @[simp] lemma sin_pi_div_two : sin (π / 2) = 1 :=
 have sin (π / 2) = 1 ∨ sin (π / 2) = -1 :=
-by simpa [pow_two, mul_self_eq_one_iff] using sin_pow_two_add_cos_pow_two (π / 2),
+by simpa [pow_two, mul_self_eq_one_iff] using sin_sq_add_cos_sq (π / 2),
 this.resolve_right
   (λ h, (show ¬(0 : ℝ) < -1, by norm_num) $
     h ▸ sin_pos_of_pos_of_lt_pi pi_div_two_pos (half_lt_self pi_pos))
@@ -310,7 +310,7 @@ lemma sin_eq_zero_iff {x : ℝ} : sin x = 0 ↔ ∃ n : ℤ, (n : ℝ) * π = x 
   λ ⟨n, hn⟩, hn ▸ sin_int_mul_pi _⟩
 
 lemma sin_eq_zero_iff_cos_eq {x : ℝ} : sin x = 0 ↔ cos x = 1 ∨ cos x = -1 :=
-by rw [← mul_self_eq_one_iff (cos x), ← sin_pow_two_add_cos_pow_two x,
+by rw [← mul_self_eq_one_iff (cos x), ← sin_sq_add_cos_sq x,
     pow_two, pow_two, ← sub_eq_iff_eq_add, sub_self];
   exact ⟨λ h, by rw [h, mul_zero], eq_zero_of_mul_self_eq_zero ∘ eq.symm⟩
 
@@ -668,9 +668,9 @@ cos_nonneg_of_neg_pi_div_two_le_of_le_pi_div_two
     (neg_pi_div_two_le_arcsin _) (arcsin_le_pi_div_two _)
 
 lemma cos_arcsin {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : cos (arcsin x) = sqrt (1 - x ^ 2) :=
-have sin (arcsin x) ^ 2 + cos (arcsin x) ^ 2 = 1 := sin_pow_two_add_cos_pow_two (arcsin x),
+have sin (arcsin x) ^ 2 + cos (arcsin x) ^ 2 = 1 := sin_sq_add_cos_sq (arcsin x),
 begin
-  rw [← eq_sub_iff_add_eq', ← sqrt_inj (pow_two_nonneg _) (sub_nonneg.2 (sin_pow_two_le_one (arcsin x))),
+  rw [← eq_sub_iff_add_eq', ← sqrt_inj (pow_two_nonneg _) (sub_nonneg.2 (sin_sq_le_one (arcsin x))),
     pow_two, sqrt_mul_self (cos_arcsin_nonneg _)] at this,
   rw [this, sin_arcsin hx₁ hx₂],
 end

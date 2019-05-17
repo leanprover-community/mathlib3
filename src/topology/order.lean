@@ -810,3 +810,5 @@ lemma is_closed_infi_iff {s : set α} : @is_closed _ (⨅ i, t i) s ↔ ∀ i, @
 is_open_infi_iff
 
 end infi
+
+attribute [irreducible] nhds

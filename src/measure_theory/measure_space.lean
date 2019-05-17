@@ -603,10 +603,10 @@ by rw [map, dif_pos hf, to_measure_apply _ _ hs]; refl
 @[simp] lemma map_id : map id μ = μ :=
 ext $ λ s, map_apply measurable_id
 
-lemma map_map {f : α → β} {g : β → γ} (hf : measurable f) (hg : measurable g) :
+lemma map_map {g : β → γ} {f : α → β} (hg : measurable g) (hf : measurable f) :
   map g (map f μ) = map (g ∘ f) μ :=
 ext $ λ s hs,
-by simp [hf, hg, hs, hg.preimage hs, hf.comp hg];
+by simp [hf, hg, hs, hg.preimage hs, hg.comp hf];
    rw ← preimage_comp
 
 /-- The dirac measure. -/

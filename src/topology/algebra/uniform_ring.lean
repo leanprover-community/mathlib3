@@ -31,7 +31,7 @@ lemma continuous_mul' : continuous (λp:completion α×completion α, p.1 * p.2)
 suffices continuous $ extend (dense_embedding_coe.prod dense_embedding_coe) $
   ((coe : α → completion α) ∘ (λp:α×α, p.1 * p.2)),
 { convert this, ext ⟨a, b⟩, refl },
-extend_Z_bilin dense_embedding_coe dense_embedding_coe (continuous.comp continuous_mul' (continuous_coe α))
+extend_Z_bilin dense_embedding_coe dense_embedding_coe ((continuous_coe α).comp continuous_mul')
 
 section rules
 variables {α}
@@ -40,7 +40,7 @@ eq.symm (extend_e_eq (dense_embedding_coe.prod dense_embedding_coe) (a, b))
 
 lemma continuous_mul {β : Type*} [topological_space β] {f g : β → completion α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, f b * g b) :=
-(continuous.prod_mk hf hg).comp (continuous_mul' α)
+(continuous_mul' α).comp (continuous.prod_mk hf hg)
 end rules
 
 instance : ring (completion α) :=
@@ -52,27 +52,27 @@ instance : ring (completion α) :=
     (assume a, by rw [← coe_one, ← coe_mul, mul_one]),
   mul_assoc     := assume a b c, completion.induction_on₃ a b c
     (is_closed_eq
-      (continuous_mul (continuous_mul continuous_fst (continuous_snd.comp continuous_fst))
+      (continuous_mul (continuous_mul continuous_fst (continuous_fst.comp continuous_snd))
         (continuous_snd.comp continuous_snd))
       (continuous_mul continuous_fst
-        (continuous_mul (continuous_snd.comp continuous_fst) (continuous_snd.comp continuous_snd))))
+        (continuous_mul (continuous_fst.comp continuous_snd) (continuous_snd.comp continuous_snd))))
     (assume a b c, by rw [← coe_mul, ← coe_mul, ← coe_mul, ← coe_mul, mul_assoc]),
   left_distrib  := assume a b c, completion.induction_on₃ a b c
     (is_closed_eq
       (continuous_mul continuous_fst (continuous_add
-        (continuous_snd.comp continuous_fst)
+        (continuous_fst.comp continuous_snd)
         (continuous_snd.comp continuous_snd)))
       (continuous_add
-        (continuous_mul continuous_fst (continuous_snd.comp continuous_fst))
+        (continuous_mul continuous_fst (continuous_fst.comp continuous_snd))
         (continuous_mul continuous_fst (continuous_snd.comp continuous_snd))))
     (assume a b c, by rw [← coe_add, ← coe_mul, ← coe_mul, ← coe_mul, ←coe_add, mul_add]),
   right_distrib := assume a b c, completion.induction_on₃ a b c
     (is_closed_eq
       (continuous_mul (continuous_add continuous_fst
-        (continuous_snd.comp continuous_fst)) (continuous_snd.comp continuous_snd))
+        (continuous_fst.comp continuous_snd)) (continuous_snd.comp continuous_snd))
       (continuous_add
         (continuous_mul continuous_fst (continuous_snd.comp continuous_snd))
-        (continuous_mul (continuous_snd.comp continuous_fst) (continuous_snd.comp continuous_snd))))
+        (continuous_mul (continuous_fst.comp continuous_snd) (continuous_snd.comp continuous_snd))))
     (assume a b c, by rw [← coe_add, ← coe_mul, ← coe_mul, ← coe_mul, ←coe_add, add_mul]),
   ..completion.add_comm_group, ..completion.has_mul α, ..completion.has_one α }
 
@@ -88,14 +88,14 @@ have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
 { map_one := by rw [← coe_one, extension_coe hf, is_ring_hom.map_one f],
   map_add := assume a b, completion.induction_on₂ a b
     (is_closed_eq
-      (continuous_add'.comp continuous_extension)
-      (continuous_add (continuous_fst.comp continuous_extension) (continuous_snd.comp continuous_extension)))
+      (continuous_extension.comp continuous_add')
+      (continuous_add (continuous_extension.comp continuous_fst) (continuous_extension.comp continuous_snd)))
     (assume a b,
       by rw [← coe_add, extension_coe hf, extension_coe hf, extension_coe hf, is_add_group_hom.map_add f]),
   map_mul := assume a b, completion.induction_on₂ a b
     (is_closed_eq
-      ((continuous_mul' α).comp continuous_extension)
-      (_root_.continuous_mul (continuous_fst.comp continuous_extension) (continuous_snd.comp continuous_extension)))
+      (continuous_extension.comp (continuous_mul' α))
+      (_root_.continuous_mul (continuous_extension.comp continuous_fst) (continuous_extension.comp continuous_snd)))
     (assume a b,
       by rw [← coe_mul, extension_coe hf, extension_coe hf, extension_coe hf, is_ring_hom.map_mul f]) }
 

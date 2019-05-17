@@ -502,10 +502,10 @@ map_unique uniform_continuous_id (assume a, rfl)
 lemma extension_map [complete_space γ] [separated γ] {f : β → γ} {g : α → β}
   (hf : uniform_continuous f) (hg : uniform_continuous g) :
   completion.extension f ∘ completion.map g = completion.extension (f ∘ g) :=
-completion.ext (continuous_map.comp continuous_extension) continuous_extension $
+completion.ext (continuous_extension.comp continuous_map) continuous_extension $
   by intro a; simp only [hg, hf, hg.comp hf, (∘), map_coe, extension_coe]
 
-lemma map_comp {f : α → β} {g : β → γ} (hf : uniform_continuous f) (hg : uniform_continuous g) :
+lemma map_comp {g : β → γ} {f : α → β} (hg : uniform_continuous g) (hf : uniform_continuous f) :
   completion.map g ∘ completion.map f = completion.map (g ∘ f) :=
 extension_map (hg.comp (uniform_continuous_coe _)) hf
 
@@ -521,14 +521,14 @@ begin
   refine ⟨completion.extension (separation_quotient.lift (coe : α → completion α)),
     completion.map quotient.mk, _, _⟩,
   { assume a,
-    refine completion.induction_on a (is_closed_eq (continuous_extension.comp continuous_map) continuous_id) _,
+    refine completion.induction_on a (is_closed_eq (continuous_map.comp continuous_extension) continuous_id) _,
     rintros ⟨a⟩,
     show completion.map quotient.mk (completion.extension (separation_quotient.lift coe) ↑⟦a⟧) = ↑⟦a⟧,
     rw [extension_coe (separation_quotient.uniform_continuous_lift _),
       separation_quotient.lift_mk (uniform_continuous_coe α),
       completion.map_coe uniform_continuous_quotient_mk] },
   { assume a,
-    refine completion.induction_on a (is_closed_eq (continuous_map.comp continuous_extension) continuous_id) _,
+    refine completion.induction_on a (is_closed_eq (continuous_extension.comp continuous_map) continuous_id) _,
     assume a,
     rw [map_coe uniform_continuous_quotient_mk,
       extension_coe (separation_quotient.uniform_continuous_lift _),
@@ -576,7 +576,7 @@ uniform_continuous.comp uniform_continuous_prod completion.uniform_continuous_ma
 lemma continuous_map₂ {δ} [topological_space δ] {f : α → β → γ}
   {a : δ → completion α} {b : δ → completion β} (ha : continuous a) (hb : continuous b) :
   continuous (λd:δ, completion.map₂ f (a d) (b d)) :=
-(continuous.prod_mk ha hb).comp (uniform_continuous_map₂' f).continuous
+(uniform_continuous_map₂' f).continuous.comp (continuous.prod_mk ha hb)
 
 lemma map₂_coe_coe (a : α) (b : β) (f : α → β → γ) (hf : uniform_continuous (λp:α×β, f p.1 p.2)) :
   completion.map₂ f (a : completion α) (b : completion β) = f a b :=

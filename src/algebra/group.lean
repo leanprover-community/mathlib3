@@ -365,14 +365,14 @@ instance [add_comm_monoid α] : comm_monoid (multiplicative α) :=
 { mul_comm := @add_comm α _,
   ..multiplicative.monoid }
 
-section comm_monoid
-  variables [comm_monoid α] {a b c d : α}
+section comm_semigroup
+  variables [comm_semigroup α] {a b c d : α}
 
   @[to_additive add_add_add_comm]
   theorem mul_mul_mul_comm : (a * b) * (c * d) = (a * c) * (b * d) :=
   by simp [mul_left_comm, mul_assoc]
 
-end comm_monoid
+end comm_semigroup
 
 instance [group α] : add_group (additive α) :=
 { neg := @has_inv.inv α _,

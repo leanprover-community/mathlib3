@@ -8,15 +8,15 @@
 -- same rewritable subexpression, all are rewritten simultaneously, and this isn't always
 -- what we want.
 -- (In particular, rewrite_search is much less capable on the category_theory library.)
-import tactic.rewrite_all.congr
+import tactic.rewrite_all.congr tactic.rewrite_all.kabstract
 
 open tactic
 open lean.parser
 open interactive
 
-open tactic.rewrite_all
-
 namespace tactic
+
+open rewrite_all rewrite_all.congr
 
 /--
 return a lazy list of (t, n, k) where

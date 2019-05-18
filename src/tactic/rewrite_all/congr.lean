@@ -15,7 +15,9 @@ do s ← simp_lemmas.mk_default,
    definev `_mk_congr_arg_aux t' G,
    to_expr ```(congr_arg _mk_congr_arg_aux %%W)
 
-namespace rewrite_all
+namespace rewrite_all.congr
+
+open rewrite_all
 
 meta inductive expr_lens
 | app_fun : expr_lens → expr → expr_lens
@@ -116,10 +118,6 @@ do
               end,
     return [⟨w, pure qr, l.to_sides⟩]
 
-end rewrite_all
-
-open rewrite_all
-
 meta def rewrite_all (e : expr) (r : expr × bool) (cfg : rewrite_all.cfg := {}) :
   tactic (list tracked_rewrite) :=
 app_map (rewrite_at_lens cfg r) e
@@ -127,5 +125,7 @@ app_map (rewrite_at_lens cfg r) e
 meta def rewrite_all_lazy (e : expr) (r : expr × bool) (cfg : rewrite_all.cfg := {}) :
   mllist tactic tracked_rewrite :=
 mllist.squash $ mllist.of_list <$> rewrite_all e r cfg
+
+end rewrite_all.congr
 
 end tactic

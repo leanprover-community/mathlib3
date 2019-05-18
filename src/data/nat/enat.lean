@@ -5,7 +5,7 @@ Authors: Chris Hughes
 
 Natural numbers with infinity, represented as roption ℕ.
 -/
-import data.pfun algebra.ordered_group
+import data.pfun data.nat.cast algebra.ordered_group
 import tactic.norm_cast
 
 open roption lattice
@@ -17,10 +17,50 @@ namespace enat
 instance : has_zero enat := ⟨some 0⟩
 instance : has_one enat := ⟨some 1⟩
 instance : has_add enat := ⟨λ x y, ⟨x.dom ∧ y.dom, λ h, get x h.1 + get y h.2⟩⟩
-instance : has_coe ℕ enat := ⟨some⟩
-instance (n : ℕ) : decidable (n : enat).dom := is_true trivial
+instance : has_le enat := ⟨λ x y, ∃ h : y.dom → x.dom, ∀ hy : y.dom, x.get (h hy) ≤ y.get hy⟩
+instance : has_top enat := ⟨none⟩
+instance : has_bot enat := ⟨0⟩
+instance : has_sup enat := ⟨λ x y, ⟨x.dom ∧ y.dom, λ h, x.get h.1 ⊔ y.get h.2⟩⟩
 
-@[simp] lemma coe_inj {x y : ℕ} : (x : enat) = y ↔ x = y := roption.some_inj
+@[simp] lemma some_eq_coe (n : ℕ) :
+  (some n : enat) = (↑n : enat) :=
+  -- (@coe nat enat (@coe_to_lift nat enat (@coe_base nat enat nat.cast_coe)) n) = n :=
+begin
+ induction n with n IH, {refl},
+ simp only [nat.succ_eq_add_one, nat.cast_succ, IH.symm],
+ apply roption.ext', { show true ↔ (true ∧ true), simp },
+ intros h₁ h₂, refl
+end
+
+@[reducible] def finite (x : enat) : Prop := x.dom
+
+@[simp] lemma not_finite_top : ¬ finite ⊤ := id
+
+@[simp] lemma finite_coe (n : ℕ) : finite (n : enat) :=
+by { rw ← some_eq_coe, exact trivial }
+
+@[simp] lemma finite_zero : finite 0 := trivial
+
+@[simp] lemma finite_one : finite 1 := trivial
+
+@[simp] lemma finite_add {x y : enat} (hx : finite x) (hy : finite y) :
+  finite (x + y) := ⟨hx, hy⟩
+
+lemma finite_of_le_coe {x : enat} {y : ℕ} : x ≤ y → x.finite :=
+λ ⟨h, _⟩, h $ finite_coe y
+
+instance decidable_finite_top : decidable (⊤ : enat).finite := is_false not_finite_top
+
+instance decidable_finite_coe (n : ℕ) : decidable (n : enat).finite :=
+is_true $ finite_coe n
+
+instance decidable_finite_zero : decidable (0 : enat).finite := is_true finite_zero
+
+instance decidable_finite_one : decidable (1 : enat).finite := is_true finite_one
+
+instance decidable_finite_add (x y : enat) [decidable x.finite] [decidable y.finite] :
+  decidable (x + y).finite :=
+@and.decidable _ _ ‹_› ‹_›
 
 instance : add_comm_monoid enat :=
 { add       := (+),
@@ -30,14 +70,15 @@ instance : add_comm_monoid enat :=
   add_zero  := λ x, roption.ext' (and_true _) (λ _ _, add_zero _),
   add_assoc := λ x y z, roption.ext' and.assoc (λ _ _, add_assoc _ _ _) }
 
-instance : has_le enat := ⟨λ x y, ∃ h : y.dom → x.dom, ∀ hy : y.dom, x.get (h hy) ≤ y.get hy⟩
-instance : has_top enat := ⟨none⟩
-instance : has_bot enat := ⟨0⟩
-instance : has_sup enat := ⟨λ x y, ⟨x.dom ∧ y.dom, λ h, x.get h.1 ⊔ y.get h.2⟩⟩
+@[simp] lemma coe_inj {x y : ℕ} : (x : enat) = y ↔ x = y :=
+by rw [← some_eq_coe, ← some_eq_coe]; exact roption.some_inj
+
+lemma coe_injective : function.injective (coe : ℕ → enat) :=
+λ x y, coe_inj.mp
 
 @[elab_as_eliminator] protected lemma cases_on {P : enat → Prop} : ∀ a : enat,
   P ⊤ →  (∀ n : ℕ, P n) → P a :=
-roption.induction_on
+λ x h ih, roption.induction_on x h $ (by simpa using ih)
 
 @[simp] lemma top_add (x : enat) : ⊤ + x = ⊤ :=
 roption.ext' (false_and _) (λ h, h.left.elim)
@@ -47,26 +88,24 @@ by rw [add_comm, top_add]
 
 @[simp, squash_cast] lemma coe_zero : ((0 : ℕ) : enat) = 0 := rfl
 
-@[simp, squash_cast] lemma coe_one : ((1 : ℕ) : enat) = 1 := rfl
+@[simp, squash_cast] lemma coe_one : ((1 : ℕ) : enat) = 1 := (some_eq_coe 1).symm
 
 @[simp, move_cast] lemma coe_add (x y : ℕ) : ((x + y : ℕ) : enat) = x + y :=
-roption.ext' (and_true _).symm (λ _ _, rfl)
+nat.cast_add _ _
 
-@[simp] lemma coe_add_get {x : ℕ} {y : enat} (h : ((x : enat) + y).dom) :
-  get ((x : enat) + y) h = x + get y h.2 := rfl
-
-@[simp] lemma get_add {x y : enat} (h : (x + y).dom) :
+@[simp] lemma get_add {x y : enat} (h : (x + y).finite) :
   get (x + y) h = x.get h.1 + y.get h.2 := rfl
 
-@[simp, squash_cast] lemma coe_get {x : enat} (h : x.dom) : (x.get h : enat) = x :=
-roption.ext' (iff_of_true trivial h) (λ _ _, rfl)
+@[simp] lemma get_coe (n : ℕ) :
+  ∀ h, (n : enat).get h = n :=
+by { rw ← some_eq_coe, intro h, refl }
 
-@[simp] lemma get_zero (h : (0 : enat).dom) : (0 : enat).get h = 0 := rfl
+@[simp, squash_cast] lemma coe_get {x : enat} (h : x.finite) : (x.get h : enat) = x :=
+by { rw ← some_eq_coe, exact roption.ext' (iff_of_true trivial h) (λ _ _, rfl) }
 
-@[simp] lemma get_one (h : (1 : enat).dom) : (1 : enat).get h = 1 := rfl
+@[simp] lemma get_zero (h : (0 : enat).finite) : (0 : enat).get h = 0 := rfl
 
-lemma dom_of_le_some {x : enat} {y : ℕ} : x ≤ y → x.dom :=
-λ ⟨h, _⟩, h trivial
+@[simp] lemma get_one (h : (1 : enat).finite) : (1 : enat).get h = 1 := rfl
 
 instance : partial_order enat :=
 { le          := (≤),
@@ -77,12 +116,13 @@ instance : partial_order enat :=
     (λ _ _, le_antisymm (hxy₂ _) (hyx₂ _)) }
 
 @[simp, elim_cast] lemma coe_le_coe {x y : ℕ} : (x : enat) ≤ y ↔ x ≤ y :=
-⟨λ ⟨_, h⟩, h trivial, λ h, ⟨λ _, trivial, λ _, h⟩⟩
+⟨λ ⟨_, h⟩, by simpa using h (finite_coe y),
+ λ h, ⟨λ _, (finite_coe x), λ _, by simpa using h⟩⟩
 
 @[simp, elim_cast] lemma coe_lt_coe {x y : ℕ} : (x : enat) < y ↔ x < y :=
 by rw [lt_iff_le_not_le, lt_iff_le_not_le, coe_le_coe, coe_le_coe]
 
-lemma get_le_get {x y : enat} {hx : x.dom} {hy : y.dom} :
+lemma get_le_get {x y : enat} {hx : x.finite} {hy : y.finite} :
   x.get hx ≤ y.get hy ↔ x ≤ y :=
 by conv { to_lhs, rw [← coe_le_coe, coe_get, coe_get]}
 
@@ -102,14 +142,15 @@ instance order_top : order_top enat :=
   ..enat.semilattice_sup_bot }
 
 lemma coe_lt_top (x : ℕ) : (x : enat) < ⊤ :=
-lt_of_le_of_ne le_top (λ h, absurd (congr_arg dom h) true_ne_false)
+lt_of_le_of_ne le_top (λ h, absurd (congr_arg finite h) $
+  by rw ← some_eq_coe; exact true_ne_false)
 
 @[simp] lemma coe_ne_top (x : ℕ) : (x : enat) ≠ ⊤ := ne_of_lt (coe_lt_top x)
 
 lemma pos_iff_one_le {x : enat} : 0 < x ↔ 1 ≤ x :=
-enat.cases_on x ⟨λ _, le_top, λ _, coe_lt_top _⟩
-  (λ n, ⟨λ h, enat.coe_le_coe.2 (enat.coe_lt_coe.1 h),
-    λ h, enat.coe_lt_coe.2 (enat.coe_le_coe.1 h)⟩)
+enat.cases_on x ⟨λ _, le_top, λ _, by simpa using (coe_lt_top 0)⟩
+  (λ n, ⟨λ h, by { rw [← nat.cast_one, coe_le_coe], rwa [← nat.cast_zero, coe_lt_coe] at h },
+      λ h, by { rw [← nat.cast_one, coe_le_coe] at h, rwa [← nat.cast_zero, coe_lt_coe] }⟩)
 
 noncomputable instance : decidable_linear_order enat :=
 { le_total := λ x y, enat.cases_on x
@@ -136,8 +177,8 @@ lemma inf_eq_min {a b : enat} : a ⊓ b = min a b := rfl
 instance : ordered_comm_monoid enat :=
 { add_le_add_left := λ a b ⟨h₁, h₂⟩ c,
     enat.cases_on c (by simp)
-      (λ c, ⟨λ h, and.intro trivial (h₁ h.2),
-        λ _, add_le_add_left (h₂ _) c⟩),
+      (λ c, ⟨λ h, and.intro (finite_coe c) (h₁ h.2),
+        λ _, add_le_add_left (h₂ _) _⟩),
   lt_of_add_lt_add_left := λ a b c, enat.cases_on a
     (λ h, by simpa [lt_irrefl] using h)
     (λ a, enat.cases_on b
@@ -167,25 +208,40 @@ instance : canonically_ordered_monoid enat :=
 
 section with_top
 
-def to_with_top (x : enat) [decidable x.dom]: with_top ℕ := x.to_option
+def to_with_top (x : enat) [h : decidable x.finite] : with_top ℕ := @roption.to_option ℕ x h
 
 lemma to_with_top_top : to_with_top ⊤ = ⊤ := rfl
-@[simp] lemma to_with_top_top' [decidable (⊤ : enat).dom] : to_with_top ⊤ = ⊤ :=
+@[simp] lemma to_with_top_top' [decidable (⊤ : enat).finite] : to_with_top ⊤ = ⊤ :=
 by convert to_with_top_top
 
 lemma to_with_top_zero : to_with_top 0 = 0 := rfl
-@[simp] lemma to_with_top_zero' [decidable (0 : enat).dom]: to_with_top 0 = 0 :=
+@[simp] lemma to_with_top_zero' [decidable (0 : enat).finite] : to_with_top 0 = 0 :=
 by convert to_with_top_zero
 
-lemma to_with_top_coe (n : ℕ) : to_with_top n = n := rfl
-@[simp] lemma to_with_top_coe' (n : ℕ) [decidable (n : enat).dom] : to_with_top (n : enat) = n :=
+lemma to_with_top_add (m n : ℕ) : to_with_top (m + n) = m + n :=
+begin
+  delta to_with_top to_option,
+  rw (dif_pos $ finite_add (finite_coe m) (finite_coe n)),
+  { simp [with_top.some_eq_coe] }
+end
+@[simp] lemma to_with_top_add' (m n : ℕ) [decidable (finite m)] [decidable (finite n)] :
+  to_with_top (m + n) = m + n :=
+by convert to_with_top_add m n
+
+lemma to_with_top_coe (n : ℕ) : to_with_top n = n :=
+begin
+  delta to_with_top to_option,
+  rw (dif_pos $ finite_coe n),
+  { simp [with_top.some_eq_coe] }
+end
+@[simp] lemma to_with_top_coe' (n : ℕ) [decidable (finite n)] : to_with_top n = n :=
 by convert to_with_top_coe n
 
-@[simp] lemma to_with_top_le {x y : enat} : Π [decidable x.dom]
-  [decidable y.dom], by exactI to_with_top x ≤ to_with_top y ↔ x ≤ y :=
+@[simp] lemma to_with_top_le {x y : enat} :
+  Π [decidable x.finite] [decidable y.finite], by exactI to_with_top x ≤ to_with_top y ↔ x ≤ y :=
 enat.cases_on y (by simp) (enat.cases_on x (by simp) (by intros; simp))
 
-@[simp] lemma to_with_top_lt {x y : enat} [decidable x.dom] [decidable y.dom] :
+@[simp] lemma to_with_top_lt {x y : enat} [decidable x.finite] [decidable y.finite] :
   to_with_top x < to_with_top y ↔ x < y :=
 by simp only [lt_iff_le_not_le, to_with_top_le]
 

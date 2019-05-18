@@ -707,7 +707,7 @@ lemma continuous_sigma_map {κ : Type*} {τ : κ → Type*} [Π k, topological_s
   continuous (sigma.map f₁ f₂) :=
 continuous_sigma $ λ i,
   show continuous (λ a, sigma.mk (f₁ i) (f₂ i a)),
-  from continuous.comp (hf i) continuous_sigma_mk
+  from continuous_sigma_mk.comp (hf i)
 
 /-- The sum of embeddings is an embedding. -/
 lemma embedding_sigma_map {τ : ι → Type*} [Π i, topological_space (τ i)]
@@ -870,7 +870,7 @@ continuous_iff_continuous_at.mpr $ assume ⟨a, l⟩,
 lemma continuous_insert_nth [topological_space α] [topological_space β] {n : ℕ} {i : fin (n+1)}
   {f : β → α} {g : β → vector α n} (hf : continuous f) (hg : continuous g) :
   continuous (λb, insert_nth (f b) i (g b)) :=
-continuous.comp (continuous.prod_mk hf hg) continuous_insert_nth'
+continuous_insert_nth'.comp (continuous.prod_mk hf hg)
 
 lemma continuous_at_remove_nth [topological_space α] {n : ℕ} {i : fin (n+1)} :
   ∀{l:vector α (n+1)}, continuous_at (remove_nth i) l
@@ -991,8 +991,8 @@ protected def refl (α : Type*) [topological_space α] : α ≃ₜ α :=
 { continuous_to_fun := continuous_id, continuous_inv_fun := continuous_id, .. equiv.refl α }
 
 protected def trans (h₁ : α ≃ₜ β) (h₂ : β ≃ₜ γ) : α ≃ₜ γ :=
-{ continuous_to_fun  := h₁.continuous_to_fun.comp h₂.continuous_to_fun,
-  continuous_inv_fun := h₂.continuous_inv_fun.comp h₁.continuous_inv_fun,
+{ continuous_to_fun  := h₂.continuous_to_fun.comp h₁.continuous_to_fun,
+  continuous_inv_fun := h₁.continuous_inv_fun.comp h₂.continuous_inv_fun,
   .. equiv.trans h₁.to_equiv h₂.to_equiv }
 
 protected def symm (h : α ≃ₜ β) : β ≃ₜ α :=
@@ -1061,9 +1061,9 @@ protected lemma quotient_map (h : α ≃ₜ β) : quotient_map h :=
 
 def prod_congr (h₁ : α ≃ₜ β) (h₂ : γ ≃ₜ δ) : (α × γ) ≃ₜ (β × δ) :=
 { continuous_to_fun  :=
-    continuous.prod_mk (continuous_fst.comp h₁.continuous) (continuous_snd.comp h₂.continuous),
+    continuous.prod_mk (h₁.continuous.comp continuous_fst) (h₂.continuous.comp continuous_snd),
   continuous_inv_fun :=
-    continuous.prod_mk (continuous_fst.comp h₁.symm.continuous) (continuous_snd.comp h₂.symm.continuous),
+    continuous.prod_mk (h₁.symm.continuous.comp continuous_fst) (h₂.symm.continuous.comp continuous_snd),
   .. h₁.to_equiv.prod_congr h₂.to_equiv }
 
 section
@@ -1077,9 +1077,9 @@ def prod_comm : (α × β) ≃ₜ (β × α) :=
 def prod_assoc : ((α × β) × γ) ≃ₜ (α × (β × γ)) :=
 { continuous_to_fun  :=
     continuous.prod_mk (continuous_fst.comp continuous_fst)
-      (continuous.prod_mk (continuous_fst.comp continuous_snd) continuous_snd),
+      (continuous.prod_mk (continuous_snd.comp continuous_fst) continuous_snd),
   continuous_inv_fun := continuous.prod_mk
-      (continuous.prod_mk continuous_fst (continuous_snd.comp continuous_fst))
+      (continuous.prod_mk continuous_fst (continuous_fst.comp continuous_snd))
       (continuous_snd.comp continuous_snd),
   .. equiv.prod_assoc α β γ }
 

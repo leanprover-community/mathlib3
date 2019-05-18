@@ -44,7 +44,7 @@ topological_monoid.continuous_mul α
 lemma continuous_mul [topological_space β] {f : β → α} {g : β → α}
   (hf : continuous f) (hg : continuous g) :
   continuous (λx, f x * g x) :=
-(hf.prod_mk hg).comp continuous_mul'
+continuous_mul'.comp (hf.prod_mk hg)
 
 -- @[to_additive continuous_smul]
 lemma continuous_pow : ∀ n : ℕ, continuous (λ a : α, a ^ n)
@@ -84,8 +84,8 @@ continuous_iff_continuous_at.2 $ assume x, tendsto_list_prod l $ assume c hc,
 @[to_additive prod.topological_add_monoid]
 instance [topological_space β] [monoid β] [topological_monoid β] : topological_monoid (α × β) :=
 ⟨continuous.prod_mk
-  (continuous_mul (continuous_fst.comp continuous_fst) (continuous_snd.comp continuous_fst))
-  (continuous_mul (continuous_fst.comp continuous_snd) (continuous_snd.comp continuous_snd)) ⟩
+  (continuous_mul (continuous_fst.comp continuous_fst) (continuous_fst.comp continuous_snd))
+  (continuous_mul (continuous_snd.comp continuous_fst) (continuous_snd.comp continuous_snd)) ⟩
 
 attribute [instance] prod.topological_add_monoid
 

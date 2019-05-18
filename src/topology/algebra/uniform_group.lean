@@ -323,7 +323,7 @@ begin
     change e t.2 - e t.1 = e (t.2 - t.1),
     rwa ← is_add_group_hom.map_sub e t.2 t.1 },
   have lim : tendsto (λ x : α × α, x.2-x.1) (nhds (x₀, x₀)) (nhds (e 0)),
-    { have := continuous.tendsto (continuous.comp continuous_swap continuous_sub') (x₀, x₀),
+    { have := continuous.tendsto (continuous_sub'.comp continuous_swap) (x₀, x₀),
       simpa [-sub_eq_add_neg, sub_self, eq.symm (is_add_group_hom.map_zero e)] using this },
   have := de.tendsto_comap_nhds_nhds lim comm,
   simp [-sub_eq_add_neg, this]
@@ -426,7 +426,7 @@ begin
   rcases this with ⟨y₁, y₁_in⟩,
 
   rcases (extend_Z_bilin_aux de df hφ W_nhd x₀ y₁) with ⟨U₂, U₂_nhd, HU⟩,
-  rcases (extend_Z_bilin_aux df de (continuous.comp continuous_swap hφ) W_nhd y₀ x₁) with ⟨V₂, V₂_nhd, HV⟩,
+  rcases (extend_Z_bilin_aux df de (hφ.comp continuous_swap) W_nhd y₀ x₁) with ⟨V₂, V₂_nhd, HV⟩,
 
   existsi [U₁ ∩ U₂, inter_mem_sets U₁_nhd U₂_nhd,
             V₁ ∩ V₂, inter_mem_sets V₁_nhd V₂_nhd],

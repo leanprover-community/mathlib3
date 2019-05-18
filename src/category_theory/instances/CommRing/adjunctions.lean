@@ -7,7 +7,7 @@ forgetful functor from commutative rings to types.
 -/
 
 import category_theory.instances.CommRing.basic
-import category_theory.adjunction
+import category_theory.adjunction.basic
 import data.mv_polynomial
 
 universe u
@@ -22,12 +22,12 @@ local attribute [instance, priority 0] subtype.fintype set_fintype classical.pro
 
 noncomputable def polynomial_ring : Type u ⥤ CommRing.{u} :=
 { obj := λ α, ⟨mv_polynomial α ℤ, by apply_instance⟩,
-  map := λ α β f, ⟨eval₂ C (X ∘ f), by apply_instance⟩,
+  map := λ α β f, ⟨eval₂ C (X ∘ f), by apply_instance⟩, -- TODO should use `rename f` here.
   map_id' := λ α, subtype.ext.mpr $ funext $ eval₂_eta,
   map_comp' := λ α β γ f g, subtype.ext.mpr $ funext $ λ p,
-  by apply mv_polynomial.induction_on p; intros;
+  by { apply mv_polynomial.induction_on p; intros;
     simp only [*, eval₂_add, eval₂_mul, eval₂_C, eval₂_X, comp_val,
-      eq_self_iff_true, function.comp_app, types_comp] at * }
+      function.comp_app, types_comp] at * } }
 
 @[simp] lemma polynomial_ring_obj_α {α : Type u} :
   (polynomial_ring.obj α).α = mv_polynomial α ℤ := rfl

@@ -136,6 +136,9 @@ end
 section comm_ring
   variable [comm_ring α]
 
+  theorem mul_self_sub_mul_self (a b : α) : a * a - b * b = (a + b) * (a - b) :=
+  by rw [add_mul, mul_sub, mul_sub, mul_comm a b, sub_add_sub_cancel]
+
   @[simp] lemma dvd_neg (a b : α) : (a ∣ -b) ↔ (a ∣ b) :=
   ⟨dvd_of_dvd_neg, dvd_neg_of_dvd⟩
 

@@ -63,9 +63,6 @@ def Int : CommRing := ⟨ℤ, infer_instance⟩
 
 def Int.cast {R : CommRing} : Int ⟶ R := { val := int.cast, property := by apply_instance }
 
-def int.eq_cast' {R : Type u} [ring R] (f : int → R) [is_ring_hom f] : f = int.cast :=
-funext $ int.eq_cast f (is_ring_hom.map_one f) (λ _ _, is_ring_hom.map_add f)
-
 def Int.hom_unique {R : CommRing} : unique (Int ⟶ R) :=
 { default := Int.cast,
   uniq := λ f, subtype.ext.mpr $ funext $ int.eq_cast f f.2.map_one f.2.map_add }

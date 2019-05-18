@@ -1165,6 +1165,9 @@ begin
       Hadd, show f (n+1) = n+1, from H (n+1)]
 end
 
+lemma eq_cast' [ring α] (f : ℤ → α) [is_ring_hom f] : f = int.cast :=
+funext $ int.eq_cast f (is_ring_hom.map_one f) (λ _ _, is_ring_hom.map_add f)
+
 @[simp, squash_cast] theorem cast_id (n : ℤ) : ↑n = n :=
 (eq_cast id rfl (λ _ _, rfl) n).symm
 

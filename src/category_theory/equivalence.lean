@@ -120,8 +120,14 @@ section
 variables {F : C ⥤ D} {G : D ⥤ C} (η : 𝟭 C ≅ F ⋙ G) (ε : G ⋙ F ≅ 𝟭 D)
 
 def adjointify_η : 𝟭 C ≅ F ⋙ G :=
-η ≪≫ iso_whisker_left F ((left_unitor G).symm ≪≫
-  iso_whisker_right ε.symm G) ≪≫ iso_whisker_right η.symm (F ⋙ G)
+calc
+  𝟭 C ≅ F ⋙ G               : η
+  ... ≅ F ⋙ (𝟭 D ⋙ G)      : iso_whisker_left F (left_unitor G).symm
+  ... ≅ F ⋙ ((G ⋙ F) ⋙ G) : iso_whisker_left F (iso_whisker_right ε.symm G)
+  ... ≅ F ⋙ (G ⋙ (F ⋙ G)) : iso_whisker_left F (associator G F G)
+  ... ≅ (F ⋙ G) ⋙ (F ⋙ G) : (associator F G (F ⋙ G)).symm
+  ... ≅ 𝟭 C ⋙ (F ⋙ G)      : iso_whisker_right η.symm (F ⋙ G)
+  ... ≅ F ⋙ G               : left_unitor (F ⋙ G)
 
 lemma adjointify_η_ε (X : C) :
   F.map ((adjointify_η η ε).hom.app X) ≫ ε.hom.app (F.obj X) = 𝟙 (F.obj X) :=

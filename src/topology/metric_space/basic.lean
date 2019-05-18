@@ -744,7 +744,7 @@ uniform_continuous_dist'.continuous
 
 theorem continuous_dist [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, dist (f b) (g b)) :=
-(hf.prod_mk hg).comp continuous_dist'
+continuous_dist'.comp (hf.prod_mk hg)
 
 theorem tendsto_dist {f g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) :

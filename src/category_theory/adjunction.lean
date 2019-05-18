@@ -7,6 +7,8 @@ Authors: Reid Barton, Johan Commelin
 import category_theory.limits.preserves
 import category_theory.whiskering
 
+open opposite
+
 namespace category_theory
 open category
 open category_theory.limits

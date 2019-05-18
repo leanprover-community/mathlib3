@@ -82,7 +82,7 @@ begin
     have f := (Kuratowski_embedding_isometry α).isometric_on_range.trans e,
     use λx, f x,
     split,
-    { apply f.isometry.comp isometry_subtype_val },
+    { apply isometry_subtype_val.comp f.isometry },
     { rw [range_comp, f.range_coe, set.image_univ, set.range_coe_subtype] } },
   { rintros ⟨Ψ, ⟨isomΨ, rangeΨ⟩⟩,
     have f := ((Kuratowski_embedding_isometry α).isometric_on_range.symm.trans
@@ -206,19 +206,19 @@ begin
   let A : nonempty_compacts ℓ_infty_ℝ := ⟨F '' (range Φ'), ⟨by simp, begin
       rw [← range_comp, ← image_univ],
       exact compact_image compact_univ
-            (IΦ'.continuous.comp (Kuratowski_embedding_isometry _).continuous),
+            ((Kuratowski_embedding_isometry _).continuous.comp IΦ'.continuous),
     end⟩⟩,
   let B : nonempty_compacts ℓ_infty_ℝ := ⟨F '' (range Ψ'), ⟨by simp, begin
       rw [← range_comp, ← image_univ],
       exact compact_image compact_univ
-        (IΨ'.continuous.comp (Kuratowski_embedding_isometry _).continuous),
+        ((Kuratowski_embedding_isometry _).continuous.comp IΨ'.continuous),
     end⟩⟩,
   have Aα : ⟦A⟧ = to_GH_space α,
   { rw eq_to_GH_space_iff,
-    exact ⟨λx, F (Φ' x), ⟨IΦ'.comp (Kuratowski_embedding_isometry _), by rw range_comp⟩⟩ },
+    exact ⟨λx, F (Φ' x), ⟨(Kuratowski_embedding_isometry _).comp IΦ', by rw range_comp⟩⟩ },
   have Bβ : ⟦B⟧ = to_GH_space β,
   { rw eq_to_GH_space_iff,
-    exact ⟨λx, F (Ψ' x), ⟨IΨ'.comp (Kuratowski_embedding_isometry _), by rw range_comp⟩⟩ },
+    exact ⟨λx, F (Ψ' x), ⟨(Kuratowski_embedding_isometry _).comp IΨ', by rw range_comp⟩⟩ },
   refine cInf_le ⟨0, begin simp, assume t _ _ _ _ ht, rw ← ht, exact Hausdorff_dist_nonneg end⟩ _,
   apply (mem_image _ _ _).2,
   existsi (⟨A, B⟩ : nonempty_compacts ℓ_infty_ℝ × nonempty_compacts ℓ_infty_ℝ),
@@ -362,8 +362,8 @@ begin
   let Φ := F ∘ optimal_GH_injl α β,
   let Ψ := F ∘ optimal_GH_injr α β,
   refine ⟨Φ, Ψ, _, _, _⟩,
-  { exact isometry.comp (isometry_optimal_GH_injl α β) (Kuratowski_embedding_isometry _) },
-  { exact isometry.comp (isometry_optimal_GH_injr α β) (Kuratowski_embedding_isometry _) },
+  { exact (Kuratowski_embedding_isometry _).comp (isometry_optimal_GH_injl α β) },
+  { exact (Kuratowski_embedding_isometry _).comp (isometry_optimal_GH_injr α β) },
   { rw [← image_univ, ← image_univ, image_comp F, image_univ, image_comp F (optimal_GH_injr α β),
       image_univ, ← Hausdorff_dist_optimal],
     exact (Hausdorff_dist_image (Kuratowski_embedding_isometry _)).symm },
@@ -442,8 +442,8 @@ instance GH_space_metric_space : metric_space GH_space :=
       ... ≤ Hausdorff_dist (range ((to_glue_l hΦ hΨ) ∘ (optimal_GH_injl X Y)))
                        (range ((to_glue_r hΦ hΨ) ∘ (optimal_GH_injr Y Z))) :
         GH_dist_le_Hausdorff_dist
-          (isometry.comp (isometry_optimal_GH_injl X Y) (to_glue_l_isometry hΦ hΨ))
-          (isometry.comp (isometry_optimal_GH_injr Y Z) (to_glue_r_isometry hΦ hΨ))
+          ((to_glue_l_isometry hΦ hΨ).comp (isometry_optimal_GH_injl X Y))
+          ((to_glue_r_isometry hΦ hΨ).comp (isometry_optimal_GH_injr Y Z))
       ... ≤ Hausdorff_dist (range ((to_glue_l hΦ hΨ) ∘ (optimal_GH_injl X Y)))
                            (range ((to_glue_l hΦ hΨ) ∘ (optimal_GH_injr X Y)))
           + Hausdorff_dist (range ((to_glue_l hΦ hΨ) ∘ (optimal_GH_injr X Y)))
@@ -453,10 +453,10 @@ instance GH_space_metric_space : metric_space GH_space :=
             (by simp [-nonempty_subtype]) (by simp [-nonempty_subtype]) _ _),
           { rw [← image_univ],
             exact bounded_of_compact (compact_image compact_univ (isometry.continuous
-              (isometry.comp (isometry_optimal_GH_injl X Y) (to_glue_l_isometry hΦ hΨ)))) },
+              ((to_glue_l_isometry hΦ hΨ).comp (isometry_optimal_GH_injl X Y)))) },
           { rw [← image_univ],
             exact bounded_of_compact (compact_image compact_univ (isometry.continuous
-              (isometry.comp (isometry_optimal_GH_injr X Y) (to_glue_l_isometry hΦ hΨ)))) }
+              ((to_glue_l_isometry hΦ hΨ).comp (isometry_optimal_GH_injr X Y)))) }
         end
       ... = Hausdorff_dist ((to_glue_l hΦ hΨ) '' (range (optimal_GH_injl X Y)))
                            ((to_glue_l hΦ hΨ) '' (range (optimal_GH_injr X Y)))
@@ -923,7 +923,7 @@ def aux_gluing (n : ℕ) : aux_gluing_struct (X n) := nat.rec_on n
     metric := metric.metric_space_glue_space a.isom (isometry_optimal_GH_injl (X n) (X n.succ)),
     embed  := (to_glue_r a.isom (isometry_optimal_GH_injl (X n) (X n.succ)))
               ∘ (optimal_GH_injr (X n) (X n.succ)),
-    isom   := (isometry_optimal_GH_injr (X n) (X n.succ)).comp (to_glue_r_isometry _ _) })
+    isom   := (to_glue_r_isometry _ _).comp (isometry_optimal_GH_injr (X n) (X n.succ)) })
 
 /-- The Gromov-Hausdorff space is complete. -/
 instance : complete_space (GH_space) :=
@@ -946,8 +946,8 @@ begin
   have I : ∀n, isometry (f n),
   { assume n,
     apply isometry.comp,
-    { apply to_glue_l_isometry },
-    { assume x y, refl } },
+    { assume x y, refl },
+    { apply to_glue_l_isometry } },
   -- consider the inductive limit Z0 of the Y n, and then its completion Z
   let Z0 := metric.inductive_limit I,
   let Z := uniform_space.completion Z0,
@@ -957,8 +957,8 @@ begin
   let X2 := λn, range (coeZ ∘ (Φ n) ∘ (Y n).embed),
   have isom : ∀n, isometry (coeZ ∘ (Φ n) ∘ (Y n).embed),
   { assume n,
-    apply isometry.comp _ completion.coe_isometry,
-    apply isometry.comp (Y n).isom _,
+    apply isometry.comp completion.coe_isometry _,
+    apply isometry.comp _ (Y n).isom,
     apply to_inductive_limit_isometry },
   -- The Hausdorff distance of `X2 n` and `X2 (n+1)` is by construction the distance between
   -- `u n` and `u (n+1)`, therefore bounded by 1/2^n
@@ -981,8 +981,8 @@ begin
     rw range_comp at X2nsucc,
     rw [X2n, X2nsucc, Hausdorff_dist_image, Hausdorff_dist_optimal, ← dist_GH_dist],
     { exact hu n n n.succ (le_refl n) (le_succ n) },
-    { apply isometry.comp _ completion.coe_isometry,
-      apply ((to_glue_r_isometry _ _).comp (ic n)).comp,
+    { apply isometry.comp completion.coe_isometry _,
+      apply isometry.comp _ ((ic n).comp (to_glue_r_isometry _ _)),
       apply to_inductive_limit_isometry } },
   -- consider `X2 n` as a member `X3 n` of the type of nonempty compact subsets of `Z`, which
   -- is a metric space

@@ -23,6 +23,7 @@ include 𝒞
 open category_theory
 open category_theory.category
 open category_theory.functor
+open opposite
 
 namespace category_theory
 

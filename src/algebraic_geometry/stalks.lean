@@ -29,15 +29,16 @@ namespace stalk_map
 @[simp] lemma id (X : PresheafedSpace.{v} C) (x : X) : stalk_map (𝟙 X) x = 𝟙 (X.stalk x) :=
 begin
   dsimp [stalk_map],
-  simp only [PresheafedSpace.id_c, functor.map_comp, stalk_pushforward.id, category.assoc],
-  rw [←category_theory.functor.map_comp, ←category_theory.functor.map_comp],
+  erw [stalk_pushforward.id],
+  rw [←category_theory.functor.map_comp],
   convert (stalk_functor C x).map_id X.𝒪,
   ext U,
   op_induction U,
+  cases U,
   dsimp,
-  simp only [pushforward.id_hom_app, category.id_comp, opens.op_map_id_obj, opens.map_id_obj],
-  rw [←category_theory.functor.map_comp],
-  rw [eq_to_hom_op, eq_to_hom_trans, eq_to_hom_refl, category_theory.functor.map_id],
+  simp only [pushforward.id_hom_app],
+  dsimp,
+  simp,
 end
 .
 

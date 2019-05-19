@@ -17,12 +17,24 @@ cache:
     - $TRAVIS_BUILD_DIR/src/
     - $HOME/.elan
 
-install:
+install: &lean_install
   - |
     if [ ! -d "$HOME/.elan/toolchains/" ]; then
       curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
     fi
-  - source ~/.elan/env
+  - elan || true
+  - |
+    if [ $TRAVIS_OS_NAME = "windows" ]; then
+      echo 'PATH="$HOME/.elan/bin:$PATH"' >> $HOME/.profile
+      source $HOME/.profile
+    else
+      source ~/.elan/env
+    fi
+  - |
+    if [ $TRAVIS_OS_NAME = "osx" ] ; then
+      brew install coreutils
+      alias timeout=gtimeout
+    fi
   - mkdir $HOME/scripts || echo ""
   - export PATH="$HOME/scripts:$PATH"
   - export OLEAN_RS=https://github.com/cipher1024/olean-rs/releases
@@ -40,53 +52,105 @@ install:
 
 jobs:
   include:
-    - stage: Pre-build-1
-      if: type != cron
-      env: TASK="check Lean proofs"
-      script:
-        - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
+    # - stage: Pre-build-1
+    #   if: type != cron
+    #   env: TASK="check Lean proofs"
+    #   script:
+    #     - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
 
     - stage: Pre-build-1
-      env: TASK="check Lean proofs" LEAN="nightly"
-      if: type = cron
+      name: "Check proofs - nightly"
+      # if: type = cron
+      os: linux
       script:
         - elan toolchain install leanprover-community/lean:nightly
         - elan override set leanprover-community/lean:nightly
         - find . -name *.olean -delete
         - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
 
-    - stage: Pre-build-2
-      if: type != cron
-      env: TASK="check Lean proofs"
+    - name: "Check proofs - nightly"
+      os: osx
       script:
+        - elan toolchain install leanprover-community/lean:nightly
+        - elan override set leanprover-community/lean:nightly
+        - find . -name *.olean -delete
         - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
 
+    - name: "Check proofs - nightly"
+      os: windows
+      script:
+        - travis_wait elan toolchain install leanprover-community/lean:nightly
+        - elan override set leanprover-community/lean:nightly
+        - find . -name *.olean -delete
+        - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
+
+    # - stage: Pre-build-2
+    #   if: type != cron
+    #   env: TASK="check Lean proofs"
+    #   script:
+    #     - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
+
     - stage: Pre-build-2
-      env: TASK="check Lean proofs" LEAN="nightly"
-      if: type = cron
+      name: "Check proofs - nightly"
+      # if: type = cron
+      os: linux
       script:
         - elan toolchain install leanprover-community/lean:nightly
         - elan override set leanprover-community/lean:nightly
         - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
 
-    - stage: Test
-      env: TASK="check Lean proofs"
-      if: type != cron
+    - name: "Check proofs - nightly"
+      os: osx
       script:
-        - travis_long "leanpkg test"
-        - lean --recursive --export=mathlib.txt src/
-        - travis_long "leanchecker mathlib.txt"
-        - sh scripts/deploy_nightly.sh
+        - elan toolchain install leanprover-community/lean:nightly
+        - elan override set leanprover-community/lean:nightly
+        - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
+
+    - name: "Check proofs - nightly"
+      os: windows
+      script:
+        - elan toolchain install leanprover-community/lean:nightly
+        - elan override set leanprover-community/lean:nightly
+        - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
+
+    # - stage: Test
+    #   env: TASK="check Lean proofs"
+    #   if: type != cron
+    #   script:
+    #     - travis_long "leanpkg test"
+    #     - lean --recursive --export=mathlib.txt src/
+    #     - travis_long "leanchecker mathlib.txt"
+    #     - sh scripts/deploy_nightly.sh
 
     - stage: Test
-      env: TASK="check Lean proofs" LEAN="nightly"
-      if: type = cron
+      name: "Check proofs - nightly"
+      # if: type = cron
+      os: linux
       script:
         - elan toolchain install leanprover-community/lean:nightly
         - elan override set leanprover-community/lean:nightly
         - travis_long "leanpkg test"
         - lean --recursive --export=mathlib.txt src/
         - travis_long "leanchecker mathlib.txt"
+
+    - name: "Check proofs - nightly"
+      os: osx
+      script:
+        - elan toolchain install leanprover-community/lean:nightly
+        - elan override set leanprover-community/lean:nightly
+        - travis_long "leanpkg test"
+        - lean --recursive --export=mathlib.txt src/
+        - travis_long "leanchecker mathlib.txt"
+
+    - name: "Check proofs - nightly"
+      os: windows
+      script:
+        - elan toolchain install leanprover-community/lean:nightly
+        - elan override set leanprover-community/lean:nightly
+        - travis_long "leanpkg test"
+        - lean --recursive --export=mathlib.txt src/
+        - travis_long "leanchecker mathlib.txt"
+
 
   # allow_failures:
   #   - env: TASK="check Lean proofs" LEAN="nightly"

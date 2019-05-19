@@ -310,6 +310,14 @@ end
 /-- neighbourhood filter -/
 def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal s)
 
+lemma nhds_def (a : α) : nhds a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal s) := rfl
+
+lemma le_nhds_iff {f a} : f ≤ nhds a ↔ ∀ s : set α, a ∈ s → is_open s → s ∈ f :=
+by simp [nhds_def]
+
+lemma nhds_le_of_le {f a} {s : set α} (h : a ∈ s) (o : is_open s) (sf : principal s ≤ f) : nhds a ≤ f :=
+by rw nhds_def; exact infi_le_of_le s (infi_le_of_le ⟨h, o⟩ sf)
+
 lemma nhds_sets {a : α} : (nhds a).sets = {s | ∃t⊆s, is_open t ∧ a ∈ t} :=
 calc (nhds a).sets = (⋃s∈{s : set α| a ∈ s ∧ is_open s}, (principal s).sets) : infi_sets_eq'
   (assume x ⟨hx₁, hx₂⟩ y ⟨hy₁, hy₂⟩,
@@ -332,6 +340,8 @@ calc map f (nhds a) = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, map f (pr
       le_principal_iff.2 (inter_subset_right _ _)⟩)
     ⟨univ, mem_univ _, is_open_univ⟩
   ... = _ : by simp only [map_principal]
+
+attribute [irreducible] nhds
 
 lemma mem_nhds_sets_iff {a : α} {s : set α} :
  s ∈ nhds a ↔ ∃t⊆s, is_open t ∧ a ∈ t :=
@@ -384,10 +394,10 @@ all_mem_nhds_filter _ _ (λ s t h, preimage_mono h) _
 lemma tendsto_const_nhds {a : α} {f : filter β} : tendsto (λb:β, a) f (nhds a) :=
 tendsto_nhds.mpr $ assume s hs ha, univ_mem_sets' $ assume _, ha
 
-
 lemma pure_le_nhds : pure ≤ (nhds : α → filter α) :=
-assume a, le_infi $ assume s, le_infi $ assume ⟨h₁, _⟩, principal_mono.mpr $
-  singleton_subset_iff.2 h₁
+assume a, by rw nhds_def; exact le_infi
+  (assume s, le_infi $ assume ⟨h₁, _⟩, principal_mono.mpr $
+    singleton_subset_iff.2 h₁)
 
 lemma tendsto_pure_nhds [topological_space β] (f : α → β) (a : α) :
   tendsto f (pure a) (nhds (f a)) :=
@@ -759,7 +769,6 @@ begin
   apply h', rw mem_nhds_sets_iff, exact ⟨s, set.subset.refl _, os, ys⟩
 end
 
-
 lemma image_closure_subset_closure_image {f : α → β} {s : set α} (h : continuous f) :
   f '' closure s ⊆ closure (f '' s) :=
 have ∀ (a : α), nhds a ⊓ principal s ≠ ⊥ → nhds (f a) ⊓ principal (f '' s) ≠ ⊥,
@@ -778,4 +787,5 @@ lemma mem_closure [topological_space α] [topological_space β]
   (hf : continuous f) (ha : a ∈ closure s) (ht : ∀a∈s, f a ∈ t) : f a ∈ closure t :=
 subset.trans (image_closure_subset_closure_image hf) (closure_mono $ image_subset_iff.2 ht) $
   (mem_image_of_mem f ha)
+
 end continuous

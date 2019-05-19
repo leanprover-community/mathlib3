@@ -18,8 +18,6 @@ instance types : large_category (Sort u) :=
 @[simp] lemma types_hom {α β : Sort u} : (α ⟶ β) = (α → β) := rfl
 @[simp] lemma types_id (X : Sort u) : 𝟙 X = id := rfl
 @[simp] lemma types_comp {X Y Z : Sort u} (f : X ⟶ Y) (g : Y ⟶ Z) : f ≫ g = g ∘ f := rfl
--- @[simp] lemma types_id {α : Sort u} (a : α) : (𝟙 α : α → α) a = a := rfl
--- @[simp] lemma types_comp {α β γ : Sort u} (f : α → β) (g : β → γ) (a : α) : (((f : α ⟶ β) ≫ (g : β ⟶ γ)) : α ⟶ γ) a = g (f a) := rfl
 
 namespace functor_to_types
 variables {C : Sort u} [𝒞 : category.{v} C] (F G H : C ⥤ Sort w) {X Y Z : C}

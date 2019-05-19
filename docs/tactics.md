@@ -560,6 +560,14 @@ by linarith
 `linarith using [t1, t2, t3]` will add `t1`, `t2`, `t3` to the local context and then run
 `linarith`.
 
+`linarith!` will use a stronger reducibility setting to try to identify atoms. For example,
+```lean
+example (x : ℚ) : id x ≥ x :=
+by linarith
+```
+will fail, because `linarith` will not identify `x` and `id x`. `linarith!` will.
+This can sometimes be expensive.
+
 `linarith {discharger := tac, restrict_type := tp, exfalso := ff}` takes a config object with three optional
 arguments.
 * `discharger` specifies a tactic to be used for reducing an algebraic equation in the

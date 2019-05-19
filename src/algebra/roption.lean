@@ -20,8 +20,8 @@ instance [has_zero α] : has_zero (roption α) := ⟨some (0:α)⟩
 instance [has_one α] :  has_one (roption α)  :=⟨some (1:α)⟩
 @[simp] lemma one_def [has_one α] : (1 : roption α) = ⟨true, λ _, (1:α)⟩ := rfl
 
-attribute [to_additive pi.has_zero] roption.has_one
-attribute [to_additive pi.zero_apply] roption.one_def
+attribute [to_additive roption.has_zero] roption.has_one
+attribute [to_additive roption.zero_def] roption.one_def
 
 instance [has_add α] : has_add (roption α) := ⟨λ x y, ⟨x.dom ∧ y.dom, λ h, x.get (h.1)+ y.get (h.2)⟩⟩
 @[simp] lemma add_def [has_add α] (x y : roption α) : x+y = ⟨x.dom ∧ y.dom, λ h, x.get (h.1)+ y.get (h.2)  ⟩ := rfl
@@ -29,8 +29,8 @@ instance [has_add α] : has_add (roption α) := ⟨λ x y, ⟨x.dom ∧ y.dom, �
 instance [has_mul α] : has_mul (roption α) := ⟨λ x y, ⟨x.dom ∧  y.dom, λ h, x.get (h.1) * y.get (h.2)⟩⟩
 @[simp] lemma mul_def  [has_mul α] (x y : roption α) : x * y = ⟨x.dom ∧ y.dom , λ h,  x.get (h.1) * y.get (h.2)⟩ := rfl
 
-attribute [to_additive pi.has_add] roption.has_mul
-attribute [to_additive pi.add_apply] roption.mul_def
+attribute [to_additive roption.has_add] roption.has_mul
+attribute [to_additive roption.add_def] roption.mul_def
 
 instance [has_neg α] : has_neg (roption α) := ⟨λ x, ⟨x.dom , λ h, -x.get h⟩⟩
 @[simp] lemma neg_def [has_neg α] (x : roption α) : - x = ⟨x.dom , λ h, - x.get h⟩ := rfl
@@ -38,8 +38,8 @@ instance [has_neg α] : has_neg (roption α) := ⟨λ x, ⟨x.dom , λ h, -x.get
 instance [has_inv α] : has_inv (roption α) := ⟨λ x, ⟨x.dom , λ h, (x.get h)⁻¹⟩⟩
 @[simp] lemma inv_def [has_inv α ] (x : roption α) : x⁻¹ = ⟨x.dom , λ h, (x.get h)⁻¹⟩ := rfl
 
-attribute [to_additive pi.has_neg] roption.has_inv
-attribute [to_additive pi.neg_apply] roption.inv_def
+attribute [to_additive roption.has_neg] roption.has_inv
+attribute [to_additive roption.neg_def] roption.inv_def
 
 instance [has_scalar α β] : has_scalar α (roption β) := ⟨λ a f, ⟨f.dom, λ h, a • (f.get h)⟩⟩
 @[simp] lemma smul_def [has_scalar α β] (a:α) (x: roption β) : a • x = ⟨x.dom , λ h, a • x.get h⟩ := rfl

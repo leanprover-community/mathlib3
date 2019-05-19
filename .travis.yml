@@ -79,7 +79,7 @@ jobs:
     - name: "Check proofs - nightly"
       os: windows
       script:
-        - travis_wait elan toolchain install leanprover-community/lean:nightly
+        - travis_wait 60 cmd.exe /C '%TRAVIS_BUILD_DIR%\scripts\install_lean_nightly.bat'
         - elan override set leanprover-community/lean:nightly
         - find . -name *.olean -delete
         - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py

@@ -286,21 +286,21 @@ meta def list.mfind {α} (tac : α → tactic unit) : list α → tactic α
 | [] := failed
 | (h::t) := tac h >> return h <|> list.mfind t
 
-meta def rb_map.find_defeq {v} (m : expr_map v) (e : expr) : tactic v :=
-prod.snd <$> list.mfind (λ p, is_def_eq e p.1) m.to_list
+meta def rb_map.find_defeq (red : transparency) {v} (m : expr_map v) (e : expr) : tactic v :=
+prod.snd <$> list.mfind (λ p, is_def_eq e p.1 red) m.to_list
 
 /--
   Turns an expression into a map from ℕ to ℤ, for use in a comp object.
     The expr_map ℕ argument identifies which expressions have already been assigned numbers.
     Returns a new map.
 -/
-meta def map_of_expr : expr_map ℕ → expr → tactic (expr_map ℕ × rb_map ℕ ℤ)
+meta def map_of_expr (red : transparency) : expr_map ℕ → expr → tactic (expr_map ℕ × rb_map ℕ ℤ)
 | m e@`(%%e1 * %%e2) :=
    (do (m', comp1) ← map_of_expr m e1,
       (m', comp2) ← map_of_expr m' e2,
       mp ← map_of_expr_mul_aux comp1 comp2,
       return (m', mp)) <|>
-   (do k ← rb_map.find_defeq m e, return (m, mk_rb_map.insert k 1)) <|>
+   (do k ← rb_map.find_defeq red m e, return (m, mk_rb_map.insert k 1)) <|>
    (let n := m.size + 1 in return (m.insert e n, mk_rb_map.insert n 1))
 | m `(%%e1 + %%e2) :=
    do (m', comp1) ← map_of_expr m e1,
@@ -316,7 +316,7 @@ meta def map_of_expr : expr_map ℕ → expr → tactic (expr_map ℕ × rb_map 
   | some 0 := return ⟨m, mk_rb_map⟩
   | some z := return ⟨m, mk_rb_map.insert 0 z⟩
   | none :=
-    (do k ← rb_map.find_defeq m e, return (m, mk_rb_map.insert k 1)) <|>
+    (do k ← rb_map.find_defeq red m e, return (m, mk_rb_map.insert k 1)) <|>
     (let n := m.size + 1 in return (m.insert e n, mk_rb_map.insert n 1))
   end
 
@@ -326,16 +326,16 @@ meta def parse_into_comp_and_expr : expr → option (ineq × expr)
 | `(%%e = 0) := (ineq.eq, e)
 | _ := none
 
-meta def to_comp (e : expr) (m : expr_map ℕ) : tactic (comp × expr_map ℕ) :=
+meta def to_comp (red : transparency) (e : expr) (m : expr_map ℕ) : tactic (comp × expr_map ℕ) :=
 do (iq, e) ← parse_into_comp_and_expr e,
-   (m', comp') ← map_of_expr m e,
+   (m', comp') ← map_of_expr red m e,
    return ⟨⟨iq, comp'⟩, m'⟩
 
-meta def to_comp_fold : expr_map ℕ → list expr →
+meta def to_comp_fold (red : transparency) : expr_map ℕ → list expr →
       tactic (list (option comp) × expr_map ℕ)
 | m [] := return ([], m)
 | m (h::t) :=
-  (do (c, m') ← to_comp h m,
+  (do (c, m') ← to_comp red h m,
       (l, mp) ← to_comp_fold m' t,
       return (c::l, mp)) <|>
   (do (l, mp) ← to_comp_fold m t,
@@ -344,9 +344,9 @@ meta def to_comp_fold : expr_map ℕ → list expr →
 /--
   Takes a list of proofs of props of the form t {<, ≤, =} 0, and creates a linarith_structure.
 -/
-meta def mk_linarith_structure (l : list expr) : tactic (linarith_structure × rb_map ℕ (expr × expr)) :=
+meta def mk_linarith_structure (red : transparency) (l : list expr) : tactic (linarith_structure × rb_map ℕ (expr × expr)) :=
 do pftps ← l.mmap infer_type,
-  (l', map) ← to_comp_fold mk_rb_map pftps,
+  (l', map) ← to_comp_fold red mk_rb_map pftps,
   let lz := list.enum $ ((l.zip pftps).zip l').filter_map (λ ⟨a, b⟩, prod.mk a <$> b),
   let prmap := rb_map.of_list $ lz.map (λ ⟨n, x⟩, (n, x.1)),
   let vars : rb_set ℕ := rb_map.set_of_list $ list.range map.size.succ,
@@ -354,8 +354,8 @@ do pftps ← l.mmap infer_type,
     lz.map (λ ⟨n, x⟩, ⟨x.2, comp_source.assump n⟩),
   return (⟨vars, pc⟩, prmap)
 
-meta def linarith_monad.run {α} (tac : linarith_monad α) (l : list expr) : tactic ((pcomp ⊕ α) × rb_map ℕ (expr × expr)) :=
-do (struct, inputs) ← mk_linarith_structure l,
+meta def linarith_monad.run (red : transparency) {α} (tac : linarith_monad α) (l : list expr) : tactic ((pcomp ⊕ α) × rb_map ℕ (expr × expr)) :=
+do (struct, inputs) ← mk_linarith_structure red l,
 match (state_t.run (validate >> tac) struct).run with
 | (except.ok (a, _)) := return (sum.inr a, inputs)
 | (except.error contr) := return (sum.inl contr, inputs)
@@ -450,6 +450,7 @@ meta structure linarith_config :=
 (restrict_type : option Type := none)
 (restrict_type_reflect : reflected restrict_type . apply_instance)
 (exfalso : bool := tt)
+(transparency : transparency := reducible)
 
 meta def ineq_pf_tp (pf : expr) : tactic expr :=
 do (_, z) ← infer_type pf >>= get_rel_sides,
@@ -482,7 +483,7 @@ meta def prove_false_by_linarith1 (cfg : linarith_config) : list expr → tactic
 | l@(h::t) :=
   do l' ← add_neg_eq_pfs l,
      hz ← ineq_pf_tp h >>= mk_neg_one_lt_zero_pf,
-     (sum.inl contr, inputs) ← elim_all_vars.run (hz::l')
+     (sum.inl contr, inputs) ← elim_all_vars.run cfg.transparency (hz::l')
        | fail "linarith failed to find a contradiction",
      let coeffs := inputs.keys.map (λ k, (contr.src.flatten.ifind k)),
      let pfs : list expr := inputs.keys.map (λ k, (inputs.ifind k).1),
@@ -801,6 +802,7 @@ meta def linarith.interactive_aux (cfg : linarith_config) : option expr →
   `linarith` will use all relevant hypotheses in the local context.
   `linarith h1 h2 h3` will only use hypotheses h1, h2, h3.
   `linarith using [t1, t2, t3]` will add proof terms t1, t2, t3 to the local context.
+  `linarith!` will use a stronger reducibility setting to identify atoms.
 
   Config options:
   `linarith {exfalso := ff}` will fail on a goal that is neither an inequality nor `false`
@@ -808,8 +810,11 @@ meta def linarith.interactive_aux (cfg : linarith_config) : option expr →
   `linarith {discharger := tac}` will use `tac` instead of `ring` for normalization.
     Options: `ring2`, `ring SOP`, `simp`
 -/
-meta def tactic.interactive.linarith (ids : parse (many ident))
+meta def tactic.interactive.linarith (red : parse (optional (tk "!"))) (ids : parse (many ident))
      (using_hyps : parse (tk "using" *> pexpr_list)?) (cfg : linarith_config := {}) : tactic unit :=
+let cfg :=
+  if red.is_some then {cfg with transparency := semireducible, discharger := `[ring!]}
+  else cfg in
 linarith.interactive_aux cfg none ids using_hyps
 
 end

@@ -473,9 +473,10 @@ local postfix `?`:9001 := optional
 /-- Tactic for solving equations in the language of rings.
   This version of `ring` fails if the target is not an equality
   that is provable by the axioms of commutative (semi)rings. -/
-meta def ring1 (red : transparency) : tactic unit :=
+meta def ring1 (red : parse (tk "!")?) : tactic unit :=
+let transp := if red.is_some then semireducible else reducible in
 do `(%%e₁ = %%e₂) ← target,
-  ((e₁', p₁), (e₂', p₂)) ← ring_m.run red e₁ $
+  ((e₁', p₁), (e₂', p₂)) ← ring_m.run transp e₁ $
     prod.mk <$> eval e₁ <*> eval e₂,
   is_def_eq e₁' e₂',
   p ← mk_eq_symm p₂ >>= mk_eq_trans p₁,
@@ -499,12 +500,12 @@ end
   `ring SOP` will use sum-of-products form instead of horner form.
   `ring!` will use a more aggressive reducibility setting to identify atoms. -/
 meta def ring (red : parse (tk "!")?) (SOP : parse ring.mode) (loc : parse location) : tactic unit :=
-let transp := if red.is_some then semireducible else reducible in
 match loc with
-| interactive.loc.ns [none] := ring1 transp
+| interactive.loc.ns [none] := ring1 red
 | _ := failed
 end <|>
 do ns ← loc.get_locals,
+   let transp := if red.is_some then semireducible else reducible,
    tt ← tactic.replace_at (normalize transp SOP) ns loc.include_goal
       | fail "ring failed to simplify",
    when loc.include_goal $ try tactic.reflexivity
@@ -521,7 +522,7 @@ local postfix `?`:9001 := optional
 
 meta def ring (red : parse (lean.parser.tk "!")?) (SOP : parse ring.mode) : conv unit :=
 let transp := if red.is_some then semireducible else reducible in
-discharge_eq_lhs (ring1 transp)
+discharge_eq_lhs (ring1 red)
 <|> replace_lhs (normalize transp SOP)
 <|> fail "ring failed to simplify"
 

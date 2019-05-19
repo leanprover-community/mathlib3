@@ -536,7 +536,7 @@ begin
   rcases hs xα with ⟨xs, hxs, Dxs⟩,
   have sne : s ≠ ∅ := ne_empty_of_mem hxs,
   letI : nonempty (subtype s) := ⟨⟨xs, hxs⟩⟩,
-  have ε2_0 : 0 ≤ ε2 := le_trans (abs_nonneg _) (H ⟨xs, hxs⟩ ⟨xs, hxs⟩),
+  have : 0 ≤ ε2 := le_trans (abs_nonneg _) (H ⟨xs, hxs⟩ ⟨xs, hxs⟩),
   have : ∀ p q : s, abs (dist p q - dist (Φ p) (Φ q)) ≤ 2 * (ε2/2 + δ) := λp q, calc
     abs (dist p q - dist (Φ p) (Φ q)) ≤ ε2 : H p q
     ... ≤ 2 * (ε2/2 + δ) : by linarith,
@@ -554,27 +554,25 @@ begin
   coupling the points x and Φ x are at distance ε2/2 by construction of the coupling (in fact
   ε2/2 + δ where δ is an arbitrarily small positive constant where positivity is used to ensure
   that the coupling is really a metric space and not a premetric space on α ⊕ β). -/
-  have I1 : GH_dist α β ≤ Hausdorff_dist (range Fl) (range Fr) :=
+  have : GH_dist α β ≤ Hausdorff_dist (range Fl) (range Fr) :=
     GH_dist_le_Hausdorff_dist Il Ir,
-  have I2 : Hausdorff_dist (range Fl) (range Fr) ≤ Hausdorff_dist (range Fl) (Fl '' s)
+  have : Hausdorff_dist (range Fl) (range Fr) ≤ Hausdorff_dist (range Fl) (Fl '' s)
                                               + Hausdorff_dist (Fl '' s) (range Fr),
   { have B : bounded (range Fl) := bounded_of_compact (compact_range Il.continuous),
-    exact Hausdorff_dist_triangle (Hausdorff_edist_ne_top_of_ne_empty_of_bounded
-      (by simpa only [set.range_eq_empty, not_not, ne.def]) (by simpa)
+    exact Hausdorff_dist_triangle (Hausdorff_edist_ne_top_of_ne_empty_of_bounded (by simpa) (by simpa)
       B (bounded.subset (image_subset_range _ _) B)) },
-  have I3 : Hausdorff_dist (Fl '' s) (range Fr) ≤ Hausdorff_dist (Fl '' s) (Fr '' (range Φ))
+  have : Hausdorff_dist (Fl '' s) (range Fr) ≤ Hausdorff_dist (Fl '' s) (Fr '' (range Φ))
                                              + Hausdorff_dist (Fr '' (range Φ)) (range Fr),
   { have B : bounded (range Fr) := bounded_of_compact (compact_range Ir.continuous),
     exact Hausdorff_dist_triangle' (Hausdorff_edist_ne_top_of_ne_empty_of_bounded
       (by simpa [-nonempty_subtype]) (by simpa) (bounded.subset (image_subset_range _ _) B) B) },
-  have I4 : Hausdorff_dist (range Fl) (Fl '' s) ≤ ε1,
+  have : Hausdorff_dist (range Fl) (Fl '' s) ≤ ε1,
   { rw [← image_univ, Hausdorff_dist_image Il],
     have : 0 ≤ ε1 := le_trans dist_nonneg Dxs,
     refine Hausdorff_dist_le_of_mem_dist this (λx hx, hs x)
       (λx hx, ⟨x, mem_univ _, by simpa⟩) },
-  have I5 : Hausdorff_dist (Fl '' s) (Fr '' (range Φ)) ≤ ε2/2 + δ,
-  { refine Hausdorff_dist_le_of_mem_dist _ _ _,
-    exact add_nonneg (div_nonneg (ε2_0) (by norm_num)) (le_of_lt δ0),
+  have : Hausdorff_dist (Fl '' s) (Fr '' (range Φ)) ≤ ε2/2 + δ,
+  { refine Hausdorff_dist_le_of_mem_dist (by linarith) _ _,
     { assume x' hx',
       rcases (set.mem_image _ _ _).1 hx' with ⟨x, ⟨x_in_s, xx'⟩⟩,
       rw ← xx',
@@ -586,7 +584,7 @@ begin
       use [Fl x, mem_image_of_mem _ x.2],
       rw [← yx', ← xy, dist_comm],
       exact le_of_eq (glue_dist_glued_points (@subtype.val α s) Φ (ε2/2 + δ) x) } },
-  have I6 : Hausdorff_dist (Fr '' (range Φ)) (range Fr) ≤ ε3,
+  have : Hausdorff_dist (Fr '' (range Φ)) (range Fr) ≤ ε3,
   { rw [← @image_univ _ _ Fr, Hausdorff_dist_image Ir],
     rcases exists_mem_of_nonempty β with ⟨xβ, _⟩,
     rcases hs' xβ with ⟨xs', Dxs'⟩,
@@ -594,9 +592,7 @@ begin
     refine Hausdorff_dist_le_of_mem_dist this (λx hx, ⟨x, mem_univ _, by simpa⟩) (λx _, _),
     rcases hs' x with ⟨y, Dy⟩,
     exact ⟨Φ y, mem_range_self _, Dy⟩ },
-  have I := le_trans (le_trans I1 I2) (add_le_add I4 (le_trans I3 (add_le_add I5 I6))),
-  have : ε1 + (ε2 / 2 + δ + ε3) = ε1 + ε2 / 2 + ε3 + δ, by ring,
-  rwa this at I
+  linarith
 end
 end --section
 

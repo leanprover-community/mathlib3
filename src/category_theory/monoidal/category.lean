@@ -101,10 +101,10 @@ variables {U V W X Y Z : C}
 -- monoidal_category.left_unitor_naturality monoidal_category.right_unitor_naturality
 -- monoidal_category.pentagon monoidal_category.triangle
 
--- interchange interchange_left_identity interchange_right_identity interchange_identities
--- triangle_1 triangle_2 triangle_3 triangle_4
--- left_unitor_product left_unitor_product_inv
--- right_unitor_product right_unitor_product_inv
+-- tensor_comp_id tensor_id_comp comp_id_tensor_tensor_id
+-- triangle_assoc_comp_left triangle_assoc_comp_right triangle_assoc_comp_left_inv triangle_assoc_comp_right_inv
+-- left_unitor_tensor left_unitor_tensor_inv
+-- right_unitor_tensor right_unitor_tensor_inv
 -- pentagon_inv
 -- associator_inv_naturality
 -- left_unitor_inv_naturality
@@ -292,27 +292,27 @@ begin
   rw [category.assoc, monoidal_category.pentagon]
 end
 
-@[simp] lemma triangle_1 (X Y : C) :
+@[simp] lemma triangle_assoc_comp_left (X Y : C) :
   (α_ X (𝟙_ C) Y).hom ≫ ((𝟙 X) ⊗ (λ_ Y).hom) = (ρ_ X).hom ⊗ 𝟙 Y :=
 monoidal_category.triangle C X Y
 
-@[simp] lemma triangle_2 (X Y : C) :
+@[simp] lemma triangle_assoc_comp_right (X Y : C) :
   (α_ X (𝟙_ C) Y).inv ≫ ((ρ_ X).hom ⊗ 𝟙 Y) = ((𝟙 X) ⊗ (λ_ Y).hom) :=
-by rw [←triangle_1, ←category.assoc, iso.inv_hom_id, category.id_comp]
+by rw [←triangle_assoc_comp_left, ←category.assoc, iso.inv_hom_id, category.id_comp]
 
-@[simp] lemma triangle_3 (X Y : C) :
+@[simp] lemma triangle_assoc_comp_right_inv (X Y : C) :
   ((ρ_ X).inv ⊗ 𝟙 Y) ≫ (α_ X (𝟙_ C) Y).hom = ((𝟙 X) ⊗ (λ_ Y).inv) :=
 begin
   apply (cancel_mono (𝟙 X ⊗ (λ_ Y).hom)).1,
-  simp only [assoc, triangle_1],
+  simp only [assoc, triangle_assoc_comp_left],
   rw [←tensor_comp_id, iso.inv_hom_id, ←tensor_id_comp, iso.inv_hom_id]
 end
 
-@[simp] lemma triangle_4 (X Y : C) :
+@[simp] lemma triangle_assoc_comp_left_inv (X Y : C) :
   ((𝟙 X) ⊗ (λ_ Y).inv) ≫ (α_ X (𝟙_ C) Y).inv = ((ρ_ X).inv ⊗ 𝟙 Y) :=
 begin
   apply (cancel_mono ((ρ_ X).hom ⊗ 𝟙 Y)).1,
-  simp only [triangle_2, assoc],
+  simp only [triangle_assoc_comp_right, assoc],
   rw [←tensor_id_comp, iso.inv_hom_id, ←tensor_comp_id, iso.inv_hom_id]
 end
 

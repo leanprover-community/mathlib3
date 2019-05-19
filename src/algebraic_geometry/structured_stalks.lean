@@ -87,6 +87,18 @@ instance category_of_structured_presheaves :
     ext1, swap,
     { simp, },
     { dsimp, erw category.id_comp, refl, },
+  end,
+  id_comp' := λ X Y f,
+  begin
+    ext1, swap,
+    { simp, },
+    { dsimp, erw category.comp_id, refl, },
+  end,
+  assoc' := λ W X Y Z f g h,
+  begin
+    ext1, swap,
+    { simp, },
+    { dsimp, simp, refl, },
   end }
 
 end StructuredStalkPresheafedSpace

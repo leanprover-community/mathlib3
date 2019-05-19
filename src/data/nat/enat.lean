@@ -183,7 +183,7 @@ by convert to_with_top_coe n
 
 @[simp] lemma to_with_top_le {x y : enat} : Π [decidable x.dom]
   [decidable y.dom], by exactI to_with_top x ≤ to_with_top y ↔ x ≤ y :=
-enat.cases_on y (by intros; simp) (enat.cases_on x (by simp) (by intros; simp))
+enat.cases_on y (by simp) (enat.cases_on x (by simp) (by intros; simp))
 
 @[simp] lemma to_with_top_lt {x y : enat} [decidable x.dom] [decidable y.dom] :
   to_with_top x < to_with_top y ↔ x < y :=

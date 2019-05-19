@@ -255,22 +255,22 @@ begin
 end
 
 -- See Proposition 2.2.4 of http://www-math.mit.edu/~etingof/egnobookfinal.pdf
-@[simp] lemma left_unitor_product (X Y : C) :
+@[simp] lemma left_unitor_tensor (X Y : C) :
   ((α_ (𝟙_ C) X Y).hom) ≫ ((λ_ (X ⊗ Y)).hom) =
     ((λ_ X).hom ⊗ (𝟙 Y)) :=
 by rw [←tensor_left_iff, tensor_id_comp, left_unitor_product_aux]
 
-@[simp] lemma left_unitor_product_inv (X Y : C) :
+@[simp] lemma left_unitor_tensor_inv (X Y : C) :
   ((λ_ (X ⊗ Y)).inv) ≫ ((α_ (𝟙_ C) X Y).inv) =
     ((λ_ X).inv ⊗ (𝟙 Y)) :=
 eq_of_inv_eq_inv (by simp)
 
-@[simp] lemma right_unitor_product (X Y : C) :
+@[simp] lemma right_unitor_tensor (X Y : C) :
   ((α_ X Y (𝟙_ C)).hom) ≫ ((𝟙 X) ⊗ (ρ_ Y).hom) =
     ((ρ_ (X ⊗ Y)).hom) :=
 by rw [←tensor_right_iff, tensor_comp_id, right_unitor_product_aux]
 
-@[simp] lemma right_unitor_product_inv (X Y : C) :
+@[simp] lemma right_unitor_tensor_inv (X Y : C) :
   ((𝟙 X) ⊗ (ρ_ Y).inv) ≫ ((α_ X Y (𝟙_ C)).inv) =
     ((ρ_ (X ⊗ Y)).inv) :=
 eq_of_inv_eq_inv (by simp)

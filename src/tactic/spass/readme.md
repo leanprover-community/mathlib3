@@ -1,0 +1,3 @@
+- The 'spass' tactic requires SPASS 3.9. Install SPASS 3.9 and and add SPASS to path. (https://www.mpi-inf.mpg.de/departments/automation-of-logic/software/spass-workbench/classic-spass-theorem-prover/download/)
+
+- The definition of the 'spass_output' tactic (in 'main.lean') includes two paths; one for the location of 'spass.sh' (a shell script used for communicating with SPASS), and one for the location of the temporary file in which goals are stored in TPTP format and subsequently read by SPASS. Modify the first path to the location of 'spass.sh', and set the second path to any suitable location.

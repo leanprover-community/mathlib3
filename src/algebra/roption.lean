@@ -1,3 +1,4 @@
+/-
 Copyright (c) 2019 Joe Cool. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Hoang Le Truong.
@@ -14,10 +15,10 @@ namespace roption
 noncomputable theory
 
 instance [has_zero α] : has_zero (roption α) := ⟨some (0:α)⟩
-@[simp] lemma zero_def [has_zero α] : (0 : roption α ) = ⟨true, λ _, (0:α) ⟩ := rfl
+@[simp] lemma zero_def [has_zero α] : (0 : roption α ) = ⟨true, λ _, (0:α)⟩ := rfl
 
 instance [has_one α] :  has_one (roption α)  :=⟨some (1:α)⟩
-@[simp] lemma one_def [has_one α] : (1 : roption α) = ⟨true, λ _, (1:α) ⟩ := rfl
+@[simp] lemma one_def [has_one α] : (1 : roption α) = ⟨true, λ _, (1:α)⟩ := rfl
 
 attribute [to_additive pi.has_zero] roption.has_one
 attribute [to_additive pi.zero_apply] roption.one_def
@@ -35,7 +36,7 @@ instance [has_neg α] : has_neg (roption α) := ⟨λ x, ⟨x.dom , λ h, -x.get
 @[simp] lemma neg_def [has_neg α] (x : roption α) : - x = ⟨x.dom , λ h, - x.get h⟩ := rfl
 
 instance [has_inv α] : has_inv (roption α) := ⟨λ x, ⟨x.dom , λ h, (x.get h)⁻¹⟩⟩
-@[simp] lemma inv_def [has_inv α ] (x : roption α) : x⁻¹ = ⟨x.dom , λ h, (x.get h)⁻¹  ⟩ := rfl
+@[simp] lemma inv_def [has_inv α ] (x : roption α) : x⁻¹ = ⟨x.dom , λ h, (x.get h)⁻¹⟩ := rfl
 
 attribute [to_additive pi.has_neg] roption.has_inv
 attribute [to_additive pi.neg_apply] roption.inv_def
@@ -48,7 +49,7 @@ instance [semigroup α] : semigroup (roption α) :=
   ..roption.has_mul}
 
 instance [comm_semigroup α ] : comm_semigroup (roption α) :=
-{ mul_comm := λ x y, roption.ext' and.comm (λ _ _, mul_comm _ _ )
+{ mul_comm := λ x y, roption.ext' and.comm (λ _ _, mul_comm _ _)
   ..roption.semigroup}
 
 

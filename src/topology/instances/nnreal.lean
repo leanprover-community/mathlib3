@@ -17,12 +17,12 @@ instance : topological_space ℝ≥0 := infer_instance
 instance : topological_semiring ℝ≥0 :=
 { continuous_mul :=
    continuous_subtype_mk _
-        (continuous_mul (continuous.comp continuous_fst continuous_subtype_val)
-                        (continuous.comp continuous_snd continuous_subtype_val)),
+        (continuous_mul (continuous.comp continuous_subtype_val continuous_fst)
+                        (continuous.comp continuous_subtype_val continuous_snd)),
   continuous_add :=
     continuous_subtype_mk _
-          (continuous_add (continuous.comp continuous_fst continuous_subtype_val)
-                          (continuous.comp continuous_snd continuous_subtype_val)) }
+          (continuous_add (continuous.comp continuous_subtype_val continuous_fst)
+                          (continuous.comp continuous_subtype_val continuous_snd)) }
 
 instance : second_countable_topology nnreal :=
 topological_space.subtype.second_countable_topology _ _

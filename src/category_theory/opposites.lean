@@ -5,73 +5,12 @@
 import category_theory.products
 import category_theory.types
 import category_theory.natural_isomorphism
+import data.opposite
 
 universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory
-
-/-- The type of objects of the opposite of C (which should be a category).
-
-  In order to avoid confusion between C and its opposite category, we
-  set up the type of objects `opposite C` using the following pattern,
-  which will be repeated later for the morphisms.
-
-  1. Define `opposite C := C`.
-  2. Define the isomorphisms `op : C → opposite C`, `unop : opposite C → C`.
-  3. Make the definition `opposite` irreducible.
-
-  This has the following consequences.
-
-  * `opposite C` and `C` are distinct types in the elaborator, so you
-    must use `op` and `unop` explicitly to convert between them.
-  * Both `unop (op X) = X` and `op (unop X) = X` are definitional
-    equalities. Notably, every object of the opposite category is
-    definitionally of the form `op X`, which greatly simplifies the
-    definition of the structure of the opposite category, for example.
-
-  (If Lean supported definitional eta equality for records, we could
-  achieve the same goals using a structure with one field.)
--/
-def opposite (C : Sort u₁) : Sort u₁ := C
-
--- Use a high right binding power (like that of postfix ⁻¹) so that, for example,
--- `presheaf Cᵒᵖ` parses as `presheaf (Cᵒᵖ)` and not `(presheaf C)ᵒᵖ`.
-notation C `ᵒᵖ`:std.prec.max_plus := opposite C
-
-variables {C : Sort u₁}
-
-def op (X : C) : Cᵒᵖ := X
-def unop (X : Cᵒᵖ) : C := X
-
-attribute [irreducible] opposite
-
-@[simp] lemma unop_op (X : C) : unop (op X) = X := rfl
-@[simp] lemma op_unop (X : Cᵒᵖ) : op (unop X) = X := rfl
-
-lemma op_inj : function.injective (@op C) :=
-by { rintros _ _ ⟨ ⟩, refl }
-lemma unop_inj : function.injective (@unop C) :=
-by { rintros _ _ ⟨ ⟩, refl }
-
-def op_induction {F : Π (X : Cᵒᵖ), Sort v₁} (h : Π X, F (op X)) : Π X, F X :=
-λ X, h (unop X)
-
-end category_theory
-
-namespace tactic.interactive
-
-open interactive interactive.types lean.parser tactic
-
-meta def op_induction (h : parse ident) : tactic unit :=
-do h' ← tactic.get_local h,
-   revert_lst [h'],
-   applyc `category_theory.op_induction,
-   tactic.intro h,
-   skip
-
-end tactic.interactive
-
-namespace category_theory
+open opposite
 
 variables {C : Sort u₁}
 

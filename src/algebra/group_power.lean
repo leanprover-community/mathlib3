@@ -472,6 +472,9 @@ by induction m with m ih; [exact int.cast_one,
 lemma neg_one_pow_eq_pow_mod_two [ring α] {n : ℕ} : (-1 : α) ^ n = -1 ^ (n % 2) :=
 by rw [← nat.mod_add_div n 2, pow_add, pow_mul]; simp [pow_two]
 
+theorem sq_sub_sq [comm_ring α] (a b : α) : a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
+by rw [pow_two, pow_two, mul_self_sub_mul_self]
+
 theorem pow_eq_zero [domain α] {x : α} {n : ℕ} (H : x^n = 0) : x = 0 :=
 begin
   induction n with n ih,

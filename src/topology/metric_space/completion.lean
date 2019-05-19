@@ -45,7 +45,7 @@ begin
   { refine is_closed_eq _ continuous_const,
     have : continuous (λx : completion α, (x, x)) :=
       continuous.prod_mk continuous_id continuous_id,
-    exact continuous.comp this completion.uniform_continuous_dist.continuous },
+    exact completion.uniform_continuous_dist.continuous.comp this },
   { assume a,
     rw [completion.dist_eq, dist_self] }
 end
@@ -54,7 +54,7 @@ protected lemma completion.dist_comm (x y : completion α) : dist x y = dist y x
 begin
   apply induction_on₂ x y,
   { refine is_closed_eq completion.uniform_continuous_dist.continuous _,
-    exact continuous.comp continuous_swap completion.uniform_continuous_dist.continuous },
+    exact completion.uniform_continuous_dist.continuous.comp continuous_swap },
   { assume a b,
     rw [completion.dist_eq, completion.dist_eq, dist_comm] }
 end
@@ -65,14 +65,14 @@ begin
   { refine is_closed_le _ (continuous_add _ _),
     { have : continuous (λp : completion α × completion α × completion α, (p.1, p.2.2)) :=
         continuous.prod_mk continuous_fst (continuous.comp continuous_snd continuous_snd),
-      exact continuous.comp this completion.uniform_continuous_dist.continuous },
+      exact completion.uniform_continuous_dist.continuous.comp this },
     { have : continuous (λp : completion α × completion α × completion α, (p.1, p.2.1)) :=
-        continuous.prod_mk continuous_fst (continuous.comp continuous_snd continuous_fst),
-      exact continuous.comp this completion.uniform_continuous_dist.continuous },
+        continuous.prod_mk continuous_fst (continuous_fst.comp continuous_snd),
+      exact completion.uniform_continuous_dist.continuous.comp this },
     { have : continuous (λp : completion α × completion α × completion α, (p.2.1, p.2.2)) :=
-        continuous.prod_mk (continuous.comp continuous_snd continuous_fst)
+        continuous.prod_mk (continuous_fst.comp continuous_snd)
                            (continuous.comp continuous_snd continuous_snd),
-      exact continuous.comp this completion.uniform_continuous_dist.continuous }},
+      exact continuous.comp completion.uniform_continuous_dist.continuous this }},
   { assume a b c,
     rw [completion.dist_eq, completion.dist_eq, completion.dist_eq],
     exact dist_triangle a b c }

@@ -173,16 +173,17 @@ end
 lemma bind_dirac {f : α → measure β} (hf : measurable f) (a : α) : bind (dirac a) f = f a :=
 measure.ext $ assume s hs, by rw [bind_apply hs hf, integral_dirac a ((measurable_coe hs).comp hf)]
 
-lemma dirac_bind {m : measure α} : bind m dirac = m :=
-measure.ext $ assume s hs,
-begin
-  rw [bind_apply hs measurable_dirac],
-  simp [dirac_apply _ hs],
-  transitivity,
-  apply lintegral_supr_const,
-  assumption,
-  exact one_mul _
+lemma dirac_bind_comp {m : measure α} {f : α → β} (hf : measurable f) :
+  bind m (λ x, dirac $ f x) = map f m :=
+measure.ext $ assume s hs, begin
+  rw [bind_apply hs (measurable_dirac.comp hf), map_apply hf hs],
+  conv {to_lhs, congr, skip, funext, rw dirac_apply _ hs},
+  transitivity, apply lintegral_supr_const,
+  exact hf _ hs, rw one_mul, refl
 end
+
+lemma dirac_bind {m : measure α} : bind m dirac = m :=
+(dirac_bind_comp measurable_id).trans map_id
 
 end measure
 

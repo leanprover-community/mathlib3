@@ -20,28 +20,30 @@ namespace category_theory.monoidal
 class monoidal_category (C : Sort u) extends category.{v} C :=
 -- curried tensor product of objects:
 (tensor_obj               : C → C → C)
+(infixr ` ⊗ `:70          := tensor_obj) -- This notation is only temporary
 -- curried tensor product of morphisms:
 (tensor_hom               :
-  Π {X₁ Y₁ X₂ Y₂ : C}, hom X₁ Y₁ → hom X₂ Y₂ → hom (tensor_obj X₁ X₂) (tensor_obj Y₁ Y₂))
+  Π {X₁ Y₁ X₂ Y₂ : C}, hom X₁ Y₁ → hom X₂ Y₂ → hom (X₁ ⊗ X₂) (Y₁ ⊗ Y₂))
+(infixr ` ⊗' `:69         := tensor_hom) -- This notation is only temporary
 -- tensor product laws:
 (tensor_id'               :
-  ∀ (X₁ X₂ : C), tensor_hom (𝟙 X₁) (𝟙 X₂) = 𝟙 (tensor_obj X₁ X₂) . obviously)
+  ∀ (X₁ X₂ : C), (𝟙 X₁) ⊗' (𝟙 X₂) = 𝟙 (X₁ ⊗ X₂) . obviously)
 (tensor_comp'             :
   ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : C} (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (g₁ : Y₁ ⟶ Z₁) (g₂ : Y₂ ⟶ Z₂),
-  tensor_hom (f₁ ≫ g₁) (f₂ ≫ g₂) = (tensor_hom f₁ f₂) ≫ (tensor_hom g₁ g₂) . obviously)
+  (f₁ ≫ g₁) ⊗' (f₂ ≫ g₂) = (f₁ ⊗' f₂) ≫ (g₁ ⊗' g₂) . obviously)
 -- tensor unit:
 (tensor_unit              : C)
 -- associator:
 (associator               :
-  Π X Y Z : C, (tensor_obj (tensor_obj X Y) Z) ≅ (tensor_obj X (tensor_obj Y Z)))
+  Π X Y Z : C, (X ⊗ Y) ⊗ Z ≅ X ⊗ (Y ⊗ Z))
 (associator_naturality'   :
   assoc_natural tensor_obj @tensor_hom associator . obviously)
 -- left unitor:
-(left_unitor              : Π X : C, tensor_obj tensor_unit X ≅ X)
+(left_unitor              : Π X : C, tensor_unit ⊗ X ≅ X)
 (left_unitor_naturality'  :
   left_unitor_natural tensor_obj @tensor_hom tensor_unit left_unitor . obviously)
 -- right unitor:
-(right_unitor             : Π X : C, tensor_obj X tensor_unit ≅ X)
+(right_unitor             : Π X : C, X ⊗ tensor_unit ≅ X)
 (right_unitor_naturality' :
   right_unitor_natural tensor_obj @tensor_hom tensor_unit right_unitor . obviously)
 -- pentagon identity:

@@ -59,7 +59,7 @@ lemma isometry_id : isometry (id : α → α) :=
 λx y, rfl
 
 /-- The composition of isometries is an isometry -/
-theorem isometry.comp {g : β → γ} (hf : isometry f) (hg : isometry g) : isometry (g ∘ f) :=
+theorem isometry.comp {g : β → γ} {f : α → β} (hg : isometry g) (hf : isometry f) : isometry (g ∘ f) :=
 assume x y, calc
   edist ((g ∘ f) x) ((g ∘ f) y) = edist (f x) (f y) : hg _ _
                             ... = edist x y : hf _ _
@@ -149,8 +149,8 @@ protected def refl (α : Type*) [emetric_space α] : α ≃ᵢ α :=
 { isometry_to_fun := isometry_id, isometry_inv_fun := isometry_id, .. equiv.refl α }
 
 protected def trans (h₁ : α ≃ᵢ β) (h₂ : β ≃ᵢ γ) : α ≃ᵢ γ :=
-{ isometry_to_fun  := h₁.isometry_to_fun.comp h₂.isometry_to_fun,
-  isometry_inv_fun := h₂.isometry_inv_fun.comp h₁.isometry_inv_fun,
+{ isometry_to_fun  := h₂.isometry_to_fun.comp h₁.isometry_to_fun,
+  isometry_inv_fun := h₁.isometry_inv_fun.comp h₂.isometry_inv_fun,
   .. equiv.trans h₁.to_equiv h₂.to_equiv }
 
 protected def symm (h : α ≃ᵢ β) : β ≃ᵢ α :=

@@ -6,9 +6,7 @@ Authors: Johan Commelin
 Pointwise addition and multiplication of sets
 -/
 
-import data.set.finite
-import data.set.lattice
-import algebra.group
+import data.set.finite data.set.lattice group_theory.group_action
 
 namespace set
 open function
@@ -29,7 +27,7 @@ mem_singleton_iff
 def pointwise_mul [has_mul α] : has_mul (set α) :=
   ⟨λ s t, {a | ∃ x ∈ s, ∃ y ∈ t, a = x * y}⟩
 
-local attribute [instance] pointwise_one pointwise_mul
+local attribute [instance] pointwise_one pointwise_mul pointwise_add
 
 @[to_additive set.mem_pointwise_add]
 lemma mem_pointwise_mul [has_mul α] {s t : set α} {a : α} :
@@ -38,6 +36,11 @@ lemma mem_pointwise_mul [has_mul α] {s t : set α} {a : α} :
 @[to_additive set.add_mem_pointwise_add]
 lemma mul_mem_pointwise_mul [has_mul α] {s t : set α} {a b : α} (ha : a ∈ s) (hb : b ∈ t) :
   a * b ∈ s * t := ⟨_, ha, _, hb, rfl⟩
+
+@[to_additive set.add_subset_add]
+lemma mul_subset_mul [has_mul α] {s₁ s₂ t₁ t₂ : set α} (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) :
+  s₁ * t₁ ⊆ s₂ * t₂ :=
+by { rintros _ ⟨a, ha, b, hb, rfl⟩, exact ⟨a, hs ha, b, ht hb, rfl⟩ }
 
 @[to_additive set.pointwise_add_eq_image]
 lemma pointwise_mul_eq_image [has_mul α] {s t : set α} :
@@ -160,6 +163,16 @@ begin
       simp * } }
 end
 
+def pointwise_mul_fintype [has_mul α] [decidable_eq α] (s t : set α) [hs : fintype s] [ht : fintype t] :
+  fintype (s * t : set α) := by { rw pointwise_mul_eq_image, apply set.fintype_image }
+
+def pointwise_add_fintype [has_add α] [decidable_eq α] (s t : set α) [hs : fintype s] [ht : fintype t] :
+  fintype (s + t : set α) := by { rw pointwise_add_eq_image, apply set.fintype_image }
+
+attribute [to_additive set.pointwise_add_fintype] set.pointwise_mul_fintype
+
+section monoid
+
 def pointwise_mul_semiring [monoid α] : semiring (set α) :=
 { add := (⊔),
   zero := ∅,
@@ -175,14 +188,14 @@ def pointwise_mul_semiring [monoid α] : semiring (set α) :=
 
 def pointwise_mul_comm_semiring [comm_monoid α] : comm_semiring (set α) :=
 { mul_comm := λ s t, set.ext $ λ a,
-  by split; { rintros ⟨_, _, _, _, rfl⟩, rw mul_comm, exact ⟨_, ‹_›, _, ‹_›, rfl⟩ },
+  by split; { rintros ⟨_, _, _, _, rfl⟩, exact ⟨_, ‹_›, _, ‹_›, mul_comm _ _⟩ },
   ..pointwise_mul_semiring }
 
 local attribute [instance] pointwise_mul_semiring
 
 variables [monoid α] [monoid β] [is_monoid_hom f]
 
-instance : is_semiring_hom (image f) :=
+def pointwise_mul_image_is_semiring_hom : is_semiring_hom (image f) :=
 { map_zero := image_empty _,
   map_one := by erw [image_singleton, is_monoid_hom.map_one f]; refl,
   map_add := image_union _,
@@ -196,5 +209,32 @@ instance : is_semiring_hom (image f) :=
       refine ⟨_, ⟨_, ‹_›, _, ‹_›, rfl⟩, _⟩,
       apply is_monoid_hom.map_mul f }
   end }
+
+local attribute [instance] singleton.is_monoid_hom
+
+def pointwise_mul_action : mul_action α (set α) :=
+{ smul := λ a s, ({a} : set α) * s,
+  one_smul := one_mul,
+  mul_smul := λ _ _ _, show {_} * _ = _,
+    by { erw is_monoid_hom.map_mul (singleton : α → set α), apply mul_assoc } }
+
+local attribute [instance] pointwise_mul_action
+
+lemma mem_smul_set {a : α} {s : set α} {x : α} :
+  x ∈ a • s ↔ ∃ y ∈ s, x = a * y :=
+by { erw mem_pointwise_mul, simp }
+
+lemma smul_set_eq_image {a : α} {s : set α} :
+  a • s = (λ b, a * b) '' s :=
+set.ext $ λ x,
+begin
+  simp only [mem_smul_set, exists_prop, mem_image],
+  apply exists_congr,
+  intro y,
+  apply and_congr iff.rfl,
+  split; exact eq.symm
+end
+
+end monoid
 
 end set

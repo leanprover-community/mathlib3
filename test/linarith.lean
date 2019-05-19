@@ -68,6 +68,9 @@ by linarith {exfalso := ff}
 example (x : ℚ) (hx : x > 0) (h : x.num < 0) : false :=
 by linarith [rat.num_pos_iff_pos.mpr hx, h]
 
+example (x : ℚ) (hx : x > 0) (h : x.num < 0) : false :=
+by linarith only [rat.num_pos_iff_pos.mpr hx, h]
+
 example (x y z : ℚ) (hx : x ≤ 3*y) (h2 : y ≤ 2*z) (h3 : x ≥ 6*z) : x = 3*y :=
 by linarith
 

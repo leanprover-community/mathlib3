@@ -553,12 +553,12 @@ example (x y z : ℚ) (h1 : 2*x  < 3*y) (h2 : -4*x + 2*z < 0)
 by linarith
 ```
 
-`linarith` will use all appropriate hypotheses and the negation of the goal, if applicable.
+`linarith` will use all relevant hypotheses in the local context.
 
-`linarith h1 h2 h3` will ohly use the local hypotheses `h1`, `h2`, `h3`.
+`linarith [t1, t2, t3]` will add proof terms t1, t2, t3 to the local context.
 
-`linarith using [t1, t2, t3]` will add `t1`, `t2`, `t3` to the local context and then run
-`linarith`.
+`linarith only [h1, h2, h3, t1, t2, t3]` will use only the goal (if relevant), local hypotheses
+h1, h2, h3, and proofs t1, t2, t3. It will ignore the rest of the local context.
 
 `linarith!` will use a stronger reducibility setting to try to identify atoms. For example,
 ```lean

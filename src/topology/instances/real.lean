@@ -72,8 +72,8 @@ let ⟨δ, δ0, Hδ⟩ := rat_add_continuous_lemma abs ε0 in
 -- TODO(Mario): Find a way to use rat_add_continuous_lemma
 theorem rat.uniform_continuous_add : uniform_continuous (λp : ℚ × ℚ, p.1 + p.2) :=
 uniform_embedding_of_rat.uniform_continuous_iff.2 $ by simp [(∘)]; exact
-((uniform_continuous_fst.comp uniform_continuous_of_rat).prod_mk
-  (uniform_continuous_snd.comp uniform_continuous_of_rat)).comp real.uniform_continuous_add
+real.uniform_continuous_add.comp ((uniform_continuous_of_rat.comp uniform_continuous_fst).prod_mk
+  (uniform_continuous_of_rat.comp uniform_continuous_snd))
 
 theorem real.uniform_continuous_neg : uniform_continuous (@has_neg.neg ℝ _) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0, ⟨_, ε0, λ a b h,
@@ -148,7 +148,7 @@ tendsto_of_uniform_continuous_subtype
 
 lemma real.continuous_inv' : continuous (λa:{r:ℝ // r ≠ 0}, a.val⁻¹) :=
 continuous_iff_continuous_at.mpr $ assume ⟨r, hr⟩,
-  (continuous_iff_continuous_at.mp continuous_subtype_val _).comp (real.tendsto_inv hr)
+  tendsto.comp (real.tendsto_inv hr) (continuous_iff_continuous_at.mp continuous_subtype_val _)
 
 lemma real.continuous_inv [topological_space α] {f : α → ℝ} (h : ∀a, f a ≠ 0) (hf : continuous f) :
   continuous (λa, (f a)⁻¹) :=

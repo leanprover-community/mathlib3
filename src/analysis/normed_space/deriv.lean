@@ -164,9 +164,9 @@ lemma tangent_cone_at.lim_zero {y : E} {c : ℕ → k} {d : ℕ → E}
   tendsto d at_top (nhds 0) :=
 begin
   have A : tendsto (λn, ∥c n∥⁻¹) at_top (nhds 0) :=
-    hc.comp tendsto_inverse_at_top_nhds_0,
+    tendsto_inverse_at_top_nhds_0.comp hc,
   have B : tendsto (λn, ∥c n • d n∥) at_top (nhds ∥y∥) :=
-    hd.comp (continuous_norm.tendsto _),
+    (continuous_norm.tendsto _).comp hd,
   have C : tendsto (λn, ∥c n∥⁻¹ * ∥c n • d n∥) at_top (nhds (0 * ∥y∥)) :=
     tendsto_mul A B,
   rw zero_mul at C,
@@ -227,7 +227,7 @@ begin
       is_o_one_iff.1 L4,
     have L' : tendsto (λ (n : ℕ), c n • (f₁' (d n) - f' (d n))) at_top (nhds (f₁' y - f' y)),
     { simp only [smul_sub, (bounded_linear_map.map_smul _ _ _).symm],
-      apply tendsto_sub (ylim.comp (f₁'.continuous.tendsto _)) (ylim.comp (f'.continuous.tendsto _)) },
+      apply tendsto_sub ((f₁'.continuous.tendsto _).comp ylim) ((f'.continuous.tendsto _).comp ylim) },
     have : f₁' y - f' y = 0 := tendsto_nhds_unique (by simp) L' L,
     exact (sub_eq_zero_iff_eq.1 this).symm },
   have B : ∀y ∈ submodule.span k (tangent_cone_at k s x), f' y = f₁' y,
@@ -1033,6 +1033,12 @@ end cartesian_product
 /- Composition -/
 section composition
 
+
+/- For composition lemmas, we put x explicit to help the elaborator, as otherwise Lean tends to
+get confused since there are too many possibilities for composition -/
+
+variable (x)
+
 theorem has_fderiv_at_filter.comp {g : F → G} {g' : F →L[k] G}
   (hg : has_fderiv_at_filter g g' (f x) (L.map f))
   (hf : has_fderiv_at_filter f f' x L) :
@@ -1071,20 +1077,20 @@ theorem has_fderiv_within_at.comp {g : F → G} {g' : F →L[k] G}
   (hf : has_fderiv_within_at f f' s x) :
   has_fderiv_within_at (g ∘ f) (g'.comp f') s x :=
 (has_fderiv_at_filter.mono hg
-  hf.continuous_within_at.tendsto_nhds_within_image).comp hf
+  hf.continuous_within_at.tendsto_nhds_within_image).comp x hf
 
 /-- The chain rule. -/
 theorem has_fderiv_at.comp {g : F → G} {g' : F →L[k] G}
   (hg : has_fderiv_at g g' (f x)) (hf : has_fderiv_at f f' x) :
   has_fderiv_at (g ∘ f) (g'.comp f') x :=
-(hg.mono hf.continuous_at).comp hf
+(hg.mono hf.continuous_at).comp x hf
 
 theorem has_fderiv_at.comp_has_fderiv_within_at {g : F → G} {g' : F →L[k] G}
   (hg : has_fderiv_at g g' (f x)) (hf : has_fderiv_within_at f f' s x) :
   has_fderiv_within_at (g ∘ f) (g'.comp f') s x :=
 begin
   rw ← has_fderiv_within_univ_at at hg,
-  exact has_fderiv_within_at.comp (hg.mono (subset_univ _)) hf
+  exact has_fderiv_within_at.comp x (hg.mono (subset_univ _)) hf
 end
 
 lemma differentiable_within_at.comp {g : F → G} {t : set F}
@@ -1093,13 +1099,13 @@ lemma differentiable_within_at.comp {g : F → G} {t : set F}
 begin
   rcases hf with ⟨f', hf'⟩,
   rcases hg with ⟨g', hg'⟩,
-  exact ⟨bounded_linear_map.comp g' f', (hg'.mono h).comp hf'⟩
+  exact ⟨bounded_linear_map.comp g' f', (hg'.mono h).comp x hf'⟩
 end
 
 lemma differentiable_at.comp {g : F → G}
   (hg : differentiable_at k g (f x)) (hf : differentiable_at k f x) :
   differentiable_at k (g ∘ f) x :=
-(hg.has_fderiv_at.comp hf.has_fderiv_at).differentiable_at
+(hg.has_fderiv_at.comp x hf.has_fderiv_at).differentiable_at
 
 lemma fderiv_within.comp {g : F → G} {t : set F}
   (hg : differentiable_within_at k g t (f x)) (hf : differentiable_within_at k f s x)
@@ -1108,7 +1114,7 @@ lemma fderiv_within.comp {g : F → G} {t : set F}
     bounded_linear_map.comp (fderiv_within k g t (f x)) (fderiv_within k f s x) :=
 begin
   apply has_fderiv_within_at.fderiv_within _ hxs,
-  apply has_fderiv_within_at.comp _ (hf.has_fderiv_within_at),
+  apply has_fderiv_within_at.comp x _ (hf.has_fderiv_within_at),
   apply hg.has_fderiv_within_at.mono h
 end
 
@@ -1117,13 +1123,13 @@ lemma fderiv.comp {g : F → G}
   fderiv k (g ∘ f) x = bounded_linear_map.comp (fderiv k g (f x)) (fderiv k f x) :=
 begin
   apply has_fderiv_at.fderiv,
-  exact has_fderiv_at.comp hg.has_fderiv_at hf.has_fderiv_at
+  exact has_fderiv_at.comp x hg.has_fderiv_at hf.has_fderiv_at
 end
 
 lemma differentiable_on.comp {g : F → G} {t : set F}
   (hg : differentiable_on k g t) (hf : differentiable_on k f s) (st : f '' s ⊆ t) :
   differentiable_on k (g ∘ f) s :=
-λx hx, differentiable_within_at.comp (hg (f x) (st (mem_image_of_mem _ hx))) (hf x hx) st
+λx hx, differentiable_within_at.comp x (hg (f x) (st (mem_image_of_mem _ hx))) (hf x hx) st
 
 end composition
 
@@ -1136,15 +1142,14 @@ theorem has_fderiv_within_at.smul'
   has_fderiv_within_at (λ y, c y • f y) (c x • f' + c'.scalar_prod_space_iso (f x)) s x :=
 begin
   have : is_bounded_bilinear_map k (λ (p : k × F), p.1 • p.2) := is_bounded_bilinear_map_smul,
-  exact @has_fderiv_at.comp_has_fderiv_within_at _ _ _ _ _ _ _ _ _ _ x _ _ _
-    (this.has_fderiv_at (c x, f x)) (hc.prod hf),
-  end
+  exact has_fderiv_at.comp_has_fderiv_within_at x (this.has_fderiv_at (c x, f x)) (hc.prod hf)
+end
 
 theorem has_fderiv_at.smul' (hc : has_fderiv_at c c' x) (hf : has_fderiv_at f f' x) :
   has_fderiv_at (λ y, c y • f y) (c x • f' + c'.scalar_prod_space_iso (f x)) x :=
 begin
   have : is_bounded_bilinear_map k (λ (p : k × F), p.1 • p.2) := is_bounded_bilinear_map_smul,
-  exact @has_fderiv_at.comp _ _ _ _ _ _ _ _ _ _ x _ _ (this.has_fderiv_at (c x, f x)) (hc.prod hf)
+  exact has_fderiv_at.comp x (this.has_fderiv_at (c x, f x)) (hc.prod hf)
 end
 
 lemma differentiable_within_at.smul'
@@ -1188,8 +1193,7 @@ theorem has_fderiv_within_at.mul
   has_fderiv_within_at (λ y, c y * d y) (c x • d' + d x • c') s x :=
 begin
   have : is_bounded_bilinear_map k (λ (p : k × k), p.1 * p.2) := is_bounded_bilinear_map_mul,
-  convert @has_fderiv_at.comp_has_fderiv_within_at _ _ _ _ _ _ _ _ _ _ x _ _ _
-    (this.has_fderiv_at (c x, d x)) (hc.prod hd),
+  convert has_fderiv_at.comp_has_fderiv_within_at x (this.has_fderiv_at (c x, d x)) (hc.prod hd),
   ext z,
   change c x * d' z + d x * c' z = c x * d' z + c' z * d x,
   ring
@@ -1199,8 +1203,7 @@ theorem has_fderiv_at.mul (hc : has_fderiv_at c c' x) (hd : has_fderiv_at d d' x
   has_fderiv_at (λ y, c y * d y) (c x • d' + d x • c') x :=
 begin
   have : is_bounded_bilinear_map k (λ (p : k × k), p.1 * p.2) := is_bounded_bilinear_map_mul,
-  convert @has_fderiv_at.comp _ _ _ _ _ _ _ _ _ _ x _ _
-    (this.has_fderiv_at (c x, d x)) (hc.prod hd),
+  convert has_fderiv_at.comp x (this.has_fderiv_at (c x, d x)) (hc.prod hd),
   ext z,
   change c x * d' z + d x * c' z = c x * d' z + c' z * d x,
   ring

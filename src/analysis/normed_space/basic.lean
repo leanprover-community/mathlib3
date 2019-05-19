@@ -397,7 +397,7 @@ begin
   { clear ineq,
 
     have limf': tendsto (λ x, ∥f x - s∥) e (nhds 0) := tendsto_iff_norm_tendsto_zero.1 limf,
-    have limg' : tendsto (λ x, ∥g x∥) e (nhds ∥b∥) := filter.tendsto.comp limg (continuous_iff_continuous_at.1 continuous_norm _),
+    have limg' : tendsto (λ x, ∥g x∥) e (nhds ∥b∥) := filter.tendsto.comp (continuous_iff_continuous_at.1 continuous_norm _) limg,
 
     have lim1 := tendsto_mul limf' limg',
     simp only [zero_mul, sub_eq_add_neg] at lim1,
@@ -532,7 +532,7 @@ summable_of_norm_bounded _ hf (assume i, le_refl _)
 
 lemma norm_tsum_le_tsum_norm {f : ι → α} (hf : summable (λi, ∥f i∥)) : ∥(∑i, f i)∥ ≤ (∑ i, ∥f i∥) :=
 have h₁ : tendsto (λs:finset ι, ∥s.sum f∥) at_top (nhds ∥(∑ i, f i)∥) :=
-  (has_sum_tsum $ summable_of_summable_norm hf).comp (continuous_norm.tendsto _),
+  (continuous_norm.tendsto _).comp (has_sum_tsum $ summable_of_summable_norm hf),
 have h₂ : tendsto (λs:finset ι, s.sum (λi, ∥f i∥)) at_top (nhds (∑ i, ∥f i∥)) :=
   has_sum_tsum hf,
 le_of_tendsto_of_tendsto at_top_ne_bot h₁ h₂ $ univ_mem_sets' $ assume s, norm_triangle_sum _ _

@@ -148,6 +148,13 @@ begin
   exact filter.prod_mono ((is_open_map_iff_nhds_le f).1 hf a) ((is_open_map_iff_nhds_le g).1 hg b)
 end
 
+protected lemma open_embedding.prod
+  [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
+  {f : α → β} {g : γ → δ} (hf : open_embedding f) (hg : open_embedding g) :
+  open_embedding (λx:α×γ, (f x.1, g x.2)) :=
+open_embedding_of_embedding_open (embedding_prod_mk hf.1 hg.1)
+  (hf.is_open_map.prod hg.is_open_map)
+
 section tube_lemma
 
 def nhds_contain_boxes (s : set α) (t : set β) : Prop :=
@@ -690,6 +697,10 @@ end
 lemma is_closed_sigma_mk {i : ι} : is_closed (set.range (@sigma.mk ι σ i)) :=
 by { rw ←set.image_univ, exact is_closed_map_sigma_mk _ is_closed_univ }
 
+lemma open_embedding_sigma_mk {i : ι} : open_embedding (@sigma.mk ι σ i) :=
+open_embedding_of_continuous_injective_open
+  continuous_sigma_mk injective_sigma_mk is_open_map_sigma_mk
+
 lemma closed_embedding_sigma_mk {i : ι} : closed_embedding (@sigma.mk ι σ i) :=
 closed_embedding_of_continuous_injective_closed
   continuous_sigma_mk injective_sigma_mk is_closed_map_sigma_mk
@@ -708,6 +719,21 @@ lemma continuous_sigma_map {κ : Type*} {τ : κ → Type*} [Π k, topological_s
 continuous_sigma $ λ i,
   show continuous (λ a, sigma.mk (f₁ i) (f₂ i a)),
   from continuous_sigma_mk.comp (hf i)
+
+lemma is_open_map_sigma [topological_space β] {f : sigma σ → β}
+  (h : ∀ i, is_open_map (λ a, f ⟨i, a⟩)) : is_open_map f :=
+begin
+  intros s hs,
+  rw is_open_sigma_iff at hs,
+  have : s = ⋃ i, sigma.mk i '' (sigma.mk i ⁻¹' s),
+  { rw Union_image_preimage_sigma_mk_eq_self },
+  rw this,
+  rw [image_Union],
+  apply is_open_Union,
+  intro i,
+  rw [image_image],
+  exact h i _ (hs i)
+end
 
 /-- The sum of embeddings is an embedding. -/
 lemma embedding_sigma_map {τ : ι → Type*} [Π i, topological_space (τ i)]
@@ -1012,10 +1038,10 @@ lemma range_coe (h : α ≃ₜ β) : range h = univ :=
 eq_univ_of_forall $ assume b, ⟨h.symm b, congr_fun h.self_comp_symm b⟩
 
 lemma image_symm (h : α ≃ₜ β) : image h.symm = preimage h :=
-image_eq_preimage_of_inverse h.symm.to_equiv.left_inv h.symm.to_equiv.right_inv
+funext h.symm.to_equiv.image_eq_preimage
 
 lemma preimage_symm (h : α ≃ₜ β) : preimage h.symm = image h :=
-(image_eq_preimage_of_inverse h.to_equiv.left_inv h.to_equiv.right_inv).symm
+(funext h.to_equiv.image_eq_preimage).symm
 
 lemma induced_eq
   {α : Type*} {β : Type*} [tα : topological_space α] [tβ : topological_space β] (h : α ≃ₜ β) :
@@ -1056,6 +1082,16 @@ begin
   exact h.symm.continuous s
 end
 
+def homeomorph_of_continuous_open (e : α ≃ β) (h₁ : continuous e) (h₂ : is_open_map e) :
+  α ≃ₜ β :=
+{ continuous_to_fun := h₁,
+  continuous_inv_fun := begin
+    intros s hs,
+    convert ← h₂ s hs using 1,
+    apply e.image_eq_preimage
+  end,
+  .. e }
+
 protected lemma quotient_map (h : α ≃ₜ β) : quotient_map h :=
 ⟨h.to_equiv.surjective, h.coinduced_eq.symm⟩
 
@@ -1084,5 +1120,17 @@ def prod_assoc : ((α × β) × γ) ≃ₜ (α × (β × γ)) :=
   .. equiv.prod_assoc α β γ }
 
 end
+
+section distrib
+variables {ι : Type*} {σ : ι → Type*} [Π i, topological_space (σ i)] [topological_space β]
+
+def sigma_prod_distrib : (Σ i, (σ i × β)) ≃ₜ ((Σ i, σ i) × β) :=
+homeomorph_of_continuous_open (equiv.sigma_prod_distrib σ β)
+  (continuous_sigma $ λ i,
+    continuous.prod_mk (continuous_sigma_mk.comp continuous_fst) continuous_snd)
+  (is_open_map_sigma $ λ i,
+    (open_embedding.prod open_embedding_sigma_mk open_embedding_id).is_open_map)
+
+end distrib
 
 end homeomorph

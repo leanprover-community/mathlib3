@@ -588,7 +588,7 @@ begin
   refine ⟨∥y∥ + 1, lt_of_le_of_lt (norm_nonneg _) Iy, _⟩,
   simp only [mul_one, norm_one],
   have : tendsto (λx, ∥f x∥) l (nhds ∥y∥) :=
-    h.comp (continuous_norm.tendsto _),
+    (continuous_norm.tendsto _).comp h,
   exact this (ge_mem_nhds Iy)
 end
 

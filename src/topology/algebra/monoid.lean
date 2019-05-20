@@ -46,6 +46,14 @@ lemma continuous_mul [topological_space β] {f : β → α} {g : β → α}
   continuous (λx, f x * g x) :=
 continuous_mul'.comp (hf.prod_mk hg)
 
+@[to_additive continuous_add_left]
+lemma continuous_mul_left (a : α) : continuous (λ b:α, a * b) :=
+continuous_mul continuous_const continuous_id
+
+@[to_additive continuous_add_right]
+lemma continuous_mul_right (a : α) : continuous (λ b:α, b * a) :=
+continuous_mul continuous_id continuous_const
+
 -- @[to_additive continuous_smul]
 lemma continuous_pow : ∀ n : ℕ, continuous (λ a : α, a ^ n)
 | 0 := by simpa using continuous_const

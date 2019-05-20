@@ -836,7 +836,7 @@ calc x + 1 ≤ lim (⟨(λ n : ℕ, ((exp' x) n).re), is_cau_seq_re (exp' x)⟩ 
 ... = exp x : by rw [exp, complex.exp, ← cau_seq_re, lim_re]
 
 lemma one_le_exp {x : ℝ} (hx : 0 ≤ x) : 1 ≤ exp x :=
-by linarith using [add_one_le_exp_of_nonneg hx]
+by linarith [add_one_le_exp_of_nonneg hx]
 
 lemma exp_pos (x : ℝ) : 0 < exp x :=
 (le_total 0 x).elim (lt_of_lt_of_le zero_lt_one ∘ one_le_exp)

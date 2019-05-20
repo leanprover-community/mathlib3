@@ -16,4 +16,4 @@ import
   tactic.split_ifs
   tactic.squeeze
   tactic.where
-
+  tactic.push_neg

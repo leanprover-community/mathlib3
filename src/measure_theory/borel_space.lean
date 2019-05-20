@@ -352,7 +352,7 @@ def ennreal_equiv_nnreal : measurable_equiv {r : ennreal | r < ⊤} nnreal :=
     refine measurable_of_continuous (continuous_iff_continuous_at.2 _),
     rintros ⟨r, hr⟩,
     simp [continuous_at, nhds_subtype_eq_comap],
-    refine tendsto.comp tendsto_comap (tendsto_to_nnreal (ne_of_lt hr))
+    refine tendsto.comp (tendsto_to_nnreal (ne_of_lt hr)) tendsto_comap
   end,
   measurable_inv_fun := measurable_subtype_mk measurable_coe }
 

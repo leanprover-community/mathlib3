@@ -31,42 +31,42 @@ continuous_iff_continuous_at.2 (λ x,
       (λ y, id y - (λ z, x) y)) (nhds x) (nhds (exp x)),
     by simp only [function.comp, add_sub_cancel'_right, id.def] at this;
       exact this,
-  tendsto.comp (by rw [sub_self] at H2; exact H2) H1)
+  tendsto.comp H1 (by rw [sub_self] at H2; exact H2))
 
 lemma continuous_sin : continuous sin :=
 continuous_mul
   (continuous_mul
     (continuous_sub
-      ((continuous_mul continuous_neg' continuous_const).comp continuous_exp)
-      ((continuous_mul continuous_id continuous_const).comp continuous_exp))
+      (continuous_exp.comp (continuous_mul continuous_neg' continuous_const))
+      (continuous_exp.comp (continuous_mul continuous_id continuous_const)))
     continuous_const)
   continuous_const
 
 lemma continuous_cos : continuous cos :=
 continuous_mul
   (continuous_add
-    ((continuous_mul continuous_id continuous_const).comp continuous_exp)
-    ((continuous_mul continuous_neg' continuous_const).comp continuous_exp))
+    (continuous_exp.comp (continuous_mul continuous_id continuous_const))
+    (continuous_exp.comp (continuous_mul continuous_neg' continuous_const)))
   continuous_const
 
 lemma continuous_tan : continuous (λ x : {x // cos x ≠ 0}, tan x) :=
 continuous_mul
-  (continuous_subtype_val.comp continuous_sin)
+  (continuous_sin.comp continuous_subtype_val)
   (continuous_inv subtype.property
-    (continuous_subtype_val.comp continuous_cos))
+    (continuous_cos.comp continuous_subtype_val))
 
 lemma continuous_sinh : continuous sinh :=
 continuous_mul
   (continuous_sub
     continuous_exp
-    (continuous_neg'.comp continuous_exp))
+    (continuous_exp.comp continuous_neg'))
   continuous_const
 
 lemma continuous_cosh : continuous cosh :=
 continuous_mul
   (continuous_add
     continuous_exp
-    (continuous_neg'.comp continuous_exp))
+    (continuous_exp.comp continuous_neg'))
   continuous_const
 
 end complex
@@ -74,31 +74,33 @@ end complex
 namespace real
 
 lemma continuous_exp : continuous exp :=
-(complex.continuous_of_real.comp complex.continuous_exp).comp
-  complex.continuous_re
+complex.continuous_re.comp
+  (complex.continuous_exp.comp complex.continuous_of_real)
 
 lemma continuous_sin : continuous sin :=
-(complex.continuous_of_real.comp complex.continuous_sin).comp
-  complex.continuous_re
+complex.continuous_re.comp
+  (complex.continuous_sin.comp complex.continuous_of_real)
 
 lemma continuous_cos : continuous cos :=
-(complex.continuous_of_real.comp complex.continuous_cos).comp
-  complex.continuous_re
+complex.continuous_re.comp
+  (complex.continuous_cos.comp complex.continuous_of_real)
 
 lemma continuous_tan : continuous (λ x : {x // cos x ≠ 0}, tan x) :=
 by simp only [tan_eq_sin_div_cos]; exact
 continuous_mul
-  (continuous_subtype_val.comp continuous_sin)
+  (continuous_sin.comp continuous_subtype_val)
   (continuous_inv subtype.property
-    (continuous_subtype_val.comp continuous_cos))
+    (continuous_cos.comp continuous_subtype_val))
 
 lemma continuous_sinh : continuous sinh :=
-(complex.continuous_of_real.comp complex.continuous_sinh).comp
-  complex.continuous_re
+complex.continuous_re.comp
+  (complex.continuous_sinh.comp complex.continuous_of_real)
+
 
 lemma continuous_cosh : continuous cosh :=
-(complex.continuous_of_real.comp complex.continuous_cosh).comp
-  complex.continuous_re
+complex.continuous_re.comp
+  (complex.continuous_cosh.comp complex.continuous_of_real)
+
 
 private lemma exists_exp_eq_of_one_le {x : ℝ} (hx : 1 ≤ x) : ∃ y, exp y = x :=
 let ⟨y, hy⟩ := @intermediate_value real.exp 0 (x - 1) x
@@ -232,7 +234,7 @@ neg_nonneg.1 $ sin_neg x ▸ sin_nonneg_of_nonneg_of_le_pi (neg_nonneg.2 hx0) (n
 
 @[simp] lemma sin_pi_div_two : sin (π / 2) = 1 :=
 have sin (π / 2) = 1 ∨ sin (π / 2) = -1 :=
-by simpa [pow_two, mul_self_eq_one_iff] using sin_pow_two_add_cos_pow_two (π / 2),
+by simpa [pow_two, mul_self_eq_one_iff] using sin_sq_add_cos_sq (π / 2),
 this.resolve_right
   (λ h, (show ¬(0 : ℝ) < -1, by norm_num) $
     h ▸ sin_pos_of_pos_of_lt_pi pi_div_two_pos (half_lt_self pi_pos))
@@ -310,7 +312,7 @@ lemma sin_eq_zero_iff {x : ℝ} : sin x = 0 ↔ ∃ n : ℤ, (n : ℝ) * π = x 
   λ ⟨n, hn⟩, hn ▸ sin_int_mul_pi _⟩
 
 lemma sin_eq_zero_iff_cos_eq {x : ℝ} : sin x = 0 ↔ cos x = 1 ∨ cos x = -1 :=
-by rw [← mul_self_eq_one_iff (cos x), ← sin_pow_two_add_cos_pow_two x,
+by rw [← mul_self_eq_one_iff (cos x), ← sin_sq_add_cos_sq x,
     pow_two, pow_two, ← sub_eq_iff_eq_add, sub_self];
   exact ⟨λ h, by rw [h, mul_zero], eq_zero_of_mul_self_eq_zero ∘ eq.symm⟩
 
@@ -668,9 +670,9 @@ cos_nonneg_of_neg_pi_div_two_le_of_le_pi_div_two
     (neg_pi_div_two_le_arcsin _) (arcsin_le_pi_div_two _)
 
 lemma cos_arcsin {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : cos (arcsin x) = sqrt (1 - x ^ 2) :=
-have sin (arcsin x) ^ 2 + cos (arcsin x) ^ 2 = 1 := sin_pow_two_add_cos_pow_two (arcsin x),
+have sin (arcsin x) ^ 2 + cos (arcsin x) ^ 2 = 1 := sin_sq_add_cos_sq (arcsin x),
 begin
-  rw [← eq_sub_iff_add_eq', ← sqrt_inj (pow_two_nonneg _) (sub_nonneg.2 (sin_pow_two_le_one (arcsin x))),
+  rw [← eq_sub_iff_add_eq', ← sqrt_inj (pow_two_nonneg _) (sub_nonneg.2 (sin_sq_le_one (arcsin x))),
     pow_two, sqrt_mul_self (cos_arcsin_nonneg _)] at this,
   rw [this, sin_arcsin hx₁ hx₂],
 end

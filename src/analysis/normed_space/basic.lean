@@ -7,6 +7,7 @@ Authors: Patrick Massot, Johannes Hölzl
 -/
 
 import algebra.pi_instances
+import linear_algebra.basic
 import topology.instances.nnreal topology.instances.complex
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
@@ -177,8 +178,7 @@ lemma tendsto_iff_norm_tendsto_zero {f : ι → β} {a : filter ι} {b : β} :
   tendsto f a (nhds b) ↔ tendsto (λ e, ∥ f e - b ∥) a (nhds 0) :=
 by rw tendsto_iff_dist_tendsto_zero ; simp only [(dist_eq_norm _ _).symm]
 
-lemma tendsto_zero_iff_norm_tendsto_zero [normed_group α] [normed_group β]
-  {f : γ → β} {a : filter γ} :
+lemma tendsto_zero_iff_norm_tendsto_zero {f : γ → β} {a : filter γ} :
   tendsto f a (nhds 0) ↔ tendsto (λ e, ∥ f e ∥) a (nhds 0) :=
 have tendsto f a (nhds 0) ↔ tendsto (λ e, ∥ f e - 0 ∥) a (nhds 0) :=
   tendsto_iff_norm_tendsto_zero,
@@ -263,9 +263,7 @@ instance normed_ring_top_monoid [normed_ring α] : topological_monoid α :=
             rw ←mul_sub, apply norm_mul_le },
           { rw ←mul_zero (∥x.fst∥), apply tendsto_mul,
             { apply continuous_iff_continuous_at.1,
-              apply continuous.comp,
-              { apply continuous_fst },
-              { apply continuous_norm }},
+              apply continuous_norm.comp continuous_fst },
             { apply tendsto_iff_norm_tendsto_zero.1,
               apply continuous_iff_continuous_at.1,
               apply continuous_snd }}},
@@ -399,7 +397,7 @@ begin
   { clear ineq,
 
     have limf': tendsto (λ x, ∥f x - s∥) e (nhds 0) := tendsto_iff_norm_tendsto_zero.1 limf,
-    have limg' : tendsto (λ x, ∥g x∥) e (nhds ∥b∥) := filter.tendsto.comp limg (continuous_iff_continuous_at.1 continuous_norm _),
+    have limg' : tendsto (λ x, ∥g x∥) e (nhds ∥b∥) := filter.tendsto.comp (continuous_iff_continuous_at.1 continuous_norm _) limg,
 
     have lim1 := tendsto_mul limf' limg',
     simp only [zero_mul, sub_eq_add_neg] at lim1,
@@ -534,7 +532,7 @@ summable_of_norm_bounded _ hf (assume i, le_refl _)
 
 lemma norm_tsum_le_tsum_norm {f : ι → α} (hf : summable (λi, ∥f i∥)) : ∥(∑i, f i)∥ ≤ (∑ i, ∥f i∥) :=
 have h₁ : tendsto (λs:finset ι, ∥s.sum f∥) at_top (nhds ∥(∑ i, f i)∥) :=
-  (has_sum_tsum $ summable_of_summable_norm hf).comp (continuous_norm.tendsto _),
+  (continuous_norm.tendsto _).comp (has_sum_tsum $ summable_of_summable_norm hf),
 have h₂ : tendsto (λs:finset ι, s.sum (λi, ∥f i∥)) at_top (nhds (∑ i, ∥f i∥)) :=
   has_sum_tsum hf,
 le_of_tendsto_of_tendsto at_top_ne_bot h₁ h₂ $ univ_mem_sets' $ assume s, norm_triangle_sum _ _

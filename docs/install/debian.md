@@ -14,13 +14,13 @@ will install Lean, with supporting tools `elan` and `leanpkg`,
 the supporting tool `update-mathlib` for Lean's mathematical
 library, as well as the code editor VScode and its Lean plugin, and
 other dependencies you probably already have, like `curl`, `git`,
-`python3`, and `pip3`. If you don't like this method, there is a 
+`python3`, and `pip3`. If you don't like this method, there is a
 [detailed webpage](debian_details.md) which will decompose the
-process into described stages, and won't ask for a blind `sudo`. 
+process into described stages, and won't ask for a blind `sudo`.
 
 The fast way is: open a terminal and type:
 ```bash
-wget -q https://raw.githubusercontent.com/leanprover-community/mathlib/master/scripts/install_debian.sh && bash install_debian.sh ; rm -f install_debian.sh && source ~/.profile
+wget -q https://raw.githubusercontent.com/leanprover-community/mathlib-tools/master/scripts/install_debian.sh && bash install_debian.sh ; rm -f install_debian.sh && source ~/.profile
 ```
 
 You can now read instructions about creating and working on [Lean projects](project.md)

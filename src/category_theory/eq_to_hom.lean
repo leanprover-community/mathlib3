@@ -9,6 +9,7 @@ import category_theory.opposites
 universes v v' u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory
+open opposite
 
 variables {C : Sort u} [𝒞 : category.{v} C]
 include 𝒞

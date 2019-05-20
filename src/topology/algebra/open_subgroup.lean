@@ -1,25 +1,35 @@
 import order.filter.lift
 import linear_algebra.basic
-import topology.algebra.ring
+import topology.opens topology.algebra.ring
 
 section
+open topological_space
 variables (G : Type*) [group G] [topological_space G] [topological_group G]
 
 /-- The type of open subgroups of a topological group. -/
 @[to_additive open_add_subgroup]
 def open_subgroup := { U : set G // is_open U ∧ is_subgroup U }
 
+instance open_subgroup.has_coe :
+  has_coe (open_subgroup G) (opens G) := ⟨λ U, ⟨U.1, U.2.1⟩⟩
+end
+
+section
+open topological_space
+variables (G : Type*) [add_group G] [topological_space G] [topological_add_group G]
+
+instance open_add_subgroup.has_coe :
+  has_coe (open_add_subgroup G) (opens G) := ⟨λ U, ⟨U.1, U.2.1⟩⟩
+
+attribute [to_additive open_add_subgroup.has_coe] open_subgroup.has_coe
+attribute [to_additive open_add_subgroup.has_coe.equations._eqn_1] open_subgroup.has_coe.equations._eqn_1
+
 end
 
 namespace open_subgroup
-open function lattice
+open function lattice topological_space
 variables {G : Type*} [group G] [topological_space G] [topological_group G]
 variables {U V : open_subgroup G}
-
-@[to_additive open_add_subgroup.has_coe]
-instance : has_coe (open_subgroup G) (set G) := ⟨λ U, U.1⟩
-
-attribute [to_additive open_add_subgroup.has_coe.equations._eqn_1] open_subgroup.has_coe.equations._eqn_1
 
 @[to_additive open_add_subgroup.has_mem]
 instance : has_mem G (open_subgroup G) := ⟨λ g U, g ∈ (U : set G)⟩
@@ -60,27 +70,43 @@ variable {U}
 instance : inhabited (open_subgroup G) :=
 { default := ⟨set.univ, ⟨is_open_univ, by apply_instance⟩⟩ }
 
---Gouezel points out that we only need a non-empty open subset in s, not a subgroup
-@[to_additive open_add_subgroup.is_open_of_open_add_subgroup]
-lemma is_open_of_open_subgroup {s : set G} (h₁ : is_subgroup s)
-  (h₂ : ∃ U : open_subgroup G, (U : set G) ⊆ s) : is_open s :=
+@[to_additive open_add_subgroup.is_open_of_nonempty_open_subset]
+lemma is_open_of_nonempty_open_subset {s : set G} [is_subgroup s]
+  (h : ∃ U : opens G, nonempty U ∧ (U : set G) ⊆ s) :
+  is_open s :=
 begin
   rw is_open_iff_forall_mem_open,
   intros x hx,
-  rcases h₂ with ⟨⟨U, h₁U, h₂U⟩, H⟩,
-  use (λ y, y * x⁻¹) ⁻¹' U,
+  rcases h with ⟨U, ⟨g, hg⟩, hU⟩,
+  use (λ y, y * (x⁻¹ * g)) ⁻¹' U,
   split,
   { intros u hu,
     erw set.mem_preimage_eq at hu,
-    replace hu := H hu,
-    simpa using is_submonoid.mul_mem hu hx },
+    replace hu := hU hu,
+    replace hg := hU hg,
+    have : (x⁻¹ * g)⁻¹ ∈ s,
+    { simp [*, is_subgroup.inv_mem, is_submonoid.mul_mem], },
+    convert is_submonoid.mul_mem hu this, simp [mul_assoc] },
   split,
   { apply continuous_mul continuous_id continuous_const,
-    { exact h₁U },
+    { exact U.property },
     { apply_instance } },
   { erw set.mem_preimage_eq,
-    simpa using is_submonoid.one_mem _,
-    exact h₂U.to_is_submonoid }
+    convert hg,
+    rw [← mul_assoc, mul_right_inv, one_mul] }
+end
+
+-- @[to_additive open_add_subgroup.is_open_of_open_add_subgroup]
+lemma is_open_of_open_subgroup {s : set G} [is_subgroup s]
+  (h : ∃ U : open_subgroup G, (U : set G) ⊆ s) :
+  is_open s :=
+is_open_of_nonempty_open_subset
+begin
+  cases h with U hU,
+  use U,
+  split,
+  { refine ⟨⟨1, U.one_mem⟩⟩ },
+  { exact hU }
 end
 
 @[to_additive open_add_subgroup.is_closed]
@@ -127,8 +153,8 @@ instance : semilattice_sup_top (open_subgroup G) :=
   { val := group.closure ((U : set G) ∪ V),
     property :=
     begin
-      have subgrp := _, refine ⟨_, subgrp⟩,
-      { apply is_open_of_open_subgroup subgrp,
+      haveI subgrp := _, refine ⟨_, subgrp⟩,
+      { refine is_open_of_open_subgroup _,
         exact ⟨U, set.subset.trans (set.subset_union_left _ _) group.subset_closure⟩ },
       { apply_instance }
     end },
@@ -149,11 +175,6 @@ variables {G : Type*} [add_group G] [topological_space G] [topological_add_group
 variables {U V : open_add_subgroup G}
 
 variable (U)
--- Kevin added this attribute to open_subgroup.is_open when it was
--- defined, and this works and makes to_additive work better.
-
---protected lemma is_open : is_open (U : set G) := U.2.1
---attribute [to_additive open_add_subgroup.is_open] open_subgroup.is_open
 
 protected lemma zero_mem : (0 : G) ∈ U := is_add_submonoid.zero_mem (U : set G)
 attribute [to_additive open_add_subgroup.zero_mem] open_subgroup.one_mem
@@ -169,9 +190,22 @@ attribute [to_additive open_add_subgroup.add_mem] open_subgroup.mul_mem
 lemma mem_nhds_zero : (U : set G) ∈ nhds (0 : G) :=
 mem_nhds_sets U.is_open U.zero_mem
 attribute [to_additive open_add_subgroup.mem_nhds_zero] open_subgroup.mem_nhds_one
-variable {U}
 
 variable {U}
+
+lemma is_open_of_open_add_subgroup {s : set G} [_root_.is_add_subgroup s]
+  (h : ∃ U : open_add_subgroup G, (U : set G) ⊆ s) :
+  _root_.is_open s :=
+is_open_of_nonempty_open_subset
+begin
+  cases h with U hU,
+  use U,
+  split,
+  { refine ⟨⟨0, U.zero_mem⟩⟩ },
+  { exact hU }
+end
+
+attribute [to_additive open_add_subgroup.is_open_of_open_add_subgroup] open_subgroup.is_open_of_open_subgroup
 
 section
 variables {H : Type*} [add_group H] [topological_space H] [topological_add_group H]
@@ -208,7 +242,7 @@ instance : semilattice_sup_top (open_add_subgroup G) :=
     property :=
     begin
       have subgrp := _, refine ⟨_, subgrp⟩,
-      { apply is_open_of_open_add_subgroup subgrp,
+      { refine is_open_of_open_add_subgroup _,
         exact ⟨U, set.subset.trans (set.subset_union_left _ _) add_group.subset_closure⟩ },
       { apply_instance }
     end },
@@ -235,7 +269,7 @@ lemma is_open_of_open_submodule {P : submodule R M}
   (h : ∃ U : submodule R M, is_open (U : set M) ∧ U ≤ P) : is_open (P : set M) :=
 begin
   letI H : is_add_subgroup (P : set M) := by apply_instance,
-  apply open_add_subgroup.is_open_of_open_add_subgroup H,
+  refine open_add_subgroup.is_open_of_open_add_subgroup _,
   rcases h with ⟨U, h₁, h₂⟩,
   exact ⟨⟨U, h₁, by apply_instance⟩, h₂⟩
 end

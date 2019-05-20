@@ -153,12 +153,7 @@ Transforms the goal into its contrapositive.
 meta def tactic.interactive.contrapose (push : parse (tk "!" )?) : parse ident? → tactic unit
 | (some h) := get_local h >>= revert >> tactic.interactive.contrapose none >> intro h >> skip
 | none :=
-  do tgt ← target,
-  let err := "The goal is not an implication, and you didn't specify an assumption",
-  match tgt with
-  | `(%%P → %%Q) := do Pprop ← is_prop P, Qprop ← is_prop Q,
-                       when (¬ (Pprop ∧ Qprop)) (fail err),
-                       mk_mapp `imp_of_not_imp_not [P, Q] >>= apply
-  | _ := fail err
-  end,
+  do `(%%P → %%Q) ← target | fail "The goal is not an implication, and you didn't specify an assumption",
+  cp ← mk_mapp `imp_of_not_imp_not [P, Q, none] <|> fail "contrapose only applies to nondependent arrows between decidable props",
+  apply cp,
   when push.is_some $ try (tactic.interactive.push_neg (loc.ns [none]))

@@ -54,3 +54,19 @@ begin
   contrapose! h,
   rw [h, one_mul]
 end
+
+example : 0 = 0 :=
+begin
+  success_if_fail_with_msg { contrapose }
+    "The goal is not an implication, and you didn't specify an assumption",
+  refl
+end
+
+-- Remember that ∀ is the same as Π which is a generalization of → so we need to make sure
+-- `contrapose` fails with a helpful error message in the next example.
+example : ∀ x : ℕ, x = x :=
+begin
+  success_if_fail_with_msg { contrapose }
+    "contrapose only applies to nondependent arrows between decidable props",
+  intro, refl
+end

@@ -308,6 +308,20 @@ meta def guard_tags (tags : parse ident*) : tactic unit :=
 do (t : list name) ← get_main_tag,
    guard (t = tags)
 
+meta def {u} success_if_fail_with_msg_aux {α : Type u} (t : tactic α) (msg : string) : tactic unit :=
+λ s, match t s with
+| (interaction_monad.result.exception msg' _ s') :=
+  if msg = (msg'.iget ()).to_string then result.success () s
+  else mk_exception "failure messages didn't match" none s
+| (interaction_monad.result.success a s) :=
+   mk_exception "success_if_fail combinator failed, given tactic succeeded" none s
+end
+
+/-- `success_if_fail_with_msg { tac } msg` succeeds if the interactive tactic `tac` fails with
+    error message `msg` (for test writing purposes). -/
+meta def success_if_fail_with_msg (tac : tactic.interactive.itactic) :=
+success_if_fail_with_msg_aux tac
+
 meta def get_current_field : tactic name :=
 do [_,field,str] ← get_main_tag,
    expr.const_name <$> resolve_name (field.update_prefix str)

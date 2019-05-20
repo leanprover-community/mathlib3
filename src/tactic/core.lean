@@ -626,9 +626,9 @@ do l ← local_context,
    r ← successes (l.reverse.map (λ h, cases h >> skip)),
    when (r.empty) failed
 
-meta def note_anon (e : expr) : tactic unit :=
+meta def note_anon (e : expr) : tactic expr :=
 do n ← get_unused_name "lh",
-   note n none e, skip
+   note n none e
 
 /-- `find_local t` returns a local constant with type t, or fails if none exists. -/
 meta def find_local (t : pexpr) : tactic expr :=

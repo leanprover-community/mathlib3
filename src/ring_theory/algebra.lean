@@ -206,7 +206,7 @@ protected def id : A →ₐ[R] A :=
 variables {R A}
 
 @[simp] lemma id_to_linear_map :
-  (alg_hom.id R A).to_linear_map = @linear_map.id α β _ _ _
+  (alg_hom.id R A).to_linear_map = @linear_map.id R A _ _ _ := rfl
 
 @[simp] lemma id_apply (p : A) : alg_hom.id R A p = p := rfl
 

@@ -27,7 +27,7 @@ instance : has_dist (completion α) :=
 /-- The new distance is uniformly continuous. -/
 protected lemma completion.uniform_continuous_dist :
   uniform_continuous (λp:completion α × completion α, dist p.1 p.2) :=
-uniform_continuous.comp uniform_continuous_prod uniform_continuous_extension
+uniform_continuous.comp uniform_continuous_extension uniform_continuous_prod
 
 /-- The new distance is an extension of the original distance. -/
 protected lemma completion.dist_eq (x y : α) : dist (x : completion α) y = dist x y :=

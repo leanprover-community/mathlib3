@@ -8,7 +8,7 @@ Subtype of open subsets in a topological space.
 import topology.bases topology.subset_properties topology.constructions
 
 open filter lattice
-variables {α : Type*} [topological_space α]
+variables {α : Type*} {β : Type*} [topological_space α] [topological_space β]
 
 namespace topological_space
 variable (α)
@@ -22,7 +22,6 @@ def closeds := {s : set α // is_closed s}
 non-emptiness will be useful in metric spaces, as we will be able to put
 a distance (and not merely an edistance) on this space. -/
 def nonempty_compacts := {s : set α // s ≠ ∅ ∧ compact s}
-
 
 section nonempty_compacts
 open topological_space set
@@ -49,7 +48,6 @@ instance : has_subset (opens α) :=
 
 instance : has_mem α (opens α) :=
 { mem := λ a U, a ∈ U.val }
-
 
 @[extensionality] lemma ext {U V : opens α} (h : U.val = V.val) : U = V := subtype.ext.mpr h
 
@@ -164,3 +162,17 @@ end
 end opens
 
 end topological_space
+
+namespace continuous
+open topological_space
+
+def comap {f : α → β} (hf : continuous f) (V : opens β) : opens α :=
+⟨f ⁻¹' V.1, hf V.1 V.2⟩
+
+@[simp] lemma comap_id (U : opens α) : (continuous_id).comap U = U := by { ext, refl }
+
+@[simp] lemma comap_mono {f : α → β} (hf : continuous f) {V W : opens β} (hVW : V ⊆ W) :
+  hf.comap V ⊆ hf.comap W :=
+λ _ h, hVW h
+
+end continuous

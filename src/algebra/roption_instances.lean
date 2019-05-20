@@ -3,8 +3,8 @@ Copyright (c) 2019 Hoang Le Truong. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Hoang Le Truong.
 
-If α is a semigroup, a comm_semigroup, a comm_monoid,a add_semigroup, a add_comm_semigroup, a add_comm_monoid, a mul_action, 
-a distrib_mul_action, so is roption α. 
+ roption α  can see as  Prop × α. (Prop, ∧) has natural algebra structure. Therefore if α is a semigroup, a comm_semigroup, 
+ a comm_monoid,a add_semigroup, a add_comm_semigroup, a add_comm_monoid, a mul_action, a distrib_mul_action, so is roption α. 
 -/
 
 import   algebra.module data.pfun

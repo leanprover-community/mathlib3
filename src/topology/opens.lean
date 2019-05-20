@@ -171,7 +171,7 @@ def comap {f : α → β} (hf : continuous f) (V : opens β) : opens α :=
 
 @[simp] lemma comap_id (U : opens α) : (continuous_id).comap U = U := by { ext, refl }
 
-@[simp] lemma comap_mono {f : α → β} (hf : continuous f) {V W : opens β} (hVW : V ⊆ W) :
+lemma comap_mono {f : α → β} (hf : continuous f) {V W : opens β} (hVW : V ⊆ W) :
   hf.comap V ⊆ hf.comap W :=
 λ _ h, hVW h
 

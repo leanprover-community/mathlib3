@@ -125,7 +125,7 @@ lemma finset_prod_apply {α : Type*} {β : α → Type*} {γ} [∀a, comm_monoid
 show (s.val.map g).prod a = (s.val.map (λc, g c a)).prod,
   by rw [multiset_prod_apply, multiset.map_map]
 
-def is_ring_hom_pi
+instance is_ring_hom_pi
   {α : Type u} {β : α → Type v} [R : Π a : α, ring (β a)]
   {γ : Type w} [ring γ]
   (f : Π a : α, γ → β a) [Rh : Π a : α, is_ring_hom (f a)] :
@@ -137,7 +137,6 @@ begin
   { intros x y, ext1 z, rw [is_ring_hom.map_mul (f z)], refl, },
   { intros x y, ext1 z, rw [is_ring_hom.map_add (f z)], refl, }
 end
-
 
 end pi
 

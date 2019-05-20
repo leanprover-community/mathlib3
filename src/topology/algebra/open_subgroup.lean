@@ -1,16 +1,11 @@
 import order.filter.lift
-import algebra.pointwise
-import topology.algebra.group
-
--- import for_mathlib.subgroup
--- import for_mathlib.topological_groups
-
-local attribute [instance] set.pointwise_mul_semiring
-local attribute [instance] set.pointwise_mul_action
+import linear_algebra.basic
+import topology.algebra.ring
 
 section
 variables (G : Type*) [group G] [topological_space G] [topological_group G]
 
+/-- The type of open subgroups of a topological group. -/
 @[to_additive open_add_subgroup]
 def open_subgroup := { U : set G // is_open U ∧ is_subgroup U }
 
@@ -31,17 +26,17 @@ instance : has_mem G (open_subgroup G) := ⟨λ g U, g ∈ (U : set G)⟩
 
 attribute [to_additive open_add_subgroup.has_mem.equations._eqn_1] open_subgroup.has_mem.equations._eqn_1
 
-@[to_additive open_add_subgroup.ext']
-lemma ext' : (U = V) ↔ ((U : set G) = V) :=
+@[to_additive open_add_subgroup.ext]
+lemma ext : (U = V) ↔ ((U : set G) = V) :=
 by cases U; cases V; split; intro h; try {congr}; assumption
 
-@[extensionality, to_additive open_add_subgroup.ext]
-lemma ext (h : (U : set G) = V) : (U = V) :=
-ext'.mpr h
+@[extensionality, to_additive open_add_subgroup.ext']
+lemma ext' (h : (U : set G) = V) : (U = V) :=
+ext.mpr h
 
 @[to_additive open_add_subgroup.coe_injective]
 lemma coe_injective : injective (λ U : open_subgroup G, (U : set G)) :=
-λ U V h, ext h
+λ U V h, ext' h
 
 @[to_additive open_add_subgroup.is_add_subgroup]
 instance : is_subgroup (U : set G) := U.2.2

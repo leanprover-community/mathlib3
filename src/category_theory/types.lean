@@ -24,7 +24,7 @@ variables {J : Type u} [𝒥 : category.{v} J]
 include 𝒥
 
 def sections (F : J ⥤ Type w) : set (Π j, F.obj j) :=
-λ u, ∀ {j j'} (f : j ⟶ j'), F.map f (u j) = u j'
+{ u | ∀ {j j'} (f : j ⟶ j'), F.map f (u j) = u j'}
 end functor
 
 namespace functor_to_types

@@ -1126,19 +1126,11 @@ variables [ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group δ]
 variables [module α β] [module α γ] [module α δ]
 include α
 
-@[extensionality] lemma ext {f g : β ≃ₗ[α] γ} (h : f.to_fun = g.to_fun) :
-  f = g :=
-begin
-  cases f, cases g, congr, {exact h},
-  { funext x,
-    change f_to_fun = g_to_fun at h,
-    dsimp only [function.left_inverse, function.right_inverse] at *,
-    rw h at f_left_inv,
-    have : function.surjective g_to_fun :=
-      function.surjective_of_has_right_inverse ⟨g_inv_fun, g_right_inv⟩,
-    rcases this x with ⟨x, rfl⟩,
-    simp * }
-end
+lemma to_equiv_injective : function.injective (@to_equiv α β γ _ _ _ _ _) :=
+λ ⟨_, _, _, _, _, _⟩ ⟨_, _, _, _, _, _⟩ h, linear_equiv.mk.inj_eq.mpr (equiv.mk.inj h)
+
+@[extensionality] lemma ext {f g : β ≃ₗ[α] γ} (h : f.to_fun = g.to_fun) : f = g :=
+to_equiv_injective (equiv.eq_of_to_fun_eq h)
 
 section
 variable (β)

@@ -6,6 +6,7 @@ Authors: Abhimanyu Pallavi Sudhir
 -/
 
 import order.filter.basic
+import algebra.pi_instances
 
 universes u v
 variables {α : Type u} (β : Type v) (φ : filter α)

@@ -555,10 +555,18 @@ by linarith
 
 `linarith` will use all appropriate hypotheses and the negation of the goal, if applicable.
 
-`linarith h1 h2 h3` will ohly use the local hypotheses `h1`, `h2`, `h3`.
+`linarith [t1, t2, t3]` will additionally use proof terms `t1, t2, t3`.
 
-`linarith using [t1, t2, t3]` will add `t1`, `t2`, `t3` to the local context and then run
-`linarith`.
+`linarith only [h1, h2, h3, t1, t2, t3]` will use only the goal (if relevant), local hypotheses
+h1, h2, h3, and proofs t1, t2, t3. It will ignore the rest of the local context.
+
+`linarith!` will use a stronger reducibility setting to try to identify atoms. For example,
+```lean
+example (x : ℚ) : id x ≥ x :=
+by linarith
+```
+will fail, because `linarith` will not identify `x` and `id x`. `linarith!` will.
+This can sometimes be expensive.
 
 `linarith {discharger := tac, restrict_type := tp, exfalso := ff}` takes a config object with three optional
 arguments.

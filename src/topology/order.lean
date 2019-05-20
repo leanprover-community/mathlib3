@@ -670,19 +670,31 @@ lemma continuous_at.continuous_within_at {f : α → β} {s : set α} {x : α} (
   continuous_within_at f s x :=
 continuous_within_at.mono ((continuous_within_at_univ f x).2 h) (subset_univ _)
 
-lemma continuous_on.comp {f : α → β} {g : β → γ} {s : set α} {t : set β}
-  (hf : continuous_on f s) (hg : continuous_on g t) (h : f '' s ⊆ t) :
-  continuous_on (g ∘ f) s :=
+lemma continuous_within_at.comp {g : β → γ} {f : α → β} {s : set α} {t : set β} {x : α}
+  (hg : continuous_within_at g t (f x)) (hf : continuous_within_at f s x) (h : f '' s ⊆ t) :
+  continuous_within_at (g ∘ f) s x :=
 begin
-  assume x hx,
   have : tendsto f (principal s) (principal t),
     by { rw tendsto_principal_principal, exact λx hx, h (mem_image_of_mem _ hx) },
   have : tendsto f (nhds_within x s) (principal t) :=
     tendsto_le_left lattice.inf_le_right this,
   have : tendsto f (nhds_within x s) (nhds_within (f x) t) :=
-    tendsto_inf.2 ⟨hf x hx, this⟩,
-  exact tendsto.comp this (hg _ (h (mem_image_of_mem _ hx)))
+    tendsto_inf.2 ⟨hf, this⟩,
+  exact tendsto.comp hg this
 end
+
+lemma continuous_at.comp {g : β → γ} {f : α → β} {x : α}
+  (hg : continuous_at g (f x)) (hf : continuous_at f x) :
+  continuous_at (g ∘ f) x :=
+begin
+  rw ← continuous_within_at_univ at *,
+  exact continuous_within_at.comp hg hf (subset_univ _)
+end
+
+lemma continuous_on.comp {g : β → γ} {f : α → β} {s : set α} {t : set β}
+  (hg : continuous_on g t) (hf : continuous_on f s) (h : f '' s ⊆ t) :
+  continuous_on (g ∘ f) s :=
+λx hx, continuous_within_at.comp (hg _ (h (mem_image_of_mem _ hx))) (hf x hx) h
 
 lemma continuous_on.mono {f : α → β} {s t : set α} (hf : continuous_on f s) (h : t ⊆ s)  :
   continuous_on f t :=

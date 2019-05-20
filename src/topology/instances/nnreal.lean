@@ -74,7 +74,7 @@ lemma tendsto_coe {f : filter α} {m : α → nnreal} :
 
 lemma tendsto_of_real {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m f (nhds x)):
   tendsto (λa, nnreal.of_real (m a)) f (nhds (nnreal.of_real x)) :=
-h.comp (continuous_iff_continuous_at.1 continuous_of_real _)
+tendsto.comp (continuous_iff_continuous_at.1 continuous_of_real _) h
 
 lemma tendsto_sub {f : filter α} {m n : α → nnreal} {r p : nnreal}
   (hm : tendsto m f (nhds r)) (hn : tendsto n f (nhds p)) :

@@ -308,6 +308,11 @@ meta def guard_tags (tags : parse ident*) : tactic unit :=
 do (t : list name) ← get_main_tag,
    guard (t = tags)
 
+/-- `success_if_fail_with_msg { tac } msg` succeeds if the interactive tactic `tac` fails with
+    error message `msg` (for test writing purposes). -/
+meta def success_if_fail_with_msg (tac : tactic.interactive.itactic) :=
+tactic.success_if_fail_with_msg tac
+
 meta def get_current_field : tactic name :=
 do [_,field,str] ← get_main_tag,
    expr.const_name <$> resolve_name (field.update_prefix str)

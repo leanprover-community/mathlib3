@@ -124,8 +124,6 @@ instance endomorphism_ring : ring (β →ₗ[α] β) :=
 by refine {mul := (*), one := 1, ..linear_map.add_comm_group, ..};
   { intros, apply linear_map.ext, simp }
 
-/-- The group of invertible linear maps from `β` to itself -/
-def general_linear_group := units (β →ₗ[α] β)
 end
 
 section
@@ -1128,6 +1126,20 @@ variables [ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group δ]
 variables [module α β] [module α γ] [module α δ]
 include α
 
+@[extensionality] lemma ext {f g : β ≃ₗ[α] γ} (h : f.to_fun = g.to_fun) :
+  f = g :=
+begin
+  cases f, cases g, congr, {exact h},
+  { funext x,
+    change f_to_fun = g_to_fun at h,
+    dsimp only [function.left_inverse, function.right_inverse] at *,
+    rw h at f_left_inv,
+    have : function.surjective g_to_fun :=
+      function.surjective_of_has_right_inverse ⟨g_inv_fun, g_right_inv⟩,
+    rcases this x with ⟨x, rfl⟩,
+    simp * }
+end
+
 section
 variable (β)
 def refl : β ≃ₗ[α] β := { .. linear_map.id, .. equiv.refl β }
@@ -1501,5 +1513,71 @@ end
 end
 
 end pi
+
+variables (α β)
+
+instance automorphism_group : group (β ≃ₗ[α] β) :=
+{ mul := λ f g, g.trans f,
+  one := linear_equiv.refl β,
+  inv := λ f, f.symm,
+  mul_assoc := λ f g h, by {ext, refl},
+  mul_one := λ f, by {ext, refl},
+  one_mul := λ f, by {ext, refl},
+  mul_left_inv := λ f, by {ext, exact f.left_inv x} }
+
+instance automorphism_group.to_linear_map_is_monoid_hom :
+  is_monoid_hom (linear_equiv.to_linear_map : (β ≃ₗ[α] β) → (β →ₗ[α] β)) :=
+{ map_one := rfl,
+  map_mul := λ f g, rfl }
+
+/-- The group of invertible linear maps from `β` to itself -/
+def general_linear_group := units (β →ₗ[α] β)
+
+namespace general_linear_group
+variables {α β}
+
+instance : group (general_linear_group α β) := by delta general_linear_group; apply_instance
+
+def to_linear_equiv (f : general_linear_group α β) : (β ≃ₗ[α] β) :=
+{ inv_fun := f.inv.to_fun,
+  left_inv := λ m, show (f.inv * f.val) m = m,
+    by erw f.inv_val; simp,
+  right_inv := λ m, show (f.val * f.inv) m = m,
+    by erw f.val_inv; simp,
+  ..f.val }
+
+def of_linear_equiv (f : (β ≃ₗ[α] β)) : general_linear_group α β :=
+{ val := f,
+  inv := f.symm,
+  val_inv := linear_map.ext $ λ _, f.apply_symm_apply _,
+  inv_val := linear_map.ext $ λ _, f.symm_apply_apply _ }
+
+variables (α β)
+
+def general_linear_equiv : general_linear_group α β ≃ (β ≃ₗ[α] β) :=
+{ to_fun := to_linear_equiv,
+  inv_fun := of_linear_equiv,
+  left_inv := λ f,
+  begin
+    delta to_linear_equiv of_linear_equiv,
+    cases f with f f_inv, cases f, cases f_inv,
+    congr
+  end,
+  right_inv := λ f,
+  begin
+    delta to_linear_equiv of_linear_equiv,
+    cases f,
+    congr
+  end }
+
+instance general_linear_equiv.is_group_hom :
+  is_group_hom (general_linear_equiv α β) :=
+⟨λ g₁ g₂, by {ext, refl}⟩
+
+@[simp] lemma general_linear_equiv_to_linear_map (f : general_linear_group α β) :
+  (general_linear_equiv α β f).to_linear_map = f.val :=
+by {ext, refl}
+
+end general_linear_group
 
 end linear_map

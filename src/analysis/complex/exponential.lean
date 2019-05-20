@@ -31,7 +31,7 @@ continuous_iff_continuous_at.2 (λ x,
       (λ y, id y - (λ z, x) y)) (nhds x) (nhds (exp x)),
     by simp only [function.comp, add_sub_cancel'_right, id.def] at this;
       exact this,
-  tendsto.comp (by rw [sub_self] at H2; exact H2) H1)
+  tendsto.comp H1 (by rw [sub_self] at H2; exact H2))
 
 lemma continuous_sin : continuous sin :=
 continuous_mul

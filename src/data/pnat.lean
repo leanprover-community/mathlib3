@@ -55,7 +55,7 @@ open nat
 instance : decidable_eq ℕ+ := λ (a b : ℕ+), by apply_instance
 
 instance : decidable_linear_order ℕ+ :=
- subtype.decidable_linear_order _
+subtype.decidable_linear_order _
 
 @[simp] theorem pos (n : ℕ+) : (n : ℕ) > 0 := n.2
 

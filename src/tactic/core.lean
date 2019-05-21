@@ -1010,4 +1010,17 @@ local postfix `?`:9001 := optional
 local postfix *:9001 := many .
 "
 
+/--
+This combinator is for testing purposes. It succeeds if `t` fails with message `msg`,
+and fails otherwise.
+-/
+meta def {u} success_if_fail_with_msg {α : Type u} (t : tactic α) (msg : string) : tactic unit :=
+λ s, match t s with
+| (interaction_monad.result.exception msg' _ s') :=
+  if msg = (msg'.iget ()).to_string then result.success () s
+  else mk_exception "failure messages didn't match" none s
+| (interaction_monad.result.success a s) :=
+   mk_exception "success_if_fail_with_msg combinator failed, given tactic succeeded" none s
+end
+
 end tactic

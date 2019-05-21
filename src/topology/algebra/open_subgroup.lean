@@ -98,16 +98,9 @@ end
 
 -- @[to_additive open_add_subgroup.is_open_of_open_add_subgroup]
 lemma is_open_of_open_subgroup {s : set G} [is_subgroup s]
-  (h : ∃ U : open_subgroup G, (U : set G) ⊆ s) :
-  is_open s :=
-is_open_of_nonempty_open_subset
-begin
-  cases h with U hU,
-  use U,
-  split,
-  { refine ⟨⟨1, U.one_mem⟩⟩ },
-  { exact hU }
-end
+  (h : ∃ U : open_subgroup G, (U : set G) ⊆ s) : is_open s :=
+is_open_of_nonempty_open_subset $ let ⟨U, hU⟩ := h in ⟨U, ⟨⟨1, U.one_mem⟩⟩, hU⟩
+
 
 @[to_additive open_add_subgroup.is_closed]
 lemma is_closed (U : open_subgroup G) : is_closed (U : set G) :=
@@ -194,18 +187,11 @@ attribute [to_additive open_add_subgroup.mem_nhds_zero] open_subgroup.mem_nhds_o
 variable {U}
 
 lemma is_open_of_open_add_subgroup {s : set G} [_root_.is_add_subgroup s]
-  (h : ∃ U : open_add_subgroup G, (U : set G) ⊆ s) :
-  _root_.is_open s :=
-is_open_of_nonempty_open_subset
-begin
-  cases h with U hU,
-  use U,
-  split,
-  { refine ⟨⟨0, U.zero_mem⟩⟩ },
-  { exact hU }
-end
+  (h : ∃ U : open_add_subgroup G, (U : set G) ⊆ s) : _root_.is_open s :=
+is_open_of_nonempty_open_subset $ let ⟨U, hU⟩ := h in ⟨U, ⟨⟨0, U.zero_mem⟩⟩, hU⟩
 
-attribute [to_additive open_add_subgroup.is_open_of_open_add_subgroup] open_subgroup.is_open_of_open_subgroup
+attribute [to_additive open_add_subgroup.is_open_of_open_add_subgroup]
+open_subgroup.is_open_of_open_subgroup
 
 section
 variables {H : Type*} [add_group H] [topological_space H] [topological_add_group H]
@@ -262,17 +248,13 @@ attribute [to_additive open_add_subgroup.le_iff] open_subgroup.le_iff
 end open_add_subgroup
 
 namespace submodule
+open open_add_subgroup
 variables {R : Type*} {M : Type*} [comm_ring R]
 variables [add_comm_group M] [topological_space M] [topological_add_group M] [module R M]
 
 lemma is_open_of_open_submodule {P : submodule R M}
   (h : ∃ U : submodule R M, is_open (U : set M) ∧ U ≤ P) : is_open (P : set M) :=
-begin
-  letI H : is_add_subgroup (P : set M) := by apply_instance,
-  refine open_add_subgroup.is_open_of_open_add_subgroup _,
-  rcases h with ⟨U, h₁, h₂⟩,
-  exact ⟨⟨U, h₁, by apply_instance⟩, h₂⟩
-end
+let ⟨U, h₁, h₂⟩ := h in is_open_of_open_add_subgroup ⟨⟨U, h₁, by apply_instance⟩, h₂⟩
 
 end submodule
 

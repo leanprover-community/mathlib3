@@ -3,8 +3,8 @@ Copyright (c) 2019 Hoang Le Truong. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author : Hoang Le Truong.
 
-roption α  can see as  Prop × α. (Prop, ∧) has natural algebra structure. Therefore if α is a semigroup, a comm_semigroup, 
-a comm_monoid,a add_semigroup, a add_comm_semigroup, a add_comm_monoid, a mul_action, a distrib_mul_action, so is roption α. 
+If α is a semigroup, a comm_semigroup, a comm_monoid,a add_semigroup, a add_comm_semigroup, a add_comm_monoid, 
+a mul_action, a distrib_mul_action, so is roption α. 
 -/
 import   algebra.module data.pfun
 
@@ -31,15 +31,6 @@ lemma mul_def  [has_mul α] (x y : roption α) : x * y = ⟨x.dom ∧ y.dom , λ
 
 attribute [to_additive roption.has_add] roption.has_mul
 attribute [to_additive roption.add_def] roption.mul_def
-
-instance [has_neg α] : has_neg (roption α) := ⟨λ x, ⟨x.dom , λ h, -x.get h⟩⟩
-lemma neg_def [has_neg α] (x : roption α) : - x = ⟨x.dom , λ h, - x.get h⟩ := rfl
-
-instance [has_inv α] : has_inv (roption α) := ⟨λ x, ⟨x.dom , λ h, (x.get h)⁻¹⟩⟩
-lemma inv_def [has_inv α] (x : roption α) : x⁻¹ = ⟨x.dom , λ h, (x.get h)⁻¹⟩ := rfl
-
-attribute [to_additive roption.has_neg] roption.has_inv
-attribute [to_additive roption.neg_def] roption.inv_def
 
 instance [has_scalar α β] : has_scalar α (roption β) := ⟨λ a f, ⟨f.dom, λ h, a • (f.get h)⟩⟩
 lemma smul_def [has_scalar α β] (a : α) (x : roption β) : a • x = ⟨x.dom , λ h, a • x.get h⟩ := rfl

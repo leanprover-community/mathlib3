@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Author: Mario Carneiro, Neil Strickland
 -/
 import tactic.basic
 
@@ -38,7 +38,7 @@ def to_pnat' (n : ℕ) : ℕ+ := succ_pnat (pred n)
 @[simp] theorem to_pnat'_coe : ∀ (n : ℕ),
  ((to_pnat' n) : ℕ) = ite (n > 0) n 1
 | 0 := rfl
-| (m + 1) := by {rw[if_pos (succ_pos m)],refl}
+| (m + 1) := by {rw[if_pos (succ_pos m)], refl}
 
 end nat
 
@@ -63,30 +63,27 @@ theorem eq {m n : ℕ+} : (m : ℕ) = n → m = n := subtype.eq
 
 @[simp] theorem mk_coe (n h) : ((⟨n, h⟩ : ℕ+) : ℕ) = n := rfl
 
-instance : add_comm_semigroup ℕ+ := {
-  add := λ a b, ⟨a.val + b.val,add_pos a.property b.property⟩,
-  add_comm := λ a b,subtype.eq (add_comm a.val b.val),
-  add_assoc := λ a b c,subtype.eq (add_assoc a.val b.val c.val)
-}
+instance : add_comm_semigroup ℕ+ :=
+{ add       := λ a b, ⟨a.val + b.val, add_pos a.property b.property⟩,
+  add_comm  := λ a b, subtype.eq (add_comm a.val b.val),
+  add_assoc := λ a b c, subtype.eq (add_assoc a.val b.val c.val) }
 
 @[simp] theorem add_coe (m n : ℕ+) : ((m + n : ℕ+) : ℕ) = m + n := rfl
 instance coe_add_hom : is_add_hom (coe : ℕ+ → ℕ) := ⟨add_coe⟩
 
-instance : add_left_cancel_semigroup ℕ+ := {
-  add_left_cancel := λ a b c h, by {
+instance : add_left_cancel_semigroup ℕ+ :=
+{ add_left_cancel := λ a b c h, by {
     replace h := congr_arg (coe : ℕ+ → ℕ) h,
-    rw[add_coe,add_coe] at h,
+    rw[add_coe, add_coe] at h,
     exact eq ((add_left_inj a.val).mp h)},
-  .. (pnat.add_comm_semigroup)
-}
+  .. (pnat.add_comm_semigroup) }
 
-instance : add_right_cancel_semigroup ℕ+ := {
-  add_right_cancel := λ a b c h, by {
+instance : add_right_cancel_semigroup ℕ+ :=
+{ add_right_cancel := λ a b c h, by {
     replace h := congr_arg (coe : ℕ+ → ℕ) h,
-    rw[add_coe,add_coe] at h,
+    rw[add_coe, add_coe] at h,
     exact eq ((add_right_inj b.val).mp h)},
-  .. (pnat.add_comm_semigroup)
-}
+  .. (pnat.add_comm_semigroup) }
 
 @[simp] theorem ne_zero (n : ℕ+) : (n : ℕ) ≠ 0 := ne_of_gt n.2
 
@@ -94,14 +91,13 @@ instance : add_right_cancel_semigroup ℕ+ := {
 
 @[simp] theorem coe_to_pnat' (n : ℕ+) : (n : ℕ).to_pnat' = n := eq (to_pnat'_coe n.pos)
 
-instance : comm_monoid ℕ+ := {
-  mul       := λ m n, ⟨m.1 * n.1, mul_pos m.2 n.2⟩,
+instance : comm_monoid ℕ+ :=
+{ mul       := λ m n, ⟨m.1 * n.1, mul_pos m.2 n.2⟩,
   mul_assoc := λ a b c, subtype.eq (mul_assoc _ _ _),
   one       := succ_pnat 0,
   one_mul   := λ a, subtype.eq (one_mul _),
   mul_one   := λ a, subtype.eq (mul_one _),
-  mul_comm  := λ a b, subtype.eq (mul_comm _ _)
-}
+  mul_comm  := λ a b, subtype.eq (mul_comm _ _) }
 
 /-- Recall that ℕ has its own specific power operation (which is
  preferred, probably for reasons of efficiency) as well as the
@@ -132,41 +128,38 @@ theorem pow_eq_pow (n : ℕ+) (m : ℕ) :
  @has_pow.pow _ _ monoid.has_pow n m = n ^ m :=
 by induction m with m ih; [refl, rw [pnat.pow_succ, _root_.pow_succ, mul_comm, ih]]
 
-instance : left_cancel_semigroup ℕ+ := {
-  mul_left_cancel := λ a b c h, by {
+instance : left_cancel_semigroup ℕ+ :=
+{ mul_left_cancel := λ a b c h, by {
    replace h := congr_arg (coe : ℕ+ → ℕ) h,
-   exact eq ((nat.mul_left_inj a.pos).mp h),},
-  .. (pnat.comm_monoid)
-}
+   exact eq ((nat.mul_left_inj a.pos).mp h)},
+  .. (pnat.comm_monoid) }
 
-instance : right_cancel_semigroup ℕ+ := {
-  mul_right_cancel := λ a b c h, by {
+instance : right_cancel_semigroup ℕ+ :=
+{ mul_right_cancel := λ a b c h, by {
    replace h := congr_arg (coe : ℕ+ → ℕ) h,
-   exact eq ((nat.mul_right_inj b.pos).mp h),},
-  .. (pnat.comm_monoid)
-}
+   exact eq ((nat.mul_right_inj b.pos).mp h)},
+  .. (pnat.comm_monoid) }
 
-instance : distrib ℕ+ := {
-  left_distrib  := λ a b c, eq (mul_add a.val b.val c.val),
+instance : distrib ℕ+ :=
+{ left_distrib  := λ a b c, eq (mul_add a.val b.val c.val),
   right_distrib := λ a b c, eq (add_mul a.val b.val c.val),
-  ..(pnat.add_comm_semigroup),..(pnat.comm_monoid)
-}
+  ..(pnat.add_comm_semigroup), ..(pnat.comm_monoid) }
 
 /-- Subtraction a - b is defined in the obvious way when
   a > b, and by a - b = 1 if a ≤ b.
 -/
-instance : has_sub ℕ+ := ⟨λ a b,to_pnat' (a.val - b.val)⟩
+instance : has_sub ℕ+ := ⟨λ a b, to_pnat' (a.val - b.val)⟩
 
 theorem sub_coe (a b : ℕ+) : (((a - b) : ℕ+) : ℕ) = ite (a > b) ((a : ℕ) - (b : ℕ)) 1 :=
 begin
   change ((to_pnat' (a.val - b.val)) : ℕ) = ite (a.val > b.val) (a.val - b.val) 1,
   split_ifs with h,
   {exact to_pnat'_coe (nat.sub_pos_of_lt h)},
-  {rw[nat.sub_eq_zero_iff_le.mpr (le_of_not_gt h)],refl}
+  {rw[nat.sub_eq_zero_iff_le.mpr (le_of_not_gt h)], refl}
 end
 
 theorem add_sub_of_lt {a b : ℕ+} : a < b → a + (b - a) = b :=
- λ h, eq $ by {rw[add_coe,sub_coe,if_pos h],exact nat.add_sub_of_le (le_of_lt h)}
+ λ h, eq $ by {rw[add_coe, sub_coe, if_pos h], exact nat.add_sub_of_le (le_of_lt h)}
 
 /-- We define m % k and m / k in the same way as for nat
   except that when m = n * k we take m % k = k and
@@ -177,15 +170,15 @@ theorem add_sub_of_lt {a b : ℕ+} : a < b → a + (b - a) = b :=
 -/
 
 def mod_div_aux : ℕ+ → ℕ → ℕ → ℕ+ × ℕ
-| k 0 q := ⟨k,q.pred⟩
-| k (r + 1) q := ⟨⟨r + 1,nat.succ_pos r⟩,q⟩
+| k 0 q := ⟨k, q.pred⟩
+| k (r + 1) q := ⟨⟨r + 1, nat.succ_pos r⟩, q⟩
 
 lemma mod_div_aux_spec : ∀ (k : ℕ+) (r q : ℕ) (h : ¬ (r = 0 ∧ q = 0)),
  (((mod_div_aux k r q).1 : ℕ) + k * (mod_div_aux k r q).2 = (r + k * q))
-| k 0 0 h := (h ⟨rfl,rfl⟩).elim
+| k 0 0 h := (h ⟨rfl, rfl⟩).elim
 | k 0 (q + 1) h := by {
   change k.val + k.val * (q + 1).pred = 0 + k.val * (q + 1),
-  rw[nat.pred_succ,nat.mul_succ,zero_add,add_comm]}
+  rw[nat.pred_succ, nat.mul_succ, zero_add, add_comm]}
 | k (r + 1) q h := rfl
 
 def mod_div (m k : ℕ+) : ℕ+ × ℕ := mod_div_aux k (m.val % k.val) (m.val / k.val)
@@ -197,7 +190,8 @@ theorem mod_add_div (m k : ℕ+) : (m : ℕ) = (mod m k) + k * (div m k) :=
 begin
   let h₀ := nat.mod_add_div m.val k.val,
   have : ¬ (m.val % k.val = 0 ∧ m.val / k.val = 0),
-  by {rintro ⟨hr,hq⟩,rw[hr,hq,mul_zero,zero_add] at h₀,exact (m.ne_zero h₀.symm).elim},
+  by {rintro ⟨hr, hq⟩, rw[hr, hq, mul_zero, zero_add] at h₀,
+      exact (m.ne_zero h₀.symm).elim},
   have := mod_div_aux_spec k (m.val % k.val) (m.val / k.val) this,
   exact (this.trans h₀).symm,
 end
@@ -205,31 +199,31 @@ end
 theorem mod_coe (m k : ℕ+) :
  ((mod m k) : ℕ) = ite (m.val % k.val = 0) k.val (m.val % k.val) :=
 begin
-  dsimp[mod,mod_div],cases m.val % k.val,
-  {rw[if_pos rfl],refl},
-  {rw[if_neg n.succ_ne_zero],refl}
+  dsimp[mod, mod_div], cases m.val % k.val,
+  {rw[if_pos rfl], refl},
+  {rw[if_neg n.succ_ne_zero], refl}
 end
 
 theorem div_coe (m k : ℕ+) :
  ((div m k) : ℕ) = ite (m.val % k.val = 0) (m.val / k.val).pred (m.val / k.val) :=
 begin
-  dsimp[div,mod_div],cases m.val % k.val,
-  {rw[if_pos rfl],refl},
-  {rw[if_neg n.succ_ne_zero],refl}
+  dsimp[div, mod_div], cases m.val % k.val,
+  {rw[if_pos rfl], refl},
+  {rw[if_neg n.succ_ne_zero], refl}
 end
 
 theorem mod_le (m k : ℕ+) : mod m k ≤ m ∧ mod m k ≤ k :=
 begin
   change ((mod m k) : ℕ) ≤ m.val ∧ ((mod m k) : ℕ) ≤ k.val,
-  rw[mod_coe],split_ifs,
+  rw[mod_coe], split_ifs,
   { have hm : m.val > 0 := m.property,
-    rw[← nat.mod_add_div m.val k.val,h,zero_add] at hm ⊢,
+    rw[← nat.mod_add_div m.val k.val, h, zero_add] at hm ⊢,
     by_cases h' : (m.val / k.val) = 0,
-    { rw[h',mul_zero] at hm,exact (lt_irrefl _ hm).elim},
+    { rw[h', mul_zero] at hm, exact (lt_irrefl _ hm).elim},
     { let h' := nat.mul_le_mul_left k.val
              (nat.succ_le_of_lt (nat.pos_of_ne_zero h')),
-      rw[mul_one] at h',exact ⟨h',le_refl k.val⟩}},
-  {exact ⟨nat.mod_le m.val k.val,le_of_lt (nat.mod_lt m.val k.property)⟩}
+      rw[mul_one] at h', exact ⟨h', le_refl k.val⟩}},
+  {exact ⟨nat.mod_le m.val k.val, le_of_lt (nat.mod_lt m.val k.property)⟩}
 end
 
 instance : has_dvd ℕ+ := ⟨λ k m, (k : ℕ) ∣ (m : ℕ)⟩
@@ -239,32 +233,32 @@ theorem dvd_iff {k m : ℕ+} : k ∣ m ↔ (k : ℕ) ∣ (m : ℕ) := by {refl}
 theorem dvd_iff' {k m : ℕ+} : k ∣ m ↔ mod m k = k :=
 begin
   change k.val ∣ m.val ↔ mod m k = k,
-  rw[nat.dvd_iff_mod_eq_zero],split,
-  {intro h,apply eq,rw[mod_coe,if_pos h],refl},
-  { intro h,by_cases h' : m.val % k.val = 0,
+  rw[nat.dvd_iff_mod_eq_zero], split,
+  {intro h, apply eq, rw[mod_coe, if_pos h], refl},
+  { intro h, by_cases h' : m.val % k.val = 0,
     { exact h'},
     { replace h : ((mod m k) : ℕ) = (k : ℕ) := congr_arg _ h,
-      rw[mod_coe,if_neg h'] at h,
+      rw[mod_coe, if_neg h'] at h,
       exact (ne_of_lt (nat.mod_lt m.val k.property) h).elim}}
 end
 
 def div_exact {m k : ℕ+} (h : k ∣ m) : ℕ+ :=
- ⟨(div m k).succ,nat.succ_pos _⟩
+ ⟨(div m k).succ, nat.succ_pos _⟩
 
 theorem mul_div_exact {m k : ℕ+} (h : k ∣ m) : k * (div_exact h) = m :=
 begin
- apply eq,rw[mul_coe],
+ apply eq, rw[mul_coe],
  change (k : ℕ) * (div m k).succ = m,
- rw[mod_add_div m k,dvd_iff'.mp h,nat.mul_succ,add_comm],
+ rw[mod_add_div m k, dvd_iff'.mp h, nat.mul_succ, add_comm],
 end
 
 theorem dvd_iff'' {k n : ℕ+} : k ∣ n ↔ ∃ m, k * m = n :=
-⟨λ h, ⟨div_exact h,mul_div_exact h⟩,
- λ ⟨m,h⟩, dvd.intro (m : ℕ)
+⟨λ h, ⟨div_exact h, mul_div_exact h⟩,
+ λ ⟨m, h⟩, dvd.intro (m : ℕ)
           ((mul_coe k m).symm.trans (congr_arg subtype.val h))⟩
 
 theorem dvd_intro {k n : ℕ+} (m : ℕ+) (h : k * m = n) : k ∣ n :=
- dvd_iff''.mpr ⟨m,h⟩
+ dvd_iff''.mpr ⟨m, h⟩
 
 theorem dvd_refl (m : ℕ+) : m ∣ m := dvd_intro 1 (mul_one m)
 
@@ -277,15 +271,15 @@ theorem dvd_trans {k m n : ℕ+} : k ∣ m → m ∣ n → k ∣ n :=
 theorem one_dvd (n : ℕ+) : 1 ∣ n := dvd_intro n (one_mul n)
 
 theorem dvd_one_iff (n : ℕ+) : n ∣ 1 ↔ n = 1 :=
- ⟨λ h,dvd_antisymm h (one_dvd n),λ h, h.symm ▸ (dvd_refl 1)⟩
+ ⟨λ h, dvd_antisymm h (one_dvd n), λ h, h.symm ▸ (dvd_refl 1)⟩
 
 def gcd (n m : ℕ+) : ℕ+ :=
- ⟨nat.gcd n.val m.val,nat.gcd_pos_of_pos_left m.val n.pos⟩
+ ⟨nat.gcd n.val m.val, nat.gcd_pos_of_pos_left m.val n.pos⟩
 
 def lcm (n m : ℕ+) : ℕ+ :=
  ⟨nat.lcm n.val m.val,
   by {let h := mul_pos n.property m.property,
-      rw[← gcd_mul_lcm n.val m.val,mul_comm] at h,
+      rw[← gcd_mul_lcm n.val m.val, mul_comm] at h,
       exact pos_of_dvd_of_pos (dvd.intro (nat.gcd n.val m.val) rfl) h}⟩
 
 @[simp] theorem gcd_val (n m : ℕ+) : (gcd n m).val = nat.gcd n.val m.val := rfl
@@ -319,10 +313,10 @@ def nat.primes := {p : ℕ // p.prime}
 
 namespace nat.primes
 
-instance : has_repr nat.primes := ⟨λ p,repr p.val⟩
+instance : has_repr nat.primes := ⟨λ p, repr p.val⟩
 
 instance coe_nat  : has_coe nat.primes ℕ  := ⟨subtype.val⟩
-instance coe_pnat : has_coe nat.primes ℕ+ := ⟨λ p, ⟨p.val,p.property.pos⟩⟩
+instance coe_pnat : has_coe nat.primes ℕ+ := ⟨λ p, ⟨p.val, p.property.pos⟩⟩
 
 theorem coe_pnat_nat (p : nat.primes) : ((p : ℕ+) : ℕ) = (p : ℕ) := rfl
 
@@ -332,7 +326,7 @@ theorem coe_nat_inj (p q : nat.primes) : (p : ℕ) = (q : ℕ) → p = q :=
 theorem coe_pnat_inj (p q : nat.primes) : (p : ℕ+) = (q : ℕ+) → p = q := λ h,
 begin
   replace h : ((p : ℕ+) : ℕ) = ((q : ℕ+) : ℕ) := congr_arg subtype.val h,
-  rw[coe_pnat_nat,coe_pnat_nat] at h,
+  rw[coe_pnat_nat, coe_pnat_nat] at h,
   exact subtype.eq h,
 end
 
@@ -347,19 +341,19 @@ def prime_multiset := multiset nat.primes
 namespace prime_multiset
 
 instance : has_repr prime_multiset :=
-by {dsimp[prime_multiset],apply_instance}
+by {dsimp[prime_multiset], apply_instance}
 
 instance : canonically_ordered_monoid prime_multiset :=
-by {dsimp[prime_multiset],apply_instance}
+by {dsimp[prime_multiset], apply_instance}
 
 instance : lattice.distrib_lattice prime_multiset :=
-by {dsimp[prime_multiset],apply_instance}
+by {dsimp[prime_multiset], apply_instance}
 
 instance : lattice.semilattice_sup_bot prime_multiset :=
-by {dsimp[prime_multiset],apply_instance}
+by {dsimp[prime_multiset], apply_instance}
 
 instance : has_sub prime_multiset :=
-by {dsimp[prime_multiset],apply_instance}
+by {dsimp[prime_multiset], apply_instance}
 
 theorem add_sub_of_le {u v : prime_multiset} : u ≤ v → u + (v - u) = v :=
 multiset.add_sub_of_le
@@ -385,7 +379,7 @@ def to_nat_multiset : prime_multiset → multiset ℕ :=
 instance coe_nat : has_coe prime_multiset (multiset ℕ) := ⟨to_nat_multiset⟩
 
 instance coe_nat_hom : is_add_monoid_hom (coe : prime_multiset → multiset ℕ) :=
-by {unfold_coes,dsimp[to_nat_multiset],apply_instance}
+by {unfold_coes, dsimp[to_nat_multiset], apply_instance}
 
 theorem coe_nat_inj : function.injective (coe : prime_multiset → multiset ℕ) :=
 multiset.injective_map nat.primes.coe_nat_inj
@@ -395,7 +389,7 @@ theorem coe_nat_of_prime (p : nat.primes) :
 
 theorem coe_nat_prime (v : prime_multiset)
 (p : ℕ) (h : p ∈ (v : multiset ℕ)) : p.prime :=
-by {rcases multiset.mem_map.mp h with ⟨⟨p',hp'⟩,⟨h_mem,h_eq⟩⟩,exact h_eq ▸ hp'}
+by {rcases multiset.mem_map.mp h with ⟨⟨p', hp'⟩, ⟨h_mem, h_eq⟩⟩, exact h_eq ▸ hp'}
 
 def to_pnat_multiset : prime_multiset → multiset ℕ+ :=
 λ v, v.map (λ p, (p : ℕ+))
@@ -403,7 +397,7 @@ def to_pnat_multiset : prime_multiset → multiset ℕ+ :=
 instance coe_pnat : has_coe prime_multiset (multiset ℕ+) := ⟨to_pnat_multiset⟩
 
 instance coe_pnat_hom : is_add_monoid_hom (coe : prime_multiset → multiset ℕ+) :=
-by {unfold_coes,dsimp[to_pnat_multiset],apply_instance}
+by {unfold_coes, dsimp[to_pnat_multiset], apply_instance}
 
 theorem coe_pnat_inj : function.injective (coe : prime_multiset → multiset ℕ+) :=
 multiset.injective_map nat.primes.coe_pnat_inj
@@ -413,15 +407,15 @@ theorem coe_pnat_of_prime (p : nat.primes) :
 
 theorem coe_pnat_prime (v : prime_multiset)
  (p : ℕ+) (h : p ∈ (v : multiset ℕ+)) : p.prime :=
-by {rcases multiset.mem_map.mp h with ⟨⟨p',hp'⟩,⟨h_mem,h_eq⟩⟩, exact h_eq ▸ hp'}
+by {rcases multiset.mem_map.mp h with ⟨⟨p', hp'⟩, ⟨h_mem, h_eq⟩⟩, exact h_eq ▸ hp'}
 
 instance coe_multiset_pnat_nat : has_coe (multiset ℕ+) (multiset ℕ) :=
-⟨λ v, v.map (λ n,(n : ℕ))⟩
+⟨λ v, v.map (λ n, (n : ℕ))⟩
 
 theorem coe_pnat_nat (v : prime_multiset) :
  ((v : (multiset ℕ+)) : (multiset ℕ)) = (v : multiset ℕ) :=
 by {change (v.map (coe : nat.primes → ℕ+)).map subtype.val = v.map subtype.val,
-  rw[multiset.map_map],congr,}
+  rw[multiset.map_map], congr}
 
 def prod (v : prime_multiset) : ℕ+ := (v : multiset pnat).prod
 
@@ -436,41 +430,41 @@ end
 
 theorem prod_of_prime (p : nat.primes) : (of_prime p).prod = (p : ℕ+) :=
  by { change multiset.prod ((p : ℕ+) :: 0) = (p : ℕ+),
-  rw[multiset.prod_cons,multiset.prod_zero,mul_one]}
+  rw[multiset.prod_cons, multiset.prod_zero, mul_one]}
 
 def of_nat_multiset
  (v : multiset ℕ) (h : ∀ (p : ℕ), p ∈ v → p.prime) : prime_multiset :=
- @multiset.pmap ℕ nat.primes nat.prime (λ p hp,⟨p,hp⟩) v h
+ @multiset.pmap ℕ nat.primes nat.prime (λ p hp, ⟨p, hp⟩) v h
 
 theorem to_of_nat_multiset (v : multiset ℕ) (h) :
  ((of_nat_multiset v h) : multiset ℕ) = v :=
 begin
-  unfold_coes,dsimp[of_nat_multiset,to_nat_multiset],
-  have : (λ (p : ℕ) (h : p.prime), ((⟨p,h⟩ : nat.primes) : ℕ)) = (λ p h, id p) :=
-    by {funext p h,refl},
-  rw[multiset.map_pmap,this,multiset.pmap_eq_map,multiset.map_id],
+  unfold_coes, dsimp[of_nat_multiset, to_nat_multiset],
+  have : (λ (p : ℕ) (h : p.prime), ((⟨p, h⟩ : nat.primes) : ℕ)) = (λ p h, id p) :=
+    by {funext p h, refl},
+  rw[multiset.map_pmap, this, multiset.pmap_eq_map, multiset.map_id],
 end
 
 theorem prod_of_nat_multiset (v : multiset ℕ) (h) :
  ((of_nat_multiset v h).prod : ℕ) = (v.prod : ℕ) :=
-by {rw[coe_prod,to_of_nat_multiset]}
+by {rw[coe_prod, to_of_nat_multiset]}
 
 def of_pnat_multiset
  (v : multiset ℕ+) (h : ∀ (p : ℕ+), p ∈ v → p.prime) : prime_multiset :=
-@multiset.pmap ℕ+ nat.primes pnat.prime (λ p hp,⟨(p : ℕ),hp⟩) v h
+@multiset.pmap ℕ+ nat.primes pnat.prime (λ p hp, ⟨(p : ℕ), hp⟩) v h
 
 theorem to_of_pnat_multiset (v : multiset ℕ+) (h) :
  ((of_pnat_multiset v h) : multiset ℕ+) = v :=
 begin
-  unfold_coes,dsimp[of_pnat_multiset,to_pnat_multiset],
-  have : (λ (p : ℕ+) (h : p.prime), ((coe : nat.primes → ℕ+) ⟨p,h⟩)) = (λ p h, id p) :=
-    by {funext p h,apply subtype.eq,refl},
-  rw[multiset.map_pmap,this,multiset.pmap_eq_map,multiset.map_id],
+  unfold_coes, dsimp[of_pnat_multiset, to_pnat_multiset],
+  have : (λ (p : ℕ+) (h : p.prime), ((coe : nat.primes → ℕ+) ⟨p, h⟩)) = (λ p h, id p) :=
+    by {funext p h, apply subtype.eq, refl},
+  rw[multiset.map_pmap, this, multiset.pmap_eq_map, multiset.map_id],
 end
 
 theorem prod_of_pnat_multiset (v : multiset ℕ+) (h) :
  ((of_pnat_multiset v h).prod : ℕ+) = v.prod :=
-by {dsimp[prod],rw[to_of_pnat_multiset]}
+by {dsimp[prod], rw[to_of_pnat_multiset]}
 
 /-- Lists can be coerced to multisets; here we have some results
  about how this interacts with our constructions on multisets.
@@ -494,7 +488,7 @@ by {have := prod_of_pnat_multiset (l : multiset ℕ+) h,
 -/
 
 theorem prod_zero : (0 : prime_multiset).prod = 1 :=
-by {dsimp[prod],exact multiset.prod_zero}
+by {dsimp[prod], exact multiset.prod_zero}
 
 theorem prod_add (u v : prime_multiset) : (u + v).prod = u.prod * v.prod :=
 by { dsimp[prod],
@@ -503,8 +497,8 @@ by { dsimp[prod],
 
 theorem prod_smul (d : ℕ) (u : prime_multiset) :
  (add_monoid.smul d u).prod = u.prod ^ d :=
-by { induction d with d ih,refl,
-     rw[succ_smul,prod_add,ih,nat.succ_eq_add_one,pnat.pow_succ,mul_comm],}
+by { induction d with d ih, refl,
+     rw[succ_smul, prod_add, ih, nat.succ_eq_add_one, pnat.pow_succ, mul_comm]}
 
 end prime_multiset
 
@@ -516,8 +510,8 @@ prime_multiset.of_nat_list (nat.factors n) (@nat.mem_factors n)
 
 /-- The product of the factors is the original number -/
 theorem prod_factor_multiset (n : ℕ+) : (factor_multiset n).prod = n :=
-eq $ by {dsimp[factor_multiset],rw[prime_multiset.prod_of_nat_list],
-          exact nat.prod_factors n.pos,}
+eq $ by {dsimp[factor_multiset], rw[prime_multiset.prod_of_nat_list],
+          exact nat.prod_factors n.pos}
 
 theorem coe_nat_factor_multiset (n : ℕ+) :
  ((factor_multiset n) : (multiset ℕ)) = ((nat.factors n) : multiset ℕ) :=
@@ -533,12 +527,12 @@ theorem factor_multiset_prod (v : prime_multiset) :
  v.prod.factor_multiset = v :=
 begin
   apply prime_multiset.coe_nat_inj,
-  rw[v.prod.coe_nat_factor_multiset,prime_multiset.coe_prod],
-  rcases v with l,unfold_coes,dsimp[prime_multiset.to_nat_multiset],
+  rw[v.prod.coe_nat_factor_multiset, prime_multiset.coe_prod],
+  rcases v with l, unfold_coes, dsimp[prime_multiset.to_nat_multiset],
   rw[multiset.coe_prod],
   let l' := l.map (coe : nat.primes → ℕ),
   have : ∀ (p : ℕ), p ∈ l' → p.prime :=
-    λ p hp, by {rcases list.mem_map.mp hp with ⟨⟨p',hp'⟩,⟨h_mem,h_eq⟩⟩,
+    λ p hp, by {rcases list.mem_map.mp hp with ⟨⟨p', hp'⟩, ⟨h_mem, h_eq⟩⟩,
                 exact h_eq ▸ hp'},
   exact multiset.coe_eq_coe.mpr (@nat.factors_unique _ l' rfl this).symm,
 end
@@ -575,7 +569,7 @@ theorem factor_multiset_pow (n : ℕ+) (m : ℕ) :
 begin
   let u := factor_multiset n,
   have : n = u.prod := (prod_factor_multiset n).symm,
-  rw[this,← prime_multiset.prod_smul],
+  rw[this, ← prime_multiset.prod_smul],
   repeat {rw[prime_multiset.factor_multiset_prod]},
 end
 
@@ -585,7 +579,7 @@ theorem factor_multiset_of_prime (p : nat.primes) :
 begin
   apply factor_multiset_equiv.symm.injective,
   change (p : ℕ+).factor_multiset.prod = (prime_multiset.of_prime p).prod,
-  rw[(p : ℕ+).prod_factor_multiset,prime_multiset.prod_of_prime],
+  rw[(p : ℕ+).prod_factor_multiset, prime_multiset.prod_of_prime],
 end
 
 /-- We now have four different results that all encode the
@@ -595,18 +589,18 @@ theorem factor_multiset_le_iff {m n : ℕ+} :
   factor_multiset m ≤ factor_multiset n ↔ m ∣ n :=
 begin
   split,
-  { intro h,rw[← prod_factor_multiset m,← prod_factor_multiset m],
+  { intro h, rw[← prod_factor_multiset m, ← prod_factor_multiset m],
     apply dvd_intro (n.factor_multiset - m.factor_multiset).prod,
-    rw[← prime_multiset.prod_add,prime_multiset.factor_multiset_prod,
-       prime_multiset.add_sub_of_le h,prod_factor_multiset]},
-  { intro  h,rw[← mul_div_exact h,factor_multiset_mul],
+    rw[← prime_multiset.prod_add, prime_multiset.factor_multiset_prod,
+       prime_multiset.add_sub_of_le h, prod_factor_multiset]},
+  { intro  h, rw[← mul_div_exact h, factor_multiset_mul],
     exact le_add_right (le_refl _)}
 end
 
 theorem factor_multiset_le_iff' {m : ℕ+} {v : prime_multiset}:
  factor_multiset m ≤ v ↔ m ∣ v.prod :=
 by { let h := @factor_multiset_le_iff m v.prod,
-     rw[v.factor_multiset_prod] at h,exact h,}
+     rw[v.factor_multiset_prod] at h, exact h}
 
 end pnat
 
@@ -633,18 +627,18 @@ begin
   apply le_antisymm,
   { apply lattice.le_inf_iff.mpr; split; apply factor_multiset_le_iff.mpr,
     exact gcd_dvd_left m n, exact gcd_dvd_right m n},
-  { rw[← prime_multiset.prod_dvd_iff,prod_factor_multiset],
+  { rw[← prime_multiset.prod_dvd_iff, prod_factor_multiset],
     apply dvd_gcd; rw[prime_multiset.prod_dvd_iff'],
-    exact lattice.inf_le_left, exact lattice.inf_le_right,}
+    exact lattice.inf_le_left, exact lattice.inf_le_right}
 end
 
 theorem factor_multiset_lcm (m n : ℕ+) :
  factor_multiset (lcm m n) = (factor_multiset m) ⊔ (factor_multiset n) :=
 begin
   apply le_antisymm,
-  { rw[← prime_multiset.prod_dvd_iff,prod_factor_multiset],
+  { rw[← prime_multiset.prod_dvd_iff, prod_factor_multiset],
     apply lcm_dvd; rw[← factor_multiset_le_iff'],
-    exact lattice.le_sup_left, exact lattice.le_sup_right,},
+    exact lattice.le_sup_left, exact lattice.le_sup_right},
   { apply lattice.sup_le_iff.mpr; split; apply factor_multiset_le_iff.mpr,
     exact dvd_lcm_left m n, exact dvd_lcm_right m n},
 end
@@ -654,15 +648,15 @@ end
 theorem count_factor_multiset (m : ℕ+) (p : nat.primes) (k : ℕ) :
  (p : ℕ+) ^ k ∣ m ↔ k ≤ m.factor_multiset.count p :=
 begin
-  intros,rw[multiset.le_count_iff_repeat_le],
-  rw[← factor_multiset_le_iff,factor_multiset_pow,factor_multiset_of_prime],
+  intros, rw[multiset.le_count_iff_repeat_le],
+  rw[← factor_multiset_le_iff, factor_multiset_pow, factor_multiset_of_prime],
   congr' 2,
-  apply multiset.eq_repeat.mpr,split,
-  {rw[multiset.card_smul,prime_multiset.card_of_prime,mul_one]},
+  apply multiset.eq_repeat.mpr, split,
+  {rw[multiset.card_smul, prime_multiset.card_of_prime, mul_one]},
   { have : ∀ (m : ℕ), add_monoid.smul m (p::0) = multiset.repeat p m :=
-    λ m, by {induction m with m ih,refl,rw[succ_smul,multiset.repeat_succ,ih],
-     rw[multiset.cons_add,zero_add]},
-    intros q h, rw[prime_multiset.of_prime,this k] at h,
+    λ m, by {induction m with m ih, refl, rw[succ_smul, multiset.repeat_succ, ih],
+     rw[multiset.cons_add, zero_add]},
+    intros q h, rw[prime_multiset.of_prime, this k] at h,
     exact multiset.eq_of_mem_repeat h,
   }
 end
@@ -679,7 +673,7 @@ begin
   change (u ⊓ v).prod = pnat.gcd n m,
   have : u = n.factor_multiset := u.factor_multiset_prod.symm, rw[this],
   have : v = m.factor_multiset := v.factor_multiset_prod.symm, rw[this],
-  rw[← pnat.factor_multiset_gcd n m,pnat.prod_factor_multiset],
+  rw[← pnat.factor_multiset_gcd n m, pnat.prod_factor_multiset],
 end
 
 theorem prod_sup (u v : prime_multiset) :
@@ -690,7 +684,7 @@ begin
   change (u ⊔ v).prod = pnat.lcm n m,
   have : u = n.factor_multiset := u.factor_multiset_prod.symm, rw[this],
   have : v = m.factor_multiset := v.factor_multiset_prod.symm, rw[this],
-  rw[← pnat.factor_multiset_lcm n m,pnat.prod_factor_multiset],
+  rw[← pnat.factor_multiset_lcm n m, pnat.prod_factor_multiset],
 end
 
 end prime_multiset

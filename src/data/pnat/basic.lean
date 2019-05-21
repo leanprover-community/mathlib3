@@ -307,31 +307,6 @@ def prime (p : ℕ+) : Prop := p.val.prime
 
 end pnat
 
-/-- The type of prime numbers
--/
-def nat.primes := {p : ℕ // p.prime}
-
-namespace nat.primes
-
-instance : has_repr nat.primes := ⟨λ p, repr p.val⟩
-
-instance coe_nat  : has_coe nat.primes ℕ  := ⟨subtype.val⟩
-instance coe_pnat : has_coe nat.primes ℕ+ := ⟨λ p, ⟨p.val, p.property.pos⟩⟩
-
-theorem coe_pnat_nat (p : nat.primes) : ((p : ℕ+) : ℕ) = (p : ℕ) := rfl
-
-theorem coe_nat_inj (p q : nat.primes) : (p : ℕ) = (q : ℕ) → p = q :=
-λ h, subtype.eq h
-
-theorem coe_pnat_inj (p q : nat.primes) : (p : ℕ+) = (q : ℕ+) → p = q := λ h,
-begin
-  replace h : ((p : ℕ+) : ℕ) = ((q : ℕ+) : ℕ) := congr_arg subtype.val h,
-  rw[coe_pnat_nat, coe_pnat_nat] at h,
-  exact subtype.eq h,
-end
-
-end nat.primes
-
 /-- The type of multisets of prime numbers.  Unique factorization
  gives an equivalence between this set and ℕ+, as we will formalize
  below. -/

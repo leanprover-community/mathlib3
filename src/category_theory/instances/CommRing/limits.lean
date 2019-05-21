@@ -13,8 +13,6 @@ open category_theory.limits
 
 universe u
 
-#check instances.CommRing
-
 namespace CommRing
 
 variables {J : Type u} [small_category J]

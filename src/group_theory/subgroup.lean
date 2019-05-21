@@ -351,10 +351,10 @@ the elements of s. -/
 def conjugates_of_set (s : set α) : set α := ⋃ a ∈ s, conjugates a
 
 lemma mem_conjugates_of_set_iff {x : α} : x ∈ conjugates_of_set s ↔ ∃ a : α, a ∈ s ∧ is_conj a x :=
-  set.mem_bUnion_iff
+set.mem_bUnion_iff
 
 theorem subset_conjugates_of_set : s ⊆ conjugates_of_set s :=
-  λ (x : α) (h : x ∈ s), mem_conjugates_of_set_iff.2 ⟨x, h, is_conj_refl _⟩
+λ (x : α) (h : x ∈ s), mem_conjugates_of_set_iff.2 ⟨x, h, is_conj_refl _⟩
 
 theorem conjugates_of_set_mono {s t : set α} (h : s ⊆ t) :
   conjugates_of_set s ⊆ conjugates_of_set t := set.bUnion_subset_bUnion_left h
@@ -367,7 +367,8 @@ begin
 end
 
 theorem conjugates_of_set_subset {s t : set α} [normal_subgroup t] (h : s ⊆ t) :
-  conjugates_of_set s ⊆ t := set.bUnion_subset (λ x H, conjugates_subset (h H))
+  conjugates_of_set s ⊆ t :=
+set.bUnion_subset (λ x H, conjugates_subset (h H))
 
 
 /-- The normal closure of a set s is the subgroup closure of all the conjugates of
@@ -385,8 +386,8 @@ instance normal_closure.is_subgroup (s : set α) : is_subgroup (normal_closure s
 closure.is_subgroup (conjugates_of_set s)
 
 /-- The set of conjugates of s is closed under conjugation. -/
-lemma conj_mem_conjugates_of_set {x c : α} : x ∈ conjugates_of_set s →
-    (c * x * c⁻¹ ∈ conjugates_of_set s) :=
+lemma conj_mem_conjugates_of_set {x c : α} :
+  x ∈ conjugates_of_set s → (c * x * c⁻¹ ∈ conjugates_of_set s) :=
 λ H,
 begin
   rcases (mem_conjugates_of_set_iff.1 H) with ⟨a,h₁,h₂⟩,

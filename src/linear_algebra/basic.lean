@@ -7,7 +7,7 @@ Basics of linear algebra. This sets up the "categorical/lattice structure" of
 modules, submodules, and linear maps.
 -/
 
-import algebra.pi_instances data.finsupp order.order_iso
+import algebra.pi_instances data.finsupp data.equiv.algebra order.order_iso
 
 open function lattice
 
@@ -1126,7 +1126,7 @@ variables [ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group δ]
 variables [module α β] [module α γ] [module α δ]
 include α
 
-lemma to_equiv_injective : function.injective (@to_equiv α β γ _ _ _ _ _) :=
+lemma to_equiv_injective : function.injective (to_equiv : (β ≃ₗ[α] γ) → β ≃ γ) :=
 λ ⟨_, _, _, _, _, _⟩ ⟨_, _, _, _, _, _⟩ h, linear_equiv.mk.inj_eq.mpr (equiv.mk.inj h)
 
 @[extensionality] lemma ext {f g : β ≃ₗ[α] γ} (h : f.to_fun = g.to_fun) : f = g :=
@@ -1546,7 +1546,7 @@ def of_linear_equiv (f : (β ≃ₗ[α] β)) : general_linear_group α β :=
 
 variables (α β)
 
-def general_linear_equiv : general_linear_group α β ≃ (β ≃ₗ[α] β) :=
+def general_linear_equiv : general_linear_group α β ≃* (β ≃ₗ[α] β) :=
 { to_fun := to_linear_equiv,
   inv_fun := of_linear_equiv,
   left_inv := λ f,
@@ -1560,14 +1560,11 @@ def general_linear_equiv : general_linear_group α β ≃ (β ≃ₗ[α] β) :=
     delta to_linear_equiv of_linear_equiv,
     cases f,
     congr
-  end }
-
-instance general_linear_equiv.is_group_hom :
-  is_group_hom (general_linear_equiv α β) :=
-⟨λ g₁ g₂, by {ext, refl}⟩
+  end,
+  hom := ⟨λ x y, by {ext, refl}⟩ }
 
 @[simp] lemma general_linear_equiv_to_linear_map (f : general_linear_group α β) :
-  (general_linear_equiv α β f).to_linear_map = f.val :=
+  ((general_linear_equiv α β).to_equiv f).to_linear_map = f.val :=
 by {ext, refl}
 
 end general_linear_group

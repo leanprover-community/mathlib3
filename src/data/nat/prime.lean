@@ -422,3 +422,13 @@ show p^k*p ∣ m ∨ p^l*p ∣ n, from
     (assume : p ∣ n / p ^ l, or.inr $ mul_dvd_of_dvd_div hpn this)
 
 end nat
+
+/-- The type of prime numbers. -/
+structure Prime := {p : ℕ // nat.prime p}
+
+namespace Prime
+
+instance : has_coe Prime ℕ := ⟨λ p, p.val⟩
+
+end Prime
+

@@ -7,9 +7,10 @@ import category_theory.epi_mono
 
 universe u
 
-open category_theory category_theory.instances
+open category_theory
+open Top
 
-namespace category_theory.instances.Top
+namespace Top
 
 lemma epi_iff_surjective {X Y : Top.{u}} (f : X ⟶ Y) : epi f ↔ function.surjective f :=
 begin
@@ -29,4 +30,4 @@ begin
   { apply faithful_reflects_mono }
 end
 
-end category_theory.instances.Top
+end Top

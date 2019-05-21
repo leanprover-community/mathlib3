@@ -4,7 +4,6 @@ import category_theory.limits.limits
 universes v
 
 open category_theory
-open category_theory.instances
 open category_theory.limits
 
 /-

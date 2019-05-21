@@ -7,7 +7,6 @@ import topology.instances.real
 noncomputable theory
 
 open category_theory
-open category_theory.instances
 open category_theory.limits
 
 def R : Top := Top.of ℝ

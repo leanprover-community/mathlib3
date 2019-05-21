@@ -6,13 +6,13 @@ universes u
 
 open category_theory
 
-namespace category_theory.instances
-
 structure TopCommRing :=
 (α : Type u)
 [is_comm_ring : comm_ring α]
 [is_topological_space : topological_space α]
 [is_topological_ring : topological_ring α]
+
+namespace TopCommRing
 
 instance : has_coe_to_sort TopCommRing :=
 { S := Type u, coe := TopCommRing.α }
@@ -31,10 +31,7 @@ instance TopCommRing_category : category TopCommRing :=
       dsimp, apply continuous.comp ; assumption
     end⟩ }.
 
-namespace TopCommRing
-
-def of (X : Type u) [comm_ring X] [topological_space X] [topological_ring X] : TopCommRing :=
-{ α := X }
+def of (X : Type u) [comm_ring X] [topological_space X] [topological_ring X] : TopCommRing := ⟨X⟩
 
 noncomputable example : TopCommRing := TopCommRing.of ℚ
 noncomputable example : TopCommRing := TopCommRing.of ℝ
@@ -42,7 +39,7 @@ noncomputable example : TopCommRing := TopCommRing.of ℂ
 
 /-- The forgetful functor to CommRing. -/
 def forget_to_CommRing : TopCommRing ⥤ CommRing :=
-{ obj := λ R, { α := R, str := instances.TopCommRing_comm_ring R },
+{ obj := λ R, { α := R },
   map := λ R S f, ⟨ f.1, f.2.left ⟩ }
 
 instance forget_to_CommRing_faithful : faithful (forget_to_CommRing) := by tidy
@@ -52,7 +49,7 @@ R.is_topological_space
 
 /-- The forgetful functor to Top. -/
 def forget_to_Top : TopCommRing ⥤ Top :=
-{ obj := λ R, { α := R, str := instances.TopCommRing_topological_space R },
+{ obj := λ R, { α := R },
   map := λ R S f, ⟨ f.1, f.2.right ⟩ }
 
 instance forget_to_Top_faithful : faithful (forget_to_Top) := by tidy
@@ -79,5 +76,3 @@ def forget_to_Type_via_Top : forget_to_Top ⋙ category_theory.forget ≅ forget
 def forget_to_Type_via_CommRing : forget_to_Top ⋙ category_theory.forget ≅ forget := iso.refl _
 
 end TopCommRing
-
-end category_theory.instances

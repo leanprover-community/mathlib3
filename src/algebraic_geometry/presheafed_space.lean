@@ -6,8 +6,7 @@ import category_theory.instances.Top.presheaf
 universes v u
 
 open category_theory
-open category_theory.instances
-open category_theory.instances.Top
+open Top
 open topological_space
 
 variables (C : Type u) [𝒞 : category.{v+1} C]

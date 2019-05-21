@@ -7,11 +7,10 @@ import topology.algebra.continuous_functions
 universes v u
 
 open category_theory
-open category_theory.instances
 open topological_space
 open opposite
 
-namespace category_theory.instances.Top
+namespace Top
 
 variables (X : Top.{v})
 
@@ -72,4 +71,4 @@ presheaf_to_TopCommRing Y (TopCommRing.of ℝ)
 noncomputable def presheaf_ℂ (Y : Top) : Y.presheaf CommRing :=
 presheaf_to_TopCommRing Y (TopCommRing.of ℂ)
 
-end category_theory.instances.Top
+end Top

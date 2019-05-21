@@ -14,9 +14,8 @@ universe u
 
 open mv_polynomial
 open category_theory
-open category_theory.instances
 
-namespace category_theory.instances.CommRing
+namespace CommRing
 
 local attribute [instance, priority 0] subtype.fintype set_fintype classical.prop_decidable
 
@@ -62,4 +61,4 @@ adjunction.mk_of_hom_equiv
       eq_self_iff_true, function.comp_app, add_right_inj, types_comp] at *
   end }
 
-end category_theory.instances.CommRing
+end CommRing

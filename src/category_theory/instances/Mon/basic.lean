@@ -13,10 +13,13 @@ universes u v
 
 open category_theory
 
-namespace category_theory.instances
-
 /-- The category of monoids and monoid morphisms. -/
 @[reducible] def Mon : Type (u+1) := bundled monoid
+
+/-- The category of commutative monoids and monoid morphisms. -/
+@[reducible] def CommMon : Type (u+1) := bundled comm_monoid
+
+namespace Mon
 
 instance (x : Mon) : monoid x := x.str
 
@@ -24,10 +27,13 @@ instance concrete_is_monoid_hom : concrete_category @is_monoid_hom :=
 ⟨by introsI α ia; apply_instance,
   by introsI α β γ ia ib ic f g hf hg; apply_instance⟩
 
-instance Mon_hom_is_monoid_hom {R S : Mon} (f : R ⟶ S) : is_monoid_hom (f : R → S) := f.2
+def of (X : Type u) [monoid X] : Mon := ⟨X⟩
 
-/-- The category of commutative monoids and monoid morphisms. -/
-@[reducible] def CommMon : Type (u+1) := bundled comm_monoid
+instance hom_is_monoid_hom {R S : Mon} (f : R ⟶ S) : is_monoid_hom (f : R → S) := f.2
+
+end Mon
+
+namespace CommMon
 
 instance (x : CommMon) : comm_monoid x := x.str
 
@@ -38,10 +44,11 @@ instance concrete_is_comm_monoid_hom : concrete_category @is_comm_monoid_hom :=
 ⟨by introsI α ia; apply_instance,
   by introsI α β γ ia ib ic f g hf hg; apply_instance⟩
 
-instance CommMon_hom_is_comm_monoid_hom {R S : CommMon} (f : R ⟶ S) :
+def of (X : Type u) [comm_monoid X] : CommMon := ⟨X⟩
+
+instance hom_is_comm_monoid_hom {R S : CommMon} (f : R ⟶ S) :
   is_comm_monoid_hom (f : R → S) := f.2
 
-namespace CommMon
 /-- The forgetful functor from commutative monoids to monoids. -/
 def forget_to_Mon : CommMon ⥤ Mon :=
 concrete_functor
@@ -51,5 +58,3 @@ concrete_functor
 instance : faithful (forget_to_Mon) := {}
 
 end CommMon
-
-end category_theory.instances

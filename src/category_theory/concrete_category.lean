@@ -30,7 +30,7 @@ attribute [class] concrete_category
 the type class is exposed as a parameter. -/
 structure bundled (c : Sort u → Sort v) : Sort (max (u+1) v) :=
 (α : Sort u)
-(str : c α)
+(str : c α . tactic.apply_instance)
 
 def mk_ob {c : Sort u → Sort v} (α : Sort u) [str : c α] : bundled c := ⟨α, str⟩
 
@@ -55,12 +55,10 @@ instance : category (bundled c) :=
 
 variables {X Y Z : bundled c}
 
-@[simp] lemma concrete_category_id (X : bundled c) : subtype.val (𝟙 X) = id :=
-rfl
+@[simp] lemma concrete_category_id (X : bundled c) : subtype.val (𝟙 X) = id := rfl
 
 @[simp] lemma concrete_category_comp (f : X ⟶ Y) (g : Y ⟶ Z) :
-  subtype.val (f ≫ g) = g.val ∘ f.val :=
-rfl
+  subtype.val (f ≫ g) = g.val ∘ f.val := rfl
 
 instance : has_coe_to_fun (X ⟶ Y) :=
 { F   := λ f, X → Y,

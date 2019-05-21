@@ -6,15 +6,13 @@ import category_theory.instances.Top.basic
 import category_theory.limits.types
 import category_theory.limits.preserves
 
-open category_theory
-open category_theory.instances
 open topological_space
+open category_theory
+open category_theory.limits
 
 universe u
 
-namespace category_theory.instances.Top
-
-open category_theory.limits
+namespace Top
 
 variables {J : Type u} [small_category J]
 
@@ -60,4 +58,4 @@ instance forget_preserves_colimits : preserves_colimits (forget : Top.{u} ⥤ Ty
     by exactI preserves_colimit_of_preserves_colimit_cocone
       (colimit.is_colimit F) (colimit.is_colimit (F ⋙ forget)) } }
 
-end category_theory.instances.Top
+end Top

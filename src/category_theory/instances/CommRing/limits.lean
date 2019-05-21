@@ -9,19 +9,19 @@ import ring_theory.subring
 import algebra.pi_instances
 
 open category_theory
-open category_theory.instances
+open category_theory.limits
 
 universe u
 
-namespace category_theory.instances.CommRing
+#check instances.CommRing
 
-open category_theory.limits
+namespace CommRing
 
 variables {J : Type u} [small_category J]
 
-instance (F : J ⥤ CommRing.{u}) (j) : comm_ring ((F ⋙ CommRing.forget).obj j) :=
+instance comm_ring_obj (F : J ⥤ CommRing.{u}) (j) : comm_ring ((F ⋙ CommRing.forget).obj j) :=
 by { dsimp, apply_instance }
-instance (F : J ⥤ CommRing.{u}) (j j') (f : j ⟶ j') : is_ring_hom ((F ⋙ CommRing.forget).map f) :=
+instance is_ring_hom_map (F : J ⥤ CommRing.{u}) (j j') (f : j ⟶ j') : is_ring_hom ((F ⋙ CommRing.forget).map f) :=
 by { dsimp, apply_instance }
 
 instance sections_submonoid (F : J ⥤ CommRing.{u}) : is_submonoid (F ⋙ forget).sections :=
@@ -112,4 +112,4 @@ instance forget_preserves_limits : preserves_limits (forget : CommRing.{u} ⥤ T
     by exactI preserves_limit_of_preserves_limit_cone
       (limit.is_limit F) (limit.is_limit (F ⋙ forget)) } }
 
-end category_theory.instances.CommRing
+end CommRing

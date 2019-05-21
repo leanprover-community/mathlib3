@@ -8,9 +8,9 @@ import category_theory.adjunction
 universe u
 
 open category_theory
-open category_theory.instances
+open Top
 
-namespace category_theory.instances.Top
+namespace Top
 
 def adj₁ : discrete ⊣ forget :=
 { hom_equiv := λ X Y,
@@ -30,4 +30,4 @@ def adj₂ : forget ⊣ trivial :=
   unit := { app := λ X, ⟨id, continuous_bot⟩ },
   counit := { app := λ X, id } }
 
-end category_theory.instances.Top
+end Top

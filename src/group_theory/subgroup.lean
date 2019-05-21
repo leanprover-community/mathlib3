@@ -358,7 +358,8 @@ theorem subset_conjugates_of_set : s ⊆ conjugates_of_set s :=
 λ (x : α) (h : x ∈ s), mem_conjugates_of_set_iff.2 ⟨x, h, is_conj_refl _⟩
 
 theorem conjugates_of_set_mono {s t : set α} (h : s ⊆ t) :
-  conjugates_of_set s ⊆ conjugates_of_set t := set.bUnion_subset_bUnion_left h
+  conjugates_of_set s ⊆ conjugates_of_set t :=
+set.bUnion_subset_bUnion_left h
 
 lemma conjugates_subset {t : set α} [normal_subgroup t] {a : α} (h : a ∈ t) : conjugates a ⊆ t :=
 λ x ⟨c,w⟩,
@@ -370,6 +371,15 @@ end
 theorem conjugates_of_set_subset {s t : set α} [normal_subgroup t] (h : s ⊆ t) :
   conjugates_of_set s ⊆ t :=
 set.bUnion_subset (λ x H, conjugates_subset (h H))
+
+/-- The set of conjugates of s is closed under conjugation. -/
+lemma conj_mem_conjugates_of_set {x c : α} :
+  x ∈ conjugates_of_set s → (c * x * c⁻¹ ∈ conjugates_of_set s) :=
+λ H,
+begin
+  rcases (mem_conjugates_of_set_iff.1 H) with ⟨a,h₁,h₂⟩,
+  exact mem_conjugates_of_set_iff.2 ⟨a, h₁, is_conj_trans h₂ ⟨c,rfl⟩⟩,
+end
 
 /-- The normal closure of a set s is the subgroup closure of all the conjugates of
 elements of s. It is the smallest normal subgroup containing s. -/
@@ -384,15 +394,6 @@ set.subset.trans subset_conjugates_of_set conjugates_of_set_subset_normal_closur
 /-- The normal closure of a set is a subgroup. -/
 instance normal_closure.is_subgroup (s : set α) : is_subgroup (normal_closure s) :=
 closure.is_subgroup (conjugates_of_set s)
-
-/-- The set of conjugates of s is closed under conjugation. -/
-lemma conj_mem_conjugates_of_set {x c : α} :
-  x ∈ conjugates_of_set s → (c * x * c⁻¹ ∈ conjugates_of_set s) :=
-λ H,
-begin
-  rcases (mem_conjugates_of_set_iff.1 H) with ⟨a,h₁,h₂⟩,
-  exact mem_conjugates_of_set_iff.2 ⟨a, h₁, is_conj_trans h₂ ⟨c,rfl⟩⟩,
-end
 
 /-- The normal closure of s is a normal subgroup. -/
 instance normal_closure.is_normal : normal_subgroup (normal_closure s) :=

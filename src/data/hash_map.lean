@@ -3,7 +3,7 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import data.list.basic data.pnat data.array.lemmas
+import data.list.basic data.pnat.basic data.array.lemmas
    logic.basic algebra.group
    data.list.defs data.nat.basic data.option.basic
    data.bool data.prod
@@ -228,12 +228,12 @@ theorem valid.replace_aux (a : α) (b : β a) : Π (l : list (Σ a, β a)), a �
   by_cases e : a' = a,
   { subst a',
     suffices : ∃ (u w : list Σ a, β a) (b'' : β a),
-      list.cons (sigma.mk a b') t = u ++ ⟨a, b''⟩ :: w ∧
+      (sigma.mk a b') :: t = u ++ ⟨a, b''⟩ :: w ∧
       replace_aux a b (⟨a, b'⟩ :: t) = u ++ ⟨a, b⟩ :: w, {simpa},
     refine ⟨[], t, b', _⟩, simp [replace_aux] },
   { suffices : ∀ (x : β a) (_ : sigma.mk a x ∈ t), ∃ u w (b'' : β a),
-      list.cons (sigma.mk a' b') t = u ++ ⟨a, b''⟩ :: w ∧
-      list.cons (sigma.mk a' b') (replace_aux a b t) = u ++ ⟨a, b⟩ :: w,
+      (sigma.mk a' b') :: t = u ++ ⟨a, b''⟩ :: w ∧
+      (sigma.mk a' b') :: (replace_aux a b t) = u ++ ⟨a, b⟩ :: w,
     { simpa [replace_aux, ne.symm e, e] },
     intros x m,
     have IH : ∀ (x : β a) (_ : sigma.mk a x ∈ t), ∃ u w (b'' : β a),
@@ -282,12 +282,12 @@ theorem valid.erase_aux (a : α) : Π (l : list (Σ a, β a)), a ∈ l.map sigma
   by_cases e : a' = a,
   { subst a',
     simpa [erase_aux, and_comm] using show ∃ u w (x : β a),
-      t = u ++ w ∧ list.cons (sigma.mk a b') t = u ++ ⟨a, x⟩ :: w,
+      t = u ++ w ∧ (sigma.mk a b') :: t = u ++ ⟨a, x⟩ :: w,
       from ⟨[], t, b', by simp⟩ },
   { simp [erase_aux, e, ne.symm e],
     suffices : ∀ (b : β a) (_ : sigma.mk a b ∈ t), ∃ u w (x : β a),
-      list.cons (sigma.mk a' b') t = u ++ ⟨a, x⟩ :: w ∧
-      list.cons (sigma.mk a' b') (erase_aux a t) = u ++ w,
+      (sigma.mk a' b') :: t = u ++ ⟨a, x⟩ :: w ∧
+      (sigma.mk a' b') :: (erase_aux a t) = u ++ w,
     { simpa [replace_aux, ne.symm e, e] },
     intros b m,
     have IH : ∀ (x : β a) (_ : sigma.mk a x ∈ t), ∃ u w (x : β a),
@@ -392,7 +392,7 @@ begin
     rw bucket_array.foldl_eq,
     exact p (v.as_list_nodup _) },
   intro l, induction l with c l IH; intros t sz v nd, {exact v},
-  rw show sz + (list.cons c l).length = sz + 1 + l.length, by simp,
+  rw show sz + (c :: l).length = sz + 1 + l.length, by simp,
   rcases (show (l.map sigma.fst).nodup ∧
       ((bucket_array.as_list t).map sigma.fst).nodup ∧
       c.fst ∉ l.map sigma.fst ∧

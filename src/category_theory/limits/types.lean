@@ -14,7 +14,7 @@ namespace category_theory.limits.types
 variables {J : Type u} [small_category J]
 
 def limit (F : J ⥤ Type u) : cone F :=
-{ X := {u : Π j, F.obj j // ∀ {j j'} (f : j ⟶ j'), F.map f (u j) = u j'},
+{ X := F.sections,
   π := { app := λ j u, u.val j } }
 
 local attribute [elab_simple] congr_fun
@@ -40,7 +40,7 @@ instance : has_limits.{u} (Type u) :=
 @[simp] lemma types_limit_map {F G : J ⥤ Type u} (α : F ⟶ G) (g : (limit F).X) :
   (lim.map α : (limit F).X → (limit G).X) g =
   (⟨λ j, (α.app j) (g.val j), λ j j' f,
-    by rw [←functor_to_types.naturality, ←(g.property f)]⟩ : (limit G).X) := rfl
+    by {rw ←functor_to_types.naturality, dsimp, rw ←(g.property f)}⟩ : (limit G).X) := rfl
 
 @[simp] lemma types_limit_lift (F : J ⥤ Type u) (c : cone F) (x : c.X):
   limit.lift F c x = (⟨λ j, c.π.app j x, λ j j' f, congr_fun (cone.w c f) x⟩ : (limit F).X) :=

@@ -360,8 +360,8 @@ instance : has_coe α (completion α) := ⟨quotient.mk ∘ pure_cauchy⟩
 protected lemma coe_eq : (coe : α → completion α) = quotient.mk ∘ pure_cauchy := rfl
 
 lemma uniform_continuous_coe : uniform_continuous (coe : α → completion α) :=
-uniform_continuous.comp uniform_embedding_pure_cauchy.uniform_continuous
-  uniform_continuous_quotient_mk
+uniform_continuous.comp
+  uniform_continuous_quotient_mk uniform_embedding_pure_cauchy.uniform_continuous
 
 lemma continuous_coe : continuous (coe : α → completion α) :=
 uniform_continuous.continuous (uniform_continuous_coe α)
@@ -485,7 +485,7 @@ lemma continuous_map : continuous (completion.map f) :=
 uniform_continuous_extension.continuous
 
 @[simp] lemma map_coe (hf : uniform_continuous f) (a : α) : (completion.map f) a = f a :=
-by rw [completion.map, extension_coe]; from hf.comp (uniform_continuous_coe β)
+by rw [completion.map, extension_coe]; from (uniform_continuous_coe β).comp hf
 
 lemma map_unique {f : α → β} {g : completion α → completion β}
   (hg : uniform_continuous g) (h : ∀a:α, ↑(f a) = g a) : completion.map f = g :=
@@ -493,7 +493,7 @@ completion.ext continuous_map hg.continuous $
 begin
   intro a,
   simp only [completion.map, (∘), h],
-  rw [extension_coe ((uniform_continuous_coe α).comp hg)]
+  rw [extension_coe (hg.comp (uniform_continuous_coe α))]
 end
 
 lemma map_id : completion.map (@id α) = id :=
@@ -503,11 +503,11 @@ lemma extension_map [complete_space γ] [separated γ] {f : β → γ} {g : α �
   (hf : uniform_continuous f) (hg : uniform_continuous g) :
   completion.extension f ∘ completion.map g = completion.extension (f ∘ g) :=
 completion.ext (continuous_extension.comp continuous_map) continuous_extension $
-  by intro a; simp only [hg, hf, hg.comp hf, (∘), map_coe, extension_coe]
+  by intro a; simp only [hg, hf, hf.comp hg, (∘), map_coe, extension_coe]
 
 lemma map_comp {g : β → γ} {f : α → β} (hg : uniform_continuous g) (hf : uniform_continuous f) :
   completion.map g ∘ completion.map f = completion.map (g ∘ f) :=
-extension_map (hg.comp (uniform_continuous_coe _)) hf
+extension_map ((uniform_continuous_coe _).comp hg) hf
 
 end map
 
@@ -556,7 +556,7 @@ lemma uniform_continuous_prod : uniform_continuous (@completion.prod α β _ _) 
 uniform_continuous_quotient_lift₂ $
   suffices uniform_continuous (quotient.mk ∘ Cauchy.prod),
   { convert this, ext ⟨a, b⟩, refl },
-  Cauchy.uniform_continuous_prod.comp uniform_continuous_quotient_mk
+  uniform_continuous_quotient_mk.comp Cauchy.uniform_continuous_prod
 
 lemma prod_coe_coe (a : α) (b : β) :
   completion.prod ((a : completion α), (b : completion β)) = (a, b) :=
@@ -571,7 +571,7 @@ completion.map (λp:α×β, f p.1 p.2) (completion.prod (a, b))
 
 lemma uniform_continuous_map₂' (f : α → β → γ) :
   uniform_continuous (λp:completion α×completion β, completion.map₂ f p.1 p.2) :=
-uniform_continuous.comp uniform_continuous_prod completion.uniform_continuous_map
+uniform_continuous.comp completion.uniform_continuous_map uniform_continuous_prod
 
 lemma continuous_map₂ {δ} [topological_space δ] {f : α → β → γ}
   {a : δ → completion α} {b : δ → completion β} (ha : continuous a) (hb : continuous b) :

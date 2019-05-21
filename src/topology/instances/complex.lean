@@ -58,7 +58,7 @@ tendsto_of_uniform_continuous_subtype
 
 lemma continuous_inv' : continuous (λa:{r:ℂ // r ≠ 0}, a.val⁻¹) :=
 continuous_iff_continuous_at.mpr $ assume ⟨r, hr⟩,
-  (continuous_iff_continuous_at.mp continuous_subtype_val _).comp (tendsto_inv hr)
+  tendsto.comp (tendsto_inv hr) (continuous_iff_continuous_at.mp continuous_subtype_val _)
 
 lemma continuous_inv {α} [topological_space α] {f : α → ℂ} (h : ∀a, f a ≠ 0) (hf : continuous f) :
   continuous (λa, (f a)⁻¹) :=

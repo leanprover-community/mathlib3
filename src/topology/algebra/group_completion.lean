@@ -51,8 +51,8 @@ instance : add_group (completion α) :=
   .. completion.has_zero, .. completion.has_neg, ..completion.has_add }
 
 instance : uniform_add_group (completion α) :=
-⟨ (uniform_continuous.prod_mk uniform_continuous_fst
-  (uniform_continuous_snd.comp uniform_continuous_map)).comp (uniform_continuous_map₂' (+))  ⟩
+⟨ (uniform_continuous_map₂' (+)).comp (uniform_continuous.prod_mk uniform_continuous_fst
+    (uniform_continuous_map.comp uniform_continuous_snd)) ⟩
 
 instance is_add_group_hom_coe : is_add_group_hom (coe : α → completion α) :=
 ⟨ coe_add ⟩

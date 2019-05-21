@@ -21,7 +21,7 @@ free monoid on two generators) and the theory of continued fractions.
 
 import tactic.basic
 
-import data.pnat
+import data.pnat.basic
 import tactic.ring tactic.abel
 
 namespace pnat

@@ -7,23 +7,26 @@ import algebra.big_operators
 import data.finset
 import tactic.subtype_instance
 
-variables {α : Type*} [monoid α] {s : set α}
-variables {β : Type*} [add_monoid β] {t : set β}
+variables {α : Type*} {β : Type*} {s : set α} {t : set β}
+
+section monoid
 
 /-- `s` is a submonoid: a set containing 1 and closed under multiplication. -/
-class is_submonoid (s : set α) : Prop :=
+class is_submonoid [monoid α] (s : set α) : Prop :=
 (one_mem : (1:α) ∈ s)
 (mul_mem {a b} : a ∈ s → b ∈ s → a * b ∈ s)
 
 /-- `s` is an additive submonoid: a set containing 0 and closed under addition. -/
-class is_add_submonoid (s : set β) : Prop :=
-(zero_mem : (0:β) ∈ s)
+class is_add_submonoid [add_monoid α] (s : set α) : Prop :=
+(zero_mem : (0:α) ∈ s)
 (add_mem {a b} : a ∈ s → b ∈ s → a + b ∈ s)
 
 attribute [to_additive is_add_submonoid] is_submonoid
 attribute [to_additive is_add_submonoid.zero_mem] is_submonoid.one_mem
 attribute [to_additive is_add_submonoid.add_mem] is_submonoid.mul_mem
 attribute [to_additive is_add_submonoid.mk] is_submonoid.mk
+
+variables [monoid α] [add_monoid β]
 
 instance additive.is_add_submonoid
   (s : set α) : ∀ [is_submonoid s], @is_add_submonoid (additive α) _ s
@@ -131,7 +134,10 @@ attribute [to_additive is_add_submonoid.multiple_subset] is_add_submonoid.multip
 
 end powers
 
+end monoid
+
 namespace is_submonoid
+variable [monoid α]
 
 @[to_additive is_add_submonoid.list_sum_mem]
 lemma list_prod_mem [is_submonoid s] : ∀{l : list α}, (∀x∈l, x ∈ s) → l.prod ∈ s
@@ -162,6 +168,9 @@ lemma finset_prod_mem {α β} [comm_monoid α] (s : set α) [is_submonoid s] (f 
   end
 
 end is_submonoid
+
+section monoid
+variable [monoid α]
 
 instance subtype.monoid {s : set α} [is_submonoid s] : monoid s :=
 by subtype_instance
@@ -206,7 +215,10 @@ instance set_inclusion.is_monoid_hom (t : set α) [is_submonoid s] [is_submonoid
   is_monoid_hom (set.inclusion h) :=
 subtype_mk.is_monoid_hom _ _
 
+end monoid
+
 namespace monoid
+variable [monoid α]
 
 inductive in_closure (s : set α) : α → Prop
 | basic {a : α} : a ∈ s → in_closure a
@@ -260,6 +272,7 @@ theorem mem_closure_union_iff {α : Type*} [comm_monoid α] {s t : set α} {x : 
 end monoid
 
 namespace add_monoid
+variable [add_monoid β]
 
 def closure (s : set β) : set β := @monoid.closure (multiplicative β) _ s
 attribute [to_additive add_monoid.closure] monoid.closure
@@ -302,3 +315,26 @@ theorem mem_closure_union_iff {β : Type*} [add_comm_monoid β] {s t : set β} {
 monoid.mem_closure_union_iff
 
 end add_monoid
+
+namespace comm_monoid
+open monoid
+variables [comm_monoid α] [decidable_eq β]
+
+@[to_additive add_comm_monoid.sum_mem_closure]
+lemma prod_mem_closure (s : set α) (ι : finset β) (f : β → α) (h : ∀ i ∈ ι, f i ∈ s) :
+  ι.prod f ∈ closure s :=
+begin
+  revert h,
+  apply finset.induction_on ι,
+  { intros, rw finset.prod_empty, apply is_submonoid.one_mem },
+  { intros i ι' hi IH h,
+    rw finset.prod_insert hi,
+    apply is_submonoid.mul_mem,
+    { solve_by_elim [subset_closure, finset.mem_insert_self] },
+    { apply IH,
+      intros i' hi',
+      apply h,
+      apply finset.mem_insert_of_mem hi' } }
+end
+
+end comm_monoid

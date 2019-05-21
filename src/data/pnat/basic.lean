@@ -40,6 +40,18 @@ def to_pnat' (n : ℕ) : ℕ+ := succ_pnat (pred n)
 | 0 := rfl
 | (m + 1) := by {rw[if_pos (succ_pos m)], refl}
 
+namespace primes
+instance coe_pnat : has_coe nat.primes ℕ+ := ⟨λ p, ⟨p.val, p.property.pos⟩⟩
+theorem coe_pnat_nat (p : nat.primes) : ((p : ℕ+) : ℕ) = (p : ℕ) := rfl
+
+theorem coe_pnat_inj (p q : nat.primes) : (p : ℕ+) = (q : ℕ+) → p = q := λ h,
+begin
+  replace h : ((p : ℕ+) : ℕ) = ((q : ℕ+) : ℕ) := congr_arg subtype.val h,
+  rw[coe_pnat_nat, coe_pnat_nat] at h,
+  exact subtype.eq h,
+end
+
+end primes
 end nat
 
 namespace pnat

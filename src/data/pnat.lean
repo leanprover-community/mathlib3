@@ -155,7 +155,7 @@ instance : distrib ℕ+ := {
 /-- Subtraction a - b is defined in the obvious way when
   a > b, and by a - b = 1 if a ≤ b.
 -/
-instance : has_sub ℕ+ := ⟨λ a b,to_pnat' (a.val - b.val)⟩
+instance : has_sub ℕ+ := ⟨λ a b, to_pnat' (a.val - b.val)⟩
 
 theorem sub_coe (a b : ℕ+) : (((a - b) : ℕ+) : ℕ) = ite (a > b) ((a : ℕ) - (b : ℕ)) 1 :=
 begin

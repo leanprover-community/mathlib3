@@ -424,7 +424,7 @@ show p^k*p ∣ m ∨ p^l*p ∣ n, from
 end nat
 
 /-- The type of prime numbers. -/
-structure Prime := {p : ℕ // nat.prime p}
+def Prime := {p : ℕ // nat.prime p}
 
 namespace Prime
 

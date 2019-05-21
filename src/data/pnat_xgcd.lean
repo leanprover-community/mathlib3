@@ -110,6 +110,13 @@ theorem flip_flip' : ∀ (t : ℕ × ℕ), flip' (flip' t) = t
 def flip : xgcd_type :=
  {wp := u.zp, x := u.y, y := u.x, zp := u.wp, ap := u.bp, bp := u.ap}
 
+@[simp] theorem flip_w : (flip u).w = u.z := rfl
+@[simp] theorem flip_x : (flip u).x = u.y := rfl
+@[simp] theorem flip_y : (flip u).y = u.x := rfl
+@[simp] theorem flip_z : (flip u).z = u.w := rfl
+@[simp] theorem flip_a : (flip u).a = u.b := rfl
+@[simp] theorem flip_b : (flip u).b = u.a := rfl
+
 theorem flip_is_reduced : (flip u).is_reduced ↔ u.is_reduced :=
  by {dsimp[is_reduced,flip],split; intro h; exact h.symm,}
 
@@ -117,7 +124,7 @@ theorem flip_is_special : (flip u).is_special ↔ u.is_special :=
  by {dsimp[is_special,flip],rw[mul_comm u.x,mul_comm u.zp,add_comm u.zp],}
 
 theorem flip_v : (flip u).v = flip' u.v := by {
- dsimp[v,flip,flip'],ext; simp only[]; ring,}
+ dsimp[v,flip'],ext,{simp only[],ring,},{simp only[],ring,}}
 
 /-- Properties of division with remainder for a / b.  -/
 theorem rq_eq : u.r + (u.bp + 1) * u.q = u.ap + 1 :=

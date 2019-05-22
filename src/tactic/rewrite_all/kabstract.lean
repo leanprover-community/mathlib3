@@ -123,10 +123,10 @@ do -- We first restore all the "other" metavariables to their original values.
    -- r' is the value of the remaining metavariable, after applying the lemma.
    r' ← rhs rewrite_mvar.2,
 
-   guard (¬ r'.has_meta_var),
    -- We now begin constructing the `eq.rec` proof of equality. In fact, we don't construct it here,
    -- we just construct a tactic that can produce it on demand!
    let proof_tactic : tactic expr := do {
+
     -- r is the original value of the remaining metavariable
     r ← lhs rewrite_mvar.2,
 
@@ -148,6 +148,7 @@ do -- We first restore all the "other" metavariables to their original values.
     infer_type proof, -- this is a sanity check (perhaps we should be doing this earlier?)
     return proof
    },
+
    -- Finally we finish rewriting the expression
    unify rewrite_mvar.1 r',
    result ← instantiate_mvars t_restored,

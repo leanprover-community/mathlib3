@@ -77,6 +77,9 @@ def forget : CommRing.{u} ⥤ Type u :=
 
 instance forget.faithful : faithful (forget) := {}
 
+instance forget_comm_ring (R : CommRing) : comm_ring (forget.obj R) := R.str
+instance forget_is_ring_hom {R S : CommRing} (f : R ⟶ S) : is_ring_hom (forget.map f) := f.property
+
 /-- The functor from commutative rings to rings. -/
 def to_Ring : CommRing.{u} ⥤ Ring.{u} :=
 { obj := λ X, { α := X.1, str := by apply_instance },

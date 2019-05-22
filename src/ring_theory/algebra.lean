@@ -205,11 +205,17 @@ protected def id : A →ₐ[R] A :=
 { to_fun := id, commutes' := λ _, rfl }
 variables {R A}
 
+@[simp] lemma id_to_linear_map :
+  (alg_hom.id R A).to_linear_map = @linear_map.id R A _ _ _ := rfl
+
 @[simp] lemma id_apply (p : A) : alg_hom.id R A p = p := rfl
 
 def comp (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) : A →ₐ C :=
 { to_fun := φ₁ ∘ φ₂,
   commutes' := λ r, by rw [function.comp_apply, φ₂.commutes, φ₁.commutes] }
+
+@[simp] lemma comp_to_linear_map (f : A →ₐ[R] B) (g : B →ₐ[R] C) :
+  (g.comp f).to_linear_map = g.to_linear_map.comp f.to_linear_map := rfl
 
 @[simp] lemma comp_apply (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) (p : A) :
   φ₁.comp φ₂ p = φ₁ (φ₂ p) := rfl

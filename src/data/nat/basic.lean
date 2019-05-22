@@ -74,6 +74,14 @@ begin
   rw [le_rec_on_succ (le_trans hnm hmk), ih, le_rec_on_succ]
 end
 
+theorem le_rec_on_succ_left {C : ℕ → Sort u} {n m} (h1 : n ≤ m) (h2 : n+1 ≤ m)
+  {next : Π{{k}}, C k → C (k+1)} (x : C n) :
+  (le_rec_on h2 next (next x) : C m) = (le_rec_on h1 next x : C m) :=
+begin
+  rw [subsingleton.elim h1 (le_trans (le_succ n) h2),
+      le_rec_on_trans (le_succ n) h2, le_rec_on_succ']
+end
+
 theorem le_rec_on_injective {C : ℕ → Sort u} {n m} (hnm : n ≤ m)
   (next : Π n, C n → C (n+1)) (Hnext : ∀ n, function.injective (next n)) :
   function.injective (le_rec_on hnm next) :=
@@ -1112,5 +1120,36 @@ lemma with_bot.add_eq_one_iff : ∀ {n m : with_bot ℕ}, n + m = 1 ↔ (n = 0 �
 @[elab_as_eliminator] lemma le_induction {P : nat → Prop} {m} (h0 : P m) (h1 : ∀ n ≥ m, P n → P (n + 1)) :
   ∀ n ≥ m, P n :=
 by apply nat.less_than_or_equal.rec h0; exact h1
+
+@[elab_as_eliminator]
+def decreasing_induction {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) {m n : ℕ} (mn : m ≤ n)
+  (hP : P n) : P m :=
+le_rec_on mn (λ k ih hsk, ih $ h k hsk) (λ h, h) hP
+
+@[simp] lemma decreasing_induction_self {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) {n : ℕ}
+  (nn : n ≤ n) (hP : P n) : (decreasing_induction h nn hP : P n) = hP :=
+by { dunfold decreasing_induction, rw [le_rec_on_self] }
+
+lemma decreasing_induction_succ {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) {m n : ℕ} (mn : m ≤ n)
+  (msn : m ≤ n + 1) (hP : P (n+1)) :
+  (decreasing_induction h msn hP : P m) = decreasing_induction h mn (h n hP) :=
+by { dunfold decreasing_induction, rw [le_rec_on_succ] }
+
+@[simp] lemma decreasing_induction_succ' {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) {m : ℕ}
+  (msm : m ≤ m + 1) (hP : P (m+1)) : (decreasing_induction h msm hP : P m) = h m hP :=
+by { dunfold decreasing_induction, rw [le_rec_on_succ'] }
+
+lemma decreasing_induction_trans {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) {m n k : ℕ}
+  (mn : m ≤ n) (nk : n ≤ k) (hP : P k) :
+  (decreasing_induction h (le_trans mn nk) hP : P m) =
+  decreasing_induction h mn (decreasing_induction h nk hP) :=
+by { induction nk with k nk ih, rw [decreasing_induction_self],
+     rw [decreasing_induction_succ h (le_trans mn nk), ih, decreasing_induction_succ] }
+
+lemma decreasing_induction_succ_left {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) {m n : ℕ}
+  (smn : m + 1 ≤ n) (mn : m ≤ n) (hP : P n) :
+  (decreasing_induction h mn hP : P m) = h m (decreasing_induction h smn hP) :=
+by { rw [subsingleton.elim mn (le_trans (le_succ m) smn), decreasing_induction_trans,
+         decreasing_induction_succ'] }
 
 end nat

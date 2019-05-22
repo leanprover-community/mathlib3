@@ -25,7 +25,7 @@ def whiskering_left : (C ⥤ D) ⥤ ((D ⥤ E) ⥤ (C ⥤ E)) :=
   { app := λ H,
     { app := λ c, H.map (τ.app c),
       naturality' := λ X Y f, begin dsimp, rw [←H.map_comp, ←H.map_comp, ←τ.naturality] end },
-    naturality' := λ X Y f, begin ext1, dsimp, rw [←nat_trans.naturality] end } }
+    naturality' := λ X Y f, begin ext1, dsimp, rw [f.naturality] end } }
 
 def whiskering_right : (D ⥤ E) ⥤ ((C ⥤ D) ⥤ (C ⥤ E)) :=
 { obj := λ H,

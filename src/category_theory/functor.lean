@@ -54,6 +54,8 @@ protected def id : C ⥤ C :=
 { obj := λ X, X,
   map := λ _ _ f, f }
 
+notation `𝟭` := functor.id
+
 variable {C}
 
 @[simp] lemma id_obj (X : C) : (functor.id C).obj X = X := rfl

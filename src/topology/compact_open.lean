@@ -42,7 +42,7 @@ section functorial
 
 variables {g : β → γ} (hg : continuous g)
 
-def induced (f : C(α, β)) : C(α, γ) := ⟨g ∘ f, f.property.comp hg⟩
+def induced (f : C(α, β)) : C(α, γ) := ⟨g ∘ f, hg.comp f.property⟩
 
 private lemma preimage_gen {s : set α} (hs : compact s) {u : set γ} (hu : is_open u) :
   continuous_map.induced hg ⁻¹' (compact_open.gen s u) = compact_open.gen s (g ⁻¹' u) :=

@@ -43,16 +43,16 @@ instance : add_group (completion α) :=
   add_assoc    := assume a b c, completion.induction_on₃ a b c
     (is_closed_eq
       (continuous_map₂
-        (continuous_map₂ continuous_fst (continuous_snd.comp continuous_fst)) (continuous_snd.comp continuous_snd))
+        (continuous_map₂ continuous_fst (continuous_fst.comp continuous_snd)) (continuous_snd.comp continuous_snd))
       (continuous_map₂ continuous_fst
-        (continuous_map₂ (continuous_snd.comp continuous_fst) (continuous_snd.comp continuous_snd))))
+        (continuous_map₂ (continuous_fst.comp continuous_snd) (continuous_snd.comp continuous_snd))))
     (assume a b c, show (a : completion α) + b + c = a + (b + c),
       by repeat { rw [← coe_add] }; rw [add_assoc]),
   .. completion.has_zero, .. completion.has_neg, ..completion.has_add }
 
 instance : uniform_add_group (completion α) :=
-⟨ (uniform_continuous.prod_mk uniform_continuous_fst
-  (uniform_continuous_snd.comp uniform_continuous_map)).comp (uniform_continuous_map₂' (+))  ⟩
+⟨ (uniform_continuous_map₂' (+)).comp (uniform_continuous.prod_mk uniform_continuous_fst
+    (uniform_continuous_map.comp uniform_continuous_snd)) ⟩
 
 instance is_add_group_hom_coe : is_add_group_hom (coe : α → completion α) :=
 ⟨ coe_add ⟩
@@ -64,13 +64,13 @@ lemma is_add_group_hom_extension  [complete_space β] [separated β]
 have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
 ⟨assume a b, completion.induction_on₂ a b
   (is_closed_eq
-    (continuous_add'.comp continuous_extension)
-    (continuous_add (continuous_fst.comp continuous_extension) (continuous_snd.comp continuous_extension)))
+    (continuous_extension.comp continuous_add')
+    (continuous_add (continuous_extension.comp continuous_fst) (continuous_extension.comp continuous_snd)))
   (assume a b, by rw [← coe_add, extension_coe hf, extension_coe hf, extension_coe hf, is_add_group_hom.map_add f])⟩
 
 lemma is_add_group_hom_map [add_group β] [uniform_add_group β]
   {f : α → β} [is_add_group_hom f] (hf : continuous f) : is_add_group_hom (completion.map f) :=
-is_add_group_hom_extension (hf.comp (continuous_coe _))
+is_add_group_hom_extension ((continuous_coe _).comp hf)
 
 section instance_max_depth
 -- TODO: continuous_add requires some long proofs through
@@ -82,15 +82,15 @@ lemma is_add_group_hom_prod [add_group β] [uniform_add_group β] :
 ⟨assume ⟨a₁, a₂⟩ ⟨b₁, b₂⟩,
   begin
     refine completion.induction_on₄ a₁ a₂ b₁ b₂ (is_closed_eq _ _) _,
-    { refine continuous.comp _ uniform_continuous_prod.continuous,
+    { refine continuous.comp uniform_continuous_prod.continuous _ ,
       refine continuous_add _ _,
-      exact continuous.prod_mk (continuous_fst.comp continuous_fst) (continuous_fst.comp continuous_snd),
-      exact continuous.prod_mk (continuous_snd.comp continuous_fst) (continuous_snd.comp continuous_snd) },
+      exact continuous.prod_mk (continuous_fst.comp continuous_fst) (continuous_snd.comp continuous_fst),
+      exact continuous.prod_mk (continuous_fst.comp continuous_snd) (continuous_snd.comp continuous_snd) },
     { refine continuous_add _ _,
-      refine continuous.comp _ uniform_continuous_prod.continuous,
-      exact continuous.prod_mk (continuous_fst.comp continuous_fst) (continuous_fst.comp continuous_snd),
-      refine continuous.comp _ uniform_continuous_prod.continuous,
-      exact continuous.prod_mk (continuous_snd.comp continuous_fst) (continuous_snd.comp continuous_snd) },
+      refine continuous.comp uniform_continuous_prod.continuous _,
+      exact continuous.prod_mk (continuous_fst.comp continuous_fst) (continuous_snd.comp continuous_fst),
+      refine continuous.comp uniform_continuous_prod.continuous _,
+      exact continuous.prod_mk (continuous_fst.comp continuous_snd) (continuous_snd.comp continuous_snd) },
     { assume a b c d,
       show completion.prod (↑a + ↑c, ↑b + ↑d) = completion.prod (↑a, ↑b) + completion.prod (↑c, ↑d),
       rw [← coe_add, ← coe_add, prod_coe_coe, prod_coe_coe, prod_coe_coe, ← coe_add],

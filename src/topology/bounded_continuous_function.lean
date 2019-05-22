@@ -140,7 +140,7 @@ let ⟨s, sx, Hs⟩ := continuous_iff'.1 f.2.1 x (ε/2) (half_pos ε0) in
 
 /-- In particular, when `x` is fixed, `f → f x` is continuous -/
 theorem continuous_evalx {x : α} : continuous (λ f : α →ᵇ β, f x) :=
-(continuous_id.prod_mk continuous_const).comp continuous_eval
+continuous_eval.comp (continuous_id.prod_mk continuous_const)
 
 /-- When `f` is fixed, `x → f x` is also continuous, by definition -/
 theorem continuous_evalf {f : α →ᵇ β} : continuous f := f.2.1
@@ -185,7 +185,7 @@ end
 gives a bounded continuous function -/
 def comp (G : β → γ) (H : ∀x y, dist (G x) (G y) ≤ C * dist x y)
   (f : α →ᵇ β) : α →ᵇ γ :=
-⟨λx, G (f x), f.2.1.comp (continuous_of_lipschitz H),
+⟨λx, G (f x), (continuous_of_lipschitz H).comp f.2.1,
   let ⟨D, hD⟩ := f.2.2 in
   ⟨max C 0 * D, λ x y, calc
     dist (G (f x)) (G (f y)) ≤ C * dist (f x) (f y) : H _ _

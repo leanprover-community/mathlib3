@@ -22,7 +22,7 @@ In a typical example, `c` is the type class `topological_space` and `hom` is
 -/
 structure concrete_category (hom : out_param $ ∀ {α β}, c α → c β → (α → β) → Prop) :=
 (hom_id : ∀ {α} (ia : c α), hom ia ia id)
-(hom_comp : ∀ {α β γ} (ia : c α) (ib : c β) (ic : c γ) {f g}, hom ia ib f → hom ib ic g → hom ia ic (g ∘ f))
+(hom_comp : ∀ {α β γ} (ia : c α) (ib : c β) (ic : c γ) {g f}, hom ib ic g → hom ia ib f → hom ia ic (g ∘ f))
 
 attribute [class] concrete_category
 
@@ -51,7 +51,7 @@ include h
 instance : category (bundled c) :=
 { hom   := λ a b, subtype (hom a.2 b.2),
   id    := λ a, ⟨@id a.1, h.hom_id a.2⟩,
-  comp  := λ a b c f g, ⟨g.1 ∘ f.1, h.hom_comp a.2 b.2 c.2 f.2 g.2⟩ }
+  comp  := λ a b c f g, ⟨g.1 ∘ f.1, h.hom_comp a.2 b.2 c.2 g.2 f.2⟩ }
 
 variables {X Y Z : bundled c}
 

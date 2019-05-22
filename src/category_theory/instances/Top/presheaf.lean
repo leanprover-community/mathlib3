@@ -10,6 +10,7 @@ universes v u
 open category_theory
 open category_theory.instances
 open topological_space
+open opposite
 
 variables (C : Type u) [𝒞 : category.{v+1} C]
 include 𝒞

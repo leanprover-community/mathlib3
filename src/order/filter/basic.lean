@@ -6,9 +6,7 @@ Authors: Johannes Hölzl, Jeremy Avigad
 Theory of filters on sets.
 -/
 import order.galois_connection order.zorn
-import data.set.finite data.list data.pfun
-import algebra.pi_instances
-import category.applicative
+import data.set.finite
 open lattice set
 
 universes u v w x y
@@ -611,8 +609,8 @@ def cofinite : filter α :=
     by simp only [compl_inter, finite_union, ht, hs, mem_set_of_eq] }
 
 lemma cofinite_ne_bot (hi : set.infinite (@set.univ α)) : @cofinite α ≠ ⊥ :=
-forall_sets_neq_empty_iff_neq_bot.mp 
-  $ λ s hs hn, by change set.finite _ at hs; 
+forall_sets_neq_empty_iff_neq_bot.mp
+  $ λ s hs hn, by change set.finite _ at hs;
     rw [hn, set.compl_empty] at hs; exact hi hs
 
 /-- The monadic bind operation on filter is defined the usual way in terms of `map` and `join`.
@@ -1145,7 +1143,7 @@ by simp only [tendsto, map_id, forall_true_iff] {contextual := tt}
 lemma tendsto_id {x : filter α} : tendsto id x x := tendsto_id' $ le_refl x
 
 lemma tendsto.comp {f : α → β} {g : β → γ} {x : filter α} {y : filter β} {z : filter γ}
-  (hf : tendsto f x y) (hg : tendsto g y z) : tendsto (g ∘ f) x z :=
+  (hg : tendsto g y z) (hf : tendsto f x y) : tendsto (g ∘ f) x z :=
 calc map (g ∘ f) x = map g (map f x) : by rw [map_map]
   ... ≤ map g y : map_mono hf
   ... ≤ z : hg
@@ -1173,7 +1171,7 @@ map_comap_le
 
 lemma tendsto_comap_iff {f : α → β} {g : β → γ} {a : filter α} {c : filter γ} :
   tendsto f a (c.comap g) ↔ tendsto (g ∘ f) a c :=
-⟨assume h, h.comp tendsto_comap, assume h, map_le_iff_le_comap.mp $ by rwa [map_map]⟩
+⟨assume h, tendsto_comap.comp h, assume h, map_le_iff_le_comap.mp $ by rwa [map_map]⟩
 
 lemma tendsto_comap'_iff {m : α → β} {f : filter α} {g : filter β} {i : γ → α}
   (h : range i ∈ f) : tendsto (m ∘ i) (comap i f) g ↔ tendsto m f g :=
@@ -1328,7 +1326,7 @@ le_antisymm
       calc set.prod (m₁ '' s₁) (m₂ '' s₂) = (λp:α₁×α₂, (m₁ p.1, m₂ p.2)) '' set.prod s₁ s₂ :
           set.prod_image_image_eq
         ... ⊆ _ : by rwa [image_subset_iff])
-  ((tendsto_fst.comp (le_refl _)).prod_mk (tendsto_snd.comp (le_refl _)))
+  ((tendsto.comp (le_refl _) tendsto_fst).prod_mk (tendsto.comp (le_refl _) tendsto_snd))
 
 lemma map_prod (m : α × β → γ) (f : filter α) (g : filter β) :
   map m (f.prod g) = (f.map (λa b, m (a, b))).seq g :=
@@ -1453,8 +1451,8 @@ lemma tendsto_at_top_at_top [nonempty α] [semilattice_sup α] [preorder β] (f 
   tendsto f at_top at_top ↔ ∀ b : β, ∃ i : α, ∀ a : α, i ≤ a → b ≤ f a :=
 iff.trans tendsto_infi $ forall_congr $ assume b, tendsto_at_top_principal
 
-lemma tendsto_at_top_at_bot [nonempty α] [decidable_linear_order α] [preorder β] (f : α → β) : 
-  tendsto f at_top at_bot ↔ ∀ (b : β), ∃ (i : α), ∀ (a : α), i ≤ a → b ≥ f a := 
+lemma tendsto_at_top_at_bot [nonempty α] [decidable_linear_order α] [preorder β] (f : α → β) :
+  tendsto f at_top at_bot ↔ ∀ (b : β), ∃ (i : α), ∀ (a : α), i ≤ a → b ≥ f a :=
 @tendsto_at_top_at_top α (order_dual β) _ _ _ f
 
 lemma tendsto_finset_image_at_top_at_top {i : β → γ} {j : γ → β} (h : ∀x, j (i x) = x) :
@@ -1710,27 +1708,27 @@ instance ultrafilter.monad : monad ultrafilter := { map := @ultrafilter.map }
 
 noncomputable def hyperfilter : filter α := ultrafilter_of cofinite
 
-lemma hyperfilter_le_cofinite (hi : set.infinite (@set.univ α)) : @hyperfilter α ≤ cofinite := 
+lemma hyperfilter_le_cofinite (hi : set.infinite (@set.univ α)) : @hyperfilter α ≤ cofinite :=
 (ultrafilter_of_spec (cofinite_ne_bot hi)).1
 
-lemma is_ultrafilter_hyperfilter (hi : set.infinite (@set.univ α)) : is_ultrafilter (@hyperfilter α) := 
+lemma is_ultrafilter_hyperfilter (hi : set.infinite (@set.univ α)) : is_ultrafilter (@hyperfilter α) :=
 (ultrafilter_of_spec (cofinite_ne_bot hi)).2
 
 theorem nmem_hyperfilter_of_finite (hi : set.infinite (@set.univ α)) {s : set α} (hf : set.finite s) :
   s ∉ @hyperfilter α :=
-λ hy, 
-have hx : -s ∉ hyperfilter := 
+λ hy,
+have hx : -s ∉ hyperfilter :=
   λ hs, (ultrafilter_iff_compl_mem_iff_not_mem.mp (is_ultrafilter_hyperfilter hi) s).mp hs hy,
 have ht : -s ∈ cofinite.sets := by show -s ∈ {s | _}; rwa [set.mem_set_of_eq, lattice.neg_neg],
 hx $ hyperfilter_le_cofinite hi ht
 
 theorem compl_mem_hyperfilter_of_finite (hi : set.infinite (@set.univ α)) {s : set α} (hf : set.finite s) :
   -s ∈ @hyperfilter α :=
-(ultrafilter_iff_compl_mem_iff_not_mem.mp (is_ultrafilter_hyperfilter hi) s).mpr $ 
+(ultrafilter_iff_compl_mem_iff_not_mem.mp (is_ultrafilter_hyperfilter hi) s).mpr $
 nmem_hyperfilter_of_finite hi hf
 
 theorem mem_hyperfilter_of_finite_compl (hi : set.infinite (@set.univ α)) {s : set α} (hf : set.finite (-s)) :
-  s ∈ @hyperfilter α := 
+  s ∈ @hyperfilter α :=
 have h : _ := compl_mem_hyperfilter_of_finite hi hf,
 by rwa [lattice.neg_neg] at h
 

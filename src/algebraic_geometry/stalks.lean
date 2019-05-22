@@ -15,6 +15,8 @@ open topological_space
 variables {C : Type u} [𝒞 : category.{v+1} C] [has_colimits.{v} C]
 include 𝒞
 
+local attribute [tidy] tactic.op_induction'
+
 open category_theory.instances.Top.presheaf
 
 namespace algebraic_geometry.PresheafedSpace
@@ -29,16 +31,10 @@ namespace stalk_map
 @[simp] lemma id (X : PresheafedSpace.{v} C) (x : X) : stalk_map (𝟙 X) x = 𝟙 (X.stalk x) :=
 begin
   dsimp [stalk_map],
-  erw [stalk_pushforward.id],
+  simp only [stalk_pushforward.id],
   rw [←category_theory.functor.map_comp],
   convert (stalk_functor C x).map_id X.𝒪,
-  ext U,
-  op_induction U,
-  cases U,
-  dsimp,
-  simp only [pushforward.id_hom_app],
-  dsimp,
-  simp,
+  tidy,
 end
 .
 
@@ -54,11 +50,11 @@ begin
   cases U_val,
   simp only [colim.ι_map_assoc, colimit.ι_pre_assoc, colimit.ι_pre,
     whisker_left.app, whisker_right.app,
-    functor.map_comp, category.assoc],
-  -- These are all simp lemmas that unfortunately don't fire:
-  erw [category_theory.functor.map_id, category_theory.functor.map_id,
-    category.id_comp, category.id_comp],
-  refl,
+    functor.map_comp, category.assoc, category_theory.functor.map_id, category.id_comp],
+  dsimp,
+  simp only [category_theory.functor.map_id],
+  -- FIXME Why doesn't simp do this:
+  erw [category.id_comp, category.id_comp],
 end
 end stalk_map
 

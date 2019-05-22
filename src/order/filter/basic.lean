@@ -1143,7 +1143,7 @@ by simp only [tendsto, map_id, forall_true_iff] {contextual := tt}
 lemma tendsto_id {x : filter α} : tendsto id x x := tendsto_id' $ le_refl x
 
 lemma tendsto.comp {f : α → β} {g : β → γ} {x : filter α} {y : filter β} {z : filter γ}
-  (hf : tendsto f x y) (hg : tendsto g y z) : tendsto (g ∘ f) x z :=
+  (hg : tendsto g y z) (hf : tendsto f x y) : tendsto (g ∘ f) x z :=
 calc map (g ∘ f) x = map g (map f x) : by rw [map_map]
   ... ≤ map g y : map_mono hf
   ... ≤ z : hg
@@ -1171,7 +1171,7 @@ map_comap_le
 
 lemma tendsto_comap_iff {f : α → β} {g : β → γ} {a : filter α} {c : filter γ} :
   tendsto f a (c.comap g) ↔ tendsto (g ∘ f) a c :=
-⟨assume h, h.comp tendsto_comap, assume h, map_le_iff_le_comap.mp $ by rwa [map_map]⟩
+⟨assume h, tendsto_comap.comp h, assume h, map_le_iff_le_comap.mp $ by rwa [map_map]⟩
 
 lemma tendsto_comap'_iff {m : α → β} {f : filter α} {g : filter β} {i : γ → α}
   (h : range i ∈ f) : tendsto (m ∘ i) (comap i f) g ↔ tendsto m f g :=
@@ -1326,7 +1326,7 @@ le_antisymm
       calc set.prod (m₁ '' s₁) (m₂ '' s₂) = (λp:α₁×α₂, (m₁ p.1, m₂ p.2)) '' set.prod s₁ s₂ :
           set.prod_image_image_eq
         ... ⊆ _ : by rwa [image_subset_iff])
-  ((tendsto_fst.comp (le_refl _)).prod_mk (tendsto_snd.comp (le_refl _)))
+  ((tendsto.comp (le_refl _) tendsto_fst).prod_mk (tendsto.comp (le_refl _) tendsto_snd))
 
 lemma map_prod (m : α × β → γ) (f : filter α) (g : filter β) :
   map m (f.prod g) = (f.map (λa b, m (a, b))).seq g :=

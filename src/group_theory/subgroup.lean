@@ -161,144 +161,6 @@ theorem is_add_subgroup.sub_mem {α} [add_group α] (s : set α) [is_add_subgrou
   (ha : a ∈ s) (hb : b ∈ s) : a - b ∈ s :=
 is_add_submonoid.add_mem ha (is_add_subgroup.neg_mem hb)
 
-namespace group
-open is_submonoid is_subgroup
-
-variables [group α] {s : set α}
-
-inductive in_closure (s : set α) : α → Prop
-| basic {a : α} : a ∈ s → in_closure a
-| one : in_closure 1
-| inv {a : α} : in_closure a → in_closure a⁻¹
-| mul {a b : α} : in_closure a → in_closure b → in_closure (a * b)
-
-/-- `group.closure s` is the subgroup closed over `s`, i.e. the smallest subgroup containg s. -/
-def closure (s : set α) : set α := {a | in_closure s a }
-
-lemma mem_closure {a : α} : a ∈ s → a ∈ closure s := in_closure.basic
-
-instance closure.is_subgroup (s : set α) : is_subgroup (closure s) :=
-{ one_mem := in_closure.one s, mul_mem := assume a b, in_closure.mul, inv_mem := assume a, in_closure.inv }
-
-theorem subset_closure {s : set α} : s ⊆ closure s := λ a, mem_closure
-
-theorem closure_subset {s t : set α} [is_subgroup t] (h : s ⊆ t) : closure s ⊆ t :=
-assume a ha, by induction ha; simp [h _, *, one_mem, mul_mem, inv_mem_iff]
-
-lemma closure_subset_iff (s t : set α) [is_subgroup t] : closure s ⊆ t ↔ s ⊆ t :=
-⟨assume h b ha, h (mem_closure ha), assume h b ha, closure_subset h ha⟩
-
-theorem closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
-closure_subset $ set.subset.trans h subset_closure
-
-theorem exists_list_of_mem_closure {s : set α} {a : α} (h : a ∈ closure s) :
-  (∃l:list α, (∀x∈l, x ∈ s ∨ x⁻¹ ∈ s) ∧ l.prod = a) :=
-in_closure.rec_on h
-  (λ x hxs, ⟨[x], list.forall_mem_singleton.2 $ or.inl hxs, one_mul _⟩)
-  ⟨[], list.forall_mem_nil _, rfl⟩
-  (λ x _ ⟨L, HL1, HL2⟩, ⟨L.reverse.map has_inv.inv,
-    λ x hx, let ⟨y, hy1, hy2⟩ := list.exists_of_mem_map hx in
-      hy2 ▸ or.imp id (by rw [inv_inv]; exact id) (HL1 _ $ list.mem_reverse.1 hy1).symm,
-      HL2 ▸ list.rec_on L one_inv.symm (λ hd tl ih,
-        by rw [list.reverse_cons, list.map_append, list.prod_append, ih, list.map_singleton,
-            list.prod_cons, list.prod_nil, mul_one, list.prod_cons, mul_inv_rev])⟩)
-  (λ x y hx hy ⟨L1, HL1, HL2⟩ ⟨L2, HL3, HL4⟩, ⟨L1 ++ L2, list.forall_mem_append.2 ⟨HL1, HL3⟩,
-    by rw [list.prod_append, HL2, HL4]⟩)
-
-theorem mclosure_subset {s : set α} : monoid.closure s ⊆ closure s :=
-monoid.closure_subset $ subset_closure
-
-theorem mclosure_inv_subset {s : set α} : monoid.closure (has_inv.inv ⁻¹' s) ⊆ closure s :=
-monoid.closure_subset $ λ x hx, inv_inv x ▸ (is_subgroup.inv_mem $ subset_closure hx)
-
-theorem closure_eq_mclosure {s : set α} : closure s = monoid.closure (s ∪ has_inv.inv ⁻¹' s) :=
-set.subset.antisymm
-  (@closure_subset _ _ _ (monoid.closure (s ∪ has_inv.inv ⁻¹' s))
-    { inv_mem := λ x hx, monoid.in_closure.rec_on hx
-      (λ x hx, or.cases_on hx (λ hx, monoid.subset_closure $ or.inr $ show x⁻¹⁻¹ ∈ s, from (inv_inv x).symm ▸ hx)
-        (λ hx, monoid.subset_closure $ or.inl hx))
-      ((@one_inv α _).symm ▸ is_submonoid.one_mem _)
-      (λ x y hx hy ihx ihy, (mul_inv_rev x y).symm ▸ is_submonoid.mul_mem ihy ihx) }
-    (set.subset.trans (set.subset_union_left _ _) monoid.subset_closure))
-  (monoid.closure_subset $ set.union_subset subset_closure $ λ x hx, inv_inv x ▸ (is_subgroup.inv_mem $ subset_closure hx))
-
-theorem mem_closure_union_iff {α : Type*} [comm_group α] {s t : set α} {x : α} :
-  x ∈ closure (s ∪ t) ↔ ∃ y ∈ closure s, ∃ z ∈ closure t, y * z = x :=
-begin
-  simp only [closure_eq_mclosure, monoid.mem_closure_union_iff, exists_prop, preimage_union], split,
-  { rintro ⟨_, ⟨ys, hys, yt, hyt, rfl⟩, _, ⟨zs, hzs, zt, hzt, rfl⟩, rfl⟩,
-    refine ⟨_, ⟨_, hys, _, hzs, rfl⟩, _, ⟨_, hyt, _, hzt, rfl⟩, _⟩,
-    rw [mul_assoc, mul_assoc, mul_left_comm zs], refl },
-  { rintro ⟨_, ⟨ys, hys, zs, hzs, rfl⟩, _, ⟨yt, hyt, zt, hzt, rfl⟩, rfl⟩,
-    refine ⟨_, ⟨ys, hys, yt, hyt, rfl⟩, _, ⟨zs, hzs, zt, hzt, rfl⟩, _⟩,
-    rw [mul_assoc, mul_assoc, mul_left_comm yt], refl }
-end
-
-theorem gpowers_eq_closure {a : α} : gpowers a = closure {a} :=
-subset.antisymm
-  (assume x h, match x, h with _, ⟨i, rfl⟩ := gpow_mem (mem_closure $ by simp) end)
-  (closure_subset $ by simp [mem_gpowers])
-
-end group
-
-namespace add_group
-open is_add_submonoid is_add_subgroup
-
-variables [add_group α] {s : set α}
-
-/-- `add_group.closure s` is the additive subgroup closed over `s`, i.e. the smallest subgroup containg s. -/
-def closure (s : set α) : set α := @group.closure (multiplicative α) _ s
-attribute [to_additive add_group.closure] group.closure
-
-lemma mem_closure {a : α} : a ∈ s → a ∈ closure s := group.mem_closure
-attribute [to_additive add_group.mem_closure] group.mem_closure
-
-instance closure.is_add_subgroup (s : set α) : is_add_subgroup (closure s) :=
-multiplicative.is_subgroup_iff.1 $ group.closure.is_subgroup _
-attribute [to_additive add_group.closure.is_add_subgroup] group.closure.is_subgroup
-
-attribute [to_additive add_group.subset_closure] group.subset_closure
-
-theorem closure_subset {s t : set α} [is_add_subgroup t] : s ⊆ t → closure s ⊆ t :=
-group.closure_subset
-
-attribute [to_additive add_group.closure_subset] group.closure_subset
-attribute [to_additive add_group.closure_subset_iff] group.closure_subset_iff
-
-theorem gmultiples_eq_closure {a : α} : gmultiples a = closure {a} :=
-group.gpowers_eq_closure
-attribute [to_additive add_group.gmultiples_eq_closure] group.gpowers_eq_closure
-
-@[elab_as_eliminator]
-theorem in_closure.rec_on {C : α → Prop}
-  {a : α} (H : a ∈ closure s)
-  (H1 : ∀ {a : α}, a ∈ s → C a) (H2 : C 0) (H3 : ∀ {a : α}, a ∈ closure s → C a → C (-a))
-  (H4 : ∀ {a b : α}, a ∈ closure s → b ∈ closure s → C a → C b → C (a + b)) :
-  C a :=
-group.in_closure.rec_on H (λ _, H1) H2 (λ _, H3) (λ _ _, H4)
-
-theorem closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
-closure_subset $ set.subset.trans h subset_closure
-
-theorem exists_list_of_mem_closure {s : set α} {a : α} (h : a ∈ closure s) :
-  (∃l:list α, (∀x∈l, x ∈ s ∨ -x ∈ s) ∧ l.sum = a) :=
-group.exists_list_of_mem_closure h
-
-theorem mclosure_subset {s : set α} : add_monoid.closure s ⊆ closure s :=
-group.mclosure_subset
-
-theorem mclosure_inv_subset {s : set α} : add_monoid.closure (has_neg.neg ⁻¹' s) ⊆ closure s :=
-group.mclosure_inv_subset
-
-theorem closure_eq_mclosure {s : set α} : closure s = add_monoid.closure (s ∪ has_neg.neg ⁻¹' s) :=
-group.closure_eq_mclosure
-
-theorem mem_closure_union_iff {α : Type*} [add_comm_group α] {s t : set α} {x : α} :
-  x ∈ closure (s ∪ t) ↔ ∃ y ∈ closure s, ∃ z ∈ closure t, y + z = x :=
-group.mem_closure_union_iff
-
-end add_group
-
 class normal_subgroup [group α] (s : set α) extends is_subgroup s : Prop :=
 (normal : ∀ n ∈ s, ∀ g : α, g * n * g⁻¹ ∈ s)
 class normal_add_subgroup [add_group α] (s : set α) extends is_add_subgroup s : Prop :=
@@ -353,11 +215,6 @@ mem_singleton_iff
 
 instance trivial_normal : normal_subgroup (trivial α) :=
 by refine {..}; simp [trivial] {contextual := tt}
-
-lemma trivial_eq_closure : trivial α = group.closure ∅ :=
-subset.antisymm
-  (by simp [set.subset_def, is_submonoid.one_mem])
-  (group.closure_subset $ by simp)
 
 lemma eq_trivial_iff {H : set α} [is_subgroup H] :
   H = trivial α ↔ (∀ x ∈ H, x = (1 : α)) :=
@@ -425,8 +282,6 @@ attribute [to_additive is_add_subgroup.mem_trivial] is_subgroup.mem_trivial
 instance trivial_normal : normal_add_subgroup (trivial α) :=
 multiplicative.normal_subgroup_iff.1 is_subgroup.trivial_normal
 attribute [to_additive is_add_subgroup.trivial_normal] is_subgroup.trivial_normal
-
-attribute [to_additive is_add_subgroup.trivial_eq_closure] is_subgroup.trivial_eq_closure
 
 attribute [to_additive is_add_subgroup.eq_trivial_iff] is_subgroup.eq_trivial_iff
 
@@ -602,6 +457,181 @@ instance set_inclusion.is_add_group_hom [add_group α] {s t : set α}
   [is_add_subgroup s] [is_add_subgroup t] (h : s ⊆ t) : is_add_group_hom (set.inclusion h) :=
 subtype_mk.is_add_group_hom _ _
 attribute [to_additive set_inclusion.is_group_hom] set_inclusion.is_add_group_hom
+
+namespace group
+open is_submonoid is_subgroup
+
+variables [group α] {s : set α}
+
+inductive in_closure (s : set α) : α → Prop
+| basic {a : α} : a ∈ s → in_closure a
+| one : in_closure 1
+| inv {a : α} : in_closure a → in_closure a⁻¹
+| mul {a b : α} : in_closure a → in_closure b → in_closure (a * b)
+
+/-- `group.closure s` is the subgroup closed over `s`, i.e. the smallest subgroup containg s. -/
+def closure (s : set α) : set α := {a | in_closure s a }
+
+lemma mem_closure {a : α} : a ∈ s → a ∈ closure s := in_closure.basic
+
+instance closure.is_subgroup (s : set α) : is_subgroup (closure s) :=
+{ one_mem := in_closure.one s, mul_mem := assume a b, in_closure.mul, inv_mem := assume a, in_closure.inv }
+
+theorem subset_closure {s : set α} : s ⊆ closure s := λ a, mem_closure
+
+theorem closure_subset {s t : set α} [is_subgroup t] (h : s ⊆ t) : closure s ⊆ t :=
+assume a ha, by induction ha; simp [h _, *, one_mem, mul_mem, inv_mem_iff]
+
+lemma closure_subset_iff (s t : set α) [is_subgroup t] : closure s ⊆ t ↔ s ⊆ t :=
+⟨assume h b ha, h (mem_closure ha), assume h b ha, closure_subset h ha⟩
+
+theorem closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
+closure_subset $ set.subset.trans h subset_closure
+
+theorem exists_list_of_mem_closure {s : set α} {a : α} (h : a ∈ closure s) :
+  (∃l:list α, (∀x∈l, x ∈ s ∨ x⁻¹ ∈ s) ∧ l.prod = a) :=
+in_closure.rec_on h
+  (λ x hxs, ⟨[x], list.forall_mem_singleton.2 $ or.inl hxs, one_mul _⟩)
+  ⟨[], list.forall_mem_nil _, rfl⟩
+  (λ x _ ⟨L, HL1, HL2⟩, ⟨L.reverse.map has_inv.inv,
+    λ x hx, let ⟨y, hy1, hy2⟩ := list.exists_of_mem_map hx in
+      hy2 ▸ or.imp id (by rw [inv_inv]; exact id) (HL1 _ $ list.mem_reverse.1 hy1).symm,
+      HL2 ▸ list.rec_on L one_inv.symm (λ hd tl ih,
+        by rw [list.reverse_cons, list.map_append, list.prod_append, ih, list.map_singleton,
+            list.prod_cons, list.prod_nil, mul_one, list.prod_cons, mul_inv_rev])⟩)
+  (λ x y hx hy ⟨L1, HL1, HL2⟩ ⟨L2, HL3, HL4⟩, ⟨L1 ++ L2, list.forall_mem_append.2 ⟨HL1, HL3⟩,
+    by rw [list.prod_append, HL2, HL4]⟩)
+
+lemma image_closure [group β] (f : α → β) [is_group_hom f] (s : set α) :
+  f '' closure s = closure (f '' s) :=
+le_antisymm
+  begin
+    rintros _ ⟨x, hx, rfl⟩,
+    apply in_closure.rec_on hx; intros,
+    { solve_by_elim [subset_closure, set.mem_image_of_mem] },
+    { rw [is_monoid_hom.map_one f], apply is_submonoid.one_mem },
+    { rw [is_group_hom.map_inv f], apply is_subgroup.inv_mem, assumption },
+    { rw [is_monoid_hom.map_mul f], solve_by_elim [is_submonoid.mul_mem] }
+  end
+  (closure_subset $ set.image_subset _ subset_closure)
+
+theorem mclosure_subset {s : set α} : monoid.closure s ⊆ closure s :=
+monoid.closure_subset $ subset_closure
+
+theorem mclosure_inv_subset {s : set α} : monoid.closure (has_inv.inv ⁻¹' s) ⊆ closure s :=
+monoid.closure_subset $ λ x hx, inv_inv x ▸ (is_subgroup.inv_mem $ subset_closure hx)
+
+theorem closure_eq_mclosure {s : set α} : closure s = monoid.closure (s ∪ has_inv.inv ⁻¹' s) :=
+set.subset.antisymm
+  (@closure_subset _ _ _ (monoid.closure (s ∪ has_inv.inv ⁻¹' s))
+    { inv_mem := λ x hx, monoid.in_closure.rec_on hx
+      (λ x hx, or.cases_on hx (λ hx, monoid.subset_closure $ or.inr $ show x⁻¹⁻¹ ∈ s, from (inv_inv x).symm ▸ hx)
+        (λ hx, monoid.subset_closure $ or.inl hx))
+      ((@one_inv α _).symm ▸ is_submonoid.one_mem _)
+      (λ x y hx hy ihx ihy, (mul_inv_rev x y).symm ▸ is_submonoid.mul_mem ihy ihx) }
+    (set.subset.trans (set.subset_union_left _ _) monoid.subset_closure))
+  (monoid.closure_subset $ set.union_subset subset_closure $ λ x hx, inv_inv x ▸ (is_subgroup.inv_mem $ subset_closure hx))
+
+theorem mem_closure_union_iff {α : Type*} [comm_group α] {s t : set α} {x : α} :
+  x ∈ closure (s ∪ t) ↔ ∃ y ∈ closure s, ∃ z ∈ closure t, y * z = x :=
+begin
+  simp only [closure_eq_mclosure, monoid.mem_closure_union_iff, exists_prop, preimage_union], split,
+  { rintro ⟨_, ⟨ys, hys, yt, hyt, rfl⟩, _, ⟨zs, hzs, zt, hzt, rfl⟩, rfl⟩,
+    refine ⟨_, ⟨_, hys, _, hzs, rfl⟩, _, ⟨_, hyt, _, hzt, rfl⟩, _⟩,
+    rw [mul_assoc, mul_assoc, mul_left_comm zs], refl },
+  { rintro ⟨_, ⟨ys, hys, zs, hzs, rfl⟩, _, ⟨yt, hyt, zt, hzt, rfl⟩, rfl⟩,
+    refine ⟨_, ⟨ys, hys, yt, hyt, rfl⟩, _, ⟨zs, hzs, zt, hzt, rfl⟩, _⟩,
+    rw [mul_assoc, mul_assoc, mul_left_comm yt], refl }
+end
+
+theorem gpowers_eq_closure {a : α} : gpowers a = closure {a} :=
+subset.antisymm
+  (assume x h, match x, h with _, ⟨i, rfl⟩ := gpow_mem (mem_closure $ by simp) end)
+  (closure_subset $ by simp [mem_gpowers])
+
+end group
+
+namespace add_group
+open is_add_submonoid is_add_subgroup
+
+variables [add_group α] {s : set α}
+
+/-- `add_group.closure s` is the additive subgroup closed over `s`, i.e. the smallest subgroup containg s. -/
+def closure (s : set α) : set α := @group.closure (multiplicative α) _ s
+attribute [to_additive add_group.closure] group.closure
+
+lemma mem_closure {a : α} : a ∈ s → a ∈ closure s := group.mem_closure
+attribute [to_additive add_group.mem_closure] group.mem_closure
+
+instance closure.is_add_subgroup (s : set α) : is_add_subgroup (closure s) :=
+multiplicative.is_subgroup_iff.1 $ group.closure.is_subgroup _
+attribute [to_additive add_group.closure.is_add_subgroup] group.closure.is_subgroup
+
+attribute [to_additive add_group.subset_closure] group.subset_closure
+
+theorem closure_subset {s t : set α} [is_add_subgroup t] : s ⊆ t → closure s ⊆ t :=
+group.closure_subset
+
+attribute [to_additive add_group.closure_subset] group.closure_subset
+attribute [to_additive add_group.closure_subset_iff] group.closure_subset_iff
+
+theorem gmultiples_eq_closure {a : α} : gmultiples a = closure {a} :=
+group.gpowers_eq_closure
+attribute [to_additive add_group.gmultiples_eq_closure] group.gpowers_eq_closure
+
+@[elab_as_eliminator]
+theorem in_closure.rec_on {C : α → Prop}
+  {a : α} (H : a ∈ closure s)
+  (H1 : ∀ {a : α}, a ∈ s → C a) (H2 : C 0) (H3 : ∀ {a : α}, a ∈ closure s → C a → C (-a))
+  (H4 : ∀ {a b : α}, a ∈ closure s → b ∈ closure s → C a → C b → C (a + b)) :
+  C a :=
+group.in_closure.rec_on H (λ _, H1) H2 (λ _, H3) (λ _ _, H4)
+
+theorem closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
+closure_subset $ set.subset.trans h subset_closure
+
+lemma image_closure [add_group β] (f : α → β) [is_add_group_hom f] (s : set α) :
+  f '' closure s = closure (f '' s) :=
+le_antisymm
+  begin
+    rintros _ ⟨x, hx, rfl⟩,
+    apply in_closure.rec_on hx; intros,
+    { solve_by_elim [subset_closure, set.mem_image_of_mem] },
+    { rw [is_add_monoid_hom.map_zero f], apply is_add_submonoid.zero_mem },
+    { rw [is_add_group_hom.map_neg f], apply is_add_subgroup.neg_mem, assumption },
+    { rw [is_add_monoid_hom.map_add f], solve_by_elim [is_add_submonoid.add_mem] }
+  end
+  (closure_subset $ set.image_subset _ subset_closure)
+
+theorem exists_list_of_mem_closure {s : set α} {a : α} (h : a ∈ closure s) :
+  (∃l:list α, (∀x∈l, x ∈ s ∨ -x ∈ s) ∧ l.sum = a) :=
+group.exists_list_of_mem_closure h
+
+theorem mclosure_subset {s : set α} : add_monoid.closure s ⊆ closure s :=
+group.mclosure_subset
+
+theorem mclosure_inv_subset {s : set α} : add_monoid.closure (has_neg.neg ⁻¹' s) ⊆ closure s :=
+group.mclosure_inv_subset
+
+theorem closure_eq_mclosure {s : set α} : closure s = add_monoid.closure (s ∪ has_neg.neg ⁻¹' s) :=
+group.closure_eq_mclosure
+
+theorem mem_closure_union_iff {α : Type*} [add_comm_group α] {s t : set α} {x : α} :
+  x ∈ closure (s ∪ t) ↔ ∃ y ∈ closure s, ∃ z ∈ closure t, y + z = x :=
+group.mem_closure_union_iff
+
+end add_group
+
+namespace is_subgroup
+variable [group α]
+
+lemma trivial_eq_closure : trivial α = group.closure ∅ :=
+subset.antisymm
+  (by simp [set.subset_def, is_submonoid.one_mem])
+  (group.closure_subset $ by simp)
+attribute [to_additive is_add_subgroup.trivial_eq_closure] is_subgroup.trivial_eq_closure
+
+end is_subgroup
 
 section simple_group
 

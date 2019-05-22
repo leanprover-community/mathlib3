@@ -65,15 +65,12 @@ end
 -- colimit.pre ((open_nhds.inclusion x).op ⋙ ℱ) (open_nhds.map f x).op
 
 namespace stalk_pushforward
+local attribute [tidy] tactic.op_induction'
+
 @[simp] lemma id (ℱ : X.presheaf C) (x : X) :
   ℱ.stalk_pushforward C (𝟙 X) x = (stalk_functor C x).map ((pushforward.id ℱ).hom) :=
 begin
   dsimp [stalk_pushforward, stalk_functor],
-  ext U,
-  op_induction U,
-  cases U,
-  cases U_val,
-  dsimp,
   tidy,
 end
 
@@ -81,15 +78,19 @@ end
   ℱ.stalk_pushforward C (f ≫ g) x =
   ((f _* ℱ).stalk_pushforward C g (f x)) ≫ (ℱ.stalk_pushforward C f x) :=
 begin
-  dsimp [stalk_pushforward, stalk_functor],
+  dsimp [stalk_pushforward, stalk_functor, pushforward],
   ext U,
   op_induction U,
   cases U,
   cases U_val,
   simp only [colim.ι_map_assoc, colimit.ι_pre_assoc, colimit.ι_pre,
              whisker_right.app, category.assoc],
-  -- These are simp lemmas which unfortunately don't fire:
-  erw [category_theory.functor.map_id, category.id_comp, category.id_comp],
+  dsimp,
+  simp only [category.id_comp, category_theory.functor.map_id],
+  -- FIXME A simp lemma which unfortunately doesn't fire:
+  rw [category_theory.functor.map_id],
+  dsimp,
+  simp,
 end
 
 end stalk_pushforward

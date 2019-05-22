@@ -36,6 +36,9 @@ def map (f : X ⟶ Y) : opens Y ⥤ opens X :=
 { obj := λ U, ⟨ f.val ⁻¹' U.val, f.property _ U.property ⟩,
   map := λ U V i, ⟨ ⟨ λ a b, i.down.down b ⟩ ⟩ }.
 
+@[simp] lemma map_obj (f : X ⟶ Y) (U) (p) : (map f).obj ⟨U, p⟩ = ⟨ f.val ⁻¹' U, f.property _ p ⟩ :=
+rfl
+
 @[simp] lemma map_id_obj' (U) (p) : (map (𝟙 X)).obj ⟨U, p⟩ = ⟨U, p⟩ :=
 rfl
 

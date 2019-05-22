@@ -5,6 +5,7 @@ Authors: Scott Morrison, Reid Barton, Simon Hudon, Kenny Lau
 
 Opposites.
 -/
+import data.list.defs
 
 namespace opposite
 universes v u -- declare the `v` first; see `category_theory.category` for an explanation
@@ -55,15 +56,45 @@ def op_induction {F : Π (X : αᵒᵖ), Sort v} (h : Π X, F (op X)) : Π X, F 
 λ X, h (unop X)
 end opposite
 
-namespace tactic.interactive
+namespace tactic
 
+open opposite
 open interactive interactive.types lean.parser tactic
+local postfix `?`:9001 := optional
 
-meta def op_induction (h : parse ident) : tactic unit :=
-do h' ← tactic.get_local h,
+namespace op_induction
+
+meta def is_opposite (e : expr) : tactic bool :=
+do t ← infer_type e,
+   `(opposite _) ← whnf t | return ff,
+   return tt
+
+meta def find_opposite_hyp : tactic name :=
+do lc ← local_context,
+   h :: _ ← lc.mfilter $ is_opposite | fail "No hypotheses of the form Xᵒᵖ",
+   return h.local_pp_name
+
+end op_induction
+
+open op_induction
+
+meta def op_induction (h : option name) : tactic unit :=
+do h ← match h with
+   | (some h) := pure h
+   | none     := find_opposite_hyp
+   end,
+   h' ← tactic.get_local h,
    revert_lst [h'],
    applyc `opposite.op_induction,
    tactic.intro h,
    skip
 
-end tactic.interactive
+-- For use with `local attribute [tidy] op_induction`
+meta def op_induction' := op_induction none
+
+namespace interactive
+meta def op_induction (h : parse ident?) : tactic unit :=
+tactic.op_induction h
+end interactive
+
+end tactic

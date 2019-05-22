@@ -82,6 +82,8 @@ def tensor_iso {C : Sort u} {X Y X' Y' : C} [monoidal_category.{v} C] (f : X ≅
 
 infixr ` ⊗ `:70 := tensor_iso
 
+namespace monoidal_category
+
 section
 
 variables {C : Sort u} [𝒞 : monoidal_category.{v} C]
@@ -110,15 +112,15 @@ variables {U V W X Y Z : C}
 -- left_unitor_inv_naturality
 -- right_unitor_inv_naturality
 
-@[simp] lemma tensor_comp_id (f : W ⟶ X) (g : X ⟶ Y) :
+@[simp] lemma comp_tensor_id (f : W ⟶ X) (g : X ⟶ Y) :
   (f ≫ g) ⊗ (𝟙 Z) = (f ⊗ (𝟙 Z)) ≫ (g ⊗ (𝟙 Z)) :=
 by { rw ←tensor_comp, simp }
 
-@[simp] lemma tensor_id_comp (f : W ⟶ X) (g : X ⟶ Y) :
+@[simp] lemma id_tensor_comp (f : W ⟶ X) (g : X ⟶ Y) :
   (𝟙 Z) ⊗ (f ≫ g) = (𝟙 Z ⊗ f) ≫ (𝟙 Z ⊗ g) :=
 by { rw ←tensor_comp, simp }
 
-lemma comp_id_tensor_tensor_id (f : W ⟶ X) (g : Y ⟶ Z) :
+lemma id_tensor_comp_tensor_id (f : W ⟶ X) (g : Y ⟶ Z) :
   ((𝟙 Y) ⊗ f) ≫ (g ⊗ (𝟙 X)) = (g ⊗ (𝟙 W)) ≫ ((𝟙 Z) ⊗ f) :=
 by { rw [←tensor_comp, ←tensor_comp], simp }
 
@@ -189,7 +191,7 @@ lemma left_unitor_product_aux_triangle (X Y : C) :
     ((α_ (𝟙_ C) (𝟙_ C) X).hom ⊗ (𝟙 Y)) ≫
     (((𝟙 (𝟙_ C)) ⊗ (λ_ X).hom) ⊗ (𝟙 Y))
   = ((ρ_ (𝟙_ C)).hom ⊗ (𝟙 X)) ⊗ (𝟙 Y) :=
-by rw [←tensor_comp_id, ←monoidal_category.triangle]
+by rw [←comp_tensor_id, ←monoidal_category.triangle]
 
 lemma left_unitor_product_aux_square (X Y : C) :
     (α_ (𝟙_ C) ((𝟙_ C) ⊗ X) Y).hom ≫
@@ -235,7 +237,7 @@ lemma right_unitor_product_aux_triangle (X Y : C) :
     ((𝟙 X) ⊗ (α_ Y (𝟙_ C) (𝟙_ C)).hom) ≫
     ((𝟙 X) ⊗ (𝟙 Y) ⊗ (λ_ (𝟙_ C)).hom)
   = (𝟙 X) ⊗ (ρ_ Y).hom ⊗ (𝟙 (𝟙_ C)) :=
-by rw [←tensor_id_comp, ←monoidal_category.triangle]
+by rw [←id_tensor_comp, ←monoidal_category.triangle]
 
 lemma right_unitor_product_aux_square (X Y : C) :
     (α_ X (Y ⊗ (𝟙_ C)) (𝟙_ C)).hom ≫
@@ -258,7 +260,7 @@ end
 @[simp] lemma left_unitor_tensor (X Y : C) :
   ((α_ (𝟙_ C) X Y).hom) ≫ ((λ_ (X ⊗ Y)).hom) =
     ((λ_ X).hom ⊗ (𝟙 Y)) :=
-by rw [←tensor_left_iff, tensor_id_comp, left_unitor_product_aux]
+by rw [←tensor_left_iff, id_tensor_comp, left_unitor_product_aux]
 
 @[simp] lemma left_unitor_tensor_inv (X Y : C) :
   ((λ_ (X ⊗ Y)).inv) ≫ ((α_ (𝟙_ C) X Y).inv) =
@@ -268,7 +270,7 @@ eq_of_inv_eq_inv (by simp)
 @[simp] lemma right_unitor_tensor (X Y : C) :
   ((α_ X Y (𝟙_ C)).hom) ≫ ((𝟙 X) ⊗ (ρ_ Y).hom) =
     ((ρ_ (X ⊗ Y)).hom) :=
-by rw [←tensor_right_iff, tensor_comp_id, right_unitor_product_aux]
+by rw [←tensor_right_iff, comp_tensor_id, right_unitor_product_aux]
 
 @[simp] lemma right_unitor_tensor_inv (X Y : C) :
   ((𝟙 X) ⊗ (ρ_ Y).inv) ≫ ((α_ X Y (𝟙_ C)).inv) =
@@ -305,7 +307,7 @@ by rw [←triangle_assoc_comp_left, ←category.assoc, iso.inv_hom_id, category.
 begin
   apply (cancel_mono (𝟙 X ⊗ (λ_ Y).hom)).1,
   simp only [assoc, triangle_assoc_comp_left],
-  rw [←tensor_comp_id, iso.inv_hom_id, ←tensor_id_comp, iso.inv_hom_id]
+  rw [←comp_tensor_id, iso.inv_hom_id, ←id_tensor_comp, iso.inv_hom_id]
 end
 
 @[simp] lemma triangle_assoc_comp_left_inv (X Y : C) :
@@ -313,13 +315,12 @@ end
 begin
   apply (cancel_mono ((ρ_ X).hom ⊗ 𝟙 Y)).1,
   simp only [triangle_assoc_comp_right, assoc],
-  rw [←tensor_id_comp, iso.inv_hom_id, ←tensor_comp_id, iso.inv_hom_id]
+  rw [←id_tensor_comp, iso.inv_hom_id, ←comp_tensor_id, iso.inv_hom_id]
 end
 
 end
 
-namespace monoidal_category
-
+section
 -- In order to be able to describe the tensor product as a functor, we
 -- need to be up in at least `Type 0` for both objects and morphisms,
 -- so that we can construct products.
@@ -376,6 +377,8 @@ nat_iso.of_components
   (by intros; dsimp; apply monoidal_category.right_unitor)
   (by intros; dsimp; apply monoidal_category.right_unitor_naturality)
 
+end
+
 end monoidal_category
 
-end category_theory.monoidal
+end category_theory

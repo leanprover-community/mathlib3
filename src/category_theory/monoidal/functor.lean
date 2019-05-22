@@ -76,9 +76,9 @@ as_iso (F.μ X Y)
 
 end
 
-namespace monoidal_functor
-
 open monoidal_category
+
+namespace monoidal_functor
 
 section
 -- In order to express the tensorator as a natural isomorphism,
@@ -134,10 +134,10 @@ def comp : lax_monoidal_functor.{v₁ v₃} C E :=
   associativity'   := λ X Y Z,
   begin
     dsimp,
-    rw tensor_id_comp,
+    rw id_tensor_comp,
     slice_rhs 3 4 { rw [← G.to_functor.map_id, G.μ_natural], },
     slice_rhs 1 3 { rw ←G.associativity, },
-    rw tensor_comp_id,
+    rw comp_tensor_id,
     slice_lhs 2 3 { rw [← G.to_functor.map_id, G.μ_natural], },
     rw [category.assoc, category.assoc, category.assoc, category.assoc, category.assoc,
         ←G.to_functor.map_comp, ←G.to_functor.map_comp, ←G.to_functor.map_comp, ←G.to_functor.map_comp,
@@ -146,7 +146,7 @@ def comp : lax_monoidal_functor.{v₁ v₃} C E :=
   left_unitality'  := λ X,
   begin
     dsimp,
-    rw [G.left_unitality, tensor_comp_id, category.assoc, category.assoc],
+    rw [G.left_unitality, comp_tensor_id, category.assoc, category.assoc],
     apply congr_arg,
     rw [F.left_unitality, map_comp, ←nat_trans.id_app, ←category.assoc,
         ←lax_monoidal_functor.μ_natural, nat_trans.id_app, map_id, ←category.assoc, map_comp],
@@ -154,7 +154,7 @@ def comp : lax_monoidal_functor.{v₁ v₃} C E :=
   right_unitality' := λ X,
   begin
     dsimp,
-    rw [G.right_unitality, tensor_id_comp, category.assoc, category.assoc],
+    rw [G.right_unitality, id_tensor_comp, category.assoc, category.assoc],
     apply congr_arg,
     rw [F.right_unitality, map_comp, ←nat_trans.id_app, ←category.assoc,
         ←lax_monoidal_functor.μ_natural, nat_trans.id_app, map_id, ←category.assoc, map_comp],
@@ -173,7 +173,7 @@ namespace monoidal_functor
 
 variables (F : monoidal_functor.{v₁ v₂} C D) (G : monoidal_functor.{v₂ v₃} D E)
 
-def monoidal_functor.comp : monoidal_functor.{v₁ v₃} C E :=
+def comp : monoidal_functor.{v₁ v₃} C E :=
 { ε_is_iso := by { dsimp, apply_instance }, -- TODO tidy should get this
   μ_is_iso := by { dsimp, apply_instance }, -- TODO tidy should get this
   .. (F.to_lax_monoidal_functor).comp (G.to_lax_monoidal_functor) }.

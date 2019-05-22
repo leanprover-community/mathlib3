@@ -138,17 +138,7 @@ def on_presheaf {F G : C ⥤ D} (α : F ⟶ G) : G.map_presheaf ⟶ F.map_preshe
 { app := λ X,
   { f := 𝟙 _,
     c := whisker_left X.𝒪 α ≫ ((functor.left_unitor _).inv) ≫
-           (whisker_right (nat_trans.op (opens.map_id _).hom) _) },
-  naturality' := λ X Y f,
-  begin
-    ext U,
-    { op_induction U,
-      cases U,
-      dsimp,
-      simp only [category_theory.functor.map_id, category.id_comp, category.comp_id, category.assoc],
-      exact (α.naturality _).symm, },
-    { refl, }
-  end }.
+           (whisker_right (nat_trans.op (opens.map_id _).hom) _) } }.
 
 end nat_trans
 

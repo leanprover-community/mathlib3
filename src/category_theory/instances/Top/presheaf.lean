@@ -28,7 +28,7 @@ variables {C}
 def pushforward {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) : Y.presheaf C :=
 (opens.map f).op ⋙ ℱ
 
-infix `_*`: 80 := pushforward
+infix ` _* `: 80 := pushforward
 
 def pushforward_eq {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf C) :
   f _* ℱ ≅ g _* ℱ :=
@@ -53,7 +53,8 @@ begin
   op_induction U,
   cases U,
   simp,
-  apply category_theory.functor.map_id,
+  dsimp,
+  simp,
 end
 
 @[simp] lemma id_inv_app' (U) (p) : (id ℱ).inv.app (op ⟨U, p⟩) = ℱ.map (𝟙 (op ⟨U, p⟩)) :=
@@ -64,14 +65,18 @@ iso_whisker_right (nat_iso.op (opens.map_comp f g).symm) ℱ
 
 @[simp] lemma comp_hom_app {Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (comp ℱ f g).hom.app U = 𝟙 _ :=
 begin
+  op_induction U,
+  cases U,
   dsimp [pushforward, comp],
-  erw category_theory.functor.map_id, -- FIXME simp should do this
+  simp,
 end
 
 @[simp] lemma comp_inv_app {Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (comp ℱ f g).inv.app U = 𝟙 _ :=
 begin
+  op_induction U,
+  cases U,
   dsimp [pushforward, comp],
-  erw category_theory.functor.map_id,
+  simp,
 end
 
 end pushforward

@@ -82,9 +82,6 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace.{v} C) :=
     { op_induction U,
       cases U,
       dsimp,
-      simp only [category.assoc],
-      -- This should be done by `simp`, but unfortunately isn't.
-      erw [category_theory.functor.map_id],
       simp, },
     { simp }
   end,
@@ -94,9 +91,6 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace.{v} C) :=
     { op_induction U,
       cases U,
       dsimp,
-      simp only [category.assoc],
-      -- This should be done by `simp`, but unfortunately isn't.
-      erw [category_theory.functor.map_id],
       simp, },
     { refl }
   end }
@@ -163,7 +157,8 @@ def map_presheaf (F : C ⥤ D) : PresheafedSpace.{v} C ⥤ PresheafedSpace.{v} D
     ext U x,
     { dsimp,
       op_induction U,
-      erw [functor.map_id, functor.map_id, category.comp_id, category.id_comp, category.id_comp] },
+      cases U,
+      simp, },
     refl,
   end, }.
 
@@ -192,9 +187,6 @@ def on_presheaf {F G : C ⥤ D} (α : F ⟶ G) : G.map_presheaf ⟶ F.map_preshe
       cases U,
       dsimp,
       simp only [category_theory.functor.map_id, category.id_comp, category.comp_id, category.assoc],
-      -- This should be done by `simp`, but unfortunately isn't.
-      repeat { erw category_theory.functor.map_id },
-      simp only [category.id_comp, category.comp_id],
       exact (α.naturality _).symm, },
     { refl, }
   end }.

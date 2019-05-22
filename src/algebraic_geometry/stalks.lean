@@ -15,6 +15,8 @@ open topological_space
 variables {C : Type u} [𝒞 : category.{v+1} C] [has_colimits.{v} C]
 include 𝒞
 
+local attribute [tidy] tactic.op_induction'
+
 open category_theory.instances.Top.presheaf
 
 namespace algebraic_geometry.PresheafedSpace
@@ -32,13 +34,7 @@ begin
   simp only [stalk_pushforward.id],
   rw [←category_theory.functor.map_comp],
   convert (stalk_functor C x).map_id X.𝒪,
-  ext U,
-  op_induction U,
-  cases U,
-  dsimp,
-  simp only [pushforward.id_hom_app],
-  dsimp,
-  simp,
+  tidy,
 end
 .
 
@@ -57,6 +53,7 @@ begin
     functor.map_comp, category.assoc, category_theory.functor.map_id, category.id_comp],
   dsimp,
   simp only [category_theory.functor.map_id],
+  -- FIXME Why doesn't simp do this:
   erw [category.id_comp, category.id_comp],
 end
 end stalk_map

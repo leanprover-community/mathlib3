@@ -47,15 +47,10 @@ def id : (𝟙 X) _* ℱ ≅ ℱ :=
   (id ℱ).hom.app (op ⟨U, p⟩) = ℱ.map (𝟙 (op ⟨U, p⟩)) :=
 by { dsimp [id], simp, }
 
+local attribute [tidy] tactic.op_induction'
+
 @[simp] lemma id_hom_app (U) :
-  (id ℱ).hom.app U = ℱ.map (eq_to_hom (opens.op_map_id_obj U)) :=
-begin
-  op_induction U,
-  cases U,
-  simp,
-  dsimp,
-  simp,
-end
+  (id ℱ).hom.app U = ℱ.map (eq_to_hom (opens.op_map_id_obj U)) := by tidy
 
 @[simp] lemma id_inv_app' (U) (p) : (id ℱ).inv.app (op ⟨U, p⟩) = ℱ.map (𝟙 (op ⟨U, p⟩)) :=
 by { dsimp [id], simp, }
@@ -65,18 +60,14 @@ iso_whisker_right (nat_iso.op (opens.map_comp f g).symm) ℱ
 
 @[simp] lemma comp_hom_app {Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (comp ℱ f g).hom.app U = 𝟙 _ :=
 begin
-  op_induction U,
-  cases U,
   dsimp [pushforward, comp],
-  simp,
+  tidy,
 end
 
 @[simp] lemma comp_inv_app {Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (comp ℱ f g).inv.app U = 𝟙 _ :=
 begin
-  op_induction U,
-  cases U,
   dsimp [pushforward, comp],
-  simp,
+  tidy,
 end
 
 end pushforward

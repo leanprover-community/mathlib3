@@ -65,15 +65,12 @@ end
 -- colimit.pre ((open_nhds.inclusion x).op ⋙ ℱ) (open_nhds.map f x).op
 
 namespace stalk_pushforward
+local attribute [tidy] tactic.op_induction'
+
 @[simp] lemma id (ℱ : X.presheaf C) (x : X) :
   ℱ.stalk_pushforward C (𝟙 X) x = (stalk_functor C x).map ((pushforward.id ℱ).hom) :=
 begin
   dsimp [stalk_pushforward, stalk_functor],
-  ext U,
-  op_induction U,
-  cases U,
-  cases U_val,
-  dsimp,
   tidy,
 end
 
@@ -90,7 +87,7 @@ begin
              whisker_right.app, category.assoc],
   dsimp,
   simp only [category.id_comp, category_theory.functor.map_id],
-  -- A simp lemma which unfortunately doesn't fire:
+  -- FIXME A simp lemma which unfortunately doesn't fire:
   rw [category_theory.functor.map_id],
   dsimp,
   simp,

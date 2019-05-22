@@ -14,6 +14,8 @@ open opposite
 variables (C : Type u) [𝒞 : category.{v+1} C]
 include 𝒞
 
+local attribute [tidy] tactic.op_induction'
+
 namespace algebraic_geometry
 
 structure PresheafedSpace :=
@@ -63,37 +65,7 @@ local attribute [simp] id comp presheaf.pushforward
 instance category_of_PresheafedSpaces : category (PresheafedSpace.{v} C) :=
 { hom  := hom,
   id   := id,
-  comp := comp,
-  -- I'm still grumpy about these proofs.
-  -- The obstacle here is the mysterious need to use `erw` for some `simp` lemmas.
-  -- If we could avoid that, locally adding `op_induction` to `tidy` would discharge these.
-  comp_id' := λ X Y f,
-  begin
-    ext U,
-    { op_induction U,
-      cases U,
-      dsimp,
-      simp, },
-    { dsimp, simp }
-  end,
-  id_comp' := λ X Y f,
-  begin
-    ext U,
-    { op_induction U,
-      cases U,
-      dsimp,
-      simp, },
-    { simp }
-  end,
-  assoc' := λ W X Y Z f g h,
-  begin
-    ext U,
-    { op_induction U,
-      cases U,
-      dsimp,
-      simp, },
-    { refl }
-  end }
+  comp := comp }
 end
 .
 
@@ -117,17 +89,13 @@ lemma id_c (X : PresheafedSpace.{v} C) :
 lemma comp_c {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) :
   (α ≫ β).c = (β.c ≫ (whisker_left (opens.map β.f).op α.c)) := rfl
 @[simp] lemma id_c_app (X : PresheafedSpace.{v} C) (U) :
-  ((𝟙 X) : X ⟶ X).c.app U = (eq_to_hom (by { dsimp, op_induction U, cases U, refl })) :=
+  ((𝟙 X) : X ⟶ X).c.app U = eq_to_hom (by tidy) :=
 begin
   simp only [id_c],
-  op_induction U,
-  cases U,
-  dsimp,
-  simp,
+  tidy,
 end
 @[simp] lemma comp_c_app {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) (U) :
-  (α ≫ β).c.app U = (β.c).app U ≫ (α.c).app (op ((opens.map (β.f)).obj (unop U))) :=
-rfl
+  (α ≫ β).c.app U = (β.c).app U ≫ (α.c).app (op ((opens.map (β.f)).obj (unop U))) := rfl
 
 def forget : PresheafedSpace.{v} C ⥤ Top :=
 { obj := λ X, (X : Top.{v}),
@@ -151,16 +119,7 @@ namespace functor
 
 def map_presheaf (F : C ⥤ D) : PresheafedSpace.{v} C ⥤ PresheafedSpace.{v} D :=
 { obj := λ X, { to_Top := X.to_Top, 𝒪 := X.𝒪 ⋙ F },
-  map := λ X Y f, { f := f.f, c := whisker_right f.c F },
-  map_id' := λ X,
-  begin
-    ext U x,
-    { dsimp,
-      op_induction U,
-      cases U,
-      simp, },
-    refl,
-  end, }.
+  map := λ X Y f, { f := f.f, c := whisker_right f.c F } }.
 
 @[simp] lemma map_presheaf_obj_X (F : C ⥤ D) (X : PresheafedSpace.{v} C) :
   ((F.map_presheaf.obj X) : Top.{v}) = (X : Top.{v}) := rfl

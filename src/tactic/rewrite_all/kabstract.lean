@@ -18,10 +18,77 @@ namespace rewrite_all.kabstract
 
 open rewrite_all
 
+-- meta def split (e_type : expr) : expr → tactic (expr × list expr)
+-- | (expr.var n) :=
+--   if n = 0 then do m ← mk_meta_var e_type, return (m, [m])
+--   else return (expr.var (n - 1), [])
+-- | (expr.local_const n n' bi t) :=
+--   do (t, ms) ← split t,
+--      return (expr.local_const n n' bi t, ms)
+-- | (expr.app f a) :=
+--   do [(f, msf), (a, msa)] ← [f, a].mmap split,
+--      return (expr.app f a, msf ++ msa)
+-- | (expr.lam n bi t v) :=
+--   do [(t, mst), (v, msv)] ← [t, v].mmap split,
+--      return (expr.lam n bi t v, mst ++ msv)
+-- | (expr.pi n bi t v) :=
+--   do [(t, mst), (v, msv)] ← [t, v].mmap split,
+--      return (expr.pi n bi t v, mst ++ msv)
+-- | (expr.elet n nt nv v) :=
+--   do [(nt, msnt), (nv, msnv), (v, msv)] ← [nt, nv, v].mmap split,
+--      return (expr.elet n nt nv v, msnt ++ msnv ++ msv)
+-- | (expr.macro m es) :=
+--   do l ← es.mmap split,
+--      let es := l.map prod.fst,
+--      let ms := (l.map prod.snd).join,
+--     return (expr.macro m es, ms)
+-- | e := return (e, [])
+
+meta mutual def try_mvarify_list, mvarify_one_var (e_type : expr)
+with try_mvarify_list : list expr → tactic (list expr × option expr)
+| (e :: rest) :=
+  do (e, m) ← mvarify_one_var e,
+    match m with
+    | some m := return (e :: rest, m)
+    | none := do (l, m) ← try_mvarify_list rest, return (e :: l, m)
+    end
+| [] := return ([], none)
+with mvarify_one_var : expr → tactic (expr × option expr)
+| (expr.var n) :=
+  if n = 0 then do m ← mk_meta_var e_type, return (m, m)
+  else return (expr.var n, none)
+| (expr.local_const n n' bi t) :=
+  do (t, ms) ← mvarify_one_var t,
+    return (expr.local_const n n' bi t, ms)
+| (expr.app f a) :=
+  do ([f, a], m) ← try_mvarify_list [f, a],
+    return (expr.app f a, m)
+| (expr.lam n bi t v) :=
+  do ([t, v], m) ← try_mvarify_list [t, v],
+    return (expr.lam n bi t v, m)
+| (expr.pi n bi t v) :=
+  do ([t, v], m) ← try_mvarify_list [t, v],
+    return (expr.pi n bi t v, m)
+| (expr.elet n nt nv v) :=
+  do ([t, v], m) ← try_mvarify_list [nt, nv, v],
+    return (expr.elet n nt nv v, m)
+| (expr.macro mc es) :=
+  do (l, m) ← try_mvarify_list es,
+    return (expr.macro mc l, m)
+| e := return (e, none)
+
+meta def mvarify_all_vars (e_type : expr) : expr → tactic (list (expr × expr))
+| e := do (e, m) ← mvarify_one_var e_type e,
+          match m with
+          | none := return []
+          | some m := list.cons (e, m) <$> mvarify_all_vars e
+          end
+
 meta def kabstracter_aux
   (pattern : tactic (expr × expr × list expr))
   (lhs_replacer : list expr → tactic expr) :
-  expr × list (expr × (list expr)) → tactic (expr × list (expr × (list expr)))
+  expr × list (expr × (list expr)) →
+tactic ((expr × list (expr × (list expr))) × list (expr × list (expr × (list expr))))
 | p := do
   (t, L) ← pure p,
   (e, e_type, mvars) ← pattern,
@@ -31,17 +98,25 @@ meta def kabstracter_aux
   w ← mk_meta_var e_type,
   let t'' := t'.instantiate_var w,
   mvars' ← mvars.mmap instantiate_mvars,
-  return (t'', (w, mvars') :: L)
+
+  l ← mvarify_all_vars e_type t',
+  let l := l.map $ λ p, (p.1.instantiate_var e, p.2),
+
+  let ll := l.foldl (λ ll p, let (ll, L) := ll in
+    let L' := list.cons (p.2, mvars') L in (ll ++ [(p.1, L')], L')
+  ) ([], L),
+
+  return (ll.1.ilast, ll.1)
 
 meta def kabstracter
   (pattern : tactic (expr × expr × list expr))
   (lhs_replacer : list expr → tactic expr) (t : expr) : mllist tactic (expr × list (expr × list expr)) :=
-mllist.fix (kabstracter_aux pattern lhs_replacer) (t, [])
+mllist.fixl (λ a, kabstracter_aux pattern lhs_replacer a) (t, [])
 
 meta def get_lhs : expr → bool → list expr → tactic (expr × expr × list expr)
 | (expr.pi n bi d b) symm mvars :=
-do v <- mk_meta_var d,
-   b' <- whnf $ b.instantiate_var v,
+do v ← mk_meta_var d,
+   b' ← whnf $ b.instantiate_var v,
    get_lhs b' symm (v :: mvars)
 | `(%%a = %%b) symm mvars :=
   do let (a, b) := if symm then (b, a) else (a, b),
@@ -68,7 +143,6 @@ meta def do_substitutions
   (restore_mvars : list (expr × list expr)) : tactic (tracked_rewrite × list expr) :=
 lock_tactic_state $
 do -- We first restore all the "other" metavariables to their original values.
-  --  trace "do_substitutions",
    restore_mvars.mmap (λ p, do l ← lhs p.2, unify p.1 l),
    t_restored ← instantiate_mvars t_abstracted,
 

@@ -51,6 +51,25 @@ example : [[7],[6]] = [[5],[5]] :=
 begin
   nth_rewrite_lhs 0 foo',
   nth_rewrite_rhs 0 bar',
-  nth_rewrite_lhs 0 ← foo',
-  nth_rewrite_lhs 0 ← foo'
+  nth_rewrite_lhs 0 ←foo',
+  nth_rewrite_lhs 0 ←foo',
+end
+
+axiom wowzer : (3, 3) = (5, 2)
+axiom kachow (n : ℕ) : (4, n) = (5, n)
+axiom pchew (n : ℕ) : (n, 5) = (5, n)
+axiom smash (n m : ℕ) : (n, m) = (1, 1)
+
+example : [(3, 3), (5, 9), (5, 9)] = [(4, 5), (3, 6), (1, 1)] :=
+begin
+  nth_rewrite_lhs 0 wowzer,
+  nth_rewrite_lhs 2 ←pchew,
+  nth_rewrite_rhs 0 pchew,
+
+  nth_rewrite_rhs 0 smash,
+  nth_rewrite_rhs 2 smash,
+  -- nth_rewrite_rhs 2 smash,
+  nth_rewrite_lhs 0 smash,
+  nth_rewrite_lhs 1 smash,
+  nth_rewrite_lhs 2 smash,
 end

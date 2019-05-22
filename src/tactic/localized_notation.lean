@@ -13,11 +13,8 @@ open_notation my.add -- it would be nice if we could write open my.add open_nota
 Some of the code from Gabriel Ebner from the hott3 repository
 
 -/
--- open expr native tactic
+import tactic.core
 open lean lean.parser interactive tactic
-
-meta def exec_cmd (cmd : string) : parser unit :=
-with_input command_like cmd >> return ()
 
 @[user_attribute]
 meta def localized_notation_attr : user_attribute unit name := {
@@ -37,14 +34,15 @@ do decls ← attribute.get_instances localized_notation_attr.name,
   (_ : parse $ tk "open_notation") : parser unit :=
 do ns ← many ident,
    cmds ← get_localized_notation ns,
-   cmds.mmap' exec_cmd
+   cmds.mmap' emit_code_here
 
 def string_hash (s : string) : ℕ :=
 s.fold 1 (λ h c, (33*h + c.val) % unsigned_sz)
 
 @[user_command] meta def localized_notation_cmd (meta_info : decl_meta_info)
   (_ : parse $ tk "localized_notation") : parser unit :=
-do cmd ← parser.pexpr, cmd ← i_to_expr cmd, cmd ← eval_expr string cmd, exec_cmd cmd,
+do cmd ← parser.pexpr, cmd ← i_to_expr cmd, cmd ← eval_expr string cmd,
+   emit_code_here cmd,
    tk "in",
    nm ← ident,
    let dummy_decl_name := mk_num_name `_localized_notation_decl (string_hash cmd),
@@ -52,20 +50,38 @@ do cmd ← parser.pexpr, cmd ← i_to_expr cmd, cmd ← eval_expr string cmd, ex
     (reducibility_hints.regular 1 tt) ff),
    localized_notation_attr.set dummy_decl_name nm tt
 
-meta def print_localized_notations : tactic unit :=
-do cmds ← get_localized_notation [], cmds.mmap' trace
-
+meta def print_localized_notations (ns : list name) : tactic unit :=
+do cmds ← get_localized_notation ns, cmds.mmap' trace
 section
 localized_notation "local infix ` ⊹ `:59 := nat.add" in nat
+localized_notation "local infix ` ⊖ `:59 := nat.mul" in nat.mul
 #print ⊹
+#print ⊖
 end
+section
 #print ⊹
+#print ⊖
 example : unit := ()
 open_notation int
 #print ⊹
+#print ⊖
 example : unit := ()
 section
 open_notation nat
 #print ⊹
+#print ⊖
 example : unit := ()
+open_notation nat.mul
+#print ⊹
+#print ⊖
+example : unit := ()
+end
+section
+open_notation nat.mul
+#print ⊹
+#print ⊖
+example : unit := ()
+end
+
+example : unit := by do print_localized_notations [`nat, `nat.mul], constructor
 end

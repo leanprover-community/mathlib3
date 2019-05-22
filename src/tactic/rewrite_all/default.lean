@@ -16,7 +16,7 @@ open interactive
 
 namespace tactic
 
-open rewrite_all rewrite_all.kabstract
+open rewrite_all rewrite_all.congr
 
 /--
 return a lazy list of (t, n, k) where

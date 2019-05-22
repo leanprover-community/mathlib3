@@ -1054,12 +1054,10 @@ by rw ←nat.pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
 
 lemma eq_of_dvd_quot_one {a b : ℕ} (w : a ∣ b) (h : b / a = 1) : a = b :=
 begin
-  cases w with b w,
-  subst w,
-  rw nat.mul_comm at h,
-  rw nat.mul_div_cancel at h,
-  { subst h, simp },
-  { by_contradiction w, simp at w, subst w, simpa using h }
+  rcases w with ⟨b, rfl⟩,
+  rw [nat.mul_comm, nat.mul_div_cancel] at h,
+  { simp [h] },
+  { by_contradiction, simp * at * }
 end
 
 lemma div_le_div_left {a b c : ℕ} (h₁ : c ≤ b) (h₂ : 0 < c) : a / b ≤ a / c :=
@@ -1069,19 +1067,16 @@ lemma div_le_div_left {a b c : ℕ} (h₁ : c ≤ b) (h₂ : 0 < c) : a / b ≤ 
 lemma div_eq_self {a b : ℕ} : a / b = a ↔ a = 0 ∨ b = 1 :=
 begin
   split,
-  { intro h,
+  { intro,
     cases b,
-    { simp at h, left, exact h.symm, },
-    { cases b, { right, refl },
+    { simp * at * },
+    { cases b,
+      { right, refl },
       { left,
-        rw [nat.succ_eq_add_one, nat.succ_eq_add_one] at h,
-        simp at h,
-        have p : a / (b + 2) ≤ a / 2 := div_le_div_left (by simp) dec_trivial,
-        rw h at p,
-        exact eq_zero_of_le_half p } } },
-  { intro h, cases h,
-    { subst h, simp },
-    { subst h, simp } }
+        have : a / (b + 2) ≤ a / 2 := div_le_div_left (by simp) dec_trivial,
+        refine eq_zero_of_le_half _,
+        simp * at * } } },
+  { rintros (rfl|rfl); simp }
 end
 
 end div

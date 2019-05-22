@@ -18,32 +18,6 @@ namespace rewrite_all.kabstract
 
 open rewrite_all
 
--- meta def split (e_type : expr) : expr → tactic (expr × list expr)
--- | (expr.var n) :=
---   if n = 0 then do m ← mk_meta_var e_type, return (m, [m])
---   else return (expr.var (n - 1), [])
--- | (expr.local_const n n' bi t) :=
---   do (t, ms) ← split t,
---      return (expr.local_const n n' bi t, ms)
--- | (expr.app f a) :=
---   do [(f, msf), (a, msa)] ← [f, a].mmap split,
---      return (expr.app f a, msf ++ msa)
--- | (expr.lam n bi t v) :=
---   do [(t, mst), (v, msv)] ← [t, v].mmap split,
---      return (expr.lam n bi t v, mst ++ msv)
--- | (expr.pi n bi t v) :=
---   do [(t, mst), (v, msv)] ← [t, v].mmap split,
---      return (expr.pi n bi t v, mst ++ msv)
--- | (expr.elet n nt nv v) :=
---   do [(nt, msnt), (nv, msnv), (v, msv)] ← [nt, nv, v].mmap split,
---      return (expr.elet n nt nv v, msnt ++ msnv ++ msv)
--- | (expr.macro m es) :=
---   do l ← es.mmap split,
---      let es := l.map prod.fst,
---      let ms := (l.map prod.snd).join,
---     return (expr.macro m es, ms)
--- | e := return (e, [])
-
 meta mutual def try_mvarify_list, mvarify_one_var (e_type : expr)
 with try_mvarify_list : list expr → tactic (list expr × option expr)
 | (e :: rest) :=
@@ -88,22 +62,22 @@ meta def kabstracter_aux
   (pattern : tactic (expr × expr × list expr))
   (lhs_replacer : list expr → tactic expr) :
   expr × list (expr × (list expr)) →
-tactic ((expr × list (expr × (list expr))) × list (expr × list (expr × (list expr))))
+  tactic ((expr × list (expr × (list expr))) × list (expr × list (expr × (list expr))))
 | p := do
   (t, L) ← pure p,
   (e, e_type, mvars) ← pattern,
-  t' ← kabstract_no_new_goals t e semireducible,
+  t ← kabstract_no_new_goals t e semireducible,
   -- TODO use the discharger to clear remaining metavariables
-  guard t'.has_var,
-  w ← mk_meta_var e_type,
-  let t'' := t'.instantiate_var w,
-  mvars' ← mvars.mmap instantiate_mvars,
+  guard t.has_var,
 
-  l ← mvarify_all_vars e_type t',
+  mvars ← mvars.mmap instantiate_mvars,
+
+  l ← mvarify_all_vars e_type t,
+  guard $ l.length > 0,
+
   let l := l.map $ λ p, (p.1.instantiate_var e, p.2),
-
   let ll := l.foldl (λ ll p, let (ll, L) := ll in
-    let L' := list.cons (p.2, mvars') L in (ll ++ [(p.1, L')], L')
+    let L' := list.cons (p.2, mvars) L in (ll ++ [(p.1, L')], L')
   ) ([], L),
 
   return (ll.1.ilast, ll.1)

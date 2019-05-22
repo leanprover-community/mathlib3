@@ -174,8 +174,8 @@ namespace monoidal_functor
 variables (F : monoidal_functor.{v₁ v₂} C D) (G : monoidal_functor.{v₂ v₃} D E)
 
 def comp : monoidal_functor.{v₁ v₃} C E :=
-{ ε_is_iso := by { dsimp, apply_instance }, -- TODO tidy should get this
-  μ_is_iso := by { dsimp, apply_instance }, -- TODO tidy should get this
+{ ε_is_iso := by { dsimp, apply_instance }, -- TODO tidy would get this if we deferred ext
+  μ_is_iso := by { dsimp, apply_instance }, -- TODO as above
   .. (F.to_lax_monoidal_functor).comp (G.to_lax_monoidal_functor) }.
 
 end monoidal_functor

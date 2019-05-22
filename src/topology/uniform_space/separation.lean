@@ -108,7 +108,7 @@ instance {α : Type u} [u : uniform_space α] : uniform_space (quotient (separat
   uniformity := map (λp:(α×α), (⟦p.1⟧, ⟦p.2⟧)) u.uniformity,
   refl := le_trans (by simp [quotient.exists_rep]) (filter.map_mono refl_le_uniformity),
   symm := tendsto_map' $
-    by simp [prod.swap, (∘)]; exact tendsto_swap_uniformity.comp tendsto_map,
+    by simp [prod.swap, (∘)]; exact tendsto_map.comp tendsto_swap_uniformity,
   comp := calc (map (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧)) u.uniformity).lift' (λs, comp_rel s s) =
           u.uniformity.lift' ((λs, comp_rel s s) ∘ image (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧))) :
       map_lift'_eq2 $ monotone_comp_rel monotone_id monotone_id
@@ -239,7 +239,7 @@ def map (f : α → β) : separation_quotient α → separation_quotient β :=
 lift (quotient.mk ∘ f)
 
 lemma map_mk {f : α → β} (h : uniform_continuous f) (a : α) : map f ⟦a⟧ = ⟦f a⟧ :=
-by rw [map, lift_mk (h.comp uniform_continuous_quotient_mk)]
+by rw [map, lift_mk (uniform_continuous_quotient_mk.comp h)]
 
 lemma uniform_continuous_map (f : α → β): uniform_continuous (map f) :=
 uniform_continuous_lift (quotient.mk ∘ f)
@@ -256,7 +256,7 @@ map_unique uniform_continuous_id rfl
 
 lemma map_comp {f : α → β} {g : β → γ} (hf : uniform_continuous f) (hg : uniform_continuous g) :
   map g ∘ map f = map (g ∘ f) :=
-(map_unique (hf.comp hg) $ by simp only [(∘), map_mk, hf, hg]).symm
+(map_unique (hg.comp hf) $ by simp only [(∘), map_mk, hf, hg]).symm
 
 end separation_quotient
 

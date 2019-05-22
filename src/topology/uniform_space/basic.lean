@@ -443,8 +443,8 @@ lemma uniform_continuous_const [uniform_space β] {b : β} : uniform_continuous 
 @tendsto_const_uniformity _ _ _ b (𝓤 α)
 
 lemma uniform_continuous.comp [uniform_space β] [uniform_space γ] {f : α → β} {g : β → γ}
-  (hf : uniform_continuous f) (hg : uniform_continuous g) : uniform_continuous (g ∘ f) :=
-hf.comp hg
+  (hg : uniform_continuous g) (hf : uniform_continuous f) : uniform_continuous (g ∘ f) :=
+hg.comp hf
 
 lemma uniform_continuous.continuous [uniform_space β] {f : α → β}
   (hf : uniform_continuous f) : continuous f :=
@@ -552,7 +552,7 @@ def uniform_space.comap (f : α → β) (u : uniform_space β) : uniform_space �
 { uniformity := u.uniformity.comap (λp:α×α, (f p.1, f p.2)),
   to_topological_space := u.to_topological_space.induced f,
   refl := le_trans (by simp; exact assume ⟨a, b⟩ (h : a = b), h ▸ rfl) (comap_mono u.refl),
-  symm := by simp [tendsto_comap_iff, prod.swap, (∘)]; exact tendsto_comap.comp tendsto_swap_uniformity,
+  symm := by simp [tendsto_comap_iff, prod.swap, (∘)]; exact tendsto_swap_uniformity.comp tendsto_comap,
   comp := le_trans
     begin
       rw [comap_lift'_eq, comap_lift'_eq2],
@@ -755,11 +755,11 @@ tendsto_inf.2 ⟨tendsto_comap_iff.2 h₁, tendsto_comap_iff.2 h₂⟩
 
 lemma uniform_continuous.prod_mk_left {f : α × β → γ} (h : uniform_continuous f) (b) :
   uniform_continuous (λ a, f (a,b)) :=
-(uniform_continuous_id.prod_mk uniform_continuous_const).comp h
+h.comp (uniform_continuous_id.prod_mk uniform_continuous_const)
 
 lemma uniform_continuous.prod_mk_right {f : α × β → γ} (h : uniform_continuous f) (a) :
   uniform_continuous (λ b, f (a,b)) :=
-(uniform_continuous_const.prod_mk  uniform_continuous_id).comp h
+h.comp (uniform_continuous_const.prod_mk  uniform_continuous_id)
 
 lemma to_topological_space_prod [u : uniform_space α] [v : uniform_space β] :
   @uniform_space.to_topological_space (α × β) prod.uniform_space =

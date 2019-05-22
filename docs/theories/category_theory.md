@@ -34,7 +34,7 @@ functor.category C D : category.{(max u₁ v₂) (max u₁ u₂ v₁ v₂)}
 ````
 
 In the above, `category.{v₁ u₁} C` is equivalently written as
-`category.{v₁} C` because `v₁` can be inferred from `C`.
+`category.{v₁} C` because `u₁` can be inferred from `C`.
 
 Note then that if we specialise to small categories, where `uᵢ = vᵢ`, then
 `functor.category C D : category.{max u₁ u₂}`, and so is again

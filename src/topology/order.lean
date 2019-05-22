@@ -31,13 +31,11 @@ def generate_from (g : set (set α)) : topological_space α :=
 
 lemma nhds_generate_from {g : set (set α)} {a : α} :
   @nhds α (generate_from g) a = (⨅s∈{s | a ∈ s ∧ s ∈ g}, principal s) :=
-le_antisymm
+by rw nhds_def; exact le_antisymm
   (infi_le_infi $ assume s, infi_le_infi_const $ assume ⟨as, sg⟩, ⟨as, generate_open.basic _ sg⟩)
   (le_infi $ assume s, le_infi $ assume ⟨as, hs⟩,
-    have ∀s, generate_open g s → a ∈ s → (⨅s∈{s | a ∈ s ∧ s ∈ g}, principal s) ≤ principal s,
     begin
-      intros s hs,
-      induction hs,
+      revert as, clear_, induction hs,
       case generate_open.basic : s hs
       { exact assume as, infi_le_of_le s $ infi_le _ ⟨as, hs⟩ },
       case generate_open.univ
@@ -49,8 +47,7 @@ le_antisymm
       case generate_open.sUnion : k hk' hk
       { exact λ ⟨t, htk, hat⟩, calc _ ≤ principal t : hk t htk hat
           ... ≤ _ : le_principal_iff.2 $ subset_sUnion_of_mem htk }
-    end,
-    this s hs as)
+    end)
 
 lemma tendsto_nhds_generate_from {β : Type*} {m : α → β} {f : filter α} {g : set (set β)} {b : β}
   (h : ∀s∈g, b ∈ s → m ⁻¹' s ∈ f) : tendsto m f (@nhds β (generate_from g) b) :=
@@ -161,7 +158,7 @@ le_antisymm
 
 lemma eq_top_of_singletons_open {t : topological_space α} (h : ∀ x, t.is_open {x}) : t = ⊤ :=
 top_unique $ le_of_nhds_le_nhds $ assume x,
-  have nhds x ≤ pure x, from infi_le_of_le {x} (infi_le _ (by simpa using h x)),
+  have nhds x ≤ pure x, from nhds_le_of_le (mem_singleton _) (h x) (by simp),
   le_trans this (@pure_le_nhds _ ⊤ x)
 
 end lattice
@@ -392,9 +389,8 @@ protected def topological_space.nhds_adjoint (a : α) (f : filter α) : topologi
 
 lemma gc_nhds (a : α) :
   @galois_connection _ (order_dual (filter α)) _ _ (λt, @nhds α t a) (topological_space.nhds_adjoint a) :=
-assume t (f : filter α), show f ≤ @nhds α t a ↔ _, from iff.intro
-  (assume h s hs has, h $ @mem_nhds_sets α t a s hs has)
-  (assume h, le_infi $ assume u, le_infi $ assume ⟨hau, hu⟩, le_principal_iff.2 $ h _ hu hau)
+assume t (f : filter α), show f ≤ @nhds α t a ↔ _,
+by rw le_nhds_iff; exact ⟨λ H s hs has, H _ has hs, λ H s has hs, H _ hs has⟩
 
 lemma nhds_mono {t₁ t₂ : topological_space α} {a : α} (h : t₁ ≤ t₂) :
   @nhds α t₂ a ≤ @nhds α t₁ a := (gc_nhds a).monotone_l h
@@ -674,19 +670,31 @@ lemma continuous_at.continuous_within_at {f : α → β} {s : set α} {x : α} (
   continuous_within_at f s x :=
 continuous_within_at.mono ((continuous_within_at_univ f x).2 h) (subset_univ _)
 
-lemma continuous_on.comp {f : α → β} {g : β → γ} {s : set α} {t : set β}
-  (hf : continuous_on f s) (hg : continuous_on g t) (h : f '' s ⊆ t) :
-  continuous_on (g ∘ f) s :=
+lemma continuous_within_at.comp {g : β → γ} {f : α → β} {s : set α} {t : set β} {x : α}
+  (hg : continuous_within_at g t (f x)) (hf : continuous_within_at f s x) (h : f '' s ⊆ t) :
+  continuous_within_at (g ∘ f) s x :=
 begin
-  assume x hx,
   have : tendsto f (principal s) (principal t),
     by { rw tendsto_principal_principal, exact λx hx, h (mem_image_of_mem _ hx) },
   have : tendsto f (nhds_within x s) (principal t) :=
     tendsto_le_left lattice.inf_le_right this,
   have : tendsto f (nhds_within x s) (nhds_within (f x) t) :=
-    tendsto_inf.2 ⟨hf x hx, this⟩,
-  exact tendsto.comp this (hg _ (h (mem_image_of_mem _ hx)))
+    tendsto_inf.2 ⟨hf, this⟩,
+  exact tendsto.comp hg this
 end
+
+lemma continuous_at.comp {g : β → γ} {f : α → β} {x : α}
+  (hg : continuous_at g (f x)) (hf : continuous_at f x) :
+  continuous_at (g ∘ f) x :=
+begin
+  rw ← continuous_within_at_univ at *,
+  exact continuous_within_at.comp hg hf (subset_univ _)
+end
+
+lemma continuous_on.comp {g : β → γ} {f : α → β} {s : set α} {t : set β}
+  (hg : continuous_on g t) (hf : continuous_on f s) (h : f '' s ⊆ t) :
+  continuous_on (g ∘ f) s :=
+λx hx, continuous_within_at.comp (hg _ (h (mem_image_of_mem _ hx))) (hf x hx) h
 
 lemma continuous_on.mono {f : α → β} {s t : set α} (hf : continuous_on f s) (h : t ⊆ s)  :
   continuous_on f t :=

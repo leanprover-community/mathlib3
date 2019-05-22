@@ -18,6 +18,7 @@ meta structure cache :=
 (α : expr)
 (univ : level)
 (comm_semiring_inst : expr)
+(red : transparency)
 
 meta def ring_m (α : Type) : Type :=
 reader_t cache (state_t (buffer expr) tactic) α
@@ -30,21 +31,25 @@ meta def get_cache : ring_m cache := reader_t.read
 meta def get_atom (n : ℕ) : ring_m expr :=
 reader_t.lift $ (λ es : buffer expr, es.read' n) <$> state_t.get
 
+meta def get_transparency : ring_m transparency :=
+cache.red <$> get_cache
+
 meta def add_atom (e : expr) : ring_m ℕ :=
+do red ← get_transparency,
 reader_t.lift ⟨λ es, (do
-  n ← es.iterate failed (λ n e' t, t <|> (is_def_eq e e' $> n)),
+  n ← es.iterate failed (λ n e' t, t <|> (is_def_eq e e' red $> n)),
   return (n, es)) <|> return (es.size, es.push_back e)⟩
 
 meta def lift {α} (m : tactic α) : ring_m α :=
 reader_t.lift (state_t.lift m)
 
-meta def ring_m.run (e : expr) {α} (m : ring_m α) : tactic α :=
+meta def ring_m.run (red : transparency) (e : expr) {α} (m : ring_m α) : tactic α :=
 do α ← infer_type e,
    c ← mk_app ``comm_semiring [α] >>= mk_instance,
    u ← mk_meta_univ,
    infer_type α >>= unify (expr.sort (level.succ u)),
    u ← get_univ_assignment u,
-   prod.fst <$> state_t.run (reader_t.run m ⟨α, u, c⟩) mk_buffer
+   prod.fst <$> state_t.run (reader_t.run m ⟨α, u, c, red⟩) mk_buffer
 
 meta def cache.cs_app (c : cache) (n : name) : list expr → expr :=
 (@expr.const tt n [c.univ] c.α c.comm_semiring_inst).mk_app
@@ -409,8 +414,8 @@ meta def eval : expr → ring_m (horner_expr × expr)
   | none := eval_atom e
   end
 
-meta def eval' (e : expr) : tactic (expr × expr) :=
-ring_m.run e $ do (e', p) ← eval e, return (e', p)
+meta def eval' (red : transparency) (e : expr) : tactic (expr × expr) :=
+ring_m.run red e $ do (e', p) ← eval e, return (e', p)
 
 theorem horner_def' {α} [comm_semiring α] (a x n b) : @horner α _ a x n b = x ^ n * a + b :=
 by simp [horner, mul_comm]
@@ -429,7 +434,7 @@ theorem add_neg_eq_sub {α} [add_group α] (a b : α) : a + -b = a - b := rfl
 @[derive has_reflect]
 inductive normalize_mode | raw | SOP | horner
 
-meta def normalize (mode := normalize_mode.horner) (e : expr) : tactic (expr × expr) := do
+meta def normalize (red : transparency) (mode := normalize_mode.horner) (e : expr) : tactic (expr × expr) := do
 pow_lemma ← simp_lemmas.mk.add_simp ``pow_one,
 let lemmas := match mode with
 | normalize_mode.SOP :=
@@ -445,10 +450,10 @@ lemmas ← lemmas.mfoldl simp_lemmas.add_simp simp_lemmas.mk,
 (_, e', pr) ← ext_simplify_core () {}
   simp_lemmas.mk (λ _, failed) (λ _ _ _ _ e, do
     (new_e, pr) ← match mode with
-    | normalize_mode.raw := eval'
-    | normalize_mode.horner := trans_conv eval' (simplify lemmas [])
+    | normalize_mode.raw := eval' red
+    | normalize_mode.horner := trans_conv (eval' red) (simplify lemmas [])
     | normalize_mode.SOP :=
-      trans_conv eval' $
+      trans_conv (eval' red) $
       trans_conv (simplify lemmas []) $
       simp_bottom_up' (λ e, norm_num e <|> pow_lemma.rewrite e)
     end e,
@@ -468,9 +473,10 @@ local postfix `?`:9001 := optional
 /-- Tactic for solving equations in the language of rings.
   This version of `ring` fails if the target is not an equality
   that is provable by the axioms of commutative (semi)rings. -/
-meta def ring1 : tactic unit :=
+meta def ring1 (red : parse (tk "!")?) : tactic unit :=
+let transp := if red.is_some then semireducible else reducible in
 do `(%%e₁ = %%e₂) ← target,
-  ((e₁', p₁), (e₂', p₂)) ← ring_m.run e₁ $
+  ((e₁', p₁), (e₂', p₂)) ← ring_m.run transp e₁ $
     prod.mk <$> eval e₁ <*> eval e₂,
   is_def_eq e₁' e₂',
   p ← mk_eq_symm p₂ >>= mk_eq_trans p₁,
@@ -491,14 +497,16 @@ end
   specifier and the target is an equality, but if this
   fails it falls back to rewriting all ring expressions
   into a normal form. When writing a normal form,
-  `ring SOP` will use sum-of-products form instead of horner form. -/
-meta def ring (SOP : parse ring.mode) (loc : parse location) : tactic unit :=
+  `ring SOP` will use sum-of-products form instead of horner form.
+  `ring!` will use a more aggressive reducibility setting to identify atoms. -/
+meta def ring (red : parse (tk "!")?) (SOP : parse ring.mode) (loc : parse location) : tactic unit :=
 match loc with
-| interactive.loc.ns [none] := ring1
+| interactive.loc.ns [none] := ring1 red
 | _ := failed
 end <|>
 do ns ← loc.get_locals,
-   tt ← tactic.replace_at (normalize SOP) ns loc.include_goal
+   let transp := if red.is_some then semireducible else reducible,
+   tt ← tactic.replace_at (normalize transp SOP) ns loc.include_goal
       | fail "ring failed to simplify",
    when loc.include_goal $ try tactic.reflexivity
 
@@ -510,9 +518,12 @@ open conv interactive
 open tactic tactic.interactive (ring.mode ring1)
 open tactic.ring (normalize)
 
-meta def ring (SOP : parse ring.mode) : conv unit :=
-discharge_eq_lhs ring1
-<|> replace_lhs (normalize SOP)
+local postfix `?`:9001 := optional
+
+meta def ring (red : parse (lean.parser.tk "!")?) (SOP : parse ring.mode) : conv unit :=
+let transp := if red.is_some then semireducible else reducible in
+discharge_eq_lhs (ring1 red)
+<|> replace_lhs (normalize transp SOP)
 <|> fail "ring failed to simplify"
 
 end conv.interactive

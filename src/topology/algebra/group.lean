@@ -49,7 +49,7 @@ continuous_inv'.comp hf
 @[to_additive tendsto_neg]
 lemma tendsto_inv [topological_group α] {f : β → α} {x : filter β} {a : α}
   (hf : tendsto f x (nhds a)) : tendsto (λx, (f x)⁻¹) x (nhds a⁻¹) :=
-hf.comp (continuous_iff_continuous_at.mp (topological_group.continuous_inv α) a)
+tendsto.comp (continuous_iff_continuous_at.mp (topological_group.continuous_inv α) a) hf
 
 @[to_additive prod.topological_add_group]
 instance [topological_group α] [topological_space β] [group β] [topological_group β] :
@@ -266,13 +266,13 @@ lemma neg_Z : tendsto (λa:α, - a) (Z α) (Z α) :=
 have tendsto (λa, (0:α)) (Z α) (Z α),
   by refine le_trans (assume h, _) zero_Z; simp [univ_mem_sets'] {contextual := tt},
 have tendsto (λa:α, 0 - a) (Z α) (Z α), from
-  (tendsto.prod_mk this tendsto_id).comp sub_Z,
+  sub_Z.comp (tendsto.prod_mk this tendsto_id),
 by simpa
 
 lemma add_Z : tendsto (λp:α×α, p.1 + p.2) ((Z α).prod (Z α)) (Z α) :=
 suffices tendsto (λp:α×α, p.1 - -p.2) ((Z α).prod (Z α)) (Z α),
   by simpa,
-(tendsto.prod_mk tendsto_fst (tendsto_snd.comp neg_Z)).comp sub_Z
+sub_Z.comp (tendsto.prod_mk tendsto_fst (neg_Z.comp tendsto_snd))
 
 lemma exists_Z_half {s : set α} (hs : s ∈ Z α) : ∃ V ∈ Z α, ∀ v w ∈ V, v + w ∈ s :=
 begin
@@ -307,7 +307,7 @@ instance : topological_add_monoid α :=
     suffices :  tendsto ((λx:α, (a + b) + x) ∘ (λp:α×α,p.1 + p.2)) (filter.prod (Z α) (Z α))
       (map (λx:α, (a + b) + x) (Z α)),
     { simpa [(∘)] },
-    exact add_Z.comp tendsto_map
+    exact tendsto_map.comp add_Z
   end⟩
 
 instance : topological_add_group α :=
@@ -316,7 +316,7 @@ instance : topological_add_group α :=
     rw [continuous_at, nhds_eq, nhds_eq, tendsto_map'_iff],
     suffices : tendsto ((λx:α, x - a) ∘ (λx:α, -x)) (Z α) (map (λx:α, x - a) (Z α)),
     { simpa [(∘)] },
-    exact neg_Z.comp tendsto_map
+    exact tendsto_map.comp neg_Z
   end⟩
 
 end add_group_with_zero_nhd

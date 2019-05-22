@@ -999,7 +999,7 @@ begin
   rcases cauchy_seq_tendsto_of_complete this with ⟨L, hL⟩,
   -- the images of `X3 n` in the Gromov-Hausdorff space converge to the image of `L`
   have M : tendsto (λn, (X3 n).to_GH_space) at_top (nhds L.to_GH_space) :=
-    tendsto.comp hL (to_GH_space_continuous.tendsto _),
+    tendsto.comp (to_GH_space_continuous.tendsto _) hL,
   -- By construction, the image of `X3 n` in the Gromov-Hausdorff space is `u n`.
   have : ∀n, (X3 n).to_GH_space = u n,
   { assume n,

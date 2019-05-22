@@ -33,7 +33,7 @@ class uniform_add_group (α : Type*) [uniform_space α] [add_group α] : Prop :=
 theorem uniform_add_group.mk' {α} [uniform_space α] [add_group α]
   (h₁ : uniform_continuous (λp:α×α, p.1 + p.2))
   (h₂ : uniform_continuous (λp:α, -p)) : uniform_add_group α :=
-⟨(uniform_continuous_fst.prod_mk (uniform_continuous_snd.comp h₂)).comp h₁⟩
+⟨h₁.comp (uniform_continuous_fst.prod_mk (h₂.comp uniform_continuous_snd))⟩
 
 variables [uniform_space α] [add_group α] [uniform_add_group α]
 
@@ -42,7 +42,7 @@ uniform_add_group.uniform_continuous_sub α
 
 lemma uniform_continuous_sub [uniform_space β] {f : β → α} {g : β → α}
   (hf : uniform_continuous f) (hg : uniform_continuous g) : uniform_continuous (λx, f x - g x) :=
-(hf.prod_mk hg).comp uniform_continuous_sub'
+uniform_continuous_sub'.comp (hf.prod_mk hg)
 
 lemma uniform_continuous_neg [uniform_space β] {f : β → α}
   (hf : uniform_continuous f) : uniform_continuous (λx, - f x) :=
@@ -70,9 +70,9 @@ instance [uniform_space β] [add_group β] [uniform_add_group β] : uniform_add_
 ⟨uniform_continuous.prod_mk
   (uniform_continuous_sub
     (uniform_continuous_fst.comp uniform_continuous_fst)
-    (uniform_continuous_snd.comp uniform_continuous_fst))
+    (uniform_continuous_fst.comp uniform_continuous_snd))
   (uniform_continuous_sub
-    (uniform_continuous_fst.comp uniform_continuous_snd)
+    (uniform_continuous_snd.comp uniform_continuous_fst)
     (uniform_continuous_snd.comp uniform_continuous_snd)) ⟩
 
 lemma uniformity_translate (a : α) : (𝓤 α).map (λx:α×α, (x.1 + a, x.2 + a)) = 𝓤 α :=
@@ -126,7 +126,7 @@ begin
   { simp only [is_add_group_hom.map_sub f] },
   rw [uniform_continuous, uniformity_eq_comap_nhds_zero α, uniformity_eq_comap_nhds_zero β,
     tendsto_comap_iff, this],
-  exact tendsto.comp tendsto_comap h
+  exact tendsto.comp h tendsto_comap
 end
 
 lemma uniform_continuous_of_continuous [uniform_space β] [add_group β] [uniform_add_group β]
@@ -154,7 +154,7 @@ def topological_add_group.to_uniform_space : uniform_space G :=
   begin
     suffices : tendsto ((λp, -p) ∘ (λp:G×G, p.2 - p.1)) (comap (λp:G×G, p.2 - p.1) (nhds 0)) (nhds (-0)),
     { simpa [(∘), tendsto_comap_iff] },
-    exact tendsto.comp tendsto_comap (tendsto_neg tendsto_id)
+    exact tendsto.comp (tendsto_neg tendsto_id) tendsto_comap
   end,
   comp                :=
   begin
@@ -201,7 +201,7 @@ have tendsto
     ((λp:(G×G), p.1 - p.2) ∘ (λp:(G×G)×(G×G), (p.1.2 - p.1.1, p.2.2 - p.2.1)))
     (comap (λp:(G×G)×(G×G), (p.1.2 - p.1.1, p.2.2 - p.2.1)) ((nhds 0).prod (nhds 0)))
     (nhds (0 - 0)) :=
-  tendsto_comap.comp (tendsto_sub tendsto_fst tendsto_snd),
+  (tendsto_sub tendsto_fst tendsto_snd).comp tendsto_comap,
 begin
   constructor,
   rw [uniform_continuous, uniformity_prod_eq_prod, tendsto_map'_iff,
@@ -374,7 +374,7 @@ begin
     rw [nhds_prod_eq, prod_comap_comap_eq, ←nhds_prod_eq],
     exact (this : _) },
 
-  have lim := tendsto.comp lim1 (is_Z_bilin.tendsto_zero_right hφ y₁),
+  have lim := tendsto.comp (is_Z_bilin.tendsto_zero_right hφ y₁) lim1,
   rw tendsto_prod_self_iff at lim,
   exact lim W' W'_nhd,
 end
@@ -400,7 +400,7 @@ begin
     { have := filter.prod_mono (tendsto_sub_comap_self de x₀) (tendsto_sub_comap_self df y₀),
       rwa prod_map_map_eq at this },
     rw ← nhds_prod_eq at lim_sub_sub,
-    exact tendsto.comp lim_sub_sub lim_φ },
+    exact tendsto.comp lim_φ lim_sub_sub },
 
   rcases exists_nhds_quarter W'_nhd with ⟨W, W_nhd, W4⟩,
 

@@ -90,10 +90,7 @@ lemma comp_c {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) :
   (α ≫ β).c = (β.c ≫ (whisker_left (opens.map β.f).op α.c)) := rfl
 @[simp] lemma id_c_app (X : PresheafedSpace.{v} C) (U) :
   ((𝟙 X) : X ⟶ X).c.app U = eq_to_hom (by tidy) :=
-begin
-  simp only [id_c],
-  tidy,
-end
+by { simp only [id_c], tidy }
 @[simp] lemma comp_c_app {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) (U) :
   (α ≫ β).c.app U = (β.c).app U ≫ (α.c).app (op ((opens.map (β.f)).obj (unop U))) := rfl
 

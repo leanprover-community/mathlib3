@@ -527,14 +527,14 @@ lemma eval₂_sub : (p - q).eval₂ f g = p.eval₂ f g - q.eval₂ f g := is_ri
 
 @[simp] lemma eval₂_neg : (-p).eval₂ f g = -(p.eval₂ f g) := is_ring_hom.map_neg _
 
-lemma hom_C (f : mv_polynomial σ ℤ → β) [is_ring_hom f] (n : ℤ) : f (C n) = int.cast n :=
+lemma hom_C (f : mv_polynomial σ ℤ → β) [is_ring_hom f] (n : ℤ) : f (C n) = n :=
 congr_fun (int.eq_cast' (f ∘ C)) n
 
 /-- A ring homomorphism f : Z[X_1, X_2, ...] -> R is determined by the evaluations f(X_1), f(X_2), ... -/
 @[simp] lemma eval₂_hom_X {α : Type u} [decidable_eq α] (f : mv_polynomial α ℤ → β) [is_ring_hom f]
   (x : mv_polynomial α ℤ) : eval₂ int.cast (f ∘ X) x = f x :=
 mv_polynomial.induction_on x
-(λ n, by rw [eval₂_C, hom_C f])
+(λ n, by { rw [eval₂_C, hom_C f] })
 (λ p q hp hq, by { rw [eval₂_add, hp, hq], exact (is_ring_hom.map_add f).symm })
 (λ p n hp, by { rw [eval₂_mul, eval₂_X, hp], exact (is_ring_hom.map_mul f).symm })
 

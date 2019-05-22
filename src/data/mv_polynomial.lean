@@ -527,6 +527,17 @@ lemma eval₂_sub : (p - q).eval₂ f g = p.eval₂ f g - q.eval₂ f g := is_ri
 
 @[simp] lemma eval₂_neg : (-p).eval₂ f g = -(p.eval₂ f g) := is_ring_hom.map_neg _
 
+lemma hom_C (f : mv_polynomial σ ℤ → β) [is_ring_hom f] (n : ℤ) : f (C n) = int.cast n :=
+congr_fun (int.eq_cast' (f ∘ C)) n
+
+/-- A ring homomorphism f : Z[X_1, X_2, ...] -> R is determined by the evaluations f(X_1), f(X_2), ... -/
+@[simp] lemma eval₂_hom_X {α : Type u} [decidable_eq α] (f : mv_polynomial α ℤ → β) [is_ring_hom f]
+  (x : mv_polynomial α ℤ) : eval₂ int.cast (f ∘ X) x = f x :=
+mv_polynomial.induction_on x
+(λ n, by rw [eval₂_C, hom_C f])
+(λ p q hp hq, by { rw [eval₂_add, hp, hq], exact (is_ring_hom.map_add f).symm })
+(λ p n hp, by { rw [eval₂_mul, eval₂_X, hp], exact (is_ring_hom.map_mul f).symm })
+
 end eval₂
 
 section eval
@@ -573,12 +584,12 @@ eval₂_C _ _ _
 @[simp] lemma rename_X (f : β → γ) (b : β) : rename f (X b : mv_polynomial β α) = X (f b) :=
 eval₂_X _ _ _
 
-lemma rename_rename (f : β → γ) (g : γ → δ) (p : mv_polynomial β α) :
+@[simp] lemma rename_rename (f : β → γ) (g : γ → δ) (p : mv_polynomial β α) :
   rename g (rename f p) = rename (g ∘ f) p :=
 show rename g (eval₂ C (X ∘ f) p) = _,
   by simp only [eval₂_comp_left (rename g) C (X ∘ f) p, (∘), rename_C, rename_X]; refl
 
-lemma rename_id (p : mv_polynomial β α) : rename id p = p :=
+@[simp] lemma rename_id (p : mv_polynomial β α) : rename id p = p :=
 eval₂_eta p
 
 lemma rename_monomial (f : β → γ) (p : β →₀ ℕ) (a : α) :
@@ -626,6 +637,14 @@ finset.sup_le $ assume b,
   end
 
 end rename
+
+lemma eval₂_cast_comp {β : Type u} {γ : Type v} [decidable_eq β] [decidable_eq γ] (f : γ → β)
+  {α : Type w} [comm_ring α] (g : β → α) (x : mv_polynomial γ ℤ) :
+  eval₂ int.cast (g ∘ f) x = eval₂ int.cast g (rename f x) :=
+mv_polynomial.induction_on x
+(λ n, by simp only [eval₂_C, rename_C])
+(λ p q hp hq, by simp only [hp, hq, rename, eval₂_add])
+(λ p n hp, by simp only [hp, rename, eval₂_X, eval₂_mul])
 
 instance rename.is_ring_hom
   {α} [comm_ring α] [decidable_eq α] [decidable_eq β] [decidable_eq γ] (f : β → γ) :

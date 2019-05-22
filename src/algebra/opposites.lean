@@ -5,22 +5,12 @@ Authors: Kenny Lau
 
 Opposites.
 -/
+import data.opposite
 
+namespace opposite
 universes u
 
 variables (α : Type u)
-
-def opposite : Type u := α
-
-namespace opposite
-variables {α}
-def op : α → opposite α := id
-def unop : opposite α → α := id
-theorem op_inj : function.injective (op : α → opposite α) := λ _ _, id
-theorem unop_inj : function.injective (unop : opposite α → α) := λ _ _, id
-theorem op_unop (x : opposite α) : op (unop x) = x := rfl
-theorem unop_op (x : α) : unop (op x) = x := rfl
-variables (α)
 
 instance [has_add α] : has_add (opposite α) :=
 { add := λ x y, op (unop x + unop y) }

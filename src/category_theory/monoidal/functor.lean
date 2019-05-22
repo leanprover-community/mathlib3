@@ -128,9 +128,8 @@ def comp : lax_monoidal_functor.{v₁ v₃} C E :=
   μ_natural'       := λ _ _ _ _ f g,
   begin
     simp only [functor.comp_map, assoc],
-    conv_lhs { rw [←category.assoc], congr, rw [lax_monoidal_functor.μ_natural] },
-    conv_lhs { rw [category.assoc], congr, skip, rw [←map_comp] },
-    conv_rhs { congr, skip, rw [←map_comp, ←lax_monoidal_functor.μ_natural] }
+    rw [←category.assoc, lax_monoidal_functor.μ_natural, category.assoc, ←map_comp, ←map_comp,
+        ←lax_monoidal_functor.μ_natural]
   end,
   associativity'   := λ X Y Z,
   begin
@@ -149,26 +148,16 @@ def comp : lax_monoidal_functor.{v₁ v₃} C E :=
     dsimp,
     rw [G.left_unitality, tensor_comp_id, category.assoc, category.assoc],
     apply congr_arg,
-    rw F.left_unitality,
-    conv_lhs { congr, skip, rw [map_comp] },
-    conv_lhs { rw [←category.id_app, ←category.assoc] },
-    conv_lhs { congr, rw [←lax_monoidal_functor.μ_natural] },
-    conv_lhs { congr, congr, congr, skip, rw [functor.category.id_app, map_id] },
-    conv_rhs { rw [←category.assoc] },
-    rw map_comp,
+    rw [F.left_unitality, map_comp, ←nat_trans.id_app, ←category.assoc,
+        ←lax_monoidal_functor.μ_natural, nat_trans.id_app, map_id, ←category.assoc, map_comp],
   end,
   right_unitality' := λ X,
   begin
     dsimp,
     rw [G.right_unitality, tensor_id_comp, category.assoc, category.assoc],
     apply congr_arg,
-    rw F.right_unitality,
-    conv_lhs { congr, skip, rw [map_comp] },
-    conv_lhs { rw [←category.id_app, ←category.assoc] },
-    conv_lhs { congr, rw [←lax_monoidal_functor.μ_natural] },
-    conv_lhs { congr, congr, congr, rw [functor.category.id_app, map_id] },
-    conv_rhs { rw [←category.assoc] },
-    rw map_comp,
+    rw [F.right_unitality, map_comp, ←nat_trans.id_app, ←category.assoc,
+        ←lax_monoidal_functor.μ_natural, nat_trans.id_app, map_id, ←category.assoc, map_comp],
   end,
   .. (F.to_functor) ⋙ (G.to_functor) }.
 

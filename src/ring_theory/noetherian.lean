@@ -244,7 +244,7 @@ theorem is_noetherian_iff_well_founded
   resetI,
   rcases submodule.fg_def.1 (noetherian M) with ⟨t, h₁, h₂⟩,
   have hN' : ∀ {a b}, a ≤ b → N a ≤ N b :=
-    λ a b, (le_iff_le_of_strict_mono N (λ _ _, hN.1)).2,
+    λ a b, (strict_mono.le_iff_le (λ _ _, hN.1)).2,
   have : t ⊆ ⋃ i, (N i : set β),
   { rw [← submodule.Union_coe_of_directed _ N _],
     { show t ⊆ M, rw ← h₂,

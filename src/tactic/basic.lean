@@ -1,16 +1,19 @@
 import
-  tactic.core
-  tactic.rcases
-  tactic.simpa
-  tactic.cache
-  tactic.ext
-  tactic.library_search
-  tactic.where
-  tactic.squeeze
-  tactic.split_ifs
-  tactic.mk_iff_of_inductive_prop
-  tactic.generalize_proofs
   tactic.alias
+  tactic.cache
+  tactic.converter.interactive
+  tactic.core
+  tactic.ext
+  tactic.generalize_proofs
+  tactic.interactive
+  tactic.library_search
+  tactic.mk_iff_of_inductive_prop
+  tactic.rcases
   tactic.replacer
   tactic.restate_axiom
-  tactic.interactive
+  tactic.rewrite
+  tactic.simpa
+  tactic.split_ifs
+  tactic.squeeze
+  tactic.where
+

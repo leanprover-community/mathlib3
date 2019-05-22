@@ -646,15 +646,15 @@ def continuous (f : α → β) := ∀s, is_open s → is_open (f ⁻¹' s)
 
 def continuous_at (f : α → β) (x : α) := tendsto f (nhds x) (nhds (f x))
 
-def continuous_at_within (f : α → β) (x : α) (s : set α) : Prop :=
+def continuous_within_at (f : α → β) (s : set α) (x : α) : Prop :=
 tendsto f (nhds_within x s) (nhds (f x))
 
-def continuous_on (f : α → β) (s : set α) : Prop := ∀ x ∈ s, continuous_at_within f x s
+def continuous_on (f : α → β) (s : set α) : Prop := ∀ x ∈ s, continuous_within_at f s x
 
 lemma continuous_id : continuous (id : α → α) :=
 assume s h, h
 
-lemma continuous.comp {f : α → β} {g : β → γ} (hf : continuous f) (hg : continuous g):
+lemma continuous.comp {g : β → γ} {f : α → β} (hg : continuous g) (hf : continuous f) :
   continuous (g ∘ f) :=
 assume s h, hf _ (hg s h)
 

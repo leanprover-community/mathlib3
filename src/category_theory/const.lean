@@ -3,7 +3,6 @@
 -- Authors: Scott Morrison
 
 import category_theory.functor_category
-import category_theory.isomorphism
 import category_theory.opposites
 
 universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
@@ -23,6 +22,8 @@ def const : C ⥤ (J ⥤ C) :=
   map := λ X Y f, { app := λ j, f } }
 
 namespace const
+open opposite
+
 variables {J}
 
 @[simp] lemma obj_obj (X : C) (j : J) : ((const J).obj X).obj j = X := rfl

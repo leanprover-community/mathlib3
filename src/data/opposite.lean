@@ -89,7 +89,7 @@ do h ← match h with
    tactic.intro h,
    skip
 
--- For use with `attribute [tidy] op_induction`
+-- For use with `local attribute [tidy] op_induction`
 meta def op_induction' := op_induction none
 
 namespace interactive

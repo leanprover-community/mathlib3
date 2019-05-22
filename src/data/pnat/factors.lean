@@ -5,7 +5,7 @@ Author: Neil Strickland
 -/
 import tactic.basic
 
-import data.nat.basic data.nat.prime data.multiset data.int.basic data.int.gcd
+import data.pnat.basic data.nat.prime data.multiset data.int.basic data.int.gcd
  algebra.group algebra.group_power algebra.ordered_ring
 
 /-- The type of multisets of prime numbers.  Unique factorization

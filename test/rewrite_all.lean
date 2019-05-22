@@ -67,8 +67,8 @@ begin
   nth_rewrite_rhs 0 pchew,
 
   nth_rewrite_rhs 0 smash,
+  nth_rewrite_rhs 1 smash,
   nth_rewrite_rhs 2 smash,
-  -- nth_rewrite_rhs 2 smash,
   nth_rewrite_lhs 0 smash,
   nth_rewrite_lhs 1 smash,
   nth_rewrite_lhs 2 smash,

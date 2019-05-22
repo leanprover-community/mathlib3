@@ -4,6 +4,11 @@
 import tactic.rewrite_all
 import data.vector
 
+example (a b c : ℕ) : c + a + b = a + c + b :=
+begin
+  nth_rewrite_rhs 1 add_comm,
+end
+
 structure F :=
 (a : ℕ)
 (v : vector ℕ a)

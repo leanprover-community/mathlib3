@@ -14,9 +14,9 @@ universes v u
 open category_theory
 open category_theory.category
 open category_theory.iso
-open category_theory.monoidal
 
-namespace category_theory.monoidal
+namespace category_theory
+
 class monoidal_category (C : Sort u) extends category.{v} C :=
 -- curried tensor product of objects:
 (tensor_obj               : C → C → C)

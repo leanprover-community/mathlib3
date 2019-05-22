@@ -11,7 +11,7 @@ universes v₁ v₂ v₃ u₁ u₂ u₃
 open category_theory.category
 open category_theory.functor
 
-namespace category_theory.monoidal
+namespace category_theory
 
 section
 
@@ -80,6 +80,7 @@ namespace monoidal_functor
 
 open monoidal_category
 
+section
 -- In order to express the tensorator as a natural isomorphism,
 -- we need to be in at least `Type 0`, so we have products.
 variables {C : Type u₁} [𝒞 : monoidal_category.{v₁+1} C]
@@ -91,15 +92,13 @@ def μ_nat_iso (F : monoidal_functor.{v₁+1 v₂+1} C D) :
 nat_iso.of_components
   (by intros; dsimp; apply F.μ_iso)
   (by intros; dsimp; apply F.to_lax_monoidal_functor.μ_natural)
-
-end monoidal_functor
+end
 
 section
-
 variables (C : Sort u₁) [𝒞 : monoidal_category.{v₁} C]
 include 𝒞
 
-def monoidal_functor.id : monoidal_functor.{v₁ v₁} C C :=
+def id : monoidal_functor.{v₁ v₁} C C :=
 { ε := 𝟙 _,
   μ := λ X Y, 𝟙 _,
   .. functor.id C }
@@ -109,17 +108,21 @@ def monoidal_functor.id : monoidal_functor.{v₁ v₁} C C :=
 @[simp] lemma id_ε : (monoidal_functor.id C).ε = 𝟙 _ := rfl
 @[simp] lemma id_μ (X Y) : (monoidal_functor.id C).μ X Y = 𝟙 _ := rfl
 
-variables {C}
+end
+
+end monoidal_functor
+
+variables {C : Sort u₁} [𝒞 : monoidal_category.{v₁} C]
 variables {D : Sort u₂} [𝒟 : monoidal_category.{v₂} D]
 variables {E : Sort u₃} [ℰ : monoidal_category.{v₃} E]
 
-include 𝒟 ℰ
+include 𝒞 𝒟 ℰ
 
-section
+namespace lax_monoidal_functor
 variables (F : lax_monoidal_functor.{v₁ v₂} C D) (G : lax_monoidal_functor.{v₂ v₃} D E)
 
 -- The proofs here are horrendous; rewrite_search helps a lot.
-def lax_monoidal_functor.comp : lax_monoidal_functor.{v₁ v₃} C E :=
+def comp : lax_monoidal_functor.{v₁ v₃} C E :=
 { ε                := G.ε ≫ (G.map F.ε),
   μ                := λ X Y, G.μ (F.obj X) (F.obj Y) ≫ G.map (F.μ X Y),
   μ_natural'       := λ _ _ _ _ f g,
@@ -169,14 +172,16 @@ def lax_monoidal_functor.comp : lax_monoidal_functor.{v₁ v₃} C E :=
   end,
   .. (F.to_functor) ⋙ (G.to_functor) }.
 
-@[simp] lemma lax_monoidal_functor.comp_obj (X : C) : (F.comp G).obj X = G.obj (F.obj X) := rfl
-@[simp] lemma lax_monoidal_functor.comp_map {X X' : C} (f : X ⟶ X') :
+@[simp] lemma comp_obj (X : C) : (F.comp G).obj X = G.obj (F.obj X) := rfl
+@[simp] lemma comp_map {X X' : C} (f : X ⟶ X') :
   (F.comp G).map f = (G.map (F.map f) : G.obj (F.obj X) ⟶ G.obj (F.obj X')) := rfl
-@[simp] lemma lax_monoidal_functor.comp_ε : (F.comp G).ε = G.ε ≫ (G.map F.ε) := rfl
-@[simp] lemma lax_monoidal_functor.comp_μ (X Y : C) : (F.comp G).μ X Y = G.μ (F.obj X) (F.obj Y) ≫ G.map (F.μ X Y) := rfl
-end
+@[simp] lemma comp_ε : (F.comp G).ε = G.ε ≫ (G.map F.ε) := rfl
+@[simp] lemma comp_μ (X Y : C) : (F.comp G).μ X Y = G.μ (F.obj X) (F.obj Y) ≫ G.map (F.μ X Y) := rfl
 
-section
+end lax_monoidal_functor
+
+namespace monoidal_functor
+
 variables (F : monoidal_functor.{v₁ v₂} C D) (G : monoidal_functor.{v₂ v₃} D E)
 
 def monoidal_functor.comp : monoidal_functor.{v₁ v₃} C E :=
@@ -184,7 +189,6 @@ def monoidal_functor.comp : monoidal_functor.{v₁ v₃} C E :=
   μ_is_iso := by { dsimp, apply_instance }, -- TODO tidy should get this
   .. (F.to_lax_monoidal_functor).comp (G.to_lax_monoidal_functor) }.
 
-end
-end
+end monoidal_functor
 
-end category_theory.monoidal
+end category_theory

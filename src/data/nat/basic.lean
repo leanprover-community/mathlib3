@@ -1054,46 +1054,9 @@ begin
   { by_contradiction w, simp at w, subst w, simpa using h }
 end
 
-lemma div_succ_le_div {a b : ℕ} (h : b > 0) : a / (b + 1) ≤ a / b :=
-begin
-  apply nat.strong_induction_on a,
-  intros c i,
-  rw [nat.div_def_aux],
-  conv_rhs { rw [nat.div_def_aux] },
-  split_ifs,
-  { simp,
-    apply le_trans _ (i (c-b) _),
-    { exact nat.div_le_div_right (pred_le (c - b)) },
-    { apply nat.sub_lt,
-      exact lt_of_lt_of_le h h_2.right,
-      exact h, } },
-  { rw not_and_distrib at h_2,
-    cases h_2,
-    { exfalso, exact h_2 h },
-    { exfalso, exact h_2 (le_of_lt h_1.right)}, },
-  { rw not_and_distrib at h_1,
-    cases h_1; simp },
-  { refl, }
-end
-
-lemma div_add_right_le_div {a b c : ℕ} (h : b > 0) : a / (b + c) ≤ a / b :=
-begin
-  induction c,
-  { simp, },
-  { exact le_trans (div_succ_le_div (nat.lt_add_right 0 b c_n h)) c_ih }
-end
-
-lemma div_add_left_le_div {a b c : ℕ} (h : b > 0) : a / (c + b) ≤ a / b :=
-begin
-  rw add_comm,
-  exact div_add_right_le_div h
-end
-
-lemma div_le_div_left {a b c : ℕ} (h₁ : b ≥ c) (h₂ : c > 0) : a / b ≤ a / c :=
-begin
-  rw ←(nat.add_sub_of_le h₁),
-  exact div_add_right_le_div h₂,
-end
+lemma div_le_div_left {a b c : ℕ} (h₁ : c ≤ b) (h₂ : 0 < c) : a / b ≤ a / c :=
+(nat.le_div_iff_mul_le _ _ h₂).2 $
+  le_trans (mul_le_mul_left _ h₁) (div_mul_le_self _ _)
 
 lemma div_eq_self {a b : ℕ} : a / b = a ↔ a = 0 ∨ b = 1 :=
 begin
@@ -1105,7 +1068,7 @@ begin
       { left,
         rw [nat.succ_eq_add_one, nat.succ_eq_add_one] at h,
         simp at h,
-        have p : a / (b + 2) ≤ a / 2 := div_add_left_le_div dec_trivial,
+        have p : a / (b + 2) ≤ a / 2 := div_le_div_left (by simp) dec_trivial,
         rw h at p,
         exact eq_zero_of_le_half p } } },
   { intro h, cases h,

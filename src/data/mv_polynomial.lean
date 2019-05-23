@@ -534,9 +534,9 @@ congr_fun (int.eq_cast' (f ∘ C)) n
 @[simp] lemma eval₂_hom_X {α : Type u} [decidable_eq α] (f : mv_polynomial α ℤ → β) [is_ring_hom f]
   (x : mv_polynomial α ℤ) : eval₂ (λ n : ℤ, (n : β)) (f ∘ X) x = f x :=
 mv_polynomial.induction_on x
-(λ n, by { rw [hom_C f], /- deterministic timeout: -/ rw [eval₂_C], })
-(λ p q hp hq, by { sorry /- rw [eval₂_add, hp, hq], exact (is_ring_hom.map_add f).symm }) -/})
-(λ p n hp, by { sorry /-rw [eval₂_mul, eval₂_X, hp], exact (is_ring_hom.map_mul f).symm }) -/})
+(λ n, by { unfold_coes, rw [hom_C f, eval₂_C], unfold_coes, })
+(λ p q hp hq, by { unfold_coes at *, rw [eval₂_add, hp, hq], exact (is_ring_hom.map_add f).symm })
+(λ p n hp, by { unfold_coes at *, rw [eval₂_mul, eval₂_X, hp], exact (is_ring_hom.map_mul f).symm })
 
 end eval₂
 

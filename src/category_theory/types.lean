@@ -19,6 +19,14 @@ instance types : large_category (Sort u) :=
 @[simp] lemma types_id (X : Sort u) : 𝟙 X = id := rfl
 @[simp] lemma types_comp {X Y Z : Sort u} (f : X ⟶ Y) (g : Y ⟶ Z) : f ≫ g = g ∘ f := rfl
 
+namespace functor
+variables {J : Type u} [𝒥 : category.{v} J]
+include 𝒥
+
+def sections (F : J ⥤ Type w) : set (Π j, F.obj j) :=
+{ u | ∀ {j j'} (f : j ⟶ j'), F.map f (u j) = u j'}
+end functor
+
 namespace functor_to_types
 variables {C : Sort u} [𝒞 : category.{v} C] (F G H : C ⥤ Sort w) {X Y Z : C}
 include 𝒞

@@ -737,7 +737,7 @@ end⟩)
 theorem uniform_continuous_dist [uniform_space β] {f g : β → α}
   (hf : uniform_continuous f) (hg : uniform_continuous g) :
   uniform_continuous (λb, dist (f b) (g b)) :=
-(hf.prod_mk hg).comp uniform_continuous_dist'
+uniform_continuous_dist'.comp (hf.prod_mk hg)
 
 theorem continuous_dist' : continuous (λp:α×α, dist p.1 p.2) :=
 uniform_continuous_dist'.continuous
@@ -751,7 +751,7 @@ theorem tendsto_dist {f g : β → α} {x : filter β} {a b : α}
   tendsto (λx, dist (f x) (g x)) x (nhds (dist a b)) :=
 have tendsto (λp:α×α, dist p.1 p.2) (nhds (a, b)) (nhds (dist a b)),
   from continuous_iff_continuous_at.mp continuous_dist' (a, b),
-(hf.prod_mk hg).comp (by rw [nhds_prod_eq] at this; exact this)
+tendsto.comp (by rw [nhds_prod_eq] at this; exact this) (hf.prod_mk hg)
 
 lemma nhds_comap_dist (a : α) : (nhds (0 : ℝ)).comap (λa', dist a' a) = nhds a :=
 have h₁ : ∀ε, (λa', dist a' a) ⁻¹' ball 0 ε ⊆ ball a ε,

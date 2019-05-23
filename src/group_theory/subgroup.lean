@@ -383,7 +383,7 @@ end
 
 /-- The normal closure of a set s is the subgroup closure of all the conjugates of
 elements of s. It is the smallest normal subgroup containing s. -/
-def normal_closure (s : set α) : set α := closure (conjugates_of_set s)
+def normal_closure (s : set α) : set α := group.closure (conjugates_of_set s)
 
 theorem conjugates_of_set_subset_normal_closure : conjugates_of_set s ⊆ normal_closure s :=
 subset_closure

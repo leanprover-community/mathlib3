@@ -639,8 +639,8 @@ finset.sup_le $ assume b,
 end rename
 
 lemma eval₂_cast_comp {β : Type u} {γ : Type v} [decidable_eq β] [decidable_eq γ] (f : γ → β)
-  {α : Type w} [comm_ring α] (g : β → α) (x : mv_polynomial γ ℤ) :
-  eval₂ int.cast (g ∘ f) x = eval₂ int.cast g (rename f x) :=
+  {α : Type w} [comm_ring α] (c : ℤ → α) [is_ring_hom c] (g : β → α) (x : mv_polynomial γ ℤ) :
+  eval₂ c (g ∘ f) x = eval₂ c g (rename f x) :=
 mv_polynomial.induction_on x
 (λ n, by simp only [eval₂_C, rename_C])
 (λ p q hp hq, by simp only [hp, hq, rename, eval₂_add])

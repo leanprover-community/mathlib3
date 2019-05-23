@@ -1119,6 +1119,8 @@ instance cast.is_ring_hom [ring α] :
   is_ring_hom (int.cast : ℤ → α) :=
 ⟨cast_one, cast_mul, cast_add⟩
 
+instance coe.is_ring_hom [ring α] : is_ring_hom (coe : ℤ → α) := cast.is_ring_hom
+
 theorem mul_cast_comm [ring α] (a : α) (n : ℤ) : a * n = n * a :=
 by cases n; simp [nat.mul_cast_comm, left_distrib, right_distrib, *]
 

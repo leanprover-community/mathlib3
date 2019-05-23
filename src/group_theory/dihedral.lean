@@ -117,15 +117,15 @@ include r0 s0 hr hs hrs
 
 def hom_from_gens :
  (dihedral n) → M
-| (r i) := pow_mod n r0 i
-| (s i) := (pow_mod n r0 i) * s0
+| (r i) := r0 ^ i
+| (s i) := (r0 ^ i) * s0
 variable {n}
 
 lemma hom_from_gens_r (i : zmod n) :
- hom_from_gens n hr hs hrs (r i) = pow_mod n r0 i := rfl
+ hom_from_gens n hr hs hrs (r i) = r0 ^ i := rfl
 
 lemma hom_from_gens_s (i : zmod n) :
- hom_from_gens n hr hs hrs (s i) = (pow_mod n r0 i) * s0 := rfl
+ hom_from_gens n hr hs hrs (s i) = (r0 ^ i) * s0 := rfl
 
 lemma sr_rs : ∀ (i : ℕ), r0 ^ i * s0 * (r0 ^ i) = s0
 | 0 := by {rw [pow_zero, one_mul, mul_one]}
@@ -140,16 +140,16 @@ lemma sr_rs : ∀ (i : ℕ), r0 ^ i * s0 * (r0 ^ i) = s0
     ... = s0 : by rw [hrs, ← mul_assoc, sr_rs i]
 
 lemma sr_rs' : ∀ (i : zmod n),
- s0 * (pow_mod n r0 i) = (pow_mod n r0 (- i)) * s0 :=
+ s0 * r0 ^ i = r0 ^ (- i) * s0 :=
 λ i, calc
-  s0 * (pow_mod n r0 i) =
-    1 * (s0 * (pow_mod n r0 i)) : (one_mul _).symm
-  ... = (pow_mod n r0 ((- i) + i))  * (s0 * (pow_mod n r0 i)) :
+  s0 * r0 ^ i =
+    1 * (s0 * r0 ^ i) : (one_mul _).symm
+  ... = r0 ^ ((- i) + i)  * (s0 * r0 ^ i) :
     by rw [← pow_mod_zero, neg_add_self]
-  ... = (pow_mod n r0 (- i)) * ((pow_mod n r0 i) * s0 * (pow_mod n r0 i)) :
-    by {rw [pow_mod_add hr, mul_assoc (pow_mod n r0 (- i)), mul_assoc]}
-  ... = (pow_mod n r0 (- i)) * (r0 ^ i.val * s0 * r0 ^ i.val) : rfl
-  ... = (pow_mod n r0 (- i)) * s0 : by rw [sr_rs hr hs hrs i.val]
+  ... = (r0 ^ (- i)) * (r0 ^ i * s0 * (r0 ^ i)) :
+    by {rw [pow_mod_add hr, mul_assoc (r0 ^ (- i)), mul_assoc]}
+  ... = (r0 ^ (- i)) * (r0 ^ i.val * s0 * r0 ^ i.val) : rfl
+  ... = (r0 ^ (- i)) * s0 : by rw [sr_rs hr hs hrs i.val]
 
 instance is_hom_from_gens : is_monoid_hom (hom_from_gens n hr hs hrs) :=
 let h := sr_rs' hr hs hrs in

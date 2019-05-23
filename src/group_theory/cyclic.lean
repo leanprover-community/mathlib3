@@ -64,7 +64,7 @@ section hom_from_gens
 variables {M : Type*} [monoid M] {g : M} (hg : monoid.pow g n = 1)
 include g hg
 
-def hom_from_gens : (cyclic n) → M | (r i) := pow_mod n g i
+def hom_from_gens : (cyclic n) → M | (r i) := g ^ i
 
 def is_hom_from_gens : is_monoid_hom (hom_from_gens hg) :=
 { map_one := rfl,

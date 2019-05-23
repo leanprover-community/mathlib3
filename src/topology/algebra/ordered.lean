@@ -143,20 +143,22 @@ end
 lemma tendsto_max {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (nhds a₁)) (hg : tendsto g b (nhds a₂)) :
   tendsto (λb, max (f b) (g b)) b (nhds (max a₁ a₂)) :=
 show tendsto ((λp:α×α, max p.1 p.2) ∘ (λb, (f b, g b))) b (nhds (max a₁ a₂)),
-  from (hf.prod_mk hg).comp
+  from tendsto.comp
     begin
       rw [←nhds_prod_eq],
       from continuous_iff_continuous_at.mp (continuous_max continuous_fst continuous_snd) _
     end
+    (hf.prod_mk hg)
 
 lemma tendsto_min {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (nhds a₁)) (hg : tendsto g b (nhds a₂)) :
   tendsto (λb, min (f b) (g b)) b (nhds (min a₁ a₂)) :=
 show tendsto ((λp:α×α, min p.1 p.2) ∘ (λb, (f b, g b))) b (nhds (min a₁ a₂)),
-  from (hf.prod_mk hg).comp
+  from tendsto.comp
     begin
       rw [←nhds_prod_eq],
       from continuous_iff_continuous_at.mp (continuous_min continuous_fst continuous_snd) _
     end
+    (hf.prod_mk hg)
 
 end decidable_linear_order
 

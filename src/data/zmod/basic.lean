@@ -174,6 +174,55 @@ instance (n : ℕ+) : has_repr (zmod n) := fin.has_repr _
 
 lemma card_zmod (n : ℕ+) : fintype.card (zmod n) = n := fintype.card_fin n
 
+section nat_coe
+variable {n : ℕ+}
+
+instance nat_coe : has_coe (zmod n) ℕ := ⟨λ i, i.val⟩
+
+theorem val_eq_coe (i : zmod n) : i.val = i := rfl
+
+theorem coe_cast_nat (i : ℕ) : ((i : zmod n) : ℕ) = i % n := val_cast_nat i
+
+theorem coe_cast_int (i : ℤ) : ((i : zmod n) : ℕ) = (i % n).nat_abs := val_cast_int i
+
+theorem coe_cast_int' (i : ℤ) : ((i : zmod n) : ℤ) = i % n := coe_val_cast_int i
+
+theorem zero_coe : ((0 : zmod n) : ℕ) = 0 := rfl
+
+theorem one_coe : ((1 : zmod n) : ℕ) = 1 % n :=
+by rw [← (val_eq_coe 1), ← val_cast_nat, nat.cast_one]
+
+theorem zmod.one_coe' : ((1 : zmod n) : ℕ) = ite (n = 1) 0 1 :=
+begin
+ rcases n with ⟨n,n_pos⟩,
+ rcases n with ⟨_|n⟩, refl,
+ rcases n with ⟨_|n⟩, refl,
+ split_ifs, cases h, refl
+end
+
+theorem add_coe (i j : zmod n) :
+ ((i + j : (zmod n)) : ℕ) = ((i : ℕ) + (j : ℕ)) % n :=
+  zmod.add_val i j
+
+theorem mul_coe (i j : zmod n) :
+ ((i * j : (zmod n)) : ℕ) = ((i : ℕ) * (j : ℕ)) % n :=
+ zmod.mul_val i j
+
+lemma pow_coe {n : ℕ+} (i : zmod n) (m : ℕ) :
+ ((i ^ m : zmod n) : ℕ)  = ((i : ℕ) ^ m) % n :=
+begin
+ induction m with m ih,
+ {rw [_root_.pow_zero, nat.pow_zero, one_coe]},
+ {exact calc
+   ((i ^ (m + 1) : zmod n) : ℕ) = (i * i ^ m : zmod n) : rfl
+   ... = (i * (i ^ m % n)) % n : by rw [mul_coe, ih]
+   ... = (i * i ^ m) % n :
+     nat.modeq.modeq_mul (nat.modeq.refl i) (nat.mod_mod (i ^ m) n)
+   ... = i ^ (m + 1) % n : by rw [nat.mul_comm, ← nat.pow_succ] }
+end
+
+end nat_coe
+
 lemma le_div_two_iff_lt_neg {n : ℕ+} (hn : (n : ℕ) % 2 = 1)
   {x : zmod n} (hx0 : x ≠ 0) : x.1 ≤ (n / 2 : ℕ) ↔ (n / 2 : ℕ) < (-x).1 :=
 have hn2 : (n : ℕ) / 2 < n := nat.div_lt_of_lt_mul ((lt_mul_iff_one_lt_left n.pos).2 dec_trivial),

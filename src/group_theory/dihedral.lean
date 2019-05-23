@@ -51,8 +51,8 @@ variable (n)
 def bz_equiv : dihedral n ≃ (bool × (zmod n)) :=
 { to_fun := to_bz,
   inv_fun := of_bz,
-  left_inv := λ g, by {cases g; refl},
-  right_inv := λ bi, by {rcases bi with ⟨_|_,i⟩ ; refl} }
+  left_inv := λ g, by cases g; refl,
+  right_inv := λ bi, by rcases bi with ⟨_|_,i⟩ ; refl }
 
 def inc : cyclic n → dihedral n
 | (cyclic.r i) := r i
@@ -128,11 +128,11 @@ lemma hom_from_gens_s (i : zmod n) :
  hom_from_gens n hr hs hrs (s i) = (r0 ^ i) * s0 := rfl
 
 lemma sr_rs : ∀ (i : ℕ), r0 ^ i * s0 * (r0 ^ i) = s0
-| 0 := by {rw [pow_zero, one_mul, mul_one]}
+| 0 := by rw [pow_zero, one_mul, mul_one]
 | (i + 1) := calc
     r0 ^ (i + 1) * s0 * r0 ^ (i + 1) =
-     r0 ^ (i + 1) * s0 * r0 ^ (1 + i) : by {rw [add_comm i 1]}
-    ... = (r0 ^ i * r0) * s0 * (r0 * r0 ^ i) : by {rw [pow_add, pow_add, pow_one]}
+     r0 ^ (i + 1) * s0 * r0 ^ (1 + i) : by rw [add_comm i 1]
+    ... = (r0 ^ i * r0) * s0 * (r0 * r0 ^ i) : by rw [pow_add, pow_add, pow_one]
     ... = (r0 ^ i) * ((r0 * s0) * (r0 * (r0 ^ i))) :
       by rw [mul_assoc (r0 ^ i) r0 s0, mul_assoc (r0 ^ i)]
     ... = (r0 ^ i) * (((r0 * s0) * r0) * r0 ^ i) :
@@ -147,7 +147,7 @@ lemma sr_rs' : ∀ (i : zmod n),
   ... = r0 ^ ((- i) + i)  * (s0 * r0 ^ i) :
     by rw [← pow_mod_zero, neg_add_self]
   ... = (r0 ^ (- i)) * (r0 ^ i * s0 * (r0 ^ i)) :
-    by {rw [pow_mod_add hr, mul_assoc (r0 ^ (- i)), mul_assoc]}
+    by rw [pow_mod_add hr, mul_assoc (r0 ^ (- i)), mul_assoc]
   ... = (r0 ^ (- i)) * (r0 ^ i.val * s0 * r0 ^ i.val) : rfl
   ... = (r0 ^ (- i)) * s0 : by rw [sr_rs hr hs hrs i.val]
 
@@ -275,8 +275,8 @@ begin
     {rw [pow_zero, one_mul, mul_one]},
     exact calc
       r0 ^ (i + 1) * s0 * r0 ^ (i + 1) =
-        r0 ^ (i + 1) * s0 * r0 ^ (1 + i) : by {rw [add_comm i 1]}
-      ... = (r0 ^ i * r0) * s0 * (r0 * r0 ^ i) : by {rw [pow_add, pow_add, pow_one]}
+        r0 ^ (i + 1) * s0 * r0 ^ (1 + i) : by rw [add_comm i 1]
+      ... = (r0 ^ i * r0) * s0 * (r0 * r0 ^ i) : by rw [pow_add, pow_add, pow_one]
       ... = (r0 ^ i) * ((r0 * s0) * (r0 * (r0 ^ i))) :
         by rw [mul_assoc (r0 ^ i) r0 s0, mul_assoc (r0 ^ i)]
       ... = (r0 ^ i) * (((r0 * s0) * r0) * r0 ^ i) :
@@ -297,11 +297,11 @@ calc
      by {rw [← pow_zero r0, neg_add_self], refl}
   ... = (r0 ^ (- i)) * ((r0 ^ i) * s0 * (r0 ^ i)) :
      by {rw [gpow_add, mul_assoc (r0 ^ (- i)), mul_assoc]}
-  ... = r0 ^ (- i) * s0 : by {rw [sr_rs r0 hs hrs i]}
+  ... = r0 ^ (- i) * s0 : by rw [sr_rs r0 hs hrs i]
 
 instance is_hom_from_gens : is_monoid_hom (hom_from_gens r0 hs hrs) :=
 let h := sr_rs' r0 hs hrs in
-{ map_one := by {rw [one_eq, hom_from_gens_r],refl,},
+{ map_one := by {rw [one_eq, hom_from_gens_r],refl},
   map_mul := by
    { intros a b,
      cases a with i i; cases b with j j;
@@ -323,8 +323,8 @@ include r0 s0 hs hrs
 
 def r0_unit : units M :=
 { val := r0, inv := s0 * r0 * s0,
-  val_inv := by {rw [← mul_assoc,← mul_assoc, hrs, hs]},
-  inv_val := by {rw [mul_assoc, mul_assoc,← mul_assoc r0, hrs, hs]} }
+  val_inv := by rw [← mul_assoc,← mul_assoc, hrs, hs],
+  inv_val := by rw [mul_assoc, mul_assoc,← mul_assoc r0, hrs, hs] }
 
 def s0_unit : units M :=
 { val := s0, inv := s0, val_inv := hs, inv_val := hs }

@@ -21,7 +21,7 @@ include hg
 lemma pow_nat_mod (i : ℕ) : g ^ i = g ^ (i % n) :=
 calc
   g ^ i = g ^ (i % (n : ℕ) + (n : ℕ) * (i / (n : ℕ))) :
-   by {rw [nat.mod_add_div i (n : ℕ)],}
+   by rw [nat.mod_add_div i (n : ℕ)]
   ... = g ^ (i % (n : ℕ)) : by rw [pow_add, pow_mul, hg, one_pow, mul_one]
 
 lemma pow_nat_congr {i j : ℕ} (e : i ≡ j [MOD n]) : g ^ i = g ^ j :=
@@ -38,10 +38,10 @@ variables {n : ℕ} {G : Type*} [group G] {g : G} (hg : g ^ (n : ℕ) = 1)
 include hg
 
 lemma gpow_exponent (m : ℤ) : (g ^ m) ^ (n : ℕ) = 1 :=
-by {rw [← gpow_coe_nat, ← gpow_mul, mul_comm,
-         gpow_mul, gpow_coe_nat, hg, one_gpow]}
+by rw [← gpow_coe_nat, ← gpow_mul, mul_comm,
+         gpow_mul, gpow_coe_nat, hg, one_gpow]
 
-lemma inv_exponent : (g⁻¹) ^ (n : ℕ) = 1 := by {rw [inv_pow,hg,one_inv]}
+lemma inv_exponent : (g⁻¹) ^ (n : ℕ) = 1 := by rw [inv_pow,hg,one_inv]
 
 lemma gpow_nat_congr {i j : ℕ} (e : i ≡ j [MOD n]) : g ^ i = g ^ j :=
 begin
@@ -88,13 +88,13 @@ variables {n} {g} (hg : g ^ (n : ℕ) = 1)
 include hg
 
 lemma pow_exponent (m : ℕ)  : (g ^ m) ^ (n : ℕ) = 1 :=
-by {rw [← pow_mul, mul_comm, pow_mul, hg, one_pow]}
+by rw [← pow_mul, mul_comm, pow_mul, hg, one_pow]
 
 lemma pow_mod_exponent (m : zmod n) : (g ^ m) ^ (n : ℕ) = 1 :=
 pow_exponent hg m.val
 
 @[simp] lemma pow_mod_coe_nat (i : ℕ) : g ^ (i : zmod n) = g ^ i :=
-by {rw [pow_mod_eq, zmod.coe_cast_nat, ← pow_nat_mod], exact hg}
+by rw [pow_mod_eq, zmod.coe_cast_nat, ← pow_nat_mod hg]
 
 @[simp] lemma pow_mod_one : g ^ (1 : zmod n) = g :=
 begin

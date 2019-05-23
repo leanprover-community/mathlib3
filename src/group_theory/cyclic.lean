@@ -54,10 +54,10 @@ instance : group (cyclic n) :=
 { one := 1,
   mul := (*),
   inv := has_inv.inv,
-  one_mul := λ ⟨i⟩, by {rw [one_eq, rr_mul, zero_add]},
-  mul_one := λ ⟨i⟩, by {rw [one_eq, rr_mul, add_zero]},
-  mul_left_inv := λ ⟨i⟩, by {rw [r_inv, rr_mul, neg_add_self, one_eq]},
-  mul_assoc := λ ⟨i⟩ ⟨j⟩ ⟨k⟩, by {simp only [rr_mul,add_assoc]} }
+  one_mul := λ ⟨i⟩, by rw [one_eq, rr_mul, zero_add],
+  mul_one := λ ⟨i⟩, by rw [one_eq, rr_mul, add_zero],
+  mul_left_inv := λ ⟨i⟩, by rw [r_inv, rr_mul, neg_add_self, one_eq],
+  mul_assoc := λ ⟨i⟩ ⟨j⟩ ⟨k⟩, by simp only [rr_mul,add_assoc] }
 
 section hom_from_gens
 
@@ -68,7 +68,7 @@ def hom_from_gens : (cyclic n) → M | (r i) := g ^ i
 
 def is_hom_from_gens : is_monoid_hom (hom_from_gens hg) :=
 { map_one := rfl,
-  map_mul := by {rintros ⟨i⟩ ⟨j⟩,exact pow_mod_add hg i j}}
+  map_mul := by {rintros ⟨i⟩ ⟨j⟩, exact pow_mod_add hg i j}}
 
 end hom_from_gens
 end cyclic
@@ -105,10 +105,10 @@ instance : group (infinite_cyclic) :=
 { one := 1,
   mul := (*),
   inv := has_inv.inv,
-  one_mul := λ ⟨i⟩, by {rw [one_eq, rr_mul, zero_add]},
-  mul_one := λ ⟨i⟩, by {rw [one_eq, rr_mul, add_zero]},
-  mul_left_inv := λ ⟨i⟩, by {rw [r_inv, rr_mul, neg_add_self, one_eq]},
-  mul_assoc := λ ⟨i⟩ ⟨j⟩ ⟨k⟩, by {simp only [rr_mul,add_assoc]} }
+  one_mul := λ ⟨i⟩, by rw [one_eq, rr_mul, zero_add],
+  mul_one := λ ⟨i⟩, by rw [one_eq, rr_mul, add_zero],
+  mul_left_inv := λ ⟨i⟩, by rw [r_inv, rr_mul, neg_add_self, one_eq],
+  mul_assoc := λ ⟨i⟩ ⟨j⟩ ⟨k⟩, by simp only [rr_mul,add_assoc] }
 
 def hom_from_gens {G : Type*} [group G] (g : G) : infinite_cyclic → G
 | (r i) := g ^ i

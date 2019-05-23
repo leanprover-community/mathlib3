@@ -531,7 +531,7 @@ lemma hom_C (f : mv_polynomial σ ℤ → β) [is_ring_hom f] (n : ℤ) : f (C n
 congr_fun (int.eq_cast' (f ∘ C)) n
 
 /-- A ring homomorphism f : Z[X_1, X_2, ...] -> R is determined by the evaluations f(X_1), f(X_2), ... -/
-@[simp] lemma eval₂_hom_X {α : Type u} [decidable_eq α] (f : mv_polynomial α ℤ → β) [is_ring_hom f]
+@[simp] lemma eval₂_hom_X {α : Type u} [decidable_eq α] (c : ℤ → β) [is_ring_hom c] (f : mv_polynomial α ℤ → β) [is_ring_hom f]
   (x : mv_polynomial α ℤ) : eval₂ (λ n : ℤ, (n : β)) (f ∘ X) x = f x :=
 mv_polynomial.induction_on x
 (λ n, by { unfold_coes, rw [hom_C f, eval₂_C], unfold_coes, })

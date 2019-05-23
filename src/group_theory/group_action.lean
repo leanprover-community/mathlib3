@@ -131,20 +131,42 @@ variables {β}
 
 open quotient_group
 
+/-- Two elements `g h` of a group send `b∈β` to the same point iff they belong
+    to the same left class w.r.t the stabilizer of `b`. -/
+lemma stabilizer_coset_iff_image (b : β) (g h : α) :
+  @setoid.r _ (left_rel (stabilizer α b)) g h ↔ g • b = h • b :=
+calc _ = b ↔ g • (g⁻¹ * h) • b = g • b : (mul_action.bijective g).1.eq_iff.symm
+       ... ↔             h • b = g • b : by rw [← mul_action.mul_smul, mul_inv_cancel_left]
+       ... ↔             g • b = h • b : ⟨eq.symm, eq.symm⟩
+
+/-- Given an left coset w.r.t. the stabilizer of `b`, compute the image of `b`
+    under elements of this coset. -/
+def orbit_of_quotient_stabilizer (b : β) (x : quotient (stabilizer α b)) : orbit α b :=
+quotient.lift_on' x
+  (λ x, (⟨x • b, mem_orbit _ _⟩ : orbit α b))
+  (λ g h H, subtype.eq $ (stabilizer_coset_iff_image α b g h).1 H)
+
+/-- `orbit_of_quotient_stabilizer α b` sends `⟦x⟧` to `x • b`-/
+def orbit_of_quotient_stabilizer_spec (b : β) (x : α) :
+  (orbit_of_quotient_stabilizer α b (quotient.mk' x)).val = x • b :=
+rfl
+
+/-- The map sending left cosets w.r.t. the stabilizer of `b`
+    to the orbit of `b` is bijective. -/
+lemma orbit_of_quotient_stabilizer_bijective (b : β) :
+  function.bijective (orbit_of_quotient_stabilizer α b) :=
+⟨λ g h, quotient.induction_on₂' g h
+  (λ g h H, quotient.sound'
+            $ (stabilizer_coset_iff_image α b g h).2
+            $ subtype.ext.1 H),
+  λ ⟨b, ⟨g, hgb⟩⟩, ⟨g, subtype.eq hgb⟩⟩
+
+/-- Natural equivalence between orbit of a point, and the set of left cosets
+    w.r.t. the stabilizer of this point. For the computable part of this equivalence,
+    see `orbit_of_quotient_stabilizer`. -/
 noncomputable def orbit_equiv_quotient_stabilizer (b : β) :
   orbit α b ≃ quotient (stabilizer α b) :=
-equiv.symm (@equiv.of_bijective _ _
-  (λ x : quotient (stabilizer α b), quotient.lift_on' x
-    (λ x, (⟨x • b, mem_orbit _ _⟩ : orbit α b))
-    (λ g h (H : _ = _), subtype.eq $ (mul_action.bijective (g⁻¹)).1
-      $ show g⁻¹ • (g • b) = g⁻¹ • (h • b),
-      by rw [← mul_action.mul_smul, ← mul_action.mul_smul,
-        H, inv_mul_self, mul_action.one_smul]))
-⟨λ g h, quotient.induction_on₂' g h (λ g h H, quotient.sound' $
-  have H : g • b = h • b := subtype.mk.inj H,
-  show (g⁻¹ * h) • b = b,
-  by rw [mul_action.mul_smul, ← H, ← mul_action.mul_smul, inv_mul_self, mul_action.one_smul]),
-  λ ⟨b, ⟨g, hgb⟩⟩, ⟨g, subtype.eq hgb⟩⟩)
+equiv.symm (equiv.of_bijective $ orbit_of_quotient_stabilizer_bijective α b)
 
 end
 

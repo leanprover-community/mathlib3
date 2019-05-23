@@ -110,34 +110,14 @@ instance : comm_monoid ℕ+ :=
   mul_one   := λ a, subtype.eq (mul_one _),
   mul_comm  := λ a b, subtype.eq (mul_comm _ _) }
 
-/-- Recall that ℕ has its own specific power operation (which is
- preferred, probably for reasons of efficiency) as well as the
- general power operation that exists for any monoid.  We define
- the power operation on ℕ+ by restricting the one on ℕ, but
- this means that we need to give proofs that would be free if
- we used the general monoid version.
--/
-instance : has_pow ℕ+ ℕ := ⟨λ n m, ⟨n.1 ^ m, nat.pow_pos n.2 m⟩⟩
-
 @[simp] theorem one_coe : ((1 : ℕ+) : ℕ) = 1 := rfl
 @[simp] theorem mul_coe (m n : ℕ+) : ((m * n : ℕ+) : ℕ) = m * n := rfl
 instance coe_mul_hom : is_monoid_hom (coe : ℕ+ → ℕ) :=
  {map_one := one_coe, map_mul := mul_coe}
 
-@[simp] theorem pow_coe (m : ℕ+) (n : ℕ) : ((m ^ n : ℕ+) : ℕ) = (m : ℕ) ^ n := rfl
-
-@[simp] theorem pow_succ (m : ℕ+) (n : ℕ) : m ^ (n + 1) = m ^ n * m :=
-eq (nat.pow_succ m n)
-
-@[simp] theorem pow_add (m : ℕ+) (n p : ℕ) : m ^ (n + p) = m ^ n * m ^ p :=
-eq (nat.pow_add m n p)
-
-@[simp] theorem pow_mul (n p : ℕ) (m : ℕ+) : m ^ (n * p) = (m ^ n) ^ p :=
-eq (nat.pow_mul n p m)
-
-theorem pow_eq_pow (n : ℕ+) (m : ℕ) :
- @has_pow.pow _ _ monoid.has_pow n m = n ^ m :=
-by induction m with m ih; [refl, rw [pnat.pow_succ, _root_.pow_succ, mul_comm, ih]]
+@[simp] theorem pow_coe (m : ℕ+) (n : ℕ) : ((m ^ n : ℕ+) : ℕ) = (m : ℕ) ^ n :=
+by induction n with n ih;
+ [refl, rw [nat.pow_succ, _root_.pow_succ, mul_coe, mul_comm, ih]]
 
 instance : left_cancel_semigroup ℕ+ :=
 { mul_left_cancel := λ a b c h, by {

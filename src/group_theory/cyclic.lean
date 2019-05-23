@@ -57,7 +57,7 @@ instance : group (cyclic n) :=
   one_mul := λ ⟨i⟩, by rw [one_eq, rr_mul, zero_add],
   mul_one := λ ⟨i⟩, by rw [one_eq, rr_mul, add_zero],
   mul_left_inv := λ ⟨i⟩, by rw [r_inv, rr_mul, neg_add_self, one_eq],
-  mul_assoc := λ ⟨i⟩ ⟨j⟩ ⟨k⟩, by simp only [rr_mul,add_assoc] }
+  mul_assoc := λ ⟨i⟩ ⟨j⟩ ⟨k⟩, by simp only [rr_mul, add_assoc] }
 
 section hom_from_gens
 
@@ -108,7 +108,7 @@ instance : group (infinite_cyclic) :=
   one_mul := λ ⟨i⟩, by rw [one_eq, rr_mul, zero_add],
   mul_one := λ ⟨i⟩, by rw [one_eq, rr_mul, add_zero],
   mul_left_inv := λ ⟨i⟩, by rw [r_inv, rr_mul, neg_add_self, one_eq],
-  mul_assoc := λ ⟨i⟩ ⟨j⟩ ⟨k⟩, by simp only [rr_mul,add_assoc] }
+  mul_assoc := λ ⟨i⟩ ⟨j⟩ ⟨k⟩, by simp only [rr_mul, add_assoc] }
 
 def hom_from_gens {G : Type*} [group G] (g : G) : infinite_cyclic → G
 | (r i) := g ^ i
@@ -116,7 +116,7 @@ def hom_from_gens {G : Type*} [group G] (g : G) : infinite_cyclic → G
 instance is_hom_from_gens
  {G : Type*} [group G] {g : G} : is_monoid_hom (hom_from_gens g) :=
 { map_one := gpow_zero g,
-  map_mul := λ x y, by {rcases x, rcases y, apply gpow_add g,}}
+  map_mul := λ x y, by {rcases x, rcases y, apply gpow_add g}}
 
 def monoid_hom_from_gens {M : Type*} [monoid M] (g : units M) : infinite_cyclic → M
 | (r i) := ((g ^ i) : units M)
@@ -127,7 +127,7 @@ instance is_monoid_hom_from_gens
   map_mul := λ i j, by {rcases i, rcases j,
    change
     ((g ^ (i + j) : units M) : M) = (g ^ i : units M) * (g ^ j : units M) ,
-   rw [← units.coe_mul,gpow_add]} }
+   rw [← units.coe_mul, gpow_add]} }
 
 end infinite_cyclic
 

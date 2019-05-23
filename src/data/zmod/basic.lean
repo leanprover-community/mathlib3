@@ -194,7 +194,7 @@ by rw [← (val_eq_coe 1), ← val_cast_nat, nat.cast_one]
 
 theorem zmod.one_coe' : ((1 : zmod n) : ℕ) = ite (n = 1) 0 1 :=
 begin
- rcases n with ⟨n,n_pos⟩,
+ rcases n with ⟨n, n_pos⟩,
  rcases n with ⟨_|n⟩, refl,
  rcases n with ⟨_|n⟩, refl,
  split_ifs, cases h, refl

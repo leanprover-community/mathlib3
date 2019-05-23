@@ -40,19 +40,19 @@ def is_s : dihedral n → bool
 | (s _) := tt
 
 def to_bz : dihedral n → bool × (zmod n)
-| (r i) := ⟨ff,i⟩
-| (s i) := ⟨tt,i⟩
+| (r i) := ⟨ff, i⟩
+| (s i) := ⟨tt, i⟩
 
 def of_bz : bool × (zmod n) → dihedral n
-| ⟨ff,i⟩ := r i
-| ⟨tt,i⟩ := s i
+| ⟨ff, i⟩ := r i
+| ⟨tt, i⟩ := s i
 
 variable (n)
 def bz_equiv : dihedral n ≃ (bool × (zmod n)) :=
 { to_fun := to_bz,
   inv_fun := of_bz,
   left_inv := λ g, by cases g; refl,
-  right_inv := λ bi, by rcases bi with ⟨_|_,i⟩ ; refl }
+  right_inv := λ bi, by rcases bi with ⟨_|_, i⟩ ; refl }
 
 def inc : cyclic n → dihedral n
 | (cyclic.r i) := r i
@@ -160,7 +160,7 @@ let h := sr_rs' hr hs hrs in
     simp [rr_mul, rs_mul, sr_mul, ss_mul, hom_from_gens_r, hom_from_gens_s],
     {rw [pow_mod_add hr]},
     {rw [← mul_assoc, pow_mod_add hr]},
-    {rw [mul_assoc,h j, ← mul_assoc, pow_mod_add hr]},
+    {rw [mul_assoc, h j, ← mul_assoc, pow_mod_add hr]},
     {rw [mul_assoc, ← mul_assoc s0 _ s0, h j, mul_assoc, hs,
          mul_one, pow_mod_add hr]}}}
 
@@ -185,19 +185,19 @@ def is_s : infinite_dihedral → bool
 | (s _) := tt
 
 def to_bz : infinite_dihedral → bool × ℤ
-| (r i) := ⟨ff,i⟩
-| (s i) := ⟨tt,i⟩
+| (r i) := ⟨ff, i⟩
+| (s i) := ⟨tt, i⟩
 
 def of_bz : bool × ℤ → infinite_dihedral
-| ⟨ff,i⟩ := r i
-| ⟨tt,i⟩ := s i
+| ⟨ff, i⟩ := r i
+| ⟨tt, i⟩ := s i
 
 variable (n)
 def bz_equiv : infinite_dihedral ≃ (bool × ℤ) :=
 { to_fun := to_bz,
   inv_fun := of_bz,
   left_inv := λ g, by {cases g; refl},
-  right_inv := λ bi, by {rcases bi with ⟨_|_,i⟩ ; refl} }
+  right_inv := λ bi, by {rcases bi with ⟨_|_, i⟩ ; refl} }
 
 def inc : infinite_cyclic → infinite_dihedral
 | (infinite_cyclic.r i) := r i
@@ -286,7 +286,7 @@ begin
   rintro (i | i),
   { exact h_nat i},
   { dsimp [gpow],
-    rw [mul_inv_eq_iff_eq_mul, inv_mul_eq_iff_eq_mul,← mul_assoc],
+    rw [mul_inv_eq_iff_eq_mul, inv_mul_eq_iff_eq_mul, ← mul_assoc],
     exact (h_nat (i + 1)).symm }
 end
 
@@ -301,14 +301,14 @@ calc
 
 instance is_hom_from_gens : is_monoid_hom (hom_from_gens r0 hs hrs) :=
 let h := sr_rs' r0 hs hrs in
-{ map_one := by {rw [one_eq, hom_from_gens_r],refl},
+{ map_one := by {rw [one_eq, hom_from_gens_r], refl},
   map_mul := by
    { intros a b,
      cases a with i i; cases b with j j;
      simp [rr_mul, rs_mul, sr_mul, ss_mul, hom_from_gens_r, hom_from_gens_s],
      {rw [gpow_add]},
      {rw [← mul_assoc, gpow_add]},
-     {rw [mul_assoc,h j, ← mul_assoc, gpow_add]},
+     {rw [mul_assoc, h j, ← mul_assoc, gpow_add]},
      {rw [mul_assoc, ← mul_assoc s0 _ s0, h j, mul_assoc, hs, mul_one, gpow_add]}}}
 
 end hom_from_gens
@@ -323,8 +323,8 @@ include r0 s0 hs hrs
 
 def r0_unit : units M :=
 { val := r0, inv := s0 * r0 * s0,
-  val_inv := by rw [← mul_assoc,← mul_assoc, hrs, hs],
-  inv_val := by rw [mul_assoc, mul_assoc,← mul_assoc r0, hrs, hs] }
+  val_inv := by rw [← mul_assoc, ← mul_assoc, hrs, hs],
+  inv_val := by rw [mul_assoc, mul_assoc, ← mul_assoc r0, hrs, hs] }
 
 def s0_unit : units M :=
 { val := s0, inv := s0, val_inv := hs, inv_val := hs }
@@ -345,7 +345,7 @@ lemma monoid_hom_from_gens_r_nonneg (i : ℕ) :
   monoid_hom_from_gens r0 hs hrs (r i) = r0 ^ i :=
 begin
   dsimp [monoid_hom_from_gens],
-  rw [hom_from_gens_r,gpow_coe_nat,units.coe_pow],
+  rw [hom_from_gens_r, gpow_coe_nat, units.coe_pow],
   refl
 end
 
@@ -353,7 +353,7 @@ lemma monoid_hom_from_gens_s_nonneg (i : ℕ) :
   monoid_hom_from_gens r0 hs hrs (s i) = r0 ^ i * s0 :=
 begin
   dsimp [monoid_hom_from_gens],
-  rw [hom_from_gens_s,gpow_coe_nat,units.coe_mul,units.coe_pow],
+  rw [hom_from_gens_s, gpow_coe_nat, units.coe_mul, units.coe_pow],
   refl
 end
 
@@ -361,7 +361,7 @@ lemma monoid_hom_from_gens_r_nonpos (i : ℕ) :
   monoid_hom_from_gens r0 hs hrs (r (- i)) = (s0 * r0 * s0) ^ i :=
 begin
   dsimp [monoid_hom_from_gens],
-  rw [hom_from_gens_r,gpow_neg,← inv_gpow,gpow_coe_nat,units.coe_pow],
+  rw [hom_from_gens_r, gpow_neg, ← inv_gpow, gpow_coe_nat, units.coe_pow],
   refl
 end
 
@@ -369,8 +369,8 @@ lemma monoid_hom_from_gens_s_nonpos (i : ℕ) :
   monoid_hom_from_gens r0 hs hrs (s (- i)) = (s0 * r0 * s0) ^ i * s0 :=
 begin
   dsimp [monoid_hom_from_gens],
-  rw [hom_from_gens_s,units.coe_mul,gpow_neg,← inv_gpow,
-      gpow_coe_nat,units.coe_pow],
+  rw [hom_from_gens_s, units.coe_mul, gpow_neg, ← inv_gpow,
+      gpow_coe_nat, units.coe_pow],
   refl
 end
 
@@ -383,7 +383,7 @@ instance is_monoid_hom_from_gens :
       (r0_unit r0 hs hrs) (hs_unit r0 hs hrs) (hrs_unit r0 hs hrs),
     intros a b,
     dsimp [monoid_hom_from_gens],
-    rw [@is_monoid_hom.map_mul _ _ _ _ _ h,units.coe_mul] }}
+    rw [@is_monoid_hom.map_mul _ _ _ _ _ h, units.coe_mul] }}
 
 end monoid_hom_from_gens
 end infinite_dihedral

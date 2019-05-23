@@ -27,7 +27,7 @@ calc
 lemma pow_nat_congr {i j : ℕ} (e : i ≡ j [MOD n]) : g ^ i = g ^ j :=
 begin
   change i % n = j % n at e,
-  rw [pow_nat_mod hg i,pow_nat_mod hg j, e]
+  rw [pow_nat_mod hg i, pow_nat_mod hg j, e]
 end
 
 end pow_congr_monoid
@@ -41,7 +41,7 @@ lemma gpow_exponent (m : ℤ) : (g ^ m) ^ (n : ℕ) = 1 :=
 by rw [← gpow_coe_nat, ← gpow_mul, mul_comm,
          gpow_mul, gpow_coe_nat, hg, one_gpow]
 
-lemma inv_exponent : (g⁻¹) ^ (n : ℕ) = 1 := by rw [inv_pow,hg,one_inv]
+lemma inv_exponent : (g⁻¹) ^ (n : ℕ) = 1 := by rw [inv_pow, hg, one_inv]
 
 lemma gpow_nat_congr {i j : ℕ} (e : i ≡ j [MOD n]) : g ^ i = g ^ j :=
 begin
@@ -63,7 +63,7 @@ end
 lemma gpow_int_congr {i j : ℤ} (e : i ≡ j [ZMOD n]) : g ^ i = g ^ j :=
 begin
   change i % n = j % n at e,
-  rw [gpow_int_mod hg i, gpow_int_mod hg j,e]
+  rw [gpow_int_mod hg i, gpow_int_mod hg j, e]
 end
 
 end pow_congr_group

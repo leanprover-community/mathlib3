@@ -30,14 +30,15 @@ noncomputable def polynomial_ring : Type u ⥤ CommRing.{u} :=
 @[simp] lemma polynomial_ring_map_val {α β : Type u} {f : α → β} :
   (polynomial_ring.map f).val = rename f := rfl
 
-noncomputable def adj : polynomial_ring ⊣ (forget : CommRing ⥤ Type u) :=
+noncomputable def adj : polynomial_ring ⊣ (forget : CommRing.{u} ⥤ Type u) :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ α R,
   { to_fun    := λ f, f ∘ X,
     inv_fun   := λ f, ⟨eval₂ (λ n : ℤ, (n : R)) f, by { unfold_coes, apply_instance }⟩,
-    left_inv  := λ f, CommRing.hom.ext (eval₂_hom_X f.val),
+    left_inv  := λ f, CommRing.hom.ext $ @eval₂_hom_X _ _ _ _ _ _ f _,
     right_inv := λ x, by { ext1, unfold_coes, simp only [function.comp_app, eval₂_X] } },
   hom_equiv_naturality_left_symm' :=
-  λ X X' Y f g, by { ext1, dsimp, apply eval₂_cast_comp } }.
+  λ X X' Y f g, by { ext1, dsimp, apply eval₂_cast_comp }
+}.
 
 end category_theory.instances.CommRing

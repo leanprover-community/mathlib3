@@ -34,7 +34,7 @@ adjunction.mk_of_hom_equiv
 { hom_equiv := λ α R,
   { to_fun    := λ f, f ∘ X,
     inv_fun   := λ f, ⟨eval₂ (λ n : ℤ, (n : R)) f, by { unfold_coes, apply_instance }⟩,
-    left_inv  := λ f, CommRing.hom.ext (eval₂_hom_X f.val),
+    left_inv  := λ f, bundled.hom_ext (@eval₂_hom_X _ _ _ _ _ _ f _),
     right_inv := λ x, by { ext1, unfold_coes, simp only [function.comp_app, eval₂_X] } },
   hom_equiv_naturality_left_symm' :=
   λ X X' Y f g, by { ext1, dsimp, apply eval₂_cast_comp } }.

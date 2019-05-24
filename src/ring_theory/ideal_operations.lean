@@ -475,7 +475,7 @@ variables {R : Type u} [comm_ring R]
 def jacobson (I : ideal R) : ideal R :=
 Inf { J : ideal R | I ≤ J ∧ is_maximal J }
 
-theorem jacobson_top {I : ideal R} : jacobson I = ⊤ ↔ I = ⊤ :=
+theorem jacobson_eq_top_iff {I : ideal R} : jacobson I = ⊤ ↔ I = ⊤ :=
 ⟨λ H, classical.by_contradiction $ λ hi, let ⟨M, hm, him⟩ := exists_le_maximal I hi in
   lt_top_iff_ne_top.1 (lt_of_le_of_lt (show jacobson I ≤ M, from Inf_le ⟨him, hm⟩) $ lt_top_iff_ne_top.2 hm.1) H,
 λ H, eq_top_iff.2 $ le_Inf $ λ J ⟨hij, hj⟩, H ▸ hij⟩
@@ -551,7 +551,8 @@ instance is_prime_radical {I : ideal R} (hi : is_primary I) : is_prime (radical 
   { exact or.inr (mem_radical_of_pow_mem h) }
 end⟩
 
-instance is_primary_inf {I J : ideal R} (hi : is_primary I) (hj : is_primary J) (hij : radical I = radical J) : is_primary (I ⊓ J) :=
+instance is_primary_inf {I J : ideal R} (hi : is_primary I) (hj : is_primary J)
+  (hij : radical I = radical J) : is_primary (I ⊓ J) :=
 ⟨ne_of_lt $ lt_of_le_of_lt inf_le_left (lt_top_iff_ne_top.2 hi.1), λ x y ⟨hxyi, hxyj⟩,
 begin
   rw [radical_inf, hij, inf_idem],

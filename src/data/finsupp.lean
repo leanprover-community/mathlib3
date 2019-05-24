@@ -210,7 +210,7 @@ section emb_domain
 variables [has_zero β] [decidable_eq α₂]
 
 /-- Given `f : α₁ ↪ α₂` and `v : α₁ →₀ β`, `emb_domain f v : α₂ →₀ β` is the finitely supported
-function whose value at `f a : α₂` is `v a`. For a `a : α₁` outside the domain of `f` it is zero. -/
+function whose value at `f a : α₂` is `v a`. For a `b : α₂` outside the range of `f` it is zero. -/
 def emb_domain (f : α₁ ↪ α₂) (v : α₁ →₀ β) : α₂ →₀ β :=
 begin
   refine ⟨v.support.map f, λa₂,

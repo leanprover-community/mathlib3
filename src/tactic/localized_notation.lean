@@ -1,17 +1,16 @@
 /-
 Define notation which is localized to a namespace
-Intended usage:
-* declare it:
+Usage:
+* Declare notation using:
 ```
-localized_notation "local infix ` + ` := my_add" in my.add
+localized_notation "local infix ` ⊹ ` := my_add" in my.add
 ```
 * it will be available in the same section/namespace/file
 * open it in other sections/files:
 ```
-open_notation my.add -- it would be nice if we could write open my.add open_notation
+open_notation my.add --
 ```
-Some of the code from Gabriel Ebner from the hott3 repository
-
+The code is based on code from Gabriel Ebner from the hott3 repository
 -/
 import tactic.core
 open lean lean.parser interactive tactic
@@ -52,36 +51,3 @@ do cmd ← parser.pexpr, cmd ← i_to_expr cmd, cmd ← eval_expr string cmd,
 
 meta def print_localized_notations (ns : list name) : tactic unit :=
 do cmds ← get_localized_notation ns, cmds.mmap' trace
-section
-localized_notation "local infix ` ⊹ `:59 := nat.add" in nat
-localized_notation "local infix ` ⊖ `:59 := nat.mul" in nat.mul
-#print ⊹
-#print ⊖
-end
-section
-#print ⊹
-#print ⊖
-example : unit := ()
-open_notation int
-#print ⊹
-#print ⊖
-example : unit := ()
-section
-open_notation nat
-#print ⊹
-#print ⊖
-example : unit := ()
-open_notation nat.mul
-#print ⊹
-#print ⊖
-example : unit := ()
-end
-section
-open_notation nat.mul
-#print ⊹
-#print ⊖
-example : unit := ()
-end
-
-example : unit := by do print_localized_notations [`nat, `nat.mul], constructor
-end

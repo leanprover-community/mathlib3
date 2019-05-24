@@ -336,9 +336,8 @@ open function
 
 noncomputable lemma embedding_to_cardinal : σ ↪ cardinal.{u} :=
 classical.choice $ embedding.total.resolve_left $ λ ⟨⟨f, hf⟩⟩,
-  let g : σ → cardinal.{u} := @inv_fun _ ⟨0⟩ _ f in
-  let K : cardinal.{u} := sum g in
-  let ⟨x, (hx : g x = 2 ^ sum g)⟩ := @inv_fun_surjective _ _ _ _ hf (2 ^ sum g) in
+  let g : σ → cardinal.{u} := inv_fun f in
+  let ⟨x, (hx : g x = 2 ^ sum g)⟩ := inv_fun_surjective hf (2 ^ sum g) in
   have g x ≤ sum g, from le_sum.{u u} g x,
   not_le_of_gt (by rw hx; exact cantor _) this
 

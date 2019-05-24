@@ -530,13 +530,15 @@ lemma eval₂_sub : (p - q).eval₂ f g = p.eval₂ f g - q.eval₂ f g := is_ri
 lemma hom_C (f : mv_polynomial σ ℤ → β) [is_ring_hom f] (n : ℤ) : f (C n) = (n : β) :=
 congr_fun (int.eq_cast' (f ∘ C)) n
 
-/-- A ring homomorphism f : Z[X_1, X_2, ...] -> R is determined by the evaluations f(X_1), f(X_2), ... -/
-@[simp] lemma eval₂_hom_X {α : Type u} [decidable_eq α] (f : mv_polynomial α ℤ → β) [is_ring_hom f]
-  (x : mv_polynomial α ℤ) : eval₂ (λ n : ℤ, (n : β)) (f ∘ X) x = f x :=
+/-- A ring homomorphism f : Z[X_1, X_2, ...] -> R
+is determined by the evaluations f(X_1), f(X_2), ... -/
+@[simp] lemma eval₂_hom_X {α : Type u} [decidable_eq α] (c : ℤ → β) [is_ring_hom c]
+  (f : mv_polynomial α ℤ → β) [is_ring_hom f] (x : mv_polynomial α ℤ) :
+  eval₂ c (f ∘ X) x = f x :=
 mv_polynomial.induction_on x
-(λ n, by { unfold_coes, rw [hom_C f, eval₂_C], unfold_coes, })
-(λ p q hp hq, by { unfold_coes at *, rw [eval₂_add, hp, hq], exact (is_ring_hom.map_add f).symm })
-(λ p n hp, by { unfold_coes at *, rw [eval₂_mul, eval₂_X, hp], exact (is_ring_hom.map_mul f).symm })
+(λ n, by { rw [hom_C f, eval₂_C, int.eq_cast' c], refl })
+(λ p q hp hq, by { rw [eval₂_add, hp, hq], exact (is_ring_hom.map_add f).symm })
+(λ p n hp, by { rw [eval₂_mul, eval₂_X, hp], exact (is_ring_hom.map_mul f).symm })
 
 end eval₂
 

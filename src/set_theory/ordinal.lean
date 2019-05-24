@@ -344,7 +344,7 @@ classical.choice $ embedding.total.resolve_left $ λ ⟨⟨f, hf⟩⟩,
   have e : set T ↪ T, from ⟨λ s, ⟨x, hT s⟩, λ _, by simp⟩,
   cantor_injective e.1 e.2
 
-protected def r : σ → σ → Prop :=
+private def well_ordering_thm_r : σ → σ → Prop :=
 λ a b, embedding_to_cardinal a < embedding_to_cardinal b
 
 noncomputable def order_embedding_to_cardinal : r ≼o ((<) : Π {a b : cardinal.{u}}, Prop) :=

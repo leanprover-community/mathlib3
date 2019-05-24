@@ -336,18 +336,17 @@ open function
 
 noncomputable lemma embedding_to_cardinal : σ ↪ cardinal.{u} :=
 classical.choice $ embedding.total.resolve_left $ λ ⟨⟨f, hf⟩⟩,
-  let T : Type u := Σ a : σ, quotient.out (@inv_fun _ ⟨0⟩ _ f a) in
-  let ⟨x, hx⟩ := inv_fun_surjective hf (cardinal.mk (set T)) in
-  have hT : set T ≃ (@quotient.out (Type u) _ (@inv_fun _ ⟨0⟩ _ f x)),
-    by simp only [T, hx, cardinal.mk];
-      exact (classical.choice (@quotient.mk_out (Type u) _ _)).symm,
-  have e : set T ↪ T, from ⟨λ s, ⟨x, hT s⟩, λ _, by simp⟩,
-  cantor_injective e.1 e.2
+  let g : σ → cardinal.{u} := @inv_fun _ ⟨0⟩ _ f in
+  let K : cardinal.{u} := sum g in
+  let ⟨x, (hx : g x = 2 ^ sum g)⟩ := @inv_fun_surjective _ _ _ _ hf (2 ^ sum g) in
+  have g x ≤ sum g, from le_sum.{u u} g x,
+  not_le_of_gt (by rw hx; exact cantor _) this
 
-private def well_order_r : σ → σ → Prop :=
+private def well_ordering_r : σ → σ → Prop :=
 λ a b, embedding_to_cardinal a < embedding_to_cardinal b
 
-noncomputable def order_embedding_to_cardinal : well_order_r ≼o ((<) : Π {a b : cardinal.{u}}, Prop) :=
+noncomputable def order_embedding_to_cardinal :
+  well_ordering_r ≼o ((<) : Π {a b : cardinal.{u}}, Prop) :=
 { to_fun := embedding_to_cardinal.1,
   inj := embedding_to_cardinal.2,
   ord := λ _ _, iff.rfl }

@@ -347,8 +347,7 @@ classical.choice $ embedding.total.resolve_left $ λ ⟨⟨f, hf⟩⟩,
 protected def r : σ → σ → Prop :=
 λ a b, embedding_to_cardinal a < embedding_to_cardinal b
 
-noncomputable def order_embedding_to_cardinal :
-  r ≼o ((<) : Π {a b : cardinal.{u}}, Prop) :=
+noncomputable def order_embedding_to_cardinal : r ≼o ((<) : Π {a b : cardinal.{u}}, Prop) :=
 { to_fun := embedding_to_cardinal.1,
   inj := embedding_to_cardinal.2,
   ord := λ _ _, iff.rfl }

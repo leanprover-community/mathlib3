@@ -6,13 +6,15 @@
   Swapping adjacent quantifiers for Skolemization and Herbrandization.
 -/
 
-import tactic.spass.pull
+import tactic.vampire.pull
 
 universe u
 
 variables {α β : Type u}
 
 open nat
+
+namespace vampire
 
 local notation f `₀↦` a := assign a f
 local infix `⬝` := value.app
@@ -549,3 +551,5 @@ lemma QDF_prenexify (b : bool) :
 
 lemma QDF_QDFy (b : bool) (p : form₂) : (QDFy b p).QDF b :=
 by {apply QDF_prenexify, apply QN_swap_all}
+
+end vampire

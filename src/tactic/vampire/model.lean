@@ -7,11 +7,13 @@
 -/
 
 import logic.function tactic.basic tactic.interactive
-import tactic.spass.misc
+import tactic.vampire.misc
 
 universe u
 
 variable {α : Type u}
+
+namespace vampire
 
 local notation f `₀↦` a := assign a f
 
@@ -61,3 +63,5 @@ begin
   rintro ⟨_⟩, { refl },
   simp only [model.decr_idxs, assign]
 end
+
+end vampire

@@ -9,9 +9,11 @@
   never occurs at the head of a complex term.
 -/
 
-import tactic.spass.form2
+import tactic.vampire.form2
 
 open nat
+
+namespace vampire
 
 local notation `#` := term₂.var
 local notation a `&` b := term₂.app a b
@@ -197,3 +199,5 @@ lemma fov_neg : ∀ k : nat, ∀ p : form₂, p.neg.fov k ↔ p.fov k
   by simp only [form₂.fov, form₂.neg, fov_neg]
 | k (form₂.qua b p)   :=
   by simp only [form₂.fov, form₂.neg, fov_neg]
+
+end vampire

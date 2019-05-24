@@ -944,3 +944,35 @@ int.cast_coe_nat : ∀ (n : ℕ), ↑↑n = ↑n
 
 int.cats_id : int.cast_id : ∀ (n : ℤ), ↑n = n
 ```
+
+### vampire
+
+`vampire` uses proof output from the [Vampire theorem prover]: https://vprover.github.io/ to discharge goals in first-order logic.
+```
+variables [inhabited α] (p q : α → Prop) (a : α)
+example : (∀ x, p x → q x) → (∀ x, p x) → q a := by verbose
+```
+The tactic requires a local installation of Vampire to work. Consult the readme in `tactic/vampire` for details.
+
+Once a goal is discharged by `vampire`, you can save the proof output string to make the proof compile on computers without Vampire. Use the `verbose` option to print the proof found by Vampire:
+```
+example : (∀ x, p x → q x) → (∀ x, p x) → q a := by vampire verbose
+-- Trace output :
+-- 1. ~s0(X0) | s1(X0) [input]
+-- 2. s0(X1) [input]
+-- 3. ~s1(s2) [input]
+-- 4. s1(X0) [resolution 1,2]
+-- 5. $false [resolution 4,3]
+```
+The `offline` option instructs the tactic to use the string supplied by user.
+```
+example : (∀ x, p x → q x) → (∀ x, p x) → q a :=
+by vampire offline
+"
+1. ~s0(X0) | s1(X0) [input]
+2. s0(X1) [input]
+3. ~s1(s2) [input]
+4. s1(X0) [resolution 1,2]
+5. $false [resolution 4,3]
+"
+```

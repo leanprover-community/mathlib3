@@ -7,8 +7,8 @@
 -/
 
 import algebra.ordered_group
-import tactic.spass.model
-import tactic.spass.misc
+import tactic.vampire.model
+import tactic.vampire.misc
 
 universe u
 
@@ -17,6 +17,8 @@ variable {α : Type u}
 open nat
 
 local notation f `₀↦` a := assign a f
+
+namespace vampire
 
 @[derive has_reflect, derive decidable_eq]
 inductive term₂ : Type
@@ -112,3 +114,5 @@ lemma val_incr_ge {M N : model α} {k : nat}
   end
 | (a & b) :=
   by simp only [term₂.incr_ge, term₂.val, val_incr_ge]
+
+end vampire

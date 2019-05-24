@@ -6,12 +6,14 @@
   Second-order substitutions.
 -/
 
-import tactic.spass.term2
+import tactic.vampire.term2
 import logic.basic logic.function
 
 universe u
 
 variable {α : Type u}
+
+namespace vampire
 
 local notation f `₀↦` a := assign a f
 local notation `#` := term₂.var
@@ -154,3 +156,5 @@ lemma val_subst (M : model α) (σ : sub₂) :
     have h2 := val_subst b,
     simp only [term₂.val, term₂.subst, h1, h2],
   end
+
+end vampire

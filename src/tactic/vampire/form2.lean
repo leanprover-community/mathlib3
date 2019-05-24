@@ -6,7 +6,7 @@
   Second-order formulas.
 -/
 
-import tactic.spass.sub2
+import tactic.vampire.sub2
 import data.nat.basic
 
 universe u
@@ -14,6 +14,8 @@ universe u
 variables {α β : Type u}
 
 open nat
+
+namespace vampire
 
 local notation f `₀↦` a := assign a f
 local notation `#`      := term₂.var
@@ -345,3 +347,5 @@ lemma QDF_of_QF_bnot {b : bool} :
     λ _, h0.right⟩
 
 end form₂
+
+end vampire

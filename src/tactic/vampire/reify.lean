@@ -6,9 +6,11 @@
   Reification of goals into deeply embedded SOL.
 -/
 
-import tactic.spass.form2 logic.basic
+import tactic.vampire.form2 logic.basic
 
 open expr tactic
+
+namespace vampire
 
 meta def is_func_type (dx : expr) : expr → bool
 | `(%%x → %%y) := (x = dx) && (is_func_type y)
@@ -133,3 +135,5 @@ do desugar,
    ix ← mk_instance (app ihx dx),
    p ← target >>= abst dx >>= to_form 0,
    return (dx, ix, p)
+
+end vampire

@@ -7,14 +7,16 @@
 -/
 
 import tactic.interactive
-import tactic.spass.swap
-import tactic.spass.form
+import tactic.vampire.swap
+import tactic.vampire.form
 
 universe u
 
 variable {α : Type u}
 
 open nat list
+
+namespace vampire
 
 local notation f `₀↦` a := assign a f
 postfix  `ₑ` : 1000 := evaluate
@@ -239,3 +241,5 @@ lemma fam_of_tas_folize :
 | (form₂.qua ff p)  :=
   λ h0 h1 h2, (fam_fa _ _).elim_right
     (fam_of_tas_folize p h0.right (h1.left rfl) h2)
+
+end vampire

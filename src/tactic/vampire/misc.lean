@@ -16,9 +16,17 @@ def bool.repr : bool → string
 | tt := "tt"
 | ff := "ff"
 
-def list.write (f : α → string) (s : string) : list α → string
-| []        := ""
-| (a :: as) := f a ++ s ++ list.write as
+meta def bool.to_expr : bool → expr
+| ff := `(ff)
+| tt := `(tt)
+
+def option.if_is_some (p : α → Prop) : option α → Prop
+| none     := true
+| (some a) := p a
+
+-- def list.write (f : α → string) (s : string) : list α → string
+-- j| []        := ""
+-- j| (a :: as) := f a ++ s ++ list.write as
 
 lemma bnot_eq_iff_ne {a b : bool} :
   bnot a = b ↔ a ≠ b :=
@@ -60,8 +68,11 @@ def digit_to_subs : char → char
 def nat.to_subs (n : nat) : string :=
 ⟨n.repr.data.map digit_to_subs⟩
 
-
 namespace nat
+
+  meta def to_expr : nat → expr
+  | 0            := `(0)
+  | (nat.succ k) := expr.app `(nat.succ) k.to_expr
 
   lemma succ_lt_succ_iff :
     ∀ {a b : ℕ}, a.succ < b.succ ↔ a < b :=

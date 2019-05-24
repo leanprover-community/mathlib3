@@ -6,11 +6,13 @@
   First-order formulas.
 -/
 
-import tactic.spass.term
+import tactic.vampire.term
 
 universe u
 
 variable {α : Type u}
+
+namespace vampire
 
 inductive form : Type
 | lit : bool → term → form
@@ -66,3 +68,5 @@ def sat (α : Type u) (p : form) : Prop :=
 ∃ M : model α, ∀ v : nat → α, p.holds M v
 
 end form
+
+end vampire

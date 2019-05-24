@@ -6,11 +6,13 @@
   First-order terms and atoms.
 -/
 
-import tactic.spass.model
+import tactic.vampire.model
 
 universe u
 
 variable {α : Type u}
+
+namespace vampire
 
 @[derive has_reflect, derive decidable_eq]
 inductive term : Type
@@ -26,6 +28,11 @@ open sum
 
 namespace term
 
+meta def to_expr : term → expr
+| (& k)   := expr.app `(term.sym) k.to_expr
+| (t & s) := expr.mk_app `(term.app) [t.to_expr, s.to_expr]
+| (t # k) := expr.mk_app `(term.vpp) [t.to_expr, k.to_expr]
+
 def vars : term → list nat
 | (& _)   := []
 | (t & s) := t.vars ∪ s.vars
@@ -36,17 +43,21 @@ def fresh_var : term → nat
 | (t & s) := max t.fresh_var s.fresh_var
 | (t # k) := max t.fresh_var (k + 1)
 
-def repr_core : bool → term → string
-| s (term.sym k)   := (if s then "P" else "F") ++ k.to_subs
-| s (term.app a b) := "(" ++ a.repr_core s ++ " " ++ b.repr_core ff ++ ")"
-| s (term.vpp a k) := "(" ++ a.repr_core s ++ " " ++ "X" ++ k.to_subs ++ ")"
+def repr : term → string
+| (term.sym k)   := "S" ++ k.to_subs
+| (term.app t s) := "(" ++ t.repr ++ " " ++ s.repr ++ ")"
+| (term.vpp t k) := "(" ++ t.repr ++ " " ++ "X" ++ k.to_subs ++ ")"
+--def repr_core : bool → term → string
+--| s (term.sym k)   := (if s then "P" else "F") ++ k.to_subs
+--| s (term.app a b) := "(" ++ a.repr_core s ++ " " ++ b.repr_core ff ++ ")"
+--| s (term.vpp a k) := "(" ++ a.repr_core s ++ " " ++ "X" ++ k.to_subs ++ ")"
 
 def write : term → string
 | (term.sym k)   := "S " ++ k.repr
 | (term.app t s) := "( " ++ t.write ++ " "   ++ s.write ++ " )"
 | (term.vpp t k) := "( " ++ t.write ++ " V " ++ k.repr  ++ " )"
 
-def repr : term → string := repr_core tt
+-- def repr : term → string := repr_core tt
 
 instance has_repr : has_repr term := ⟨repr⟩
 meta instance has_to_format : has_to_format term := ⟨λ x, repr x⟩
@@ -73,9 +84,23 @@ end term
 
 @[reducible] def smap : Type := nat × (nat ⊕ term)
 
+meta def smap.to_expr : smap → expr
+| (k, sum.inl m) :=
+  expr.mk_app
+    `(@prod.mk nat (nat ⊕ term))
+    [k.to_expr, expr.app `(@sum.inl nat term) m.to_expr]
+| (k, sum.inr t) :=
+  expr.mk_app
+    `(@prod.mk nat (nat ⊕ term))
+    [k.to_expr, expr.app `(@sum.inr nat term) t.to_expr]
+
 instance smap.decidable_eq : decidable_eq smap := by apply_instance
 
 @[reducible] def smaps : Type := list smap
+
+meta def smaps.to_expr : smaps → expr
+| []        := `(@list.nil smap)
+| (m :: ms) := expr.mk_app `(@list.cons smap) [m.to_expr, smaps.to_expr ms]
 
 def smaps.get (k : nat) : smaps → (nat ⊕ term)
 | []            := sum.inl k
@@ -117,7 +142,6 @@ end vas
 
 namespace term
 
-
 lemma subst_eq_of_eq_inl {μ : smaps} (t : term) {k m : nat} :
 μ.get k = inl m → (t # k).subst μ = t.subst μ # m :=
 by { intro h, simp only [h, subst, eq_self_iff_true, and_self] }
@@ -156,3 +180,5 @@ lemma holds_rename (M : model α) (v : vas α) (f : nat → nat) (t : term) :
 by {unfold holds, rw val_rename}
 
 end term
+
+end vampire

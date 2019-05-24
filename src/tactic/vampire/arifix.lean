@@ -9,9 +9,11 @@
   reified formula was obtained.
 -/
 
-import tactic.spass.swap
+import tactic.vampire.swap
 
 variable {α : Type}
+
+namespace vampire
 
 local notation f `₀↦` a := assign a f
 local notation `#`      := term₂.var
@@ -60,10 +62,6 @@ def form₂.arity_core : nat → form₂ → option (bool × nat)
 
 def form₂.arity (k : nat) (p : form₂) : bool × nat :=
 option.get_or_else (p.arity_core k) (ff, 0)
-
-def option.if_is_some (p : α → Prop) : option α → Prop
-| none     := true
-| (some a) := p a
 
 open option
 
@@ -173,3 +171,5 @@ lemma arifix_of_holds [inhabited α] :
     unfold arifix, rw h3,
     refine ⟨(v []).fst, arifix_of_holds h0.right h4⟩
   end
+
+end vampire

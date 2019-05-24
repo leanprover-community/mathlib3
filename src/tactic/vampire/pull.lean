@@ -6,13 +6,15 @@
   Pulling quantifiers for Skolemization and prenex normalization.
 -/
 
-import tactic.spass.fov
+import tactic.vampire.fov
 
 universe u
 
 variables {α β : Type u}
 
 open nat
+
+namespace vampire
 
 local notation f `₀↦` a := assign a f
 local notation `#` := term₂.var
@@ -291,3 +293,5 @@ lemma QF_pull {b : bool} (ao : bool) :
     { refine ⟨h0.left, QF_pull h0.right (form₂.QF_incr_ge _ h1)⟩ },
     intro h2, cases h2
   end
+
+end vampire

@@ -3,7 +3,7 @@
 -- Authors: Michael Jendrusch, Scott Morrison
 import category_theory.monoidal.tensor_product
 import category_theory.natural_isomorphism
-import tactic -- TODO switch this back to tactic.basic once relevant PRs land.
+import tactic.basic
 import tactic.slice
 
 open category_theory

@@ -341,17 +341,8 @@ classical.choice $ embedding.total.resolve_left $ λ ⟨⟨f, hf⟩⟩,
   have g x ≤ sum g, from le_sum.{u u} g x,
   not_le_of_gt (by rw hx; exact cantor _) this
 
-private def well_ordering_r : σ → σ → Prop :=
-λ a b, embedding_to_cardinal a < embedding_to_cardinal b
-
-noncomputable def order_embedding_to_cardinal :
-  well_ordering_r ≼o ((<) : Π {a b : cardinal.{u}}, Prop) :=
-{ to_fun := embedding_to_cardinal.1,
-  inj := embedding_to_cardinal.2,
-  ord := λ _ _, iff.rfl }
-
 theorem well_ordering_thm : ∃ (r : σ → σ → Prop), is_well_order σ r :=
-⟨_, order_embedding.is_well_order order_embedding_to_cardinal⟩
+⟨_, (order_embedding.preimage embedding_to_cardinal (<)).is_well_order⟩
 
 end well_ordering_thm
 

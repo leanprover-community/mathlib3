@@ -327,8 +327,8 @@ quotient.induction_on' z $ λ x, free_abelian_group.induction_on x
   (ih : ∀ i x, C (of G f i x)) : C z :=
 let ⟨i, x, hx⟩ := exists_of z in hx ▸ ih i x
 
-section of_zero_exact_aux
-attribute [instance, priority 0] classical.dec
+section of_zero_exact
+local attribute [instance, priority 0] classical.dec
 variables (G f)
 lemma of.zero_exact_aux2 {x : free_comm_ring Σ i, G i} {s t} (hxs : is_supported x s) {j k}
   (hj : ∀ z : Σ i, G i, z ∈ s → z.1 ≤ j) (hk : ∀ z : Σ i, G i, z ∈ t → z.1 ≤ k)
@@ -407,7 +407,6 @@ begin
         ← of.zero_exact_aux2 G f hyt hj this hjk (set.subset_union_right ↑s t),
         iht, is_ring_hom.map_zero (f j k hjk), mul_zero] }
 end
-end of_zero_exact_aux
 
 /-- A component that corresponds to zero in the direct limit is already zero in some
 bigger module in the directed system. -/
@@ -415,6 +414,7 @@ lemma of.zero_exact {i x} (hix : of G f i x = 0) : ∃ j, ∃ hij : i ≤ j, f i
 let ⟨j, s, H, hxs, hx⟩ := of.zero_exact_aux hix in
 have hixs : (⟨i, x⟩ : Σ i, G i) ∈ s, from is_supported_pure.1 hxs,
 ⟨j, H ⟨i, x⟩ hixs, by rw [restriction_of, dif_pos hixs, lift_pure] at hx; exact hx⟩
+end of_zero_exact
 
 /-- If the maps in the directed system are injective, then the canonical maps
 from the components to the direct limits are injective. -/

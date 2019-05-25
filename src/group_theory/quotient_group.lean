@@ -121,10 +121,36 @@ instance is_group_hom_quotient_lift  :
 attribute [to_additive quotient_add_group.is_add_group_hom_quotient_lift] quotient_group.is_group_hom_quotient_lift
 attribute [to_additive quotient_add_group.is_add_group_hom_quotient_lift.equations._eqn_1] quotient_group.is_group_hom_quotient_lift.equations._eqn_1
 
+@[to_additive quotient_add_group.map_is_add_group_hom]
+instance map_is_group_hom (M : set H) [normal_subgroup M]
+(f : G → H) [is_group_hom f] (h : N ⊆ f ⁻¹' M) : is_group_hom (map N M f h) :=
+quotient_group.is_group_hom_quotient_lift _ _ _
+
 open function is_group_hom
 
+/-- The induced map from the quotient by the kernel to the codomain. -/
+def ker_lift : quotient (ker φ) → H :=
+lift _ φ $ λ g, (mem_ker φ).mp
+
+attribute [to_additive quotient_add_group.ker_lift._proof_1] quotient_group.ker_lift._proof_1
+attribute [to_additive quotient_add_group.ker_lift._proof_2] quotient_group.ker_lift._proof_2
+attribute [to_additive quotient_add_group.ker_lift] quotient_group.ker_lift
+attribute [to_additive quotient_add_group.ker_lift.equations._eqn_1] quotient_group.ker_lift.equations._eqn_1
+
+@[simp, to_additive quotient_add_group.ker_lift_mk]
+lemma ker_lift_mk (g : G) : (ker_lift φ) g = φ g :=
+lift_mk _ _ _
+
+@[simp, to_additive quotient_add_group.ker_lift_mk']
+lemma ker_lift_mk' (g : G) : (ker_lift φ) (mk g) = φ g :=
+lift_mk' _ _ _
+
+@[to_additive quotient_add_group.ker_lift_is_add_group_hom]
+instance ker_lift_is_group_hom : is_group_hom (ker_lift φ) :=
+quotient_group.is_group_hom_quotient_lift _ _ _
+
 @[to_additive quotient_add_group.injective_ker_lift]
-lemma injective_ker_lift : injective (lift (ker φ) φ $ λ x h, (mem_ker φ).1 h) :=
+lemma injective_ker_lift : injective (ker_lift φ) :=
 assume a b, quotient.induction_on₂' a b $ assume a b (h : φ a = φ b), quotient.sound' $
 show a⁻¹ * b ∈ ker φ, by rw [mem_ker φ,
   is_group_hom.mul φ, ← h, is_group_hom.inv φ, inv_mul_self]

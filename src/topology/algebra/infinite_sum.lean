@@ -76,8 +76,9 @@ lemma has_sum_sum {f : γ → β → α} {s : finset γ} (hf : ∀i∈s, has_sum
 has_sum_spec $ is_sum_sum $ assume i hi, is_sum_tsum $ hf i hi
 
 lemma is_sum_sum_of_ne_finset_zero (hf : ∀b∉s, f b = 0) : is_sum f (s.sum f) :=
-tendsto_infi' s $ tendsto_cong tendsto_const_nhds $
-  assume t (ht : s ⊆ t), show s.sum f = t.sum f, from sum_subset ht $ assume x _, hf _
+tendsto_infi' s $ tendsto.congr'
+  (assume t (ht : s ⊆ t), show s.sum f = t.sum f, from sum_subset ht $ assume x _, hf _)
+  tendsto_const_nhds
 
 lemma has_sum_sum_of_ne_finset_zero (hf : ∀b∉s, f b = 0) : has_sum f :=
 has_sum_spec $ is_sum_sum_of_ne_finset_zero hf

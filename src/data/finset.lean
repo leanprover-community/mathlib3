@@ -948,7 +948,7 @@ calc card s = card ((range n).attach.image $ λi, f i.1 (mem_range.1 i.2)) :
   ... = card (range n) : card_attach
   ... = n : card_range n
 
-lemma card_eq_succ [decidable_eq α] {s : finset α} {a : α} {n : ℕ} :
+lemma card_eq_succ [decidable_eq α] {s : finset α} {n : ℕ} :
   s.card = n + 1 ↔ (∃a t, a ∉ t ∧ insert a t = s ∧ card t = n) :=
 iff.intro
   (assume eq,

@@ -68,13 +68,15 @@ instance : has_mul (loc α S) :=
 
 variables {α S}
 
-def of (r : α) (s : S) : loc α S := ⟦(r, s)⟧
+def mk (r : α) (s : S) : loc α S := ⟦(r, s)⟧
+
+def of (r : α) : loc α S := mk r 1
 
 instance : comm_ring (loc α S) :=
 by refine
 { add            := has_add.add,
   add_assoc      := λ m n k, quotient.induction_on₃ m n k _,
-  zero           := of 0 1,
+  zero           := of 0,
   zero_add       := quotient.ind _,
   add_zero       := quotient.ind _,
   neg            := has_neg.neg,
@@ -82,7 +84,7 @@ by refine
   add_comm       := quotient.ind₂ _,
   mul            := has_mul.mul,
   mul_assoc      := λ m n k, quotient.induction_on₃ m n k _,
-  one            := of 1 1,
+  one            := of 1,
   one_mul        := quotient.ind _,
   mul_one        := quotient.ind _,
   left_distrib   := λ m n k, quotient.induction_on₃ m n k _,
@@ -95,33 +97,36 @@ by refine
   refine (quotient.sound $ r_of_eq _),
   simp [mul_left_comm, mul_add, mul_comm] }
 
-instance of.is_ring_hom : is_ring_hom (λ x, of x 1 : α → loc α S) :=
+instance of.is_ring_hom : is_ring_hom (of : α → loc α S) :=
 { map_add := λ x y, quotient.sound $ by simp,
   map_mul := λ x y, quotient.sound $ by simp,
   map_one := rfl }
 
-instance : has_coe α (loc α S) := ⟨λ x, of x 1⟩
+variables {S}
+
+instance : has_coe α (loc α S) := ⟨of⟩
 
 instance coe.is_ring_hom : is_ring_hom (coe : α → loc α S) :=
 localization.of.is_ring_hom
 
 section
 variables (α S) (x y : α) (n : ℕ)
-@[simp] lemma of_one : (of 1 1 : loc α S) = 1 := rfl
-@[simp] lemma of_add : (of (x + y) 1 : loc α S) = of x 1 + of y 1 :=
-by apply of.is_ring_hom.map_add
+@[simp] lemma of_zero : (of 0 : loc α S) = 0 := rfl
+@[simp] lemma of_one : (of 1 : loc α S) = 1 := rfl
+@[simp] lemma of_add : (of (x + y) : loc α S) = of x + of y :=
+by apply is_ring_hom.map_add
 
-@[simp] lemma of_sub : (of (x - y) 1 : loc α S) = of x 1 - of y 1 :=
-@@is_ring_hom.map_sub _ _ (λ x, of x 1) of.is_ring_hom
+@[simp] lemma of_sub : (of (x - y) : loc α S) = of x - of y :=
+by apply is_ring_hom.map_sub
 
-@[simp] lemma of_mul : (of (x * y) 1 : loc α S) = of x 1 * of y 1 :=
-@@is_ring_hom.map_mul _ _ (λ x, of x 1) of.is_ring_hom
+@[simp] lemma of_mul : (of (x * y) : loc α S) = of x * of y :=
+by apply is_ring_hom.map_mul
 
-@[simp] lemma of_neg : (of (-x) 1 : loc α S) = -of x 1 :=
-@@is_ring_hom.map_neg _ _ (λ x, of x 1) of.is_ring_hom
+@[simp] lemma of_neg : (of (-x) : loc α S) = -of x :=
+by apply is_ring_hom.map_neg
 
-@[simp] lemma of_pow : (of (x ^ n) 1 : loc α S) = (of x 1) ^ n :=
-@@is_semiring_hom.map_pow _ _ (λ x, of x 1) (@@is_ring_hom.is_semiring_hom _ _ _ of.is_ring_hom) x n
+@[simp] lemma of_pow : (of (x ^ n) : loc α S) = (of x) ^ n :=
+by apply is_semiring_hom.map_pow
 
 @[simp] lemma coe_zero : ((0 : α) : loc α S) = 0 := rfl
 @[simp] lemma coe_one : ((1 : α) : loc α S) = 1 := rfl
@@ -132,45 +137,42 @@ by apply of.is_ring_hom.map_add
 @[simp] lemma coe_pow : (↑(x ^ n) : loc α S) = x ^ n := of_pow _ _ _ _
 end
 
-@[simp] lemma of_zero (s : S) : of 0 s = 0 :=
-quotient.sound ⟨s, s.2, by simp only [mul_zero, sub_zero, zero_mul]⟩
-
-@[simp] lemma of_self {x : α} {hx : x ∈ S} :
-  (of x ⟨x, hx⟩ : loc α S) = 1 :=
+@[simp] lemma mk_self {x : α} {hx : x ∈ S} :
+  (mk x ⟨x, hx⟩ : loc α S) = 1 :=
 quotient.sound ⟨1, is_submonoid.one_mem S,
 by simp only [subtype.coe_mk, is_submonoid.coe_one, mul_one, one_mul, sub_self]⟩
 
-@[simp] lemma of_self' {s : S} :
-  (of s s : loc α S) = 1 :=
-by cases s; exact of_self
+@[simp] lemma mk_self' {s : S} :
+  (mk s s : loc α S) = 1 :=
+by cases s; exact mk_self
 
-@[simp] lemma of_self'' {s : S} :
-  (of s.1 s : loc α S) = 1 :=
-of_self'
+@[simp] lemma mk_self'' {s : S} :
+  (mk s.1 s : loc α S) = 1 :=
+mk_self'
 
-@[simp] lemma coe_mul_of (x y : α) (s : S) :
-  ↑x * of y s = of (x * y) s :=
+@[simp] lemma coe_mul_mk (x y : α) (s : S) :
+  ↑x * mk y s = mk (x * y) s :=
 quotient.sound $ r_of_eq $ by rw one_mul
 
-lemma of_eq_mul_of_one (r : α) (s : S) :
-  of r s = r * of 1 s :=
-by rw [coe_mul_of, mul_one]
+lemma mk_eq_mul_mk_one (r : α) (s : S) :
+  mk r s = r * mk 1 s :=
+by rw [coe_mul_mk, mul_one]
 
-@[simp] lemma of_mul_of (x y : α) (s t : S) :
-  of x s * of y t = of (x * y) (s * t) := rfl
+@[simp] lemma mk_mul_mk (x y : α) (s t : S) :
+  mk x s * mk y t = mk (x * y) (s * t) := rfl
 
-@[simp] lemma of_mul_cancel_left (r : α) (s : S) :
-  of (↑s * r) s = r :=
-by rw [of_eq_mul_of_one, mul_comm ↑s, coe_mul,
-       mul_assoc, ← of_eq_mul_of_one, of_self', mul_one]
+@[simp] lemma mk_mul_cancel_left (r : α) (s : S) :
+  mk (↑s * r) s = r :=
+by rw [mk_eq_mul_mk_one, mul_comm ↑s, coe_mul,
+       mul_assoc, ← mk_eq_mul_mk_one, mk_self', mul_one]
 
-@[simp] lemma of_mul_cancel_right (r : α) (s : S) :
-  of (r * s) s = r :=
-by rw [mul_comm, of_mul_cancel_left]
+@[simp] lemma mk_mul_cancel_right (r : α) (s : S) :
+  mk (r * s) s = r :=
+by rw [mul_comm, mk_mul_cancel_left]
 
 @[elab_as_eliminator]
 protected theorem induction_on {C : loc α S → Prop} (x : loc α S)
-  (ih : ∀ r s, C (of r s : loc α S)) : C x :=
+  (ih : ∀ r s, C (mk r s : loc α S)) : C x :=
 by rcases x with ⟨r, s⟩; exact ih r s
 
 @[elab_with_expected_type]
@@ -212,7 +214,7 @@ instance rec.is_ring_hom {β : Type v} [comm_ring β]
 @[reducible] def away (x : α) := loc α (powers x)
 
 @[simp] def away.inv_self (x : α) : away x :=
-of 1 ⟨x, 1, pow_one x⟩
+mk 1 ⟨x, 1, pow_one x⟩
 
 @[elab_with_expected_type]
 protected noncomputable def away.rec {x : α} {β : Type v} [comm_ring β]
@@ -223,7 +225,7 @@ by rw [units.coe_pow, ← classical.some_spec hfx, ← is_semiring_hom.map_pow f
 noncomputable def away_to_away_right (x y : α) : away x → away (x * y) :=
 localization.away.rec coe $
 is_unit_of_mul_one x (y * away.inv_self (x * y)) $
-by rw [away.inv_self, coe_mul_of, coe_mul_of, mul_one, of_self]
+by rw [away.inv_self, coe_mul_mk, coe_mul_mk, mul_one, mk_self]
 
 instance away.rec.is_ring_hom {x : α} {β : Type v} [comm_ring β]
   (f : α → β) [hf : is_ring_hom f] (hfx : is_unit (f x)) :
@@ -348,9 +350,20 @@ by refine
   simp only [has_inv.inv, inv_aux, quotient.lift_beta, dif_neg this],
   exact (quotient.sound $ r_of_eq $ by simp [mul_comm]) }
 
-@[simp] lemma of_eq_div {r s} : (of r s : fraction_ring β) = (r / s : fraction_ring β) :=
+@[simp] lemma mk_eq_div {r s} : (mk r s : fraction_ring β) = (r / s : fraction_ring β) :=
 show _ = _ * dite (s.1 = 0) _ _, by rw [dif_neg (ne_zero_of_mem_non_zero_divisors s.2)];
-exact localization.of_eq_mul_of_one _ _
+exact localization.mk_eq_mul_mk_one _ _
+
+variables {β}
+
+lemma eq_zero_of (x : β) (h : (of x : fraction_ring β) = 0) : x = 0 :=
+begin
+  rcases quotient.exact h with ⟨t, ht, ht'⟩,
+  simpa [ne_zero_of_mem_non_zero_divisors ht] using ht'
+end
+
+lemma of.injective : function.injective (of : β → fraction_ring β) :=
+(is_add_group_hom.injective_iff _).mpr eq_zero_of
 
 end fraction_ring
 
@@ -360,9 +373,9 @@ theorem map_comap (J : ideal (loc α S)) :
   ideal.map coe (ideal.comap (coe : α → loc α S) J) = J :=
 le_antisymm (ideal.map_le_iff_le_comap.2 (le_refl _)) $ λ x,
 localization.induction_on x $ λ r s hJ, (submodule.mem_coe _).2 $
-mul_one r ▸ coe_mul_of r 1 s ▸ (ideal.mul_mem_right _ $ ideal.mem_map_of_mem $
+mul_one r ▸ coe_mul_mk r 1 s ▸ (ideal.mul_mem_right _ $ ideal.mem_map_of_mem $
 have _ := @ideal.mul_mem_left (loc α S) _ _ s _ hJ,
-by rwa [coe_coe, coe_mul_of, of_mul_cancel_left] at this)
+by rwa [coe_coe, coe_mul_mk, mk_mul_cancel_left] at this)
 
 def le_order_embedding :
   ((≤) : ideal (loc α S) → ideal (loc α S) → Prop) ≼o

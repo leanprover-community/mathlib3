@@ -340,7 +340,7 @@ end
 
 section eval₂
 
-variables [decidable_eq β] [comm_ring β]
+variables [comm_ring β]
 variables (f : α → β) [is_ring_hom f] (g : σ → β)
 
 instance eval₂.is_ring_hom : is_ring_hom (eval₂ f g) :=

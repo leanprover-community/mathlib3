@@ -115,4 +115,101 @@ begin
     ac_refl }
 end
 
+variables {β : Type u}
+
+instance : monad free_abelian_group.{u} :=
+{ pure := λ α, of,
+  bind := λ α β x f, lift f x }
+
+@[elab_as_eliminator]
+protected theorem induction_on'
+  {C : free_abelian_group α → Prop}
+  (z : free_abelian_group α)
+  (C0 : C 0)
+  (C1 : ∀ x, C $ pure x)
+  (Cn : ∀ x, C (pure x) → C (-pure x))
+  (Cp : ∀ x y, C x → C y → C (x + y)) : C z :=
+free_abelian_group.induction_on z C0 C1 Cn Cp
+
+@[simp] lemma map_pure (f : α → β) (x : α) : f <$> (pure x : free_abelian_group α) = pure (f x) :=
+lift.of _ _
+
+@[simp] lemma map_zero (f : α → β) : f <$> (0 : free_abelian_group α) = 0 :=
+lift.zero (of ∘ f)
+
+@[simp] lemma map_add (f : α → β) (x y : free_abelian_group α) : f <$> (x + y) = f <$> x + f <$> y :=
+lift.add _ _ _
+
+@[simp] lemma map_neg (f : α → β) (x : free_abelian_group α) : f <$> (-x) = -(f <$> x) :=
+lift.neg _ _
+
+@[simp] lemma map_sub (f : α → β) (x y : free_abelian_group α) : f <$> (x - y) = f <$> x - f <$> y :=
+lift.sub _ _ _
+
+@[simp] lemma pure_bind (f : α → free_abelian_group β) (x) : pure x >>= f = f x :=
+lift.of _ _
+
+@[simp] lemma zero_bind (f : α → free_abelian_group β) : 0 >>= f = 0 :=
+lift.zero f
+
+@[simp] lemma add_bind (f : α → free_abelian_group β) (x y : free_abelian_group α) : x + y >>= f = (x >>= f) + (y >>= f) :=
+lift.add _ _ _
+
+@[simp] lemma neg_bind (f : α → free_abelian_group β) (x : free_abelian_group α) : -x >>= f = -(x >>= f) :=
+lift.neg _ _
+
+@[simp] lemma sub_bind (f : α → free_abelian_group β) (x y : free_abelian_group α) : x - y >>= f = (x >>= f) - (y >>= f) :=
+lift.sub _ _ _
+
+@[simp] lemma pure_seq (f : α → β) (x : free_abelian_group α) : pure f <*> x = f <$> x :=
+pure_bind _ _
+
+@[simp] lemma zero_seq (x : free_abelian_group α) : (0 : free_abelian_group (α → β)) <*> x = 0 :=
+zero_bind _
+
+@[simp] lemma add_seq (f g : free_abelian_group (α → β)) (x : free_abelian_group α) : f + g <*> x = (f <*> x) + (g <*> x) :=
+add_bind _ _ _
+
+@[simp] lemma neg_seq (f : free_abelian_group (α → β)) (x : free_abelian_group α) : -f <*> x = -(f <*> x) :=
+neg_bind _ _
+
+@[simp] lemma sub_seq (f g : free_abelian_group (α → β)) (x : free_abelian_group α) : f - g <*> x = (f <*> x) - (g <*> x) :=
+sub_bind _ _ _
+
+instance is_add_group_hom_seq (f : free_abelian_group (α → β)) : is_add_group_hom ((<*>) f) :=
+⟨λ x y, show lift (<$> (x+y)) _ = _, by simp only [map_add]; exact
+@@is_add_group_hom.add _ _ _ (@@free_abelian_group.is_add_group_hom_lift' (free_abelian_group β) _ _) _ _⟩
+
+@[simp] lemma seq_zero (f : free_abelian_group (α → β)) : f <*> 0 = 0 :=
+is_add_group_hom.zero _
+
+@[simp] lemma seq_add (f : free_abelian_group (α → β)) (x y : free_abelian_group α) : f <*> (x + y) = (f <*> x) + (f <*> y) :=
+is_add_group_hom.add _ _ _
+
+@[simp] lemma seq_neg (f : free_abelian_group (α → β)) (x : free_abelian_group α) : f <*> (-x) = -(f <*> x) :=
+is_add_group_hom.neg _ _
+
+@[simp] lemma seq_sub (f : free_abelian_group (α → β)) (x y : free_abelian_group α) : f <*> (x - y) = (f <*> x) - (f <*> y) :=
+is_add_group_hom.sub _ _ _
+
+instance : is_lawful_monad free_abelian_group.{u} :=
+{ id_map := λ α x, free_abelian_group.induction_on' x (map_zero id) (λ x, map_pure id x)
+    (λ x ih, by rw [map_neg, ih]) (λ x y ihx ihy, by rw [map_add, ihx, ihy]),
+  pure_bind := λ α β x f, pure_bind f x,
+  bind_assoc := λ α β γ x f g, free_abelian_group.induction_on' x
+    (by iterate 3 { rw zero_bind }) (λ x, by iterate 2 { rw pure_bind })
+    (λ x ih, by iterate 3 { rw neg_bind }; rw ih)
+    (λ x y ihx ihy, by iterate 3 { rw add_bind }; rw [ihx, ihy]) }
+
+instance : is_comm_applicative free_abelian_group.{u} :=
+{ commutative_prod := λ α β x y, free_abelian_group.induction_on' x
+    (by rw [map_zero, zero_seq, seq_zero])
+    (λ p, by rw [map_pure, pure_seq]; exact free_abelian_group.induction_on' y
+      (by rw [map_zero, map_zero, zero_seq])
+      (λ q, by rw [map_pure, map_pure, pure_seq, map_pure])
+      (λ q ih, by rw [map_neg, map_neg, neg_seq, ih])
+      (λ y₁ y₂ ih1 ih2, by rw [map_add, map_add, add_seq, ih1, ih2]))
+    (λ p ih, by rw [map_neg, neg_seq, seq_neg, ih])
+    (λ x₁ x₂ ih1 ih2, by rw [map_add, add_seq, seq_add, ih1, ih2]) }
+
 end free_abelian_group

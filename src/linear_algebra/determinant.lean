@@ -3,7 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes
 -/
-import group_theory.subgroup group_theory.perm ring_theory.matrix
+import group_theory.subgroup group_theory.perm data.matrix
 
 universes u v
 open equiv equiv.perm finset function

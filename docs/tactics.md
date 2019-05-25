@@ -505,8 +505,8 @@ This list can be overriden using `tidy { tactics :=  ... }`. (The list must be a
 
 `linarith` attempts to find a contradiction between hypotheses that are linear (in)equalities.
 Equivalently, it can prove a linear inequality by assuming its negation and proving `false`.
-This tactic is currently work in progress, and has various limitations. In particular,
-it will not work on `nat`. The tactic can be made much more efficient.
+
+In theory, `linarith` should prove any goal that is true in the theory of linear arithmetic over the rationals. While there is some special handling for non-dense orders like `nat` and `int`, this tactic is not complete for these theories and will not prove every true goal.
 
 An example:
 ```lean

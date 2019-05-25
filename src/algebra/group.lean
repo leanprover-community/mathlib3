@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Michael Howes
 
 Various multiplicative and additive structures.
 -/
-import tactic.basic data.option.defs tactic.rewrite
+import tactic.basic data.option.defs
 
 section pending_1857
 

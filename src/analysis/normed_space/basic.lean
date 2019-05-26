@@ -9,6 +9,8 @@ Authors: Patrick Massot, Johannes Hölzl
 import algebra.pi_instances
 import linear_algebra.basic
 import topology.instances.nnreal topology.instances.complex
+import topology.algebra.module
+
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 noncomputable theory
@@ -415,10 +417,9 @@ lemma tendsto_smul_const {g : γ → F} {e : filter γ} (s : α) {b : F} :
   (tendsto g e (nhds b)) → tendsto (λ x, s • (g x)) e (nhds (s • b)) :=
 tendsto_smul tendsto_const_nhds
 
-lemma continuous_smul [topological_space γ] {f : γ → α} {g : γ → E}
-  (hf : continuous f) (hg : continuous g) : continuous (λc, f c • g c) :=
-continuous_iff_continuous_at.2 $ assume c,
-  tendsto_smul (continuous_iff_continuous_at.1 hf _) (continuous_iff_continuous_at.1 hg _)
+instance normed_space.topological_vector_space : topological_vector_space α E :=
+{ continuous_smul := continuous_iff_continuous_at.2 $ λp, tendsto_smul
+    (continuous_iff_continuous_at.1 continuous_fst _) (continuous_iff_continuous_at.1 continuous_snd _) }
 
 /-- If there is a scalar `c` with `∥c∥>1`, then any element can be moved by scalar multiplication to
 any shell of width `∥c∥`. Also recap information on the norm of the rescaling element that shows

@@ -63,9 +63,6 @@ def Int : CommRing := ⟨ℤ, infer_instance⟩
 
 def Int.cast {R : CommRing} : Int ⟶ R := { val := int.cast, property := by apply_instance }
 
-def int.eq_cast' {R : Type u} [ring R] (f : int → R) [is_ring_hom f] : f = int.cast :=
-funext $ int.eq_cast f (is_ring_hom.map_one f) (λ _ _, is_ring_hom.map_add f)
-
 def Int.hom_unique {R : CommRing} : unique (Int ⟶ R) :=
 { default := Int.cast,
   uniq := λ f, subtype.ext.mpr $ funext $ int.eq_cast f f.2.map_one f.2.map_add }
@@ -76,6 +73,9 @@ def forget : CommRing.{u} ⥤ Type u :=
   map := λ _ _ f, f }
 
 instance forget.faithful : faithful (forget) := {}
+
+instance forget_comm_ring (R : CommRing) : comm_ring (forget.obj R) := R.str
+instance forget_is_ring_hom {R S : CommRing} (f : R ⟶ S) : is_ring_hom (forget.map f) := f.property
 
 /-- The functor from commutative rings to rings. -/
 def to_Ring : CommRing.{u} ⥤ Ring.{u} :=

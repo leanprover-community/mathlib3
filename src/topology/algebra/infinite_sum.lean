@@ -101,7 +101,7 @@ have ∀x y, j x = j y → x = y,
 have (λs:finset γ, s.sum (f ∘ j)) = (λs:finset β, s.sum f) ∘ (λs:finset γ, s.image j),
   from funext $ assume s, (sum_image $ assume x _ y _, this x y).symm,
 show tendsto (λs:finset γ, s.sum (f ∘ j)) at_top (nhds a),
-   by rw [this]; apply (tendsto_finset_image_at_top_at_top h₂).comp hf
+   by rw [this]; apply hf.comp (tendsto_finset_image_at_top_at_top h₂)
 
 lemma has_sum_iff_has_sum_of_iso {j : γ → β} (i : β → γ)
   (h₁ : ∀x, i (j x) = x) (h₂ : ∀x, j (i x) = x) :
@@ -118,7 +118,7 @@ lemma has_sum_hom (g : α → γ) [add_comm_monoid γ] [topological_space γ] [t
 have (λs:finset β, s.sum (g ∘ f)) = g ∘ (λs:finset β, s.sum f),
   from funext $ assume s, sum_hom g,
 show tendsto (λs:finset β, s.sum (g ∘ f)) at_top (nhds (g a)),
-  by rw [this]; exact hf.comp (continuous_iff_continuous_at.mp h₃ a)
+  by rw [this]; exact tendsto.comp (continuous_iff_continuous_at.mp h₃ a) hf
 
 lemma tendsto_sum_nat_of_has_sum {f : ℕ → α} (h : has_sum f a) :
   tendsto (λn:ℕ, (range n).sum f) at_top (nhds a) :=
@@ -158,7 +158,7 @@ mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
   have tendsto (λp:(Πb:β, finset (γ b)), bs.sum (λb, (p b).sum (λc, f ⟨b, c⟩)))
       (⨅b (h : b ∈ bs), at_top.comap (λp, p b)) (nhds (bs.sum g)),
     from tendsto_finset_sum bs $
-      assume c hc, tendsto_infi' c $ tendsto_infi' hc $ tendsto_comap.comp (hf c),
+      assume c hc, tendsto_infi' c $ tendsto_infi' hc $ by apply tendsto.comp (hf c) tendsto_comap,
   have bs.sum g ∈ s,
     from mem_of_closed_of_tendsto' this hsc $ forall_sets_neq_empty_iff_neq_bot.mp $
       by simp [mem_inf_sets, exists_imp_distrib, and_imp, forall_and_distrib,

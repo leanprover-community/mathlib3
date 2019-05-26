@@ -80,7 +80,7 @@ def const (α) {β} [measurable_space α] (b : β) : α →ₛ β :=
 
 @[simp] theorem const_apply (a : α) (b : β) : (const α b) a = b := rfl
 
-lemma range_const (α) [measure_space α] [ne : nonempty α] (b : β) :
+lemma range_const (α) [measurable_space α] [ne : nonempty α] (b : β) :
   (const α b).range = {b} :=
 begin
   ext b',

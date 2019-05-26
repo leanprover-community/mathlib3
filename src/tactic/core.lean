@@ -626,9 +626,9 @@ do l ← local_context,
    r ← successes (l.reverse.map (λ h, cases h >> skip)),
    when (r.empty) failed
 
-meta def note_anon (e : expr) : tactic unit :=
+meta def note_anon (e : expr) : tactic expr :=
 do n ← get_unused_name "lh",
-   note n none e, skip
+   note n none e
 
 /-- `find_local t` returns a local constant with type t, or fails if none exists. -/
 meta def find_local (t : pexpr) : tactic expr :=
@@ -1009,5 +1009,18 @@ open interactive interactive.types
 local postfix `?`:9001 := optional
 local postfix *:9001 := many .
 "
+
+/--
+This combinator is for testing purposes. It succeeds if `t` fails with message `msg`,
+and fails otherwise.
+-/
+meta def {u} success_if_fail_with_msg {α : Type u} (t : tactic α) (msg : string) : tactic unit :=
+λ s, match t s with
+| (interaction_monad.result.exception msg' _ s') :=
+  if msg = (msg'.iget ()).to_string then result.success () s
+  else mk_exception "failure messages didn't match" none s
+| (interaction_monad.result.success a s) :=
+   mk_exception "success_if_fail_with_msg combinator failed, given tactic succeeded" none s
+end
 
 end tactic

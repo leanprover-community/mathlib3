@@ -116,7 +116,7 @@ have ∀ x : α, (if (x ∈ ⋃ i, f i) then 1 else 0 : ennreal) ≤ ∑ i, if x
 begin
   intros x, by_cases hx : x ∈ ⋃ i, f i,
   { rw if_pos hx, cases set.mem_Union.1 hx with i hxi,
-    have : (ite (x ∈ f i) 1 0 : ennreal) = 1 := if_pos hxi,
+    have : (if x ∈ f i then 1 else 0 : ennreal) = 1 := if_pos hxi,
     conv_lhs { rw ← this }, exact ennreal.le_tsum i },
   rw if_neg hx, exact zero_le _
 end,
@@ -132,7 +132,7 @@ have ∀ x : α, (if (x ∈ ⋃ i, f i) then 1 else 0 : ennreal) = ∑ i, if x �
 begin
   intros x, by_cases hx : x ∈ ⋃ i, f i,
   { rw if_pos hx, cases set.mem_Union.1 hx with i hxi,
-    have : (ite (x ∈ f i) 1 0 : ennreal) = 1 := if_pos hxi,
+    have : (if x ∈ f i then 1 else 0 : ennreal) = 1 := if_pos hxi,
     conv_lhs { rw ← this }, rw tsum_eq_single,
     intros j hji, rw if_neg, intro hxj,
     exact set.disjoint_iff.1 (hf j i hji) ⟨hxj, hxi⟩ },

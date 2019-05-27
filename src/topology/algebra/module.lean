@@ -14,10 +14,10 @@ universes u v w u'
 
 /-- A topological semimodule, over a semiring which is also a topological space, is a
 semimodule in which scalar multiplication is continuous. In applications, α will be a topological
-semiring, but this is not needed for the definition -/
+semiring and β a topological additive semigroup, but this is not needed for the definition -/
 class topological_semimodule (α : Type u) (β : Type v)
   [semiring α] [topological_space α]
-  [topological_space β] [add_comm_monoid β] [topological_add_monoid β]
+  [topological_space β] [add_comm_monoid β]
   [semimodule α β] : Prop :=
 (continuous_smul : continuous (λp : α × β, p.1 • p.2))
 
@@ -25,7 +25,7 @@ section
 
 variables {α : Type u} {β : Type v}
 [semiring α] [topological_space α]
-[topological_space β] [add_comm_monoid β] [topological_add_monoid β]
+[topological_space β] [add_comm_monoid β]
 [semimodule α β] [topological_semimodule α β]
 
 lemma continuous_smul' : continuous (λp:α×β, p.1 • p.2) :=
@@ -38,21 +38,22 @@ continuous_smul'.comp (hf.prod_mk hg)
 end
 
 /-- A topological module, over a ring which is also a topological space, is a module in which
-scalar multiplication is continuous. In applications, α will be a topological ring,
-but this is not needed for the definition -/
+scalar multiplication is continuous. In applications, α will be a topological ring and β a
+topological additive group, but this is not needed for the definition -/
 class topological_module (α : Type u) (β : Type v)
   [ring α] [topological_space α]
-  [topological_space β] [add_comm_group β] [topological_add_group β]
+  [topological_space β] [add_comm_group β]
   [module α β]
   extends topological_semimodule α β : Prop
 
 class topological_vector_space (α : Type u) (β : Type v)
   [discrete_field α] [topological_space α]
-  [topological_space β] [add_comm_group β] [topological_add_group β] [vector_space α β]
+  [topological_space β] [add_comm_group β] [vector_space α β]
   extends topological_module α β
 
 /- Continuous linear maps between modules. Only put the type classes that are necessary for the
-definition, although in applications β and γ will be topological modules over α -/
+definition, although in applications β and γ will be topological modules over the topological
+ring α -/
 structure continuous_linear_map
   (α : Type*) [ring α]
   (β : Type*) [topological_space β] [add_comm_group β]

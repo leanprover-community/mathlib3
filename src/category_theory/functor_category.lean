@@ -40,7 +40,7 @@ lemma vcomp_app' (α : F ⟶ G) (β : G ⟶ H) (X : C) :
 
 lemma congr_app {α β : F ⟶ G} (h : α = β) (X : C) : α.app X = β.app X := by rw h
 @[simp] lemma id_app (F : C ⥤ D) (X : C) : (𝟙 F : F ⟶ F).app X = 𝟙 (F.obj X) := rfl
-@[simp] lemma comp_app {F G H : C ⥤ D} (α : F ⟶ G) (β : G ⟶ H) (X : C) :
+@[simp, reassoc] lemma comp_app {F G H : C ⥤ D} (α : F ⟶ G) (β : G ⟶ H) (X : C) :
   (α ≫ β).app X = α.app X ≫ β.app X := rfl
 
 lemma app_naturality {F G : C ⥤ (D ⥤ E)} (T : F ⟶ G) (X : C) {Y Z : D} (f : Y ⟶ Z) :

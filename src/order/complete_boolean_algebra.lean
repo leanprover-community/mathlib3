@@ -12,6 +12,8 @@ set_option old_structure_cmd true
 universes u v w
 variables {α : Type u} {β : Type v} {ι : Sort w}
 
+open has_Sup (Sup) has_Inf (Inf)
+
 section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- A complete distributive lattice is a bit stronger than the name might

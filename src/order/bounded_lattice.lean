@@ -317,6 +317,11 @@ theorem monotone_or {p q : α → Prop} (m_p : monotone p) (m_q : monotone q) :
 assume a b h, or.imp (m_p h) (m_q h)
 end logic
 
+instance pi.order_bot {α : Type*} {β : α → Type*} [∀ a, order_bot $ β a]  : order_bot (Π a, β a) :=
+{ bot := λ _, ⊥,
+  bot_le := λ x a, bot_le,
+  .. pi.partial_order }
+
 /- Function lattices -/
 
 instance pi.has_sup {ι : Type*} {α : ι → Type*} [Π i, has_sup (α i)] : has_sup (Π i, α i) :=

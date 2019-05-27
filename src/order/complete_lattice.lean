@@ -39,7 +39,7 @@ class has_Sup (α : Type*) := (Sup : set α → α)
 /-- class for the `Inf` operator -/
 class has_Inf (α : Type*) := (Inf : set α → α)
 
-export has_Sup (Sup) has_Inf (Inf)
+open has_Sup (Sup) has_Inf (Inf)
 
 /-- Supremum of a set -/
 add_decl_doc has_Sup.Sup

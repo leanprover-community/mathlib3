@@ -44,6 +44,7 @@ theorem dom_iff_mem : ∀ {o : roption α}, o.dom ↔ ∃y, y ∈ o
 theorem get_mem {o : roption α} (h) : get o h ∈ o := ⟨_, rfl⟩
 
 /-- `roption` extensionality -/
+@[ext]
 theorem ext {o p : roption α} (H : ∀ a, a ∈ o ↔ a ∈ p) : o = p :=
 ext' ⟨λ h, ((H _).1 ⟨h, rfl⟩).fst,
      λ h, ((H _).2 ⟨h, rfl⟩).fst⟩ $
@@ -92,6 +93,16 @@ begin
   split,
   { rw [ne, eq_none_iff], intro h, push_neg at h, cases h with x hx, use x, rwa [eq_some_iff] },
   { rintro ⟨x, rfl⟩, apply some_ne_none }
+end
+
+lemma eq_none_or_eq_some (o : roption α) : o = none ∨ ∃ x, o = some x :=
+begin
+  classical,
+  by_cases h : o.dom,
+  { rw dom_iff_mem at h, right,
+    apply exists_imp_exists _ h,
+    simp [eq_some_iff] },
+  { rw eq_none_iff', exact or.inl h },
 end
 
 @[simp] lemma some_inj {a b : α} : roption.some a = some b ↔ a = b :=
@@ -172,6 +183,26 @@ by haveI := classical.dec; exact
 ⟨λ o, to_option o, of_option, λ o, of_to_option o,
  λ o, eq.trans (by dsimp; congr) (to_of_option o)⟩
 
+instance : order_bot (roption α) :=
+{ le := λ x y, ∀ i, i ∈ x → i ∈ y,
+  le_refl := λ x y, id,
+  le_trans := λ x y z f g i, g _ ∘ f _,
+  le_antisymm := λ x y f g, roption.ext $ λ z, ⟨f _, g _⟩,
+  bot := none,
+  bot_le := by { introv x, rintro ⟨⟨_⟩,_⟩, } }
+
+lemma le_total_of_le_of_le {x y : roption α} (z : roption α) (hx : x ≤ z) (hy : y ≤ z) :
+  x ≤ y ∨ y ≤ x :=
+begin
+  rcases roption.eq_none_or_eq_some x with h | ⟨b, h₀⟩,
+  { rw h, left, apply order_bot.bot_le _ },
+  right, intros b' h₁,
+  rw roption.eq_some_iff at h₀,
+  replace hx := hx _ h₀, replace hy := hy _ h₁,
+  replace hx := roption.mem_unique hx hy, subst hx,
+  exact h₀
+end
+
 /-- `assert p f` is a bind-like operation which appends an additional condition
   `p` to the domain and uses `f` to produce the value. -/
 def assert (p : Prop) (f : p → roption α) : roption α :=
@@ -209,6 +240,23 @@ theorem mem_assert {p : Prop} {f : p → roption α}
   a ∈ assert p f ↔ ∃ h : p, a ∈ f h :=
 ⟨match a with _, ⟨h, rfl⟩ := ⟨_, ⟨_, rfl⟩⟩ end,
  λ ⟨a, h⟩, mem_assert _ h⟩
+
+lemma assert_pos {p : Prop} {f : p → roption α} (h : p) :
+  assert p f = f h :=
+begin
+  dsimp [assert],
+  cases h' : f h, simp [h',h],
+  apply function.hfunext,
+  { simp only [h,h',exists_prop_of_true] },
+  { cc }
+end
+
+lemma assert_neg {p : Prop} {f : p → roption α} (h : ¬ p) :
+  assert p f = none :=
+begin
+  dsimp [assert,none], congr, simp [h],
+  apply function.hfunext, simp [h], cc,
+end
 
 theorem mem_bind {f : roption α} {g : α → roption β} :
   ∀ {a b}, a ∈ f → b ∈ g a → b ∈ f.bind g
@@ -272,6 +320,15 @@ by rw [bind_some_eq_map]; simp [map_id']
 
 @[simp] theorem bind_eq_bind {α β} (f : roption α) (g : α → roption β) :
   f >>= g = f.bind g := rfl
+
+lemma bind_le {α} (x : roption α) (f : α → roption β) (y : roption β) :
+  x >>= f ≤ y ↔ (∀ a, a ∈ x → f a ≤ y) :=
+begin
+  split; intro h,
+  { intros a h' b, replace h := h b, simp at h, apply h _ h' },
+  { intros b h', simp at h', rcases h' with ⟨a,h₀,h₁⟩,
+    apply h _ h₀ _ h₁ },
+end
 
 instance : monad_fail roption :=
 { fail := λ_ _, none, ..roption.monad }

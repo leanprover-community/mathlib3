@@ -11,6 +11,7 @@ import order.galois_connection
 import order.directed
 
 open function tactic set auto
+open has_Sup (Sup) has_Inf (Inf)
 
 universes u v w x y
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {ι' : Sort y}

@@ -45,8 +45,8 @@ begin
   exact is_integral_of_subring _ hsr
 end
 
-theorem fg_madjoin_singleton_of_integral (x : A) (hx : is_integral R x) :
-  (algebra.adjoin R ({x} : set A)).to_submodule.fg :=
+theorem fg_adjoin_singleton_of_integral (x : A) (hx : is_integral R x) :
+  (algebra.adjoin R ({x} : set A) : submodule R A).fg :=
 begin
   rcases hx with ⟨f, hfm, hfx⟩,
   existsi finset.image ((^) x) (finset.range (nat_degree f + 1)),
@@ -71,17 +71,17 @@ begin
   exact lt_of_le_of_lt degree_le_nat_degree (with_bot.coe_lt_coe.2 hk)
 end
 
-theorem fg_madjoin_of_finite {s : set A} (hfs : s.finite)
-  (his : ∀ x ∈ s, is_integral R x) : (algebra.adjoin R s).to_submodule.fg :=
+theorem fg_adjoin_of_finite {s : set A} (hfs : s.finite)
+  (his : ∀ x ∈ s, is_integral R x) : (algebra.adjoin R s : submodule R A).fg :=
 set.finite.induction_on hfs (λ _, ⟨finset.singleton 1, le_antisymm
   (span_le.2 $ set.singleton_subset_iff.2 $ is_submonoid.one_mem _)
   (show ring.closure _ ⊆ _, by rw set.union_empty; exact
     set.subset.trans (ring.closure_subset (set.subset.refl _))
     (λ y ⟨x, hx⟩, hx ▸ mul_one (algebra_map A x) ▸ algebra.smul_def x (1:A) ▸ (mem_coe _).2
       (submodule.smul_mem _ x $ subset_span $ or.inl rfl)))⟩)
-(λ a s has hs ih his, by rw [← set.union_singleton, algebra.madjoin_union]; exact
-  algebra.fg_mul (ih $ λ i hi, his i $ set.mem_insert_of_mem a hi)
-    (fg_madjoin_singleton_of_integral _ $ his a $ set.mem_insert a s)) his
+(λ a s has hs ih his, by rw [← set.union_singleton, algebra.adjoin_union_coe_submodule]; exact
+  fg_mul _ _ (ih $ λ i hi, his i $ set.mem_insert_of_mem a hi)
+    (fg_adjoin_singleton_of_integral _ $ his a $ set.mem_insert a s)) his
 
 theorem is_integral_of_noetherian' (H : is_noetherian R A) (x : A) :
   is_integral R x :=
@@ -107,10 +107,11 @@ begin
 end
 
 theorem is_integral_of_noetherian (M : subalgebra R A)
-  (H : is_noetherian R M.to_submodule) (x : A) (hx : x ∈ M.to_submodule) :
+  (H : is_noetherian R (M : submodule R A)) (x : A) (hx : x ∈ M) :
   is_integral R x :=
 begin
   letI : algebra R M := M.algebra,
+  letI : comm_ring M := M.comm_ring R A,
   suffices : is_integral R (⟨x, hx⟩ : M),
   { rcases this with ⟨p, hpm, hpx⟩,
     replace hpx := congr_arg subtype.val hpx,
@@ -121,16 +122,16 @@ begin
       change _ = _ * _,
       rw is_semiring_hom.map_pow subtype.val, refl,
       split; intros; refl },
-    constructor; intros; refl },
+    refine { map_add := _, map_zero := _ }; intros; refl },
   refine is_integral_of_noetherian' H ⟨x, hx⟩
 end
 
 set_option class.instance_max_depth 100
 theorem is_integral_of_mem_of_fg (M : subalgebra R A)
-  (HM : M.to_submodule.fg) (x : A) (hx : x ∈ M) : is_integral R x :=
+  (HM : (M : submodule R A).fg) (x : A) (hx : x ∈ M) : is_integral R x :=
 begin
   cases HM with m hm,
-  have hxm : x ∈ M.to_submodule := hx,
+  have hxm : x ∈ (M : submodule R A) := hx,
   rw [← hm, mem_span_iff_lc] at hxm,
   rcases hxm with ⟨lx, hlx1, hlx2⟩,
   have : ∀ (jk : (↑(m.product m) : set (A × A))), jk.1.1 * jk.1.2 ∈ (span R ↑m : submodule R A),
@@ -139,20 +140,20 @@ begin
     let k : ↥(↑m : set A) := ⟨jk.1.2, (finset.mem_product.1 jk.2).2⟩,
     have hj : j.1 ∈ (span R ↑m : submodule R A) := subset_span j.2,
     have hk : k.1 ∈ (span R ↑m : submodule R A) := subset_span k.2,
-    revert hj hk, rw hm, exact @is_submonoid.mul_mem A _ M.to_submodule _ j.1 k.1 },
+    revert hj hk, rw hm, exact @is_submonoid.mul_mem A _ M _ j.1 k.1 },
   simp only [mem_span_iff_lc] at this,
   choose lm hlm1 hlm2,
   let S₀' : finset R := lx.frange ∪ finset.bind finset.univ (finsupp.frange ∘ lm),
   let S₀ : set R := ring.closure ↑S₀',
-  apply is_integral_of_subring (ring.closure ↑S₀'),
+  refine is_integral_of_subring (ring.closure ↑S₀') _,
   letI : algebra S₀ (algebra.comap S₀ R A) := algebra.comap.algebra _ _ _,
   letI : module S₀ (algebra.comap S₀ R A) := algebra.module,
   have : (span S₀ (insert 1 (↑m:set A) : set (algebra.comap S₀ R A)) : submodule S₀ (algebra.comap S₀ R A)) =
-      (algebra.adjoin S₀ ((↑m : set A) : set (algebra.comap S₀ R A))).to_submodule,
+      (algebra.adjoin S₀ ((↑m : set A) : set (algebra.comap S₀ R A)) : subalgebra S₀ (algebra.comap S₀ R A)),
   { apply le_antisymm,
     { rw [span_le, set.insert_subset, mem_coe], split,
       change _ ∈ ring.closure _, exact is_submonoid.one_mem _, exact algebra.subset_adjoin },
-    rw [algebra.madjoin_eq_span, span_le], intros r hr, refine monoid.in_closure.rec_on hr _ _ _,
+    rw [algebra.adjoin_eq_span, span_le], intros r hr, refine monoid.in_closure.rec_on hr _ _ _,
     { intros r hr, exact subset_span (set.mem_insert_of_mem _ hr) },
     { exact subset_span (set.mem_insert _ _) },
     intros r1 r2 hr1 hr2 ih1 ih2, simp only [mem_coe, mem_span_iff_lc] at ih1 ih2,
@@ -176,11 +177,11 @@ begin
       exact ⟨jk, finset.mem_univ _, finset.mem_image_of_mem _ hz⟩ },
     change @has_scalar.smul S₀ (algebra.comap S₀ R A) _inst_6.to_has_scalar ⟨lm jk z, this⟩ z ∈ _,
     exact smul_mem _ _ (subset_span (set.mem_insert_of_mem _ (hlm1 _ hz))) },
-  letI : module ↥S₀ A := _inst_6,
+  haveI : is_noetherian_ring ↥S₀ :=(by convert is_noetherian_ring_closure _ (finset.finite_to_set _); apply_instance),
   apply is_integral_of_noetherian
-    (algebra.adjoin S₀ ((↑m : set A) : set (algebra.comap S₀ R A)))
-    (is_noetherian_of_fg_of_noetherian _ (by convert is_noetherian_ring_closure _ (finset.finite_to_set _); apply_instance)
-      ⟨insert 1 m, by rw finset.coe_insert; convert this⟩),
+    (algebra.adjoin S₀ ((↑m : set A) : set (algebra.comap S₀ R A)) : subalgebra S₀ (algebra.comap S₀ R A))
+    (is_noetherian_of_fg_of_noetherian _ ⟨insert 1 m, by rw finset.coe_insert; convert this⟩),
+  show x ∈ ((algebra.adjoin S₀ ((↑m : set A) : set (algebra.comap S₀ R A)) : subalgebra S₀ (algebra.comap S₀ R A)) : submodule S₀ (algebra.comap S₀ R A)),
   rw [← hlx2, lc.total_apply, finsupp.sum], refine sum_mem _ _, intros r hr,
   rw ← this,
   have : lx r ∈ ring.closure ↑S₀' :=
@@ -194,8 +195,8 @@ theorem is_integral_of_mem_closure {x y z : A}
   (hz : z ∈ ring.closure ({x, y} : set A)) :
   is_integral R z :=
 begin
-  have := algebra.fg_mul (fg_madjoin_singleton_of_integral x hx) (fg_madjoin_singleton_of_integral y hy),
-  rw [← algebra.madjoin_union, set.union_singleton, insert] at this,
+  have := fg_mul _ _ (fg_adjoin_singleton_of_integral x hx) (fg_adjoin_singleton_of_integral y hy),
+  rw [← algebra.adjoin_union_coe_submodule, set.union_singleton, insert] at this,
   exact is_integral_of_mem_of_fg (algebra.adjoin R {x, y}) this z
     (ring.closure_mono (set.subset_union_right _ _) hz)
 end
@@ -239,8 +240,8 @@ def integral_closure : subalgebra R A :=
   range_le := λ y ⟨x, hx⟩, hx ▸ is_integral_algebra_map }
 
 theorem mem_integral_closure_iff_mem_fg {r : A} :
-  r ∈ integral_closure R A ↔ ∃ M : subalgebra R A, M.to_submodule.fg ∧ r ∈ M :=
-⟨λ hr, ⟨algebra.adjoin R {r}, fg_madjoin_singleton_of_integral _ hr, algebra.subset_adjoin (or.inl rfl)⟩,
+  r ∈ integral_closure R A ↔ ∃ M : subalgebra R A, (M : submodule R A).fg ∧ r ∈ M :=
+⟨λ hr, ⟨algebra.adjoin R {r}, fg_adjoin_singleton_of_integral _ hr, algebra.subset_adjoin (or.inl rfl)⟩,
 λ ⟨M, Hf, hrM⟩, is_integral_of_mem_of_fg M Hf _ hrM⟩
 
 theorem integral_closure_idem : integral_closure (integral_closure R A : set A) A = ⊥ :=
@@ -250,13 +251,13 @@ begin
   apply algebra.mem_bot.2, refine ⟨⟨_, _⟩, rfl⟩,
   refine (mem_integral_closure_iff_mem_fg _ _).2 ⟨algebra.adjoin _ (subtype.val '' s ∪ {r}),
     algebra.fg_trans
-      (fg_madjoin_of_finite (set.finite_image _ hfs)
+      (fg_adjoin_of_finite (set.finite_image _ hfs)
         (λ y ⟨x, hx, hxy⟩, hxy ▸ x.2))
       _,
     algebra.subset_adjoin (or.inr (or.inl rfl))⟩,
-  refine fg_madjoin_singleton_of_integral _ _,
+  refine fg_adjoin_singleton_of_integral _ _,
   rcases hr with ⟨p, hmp, hpx⟩,
-  refine ⟨base_change (of_subtype _ (of_subtype _ p)) _ _, _, hpx⟩,
+  refine ⟨to_subring (of_subring _ (of_subring _ p)) _ _, _, hpx⟩,
   { intros x hx, rcases finsupp.mem_frange.1 hx with ⟨h1, n, rfl⟩,
     change (coeff p n).1.1 ∈ ring.closure _,
     rcases ring.exists_list_of_mem_closure (coeff p n).2 with ⟨L, HL1, HL2⟩, rw ← HL2,

@@ -30,10 +30,10 @@ namespace tactic
 `new_g` to rearrange the dependent goals to either drop them, push them to the end of the list
 or leave them in place. The `bool` values in `gs` indicates whether the goal is dependent or not. -/
 def reorder_goals {α} (gs : list (bool × α)) : new_goals → list α
-| new_goals.non_dep_first := (gs.filter $ coe ∘ bnot ∘ prod.fst).map prod.snd ++
-  (gs.filter $ coe ∘ prod.fst).map prod.snd
-| new_goals.non_dep_only := (gs.filter (coe ∘ bnot ∘ prod.fst)).map prod.snd
-| new_goals.all := gs.map prod.snd
+| new_goals.non_dep_first := (gs.filter $ coe ∘ bnot ∘ prod.fst).reverse.map prod.snd ++
+  (gs.filter $ coe ∘ prod.fst).reverse.map prod.snd
+| new_goals.non_dep_only := (gs.reverse.filter (coe ∘ bnot ∘ prod.fst)).map prod.snd
+| new_goals.all := gs.reverse.map prod.snd
 
 private meta def has_opt_auto_param_inst_for_apply (ms : list (name × expr)) : tactic bool :=
 ms.mfoldl

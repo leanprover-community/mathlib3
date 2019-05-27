@@ -198,6 +198,23 @@ theorem mem_assert {p : Prop} {f : p → roption α}
 ⟨match a with _, ⟨h, rfl⟩ := ⟨_, ⟨_, rfl⟩⟩ end,
  λ ⟨a, h⟩, mem_assert _ h⟩
 
+lemma assert_pos {p : Prop} {f : p → roption α} (h : p) :
+  assert p f = f h :=
+begin
+  dsimp [assert],
+  cases h' : f h, simp [h',h],
+  apply function.hfunext,
+  { simp only [h,h',exists_prop_of_true] },
+  { cc }
+end
+
+lemma assert_neg {p : Prop} {f : p → roption α} (h : ¬ p) :
+  assert p f = none :=
+begin
+  dsimp [assert,none], congr, simp [h],
+  apply function.hfunext, simp [h], cc,
+end
+
 theorem mem_bind {f : roption α} {g : α → roption β} :
   ∀ {a b}, a ∈ f → b ∈ g a → b ∈ f.bind g
 | _ _ ⟨h, rfl⟩ ⟨h₂, rfl⟩ := ⟨⟨_, _⟩, rfl⟩

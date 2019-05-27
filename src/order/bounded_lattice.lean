@@ -281,6 +281,22 @@ theorem monotone_or {p q : α → Prop} (m_p : monotone p) (m_q : monotone q) :
 assume a b h, or.imp (m_p h) (m_q h)
 end logic
 
+instance pi.semilattice_inf_bot {α : Type u} {β : Type v} [semilattice_inf_bot β] :
+  semilattice_inf_bot (α → β) :=
+by pi_instance
+
+instance pi.semilattice_sup_bot {α : Type u} {β : Type v} [semilattice_sup_bot β] :
+  semilattice_sup_bot (α → β) :=
+by pi_instance
+
+instance pi.semilattice_inf_top {α : Type u} {β : Type v} [semilattice_inf_top β] :
+  semilattice_inf_top (α → β) :=
+by pi_instance
+
+instance pi.semilattice_sup_top {α : Type u} {β : Type v} [semilattice_sup_top β] :
+  semilattice_sup_top (α → β) :=
+by pi_instance
+
 /- Function lattices -/
 
 /- TODO:

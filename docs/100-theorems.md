@@ -8,3 +8,8 @@ on the 100 theorems challenge: http://www.cs.ru.nl/~freek/100/.
 Author: Abhimanyu Pallavi Sudhir
 Link: https://github.com/leanprover-community/mathlib/blob/739d28a60f347e7357b76cd2d24e41460e49a456/src/data/real/irrational.lean#L63
 
+## 2. Fundamental Theorem of Algebra
+
+Author: Chris Hughes
+Link: https://github.com/leanprover-community/mathlib/blob/0b350228544244f2861ec8afc84dad0c27113a73/src/analysis/complex/polynomial.lean#L28
+

@@ -5,10 +5,18 @@ on the 100 theorems challenge: http://www.cs.ru.nl/~freek/100/.
 
 ## 1. The Irrationality of the Square Root of 2
 
+```lean
+theorem irr_sqrt_two : irrational (sqrt 2) :=
+```
+
 * Author: Abhimanyu Pallavi Sudhir
 * Link: https://github.com/leanprover-community/mathlib/blob/739d28a60f347e7357b76cd2d24e41460e49a456/src/data/real/irrational.lean#L63
 
 ## 2. Fundamental Theorem of Algebra
+
+```lean
+lemma exists_root {f : polynomial ℂ} (hf : 0 < degree f) : ∃ z : ℂ, is_root f z :=
+```
 
 * Author: Chris Hughes
 * Link: https://github.com/leanprover-community/mathlib/blob/0b350228544244f2861ec8afc84dad0c27113a73/src/analysis/complex/polynomial.lean#L28
@@ -35,6 +43,11 @@ on the 100 theorems challenge: http://www.cs.ru.nl/~freek/100/.
 
 ## 7. Law of Quadratic Reciprocity
 
+```lean
+theorem quadratic_reciprocity (hp : nat.prime p) (hq : nat.prime q) (hp1 : p % 2 = 1) (hq1 : q % 2 = 1) (hpq : p ≠ q) :
+legendre_sym p q hq * legendre_sym q p hp = (-1) ^ ((p / 2) * (q / 2)) :=
+```
+
 * Author: Chris Hughes
 * Link: https://github.com/leanprover-community/mathlib/blob/fb8001d6fd786a67e01d022241f01b7017ae0825/src/data/zmod/quadratic_reciprocity.lean#L503
 
@@ -54,6 +67,10 @@ on the 100 theorems challenge: http://www.cs.ru.nl/~freek/100/.
 * Link:
 
 ## 11. The Infinitude of Primes
+
+```lean
+theorem exists_infinite_primes (n : ℕ) : ∃ p, p ≥ n ∧ prime p :=
+```
 
 * Author: mathlib
 * Link: https://github.com/leanprover-community/mathlib/blob/master/src/data/nat/prime.lean#L231
@@ -219,6 +236,11 @@ on the 100 theorems challenge: http://www.cs.ru.nl/~freek/100/.
 * Link:
 
 ## 44. The Binomial Theorem
+
+```lean
+theorem add_pow :
+∀ n : ℕ, (x + y) ^ n = (range (succ n)).sum (λ m, x ^ m * y ^ (n - m) * choose n m)
+```
 
 * Author: Chris Hughes
 * Link: https://github.com/leanprover-community/mathlib/blob/22948763023aff7b0a9634b180e7838b39a3803d/src/data/nat/choose.lean#L25

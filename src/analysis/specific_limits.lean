@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 A collection of specific limit computations.
 -/
-import analysis.normed_space.basic
+import analysis.normed_space.basic algebra.geom_sum
 import topology.instances.ennreal
 
 noncomputable theory

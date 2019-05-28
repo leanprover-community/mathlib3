@@ -1,3 +1,13 @@
+/-
+Copyright (c) 2019 Neil Strickland. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Neil Strickland
+
+Commuting pairs of elements in not-necessarily-commutative monoids,
+groups and (semi) rings.  Centralizers as submonoids, subgroups or
+subrings.
+-/
+
 import algebra.group_power
   group_theory.submonoid group_theory.subgroup
   ring_theory.subring

@@ -21,6 +21,7 @@ lemma exists_root {f : polynomial ℂ} (hf : 0 < degree f) : ∃ z : ℂ, is_roo
 * Author: Chris Hughes
 * Link: https://github.com/leanprover-community/mathlib/blob/0b350228544244f2861ec8afc84dad0c27113a73/src/analysis/complex/polynomial.lean#L28
 
+<!--
 ## 3. The Denumerability of the Rational Numbers
 
 * Author:
@@ -40,6 +41,7 @@ lemma exists_root {f : polynomial ℂ} (hf : 0 < degree f) : ∃ z : ℂ, is_roo
 
 * Author:
 * Link:
+-->
 
 ## 7. Law of Quadratic Reciprocity
 
@@ -51,6 +53,7 @@ legendre_sym p q hq * legendre_sym q p hp = (-1) ^ ((p / 2) * (q / 2)) :=
 * Author: Chris Hughes
 * Link: https://github.com/leanprover-community/mathlib/blob/fb8001d6fd786a67e01d022241f01b7017ae0825/src/data/zmod/quadratic_reciprocity.lean#L503
 
+<!--
 ## 8. The Impossibility of Trisecting the Angle and Doubling the Cube
 
 * Author:
@@ -65,6 +68,7 @@ legendre_sym p q hq * legendre_sym q p hp = (-1) ^ ((p / 2) * (q / 2)) :=
 
 * Author:
 * Link:
+-->
 
 ## 11. The Infinitude of Primes
 
@@ -75,6 +79,7 @@ theorem exists_infinite_primes (n : ℕ) : ∃ p, p ≥ n ∧ prime p :=
 * Author: mathlib
 * Link: https://github.com/leanprover-community/mathlib/blob/master/src/data/nat/prime.lean#L231
 
+<!--
 ## 12. The Independence of the Parallel Postulate
 
 * Author:
@@ -134,12 +139,14 @@ theorem exists_infinite_primes (n : ℕ) : ∃ p, p ≥ n ∧ prime p :=
 
 * Author:
 * Link:
+-->
 
 ## 24. The Undecidability of the Coninuum Hypothesis
 
 * Author: Floris van Doorn and Jesse Michael Han
 * Link: https://flypitch.github.io/ (website) and https://github.com/flypitch/flypitch (code)
 
+<!--
 ## 25. Schroeder-Bernstein Theorem
 
 * Author:
@@ -234,6 +241,7 @@ theorem exists_infinite_primes (n : ℕ) : ∃ p, p ≥ n ∧ prime p :=
 
 * Author:
 * Link:
+-->
 
 ## 44. The Binomial Theorem
 
@@ -245,6 +253,7 @@ theorem add_pow :
 * Author: Chris Hughes
 * Link: https://github.com/leanprover-community/mathlib/blob/22948763023aff7b0a9634b180e7838b39a3803d/src/data/nat/choose.lean#L25
 
+<!--
 ## 45. The Partition Theorem
 
 * Author:
@@ -379,12 +388,14 @@ theorem add_pow :
 
 * Author:
 * Link:
+-->
 
 ## 72. Sylow’s Theorem
 
 * Author: Chris Hughes
 * Link: https://github.com/leanprover-community/mathlib/blob/master/src/group_theory/sylow.lean
 
+<!--
 ## 73. Ascending or Descending Sequences
 
 * Author:
@@ -524,5 +535,6 @@ theorem add_pow :
 
 * Author:
 * Link:
+-->
 
 

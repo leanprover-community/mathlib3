@@ -16,7 +16,7 @@ theorem commute.symm {a b : M} : commute a b → commute b a :=
 λ h, h.symm
 
 theorem commute.one (a : M) : commute a 1 :=
-by { dsimp[commute], rw[one_mul, mul_one] }
+by { dsimp [commute], rw [one_mul, mul_one] }
 
 theorem commute.one_left (a : M) : commute 1 a := (commute.one a).symm
 
@@ -41,13 +41,13 @@ theorem commute.pow_pow {a b : M} (hab : commute a b) (n m : ℕ) :
  commute (a ^ n) (b ^ m) :=
 commute.pow (commute.pow_left hab n) m
 
-theorem commute.self_pow (a : M) (n : ℕ): commute a (a ^ n) :=
+theorem commute.self_pow (a : M) (n : ℕ) : commute a (a ^ n) :=
 (commute.refl a).pow n
 
-theorem commute.pow_self (a : M) (n : ℕ): commute (a ^ n) a :=
+theorem commute.pow_self (a : M) (n : ℕ) : commute (a ^ n) a :=
 (commute.refl a).pow_left n
 
-theorem commute.pow_pow_self (a : M) (n m : ℕ): commute (a ^ n) (a ^ m) :=
+theorem commute.pow_pow_self (a : M) (n m : ℕ) : commute (a ^ n) (a ^ m) :=
 (commute.refl a).pow_pow n m
 
 def centralizer (a : M) : set M := λ x, commute a x
@@ -86,9 +86,9 @@ variables {G : Type*} [group G]
 
 theorem commute.inv {a b : G} (hab : commute a b) : commute a b⁻¹ :=
 begin
- dsimp [commute] at *,
- symmetry, apply eq_mul_inv_iff_mul_eq.mpr,
- rw [mul_assoc, hab, ← mul_assoc, inv_mul_self, one_mul]
+  dsimp [commute] at *,
+  symmetry, apply eq_mul_inv_iff_mul_eq.mpr,
+  rw [mul_assoc, hab, ← mul_assoc, inv_mul_self, one_mul]
 end
 
 theorem commute.inv_left {a b : G} (hab : commute a b) : commute a⁻¹ b :=
@@ -148,9 +148,9 @@ theorem commute.add_left {a b c : A} (hac : commute a c) (hbc : commute b c) :
 
 theorem commute.cast_nat (a : A) (n : ℕ) : commute a (n : A) :=
 begin
- induction n with n ih,
- { rw [nat.cast_zero], exact commute.zero a },
- { rw [nat.cast_succ], exact ih.add (commute.one a) }
+  induction n with n ih,
+  { rw [nat.cast_zero], exact commute.zero a },
+  { rw [nat.cast_succ], exact ih.add (commute.one a) }
 end
 
 theorem commute.cast_nat_left (n : ℕ) (a : A) : commute (n : A) a :=
@@ -181,9 +181,9 @@ theorem commute.sub_left {a b c : A} (hac : commute a c) (hbc : commute b c) :
 
 theorem commute.cast_int (a : A) (n : ℤ) : commute a (n : A) :=
 begin
- cases n,
- { rw [int.cast_of_nat], exact commute.cast_nat a n},
- { rw [int.cast_neg_succ_of_nat], exact (commute.cast_nat a n.succ).neg }
+  cases n,
+  { rw [int.cast_of_nat], exact commute.cast_nat a n},
+  { rw [int.cast_neg_succ_of_nat], exact (commute.cast_nat a n.succ).neg }
 end
 
 theorem commute.cast_int_left (a : A) (n : ℤ) : commute (n : A) a :=

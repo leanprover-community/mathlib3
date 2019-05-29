@@ -3,7 +3,7 @@
 -- Authors: Patrick Massot, Mario Carneiro
 
 import category_theory.instances.Top.basic
-import category_theory.adjunction
+import category_theory.adjunction.basic
 
 universe u
 

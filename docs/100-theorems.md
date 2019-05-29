@@ -9,7 +9,7 @@ on the 100 theorems challenge: http://www.cs.ru.nl/~freek/100/.
 theorem irr_sqrt_two : irrational (sqrt 2) :=
 ```
 
-* Author: Abhimanyu Pallavi Sudhir
+* Author: mathlib <!-- Jeremy Avigad, Mario Carneiro, Abhimanyu Pallavi Sudhir -->
 * Link: https://github.com/leanprover-community/mathlib/blob/739d28a60f347e7357b76cd2d24e41460e49a456/src/data/real/irrational.lean#L63
 
 ## 2. Fundamental Theorem of Algebra

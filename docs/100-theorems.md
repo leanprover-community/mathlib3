@@ -511,7 +511,7 @@ lemma real.intermediate_value {f : ℝ → ℝ} {a b t : ℝ}
   (hf : ∀ x, a ≤ x → x ≤ b → tendsto f (nhds x) (nhds (f x)))
   (ha : f a ≤ t) (hb : t ≤ f b) (hab : a ≤ b) : ∃ x : ℝ, a ≤ x ∧ x ≤ b ∧ f x = t
 ```
-* Author: Chris Hughes
+* Author: mathlib <!-- Rob Lewis and Chris Hughes -->
 * Link: https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/topology/instances/real.lean#L340
 
 

@@ -6,6 +6,14 @@ Authors: Neil Strickland
 Commuting pairs of elements in not-necessarily-commutative monoids,
 groups and (semi) rings.  Centralizers as submonoids, subgroups or
 subrings.
+
+Usage example: suppose that a, b and c are elements of a ring, and
+that `hb : commute a b` and `hc : commute a c`.  Then
+`hb.pow_left 5` proves `commute (a ^ 5) b` and
+`(hb.pow 2).add (hb.mul hc)` proves `commute a (b ^ 2 + b * c)`.
+Lean does not immediately recognise these terms as equations,
+so for rewriting we need syntax like `rw [(hb.pow_left 5).eq]`
+rather than just `rw [hb.pow_left 5]`.
 -/
 
 import algebra.group_power
@@ -20,7 +28,7 @@ variables {S : Type*} [semigroup S]
 
 theorem commute.eq {a b : S} (h : commute a b) : a * b = b * a := h
 
-theorem commute.refl (a : S) : commute a a := by { unfold commute }
+@[refl] theorem commute.refl (a : S) : commute a a := by { unfold commute }
 
 @[symm] theorem commute.symm {a b : S} : commute a b → commute b a :=
 λ h, h.symm
@@ -210,6 +218,12 @@ instance centralizer.is_subring (a : A) : is_subring (centralizer a) :=
   neg_mem := λ x hx, hx.neg,
   add_mem := λ x y hx hy, hx.add hy,
   .. centralizer.is_submonoid a }
+
+instance set_centralizer.is_subring (S : set A) : is_subring (set_centralizer S) :=
+{ zero_mem := λ a ha, commute.zero a,
+  neg_mem := λ x hx a ha, (hx a ha).neg,
+  add_mem := λ x y hx hy a ha, (hx a ha).add (hy a ha),
+  .. set_centralizer.is_submonoid S }
 
 end ring
 

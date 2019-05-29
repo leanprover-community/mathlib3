@@ -264,6 +264,18 @@ lemma prod_range_succ' (f : ℕ → β) :
 | (n + 1) := by rw [prod_range_succ (λ m, f (nat.succ m)), mul_assoc, ← prod_range_succ'];
                  exact prod_range_succ _ _
 
+@[to_additive finset.sum_range_zero]
+lemma prod_range_zero (f : ℕ → β) :
+ (range 0).prod f = 1 := by {rw[range_zero,prod_empty]}
+
+lemma prod_range_one (f : ℕ → β) :
+  (range 1).prod f = f 0 :=
+by { rw [range_one], apply @prod_singleton ℕ β 0 f }
+
+lemma sum_range_one {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) :
+  (range 1).sum f = f 0 :=
+by { rw[range_one], apply @sum_singleton ℕ δ 0 f }
+
 @[simp] lemma prod_const (b : β) : s.prod (λ a, b) = b ^ s.card :=
 by haveI := classical.dec_eq α; exact
 finset.induction_on s rfl (λ a s has ih,

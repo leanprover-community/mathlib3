@@ -1,5 +1,5 @@
-import category_theory.instances.Top.presheaf
-import category_theory.instances.TopCommRing.basic
+import topology.Top.presheaf
+import topology.algebra.TopCommRing.basic
 import category_theory.yoneda
 import ring_theory.subring
 import topology.algebra.continuous_functions

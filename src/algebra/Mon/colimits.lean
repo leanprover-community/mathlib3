@@ -1,4 +1,4 @@
-import category_theory.instances.Mon.basic
+import algebra.Mon.basic
 import category_theory.limits.limits
 
 universes v

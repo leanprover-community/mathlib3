@@ -6,7 +6,7 @@ Multivariable polynomials on a type is the left adjoint of the
 forgetful functor from commutative rings to types.
 -/
 
-import category_theory.instances.CommRing.basic
+import algebra.CommRing.basic
 import category_theory.adjunction.basic
 import data.mv_polynomial
 

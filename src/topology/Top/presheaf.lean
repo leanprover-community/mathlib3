@@ -2,7 +2,7 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Scott Morrison, Mario Carneiro, Reid Barton
 
-import category_theory.instances.Top.opens
+import topology.Top.opens
 import category_theory.whiskering
 
 universes v u

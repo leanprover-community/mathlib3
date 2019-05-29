@@ -2,7 +2,7 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Reid Barton
 
-import category_theory.instances.Top.adjunctions
+import topology.Top.adjunctions
 import category_theory.epi_mono
 
 universe u

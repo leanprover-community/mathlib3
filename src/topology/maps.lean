@@ -25,7 +25,7 @@ variables [topological_space α] [topological_space β] [topological_space γ] [
 lemma embedding_id : embedding (@id α) :=
 ⟨assume a₁ a₂ h, h, induced_id.symm⟩
 
-lemma embedding_compose {f : α → β} {g : β → γ} (hf : embedding f) (hg : embedding g) :
+lemma embedding_compose {f : α → β} {g : β → γ} (hg : embedding g) (hf : embedding f) :
   embedding (g ∘ f) :=
 ⟨assume a₁ a₂ h, hf.left $ hg.left h, by rw [hf.right, hg.right, induced_compose]⟩
 
@@ -40,7 +40,7 @@ lemma embedding_of_embedding_compose {f : α → β} {g : β → γ} (hf : conti
 ⟨assume a₁ a₂ h, hgf.left $ by simp [h, (∘)],
   le_antisymm
     (by rw [hgf.right, ← continuous_iff_induced_le];
-        apply continuous_induced_dom.comp hg)
+        apply hg.comp continuous_induced_dom)
     (by rwa ← continuous_iff_induced_le)⟩
 
 lemma embedding_open {f : α → β} {s : set α}
@@ -278,7 +278,7 @@ protected lemma of_quotient_map_compose {f : α → β} {g : β → γ}
   le_antisymm
     (by rwa ← continuous_iff_le_coinduced)
     (by rw [hgf.right, ← continuous_iff_le_coinduced];
-        apply hf.comp continuous_coinduced_rng)⟩
+        apply continuous_coinduced_rng.comp hf)⟩
 
 protected lemma continuous_iff {f : α → β} {g : β → γ} (hf : quotient_map f) :
   continuous g ↔ continuous (g ∘ f) :=
@@ -408,8 +408,8 @@ lemma closed_embedding_id : closed_embedding (@id α) :=
 ⟨embedding_id, by convert is_closed_univ; apply range_id⟩
 
 lemma closed_embedding_compose {f : α → β} {g : β → γ}
-  (hf : closed_embedding f) (hg : closed_embedding g) : closed_embedding (g ∘ f) :=
-⟨embedding_compose hf.1 hg.1, show is_closed (range (g ∘ f)),
+  (hg : closed_embedding g) (hf : closed_embedding f) : closed_embedding (g ∘ f) :=
+⟨embedding_compose hg.1 hf.1, show is_closed (range (g ∘ f)),
  by rw [range_comp, ←hg.closed_iff_image_closed]; exact hf.2⟩
 
 end closed_embedding

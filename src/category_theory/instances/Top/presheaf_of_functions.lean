@@ -1,3 +1,6 @@
+-- Copyright (c) 2019 Scott Morrison. All rights reserved.
+-- Released under Apache 2.0 license as described in the file LICENSE.
+-- Authors: Scott Morrison
 import category_theory.instances.Top.presheaf
 import category_theory.instances.TopCommRing.basic
 import category_theory.yoneda
@@ -9,6 +12,7 @@ universes v u
 open category_theory
 open category_theory.instances
 open topological_space
+open opposite
 
 namespace category_theory.instances.Top
 
@@ -61,9 +65,6 @@ def CommRing_yoneda : TopCommRing ⥤ (Topᵒᵖ ⥤ CommRing) :=
 def presheaf_to_TopCommRing (T : TopCommRing.{v}) :
   X.presheaf CommRing.{v} :=
 (opens.to_Top X).op ⋙ (CommRing_yoneda.obj T)
-
-noncomputable def presheaf_ℚ (Y : Top) : Y.presheaf CommRing :=
-presheaf_to_TopCommRing Y (TopCommRing.of ℚ)
 
 noncomputable def presheaf_ℝ (Y : Top) : Y.presheaf CommRing :=
 presheaf_to_TopCommRing Y (TopCommRing.of ℝ)

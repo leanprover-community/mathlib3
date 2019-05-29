@@ -555,10 +555,18 @@ by linarith
 
 `linarith` will use all appropriate hypotheses and the negation of the goal, if applicable.
 
-`linarith h1 h2 h3` will ohly use the local hypotheses `h1`, `h2`, `h3`.
+`linarith [t1, t2, t3]` will additionally use proof terms `t1, t2, t3`.
 
-`linarith using [t1, t2, t3]` will add `t1`, `t2`, `t3` to the local context and then run
-`linarith`.
+`linarith only [h1, h2, h3, t1, t2, t3]` will use only the goal (if relevant), local hypotheses
+h1, h2, h3, and proofs t1, t2, t3. It will ignore the rest of the local context.
+
+`linarith!` will use a stronger reducibility setting to try to identify atoms. For example,
+```lean
+example (x : ℚ) : id x ≥ x :=
+by linarith
+```
+will fail, because `linarith` will not identify `x` and `id x`. `linarith!` will.
+This can sometimes be expensive.
 
 `linarith {discharger := tac, restrict_type := tp, exfalso := ff}` takes a config object with three optional
 arguments.
@@ -889,6 +897,19 @@ Note that names are conserved by this tactic, contrary to what would happen with
 using the relevant lemmas. One can also use this tactic at the goal using `push_neg`,
 at every assumption and the goal using `push_neg at *` or at selected assumptions and the goal
 using say `push_neg at h h' ⊢` as usual.
+
+### contrapose
+
+Transforms the goal into its contrapositive.
+
+`contrapose`     turns a goal `P → Q` into `¬ Q → ¬ P`
+
+`contrapose!`    turns a goal `P → Q` into `¬ Q → ¬ P` and pushes negations inside `P` and `Q`
+                 using `push_neg`
+
+`contrapose h`   first reverts the local assumption `h`, and then uses `contrapose` and `intro h`
+
+`contrapose! h`  first reverts the local assumption `h`, and then uses `contrapose!` and `intro h`
 
 ### norm_cast
 

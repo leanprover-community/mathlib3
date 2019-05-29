@@ -14,6 +14,7 @@ import category_theory.fully_faithful
 import category_theory.natural_isomorphism
 
 namespace category_theory
+open opposite
 
 universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
@@ -99,6 +100,8 @@ namespace category_theory
 
 universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
+open opposite
+
 variables (C : Type u₁) [𝒞 : category.{v₁+1} C]
 include 𝒞
 
@@ -176,7 +179,7 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
 variables {C}
 
 @[simp] def yoneda_sections (X : C) (F : Cᵒᵖ ⥤ Type v₁) : (yoneda.obj X ⟶ F) ≅ ulift.{u₁} (F.obj (op X)) :=
-nat_iso.app (yoneda_lemma C) (op X, F)
+(yoneda_lemma C).app (op X, F)
 
 omit 𝒞
 @[simp] def yoneda_sections_small {C : Type u₁} [small_category C] (X : C) (F : Cᵒᵖ ⥤ Type u₁) : (yoneda.obj X ⟶ F) ≅ F.obj (op X) :=

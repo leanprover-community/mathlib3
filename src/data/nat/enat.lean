@@ -104,7 +104,7 @@ instance order_top : order_top enat :=
 lemma coe_lt_top (x : ℕ) : (x : enat) < ⊤ :=
 lt_of_le_of_ne le_top (λ h, absurd (congr_arg dom h) true_ne_false)
 
-@[simp] lemma coe_ne_bot (x : ℕ) : (x : enat) ≠ ⊤ := ne_of_lt (coe_lt_top x)
+@[simp] lemma coe_ne_top (x : ℕ) : (x : enat) ≠ ⊤ := ne_of_lt (coe_lt_top x)
 
 lemma pos_iff_one_le {x : enat} : 0 < x ↔ 1 ≤ x :=
 enat.cases_on x ⟨λ _, le_top, λ _, coe_lt_top _⟩

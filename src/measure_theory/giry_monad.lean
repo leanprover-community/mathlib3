@@ -148,7 +148,7 @@ def bind (m : measure α) (f : α → measure β) : measure β := join (map f m)
 by rw [bind, join_apply hs, integral_map (measurable_coe hs) hf]
 
 lemma measurable_bind' {g : α → measure β} (hg : measurable g) : measurable (λm, bind m g) :=
-measurable.comp (measurable_map _ hg) measurable_join
+measurable_join.comp (measurable_map _ hg)
 
 lemma integral_bind {m : measure α} {g : α → measure β} {f : β → ennreal}
   (hg : measurable g) (hf : measurable f) :
@@ -164,14 +164,14 @@ lemma bind_bind {γ} [measurable_space γ] {m : measure α} {f : α → measure 
   bind (bind m f) g = bind m (λa, bind (f a) g) :=
 measure.ext $ assume s hs,
 begin
-  rw [bind_apply hs hg, bind_apply hs (hf.comp $ measurable_bind' hg), integral_bind hf],
+  rw [bind_apply hs hg, bind_apply hs ((measurable_bind' hg).comp hf), integral_bind hf],
   { congr, funext a,
     exact (bind_apply hs hg).symm },
-  exact hg.comp (measurable_coe hs)
+  exact (measurable_coe hs).comp hg
 end
 
 lemma bind_dirac {f : α → measure β} (hf : measurable f) (a : α) : bind (dirac a) f = f a :=
-measure.ext $ assume s hs, by rw [bind_apply hs hf, integral_dirac a (hf.comp (measurable_coe hs))]
+measure.ext $ assume s hs, by rw [bind_apply hs hf, integral_dirac a ((measurable_coe hs).comp hf)]
 
 lemma dirac_bind {m : measure α} : bind m dirac = m :=
 measure.ext $ assume s hs,

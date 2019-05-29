@@ -12,33 +12,51 @@ import algebra.group_power
   group_theory.submonoid group_theory.subgroup
   ring_theory.subring
 
-section monoid
+section semigroup
 
-variables {M : Type*} [monoid M]
+variables {S : Type*} [semigroup S]
 
-@[reducible] def commute (a b : M) : Prop := a * b = b * a
+@[reducible] def commute (a b : S) : Prop := a * b = b * a
 
-theorem commute.eq {a b : M} (h : commute a b) : a * b = b * a := h
+theorem commute.eq {a b : S} (h : commute a b) : a * b = b * a := h
 
-theorem commute.refl (a : M) : commute a a := by { unfold commute }
+theorem commute.refl (a : S) : commute a a := by { unfold commute }
 
-@[symm] theorem commute.symm {a b : M} : commute a b → commute b a :=
+@[symm] theorem commute.symm {a b : S} : commute a b → commute b a :=
 λ h, h.symm
 
-theorem commute.one (a : M) : commute a 1 :=
-by { dsimp [commute], rw [one_mul, mul_one] }
-
-theorem commute.one_left (a : M) : commute 1 a := (commute.one a).symm
-
-theorem commute.mul {a b c : M} :
+theorem commute.mul {a b c : S} :
  commute a b → commute a c → commute a (b * c) :=
 λ hab hac,
   by { dsimp [commute] at *,
        rw [mul_assoc, ← hac, ← mul_assoc b, ← hab, mul_assoc] }
 
-theorem commute.mul_left {a b c : M} :
+theorem commute.mul_left {a b c : S} :
  commute a c → commute b c → commute (a * b) c :=
 λ hac hbc, (hac.symm.mul hbc.symm).symm
+
+def centralizer (a : S) : set S := { x | commute a x }
+
+theorem mem_centralizer (a : S) {x : S} : x ∈ centralizer a ↔ commute a x :=
+iff.refl _
+
+def set_centralizer (T : set S) : set S :=
+  { x | ∀ (a : S), a ∈ T → commute a x }
+
+theorem mem_set_centralizer (T : set S) {x : S} :
+  x ∈ set_centralizer T ↔ ∀ (a : S), a ∈ T → commute a x :=
+iff.refl _
+
+end semigroup
+
+section monoid
+
+variables {M : Type*} [monoid M]
+
+theorem commute.one (a : M) : commute a 1 :=
+by { dsimp [commute], rw [one_mul, mul_one] }
+
+theorem commute.one_left (a : M) : commute 1 a := (commute.one a).symm
 
 theorem commute.pow {a b : M} (hab : commute a b) : ∀ (n : ℕ), commute a (b ^ n)
 | 0 := by { rw [pow_zero], exact commute.one a }
@@ -60,21 +78,9 @@ theorem commute.pow_self (a : M) (n : ℕ) : commute (a ^ n) a :=
 theorem commute.pow_pow_self (a : M) (n m : ℕ) : commute (a ^ n) (a ^ m) :=
 (commute.refl a).pow_pow n m
 
-def centralizer (a : M) : set M := { x | commute a x }
-
-theorem mem_centralizer (a : M) {x : M} : x ∈ centralizer a ↔ commute a x :=
-iff.refl _
-
 instance centralizer.is_submonoid (a : M) : is_submonoid (centralizer a) :=
 { one_mem := commute.one a,
   mul_mem := λ x y hx hy, hx.mul hy }
-
-def set_centralizer (S : set M) : set M :=
-  { x | ∀ (a : M), a ∈ S → commute a x }
-
-theorem mem_set_centralizer (S : set M) {x : M} :
-  x ∈ set_centralizer S ↔ ∀ (a : M), a ∈ S → commute a x :=
-iff.refl _
 
 instance set_centralizer.is_submonoid (S : set M) : is_submonoid (set_centralizer S) :=
 { one_mem := λ a h, commute.one a,

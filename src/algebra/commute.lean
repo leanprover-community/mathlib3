@@ -20,9 +20,9 @@ variables {M : Type*} [monoid M]
 
 theorem commute.eq {a b : M} (h : commute a b) : a * b = b * a := h
 
-theorem commute.refl (a : M) : commute a a := @rfl M (a * a)
+theorem commute.refl (a : M) : commute a a := by { unfold commute }
 
-theorem commute.symm {a b : M} : commute a b → commute b a :=
+@[symm] theorem commute.symm {a b : M} : commute a b → commute b a :=
 λ h, h.symm
 
 theorem commute.one (a : M) : commute a 1 :=
@@ -60,23 +60,23 @@ theorem commute.pow_self (a : M) (n : ℕ) : commute (a ^ n) a :=
 theorem commute.pow_pow_self (a : M) (n m : ℕ) : commute (a ^ n) (a ^ m) :=
 (commute.refl a).pow_pow n m
 
-def centralizer (a : M) : set M := λ x, commute a x
+def centralizer (a : M) : set M := { x | commute a x }
 
 theorem mem_centralizer (a : M) {x : M} : x ∈ centralizer a ↔ commute a x :=
-by { dsimp [centralizer], refl }
+iff.refl _
 
-instance centralizer_submonoid (a : M) : is_submonoid (centralizer a) :=
+instance centralizer.is_submonoid (a : M) : is_submonoid (centralizer a) :=
 { one_mem := commute.one a,
   mul_mem := λ x y hx hy, hx.mul hy }
 
 def set_centralizer (S : set M) : set M :=
-  λ x, ∀ (a : M), a ∈ S → commute a x
+  { x | ∀ (a : M), a ∈ S → commute a x }
 
 theorem mem_set_centralizer (S : set M) {x : M} :
   x ∈ set_centralizer S ↔ ∀ (a : M), a ∈ S → commute a x :=
-by { dsimp [set_centralizer], refl }
+iff.refl _
 
-instance set_centralizer_submonoid (S : set M) : is_submonoid (set_centralizer S) :=
+instance set_centralizer.is_submonoid (S : set M) : is_submonoid (set_centralizer S) :=
 { one_mem := λ a h, commute.one a,
   mul_mem := λ x y hx hy a h, (hx a h).mul (hy a h) }
 
@@ -86,7 +86,7 @@ section comm_monoid
 
 variables {M : Type*} [comm_monoid M]
 
-theorem all_commute (a b : M) : commute a b := mul_comm a b
+theorem commute.all (a b : M) : commute a b := mul_comm a b
 
 end comm_monoid
 
@@ -131,11 +131,11 @@ theorem commute.gpow_self (a : G) (n : ℤ): commute (a ^ n) a :=
 theorem commute.gpow_gpow_self (a : G) (n m : ℤ): commute (a ^ n) (a ^ m) :=
 (commute.refl a).gpow_gpow n m
 
-instance centralizer_subgroup (a : G) : is_subgroup (centralizer a) :=
-{ inv_mem := λ x hx, hx.inv, .. centralizer_submonoid a}
+instance centralizer.is_subgroup (a : G) : is_subgroup (centralizer a) :=
+{ inv_mem := λ x hx, hx.inv, .. centralizer.is_submonoid a}
 
-instance set_centralizer_subgroup (S : set G) : is_subgroup (set_centralizer S) :=
-{ inv_mem := λ x hx a ha, (hx a ha).inv, .. set_centralizer_submonoid S }
+instance set_centralizer.is_subgroup (S : set G) : is_subgroup (set_centralizer S) :=
+{ inv_mem := λ x hx a ha, (hx a ha).inv, .. set_centralizer.is_submonoid S }
 
 end group
 
@@ -199,11 +199,11 @@ end
 theorem commute.cast_int_left (a : A) (n : ℤ) : commute (n : A) a :=
 (commute.cast_int a n).symm
 
-instance centralizer_subring (a : A) : is_subring (centralizer a) :=
+instance centralizer.is_subring (a : A) : is_subring (centralizer a) :=
 { zero_mem := commute.zero a,
   neg_mem := λ x hx, hx.neg,
   add_mem := λ x y hx hy, hx.add hy,
-  .. centralizer_submonoid a }
+  .. centralizer.is_submonoid a }
 
 end ring
 

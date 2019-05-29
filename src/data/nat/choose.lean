@@ -59,6 +59,6 @@ end
 
 theorem add_pow [comm_semiring α] (x y : α) (n : ℕ) :
   (x + y) ^ n = (range (succ n)).sum (λ m, x ^ m * y ^ (n - m) * choose n m) :=
-add_pow_comm (all_commute x y) n
+add_pow_comm (commute.all x y) n
 
 end binomial

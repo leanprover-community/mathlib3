@@ -361,7 +361,7 @@ theorem mem_powerset_len {n} {s t : finset α} :
 ```lean
 theorem gcd_eq_gcd_ab (a b : α) : (gcd a b : α) = a * gcd_a a b + b * gcd_b a b
 ```
-* Author: Chris Hughes
+* Author: mathlib
 * Link: https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/algebra/euclidean_domain.lean#L233
 <!--
 ## 61. Theorem of Ceva

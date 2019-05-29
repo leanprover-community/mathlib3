@@ -123,7 +123,7 @@ begin
   split,
   { by_contradiction h, simp at h,
     back?, },
-  back
+  back?
 end
 
 end primes

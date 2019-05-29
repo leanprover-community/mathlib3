@@ -72,7 +72,7 @@ R.is_comm_ring
 instance forget_topological_ring (R : TopCommRing) : topological_ring (forget.obj R) :=
 R.is_topological_ring
 
-def forget_to_Type_via_Top : forget_to_Top ⋙ category_theory.forget ≅ forget := iso.refl _
-def forget_to_Type_via_CommRing : forget_to_Top ⋙ category_theory.forget ≅ forget := iso.refl _
+def forget_to_Type_via_Top : forget_to_Top ⋙ Top.forget ≅ forget := iso.refl _
+def forget_to_Type_via_CommRing : forget_to_CommRing ⋙ CommRing.forget ≅ forget := iso.refl _
 
 end TopCommRing

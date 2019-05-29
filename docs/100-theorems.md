@@ -227,12 +227,17 @@ theorem schroeder_bernstein {f : α → β} {g : β → α}
 
 * Author:
 * Link:
+-->
 
 ## 39. Solutions to Pell’s Equation
+```lean
+theorem eq_pell {x y : ℕ} (hp : x*x - d*y*y = 1) : ∃n, x = xn n ∧ y = yn n
+```
+* Remark: `d` is defined to be `a*a - 1` for an arbitrary `a > 1`.
+* Author: Mario Carneiro
+* Link: https://github.com/leanprover-community/mathlib/blob/d935bc312fac7eca7ef08b16ca06079145b437f2/src/number_theory/pell.lean#L161
 
-* Author:
-* Link:
-
+<!--
 ## 40. Minkowski’s Fundamental Theorem
 
 * Author:
@@ -299,12 +304,14 @@ theorem add_pow :
 
 * Author:
 * Link:
-
+-->
 ## 52. The Number of Subsets of a Set
-
-* Author:
-* Link:
-
+```lean
+theorem card_powerset (s : finset α) : card (powerset s) = 2 ^ card s
+```
+* Author: mathlib
+* Link: https://github.com/leanprover-community/mathlib/blob/00aaf05a00b928ea9ac09721d87ae5d2ca1ae5a1/src/data/finset.lean#L1277
+<!--
 ## 53. Pi is Trancendental
 
 * Author:
@@ -329,22 +336,34 @@ theorem add_pow :
 
 * Author:
 * Link:
-
+-->
 ## 58. Formula for the Number of Combinations
 
-* Author:
-* Link:
+```lean
+theorem card_powerset_len (n : ℕ) (s : finset α) :
+  card (powerset_len n s) = nat.choose (card s) n
 
+theorem mem_powerset_len {n} {s t : finset α} :
+  s ∈ powerset_len n t ↔ s ⊆ t ∧ card s = n
+```
+* Author: mathlib <!--Jeremy Avigad in lean 2-->
+* Link: https://github.com/leanprover/lean2/blob/227fcad22ab2bc27bb7471be7911075d101ba3f9/library/theories/combinatorics/choose.lean#L208
+
+
+
+<!--
 ## 59. The Laws of Large Numbers
 
 * Author:
 * Link:
-
+-->
 ## 60. Bezout’s Theorem
-
-* Author:
-* Link:
-
+```lean
+theorem gcd_eq_gcd_ab (a b : α) : (gcd a b : α) = a * gcd_a a b + b * gcd_b a b
+```
+* Author: Chris Hughes
+* Link: https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/algebra/euclidean_domain.lean#L233
+<!--
 ## 61. Theorem of Ceva
 
 * Author:
@@ -354,12 +373,14 @@ theorem add_pow :
 
 * Author:
 * Link:
-
+-->
 ## 63. Cantor’s Theorem
-
-* Author:
-* Link:
-
+```lean
+theorem cantor : ∀(a : cardinal.{u}), a < 2 ^ a
+```
+* Author: mathlib <!-- Mario and/or Johannes -->
+* Link: https://github.com/leanprover-community/mathlib/blob/e66e1f30d8a0a006ff93a309cc202ab4deaebf04/src/set_theory/cardinal.lean#L259
+<!--
 ## 64. L’Hopital’s Rule
 
 * Author:
@@ -369,61 +390,100 @@ theorem add_pow :
 
 * Author:
 * Link:
-
+-->
 ## 66. Sum of a Geometric Series
+```lean
+theorem geom_sum [division_ring α] {x : α} (h : x ≠ 1) (n : ℕ) :
+  (range n).sum (λ i, x^i) = (x^n-1)/(x-1)
+```
+* Author: Sander R. Dahmen
+* Link: https://github.com/leanprover-community/mathlib/blob/d935bc312fac7eca7ef08b16ca06079145b437f2/src/algebra/big_operators.lean#L571
 
-* Author:
-* Link:
-
+<!--
 ## 67. e is Transcendental
 
 * Author:
 * Link:
-
+-->
 ## 68. Sum of an arithmetic series
-
-* Author:
-* Link:
+```lean
+lemma sum_range_id (n : ℕ) : (finset.range n).sum (λi, i) = (n * (n - 1)) / 2
+```
+* Author: Johannes Hölzl
+* Link: https://github.com/leanprover-community/mathlib/blob/d935bc312fac7eca7ef08b16ca06079145b437f2/src/algebra/big_operators.lean#L607
 
 ## 69. Greatest Common Divisor Algorithm
+```lean
+def gcd : α → α → α
+| a := λ b, if a0 : a = 0 then b else
+  have h:_ := mod_lt b a0,
+  gcd (b%a) a
+using_well_founded {dec_tac := tactic.assumption,
+  rel_tac := λ _ _, `[exact ⟨_, r_well_founded α⟩]}
 
-* Author:
-* Link:
+theorem gcd_dvd (a b : α) : gcd a b ∣ a ∧ gcd a b ∣ b
+theorem dvd_gcd {a b c : α} : c ∣ a → c ∣ b → c ∣ gcd a b
+```
+* Author: mathlib
+* Link: https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/algebra/euclidean_domain.lean#L127
 
+<!--
 ## 70. The Perfect Number Theorem
 
 * Author:
 * Link:
-
-## 71. Order of a Subgroup
-
-* Author:
-* Link:
 -->
+## 71. Order of a Subgroup
+```lean
+lemma card_subgroup_dvd_card (s : set α) [is_subgroup s] [fintype s] :
+  fintype.card s ∣ fintype.card α
+```
+* Author: Chris Hughes
+* Link: https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/group_theory/order_of_element.lean#L56
+
 
 ## 72. Sylow’s Theorem
 
-* **Partial progress**: Sylow's Theorem 1.
 ```lean
 lemma exists_subgroup_card_pow_prime  {G : Type u} [group G] [fintype G] {p : ℕ} :
   ∀ {n : ℕ} (hp : nat.prime p) (hdvd : p ^ n ∣ card G),
   ∃ H : set G, is_subgroup H ∧ fintype.card H = p ^ n
+
+lemma sylow_conjugate [fintype G] {p : ℕ} (hp : prime p)
+  (H K : set G) [is_sylow H hp] [is_sylow K hp] :
+  ∃ g : G, H = conjugate_set g K
+
+lemma card_sylow_dvd [fintype G] {p : ℕ} (hp : prime p) :
+  card {H : set G // is_sylow H hp} ∣ card G
+
+lemma card_sylow_modeq_one [fintype G] {p : ℕ} (hp : prime p) :
+  card {H : set G // is_sylow H hp} ≡ 1 [MOD p]
 ```
 
 * Author: Chris Hughes
-* Link: https://github.com/leanprover-community/mathlib/blob/d935bc312fac7eca7ef08b16ca06079145b437f2/src/group_theory/sylow.lean#L184
+* Link: [1](https://github.com/leanprover-community/mathlib/blob/d935bc312fac7eca7ef08b16ca06079145b437f2/src/group_theory/sylow.lean#L184) [2](
+https://github.com/ChrisHughes24/Sylow/blob/7185e33eeb6d28ea1a423492e7b4a8634aa9723d/src/sylow.lean#L885) [3.1](https://github.com/ChrisHughes24/Sylow/blob/7185e33eeb6d28ea1a423492e7b4a8634aa9723d/src/sylow.lean#L925) [3.2](https://github.com/ChrisHughes24/Sylow/blob/7185e33eeb6d28ea1a423492e7b4a8634aa9723d/src/sylow.lean#L944). Theorem 3.3 (number of Sylow sugroups is the cardinality of the normalizer of any of them) is not proven as a separate fact, but used in the other results [here](https://github.com/ChrisHughes24/Sylow/blob/7185e33eeb6d28ea1a423492e7b4a8634aa9723d/src/sylow.lean#L934).
 
 <!--
 ## 73. Ascending or Descending Sequences
 
 * Author:
 * Link:
-
+-->
 ## 74. The Principle of Mathematical Induction
+* Automatically generated when defining the natural numbers
+```lean
+inductive nat
+| zero : nat
+| succ (n : nat) : nat
 
-* Author:
-* Link:
+#print nat.rec
+-- protected eliminator nat.rec : Π {C : ℕ → Sort l}, C 0 → (Π (n : ℕ), C n → C (nat.succ n)) → Π (n : ℕ), C n
+```
+* Author: Leonardo de Moura
+* Link: https://github.com/leanprover/lean/blob/cbd2b6686ddb566028f5830490fe55c0b3a9a4cb/library/init/core.lean#L293
 
+<!--
 ## 75. The Mean Value Theorem
 
 * Author:
@@ -443,27 +503,57 @@ lemma exists_subgroup_card_pow_prime  {G : Type u} [group G] [fintype G] {p : �
 
 * Author:
 * Link:
+-->
 
 ## 79. The Intermediate Value Theorem
+```lean
+lemma real.intermediate_value {f : ℝ → ℝ} {a b t : ℝ}
+  (hf : ∀ x, a ≤ x → x ≤ b → tendsto f (nhds x) (nhds (f x)))
+  (ha : f a ≤ t) (hb : t ≤ f b) (hab : a ≤ b) : ∃ x : ℝ, a ≤ x ∧ x ≤ b ∧ f x = t
+```
+* Author: Chris Hughes
+* Link: https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/topology/instances/real.lean#L340
 
-* Author:
-* Link:
 
 ## 80. The Fundamental Theorem of Arithmetic
+The integers form a unique factorization domain by the first three declarations. A unique factorization domain gives most of the fundamental theorem of arithmetic, and the uniqueness is then proven for them.
+```lean
+instance int.euclidean_domain : euclidean_domain ℤ
+instance euclidean_domain.to_principal_ideal_domain [euclidean_domain α] : principal_ideal_domain α
+noncomputable def to_unique_factorization_domain [principal_ideal_domain α] : unique_factorization_domain α
 
-* Author:
-* Link:
+class unique_factorization_domain (α : Type*) [integral_domain α] :=
+(factors : α → multiset α)
+(factors_prod : ∀{a : α}, a ≠ 0 → (factors a).prod ~ᵤ a)
+(prime_factors : ∀{a : α}, a ≠ 0 → ∀x∈factors a, prime x)
 
+lemma unique [integral_domain α] [unique_factorization_domain α] : ∀{f g : multiset α},
+  (∀x∈f, irreducible x) → (∀x∈g, irreducible x) → f.prod ~ᵤ g.prod →
+  multiset.rel associated f g
+```
+* Author: mathlib
+* Link: [1](https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/algebra/euclidean_domain.lean#L320) [2](https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/ring_theory/principal_ideal_domain.lean#L71) [3](https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/ring_theory/principal_ideal_domain.lean#L158) [4](https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/ring_theory/unique_factorization_domain.lean#L29) [5](https://github.com/leanprover-community/mathlib/blob/master/src/ring_theory/unique_factorization_domain.lean#L90)
+
+<!--
 ## 81. Divergence of the Prime Reciprocal Series
 
 * Author:
 * Link:
-
+-->
 ## 82. Dissection of Cubes (J.E. Littlewood’s ‘elegant’ proof)
-
-* Author:
-* Link:
-
+```lean
+theorem cannot_cube_a_cube :
+  ∀{n : ℕ}, n ≥ 3 →                              -- In ℝ^n for n ≥ 3
+  ∀{ι : Type} [fintype ι] {cs : ι → cube n},     -- given a finite collection of (hyper)cubes
+  2 ≤ cardinal.mk ι →                            -- containing at least two elements
+  pairwise (disjoint on (cube.to_set ∘ cs)) →    -- which is pairwise disjoint
+  (⋃(i : ι), (cs i).to_set) = unit_cube.to_set → -- whose union is the unit cube
+  injective (cube.w ∘ cs) →                      -- such that the widths of all cubes are different
+  false
+```
+* Author: Floris van Doorn
+* Link: https://github.com/fpvandoorn/mathlib/blob/92f6874c49674f04b175637335bb21cf206bb74a/src/cube.lean#L586
+<!--
 ## 83. The Friendship Theorem
 
 * Author:
@@ -478,12 +568,17 @@ lemma exists_subgroup_card_pow_prime  {G : Type u} [group G] [fintype G] {p : �
 
 * Author:
 * Link:
-
+-->
 ## 86. Lebesgue Measure and Integration
+```lean
+instance : measure_space ℝ
 
-* Author:
-* Link:
-
+def lintegral (f : α → ennreal) : ennreal :=
+⨆ (s : α →ₛ ennreal) (hf : f ≥ s), s.integral
+```
+* Author: Johannes Hölzl
+* Link: [measure](https://github.com/leanprover-community/mathlib/blob/f0f06ca1d07b441eda86342413b0088afb8aa875/src/measure_theory/lebesgue_measure.lean#L224) and [integral](https://github.com/leanprover-community/mathlib/blob/3461399615e4b2bee12f1bc5bbf0c337d669b7b5/src/measure_theory/integration.lean#L528)
+<!--
 ## 87. Desargues’s Theorem
 
 * Author:

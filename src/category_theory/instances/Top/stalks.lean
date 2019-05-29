@@ -2,8 +2,8 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Scott Morrison
 
-import category_theory.instances.Top.open_nhds
-import category_theory.instances.Top.presheaf
+import topology.Top.open_nhds
+import topology.Top.presheaf
 import category_theory.limits.limits
 
 universes v u v' u'

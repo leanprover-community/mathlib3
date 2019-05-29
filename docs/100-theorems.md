@@ -76,8 +76,8 @@ legendre_sym p q hq * legendre_sym q p hp = (-1) ^ ((p / 2) * (q / 2)) :=
 theorem exists_infinite_primes (n : ℕ) : ∃ p, p ≥ n ∧ prime p :=
 ```
 
-* Author: mathlib
-* Link: https://github.com/leanprover-community/mathlib/blob/master/src/data/nat/prime.lean#L231
+* Author: Jeremy Avigad
+* Link: https://github.com/leanprover-community/mathlib/blob/d935bc312fac7eca7ef08b16ca06079145b437f2/src/data/nat/prime.lean#L231
 
 <!--
 ## 12. The Independence of the Parallel Postulate
@@ -105,7 +105,7 @@ theorem exists_infinite_primes (n : ℕ) : ∃ p, p ≥ n ∧ prime p :=
 * Author:
 * Link: -->
 
-## 17. DeMoivre’s Theorem
+## 17. De Moivre’s Theorem
 ```lean
 theorem cos_add_sin_mul_I_pow (n : ℕ) (z : ℂ) :
   (cos z + sin z * I) ^ n = cos (↑n * z) + sin (↑n * z) * I
@@ -144,18 +144,25 @@ theorem cos_add_sin_mul_I_pow (n : ℕ) (z : ℂ) :
 * Link:
 -->
 
-<!-- In progres...
-## 24. The Undecidability of the Coninuum Hypothesis
+## 24. The Undecidability of the Continuum Hypothesis
 
+* **Partial progress**: The unprovability of the continuum hypothesis. Caveat: ZFC is extended with a limited number of function symbols in result.
+```lean
+theorem CH_f_unprovable : ¬ (ZFC' ⊢' CH_f)
+```
 * Author: Floris van Doorn and Jesse Michael Han
-* Link: https://flypitch.github.io/ (website) and https://github.com/flypitch/flypitch (code) -->
+* Link: https://flypitch.github.io/ (website) and https://github.com/flypitch/flypitch (code)
+
+
+## 25. Schroeder-Bernstein Theorem
+```lean
+theorem schroeder_bernstein {f : α → β} {g : β → α}
+  (hf : injective f) (hg : injective g) : ∃h:α→β, bijective h
+```
+* Author: Mario Carneiro
+* Link: https://github.com/leanprover-community/mathlib/blob/024da4095269392369f0d818be5f0ada9b173e18/src/set_theory/schroeder_bernstein.lean#L21
 
 <!--
-## 25. Schroeder-Bernstein Theorem
-
-* Author:
-* Link:
-
 ## 26. Leibnitz’s Series for Pi
 
 * Author:
@@ -396,8 +403,15 @@ theorem add_pow :
 
 ## 72. Sylow’s Theorem
 
+* **Partial progress**: Sylow's Theorem 1.
+```lean
+lemma exists_subgroup_card_pow_prime  {G : Type u} [group G] [fintype G] {p : ℕ} :
+  ∀ {n : ℕ} (hp : nat.prime p) (hdvd : p ^ n ∣ card G),
+  ∃ H : set G, is_subgroup H ∧ fintype.card H = p ^ n
+```
+
 * Author: Chris Hughes
-* Link: https://github.com/leanprover-community/mathlib/blob/master/src/group_theory/sylow.lean
+* Link: https://github.com/leanprover-community/mathlib/blob/d935bc312fac7eca7ef08b16ca06079145b437f2/src/group_theory/sylow.lean#L184
 
 <!--
 ## 73. Ascending or Descending Sequences

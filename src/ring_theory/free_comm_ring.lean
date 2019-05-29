@@ -101,16 +101,21 @@ lift $ of ∘ f
 
 end free_comm_ring
 
-instance free_ring_to_free_comm_ring (α) :
-  has_coe (free_ring α) (free_comm_ring α) :=
-⟨free_ring.lift free_comm_ring.of⟩
 
-namespace free_ring_to_free_comm_ring
+namespace free_ring
 open function
 variable (α)
 
-instance : is_ring_hom (coe : free_ring α → free_comm_ring α) :=
+def to_free_comm_ring {α} : free_ring α → free_comm_ring α :=
+free_ring.lift free_comm_ring.of
+
+instance to_free_comm_ring.is_ring_hom : is_ring_hom (@to_free_comm_ring α) :=
 free_ring.is_ring_hom free_comm_ring.of
+
+instance : has_coe (free_ring α) (free_comm_ring α) := ⟨to_free_comm_ring⟩
+
+instance coe.is_ring_hom : is_ring_hom (coe : free_ring α → free_comm_ring α) :=
+free_ring.to_free_comm_ring.is_ring_hom _
 
 @[simp] protected lemma coe_zero : ↑(0 : free_ring α) = (0 : free_comm_ring α) := rfl
 @[simp] protected lemma coe_one : ↑(1 : free_ring α) = (1 : free_comm_ring α) := rfl
@@ -130,7 +135,7 @@ free_ring.lift_mul _ _ _
 
 variable (α)
 
-protected lemma surjective : surjective (coe : free_ring α → free_comm_ring α) :=
+protected lemma coe_surjective : surjective (coe : free_ring α → free_comm_ring α) :=
 λ x,
 begin
   apply free_comm_ring.induction_on x,
@@ -158,7 +163,7 @@ begin
   refl
 end
 
-def subsingleton_equiv [subsingleton α] :
+def subsingleton_equiv_free_comm_ring [subsingleton α] :
   free_ring α ≃r free_comm_ring α :=
 { to_equiv := @functor.map_equiv _ _ free_abelian_group _ _ $ multiset.subsingleton_equiv α,
   hom :=
@@ -171,14 +176,14 @@ def subsingleton_equiv [subsingleton α] :
 
 instance [subsingleton α] : comm_ring (free_ring α) :=
 { mul_comm := λ x y,
-  by rw [← (subsingleton_equiv α).left_inv (y * x),
-        is_ring_hom.map_mul ((subsingleton_equiv α).to_equiv).to_fun,
+  by rw [← (subsingleton_equiv_free_comm_ring α).left_inv (y * x),
+        is_ring_hom.map_mul ((subsingleton_equiv_free_comm_ring α).to_equiv).to_fun,
         mul_comm,
-        ← is_ring_hom.map_mul ((subsingleton_equiv α).to_equiv).to_fun,
-        (subsingleton_equiv α).left_inv],
+        ← is_ring_hom.map_mul ((subsingleton_equiv_free_comm_ring α).to_equiv).to_fun,
+        (subsingleton_equiv_free_comm_ring α).left_inv],
   .. free_ring.ring α }
 
-end free_ring_to_free_comm_ring
+end free_ring
 
 variables [decidable_eq α]
 
@@ -234,10 +239,10 @@ ring_equiv.trans (free_comm_ring_equiv_mv_polynomial_int _) (mv_polynomial.pempt
 def free_comm_ring_punit_equiv_polynomial_int : free_comm_ring punit.{u+1} ≃r polynomial ℤ :=
 ring_equiv.trans (free_comm_ring_equiv_mv_polynomial_int _) (mv_polynomial.punit_ring_equiv _)
 
-open free_ring_to_free_comm_ring
+open free_ring
 
 def free_ring_pempty_equiv_int : free_ring pempty.{u+1} ≃r ℤ :=
-ring_equiv.trans (subsingleton_equiv _) free_comm_ring_pempty_equiv_int
+ring_equiv.trans (subsingleton_equiv_free_comm_ring _) free_comm_ring_pempty_equiv_int
 
 def free_ring_punit_equiv_polynomial_int : free_ring punit.{u+1} ≃r polynomial ℤ :=
-ring_equiv.trans (subsingleton_equiv _) free_comm_ring_punit_equiv_polynomial_int
+ring_equiv.trans (subsingleton_equiv_free_comm_ring _) free_comm_ring_punit_equiv_polynomial_int

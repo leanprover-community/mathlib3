@@ -19,16 +19,30 @@ def geom_series [semiring α] (x : α) (n : ℕ) :=
 theorem geom_series_def [semiring α] (x : α) (n : ℕ) :
   geom_series x n = (range n).sum (λ i, x ^ i) := rfl
 
+@[simp] theorem geom_series_zero [semiring α] (x : α) :
+  geom_series x 0 = 0 := rfl
+
+@[simp] theorem geom_series_one [semiring α] (x : α) :
+  geom_series x 1 = 1 :=
+by { rw [geom_series_def, sum_range_one, pow_zero] }
+
 def geom_series₂ [semiring α] (x y : α) (n : ℕ) :=
 (range n).sum (λ i, x ^ i * (y ^ (n - 1 - i)))
 
-theorem geom_series₂_with_one [semiring α] (x : α) (n : ℕ) :
+theorem geom_series₂_def [semiring α] (x y : α) (n : ℕ) :
+  geom_series₂ x y n = (range n).sum (λ i, x ^ i * y ^ (n - 1 - i)) := rfl
+
+@[simp] theorem geom_series₂_zero [semiring α] (x y : α) :
+  geom_series₂ x y 0 = 0 := rfl
+
+@[simp] theorem geom_series₂_one [semiring α] (x y : α) :
+  geom_series₂ x y 1 = 1 :=
+by { have : 1 - 1 - 0 = 0 := rfl,
+     rw [geom_series₂_def, sum_range_one, this, pow_zero, pow_zero, mul_one] }
+
+@[simp] theorem geom_series₂_with_one [semiring α] (x : α) (n : ℕ) :
   geom_series₂ x 1 n = geom_series x n :=
 sum_congr rfl (λ i _, by { rw [one_pow, mul_one] })
-
-theorem geom_series₂_zero [semiring α] (x y : α) :
-  geom_series₂ x y 0 = 0 :=
-by simp [geom_series₂]
 
 theorem geom_sum₂_mul_add_comm [semiring α] {x y : α} (h : commute x y) (n : ℕ) :
   (geom_series₂ (x + y) y n) * x + y ^ n = (x + y) ^ n :=
@@ -61,7 +75,7 @@ end
 
 theorem geom_sum₂_mul_add [comm_semiring α] (x y : α) (n : ℕ) :
   (geom_series₂ (x + y) y n) * x + y ^ n = (x + y) ^ n :=
-geom_sum₂_mul_add_comm (all_commute x y) n
+geom_sum₂_mul_add_comm (commute.all x y) n
 
 theorem geom_sum_mul_add [semiring α] (x : α) (n : ℕ) :
   (geom_series (x + 1) n) * x + 1 = (x + 1) ^ n :=
@@ -81,7 +95,7 @@ end
 
 theorem geom_sum₂_mul [comm_ring α] (x y : α) (n : ℕ) :
   (geom_series₂ x y n) * (x - y) = x ^ n - y ^ n :=
-geom_sum₂_mul_comm (all_commute x y) n
+geom_sum₂_mul_comm (commute.all x y) n
 
 theorem geom_sum_mul [ring α] (x : α) (n : ℕ) :
   (geom_series x n) * (x - 1) = x ^ n - 1 :=

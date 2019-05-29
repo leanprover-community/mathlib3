@@ -103,14 +103,17 @@ theorem exists_infinite_primes (n : ℕ) : ∃ p, p ≥ n ∧ prime p :=
 ## 16. Insolvability of General Higher Degree Equations
 
 * Author:
-* Link:
+* Link: -->
 
 ## 17. DeMoivre’s Theorem
+```lean
+theorem cos_add_sin_mul_I_pow (n : ℕ) (z : ℂ) :
+  (cos z + sin z * I) ^ n = cos (↑n * z) + sin (↑n * z) * I
+```
+* Author: mathlib
+* Link: https://github.com/leanprover-community/mathlib/blob/d4c7b7a6c26fed7f526234fa9c7f57eaf4f7b587/src/data/complex/exponential.lean#L678
 
-* Author:
-* Link:
-
-## 18. Liouville’s Theorem and the Construction of Trancendental Numbers
+<!-- ## 18. Liouville’s Theorem and the Construction of Trancendental Numbers
 
 * Author:
 * Link:
@@ -141,10 +144,11 @@ theorem exists_infinite_primes (n : ℕ) : ∃ p, p ≥ n ∧ prime p :=
 * Link:
 -->
 
+<!-- In progres...
 ## 24. The Undecidability of the Coninuum Hypothesis
 
 * Author: Floris van Doorn and Jesse Michael Han
-* Link: https://flypitch.github.io/ (website) and https://github.com/flypitch/flypitch (code)
+* Link: https://flypitch.github.io/ (website) and https://github.com/flypitch/flypitch (code) -->
 
 <!--
 ## 25. Schroeder-Bernstein Theorem
@@ -509,14 +513,20 @@ theorem add_pow :
 ## 95. Ptolemy’s Theorem
 
 * Author:
-* Link:
+* Link: -->
 
 ## 96. Principle of Inclusion/Exclusion
 
-* Author:
-* Link:
+```lean
+lemma inclusion_exclusion {A : Type u} [fintype A] [decidable_eq A]
+  {B : Type u} [fintype B] [decidable_eq B] (E : finset (A × B)) :
+ ((clear_rows E).card : ℤ) =
+  (@univ B _).powerset.sum (λ U, (card_sign U) * (card (col_inter E U)))
+```
+* Author: Neil Strickland
+* Link: https://github.com/NeilStrickland/lean_lib/blob/f88d162da2f990b87c4d34f5f46bbca2bbc5948e/src/combinatorics/matching.lean#L304
 
-## 97. Cramer’s Rule
+<!-- ## 97. Cramer’s Rule
 
 * Author:
 * Link:
@@ -536,5 +546,3 @@ theorem add_pow :
 * Author:
 * Link:
 -->
-
-

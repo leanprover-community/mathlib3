@@ -701,6 +701,12 @@ lemma exp_nat_mul (x : ℝ) : ∀ n : ℕ, exp(n*x) = (exp x)^n
 | 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]
 | (nat.succ n) := by rw [pow_succ', nat.cast_add_one, add_mul, exp_add, ←exp_nat_mul, one_mul]
 
+/-- de Moivre's theorem -/
+lemma exp_nat_mul (x : ℝ) : ∀ n : ℕ, exp(n*x) = (exp x)^n
+| 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]
+| (nat.succ n) := by rw [pow_succ', nat.cast_add_one, add_mul, exp_add, ←exp_nat_mul, one_mul]
+
+
 lemma exp_ne_zero : exp x ≠ 0 :=
 λ h, exp_ne_zero x $ by rw [exp, ← of_real_inj] at h; simp * at *
 

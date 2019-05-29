@@ -7,7 +7,6 @@ import tactic.basic
 import tactic.slice
 
 open category_theory
-open tactic
 
 universes v u
 
@@ -362,20 +361,20 @@ def tensor_unit_right : C ⥤ C :=
 def associator_nat_iso :
   left_assoc_tensor C ≅ right_assoc_tensor C :=
 nat_iso.of_components
-  (by intros; dsimp; apply monoidal_category.associator)
-  (by intros; dsimp; apply monoidal_category.associator_naturality)
+  (by { intros, dsimp, apply monoidal_category.associator })
+  (by { intros, dsimp, apply monoidal_category.associator_naturality })
 
 def left_unitor_nat_iso :
   tensor_unit_left C ≅ functor.id C :=
 nat_iso.of_components
-  (by intros; dsimp; apply monoidal_category.left_unitor)
-  (by intros; dsimp; apply monoidal_category.left_unitor_naturality)
+  (by { intros, dsimp, apply monoidal_category.left_unitor })
+  (by { intros, dsimp, apply monoidal_category.left_unitor_naturality })
 
 def right_unitor_nat_iso :
   tensor_unit_right C ≅ functor.id C :=
 nat_iso.of_components
-  (by intros; dsimp; apply monoidal_category.right_unitor)
-  (by intros; dsimp; apply monoidal_category.right_unitor_naturality)
+  (by { intros, dsimp, apply monoidal_category.right_unitor })
+  (by { intros, dsimp, apply monoidal_category.right_unitor_naturality })
 
 end
 

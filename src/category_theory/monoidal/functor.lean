@@ -4,7 +4,6 @@
 import category_theory.monoidal.category
 
 open category_theory
-open tactic
 
 universes v₁ v₂ v₃ u₁ u₂ u₃
 

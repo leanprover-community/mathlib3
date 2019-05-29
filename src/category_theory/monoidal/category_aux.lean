@@ -1,6 +1,10 @@
+/-
 -- Copyright (c) 2018 Michael Jendrusch. All rights reserved.
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Michael Jendrusch, Scott Morrison
+--
+-- Auxiliary definitions for the definition of a monoidal category.
+-/
 import category_theory.products
 
 universes v u

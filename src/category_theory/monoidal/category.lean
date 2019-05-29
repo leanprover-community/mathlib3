@@ -1,7 +1,7 @@
 -- Copyright (c) 2018 Michael Jendrusch. All rights reserved.
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Michael Jendrusch, Scott Morrison
-import category_theory.monoidal.tensor_product
+import category_theory.monoidal.category_aux
 import category_theory.natural_isomorphism
 import tactic.basic
 import tactic.slice
@@ -361,20 +361,20 @@ def tensor_unit_right : C ⥤ C :=
 def associator_nat_iso :
   left_assoc_tensor C ≅ right_assoc_tensor C :=
 nat_iso.of_components
-  (by { intros, dsimp, apply monoidal_category.associator })
-  (by { intros, dsimp, apply monoidal_category.associator_naturality })
+  (by { intros, apply monoidal_category.associator })
+  (by { intros, apply monoidal_category.associator_naturality })
 
 def left_unitor_nat_iso :
   tensor_unit_left C ≅ functor.id C :=
 nat_iso.of_components
-  (by { intros, dsimp, apply monoidal_category.left_unitor })
-  (by { intros, dsimp, apply monoidal_category.left_unitor_naturality })
+  (by { intros, apply monoidal_category.left_unitor })
+  (by { intros, apply monoidal_category.left_unitor_naturality })
 
 def right_unitor_nat_iso :
   tensor_unit_right C ≅ functor.id C :=
 nat_iso.of_components
-  (by { intros, dsimp, apply monoidal_category.right_unitor })
-  (by { intros, dsimp, apply monoidal_category.right_unitor_naturality })
+  (by { intros, apply monoidal_category.right_unitor })
+  (by { intros, apply monoidal_category.right_unitor_naturality })
 
 end
 

@@ -1,0 +1,38 @@
+pull_request_rules:
+  - name: automatic merge on CI success and review - pr
+    conditions:
+      - status-success=continuous-integration/travis-ci/pr
+      - "#changes-requested-reviews-by=0"
+      - base=master
+      - label=ready-to-merge
+      - approved-reviews-by=@leanprover-community/mathlib-maintainers
+    actions:
+     delete_head_branch: {}
+     merge:
+        method: squash
+        strict: smart
+        strict_method: merge
+ # second condition necessary, as mergify was failing if the travis "pr" build
+ # finished before the travis "push" build due to branch protection setting requiring
+ # the "push" build to complete before a merge
+  - name: automatic merge on CI success and review - push
+    conditions:
+      - status-success=continuous-integration/travis-ci/push
+      - status-success=continuous-integration/travis-ci/pr
+      - "#changes-requested-reviews-by=0"
+      - base=master
+      - label=ready-to-merge
+      - approved-reviews-by=@leanprover-community/mathlib-maintainers
+    actions:
+     delete_head_branch: {}
+     merge:
+        method: squash
+        strict: smart
+        strict_method: merge
+  
+  - name: remove outdated reviews
+    conditions:
+      - base=master
+    actions:
+      dismiss_reviews:
+        approved: True

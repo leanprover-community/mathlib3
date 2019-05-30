@@ -6,7 +6,9 @@ Authors: Chris Hughes
 Definition of splitting fields, and definition of homomorphism into any field that splits
 -/
 
-import ring_theory.adjoin_root ring_theory.unique_factorization_domain
+import ring_theory.unique_factorization_domain
+import data.polynomial ring_theory.principal_ideal_domain
+       algebra.euclidean_domain
 
 universes u v w
 
@@ -17,7 +19,7 @@ namespace polynomial
 noncomputable theory
 local attribute [instance, priority 0] classical.prop_decidable
 variables [discrete_field α] [discrete_field β] [discrete_field γ]
-open polynomial adjoin_root
+open polynomial
 
 section splits
 
@@ -62,7 +64,7 @@ end
 lemma splits_mul {f g : polynomial α} (hf : splits i f) (hg : splits i g) : splits i (f * g) :=
 if h : f * g = 0 then by simp [h]
 else or.inr $ λ p hp hpf, ((principal_ideal_domain.irreducible_iff_prime.1 hp).2.2 _ _
-    (show p ∣ map i f * map i g, by convert hpf; rw map_mul)).elim
+    (show p ∣ map i f * map i g, by convert hpf; rw polynomial.map_mul)).elim
   (hf.resolve_left (λ hf, by simpa [hf] using h) hp)
   (hg.resolve_left (λ hg, by simpa [hg] using h) hp)
 
@@ -98,7 +100,7 @@ is_noetherian_ring.irreducible_induction_on (f.map i)
     by conv_lhs { rw eq_C_of_degree_eq_zero (is_unit_iff_degree_eq_zero.1 hu) };
       simp [leading_coeff, nat_degree_eq_of_degree_eq_some (is_unit_iff_degree_eq_zero.1 hu)]⟩)
   (λ f p hf0 hp ih hfs,
-    have hpf0 : p * f ≠ 0, from mul_ne_zero (nonzero_of_irreducible hp) hf0,
+    have hpf0 : p * f ≠ 0, from mul_ne_zero (ne_zero_of_irreducible hp) hf0,
     let ⟨s, hs⟩ := ih (splits_of_splits_mul _ hpf0 hfs).2 in
     ⟨-(p * norm_unit p).coeff 0 :: s,
       have hp1 : degree p = 1, from hfs.resolve_left hpf0 hp (by simp),
@@ -106,10 +108,10 @@ is_noetherian_ring.irreducible_induction_on (f.map i)
         rw [multiset.map_cons, multiset.prod_cons, leading_coeff_mul, C_mul, mul_assoc,
           mul_left_comm (C f.leading_coeff), ← hs, ← mul_assoc, domain.mul_right_inj hf0],
         conv_lhs {rw eq_X_add_C_of_degree_eq_one hp1},
-        simp only [mul_add, coe_norm_unit (nonzero_of_irreducible hp), mul_comm p, coeff_neg,
+        simp only [mul_add, coe_norm_unit (ne_zero_of_irreducible hp), mul_comm p, coeff_neg,
           C_neg, sub_eq_add_neg, neg_neg, coeff_C_mul, (mul_assoc _ _ _).symm, C_mul.symm,
           mul_inv_cancel (show p.leading_coeff ≠ 0, from mt leading_coeff_eq_zero.1
-            (nonzero_of_irreducible hp)), one_mul],
+            (ne_zero_of_irreducible hp)), one_mul],
       end⟩)
 
 section UFD

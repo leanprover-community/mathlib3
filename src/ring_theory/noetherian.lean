@@ -24,6 +24,43 @@ theorem fg_def {s : submodule α β} :
   exact ⟨t, rfl⟩
 end⟩
 
+/-- Nakayama's Lemma. Atiyah-Macdonald 2.5, Eisenbud 4.7, Matsumura 2.2, Stacks 00DV -/
+theorem exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul {R : Type*} [comm_ring R]
+  {M : Type*} [add_comm_group M] [module R M]
+  (I : ideal R) (N : submodule R M) (hn : N.fg) (hin : N ≤ I • N) :
+  ∃ r : R, r - 1 ∈ I ∧ ∀ n ∈ N, r • n = (0 : M) :=
+begin
+  rw fg_def at hn, rcases hn with ⟨s, hfs, hs⟩,
+  have : ∃ r : R, r - 1 ∈ I ∧ N ≤ (I • span R s).comap (linear_map.lsmul R M r) ∧ s ⊆ N,
+  { refine ⟨1, _, _, _⟩,
+    { rw sub_self, exact I.zero_mem },
+    { rw [hs], intros n hn, rw [mem_coe, mem_comap], change (1:R) • n ∈ I • N, rw one_smul, exact hin hn },
+    { rw [← span_le, hs], exact le_refl N } },
+  clear hin hs, revert this,
+  refine set.finite.dinduction_on hfs (λ H, _) (λ i s his hfs ih H, _),
+  { rcases H with ⟨r, hr1, hrn, hs⟩, refine ⟨r, hr1, λ n hn, _⟩, specialize hrn hn,
+    rwa [mem_coe, mem_comap, span_empty, smul_bot, mem_bot] at hrn },
+  apply ih, rcases H with ⟨r, hr1, hrn, hs⟩,
+  rw [← set.singleton_union, span_union, smul_sup] at hrn,
+  rw [set.insert_subset] at hs,
+  have : ∃ c : R, c - 1 ∈ I ∧ c • i ∈ I • span R s,
+  { specialize hrn hs.1, rw [mem_coe, mem_comap, mem_sup] at hrn,
+    rcases hrn with ⟨y, hy, z, hz, hyz⟩, change y + z = r • i at hyz,
+    rw mem_smul_span_singleton at hy, rcases hy with ⟨c, hci, rfl⟩,
+    use r-c, split,
+    { rw [sub_right_comm], exact I.sub_mem hr1 hci },
+    { rw [sub_smul, ← hyz, add_sub_cancel'], exact hz } },
+  rcases this with ⟨c, hc1, hci⟩, refine ⟨c * r, _, _, hs.2⟩,
+  { rw [← ideal.quotient.eq, ideal.quotient.mk_one] at hr1 hc1 ⊢,
+    rw [ideal.quotient.mk_mul, hc1, hr1, mul_one] },
+  { intros n hn, specialize hrn hn, rw [mem_coe, mem_comap, mem_sup] at hrn,
+    rcases hrn with ⟨y, hy, z, hz, hyz⟩, change y + z = r • n at hyz,
+    rw mem_smul_span_singleton at hy, rcases hy with ⟨d, hdi, rfl⟩,
+    change _ • _ ∈ I • span R s,
+    rw [mul_smul, ← hyz, smul_add, smul_smul, mul_comm, mul_smul],
+    exact add_mem _ (smul_mem _ _ hci) (smul_mem _ _ hz) }
+end
+
 theorem fg_bot : (⊥ : submodule α β).fg :=
 ⟨∅, by rw [finset.coe_empty, span_empty]⟩
 
@@ -207,7 +244,7 @@ theorem is_noetherian_iff_well_founded
   resetI,
   rcases submodule.fg_def.1 (noetherian M) with ⟨t, h₁, h₂⟩,
   have hN' : ∀ {a b}, a ≤ b → N a ≤ N b :=
-    λ a b, (le_iff_le_of_strict_mono N (λ _ _, hN.1)).2,
+    λ a b, (strict_mono.le_iff_le (λ _ _, hN.1)).2,
   have : t ⊆ ⋃ i, (N i : set β),
   { rw [← submodule.Union_coe_of_directed _ N _],
     { show t ⊆ M, rw ← h₂,
@@ -330,7 +367,7 @@ instance is_noetherian_ring_range {R} [comm_ring R] {S} [comm_ring S] (f : R →
 
 theorem is_noetherian_ring_of_ring_equiv (R) [comm_ring R] {S} [comm_ring S]
   (f : R ≃r S) [is_noetherian_ring R] : is_noetherian_ring S :=
-is_noetherian_ring_of_surjective R S f.1 f.1.bijective.2
+is_noetherian_ring_of_surjective R S f.1 f.1.surjective
 
 namespace is_noetherian_ring
 
@@ -381,3 +418,15 @@ is_noetherian_ring.irreducible_induction_on a
         exact associated_mul_mul (by refl) hs.2⟩⟩)
 
 end is_noetherian_ring
+
+namespace submodule
+variables {R : Type*} {A : Type*} [comm_ring R] [ring A] [algebra R A]
+variables (M N : submodule R A)
+
+local attribute [instance] set.pointwise_mul_semiring
+
+theorem fg_mul (hm : M.fg) (hn : N.fg) : (M * N).fg :=
+let ⟨m, hfm, hm⟩ := fg_def.1 hm, ⟨n, hfn, hn⟩ := fg_def.1 hn in
+fg_def.2 ⟨m * n, set.pointwise_mul_finite hfm hfn, span_mul_span R m n ▸ hm ▸ hn ▸ rfl⟩
+
+end submodule

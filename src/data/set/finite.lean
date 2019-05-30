@@ -5,8 +5,8 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Finite sets.
 -/
-import data.set.lattice data.nat.basic logic.function
-       data.fintype
+import logic.function
+import data.nat.basic data.fintype data.set.lattice data.set.function
 
 open set lattice function
 
@@ -54,6 +54,12 @@ noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=
 
 @[simp] theorem finite.mem_to_finset {s : set α} {h : finite s} {a : α} : a ∈ h.to_finset ↔ a ∈ s :=
 @mem_to_finset _ _ (finite.fintype h) _
+
+lemma finite.coe_to_finset {α} {s : set α} (h : finite s) : ↑h.to_finset = s :=
+by { ext, apply mem_to_finset }
+
+lemma exists_finset_of_finite {s : set α} (h : finite s) : ∃(s' : finset α), ↑s' = s :=
+⟨h.to_finset, h.coe_to_finset⟩
 
 theorem finite.exists_finset {s : set α} : finite s →
   ∃ s' : finset α, ∀ a : α, a ∈ s' ↔ a ∈ s
@@ -219,10 +225,18 @@ begin
   simp [I _, (injective_of_partial_inv I).eq_iff]
 end
 
-theorem finite_of_finite_image {s : set α} {f : α → β}
-  (I : injective f) : finite (f '' s) → finite s | ⟨hs⟩ :=
-by haveI := classical.dec_eq β; exact
-⟨fintype_of_fintype_image _ (partial_inv_of_injective I)⟩
+theorem finite_of_finite_image_on {s : set α} {f : α → β} (hi : set.inj_on f s) :
+  finite (f '' s) → finite s | ⟨h⟩ :=
+⟨@fintype.of_injective _ _ h (λa:s, ⟨f a.1, mem_image_of_mem f a.2⟩) $
+  assume a b eq, subtype.eq $ hi a.2 b.2 $ subtype.ext.1 eq⟩
+
+theorem finite_image_iff_on {s : set α} {f : α → β} (hi : inj_on f s) :
+  finite (f '' s) ↔ finite s :=
+⟨finite_of_finite_image_on hi, finite_image _⟩
+
+theorem finite_of_finite_image {s : set α} {f : α → β} (I : injective f) :
+  finite (f '' s) → finite s :=
+finite_of_finite_image_on (assume _ _ _ _ eq, I eq)
 
 theorem finite_preimage {s : set β} {f : α → β}
   (I : injective f) (h : finite s) : finite (f ⁻¹' s) :=
@@ -252,6 +266,10 @@ theorem finite_bUnion {α} {ι : Type*} {s : set ι} {f : ι → set α} :
   finite s → (∀i, finite (f i)) → finite (⋃ i∈s, f i)
 | ⟨hs⟩ h := by rw [bUnion_eq_Union]; exactI finite_Union (λ i, h _)
 
+theorem finite_bUnion' {α} {ι : Type*} {s : set ι} (f : ι → set α) :
+  finite s → (∀i ∈ s, finite (f i)) → finite (⋃ i∈s, f i)
+| ⟨hs⟩ h := by { rw [bUnion_eq_Union], exactI finite_Union (λ i, h i.1 i.2) }
+
 instance fintype_lt_nat (n : ℕ) : fintype {i | i < n} :=
 fintype_of_finset (finset.range n) $ by simp
 
@@ -259,6 +277,8 @@ instance fintype_le_nat (n : ℕ) : fintype {i | i ≤ n} :=
 by simpa [nat.lt_succ_iff] using set.fintype_lt_nat (n+1)
 
 lemma finite_le_nat (n : ℕ) : finite {i | i ≤ n} := ⟨set.fintype_le_nat _⟩
+
+lemma finite_lt_nat (n : ℕ) : finite {i | i < n} := ⟨set.fintype_lt_nat _⟩
 
 instance fintype_prod (s : set α) (t : set β) [fintype s] [fintype t] : fintype (set.prod s t) :=
 fintype_of_finset (s.to_finset.product t.to_finset) $ by simp
@@ -278,14 +298,14 @@ theorem finite_bind {α β} {s : set α} {f : α → set β} :
   finite s → (∀ a ∈ s, finite (f a)) → finite (s >>= f)
 | ⟨hs⟩ H := ⟨@fintype_bind _ _ (classical.dec_eq β) _ hs _ (λ a ha, (H a ha).fintype)⟩
 
-def fintype_seq {α β : Type u} [decidable_eq β]
+instance fintype_seq {α β : Type u} [decidable_eq β]
   (f : set (α → β)) (s : set α) [fintype f] [fintype s] :
   fintype (f <*> s) :=
 by rw seq_eq_bind_map; apply set.fintype_bind'
 
 theorem finite_seq {α β : Type u} {f : set (α → β)} {s : set α} :
   finite f → finite s → finite (f <*> s)
-| ⟨hf⟩ ⟨hs⟩ := by haveI := classical.dec_eq β; exactI ⟨fintype_seq _ _⟩
+| ⟨hf⟩ ⟨hs⟩ := by { haveI := classical.dec_eq β, exactI ⟨set.fintype_seq _ _⟩ }
 
 /-- There are finitely many subsets of a given finite set -/
 lemma finite_subsets_of_finite {α : Type u} {a : set α} (h : finite a) : finite {b | b ⊆ a} :=
@@ -386,5 +406,26 @@ lemma card_range_of_injective [fintype α] {f : α → β} (hf : injective f)
   [fintype (range f)] : fintype.card (range f) = fintype.card α :=
 eq.symm $ fintype.card_congr (@equiv.of_bijective  _ _ (λ a : α, show range f, from ⟨f a, a, rfl⟩)
   ⟨λ x y h, hf $ subtype.mk.inj h, λ b, let ⟨a, ha⟩ := b.2 in ⟨a, by simp *⟩⟩)
+
+lemma finite.exists_maximal_wrt [partial_order β]
+  (f : α → β) (s : set α) (h : set.finite s) : s ≠ ∅ → ∃a∈s, ∀a'∈s, f a ≤ f a' → f a = f a' :=
+begin
+  classical,
+  refine h.induction_on _ _,
+  { assume h, contradiction },
+  assume a s his _ ih _,
+  by_cases s = ∅,
+  { use a, simp [h] },
+  rcases ih h with ⟨b, hb, ih⟩,
+  by_cases f b ≤ f a,
+  { refine ⟨a, set.mem_insert _ _, assume c hc hac, le_antisymm hac _⟩,
+    rcases set.mem_insert_iff.1 hc with rfl | hcs,
+    { refl },
+    { rwa [← ih c hcs (le_trans h hac)] } },
+  { refine ⟨b, set.mem_insert_of_mem _ hb, assume c hc hbc, _⟩,
+    rcases set.mem_insert_iff.1 hc with rfl | hcs,
+    { exact (h hbc).elim },
+    { exact ih c hcs hbc } }
+end
 
 end set

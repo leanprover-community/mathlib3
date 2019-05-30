@@ -6,8 +6,8 @@ Authors: Kenny Lau
 Algebra over Commutative Ring (under category)
 -/
 
-import data.polynomial
-import linear_algebra.multivariate_polynomial
+import data.polynomial data.mv_polynomial
+import data.complex.basic
 import linear_algebra.tensor_product
 import ring_theory.subring
 
@@ -128,7 +128,7 @@ linear_map.mk₂ R (*)
   (λ x y z, mul_add x y z)
   (λ c x y, by rw [smul_def, smul_def, left_comm])
 
-set_option class.instance_max_depth 37
+set_option class.instance_max_depth 39
 def lmul_left (r : A) : A →ₗ A :=
 lmul R A r
 
@@ -205,11 +205,17 @@ protected def id : A →ₐ[R] A :=
 { to_fun := id, commutes' := λ _, rfl }
 variables {R A}
 
+@[simp] lemma id_to_linear_map :
+  (alg_hom.id R A).to_linear_map = @linear_map.id R A _ _ _ := rfl
+
 @[simp] lemma id_apply (p : A) : alg_hom.id R A p = p := rfl
 
 def comp (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) : A →ₐ C :=
 { to_fun := φ₁ ∘ φ₂,
   commutes' := λ r, by rw [function.comp_apply, φ₂.commutes, φ₁.commutes] }
+
+@[simp] lemma comp_to_linear_map (f : A →ₐ[R] B) (g : B →ₐ[R] C) :
+  (g.comp f).to_linear_map = g.to_linear_map.comp f.to_linear_map := rfl
 
 @[simp] lemma comp_apply (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) (p : A) :
   φ₁.comp φ₂ p = φ₁ (φ₂ p) := rfl
@@ -242,6 +248,8 @@ instance comap.comm_ring (R : Type u) (S : Type v) (A : Type w)
   comm_ring (comap R S A) := _inst_8
 instance comap.module : module S (comap R S A) := _inst_5.to_module
 instance comap.has_scalar : has_scalar S (comap R S A) := _inst_5.to_module.to_has_scalar
+
+set_option class.instance_max_depth 40
 
 /-- R ⟶ S induces S-Alg ⥤ R-Alg -/
 instance comap.algebra : algebra R (comap R S A) :=
@@ -343,6 +351,15 @@ end
 
 end mv_polynomial
 
+namespace complex
+
+instance algebra_over_reals : algebra ℝ ℂ :=
+algebra.of_ring_hom coe $ by constructor; intros; simp [one_re]
+
+instance : has_scalar ℝ ℂ := { smul := λ r c, ↑r * c}
+
+end complex
+
 structure subalgebra (R : Type u) (A : Type v)
   [comm_ring R] [ring A] [algebra R A] : Type v :=
 (carrier : set A) [subring : is_subring carrier]
@@ -380,12 +397,12 @@ instance (R : Type u) (A : Type v) [comm_ring R] [comm_ring A]
 instance algebra : algebra R S :=
 { smul := λ (c:R) x, ⟨c • x.1,
     by rw algebra.smul_def; exact @@is_submonoid.mul_mem _ S.2.2 (S.3 ⟨c, rfl⟩) x.2⟩,
-  smul_add := λ c x y, subtype.eq $ by apply _inst_3.1.1.2,
-  add_smul := λ c x y, subtype.eq $ by apply _inst_3.1.1.3,
-  mul_smul := λ c x y, subtype.eq $ by apply _inst_3.1.1.4,
-  one_smul := λ x, subtype.eq $ by apply _inst_3.1.1.5,
-  zero_smul := λ x, subtype.eq $ by apply _inst_3.1.1.6,
-  smul_zero := λ x, subtype.eq $ by apply _inst_3.1.1.7,
+  smul_add := λ c x y, subtype.eq $ smul_add _ _ _,
+  add_smul := λ c x y, subtype.eq $ add_smul _ _ _,
+  mul_smul := λ c x y, subtype.eq $ mul_smul _ _ _,
+  one_smul := λ x, subtype.eq $ one_smul _ _,
+  zero_smul := λ x, subtype.eq $ zero_smul _ _,
+  smul_zero := λ x, subtype.eq $ smul_zero _,
   to_fun := λ r, ⟨algebra_map A r, S.range_le ⟨r, rfl⟩⟩,
   hom := ⟨subtype.eq $ algebra.map_one R A, λ x y, subtype.eq $ algebra.map_mul A x y,
     λ x y, subtype.eq $ algebra.map_add A x y⟩,
@@ -407,7 +424,10 @@ def to_submodule : submodule R A :=
   add := λ x y hx hy, (⟨x, hx⟩ + ⟨y, hy⟩ : S).2,
   smul := λ c x hx, (algebra.smul_def c x).symm ▸ (⟨algebra_map A c, S.range_le ⟨c, rfl⟩⟩ * ⟨x, hx⟩:S).2 }
 
-instance to_submodule.is_subring : is_subring (S.to_submodule : set A) := S.2
+instance coe_to_submodule : has_coe (subalgebra R A) (submodule R A) :=
+⟨to_submodule⟩
+
+instance to_submodule.is_subring : is_subring ((S : submodule R A) : set A) := S.2
 
 instance : partial_order (subalgebra R A) :=
 { le := λ S T, S.carrier ≤ T.carrier,
@@ -421,6 +441,8 @@ def comap {R : Type u} {S : Type v} {A : Type w}
 { carrier := (iSB : set A),
   subring := iSB.is_subring,
   range_le := λ a ⟨r, hr⟩, hr ▸ iSB.range_le ⟨_, rfl⟩ }
+
+set_option class.instance_max_depth 48
 
 def under {R : Type u} {A : Type v} [comm_ring R] [comm_ring A]
   {i : algebra R A} (S : subalgebra R A)

@@ -41,6 +41,30 @@ lemma euler_criterion {a : zmodp p hp} (ha : a ≠ 0) :
 λ h, let ⟨y, hy⟩ := (euler_criterion_units hp).2 (show units.mk0 _ ha ^ (p / 2) = 1, by simpa [units.ext_iff]) in
   ⟨y, by simpa [units.ext_iff] using hy⟩⟩
 
+lemma exists_pow_two_eq_neg_one_iff_mod_four_ne_three :
+  (∃ y : zmodp p hp, y ^ 2 = -1) ↔ p % 4 ≠ 3 :=
+have (-1 : zmodp p hp) ≠ 0, from mt neg_eq_zero.1 one_ne_zero,
+hp.eq_two_or_odd.elim (λ hp, by subst hp; exact dec_trivial)
+  (λ hp1, (mod_two_eq_zero_or_one (p / 2)).elim
+    (λ hp2, begin
+      rw [euler_criterion hp this, neg_one_pow_eq_pow_mod_two, hp2, _root_.pow_zero,
+        eq_self_iff_true, true_iff],
+      assume h,
+      rw [← nat.mod_mul_right_div_self, show 2 * 2 = 4, from rfl, h] at hp2,
+      exact absurd hp2 dec_trivial,
+    end)
+    (λ hp2, begin
+      rw [euler_criterion hp this, neg_one_pow_eq_pow_mod_two, hp2, _root_.pow_one,
+        iff_false_intro (zmodp.ne_neg_self hp hp1 one_ne_zero).symm, false_iff,
+        not_not],
+      rw [← nat.mod_mul_right_div_self, show 2 * 2 = 4, from rfl] at hp2,
+      rw [← nat.mod_mul_left_mod _ 2, show 2 * 2 = 4, from rfl] at hp1,
+      have hp4 : p % 4 < 4, from nat.mod_lt _ dec_trivial,
+      revert hp1 hp2, revert hp4,
+      generalize : p % 4 = k,
+      revert k, exact dec_trivial
+    end))
+
 lemma pow_div_two_eq_neg_one_or_one {a : zmodp p hp} (ha : a ≠ 0) : a ^ (p / 2) = 1 ∨ a ^ (p / 2) = -1 :=
 hp.eq_two_or_odd.elim
   (λ h, by revert a ha; subst h; exact dec_trivial)
@@ -510,7 +534,7 @@ begin
   cc
 end
 
-lemma is_square_iff_is_square_of_mod_four_eq_one (hp1 : p % 4 = 1) (hq1 : q % 2 = 1) :
+lemma exists_pow_two_eq_prime_iff_of_mod_four_eq_one (hp1 : p % 4 = 1) (hq1 : q % 2 = 1) :
   (∃ a : zmodp p hp, a ^ 2 = q) ↔ ∃ b : zmodp q hq, b ^ 2 = p :=
 if hpq : p = q then by subst hpq else
 have h1 : ((p / 2) * (q / 2)) % 2 = 0,
@@ -525,8 +549,8 @@ begin
   split_ifs at this; simp *; contradiction
 end
 
-lemma is_square_iff_is_not_square_of_mod_four_eq_three (hp3 : p % 4 = 3) (hq3 : q % 4 = 3)
-  (hpq : p ≠ q) : (∃ a : zmodp p hp, a ^ 2 = q) ↔ ¬∃ b : zmodp q hq, b ^ 2 = p :=
+lemma exists_pow_two_eq_prime_iff_of_mod_four_eq_three (hp3 : p % 4 = 3)
+  (hq3 : q % 4 = 3) (hpq : p ≠ q) : (∃ a : zmodp p hp, a ^ 2 = q) ↔ ¬∃ b : zmodp q hq, b ^ 2 = p :=
 have h1 : ((p / 2) * (q / 2)) % 2 = 1,
   from nat.odd_mul_odd
     (by rw [← mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hp3]; refl)

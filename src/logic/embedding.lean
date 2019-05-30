@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Injective functions.
 -/
-import data.equiv.basic data.option.basic
+import data.equiv.basic data.option.basic data.subtype
 
 universes u v w x
 
@@ -22,13 +22,19 @@ instance {α : Sort u} {β : Sort v} : has_coe_to_fun (α ↪ β) := ⟨_, embed
 end function
 
 protected def equiv.to_embedding {α : Sort u} {β : Sort v} (f : α ≃ β) : α ↪ β :=
-⟨f, f.bijective.1⟩
+⟨f, f.injective⟩
 
 @[simp] theorem equiv.to_embedding_coe_fn {α : Sort u} {β : Sort v} (f : α ≃ β) :
   (f.to_embedding : α → β) = f := rfl
 
 namespace function
 namespace embedding
+
+@[extensionality] lemma ext {α β} {f g : embedding α β} (h : ∀ x, f x = g x) : f = g :=
+by cases f; cases g; simpa using funext h
+
+lemma ext_iff {α β} {f g : embedding α β} : (∀ x, f x = g x) ↔ f = g :=
+⟨ext, λ h _, by rw h⟩
 
 @[simp] theorem to_fun_eq_coe {α β} (f : α ↪ β) : to_fun f = f := rfl
 
@@ -154,6 +160,14 @@ let f' : (α → γ) → (β → γ) := λf b, if h : ∃c, e c = b then f (clas
   have eq_b : classical.some this = c, from e.inj $ classical.some_spec this,
   by simp [f', this, if_pos, eq_b] at eq'; assumption⟩
 
+protected def subtype_map {α β} {p : α → Prop} {q : β → Prop} (f : α ↪ β)
+  (h : ∀{{x}}, p x → q (f x)) : {x : α // p x} ↪ {y : β // q y} :=
+⟨subtype.map f h, subtype.map_injective h f.2⟩
+
+open set
+protected def image {α β} (f : α ↪ β) : set α ↪ set β :=
+⟨image f, injective_image f.2⟩
+
 end embedding
 end function
 
@@ -162,5 +176,6 @@ namespace set
 /-- The injection map is an embedding between subsets. -/
 def embedding_of_subset {α} {s t : set α} (h : s ⊆ t) : s ↪ t :=
 ⟨λ x, ⟨x.1, h x.2⟩, λ ⟨x, hx⟩ ⟨y, hy⟩ h, by congr; injection h⟩
+
 
 end set

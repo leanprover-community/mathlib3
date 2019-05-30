@@ -5,15 +5,7 @@ Authors: Johan Commelin
 
 Nonnegative real numbers.
 -/
-import data.real.basic order.lattice
-
-section discrete_field
-
-@[simp] lemma inv_eq_zero {α} [discrete_field α] (a : α) : a⁻¹ = 0 ↔ a = 0 :=
-classical.by_cases (assume : a = 0, by simp [*])(assume : a ≠ 0, by simp [*, inv_ne_zero])
-
-end discrete_field
-
+import data.real.basic order.lattice algebra.field
 
 noncomputable theory
 open lattice
@@ -89,7 +81,7 @@ lemma smul_coe (r : ℝ≥0) : ∀n, ↑(add_monoid.smul n r) = add_monoid.smul 
 | (n + 1) := by simp [coe_nat_cast n]
 
 instance : decidable_linear_order ℝ≥0 :=
-decidable_linear_order.lift (coe : ℝ≥0 → ℝ) subtype.val_injective
+decidable_linear_order.lift (coe : ℝ≥0 → ℝ) subtype.val_injective (by apply_instance)
 
 protected lemma coe_le {r₁ r₂ : ℝ≥0} : r₁ ≤ r₂ ↔ (r₁ : ℝ) ≤ r₂ := iff.rfl
 protected lemma coe_lt {r₁ r₂ : ℝ≥0} : r₁ < r₂ ↔ (r₁ : ℝ) < r₂ := iff.rfl

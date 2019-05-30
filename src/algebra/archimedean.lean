@@ -5,7 +5,8 @@ Authors: Mario Carneiro
 
 Archimedean groups and fields.
 -/
-import algebra.group_power data.rat tactic.linarith tactic.abel
+import algebra.group_power algebra.field_power
+import data.rat tactic.linarith tactic.abel
 
 local infix ` • ` := add_monoid.smul
 
@@ -215,6 +216,17 @@ let ⟨n, h⟩ := archimedean.arch x hy0 in
        ... < 1 + n • (y - 1) : by rw add_comm; exact lt_add_one _
        ... ≤ y ^ n           : pow_ge_one_add_sub_mul (le_of_lt hy1) _⟩
 
+lemma exists_nat_pow_near {x : α} {y : α} (hx : 1 < x) (hy : 1 < y) :
+  ∃ n : ℕ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
+have h : ∃ n : ℕ, x < y ^ n, from pow_unbounded_of_gt_one _ hy,
+by classical; exact let n := nat.find h in
+  have hn  : x < y ^ n, from nat.find_spec h,
+  have hnp : 0 < n,     from nat.pos_iff_ne_zero.2 (λ hn0,
+    by rw [hn0, pow_zero] at hn; exact (not_lt_of_gt hn hx)),
+  have hnsp : nat.pred n + 1 = n,     from nat.succ_pred_eq_of_pos hnp,
+  have hltn : nat.pred n < n,         from nat.pred_lt (ne_of_gt hnp),
+  ⟨nat.pred n, le_of_not_lt (nat.find_min h hltn), by rwa hnsp⟩
+
 theorem exists_int_gt (x : α) : ∃ n : ℤ, x < n :=
 let ⟨n, h⟩ := exists_nat_gt x in ⟨n, by rwa ← coe_coe⟩
 
@@ -238,6 +250,21 @@ end
 end linear_ordered_ring
 
 section linear_ordered_field
+
+lemma exists_int_pow_near [discrete_linear_ordered_field α] [archimedean α]
+  {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
+  ∃ n : ℤ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
+by classical; exact
+let ⟨N, hN⟩ := pow_unbounded_of_gt_one x⁻¹ hy in
+  have he: ∃ m : ℤ, y ^ m ≤ x, from
+    ⟨-N, le_of_lt (by rw [(fpow_neg y (↑N)), one_div_eq_inv];
+    exact (inv_lt hx (lt_trans (inv_pos hx) hN)).1 hN)⟩,
+let ⟨M, hM⟩ := pow_unbounded_of_gt_one x hy in
+  have hb: ∃ b : ℤ, ∀ m, y ^ m ≤ x → m ≤ b, from
+    ⟨M, λ m hm, le_of_not_lt (λ hlt, not_lt_of_ge
+  (fpow_le_of_le (le_of_lt hy) (le_of_lt hlt)) (lt_of_le_of_lt hm hM))⟩,
+let ⟨n, hn₁, hn₂⟩ := int.exists_greatest_of_bdd hb he in
+  ⟨n, hn₁, lt_of_not_ge (λ hge, not_le_of_gt (int.lt_succ _) (hn₂ _ hge))⟩
 
 variables [linear_ordered_field α] [floor_ring α]
 

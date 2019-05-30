@@ -1,11 +1,11 @@
 /-
 Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jeremy Avigad, Leonardo de Moura
+Authors: Jeremy Avigad, Leonardo de Moura, Michael Howes
 
 Various multiplicative and additive structures.
 -/
-import tactic.interactive data.option.defs
+import tactic.basic data.option.defs
 
 section pending_1857
 
@@ -365,6 +365,15 @@ instance [add_comm_monoid α] : comm_monoid (multiplicative α) :=
 { mul_comm := @add_comm α _,
   ..multiplicative.monoid }
 
+section comm_semigroup
+  variables [comm_semigroup α] {a b c d : α}
+
+  @[to_additive add_add_add_comm]
+  theorem mul_mul_mul_comm : (a * b) * (c * d) = (a * c) * (b * d) :=
+  by simp [mul_left_comm, mul_assoc]
+
+end comm_semigroup
+
 instance [group α] : add_group (additive α) :=
 { neg := @has_inv.inv α _,
   add_left_neg := @mul_left_inv _ _,
@@ -554,8 +563,17 @@ section add_comm_group
   lemma sub_right_comm (a b c : α) : a - b - c = a - c - b :=
   add_right_comm _ _ _
 
+  lemma add_add_sub_cancel (a b c : α) : (a + c) + (b - c) = a + b :=
+  by rw [add_assoc, add_sub_cancel'_right]
+
+  lemma sub_add_add_cancel (a b c : α) : (a - c) + (b + c) = a + b :=
+  by rw [add_left_comm, sub_add_cancel, add_comm]
+
   lemma sub_add_sub_cancel' (a b c : α) : (a - b) + (c - a) = c - b :=
   by rw add_comm; apply sub_add_sub_cancel
+
+  lemma add_sub_sub_cancel (a b c : α) : (a + b) - (a - c) = b + c :=
+  by rw [← sub_add, add_sub_cancel']
 
   lemma sub_sub_sub_cancel_left (a b c : α) : (c - a) - (c - b) = b - a :=
   by rw [← neg_sub b c, sub_neg_eq_add, add_comm, sub_add_sub_cancel]
@@ -587,22 +605,88 @@ def is_conj (a b : α) := ∃ c : α, c * a * c⁻¹ = b
 calc is_conj a 1 ↔ is_conj 1 a : ⟨is_conj_symm, is_conj_symm⟩
 ... ↔ a = 1 : is_conj_one_right
 
+@[simp] lemma conj_inv {a b : α} : (b * a * b⁻¹)⁻¹ = b * a⁻¹ * b⁻¹ :=
+begin
+  rw [mul_inv_rev _ b⁻¹, mul_inv_rev b _, inv_inv, mul_assoc],
+end
+
+@[simp] lemma conj_mul {a b c : α} : (b * a * b⁻¹) * (b * c * b⁻¹) = b * (a * c) * b⁻¹ :=
+begin
+  assoc_rw inv_mul_cancel_right,
+  repeat {rw mul_assoc},
+end
+
 @[simp] lemma is_conj_iff_eq {α : Type*} [comm_group α] {a b : α} : is_conj a b ↔ a = b :=
 ⟨λ ⟨c, hc⟩, by rw [← hc, mul_right_comm, mul_inv_self, one_mul], λ h, by rw h⟩
 
 end is_conj
 
-class is_monoid_hom [monoid α] [monoid β] (f : α → β) : Prop :=
-(map_one : f 1 = 1)
+class is_mul_hom {α β : Type*} [has_mul α] [has_mul β] (f : α → β) : Prop :=
 (map_mul : ∀ {x y}, f (x * y) = f x * f y)
 
-class is_add_monoid_hom [add_monoid α] [add_monoid β] (f : α → β) : Prop :=
-(map_zero : f 0 = 0)
+class is_add_hom {α β : Type*} [has_add α] [has_add β] (f : α → β) : Prop :=
 (map_add : ∀ {x y}, f (x + y) = f x + f y)
 
+attribute [to_additive is_add_hom] is_mul_hom
+attribute [to_additive is_add_hom.cases_on] is_mul_hom.cases_on
+attribute [to_additive is_add_hom.dcases_on] is_mul_hom.dcases_on
+attribute [to_additive is_add_hom.drec] is_mul_hom.drec
+attribute [to_additive is_add_hom.drec_on] is_mul_hom.drec_on
+attribute [to_additive is_add_hom.map_add] is_mul_hom.map_mul
+attribute [to_additive is_add_hom.mk] is_mul_hom.mk
+attribute [to_additive is_add_hom.rec] is_mul_hom.rec
+attribute [to_additive is_add_hom.rec_on] is_mul_hom.rec_on
+
+namespace is_mul_hom
+variables [has_mul α] [has_mul β] {γ : Type*} [has_mul γ]
+
+@[to_additive is_add_hom.id]
+lemma id : is_mul_hom (id : α → α) := {map_mul := λ _ _, rfl}
+
+@[to_additive is_add_hom.comp]
+lemma comp {f : α → β} {g : β → γ} (hf : is_mul_hom f) (hg : is_mul_hom g) : is_mul_hom (g ∘ f) :=
+⟨λ x y, by show _ = g _ * g _; rw [←hg.map_mul, ←hf.map_mul]⟩
+
+@[to_additive is_add_hom.comp']
+lemma comp' {f : α → β} {g : β → γ} (hf : is_mul_hom f) (hg : is_mul_hom g) :
+  is_mul_hom (λ x, g (f x)) :=
+⟨λ x y, by rw [←hg.map_mul, ←hf.map_mul]⟩
+
+end is_mul_hom
+
+class is_monoid_hom [monoid α] [monoid β] (f : α → β) extends is_mul_hom f : Prop :=
+(map_one : f 1 = 1)
+
+class is_add_monoid_hom [add_monoid α] [add_monoid β] (f : α → β) extends is_add_hom f : Prop :=
+(map_zero : f 0 = 0)
+
 attribute [to_additive is_add_monoid_hom] is_monoid_hom
-attribute [to_additive is_add_monoid_hom.map_add] is_monoid_hom.map_mul
 attribute [to_additive is_add_monoid_hom.mk] is_monoid_hom.mk
+attribute [to_additive is_add_monoid_hom.cases_on] is_monoid_hom.cases_on
+attribute [to_additive is_add_monoid_hom.dcases_on] is_monoid_hom.dcases_on
+attribute [to_additive is_add_monoid_hom.rec] is_monoid_hom.rec
+attribute [to_additive is_add_monoid_hom.drec] is_monoid_hom.drec
+attribute [to_additive is_add_monoid_hom.rec_on] is_monoid_hom.rec_on
+attribute [to_additive is_add_monoid_hom.drec_on] is_monoid_hom.drec_on
+attribute [to_additive is_add_monoid_hom.map_zero] is_monoid_hom.map_one
+
+namespace is_monoid_hom
+variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
+
+lemma map_mul {x y} : f (x * y) = f x * f y :=
+is_mul_hom.map_mul f
+
+end is_monoid_hom
+
+namespace is_add_monoid_hom
+variables [add_monoid α] [add_monoid β] (f : α → β) [is_add_monoid_hom f]
+
+lemma map_add {x y} : f (x + y) = f x + f y :=
+is_add_hom.map_add f
+
+attribute [to_additive is_add_monoid_hom.map_add] is_monoid_hom.map_mul
+
+end is_add_monoid_hom
 
 namespace is_monoid_hom
 variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
@@ -610,51 +694,63 @@ variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
 @[to_additive is_add_monoid_hom.id]
 instance id : is_monoid_hom (@id α) := by refine {..}; intros; refl
 
-@[to_additive is_add_monoid_hom.id]
+@[to_additive is_add_monoid_hom.comp]
 instance comp {γ} [monoid γ] (g : β → γ) [is_monoid_hom g] :
   is_monoid_hom (g ∘ f) :=
 { map_mul := λ x y, show g _ = g _ * g _, by rw [map_mul f, map_mul g],
   map_one := show g _ = 1, by rw [map_one f, map_one g] }
 
-instance is_add_monoid_hom_mul_left {γ : Type*} [semiring γ] (x : γ) : is_add_monoid_hom (λ y : γ, x * y) :=
-by refine_struct {..}; simp [mul_add]
-
-instance is_add_monoid_hom_mul_right {γ : Type*} [semiring γ] (x : γ) : is_add_monoid_hom (λ y : γ, y * x) :=
-by refine_struct {..}; simp [add_mul]
-
 end is_monoid_hom
 
--- TODO rename fields of is_group_hom: mul ↝ map_mul?
+namespace is_add_monoid_hom
+variables [add_monoid α] [add_monoid β] (f : α → β) [is_add_monoid_hom f]
+
+instance is_add_monoid_hom_mul_left {γ : Type*} [semiring γ] (x : γ) : is_add_monoid_hom (λ y : γ, x * y) :=
+{ map_zero := mul_zero x, map_add := λ y z, mul_add x y z }
+
+instance is_add_monoid_hom_mul_right {γ : Type*} [semiring γ] (x : γ) : is_add_monoid_hom (λ y : γ, y * x) :=
+{ map_zero := zero_mul x, map_add := λ y z, add_mul y z x }
+
+
+end is_add_monoid_hom
 
 /-- Predicate for group homomorphism. -/
 class is_group_hom [group α] [group β] (f : α → β) : Prop :=
-(mul : ∀ a b : α, f (a * b) = f a * f b)
+(map_mul : ∀ a b : α, f (a * b) = f a * f b)
 
 class is_add_group_hom [add_group α] [add_group β] (f : α → β) : Prop :=
-(add : ∀ a b, f (a + b) = f a + f b)
+(map_add : ∀ a b, f (a + b) = f a + f b)
 
 attribute [to_additive is_add_group_hom] is_group_hom
-attribute [to_additive is_add_group_hom.add] is_group_hom.mul
+attribute [to_additive is_add_group_hom.cases_on] is_group_hom.cases_on
+attribute [to_additive is_add_group_hom.dcases_on] is_group_hom.dcases_on
+attribute [to_additive is_add_group_hom.rec] is_group_hom.rec
+attribute [to_additive is_add_group_hom.drec] is_group_hom.drec
+attribute [to_additive is_add_group_hom.rec_on] is_group_hom.rec_on
+attribute [to_additive is_add_group_hom.drec_on] is_group_hom.drec_on
+attribute [to_additive is_add_group_hom.map_add] is_group_hom.map_mul
 attribute [to_additive is_add_group_hom.mk] is_group_hom.mk
 
 instance additive.is_add_group_hom [group α] [group β] (f : α → β) [is_group_hom f] :
   @is_add_group_hom (additive α) (additive β) _ _ f :=
-⟨@is_group_hom.mul α β _ _ f _⟩
+⟨@is_group_hom.map_mul α β _ _ f _⟩
 
 instance multiplicative.is_group_hom [add_group α] [add_group β] (f : α → β) [is_add_group_hom f] :
   @is_group_hom (multiplicative α) (multiplicative β) _ _ f :=
-⟨@is_add_group_hom.add α β _ _ f _⟩
+⟨@is_add_group_hom.map_add α β _ _ f _⟩
+
+attribute [to_additive additive.is_add_group_hom] multiplicative.is_group_hom
 
 namespace is_group_hom
 variables [group α] [group β] (f : α → β) [is_group_hom f]
 
-@[to_additive is_add_group_hom.zero]
-theorem one : f 1 = 1 :=
-mul_self_iff_eq_one.1 $ by rw [← mul f, one_mul]
+@[to_additive is_add_group_hom.map_zero]
+theorem map_one : f 1 = 1 :=
+mul_self_iff_eq_one.1 $ by rw [← map_mul f, one_mul]
 
-@[to_additive is_add_group_hom.neg]
-theorem inv (a : α) : f a⁻¹ = (f a)⁻¹ :=
-eq_inv_of_mul_eq_one $ by rw [← mul f, inv_mul_self, one f]
+@[to_additive is_add_group_hom.map_neg]
+theorem map_inv (a : α) : f a⁻¹ = (f a)⁻¹ :=
+eq_inv_of_mul_eq_one $ by rw [← map_mul f, inv_mul_self, map_one f]
 
 @[to_additive is_add_group_hom.id]
 instance id : is_group_hom (@id α) :=
@@ -663,21 +759,21 @@ instance id : is_group_hom (@id α) :=
 @[to_additive is_add_group_hom.comp]
 instance comp {γ} [group γ] (g : β → γ) [is_group_hom g] :
   is_group_hom (g ∘ f) :=
-⟨λ x y, show g _ = g _ * g _, by rw [mul f, mul g]⟩
+⟨λ x y, show g _ = g _ * g _, by rw [map_mul f, map_mul g]⟩
 
 protected lemma is_conj (f : α → β) [is_group_hom f] {a b : α} : is_conj a b → is_conj (f a) (f b)
-| ⟨c, hc⟩ := ⟨f c, by rw [← is_group_hom.mul f, ← is_group_hom.inv f, ← is_group_hom.mul f, hc]⟩
+| ⟨c, hc⟩ := ⟨f c, by rw [← is_group_hom.map_mul f, ← is_group_hom.map_inv f, ← is_group_hom.map_mul f, hc]⟩
 
 @[to_additive is_add_group_hom.to_is_add_monoid_hom]
 lemma to_is_monoid_hom (f : α → β) [is_group_hom f] : is_monoid_hom f :=
-⟨is_group_hom.one f, is_group_hom.mul f⟩
+{ map_one := is_group_hom.map_one f, map_mul := is_group_hom.map_mul f }
 
 @[to_additive is_add_group_hom.injective_iff]
 lemma injective_iff (f : α → β) [is_group_hom f] :
   function.injective f ↔ (∀ a, f a = 1 → a = 1) :=
-⟨λ h _, by rw ← is_group_hom.one f; exact @h _ _,
-  λ h x y hxy, by rw [← inv_inv (f x), inv_eq_iff_mul_eq_one, ← is_group_hom.inv f,
-      ← is_group_hom.mul f] at hxy;
+⟨λ h _, by rw ← is_group_hom.map_one f; exact @h _ _,
+  λ h x y hxy, by rw [← inv_inv (f x), inv_eq_iff_mul_eq_one, ← is_group_hom.map_inv f,
+      ← is_group_hom.map_mul f] at hxy;
     simpa using inv_eq_of_mul_eq_one (h _ hxy)⟩
 
 attribute [instance] is_group_hom.to_is_monoid_hom
@@ -685,20 +781,20 @@ attribute [instance] is_group_hom.to_is_monoid_hom
 
 end is_group_hom
 
-@[to_additive is_add_group_hom_add]
-lemma is_group_hom_mul {α β} [group α] [comm_group β]
+@[to_additive is_add_group_hom.add]
+lemma is_group_hom.mul {α β} [group α] [comm_group β]
   (f g : α → β) [is_group_hom f] [is_group_hom g] :
   is_group_hom (λa, f a * g a) :=
-⟨assume a b, by simp only [is_group_hom.mul f, is_group_hom.mul g, mul_comm, mul_assoc, mul_left_comm]⟩
+⟨assume a b, by simp only [is_group_hom.map_mul f, is_group_hom.map_mul g, mul_comm, mul_assoc, mul_left_comm]⟩
 
-attribute [instance] is_group_hom_mul is_add_group_hom_add
+attribute [instance] is_group_hom.mul is_add_group_hom.add
 
-@[to_additive is_add_group_hom_neg]
-lemma is_group_hom_inv {α β} [group α] [comm_group β] (f : α → β) [is_group_hom f] :
+@[to_additive is_add_group_hom.neg]
+lemma is_group_hom.inv {α β} [group α] [comm_group β] (f : α → β) [is_group_hom f] :
   is_group_hom (λa, (f a)⁻¹) :=
-⟨assume a b, by rw [is_group_hom.mul f, mul_inv]⟩
+⟨assume a b, by rw [is_group_hom.map_mul f, mul_inv]⟩
 
-attribute [instance] is_group_hom_inv is_add_group_hom_neg
+attribute [instance] is_group_hom.inv is_add_group_hom.neg
 
 @[to_additive neg.is_add_group_hom]
 lemma inv.is_group_hom [comm_group α] : is_group_hom (has_inv.inv : α → α) :=
@@ -709,17 +805,17 @@ attribute [instance] inv.is_group_hom neg.is_add_group_hom
 /-- Predicate for group anti-homomorphism, or a homomorphism
   into the opposite group. -/
 class is_group_anti_hom {β : Type*} [group α] [group β] (f : α → β) : Prop :=
-(mul : ∀ a b : α, f (a * b) = f b * f a)
+(map_mul : ∀ a b : α, f (a * b) = f b * f a)
 
 namespace is_group_anti_hom
 variables [group α] [group β] (f : α → β) [w : is_group_anti_hom f]
 include w
 
-theorem one : f 1 = 1 :=
-mul_self_iff_eq_one.1 $ by rw [← mul f, one_mul]
+theorem map_one : f 1 = 1 :=
+mul_self_iff_eq_one.1 $ by rw [← map_mul f, one_mul]
 
-theorem inv (a : α) : f a⁻¹ = (f a)⁻¹ :=
-eq_inv_of_mul_eq_one $ by rw [← mul f, mul_inv_self, one f]
+theorem map_inv (a : α) : f a⁻¹ = (f a)⁻¹ :=
+eq_inv_of_mul_eq_one $ by rw [← map_mul f, mul_inv_self, map_one f]
 
 end is_group_anti_hom
 
@@ -729,22 +825,24 @@ theorem inv_is_group_anti_hom [group α] : is_group_anti_hom (λ x : α, x⁻¹)
 namespace is_add_group_hom
 variables [add_group α] [add_group β] (f : α → β) [is_add_group_hom f]
 
-lemma sub (a b) : f (a - b) = f a - f b :=
+lemma map_sub (a b) : f (a - b) = f a - f b :=
 calc f (a - b) = f (a + -b)   : rfl
-           ... = f a + f (-b) : add f _ _
-           ... = f a - f b    : by  simp[neg f]
+           ... = f a + f (-b) : map_add f _ _
+           ... = f a - f b    : by  simp[map_neg f]
 
 end is_add_group_hom
 
-lemma is_add_group_hom_sub {α β} [add_group α] [add_comm_group β]
+lemma is_add_group_hom.sub {α β} [add_group α] [add_comm_group β]
   (f g : α → β) [is_add_group_hom f] [is_add_group_hom g] :
   is_add_group_hom (λa, f a - g a) :=
-is_add_group_hom_add f (λa, - g a)
+is_add_group_hom.add f (λa, - g a)
 
-attribute [instance] is_add_group_hom_sub
+attribute [instance] is_add_group_hom.sub
 
 namespace units
-variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
+
+variables {γ : Type*} [monoid α] [monoid β] [monoid γ] (f : α → β) (g : β → γ)
+[is_monoid_hom f] [is_monoid_hom g]
 
 definition map : units α → units β :=
 λ u, ⟨f u.val, f u.inv,
@@ -755,9 +853,15 @@ instance : is_group_hom (units.map f) :=
 ⟨λ a b, by ext; exact is_monoid_hom.map_mul f ⟩
 
 instance : is_monoid_hom (coe : units α → α) :=
-⟨by simp, by simp⟩
+{ map_one := rfl, map_mul := by simp }
 
 @[simp] lemma coe_map (u : units α) : (map f u : β) = f u := rfl
+
+@[simp] lemma map_id : map (id : α → α) = id := by ext; refl
+
+lemma map_comp : map (g ∘ f) = map g ∘ map f := rfl
+
+lemma map_comp' : map (λ x, g (f x)) = λ x, map g (map f x) := rfl
 
 end units
 

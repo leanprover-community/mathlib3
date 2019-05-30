@@ -560,9 +560,17 @@ show (⨆ (x : β) (H : true), f x) = ⨆ (x : β), f x,
 calc (⨅ x ∈ s ∪ t, f x) = (⨅ x, (⨅h : x∈s, f x) ⊓ (⨅h : x∈t, f x)) : congr_arg infi $ funext $ assume x, infi_or
                     ... = (⨅x∈s, f x) ⊓ (⨅x∈t, f x) : infi_inf_eq
 
+theorem infi_le_infi_of_subset {f : β → α} {s t : set β} (h : s ⊆ t) :
+  (⨅ x ∈ t, f x) ≤ (⨅ x ∈ s, f x) :=
+by rw [(union_eq_self_of_subset_left h).symm, infi_union]; exact inf_le_left
+
 @[simp] theorem supr_union {f : β → α} {s t : set β} : (⨆ x ∈ s ∪ t, f x) = (⨆x∈s, f x) ⊔ (⨆x∈t, f x) :=
 calc (⨆ x ∈ s ∪ t, f x) = (⨆ x, (⨆h : x∈s, f x) ⊔ (⨆h : x∈t, f x)) : congr_arg supr $ funext $ assume x, supr_or
                     ... = (⨆x∈s, f x) ⊔ (⨆x∈t, f x) : supr_sup_eq
+
+theorem supr_le_supr_of_subset {f : β → α} {s t : set β} (h : s ⊆ t) :
+  (⨆ x ∈ s, f x) ≤ (⨆ x ∈ t, f x) :=
+by rw [(union_eq_self_of_subset_left h).symm, supr_union]; exact le_sup_left
 
 @[simp] theorem insert_of_has_insert (x : α) (a : set α) : has_insert.insert x a = insert x a := rfl
 

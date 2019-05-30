@@ -5,7 +5,7 @@ Author: Mario Carneiro
 
 Finite types.
 -/
-import data.finset algebra.big_operators data.array.lemmas data.vector2 data.equiv.encodable
+import data.finset algebra.big_operators data.array.lemmas
 universes u v
 
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -312,7 +312,7 @@ finset.card_le_card_of_inj_on f (λ _ _, finset.mem_univ _) (λ _ _ _ _ h, hf h)
 
 lemma fintype.card_eq_one_iff [fintype α] : fintype.card α = 1 ↔ (∃ x : α, ∀ y, y = x) :=
 by rw [← fintype.card_unit, fintype.card_eq]; exact
-⟨λ ⟨a⟩, ⟨a.symm (), λ y, a.bijective.1 (subsingleton.elim _ _)⟩,
+⟨λ ⟨a⟩, ⟨a.symm (), λ y, a.injective (subsingleton.elim _ _)⟩,
   λ ⟨x, hx⟩, ⟨⟨λ _, (), λ _, x, λ _, (hx _).trans (hx _).symm,
     λ _, subsingleton.elim _ _⟩⟩⟩
 
@@ -370,9 +370,9 @@ lemma fintype.injective_iff_surjective_of_equiv [fintype α] {f : α → β} (e 
   injective f ↔ surjective f :=
 have injective (e.symm ∘ f) ↔ surjective (e.symm ∘ f), from fintype.injective_iff_surjective,
 ⟨λ hinj, by simpa [function.comp] using
-  surjective_comp e.bijective.2 (this.1 (injective_comp e.symm.bijective.1 hinj)),
+  surjective_comp e.surjective (this.1 (injective_comp e.symm.injective hinj)),
 λ hsurj, by simpa [function.comp] using
-  injective_comp e.bijective.1 (this.2 (surjective_comp e.symm.bijective.2 hsurj))⟩
+  injective_comp e.injective (this.2 (surjective_comp e.symm.surjective hsurj))⟩
 
 instance list.subtype.fintype [decidable_eq α] (l : list α) : fintype {x // x ∈ l} :=
 fintype.of_list l.attach l.mem_attach
@@ -536,17 +536,17 @@ then
   mem_append_left _ $ mem_perms_of_list_of_mem
     (λ x hx, mem_of_ne_of_mem (λ h, by rw h at hx; exact hx hfa) (h x hx))
 else
-have hfa' : f (f a) ≠ f a, from mt (λ h, f.bijective.1 h) hfa,
+have hfa' : f (f a) ≠ f a, from mt (λ h, f.injective h) hfa,
 have ∀ (x : α), (swap a (f a) * f) x ≠ x → x ∈ l,
   from λ x hx, have hxa : x ≠ a, from λ h, by simpa [h, mul_apply] using hx,
-    have hfxa : f x ≠ f a, from mt (λ h, f.bijective.1 h) hxa,
+    have hfxa : f x ≠ f a, from mt (λ h, f.injective h) hxa,
     list.mem_of_ne_of_mem hxa
       (h x (λ h, by simp [h, mul_apply, swap_apply_def] at hx; split_ifs at hx; cc)),
 suffices f ∈ perms_of_list l ∨ ∃ (b : α), b ∈ l ∧ ∃ g : perm α, g ∈ perms_of_list l ∧ swap a b * g = f,
   by simpa [perms_of_list],
 (@or_iff_not_imp_left _ _ (classical.prop_decidable _)).2
   (λ hfl, ⟨f a,
-    if hffa : f (f a) = a then mem_of_ne_of_mem hfa (h _ (mt (λ h, f.bijective.1 h) hfa))
+    if hffa : f (f a) = a then mem_of_ne_of_mem hfa (h _ (mt (λ h, f.injective h) hfa))
       else this _ $ by simp [mul_apply, swap_apply_def]; split_ifs; cc,
     ⟨swap a (f a) * f, mem_perms_of_list_of_mem this,
       by rw [← mul_assoc, mul_def (swap a (f a)) (swap a (f a)), swap_swap, ← equiv.perm.one_def, one_mul]⟩⟩)
@@ -591,7 +591,7 @@ by rw [perms_of_list, list.nodup_append, list.nodup_bind, pairwise_iff_nth_le]; 
   λ f hf₁ hf₂,
     let ⟨x, hx, hx'⟩ := list.mem_bind.1 hf₂ in
     let ⟨g, hg⟩ := list.mem_map.1 hx' in
-    have hgxa : g⁻¹ x = a, from f.bijective.1 $
+    have hgxa : g⁻¹ x = a, from f.injective $
       by rw [hmeml hf₁, ← hg.2]; simp,
     have hxa : x ≠ a, from λ h, (list.nodup_cons.1 hl).1 (h ▸ hx),
     (list.nodup_cons.1 hl).1 $

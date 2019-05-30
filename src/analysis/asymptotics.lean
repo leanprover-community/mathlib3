@@ -41,10 +41,10 @@ section
 variables [has_norm β] [has_norm γ] [has_norm δ]
 
 def is_O (f : α → β) (g : α → γ) (l : filter α) : Prop :=
-∃ c > 0, { x | ∥ f x ∥ ≤ c * ∥ g x ∥ } ∈ l.sets
+∃ c > 0, { x | ∥ f x ∥ ≤ c * ∥ g x ∥ } ∈ l
 
 def is_o (f : α → β) (g : α → γ) (l : filter α) : Prop :=
-∀ c > 0, { x | ∥ f x ∥ ≤  c * ∥ g x ∥ } ∈ l.sets
+∀ c > 0, { x | ∥ f x ∥ ≤  c * ∥ g x ∥ } ∈ l
 
 theorem is_O_refl (f : α → β) (l : filter α) : is_O f f l :=
 ⟨1, zero_lt_one, by { filter_upwards [univ_mem_sets], intros x _, simp }⟩
@@ -124,14 +124,14 @@ begin
 end
 
 theorem is_O_congr {f₁ f₂ : α → β} {g₁ g₂ : α → γ} {l : filter α}
-    (hf : {x | f₁ x = f₂ x} ∈ l.sets) (hg : {x | g₁ x = g₂ x} ∈ l.sets) :
+    (hf : {x | f₁ x = f₂ x} ∈ l) (hg : {x | g₁ x = g₂ x} ∈ l) :
   is_O f₁ g₁ l ↔ is_O f₂ g₂ l :=
 bex_congr $ λ c _, filter.congr_sets $
 by filter_upwards [hf, hg] λ x e₁ e₂,
   by dsimp at e₁ e₂ ⊢; rw [e₁, e₂]
 
 theorem is_o_congr {f₁ f₂ : α → β} {g₁ g₂ : α → γ} {l : filter α}
-    (hf : {x | f₁ x = f₂ x} ∈ l.sets) (hg : {x | g₁ x = g₂ x} ∈ l.sets) :
+    (hf : {x | f₁ x = f₂ x} ∈ l) (hg : {x | g₁ x = g₂ x} ∈ l) :
   is_o f₁ g₁ l ↔ is_o f₂ g₂ l :=
 ball_congr $ λ c _, filter.congr_sets $
 by filter_upwards [hf, hg] λ x e₁ e₂,
@@ -148,12 +148,12 @@ theorem is_o.congr {f₁ f₂ : α → β} {g₁ g₂ : α → γ} {l : filter �
 (is_o_congr (univ_mem_sets' hf) (univ_mem_sets' hg)).1
 
 theorem is_O_congr_left {f₁ f₂ : α → β} {g : α → γ} {l : filter α}
-    (h : {x | f₁ x = f₂ x} ∈ l.sets) :
+    (h : {x | f₁ x = f₂ x} ∈ l) :
   is_O f₁ g l ↔ is_O f₂ g l :=
 is_O_congr h (univ_mem_sets' $ λ _, rfl)
 
 theorem is_o_congr_left {f₁ f₂ : α → β} {g : α → γ} {l : filter α}
-    (h : {x | f₁ x = f₂ x} ∈ l.sets) :
+    (h : {x | f₁ x = f₂ x} ∈ l) :
   is_o f₁ g l ↔ is_o f₂ g l :=
 is_o_congr h (univ_mem_sets' $ λ _, rfl)
 
@@ -166,12 +166,12 @@ theorem is_o.congr_left {f₁ f₂ : α → β} {g : α → γ} {l : filter α}
 is_o.congr hf (λ _, rfl)
 
 theorem is_O_congr_right {f : α → β} {g₁ g₂ : α → γ} {l : filter α}
-    (h : {x | g₁ x = g₂ x} ∈ l.sets) :
+    (h : {x | g₁ x = g₂ x} ∈ l) :
   is_O f g₁ l ↔ is_O f g₂ l :=
 is_O_congr (univ_mem_sets' $ λ _, rfl) h
 
 theorem is_o_congr_right {f : α → β} {g₁ g₂ : α → γ} {l : filter α}
-    (h : {x | g₁ x = g₂ x} ∈ l.sets) :
+    (h : {x | g₁ x = g₂ x} ∈ l) :
   is_o f g₁ l ↔ is_o f g₂ l :=
 is_o_congr (univ_mem_sets' $ λ _, rfl) h
 
@@ -186,7 +186,7 @@ is_o.congr (λ _, rfl) hg
 end
 
 section
-variables [has_norm β] [normed_group γ]
+variables [has_norm β] [normed_group γ] [normed_group δ]
 
 @[simp]
 theorem is_O_norm_right {f : α → β} {g : α → γ} {l : filter α} :
@@ -209,14 +209,14 @@ theorem is_o_neg_right {f : α → β} {g : α → γ} {l : filter α} :
 by { rw ←is_o_norm_right, simp only [norm_neg], rw is_o_norm_right }
 
 theorem is_O_iff {f : α → β} {g : α → γ} {l : filter α} :
-  is_O f g l ↔ ∃ c, { x | ∥f x∥ ≤ c * ∥g x∥ } ∈ l.sets :=
-suffices (∃ c, { x | ∥f x∥ ≤ c * ∥g x∥ } ∈ l.sets) → is_O f g l,
+  is_O f g l ↔ ∃ c, { x | ∥f x∥ ≤ c * ∥g x∥ } ∈ l :=
+suffices (∃ c, { x | ∥f x∥ ≤ c * ∥g x∥ } ∈ l) → is_O f g l,
   from ⟨λ ⟨c, cpos, hc⟩, ⟨c, hc⟩, this⟩,
 assume ⟨c, hc⟩,
 or.elim (lt_or_ge 0 c)
   (assume : c > 0, ⟨c, this, hc⟩)
   (assume h'c : c ≤ 0,
-    have {x : α | ∥f x∥ ≤ 1 * ∥g x∥} ∈ l.sets,
+    have {x : α | ∥f x∥ ≤ 1 * ∥g x∥} ∈ l,
       begin
         filter_upwards [hc], intros x,
         show ∥f x∥ ≤ c * ∥g x∥ → ∥f x∥ ≤ 1 * ∥g x∥,
@@ -241,10 +241,34 @@ begin
     exact le_trans hx (mul_le_mul_of_nonneg_right (le_max_right _ _) (norm_nonneg _))
 end
 
+lemma is_O.prod_rightl {f : α → β} {g₁ : α → γ} {g₂ : α → δ} {l : filter α}
+  (h : is_O f g₁ l) : is_O f (λx, (g₁ x, g₂ x)) l :=
+begin
+  have : is_O g₁ (λx, (g₁ x, g₂ x)) l :=
+    ⟨1, zero_lt_one, filter.univ_mem_sets' (λx, by simp [norm, le_refl])⟩,
+  exact is_O.trans h this
+end
+
+lemma is_O.prod_rightr {f : α → β} {g₁ : α → γ} {g₂ : α → δ} {l : filter α}
+  (h : is_O f g₂ l) : is_O f (λx, (g₁ x, g₂ x)) l :=
+begin
+  have : is_O g₂ (λx, (g₁ x, g₂ x)) l :=
+    ⟨1, zero_lt_one, filter.univ_mem_sets' (λx, by simp [norm, le_refl])⟩,
+  exact is_O.trans h this
+end
+
+lemma is_o.prod_rightl {f : α → β} {g₁ : α → γ} {g₂ : α → δ} {l : filter α}
+  (h : is_o f g₁ l) : is_o f (λx, (g₁ x, g₂ x)) l :=
+is_o.trans_is_O h (is_O.prod_rightl (is_O_refl g₁ l))
+
+lemma is_o.prod_rightr {f : α → β} {g₁ : α → γ} {g₂ : α → δ} {l : filter α}
+  (h : is_o f g₂ l) : is_o f (λx, (g₁ x, g₂ x)) l :=
+is_o.trans_is_O h (is_O.prod_rightr (is_O_refl g₂ l))
+
 end
 
 section
-variables [normed_group β] [has_norm γ]
+variables [normed_group β] [normed_group δ] [has_norm γ]
 
 @[simp] theorem is_O_norm_left {f : α → β} {g : α → γ} {l : filter α} :
   is_O (λ x, ∥f x∥) g l ↔ is_O f g l :=
@@ -335,6 +359,40 @@ theorem is_o.congr_of_sub {f₁ f₂ : α → β} {g : α → γ} {l : filter α
 ⟨λ h', (h'.sub h).congr_left (λ x, sub_sub_cancel _ _),
  λ h', (h.add h').congr_left (λ x, sub_add_cancel _ _)⟩
 
+@[simp] theorem is_O_prod_left {f₁ : α → β} {f₂ : α → δ} {g : α → γ} {l : filter α} :
+  is_O (λx, (f₁ x, f₂ x)) g l ↔ is_O f₁ g l ∧ is_O f₂ g l :=
+begin
+  split,
+  { assume h,
+    split,
+    { exact is_O.trans (is_O.prod_rightl (is_O_refl f₁ l)) h },
+    { exact is_O.trans (is_O.prod_rightr (is_O_refl f₂ l)) h } },
+  { rintros ⟨h₁, h₂⟩,
+    have : is_O (λx, ∥f₁ x∥ + ∥f₂ x∥) g l :=
+      is_O.add (is_O_norm_left.2 h₁) (is_O_norm_left.2 h₂),
+    apply is_O.trans _ this,
+    refine ⟨1, zero_lt_one, filter.univ_mem_sets' (λx, _)⟩,
+    simp only [norm, max_le_iff, one_mul, set.mem_set_of_eq],
+    split; exact le_trans (by simp) (le_abs_self _) }
+end
+
+@[simp] theorem is_o_prod_left {f₁ : α → β} {f₂ : α → δ} {g : α → γ} {l : filter α} :
+  is_o (λx, (f₁ x, f₂ x)) g l ↔ is_o f₁ g l ∧ is_o f₂ g l :=
+begin
+  split,
+  { assume h,
+    split,
+    { exact is_O.trans_is_o (is_O.prod_rightl (is_O_refl f₁ l)) h },
+    { exact is_O.trans_is_o (is_O.prod_rightr (is_O_refl f₂ l)) h } },
+  { rintros ⟨h₁, h₂⟩,
+    have : is_o (λx, ∥f₁ x∥ + ∥f₂ x∥) g l :=
+      is_o.add (is_o_norm_left.2 h₁) (is_o_norm_left.2 h₂),
+    apply is_O.trans_is_o _ this,
+    refine ⟨1, zero_lt_one, filter.univ_mem_sets' (λx, _)⟩,
+    simp only [norm, max_le_iff, one_mul, set.mem_set_of_eq],
+    split; exact le_trans (by simp) (le_abs_self _) }
+end
+
 end
 
 section
@@ -349,7 +407,7 @@ theorem is_O_refl_left {f : α → β} {g : α → γ} {l : filter α} :
 by simpa using is_O_zero g l
 
 theorem is_O_zero_right_iff {f : α → β} {l : filter α} :
-  is_O f (λ x, (0 : γ)) l ↔ {x | f x = 0} ∈ l.sets :=
+  is_O f (λ x, (0 : γ)) l ↔ {x | f x = 0} ∈ l :=
 begin
   rw [is_O_iff], split,
   { rintros ⟨c, hc⟩,
@@ -374,7 +432,7 @@ theorem is_o_refl_left {f : α → β} {g : α → γ} {l : filter α} :
 by simpa using is_o_zero g l
 
 theorem is_o_zero_right_iff {f : α → β} (l : filter α) :
-  is_o f (λ x, (0 : γ)) l ↔ {x | f x = 0} ∈ l.sets :=
+  is_o f (λ x, (0 : γ)) l ↔ {x | f x = 0} ∈ l :=
 begin
   split,
   { intro h, exact is_O_zero_right_iff.mp h.to_is_O },
@@ -393,8 +451,10 @@ theorem is_O_const_one (c : β) (l : filter α) :
   is_O (λ x : α, c) (λ x, (1 : γ)) l :=
 begin
   rw is_O_iff,
-  use ∥c∥, simp only [norm_one, mul_one],
-  convert univ_mem_sets, simp only [le_refl]
+  refine ⟨∥c∥, _⟩,
+  simp only [norm_one, mul_one],
+  apply univ_mem_sets',
+  simp [le_refl],
 end
 
 end
@@ -404,13 +464,13 @@ variables [normed_field β] [normed_group γ]
 
 theorem is_O_const_mul_left {f : α → β} {g : α → γ} {l : filter α} (h : is_O f g l) (c : β) :
   is_O (λ x, c * f x) g l :=
-begin
+ begin
   cases classical.em (c = 0) with h'' h'',
   { simp [h''], apply is_O_zero },
   rcases h with ⟨c', c'pos, h'⟩,
   have cne0 : ∥c∥ ≠ 0, from mt (norm_eq_zero _).mp h'',
   have cpos : ∥c∥ > 0, from lt_of_le_of_ne (norm_nonneg _) (ne.symm cne0),
-  use [∥c∥ * c', mul_pos cpos c'pos],
+  refine ⟨∥c∥ * c', mul_pos cpos c'pos, _⟩,
   filter_upwards [h'], dsimp,
   intros x h₀,
   rw [normed_field.norm_mul, mul_assoc],
@@ -467,7 +527,7 @@ begin
   have cne0 : ∥c∥ ≠ 0, from mt (norm_eq_zero _).mp h',
   have cpos : ∥c∥ > 0, from lt_of_le_of_ne (norm_nonneg _) (ne.symm cne0),
   rcases h with ⟨c', c'pos, h''⟩,
-  use [c' * ∥c∥, mul_pos c'pos cpos],
+  refine ⟨c' * ∥c∥, mul_pos c'pos cpos, _⟩,
   convert h'', ext x, dsimp,
   rw [normed_field.norm_mul, mul_assoc]
 end
@@ -521,6 +581,17 @@ begin
   exact le_of_lt hx
 end
 
+theorem is_O_one_of_tendsto {f : α → β} {l : filter α} {y : β}
+  (h : tendsto f l (nhds y)) : is_O f (λ x, (1 : γ)) l :=
+begin
+  have Iy : ∥y∥ < ∥y∥ + 1 := lt_add_one _,
+  refine ⟨∥y∥ + 1, lt_of_le_of_lt (norm_nonneg _) Iy, _⟩,
+  simp only [mul_one, norm_one],
+  have : tendsto (λx, ∥f x∥) l (nhds ∥y∥) :=
+    (continuous_norm.tendsto _).comp h,
+  exact this (ge_mem_nhds Iy)
+end
+
 end
 
 section
@@ -546,7 +617,7 @@ theorem is_O_mul {f₁ f₂ : α → β} {g₁ g₂ : α → γ} {l : filter α}
 begin
   rcases h₁ with ⟨c₁, c₁pos, hc₁⟩,
   rcases h₂ with ⟨c₂, c₂pos, hc₂⟩,
-  use [c₁ * c₂, mul_pos c₁pos c₂pos],
+  refine ⟨c₁ * c₂, mul_pos c₁pos c₂pos, _⟩,
   filter_upwards [hc₁, hc₂], dsimp,
   intros x hx₁ hx₂,
   rw [normed_field.norm_mul, normed_field.norm_mul, mul_assoc, mul_left_comm c₂, ←mul_assoc],
@@ -587,6 +658,8 @@ scalar multiplication is multiplication.
 section
 variables {K : Type*} [normed_field K] [normed_space K β] [normed_group γ]
 
+set_option class.instance_max_depth 43
+
 theorem is_O_const_smul_left {f : α → β} {g : α → γ} {l : filter α} (h : is_O f g l) (c : K) :
   is_O (λ x, c • f x) g l :=
 begin
@@ -626,6 +699,8 @@ end
 section
 variables {K : Type*} [normed_group β] [normed_field K] [normed_space K γ]
 
+set_option class.instance_max_depth 43
+
 theorem is_O_const_smul_right {f : α → β} {g : α → γ} {l : filter α} {c : K} (hc : c ≠ 0) :
   is_O f (λ x, c • g x) l ↔ is_O f g l :=
 begin
@@ -646,6 +721,8 @@ end
 
 section
 variables {K : Type*} [normed_field K] [normed_space K β] [normed_space K γ]
+
+set_option class.instance_max_depth 43
 
 theorem is_O_smul {k : α → K} {f : α → β} {g : α → γ} {l : filter α} (h : is_O f g l) :
   is_O (λ x, k x • f x) (λ x, k x • g x) l :=
@@ -694,11 +771,11 @@ have eq₂ : is_o (λ x, f x / g x * g x) g l,
 have eq₃ : is_O f (λ x, f x / g x * g x) l,
   begin
     use [1, zero_lt_one],
-    filter_upwards [univ_mem_sets], simp,
-    intro x,
-    cases classical.em (∥g x∥ = 0) with h' h',
-    { rw hgf _ ((norm_eq_zero _).mp h'), simp },
-    rw [normed_field.norm_mul, norm_div, div_mul_cancel _ h']
+    refine filter.univ_mem_sets' (assume x, _),
+    suffices : ∥f x∥ ≤ ∥f x∥ / ∥g x∥ * ∥g x∥, { simpa },
+    by_cases g x = 0,
+    { simp only [h, hgf x h, norm_zero, mul_zero] },
+    { rw [div_mul_cancel], exact mt (norm_eq_zero _).1 h }
   end,
 eq₃.trans_is_o eq₂
 

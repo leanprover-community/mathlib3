@@ -206,6 +206,65 @@ finsupp.ext $ λ a', show f (ite _ _ _) = ite _ _ _, by split_ifs; [refl, exact 
 
 end map_range
 
+section emb_domain
+variables [has_zero β] [decidable_eq α₂]
+
+/-- Given `f : α₁ ↪ α₂` and `v : α₁ →₀ β`, `emb_domain f v : α₂ →₀ β` is the finitely supported
+function whose value at `f a : α₂` is `v a`. For a `b : α₂` outside the range of `f` it is zero. -/
+def emb_domain (f : α₁ ↪ α₂) (v : α₁ →₀ β) : α₂ →₀ β :=
+begin
+  refine ⟨v.support.map f, λa₂,
+    if h : a₂ ∈ v.support.map f then v (v.support.choose (λa₁, f a₁ = a₂) _) else 0, _⟩,
+  { rcases finset.mem_map.1 h with ⟨a, ha, rfl⟩,
+    exact exists_unique.intro a ⟨ha, rfl⟩ (assume b ⟨_, hb⟩, f.inj hb) },
+  { assume a₂,
+    split_ifs,
+    { simp [h],
+      rw [← finsupp.not_mem_support_iff, classical.not_not],
+      apply finset.choose_mem },
+    { simp [h] } }
+end
+
+lemma support_emb_domain (f : α₁ ↪ α₂) (v : α₁ →₀ β) :
+  (emb_domain f v).support = v.support.map f :=
+rfl
+
+lemma emb_domain_zero (f : α₁ ↪ α₂) : (emb_domain f 0 : α₂ →₀ β) = 0 :=
+rfl
+
+lemma emb_domain_apply (f : α₁ ↪ α₂) (v : α₁ →₀ β) (a : α₁) :
+  emb_domain f v (f a) = v a :=
+begin
+  change dite _ _ _ = _,
+  split_ifs; rw [finset.mem_map' f] at h,
+  { refine congr_arg (v : α₁ → β) (f.inj' _),
+    exact finset.choose_property (λa₁, f a₁ = f a) _ _ },
+  { exact (finsupp.not_mem_support_iff.1 h).symm }
+end
+
+lemma emb_domain_notin_range (f : α₁ ↪ α₂) (v : α₁ →₀ β) (a : α₂) (h : a ∉ set.range f) :
+  emb_domain f v a = 0 :=
+begin
+  refine dif_neg (mt (assume h, _) h),
+  rcases finset.mem_map.1 h with ⟨a, h, rfl⟩,
+  exact set.mem_range_self a
+end
+
+lemma emb_domain_map_range
+  {β₁ β₂ : Type*} [has_zero β₁] [has_zero β₂] [decidable_eq β₁] [decidable_eq β₂]
+  (f : α₁ ↪ α₂) (g : β₁ → β₂) (p : α₁ →₀ β₁) (hg : g 0 = 0) :
+  emb_domain f (map_range g hg p) = map_range g hg (emb_domain f p) :=
+begin
+  ext a,
+  classical,
+  by_cases a ∈ set.range f,
+  { rcases h with ⟨a', rfl⟩,
+    rw [map_range_apply, emb_domain_apply, emb_domain_apply, map_range_apply] },
+  { rw [map_range_apply, emb_domain_notin_range, emb_domain_notin_range, ← hg]; assumption }
+end
+
+end emb_domain
+
 section zip_with
 variables [has_zero β] [has_zero β₁] [has_zero β₂] [decidable_eq α] [decidable_eq β]
 
@@ -323,7 +382,7 @@ instance : add_monoid (α →₀ β) :=
   add_zero  := assume ⟨s, f, hf⟩, ext $ assume a, add_zero _ }
 
 instance (a : α) : is_add_monoid_hom (λ g : α →₀ β, g a) :=
-by refine_struct {..}; simp
+{ map_add := λ _ _, add_apply, map_zero := zero_apply }
 
 lemma single_add_erase {a : α} {f : α →₀ β} : single a (f a) + f.erase a = f :=
 ext $ λ a',
@@ -549,15 +608,15 @@ variables
   (f : β₁ → β₂) [hf : is_add_monoid_hom f]
 
 instance is_add_monoid_hom_map_range :
-  is_add_monoid_hom (map_range f hf.1 : (α →₀ β₁) → (α →₀ β₂)) :=
-⟨map_range_zero, assume a b, map_range_add hf.2 _ _⟩
+  is_add_monoid_hom (map_range f hf.map_zero : (α →₀ β₁) → (α →₀ β₂)) :=
+{ map_zero := map_range_zero, map_add := λ a b, map_range_add hf.map_add _ _ }
 
 lemma map_range_multiset_sum (m : multiset (α →₀ β₁)) :
-  map_range f hf.1 m.sum = (m.map $ λx, map_range f hf.1 x).sum :=
-(m.sum_hom (map_range f hf.1)).symm
+  map_range f hf.map_zero m.sum = (m.map $ λx, map_range f hf.map_zero x).sum :=
+(m.sum_hom (map_range f hf.map_zero)).symm
 
 lemma map_range_finset_sum {ι : Type*} [decidable_eq ι] (s : finset ι) (g : ι → (α →₀ β₁))  :
-  map_range f hf.1 (s.sum g) = s.sum (λx, map_range f hf.1 (g x)) :=
+  map_range f hf.map_zero (s.sum g) = s.sum (λx, map_range f hf.map_zero (g x)) :=
 by rw [finset.sum.equations._eqn_1, map_range_multiset_sum, multiset.map_map]; refl
 
 end map_range
@@ -634,6 +693,25 @@ lemma prod_map_domain_index [comm_monoid γ] {f : α → α₂} {s : α →₀ �
   {h : α₂ → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   (s.map_domain f).prod h = s.prod (λa b, h (f a) b) :=
 (prod_sum_index h_zero h_add).trans $ prod_congr rfl $ λ _ _, prod_single_index (h_zero _)
+
+lemma emb_domain_eq_map_domain (f : α₁ ↪ α₂) (v : α₁ →₀ β) :
+  emb_domain f v = map_domain f v :=
+begin
+  ext a,
+  classical,
+  by_cases a ∈ set.range f,
+  { rcases h with ⟨a, rfl⟩,
+    rw [map_domain_apply (function.embedding.inj' _), emb_domain_apply] },
+  { rw [map_domain_notin_range, emb_domain_notin_range]; assumption }
+end
+
+lemma injective_map_domain {f : α₁ → α₂} (hf : function.injective f) :
+  function.injective (map_domain f : (α₁ →₀ β) → (α₂ →₀ β)) :=
+begin
+  assume v₁ v₂ eq, ext a,
+  have : map_domain f v₁ (f a) = map_domain f v₂ (f a), { rw eq },
+  rwa [map_domain_apply hf, map_domain_apply hf] at this,
+end
 
 end map_domain
 
@@ -771,7 +849,7 @@ ext $ λ _, rfl
 
 instance subtype_domain.is_add_monoid_hom [add_monoid β] :
   is_add_monoid_hom (subtype_domain p : (α →₀ β) → subtype p →₀ β) :=
-by refine_struct {..}; simp
+{ map_add := λ _ _, subtype_domain_add, map_zero := subtype_domain_zero }
 
 @[simp] lemma filter_add {v v' : α →₀ β} :
   (v + v').filter p = v.filter p + v'.filter p :=
@@ -779,7 +857,7 @@ ext $ λ a, by by_cases p a; simp [h]
 
 instance filter.is_add_monoid_hom (p : α → Prop) [decidable_pred p] :
   is_add_monoid_hom (filter p : (α →₀ β) → (α →₀ β)) :=
-⟨filter_zero p, assume x y, filter_add⟩
+{ map_zero := filter_zero p, map_add := λ x y, filter_add }
 
 end monoid
 
@@ -831,7 +909,7 @@ lemma to_multiset_single (a : α) (n : ℕ) : to_multiset (single a n) = add_mon
 by rw [to_multiset, sum_single_index]; apply add_monoid.zero_smul
 
 instance is_add_monoid_hom.to_multiset : is_add_monoid_hom (to_multiset : _ → multiset α) :=
-⟨to_multiset_zero, to_multiset_add⟩
+{ map_zero := to_multiset_zero, map_add := to_multiset_add }
 
 lemma card_to_multiset (f : α →₀ ℕ) : f.to_multiset.card = f.sum (λa, id) :=
 begin
@@ -1163,12 +1241,12 @@ protected def dom_congr [decidable_eq α₁] [decidable_eq α₂] [decidable_eq 
 ⟨map_domain e, map_domain e.symm,
   begin
     assume v,
-    simp only [map_domain_comp.symm, (∘), equiv.inverse_apply_apply],
+    simp only [map_domain_comp.symm, (∘), equiv.symm_apply_apply],
     exact map_domain_id
   end,
   begin
     assume v,
-    simp only [map_domain_comp.symm, (∘), equiv.apply_inverse_apply],
+    simp only [map_domain_comp.symm, (∘), equiv.apply_symm_apply],
     exact map_domain_id
   end⟩
 

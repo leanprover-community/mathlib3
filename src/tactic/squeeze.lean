@@ -1,6 +1,8 @@
-
-import meta.rb_map
-import tactic.basic data.list.defs
+/-
+Copyright (c) 2019 Simon Hudon. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Simon Hudon
+-/
 import category.traversable.basic
 import tactic.simpa
 
@@ -18,6 +20,15 @@ meta def loc.to_string : loc → string
 
 namespace tactic
 namespace interactive
+
+meta def erase_simp_arg (s : name_set) : simp_arg_type → name_set
+| simp_arg_type.all_hyps := s
+| (simp_arg_type.except a) := s
+| (simp_arg_type.expr e) :=
+match e.get_app_fn e with
+| (expr.const n _) := s.erase n
+| _ := s
+end
 
 meta def arg.to_tactic_format : simp_arg_type → tactic format
 | (simp_arg_type.expr e) := i_to_expr_no_subgoals e >>= pp
@@ -59,6 +70,8 @@ meta def parse_config : option pexpr → tactic (simp_config_ext × format)
      prod.mk <$> eval_expr simp_config_ext e
              <*> rec.to_tactic_format cfg
 
+meta def auto_simp_lemma := [``eq_self_iff_true]
+
 meta def squeeze_simp
   (use_iota_eqn : parse (tk "!")?) (no_dflt : parse only_flag) (hs : parse simp_arg_list)
   (attr_names : parse with_ident_list) (locat : parse location)
@@ -69,7 +82,9 @@ do g ← main_goal,
    simp use_iota_eqn no_dflt hs attr_names locat cfg',
    g ← instantiate_mvars g,
    let vs := g.list_constant,
-   vs ← vs.mfilter (succeeds ∘ has_attribute `simp),
+   vs ← vs.mfilter (succeeds ∘ has_attribute `simp) >>= name_set.mmap strip_prefix,
+   let vs := auto_simp_lemma.foldl name_set.erase vs,
+   let vs := hs.foldl erase_simp_arg vs,
    let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
    let attrs := if attr_names.empty then "" else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),
    let loc := loc.to_string locat,
@@ -87,7 +102,9 @@ do g ← main_goal,
    simpa use_iota_eqn no_dflt hs attr_names tgt cfg',
    g ← instantiate_mvars g,
    let vs := g.list_constant,
-   vs ← vs.mfilter (succeeds ∘ has_attribute `simp),
+   vs ← vs.mfilter (succeeds ∘ has_attribute `simp) >>= name_set.mmap strip_prefix,
+   let vs := auto_simp_lemma.foldl name_set.erase vs,
+   let vs := hs.foldl erase_simp_arg vs,
    let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
    let attrs := if attr_names.empty then "" else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),
    let tgt' := tgt'.get_or_else "",

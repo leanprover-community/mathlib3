@@ -14,13 +14,13 @@ $* &
 pidA=$!
 minutes=0
 
-while true; do sleep 60; ((minutes++)); echo -e "\033[0;32m$minutes minute(s) elapsed.\033[0m"; done &
+while true; do sleep 60; ((minutes++)); echo -e "\033[0;32m$minutes minute(s) elapsed.\033[0m" >&2; done &
     pidB=$!
 
     wait $pidA
     exitCode=$?
 
-    echo -e "\033[0;32m$* finished.\033[0m"
+    echo -e "\033[0;32m$* finished.\033[0m" >&2
 
     kill -9 $pidB
     exit $exitCode

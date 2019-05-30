@@ -256,19 +256,13 @@ instance lift.is_ring_hom (h : ∀ s ∈ S, is_unit (f s)) :
   is_ring_hom (lift f h) :=
 lift'.is_ring_hom _ _ _
 
+@[simp] lemma lift'_mk (g : S → units β) (hg : ∀ s, (g s : β) = f s) (r : α) (s : S) :
+  lift' f g hg (mk r s) = f r * ↑(g s)⁻¹ := rfl
+
 @[simp] lemma lift'_of (g : S → units β) (hg : ∀ s, (g s : β) = f s) (a : α) :
   lift' f g hg (of a) = f a :=
-begin
-  delta lift',
-  erw quotient.lift_on_beta,
-  suffices : ((g 1)⁻¹ : units β) = 1,
-  { simp [this] },
-  { have := hg 1,
-    erw [is_ring_hom.map_one f] at this,
-    apply inv_inj,
-    apply units.ext,
-    simp [this], }
-end
+have g 1 = 1, from units.ext_iff.2 $ by simp [hg, is_ring_hom.map_one f],
+by simp [lift', quotient.lift_on_beta, of, mk, this]
 
 @[simp] lemma lift'_coe (g : S → units β) (hg : ∀ s, (g s : β) = f s) (a : α) :
   lift' f g hg a = f a := lift'_of _ _ _ _
@@ -285,41 +279,27 @@ end
 @[simp] lemma lift_comp_of (h : ∀ s ∈ S, is_unit (f s)) :
   lift f h ∘ of = f := lift'_comp_of _ _ _
 
-@[simp] lemma lift'_apply_coe (f : localization α S → β) [is_ring_hom f] :
-  lift' (λ a : α, f a) (λ s, units.map f (to_units s)) (λ s, rfl) = f :=
-begin
-  apply funext,
-  rintros ⟨⟨r,s⟩⟩,
-  delta lift',
-  erw quotient.lift_on_beta,
-  change _ = f (mk _ _),
-  erw mk_eq,
-  rw is_ring_hom.map_mul f,
-  refl
-end
+@[simp] lemma lift'_apply_coe (f : localization α S → β) [is_ring_hom f]
+  (g : S → units β) (hg : ∀ s, (g s : β) = f s) :
+  lift' (λ a : α, f a) g hg = f :=
+have g = (λ s, units.map f (to_units s)),
+  from funext $ λ x, units.ext_iff.2 $ (hg x).symm ▸ rfl,
+funext $ λ x, localization.induction_on x
+  (λ r s, by subst this; rw [lift'_mk, ← is_group_hom.map_inv (units.map f), units.coe_map];
+    simp [is_ring_hom.map_mul f])
 
 @[simp] lemma lift_apply_coe (f : localization α S → β) [is_ring_hom f] :
   lift (λ a : α, f a) (λ s hs, is_unit_unit (units.map f (to_units ⟨s, hs⟩))) = f :=
-begin
-  convert lift'_apply_coe f,
-  show lift' _ _ _ = lift' _ _ _,
-  congr' 1,
-  funext s,
-  ext,
-  rw classical.some_spec (is_unit_unit (units.map f (to_units s))),
-  refl,
-end
+by rw [lift, lift'_apply_coe]
 
 /-- Function extensionality for localisations:
  two functions are equal if they agree on elements that are coercions.-/
 protected lemma funext (f g : localization α S → β) [is_ring_hom f] [is_ring_hom g]
-  (h : ∀ a : α, f a = g a) :
-  f = g :=
+  (h : ∀ a : α, f a = g a) : f = g :=
 begin
-  rw ← lift_apply_coe f,
-  rw ← lift_apply_coe g,
+  rw [← lift_apply_coe f, ← lift_apply_coe g],
   congr' 1,
-  exact funext h,
+  exact funext h
 end
 
 variables {α S T}
@@ -339,35 +319,28 @@ lift'.is_ring_hom _ _ _
 @[simp] lemma map_comp_of (hf : ∀ s ∈ S, f s ∈ T) :
   map f hf ∘ of = of ∘ f := funext $ λ a, map_of _ _ _
 
+@[simp] lemma map_id : map id (λ s (hs : s ∈ S), hs) = id :=
+localization.funext _ _ $ map_coe _ _
+
+lemma map_comp_map {γ : Type*} [comm_ring γ]  (hf : ∀ s ∈ S, f s ∈ T) (U : set γ)
+  [is_submonoid U] (g : β → γ) [is_ring_hom g] (hg : ∀ t ∈ T, g t ∈ U) :
+  map g hg ∘ map f hf = map (λ x, g (f x)) (λ s hs, hg _ (hf _ hs)) :=
+localization.funext _ _ $ by simp
+
+lemma map_map {γ : Type*} [comm_ring γ]  (hf : ∀ s ∈ S, f s ∈ T) (U : set γ)
+  [is_submonoid U] (g : β → γ) [is_ring_hom g] (hg : ∀ t ∈ T, g t ∈ U) (x) :
+  map g hg (map f hf x) = map (λ x, g (f x)) (λ s hs, hg _ (hf _ hs)) x :=
+congr_fun (map_comp_map _ _ _ _ _) x
+
 def equiv_of_equiv (h₁ : α ≃r β) (h₂ : h₁.to_equiv '' S = T) :
   localization α S ≃r localization β T :=
 { to_fun := map h₁.to_equiv $ λ s hs, by {rw ← h₂, simp [hs]},
   inv_fun := map h₁.symm.to_equiv $ λ t ht,
-  begin
-    rw ← h₂ at ht,
-    rcases ht with ⟨s,hs⟩,
-    rw ← hs.2,
-    erw h₁.to_equiv.inverse_apply_apply,
-    exact hs.1,
-  end,
-  left_inv :=
-  begin
-    intro a,
-    refine congr _ (rfl : a = a),
-    refine @localization.funext _ _ _ _ _ _ (map _ _ ∘ map _ _) id (is_ring_hom.comp _ _) _ _,
-    intro a,
-    simp only [function.comp, id.def, localization.map_coe],
-    erw h₁.to_equiv.inverse_apply_apply a,
-  end,
-  right_inv :=
-  begin
-    intro a,
-    refine congr _ (rfl : a = a),
-    refine @localization.funext _ _ _ _ _ _ (map _ _ ∘ map _ _) id (is_ring_hom.comp _ _) _ _,
-    intro a,
-    simp only [function.comp, id.def, localization.map_coe],
-    erw h₁.to_equiv.apply_inverse_apply a,
-  end,
+    by simp [equiv.image_eq_preimage, set.preimage, set.ext_iff, *] at *,
+  left_inv := λ _, by simp only [map_map, ring_equiv.to_equiv_symm_apply,
+    equiv.symm_apply_apply]; erw map_id; refl,
+  right_inv := λ _, by simp only [map_map, ring_equiv.to_equiv_symm_apply,
+    equiv.apply_symm_apply]; erw map_id; refl,
   hom := map.is_ring_hom _ _ }
 
 end
@@ -560,15 +533,9 @@ variables {B : Type v} [integral_domain B] [decidable_eq B]
 variables (f : A → B) [is_ring_hom f]
 
 def map (hf : injective f) : fraction_ring A → fraction_ring B :=
-localization.map f
-begin
-  intros s h,
-  rw mem_non_zero_divisors_iff_ne_zero at h ⊢,
-  intro H,
-  apply h,
-  apply hf,
-  simp [H, map_zero f],
-end
+localization.map f $ λ s h,
+  by rw [mem_non_zero_divisors_iff_ne_zero, ← map_zero f, ne.def, hf.eq_iff];
+    exact mem_non_zero_divisors_iff_ne_zero.1 h
 
 @[simp] lemma map_of (hf : injective f) (a : A) : map f hf (of a) = of (f a) :=
 localization.map_of _ _ _
@@ -587,27 +554,10 @@ def equiv_of_equiv (h : A ≃r B) : fraction_ring A ≃r fraction_ring B :=
 localization.equiv_of_equiv h
 begin
   ext b,
-  split; intro H,
-  { rcases H with ⟨a,⟨H,ha⟩⟩,
-    rw mem_non_zero_divisors_iff_ne_zero at H ⊢,
-    intro H',
-    rw ← ha at H',
-    apply H,
-    rw ← h.to_equiv.left_inv a,
-    rw ← h.to_equiv.left_inv 0,
-    congr' 1,
-    erw is_ring_hom.map_zero h.to_equiv.to_fun,
-    exact H', },
-  { use h.symm.to_fun b,
-    split,
-    { rw mem_non_zero_divisors_iff_ne_zero at H ⊢,
-      intro H',
-      apply H,
-      erw [h.to_equiv.symm_apply_eq] at H',
-      convert H',
-      symmetry,
-      exact is_ring_hom.map_zero h.to_equiv.to_fun, },
-    { exact h.to_equiv.apply_inverse_apply _ } }
+  rw [equiv.image_eq_preimage, set.preimage, set.mem_set_of_eq,
+    mem_non_zero_divisors_iff_ne_zero, mem_non_zero_divisors_iff_ne_zero, ne.def],
+  exact ⟨mt (λ h, h.symm ▸ is_ring_hom.map_zero _),
+    mt ((is_add_group_hom.injective_iff _).1 h.to_equiv.symm.injective _)⟩
 end
 
 end map

@@ -30,6 +30,8 @@ instance concrete_is_ring_hom : concrete_category @is_ring_hom :=
 
 def of (α : Type u) [ring α] : Ring := ⟨α⟩
 
+abbreviation forget : Ring.{u} ⥤ Type u := forget
+
 instance hom_is_ring_hom {R S : Ring} (f : R ⟶ S) : is_ring_hom (f : R → S) := f.2
 
 end Ring
@@ -46,6 +48,8 @@ instance concrete_is_comm_ring_hom : concrete_category @is_comm_ring_hom :=
   by introsI α β γ ia ib ic f g hf hg; apply_instance⟩
 
 def of (α : Type u) [comm_ring α] : CommRing := ⟨α⟩
+
+abbreviation forget : CommRing.{u} ⥤ Type u := forget
 
 instance hom_is_ring_hom {R S : CommRing} (f : R ⟶ S) : is_ring_hom (f : R → S) := f.2
 

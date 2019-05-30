@@ -29,6 +29,8 @@ instance concrete_is_monoid_hom : concrete_category @is_monoid_hom :=
 
 def of (X : Type u) [monoid X] : Mon := ⟨X⟩
 
+abbreviation forget : Mon.{u} ⥤ Type u := forget
+
 instance hom_is_monoid_hom {R S : Mon} (f : R ⟶ S) : is_monoid_hom (f : R → S) := f.2
 
 end Mon
@@ -45,6 +47,8 @@ instance concrete_is_comm_monoid_hom : concrete_category @is_comm_monoid_hom :=
   by introsI α β γ ia ib ic f g hf hg; apply_instance⟩
 
 def of (X : Type u) [comm_monoid X] : CommMon := ⟨X⟩
+
+abbreviation forget : CommMon.{u} ⥤ Type u := forget
 
 instance hom_is_comm_monoid_hom {R S : CommMon} (f : R ⟶ S) :
   is_comm_monoid_hom (f : R → S) := f.2

@@ -21,8 +21,6 @@ open category_theory
 /-- The category of additive commutative groups and group morphisms. -/
 @[reducible] def AddCommGroup : Type (u+1) := bundled add_comm_group
 
-namespace category_theory.instances
-
 namespace Group
 
 instance (G : Group) : group G := G.str
@@ -67,5 +65,3 @@ instance : faithful (forget_to_Group) := {}
 instance : has_zero AddCommGroup := ⟨⟨punit⟩⟩
 
 end AddCommGroup
-
-end category_theory.instances

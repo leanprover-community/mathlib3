@@ -16,7 +16,7 @@ include 𝒞
 
 local attribute [tidy] tactic.op_induction'
 
-open category_theory.instances.Top.presheaf
+open Top.presheaf
 
 namespace algebraic_geometry.PresheafedSpace
 

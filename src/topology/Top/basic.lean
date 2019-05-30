@@ -21,6 +21,8 @@ instance concrete_category_continuous : concrete_category @continuous := ⟨@con
 
 def of (X : Type u) [topological_space X] : Top := ⟨X⟩
 
+abbreviation forget : Top.{u} ⥤ Type u := forget
+
 def discrete : Type u ⥤ Top.{u} :=
 { obj := λ X, ⟨X, ⊤⟩,
   map := λ X Y f, ⟨f, continuous_top⟩ }

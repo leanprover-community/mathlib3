@@ -11,8 +11,6 @@ import measure_theory.borel_space
 open category_theory
 universes u v
 
-namespace category_theory.instances
-
 @[reducible] def Meas : Type (u+1) := bundled measurable_space
 
 instance (x : Meas) : measurable_space x := x.str
@@ -30,5 +28,3 @@ end Meas
 
 def Borel : Top ⥤ Meas :=
 concrete_functor @measure_theory.borel @measure_theory.measurable_of_continuous
-
-end category_theory.instances

@@ -142,7 +142,6 @@ theorem cos_add_sin_mul_I_pow (n : ℕ) (z : ℂ) :
 
 * Author:
 * Link:
--->
 
 ## 24. The Undecidability of the Continuum Hypothesis
 
@@ -152,6 +151,7 @@ theorem CH_f_unprovable : ¬ (ZFC' ⊢' CH_f)
 ```
 * Author: Floris van Doorn and Jesse Michael Han
 * Link: [result](https://github.com/flypitch/flypitch/blob/ffd4ff5152a7ccb170accf7709be734e69c3d98d/src/zfc'.lean#L449), [website](https://flypitch.github.io/)
+-->
 
 
 ## 25. Schroeder-Bernstein Theorem

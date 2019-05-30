@@ -3,7 +3,7 @@
 In this file we collect information on how Lean is doing
 on the 100 theorems challenge: http://www.cs.ru.nl/~freek/100/.
 
-## 1. The Irrationality of the Square Root of 2
+## <a name="1"></a><a name="1"></a>1. The Irrationality of the Square Root of 2
 
 ```lean
 theorem irr_sqrt_two : irrational (sqrt 2) :=
@@ -12,7 +12,7 @@ theorem irr_sqrt_two : irrational (sqrt 2) :=
 * Author: mathlib <!-- Jeremy Avigad, Mario Carneiro, Abhimanyu Pallavi Sudhir -->
 * Link: https://github.com/leanprover-community/mathlib/blob/739d28a60f347e7357b76cd2d24e41460e49a456/src/data/real/irrational.lean#L63
 
-## 2. Fundamental Theorem of Algebra
+## <a name="2"></a><a name="2"></a>2. Fundamental Theorem of Algebra
 
 ```lean
 lemma exists_root {f : polynomial ℂ} (hf : 0 < degree f) : ∃ z : ℂ, is_root f z :=
@@ -22,28 +22,28 @@ lemma exists_root {f : polynomial ℂ} (hf : 0 < degree f) : ∃ z : ℂ, is_roo
 * Link: https://github.com/leanprover-community/mathlib/blob/0b350228544244f2861ec8afc84dad0c27113a73/src/analysis/complex/polynomial.lean#L28
 
 <!--
-## 3. The Denumerability of the Rational Numbers
+## <a name="3"></a><a name="3"></a>3. The Denumerability of the Rational Numbers
 
 * Author:
 * Link:
 
-## 4. Pythagorean Theorem
+## <a name="4"></a><a name="4"></a>4. Pythagorean Theorem
 
 * Author:
 * Link:
 
-## 5. Prime Number Theorem
+## <a name="5"></a><a name="5"></a>5. Prime Number Theorem
 
 * Author:
 * Link:
 
-## 6. Godel’s Incompleteness Theorem
+## <a name="6"></a><a name="6"></a>6. Godel’s Incompleteness Theorem
 
 * Author:
 * Link:
 -->
 
-## 7. Law of Quadratic Reciprocity
+## <a name="7"></a>7. Law of Quadratic Reciprocity
 
 ```lean
 theorem quadratic_reciprocity (hp : nat.prime p) (hq : nat.prime q) (hp1 : p % 2 = 1) (hq1 : q % 2 = 1) (hpq : p ≠ q) :
@@ -54,23 +54,23 @@ legendre_sym p q hq * legendre_sym q p hp = (-1) ^ ((p / 2) * (q / 2)) :=
 * Link: https://github.com/leanprover-community/mathlib/blob/fb8001d6fd786a67e01d022241f01b7017ae0825/src/data/zmod/quadratic_reciprocity.lean#L503
 
 <!--
-## 8. The Impossibility of Trisecting the Angle and Doubling the Cube
+## <a name="8"></a>8. The Impossibility of Trisecting the Angle and Doubling the Cube
 
 * Author:
 * Link:
 
-## 9. The Area of a Circle
+## <a name="9"></a>9. The Area of a Circle
 
 * Author:
 * Link:
 
-## 10. Euler’s Generalization of Fermat’s Little Theorem
+## <a name="10"></a>10. Euler’s Generalization of Fermat’s Little Theorem
 
 * Author:
 * Link:
 -->
 
-## 11. The Infinitude of Primes
+## <a name="11"></a>11. The Infinitude of Primes
 
 ```lean
 theorem exists_infinite_primes (n : ℕ) : ∃ p, p ≥ n ∧ prime p :=
@@ -80,32 +80,32 @@ theorem exists_infinite_primes (n : ℕ) : ∃ p, p ≥ n ∧ prime p :=
 * Link: https://github.com/leanprover-community/mathlib/blob/d935bc312fac7eca7ef08b16ca06079145b437f2/src/data/nat/prime.lean#L231
 
 <!--
-## 12. The Independence of the Parallel Postulate
+## <a name="12"></a>12. The Independence of the Parallel Postulate
 
 * Author:
 * Link:
 
-## 13. Polyhedron Formula
+## <a name="13"></a>13. Polyhedron Formula
 
 * Author:
 * Link:
 
-## 14. Euler’s Summation of 1 + (1/2)^2 + (1/3)^2 + ….
+## <a name="14"></a>14. Euler’s Summation of 1 + (1/2)^2 + (1/3)^2 + ….
 
 * Author:
 * Link:
 
-## 15. Fundamental Theorem of Integral Calculus
+## <a name="15"></a>15. Fundamental Theorem of Integral Calculus
 
 * Author:
 * Link:
 
-## 16. Insolvability of General Higher Degree Equations
+## <a name="16"></a>16. Insolvability of General Higher Degree Equations
 
 * Author:
 * Link: -->
 
-## 17. De Moivre’s Theorem
+## <a name="17"></a>17. De Moivre’s Theorem
 ```lean
 theorem cos_add_sin_mul_I_pow (n : ℕ) (z : ℂ) :
   (cos z + sin z * I) ^ n = cos (↑n * z) + sin (↑n * z) * I
@@ -113,17 +113,17 @@ theorem cos_add_sin_mul_I_pow (n : ℕ) (z : ℂ) :
 * Author: mathlib
 * Link: https://github.com/leanprover-community/mathlib/blob/d4c7b7a6c26fed7f526234fa9c7f57eaf4f7b587/src/data/complex/exponential.lean#L678
 
-<!-- ## 18. Liouville’s Theorem and the Construction of Trancendental Numbers
+<!-- ## <a name="18"></a>18. Liouville’s Theorem and the Construction of Trancendental Numbers
 
 * Author:
 * Link:
 
-## 19. Four Squares Theorem
+## <a name="19"></a>19. Four Squares Theorem
 
 * Author:
 * Link:
 -->
-## 20. All Primes Equal the Sum of Two Squares
+## <a name="20"></a>20. All Primes Equal the Sum of Two Squares
 ```lean
 lemma sum_two_squares {p : ℕ} (hp : p.prime) (hp1 : p % 4 = 1) :
   ∃ a b : ℕ, a ^ 2 + b ^ 2 = p
@@ -131,22 +131,22 @@ lemma sum_two_squares {p : ℕ} (hp : p.prime) (hp1 : p % 4 = 1) :
 * Author: Chris Hughes
 * Link: https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/number_theory/sum_two_squares.lean#L19
 <!--
-## 21. Green’s Theorem
+## <a name="21"></a>21. Green’s Theorem
 
 * Author:
 * Link:
 
-## 22. The Non-Denumerability of the Continuum
+## <a name="22"></a>22. The Non-Denumerability of the Continuum
 
 * Author:
 * Link:
 
-## 23. Formula for Pythagorean Triples
+## <a name="23"></a>23. Formula for Pythagorean Triples
 
 * Author:
 * Link:
 
-## 24. The Undecidability of the Continuum Hypothesis
+## <a name="24"></a>24. The Undecidability of the Continuum Hypothesis
 
 * **Partial progress**: The unprovability of the continuum hypothesis. Caveat: ZFC is extended with a limited number of function symbols in this statement.
 ```lean
@@ -157,7 +157,7 @@ theorem CH_f_unprovable : ¬ (ZFC' ⊢' CH_f)
 -->
 
 
-## 25. Schroeder-Bernstein Theorem
+## <a name="25"></a>25. Schroeder-Bernstein Theorem
 ```lean
 theorem schroeder_bernstein {f : α → β} {g : β → α}
   (hf : injective f) (hg : injective g) : ∃h:α→β, bijective h
@@ -166,73 +166,73 @@ theorem schroeder_bernstein {f : α → β} {g : β → α}
 * Link: https://github.com/leanprover-community/mathlib/blob/024da4095269392369f0d818be5f0ada9b173e18/src/set_theory/schroeder_bernstein.lean#L21
 
 <!--
-## 26. Leibnitz’s Series for Pi
+## <a name="26"></a>26. Leibnitz’s Series for Pi
 
 * Author:
 * Link:
 
-## 27. Sum of the Angles of a Triangle
+## <a name="27"></a>27. Sum of the Angles of a Triangle
 
 * Author:
 * Link:
 
-## 28. Pascal’s Hexagon Theorem
+## <a name="28"></a>28. Pascal’s Hexagon Theorem
 
 * Author:
 * Link:
 
-## 29. Feuerbach’s Theorem
+## <a name="29"></a>29. Feuerbach’s Theorem
 
 * Author:
 * Link:
 
-## 30. The Ballot Problem
+## <a name="30"></a>30. The Ballot Problem
 
 * Author:
 * Link:
 
-## 31. Ramsey’s Theorem
+## <a name="31"></a>31. Ramsey’s Theorem
 
 * Author:
 * Link:
 
-## 32. The Four Color Problem
+## <a name="32"></a>32. The Four Color Problem
 
 * Author:
 * Link:
 
-## 33. Fermat’s Last Theorem
+## <a name="33"></a>33. Fermat’s Last Theorem
 
 * Author:
 * Link:
 
-## 34. Divergence of the Harmonic Series
+## <a name="34"></a>34. Divergence of the Harmonic Series
 
 * Author:
 * Link:
 
-## 35. Taylor’s Theorem
+## <a name="35"></a>35. Taylor’s Theorem
 
 * Author:
 * Link:
 
-## 36. Brouwer Fixed Point Theorem
+## <a name="36"></a>36. Brouwer Fixed Point Theorem
 
 * Author:
 * Link:
 
-## 37. The Solution of a Cubic
+## <a name="37"></a>37. The Solution of a Cubic
 
 * Author:
 * Link:
 
-## 38. Arithmetic Mean/Geometric Mean
+## <a name="38"></a>38. Arithmetic Mean/Geometric Mean
 
 * Author:
 * Link:
 -->
 
-## 39. Solutions to Pell’s Equation
+## <a name="39"></a>39. Solutions to Pell’s Equation
 ```lean
 theorem eq_pell {x y : ℕ} (hp : x*x - d*y*y = 1) : ∃n, x = xn n ∧ y = yn n
 ```
@@ -241,28 +241,28 @@ theorem eq_pell {x y : ℕ} (hp : x*x - d*y*y = 1) : ∃n, x = xn n ∧ y = yn n
 * Link: https://github.com/leanprover-community/mathlib/blob/d935bc312fac7eca7ef08b16ca06079145b437f2/src/number_theory/pell.lean#L161
 
 <!--
-## 40. Minkowski’s Fundamental Theorem
+## <a name="40"></a>40. Minkowski’s Fundamental Theorem
 
 * Author:
 * Link:
 
-## 41. Puiseux’s Theorem
+## <a name="41"></a>41. Puiseux’s Theorem
 
 * Author:
 * Link:
 
-## 42. Sum of the Reciprocals of the Triangular Numbers
+## <a name="42"></a>42. Sum of the Reciprocals of the Triangular Numbers
 
 * Author:
 * Link:
 
-## 43. The Isoperimetric Theorem
+## <a name="43"></a>43. The Isoperimetric Theorem
 
 * Author:
 * Link:
 -->
 
-## 44. The Binomial Theorem
+## <a name="44"></a>44. The Binomial Theorem
 
 ```lean
 theorem add_pow :
@@ -273,76 +273,76 @@ theorem add_pow :
 * Link: https://github.com/leanprover-community/mathlib/blob/22948763023aff7b0a9634b180e7838b39a3803d/src/data/nat/choose.lean#L25
 
 <!--
-## 45. The Partition Theorem
+## <a name="45"></a>45. The Partition Theorem
 
 * Author:
 * Link:
 
-## 46. The Solution of the General Quartic Equation
+## <a name="46"></a>46. The Solution of the General Quartic Equation
 
 * Author:
 * Link:
 
-## 47. The Central Limit Theorem
+## <a name="47"></a>47. The Central Limit Theorem
 
 * Author:
 * Link:
 
-## 48. Dirichlet’s Theorem
+## <a name="48"></a>48. Dirichlet’s Theorem
 
 * Author:
 * Link:
 
-## 49. The Cayley-Hamilton Thoerem
+## <a name="49"></a>49. The Cayley-Hamilton Thoerem
 
 * Author:
 * Link:
 
-## 50. The Number of Platonic Solids
+## <a name="50"></a>50. The Number of Platonic Solids
 
 * Author:
 * Link:
 -->
-## 51. Wilson’s Theorem
+## <a name="51"></a>51. Wilson’s Theorem
 ```lean
 lemma wilsons_lemma {p : ℕ} (hp : nat.prime p) : (fact (p - 1) : zmodp p hp) = -1
 ```
 * Author: Chris Hughes
 * Link: https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/data/zmod/quadratic_reciprocity.lean#L74
 
-## 52. The Number of Subsets of a Set
+## <a name="52"></a>52. The Number of Subsets of a Set
 ```lean
 theorem card_powerset (s : finset α) : card (powerset s) = 2 ^ card s
 ```
 * Author: mathlib
 * Link: https://github.com/leanprover-community/mathlib/blob/00aaf05a00b928ea9ac09721d87ae5d2ca1ae5a1/src/data/finset.lean#L1277
 <!--
-## 53. Pi is Trancendental
+## <a name="53"></a>53. Pi is Trancendental
 
 * Author:
 * Link:
 
-## 54. Konigsberg Bridges Problem
+## <a name="54"></a>54. Konigsberg Bridges Problem
 
 * Author:
 * Link:
 
-## 55. Product of Segments of Chords
+## <a name="55"></a>55. Product of Segments of Chords
 
 * Author:
 * Link:
 
-## 56. The Hermite-Lindemann Transcendence Theorem
+## <a name="56"></a>56. The Hermite-Lindemann Transcendence Theorem
 
 * Author:
 * Link:
 
-## 57. Heron’s Formula
+## <a name="57"></a>57. Heron’s Formula
 
 * Author:
 * Link:
 -->
-## 58. Formula for the Number of Combinations
+## <a name="58"></a>58. Formula for the Number of Combinations
 
 ```lean
 theorem card_powerset_len (n : ℕ) (s : finset α) :
@@ -357,46 +357,46 @@ theorem mem_powerset_len {n} {s t : finset α} :
 
 
 <!--
-## 59. The Laws of Large Numbers
+## <a name="59"></a>59. The Laws of Large Numbers
 
 * Author:
 * Link:
 -->
-## 60. Bezout’s Theorem
+## <a name="60"></a>60. Bezout’s Theorem
 ```lean
 theorem gcd_eq_gcd_ab (a b : α) : (gcd a b : α) = a * gcd_a a b + b * gcd_b a b
 ```
 * Author: mathlib
 * Link: https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/algebra/euclidean_domain.lean#L233
 <!--
-## 61. Theorem of Ceva
+## <a name="61"></a>61. Theorem of Ceva
 
 * Author:
 * Link:
 
-## 62. Fair Games Theorem
+## <a name="62"></a>62. Fair Games Theorem
 
 * Author:
 * Link:
 -->
-## 63. Cantor’s Theorem
+## <a name="63"></a>63. Cantor’s Theorem
 ```lean
 theorem cantor : ∀(a : cardinal.{u}), a < 2 ^ a
 ```
 * Author: mathlib <!-- Mario and/or Johannes -->
 * Link: https://github.com/leanprover-community/mathlib/blob/e66e1f30d8a0a006ff93a309cc202ab4deaebf04/src/set_theory/cardinal.lean#L259
 <!--
-## 64. L’Hopital’s Rule
+## <a name="64"></a>64. L’Hopital’s Rule
 
 * Author:
 * Link:
 
-## 65. Isosceles Triangle Theorem
+## <a name="65"></a>65. Isosceles Triangle Theorem
 
 * Author:
 * Link:
 -->
-## 66. Sum of a Geometric Series
+## <a name="66"></a>66. Sum of a Geometric Series
 ```lean
 theorem geom_sum [division_ring α] {x : α} (h : x ≠ 1) (n : ℕ) :
   (range n).sum (λ i, x^i) = (x^n-1)/(x-1)
@@ -408,19 +408,19 @@ lemma has_sum_geometric {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
 * Link: [Finite](https://github.com/leanprover-community/mathlib/blob/d935bc312fac7eca7ef08b16ca06079145b437f2/src/algebra/big_operators.lean#L571), [Infinite](https://github.com/leanprover-community/mathlib/blob/f25340175631cdc85ad768a262433f968d0d6450/src/analysis/specific_limits.lean#L90)
 
 <!--
-## 67. e is Transcendental
+## <a name="67"></a>67. e is Transcendental
 
 * Author:
 * Link:
 -->
-## 68. Sum of an arithmetic series
+## <a name="68"></a>68. Sum of an arithmetic series
 ```lean
 lemma sum_range_id (n : ℕ) : (finset.range n).sum (λi, i) = (n * (n - 1)) / 2
 ```
 * Author: Johannes Hölzl
 * Link: https://github.com/leanprover-community/mathlib/blob/d935bc312fac7eca7ef08b16ca06079145b437f2/src/algebra/big_operators.lean#L607
 
-## 69. Greatest Common Divisor Algorithm
+## <a name="69"></a>69. Greatest Common Divisor Algorithm
 ```lean
 def gcd : α → α → α
 | a := λ b, if a0 : a = 0 then b else
@@ -436,12 +436,12 @@ theorem dvd_gcd {a b c : α} : c ∣ a → c ∣ b → c ∣ gcd a b
 * Link: https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/algebra/euclidean_domain.lean#L127
 
 <!--
-## 70. The Perfect Number Theorem
+## <a name="70"></a>70. The Perfect Number Theorem
 
 * Author:
 * Link:
 -->
-## 71. Order of a Subgroup
+## <a name="71"></a>71. Order of a Subgroup
 ```lean
 lemma card_subgroup_dvd_card (s : set α) [is_subgroup s] [fintype s] :
   fintype.card s ∣ fintype.card α
@@ -450,7 +450,7 @@ lemma card_subgroup_dvd_card (s : set α) [is_subgroup s] [fintype s] :
 * Link: https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/group_theory/order_of_element.lean#L56
 
 
-## 72. Sylow’s Theorem
+## <a name="72"></a>72. Sylow’s Theorem
 
 ```lean
 lemma exists_subgroup_card_pow_prime  {G : Type u} [group G] [fintype G] {p : ℕ} :
@@ -473,12 +473,12 @@ lemma card_sylow_modeq_one [fintype G] {p : ℕ} (hp : prime p) :
 https://github.com/ChrisHughes24/Sylow/blob/7185e33eeb6d28ea1a423492e7b4a8634aa9723d/src/sylow.lean#L885) [3.1](https://github.com/ChrisHughes24/Sylow/blob/7185e33eeb6d28ea1a423492e7b4a8634aa9723d/src/sylow.lean#L925) [3.2](https://github.com/ChrisHughes24/Sylow/blob/7185e33eeb6d28ea1a423492e7b4a8634aa9723d/src/sylow.lean#L944). Theorem 3.3 (number of Sylow sugroups is the cardinality of the normalizer of any of them) is not proven as a separate fact, but used in the other results [here](https://github.com/ChrisHughes24/Sylow/blob/7185e33eeb6d28ea1a423492e7b4a8634aa9723d/src/sylow.lean#L934).
 
 <!--
-## 73. Ascending or Descending Sequences
+## <a name="73"></a>73. Ascending or Descending Sequences
 
 * Author:
 * Link:
 -->
-## 74. The Principle of Mathematical Induction
+## <a name="74"></a>74. The Principle of Mathematical Induction
 * Automatically generated when defining the natural numbers
 ```lean
 inductive nat
@@ -492,28 +492,28 @@ inductive nat
 * Link: https://github.com/leanprover/lean/blob/cbd2b6686ddb566028f5830490fe55c0b3a9a4cb/library/init/core.lean#L293
 
 <!--
-## 75. The Mean Value Theorem
+## <a name="75"></a>75. The Mean Value Theorem
 
 * Author:
 * Link:
 
-## 76. Fourier Series
+## <a name="76"></a>76. Fourier Series
 
 * Author:
 * Link:
 
-## 77. Sum of kth powers
+## <a name="77"></a>77. Sum of kth powers
 
 * Author:
 * Link:
 
-## 78. The Cauchy-Schwarz Inequality
+## <a name="78"></a>78. The Cauchy-Schwarz Inequality
 
 * Author:
 * Link:
 -->
 
-## 79. The Intermediate Value Theorem
+## <a name="79"></a>79. The Intermediate Value Theorem
 ```lean
 lemma real.intermediate_value {f : ℝ → ℝ} {a b t : ℝ}
   (hf : ∀ x, a ≤ x → x ≤ b → tendsto f (nhds x) (nhds (f x)))
@@ -523,7 +523,7 @@ lemma real.intermediate_value {f : ℝ → ℝ} {a b t : ℝ}
 * Link: https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/topology/instances/real.lean#L340
 
 
-## 80. The Fundamental Theorem of Arithmetic
+## <a name="80"></a>80. The Fundamental Theorem of Arithmetic
 The integers form a unique factorization domain by the first three declarations. A unique factorization domain gives most of the fundamental theorem of arithmetic, and the uniqueness is then proven for them.
 ```lean
 instance int.euclidean_domain : euclidean_domain ℤ
@@ -543,12 +543,12 @@ lemma unique [integral_domain α] [unique_factorization_domain α] : ∀{f g : m
 * Link: [1](https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/algebra/euclidean_domain.lean#L320) [2](https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/ring_theory/principal_ideal_domain.lean#L71) [3](https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/ring_theory/principal_ideal_domain.lean#L158) [4](https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/ring_theory/unique_factorization_domain.lean#L29) [5](https://github.com/leanprover-community/mathlib/blob/master/src/ring_theory/unique_factorization_domain.lean#L90)
 
 <!--
-## 81. Divergence of the Prime Reciprocal Series
+## <a name="81"></a>81. Divergence of the Prime Reciprocal Series
 
 * Author:
 * Link:
 -->
-## 82. Dissection of Cubes (J.E. Littlewood’s ‘elegant’ proof)
+## <a name="82"></a>82. Dissection of Cubes (J.E. Littlewood’s ‘elegant’ proof)
 ```lean
 theorem cannot_cube_a_cube :
   ∀{n : ℕ}, n ≥ 3 →                              -- In ℝ^n for n ≥ 3
@@ -562,22 +562,22 @@ theorem cannot_cube_a_cube :
 * Author: Floris van Doorn
 * Link: https://github.com/fpvandoorn/mathlib/blob/92f6874c49674f04b175637335bb21cf206bb74a/src/cube.lean#L586
 <!--
-## 83. The Friendship Theorem
+## <a name="83"></a>83. The Friendship Theorem
 
 * Author:
 * Link:
 
-## 84. Morley’s Theorem
+## <a name="84"></a>84. Morley’s Theorem
 
 * Author:
 * Link:
 
-## 85. Divisibility by 3 Rule
+## <a name="85"></a>85. Divisibility by 3 Rule
 
 * Author:
 * Link:
 -->
-## 86. Lebesgue Measure and Integration
+## <a name="86"></a>86. Lebesgue Measure and Integration
 ```lean
 instance : measure_space ℝ
 
@@ -587,17 +587,17 @@ def lintegral (f : α → ennreal) : ennreal :=
 * Author: Johannes Hölzl
 * Link: [measure](https://github.com/leanprover-community/mathlib/blob/f0f06ca1d07b441eda86342413b0088afb8aa875/src/measure_theory/lebesgue_measure.lean#L224) and [integral](https://github.com/leanprover-community/mathlib/blob/3461399615e4b2bee12f1bc5bbf0c337d669b7b5/src/measure_theory/integration.lean#L528)
 <!--
-## 87. Desargues’s Theorem
+## <a name="87"></a>87. Desargues’s Theorem
 
 * Author:
 * Link:
 
-## 88. Derangements Formula
+## <a name="88"></a>88. Derangements Formula
 
 * Author:
 * Link:
 -->
-## 89. The Factor and Remainder Theorems
+## <a name="89"></a>89. The Factor and Remainder Theorems
 ```lean
 lemma dvd_iff_is_root : (X - C a) ∣ p ↔ is_root p a
 lemma mod_X_sub_C_eq_C_eval (p : polynomial α) (a : α) : p % (X - C a) = C (p.eval a)
@@ -605,37 +605,37 @@ lemma mod_X_sub_C_eq_C_eval (p : polynomial α) (a : α) : p % (X - C a) = C (p.
 * Author: Chris Hughes
 * Link: [Factor theorem](https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/data/polynomial.lean#L1564) and [Remainder theorem](https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/data/polynomial.lean#L1950)
 <!--
-## 90. Stirling’s Formula
+## <a name="90"></a>90. Stirling’s Formula
 
 * Author:
 * Link:
 
-## 91. The Triangle Inequality
+## <a name="91"></a>91. The Triangle Inequality
 
 * Author:
 * Link:
 
-## 92. Pick’s Theorem
+## <a name="92"></a>92. Pick’s Theorem
 
 * Author:
 * Link:
 
-## 93. The Birthday Problem
+## <a name="93"></a>93. The Birthday Problem
 
 * Author:
 * Link:
 
-## 94. The Law of Cosines
+## <a name="94"></a>94. The Law of Cosines
 
 * Author:
 * Link:
 
-## 95. Ptolemy’s Theorem
+## <a name="95"></a>95. Ptolemy’s Theorem
 
 * Author:
 * Link: -->
 
-## 96. Principle of Inclusion/Exclusion
+## <a name="96"></a>96. Principle of Inclusion/Exclusion
 
 ```lean
 lemma inclusion_exclusion {A : Type u} [fintype A] [decidable_eq A]
@@ -646,22 +646,22 @@ lemma inclusion_exclusion {A : Type u} [fintype A] [decidable_eq A]
 * Author: Neil Strickland
 * Link: https://github.com/NeilStrickland/lean_lib/blob/f88d162da2f990b87c4d34f5f46bbca2bbc5948e/src/combinatorics/matching.lean#L304
 
-<!-- ## 97. Cramer’s Rule
+<!-- ## <a name="97"></a>97. Cramer’s Rule
 
 * Author:
 * Link:
 
-## 98. Bertrand’s Postulate
+## <a name="98"></a>98. Bertrand’s Postulate
 
 * Author:
 * Link:
 
-## 99. Buffon Needle Problem
+## <a name="99"></a>99. Buffon Needle Problem
 
 * Author:
 * Link:
 
-## 100. Descartes Rule of Signs
+## <a name="100"></a>100. Descartes Rule of Signs
 
 * Author:
 * Link:

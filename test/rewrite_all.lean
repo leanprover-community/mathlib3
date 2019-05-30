@@ -78,3 +78,17 @@ begin
   nth_rewrite_lhs 1 smash,
   nth_rewrite_lhs 2 smash,
 end
+
+example (a b c : ℕ) : c + a + b = a + c + b :=
+begin
+  nth_rewrite_rhs 1 add_comm,
+end
+-- With the `kabstract` backend, we only find one rewrite, even though there are obviously two.
+-- The problem is that `(a + b) + c` matches directly, so the WHOLE THING gets replaced with a
+-- metavariable, per the `kabstract` strategy. This is devastating to the search, since we cannot
+-- see inside this metavariable.
+
+-- I still think it's fixable. Because all applications have an order, I'm pretty sure we can't
+-- miss any rewrites if we also look inside every thing we chunk-up into a metavariable as well.
+-- In almost every case this will bring up no results (with the exception of situations like this
+-- one), so there should be essentially no change in complexity.

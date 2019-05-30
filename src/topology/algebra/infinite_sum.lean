@@ -371,6 +371,25 @@ tsum_eq_has_sum $ has_sum_neg $ has_sum_tsum $ hf
 lemma tsum_sub (hf : summable f) (hg : summable g) : (∑b, f b - g b) = (∑b, f b) - (∑b, g b) :=
 tsum_eq_has_sum $ has_sum_sub (has_sum_tsum hf) (has_sum_tsum hg)
 
+lemma tsum_eq_zero_add {f : ℕ → α} (hf : summable f) : (∑b, f b) = f 0 + (∑b, f (b + 1)) :=
+begin
+  let f₁ : ℕ → α := λ n, nat.rec (f 0) (λ _ _, 0) n,
+  let f₂ : ℕ → α := λ n, nat.rec 0 (λ k _, f (k+1)) n,
+  have : f = λ n, f₁ n + f₂ n, { ext n, symmetry, cases n, apply add_zero, apply zero_add },
+  have hf₁ : summable f₁,
+  { fapply summable_sum_of_ne_finset_zero, exact finset.singleton 0,
+    intros n hn, cases n, exfalso, apply hn, apply finset.mem_singleton_self, refl },
+  have hf₂ : summable f₂,
+  { have : f₂ = λ n, f n - f₁ n, ext, rw [eq_sub_iff_add_eq', this],
+    rw [this], apply summable_sub hf hf₁ },
+  conv_lhs { rw [this] },
+  rw [tsum_add hf₁ hf₂, tsum_eq_single 0], congr' 1,
+  fapply tsum_eq_tsum_of_ne_zero_bij (λ n _, n + 1),
+  intros _ _ _ _, exact nat.succ_inj,
+  intros n h, cases n, contradiction, exact ⟨n, h, rfl⟩,
+  intros, refl, apply_instance, intros n hn, cases n, contradiction, refl, apply_instance
+end
+
 end tsum
 
 end topological_group

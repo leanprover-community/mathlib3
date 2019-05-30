@@ -102,6 +102,9 @@ by funext; simp
 
 instance int : denumerable ℤ := of_equiv _ equiv.int_equiv_nat
 
+instance pnat : denumerable ℕ+ :=
+denumerable.mk' equiv.pnat_equiv_nat
+
 instance ulift : denumerable (ulift α) := of_equiv _ equiv.ulift
 
 instance plift : denumerable (plift α) := of_equiv _ equiv.plift

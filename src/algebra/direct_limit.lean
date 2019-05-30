@@ -215,10 +215,10 @@ linear_map.is_add_group_hom _
 @[simp] lemma of_f {i j} (hij) (x) : of G f j (f i j hij x) = of G f i x :=
 module.direct_limit.of_f
 
-@[simp] lemma of_zero (i) : of G f i 0 = 0 := is_add_group_hom.zero _
-@[simp] lemma of_add (i x y) : of G f i (x + y) = of G f i x + of G f i y := is_add_group_hom.add _ _ _
-@[simp] lemma of_neg (i x) : of G f i (-x) = -of G f i x := is_add_group_hom.neg _ _
-@[simp] lemma of_sub (i x y) : of G f i (x - y) = of G f i x - of G f i y := is_add_group_hom.sub _ _ _
+@[simp] lemma of_zero (i) : of G f i 0 = 0 := is_add_group_hom.map_zero _
+@[simp] lemma of_add (i x y) : of G f i (x + y) = of G f i x + of G f i y := is_add_group_hom.map_add _ _ _
+@[simp] lemma of_neg (i x) : of G f i (-x) = -of G f i x := is_add_group_hom.map_neg _ _
+@[simp] lemma of_sub (i x y) : of G f i (x - y) = of G f i x - of G f i y := is_add_group_hom.map_sub _ _ _
 
 @[elab_as_eliminator]
 protected theorem induction_on {C : direct_limit G f → Prop} (z : direct_limit G f)
@@ -249,10 +249,10 @@ linear_map.is_add_group_hom _
 @[simp] lemma lift_of (i x) : lift G f P g Hg (of G f i x) = g i x :=
 module.direct_limit.lift_of _ _ _
 
-@[simp] lemma lift_zero : lift G f P g Hg 0 = 0 := is_add_group_hom.zero _
-@[simp] lemma lift_add (x y) : lift G f P g Hg (x + y) = lift G f P g Hg x + lift G f P g Hg y := is_add_group_hom.add _ _ _
-@[simp] lemma lift_neg (x) : lift G f P g Hg (-x) = -lift G f P g Hg x := is_add_group_hom.neg _ _
-@[simp] lemma lift_sub (x y) : lift G f P g Hg (x - y) = lift G f P g Hg x - lift G f P g Hg y := is_add_group_hom.sub _ _ _
+@[simp] lemma lift_zero : lift G f P g Hg 0 = 0 := is_add_group_hom.map_zero _
+@[simp] lemma lift_add (x y) : lift G f P g Hg (x + y) = lift G f P g Hg x + lift G f P g Hg y := is_add_group_hom.map_add _ _ _
+@[simp] lemma lift_neg (x) : lift G f P g Hg (-x) = -lift G f P g Hg x := is_add_group_hom.map_neg _ _
+@[simp] lemma lift_sub (x y) : lift G f P g Hg (x - y) = lift G f P g Hg x - lift G f P g Hg y := is_add_group_hom.map_sub _ _ _
 
 lemma lift_unique (F : direct_limit G f → P) [is_add_group_hom F] (x) :
   F x = lift G f P (λ i x, F $ of G f i x) (λ i j hij x, by rw of_f) x :=
@@ -343,7 +343,7 @@ begin
       restriction_neg, restriction_one, lift_neg, lift_one] },
   { rintros _ ⟨p, hps, rfl⟩ n ih,
     rw [restriction_mul, lift_mul, is_ring_hom.map_mul (f j k hjk), ih, restriction_mul, lift_mul,
-        restriction_of, dif_pos hps, lift_pure, restriction_of, dif_pos (hst hps), lift_pure],
+        restriction_of, dif_pos hps, lift_of, restriction_of, dif_pos (hst hps), lift_of],
     dsimp only, rw directed_system.map_map f, refl },
   { rintros x y ihx ihy,
     rw [restriction_add, lift_add, is_ring_hom.map_add (f j k hjk), ihx, ihy, restriction_add, lift_add] }
@@ -357,29 +357,29 @@ begin
   refine span_induction (ideal.quotient.eq_zero_iff_mem.1 H) _ _ _ _,
   { rintros x (⟨i, j, hij, x, rfl⟩ | ⟨i, rfl⟩ | ⟨i, x, y, rfl⟩ | ⟨i, x, y, rfl⟩),
     { refine ⟨j, {⟨i, x⟩, ⟨j, f i j hij x⟩}, _,
-        is_supported_sub (is_supported_pure.2 $ or.inl rfl) (is_supported_pure.2 $ or.inr $ or.inl rfl), _⟩,
+        is_supported_sub (is_supported_of.2 $ or.inl rfl) (is_supported_of.2 $ or.inr $ or.inl rfl), _⟩,
       { rintros k (rfl | ⟨rfl | h⟩), refl, exact hij, cases h },
-      { rw [restriction_sub, lift_sub, restriction_of, dif_pos, restriction_of, dif_pos, lift_pure, lift_pure],
+      { rw [restriction_sub, lift_sub, restriction_of, dif_pos, restriction_of, dif_pos, lift_of, lift_of],
         dsimp only, rw directed_system.map_map f, exact sub_self _,
         { left, refl }, { right, left, refl }, } },
-    { refine ⟨i, {⟨i, 1⟩}, _, is_supported_sub (is_supported_pure.2 $ or.inl rfl) is_supported_one, _⟩,
+    { refine ⟨i, {⟨i, 1⟩}, _, is_supported_sub (is_supported_of.2 $ or.inl rfl) is_supported_one, _⟩,
       { rintros k (rfl | h), refl, cases h },
-      { rw [restriction_sub, lift_sub, restriction_of, dif_pos, restriction_one, lift_pure, lift_one],
+      { rw [restriction_sub, lift_sub, restriction_of, dif_pos, restriction_one, lift_of, lift_one],
         dsimp only, rw [is_ring_hom.map_one (f i i _), sub_self], exact _inst_7 i i _, { left, refl } } },
     { refine ⟨i, {⟨i, x+y⟩, ⟨i, x⟩, ⟨i, y⟩}, _,
-        is_supported_sub (is_supported_pure.2 $ or.inr $ or.inr $ or.inl rfl)
-          (is_supported_add (is_supported_pure.2 $ or.inr $ or.inl rfl) (is_supported_pure.2 $ or.inl rfl)), _⟩,
+        is_supported_sub (is_supported_of.2 $ or.inr $ or.inr $ or.inl rfl)
+          (is_supported_add (is_supported_of.2 $ or.inr $ or.inl rfl) (is_supported_of.2 $ or.inl rfl)), _⟩,
       { rintros k (rfl | ⟨rfl | ⟨rfl | hk⟩⟩), refl, refl, refl, cases hk },
       { rw [restriction_sub, restriction_add, restriction_of, restriction_of, restriction_of,
-          dif_pos, dif_pos, dif_pos, lift_sub, lift_add, lift_pure, lift_pure, lift_pure],
+          dif_pos, dif_pos, dif_pos, lift_sub, lift_add, lift_of, lift_of, lift_of],
         dsimp only, rw is_ring_hom.map_add (f i i _), exact sub_self _,
         { right, right, left, refl }, { apply_instance }, { left, refl }, { right, left, refl } } },
     { refine ⟨i, {⟨i, x*y⟩, ⟨i, x⟩, ⟨i, y⟩}, _,
-        is_supported_sub (is_supported_pure.2 $ or.inr $ or.inr $ or.inl rfl)
-          (is_supported_mul (is_supported_pure.2 $ or.inr $ or.inl rfl) (is_supported_pure.2 $ or.inl rfl)), _⟩,
+        is_supported_sub (is_supported_of.2 $ or.inr $ or.inr $ or.inl rfl)
+          (is_supported_mul (is_supported_of.2 $ or.inr $ or.inl rfl) (is_supported_of.2 $ or.inl rfl)), _⟩,
       { rintros k (rfl | ⟨rfl | ⟨rfl | hk⟩⟩), refl, refl, refl, cases hk },
       { rw [restriction_sub, restriction_mul, restriction_of, restriction_of, restriction_of,
-          dif_pos, dif_pos, dif_pos, lift_sub, lift_mul, lift_pure, lift_pure, lift_pure],
+          dif_pos, dif_pos, dif_pos, lift_sub, lift_mul, lift_of, lift_of, lift_of],
         dsimp only, rw is_ring_hom.map_mul (f i i _), exact sub_self _,
         { right, right, left, refl }, { apply_instance }, { left, refl }, { right, left, refl } } } },
   { refine nonempty.elim (by apply_instance) (assume ind : ι, _),
@@ -412,8 +412,8 @@ end
 bigger module in the directed system. -/
 lemma of.zero_exact {i x} (hix : of G f i x = 0) : ∃ j, ∃ hij : i ≤ j, f i j hij x = 0 :=
 let ⟨j, s, H, hxs, hx⟩ := of.zero_exact_aux hix in
-have hixs : (⟨i, x⟩ : Σ i, G i) ∈ s, from is_supported_pure.1 hxs,
-⟨j, H ⟨i, x⟩ hixs, by rw [restriction_of, dif_pos hixs, lift_pure] at hx; exact hx⟩
+have hixs : (⟨i, x⟩ : Σ i, G i) ∈ s, from is_supported_of.1 hxs,
+⟨j, H ⟨i, x⟩ hixs, by rw [restriction_of, dif_pos hixs, lift_of] at hx; exact hx⟩
 end of_zero_exact
 
 /-- If the maps in the directed system are injective, then the canonical maps

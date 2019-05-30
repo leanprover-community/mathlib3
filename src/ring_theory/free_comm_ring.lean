@@ -1,10 +1,11 @@
 /-
 Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kenny Lau
+Authors: Kenny Lau, Johan Commelin
 -/
 
 import group_theory.free_abelian_group data.equiv.algebra data.equiv.functor data.polynomial
+import data.real.irrational
 import ring_theory.ideal_operations ring_theory.free_ring
 
 universes u v
@@ -34,7 +35,6 @@ free_abelian_group.induction_on z
   (λ m, multiset.induction_on m h1 $ λ a m ih, hm _ _ (hb a) ih)
   (λ m ih, hn _ ih)
   ha
-
 section lift
 
 variables {β : Type v} [comm_ring β] (f : α → β)
@@ -97,23 +97,6 @@ variables {β : Type v} (f : α → β)
 def map : free_comm_ring α → free_comm_ring β :=
 lift $ of ∘ f
 
-instance : monad free_comm_ring :=
-{ map := λ _ _, map,
-  pure := λ _, of,
-  bind := λ _ _ x f, lift f x }
-
-@[simp] lemma lift_pure [comm_ring β] (x : α) : lift f (pure x) = f x :=
-lift_of _ _
-
-@[elab_as_eliminator] protected lemma induction_on'
-  {C : free_comm_ring α → Prop} (z : free_comm_ring α)
-  (hn1 : C (-1)) (hb : ∀ b, C (pure b))
-  (ha : ∀ x y, C x → C y → C (x + y))
-  (hm : ∀ x y, C x → C y → C (x * y)) : C z :=
-free_comm_ring.induction_on z hn1 hb ha hm
-
-section map
-@[simp] lemma map_pure (z) : f <$> (pure z : free_comm_ring α) = pure (f z) := lift_of (of ∘ f)
 @[simp] lemma map_zero : map f 0 = 0 := rfl
 @[simp] lemma map_one : map f 1 = 1 := rfl
 @[simp] lemma map_of (x : α) : map f (of x) = of (f x) := lift_of _ _
@@ -122,8 +105,6 @@ section map
 @[simp] lemma map_sub (x y) : map f (x - y) = map f x - map f y := lift_sub _ _ _
 @[simp] lemma map_mul (x y) : map f (x * y) = map f x * map f y := lift_mul _ _ _
 @[simp] lemma map_pow (x) (n : ℕ) : map f (x ^ n) = (map f x) ^ n := lift_pow _ _ _
-end map
-
 
 def is_supported (x : free_comm_ring α) (s : set α) : Prop :=
 x ∈ ring.closure (of '' s)
@@ -160,12 +141,11 @@ int.induction_on i is_supported_zero
   (λ i hi, by rw [int.cast_sub, int.cast_one]; exact is_supported_sub hi is_supported_one)
 
 def restriction (s : set α) [decidable_pred s] (x : free_comm_ring α) : free_comm_ring s :=
-lift (λ p, if H : p ∈ s then pure ⟨p, H⟩ else 0) x
+lift (λ p, if H : p ∈ s then of ⟨p, H⟩ else 0) x
 
 section restriction
 variables (s : set α) [decidable_pred s] (x y : free_comm_ring α)
-@[simp] lemma restriction_of (p) : restriction s (of p) = if H : p ∈ s then pure ⟨p, H⟩ else 0 := lift_of _ _
-@[simp] lemma restriction_pure (p) : restriction s (pure p) = if H : p ∈ s then pure ⟨p, H⟩ else 0 := lift_of _ _
+@[simp] lemma restriction_of (p) : restriction s (of p) = if H : p ∈ s then of ⟨p, H⟩ else 0 := lift_of _ _
 @[simp] lemma restriction_zero : restriction s 0 = 0 := lift_zero _
 @[simp] lemma restriction_one : restriction s 1 = 1 := lift_one _
 @[simp] lemma restriction_add : restriction s (x + y) = restriction s x + restriction s y := lift_add _ _ _
@@ -174,34 +154,34 @@ variables (s : set α) [decidable_pred s] (x y : free_comm_ring α)
 @[simp] lemma restriction_mul : restriction s (x * y) = restriction s x * restriction s y := lift_mul _ _ _
 end restriction
 
-theorem is_supported_pure {p} {s : set α} : is_supported (pure p) s ↔ p ∈ s :=
-suffices is_supported (pure p) s → p ∈ s, from ⟨this, λ hps, ring.subset_closure ⟨p, hps, rfl⟩⟩,
-assume hps : is_supported (pure p) s, begin
+theorem is_supported_of {p} {s : set α} : is_supported (of p) s ↔ p ∈ s :=
+suffices is_supported (of p) s → p ∈ s, from ⟨this, λ hps, ring.subset_closure ⟨p, hps, rfl⟩⟩,
+assume hps : is_supported (of p) s, begin
   classical,
   have : ∀ x, is_supported x s → ∃ q : ℚ, lift (λ q, if q ∈ s then 0 else real.sqrt 2) x = ↑q,
   { intros x hx, refine ring.in_closure.rec_on hx _ _ _ _,
     { use 1, rw [lift_one, rat.cast_one] },
     { use -1, rw [lift_neg, lift_one, rat.cast_neg, rat.cast_one], },
     { rintros _ ⟨z, hzs, rfl⟩ _ _, use 0, rw [lift_mul, lift_of, if_pos hzs, zero_mul, rat.cast_zero] },
-    { rintros x y ⟨q, hq⟩ ⟨r, hr⟩, use q+r, rw [lift_add, hq, hr, rat.cast_add] } },
+    { rintros x y ⟨q, hq⟩ ⟨r, hr⟩, refine ⟨q+r, _⟩, rw [lift_add, hq, hr, rat.cast_add] } },
   specialize this (of p) hps, rw [lift_of] at this, split_ifs at this, { exact h },
   exfalso, exact irr_sqrt_two this
 end
 
-theorem subtype_val_map_restriction {x} (s : set α) [decidable_pred s] (hxs : is_supported x s) :
-  subtype.val <$> restriction s x = x :=
+theorem map_subtype_val_restriction {x} (s : set α) [decidable_pred s] (hxs : is_supported x s) :
+  map subtype.val (restriction s x) = x :=
 begin
   refine ring.in_closure.rec_on hxs _ _ _ _,
   { rw restriction_one, refl },
   { rw [restriction_neg, map_neg, restriction_one], refl },
-  { rintros _ ⟨p, hps, rfl⟩ n ih, rw [restriction_mul, restriction_of, dif_pos hps, map_mul, map_pure, ih], refl },
+  { rintros _ ⟨p, hps, rfl⟩ n ih, rw [restriction_mul, restriction_of, dif_pos hps, map_mul, map_of, ih] },
   { intros x y ihx ihy, rw [restriction_add, map_add, ihx, ihy] }
 end
 
 theorem exists_finite_support (x : free_comm_ring α) : ∃ s : set α, set.finite s ∧ is_supported x s :=
 free_comm_ring.induction_on x
   ⟨∅, set.finite_empty, is_supported_neg is_supported_one⟩
-  (λ p, ⟨{p}, set.finite_singleton p, is_supported_pure.2 $ finset.mem_singleton_self _⟩)
+  (λ p, ⟨{p}, set.finite_singleton p, is_supported_of.2 $ finset.mem_singleton_self _⟩)
   (λ x y ⟨s, hfs, hxs⟩ ⟨t, hft, hxt⟩, ⟨s ∪ t, set.finite_union hfs hft, is_supported_add
     (is_supported_upwards hxs $ set.subset_union_left s t)
     (is_supported_upwards hxt $ set.subset_union_right s t)⟩)
@@ -213,6 +193,7 @@ theorem exists_finset_support (x : free_comm_ring α) : ∃ s : finset α, is_su
 let ⟨s, hfs, hxs⟩ := exists_finite_support x in ⟨hfs.to_finset, by rwa finset.coe_to_finset⟩
 
 end free_comm_ring
+
 
 namespace free_ring
 open function

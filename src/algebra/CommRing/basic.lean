@@ -67,11 +67,6 @@ def Int.hom_unique {R : CommRing} : unique (CommRing.of ℤ ⟶ R) :=
 { default := Int.cast,
   uniq := λ f, subtype.ext.mpr $ funext $ int.eq_cast f f.2.map_one f.2.map_add }
 
-/-- The forgetful functor commutative rings to Type. -/
-def forget : CommRing.{u} ⥤ Type u :=
-{ obj := λ R, R,
-  map := λ _ _ f, f }
-
 instance forget.faithful : faithful (forget) := {}
 
 instance forget_comm_ring (R : CommRing) : comm_ring (forget.obj R) := R.str

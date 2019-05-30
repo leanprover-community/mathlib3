@@ -13,9 +13,9 @@ universes u v
 
 @[reducible] def Meas : Type (u+1) := bundled measurable_space
 
-instance (x : Meas) : measurable_space x := x.str
-
 namespace Meas
+
+instance (x : Meas) : measurable_space x := x.str
 
 instance : concrete_category @measurable := ⟨@measurable_id, @measurable.comp⟩
 

@@ -9,8 +9,7 @@ import category_theory.limits.limits
 universes v u v' u'
 
 open category_theory
-open category_theory.instances
-open category_theory.instances.Top
+open Top
 open category_theory.limits
 open topological_space
 
@@ -21,7 +20,7 @@ variables [has_colimits.{v} C]
 
 variables {X Y Z : Top.{v}}
 
-namespace category_theory.instances.Top.presheaf
+namespace Top.presheaf
 
 variables (C)
 /-- Stalks are functorial with respect to morphisms of presheaves over a fixed `X`. -/
@@ -94,4 +93,4 @@ begin
 end
 
 end stalk_pushforward
-end category_theory.instances.Top.presheaf
+end Top.presheaf

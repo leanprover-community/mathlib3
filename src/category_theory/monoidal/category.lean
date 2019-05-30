@@ -124,7 +124,7 @@ by { rw ←tensor_comp, simp }
 by { rw [←tensor_comp], simp }
 
 @[simp] lemma tensor_id_comp_id_tensor (f : W ⟶ X) (g : Y ⟶ Z) :
-  (g ⊗ (𝟙 X)) ≫ ((𝟙 Y) ⊗ f) = g ⊗ f :=
+  (g ⊗ (𝟙 W)) ≫ ((𝟙 Z) ⊗ f) = g ⊗ f :=
 by { rw [←tensor_comp], simp }
 
 lemma left_unitor_inv_naturality {X X' : C} (f : X ⟶ X') :

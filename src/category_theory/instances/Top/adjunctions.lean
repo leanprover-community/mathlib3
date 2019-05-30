@@ -3,7 +3,7 @@
 -- Authors: Patrick Massot, Mario Carneiro
 
 import category_theory.instances.Top.basic
-import category_theory.adjunction
+import category_theory.adjunction.basic
 
 universe u
 
@@ -12,7 +12,7 @@ open category_theory.instances
 
 namespace category_theory.instances.Top
 
-def adj₁ : adjunction discrete forget :=
+def adj₁ : discrete ⊣ forget :=
 { hom_equiv := λ X Y,
   { to_fun := λ f, f,
     inv_fun := λ f, ⟨f, continuous_top⟩,
@@ -21,7 +21,7 @@ def adj₁ : adjunction discrete forget :=
   unit := { app := λ X, id },
   counit := { app := λ X, ⟨id, continuous_top⟩ } }
 
-def adj₂ : adjunction forget trivial :=
+def adj₂ : forget ⊣ trivial :=
 { hom_equiv := λ X Y,
   { to_fun := λ f, ⟨f, continuous_bot⟩,
     inv_fun := λ f, f,

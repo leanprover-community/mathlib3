@@ -348,6 +348,7 @@ do o ← (tk ":" *> small_nat)?, pure $ o.get_or_else 5
 
 precedence `?`:max
 meta def rcases_parse : parser (pexpr × (listΣ (listΠ rcases_patt) ⊕ nat)) :=
+with_desc "('?' expr (: n)?) | (expr (with patt_list)?)" $
 do hint ← (tk "?")?,
   p ← texpr,
   match hint with
@@ -358,6 +359,7 @@ do hint ← (tk "?")?,
   end
 
 meta def rintro_parse : parser (listΠ rcases_patt ⊕ nat) :=
+with_desc "('?' (: n)?) | patt_list" $
 (tk "?" >> sum.inr <$> rcases_parse_depth) <|>
 sum.inl <$> (rcases_patt_inverted.invert <$>
   (brackets "(" ")" rcases_patt_parse_list <|>
@@ -411,7 +413,7 @@ meta def rcases : parse rcases_parse → tactic unit
 /--
 The `rintro` tactic is a combination of the `intros` tactic with `rcases` to
 allow for destructuring patterns while introducing variables. See `rcases` for
-a description of supported patterns. For example, `rintros (a | ⟨b, c⟩) ⟨d, e⟩`
+a description of supported patterns. For example, `rintro (a | ⟨b, c⟩) ⟨d, e⟩`
 will introduce two variables, and then do case splits on both of them producing
 two subgoals, one with variables `a d e` and the other with `b c d e`.
 

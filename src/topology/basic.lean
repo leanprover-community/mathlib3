@@ -310,6 +310,14 @@ end
 /-- neighbourhood filter -/
 def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal s)
 
+lemma nhds_def (a : α) : nhds a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal s) := rfl
+
+lemma le_nhds_iff {f a} : f ≤ nhds a ↔ ∀ s : set α, a ∈ s → is_open s → s ∈ f :=
+by simp [nhds_def]
+
+lemma nhds_le_of_le {f a} {s : set α} (h : a ∈ s) (o : is_open s) (sf : principal s ≤ f) : nhds a ≤ f :=
+by rw nhds_def; exact infi_le_of_le s (infi_le_of_le ⟨h, o⟩ sf)
+
 lemma nhds_sets {a : α} : (nhds a).sets = {s | ∃t⊆s, is_open t ∧ a ∈ t} :=
 calc (nhds a).sets = (⋃s∈{s : set α| a ∈ s ∧ is_open s}, (principal s).sets) : infi_sets_eq'
   (assume x ⟨hx₁, hx₂⟩ y ⟨hy₁, hy₂⟩,
@@ -332,6 +340,8 @@ calc map f (nhds a) = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, map f (pr
       le_principal_iff.2 (inter_subset_right _ _)⟩)
     ⟨univ, mem_univ _, is_open_univ⟩
   ... = _ : by simp only [map_principal]
+
+attribute [irreducible] nhds
 
 lemma mem_nhds_sets_iff {a : α} {s : set α} :
  s ∈ nhds a ↔ ∃t⊆s, is_open t ∧ a ∈ t :=
@@ -384,10 +394,10 @@ all_mem_nhds_filter _ _ (λ s t h, preimage_mono h) _
 lemma tendsto_const_nhds {a : α} {f : filter β} : tendsto (λb:β, a) f (nhds a) :=
 tendsto_nhds.mpr $ assume s hs ha, univ_mem_sets' $ assume _, ha
 
-
 lemma pure_le_nhds : pure ≤ (nhds : α → filter α) :=
-assume a, le_infi $ assume s, le_infi $ assume ⟨h₁, _⟩, principal_mono.mpr $
-  singleton_subset_iff.2 h₁
+assume a, by rw nhds_def; exact le_infi
+  (assume s, le_infi $ assume ⟨h₁, _⟩, principal_mono.mpr $
+    singleton_subset_iff.2 h₁)
 
 lemma tendsto_pure_nhds [topological_space β] (f : α → β) (a : α) :
   tendsto f (pure a) (nhds (f a)) :=
@@ -516,17 +526,22 @@ begin
   exact ⟨u, λ x xu xs, hu ⟨xu, xs⟩, openu, au⟩
 end
 
+theorem inter_mem_nhds_within (s : set α) {t : set α} {a : α} (h : t ∈ nhds a) :
+  s ∩ t ∈ nhds_within a s :=
+inter_mem_sets (mem_inf_sets_of_right (mem_principal_self s)) (mem_inf_sets_of_left h)
+
 theorem nhds_within_mono (a : α) {s t : set α} (h : s ⊆ t) : nhds_within a s ≤ nhds_within a t :=
 lattice.inf_le_inf (le_refl _) (principal_mono.mpr h)
 
+theorem nhds_within_restrict' {a : α} (s : set α) {t : set α} (h : t ∈ nhds a) :
+  nhds_within a s = nhds_within a (s ∩ t) :=
+le_antisymm
+  (lattice.le_inf lattice.inf_le_left (le_principal_iff.mpr (inter_mem_nhds_within s h)))
+  (lattice.inf_le_inf (le_refl _) (principal_mono.mpr (set.inter_subset_left _ _)))
+
 theorem nhds_within_restrict {a : α} (s : set α) {t : set α} (h₀ : a ∈ t) (h₁ : is_open t) :
   nhds_within a s = nhds_within a (s ∩ t) :=
-have s ∩ t ∈ nhds_within a s,
-  from inter_mem_sets (mem_inf_sets_of_right (mem_principal_self s))
-         (mem_inf_sets_of_left (mem_nhds_sets h₁ h₀)),
-le_antisymm
-  (lattice.le_inf lattice.inf_le_left (le_principal_iff.mpr this))
-  (lattice.inf_le_inf (le_refl _) (principal_mono.mpr (set.inter_subset_left _ _)))
+nhds_within_restrict' s (mem_nhds_sets h₁ h₀)
 
 theorem nhds_within_eq_nhds_within {a : α} {s t u : set α}
     (h₀ : a ∈ s) (h₁ : is_open s) (h₂ : t ∩ s = u ∩ s) :
@@ -646,15 +661,15 @@ def continuous (f : α → β) := ∀s, is_open s → is_open (f ⁻¹' s)
 
 def continuous_at (f : α → β) (x : α) := tendsto f (nhds x) (nhds (f x))
 
-def continuous_at_within (f : α → β) (x : α) (s : set α) : Prop :=
+def continuous_within_at (f : α → β) (s : set α) (x : α) : Prop :=
 tendsto f (nhds_within x s) (nhds (f x))
 
-def continuous_on (f : α → β) (s : set α) : Prop := ∀ x ∈ s, continuous_at_within f x s
+def continuous_on (f : α → β) (s : set α) : Prop := ∀ x ∈ s, continuous_within_at f s x
 
 lemma continuous_id : continuous (id : α → α) :=
 assume s h, h
 
-lemma continuous.comp {f : α → β} {g : β → γ} (hf : continuous f) (hg : continuous g):
+lemma continuous.comp {g : β → γ} {f : α → β} (hg : continuous g) (hf : continuous f) :
   continuous (g ∘ f) :=
 assume s h, hf _ (hg s h)
 
@@ -759,7 +774,6 @@ begin
   apply h', rw mem_nhds_sets_iff, exact ⟨s, set.subset.refl _, os, ys⟩
 end
 
-
 lemma image_closure_subset_closure_image {f : α → β} {s : set α} (h : continuous f) :
   f '' closure s ⊆ closure (f '' s) :=
 have ∀ (a : α), nhds a ⊓ principal s ≠ ⊥ → nhds (f a) ⊓ principal (f '' s) ≠ ⊥,
@@ -778,4 +792,5 @@ lemma mem_closure [topological_space α] [topological_space β]
   (hf : continuous f) (ha : a ∈ closure s) (ht : ∀a∈s, f a ∈ t) : f a ∈ closure t :=
 subset.trans (image_closure_subset_closure_image hf) (closure_mono $ image_subset_iff.2 ht) $
   (mem_image_of_mem f ha)
+
 end continuous

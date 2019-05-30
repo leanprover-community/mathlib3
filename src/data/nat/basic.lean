@@ -27,7 +27,7 @@ theorem succ_inj' {n m : ℕ} : succ n = succ m ↔ n = m :=
 theorem succ_le_succ_iff {m n : ℕ} : succ m ≤ succ n ↔ m ≤ n :=
 ⟨le_of_succ_le_succ, succ_le_succ⟩
 
-lemma zero_max {m : nat} : max 0 m = m := 
+lemma zero_max {m : nat} : max 0 m = m :=
 max_eq_right (zero_le _)
 
 theorem max_succ_succ {m n : ℕ} :
@@ -45,7 +45,7 @@ succ_le_succ_iff
 lemma succ_le_iff {m n : ℕ} : succ m ≤ n ↔ m < n :=
 ⟨lt_of_succ_le, succ_le_of_lt⟩
 
-lemma lt_iff_add_one_le {m n : ℕ} : m < n ↔ m + 1 ≤ n := 
+lemma lt_iff_add_one_le {m n : ℕ} : m < n ↔ m + 1 ≤ n :=
 by rw succ_le_iff
 
 theorem of_le_succ {n m : ℕ} (H : n ≤ m.succ) : n ≤ m ∨ n = m.succ :=
@@ -72,6 +72,14 @@ theorem le_rec_on_trans {C : ℕ → Sort u} {n m k} (hnm : n ≤ m) (hmk : m �
 begin
   induction hmk with k hmk ih, { rw le_rec_on_self },
   rw [le_rec_on_succ (le_trans hnm hmk), ih, le_rec_on_succ]
+end
+
+theorem le_rec_on_succ_left {C : ℕ → Sort u} {n m} (h1 : n ≤ m) (h2 : n+1 ≤ m)
+  {next : Π{{k}}, C k → C (k+1)} (x : C n) :
+  (le_rec_on h2 next (next x) : C m) = (le_rec_on h1 next x : C m) :=
+begin
+  rw [subsingleton.elim h1 (le_trans (le_succ n) h2),
+      le_rec_on_trans (le_succ n) h2, le_rec_on_succ']
 end
 
 theorem le_rec_on_injective {C : ℕ → Sort u} {n m} (hnm : n ≤ m)
@@ -150,6 +158,9 @@ by rw [nat.sub_sub, ←nat.add_sub_assoc h₂, nat.add_sub_cancel_left]
 
 lemma add_sub_cancel_right (n m k : ℕ) : n + (m + k) - k = n + m :=
 by { rw [nat.add_sub_assoc, nat.add_sub_cancel], apply k.le_add_left }
+
+protected lemma sub_add_eq_add_sub {a b c : ℕ} (h : b ≤ a) : (a - b) + c = (a + c) - b :=
+by rw [add_comm a, nat.add_sub_assoc h, add_comm]
 
 theorem sub_min (n m : ℕ) : n - min n m = n - m :=
 nat.sub_eq_of_eq_add $ by rw [add_comm, sub_add_min]
@@ -278,6 +289,13 @@ iff.intro eq_zero_of_mul_eq_zero (by simp [or_imp_distrib] {contextual := tt})
 @[simp] protected theorem zero_eq_mul {a b : ℕ} : 0 = a * b ↔ a = 0 ∨ b = 0 :=
 by rw [eq_comm, nat.mul_eq_zero]
 
+lemma eq_zero_of_double_le {a : ℕ} (h : 2 * a ≤ a) : a = 0 :=
+nat.eq_zero_of_le_zero $
+  by rwa [two_mul, nat.add_le_to_le_sub, nat.sub_self] at h; refl
+
+lemma eq_zero_of_mul_le {a b : ℕ} (hb : 2 ≤ b) (h : b * a ≤ a) : a = 0 :=
+eq_zero_of_double_le $ le_trans (nat.mul_le_mul_right _ hb) h
+
 lemma le_mul_of_pos_left {m n : ℕ} (h : n > 0) : m ≤ n * m :=
 begin
   conv {to_lhs, rw [← one_mul(m)]},
@@ -401,10 +419,20 @@ lt_of_mul_lt_mul_left
     ... < n * k : h)
   (nat.zero_le n)
 
+lemma lt_mul_of_div_lt {a b c : ℕ} (h : a / c < b) (w : 0 < c) : a < b * c :=
+lt_of_not_ge $ not_le_of_gt h ∘ (nat.le_div_iff_mul_le _ _ w).2
+
 protected lemma div_eq_zero_iff {a b : ℕ} (hb : 0 < b) : a / b = 0 ↔ a < b :=
 ⟨λ h, by rw [← mod_add_div a b, h, mul_zero, add_zero]; exact mod_lt _ hb,
   λ h, by rw [← nat.mul_left_inj hb, ← @add_left_cancel_iff _ _ (a % b), mod_add_div,
     mod_eq_of_lt h, mul_zero, add_zero]⟩
+
+lemma eq_zero_of_le_div {a b : ℕ} (hb : 2 ≤ b) (h : a ≤ a / b) : a = 0 :=
+eq_zero_of_mul_le hb $
+  by rw mul_comm; exact (nat.le_div_iff_mul_le' (lt_of_lt_of_le dec_trivial hb)).1 h
+
+lemma eq_zero_of_le_half {a : ℕ} (h : a ≤ a / 2) : a = 0 :=
+eq_zero_of_le_div (le_refl _) h
 
 lemma mod_mul_right_div_self (a b c : ℕ) : a % (b * c) / b = (a / b) % c :=
 if hb : b = 0 then by simp [hb] else if hc : c = 0 then by simp [hc]
@@ -1024,6 +1052,33 @@ dvd_trans this hdiv
 lemma dvd_of_pow_dvd {p k m : ℕ} (hk : 1 ≤ k) (hpk : p^k ∣ m) : p ∣ m :=
 by rw ←nat.pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
 
+lemma eq_of_dvd_quot_one {a b : ℕ} (w : a ∣ b) (h : b / a = 1) : a = b :=
+begin
+  rcases w with ⟨b, rfl⟩,
+  rw [nat.mul_comm, nat.mul_div_cancel] at h,
+  { simp [h] },
+  { by_contradiction, simp * at * }
+end
+
+lemma div_le_div_left {a b c : ℕ} (h₁ : c ≤ b) (h₂ : 0 < c) : a / b ≤ a / c :=
+(nat.le_div_iff_mul_le _ _ h₂).2 $
+  le_trans (mul_le_mul_left _ h₁) (div_mul_le_self _ _)
+
+lemma div_eq_self {a b : ℕ} : a / b = a ↔ a = 0 ∨ b = 1 :=
+begin
+  split,
+  { intro,
+    cases b,
+    { simp * at * },
+    { cases b,
+      { right, refl },
+      { left,
+        have : a / (b + 2) ≤ a / 2 := div_le_div_left (by simp) dec_trivial,
+        refine eq_zero_of_le_half _,
+        simp * at * } } },
+  { rintros (rfl|rfl); simp }
+end
+
 end div
 
 lemma exists_eq_add_of_le : ∀ {m n : ℕ}, m ≤ n → ∃ k : ℕ, n = m + k
@@ -1060,5 +1115,36 @@ lemma with_bot.add_eq_one_iff : ∀ {n m : with_bot ℕ}, n + m = 1 ↔ (n = 0 �
 @[elab_as_eliminator] lemma le_induction {P : nat → Prop} {m} (h0 : P m) (h1 : ∀ n ≥ m, P n → P (n + 1)) :
   ∀ n ≥ m, P n :=
 by apply nat.less_than_or_equal.rec h0; exact h1
+
+@[elab_as_eliminator]
+def decreasing_induction {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) {m n : ℕ} (mn : m ≤ n)
+  (hP : P n) : P m :=
+le_rec_on mn (λ k ih hsk, ih $ h k hsk) (λ h, h) hP
+
+@[simp] lemma decreasing_induction_self {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) {n : ℕ}
+  (nn : n ≤ n) (hP : P n) : (decreasing_induction h nn hP : P n) = hP :=
+by { dunfold decreasing_induction, rw [le_rec_on_self] }
+
+lemma decreasing_induction_succ {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) {m n : ℕ} (mn : m ≤ n)
+  (msn : m ≤ n + 1) (hP : P (n+1)) :
+  (decreasing_induction h msn hP : P m) = decreasing_induction h mn (h n hP) :=
+by { dunfold decreasing_induction, rw [le_rec_on_succ] }
+
+@[simp] lemma decreasing_induction_succ' {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) {m : ℕ}
+  (msm : m ≤ m + 1) (hP : P (m+1)) : (decreasing_induction h msm hP : P m) = h m hP :=
+by { dunfold decreasing_induction, rw [le_rec_on_succ'] }
+
+lemma decreasing_induction_trans {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) {m n k : ℕ}
+  (mn : m ≤ n) (nk : n ≤ k) (hP : P k) :
+  (decreasing_induction h (le_trans mn nk) hP : P m) =
+  decreasing_induction h mn (decreasing_induction h nk hP) :=
+by { induction nk with k nk ih, rw [decreasing_induction_self],
+     rw [decreasing_induction_succ h (le_trans mn nk), ih, decreasing_induction_succ] }
+
+lemma decreasing_induction_succ_left {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) {m n : ℕ}
+  (smn : m + 1 ≤ n) (mn : m ≤ n) (hP : P n) :
+  (decreasing_induction h mn hP : P m) = h m (decreasing_induction h smn hP) :=
+by { rw [subsingleton.elim mn (le_trans (le_succ m) smn), decreasing_induction_trans,
+         decreasing_induction_succ'] }
 
 end nat

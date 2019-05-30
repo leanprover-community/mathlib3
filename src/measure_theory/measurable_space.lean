@@ -315,7 +315,7 @@ lemma measurable.preimage [measurable_space α] [measurable_space β]
   {f : α → β} (hf : measurable f) {s : set β} : is_measurable s → is_measurable (f ⁻¹' s) := hf _
 
 lemma measurable.comp [measurable_space α] [measurable_space β] [measurable_space γ]
-  {f : α → β} {g : β → γ} (hf : measurable f) (hg : measurable g) : measurable (g ∘ f) :=
+  {g : β → γ} {f : α → β} (hg : measurable g) (hf : measurable f) : measurable (g ∘ f) :=
 le_trans hg $ map_mono hf
 
 lemma measurable_generate_from [measurable_space α] {s : set (set β)} {f : α → β}
@@ -359,7 +359,7 @@ m.comap subtype.val
 
 lemma measurable_subtype_val [measurable_space α] [measurable_space β] {p : β → Prop}
   {f : α → subtype p} (hf : measurable f) : measurable (λa:α, (f a).val) :=
-hf.comp $ measurable_space.comap_le_iff_le_map.mp $ le_refl _
+measurable.comp (measurable_space.comap_le_iff_le_map.mp (le_refl _)) hf
 
 lemma measurable_subtype_mk [measurable_space α] [measurable_space β] {p : β → Prop}
   {f : α → subtype p} (hf : measurable (λa, (f a).val)) : measurable f :=
@@ -396,11 +396,11 @@ m₁.comap prod.fst ⊔ m₂.comap prod.snd
 
 lemma measurable_fst [measurable_space α] [measurable_space β] [measurable_space γ]
   {f : α → β × γ} (hf : measurable f) : measurable (λa:α, (f a).1) :=
-hf.comp $ measurable_space.comap_le_iff_le_map.mp $ le_sup_left
+measurable.comp (measurable_space.comap_le_iff_le_map.mp le_sup_left) hf
 
 lemma measurable_snd [measurable_space α] [measurable_space β] [measurable_space γ]
   {f : α → β × γ} (hf : measurable f) : measurable (λa:α, (f a).2) :=
-hf.comp $ measurable_space.comap_le_iff_le_map.mp $ le_sup_right
+measurable.comp (measurable_space.comap_le_iff_le_map.mp le_sup_right) hf
 
 lemma measurable.prod [measurable_space α] [measurable_space β] [measurable_space γ]
   {f : α → β × γ} (hf₁ : measurable (λa, (f a).1)) (hf₂ : measurable (λa, (f a).2)) :
@@ -491,8 +491,8 @@ def trans [measurable_space α] [measurable_space β] [measurable_space γ]
   (ab : measurable_equiv α β) (bc : measurable_equiv β γ) :
   measurable_equiv α γ :=
 { to_equiv := ab.to_equiv.trans bc.to_equiv,
-  measurable_to_fun := ab.measurable_to_fun.comp bc.measurable_to_fun,
-  measurable_inv_fun := bc.measurable_inv_fun.comp ab.measurable_inv_fun }
+  measurable_to_fun := bc.measurable_to_fun.comp ab.measurable_to_fun,
+  measurable_inv_fun := ab.measurable_inv_fun.comp bc.measurable_inv_fun }
 
 lemma trans_to_equiv {α β} [measurable_space α] [measurable_space β] [measurable_space γ]
   (e : measurable_equiv α β) (f : measurable_equiv β γ) :
@@ -521,20 +521,20 @@ protected lemma measurable_coe_iff {α β γ} [measurable_space α] [measurable_
   {f : β → γ} (e : measurable_equiv α β) : measurable (f ∘ e) ↔ measurable f :=
 iff.intro
   (assume hfe,
-    have measurable (f ∘ (e.symm.trans e).to_equiv) := e.symm.measurable.comp hfe,
+    have measurable (f ∘ (e.symm.trans e).to_equiv) := hfe.comp e.symm.measurable,
     by rwa [trans_to_equiv, symm_to_equiv, equiv.symm_trans] at this)
-  (e.measurable.comp)
+  (λh, h.comp e.measurable)
 
 def prod_congr [measurable_space α] [measurable_space β] [measurable_space γ] [measurable_space δ]
   (ab : measurable_equiv α β) (cd : measurable_equiv γ δ) :
   measurable_equiv (α × γ) (β × δ) :=
 { to_equiv := equiv.prod_congr ab.to_equiv cd.to_equiv,
   measurable_to_fun := measurable_prod_mk
-    ((measurable_fst measurable_id).comp ab.measurable_to_fun)
-    ((measurable_snd measurable_id).comp cd.measurable_to_fun),
+    (ab.measurable_to_fun.comp (measurable_fst measurable_id))
+    (cd.measurable_to_fun.comp (measurable_snd measurable_id)),
   measurable_inv_fun := measurable_prod_mk
-    ((measurable_fst measurable_id).comp ab.measurable_inv_fun)
-    ((measurable_snd measurable_id).comp cd.measurable_inv_fun) }
+    (ab.measurable_inv_fun.comp (measurable_fst measurable_id))
+    (cd.measurable_inv_fun.comp (measurable_snd measurable_id)) }
 
 def prod_comm [measurable_space α] [measurable_space β] : measurable_equiv (α × β) (β × α) :=
 { to_equiv := equiv.prod_comm α β,
@@ -548,12 +548,12 @@ def sum_congr [measurable_space α] [measurable_space β] [measurable_space γ] 
   measurable_to_fun :=
     begin
       cases ab with ab' abm, cases ab', cases cd with cd' cdm, cases cd',
-      refine measurable_sum (abm.comp measurable_inl) (cdm.comp measurable_inr)
+      refine measurable_sum (measurable_inl.comp abm) (measurable_inr.comp cdm)
     end,
   measurable_inv_fun :=
     begin
       cases ab with ab' _ abm, cases ab', cases cd with cd' _ cdm, cases cd',
-      refine measurable_sum (abm.comp measurable_inl) (cdm.comp measurable_inr)
+      refine measurable_sum (measurable_inl.comp abm) (measurable_inr.comp cdm)
     end }
 
 def set.prod [measurable_space α] [measurable_space β] (s : set α) (t : set β) :
@@ -585,7 +585,7 @@ noncomputable def set.image [measurable_space α] [measurable_space β]
 { to_equiv := equiv.set.image f s hf,
   measurable_to_fun  :=
   begin
-    have : measurable (λa:s, f a) := (measurable_subtype_val measurable_id).comp hfm,
+    have : measurable (λa:s, f a) := hfm.comp (measurable_subtype_val measurable_id),
     refine measurable_subtype_mk _,
     convert this,
     ext ⟨a, h⟩, refl
@@ -598,7 +598,7 @@ noncomputable def set.image [measurable_space α] [measurable_space β]
       have : ∀(a ∈ s) (h : ∃a', a' ∈ s ∧ a' = a), classical.some h = a :=
         λa ha h, (classical.some_spec h).2,
       rw show {x:f '' s | ((equiv.set.image f s hf).inv_fun x).val ∈ u} = subtype.val ⁻¹' (f '' u),
-        by ext ⟨b, a, hbs, rfl⟩; simp [equiv.set.image, hf, this _ hbs],
+        by ext ⟨b, a, hbs, rfl⟩; simp [equiv.set.image, equiv.set.image_of_inj_on, hf, this _ hbs],
       exact (measurable_subtype_val measurable_id) (f '' u) (hfi u hu)
     end }
 
@@ -672,10 +672,10 @@ def sum_prod_distrib (α β γ) [measurable_space α] [measurable_space β] [mea
     begin
       refine measurable_sum _ _,
       { convert measurable_prod_mk
-          ((measurable_fst measurable_id).comp (measurable_inl)) (measurable_snd measurable_id),
+          (measurable_inl.comp (measurable_fst measurable_id)) (measurable_snd measurable_id),
         ext ⟨a, c⟩; refl },
       { convert measurable_prod_mk
-          ((measurable_fst measurable_id).comp (measurable_inr)) (measurable_snd measurable_id),
+          (measurable_inr.comp (measurable_fst measurable_id)) (measurable_snd measurable_id),
         ext ⟨b, c⟩; refl }
     end }
 

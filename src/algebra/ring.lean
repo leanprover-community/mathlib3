@@ -136,6 +136,9 @@ end
 section comm_ring
   variable [comm_ring α]
 
+  theorem mul_self_sub_mul_self (a b : α) : a * a - b * b = (a + b) * (a - b) :=
+  by rw [add_mul, mul_sub, mul_sub, mul_comm a b, sub_add_sub_cancel]
+
   @[simp] lemma dvd_neg (a b : α) : (a ∣ -b) ↔ (a ∣ b) :=
   ⟨dvd_of_dvd_neg, dvd_neg_of_dvd⟩
 
@@ -219,6 +222,9 @@ def nonzero_comm_semiring.of_ne [comm_semiring α] {x y : α} (h : x ≠ y) : no
   zero := 0,
   zero_ne_one := λ h01, h $ by rw [← one_mul x, ← one_mul y, ← h01, zero_mul, zero_mul],
   ..show comm_semiring α, by apply_instance }
+
+/-- this is needed for compatibility between Lean 3.4.2 and Lean 3.5.0c -/
+def has_div_of_division_ring [division_ring α] : has_div α := division_ring_has_div
 
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain

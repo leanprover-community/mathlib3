@@ -124,9 +124,12 @@ theorem cos_add_sin_mul_I_pow (n : ℕ) (z : ℂ) :
 * Link:
 -->
 ## 20. All Primes Equal the Sum of Two Squares
-
+```lean
+lemma sum_two_squares {p : ℕ} (hp : p.prime) (hp1 : p % 4 = 1) :
+  ∃ a b : ℕ, a ^ 2 + b ^ 2 = p
+```
 * Author: Chris Hughes
-* Link: https://github.com/leanprover-community/mathlib/blob/master/src/number_theory/sum_two_squares.lean
+* Link: https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/number_theory/sum_two_squares.lean#L19
 <!--
 ## 21. Green’s Theorem
 
@@ -301,9 +304,11 @@ theorem add_pow :
 * Link:
 -->
 ## 51. Wilson’s Theorem
-
+```lean
+lemma wilsons_lemma {p : ℕ} (hp : nat.prime p) : (fact (p - 1) : zmodp p hp) = -1
+```
 * Author: Chris Hughes
-* Link: https://github.com/leanprover-community/mathlib/blob/master/src/data/zmod/quadratic_reciprocity.lean#L74
+* Link: https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/data/zmod/quadratic_reciprocity.lean#L74
 
 ## 52. The Number of Subsets of a Set
 ```lean
@@ -590,9 +595,12 @@ def lintegral (f : α → ennreal) : ennreal :=
 * Link:
 -->
 ## 89. The Factor and Remainder Theorems
-
+```lean
+lemma dvd_iff_is_root : (X - C a) ∣ p ↔ is_root p a
+lemma mod_X_sub_C_eq_C_eval (p : polynomial α) (a : α) : p % (X - C a) = C (p.eval a)
+```
 * Author: Chris Hughes
-* Link: [Factor theorem]https://github.com/leanprover-community/mathlib/blob/master/src/data/polynomial.lean#L1564 and [Remainder theorem]https://github.com/leanprover-community/mathlib/blob/master/src/data/polynomial.lean#L1950
+* Link: [Factor theorem](https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/data/polynomial.lean#L1564) and [Remainder theorem](https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/data/polynomial.lean#L1950)
 <!--
 ## 90. Stirling’s Formula
 

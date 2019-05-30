@@ -125,8 +125,8 @@ theorem cos_add_sin_mul_I_pow (n : ℕ) (z : ℂ) :
 
 ## 20. All Primes Equal the Sum of Two Squares
 
-* Author:
-* Link:
+* Author: Chris Hughes
+* Link: https://github.com/leanprover-community/mathlib/blob/master/src/number_theory/sum_two_squares.lean
 
 ## 21. Green’s Theorem
 
@@ -302,8 +302,8 @@ theorem add_pow :
 
 ## 51. Wilson’s Theorem
 
-* Author:
-* Link:
+* Author: Chris Hughes
+* Link: https://github.com/leanprover-community/mathlib/blob/master/src/data/zmod/quadratic_reciprocity.lean#L74
 -->
 ## 52. The Number of Subsets of a Set
 ```lean
@@ -438,7 +438,7 @@ theorem dvd_gcd {a b c : α} : c ∣ a → c ∣ b → c ∣ gcd a b
 lemma card_subgroup_dvd_card (s : set α) [is_subgroup s] [fintype s] :
   fintype.card s ∣ fintype.card α
 ```
-* Author: Chris Hughes
+* Author: mathlib
 * Link: https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/group_theory/order_of_element.lean#L56
 
 
@@ -591,8 +591,8 @@ def lintegral (f : α → ennreal) : ennreal :=
 
 ## 89. The Factor and Remainder Theorems
 
-* Author:
-* Link:
+* Author: Chris Hughes
+* Link: [Factor theorem]https://github.com/leanprover-community/mathlib/blob/master/src/data/polynomial.lean#L1564 and [Remainder theorem]https://github.com/leanprover-community/mathlib/blob/master/src/data/polynomial.lean#L1950
 
 ## 90. Stirling’s Formula
 

@@ -400,9 +400,12 @@ theorem cantor : ∀(a : cardinal.{u}), a < 2 ^ a
 ```lean
 theorem geom_sum [division_ring α] {x : α} (h : x ≠ 1) (n : ℕ) :
   (range n).sum (λ i, x^i) = (x^n-1)/(x-1)
+
+lemma has_sum_geometric {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
+  has_sum (λn:ℕ, r ^ n) (1 / (1 - r))
 ```
-* Author: Sander R. Dahmen
-* Link: https://github.com/leanprover-community/mathlib/blob/d935bc312fac7eca7ef08b16ca06079145b437f2/src/algebra/big_operators.lean#L571
+* Author: Sander R. Dahmen (finite) and Johannes Hölzl (infinite)
+* Link: [Finite](https://github.com/leanprover-community/mathlib/blob/d935bc312fac7eca7ef08b16ca06079145b437f2/src/algebra/big_operators.lean#L571), [Infinite](https://github.com/leanprover-community/mathlib/blob/f25340175631cdc85ad768a262433f968d0d6450/src/analysis/specific_limits.lean#L90)
 
 <!--
 ## 67. e is Transcendental

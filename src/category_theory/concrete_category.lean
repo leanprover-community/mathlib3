@@ -30,7 +30,7 @@ attribute [class] concrete_category
 the type class is exposed as a parameter. -/
 structure bundled (c : Sort u → Sort v) : Sort (max (u+1) v) :=
 (α : Sort u)
-(str : c α)
+(str : c α . tactic.apply_instance)
 
 def mk_ob {c : Sort u → Sort v} (α : Sort u) [str : c α] : bundled c := ⟨α, str⟩
 
@@ -53,20 +53,19 @@ instance : category (bundled c) :=
   id    := λ a, ⟨@id a.1, h.hom_id a.2⟩,
   comp  := λ a b c f g, ⟨g.1 ∘ f.1, h.hom_comp a.2 b.2 c.2 g.2 f.2⟩ }
 
+variables {hom}
 variables {X Y Z : bundled c}
 
-@[simp] lemma concrete_category_id (X : bundled c) : subtype.val (𝟙 X) = id :=
-rfl
+@[simp] lemma concrete_category_id (X : bundled c) : subtype.val (𝟙 X) = id := rfl
 
 @[simp] lemma concrete_category_comp (f : X ⟶ Y) (g : Y ⟶ Z) :
-  subtype.val (f ≫ g) = g.val ∘ f.val :=
-rfl
+  subtype.val (f ≫ g) = g.val ∘ f.val := rfl
 
 instance : has_coe_to_fun (X ⟶ Y) :=
 { F   := λ f, X → Y,
   coe := λ f, f.1 }
 
-@[extensionality] lemma bundled_hom.ext  {f g : X ⟶ Y} : (∀ x : X, f x = g x) → f = g :=
+@[extensionality] lemma hom_ext  {f g : X ⟶ Y} : (∀ x : X, f x = g x) → f = g :=
 λ w, subtype.ext.2 $ funext w
 
 @[simp] lemma coe_id {X : bundled c} : ((𝟙 X) : X → X) = id := rfl

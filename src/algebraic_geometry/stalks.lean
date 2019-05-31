@@ -2,12 +2,11 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Scott Morrison
 import algebraic_geometry.presheafed_space
-import category_theory.instances.Top.stalks
+import topology.Top.stalks
 
 universes v u v' u'
 
 open category_theory
-open category_theory.instances
 open category_theory.limits
 open algebraic_geometry
 open topological_space
@@ -17,7 +16,7 @@ include 𝒞
 
 local attribute [tidy] tactic.op_induction'
 
-open category_theory.instances.Top.presheaf
+open Top.presheaf
 
 namespace algebraic_geometry.PresheafedSpace
 

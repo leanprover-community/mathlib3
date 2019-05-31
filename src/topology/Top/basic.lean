@@ -3,7 +3,6 @@
 -- Authors: Patrick Massot, Scott Morrison, Mario Carneiro
 
 import category_theory.concrete_category
-import category_theory.full_subcategory
 import topology.opens
 
 open category_theory
@@ -11,19 +10,18 @@ open topological_space
 
 universe u
 
-namespace category_theory.instances
-
 /-- The category of topological spaces and continuous maps. -/
 @[reducible] def Top : Type (u+1) := bundled topological_space
 
+namespace Top
+
 instance topological_space_unbundled (x : Top) : topological_space x := x.str
 
-namespace Top
 instance concrete_category_continuous : concrete_category @continuous := ⟨@continuous_id, @continuous.comp⟩
 
-abbreviation forget : Top ⥤ Type u := category_theory.forget
+def of (X : Type u) [topological_space X] : Top := ⟨X⟩
 
-def of (X : Type u) [topological_space X] : Top := ⟨X, by apply_instance⟩
+abbreviation forget : Top.{u} ⥤ Type u := forget
 
 def discrete : Type u ⥤ Top.{u} :=
 { obj := λ X, ⟨X, ⊤⟩,
@@ -32,6 +30,5 @@ def discrete : Type u ⥤ Top.{u} :=
 def trivial : Type u ⥤ Top.{u} :=
 { obj := λ X, ⟨X, ⊥⟩,
   map := λ X Y f, ⟨f, continuous_bot⟩ }
-end Top
 
-end category_theory.instances
+end Top

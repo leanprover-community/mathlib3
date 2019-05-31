@@ -1,13 +1,12 @@
 -- Copyright (c) 2019 Scott Morrison. All rights reserved.
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Scott Morrison
-import category_theory.instances.Top.presheaf
+import topology.Top.presheaf
 
 universes v u
 
 open category_theory
-open category_theory.instances
-open category_theory.instances.Top
+open Top
 open topological_space
 open opposite
 

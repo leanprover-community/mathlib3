@@ -333,6 +333,13 @@ lemma prod_zero_index [add_comm_monoid β] [comm_monoid γ] {h : α → β → �
 section decidable
 variables [decidable_eq α] [decidable_eq β]
 
+section nat_sub
+instance nat_sub : has_sub (α →₀ ℕ) := ⟨zip_with (λ m n, m - n) (nat.sub_zero 0)⟩
+
+@[simp] lemma nat_sub_apply {g₁ g₂ : α →₀ ℕ} {a : α} :
+  (g₁ - g₂) a = g₁ a - g₂ a := rfl
+end nat_sub
+
 section add_monoid
 variables [add_monoid β]
 

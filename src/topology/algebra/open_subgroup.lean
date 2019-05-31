@@ -96,7 +96,6 @@ begin
     rw [← mul_assoc, mul_right_inv, one_mul] }
 end
 
--- @[to_additive open_add_subgroup.is_open_of_open_add_subgroup]
 lemma is_open_of_open_subgroup {s : set G} [is_subgroup s]
   (h : ∃ U : open_subgroup G, (U : set G) ⊆ s) : is_open s :=
 is_open_of_nonempty_open_subset $ let ⟨U, hU⟩ := h in ⟨U, ⟨⟨1, U.one_mem⟩⟩, hU⟩

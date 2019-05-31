@@ -2,11 +2,10 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Scott Morrison
 
-import category_theory.instances.Top.opens
+import topology.Top.opens
 import category_theory.full_subcategory
 
 open category_theory
-open category_theory.instances
 open topological_space
 open opposite
 
@@ -27,6 +26,8 @@ def map (x : X) : open_nhds (f x) ⥤ open_nhds x :=
 { obj := λ U, ⟨(opens.map f).obj U.1, by tidy⟩,
   map := λ U V i, (opens.map f).map i }
 
+@[simp] lemma map_obj (x : X) (U) (q) : (map f x).obj ⟨U, q⟩ = ⟨(opens.map f).obj U, by tidy⟩ :=
+rfl
 @[simp] lemma map_id_obj' (x : X) (U) (p) (q) : (map (𝟙 X) x).obj ⟨⟨U, p⟩, q⟩ = ⟨⟨U, p⟩, q⟩ :=
 rfl
 @[simp] lemma map_id_obj (x : X) (U) : (map (𝟙 X) x).obj U = U :=

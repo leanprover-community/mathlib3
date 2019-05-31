@@ -526,17 +526,22 @@ begin
   exact ⟨u, λ x xu xs, hu ⟨xu, xs⟩, openu, au⟩
 end
 
+theorem inter_mem_nhds_within (s : set α) {t : set α} {a : α} (h : t ∈ nhds a) :
+  s ∩ t ∈ nhds_within a s :=
+inter_mem_sets (mem_inf_sets_of_right (mem_principal_self s)) (mem_inf_sets_of_left h)
+
 theorem nhds_within_mono (a : α) {s t : set α} (h : s ⊆ t) : nhds_within a s ≤ nhds_within a t :=
 lattice.inf_le_inf (le_refl _) (principal_mono.mpr h)
 
+theorem nhds_within_restrict' {a : α} (s : set α) {t : set α} (h : t ∈ nhds a) :
+  nhds_within a s = nhds_within a (s ∩ t) :=
+le_antisymm
+  (lattice.le_inf lattice.inf_le_left (le_principal_iff.mpr (inter_mem_nhds_within s h)))
+  (lattice.inf_le_inf (le_refl _) (principal_mono.mpr (set.inter_subset_left _ _)))
+
 theorem nhds_within_restrict {a : α} (s : set α) {t : set α} (h₀ : a ∈ t) (h₁ : is_open t) :
   nhds_within a s = nhds_within a (s ∩ t) :=
-have s ∩ t ∈ nhds_within a s,
-  from inter_mem_sets (mem_inf_sets_of_right (mem_principal_self s))
-         (mem_inf_sets_of_left (mem_nhds_sets h₁ h₀)),
-le_antisymm
-  (lattice.le_inf lattice.inf_le_left (le_principal_iff.mpr this))
-  (lattice.inf_le_inf (le_refl _) (principal_mono.mpr (set.inter_subset_left _ _)))
+nhds_within_restrict' s (mem_nhds_sets h₁ h₀)
 
 theorem nhds_within_eq_nhds_within {a : α} {s t u : set α}
     (h₀ : a ∈ s) (h₁ : is_open s) (h₂ : t ∩ s = u ∩ s) :

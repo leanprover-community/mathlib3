@@ -170,7 +170,7 @@ section with_top
 def to_with_top (x : enat) [decidable x.dom]: with_top ℕ := x.to_option
 
 lemma to_with_top_top : to_with_top ⊤ = ⊤ := rfl
-@[simp] lemma to_with_top_top' {h :  decidable (⊤ : enat).dom} : to_with_top ⊤ = ⊤ :=
+@[simp] lemma to_with_top_top' {h : decidable (⊤ : enat).dom} : to_with_top ⊤ = ⊤ :=
 by convert to_with_top_top
 
 lemma to_with_top_zero : to_with_top 0 = 0 := rfl

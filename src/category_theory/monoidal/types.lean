@@ -13,8 +13,6 @@ namespace category_theory.monoidal
 
 section
 
-open monoidal_category
-
 def types_left_unitor (α : Type u) : punit × α → α := λ X, X.2
 def types_left_unitor_inv (α : Type u) : α → punit × α := λ X, ⟨punit.star, X⟩
 def types_right_unitor (α : Type u) : α × punit → α := λ X, X.1

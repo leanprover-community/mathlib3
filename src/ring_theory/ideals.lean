@@ -195,27 +195,57 @@ theorem coe_subset_nonunits {I : ideal α} (h : I ≠ ⊤) :
   (I : set α) ⊆ nonunits α :=
 λ x hx hu, h $ I.eq_top_of_is_unit_mem hx hu
 
-@[class] def is_local_ring (α : Type u) [comm_ring α] : Prop :=
-∃! I : ideal α, I.is_maximal
+class is_local_ring (α : Type u) [comm_ring α] : Prop :=
+(zero_ne_one : (0:α) ≠ 1)
+(is_local : ∀ (a : α), (is_unit a) ∨ (is_unit (1 - a)))
+-- ∃! I : ideal α, I.is_maximal
+
+namespace is_local_ring
+variable [is_local_ring α]
+
+instance : zero_ne_one_class α :=
+{ ..‹comm_ring α›, ..‹is_local_ring α› }
+
+lemma is_unit_or_is_unit_one_sub_self (a : α) :
+  (is_unit a) ∨ (is_unit (1 - a)) :=
+is_local a
+
+lemma is_unit_of_mem_nonunits_one_sub_self (a : α) (h : (1 - a) ∈ nonunits α) :
+  is_unit a :=
+or_iff_not_imp_right.1 (is_local a) h
+
+lemma is_unit_one_sub_self_of_mem_nonunits (a : α) (h : a ∈ nonunits α) :
+  is_unit (1 - a) :=
+or_iff_not_imp_left.1 (is_local a) h
+
+def nonunits_ideal : ideal α :=
+{ carrier := nonunits α,
+  zero := zero_mem_nonunits.2 $ zero_ne_one α,
+  add := λ x y hx hy H, begin
+    rcases H with ⟨u, hu⟩,
+    apply hy,
+    suffices : is_unit ((u : α) * y),
+    { rcases this with ⟨s, hs⟩,
+      use u⁻¹ * s,
+      convert congr_arg (λ x, (↑u⁻¹ : α) * x) hs,
+      rw ← mul_assoc, simp },
+    apply is_unit_of_mem_nonunits_one_sub_self,
+    -- rcases id h with ⟨M, mM, hM⟩,
+    -- have : ∀ x ∈ nonunits α, x ∈ M,
+    -- { intros x hx,
+    --   rcases (ideal.span {x} : ideal α).exists_le_maximal _ with ⟨N, mN, hN⟩,
+    --   { cases hM N mN,
+    --     rwa [ideal.span_le, singleton_subset_iff] at hN },
+    --   { exact mt ideal.span_singleton_eq_top.1 hx } },
+    -- intros x y hx hy,
+    -- exact coe_subset_nonunits mM.1 (M.add_mem (this _ hx) (this _ hy))
+  end,
+  smul := λ a x, mul_mem_nonunits_right }
+
+end is_local_ring
 
 @[class] def is_local_ring.zero_ne_one (h : is_local_ring α) : (0:α) ≠ 1 :=
 let ⟨I, ⟨hI, _⟩, _⟩ := h in ideal.zero_ne_one_of_proper hI
-
-def nonunits_ideal (h : is_local_ring α) : ideal α :=
-{ carrier := nonunits α,
-  zero := zero_mem_nonunits.2 h.zero_ne_one,
-  add := begin
-    rcases id h with ⟨M, mM, hM⟩,
-    have : ∀ x ∈ nonunits α, x ∈ M,
-    { intros x hx,
-      rcases (ideal.span {x} : ideal α).exists_le_maximal _ with ⟨N, mN, hN⟩,
-      { cases hM N mN,
-        rwa [ideal.span_le, singleton_subset_iff] at hN },
-      { exact mt ideal.span_singleton_eq_top.1 hx } },
-    intros x y hx hy,
-    exact coe_subset_nonunits mM.1 (M.add_mem (this _ hx) (this _ hy))
-  end,
-  smul := λ a x, mul_mem_nonunits_right }
 
 @[simp] theorem mem_nonunits_ideal (h : is_local_ring α) {x} :
   x ∈ nonunits_ideal h ↔ x ∈ nonunits α := iff.rfl

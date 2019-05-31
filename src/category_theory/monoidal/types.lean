@@ -43,6 +43,7 @@ instance types : monoidal_category.{u+1} (Type u) :=
   ..category_theory.types.{u+1} }
 
 -- TODO Once we add braided/symmetric categories, include the braiding.
+-- TODO More generally, define the symmetric monoidal structure on any category with products.
 
 end
 

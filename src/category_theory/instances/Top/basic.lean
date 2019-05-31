@@ -21,6 +21,8 @@ instance topological_space_unbundled (x : Top) : topological_space x := x.str
 namespace Top
 instance concrete_category_continuous : concrete_category @continuous := ⟨@continuous_id, @continuous.comp⟩
 
+abbreviation forget : Top ⥤ Type u := category_theory.forget
+
 def of (X : Type u) [topological_space X] : Top := ⟨X, by apply_instance⟩
 
 def discrete : Type u ⥤ Top.{u} :=

@@ -9,9 +9,12 @@ open category_theory
 open category_theory.instances
 open category_theory.instances.Top
 open topological_space
+open opposite
 
 variables (C : Type u) [𝒞 : category.{v+1} C]
 include 𝒞
+
+local attribute [tidy] tactic.op_induction'
 
 namespace algebraic_geometry
 
@@ -23,13 +26,17 @@ variables {C}
 
 namespace PresheafedSpace
 
-instance : has_coe_to_sort (PresheafedSpace.{v} C) :=
-{ S := Type v, coe := λ F, F.to_Top.α }
+instance coe_to_Top : has_coe (PresheafedSpace.{v} C) Top :=
+{ coe := λ X, X.to_Top }
+
+@[simp] lemma as_coe (X : PresheafedSpace.{v} C) : X.to_Top = (X : Top.{v}) := rfl
+@[simp] lemma mk_coe (to_Top) (𝒪) : (({ to_Top := to_Top, 𝒪 := 𝒪 } :
+  PresheafedSpace.{v} C) : Top.{v}) = to_Top := rfl
 
 instance (X : PresheafedSpace.{v} C) : topological_space X := X.to_Top.str
 
 structure hom (X Y : PresheafedSpace.{v} C) :=
-(f : X.to_Top ⟶ Y.to_Top)
+(f : (X : Top.{v}) ⟶ (Y : Top.{v}))
 (c : Y.𝒪 ⟶ f _* X.𝒪)
 
 @[extensionality] lemma ext {X Y : PresheafedSpace.{v} C} (α β : hom X Y)
@@ -43,7 +50,7 @@ end
 .
 
 def id (X : PresheafedSpace.{v} C) : hom X X :=
-{ f := 𝟙 X.to_Top,
+{ f := 𝟙 (X : Top.{v}),
   c := ((functor.left_unitor _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id _).hom) _) }
 
 def comp (X Y Z : PresheafedSpace.{v} C) (α : hom X Y) (β : hom Y Z) : hom X Z :=
@@ -58,43 +65,7 @@ local attribute [simp] id comp presheaf.pushforward
 instance category_of_PresheafedSpaces : category (PresheafedSpace.{v} C) :=
 { hom  := hom,
   id   := id,
-  comp := comp,
-  -- I'm still grumpy about these proofs.
-  -- The obstacle here is the mysterious need to use `erw` for some `simp` lemmas.
-  -- If we could avoid that, locally adding `op_induction` to `tidy` would discharge these.
-  comp_id' := λ X Y f,
-  begin
-    ext U,
-    { op_induction U,
-      cases U,
-      dsimp,
-      simp, },
-    { dsimp, simp }
-  end,
-  id_comp' := λ X Y f,
-  begin
-    ext U,
-    { op_induction U,
-      cases U,
-      dsimp,
-      simp only [category.assoc],
-      -- This should be done by `simp`, but unfortunately isn't.
-      erw [category_theory.functor.map_id],
-      simp, },
-    { simp }
-  end,
-  assoc' := λ W X Y Z f g h,
-  begin
-    ext U,
-    { op_induction U,
-      cases U,
-      dsimp,
-      simp only [category.assoc],
-      -- This should be done by `simp`, but unfortunately isn't.
-      erw [category_theory.functor.map_id],
-      simp, },
-    { refl }
-  end }
+  comp := comp }
 end
 .
 
@@ -103,25 +74,28 @@ variables {C}
 instance {X Y : PresheafedSpace.{v} C} : has_coe (X ⟶ Y) (X.to_Top ⟶ Y.to_Top) :=
 { coe := λ α, α.f }
 
-@[simp] lemma id_f (X : PresheafedSpace.{v} C) : ((𝟙 X) : X ⟶ X).f = 𝟙 X.to_Top := rfl
-@[simp] lemma comp_f {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) :
-  (α ≫ β).f = α.f ≫ β.f :=
-rfl
+@[simp] lemma hom_mk_coe {X Y : PresheafedSpace.{v} C} (f) (c) :
+  (({ f := f, c := c } : X ⟶ Y) : (X : Top.{v}) ⟶ (Y : Top.{v})) = f := rfl
+@[simp] lemma f_as_coe {X Y : PresheafedSpace.{v} C} (α : X ⟶ Y) :
+  α.f = (α : (X : Top.{v}) ⟶ (Y : Top.{v})) := rfl
+@[simp] lemma id_coe (X : PresheafedSpace.{v} C) :
+  (((𝟙 X) : X ⟶ X) : (X : Top.{v}) ⟶ X) = 𝟙 (X : Top.{v}) := rfl
 @[simp] lemma comp_coe {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) :
-  ((α ≫ β : X ⟶ Z) : X.to_Top ⟶ Z.to_Top) = (α : X.to_Top ⟶ Y.to_Top) ≫ (β : Y.to_Top ⟶ Z.to_Top) :=
-rfl
+  ((α ≫ β : X ⟶ Z) : (X : Top.{v}) ⟶ Z) = (α : (X : Top.{v}) ⟶ Y) ≫ (β : Y ⟶ Z) := rfl
 
--- We don't mark these as simp lemmas, because the innards are pretty unsightly.
 lemma id_c (X : PresheafedSpace.{v} C) :
   ((𝟙 X) : X ⟶ X).c =
-  (((functor.left_unitor _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id _).hom) _)) :=
-rfl
+  (((functor.left_unitor _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id _).hom) _)) := rfl
 lemma comp_c {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) :
-  (α ≫ β).c = (β.c ≫ (whisker_left (opens.map β.f).op α.c)) :=
-rfl
+  (α ≫ β).c = (β.c ≫ (whisker_left (opens.map β.f).op α.c)) := rfl
+@[simp] lemma id_c_app (X : PresheafedSpace.{v} C) (U) :
+  ((𝟙 X) : X ⟶ X).c.app U = eq_to_hom (by tidy) :=
+by { simp only [id_c], tidy }
+@[simp] lemma comp_c_app {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) (U) :
+  (α ≫ β).c.app U = (β.c).app U ≫ (α.c).app (op ((opens.map (β.f)).obj (unop U))) := rfl
 
 def forget : PresheafedSpace.{v} C ⥤ Top :=
-{ obj := λ X, X.to_Top,
+{ obj := λ X, (X : Top.{v}),
   map := λ X Y f, f }
 
 end PresheafedSpace
@@ -145,11 +119,11 @@ def map_presheaf (F : C ⥤ D) : PresheafedSpace.{v} C ⥤ PresheafedSpace.{v} D
   map := λ X Y f, { f := f.f, c := whisker_right f.c F } }.
 
 @[simp] lemma map_presheaf_obj_X (F : C ⥤ D) (X : PresheafedSpace.{v} C) :
-  (F.map_presheaf.obj X).to_Top = X.to_Top := rfl
+  ((F.map_presheaf.obj X) : Top.{v}) = (X : Top.{v}) := rfl
 @[simp] lemma map_presheaf_obj_𝒪 (F : C ⥤ D) (X : PresheafedSpace.{v} C) :
   (F.map_presheaf.obj X).𝒪 = X.𝒪 ⋙ F := rfl
 @[simp] lemma map_presheaf_map_f (F : C ⥤ D) {X Y : PresheafedSpace.{v} C} (f : X ⟶ Y) :
-  (F.map_presheaf.map f).f = f := rfl
+  ((F.map_presheaf.map f) : (X : Top.{v}) ⟶ (Y : Top.{v})) = f := rfl
 @[simp] lemma map_presheaf_map_c (F : C ⥤ D) {X Y : PresheafedSpace.{v} C} (f : X ⟶ Y) :
   (F.map_presheaf.map f).c = whisker_right f.c F := rfl
 
@@ -161,21 +135,7 @@ def on_presheaf {F G : C ⥤ D} (α : F ⟶ G) : G.map_presheaf ⟶ F.map_preshe
 { app := λ X,
   { f := 𝟙 _,
     c := whisker_left X.𝒪 α ≫ ((functor.left_unitor _).inv) ≫
-           (whisker_right (nat_trans.op (opens.map_id _).hom) _) },
-  naturality' := λ X Y f,
-  begin
-    ext U,
-    { op_induction U,
-      cases U,
-      dsimp,
-      simp only [functor.map_id, category.id_comp, category.comp_id, category.assoc],
-      -- This should be done by `simp`, but unfortunately isn't.
-      erw category_theory.functor.map_id,
-      erw category_theory.functor.map_id,
-      simp only [category.comp_id],
-      exact (α.naturality _).symm, },
-    { refl, }
-  end }.
+           (whisker_right (nat_trans.op (opens.map_id _).hom) _) } }.
 
 end nat_trans
 

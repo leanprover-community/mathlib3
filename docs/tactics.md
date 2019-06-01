@@ -898,6 +898,19 @@ using the relevant lemmas. One can also use this tactic at the goal using `push_
 at every assumption and the goal using `push_neg at *` or at selected assumptions and the goal
 using say `push_neg at h h' ⊢` as usual.
 
+### contrapose
+
+Transforms the goal into its contrapositive.
+
+`contrapose`     turns a goal `P → Q` into `¬ Q → ¬ P`
+
+`contrapose!`    turns a goal `P → Q` into `¬ Q → ¬ P` and pushes negations inside `P` and `Q`
+                 using `push_neg`
+
+`contrapose h`   first reverts the local assumption `h`, and then uses `contrapose` and `intro h`
+
+`contrapose! h`  first reverts the local assumption `h`, and then uses `contrapose!` and `intro h`
+
 ### norm_cast
 
 This tactic normalizes casts inside expressions.

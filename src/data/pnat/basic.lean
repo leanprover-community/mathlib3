@@ -28,7 +28,7 @@ def succ_pnat (n : ℕ) : ℕ+ := ⟨succ n, succ_pos n⟩
 @[simp] theorem succ_pnat_coe (n : ℕ) : (succ_pnat n : ℕ) = succ n := rfl
 
 theorem succ_pnat_inj {n m : ℕ} : succ_pnat n = succ_pnat m → n = m :=
-λ h, by {let h' := congr_arg (coe : ℕ+ → ℕ) h, exact nat.succ_inj h'}
+λ h, by { let h' := congr_arg (coe : ℕ+ → ℕ) h, exact nat.succ_inj h' }
 
 /-- Convert a natural number to a pnat. `n+1` is mapped to itself,
   and `0` becomes `1`. -/
@@ -41,7 +41,7 @@ def to_pnat' (n : ℕ) : ℕ+ := succ_pnat (pred n)
 
 namespace primes
 instance coe_pnat : has_coe nat.primes ℕ+ := ⟨λ p, ⟨(p : ℕ), p.property.pos⟩⟩
-theorem coe_pnat_nat (p : nat.primes) : ((p : ℕ+) : ℕ) = (p : ℕ) := rfl
+theorem coe_pnat_nat (p : nat.primes) : ((p : ℕ+) : ℕ) = p := rfl
 
 theorem coe_pnat_inj (p q : nat.primes) : (p : ℕ+) = (q : ℕ+) → p = q := λ h,
 begin
@@ -75,9 +75,9 @@ theorem eq {m n : ℕ+} : (m : ℕ) = n → m = n := subtype.eq
 @[simp] theorem mk_coe (n h) : ((⟨n, h⟩ : ℕ+) : ℕ) = n := rfl
 
 instance : add_comm_semigroup ℕ+ :=
-{ add       := λ a b, ⟨a.val + b.val, add_pos a.pos b.pos⟩,
-  add_comm  := λ a b, subtype.eq (add_comm a.val b.val),
-  add_assoc := λ a b c, subtype.eq (add_assoc a.val b.val c.val) }
+{ add       := λ a b, ⟨(a  + b : ℕ), add_pos a.pos b.pos⟩,
+  add_comm  := λ a b, subtype.eq (add_comm a b),
+  add_assoc := λ a b c, subtype.eq (add_assoc a b c) }
 
 @[simp] theorem add_coe (m n : ℕ+) : ((m + n : ℕ+) : ℕ) = m + n := rfl
 instance coe_add_hom : is_add_hom (coe : ℕ+ → ℕ) := ⟨add_coe⟩
@@ -86,14 +86,14 @@ instance : add_left_cancel_semigroup ℕ+ :=
 { add_left_cancel := λ a b c h, by {
     replace h := congr_arg (coe : ℕ+ → ℕ) h,
     rw [add_coe, add_coe] at h,
-    exact eq ((add_left_inj a.val).mp h)},
+    exact eq ((add_left_inj (a : ℕ)).mp h)},
   .. (pnat.add_comm_semigroup) }
 
 instance : add_right_cancel_semigroup ℕ+ :=
 { add_right_cancel := λ a b c h, by {
     replace h := congr_arg (coe : ℕ+ → ℕ) h,
     rw [add_coe, add_coe] at h,
-    exact eq ((add_right_inj b.val).mp h)},
+    exact eq ((add_right_inj (b : ℕ)).mp h)},
   .. (pnat.add_comm_semigroup) }
 
 @[simp] theorem ne_zero (n : ℕ+) : (n : ℕ) ≠ 0 := ne_of_gt n.2
@@ -132,25 +132,27 @@ instance : right_cancel_semigroup ℕ+ :=
   .. (pnat.comm_monoid) }
 
 instance : distrib ℕ+ :=
-{ left_distrib  := λ a b c, eq (mul_add a.val b.val c.val),
-  right_distrib := λ a b c, eq (add_mul a.val b.val c.val),
+{ left_distrib  := λ a b c, eq (mul_add a b c),
+  right_distrib := λ a b c, eq (add_mul a b c),
   ..(pnat.add_comm_semigroup), ..(pnat.comm_monoid) }
 
 /-- Subtraction a - b is defined in the obvious way when
   a > b, and by a - b = 1 if a ≤ b.
 -/
-instance : has_sub ℕ+ := ⟨λ a b, to_pnat' (a.val - b.val)⟩
+instance : has_sub ℕ+ := ⟨λ a b, to_pnat' (a - b : ℕ)⟩
 
-theorem sub_coe (a b : ℕ+) : (((a - b) : ℕ+) : ℕ) = ite (a > b) ((a : ℕ) - (b : ℕ)) 1 :=
+theorem sub_coe (a b : ℕ+) : ((a - b : ℕ+) : ℕ) = ite (a > b) (a - b : ℕ) 1 :=
 begin
-  change ((to_pnat' (a.val - b.val)) : ℕ) = ite (a.val > b.val) (a.val - b.val) 1,
+  change ((to_pnat' ((a : ℕ) - (b :  ℕ)) : ℕ)) =
+    ite ((a : ℕ) > (b : ℕ)) ((a : ℕ) - (b : ℕ)) 1,
   split_ifs with h,
-  {exact to_pnat'_coe (nat.sub_pos_of_lt h)},
-  {rw [nat.sub_eq_zero_iff_le.mpr (le_of_not_gt h)], refl}
+  { exact to_pnat'_coe (nat.sub_pos_of_lt h) },
+  { rw [nat.sub_eq_zero_iff_le.mpr (le_of_not_gt h)], refl }
 end
 
 theorem add_sub_of_lt {a b : ℕ+} : a < b → a + (b - a) = b :=
- λ h, eq $ by {rw [add_coe, sub_coe, if_pos h], exact nat.add_sub_of_le (le_of_lt h)}
+ λ h, eq $ by { rw [add_coe, sub_coe, if_pos h],
+                exact nat.add_sub_of_le (le_of_lt h) }
 
 /-- We define m % k and m / k in the same way as for nat
   except that when m = n * k we take m % k = k and
@@ -181,8 +183,8 @@ theorem mod_add_div (m k : ℕ+) : (m : ℕ) = (mod m k) + k * (div m k) :=
 begin
   let h₀ := nat.mod_add_div (m : ℕ) (k : ℕ),
   have : ¬ ((m : ℕ) % (k : ℕ) = 0 ∧ (m : ℕ) / (k : ℕ) = 0),
-  by {rintro ⟨hr, hq⟩, rw [hr, hq, mul_zero, zero_add] at h₀,
-      exact (m.ne_zero h₀.symm).elim},
+  by { rintro ⟨hr, hq⟩, rw [hr, hq, mul_zero, zero_add] at h₀,
+       exact (m.ne_zero h₀.symm).elim },
   have := mod_div_aux_spec k ((m : ℕ) % (k : ℕ)) ((m : ℕ) / (k : ℕ)) this,
   exact (this.trans h₀).symm,
 end
@@ -190,17 +192,19 @@ end
 theorem mod_coe (m k : ℕ+) :
  ((mod m k) : ℕ) = ite ((m : ℕ) % (k : ℕ) = 0) (k : ℕ) ((m : ℕ) % (k : ℕ)) :=
 begin
-  dsimp[mod, mod_div], cases (m : ℕ) % (k : ℕ),
-  {rw [if_pos rfl], refl},
-  {rw [if_neg n.succ_ne_zero], refl}
+  dsimp [mod, mod_div],
+  cases (m : ℕ) % (k : ℕ),
+  { rw [if_pos rfl], refl },
+  { rw [if_neg n.succ_ne_zero], refl }
 end
 
 theorem div_coe (m k : ℕ+) :
  ((div m k) : ℕ) = ite ((m : ℕ) % (k : ℕ) = 0) ((m : ℕ) / (k : ℕ)).pred ((m : ℕ) / (k : ℕ)) :=
 begin
-  dsimp[div, mod_div], cases (m : ℕ) % (k : ℕ),
-  {rw [if_pos rfl], refl},
-  {rw [if_neg n.succ_ne_zero], refl}
+  dsimp [div, mod_div],
+  cases (m : ℕ) % (k : ℕ),
+  { rw [if_pos rfl], refl },
+  { rw [if_neg n.succ_ne_zero], refl }
 end
 
 theorem mod_le (m k : ℕ+) : mod m k ≤ m ∧ mod m k ≤ k :=
@@ -213,8 +217,8 @@ begin
     { rw [h', mul_zero] at hm, exact (lt_irrefl _ hm).elim},
     { let h' := nat.mul_le_mul_left (k : ℕ)
              (nat.succ_le_of_lt (nat.pos_of_ne_zero h')),
-      rw [mul_one] at h', exact ⟨h', le_refl (k : ℕ)⟩}},
-  {exact ⟨nat.mod_le (m : ℕ) (k : ℕ), le_of_lt (nat.mod_lt (m : ℕ) k.pos)⟩}
+      rw [mul_one] at h', exact ⟨h', le_refl (k : ℕ)⟩ } },
+  { exact ⟨nat.mod_le (m : ℕ) (k : ℕ), le_of_lt (nat.mod_lt (m : ℕ) k.pos)⟩ }
 end
 
 instance : has_dvd ℕ+ := ⟨λ k m, (k : ℕ) ∣ (m : ℕ)⟩
@@ -230,7 +234,7 @@ begin
     { exact h'},
     { replace h : ((mod m k) : ℕ) = (k : ℕ) := congr_arg _ h,
       rw [mod_coe, if_neg h'] at h,
-      exact (ne_of_lt (nat.mod_lt (m : ℕ) k.pos) h).elim}}
+      exact (ne_of_lt (nat.mod_lt (m : ℕ) k.pos) h).elim } }
 end
 
 def div_exact {m k : ℕ+} (h : k ∣ m) : ℕ+ :=
@@ -269,13 +273,13 @@ def gcd (n m : ℕ+) : ℕ+ :=
 
 def lcm (n m : ℕ+) : ℕ+ :=
  ⟨nat.lcm (n : ℕ) (m : ℕ),
-  by {let h := mul_pos n.pos m.pos,
-      rw [← gcd_mul_lcm (n : ℕ) (m : ℕ), mul_comm] at h,
-      exact pos_of_dvd_of_pos (dvd.intro (nat.gcd (n : ℕ) (m : ℕ)) rfl) h}⟩
+  by { let h := mul_pos n.pos m.pos,
+       rw [← gcd_mul_lcm (n : ℕ) (m : ℕ), mul_comm] at h,
+       exact pos_of_dvd_of_pos (dvd.intro (nat.gcd (n : ℕ) (m : ℕ)) rfl) h }⟩
 
-@[simp] theorem gcd_val (n m : ℕ+) : (gcd n m).val = nat.gcd (n : ℕ) (m : ℕ) := rfl
+@[simp] theorem gcd_coe (n m : ℕ+) : ((gcd n m) : ℕ) = nat.gcd n m := rfl
 
-@[simp] theorem lcm_val (n m : ℕ+) : (lcm n m).val = nat.lcm (n : ℕ) (m : ℕ) := rfl
+@[simp] theorem lcm_coe (n m : ℕ+) : ((lcm n m) : ℕ) = nat.lcm n m := rfl
 
 theorem gcd_dvd_left (n m : ℕ+) : (gcd n m) ∣ n := nat.gcd_dvd_left (n : ℕ) (m : ℕ)
 

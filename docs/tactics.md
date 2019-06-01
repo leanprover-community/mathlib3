@@ -963,5 +963,5 @@ nat.cast_sub : ∀ {α : Type*} [add_group α] [has_one α] {m n : ℕ}, m ≤ n
 ```lean
 int.cast_coe_nat : ∀ (n : ℕ), ↑↑n = ↑n
 
-int.cats_id : int.cast_id : ∀ (n : ℤ), ↑n = n
+int.cast_id : int.cast_id : ∀ (n : ℤ), ↑n = n
 ```

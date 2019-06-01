@@ -173,94 +173,6 @@ by rw [lt_iff_le_not_le, span_singleton_le_span_singleton, span_singleton_le_spa
 
 end ideal
 
-def nonunits (α : Type u) [monoid α] : set α := { x | ¬is_unit x }
-
-@[simp] theorem mem_nonunits_iff {α} [comm_monoid α] {x} : x ∈ nonunits α ↔ ¬ is_unit x := iff.rfl
-
-theorem mul_mem_nonunits_right {α} [comm_monoid α]
-  {x y : α} : y ∈ nonunits α → x * y ∈ nonunits α :=
-mt is_unit_of_mul_is_unit_right
-
-theorem mul_mem_nonunits_left {α} [comm_monoid α]
-  {x y : α} : x ∈ nonunits α → x * y ∈ nonunits α :=
-mt is_unit_of_mul_is_unit_left
-
-theorem zero_mem_nonunits {α} [semiring α] : 0 ∈ nonunits α ↔ (0:α) ≠ 1 :=
-not_congr is_unit_zero_iff
-
-theorem one_not_mem_nonunits {α} [monoid α] : (1:α) ∉ nonunits α :=
-not_not_intro is_unit_one
-
-theorem coe_subset_nonunits {I : ideal α} (h : I ≠ ⊤) :
-  (I : set α) ⊆ nonunits α :=
-λ x hx hu, h $ I.eq_top_of_is_unit_mem hx hu
-
-class is_local_ring (α : Type u) [comm_ring α] : Prop :=
-(zero_ne_one : (0:α) ≠ 1)
-(is_local : ∀ (a : α), (is_unit a) ∨ (is_unit (1 - a)))
--- ∃! I : ideal α, I.is_maximal
-
-namespace is_local_ring
-variable [is_local_ring α]
-
-instance : zero_ne_one_class α :=
-{ ..‹comm_ring α›, ..‹is_local_ring α› }
-
-lemma is_unit_or_is_unit_one_sub_self (a : α) :
-  (is_unit a) ∨ (is_unit (1 - a)) :=
-is_local a
-
-lemma is_unit_of_mem_nonunits_one_sub_self (a : α) (h : (1 - a) ∈ nonunits α) :
-  is_unit a :=
-or_iff_not_imp_right.1 (is_local a) h
-
-lemma is_unit_one_sub_self_of_mem_nonunits (a : α) (h : a ∈ nonunits α) :
-  is_unit (1 - a) :=
-or_iff_not_imp_left.1 (is_local a) h
-
-def nonunits_ideal : ideal α :=
-{ carrier := nonunits α,
-  zero := zero_mem_nonunits.2 $ zero_ne_one α,
-  add := λ x y hx hy H, begin
-    rcases H with ⟨u, hu⟩,
-    apply hy,
-    suffices : is_unit ((u : α) * y),
-    { rcases this with ⟨s, hs⟩,
-      use u⁻¹ * s,
-      convert congr_arg (λ x, (↑u⁻¹ : α) * x) hs,
-      rw ← mul_assoc, simp },
-    apply is_unit_of_mem_nonunits_one_sub_self,
-    -- rcases id h with ⟨M, mM, hM⟩,
-    -- have : ∀ x ∈ nonunits α, x ∈ M,
-    -- { intros x hx,
-    --   rcases (ideal.span {x} : ideal α).exists_le_maximal _ with ⟨N, mN, hN⟩,
-    --   { cases hM N mN,
-    --     rwa [ideal.span_le, singleton_subset_iff] at hN },
-    --   { exact mt ideal.span_singleton_eq_top.1 hx } },
-    -- intros x y hx hy,
-    -- exact coe_subset_nonunits mM.1 (M.add_mem (this _ hx) (this _ hy))
-  end,
-  smul := λ a x, mul_mem_nonunits_right }
-
-end is_local_ring
-
-@[class] def is_local_ring.zero_ne_one (h : is_local_ring α) : (0:α) ≠ 1 :=
-let ⟨I, ⟨hI, _⟩, _⟩ := h in ideal.zero_ne_one_of_proper hI
-
-@[simp] theorem mem_nonunits_ideal (h : is_local_ring α) {x} :
-  x ∈ nonunits_ideal h ↔ x ∈ nonunits α := iff.rfl
-
-theorem local_of_nonunits_ideal (hnze : (0:α) ≠ 1)
-  (h : ∀ x y ∈ nonunits α, x + y ∈ nonunits α) : is_local_ring α :=
-begin
-  letI NU : ideal α := ⟨nonunits α,
-    zero_mem_nonunits.2 hnze, h, λ a x, mul_mem_nonunits_right⟩,
-  have NU1 := NU.ne_top_iff_one.2 one_not_mem_nonunits,
-  exact ⟨NU, ⟨NU1,
-    λ J hJ, not_not.1 $ λ J0, not_le_of_gt hJ (coe_subset_nonunits J0)⟩,
-    λ J mJ, mJ.eq_of_le NU1 (coe_subset_nonunits mJ.1)⟩,
-end
-
 namespace ideal
 open ideal
 
@@ -394,3 +306,168 @@ instance : is_ring_hom (lift S f H) :=
 
 end quotient
 end ideal
+
+def nonunits (α : Type u) [monoid α] : set α := { x | ¬is_unit x }
+
+@[simp] theorem mem_nonunits_iff {α} [comm_monoid α] {x} : x ∈ nonunits α ↔ ¬ is_unit x := iff.rfl
+
+theorem mul_mem_nonunits_right {α} [comm_monoid α]
+  {x y : α} : y ∈ nonunits α → x * y ∈ nonunits α :=
+mt is_unit_of_mul_is_unit_right
+
+theorem mul_mem_nonunits_left {α} [comm_monoid α]
+  {x y : α} : x ∈ nonunits α → x * y ∈ nonunits α :=
+mt is_unit_of_mul_is_unit_left
+
+theorem zero_mem_nonunits {α} [semiring α] : 0 ∈ nonunits α ↔ (0:α) ≠ 1 :=
+not_congr is_unit_zero_iff
+
+@[simp] theorem one_not_mem_nonunits {α} [monoid α] : (1:α) ∉ nonunits α :=
+not_not_intro is_unit_one
+
+theorem coe_subset_nonunits {I : ideal α} (h : I ≠ ⊤) :
+  (I : set α) ⊆ nonunits α :=
+λ x hx hu, h $ I.eq_top_of_is_unit_mem hx hu
+
+lemma exists_max_ideal_of_mem_nonunits {a} (h : a ∈ nonunits α) :
+  ∃ I : ideal α, I.is_maximal ∧ a ∈ I :=
+begin
+  have : ideal.span ({a} : set α) ≠ ⊤,
+  { intro H, rw ideal.span_singleton_eq_top at H, contradiction },
+  rcases ideal.exists_le_maximal _ this with ⟨I, Imax, H⟩,
+  use [I, Imax], apply H, apply ideal.subset_span, exact set.mem_singleton a
+end
+
+class is_local_ring (α : Type u) [comm_ring α] : Prop :=
+(zero_ne_one : (0:α) ≠ 1)
+(is_local : ∀ (a : α), (is_unit a) ∨ (is_unit (1 - a)))
+
+namespace is_local_ring
+variable [is_local_ring α]
+
+instance : zero_ne_one_class α :=
+{ ..‹comm_ring α›, ..‹is_local_ring α› }
+
+lemma is_unit_or_is_unit_one_sub_self (a : α) :
+  (is_unit a) ∨ (is_unit (1 - a)) :=
+is_local a
+
+lemma is_unit_of_mem_nonunits_one_sub_self (a : α) (h : (1 - a) ∈ nonunits α) :
+  is_unit a :=
+or_iff_not_imp_right.1 (is_local a) h
+
+lemma is_unit_one_sub_self_of_mem_nonunits (a : α) (h : a ∈ nonunits α) :
+  is_unit (1 - a) :=
+or_iff_not_imp_left.1 (is_local a) h
+
+lemma nonunits_add {x y} (hx : x ∈ nonunits α) (hy : y ∈ nonunits α) :
+  x + y ∈ nonunits α :=
+begin
+  rintros ⟨u, hu⟩,
+  apply hy,
+  suffices : is_unit ((↑u⁻¹ : α) * y),
+  { rcases this with ⟨s, hs⟩,
+    use u * s,
+    convert congr_arg (λ z, (u : α) * z) hs,
+    rw ← mul_assoc, simp },
+  rw show (↑u⁻¹ * y) = (1 - ↑u⁻¹ * x),
+  { rw eq_sub_iff_add_eq,
+    replace hu := congr_arg (λ z, (↑u⁻¹ : α) * z) hu,
+    simpa [mul_add] using hu },
+  apply is_unit_one_sub_self_of_mem_nonunits,
+  exact mul_mem_nonunits_right hx
+end
+
+variable (α)
+
+def nonunits_ideal : ideal α :=
+{ carrier := nonunits α,
+  zero := zero_mem_nonunits.2 $ zero_ne_one α,
+  add := λ x y hx hy, nonunits_add hx hy,
+  smul := λ a x, mul_mem_nonunits_right }
+
+instance nonunits_ideal.is_maximal : (nonunits_ideal α).is_maximal :=
+begin
+  rw ideal.is_maximal_iff,
+  split,
+  { intro h, apply h, exact is_unit_one },
+  { intros I x hI hx H,
+    erw not_not at hx,
+    rcases hx with ⟨u,rfl⟩,
+    simpa using I.smul_mem ↑u⁻¹ H }
+end
+
+lemma max_ideal_unique :
+  ∃! I : ideal α, I.is_maximal :=
+⟨nonunits_ideal α, nonunits_ideal.is_maximal α,
+  λ I hI, hI.eq_of_le (nonunits_ideal.is_maximal α).1 $
+  λ x hx, hI.1 ∘ I.eq_top_of_is_unit_mem hx⟩
+
+variable {α}
+
+@[simp] lemma mem_nonunits_ideal (x) :
+  x ∈ nonunits_ideal α ↔ x ∈ nonunits α := iff.rfl
+
+end is_local_ring
+
+lemma local_of_nonunits_add (hnze : (0:α) ≠ 1)
+  (h : ∀ x y ∈ nonunits α, x + y ∈ nonunits α) : is_local_ring α :=
+{ zero_ne_one := hnze,
+  is_local := λ x, or_iff_not_imp_left.mpr $ λ hx,
+  begin
+    by_contra H,
+    apply h _ _ hx H,
+    simp [-sub_eq_add_neg, add_sub_cancel'_right]
+  end }
+
+lemma local_of_unique_max_ideal (h : ∃! I : ideal α, I.is_maximal) : is_local_ring α :=
+let ⟨I, h₁, h₂⟩ := h in
+let hnze : (0:α) ≠ 1 := (λ H, h₁.1 $ I.eq_top_iff_one.2 $ H ▸ I.zero_mem) in
+local_of_nonunits_add hnze $ λ x y hx hy H,
+let ⟨Ix, Ixmax, Hx⟩ := exists_max_ideal_of_mem_nonunits hx in
+let ⟨Iy, Iymax, Hy⟩ := exists_max_ideal_of_mem_nonunits hy in
+have xmemI : x ∈ I, from ((h₂ Ix Ixmax) ▸ Hx),
+have ymemI : y ∈ I, from ((h₂ Iy Iymax) ▸ Hy),
+h₁.1 $ I.eq_top_of_is_unit_mem (I.add_mem xmemI ymemI) H
+
+class is_local_ring_hom [comm_ring β] (f : α → β) [is_ring_hom f]
+  [is_local_ring α] [is_local_ring β] : Prop :=
+(map_nonunit : ∀ a, is_unit (f a) → is_unit a)
+
+section
+open is_local_ring
+variables [comm_ring β] [is_local_ring α] [is_local_ring β]
+variables (f : α → β) [is_ring_hom f] [is_local_ring_hom f]
+
+@[simp] lemma is_unit_of_map_unit (a) (h : is_unit (f a)) : is_unit a :=
+is_local_ring_hom.map_nonunit a h
+
+lemma map_nonunit (a) (h : a ∈ nonunits_ideal α) : f a ∈ nonunits_ideal β :=
+λ H, h $ is_unit_of_map_unit f a H
+
+end
+
+namespace is_local_ring
+variables [comm_ring β] [is_local_ring α] [is_local_ring β]
+
+variable (α)
+def residue_field := (nonunits_ideal α).quotient
+
+namespace residue_field
+
+noncomputable instance : discrete_field (residue_field α) :=
+ideal.quotient.field (nonunits_ideal α)
+
+variables {α β}
+noncomputable def map (f : α → β) [is_ring_hom f] [is_local_ring_hom f] :
+  residue_field α → residue_field β :=
+ideal.quotient.lift (nonunits_ideal α) (ideal.quotient.mk _ ∘ f) $
+λ a ha,
+begin
+  erw ideal.quotient.eq_zero_iff_mem,
+  exact map_nonunit f a ha
+end
+
+end residue_field
+
+end is_local_ring

@@ -249,6 +249,8 @@ lemma coe_inv : ((a⁻¹ : units α) : α) = a.inv := rfl
 @[simp] lemma inv_mul : (↑a⁻¹ * a : α) = 1 := inv_val _
 @[simp] lemma mul_inv : (a * ↑a⁻¹ : α) = 1 := val_inv _
 
+def conj (a : units α) (b : α) : α := a * b * ↑a⁻¹
+
 @[simp] lemma mul_inv_cancel_left (a : units α) (b : α) : (a:α) * (↑a⁻¹ * b) = b :=
 by rw [← mul_assoc, mul_inv, one_mul]
 
@@ -260,6 +262,14 @@ by rw [mul_assoc, mul_inv, mul_one]
 
 @[simp] lemma inv_mul_cancel_right (a : α) (b : units α) : a * ↑b⁻¹ * b = a :=
 by rw [mul_assoc, inv_mul, mul_one]
+
+@[simp] lemma conj_inv_cancel_left (a : units α) (b : α) : a⁻¹.conj (a.conj b) = b :=
+show ↑a⁻¹ * (↑a * b * ↑a⁻¹) * ↑a = b,
+by rw [mul_assoc, inv_mul_cancel_right, inv_mul_cancel_left]
+
+@[simp] lemma conj_inv_cancel_right (a : units α) (b : α) : a.conj (a⁻¹.conj b) = b :=
+show ↑a * (↑a⁻¹ * b * ↑a) * ↑a⁻¹ = b,
+by rw [mul_assoc, mul_inv_cancel_right, mul_inv_cancel_left]
 
 instance : group (units α) :=
 by refine {mul := (*), one := 1, inv := has_inv.inv, ..};

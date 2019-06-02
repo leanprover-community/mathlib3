@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.ordered_group order.lattice
+import algebra.ordered_group order.lattice data.nat.basic
 
 open lattice
 
@@ -62,6 +62,17 @@ lemma strict_mono_of_monotone_of_injective (h₁ : monotone f) (h₂ : injective
 begin
   rw lt_iff_le_and_ne at ⊢ h,
   exact ⟨h₁ h.1, λ e, h.2 (h₂ e)⟩
+end
+
+lemma nat.strict_mono_of_lt_succ {α : Type*} [preorder α] (f : ℕ → α)
+  (hf : ∀ n, f n < f n.succ) : strict_mono f :=
+begin
+  assume a b hab,
+  cases nat.exists_eq_add_of_lt hab with k hk,
+  subst hk, clear hab,
+  induction k with k ih,
+  { exact hf _ },
+  { exact lt_trans ih (hf _) }
 end
 
 end

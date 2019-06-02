@@ -7,7 +7,7 @@ Denumerable (countably infinite) types, as a typeclass extending
 encodable. This is used to provide explicit encode/decode functions
 from nat, where the functions are known inverses of each other.
 -/
-import data.equiv.encodable data.sigma
+import data.equiv.encodable data.sigma data.fintype data.list.min_max
 open nat
 
 /-- A denumerable type is one which is (constructively) bijective with ℕ.
@@ -109,4 +109,100 @@ instance plift : denumerable (plift α) := of_equiv _ equiv.plift
 def pair : (α × α) ≃ α := equiv₂ _ _
 
 end
+end denumerable
+
+namespace nat.subtype
+open function encodable lattice
+
+variables {s : set ℕ} [decidable_pred s] [infinite s]
+
+lemma exists_succ (x : s) : ∃ n, x.1 + n + 1 ∈ s :=
+classical.by_contradiction $ λ h,
+have ∀ (a : ℕ) (ha : a ∈ s), a < x.val.succ,
+  from λ a ha, lt_of_not_ge (λ hax, h ⟨a - (x.1 + 1),
+    by rwa [add_right_comm, nat.add_sub_cancel' hax]⟩),
+infinite.not_fintype
+  ⟨(((multiset.range x.1.succ).filter (∈ s)).pmap
+      (λ (y : ℕ) (hy : y ∈ s), subtype.mk y hy)
+      (by simp [-multiset.range_succ])).to_finset,
+    by simpa [subtype.ext, multiset.mem_filter, -multiset.range_succ]⟩
+
+def succ (x : s) : s :=
+have h : ∃ m, x.1 + m + 1 ∈ s, from exists_succ x,
+⟨x.1 + nat.find h + 1, nat.find_spec h⟩
+
+lemma succ_le_of_lt {x y : s} (h : y < x) : succ y ≤ x :=
+have hx : ∃ m, y.1 + m + 1 ∈ s, from exists_succ _,
+let ⟨k, hk⟩ := nat.exists_eq_add_of_lt h in
+have nat.find hx ≤ k, from nat.find_min' _ (hk ▸ x.2),
+show y.1 + nat.find hx + 1 ≤ x.1,
+by rw hk; exact add_le_add_right (add_le_add_left this _) _
+
+lemma le_succ_of_forall_lt_le {x y : s} (h : ∀ z < x, z ≤ y) : x ≤ succ y :=
+have hx : ∃ m, y.1 + m + 1 ∈ s, from exists_succ _,
+show x.1 ≤ y.1 + nat.find hx + 1,
+from le_of_not_gt $ λ hxy,
+have y.1 + nat.find hx + 1 ≤ y.1 := h ⟨_, nat.find_spec hx⟩ hxy,
+not_lt_of_le this $
+  calc y.1 ≤ y.1 + nat.find hx : le_add_of_nonneg_right (nat.zero_le _)
+  ... < y.1 + nat.find hx + 1 : nat.lt_succ_self _
+
+lemma lt_succ_self (x : s) :  x < succ x :=
+calc x.1 ≤ x.1 + _ : le_add_right (le_refl _)
+... < succ x : nat.lt_succ_self (x.1 + _)
+
+def of_nat (s : set ℕ) [decidable_pred s] [infinite s] : ℕ → s
+| 0     := ⊥
+| (n+1) := succ (of_nat n)
+
+lemma of_nat_strict_mono : strict_mono (of_nat s) :=
+nat.strict_mono_of_lt_succ _ (λ a, by rw of_nat; exact lt_succ_self _)
+
+open list
+
+lemma of_nat_surjective_aux : ∀ {x : ℕ} (hx : x ∈ s), ∃ n, of_nat s n = ⟨x, hx⟩
+| x := λ hx, let t : list s := ((list.range x).filter (λ y, y ∈ s)).pmap
+  (λ (y : ℕ) (hy : y ∈ s), ⟨y, hy⟩) (by simp) in
+have hmt : ∀ {y : s}, y ∈ t ↔ y < ⟨x, hx⟩,
+  by simp [list.mem_filter, subtype.ext, t]; intros; refl,
+if ht : t = [] then ⟨0, le_antisymm (@bot_le s _ _)
+  (le_of_not_gt (λ h, list.not_mem_nil ⊥ $
+    by rw [← ht, hmt]; exact h))⟩
+else by letI : inhabited s := ⟨⊥⟩;
+  exact have wf : (maximum t).1 < x, by simpa [hmt] using list.mem_maximum ht,
+  let ⟨a, ha⟩ := of_nat_surjective_aux (list.maximum t).2 in
+  ⟨a + 1, le_antisymm
+    (by rw of_nat; exact succ_le_of_lt (by rw ha; exact wf)) $
+    by rw of_nat; exact le_succ_of_forall_lt_le
+      (λ z hz, by rw ha; exact list.le_maximum_of_mem (hmt.2 hz))⟩
+
+lemma of_nat_surjective : surjective (of_nat s) :=
+λ ⟨x, hx⟩, of_nat_surjective_aux hx
+
+def denumerable (s : set ℕ) [decidable_pred s] [infinite s] : denumerable s :=
+have li : left_inverse (of_nat s) (λ x : s, nat.find (of_nat_surjective x)),
+  from λ x, nat.find_spec (of_nat_surjective x),
+denumerable.of_equiv ℕ
+{ to_fun := λ x, nat.find (of_nat_surjective x),
+  inv_fun := of_nat s,
+  left_inv := li,
+  right_inv := right_inverse_of_injective_of_left_inverse
+    (strict_mono.injective of_nat_strict_mono) li }
+
+end nat.subtype
+
+namespace denumerable
+open encodable
+
+def of_encodable_of_infinite (α : Type*) [encodable α] [infinite α] [decidable_eq α] :
+  denumerable α :=
+begin
+  letI := @decidable_range_encode α _;
+  letI : infinite (set.range (@encode α _)) :=
+    infinite.of_injective _ (equiv.set.range _ encode_injective).injective,
+  letI := nat.subtype.denumerable (set.range (@encode α _)),
+  exact denumerable.of_equiv (set.range (@encode α _))
+    (equiv_range_encode α)
+end
+
 end denumerable

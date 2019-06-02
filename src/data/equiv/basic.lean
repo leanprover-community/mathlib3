@@ -827,13 +827,18 @@ equiv_of_unique_of_unique
 namespace quot
 /-- Quotients are congruent on equivalences under equality of their relation.
 An alternative is just to use rewriting with `eq`, but then computational proofs get stuck. -/
-protected def congr {α} {r r' : α → α → Prop} (eq : ∀a b, r a b ↔ r' a b) : quot r ≃ quot r' :=
-⟨quot.map r r' (assume a b, (eq a b).1), quot.map r' r (assume a b, (eq a b).2),
-  by rintros ⟨a⟩; refl, by rintros ⟨a⟩; refl⟩
+protected def congr {α β} {ra : α → α → Prop} {rb : β → β → Prop} (e : α ≃ β) (eq : ∀a₁ a₂, ra a₁ a₂ ↔ rb (e a₁) (e a₂)) : quot ra ≃ quot rb :=
+{ to_fun := quot.map e (assume a₁ a₂, (eq a₁ a₂).1),
+  inv_fun := quot.map e.symm
+    (assume b₁ b₂ h,
+     (eq (e.symm b₁) (e.symm b₂)).2
+       ((e.apply_symm_apply b₁).symm ▸ (e.apply_symm_apply b₂).symm ▸ h)),
+  left_inv := by rintros ⟨a⟩; dunfold quot.map; simp only [equiv.symm_apply_apply],
+  right_inv := by rintros ⟨a⟩; dunfold quot.map; simp only [equiv.apply_symm_apply] }
 end quot
 
 namespace quotient
-protected def congr {α} {r r' : setoid α} (eq : ∀a b, @setoid.r α r a b ↔ @setoid.r α r' a b) :
-  quotient r ≃ quotient r' :=
-quot.congr eq
+protected def congr {α β} {ra : setoid α} {rb : setoid β} (e : α ≃ β) (eq : ∀a₁ a₂, @setoid.r α ra a₁ a₂ ↔ @setoid.r β rb (e a₁) (e a₂)) :
+  quotient ra ≃ quotient rb :=
+quot.congr e eq
 end quotient

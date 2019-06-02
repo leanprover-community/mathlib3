@@ -194,8 +194,7 @@ end nat.subtype
 namespace denumerable
 open encodable
 
-def of_encodable_of_infinite (α : Type*) [encodable α] [infinite α] [decidable_eq α] :
-  denumerable α :=
+def of_encodable_of_infinite (α : Type*) [encodable α] [infinite α] : denumerable α :=
 begin
   letI := @decidable_range_encode α _;
   letI : infinite (set.range (@encode α _)) :=

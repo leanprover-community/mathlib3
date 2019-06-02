@@ -20,7 +20,7 @@ universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `categor
   complicated if we write it as an equality of natural transformations, because then we would have
   to insert natural transformations like `F ⟶ F1`.
 -/
-structure equivalence (C : Sort u₁) [category.{v₁} C] (D : Sort u₂) [category.{v₂} D] :=
+structure equivalence (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D] :=
 mk' ::
 (functor : C ⥤ D)
 (inverse : D ⥤ C)
@@ -33,7 +33,7 @@ restate_axiom equivalence.functor_unit_iso_comp'
 
 infixr ` ≌ `:10  := equivalence
 
-variables {C : Sort u₁} {D : Sort u₂} [𝒞 : category.{v₁} C] [𝒟 : category.{v₂} D]
+variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
 namespace equivalence
@@ -153,7 +153,7 @@ include 𝒟
 @[symm] def symm (e : C ≌ D) : D ≌ C :=
 ⟨e.inverse, e.functor, e.counit_iso.symm, e.unit_iso.symm, e.inverse_counit_inv_comp⟩
 
-variables {E : Sort u₃} [ℰ : category.{v₃} E]
+variables {E : Type u₃} [ℰ : category.{v₃} E]
 include ℰ
 
 @[simp] private def id_iso_effe (e : C ≌ D) (f : D ≌ E) (X : C) :
@@ -258,7 +258,7 @@ def fun_inv_id (F : C ⥤ D) [is_equivalence F] : F ⋙ F.inv ≅ functor.id C :
 def inv_fun_id (F : C ⥤ D) [is_equivalence F] : F.inv ⋙ F ≅ functor.id D :=
 is_equivalence.counit_iso F
 
-variables {E : Sort u₃} [ℰ : category.{v₃} E]
+variables {E : Type u₃} [ℰ : category.{v₃} E]
 include ℰ
 
 instance is_equivalence_trans (F : C ⥤ D) (G : D ⥤ E) [is_equivalence F] [is_equivalence G] :

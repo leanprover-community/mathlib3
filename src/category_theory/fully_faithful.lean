@@ -8,7 +8,7 @@ universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `categor
 
 namespace category_theory
 
-variables {C : Sort u₁} [𝒞 : category.{v₁} C] {D : Sort u₂} [𝒟 : category.{v₂} D]
+variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
 class full (F : C ⥤ D) :=
@@ -58,7 +58,7 @@ end category_theory
 
 namespace category_theory
 
-variables {C : Sort u₁} [𝒞 : category.{v₁} C]
+variables {C : Type u₁} [𝒞 : category.{v₁} C]
 include 𝒞
 
 instance full.id : full (functor.id C) :=
@@ -68,7 +68,7 @@ instance : faithful (functor.id C) := by obviously
 
 instance : fully_faithful (functor.id C) := { ((by apply_instance) : full (functor.id C)) with }
 
-variables {D : Sort u₂} [𝒟 : category.{v₂} D] {E : Sort u₃} [ℰ : category.{v₃} E]
+variables {D : Type u₂} [𝒟 : category.{v₂} D] {E : Type u₃} [ℰ : category.{v₃} E]
 include 𝒟 ℰ
 variables (F : C ⥤ D) (G : D ⥤ E)
 

@@ -212,12 +212,50 @@ protected def ulift {α : Type u} : ulift α ≃ α :=
 protected def plift : plift α ≃ α :=
 ⟨plift.down, plift.up, plift.up_down, plift.down_up⟩
 
-@[congr] def arrow_congr {α₁ β₁ α₂ β₂ : Sort*} : α₁ ≃ α₂ → β₁ ≃ β₂ → (α₁ → β₁) ≃ (α₂ → β₂)
-| ⟨f₁, g₁, l₁, r₁⟩ ⟨f₂, g₂, l₂, r₂⟩ :=
-  ⟨λ (h : α₁ → β₁) (a : α₂), f₂ (h (g₁ a)),
-   λ (h : α₂ → β₂) (a : α₁), g₂ (h (f₁ a)),
-   λ h, by funext a; dsimp; rw [l₁, l₂],
-   λ h, by funext a; dsimp; rw [r₁, r₂]⟩
+@[congr] def arrow_congr {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂) : (α₁ → β₁) ≃ (α₂ → β₂) :=
+{ to_fun := λ f, e₂.to_fun ∘ f ∘ e₁.inv_fun,
+  inv_fun := λ f, e₂.inv_fun ∘ f ∘ e₁.to_fun,
+  left_inv := λ f, funext $ λ x, by dsimp; rw [e₂.left_inv, e₁.left_inv],
+  right_inv := λ f, funext $ λ x, by dsimp; rw [e₂.right_inv, e₁.right_inv] }
+
+lemma arrow_congr_apply {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂) (f : α₁ → β₁) :
+  arrow_congr e₁ e₂ f = e₂.to_fun ∘ f ∘ e₁.inv_fun :=
+rfl
+
+lemma arrow_congr_comp_apply {α₁ β₁ γ₁ α₂ β₂ γ₂ : Sort*} (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) (eg : γ₁ ≃ γ₂)
+  (f : α₁ → β₁) (g : β₁ → γ₁) (x : α₂) :
+  arrow_congr ea eg (g ∘ f) x = arrow_congr eb eg g (arrow_congr ea eb f x) :=
+show (eg $ g $ f $ ea.inv_fun x) = (eg $ g $ eb.inv_fun $ eb $ f $ ea.inv_fun x),
+by unfold_coes; rw eb.left_inv
+
+lemma arrow_congr_refl {α β : Sort*} :
+  arrow_congr (equiv.refl α) (equiv.refl β) = equiv.refl (α → β) := rfl
+
+lemma arrow_congr_trans {α₁ β₁ α₂ β₂ α₃ β₃ : Sort*}
+  (e₁ : α₁ ≃ α₂) (e₁' : β₁ ≃ β₂) (e₂ : α₂ ≃ α₃) (e₂' : β₂ ≃ β₃) :
+  (arrow_congr e₁ e₁').trans (arrow_congr e₂ e₂') = arrow_congr (e₁.trans e₂) (e₁'.trans e₂') :=
+rfl
+
+lemma arrow_congr_symm {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂) :
+  (arrow_congr e₁ e₂).symm = arrow_congr e₁.symm e₂.symm :=
+rfl
+
+def conj (e : α ≃ β) : (α → α) ≃ (β → β) := arrow_congr e e
+
+lemma conj_refl : conj (equiv.refl α) = equiv.refl (α → α) := rfl
+
+lemma conj_symm (e : α ≃ β) : e.symm.conj = e.conj.symm := rfl
+
+lemma conj_trans (e₁ : α ≃ β) (e₂ : β ≃ γ) :
+  (e₁.trans e₂).conj = e₁.conj.trans e₂.conj :=
+rfl
+
+lemma conj_apply (e : α ≃ β) (f : α → α) : e.conj f = e.to_fun ∘ f ∘ e.inv_fun :=
+rfl
+
+lemma conj_comp_apply (e : α ≃ β) (f₁ f₂ : α → α) (y : β) :
+  e.conj (f₁ ∘ f₂) y = e.conj f₁ (e.conj f₂ y) :=
+by apply arrow_congr_comp_apply
 
 def punit_equiv_punit : punit.{v} ≃ punit.{w} :=
 ⟨λ _, punit.star, λ _, punit.star, λ u, by cases u; refl, λ u, by cases u; reflexivity⟩

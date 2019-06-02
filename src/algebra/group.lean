@@ -397,8 +397,8 @@ instance [add_group α] : group (multiplicative α) :=
 section group
   variables [group α] {a b c : α}
 
-  instance : has_lift α (units α) :=
-  ⟨λ a, ⟨a, a⁻¹, mul_inv_self _, inv_mul_self _⟩⟩
+  def to_units : α → units α := λ a, ⟨a, a⁻¹, mul_inv_self _, inv_mul_self _⟩
+  instance : has_lift α (units α) := ⟨to_units⟩
 
   @[simp, to_additive neg_inj']
   theorem inv_inj' : a⁻¹ = b⁻¹ ↔ a = b :=

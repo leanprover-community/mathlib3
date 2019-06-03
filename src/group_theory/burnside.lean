@@ -8,11 +8,16 @@ Prove Burnside lemma (not due to Burnside): the number of orbits of a group acti
 
 import .group_action ..order.fixed_points
 
-/- TODO: What file is a good home for this? -/
-instance lattice.fixed_points_fintype
+/- Temporary fixes for a cycle in typeclass resolution -/
+instance function.fixed_points_fintype
   {α : Type*} [fintype α] [h : decidable_eq α] (f : α → α) :
-  fintype (lattice.fixed_points f) :=
-@subtype.fintype _ _ (lattice.fixed_points f) (assume x, h (f x) x)
+  fintype (function.fixed_points f) :=
+@subtype.fintype _ _ (function.fixed_points f) (assume x, h (f x) x)
+
+instance equiv.perm.fixed_points_fintype
+  {α : Type*} [fintype α] [h : decidable_eq α] (e : equiv.perm α) :
+  fintype e.fixed_points :=
+function.fixed_points_fintype e
 
 namespace mul_action
 
@@ -63,11 +68,10 @@ variables G α
 def orbits : Type v := quotient $ orbit_rel G α
 
 local attribute [instance] mul_action.orbit_rel
-local attribute [reducible] lattice.fixed_points
 
 /-- A trivial equivalence used in the proof of Burnside Lemma -/
 def burnside_aux₁ :
-  (Σ g : G, lattice.fixed_points ((•) g : α → α)) ≃
+  (Σ g : G, (to_perm G α g).fixed_points) ≃
     (Σ (o : orbits G α) (x : {x // ⟦x⟧ = o}), stabilizer G x.val) :=
 { to_fun  := λ y, ⟨⟦y.snd.val⟧, ⟨⟨y.snd.val, rfl⟩, ⟨y.fst, y.snd.property⟩⟩⟩,
   inv_fun := λ y, ⟨y.snd.snd.val, ⟨y.snd.fst.val, y.snd.snd.property⟩⟩,
@@ -127,7 +131,7 @@ end
     Disjoint union of fixed points of all elements of the group is equivalent
     to the product of the group and the orbits space. -/
 def burnside_equiv :
-  (Σ g : G, lattice.fixed_points ((•) g : α → α)) ≃ (G × orbits G α) :=
+  (Σ g : G, (to_perm G α g).fixed_points) ≃ (G × orbits G α) :=
 calc _ ≃ (Σ (o : orbits G α) (x : {x // ⟦x⟧ = o}), stabilizer G x.val) : burnside_aux₁ G α
    ... ≃ (Σ (o : orbits G α), G) : by { apply equiv.sigma_congr_right, exact sigma_stabilizer_equiv_group }
    ... ≃ (orbits G α × G) : equiv.sigma_equiv_prod _ _
@@ -144,7 +148,7 @@ instance orbits_fintype : fintype $ orbits G α := quotient.fintype _
     For the case of infinite sets, see `burnside_equiv`. -/
 lemma burnside :
   card G * card (orbits G α) =
-    sum univ (λ g : G, card $ lattice.fixed_points ((•) g : α → α)) :=
+    sum univ (λ g : G, card $ (to_perm G α g).fixed_points) :=
 begin
   symmetry,
   rw [← card_prod,← fintype.card_sigma],

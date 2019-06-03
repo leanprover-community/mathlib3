@@ -5,14 +5,13 @@ Authors: Johannes Hölzl, Kenny Lau
 
 Fixed point construction on complete lattices.
 -/
-import order.complete_lattice
+import order.complete_lattice data.function.fixed_points
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
 namespace lattice
-
-def fixed_points (f : α → α) : set α := { x | f x = x }
+open function (fixed_points)
 
 section fixedpoint
 variables [complete_lattice α] {f : α → α}

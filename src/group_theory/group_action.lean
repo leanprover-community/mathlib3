@@ -141,20 +141,20 @@ calc _ = b ↔ g • (g⁻¹ * h) • b = g • b : (mul_action.bijective g).1.e
 
 /-- Given a left coset w.r.t. the stabilizer of `b`, compute the image of `b`
     under elements of this coset. -/
-def orbit_of_quotient_stabilizer (b : β) (x : quotient (stabilizer α b)) : orbit α b :=
+def quotient_stabilizer_smul (b : β) (x : quotient (stabilizer α b)) : orbit α b :=
 quotient.lift_on' x
   (λ x, (⟨x • b, mem_orbit _ _⟩ : orbit α b))
   (λ g h H, subtype.eq $ (stabilizer_coset_iff_image α b g h).1 H)
 
 /-- `orbit_of_quotient_stabilizer α b` sends `⟦x⟧` to `x • b`-/
 def orbit_of_quotient_stabilizer_spec (b : β) (x : α) :
-  (orbit_of_quotient_stabilizer α b (quotient.mk' x)).val = x • b :=
+  (quotient_stabilizer_smul α b (quotient.mk' x)).val = x • b :=
 rfl
 
 /-- The map sending left cosets w.r.t. the stabilizer of `b`
     to the orbit of `b` is bijective. -/
 lemma orbit_of_quotient_stabilizer_bijective (b : β) :
-  function.bijective (orbit_of_quotient_stabilizer α b) :=
+  function.bijective (quotient_stabilizer_smul α b) :=
 ⟨λ g h, quotient.induction_on₂' g h
   (λ g h H, quotient.sound'
             $ (stabilizer_coset_iff_image α b g h).2

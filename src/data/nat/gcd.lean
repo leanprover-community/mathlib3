@@ -255,8 +255,8 @@ lemma coprime_mul_iff_left {k m n : ℕ} : coprime (m * n) k ↔ coprime m k ∧
 ⟨λ h, ⟨coprime.coprime_mul_right h, coprime.coprime_mul_left h⟩,
   λ ⟨h, _⟩, by rwa [coprime, coprime.gcd_mul_left_cancel n h]⟩
 
-lemma coprime_mul_iff_right {k m n : ℕ} : coprime k (m * n) ↔ coprime m k ∧ coprime n k :=
-by rw [coprime, nat.gcd_comm]; exact coprime_mul_iff_left
+lemma coprime_mul_iff_right {k m n : ℕ} : coprime k (m * n) ↔ coprime k m ∧ coprime k n :=
+by { repeat { rw [coprime, nat.gcd_comm k] }, exact coprime_mul_iff_left }
 
 lemma coprime.mul_dvd_of_dvd_of_dvd {a n m : ℕ} (hmn : coprime m n)
   (hm : m ∣ a) (hn : n ∣ a) : m * n ∣ a :=

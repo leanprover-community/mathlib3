@@ -48,8 +48,8 @@ This document describes using VS Code (for emacs, look at https://github.com/lea
 
 1. Install [VS Code](https://code.visualstudio.com/).
 2. Launch VS Code.
-3. Click on the extension icon ![(image of icon)](extensions-icon.png) in the side bar on the left edge of the screen
-   (or press `shift-cmd-X`)
+3. Click on the extension icon ![(image of icon)](extensions-icon.png =25) in the side bar on the left edge of the screen
+   (or press `<kbd>⇧ Shift</kbd><kbd>⌘ Command</kbd><kbd>X</kbd>`)
    and search for `leanprover`.
 4. Click "install", and then "reload" to restart VS Code.
 5. Verify Lean is working, for example by saving a file `test.lean` and entering `#eval 1+1`.

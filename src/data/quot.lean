@@ -78,6 +78,9 @@ noncomputable def quotient.out [s : setoid α] : quotient s → α := quot.out
 
 @[simp] theorem quotient.out_eq [s : setoid α] (q : quotient s) : ⟦q.out⟧ = q := q.out_eq
 
+theorem quotient.out_eq_iff [s : setoid α] (q : quotient s) (x : α) : ⟦x⟧ = q ↔ x ≈ q.out :=
+@eq.subst _ (λ q', ⟦x⟧ = q' ↔ x ≈ q.out) _ _ q.out_eq quotient.eq
+
 theorem quotient.mk_out [s : setoid α] (a : α) : ⟦a⟧.out ≈ a :=
 quotient.exact (quotient.out_eq _)
 

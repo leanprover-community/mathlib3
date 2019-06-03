@@ -44,6 +44,7 @@ theorem dom_iff_mem : ∀ {o : roption α}, o.dom ↔ ∃y, y ∈ o
 theorem get_mem {o : roption α} (h) : get o h ∈ o := ⟨_, rfl⟩
 
 /-- `roption` extensionality -/
+@[extensionality]
 def ext {o p : roption α} (H : ∀ a, a ∈ o ↔ a ∈ p) : o = p :=
 ext' ⟨λ h, ((H _).1 ⟨h, rfl⟩).fst,
      λ h, ((H _).2 ⟨h, rfl⟩).fst⟩ $
@@ -81,6 +82,16 @@ theorem eq_none_iff {o : roption α} : o = none ↔ ∀ a, a ∉ o :=
 
 theorem eq_none_iff' {o : roption α} : o = none ↔ ¬ o.dom :=
 ⟨λ e, e.symm ▸ id, λ h, eq_none_iff.2 (λ a h', h h'.fst)⟩
+
+lemma eq_none_or_eq_some (o : roption α) : o = none ∨ ∃ x, o = some x :=
+begin
+  classical,
+  by_cases h : o.dom,
+  { rw dom_iff_mem at h, right,
+    apply exists_imp_exists _ h,
+    simp [eq_some_iff] },
+  { rw eq_none_iff', exact or.inl h },
+end
 
 @[simp] lemma some_inj {a b : α} : roption.some a = some b ↔ a = b :=
 function.injective.eq_iff (λ a b h, congr_fun (eq_of_heq (roption.mk.inj h).2) trivial)
@@ -159,6 +170,26 @@ noncomputable def equiv_option : roption α ≃ option α :=
 by haveI := classical.dec; exact
 ⟨λ o, to_option o, of_option, λ o, of_to_option o,
  λ o, eq.trans (by dsimp; congr) (to_of_option o)⟩
+
+instance : lattice.order_bot (roption α) :=
+{ le := λ x y, ∀ i, i ∈ x → i ∈ y,
+  le_refl := λ x y, id,
+  le_trans := λ x y z f g i, g _ ∘ f _,
+  le_antisymm := λ x y f g, roption.ext $ λ z, ⟨f _, g _⟩,
+  bot := none,
+  bot_le := by { introv x, rintro ⟨⟨_⟩,_⟩, } }
+
+lemma le_total_of_le_of_le {x y : roption α} (z : roption α) (hx : x ≤ z) (hy : y ≤ z) :
+  x ≤ y ∨ y ≤ x :=
+begin
+  rcases roption.eq_none_or_eq_some x with h | ⟨b, h₀⟩,
+  { rw h, left, apply lattice.order_bot.bot_le _ },
+  right, intros b' h₁,
+  rw roption.eq_some_iff at h₀,
+  replace hx := hx _ h₀, replace hy := hy _ h₁,
+  replace hx := roption.mem_unique hx hy, subst hx,
+  exact h₀
+end
 
 /-- `assert p f` is a bind-like operation which appends an additional condition
   `p` to the domain and uses `f` to produce the value. -/

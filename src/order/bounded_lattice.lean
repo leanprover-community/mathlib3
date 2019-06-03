@@ -281,6 +281,11 @@ theorem monotone_or {p q : α → Prop} (m_p : monotone p) (m_q : monotone q) :
 assume a b h, or.imp (m_p h) (m_q h)
 end logic
 
+instance pi.order_bot {α β : Type*} [order_bot β]  : order_bot (α → β) :=
+{ bot := λ _, ⊥,
+  bot_le := λ x a, bot_le,
+  .. pi.partial_order }
+
 instance pi.semilattice_inf_bot {α : Type u} {β : Type v} [semilattice_inf_bot β] :
   semilattice_inf_bot (α → β) :=
 by pi_instance

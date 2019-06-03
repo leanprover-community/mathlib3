@@ -222,8 +222,8 @@ calc  ∥z1 * z2∥ = ∥z1∥ * ∥z2∥ : by simp
 @[simp] lemma mem_nonunits {z : ℤ_[p]} : z ∈ nonunits ℤ_[p] ↔ ∥z∥ < 1 :=
 by rw lt_iff_le_and_ne; simp [padic_norm_z.le_one z, nonunits, is_unit_iff]
 
-instance : is_local_ring ℤ_[p] :=
-local_of_nonunits_add zero_ne_one $ λ x y, by simp; exact norm_lt_one_add
+instance : local_ring ℤ_[p] :=
+local_of_nonunits_ideal zero_ne_one $ λ x y, by simp; exact norm_lt_one_add
 
 private def cau_seq_to_rat_cau_seq (f : cau_seq ℤ_[p] norm) :
   cau_seq ℚ_[p] (λ a, ∥a∥) :=

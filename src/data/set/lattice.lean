@@ -569,6 +569,10 @@ variables {p : Prop} {μ : p → set α}
 
 @[simp] lemma Inter_univ {ι : Sort*} : (⋂i:ι, univ:set α) = univ := infi_top
 
+lemma Union_cond {s t : set α} : (⋃ (i : bool), cond i s t) = s ∪ t := lattice.supr_cond
+
+lemma Inter_cond {s t : set α} : (⋂ (i : bool), cond i s t) = s ∩ t := lattice.infi_cond
+
 end
 
 section image

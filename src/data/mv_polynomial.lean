@@ -638,6 +638,8 @@ section equiv
 variables (α) [comm_ring α]
 variables [decidable_eq β] [decidable_eq γ] [decidable_eq δ]
 
+set_option class.instance_max_depth 40
+
 def pempty_ring_equiv : mv_polynomial pempty α ≃r α :=
 { to_fun    := mv_polynomial.eval₂ id $ pempty.elim,
   inv_fun   := C,

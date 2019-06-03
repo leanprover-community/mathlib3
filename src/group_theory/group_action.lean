@@ -1,22 +1,24 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes
+Authors: Chris Hughes, Yury Kudryashov
 -/
-import data.set.finite group_theory.coset
+import data.set.finite data.set.lattice data.function.fixed_points group_theory.coset
 
 universes u v w
-variables {α : Type u} {β : Type v} {γ : Type w}
+variables (α : Type u) (β : Type v) {γ : Type w}
 
 /-- Typeclass for types with a scalar multiplication operation, denoted `•` (`\bu`) -/
-class has_scalar (α : Type u) (γ : Type v) := (smul : α → γ → γ)
+class has_scalar := (smul : α → β → β)
 
 infixr ` • `:73 := has_scalar.smul
 
 /-- Typeclass for multiplictive actions by monoids. This generalizes group actions. -/
-class mul_action (α : Type u) (β : Type v) [monoid α] extends has_scalar α β :=
+class mul_action [monoid α] extends has_scalar α β :=
 (one_smul : ∀ b : β, (1 : α) • b = b)
 (mul_smul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)
+
+variables {α β}
 
 section
 variables [monoid α] [mul_action α β]

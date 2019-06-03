@@ -403,24 +403,29 @@ variable {α}
 
 end local_ring
 
-lemma local_of_unit_or_unit_one_sub [comm_ring α] (hnze : (0:α) ≠ 1)
+def is_local_ring (α : Type u) [comm_ring α] : Prop :=
+((0:α) ≠ 1) ∧ ∀ (a : α), (is_unit a) ∨ (is_unit (1 - a))
+
+def local_of_is_local_ring [comm_ring α] (h : is_local_ring α) : local_ring α :=
+{ zero_ne_one := h.1,
+  is_local := h.2,
+  .. ‹comm_ring α› }
+
+def local_of_unit_or_unit_one_sub [comm_ring α] (hnze : (0:α) ≠ 1)
   (h : ∀ x : α, is_unit x ∨ is_unit (1 - x)) : local_ring α :=
-{ zero_ne_one := hnze,
-  is_local := h,
-  .. ‹comm_ring α› }
+local_of_is_local_ring ⟨hnze, h⟩
 
-lemma local_of_nonunits_ideal [comm_ring α] (hnze : (0:α) ≠ 1)
+def local_of_nonunits_ideal [comm_ring α] (hnze : (0:α) ≠ 1)
   (h : ∀ x y ∈ nonunits α, x + y ∈ nonunits α) : local_ring α :=
-{ zero_ne_one := hnze,
-  is_local := λ x, or_iff_not_imp_left.mpr $ λ hx,
-  begin
-    by_contra H,
-    apply h _ _ hx H,
-    simp [-sub_eq_add_neg, add_sub_cancel'_right]
-  end,
-  .. ‹comm_ring α› }
+local_of_is_local_ring ⟨hnze,
+λ x, or_iff_not_imp_left.mpr $ λ hx,
+begin
+  by_contra H,
+  apply h _ _ hx H,
+  simp [-sub_eq_add_neg, add_sub_cancel'_right]
+end⟩
 
-lemma local_of_unique_max_ideal [comm_ring α] (h : ∃! I : ideal α, I.is_maximal) :
+def local_of_unique_max_ideal [comm_ring α] (h : ∃! I : ideal α, I.is_maximal) :
   local_ring α :=
 local_of_nonunits_ideal
 (let ⟨I, Imax, _⟩ := h in (λ (H : 0 = 1), Imax.1 $ I.eq_top_iff_one.2 $ H ▸ I.zero_mem))

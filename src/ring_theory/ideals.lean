@@ -430,14 +430,14 @@ have xmemI : x ∈ I, from ((h₂ Ix Ixmax) ▸ Hx),
 have ymemI : y ∈ I, from ((h₂ Iy Iymax) ▸ Hy),
 h₁.1 $ I.eq_top_of_is_unit_mem (I.add_mem xmemI ymemI) H
 
-class is_local_ring_hom [comm_ring β] (f : α → β) [is_ring_hom f]
-  [is_local_ring α] [is_local_ring β] : Prop :=
+class is_local_ring_hom [comm_ring β] (f : α → β)
+  [is_local_ring α] [is_local_ring β] extends is_ring_hom f : Prop :=
 (map_nonunit : ∀ a, is_unit (f a) → is_unit a)
 
 section
 open is_local_ring
 variables [comm_ring β] [is_local_ring α] [is_local_ring β]
-variables (f : α → β) [is_ring_hom f] [is_local_ring_hom f]
+variables (f : α → β) [is_local_ring_hom f]
 
 @[simp] lemma is_unit_of_map_unit (a) (h : is_unit (f a)) : is_unit a :=
 is_local_ring_hom.map_nonunit a h
@@ -459,7 +459,7 @@ noncomputable instance : discrete_field (residue_field α) :=
 ideal.quotient.field (nonunits_ideal α)
 
 variables {α β}
-noncomputable def map (f : α → β) [is_ring_hom f] [is_local_ring_hom f] :
+noncomputable def map (f : α → β) [is_local_ring_hom f] :
   residue_field α → residue_field β :=
 ideal.quotient.lift (nonunits_ideal α) (ideal.quotient.mk _ ∘ f) $
 λ a ha,
@@ -468,7 +468,7 @@ begin
   exact map_nonunit f a ha
 end
 
-instance map.is_field_hom (f : α → β) [is_ring_hom f] [is_local_ring_hom f] :
+instance map.is_field_hom (f : α → β) [is_local_ring_hom f] :
   is_field_hom (map f) :=
 ideal.quotient.is_ring_hom
 

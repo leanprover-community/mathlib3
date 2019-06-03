@@ -35,6 +35,8 @@ structure nat_trans (F G : C ⥤ D) : Sort (max u₁ v₂ 1) :=
 (naturality' : ∀ {{X Y : C}} (f : X ⟶ Y), (F.map f) ≫ (app Y) = (app X) ≫ (G.map f) . obviously)
 
 restate_axiom nat_trans.naturality'
+attribute [simp] nat_trans.naturality
+
 namespace nat_trans
 
 /-- `nat_trans.id F` is the identity natural transformation on a functor `F`. -/

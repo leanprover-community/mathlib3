@@ -458,7 +458,7 @@ end ordered_cancel_comm_monoid
 section ordered_comm_group
 variables [ordered_comm_group α] {a b c : α}
 
-lemma neg_neg_iff_pos {α : Type} [_inst_1 : ordered_comm_group α] {a : α} : -a < 0 ↔ 0 < a := 
+lemma neg_neg_iff_pos {α : Type} [_inst_1 : ordered_comm_group α] {a : α} : -a < 0 ↔ 0 < a :=
 ⟨ pos_of_neg_neg, neg_neg_of_pos ⟩
 
 @[simp] lemma neg_le_neg_iff : -a ≤ -b ↔ b ≤ a :=
@@ -612,6 +612,18 @@ lemma sub_lt_self_iff (a : α) {b : α} : a - b < a ↔ 0 < b :=
 sub_lt_iff_lt_add'.trans (lt_add_iff_pos_left _)
 
 end ordered_comm_group
+
+namespace decidable_linear_ordered_comm_group
+variables [s : decidable_linear_ordered_comm_group α]
+include s
+
+instance : decidable_linear_ordered_cancel_comm_monoid α :=
+{ le_of_add_le_add_left := λ x y z, le_of_add_le_add_left,
+  add_left_cancel := λ x y z, add_left_cancel,
+  add_right_cancel := λ x y z, add_right_cancel,
+  ..s }
+
+end decidable_linear_ordered_comm_group
 
 set_option old_structure_cmd true
 /-- This is not so much a new structure as a construction mechanism

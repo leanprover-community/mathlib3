@@ -1,10 +1,12 @@
-import category_theory.instances.CommRing.basic
+-- Copyright (c) 2019 Scott Morrison. All rights reserved.
+-- Released under Apache 2.0 license as described in the file LICENSE.
+-- Authors: Scott Morrison
+import algebra.CommRing.basic
 import category_theory.limits.limits
 
 universes u v
 
 open category_theory
-open category_theory.instances
 open category_theory.limits
 
 -- [ROBOT VOICE]:
@@ -34,7 +36,7 @@ comm_ring.left_distrib : ∀ {α : Type u} [c : comm_ring α] (a b c_1 : α), a 
 comm_ring.right_distrib : ∀ {α : Type u} [c : comm_ring α] (a b c_1 : α), (a + b) * c_1 = a * c_1 + b * c_1
 -/
 
-namespace category_theory.instances.CommRing.colimits
+namespace CommRing.colimits
 
 variables {J : Type v} [small_category J] (F : J ⥤ CommRing.{v})
 
@@ -430,4 +432,4 @@ instance has_colimits_CommRing : @has_colimits CommRing.{v} infer_instance :=
     { cocone := colimit_cocone F,
       is_colimit := colimit_is_colimit F } } }
 
-end category_theory.instances.CommRing.colimits
+end CommRing.colimits

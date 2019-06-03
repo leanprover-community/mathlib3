@@ -666,6 +666,61 @@ begin
   finish
 end
 
+/- pasting/gluing lemma: if a continuous function is continuous on finitely many
+  closed subsets, it is continuous on the Union -/
+theorem continuous_on_Union_of_closed {ι : Sort*} [fintype ι]
+  {s : ι → set α} (hs : ∀ i, is_closed (s i)) {f : α → β}
+  (h : ∀ i, continuous_on f (s i)) : continuous_on f (⋃ i, s i) :=
+begin
+  simp only [continuous_on_iff, mem_Union, exists_imp_distrib] at *,
+  assume x i hi t ht hfxt,
+  have h' : ∃ v : Π i, x ∈ s i → set α, ∀ i hi,
+    is_open (v i hi) ∧ x ∈ v i hi ∧ v i hi ∩ s i ⊆ f ⁻¹' t,
+  { simpa only [classical.skolem] using λ i hi, h i x hi t ht hfxt },
+  cases h' with v hv,
+  use ⋂ (i : ι), (⋂ (hi : x ∈ s i), v i hi) ∩ (⋂ (hi : x ∉ s i), -s i),
+  refine ⟨is_open_Inter (λ j, is_open_inter
+      (is_open_Inter_prop (λ _, (hv _ _).1))
+      (is_open_Inter_prop (λ _, hs _))),
+    mem_Inter.2 (λ j, mem_inter (mem_Inter.2 (λ _, (hv _ _).2.1)) (mem_Inter.2 id)),
+    _⟩,
+  assume y hy,
+  simp only [mem_Inter, mem_inter_eq] at hy,
+  cases mem_Union.1 hy.2 with j hyj,
+  have hxj : x ∈ s j, from classical.by_contradiction (λ hxj, (hy.1 j).2 hxj hyj),
+  exact (hv j hxj).2.2 ⟨(hy.1 j).1 _, hyj⟩
+end
+
+/- pasting/gluing lemma: if a continuous function is continuous on a family of
+  open subsets, it is continuous on the Union -/
+theorem continuous_on_Union_of_open {ι : Sort*}
+  {s : ι → set α} (hs : ∀ i, is_open (s i)) {f : α → β}
+  (h : ∀ i, continuous_on f (s i)) : continuous_on f (⋃ i, s i) :=
+begin
+  simp only [continuous_on_iff, mem_Union, exists_imp_distrib] at *,
+  assume x i hi t ht hfxt,
+  have h' : ∃ v : Π i, x ∈ s i → set α, ∀ i hi,
+    is_open (v i hi) ∧ x ∈ v i hi ∧ v i hi ∩ s i ⊆ f ⁻¹' t,
+  { simpa only [classical.skolem] using λ i hi, h i x hi t ht hfxt },
+  cases h' with v hv,
+  use v i hi ∩ s i,
+  use is_open_inter (hv _ _).1 (hs i),
+  use mem_inter (hv _ _).2.1 hi,
+  use subset.trans (inter_subset_left _ _) (hv i hi).2.2
+end
+
+lemma continuous_on_union_of_closed {s t : set α} (hsc : is_closed s)
+  (htc : is_closed t) {f : α → β} (hsf : continuous_on f s)
+  (htf : continuous_on f t) : continuous_on f (s ∪ t) :=
+by rw [← Union_cond]; exact continuous_on_Union_of_closed
+  (λ i, bool.cases_on i htc hsc) (λ i, bool.cases_on i htf hsf)
+
+lemma continuous_on_union_of_open {s t : set α} (hsc : is_open s)
+  (htc : is_open t) {f : α → β} (hsf : continuous_on f s)
+  (htf : continuous_on f t) : continuous_on f (s ∪ t) :=
+by rw [← Union_cond]; exact continuous_on_Union_of_open
+  (λ i, bool.cases_on i htc hsc) (λ i, bool.cases_on i htf hsf)
+
 lemma continuous_at.continuous_within_at {f : α → β} {s : set α} {x : α} (h : continuous_at f x) :
   continuous_within_at f s x :=
 continuous_within_at.mono ((continuous_within_at_univ f x).2 h) (subset_univ _)

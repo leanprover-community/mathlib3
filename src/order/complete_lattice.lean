@@ -680,6 +680,14 @@ le_antisymm
     (supr_le_supr2 $ assume i, ⟨sum.inl i, le_refl _⟩)
     (supr_le_supr2 $ assume j, ⟨sum.inr j, le_refl _⟩))
 
+lemma supr_cond {a b : α} : (⨆ (i : bool), cond i a b) = a ⊔ b :=
+le_antisymm (supr_le (λ i, bool.cases_on i le_sup_right le_sup_left))
+  (sup_le (le_supr (λ i, cond i a b) tt) (le_supr (λ i, cond i a b) ff))
+
+lemma infi_cond {a b : α} : (⨅ (i : bool), cond i a b) = a ⊓ b :=
+le_antisymm (le_inf (infi_le (λ i, cond i a b) tt) (infi_le (λ i, cond i a b) ff))
+  (le_infi (λ i, bool.cases_on i inf_le_right inf_le_left))
+
 end
 
 section complete_linear_order

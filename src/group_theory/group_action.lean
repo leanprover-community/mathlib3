@@ -139,7 +139,7 @@ calc _ = b ↔ g • (g⁻¹ * h) • b = g • b : (mul_action.bijective g).1.e
        ... ↔             h • b = g • b : by rw [← mul_action.mul_smul, mul_inv_cancel_left]
        ... ↔             g • b = h • b : ⟨eq.symm, eq.symm⟩
 
-/-- Given an left coset w.r.t. the stabilizer of `b`, compute the image of `b`
+/-- Given a left coset w.r.t. the stabilizer of `b`, compute the image of `b`
     under elements of this coset. -/
 def orbit_of_quotient_stabilizer (b : β) (x : quotient (stabilizer α b)) : orbit α b :=
 quotient.lift_on' x

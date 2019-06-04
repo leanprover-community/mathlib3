@@ -215,7 +215,7 @@ assume t ht,
 let ⟨t', ht', hct', htt'⟩ := mem_uniformity_is_closed ht, ⟨c, hcf, hc⟩ := h t' ht' in
 ⟨c, hcf,
   calc closure s ⊆ closure (⋃ (y : α) (H : y ∈ c), {x : α | (x, y) ∈ t'}) : closure_mono hc
-    ... = _ : closure_eq_of_is_closed $ is_closed_Union hcf $ assume i hi,
+    ... = _ : closure_eq_of_is_closed $ is_closed_bUnion hcf $ assume i hi,
       continuous_iff_is_closed.mp (continuous_id.prod_mk continuous_const) _ hct'
     ... ⊆ _ : bUnion_subset $ assume i hi, subset.trans (assume x, @htt' (x, i))
       (subset_bUnion_of_mem hi)⟩

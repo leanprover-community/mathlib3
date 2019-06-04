@@ -99,7 +99,7 @@ variables (c : α) (f g : β →L[α] γ) (h : γ →L[α] δ) (x y z : β)
 @[simp] lemma map_smul : f (c • x) = c • f x := (to_linear_map _).map_smul _ _
 @[simp] lemma map_neg  : f (-x) = - (f x) := (to_linear_map _).map_neg _
 
-@[simp] lemma coe_coe : ((f : β →ₗ[α] γ) : (β → γ)) = (f : β → γ) := rfl
+@[simp, squash_cast] lemma coe_coe : ((f : β →ₗ[α] γ) : (β → γ)) = (f : β → γ) := rfl
 
 /-- The continuous map that is constantly zero. -/
 def zero : β →L[α] γ :=
@@ -108,11 +108,11 @@ def zero : β →L[α] γ :=
 instance: has_zero (β →L[α] γ) := ⟨zero⟩
 
 @[simp] lemma zero_apply : (0 : β →L[α] γ) x = 0 := rfl
-@[simp] lemma coe_zero : ((0 : β →L[α] γ) : β →ₗ[α] γ) = 0 := rfl
+@[simp, elim_cast] lemma coe_zero : ((0 : β →L[α] γ) : β →ₗ[α] γ) = 0 := rfl
 /- no simp attribute on the next line as simp does not always simplify 0 x to x
 when 0 is the zero function, while it does for the zero continuous linear map,
 and this is the most important property we care about. -/
-lemma coe_zero' : ((0 : β →L[α] γ) : β → γ) = 0 := rfl
+@[elim_cast] lemma coe_zero' : ((0 : β →L[α] γ) : β → γ) = 0 := rfl
 
 /-- the identity map as a continuous linear map. -/
 def id : β →L[α] β :=
@@ -121,8 +121,8 @@ def id : β →L[α] β :=
 instance : has_one (β →L[α] β) := ⟨id⟩
 
 @[simp] lemma id_apply : (id : β →L[α] β) x = x := rfl
-@[simp] lemma coe_id : ((id : β →L[α] β) : β →ₗ[α] β) = linear_map.id := rfl
-@[simp] lemma coe_id' : ((id : β →L[α] β) : β → β) = _root_.id := rfl
+@[simp, elim_cast] lemma coe_id : ((id : β →L[α] β) : β →ₗ[α] β) = linear_map.id := rfl
+@[simp, elim_cast] lemma coe_id' : ((id : β →L[α] β) : β → β) = _root_.id := rfl
 
 section add
 variables [topological_add_group γ]
@@ -131,25 +131,23 @@ instance : has_add (β →L[α] γ) :=
 ⟨λ f g, ⟨f + g, continuous_add f.2 g.2⟩⟩
 
 @[simp] lemma add_apply : (f + g) x = f x + g x := rfl
-@[simp] lemma coe_add : ((f + g) : β →ₗ[α] γ) = (f : β →ₗ[α] γ) + g := rfl
-@[simp] lemma coe_add' : ((f + g) : β → γ) = (f : β → γ) + g := rfl
-
-set_option class.instance_max_depth 60
+@[simp, move_cast] lemma coe_add : ((f + g) : β →ₗ[α] γ) = (f : β →ₗ[α] γ) + g := rfl
+@[simp, move_cast] lemma coe_add' : ((f + g) : β → γ) = (f : β → γ) + g := rfl
 
 instance : has_neg (β →L[α] γ) := ⟨λ f, ⟨-f, continuous_neg f.2⟩⟩
 
 @[simp] lemma neg_apply : (-f) x = - (f x) := rfl
 
-@[simp] lemma coe_neg : ((-f) : β →ₗ[α] γ) = -(f : β →ₗ[α] γ) := rfl
-@[simp] lemma coe_neg' : ((-f) : β → γ) = -(f : β → γ) := rfl
+@[simp, move_cast] lemma coe_neg : ((-f) : β →ₗ[α] γ) = -(f : β →ₗ[α] γ) := rfl
+@[simp, move_cast] lemma coe_neg' : ((-f) : β → γ) = -(f : β → γ) := rfl
 
 instance : add_comm_group (β →L[α] γ) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
    intros; ext; simp
 
 @[simp] lemma sub_apply (x : β) : (f - g) x = f x - g x := rfl
-@[simp] lemma coe_sub : ((f - g) : β →ₗ[α] γ) = (f : β →ₗ[α] γ) - g := rfl
-@[simp] lemma coe_sub' : ((f - g) : β → γ) = (f : β → γ) - g := rfl
+@[simp, move_cast] lemma coe_sub : ((f - g) : β →ₗ[α] γ) = (f : β →ₗ[α] γ) - g := rfl
+@[simp, move_cast] lemma coe_sub' : ((f - g) : β → γ) = (f : β → γ) - g := rfl
 
 end add
 
@@ -157,8 +155,8 @@ end add
 def comp (g : γ →L[α] δ) (f : β →L[α] γ) : β →L[α] δ :=
 ⟨linear_map.comp g.to_linear_map f.to_linear_map, g.2.comp f.2⟩
 
-@[simp] lemma coe_comp : ((h.comp f) : (β →ₗ[α] δ)) = (h : γ →ₗ[α] δ).comp f := rfl
-@[simp] lemma coe_comp' : ((h.comp f) : (β → δ)) = (h : γ → δ) ∘ f := rfl
+@[simp, move_cast] lemma coe_comp : ((h.comp f) : (β →ₗ[α] δ)) = (h : γ →ₗ[α] δ).comp f := rfl
+@[simp, move_cast] lemma coe_comp' : ((h.comp f) : (β → δ)) = (h : γ → δ) ∘ f := rfl
 
 instance : has_mul (β →L[α] β) := ⟨comp⟩
 
@@ -193,8 +191,8 @@ instance : has_scalar α (β →L[α] γ) :=
 variables (c : α) (f g : β →L[α] γ) (x y z : β)
 
 @[simp] lemma smul_apply : (c • f) x = c • (f x) := rfl
-@[simp] lemma coe_apply : ((c • f) : β →ₗ[α] γ) = c • (f : β →ₗ[α] γ) := rfl
-@[simp] lemma coe_apply' : ((c • f) : β → γ) = c • (f : β → γ) := rfl
+@[simp, move_cast] lemma coe_apply : ((c • f) : β →ₗ[α] γ) = c • (f : β →ₗ[α] γ) := rfl
+@[simp, move_cast] lemma coe_apply' : ((c • f) : β → γ) = c • (f : β → γ) := rfl
 
 instance : module α (β →L[α] γ) :=
 { smul_zero := λ _, ext $ λ _, smul_zero _,
@@ -204,7 +202,7 @@ instance : module α (β →L[α] γ) :=
   add_smul  := λ _ _ _, ext $ λ _, add_smul _ _ _,
   smul_add  := λ _ _ _, ext $ λ _, smul_add _ _ _ }
 
-set_option class.instance_max_depth 60
+set_option class.instance_max_depth 55
 
 instance : is_ring_hom (λ c : α, c • (1 : γ →L[α] γ)) :=
 { map_one := one_smul _ _,

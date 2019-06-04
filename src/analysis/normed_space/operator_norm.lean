@@ -34,16 +34,16 @@ lemma linear_map.continuous_of_bound (f : E →ₗ[k] F) (C : ℝ) (h : ∀x, �
 begin
   have : ∀ (x y : E), dist (f x) (f y) ≤ C * dist x y := λx y, calc
     dist (f x) (f y) = ∥f x - f y∥ : by rw dist_eq_norm
-    ... = ∥f (x-y) ∥ : by simp
-    ... ≤ C * ∥x-y∥ : h _
+    ... = ∥f (x - y)∥ : by simp
+    ... ≤ C * ∥x - y∥ : h _
     ... = C * dist x y : by rw dist_eq_norm,
-  exact continuous_of_lipschitz this,
+  exact continuous_of_lipschitz this
 end
 
 def linear_map.with_bound (f : E →ₗ[k] F) (h : ∃C : ℝ, ∀x, ∥f x∥ ≤ C * ∥x∥) : E →L[k] F :=
 ⟨f, let ⟨C, hC⟩ := h in linear_map.continuous_of_bound f C hC⟩
 
-@[simp] lemma linear_map_with_bound_coe (f : E →ₗ[k] F) (h : ∃C : ℝ, ∀x, ∥f x∥ ≤ C * ∥x∥) :
+@[simp, elim_cast] lemma linear_map_with_bound_coe (f : E →ₗ[k] F) (h : ∃C : ℝ, ∀x, ∥f x∥ ≤ C * ∥x∥) :
   ((f.with_bound h) : E →ₗ[k] F) = f := rfl
 
 @[simp] lemma linear_map_with_bound_apply (f : E →ₗ[k] F) (h : ∃C : ℝ, ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
@@ -55,7 +55,7 @@ namespace continuous_linear_map
 The continuity ensures boundedness on a ball of some radius δ. The nondiscreteness is then
 used to rescale any element into an element of norm in [δ/C, δ], whose image has a controlled norm.
 The norm control for the original element follows by rescaling. -/
-theorem bound : ∃C>0, ∀x:E, ∥f x∥ ≤ C * ∥x∥ :=
+theorem bound : ∃ C > 0, ∀ x : E, ∥f x∥ ≤ C * ∥x∥ :=
 begin
   have : continuous_at f 0 := continuous_iff_continuous_at.1 f.2 _,
   rcases metric.tendsto_nhds_nhds.1 this 1 zero_lt_one with ⟨ε, ε_pos, hε⟩,

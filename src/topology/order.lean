@@ -691,7 +691,7 @@ begin
   exact (hv j hxj).2.2 ⟨(hy.1 j).1 _, hyj⟩
 end
 
-/- pasting/gluing lemma: if a continuous function is continuous on a family of
+/- pasting/gluing lemma: if a function is continuous on a family of
   open subsets, it is continuous on the Union -/
 theorem continuous_on_Union_of_open {ι : Sort*}
   {s : ι → set α} (hs : ∀ i, is_open (s i)) {f : α → β}

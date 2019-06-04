@@ -6,7 +6,7 @@ Authors: Yury Kudryashov
 Prove Burnside lemma (not due to Burnside): the number of orbits of a group action equals the average number of points fixed by an element of the group.
 -/
 
-import .group_action ..order.fixed_points
+import group_theory.group_action data.function.fixed_points
 
 /- Temporary fixes for a cycle in typeclass resolution -/
 instance function.fixed_points_fintype

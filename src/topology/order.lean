@@ -666,7 +666,7 @@ begin
   finish
 end
 
-/- pasting/gluing lemma: if a continuous function is continuous on finitely many
+/- pasting/gluing lemma: if a function is continuous on finitely many
   closed subsets, it is continuous on the Union -/
 theorem continuous_on_Union_of_closed {ι : Sort*} [fintype ι]
   {s : ι → set α} (hs : ∀ i, is_closed (s i)) {f : α → β}

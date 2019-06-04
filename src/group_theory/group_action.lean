@@ -184,7 +184,7 @@ quotient.lift_on' x
   (λ g h H, subtype.eq $ (stabilizer_coset_iff_image α b g h).1 H)
 
 /-- `quotient_stabilizer_smul α b` sends `⟦x⟧` to `x • b`-/
-lemma quotient_stabilizer_smul_spec (b : β) (x : α) :
+@[simp] lemma quotient_stabilizer_smul_spec (b : β) (x : α) :
   (quotient_stabilizer_smul α b (quotient.mk' x)).val = x • b :=
 rfl
 

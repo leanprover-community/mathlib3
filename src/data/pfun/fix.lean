@@ -1,5 +1,5 @@
 import order.bounded_lattice
-import order.chain_complete_partial_order
+import order.complete_partial_order
 import data.nat.up
 import logic.basic
 import data.stream.basic
@@ -15,7 +15,7 @@ namespace fix
 
 open lattice (has_bot order_bot) roption
 open nat nat.up lattice.has_bot lattice.order_bot (bot_le)
-open chain_complete_partial_order (Sup)
+open complete_partial_order (Sup)
 
 variables {β : Type*} (f : (α → roption β) → (α → roption β))
 
@@ -139,199 +139,86 @@ begin
     exact hi }
 end
 
+def approx_chain : chain (α → roption β) :=
+begin
+  refine ⟨ approx f, _ ⟩,
+  apply approx_mono, exact hf
+end
+
+lemma le_f_of_mem_approx {x} (hx : x ∈ approx_chain hf) : x ≤ f x :=
+begin
+  revert hx, simp [approx_chain,stream.mem_def],
+  intros i hx, subst x,
+  apply approx_mono' hf
+end
+
+lemma f_mem_approx_chain {x} (hx : x ∈ approx_chain hf) : f x ∈ approx_chain hf :=
+begin
+  revert hx, simp [approx_chain,stream.mem_def],
+  intros i hx, subst hx, exact ⟨i.succ,rfl⟩
+end
+
+lemma approx_mem_approx_chain {i} : approx f i ∈ approx_chain hf :=
+stream.mem_of_nth_eq rfl
+
 end fix
-
-namespace roption
-open fix chain_complete_partial_order
-
-variables {β : Type u} (f : (α → roption β) → α → roption β)
-
-def approx₀ (i : α → ℕ) (x : α) : roption β :=
-approx f (i x) x
-
-variables {f} (hf : monotone f)
-include hf
-
-lemma min_fix₀ : ∃ i, fix f ≤ approx₀ f i :=
-suffices ∀ a, ∃ i, fix f a ≤ approx f i a, from classical.skolem.mp this,
-assume a,  min_fix hf _
-
-end roption
 
 namespace pi
 
 open fix
 
 variables {α} {β : Type*}
-open lattice (order_bot) chain_complete_partial_order
-
--- instance : order_bot (α → roption β) :=
--- lattice.pi.order_bot
+open lattice (order_bot) complete_partial_order
 
 variables {f : (α → roption β) → α → roption β} (hf : monotone f)
 
 include hf
-set_option pp.implicit true
 
-local attribute [priority 0]
-  partial_order.to_preorder
-  chain_complete_partial_order.to_partial_order
-  roption.chain_complete_partial_order
-  -- pi.chain_complete_partial_order
-
-def approx_chain : chain (α → roption β) :=
-begin
-  refine ⟨ { x | x ∈ approx f }, _ ⟩,
-  simp [stream.mem_def], intros x i hx y j hy,
-  wlog h : i ≤ j := le_total i j using [i j x y,j i y x],
-  left, subst x, subst y,
-  apply approx_mono _ h,
-  introv _ h x, apply hf h,
-end
-
-local attribute [instance] roption.chain_complete_partial_order
-
-noncomputable def approx₁ (i : α → ℕ) : α → roption β :=
-begin
-  intro a,
-  refine Sup ⟨ { y : roption β | ∃ a' : α, y ≤ approx f (i a') a }, _ ⟩,
-  simp,
-  intros y₀ x₀ hy₀ y₁ x₁ hy₁,
-  wlog h : i x₀ ≤ i x₁ := le_total (i x₀) (i x₁)
-    using [x₀ x₁ y₀ y₁,x₁ x₀ y₁ y₀],
-  have h' := approx_mono hf h,
-  apply roption.le_total_of_le_of_le (approx f (i x₁) a),
-  { apply le_trans hy₀ (h' a) },
-  { apply hy₁ },
-end
-
-noncomputable def approx₂ (i : α → ℕ) : α → roption β :=
-begin
-  refine Sup ⟨ { y : α → roption β | ∃ a' : α, y = approx f (i a') }, _ ⟩,
-  simp,
-  intros y₀ x₀ hy₀ y₁ x₁ hy₁,
-  wlog h : i x₀ ≤ i x₁ := le_total (i x₀) (i x₁)
-    using [x₀ x₁ y₀ y₁,x₁ x₀ y₁ y₀],
-  subst y₀, subst y₁,
-  left, apply approx_mono hf h,
-end
-
-lemma max_fix₁ (i : α → ℕ) : approx₁ hf i ≤ fix f :=
-assume a b,
-by { simp [approx₁], revert b, change _ ≤ (_ : roption β), apply Sup_le _ (fix f a) _,
-     simp, intros y x hy, apply le_trans hy, apply max_fix hf }
-
-lemma max_fix₂ (i : α → ℕ) : approx₂ hf i ≤ fix f :=
-by { simp [approx₂], apply Sup_le _ (fix f) _,
-     simp, intros y x hy, subst y, apply max_fix hf }
+local attribute [instance] roption.complete_partial_order
 
 open roption (hiding Sup) nat
+open nat.up complete_partial_order
 
-lemma approx_le_approx₁ (i) : approx₀ f i ≤ approx₁ hf i :=
+lemma fix_eq_Sup : fix f = Sup (approx_chain hf) :=
 begin
-  intro a,
-  rcases eq_none_or_eq_some (approx₀ f i a) with h | ⟨b,h⟩,
-  { rw h, change ⊥ ≤ _, refine lattice.order_bot.bot_le _ },
-  apply le_Sup _ _ _, simp [approx₀],
-  exact ⟨_,le_refl _⟩
+  apply le_antisymm,
+  { intro x, cases min_fix hf x with i hx,
+    transitivity' approx f i.succ x,
+    { transitivity', apply hx, apply approx_mono' hf },
+    apply le_Sup _ _ _, dsimp [approx],
+    rw chain.mem_map_iff,
+    refine ⟨approx f i.succ,_,rfl⟩,
+    apply approx_mem_approx_chain },
+  { apply Sup_le _ _ _,
+    simp [mem_map_iff,approx_chain,stream.mem_def],
+    intros y x, revert y, simp, apply max_fix hf },
 end
 
-lemma min_fix₁ : ∃ i, fix f ≤ approx₁ hf i :=
+lemma fix_le {X : α → roption β} (hX : f X ≤ X) : fix f ≤ X :=
 begin
-  suffices : ∃ (i : α → ℕ), fix f ≤ approx₀ f i,
-  { revert this, apply exists_imp_exists, intros i h,
-    transitivity', apply h, clear h, intro a,
-    rcases eq_none_or_eq_some (approx₀ f i a) with h | ⟨b,h⟩,
-    { rw h, change ⊥ ≤ _, refine lattice.order_bot.bot_le _ },
-    apply le_Sup _ _ _, simp [approx₀],
-    exact ⟨_,le_refl _⟩ },
-  apply min_fix₀ hf
-end
-
-lemma approx₁_le_approx₂ (i) : approx₁ hf i ≤ approx₂ hf i :=
-begin
-  intro a,
-  apply Sup_le_Sup_of_le _,
-  apply le_chain_map, simp,
-  intros b a hb,
-  existsi [approx f (i a),hb],
-  exact ⟨_,rfl⟩,
-end
-
-lemma min_fix₂ : ∃ i, fix f ≤ approx₂ hf i :=
-begin
-  cases min_fix₁ hf with i h, existsi i,
-  transitivity', apply h, apply approx₁_le_approx₂,
-end
-
-open nat.up
-
-protected lemma fix_spec : fix f = Sup (approx_chain hf) :=
-begin
-  ext : 1, dsimp [chain_complete_partial_order.Sup],
-  let c := (@chain.map _ _ _ _ (approx_chain hf) (λ (f : α → roption β), f x) _),
-  change _ = roption.Sup c,
-  by_cases hh : ∃ a, roption.some a ∈ c,
-  { cases hh with a ha, rw Sup_eq_some ha,
-    simp [c,stream.mem_def,approx_chain] at ha,
-    rcases ha with ⟨i,⟨j,ha⟩,ha'⟩, replace ha := ha.symm,
-    simp [stream.nth] at ha,
-    have : ∃ i, (approx f i x).dom,
-    { simp [dom_iff_mem], simp [eq_some_iff] at ha',
-      existsi [j,a], rw ha, exact ha', },
-    rw fix_def f this, have hh := p_find this, rw dom_iff_mem at hh,
-    replace ha' := eq.trans (congr_fun ha x) ha',
-    rw ← ha', rw [eq_some_iff] at ha',
-    have h' : (approx f (find this) x).dom := p_find this,
-    replace h' : (approx f (succ $ find this) x).dom := _,
-    apply approx_eq hf h' ha'.fst,
-    revert h', rw [dom_iff_mem,dom_iff_mem],
-    apply exists_imp_exists, apply approx_mono' hf },
-  { rw Sup_eq_none hh,
-    cases min_fix hf x, rw eq_none_iff,
-    intros a ha, replace h := h _ ha,
-    simp at hh, apply hh a,
-    rw ← eq_some_iff at h,
-    dsimp [c], rw ← h, apply mem_chain.map,
-    exact ⟨w,rfl⟩, },
-end
-
-lemma bot_eq_Sup_empty : ⊥ = (Sup ∅ : α → roption β) :=
-begin
-  apply le_antisymm, refine lattice.bot_le,
-  apply Sup_le _ _ _, intros, cases H
+  rw fix_eq_Sup hf,
+  apply Sup_le _ _ _,
+  simp [approx_chain,stream.mem_def,stream.nth],
+  intros y i, revert y, simp,
+  induction i, apply bot_le _,
+  transitivity' f X, apply hf i_ih,
+  apply hX
 end
 
 variables {hf} (hc : continuous f hf)
 include hc
 
-lemma f_approx₂ (i : α → ℕ) : f (approx₂ hf i) ≤ approx₂ hf (succ' i) :=
+lemma fix_eq : fix f = f (fix f) :=
 begin
-  rw [approx₂,approx₂,hc _],
-  apply Sup_le_Sup_of_le _,
-  apply chain_map_le, simp [succ',approx],
-  introv hx, rw hx, exact ⟨_,rfl⟩,
-end
-
-lemma fix_eq_lfp : fix f = lfp f hf :=
-begin
+  rw [fix_eq_Sup hf,hc],
   apply le_antisymm,
-  { apply le_Sup _ _ _,
-    rw pi.fix_spec hf, constructor,
-    intros x hx, simp [approx_chain,stream.mem_def] at hx,
-    cases hx with i hx, subst x, dsimp [stream.nth],
-    induction i; simp [approx],
-    { rw bot_eq_Sup_empty hf, constructor,
-      rintro _ ⟨ ⟩ },
-    { constructor, apply i_ih } },
-  { apply @lfp_induction _ _ _ _ (λ p, p ≤ fix f) _ _; dsimp,
-    { intros x hx,
-      cases min_fix₂ hf with i hi,
-      transitivity' f (approx₂ hf i),
-      { apply hf, apply le_trans hx hi },
-      { apply le_trans (f_approx₂ hc _) (max_fix₂ _ _) } },
-    { intros c hc, dsimp [chain_complete_partial_order.Sup],
-      apply Sup_le _ _ hc } }
+  { apply Sup_le_Sup_of_le _,
+    intros x hx, existsi [f x,chain.mem_map _ hf _ hx],
+    apply le_f_of_mem_approx _ hx },
+  { apply Sup_le_Sup_of_le _,
+    intros x hx, rw chain.mem_map_iff at hx,
+    rcases hx with ⟨y,h₀,h₁⟩, refine ⟨x,_,le_refl _⟩,
+    rw ← h₁, apply f_mem_approx_chain _ h₀ }
 end
 
 end pi
@@ -339,9 +226,9 @@ end pi
 class has_fix (α : Type*) :=
 (fix : (α → α) → α)
 
-open has_fix chain_complete_partial_order
+open has_fix complete_partial_order
 
-class lawful_fix (α : Type*) [has_fix α] [chain_complete_partial_order α] :=
+class lawful_fix (α : Type*) [has_fix α] [complete_partial_order α] :=
 (fix_eq : ∀ {f : α → α} {hm : monotone f}, continuous f hm → fix f = f (fix f))
 
 namespace roption
@@ -351,17 +238,17 @@ def to_unit (f : α → α) (x : unit → α) (_ : unit) : α := f (x ())
 instance : has_fix (roption α) :=
 ⟨ λ f, fix.fix (to_unit f) () ⟩
 
-local attribute [instance] roption.chain_complete_partial_order
+local attribute [instance] roption.complete_partial_order
 
 def to_unit_mono (f : roption α → roption α) (hm : monotone f) : monotone (to_unit f) :=
 λ x y h a, hm $ by exact h ()
 
 def to_unit_cont (f : roption α → roption α) {hm : monotone f} (hc : continuous f hm) : continuous (to_unit f) (to_unit_mono f hm) :=
-λ c, by { ext : 1, dsimp [to_unit,chain_complete_partial_order.Sup], erw [hc _,map_comp,map_comp], refl }
+λ c, by { ext : 1, dsimp [to_unit,complete_partial_order.Sup], erw [hc _,chain.map_comp], refl }
 
 noncomputable instance : lawful_fix (roption α) :=
-⟨ λ f hm hc, by { dsimp [fix], rw [pi.fix_eq_lfp (to_unit_cont f hc)],
-                 conv { to_lhs, rw lfp_eq _ (to_unit_mono f hm), }, refl } ⟩
+⟨ λ f hm hc, by { dsimp [fix],
+                 conv { to_lhs, rw [pi.fix_eq (to_unit_cont f hc)] }, refl } ⟩
 
 end roption
 
@@ -370,10 +257,10 @@ namespace pi
 instance roption.has_fix {β} : has_fix (α → roption β) :=
 ⟨ fix.fix ⟩
 
-local attribute [instance] roption.chain_complete_partial_order
+local attribute [instance] roption.complete_partial_order
 
 noncomputable instance {β} : lawful_fix (α → roption β) :=
-⟨ λ f hm hc, by { dsimp [fix], rw [fix_eq_lfp hc,← lfp_eq f hm] } ⟩
+⟨ λ f hm hc, by { dsimp [fix], conv { to_lhs, rw [fix_eq hc], } } ⟩
 
 variables {β : α → Type*} {γ : Π a : α, β a → Type*}
 
@@ -393,8 +280,8 @@ lemma monotone_curry [∀ x y, preorder $ γ x y] : monotone $ @curry α β γ :
 lemma monotone_uncurry [∀ x y, preorder $ γ x y] : monotone $ @uncurry α β γ :=
 λ x y h a, h a.1 a.2
 
-variables [∀ x y, chain_complete_partial_order $ γ x y]
-
+variables [∀ x y, complete_partial_order $ γ x y]
+open chain
 lemma continuous_curry : continuous curry (monotone_curry α β γ) :=
 λ c, by { ext x y, dsimp [curry,Sup], rw [map_comp,map_comp], refl }
 lemma continuous_uncurry : continuous uncurry $ monotone_uncurry α β γ :=
@@ -405,7 +292,7 @@ end monotone
 instance [has_fix $ Π x : sigma β, γ x.1 x.2] : has_fix (Π x (y : β x), γ x y) :=
 ⟨ λ f, curry (fix $ uncurry ∘ f ∘ curry) ⟩
 
-variables [∀ x y, chain_complete_partial_order $ γ x y]
+variables [∀ x y, complete_partial_order $ γ x y]
 
 section curry
 

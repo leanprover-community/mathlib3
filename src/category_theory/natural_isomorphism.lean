@@ -73,7 +73,11 @@ def is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso 
 { inv :=
   { app := λ X, inv (α.app X),
     naturality' := λ X Y f,
-    by simpa using congr_arg (λ f, inv (α.app X) ≫ (f ≫ inv (α.app Y))) (α.naturality f).symm } }
+     begin
+       have h := congr_arg (λ f, inv (α.app X) ≫ (f ≫ inv (α.app Y))) (α.naturality f).symm,
+       simp only [is_iso.inv_hom_id_assoc, is_iso.hom_inv_id, assoc, comp_id, cancel_mono] at h,
+       exact h
+     end } }
 
 instance is_iso_of_is_iso_app' (α : F ⟶ G) [H : ∀ X : C, is_iso (nat_trans.app α X)] : is_iso α :=
 @nat_iso.is_iso_of_is_iso_app _ _ _ _ _ _ α H

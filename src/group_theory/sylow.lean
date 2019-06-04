@@ -30,9 +30,9 @@ end
 
 lemma card_modeq_card_fixed_points [fintype α] [fintype G] [fintype (fixed_points G α)]
   {p n : ℕ} (hp : nat.prime p) (h : card G = p ^ n) : card α ≡ card (fixed_points G α) [MOD p] :=
-calc card α = card (Σ y : quotient (orbit_rel G α), {x // quotient.mk' x = y}) :
+calc card α = card (Σ y : orbits G α, {x // quotient.mk' x = y}) :
   card_congr (equiv_fib (@quotient.mk' _ (orbit_rel G α)))
-... = univ.sum (λ a : quotient (orbit_rel G α), card {x // quotient.mk' x = a}) : card_sigma _
+... = univ.sum (λ a : orbits G α, card {x // quotient.mk' x = a}) : card_sigma _
 ... ≡ (@univ (fixed_points G α) _).sum (λ _, 1) [MOD p] :
 begin
   rw [← zmodp.eq_iff_modeq_nat hp, sum_nat_cast, sum_nat_cast],

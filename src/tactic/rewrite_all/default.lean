@@ -8,7 +8,7 @@
 -- same rewritable subexpression, all are rewritten simultaneously, and this isn't always
 -- what we want.
 -- (In particular, rewrite_search is much less capable on the category_theory library.)
-import tactic.rewrite_all.congr tactic.rewrite_all.kabstract
+import tactic.rewrite_all.congr
 
 open tactic
 open lean.parser

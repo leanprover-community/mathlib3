@@ -183,14 +183,14 @@ quotient.lift_on' x
   (λ x, (⟨x • b, mem_orbit _ _⟩ : orbit α b))
   (λ g h H, subtype.eq $ (stabilizer_coset_iff_image α b g h).1 H)
 
-/-- `orbit_of_quotient_stabilizer α b` sends `⟦x⟧` to `x • b`-/
-def orbit_of_quotient_stabilizer_spec (b : β) (x : α) :
+/-- `quotient_stabilizer_smul α b` sends `⟦x⟧` to `x • b`-/
+lemma quotient_stabilizer_smul_spec (b : β) (x : α) :
   (quotient_stabilizer_smul α b (quotient.mk' x)).val = x • b :=
 rfl
 
 /-- The map sending left cosets w.r.t. the stabilizer of `b`
     to the orbit of `b` is bijective. -/
-lemma orbit_of_quotient_stabilizer_bijective (b : β) :
+lemma quotient_stabilizer_smul_bijective (b : β) :
   function.bijective (quotient_stabilizer_smul α b) :=
 ⟨λ g h, quotient.induction_on₂' g h
   (λ g h H, quotient.sound'
@@ -200,10 +200,10 @@ lemma orbit_of_quotient_stabilizer_bijective (b : β) :
 
 /-- Natural equivalence between orbit of a point, and the set of left cosets
     w.r.t. the stabilizer of this point. For the computable part of this equivalence,
-    see `orbit_of_quotient_stabilizer`. -/
+    see `quotient_stabilizer_smul`. -/
 noncomputable def orbit_equiv_quotient_stabilizer (b : β) :
   orbit α b ≃ quotient (stabilizer α b) :=
-equiv.symm (equiv.of_bijective $ orbit_of_quotient_stabilizer_bijective α b)
+equiv.symm (equiv.of_bijective $ quotient_stabilizer_smul_bijective α b)
 
 noncomputable def orbit_prod_stabilizer_equiv_group (b : β) :
   (orbit α b × stabilizer α b) ≃ α :=

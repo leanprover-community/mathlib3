@@ -47,8 +47,8 @@ This document describes using VS Code (for emacs, look at https://github.com/lea
 
 1. Install [VS Code](https://code.visualstudio.com/).
 2. Launch VS Code.
-3. Click on the extension icon in the view bar at the left
-   and search for `lean prover`.
+3. Click on the extension icon ![(image of icon)](extensions-icon.png) in the side bar on the left
+  edge of the screen and search for `lean prover`.
 4. Click "install", and then "reload" to restart VS Code.
 5. Setup the default shell:
   * If you're using `git bash`, press `ctrl-shift-p` to open the command palette, and type

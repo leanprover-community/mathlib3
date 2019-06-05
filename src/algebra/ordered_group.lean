@@ -576,10 +576,25 @@ end with_top
 namespace with_bot
 open lattice
 
+@[to_additive with_bot.add_semigroup]
 instance [semigroup α] : semigroup (with_bot α) := with_top.semigroup
+
+attribute [to_additive with_bot.add_semigroup.equations._eqn_1] with_bot.semigroup.equations._eqn_1
+
+@[to_additive with_bot.add_comm_semigroup]
 instance [comm_semigroup α] : comm_semigroup (with_bot α) := with_top.comm_semigroup
+
+attribute [to_additive with_bot.add_comm_semigroup.equations._eqn_1] with_bot.comm_semigroup.equations._eqn_1
+
+@[to_additive with_bot.add_monoid]
 instance [monoid α] : monoid (with_bot α) := with_top.monoid
+
+attribute [to_additive with_bot.add_monoid.equations._eqn_1] with_bot.monoid.equations._eqn_1
+
+@[to_additive with_bot.add_comm_monoid]
 instance [comm_monoid α] : comm_monoid (with_bot α) :=  with_top.comm_monoid
+
+attribute [to_additive with_bot.add_comm_monoid.equations._eqn_1] with_bot.comm_monoid.equations._eqn_1
 
 instance [ordered_comm_monoid α] : ordered_comm_monoid (with_bot α) :=
 begin
@@ -605,46 +620,98 @@ begin
     exact ⟨_, rfl, mul_le_mul_left' h⟩, }
 end
 
-@[simp] lemma coe_one [monoid α] : ((1 : α) : with_bot α) = 1 := rfl
+instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_bot α) :=
+begin
+  suffices, refine {
+    add_le_add_left := this,
+    ..with_bot.partial_order,
+    ..with_bot.add_comm_monoid, ..},
+  { intros a b c h,
+    have h' := h,
+    rw lt_iff_le_not_le at h' ⊢,
+    refine ⟨λ b h₂, _, λ h₂, h'.2 $ this _ _ h₂ _⟩,
+    cases h₂, cases a with a,
+    { exact (not_le_of_lt h).elim bot_le },
+    cases c with c,
+    { exact (not_le_of_lt h).elim bot_le },
+    { exact ⟨_, rfl, le_of_lt (lt_of_add_lt_add_left' $
+        with_bot.some_lt_some.1 h)⟩ } },
+  { intros a b h c ca h₂,
+    cases c with c, {cases h₂},
+    cases a with a; cases h₂,
+    cases b with b, {cases le_antisymm h bot_le},
+    simp at h,
+    exact ⟨_, rfl, add_le_add_left' h⟩, }
+end
 
-@[simp] lemma coe_mul [semigroup α] (a b : α) : ((a * b : α) : with_bot α) = a * b := rfl
+attribute [to_additive with_bot.ordered_add_comm_monoid] with_bot.ordered_comm_monoid
+attribute [to_additive with_bot.ordered_add_comm_monoid._proof_1] with_bot.ordered_comm_monoid._proof_1
+attribute [to_additive with_bot.ordered_add_comm_monoid._proof_2] with_bot.ordered_comm_monoid._proof_2
+attribute [to_additive with_bot.ordered_add_comm_monoid._proof_3] with_bot.ordered_comm_monoid._proof_3
+attribute [to_additive with_bot.ordered_add_comm_monoid._proof_4] with_bot.ordered_comm_monoid._proof_4
+attribute [to_additive with_bot.ordered_add_comm_monoid._proof_5] with_bot.ordered_comm_monoid._proof_5
+attribute [to_additive with_bot.ordered_add_comm_monoid._proof_6] with_bot.ordered_comm_monoid._proof_6
+attribute [to_additive with_bot.ordered_add_comm_monoid._proof_7] with_bot.ordered_comm_monoid._proof_7
+attribute [to_additive with_bot.ordered_add_comm_monoid._proof_8] with_bot.ordered_comm_monoid._proof_8
+attribute [to_additive with_bot.ordered_add_comm_monoid._proof_9] with_bot.ordered_comm_monoid._proof_9
+attribute [to_additive with_bot.ordered_add_comm_monoid._proof_10] with_bot.ordered_comm_monoid._proof_10
+attribute [to_additive with_bot.ordered_add_comm_monoid.equations._eqn_1] with_bot.ordered_comm_monoid.equations._eqn_1
 
-@[simp] lemma bot_mul [ordered_comm_monoid α] (a : with_bot α) : ⊥ * a = ⊥ := rfl
+@[simp, to_additive with_bot.coe_zero]
+lemma coe_one [monoid α] : ((1 : α) : with_bot α) = 1 := rfl
 
-@[simp] lemma mul_bot [ordered_comm_monoid α] (a : with_bot α) : a * ⊥ = ⊥ := by cases a; refl
+@[simp, to_additive with_bot.coe_add]
+lemma coe_mul [semigroup α] (a b : α) : ((a * b : α) : with_bot α) = a * b := rfl
 
+@[simp, to_additive with_bot.bot_add]
+lemma bot_mul [ordered_comm_monoid α] (a : with_bot α) : ⊥ * a = ⊥ := rfl
+
+@[simp, to_additive with_bot.add_bot]
+lemma mul_bot [ordered_comm_monoid α] (a : with_bot α) : a * ⊥ = ⊥ := by cases a; refl
+
+@[to_additive with_bot.has_zero]
 instance has_one [has_one α] : has_one (with_bot α) := ⟨(1 : α)⟩
 
--- @[simp] lemma coe_zero [has_zero α] : ((0 : α) : with_bot α) = 0 := rfl
+attribute [to_additive with_bot.has_zero.equations._eqn_1] with_bot.has_one.equations._eqn_1
+
+@[simp] lemma coe_one [has_one α] : ((1 : α) : with_bot α) = 1 := rfl
 
 end with_bot
 
 section canonically_ordered_monoid
 variables [canonically_ordered_monoid α] {a b c d : α}
 
+@[to_additive le_iff_exists_add]
 lemma le_iff_exists_mul : a ≤ b ↔ ∃c, b = a * c :=
 canonically_ordered_monoid.le_iff_exists_mul a b
 
-@[simp] lemma one_le (a : α) : 1 ≤ a := le_iff_exists_mul.mpr ⟨a, by simp⟩
+@[simp, to_additive zero_le]
+lemma one_le (a : α) : 1 ≤ a := le_iff_exists_mul.mpr ⟨a, by simp⟩
 
+@[to_additive bot_eq_zero]
 lemma bot_eq_one : (⊥ : α) = 1 :=
 le_antisymm lattice.bot_le (one_le ⊥)
 
-@[simp] lemma mul_eq_one_iff : a * b = 1 ↔ a = 1 ∧ b = 1 :=
+@[simp, to_additive add_eq_zero_iff]
+lemma mul_eq_one_iff : a * b = 1 ↔ a = 1 ∧ b = 1 :=
 mul_eq_one_iff' (one_le _) (one_le _)
 
-@[simp] lemma le_one_iff_eq : a ≤ 1 ↔ a = 1 :=
+@[simp, to_additive le_add_iff_eq]
+lemma le_one_iff_eq : a ≤ 1 ↔ a = 1 :=
 iff.intro
   (assume h, le_antisymm h (one_le a))
   (assume h, h ▸ le_refl a)
 
+@[to_additive zero_lt_iff_ne_zero]
 protected lemma one_lt_iff_ne_one : 1 < a ↔ a ≠ 1 :=
 iff.intro ne_of_gt $ assume hne, lt_of_le_of_ne (one_le _) hne.symm
 
+@[to_additive le_add_left]
 lemma le_mul_left (h : a ≤ c) : a ≤ b * c :=
 calc a = 1 * a : by simp
   ... ≤ b * c : mul_le_mul' (one_le _) h
 
+@[to_additive le_add_right]
 lemma le_mul_right (h : a ≤ b) : a ≤ b * c :=
 calc a = a * 1 : by simp
   ... ≤ b * c : mul_le_mul' h (one_le _)
@@ -734,11 +801,11 @@ end ordered_cancel_comm_monoid
 section ordered_comm_group
 variables [ordered_comm_group α] {a b c : α}
 
-lemma neg_neg_iff_pos {α : Type} [_inst_1 : ordered_comm_group α] {a : α} : -a < 1 ↔ 1 < a :=
+lemma neg_neg_iff_pos {α : Type} [ordered_comm_group α] {a : α} : -a < 0 ↔ 0 < a :=
 ⟨ pos_of_neg_neg, neg_neg_of_pos ⟩
 
 @[simp] lemma neg_le_neg_iff : -a ≤ -b ↔ b ≤ a :=
-have a * b * -a ≤ a * b * -b ↔ -a ≤ -b, from mul_le_mul_iff_left _,
+have a + b + -a ≤ a + b + -b ↔ -a ≤ -b, from add_le_add_iff_left _,
 by simp at this; simp [this]
 
 lemma neg_le : -a ≤ b ↔ -b ≤ a :=
@@ -749,25 +816,25 @@ lemma le_neg : a ≤ -b ↔ b ≤ -a :=
 have -(-a) ≤ -b ↔ b ≤ -a, from neg_le_neg_iff,
 by rwa neg_neg at this
 
-@[simp] lemma neg_nonpos : -a ≤ 1 ↔ 1 ≤ a :=
-have -a ≤ -1 ↔ 1 ≤ a, from neg_le_neg_iff,
-by rwa neg_one at this
+@[simp] lemma neg_nonpos : -a ≤ 0 ↔ 0 ≤ a :=
+have -a ≤ -0 ↔ 0 ≤ a, from neg_le_neg_iff,
+by rwa neg_zero at this
 
-@[simp] lemma neg_nonneg : 1 ≤ -a ↔ a ≤ 1 :=
-have -1 ≤ -a ↔ a ≤ 1, from neg_le_neg_iff,
-by rwa neg_one at this
+@[simp] lemma neg_nonneg : 0 ≤ -a ↔ a ≤ 0 :=
+have -0 ≤ -a ↔ a ≤ 0, from neg_le_neg_iff,
+by rwa neg_zero at this
 
 @[simp] lemma neg_lt_neg_iff : -a < -b ↔ b < a :=
-have a * b * -a < a * b * -b ↔ -a < -b, from mul_lt_mul_iff_left _,
+have a + b + -a < a + b + -b ↔ -a < -b, from add_lt_add_iff_left _,
 by simp at this; simp [this]
 
-lemma neg_lt_one : -a < 1 ↔ 1 < a :=
-have -a < -1 ↔ 1 < a, from neg_lt_neg_iff,
-by rwa neg_one at this
+lemma neg_lt_zero : -a < 0 ↔ 0 < a :=
+have -a < -0 ↔ 0 < a, from neg_lt_neg_iff,
+by rwa neg_zero at this
 
-lemma neg_pos : 1 < -a ↔ a < 1 :=
-have -1 < -a ↔ a < 1, from neg_lt_neg_iff,
-by rwa neg_one at this
+lemma neg_pos : 0 < -a ↔ a < 0 :=
+have -0 < -a ↔ a < 0, from neg_lt_neg_iff,
+by rwa neg_zero at this
 
 lemma neg_lt : -a < b ↔ -b < a :=
 have -a < -(-b) ↔ -b < a, from neg_lt_neg_iff,
@@ -778,114 +845,114 @@ have -(-a) < -b ↔ b < -a, from neg_lt_neg_iff,
 by rwa neg_neg at this
 
 lemma sub_le_sub_iff_left (a : α) {b c : α} : a - b ≤ a - c ↔ c ≤ b :=
-(mul_le_mul_iff_left _).trans neg_le_neg_iff
+(add_le_add_iff_left _).trans neg_le_neg_iff
 
 lemma sub_le_sub_iff_right (c : α) : a - c ≤ b - c ↔ a ≤ b :=
-mul_le_mul_iff_right _
+add_le_add_iff_right _
 
 lemma sub_lt_sub_iff_left (a : α) {b c : α} : a - b < a - c ↔ c < b :=
-(mul_lt_mul_iff_left _).trans neg_lt_neg_iff
+(add_lt_add_iff_left _).trans neg_lt_neg_iff
 
 lemma sub_lt_sub_iff_right (c : α) : a - c < b - c ↔ a < b :=
-mul_lt_mul_iff_right _
+add_lt_add_iff_right _
 
-@[simp] lemma sub_nonneg : 1 ≤ a - b ↔ b ≤ a :=
+@[simp] lemma sub_nonneg : 0 ≤ a - b ↔ b ≤ a :=
 have a - a ≤ a - b ↔ b ≤ a, from sub_le_sub_iff_left a,
 by rwa sub_self at this
 
-@[simp] lemma sub_nonpos : a - b ≤ 1 ↔ a ≤ b :=
+@[simp] lemma sub_nonpos : a - b ≤ 0 ↔ a ≤ b :=
 have a - b ≤ b - b ↔ a ≤ b, from sub_le_sub_iff_right b,
 by rwa sub_self at this
 
-@[simp] lemma sub_pos : 1 < a - b ↔ b < a :=
+@[simp] lemma sub_pos : 0 < a - b ↔ b < a :=
 have a - a < a - b ↔ b < a, from sub_lt_sub_iff_left a,
 by rwa sub_self at this
 
-@[simp] lemma sub_lt_one : a - b < 1 ↔ a < b :=
+@[simp] lemma sub_lt_zero : a - b < 0 ↔ a < b :=
 have a - b < b - b ↔ a < b, from sub_lt_sub_iff_right b,
 by rwa sub_self at this
 
-lemma le_neg_mul_iff_mul_le : b ≤ -a * c ↔ a * b ≤ c :=
-have -a * (a * b) ≤ -a * c ↔ a * b ≤ c, from mul_le_mul_iff_left _,
-by rwa neg_mul_cancel_left at this
+lemma le_neg_add_iff_add_le : b ≤ -a + c ↔ a + b ≤ c :=
+have -a + (a + b) ≤ -a + c ↔ a + b ≤ c, from add_le_add_iff_left _,
+by rwa neg_add_cancel_left at this
 
-lemma le_sub_iff_mul_le' : b ≤ c - a ↔ a * b ≤ c :=
-by rw [sub_eq_mul_neg, mul_comm, le_neg_mul_iff_mul_le]
+lemma le_sub_iff_add_le' : b ≤ c - a ↔ a + b ≤ c :=
+by rw [sub_eq_add_neg, add_comm, le_neg_add_iff_add_le]
 
-lemma le_sub_iff_mul_le : a ≤ c - b ↔ a * b ≤ c :=
-by rw [le_sub_iff_mul_le', mul_comm]
+lemma le_sub_iff_add_le : a ≤ c - b ↔ a + b ≤ c :=
+by rw [le_sub_iff_add_le', add_comm]
 
-@[simp] lemma neg_mul_le_iff_le_mul : -b * a ≤ c ↔ a ≤ b * c :=
-have -b * a ≤ -b * (b * c) ↔ a ≤ b * c, from mul_le_mul_iff_left _,
-by rwa neg_mul_cancel_left at this
+@[simp] lemma neg_add_le_iff_le_add : -b + a ≤ c ↔ a ≤ b + c :=
+have -b + a ≤ -b + (b + c) ↔ a ≤ b + c, from add_le_add_iff_left _,
+by rwa neg_add_cancel_left at this
 
-lemma sub_le_iff_le_mul' : a - b ≤ c ↔ a ≤ b * c :=
-by rw [sub_eq_mul_neg, mul_comm, neg_mul_le_iff_le_mul]
+lemma sub_le_iff_le_add' : a - b ≤ c ↔ a ≤ b + c :=
+by rw [sub_eq_add_neg, add_comm, neg_add_le_iff_le_add]
 
-lemma sub_le_iff_le_mul : a - c ≤ b ↔ a ≤ b * c :=
-by rw [sub_le_iff_le_mul', mul_comm]
+lemma sub_le_iff_le_add : a - c ≤ b ↔ a ≤ b + c :=
+by rw [sub_le_iff_le_add', add_comm]
 
-@[simp] lemma mul_neg_le_iff_le_mul : a * -c ≤ b ↔ a ≤ b * c :=
-sub_le_iff_le_mul
+@[simp] lemma add_neg_le_iff_le_add : a + -c ≤ b ↔ a ≤ b + c :=
+sub_le_iff_le_add
 
-@[simp] lemma mul_neg_le_iff_le_mul' : a * -b ≤ c ↔ a ≤ b * c :=
-sub_le_iff_le_mul'
+@[simp] lemma add_neg_le_iff_le_add' : a + -b ≤ c ↔ a ≤ b + c :=
+sub_le_iff_le_add'
 
-lemma neg_mul_le_iff_le_mul' : -c * a ≤ b ↔ a ≤ b * c :=
-by rw [neg_mul_le_iff_le_mul, mul_comm]
+lemma neg_add_le_iff_le_add' : -c + a ≤ b ↔ a ≤ b + c :=
+by rw [neg_add_le_iff_le_add, add_comm]
 
-@[simp] lemma neg_le_sub_iff_le_mul : -b ≤ a - c ↔ c ≤ a * b :=
-le_sub_iff_mul_le.trans neg_mul_le_iff_le_mul'
+@[simp] lemma neg_le_sub_iff_le_add : -b ≤ a - c ↔ c ≤ a + b :=
+le_sub_iff_add_le.trans neg_add_le_iff_le_add'
 
-lemma neg_le_sub_iff_le_mul' : -a ≤ b - c ↔ c ≤ a * b :=
-by rw [neg_le_sub_iff_le_mul, mul_comm]
+lemma neg_le_sub_iff_le_add' : -a ≤ b - c ↔ c ≤ a + b :=
+by rw [neg_le_sub_iff_le_add, add_comm]
 
 lemma sub_le : a - b ≤ c ↔ a - c ≤ b :=
-sub_le_iff_le_mul'.trans sub_le_iff_le_mul.symm
+sub_le_iff_le_add'.trans sub_le_iff_le_add.symm
 
 theorem le_sub : a ≤ b - c ↔ c ≤ b - a :=
-le_sub_iff_mul_le'.trans le_sub_iff_mul_le.symm
+le_sub_iff_add_le'.trans le_sub_iff_add_le.symm
 
-@[simp] lemma lt_neg_mul_iff_mul_lt : b < -a * c ↔ a * b < c :=
-have -a * (a * b) < -a * c ↔ a * b < c, from mul_lt_mul_iff_left _,
-by rwa neg_mul_cancel_left at this
+@[simp] lemma lt_neg_add_iff_add_lt : b < -a + c ↔ a + b < c :=
+have -a + (a + b) < -a + c ↔ a + b < c, from add_lt_add_iff_left _,
+by rwa neg_add_cancel_left at this
 
-lemma lt_sub_iff_mul_lt' : b < c - a ↔ a * b < c :=
-by rw [sub_eq_mul_neg, mul_comm, lt_neg_mul_iff_mul_lt]
+lemma lt_sub_iff_add_lt' : b < c - a ↔ a + b < c :=
+by rw [sub_eq_add_neg, add_comm, lt_neg_add_iff_add_lt]
 
-lemma lt_sub_iff_mul_lt : a < c - b ↔ a * b < c :=
-by rw [lt_sub_iff_mul_lt', mul_comm]
+lemma lt_sub_iff_add_lt : a < c - b ↔ a + b < c :=
+by rw [lt_sub_iff_add_lt', add_comm]
 
-@[simp] lemma neg_mul_lt_iff_lt_mul : -b * a < c ↔ a < b * c :=
-have -b * a < -b * (b * c) ↔ a < b * c, from mul_lt_mul_iff_left _,
-by rwa neg_mul_cancel_left at this
+@[simp] lemma neg_add_lt_iff_lt_add : -b + a < c ↔ a < b + c :=
+have -b + a < -b + (b + c) ↔ a < b + c, from add_lt_add_iff_left _,
+by rwa neg_add_cancel_left at this
 
-lemma sub_lt_iff_lt_mul' : a - b < c ↔ a < b * c :=
-by rw [sub_eq_mul_neg, mul_comm, neg_mul_lt_iff_lt_mul]
+lemma sub_lt_iff_lt_add' : a - b < c ↔ a < b + c :=
+by rw [sub_eq_add_neg, add_comm, neg_add_lt_iff_lt_add]
 
-lemma sub_lt_iff_lt_mul : a - c < b ↔ a < b * c :=
-by rw [sub_lt_iff_lt_mul', mul_comm]
+lemma sub_lt_iff_lt_add : a - c < b ↔ a < b + c :=
+by rw [sub_lt_iff_lt_add', add_comm]
 
-lemma neg_mul_lt_iff_lt_mul_right : -c * a < b ↔ a < b * c :=
-by rw [neg_mul_lt_iff_lt_mul, mul_comm]
+lemma neg_add_lt_iff_lt_add_right : -c + a < b ↔ a < b + c :=
+by rw [neg_add_lt_iff_lt_add, add_comm]
 
-@[simp] lemma neg_lt_sub_iff_lt_mul : -b < a - c ↔ c < a * b :=
-lt_sub_iff_mul_lt.trans neg_mul_lt_iff_lt_mul_right
+@[simp] lemma neg_lt_sub_iff_lt_add : -b < a - c ↔ c < a + b :=
+lt_sub_iff_add_lt.trans neg_add_lt_iff_lt_add_right
 
-lemma neg_lt_sub_iff_lt_mul' : -a < b - c ↔ c < a * b :=
-by rw [neg_lt_sub_iff_lt_mul, mul_comm]
+lemma neg_lt_sub_iff_lt_add' : -a < b - c ↔ c < a + b :=
+by rw [neg_lt_sub_iff_lt_add, add_comm]
 
 lemma sub_lt : a - b < c ↔ a - c < b :=
-sub_lt_iff_lt_mul'.trans sub_lt_iff_lt_mul.symm
+sub_lt_iff_lt_add'.trans sub_lt_iff_lt_add.symm
 
 theorem lt_sub : a < b - c ↔ c < b - a :=
-lt_sub_iff_mul_lt'.trans lt_sub_iff_mul_lt.symm
+lt_sub_iff_add_lt'.trans lt_sub_iff_add_lt.symm
 
-lemma sub_le_self_iff (a : α) {b : α} : a - b ≤ a ↔ 1 ≤ b :=
-sub_le_iff_le_mul'.trans (le_mul_iff_nonneg_left _)
+lemma sub_le_self_iff (a : α) {b : α} : a - b ≤ a ↔ 0 ≤ b :=
+sub_le_iff_le_add'.trans (le_add_iff_nonneg_left _)
 
-lemma sub_lt_self_iff (a : α) {b : α} : a - b < a ↔ 1 < b :=
-sub_lt_iff_lt_mul'.trans (lt_mul_iff_pos_left _)
+lemma sub_lt_self_iff (a : α) {b : α} : a - b < a ↔ 0 < b :=
+sub_lt_iff_lt_add'.trans (lt_add_iff_pos_left _)
 
 end ordered_comm_group
 
@@ -894,23 +961,23 @@ variables [s : decidable_linear_ordered_comm_group α]
 include s
 
 instance : decidable_linear_ordered_cancel_comm_monoid α :=
-{ le_of_mul_le_mul_left := λ x y z, le_of_mul_le_mul_left,
-  mul_left_cancel := λ x y z, mul_left_cancel,
-  mul_right_cancel := λ x y z, mul_right_cancel,
+{ le_of_add_le_add_left := λ x y z, le_of_add_le_add_left,
+  add_left_cancel := λ x y z, add_left_cancel,
+  add_right_cancel := λ x y z, add_right_cancel,
   ..s }
 
 end decidable_linear_ordered_comm_group
 
 set_option old_structure_cmd true
 /-- This is not so much a new structure as a construction mechanism
-  for ordered groups, by specifying only the "positive cone" of the group. -/
-class nonneg_comm_group (α : Type*) extends comm_group α :=
+  for ordered groups, by specifying only the "positive czero" of the group. -/
+class nonneg_comm_group (α : Type*) extends add_comm_group α :=
 (nonneg : α → Prop)
 (pos : α → Prop := λ a, nonneg a ∧ ¬ nonneg (neg a))
 (pos_iff : ∀ a, pos a ↔ nonneg a ∧ ¬ nonneg (-a) . order_laws_tac)
-(one_nonneg : nonneg 1)
-(mul_nonneg : ∀ {a b}, nonneg a → nonneg b → nonneg (a * b))
-(nonneg_antisymm : ∀ {a}, nonneg a → nonneg (-a) → a = 1)
+(zero_nonneg : nonneg 0)
+(add_nonneg : ∀ {a b}, nonneg a → nonneg b → nonneg (a + b))
+(nonneg_antisymm : ∀ {a}, nonneg a → nonneg (-a) → a = 0)
 
 namespace nonneg_comm_group
 variable [s : nonneg_comm_group α]
@@ -920,25 +987,25 @@ include s
 { le := λ a b, nonneg (b - a),
   lt := λ a b, pos (b - a),
   lt_iff_le_not_le := λ a b, by simp; rw [pos_iff]; simp,
-  le_refl := λ a, by simp [one_nonneg],
-  le_trans := λ a b c nab nbc, by simp [-sub_eq_mul_neg];
-    rw ← sub_mul_sub_cancel; exact mul_nonneg nbc nab,
-  le_antisymm := λ a b nab nba, eq_of_sub_eq_one $
+  le_refl := λ a, by simp [zero_nonneg],
+  le_trans := λ a b c nab nbc, by simp [-sub_eq_add_neg];
+    rw ← sub_add_sub_cancel; exact add_nonneg nbc nab,
+  le_antisymm := λ a b nab nba, eq_of_sub_eq_zero $
     nonneg_antisymm nba (by rw neg_sub; exact nab),
-  mul_le_mul_left := λ a b nab c, by simpa [(≤), preorder.le] using nab,
-  mul_lt_mul_left := λ a b nab c, by simpa [(<), preorder.lt] using nab, ..s }
+  add_le_add_left := λ a b nab c, by simpa [(≤), preorder.le] using nab,
+  add_lt_add_left := λ a b nab c, by simpa [(<), preorder.lt] using nab, ..s }
 
-theorem nonneg_def {a : α} : nonneg a ↔ 1 ≤ a :=
+theorem nonneg_def {a : α} : nonneg a ↔ 0 ≤ a :=
 show _ ↔ nonneg _, by simp
 
-theorem pos_def {a : α} : pos a ↔ 1 < a :=
+theorem pos_def {a : α} : pos a ↔ 0 < a :=
 show _ ↔ pos _, by simp
 
-theorem not_one_pos : ¬ pos (1 : α) :=
+theorem not_zero_pos : ¬ pos (0 : α) :=
 mt pos_def.1 (lt_irrefl _)
 
-theorem one_lt_iff_nonneg_nonneg {a : α} :
-  1 < a ↔ nonneg a ∧ ¬ nonneg (-a) :=
+theorem zero_lt_iff_nonneg_nonneg {a : α} :
+  0 < a ↔ nonneg a ∧ ¬ nonneg (-a) :=
 pos_def.symm.trans (pos_iff α _)
 
 theorem nonneg_total_iff :

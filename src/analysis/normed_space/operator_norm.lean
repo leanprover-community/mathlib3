@@ -17,7 +17,10 @@ local attribute [instance] classical.prop_decidable
 set_option class.instance_max_depth 70
 
 variables {k : Type*} {E : Type*} {F : Type*} {G : Type*}
-[nondiscrete_normed_field k] [normed_space k E] [normed_space k F] [normed_space k G]
+[nondiscrete_normed_field k]
+[normed_group E] [normed_space k E]
+[normed_group F] [normed_space k F]
+[normed_group G] [normed_space k G]
 (c : k) (f g : E →L[k] F) (h : F →L[k] G) (x y z : E)
 include k
 
@@ -193,11 +196,23 @@ le_antisymm
         end)
       (λ heq, by { rw [←heq, zero_mul], exact hn }))))
 
+lemma op_norm_neg : ∥-f∥ = ∥f∥ := calc
+  ∥-f∥ = ∥(-1:k) • f∥ : by rw neg_one_smul
+  ... = ∥(-1:k)∥ * ∥f∥ : by rw op_norm_smul
+  ... = ∥f∥ : by simp
+
 /-- Continuous linear maps themselves form a normed space with respect to
     the operator norm. -/
+instance to_normed_group : normed_group (E →L[k] F) :=
+normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_triangle, op_norm_neg⟩
+
+/- The next instance should be found automatically, but it is not.
+TODO: fix me -/
+instance to_normed_group_prod : normed_group (E →L[k] (F × G)) :=
+continuous_linear_map.to_normed_group
+
 instance to_normed_space : normed_space k (E →L[k] F) :=
-normed_space.of_core _ _
-  ⟨op_norm_zero_iff, op_norm_smul, op_norm_triangle⟩
+⟨op_norm_smul⟩
 
 /-- The operator norm is submultiplicative. -/
 lemma op_norm_comp_le : ∥comp h f∥ ≤ ∥h∥ * ∥f∥ :=

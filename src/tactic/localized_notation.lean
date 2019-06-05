@@ -1,16 +1,20 @@
 /-
-Define notation which is localized to a namespace
-Usage:
-* Declare notation using:
+This consist of two user-commands which allow you to declare notation localized to a namespace.
+
+* Declare notation which is localized to a namespace using:
 ```
-localized_notation "local infix ` ⊹ ` := my_add" in my.add
+localized "infix ` ⊹ `:60 := my_add" in my.add
 ```
-* it will be available in the same section/namespace/file
-* open it in other sections/files:
+* After this command it will be available in the same section/namespace/file, just as if you wrote `local infix ` ⊹ `:60 := my_add`
+* You can open it in other places. The following command will declare the notation again as local notation in that section/namespace/files:
 ```
-open_notation my.add --
+open_notation my.add
 ```
-The code is based on code from Gabriel Ebner from the hott3 repository
+* More generally, the following will declare all localized notation in the specified namespaces.
+```
+open_notation namespace1 namespace2 ...
+```
+The code is based on code from Gabriel Ebner from the hott3 repository.
 -/
 import tactic.core
 open lean lean.parser interactive tactic

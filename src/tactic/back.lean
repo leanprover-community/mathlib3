@@ -654,13 +654,13 @@ meta def solve_by_elim'
 back_core back_state.depth_first_complexity trace no_dflt hs wth limit library_limit
 
 
-/--
-`library_search` calls `back`, passing all imported lemmas. Surprisingly, this sometimes works.
-By default, `library_search` uses at most two lemmas from the library (but perhaps more local
-hypotheses or lemmas tagged `@[back]`). This can be adjusted, e.g. as `library_search 1`.
--/
-meta def library_search (hs : parse back_arg_list) (library_limit : parse (optional (with_desc "n" small_nat))): tactic string :=
-  back (some ()) ff hs [(`_, ff)] none (library_limit <|> some 2)
+-- /--
+-- `library_search` calls `back`, passing all imported lemmas. Surprisingly, this sometimes works.
+-- By default, `library_search` uses at most two lemmas from the library (but perhaps more local
+-- hypotheses or lemmas tagged `@[back]`). This can be adjusted, e.g. as `library_search 1`.
+-- -/
+-- meta def library_search (hs : parse back_arg_list) (library_limit : parse (optional (with_desc "n" small_nat))): tactic string :=
+--   back (some ()) ff hs [(`_, ff)] none (library_limit <|> some 2)
 
 end interactive
 

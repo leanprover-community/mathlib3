@@ -3,7 +3,7 @@
 In this file we collect information on how Lean is doing
 on the 100 theorems challenge: http://www.cs.ru.nl/~freek/100/.
 
-## <a name="1"></a><a name="1"></a>1. The Irrationality of the Square Root of 2
+## <a name="1"></a>1. The Irrationality of the Square Root of 2
 
 ```lean
 theorem irr_sqrt_two : irrational (sqrt 2) :=
@@ -12,7 +12,7 @@ theorem irr_sqrt_two : irrational (sqrt 2) :=
 * Author: mathlib <!-- Jeremy Avigad, Mario Carneiro, Abhimanyu Pallavi Sudhir -->
 * Link: https://github.com/leanprover-community/mathlib/blob/739d28a60f347e7357b76cd2d24e41460e49a456/src/data/real/irrational.lean#L63
 
-## <a name="2"></a><a name="2"></a>2. Fundamental Theorem of Algebra
+## <a name="2"></a>2. Fundamental Theorem of Algebra
 
 ```lean
 lemma exists_root {f : polynomial ℂ} (hf : 0 < degree f) : ∃ z : ℂ, is_root f z :=
@@ -22,22 +22,22 @@ lemma exists_root {f : polynomial ℂ} (hf : 0 < degree f) : ∃ z : ℂ, is_roo
 * Link: https://github.com/leanprover-community/mathlib/blob/0b350228544244f2861ec8afc84dad0c27113a73/src/analysis/complex/polynomial.lean#L28
 
 <!--
-## <a name="3"></a><a name="3"></a>3. The Denumerability of the Rational Numbers
+## <a name="3"></a>3. The Denumerability of the Rational Numbers
 
 * Author:
 * Link:
 
-## <a name="4"></a><a name="4"></a>4. Pythagorean Theorem
+## <a name="4"></a>4. Pythagorean Theorem
 
 * Author:
 * Link:
 
-## <a name="5"></a><a name="5"></a>5. Prime Number Theorem
+## <a name="5"></a>5. Prime Number Theorem
 
 * Author:
 * Link:
 
-## <a name="6"></a><a name="6"></a>6. Godel’s Incompleteness Theorem
+## <a name="6"></a>6. Godel’s Incompleteness Theorem
 
 * Author:
 * Link:

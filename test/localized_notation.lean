@@ -1,35 +1,37 @@
 import tactic.localized_notation
 
 open tactic
+local infix ` ⊹ `:59 := nat.mul
+local infix ` ⊖ `:59 := nat.pow
+example : 2 ⊹ 3 = 6 := rfl
+example : 2 ⊖ 3 = 8 := rfl
 
 section
-localized_notation "local infix ` ⊹ `:59 := nat.add" in nat
-localized_notation "local infix ` ⊖ `:59 := nat.mul" in nat.mul
-#print ⊹
-#print ⊖
+localized "infix ` ⊹ `:59 := nat.add" in nat
+localized "infix ` ⊖ `:59 := nat.mul" in nat.mul
+example : 2 ⊹ 3 = 5 := rfl
+example : 2 ⊖ 3 = 6 := rfl
 end
-#print ⊹ -- fails
-#print ⊖ -- fails
-example : unit := ()
-open_notation int
-#print ⊹ -- fails
-#print ⊖ -- fails
-example : unit := ()
+
 section
+example : 2 ⊹ 3 = 6 := rfl
+example : 2 ⊖ 3 = 8 := rfl
+
+open_notation int
+example : 2 ⊹ 3 = 6 := rfl
+example : 2 ⊖ 3 = 8 := rfl
+
 open_notation nat
-#print ⊹
-#print ⊖ -- fails
-example : unit := ()
+example : 2 ⊹ 3 = 5 := rfl
+example : 2 ⊖ 3 = 8 := rfl
+
 open_notation nat.mul
-#print ⊹
-#print ⊖
-example : unit := ()
+example : 2 ⊹ 3 = 5 := rfl
+example : 2 ⊖ 3 = 6 := rfl
 end
+
 section
 open_notation nat.mul nat nat.mul int
-#print ⊹
-#print ⊖
-example : unit := ()
+example : 2 ⊹ 3 = 5 := rfl
+example : 2 ⊖ 3 = 6 := rfl
 end
-
-example : unit := by do print_localized_notations [`nat, `nat.mul], constructor

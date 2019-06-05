@@ -22,7 +22,7 @@ meta def localized_notation_attr : user_attribute unit name := {
     parser := ident
 }
 
--- TODO: speed up
+-- TODO: currently the implementation is inefficient
 meta def get_localized_notation (ns : list name) : tactic (list string) :=
 do decls ← attribute.get_instances localized_notation_attr.name,
    decls ← decls.mfilter $ λ nm,
@@ -38,9 +38,12 @@ do ns ← many ident,
 def string_hash (s : string) : ℕ :=
 s.fold 1 (λ h c, (33*h + c.val) % unsigned_sz)
 
+reserve notation `localized`
+
 @[user_command] meta def localized_notation_cmd (meta_info : decl_meta_info)
-  (_ : parse $ tk "localized_notation") : parser unit :=
+  (_ : parse $ tk "localized") : parser unit :=
 do cmd ← parser.pexpr, cmd ← i_to_expr cmd, cmd ← eval_expr string cmd,
+   let cmd := "local " ++ cmd,
    emit_code_here cmd,
    tk "in",
    nm ← ident,

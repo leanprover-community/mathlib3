@@ -302,39 +302,39 @@ instance [decidable_linear_order α] :
 
 -- This seems quite evil. Now you have two different 1's in your type. Is this even used?
 
-@[to_additive ordered_add_comm_monoid]
-def ordered_comm_monoid [ordered_comm_monoid α]
-  (one_le : ∀ a : α, 1 ≤ a) : ordered_comm_monoid (with_one α) :=
-begin
-  suffices, refine {
-    mul_le_mul_left := this,
-    ..with_one.partial_order,
-    ..with_one.comm_monoid, .. },
-  { intros a b c h,
-    have h' := lt_iff_le_not_le.1 h,
-    rw lt_iff_le_not_le at ⊢,
-    refine ⟨λ b h₂, _, λ h₂, h'.2 $ this _ _ h₂ _⟩,
-    cases h₂, cases c with c,
-    { cases h'.2 (this _ _ bot_le a) },
-    { refine ⟨_, rfl, _⟩,
-      cases a with a,
-      { exact with_bot.some_le_some.1 h'.1 },
-      { exact le_of_lt (lt_of_mul_lt_mul_left' $
-          with_bot.some_lt_some.1 h), } } },
-  { intros a b h c ca h₂,
-    cases b with b,
-    { rw le_antisymm h bot_le at h₂,
-      exact ⟨_, h₂, le_refl _⟩ },
-    cases a with a,
-    { change c * 1 = some ca at h₂,
-      simp at h₂, simp [h₂],
-      exact ⟨_, rfl, by simpa using mul_le_mul_left' (one_le b)⟩ },
-    { simp at h,
-      cases c with c; change some _ = _ at h₂;
-        simp [-mul_comm] at h₂; subst ca; refine ⟨_, rfl, _⟩,
-      { exact h },
-      { exact mul_le_mul_left' h } } }
-end
+-- @[to_additive ordered_add_comm_monoid]
+-- def ordered_comm_monoid [ordered_comm_monoid α]
+--   (one_le : ∀ a : α, 1 ≤ a) : ordered_comm_monoid (with_one α) :=
+-- begin
+--   suffices, refine {
+--     mul_le_mul_left := this,
+--     ..with_one.partial_order,
+--     ..with_one.comm_monoid, .. },
+--   { intros a b c h,
+--     have h' := lt_iff_le_not_le.1 h,
+--     rw lt_iff_le_not_le at ⊢,
+--     refine ⟨λ b h₂, _, λ h₂, h'.2 $ this _ _ h₂ _⟩,
+--     cases h₂, cases c with c,
+--     { cases h'.2 (this _ _ bot_le a) },
+--     { refine ⟨_, rfl, _⟩,
+--       cases a with a,
+--       { exact with_bot.some_le_some.1 h'.1 },
+--       { exact le_of_lt (lt_of_mul_lt_mul_left' $
+--           with_bot.some_lt_some.1 h), } } },
+--   { intros a b h c ca h₂,
+--     cases b with b,
+--     { rw le_antisymm h bot_le at h₂,
+--       exact ⟨_, h₂, le_refl _⟩ },
+--     cases a with a,
+--     { change c * 1 = some ca at h₂,
+--       simp at h₂, simp [h₂],
+--       exact ⟨_, rfl, by simpa using mul_le_mul_left' (one_le b)⟩ },
+--     { simp at h,
+--       cases c with c; change some _ = _ at h₂;
+--         simp [-mul_comm] at h₂; subst ca; refine ⟨_, rfl, _⟩,
+--       { exact h },
+--       { exact mul_le_mul_left' h } } }
+-- end
 
 end with_one
 
@@ -717,25 +717,26 @@ calc a = a * 1 : by simp
   ... ≤ b * c : mul_le_mul' h (one_le _)
 
 -- This looks evil... you will have two zeros or ones...
-instance with_one.canonically_ordered_monoid :
-  canonically_ordered_monoid (with_one α) :=
-{ le_iff_exists_mul := λ a b, begin
-    cases a with a,
-    { exact iff_of_true lattice.bot_le ⟨b, (one_mul b).symm⟩ },
-    cases b with b,
-    { exact iff_of_false
-        (mt (le_antisymm lattice.bot_le) (by simp))
-        (λ ⟨c, h⟩, by cases c; cases h) },
-    { simp [le_iff_exists_mul, -mul_comm],
-      split; intro h; rcases h with ⟨c, h⟩,
-      { exact ⟨some c, congr_arg some h⟩ },
-      { cases c; cases h,
-        { exact ⟨_, (mul_one _).symm⟩ },
-        { exact ⟨_, rfl⟩ } } }
-  end,
-  bot    := 1,
-  bot_le := assume a a' h, option.no_confusion h,
-  .. with_one.ordered_comm_monoid one_le }
+
+-- instance with_one.canonically_ordered_monoid :
+--   canonically_ordered_monoid (with_one α) :=
+-- { le_iff_exists_mul := λ a b, begin
+--     cases a with a,
+--     { exact iff_of_true lattice.bot_le ⟨b, (one_mul b).symm⟩ },
+--     cases b with b,
+--     { exact iff_of_false
+--         (mt (le_antisymm lattice.bot_le) (by simp))
+--         (λ ⟨c, h⟩, by cases c; cases h) },
+--     { simp [le_iff_exists_mul, -mul_comm],
+--       split; intro h; rcases h with ⟨c, h⟩,
+--       { exact ⟨some c, congr_arg some h⟩ },
+--       { cases c; cases h,
+--         { exact ⟨_, (mul_one _).symm⟩ },
+--         { exact ⟨_, rfl⟩ } } }
+--   end,
+--   bot    := 1,
+--   bot_le := assume a a' h, option.no_confusion h,
+--   .. with_one.ordered_comm_monoid one_le }
 
 end canonically_ordered_monoid
 

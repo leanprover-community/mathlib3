@@ -202,10 +202,10 @@ do
 end
 
 /-
-simpa is used to discharge proofs
+assumption is used to discharge proofs
 -/
 private meta def prove : tactic unit :=
-tactic.interactive.simpa none ff [] [] none
+assumption
 
 private meta def post (s : simp_lemmas) (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
 do

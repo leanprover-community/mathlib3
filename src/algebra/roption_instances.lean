@@ -6,12 +6,12 @@ Author : Hoang Le Truong.
 If α is a semigroup, a comm_semigroup, a comm_monoid,a add_semigroup, a add_comm_semigroup, a add_comm_monoid, 
 a mul_action, a distrib_mul_action, so is roption α. 
 -/
-import   algebra.module data.pfun
+import algebra.module data.pfun
 
+namespace roption
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} 
 
-namespace roption
 noncomputable theory
 
 instance [has_zero α] : has_zero (roption α) := ⟨some (0 : α)⟩
@@ -35,54 +35,44 @@ attribute [to_additive roption.add_def] roption.mul_def
 instance [has_scalar α β] : has_scalar α (roption β) := ⟨λ a f, ⟨f.dom, λ h, a • (f.get h)⟩⟩
 lemma smul_def [has_scalar α β] (a : α) (x : roption β) : a • x = ⟨x.dom , λ h, a • x.get h⟩ := rfl
 
-instance [semigroup α] : semigroup (roption α) :=
+instance semigroup [semigroup α] : semigroup (roption α) :=
 { mul_assoc := λ x y z, roption.ext' and.assoc (λ _ _, mul_assoc _ _ _),
   ..roption.has_mul}
 
-instance [comm_semigroup α] : comm_semigroup (roption α) :=
+instance comm_semigroup [comm_semigroup α] : comm_semigroup (roption α) :=
 { mul_comm := λ x y, roption.ext' and.comm (λ _ _, mul_comm _ _)
   ..roption.semigroup}
 
-instance [monoid α] : monoid (roption α) :=
+instance monoid [monoid α] : monoid (roption α) :=
 { monoid.
    mul       := roption.has_mul.mul,
    mul_assoc := λ x y z, roption.ext' and.assoc (λ _ _, mul_assoc _ _ _),
-   one       := some(1 : α),
+   one       := roption.has_one.one,
    one_mul   := λ x, roption.ext' (true_and _) (λ _ _, one_mul _),
    mul_one   := λ x, roption.ext' (and_true _) (λ _ _, mul_one _)}
 
-instance [comm_monoid α] : comm_monoid (roption α) :=
-{ ..roption.comm_semigroup,
+instance comm_monoid [comm_monoid α] : comm_monoid (roption α) :=
+{ mul_comm := λ x y, roption.ext' and.comm (λ _ _, mul_comm _ _),
   ..roption.monoid}
 
-instance [add_semigroup α] : add_semigroup (roption α) :=
-{ add_assoc  := λ x y z, roption.ext' and.assoc (λ _ _, add_assoc _ _ _)
-  ..roption.has_add}
-
-instance [add_comm_semigroup α] : add_comm_semigroup (roption α) :=
-{ add_comm := λ x y, roption.ext' and.comm (λ _ _, add_comm _ _)
-  ..roption.add_semigroup}
-
-instance [add_monoid α] : add_monoid (roption α) :=
-{ add_monoid.
-  add       := roption.has_add.add,
-  add_assoc := λ x y z, roption.ext' and.assoc (λ _ _, add_assoc _ _ _),
-  zero      := roption.has_zero.zero,
-  zero_add  := λ x, roption.ext' (true_and _) (λ _ _, zero_add _),
-  add_zero  := λ x, roption.ext' (and_true _) (λ _ _,add_zero _)}
-
-instance [add_comm_monoid α] : add_comm_monoid (roption α) :=
-{ add_comm := λ x y, roption.ext' and.comm (λ _ _, add_comm _ _),
-  ..roption.add_monoid}
-
-attribute [to_additive roption.add_semigroup]              roption.semigroup
-attribute [to_additive roption.add_monoid]                 roption.monoid
-attribute [to_additive roption.add_comm_monoid]            roption.comm_monoid
-attribute [to_additive roption.add_comm_semigroup]         roption.comm_semigroup
+attribute [to_additive roption.add_semigroup._proof_1]              roption.semigroup._proof_1 
+attribute [to_additive roption.add_semigroup]                       roption.semigroup 
+attribute [to_additive roption.add_monoid._proof_1]                 roption.monoid._proof_1
+attribute [to_additive roption.add_monoid._proof_2]                 roption.monoid._proof_2
+attribute [to_additive roption.add_monoid._proof_3]                 roption.monoid._proof_3
+attribute [to_additive roption.add_monoid']                         roption.monoid
+attribute [to_additive roption.add_comm_semigroup._proof_1]         roption.comm_semigroup._proof_1
+attribute [to_additive roption.add_comm_semigroup._proof_2]         roption.comm_semigroup._proof_2
+attribute [to_additive roption.add_comm_semigroup]                  roption.comm_semigroup
+attribute [to_additive roption.add_comm_monoid._proof_1]            roption.comm_monoid._proof_1
+attribute [to_additive roption.add_comm_monoid._proof_2]            roption.comm_monoid._proof_2
+attribute [to_additive roption.add_comm_monoid._proof_3]            roption.comm_monoid._proof_3
+attribute [to_additive roption.add_comm_monoid._proof_4]            roption.comm_monoid._proof_4
+attribute [to_additive roption.add_comm_monoid]                     roption.comm_monoid
 
 instance [monoid β] [mul_action β α] : mul_action β (roption α) := 
 { one_smul := λ x, roption.ext' (by simp[one_def,smul_def]) (by { intros, simp[smul_def,one_def,one_smul]}),
-  mul_smul :=  λ a b x, roption.ext'  (by simp[smul_def]) (by { intros, simp[smul_def,mul_smul]}) ,
+  mul_smul :=  λ a b x, roption.ext'  (by simp[smul_def]) (by { intros, simp[smul_def,mul_smul]}),
   ..roption.has_scalar} 
 
 instance [monoid β] [add_monoid α] [distrib_mul_action β α] : distrib_mul_action β (roption α) :=

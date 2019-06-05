@@ -350,7 +350,7 @@ lemma sum_nat_cast [add_comm_monoid β] [has_one β] (s : finset α) (f : α →
   ↑(s.sum f) = s.sum (λa, f a : α → β) :=
 (sum_hom _).symm
 
-lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_comm_monoid β]
+lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_add_comm_monoid β]
   (f : α → β) (h_zero : f 0 = 0) (h_add : ∀x y, f (x + y) ≤ f x + f y) (s : finset γ) (g : γ → α) :
   f (s.sum g) ≤ s.sum (λc, f (g c)):=
 begin
@@ -481,8 +481,8 @@ by rw [prod_insert ha, mul_eq_zero_iff_eq_zero_or_eq_zero,
 
 end integral_domain
 
-section ordered_comm_monoid
-variables [decidable_eq α] [ordered_comm_monoid β]
+section ordered_add_comm_monoid
+variables [decidable_eq α] [ordered_add_comm_monoid β]
 
 lemma sum_le_sum' : (∀x∈s, f x ≤ g x) → s.sum f ≤ s.sum g :=
 finset.induction_on s (λ _, le_refl _) $ assume a s ha ih h,
@@ -514,10 +514,10 @@ have (singleton a).sum f ≤ s.sum f,
   (λ x e, (mem_singleton.1 e).symm ▸ h) (λ x h _, hf x h),
 by rwa sum_singleton at this
 
-end ordered_comm_monoid
+end ordered_add_comm_monoid
 
-section canonically_ordered_monoid
-variables [decidable_eq α] [canonically_ordered_monoid β] [@decidable_rel β (≤)]
+section canonically_ordered_add_monoid
+variables [decidable_eq α] [canonically_ordered_add_monoid β] [@decidable_rel β (≤)]
 
 lemma sum_le_sum_of_subset (h : s₁ ⊆ s₂) : s₁.sum f ≤ s₂.sum f :=
 sum_le_sum_of_subset_of_nonneg h $ assume x h₁ h₂, zero_le _
@@ -529,7 +529,7 @@ calc s₁.sum f = (s₁.filter (λx, f x = 0)).sum f + (s₁.filter (λx, f x �
       (sum_le_zero' $ by simp only [mem_filter, and_imp]; exact λ _ _, le_of_eq)
       (sum_le_sum_of_subset $ by simpa only [subset_iff, mem_filter, and_imp])
 
-end canonically_ordered_monoid
+end canonically_ordered_add_monoid
 
 @[simp] lemma card_pi [decidable_eq α] {δ : α → Type*}
   (s : finset α) (t : Π a, finset (δ a)) :

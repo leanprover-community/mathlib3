@@ -119,7 +119,7 @@ instance : linear_ordered_semiring ℝ    := by apply_instance
 instance : ordered_semiring ℝ           := by apply_instance
 instance : ordered_comm_group ℝ         := by apply_instance
 instance : ordered_cancel_comm_monoid ℝ := by apply_instance
-instance : ordered_comm_monoid ℝ        := by apply_instance
+instance : ordered_add_comm_monoid ℝ        := by apply_instance
 instance : domain ℝ                     := by apply_instance
 
 local attribute [instance] classical.prop_decidable
@@ -355,8 +355,8 @@ theorem Sup_empty : lattice.Sup (∅ : set ℝ) = 0 := dif_neg $ by simp
 theorem Sup_of_not_bdd_above {s : set ℝ} (hs : ¬ bdd_above s) : lattice.Sup s = 0 :=
 dif_neg $ assume h, hs h.2
 
-theorem Sup_univ : real.Sup set.univ = 0 := 
-real.Sup_of_not_bdd_above $ λ h, 
+theorem Sup_univ : real.Sup set.univ = 0 :=
+real.Sup_of_not_bdd_above $ λ h,
 Exists.dcases_on h $ λ x h', not_le_of_lt (lt_add_one _) $ h' (x + 1) $ set.mem_univ _
 
 theorem Inf_empty : lattice.Inf (∅ : set ℝ) = 0 :=

@@ -496,7 +496,7 @@ by simpa only [inv_eq_one_div] using one_div_pow ha n
 @[simp] theorem div_pow [field α] (a : α) {b : α} (hb : b ≠ 0) (n : ℕ) : (a / b) ^ n = a ^ n / b ^ n :=
 by rw [div_eq_mul_one_div, mul_pow, one_div_pow hb, ← div_eq_mul_one_div]
 
-theorem add_monoid.smul_nonneg [ordered_comm_monoid α] {a : α} (H : 0 ≤ a) : ∀ n : ℕ, 0 ≤ n • a
+theorem add_monoid.smul_nonneg [ordered_add_comm_monoid α] {a : α} (H : 0 ≤ a) : ∀ n : ℕ, 0 ≤ n • a
 | 0     := le_refl _
 | (n+1) := add_nonneg' H (add_monoid.smul_nonneg n)
 
@@ -512,7 +512,7 @@ lemma pow_inv [division_ring α] (a : α) : ∀ n : ℕ, a ≠ 0 → (a^n)⁻¹ 
 | (n+1) ha := by rw [pow_succ, pow_succ', mul_inv_eq (pow_ne_zero _ ha) ha, pow_inv _ ha]
 
 namespace add_monoid
-variable [ordered_comm_monoid α]
+variable [ordered_add_comm_monoid α]
 
 theorem smul_le_smul {a : α} {n m : ℕ} (ha : 0 ≤ a) (h : n ≤ m) : n • a ≤ m • a :=
 let ⟨k, hk⟩ := nat.le.dest h in

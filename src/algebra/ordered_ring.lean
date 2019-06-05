@@ -286,11 +286,11 @@ instance to_decidable_linear_ordered_comm_ring
 end linear_nonneg_ring
 
 class canonically_ordered_comm_semiring (α : Type*) extends
-  canonically_ordered_monoid α, comm_semiring α, zero_ne_one_class α :=
+  canonically_ordered_add_monoid α, comm_semiring α, zero_ne_one_class α :=
 (mul_eq_zero_iff (a b : α) : a * b = 0 ↔ a = 0 ∨ b = 0)
 
 namespace canonically_ordered_semiring
-open canonically_ordered_monoid
+open canonically_ordered_add_monoid
 
 lemma mul_le_mul [canonically_ordered_comm_semiring α] {a b c d : α} (hab : a ≤ b) (hcd : c ≤ d) :
   a * c ≤ b * d :=
@@ -312,7 +312,7 @@ instance : canonically_ordered_comm_semiring ℕ :=
     iff.intro nat.eq_zero_of_mul_eq_zero (by simp [or_imp_distrib] {contextual := tt}),
   bot               := 0,
   bot_le            := nat.zero_le,
-  .. (infer_instance : ordered_comm_monoid ℕ),
+  .. (infer_instance : ordered_add_comm_monoid ℕ),
   .. (infer_instance : linear_ordered_semiring ℕ),
   .. (infer_instance : comm_semiring ℕ) }
 
@@ -422,7 +422,7 @@ instance [canonically_ordered_comm_semiring α] [decidable_eq α] :
   one_mul         := one_mul',
   mul_one         := assume a, by rw [comm, one_mul'],
   zero_ne_one     := assume h, @zero_ne_one α _ $ option.some.inj h,
-  .. with_top.add_comm_monoid, .. with_top.mul_zero_class, .. with_top.canonically_ordered_monoid }
+  .. with_top.add_comm_monoid, .. with_top.mul_zero_class, .. with_top.canonically_ordered_add_monoid }
 
 @[simp] lemma coe_nat : ∀(n : nat), ((n : α) : with_top α) = n
 | 0     := rfl

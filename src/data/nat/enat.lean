@@ -133,7 +133,7 @@ le_antisymm (sup_le (le_max_left _ _) (le_max_right _ _))
 
 lemma inf_eq_min {a b : enat} : a ⊓ b = min a b := rfl
 
-instance : ordered_comm_monoid enat :=
+instance : ordered_add_comm_monoid enat :=
 { add_le_add_left := λ a b ⟨h₁, h₂⟩ c,
     enat.cases_on c (by simp)
       (λ c, ⟨λ h, and.intro trivial (h₁ h.2),
@@ -149,7 +149,7 @@ instance : ordered_comm_monoid enat :=
   ..enat.decidable_linear_order,
   ..enat.add_comm_monoid }
 
-instance : canonically_ordered_monoid enat :=
+instance : canonically_ordered_add_monoid enat :=
 { le_iff_exists_add := λ a b, enat.cases_on b
     (iff_of_true le_top ⟨⊤, (add_top _).symm⟩)
     (λ b, enat.cases_on a
@@ -163,7 +163,7 @@ instance : canonically_ordered_monoid enat :=
             coe_le_coe.2 (by rw [← coe_add, coe_inj] at hc;
               rw hc; exact nat.le_add_right _ _)) hc)⟩)),
   ..enat.semilattice_sup_bot,
-  ..enat.ordered_comm_monoid }
+  ..enat.ordered_add_comm_monoid }
 
 section with_top
 

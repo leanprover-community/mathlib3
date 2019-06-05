@@ -446,7 +446,7 @@ theorem le_iff_exists_add {s t : multiset α} : s ≤ t ↔ ∃ u, t = s + u :=
   let ⟨l, p⟩ := exists_perm_append_of_sublist s in ⟨l, quot.sound p⟩,
 λ⟨u, e⟩, e.symm ▸ le_add_right s u⟩
 
-instance : canonically_ordered_monoid (multiset α) :=
+instance : canonically_ordered_add_monoid (multiset α) :=
 { lt_of_add_lt_add_left := @lt_of_add_lt_add_left _ _,
   le_iff_exists_add     := @le_iff_exists_add _,
   bot                   := 0,
@@ -790,7 +790,7 @@ multiset.induction_on s (by simp [is_add_monoid_hom.map_zero f])
   (by simp [is_add_monoid_hom.map_add f] {contextual := tt})
 attribute [to_additive multiset.sum_hom] multiset.prod_hom
 
-lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_comm_monoid β]
+lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_add_comm_monoid β]
   (f : α → β) (h_zero : f 0 = 0) (h_add : ∀x y, f (x + y) ≤ f x + f y) (s : multiset α) :
   f s.sum ≤ (s.map f).sum :=
 multiset.induction_on s (le_of_eq h_zero) $

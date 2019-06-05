@@ -46,7 +46,7 @@ by refine
   .. punit.comm_ring, .. };
 intros; trivial
 
-instance : canonically_ordered_monoid punit :=
+instance : canonically_ordered_add_monoid punit :=
 by refine
 { lt_of_add_lt_add_left := λ _ _ _, id,
   le_iff_exists_add := λ _ _, iff_of_true _ ⟨star, subsingleton.elim _ _⟩,
@@ -61,7 +61,7 @@ instance : decidable_linear_ordered_cancel_comm_monoid punit :=
   decidable_le := λ _ _, decidable.true,
   decidable_eq := punit.decidable_eq,
   decidable_lt := λ _ _, decidable.false,
-  .. punit.canonically_ordered_monoid }
+  .. punit.canonically_ordered_add_monoid }
 
 instance : module punit punit := module.of_core $
 by refine

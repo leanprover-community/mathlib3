@@ -406,7 +406,7 @@ end tsum
 end topological_semiring
 
 section order_topology
-variables [ordered_comm_monoid α] [topological_space α] [ordered_topology α]
+variables [ordered_add_comm_monoid α] [topological_space α] [ordered_topology α]
   [topological_add_monoid α]
 variables {f g : β → α} {a a₁ a₂ : α}
 

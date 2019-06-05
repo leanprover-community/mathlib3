@@ -674,8 +674,6 @@ instance has_one [has_one α] : has_one (with_bot α) := ⟨(1 : α)⟩
 
 attribute [to_additive with_bot.has_zero.equations._eqn_1] with_bot.has_one.equations._eqn_1
 
-@[simp] lemma coe_one [has_one α] : ((1 : α) : with_bot α) = 1 := rfl
-
 end with_bot
 
 section canonically_ordered_monoid

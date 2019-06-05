@@ -378,6 +378,33 @@ by { simp [res], split; {intro h, simp [h]} }
 theorem res_univ (f : α → β) : pfun.res f set.univ = f :=
 rfl
 
+section glue
+
+variable {ι : Sort*}
+
+/-- Glue together families of partial functions. -/
+noncomputable def glue (f_ : ι → α →. β) : α →. β :=
+λ a, ⟨∃ i : ι, a ∈ dom (f_ i), λ ha, (f_ _ a).get (classical.some_spec ha)⟩
+
+theorem glue_dom_eq_Union {f_ : ι → α →. β} {x : α} :
+  dom (glue f_) = ⋃ i, dom (f_ i) :=
+set.ext $ λ x, by { rw set.mem_Union, exact iff.rfl }
+
+theorem glue_mem {f : ι → α →. β} {a : α}
+  (ha : ∃ i, a ∈ dom (f i)) : ∃ i b, b ∈ f i a ∧ b ∈ glue f a :=
+⟨_, _, ⟨classical.some_spec ha, rfl⟩, _, rfl⟩
+
+theorem glue_eq_mem {f : ι → α →. β}
+  (H : ∀ i i' a b b', b ∈ f i a → b' ∈ f i' a → b = b')
+  {i : ι} {a : α} {b : β} (ha : b ∈ f i a) : b ∈ glue f a :=
+begin
+  rcases (glue_mem _) with ⟨_, _, hi', hb'⟩,
+  exact (H _ _ _ _ _ hi' ha) ▸ hb',
+  cases ha, exact ⟨_, ha_w⟩,
+end
+
+end glue
+
 theorem dom_iff_graph (f : α →. β) (x : α) : x ∈ f.dom ↔ ∃y, (x, y) ∈ f.graph :=
 roption.dom_iff_mem
 

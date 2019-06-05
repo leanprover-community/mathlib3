@@ -1,4 +1,4 @@
-import tactic.localized_notation
+import tactic.localized
 
 open tactic
 local infix ` ⊹ `:59 := nat.mul

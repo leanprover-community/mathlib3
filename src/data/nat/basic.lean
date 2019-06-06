@@ -235,6 +235,9 @@ protected theorem sub_lt_left_iff_lt_add (H : n ≤ k) : k - n < m ↔ k < n + m
 protected theorem le_sub_left_iff_add_le (H : m ≤ k) : n ≤ k - m ↔ m + n ≤ k :=
 le_iff_le_iff_lt_iff_lt.2 (nat.sub_lt_left_iff_lt_add H)
 
+protected theorem lt_of_add_lt_add_right {k n m : ℕ} (h : n + k < m + k) : n < m :=
+by rw [nat.add_comm n,nat.add_comm m] at h; exact lt_of_add_lt_add_left h
+
 protected theorem le_sub_right_iff_add_le (H : n ≤ k) : m ≤ k - n ↔ m + n ≤ k :=
 by rw [nat.le_sub_left_iff_add_le H, add_comm]
 

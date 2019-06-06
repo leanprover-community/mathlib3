@@ -139,7 +139,7 @@ begin
     exact hi }
 end
 
-def approx_chain : chain (α → roption β) :=
+noncomputable def approx_chain : chain (α → roption β) :=
 begin
   refine ⟨ approx f, _ ⟩,
   apply approx_mono, exact hf

@@ -207,7 +207,7 @@ begin
   { rcases h with ⟨ ⟨ ⟩ ⟩ }
 end
 
-noncomputable def complete_partial_order : complete_partial_order (roption α) :=
+noncomputable instance complete_partial_order : complete_partial_order (roption α) :=
 { Sup    := roption.Sup,
   le_Sup := λ c x hx, by { intros a ha, rw ← eq_some_iff at ha, subst x,
                            rw Sup_eq_some hx, apply mem_some },
@@ -216,7 +216,7 @@ noncomputable def complete_partial_order : complete_partial_order (roption α) :
 
 section inst
 
-local attribute [instance] complete_partial_order
+-- local attribute [instance] complete_partial_order
 
 lemma mem_Sup (x : α) (c : chain (roption α)) : x ∈ Sup c ↔ some x ∈ c :=
 begin

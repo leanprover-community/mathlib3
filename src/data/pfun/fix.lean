@@ -229,7 +229,7 @@ class has_fix (α : Type*) :=
 open has_fix complete_partial_order
 
 class lawful_fix (α : Type*) [has_fix α] [complete_partial_order α] :=
-(fix_eq : ∀ {f : α → α} {hm : monotone f}, continuous f hm → fix f = f (fix f))
+(fix_eq : ∀ {f : α → α}, continuous' f → fix f = f (fix f))
 
 namespace roption
 
@@ -243,12 +243,12 @@ local attribute [instance] roption.complete_partial_order
 def to_unit_mono (f : roption α → roption α) (hm : monotone f) : monotone (to_unit f) :=
 λ x y h a, hm $ by exact h ()
 
-def to_unit_cont (f : roption α → roption α) {hm : monotone f} (hc : continuous f hm) : continuous (to_unit f) (to_unit_mono f hm) :=
-λ c, by { ext : 1, dsimp [to_unit,complete_partial_order.Sup], erw [hc _,chain.map_comp], refl }
+def to_unit_cont (f : roption α → roption α) : Π hc : continuous' f, continuous (to_unit f) (to_unit_mono f hc.fst)
+| ⟨hm,hc⟩ := by { intro c, ext : 1, dsimp [to_unit,complete_partial_order.Sup], erw [hc _,chain.map_comp], refl }
 
 noncomputable instance : lawful_fix (roption α) :=
-⟨ λ f hm hc, by { dsimp [fix],
-                 conv { to_lhs, rw [pi.fix_eq (to_unit_cont f hc)] }, refl } ⟩
+⟨ λ f hc, by { dsimp [fix],
+              conv { to_lhs, rw [pi.fix_eq (to_unit_cont f hc)] }, refl } ⟩
 
 end roption
 
@@ -260,7 +260,7 @@ instance roption.has_fix {β} : has_fix (α → roption β) :=
 local attribute [instance] roption.complete_partial_order
 
 noncomputable instance {β} : lawful_fix (α → roption β) :=
-⟨ λ f hm hc, by { dsimp [fix], conv { to_lhs, rw [fix_eq hc], } } ⟩
+⟨ λ f hc, by { dsimp [fix], conv { to_lhs, rw [fix_eq hc.snd], } } ⟩
 
 variables {β : α → Type*} {γ : Π a : α, β a → Type*}
 
@@ -315,7 +315,7 @@ continuous_comp (f ∘ curry) _ uncurry _
 end curry
 
 instance pi.lawful_fix' [has_fix $ Π x : sigma β, γ x.1 x.2] [lawful_fix $ Π x : sigma β, γ x.1 x.2] : lawful_fix (Π x y, γ x y) :=
-⟨ λ f hm hc, by {
-  dsimp [fix], conv { to_lhs, rw [lawful_fix.fix_eq (uncurry_cont hc)] }, refl, } ⟩
+⟨ λ f hc, by {
+  dsimp [fix], conv { to_lhs, rw [lawful_fix.fix_eq ⟨_, uncurry_cont hc.snd⟩] }, refl, } ⟩
 
 end pi

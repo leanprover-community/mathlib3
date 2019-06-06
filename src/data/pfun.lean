@@ -308,6 +308,15 @@ by rw [bind_some_eq_map]; simp [map_id']
 @[simp] theorem bind_eq_bind {α β} (f : roption α) (g : α → roption β) :
   f >>= g = f.bind g := rfl
 
+lemma bind_le {α} (x : roption α) (f : α → roption β) (y : roption β) :
+  x >>= f ≤ y ↔ (∀ a, a ∈ x → f a ≤ y) :=
+begin
+  split; intro h,
+  { intros a h' b, replace h := h b, simp at h, apply h _ h' },
+  { intros b h', simp at h', rcases h' with ⟨a,h₀,h₁⟩,
+    apply h _ h₀ _ h₁ },
+end
+
 instance : monad_fail roption :=
 { fail := λ_ _, none, ..roption.monad }
 

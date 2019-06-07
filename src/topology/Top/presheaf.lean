@@ -2,20 +2,19 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Scott Morrison, Mario Carneiro, Reid Barton
 
-import category_theory.instances.Top.opens
+import topology.Top.opens
 import category_theory.whiskering
 
 universes v u
 
 open category_theory
-open category_theory.instances
 open topological_space
 open opposite
 
 variables (C : Type u) [𝒞 : category.{v+1} C]
 include 𝒞
 
-namespace category_theory.instances.Top
+namespace Top
 
 def presheaf (X : Top.{v}) := (opens X)ᵒᵖ ⥤ C
 
@@ -28,7 +27,7 @@ variables {C}
 def pushforward {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) : Y.presheaf C :=
 (opens.map f).op ⋙ ℱ
 
-infix `_*`: 80 := pushforward
+infix ` _* `: 80 := pushforward
 
 def pushforward_eq {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf C) :
   f _* ℱ ≅ g _* ℱ :=
@@ -47,14 +46,10 @@ def id : (𝟙 X) _* ℱ ≅ ℱ :=
   (id ℱ).hom.app (op ⟨U, p⟩) = ℱ.map (𝟙 (op ⟨U, p⟩)) :=
 by { dsimp [id], simp, }
 
+local attribute [tidy] tactic.op_induction'
+
 @[simp] lemma id_hom_app (U) :
-  (id ℱ).hom.app U = ℱ.map (eq_to_hom (opens.op_map_id_obj U)) :=
-begin
-  op_induction U,
-  cases U,
-  simp,
-  apply category_theory.functor.map_id,
-end
+  (id ℱ).hom.app U = ℱ.map (eq_to_hom (opens.op_map_id_obj U)) := by tidy
 
 @[simp] lemma id_inv_app' (U) (p) : (id ℱ).inv.app (op ⟨U, p⟩) = ℱ.map (𝟙 (op ⟨U, p⟩)) :=
 by { dsimp [id], simp, }
@@ -65,17 +60,17 @@ iso_whisker_right (nat_iso.op (opens.map_comp f g).symm) ℱ
 @[simp] lemma comp_hom_app {Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (comp ℱ f g).hom.app U = 𝟙 _ :=
 begin
   dsimp [pushforward, comp],
-  erw category_theory.functor.map_id, -- FIXME simp should do this
+  tidy,
 end
 
 @[simp] lemma comp_inv_app {Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (comp ℱ f g).inv.app U = 𝟙 _ :=
 begin
   dsimp [pushforward, comp],
-  erw category_theory.functor.map_id,
+  tidy,
 end
 
 end pushforward
 
 end presheaf
 
-end category_theory.instances.Top
+end Top

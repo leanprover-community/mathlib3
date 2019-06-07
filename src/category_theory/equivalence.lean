@@ -296,19 +296,19 @@ def fun_obj_preimage_iso (F : C ⥤ D) [ess_surj F] (d : D) : F.obj (F.obj_preim
 ess_surj.iso F d
 end functor
 
-namespace equivalence
+namespace is_equivalence
 
-def ess_surj_of_equivalence (F : C ⥤ D) [is_equivalence F] : ess_surj F :=
+def is_ess_surj (F : C ⥤ D) [is_equivalence F] : ess_surj F :=
 ⟨ λ Y : D, F.inv.obj Y, λ Y : D, (F.inv_fun_id.app Y) ⟩
 
-instance faithful_of_equivalence (F : C ⥤ D) [is_equivalence F] : faithful F :=
+instance is_faithful_ (F : C ⥤ D) [is_equivalence F] : faithful F :=
 { injectivity' := λ X Y f g w,
   begin
     have p := congr_arg (@category_theory.functor.map _ _ _ _ F.inv _ _) w,
     simpa only [cancel_epi, cancel_mono, is_equivalence.inv_fun_map] using p
   end }.
 
-instance full_of_equivalence (F : C ⥤ D) [is_equivalence F] : full F :=
+instance is_full (F : C ⥤ D) [is_equivalence F] : full F :=
 { preimage := λ X Y f, (F.fun_inv_id.app X).inv ≫ (F.inv.map f) ≫ (F.fun_inv_id.app Y).hom,
   witness' := λ X Y f,
   begin
@@ -328,15 +328,15 @@ instance full_of_equivalence (F : C ⥤ D) [is_equivalence F] : full F :=
     erw [nat_iso.naturality_1], refl
   end }.
 
-@[simp] private def equivalence_inverse (F : C ⥤ D) [full F] [faithful F] [ess_surj F] : D ⥤ C :=
+@[simp] private def construct_inverse (F : C ⥤ D) [full F] [faithful F] [ess_surj F] : D ⥤ C :=
 { obj  := λ X, F.obj_preimage X,
   map := λ X Y f, F.preimage ((F.fun_obj_preimage_iso X).hom ≫ f ≫ (F.fun_obj_preimage_iso Y).inv),
   map_id' := λ X, begin apply F.injectivity, tidy end,
   map_comp' := λ X Y Z f g, by apply F.injectivity; simp }.
 
-def equivalence_of_fully_faithfully_ess_surj
+def of_fully_faithfully_ess_surj
   (F : C ⥤ D) [full F] [faithful : faithful F] [ess_surj F] : is_equivalence F :=
-is_equivalence.mk (equivalence_inverse F)
+is_equivalence.mk (construct_inverse F)
   (nat_iso.of_components
     (λ X, (preimage_iso $ F.fun_obj_preimage_iso $ F.obj X).symm)
     (λ X Y f, by { apply F.injectivity, obviously }))
@@ -344,6 +344,6 @@ is_equivalence.mk (equivalence_inverse F)
     (λ Y, F.fun_obj_preimage_iso Y)
     (by obviously))
 
-end equivalence
+end is_equivalence
 
 end category_theory

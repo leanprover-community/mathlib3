@@ -147,18 +147,17 @@ not_lt_of_le this $
   calc y.1 ≤ y.1 + nat.find hx : le_add_of_nonneg_right (nat.zero_le _)
   ... < y.1 + nat.find hx + 1 : nat.lt_succ_self _
 
-lemma lt_succ_self (x : s) :  x < succ x :=
+lemma lt_succ_self (x : s) : x < succ x :=
 calc x.1 ≤ x.1 + _ : le_add_right (le_refl _)
 ... < succ x : nat.lt_succ_self (x.1 + _)
+
+lemma lt_succ_iff_le {x y : s} : x < succ y ↔ x ≤ y :=
+⟨λ h, le_of_not_gt (λ h', not_le_of_gt h (succ_le_of_lt h')),
+  λ h, lt_of_le_of_lt h (lt_succ_self _)⟩
 
 def of_nat (s : set ℕ) [decidable_pred s] [infinite s] : ℕ → s
 | 0     := ⊥
 | (n+1) := succ (of_nat n)
-
-lemma of_nat_strict_mono : strict_mono (of_nat s) :=
-nat.strict_mono_of_lt_succ _ (λ a, by rw of_nat; exact lt_succ_self _)
-
-open list
 
 lemma of_nat_surjective_aux : ∀ {x : ℕ} (hx : x ∈ s), ∃ n, of_nat s n = ⟨x, hx⟩
 | x := λ hx, let t : list s := ((list.range x).filter (λ y, y ∈ s)).pmap
@@ -169,7 +168,7 @@ if ht : t = [] then ⟨0, le_antisymm (@bot_le s _ _)
   (le_of_not_gt (λ h, list.not_mem_nil ⊥ $
     by rw [← ht, hmt]; exact h))⟩
 else by letI : inhabited s := ⟨⊥⟩;
-  exact have wf : (maximum t).1 < x, by simpa [hmt] using list.mem_maximum ht,
+  exact have wf : (list.maximum t).1 < x, by simpa [hmt] using list.mem_maximum ht,
   let ⟨a, ha⟩ := of_nat_surjective_aux (list.maximum t).2 in
   ⟨a + 1, le_antisymm
     (by rw of_nat; exact succ_le_of_lt (by rw ha; exact wf)) $
@@ -179,15 +178,49 @@ else by letI : inhabited s := ⟨⊥⟩;
 lemma of_nat_surjective : surjective (of_nat s) :=
 λ ⟨x, hx⟩, of_nat_surjective_aux hx
 
+private def to_fun_aux (x : s) : ℕ :=
+(list.range x).countp s
+
+private lemma to_fun_aux_eq (x : s) :
+  to_fun_aux x = ((finset.range x).filter s).card :=
+by rw [to_fun_aux, list.countp_eq_length_filter]; refl
+
+open finset
+
+private lemma right_inverse_aux : ∀ n, to_fun_aux (of_nat s n) = n
+| 0 := begin
+  rw [to_fun_aux_eq, card_eq_zero, eq_empty_iff_forall_not_mem],
+  assume n,
+  rw [mem_filter, of_nat, mem_range],
+  assume h,
+  exact not_lt_of_le bot_le (show (⟨n, h.2⟩ : s) < ⊥, from h.1)
+end
+| (n+1) := have ih : to_fun_aux (of_nat s n) = n, from right_inverse_aux n,
+have h₁ : (of_nat s n : ℕ) ∉ (range (of_nat s n)).filter s, by simp,
+have h₂ : (range (succ (of_nat s n))).filter s =
+    insert (of_nat s n) ((range (of_nat s n)).filter s),
+  begin
+    simp only [finset.ext, mem_insert, mem_range, mem_filter],
+    assume m,
+    exact ⟨λ h, by simp only [h.2, and_true]; exact or.symm
+        (lt_or_eq_of_le ((@lt_succ_iff_le _ _ _ ⟨m, h.2⟩ _).1 h.1)),
+      λ h, h.elim (λ h, h.symm ▸ ⟨lt_succ_self _, subtype.property _⟩)
+        (λ h, ⟨lt_of_le_of_lt (le_of_lt h.1) (lt_succ_self _), h.2⟩)⟩
+  end,
+begin
+  clear_aux_decl,
+  simp only [to_fun_aux_eq, of_nat, range_succ] at *,
+  conv {to_rhs, rw [← ih, ← card_insert_of_not_mem h₁, ← h₂] },
+end
+
+
 def denumerable (s : set ℕ) [decidable_pred s] [infinite s] : denumerable s :=
-have li : left_inverse (of_nat s) (λ x : s, nat.find (of_nat_surjective x)),
-  from λ x, nat.find_spec (of_nat_surjective x),
 denumerable.of_equiv ℕ
-{ to_fun := λ x, nat.find (of_nat_surjective x),
+{ to_fun := to_fun_aux,
   inv_fun := of_nat s,
-  left_inv := li,
-  right_inv := right_inverse_of_injective_of_left_inverse
-    (strict_mono.injective of_nat_strict_mono) li }
+  left_inv := left_inverse_of_surjective_of_right_inverse
+    of_nat_surjective right_inverse_aux,
+  right_inv := right_inverse_aux }
 
 end nat.subtype
 

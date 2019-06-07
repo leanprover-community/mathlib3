@@ -69,27 +69,56 @@ if n > 100
 example : ∀ (n : ℕ), f91 n = ite (n > 100) (pure (n - 10)) (f91 (n + 11) >>= f91) :=
 roption.examples.f91.equations._eqn_1
 
--- #check nat.lt_of_add_lt_add_left
+lemma f91_spec (n : ℕ) : (∃ n', n < n' + 11 ∧ n' ∈ f91 n) :=
+begin
+  apply well_founded.induction (measure_wf $ λ n, 101 - n) n,
+  clear n, dsimp [measure,inv_image], intros n ih,
+  by_cases h' : n > 100,
+  { rw [roption.examples.f91.equations._eqn_1,if_pos h'],
+    existsi n - 10, rw nat.sub_add_eq_add_sub, norm_num [pure],
+    apply le_of_lt, transitivity 100, norm_num, exact h' },
+  { rw [roption.examples.f91.equations._eqn_1,if_neg h'],
+    simp, rcases ih (n + 11) _ with ⟨n',hn₀,hn₁⟩,
+    rcases ih (n') _ with ⟨n'',hn'₀,hn'₁⟩,
+    refine ⟨n'',_,_,hn₁,hn'₁⟩,
+    { clear ih hn₁ hn'₁, omega },
+    { clear ih hn₁, omega },
+    { clear ih, omega } },
+end
 
--- example (n : ℕ) : (∃ n', n < n' + 11 ∧ n' ∈ f91 n) :=
--- begin
---   generalize h : 101 - n = k, revert n,
---   apply nat.strong_induction_on k,
---   intros k ih k' h,
---   by_cases h' : k' > 100,
---   { rw [roption.examples.f91.equations._eqn_1,if_pos h'],
---     existsi k' - 10, rw nat.sub_add_eq_add_sub, norm_num [pure],
---     apply le_of_lt, transitivity 100, norm_num, exact h' },
---   { have := ih (k - 11) _ (k' + 11) _,
---     rcases this with ⟨z,hz,hz'⟩, replace hz := nat.lt_of_add_lt_add_right hz,
---     rw [roption.examples.f91.equations._eqn_1,if_neg h'],
---     simp, rw ← roption.eq_some_iff at hz', rw hz',
---     have := ih k' _ z _,
---     rcases this with ⟨y,hy,hy'⟩,
---     existsi [y,_,z,roption.mem_some _], exact hy',
---     { transitivity, apply hz, apply hy },
---     { subst k, rw nat.lt_sub_left_iff_add_lt, }
---   },
--- end
+lemma f91_dom (n : ℕ) : (f91 n).dom :=
+by rw roption.dom_iff_mem; apply exists_imp_exists _ (f91_spec n); simp
+
+def f91' (n : ℕ) : ℕ := (f91 n).get (f91_dom n)
+
+#eval f91' 109
+-- 99
+
+lemma f91_spec' (n : ℕ) : f91' n = if n > 100 then n - 10 else 91 :=
+begin
+  suffices : (∃ n', n' ∈ f91 n ∧ n' = if n > 100 then n - 10 else 91),
+  { dsimp [f91'], rw roption.get_eq_of_mem,
+    rcases this with ⟨n,_,_⟩, subst n, assumption },
+  apply well_founded.induction (measure_wf $ λ n, 101 - n) n,
+  clear n, dsimp [measure,inv_image], intros n ih,
+  by_cases h' : n > 100,
+  { rw [roption.examples.f91.equations._eqn_1,if_pos h',if_pos h'],
+    simp [pure] },
+  { rw [roption.examples.f91.equations._eqn_1,if_neg h',if_neg h'],
+    simp, rcases ih (n + 11) _ with ⟨n',hn'₀,hn'₁⟩,
+    split_ifs at hn'₁,
+    { subst hn'₁, norm_num at hn'₀, refine ⟨_,hn'₀,_⟩,
+      rcases ih (n+1) _ with ⟨n',hn'₀,hn'₁⟩,
+      split_ifs at hn'₁,
+      { subst n', convert hn'₀, clear hn'₀ hn'₀ ih, omega },
+      { subst n', exact hn'₀ },
+      { clear ih hn'₀, omega } },
+    { refine ⟨_,hn'₀,_⟩, subst n',
+      rcases ih 91 _ with ⟨n',hn'₀,hn'₁⟩,
+      rw if_neg at hn'₁, subst n', exact hn'₀,
+      { clear ih hn'₀ hn'₀, omega, },
+      { clear ih hn'₀, omega, } },
+    { clear ih, omega } }
+end
 
 end roption.examples

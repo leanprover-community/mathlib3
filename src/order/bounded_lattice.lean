@@ -281,7 +281,7 @@ theorem monotone_or {p q : α → Prop} (m_p : monotone p) (m_q : monotone q) :
 assume a b h, or.imp (m_p h) (m_q h)
 end logic
 
-instance pi.order_bot {α β : Type*} [order_bot β]  : order_bot (α → β) :=
+instance pi.order_bot {α : Type*} {β : α → Type*} [∀ a, order_bot $ β a]  : order_bot (Π a, β a) :=
 { bot := λ _, ⊥,
   bot_le := λ x a, bot_le,
   .. pi.partial_order }
@@ -747,4 +747,3 @@ instance [bounded_distrib_lattice α] [bounded_distrib_lattice β] :
 { .. prod.lattice.bounded_lattice α β, .. prod.lattice.distrib_lattice α β }
 
 end prod
-

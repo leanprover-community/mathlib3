@@ -17,20 +17,20 @@ open lattice (has_bot order_bot) roption
 open nat nat.up lattice.has_bot lattice.order_bot (bot_le)
 open complete_partial_order (Sup)
 
-variables {β : Type*} (f : (α → roption β) → (α → roption β))
+variables {β : α → Type*} (f : (Π a, roption $ β a) → (Π a, roption $ β a))
 
 def succ' (i : α → ℕ) (x : α) : ℕ := (i x).succ
 
-def approx : stream $ α → roption β
+def approx : stream $ Π a, roption $ β a
 | 0 := ⊥
 | (nat.succ i) := f (approx i)
 
-def fix_aux {p : ℕ → Prop} (i : nat.up p) (g : Π j : nat.up p, j < i → α → roption β) : α → roption β :=
+def fix_aux {p : ℕ → Prop} (i : nat.up p) (g : Π j : nat.up p, j < i → Π a, roption $ β a) : Π a, roption $ β a :=
 f $ λ x : α,
 assert (¬p (i.val)) $ λ h : ¬ p (i.val),
 g (i.succ h) (nat.lt_succ_self _) x
 
-def fix (x : α) : roption β :=
+def fix (x : α) : roption $ β x :=
 assert (∃ i, (approx f i x).dom) $ λ h,
 well_founded.fix.{1} (nat.up.wf h) (fix_aux f) nat.up.zero x
 
@@ -85,7 +85,7 @@ begin
   apply approx_mono' hf
 end
 
-lemma mem_fix (a : α) (b : β) : b ∈ fix f a ↔ ∃ i, b ∈ approx f i a :=
+lemma mem_fix (a : α) (b : β a) : b ∈ fix f a ↔ ∃ i, b ∈ approx f i a :=
 begin
   by_cases h₀ : ∃ (i : ℕ), (approx f i a).dom,
   { simp [fix_def f h₀],
@@ -139,7 +139,7 @@ begin
     exact hi }
 end
 
-noncomputable def approx_chain : chain (α → roption β) :=
+noncomputable def approx_chain : chain (Π a, roption $ β a) :=
 begin
   refine ⟨ approx f, _ ⟩,
   apply approx_mono, exact hf
@@ -167,10 +167,10 @@ namespace pi
 
 open fix
 
-variables {α} {β : Type*}
+variables {α} {β : α → Type*}
 open lattice (order_bot) complete_partial_order
 
-variables {f : (α → roption β) → α → roption β} (hf : monotone f)
+variables {f : (Π a, roption $ β a) → (Π a, roption $ β a)} (hf : monotone f)
 
 include hf
 
@@ -192,7 +192,7 @@ begin
     intros y x, revert y, simp, apply max_fix hf },
 end
 
-lemma fix_le {X : α → roption β} (hX : f X ≤ X) : fix f ≤ X :=
+lemma fix_le {X : Π a, roption $ β a} (hX : f X ≤ X) : fix f ≤ X :=
 begin
   rw fix_eq_Sup hf,
   apply Sup_le _ _ _,

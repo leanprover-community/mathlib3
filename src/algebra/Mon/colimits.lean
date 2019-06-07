@@ -1,10 +1,9 @@
-import category_theory.instances.Mon.basic
+import algebra.Mon.basic
 import category_theory.limits.limits
 
 universes v
 
 open category_theory
-open category_theory.instances
 open category_theory.limits
 
 /-
@@ -28,7 +27,7 @@ colimits of commutative rings.
 A slightly bolder claim is that we could do this with tactics, as well.
 -/
 
-namespace category_theory.instances.Mon.colimits
+namespace Mon.colimits
 
 variables {J : Type v} [small_category J] (F : J ⥤ Mon.{v})
 
@@ -234,4 +233,4 @@ instance has_colimits_Mon : @has_colimits Mon.{v} infer_instance :=
     { cocone := colimit_cocone F,
       is_colimit := colimit_is_colimit F } } }
 
-end category_theory.instances.Mon.colimits
+end Mon.colimits

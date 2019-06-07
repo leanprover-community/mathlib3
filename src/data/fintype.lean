@@ -688,13 +688,16 @@ class infinite (α : Type*) : Prop :=
 
 namespace infinite
 
-instance nonempty (α : Type*) [infinite α] : nonempty α :=
-classical.by_contradiction $ λ h, not_fintype ⟨(∅ : finset α), λ x, (h ⟨x⟩).elim⟩
+lemma exists_not_mem_finset [infinite α] (s : finset α) : ∃ x, x ∉ s :=
+classical.not_forall.1 $ λ h, not_fintype ⟨s, h⟩
 
-lemma of_injective {α β : Type*} [infinite β] (f : β → α) (hf : injective f) : infinite α :=
+instance nonempty (α : Type*) [infinite α] : nonempty α :=
+nonempty_of_exists (exists_not_mem_finset (∅ : finset α))
+
+lemma of_injective [infinite β] (f : β → α) (hf : injective f) : infinite α :=
 ⟨λ I, by exactI not_fintype (fintype.of_injective f hf)⟩
 
-lemma of_surjective {α β : Type*} [infinite β] (f : α → β) (hf : surjective f) : infinite α :=
+lemma of_surjective [infinite β] (f : α → β) (hf : surjective f) : infinite α :=
 ⟨λ I, by classical; exactI not_fintype (fintype.of_surjective f hf)⟩
 
 end infinite

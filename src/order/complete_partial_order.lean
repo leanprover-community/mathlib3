@@ -216,8 +216,6 @@ noncomputable instance complete_partial_order : complete_partial_order (roption 
 
 section inst
 
--- local attribute [instance] complete_partial_order
-
 lemma mem_Sup (x : α) (c : chain (roption α)) : x ∈ Sup c ↔ some x ∈ c :=
 begin
   simp [Sup,roption.Sup],

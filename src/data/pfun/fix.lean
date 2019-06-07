@@ -174,8 +174,6 @@ variables {f : (α → roption β) → α → roption β} (hf : monotone f)
 
 include hf
 
-local attribute [instance] roption.complete_partial_order
-
 open roption (hiding Sup) nat
 open nat.up complete_partial_order
 
@@ -238,8 +236,6 @@ def to_unit (f : α → α) (x : unit → α) (_ : unit) : α := f (x ())
 instance : has_fix (roption α) :=
 ⟨ λ f, fix.fix (to_unit f) () ⟩
 
-local attribute [instance] roption.complete_partial_order
-
 def to_unit_mono (f : roption α → roption α) (hm : monotone f) : monotone (to_unit f) :=
 λ x y h a, hm $ by exact h ()
 
@@ -256,8 +252,6 @@ namespace pi
 
 instance roption.has_fix {β} : has_fix (α → roption β) :=
 ⟨ fix.fix ⟩
-
-local attribute [instance] roption.complete_partial_order
 
 noncomputable instance {β} : lawful_fix (α → roption β) :=
 ⟨ λ f hc, by { dsimp [fix], conv { to_lhs, rw [fix_eq hc.snd], } } ⟩

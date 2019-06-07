@@ -53,7 +53,6 @@ end mono
 section continuity
 
 variables [complete_partial_order α] [complete_partial_order β] [complete_partial_order γ]
-local attribute [instance] roption.complete_partial_order
 
 lemma cont_const [complete_partial_order β] (f : β) (c : chain α) :
   Sup (c.map (λ _, f) (const_mono _)) = f :=
@@ -255,8 +254,8 @@ do { ls ← get_eqn_lemmas_for ff n,
         add_decl $ declaration.thm l' ls eqn pr }
 
 @[user_attribute]
-meta def recursive_decl_attr : user_attribute :=
-{ name := `recursive_decl,
+meta def partial_attr : user_attribute :=
+{ name := `partial,
   descr := "Create a recursive declaration from a functional",
   after_set := some $ λ n _ b,
     do d ← get_decl n,

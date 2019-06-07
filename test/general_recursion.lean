@@ -9,14 +9,14 @@ universes u_1 u_2
 namespace roption.examples
 open function has_fix complete_partial_order
 
-@[recursive_decl]
+@[partial]
 def easy.intl (easy : ℕ → ℕ → roption ℕ) : ℕ → ℕ → roption ℕ
 | x y := pure x
 
 example : ∀ (x y : ℕ), easy x y = pure x :=
 roption.examples.easy.equations._eqn_1
 
-@[recursive_decl]
+@[partial]
 def div.intl (div : ℕ → ℕ → roption ℕ) : ℕ → ℕ → roption ℕ
 | x y :=
 if y ≤ x ∧ y > 0
@@ -31,7 +31,7 @@ inductive tree (α : Type*)
 
 open tree
 
-@[recursive_decl]
+@[partial]
 def tree_map.intl {α β} (f : α → β) (tree_map : tree α → roption (tree β)) : tree α → roption (tree β)
 | nil := pure nil
 | (node x t₀ t₁) :=
@@ -47,7 +47,7 @@ example : ∀ {α : Type u_1} {β : Type u_2} (f : α → β) (x : α) (t₀ t�
     tree_map f t₀ >>= λ (tt₀ : tree β), tree_map f t₁ >>= λ (tt₁ : tree β), pure (node (f x) tt₀ tt₁) :=
 @roption.examples.tree_map.equations._eqn_2
 
-@[recursive_decl]
+@[partial]
 def tree_map'.intl {α β} (f : α → β) (tree_map : tree α → roption (tree β)) : tree α → roption (tree β)
 | nil := pure nil
 | (node x t₀ t₁) :=
@@ -60,7 +60,7 @@ example : ∀ {α : Type u_1} {β : Type u_2} (f : α → β) (x : α) (t₀ t�
   tree_map' f (node x t₀ t₁) = node (f x) <$> tree_map' f t₀ <*> tree_map' f t₁ :=
 @roption.examples.tree_map'.equations._eqn_2
 
-@[recursive_decl]
+@[partial]
 def f91.intl (f91 : ℕ → roption ℕ) (n : ℕ) : roption ℕ :=
 if n > 100
   then pure $ n - 10

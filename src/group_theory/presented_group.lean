@@ -22,7 +22,7 @@ namespace to_group
 
 /-
 Presented groups satisfy a universal property. If β is a group and f : α → β is a map such that the
-images of f satisfy all the given relations, thenf extends to a group homomorphism from
+images of f satisfy all the given relations, then f extends uniquely to a group homomorphism from
 presented_group rels to β
 -/
 

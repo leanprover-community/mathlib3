@@ -16,6 +16,8 @@ open category_theory.iso
 
 namespace category_theory
 
+open category_theory.monoidal_category_aux
+
 class monoidal_category (C : Sort u) extends category.{v} C :=
 -- curried tensor product of objects:
 (tensor_obj               : C → C → C)

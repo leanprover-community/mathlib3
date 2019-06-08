@@ -48,7 +48,7 @@ variables (hom : ∀ {α β : Sort u}, c α → c β → (α → β) → Prop)
 variables [h : concrete_category @hom]
 include h
 
-instance : category (bundled c) :=
+instance category : category (bundled c) :=
 { hom   := λ a b, subtype (hom a.2 b.2),
   id    := λ a, ⟨@id a.1, h.hom_id a.2⟩,
   comp  := λ a b c f g, ⟨g.1 ∘ f.1, h.hom_comp a.2 b.2 c.2 g.2 f.2⟩ }

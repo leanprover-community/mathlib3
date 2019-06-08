@@ -65,9 +65,9 @@ set_option class.instance_max_depth 100
 section
 
 variables {k : Type*} [nondiscrete_normed_field k]
-variables {E : Type*} [normed_space k E]
-variables {F : Type*} [normed_space k F]
-variables {G : Type*} [normed_space k G]
+variables {E : Type*} [normed_group E] [normed_space k E]
+variables {F : Type*} [normed_group F] [normed_space k F]
+variables {G : Type*} [normed_group G] [normed_space k G]
 
 def has_fderiv_at_filter (f : E → F) (f' : E →L[k] F) (x : E) (L : filter E) :=
 is_o (λ x', f x' - f x - f' (x' - x)) (λ x', x' - x) L
@@ -1250,9 +1250,9 @@ end
 
 section
 
-variables {E : Type*} [normed_space ℝ E]
-variables {F : Type*} [normed_space ℝ F]
-variables {G : Type*} [normed_space ℝ G]
+variables {E : Type*} [normed_group E] [normed_space ℝ E]
+variables {F : Type*} [normed_group F] [normed_space ℝ F]
+variables {G : Type*} [normed_group G] [normed_space ℝ G]
 
 theorem has_fderiv_at_filter_real_equiv {f : E → F} {f' : E →L[ℝ] F} {x : E} {L : filter E} :
   tendsto (λ x' : E, ∥x' - x∥⁻¹ * ∥f x' - f x - f' (x' - x)∥) L (nhds 0) ↔

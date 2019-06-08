@@ -13,7 +13,7 @@ variables {α : Type}
 /-- Given a set of relations, rels, over a type α, presented_group constructs the group with
 generators α and relations rels as a quotient of free_group α.-/
 def presented_group (rels : set (free_group α)) : Type :=
-    quotient_group.quotient $ group.normal_closure rels
+quotient_group.quotient $ group.normal_closure rels
 
 namespace presented_group
 
@@ -25,7 +25,7 @@ mapped to the equivalence class of the image of x in free_group α. -/
 def of {rels : set (free_group α)} (x : α) : presented_group rels :=
 quotient_group.mk (free_group.of x)
 
-namespace to_group
+section to_group
 
 /-
 Presented groups satisfy a universal property. If β is a group and f : α → β is a map such that the
@@ -39,16 +39,16 @@ local notation `F` := free_group.to_group f
 
 variable (h : ∀ r ∈ rels, F r = 1)
 
-lemma closure_subset_kernel : group.normal_closure rels ⊆ is_group_hom.ker F :=
+lemma closure_rels_subset_ker : group.normal_closure rels ⊆ is_group_hom.ker F :=
 group.normal_closure_subset (λ x w, (is_group_hom.mem_ker F).2 (h x w))
 
-lemma closure_mapsto_zero : ∀ x ∈ group.normal_closure rels, F x = 1 :=
-λ x w, (is_group_hom.mem_ker F).1  ((closure_subset_kernel h) w)
+lemma to_group_eq_one_of_mem_closure : ∀ x ∈ group.normal_closure rels, F x = 1 :=
+λ x w, (is_group_hom.mem_ker F).1  ((closure_rels_subset_ker h) w)
 
 /-- The extension of a map f : α → β that satisfies the given relations to a group homomorphism
 from presented_group rels → β. -/
 def to_group : presented_group rels → β :=
-quotient_group.lift (group.normal_closure rels) F (closure_mapsto_zero h)
+quotient_group.lift (group.normal_closure rels) F (to_group_eq_one_of_mem_closure h)
 
 instance to_group.is_group_hom : is_group_hom (to_group h) :=
 quotient_group.is_group_hom_quotient_lift _ _ _

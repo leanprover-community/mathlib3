@@ -54,7 +54,7 @@ instance to_group.is_group_hom : is_group_hom (to_group h) :=
 quotient_group.is_group_hom_quotient_lift _ _ _
 
 @[simp] lemma to_group.of {x : α} : to_group h (of x) = f x := free_group.to_group.of
-
+#check @of
 @[simp] lemma to_group.mul {x y} : to_group h (x * y) = to_group h x * to_group h y :=
 is_group_hom.map_mul _ _ _
 
@@ -67,8 +67,7 @@ is_group_hom.map_inv _ _
 theorem to_group.unique (g : presented_group rels → β) [is_group_hom g]
   (hg : ∀ x : α, g (of x) = f x) : ∀ {x}, g x = to_group h x :=
 λ x, quotient_group.induction_on x
-    (λ _, free_group.to_group.unique
-      (λ (x : free_group α), g (quotient_group.mk x)) hg)
+    (λ _, free_group.to_group.unique (λ (x : free_group α), g (quotient_group.mk x)) hg)
 
 end to_group
 end presented_group

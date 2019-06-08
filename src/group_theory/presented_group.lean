@@ -54,7 +54,7 @@ instance to_group.is_group_hom : is_group_hom (to_group h) :=
 quotient_group.is_group_hom_quotient_lift _ _ _
 
 @[simp] lemma to_group.of {x : α} : to_group h (of x) = f x := free_group.to_group.of
-#check @of
+
 @[simp] lemma to_group.mul {x y} : to_group h (x * y) = to_group h x * to_group h y :=
 is_group_hom.map_mul _ _ _
 

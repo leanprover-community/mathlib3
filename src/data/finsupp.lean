@@ -210,7 +210,7 @@ section emb_domain
 variables [has_zero β] [decidable_eq α₂]
 
 /-- Given `f : α₁ ↪ α₂` and `v : α₁ →₀ β`, `emb_domain f v : α₂ →₀ β` is the finitely supported
-function whose value at `f a : α₂` is `v a`. For a `a : α₁` outside the domain of `f` it is zero. -/
+function whose value at `f a : α₂` is `v a`. For a `b : α₂` outside the range of `f` it is zero. -/
 def emb_domain (f : α₁ ↪ α₂) (v : α₁ →₀ β) : α₂ →₀ β :=
 begin
   refine ⟨v.support.map f, λa₂,
@@ -332,6 +332,13 @@ lemma prod_zero_index [add_comm_monoid β] [comm_monoid γ] {h : α → β → �
 
 section decidable
 variables [decidable_eq α] [decidable_eq β]
+
+section nat_sub
+instance nat_sub : has_sub (α →₀ ℕ) := ⟨zip_with (λ m n, m - n) (nat.sub_zero 0)⟩
+
+@[simp] lemma nat_sub_apply {g₁ g₂ : α →₀ ℕ} {a : α} :
+  (g₁ - g₂) a = g₁ a - g₂ a := rfl
+end nat_sub
 
 section add_monoid
 variables [add_monoid β]

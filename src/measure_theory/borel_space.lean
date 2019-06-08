@@ -181,9 +181,9 @@ lemma measurable_of_continuous2
 show measurable ((λp:α×β, c p.1 p.2) ∘ (λa, (f a, g a))),
 begin
   apply measurable.comp,
-  { exact measurable_prod_mk hf hg },
   { rw borel_prod,
-    exact measurable_of_continuous h }
+    exact measurable_of_continuous h },
+  { exact measurable_prod_mk hf hg }
 end
 
 lemma measurable_add
@@ -201,7 +201,7 @@ finset.induction_on s
 lemma measurable_neg
   [add_group α] [topological_add_group α] [measurable_space β] {f : β → α}
   (hf : measurable f) : measurable (λa, - f a) :=
-hf.comp (measurable_of_continuous continuous_neg')
+(measurable_of_continuous continuous_neg').comp hf
 
 lemma measurable_sub
   [add_group α] [topological_add_group α] [second_countable_topology α] [measurable_space β]
@@ -352,7 +352,7 @@ def ennreal_equiv_nnreal : measurable_equiv {r : ennreal | r < ⊤} nnreal :=
     refine measurable_of_continuous (continuous_iff_continuous_at.2 _),
     rintros ⟨r, hr⟩,
     simp [continuous_at, nhds_subtype_eq_comap],
-    refine tendsto.comp tendsto_comap (tendsto_to_nnreal (ne_of_lt hr))
+    refine tendsto.comp (tendsto_to_nnreal (ne_of_lt hr)) tendsto_comap
   end,
   measurable_inv_fun := measurable_subtype_mk measurable_coe }
 
@@ -396,21 +396,21 @@ begin
   { show measurable (λp:nnreal × nnreal, f p.1 p.2),
     exact h₁ },
   { show measurable (λp:nnreal × unit, f p.1 ⊤),
-    exact (measurable_fst measurable_id).comp h₃ },
+    exact h₃.comp (measurable_fst measurable_id) },
   { show measurable ((λp:nnreal, f ⊤ p) ∘ (λp:unit × nnreal, p.2)),
-    exact measurable.comp (measurable_snd measurable_id) h₂ },
+    exact h₂.comp (measurable_snd measurable_id) },
   { show measurable (λp:unit × unit, f ⊤ ⊤),
     exact measurable_const }
 end,
-(measurable_prod_mk hg hh).comp this
+this.comp (measurable_prod_mk hg hh)
 
 lemma measurable_mul {α : Type*} [measurable_space α] {f g : α → ennreal} :
   measurable f → measurable g → measurable (λa, f a * g a) :=
 begin
   refine measurable_of_measurable_nnreal_nnreal (*) _ _ _,
   { simp only [ennreal.coe_mul.symm],
-    exact (measurable_mul (measurable_fst measurable_id) (measurable_snd measurable_id)).comp
-      measurable_coe },
+    exact measurable_coe.comp
+      (measurable_mul (measurable_fst measurable_id) (measurable_snd measurable_id)) },
   { simp [top_mul],
     exact measurable.if
       (is_measurable_of_is_closed $ is_closed_eq continuous_id continuous_const)

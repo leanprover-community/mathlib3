@@ -39,11 +39,10 @@ rfl
   (inverse_associator C D E).map f = ((f.1, f.2.1), f.2.2) :=
 rfl
 
-def associativity : equivalence ((C × D) × E) (C × (D × E)) :=
-{ functor := associator C D E,
-  inverse := inverse_associator C D E,
-  fun_inv_id' := nat_iso.of_components (λ X, eq_to_iso (by simp)) (by tidy),
-  inv_fun_id' := nat_iso.of_components (λ X, eq_to_iso (by simp)) (by tidy) }
+def associativity : (C × D) × E ≌ C × (D × E) :=
+equivalence.mk (associator C D E) (inverse_associator C D E)
+  (nat_iso.of_components (λ X, eq_to_iso (by simp)) (by tidy))
+  (nat_iso.of_components (λ X, eq_to_iso (by simp)) (by tidy))
 
 -- TODO pentagon natural transformation? ...satisfying?
 end category_theory.prod

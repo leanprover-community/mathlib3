@@ -549,6 +549,28 @@ do goals ← get_goals,
    p ← is_proof goals.head,
    guard p
 
+/-- Succeeds only if we can construct an instance showing the
+    current goal is a subsingleton type. -/
+meta def subsingleton_goal : tactic unit :=
+do goals ← get_goals,
+   ty ← infer_type goals.head >>= instantiate_mvars,
+   to_expr ``(subsingleton %%ty) >>= mk_instance >> skip
+
+/-- Succeeds only if the current goal is "terminal", in the sense
+    that no other goals depend on it. -/
+meta def terminal_goal : tactic unit :=
+-- We can't merely test for subsingletons, as sometimes in the presence of metavariables
+-- `propositional_goal` succeeds while `subsingleton_goal` does not.
+propositional_goal <|> subsingleton_goal <|>
+do g₀ :: _ ← get_goals,
+   mvars ← (λ L, list.erase L g₀) <$> metavariables,
+   mvars.mmap' $ λ g, do
+     t ← infer_type g >>= instantiate_mvars,
+     d ← kdepends_on t g₀,
+     monad.whenb d $
+       pp t >>= λ s, fail ("The current goal is not terminal: " ++ s.to_string ++ " depends on it.")
+
+
 meta def triv' : tactic unit := do c ← mk_const `trivial, exact c reducible
 
 variable {α : Type}
@@ -604,9 +626,9 @@ do l ← local_context,
    r ← successes (l.reverse.map (λ h, cases h >> skip)),
    when (r.empty) failed
 
-meta def note_anon (e : expr) : tactic unit :=
+meta def note_anon (e : expr) : tactic expr :=
 do n ← get_unused_name "lh",
-   note n none e, skip
+   note n none e
 
 /-- `find_local t` returns a local constant with type t, or fails if none exists. -/
 meta def find_local (t : pexpr) : tactic expr :=
@@ -987,5 +1009,18 @@ open interactive interactive.types
 local postfix `?`:9001 := optional
 local postfix *:9001 := many .
 "
+
+/--
+This combinator is for testing purposes. It succeeds if `t` fails with message `msg`,
+and fails otherwise.
+-/
+meta def {u} success_if_fail_with_msg {α : Type u} (t : tactic α) (msg : string) : tactic unit :=
+λ s, match t s with
+| (interaction_monad.result.exception msg' _ s') :=
+  if msg = (msg'.iget ()).to_string then result.success () s
+  else mk_exception "failure messages didn't match" none s
+| (interaction_monad.result.success a s) :=
+   mk_exception "success_if_fail_with_msg combinator failed, given tactic succeeded" none s
+end
 
 end tactic

@@ -93,11 +93,11 @@ begin
 end
 
 lemma continuous_of_real : continuous ennreal.of_real :=
-continuous.comp nnreal.continuous_of_real (continuous_coe.2 continuous_id)
+(continuous_coe.2 continuous_id).comp nnreal.continuous_of_real
 
 lemma tendsto_of_real {f : filter α} {m : α → ℝ} {a : ℝ} (h : tendsto m f (nhds a)) :
   tendsto (λa, ennreal.of_real (m a)) f (nhds (ennreal.of_real a)) :=
-tendsto.comp h (continuous.tendsto continuous_of_real _)
+tendsto.comp (continuous.tendsto continuous_of_real _) h
 
 lemma tendsto_to_nnreal {a : ennreal} : a ≠ ⊤ →
   tendsto (ennreal.to_nnreal) (nhds a) (nhds a.to_nnreal) :=
@@ -183,7 +183,7 @@ protected lemma tendsto_mul {f : filter α} {ma : α → ennreal} {mb : α → e
   (hma : tendsto ma f (nhds a)) (ha : a ≠ 0 ∨ b ≠ ⊤) (hmb : tendsto mb f (nhds b)) (hb : b ≠ 0 ∨ a ≠ ⊤) :
   tendsto (λa, ma a * mb a) f (nhds (a * b)) :=
 show tendsto ((λp:ennreal×ennreal, p.1 * p.2) ∘ (λa, (ma a, mb a))) f (nhds (a * b)), from
-tendsto.comp (tendsto_prod_mk_nhds hma hmb) (ennreal.tendsto_mul' ha hb)
+tendsto.comp (ennreal.tendsto_mul' ha hb) (tendsto_prod_mk_nhds hma hmb)
 
 protected lemma tendsto_mul_right {f : filter α} {m : α → ennreal} {a b : ennreal}
   (hm : tendsto m f (nhds b)) (hb : b ≠ 0 ∨ a ≠ ⊤) : tendsto (λb, a * m b) f (nhds (a * b)) :=
@@ -287,7 +287,7 @@ have Inf ((λb, ↑r - b) '' range b) = ↑r - (⨆i, b i),
     (assume x _ y _, sub_le_sub (le_refl _))
     is_lub_supr
     (ne_empty_of_mem ⟨i, rfl⟩)
-    (tendsto.comp (tendsto_id' inf_le_left) ennreal.tendsto_coe_sub),
+    (tendsto.comp ennreal.tendsto_coe_sub (tendsto_id' inf_le_left)),
 by rw [eq, ←this]; simp [Inf_image, infi_range, -mem_range]; exact le_refl _
 
 end topological_space
@@ -601,13 +601,13 @@ end
 
 theorem continuous_edist [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, edist (f b) (g b)) :=
-(hf.prod_mk hg).comp continuous_edist'
+continuous_edist'.comp (hf.prod_mk hg)
 
 theorem tendsto_edist {f g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) :
   tendsto (λx, edist (f x) (g x)) x (nhds (edist a b)) :=
 have tendsto (λp:α×α, edist p.1 p.2) (nhds (a, b)) (nhds (edist a b)),
   from continuous_iff_continuous_at.mp continuous_edist' (a, b),
-(hf.prod_mk hg).comp (by rw [nhds_prod_eq] at this; exact this)
+tendsto.comp (by rw [nhds_prod_eq] at this; exact this) (hf.prod_mk hg)
 
 end --section

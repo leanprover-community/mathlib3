@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jeremy Avigad, Leonardo de Moura
+Authors: Jeremy Avigad, Leonardo de Moura, Michael Howes
 
 Various multiplicative and additive structures.
 -/
@@ -365,6 +365,15 @@ instance [add_comm_monoid α] : comm_monoid (multiplicative α) :=
 { mul_comm := @add_comm α _,
   ..multiplicative.monoid }
 
+section comm_semigroup
+  variables [comm_semigroup α] {a b c d : α}
+
+  @[to_additive add_add_add_comm]
+  theorem mul_mul_mul_comm : (a * b) * (c * d) = (a * c) * (b * d) :=
+  by simp [mul_left_comm, mul_assoc]
+
+end comm_semigroup
+
 instance [group α] : add_group (additive α) :=
 { neg := @has_inv.inv α _,
   add_left_neg := @mul_left_inv _ _,
@@ -554,8 +563,17 @@ section add_comm_group
   lemma sub_right_comm (a b c : α) : a - b - c = a - c - b :=
   add_right_comm _ _ _
 
+  lemma add_add_sub_cancel (a b c : α) : (a + c) + (b - c) = a + b :=
+  by rw [add_assoc, add_sub_cancel'_right]
+
+  lemma sub_add_add_cancel (a b c : α) : (a - c) + (b + c) = a + b :=
+  by rw [add_left_comm, sub_add_cancel, add_comm]
+
   lemma sub_add_sub_cancel' (a b c : α) : (a - b) + (c - a) = c - b :=
   by rw add_comm; apply sub_add_sub_cancel
+
+  lemma add_sub_sub_cancel (a b c : α) : (a + b) - (a - c) = b + c :=
+  by rw [← sub_add, add_sub_cancel']
 
   lemma sub_sub_sub_cancel_left (a b c : α) : (c - a) - (c - b) = b - a :=
   by rw [← neg_sub b c, sub_neg_eq_add, add_comm, sub_add_sub_cancel]
@@ -586,6 +604,17 @@ def is_conj (a b : α) := ∃ c : α, c * a * c⁻¹ = b
 @[simp] lemma is_conj_one_left {a : α} : is_conj a 1 ↔ a = 1 :=
 calc is_conj a 1 ↔ is_conj 1 a : ⟨is_conj_symm, is_conj_symm⟩
 ... ↔ a = 1 : is_conj_one_right
+
+@[simp] lemma conj_inv {a b : α} : (b * a * b⁻¹)⁻¹ = b * a⁻¹ * b⁻¹ :=
+begin
+  rw [mul_inv_rev _ b⁻¹, mul_inv_rev b _, inv_inv, mul_assoc],
+end
+
+@[simp] lemma conj_mul {a b c : α} : (b * a * b⁻¹) * (b * c * b⁻¹) = b * (a * c) * b⁻¹ :=
+begin
+  assoc_rw inv_mul_cancel_right,
+  repeat {rw mul_assoc},
+end
 
 @[simp] lemma is_conj_iff_eq {α : Type*} [comm_group α] {a b : α} : is_conj a b ↔ a = b :=
 ⟨λ ⟨c, hc⟩, by rw [← hc, mul_right_comm, mul_inv_self, one_mul], λ h, by rw h⟩

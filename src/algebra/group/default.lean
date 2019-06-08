@@ -6,8 +6,6 @@ Authors: Jeremy Avigad, Leonardo de Moura, Michael Howes
 Various multiplicative and additive structures.
 -/
 
-import tactic.basic data.option.defs
-
 import algebra.group.to_additive
 import algebra.group.basic
 import algebra.group.units

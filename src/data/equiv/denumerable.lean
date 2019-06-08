@@ -213,7 +213,6 @@ begin
   conv {to_rhs, rw [← ih, ← card_insert_of_not_mem h₁, ← h₂] },
 end
 
-
 def denumerable (s : set ℕ) [decidable_pred s] [infinite s] : denumerable s :=
 denumerable.of_equiv ℕ
 { to_fun := to_fun_aux,

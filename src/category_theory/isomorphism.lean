@@ -78,8 +78,13 @@ infixr ` ≪≫ `:80 := iso.trans -- type as `\ll \gg`.
   {hom := hom ≫ hom', inv := inv' ≫ inv, hom_inv_id' := hom_inv_id'', inv_hom_id' := inv_hom_id''} :=
 rfl
 
-@[simp] lemma refl_symm (X : C) : (iso.refl X).hom = 𝟙 X := rfl
-@[simp] lemma trans_symm (α : X ≅ Y) (β : Y ≅ Z) : (α ≪≫ β).inv = β.inv ≫ α.inv := rfl
+@[simp] lemma refl_symm (X : C) : (iso.refl X).symm = iso.refl X := rfl
+@[simp] lemma trans_symm (α : X ≅ Y) (β : Y ≅ Z) : (α ≪≫ β).symm = β.symm ≪≫ α.symm := rfl
+@[simp] lemma refl_trans (α : X ≅ Y) : (iso.refl X) ≪≫ α = α := by { ext, simp }
+@[simp] lemma trans_refl (α : X ≅ Y) : α ≪≫ (iso.refl Y) = α := by { ext, simp }
+@[simp] lemma trans_assoc {W : C} (α : W ≅ X) (β : X ≅ Y) (γ : Y ≅ Z) :
+  (α ≪≫ β) ≪≫ γ = α ≪≫ (β ≪≫ γ) :=
+by { ext, simp }
 
 lemma inv_comp_eq (α : X ≅ Y) {f : X ⟶ Z} {g : Y ⟶ Z} : α.inv ≫ f = g ↔ f = α.hom ≫ g :=
 ⟨λ H, by simp [H.symm], λ H, by simp [H]⟩

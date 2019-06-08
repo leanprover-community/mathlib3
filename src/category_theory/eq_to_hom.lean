@@ -27,8 +27,8 @@ by cases p; cases q; simp
 def eq_to_iso {X Y : C} (p : X = Y) : X ≅ Y :=
 ⟨eq_to_hom p, eq_to_hom p.symm, by simp, by simp⟩
 
-@[simp] lemma eq_to_iso.hom {X Y : C} (p : X = Y) : (eq_to_iso p).hom = eq_to_hom p :=
-rfl
+@[simp] lemma eq_to_iso.hom {X Y : C} (p : X = Y) : (eq_to_iso p).hom = eq_to_hom p := rfl
+@[simp] lemma eq_to_iso.inv {X Y : C} (p : X = Y) : (eq_to_iso p).inv = eq_to_hom p.symm := rfl
 
 @[simp] lemma eq_to_iso_refl (X : C) (p : X = X) : eq_to_iso p = iso.refl X := rfl
 @[simp] lemma eq_to_iso_trans {X Y Z : C} (p : X = Y) (q : Y = Z) :
@@ -40,6 +40,9 @@ begin
   cases h,
   refl
 end
+
+instance {X Y : C} (p : X = Y) : is_iso (eq_to_hom p) := { .. eq_to_iso p }
+@[simp] lemma inv_eq_to_hom {X Y : C} {h : X = Y} : inv (eq_to_hom h) = eq_to_hom (h.symm) := rfl
 
 variables {D : Sort u'} [𝒟 : category.{v'} D]
 include 𝒟

@@ -52,6 +52,9 @@ class monoidal_category (C : Sort u) extends category.{v} C :=
 (triangle'                :
   triangle @tensor_hom left_unitor right_unitor associator . obviously)
 
+infixr ` ⊗ `:70 := monoidal_category.tensor_obj
+infixr ` ⊗ `:70 := monoidal_category.tensor_hom
+
 restate_axiom monoidal_category.tensor_id'
 attribute [simp] monoidal_category.tensor_id
 restate_axiom monoidal_category.tensor_comp'
@@ -65,22 +68,29 @@ attribute [simp] monoidal_category.triangle
 
 open monoidal_category
 
-infixr ` ⊗ `:70 := tensor_obj
-infixr ` ⊗ `:70 := tensor_hom
-
 local notation `𝟙_` := tensor_unit
 local notation `α_` := associator
 local notation `λ_` := left_unitor
 local notation `ρ_` := right_unitor
 
-def tensor_iso {C : Sort u} {X Y X' Y' : C} [monoidal_category.{v} C] (f : X ≅ Y) (g : X' ≅ Y') :
-    X ⊗ X' ≅ Y ⊗ Y' :=
+section
+variables {C : Sort u} [𝒞 : monoidal_category.{v} C]
+include 𝒞
+variables {W X Y Z : C}
+
+def tensor_iso (f : W ≅ X) (g : Y ≅ Z) : W ⊗ Y ≅ X ⊗ Z :=
 { hom := f.hom ⊗ g.hom,
   inv := f.inv ⊗ g.inv,
   hom_inv_id' := by rw [←tensor_comp, iso.hom_inv_id, iso.hom_inv_id, ←tensor_id],
   inv_hom_id' := by rw [←tensor_comp, iso.inv_hom_id, iso.inv_hom_id, ←tensor_id] }
 
 infixr ` ⊗ `:70 := tensor_iso
+
+@[simp] lemma tensor_iso_hom (f : W ≅ X) (g : Y ≅ Z) : (f ⊗ g).hom = f.hom ⊗ g.hom := rfl
+@[simp] lemma tensor_iso_inv (f : W ≅ X) (g : Y ≅ Z) : (f ⊗ g).inv = f.inv ⊗ g.inv := rfl
+@[simp] lemma tensor_iso_symm (f : W ≅ X) (g : Y ≅ Z) : (f ⊗ g).symm = f.symm ⊗ g.symm := rfl
+@[simp] lemma tensor_iso_refl : (iso.refl X) ⊗ (iso.refl Y) = iso.refl (X ⊗ Y) := by { ext, simp }
+end
 
 namespace monoidal_category
 

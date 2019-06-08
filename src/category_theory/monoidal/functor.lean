@@ -4,7 +4,6 @@
 import category_theory.monoidal.category
 
 open category_theory
-open tactic
 
 universes v₁ v₂ v₃ u₁ u₂ u₃
 
@@ -26,7 +25,7 @@ structure lax_monoidal_functor extends C ⥤ D :=
 (ε               : tensor_unit D ⟶ obj (tensor_unit C))
 -- tensorator
 (μ                : Π X Y : C, (obj X) ⊗ (obj Y) ⟶ obj (X ⊗ Y))
-(μ_natural'       : ∀ (X Y X' Y' : C)
+(μ_natural'       : ∀ {X Y X' Y' : C}
   (f : X ⟶ Y) (g : X' ⟶ Y'),
   ((map f) ⊗ (map g)) ≫ μ Y Y' = μ X X' ≫ map (f ⊗ g)
   . obviously)
@@ -90,8 +89,8 @@ include 𝒞 𝒟
 def μ_nat_iso (F : monoidal_functor.{v₁+1 v₂+1} C D) :
   (functor.prod F.to_functor F.to_functor) ⋙ (tensor D) ≅ (tensor C) ⋙ F.to_functor :=
 nat_iso.of_components
-  (by intros; dsimp; apply F.μ_iso)
-  (by intros; dsimp; apply F.to_lax_monoidal_functor.μ_natural)
+  (by { intros, apply F.μ_iso })
+  (by { intros, apply F.to_lax_monoidal_functor.μ_natural })
 end
 
 section

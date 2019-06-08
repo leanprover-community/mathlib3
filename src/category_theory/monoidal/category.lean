@@ -1,13 +1,12 @@
 -- Copyright (c) 2018 Michael Jendrusch. All rights reserved.
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Michael Jendrusch, Scott Morrison
-import category_theory.monoidal.tensor_product
+import category_theory.monoidal.category_aux
 import category_theory.natural_isomorphism
 import tactic.basic
 import tactic.slice
 
 open category_theory
-open tactic
 
 universes v u
 
@@ -130,9 +129,13 @@ by { rw ←tensor_comp, simp }
   (𝟙 Z) ⊗ (f ≫ g) = (𝟙 Z ⊗ f) ≫ (𝟙 Z ⊗ g) :=
 by { rw ←tensor_comp, simp }
 
-lemma id_tensor_comp_tensor_id (f : W ⟶ X) (g : Y ⟶ Z) :
-  ((𝟙 Y) ⊗ f) ≫ (g ⊗ (𝟙 X)) = (g ⊗ (𝟙 W)) ≫ ((𝟙 Z) ⊗ f) :=
-by { rw [←tensor_comp, ←tensor_comp], simp }
+@[simp] lemma id_tensor_comp_tensor_id (f : W ⟶ X) (g : Y ⟶ Z) :
+  ((𝟙 Y) ⊗ f) ≫ (g ⊗ (𝟙 X)) = g ⊗ f :=
+by { rw [←tensor_comp], simp }
+
+@[simp] lemma tensor_id_comp_id_tensor (f : W ⟶ X) (g : Y ⟶ Z) :
+  (g ⊗ (𝟙 W)) ≫ ((𝟙 Z) ⊗ f) = g ⊗ f :=
+by { rw [←tensor_comp], simp }
 
 lemma left_unitor_inv_naturality {X X' : C} (f : X ⟶ X') :
   f ≫ (λ_ X').inv = (λ_ X).inv ≫ (𝟙 _ ⊗ f) :=
@@ -372,20 +375,20 @@ def tensor_unit_right : C ⥤ C :=
 def associator_nat_iso :
   left_assoc_tensor C ≅ right_assoc_tensor C :=
 nat_iso.of_components
-  (by intros; dsimp; apply monoidal_category.associator)
-  (by intros; dsimp; apply monoidal_category.associator_naturality)
+  (by { intros, apply monoidal_category.associator })
+  (by { intros, apply monoidal_category.associator_naturality })
 
 def left_unitor_nat_iso :
   tensor_unit_left C ≅ functor.id C :=
 nat_iso.of_components
-  (by intros; dsimp; apply monoidal_category.left_unitor)
-  (by intros; dsimp; apply monoidal_category.left_unitor_naturality)
+  (by { intros, apply monoidal_category.left_unitor })
+  (by { intros, apply monoidal_category.left_unitor_naturality })
 
 def right_unitor_nat_iso :
   tensor_unit_right C ≅ functor.id C :=
 nat_iso.of_components
-  (by intros; dsimp; apply monoidal_category.right_unitor)
-  (by intros; dsimp; apply monoidal_category.right_unitor_naturality)
+  (by { intros, apply monoidal_category.right_unitor })
+  (by { intros, apply monoidal_category.right_unitor_naturality })
 
 end
 

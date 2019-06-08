@@ -63,7 +63,19 @@ instance : monoidal_category.{v₁} (list C) :=
   left_unitor_naturality' := λ X Y f, begin dsimp [tensorator, pack, unpack], simp, erw [left_unitor_naturality], simp, end,
   right_unitor_naturality' := λ X Y f, begin dsimp, sorry end,
   pentagon' := sorry,
-  triangle' := λ X Y, begin dsimp, rw tensorator_congr_left (list.append_nil X), simp, end
+  triangle' := λ X Y,
+  begin
+    dsimp,
+    rw tensorator_congr_left (list.append_nil X),
+    simp,
+    apply congr_arg unpack,
+    slice_rhs 3 4 { rw comp_tensor_id },
+    dsimp [unpack],
+    erw eq_to_hom_trans,
+    dsimp, simp,
+    refl,
+    rw list.append_nil,
+  end
 }
 
 end category_theory

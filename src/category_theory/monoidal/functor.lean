@@ -133,10 +133,10 @@ def comp : lax_monoidal_functor.{v₁ v₃} C E :=
   associativity'   := λ X Y Z,
   begin
     dsimp,
-    rw id_tensor_comp,
+    rw ←id_tensor_comp,
     slice_rhs 3 4 { rw [← G.to_functor.map_id, G.μ_natural], },
     slice_rhs 1 3 { rw ←G.associativity, },
-    rw comp_tensor_id,
+    rw ←comp_tensor_id,
     slice_lhs 2 3 { rw [← G.to_functor.map_id, G.μ_natural], },
     rw [category.assoc, category.assoc, category.assoc, category.assoc, category.assoc,
         ←G.to_functor.map_comp, ←G.to_functor.map_comp, ←G.to_functor.map_comp, ←G.to_functor.map_comp,
@@ -145,7 +145,7 @@ def comp : lax_monoidal_functor.{v₁ v₃} C E :=
   left_unitality'  := λ X,
   begin
     dsimp,
-    rw [G.left_unitality, comp_tensor_id, category.assoc, category.assoc],
+    rw [G.left_unitality, ←comp_tensor_id, category.assoc, category.assoc],
     apply congr_arg,
     rw [F.left_unitality, map_comp, ←nat_trans.id_app, ←category.assoc,
         ←lax_monoidal_functor.μ_natural, nat_trans.id_app, map_id, ←category.assoc, map_comp],
@@ -153,7 +153,7 @@ def comp : lax_monoidal_functor.{v₁ v₃} C E :=
   right_unitality' := λ X,
   begin
     dsimp,
-    rw [G.right_unitality, id_tensor_comp, category.assoc, category.assoc],
+    rw [G.right_unitality, ←id_tensor_comp, category.assoc, category.assoc],
     apply congr_arg,
     rw [F.right_unitality, map_comp, ←nat_trans.id_app, ←category.assoc,
         ←lax_monoidal_functor.μ_natural, nat_trans.id_app, map_id, ←category.assoc, map_comp],

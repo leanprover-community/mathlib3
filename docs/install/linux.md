@@ -11,6 +11,14 @@ All commands below should be typed inside a terminal.
   recommended choice is [Visual Studio Code](https://code.visualstudio.com/).
   The alternative is to use Emacs, and its [lean-mode](https://github.com/leanprover/lean-mode).
 
+  1. Install [VS Code](https://code.visualstudio.com/).
+  2. Launch VS Code.
+  3. Click on the extension icon ![(image of icon)](extensions-icon.png) in the side bar on the left edge of the     screen and search for `leanprover`.
+  4. Click "install", and then "reload" to restart VS Code.
+  5. Verify Lean is working, for example by saving a file `test.lean` and entering `#eval 1+1`.
+    A green line should appear underneath `#eval 1+1`, and hovering the mouse over it you should see `2`
+    displayed.
+
 * The next step installs a small tool called `elan` which will handle
   updating Lean according to the needs of your current project (hit Enter
   when a question is asked). It will live in `$HOME/.elan` and add a

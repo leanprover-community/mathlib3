@@ -14,7 +14,7 @@ lemma exists_forall_abs_polynomial_eval_le (p : polynomial ℂ) :
 if hp0 : 0 < degree p
 then let ⟨r, hr0, hr⟩ := polynomial.tendsto_infinity complex.abs hp0 ((p.eval 0).abs) in
   let ⟨x, hx₁, hx₂⟩ := exists_forall_le_of_compact_of_continuous (λ y, (p.eval y).abs)
-    (p.continuous_eval.comp continuous_abs)
+    (continuous_abs.comp p.continuous_eval)
     (closed_ball 0 r) (proper_space.compact_ball _ _)
     (set.ne_empty_iff_exists_mem.2 ⟨0, by simp [le_of_lt hr0]⟩) in
   ⟨x, λ y, if hy : y.abs ≤ r then hx₂ y $ by simpa [complex.dist_eq] using hy

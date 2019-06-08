@@ -31,13 +31,11 @@ def generate_from (g : set (set α)) : topological_space α :=
 
 lemma nhds_generate_from {g : set (set α)} {a : α} :
   @nhds α (generate_from g) a = (⨅s∈{s | a ∈ s ∧ s ∈ g}, principal s) :=
-le_antisymm
+by rw nhds_def; exact le_antisymm
   (infi_le_infi $ assume s, infi_le_infi_const $ assume ⟨as, sg⟩, ⟨as, generate_open.basic _ sg⟩)
   (le_infi $ assume s, le_infi $ assume ⟨as, hs⟩,
-    have ∀s, generate_open g s → a ∈ s → (⨅s∈{s | a ∈ s ∧ s ∈ g}, principal s) ≤ principal s,
     begin
-      intros s hs,
-      induction hs,
+      revert as, clear_, induction hs,
       case generate_open.basic : s hs
       { exact assume as, infi_le_of_le s $ infi_le _ ⟨as, hs⟩ },
       case generate_open.univ
@@ -49,8 +47,7 @@ le_antisymm
       case generate_open.sUnion : k hk' hk
       { exact λ ⟨t, htk, hat⟩, calc _ ≤ principal t : hk t htk hat
           ... ≤ _ : le_principal_iff.2 $ subset_sUnion_of_mem htk }
-    end,
-    this s hs as)
+    end)
 
 lemma tendsto_nhds_generate_from {β : Type*} {m : α → β} {f : filter α} {g : set (set β)} {b : β}
   (h : ∀s∈g, b ∈ s → m ⁻¹' s ∈ f) : tendsto m f (@nhds β (generate_from g) b) :=
@@ -161,7 +158,7 @@ le_antisymm
 
 lemma eq_top_of_singletons_open {t : topological_space α} (h : ∀ x, t.is_open {x}) : t = ⊤ :=
 top_unique $ le_of_nhds_le_nhds $ assume x,
-  have nhds x ≤ pure x, from infi_le_of_le {x} (infi_le _ (by simpa using h x)),
+  have nhds x ≤ pure x, from nhds_le_of_le (mem_singleton _) (h x) (by simp),
   le_trans this (@pure_le_nhds _ ⊤ x)
 
 end lattice
@@ -392,9 +389,8 @@ protected def topological_space.nhds_adjoint (a : α) (f : filter α) : topologi
 
 lemma gc_nhds (a : α) :
   @galois_connection _ (order_dual (filter α)) _ _ (λt, @nhds α t a) (topological_space.nhds_adjoint a) :=
-assume t (f : filter α), show f ≤ @nhds α t a ↔ _, from iff.intro
-  (assume h s hs has, h $ @mem_nhds_sets α t a s hs has)
-  (assume h, le_infi $ assume u, le_infi $ assume ⟨hau, hu⟩, le_principal_iff.2 $ h _ hu hau)
+assume t (f : filter α), show f ≤ @nhds α t a ↔ _,
+by rw le_nhds_iff; exact ⟨λ H s hs has, H _ has hs, λ H s has hs, H _ hs has⟩
 
 lemma nhds_mono {t₁ t₂ : topological_space α} {a : α} (h : t₁ ≤ t₂) :
   @nhds α t₂ a ≤ @nhds α t₁ a := (gc_nhds a).monotone_l h
@@ -596,18 +592,18 @@ theorem tendsto_nhds_within_iff_subtype {s : set α} {a : α} (h : a ∈ s) (f :
 by rw [tendsto, tendsto, function.restrict, nhds_within_eq_map_subtype_val h,
     ←(@filter.map_map _ _ _ _ subtype.val)]
 
-variables [tspace β]
+variables [tspace β] [tspace γ]
 
-theorem continuous_at_within_univ (f : α → β) (x : α) :
-   continuous_at_within f x set.univ ↔ continuous_at f x :=
-by rw [continuous_at, continuous_at_within, nhds_within_univ]
+theorem continuous_within_at_univ (f : α → β) (x : α) :
+   continuous_within_at f set.univ x ↔ continuous_at f x :=
+by rw [continuous_at, continuous_within_at, nhds_within_univ]
 
-theorem continuous_at_within_iff_continuous_at_restrict (f : α → β) {x : α} {s : set α} (h : x ∈ s) :
-  continuous_at_within f x s ↔ continuous_at (function.restrict f s) ⟨x, h⟩ :=
+theorem continuous_within_at_iff_continuous_at_restrict (f : α → β) {x : α} {s : set α} (h : x ∈ s) :
+  continuous_within_at f s x ↔ continuous_at (function.restrict f s) ⟨x, h⟩ :=
 tendsto_nhds_within_iff_subtype h f _
 
-theorem continuous_at_within.tendsto_nhds_within_image {f : α → β} {x : α} {s : set α}
-  (h : continuous_at_within f x s) :
+theorem continuous_within_at.tendsto_nhds_within_image {f : α → β} {x : α} {s : set α}
+  (h : continuous_within_at f s x) :
   tendsto f (nhds_within x s) (nhds_within (f x) (f '' s)) :=
 tendsto_inf.2 ⟨h, tendsto_principal.2 $
   mem_inf_sets_of_right $ mem_principal_sets.2 $
@@ -616,16 +612,16 @@ tendsto_inf.2 ⟨h, tendsto_principal.2 $
 theorem continuous_on_iff {f : α → β} {s : set α} :
   continuous_on f s ↔ ∀ x ∈ s, ∀ t : set β, is_open t → f x ∈ t → ∃ u, is_open u ∧ x ∈ u ∧
     u ∩ s ⊆ f ⁻¹' t :=
-by simp only [continuous_on, continuous_at_within, tendsto_nhds, mem_nhds_within]
+by simp only [continuous_on, continuous_within_at, tendsto_nhds, mem_nhds_within]
 
 theorem continuous_on_iff_continuous_restrict {f : α → β} {s : set α} :
   continuous_on f s ↔ continuous (function.restrict f s) :=
 begin
   rw [continuous_on, continuous_iff_continuous_at], split,
   { rintros h ⟨x, xs⟩,
-    exact (continuous_at_within_iff_continuous_at_restrict f xs).mp (h x xs) },
+    exact (continuous_within_at_iff_continuous_at_restrict f xs).mp (h x xs) },
   intros h x xs,
-  exact (continuous_at_within_iff_continuous_at_restrict f xs).mpr (h ⟨x, xs⟩)
+  exact (continuous_within_at_iff_continuous_at_restrict f xs).mpr (h ⟨x, xs⟩)
 end
 
 theorem continuous_on_iff' {f : α → β} {s : set α} :
@@ -639,13 +635,108 @@ have ∀ t, is_open (function.restrict f s ⁻¹' t) ↔ ∃ (u : set α), is_op
   end,
 by rw [continuous_on_iff_continuous_restrict, continuous]; simp only [this]
 
-theorem nhds_within_le_comap {x : α} {s : set α} {f : α → β} (ctsf : continuous_at_within f x s) :
+theorem nhds_within_le_comap {x : α} {s : set α} {f : α → β} (ctsf : continuous_within_at f s x) :
   nhds_within x s ≤ comap f (nhds_within (f x) (f '' s)) :=
 map_le_iff_le_comap.1 ctsf.tendsto_nhds_within_image
 
-theorem continuous_at_within_iff_ptendsto_res (f : α → β) {x : α} {s : set α} (xs : x ∈ s) :
-  continuous_at_within f x s ↔ ptendsto (pfun.res f s) (nhds x) (nhds (f x)) :=
+theorem continuous_within_at_iff_ptendsto_res (f : α → β) {x : α} {s : set α} (xs : x ∈ s) :
+  continuous_within_at f s x ↔ ptendsto (pfun.res f s) (nhds x) (nhds (f x)) :=
 tendsto_iff_ptendsto _ _ _ _
+
+def continuous_iff_continuous_on_univ {f : α → β} : continuous f ↔ continuous_on f univ :=
+by simp [continuous_iff_continuous_at, continuous_on, continuous_at, continuous_within_at,
+         nhds_within_univ]
+
+lemma continuous_within_at.mono {f : α → β} {s t : set α} {x : α} (h : continuous_within_at f t x)
+  (hs : s ⊆ t) : continuous_within_at f s x :=
+tendsto_le_left (nhds_within_mono x hs) h
+
+lemma continuous_on.congr_mono {f g : α → β} {s s₁ : set α} (h : continuous_on f s)
+  (h' : ∀x ∈ s₁, g x = f x) (h₁ : s₁ ⊆ s) : continuous_on g s₁ :=
+begin
+  assume x hx,
+  unfold continuous_within_at,
+  have A := (h x (h₁ hx)).mono h₁,
+  unfold continuous_within_at at A,
+  rw ← h' x hx at A,
+  have : {x : α | g x = f x} ∈ nhds_within x s₁ := mem_inf_sets_of_right h',
+  apply tendsto.congr' _ A,
+  convert this,
+  ext,
+  finish
+end
+
+lemma continuous_at.continuous_within_at {f : α → β} {s : set α} {x : α} (h : continuous_at f x) :
+  continuous_within_at f s x :=
+continuous_within_at.mono ((continuous_within_at_univ f x).2 h) (subset_univ _)
+
+lemma continuous_within_at.comp {g : β → γ} {f : α → β} {s : set α} {t : set β} {x : α}
+  (hg : continuous_within_at g t (f x)) (hf : continuous_within_at f s x) (h : f '' s ⊆ t) :
+  continuous_within_at (g ∘ f) s x :=
+begin
+  have : tendsto f (principal s) (principal t),
+    by { rw tendsto_principal_principal, exact λx hx, h (mem_image_of_mem _ hx) },
+  have : tendsto f (nhds_within x s) (principal t) :=
+    tendsto_le_left lattice.inf_le_right this,
+  have : tendsto f (nhds_within x s) (nhds_within (f x) t) :=
+    tendsto_inf.2 ⟨hf, this⟩,
+  exact tendsto.comp hg this
+end
+
+lemma continuous_at.comp {g : β → γ} {f : α → β} {x : α}
+  (hg : continuous_at g (f x)) (hf : continuous_at f x) :
+  continuous_at (g ∘ f) x :=
+begin
+  rw ← continuous_within_at_univ at *,
+  exact continuous_within_at.comp hg hf (subset_univ _)
+end
+
+lemma continuous_on.comp {g : β → γ} {f : α → β} {s : set α} {t : set β}
+  (hg : continuous_on g t) (hf : continuous_on f s) (h : f '' s ⊆ t) :
+  continuous_on (g ∘ f) s :=
+λx hx, continuous_within_at.comp (hg _ (h (mem_image_of_mem _ hx))) (hf x hx) h
+
+lemma continuous_on.mono {f : α → β} {s t : set α} (hf : continuous_on f s) (h : t ⊆ s)  :
+  continuous_on f t :=
+λx hx, tendsto_le_left (nhds_within_mono _ h) (hf x (h hx))
+
+lemma continuous.continuous_on {f : α → β} {s : set α} (h : continuous f) :
+  continuous_on f s :=
+begin
+  rw continuous_iff_continuous_on_univ at h,
+  exact h.mono (subset_univ _)
+end
+
+lemma continuous_on_const {s : set α} {c : β} : continuous_on (λx, c) s :=
+continuous_const.continuous_on
+
+lemma continuous_on.preimage_open_of_open {f : α → β} {s : set α} {t : set β}
+  (hf : continuous_on f s) (hs : is_open s) (ht : is_open t) : is_open (s ∩ f⁻¹' t) :=
+begin
+  rcases continuous_on_iff'.1 hf t ht with ⟨u, hu⟩,
+  rw [inter_comm, hu.2],
+  apply is_open_inter hu.1 hs
+end
+
+lemma continuous_on.preimage_interior_subset_interior_preimage {f : α → β} {s : set α} {t : set β}
+  (hf : continuous_on f s) (hs : is_open s) : s ∩ f⁻¹' (interior t) ⊆ s ∩ interior (f⁻¹' t) :=
+calc s ∩ f ⁻¹' (interior t)
+     = interior (s ∩ f ⁻¹' (interior t)) :
+       (interior_eq_of_open (hf.preimage_open_of_open hs is_open_interior)).symm
+    ... ⊆ interior (s ∩ f ⁻¹' t) :
+        interior_mono (inter_subset_inter (subset.refl _) (preimage_mono interior_subset))
+    ... = s ∩ interior (f ⁻¹' t) :
+      by rw [interior_inter, interior_eq_of_open hs]
+
+lemma continuous_on_of_locally_continuous_on {f : α → β} {s : set α}
+  (h : ∀x∈s, ∃t, is_open t ∧ x ∈ t ∧ continuous_on f (s ∩ t)) : continuous_on f s :=
+begin
+  assume x xs,
+  rcases h x xs with ⟨t, open_t, xt, ct⟩,
+  have := ct x ⟨xs, xt⟩,
+  rwa [continuous_within_at, ← nhds_within_restrict _ xt open_t] at this
+end
+
 end topα
 
 end constructions
@@ -694,3 +785,36 @@ calc a ∈ @closure α (topological_space.induced f t) s
   ... ↔ _ : by rwa [closure_eq_nhds]
 
 end induced
+
+section sierpinski
+variables {α : Type*} [topological_space α]
+
+@[simp] lemma is_open_singleton_true : is_open ({true} : set Prop) :=
+topological_space.generate_open.basic _ (by simp)
+
+lemma continuous_Prop {p : α → Prop} : continuous p ↔ is_open {x | p x} :=
+⟨assume h : continuous p,
+  have is_open (p ⁻¹' {true}),
+    from h _ is_open_singleton_true,
+  by simp [preimage, eq_true] at this; assumption,
+  assume h : is_open {x | p x},
+  continuous_generated_from $ assume s (hs : s ∈ {{true}}),
+    by simp at hs; simp [hs, preimage, eq_true, h]⟩
+
+end sierpinski
+
+section infi
+variables {α : Type u} {ι : Type v} {t : ι → topological_space α}
+
+lemma is_open_infi_iff {s : set α} : @is_open _ (⨅ i, t i) s ↔ ∀ i, @is_open _ (t i) s :=
+begin
+  -- s defines a map from α to Prop, which is continuous iff s is open.
+  suffices : @continuous _ _ (⨅ i, t i) _ s ↔ ∀ i, @continuous _ _ (t i) _ s,
+  { simpa only [continuous_Prop] using this },
+  simp only [continuous_iff_induced_le, le_infi_iff]
+end
+
+lemma is_closed_infi_iff {s : set α} : @is_closed _ (⨅ i, t i) s ↔ ∀ i, @is_closed _ (t i) s :=
+is_open_infi_iff
+
+end infi

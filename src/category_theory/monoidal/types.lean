@@ -13,8 +13,6 @@ namespace category_theory.monoidal
 
 section
 
-open monoidal_category
-
 def types_left_unitor (α : Type u) : punit × α → α := λ X, X.2
 def types_left_unitor_inv (α : Type u) : α → punit × α := λ X, ⟨punit.star, X⟩
 def types_right_unitor (α : Type u) : α × punit → α := λ X, X.1
@@ -43,6 +41,7 @@ instance types : monoidal_category.{u+1} (Type u) :=
   ..category_theory.types.{u+1} }
 
 -- TODO Once we add braided/symmetric categories, include the braiding.
+-- TODO More generally, define the symmetric monoidal structure on any category with products.
 
 end
 

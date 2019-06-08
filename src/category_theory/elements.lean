@@ -48,15 +48,12 @@ def from_comma : comma (functor.of.obj punit) F ⥤ F.elements :=
 @[simp] lemma from_comma_map {X Y} (f : X ⟶ Y) :
   (from_comma F).map f = ⟨f.right, congr_fun f.w'.symm punit.star⟩ := rfl
 
-section
 def comma_equivalence : F.elements ≌ comma (functor.of.obj punit) F :=
-{ functor := to_comma F,
-  inverse := from_comma F,
-  fun_inv_id' := nat_iso.of_components (λ X, eq_to_iso (by tidy)) (by tidy),
-  inv_fun_id' := nat_iso.of_components
+equivalence.mk (to_comma F) (from_comma F)
+  (nat_iso.of_components (λ X, eq_to_iso (by tidy)) (by tidy))
+  (nat_iso.of_components
     (λ X, { hom := { right := 𝟙 _ }, inv := { right := 𝟙 _ } })
-    (by tidy) }
-end
+    (by tidy))
 
 end category_of_elements
 end category_theory

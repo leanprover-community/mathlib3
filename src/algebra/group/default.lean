@@ -16,4 +16,5 @@ import algebra.group.type_tags
 import algebra.group.free_monoid
 import algebra.group.conj
 import algebra.group.with_one
+import algebra.group.anti_hom
 import algebra.group.units_hom

@@ -297,7 +297,7 @@ lemma measurable.supr_Prop {α} [topological_space α] [complete_linear_order α
   {β} [measurable_space β] {p : Prop} {f : β → α} (hf : measurable f): 
   measurable (λ b, ⨆ h : p, f b) :=
 classical.by_cases
-  (assume h : p, begin convert hf, funext, exact supr_pos h end )
+  (assume h : p, begin convert hf, funext, exact supr_pos h end)
   (assume h : ¬p, begin convert measurable_const, funext, exact supr_neg h end)
 
 lemma measurable.infi_Prop {α} [topological_space α] [complete_linear_order α]
@@ -463,8 +463,8 @@ begin
   { simp only [ennreal.coe_add.symm],
     exact measurable_coe.comp
       (measurable_add (measurable_fst measurable_id) (measurable_snd measurable_id)) },
-  { simp, exact measurable_const},
-  { simp, exact measurable_const}
+  { simp only [top_add], exact measurable_const },
+  { simp only [add_top], exact measurable_const }
 end
 
 lemma measurable_sub {α : Type*} [measurable_space α] {f g : α → ennreal} : 
@@ -473,9 +473,9 @@ begin
   refine measurable_of_measurable_nnreal_nnreal (has_sub.sub) _ _ _,
   { simp only [ennreal.coe_sub.symm],
     exact measurable_coe.comp 
-      (nnreal.measurable_sub (measurable_fst measurable_id) (measurable_snd measurable_id))},
-  { simp, exact measurable_const}, 
-  { simp, exact measurable_const}
+      (nnreal.measurable_sub (measurable_fst measurable_id) (measurable_snd measurable_id)) },
+  { simp only [top_sub_coe], exact measurable_const }, 
+  { simp only [sub_infty], exact measurable_const }
 end
 
 end ennreal

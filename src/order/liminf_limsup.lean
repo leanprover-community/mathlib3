@@ -285,7 +285,12 @@ calc
   ... = ⨅n:ℕ, ⨆i≥n, u i :
     le_antisymm 
       (le_infi $ assume n, infi_le_of_le {i | i ≥ n} $ infi_le_of_le 
-        (begin simp, use n, simp end) $ supr_le_supr $ assume i, supr_le_supr_const (by simp))
+        (begin 
+           simp only [mem_at_top_sets, mem_set_of_eq, nonempty_of_inhabited], 
+           use n, 
+           simp only [imp_self, forall_const] 
+         end) 
+        (supr_le_supr $ assume i, supr_le_supr_const (by simp only [imp_self, set.mem_set_of_eq])))
       (le_infi $ assume s, le_infi $ assume hs,
         let ⟨n, hn⟩ := mem_at_top_sets.1 hs in 
         infi_le_of_le n $ supr_le_supr $ assume i, supr_le_supr_const (hn i))
@@ -316,8 +321,15 @@ calc
       (supr_le $ assume s, supr_le $ assume hs, 
         let ⟨n, hn⟩ := mem_at_top_sets.1 hs in
         le_supr_of_le n $ infi_le_infi $ assume i, infi_le_infi_const (hn _) )
-      (supr_le $ assume n, le_supr_of_le {i | n ≤ i} $ le_supr_of_le 
-      (begin simp, use n, simp end) $ infi_le_infi $ assume i, infi_le_infi_const (by simp))
+      (supr_le $ assume n, le_supr_of_le {i | n ≤ i} $ 
+        le_supr_of_le 
+          (begin 
+             simp only [mem_at_top_sets, mem_set_of_eq, nonempty_of_inhabited], 
+             use n, 
+             simp only [imp_self, forall_const] 
+          end)
+          (infi_le_infi $ assume i, infi_le_infi_const 
+            (by simp only [imp_self, set.mem_set_of_eq])))
 
 end complete_lattice
 

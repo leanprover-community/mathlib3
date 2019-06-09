@@ -807,8 +807,8 @@ calc
       (assume h : a ∈ s, by simp [g, if_pos h])
       (assume h : a ∉ s, 
       begin 
-        simp [g, if_neg h], have := hs.1, rw subset_def at this, have := mt (this a) h, 
-        simp at this, exact this n  
+        simp only [g, if_neg h], have := hs.1, rw subset_def at this, have := mt (this a) h, 
+        simp only [not_not, mem_set_of_eq] at this, exact this n  
       end))
   ... = ⨆n, (∫⁻ a, f n a) : 
   begin 
@@ -823,8 +823,8 @@ begin
         ennreal.sub_add_cancel_of_le (lintegral_le_lintegral_ae h_le),
       ← lintegral_add (ennreal.measurable_sub hf hg) hg], 
   show  (∫⁻ (a : α), f a - g a + g a) = ∫⁻ (a : α), f a, 
-  apply lintegral_congr_ae, filter_upwards [h_le], simp, assume a ha, 
-  exact ennreal.add_sub_cancel_of_le ha
+  apply lintegral_congr_ae, filter_upwards [h_le], simp only [add_comm, mem_set_of_eq], 
+  assume a ha, exact ennreal.add_sub_cancel_of_le ha
 end
 
 /-- Monotone convergence theorem for nonincreasing sequences of functions -/
@@ -855,7 +855,7 @@ calc
     have h_mono : ∀ₘ a, ∀n:ℕ, f n.succ a ≤ f n a := all_ae_all_iff.2 h_mono, 
     have h_mono : ∀n, ∀ₘa, f n a ≤ f 0 a := assume n, 
     begin 
-      filter_upwards [h_mono], simp, assume a, assume h, induction n with n ih, 
+      filter_upwards [h_mono], simp only [mem_set_of_eq], assume a, assume h, induction n with n ih, 
       {exact le_refl _}, {exact le_trans (h n) ih}
     end, 
     congr rfl (funext $ assume n, lintegral_sub (h_meas _) (h_meas _) 
@@ -879,7 +879,7 @@ calc
       {convert measurable_const, simp [h]}
     end
     begin 
-      assume n m hnm a, simp, assume i hi, 
+      assume n m hnm a, simp only [le_infi_iff], assume i hi, 
       refine infi_le_of_le i (infi_le_of_le (le_trans hnm hi) (le_refl _)) 
     end
   ... ≤ ⨆n:ℕ, ⨅i≥n, lintegral (f i) : 
@@ -905,13 +905,14 @@ calc
       (assume i, measurable.supr_Prop (hf_meas i))) 
       (assume n, all_ae_of_all $ assume a, 
        begin 
-         simp, assume i hi, refine le_supr_of_le i _, 
+         simp only [supr_le_iff], assume i hi, refine le_supr_of_le i _, 
          rw [supr_pos _], exact le_refl _, exact nat.le_of_succ_le hi    
        end ) 
       (lt_of_le_of_lt 
         (lintegral_le_lintegral_ae 
         begin 
-          filter_upwards [all_ae_all_iff.2 h_bound], simp, 
+          filter_upwards [all_ae_all_iff.2 h_bound], 
+          simp only [supr_le_iff, mem_set_of_eq],
           assume a ha i hi, exact ha i
         end ) 
         h_fin)).symm

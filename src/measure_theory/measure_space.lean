@@ -873,6 +873,11 @@ iff.intro
 
 lemma all_ae_iff {p : α → Prop} : (∀ₘ a, p a) ↔ volume { a | ¬ p a } = 0 := iff.refl _
 
+lemma all_ae_of_all {p : α → Prop} : (∀a, p a) → ∀ₘ a, p a := assume h, 
+begin 
+  rw all_ae_iff, convert volume_empty, simp only [h, not_true], reflexivity 
+end
+
 lemma all_ae_all_iff {ι : Type*} [encodable ι] {p : α → ι → Prop} :
   (∀ₘ a, ∀i, p a i) ↔ (∀i, ∀ₘ a, p a i):=
 begin

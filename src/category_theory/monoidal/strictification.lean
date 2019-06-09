@@ -2,6 +2,7 @@ import category_theory.monoidal.functor
 import category_theory.full_subcategory
 import category_theory.eq_to_hom
 import category_theory.equivalence
+import category_theory.monoidal.unitors
 
 universes v₁ u₁
 
@@ -29,7 +30,7 @@ def tensorator : Π (w z : list C), (tensor w) ⊗ (tensor z) ≅ tensor (w ++ z
 | [] z := (λ_ _)
 | (X :: w) z := (α_ _ _ _) ≪≫ (tensor_iso (iso.refl _) (tensorator w z))
 
-@[simp] lemma tensorator_nil {z : list C} : tensorator [] z = (λ_ _) := rfl
+@[simp] lemma tensorator_nil_left {z : list C} : tensorator [] z = (λ_ _) := rfl
 @[simp] lemma tensorator_cons {X} {w z : list C} : tensorator (X :: w) z = (α_ _ _ _) ≪≫ (tensor_iso (iso.refl _) (tensorator w z)) := rfl
 
 def tensorator_congr_left {w w' : list C} (h : w = w') (z : list C) :
@@ -43,21 +44,79 @@ def tensorator_congr_right (w : list C) {z z' : list C} (h : z = z') :
     tensorator w z' ≪≫ eq_to_iso (by { cases h, refl }) :=
 by { cases h, simp }
 
-lemma tensorator_assoc : Π (u v w : list C),
+lemma id_tensor_eq_to_hom (X Y Z : C) (h : Y = Z) : 𝟙 X ⊗ eq_to_hom h = eq_to_hom (by { congr, exact h }) :=
+by { cases h, simp, }
+
+lemma tensorator_assoc (u v w : list C) :
   ((tensorator u v).hom ⊗ 𝟙 _) ≫ (tensorator (u ++ v) w).hom =
   (α_ _ _ _).hom ≫ (𝟙 _ ⊗ (tensorator v w).hom) ≫ (tensorator u (v ++ w)).hom ≫ eq_to_hom (by rw list.append_assoc) :=
 begin
   intros,
   induction u,
-  { dsimp, simp, sorry, },
-  { dsimp, simp,
+  { dsimp,
+    simp,
+    rw left_unitor_naturality,
+    slice_rhs 1 2 { simp, }, },
+  { dsimp,
+    simp only [list.append, list.append_assoc, category.assoc],
     rw ←comp_tensor_id,
     slice_lhs 2 3 { erw associator_naturality, },
     slice_lhs 3 4 { rw id_tensor_comp, },
     rw u_ih,
-    slice_lhs 1 3 { rw pentagon, },
     slice_rhs 2 3 { rw ←tensor_id, rw associator_naturality, },
-     }
+    rw ←id_tensor_comp,
+    slice_lhs 1 4 { rw pentagon, }, -- FIXME slice is getting the indexing wrong.
+    simp only [list.append, list.append_assoc, cancel_epi, id_tensor_comp, category.assoc],
+    conv { to_lhs, rw ←id_tensor_comp, rw ←id_tensor_comp, },
+    conv { to_rhs, rw ←id_tensor_comp, rw category.assoc, },
+    congr,
+    apply id_tensor_eq_to_hom }
+end
+
+lemma tensorator_assoc' (u v w : list C) :
+  (𝟙 _ ⊗ (tensorator v w).hom) ≫ (tensorator u (v ++ w)).hom =
+  (α_ _ _ _).inv ≫ ((tensorator u v).hom ⊗ 𝟙 _) ≫ (tensorator (u ++ v) w).hom ≫ eq_to_hom (by rw list.append_assoc) :=
+begin
+  symmetry,
+  apply is_iso.cancel_left_lhs,
+  rw ←category.assoc,
+  apply is_iso.cancel_right_lhs,
+  rw tensorator_assoc,
+  dsimp,
+  simp only [list.append_assoc, category.assoc],
+end
+
+lemma tensorator_inv_assoc (u v w : list C) :
+  (tensorator (u ++ v) w).inv ≫ ((tensorator u v).inv ⊗ 𝟙 _) =
+  eq_to_hom (by rw list.append_assoc) ≫ (tensorator u (v ++ w)).inv ≫ (𝟙 _ ⊗ (tensorator v w).inv) ≫ (α_ _ _ _).inv :=
+begin
+  apply eq_of_inv_eq_inv,
+  simp,
+  apply tensorator_assoc,
+end
+
+lemma tensorator_inv_assoc' (u v w : list C) :
+  (tensorator u (v ++ w)).inv ≫ (𝟙 _ ⊗ (tensorator v w).inv) =
+  eq_to_hom (by rw list.append_assoc) ≫ (tensorator (u ++ v) w).inv ≫ ((tensorator u v).inv ⊗ 𝟙 _) ≫ (α_ _ _ _).hom :=
+begin
+  apply eq_of_inv_eq_inv,
+  simp,
+  apply tensorator_assoc',
+end
+
+@[simp] lemma tensorator_nil_right (u : list C) : tensorator u [] = ρ_ (tensor u) ≪≫ eq_to_iso (by simp) :=
+begin
+  ext1,
+  induction u,
+  { simp only [iso.trans_refl, list.append_nil, tensorator_nil_left, eq_to_iso_refl],
+    erw unitors_equal, refl, },
+  { dsimp,
+    rw u_ih,
+    dsimp,
+    rw [←id_tensor_comp, ←category.assoc],
+    simp only [list.append, list.append_nil, cancel_epi, right_unitor_tensor],
+    rw id_tensor_eq_to_hom,
+    refl }
 end
 
 instance : category.{v₁} (list C) :=
@@ -65,70 +124,124 @@ instance : category.{v₁} (list C) :=
   id := λ X, 𝟙 (tensor X),
   comp := λ X Y Z f g, f ≫ g, }
 
--- lemma tensorator_natural {w w' z z' : list C} (f : w ⟶ w') (g : z ⟶ z') : (f ⊗ g) ≫ (tensorator w' z').hom = sorry
+-- def unpack {X Y : list C} (f : X ⟶ Y) : tensor X ⟶ tensor Y := f
+-- def pack {X Y : list C} (f : tensor X ⟶ tensor Y) : X ⟶ Y := f
 
-def unpack {X Y : list C} (f : X ⟶ Y) : tensor X ⟶ tensor Y := f
-def pack {X Y : list C} (f : tensor X ⟶ tensor Y) : X ⟶ Y := f
-
-@[simp] lemma unpack_id (X : list C) : unpack (𝟙 X) = 𝟙 (tensor X) := rfl
-@[simp] lemma pack_id (X : list C) : pack (𝟙 (tensor X)) = 𝟙 X := rfl
--- @[simp] lemma unpack_comp (X Y Z : list C) (f : X ⟶ Y) (g : Y ⟶ Z) : unpack (f ≫ g) = unpack f ≫ unpack g := rfl
-lemma pack_comp (X Y Z : list C) (f : tensor X ⟶ tensor Y) (g : tensor Y ⟶ tensor Z) : pack (f ≫ g) = pack f ≫ pack g := rfl
+-- @[simp] lemma unpack_id (X : list C) : unpack (𝟙 X) = 𝟙 (tensor X) := rfl
+-- @[simp] lemma pack_id (X : list C) : pack (𝟙 (tensor X)) = 𝟙 X := rfl
 
 open category monoidal_category
-
-lemma cancel_left {X Y Z : C} {f : X ⟶ Y} [is_iso f] {g : Y ⟶ Z} {h : X ⟶ Z} : (f ≫ g = h) ↔ (g = (inv f) ≫ h) :=
-sorry
 
 instance : monoidal_category.{v₁} (list C) :=
 { tensor_obj := λ X Y, X ++ Y,
   tensor_unit := [],
-  tensor_hom := λ W X Y Z f g,
-  pack $ (tensorator W Y).inv ≫ ((unpack f) ⊗ (unpack g)) ≫ (tensorator X Z).hom,
+  tensor_hom := λ (W X Y Z) (f : tensor W ⟶ tensor X) (g : tensor Y ⟶ tensor Z),
+  ((tensorator W Y).inv ≫ (f ⊗ g) ≫ (tensorator X Z).hom : tensor (W ++ Y) ⟶ tensor (X ++ Z)),
   associator   := λ X Y Z, eq_to_iso (list.append_assoc _ _ _),
   left_unitor  := λ X, iso.refl _,
   right_unitor := λ X, eq_to_iso (list.append_nil _),
-  tensor_id' := sorry, --λ X Y, by simp,
-  tensor_comp' := sorry, --λ U V W X Y Z f g h k, begin dsimp [pack], erw [assoc, assoc], simp, dsimp [unpack], erw [tensor_comp, assoc], end,
-  associator_naturality' := λ X₁ X₂ X₃ Y₁ Y₂ Y₃ f₁ f₂ f₃, begin dsimp [pack, unpack], sorry end,
-  left_unitor_naturality' := λ X Y f, begin dsimp [tensorator, pack, unpack], simp, erw [left_unitor_naturality], simp, end,
-  right_unitor_naturality' := λ X Y f, begin dsimp [tensorator, pack, unpack], sorry, end,
+  tensor_id' := λ X Y, by { erw [tensor_id, id_comp, iso.inv_hom_id], refl },
+  tensor_comp' := λ U V W X Y Z f g h k,
+  begin
+    dsimp,
+    erw [assoc, assoc],
+    simp only [iso.hom_inv_id_assoc, cancel_epi],
+    erw [tensor_comp, assoc],
+  end,
+  associator_naturality' := λ X₁ X₂ X₃ Y₁ Y₂ Y₃ f₁ f₂ f₃,
+  begin
+    dsimp,
+    -- pull everything apart to get f₁ ⊗ f₂ ⊗ f₃ in the middle on both sides, then use tensorator_assoc above
+    -- tidying up the left hand side:
+    apply is_iso.cancel_right_lhs,
+    erw inv_eq_to_hom,
+    conv { to_lhs, rw [←tensor_id_comp_id_tensor, ←comp_tensor_id, ←comp_tensor_id], },
+    slice_lhs 4 5 { rw tensor_id_comp_id_tensor },
+    slice_lhs 4 4 { rw ←id_tensor_comp_tensor_id },
+    slice_lhs 3 4 { rw tensor_id_comp_id_tensor, },
+    -- tidying up the right hand side:
+    symmetry,
+    apply is_iso.cancel_right_lhs,
+    apply is_iso.cancel_left_lhs,
+    erw inv_eq_to_hom,
+    erw inv_eq_to_hom,
+    symmetry,
+    conv { to_rhs, rw [←tensor_id_comp_id_tensor, ←id_tensor_comp, ←id_tensor_comp], },
+    slice_rhs 2 3 { rw tensor_id_comp_id_tensor },
+    slice_rhs 2 2 { rw ←id_tensor_comp_tensor_id },
+    slice_rhs 3 4 { rw tensor_id_comp_id_tensor, },
+    -- use tensorator[_inv]_assoc
+    simp only [list.append_assoc, assoc, id_comp, comp_id],
+    rw tensorator_assoc',
+    conv { to_rhs, rw ←assoc, rw tensorator_inv_assoc' },
+    -- now clean everything up
+    simp only [list.append_assoc, assoc, id_comp, comp_id],
+    apply is_iso.cancel_left_lhs,
+    erw eq_to_hom_trans_assoc,
+    simp only [list.append_assoc, assoc, id_comp, eq_to_hom_refl, comp_id],
+    slice_rhs 3 5 { rw associator_conjugation', },
+    simp only [list.append_assoc, assoc],
+    apply is_iso.cancel_right_lhs,
+    erw [inv_eq_to_hom, category.assoc, category.assoc, category.assoc, category.assoc, category.assoc, eq_to_hom_trans],
+    simp only [list.append_assoc, cancel_epi, cancel_mono, eq_to_hom_refl, comp_id],
+    -- and some final equalities:
+    erw list.append_assoc,
+    erw list.append_assoc,
+  end,
+  left_unitor_naturality' := λ X Y f,
+  begin
+    dsimp [tensorator],
+    simp only [id_comp, comp_id],
+    erw [left_unitor_naturality],
+    simp,
+  end,
+  right_unitor_naturality' := λ X Y f,
+  begin
+    dsimp [tensorator],
+    simp only [iso.trans_inv, eq_to_iso.inv, list.append_nil, tensorator_nil_right, assoc,
+               id_comp, eq_to_iso.hom, comp_id, iso.trans_hom],
+    erw [category.assoc, category.assoc, category.assoc, category.assoc, eq_to_hom_trans],
+    simp only [list.append_nil, assoc, id_comp, eq_to_hom_refl, comp_id],
+    erw right_unitor_conjugation,
+    refl,
+    { rw list.append_nil },
+  end,
   pentagon' := λ W X Y Z,
   begin
-    sorry
-    -- dsimp [pack, unpack],
-    -- rw tensorator_congr_left (list.append_assoc _ _ _) _,
-    -- rw tensorator_congr_right _ (list.append_assoc _ _ _),
-    -- dsimp,
-    -- simp,
-    -- slice_lhs 5 6 { erw id_tensor_comp },
-    -- erw eq_to_hom_trans_assoc,
-    -- erw eq_to_hom_trans,
-
-    -- erw comp_tensor_id_assoc,
-    -- erw eq_to_hom_trans,
-    -- simp,
-    -- erw eq_to_hom_trans_assoc,
-    -- simp,
-    -- erw comp_id,
-    -- rw list.append_assoc W X Y,
-    -- rw list.append_assoc W X Y,
-    -- rw list.append_assoc X Y Z,
-    -- rw list.append_assoc X Y Z,
+    dsimp,
+    rw tensorator_congr_left (list.append_assoc _ _ _) _,
+    rw tensorator_congr_right _ (list.append_assoc _ _ _),
+    dsimp,
+    simp only [eq_to_hom_trans, list.append_assoc, assoc, id_comp, comp_id],
+    slice_lhs 5 6 { erw id_tensor_comp },
+    erw eq_to_hom_trans_assoc,
+    erw eq_to_hom_trans,
+    erw comp_tensor_id_assoc,
+    erw eq_to_hom_trans,
+    simp only [tensor_id, list.append_assoc, assoc, id_comp, eq_to_hom_refl, comp_id, iso.inv_hom_id],
+    erw eq_to_hom_trans_assoc,
+    simp only [list.append_assoc, assoc, id_comp, comp_id],
+    erw comp_id,
+    rw list.append_assoc W X Y,
+    rw list.append_assoc W X Y,
+    rw list.append_assoc X Y Z,
+    rw list.append_assoc X Y Z,
   end,
   triangle' := λ X Y,
   begin
-    sorry
-    -- dsimp,
-    -- rw tensorator_congr_left (list.append_nil X),
-    -- simp,
-    -- apply congr_arg unpack,
-    -- slice_rhs 3 4 { rw comp_tensor_id },
-    -- dsimp [unpack],
-    -- erw eq_to_hom_trans,
-    -- dsimp, simp,
-    -- refl,
-    -- rw list.append_nil,
+    dsimp,
+    rw tensorator_congr_left (list.append_nil X),
+    simp only [iso.trans_inv, tensor_iso_inv, eq_to_iso.inv, list.append_nil, iso.refl_inv,
+               tensor_id, comp_tensor_id_assoc, list.append_assoc, assoc, id_comp, comp_id, iso.inv_hom_id],
+    slice_rhs 3 4 { erw comp_tensor_id },
+    erw eq_to_hom_trans,
+    dsimp,
+    simp only [tensor_id, list.append_nil, list.append_assoc, assoc, id_comp, comp_id, iso.inv_hom_id],
+    erw tensor_id,
+    simp only [list.append_nil, list.append_assoc, assoc, id_comp, comp_id, iso.inv_hom_id],
+    erw comp_id,
+    refl,
+    rw list.append_nil,
   end
 }.
 
@@ -152,16 +265,40 @@ instance : is_equivalence (strictification C) := equivalence.equivalence_of_full
 
 end strictification
 
--- TODO We're not there yet! We want a monoidal equivalence, of course.
-
 def monoidal_strictification : monoidal_functor.{v₁ v₁} (list C) C :=
 { ε := 𝟙 _,
   μ := λ X Y, (tensorator X Y).hom,
   μ_is_iso := λ X Y, is_iso.of_iso _,
-  μ_natural' := sorry,
-  associativity' := sorry,
-  left_unitality' := sorry,
-  right_unitality' := sorry,
+  μ_natural' := λ X Y X' Y' f g,
+  by { dsimp [tensor_hom, strictification], simp, },
+  associativity' := λ X Y Z,
+  begin
+    dsimp [strictification],
+    erw [←category.assoc, tensorator_assoc],
+    simp only [list.append_assoc, assoc, cancel_epi],
+    dsimp [tensor_obj],
+    erw eq_to_hom_trans,
+    { simp only [list.append_assoc, eq_to_hom_refl, comp_id] },
+    { rw list.append_assoc },
+  end,
+  left_unitality' := λ X,
+  begin
+    dsimp [strictification],
+    erw tensorator_nil_left,
+    simp only [tensor_id, id_comp],
+    erw comp_id,
+  end,
+  right_unitality' := λ X,
+  begin
+    dsimp [strictification],
+    rw [tensor_id, id_comp],
+    erw tensorator_nil_right,
+    dsimp,
+    simp only [list.append_nil, assoc],
+    erw eq_to_hom_trans,
+    { simp, },
+    { congr, exact list.append_nil X, },
+  end,
   ..(strictification C) }
 
 -- Finally, we need to prove that a monoidal functor which is part of an equivalence is part of a monoidal equivalence.

@@ -11,7 +11,7 @@ universes v u
 
 open category_theory
 
-namespace category_theory
+namespace category_theory.monoidal_category_aux
 
 @[reducible] def tensor_obj_type
   (C : Sort u) [category.{v} C] :=
@@ -83,4 +83,4 @@ def right_unitor_natural
   (assoc X tensor_unit Y).hom ≫ (tensor_hom (𝟙 X) (left_unitor Y).hom)
   = tensor_hom (right_unitor X).hom (𝟙 Y)
 
-end category_theory
+end category_theory.monoidal_category_aux

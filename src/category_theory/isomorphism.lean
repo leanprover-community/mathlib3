@@ -4,7 +4,7 @@
 
 import category_theory.functor
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v v' u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory
 open category
@@ -169,6 +169,15 @@ instance epi_of_iso (f : X ⟶ Y) [is_iso f] : epi f  :=
 instance mono_of_iso (f : X ⟶ Y) [is_iso f] : mono f :=
 { right_cancellation := λ Z g h w,
   by rw [←category.comp_id C g, ←category.comp_id C h, ←is_iso.hom_inv_id f, ←category.assoc, w, ←category.assoc] }
+
+lemma cancel_left_lhs {X Y Z : C} {f : X ⟶ Y} [is_iso f] {g : Y ⟶ Z} {h : X ⟶ Z} (w : g = (category_theory.inv f) ≫ h) : (f ≫ g = h) :=
+by { apply (@cancel_epi _ _ _ _ _ (category_theory.inv f) _ _ _).1, simpa using w, }
+lemma cancel_right_lhs {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [is_iso g] {h : X ⟶ Z} (w : f = h ≫ (category_theory.inv g)) : (f ≫ g = h) :=
+by { apply (@cancel_mono _ _ _ _ _ (category_theory.inv g) _ _ _).1, simpa using w, }
+lemma cancel_left_rhs {X Y Z : C} {f : X ⟶ Y} [is_iso f] {g : Y ⟶ Z} {h : X ⟶ Z} (w : (category_theory.inv f) ≫ h = g) : (h = f ≫ g) :=
+(cancel_left_lhs w.symm).symm
+lemma cancel_right_rhs {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [is_iso g] {h : X ⟶ Z} (w : h ≫ (category_theory.inv g) = f) : (h = f ≫ g) :=
+(cancel_right_lhs w.symm).symm
 
 end is_iso
 

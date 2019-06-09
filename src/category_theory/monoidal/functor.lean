@@ -2,6 +2,7 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Michael Jendrusch, Scott Morrison
 import category_theory.monoidal.category
+import category_theory.eq_to_hom
 
 open category_theory
 
@@ -176,6 +177,12 @@ def comp : monoidal_functor.{v₁ v₃} C E :=
 { ε_is_iso := by { dsimp, apply_instance }, -- TODO tidy would get this if we deferred ext
   μ_is_iso := by { dsimp, apply_instance }, -- TODO as above
   .. (F.to_lax_monoidal_functor).comp (G.to_lax_monoidal_functor) }.
+
+@[simp] lemma comp_obj (X : C) : (F.comp G).obj X = G.obj (F.obj X) := rfl
+@[simp] lemma comp_map {X X' : C} (f : X ⟶ X') :
+  (F.comp G).map f = (G.map (F.map f) : G.obj (F.obj X) ⟶ G.obj (F.obj X')) := rfl
+@[simp] lemma comp_ε : (F.comp G).ε = G.ε ≫ (G.map F.ε) := rfl
+@[simp] lemma comp_μ (X Y : C) : (F.comp G).μ X Y = (G.μ (F.obj X) (F.obj Y) ≫ G.map (F.μ X Y) : _ ⟶ _) := rfl
 
 end monoidal_functor
 

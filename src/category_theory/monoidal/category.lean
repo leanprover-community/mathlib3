@@ -16,6 +16,8 @@ open category_theory.iso
 
 namespace category_theory
 
+open category_theory.monoidal_category_aux
+
 class monoidal_category (C : Sort u) extends category.{v} C :=
 -- curried tensor product of objects:
 (tensor_obj               : C → C → C)
@@ -120,6 +122,9 @@ variables {U V W X Y Z : C}
 -- associator_inv_naturality
 -- left_unitor_inv_naturality
 -- right_unitor_inv_naturality
+-- associator_conjugation
+-- right_unitor_conjugation
+-- left_unitor_conjugation
 
 @[simp] lemma comp_tensor_id (f : W ⟶ X) (g : X ⟶ Y) :
   (f ⊗ (𝟙 Z)) ≫ (g ⊗ (𝟙 Z)) = (f ≫ g) ⊗ (𝟙 Z) :=
@@ -141,9 +146,17 @@ by { rw [←assoc, ←tensor_comp], simp }
   ((𝟙 Y) ⊗ f) ≫ (g ⊗ (𝟙 X)) = g ⊗ f :=
 by { rw [←tensor_comp], simp }
 
+@[simp] lemma id_tensor_comp_tensor_id_assoc (f : W ⟶ X) (g : Y ⟶ Z) (h : Z ⊗ X ⟶ V) :
+  ((𝟙 Y) ⊗ f) ≫ (g ⊗ (𝟙 X)) ≫ h = (g ⊗ f) ≫ h :=
+by rw [←assoc, id_tensor_comp_tensor_id]
+
 @[simp] lemma tensor_id_comp_id_tensor (f : W ⟶ X) (g : Y ⟶ Z) :
   (g ⊗ (𝟙 W)) ≫ ((𝟙 Z) ⊗ f) = g ⊗ f :=
 by { rw [←tensor_comp], simp }
+
+@[simp] lemma tensor_id_comp_id_tensor_assoc (f : W ⟶ X) (g : Y ⟶ Z) (h : Z ⊗ X ⟶ V) :
+  (g ⊗ (𝟙 W)) ≫ ((𝟙 Z) ⊗ f) ≫ h = (g ⊗ f) ≫ h :=
+by rw [←assoc, tensor_id_comp_id_tensor]
 
 lemma left_unitor_inv_naturality {X X' : C} (f : X ⟶ X') :
   f ≫ (λ_ X').inv = (λ_ X).inv ≫ (𝟙 _ ⊗ f) :=
@@ -305,6 +318,22 @@ begin
   simp only [assoc, comp_id, iso.inv_hom_id],
   rw [associator_naturality, ←category.assoc, iso.inv_hom_id, category.id_comp]
 end
+
+@[simp] lemma associator_conjugation {X₁ X₂ X₃ Y₁ Y₂ Y₃ : C} (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (f₃ : X₃ ⟶ Y₃) :
+  (α_ X₁ X₂ X₃).inv ≫ ((f₁ ⊗ f₂) ⊗ f₃) ≫ (α_ Y₁ Y₂ Y₃).hom = f₁ ⊗ (f₂ ⊗ f₃) :=
+by rw [associator_naturality, ←category.assoc, iso.inv_hom_id, category.id_comp]
+
+@[simp] lemma associator_conjugation' {X₁ X₂ X₃ Y₁ Y₂ Y₃ : C} (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (f₃ : X₃ ⟶ Y₃) :
+  (α_ X₁ X₂ X₃).hom ≫ (f₁ ⊗ (f₂ ⊗ f₃)) ≫ (α_ Y₁ Y₂ Y₃).inv = (f₁ ⊗ f₂) ⊗ f₃ :=
+by rw [associator_inv_naturality, iso.hom_inv_id_assoc]
+
+-- TODO the next two lemmas warrant another version, with `inv` and `hom` reversed.
+
+@[simp] lemma right_unitor_conjugation {X Y : C} (f : X ⟶ Y) : (ρ_ X).inv ≫ (f ⊗ (𝟙 (𝟙_ C))) ≫ (ρ_ Y).hom = f :=
+by rw [right_unitor_naturality, ←category.assoc, iso.inv_hom_id, category.id_comp]
+
+@[simp] lemma left_unitor_conjugation {X Y : C} (f : X ⟶ Y) : (λ_ X).inv ≫ ((𝟙 (𝟙_ C)) ⊗ f) ≫ (λ_ Y).hom = f :=
+by rw [left_unitor_naturality, ←category.assoc, iso.inv_hom_id, category.id_comp]
 
 lemma pentagon_inv (W X Y Z : C) :
   ((𝟙 W) ⊗ (α_ X Y Z).inv) ≫ (α_ W (X ⊗ Y) Z).inv ≫ ((α_ W X Y).inv ⊗ (𝟙 Z))

@@ -1119,6 +1119,8 @@ instance cast.is_ring_hom [ring α] :
   is_ring_hom (int.cast : ℤ → α) :=
 ⟨cast_one, cast_mul, cast_add⟩
 
+instance coe.is_ring_hom [ring α] : is_ring_hom (coe : ℤ → α) := cast.is_ring_hom
+
 theorem mul_cast_comm [ring α] (a : α) (n : ℤ) : a * n = n * a :=
 by cases n; simp [nat.mul_cast_comm, left_distrib, right_distrib, *]
 
@@ -1164,6 +1166,9 @@ begin
       ← show -[1+ n] + (↑n + 1) = 0, from neg_add_self (↑n+1),
       Hadd, show f (n+1) = n+1, from H (n+1)]
 end
+
+lemma eq_cast' [ring α] (f : ℤ → α) [is_ring_hom f] : f = int.cast :=
+funext $ int.eq_cast f (is_ring_hom.map_one f) (λ _ _, is_ring_hom.map_add f)
 
 @[simp, squash_cast] theorem cast_id (n : ℤ) : ↑n = n :=
 (eq_cast id rfl (λ _ _, rfl) n).symm

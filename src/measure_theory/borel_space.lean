@@ -463,8 +463,8 @@ begin
   { simp only [ennreal.coe_add.symm],
     exact measurable_coe.comp
       (measurable_add (measurable_fst measurable_id) (measurable_snd measurable_id)) },
-  { simp only [top_add], exact measurable_const },
-  { simp only [add_top], exact measurable_const }
+  { simp [measurable_const] },
+  { simp [measurable_const] }
 end
 
 lemma measurable_sub {α : Type*} [measurable_space α] {f g : α → ennreal} : 
@@ -474,8 +474,8 @@ begin
   { simp only [ennreal.coe_sub.symm],
     exact measurable_coe.comp 
       (nnreal.measurable_sub (measurable_fst measurable_id) (measurable_snd measurable_id)) },
-  { simp only [top_sub_coe], exact measurable_const }, 
-  { simp only [sub_infty], exact measurable_const }
+  { simp [measurable_const] }, 
+  { simp [measurable_const] }
 end
 
 end ennreal

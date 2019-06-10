@@ -28,20 +28,21 @@ variables {S : Type*} [semigroup S]
 
 theorem commute.eq {a b : S} (h : commute a b) : a * b = b * a := h
 
-@[refl] theorem commute.refl (a : S) : commute a a := by { unfold commute }
+@[refl] theorem commute.refl (a : S) : commute a a := by unfold commute
 
-@[symm] theorem commute.symm {a b : S} : commute a b → commute b a :=
-λ h, h.symm
+@[symm] theorem commute.symm {a b : S} (h : commute a b) : commute b a :=
+h.symm
 
-theorem commute.mul {a b c : S} :
- commute a b → commute a c → commute a (b * c) :=
-λ hab hac,
-  by { dsimp [commute] at *,
-       rw [mul_assoc, ← hac, ← mul_assoc b, ← hab, mul_assoc] }
+theorem commute.mul {a b c : S}
+ (hab : commute a b) (hac : commute a c) : commute a (b * c) :=
+begin
+  dsimp [commute] at *,
+  rw [mul_assoc, ← hac, ← mul_assoc b, ← hab, mul_assoc]
+end
 
-theorem commute.mul_left {a b c : S} :
- commute a c → commute b c → commute (a * b) c :=
-λ hac hbc, (hac.symm.mul hbc.symm).symm
+theorem commute.mul_left {a b c : S}
+  (hac : commute a c) (hbc : commute b c) : commute (a * b) c :=
+(hac.symm.mul hbc.symm).symm
 
 def centralizer (a : S) : set S := { x | commute a x }
 
@@ -49,10 +50,10 @@ theorem mem_centralizer (a : S) {x : S} : x ∈ centralizer a ↔ commute a x :=
 iff.refl _
 
 def set_centralizer (T : set S) : set S :=
-  { x | ∀ (a : S), a ∈ T → commute a x }
+  { x | ∀ a ∈ T, commute a x }
 
 theorem mem_set_centralizer (T : set S) {x : S} :
-  x ∈ set_centralizer T ↔ ∀ (a : S), a ∈ T → commute a x :=
+  x ∈ set_centralizer T ↔ ∀ a ∈ T, commute a x :=
 iff.refl _
 
 end semigroup
@@ -74,7 +75,7 @@ theorem commute.pow_left {a b : M} (hab : commute a b) (n : ℕ) : commute (a ^ 
 (hab.symm.pow n).symm
 
 theorem commute.pow_pow {a b : M} (hab : commute a b) (n m : ℕ) :
- commute (a ^ n) (b ^ m) :=
+  commute (a ^ n) (b ^ m) :=
 commute.pow (commute.pow_left hab n) m
 
 theorem commute.self_pow (a : M) (n : ℕ) : commute a (a ^ n) :=
@@ -85,6 +86,22 @@ theorem commute.pow_self (a : M) (n : ℕ) : commute (a ^ n) a :=
 
 theorem commute.pow_pow_self (a : M) (n m : ℕ) : commute (a ^ n) (a ^ m) :=
 (commute.refl a).pow_pow n m
+
+theorem commute.unit_inv (a : M) (u : units M) :
+  commute a u → commute a (u⁻¹ : units M) :=
+begin
+  intro h,
+  let v : units M := u⁻¹,
+  change a * v = v * a,
+  have huv : (u : M) * (v : M) = 1 := u.mul_inv,
+  have hvu : (v : M) * (u : M) = 1 := u.inv_mul,
+  exact calc
+    a * v = 1 * (a * v) : (one_mul _).symm
+    ... = v * (u * a * v) :
+      by { rw [← hvu, mul_assoc, mul_assoc] }
+    ... = v * a :
+      by { rw [← h.eq, mul_assoc, huv, mul_one] }
+end
 
 instance centralizer.is_submonoid (a : M) : is_submonoid (centralizer a) :=
 { one_mem := commute.one a,

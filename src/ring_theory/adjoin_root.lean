@@ -12,15 +12,14 @@ universes u v w
 
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-open polynomial ideal
-
-def adjoin_root [comm_ring α] [decidable_eq α] (f : polynomial α) : Type u :=
-ideal.quotient (span {f} : ideal (polynomial α))
-
 namespace adjoin_root
+open polynomial ideal
 
 section comm_ring
 variables [comm_ring α] [decidable_eq α] (f : polynomial α)
+
+def adjoin_root (f : polynomial α) : Type u :=
+ideal.quotient (span {f} : ideal (polynomial α))
 
 instance : comm_ring (adjoin_root f) := ideal.quotient.comm_ring _
 

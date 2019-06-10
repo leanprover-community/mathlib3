@@ -58,12 +58,12 @@ tendsto_of_uniform_continuous_subtype
 
 lemma continuous_inv' : continuous (λa:{r:ℂ // r ≠ 0}, a.val⁻¹) :=
 continuous_iff_continuous_at.mpr $ assume ⟨r, hr⟩,
-  tendsto.comp (tendsto_inv hr) (continuous_iff_continuous_at.mp continuous_subtype_val _)
+  (continuous_iff_continuous_at.mp continuous_subtype_val _).comp (tendsto_inv hr)
 
 lemma continuous_inv {α} [topological_space α] {f : α → ℂ} (h : ∀a, f a ≠ 0) (hf : continuous f) :
   continuous (λa, (f a)⁻¹) :=
 show continuous ((has_inv.inv ∘ @subtype.val ℂ (λr, r ≠ 0)) ∘ λa, ⟨f a, h a⟩),
-  from continuous_inv'.comp (continuous_subtype_mk _ hf)
+  from (continuous_subtype_mk _ hf).comp continuous_inv'
 
 lemma uniform_continuous_mul_const {x : ℂ} : uniform_continuous ((*) x) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0, begin
@@ -127,8 +127,8 @@ def real_prod_homeo : homeomorph ℂ (ℝ × ℝ) :=
   continuous_inv_fun := show continuous (λ p : ℝ × ℝ, complex.mk p.1 p.2),
     by simp only [mk_eq_add_mul_I]; exact
     continuous_add
-      (continuous_of_real.comp continuous_fst)
-      (continuous_mul (continuous_of_real.comp continuous_snd) continuous_const) }
+      (continuous_fst.comp continuous_of_real)
+      (continuous_mul (continuous_snd.comp continuous_of_real) continuous_const) }
 
 instance : proper_space ℂ :=
 ⟨λx r, begin

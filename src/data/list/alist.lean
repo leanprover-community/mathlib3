@@ -48,8 +48,6 @@ instance : has_emptyc (alist β) := ⟨⟨[], nodupkeys_nil⟩⟩
 theorem not_mem_empty (a : α) : a ∉ (∅ : alist β) :=
 not_mem_nil a
 
-@[simp] theorem empty_entries : (∅ : alist β).entries = [] := rfl
-
 @[simp] theorem keys_empty : (∅ : alist β).keys = [] := rfl
 
 /- singleton -/
@@ -57,9 +55,6 @@ not_mem_nil a
 /-- The singleton association list. -/
 def singleton (a : α) (b : β a) : alist β :=
 ⟨[⟨a, b⟩], nodupkeys_singleton _⟩
-
-@[simp] theorem singleton_entries (a : α) (b : β a) :
-  (singleton a b).entries = [sigma.mk a b] := rfl
 
 @[simp] theorem keys_singleton (a : α) (b : β a) : (singleton a b).keys = [a] := rfl
 
@@ -70,9 +65,6 @@ variables [decidable_eq α]
 /-- Look up the value associated to a key in an association list. -/
 def lookup (a : α) (s : alist β) : option (β a) :=
 s.entries.lookup a
-
-@[simp] theorem lookup_empty (a) : lookup a (∅ : alist β) = none :=
-rfl
 
 theorem lookup_is_some {a : α} {s : alist β} :
   (s.lookup a).is_some ↔ a ∈ s := lookup_is_some
@@ -132,7 +124,7 @@ perm_kerase s₁.nodupkeys
 lookup_kerase a s.nodupkeys
 
 @[simp] theorem lookup_erase_ne {a a'} {s : alist β} (h : a ≠ a') :
-  lookup a (erase a' s) = lookup a s :=
+  lookup a' (erase a s) = lookup a' s :=
 lookup_kerase_ne h
 
 /- insert -/
@@ -150,8 +142,8 @@ theorem insert_entries_of_neg {a} {b : β a} {s : alist β} (h : a ∉ s) :
   (insert a b s).entries = ⟨a, b⟩ :: s.entries :=
 by rw [insert_entries, kerase_of_not_mem_keys h]
 
-@[simp] theorem mem_insert {a a'} {b' : β a'} (s : alist β) :
-  a ∈ insert a' b' s ↔ a = a' ∨ a ∈ s :=
+@[simp] theorem mem_insert {a a'} {b : β a} (s : alist β) :
+  a' ∈ insert a b s ↔ a = a' ∨ a' ∈ s :=
 mem_keys_kinsert
 
 @[simp] theorem keys_insert {a} {b : β a} (s : alist β) :
@@ -165,8 +157,8 @@ by simp only [insert_entries]; exact perm_kinsert s₁.nodupkeys p
 @[simp] theorem lookup_insert {a} {b : β a} (s : alist β) : lookup a (insert a b s) = some b :=
 by simp only [lookup, insert, lookup_kinsert]
 
-@[simp] theorem lookup_insert_ne {a a'} {b' : β a'} {s : alist β} (h : a ≠ a') :
-  lookup a (insert a' b' s) = lookup a s :=
+@[simp] theorem lookup_insert_ne {a a'} {b : β a} {s : alist β} (h : a ≠ a') :
+  lookup a' (insert a b s) = lookup a' s :=
 lookup_kinsert_ne h
 
 /- extract -/
@@ -182,50 +174,5 @@ end
 @[simp] theorem extract_eq_lookup_erase (a : α) (s : alist β) :
   extract a s = (lookup a s, erase a s) :=
 by simp [extract]; split; refl
-
-/- union -/
-
-/-- `s₁ ∪ s₂` is the key-based union of two association lists. It is
-left-biased: if there exists an `a ∈ s₁`, `lookup a (s₁ ∪ s₂) = lookup a s₁`.
--/
-def union (s₁ s₂ : alist β) : alist β :=
-⟨kunion s₁.entries s₂.entries, kunion_nodupkeys s₁.nodupkeys s₂.nodupkeys⟩
-
-instance : has_union (alist β) := ⟨union⟩
-
-@[simp] theorem union_entries {s₁ s₂ : alist β} :
-  (s₁ ∪ s₂).entries = kunion s₁.entries s₂.entries :=
-rfl
-
-@[simp] theorem empty_union {s : alist β} : (∅ : alist β) ∪ s = s :=
-ext rfl
-
-@[simp] theorem union_empty {s : alist β} : s ∪ (∅ : alist β) = s :=
-ext $ by simp
-
-@[simp] theorem mem_union {a} {s₁ s₂ : alist β} :
-  a ∈ s₁ ∪ s₂ ↔ a ∈ s₁ ∨ a ∈ s₂ :=
-mem_keys_kunion
-
-theorem perm_union {s₁ s₂ s₃ s₄ : alist β}
-  (p₁₂ : s₁.entries ~ s₂.entries) (p₃₄ : s₃.entries ~ s₄.entries) :
-  (s₁ ∪ s₃).entries ~ (s₂ ∪ s₄).entries :=
-by simp [perm_kunion s₃.nodupkeys p₁₂ p₃₄]
-
-@[simp] theorem lookup_union_left {a} {s₁ s₂ : alist β} :
-  a ∈ s₁ → lookup a (s₁ ∪ s₂) = lookup a s₁ :=
-lookup_kunion_left
-
-@[simp] theorem lookup_union_right {a} {s₁ s₂ : alist β} :
-  a ∉ s₁ → lookup a (s₁ ∪ s₂) = lookup a s₂ :=
-lookup_kunion_right
-
-@[simp] theorem mem_lookup_union {a} {b : β a} {s₁ s₂ : alist β} :
-  b ∈ lookup a (s₁ ∪ s₂) ↔ b ∈ lookup a s₁ ∨ a ∉ s₁ ∧ b ∈ lookup a s₂ :=
-mem_lookup_kunion
-
-theorem mem_lookup_union_middle {a} {b : β a} {s₁ s₂ s₃ : alist β} :
-  b ∈ lookup a (s₁ ∪ s₃) → a ∉ s₂ → b ∈ lookup a (s₁ ∪ s₂ ∪ s₃) :=
-mem_lookup_kunion_middle
 
 end alist

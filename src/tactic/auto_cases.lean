@@ -3,7 +3,7 @@
 -- Authors: Scott Morrison
 
 import logic.basic
-import tactic.core
+import tactic.basic
 import data.option.defs
 
 open tactic

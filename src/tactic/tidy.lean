@@ -2,10 +2,9 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Scott Morrison
 
-import tactic.ext
+import tactic
 import tactic.auto_cases
 import tactic.chain
-import tactic.solve_by_elim
 import tactic.interactive
 
 namespace tactic
@@ -53,7 +52,6 @@ meta def default_tactics : list (tactic string) :=
   fsplit                                      >> pure "fsplit",
   injections_and_clear                        >> pure "injections_and_clear",
   propositional_goal >> (`[solve_by_elim])    >> pure "solve_by_elim",
-  `[unfold_coes]                              >> pure "unfold_coes",
   `[unfold_aux]                               >> pure "unfold_aux",
   tidy.run_tactics ]
 

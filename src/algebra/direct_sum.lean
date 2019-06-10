@@ -33,31 +33,31 @@ instance mk.is_add_group_hom (s : finset ι) : is_add_group_hom (mk β s) :=
 ⟨λ _ _, dfinsupp.mk_add⟩
 
 @[simp] lemma mk_zero (s : finset ι) : mk β s 0 = 0 :=
-is_add_group_hom.map_zero _
+is_add_group_hom.zero _
 
 @[simp] lemma mk_add (s : finset ι) (x y) : mk β s (x + y) = mk β s x + mk β s y :=
-is_add_group_hom.map_add _ x y
+is_add_group_hom.add _ x y
 
 @[simp] lemma mk_neg (s : finset ι) (x) : mk β s (-x) = -mk β s x :=
-is_add_group_hom.map_neg _ x
+is_add_group_hom.neg _ x
 
 @[simp] lemma mk_sub (s : finset ι) (x y) : mk β s (x - y) = mk β s x - mk β s y :=
-is_add_group_hom.map_sub _ x y
+is_add_group_hom.sub _ x y
 
 instance of.is_add_group_hom (i : ι) : is_add_group_hom (of β i) :=
 ⟨λ _ _, dfinsupp.single_add⟩
 
 @[simp] lemma of_zero (i : ι) : of β i 0 = 0 :=
-is_add_group_hom.map_zero _
+is_add_group_hom.zero _
 
 @[simp] lemma of_add (i : ι) (x y) : of β i (x + y) = of β i x + of β i y :=
-is_add_group_hom.map_add _ x y
+is_add_group_hom.add _ x y
 
 @[simp] lemma of_neg (i : ι) (x) : of β i (-x) = -of β i x :=
-is_add_group_hom.map_neg _ x
+is_add_group_hom.neg _ x
 
 @[simp] lemma of_sub (i : ι) (x y) : of β i (x - y) = of β i x - of β i y :=
-is_add_group_hom.map_sub _ x y
+is_add_group_hom.sub _ x y
 
 theorem mk_inj (s : finset ι) : function.injective (mk β s) :=
 dfinsupp.mk_inj s
@@ -88,11 +88,11 @@ begin
   refine (finset.sum_subset H1 _).symm.trans ((finset.sum_congr rfl _).trans (finset.sum_subset H2 _)),
   { intros i H1 H2, rw finset.mem_inter at H2, rw H i,
     simp only [multiset.mem_to_finset] at H1 H2,
-    rw [(y.3 i).resolve_left (mt (and.intro H1) H2), is_add_group_hom.map_zero (φ i)] },
+    rw [(y.3 i).resolve_left (mt (and.intro H1) H2), is_add_group_hom.zero (φ i)] },
   { intros i H1, rw H i },
   { intros i H1 H2, rw finset.mem_inter at H2, rw ← H i,
     simp only [multiset.mem_to_finset] at H1 H2,
-    rw [(x.3 i).resolve_left (mt (λ H3, and.intro H3 H1) H2), is_add_group_hom.map_zero (φ i)] }
+    rw [(x.3 i).resolve_left (mt (λ H3, and.intro H3 H1) H2), is_add_group_hom.zero (φ i)] }
 end
 variables {φ}
 
@@ -102,31 +102,31 @@ begin
   refine quotient.induction_on f (λ x, _),
   refine quotient.induction_on g (λ y, _),
   change finset.sum _ _ = finset.sum _ _ + finset.sum _ _,
-  simp only, conv { to_lhs, congr, skip, funext, rw is_add_group_hom.map_add (φ i) },
+  simp only, conv { to_lhs, congr, skip, funext, rw is_add_group_hom.add (φ i) },
   simp only [finset.sum_add_distrib],
   congr' 1,
   { refine (finset.sum_subset _ _).symm,
     { intro i, simp only [multiset.mem_to_finset, multiset.mem_add], exact or.inl },
     { intros i H1 H2, simp only [multiset.mem_to_finset, multiset.mem_add] at H2,
-      rw [(x.3 i).resolve_left H2, is_add_group_hom.map_zero (φ i)] } },
+      rw [(x.3 i).resolve_left H2, is_add_group_hom.zero (φ i)] } },
   { refine (finset.sum_subset _ _).symm,
     { intro i, simp only [multiset.mem_to_finset, multiset.mem_add], exact or.inr },
     { intros i H1 H2, simp only [multiset.mem_to_finset, multiset.mem_add] at H2,
-      rw [(y.3 i).resolve_left H2, is_add_group_hom.map_zero (φ i)] } }
+      rw [(y.3 i).resolve_left H2, is_add_group_hom.zero (φ i)] } }
 end
 
 variables (φ)
 @[simp] lemma to_group_zero : to_group φ 0 = 0 :=
-is_add_group_hom.map_zero _
+is_add_group_hom.zero _
 
 @[simp] lemma to_group_add (x y) : to_group φ (x + y) = to_group φ x + to_group φ y :=
-is_add_group_hom.map_add _ x y
+is_add_group_hom.add _ x y
 
 @[simp] lemma to_group_neg (x) : to_group φ (-x) = -to_group φ x :=
-is_add_group_hom.map_neg _ x
+is_add_group_hom.neg _ x
 
 @[simp] lemma to_group_sub (x y) : to_group φ (x - y) = to_group φ x - to_group φ y :=
-is_add_group_hom.map_sub _ x y
+is_add_group_hom.sub _ x y
 
 @[simp] lemma to_group_of (i) (x : β i) : to_group φ (of β i x) = φ i x :=
 (add_zero _).trans $ congr_arg (φ i) $ show (if H : i ∈ finset.singleton i then x else 0) = x,
@@ -136,9 +136,9 @@ variables (ψ : direct_sum ι β → γ) [is_add_group_hom ψ]
 
 theorem to_group.unique (f : direct_sum ι β) : ψ f = to_group (λ i, ψ ∘ of β i) f :=
 direct_sum.induction_on f
-  (by rw [is_add_group_hom.map_zero ψ, is_add_group_hom.map_zero (to_group (λ i, ψ ∘ of β i))])
+  (by rw [is_add_group_hom.zero ψ, is_add_group_hom.zero (to_group (λ i, ψ ∘ of β i))])
   (λ i x, by rw [to_group_of])
-  (λ x y ihx ihy, by rw [is_add_group_hom.map_add ψ, is_add_group_hom.map_add (to_group (λ i, ψ ∘ of β i)), ihx, ihy])
+  (λ x y ihx ihy, by rw [is_add_group_hom.add ψ, is_add_group_hom.add (to_group (λ i, ψ ∘ of β i)), ihx, ihy])
 
 variables (β)
 def set_to_set (S T : set ι) (H : S ⊆ T) :

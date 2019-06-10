@@ -9,7 +9,6 @@ More operations on modules and ideals.
 import ring_theory.ideals data.nat.choose order.zorn
 import linear_algebra.tensor_product
 import data.equiv.algebra
-import ring_theory.algebra_operations
 
 universes u v w x
 
@@ -86,15 +85,6 @@ theorem smul_induction_on {p : M → Prop} {x} (H : x ∈ I • N)
   (H2 : ∀ (c:R) n, p n → p (c • n)) : p x :=
 (@smul_le _ _ _ _ _ _ _ ⟨p, H0, H1, H2⟩).2 Hb H
 
-theorem mem_smul_span_singleton {I : ideal R} {m : M} {x : M} :
-  x ∈ I • span R ({m} : set M) ↔ ∃ y ∈ I, y • m = x :=
-⟨λ hx, smul_induction_on hx
-  (λ r hri n hnm, let ⟨s, hs⟩ := mem_span_singleton.1 hnm in ⟨r * s, I.mul_mem_right hri, hs ▸ mul_smul r s m⟩)
-  ⟨0, I.zero_mem, by rw [zero_smul]⟩
-  (λ m1 m2 ⟨y1, hyi1, hy1⟩ ⟨y2, hyi2, hy2⟩, ⟨y1 + y2, I.add_mem hyi1 hyi2, by rw [add_smul, hy1, hy2]⟩)
-  (λ c r ⟨y, hyi, hy⟩, ⟨c * y, I.mul_mem_left hyi, by rw [mul_smul, hy]⟩),
-λ ⟨y, hyi, hy⟩, hy ▸ smul_mem_smul hyi (subset_span $ set.mem_singleton m)⟩
-
 theorem smul_le_right : I • N ≤ N :=
 smul_le.2 $ λ r hr n, N.smul_mem r
 
@@ -108,15 +98,15 @@ theorem smul_mono_right (h : N ≤ P) : I • N ≤ I • P :=
 smul_mono (le_refl I) h
 
 variables (I J N P)
-@[simp] theorem smul_bot : I • (⊥ : submodule R M) = ⊥ :=
+theorem smul_bot : I • (⊥ : submodule R M) = ⊥ :=
 eq_bot_iff.2 $ smul_le.2 $ λ r hri s hsb,
 (submodule.mem_bot R).2 $ ((submodule.mem_bot R).1 hsb).symm ▸ smul_zero r
 
-@[simp] theorem bot_smul : (⊥ : ideal R) • N = ⊥ :=
+theorem bot_smul : (⊥ : ideal R) • N = ⊥ :=
 eq_bot_iff.2 $ smul_le.2 $ λ r hrb s hsi,
 (submodule.mem_bot R).2 $ ((submodule.mem_bot R).1 hrb).symm ▸ zero_smul _ s
 
-@[simp] theorem top_smul : (⊤ : ideal R) • N = N :=
+theorem top_smul : (⊤ : ideal R) • N = N :=
 le_antisymm smul_le_right $ λ r hri, one_smul R r ▸ smul_mem_smul mem_top hri
 
 theorem smul_sup : I • (N ⊔ P) = I • N ⊔ I • P :=
@@ -309,7 +299,7 @@ def radical (I : ideal R) : ideal R :=
   zero := ⟨1, (pow_one (0:R)).symm ▸ I.zero_mem⟩,
   add := λ x y ⟨m, hxmi⟩ ⟨n, hyni⟩, ⟨m + n,
     (add_pow x y (m + n)).symm ▸ I.sum_mem $
-    show ∀ c ∈ finset.range (nat.succ (m + n)), x ^ c * y ^ (m + n - c) * (nat.choose (m + n) c) ∈ I,
+    show ∀ c ∈ finset.range (nat.succ (m + n)), x ^ c * y ^ (m + n - c) * (choose (m + n) c) ∈ I,
     from λ c hc, or.cases_on (le_total c m)
       (λ hcm, I.mul_mem_right $ I.mul_mem_left $ nat.add_comm n m ▸ (nat.add_sub_assoc hcm n).symm ▸
         (pow_add y n (m-c)).symm ▸ I.mul_mem_right hyni)
@@ -380,12 +370,22 @@ have is_prime m, from ⟨by rintro rfl; rw radical_top at hrm; exact hrm trivial
     refine m.add_mem (m.mul_mem_right hpm) (m.add_mem (m.mul_mem_left hfm) (m.mul_mem_left hxym))⟩⟩,
 hrm $ this.radical.symm ▸ (Inf_le ⟨him, this⟩ : Inf {J : ideal R | I ≤ J ∧ is_prime J} ≤ m) hr
 
-instance : comm_semiring (ideal R) := submodule.comm_semiring
+instance : comm_semiring (ideal R) :=
+{ mul := (*),
+  mul_assoc := ideal.mul_assoc,
+  zero_mul := bot_mul,
+  mul_zero := mul_bot,
+  one := ⊤,
+  one_mul := top_mul,
+  mul_one := mul_top,
+  left_distrib := mul_sup,
+  right_distrib := sup_mul,
+  mul_comm := ideal.mul_comm,
+  .. submodule.add_comm_monoid }
 
 @[simp] lemma add_eq_sup : I + J = I ⊔ J := rfl
 @[simp] lemma zero_eq_bot : (0 : ideal R) = ⊥ := rfl
-@[simp] lemma one_eq_top : (1 : ideal R) = ⊤ :=
-by erw [submodule.one_eq_map_top, submodule.map_id]
+@[simp] lemma one_eq_top : (1 : ideal R) = ⊤ := rfl
 
 variables (I)
 theorem radical_pow (n : ℕ) (H : n > 0) : radical (I^n) = radical I :=
@@ -538,38 +538,17 @@ end map_and_comap
 
 end ideal
 
-namespace is_ring_hom
-
-variables {R : Type u} {S : Type v} [comm_ring R] [comm_ring S]
-variables (f : R → S) [is_ring_hom f]
-
-def ker : ideal R := ideal.comap f ⊥
-
-lemma ker_eq : ((ker f) : set R) = is_add_group_hom.ker f := rfl
-
-lemma inj_iff_ker_eq_bot : function.injective f ↔ ker f = ⊥ :=
-by rw [←submodule.ext'_iff, ker_eq]; exact is_add_group_hom.inj_iff_trivial_ker f
-
-lemma ker_eq_bot_iff_eq_zero : ker f = ⊥ ↔ ∀ x, f x = 0 → x = 0 :=
-by rw [←submodule.ext'_iff, ker_eq]; exact is_add_group_hom.trivial_ker_iff_eq_zero f
-
-lemma injective_iff : function.injective f ↔ ∀ x, f x = 0 → x = 0 :=
-is_add_group_hom.injective_iff f
-
-end is_ring_hom
-
 namespace submodule
 
 variables {R : Type u} {M : Type v}
 variables [comm_ring R] [add_comm_group M] [module R M]
-
--- It is even a semialgebra. But those aren't in mathlib yet.
+variables (I J : ideal R) (N P : submodule R M)
 
 instance : semimodule (ideal R) (submodule R M) :=
 { smul_add := smul_sup,
   add_smul := sup_smul,
   mul_smul := smul_assoc,
-  one_smul := by simp,
+  one_smul := top_smul,
   zero_smul := bot_smul,
   smul_zero := smul_bot }
 

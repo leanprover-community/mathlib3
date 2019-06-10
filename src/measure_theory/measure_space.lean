@@ -16,8 +16,7 @@ somehow well-behaved on non-measurable sets.
 This allows us for the `lebesgue` measure space to have the `borel` measurable space, but still be
 a complete measure.
 -/
-import data.set.lattice data.set.finite
-import topology.instances.ennreal
+import data.set order.galois_connection topology.instances.ennreal
        measure_theory.outer_measure
 
 noncomputable theory
@@ -603,10 +602,10 @@ by rw [map, dif_pos hf, to_measure_apply _ _ hs]; refl
 @[simp] lemma map_id : map id μ = μ :=
 ext $ λ s, map_apply measurable_id
 
-lemma map_map {g : β → γ} {f : α → β} (hg : measurable g) (hf : measurable f) :
+lemma map_map {f : α → β} {g : β → γ} (hf : measurable f) (hg : measurable g) :
   map g (map f μ) = map (g ∘ f) μ :=
 ext $ λ s hs,
-by simp [hf, hg, hs, hg.preimage hs, hg.comp hf];
+by simp [hf, hg, hs, hg.preimage hs, hf.comp hg];
    rw ← preimage_comp
 
 /-- The dirac measure. -/
@@ -862,7 +861,7 @@ associated with `α`. This means that the measure of the complementary of `p` is
 
 In a probability measure, the measure of `p` is `1`, when `p` is measurable.
 -/
-def all_ae (p : α → Prop) : Prop := { a | p a } ∈ (@measure_space.μ α _).a_e
+def all_ae (p : α → Prop) : Prop := { a | p a } ∈ (@measure_space.μ α _).a_e.sets
 
 notation `∀ₘ` binders `, ` r:(scoped P, all_ae P) := r
 

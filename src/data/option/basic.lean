@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import logic.basic data.bool data.option.defs tactic.basic
+import logic.basic data.bool data.option.defs tactic.interactive
 
 namespace option
 variables {α : Type*} {β : Type*}
@@ -19,11 +19,6 @@ option.some.inj $ ha.symm.trans hb
 
 theorem injective_some (α : Type*) : function.injective (@some α) :=
 λ _ _, some_inj.mp
-
-/-- `option.map f` is injective if `f` is injective. -/
-theorem injective_map {f : α → β} (Hf : function.injective f) : function.injective (option.map f)
-| none      none      H := rfl
-| (some a₁) (some a₂) H := by rw Hf (option.some.inj H)
 
 @[extensionality] theorem ext : ∀ {o₁ o₂ : option α}, (∀ a, a ∈ o₁ ↔ a ∈ o₂) → o₁ = o₂
 | none     none     H := rfl

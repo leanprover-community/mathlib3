@@ -3,7 +3,8 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Scott Morrison
 -/
-import tactic.solve_by_elim
+import tactic data.set.lattice data.prod data.vector
+       tactic.rewrite data.stream.basic
 
 example {a b : Prop} (h₀ : a → b) (h₁ : a) : b :=
 begin
@@ -83,16 +84,10 @@ begin
   solve_by_elim,
 end
 
--- Verifying that `solve_by_elim*` acts on all remaining goals.
+-- Verifying that solve_by_elim behaves as expected in the presence of multiple goals.
 example (n : ℕ) : ℕ × ℕ :=
 begin
   split,
-  solve_by_elim*,
-end
-
--- Verifying that `solve_by_elim*` backtracks when given multiple goals.
-example (n m : ℕ) (f : ℕ → ℕ → Prop) (h : f n m): ∃ p : ℕ × ℕ, f p.1 p.2 :=
-begin
-  repeat { split },
-  solve_by_elim*,
+  solve_by_elim,
+  solve_by_elim
 end

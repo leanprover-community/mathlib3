@@ -80,7 +80,7 @@ def const (α) {β} [measurable_space α] (b : β) : α →ₛ β :=
 
 @[simp] theorem const_apply (a : α) (b : β) : (const α b) a = b := rfl
 
-lemma range_const (α) [measurable_space α] [ne : nonempty α] (b : β) :
+lemma range_const (α) [measure_space α] [ne : nonempty α] (b : β) :
   (const α b).range = {b} :=
 begin
   ext b',
@@ -265,7 +265,7 @@ lemma approx_comp [ordered_topology β] [measurable_space γ]
   {i : ℕ → β} {f : γ → β} {g : α → γ} {n : ℕ} (a : α)
   (hf : _root_.measurable f) (hg : _root_.measurable g) :
   (approx i (f ∘ g) n : α →ₛ β) a = (approx i f n : γ →ₛ β) (g a) :=
-by rw [approx_apply _ hf, approx_apply _ (hf.comp hg)]
+by rw [approx_apply _ hf, approx_apply _ (hg.comp hf)]
 
 end
 
@@ -481,7 +481,7 @@ calc f.integral ≤ f.integral ⊔ g.integral : le_sup_left
   ... ≤ (f ⊔ g).integral : integral_sup_le _ _
   ... = g.integral : by rw [sup_of_le_right h]
 
-lemma integral_congr (f g : α →ₛ ennreal) (h : {a | f a = g a} ∈ (@measure_space.μ α _).a_e) :
+lemma integral_congr (f g : α →ₛ ennreal) (h : {a | f a = g a} ∈ (@measure_space.μ α _).a_e.sets) :
   f.integral = g.integral :=
 show ((pair f g).map prod.fst).integral = ((pair f g).map prod.snd).integral, from
 begin
@@ -546,7 +546,7 @@ begin
   refine le_antisymm
     (supr_le $ assume s, supr_le $ assume hs, _)
     (supr_le $ assume s, supr_le $ assume hs, le_supr_of_le (s.map c) $ le_supr _ hs),
-  by_cases {a | s a ≠ ⊤} ∈ (@measure_space.μ α _).a_e,
+  by_cases {a | s a ≠ ⊤} ∈ ((@measure_space.μ α _).a_e).sets,
   { have : f ≥ (s.map ennreal.to_nnreal).map c :=
       le_trans (assume a, ennreal.coe_to_nnreal_le_self) hs,
     refine le_supr_of_le (s.map ennreal.to_nnreal) (le_supr_of_le this (le_of_eq $ integral_congr _ _ _)),
@@ -736,7 +736,7 @@ lemma lintegral_le_lintegral_ae {f g : α → ennreal} (h : ∀ₘ a, f a ≤ g 
   (∫⁻ a, f a) ≤ (∫⁻ a, g a) :=
 begin
   rcases exists_is_measurable_superset_of_measure_eq_zero h with ⟨t, hts, ht, ht0⟩,
-  have : - t ∈ (@measure_space.μ α _).a_e,
+  have : - t ∈ (@measure_space.μ α _).a_e.sets,
   { rw [measure.mem_a_e_iff, lattice.neg_neg, ht0] },
   refine (supr_le $ assume s, supr_le $ assume hfs,
     le_supr_of_le (s.restrict (- t)) $ le_supr_of_le _ _),
@@ -849,7 +849,7 @@ begin
     { exact hg },
     { assume a, exact congr_fun (simple_func.eapprox_comp hf hg) a },
     { assume s hs, exact map_apply hg hs } },
-  exact hf.comp hg,
+  exact hg.comp hf,
   assumption
 end
 

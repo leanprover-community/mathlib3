@@ -43,7 +43,7 @@ ordered_cancel_comm_monoid.char_zero_of_inj_zero $
 namespace nat
 variables {α : Type*} [add_monoid α] [has_one α] [char_zero α]
 
-@[simp, elim_cast] theorem cast_inj {m n : ℕ} : (m : α) = n ↔ m = n :=
+@[simp] theorem cast_inj {m n : ℕ} : (m : α) = n ↔ m = n :=
 char_zero.cast_inj _
 
 theorem cast_injective : function.injective (coe : ℕ → α)

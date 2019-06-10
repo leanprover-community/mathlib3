@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Kenny Lau, Robert Y. Lewis
 -/
 
-import tactic.basic
+import tactic.interactive
 
 universe u
 

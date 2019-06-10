@@ -6,7 +6,7 @@ Author: Mario Carneiro
 A mechanism for defining tactics for use in auto params, whose
 meaning is defined incrementally through attributes.
 -/
-import tactic.core data.string.defs data.list.defs
+import tactic.basic data.string.defs data.list.defs meta.expr
 
 namespace tactic
 

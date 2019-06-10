@@ -80,8 +80,8 @@ begin
   apply is_open_map.to_quotient_map,
   { exact is_open_map.prod (quotient_ring.is_open_map_coe N) (quotient_ring.is_open_map_coe N) },
   { apply continuous.prod_mk,
-    { exact continuous_quot_mk.comp continuous_fst },
-    { exact continuous_quot_mk.comp continuous_snd } },
+    { exact continuous.comp continuous_fst continuous_quot_mk },
+    { exact continuous.comp continuous_snd continuous_quot_mk } },
   { rintro ⟨⟨x⟩, ⟨y⟩⟩,
     exact ⟨(x, y), rfl⟩ }
 end
@@ -89,12 +89,12 @@ end
 instance topological_ring_quotient : topological_ring N.quotient :=
 { continuous_add :=
     have cont : continuous (mk N ∘ (λ (p : α × α), p.fst + p.snd)) :=
-      continuous_quot_mk.comp continuous_add',
+      continuous.comp continuous_add' continuous_quot_mk,
     (quotient_map.continuous_iff (quotient_ring.quotient_map_coe_coe N)).2 cont,
-  continuous_neg := continuous_quotient_lift _ (continuous_quot_mk.comp continuous_neg'),
+  continuous_neg := continuous_quotient_lift _ (continuous.comp continuous_neg' continuous_quot_mk),
   continuous_mul :=
     have cont : continuous (mk N ∘ (λ (p : α × α), p.fst * p.snd)) :=
-      continuous_quot_mk.comp continuous_mul',
+      continuous.comp continuous_mul' continuous_quot_mk,
     (quotient_map.continuous_iff (quotient_ring.quotient_map_coe_coe N)).2 cont }
 
 end topological_ring

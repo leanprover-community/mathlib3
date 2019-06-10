@@ -1,9 +1,5 @@
-/-
-Copyright (c) 2019 Simon Hudon. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
--/
-import tactic.core
+
+import tactic.basic
 import category.basic
 import algebra.order_functions
 import algebra.order
@@ -11,7 +7,7 @@ import meta.rb_map
 
 namespace tactic.interactive
 open tactic list
-open lean lean.parser interactive
+open lean lean.parser  interactive
 open interactive.types
 
 structure mono_cfg :=
@@ -109,7 +105,7 @@ meta instance : has_to_format mono_selection :=
 | mono_selection.both := "both"
 end ⟩
 
-meta def side : lean.parser mono_selection :=
+meta def side : parser mono_selection :=
 with_desc "expecting 'left', 'right' or 'both' (default)" $
 do some n ← optional ident | pure mono_selection.both,
    if n = `left then pure $ mono_selection.left

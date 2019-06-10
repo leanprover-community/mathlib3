@@ -227,13 +227,6 @@ def units_equiv_coprime {n : ℕ+} : units (zmod n) ≃ {x : zmod n // nat.copri
   left_inv := λ ⟨_, _, _, _⟩, units.ext rfl,
   right_inv := λ ⟨_, _⟩, rfl }
 
-section
-variables {α : Type*} [has_zero α] [has_one α] [has_add α] {n : ℕ+}
-
-def cast : zmod n → α := nat.cast ∘ fin.val
-
-end
-
 end zmod
 
 def zmodp (p : ℕ) (hp : prime p) : Type := zmod ⟨p, hp.pos⟩

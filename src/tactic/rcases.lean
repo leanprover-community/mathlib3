@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.dlist tactic.core
+import data.dlist tactic.cache
 
 open lean lean.parser
 
@@ -323,10 +323,14 @@ do l ← intros,
     set_goals gs,
     pure p
 
-setup_tactic_parser
+section interactive
+open interactive interactive.types expr
 
 local notation `listΣ` := list_Sigma
 local notation `listΠ` := list_Pi
+
+local postfix `?`:9001 := optional
+local postfix *:9001 := many
 
 meta def rcases_patt_parse_core
   (rcases_patt_parse_list : parser (listΣ rcases_patt_inverted)) :
@@ -348,7 +352,6 @@ do o ← (tk ":" *> small_nat)?, pure $ o.get_or_else 5
 
 precedence `?`:max
 meta def rcases_parse : parser (pexpr × (listΣ (listΠ rcases_patt) ⊕ nat)) :=
-with_desc "('?' expr (: n)?) | (expr (with patt_list)?)" $
 do hint ← (tk "?")?,
   p ← texpr,
   match hint with
@@ -359,7 +362,6 @@ do hint ← (tk "?")?,
   end
 
 meta def rintro_parse : parser (listΠ rcases_patt ⊕ nat) :=
-with_desc "('?' (: n)?) | patt_list" $
 (tk "?" >> sum.inr <$> rcases_parse_depth) <|>
 sum.inl <$> (rcases_patt_inverted.invert <$>
   (brackets "(" ")" rcases_patt_parse_list <|>
@@ -371,67 +373,6 @@ meta def ext_parse : parser ext_patt :=
 (rcases_patt_inverted.invert <$>
   (brackets "(" ")" rcases_patt_parse_list <|>
   (λ x, [x]) <$> rcases_patt_parse))*
-
-namespace interactive
-open interactive interactive.types expr
-
-/--
-The `rcases` tactic is the same as `cases`, but with more flexibility in the
-`with` pattern syntax to allow for recursive case splitting. The pattern syntax
-uses the following recursive grammar:
-
-```
-patt ::= (patt_list "|")* patt_list
-patt_list ::= id | "_" | "⟨" (patt ",")* patt "⟩"
-```
-
-A pattern like `⟨a, b, c⟩ | ⟨d, e⟩` will do a split over the inductive datatype,
-naming the first three parameters of the first constructor as `a,b,c` and the
-first two of the second constructor `d,e`. If the list is not as long as the
-number of arguments to the constructor or the number of constructors, the
-remaining variables will be automatically named. If there are nested brackets
-such as `⟨⟨a⟩, b | c⟩ | d` then these will cause more case splits as necessary.
-If there are too many arguments, such as `⟨a, b, c⟩` for splitting on
-`∃ x, ∃ y, p x`, then it will be treated as `⟨a, ⟨b, c⟩⟩`, splitting the last
-parameter as necessary.
-
-`rcases` also has special support for quotient types: quotient induction into Prop works like
-matching on the constructor `quot.mk`.
-
-`rcases? e` will perform case splits on `e` in the same way as `rcases e`,
-but rather than accepting a pattern, it does a maximal cases and prints the
-pattern that would produce this case splitting. The default maximum depth is 5,
-but this can be modified with `rcases? e : n`.
--/
-meta def rcases : parse rcases_parse → tactic unit
-| (p, sum.inl ids) := tactic.rcases p ids
-| (p, sum.inr depth) := do
-  patt ← tactic.rcases_hint p depth,
-  pe ← pp p,
-  trace $ ↑"snippet: rcases " ++ pe ++ " with " ++ to_fmt patt
-
-/--
-The `rintro` tactic is a combination of the `intros` tactic with `rcases` to
-allow for destructuring patterns while introducing variables. See `rcases` for
-a description of supported patterns. For example, `rintro (a | ⟨b, c⟩) ⟨d, e⟩`
-will introduce two variables, and then do case splits on both of them producing
-two subgoals, one with variables `a d e` and the other with `b c d e`.
-
-`rintro?` will introduce and case split on variables in the same way as
-`rintro`, but will also print the `rintro` invocation that would have the same
-result. Like `rcases?`, `rintro? : n` allows for modifying the
-depth of splitting; the default is 5.
--/
-meta def rintro : parse rintro_parse → tactic unit
-| (sum.inl []) := intros []
-| (sum.inl l)  := tactic.rintro l
-| (sum.inr depth) := do
-  ps ← tactic.rintro_hint depth,
-  trace $ ↑"snippet: rintro" ++ format.join (ps.map $ λ p,
-    format.space ++ format.group (p.format tt))
-
-/-- Alias for `rintro`. -/
-meta def rintros := rintro
 
 end interactive
 end tactic

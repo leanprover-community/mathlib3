@@ -21,13 +21,13 @@ instance : is_add_group_hom f :=
 ⟨λ _ _, is_ring_anti_hom.map_add f⟩
 
 lemma map_zero : f 0 = 0 :=
-is_add_group_hom.zero f
+is_add_group_hom.map_zero f
 
 lemma map_neg {x} : f (-x) = -f x :=
-is_add_group_hom.neg f x
+is_add_group_hom.map_neg f x
 
 lemma map_sub {x y} : f (x - y) = f x - f y :=
-is_add_group_hom.sub f x y
+is_add_group_hom.map_sub f x y
 
 end is_ring_anti_hom
 

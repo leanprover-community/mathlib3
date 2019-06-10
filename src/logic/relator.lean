@@ -6,6 +6,9 @@ Authors: Johannes Hölzl
 Relator for functions, pairs, sums, and lists.
 -/
 
+prelude
+import init.core init.data.basic
+
 namespace relator
 universe variables u₁ u₂ v₁ v₂
 

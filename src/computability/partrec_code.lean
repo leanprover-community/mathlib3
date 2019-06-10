@@ -888,23 +888,19 @@ theorem eval_part : partrec₂ eval :=
 
 theorem fixed_point
   {f : code → code} (hf : computable f) : ∃ c : code, eval (f c) = eval c :=
-let g (x y : ℕ) : roption ℕ :=
-  eval (of_nat code x) x >>= λ b, eval (of_nat code b) y in
-have partrec₂ g :=
-  (eval_part.comp ((computable.of_nat _).comp fst) fst).bind
-  (eval_part.comp ((computable.of_nat _).comp snd) (snd.comp fst)).to₂,
-let ⟨cg, eg⟩ := exists_code.1 this in
-have eg' : ∀ a n, eval cg (mkpair a n) = roption.map encode (g a n) :=
-  by simp [eg],
-let F (x : ℕ) : code := f (curry cg x) in
-have computable F :=
-  hf.comp (curry_prim.comp (primrec.const cg) primrec.id).to_comp,
-let ⟨cF, eF⟩ := exists_code.1 this in
-have eF' : eval cF (encode cF) = roption.some (encode (F (encode cF))),
-  by simp [eF],
-⟨curry cg (encode cF), funext (λ n,
-  show eval (f (curry cg (encode cF))) n = eval (curry cg (encode cF)) n,
-  by simp [eg', eF', roption.map_id', g])⟩
+begin
+  let g : ℕ → ℕ →. ℕ := λ x y,
+    roption.bind (eval (of_nat code x) x) (λ b, eval (of_nat code b) y),
+  have : partrec₂ g :=
+    (eval_part.comp ((computable.of_nat _).comp fst) fst).bind
+    (eval_part.comp ((computable.of_nat _).comp snd) (snd.comp fst)).to₂,
+  rcases exists_code.1 this with ⟨cg, eg⟩,
+  have := hf.comp (curry_prim.comp (primrec.const cg) primrec.id).to_comp,
+  rcases exists_code.1 this with ⟨cF, eF⟩,
+  refine ⟨curry cg (encode cF), funext $ λ n, _⟩,
+  have := congr_fun eF (encode cF), simp at this,
+  simp [eg, this, roption.map_id', g]
+end
 
 theorem fixed_point₂
   {f : code → ℕ →. ℕ} (hf : partrec₂ f) : ∃ c : code, eval c = f c :=

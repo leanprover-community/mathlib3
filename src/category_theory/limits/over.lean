@@ -10,7 +10,7 @@ universes v u -- declare the `v`'s first; see `category_theory.category` for an 
 open category_theory category_theory.limits
 
 variables {J : Type v} [small_category J]
-variables {C : Sort u} [𝒞 : category.{v+1} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 variable {X : C}
 
@@ -55,27 +55,25 @@ def forget_colimit_is_colimit (F : J ⥤ over X) [has_colimit (F ⋙ forget)] :
 is_colimit.of_iso_colimit (colimit.is_colimit (F ⋙ forget)) (cocones.ext (iso.refl _) (by tidy))
 
 instance : reflects_colimits (forget : over X ⥤ C) :=
-{ reflects_colimits_of_shape := λ J 𝒥,
-  { reflects_colimit := λ F,
-    by constructor; exactI λ t ht,
-    { desc := λ s, hom_mk (ht.desc (forget.map_cocone s))
-        begin
-          apply ht.hom_ext, intro j,
-          rw [←category.assoc, ht.fac],
-          transitivity (F.obj j).hom,
-          exact w (s.ι.app j), -- TODO: How to write (s.ι.app j).w?
-          exact (w (t.ι.app j)).symm,
-        end,
-      fac' := begin
-        intros s j, ext, exact ht.fac (forget.map_cocone s) j
-        -- TODO: Ask Simon about multiple ext lemmas for defeq types (comma_morphism & over.category.hom)
-      end,
-      uniq' :=
-      begin
-        intros s m w,
-        ext1 j,
-        exact ht.uniq (forget.map_cocone s) m.left (λ j, congr_arg comma_morphism.left (w j))
-      end } } }
+λ J 𝒥 F, by constructor; exactI λ t ht,
+{ desc := λ s, hom_mk (ht.desc (forget.map_cocone s))
+    begin
+      apply ht.hom_ext, intro j,
+      rw [←category.assoc, ht.fac],
+      transitivity (F.obj j).hom,
+      exact w (s.ι.app j), -- TODO: How to write (s.ι.app j).w?
+      exact (w (t.ι.app j)).symm,
+    end,
+  fac' := begin
+    intros s j, ext, exact ht.fac (forget.map_cocone s) j
+    -- TODO: Ask Simon about multiple ext lemmas for defeq types (comma_morphism & over.category.hom)
+  end,
+  uniq' :=
+  begin
+    intros s m w,
+    ext1 j,
+    exact ht.uniq (forget.map_cocone s) m.left (λ j, congr_arg comma_morphism.left (w j))
+  end }
 
 instance has_colimit {F : J ⥤ over X} [has_colimit (F ⋙ forget)] : has_colimit F :=
 { cocone := colimit F,
@@ -83,16 +81,15 @@ instance has_colimit {F : J ⥤ over X} [has_colimit (F ⋙ forget)] : has_colim
 
 instance has_colimits_of_shape [has_colimits_of_shape J C] :
   has_colimits_of_shape J (over X) :=
-{ has_colimit := λ F, by apply_instance }
+λ F, infer_instance
 
-instance has_colimits [has_colimits.{v} C] : has_colimits.{v} (over X) :=
-{ has_colimits_of_shape := λ J 𝒥, by resetI; apply_instance }
+instance has_colimits [has_colimits C] : has_colimits (over X) :=
+λ J 𝒥, by resetI; apply_instance
 
-instance forget_preserves_colimits [has_colimits.{v} C] {X : C} :
+instance forget_preserves_colimits [has_colimits C] {X : C} :
   preserves_colimits (forget : over X ⥤ C) :=
-{ preserves_colimits_of_shape := λ J 𝒥,
-  { preserves_colimit := λ F, by exactI
-    preserves_colimit_of_preserves_colimit_cocone (colimit.is_colimit F) (forget_colimit_is_colimit F) } }
+λ J 𝒥 F, by exactI
+preserves_colimit_of_preserves_colimit_cocone (colimit.is_colimit F) (forget_colimit_is_colimit F)
 
 end category_theory.over
 
@@ -119,26 +116,24 @@ def forget_limit_is_limit (F : J ⥤ under X) [has_limit (F ⋙ forget)] :
 is_limit.of_iso_limit (limit.is_limit (F ⋙ forget)) (cones.ext (iso.refl _) (by tidy))
 
 instance : reflects_limits (forget : under X ⥤ C) :=
-{ reflects_limits_of_shape := λ J 𝒥,
-  { reflects_limit := λ F,
-    by constructor; exactI λ t ht,
-    { lift := λ s, hom_mk (ht.lift (forget.map_cone s))
-        begin
-          apply ht.hom_ext, intro j,
-          rw [category.assoc, ht.fac],
-          transitivity (F.obj j).hom,
-          exact w (s.π.app j),
-          exact (w (t.π.app j)).symm,
-        end,
-      fac' := begin
-        intros s j, ext, exact ht.fac (forget.map_cone s) j
-      end,
-      uniq' :=
-      begin
-        intros s m w,
-        ext1 j,
-        exact ht.uniq (forget.map_cone s) m.right (λ j, congr_arg comma_morphism.right (w j))
-      end } } }
+λ J 𝒥 F, by constructor; exactI λ t ht,
+{ lift := λ s, hom_mk (ht.lift (forget.map_cone s))
+    begin
+      apply ht.hom_ext, intro j,
+      rw [category.assoc, ht.fac],
+      transitivity (F.obj j).hom,
+      exact w (s.π.app j),
+      exact (w (t.π.app j)).symm,
+    end,
+  fac' := begin
+    intros s j, ext, exact ht.fac (forget.map_cone s) j
+  end,
+  uniq' :=
+  begin
+    intros s m w,
+    ext1 j,
+    exact ht.uniq (forget.map_cone s) m.right (λ j, congr_arg comma_morphism.right (w j))
+  end }
 
 instance has_limit {F : J ⥤ under X} [has_limit (F ⋙ forget)] : has_limit F :=
 { cone := limit F,
@@ -146,15 +141,14 @@ instance has_limit {F : J ⥤ under X} [has_limit (F ⋙ forget)] : has_limit F 
 
 instance has_limits_of_shape [has_limits_of_shape J C] :
   has_limits_of_shape J (under X) :=
-{ has_limit := λ F, by apply_instance }
+λ F, infer_instance
 
-instance has_limits [has_limits.{v} C] : has_limits.{v} (under X) :=
-{ has_limits_of_shape := λ J 𝒥, by resetI; apply_instance }
+instance has_limits [has_limits C] : has_limits (under X) :=
+λ J 𝒥, by resetI; apply_instance
 
-instance forget_preserves_limits [has_limits.{v} C] {X : C} :
+instance forget_preserves_limits [has_limits C] {X : C} :
   preserves_limits (forget : under X ⥤ C) :=
-{ preserves_limits_of_shape := λ J 𝒥,
-  { preserves_limit := λ F, by exactI
-    preserves_limit_of_preserves_limit_cone (limit.is_limit F) (forget_limit_is_limit F) } }
+λ J 𝒥 F, by exactI
+preserves_limit_of_preserves_limit_cone (limit.is_limit F) (forget_limit_is_limit F)
 
 end category_theory.under

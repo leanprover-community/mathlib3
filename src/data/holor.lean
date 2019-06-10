@@ -11,7 +11,12 @@ community.
 
 Based on the tensor library found in https://www.isa-afp.org/entries/Deep_Learning.html.
 -/
+import data.list.basic
+import algebra.module
 import algebra.pi_instances
+import tactic.interactive
+import tactic.tidy
+import tactic.pi_instances
 
 universes u
 

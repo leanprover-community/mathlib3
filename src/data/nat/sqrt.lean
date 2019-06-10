@@ -7,7 +7,7 @@ An efficient binary implementation of a (sqrt n) function that
 returns s s.t.
     s*s ≤ n ≤ s*s + s + s
 -/
-import data.nat.basic algebra.ordered_group algebra.ring tactic.alias
+import data.nat.basic algebra.ordered_group algebra.ring tactic
 
 namespace nat
 

@@ -15,7 +15,7 @@ Then we introduce `free_group α` as a quotient over `free_group.red.step`.
 -/
 import logic.relation
 import algebra.group algebra.group_power
-import data.fintype data.list.basic
+import data.fintype data.list.basic data.quot
 import group_theory.subgroup
 open relation
 
@@ -394,22 +394,22 @@ instance to_group.is_group_hom : is_group_hom (to_group f) :=
 ⟨by rintros ⟨L₁⟩ ⟨L₂⟩; simp⟩
 
 @[simp] lemma to_group.mul : to_group f (x * y) = to_group f x * to_group f y :=
-is_group_hom.map_mul _ _ _
+is_group_hom.mul _ _ _
 
 @[simp] lemma to_group.one : to_group f 1 = 1 :=
-is_group_hom.map_one _
+is_group_hom.one _
 
 @[simp] lemma to_group.inv : to_group f x⁻¹ = (to_group f x)⁻¹ :=
-is_group_hom.map_inv _ _
+is_group_hom.inv _ _
 
 theorem to_group.unique (g : free_group α → β) [is_group_hom g]
   (hg : ∀ x, g (of x) = f x) : ∀{x}, g x = to_group f x :=
-by rintros ⟨L⟩; exact list.rec_on L (is_group_hom.map_one g)
+by rintros ⟨L⟩; exact list.rec_on L (is_group_hom.one g)
 (λ ⟨x, b⟩ t (ih : g (mk t) = _), bool.rec_on b
   (show g ((of x)⁻¹ * mk t) = to_group f (mk ((x, ff) :: t)),
-     by simp [is_group_hom.map_mul g, is_group_hom.map_inv g, hg, ih, to_group, to_group.aux])
+     by simp [is_group_hom.mul g, is_group_hom.inv g, hg, ih, to_group, to_group.aux])
   (show g (of x * mk t) = to_group f (mk ((x, tt) :: t)),
-     by simp [is_group_hom.map_mul g, is_group_hom.map_inv g, hg, ih, to_group, to_group.aux]))
+     by simp [is_group_hom.mul g, is_group_hom.inv g, hg, ih, to_group, to_group.aux]))
 
 
 theorem to_group.of_eq (x : free_group α) : to_group of x = x :=
@@ -466,22 +466,22 @@ by rcases x with ⟨L⟩; simp
 @[simp] lemma map.of {x} : map f (of x) = of (f x) := rfl
 
 @[simp] lemma map.mul : map f (x * y) = map f x * map f y :=
-is_group_hom.map_mul _ x y
+is_group_hom.mul _ x y
 
 @[simp] lemma map.one : map f 1 = 1 :=
-is_group_hom.map_one _
+is_group_hom.one _
 
 @[simp] lemma map.inv : map f x⁻¹ = (map f x)⁻¹ :=
-is_group_hom.map_inv _ x
+is_group_hom.inv _ x
 
 theorem map.unique (g : free_group α → free_group β) [is_group_hom g]
   (hg : ∀ x, g (of x) = of (f x)) : ∀{x}, g x = map f x :=
-by rintros ⟨L⟩; exact list.rec_on L (is_group_hom.map_one g)
+by rintros ⟨L⟩; exact list.rec_on L (is_group_hom.one g)
 (λ ⟨x, b⟩ t (ih : g (mk t) = map f (mk t)), bool.rec_on b
   (show g ((of x)⁻¹ * mk t) = map f ((of x)⁻¹ * mk t),
-     by simp [is_group_hom.map_mul g, is_group_hom.map_inv g, hg, ih])
+     by simp [is_group_hom.mul g, is_group_hom.inv g, hg, ih])
   (show g (of x * mk t) = map f (of x * mk t),
-     by simp [is_group_hom.map_mul g, hg, ih]))
+     by simp [is_group_hom.mul g, hg, ih]))
 
 /-- Equivalent types give rise to equivalent free groups. -/
 def free_group_congr {α β} (e : α ≃ β) : free_group α ≃ free_group β :=

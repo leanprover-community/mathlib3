@@ -14,7 +14,7 @@ namespace category_theory.limits.types
 variables {J : Type u} [small_category J]
 
 def limit (F : J ⥤ Type u) : cone F :=
-{ X := F.sections,
+{ X := {u : Π j, F.obj j // ∀ {j j'} (f : j ⟶ j'), F.map f (u j) = u j'},
   π := { app := λ j u, u.val j } }
 
 local attribute [elab_simple] congr_fun
@@ -27,8 +27,7 @@ def limit_is_limit (F : J ⥤ Type u) : is_limit (limit F) :=
   end }
 
 instance : has_limits.{u} (Type u) :=
-{ has_limits_of_shape := λ J 𝒥,
-  { has_limit := λ F, by exactI { cone := limit F, is_limit := limit_is_limit F } } }
+λ J 𝒥 F, by exactI { cone := limit F, is_limit := limit_is_limit F }
 
 @[simp] lemma types_limit (F : J ⥤ Type u) :
   limits.limit F = {u : Π j, F.obj j // ∀ {j j'} f, F.map f (u j) = u j'} := rfl
@@ -37,10 +36,10 @@ instance : has_limits.{u} (Type u) :=
 @[simp] lemma types_limit_pre
   (F : J ⥤ Type u) {K : Type u} [𝒦 : small_category K] (E : K ⥤ J) (g : (limit F).X) :
   limit.pre F E g = (⟨λ k, g.val (E.obj k), by obviously⟩ : (limit (E ⋙ F)).X) := rfl
-@[simp] lemma types_limit_map {F G : J ⥤ Type u} (α : F ⟶ G) (g : (limit F).X) :
+@[simp] lemma types_limit_map {F G : J ⥤ Type u} (α : F ⟹ G) (g : (limit F).X) :
   (lim.map α : (limit F).X → (limit G).X) g =
   (⟨λ j, (α.app j) (g.val j), λ j j' f,
-    by {rw ←functor_to_types.naturality, dsimp, rw ←(g.property f)}⟩ : (limit G).X) := rfl
+    by rw [←functor_to_types.naturality, ←(g.property f)]⟩ : (limit G).X) := rfl
 
 @[simp] lemma types_limit_lift (F : J ⥤ Type u) (c : cone F) (x : c.X):
   limit.lift F c x = (⟨λ j, c.π.app j x, λ j j' f, congr_fun (cone.w c f) x⟩ : (limit F).X) :=
@@ -60,8 +59,7 @@ def colimit_is_colimit (F : J ⥤ Type u) : is_colimit (colimit F) :=
     (assume ⟨j, x⟩ ⟨j', x'⟩ ⟨f, hf⟩, by rw hf; exact (congr_fun (cocone.w s f) x).symm) }
 
 instance : has_colimits.{u} (Type u) :=
-{ has_colimits_of_shape := λ J 𝒥,
-  { has_colimit := λ F, by exactI { cocone := colimit F, is_colimit := colimit_is_colimit F } } }
+λ J 𝒥 F, by exactI { cocone := colimit F, is_colimit := colimit_is_colimit F }
 
 @[simp] lemma types_colimit (F : J ⥤ Type u) :
   limits.colimit F = @quot (Σ j, F.obj j) (λ p p', ∃ f : p.1 ⟶ p'.1, p'.2 = F.map f p.2) := rfl
@@ -71,7 +69,7 @@ instance : has_colimits.{u} (Type u) :=
   (F : J ⥤ Type u) {K : Type u} [𝒦 : small_category K] (E : K ⥤ J) (g : (colimit (E ⋙ F)).X) :
   colimit.pre F E =
   quot.lift (λ p, quot.mk _ ⟨E.obj p.1, p.2⟩) (λ p p' ⟨f, h⟩, quot.sound ⟨E.map f, h⟩) := rfl
-@[simp] lemma types_colimit_map {F G : J ⥤ Type u} (α : F ⟶ G) :
+@[simp] lemma types_colimit_map {F G : J ⥤ Type u} (α : F ⟹ G) :
   (colim.map α : (colimit F).X → (colimit G).X) =
   quot.lift
     (λ p, quot.mk _ ⟨p.1, (α.app p.1) p.2⟩)

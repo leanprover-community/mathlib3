@@ -51,8 +51,8 @@ def eqv (α) [denumerable α] : α ≃ ℕ :=
 def mk' {α} (e : α ≃ ℕ) : denumerable α :=
 { encode := e,
   decode := some ∘ e.symm,
-  encodek := λ a, congr_arg some (e.symm_apply_apply _),
-  decode_inv := λ n, ⟨_, rfl, e.apply_symm_apply _⟩ }
+  encodek := λ a, congr_arg some (e.inverse_apply_apply _),
+  decode_inv := λ n, ⟨_, rfl, e.apply_inverse_apply _⟩ }
 
 def of_equiv (α) {β} [denumerable α] (e : β ≃ α) : denumerable β :=
 { decode_inv := λ n, by simp,

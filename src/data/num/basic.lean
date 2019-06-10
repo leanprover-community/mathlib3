@@ -11,7 +11,7 @@ in favor of the "Peano" natural numbers `nat`, and the purpose of this
 collection of theorems is to show the equivalence of the different approaches.
 -/
 
-import data.vector data.bitvec
+import data.pnat data.bool data.vector data.bitvec
 
 /-- The type of positive binary numbers.
 
@@ -396,13 +396,13 @@ namespace znum
 end znum
 
 namespace pos_num
-
+  
   def divmod_aux (d : pos_num) (q r : num) : num × num :=
   match num.of_znum' (num.sub' r (num.pos d)) with
   | some r' := (num.bit1 q, r')
   | none    := (num.bit0 q, r)
   end
-
+  
   def divmod (d : pos_num) : pos_num → num × num
   | (bit0 n) := let (q, r₁) := divmod n in
     divmod_aux d q (num.bit0 r₁)
@@ -419,7 +419,7 @@ namespace pos_num
   | some n' := (r.div2 + num.pos b, n')
   | none := (r.div2, n)
   end
-
+    
   def sqrt_aux : pos_num → num → num → num
   | b@(bit0 b') r n := let (r', n') := sqrt_aux1 b r n in sqrt_aux b' r' n'
   | b@(bit1 b') r n := let (r', n') := sqrt_aux1 b r n in sqrt_aux b' r' n'

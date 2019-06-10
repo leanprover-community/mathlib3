@@ -5,7 +5,7 @@ Authors: Mario Carneiro, Sean Leather
 
 Functions on lists of sigma types.
 -/
-import data.list.perm data.sigma
+import data.list.perm
 
 universes u v
 
@@ -363,7 +363,7 @@ end
 lookup_eq_none.mpr (not_mem_keys_kerase a nd)
 
 @[simp] theorem lookup_kerase_ne {a a'} {l : list (sigma β)} (h : a ≠ a') :
-  lookup a (kerase a' l) = lookup a l :=
+  lookup a' (kerase a l) = lookup a' l :=
 begin
   induction l,
   case list.nil { refl },
@@ -377,43 +377,6 @@ begin
   }
 end
 
-theorem kerase_append_left {a} : ∀ {l₁ l₂ : list (sigma β)},
-  a ∈ l₁.keys → kerase a (l₁ ++ l₂) = kerase a l₁ ++ l₂
-| []        _  h  := by cases h
-| (s :: l₁) l₂ h₁ :=
-  if h₂ : a = s.1 then
-    by simp [h₂]
-  else
-    by simp at h₁;
-       cases h₁;
-       [exact absurd h₁ h₂, simp [h₂, kerase_append_left h₁]]
-
-theorem kerase_append_right {a} : ∀ {l₁ l₂ : list (sigma β)},
-  a ∉ l₁.keys → kerase a (l₁ ++ l₂) = l₁ ++ kerase a l₂
-| []        _  h := rfl
-| (_ :: l₁) l₂ h := by simp [not_or_distrib] at h;
-                       simp [h.1, kerase_append_right h.2]
-
-theorem kerase_comm (a₁ a₂) (l : list (sigma β)) :
-  kerase a₂ (kerase a₁ l) = kerase a₁ (kerase a₂ l) :=
-if h : a₁ = a₂ then
-  by simp [h]
-else if ha₁ : a₁ ∈ l.keys then
-  if ha₂ : a₂ ∈ l.keys then
-    match l, kerase a₁ l, exists_of_kerase ha₁, ha₂ with
-    | _, _, ⟨b₁, l₁, l₂, a₁_nin_l₁, rfl, rfl⟩, a₂_in_l₁_app_l₂ :=
-      if h' : a₂ ∈ l₁.keys then
-        by simp [kerase_append_left h',
-                 kerase_append_right (mt (mem_keys_kerase_of_ne h).mp a₁_nin_l₁)]
-      else
-        by simp [kerase_append_right h', kerase_append_right a₁_nin_l₁,
-                 @kerase_cons_ne _ _ _ a₂ ⟨a₁, b₁⟩ _ (ne.symm h)]
-    end
-  else
-    by simp [ha₂, mt mem_keys_of_mem_keys_kerase ha₂]
-else
-  by simp [ha₁, mt mem_keys_of_mem_keys_kerase ha₁]
-
 /- kinsert -/
 
 /-- Insert the pair `⟨a, b⟩` and erase the first pair with the key `a`. -/
@@ -423,9 +386,9 @@ def kinsert (a : α) (b : β a) (l : list (sigma β)) : list (sigma β) :=
 @[simp] theorem kinsert_def {a} {b : β a} {l : list (sigma β)} :
   kinsert a b l = ⟨a, b⟩ :: kerase a l := rfl
 
-@[simp] theorem mem_keys_kinsert {a a'} {b' : β a'} {l : list (sigma β)} :
-  a ∈ (kinsert a' b' l).keys ↔ a = a' ∨ a ∈ l.keys :=
-by by_cases h : a = a'; simp [h]
+@[simp] theorem mem_keys_kinsert {a a'} {b : β a} {l : list (sigma β)} :
+  a' ∈ (kinsert a b l).keys ↔ a = a' ∨ a' ∈ l.keys :=
+by by_cases h : a = a'; [simp [h], simp [h, ne.symm h]]
 
 theorem kinsert_nodupkeys (a) (b : β a) {l : list (sigma β)} (nd : l.nodupkeys) :
   (kinsert a b l).nodupkeys :=
@@ -439,9 +402,9 @@ perm.skip ⟨a, b⟩ $ perm_kerase nd₁ p
   lookup a (kinsert a b l) = some b :=
 by simp only [kinsert, lookup_cons_eq]
 
-@[simp] theorem lookup_kinsert_ne {a a'} {b' : β a'} {l : list (sigma β)} (h : a ≠ a') :
-  lookup a (kinsert a' b' l) = lookup a l :=
-by simp [h, lookup_cons_ne _ ⟨a', b'⟩ h]
+@[simp] theorem lookup_kinsert_ne {a a'} {b : β a} {l : list (sigma β)} (h : a ≠ a') :
+  lookup a' (kinsert a b l) = lookup a' l :=
+by simp [h, lookup_cons_ne _ ⟨a, b⟩ (ne.symm h)]
 
 /- kextract -/
 
@@ -458,112 +421,5 @@ def kextract (a : α) : list (sigma β) → option (β a) × list (sigma β)
     { subst a', simp [kerase] },
     { simp [kextract, ne.symm h, kextract_eq_lookup_kerase l, kerase] }
   end
-
-/- kunion -/
-
-/-- `kunion l₁ l₂` is the append to l₁ of l₂ after, for each key in l₁, the
-first matching pair in l₂ is erased. -/
-def kunion : list (sigma β) → list (sigma β) → list (sigma β)
-| []        l₂ := l₂
-| (s :: l₁) l₂ := s :: kunion l₁ (kerase s.1 l₂)
-
-@[simp] theorem nil_kunion {l : list (sigma β)} : kunion [] l = l :=
-rfl
-
-@[simp] theorem kunion_nil : ∀ {l : list (sigma β)}, kunion l [] = l
-| []       := rfl
-| (_ :: l) := by rw [kunion, kerase_nil, kunion_nil]
-
-@[simp] theorem kunion_cons {s} {l₁ l₂ : list (sigma β)} :
-  kunion (s :: l₁) l₂ = s :: kunion l₁ (kerase s.1 l₂) :=
-rfl
-
-@[simp] theorem mem_keys_kunion {a} {l₁ l₂ : list (sigma β)} :
-  a ∈ (kunion l₁ l₂).keys ↔ a ∈ l₁.keys ∨ a ∈ l₂.keys :=
-begin
-  induction l₁ generalizing l₂,
-  case list.nil { simp },
-  case list.cons : s l₁ ih { by_cases h : a = s.1; [simp [h], simp [h, ih]] }
-end
-
-@[simp] theorem kunion_kerase {a} : ∀ {l₁ l₂ : list (sigma β)},
-  kunion (kerase a l₁) (kerase a l₂) = kerase a (kunion l₁ l₂)
-| []       _ := rfl
-| (s :: _) l := by by_cases h : a = s.1;
-                   simp [h, kerase_comm a s.1 l, kunion_kerase]
-
-theorem kunion_nodupkeys {l₁ l₂ : list (sigma β)}
-  (nd₁ : l₁.nodupkeys) (nd₂ : l₂.nodupkeys) : (kunion l₁ l₂).nodupkeys :=
-begin
-  induction l₁ generalizing l₂,
-  case list.nil { simp only [nil_kunion, nd₂] },
-  case list.cons : s l₁ ih {
-    simp at nd₁,
-    simp [not_or_distrib, nd₁.1, nd₂, ih nd₁.2 (kerase_nodupkeys s.1 nd₂)] }
-end
-
-theorem perm_kunion_left {l₁ l₂ : list (sigma β)} (p : l₁ ~ l₂) (l) :
-  kunion l₁ l ~ kunion l₂ l :=
-begin
-  induction p generalizing l,
-  case list.perm.nil { refl },
-  case list.perm.skip : hd tl₁ tl₂ p ih {
-    simp [ih (kerase hd.1 l), perm.skip] },
-  case list.perm.swap : s₁ s₂ l {
-    simp [kerase_comm, perm.swap] },
-  case list.perm.trans : l₁ l₂ l₃ p₁₂ p₂₃ ih₁₂ ih₂₃ {
-    exact perm.trans (ih₁₂ l) (ih₂₃ l) }
-end
-
-theorem perm_kunion_right : ∀ l {l₁ l₂ : list (sigma β)},
-  l₁.nodupkeys → l₁ ~ l₂ → kunion l l₁ ~ kunion l l₂
-| []       _  _  _   p := p
-| (s :: l) l₁ l₂ nd₁ p :=
-  by simp [perm.skip s
-    (perm_kunion_right l (kerase_nodupkeys s.1 nd₁) (perm_kerase nd₁ p))]
-
-theorem perm_kunion {l₁ l₂ l₃ l₄ : list (sigma β)} (nd₃ : l₃.nodupkeys)
-  (p₁₂ : l₁ ~ l₂) (p₃₄ : l₃ ~ l₄) : kunion l₁ l₃ ~ kunion l₂ l₄ :=
-perm.trans (perm_kunion_left p₁₂ l₃) (perm_kunion_right l₂ nd₃ p₃₄)
-
-@[simp] theorem lookup_kunion_left {a} {l₁ l₂ : list (sigma β)} (h : a ∈ l₁.keys) :
-  lookup a (kunion l₁ l₂) = lookup a l₁ :=
-begin
-  induction l₁ with s _ ih generalizing l₂; simp at h; cases h; cases s with a',
-  { subst h, simp },
-  { rw kunion_cons,
-    by_cases h' : a = a',
-    { subst h', simp },
-    { simp [h', ih h] } }
-end
-
-@[simp] theorem lookup_kunion_right {a} {l₁ l₂ : list (sigma β)} (h : a ∉ l₁.keys) :
-  lookup a (kunion l₁ l₂) = lookup a l₂ :=
-begin
-  induction l₁ generalizing l₂,
-  case list.nil { simp },
-  case list.cons : _ _ ih { simp [not_or_distrib] at h, simp [h.1, ih h.2] }
-end
-
-@[simp] theorem mem_lookup_kunion {a} {b : β a} {l₁ l₂ : list (sigma β)} :
-  b ∈ lookup a (kunion l₁ l₂) ↔ b ∈ lookup a l₁ ∨ a ∉ l₁.keys ∧ b ∈ lookup a l₂ :=
-begin
-  induction l₁ generalizing l₂,
-  case list.nil { simp },
-  case list.cons : s _ ih {
-    cases s with a',
-    by_cases h₁ : a = a',
-    { subst h₁, simp },
-    { let h₂ := @ih (kerase a' l₂), simp [h₁] at h₂, simp [h₁, h₂] } }
-end
-
-theorem mem_lookup_kunion_middle {a} {b : β a} {l₁ l₂ l₃ : list (sigma β)}
-  (h₁ : b ∈ lookup a (kunion l₁ l₃)) (h₂ : a ∉ keys l₂) :
-  b ∈ lookup a (kunion (kunion l₁ l₂) l₃) :=
-match mem_lookup_kunion.mp h₁ with
-| or.inl h := mem_lookup_kunion.mpr (or.inl (mem_lookup_kunion.mpr (or.inl h)))
-| or.inr h := mem_lookup_kunion.mpr $
-  or.inr ⟨mt mem_keys_kunion.mp (not_or_distrib.mpr ⟨h.1, h₂⟩), h.2⟩
-end
 
 end list

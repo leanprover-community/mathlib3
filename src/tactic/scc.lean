@@ -11,6 +11,7 @@ They are used for finding the sets of equivalent proposition in a set
 of implications.
 -/
 
+import tactic.basic
 import tactic.tauto
 import category.basic
 

@@ -25,7 +25,7 @@ variables [topological_space α] [topological_space β] [topological_space γ] [
 lemma embedding_id : embedding (@id α) :=
 ⟨assume a₁ a₂ h, h, induced_id.symm⟩
 
-lemma embedding_compose {f : α → β} {g : β → γ} (hg : embedding g) (hf : embedding f) :
+lemma embedding_compose {f : α → β} {g : β → γ} (hf : embedding f) (hg : embedding g) :
   embedding (g ∘ f) :=
 ⟨assume a₁ a₂ h, hf.left $ hg.left h, by rw [hf.right, hg.right, induced_compose]⟩
 
@@ -40,7 +40,7 @@ lemma embedding_of_embedding_compose {f : α → β} {g : β → γ} (hf : conti
 ⟨assume a₁ a₂ h, hgf.left $ by simp [h, (∘)],
   le_antisymm
     (by rw [hgf.right, ← continuous_iff_induced_le];
-        apply hg.comp continuous_induced_dom)
+        apply continuous_induced_dom.comp hg)
     (by rwa ← continuous_iff_induced_le)⟩
 
 lemma embedding_open {f : α → β} {s : set α}
@@ -56,7 +56,7 @@ have is_closed (t ∩ range f), from is_closed_inter ht h,
 h_eq.symm ▸ by rwa [image_preimage_eq_inter_range]
 
 lemma embedding.map_nhds_eq [topological_space α] [topological_space β] {f : α → β}
-  (hf : embedding f) (a : α) (h : range f ∈ nhds (f a)) : (nhds a).map f = nhds (f a) :=
+  (hf : embedding f) (a : α) (h : range f ∈ (nhds (f a)).sets) : (nhds a).map f = nhds (f a) :=
 by rw [hf.2]; exact map_nhds_induced_eq h
 
 lemma embedding.tendsto_nhds_iff {ι : Type*}
@@ -89,8 +89,8 @@ theorem dense_embedding.mk'
   (c     : continuous e)
   (dense : ∀x, x ∈ closure (range e))
   (inj   : function.injective e)
-  (H     : ∀ (a:α) s ∈ nhds a,
-    ∃t ∈ nhds (e a), ∀ b, e b ∈ t → b ∈ s) :
+  (H     : ∀ (a:α) s ∈ (nhds a).sets,
+    ∃t ∈ (nhds (e a)).sets, ∀ b, e b ∈ t → b ∈ s) :
   dense_embedding e :=
 ⟨dense, inj, λ a, le_antisymm
   (by simpa [le_def] using H a)
@@ -127,7 +127,7 @@ begin
 end
 
 lemma closure_image_nhds_of_nhds {s : set α} {a : α} (de : dense_embedding e) :
-  s ∈ nhds a → closure (e '' s) ∈ nhds (e a) :=
+  s ∈ (nhds a).sets → closure (e '' s) ∈ (nhds (e a)).sets :=
 begin
   rw [← de.induced a, mem_comap_sets],
   intro h,
@@ -138,7 +138,7 @@ begin
                    ... ⊆ s      : sub,
   have := calc U ⊆ closure (e '' (e ⁻¹' U)) : self_sub_closure_image_preimage_of_open de U_op
              ... ⊆ closure (e '' s)         : closure_mono (image_subset e this),
-  have U_nhd : U ∈ nhds (e a) := mem_nhds_sets U_op e_a_in_U,
+  have U_nhd : U ∈ (nhds (e a)).sets := mem_nhds_sets U_op e_a_in_U,
   exact (nhds (e a)).sets_of_superset U_nhd this
 end
 
@@ -169,7 +169,7 @@ end
 lemma comap_nhds_neq_bot (de : dense_embedding e) {b : β} : comap e (nhds b) ≠ ⊥ :=
 forall_sets_neq_empty_iff_neq_bot.mp $
 assume s ⟨t, ht, (hs : e ⁻¹' t ⊆ s)⟩,
-have t ∩ range e ∈ nhds b ⊓ principal (range e),
+have t ∩ range e ∈ (nhds b ⊓ principal (range e)).sets,
   from inter_mem_inf_sets ht (subset.refl _),
 let ⟨_, ⟨hx₁, y, rfl⟩⟩ := inhabited_of_mem_sets de.nhds_inf_neq_bot this in
 subset_ne_empty hs $ ne_empty_of_mem hx₁
@@ -213,10 +213,10 @@ begin
 end
 
 lemma tendsto_extend [regular_space γ] {b : β} {f : α → γ} (de : dense_embedding e)
-  (hf : {b | ∃c, tendsto f (comap e $ nhds b) (nhds c)} ∈ nhds b) :
+  (hf : {b | ∃c, tendsto f (comap e $ nhds b) (nhds c)} ∈ (nhds b).sets) :
   tendsto (de.extend f) (nhds b) (nhds (de.extend f b)) :=
 let φ := {b | tendsto f (comap e $ nhds b) (nhds $ de.extend f b)} in
-have hφ : φ ∈ nhds b,
+have hφ : φ ∈ (nhds b).sets,
   from (nhds b).sets_of_superset hf $ assume b ⟨c, hc⟩,
     show tendsto f (comap e (nhds b)) (nhds (de.extend f b)), from (de.extend_eq hc).symm ▸ hc,
 assume s hs,
@@ -242,7 +242,7 @@ have h₂ : t ⊆ de.extend f ⁻¹' closure (f '' (e ⁻¹' t)), from
     exact de.comap_nhds_neq_bot
   end,
 (nhds b).sets_of_superset
-  (show t ∈ nhds b, from mem_nhds_sets ht₂ ht₃)
+  (show t ∈ (nhds b).sets, from mem_nhds_sets ht₂ ht₃)
   (calc t ⊆ de.extend f ⁻¹' closure (f '' (e ⁻¹' t)) : h₂
     ... ⊆ de.extend f ⁻¹' closure (f '' (e ⁻¹' s')) :
       preimage_mono $ closure_mono $ image_subset f $ preimage_mono $ subset.trans ht₁ $ inter_subset_right _ _
@@ -278,7 +278,7 @@ protected lemma of_quotient_map_compose {f : α → β} {g : β → γ}
   le_antisymm
     (by rwa ← continuous_iff_le_coinduced)
     (by rw [hgf.right, ← continuous_iff_le_coinduced];
-        apply continuous_coinduced_rng.comp hf)⟩
+        apply hf.comp continuous_coinduced_rng)⟩
 
 protected lemma continuous_iff {f : α → β} {g : β → γ} (hf : quotient_map f) :
   continuous g ↔ continuous (g ∘ f) :=
@@ -342,74 +342,19 @@ lemma to_quotient_map {f : α → β}
 
 end is_open_map
 
-section is_closed_map
-variables [topological_space α] [topological_space β]
+section sierpinski
+variables [topological_space α]
 
-def is_closed_map (f : α → β) := ∀ U : set α, is_closed U → is_closed (f '' U)
+@[simp] lemma is_open_singleton_true : is_open ({true} : set Prop) :=
+topological_space.generate_open.basic _ (by simp)
 
-end is_closed_map
+lemma continuous_Prop {p : α → Prop} : continuous p ↔ is_open {x | p x} :=
+⟨assume h : continuous p,
+  have is_open (p ⁻¹' {true}),
+    from h _ is_open_singleton_true,
+  by simp [preimage, eq_true] at this; assumption,
+  assume h : is_open {x | p x},
+  continuous_generated_from $ assume s (hs : s ∈ {{true}}),
+    by simp at hs; simp [hs, preimage, eq_true, h]⟩
 
-namespace is_closed_map
-
-variables [topological_space α] [topological_space β] [topological_space γ]
-open function
-
-protected lemma id : is_closed_map (@id α) := assume s hs, by rwa image_id
-
-protected lemma comp {f : α → β} {g : β → γ} (hf : is_closed_map f) (hg : is_closed_map g) :
-  is_closed_map (g ∘ f) :=
-by { intros s hs, rw image_comp, exact hg _ (hf _ hs) }
-
-lemma of_inverse {f : α → β} {f' : β → α}
-  (h : continuous f') (l_inv : left_inverse f f') (r_inv : right_inverse f f') :
-  is_closed_map f :=
-assume s hs,
-have f' ⁻¹' s = f '' s, by ext x; simp [mem_image_iff_of_inverse r_inv l_inv],
-this ▸ continuous_iff_is_closed.mp h s hs
-
-end is_closed_map
-
-section closed_embedding
-variables [topological_space α] [topological_space β] [topological_space γ]
-
-/-- A closed embedding is an embedding with closed image. -/
-def closed_embedding (f : α → β) : Prop := embedding f ∧ is_closed (range f)
-
-lemma closed_embedding.closed_iff_image_closed {f : α → β} (hf : closed_embedding f)
-  {s : set α} : is_closed s ↔ is_closed (f '' s) :=
-⟨embedding_is_closed hf.1 hf.2,
- λ h, begin
-   convert ←continuous_iff_is_closed.mp hf.1.continuous _ h,
-   apply preimage_image_eq _ hf.1.1
- end⟩
-
-lemma closed_embedding.closed_iff_preimage_closed {f : α → β} (hf : closed_embedding f)
-  {s : set β} (hs : s ⊆ range f) : is_closed s ↔ is_closed (f ⁻¹' s) :=
-begin
-  convert ←hf.closed_iff_image_closed.symm,
-  rwa [image_preimage_eq_inter_range, inter_eq_self_of_subset_left]
-end
-
-lemma closed_embedding_of_continuous_injective_closed {f : α → β} (h₁ : continuous f)
-  (h₂ : function.injective f) (h₃ : is_closed_map f) : closed_embedding f :=
-begin
-  refine ⟨⟨h₂, _⟩, by convert h₃ univ is_closed_univ; simp⟩,
-  apply le_antisymm _ (continuous_iff_induced_le.mp h₁),
-  intro s',
-  change is_open _ ≤ is_open _,
-  rw [←is_closed_compl_iff, ←is_closed_compl_iff],
-  generalize : -s' = s,
-  rw is_closed_induced_iff,
-  refine λ hs, ⟨f '' s, h₃ s hs, _⟩,
-  rw preimage_image_eq _ h₂
-end
-
-lemma closed_embedding_id : closed_embedding (@id α) :=
-⟨embedding_id, by convert is_closed_univ; apply range_id⟩
-
-lemma closed_embedding_compose {f : α → β} {g : β → γ}
-  (hg : closed_embedding g) (hf : closed_embedding f) : closed_embedding (g ∘ f) :=
-⟨embedding_compose hg.1 hf.1, show is_closed (range (g ∘ f)),
- by rw [range_comp, ←hg.closed_iff_image_closed]; exact hf.2⟩
-
-end closed_embedding
+end sierpinski

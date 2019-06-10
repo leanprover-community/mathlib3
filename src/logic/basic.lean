@@ -9,6 +9,7 @@ Classical versions are in the namespace "classical".
 Note: in the presence of automation, this whole file may be unnecessary. On the other hand,
 maybe it is useful for writing automation.
 -/
+import data.prod tactic.cache
 
 /-
     miscellany
@@ -365,15 +366,6 @@ by subst eq; exact h
 
 @[simp] lemma {u} eq_mpr_heq {α β : Sort u} (h : β = α) (x : α) : eq.mpr h x == x :=
 by subst h; refl
-
-protected lemma eq.congr {x₁ x₂ y₁ y₂ : α} (h₁ : x₁ = y₁) (h₂ : x₂ = y₂) :
-  (x₁ = x₂) ↔ (y₁ = y₂) :=
-by { subst h₁, subst h₂ }
-
-lemma congr_arg2 {α β γ : Type*} (f : α → β → γ) {x x' : α} {y y' : β}
-  (hx : x = x') (hy : y = y') : f x y = f x' y' :=
-by { subst hx, subst hy }
-
 end equality
 
 /-
@@ -414,7 +406,8 @@ theorem not_forall {p : α → Prop}
 
 @[simp] theorem not_forall_not [decidable (∃ x, p x)] :
   (¬ ∀ x, ¬ p x) ↔ ∃ x, p x :=
-(@not_iff_comm _ _ _ (decidable_of_iff (¬ ∃ x, p x) not_exists)).1 not_exists
+by haveI := decidable_of_iff (¬ ∃ x, p x) not_exists;
+   exact not_iff_comm.1 not_exists
 
 @[simp] theorem not_exists_not [∀ x, decidable (p x)] :
   (¬ ∃ x, ¬ p x) ↔ ∀ x, p x :=
@@ -484,13 +477,6 @@ theorem forall_or_distrib_left {q : Prop} {p : α → Prop} [decidable q] :
 ⟨λ h, if hq : q then or.inl hq else or.inr $ λ x, (h x).resolve_left hq,
   forall_or_of_or_forall⟩
 
-/-- A predicate holds everywhere on the image of a surjective functions iff
-    it holds everywhere. -/
-theorem forall_iff_forall_surj
-  {α β : Type*} {f : α → β} (h : function.surjective f) {P : β → Prop} :
-  (∀ a, P (f a)) ↔ ∀ b, P b :=
-⟨λ ha b, by cases h b with a hab; rw ←hab; exact ha a, λ hb a, hb $ f a⟩
-
 @[simp] theorem exists_prop {p q : Prop} : (∃ h : p, q) ↔ p ∧ q :=
 ⟨λ ⟨h₁, h₂⟩, ⟨h₁, h₂⟩, λ ⟨h₁, h₂⟩, ⟨h₁, h₂⟩⟩
 
@@ -525,8 +511,6 @@ local attribute [instance] prop_decidable
 
 protected theorem not_forall : (¬ ∀ x, p x) ↔ (∃ x, ¬ p x) := not_forall
 
-protected theorem not_exists_not : (¬ ∃ x, ¬ p x) ↔ ∀ x, p x := not_exists_not
-
 protected theorem forall_or_distrib_left {q : Prop} {p : α → Prop} :
   (∀x, q ∨ p x) ↔ q ∨ (∀x, p x) :=
 forall_or_distrib_left
@@ -545,16 +529,6 @@ or_iff_not_imp_right
 
 protected lemma not_not {p : Prop} : ¬¬p ↔ p := not_not
 
-protected lemma not_and_distrib {p q : Prop}: ¬(p ∧ q) ↔ ¬p ∨ ¬q := not_and_distrib
-
-protected lemma imp_iff_not_or {a b : Prop} : a → b ↔ ¬a ∨ b := imp_iff_not_or
-
-lemma iff_iff_not_or_and_or_not {a b : Prop} : (a ↔ b) ↔ ((¬a ∨ b) ∧ (a ∨ ¬b)) :=
-begin
-  rw [iff_iff_implies_and_implies a b],
-  simp only [imp_iff_not_or, or.comm]
-end
-
 /- use shortened names to avoid conflict when classical namespace is open -/
 noncomputable theorem dec (p : Prop) : decidable p := by apply_instance
 noncomputable theorem dec_pred (p : α → Prop) : decidable_pred p := by apply_instance
@@ -568,10 +542,6 @@ if h : ∃ a, p a then H (classical.some h) (classical.some_spec h) else H0
 lemma some_spec2 {α : Type*} {p : α → Prop} {h : ∃a, p a}
   (q : α → Prop) (hpq : ∀a, p a → q a) : q (some h) :=
 hpq _ $ some_spec _
-
-/-- A version of classical.indefinite_description which is definitionally equal to a pair -/
-noncomputable def subtype_of_exists {α : Type*} {P : α → Prop} (h : ∃ x, P x) : {x // P x} :=
-⟨classical.some h, classical.some_spec h⟩
 
 end classical
 
@@ -666,7 +636,7 @@ theorem not_ball {α : Sort*} {p : α → Prop} {P : Π (x : α), p x → Prop} 
 end classical
 
 section nonempty
-universe variables u v w
+universes u v w
 variables {α : Type u} {β : Type v} {γ : α → Type w}
 
 attribute [simp] nonempty_of_inhabited
@@ -737,12 +707,5 @@ noncomputable def classical.inhabited_of_nonempty' {α : Sort u} [h : nonempty �
 -- `nonempty` cannot be a `functor`, because `functor` is restricted to Types.
 lemma nonempty.map {α : Sort u} {β : Sort v} (f : α → β) : nonempty α → nonempty β
 | ⟨h⟩ := ⟨f h⟩
-
-protected lemma nonempty.map2 {α β γ : Sort*} (f : α → β → γ) : nonempty α → nonempty β → nonempty γ
-| ⟨x⟩ ⟨y⟩ := ⟨f x y⟩
-
-protected lemma nonempty.congr {α : Sort u} {β : Sort v} (f : α → β) (g : β → α) :
-  nonempty α ↔ nonempty β :=
-⟨nonempty.map f, nonempty.map g⟩
 
 end nonempty

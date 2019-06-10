@@ -4,14 +4,12 @@
 
 import category_theory.isomorphism
 import category_theory.functor_category
-import category_theory.opposites
 
 universes v v' u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory
-open opposite
 
-variables {C : Sort u} [𝒞 : category.{v} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
 def eq_to_hom {X Y : C} (p : X = Y) : X ⟶ Y := by rw p; exact 𝟙 _
@@ -35,13 +33,7 @@ rfl
   eq_to_iso p ≪≫ eq_to_iso q = eq_to_iso (p.trans q) :=
 by ext; simp
 
-@[simp] lemma eq_to_hom_op (X Y : C) (h : X = Y) : (eq_to_hom h).op = eq_to_hom (congr_arg op h.symm) :=
-begin
-  cases h,
-  refl
-end
-
-variables {D : Sort u'} [𝒟 : category.{v'} D]
+variables {D : Type u'} [𝒟 : category.{v'} D]
 include 𝒟
 
 namespace functor
@@ -76,11 +68,11 @@ end functor
 by cases p; simp
 
 @[simp] lemma eq_to_iso_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
-  F.map_iso (eq_to_iso p) = eq_to_iso (congr_arg F.obj p) :=
+  F.on_iso (eq_to_iso p) = eq_to_iso (congr_arg F.obj p) :=
 by ext; cases p; simp
 
 @[simp] lemma eq_to_hom_app {F G : C ⥤ D} (h : F = G) (X : C) :
-  (eq_to_hom h : F ⟶ G).app X = eq_to_hom (functor.congr_obj h X) :=
+  (eq_to_hom h : F ⟹ G).app X = eq_to_hom (functor.congr_obj h X) :=
 by subst h; refl
 
 end category_theory

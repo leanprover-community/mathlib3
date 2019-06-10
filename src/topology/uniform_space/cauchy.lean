@@ -13,22 +13,20 @@ local attribute [instance, priority 0] prop_decidable
 variables {α : Type*} {β : Type*} [uniform_space α]
 universe u
 
-local notation `𝓤` := uniformity
-
 /-- A filter `f` is Cauchy if for every entourage `r`, there exists an
   `s ∈ f` such that `s × s ⊆ r`. This is a generalization of Cauchy
   sequences, because if `a : ℕ → α` then the filter of sets containing
   cofinitely many of the `a n` is Cauchy iff `a` is a Cauchy sequence. -/
-def cauchy (f : filter α) := f ≠ ⊥ ∧ filter.prod f f ≤ (𝓤 α)
+def cauchy (f : filter α) := f ≠ ⊥ ∧ filter.prod f f ≤ uniformity
 
 def is_complete (s : set α) := ∀f, cauchy f → f ≤ principal s → ∃x∈s, f ≤ nhds x
 
-lemma cauchy_iff {f : filter α} :
-  cauchy f ↔ (f ≠ ⊥ ∧ (∀ s ∈ 𝓤 α, ∃t∈f.sets, set.prod t t ⊆ s)) :=
+lemma cauchy_iff [uniform_space α] {f : filter α} :
+  cauchy f ↔ (f ≠ ⊥ ∧ (∀s∈(@uniformity α _).sets, ∃t∈f.sets, set.prod t t ⊆ s)) :=
 and_congr (iff.refl _) $ forall_congr $ assume s, forall_congr $ assume hs, mem_prod_same_iff
 
-lemma cauchy_map_iff {l : filter β} {f : β → α} :
-  cauchy (l.map f) ↔ (l ≠ ⊥ ∧ tendsto (λp:β×β, (f p.1, f p.2)) (l.prod l) (𝓤 α)) :=
+lemma cauchy_map_iff [uniform_space α] {l : filter β} {f : β → α} :
+  cauchy (l.map f) ↔ (l ≠ ⊥ ∧ tendsto (λp:β×β, (f p.1, f p.2)) (l.prod l) uniformity) :=
 by rw [cauchy, (≠), map_eq_bot_iff, prod_map_map_eq]; refl
 
 lemma cauchy_downwards {f g : filter α} (h_c : cauchy f) (hg : g ≠ ⊥) (h_le : g ≤ f) : cauchy g :=
@@ -37,14 +35,14 @@ lemma cauchy_downwards {f g : filter α} (h_c : cauchy f) (hg : g ≠ ⊥) (h_le
 lemma cauchy_nhds {a : α} : cauchy (nhds a) :=
 ⟨nhds_neq_bot,
   calc filter.prod (nhds a) (nhds a) =
-    (𝓤 α).lift (λs:set (α×α), (𝓤 α).lift' (λt:set(α×α),
+    uniformity.lift (λs:set (α×α), uniformity.lift' (λt:set(α×α),
       set.prod {y : α | (y, a) ∈ s} {y : α | (a, y) ∈ t})) : nhds_nhds_eq_uniformity_uniformity_prod
-    ... ≤ (𝓤 α).lift' (λs:set (α×α), comp_rel s s) :
+    ... ≤ uniformity.lift' (λs:set (α×α), comp_rel s s) :
       le_infi $ assume s, le_infi $ assume hs,
       infi_le_of_le s $ infi_le_of_le hs $ infi_le_of_le s $ infi_le_of_le hs $
       principal_mono.mpr $
       assume ⟨x, y⟩ ⟨(hx : (x, a) ∈ s), (hy : (a, y) ∈ s)⟩, ⟨a, hx, hy⟩
-    ... ≤ 𝓤 α : comp_le_uniformity⟩
+    ... ≤ uniformity : comp_le_uniformity⟩
 
 lemma cauchy_pure {a : α} : cauchy (pure a) :=
 cauchy_downwards cauchy_nhds
@@ -75,14 +73,14 @@ calc f ≤ f.lift' (λs:set α, {y | x ∈ closure s ∧ y ∈ closure s}) :
     exact monotone_prod monotone_id monotone_id,
     exact monotone_comp (assume s t h x h', closure_mono h h') monotone_preimage
   end
-  ... ≤ (𝓤 α).lift' (λs:set (α×α), {y | (x, y) ∈ closure s}) : lift'_mono hf.right (le_refl _)
-  ... = ((𝓤 α).lift' closure).lift' (λs:set (α×α), {y | (x, y) ∈ s}) :
+  ... ≤ uniformity.lift' (λs:set (α×α), {y | (x, y) ∈ closure s}) : lift'_mono hf.right (le_refl _)
+  ... = (uniformity.lift' closure).lift' (λs:set (α×α), {y | (x, y) ∈ s}) :
   begin
     rw [lift'_lift'_assoc],
     exact assume s t h, closure_mono h,
     exact monotone_preimage
   end
-  ... = (𝓤 α).lift' (λs:set (α×α), {y | (x, y) ∈ s}) :
+  ... = uniformity.lift' (λs:set (α×α), {y | (x, y) ∈ s}) :
     by rw [←uniformity_eq_uniformity_closure]
   ... = nhds x :
     by rw [nhds_eq_uniformity]
@@ -97,17 +95,17 @@ lemma cauchy_map [uniform_space β] {f : filter α} {m : α → β}
 ⟨have f ≠ ⊥, from hf.left, by simp; assumption,
   calc filter.prod (map m f) (map m f) =
           map (λp:α×α, (m p.1, m p.2)) (filter.prod f f) : filter.prod_map_map_eq
-    ... ≤ map (λp:α×α, (m p.1, m p.2)) (𝓤 α) : map_mono hf.right
-    ... ≤ 𝓤 β : hm⟩
+    ... ≤ map (λp:α×α, (m p.1, m p.2)) uniformity : map_mono hf.right
+    ... ≤ uniformity : hm⟩
 
 lemma cauchy_comap [uniform_space β] {f : filter β} {m : α → β}
-  (hm : comap (λp:α×α, (m p.1, m p.2)) (𝓤 β) ≤ 𝓤 α)
+  (hm : comap (λp:α×α, (m p.1, m p.2)) uniformity ≤ uniformity)
   (hf : cauchy f) (hb : comap m f ≠ ⊥) : cauchy (comap m f) :=
 ⟨hb,
   calc filter.prod (comap m f) (comap m f) =
           comap (λp:α×α, (m p.1, m p.2)) (filter.prod f f) : filter.prod_comap_comap_eq
-    ... ≤ comap (λp:α×α, (m p.1, m p.2)) (𝓤 β) : comap_mono hf.right
-    ... ≤ 𝓤 α : hm⟩
+    ... ≤ comap (λp:α×α, (m p.1, m p.2)) uniformity : comap_mono hf.right
+    ... ≤ uniformity : hm⟩
 
 /-- Cauchy sequences. Usually defined on ℕ, but often it is also useful to say that a function
 defined on ℝ is Cauchy at +∞ to deduce convergence. Therefore, we define it in a type class that
@@ -115,7 +113,7 @@ is general enough to cover both ℕ and ℝ, which are the main motivating examp
 def cauchy_seq [inhabited β] [semilattice_sup β] (u : β → α) := cauchy (at_top.map u)
 
 lemma cauchy_seq_iff_prod_map [inhabited β] [semilattice_sup β] {u : β → α} :
-  cauchy_seq u ↔ map (prod.map u u) at_top ≤ 𝓤 α :=
+  cauchy_seq u ↔ map (prod.map u u) at_top ≤ uniformity :=
 iff.trans (and_iff_right (map_ne_bot at_top_ne_bot)) (prod_map_at_top_eq u u ▸ iff.rfl)
 
 /-- A complete space is defined here using uniformities. A uniform space
@@ -135,7 +133,7 @@ lemma cauchy_prod [uniform_space β] {f : filter α} {g : filter β} :
   cauchy f → cauchy g → cauchy (filter.prod f g)
 | ⟨f_proper, hf⟩ ⟨g_proper, hg⟩ := ⟨filter.prod_neq_bot.2 ⟨f_proper, g_proper⟩,
   let p_α := λp:(α×β)×(α×β), (p.1.1, p.2.1), p_β := λp:(α×β)×(α×β), (p.1.2, p.2.2) in
-  suffices (f.prod f).comap p_α ⊓ (g.prod g).comap p_β ≤ (𝓤 α).comap p_α ⊓ (𝓤 β).comap p_β,
+  suffices (f.prod f).comap p_α ⊓ (g.prod g).comap p_β ≤ uniformity.comap p_α ⊓ uniformity.comap p_β,
     by simpa [uniformity_prod, filter.prod, filter.comap_inf, filter.comap_comap_comp, (∘),
         lattice.inf_assoc, lattice.inf_comm, lattice.inf_left_comm],
   lattice.inf_le_inf (filter.comap_mono hf) (filter.comap_mono hg)⟩
@@ -180,10 +178,10 @@ lemma is_complete_of_is_closed [complete_space α] {s : set α}
 /-- A set `s` is totally bounded if for every entourage `d` there is a finite
   set of points `t` such that every element of `s` is `d`-near to some element of `t`. -/
 def totally_bounded (s : set α) : Prop :=
-∀d ∈ 𝓤 α, ∃t : set α, finite t ∧ s ⊆ (⋃y∈t, {x | (x,y) ∈ d})
+∀d ∈ (@uniformity α _).sets, ∃t : set α, finite t ∧ s ⊆ (⋃y∈t, {x | (x,y) ∈ d})
 
 theorem totally_bounded_iff_subset {s : set α} : totally_bounded s ↔
-  ∀d ∈ 𝓤 α, ∃t ⊆ s, finite t ∧ s ⊆ (⋃y∈t, {x | (x,y) ∈ d}) :=
+  ∀d ∈ (@uniformity α _).sets, ∃t ⊆ s, finite t ∧ s ⊆ (⋃y∈t, {x | (x,y) ∈ d}) :=
 ⟨λ H d hd, begin
   rcases comp_symm_of_uniformity hd with ⟨r, hr, rs, rd⟩,
   rcases H r hr with ⟨k, fk, ks⟩,
@@ -223,7 +221,7 @@ let ⟨t', ht', hct', htt'⟩ := mem_uniformity_is_closed ht, ⟨c, hcf, hc⟩ :
 lemma totally_bounded_image [uniform_space α] [uniform_space β] {f : α → β} {s : set α}
   (hf : uniform_continuous f) (hs : totally_bounded s) : totally_bounded (f '' s) :=
 assume t ht,
-have {p:α×α | (f p.1, f p.2) ∈ t} ∈ 𝓤 α,
+have {p:α×α | (f p.1, f p.2) ∈ t} ∈ (@uniformity α _).sets,
   from hf ht,
 let ⟨c, hfc, hct⟩ := hs _ this in
 ⟨f '' c, finite_image f hfc,

@@ -108,7 +108,7 @@ instance [Π i, add_monoid (β i)] : add_monoid (Π₀ i, β i) :=
   add_zero  := λ f, ext $ λ i, by simp only [add_apply, zero_apply, add_zero] }
 
 instance [Π i, add_monoid (β i)] {i : ι} : is_add_monoid_hom (λ g : Π₀ i : ι, β i, g i) :=
-{ map_add := λ _ _, add_apply, map_zero := zero_apply }
+by refine_struct {..}; simp
 
 instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=
 ⟨λ f, f.map_range (λ _, has_neg.neg) (λ _, neg_zero)⟩
@@ -207,7 +207,7 @@ ext $ λ i, by simp only [add_apply, subtype_domain_apply]
 
 instance subtype_domain.is_add_monoid_hom [Π i, add_monoid (β i)] {p : ι → Prop} [decidable_pred p] :
   is_add_monoid_hom (subtype_domain p : (Π₀ i : ι, β i) → Π₀ i : subtype p, β i) :=
-{ map_add := λ _ _, subtype_domain_add, map_zero := subtype_domain_zero }
+by refine_struct {..}; simp
 
 @[simp] lemma subtype_domain_neg [Π i, add_group (β i)] {p : ι → Prop} [decidable_pred p] {v : Π₀ i, β i} :
   (- v).subtype_domain p = - v.subtype_domain p :=

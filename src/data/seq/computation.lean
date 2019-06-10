@@ -5,7 +5,7 @@ Author: Mario Carneiro
 
 Coinductive formalization of unbounded computations.
 -/
-import data.stream logic.relator tactic.basic
+import data.stream data.nat.basic
 universes u v w
 
 /-

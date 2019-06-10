@@ -63,11 +63,11 @@ variables {β : Type v} [comm_group β] (f : α → β) [is_group_hom f]
 
 def lift : abelianization α → β :=
 quotient_group.lift _ f $ λ x ⟨L, HL, hx⟩,
-hx ▸ list.rec_on L (λ _, is_group_hom.map_one f) (λ hd tl HL ih,
+hx ▸ list.rec_on L (λ _, is_group_hom.one f) (λ hd tl HL ih,
   by rw [list.forall_mem_cons] at ih;
     rcases ih with ⟨⟨p, q, hpq⟩, ih⟩;
-    specialize HL ih; rw [list.prod_cons, is_group_hom.map_mul f, ← hpq, HL];
-    simp [is_group_hom.map_mul f, is_group_hom.map_inv f, mul_comm]) HL
+    specialize HL ih; rw [list.prod_cons, is_group_hom.mul f, ← hpq, HL];
+    simp [is_group_hom.mul f, is_group_hom.inv f, mul_comm]) HL
 
 instance lift.is_group_hom : is_group_hom (lift f) :=
 quotient_group.is_group_hom_quotient_lift _ _ _

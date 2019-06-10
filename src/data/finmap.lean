@@ -79,19 +79,8 @@ by cases s₁; cases s₂; refl
   {C : finmap β → Prop} (s : finmap β) (H : ∀ (a : alist β), C ⟦a⟧) : C s :=
 by rcases s with ⟨⟨a⟩, h⟩; exact H ⟨a, h⟩
 
-@[elab_as_eliminator] theorem induction_on₂ {C : finmap β → finmap β → Prop}
-  (s₁ s₂ : finmap β) (H : ∀ (a₁ a₂ : alist β), C ⟦a₁⟧ ⟦a₂⟧) : C s₁ s₂ :=
-induction_on s₁ $ λ l₁, induction_on s₂ $ λ l₂, H l₁ l₂
-
-@[elab_as_eliminator] theorem induction_on₃ {C : finmap β →  finmap β → finmap β → Prop}
-  (s₁ s₂ s₃ : finmap β) (H : ∀ (a₁ a₂ a₃ : alist β), C ⟦a₁⟧ ⟦a₂⟧ ⟦a₃⟧) : C s₁ s₂ s₃ :=
-induction_on₂ s₁ s₂ $ λ l₁ l₂, induction_on s₃ $ λ l₃, H l₁ l₂ l₃
-
 @[extensionality] theorem ext : ∀ {s t : finmap β}, s.entries = t.entries → s = t
 | ⟨l₁, h₁⟩ ⟨l₂, h₂⟩ H := by congr'
-
-@[simp] theorem ext_iff {s t : finmap β} : s.entries = t.entries ↔ s = t :=
-⟨ext, congr_arg _⟩
 
 /-- The predicate `a ∈ s` means that `s` has a value associated to the key `a`. -/
 instance : has_mem α (finmap β) := ⟨λ a s, a ∈ s.entries.keys⟩
@@ -135,18 +124,12 @@ def singleton (a : α) (b : β a) : finmap β :=
 
 variables [decidable_eq α]
 
-instance has_decidable_eq [∀ a, decidable_eq (β a)] : decidable_eq (finmap β)
-| s₁ s₂ := decidable_of_iff _ ext_iff
-
 /-- Look up the value associated to a key in a map. -/
 def lookup (a : α) (s : finmap β) : option (β a) :=
 lift_on s (lookup a) (λ s t, perm_lookup)
 
 @[simp] theorem lookup_to_finmap (a : α) (s : alist β) :
   lookup a ⟦s⟧ = s.lookup a := rfl
-
-@[simp] theorem lookup_empty (a) : lookup a (∅ : finmap β) = none :=
-rfl
 
 theorem lookup_is_some {a : α} {s : finmap β} :
   (s.lookup a).is_some ↔ a ∈ s :=
@@ -204,7 +187,7 @@ induction_on s $ λ s, by simp
 induction_on s $ lookup_erase a
 
 @[simp] theorem lookup_erase_ne {a a'} {s : finmap β} (h : a ≠ a') :
-  lookup a (erase a' s) = lookup a s :=
+  lookup a' (erase a s) = lookup a' s :=
 induction_on s $ λ s, lookup_erase_ne h
 
 /- insert -/
@@ -223,8 +206,8 @@ theorem insert_entries_of_neg {a : α} {b : β a} {s : finmap β} : a ∉ s →
 induction_on s $ λ s h,
 by simp [insert_entries_of_neg (mt mem_to_finmap.1 h)]
 
-@[simp] theorem mem_insert {a a' : α} {b' : β a'} {s : finmap β} :
-  a ∈ insert a' b' s ↔ a = a' ∨ a ∈ s :=
+@[simp] theorem mem_insert {a a' : α} {b : β a} {s : finmap β} :
+  a' ∈ insert a b s ↔ a = a' ∨ a' ∈ s :=
 induction_on s mem_insert
 
 @[simp] theorem lookup_insert {a} {b : β a} (s : finmap β) :
@@ -242,41 +225,5 @@ lift_on s (λ t, prod.map id to_finmap (extract a t)) $
 @[simp] theorem extract_eq_lookup_erase (a : α) (s : finmap β) :
   extract a s = (lookup a s, erase a s) :=
 induction_on s $ λ s, by simp [extract]
-
-/- union -/
-
-/-- `s₁ ∪ s₂` is the key-based union of two finite maps. It is left-biased: if
-there exists an `a ∈ s₁`, `lookup a (s₁ ∪ s₂) = lookup a s₁`. -/
-def union (s₁ s₂ : finmap β) : finmap β :=
-lift_on₂ s₁ s₂ (λ s₁ s₂, ⟦s₁ ∪ s₂⟧) $
-λ s₁ s₂ s₃ s₄ p₁₃ p₂₄, to_finmap_eq.mpr $ perm_union p₁₃ p₂₄
-
-instance : has_union (finmap β) := ⟨union⟩
-
-@[simp] theorem mem_union {a} {s₁ s₂ : finmap β} :
-  a ∈ s₁ ∪ s₂ ↔ a ∈ s₁ ∨ a ∈ s₂ :=
-induction_on₂ s₁ s₂ $ λ _ _, mem_union
-
-@[simp] theorem union_to_finmap (s₁ s₂ : alist β) : ⟦s₁⟧ ∪ ⟦s₂⟧ = ⟦s₁ ∪ s₂⟧ :=
-by simp [(∪), union]
-
-theorem keys_union {s₁ s₂ : finmap β} : (s₁ ∪ s₂).keys = s₁.keys ∪ s₂.keys :=
-induction_on₂ s₁ s₂ $ λ s₁ s₂, finset.ext' $ by simp [keys]
-
-@[simp] theorem lookup_union_left {a} {s₁ s₂ : finmap β} :
-  a ∈ s₁ → lookup a (s₁ ∪ s₂) = lookup a s₁ :=
-induction_on₂ s₁ s₂ $ λ s₁ s₂, lookup_union_left
-
-@[simp] theorem lookup_union_right {a} {s₁ s₂ : finmap β} :
-  a ∉ s₁ → lookup a (s₁ ∪ s₂) = lookup a s₂ :=
-induction_on₂ s₁ s₂ $ λ s₁ s₂, lookup_union_right
-
-@[simp] theorem mem_lookup_union {a} {b : β a} {s₁ s₂ : finmap β} :
-  b ∈ lookup a (s₁ ∪ s₂) ↔ b ∈ lookup a s₁ ∨ a ∉ s₁ ∧ b ∈ lookup a s₂ :=
-induction_on₂ s₁ s₂ $ λ s₁ s₂, mem_lookup_union
-
-theorem mem_lookup_union_middle {a} {b : β a} {s₁ s₂ s₃ : finmap β} :
-  b ∈ lookup a (s₁ ∪ s₃) → a ∉ s₂ → b ∈ lookup a (s₁ ∪ s₂ ∪ s₃) :=
-induction_on₃ s₁ s₂ s₃ $ λ s₁ s₂ s₃, mem_lookup_union_middle
 
 end finmap

@@ -56,27 +56,27 @@ instance : has_coe ℤ_[p] ℚ_[p] := ⟨subtype.val⟩
 
 @[simp] lemma val_eq_coe (z : ℤ_[p]) : z.val = ↑z := rfl
 
-@[simp, move_cast] lemma coe_add : ∀ (z1 z2 : ℤ_[p]), (↑(z1 + z2) : ℚ_[p]) = ↑z1 + ↑z2
+@[simp] lemma coe_add : ∀ (z1 z2 : ℤ_[p]), (↑(z1 + z2) : ℚ_[p]) = ↑z1 + ↑z2
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
-@[simp, move_cast] lemma coe_mul : ∀ (z1 z2 : ℤ_[p]), (↑(z1 * z2) : ℚ_[p]) = ↑z1 * ↑z2
+@[simp] lemma coe_mul : ∀ (z1 z2 : ℤ_[p]), (↑(z1 * z2) : ℚ_[p]) = ↑z1 * ↑z2
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
-@[simp, move_cast] lemma coe_neg : ∀ (z1 : ℤ_[p]), (↑(-z1) : ℚ_[p]) = -↑z1
+@[simp] lemma coe_neg : ∀ (z1 : ℤ_[p]), (↑(-z1) : ℚ_[p]) = -↑z1
 | ⟨_, _⟩ := rfl
 
-@[simp, move_cast] lemma coe_sub : ∀ (z1 z2 : ℤ_[p]), (↑(z1 - z2) : ℚ_[p]) = ↑z1 - ↑z2
+@[simp] lemma coe_sub : ∀ (z1 z2 : ℤ_[p]), (↑(z1 - z2) : ℚ_[p]) = ↑z1 - ↑z2
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
-@[simp, squash_cast] lemma coe_one : (↑(1 : ℤ_[p]) : ℚ_[p]) = 1 := rfl
+@[simp] lemma coe_one : (↑(1 : ℤ_[p]) : ℚ_[p]) = 1 := rfl
 
-@[simp, squash_cast] lemma coe_coe : ∀ n : ℕ, (↑(↑n : ℤ_[p]) : ℚ_[p]) = (↑n : ℚ_[p])
+@[simp] lemma coe_coe : ∀ n : ℕ, (↑(↑n : ℤ_[p]) : ℚ_[p]) = (↑n : ℚ_[p])
 | 0 := rfl
 | (k+1) := by simp [coe_coe]
 
-@[simp, squash_cast] lemma coe_zero : (↑(0 : ℤ_[p]) : ℚ_[p]) = 0 := rfl
+@[simp] lemma coe_zero : (↑(0 : ℤ_[p]) : ℚ_[p]) = 0 := rfl
 
-@[simp, move_cast] lemma cast_pow (x : ℤ_[p]) : ∀ (n : ℕ), (↑(x^n) : ℚ_[p]) = (↑x : ℚ_[p])^n
+@[simp] lemma cast_pow (x : ℤ_[p]) : ∀ (n : ℕ), (↑(x^n) : ℚ_[p]) = (↑x : ℚ_[p])^n
 | 0 := by simp
 | (k+1) := by simp [monoid.pow, pow]; congr; apply cast_pow
 
@@ -93,13 +93,13 @@ variables {p : ℕ} [nat.prime p]
 
 @[reducible] def padic_norm_z (z : ℤ_[p]) : ℝ := ∥z.val∥
 
-instance : metric_space ℤ_[p] := subtype.metric_space
+instance : metric_space ℤ_[p] := metric_space_subtype
 
 instance : has_norm ℤ_[p] := ⟨padic_norm_z⟩
 
 instance : normed_ring ℤ_[p] :=
 { dist_eq := λ ⟨_, _⟩ ⟨_, _⟩, rfl,
-  norm_mul := λ ⟨_, _⟩ ⟨_, _⟩, norm_mul_le _ _ }
+  norm_mul := λ ⟨_, _⟩ ⟨_, _⟩, norm_mul _ _ }
 
 instance padic_norm_z.is_absolute_value : is_absolute_value (λ z : ℤ_[p], ∥z∥) :=
 { abv_nonneg := norm_nonneg,
@@ -245,10 +245,10 @@ variables {p : ℕ} [nat.prime p]
 lemma padic_val_of_cong_pow_p {z1 z2 : ℤ} {n : ℕ} (hz : z1 ≡ z2 [ZMOD ↑(p^n)]) :
       ∥(z1 - z2 : ℚ_[p])∥ ≤ ↑(↑p ^ (-n : ℤ) : ℚ) :=
 have hdvd : ↑(p^n) ∣ z2 - z1, from int.modeq.modeq_iff_dvd.1 hz,
-have (z2 - z1 : ℚ_[p]) = ↑(↑(z2 - z1) : ℚ), by norm_cast,
+have (↑(z2 - z1) : ℚ_[p]) = padic.of_rat p ↑(z2 - z1), by simp,
 begin
-  rw [norm_sub_rev, this, padic_norm_e.eq_padic_norm],
-  exact_mod_cast padic_norm.le_of_dvd p hdvd
+  rw [norm_sub_rev, ←int.cast_sub, this, padic_norm_e.eq_padic_norm],
+  simpa using padic_norm.le_of_dvd p hdvd
 end
 
 end padic_norm_z

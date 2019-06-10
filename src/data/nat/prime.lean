@@ -5,7 +5,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 
 Prime numbers.
 -/
-import data.nat.sqrt data.nat.gcd data.list.basic data.list.perm tactic.wlog
+import data.nat.sqrt data.nat.gcd data.list.basic data.list.perm
 open bool subtype
 
 namespace nat

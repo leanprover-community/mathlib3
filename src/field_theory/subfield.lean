@@ -6,43 +6,10 @@ Authors: Andreas Swerdlow
 
 import ring_theory.subring
 
-variables {F : Type*} [discrete_field F] (S : set F)
+variables {F : Type*} [field F] (S : set F)
 
 class is_subfield extends is_subring S : Prop :=
 (inv_mem : ∀ {x : F}, x ≠ 0 → x ∈ S → x⁻¹ ∈ S)
-
-instance is_subfield.field [is_subfield S] : discrete_field S :=
-{ inv := λ x, ⟨x⁻¹, if hx0 : x = 0
-    then by erw [hx0, inv_zero]; exact is_add_submonoid.zero_mem _
-    else is_subfield.inv_mem (λ h, hx0 $ subtype.ext.2 h) x.2⟩,
-  zero_ne_one := λ h : 0 = 1, (@zero_ne_one F _) (subtype.ext.1 h),
-  mul_inv_cancel := λ a ha, subtype.ext.2 (mul_inv_cancel
-    (λ h, ha $ subtype.ext.2 h)),
-  inv_mul_cancel := λ a ha, subtype.ext.2 (inv_mul_cancel
-    (λ h, ha $ subtype.ext.2 h)),
-  has_decidable_eq := by apply_instance,
-  inv_zero := subtype.ext.2 inv_zero,
-  ..show comm_ring S, by apply_instance }
-
-instance univ.is_subfield : is_subfield (@set.univ F) :=
-{ inv_mem := by intros; trivial }
-
-instance preimage.is_subfield {K : Type*} [discrete_field K]
-  (f : F → K) [is_ring_hom f] (s : set K) [is_subfield s] : is_subfield (f ⁻¹' s) :=
-{ inv_mem := λ a ha0 (ha : f a ∈ s), show f a⁻¹ ∈ s,
-    by rw [is_field_hom.map_inv' f ha0];
-      exact is_subfield.inv_mem ((is_field_hom.map_ne_zero f).2 ha0) ha }
-
-instance image.is_subfield {K : Type*} [discrete_field K]
-  (f : F → K) [is_ring_hom f] (s : set F) [is_subfield s] : is_subfield (f '' s) :=
-{ inv_mem := λ a ha0 ⟨x, hx⟩,
-    have hx0 : x ≠ 0, from λ hx0, ha0 (hx.2 ▸ hx0.symm ▸ is_ring_hom.map_zero f),
-    ⟨x⁻¹, is_subfield.inv_mem hx0 hx.1,
-    by rw [← hx.2, is_field_hom.map_inv' f hx0]; refl⟩ }
-
-instance range.is_subfield {K : Type*} [discrete_field K]
-  (f : F → K) [is_ring_hom f] : is_subfield (set.range f) :=
-by rw ← set.image_univ; apply_instance
 
 namespace field
 
@@ -92,11 +59,3 @@ theorem closure_mono {s t : set F} (H : s ⊆ t) : closure s ⊆ closure t :=
 closure_subset $ set.subset.trans H subset_closure
 
 end field
-
-lemma is_subfield_Union_of_directed {ι : Type*} [hι : nonempty ι]
-  (s : ι → set F) [∀ i, is_subfield (s i)]
-  (directed : ∀ i j, ∃ k, s i ⊆ s k ∧ s j ⊆ s k) :
-  is_subfield (⋃i, s i) :=
-{ inv_mem := λ x hx0 hx, let ⟨i, hi⟩ := set.mem_Union.1 hx in
-    set.mem_Union.2 ⟨i, is_subfield.inv_mem hx0 hi⟩,
-  to_is_subring := is_subring_Union_of_directed s directed }

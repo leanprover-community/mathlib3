@@ -30,11 +30,11 @@ D                    : Type v₂
 functor C D          : Type (max u₁ u₂ v₁ v₂)
 F G                  : functor C D
 nat_trans F G        : Type (max u₁ v₂)
-functor.category C D : category.{(max u₁ v₂) (max u₁ u₂ v₁ v₂)}
+functor.category C D : category.{(max u₁ u₂ v₁ v₂) (max u₁ v₂)}
 ````
 
-In the above, `category.{v₁ u₁} C` is equivalently written as
-`category.{v₁} C` because `u₁` can be inferred from `C`.
+In the above, `category.{u₁ v₁} C` is equivalently written as
+`category.{u₁} C` because `v₁` can be inferred from `C`.
 
 Note then that if we specialise to small categories, where `uᵢ = vᵢ`, then
 `functor.category C D : category.{max u₁ u₂}`, and so is again
@@ -84,13 +84,9 @@ We use `F.map f` to denote the action of a functor on a morphism`.
 Functor composition can be written as `F ⋙ G`.
 
 ### Natural transformations
+We use `⟹` (`\nattrans` or `\==>`) to denote the type of natural transformations, e.g. `F ⟹ G`.
+We use `⇔` (`\<=>`) to denote the type of natural isomorphisms.
+
 We use `τ.app X` for the components of a natural transformation.
 
-Otherwise, we mostly use the notation for morphisms in any category:
-
-We use `F ⟶ G` (`\hom` or `-->`) to denote the type of natural transformations, between functors
-`F` and `G`.
-We use `F ≅ G` (`\iso`) to denote the type of natural isomorphisms.
-
-For vertical composition of natural transformations we just use `≫`. For horizontal composition,
-use `hcomp`.
+For vertical and horiztonal composition of natural transformations we "cutely" use `⊟` (`\boxminus`) and `◫` (currently untypeable, but we could ask for `\boxvert`).

@@ -147,7 +147,7 @@ def set_seq_of_cau_filter : ℕ → set β
 | (n+1) := (set_seq_of_cau_filter n) ∩ some ((emetric.cauchy_iff.1 hf).2 _ (B2_pos B hB (n + 1)))
 
 /-- These sets are in the filter. -/
-lemma set_seq_of_cau_filter_mem_sets : ∀ n, set_seq_of_cau_filter hf B hB n ∈ f
+lemma set_seq_of_cau_filter_mem_sets : ∀ n, set_seq_of_cau_filter hf B hB n ∈ f.sets
 | 0 := some (some_spec ((emetric.cauchy_iff.1 hf).2 _ (B2_pos B hB 0)))
 | (n+1) := inter_mem_sets (set_seq_of_cau_filter_mem_sets n)
              (some (some_spec ((emetric.cauchy_iff.1 hf).2 _ (B2_pos B hB (n + 1)))))
@@ -231,7 +231,7 @@ begin
   simp only [set.mem_set_of_eq] at hnε, -- hnε : ε / 2 > B2 B hB n
   cases (emetric.tendsto_at_top _).1 H _ this with n2 hn2,
   let N := max n n2,
-  have ht1sn : t1 ∩ set_seq_of_cau_filter hf B hB N ∈ f,
+  have ht1sn : t1 ∩ set_seq_of_cau_filter hf B hB N ∈ f.sets,
     from inter_mem_sets ht1 (set_seq_of_cau_filter_mem_sets hf B hB _),
   have hts1n_ne : t1 ∩ set_seq_of_cau_filter hf B hB N ≠ ∅,
     from forall_sets_neq_empty_iff_neq_bot.2 hfb _ ht1sn,
@@ -394,6 +394,7 @@ begin
       apply hεs,
       rw dist_eq_norm,
       apply hN; assumption }},
+  { apply_instance }
 end
 
 /-- In a normed field, `cau_seq` coincides with the usual notion of Cauchy sequences. -/

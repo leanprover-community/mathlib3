@@ -196,7 +196,7 @@ by unfold has_scalar.smul; apply_instance
 
 protected theorem smul_add (r : R) (x y : M ⊗[R] N) :
   r • (x + y) = r • x + r • y :=
-is_add_group_hom.map_add _ _ _
+is_add_group_hom.add _ _ _
 
 instance : module R (M ⊗ N) := module.of_core
 { smul := (•),

@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
+import logic.basic
+
 universes u v w
 
 variables {α : Sort u} {β : Sort v} {γ : Sort w}
@@ -50,3 +52,4 @@ def of_surjective {f : α → β} (hf : surjective f) [unique α] : unique β :=
   end }
 
 end unique
+

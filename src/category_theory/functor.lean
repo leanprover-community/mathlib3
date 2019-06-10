@@ -14,6 +14,7 @@ Introduces notations
 -/
 
 import category_theory.category
+import tactic.tidy
 
 namespace category_theory
 
@@ -27,8 +28,8 @@ To apply a functor `F` to an object use `F.obj X`, and to a morphism use `F.map 
 The axiom `map_id_lemma` expresses preservation of identities, and
 `map_comp_lemma` expresses functoriality.
 -/
-structure functor (C : Sort u₁) [category.{v₁} C] (D : Sort u₂) [category.{v₂} D] :
-  Sort (max u₁ v₁ u₂ v₂ 1) :=
+structure functor (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D] :
+  Type (max u₁ v₁ u₂ v₂) :=
 (obj       : C → D)
 (map       : Π {X Y : C}, (X ⟶ Y) → ((obj X) ⟶ (obj Y)))
 (map_id'   : ∀ (X : C), map (𝟙 X) = 𝟙 (obj X) . obviously)
@@ -46,15 +47,13 @@ attribute [simp] functor.map_comp
 namespace functor
 
 section
-variables (C : Sort u₁) [𝒞 : category.{v₁} C]
+variables (C : Type u₁) [𝒞 : category.{v₁} C]
 include 𝒞
 
 /-- `functor.id C` is the identity functor on a category `C`. -/
 protected def id : C ⥤ C :=
 { obj := λ X, X,
   map := λ _ _ f, f }
-
-notation `𝟭` := functor.id
 
 variable {C}
 
@@ -63,9 +62,9 @@ variable {C}
 end
 
 section
-variables {C : Sort u₁} [𝒞 : category.{v₁} C]
-          {D : Sort u₂} [𝒟 : category.{v₂} D]
-          {E : Sort u₃} [ℰ : category.{v₃} E]
+variables {C : Type u₁} [𝒞 : category.{v₁} C]
+          {D : Type u₂} [𝒟 : category.{v₂} D]
+          {E : Type u₃} [ℰ : category.{v₃} E]
 include 𝒞 𝒟 ℰ
 
 /--

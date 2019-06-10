@@ -14,12 +14,14 @@ local notation f ` ⊚ `:80 g:80 := category.comp g f    -- type as \oo
 ```
 -/
 
-import tactic.basic
+import tactic.restate_axiom
+import tactic.replacer
+import tactic.interactive
 import tactic.tidy
 
-universes v u  -- The order in this declaration matters: v often needs to be explicitly specified while u often can be omitted
-
 namespace category_theory
+
+universes v u  -- The order in this declaration matters: v often needs to be explicitly specified while u often can be omitted
 
 /-
 The propositional fields of `category` are annotated with the auto_param `obviously`,
@@ -31,13 +33,13 @@ powerful tactics.
 def_replacer obviously
 @[obviously] meta def obviously' := tactic.tidy
 
-class has_hom (obj : Sort u) : Sort (max u (v+1)) :=
-(hom : obj → obj → Sort v)
+class has_hom (obj : Type u) : Type (max u (v+1)) :=
+(hom : obj → obj → Type v)
 
 infixr ` ⟶ `:10 := has_hom.hom -- type as \h
 
-class category_struct (obj : Sort u)
-extends has_hom.{v} obj : Sort (max u (v+1)) :=
+class category_struct (obj : Type u)
+extends has_hom.{v} obj :=
 (id       : Π X : obj, hom X X)
 (comp     : Π {X Y Z : obj}, (X ⟶ Y) → (Y ⟶ Z) → (X ⟶ Z))
 
@@ -49,8 +51,8 @@ The typeclass `category C` describes morphisms associated to objects of type `C`
 The universe levels of the objects and morphisms are unconstrained, and will often need to be
 specified explicitly, as `category.{v} C`. (See also `large_category` and `small_category`.)
 -/
-class category (obj : Sort u)
-extends category_struct.{v} obj : Sort (max u (v+1)) :=
+class category (obj : Type u)
+extends category_struct.{v} obj :=
 (id_comp' : ∀ {X Y : obj} (f : hom X Y), 𝟙 X ≫ f = f . obviously)
 (comp_id' : ∀ {X Y : obj} (f : hom X Y), f ≫ 𝟙 Y = f . obviously)
 (assoc'   : ∀ {W X Y Z : obj} (f : hom W X) (g : hom X Y) (h : hom Y Z),
@@ -65,7 +67,7 @@ restate_axiom category.assoc'
 attribute [simp] category.id_comp category.comp_id category.assoc
 attribute [trans] category_struct.comp
 
-lemma category.assoc_symm {C : Sort u} [category.{v} C] {W X Y Z : C} (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z) :
+lemma category.assoc_symm {C : Type u} [category.{v} C] {W X Y Z : C} (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z) :
   f ≫ (g ≫ h) = (f ≫ g) ≫ h :=
 by rw ←category.assoc
 
@@ -74,39 +76,24 @@ A `large_category` has objects in one universe level higher than the universe le
 the morphisms. It is useful for examples such as the category of types, or the category
 of groups, etc.
 -/
-abbreviation large_category (C : Sort (u+1)) : Sort (u+1) := category.{u} C
+abbreviation large_category (C : Type (u+1)) : Type (u+1) := category.{u} C
 /--
 A `small_category` has objects and morphisms in the same universe level.
 -/
-abbreviation small_category (C : Sort u)     : Sort (u+1) := category.{u} C
+abbreviation small_category (C : Type u)     : Type (u+1) := category.{u} C
 
 section
-variables {C : Sort u} [𝒞 : category.{v} C] {X Y Z : C}
+variables {C : Type u} [𝒞 : category.{v} C] {X Y Z : C}
 include 𝒞
-
-lemma eq_of_comp_left_eq {f g : X ⟶ Y} (w : ∀ {Z : C} (h : Y ⟶ Z), f ≫ h = g ≫ h) : f = g :=
-by { convert w (𝟙 Y), tidy }
-lemma eq_of_comp_right_eq {f g : Y ⟶ Z} (w : ∀ {X : C} (h : X ⟶ Y), h ≫ f = h ≫ g) : f = g :=
-by { convert w (𝟙 Y), tidy }
-
-lemma eq_of_comp_left_eq' (f g : X ⟶ Y) (w : (λ {Z : C} (h : Y ⟶ Z), f ≫ h) = (λ {Z : C} (h : Y ⟶ Z), g ≫ h)) : f = g :=
-eq_of_comp_left_eq (λ Z h, by convert congr_fun (congr_fun w Z) h)
-lemma eq_of_comp_right_eq' (f g : Y ⟶ Z) (w : (λ {X : C} (h : X ⟶ Y), h ≫ f) = (λ {X : C} (h : X ⟶ Y), h ≫ g)) : f = g :=
-eq_of_comp_right_eq (λ X h, by convert congr_fun (congr_fun w X) h)
-
-lemma id_of_comp_left_id (f : X ⟶ X) (w : ∀ {Y : C} (g : X ⟶ Y), f ≫ g = g) : f = 𝟙 X :=
-by { convert w (𝟙 X), tidy }
-lemma id_of_comp_right_id (f : X ⟶ X) (w : ∀ {Y : C} (g : Y ⟶ X), g ≫ f = g) : f = 𝟙 X :=
-by { convert w (𝟙 X), tidy }
 
 class epi  (f : X ⟶ Y) : Prop :=
 (left_cancellation : Π {Z : C} (g h : Y ⟶ Z) (w : f ≫ g = f ≫ h), g = h)
 class mono (f : X ⟶ Y) : Prop :=
 (right_cancellation : Π {Z : C} (g h : Z ⟶ X) (w : g ≫ f = h ≫ f), g = h)
 
-@[simp] lemma cancel_epi  (f : X ⟶ Y) [epi f]  {g h : Y ⟶ Z} : (f ≫ g = f ≫ h) ↔ g = h :=
+@[simp] lemma cancel_epi  (f : X ⟶ Y) [epi f]  (g h : Y ⟶ Z) : (f ≫ g = f ≫ h) ↔ g = h :=
 ⟨ λ p, epi.left_cancellation g h p, begin intro a, subst a end ⟩
-@[simp] lemma cancel_mono (f : X ⟶ Y) [mono f] {g h : Z ⟶ X} : (g ≫ f = h ≫ f) ↔ g = h :=
+@[simp] lemma cancel_mono (f : X ⟶ Y) [mono f] (g h : Z ⟶ X) : (g ≫ f = h ≫ f) ↔ g = h :=
 ⟨ λ p, mono.right_cancellation g h p, begin intro a, subst a end ⟩
 end
 
@@ -125,33 +112,27 @@ instance ulift_category : category.{v} (ulift.{u'} C) :=
 example (D : Type u) [small_category D] : large_category (ulift.{u+1} D) := by apply_instance
 end
 
+variables (α : Type u)
+
+instance [preorder α] : small_category α :=
+{ hom  := λ U V, ulift (plift (U ≤ V)),
+  id   := λ X, ⟨ ⟨ le_refl X ⟩ ⟩,
+  comp := λ X Y Z f g, ⟨ ⟨ le_trans f.down.down g.down.down ⟩ ⟩ }
+
 section
 variables {C : Type u}
 
 def End [has_hom.{v} C] (X : C) := X ⟶ X
 
-instance End.has_one [category_struct.{v+1} C] {X : C} : has_one (End X) := by refine { one := 𝟙 X }
-instance End.has_mul [category_struct.{v+1} C] {X : C} : has_mul (End X) := by refine { mul := λ x y, x ≫ y }
-instance End.monoid [category.{v+1} C] {X : C} : monoid (End X) :=
+instance End.has_one [category_struct.{v} C] {X : C} : has_one (End X) := by refine { one := 𝟙 X }
+instance End.has_mul [category_struct.{v} C] {X : C} : has_mul (End X) := by refine { mul := λ x y, x ≫ y }
+instance End.monoid [category.{v} C] {X : C} : monoid (End X) :=
 by refine { .. End.has_one, .. End.has_mul, .. }; dsimp [has_mul.mul,has_one.one]; obviously
 
-@[simp] lemma End.one_def {C : Type u} [category_struct.{v+1} C] {X : C} : (1 : End X) = 𝟙 X := rfl
+@[simp] lemma End.one_def {C : Type u} [category_struct.{v} C] {X : C} : (1 : End X) = 𝟙 X := rfl
 
-@[simp] lemma End.mul_def {C : Type u} [category_struct.{v+1} C] {X : C} (xs ys : End X) : xs * ys = xs ≫ ys := rfl
+@[simp] lemma End.mul_def {C : Type u} [category_struct.{v} C] {X : C} (xs ys : End X) : xs * ys = xs ≫ ys := rfl
 
 end
 
 end category_theory
-
-open category_theory
-
-namespace preorder
-
-variables (α : Type u)
-
-instance small_category [preorder α] : small_category α :=
-{ hom  := λ U V, ulift (plift (U ≤ V)),
-  id   := λ X, ⟨ ⟨ le_refl X ⟩ ⟩,
-  comp := λ X Y Z f g, ⟨ ⟨ le_trans _ _ _ f.down.down g.down.down ⟩ ⟩ }
-
-end preorder

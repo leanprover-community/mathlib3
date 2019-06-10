@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 
 Computational realization of filters (experimental).
 -/
-import order.filter.basic
+import order.filter
 open set filter
 
 /-- A `cfilter α σ` is a realization of a filter (base) on `α`,
@@ -52,7 +52,7 @@ def to_filter (F : cfilter (set α) σ) : filter α :=
     subset_inter (subset.trans (F.inf_le_left _ _) h₁) (subset.trans (F.inf_le_right _ _) h₂)⟩ }
 
 @[simp] theorem mem_to_filter_sets (F : cfilter (set α) σ) {a : set α} :
-  a ∈ F.to_filter ↔ ∃ b, F b ⊆ a := iff.rfl
+  a ∈ F.to_filter.sets ↔ ∃ b, F b ⊆ a := iff.rfl
 
 end cfilter
 
@@ -66,7 +66,7 @@ protected def cfilter.to_realizer (F : cfilter (set α) σ) : F.to_filter.realiz
 
 namespace filter.realizer
 
-theorem mem_sets {f : filter α} (F : f.realizer) {a : set α} : a ∈ f ↔ ∃ b, F.F b ⊆ a :=
+theorem mem_sets {f : filter α} (F : f.realizer) {a : set α} : a ∈ f.sets ↔ ∃ b, F.F b ⊆ a :=
 by cases F; subst f; simp
 
 -- Used because it has better definitional equalities than the eq.rec proof

@@ -1,11 +1,4 @@
-/-
-Copyright (c) 2017 Mario Carneiro. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
--/
-import tactic.basic
-import data.list.basic data.stream data.lazy_list data.seq.computation logic.basic
-
+import data.stream data.lazy_list data.seq.computation logic.basic tactic.interactive
 universes u v w
 
 /-
@@ -92,7 +85,7 @@ begin
   dsimp [destruct],
   induction f0 : nth s 0 with a'; intro h,
   { contradiction },
-  { unfold functor.map at h,
+  { unfold functor.map at h, dsimp at h,
     cases s with f al,
     injections with _ h1 h2,
     rw ←h2, apply subtype.eq, dsimp [tail, cons],

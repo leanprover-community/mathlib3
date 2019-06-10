@@ -145,7 +145,7 @@ ext.2 $ λ a, by simp; exact
 ⟨λ h, p _ _ h (get_mem _), λ e, e.symm ▸ get_mem _⟩
 
 @[simp] theorem pure_is_pure (a : α) : is_pure (pure a)
-| b c ab ac := by { simp at ab ac, cc }
+| b c ab ac := by simp at *; cc
 
 theorem is_pure_iff {s : semiquot α} : is_pure s ↔ ∃ a, s = pure a :=
 ⟨λ h, ⟨_, eq_pure h⟩, λ ⟨a, e⟩, e.symm ▸ pure_is_pure _⟩

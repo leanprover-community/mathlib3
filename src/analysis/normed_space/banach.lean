@@ -14,12 +14,10 @@ local attribute [instance] classical.prop_decidable
 
 open function metric set filter finset
 
-class banach_space (α : Type*) (β : Type*) [normed_field α]
-  extends normed_space α β, complete_space β
-
 variables {k : Type*} [nondiscrete_normed_field k]
-variables {E : Type*} [banach_space k E]
-variables {F : Type*} [banach_space k F] {f : E → F}
+{E : Type*} [normed_group E] [complete_space E] [normed_space k E]
+{F : Type*} [normed_group F] [complete_space F] [normed_space k F]
+{f : E → F}
 include k
 
 set_option class.instance_max_depth 70

@@ -40,7 +40,7 @@ by convert ← compact_inter hs ht; exact inter_eq_self_of_subset_right h
 
 lemma compact_adherence_nhdset {s t : set α} {f : filter α}
   (hs : compact s) (hf₂ : f ≤ principal s) (ht₁ : is_open t) (ht₂ : ∀a∈s, nhds a ⊓ f ≠ ⊥ → a ∈ t) :
-  t ∈ f.sets :=
+  t ∈ f :=
 classical.by_cases mem_sets_of_neq_bot $
   assume : f ⊓ principal (- t) ≠ ⊥,
   let ⟨a, ha, (hfa : f ⊓ principal (-t) ⊓ nhds a ≠ ⊥)⟩ := hs _ this $ inf_le_left_of_le hf₂ in
@@ -125,9 +125,9 @@ assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ nhds
     by simpa only [not_exists, not_not, inf_comm],
   have ¬ ∃x∈s, ∀t∈f.sets, x ∈ closure t,
     from assume ⟨x, hxs, hx⟩,
-    have ∅ ∈ (nhds x ⊓ f).sets, by rw [empty_in_sets_eq_bot, hf x hxs],
+    have ∅ ∈ nhds x ⊓ f, by rw [empty_in_sets_eq_bot, hf x hxs],
     let ⟨t₁, ht₁, t₂, ht₂, ht⟩ := by rw [mem_inf_sets] at this; exact this in
-    have ∅ ∈ (nhds x ⊓ principal t₂).sets,
+    have ∅ ∈ nhds x ⊓ principal t₂,
       from (nhds x ⊓ principal t₂).sets_of_superset (inter_mem_inf_sets ht₁ (subset.refl t₂)) ht,
     have nhds x ⊓ principal t₂ = ⊥,
       by rwa [empty_in_sets_eq_bot] at this,
@@ -136,13 +136,13 @@ assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ nhds
   let c := (λt, - closure t) '' f.sets, ⟨c', hcc', hcf, hsc'⟩ := h c
     (assume t ⟨s, hs, h⟩, h ▸ is_closed_closure) (by simpa only [subset_def, sUnion_image, mem_Union]) in
   let ⟨b, hb⟩ := axiom_of_choice $
-    show ∀s:c', ∃t, t ∈ f.sets ∧ - closure t = s,
+    show ∀s:c', ∃t, t ∈ f ∧ - closure t = s,
       from assume ⟨x, hx⟩, hcc' hx in
-  have (⋂s∈c', if h : s ∈ c' then b ⟨s, h⟩ else univ) ∈ f.sets,
+  have (⋂s∈c', if h : s ∈ c' then b ⟨s, h⟩ else univ) ∈ f,
     from Inter_mem_sets hcf $ assume t ht, by rw [dif_pos ht]; exact (hb ⟨t, ht⟩).left,
-  have s ∩ (⋂s∈c', if h : s ∈ c' then b ⟨s, h⟩ else univ) ∈ f.sets,
+  have s ∩ (⋂s∈c', if h : s ∈ c' then b ⟨s, h⟩ else univ) ∈ f,
     from inter_mem_sets (le_principal_iff.1 hfs) this,
-  have ∅ ∈ f.sets,
+  have ∅ ∈ f,
     from mem_sets_of_superset this $ assume x ⟨hxs, hxi⟩,
     let ⟨t, htc', hxt⟩ := (show ∃t ∈ c', x ∈ t, from hsc' hxs) in
     have -closure (b ⟨t, htc'⟩) = t, from (hb _).right,
@@ -222,7 +222,7 @@ Hausdorff spaces but not in general. This one is the precise condition on X need
 evaluation `map C(X, Y) × X → Y` to be continuous for all `Y` when `C(X, Y)` is given the
 compact-open topology. -/
 class locally_compact_space (α : Type*) [topological_space α] : Prop :=
-(local_compact_nhds : ∀ (x : α) (n ∈ (nhds x).sets), ∃ s ∈ (nhds x).sets, s ⊆ n ∧ compact s)
+(local_compact_nhds : ∀ (x : α) (n ∈ nhds x), ∃ s ∈ nhds x, s ⊆ n ∧ compact s)
 
 end compact
 

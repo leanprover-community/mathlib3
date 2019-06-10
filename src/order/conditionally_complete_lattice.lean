@@ -24,7 +24,7 @@ bounded below.
 -/
 import
   order.lattice order.complete_lattice order.bounds
-  tactic.finish data.set.countable
+  tactic.finish data.set.finite
 
 set_option old_structure_cmd true
 

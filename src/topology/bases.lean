@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 Bases of topologies. Countability axioms.
 -/
 
-import topology.order
+import topology.order data.set.countable
 
 open set filter lattice classical
 
@@ -67,10 +67,11 @@ lemma is_topological_basis_of_open_of_nhds {s : set (set α)}
     (generate_from_le h_open)⟩
 
 lemma mem_nhds_of_is_topological_basis {a : α} {s : set α} {b : set (set α)}
-  (hb : is_topological_basis b) : s ∈ (nhds a).sets ↔ ∃t∈b, a ∈ t ∧ t ⊆ s :=
+  (hb : is_topological_basis b) : s ∈ nhds a ↔ ∃t∈b, a ∈ t ∧ t ⊆ s :=
 begin
+  change s ∈ (nhds a).sets ↔ ∃t∈b, a ∈ t ∧ t ⊆ s,
   rw [hb.2.2, nhds_generate_from, infi_sets_eq'],
-  { simp only [mem_bUnion_iff, exists_prop, mem_set_of_eq, and_assoc, and.left_comm]; refl },
+  { simp only [mem_bUnion_iff, exists_prop, mem_set_of_eq, and_assoc, and.left_comm], refl },
   { exact assume s ⟨hs₁, hs₂⟩ t ⟨ht₁, ht₂⟩,
       have a ∈ s ∩ t, from ⟨hs₁, ht₁⟩,
       let ⟨u, hu₁, hu₂, hu₃⟩ := hb.1 _ hs₂ _ ht₂ _ this in

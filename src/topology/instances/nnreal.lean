@@ -17,12 +17,12 @@ instance : topological_space ℝ≥0 := infer_instance
 instance : topological_semiring ℝ≥0 :=
 { continuous_mul :=
    continuous_subtype_mk _
-        (continuous_mul (continuous.comp continuous_fst continuous_subtype_val)
-                        (continuous.comp continuous_snd continuous_subtype_val)),
+        (continuous_mul (continuous.comp continuous_subtype_val continuous_fst)
+                        (continuous.comp continuous_subtype_val continuous_snd)),
   continuous_add :=
     continuous_subtype_mk _
-          (continuous_add (continuous.comp continuous_fst continuous_subtype_val)
-                          (continuous.comp continuous_snd continuous_subtype_val)) }
+          (continuous_add (continuous.comp continuous_subtype_val continuous_fst)
+                          (continuous.comp continuous_subtype_val continuous_snd)) }
 
 instance : second_countable_topology nnreal :=
 topological_space.subtype.second_countable_topology _ _
@@ -74,26 +74,26 @@ lemma tendsto_coe {f : filter α} {m : α → nnreal} :
 
 lemma tendsto_of_real {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m f (nhds x)):
   tendsto (λa, nnreal.of_real (m a)) f (nhds (nnreal.of_real x)) :=
-h.comp (continuous_iff_continuous_at.1 continuous_of_real _)
+tendsto.comp (continuous_iff_continuous_at.1 continuous_of_real _) h
 
 lemma tendsto_sub {f : filter α} {m n : α → nnreal} {r p : nnreal}
   (hm : tendsto m f (nhds r)) (hn : tendsto n f (nhds p)) :
   tendsto (λa, m a - n a) f (nhds (r - p)) :=
 tendsto_of_real $ tendsto_sub (tendsto_coe.2 hm) (tendsto_coe.2 hn)
 
-lemma is_sum_coe {f : α → nnreal} {r : nnreal} : is_sum (λa, (f a : ℝ)) (r : ℝ) ↔ is_sum f r :=
-by simp [is_sum, sum_coe.symm, tendsto_coe]
+lemma has_sum_coe {f : α → nnreal} {r : nnreal} : has_sum (λa, (f a : ℝ)) (r : ℝ) ↔ has_sum f r :=
+by simp [has_sum, sum_coe.symm, tendsto_coe]
 
-lemma has_sum_coe {f : α → nnreal} : has_sum (λa, (f a : ℝ)) ↔ has_sum f :=
+lemma summable_coe {f : α → nnreal} : summable (λa, (f a : ℝ)) ↔ summable f :=
 begin
-  simp [has_sum],
+  simp [summable],
   split,
-  exact assume ⟨a, ha⟩, ⟨⟨a, is_sum_le (λa, (f a).2) is_sum_zero ha⟩, is_sum_coe.1 ha⟩,
-  exact assume ⟨a, ha⟩, ⟨a.1, is_sum_coe.2 ha⟩
+  exact assume ⟨a, ha⟩, ⟨⟨a, has_sum_le (λa, (f a).2) has_sum_zero ha⟩, has_sum_coe.1 ha⟩,
+  exact assume ⟨a, ha⟩, ⟨a.1, has_sum_coe.2 ha⟩
 end
 
-lemma tsum_coe {f : α → nnreal} (hf : has_sum f) : (∑a, (f a : ℝ)) = ↑(∑a, f a) :=
-tsum_eq_is_sum $ is_sum_coe.2 $ is_sum_tsum $ hf
+lemma tsum_coe {f : α → nnreal} (hf : summable f) : (∑a, (f a : ℝ)) = ↑(∑a, f a) :=
+tsum_eq_has_sum $ has_sum_coe.2 $ has_sum_tsum $ hf
 
 end coe
 

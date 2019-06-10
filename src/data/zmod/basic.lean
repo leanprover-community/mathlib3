@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Chris Hughes
 -/
-import data.int.modeq data.int.gcd data.fintype data.pnat
+import data.int.modeq data.int.gcd data.fintype data.pnat.basic
 
 open nat nat.modeq int
 
@@ -226,6 +226,13 @@ def units_equiv_coprime {n : ℕ+} : units (zmod n) ≃ {x : zmod n // nat.copri
     ⟨x.1, gcd_a x.1.1 n, this, by simpa [mul_comm] using this⟩,
   left_inv := λ ⟨_, _, _, _⟩, units.ext rfl,
   right_inv := λ ⟨_, _⟩, rfl }
+
+section
+variables {α : Type*} [has_zero α] [has_one α] [has_add α] {n : ℕ+}
+
+def cast : zmod n → α := nat.cast ∘ fin.val
+
+end
 
 end zmod
 

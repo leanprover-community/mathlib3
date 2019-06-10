@@ -274,7 +274,7 @@ end
 
 instance [discrete_field α] (p : ℕ) [nat.prime p] [char_p α p] : perfect_field (perfect_closure α p) p :=
 { pth_root := (frobenius_equiv α p).symm,
-  frobenius_pth_root := (frobenius_equiv α p).apply_inverse_apply }
+  frobenius_pth_root := (frobenius_equiv α p).apply_symm_apply }
 
 def of [monoid α] (p : ℕ) (x : α) : perfect_closure α p :=
 quot.mk _ (0, x)

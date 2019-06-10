@@ -341,6 +341,10 @@ Inf_le tS
 theorem subset_sUnion_of_mem {S : set (set α)} {t : set α} (tS : t ∈ S) : t ⊆ ⋃₀ S :=
 le_Sup tS
 
+lemma subset_sUnion_of_subset {s : set α} (t : set (set α)) (u : set α) (h₁ : s ⊆ u)
+  (h₂ : u ∈ t) : s ⊆ ⋃₀ t :=
+subset.trans h₁ (subset_sUnion_of_mem h₂)
+
 theorem sUnion_subset {S : set (set α)} {t : set α} (h : ∀t' ∈ S, t' ⊆ t) : (⋃₀ S) ⊆ t :=
 Sup_le h
 
@@ -381,6 +385,10 @@ theorem sInter_pair (s t : set α) : ⋂₀ {s, t} = s ∩ t :=
 @[simp] theorem sUnion_image (f : α → set β) (s : set α) : ⋃₀ (f '' s) = ⋃ x ∈ s, f x := Sup_image
 
 @[simp] theorem sInter_image (f : α → set β) (s : set α) : ⋂₀ (f '' s) = ⋂ x ∈ s, f x := Inf_image
+
+@[simp] theorem sUnion_range (f : ι → set β) : ⋃₀ (range f) = ⋃ x, f x := Sup_range
+
+@[simp] theorem sInter_range (f : ι → set β) : ⋂₀ (range f) = ⋂ x, f x := Inf_range
 
 theorem compl_sUnion (S : set (set α)) :
   - ⋃₀ S = ⋂₀ (compl '' S) :=
@@ -439,6 +447,9 @@ lemma Union_subset_Union2 {ι₂ : Sort*} {s : ι → set α} {t : ι₂ → set
 lemma Union_subset_Union_const {ι₂ : Sort x} {s : set α} (h : ι → ι₂) : (⋃ i:ι, s) ⊆ (⋃ j:ι₂, s) :=
 @supr_le_supr_const (set α) ι ι₂ _ s h
 
+@[simp] lemma Union_of_singleton (α : Type u) : (⋃(x : α), {x}) = @set.univ α :=
+ext $ λ x, ⟨λ h, ⟨⟩, λ h, ⟨{x}, ⟨⟨x, rfl⟩, mem_singleton x⟩⟩⟩
+
 theorem bUnion_subset_Union (s : set α) (t : α → set β) :
   (⋃ x ∈ s, t x) ⊆ (⋃ x, t x) :=
 Union_subset_Union $ λ i, Union_subset $ λ h, by refl
@@ -477,6 +488,69 @@ instance : complete_boolean_algebra (set α) :=
     by simp [-and_imp, and.left_comm],
   ..set.lattice_set }
 
+lemma sInter_union_sInter {S T : set (set α)} :
+  (⋂₀S) ∪ (⋂₀T) = (⋂p ∈ set.prod S T, (p : (set α) × (set α)).1 ∪ p.2) :=
+Inf_sup_Inf
+
+lemma sUnion_inter_sUnion {s t : set (set α)} :
+  (⋃₀s) ∩ (⋃₀t) = (⋃p ∈ set.prod s t, (p : (set α) × (set α )).1 ∩ p.2) :=
+Sup_inf_Sup
+
+lemma sInter_bUnion {S : set (set α)} {T : set α → set (set α)} (hT : ∀s∈S, s = ⋂₀ T s) :
+  ⋂₀ (⋃s∈S, T s) = ⋂₀ S :=
+begin
+  ext,
+  simp only [and_imp, exists_prop, set.mem_sInter, set.mem_Union, exists_imp_distrib],
+  split,
+  { assume H s sS,
+    rw [hT s sS, mem_sInter],
+    assume t tTs,
+    apply H t s sS tTs },
+  { assume H t s sS tTs,
+    have xs : x ∈ s := H s sS,
+    have : s ⊆ t,
+    { have Z := hT s sS,
+      rw sInter_eq_bInter at Z,
+      rw Z, apply bInter_subset_of_mem,
+      exact tTs },
+    exact this xs }
+end
+
+lemma sUnion_bUnion {S : set (set α)} {T : set α → set (set α)} (hT : ∀s∈S, s = ⋃₀ T s) :
+  ⋃₀ (⋃s∈S, T s) = ⋃₀ S :=
+begin
+  ext,
+  simp only [exists_prop, set.mem_Union, set.mem_set_of_eq],
+  split,
+  { rintros ⟨t, ⟨⟨s, ⟨sS, tTs⟩⟩, xt⟩⟩,
+    refine ⟨s, ⟨sS, _⟩⟩,
+    rw hT s sS,
+    exact subset_sUnion_of_mem tTs xt },
+  { rintros ⟨s, ⟨sS, xs⟩⟩,
+    rw hT s sS at xs,
+    rcases mem_sUnion.1 xs with ⟨t, tTs, xt⟩,
+    exact ⟨t, ⟨⟨s, ⟨sS, tTs⟩⟩, xt⟩⟩ }
+end
+
+lemma Union_range_eq_sUnion {α β : Type*} (C : set (set α))
+  {f : ∀(s : C), β → s} (hf : ∀(s : C), surjective (f s)) :
+  (⋃(y : β), range (λ(s : C), (f s y).val)) = ⋃₀ C :=
+begin
+  ext x, split,
+  { rintro ⟨s, ⟨y, rfl⟩, ⟨⟨s, hs⟩, rfl⟩⟩, refine ⟨_, hs, _⟩, exact (f ⟨s, hs⟩ y).2 },
+  { rintro ⟨s, hs, hx⟩, cases hf ⟨s, hs⟩ ⟨x, hx⟩ with y hy, refine ⟨_, ⟨y, rfl⟩, ⟨⟨s, hs⟩, _⟩⟩,
+    exact congr_arg subtype.val hy }
+end
+
+lemma Union_range_eq_Union {ι α β : Type*} (C : ι → set α)
+  {f : ∀(x : ι), β → C x} (hf : ∀(x : ι), surjective (f x)) :
+  (⋃(y : β), range (λ(x : ι), (f x y).val)) = ⋃x, C x :=
+begin
+  ext x, rw [mem_Union, mem_Union], split,
+  { rintro ⟨y, ⟨i, rfl⟩⟩, exact ⟨i, (f i y).2⟩ },
+  { rintro ⟨i, hx⟩, cases hf i ⟨x, hx⟩ with y hy, refine ⟨y, ⟨i, congr_arg subtype.val hy⟩⟩ }
+end
+
 @[simp] theorem sub_eq_diff (s t : set α) : s - t = s \ t := rfl
 
 section
@@ -514,6 +588,20 @@ set.ext $ assume a, by simp [@eq_comm α a]
 
 lemma image_eq_Union (f : α → β) (s : set α) : f '' s = (⋃i∈s, {f i}) :=
 set.ext $ assume b, by simp [@eq_comm β b]
+
+lemma bUnion_range {f : ι → α} {g : α → set β} : (⋃x ∈ range f, g x) = (⋃y, g (f y)) :=
+by rw [← sUnion_image, ← range_comp, sUnion_range]
+
+lemma bInter_range {f : ι → α} {g : α → set β} : (⋂x ∈ range f, g x) = (⋂y, g (f y)) :=
+by rw [← sInter_image, ← range_comp, sInter_range]
+
+variables {s : set γ} {f : γ → α} {g : α → set β}
+
+lemma bUnion_image : (⋃x∈ (f '' s), g x) = (⋃y ∈ s, g (f y)) :=
+by rw [← sUnion_image, ← image_comp, sUnion_image]
+
+lemma bInter_image : (⋂x∈ (f '' s), g x) = (⋂y ∈ s, g (f y)) :=
+by rw [← sInter_image, ← image_comp, sInter_image]
 
 end image
 
@@ -678,6 +766,12 @@ disjoint_mono h (le_refl _)
 theorem disjoint_mono_right {a b c : α} (h : b ≤ c) : disjoint a c → disjoint a b :=
 disjoint_mono (le_refl _) h
 
+@[simp] lemma disjoint_self {a : α} : disjoint a a ↔ a = ⊥ :=
+by simp [disjoint]
+
+lemma ne_of_disjoint {a b : α} (ha : a ≠ ⊥) (hab : disjoint a b) : a ≠ b :=
+by { intro h, rw [←h, disjoint_self] at hab, exact ha hab }
+
 end disjoint
 
 namespace set
@@ -699,6 +793,28 @@ theorem disjoint_image_image {f : β → α} {g : γ → α} {s : set β} {t : s
   (h : ∀b∈s, ∀c∈t, f b ≠ g c) : disjoint (f '' s) (g '' t) :=
 by rintros a ⟨⟨b, hb, eq⟩, ⟨c, hc, rfl⟩⟩; exact h b hb c hc eq
 
+def pairwise_disjoint (s : set (set α)) : Prop :=
+pairwise_on s disjoint
+
+lemma pairwise_disjoint_subset {s t : set (set α)} (h : s ⊆ t)
+  (ht : pairwise_disjoint t) : pairwise_disjoint s :=
+pairwise_on.mono h ht
+
+lemma pairwise_disjoint_range {s : set (set α)} (f : s → set α) (hf : ∀(x : s), f x ⊆ x.1)
+  (ht : pairwise_disjoint s) : pairwise_disjoint (range f) :=
+begin
+  rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ hxy, refine disjoint_mono (hf x) (hf y) (ht _ x.2 _ y.2 _),
+  intro h, apply hxy, apply congr_arg f, exact subtype.eq h
+end
+
+/- warning: classical -/
+lemma pairwise_disjoint_elim {s : set (set α)} (h : pairwise_disjoint s) {x y : set α}
+  (hx : x ∈ s) (hy : y ∈ s) (z : α) (hzx : z ∈ x) (hzy : z ∈ y) : x = y :=
+begin
+  haveI := classical.prop_decidable, by_contra,
+  have : x ∩ y ≠ ∅, { rw [ne_empty_iff_exists_mem], exact ⟨z, ⟨hzx, hzy⟩⟩ },
+  apply this, exact disjoint_iff.mp (h x hx y hy a),
+end
 end set
 
 namespace set

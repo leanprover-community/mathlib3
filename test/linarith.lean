@@ -66,7 +66,10 @@ example (a b c : ℚ) (h2 : (2 : ℚ) > 3)  : a + b - c ≥ 3 :=
 by linarith {exfalso := ff}
 
 example (x : ℚ) (hx : x > 0) (h : x.num < 0) : false :=
-by linarith using [rat.num_pos_iff_pos.mpr hx]
+by linarith [rat.num_pos_iff_pos.mpr hx, h]
+
+example (x : ℚ) (hx : x > 0) (h : x.num < 0) : false :=
+by linarith only [rat.num_pos_iff_pos.mpr hx, h]
 
 example (x y z : ℚ) (hx : x ≤ 3*y) (h2 : y ≤ 2*z) (h3 : x ≥ 6*z) : x = 3*y :=
 by linarith
@@ -115,7 +118,8 @@ example
 (A : ℚ) (l : ℚ) (h : A - l ≤ -(A - l)) (h_1 : ¬A ≤ -A) (h_2 : ¬l ≤ -l)
 (h_3 : -(A - l) < 1) :  A < l + 1 := by linarith
 
-example (d : ℚ) (q n : ℕ) (h1 : ((q : ℚ) - 1)*n ≥ 0) (h2 : d = 2/3*(((q : ℚ) - 1)*n)) : d ≤ ((q : ℚ) - 1)*n :=
+example (d : ℚ) (q n : ℕ) (h1 : ((q : ℚ) - 1)*n ≥ 0) (h2 : d = 2/3*(((q : ℚ) - 1)*n)) :
+  d ≤ ((q : ℚ) - 1)*n :=
 by linarith
 
 example (d : ℚ) (q n : ℕ) (h1 : ((q : ℚ) - 1)*n ≥ 0) (h2 : d = 2/3*(((q : ℚ) - 1)*n)) :
@@ -124,3 +128,12 @@ by linarith
 
 example (a : ℚ) (ha : 0 ≤ a): 0 * 0 ≤ 2 * a :=
 by linarith
+
+example (x : ℚ) : id x ≥ x :=
+by success_if_fail {linarith}; linarith!
+
+example (x y z : ℚ) (hx : x < 5) (hx2 : x > 5) (hy : y < 5000000000) (hz : z > 34*y) : false :=
+by linarith only [hx, hx2]
+
+example (x y z : ℚ) (hx : x < 5) (hy : y < 5000000000) (hz : z > 34*y) : x ≤ 5 :=
+by linarith only [hx]

@@ -66,7 +66,7 @@ variables [add_comm_group γ] [vector_space α γ]
 theorem linear_equiv.dim_eq (f : β ≃ₗ[α] γ) : dim α β = dim α γ :=
 let ⟨b, hb⟩ := exists_is_basis α β in
 hb.mk_eq_dim.symm.trans $
-  (cardinal.mk_eq_of_injective f.to_equiv.bijective.1).symm.trans $
+  (cardinal.mk_image_eq f.to_equiv.injective).symm.trans $
 (f.is_basis hb).mk_eq_dim
 
 lemma dim_bot : dim α (⊥ : submodule α β) = 0 :=
@@ -84,12 +84,25 @@ have (span α s).subtype '' ((span α s).subtype ⁻¹' s) = s :=
   image_preimage_eq_of_subset $ by rw [← linear_map.range_coe, range_subtype]; exact subset_span,
 begin
   rw [← (is_basis_span hs).mk_eq_dim],
-  calc cardinal.mk ↥(⇑(submodule.subtype (span α s)) ⁻¹' s) =
+  calc cardinal.mk ↥((submodule.subtype (span α s) : span α s →ₗ[α] β) ⁻¹' s) =
       cardinal.mk ↥((submodule.subtype (span α s)) '' ((submodule.subtype (span α s)) ⁻¹' s)) :
-      (cardinal.mk_eq_of_injective subtype.val_injective).symm
+      (cardinal.mk_image_eq subtype.val_injective).symm
     ... = cardinal.mk ↥s : by rw this
 end
 set_option class.instance_max_depth 32
+
+lemma dim_span_le (s : set β) : dim α (span α s) ≤ cardinal.mk s :=
+let ⟨b, hb, _, hsb, hlib⟩ :=
+  exists_linear_independent (@linear_independent_empty α _ _ _ _) (set.empty_subset s) in
+have hsab : span α s = span α b, from span_eq_of_le _ hsb (span_le.2 (λ x hx, subset_span (hb hx))),
+calc dim α (span α s) = dim α (span α b) : by rw hsab
+                  ... = cardinal.mk b : dim_span hlib
+                  ... ≤ cardinal.mk s : cardinal.mk_le_mk_of_subset hb
+
+lemma dim_span_of_finset (s : finset β) : dim α (span α (↑s : set β)) < cardinal.omega :=
+calc dim α (span α (↑s : set β)) ≤ cardinal.mk (↑s : set β) : dim_span_le ↑s
+                             ... = s.card : by rw ←cardinal.finset_card
+                             ... < cardinal.omega : cardinal.nat_lt_omega _
 
 theorem dim_prod : dim α (β × γ) = dim α β + dim α γ :=
 begin
@@ -97,7 +110,7 @@ begin
   rcases exists_is_basis α γ with ⟨c, hc⟩,
   rw [← @is_basis.mk_eq_dim α (β × γ) _ _ _ _ (is_basis_inl_union_inr hb hc),
     ← hb.mk_eq_dim, ← hc.mk_eq_dim, cardinal.mk_union_of_disjoint,
-    cardinal.mk_eq_of_injective, cardinal.mk_eq_of_injective],
+    cardinal.mk_image_eq, cardinal.mk_image_eq],
   { exact prod.injective_inr },
   { exact prod.injective_inl },
   { rintro _ ⟨⟨x, hx, rfl⟩, ⟨y, hy, ⟨⟩⟩⟩,
@@ -147,7 +160,7 @@ begin
   rcases exists_subset_is_basis this with ⟨b, hbs_b, hb⟩,
   rw [← is_basis.mk_eq_dim hbs, ← is_basis.mk_eq_dim hb],
   calc cardinal.mk ↥bs = cardinal.mk ((coe : s → β) '' bs) :
-      (cardinal.mk_eq_of_injective $ subtype.val_injective).symm
+      (cardinal.mk_image_eq $ subtype.val_injective).symm
     ... ≤ cardinal.mk ↥b :
       nonempty.intro (embedding_of_subset hbs_b)
 end
@@ -235,7 +248,7 @@ begin
   have : is_basis α (⋃i, std_basis α φ i '' b i) := pi.is_basis_std_basis b hb,
   rw [← this.mk_eq_dim, cardinal.mk_Union_eq_sum_mk],
   { congr, funext i,
-    rw [cardinal.mk_eq_of_injective, (hb i).mk_eq_dim],
+    rw [cardinal.mk_image_eq, (hb i).mk_eq_dim],
     exact ker_eq_bot.1 (ker_std_basis α _ i) },
   rintros i j h b ⟨⟨x, hx, rfl⟩, ⟨y, hy, eq⟩⟩,
   replace eq := congr_fun eq i,
@@ -252,6 +265,25 @@ lemma dim_fun' : vector_space.dim α (ι → α) = fintype.card ι :=
 by rw [dim_fun, dim_of_field, mul_one]
 
 end fintype
+
+lemma exists_mem_ne_zero_of_ne_bot {s : submodule α β} (h : s ≠ ⊥) : ∃ b : β, b ∈ s ∧ b ≠ 0 :=
+begin
+  by_contradiction hex,
+  have : ∀x∈s, (x:β) = 0, { simpa only [not_exists, not_and, not_not, ne.def] using hex },
+  exact (h $ bot_unique $ assume s hs, (submodule.mem_bot α).2 $ this s hs)
+end
+
+lemma exists_mem_ne_zero_of_dim_pos {s : submodule α β} (h : vector_space.dim α s > 0) :
+  ∃ b : β, b ∈ s ∧ b ≠ 0 :=
+exists_mem_ne_zero_of_ne_bot $ assume eq, by rw [(>), eq, dim_bot] at h; exact lt_irrefl _ h
+
+lemma exists_is_basis_fintype (h : dim α β < cardinal.omega) :
+  ∃ s : (set β), (is_basis α s) ∧ nonempty (fintype s) :=
+begin
+  cases exists_is_basis α β with s hs,
+  rw [← is_basis.mk_eq_dim hs, cardinal.lt_omega_iff_fintype] at h,
+  exact ⟨s, hs, h⟩
+end
 
 def rank (f : β →ₗ[α] γ) : cardinal := dim α f.range
 
@@ -271,6 +303,18 @@ calc rank (f + g) ≤ dim α (f.range ⊔ g.range : submodule α γ) :
   end
   ... ≤ rank f + rank g : dim_add_le_dim_add_dim _ _
 
+@[simp] lemma rank_zero : rank (0 : β →ₗ[α] γ) = 0 :=
+by rw [rank, linear_map.range_zero, dim_bot]
+
+lemma rank_finset_sum_le {ι} (s : finset ι) (f : ι → β →ₗ[α] γ) :
+  rank (s.sum f) ≤ s.sum (λ d, rank (f d)) :=
+begin
+  refine @finset.sum_hom_rel _ _ _ _ _ (λa b, rank a ≤ b) _ _ s (le_of_eq _) _,
+  { exact rank_zero },
+  { assume i g c h, exact le_trans (rank_add_le _ _) (add_le_add_left' h) }
+end
+
+
 variables [add_comm_group δ] [vector_space α δ]
 
 lemma rank_comp_le1 (g : β →ₗ[α] γ) (f : γ →ₗ[α] δ) : rank (f.comp g) ≤ rank f :=
@@ -284,3 +328,24 @@ lemma rank_comp_le2 (g : β →ₗ[α] γ) (f : γ →ₗ δ) : rank (f.comp g) 
 by rw [rank, rank, linear_map.range_comp]; exact dim_map_le _ _
 
 end vector_space
+
+section unconstrained_universes
+
+variables {γ' : Type w}
+variables [discrete_field α] [add_comm_group β] [vector_space α β]
+          [add_comm_group γ'] [vector_space α γ']
+open vector_space
+
+/-- Version of linear_equiv.dim_eq without universe constraints. -/
+theorem linear_equiv.dim_eq_lift (f : β ≃ₗ[α] γ') :
+  cardinal.lift.{v (max v w)} (dim α β) = cardinal.lift.{w (max v w)} (dim α γ') :=
+begin
+  cases exists_is_basis α β with b hb,
+  rw [← hb.mk_eq_dim, ← (f.is_basis hb).mk_eq_dim, cardinal.lift_mk, cardinal.lift_mk],
+  refine quotient.sound ⟨_⟩,
+  calc ulift.{max v w} b ≃ b : equiv.ulift
+                     ... ≃ _ : equiv.set.image _ _ f.to_equiv.injective
+                     ... ≃ _ : equiv.ulift.symm
+end
+
+end unconstrained_universes

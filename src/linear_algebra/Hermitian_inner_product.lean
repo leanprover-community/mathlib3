@@ -338,11 +338,12 @@ noncomputable instance : metric_space α :=
             (le_trans (inner_product.re_le_abs a b) (abs_inner_product_le_mul_herm_norm a b)) }}
     end}
 
+noncomputable instance : normed_group α := 
+{ norm := herm_norm,
+  dist_eq := by {intros, refl}}
 
 noncomputable instance : normed_space ℂ α :=  
-{ norm := herm_norm,
-  dist_eq := by {intros, refl},
-  norm_smul := 
+{ norm_smul := 
     begin 
       intros, 
       unfold norm,

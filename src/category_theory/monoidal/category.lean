@@ -16,7 +16,7 @@ open category_theory.iso
 
 namespace category_theory
 
-class monoidal_category (C : Sort u) extends category.{v} C :=
+class monoidal_category (C : Type u) extends category.{v} C :=
 -- curried tensor product of objects:
 (tensor_obj               : C → C → C)
 (infixr ` ⊗ `:70          := tensor_obj) -- This notation is only temporary
@@ -72,7 +72,7 @@ local notation `α_` := associator
 local notation `λ_` := left_unitor
 local notation `ρ_` := right_unitor
 
-def tensor_iso {C : Sort u} {X Y X' Y' : C} [monoidal_category.{v} C] (f : X ≅ Y) (g : X' ≅ Y') :
+def tensor_iso {C : Type u} {X Y X' Y' : C} [monoidal_category.{v} C] (f : X ≅ Y) (g : X' ≅ Y') :
     X ⊗ X' ≅ Y ⊗ Y' :=
 { hom := f.hom ⊗ g.hom,
   inv := f.inv ⊗ g.inv,
@@ -85,7 +85,7 @@ namespace monoidal_category
 
 section
 
-variables {C : Sort u} [𝒞 : monoidal_category.{v} C]
+variables {C : Type u} [𝒞 : monoidal_category.{v} C]
 include 𝒞
 
 instance tensor_is_iso {W X Y Z : C} (f : W ⟶ X) [is_iso f] (g : Y ⟶ Z) [is_iso g] : is_iso (f ⊗ g) :=

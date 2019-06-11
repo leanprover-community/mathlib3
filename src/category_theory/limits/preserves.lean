@@ -12,8 +12,8 @@ namespace category_theory.limits
 
 universes v u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Sort u₁} [𝒞 : category.{v+1} C]
-variables {D : Sort u₂} [𝒟 : category.{v+1} D]
+variables {C : Type u₁} [𝒞 : category.{v+1} C]
+variables {D : Type u₂} [𝒟 : category.{v+1} D]
 include 𝒞 𝒟
 
 variables {J : Type v} [small_category J] {K : J ⥤ C}
@@ -50,9 +50,9 @@ class preserves_limit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 class preserves_colimit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves : Π {c : cocone K}, is_colimit c → is_colimit (F.map_cocone c))
 
-class preserves_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
+class preserves_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
 (preserves_limit : Π {K : J ⥤ C}, preserves_limit K F)
-class preserves_colimits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
+class preserves_colimits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
 (preserves_colimit : Π {K : J ⥤ C}, preserves_colimit K F)
 
 class preserves_limits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
@@ -106,7 +106,7 @@ instance id_preserves_colimits : preserves_colimits (functor.id C) :=
    by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩; exact h.uniq _ m w⟩⟩ } }
 
 section
-variables {E : Sort u₃} [ℰ : category.{v+1} E]
+variables {E : Type u₃} [ℰ : category.{v+1} E]
 variables (F : C ⥤ D) (G : D ⥤ E)
 
 local attribute [elab_simple] preserves_limit.preserves preserves_colimit.preserves
@@ -145,9 +145,9 @@ class reflects_limit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 class reflects_colimit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (reflects : Π {c : cocone K}, is_colimit (F.map_cocone c) → is_colimit c)
 
-class reflects_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
+class reflects_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
 (reflects_limit : Π {K : J ⥤ C}, reflects_limit K F)
-class reflects_colimits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
+class reflects_colimits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
 (reflects_colimit : Π {K : J ⥤ C}, reflects_colimit K F)
 
 class reflects_limits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
@@ -201,7 +201,7 @@ instance id_reflects_colimits : reflects_colimits (functor.id C) :=
    by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩; exact h.uniq _ m w⟩⟩ } }
 
 section
-variables {E : Sort u₃} [ℰ : category.{v+1} E]
+variables {E : Type u₃} [ℰ : category.{v+1} E]
 variables (F : C ⥤ D) (G : D ⥤ E)
 
 instance comp_reflects_limit [reflects_limit K F] [reflects_limit (K ⋙ F) G] :

@@ -24,7 +24,7 @@ variables {α : Type u₁}
 
 end discrete
 
-variables {C : Sort u₂} [𝒞 : category.{v₂} C]
+variables {C : Type u₂} [𝒞 : category.{v₂} C]
 include 𝒞
 
 namespace functor

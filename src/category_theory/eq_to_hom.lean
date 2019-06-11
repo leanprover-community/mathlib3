@@ -11,7 +11,7 @@ universes v v' u u' -- declare the `v`'s first; see `category_theory.category` f
 namespace category_theory
 open opposite
 
-variables {C : Sort u} [𝒞 : category.{v} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
 def eq_to_hom {X Y : C} (p : X = Y) : X ⟶ Y := by rw p; exact 𝟙 _
@@ -41,7 +41,7 @@ begin
   refl
 end
 
-variables {D : Sort u'} [𝒟 : category.{v'} D]
+variables {D : Type u'} [𝒟 : category.{v'} D]
 include 𝒟
 
 namespace functor

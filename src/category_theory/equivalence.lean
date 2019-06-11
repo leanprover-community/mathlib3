@@ -20,7 +20,7 @@ universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `categor
   complicated if we write it as an equality of natural transformations, because then we would have
   to insert natural transformations like `F ⟶ F1`.
 -/
-structure equivalence (C : Sort u₁) [category.{v₁} C] (D : Sort u₂) [category.{v₂} D] :=
+structure equivalence (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D] :=
 mk' ::
 (functor : C ⥤ D)
 (inverse : D ⥤ C)
@@ -33,7 +33,7 @@ restate_axiom equivalence.functor_unit_iso_comp'
 
 infixr ` ≌ `:10  := equivalence
 
-variables {C : Sort u₁} {D : Sort u₂} [𝒞 : category.{v₁} C] [𝒟 : category.{v₂} D]
+variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
 namespace equivalence
@@ -153,34 +153,16 @@ include 𝒟
 @[symm] def symm (e : C ≌ D) : D ≌ C :=
 ⟨e.inverse, e.functor, e.counit_iso.symm, e.unit_iso.symm, e.inverse_counit_inv_comp⟩
 
-variables {E : Sort u₃} [ℰ : category.{v₃} E]
+variables {E : Type u₃} [ℰ : category.{v₃} E]
 include ℰ
-
-@[simp] private def id_iso_effe (e : C ≌ D) (f : D ≌ E) (X : C) :
-  X ≅ (e.inverse).obj ((f.inverse).obj ((f.functor).obj ((e.functor).obj X))) :=
-calc
- X ≅ (e.inverse).obj ((e.functor).obj X) : e.unit_iso.app _
-... ≅ _                                  : e.inverse.map_iso (f.unit_iso.app _)
-
-@[simp] private def feef_iso_id (e : C ≌ D) (f : D ≌ E) (X : E) :
-  (f.functor).obj ((e.functor).obj ((e.inverse).obj ((f.inverse).obj X))) ≅ X :=
-calc
-  _ ≅ (f.functor).obj ((f.inverse).obj X) : f.functor.map_iso (e.counit_iso.app _)
-... ≅ X                                   : f.counit_iso.app _
 
 @[trans] def trans (e : C ≌ D) (f : D ≌ E) : C ≌ E :=
 begin
   apply equivalence.mk (e.functor ⋙ f.functor) (f.inverse ⋙ e.inverse),
-  { fapply of_components, exact id_iso_effe e f,
-    intros X Y g, dsimp at *, simp at *, dsimp at *,
-    slice_rhs 2 3 { erw [is_iso.hom_inv_id] }, rw [id_comp],
-    slice_rhs 1 2 { erw [is_iso.hom_inv_id] }, rw [id_comp, assoc] },
-  { fapply of_components, exact feef_iso_id e f,
-    /- `tidy` says -/
-    intros X Y g, dsimp at *, simp at *, dsimp at *,
-    /- `rewrite_search` says -/
-    slice_lhs 3 4 { erw [is_iso.hom_inv_id] },
-    erw [id_comp, is_iso.hom_inv_id, comp_id] }
+  { refine iso.trans e.unit_iso _,
+    exact iso_whisker_left e.functor (iso_whisker_right f.unit_iso e.inverse) },
+  { refine iso.trans _ f.counit_iso,
+    exact iso_whisker_left f.inverse (iso_whisker_right e.counit_iso f.functor) }
 end
 
 def fun_inv_id_assoc (e : C ≌ D) (F : C ⥤ E) : e.functor ⋙ e.inverse ⋙ F ≅ F :=
@@ -258,7 +240,7 @@ def fun_inv_id (F : C ⥤ D) [is_equivalence F] : F ⋙ F.inv ≅ functor.id C :
 def inv_fun_id (F : C ⥤ D) [is_equivalence F] : F.inv ⋙ F ≅ functor.id D :=
 is_equivalence.counit_iso F
 
-variables {E : Sort u₃} [ℰ : category.{v₃} E]
+variables {E : Type u₃} [ℰ : category.{v₃} E]
 include ℰ
 
 instance is_equivalence_trans (F : C ⥤ D) (G : D ⥤ E) [is_equivalence F] [is_equivalence G] :

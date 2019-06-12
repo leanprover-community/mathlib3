@@ -2,7 +2,7 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Michael Jendrusch, Scott Morrison
 import category_theory.monoidal.category_aux
-import category_theory.natural_isomorphism
+import category_theory.equivalence
 import tactic.basic
 import tactic.slice
 
@@ -405,6 +405,32 @@ def tensor_unit_left : C ⥤ C :=
 def tensor_unit_right : C ⥤ C :=
 { obj := λ X, X ⊗ 𝟙_ C,
   map := λ {X Y : C} (f : X ⟶ Y), f ⊗ (𝟙 (𝟙_ C)) }
+
+@[simp] lemma tensor_unit_left_obj (X) : (tensor_unit_left C).obj X = 𝟙_ C ⊗ X := rfl
+@[simp] lemma tensor_unit_left_map (X Y) (f : X ⟶ Y) : (tensor_unit_left C).map f = (𝟙 (𝟙_ C)) ⊗ f := rfl
+@[simp] lemma tensor_unit_right_obj (X) : (tensor_unit_right C).obj X = X ⊗ 𝟙_ C := rfl
+@[simp] lemma tensor_unit_right_map (X Y) (f : X ⟶ Y) : (tensor_unit_right C).map f = f ⊗ (𝟙 (𝟙_ C)) := rfl
+
+open category_theory.equivalence
+
+instance tensor_unit_left_faithful : faithful (tensor_unit_left C) := {}
+instance tensor_unit_left_full : full (tensor_unit_left C) :=
+{ preimage := λ X Y f, (λ_ X).inv ≫ f ≫ (λ_ Y).hom,
+  witness' := λ X Y f, begin dsimp, sorry end }
+instance tensor_unit_left_ess_surj : ess_surj (tensor_unit_left C) :=
+{ obj_preimage := λ X, X,
+  iso' := λ X, (λ_ X) }
+instance tensor_unit_left_is_equivalence : is_equivalence (tensor_unit_left C) :=
+equivalence_of_fully_faithfully_ess_surj _
+instance tensor_unit_right_faithful : faithful (tensor_unit_right C) := {}
+instance tensor_unit_right_full : full (tensor_unit_right C) :=
+{ preimage := λ X Y f, (ρ_ X).inv ≫ f ≫ (ρ_ Y).hom,
+  witness' := λ X Y f, begin dsimp, sorry end }
+instance tensor_unit_right_ess_surj : ess_surj (tensor_unit_right C) :=
+{ obj_preimage := λ X, X,
+  iso' := λ X, (ρ_ X) }
+instance tensor_unit_right_is_equivalence : is_equivalence (tensor_unit_right C) :=
+equivalence_of_fully_faithfully_ess_surj _
 
 -- We can express the associator and the unitors, given componentwise above,
 -- as natural isomorphisms.

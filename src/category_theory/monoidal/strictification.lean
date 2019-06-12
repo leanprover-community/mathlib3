@@ -124,11 +124,9 @@ instance : category.{v₁} (list C) :=
   id := λ X, 𝟙 (tensor X),
   comp := λ X Y Z f g, f ≫ g, }
 
--- def unpack {X Y : list C} (f : X ⟶ Y) : tensor X ⟶ tensor Y := f
--- def pack {X Y : list C} (f : tensor X ⟶ tensor Y) : X ⟶ Y := f
-
--- @[simp] lemma unpack_id (X : list C) : unpack (𝟙 X) = 𝟙 (tensor X) := rfl
--- @[simp] lemma pack_id (X : list C) : pack (𝟙 (tensor X)) = 𝟙 X := rfl
+-- An alternative:
+def right_unitor (X : list C) : X ++ list.nil ≅ X :=
+by rw list.append_nil
 
 open category monoidal_category
 

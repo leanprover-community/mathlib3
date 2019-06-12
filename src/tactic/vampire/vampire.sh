@@ -1,5 +1,5 @@
 #!/bin/sh
 
-echo $1 > $3
+echo $1 > $2
 
-$2 --avatar off $3
+vampire --avatar off $2

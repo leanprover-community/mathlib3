@@ -44,20 +44,13 @@ do child ← io.proc.spawn { stdout := io.process.stdio.piped, ..args },
   when (exitv ≠ 0) $ io.fail $ "process exited with status " ++ repr exitv,
   return buf.to_string
 
-/- Change to the location of vampire binary file -/
-def vampire_path : string := "/home/user_name/projects/mathlib/src/tactic/vampire/vampire"
-
-/- Change to the location of vampire.sh -/
-def vampire_script_path : string := "./src/tactic/vampire"
-
 /- Change to desired location of temporary goal file -/
 def temp_goal_file_path : string := "/var/tmp/temp_goal_file"
 
 meta def vampire_output (gs : string) : tactic string :=
 unsafe_run_io $ io.cmd'
-{ cmd  := "./vampire.sh",
-  args := [gs, vampire_path, temp_goal_file_path],
-  cwd  := vampire_script_path }
+{ cmd  := "vampire.sh",
+  args := [gs, temp_goal_file_path] }
 
 lemma arifix_of_proof (α : Type) [inhabited α] (p : form₂) :
   foq tt p → proof (clausify p) [] → arifix (model.default α) p :=
@@ -77,12 +70,6 @@ begin
   apply @tas_of_proof α _ _ hρ
 end
 
-@[derive decidable_eq]
-inductive config : Type
-| default
-| offline
-| verbose
-
 /- Return ⌜π : arifix (model.default ⟦αx⟧) p⌝ -/
 meta def build_proof (ls : list line)
   (αx ix : expr) (p : form₂) (m : mat) : tactic expr :=
@@ -94,15 +81,14 @@ do πx ← compile m ls,
    let x    : expr := expr.mk_app `(@arifix_of_proof) [αx, ix, px, fx],
    return (expr.app x πx)
 
-meta def vampire (cfg : config) (inp : string) : tactic unit :=
+meta def vampire (inp : option string) : tactic unit :=
 do (dx, ix, p) ← reify,
    let m := clausify p,
-   s ← if cfg = config.offline
-       then return inp
-       else vampire_output (mat.to_tptp m),
+   s ← (inp <|> vampire_output (mat.to_tptp m)) ,
    ss ← proof_line_strings s,
-   if cfg = config.verbose
-   then trace (string.join $ ss.map (λ x, x ++ "\n"))
+   if inp = none
+   then trace
+     (string.join $ ((("\"" :: ss) ++ ["\""]).map (λ x, x ++ "\n")))
    else skip,
    ls ← monad.mapm proof_line ss,
    x ← build_proof ls dx ix p m,
@@ -113,11 +99,5 @@ end vampire
 open lean.parser interactive vampire
 
 meta def tactic.interactive.vampire
-  (opt : parse (many ident))
-  (inp : string := "") : tactic unit :=
-let cfg := if `offline ∈ opt
-           then config.offline
-           else if `verbose ∈ opt
-                then config.verbose
-                else config.default in
-vampire cfg inp
+  (inp : option string := none) : tactic unit :=
+vampire inp

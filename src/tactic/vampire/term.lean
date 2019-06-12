@@ -47,10 +47,6 @@ def repr : term → string
 | (term.sym k)   := "S" ++ k.to_subs
 | (term.app t s) := "(" ++ t.repr ++ " " ++ s.repr ++ ")"
 | (term.vpp t k) := "(" ++ t.repr ++ " " ++ "X" ++ k.to_subs ++ ")"
---def repr_core : bool → term → string
---| s (term.sym k)   := (if s then "P" else "F") ++ k.to_subs
---| s (term.app a b) := "(" ++ a.repr_core s ++ " " ++ b.repr_core ff ++ ")"
---| s (term.vpp a k) := "(" ++ a.repr_core s ++ " " ++ "X" ++ k.to_subs ++ ")"
 
 def write : term → string
 | (term.sym k)   := "S " ++ k.repr

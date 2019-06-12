@@ -193,10 +193,10 @@ begin
     rw ← holds_swap, apply h1 },
   cases exists_swap_val h1 with f h2,
   refine ⟨f, λ v, _⟩,
+  have h3 : f ⬝ v = f ⬝ vᵈₑ := rfl,
   rw holds_swap,
   rw [ @holds_iff_holds_of_eq_except _
-         (M ₀↦ v ₀↦ f⬝v) (M ₀↦ vᵈₑ ₀↦ f ⬝ v) 1 p _ h0,
-       ← assign_app_evaluate_denote (M ₀↦vᵈₑ) f v ],
+         (M ₀↦ v ₀↦ f⬝v) (M ₀↦ vᵈₑ ₀↦ f ⬝ v) 1 p _ h0, h3],
   { apply h2 },
   constructor,
   { rintros ⟨n⟩ h3, refl,

@@ -947,29 +947,24 @@ int.cats_id : int.cast_id : ∀ (n : ℤ), ↑n = n
 
 ### vampire
 
-`vampire` uses proof output from the [Vampire theorem prover]: https://vprover.github.io/ to discharge goals in first-order logic.
+`vampire` uses proof output from the Vampire theorem prover (https://vprover.github.io/) to discharge goals in first-order logic. The tactic can either work in an online mode where it calls Vampire to obtain a proof, or in an offline mode where it uses a user-supplied proof. When invoked without an argument, `vampire` defaults to the former to discharge the goal and displays the proof it used:
 ```
 variables [inhabited α] (p q : α → Prop) (a : α)
 example : (∀ x, p x → q x) → (∀ x, p x) → q a := by vampire
-```
-The tactic requires a local installation of Vampire to work. Consult the readme in `tactic/vampire` for details.
-
-Once a goal is discharged by `vampire`, you can save the proof output string to make the proof compile on computers without Vampire. Use the `verbose` option to print the proof found by Vampire:
-```
-example : (∀ x, p x → q x) → (∀ x, p x) → q a := by vampire verbose
 /-
   Trace output :
+  "
   1. ~s0(X0) | s1(X0) [input]
   2. s0(X1) [input]
   3. ~s1(s2) [input]
   4. s1(X0) [resolution 1,2]
   5. $false [resolution 4,3]
+  "
 -/
-```
-The `offline` option instructs the tactic to use the string supplied by user.
+Note the `inhabited` instance, which is required per the assumption of non-empty domain for first-order logic. The online mode of `vampire` requires a local installation of Vampire (consult the readme in `tactic/vampire` for details). You can copy and paste the proof output as a string argument to invoke `vampire` in offline mode:
 ```
 example : (∀ x, p x → q x) → (∀ x, p x) → q a :=
-by vampire offline
+by vampire
 "
 1. ~s0(X0) | s1(X0) [input]
 2. s0(X1) [input]

@@ -84,18 +84,6 @@ begin
     bin_comm ao p (form₂.qua ae q) M ]
 end
 
---def pull' (b : bool) : form₂ → form₂ → form₂
---| p ⟪b, t⟫            := form₂.bin b p ⟪b, t⟫
---| p (form₂.bin c q r) := form₂.bin b p (form₂.bin c q r)
---| p (form₂.qua c q)   := form₂.qua c (pull' p.incr q)
---
---/- Pull all quantifiers over a binary connective.
---   `b` specifies the binary connective. -/
---def pull (b : bool) : form₂ → form₂ → form₂
---| ⟪c, t⟫            q := pull' b ⟪c, t⟫ q
---| (form₂.bin c p q) r := pull' b (form₂.bin c p q) r
---| (form₂.qua c p)   q := form₂.qua c (pull p q.incr)
-
 def pull' (o : option bool) (a : bool) : form₂ → form₂ → form₂
 | p ⟪b, t⟫            := form₂.bin a p ⟪b, t⟫
 | p (form₂.bin c q r) := form₂.bin a p (form₂.bin c q r)
@@ -145,22 +133,6 @@ lemma fov_pull (o : option bool) (b : bool) :
        { apply fov_pull' _ _ h0 h1 },
        apply fov_pull _ (fov_incr h1),
        exact h0 }
-
--- lemma fov_pull' (a : bool) :
---   ∀ {p q : form₂} {k : nat},
---   p.fov k → q.fov k → (pull' a p q).fov k
--- | p ⟪b, t⟫            k h0 h1 := ⟨h0, h1⟩
--- | p (form₂.bin b q r) k h0 h1 := ⟨h0, h1⟩
--- | p (form₂.qua b q)   k h0 h1 :=
---   @fov_pull' p.incr q (k + 1) (fov_incr h0) h1
---
--- lemma fov_pull (b : bool) :
---   ∀ {p q : form₂} {k : nat},
---   p.fov k → q.fov k → (pull b p q).fov k
--- | ⟪c, t⟫            q k h0 h1 := fov_pull' _ h0 h1
--- | (form₂.bin c p q) r k h0 h1 := fov_pull' _ h0 h1
--- | (form₂.qua c p)   q k h0 h1 :=
---   @fov_pull p q.incr (k + 1) h0 (fov_incr h1)
 
 lemma foq_pull' (o : option bool) (a b : bool) :
   ∀ {p q : form₂}, foq a p → foq a q → foq a (pull' o b p q)

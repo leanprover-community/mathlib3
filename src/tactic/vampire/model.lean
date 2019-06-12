@@ -45,10 +45,6 @@ def model.default (α : Type u) [inhabited α] : model α := λ _, value.default
 
 def vas.default (α : Type u) [inhabited α] : vas α := λ _, default α
 
-lemma assign_app_evaluate_denote (M : model α) (v w : value α) :
-  (M ₀↦ v ⬝ wᵈₑ) = (M ₀↦ v ⬝ w) :=
-by ext k as; cases k; refl
-
 namespace model
 
 def decr_idxs (M : model α) : model α :=

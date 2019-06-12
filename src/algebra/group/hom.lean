@@ -92,7 +92,6 @@ instance comp {γ} [monoid γ] (g : β → γ) [is_monoid_hom g] :
 end is_monoid_hom
 
 namespace is_add_monoid_hom
-variables [add_monoid α] [add_monoid β] (f : α → β) [is_add_monoid_hom f]
 
 instance is_add_monoid_hom_mul_left {γ : Type*} [semiring γ] (x : γ) : is_add_monoid_hom (λ y : γ, x * y) :=
 { map_zero := mul_zero x, map_add := λ y z, mul_add x y z }

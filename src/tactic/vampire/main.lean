@@ -96,8 +96,14 @@ do (dx, ix, p) ← reify,
 
 end vampire
 
-open lean.parser interactive vampire
+open lean.parser interactive vampire tactic
 
 meta def tactic.interactive.vampire
+  (ids : parse (many ident))
   (inp : option string := none) : tactic unit :=
+( if `all ∈ ids
+  then local_context >>= monad.filter is_proof >>=
+       revert_lst >> skip
+  else do hs ← mmap tactic.get_local ids,
+               revert_lst hs, skip ) >>
 vampire inp

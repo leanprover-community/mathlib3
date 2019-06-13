@@ -947,7 +947,7 @@ int.cats_id : int.cast_id : ∀ (n : ℤ), ↑n = n
 
 ### vampire
 
-`vampire` uses proof output from the Vampire theorem prover (https://vprover.github.io/) to discharge goals in first-order logic. The tactic can either work in an online mode where it calls Vampire to obtain a proof, or in an offline mode where it uses a user-supplied proof. When invoked without an argument, `vampire` defaults to the former to discharge the goal and displays the proof it used:
+`vampire` uses proof output from the Vampire theorem prover (https://vprover.github.io/) to discharge FOL goals. The tactic can either work in an online mode that calls Vampire to obtain a proof, or in an offline mode that uses a user-supplied proof. When invoked without a string argument, `vampire` defaults to the former to discharge the goal and displays the proof it used:
 ```
 variables [inhabited α] (p q : α → Prop) (a : α)
 example : (∀ x, p x → q x) → (∀ x, p x) → q a := by vampire
@@ -961,8 +961,10 @@ example : (∀ x, p x → q x) → (∀ x, p x) → q a := by vampire
   5. $false [resolution 4,3]
   "
 -/
-Note the `inhabited` instance, which is required per the assumption of non-empty domain for first-order logic. The online mode of `vampire` requires a local installation of Vampire (consult the readme in `tactic/vampire` for details). You can copy and paste the proof output as a string argument to invoke `vampire` in offline mode:
+(Note the `inhabited` instance, which is required per the assumption of non-empty domain for FOL.)
+The online mode of `vampire` requires a local installation of Vampire (consult the readme in `tactic/vampire` for details). You can copy and paste the proof output as a string argument to use `vampire` in offline mode:
 ```
+variables [inhabited α] (p q : α → Prop) (a : α)
 example : (∀ x, p x → q x) → (∀ x, p x) → q a :=
 by vampire
 "
@@ -971,5 +973,27 @@ by vampire
 3. ~s1(s2) [input]
 4. s1(X0) [resolution 1,2]
 5. $false [resolution 4,3]
+"
+```
+`vampire` only proves valid formulas of FOL, which means that all the necessary hypotheses should be included in the goal as antecedents.
+```
+example (p q : Prop) (h1 : p) (h2 : q) : p ∧ q :=
+by vampire -- fails
+```
+You can include the names of relevant hypotheses in order to revert them and call `vampire` in one step.
+```
+example (p q : Prop) (h1 : p) (h2 : q) : p ∧ q :=
+by vampire h1 h2
+```
+Use the `all` keyword to revert all hypotheses of type `Prop`. Hypothesis reversion also works in offline mode.
+```
+example (p q : Prop) (h1 : p) (h2 : q) : p ∧ q :=
+by vampire all
+"
+1. s0 [input]
+2. s1 [input]
+3. ~s1 | ~s0 [input]
+4. ~s0 [subsumption resolution 3,2]
+5. $false [subsumption resolution 4,1]
 "
 ```

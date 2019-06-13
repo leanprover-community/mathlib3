@@ -961,6 +961,7 @@ example : (∀ x, p x → q x) → (∀ x, p x) → q a := by vampire
   5. $false [resolution 4,3]
   "
 -/
+```
 (Note the `inhabited` instance, which is required per the assumption of non-empty domain for FOL.)
 The online mode of `vampire` requires a local installation of Vampire (consult the readme in `tactic/vampire` for details). You can copy and paste the proof output as a string argument to use `vampire` in offline mode:
 ```

@@ -170,15 +170,15 @@ section with_top
 def to_with_top (x : enat) [decidable x.dom]: with_top ℕ := x.to_option
 
 lemma to_with_top_top : to_with_top ⊤ = ⊤ := rfl
-@[simp] lemma to_with_top_top' [decidable (⊤ : enat).dom] : to_with_top ⊤ = ⊤ :=
+@[simp] lemma to_with_top_top' {h : decidable (⊤ : enat).dom} : to_with_top ⊤ = ⊤ :=
 by convert to_with_top_top
 
 lemma to_with_top_zero : to_with_top 0 = 0 := rfl
-@[simp] lemma to_with_top_zero' [decidable (0 : enat).dom]: to_with_top 0 = 0 :=
+@[simp] lemma to_with_top_zero' {h : decidable (0 : enat).dom}: to_with_top 0 = 0 :=
 by convert to_with_top_zero
 
 lemma to_with_top_coe (n : ℕ) : to_with_top n = n := rfl
-@[simp] lemma to_with_top_coe' (n : ℕ) [decidable (n : enat).dom] : to_with_top (n : enat) = n :=
+@[simp] lemma to_with_top_coe' (n : ℕ) {h : decidable (n : enat).dom} : to_with_top (n : enat) = n :=
 by convert to_with_top_coe n
 
 @[simp] lemma to_with_top_le {x y : enat} : Π [decidable x.dom]

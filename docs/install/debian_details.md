@@ -16,15 +16,21 @@ All commands below should be typed inside a terminal.
   sudo apt install git curl python3 python3-pip
   ```
 
-* You will also need a code editor that has a Lean plugin. The
+* There are two editors you can use with Lean, VS Code and emacs. The
   recommended choice is [Visual Studio Code](https://code.visualstudio.com/).
-  The alternative is to use Emacs, and its [lean-mode](https://github.com/leanprover/lean-mode).
   ```bash
   wget -O code.deb https://go.microsoft.com/fwlink/?LinkID=760868
   sudo apt install ./code.deb
   rm code.deb
   code --install-extension jroesch.lean
   ```
+
+  Now open VS Code, and verify Lean is working, for example by saving a file `test.lean` and entering `#eval 1+1`.
+   A green line should appear underneath `#eval 1+1`, and hovering the mouse over it you should see `2`
+   displayed.
+
+  The alternative is to use Emacs, and its [lean-mode](https://github.com/leanprover/lean-mode).
+
   Everything else will be installed in user-space (no sudo required).
 
 * The next step installs a small tool called `elan` which will handle

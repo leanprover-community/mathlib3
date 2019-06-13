@@ -236,10 +236,10 @@ lemma snd.is_monoid_hom [monoid α] [monoid β] : is_monoid_hom (prod.snd : α �
 
 @[to_additive fst.is_add_group_hom]
 lemma fst.is_group_hom [group α] [group β] : is_group_hom (prod.fst : α × β → α) :=
-by refine_struct {..}; simp
+{ map_mul := λ _ _, rfl }
 @[to_additive snd.is_add_group_hom]
 lemma snd.is_group_hom [group α] [group β] : is_group_hom (prod.snd : α × β → β) :=
-by refine_struct {..}; simp
+{ map_mul := λ _ _, rfl }
 
 attribute [instance] fst.is_monoid_hom fst.is_add_monoid_hom snd.is_monoid_hom snd.is_add_monoid_hom
 fst.is_group_hom fst.is_add_group_hom snd.is_group_hom snd.is_add_group_hom

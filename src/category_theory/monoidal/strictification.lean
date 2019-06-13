@@ -11,6 +11,8 @@ open category_theory.monoidal_category
 
 namespace category_theory
 
+namespace monoidal_strictification
+
 variables {C : Type u₁} [𝒞 : monoidal_category.{v₁} C]
 include 𝒞
 
@@ -119,18 +121,16 @@ begin
     refl }
 end
 
-instance : category.{v₁} (list C) :=
+variables (C)
+
+instance list_category : category.{v₁} (list C) :=
 { hom := λ X Y, (tensor X) ⟶ (tensor Y),
   id := λ X, 𝟙 (tensor X),
   comp := λ X Y Z f g, f ≫ g, }
 
--- An alternative:
-def right_unitor (X : list C) : X ++ list.nil ≅ X :=
-by rw list.append_nil
-
 open category monoidal_category
 
-instance : monoidal_category.{v₁} (list C) :=
+instance list_monoidal_category : monoidal_category.{v₁} (list C) :=
 { tensor_obj := λ X Y, X ++ Y,
   tensor_unit := [],
   tensor_hom := λ (W X Y Z) (f : tensor W ⟶ tensor X) (g : tensor Y ⟶ tensor Z),
@@ -243,7 +243,34 @@ instance : monoidal_category.{v₁} (list C) :=
   end
 }.
 
-variables (C)
+section
+omit 𝒞
+
+class strictly_monoidal extends monoidal_category.{v₁} C :=
+(left_unitor_trivial : ∀ (X : C), λ_ X == iso.refl X)
+(right_unitor_trivial : ∀ (X : C), ρ_ X == iso.refl X)
+(associator_trivial : ∀ (X Y Z : C), α_ X Y Z == iso.refl ((X ⊗ Y) ⊗ Z))
+
+include 𝒞
+
+@[simp] lemma eq_to_iso_heq_refl (X Y : C) (h : Y = X) : eq_to_iso h == iso.refl X :=
+begin
+  induction h,
+  simp,
+end
+@[simp] lemma eq_to_iso_heq_refl' (X Y : C) (h : X = Y) : eq_to_iso h == iso.refl X :=
+begin
+  induction h,
+  simp,
+end
+
+instance : strictly_monoidal.{v₁} (list C) :=
+{ left_unitor_trivial := λ X, by refl,
+  right_unitor_trivial := λ X, begin dsimp [monoidal_strictification.list_monoidal_category], simp, end,
+  associator_trivial := λ X Y Z, begin dsimp [monoidal_strictification.list_monoidal_category], simp, end,
+  ..(monoidal_strictification.list_monoidal_category C) }
+end
+
 def strictification : (list C) ⥤ C :=
 { obj := λ X, tensor X,
   map := λ X Y f, f }
@@ -301,5 +328,7 @@ def monoidal_strictification : monoidal_functor.{v₁ v₁} (list C) C :=
 
 -- Finally, we need to prove that a monoidal functor which is part of an equivalence is part of a monoidal equivalence.
 -- err... and think about whether that's really the condition we want (3-categories, etc.)
+
+end monoidal_strictification
 
 end category_theory

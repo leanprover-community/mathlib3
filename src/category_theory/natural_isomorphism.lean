@@ -13,7 +13,7 @@ namespace category_theory
 open nat_trans
 
 /-- The application of a natural isomorphism to an object. We put this definition in a different namespace, so that we can use α.app -/
-@[simp, reducible] def iso.app {C : Sort u₁} [category.{v₁} C] {D : Sort u₂} [category.{v₂} D]
+@[simp, reducible] def iso.app {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
   {F G : C ⥤ D} (α : F ≅ G) (X : C) : F.obj X ≅ G.obj X :=
 { hom := α.hom.app X,
   inv := α.inv.app X,
@@ -25,8 +25,8 @@ namespace nat_iso
 
 open category_theory.category category_theory.functor
 
-variables {C : Sort u₁} [𝒞 : category.{v₁} C] {D : Sort u₂} [𝒟 : category.{v₂} D]
-  {E : Sort u₃} [ℰ : category.{v₃} E]
+variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
+  {E : Type u₃} [ℰ : category.{v₃} E]
 include 𝒞 𝒟
 
 @[simp] lemma trans_app {F G H : C ⥤ D} (α : F ≅ G) (β : G ≅ H) (X : C) :
@@ -73,7 +73,11 @@ def is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso 
 { inv :=
   { app := λ X, inv (α.app X),
     naturality' := λ X Y f,
-    by simpa using congr_arg (λ f, inv (α.app X) ≫ (f ≫ inv (α.app Y))) (α.naturality f).symm } }
+     begin
+       have h := congr_arg (λ f, inv (α.app X) ≫ (f ≫ inv (α.app Y))) (α.naturality f).symm,
+       simp only [is_iso.inv_hom_id_assoc, is_iso.hom_inv_id, assoc, comp_id, cancel_mono] at h,
+       exact h
+     end } }
 
 instance is_iso_of_is_iso_app' (α : F ⟶ G) [H : ∀ X : C, is_iso (nat_trans.app α X)] : is_iso α :=
 @nat_iso.is_iso_of_is_iso_app _ _ _ _ _ _ α H

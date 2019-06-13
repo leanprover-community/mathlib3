@@ -11,7 +11,7 @@ namespace category_theory.limits
 
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Sort u} [𝒞 : category.{v+1} C]
+variables {C : Type u} [𝒞 : category.{v+1} C]
 include 𝒞
 
 variables {J K : Type v} [small_category J] [small_category K]
@@ -57,9 +57,7 @@ cocones.ext (iso.refl _) (by tidy)
 def functor_category_is_limit_cone [has_limits_of_shape J C] (F : J ⥤ K ⥤ C) :
   is_limit (functor_category_limit_cone F) :=
 { lift := λ s,
-  { app := λ k, limit.lift (F.flip.obj k) (((evaluation K C).obj k).map_cone s),
-    naturality' := λ k k' f,
-      by ext; dsimp; simpa using (s.π.app j).naturality f },
+  { app := λ k, limit.lift (F.flip.obj k) (((evaluation K C).obj k).map_cone s) },
   uniq' := λ s m w,
   begin
     ext1 k,
@@ -70,14 +68,7 @@ def functor_category_is_limit_cone [has_limits_of_shape J C] (F : J ⥤ K ⥤ C)
 def functor_category_is_colimit_cocone [has_colimits_of_shape.{v} J C] (F : J ⥤ K ⥤ C) :
   is_colimit (functor_category_colimit_cocone F) :=
 { desc := λ s,
-  { app := λ k, colimit.desc (F.flip.obj k) (((evaluation K C).obj k).map_cocone s),
-    naturality' := λ k k' f,
-    begin
-      ext,
-      rw [←assoc, ←assoc],
-      dsimp [functor.flip],
-      simpa using (s.ι.app j).naturality f
-    end },
+  { app := λ k, colimit.desc (F.flip.obj k) (((evaluation K C).obj k).map_cocone s) },
   uniq' := λ s m w,
   begin
     ext1 k,

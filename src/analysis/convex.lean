@@ -18,6 +18,7 @@ local attribute [instance] classical.prop_decidable
 
 open set
 
+section vector_space
 variables {α : Type*} {β : Type*} {ι : Sort _}
   [add_comm_group α] [vector_space ℝ α] [add_comm_group β] [vector_space ℝ β]
   (A : set α) (B : set α) (x : α)
@@ -748,12 +749,12 @@ calc
     add_le_add (mul_le_mul_of_nonneg_left (le_max_left _ _) ha) (mul_le_mul_of_nonneg_left (le_max_right _ _) hb)
   ... ≤ max (f x) (f y) : by rw [←add_mul, hab, one_mul]
 
-/- This instance is necessary to guide class instance search in the lemma below. -/
-noncomputable def real_normed_space.to_has_scalar (α : Type) [normed_space ℝ α] : has_scalar ℝ α :=
-mul_action.to_has_scalar ℝ α
-local attribute [instance] real_normed_space.to_has_scalar
+end vector_space
 
-lemma convex_on_dist {α : Type} [normed_space ℝ α] (z : α) (D : set α) (hD : convex D) :
+section normed_space
+variables {α : Type*} [normed_group α] [normed_space ℝ α]
+
+lemma convex_on_dist  (z : α) (D : set α) (hD : convex D) :
   convex_on D (λz', dist z' z) :=
 begin
   apply and.intro hD,
@@ -769,8 +770,10 @@ begin
       by simp [norm_smul, normed_group.dist_eq, real.norm_eq_abs, abs_of_nonneg ha, abs_of_nonneg hb]
 end
 
-lemma convex_ball {α : Type} [normed_space ℝ α] (a : α) (r : ℝ) : convex (metric.ball a r) :=
+lemma convex_ball (a : α) (r : ℝ) : convex (metric.ball a r) :=
 by simpa using convex_lt_of_convex_on univ (λb, dist b a) (convex_on_dist _  _ convex_univ) r
 
-lemma convex_closed_ball {α : Type} [normed_space ℝ α] (a : α) (r : ℝ) : convex (metric.closed_ball a r) :=
+lemma convex_closed_ball (a : α) (r : ℝ) : convex (metric.closed_ball a r) :=
 by simpa using convex_le_of_convex_on univ (λb, dist b a) (convex_on_dist _  _ convex_univ) r
+
+end normed_space

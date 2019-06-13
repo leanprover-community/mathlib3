@@ -14,7 +14,7 @@ instance pempty_category : small_category pempty :=
   comp := by obviously }
 
 namespace functor
-variables (C : Sort u) [𝒞 : category.{v} C]
+variables (C : Type u) [𝒞 : category.{v} C]
 include 𝒞
 
 def empty : pempty ⥤ C := by tidy

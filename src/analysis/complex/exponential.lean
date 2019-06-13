@@ -175,7 +175,7 @@ lemma pi_div_two_pos : 0 < π / 2 :=
 half_pos pi_pos
 
 lemma two_pi_pos : 0 < 2 * π :=
-by linarith using [pi_pos]
+by linarith [pi_pos]
 
 @[simp] lemma sin_pi : sin π = 0 :=
 by rw [← mul_div_cancel_left pi (@two_ne_zero ℝ _), two_mul, add_div,
@@ -385,9 +385,9 @@ lemma cos_lt_cos_of_nonneg_of_le_pi {x y : ℝ} (hx₁ : 0 ≤ x) (hx₂ : x ≤
 match (le_total x (π / 2) : x ≤ π / 2 ∨ π / 2 ≤ x), le_total y (π / 2) with
 | or.inl hx, or.inl hy := cos_lt_cos_of_nonneg_of_le_pi_div_two hx₁ hx hy₁ hy hxy
 | or.inl hx, or.inr hy := (lt_or_eq_of_le hx).elim
-  (λ hx, calc cos y ≤ 0 : cos_nonpos_of_pi_div_two_le_of_le hy (by linarith using [pi_pos])
+  (λ hx, calc cos y ≤ 0 : cos_nonpos_of_pi_div_two_le_of_le hy (by linarith [pi_pos])
     ... < cos x : cos_pos_of_neg_pi_div_two_lt_of_lt_pi_div_two (by linarith) hx)
-  (λ hx, calc cos y < 0 : cos_neg_of_pi_div_two_lt_of_lt (by linarith) (by linarith using [pi_pos])
+  (λ hx, calc cos y < 0 : cos_neg_of_pi_div_two_lt_of_lt (by linarith) (by linarith [pi_pos])
     ... = cos x : by rw [hx, cos_pi_div_two])
 | or.inr hx, or.inl hy := by linarith
 | or.inr hx, or.inr hy := neg_lt_neg_iff.1 (by rw [← cos_pi_sub, ← cos_pi_sub];
@@ -590,7 +590,7 @@ sin_inj_of_le_of_le_pi_div_two
 sin_inj_of_le_of_le_pi_div_two
   (neg_pi_div_two_le_arcsin _)
   (arcsin_le_pi_div_two _)
-  (by linarith using [pi_pos])
+  (by linarith [pi_pos])
   (le_refl _)
   (by rw [sin_arcsin, sin_pi_div_two]; norm_num)
 
@@ -641,10 +641,10 @@ lemma arccos_eq_pi_div_two_sub_arcsin (x : ℝ) : arccos x = π / 2 - arcsin x :
 lemma arcsin_eq_pi_div_two_sub_arccos (x : ℝ) : arcsin x = π / 2 - arccos x := by simp [arccos]
 
 lemma arccos_le_pi (x : ℝ) : arccos x ≤ π :=
-by unfold arccos; linarith using [neg_pi_div_two_le_arcsin x]
+by unfold arccos; linarith [neg_pi_div_two_le_arcsin x]
 
 lemma arccos_nonneg (x : ℝ) : 0 ≤ arccos x :=
-by unfold arccos; linarith using [arcsin_le_pi_div_two x]
+by unfold arccos; linarith [arcsin_le_pi_div_two x]
 
 lemma cos_arccos {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : cos (arccos x) = x :=
 by rw [arccos, cos_pi_div_two_sub, sin_arcsin hx₁ hx₂]
@@ -707,10 +707,10 @@ match lt_or_eq_of_le h0x, lt_or_eq_of_le hxp with
 end
 
 lemma tan_neg_of_neg_of_pi_div_two_lt {x : ℝ} (hx0 : x < 0) (hpx : -(π / 2) < x) : tan x < 0 :=
-neg_pos.1 (tan_neg x ▸ tan_pos_of_pos_of_lt_pi_div_two (by linarith) (by linarith using [pi_pos]))
+neg_pos.1 (tan_neg x ▸ tan_pos_of_pos_of_lt_pi_div_two (by linarith) (by linarith [pi_pos]))
 
 lemma tan_nonpos_of_nonpos_of_neg_pi_div_two_le {x : ℝ} (hx0 : x ≤ 0) (hpx : -(π / 2) ≤ x) : tan x ≤ 0 :=
-neg_nonneg.1 (tan_neg x ▸ tan_nonneg_of_nonneg_of_le_pi_div_two (by linarith) (by linarith using [pi_pos]))
+neg_nonneg.1 (tan_neg x ▸ tan_nonneg_of_nonneg_of_le_pi_div_two (by linarith) (by linarith [pi_pos]))
 
 lemma tan_lt_tan_of_nonneg_of_lt_pi_div_two {x y : ℝ} (hx₁ : 0 ≤ x) (hx₂ : x < π / 2) (hy₁ : 0 ≤ y)
   (hy₂ : y < π / 2) (hxy : x < y) : tan x < tan y :=
@@ -827,7 +827,7 @@ else
       exact real.arcsin_nonpos (by rw [neg_im, neg_div, neg_nonpos]; exact div_nonneg hx₂ (abs_pos.2 hx)))
   else by rw [arg, if_neg hx₁, if_neg hx₂];
       exact sub_le_iff_le_add.2 (le_trans (real.arcsin_le_pi_div_two _)
-        (by linarith using [real.pi_pos]))
+        (by linarith [real.pi_pos]))
 
 lemma neg_pi_lt_arg (x : ℂ) : -π < arg x :=
 if hx₁ : 0 ≤ x.re
@@ -838,7 +838,7 @@ else
   if hx₂ : 0 ≤ x.im
   then by rw [arg, if_neg hx₁, if_pos hx₂];
     exact sub_lt_iff_lt_add.1
-      (lt_of_lt_of_le (by linarith using [real.pi_pos]) (real.neg_pi_div_two_le_arcsin _))
+      (lt_of_lt_of_le (by linarith [real.pi_pos]) (real.neg_pi_div_two_le_arcsin _))
   else by rw [arg, if_neg hx₁, if_neg hx₂];
     exact lt_sub_iff_add_lt.2 (by rw neg_add_self;
       exact real.arcsin_pos (by rw [neg_im]; exact div_pos (neg_pos.2 (lt_of_not_ge hx₂))

@@ -866,7 +866,7 @@ calc
   ... = lintegral (f 0) - (⨅n, ∫⁻ a, f n a) : ennreal.sub_infi.symm 
 
 /-- Known as Fatou's lemma -/
-lemma lintegral_liminf_le {f : ℕ → α → ennreal} (h_meas : ∀n, measurable (f n)):
+lemma lintegral_liminf_le {f : ℕ → α → ennreal} (h_meas : ∀n, measurable (f n)) :
   (∫⁻ a, liminf at_top (λ n, f n a)) ≤ liminf at_top (λ n, lintegral (f n)) := 
 calc 
   (∫⁻ a, liminf at_top (λ n, f n a)) = ∫⁻ a, ⨆n:ℕ, ⨅i≥n, f i a : 
@@ -890,7 +890,7 @@ calc
 
 lemma limsup_lintegral_le {f : ℕ → α → ennreal} {g : α → ennreal} 
   (hf_meas : ∀ n, measurable (f n)) (hg_meas : measurable g) 
-  (h_bound : ∀n, ∀ₘa, f n a ≤ g a) (h_fin : lintegral g < ⊤): 
+  (h_bound : ∀n, ∀ₘa, f n a ≤ g a) (h_fin : lintegral g < ⊤) : 
   limsup at_top (λn, lintegral (f n)) ≤ ∫⁻ a, limsup at_top (λn, f n a) :=
 calc 
   limsup at_top (λn, lintegral (f n)) = ⨅n:ℕ, ⨆i≥n, lintegral (f i) : 
@@ -920,7 +920,7 @@ calc
     lintegral_congr_ae $ all_ae_of_all $ assume a, limsup_eq_infi_supr_of_nat.symm
 
 /-- Dominated convergence theorem for nonnegative functions -/
-lemma tendsto_lintegral_nn
+lemma dominated_convergence_nn
   {F : ℕ → α → ennreal} {f : α → ennreal} {g : α → ennreal} 
   (hF_meas : ∀n, measurable (F n)) (hf_meas : measurable f) (hg_meas : measurable g)
   (h_bound : ∀n, ∀ₘ a, F n a ≤ g a) 

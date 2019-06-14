@@ -87,7 +87,7 @@ lemma continuous_sub' : continuous (λp:nnreal×nnreal, p.1 - p.2) :=
                     (continuous.comp continuous_coe continuous_snd)) 
                                                       continuous_const)
 
-lemma continuous_sub [topological_space α] {f g: α → nnreal} 
+lemma continuous_sub [topological_space α] {f g : α → nnreal} 
   (hf : continuous f) (hg : continuous g) : continuous (λ a, f a - g a) := 
 continuous_sub'.comp (hf.prod_mk hg)
 

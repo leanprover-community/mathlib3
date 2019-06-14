@@ -278,12 +278,8 @@ theorem chain.image {α β : Type*} (r : α → α → Prop)
   (s : β → β → Prop) (f : α → β)
   (h : ∀ x y, r x y → s (f x) (f y))
   {c : set α} (hrc : chain r c) : chain s (f '' c) :=
-begin
-  rintros x ⟨a, ha₁, ha₂⟩ y ⟨b, hb₁, hb₂⟩ hxy,
-  substs ha₂ hb₂,
-  cases hrc a ha₁ b hb₁ (mt (congr_arg f) hxy) with hr hr,
-  { exact or.inl (h _ _ hr) },
-  { exact or.inr (h _ _ hr) }
-end
+λ x ⟨a, ha₁, ha₂⟩ y ⟨b, hb₁, hb₂⟩, ha₂ ▸ hb₂ ▸ λ hxy,
+  (hrc a ha₁ b hb₁ (mt (congr_arg f) $ hxy)).elim
+    (or.inl ∘ h _ _) (or.inr ∘ h _ _)
 
 end zorn

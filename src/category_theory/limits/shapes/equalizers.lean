@@ -34,7 +34,7 @@ def walking_parallel_pair_hom.comp :
   | _ _ _ right  (id one) := right
 .
 
-instance walking_parallel_pair_hom_category : small_category.{v+1} walking_parallel_pair :=
+instance walking_parallel_pair_hom_category : small_category.{v} walking_parallel_pair :=
 { hom  := walking_parallel_pair_hom,
   id   := walking_parallel_pair_hom.id,
   comp := walking_parallel_pair_hom.comp }
@@ -43,7 +43,7 @@ lemma walking_parallel_pair_hom_id (X : walking_parallel_pair.{v}) :
   walking_parallel_pair_hom.id X = 𝟙 X :=
 rfl
 
-variables {C : Sort u} [𝒞 : category.{v+1} C]
+variables {C : Type u} [𝒞 : category.{v+1} C]
 include 𝒞
 variables {X Y : C}
 

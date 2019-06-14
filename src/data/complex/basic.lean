@@ -244,10 +244,10 @@ noncomputable instance : discrete_field ℂ :=
   ..complex.comm_ring }
 
 instance re.is_add_group_hom : is_add_group_hom complex.re :=
-by refine_struct {..}; simp
+{ map_add := complex.add_re }
 
 instance im.is_add_group_hom : is_add_group_hom complex.im :=
-by refine_struct {..}; simp
+{ map_add := complex.add_im }
 
 instance : is_ring_hom conj :=
 by refine_struct {..}; simp

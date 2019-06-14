@@ -46,7 +46,9 @@ def tensorator_congr_right (w : list C) {z z' : list C} (h : z = z') :
     tensorator w z' ≪≫ eq_to_iso (by { cases h, refl }) :=
 by { cases h, simp }
 
-lemma id_tensor_eq_to_hom (X Y Z : C) (h : Y = Z) : 𝟙 X ⊗ eq_to_hom h = eq_to_hom (by { congr, exact h }) :=
+lemma id_tensor_eq_to_hom (X : C) {Y Z : C} (h : Y = Z) : 𝟙 X ⊗ eq_to_hom h = eq_to_hom (by { congr, exact h }) :=
+by { cases h, simp, }
+lemma eq_to_hom_tensor_id {X Y : C} (h : X = Y) (Z : C) : eq_to_hom h ⊗ 𝟙 Z = eq_to_hom (by { congr, exact h }) :=
 by { cases h, simp, }
 
 lemma tensorator_assoc (u v w : list C) :
@@ -247,9 +249,9 @@ section
 omit 𝒞
 
 class strictly_monoidal extends monoidal_category.{v₁} C :=
-(left_unitor_trivial : ∀ (X : C), λ_ X == iso.refl X)
-(right_unitor_trivial : ∀ (X : C), ρ_ X == iso.refl X)
-(associator_trivial : ∀ (X Y Z : C), α_ X Y Z == iso.refl ((X ⊗ Y) ⊗ Z))
+(left_unitor_trivial  : ∀ (X : C), { h : 𝟙_ C ⊗ X = X // λ_ X = eq_to_iso h })
+(right_unitor_trivial : ∀ (X : C), { h : X ⊗ 𝟙_ C = X // ρ_ X = eq_to_iso h })
+(associator_trivial   : ∀ (X Y Z : C), { h : (X ⊗ Y) ⊗ Z = X ⊗ (Y ⊗ Z) // α_ X Y Z == eq_to_iso h })
 
 include 𝒞
 
@@ -265,40 +267,49 @@ begin
 end
 
 instance : strictly_monoidal.{v₁} (list C) :=
-{ left_unitor_trivial := λ X, by refl,
-  right_unitor_trivial := λ X, begin dsimp [monoidal_strictification.list_monoidal_category], simp, end,
-  associator_trivial := λ X Y Z, begin dsimp [monoidal_strictification.list_monoidal_category], simp, end,
+{ left_unitor_trivial := λ X, begin fsplit, refl, refl end,
+  right_unitor_trivial := λ X, begin dsimp [monoidal_strictification.list_monoidal_category], fsplit, simp, end,
+  associator_trivial := λ X Y Z, begin dsimp [monoidal_strictification.list_monoidal_category], fsplit, simp, end,
   ..(monoidal_strictification.list_monoidal_category C) }
 end
 
-def strictification : (list C) ⥤ C :=
+def inv_strictification : (list C) ⥤ C :=
 { obj := λ X, tensor X,
   map := λ X Y f, f }
 
-namespace strictification
-instance : ess_surj (strictification C) :=
+namespace inv_strictification
+instance : ess_surj (inv_strictification C) :=
 { obj_preimage := λ X, [X],
   iso' := λ X, ρ_ X }
 
-instance : full (strictification C) :=
+instance : full (inv_strictification C) :=
 { preimage := λ X Y f, f }
 
-instance : faithful (strictification C) :=
+instance : faithful (inv_strictification C) :=
 {}
 
-instance : is_equivalence (strictification C) := equivalence.equivalence_of_fully_faithfully_ess_surj _
+instance : is_equivalence (inv_strictification C) := equivalence.equivalence_of_fully_faithfully_ess_surj _
+end inv_strictification
 
-end strictification
+def strictification' : C ⥤ (list C) :=
+{ obj := λ X, [X],
+  map := λ X Y f, begin dsimp [monoidal_strictification.list_category], exact (ρ_ X).hom ≫ f ≫ (ρ_ Y).inv end,
+  map_comp' := λ X Y Z f g, begin dsimp, repeat { erw category.assoc }, rw iso.inv_hom_id_assoc, end }
 
-def monoidal_strictification : monoidal_functor.{v₁ v₁} (list C) C :=
+def strictification : C ⥤ (list C) := (inv_strictification C).inv
+
+def monoidal_strictification : monoidal_functor.{v₁ v₁} C (list C) := sorry
+instance : faithful (monoidal_strictification C).to_functor := sorry
+
+def monoidal_inv_strictification : monoidal_functor.{v₁ v₁} (list C) C :=
 { ε := 𝟙 _,
   μ := λ X Y, (tensorator X Y).hom,
   μ_is_iso := λ X Y, is_iso.of_iso _,
   μ_natural' := λ X Y X' Y' f g,
-  by { dsimp [tensor_hom, strictification], simp, },
+  by { dsimp [tensor_hom, inv_strictification], simp, },
   associativity' := λ X Y Z,
   begin
-    dsimp [strictification],
+    dsimp [inv_strictification],
     erw [←category.assoc, tensorator_assoc],
     simp only [list.append_assoc, assoc, cancel_epi],
     dsimp [tensor_obj],
@@ -308,14 +319,14 @@ def monoidal_strictification : monoidal_functor.{v₁ v₁} (list C) C :=
   end,
   left_unitality' := λ X,
   begin
-    dsimp [strictification],
+    dsimp [inv_strictification],
     erw tensorator_nil_left,
     simp only [tensor_id, id_comp],
     erw comp_id,
   end,
   right_unitality' := λ X,
   begin
-    dsimp [strictification],
+    dsimp [inv_strictification],
     rw [tensor_id, id_comp],
     erw tensorator_nil_right,
     dsimp,
@@ -324,7 +335,7 @@ def monoidal_strictification : monoidal_functor.{v₁ v₁} (list C) C :=
     { simp, },
     { congr, exact list.append_nil X, },
   end,
-  ..(strictification C) }
+  ..(inv_strictification C) }
 
 -- Finally, we need to prove that a monoidal functor which is part of an equivalence is part of a monoidal equivalence.
 -- err... and think about whether that's really the condition we want (3-categories, etc.)

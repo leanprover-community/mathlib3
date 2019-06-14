@@ -8,6 +8,17 @@ universes v₁ u₁
 open category_theory
 open category_theory.monoidal_category
 
+lemma congr_heq {α α'} {β : α → Sort*} {β' : α' → Sort*}
+  (f : Π a, β a) (f' : Π a, β' a) (a : α) (a' : α')
+  (hf : f == f') (h : a == a') : f a == f' a' :=
+begin
+  cases h,
+  cases h,
+  sorry
+end
+lemma congr_arg_heq' {α} {β : α → Sort*} (f : ∀ a, β a) : ∀ {a₁ a₂ : α}, a₁ == a₂ → f a₁ == f a₂
+| a _ h := begin cases h, exact heq.rfl end
+
 namespace category_theory
 
 inductive parenthesised (C : Type u₁) : Type u₁
@@ -103,17 +114,53 @@ include 𝒟
 variables (F : monoidal_functor.{v₁ v₁} C D)
 
 lemma map_eval {P Q : parenthesised C} (α : reparenthesisation P Q) :
-  (map_eval_comparison F _).hom ≫ F.map (α.eval) ≫ (map_eval_comparison F _).inv = (α.map F.obj).eval :=
+  F.map (α.eval) = (map_eval_comparison F _).inv ≫ (α.map F.obj).eval ≫ (map_eval_comparison F _).hom :=
 sorry
 
 end reparenthesisation
 
+open reparenthesisation monoidal_strictification
+
 section
-variables [𝒞 : monoidal_strictification.strictly_monoidal.{v₁} C]
+variables [𝒞 : strictly_monoidal.{v₁} C]
 include 𝒞
 
-theorem monoidal_coherence_aux {P Q : parenthesised C} (α β : reparenthesisation P Q) : α.eval = β.eval :=
-sorry
+theorem monoidal_coherence_aux : Π {P Q : parenthesised C} (α : reparenthesisation P Q), { h : P.eval = Q.eval // α.eval = eq_to_hom h }
+| _ _ (left P)           := begin have := (strictly_monoidal.left_unitor_trivial (eval P)), fsplit, exact this.val, exact congr_arg iso.hom this.property end
+| _ _ (left_inv P)       := sorry
+| _ _ (right P)          := sorry
+| _ _ (right_inv P)      := sorry
+| _ _ (assoc P Q R)      := sorry
+| _ _ (assoc_inv P Q R)  := sorry
+| _ _ (tensor_left R α)  :=
+  begin
+    dsimp [reparenthesisation.eval],
+    split,
+    rw (monoidal_coherence_aux α).2,
+    rw id_tensor_eq_to_hom,
+  end
+| _ _ (tensor_right R α) :=
+  begin
+    dsimp [reparenthesisation.eval],
+    split,
+    rw (monoidal_coherence_aux α).2,
+    rw eq_to_hom_tensor_id,
+  end
+| _ _ (id P)             := ⟨rfl, rfl⟩
+| _ _ (comp α β)         :=
+  begin
+    cases monoidal_coherence_aux α with vα pα,
+    cases monoidal_coherence_aux β with vβ pβ,
+    split,
+    { dsimp [reparenthesisation.eval],
+      rw [pα, pβ],
+      simp },
+    { exact vα.trans vβ }
+  end
+
+theorem monoidal_coherence_aux' {P Q : parenthesised C} (α β : reparenthesisation P Q) : α.eval = β.eval :=
+by rw [(monoidal_coherence_aux α).2, (monoidal_coherence_aux β).2]
+
 end
 
 section
@@ -121,45 +168,13 @@ variables [𝒞 : monoidal_category.{v₁} C]
 include 𝒞
 
 theorem monoidal_coherence {P Q : parenthesised C} (α β : reparenthesisation P Q) : α.eval = β.eval :=
-sorry
+begin
+  let F := monoidal_strictification C,
+  apply F.to_functor.injectivity,
+  rw map_eval,
+  rw map_eval,
+  rw monoidal_coherence_aux',
 end
-
-
--- instance : monoidal_category (parenthesised C) :=
--- { hom          := λ P Q, P.to_list = Q.to_list,
---   id           := λ P, rfl,
---   comp         := λ _ _ _ f g, eq.trans f g,
---   tensor_unit  := unit,
---   tensor_obj   := tensor,
---   tensor_hom   := λ _ _ _ _ f g, begin dsimp at *, rw [f, g] end,
---   left_unitor  := by tidy,
---   right_unitor := by tidy,
---   associator   := by tidy }.
-
--- @[simp] lemma to_list_tensor (X Y : parenthesised C) : to_list (X ⊗ Y) = to_list X ++ to_list Y := rfl
-
--- variables [𝒞 : monoidal_category.{v₁} C]
--- include 𝒞
-
--- local notation `𝟙_` := tensor_unit
--- local notation `α_` := associator
--- local notation `λ_` := left_unitor
--- local notation `ρ_` := right_unitor
-
--- def tensor_list (X : list C) : C := X.foldl (⊗) (𝟙_ C)
--- @[simp] lemma tensor_list_nil : tensor_list list.nil = 𝟙_ C := rfl
-
--- def tensorator : Π (X Y : parenthesised C),
---     tensor_list (to_list X) ⊗ tensor_list (to_list Y) ⟶ tensor_list (to_list (X ⊗ Y))
--- | unit _ := (λ_ _).hom
--- | _ unit := begin dsimp, simp only [to_list, list.append_nil], exact (ρ_ _).hom end
--- | (tensor P Q) R := begin tidy?, end
--- .
-
--- def foo : monoidal_functor.{0 v₁} (parenthesised C) C :=
--- { obj := λ P, tensor_list P.to_list,
---   map := λ P Q f, eq_to_hom begin congr, exact f end,
---   ε := 𝟙 _,
---   μ := tensorator }
+end
 
 end category_theory

@@ -232,6 +232,15 @@ single_apply
   coeff m (C a : mv_polynomial σ α) = if 0 = m then a else 0 :=
 single_apply
 
+lemma coeff_X [decidable_eq β] (i : β) (m) (k : ℕ) :
+  coeff m (X i ^ k : mv_polynomial β α) = if finsupp.single i k = m then 1 else 0 :=
+begin
+  have := coeff_monomial m (finsupp.single i k) (1:α),
+  rwa [@monomial_eq _ _ (1:α) (finsupp.single i k) _ _ _,
+    C_1, one_mul, finsupp.prod_single_index] at this,
+  exact pow_zero _
+end
+
 @[simp] lemma coeff_C_mul (m) (a : α) (p : mv_polynomial σ α) : coeff m (C a * p) = a * coeff m p :=
 begin
   rw [mul_def, C, monomial],
@@ -352,6 +361,29 @@ begin
   unfold map eval,
   rw eval₂_comp_left (eval₂ id g),
   congr; funext a; simp
+end
+
+lemma eval₂_comp_right {γ} [comm_semiring γ]
+  (k : β → γ) [is_semiring_hom k]
+  (f : α → β) [is_semiring_hom f] (g : σ → β)
+  (p) : k (eval₂ f g p) = eval₂ k (k ∘ g) (map f p) :=
+begin
+  apply mv_polynomial.induction_on p,
+  { intro r, rw [eval₂_C, map_C, eval₂_C] },
+  { intros p q hp hq, rw [eval₂_add, is_semiring_hom.map_add k, map_add, eval₂_add, hp, hq] },
+  { intros p s hp,
+    rw [eval₂_mul, is_semiring_hom.map_mul k, map_mul, eval₂_mul, map_X, hp, eval₂_X, eval₂_X] }
+end
+
+lemma map_eval₂ [decidable_eq γ] [decidable_eq δ]
+  (f : α → β) [is_semiring_hom f] (g : γ → mv_polynomial δ α) (p : mv_polynomial γ α) :
+  map f (eval₂ C g p) = eval₂ C (map f ∘ g) (map f p) :=
+begin
+  apply mv_polynomial.induction_on p,
+  { intro r, rw [eval₂_C, map_C, map_C, eval₂_C] },
+  { intros p q hp hq, rw [eval₂_add, map_add, hp, hq, map_add, eval₂_add] },
+  { intros p s hp,
+    rw [eval₂_mul, map_mul, hp, map_mul, map_X, eval₂_mul, eval₂_X, eval₂_X] }
 end
 
 lemma coeff_map (p : mv_polynomial σ α) : ∀ (m : σ →₀ ℕ), coeff m (p.map f) = f (coeff m p) :=
@@ -688,6 +720,39 @@ eval₂_C _ _ _
 
 @[simp] lemma rename_X (f : β → γ) (b : β) : rename f (X b : mv_polynomial β α) = X (f b) :=
 eval₂_X _ _ _
+
+@[simp] lemma rename_zero (f : β → γ) :
+  rename f (0 : mv_polynomial β α) = 0 :=
+eval₂_zero _ _
+
+@[simp] lemma rename_one (f : β → γ) :
+  rename f (1 : mv_polynomial β α) = 1 :=
+eval₂_one _ _
+
+@[simp] lemma rename_add (f : β → γ) (p q : mv_polynomial β α) :
+  rename f (p + q) = rename f p + rename f q :=
+eval₂_add _ _
+
+@[simp] lemma rename_sub {α} [comm_ring α] [decidable_eq α]
+  (f : β → γ) (p q : mv_polynomial β α) :
+  rename f (p - q) = rename f p - rename f q :=
+eval₂_sub _ _ _
+
+@[simp] lemma rename_mul (f : β → γ) (p q : mv_polynomial β α) :
+  rename f (p * q) = rename f p * rename f q :=
+eval₂_mul _ _
+
+@[simp] lemma rename_pow (f : β → γ) (p : mv_polynomial β α) (n : ℕ) :
+  rename f (p^n) = (rename f p)^n :=
+eval₂_pow _ _
+
+lemma map_rename [comm_semiring β] (f : α → β) [is_semiring_hom f]
+  (g : γ → δ) (p : mv_polynomial γ α) :
+  map f (rename g p) = rename g (map f p) :=
+mv_polynomial.induction_on p
+  (λ a, by simp)
+  (λ p q hp hq, by simp [hp, hq])
+  (λ p n hp, by simp [hp])
 
 @[simp] lemma rename_rename (f : β → γ) (g : γ → δ) (p : mv_polynomial β α) :
   rename g (rename f p) = rename (g ∘ f) p :=

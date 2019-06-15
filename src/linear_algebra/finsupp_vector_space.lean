@@ -17,15 +17,15 @@ variables {α : Type*} {β : Type*} {γ : Type*}
 variables [decidable_eq α] [decidable_eq β] [ring γ] [add_comm_group β] [module γ β]
 
 lemma linear_independent_single [decidable_eq γ] {φ : α → Type*} [∀ a, decidable_eq (φ a)]
-  {f : Π α, φ α → β} (hf : ∀a, linear_independent γ (f a) univ) :
-  linear_independent γ (λ ax : Σ a, φ a, single ax.1 (f ax.1 ax.2)) univ :=
+  {f : Π α, φ α → β} (hf : ∀a, linear_independent γ (f a)) :
+  linear_independent γ (λ ax : Σ a, φ a, single ax.1 (f ax.1 ax.2)) :=
 begin
   apply @linear_independent_Union_finite γ _ _ _ _ _ _ α φ _ _ (λ a x, single a (f a x)),
   { assume a,
     have h_disjoint : disjoint (span γ (range (f a))) (ker (lsingle a)),
     { rw ker_lsingle,
       exact disjoint_bot_right },
-    apply linear_independent.image' (hf a) h_disjoint },
+    apply linear_independent.image (hf a) h_disjoint },
   { intros s g hs hg l hl,
     apply pi.almost_linindep_of_disjoint,
     { apply disjoint_lsingle_lsingle },
@@ -103,12 +103,9 @@ begin
   rcases exists_is_basis α γ with ⟨c, hc⟩,
   rw [← cardinal.lift_inj, ← hb.mk_eq_dim, ← hc.mk_eq_dim, cardinal.lift_inj] at h,
   rcases quotient.exact h with ⟨e⟩,
-  rw [← subtype.val_image_univ b, ← subtype.val_image_univ c] at e,
-  have e' : (univ : set b) ≃ (univ : set c) :=
-    ((equiv.set.image subtype.val (univ : set b) subtype.val_injective).trans e).trans
-        (equiv.set.image subtype.val (univ : set c) subtype.val_injective).symm,
-  exact ⟨ (module_equiv_finsupp hb).trans
-      (linear_equiv.trans (finsupp.congr univ univ e') (module_equiv_finsupp hc).symm) ⟩
+  exact ⟨((module_equiv_finsupp hb).trans
+      (finsupp.dom_lcongr e)).trans
+      (module_equiv_finsupp hc).symm⟩,
 end
 
 lemma eq_bot_iff_dim_eq_zero [decidable_eq β] (p : submodule α β) (h : dim α p = 0) : p = ⊥ :=
@@ -141,7 +138,7 @@ open vector_space
 set_option class.instance_max_depth 50
 local attribute [instance] submodule.module
 
-set_option pp.universes true
+set_option pp.universes false
 
 lemma cardinal_mk_eq_cardinal_mk_field_pow_dim
   {α β : Type u} [decidable_eq β] [discrete_field α] [add_comm_group β] [vector_space α β]
@@ -151,18 +148,7 @@ begin
   have : nonempty (fintype s),
   { rwa [← cardinal.lt_omega_iff_fintype, cardinal.lift_inj.1 hs.mk_eq_dim] },
   cases this with hsf, letI := hsf,
-  calc cardinal.mk β = cardinal.mk (↥(finsupp.supported α α s)) :
-        begin
-          rw ←subtype.val_image_univ s,
-          exact quotient.sound ⟨((module_equiv_finsupp hs).trans
-              (finsupp.congr univ (subtype.val '' univ)
-              (equiv.set.image subtype.val (univ : set s) subtype.val_injective))).to_equiv⟩
-        end
-    ... = cardinal.mk (s →₀ α) :
-        begin
-          refine quotient.sound ⟨@linear_equiv.to_equiv α _ _ _ _ _ _ _ _⟩,
-          exact @finsupp.supported_equiv_finsupp β α α _ _ _ _ _ s _
-        end
+  calc cardinal.mk β = cardinal.mk (s →₀ α) : quotient.sound ⟨(module_equiv_finsupp hs).to_equiv⟩
     ... = cardinal.mk (s → α) : quotient.sound ⟨finsupp.equiv_fun_on_fintype⟩
     ... = _ : by rw [← cardinal.lift_inj.1 hs.mk_eq_dim, cardinal.power_def]
 end

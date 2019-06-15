@@ -296,6 +296,19 @@ begin
   exact set.mem_range_self a
 end
 
+lemma emb_domain_congr (f : α₁ ↪ α₂) (l₁ l₂ : α₁ →₀ β) :
+  emb_domain f l₁ = emb_domain f l₂ ↔ l₁ = l₂ :=
+begin
+  split,
+  { intro h,
+    ext a,
+    have eq : (emb_domain f l₁) (f a) = (emb_domain f l₂) (f a),
+      by rw h,
+    rwa [emb_domain_apply, emb_domain_apply] at eq },
+  { intro h,
+    rw h }
+end
+
 lemma emb_domain_map_range
   {β₁ β₂ : Type*} [has_zero β₁] [has_zero β₂] [decidable_eq β₁] [decidable_eq β₂]
   (f : α₁ ↪ α₂) (g : β₁ → β₂) (p : α₁ →₀ β₁) (hg : g 0 = 0) :
@@ -820,6 +833,29 @@ begin
     intros a' ha',
     apply h_contr (h_preimage a' ha'.2)
   }
+end
+
+--TODO: move
+lemma inj_on_of_injective {α β : Type*} {f : α → β} (s : set α) (h : function.injective f) :
+  set.inj_on f s :=
+set.inj_on_of_inj_on_of_subset (set.injective_iff_inj_on_univ.1 h) (set.subset_univ s)
+
+lemma map_domain_comap_domain {α₁ α₂ γ : Type*}
+  [add_comm_monoid γ] [decidable_eq α₁] [decidable_eq α₂] [decidable_eq γ]
+  (f : α₁ → α₂) (l : α₂ →₀ γ)
+  (hf : function.injective f) (hl : ↑l.support ⊆ set.range f):
+  map_domain f (comap_domain f l (inj_on_of_injective _ hf)) = l :=
+begin
+  ext a,
+  haveI := classical.dec (a ∈ set.range f),
+  by_cases h_cases: a ∈ set.range f,
+  { rcases set.mem_range.1 h_cases with ⟨b, hb⟩,
+    rw hb.symm,
+    rw map_domain_apply hf,
+    rw comap_domain_apply },
+  { rw map_domain_notin_range _ _ h_cases,
+    by_contra h_contr,
+    apply h_cases (hl (finset.mem_coe.2 (mem_support_iff.2 (λ h, h_contr h.symm)))) }
 end
 
 end comap_domain

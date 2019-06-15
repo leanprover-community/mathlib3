@@ -40,8 +40,16 @@ def monoidal_inverse [is_equivalence F.to_functor] : monoidal_functor.{v₂ v₁
     refine (is_equivalence.counit_iso _).hom.app _ ⊗ (is_equivalence.counit_iso _).hom.app _,
   end,
   μ_is_iso := λ X Y, by { dsimp, apply is_iso.comp_is_iso, }, -- why can't apply_instance solve this?
-  μ_natural' := λ X Y X' Y' f g, begin dsimp, sorry, end,
-  associativity' := sorry,
+  μ_natural' := λ X Y X' Y' f g,
+  begin
+    dsimp,
+    sorry,
+  end,
+  associativity' := λ X Y Z,
+  begin
+    dsimp,
+    sorry
+  end,
   left_unitality' := sorry,
   right_unitality' := sorry,
   ..(F.to_functor.inv) }

@@ -245,6 +245,9 @@ instance list_monoidal_category : monoidal_category.{v₁} (list C) :=
   end
 }.
 
+@[simp] lemma tensor_unit : tensor (𝟙_ (list C)) = 𝟙_ C := rfl
+@[simp] lemma left_unitor_singleton (X : C) : (λ_ [X]).hom = 𝟙 _ := rfl
+
 section
 omit 𝒞
 
@@ -296,9 +299,53 @@ def strictification' : C ⥤ (list C) :=
   map := λ X Y f, begin dsimp [monoidal_strictification.list_category], exact (ρ_ X).hom ≫ f ≫ (ρ_ Y).inv end,
   map_comp' := λ X Y Z f g, begin dsimp, repeat { erw category.assoc }, rw iso.inv_hom_id_assoc, end }
 
+namespace strictification'
+instance : ess_surj (strictification' C) :=
+{ obj_preimage := λ X, tensor X,
+  iso' := λ X, { ..((ρ_ (tensor X))) } }
+
+instance : full (strictification' C) :=
+{ preimage := λ X Y f, sorry,
+  witness' := sorry }
+
+instance : faithful (strictification' C) :=
+{ injectivity' := sorry, }
+
+instance : is_equivalence (strictification' C) := equivalence.equivalence_of_fully_faithfully_ess_surj _
+end strictification'
+
+
 def strictification : C ⥤ (list C) := (inv_strictification C).inv
 
-def monoidal_strictification : monoidal_functor.{v₁ v₁} C (list C) := sorry
+def monoidal_strictification : monoidal_functor.{v₁ v₁} C (list C) :=
+{ ε := (λ_ _).inv,
+  ε_is_iso := { .. (λ_ _).symm },
+  μ := λ X Y, (α_ X Y (𝟙_ C)).inv,
+  μ_is_iso := λ X Y, { .. (α_ X Y (𝟙_ C)).symm },
+  μ_natural' := λ X Y X' Y' f g,
+  by { dsimp [tensor_hom, strictification'], simp, sorry, },
+  associativity' := λ X Y Z,
+  begin
+    dsimp [strictification'],
+    sorry
+  end,
+  left_unitality' := λ X,
+  begin
+    dsimp [strictification'],
+    slice_rhs 3 4 { rw ←right_unitor_naturality },
+    simp,
+    rw ← left_unitor_tensor,
+    erw iso.inv_hom_id_assoc,
+    simp,
+    sorry
+  end,
+  right_unitality' := λ X,
+  begin
+    dsimp [strictification'],
+    sorry
+  end,
+  ..(strictification' C) }
+
 instance : faithful (monoidal_strictification C).to_functor := sorry
 
 def monoidal_inv_strictification : monoidal_functor.{v₁ v₁} (list C) C :=

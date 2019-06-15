@@ -110,7 +110,8 @@ variables {U V W X Y Z : C}
 
 -- When `rewrite_search` lands, add @[search] attributes to
 
--- monoidal_category.tensor_id monoidal_category.tensor_comp monoidal_category.associator_naturality
+-- monoidal_category.tensor_id monoidal_category.tensor_comp monoidal_category.tensor_comp_assoc
+-- monoidal_category.associator_naturality
 -- monoidal_category.left_unitor_naturality monoidal_category.right_unitor_naturality
 -- monoidal_category.pentagon monoidal_category.triangle
 
@@ -125,6 +126,11 @@ variables {U V W X Y Z : C}
 -- associator_conjugation
 -- right_unitor_conjugation
 -- left_unitor_conjugation
+
+@[simp] lemma tensor_comp_assoc
+{X₁ Y₁ Z₁ X₂ Y₂ Z₂ W : C} (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (g₁ : Y₁ ⟶ Z₁) (g₂ : Y₂ ⟶ Z₂) (h : Z₁ ⊗ Z₂ ⟶ W):
+  ((f₁ ≫ g₁) ⊗ (f₂ ≫ g₂)) ≫ h = (f₁ ⊗ f₂) ≫ (g₁ ⊗ g₂) ≫ h :=
+by { rw [←assoc, tensor_comp, assoc] }
 
 @[simp] lemma comp_tensor_id (f : W ⟶ X) (g : X ⟶ Y) :
   (f ⊗ (𝟙 Z)) ≫ (g ⊗ (𝟙 Z)) = (f ≫ g) ⊗ (𝟙 Z) :=

@@ -139,7 +139,7 @@ instance (X : C) : is_iso (𝟙 X) :=
 
 instance of_iso (f : X ≅ Y) : is_iso f.hom :=
 { inv := f.inv }
-instance of_iso_inverse (f : X ≅ Y) : is_iso f.inv :=
+instance of_iso_inv (f : X ≅ Y) : is_iso f.inv :=
 { inv := f.hom }
 
 variables {f g : X ⟶ Y} {h : Y ⟶ Z}

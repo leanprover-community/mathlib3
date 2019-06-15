@@ -8,16 +8,10 @@ universes v₁ u₁
 open category_theory
 open category_theory.monoidal_category
 
-lemma congr_heq {α α'} {β : α → Sort*} {β' : α' → Sort*}
-  (f : Π a, β a) (f' : Π a, β' a) (a : α) (a' : α')
-  (hf : f == f') (h : a == a') : f a == f' a' :=
-begin
-  cases h,
-  cases h,
-  sorry
-end
-lemma congr_arg_heq' {α} {β : α → Sort*} (f : ∀ a, β a) : ∀ {a₁ a₂ : α}, a₁ == a₂ → f a₁ == f a₂
-| a _ h := begin cases h, exact heq.rfl end
+local notation `𝟙_` := tensor_unit
+local notation `α_` := associator
+local notation `λ_` := left_unitor
+local notation `ρ_` := right_unitor
 
 namespace category_theory
 
@@ -30,6 +24,7 @@ variables {C : Type u₁}
 
 namespace parenthesised
 
+@[simp]
 def map {D : Type u₁} (f : C → D) : parenthesised C → parenthesised D
 | unit := unit
 | (of X) := of (f X)
@@ -43,6 +38,7 @@ local notation `α_` := associator
 local notation `λ_` := left_unitor
 local notation `ρ_` := right_unitor
 
+@[simp]
 def eval : parenthesised C → C
 | unit         := 𝟙_ C
 | (of X)       := X
@@ -52,6 +48,7 @@ variables {D : Type u₁} [𝒟 : monoidal_category.{v₁} D]
 include 𝒟
 variables (F : monoidal_functor.{v₁ v₁} C D)
 
+@[simp]
 def map_eval_comparison : Π (X : parenthesised C), (X.map F.obj).eval ≅ F.obj X.eval
 | unit         := as_iso (F.ε)
 | (of X)       := iso.refl _
@@ -76,6 +73,7 @@ inductive reparenthesisation : parenthesised C → parenthesised C → Type u₁
 
 namespace reparenthesisation
 
+@[simp]
 def map {D : Type u₁} (f : C → D) : Π {P Q : parenthesised C}, reparenthesisation P Q → reparenthesisation (P.map f) (Q.map f)
 | _ _ (left P)           := left (P.map f)
 | _ _ (left_inv P)       := left_inv (P.map f)
@@ -97,6 +95,7 @@ local notation `α_` := associator
 local notation `λ_` := left_unitor
 local notation `ρ_` := right_unitor
 
+@[simp]
 def eval : Π {P Q : parenthesised C} (α : reparenthesisation P Q), P.eval ⟶ Q.eval
 | _ _ (left P)           := (λ_ P.eval).hom
 | _ _ (left_inv P)       := (λ_ P.eval).inv
@@ -113,9 +112,31 @@ variables {D : Type u₁} [𝒟 : monoidal_category.{v₁} D]
 include 𝒟
 variables (F : monoidal_functor.{v₁ v₁} C D)
 
-lemma map_eval {P Q : parenthesised C} (α : reparenthesisation P Q) :
-  F.map (α.eval) = (map_eval_comparison F _).inv ≫ (α.map F.obj).eval ≫ (map_eval_comparison F _).hom :=
-sorry
+lemma map_eval : Π {P Q : parenthesised C} (α : reparenthesisation P Q),
+  F.map (α.eval) = (map_eval_comparison F _).inv ≫ (α.map F.obj).eval ≫ (map_eval_comparison F _).hom
+| _ _ (left P)           :=
+  begin
+    dsimp,
+    simp only [parenthesised.map, map_eval_comparison, parenthesised.eval, category.assoc],
+    rw ←tensor_id_comp_id_tensor,
+    slice_rhs 3 4 { rw left_unitor_naturality },
+    simp,
+  end
+| _ _ (left_inv P)       := sorry
+| _ _ (right P)          := sorry
+| _ _ (right_inv P)      := sorry
+| _ _ (assoc P Q R)      := sorry
+| _ _ (assoc_inv P Q R)  := sorry
+| (tensor _ Q) (tensor _ R) (tensor_left P α)  :=
+begin
+  dsimp, simp, rw [map_eval α], rw [←tensor_comp_assoc, ←tensor_comp_assoc], simp,
+end
+| _ _ (tensor_right R α) :=
+begin
+  dsimp, simp, rw [map_eval α], rw [←tensor_comp_assoc, ←tensor_comp_assoc], simp,
+end
+| _ _ (id P)             := begin dsimp, simp, end
+| _ _ (comp α β)         := begin dsimp, simp, rw [map_eval α, map_eval β], simp, end
 
 end reparenthesisation
 
@@ -164,6 +185,7 @@ by rw [(monoidal_coherence_aux α).2, (monoidal_coherence_aux β).2]
 end
 
 section
+variables C
 variables [𝒞 : monoidal_category.{v₁} C]
 include 𝒞
 
@@ -175,6 +197,14 @@ begin
   rw map_eval,
   rw monoidal_coherence_aux',
 end
+
+-- We can now use the coherence theorem to check explicit equalities.
+-- Of course, the following example is cheating, as we needed this fact
+-- to construct the strictification!
+example : (λ_ (𝟙_ C)).hom = (ρ_ (𝟙_ C)).hom :=
+by convert monoidal_coherence C (left unit) (right unit)
+
 end
+
 
 end category_theory

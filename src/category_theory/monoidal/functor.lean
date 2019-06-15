@@ -13,8 +13,6 @@ open category_theory.functor
 
 namespace category_theory
 
-section
-
 open monoidal_category
 
 variables (C : Sort u₁) [𝒞 : monoidal_category.{v₁} C]
@@ -67,14 +65,25 @@ attribute [instance] monoidal_functor.ε_is_iso monoidal_functor.μ_is_iso
 
 variables {C D}
 
-def monoidal_functor.ε_iso (F : monoidal_functor.{v₁ v₂} C D) :
+namespace monoidal_functor
+
+@[simp] lemma map_tensor (F : monoidal_functor.{v₁ v₂} C D) {X Y X' Y' : C} (f : X ⟶ Y) (g : X' ⟶ Y') :
+  F.map (f ⊗ g) = inv (F.μ X X') ≫ ((F.map f) ⊗ (F.map g)) ≫ F.μ Y Y' :=
+by simp
+
+-- TODO remove these?
+def ε_iso (F : monoidal_functor.{v₁ v₂} C D) :
   tensor_unit D ≅ F.obj (tensor_unit C) :=
 as_iso F.ε
-def monoidal_functor.μ_iso (F : monoidal_functor.{v₁ v₂} C D) (X Y : C) :
+def μ_iso (F : monoidal_functor.{v₁ v₂} C D) (X Y : C) :
   (F.obj X) ⊗ (F.obj Y) ≅ F.obj (X ⊗ Y) :=
 as_iso (F.μ X Y)
 
-end
+end monoidal_functor
+
+end category_theory
+
+namespace category_theory
 
 open monoidal_category
 

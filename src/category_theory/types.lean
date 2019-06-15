@@ -55,7 +55,7 @@ def ulift_functor : Type u ⥤ Type (max u v) :=
 { obj := λ X, ulift.{v} X,
   map := λ X Y f, λ x : ulift.{v} X, ulift.up (f x.down) }
 
-@[simp] lemma ulift_functor.map_spec {X Y : Type u} (f : X ⟶ Y) (x : ulift.{v} X) :
+@[simp] lemma ulift_functor_map {X Y : Type u} (f : X ⟶ Y) (x : ulift.{v} X) :
   ulift_functor.map f x = ulift.up (f x.down) := rfl
 
 instance ulift_functor_faithful : fully_faithful ulift_functor :=

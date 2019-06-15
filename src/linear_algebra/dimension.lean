@@ -60,7 +60,7 @@ theorem is_basis.le_span (zero_ne_one : (0 : α) ≠ 1) [decidable_eq β] {v : �
    (hJ : span α J = ⊤) : cardinal.mk (range v) ≤ cardinal.mk J :=
 begin
   cases le_or_lt cardinal.omega (cardinal.mk J) with oJ oJ,
-  { have := cardinal.mk_range_eq_of_inj  (linear_independent.injective' zero_ne_one hv.1),
+  { have := cardinal.mk_range_eq_of_inj  (linear_independent.injective zero_ne_one hv.1),
     let S : J → set ι := λ j, (is_basis.repr hv j).support.to_set,
     let S' : J → set β := λ j, v '' S j,
     have hs : range v ⊆ ⋃ j, S' j,
@@ -86,7 +86,7 @@ begin
     { exact λ j, le_of_lt (cardinal.lt_omega_iff_finite.2 $ finite_image _ (finset.finite_to_set _)) },
     { rwa [cardinal.sum_const, cardinal.mul_eq_max oJ (le_refl _), max_eq_left oJ] } },
   { rcases exists_finite_card_le_of_finite_of_linear_independent_of_span
-      (cardinal.lt_omega_iff_finite.1 oJ) (linear_independent.id_of_univ hv.1) _ with ⟨fI, hi⟩,
+      (cardinal.lt_omega_iff_finite.1 oJ) hv.1.to_subtype_range _ with ⟨fI, hi⟩,
     { rwa [← cardinal.nat_cast_le, cardinal.finset_card, finset.coe_to_finset,
         cardinal.finset_card, finset.coe_to_finset] at hi, },
     { rw hJ, apply set.subset_univ } },
@@ -179,15 +179,16 @@ by rw [←cardinal.lift_inj,
 lemma dim_of_field (α : Type*) [discrete_field α] : dim α α = 1 :=
 by rw [←cardinal.lift_inj, ← (@is_basis_singleton_one punit _ α _ _ _).mk_eq_dim, cardinal.mk_punit]
 
-lemma dim_span [decidable_eq β] {v : ι → β} (hv : linear_independent α v univ) :
+lemma dim_span [decidable_eq β] {v : ι → β} (hv : linear_independent α v) :
   dim α ↥(span α (range v)) = cardinal.mk (range v) :=
 by rw [←cardinal.lift_inj, ← (is_basis_span hv).mk_eq_dim,
-    cardinal.mk_range_eq_of_inj (@linear_independent.injective' ι α β v _ _ _ _ _ _ zero_ne_one hv)]
+    cardinal.mk_range_eq_of_inj (@linear_independent.injective ι α β v _ _ _ _ _ _ zero_ne_one hv)]
 
-lemma dim_span_set [decidable_eq β] {s : set β} (hs : linear_independent α (subtype.val : s → β) univ) :
+lemma dim_span_set [decidable_eq β] {s : set β} (hs : linear_independent α (λ x, x : s → β)) :
   dim α ↥(span α s) = cardinal.mk s :=
 begin
-  have := dim_span hs,
+  have hs' : linear_independent α (subtype.val : s → β) := hs,
+  have := dim_span hs',
   rw [subtype.val_range, set_of_mem_eq] at this,
   rw this --TODO: shorten?
 end
@@ -195,12 +196,12 @@ end
 lemma dim_span_le (s : set β) [decidable_eq β] : dim α (span α s) ≤ cardinal.mk s :=
 begin
   rcases
-    exists_linear_independent (@linear_independent_empty β α β id _ _ _ _ _ _) (set.empty_subset s)
+    exists_linear_independent linear_independent_empty (set.empty_subset s)
     with ⟨b, hb, _, hsb, hlib⟩,
   have hsab : span α s = span α b,
     from span_eq_of_le _ hsb (span_le.2 (λ x hx, subset_span (hb hx))),
   convert cardinal.mk_le_mk_of_subset hb,
-  rw [hsab, dim_span_set (linear_independent.univ_of_id' _ hlib)]
+  rw [hsab, dim_span_set hlib]
 end
 
 lemma dim_span_of_finset [decidable_eq β] (s : finset β) :
@@ -271,10 +272,10 @@ set_option class.instance_max_depth 37
 lemma dim_submodule_le [decidable_eq β] (s : submodule α β) : dim α s ≤ dim α β :=
 begin
   rcases exists_is_basis α s with ⟨bs, hbs⟩,
-  have : linear_independent α (λ (i : bs), submodule.subtype s i.val) univ :=
-    (linear_independent.image' hbs.1) (linear_map.disjoint_ker'.2
+  have : linear_independent α (λ (i : bs), submodule.subtype s i.val) :=
+    (linear_independent.image hbs.1) (linear_map.disjoint_ker'.2
         (λ _ _ _ _ h, subtype.val_injective h)),
-  rcases exists_subset_is_basis (linear_independent.id_of_univ this) with ⟨b, hbs_b, hb⟩,
+  rcases exists_subset_is_basis (this.to_subtype_range) with ⟨b, hbs_b, hb⟩,
   rw [←cardinal.lift_le, ← is_basis.mk_eq_dim hbs, ← is_basis.mk_eq_dim hb, cardinal.lift_le],
   have : subtype.val '' bs ⊆ b,
   { convert hbs_b,

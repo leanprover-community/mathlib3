@@ -121,9 +121,9 @@ end
 
 def dual_basis : ι → dual K V := λ i, h.to_dual (B i)
 
-theorem dual_lin_independent : linear_independent K h.dual_basis set.univ :=
+theorem dual_lin_independent : linear_independent K h.dual_basis :=
 begin
-  apply linear_independent.image' h.1,
+  apply linear_independent.image h.1,
   rw to_dual_ker,
   exact disjoint_bot_right
 end

@@ -3,7 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad, Leonardo de Moura
 -/
-import tactic.basic tactic.finish data.subtype
+import tactic.basic tactic.finish data.subtype logic.unique
 open function
 
 
@@ -504,6 +504,15 @@ by rw [inter_comm, singleton_inter_eq_empty]
 
 lemma nmem_singleton_empty {s : set α} : s ∉ ({∅} : set (set α)) ↔ nonempty s :=
 by simp [coe_nonempty_iff_ne_empty]
+
+instance unique_singleton {α : Type*} (a : α) : unique ↥({a} : set α) :=
+{ default := ⟨a, mem_singleton a⟩,
+  uniq :=
+  begin
+    intros x,
+    apply subtype.coe_ext.2,
+    apply eq_of_mem_singleton (subtype.mem x),
+  end}
 
 /- separation -/
 
@@ -1094,6 +1103,9 @@ subset.antisymm
 theorem range_subset_iff {ι : Type*} {f : ι → β} {s : set β} : range f ⊆ s ↔ ∀ y, f y ∈ s :=
 forall_range_iff
 
+lemma range_comp_subset_range (f : α → β) (g : β → γ) : range (g ∘ f) ⊆ range g :=
+by rw range_comp; apply image_subset_range
+
 lemma nonempty_of_nonempty_range {α : Type*} {β : Type*} {f : α → β} (H : ¬range f = ∅) : nonempty α :=
 begin
   cases exists_mem_of_ne_empty H with x h,
@@ -1164,6 +1176,30 @@ lemma surjective_onto_range : surjective (range_factorization f) :=
 
 lemma image_eq_range (f : α → β) (s : set α) : f '' s = range (λ(x : s), f x.1) :=
 by { ext, split, rintro ⟨x, h1, h2⟩, exact ⟨⟨x, h1⟩, h2⟩, rintro ⟨⟨x, h1⟩, h2⟩, exact ⟨x, h1, h2⟩ }
+
+@[simp] lemma sum.elim_range {α β γ : Type*} (f : α → γ) (g : β → γ) :
+  range (sum.elim f g) = range f ∪ range g :=
+begin
+  apply subset.antisymm,
+  { intros x hx,
+    rcases set.mem_range.1 hx with ⟨a, ha⟩,
+    cases a,
+    { apply mem_union_left,
+      rw ←ha,
+      exact mem_range_self _ },
+    { apply mem_union_right,
+      rw ←ha,
+      exact mem_range_self _ } },
+  { intros x hx,
+    cases hx,
+    { rcases set.mem_range.1 hx with ⟨a, ha⟩,
+      use a,
+      simpa },
+    { rcases set.mem_range.1 hx with ⟨a, ha⟩,
+      apply set.mem_range.2,
+      existsi (sum.inr a),
+      simpa } }
+end
 
 end range
 

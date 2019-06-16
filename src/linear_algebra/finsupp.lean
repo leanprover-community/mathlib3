@@ -137,7 +137,7 @@ variables {β γ}
 
 set_option class.instance_max_depth 50
 @[simp] theorem restrict_dom_apply (s : set α) [decidable_pred (λ x, x ∈ s)] (l : α →₀ β) :
-  ↑((restrict_dom β γ s : α →₀ β →ₗ supported β γ s) l) = finsupp.filter (∈ s) l := rfl
+  ((restrict_dom β γ s : α →₀ β →ₗ supported β γ s) l : α →₀ β) = finsupp.filter (∈ s) l := rfl
 set_option class.instance_max_depth 32
 
 theorem restrict_dom_comp_subtype (s : set α) [decidable_pred (λ x, x ∈ s)] :
@@ -305,6 +305,27 @@ begin
   intros x,
   apply exists.elim (h x),
   exact λ i hi, ⟨single i 1, by simp [hi]⟩
+end
+
+lemma range_total : (finsupp.total α β γ v).range = span γ (range v) :=
+begin
+  ext x,
+  split,
+  { intros hx,
+    rw [linear_map.mem_range] at hx,
+    rcases hx with ⟨l, hl⟩,
+    rw ← hl,
+    rw finsupp.total_apply,
+    unfold finsupp.sum,
+    apply sum_mem (span γ (range v)),
+    { exact λ i hi, submodule.smul _ _ (subset_span (mem_range_self i)) },
+    apply_instance },
+  { apply span_le.2,
+    intros x hx,
+    rcases hx with ⟨i, hi⟩,
+    rw [mem_coe, linear_map.mem_range],
+    use finsupp.single i 1,
+    simp [hi] }
 end
 
 theorem lmap_domain_total (f : α → α') (g : β →ₗ[γ] β') (h : ∀ i, g (v i) = v' (f i)) :

@@ -12,7 +12,7 @@ open category_theory
 namespace category_theory.limits
 
 variables {β : Type v}
-variables {C : Sort u} [𝒞 : category.{v+1} C]
+variables {C : Type u} [𝒞 : category.{v+1} C]
 include 𝒞
 
 -- We don't need an analogue of `pair` (for binary products), `parallel_pair` (for equalizers),

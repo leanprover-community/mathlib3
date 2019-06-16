@@ -86,11 +86,11 @@ by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
    intros; ext; simp
 
 instance linear_map.is_add_group_hom : is_add_group_hom f :=
-by refine_struct {..}; simp
+{ map_add := f.add }
 
 instance linear_map_apply_is_add_group_hom (a : β) :
   is_add_group_hom (λ f : β →ₗ[α] γ, f a) :=
-by refine_struct {..}; simp
+{ map_add := λ f g, linear_map.add_apply f g a }
 
 lemma sum_apply [decidable_eq δ] (t : finset δ) (f : δ → β →ₗ[α] γ) (b : β) :
   t.sum f b = t.sum (λd, f d b) :=

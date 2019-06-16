@@ -841,6 +841,28 @@ theorem Limsup_eq_of_le_nhds : ∀ {f : filter α} {a : α}, f ≠ ⊥ → f ≤
 
 end conditionally_complete_linear_order
 
+section complete_linear_order
+variables [complete_linear_order α] [topological_space α] [orderable_topology α]
+-- In complete_linear_order, the above theorems take a simpler form
+
+/-- If the liminf and the limsup of a function coincide, then the limit of the function 
+exists and has the same value -/
+theorem tendsto_of_liminf_eq_limsup {f : filter β} {u : β → α} {a : α} 
+  (h : liminf f u = a ∧ limsup f u = a) : tendsto u f (nhds a) := 
+  le_nhds_of_Limsup_eq_Liminf is_bounded_le_of_top is_bounded_ge_of_bot h.2 h.1
+
+/-- If a function has a limit, then its limsup coincides with its limit-/
+theorem limsup_eq_of_tendsto {f : filter β} {u : β → α} {a : α} (hf : f ≠ ⊥) 
+  (h : tendsto u f (nhds a)) : limsup f u = a := 
+  Limsup_eq_of_le_nhds (map_ne_bot hf) h 
+
+/-- If a function has a limit, then its liminf coincides with its limit-/
+theorem liminf_eq_of_tendsto {f : filter β} {u : β → α} {a : α} (hf : f ≠ ⊥) 
+  (h : tendsto u f (nhds a)) : liminf f u = a := 
+  Liminf_eq_of_le_nhds (map_ne_bot hf) h 
+  
+end complete_linear_order
+
 end liminf_limsup
 
 end orderable_topology

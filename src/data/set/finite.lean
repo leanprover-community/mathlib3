@@ -347,6 +347,51 @@ by simp [set.ext_iff]
 @[simp] lemma coe_to_finset' [decidable_eq α] (s : set α) [fintype s] : (↑s.to_finset : set α) = s :=
 by ext; simp
 
+section preimage
+
+noncomputable def preimage {α β : Type*} {f : α → β} (s : finset β)
+  (hf : set.inj_on f (f ⁻¹' s.to_set)) : finset α :=
+set.finite.to_finset (set.finite_of_finite_image_on hf
+    (set.finite_subset s.finite_to_set (set.image_preimage_subset _ _)))
+
+lemma preimage_mem {α β : Type*} [decidable_eq β] (f : α → β) (s : finset β)
+  (hf : set.inj_on f (f ⁻¹' s.to_set)) (x : α) :
+  x ∈ preimage s hf ↔ f x ∈ s :=
+by simp [preimage, to_set]
+
+lemma image_preimage {α β : Type*} [decidable_eq β] (f : α → β) (s : finset β)
+  (hf : set.bij_on f (f ⁻¹' s.to_set) s.to_set) :
+  image f (preimage s (set.inj_on_of_bij_on hf)) = s :=
+begin
+  apply subset.antisymm,
+  { intros b hb,
+    rw mem_image at hb,
+    rcases hb with ⟨a, ha, hab⟩,
+    simp [preimage, to_set] at ha,
+    rwa ←hab, },
+  { intros b hb,
+    rw mem_image,
+    rcases (set.mem_image _ _ _).1 (set.surj_on_of_bij_on hf hb) with ⟨a, ha, hab⟩,
+    refine ⟨a, _, hab⟩,
+    simp [preimage, to_set, hab, hb] }
+end
+
+lemma sum_preimage {α β γ : Type*} [decidable_eq β] [add_comm_monoid γ] (f : α → β) (s : finset β)
+  (hf : set.bij_on f (f ⁻¹' s.to_set) s.to_set) (g : β → γ) :
+  (preimage s (set.inj_on_of_bij_on hf)).sum (g ∘ f) = s.sum g  :=
+calc
+  (preimage s (set.inj_on_of_bij_on hf)).sum (g ∘ f)
+      = (image f (preimage s (set.inj_on_of_bij_on hf))).sum g :
+          begin
+            rw sum_image,
+            intros x hx y hy hxy,
+            apply set.inj_on_of_bij_on hf,
+            repeat { simp [preimage, to_set] at *, assumption }
+          end
+  ... = s.sum g : by rw image_preimage
+
+end preimage
+
 end finset
 
 namespace set

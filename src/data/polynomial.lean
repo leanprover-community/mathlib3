@@ -116,6 +116,9 @@ instance C.is_semiring_hom : is_semiring_hom (C : α → polynomial α) :=
 
 @[simp] lemma C_pow : C (a ^ n) = C a ^ n := is_semiring_hom.map_pow _ _ _
 
+lemma nat_cast_eq_C (n : ℕ) : (n : polynomial α) = C n :=
+by refine (nat.eq_cast (λ n, C (n : α)) _ _ _ n).symm; simp
+
 section coeff
 
 lemma apply_eq_coeff : p n = coeff p n := rfl
@@ -517,6 +520,9 @@ begin
 end
 
 @[simp] lemma nat_degree_one : nat_degree (1 : polynomial α) = 0 := nat_degree_C 1
+
+@[simp] lemma nat_degree_nat_cast (n : ℕ) : nat_degree (n : polynomial α) = 0 :=
+by simp [nat_cast_eq_C]
 
 @[simp] lemma degree_monomial (n : ℕ) (ha : a ≠ 0) : degree (C a * X ^ n) = n :=
 by rw [← single_eq_C_mul_X, degree, support_single_ne_zero ha]; refl
@@ -1141,6 +1147,9 @@ variable {α}
 
 instance C.is_ring_hom : is_ring_hom (@C α _ _) := by apply is_ring_hom.of_semiring
 
+lemma int_cast_eq_C (n : ℤ) : (n : polynomial α) = C n :=
+congr_fun (int.eq_cast' _).symm n
+
 @[simp] lemma C_neg : C (-a) = -C a := is_ring_hom.map_neg C
 
 @[simp] lemma C_sub : C (a - b) = C a - C b := is_ring_hom.map_sub C
@@ -1163,6 +1172,9 @@ eval₂.is_ring_hom (C ∘ f)
 
 @[simp] lemma degree_neg (p : polynomial α) : degree (-p) = degree p :=
 by unfold degree; rw support_neg
+
+@[simp] lemma nat_degree_int_cast (n : ℤ) : nat_degree (n : polynomial α) = 0 :=
+by simp [int_cast_eq_C]
 
 @[simp] lemma coeff_neg (p : polynomial α) (n : ℕ) : coeff (-p) n = -coeff p n := rfl
 

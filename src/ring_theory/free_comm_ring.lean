@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2019 Kenny Lau. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kenny Lau, Johan Commelin
+-/
+
 import group_theory.free_abelian_group data.equiv.algebra data.equiv.functor data.polynomial
 import ring_theory.ideal_operations ring_theory.free_ring
 
@@ -98,6 +104,100 @@ lift $ of ∘ f
 @[simp] lemma map_sub (x y) : map f (x - y) = map f x - map f y := lift_sub _ _ _
 @[simp] lemma map_mul (x y) : map f (x * y) = map f x * map f y := lift_mul _ _ _
 @[simp] lemma map_pow (x) (n : ℕ) : map f (x ^ n) = (map f x) ^ n := lift_pow _ _ _
+
+def is_supported (x : free_comm_ring α) (s : set α) : Prop :=
+x ∈ ring.closure (of '' s)
+
+section is_supported
+variables {x y : free_comm_ring α} {s t : set α}
+
+theorem is_supported_upwards (hs : is_supported x s) (hst : s ⊆ t) :
+  is_supported x t :=
+ring.closure_mono (set.mono_image hst) hs
+
+theorem is_supported_add (hxs : is_supported x s) (hys : is_supported y s) :
+  is_supported (x + y) s :=
+is_add_submonoid.add_mem hxs hys
+
+theorem is_supported_neg (hxs : is_supported x s) :
+  is_supported (-x) s :=
+is_add_subgroup.neg_mem hxs
+
+theorem is_supported_sub (hxs : is_supported x s) (hys : is_supported y s) :
+  is_supported (x - y) s :=
+is_add_subgroup.sub_mem _ _ _ hxs hys
+
+theorem is_supported_mul (hxs : is_supported x s) (hys : is_supported y s) :
+  is_supported (x * y) s :=
+is_submonoid.mul_mem hxs hys
+
+theorem is_supported_zero : is_supported 0 s :=
+is_add_submonoid.zero_mem _
+
+theorem is_supported_one : is_supported 1 s :=
+is_submonoid.one_mem _
+
+theorem is_supported_int {i : ℤ} {s : set α} : is_supported ↑i s :=
+int.induction_on i is_supported_zero
+  (λ i hi, by rw [int.cast_add, int.cast_one]; exact is_supported_add hi is_supported_one)
+  (λ i hi, by rw [int.cast_sub, int.cast_one]; exact is_supported_sub hi is_supported_one)
+
+end is_supported
+
+def restriction (s : set α) [decidable_pred s] (x : free_comm_ring α) : free_comm_ring s :=
+lift (λ p, if H : p ∈ s then of ⟨p, H⟩ else 0) x
+
+section restriction
+variables (s : set α) [decidable_pred s] (x y : free_comm_ring α)
+@[simp] lemma restriction_of (p) : restriction s (of p) = if H : p ∈ s then of ⟨p, H⟩ else 0 := lift_of _ _
+@[simp] lemma restriction_zero : restriction s 0 = 0 := lift_zero _
+@[simp] lemma restriction_one : restriction s 1 = 1 := lift_one _
+@[simp] lemma restriction_add : restriction s (x + y) = restriction s x + restriction s y := lift_add _ _ _
+@[simp] lemma restriction_neg : restriction s (-x) = -restriction s x := lift_neg _ _
+@[simp] lemma restriction_sub : restriction s (x - y) = restriction s x - restriction s y := lift_sub _ _ _
+@[simp] lemma restriction_mul : restriction s (x * y) = restriction s x * restriction s y := lift_mul _ _ _
+end restriction
+
+theorem is_supported_of {p} {s : set α} : is_supported (of p) s ↔ p ∈ s :=
+suffices is_supported (of p) s → p ∈ s, from ⟨this, λ hps, ring.subset_closure ⟨p, hps, rfl⟩⟩,
+assume hps : is_supported (of p) s, begin
+  classical,
+  have : ∀ x, is_supported x s →
+    ∃ (n : ℤ), lift (λ a, if a ∈ s then (0 : polynomial ℤ) else polynomial.X) x = n,
+  { intros x hx, refine ring.in_closure.rec_on hx _ _ _ _,
+    { use 1, rw [lift_one], norm_cast },
+    { use -1, rw [lift_neg, lift_one], norm_cast },
+    { rintros _ ⟨z, hzs, rfl⟩ _ _, use 0, rw [lift_mul, lift_of, if_pos hzs, zero_mul], norm_cast },
+    { rintros x y ⟨q, hq⟩ ⟨r, hr⟩, refine ⟨q+r, _⟩, rw [lift_add, hq, hr], norm_cast } },
+  specialize this (of p) hps, rw [lift_of] at this, split_ifs at this, { exact h },
+  exfalso, apply int.zero_ne_one,
+  rcases this with ⟨w, H⟩, rw polynomial.int_cast_eq_C at H,
+  exact congr_arg (λ (f : polynomial ℤ), f.coeff 1) H.symm
+end
+
+theorem map_subtype_val_restriction {x} (s : set α) [decidable_pred s] (hxs : is_supported x s) :
+  map subtype.val (restriction s x) = x :=
+begin
+  refine ring.in_closure.rec_on hxs _ _ _ _,
+  { rw restriction_one, refl },
+  { rw [restriction_neg, map_neg, restriction_one], refl },
+  { rintros _ ⟨p, hps, rfl⟩ n ih, rw [restriction_mul, restriction_of, dif_pos hps, map_mul, map_of, ih] },
+  { intros x y ihx ihy, rw [restriction_add, map_add, ihx, ihy] }
+end
+
+theorem exists_finite_support (x : free_comm_ring α) : ∃ s : set α, set.finite s ∧ is_supported x s :=
+free_comm_ring.induction_on x
+  ⟨∅, set.finite_empty, is_supported_neg is_supported_one⟩
+  (λ p, ⟨{p}, set.finite_singleton p, is_supported_of.2 $ finset.mem_singleton_self _⟩)
+  (λ x y ⟨s, hfs, hxs⟩ ⟨t, hft, hxt⟩, ⟨s ∪ t, set.finite_union hfs hft, is_supported_add
+    (is_supported_upwards hxs $ set.subset_union_left s t)
+    (is_supported_upwards hxt $ set.subset_union_right s t)⟩)
+  (λ x y ⟨s, hfs, hxs⟩ ⟨t, hft, hxt⟩, ⟨s ∪ t, set.finite_union hfs hft, is_supported_mul
+    (is_supported_upwards hxs $ set.subset_union_left s t)
+    (is_supported_upwards hxt $ set.subset_union_right s t)⟩)
+
+theorem exists_finset_support (x : free_comm_ring α) : ∃ s : finset α, is_supported x ↑s :=
+let ⟨s, hfs, hxs⟩ := exists_finite_support x in ⟨hfs.to_finset, by rwa finset.coe_to_finset⟩
 
 end free_comm_ring
 

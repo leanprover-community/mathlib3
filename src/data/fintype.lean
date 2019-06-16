@@ -682,3 +682,29 @@ lemma bijective_bij_inv (f_bij : bijective f) : bijective (bij_inv f_bij) :=
 end bijection_inverse
 
 end fintype
+
+class infinite (α : Type*) : Prop :=
+(not_fintype : fintype α → false)
+
+namespace infinite
+
+lemma exists_not_mem_finset [infinite α] (s : finset α) : ∃ x, x ∉ s :=
+classical.not_forall.1 $ λ h, not_fintype ⟨s, h⟩
+
+instance nonempty (α : Type*) [infinite α] : nonempty α :=
+nonempty_of_exists (exists_not_mem_finset (∅ : finset α))
+
+lemma of_injective [infinite β] (f : β → α) (hf : injective f) : infinite α :=
+⟨λ I, by exactI not_fintype (fintype.of_injective f hf)⟩
+
+lemma of_surjective [infinite β] (f : α → β) (hf : surjective f) : infinite α :=
+⟨λ I, by classical; exactI not_fintype (fintype.of_surjective f hf)⟩
+
+end infinite
+
+instance nat.infinite : infinite ℕ :=
+⟨λ ⟨s, hs⟩, not_le_of_gt (nat.lt_succ_self (s.sum id)) $
+  @finset.single_le_sum _ _ _ id _ _ (λ _ _, nat.zero_le _) _ (hs _)⟩
+
+instance int.infinite : infinite ℤ :=
+infinite.of_injective int.of_nat (λ _ _, int.of_nat_inj)

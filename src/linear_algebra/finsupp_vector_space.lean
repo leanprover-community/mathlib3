@@ -26,22 +26,17 @@ begin
     { rw ker_lsingle,
       exact disjoint_bot_right },
     apply linear_independent.image (hf a) h_disjoint },
-  { intros s g hs hg l hl,
-    apply pi.almost_linindep_of_disjoint,
-    { apply disjoint_lsingle_lsingle },
-    { intro i,
-      rw ←span_eq (range (lsingle ↑i)),
-      rw mem_span,
-      intros p hp,
-      apply mem_span.1 (hg i) p,
-      apply subset.trans _ hp,
-      intros x hx,
+  { intros i t ht hit,
+    apply disjoint_mono _ _ (disjoint_lsingle_lsingle {i} t (disjoint_singleton_left.2 hit)),
+    { rw span_le,
+      simp only [supr_singleton],
       rw range_coe,
-      rw set.mem_range,
-      rcases set.mem_range.1 hx  with ⟨y, hy⟩,
-      existsi (f i y),
-      apply hy },
-    { exact hl } }
+      apply range_comp_subset_range },
+    { refine supr_le_supr (λ i, supr_le_supr _),
+      intros hi,
+      rw span_le,
+      rw range_coe,
+      apply range_comp_subset_range } }
 end
 
 end module

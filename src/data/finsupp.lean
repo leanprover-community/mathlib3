@@ -27,48 +27,6 @@ variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ι : Type*}
 
 reserve infix ` →₀ `:25
 
--- TODO: move? But depends on set... (Alex)
-noncomputable def finset.preimage {α β : Type*} {f : α → β} (s : finset β)
-  (hf : set.inj_on f (f ⁻¹' s.to_set)) : finset α :=
-set.finite.to_finset (set.finite_of_finite_image_on hf
-    (set.finite_subset s.finite_to_set (set.image_preimage_subset _ _)))
-
-lemma finset.preimage_mem {α β : Type*} [decidable_eq β] (f : α → β) (s : finset β)
-  (hf : set.inj_on f (f ⁻¹' s.to_set)) (x : α) :
-  x ∈ finset.preimage s hf ↔ f x ∈ s :=
-by simp [finset.preimage, finset.to_set]
-
-lemma finset.image_preimage {α β : Type*} [decidable_eq β] (f : α → β) (s : finset β)
-  (hf : set.bij_on f (f ⁻¹' s.to_set) s.to_set) :
-  finset.image f (finset.preimage s (set.inj_on_of_bij_on hf)) = s :=
-begin
-  apply subset.antisymm,
-  { intros b hb,
-    rw mem_image at hb,
-    rcases hb with ⟨a, ha, hab⟩,
-    simp [finset.preimage, finset.to_set] at ha,
-    rwa ←hab, },
-  { intros b hb,
-    rw mem_image,
-    rcases (set.mem_image _ _ _).1 (set.surj_on_of_bij_on hf hb) with ⟨a, ha, hab⟩,
-    refine ⟨a, _, hab⟩,
-    simp [finset.preimage, finset.to_set, hab, hb] }
-end
-
-lemma finset.sum_preimage {α β γ : Type*} [decidable_eq β] [add_comm_monoid γ] (f : α → β) (s : finset β)
-  (hf : set.bij_on f (f ⁻¹' s.to_set) s.to_set) (g : β → γ) :
-  (finset.preimage s (set.inj_on_of_bij_on hf)).sum (g ∘ f) = s.sum g  :=
-calc
-  (finset.preimage s (set.inj_on_of_bij_on hf)).sum (g ∘ f)
-      = (finset.image f (finset.preimage s (set.inj_on_of_bij_on hf))).sum g :
-          begin
-            rw sum_image,
-            intros x hx y hy hxy,
-            apply set.inj_on_of_bij_on hf,
-            repeat { simp [finset.preimage, finset.to_set] at *, assumption }
-          end
-  ... = s.sum g : by rw finset.image_preimage
-
 /-- `finsupp α β`, denoted `α →₀ β`, is the type of functions `f : α → β` such that
   `f x = 0` for all but finitely many `x`. -/
 structure finsupp (α : Type*) (β : Type*) [has_zero β] :=
@@ -202,6 +160,9 @@ lemma single_swap {α β : Type*} [decidable_eq α] [decidable_eq β] [has_zero 
   (single a₁ b : α → β) a₂ = (single a₂ b : α → β) a₁ :=
 by simp [single_apply]; ac_refl
 
+lemma unique_single [unique α] (x : α →₀ β) : x = single (default α) (x (default α)) :=
+by ext i; simp [unique.eq_default i]
+
 end single
 
 section on_finset
@@ -320,6 +281,29 @@ begin
   { rcases h with ⟨a', rfl⟩,
     rw [map_range_apply, emb_domain_apply, emb_domain_apply, map_range_apply] },
   { rw [map_range_apply, emb_domain_notin_range, emb_domain_notin_range, ← hg]; assumption }
+end
+
+lemma single_of_emb_domain_single
+  [decidable_eq α₁] [decidable_eq α₂] [decidable_eq β]
+  (l : α₁ →₀ β) (f : α₁ ↪ α₂) (a : α₂) (b : β) (hb : b ≠ 0)
+  (h : l.emb_domain f = finsupp.single a b) :
+  ∃ x, l = finsupp.single x b ∧ f x = a :=
+begin
+  have h_map_support : finset.map f (l.support) = finset.singleton a,
+    by rw [←finsupp.support_emb_domain, h, finsupp.support_single_ne_zero hb]; refl,
+  have ha : a ∈ finset.map f (l.support),
+    by simp [h_map_support],
+  rcases finset.mem_map.1 ha with ⟨c, hc₁, hc₂⟩,
+  use c,
+  split,
+  { ext d,
+    rw [← finsupp.emb_domain_apply f l, h],
+    by_cases h_cases : c = d,
+    { simp [h_cases.symm, hc₂] },
+    { rw [finsupp.single_apply, finsupp.single_apply, if_neg, if_neg h_cases],
+      by_contra hfd,
+      exact h_cases (f.inj (hc₂.trans hfd)) } },
+  { exact hc₂ }
 end
 
 end emb_domain
@@ -1349,6 +1333,10 @@ by simp only [finsupp.sum, finset.sum_mul]
 lemma mul_sum (b : γ) (s : α →₀ β) {f : α → β → γ} :
   b * (s.sum f) = s.sum (λ a c, b * (f a (s a))) :=
 by simp only [finsupp.sum, finset.mul_sum]
+
+protected lemma eq_zero_of_zero_eq_one
+  (zero_eq_one : (0 : β) = 1) (l : α →₀ β) : l = 0 :=
+  by ext i; simp [eq_zero_of_zero_eq_one β zero_eq_one (l i)]
 
 end
 

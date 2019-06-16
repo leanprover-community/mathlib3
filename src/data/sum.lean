@@ -40,6 +40,21 @@ protected def map {α α' β β'} (f : α → α') (g : β → β')  : α ⊕ β
 
 @[simp] theorem inr_ne_inl {a : α} {b : β} : inr b ≠ inl a.
 
+protected def elim {α β γ : Type*} (f : α → γ) (g : β → γ) : α ⊕ β → γ := λ x, sum.rec_on x f g
+
+@[simp] lemma elim_inl {α β γ : Type*} (f : α → γ) (g : β → γ) (x : α) :
+  sum.elim f g (inl x) = f x := rfl
+
+@[simp] lemma elim_inr {α β γ : Type*} (f : α → γ) (g : β → γ) (x : β) :
+  sum.elim f g (inr x) = g x := rfl
+
+lemma elim_injective {α β γ : Type*} (f : α → γ) (g : β → γ)
+  (hf : function.injective f) (hg : function.injective g)
+ (hfg : ∀ a b, f a ≠ g b) : function.injective (sum.elim f g) :=
+λ x y, sum.rec_on x
+  (sum.rec_on y (λ x y hxy, by rw hf hxy) (λ x y hxy, false.elim $ hfg _ _ hxy))
+  (sum.rec_on y (λ x y hxy, false.elim $ hfg x y hxy.symm) (λ x y hxy, by rw hg hxy))
+
 section
   variables (ra : α → α → Prop) (rb : β → β → Prop)
 

@@ -782,7 +782,7 @@ assume x hx, h hx
 @[simp] theorem preimage_set_of_eq {p : α → Prop} {f : β → α} : f ⁻¹' {a | p a} = {a | p (f a)} :=
 rfl
 
-theorem preimage_id {s : set α} : id ⁻¹' s = s := rfl
+@[simp] theorem preimage_id {s : set α} : id ⁻¹' s = s := rfl
 
 theorem preimage_comp {s : set γ} : (g ∘ f) ⁻¹' s = f ⁻¹' (g ⁻¹' s) := rfl
 
@@ -1337,6 +1337,23 @@ ext $ assume ⟨a, b⟩, by simp
 lemma prod_sub_preimage_iff {W : set γ} {f : α × β → γ} :
   set.prod s t ⊆ f ⁻¹' W ↔ ∀ a b, a ∈ s → b ∈ t → f (a, b) ∈ W :=
 by simp [subset_def]
+
+lemma fst_image_prod_subset {s : set α} {t : set β} :
+  prod.fst '' (set.prod s t) ⊆ s :=
+begin
+  assume x hx,
+  simp only [set.mem_image, exists_and_distrib_right, exists_eq_right, set.mem_prod,
+             exists_and_distrib_left, prod.exists] at hx,
+  exact hx.1
+end
+
+lemma snd_image_prod_subset {s : set α} {t : set β} :
+  prod.snd '' (set.prod s t) ⊆ t :=
+begin
+  assume x hx,
+  simp only [set.mem_image, exists_and_distrib_right, exists_eq_right, set.mem_prod, prod.exists] at hx,
+  exact hx.2
+end
 
 end prod
 

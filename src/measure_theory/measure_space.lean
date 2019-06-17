@@ -393,7 +393,7 @@ begin
     ← ennreal.sub_sub_cancel (by exact hk) (measure_mono (Inter_subset _ k)),
     ← measure_diff (Inter_subset _ k) (h k) (is_measurable.Inter h)
       (lt_of_le_of_lt (measure_mono (Inter_subset _ k)) hk),
-    diff_Inter_left, measure_Union_eq_supr_nat],
+    diff_Inter, measure_Union_eq_supr_nat],
   { congr, funext i,
     cases le_total k i with ik ik,
     { exact measure_diff (hs _ _ ik) (h k) (h i)
@@ -873,7 +873,7 @@ iff.intro
 
 lemma all_ae_iff {p : α → Prop} : (∀ₘ a, p a) ↔ volume { a | ¬ p a } = 0 := iff.refl _
 
-lemma all_ae_of_all {p : α → Prop} : (∀a, p a) → ∀ₘ a, p a := assume h, 
+lemma all_ae_of_all {p : α → Prop} : (∀a, p a) → ∀ₘ a, p a := assume h,
 by {rw all_ae_iff, convert volume_empty, simp only [h, not_true], reflexivity}
 
 lemma all_ae_all_iff {ι : Type*} [encodable ι] {p : α → ι → Prop} :

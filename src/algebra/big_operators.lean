@@ -21,6 +21,10 @@ multiset.induction_on s.1 (let ⟨z⟩ := hι in ⟨z, λ _, false.elim⟩) $
   (λ h, h.symm ▸ h₁)
   (λ h, trans (H _ h) h₂)⟩
 
+theorem finset.exists_le {α : Type u} [nonempty α] [directed_order α] (s : finset α) :
+  ∃ M, ∀ i ∈ s, i ≤ M :=
+directed.finset_le (by apply_instance) directed_order.directed s
+
 namespace finset
 variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
 

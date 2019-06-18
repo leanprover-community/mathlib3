@@ -281,7 +281,6 @@ instance is_add_group_hom (h : α ≃+ β) : is_add_group_hom h.to_equiv := ⟨h
 
 end add_equiv
 
-
 namespace units
 
 variables [monoid α] [monoid β] [monoid γ]
@@ -329,9 +328,8 @@ instance symm.is_ring_hom {e : α ≃r β} : is_ring_hom e.to_equiv.symm := hom 
 
 end ring_equiv
 
-
--- We first define the type of automorphisms on groups, additive monoids, additive groups
--- and rings using `mul_equiv`, `add_equiv` and `ring_equiv`.
+-- We first define the type of automorphisms on groups, additive monoids,
+-- additive groups and rings using `mul_equiv`, `add_equiv` and `ring_equiv`.
 -- In each case this type is also a group.
 
 namespace group_automorphism
@@ -340,27 +338,16 @@ def aut (γ : Type) [group γ] := mul_equiv γ γ
 
 @[extensionality] lemma ext_mul_equiv (α β : Type) [group α] [group β] (f : mul_equiv α β)
 (g : mul_equiv α β) (h : f.to_fun = g.to_fun) : f = g :=
-begin
-  cases f,
-  cases g,
-  congr,
-  ext x,
-  exact congr_fun h x,
-end
+by { cases f, cases g, congr, apply equiv.eq_of_to_fun_eq h }
 
-instance aut_group (γ : Type) [group γ] : group (aut γ) := {
-mul := λ g h, mul_equiv.trans h g,
-one := mul_equiv.refl γ,
-inv := mul_equiv.symm,
-mul_assoc := λ _ _ _, by { ext, refl },
-one_mul := λ _, by { ext, refl },
-mul_one := λ _, by { ext, refl },
-mul_left_inv := λ f,
-begin
-  ext,
-  unfold has_inv.inv,
-  exact equiv.symm_apply_apply (f.to_equiv) x,
-end}
+instance aut_group (γ : Type) [group γ] : group (aut γ) :=
+{ mul := λ g h, mul_equiv.trans h g,
+  one := mul_equiv.refl γ,
+  inv := mul_equiv.symm,
+  mul_assoc := λ _ _ _, by { ext, refl },
+  one_mul := λ _, by { ext, refl },
+  mul_one := λ _, by { ext, refl },
+  mul_left_inv := λ f, by { ext, apply equiv.left_inv } }
 
 end group_automorphism
 
@@ -370,38 +357,27 @@ def aut (α : Type) [has_add α] := add_equiv α α
 
 @[extensionality] lemma ext_add_equiv (α β : Type) [has_add α] [has_add β] (f : add_equiv α β)
 (g : add_equiv α β) (h : f.to_fun = g.to_fun) : f = g :=
-begin
-  cases f,
-  cases g,
-  congr,
-  ext x,
-  exact congr_fun h x,
-end
+by { cases f, cases g, congr, apply equiv.eq_of_to_fun_eq h }
 
-instance aut_group (α : Type) [has_add α] : group (aut α) := {
-mul := λ g h, add_equiv.trans h g,
-one := add_equiv.refl α,
-inv := add_equiv.symm,
-mul_assoc := λ _ _ _, by { ext, refl },
-one_mul := λ _, by { ext, refl },
-mul_one := λ _, by { ext, refl },
-mul_left_inv := λ f,
-begin
-  ext,
-  unfold has_inv.inv,
-  exact equiv.symm_apply_apply (f.to_equiv) x,
-end}
+instance aut_group (α : Type) [has_add α] : group (aut α) :=
+{ mul := λ g h, add_equiv.trans h g,
+  one := add_equiv.refl α,
+  inv := add_equiv.symm,
+  mul_assoc := λ _ _ _, by { ext, refl },
+  one_mul := λ _, by { ext, refl },
+  mul_one := λ _, by { ext, refl },
+  mul_left_inv := λ f, by { ext, apply equiv.left_inv } }
 
 end add_monoid_automorphism
 
-namespace add_group
+namespace add_group_automorphism
 
 -- An additive group homomorphism is an additive monoid homomorphism between groups.
 def aut (γ : Type) [add_group γ] := add_equiv γ γ
 
 instance aut_group (γ : Type) [add_group γ] : group (aut γ) := add_monoid_automorphism.aut_group γ
 
-end add_group
+end add_group_automorphism
 
 namespace ring_automorphism
 
@@ -409,26 +385,15 @@ def aut (R : Type) [ring R] := ring_equiv R R
 
 @[extensionality] lemma ext_ring_equiv (R S : Type) [ring R] [ring S] (f : ring_equiv R S)
 (g : ring_equiv R S) (h : f.to_fun = g.to_fun) : f = g :=
-begin
-  cases f,
-  cases g,
-  congr,
-  ext x,
-  exact congr_fun h x
-end
+by { cases f, cases g, congr, apply equiv.eq_of_to_fun_eq h }
 
-instance aut_group (R : Type) [ring R] : group (aut R) := {
-mul := λ g h, ring_equiv.trans h g,
-one := ring_equiv.refl R,
-inv := ring_equiv.symm,
-mul_assoc := λ _ _ _, by { ext, refl },
-one_mul := λ _, by { ext, refl },
-mul_one := λ _, by { ext, refl },
-mul_left_inv := λ f,
-begin
-  ext,
-  unfold has_inv.inv,
-  exact equiv.symm_apply_apply (f.to_equiv) x,
-end}
+instance aut_group (R : Type) [ring R] : group (aut R) :=
+{ mul := λ g h, ring_equiv.trans h g,
+  one := ring_equiv.refl R,
+  inv := ring_equiv.symm,
+  mul_assoc := λ _ _ _, by { ext, refl },
+  one_mul := λ _, by { ext, refl },
+  mul_one := λ _, by { ext, refl },
+  mul_left_inv := λ f, by { ext, apply equiv.left_inv } }
 
 end ring_automorphism

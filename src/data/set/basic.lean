@@ -1342,10 +1342,10 @@ lemma fst_image_prod_subset (s : set α) (t : set β) :
   prod.fst '' (set.prod s t) ⊆ s :=
 λ _ h, let ⟨_, ⟨h₂, _⟩, h₁⟩ := (set.mem_image _ _ _).1 h in h₁ ▸ h₂
 
-lemma fst_image_prod {s : set α} (hs : s ≠ ∅) (t : set β) :
-  prod.fst '' (set.prod t s) = t :=
+lemma fst_image_prod (s : set β) {t : set α} (ht : t ≠ ∅) :
+  prod.fst '' (set.prod s t) = s :=
 set.subset.antisymm (fst_image_prod_subset _ _)
-  $ λ y y_in, let (⟨x, x_in⟩ : ∃ (x : α), x ∈ s) := set.exists_mem_of_ne_empty hs in
+  $ λ y y_in, let (⟨x, x_in⟩ : ∃ (x : α), x ∈ t) := set.exists_mem_of_ne_empty ht in
     ⟨(y, x), ⟨y_in, x_in⟩, rfl⟩
 
 lemma snd_image_prod_subset (s : set α) (t : set β) :

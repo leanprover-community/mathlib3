@@ -1338,22 +1338,25 @@ lemma prod_sub_preimage_iff {W : set γ} {f : α × β → γ} :
   set.prod s t ⊆ f ⁻¹' W ↔ ∀ a b, a ∈ s → b ∈ t → f (a, b) ∈ W :=
 by simp [subset_def]
 
-lemma fst_image_prod_subset {s : set α} {t : set β} :
+lemma fst_image_prod_subset (s : set α) (t : set β) :
   prod.fst '' (set.prod s t) ⊆ s :=
-begin
-  assume x hx,
-  simp only [set.mem_image, exists_and_distrib_right, exists_eq_right, set.mem_prod,
-             exists_and_distrib_left, prod.exists] at hx,
-  exact hx.1
-end
+λ _ h, let ⟨_, ⟨h₂, _⟩, h₁⟩ := (set.mem_image _ _ _).1 h in h₁ ▸ h₂
 
-lemma snd_image_prod_subset {s : set α} {t : set β} :
+lemma fst_image_prod {s : set α} (hs : s ≠ ∅) (t : set β) :
+  prod.fst '' (set.prod t s) = t :=
+set.subset.antisymm (fst_image_prod_subset _ _)
+  $ λ y y_in, let (⟨x, x_in⟩ : ∃ (x : α), x ∈ s) := set.exists_mem_of_ne_empty hs in
+    ⟨(y, x), ⟨y_in, x_in⟩, rfl⟩
+
+lemma snd_image_prod_subset (s : set α) (t : set β) :
   prod.snd '' (set.prod s t) ⊆ t :=
-begin
-  assume x hx,
-  simp only [set.mem_image, exists_and_distrib_right, exists_eq_right, set.mem_prod, prod.exists] at hx,
-  exact hx.2
-end
+λ _ h, let ⟨_, ⟨_, h₂⟩, h₁⟩ := (set.mem_image _ _ _).1 h in h₁ ▸ h₂
+
+lemma snd_image_prod {s : set α} (hs : s ≠ ∅) (t : set β) :
+  prod.snd '' (set.prod s t) = t :=
+set.subset.antisymm (snd_image_prod_subset _ _)
+  $ λ y y_in, let (⟨x, x_in⟩ : ∃ (x : α), x ∈ s) := set.exists_mem_of_ne_empty hs in
+    ⟨(x, y), ⟨x_in, y_in⟩, rfl⟩
 
 end prod
 

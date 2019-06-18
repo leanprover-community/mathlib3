@@ -537,3 +537,6 @@ theorem directed_comp {ι} (f : ι → β) (g : β → α) :
 theorem directed_mono {s : α → α → Prop} {ι} (f : ι → α)
   (H : ∀ a b, r a b → s a b) (h : directed r f) : directed s f :=
 λ a b, let ⟨c, h₁, h₂⟩ := h a b in ⟨c, H _ _ h₁, H _ _ h₂⟩
+
+class directed_order (α : Type u) extends preorder α :=
+(directed : ∀ i j : α, ∃ k, i ≤ k ∧ j ≤ k)

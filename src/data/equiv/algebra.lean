@@ -329,6 +329,11 @@ instance symm.is_ring_hom {e : α ≃r β} : is_ring_hom e.to_equiv.symm := hom 
 
 end ring_equiv
 
+
+-- We first define the type of automorphisms on groups, additive monoids, additive groups
+-- and rings using `mul_equiv`, `add_equiv` and `ring_equiv`.
+-- In each case this type is also a group.
+
 namespace group_automorphism
 
 def aut (γ : Type) [group γ] := mul_equiv γ γ
@@ -343,9 +348,9 @@ begin
   exact congr_fun h x,
 end
 
-instance aut_group (α : Type) [group α] : group (aut α) := {
+instance aut_group (γ : Type) [group γ] : group (aut γ) := {
 mul := λ g h, mul_equiv.trans h g,
-one := mul_equiv.refl α,
+one := mul_equiv.refl γ,
 inv := mul_equiv.symm,
 mul_assoc := λ _ _ _, by { ext, refl },
 one_mul := λ _, by { ext, refl },
@@ -361,7 +366,7 @@ end group_automorphism
 
 namespace add_monoid_automorphism
 
-def aut (m : Type) [has_add m] := add_equiv m m
+def aut (α : Type) [has_add α] := add_equiv α α
 
 @[extensionality] lemma ext_add_equiv (α β : Type) [has_add α] [has_add β] (f : add_equiv α β)
 (g : add_equiv α β) (h : f.to_fun = g.to_fun) : f = g :=
@@ -387,7 +392,6 @@ begin
   exact equiv.symm_apply_apply (f.to_equiv) x,
 end}
 
-
 end add_monoid_automorphism
 
 namespace add_group
@@ -403,8 +407,8 @@ namespace ring_automorphism
 
 def aut (R : Type) [ring R] := ring_equiv R R
 
-@[extensionality] lemma ext_ring_equiv (α β : Type) [ring α] [ring β] (f : ring_equiv α β)
-(g : ring_equiv α β) (h : f.to_fun = g.to_fun) : f = g :=
+@[extensionality] lemma ext_ring_equiv (R S : Type) [ring R] [ring S] (f : ring_equiv R S)
+(g : ring_equiv R S) (h : f.to_fun = g.to_fun) : f = g :=
 begin
   cases f,
   cases g,

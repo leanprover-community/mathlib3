@@ -864,9 +864,9 @@ by rw [division_def, cast_mul, cast_inv, division_def]
 @[simp, move_cast] theorem cast_pow [discrete_field α] [char_zero α] (q) (k : ℕ) : ((q ^ k : ℚ) : α) = q ^ k :=
 by induction k; simp only [*, cast_one, cast_mul, pow_zero, pow_succ]
 
-@[simp, squash_cast, move_cast] theorem cast_bit0 [division_ring α] [char_zero α] (n : ℚ) : ((bit0 n : ℚ) : α) = bit0 n := cast_add _ _
+@[simp, squash_cast] theorem cast_bit0 [division_ring α] [char_zero α] (n : ℚ) : ((bit0 n : ℚ) : α) = bit0 n := cast_add _ _
 
-@[simp, squash_cast, move_cast] theorem cast_bit1 [division_ring α] [char_zero α] (n : ℚ) : ((bit1 n : ℚ) : α) = bit1 n :=
+@[simp, squash_cast] theorem cast_bit1 [division_ring α] [char_zero α] (n : ℚ) : ((bit1 n : ℚ) : α) = bit1 n :=
 by rw [bit1, cast_add, cast_one, cast_bit0]; refl
 
 @[simp] theorem cast_nonneg [linear_ordered_field α] : ∀ {n : ℚ}, 0 ≤ (n : α) ↔ 0 ≤ n

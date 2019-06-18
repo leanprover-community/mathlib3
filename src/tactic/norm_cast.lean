@@ -8,6 +8,7 @@ Normalizing casts inside expressions.
 
 import tactic.basic tactic.interactive tactic.converter.interactive
 import data.buffer.parser
+import data.num.basic
 
 namespace tactic
 
@@ -145,26 +146,30 @@ do
     is_def_eq e e',
     mk_eq_symm pr
 
-/-
-This is a supecial function for numerals:
-  - (1 : α) is rewritten as ((1 : ℕ) : α)
-  - (0 : α) is rewritten as ((0 : ℕ) : α)
--/
-private meta def aux_num (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
-match e with
-| `(0 : ℕ) := failed
-| `(1 : ℕ) := failed
-| `(@has_zero.zero %%α %%h) := do
-    coe_nat ← to_expr ``(has_lift_t ℕ %%α) >>= mk_instance',
-    new_e ← to_expr ``(@coe ℕ %%α %%coe_nat 0),
-    pr ← aux_simp e new_e,
-    return ((), new_e, pr)
-| `(@has_one.one %%α %%h) := do
-    coe_nat ← to_expr ``(has_lift_t ℕ %%α) >>= mk_instance',
-    new_e ← to_expr ``(@coe ℕ %%α %%coe_nat 1),
-    pr ← aux_simp e new_e,
-    return ((), new_e, pr)
-| _ := failed
+private meta def num_of_expr : expr → option num
+| `(@has_zero.zero %%α %%h) := some 0
+| `(@has_one.one %%α %%h) := some 1
+| `(@bit0 %%α %%h %%e) := do n ← num_of_expr e, some (2 * n)
+| `(@bit1 %%α %%h1 %%h2 %%e) := do n ← num_of_expr e, some (2 * n + 1)
+| _ := none
+
+private meta def aux_num (α h_one h_add : expr) : pos_num → pexpr
+| pos_num.one := ``(@has_one.one %%α %%h_one)
+| (pos_num.bit0 n) := ``(@bit0 %%α %%h_add (%%(aux_num n)))
+| (pos_num.bit1 n) := ``(@bit1 %%α %%h_one %%h_add (%%(aux_num n)))
+
+private meta def expr_of_num (α : expr) (n : num) : tactic expr :=
+match n with
+| num.zero := do
+  h_zero ← mk_app `has_zero [α] >>= mk_instance',
+  to_expr ``(@has_zero.zero %%α %%h_zero)
+| (num.pos (pos_num.one)) := do
+  h_one ← mk_app `has_one [α] >>= mk_instance',
+  to_expr ``(@has_one.one %%α %%h_one)
+| (num.pos m) := do
+  h_one ← mk_app `has_one [α] >>= mk_instance',
+  h_add ← mk_app `has_add [α] >>= mk_instance',
+  to_expr (aux_num α h_one h_add m)
 end
 
 /-
@@ -176,7 +181,7 @@ when the squash_cast lemmas can prove that (↑(x : α) : γ) = (↑(↑(x : α)
 private meta def heur (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
 match e with
 | (app (expr.app op x) y) :=
-do
+( do
     `(@coe %%α %%δ %%coe1 %%xx) ← return x,
     `(@coe %%β %%γ %%coe2 %%yy) ← return y,
     success_if_fail $ is_def_eq α β,
@@ -198,6 +203,28 @@ do
         pr ← mk_congr_arg (app op x) eq_y,
         return ((), new_e, pr)
     )
+) <|> ( do
+    δ ← infer_type x,
+    `(@coe %%β %%γ %%coe1 %%yy) ← return y,
+    is_def_eq δ γ,
+    n ← num_of_expr x,
+    new_x ← expr_of_num β n >>= λ e, to_expr ``(@coe %%β %%δ %%coe1 %%e),
+    let new_e := app (app op new_x) y,
+    eq_x ← aux_simp x new_x,
+    pr ← mk_congr_arg op eq_x,
+    pr ← mk_congr_fun pr y,
+    return ((), new_e, pr)
+) <|> ( do
+    `(@coe %%α %%δ %%coe1 %%xx) ← return x,
+    γ ← infer_type y,
+    is_def_eq δ γ,
+    n ← num_of_expr y,
+    new_y ← expr_of_num α n >>= λ e, to_expr ``(@coe %%α %%δ %%coe1 %%e),
+    let new_e := app (app op x) new_y,
+    eq_y ← aux_simp y new_y,
+    pr ← mk_congr_arg (app op x) eq_y,
+    return ((), new_e, pr)
+)
 | _ := failed
 end
 
@@ -208,7 +235,7 @@ private meta def prove : tactic unit :=
 assumption
 
 private meta def post (s : simp_lemmas) (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
-do
+( do
     r ← mcond (is_prop e) (return `iff) (return `eq),
     (new_e, pr) ← s.rewrite e prove r,
     pr ← match r with
@@ -216,7 +243,10 @@ do
     | _   := return pr
     end,
     return ((), new_e, pr)
-
+) <|> ( do
+  (a, new_e, pr) ← heur () e,
+  return (a, new_e, pr)
+)
 
 /-
 Core function
@@ -229,8 +259,7 @@ do
 
     -- step 1: casts are moved upwards and eliminated
     ((), new_e, pr1) ← simplify_bottom_up ()
-        (λ a e, post s a e <|> heur a e <|> aux_num a e)
-        e cfg,
+        (post s) e cfg,
 
     -- step 2: casts are squashed
     s ← squash_cast_attr.get_cache,

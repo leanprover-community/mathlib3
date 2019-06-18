@@ -414,7 +414,7 @@ begin
   cases g,
   congr,
   ext x,
-  exact congr_fun h x,
+  exact congr_fun h x
 end
 
 instance aut_group (R : Type) [ring R] : group (aut R) := {

@@ -941,27 +941,42 @@ expression `h` in the context it will try to normalize `h` and use
 These tactics work with three attributes,
 `elim_cast`, `move_cast` and `squash_cast`.
 
-`elim_cast` is for elimination lemmas of the shape
-`Π ..., P ↑a1 ... ↑an = P a1 ... an`, for instance:
+`elim_cast` is for elimination lemmas of the following shapes
+-`Π ..., P ↑a1 ... ↑an = P a1 ... an`
+-`Π ..., P ↑a1 ... ↑an ↔ P a1 ... an`
 
+examples:
 ```lean
-int.coe_nat_inj' : ∀ {m n : ℕ}, ↑m = ↑n ↔ m = n
+@[elim_cast] theorem coe_nat_inj' {m n : ℕ} : (↑m : ℤ) = ↑n ↔ m = n
 
-rat.coe_int_denom : ∀ (n : ℤ), ↑n.denom = 1
+@[elim_cast] theorem coe_int_denom (n : ℤ) : (n : ℚ).denom = 1
+
+@[elim_cast] theorem cast_id : ∀ n : ℚ, ↑n = n
 ```
 
-`move_cast` is for compositional lemmas of the shape
-`Π ..., ↑(P a1 ... an) = P ↑a1 ... ↑an`, for instance:
-```lean
-int.coe_nat_add : ∀ (m n : ℕ), ↑(m + n) = ↑m + ↑n`
+`move_cast` is for compositional lemmas of the following shapes
+-`Π ..., ↑(P a1 ... an) = P ↑a1 ... ↑an`
+-`Π ..., ↑(P a1 ... an) ↔ P ↑a1 ... ↑an`
 
-nat.cast_sub : ∀ {α : Type*} [add_group α] [has_one α] {m n : ℕ}, m ≤ n → ↑(n - m) = ↑n - ↑m
+examples:
+```lean
+@[move_cast] theorem coe_nat_add (m n : ℕ) : (↑(m + n) : ℤ) = ↑m + ↑n
+
+@[move_cast] theorem cast_sub [add_group α] [has_one α] {m n} (h : m ≤ n) : ((n - m : ℕ) : α) = n - m
 ```
 
-`squash_cast` is for lemmas of the shape
-`Π ..., ↑↑a = ↑a`, for instance:
-```lean
-int.cast_coe_nat : ∀ (n : ℕ), ↑↑n = ↑n
+`squash_cast` is for lemmas of the following shapes
+-`Π ..., ↑↑a = ↑a`
+-`Π ..., ↑1 = 1`
+-`Π ..., ↑0 = 0`
+-`Π ..., ↑(bit0 n) = bit0 ↑n`
+-`Π ..., ↑(bit1 n) = bit1 ↑n`
 
-int.cast_id : int.cast_id : ∀ (n : ℤ), ↑n = n
+examples:
+```lean
+@[squash_cast] theorem cast_coe_nat (n : ℕ) : ((n : ℤ) : α) = n
+
+@[squash_cast] theorem cast_one : ((1 : ℚ) : α) = 1
+
+@[squash_cast] theorem coe_nat_bit0 (n : ℕ) : (↑(bit0 n) : ℤ) = bit0 ↑n
 ```

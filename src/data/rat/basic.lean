@@ -890,7 +890,7 @@ by rw [← cast_zero, cast_lt]
 @[simp] theorem cast_lt_zero [linear_ordered_field α] {n : ℚ} : (n : α) < 0 ↔ n < 0 :=
 by rw [← cast_zero, cast_lt]
 
-@[simp, squash_cast] theorem cast_id : ∀ n : ℚ, ↑n = n
+@[simp, elim_cast] theorem cast_id : ∀ n : ℚ, ↑n = n
 | ⟨n, d, h, c⟩ := show (n / (d : ℤ) : ℚ) = _, by rw [num_denom', mk_eq_div]
 
 @[simp, move_cast] theorem cast_min [discrete_linear_ordered_field α] {a b : ℚ} : (↑(min a b) : α) = min a b :=

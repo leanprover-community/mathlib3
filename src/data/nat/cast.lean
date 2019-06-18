@@ -87,7 +87,7 @@ theorem eq_cast' [add_group α] [has_one α] (f : ℕ → α)
   (H1 : f 1 = 1) (Hadd : ∀ x y, f (x + y) = f x + f y) : ∀ n : ℕ, f n = n :=
 eq_cast _ (by rw [← add_left_inj (f 0), add_zero, ← Hadd]) H1 Hadd
 
-@[simp, squash_cast] theorem cast_id (n : ℕ) : ↑n = n :=
+@[simp, elim_cast] theorem cast_id (n : ℕ) : ↑n = n :=
 (eq_cast id rfl rfl (λ _ _, rfl) n).symm
 
 @[simp, move_cast] theorem cast_min [decidable_linear_ordered_semiring α] {a b : ℕ} : (↑(min a b) : α) = min a b :=

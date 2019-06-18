@@ -58,7 +58,7 @@ roption.ext' (and_true _).symm (λ _ _, rfl)
 @[simp] lemma get_add {x y : enat} (h : (x + y).dom) :
   get (x + y) h = x.get h.1 + y.get h.2 := rfl
 
-@[simp, squash_cast] lemma coe_get {x : enat} (h : x.dom) : (x.get h : enat) = x :=
+@[simp] lemma coe_get {x : enat} (h : x.dom) : (x.get h : enat) = x :=
 roption.ext' (iff_of_true trivial h) (λ _ _, rfl)
 
 @[simp] lemma get_zero (h : (0 : enat).dom) : (0 : enat).get h = 0 := rfl

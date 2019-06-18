@@ -139,7 +139,7 @@ meta def squash_cast_attr : user_attribute simp_lemmas :=
 This is an auxiliary function that proves e = new_e
 using only squash_cast lemmas
 -/
-private meta def aux_simp (e new_e : expr) : tactic expr :=
+private meta def aux_squash (e new_e : expr) : tactic expr :=
 do
     s ← squash_cast_attr.get_cache,
     (e', pr) ← s.rewrite new_e,
@@ -191,7 +191,7 @@ match e with
         coe3 ← mk_app `has_lift_t [α, β] >>= mk_instance',
         new_x ← to_expr ``(@coe %%β %%δ %%coe2 (@coe %%α %%β %%coe3 %%xx)),
         let new_e := app (app op new_x) y,
-        eq_x ← aux_simp x new_x,
+        eq_x ← aux_squash x new_x,
         pr ← mk_congr_arg op eq_x,
         pr ← mk_congr_fun pr y,
         return ((), new_e, pr)
@@ -199,7 +199,7 @@ match e with
         coe3 ← mk_app `has_lift_t [β, α] >>= mk_instance',
         new_y ← to_expr ``(@coe %%α %%δ %%coe1 (@coe %%β %%α %%coe3 %%yy)),
         let new_e := app (app op x) new_y,
-        eq_y ← aux_simp y new_y,
+        eq_y ← aux_squash y new_y,
         pr ← mk_congr_arg (app op x) eq_y,
         return ((), new_e, pr)
     )
@@ -210,7 +210,7 @@ match e with
     n ← num_of_expr x,
     new_x ← expr_of_num β n >>= λ e, to_expr ``(@coe %%β %%δ %%coe1 %%e),
     let new_e := app (app op new_x) y,
-    eq_x ← aux_simp x new_x,
+    eq_x ← aux_squash x new_x,
     pr ← mk_congr_arg op eq_x,
     pr ← mk_congr_fun pr y,
     return ((), new_e, pr)
@@ -221,7 +221,7 @@ match e with
     n ← num_of_expr y,
     new_y ← expr_of_num α n >>= λ e, to_expr ``(@coe %%α %%δ %%coe1 %%e),
     let new_e := app (app op x) new_y,
-    eq_y ← aux_simp y new_y,
+    eq_y ← aux_squash y new_y,
     pr ← mk_congr_arg (app op x) eq_y,
     return ((), new_e, pr)
 )

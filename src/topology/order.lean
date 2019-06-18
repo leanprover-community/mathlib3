@@ -95,10 +95,7 @@ def tmp_order : partial_order (topological_space α) :=
 
 local attribute [instance] tmp_order
 
--- the following name looks wrong but will become correct at the end of the section when
--- using the permanent partial order
-
-lemma le_generate_from_iff_subset_is_open {g : set (set α)} {t : topological_space α} :
+private lemma generate_from_le_iff_subset_is_open {g : set (set α)} {t : topological_space α} :
   topological_space.generate_from g ≤ t ↔ g ⊆ {s | t.is_open s} :=
 iff.intro
   (assume ht s hs, ht _ $ topological_space.generate_open.basic s hs)
@@ -119,10 +116,10 @@ topological_space_eq hs.symm
 
 def gi_generate_from (α : Type*) :
   galois_insertion topological_space.generate_from (λt:topological_space α, {s | t.is_open s}) :=
-{ gc        := assume g t, le_generate_from_iff_subset_is_open,
+{ gc        := assume g t, generate_from_le_iff_subset_is_open,
   le_l_u    := assume ts s hs, topological_space.generate_open.basic s hs,
   choice    := λg hg, mk_of_closure g
-    (subset.antisymm hg $ le_generate_from_iff_subset_is_open.1 $ le_refl _),
+    (subset.antisymm hg $ generate_from_le_iff_subset_is_open.1 $ le_refl _),
   choice_eq := assume s hs, mk_of_closure_sets }
 
 lemma generate_from_mono {α} {g₁ g₂ : set (set α)} (h : g₁ ⊆ g₂) :
@@ -138,6 +135,10 @@ instance : partial_order (topological_space α) :=
   le_antisymm := assume t s h₁ h₂, topological_space_eq $ le_antisymm h₂ h₁,
   le_refl     := assume t, le_refl t.is_open,
   le_trans    := assume a b c h₁ h₂, le_trans h₂ h₁ }
+
+lemma le_generate_from_iff_subset_is_open {g : set (set α)} {t : topological_space α} :
+  t ≤ topological_space.generate_from g ↔ g ⊆ {s | t.is_open s} :=
+generate_from_le_iff_subset_is_open
 
 instance : complete_lattice (topological_space α) :=
 @order_dual.lattice.complete_lattice _ old_complete_lattice

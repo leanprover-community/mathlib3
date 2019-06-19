@@ -141,7 +141,7 @@ lemma le_generate_from_iff_subset_is_open {g : set (set α)} {t : topological_sp
 generate_from_le_iff_subset_is_open
 
 instance : complete_lattice (topological_space α) :=
-@order_dual.lattice.complete_lattice _ old_complete_lattice
+@order_dual.lattice.complete_lattice _ tmp_complete_lattice
 
 class discrete_topology (α : Type*) [t : topological_space α] : Prop :=
 (eq_bot : t = ⊥)

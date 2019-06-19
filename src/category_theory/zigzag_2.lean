@@ -64,9 +64,28 @@ def above {n m : Δ} (f : n ⟶ m) (j : fin m) := { i : fin n | f i ≥ j }
 
 def T : Δ ⥤ Δ :=
 { obj := λ n, (n + 1 : ℕ),
-  map := λ n m f, ⟨λ i, if h : i.val < n then (f (i.cast_lt h)).cast_succ else fin.last _, sorry⟩,
-  map_id' := sorry,
-  map_comp' := sorry, } -- see https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/.60split_ifs.60.2C.20and.20nested.20.60dite.60/near/167593063
+  map := λ n m f,
+  ⟨λ i, if h : i.val < n then (f (i.cast_lt h)).cast_succ else fin.last _,
+  λ a b h,
+  begin
+    tidy,
+    split_ifs,
+    {tidy},
+    {apply fin.le_last},
+    {rw [fin.le_iff_val_le_val] at h,
+    dsimp [(Δ)] at n, -- without this line linarith doesn't know that n : ℕ and fails
+    linarith},
+    {apply fin.le_last}
+  end⟩,
+  map_id' :=
+  λ n, Δ.hom_ext (funext (λ a,
+  begin
+    rw [Δ.mk_coe, Δ.id_coe],
+    split_ifs,
+    {tidy},
+    {exact fin.eq_of_veq (eq.trans rfl (eq.symm (nat.eq_of_lt_succ_of_not_lt a.is_lt h)))}
+  end)),
+  map_comp' := sorry } -- see https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/.60split_ifs.60.2C.20and.20nested.20.60dite.60/near/167593063
 
 def Δ_ := ℕ
 instance : has_coe Δ_ Δ :=
@@ -75,7 +94,12 @@ instance : has_coe Δ_ Δ :=
 instance category_Δ_ : category Δ_ :=
 { hom := λ n m, { f : fin (n+1) → fin (m+1) | monotone f ∧ f 0 = 0 ∧ f (fin.last _) = fin.last _ },
   id := λ n, ⟨id, by obviously⟩,
-  comp := λ l m n f g, ⟨g.val ∘ f.val, sorry⟩ }.
+  comp := λ l m n f g, ⟨g.val ∘ f.val,
+  by obviously,
+  /- These two proofs aren't very good since the naming f_property_right_left is done automatically
+  by tidy and could change is tidy was to change. -/
+  by {tidy, rwa [f_property_right_left]},
+  by {tidy, rwa [f_property_right_right]}⟩ }.
 
 def prime_obj (n : Δ) : Δ_ᵒᵖ := op (n + 1 : ℕ)
 def prime_map_fn {n m : Δ} (f : n ⟶ m) (j : fin (m + 2)) : fin (n + 2) := sorry

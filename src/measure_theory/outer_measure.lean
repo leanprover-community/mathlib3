@@ -372,7 +372,7 @@ private lemma C_Union_nat {s : ℕ → set α} (h : ∀i, C (s i))
 C_iff_le.2 $ λ t, begin
   have hp : m (t ∩ ⋃i, s i) ≤ (⨆n, m (t ∩ ⋃i<n, s i)),
   { convert m.Union (λ i, t ∩ s i),
-    { rw inter_Union_left },
+    { rw inter_Union },
     { simp [ennreal.tsum_eq_supr_nat, C_sum m h hd] } },
   refine le_trans (add_le_add_right' hp) _,
   rw ennreal.supr_add,
@@ -430,9 +430,9 @@ le_infi $ λ f, le_infi $ λ hf, begin
   refine le_trans (add_le_add'
     (infi_le_of_le (λi, f i ∩ s) $ infi_le _ _)
     (infi_le_of_le (λi, f i \ s) $ infi_le _ _)) _,
-  { rw ← inter_Union_right,
+  { rw ← Union_inter,
     exact inter_subset_inter_left _ hf },
-  { rw ← diff_Union_right,
+  { rw ← Union_diff,
     exact diff_subset_diff_left hf },
   { rw ← ennreal.tsum_add,
     exact ennreal.tsum_le_tsum (λ i, hs _) }

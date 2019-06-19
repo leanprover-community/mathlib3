@@ -635,6 +635,16 @@ have ∀ t, is_open (function.restrict f s ⁻¹' t) ↔ ∃ (u : set α), is_op
   end,
 by rw [continuous_on_iff_continuous_restrict, continuous]; simp only [this]
 
+theorem continuous_on_iff_is_closed  {f : α → β} {s : set α} :
+  continuous_on f s ↔ ∀ t : set β, is_closed t → ∃ u, is_closed u ∧ f ⁻¹' t ∩ s = u ∩ s :=
+have ∀ t, is_closed (function.restrict f s ⁻¹' t) ↔ ∃ (u : set α), is_closed u ∧ f ⁻¹' t ∩ s = u ∩ s,
+  begin
+    intro t,
+    rw [is_closed_induced_iff, function.restrict_eq, set.preimage_comp],
+    simp only [subtype.preimage_val_eq_preimage_val_iff]
+  end,
+by rw [continuous_on_iff_continuous_restrict, continuous_iff_is_closed]; simp only [this]
+
 theorem nhds_within_le_comap {x : α} {s : set α} {f : α → β} (ctsf : continuous_within_at f s x) :
   nhds_within x s ≤ comap f (nhds_within (f x) (f '' s)) :=
 map_le_iff_le_comap.1 ctsf.tendsto_nhds_within_image
@@ -650,6 +660,14 @@ by simp [continuous_iff_continuous_at, continuous_on, continuous_at, continuous_
 lemma continuous_within_at.mono {f : α → β} {s t : set α} {x : α} (h : continuous_within_at f t x)
   (hs : s ⊆ t) : continuous_within_at f s x :=
 tendsto_le_left (nhds_within_mono x hs) h
+
+lemma continuous_within_at_inter' {f : α → β} {s t : set α} {x : α} (h : t ∈ nhds_within x s) :
+  continuous_within_at f (s ∩ t) x ↔ continuous_within_at f s x :=
+by simp [continuous_within_at, nhds_within_restrict'' s h]
+
+lemma continuous_within_at_inter {f : α → β} {s t : set α} {x : α} (h : t ∈ nhds x) :
+  continuous_within_at f (s ∩ t) x ↔ continuous_within_at f s x :=
+by simp [continuous_within_at, nhds_within_restrict' s h]
 
 lemma continuous_on.congr_mono {f g : α → β} {s s₁ : set α} (h : continuous_on f s)
   (h' : ∀x ∈ s₁, g x = f x) (h₁ : s₁ ⊆ s) : continuous_on g s₁ :=
@@ -669,6 +687,13 @@ end
 lemma continuous_at.continuous_within_at {f : α → β} {s : set α} {x : α} (h : continuous_at f x) :
   continuous_within_at f s x :=
 continuous_within_at.mono ((continuous_within_at_univ f x).2 h) (subset_univ _)
+
+lemma continuous_within_at.continuous_at {f : α → β} {s : set α} {x : α}
+  (h : continuous_within_at f s x) (hs : s ∈ nhds x) : continuous_at f x :=
+begin
+  have : s = univ ∩ s, by rw univ_inter,
+  rwa [this, continuous_within_at_inter hs, continuous_within_at_univ] at h
+end
 
 lemma continuous_within_at.comp {g : β → γ} {f : α → β} {s : set α} {t : set β} {x : α}
   (hg : continuous_within_at g t (f x)) (hf : continuous_within_at f s x) (h : f '' s ⊆ t) :
@@ -707,15 +732,58 @@ begin
   exact h.mono (subset_univ _)
 end
 
+lemma continuous.comp_continuous_on {g : β → γ} {f : α → β} {s : set α}
+  (hg : continuous g) (hf : continuous_on f s) :
+  continuous_on (g ∘ f) s :=
+hg.continuous_on.comp hf (subset_univ _)
+
+lemma continuous.continuous_at {f : α → β} {x : α} (h : continuous f) :
+  continuous_at f x :=
+begin
+  have := continuous_iff_continuous_on_univ.1 h x (mem_univ _),
+  rwa continuous_within_at_univ at this,
+end
+
+lemma continuous_at.preimage_mem_nhds {f : α → β} {x : α} {t : set β} (h : continuous_at f x)
+  (ht : t ∈ nhds (f x)) : f ⁻¹' t ∈ nhds x :=
+h ht
+
+lemma continuous_within_at.preimage_mem_nhds_within {f : α → β} {x : α} {s : set α} {t : set β}
+  (h : continuous_within_at f s x) (ht : t ∈ nhds (f x)) : f ⁻¹' t ∈ nhds_within x s :=
+h ht
+
+lemma continuous_within_at.congr_of_mem_nhds_within {f f₁ : α → β} {s : set α} {x : α}
+  (h : continuous_within_at f s x) (h₁ : {y | f₁ y = f y} ∈ nhds_within x s) (hx : f₁ x = f x) :
+  continuous_within_at f₁ s x :=
+by rwa [continuous_within_at, filter.tendsto, hx, filter.map_cong h₁]
+
 lemma continuous_on_const {s : set α} {c : β} : continuous_on (λx, c) s :=
 continuous_const.continuous_on
 
+lemma continuous_on_open_iff {f : α → β} {s : set α} (hs : is_open s) :
+  continuous_on f s ↔ (∀t, _root_.is_open t → is_open (s ∩ f⁻¹' t)) :=
+begin
+  rw continuous_on_iff',
+  split,
+  { assume h t ht,
+    rcases h t ht with ⟨u, u_open, hu⟩,
+    rw [inter_comm, hu],
+    apply is_open_inter u_open hs },
+  { assume h t ht,
+    refine ⟨s ∩ f ⁻¹' t, h t ht, _⟩,
+    rw [@inter_comm _ s (f ⁻¹' t), inter_assoc, inter_self] }
+end
+
 lemma continuous_on.preimage_open_of_open {f : α → β} {s : set α} {t : set β}
   (hf : continuous_on f s) (hs : is_open s) (ht : is_open t) : is_open (s ∩ f⁻¹' t) :=
+(continuous_on_open_iff hs).1 hf t ht
+
+lemma continuous_on.preimage_closed_of_closed {f : α → β} {s : set α} {t : set β}
+  (hf : continuous_on f s) (hs : is_closed s) (ht : is_closed t) : is_closed (s ∩ f⁻¹' t) :=
 begin
-  rcases continuous_on_iff'.1 hf t ht with ⟨u, hu⟩,
+  rcases continuous_on_iff_is_closed.1 hf t ht with ⟨u, hu⟩,
   rw [inter_comm, hu.2],
-  apply is_open_inter hu.1 hs
+  apply is_closed_inter hu.1 hs
 end
 
 lemma continuous_on.preimage_interior_subset_interior_preimage {f : α → β} {s : set α} {t : set β}
@@ -735,6 +803,24 @@ begin
   rcases h x xs with ⟨t, open_t, xt, ct⟩,
   have := ct x ⟨xs, xt⟩,
   rwa [continuous_within_at, ← nhds_within_restrict _ xt open_t] at this
+end
+
+lemma continuous_on_open_of_generate_from {β : Type*} {s : set α} {T : set (set β)} {f : α → β}
+  (hs : is_open s) (h : ∀t ∈ T, is_open (s ∩ f⁻¹' t)) :
+  @continuous_on α β _ (topological_space.generate_from T) f s :=
+begin
+  rw continuous_on_open_iff,
+  assume t ht,
+  induction ht with u hu u v Tu Tv hu hv U hU hU',
+  { exact h u hu },
+  { simp only [preimage_univ, inter_univ], exact hs },
+  { have : s ∩ f ⁻¹' (u ∩ v) = (s ∩ f ⁻¹' u) ∩ (s ∩ f ⁻¹' v),
+      by { ext x, simp, split, finish, finish },
+    rw this,
+    exact is_open_inter hu hv },
+  { rw [preimage_sUnion, inter_bUnion],
+    exact is_open_bUnion hU' },
+  { exact hs }
 end
 
 end topα

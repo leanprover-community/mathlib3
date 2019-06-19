@@ -64,7 +64,19 @@ def above {n m : Δ} (f : n ⟶ m) (j : fin m) := { i : fin n | f i ≥ j }
 
 def T : Δ ⥤ Δ :=
 { obj := λ n, (n + 1 : ℕ),
-  map := λ n m f, ⟨λ i, if h : i.val < n then (f (i.cast_lt h)).cast_succ else fin.last _, sorry⟩,
+  map := λ n m f,
+  ⟨λ i, if h : i.val < n then (f (i.cast_lt h)).cast_succ else fin.last _,
+  λ a b h,
+  begin
+    tidy,
+    split_ifs,
+    {tidy},
+    {apply fin.le_last},
+    {rw [fin.le_iff_val_le_val] at h,
+    dsimp [(Δ)] at n, -- without this line linarith doesn't know that n : ℕ and fails
+    linarith},
+    {apply fin.le_last}
+  end⟩,
   map_id' :=
   λ n, Δ.hom_ext (funext (λ a,
   begin
@@ -73,7 +85,7 @@ def T : Δ ⥤ Δ :=
     {tidy},
     {exact fin.eq_of_veq (eq.trans rfl (eq.symm (nat.eq_of_lt_succ_of_not_lt a.is_lt h)))}
   end)),
-  map_comp' := sorry, } -- see https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/.60split_ifs.60.2C.20and.20nested.20.60dite.60/near/167593063
+  map_comp' := sorry } -- see https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/.60split_ifs.60.2C.20and.20nested.20.60dite.60/near/167593063
 
 def Δ_ := ℕ
 instance : has_coe Δ_ Δ :=

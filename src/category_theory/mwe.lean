@@ -5,7 +5,7 @@ def hom (n m : ℕ) := fin n → fin m
 def map {n m : ℕ} (f : hom n m) : hom (n+1) (m+1) :=
 λ i, if h : i.val < n then (f (i.cast_lt h)).cast_succ else fin.last _
 
-lemma map_increasing {n m : ℕ} (f: hom n m) (h : monotone f) : monotone (map f) :=
+lemma map_increasing {n m : ℕ} (f: hom n m) (w : monotone f) : monotone (map f) :=
 λ a b h,
 begin
   dsimp [map],
@@ -16,6 +16,8 @@ begin
   linarith},
   {apply fin.le_last}
 end
+
+lemma fooo {a b n : ℕ} (h1 : a ≤ b) (h2 : ¬(a < n)) :¬ (b < n) := by library_search
 
 lemma map_id {n m : ℕ} (f : hom n m) : map (@id (fin n)) = @id (fin (n+1)) :=
 funext (λ a,
@@ -38,8 +40,8 @@ lemma cast_lt_cast_succ {n : ℕ} (i : fin n)  :
 fin.eq_of_veq (by simp only [fin.cast_lt_val, fin.cast_succ_val])
 
 lemma map_comp {l m n : ℕ} (f : hom l m) (g : hom m n) : map (g ∘ f) = (map g) ∘ (map f) :=
+funext (λ x,
 begin
-  ext,
   dsimp [map],
   split_ifs,
   { -- x.val < l
@@ -71,4 +73,4 @@ begin
       rw dif_neg h2,
     },
   }
-end
+end)

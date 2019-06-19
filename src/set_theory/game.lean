@@ -263,6 +263,92 @@ def neg : pgame → pgame
 
 instance : has_neg pgame := ⟨neg⟩
 
+theorem neg_neg : Π {x : pgame}, -(-x) = x
+| (mk xl xr xL xR) :=
+begin
+  dsimp [has_neg.neg, neg],
+  congr; funext i,
+  { have t := @neg_neg (xL i),
+    exact t },
+  { have t := @neg_neg (xR i),
+    exact t }
+end
+
+theorem neg_neg' {x : pgame} : neg (neg x) = x :=
+begin
+  have := neg_neg,
+  dsimp [has_neg.neg] at this,
+  exact this
+end
+
+theorem neg_zero : -(0 : pgame) = 0 :=
+begin
+  dsimp [has_zero.zero, has_neg.neg, neg],
+  congr; funext i; cases i
+end
+
+theorem le_iff_neg_ge : Π {x y : pgame}, x ≤ y ↔ -y ≤ -x
+| (mk xl xr xL xR) (mk yl yr yL yR) :=
+begin
+  sorry
+--   dsimp [has_neg.neg, neg],
+--   rw [le_def, le_def],
+--   dsimp,
+--   split,
+--   { rintro ⟨h, h'⟩,
+--     split,
+--     { intro i,
+--       have hi := h' i,
+--       cases hi,
+--       { right,
+--         cases hi,
+--         use hi_w,
+--         erw [←le_iff_neg_ge],
+--         exact hi_h, },
+--       { left,
+--         cases hi,
+--         fsplit,
+--         convert hi_w, sorry,
+--         erw [le_iff_neg_ge],
+--         dsimp [has_neg.neg, neg],
+--         convert hi_h,
+--         { funext, erw [neg_neg'], },
+--         { funext, erw [neg_neg'], },
+--         sorry, } },
+--     { intro i,
+--       have hi := h i,
+--       cases hi,
+--       { right,
+--         cases hi,
+--         fsplit,
+--         convert hi_w, sorry,
+--         erw [le_iff_neg_ge],
+--         dsimp [has_neg.neg, neg],
+--         convert hi_h,
+--         sorry,
+--         { funext, erw [neg_neg'], },
+--         { funext, erw [neg_neg'], } },
+--       { left,
+--         cases hi,
+--         use hi_w,
+--         erw [le_iff_neg_ge, neg_neg, neg_neg],
+--         exact hi_h, } } },
+--     sorry,
+--     -- oh dear, we still need to do the other direction
+end
+
+theorem zero_le_iff_neg_le_zero {x : pgame} : 0 ≤ x ↔ -x ≤ 0 :=
+begin
+  convert le_iff_neg_ge,
+  rw neg_zero
+end
+
+theorem le_zero_iff_zero_le_neg {x : pgame} : x ≤ 0 ↔ 0 ≤ -x :=
+begin
+  convert le_iff_neg_ge,
+  rw neg_zero
+end
+
 /-- The sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
 def add (x y : pgame) : pgame :=
 begin
@@ -354,8 +440,13 @@ end
 
 instance : has_sub pgame := ⟨λ x y, x + -y⟩
 
-meta def game_pair_wf_tac :=
-`[solve_by_elim [psigma.lex.left, psigma.lex.right, r.left, r.right, r.trans] { max_rep := 5 }]
+theorem neg_add {x y : pgame} : -(x + y) = -x + -y := sorry
+
+theorem le_iff_sub_le_zero {x y : pgame} : x ≤ y ↔ x - y ≤ 0 := sorry
+theorem le_iff_zero_le_sub {x y : pgame} : x ≤ y ↔ 0 ≤ y - x := sorry
+
+meta def pgame_wf_tac :=
+`[solve_by_elim [psigma.lex.left, psigma.lex.right, r.left, r.right, r.trans] { max_rep := 20 }]
 
 theorem add_le_zero_of_le_zero : Π {x y : pgame} (hx : x ≤ 0) (hy : y ≤ 0), x + y ≤ 0
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
@@ -380,7 +471,81 @@ begin
     simp,
     exact add_le_zero_of_le_zero hx rs, },
 end
-using_well_founded { dec_tac := game_pair_wf_tac }
+using_well_founded { dec_tac := pgame_wf_tac }
+
+theorem zero_le_add_of_zero_le : Π {x y : pgame} (hx : 0 ≤ x) (hy : 0 ≤ y), 0 ≤ x + y :=
+begin
+  intros x y,
+  repeat { rw zero_le_iff_neg_le_zero },
+  intros hx hy,
+  rw neg_add,
+  solve_by_elim [add_le_zero_of_le_zero],
+end
+
+theorem foo : Π {x y z : pgame} (h : x ≤ y), x + z ≤ y + z
+| (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
+begin
+  intros h,
+  rw le_def,
+  fsplit,
+  { -- if left plays first
+    intros i,
+    change xl ⊕ zl at i,
+    cases i,
+    { -- either they play in x
+      rw le_def at h,
+      cases h,
+      have t := h_left i,
+      rcases t with ⟨j, jh⟩ | ⟨i, ih⟩,
+      { left,
+        use right_moves_add.inv_fun (sum.inl j),
+        dsimp,
+        simp,
+        exact foo jh },
+      { right,
+        use left_moves_add.inv_fun (sum.inl i),
+        dsimp,
+        simp,
+        exact foo ih, },
+      },
+    { -- or play in z
+      right,
+      use left_moves_add.inv_fun (sum.inr i),
+      dsimp,
+      simp,
+      exact foo h,
+    }, },
+  { -- if right plays first
+    intros j,
+    change yr ⊕ zr at j,
+    cases j,
+    { -- either they play in y
+      rw le_def at h,
+      cases h,
+      have t := h_right j,
+      rcases t with ⟨j, jh⟩ | ⟨i, ih⟩,
+      { left,
+        use right_moves_add.inv_fun (sum.inl j),
+        dsimp,
+        simp,
+        exact foo jh },
+      { right,
+        use left_moves_add.inv_fun (sum.inl i),
+        dsimp,
+        simp,
+        exact foo ih, },
+      },
+    { -- or play in z
+      left,
+      use right_moves_add.inv_fun (sum.inr j),
+      dsimp,
+      simp,
+      exact foo h,
+    }
+  }
+end
+using_well_founded { dec_tac := pgame_wf_tac }
+
 
 
 /-- The pre-surreal number `ω`. (In fact all ordinals have surreal

@@ -36,6 +36,20 @@ def move_right : Π (g : pgame), right_moves g → pgame
 @[simp] lemma right_moves_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).right_moves = xr := rfl
 @[simp] lemma move_right_mk {xl xr xL xR j} : (⟨xl, xr, xL, xR⟩ : pgame).move_right j = xR j := rfl
 
+inductive r : pgame → pgame → Prop
+| left : Π (x : pgame) (i : x.left_moves), r (x.move_left i) x
+| right : Π (x : pgame) (j : x.right_moves), r (x.move_right j) x
+| trans : Π (x y z : pgame), r x y → r y z → r x z
+
+theorem wf_r : well_founded r :=
+begin
+  sorry
+end
+
+instance : has_well_founded pgame :=
+{ r := r,
+  wf := wf_r }
+
 /-- The pre-surreal zero is defined by `0 = { | }`. -/
 instance : has_zero pgame := ⟨⟨pempty, pempty, pempty.elim, pempty.elim⟩⟩
 
@@ -334,9 +348,13 @@ end
 
 instance : has_sub pgame := ⟨λ x y, x + -y⟩
 
+meta def game_pair_wf_tac :=
+`[solve_by_elim [psigma.lex.left, psigma.lex.right, r.left, r.right, r.trans] { max_rep := 5 }]
+
 theorem add_le_zero_of_le_zero : Π {x y : pgame} (hx : x ≤ 0) (hy : y ≤ 0), x + y ≤ 0
-| (mk xl xr xL xR) (mk yl yr yL yR) hx hy :=
+| (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
+  intros hx hy,
   rw le_zero,
   intro i,
   change xl ⊕ yl at i, -- FIXME dsimp should do this
@@ -356,6 +374,8 @@ begin
     simp,
     exact add_le_zero_of_le_zero hx rs, },
 end
+using_well_founded { dec_tac := game_pair_wf_tac }
+
 
 /-- The pre-surreal number `ω`. (In fact all ordinals have surreal
   representatives.) -/

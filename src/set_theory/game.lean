@@ -42,9 +42,15 @@ inductive r : pgame → pgame → Prop
 | trans : Π (x y z : pgame), r x y → r y z → r x z
 
 theorem wf_r : well_founded r :=
-begin
-  sorry
-end
+⟨λ x, begin
+  induction x with l r L R IHl IHr,
+  refine ⟨_, λ y h, _⟩,
+  generalize_hyp e : mk l r L R = x at h,
+  induction h with _ i _ j a b _ h1 h2 IH1 IH2; subst e,
+  { apply IHl },
+  { apply IHr },
+  { exact acc.inv (IH2 rfl) h1 }
+end⟩
 
 instance : has_well_founded pgame :=
 { r := r,

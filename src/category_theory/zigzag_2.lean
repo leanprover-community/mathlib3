@@ -71,7 +71,7 @@ def T : Δ ⥤ Δ :=
     rw [Δ.mk_coe, Δ.id_coe],
     split_ifs,
     {tidy},
-    {exact (fin.ext_iff _ _).2  (eq.trans rfl (eq.symm (nat.eq_of_lt_succ_of_not_lt a.is_lt h)))}
+    {exact fin.eq_of_veq (eq.trans rfl (eq.symm (nat.eq_of_lt_succ_of_not_lt a.is_lt h)))}
   end)),
   map_comp' := sorry, } -- see https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/.60split_ifs.60.2C.20and.20nested.20.60dite.60/near/167593063
 

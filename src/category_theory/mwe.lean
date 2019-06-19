@@ -37,40 +37,38 @@ lemma cast_lt_cast_succ {n : ℕ} (i : fin n)  :
   fin.cast_lt (fin.cast_succ i) (cast_succ_val_lt _) = i :=
 fin.eq_of_veq (by simp only [fin.cast_lt_val, fin.cast_succ_val])
 
-#print cast_lt_cast_succ
-#check
-
 lemma map_comp {l m n : ℕ} (f : hom l m) (g : hom m n) : map (g ∘ f) = (map g) ∘ (map f) :=
 begin
   ext,
   dsimp [map],
   split_ifs,
-   {  by_cases h2 : ((dite (x.val < l) (λ (h : x.val < l), fin.cast_succ (f (fin.cast_lt x h)))
-        (λ (h : ¬x.val < l), fin.last m)).val < m),
-    {
+  { -- x.val < l
+    by_cases h2 : ((dite (x.val < l) (λ h, fin.cast_succ (f (fin.cast_lt x h)))
+      (λ h, fin.last m)).val < m),
+    { -- (dite (x.val < l) (λ h, fin.cast_succ (f (fin.cast_lt x h))) (λ h, fin.last m)).val < m
       rw dif_pos h2,
       split_ifs,
       tidy,
       simp [cast_lt_cast_succ],
     },
-    {
+    { -- ¬((dite (x.val < l) (λ h, fin.cast_succ (f (fin.cast_lt x h))) (λ h, fin.last m)).val < m)
       rw dif_neg h2,
       split_ifs at h2,
-      sorry
-    }
+      rw [fin.cast_succ_val] at h2,
+      exact absurd ((f (fin.cast_lt x h)).is_lt) h2,
+    },
   },
-  {by_cases h2 : ((dite (x.val < l) (λ (h : x.val < l), fin.cast_succ (f (fin.cast_lt x h)))
-            (λ (h : ¬x.val < l), fin.last m)).val < m),
-    {
+  { -- ¬(x.val < l)
+    by_cases h2 : ((dite (x.val < l) (λ h, fin.cast_succ (f (fin.cast_lt x h)))
+            (λ h, fin.last m)).val < m),
+    { -- (dite (x.val < l) (λ h, fin.cast_succ (f (fin.cast_lt x h))) (λ h, fin.last m)).val < m
       rw dif_pos h2,
       split_ifs at h2,
       simp [fin.last] at h2,
       exact (absurd h2 (irrefl m)),
     },
-    {
+    { -- ¬((dite (x.val < l) (λ h, fin.cast_succ (f (fin.cast_lt x h))) (λ h, fin.last m)).val < m)
       rw dif_neg h2,
-    }
+    },
   }
 end
-
-lemma foo (n : ℕ) : ¬(n < n) := by library_search

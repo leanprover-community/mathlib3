@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 
 The basic theory of combinatorial games. The surreal numbers will be built as a subtype.
 -/
-import tactic.interactive data.nat.cast
+import tactic.interactive data.nat.cast data.equiv.basic
 
 universes u
 
@@ -20,6 +20,34 @@ inductive pgame : Type (u+1)
 | mk : ∀ α β : Type u, (α → pgame) → (β → pgame) → pgame
 
 namespace pgame
+
+def left_moves : pgame → Type u
+| (mk l _ _ _) := l
+def right_moves : pgame → Type u
+| (mk _ r _ _) := r
+
+def move_left : Π (g : pgame), left_moves g → pgame
+| (mk l _ L _) i := L i
+def move_right : Π (g : pgame), right_moves g → pgame
+| (mk _ r _ R) j := R j
+
+@[simp] lemma left_moves_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).left_moves = xl := rfl
+@[simp] lemma move_left_mk {xl xr xL xR i} : (⟨xl, xr, xL, xR⟩ : pgame).move_left i = xL i := rfl
+@[simp] lemma right_moves_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).right_moves = xr := rfl
+@[simp] lemma move_right_mk {xl xr xL xR j} : (⟨xl, xr, xL, xR⟩ : pgame).move_right j = xR j := rfl
+
+/-- The pre-surreal zero is defined by `0 = { | }`. -/
+instance : has_zero pgame := ⟨⟨pempty, pempty, pempty.elim, pempty.elim⟩⟩
+
+@[simp] lemma zero_left_moves : (0 : pgame).left_moves = pempty := rfl
+@[simp] lemma zero_right_moves : (0 : pgame).right_moves = pempty := rfl
+
+/-- The pre-surreal one is defined by `1 = { 0 | }`. -/
+instance : has_one pgame := ⟨⟨punit, pempty, λ _, 0, pempty.elim⟩⟩
+
+@[simp] lemma one_left_moves : (1 : pgame).left_moves = punit := rfl
+@[simp] lemma one_move_left : (1 : pgame).move_left punit.star = 0 := rfl
+@[simp] lemma one_right_moves : (1 : pgame).right_moves = pempty := rfl
 
 /-- Define simultaneously by mutual induction the `<=` and `<`
   relation on games. The ZFC definition says that `x = {xL | xR}`
@@ -39,17 +67,94 @@ end
 instance : has_le pgame := ⟨λ x y, (le_lt x y).1⟩
 instance : has_lt pgame := ⟨λ x y, (le_lt x y).2⟩
 
-/-- Definition of `x ≤ y` on pre-games. -/
+/-- Definition of `x ≤ y` on pre-games built using the constructor. -/
 @[simp] theorem mk_le_mk {xl xr xL xR yl yr yL yR} :
   (⟨xl, xr, xL, xR⟩ : pgame) ≤ ⟨yl, yr, yL, yR⟩ ↔
   (∀ i, xL i < ⟨yl, yr, yL, yR⟩) ∧
   (∀ i, (⟨xl, xr, xL, xR⟩ : pgame) < yR i) := iff.rfl
 
-/-- Definition of `x < y` on pre-games. -/
+/-- Definition of `x ≤ y` on pre-games, in terms of `<` -/
+theorem le_def_lt {x y : pgame} : x ≤ y ↔
+  (∀ i : x.left_moves, x.move_left i < y) ∧
+  (∀ j : y.right_moves, x < y.move_right j) :=
+begin
+  induction x with xl xr xL xR IHxl IHxr generalizing y,
+  induction y with yl yr yL yR IHyl IHyr,
+  simp,
+  refl,
+end
+
+/-- Definition of `x < y` on pre-games built using the constructor. -/
 @[simp] theorem mk_lt_mk {xl xr xL xR yl yr yL yR} :
   (⟨xl, xr, xL, xR⟩ : pgame) < ⟨yl, yr, yL, yR⟩ ↔
-  (∃ i, xR i ≤ ⟨yl, yr, yL, yR⟩) ∨
+  (∃ j, xR j ≤ ⟨yl, yr, yL, yR⟩) ∨
   (∃ i, (⟨xl, xr, xL, xR⟩ : pgame) ≤ yL i) := iff.rfl
+
+/-- Definition of `x < y` on pre-games, in terms of `≤` -/
+theorem lt_def_le {x y : pgame} : x < y ↔
+  (∃ j : x.right_moves, x.move_right j ≤ y) ∨
+  (∃ i : y.left_moves, x ≤ y.move_left i) :=
+begin
+  induction x with xl xr xL xR IHxl IHxr generalizing y,
+  induction y with yl yr yL yR IHyl IHyr,
+  simp,
+  refl,
+end
+
+theorem le_def {x y : pgame} : x ≤ y ↔
+  (∀ i : x.left_moves,
+   (∃ j : (x.move_left i).right_moves, (x.move_left i).move_right j ≤ y) ∨
+   (∃ i' : y.left_moves, (x.move_left i) ≤ (y.move_left i'))) ∧
+  (∀ j : y.right_moves,
+   (∃ j' : x.right_moves, x.move_right j' ≤ (y.move_right j)) ∨
+   (∃ i : (y.move_right j).left_moves, x ≤ (y.move_right j).move_left i)) :=
+begin
+  rw [le_def_lt],
+  conv { to_lhs, simp [lt_def_le] },
+end
+
+-- TODO corresponding lt_def
+
+theorem forall_pempty {P : pempty → Prop} : (∀ x : pempty, P x) ↔ true :=
+begin
+  constructor,
+  { intro h, trivial, },
+  { rintros _ ⟨ ⟩, }
+end
+theorem exists_pempty {P : pempty → Prop} : (∃ x : pempty, P x) ↔ false :=
+begin
+  constructor,
+  { rintro ⟨⟨ ⟩⟩ },
+  { rintro ⟨ ⟩ },
+end
+
+theorem le_zero {x : pgame} : x ≤ 0 ↔
+  ∀ i : x.left_moves, ∃ j : (x.move_left i).right_moves, (x.move_left i).move_right j ≤ 0 :=
+begin
+  rw le_def,
+  conv { to_lhs, congr, skip, erw [forall_pempty], },
+  rw [and_true],
+  constructor,
+  { intros h i,
+    have hi := h i,
+    erw exists_pempty at hi,
+    simpa using hi, },
+  { intros h i,
+    erw exists_pempty,
+    rw [or_false],
+    exact h i }
+end
+
+/-- Given a right-player-wins game, provide a response to any move by left. -/
+noncomputable def right_response {x : pgame} (h : x ≤ 0) (i : x.left_moves) : (x.move_left i).right_moves :=
+classical.some $ (le_zero.1 h) i
+
+/-- Show that the response for right provided by `right_response`
+    preserves the right-player-wins condition. -/
+lemma right_response_spec {x : pgame} (h : x ≤ 0) (i : x.left_moves) : (x.move_left i).move_right (right_response h i) ≤ 0 :=
+classical.some_spec $ (le_zero.1 h) i
+
+-- TODO define zero_le, left_response, and left_response_spec
 
 theorem lt_of_le_mk {xl xr xL xR y i} :
   (⟨xl, xr, xL, xR⟩ : pgame) ≤ y → xL i < y :=
@@ -132,12 +237,6 @@ theorem le_congr {x₁ y₁ x₂ y₂} : equiv x₁ x₂ → equiv y₁ y₂ →
 theorem lt_congr {x₁ y₁ x₂ y₂} (hx : equiv x₁ x₂) (hy : equiv y₁ y₂) : x₁ < y₁ ↔ x₂ < y₂ :=
 not_le.symm.trans $ (not_congr (le_congr hy hx)).trans not_le
 
-/-- The pre-surreal zero is defined by `0 = { | }`. -/
-instance : has_zero pgame := ⟨⟨pempty, pempty, pempty.elim, pempty.elim⟩⟩
-
-/-- The pre-surreal one is defined by `1 = { 0 | }`. -/
-instance : has_one pgame := ⟨⟨punit, pempty, λ _, 0, pempty.elim⟩⟩
-
 /-- The negation of `{L | R}` is `{-R | -L}`. -/
 def neg : pgame → pgame
 | ⟨l, r, L, R⟩ := ⟨r, l, λ i, neg (R i), λ i, neg (L i)⟩
@@ -181,7 +280,82 @@ lemma add_def {xl xr : Type u} {xL xR} {yl yr : Type u} {yL yR} :
   mk xl xr xL xR + mk yl yr yL yR =
   mk (xl ⊕ yl) (xr ⊕ yr) (addL xL xR yL yR) (addR xL xR yL yR) := rfl
 
+def left_moves_add {x y : pgame} : (x + y).left_moves ≃ (x.left_moves ⊕ y.left_moves) :=
+begin
+  induction x with xl xr xL xR IHxl IHxr generalizing y,
+  induction y with yl yr yL yR IHyl IHyr,
+  rw add_def,
+  simp,
+end
+def right_moves_add {x y : pgame} : (x + y).right_moves ≃ (x.right_moves ⊕ y.right_moves) :=
+begin
+  induction x with xl xr xL xR IHxl IHxr generalizing y,
+  induction y with yl yr yL yR IHyl IHyr,
+  rw add_def,
+  simp,
+end
+
+@[simp] lemma mk_add_move_left_inl {xl xr yl yr} {xL xR yL yR} {i} :
+  (mk xl xr xL xR + mk yl yr yL yR).move_left (sum.inl i) = (mk xl xr xL xR).move_left i + (mk yl yr yL yR) :=
+rfl
+@[simp] lemma add_move_left_inl {x y : pgame} {i} :
+  (x + y).move_left (left_moves_add.inv_fun $ sum.inl i) = x.move_left i + y :=
+begin
+  cases x, cases y,
+  refl,
+end
+@[simp] lemma mk_add_move_right_inl {xl xr yl yr} {xL xR yL yR} {i} :
+  (mk xl xr xL xR + mk yl yr yL yR).move_right (sum.inl i) = (mk xl xr xL xR).move_right i + (mk yl yr yL yR) :=
+rfl
+@[simp] lemma add_move_right_inl {x y : pgame} {i} :
+  (x + y).move_right (right_moves_add.inv_fun $ sum.inl i) = x.move_right i + y :=
+begin
+  cases x, cases y,
+  refl,
+end
+@[simp] lemma mk_add_move_left_inr {xl xr yl yr} {xL xR yL yR} {i} :
+  (mk xl xr xL xR + mk yl yr yL yR).move_left (sum.inr i) = (mk xl xr xL xR) + (mk yl yr yL yR).move_left i :=
+rfl
+@[simp] lemma add_move_left_inr {x y : pgame} {i} :
+  (x + y).move_left (left_moves_add.inv_fun $ sum.inr i) = x + y.move_left i :=
+begin
+  cases x, cases y,
+  refl,
+end
+@[simp] lemma mk_add_move_right_inr {xl xr yl yr} {xL xR yL yR} {i} :
+  (mk xl xr xL xR + mk yl yr yL yR).move_right (sum.inr i) = (mk xl xr xL xR) + (mk yl yr yL yR).move_right i :=
+rfl
+@[simp] lemma add_move_right_inr {x y : pgame} {i} :
+  (x + y).move_right (right_moves_add.inv_fun $ sum.inr i) = x + y.move_right i :=
+begin
+  cases x, cases y,
+  refl,
+end
+
 instance : has_sub pgame := ⟨λ x y, x + -y⟩
+
+theorem add_le_zero_of_le_zero : Π {x y : pgame} (hx : x ≤ 0) (hy : y ≤ 0), x + y ≤ 0
+| (mk xl xr xL xR) (mk yl yr yL yR) hx hy :=
+begin
+  rw le_zero,
+  intro i,
+  change xl ⊕ yl at i, -- FIXME dsimp should do this
+  cases i,
+  { use right_moves_add.inv_fun (sum.inl (right_response hx i)),
+    simp,
+    have rs := right_response_spec hx i,
+    dsimp,
+    simp,
+    exact add_le_zero_of_le_zero rs hy, },
+  { fsplit,
+    change right_moves (mk xl xr xL xR + move_left (mk yl yr yL yR) i),
+    use right_moves_add.inv_fun (sum.inr (right_response hy i)),
+    simp,
+    have rs := right_response_spec hy i,
+    dsimp,
+    simp,
+    exact add_le_zero_of_le_zero hx rs, },
+end
 
 /-- The pre-surreal number `ω`. (In fact all ordinals have surreal
   representatives.) -/

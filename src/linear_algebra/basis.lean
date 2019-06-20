@@ -770,6 +770,7 @@ open submodule
 /- TODO: some of the following proofs can generalized with a zero_ne_one predicate type class
    (instead of a data containing type class) -/
 
+section
 set_option class.instance_max_depth 36
 
 lemma mem_span_insert_exchange : x ∈ span α (insert y s) → x ∉ span α s → y ∈ span α (insert x s) :=
@@ -781,7 +782,7 @@ begin
   simp [a0, smul_add, smul_smul]
 end
 
-set_option class.instance_max_depth 32
+end
 
 lemma linear_independent_iff_not_mem_span : linear_independent α v ↔ (∀i, v i ∉ span α (v '' (univ \ {i}))) :=
 begin

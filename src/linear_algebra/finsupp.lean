@@ -135,10 +135,11 @@ linear_map.cod_restrict _
 
 variables {β γ}
 
+section
 set_option class.instance_max_depth 50
 @[simp] theorem restrict_dom_apply (s : set α) [decidable_pred (λ x, x ∈ s)] (l : α →₀ β) :
   ((restrict_dom β γ s : α →₀ β →ₗ supported β γ s) l : α →₀ β) = finsupp.filter (∈ s) l := rfl
-set_option class.instance_max_depth 32
+end
 
 theorem restrict_dom_comp_subtype (s : set α) [decidable_pred (λ x, x ∈ s)] :
   (restrict_dom β γ s).comp (submodule.subtype _) = linear_map.id :=
@@ -204,6 +205,7 @@ begin
   exact λ l, set.subset_Inter
 end
 
+section
 set_option class.instance_max_depth 37
 def supported_equiv_finsupp (s : set α) [decidable_pred (λ (x : α), x ∈ s)] :
   (supported β γ s) ≃ₗ[γ] (s →₀ β) :=
@@ -213,7 +215,7 @@ begin
       (submodule.subtype (supported β γ s))),
   exact linear_map.is_linear _
 end
-set_option class.instance_max_depth 32
+end
 
 def lsum [decidable_eq γ] (f : α → γ →ₗ[γ] β) : α →₀ γ →ₗ[γ] β :=
 ⟨λ d, d.sum (λ i, f i),

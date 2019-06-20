@@ -25,8 +25,6 @@ open finset
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ι : Type*}
   {α₁ : Type*} {α₂ : Type*} {β₁ : Type*} {β₂ : Type*}
 
-reserve infix ` →₀ `:25
-
 /-- `finsupp α β`, denoted `α →₀ β`, is the type of functions `f : α → β` such that
   `f x = 0` for all but finitely many `x`. -/
 structure finsupp (α : Type*) (β : Type*) [has_zero β] :=
@@ -34,7 +32,7 @@ structure finsupp (α : Type*) (β : Type*) [has_zero β] :=
 (to_fun             : α → β)
 (mem_support_to_fun : ∀a, a ∈ support ↔ to_fun a ≠ 0)
 
-infixr →₀ := finsupp
+infixr ` →₀ `:25 := finsupp
 
 namespace finsupp
 

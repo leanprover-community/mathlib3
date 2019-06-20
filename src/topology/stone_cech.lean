@@ -106,9 +106,9 @@ end
 open topological_space
 
 /-- `pure : α → ultrafilter α` defines a dense embedding of `α` in `ultrafilter α`. -/
-lemma dense_embedding_pure : @dense_embedding _ _ ⊤ _ (pure : α → ultrafilter α) :=
-by letI : topological_space α := ⊤; exact
-dense_embedding.mk' pure continuous_top
+lemma dense_embedding_pure : @dense_embedding _ _ ⊥ _ (pure : α → ultrafilter α) :=
+by letI : topological_space α := ⊥; exact
+dense_embedding.mk' pure continuous_bot
   (assume x, mem_closure_iff_ultrafilter.mpr
      ⟨x.map ultrafilter.pure, range_mem_map,
       ultrafilter_converges_iff.mpr (bind_pure x).symm⟩)
@@ -132,10 +132,10 @@ variables {γ : Type*} [topological_space γ]
 /-- The extension of a function `α → γ` to a function `ultrafilter α → γ`.
   When `γ` is a compact Hausdorff space it will be continuous. -/
 def ultrafilter.extend (f : α → γ) : ultrafilter α → γ :=
-by letI : topological_space α := ⊤; exact dense_embedding_pure.extend f
+by letI : topological_space α := ⊥; exact dense_embedding_pure.extend f
 
 lemma ultrafilter_extend_extends (f : α → γ) : ultrafilter.extend f ∘ pure = f :=
-by letI : topological_space α := ⊤; exact funext dense_embedding_pure.extend_e_eq
+by letI : topological_space α := ⊥; exact funext dense_embedding_pure.extend_e_eq
 
 variables [t2_space γ] [compact_space γ]
 
@@ -146,7 +146,7 @@ have ∀ (b : ultrafilter α), ∃ c, tendsto f (comap ultrafilter.pure (nhds b)
     (by rw [le_principal_iff]; exact univ_mem_sets) in
   ⟨c, le_trans (map_mono (ultrafilter_comap_pure_nhds _)) h⟩,
 begin
-  letI : topological_space α := ⊤,
+  letI : topological_space α := ⊥,
   letI : normal_space γ := normal_of_compact_t2,
   exact dense_embedding_pure.continuous_extend this
 end
@@ -168,7 +168,7 @@ lemma ultrafilter_extend_eq_iff {f : α → γ} {b : ultrafilter α} {c : γ} :
    rw ultrafilter_extend_extends,
    exact le_refl _
  end,
- assume h, by letI : topological_space α := ⊤; exact
+ assume h, by letI : topological_space α := ⊥; exact
    dense_embedding_pure.extend_eq (le_trans (map_mono (ultrafilter_comap_pure_nhds _)) h)⟩
 
 end extension

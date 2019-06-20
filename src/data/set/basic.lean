@@ -782,7 +782,7 @@ assume x hx, h hx
 @[simp] theorem preimage_set_of_eq {p : α → Prop} {f : β → α} : f ⁻¹' {a | p a} = {a | p (f a)} :=
 rfl
 
-theorem preimage_id {s : set α} : id ⁻¹' s = s := rfl
+@[simp] theorem preimage_id {s : set α} : id ⁻¹' s = s := rfl
 
 theorem preimage_comp {s : set γ} : (g ∘ f) ⁻¹' s = f ⁻¹' (g ⁻¹' s) := rfl
 
@@ -1337,6 +1337,26 @@ ext $ assume ⟨a, b⟩, by simp
 lemma prod_sub_preimage_iff {W : set γ} {f : α × β → γ} :
   set.prod s t ⊆ f ⁻¹' W ↔ ∀ a b, a ∈ s → b ∈ t → f (a, b) ∈ W :=
 by simp [subset_def]
+
+lemma fst_image_prod_subset (s : set α) (t : set β) :
+  prod.fst '' (set.prod s t) ⊆ s :=
+λ _ h, let ⟨_, ⟨h₂, _⟩, h₁⟩ := (set.mem_image _ _ _).1 h in h₁ ▸ h₂
+
+lemma fst_image_prod (s : set β) {t : set α} (ht : t ≠ ∅) :
+  prod.fst '' (set.prod s t) = s :=
+set.subset.antisymm (fst_image_prod_subset _ _)
+  $ λ y y_in, let (⟨x, x_in⟩ : ∃ (x : α), x ∈ t) := set.exists_mem_of_ne_empty ht in
+    ⟨(y, x), ⟨y_in, x_in⟩, rfl⟩
+
+lemma snd_image_prod_subset (s : set α) (t : set β) :
+  prod.snd '' (set.prod s t) ⊆ t :=
+λ _ h, let ⟨_, ⟨_, h₂⟩, h₁⟩ := (set.mem_image _ _ _).1 h in h₁ ▸ h₂
+
+lemma snd_image_prod {s : set α} (hs : s ≠ ∅) (t : set β) :
+  prod.snd '' (set.prod s t) = t :=
+set.subset.antisymm (snd_image_prod_subset _ _)
+  $ λ y y_in, let (⟨x, x_in⟩ : ∃ (x : α), x ∈ s) := set.exists_mem_of_ne_empty hs in
+    ⟨(x, y), ⟨x_in, y_in⟩, rfl⟩
 
 end prod
 

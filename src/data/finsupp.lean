@@ -767,7 +767,6 @@ end map_domain
 
 section comap_domain
 
--- TODO: rename? (Alex)
 noncomputable def comap_domain {α₁ α₂ γ : Type*} [has_zero γ]
   (f : α₁ → α₂) (l : α₂ →₀ γ) (hf : set.inj_on f (f ⁻¹' l.support.to_set)) : α₁ →₀ γ :=
 { support := l.support.preimage hf,
@@ -805,38 +804,28 @@ lemma eq_zero_of_comap_domain_eq_zero {α₁ α₂ γ : Type*}
 begin
   ext a,
   have h_preimage : ∀ a' (ha' : f a' = a), l a = 0,
-  {
-    intros a' ha',
+  { intros a' ha',
     rw [← ha', ← comap_domain_apply, h],
-    refl,
-  },
+    refl },
   simp,
   by_contradiction h_contr,
   { exfalso,
     apply exists.elim ((set.mem_image _ _ _).1 (set.surj_on_of_bij_on hf (mem_support_iff.2 h_contr))),
     intros a' ha',
-    apply h_contr (h_preimage a' ha'.2)
-  }
+    apply h_contr (h_preimage a' ha'.2) }
 end
-
---TODO: move
-lemma inj_on_of_injective {α β : Type*} {f : α → β} (s : set α) (h : function.injective f) :
-  set.inj_on f s :=
-set.inj_on_of_inj_on_of_subset (set.injective_iff_inj_on_univ.1 h) (set.subset_univ s)
 
 lemma map_domain_comap_domain {α₁ α₂ γ : Type*}
   [add_comm_monoid γ] [decidable_eq α₁] [decidable_eq α₂] [decidable_eq γ]
   (f : α₁ → α₂) (l : α₂ →₀ γ)
   (hf : function.injective f) (hl : ↑l.support ⊆ set.range f):
-  map_domain f (comap_domain f l (inj_on_of_injective _ hf)) = l :=
+  map_domain f (comap_domain f l (set.inj_on_of_injective _ hf)) = l :=
 begin
   ext a,
   haveI := classical.dec (a ∈ set.range f),
   by_cases h_cases: a ∈ set.range f,
   { rcases set.mem_range.1 h_cases with ⟨b, hb⟩,
-    rw hb.symm,
-    rw map_domain_apply hf,
-    rw comap_domain_apply },
+    rw [hb.symm, map_domain_apply hf, comap_domain_apply] },
   { rw map_domain_notin_range _ _ h_cases,
     by_contra h_contr,
     apply h_cases (hl (finset.mem_coe.2 (mem_support_iff.2 (λ h, h_contr h.symm)))) }
@@ -1427,8 +1416,7 @@ end
 
 noncomputable def split_comp [has_zero γ] (g : Π i, (αs i →₀ β) → γ) (hg : ∀ i x, x = 0 ↔ g i x = 0)
   : ι →₀ γ :=
-{
-  support := split_support l,
+{ support := split_support l,
   to_fun := λ i, g i (split l i),
   mem_support_to_fun :=
   begin
@@ -1437,8 +1425,7 @@ noncomputable def split_comp [has_zero γ] (g : Π i, (αs i →₀ β) → γ) 
     haveI := classical.dec,
     rwa not_iff_not,
     exact hg _ _,
-  end
-}
+  end }
 
 lemma sigma_support : l.support = l.split_support.sigma (λ i, (l.split i).support) :=
 begin

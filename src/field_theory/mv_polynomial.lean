@@ -34,10 +34,6 @@ end
 
 end
 
-noncomputable instance decidable_restrict_degree (m : ℕ) :
-  decidable_pred (λn, n ∈ {n : σ →₀ ℕ | ∀i, n i ≤ m }) :=
-assume n, classical.prop_decidable _
-
 section
 variables (σ α)
 def restrict_degree (m : ℕ) [discrete_field α] : submodule α (mv_polynomial σ α) :=
@@ -207,6 +203,10 @@ def R : Type u := restrict_degree σ α (fintype.card α - 1)
 
 instance R.add_comm_group : add_comm_group (R σ α) := by dunfold R; apply_instance
 instance R.vector_space : vector_space α (R σ α) := by dunfold R; apply_instance
+
+noncomputable instance decidable_restrict_degree (m : ℕ) :
+  decidable_pred (λn, n ∈ {n : σ →₀ ℕ | ∀i, n i ≤ m }) :=
+by simp only [set.mem_set_of_eq]; apply_instance
 
 set_option class.instance_max_depth 60
 lemma dim_R : vector_space.dim α (R σ α) = fintype.card (σ → α) :=

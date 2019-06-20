@@ -34,7 +34,8 @@ instance : second_countable_topology ennreal :=
 ⟨⟨⋃q ≥ (0:ℚ), {{a : ennreal | a < nnreal.of_real q}, {a : ennreal | ↑(nnreal.of_real q) < a}},
   countable_bUnion (countable_encodable _) $ assume a ha, countable_insert (countable_singleton _),
   le_antisymm
-    (generate_from_le $ λ s h, begin
+    (le_generate_from $ by simp [or_imp_distrib, is_open_lt', is_open_gt'] {contextual := tt})
+    (le_generate_from $ λ s h, begin
       rcases h with ⟨a, hs | hs⟩;
       [ rw show s = ⋃q∈{q:ℚ | 0 ≤ q ∧ a < nnreal.of_real q}, {b | ↑(nnreal.of_real q) < b},
            from set.ext (assume b, by simp [hs, @ennreal.lt_iff_exists_rat_btwn a b, and_assoc]),
@@ -43,26 +44,25 @@ instance : second_countable_topology ennreal :=
       { apply is_open_Union, intro q,
         apply is_open_Union, intro hq,
         exact generate_open.basic _ (mem_bUnion hq.1 $ by simp) }
-    end)
-    (generate_from_le $ by simp [or_imp_distrib, is_open_lt', is_open_gt'] {contextual := tt})⟩⟩
+    end)⟩⟩
 
 lemma embedding_coe : embedding (coe : nnreal → ennreal) :=
 and.intro (assume a b, coe_eq_coe.1) $
 begin
   refine le_antisymm _ _,
-  { rw [orderable_topology.topology_eq_generate_intervals nnreal],
-    refine generate_from_le (assume s ha, _),
-    rcases ha with ⟨a, rfl | rfl⟩,
-    exact ⟨{b : ennreal | ↑a < b}, @is_open_lt' ennreal ennreal.topological_space _ _ _, by simp⟩,
-    exact ⟨{b : ennreal | b < ↑a}, @is_open_gt' ennreal ennreal.topological_space _ _ _, by simp⟩, },
   { rw [orderable_topology.topology_eq_generate_intervals ennreal,
-      induced_le_iff_le_coinduced],
-    refine generate_from_le (assume s ha, _),
+      ← coinduced_le_iff_le_induced],
+    refine le_generate_from (assume s ha, _),
     rcases ha with ⟨a, rfl | rfl⟩,
     show is_open {b : nnreal | a < ↑b},
     { cases a; simp [none_eq_top, some_eq_coe, is_open_lt'] },
     show is_open {b : nnreal | ↑b < a},
-    { cases a; simp [none_eq_top, some_eq_coe, is_open_gt', is_open_const] } }
+    { cases a; simp [none_eq_top, some_eq_coe, is_open_gt', is_open_const] } },
+  { rw [orderable_topology.topology_eq_generate_intervals nnreal],
+    refine le_generate_from (assume s ha, _),
+    rcases ha with ⟨a, rfl | rfl⟩,
+    exact ⟨{b : ennreal | ↑a < b}, @is_open_lt' ennreal ennreal.topological_space _ _ _, by simp⟩,
+    exact ⟨{b : ennreal | b < ↑a}, @is_open_gt' ennreal ennreal.topological_space _ _ _, by simp⟩, },
 end
 
 lemma is_open_ne_top : is_open {a : ennreal | a ≠ ⊤} :=

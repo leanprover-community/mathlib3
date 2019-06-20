@@ -41,6 +41,11 @@ inductive r : pgame → pgame → Prop
 | right : Π (x : pgame) (j : x.right_moves), r (x.move_right j) x
 | trans : Π (x y z : pgame), r x y → r y z → r x z
 
+def r.left' {xl xr} {xL : xl → pgame} {xR : xr → pgame} {i : xl} : r (xL i) (mk xl xr xL xR) :=
+r.left (mk xl xr xL xR) (by { convert i, refl })
+def r.right' {xl xr} {xL : xl → pgame} {xR : xr → pgame} {j : xr} : r (xR j) (mk xl xr xL xR) :=
+r.right (mk xl xr xL xR) (by { convert j, refl })
+
 theorem wf_r : well_founded r :=
 ⟨λ x, begin
   induction x with l r L R IHl IHr,
@@ -445,8 +450,12 @@ theorem neg_add {x y : pgame} : -(x + y) = -x + -y := sorry
 theorem le_iff_sub_le_zero {x y : pgame} : x ≤ y ↔ x - y ≤ 0 := sorry
 theorem le_iff_zero_le_sub {x y : pgame} : x ≤ y ↔ 0 ≤ y - x := sorry
 
+-- FIXME, ugh, the current implementation of `solve_by_elim` apparently only uses each passed lemma
+-- once. We cheat for now by repeating some of the lemmas!!
 meta def pgame_wf_tac :=
-`[solve_by_elim [psigma.lex.left, psigma.lex.right, r.left, r.right, r.trans] { max_rep := 20 }]
+`[solve_by_elim
+  [psigma.lex.left, psigma.lex.left, psigma.lex.right, psigma.lex.right, r.left', r.right', r.left, r.right, r.trans]
+  { max_rep := 10 }]
 
 theorem add_le_zero_of_le_zero : Π {x y : pgame} (hx : x ≤ 0) (hy : y ≤ 0), x + y ≤ 0
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
@@ -480,6 +489,17 @@ begin
   intros hx hy,
   rw neg_add,
   solve_by_elim [add_le_zero_of_le_zero],
+end
+
+lemma ft {xl xr xL xR yl yr yL yR zl zr} {zL : zl → pgame} {zR} {i : zl} :
+  has_well_founded.r
+    (⟨mk xl xr xL xR, ⟨mk yl yr yL yR, zL i⟩⟩ : Σ' (g : pgame), Σ' (h : pgame), pgame)
+    (⟨mk xl xr xL xR, ⟨mk yl yr yL yR, mk zl zr zL zR⟩⟩ : Σ' (g : pgame), Σ' (h : pgame), pgame) :=
+begin
+  -- apply psigma.lex.right,
+  -- apply psigma.lex.right,
+  -- apply r.left',
+  pgame_wf_tac
 end
 
 theorem foo : Π {x y z : pgame} (h : x ≤ y), x + z ≤ y + z

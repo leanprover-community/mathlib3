@@ -353,7 +353,6 @@ instance aut_group (γ : Type) [group γ] : group (aut γ) :=
 
 end group_aut
 
-#check group_aut.mul_equiv.ext
 namespace add_monoid
 
 def aut (α : Type) [has_add α] := add_equiv α α

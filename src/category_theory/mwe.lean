@@ -10,13 +10,21 @@ lemma map_increasing {n m : ℕ} (f: hom n m) (w : monotone f) : monotone (map f
 begin
   dsimp [map],
   split_ifs,
+<<<<<<< HEAD
   {solve_by_elim},
+=======
+  {tidy},
+>>>>>>> ebcdb69f85672825e9af75247297a5b9e7e55d86
   {apply fin.le_last},
   {rw [fin.le_iff_val_le_val] at h,
   linarith},
   {apply fin.le_last}
 end
 
+<<<<<<< HEAD
+=======
+lemma fooo {a b n : ℕ} (h1 : a ≤ b) (h2 : ¬(a < n)) :¬ (b < n) := by library_search
+>>>>>>> ebcdb69f85672825e9af75247297a5b9e7e55d86
 
 lemma map_id {n m : ℕ} (f : hom n m) : map (@id (fin n)) = @id (fin (n+1)) :=
 funext (λ a,

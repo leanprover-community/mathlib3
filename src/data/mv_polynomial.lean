@@ -263,7 +263,7 @@ begin
   rw finset.sum_eq_single m,
   { rw if_pos rfl, refl },
   { intros m' hm' H, apply if_neg, intro h, apply H, ext j,
-    let c : σ →₀ ℕ → (σ → ℕ) := λ f, f, replace h := congr_arg c h, simpa [c] using congr_fun h j },
+    let c : (σ →₀ ℕ) → (σ → ℕ) := λ f, f, replace h := congr_arg c h, simpa [c] using congr_fun h j },
   { intros hm, rw if_pos rfl, rw not_mem_support_iff at hm, simp [hm] }
 end
 

@@ -138,7 +138,7 @@ variables {β γ}
 section
 set_option class.instance_max_depth 50
 @[simp] theorem restrict_dom_apply (s : set α) [decidable_pred (λ x, x ∈ s)] (l : α →₀ β) :
-  ((restrict_dom β γ s : α →₀ β →ₗ supported β γ s) l : α →₀ β) = finsupp.filter (∈ s) l := rfl
+  ((restrict_dom β γ s : (α →₀ β) →ₗ supported β γ s) l : α →₀ β) = finsupp.filter (∈ s) l := rfl
 end
 
 theorem restrict_dom_comp_subtype (s : set α) [decidable_pred (λ x, x ∈ s)] :
@@ -217,13 +217,13 @@ begin
 end
 end
 
-def lsum [decidable_eq γ] (f : α → γ →ₗ[γ] β) : α →₀ γ →ₗ[γ] β :=
+def lsum [decidable_eq γ] (f : α → γ →ₗ[γ] β) : (α →₀ γ) →ₗ[γ] β :=
 ⟨λ d, d.sum (λ i, f i),
   assume d₁ d₂, by simp [sum_add_index],
   assume a d, by simp [sum_smul_index, smul_sum, -smul_eq_mul, smul_eq_mul.symm]⟩
 
 @[simp] theorem lsum_apply [decidable_eq γ] (f : α → γ →ₗ[γ] β) (l : α →₀ γ) :
-  (finsupp.lsum f : α →₀ γ →ₗ β) l = l.sum (λ b, f b) := rfl
+  (finsupp.lsum f : (α →₀ γ) →ₗ β) l = l.sum (λ b, f b) := rfl
 
 section lmap_domain
 variables {α' : Type*} [decidable_eq α'] {α'' : Type*} [decidable_eq α''] (β γ)
@@ -234,7 +234,7 @@ def lmap_domain (f : α → α') : (α →₀ β) →ₗ[γ] (α' →₀ β) :=
 @[simp] theorem lmap_domain_apply (f : α → α') (l : α →₀ β) :
   (lmap_domain β γ f : (α →₀ β) →ₗ[γ] (α' →₀ β)) l = map_domain f l := rfl
 
-@[simp] theorem lmap_domain_id : (lmap_domain β γ id : α →₀ β →ₗ[γ] α →₀ β) = linear_map.id :=
+@[simp] theorem lmap_domain_id : (lmap_domain β γ id : (α →₀ β) →ₗ[γ] α →₀ β) = linear_map.id :=
 linear_map.ext $ λ l, map_domain_id
 
 theorem lmap_domain_comp (f : α → α') (g : α' → α'') :
@@ -256,7 +256,7 @@ begin
     le_trans (supported_mono $ set.subset_preimage_image _ _)
        (supported_comap_lmap_domain _ _ _ _)) _,
   intros l hl,
-  refine ⟨(lmap_domain β γ (function.inv_fun_on f s) : α' →₀ β →ₗ α →₀ β) l, λ x hx, _, _⟩,
+  refine ⟨(lmap_domain β γ (function.inv_fun_on f s) : (α' →₀ β) →ₗ α →₀ β) l, λ x hx, _, _⟩,
   { rcases finset.mem_image.1 (map_domain_support hx) with ⟨c, hc, rfl⟩,
     exact function.inv_fun_on_mem (by simpa using hl hc) },
   { rw [← linear_map.comp_apply, ← lmap_domain_comp],
@@ -290,7 +290,7 @@ variables (α) {α' : Type*} (β) {β' : Type*} (γ)
 
 /-- Interprets (l : α →₀ γ) as linear combination of the elements in the family (v : α → β) and
     evaluates this linear combination. -/
-protected def total : α →₀ γ →ₗ β := finsupp.lsum (λ i, linear_map.id.smul_right (v i))
+protected def total : (α →₀ γ) →ₗ β := finsupp.lsum (λ i, linear_map.id.smul_right (v i))
 
 variables {α β v}
 

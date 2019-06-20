@@ -124,7 +124,7 @@ structure linear_map (α : Type u) (β : Type v) (γ : Type w)
 (smul : ∀(c : α) x, to_fun (c • x) = c • to_fun x)
 
 infixr ` →ₗ `:25 := linear_map _
-notation β ` →ₗ[`:25 α `] ` γ := linear_map α β γ
+notation β ` →ₗ[`:25 α:25 `] `:0 γ:0 := linear_map α β γ
 
 namespace linear_map
 

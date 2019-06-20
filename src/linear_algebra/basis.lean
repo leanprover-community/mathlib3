@@ -420,9 +420,9 @@ lemma linear_independent.repr_eq
   {l : ι →₀ α} {x} (eq : finsupp.total ι β α v l = ↑x) :
   hv.repr x = l :=
 begin
-  have : ↑((linear_independent.total_equiv hv : ι →₀ α →ₗ[α] span α (range v)) l)
+  have : ↑((linear_independent.total_equiv hv : (ι →₀ α) →ₗ[α] span α (range v)) l)
       = finsupp.total ι β α v l := rfl,
-  have : (linear_independent.total_equiv hv : ι →₀ α →ₗ[α] span α (range v)) l = x,
+  have : (linear_independent.total_equiv hv : (ι →₀ α) →ₗ[α] span α (range v)) l = x,
   { rw eq at this,
     exact subtype.coe_ext.2 this },
   rw ←linear_equiv.symm_apply_apply hv.total_equiv l,

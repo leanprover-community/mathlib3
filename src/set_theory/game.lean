@@ -210,7 +210,7 @@ end
 theorem not_le {x y : pgame} : ¬ x ≤ y ↔ y < x := not_le_lt.1
 theorem not_lt {x y : pgame} : ¬ x < y ↔ y ≤ x := not_le_lt.2
 
-theorem le_refl : ∀ x : pgame, x ≤ x
+@[refl] theorem le_refl : ∀ x : pgame, x ≤ x
 | ⟨l, r, L, R⟩ :=
   ⟨λ i, lt_mk_of_le (le_refl _), λ i, mk_lt_of_le (le_refl _)⟩
 
@@ -233,7 +233,7 @@ theorem le_trans_aux
   λ i, not_le.1 (λ h, not_lt.2 (h₁ _ ⟨yLz, yzR⟩ h) (xLy _)),
   λ i, not_le.1 (λ h, not_lt.2 (h₂ _ h ⟨xLy, xyR⟩) (yzR _))⟩
 
-theorem le_trans {x y z : pgame} : x ≤ y → y ≤ z → x ≤ z :=
+@[trans] theorem le_trans {x y z : pgame} : x ≤ y → y ≤ z → x ≤ z :=
 suffices ∀ {x y z : pgame},
   (x ≤ y → y ≤ z → x ≤ z) ∧ (y ≤ z → z ≤ x → y ≤ x) ∧ (z ≤ x → x ≤ y → z ≤ y),
 from this.1, begin
@@ -445,7 +445,8 @@ end
 
 instance : has_sub pgame := ⟨λ x y, x + -y⟩
 
-theorem neg_add {x y : pgame} : -(x + y) = -x + -y := sorry
+theorem neg_add_le {x y : pgame} : -(x + y) ≤ -x + -y := sorry
+theorem neg_add_ge {x y : pgame} : -x + -y ≤ -(x + y) := sorry
 
 theorem le_iff_sub_le_zero {x y : pgame} : x ≤ y ↔ x - y ≤ 0 := sorry
 theorem le_iff_zero_le_sub {x y : pgame} : x ≤ y ↔ 0 ≤ y - x := sorry
@@ -487,11 +488,13 @@ begin
   intros x y,
   repeat { rw zero_le_iff_neg_le_zero },
   intros hx hy,
-  rw neg_add,
+  transitivity,
+  exact neg_add_le,
   solve_by_elim [add_le_zero_of_le_zero],
 end
 
-lemma ft {xl xr xL xR yl yr yL yR zl zr} {zL : zl → pgame} {zR} {i : zl} :
+-- This is is just a temporary test to check pgame_wf_tac is working.
+example {xl xr xL xR yl yr yL yR zl zr} {zL : zl → pgame} {zR} {i : zl} :
   has_well_founded.r
     (⟨mk xl xr xL xR, ⟨mk yl yr yL yR, zL i⟩⟩ : Σ' (g : pgame), Σ' (h : pgame), pgame)
     (⟨mk xl xr xL xR, ⟨mk yl yr yL yR, mk zl zr zL zR⟩⟩ : Σ' (g : pgame), Σ' (h : pgame), pgame) :=
@@ -502,7 +505,7 @@ begin
   pgame_wf_tac
 end
 
-theorem foo : Π {x y z : pgame} (h : x ≤ y), x + z ≤ y + z
+theorem le_add_right : Π {x y z : pgame} (h : x ≤ y), x + z ≤ y + z
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
 begin
   intros h,
@@ -521,19 +524,19 @@ begin
         use right_moves_add.inv_fun (sum.inl j),
         dsimp,
         simp,
-        exact foo jh },
+        exact le_add_right jh },
       { right,
         use left_moves_add.inv_fun (sum.inl i),
         dsimp,
         simp,
-        exact foo ih, },
+        exact le_add_right ih, },
       },
     { -- or play in z
       right,
       use left_moves_add.inv_fun (sum.inr i),
       dsimp,
       simp,
-      exact foo h,
+      exact le_add_right h,
     }, },
   { -- if right plays first
     intros j,
@@ -548,24 +551,23 @@ begin
         use right_moves_add.inv_fun (sum.inl j),
         dsimp,
         simp,
-        exact foo jh },
+        exact le_add_right jh },
       { right,
         use left_moves_add.inv_fun (sum.inl i),
         dsimp,
         simp,
-        exact foo ih, },
+        exact le_add_right ih, },
       },
     { -- or play in z
       left,
       use right_moves_add.inv_fun (sum.inr j),
       dsimp,
       simp,
-      exact foo h,
+      exact le_add_right h,
     }
   }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
-
 
 
 /-- The pre-surreal number `ω`. (In fact all ordinals have surreal

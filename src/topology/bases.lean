@@ -40,13 +40,13 @@ let b' := (λf, ⋂₀ f) '' {f:set (set α) | finite f ∧ f ⊆ s ∧ ⋂₀ f
     by rw sInter_empty; exact nonempty_iff_univ_ne_empty.1 ⟨a⟩⟩, sInter_empty⟩, mem_univ _⟩,
  have generate_from s = generate_from b',
     from le_antisymm
-      (generate_from_le $ assume s hs,
+      (le_generate_from $ assume u ⟨t, ⟨hft, htb, ne⟩, eq⟩,
+        eq ▸ @is_open_sInter _ (generate_from s) _ hft (assume s hs, generate_open.basic _ $ htb hs))
+      (le_generate_from $ assume s hs,
         by_cases
           (assume : s = ∅, by rw [this]; apply @is_open_empty _ _)
           (assume : s ≠ ∅, generate_open.basic _ ⟨{s}, ⟨finite_singleton s, singleton_subset_iff.2 hs,
-            by rwa [sInter_singleton]⟩, sInter_singleton s⟩))
-      (generate_from_le $ assume u ⟨t, ⟨hft, htb, ne⟩, eq⟩,
-        eq ▸ @is_open_sInter _ (generate_from s) _ hft (assume s hs, generate_open.basic _ $ htb hs)),
+            by rwa [sInter_singleton]⟩, sInter_singleton s⟩)),
   this ▸ hs⟩
 
 lemma is_topological_basis_of_open_of_nhds {s : set (set α)}
@@ -60,11 +60,11 @@ lemma is_topological_basis_of_open_of_nhds {s : set (set α)}
     let ⟨u, h₁, h₂, _⟩ := h_nhds a univ trivial (is_open_univ _) in
     ⟨u, h₁, h₂⟩,
   le_antisymm
+    (le_generate_from h_open)
     (assume u hu,
       (@is_open_iff_nhds α (generate_from _) _).mpr $ assume a hau,
         let ⟨v, hvs, hav, hvu⟩ := h_nhds a u hau hu in
-        by rw nhds_generate_from; exact infi_le_of_le v (infi_le_of_le ⟨hav, hvs⟩ $ le_principal_iff.2 hvu))
-    (generate_from_le h_open)⟩
+        by rw nhds_generate_from; exact infi_le_of_le v (infi_le_of_le ⟨hav, hvs⟩ $ le_principal_iff.2 hvu))⟩
 
 lemma mem_nhds_of_is_topological_basis {a : α} {s : set α} {b : set (set α)}
   (hb : is_topological_basis b) : s ∈ nhds a ↔ ∃t∈b, a ∈ t ∧ t ⊆ s :=

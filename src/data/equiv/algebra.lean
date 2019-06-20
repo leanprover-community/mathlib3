@@ -332,14 +332,16 @@ end ring_equiv
 -- additive groups and rings using `mul_equiv`, `add_equiv` and `ring_equiv`.
 -- In each case this type is also a group.
 
-namespace group
+namespace group_aut
 
 def aut (γ : Type) [group γ] := mul_equiv γ γ
 
-@[extensionality] lemma ext_mul_equiv (α β : Type) [group α] [group β] (f : mul_equiv α β)
-(g : mul_equiv α β) (h : f.to_fun = g.to_fun) : f = g :=
+@[extensionality] lemma mul_equiv.ext {α β : Type} [group α] [group β]
+{f g : mul_equiv α β} (h : f.to_fun = g.to_fun) : f = g :=
 by { cases f, cases g, congr, apply equiv.eq_of_to_fun_eq h }
 
+-- The group operation is defined by λ g h, mul_equiv.trans h g so that
+-- multiplication agrees with composition, (f*g)(x) = f(g x)
 instance aut_group (γ : Type) [group γ] : group (aut γ) :=
 { mul := λ g h, mul_equiv.trans h g,
   one := mul_equiv.refl γ,
@@ -349,14 +351,15 @@ instance aut_group (γ : Type) [group γ] : group (aut γ) :=
   mul_one := λ _, by { ext, refl },
   mul_left_inv := λ _, by { ext, apply equiv.left_inv } }
 
-end group
+end group_aut
 
+#check group_aut.mul_equiv.ext
 namespace add_monoid
 
 def aut (α : Type) [has_add α] := add_equiv α α
 
-@[extensionality] lemma ext_add_equiv (α β : Type) [has_add α] [has_add β] (f : add_equiv α β)
-(g : add_equiv α β) (h : f.to_fun = g.to_fun) : f = g :=
+@[extensionality] lemma ext {α β : Type} [has_add α] [has_add β]
+{f g : add_equiv α β} (h : f.to_fun = g.to_fun) : f = g :=
 by { cases f, cases g, congr, apply equiv.eq_of_to_fun_eq h }
 
 instance aut_group (α : Type) [has_add α] : group (aut α) :=
@@ -383,8 +386,8 @@ namespace ring
 
 def aut (R : Type) [ring R] := ring_equiv R R
 
-@[extensionality] lemma ext_ring_equiv (R S : Type) [ring R] [ring S] (f : ring_equiv R S)
-(g : ring_equiv R S) (h : f.to_fun = g.to_fun) : f = g :=
+@[extensionality] lemma ext {R S : Type} [ring R] [ring S]
+{f g : ring_equiv R S} (h : f.to_fun = g.to_fun) : f = g :=
 by { cases f, cases g, congr, apply equiv.eq_of_to_fun_eq h }
 
 instance aut_group (R : Type) [ring R] : group (aut R) :=

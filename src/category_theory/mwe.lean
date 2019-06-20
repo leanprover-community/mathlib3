@@ -17,7 +17,6 @@ begin
   {apply fin.le_last}
 end
 
-lemma fooo {a b n : ℕ} (h1 : a ≤ b) (h2 : ¬(a < n)) :¬ (b < n) := by library_search
 
 lemma map_id {n m : ℕ} (f : hom n m) : map (@id (fin n)) = @id (fin (n+1)) :=
 funext (λ a,
@@ -40,37 +39,57 @@ lemma cast_lt_cast_succ {n : ℕ} (i : fin n)  :
 fin.eq_of_veq (by simp only [fin.cast_lt_val, fin.cast_succ_val])
 
 lemma map_comp {l m n : ℕ} (f : hom l m) (g : hom m n) : map (g ∘ f) = (map g) ∘ (map f) :=
-funext (λ x,
+funext (λ a,
 begin
   dsimp [map],
   split_ifs,
-  { -- x.val < l
-    by_cases h2 : ((dite (x.val < l) (λ h, fin.cast_succ (f (fin.cast_lt x h)))
+  { -- a.val < l
+    by_cases h2 : ((dite (a.val < l) (λ h, fin.cast_succ (f (fin.cast_lt a h)))
       (λ h, fin.last m)).val < m),
-    { -- (dite (x.val < l) (λ h, fin.cast_succ (f (fin.cast_lt x h))) (λ h, fin.last m)).val < m
+    { -- (dite (a.val < l) (λ h, fin.cast_succ (f (fin.cast_lt a h))) (λ h, fin.last m)).val < m
       rw dif_pos h2,
       split_ifs,
       tidy,
       simp [cast_lt_cast_succ],
     },
-    { -- ¬((dite (x.val < l) (λ h, fin.cast_succ (f (fin.cast_lt x h))) (λ h, fin.last m)).val < m)
+    { -- ¬((dite (a.val < l) (λ h, fin.cast_succ (f (fin.cast_lt a h))) (λ h, fin.last m)).val < m)
       rw dif_neg h2,
       split_ifs at h2,
       rw [fin.cast_succ_val] at h2,
-      exact absurd ((f (fin.cast_lt x h)).is_lt) h2,
+      exact absurd ((f (fin.cast_lt a h)).is_lt) h2,
     },
   },
-  { -- ¬(x.val < l)
-    by_cases h2 : ((dite (x.val < l) (λ h, fin.cast_succ (f (fin.cast_lt x h)))
+  { -- ¬(a.val < l)
+    by_cases h2 : ((dite (a.val < l) (λ h, fin.cast_succ (f (fin.cast_lt a h)))
             (λ h, fin.last m)).val < m),
-    { -- (dite (x.val < l) (λ h, fin.cast_succ (f (fin.cast_lt x h))) (λ h, fin.last m)).val < m
+    { -- (dite (a.val < l) (λ h, fin.cast_succ (f (fin.cast_lt a h))) (λ h, fin.last m)).val < m
       rw dif_pos h2,
       split_ifs at h2,
       simp [fin.last] at h2,
       exact (absurd h2 (irrefl m)),
     },
-    { -- ¬((dite (x.val < l) (λ h, fin.cast_succ (f (fin.cast_lt x h))) (λ h, fin.last m)).val < m)
+    { -- ¬((dite (a.val < l) (λ h, fin.cast_succ (f (fin.cast_lt a h))) (λ h, fin.last m)).val < m)
       rw dif_neg h2,
     },
   }
-end)
+end).
+
+
+
+-- One way to define the maximum of the set (above f j) is to use nat.find_greatest. One simply way
+-- to do this is to change the definition of above from set (fin n) to set ℕ
+def above {n m : ℕ} (f : hom n m) (j : fin m) : set (fin n) := {i | f i ≥ j}
+
+def above' {n m : ℕ} (f : hom n m) (j : fin m) : set ℕ := {i : ℕ | ∃ h : i < n, f ⟨i, h⟩ ≥ j}
+
+-- To use find_greatest, above' f j must be decidable
+instance {n m : ℕ} (f : hom n m) (j : fin m) : decidable_pred (above' f j) := sorry
+
+def hom_ (n m : ℕ) := fin (n+1) → fin (m+1)
+
+def prime_map_fn {n m : ℕ} (f : hom_ n m) (j : fin (m+2)) : fin (n+2) :=
+nat.find_greatest (above' (map f) j) (n+1)
+
+
+
+#print prime_map_fn

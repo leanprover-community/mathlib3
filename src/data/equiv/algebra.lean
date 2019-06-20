@@ -372,6 +372,7 @@ def aut (α : Type) [has_add α] := add_equiv α α
 /--
 The group operation on automorphisms of an additive monoid is defined by
 λ g h, add_equiv.trans h g.
+This means that multiplication agrees with composition, (g*h)(x) = g (h x) .
 -/
 instance aut_group (α : Type) [has_add α] : group (aut α) :=
 { mul := λ g h, add_equiv.trans h g,
@@ -405,6 +406,7 @@ def aut (R : Type) [ring R] := ring_equiv R R
 /--
 The group operation on automorphisms of a ring is defined by
 λ g h, ring_equiv.trans h g.
+This means that multiplication agrees with composition, (g*h)(x) = g (h x) .
 -/
 instance aut_group (R : Type) [ring R] : group (aut R) :=
 { mul := λ g h, ring_equiv.trans h g,

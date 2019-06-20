@@ -10,7 +10,7 @@ lemma map_increasing {n m : ℕ} (f: hom n m) (w : monotone f) : monotone (map f
 begin
   dsimp [map],
   split_ifs,
-  {tidy},
+  {solve_by_elim},
   {apply fin.le_last},
   {rw [fin.le_iff_val_le_val] at h,
   linarith},
@@ -49,8 +49,7 @@ begin
     { -- (dite (a.val < l) (λ h, fin.cast_succ (f (fin.cast_lt a h))) (λ h, fin.last m)).val < m
       rw dif_pos h2,
       split_ifs,
-      tidy,
-      simp [cast_lt_cast_succ],
+      simp [cast_lt_cast_succ] at *,
     },
     { -- ¬((dite (a.val < l) (λ h, fin.cast_succ (f (fin.cast_lt a h))) (λ h, fin.last m)).val < m)
       rw dif_neg h2,
@@ -75,6 +74,7 @@ begin
 end).
 
 
+-- Defining the prime functor
 
 -- One way to define the maximum of the set (above f j) is to use nat.find_greatest. One simply way
 -- to do this is to change the definition of above from set (fin n) to set ℕ
@@ -90,6 +90,16 @@ def hom_ (n m : ℕ) := fin (n+1) → fin (m+1)
 def prime_map_fn {n m : ℕ} (f : hom_ n m) (j : fin (m+2)) : fin (n+2) :=
 nat.find_greatest (above' (map f) j) (n+1)
 
+-- Working out how to prove that above' is decidable.
+variables (p : Prop) [decidable p] (f : pprod ℕ p → Prop) [decidable_pred f]
+
+def predicate : ℕ → Prop := λ n, (∃ h : p, f ⟨n,h⟩)
+
+instance : decidable_pred (predicate p f) := λ n,
+begin
+  dsimp [predicate],
+  cases _inst_1,
+end
 
 
 #print prime_map_fn

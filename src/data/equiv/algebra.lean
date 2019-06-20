@@ -328,20 +328,27 @@ instance symm.is_ring_hom {e : α ≃r β} : is_ring_hom e.to_equiv.symm := hom 
 
 end ring_equiv
 
--- We first define the type of automorphisms on groups, additive monoids,
--- additive groups and rings using `mul_equiv`, `add_equiv` and `ring_equiv`.
--- In each case this type is also a group.
 
-namespace group_aut
-
-def aut (γ : Type) [group γ] := mul_equiv γ γ
+/-
+We define the type of automorphisms on groups, additive monoids,
+additive groups and rings using `mul_equiv`, `add_equiv` and `ring_equiv`.
+In each case this type also forms a group.
+-/
 
 @[extensionality] lemma mul_equiv.ext {α β : Type} [group α] [group β]
 {f g : mul_equiv α β} (h : f.to_fun = g.to_fun) : f = g :=
 by { cases f, cases g, congr, apply equiv.eq_of_to_fun_eq h }
 
--- The group operation is defined by λ g h, mul_equiv.trans h g so that
--- multiplication agrees with composition, (f*g)(x) = f(g x)
+
+namespace group
+
+def aut (γ : Type) [group γ] := mul_equiv γ γ
+
+/--
+The group operation on automorphisms of a group is defined by
+λ g h, mul_equiv.trans h g.
+This means that multiplication agrees with composition, (g*h)(x) = g (h x) .
+-/
 instance aut_group (γ : Type) [group γ] : group (aut γ) :=
 { mul := λ g h, mul_equiv.trans h g,
   one := mul_equiv.refl γ,
@@ -351,16 +358,21 @@ instance aut_group (γ : Type) [group γ] : group (aut γ) :=
   mul_one := λ _, by { ext, refl },
   mul_left_inv := λ _, by { ext, apply equiv.left_inv } }
 
-end group_aut
+end group
+
+
+@[extensionality] lemma add_equiv.ext {α β : Type} [has_add α] [has_add β]
+{f g : add_equiv α β} (h : f.to_fun = g.to_fun) : f = g :=
+by { cases f, cases g, congr, apply equiv.eq_of_to_fun_eq h }
 
 namespace add_monoid
 
 def aut (α : Type) [has_add α] := add_equiv α α
 
-@[extensionality] lemma ext {α β : Type} [has_add α] [has_add β]
-{f g : add_equiv α β} (h : f.to_fun = g.to_fun) : f = g :=
-by { cases f, cases g, congr, apply equiv.eq_of_to_fun_eq h }
-
+/--
+The group operation on automorphisms of an additive monoid is defined by
+λ g h, add_equiv.trans h g.
+-/
 instance aut_group (α : Type) [has_add α] : group (aut α) :=
 { mul := λ g h, add_equiv.trans h g,
   one := add_equiv.refl α,
@@ -381,14 +393,19 @@ instance aut_group (γ : Type) [add_group γ] : group (aut γ) := add_monoid.aut
 
 end add_group
 
+
+@[extensionality] lemma ring_equiv.ext {R S : Type} [ring R] [ring S]
+{f g : ring_equiv R S} (h : f.to_fun = g.to_fun) : f = g :=
+by { cases f, cases g, congr, apply equiv.eq_of_to_fun_eq h }
+
 namespace ring
 
 def aut (R : Type) [ring R] := ring_equiv R R
 
-@[extensionality] lemma ext {R S : Type} [ring R] [ring S]
-{f g : ring_equiv R S} (h : f.to_fun = g.to_fun) : f = g :=
-by { cases f, cases g, congr, apply equiv.eq_of_to_fun_eq h }
-
+/--
+The group operation on automorphisms of a ring is defined by
+λ g h, ring_equiv.trans h g.
+-/
 instance aut_group (R : Type) [ring R] : group (aut R) :=
 { mul := λ g h, ring_equiv.trans h g,
   one := ring_equiv.refl R,

@@ -332,7 +332,7 @@ end ring_equiv
 -- additive groups and rings using `mul_equiv`, `add_equiv` and `ring_equiv`.
 -- In each case this type is also a group.
 
-namespace group_automorphism
+namespace group
 
 def aut (γ : Type) [group γ] := mul_equiv γ γ
 
@@ -347,11 +347,11 @@ instance aut_group (γ : Type) [group γ] : group (aut γ) :=
   mul_assoc := λ _ _ _, by { ext, refl },
   one_mul := λ _, by { ext, refl },
   mul_one := λ _, by { ext, refl },
-  mul_left_inv := λ f, by { ext, apply equiv.left_inv } }
+  mul_left_inv := λ _, by { ext, apply equiv.left_inv } }
 
-end group_automorphism
+end group
 
-namespace add_monoid_automorphism
+namespace add_monoid
 
 def aut (α : Type) [has_add α] := add_equiv α α
 
@@ -366,20 +366,20 @@ instance aut_group (α : Type) [has_add α] : group (aut α) :=
   mul_assoc := λ _ _ _, by { ext, refl },
   one_mul := λ _, by { ext, refl },
   mul_one := λ _, by { ext, refl },
-  mul_left_inv := λ f, by { ext, apply equiv.left_inv } }
+  mul_left_inv := λ _, by { ext, apply equiv.left_inv } }
 
-end add_monoid_automorphism
+end add_monoid
 
-namespace add_group_automorphism
+namespace add_group
 
 -- An additive group homomorphism is an additive monoid homomorphism between groups.
 def aut (γ : Type) [add_group γ] := add_equiv γ γ
 
-instance aut_group (γ : Type) [add_group γ] : group (aut γ) := add_monoid_automorphism.aut_group γ
+instance aut_group (γ : Type) [add_group γ] : group (aut γ) := add_monoid.aut_group γ
 
-end add_group_automorphism
+end add_group
 
-namespace ring_automorphism
+namespace ring
 
 def aut (R : Type) [ring R] := ring_equiv R R
 
@@ -394,6 +394,6 @@ instance aut_group (R : Type) [ring R] : group (aut R) :=
   mul_assoc := λ _ _ _, by { ext, refl },
   one_mul := λ _, by { ext, refl },
   mul_one := λ _, by { ext, refl },
-  mul_left_inv := λ f, by { ext, apply equiv.left_inv } }
+  mul_left_inv := λ _, by { ext, apply equiv.left_inv } }
 
-end ring_automorphism
+end ring

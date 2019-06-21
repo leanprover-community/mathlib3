@@ -765,18 +765,18 @@ end map_domain
 
 section comap_domain
 
-noncomputable def comap_domain {α₁ α₂ γ : Type*} [has_zero γ]
+noncomputable def comap_domain {α₁ α₂ γ : Type*} [decidable_eq α₁] [has_zero γ]
   (f : α₁ → α₂) (l : α₂ →₀ γ) (hf : set.inj_on f (f ⁻¹' l.support.to_set)) : α₁ →₀ γ :=
 { support := l.support.preimage hf,
   to_fun := (λ a, l (f a)),
   mem_support_to_fun :=
     begin
       intros a,
-      simp [finset.preimage, set.finite.to_finset],
+      simp only [finset.mem_def.symm, finset.mem_preimage],
       exact l.mem_support_to_fun (f a),
     end }
 
-lemma comap_domain_apply {α₁ α₂ γ : Type*} [has_zero γ]
+lemma comap_domain_apply {α₁ α₂ γ : Type*} [decidable_eq α₁] [has_zero γ]
   (f : α₁ → α₂) (l : α₂ →₀ γ) (hf : set.inj_on f (f ⁻¹' l.support.to_set)) (a : α₁) :
   comap_domain f l hf a = l (f a) :=
 begin
@@ -786,13 +786,13 @@ begin
   refl
 end
 
-lemma sum_comap_domain {α₁ α₂ β γ : Type*} [has_zero β] [add_comm_monoid γ]
+lemma sum_comap_domain {α₁ α₂ β γ : Type*} [decidable_eq α₁] [has_zero β] [add_comm_monoid γ]
   (f : α₁ → α₂) (l : α₂ →₀ β) (g : α₂ → β → γ) (hf : set.bij_on f (f ⁻¹' l.support.to_set) l.support.to_set):
   (comap_domain f l (set.inj_on_of_bij_on hf)).sum (g ∘ f) = l.sum g :=
 begin
   unfold sum,
   haveI := classical.dec_eq α₂,
-  simp only [comap_domain, comap_domain_apply, finset.sum_preimage f _ _ (λ (x : α₂), g x (l x))]
+  simp only [comap_domain, comap_domain_apply, finset.sum_preimage f _ _ (λ (x : α₂), g x (l x))],
 end
 
 lemma eq_zero_of_comap_domain_eq_zero {α₁ α₂ γ : Type*}
@@ -1368,7 +1368,7 @@ protected def dom_congr [decidable_eq α₁] [decidable_eq α₂] [decidable_eq 
 
 section sigma
 
-variables {αs : ι → Type*} [decidable_eq ι] [has_zero β] (l : (Σ i, αs i) →₀ β)
+variables {αs : ι → Type*} [decidable_eq ι] [∀ i, decidable_eq (αs i)] [has_zero β] (l : (Σ i, αs i) →₀ β)
 
 noncomputable def split (i : ι) : αs i →₀ β :=
 l.comap_domain (sigma.mk i) (λ x1 x2 _ _ hx, heq_iff_eq.1 (sigma.mk.inj hx).2)

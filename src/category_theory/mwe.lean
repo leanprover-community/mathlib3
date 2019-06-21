@@ -1,4 +1,6 @@
 import data.fin
+import data.finset
+import data.fintype
 import tactic
 
 def hom (n m : ℕ) := fin n → fin m
@@ -10,21 +12,13 @@ lemma map_increasing {n m : ℕ} (f: hom n m) (w : monotone f) : monotone (map f
 begin
   dsimp [map],
   split_ifs,
-<<<<<<< HEAD
   {solve_by_elim},
-=======
-  {tidy},
->>>>>>> ebcdb69f85672825e9af75247297a5b9e7e55d86
   {apply fin.le_last},
   {rw [fin.le_iff_val_le_val] at h,
   linarith},
   {apply fin.le_last}
 end
 
-<<<<<<< HEAD
-=======
-lemma fooo {a b n : ℕ} (h1 : a ≤ b) (h2 : ¬(a < n)) :¬ (b < n) := by library_search
->>>>>>> ebcdb69f85672825e9af75247297a5b9e7e55d86
 
 lemma map_id {n m : ℕ} (f : hom n m) : map (@id (fin n)) = @id (fin (n+1)) :=
 funext (λ a,
@@ -84,30 +78,38 @@ end).
 
 -- Defining the prime functor
 
--- One way to define the maximum of the set (above f j) is to use nat.find_greatest. One simply way
--- to do this is to change the definition of above from set (fin n) to set ℕ
 def above {n m : ℕ} (f : hom n m) (j : fin m) : set (fin n) := {i | f i ≥ j}
 
-def above' {n m : ℕ} (f : hom n m) (j : fin m) : set ℕ := {i : ℕ | ∃ h : i < n, f ⟨i, h⟩ ≥ j}
+instance {n m : ℕ} (f : hom n m) (j : fin m) : decidable_pred (above f j) :=
+λ i, fin.decidable_le _ _
 
--- To use find_greatest, above' f j must be decidable
-instance {n m : ℕ} (f : hom n m) (j : fin m) : decidable_pred (above' f j) := sorry
+
+lemma above_non_empty {n m : ℕ} (f : hom n m) (j : fin (m+1)) : ∃ k : fin (n+1), k ∈ above (map f) j :=
+⟨⟨n, lt_add_one _⟩,
+begin
+  dsimp [above, map],
+  have w : ¬(n < n) := irrefl _,
+  split_ifs,
+  apply fin.le_last,
+end⟩
+
+instance {n : ℕ} : is_total (fin n) fin.le := has_le.le.is_total
+instance {n : ℕ} : is_antisymm (fin n) fin.le := has_le.le.is_antisymm
+instance {n : ℕ} : is_trans (fin n) fin.le := has_le.le.is_trans
+instance {n : ℕ} : inhabited (fin (n+1)) := {default := ⟨0, nat.succ_pos _⟩}
+
+def min_above {n m : ℕ} (f : hom n m) (j : fin (m+1)) : fin (n+1) :=
+list.head $ finset.sort (fin.le) (finset.univ.filter (above (map f) j))
+
+
+
+#print foo
+
+#check @finset.sort
+
+#check @list.sorted
 
 def hom_ (n m : ℕ) := fin (n+1) → fin (m+1)
 
-def prime_map_fn {n m : ℕ} (f : hom_ n m) (j : fin (m+2)) : fin (n+2) :=
-nat.find_greatest (above' (map f) j) (n+1)
-
--- Working out how to prove that above' is decidable.
-variables (p : Prop) [decidable p] (f : pprod ℕ p → Prop) [decidable_pred f]
-
-def predicate : ℕ → Prop := λ n, (∃ h : p, f ⟨n,h⟩)
-
-instance : decidable_pred (predicate p f) := λ n,
-begin
-  dsimp [predicate],
-  cases _inst_1,
-end
-
-
-#print prime_map_fn
+def prime_map_fn {n m : ℕ} (f : hom n m) (j : fin (m+1)) : fin (n+1) :=
+nat.find $ above_non_empty f j

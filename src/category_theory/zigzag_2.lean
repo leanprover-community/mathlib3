@@ -5,7 +5,7 @@
 import category_theory.category
 import category_theory.eq_to_hom
 import category_theory.equivalence
-import data.fin
+import data.fin data.finset data.fintype
 import tactic
 
 @[simp] lemma fin.last_val (n : ℕ) : (fin.last n).val = n := rfl
@@ -60,8 +60,8 @@ end
 
 end Δ
 
-def above {n m : Δ} (f : n ⟶ m) (j : fin m) := { i : fin n | f i ≥ j }
 
+section T
 def T_map {n m : Δ} (f : n ⟶ m) : fin (n + 1) →  fin (m + 1) :=
 λ i, if h : i.val < n then (f (i.cast_lt h)).cast_succ else fin.last _
 
@@ -141,8 +141,112 @@ def T : Δ ⥤ Δ :=
   map_id' := λ n, Δ.hom_ext T_map_id,
   map_comp' := λ l n m f g, Δ.hom_ext T_map_comp}
 
+end T
+
+section above
+
+-- Changed above to be of type finset (fin n) rather than set (fin n)
+def above {n m : Δ} (f : n ⟶ m) (j : fin m) := finset.univ.filter { i : fin n | f i ≥ j }
+
+lemma n_mem_above_of_T {n m : Δ} {f : n ⟶ m} {j : fin (m + 1)} :
+  fin.mk n (lt_add_one _) ∈ (above (T.map f) j) :=
+begin
+  dsimp [above, T],
+  dsimp [(Δ)] at n,
+  simp at *,
+  {show T_map f ⟨n,_⟩ ≥ j,
+  dsimp [T_map],
+  have h : ¬(n < n) := irrefl n,
+  split_ifs,
+  apply fin.le_last,}
+end
+
+lemma above_of_T_non_empty {n m : Δ} {f : n ⟶ m} {j : fin (m + 1)} :
+  above (T.map f) j ≠ ∅ := finset.ne_empty_of_mem n_mem_above_of_T
+
+lemma zero_lt_T_obj {n : Δ} : (0 : ℕ) < T.obj n := by {dsimp [T], apply nat.succ_pos}
+
+lemma zero_mem_above_T_zero {n m : Δ} {f : n ⟶ m} :
+  fin.mk 0 zero_lt_T_obj ∈ (above (T.map f) ⟨0, zero_lt_T_obj⟩) :=
+begin
+  cases f,
+  dsimp [above, T],
+  dsimp at *,
+  simp at *,
+  apply fin.zero_le,
+end
+
+lemma min_above_T_zero_eq_zero {n m : Δ} {f : n ⟶ m} :
+  (above (T.map f) ⟨0, zero_lt_T_obj⟩).min' above_of_T_non_empty = ⟨0, zero_lt_T_obj⟩ :=
+le_antisymm (finset.min'_le _ _ _ zero_mem_above_T_zero) (fin.zero_le _)
 
 
+lemma above_subset_above {n m : Δ} {f : n ⟶ m} {j k : fin m} (h : j ≥ k) :
+  above f j ⊆ above f k :=
+λ i w,
+begin
+  cases f,
+  dsimp [above] at *,
+  simp at *,
+  exact ge_trans w h,
+end
+
+lemma min_above_T_le_min_above_T {n m : Δ} {f : n ⟶ m} {j k : fin (m + 1)} (h : j ≤ k) :
+  (above (T.map f) j).min' above_of_T_non_empty ≤ (above (T.map f) k).min' above_of_T_non_empty :=
+finset.min'_le _ above_of_T_non_empty _ $ (above_subset_above h) (finset.min'_mem _ _)
+
+lemma n_le_mem_above_T_m {n m : Δ} {f : n ⟶ m} {i : fin (n+1)} (h : (T.map f) i ≥ fin.last m) :
+  fin.last n ≤ i :=
+begin
+  cases f,
+  dsimp at *,
+  dsimp [T, T_map] at *,
+  split_ifs at h with w,
+  {-- i.val < n
+  dsimp [(≥), (≤), fin.le] at h,
+  have w' : (f_val (fin.cast_lt i w)).val < m := (f_val (fin.cast_lt i w)).is_lt,
+  exact absurd h (nat.lt_le_antisymm w')
+  },
+  {-- ¬ i.val < n
+  exact not_lt.mp w}
+end
+
+lemma min_above_T_m_eq_n {n m : Δ} {f : n ⟶ m} :
+  (above (T.map f) (fin.last m)).min' above_of_T_non_empty = fin.last n :=
+le_antisymm
+  (fin.le_last _)
+  (finset.le_min' _ _ _ $ λ i h,
+  begin
+    dsimp [above] at *,
+    simp only [true_and, finset.mem_univ, finset.mem_filter] at h,
+    exact n_le_mem_above_T_m h,
+  end)
+
+lemma min_above_id_eq_id {n : Δ} {i : fin (n + 1)} :
+  (above (T.map (𝟙 n)) i).min' above_of_T_non_empty = i :=
+le_antisymm
+(finset.min'_le _ _ _
+(begin
+  dsimp [above, 𝟙],
+  rw [T.map_id'],
+  dsimp,
+  simpa using (le_refl i),
+end))
+(finset.le_min' _ _ _ (λ j h,
+begin
+  dsimp [above, 𝟙] at h,
+  rw [T.map_id'] at h,
+  dsimp at h,
+  simp only [true_and, finset.mem_univ, finset.mem_filter] at h,
+  exact h,
+end))
+
+
+end above
+
+
+
+section Δ_
 def Δ_ := ℕ
 instance : has_coe Δ_ Δ :=
 { coe := λ n, (n + 1 : ℕ) }
@@ -160,24 +264,38 @@ instance category_Δ_ : category Δ_ :=
       cases f with _ hf,
       dsimp at *,
       rw [hf.2.2, hg.2.2]}⟩ }.
+end Δ_
 
+section prime
 
 def prime_obj (n : Δ) : Δ_ᵒᵖ := op (n : ℕ)
-def prime_map_fn {n m : Δ} (f : n ⟶ m) (j : fin (m + 1)) : fin (n + 1) := sorry
-def prime_map {n m : Δ} (f : n ⟶ m) : (prime_obj n) ⟶ (prime_obj m) :=
-begin
-  apply has_hom.hom.op,
-  fsplit,
-  exact prime_map_fn f,
+def prime_map_fn {n m : Δ} (f : n ⟶ m) (j : fin (m + 1)) : fin (n + 1) :=
+(above (T.map f) j).min' above_of_T_non_empty
 
-  sorry,
-end
+
+def prime_map {n m : Δ} (f : n ⟶ m) : (prime_obj n) ⟶ (prime_obj m) :=
+has_hom.hom.op
+  ⟨prime_map_fn f,
+  -- f' mono
+  λ j k h, min_above_T_le_min_above_T h,
+  -- f' 0 = 0
+  min_above_T_zero_eq_zero,
+  -- f' m = n
+  min_above_T_m_eq_n⟩
+
+lemma prime_map_fn_id {n : Δ} : prime_map_fn (𝟙 n) = id :=
+funext (λ i,
+begin
+
+end)
 
 def prime : Δ ⥤ Δ_ᵒᵖ :=
 { obj := prime_obj,
   map := λ n m f, prime_map f,
   map_id' := sorry,
   map_comp' := sorry }
+
+end prime
 
 namespace prime
 instance : ess_surj prime := sorry

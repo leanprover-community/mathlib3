@@ -1,10 +1,10 @@
 /-
 Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johan Commelin
+Authors: Johan Commelin, Kenny Lau
 -/
 
-import data.finsupp order.complete_lattice algebra.ordered_group
+import data.finsupp order.complete_lattice algebra.ordered_group data.mv_polynomial
 
 namespace finsupp
 open lattice
@@ -32,6 +32,11 @@ lemma le_iff [canonically_ordered_monoid α] (f g : σ →₀ α) :
 def nat_downset (f : σ →₀ ℕ) : finset (σ →₀ ℕ) :=
 (f.support.pi (λ x, finset.range $ f x + 1)).image $
 λ g, f.support.attach.sum $ λ i, finsupp.single i.1 $ g i.1 i.2
+
+@[simp] lemma nat_downset_zero : nat_downset (0 : σ →₀ ℕ) = {0} :=
+begin
+  sorry
+end
 
 theorem sum_apply' [decidable_eq α] [add_comm_monoid α] {β : Type*} {f : β → σ →₀ α} {ι : finset β} {i : σ} :
   ι.sum f i = ι.sum (λ x, f x i) :=
@@ -207,8 +212,8 @@ ext $ λ n, finset.sum_bij (λ m hm, n - m)
     show n s - (n - m₁) s = n s - (n - m₂) s,
     rw H
   end)
- (λ m hm, ⟨(n - m), (by { rw mem_nat_downset_iff_le at hm ⊢, intro s, apply nat.sub_le_self }),
-   (by { rw mem_nat_downset_iff_le at hm, apply finsupp.ext, intro s,
+(λ m hm, ⟨(n - m), (by { rw mem_nat_downset_iff_le at hm ⊢, intro s, apply nat.sub_le_self }),
+  (by { rw mem_nat_downset_iff_le at hm, apply finsupp.ext, intro s,
     rw ← nat.sub_sub_self (hm s), refl })⟩)
 
 @[simp] lemma one_mul : (1 : mv_power_series σ α) * φ = φ :=
@@ -238,9 +243,31 @@ lemma mul_assoc (φ₁ φ₂ φ₃ : mv_power_series σ α) :
   (φ₁ * φ₂) * φ₃ = φ₁ * (φ₂ * φ₃) :=
 ext $ λ n,
 begin
+  have := @finset.sum_bind ((σ →₀ ℕ) × (σ →₀ ℕ)) α (σ →₀ ℕ) _ _ _ (nat_downset n)
+  (λ m, finset.product {m} (nat_downset m)) _,
+  swap,
+  { intro p, exact (coeff p.2 φ₁ * coeff (p.1-p.2) φ₂) * coeff (n-p.1) φ₃ },
+  swap,
+  { intros, dsimp,
+    rw finset.eq_empty_iff_forall_not_mem,
+    intros p hp,
+    simp [finset.mem_inter, finset.mem_product] at hp,
+    rcases hp with ⟨⟨rfl, _⟩, ⟨rfl, _⟩⟩,
+    contradiction },
   simp only [coeff_mul],
+  convert this.symm using 1; clear this,
+  { apply finset.sum_congr rfl,
+    intros m hm,
+    rw finset.sum_mul, symmetry,
+    apply finset.sum_bij (λ (p : (σ →₀ ℕ) × (σ →₀ ℕ)) hp, p.2),
+    { intros p hp, exact (finset.mem_product.1 hp).2 },
+    { intros p hp, erw [finset.mem_product, finset.mem_singleton] at hp, cases hp, subst m },
+    { rintros ⟨m₁,i₁⟩ ⟨m₂,i₂⟩ h₁ h₂ H, dsimp at *,
+      erw [finset.mem_product, finset.mem_singleton] at h₁ h₂,
+      dsimp at *, erw [h₁.1, h₂.1, H] },
+    { intros i hi, refine ⟨(m,i), _, rfl⟩,
+      { erw finset.mem_product, exact ⟨finset.mem_singleton_self m, hi⟩ } } },
   sorry
-  -- apply finset.sum_bij,
 end
 
 instance : comm_semiring (mv_power_series σ α) :=
@@ -264,3 +291,81 @@ instance : comm_semiring (mv_power_series σ α) :=
 end ring
 
 end mv_power_series
+
+namespace mv_polynomial
+open finsupp
+variables {σ : Type*} {α : Type*} [decidable_eq σ] [decidable_eq α] [comm_semiring α]
+
+lemma coeff_mul (φ ψ : mv_polynomial σ α) (n) :
+  coeff n (φ * ψ) = finset.sum (finsupp.nat_downset n) (λ m, coeff m φ * coeff (n - m) ψ) :=
+begin
+  have helper : ∀ (m : σ →₀ ℕ), m - 0 = m := λ m, finsupp.ext (λ s, nat.sub_zero _),
+  revert n,
+  apply mv_polynomial.induction_on φ,
+  { apply mv_polynomial.induction_on ψ,
+    { intros a b n, rw [← C_mul, coeff_C],
+      split_ifs,
+      { subst n, erw [nat_downset_zero, finset.sum_singleton],
+        simp [helper] },
+      { rw finset.sum_eq_zero,
+        intros m hm,
+        by_cases H : m = 0,
+        { subst m, simp [helper, h] },
+        { rw ← ne_from_not_eq at H, simp [H.symm] } } },
+    { intros p q hp hq a, specialize hp a, specialize hq a,
+      simp [coeff_C_mul, coeff_add, mul_add, finset.sum_add_distrib, *] at * },
+    { intros p s hp a n, specialize hp a,
+      rw [coeff_C_mul, coeff_mul_X'],
+      split_ifs,
+      { rw [← coeff_C_mul, hp], sorry },
+      { rw [mul_zero, finset.sum_eq_zero],
+        intros m hm,
+        rw coeff_mul_X',
+        have : s ∉ (n - m).support,
+        { rw not_mem_support_iff at h ⊢,
+          show n s - m s = 0,
+          rw h,
+          apply nat.zero_sub },
+        rw [if_neg this, mul_zero] } } },
+  { intros p q hp hq n,
+    rw [add_mul, coeff_add, hp, hq, ← finset.sum_add_distrib],
+    apply finset.sum_congr rfl,
+    intros m hm, rw [coeff_add, add_mul] },
+  { intros p s hp n,
+    conv_lhs { rw [mul_assoc, mul_comm (X s), ← mul_assoc] },
+    rw coeff_mul_X',
+    split_ifs,
+    { rw hp, sorry },
+    { rw finset.sum_eq_zero,
+      intros m hm,
+      have : s ∉ m.support,
+      { rw not_mem_support_iff at h ⊢,
+        rw mem_nat_downset_iff_le at hm,
+        specialize hm s, rw h at hm,
+        exact nat.eq_zero_of_le_zero hm },
+      rw [coeff_mul_X', if_neg this, zero_mul] } }
+end
+
+def to_mv_power_series (φ : mv_polynomial σ α) : mv_power_series σ α :=
+λ n, coeff n φ
+
+@[simp] lemma to_mv_power_series_coeff (φ : mv_polynomial σ α) (n) :
+mv_power_series.coeff n (φ.to_mv_power_series) = coeff n φ := rfl
+
+namespace to_mv_power_series
+
+instance : is_semiring_hom (to_mv_power_series : mv_polynomial σ α → mv_power_series σ α) :=
+{ map_zero := mv_power_series.ext $ λ n, by simp,
+  map_one := mv_power_series.ext $ λ n,
+  begin
+    rw [to_mv_power_series_coeff, mv_power_series.coeff_one],
+    split_ifs; rw ← C_1; simp [-C_1, h],
+    { rw ← ne_from_not_eq at h, simp [h.symm] }
+  end,
+  map_add := λ φ ψ, mv_power_series.ext $ λ n, by simp,
+  map_mul := λ φ ψ, mv_power_series.ext $ λ n,
+  by simp only [to_mv_power_series_coeff, mv_power_series.coeff_mul, coeff_mul] }
+
+end to_mv_power_series
+
+end mv_polynomial

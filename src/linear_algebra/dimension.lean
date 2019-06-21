@@ -9,25 +9,11 @@ import linear_algebra.basis
 import set_theory.ordinal
 noncomputable theory
 
--- TODO : move
-@[simp] lemma nonempty_pempty : ¬ nonempty pempty :=
-assume ⟨h⟩, h.elim
-
-
 universes u v v' w w'
 
---TODO : move
-@[simp] theorem cardinal.lift_max {a : cardinal.{u}} {b : cardinal.{v}} :
-  cardinal.lift.{u (max v w)} a = cardinal.lift.{v (max u w)} b
-  ↔ cardinal.lift.{u v} a = cardinal.lift.{v u} b :=
-calc cardinal.lift.{u (max v w)} a = cardinal.lift.{v (max u w)} b
-  ↔ cardinal.lift.{(max u v) w} (cardinal.lift.{u v} a)
-    = cardinal.lift.{(max u v) w} (cardinal.lift.{v u} b) : by simp
-  ... ↔ cardinal.lift.{u v} a = cardinal.lift.{v u} b : cardinal.lift_inj
-
-
 variables {α : Type u} {β γ δ ε : Type v}
-variables {ι : Type w} {ι' : Type w'} {η : Type u} {φ : η → Type u} -- relax these universe constraints
+variables {ι : Type w} {ι' : Type w'} {η : Type u} {φ : η → Type u}
+-- TODO: relax these universe constraints
 
 section vector_space
 variables [decidable_eq ι] [decidable_eq ι'] [discrete_field α] [add_comm_group β] [vector_space α β]
@@ -40,22 +26,11 @@ cardinal.min
   (nonempty_subtype.2 (exists_is_basis α β))
   (λ b, cardinal.mk b.1)
 variables {α β}
+
 open vector_space
 
-
-set_option pp.universes true
-
--- TODO : move
-lemma cardinal.mk_range_eq_of_inj {α : Type u} {β : Type v} {f : α → β} (hf : injective f) :
-  cardinal.lift.{v u} (cardinal.mk (range f)) = cardinal.lift.{u v} (cardinal.mk α) :=
-begin
-  have := (@cardinal.lift_mk_eq.{v u max u v} (range f) α).2 ⟨(equiv.set.range f hf).symm⟩,
-  simp only [cardinal.lift_umax.{u v}, cardinal.lift_umax.{v u}] at this,
-  exact this
-end
-
+section
 set_option class.instance_max_depth 50
-
 theorem is_basis.le_span (zero_ne_one : (0 : α) ≠ 1) [decidable_eq β] {v : ι → β} {J : set β} (hv : is_basis α v)
    (hJ : span α J = ⊤) : cardinal.mk (range v) ≤ cardinal.mk J :=
 begin
@@ -91,44 +66,7 @@ begin
         cardinal.finset_card, finset.coe_to_finset] at hi, },
     { rw hJ, apply set.subset_univ } },
 end
-
-
-
-/-begin
-  cases le_or_lt cardinal.omega (cardinal.mk J) with oJ oJ,
-  { refine le_of_not_lt (λ IJ, _),
-    have := cardinal.mk_range_eq_of_inj  (linear_independent.injective' sorry hv.1),
-    let S : J → set ι := λ j, ((is_basis.repr hv) j).support.to_set,
-    have hs : univ ⊆ ⋃ j, S j,
-    { intros i hi,
-      have : span α J ≤ comap hv.repr (finsupp.supported α α (⋃ j, S j)) :=
-        span_le.2 (λ j hj x hx, ⟨_, ⟨⟨j, hj⟩, rfl⟩, hx⟩),
-      rw hJ at this, replace : hv.repr (v i) ∈ _ := this trivial,
-      rw hv.repr_eq_single at this,
-      apply this, simp },
-    suffices : cardinal.mk (⋃ j, S j) < cardinal.mk ι,
-    { rw ←@cardinal.mk_univ ι at this,
-      exact not_le_of_lt this ⟨set.embedding_of_subset hs⟩ },
-    have xxx : ulift.{w v} ↥J → set.{(max v w)} (ulift.{v w} ι) := λ i, ulift.up '' (S (ulift.down i)),
-    have := @cardinal.mk_Union_le_sum_mk _ _ xxx,
-    have := lt_of_le_of_lt (le_trans (@cardinal.mk_Union_le_sum_mk _ _ xxx) (cardinal.sum_le_sum _ (λ _, cardinal.omega) _)),
-    rw ← cardinal.lift_lt.{w (max v w)},
-    apply this,
-    refine lt_of_le_of_lt (le_trans cardinal.mk_Union_le_sum_mk
-      (cardinal.sum_le_sum _ (λ _, cardinal.omega) _)) _,
-    { exact λ j, le_of_lt (cardinal.lt_omega_iff_finite.2 $ finset.finite_to_set _) },
-    { rwa [cardinal.sum_const, cardinal.mul_eq_max oJ (le_refl _), max_eq_left oJ] } },
-  { rcases exists_finite_card_le_of_finite_of_linear_independent_of_span
-      (cardinal.lt_omega_iff_finite.1 oJ) (linear_independent.id_of_univ hv.1) _ with ⟨fI, hi⟩,
-    { rwa [← cardinal.nat_cast_le, cardinal.finset_card, finset.coe_to_finset,
-        cardinal.finset_card, finset.coe_to_finset,
-        cardinal.mk_range_eq_of_inj (hv.injective zero_ne_one)] at hi, },
-    { rw hJ, apply set.subset_univ } },
-end-/
-
-set_option class.instance_max_depth 32
-
-
+end
 
 /-- dimension theorem -/
 theorem mk_eq_mk_of_basis [decidable_eq β] {v : ι → β} {v' : ι' → β}
@@ -227,7 +165,6 @@ end
 theorem dim_quotient [decidable_eq β] (p : submodule α β) [decidable_eq p.quotient]:
   dim α p.quotient + dim α p = dim α β :=
 let ⟨f⟩ := quotient_prod_linear_equiv p in dim_prod.symm.trans f.dim_eq
-
 
 /-- rank-nullity theorem -/
 theorem dim_range_add_dim_ker [decidable_eq β] [decidable_eq γ] (f : β →ₗ[α] γ) :
@@ -389,7 +326,7 @@ end fintype
 
 lemma exists_mem_ne_zero_of_ne_bot {s : submodule α β} (h : s ≠ ⊥) : ∃ b : β, b ∈ s ∧ b ≠ 0 :=
 begin
-  haveI := classical.dec,
+  classical,
   by_contradiction hex,
   have : ∀x∈s, (x:β) = 0, { simpa only [not_exists, not_and, not_not, ne.def] using hex },
   exact (h $ bot_unique $ assume s hs, (submodule.mem_bot α).2 $ this s hs)
@@ -436,7 +373,6 @@ lemma rank_finset_sum_le {η} (s : finset η) (f : η → β →ₗ[α] γ) :
   rank (s.sum f) ≤ s.sum (λ d, rank (f d)) :=
 @finset.sum_hom_rel _ _ _ _ _ (λa b, rank a ≤ b) f (λ d, rank (f d)) s (le_of_eq rank_zero)
       (λ i g c h, le_trans (rank_add_le _ _) (add_le_add_left' h))
-
 
 variables [add_comm_group δ] [vector_space α δ]
 

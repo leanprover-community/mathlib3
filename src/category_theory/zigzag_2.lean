@@ -71,22 +71,21 @@ begin
   cases f,
   dsimp [T_map] at *,
   split_ifs,
-  {tidy},
-  {apply fin.le_last},
-  {rw [fin.le_iff_val_le_val] at h,
-  dsimp [(Δ)] at n, -- without this line linarith doesn't know that n : ℕ and fails
-  linarith},
-  {apply fin.le_last}
+  { solve_by_elim },
+  { apply fin.le_last },
+  { rw [fin.le_iff_val_le_val] at h,
+    dsimp [(Δ)] at n, -- without this line linarith doesn't know that n : ℕ and fails
+    linarith },
+  { apply fin.le_last }
 end
 
-lemma T_map_id {n : Δ} : T_map (𝟙 _) = @id (fin (n + 1)) :=
-funext (λ a,
+lemma T_map_id {n : Δ} (a : fin (n+1)) : T_map (𝟙 _) a = a :=
 begin
   dsimp [T_map],
   split_ifs,
-  {tidy},
-  {exact fin.eq_of_veq (eq.trans rfl (eq.symm (nat.eq_of_lt_succ_of_not_lt a.is_lt h)))}
-end)
+  { simp },
+  { exact fin.eq_of_veq (eq.trans rfl (eq.symm (nat.eq_of_lt_succ_of_not_lt a.is_lt h))) }
+end
 
 -- These two lemmas should go in fin.lean. Something similiar might already be in mathlib.
 lemma cast_succ_val_lt {n : ℕ} {i : fin n} : (fin.cast_succ i).val < n :=
@@ -138,7 +137,7 @@ end)
 def T : Δ ⥤ Δ :=
 { obj := λ n, (n + 1 : ℕ),
   map := λ n m f, ⟨T_map f, T_map_mono⟩,
-  map_id' := λ n, Δ.hom_ext T_map_id,
+  map_id' := λ n, Δ.hom_ext (funext T_map_id),
   map_comp' := λ l n m f g, Δ.hom_ext T_map_comp}
 
 

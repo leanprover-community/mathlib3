@@ -498,6 +498,13 @@ le_antisymm
   end)
   (succ_le.2 $ lift_lt.2 $ lt_succ_self _)
 
+@[simp] theorem lift_max {a : cardinal.{u}} {b : cardinal.{v}} :
+  lift.{u (max v w)} a = lift.{v (max u w)} b ↔ lift.{u v} a = lift.{v u} b :=
+calc lift.{u (max v w)} a = lift.{v (max u w)} b
+  ↔ lift.{(max u v) w} (lift.{u v} a)
+    = lift.{(max u v) w} (lift.{v u} b) : by simp
+  ... ↔ lift.{u v} a = lift.{v u} b : lift_inj
+
 /-- `ω` is the smallest infinite cardinal, also known as ℵ₀. -/
 def omega : cardinal.{u} := lift (mk ℕ)
 
@@ -740,6 +747,14 @@ mk_le_of_surjective surjective_onto_range
 
 lemma mk_range_eq (f : α → β) (h : injective f) : mk (range f) = mk α :=
 quotient.sound ⟨(equiv.set.range f h).symm⟩
+
+lemma mk_range_eq_of_inj {α : Type u} {β : Type v} {f : α → β} (hf : injective f) :
+  lift.{v u} (mk (range f)) = lift.{u v} (mk α) :=
+begin
+  have := (@lift_mk_eq.{v u max u v} (range f) α).2 ⟨(equiv.set.range f hf).symm⟩,
+  simp only [lift_umax.{u v}, lift_umax.{v u}] at this,
+  exact this
+end
 
 theorem mk_image_eq {α β : Type u} {f : α → β} {s : set α} (hf : injective f) :
   mk (f '' s) = mk s :=

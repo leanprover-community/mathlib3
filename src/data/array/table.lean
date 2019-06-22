@@ -113,7 +113,8 @@ meta def find_from (p : α → Prop) [decidable_pred p] : table_ref → option �
   | some a := if p a then some a else find_from ref.next
   end
 @[inline] meta def find (p : α → Prop) [decidable_pred p] : option α := t.find_from p table_ref.first
-@[inline] meta def find_key [decidable_eq κ] [keyed α κ] (key : κ) : option α := t.find (λ a, key = @keyed.key _ _ _ _ a)
+@[inline] meta def find_key [decidable_eq κ] [keyed α κ] (key : κ) : option α :=
+t.find (λ a, key = @keyed.key _ _ _ _ a)
 
 meta def foldl (f : β → α → β) (b : β) (t : table α) : β :=
 t.entries.foldl b (λ a : option α, λ b : β,

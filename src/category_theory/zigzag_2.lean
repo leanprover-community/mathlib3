@@ -171,23 +171,34 @@ lemma above_of_T_non_empty {n m : Δ} {f : n ⟶ m} {j : fin (m + 1)} :
 def prime_map_fn {n m : Δ} (f : n ⟶ m) (j : fin (m + 1)) : fin (n + 1) :=
 (above (T.map f) j).min' above_of_T_non_empty
 
-lemma f_prime_map_fn_mem_above  {n m : Δ} {f : n ⟶ m} {j : fin (m + 1)} :
+lemma prime_map_fn_mem_above {n m : Δ} {f : n ⟶ m} {j : fin (m + 1)} :
   prime_map_fn f j ∈ above (T.map f) j :=
 finset.min'_mem _ above_of_T_non_empty
 
-lemma f_prime_map_fn_le_j {n m : Δ} (f : n ⟶ m) (j : fin (m + 1)) :
+lemma prime_map_fn_le {n m : Δ} {f : n ⟶ m} {j : fin (m + 1)} {i : fin (n + 1)}
+    (h : (T.map f) i ≥ j) : prime_map_fn f j ≤ i :=
+finset.min'_le _ _ _ (mem_above_iff.2 h)
+
+lemma le_prime_map_fn {n m : Δ} {f : n ⟶ m} {j : fin (m + 1)} {i : fin (n + 1)}
+    (h : ∀ k : fin (n + 1), (T.map f) k ≥ j → i ≤ k) : i ≤ prime_map_fn f j :=
+finset.le_min' _ _ _ $ λ _ w, h _ (mem_above_iff.1 w)
+
+lemma T_f_of_prime_map_fn_ge {n m : Δ} (f : n ⟶ m) (j : fin (m + 1)) :
   (T.map f) (prime_map_fn f j) ≥ j :=
-mem_above_iff.1 f_prime_map_fn_mem_above
+mem_above_iff.1 prime_map_fn_mem_above
+
+-- lemma prime_map_fn_le_of_T_map_ge {n m : Δ} {f : n ⟶ m} {j : fin (m + 1)} {k : fin (n + 1)}
+--     (h : j ≤ T.map f k) : prime_map_fn f j ≤ k :=
+-- prime_map_fn_le
+-- begin
+
+-- end
 
 lemma zero_lt_T_obj {n : Δ} : (0 : ℕ) < T.obj n := by {dsimp [T], apply nat.succ_pos}
 
-lemma zero_mem_above_T_zero {n m : Δ} {f : n ⟶ m} :
-  fin.mk 0 zero_lt_T_obj ∈ (above (T.map f) ⟨0, zero_lt_T_obj⟩) :=
-mem_above_iff.2 (fin.zero_le _)
-
 lemma prime_map_fn_zero_eq_zero {n m : Δ} {f : n ⟶ m} :
   prime_map_fn f ⟨0, zero_lt_T_obj⟩ = ⟨0, zero_lt_T_obj⟩ :=
-le_antisymm (finset.min'_le _ _ _ zero_mem_above_T_zero) (fin.zero_le _)
+le_antisymm (prime_map_fn_le (fin.zero_le _)) (fin.zero_le _)
 
 lemma above_subset_above {n m : Δ} {f : n ⟶ m} {j k : fin m} (h : j ≥ k) :
   above f j ⊆ above f k :=
@@ -195,7 +206,7 @@ lemma above_subset_above {n m : Δ} {f : n ⟶ m} {j k : fin m} (h : j ≥ k) :
 
 lemma prime_map_mono {n m : Δ} {f : n ⟶ m} {j k : fin (m + 1)} (h : j ≤ k) :
   prime_map_fn f j ≤ prime_map_fn f k :=
-finset.min'_le _ above_of_T_non_empty _ $ (above_subset_above h) (finset.min'_mem _ _)
+finset.min'_le _ _ _ $ (above_subset_above h) prime_map_fn_mem_above
 
 lemma n_le_mem_above_T_m {n m : Δ} {f : n ⟶ m} {i : fin (n+1)} (h : (T.map f) i ≥ fin.last m) :
   fin.last n ≤ i :=
@@ -220,40 +231,33 @@ le_antisymm (fin.le_last _) (finset.le_min' _ _ _ $ λ i h, n_le_mem_above_T_m (
 lemma prime_map_fn_id {n : Δ} {i : fin (n + 1)} :
   prime_map_fn (𝟙 _) i = i :=
 le_antisymm
-(finset.min'_le _ _ _
-(mem_above_iff.2 (by {rw [T.map_id'], exact le_refl _})))
+(prime_map_fn_le (by {rw [T.map_id'], exact le_refl _}))
 (finset.le_min' _ _ _ (λ j h, by {rw [T.map_id'] at h, exact (mem_above_iff.1 h)}))
 
-lemma min_of_min_mem_above_comp {l m n : Δ} {f : l ⟶ m} {g : m ⟶ n} {i} :
-  (above (T.map f) (prime_map_fn g i)).min'
-      above_of_T_non_empty ∈ above (T.map (f ≫ g)) i :=
-mem_above_iff.2
+lemma prime_map_fn_comp_le {l m n : Δ} {f : l ⟶ m} {g : m ⟶ n} {i : fin (n + 1)} :
+  prime_map_fn (f ≫ g) i ≤ prime_map_fn f (prime_map_fn g i) :=
+prime_map_fn_le
 begin
-  rw [T.map_comp', Δ.comp_coe] at *,
-  cases (T.map g) with _ T_g_mono,
-  rw Δ.mk_coe at *,
-  apply le_trans,
-  {exact f_prime_map_fn_le_j g _},
-  {exact T_g_mono
-    (mem_above_iff.1 (finset.min'_mem (above (T.map f) (prime_map_fn g i)) above_of_T_non_empty))},
+  rw [T.map_comp'],
+  simp [Δ.comp_coe],
+  have w := T_f_of_prime_map_fn_ge g i,
+  cases (T.map g) with g_T mono,
+  exact ge_trans (mono (T_f_of_prime_map_fn_ge f (prime_map_fn g i))) w,
 end
 
-#check finset.min'_mem
-
-lemma min_above_comp {l m n : Δ} {f : l ⟶ m} {g : m ⟶ n} {i} :
-  finset.min' (above (T.map (f ≫ g)) i) above_of_T_non_empty =
-      finset.min' (above (T.map f) (finset.min' (above (T.map g) i) above_of_T_non_empty)) above_of_T_non_empty :=
+lemma le_prime_map_fn_comp {l m n : Δ} {f : l ⟶ m} {g : m ⟶ n} {i : fin (n + 1)} :
+  prime_map_fn f (prime_map_fn g i) ≤ prime_map_fn (f ≫ g) i :=
+le_prime_map_fn $ λ k w,
 begin
-  apply le_antisymm,
-  { apply finset.min'_le,
-    rw [T.map_comp'],
-    dsimp [above],
-    tidy?,}
+  rw [T.map_comp'] at w,
+  simp [Δ.comp_coe] at w,
+  exact prime_map_fn_le (prime_map_fn_le w),
 end
 
-#print T
+lemma prime_map_fn_comp {l m n : Δ} {f : l ⟶ m} {g : m ⟶ n} {i : fin (n + 1)} :
+  prime_map_fn f (prime_map_fn g i) = prime_map_fn (f ≫ g) i :=
+le_antisymm le_prime_map_fn_comp prime_map_fn_comp_le
 
-example {l m n : Δ} {f : l ⟶ m} {g : m ⟶ n} : T.map (f ≫ g) = T.map f ≫ T.map g := by library_search
 
 end above
 
@@ -314,9 +318,6 @@ end Δ_
 section prime
 
 def prime_obj (n : Δ) : Δ_ᵒᵖ := op (n : ℕ)
-def prime_map_fn {n m : Δ} (f : n ⟶ m) (j : fin (m + 1)) : fin (n + 1) :=
-(above (T.map f) j).min' above_of_T_non_empty
-
 
 def prime_map {n m : Δ} (f : n ⟶ m) : (prime_obj n) ⟶ (prime_obj m) :=
 has_hom.hom.op
@@ -329,7 +330,6 @@ has_hom.hom.op
   -- f' m = n
   prime_map_fn_top_eq_top⟩
 
-#check @Δ_.op_id_coe
 
 lemma prime_map_id (n : Δ) : prime_map (𝟙 n) = 𝟙 _ :=
 Δ_.op_hom_ext
@@ -338,7 +338,7 @@ begin
   rw [Δ_.op_id_coe],
   dsimp [prime_map, has_hom.hom.op],
   unfold_coes,
-  dsimp at *,prime_map_fn
+  exact prime_map_fn_id
 end
 
 lemma prime_map_comp (l m n : Δ) (f : l ⟶ m) (g : m ⟶ n) :
@@ -346,20 +346,18 @@ lemma prime_map_comp (l m n : Δ) (f : l ⟶ m) (g : m ⟶ n) :
 Δ_.op_hom_ext
 begin
   ext1,
-  rw [Δ_.op_comp_coe],
-  dsimp [prime_map, has_hom.hom.op],
-  unfold_coes,
-  dsimp at *,
-  dsimp [prime_map_fn],
-
+  tidy?,
+  -- dsimp [prime_map, has_hom.hom.op],
+  -- unfold_coes,
+  -- exact prime_map_fn_comp,
 end
 
 
 def prime : Δ ⥤ Δ_ᵒᵖ :=
 { obj := prime_obj,
   map := λ n m f, prime_map f,
-  map_id' := prime_map_fn_id,
-  map_comp' := sorry }
+  map_id' := λ n, prime_map_id _,
+  map_comp' := prime_map_comp }
 
 end prime
 

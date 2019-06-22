@@ -16,8 +16,8 @@ section
 
 open monoidal_category
 
-variables (C : Sort u₁) [𝒞 : monoidal_category.{v₁} C]
-          (D : Sort u₂) [𝒟 : monoidal_category.{v₂} D]
+variables (C : Type u₁) [𝒞 : monoidal_category.{v₁} C]
+          (D : Type u₂) [𝒟 : monoidal_category.{v₂} D]
 include 𝒞 𝒟
 
 structure lax_monoidal_functor extends C ⥤ D :=
@@ -94,7 +94,7 @@ nat_iso.of_components
 end
 
 section
-variables (C : Sort u₁) [𝒞 : monoidal_category.{v₁} C]
+variables (C : Type u₁) [𝒞 : monoidal_category.{v₁} C]
 include 𝒞
 
 def id : monoidal_functor.{v₁ v₁} C C :=
@@ -111,9 +111,9 @@ end
 
 end monoidal_functor
 
-variables {C : Sort u₁} [𝒞 : monoidal_category.{v₁} C]
-variables {D : Sort u₂} [𝒟 : monoidal_category.{v₂} D]
-variables {E : Sort u₃} [ℰ : monoidal_category.{v₃} E]
+variables {C : Type u₁} [𝒞 : monoidal_category.{v₁} C]
+variables {D : Type u₂} [𝒟 : monoidal_category.{v₂} D]
+variables {E : Type u₃} [ℰ : monoidal_category.{v₃} E]
 
 include 𝒞 𝒟 ℰ
 

@@ -12,7 +12,7 @@ open opposite
 
 namespace category_theory.limits
 
-variables {C : Sort u} [𝒞 : category.{v+1} C]
+variables {C : Type u} [𝒞 : category.{v+1} C]
 include 𝒞
 variables {J : Type v} [small_category J]
 variable (F : J ⥤ Cᵒᵖ)

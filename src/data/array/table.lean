@@ -30,13 +30,16 @@ def from_nat (r : ℕ) : table_ref := r
 def to_nat (r : table_ref) : ℕ := r
 def next (r : table_ref) : table_ref := from_nat (r + 1)
 
+instance : decidable_eq table_ref := by apply_instance
+
+instance : has_to_string table_ref := by apply_instance
+meta instance : has_to_format table_ref := by apply_instance
+
 end internal
 
 def to_string (r : table_ref) : string := to_string r.to_nat
 def null  : table_ref := from_nat MAXIMUM
 def first : table_ref := from_nat 0
-
-instance : has_to_string table_ref := ⟨λ t, t.to_string⟩
 
 end table_ref
 

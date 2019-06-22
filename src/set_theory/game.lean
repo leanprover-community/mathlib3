@@ -268,6 +268,8 @@ def neg : pgame → pgame
 
 instance : has_neg pgame := ⟨neg⟩
 
+@[simp] lemma neg_def {xl xr xL xR} : -(mk xl xr xL xR) = mk xr xl (λ j, -(xR j)) (λ i, -(xL i)) := rfl
+
 theorem neg_neg : Π {x : pgame}, -(-x) = x
 | (mk xl xr xL xR) :=
 begin
@@ -292,55 +294,49 @@ begin
   congr; funext i; cases i
 end
 
+def left_moves_neg {x : pgame} : (-x).left_moves ≃ x.right_moves :=
+begin
+  induction x,
+  refl,
+end
+def right_moves_neg {x : pgame} : (-x).right_moves ≃ x.left_moves :=
+begin
+  induction x,
+  refl,
+end
+
+-- FIXME, ugh, the current implementation of `solve_by_elim` apparently only uses each passed lemma
+-- once. We cheat for now by repeating some of the lemmas!!
+meta def pgame_wf_tac :=
+`[solve_by_elim
+  [psigma.lex.left, psigma.lex.left, psigma.lex.right, psigma.lex.right, r.left', r.right', r.left, r.right, r.trans]
+  { max_rep := 10 }]
+
 theorem le_iff_neg_ge : Π {x y : pgame}, x ≤ y ↔ -y ≤ -x
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
-  sorry
---   dsimp [has_neg.neg, neg],
---   rw [le_def, le_def],
---   dsimp,
---   split,
---   { rintro ⟨h, h'⟩,
---     split,
---     { intro i,
---       have hi := h' i,
---       cases hi,
---       { right,
---         cases hi,
---         use hi_w,
---         erw [←le_iff_neg_ge],
---         exact hi_h, },
---       { left,
---         cases hi,
---         fsplit,
---         convert hi_w, sorry,
---         erw [le_iff_neg_ge],
---         dsimp [has_neg.neg, neg],
---         convert hi_h,
---         { funext, erw [neg_neg'], },
---         { funext, erw [neg_neg'], },
---         sorry, } },
---     { intro i,
---       have hi := h i,
---       cases hi,
---       { right,
---         cases hi,
---         fsplit,
---         convert hi_w, sorry,
---         erw [le_iff_neg_ge],
---         dsimp [has_neg.neg, neg],
---         convert hi_h,
---         sorry,
---         { funext, erw [neg_neg'], },
---         { funext, erw [neg_neg'], } },
---       { left,
---         cases hi,
---         use hi_w,
---         erw [le_iff_neg_ge, neg_neg, neg_neg],
---         exact hi_h, } } },
---     sorry,
---     -- oh dear, we still need to do the other direction
+  rw [le_def],
+  rw [le_def],
+  dsimp [neg],
+  fsplit,
+  { intro h,
+    fsplit,
+    { intro i, have t := h.right i, cases t,
+      { right, cases t, use t_w, exact le_iff_neg_ge.1 t_h, },
+      { left,  cases t, use (@right_moves_neg (yR i)).symm t_w, convert le_iff_neg_ge.1 t_h, sorry } },
+    { intro j, have t := h.left j, cases t,
+      { right, cases t, use (@left_moves_neg (xL j)).symm t_w, convert le_iff_neg_ge.1 t_h, sorry },
+      { left,  cases t, use t_w, exact le_iff_neg_ge.1 t_h, } } },
+  { intro h,
+    fsplit,
+    { intro i, have t := h.right i, cases t,
+      { right, cases t, use t_w, exact le_iff_neg_ge.2 t_h, },
+      { left,  cases t, use (@left_moves_neg (xL i)) t_w, convert le_iff_neg_ge.2 _, convert t_h, sorry } },
+    { intro j, have t := h.left j, cases t,
+      { right, cases t, use (@right_moves_neg (yR j)) t_w, convert le_iff_neg_ge.2 _, convert t_h, sorry },
+      { left,  cases t, use t_w, exact le_iff_neg_ge.2 t_h, } } },
 end
+using_well_founded { dec_tac := pgame_wf_tac }
 
 theorem zero_le_iff_neg_le_zero {x : pgame} : 0 ≤ x ↔ -x ≤ 0 :=
 begin
@@ -391,19 +387,24 @@ lemma add_def {xl xr : Type u} {xL xR} {yl yr : Type u} {yL yR} :
   mk xl xr xL xR + mk yl yr yL yR =
   mk (xl ⊕ yl) (xr ⊕ yr) (addL xL xR yL yR) (addR xL xR yL yR) := rfl
 
+def left_moves_add_mk {xl xr : Type u} {xL xR} {yl yr : Type u} {yL yR} :
+  (mk xl xr xL xR + mk yl yr yL yR).left_moves = ((mk xl xr xL xR).left_moves ⊕ (mk yl yr yL yR).left_moves) :=
+rfl
+def right_moves_add_mk {xl xr : Type u} {xL xR} {yl yr : Type u} {yL yR} :
+  (mk xl xr xL xR + mk yl yr yL yR).right_moves = ((mk xl xr xL xR).right_moves ⊕ (mk yl yr yL yR).right_moves) :=
+rfl
+
 def left_moves_add {x y : pgame} : (x + y).left_moves ≃ (x.left_moves ⊕ y.left_moves) :=
 begin
-  induction x with xl xr xL xR IHxl IHxr generalizing y,
-  induction y with yl yr yL yR IHyl IHyr,
-  rw add_def,
-  simp,
+  induction x generalizing y,
+  induction y,
+  refl,
 end
 def right_moves_add {x y : pgame} : (x + y).right_moves ≃ (x.right_moves ⊕ y.right_moves) :=
 begin
-  induction x with xl xr xL xR IHxl IHxr generalizing y,
-  induction y with yl yr yL yR IHyl IHyr,
-  rw add_def,
-  simp,
+  induction x generalizing y,
+  induction y,
+  refl,
 end
 
 @[simp] lemma mk_add_move_left_inl {xl xr yl yr} {xL xR yL yR} {i} :
@@ -445,18 +446,78 @@ end
 
 instance : has_sub pgame := ⟨λ x y, x + -y⟩
 
-theorem neg_add_le {x y : pgame} : -(x + y) ≤ -x + -y := sorry
-theorem neg_add_ge {x y : pgame} : -x + -y ≤ -(x + y) := sorry
+inductive relabelling : pgame.{u} → pgame.{u} → Type (u+1)
+| mk : Π (x y : pgame) (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves),
+         (∀ (i : x.left_moves), relabelling (x.move_left i) (y.move_left (L i))) →
+         (∀ (j : y.right_moves), relabelling (x.move_right (R.symm j)) (y.move_right j)) → relabelling x y
 
-theorem le_iff_sub_le_zero {x y : pgame} : x ≤ y ↔ x - y ≤ 0 := sorry
-theorem le_iff_zero_le_sub {x y : pgame} : x ≤ y ↔ 0 ≤ y - x := sorry
 
--- FIXME, ugh, the current implementation of `solve_by_elim` apparently only uses each passed lemma
--- once. We cheat for now by repeating some of the lemmas!!
-meta def pgame_wf_tac :=
-`[solve_by_elim
-  [psigma.lex.left, psigma.lex.left, psigma.lex.right, psigma.lex.right, r.left', r.right', r.left, r.right, r.trans]
-  { max_rep := 10 }]
+@[refl] def relabelling.refl : Π (x : pgame), relabelling x x
+| (mk xl xr xL xR) :=
+  relabelling.mk (mk xl xr xL xR) (mk xl xr xL xR) (equiv.refl _) (equiv.refl _)
+    (λ i, relabelling.refl _) (λ j, relabelling.refl _)
+using_well_founded { dec_tac := pgame_wf_tac }
+
+@[symm] def relabelling.symm : Π {x y : pgame}, relabelling x y → relabelling y x
+| (mk xl xr xL xR) (mk yl yr yL yR) (relabelling.mk _ _ L_equiv R_equiv L_relabelling R_relabelling) :=
+begin
+  refine relabelling.mk _ _ L_equiv.symm R_equiv.symm _ _,
+  intro i,
+  simpa using (L_relabelling (L_equiv.symm i)).symm,
+  intro j,
+  simpa using (R_relabelling (R_equiv j)).symm,
+end
+
+-- TODO trans for relabelling?
+
+theorem le_of_relabelling : Π {x y : pgame} (r : relabelling x y), x ≤ y
+| (mk xl xr xL xR) (mk yl yr yL yR) (relabelling.mk _ _ L_equiv R_equiv L_relabelling R_relabelling) :=
+begin
+  rw le_def,
+  fsplit,
+  { intro i,
+    right,
+    use (L_equiv.to_fun i),
+    dsimp,
+    exact le_of_relabelling (L_relabelling i) },
+  { intro j,
+    left,
+    use (R_equiv.inv_fun j),
+    dsimp,
+    exact le_of_relabelling (R_relabelling j) },
+end
+
+theorem ge_of_relabelling {x y : pgame} (r : relabelling x y) : x ≥ y :=
+le_of_relabelling r.symm
+
+def neg_add_relabelling : Π (x y : pgame), relabelling (-(x + y)) (-x + -y)
+| (mk xl xr xL xR) (mk yl yr yL yR) :=
+begin
+  fsplit,
+  refl,
+  refl,
+  { intro j, dsimp, change xr ⊕ yr at j,
+    cases j,
+    dsimp,
+    exact neg_add_relabelling (xR j) (mk yl yr yL yR),
+    dsimp,
+    exact neg_add_relabelling (mk xl xr xL xR) (yR j), },
+  { intro i, dsimp, change xl ⊕ yl at i,
+    cases i,
+    dsimp,
+    exact neg_add_relabelling (xL i) (mk yl yr yL yR),
+    dsimp,
+    exact neg_add_relabelling (mk xl xr xL xR) (yL i), },
+end
+using_well_founded { dec_tac := pgame_wf_tac }
+
+theorem neg_add_le {x y : pgame} : -(x + y) ≤ -x + -y :=
+le_of_relabelling (neg_add_relabelling x y)
+theorem neg_add_ge {x y : pgame} : -(x + y) ≥ -x + -y :=
+ge_of_relabelling (neg_add_relabelling x y)
+
+-- theorem le_iff_sub_le_zero {x y : pgame} : x ≤ y ↔ x - y ≤ 0 := sorry
+-- theorem le_iff_zero_le_sub {x y : pgame} : x ≤ y ↔ 0 ≤ y - x := sorry
 
 theorem add_le_zero_of_le_zero : Π {x y : pgame} (hx : x ≤ 0) (hy : y ≤ 0), x + y ≤ 0
 | (mk xl xr xL xR) (mk yl yr yL yR) :=

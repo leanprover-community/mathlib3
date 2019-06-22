@@ -68,8 +68,9 @@ meta structure edge :=
 namespace edge
   variables (e : edge)
 
-  --TODO what to do about the how? Using this currently breaks backtracking
+  -- TODO What to do about the how? Using this currently breaks backtracking
   meta def flip : edge := ⟨e.t, e.f, e.proof >>= tactic.mk_eq_symm, e.how⟩
+
   meta def other (r : table_ref) : option table_ref :=
     if e.f = r then e.t else
     if e.t = r then e.f else

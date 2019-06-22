@@ -132,9 +132,7 @@ lemma coeff_single : coeff (single n a) m = if n = m then a else 0 :=
 by { dsimp [single], congr }
 
 @[simp] lemma coeff_one_zero (n : ℕ) : coeff (1 : polynomial α) 0 = 1 :=
-begin
-  dsimp [has_one.one], rw [coeff_single, if_pos], refl
-end.
+coeff_single
 
 @[simp] lemma coeff_add (p q : polynomial α) (n : ℕ) : coeff (p + q) n = coeff p n + coeff q n := rfl
 

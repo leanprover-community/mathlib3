@@ -79,11 +79,11 @@ congr_arg (λ (t : nat_trans _ (functor.id C ⋙ F)), t.app X) adj.left_triangle
   adj.unit.app (G.obj Y) ≫ G.map (adj.counit.app Y) = 𝟙 (G.obj Y) :=
 congr_arg (λ (t : nat_trans _ (G ⋙ functor.id C)), t.app Y) adj.right_triangle
 
-@[simp] lemma left_triangle_components_assoc {Z : D} (f : F.obj X ⟶ Z):
+@[simp] lemma left_triangle_components_assoc {Z : D} (f : F.obj X ⟶ Z) :
   F.map (adj.unit.app X) ≫ adj.counit.app (F.obj X) ≫ f = f :=
 by { rw [←assoc], dsimp, simp }
 
-@[simp] lemma right_triangle_components_assoc {Y : D} {Z : C} (f : G.obj Y ⟶ Z):
+@[simp] lemma right_triangle_components_assoc {Y : D} {Z : C} (f : G.obj Y ⟶ Z) :
   adj.unit.app (G.obj Y) ≫ G.map (adj.counit.app Y) ≫ f = f :=
 by { rw [←assoc], dsimp, simp }
 
@@ -95,11 +95,11 @@ adj.counit.naturality f
   (adj.unit).app X ≫ G.map (F.map f) = f ≫ (adj.unit).app Y :=
 (adj.unit.naturality f).symm
 
-@[simp] lemma counit_naturality_assoc {X Y Z : D} (f : X ⟶ Y) (g : Y ⟶ Z):
+@[simp] lemma counit_naturality_assoc {X Y Z : D} (f : X ⟶ Y) (g : Y ⟶ Z) :
   F.map (G.map f) ≫ (adj.counit).app Y ≫ g = (adj.counit).app X ≫ f ≫ g :=
 by { rw [←assoc], dsimp, simp }
 
-@[simp] lemma unit_naturality_assoc {X Y Z : C} (f : X ⟶ Y) (g : G.obj (F.obj Y) ⟶ Z):
+@[simp] lemma unit_naturality_assoc {X Y Z : C} (f : X ⟶ Y) (g : G.obj (F.obj Y) ⟶ Z) :
   (adj.unit).app X ≫ G.map (F.map f) ≫ g = f ≫ (adj.unit).app Y ≫ g :=
 by { rw [←assoc], dsimp, simp }
 

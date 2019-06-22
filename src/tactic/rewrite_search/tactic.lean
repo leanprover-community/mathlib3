@@ -45,7 +45,7 @@ do rws ← discovery.collect extra_names,
 meta def rewrite_search_target (cfg : config α β γ δ) (try_harder : bool)
   (extra_names : list name) (extra_rws : list (expr × bool)) : tactic string :=
 do let cfg := if ¬try_harder then cfg
-              else { cfg with try_simp := tt, max_discovers := max 3 cfg.max_discovers },
+              else { cfg with try_simp := tt },
    t ← target,
    if t.has_meta_var then
      fail "rewrite_search is not suitable for goals containing metavariables"

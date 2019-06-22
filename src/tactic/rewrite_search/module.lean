@@ -29,13 +29,11 @@ structure collect_cfg :=
 -- `try_mk_search_instance`.
 meta structure config (α β γ δ : Type) extends collect_cfg, tactic.rewrite_all.cfg :=
 (max_iterations  : ℕ := 500)
-(max_discovers   : ℕ := 0)
 (optimal         : bool := tt)
 (exhaustive      : bool := ff)
 (trace           : bool := ff)
 (trace_summary   : bool := ff)
 (trace_rules     : bool := ff)
-(trace_discovery : bool := tt)
 (explain         : bool := ff)
 (explain_using_conv : bool := tt)
 (metric          : metric_constructor β γ . pick_default_metric)
@@ -86,13 +84,11 @@ do let (s, m, t) := instantiate_modules cfg,
    init_result.try "strategy" s.init $ λ strat_state, do
    let conf : core_cfg := {
     max_iterations := cfg.max_iterations,
-    max_discovers := cfg.max_discovers,
     optimal := cfg.optimal,
     exhaustive := cfg.exhaustive,
     trace := cfg.trace,
     trace_summary := cfg.trace_summary,
     trace_rules := cfg.trace_rules,
-    trace_discovery := cfg.trace_discovery,
     explain := cfg.explain,
     explain_using_conv := cfg.explain_using_conv
   },

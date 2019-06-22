@@ -23,13 +23,11 @@ namespace tactic.rewrite_search
 
 meta structure core_cfg :=
 (max_iterations  : ℕ := 500)
-(max_discovers   : ℕ := 0)
 (optimal         : bool := tt)
 (exhaustive      : bool := ff)
 (trace           : bool := ff)
 (trace_summary   : bool := ff)
 (trace_rules     : bool := ff)
-(trace_discovery : bool := tt)
 (explain         : bool := ff)
 (explain_using_conv : bool := tt)
 

@@ -46,6 +46,11 @@ lemma continuous_inv [topological_group α] [topological_space β] {f : β → �
   (hf : continuous f) : continuous (λx, (f x)⁻¹) :=
 continuous_inv'.comp hf
 
+@[to_additive continuous_on.neg]
+lemma continuous_on.inv [topological_group α] [topological_space β] {f : β → α} {s : set β}
+  (hf : continuous_on f s) : continuous_on (λx, (f x)⁻¹) s :=
+continuous_inv'.comp_continuous_on hf
+
 @[to_additive tendsto_neg]
 lemma tendsto_inv [topological_group α] {f : β → α} {x : filter β} {a : α}
   (hf : tendsto f x (nhds a)) : tendsto (λx, (f x)⁻¹) x (nhds a⁻¹) :=
@@ -231,6 +236,10 @@ by simp; exact continuous_add hf (continuous_neg hg)
 
 lemma continuous_sub' [topological_add_group α] : continuous (λp:α×α, p.1 - p.2) :=
 continuous_sub continuous_fst continuous_snd
+
+lemma continuous_on.sub [topological_add_group α] [topological_space β] {f : β → α} {g : β → α} {s : set β}
+  (hf : continuous_on f s) (hg : continuous_on g s) : continuous_on (λx, f x - g x) s :=
+continuous_sub'.comp_continuous_on (hf.prod hg)
 
 lemma tendsto_sub [topological_add_group α] {f : β → α} {g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) : tendsto (λx, f x - g x) x (nhds (a - b)) :=

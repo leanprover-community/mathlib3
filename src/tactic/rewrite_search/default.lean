@@ -5,6 +5,3 @@ import .interactive
 import .strategy
 import .metric
 import .tracer
-
--- Include the `suggestion` command for convenient hint semantics
-import tactic.rewrite_search.command.suggestion

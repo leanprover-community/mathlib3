@@ -5,6 +5,8 @@ Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
 import data.dlist.basic category.basic meta.expr meta.rb_map tactic.cache
 
+universes u
+
 namespace expr
 open tactic
 
@@ -23,7 +25,7 @@ protected meta def of_int (α : expr) : ℤ → tactic expr
   tactic.mk_app ``has_neg.neg [e]
 
 /- only traverses the direct descendents -/
-meta def {u} traverse {m : Type → Type u} [applicative m]
+meta def traverse {m : Type → Type u} [applicative m]
   {elab elab' : bool} (f : expr elab → m (expr elab')) :
   expr elab → m (expr elab')
  | (var v)  := pure $ var v
@@ -692,6 +694,46 @@ meta def lock_tactic_state {α} (t : tactic α) : tactic α
        | result.exception msg pos s' := result.exception msg pos s
 end
 
+meta def type_cast (α : Type u) [reflected α] (n : name) : tactic α :=
+eval_expr α (expr.const n [])
+
+meta def attempt_refl (lhs rhs : expr) : tactic expr :=
+lock_tactic_state $
+do gs ← get_goals,
+   m ← to_expr ``(%%lhs = %%rhs) >>= mk_meta_var,
+   set_goals [m],
+   refl ← mk_const `eq.refl,
+   apply_core refl {new_goals := new_goals.non_dep_only},
+   instantiate_mvars m
+
+meta def mk_app_aux : expr → expr → expr → tactic expr
+ | f (expr.pi n binder_info.default d b) arg :=
+   do infer_type arg >>= unify d,
+      return $ f arg
+ | f (expr.pi n binder_info.inst_implicit d b) arg :=
+   do infer_type arg >>= unify d,
+      return $ f arg -- TODO use typeclass inference?
+ | f (expr.pi n _ d b) arg :=
+   do v ← mk_meta_var d,
+      t ← whnf (b.instantiate_var v),
+      mk_app_aux (f v) t arg
+ | e _ _ := failed
+
+meta def mk_app' (f arg : expr) : tactic expr :=
+lock_tactic_state $
+do r ← to_expr ``(%%f %%arg) -- FIXME: this is expensive
+     | infer_type f >>= whnf >>= λ t, mk_app_aux f t arg,
+   instantiate_mvars r
+
+/-- Given an expression `e` and  list of expressions `F`, builds all applications
+    of `e` to elements of `F`. `mk_apps` returns a list of all pairs ``(`(%%e %%f), f)``
+    which typecheck, for `f` in the list `F`.
+-/
+meta def mk_apps (e : expr) (F : list expr) : tactic (list (expr × expr)) :=
+do l ← F.mmap $ λ f, do { r ← try_core (mk_app' e f >>= λ m, return (m, f)),
+                          return r.to_list },
+   return l.join
+
 /--
 Hole command used to fill in a structure's field when specifying an instance.
 
@@ -1000,7 +1042,8 @@ local_context >>= clear_aux_decl_aux
 precedence `setup_tactic_parser`:0
 
 @[user_command]
-meta def setup_tactic_parser_cmd (_ : interactive.parse $ tk "setup_tactic_parser") : lean.parser unit :=
+meta def setup_tactic_parser_cmd (_ : interactive.parse $ tk "setup_tactic_parser")
+  : lean.parser unit :=
 emit_code_here "
 open lean
 open lean.parser
@@ -1014,7 +1057,8 @@ local postfix *:9001 := many .
 This combinator is for testing purposes. It succeeds if `t` fails with message `msg`,
 and fails otherwise.
 -/
-meta def {u} success_if_fail_with_msg {α : Type u} (t : tactic α) (msg : string) : tactic unit :=
+meta def success_if_fail_with_msg {α : Type u} (t : tactic α) (msg : string)
+  : tactic unit :=
 λ s, match t s with
 | (interaction_monad.result.exception msg' _ s') :=
   if msg = (msg'.iget ()).to_string then result.success () s

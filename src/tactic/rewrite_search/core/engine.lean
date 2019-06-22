@@ -1,5 +1,3 @@
-import tactic.rewrite_search.discovery.collect
-
 import lib.string
 
 import .types
@@ -171,22 +169,15 @@ meta def try_unify (p : pair) : tactic (search_state α β γ δ × bool) := do
 -- before. This follows here since it is (currently) guaranteed that each
 -- element of `discovery.more_candidates` has an application *somewhere*.
 meta def be_desperate (goals : list pair) : tactic (search_state α β γ δ × bool) :=
-  if g.stats.num_discovers ≥ g.conf.max_discovers then
-    return (g, ff)
-  else do
-    let g := g.mutate_stats {g.stats with num_discovers := g.stats.num_discovers + 1},
-    let verts := (goals.map sided_pair.to_list).join,
-    exprs ← list.erase_dup <$> (verts.mmap $ λ v, vertex.exp <$> g.vertices.get v),
-    (prog, new_cands) ← discovery.collect_more g.conf g.rs g.prog exprs,
-    let g := {g with prog := prog, rs := g.rs.append new_cands},
-    g ← if new_cands.length = 0 then pure g else g.unmark_all_visited,
-    return (g, new_cands.length > 0)
+-- TODO merge the lemma discovery functionality
+return (g, ff)
 
 end search_state
 
 namespace rewriterator
 
-private meta def advance (it : rewriterator) : rewriterator := {it with front := it.front.next}
+private meta def advance (it : rewriterator) : rewriterator :=
+{it with front := it.front.next}
 
 meta def next (it : rewriterator) (g : search_state α β γ δ) : tactic (search_state α β γ δ × rewriterator × option (vertex × edge)) := do
   o ← g.vertices.get it.orig,

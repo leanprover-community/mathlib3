@@ -1,11 +1,10 @@
-import lib.list
-import lib.tactic
-
 import tactic.rewrite_search.core.common
 
-open tactic tactic.interactive
-
 namespace tactic.rewrite_search.discovery
+
+section screening
+
+open tactic tactic.interactive
 
 meta def assert_acceptable_lemma (r : expr) : tactic unit := do
   -- FIXME: unfold definitions to see if there is an eq or iff
@@ -56,5 +55,19 @@ meta def is_rewrite_lemma (d : declaration) : option (name × expr) :=
 meta def find_all_rewrites : tactic (list (name × expr)) := do
   e ← get_env,
   return $ e.decl_filter_map is_rewrite_lemma
+
+end screening
+
+@[user_attribute]
+meta def search_attr : user_attribute := {
+  name := `search,
+  descr := "declare that this definition should be considered by `rewrite_search`",
+}
+
+meta def collect (extra_names : list name) : tactic (list (expr × bool)) :=
+do names ← attribute.get_instances `search,
+   exprs ← load_names $ names ++ extra_names,
+   exprs.mmap assert_acceptable_lemma,
+   return $ rewrite_list_from_lemmas exprs
 
 end tactic.rewrite_search.discovery

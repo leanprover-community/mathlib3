@@ -3,7 +3,6 @@
 -- Authors: Keeley Hoek, Scott Morrison
 
 import .tactic
-import .discovery
 
 namespace tactic.interactive
 

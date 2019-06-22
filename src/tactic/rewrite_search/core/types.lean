@@ -1,8 +1,6 @@
 import lib.table
 import data.rat.basic
 
-import tactic.rewrite_search.discovery.common
-
 import .common
 import .hook
 
@@ -215,7 +213,6 @@ meta structure search_state (α β γ δ : Type) :=
 (estimates    : table (dist_estimate γ))
 (solving_edge : option edge)
 (tr_state     : δ)
-(prog         : discovery.progress)
 (stats        : statistics)
 
 def LHS_VERTEX_ID : table_ref := table_ref.from_nat 0

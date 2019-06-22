@@ -45,7 +45,6 @@ meta structure config (α β γ δ : Type) extends collect_cfg, tactic.rewrite_a
 open tactic.rewrite_search.edit_distance
 open tactic.rewrite_search.metric.edit_distance
 open tactic.rewrite_search.strategy.pexplore
-open discovery.persistence
 
 meta def default_config : config pexplore_state ed_state ed_partial unit := {}
 meta def pick_default_config : tactic unit := `[exact tactic.rewrite_search.default_config]
@@ -62,15 +61,15 @@ meta def mk_initial_search_state (conf : core_cfg)
   (rw_cfg : tactic.rewrite_all.cfg) (rs : list (expr × bool))
   (s : strategy α β γ δ) (m : metric α β γ δ) (tr : tracer α β γ δ)
   (strat_state : α) (metric_state : β) (tr_state : δ)
-  (prog : discovery.progress) : search_state α β γ δ :=
-⟨tr, conf, rw_cfg, rs, strat_state, metric_state, table.create, table.create, table.create, none, tr_state, prog, statistics.init⟩
+  : search_state α β γ δ :=
+⟨tr, conf, rw_cfg, rs, strat_state, metric_state, table.create, table.create, table.create, none, tr_state, statistics.init⟩
 
 meta def setup_instance (conf : core_cfg)
   (rw_cfg : tactic.rewrite_all.cfg) (rs : list (expr × bool))
   (s : strategy α β γ δ) (m : metric α β γ δ) (tr : tracer α β γ δ)
   (s_state : α) (m_state : β) (tr_state : δ)
-  (prog : discovery.progress) (eqn : sided_pair expr) : tactic (inst α β γ δ) :=
-do let g := mk_initial_search_state conf rw_cfg rs s m tr s_state m_state tr_state prog,
+  (eqn : sided_pair expr) : tactic (inst α β γ δ) :=
+do let g := mk_initial_search_state conf rw_cfg rs s m tr s_state m_state tr_state,
    (g, vl) ← g.add_root_vertex eqn.l side.L,
    (g, vr) ← g.add_root_vertex eqn.r side.R,
    g ← s.startup g m vl vr,
@@ -79,7 +78,7 @@ do let g := mk_initial_search_state conf rw_cfg rs s m tr s_state m_state tr_sta
 meta def instantiate_modules (cfg : config α β γ δ) : strategy α β γ δ × metric α β γ δ × tracer α β γ δ :=
 (cfg.strategy β γ δ, cfg.metric α δ, cfg.view α β γ)
 
-meta def try_mk_search_instance (cfg : config α β γ δ) (prog : discovery.progress)
+meta def try_mk_search_instance (cfg : config α β γ δ)
   (rs : list (expr × bool)) (eqn : sided_pair expr) : tactic (option (inst α β γ δ)) :=
 do let (s, m, t) := instantiate_modules cfg,
    init_result.try "tracer"   t.init $ λ tracer_state,
@@ -98,13 +97,13 @@ do let (s, m, t) := instantiate_modules cfg,
     explain_using_conv := cfg.explain_using_conv
   },
   option.some <$>
-    setup_instance conf cfg.to_cfg rs s m t strat_state metric_state tracer_state prog eqn
+    setup_instance conf cfg.to_cfg rs s m t strat_state metric_state tracer_state eqn
 
 open tactic
 
-meta def try_search (cfg : config α β γ δ) (prog : discovery.progress)
+meta def try_search (cfg : config α β γ δ)
   (rs : list (expr × bool)) (eqn : sided_pair expr) : tactic (option string) :=
-do i ← try_mk_search_instance cfg prog rs eqn,
+do i ← try_mk_search_instance cfg rs eqn,
    match i with
    | none := return none
    | some i := do (i, result) ← i.search_until_solved,

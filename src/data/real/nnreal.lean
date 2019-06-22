@@ -269,6 +269,18 @@ nnreal.coe_le.2 $ max_le_max h $ le_refl _
 lemma of_real_add_le {r p : ℝ} : nnreal.of_real (r + p) ≤ nnreal.of_real r + nnreal.of_real p :=
 nnreal.coe_le.2 $ max_le (add_le_add (le_max_left _ _) (le_max_left _ _)) nnreal.zero_le_coe
 
+lemma of_real_le_iff_le_coe {r : ℝ} {p : nnreal} : nnreal.of_real r ≤ p ↔ r ≤ ↑p :=
+begin
+  cases le_total 0 r,
+  rw [nnreal.coe_le, nnreal.coe_of_real r h],
+  { rw [of_real_eq_zero.2 h], split,
+    intro, exact le_trans h (coe_nonneg _),
+    intro, exact zero_le _ }
+end
+
+lemma of_real_lt_iff_lt_coe {r : ℝ} {p : nnreal} (ha : r ≥ 0) : nnreal.of_real r < p ↔ r < ↑p :=
+by rw [nnreal.coe_lt, nnreal.coe_of_real r ha]
+
 end of_real
 
 section mul
@@ -280,12 +292,25 @@ begin
   { assume h, rw [h] }
 end
 
+lemma of_real_mul {p q : ℝ} (hp : 0 ≤ p) (hq : 0 ≤ q) :
+  nnreal.of_real (p * q) = nnreal.of_real p * nnreal.of_real q :=
+nnreal.eq $
+by { have := max_eq_left (zero_le_mul hp hq), simpa [nnreal.of_real, hp, hq, max_eq_left] }
+
 end mul
 
 section sub
 
 lemma sub_eq_zero {r p : nnreal} (h : r ≤ p) : r - p = 0 :=
 nnreal.eq $ max_eq_right $ sub_le_iff_le_add.2 $ by simpa [nnreal.coe_le] using h
+
+protected lemma sub_lt_self {r p : nnreal} : r ≠ 0 → 0 < p → r - p < r :=
+assume hr hp,
+begin
+  cases le_total r p,
+  { rwa [sub_eq_zero h, zero_lt_iff_ne_zero] },
+  { rw [nnreal.coe_lt, nnreal.coe_sub _ _ h], exact sub_lt_self _ hp }
+end
 
 @[simp] lemma sub_le_iff_le_add {r p q : nnreal} : r - p ≤ q ↔ r ≤ q + p :=
 match le_total p r with

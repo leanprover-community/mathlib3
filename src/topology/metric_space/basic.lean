@@ -773,6 +773,10 @@ uniform_continuous_subtype_mk uniform_continuous_dist' _
 lemma continuous_nndist' : continuous (λp:α×α, nndist p.1 p.2) :=
 uniform_continuous_nndist'.continuous
 
+lemma continuous_nndist [topological_space β] {f g : β → α}
+  (hf : continuous f) (hg : continuous g) : continuous (λb, nndist (f b) (g b)) :=
+continuous_nndist'.comp (hf.prod_mk hg)
+
 lemma tendsto_nndist' (a b :α) :
   tendsto (λp:α×α, nndist p.1 p.2) (filter.prod (nhds a) (nhds b)) (nhds (nndist a b)) :=
 by rw [← nhds_prod_eq]; exact continuous_iff_continuous_at.1 continuous_nndist' _

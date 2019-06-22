@@ -1,12 +1,6 @@
 import .core
 import .module
 
--- Default strategy, metric, and tracer used as a fallback by the engine
--- (so must be present)
-import .strategy.pexplore
-import .metric.edit_distance
-import .tracer.unit
-
 open tactic
 
 variables {α β γ δ : Type}

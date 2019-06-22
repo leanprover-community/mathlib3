@@ -2,9 +2,12 @@
 -- the hooks into non-core pieces, i.e. providing defaults, and also
 -- the external interface it exports is enough to keep it out here.
 import .core
-import .strategy
-import .metric
-import .tracer
+
+-- Default strategy, metric, and tracer used as a fallback by the engine
+-- (so must be present)
+import .strategy.pexplore
+import .metric.edit_distance
+import .tracer.unit
 
 namespace tactic.rewrite_search
 

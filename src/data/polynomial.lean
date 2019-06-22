@@ -7,6 +7,9 @@ Theory of univariate polynomials, represented as `ℕ →₀ α`, where α is a 
 -/
 import data.finsupp algebra.gcd_domain ring_theory.euclidean_domain tactic.ring ring_theory.multiplicity
 
+noncomputable theory
+local attribute [instance, priority 0] classical.prop_decidable
+
 /-- `polynomial α` is the type of univariate polynomials over `α`.
 
 Polynomials should be seen as (semi-)rings with the additional constructor `X`.
@@ -20,14 +23,14 @@ universes u v
 variables {α : Type u} {β : Type v} {a b : α} {m n : ℕ}
 
 section comm_semiring
-variables [comm_semiring α] [decidable_eq α] {p q r : polynomial α}
+variables [comm_semiring α] {p q r : polynomial α}
 
 instance : has_zero (polynomial α) := finsupp.has_zero
 instance : has_one (polynomial α) := finsupp.has_one
 instance : has_add (polynomial α) := finsupp.has_add
 instance : has_mul (polynomial α) := finsupp.has_mul
 instance : comm_semiring (polynomial α) := finsupp.comm_semiring
-instance : decidable_eq (polynomial α) := finsupp.decidable_eq
+instance [decidable_eq α] : decidable_eq (polynomial α) := finsupp.decidable_eq
 
 def polynomial.has_coe_to_fun : has_coe_to_fun (polynomial α) :=
 finsupp.has_coe_to_fun
@@ -107,7 +110,7 @@ finsupp.induction p
 @[simp] lemma C_1 : C (1 : α) = 1 := rfl
 
 @[simp] lemma C_mul : C (a * b) = C a * C b :=
-(@single_mul_single _ _ _ _ _ _ 0 0 a b).symm
+(@single_mul_single _ _ _ _ 0 0 a b).symm
 
 @[simp] lemma C_add : C (a + b) = C a + C b := finsupp.single_add
 
@@ -125,7 +128,13 @@ lemma apply_eq_coeff : p n = coeff p n := rfl
 
 @[simp] lemma coeff_zero (n : ℕ) : coeff (0 : polynomial α) n = 0 := rfl
 
-@[simp] lemma coeff_one_zero (n : ℕ) : coeff (1 : polynomial α) 0 = 1 := rfl
+lemma coeff_single : coeff (single n a) m = if n = m then a else 0 :=
+by { dsimp [single], congr }
+
+@[simp] lemma coeff_one_zero (n : ℕ) : coeff (1 : polynomial α) 0 = 1 :=
+begin
+  dsimp [has_one.one], rw [coeff_single, if_pos], refl
+end.
 
 @[simp] lemma coeff_add (p q : polynomial α) (n : ℕ) : coeff (p + q) n = coeff p n + coeff q n := rfl
 
@@ -144,10 +153,8 @@ lemma coeff_X : coeff (X : polynomial α) n = if 1 = n then 1 else 0 := rfl
   coeff (C x * X^k : polynomial α) n = if n = k then x else 0 :=
 by rw [← single_eq_C_mul_X]; simp [single, eq_comm, coeff]; congr
 
-lemma coeff_sum [comm_semiring β] [decidable_eq β] (n : ℕ) (f : ℕ → α → polynomial β) :
+lemma coeff_sum [comm_semiring β] (n : ℕ) (f : ℕ → α → polynomial β) :
   coeff (p.sum f) n = p.sum (λ a b, coeff (f a b) n) := finsupp.sum_apply
-
-lemma coeff_single : coeff (single n a) m = if n = m then a else 0 := rfl
 
 @[simp] lemma coeff_C_mul (p : polynomial α) : coeff (C a * p) n = a * coeff p n :=
 begin
@@ -317,7 +324,7 @@ polynomial.induction_on p
 /-- `is_root p x` implies `x` is a root of `p`. The evaluation of `p` at `x` is zero -/
 def is_root (p : polynomial α) (a : α) : Prop := p.eval a = 0
 
-instance : decidable (is_root p a) := by unfold is_root; apply_instance
+instance [decidable_eq α] : decidable (is_root p a) := by unfold is_root; apply_instance
 
 @[simp] lemma is_root.def : is_root p a ↔ p.eval a = 0 := iff.rfl
 

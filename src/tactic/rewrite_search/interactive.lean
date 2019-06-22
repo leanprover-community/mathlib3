@@ -13,7 +13,7 @@ open tactic.rewrite_search
 variables {α β γ δ : Type}
 
 meta def rewrite_search (try_harder : parse $ optional (tk "!"))
-  (cfg : config α β γ δ) : tactic string :=
+  (cfg : config α β γ δ . pick_default_config) : tactic string :=
   tactic.rewrite_search cfg try_harder.is_some
 
 meta def rewrite_search_with (try_harder : parse $ optional (tk "!")) (rs : parse rw_rules)

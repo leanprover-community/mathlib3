@@ -7,7 +7,9 @@ open tactic.rewrite_search.tracer
 
 namespace tactic.rewrite_search.vs_ring
 
-suggestion arithmetic
+attribute [search] add_comm add_assoc
+attribute [search] mul_comm mul_assoc mul_one
+attribute [search] left_distrib right_distrib
 
 constants a b c d e : ℚ
 

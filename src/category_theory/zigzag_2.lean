@@ -255,8 +255,8 @@ begin
 end
 
 lemma prime_map_fn_comp {l m n : Δ} {f : l ⟶ m} {g : m ⟶ n} {i : fin (n + 1)} :
-  prime_map_fn f (prime_map_fn g i) = prime_map_fn (f ≫ g) i :=
-le_antisymm le_prime_map_fn_comp prime_map_fn_comp_le
+  prime_map_fn (f ≫ g) i = prime_map_fn f (prime_map_fn g i)  :=
+le_antisymm prime_map_fn_comp_le le_prime_map_fn_comp
 
 
 end above
@@ -332,31 +332,27 @@ has_hom.hom.op
 
 
 lemma prime_map_id (n : Δ) : prime_map (𝟙 n) = 𝟙 _ :=
-Δ_.op_hom_ext
+Δ_.op_hom_ext (funext (λ _,
 begin
-  ext1,
   rw [Δ_.op_id_coe],
   dsimp [prime_map, has_hom.hom.op],
-  unfold_coes,
   exact prime_map_fn_id
-end
+end))
 
 lemma prime_map_comp (l m n : Δ) (f : l ⟶ m) (g : m ⟶ n) :
   prime_map (f ≫ g) = prime_map f ≫ prime_map g :=
-Δ_.op_hom_ext
+Δ_.op_hom_ext (funext (λ _,
 begin
-  ext1,
-  tidy?,
-  -- dsimp [prime_map, has_hom.hom.op],
-  -- unfold_coes,
-  -- exact prime_map_fn_comp,
-end
+  rw [Δ_.op_comp_coe],
+  dsimp [prime_map, has_hom.hom.op],
+  apply prime_map_fn_comp,
+end))
 
 
 def prime : Δ ⥤ Δ_ᵒᵖ :=
 { obj := prime_obj,
-  map := λ n m f, prime_map f,
-  map_id' := λ n, prime_map_id _,
+  map := λ _ _ f, prime_map f,
+  map_id' := prime_map_id,
   map_comp' := prime_map_comp }
 
 end prime

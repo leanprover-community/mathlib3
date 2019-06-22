@@ -65,18 +65,20 @@ meta structure edge :=
 (f t   : table_ref)
 (proof : tactic expr)
 (how   : how)
+
 namespace edge
-  variables (e : edge)
+variables (e : edge)
 
-  -- TODO What to do about the how? Using this currently breaks backtracking
-  meta def flip : edge := ⟨e.t, e.f, e.proof >>= tactic.mk_eq_symm, e.how⟩
+-- TODO What to do about the how? Using this currently breaks backtracking
+meta def flip : edge := ⟨e.t, e.f, e.proof >>= tactic.mk_eq_symm, e.how⟩
 
-  meta def other (r : table_ref) : option table_ref :=
-    if e.f = r then e.t else
-    if e.t = r then e.f else
-    none
+meta def other (r : table_ref) : option table_ref :=
+  if e.f = r then e.t else
+  if e.t = r then e.f else
+  none
 
-  meta instance has_to_format : has_to_format edge := ⟨λ e, format!"{e.f}->{e.t}"⟩
+meta instance has_to_format : has_to_format edge := ⟨λ e, format!"{e.f}->{e.t}"⟩
+
 end edge
 
 structure rewriterator :=
@@ -96,7 +98,9 @@ meta structure vertex :=
 (rws      : table rewrite)
 (rw_front : table_ref)
 (adj      : table edge)
+
 namespace vertex
+
 meta def same_side (a b : vertex) : bool := a.s = b.s
 meta def to_string (v : vertex) : string := v.s.to_string ++ v.pp
 meta def create (id : table_ref) (e : expr) (pp : string) (token_refs : list table_ref) (root : bool) (s : side) : vertex := ⟨ id, e, pp, token_refs, root, ff, s, none, none, table.create, table_ref.first, table.create ⟩
@@ -107,6 +111,7 @@ meta instance inhabited : inhabited vertex := ⟨null⟩
 meta instance indexed : indexed vertex := ⟨λ v, v.id⟩
 meta instance keyed : keyed vertex string := ⟨λ v, v.pp⟩
 meta instance has_to_format : has_to_format vertex := ⟨λ v, v.pp⟩
+
 end vertex
 
 def pair := sided_pair table_ref
@@ -134,7 +139,9 @@ structure token :=
 (id   : table_ref)
 (str  : string)
 (freq : sided_pair ℕ)
+
 namespace token
+
 def inc (t : token) (s : side) : token := {t with freq := t.freq.set s $ (t.freq.get s) + 1}
 
 def null : token := ⟨ table_ref.null, "__NULLTOKEN", 0, 0 ⟩
@@ -142,6 +149,7 @@ def null : token := ⟨ table_ref.null, "__NULLTOKEN", 0, 0 ⟩
 instance inhabited : inhabited token := ⟨null⟩
 instance indexed : indexed token := ⟨λ t, t.id⟩
 instance keyed : keyed token string := ⟨λ v, v.str⟩
+
 end token
 
 meta def find_or_create_token (tokens : table token) (s : side) (tstr : string) : table token × token :=
@@ -167,6 +175,7 @@ inductive init_result (ε : Type u)
 meta def init_fn (ε : Type u) := tactic (init_result ε)
 
 namespace init_result
+
 meta def pure {ε : Type u} (v : ε) : tactic (init_result ε) := return $ success v
 meta def fail {ε : Type u} (reason : string) : tactic (init_result ε) := return $ init_result.failure ε reason
 
@@ -186,6 +195,7 @@ meta def try {ε : Type u} {η : Type v} (name : string) (fn : init_fn ε) (next
   cases name fn next_step $ λ reason, do
     tactic.up $ tactic.trace ("\nWarning: failed to initialise " ++ name ++ "! Reason:\n\n" ++ reason),
     return none
+
 end init_result
 
 meta structure tracer (α β γ δ : Type) :=

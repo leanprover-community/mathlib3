@@ -4,6 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Keeley Hoek
 -/
 
+/- A `table` is a self-resizing array-backed list, which uses opaque references
+   called `table_ref`s for access.
+-/
+
 import data.list
 import data.array.defs
 
@@ -12,16 +16,29 @@ universes u v w z
 attribute [inline] bool.decidable_eq option.is_some option.is_none list.head
 attribute [inline] array.read array.write
 
-def table_ref : Type := ℕ
-def table_ref.from_nat (r : ℕ) : table_ref := r
-def table_ref.to_nat (r : table_ref) : ℕ := r
-def table_ref.next (r : table_ref) : table_ref := table_ref.from_nat (r + 1)
-attribute [irreducible] table_ref
-def table_ref.to_string (r : table_ref) : string := to_string r.to_nat
-def table_ref.null  : table_ref := table_ref.from_nat 0x8FFFFFFF
-def table_ref.first : table_ref := table_ref.from_nat 0
+@[irreducible] def table_ref : Type := ℕ
+
+namespace table_ref
+
+section internal
+
+local attribute [reducible] table_ref
+
+def MAXIMUM := 0xFFFFFFFF
+
+def from_nat (r : ℕ) : table_ref := r
+def to_nat (r : table_ref) : ℕ := r
+def next (r : table_ref) : table_ref := from_nat (r + 1)
+
+end internal
+
+def to_string (r : table_ref) : string := to_string r.to_nat
+def null  : table_ref := from_nat MAXIMUM
+def first : table_ref := from_nat 0
+
 instance : has_to_string table_ref := ⟨λ t, t.to_string⟩
-meta instance : has_to_format table_ref := ⟨λ t, t.to_string⟩
+
+end table_ref
 
 class indexed (α : Type u) :=
 (index : α → table_ref)
@@ -43,19 +60,18 @@ variables {α : Type u} {β : Type v} {κ : Type w} [decidable_eq κ] (t : table
 def DEFAULT_BUFF_LEN := 10
 
 def create (buff_len : ℕ := DEFAULT_BUFF_LEN) : table α :=
-⟨ table_ref.first, buff_len, mk_array buff_len none ⟩
+⟨table_ref.first, buff_len, mk_array buff_len none⟩
 
-meta def from_list (l : list α) : table α :=
+def from_list (l : list α) : table α :=
 let n := l.length in
 let buff : array n (option α) := mk_array n none in
-⟨ table_ref.from_nat n, n, buff.list_map_copy (λ a, some a) l⟩
+⟨table_ref.from_nat n, n, buff.list_map_copy (λ a, some a) l⟩
 
 meta def from_map_array {dim : ℕ} (x : array dim α) (f : α → β) : table β :=
 let buff : array dim (option β) := mk_array dim none in
 ⟨table_ref.from_nat dim, dim, x.map_copy buff (λ a, some $ f a)⟩
 
-meta def from_array {dim : ℕ} (x : array dim α) : table α :=
-from_map_array x $ λ a, a
+meta def from_array {dim : ℕ} (x : array dim α) : table α := from_map_array x id
 
 @[inline] def is_full : bool := t.next_id.to_nat = t.buff_len
 
@@ -109,10 +125,13 @@ let t := t.set t.next_id a in
 
 meta def find_from (p : α → Prop) [decidable_pred p] : table_ref → option α
 | ref := match t.at_ref ref with
-  | none := none
-  | some a := if p a then some a else find_from ref.next
-  end
-@[inline] meta def find (p : α → Prop) [decidable_pred p] : option α := t.find_from p table_ref.first
+         | none := none
+         | some a := if p a then some a else find_from ref.next
+         end
+
+@[inline] meta def find (p : α → Prop) [decidable_pred p] : option α :=
+t.find_from p table_ref.first
+
 @[inline] meta def find_key [decidable_eq κ] [keyed α κ] (key : κ) : option α :=
 t.find (λ a, key = @keyed.key _ _ _ _ a)
 
@@ -123,26 +142,23 @@ t.entries.foldl b (λ a : option α, λ b : β,
   | some a := f b a
   end)
 
-meta def map (f : α → β) : table β :=
-let new_buff : array t.buff_len (option β) := mk_array t.buff_len none in
-⟨t.next_id, t.buff_len, t.entries.map_copy new_buff (λ a : option α,
-  match a with
-  | none := none
-  | some a := f a
-  end)⟩
+private meta def empty_buff (t : table α) : array t.buff_len (option β) :=
+mk_array t.buff_len none
 
-meta def mmap {m : Type v → Type z} [monad m] (f : α → m β) : m (table β) := do
-let new_buff : array t.buff_len (option β) := mk_array t.buff_len none,
-new_buff ← t.entries.mmap_copy new_buff (λ a : option α,
-  match a with
-  | none := pure none
-  | some a := do v ← f a, pure $ some v
-  end),
-  return ⟨t.next_id, t.buff_len, new_buff⟩
+meta def map (f : α → β) : table β :=
+⟨t.next_id, t.buff_len, t.entries.map_copy (empty_buff t) (option.map f)⟩
+
+meta def mmap {m : Type v → Type z} [monad m] (f : α → m β) : m (table β) :=
+do new_buff ← t.entries.mmap_copy (empty_buff t) (λ a : option α,
+   match a with
+   | none := pure none
+   | some a := do v ← f a, pure $ some v
+   end),
+   return ⟨t.next_id, t.buff_len, new_buff⟩
 
 def is_after_last (r : table_ref) : bool := t.next_id.to_nat <= r.to_nat
 
-meta def to_list : list α := t.foldl (λ l : list α, λ a : α, l.concat a) []
+meta def to_list : list α := t.foldl list.concat []
 
 meta instance [has_to_string α] : has_to_string (table α) := ⟨λ t, to_string t.to_list⟩
 

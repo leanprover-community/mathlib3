@@ -1,5 +1,4 @@
-import lib.table
-import data.rat.basic
+import data.array.table data.rat.basic
 
 import .common
 import .hook

@@ -1,4 +1,3 @@
-import lib.tactic
 import tactic.rewrite_all
 
 import .common

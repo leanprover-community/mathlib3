@@ -1,4 +1,3 @@
-import lib.list
 import .types
 
 -- Required for us to emit more compact `conv` invocations

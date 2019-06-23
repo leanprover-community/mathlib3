@@ -142,6 +142,8 @@ def T : Δ ⥤ Δ :=
   map_id' := λ n, Δ.hom_ext T_map_id,
   map_comp' := λ l n m f g, Δ.hom_ext T_map_comp}
 
+
+
 end T
 
 section above
@@ -380,7 +382,10 @@ end
 lemma below_non_empty {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j : fin (n + 1)} :
   below f j ≠ ∅ := finset.ne_empty_of_mem zero_mem_below
 
-lemma foo {n m : Δ_ᵒᵖ} {f : n ⟶ m} : f (fin.last m : fin (unop m + 1)) = fin.last _ := f_op_last
+lemma below_subset_below {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j k : fin (n + 1)} (h : j ≤ k) :
+  below f j ⊆ below f k :=
+λ x w, mem_below_iff.2 $ le_trans (mem_below_iff.1 w) h
+
 
 lemma m_not_in_below {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j : fin n} :
   (fin.last m : fin (unop m + 1)) ∉ below f (fin.cast_succ j) := λ h,
@@ -392,7 +397,6 @@ begin
 end
 
 
-#check @nat.cast (fin 5)
 
 def prime_inv_map_fn_aux {n m : Δ_ᵒᵖ} (f : n ⟶ m) (j : fin n) : fin (m + 1) :=
   finset.max' (below f (fin.cast_succ j)) below_non_empty
@@ -401,24 +405,101 @@ lemma prime_inv_map_fn_aux_mem_below {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j : fin n}
   prime_inv_map_fn_aux f j ∈ below f (fin.cast_succ j) :=
 finset.max'_mem _ _
 
-lemma prime_inv_max_fn_aux_le_f {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j : fin n} :
+lemma prime_inv_map_fn_aux_le {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j : fin n} :
   f (prime_inv_map_fn_aux f j) ≤ fin.cast_succ j :=
 mem_below_iff.1 prime_inv_map_fn_aux_mem_below
 
+lemma prime_inv_map_fn_aux_ge {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j : fin n} {i : fin (m + 1)}
+    (h : i ∈ below f (fin.cast_succ j)) :
+  i ≤ prime_inv_map_fn_aux f j := finset.le_max' _ _ _ h
 
+-- Again these should do in fin
+lemma cast_succ_le {n : ℕ} {j k : fin n} (h : j ≤ k) : fin.cast_succ j ≤ fin.cast_succ k := h
+
+lemma cast_lt_le {n : ℕ} {j k : fin (n + 1)} {j_lt : j.val < n} {k_lt : k.val < n} (h : j ≤ k) :
+  fin.cast_lt j j_lt ≤ fin.cast_lt k k_lt :=
+h
+
+lemma prime_inv_map_fn_aux_mono {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j k : fin n} (h : j ≤ k) :
+  prime_inv_map_fn_aux f j ≤ prime_inv_map_fn_aux f k :=
+prime_inv_map_fn_aux_ge $ (below_subset_below (cast_succ_le h)) prime_inv_map_fn_aux_mem_below
+
+
+lemma prime_inv_map_fn_aux_neq_m {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j : fin n} :
+  (prime_inv_map_fn_aux f j).val ≠ (fin.last m).val :=
+λ h,
+begin
+  have w := @prime_inv_map_fn_aux_mem_below _ _ f j,
+  rw (fin.eq_of_veq h) at w,
+  exact m_not_in_below w,
+end
 
 lemma prime_inv_map_fn_aux_lt_n {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j : fin n} :
   (prime_inv_map_fn_aux f j).val < m :=
-begin
+nat.lt_of_le_and_ne
+  (nat.le_of_lt_succ (prime_inv_map_fn_aux f j).is_lt)
+  (begin
+    have w' := @prime_inv_map_fn_aux_neq_m _ _ f j,
+    simp only [fin.last_val] at w',
+    exact w',
+  end)
 
+def prime_inv_map_fn {n m : Δ_ᵒᵖ} (f : n ⟶ m) (j : fin n) : fin m :=
+fin.cast_lt (prime_inv_map_fn_aux f j) prime_inv_map_fn_aux_lt_n
+
+lemma cast_succ_prime_inv_map_fn {n m : Δ_ᵒᵖ} (f : n ⟶ m) (j : fin n) :
+  fin.cast_succ (prime_inv_map_fn f j) = prime_inv_map_fn_aux f j := fin.cast_succ_cast_lt _ _
+
+lemma prime_inv_map_fn_le {n m : Δ_ᵒᵖ} (f : n ⟶ m) (j : fin n) :
+  f (fin.cast_succ (prime_inv_map_fn f j)) ≤ fin.cast_succ j :=
+begin
+  rw [cast_succ_prime_inv_map_fn],
+  exact cast_succ_le prime_inv_map_fn_aux_le,
 end
+
+
+
+
+
+lemma prime_inv_map_fn_mono {n m : Δ_ᵒᵖ} {f : n ⟶ m} : monotone (prime_inv_map_fn f) :=
+λ _ _ h, cast_lt_le (prime_inv_map_fn_aux_mono h)
+
+def prime_inv_obj (n : Δ_ᵒᵖ) : Δ := unop n
+
+def prime_inv_map {n m : Δ_ᵒᵖ} (f : n ⟶ m) : (prime_inv_obj n) ⟶ (prime_inv_obj m) :=
+subtype.mk (prime_inv_map_fn f) prime_inv_map_fn_mono
+
+lemma prime_comp_prime_inv_le {n m : Δ_ᵒᵖ} (f : n ⟶ m) (k : fin (m+1)) :
+  prime_map (prime_inv_map f) k ≤ f k :=
+begin
+  simp at *,
+  apply prime_map_fn_le,
+  dsimp [T, T_map],
+  split_ifs,
+  { admit},
+  { apply fin.le_last},
+end
+
+
+
+lemma prime_comp_prime_inv {n m : Δ_ᵒᵖ} (f : n ⟶ m) : prime.map (prime_inv_map f) = f := sorry
+
+lemma prime_inv_comp_prime {n m : Δ} (f : n ⟶ m) : prime_inv_map (prime.map f) = f := sorry
 
 end below
 
+
 namespace prime
 instance : ess_surj prime := {obj_preimage := λ n, unop n, iso' := by obviously}
-instance : full prime := sorry
-instance : faithful prime := sorry
+instance : full prime :=
+{ preimage := λ _ _ f,
+  prime_inv_map f, witness' := λ _ _ f, prime_comp_prime_inv f}
+instance : faithful prime :=
+⟨λ n m f g h,
+begin
+  have w := congr_arg prime_inv_map h,
+  rwa [prime_inv_comp_prime, prime_inv_comp_prime] at w,
+end⟩
 
 def is_equivalence : is_equivalence prime :=
   is_equivalence.of_fully_faithfully_ess_surj prime
@@ -436,7 +517,7 @@ structure zigzag :=
 
 namespace zigzag
 
-structure hom (X Y : zigzag.{v₁} C):=
+structure hom (X Y : zigzag.{v₁} C) :=
 (f : fin X.n → fin Y.n)
 
 

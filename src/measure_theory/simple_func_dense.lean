@@ -19,15 +19,15 @@ variables {α : Type u} {β : Type v} {ι : Type*}
 namespace set
 
 /-- Enumerate elements in a countable set.-/
-def enumerate {s : set α} (h : countable s) (default : α): ℕ → α :=
+def enumerate_countable {s : set α} (h : countable s) (default : α): ℕ → α :=
 assume n, match @encodable.decode s (h.to_encodable) n with
         | (some y) := y
         | (none)   := default
         end
 
 lemma subset_range_enumerate {s : set α} (h : countable s) (default : α) :
-   s ⊆ range (enumerate h default) :=
-assume x hx, ⟨@encodable.encode s h.to_encodable ⟨x, hx⟩, by simp [enumerate, encodable.encodek]⟩
+   s ⊆ range (enumerate_countable h default) :=
+assume x hx, ⟨@encodable.encode s h.to_encodable ⟨x, hx⟩, by simp [enumerate_countable, encodable.encodek]⟩
 
 end set
 
@@ -38,7 +38,7 @@ section enumerate
 variables [topological_space β] [separable_space β]
 
 lemma closure_range_enumerate {D : set β} (D_countable : countable D) (D_dense : closure D = univ)
-  (default : β) : closure (range (enumerate D_countable default)) = univ :=
+  (default : β) : closure (range (enumerate_countable D_countable default)) = univ :=
 dense_of_subset_dense (subset_range_enumerate D_countable default) D_dense
 
 end enumerate -- section
@@ -64,7 +64,7 @@ lemma simple_func_sequence_tendsto {f : α → β} (hf : measurable f) :
    ∀ n, ∥F n x∥ ≤ ∥f x∥ + ∥f x∥:=
 -- enumerate a countable dense subset {e k} of β
 let ⟨D, ⟨D_countable, D_dense⟩⟩ := separable_space.exists_countable_closure_eq_univ β in
-let e := enumerate D_countable 0 in
+let e := enumerate_countable D_countable 0 in
 let E := range e in
 have E_dense : closure E = univ := closure_range_enumerate D_countable D_dense 0,
 -- A' N k is a ball of radius 1 / (N + 1) around point e k

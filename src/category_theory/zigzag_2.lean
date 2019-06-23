@@ -187,13 +187,6 @@ lemma T_f_of_prime_map_fn_ge {n m : Δ} (f : n ⟶ m) (j : fin (m + 1)) :
   (T.map f) (prime_map_fn f j) ≥ j :=
 mem_above_iff.1 prime_map_fn_mem_above
 
--- lemma prime_map_fn_le_of_T_map_ge {n m : Δ} {f : n ⟶ m} {j : fin (m + 1)} {k : fin (n + 1)}
---     (h : j ≤ T.map f k) : prime_map_fn f j ≤ k :=
--- prime_map_fn_le
--- begin
-
--- end
-
 lemma zero_lt_T_obj {n : Δ} : (0 : ℕ) < T.obj n := by {dsimp [T], apply nat.succ_pos}
 
 lemma prime_map_fn_zero_eq_zero {n m : Δ} {f : n ⟶ m} :
@@ -266,6 +259,7 @@ def Δ_ := ℕ
 instance : has_coe Δ_ Δ :=
 { coe := λ n, (n + 1 : ℕ) }
 
+
 instance category_Δ_ : category Δ_ :=
 { hom := λ n m, { f : fin (n+1) → fin (m+1) | monotone f ∧ f 0 = 0 ∧ f (fin.last _) = fin.last _ },
   id := λ n, ⟨id, by obviously⟩,
@@ -319,6 +313,7 @@ section prime
 
 def prime_obj (n : Δ) : Δ_ᵒᵖ := op (n : ℕ)
 
+
 def prime_map {n m : Δ} (f : n ⟶ m) : (prime_obj n) ⟶ (prime_obj m) :=
 has_hom.hom.op
   ⟨prime_map_fn f,
@@ -355,10 +350,73 @@ def prime : Δ ⥤ Δ_ᵒᵖ :=
   map_id' := prime_map_id,
   map_comp' := prime_map_comp }
 
+@[simp] lemma f_zero {m n : Δ_} {f : n ⟶ m} : f 0 = 0 := by tidy
+@[simp] lemma f_op_zero {m n : Δ_ᵒᵖ} {f : n ⟶ m} : f 0 = 0 := f_zero
+@[simp] lemma f_last {m n : Δ_} {f : n ⟶ m} : f (fin.last _) = fin.last _ := by tidy
+@[simp] lemma f_op_last {m n : Δ_ᵒᵖ} {f : n ⟶ m} : f (fin.last m) = fin.last _ := f_last
+
 end prime
 
+section below
+
+def below {n m : ℕ} (f : fin (m + 1) → fin (n + 1)) (j : fin (n + 1)) :=
+  finset.univ.filter {i : fin (m + 1) | f i ≤ j}
+
+@[simp] lemma mem_below_iff {n m : ℕ} {f : fin (m + 1) → fin (n + 1)} {j : fin (n + 1)}
+    {i : fin (m + 1)} :
+  (i ∈ (below f j)) ↔ f i ≤ j :=
+⟨λ h, (finset.mem_filter.1 h).2, λ h, finset.mem_filter.2 ⟨finset.mem_univ i, h⟩⟩
+
+
+lemma zero_mem_below {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j : fin (n + 1)} :
+  (0 : fin (m + 1)) ∈ (below f j) :=
+mem_below_iff.2
+begin
+  {show f 0 ≤ j,
+  rw [f_op_zero],
+  exact fin.zero_le _,}
+end
+
+lemma below_non_empty {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j : fin (n + 1)} :
+  below f j ≠ ∅ := finset.ne_empty_of_mem zero_mem_below
+
+lemma foo {n m : Δ_ᵒᵖ} {f : n ⟶ m} : f (fin.last m : fin (unop m + 1)) = fin.last _ := f_op_last
+
+lemma m_not_in_below {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j : fin n} :
+  (fin.last m : fin (unop m + 1)) ∉ below f (fin.cast_succ j) := λ h,
+begin
+  have w := mem_below_iff.1 h,
+  rw [f_op_last] at w,
+  dsimp [fin.last, (≤), fin.le] at w,
+  exact nat.lt_le_antisymm (j.is_lt) w
+end
+
+
+#check @nat.cast (fin 5)
+
+def prime_inv_map_fn_aux {n m : Δ_ᵒᵖ} (f : n ⟶ m) (j : fin n) : fin (m + 1) :=
+  finset.max' (below f (fin.cast_succ j)) below_non_empty
+
+lemma prime_inv_map_fn_aux_mem_below {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j : fin n} :
+  prime_inv_map_fn_aux f j ∈ below f (fin.cast_succ j) :=
+finset.max'_mem _ _
+
+lemma prime_inv_max_fn_aux_le_f {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j : fin n} :
+  f (prime_inv_map_fn_aux f j) ≤ fin.cast_succ j :=
+mem_below_iff.1 prime_inv_map_fn_aux_mem_below
+
+
+
+lemma prime_inv_map_fn_aux_lt_n {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j : fin n} :
+  (prime_inv_map_fn_aux f j).val < m :=
+begin
+
+end
+
+end below
+
 namespace prime
-instance : ess_surj prime := sorry
+instance : ess_surj prime := {obj_preimage := λ n, unop n, iso' := by obviously}
 instance : full prime := sorry
 instance : faithful prime := sorry
 

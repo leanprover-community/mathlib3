@@ -61,7 +61,7 @@ local infixr ` →ₛ `:25 := simple_func
 
 lemma simple_func_sequence_tendsto {f : α → β} (hf : measurable f) :
   ∃ (F : ℕ → (α →ₛ β)), ∀ x : α, tendsto (λ n, F n x) at_top (nhds (f x)) ∧
-   ∀ n, ∥F n x∥ ≤ ∥f x∥ + ∥f x∥:=
+  ∀ n, ∥F n x∥ ≤ ∥f x∥ + ∥f x∥ :=
 -- enumerate a countable dense subset {e k} of β
 let ⟨D, ⟨D_countable, D_dense⟩⟩ := separable_space.exists_countable_closure_eq_univ β in
 let e := enumerate_countable D_countable 0 in
@@ -74,12 +74,12 @@ let A N := disjointed (A' N) in
 have is_measurable_A' : ∀ {N k}, is_measurable (A' N k) :=
   λ N k, hf.preimage $ is_measurable.inter is_measurable_ball $ is_measurable.compl is_measurable_ball,
 have is_measurable_A : ∀ {N k}, is_measurable (A N k) :=
- λ N, is_measurable.disjointed $ λ k, is_measurable_A',
+  λ N, is_measurable.disjointed $ λ k, is_measurable_A',
 have A_subset_A' : ∀ {N k x}, x ∈ A N k → x ∈ A' N k := λ N k, inter_subset_left _ _,
 have dist_ek_fx' : ∀ {x N k}, x ∈ A' N k → (dist (e k) (f x) < 1 / (N+1 : ℝ)) :=
- λ x N k, by { rw [dist_comm], simpa using (λ a b, a) },
+  λ x N k, by { rw [dist_comm], simpa using (λ a b, a) },
 have dist_ek_fx : ∀ {x N k}, x ∈ A N k → (dist (e k) (f x) < 1 / (N+1 : ℝ)) :=
- λ x N k h, dist_ek_fx' (A_subset_A' h),
+  λ x N k h, dist_ek_fx' (A_subset_A' h),
 have norm_fx' : ∀ {x N k}, x ∈ A' N k → (1 / (N+1 : ℝ)) ≤ ∥f x∥ := λ x N k, by simp [ball_0_eq],
 have norm_fx : ∀ {x N k}, x ∈ A N k → (1 / (N+1 : ℝ)) ≤ ∥f x∥ := λ x N k h, norm_fx' (A_subset_A' h),
 -- construct the desired sequence of simple functions
@@ -97,13 +97,15 @@ end,
 have x_mem_Union_k : ∀ {N x}, (x ∈ ⋃ M ≤ N, ⋃ k ≤ N, A M k) → x ∈ ⋃ k ≤ N, A (M N x) k :=
   λ N x h,
     @nat.find_greatest_spec (λ M, x ∈ ⋃ k ≤ N, (A M k)) _ N (
-    let ⟨M, hM⟩ := mem_Union.1 (h) in
-    let ⟨hM₁, hM₂⟩ := mem_Union.1 hM in ⟨M, ⟨hM₁, hM₂⟩⟩),
+      let ⟨M, hM⟩ := mem_Union.1 (h) in
+      let ⟨hM₁, hM₂⟩ := mem_Union.1 hM in
+        ⟨M, ⟨hM₁, hM₂⟩⟩),
 have x_mem_A : ∀ {N x}, (x ∈ ⋃ M ≤ N, ⋃ k ≤ N, A M k) → x ∈ A (M N x) (k N x) :=
   λ N x h,
     @nat.find_greatest_spec (λ k, x ∈ A (M N x) k) _ N (
-    let ⟨k, hk⟩ := mem_Union.1 (x_mem_Union_k h) in
-    let ⟨hk₁, hk₂⟩ := mem_Union.1 hk in ⟨k, ⟨hk₁, hk₂⟩⟩),
+      let ⟨k, hk⟩ := mem_Union.1 (x_mem_Union_k h) in
+      let ⟨hk₁, hk₂⟩ := mem_Union.1 hk in
+        ⟨k, ⟨hk₁, hk₂⟩⟩),
 have x_mem_A' : ∀ {N x}, (x ∈ ⋃ M ≤ N, ⋃ k ≤ N, A M k) → x ∈ A' (M N x) (k N x) :=
   λ N x h, mem_of_subset_of_mem (inter_subset_left _ _) (x_mem_A h),
 -- prove that for all N, (F N) has finite range
@@ -118,7 +120,7 @@ have F_measurable : ∀ {N}, measurable (F N) :=
 begin
   assume N, refine measurable.if _ _ measurable_const,
   -- show `is_measurable {a : α | a ∈ ⋃ (M : ℕ) (H : M ≤ N) (k : ℕ) (H : k ≤ N), A M k}`
-  rw set_of_mem_eq, simp [is_measurable.Union, is_measurable.Union_Prop, is_measurable_A],
+  { rw set_of_mem_eq, simp [is_measurable.Union, is_measurable.Union_Prop, is_measurable_A] },
   -- show `measurable (λ (x : α), e (k N x))`
   apply measurable.comp measurable_from_nat, apply measurable_find_greatest,
   assume k' k'_le_N, by_cases k'_eq_0 : k' = 0,
@@ -130,9 +132,10 @@ begin
       assume k_eq_0 x_mem,
       simp only [not_exists, exists_prop, mem_Union, not_and, sub_eq_diff, mem_diff],
       refine ⟨M N x, ⟨nat.find_greatest_le, ⟨by { rw ← k_eq_0, exact x_mem_A x_mem} , _⟩⟩⟩,
-      assume m hMm hmN k k_le_N, have := nat.find_greatest_is_greatest _ m ⟨hMm, hmN⟩,
+      assume m hMm hmN k k_le_N,
+      have := nat.find_greatest_is_greatest _ m ⟨hMm, hmN⟩,
       { simp only [not_exists, exists_prop, mem_Union, not_and] at this, exact this k k_le_N },
-      exact ⟨M N x, ⟨nat.find_greatest_le, x_mem_Union_k x_mem⟩⟩ },
+      { exact ⟨M N x, ⟨nat.find_greatest_le, x_mem_Union_k x_mem⟩⟩ } },
     { simp only [mem_set_of_eq, mem_union_eq, mem_compl_eq],
       by_cases x_mem : (x ∉ ⋃ (M : ℕ) (H : M ≤ N) (k : ℕ) (H : k ≤ N), A M k),
       { intro, apply find_greatest_eq_zero, assume k k_le_N hx,
@@ -150,10 +153,11 @@ begin
           contradiction },
         rw not_lt at m_lt_M, by_cases m_gt_M : m > M N x,
         { have := nat.find_greatest_is_greatest _ m ⟨m_gt_M, m_le_N⟩,
-          have : x ∈ ⋃ k ≤ N, A m k,
+          { have : x ∈ ⋃ k ≤ N, A m k,
             { rw mem_Union, use 0, rw mem_Union, use nat.zero_le N, exact hx },
-          contradiction,
-          use m, split, exact m_le_N, rw mem_Union, use 0, rw mem_Union, use nat.zero_le _, exact hx },
+            contradiction },
+          { use m, split, exact m_le_N, rw mem_Union, use 0, rw mem_Union,
+            use nat.zero_le _, exact hx } },
         rw not_lt at m_gt_M, have M_eq_m := le_antisymm m_lt_M m_gt_M,
         rw ← k'_eq_0, exact k_unique ⟨x_mem_A x_mem, by { rw [k'_eq_0, M_eq_m], exact hx }⟩ } } },
   -- end of `have`
@@ -163,8 +167,7 @@ begin
   { simp [is_measurable.Union, is_measurable.Union_Prop, is_measurable.diff, is_measurable_A] },
   -- if k' ≠ 0
   have : {x | k N x = k'} = ⋃(m ≤ N), A m k' - ⋃m' (hmm' : m < m') (hm'N : m' ≤ N) (k ≤ N), A m' k,
-  { ext,
-    split,
+  { ext, split,
     { rw [mem_set_of_eq],
       assume k_eq_k',
       have x_mem : x ∈ ⋃ (M : ℕ) (H : M ≤ N) (k : ℕ) (H : k ≤ N), A M k,
@@ -173,14 +176,15 @@ begin
         assumption },
       simp only [not_exists, exists_prop, mem_Union, not_and, sub_eq_diff, mem_diff],
       refine ⟨M N x, ⟨nat.find_greatest_le, ⟨by { rw ← k_eq_k', exact x_mem_A x_mem} , _⟩⟩⟩,
-      assume m hMm hmN k k_le_N, have := nat.find_greatest_is_greatest _ m ⟨hMm, hmN⟩,
-      { simp only [not_exists, exists_prop, mem_Union, not_and] at this, exact this k k_le_N },
+      assume m hMm hmN k k_le_N,
+      have := nat.find_greatest_is_greatest _ m ⟨hMm, hmN⟩,
+        { simp only [not_exists, exists_prop, mem_Union, not_and] at this, exact this k k_le_N },
       exact ⟨M N x, ⟨nat.find_greatest_le, x_mem_Union_k x_mem⟩⟩ },
     { simp only [mem_set_of_eq, mem_union_eq, mem_compl_eq], assume h,
       have x_mem : x ∈ ⋃ (M : ℕ) (H : M ≤ N) (k : ℕ) (H : k ≤ N), A M k,
-      { simp only [not_exists, exists_prop, mem_Union, not_and, sub_eq_diff, mem_diff] at h,
-        rcases h with ⟨m, ⟨hm, ⟨hx, _⟩⟩⟩,
-        simp only [mem_Union], use m, use hm, use k', use k'_le_N, assumption },
+        { simp only [not_exists, exists_prop, mem_Union, not_and, sub_eq_diff, mem_diff] at h,
+          rcases h with ⟨m, ⟨hm, ⟨hx, _⟩⟩⟩,
+          simp only [mem_Union], use m, use hm, use k', use k'_le_N, assumption },
       simp only [not_exists, exists_prop, mem_Union, not_and, sub_eq_diff, mem_diff] at h,
       rcases h with ⟨m, ⟨m_le_N, ⟨hx, hm⟩⟩⟩,
       by_cases m_lt_M : m < M N x,
@@ -200,9 +204,8 @@ begin
 end,
 -- start of proof
 ⟨λ N, ⟨F N, λ x, measurable.preimage F_measurable is_measurable_singleton, F_finite⟩,
-λ x, ⟨
 -- The pointwise convergence part of the theorem
-metric.tendsto_at_top.2 $ λ ε hε, classical.by_cases
+λ x, ⟨metric.tendsto_at_top.2 $ λ ε hε, classical.by_cases
 --first case : f x = 0
 ( assume fx_eq_0 : f x = 0,
   have x_not_mem_A' : ∀ {M k}, x ∉ A' M k := λ M k,
@@ -219,7 +222,9 @@ metric.tendsto_at_top.2 $ λ ε hε, classical.by_cases
                                   by {rw [fx_eq_0, F_eq_0, dist_self], exact hε} )
 --second case : f x ≠ 0
 ( assume fx_ne_0 : f x ≠ 0,
-  let ⟨N₀, ⟨norm_fx_gt, ε_gt⟩⟩ := exists_nat_one_div_lt_and ((norm_pos_iff _).2 fx_ne_0) hε in
+  let ⟨N₀, hN⟩ := exists_nat_one_div_lt (lt_min ((norm_pos_iff _).2 fx_ne_0) hε) in
+  have norm_fx_gt : _ := (lt_min_iff.1 hN).1,
+  have ε_gt : _ := (lt_min_iff.1 hN).2,
   have x_mem_Union_k_N₀ : x ∈ ⋃ k, A N₀ k :=
     let ⟨k, hk⟩ := mem_closure_range_iff_nat.1 (by { rw E_dense, exact mem_univ (f x) }) N₀ in
     begin
@@ -252,7 +257,6 @@ metric.tendsto_at_top.2 $ λ ε hε, classical.by_cases
     (add_le_add_right (nat.cast_le.2 (nat.le_find_greatest N₀_le_N
     begin rw mem_Union, use k₀, rw mem_Union, use k₀_le_N, exact x_mem_A end)) 1)
     ... < ε : ε_gt ⟩ ),
-
 -- second part of the theorem
 assume N, show ∥F N x∥ ≤ ∥f x∥ + ∥f x∥, from
 classical.by_cases
@@ -285,10 +289,10 @@ have h_bound : ∀ n, ∀ₘ x, G n x ≤ g x := λ n, all_ae_of_all $ λ x, coe
     ... = nnnorm (F n x) + nnnorm (f x) : by simp [nndist_eq_nnnorm]
     ... ≤ nnnorm (f x) + nnnorm (f x) + nnnorm (f x) : by { simp [nnreal.coe_le, (hF x).2] },
 have h_finite : lintegral g < ⊤ :=
-calc
-  (∫⁻ x, nnnorm (f x) + nnnorm (f x) + nnnorm (f x)) =
-    (∫⁻ x, nnnorm (f x)) + (∫⁻ x, nnnorm (f x)) + (∫⁻ x, nnnorm (f x)) :
-  by rw [lintegral_add, lintegral_add]; simp only [measurable_coe_nnnorm hfm, measurable_add]
+  calc
+    (∫⁻ x, nnnorm (f x) + nnnorm (f x) + nnnorm (f x)) =
+      (∫⁻ x, nnnorm (f x)) + (∫⁻ x, nnnorm (f x)) + (∫⁻ x, nnnorm (f x)) :
+    by rw [lintegral_add, lintegral_add]; simp only [measurable_coe_nnnorm hfm, measurable_add]
     ... < ⊤ : by { simp only [and_self, add_lt_top], exact hfi},
 have h_lim : ∀ₘ x, tendsto (λ n, G n x) at_top (nhds 0) := all_ae_of_all $ λ x,
   begin

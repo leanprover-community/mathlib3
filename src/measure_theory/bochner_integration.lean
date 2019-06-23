@@ -38,7 +38,7 @@ assume h,  ⟨l1.mk f f.measurable h , ⟨f, ⟨h, rfl⟩⟩⟩
 instance :  has_coe (α →ₛ γ) (α →₁ γ) := ⟨subtype.val⟩
 
 instance : metric_space (α →ₛ γ) :=
-  metric_space.induced (coe : (α →ₛ γ) → (α →₁ γ)) subtype.val_injective l1.metric_space
+metric_space.induced (coe : (α →ₛ γ) → (α →₁ γ)) subtype.val_injective l1.metric_space
 
 lemma exists_simple_func_near (f : α →₁ γ) {ε : ℝ} (ε0 : ε > 0) :
   ∃ s : α →ₛ γ, dist f s < ε :=
@@ -78,7 +78,7 @@ section integral
 variables [normed_space ℝ γ]
 
 def bochner_integral' (f : measure_theory.simple_func α γ) : γ :=
-  f.range.sum (λ (x : γ), (ennreal.to_real (volume (f ⁻¹' {x}))) • x)
+f.range.sum (λ (x : γ), (ennreal.to_real (volume (f ⁻¹' {x}))) • x)
 
 -- bochner integration over simple functions in l1 space
 def bochner_integral (f : α →ₛ γ) : γ := bochner_integral' (classical.some f.2)
@@ -93,7 +93,7 @@ variables [normed_space ℝ γ]
 
 -- bochner integration over functions in l1 space
 def bochner_integral (f : α →₁ γ) : γ :=
-  dense_embedding.extend dense_embedding_of_simple_func simple_func.bochner_integral f
+dense_embedding.extend dense_embedding_of_simple_func simple_func.bochner_integral f
 
 end l1 -- namespace
 
@@ -101,6 +101,6 @@ variables [normed_space ℝ γ]
 
 -- bochner integration
 def bochner_integral (f : α → γ) (hfm : measurable f) (hfi : integrable f) : γ :=
-  (l1.mk f hfm hfi).bochner_integral
+(l1.mk f hfm hfi).bochner_integral
 
 end measure_theory -- namespace

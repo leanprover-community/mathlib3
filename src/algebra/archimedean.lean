@@ -370,25 +370,6 @@ begin
     { simp [zero_lt_one] }}
 end
 
-lemma exists_nat_one_div_lt_and [linear_ordered_field α] [archimedean α]
-  {ε₁ ε₂ : α} (hε₁ : ε₁ > 0) (hε₂ : ε₂ > 0) :
-  ∃ n : ℕ, 1 / (n + 1: α) < ε₁ ∧ 1 / (n + 1: α) < ε₂ :=
-let ⟨n₁, h₁⟩ := exists_nat_one_div_lt hε₁ in
-let ⟨n₂, h₂⟩ := exists_nat_one_div_lt hε₂ in
-let n        := max n₁ n₂ in
-⟨n, ⟨
-  calc
-    1 / (n + 1 : α) ≤ 1 / (n₁ + 1 : α) : one_div_le_one_div_of_le
-    (add_pos_of_nonneg_of_pos n₁.cast_nonneg zero_lt_one)
-    (add_le_add_right (nat.cast_le.2 (le_max_left _ _)) _)
-    ... < ε₁ : h₁
- ,
-  calc
-    1 / (n + 1 : α) ≤ 1 / (n₂ + 1 : α) : one_div_le_one_div_of_le
-    (add_pos_of_nonneg_of_pos n₂.cast_nonneg zero_lt_one)
-    (add_le_add_right (nat.cast_le.2 (le_max_right _ _)) _)
-    ... < ε₂ : h₂⟩⟩
-
 theorem exists_pos_rat_lt {x : α} (x0 : 0 < x) : ∃ q : ℚ, 0 < q ∧ (q : α) < x :=
 by simpa only [rat.cast_pos] using exists_rat_btwn x0
 

@@ -1,3 +1,12 @@
+/-
+Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Zhouhang Zhou
+
+Show that each Borel measurable function can be approximated,
+both pointwise and in L¹ norm, by a sequence of simple functions.
+-/
+
 import measure_theory.l1_space
 
 noncomputable theory

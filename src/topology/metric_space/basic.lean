@@ -807,6 +807,25 @@ begin
   apply ne_empty_of_mem B
 end⟩
 
+lemma mem_closure_range_iff {α : Type u} [metric_space α] {e : ℕ → α} {a : α} :
+  a ∈ closure (range e) ↔ ∀ε>0, ∃ k : ℕ, dist a (e k) < ε :=
+iff.intro
+( assume ha ε hε,
+  let ⟨b, ⟨hb, hab⟩⟩ := metric.mem_closure_iff'.1 ha ε hε in
+  let ⟨k, hk⟩ := mem_range.1 hb in
+  ⟨k, by { rw hk, exact hab }⟩ )
+( assume h, metric.mem_closure_iff'.2 (assume ε hε,
+  let ⟨k, hk⟩ := h ε hε in
+  ⟨e k, ⟨mem_range.2 ⟨k, rfl⟩, hk⟩⟩) )
+
+lemma mem_closure_range_iff_nat {α : Type u} [metric_space α] {e : ℕ → α} {a : α} :
+  a ∈ closure (range e) ↔ ∀n : ℕ, ∃ k : ℕ, dist a (e k) < 1 / ((n : ℝ) + 1) :=
+⟨assume ha n, mem_closure_range_iff.1 ha (1 / ((n : ℝ) + 1)) nat.one_div_pos_of_nat,
+ assume h, mem_closure_range_iff.2 $ assume ε hε,
+  let ⟨n, hn⟩ := exists_nat_one_div_lt hε in
+  let ⟨k, hk⟩ := h n  in
+  ⟨k, calc dist a (e k) < 1 / ((n : ℝ) + 1) : hk ... < ε : hn⟩⟩
+
 theorem mem_of_closed' {α : Type u} [metric_space α] {s : set α} (hs : is_closed s)
   {a : α} : a ∈ s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
 by simpa only [closure_eq_of_is_closed hs] using @mem_closure_iff' _ _ s a

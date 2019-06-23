@@ -135,8 +135,14 @@ lemma is_measurable_of_is_open : is_open s → is_measurable s := generate_measu
 lemma is_measurable_interior : is_measurable (interior s) :=
 is_measurable_of_is_open is_open_interior
 
+lemma is_measurable_ball [metric_space β] {x : β} {ε : ℝ} : is_measurable (metric.ball x ε) :=
+measure_theory.is_measurable_of_is_open metric.is_open_ball
+
 lemma is_measurable_of_is_closed (h : is_closed s) : is_measurable s :=
 is_measurable.compl_iff.1 $ is_measurable_of_is_open h
+
+lemma is_measurable_singleton [t1_space α] {x : α} : is_measurable ({x} : set α) :=
+measure_theory.is_measurable_of_is_closed is_closed_singleton
 
 lemma is_measurable_closure : is_measurable (closure s) :=
 is_measurable_of_is_closed is_closed_closure

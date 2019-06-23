@@ -1005,6 +1005,23 @@ lemma find_greatest_is_greatest {P : ℕ → Prop} [decidable_pred P] {b} :
   (∃ m, m ≤ b ∧ P m) → ∀ k, nat.find_greatest P b < k ∧ k ≤ b → ¬ P k
 | ⟨m, hmb, hP⟩ k ⟨hk, hkb⟩ hPk := lt_irrefl k $ lt_of_le_of_lt (le_find_greatest hkb hPk) hk
 
+lemma find_greatest_eq_zero {P : ℕ → Prop} [decidable_pred P] :
+  ∀ {b}, (∀ n ≤ b, ¬ P n) → nat.find_greatest P b = 0
+| 0       h := find_greatest_zero
+| (n + 1) h :=
+begin
+  have := nat.find_greatest_of_not (h (n + 1) (le_refl _)),
+  rw this, exact find_greatest_eq_zero (assume k hk, h k (le_trans hk $ nat.le_succ _))
+end
+
+lemma find_greatest_of_ne_zero {P : ℕ → Prop} [decidable_pred P] :
+  ∀ {b m}, nat.find_greatest P b = m → m ≠ 0 → P m
+| 0       m rfl h := by { have := @find_greatest_zero P _, contradiction }
+| (b + 1) m rfl h :=
+decidable.by_cases
+  (assume hb : P (b + 1), by { have := find_greatest_eq hb, rw this, exact hb })
+  (assume hb : ¬ P (b + 1), find_greatest_of_ne_zero (find_greatest_of_not hb).symm h)
+
 end find_greatest
 
 section div

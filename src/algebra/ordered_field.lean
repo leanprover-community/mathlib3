@@ -177,6 +177,18 @@ else (div_le_div_left (lt_of_le_of_ne ha (ne.symm ha0)) hb hc).2 h
 
 end linear_ordered_field
 
+namespace nat
+
+variables {α : Type*} [linear_ordered_field α]
+
+lemma inv_pos_of_nat [linear_ordered_field α] {n : ℕ}  : 0 < ((n : α) + 1)⁻¹  :=
+  inv_pos $ add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
+
+lemma one_div_pos_of_nat [linear_ordered_field α] {n : ℕ} : 0 < 1 / ((n : α) + 1) :=
+by { rw one_div_eq_inv, exact inv_pos_of_nat }
+
+end nat
+
 section
 variables {α : Type*} [discrete_linear_ordered_field α] (a b c : α)
 

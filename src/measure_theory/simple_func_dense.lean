@@ -8,6 +8,7 @@ universes u v
 variables {α : Type u} {β : Type v} {ι : Type*}
 ----------------------------------------------------------------------------------------------------
 namespace set
+
 /-- Enumerate elements in a countable set.-/
 def enumerate {s : set α} (h : countable s) (default : α): ℕ → α :=
 assume n, match @encodable.decode s (h.to_encodable) n with
@@ -24,6 +25,7 @@ end set
 open set
 
 section enumerate
+
 variables [topological_space β] [separable_space β]
 
 lemma closure_range_enumerate {D : set β} (D_countable : countable D) (D_dense : closure D = univ)
@@ -32,187 +34,18 @@ dense_of_subset_dense (subset_range_enumerate D_countable default) D_dense
 
 end enumerate -- section
 
-----------------------------------------------------------------------------------------------------
-section finite
--- (if p x then f x else g x) has finite range
-lemma range_ite_subset' {p : Prop} {f g : α → β} : range (if p then f else g) ⊆ range f ∪ range g :=
-begin
-  by_cases h : p, {rw if_pos h, exact subset_union_left _ _},
-  {rw if_neg h, exact subset_union_right _ _}
-end
-
-lemma range_ite_subset {p : α → Prop} {f g : α → β} :
- range (λ x, if p x then f x else g x) ⊆ range f ∪ range g :=
-begin
-  rw range_subset_iff, intro x, by_cases h : p x,
-  simp [if_pos h, mem_union, mem_range_self],
-  simp [if_neg h, mem_union, mem_range_self]
-end
-
-lemma finite_range_ite {p : α → Prop} {f g : α → β} (hf : finite (range f)) (hg : finite (range g)) :
-  finite (range (λ x, if p x then f x else g x)) :=
-finite_subset (finite_union hf hg) range_ite_subset
-
--- constant functions have finite range
-lemma finite_range_const {c : β} : finite (range (λ x : α, c)) :=
-finite_subset (finite_singleton c) range_const_subset
-
--- nat.find_greatest has finite range
-open nat
-
-lemma range_find_greatest_subset {P : α → ℕ → Prop} {b : ℕ}:
-  range (λ x, nat.find_greatest (P x) b) ⊆ ↑(finset.range (b + 1)) :=
-by { rw range_subset_iff, assume x, simp [lt_succ_iff, find_greatest_le] }
-
-
-lemma finite_range_find_greatest {P : α → ℕ → Prop} {b : ℕ} :
-  finite (range (λ x, nat.find_greatest (P x) b)) :=
-finite_subset (finset.finite_to_set $ finset.range (b + 1))
-( by { rw range_subset_iff, assume x, simp [lt_succ_iff, find_greatest_le] } )
-
-lemma find_greatest_eq_zero {P : ℕ → Prop} : ∀ {b}, (∀ n ≤ b, ¬ P n) → nat.find_greatest P b = 0
-| 0       h := find_greatest_zero
-| (n + 1) h :=
-begin
-  have := nat.find_greatest_of_not (h (n + 1) (le_refl _)),
-  rw this, exact find_greatest_eq_zero (assume k hk, h k (le_trans hk $ nat.le_succ _))
-end
-
-lemma find_greatest_of_ne_zero {P : ℕ → Prop} :
-  ∀ {b m}, nat.find_greatest P b = m → m ≠ 0  → P m
-| 0       m rfl h := by { have := @find_greatest_zero P _, contradiction }
-| (b + 1) m rfl h :=
-classical.by_cases
-  (assume hb : P (b + 1), by { have := find_greatest_eq hb, rw this, exact hb })
-  (assume hb : ¬ P (b + 1), find_greatest_of_ne_zero (find_greatest_of_not hb).symm h)
-
-end finite -- section
-
-----------------------------------------------------------------------------------------------------
-
-section measurable
--- open ball is a borel measurable set
-lemma is_measurable_ball [metric_space α] {x : α} {ε : ℝ} : is_measurable (metric.ball x ε) :=
-  measure_theory.is_measurable_of_is_open metric.is_open_ball
--- singleton set is a borel measurable set
-lemma is_measurable_singleton [topological_space α] [t1_space α] {x : α} : @is_measurable α _ ({x}) :=
-measure_theory.is_measurable_of_is_closed is_closed_singleton
--- any function from ℕ to α is a measurable function
-lemma measurable_from_nat [measurable_space α] {f : ℕ → α} : measurable f :=
-assume s hs, show is_measurable {n : ℕ | f n ∈ s}, from trivial
-
-lemma measurable_to_nat [measurable_space α] {f : α → ℕ} :
-(∀ k, is_measurable {x | f x = k }) → measurable f :=
-begin
-  assume h s hs, show is_measurable {x | f x ∈ s},
-  have : {x | f x ∈ s} = ⋃ (n ∈ s), {x | f x = n}, { ext, simp },
-  rw this, simp [is_measurable.Union, is_measurable.Union_Prop, h]
-end
-
-lemma measurable_find_greatest [measurable_space α] {p : ℕ → α → Prop} :
-  ∀ {N}, (∀ k ≤ N, is_measurable {x | nat.find_greatest (λ n, p n x) N = k}) → measurable (λ x, nat.find_greatest (λ n, p n x) N)
-| 0 := assume h s hs, show is_measurable {x : α | (nat.find_greatest (λ n, p n x) 0) ∈ s},
-begin
-  by_cases h : 0 ∈ s,
-  { convert is_measurable.univ, simp only [nat.find_greatest_zero, h] },
-  { convert is_measurable.empty, simp only [nat.find_greatest_zero, h], refl }
-end
-| (n + 1) := assume h,
-begin
-  apply measurable_to_nat, assume k, by_cases hk : k ≤ n + 1,
-  { exact h k hk },
-  { have := is_measurable.empty, rw ← set_of_false at this, convert this, funext, rw eq_false,
-    assume h, rw ← h at hk, have := nat.find_greatest_le, contradiction }
-end
-
-end measurable -- section
-
-section convergence
-#check archimedean.arch
-
-#check exists_nat_one_div_lt
-
-
-#check dist_self
-
-#check one_div_le_one_div_of_le
-
-lemma inv_pos_of_nat {n : ℕ} : 0 < ((n : ℝ) + 1)⁻¹  :=
-  inv_pos $ add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
-
-lemma one_div_pos_of_nat {n : ℕ} : 0 < 1 / ((n : ℝ) + 1) :=
-by { rw one_div_eq_inv, exact inv_pos_of_nat }
-
-lemma nat.cast_add_one_pos (n : ℕ) : 0 < (n : ℝ) + 1 :=
-  add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
-
-lemma exists_nat_one_div_lt_and [linear_ordered_field α] [archimedean α]
-  {ε₁ ε₂ : α} (hε₁ : ε₁ > 0) (hε₂ : ε₂ > 0) :
-  ∃ n : ℕ, 1 / (n + 1: α) < ε₁ ∧ 1 / (n + 1: α) < ε₂ :=
-let ⟨n₁, h₁⟩ := exists_nat_one_div_lt hε₁ in
-let ⟨n₂, h₂⟩ := exists_nat_one_div_lt hε₂ in
-let n        := max n₁ n₂ in
-⟨n, ⟨
-  calc
-    1 / (n + 1 : α) ≤ 1 / (n₁ + 1 : α) : one_div_le_one_div_of_le
-    (add_pos_of_nonneg_of_pos n₁.cast_nonneg zero_lt_one)
-    (add_le_add_right (nat.cast_le.2 (le_max_left _ _)) _)
-    ... < ε₁ : h₁
- ,
-  calc
-    1 / (n + 1 : α) ≤ 1 / (n₂ + 1 : α) : one_div_le_one_div_of_le
-    (add_pos_of_nonneg_of_pos n₂.cast_nonneg zero_lt_one)
-    (add_le_add_right (nat.cast_le.2 (le_max_right _ _)) _)
-    ... < ε₂ : h₂⟩⟩
-
-#check @metric.mem_closure_iff'
-
-lemma mem_closure_range_iff {α : Type u} [metric_space α] {e : ℕ → α} {a : α} :
-  a ∈ closure (range e) ↔ ∀ε>0, ∃ k : ℕ, dist a (e k) < ε :=
-iff.intro
-( assume ha ε hε,
-  let ⟨b, ⟨hb, hab⟩⟩ := metric.mem_closure_iff'.1 ha ε hε in
-  let ⟨k, hk⟩ := mem_range.1 hb in
-  ⟨k, by { rw hk, exact hab }⟩ )
-( assume h, metric.mem_closure_iff'.2 (assume ε hε,
-  let ⟨k, hk⟩ := h ε hε in
-  ⟨e k, ⟨mem_range.2 ⟨k, rfl⟩, hk⟩⟩) )
-
-lemma mem_closure_range_iff_nat {α : Type u} [metric_space α] {e : ℕ → α} {a : α} :
-  a ∈ closure (range e) ↔ ∀n : ℕ, ∃ k : ℕ, dist a (e k) < 1 / ((n : ℝ) + 1) :=
-⟨assume ha n,
-  mem_closure_range_iff.1 ha (1 / ((n : ℝ) + 1)) one_div_pos_of_nat
-,
- assume h, mem_closure_range_iff.2 $ assume ε hε,
-  let ⟨n, hn⟩ := exists_nat_one_div_lt hε in
-  let ⟨k, hk⟩ := h n  in
-  ⟨k, calc
-  dist a (e k) < 1 / ((n : ℝ) + 1) : hk
-  ... < ε : hn⟩
-⟩
-
-
-end convergence -- section
-
-#check mem_Inter
-
 section other_lemmas
 
 lemma exists_of_forall {p : α → Prop} [inhabited α] : (∀ N, p N) → ∃ N, p N :=
 λ h, ⟨default α, h $ default α⟩
 
-#check nat.cast_nonneg
-
-lemma not_mem_Union_iff {A : ℕ → ℕ → set α} {x : α} : (∀ {M k}, x ∉ A M k) ↔ x ∉ ⋃ M k, A M k := by simp
-
--- @[simp] lemma ennreal.of_real_three : ennreal.of_real 3 = 3 :=
--- sorry
-
+lemma not_mem_Union_iff {A : ℕ → ℕ → set α} {x : α} : (∀ {M k}, x ∉ A M k) ↔ x ∉ ⋃ M k, A M k :=
+by simp
 
 end other_lemmas -- section
 
 namespace measure_theory
-open ennreal
+open ennreal nat metric
 variables [measure_space α] [normed_group β] [second_countable_topology β]
 
 local infixr ` →ₛ `:25 := simple_func
@@ -308,9 +141,10 @@ begin
           contradiction },
         rw not_lt at m_lt_M, by_cases m_gt_M : m > M N x,
         { have := nat.find_greatest_is_greatest _ m ⟨m_gt_M, m_le_N⟩,
-          have : x ∈ ⋃ k ≤ N, A m k, { rw mem_Union, use 0, rw mem_Union, use zero_le _, exact hx },
+          have : x ∈ ⋃ k ≤ N, A m k,
+            { rw mem_Union, use 0, rw mem_Union, use nat.zero_le N, exact hx },
           contradiction,
-          use m, split, exact m_le_N, rw mem_Union, use 0, rw mem_Union, use zero_le _, exact hx },
+          use m, split, exact m_le_N, rw mem_Union, use 0, rw mem_Union, use nat.zero_le _, exact hx },
         rw not_lt at m_gt_M, have M_eq_m := le_antisymm m_lt_M m_gt_M,
         rw ← k'_eq_0, exact k_unique ⟨x_mem_A x_mem, by { rw [k'_eq_0, M_eq_m], exact hx }⟩ } } },
   -- end of `have`
@@ -468,8 +302,4 @@ begin
   simp only [lintegral_zero]
 end
 
-
-
-
-----------------------------------------------------------------------------------------------------
 end measure_theory --namespace

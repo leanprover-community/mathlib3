@@ -677,6 +677,24 @@ begin
     simpa [ennreal.of_real, ennreal.to_real, some_eq_coe] }
 end
 
+lemma le_of_real_iff_to_real_le {a : ennreal} {b : ℝ} (ha : a ≠ ⊤) (hb : b ≥ 0) :
+  a ≤ ennreal.of_real b ↔ ennreal.to_real a ≤ b :=
+begin
+  rcases a,
+  { have := none_eq_top, contradiction },
+  { have := nnreal.le_of_real_iff_coe_le hb,
+    simpa [ennreal.of_real, ennreal.to_real, some_eq_coe] }
+end
+
+lemma lt_of_real_iff_to_real_lt {a : ennreal} {b : ℝ} (ha : a ≠ ⊤) :
+  a < ennreal.of_real b ↔ ennreal.to_real a < b :=
+begin
+  rcases a,
+  { have := none_eq_top, contradiction },
+  { have := nnreal.lt_of_real_iff_coe_lt,
+    simpa [ennreal.of_real, ennreal.to_real, some_eq_coe] }
+end
+
 lemma of_real_mul {p q : ℝ} (hp : 0 ≤ p) (hq : 0 ≤ q) :
   ennreal.of_real (p * q) = (ennreal.of_real p) * (ennreal.of_real q) :=
 by { simp only [ennreal.of_real, coe_mul.symm, coe_eq_coe], exact nnreal.of_real_mul hp hq }

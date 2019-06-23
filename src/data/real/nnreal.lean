@@ -272,14 +272,26 @@ nnreal.coe_le.2 $ max_le (add_le_add (le_max_left _ _) (le_max_left _ _)) nnreal
 lemma of_real_le_iff_le_coe {r : ℝ} {p : nnreal} : nnreal.of_real r ≤ p ↔ r ≤ ↑p :=
 begin
   cases le_total 0 r,
-  rw [nnreal.coe_le, nnreal.coe_of_real r h],
+  { rw [nnreal.coe_le, nnreal.coe_of_real r h] },
   { rw [of_real_eq_zero.2 h], split,
     intro, exact le_trans h (coe_nonneg _),
     intro, exact zero_le _ }
 end
 
+lemma le_of_real_iff_coe_le {r : nnreal} {p : ℝ} (hp : p ≥ 0) : r ≤ nnreal.of_real p ↔ ↑r ≤ p :=
+by rw [nnreal.coe_le, nnreal.coe_of_real p hp]
+
 lemma of_real_lt_iff_lt_coe {r : ℝ} {p : nnreal} (ha : r ≥ 0) : nnreal.of_real r < p ↔ r < ↑p :=
 by rw [nnreal.coe_lt, nnreal.coe_of_real r ha]
+
+lemma lt_of_real_iff_coe_lt {r : nnreal} {p : ℝ} : r < nnreal.of_real p ↔ ↑r < p :=
+begin
+  cases le_total 0 p,
+  { rw [nnreal.coe_lt, nnreal.coe_of_real p h] },
+  { rw [of_real_eq_zero.2 h], split,
+    intro, have := not_lt_of_le (zero_le r), contradiction,
+    intro rp, have : ¬(p ≤ 0) := not_le_of_lt (lt_of_le_of_lt (coe_nonneg _) rp), contradiction }
+end
 
 end of_real
 

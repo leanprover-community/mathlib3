@@ -120,12 +120,6 @@ meta def is_num_eq : expr → expr → bool
 | `(%%a/%%a') `(%%b/%%b') :=  a.is_num_eq b
 | _ _ := ff
 
-meta def is_eq_or_iff_after_binders : expr → bool
-| (expr.pi n bi d b) := is_eq_or_iff_after_binders b
-| `(%%a = %%b)       := tt
-| `(%%a ↔ %%b)       := tt
-| _                  := ff
-
 meta def simp (t : expr)
   (cfg : simp_config := {}) (discharger : tactic unit := failed)
   (no_defaults := ff) (attr_names : list name := []) (hs : list simp_arg_type := []) :

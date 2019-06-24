@@ -156,7 +156,7 @@ do h' ← get_unused_name `h,
 /--
 Similar to `refine` but generates equality proof obligations
 for every discrepancy between the goal and the type of the rule.
-`convert e using n` (n a nat) is also a thing (bounds the search).
+`convert e using n` (with `n : ℕ`) bounds the depth of the search for discrepancies.
 -/
 meta def convert (sym : parse (with_desc "←" (tk "<-")?)) (r : parse texpr) (n : parse (tk "using" *> small_nat)?) : tactic unit :=
 do v ← mk_mvar,

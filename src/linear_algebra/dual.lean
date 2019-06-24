@@ -190,6 +190,8 @@ end
 theorem dual_dim_eq (h : dim K V < omega) :
   cardinal.lift.{v u} (dim K V) = dim K (dual K V) :=
 begin
+  letI := classical.dec_eq (dual K V),
+  letI := classical.dec_eq V,
   rcases exists_is_basis_fintype h with ⟨b, hb, ⟨hf⟩⟩,
   resetI,
   exact hb.dual_dim_eq

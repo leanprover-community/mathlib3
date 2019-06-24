@@ -811,7 +811,7 @@ def restrict_on {s : set α} (h : d.has s) : dynkin_system α :=
       (compl_subset_compl.mpr $ inter_subset_right _ _),
   has_Union_nat := assume f hd hf,
     begin
-      rw [inter_comm, inter_Union_left],
+      rw [inter_comm, inter_Union],
       apply d.has_Union_nat,
       { exact λ i j h x ⟨⟨_, h₁⟩, _, h₂⟩, hd i j h ⟨h₁, h₂⟩ },
       { simpa [inter_comm] using hf },

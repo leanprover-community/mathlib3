@@ -31,8 +31,12 @@ quot.hrec_on qa (λ a, quot.hrec_on qb (f a) (λ b₁ b₂ pb, cb pb)) $ λ a₁
       ... == f a₂ b                                     : ca pa
       ... == @quot.hrec_on _ _ (φ _) ⟦b⟧ (f a₂) (@cb _) : by simp
 
-protected def map {α} (r r' : α → α → Prop) (h : ∀a b, r a b → r' a b) (a : quot r) : quot r' :=
-quot.hrec_on a (quot.mk r') $ assume a b hab, by rw [quot.sound (h a b hab)]
+protected def map (f : α → β) (h : ∀a₁ a₂, ra a₁ a₂ → rb (f a₁) (f a₂)) : quot ra → quot rb :=
+quot.lift (λ x, ⟦f x⟧) $ assume x y h₁, quot.sound $ h x y h₁
+
+protected def map_right {ra' : α → α → Prop} (h : ∀a₁ a₂, ra a₁ a₂ → ra' a₁ a₂) :
+  quot ra → quot ra' :=
+quot.map id h
 end quot
 
 namespace quotient

@@ -69,6 +69,7 @@ end
 
 section
 variables (σ α)
+
 lemma is_basis_monomials [discrete_field α] :
   is_basis α ((λs, (monomial s 1 : mv_polynomial σ α))) :=
 suffices is_basis α (λ (sa : Σ _, unit), (monomial sa.1 1 : mv_polynomial σ α)),

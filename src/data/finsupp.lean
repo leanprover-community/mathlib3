@@ -255,7 +255,7 @@ begin
   exact set.mem_range_self a
 end
 
-lemma emb_domain_congr (f : α₁ ↪ α₂) (l₁ l₂ : α₁ →₀ β) :
+lemma emb_domain_inj {f : α₁ ↪ α₂} {l₁ l₂ : α₁ →₀ β} :
   emb_domain f l₁ = emb_domain f l₂ ↔ l₁ = l₂ :=
 begin
   split,
@@ -1412,8 +1412,8 @@ begin
     use ha }
 end
 
-noncomputable def split_comp [has_zero γ] (g : Π i, (αs i →₀ β) → γ) (hg : ∀ i x, x = 0 ↔ g i x = 0)
-  : ι →₀ γ :=
+noncomputable def split_comp [has_zero γ] (g : Π i, (αs i →₀ β) → γ)
+  (hg : ∀ i x, x = 0 ↔ g i x = 0) : ι →₀ γ :=
 { support := split_support l,
   to_fun := λ i, g i (split l i),
   mem_support_to_fun :=

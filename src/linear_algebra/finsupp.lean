@@ -372,9 +372,11 @@ theorem mem_span_iff_total {s : set α} {x : β}:
 by rw span_eq_map_total; simp
 
 variables (α) (β) (v)
+
 protected def total_on (s : set α) : supported γ γ s →ₗ[γ] span γ (v '' s) :=
 linear_map.cod_restrict _ ((finsupp.total _ _ _ v).comp (submodule.subtype (supported γ γ s))) $
   λ ⟨l, hl⟩, (mem_span_iff_total _).2 ⟨l, hl, rfl⟩
+
 variables {α} {β} {v}
 
 theorem total_on_range (s : set α) : (finsupp.total_on α β γ v s).range = ⊤ :=

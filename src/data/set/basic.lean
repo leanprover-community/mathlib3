@@ -1179,27 +1179,7 @@ by { ext, split, rintro ⟨x, h1, h2⟩, exact ⟨⟨x, h1⟩, h2⟩, rintro ⟨
 
 @[simp] lemma sum.elim_range {α β γ : Type*} (f : α → γ) (g : β → γ) :
   range (sum.elim f g) = range f ∪ range g :=
-begin
-  apply subset.antisymm,
-  { intros x hx,
-    rcases set.mem_range.1 hx with ⟨a, ha⟩,
-    cases a,
-    { apply mem_union_left,
-      rw ←ha,
-      exact mem_range_self _ },
-    { apply mem_union_right,
-      rw ←ha,
-      exact mem_range_self _ } },
-  { intros x hx,
-    cases hx,
-    { rcases set.mem_range.1 hx with ⟨a, ha⟩,
-      use a,
-      simpa },
-    { rcases set.mem_range.1 hx with ⟨a, ha⟩,
-      apply set.mem_range.2,
-      existsi (sum.inr a),
-      simpa } }
-end
+by simp [set.ext_iff, mem_range]
 
 end range
 

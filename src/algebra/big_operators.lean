@@ -60,24 +60,6 @@ lemma prod_image [decidable_eq α] {s : finset γ} {g : γ → α} :
   (∀x∈s, ∀y∈s, g x = g y → x = y) → (s.image g).prod f = s.prod (λx, f (g x)) :=
 fold_image
 
-@[to_additive finset.sum_preimage]
-lemma prod_preimage [decidable_eq α] [decidable_eq γ]
-  (f : α → γ) (s : finset γ)
-  (hf : set.bij_on f (f ⁻¹' ↑s) ↑s) (g : γ → β) :
-  (preimage s (set.inj_on_of_bij_on hf)).prod (g ∘ f) = s.prod g  :=
-calc
-  (preimage s (set.inj_on_of_bij_on hf)).prod (g ∘ f)
-      = (image f (preimage s (set.inj_on_of_bij_on hf))).prod g :
-          begin
-            rw prod_image,
-            intros x hx y hy hxy,
-            apply set.inj_on_of_bij_on hf,
-            repeat { try { rw mem_preimage at hx hy,
-                          rw [set.mem_preimage_eq, mem_coe] },
-                    assumption },
-          end
-  ... = s.prod g : by rw image_preimage
-
 @[simp, to_additive sum_map]
 lemma prod_map (s : finset α) (e : α ↪ γ) (f : γ → β):
   (s.map e).prod f = s.prod (λa, f (e a)) :=

@@ -954,58 +954,6 @@ end
 
 end image
 
-section preimage
-
-noncomputable def preimage {α β : Type*} [decidable_eq α] {f : α → β} (s : finset β)
-  (hf : set.inj_on f (f ⁻¹' ↑s)) : finset α :=
-(@filter _ (λ b, ∃ a, f a = b) (classical.dec_pred _) s).attach.image
-  (λ b, classical.some ((@mem_filter _ _ (classical.dec_pred _) _ _).1 b.2).2)
-
-lemma mem_preimage {α β : Type*} [decidable_eq α] (f : α → β) (s : finset β)
-  (hf : set.inj_on f (f ⁻¹' ↑s)) (x : α) :
-  x ∈ preimage s hf ↔ f x ∈ s :=
-begin
-  unfold preimage,
-  split,
-  { intros hx,
-    rcases mem_image.1 hx with ⟨b, hb₁, hb₂⟩,
-    rw [←hb₂, @classical.some_spec _ (λ a, f a = b.val)],
-    apply filter_subset s,
-    apply b.2 },
-  { intros hx,
-    rw mem_image,
-    have h₁ : f x ∈ @filter _ (λ b, ∃ a, f a = b) (classical.dec_pred _) s,
-          { rw mem_filter, exact and.intro hx (exists.intro x rfl) },
-    existsi (⟨f x, h₁⟩ : {x // x ∈ @filter _ (λ b, ∃ a, f a = b) (classical.dec_pred _) s}),
-    existsi mem_attach _ ⟨f x, h₁⟩,
-    apply hf,
-    { rw [set.mem_preimage_eq, mem_coe, @classical.some_spec _ (λ a, f a = _)],
-      apply hx, },
-    { rw [set.mem_preimage_eq, mem_coe],
-      apply hx, },
-    { rw [@classical.some_spec _ (λ a, f a = _)] } }
-end
-
-lemma image_preimage {α β : Type*} [decidable_eq α] [decidable_eq β] (f : α → β) (s : finset β)
-  (hf : set.bij_on f (f ⁻¹' s.to_set) s.to_set) :
-  image f (preimage s (set.inj_on_of_bij_on hf)) = s :=
-begin
-  apply subset.antisymm,
-  { intros b hb,
-    rw mem_image at hb,
-    rcases hb with ⟨a, ha, hab⟩,
-    rw [mem_preimage, hab] at ha,
-    exact ha },
-  { intros b hb,
-    rw mem_image,
-    rcases (set.mem_image _ _ _).1 (set.surj_on_of_bij_on hf hb) with ⟨a, ha, hab⟩,
-    refine ⟨a, _, hab⟩,
-    rw [mem_preimage, hab],
-    exact hb }
-end
-
-end preimage
-
 /- card -/
 section card
 

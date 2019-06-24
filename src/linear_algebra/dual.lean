@@ -40,12 +40,13 @@ end module
 namespace is_basis
 universes u v w
 variables {K : Type u} {V : Type v} {ι : Type w}
-variables [decidable_eq V] [discrete_field K] [add_comm_group V] [vector_space K V]
-variables [decidable_eq (module.dual K V)] [decidable_eq ι]
-variables {B : ι → V} (h : is_basis K B)
+variables [discrete_field K] [add_comm_group V] [vector_space K V]
 open vector_space module module.dual submodule linear_map cardinal function
 
 instance dual.vector_space : vector_space K (dual K V) := {..dual.module K V}
+
+variables [decidable_eq V] [decidable_eq (module.dual K V)] [decidable_eq ι]
+variables {B : ι → V} (h : is_basis K B)
 
 include h
 
@@ -186,7 +187,7 @@ begin
   exact one_ne_zero hx
 end
 
-theorem dual_dim_eq [decidable_eq V] [decidable_eq (dual K V)] (h : dim K V < omega) :
+theorem dual_dim_eq (h : dim K V < omega) :
   cardinal.lift.{v u} (dim K V) = dim K (dual K V) :=
 begin
   rcases exists_is_basis_fintype h with ⟨b, hb, ⟨hf⟩⟩,
@@ -196,10 +197,11 @@ end
 
 set_option class.instance_max_depth 70
 
-lemma eval_range [decidable_eq V] (h : dim K V < omega) : (eval K V).range = ⊤ :=
+lemma eval_range (h : dim K V < omega) : (eval K V).range = ⊤ :=
 begin
   haveI := classical.dec_eq (dual K V),
   haveI := classical.dec_eq (dual K (dual K V)),
+  letI := classical.dec_eq V,
   rcases exists_is_basis_fintype h with ⟨b, hb, ⟨hf⟩⟩,
   resetI,
   rw [← hb.to_dual_to_dual, range_comp, hb.to_dual_range, map_top, to_dual_range _],
@@ -207,7 +209,7 @@ begin
   apply_instance
 end
 
-def eval_equiv [decidable_eq V] (h : dim K V < omega) : V ≃ₗ[K] dual K (dual K V) :=
+def eval_equiv (h : dim K V < omega) : V ≃ₗ[K] dual K (dual K V) :=
 linear_equiv.of_bijective (eval K V) eval_ker (eval_range h)
 
 end vector_space

@@ -149,7 +149,7 @@ begin
     have hl' : finsupp.total ι β α v (finsupp.emb_domain ⟨subtype.val, subtype.val_injective⟩ l) = 0,
     { rw finsupp.emb_domain_eq_map_domain ⟨subtype.val, subtype.val_injective⟩ l,
       apply hl },
-    apply (finsupp.emb_domain_congr ⟨subtype.val, subtype.val_injective⟩ l 0).1,
+    apply finsupp.emb_domain_inj.1,
     rw [h (finsupp.emb_domain ⟨subtype.val, subtype.val_injective⟩ l) _ hl',
         finsupp.emb_domain_zero],
     rw [finsupp.mem_supported, finsupp.support_emb_domain],
@@ -349,7 +349,8 @@ begin
       refine span_mono (@supr_le_supr2 (set β) _ _ _ _ _ _),
       rintros ⟨i⟩, exact ⟨i, le_refl _⟩ },
     { change finite (plift.up ⁻¹' s.to_set),
-      exact finite_preimage (assume i j, plift.up.inj) s.finite_to_set } }
+      exact finite_preimage (inj_on_of_injective _ (assume i j, plift.up.inj))
+        s.finite_to_set } }
 end
 
 lemma linear_independent_Union_finite {η : Type*} {ιs : η → Type*}
@@ -550,7 +551,7 @@ begin
   have inj_v : injective v := (linear_independent.injective zero_eq_one hv),
   have inj_v' : injective v' := (linear_independent.injective zero_eq_one hv'),
   apply linear_independent.of_subtype_range,
-  { apply sum.elim_injective _ _,
+  { apply sum.elim_injective,
     { exact injective_comp prod.injective_inl inj_v },
     { exact injective_comp prod.injective_inr inj_v' },
     { intros, simp [ne_zero_of_linear_independent zero_eq_one hv] } },
@@ -860,8 +861,10 @@ let ⟨b, hb₀, hx, hb₂, hb₃⟩ := exists_linear_independent hs (@subset_un
   by simp; exact eq_top_iff.2 hb₂⟩
 
 variables (α β)
+
 lemma exists_is_basis : ∃b : set β, is_basis α (λ i : b, i.val) :=
 let ⟨b, _, hb⟩ := exists_subset_is_basis linear_independent_empty in ⟨b, hb⟩
+
 variables {α β}
 
 -- TODO(Mario): rewrite?

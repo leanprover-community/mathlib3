@@ -71,7 +71,6 @@ end
 
 end normed_space -- section
 
-----------------------------------------------------------------------------------------------------
 namespace ae_eq_fun
 
 def integrable (f : α →ₘ γ) : Prop := f ∈ ball (0 : α →ₘ γ) ⊤
@@ -106,7 +105,7 @@ by { assume c, rintros ⟨f, hf⟩, have := integrable_smul hf, simpa }
 end normed_space -- section
 
 end ae_eq_fun
-----------------------------------------------------------------------------------------------------
+
 section
 variables (α γ)
 def l1 : Type* := subtype (@ae_eq_fun.integrable α _ γ _ _)

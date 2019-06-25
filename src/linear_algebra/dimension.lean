@@ -113,8 +113,9 @@ let ⟨b, hb⟩ := exists_is_basis α β in
 cardinal.lift_inj.1 $ hb.mk_eq_dim.symm.trans (f.is_basis hb).mk_eq_dim
 
 lemma dim_bot : dim α (⊥ : submodule α β) = 0 :=
-by classical; rw [←cardinal.lift_inj,
-  ←(@is_basis_empty_bot (pempty) α β _ _ _ _ _ _ nonempty_pempty).mk_eq_dim, cardinal.mk_pempty]
+by letI := classical.dec_eq β;
+  rw [← cardinal.lift_inj, ← (@is_basis_empty_bot pempty α β _ _ _ _ _ _ nonempty_pempty).mk_eq_dim,
+    cardinal.mk_pempty]
 
 lemma dim_of_field (α : Type*) [discrete_field α] : dim α α = 1 :=
 by rw [←cardinal.lift_inj, ← (@is_basis_singleton_one punit _ α _ _ _).mk_eq_dim, cardinal.mk_punit]

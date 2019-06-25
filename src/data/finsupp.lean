@@ -797,20 +797,14 @@ end
 
 lemma eq_zero_of_comap_domain_eq_zero {α₁ α₂ γ : Type*}
   [add_comm_monoid γ] [decidable_eq α₁] [decidable_eq α₂] [decidable_eq γ]
-  (f : α₁ → α₂) (l : α₂ →₀ γ) (hf : set.bij_on f (f ⁻¹' l.support.to_set) l.support.to_set)
-  (h : comap_domain f l (set.inj_on_of_bij_on hf) = 0) : l = 0 :=
+  (f : α₁ → α₂) (l : α₂ →₀ γ) (hf : set.bij_on f (f ⁻¹' l.support.to_set) l.support.to_set) :
+   comap_domain f l (set.inj_on_of_bij_on hf) = 0 → l = 0 :=
 begin
-  ext a,
-  have h_preimage : ∀ a' (ha' : f a' = a), l a = 0,
-  { intros a' ha',
-    rw [← ha', ← comap_domain_apply, h],
-    refl },
-  simp,
-  by_contradiction h_contr,
-  { exfalso,
-    apply exists.elim ((set.mem_image _ _ _).1 (set.surj_on_of_bij_on hf (mem_support_iff.2 h_contr))),
-    intros a' ha',
-    apply h_contr (h_preimage a' ha'.2) }
+  rw [← support_eq_empty, ← support_eq_empty, comap_domain],
+  simp only [finset.ext, finset.not_mem_empty, iff_false, mem_preimage],
+  assume h a ha,
+  cases hf.2.2 ha with b hb,
+  exact h b (hb.2.symm ▸ ha)
 end
 
 lemma map_domain_comap_domain {α₁ α₂ γ : Type*}

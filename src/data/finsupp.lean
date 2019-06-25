@@ -1384,32 +1384,10 @@ def split_support : finset ι := finset.image (sigma.fst) l.support
 lemma mem_split_support_iff_nonzero (i : ι) :
   i ∈ split_support l ↔ split l i ≠ 0 :=
 begin
-  split,
-  { intros hi h0,
-    unfold split_support at hi,
-    unfold split at h0,
-    rw mem_image at hi,
-    rcases hi with ⟨x, hx₁, hx₂⟩,
-    cases x,
-    rw mem_support_iff at hx₁,
-    rw ←hx₂ at h0,
-    have : comap_domain (sigma.mk x_fst) l _ x_snd = 0,
-    { rw h0,
-      simp },
-    rw comap_domain_apply at this,
-    exact hx₁ this },
-  { intros h,
-    unfold split_support,
-    unfold split at h,
-    rw mem_image,
-    have := imp_false.1 (λ h1, h (finsupp.ext h1)),
-    haveI := classical.dec,
-    rw [not_forall] at this,
-    rcases this with ⟨a, ha⟩,
-    use ⟨i, a⟩,
-    simp [comap_domain_apply] at ha,
-    rw mem_support_iff,
-    use ha }
+  classical,
+  rw [split_support, mem_image, ne.def, ← support_eq_empty,
+    ← exists_mem_iff_ne_empty, split, comap_domain],
+  simp
 end
 
 noncomputable def split_comp [has_zero γ] (g : Π i, (αs i →₀ β) → γ)
@@ -1426,23 +1404,7 @@ noncomputable def split_comp [has_zero γ] (g : Π i, (αs i →₀ β) → γ)
   end }
 
 lemma sigma_support : l.support = l.split_support.sigma (λ i, (l.split i).support) :=
-begin
-  apply finset.subset.antisymm,
-  { intros x hx,
-    rcases x with ⟨i, x⟩,
-    rw mem_sigma,
-    split,
-    { rw [split_support, mem_image],
-      use ⟨i, x⟩,
-      use hx },
-    { simpa [split, comap_domain_apply] using hx } },
-  { intros x hx,
-    rcases x with ⟨i, x⟩,
-    rw mem_sigma at hx,
-    have := hx.2,
-    rw [mem_support_iff, split_apply] at this,
-    rwa mem_support_iff }
-end
+by simp [finset.ext, split_support, split, comap_domain]; tauto
 
 lemma sigma_sum [add_comm_monoid γ] (f : (Σ (i : ι), αs i) → β → γ) :
   l.sum f = (split_support l).sum (λ (i : ι), (split l i).sum (λ (a : αs i) b, f ⟨i, a⟩ b)) :=

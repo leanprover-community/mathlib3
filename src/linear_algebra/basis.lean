@@ -571,7 +571,7 @@ begin
 end
 
 variables (α) (v)
-/-- A set of vectors is a basis if it is linearly independent and all vectors are in the span α -/
+/-- A set of vectors is a basis if it is linearly independent and all vectors are in the span α. -/
 def is_basis := linear_independent α v ∧ span α (range v) = ⊤
 variables {α} {v}
 

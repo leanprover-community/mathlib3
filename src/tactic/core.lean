@@ -725,13 +725,12 @@ do r ← to_expr ``(%%f %%arg) -- FIXME: this is expensive
      | infer_type f >>= whnf >>= λ t, mk_app_aux f t arg,
    instantiate_mvars r
 
-/-- Given an expression `e` and  list of expressions `F`, builds all applications
-    of `e` to elements of `F`. `mk_apps` returns a list of all pairs ``(`(%%e %%f), f)``
-    which typecheck, for `f` in the list `F`.
+/-- Given an expression `f` and  list of expressions `args`, builds all applications
+    of `f` to elements of `args`. `mk_apps` returns a list of all pairs ``(`(%%f %%arg), arg)``
+    which typecheck, for `arg` in the list `args`.
 -/
-meta def mk_apps (e : expr) (F : list expr) : tactic (list (expr × expr)) :=
-do l ← F.mmap $ λ f, do { r ← try_core (mk_app' e f >>= λ m, return (m, f)),
-                          return r.to_list },
+meta def mk_apps (f : expr) (args : list expr) : tactic (list (expr × expr)) :=
+do l ← args.mmap $ λ arg, option.to_list <$> try_core (mk_app' f arg >>= λ m, return (m, arg)),
    return l.join
 
 /--

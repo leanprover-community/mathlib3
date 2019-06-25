@@ -223,7 +223,7 @@ lemma totally_bounded_preimage [uniform_space α] [uniform_space β] {f : α →
   rcases mem_comap_sets.2 ht with ⟨t', ht', ts⟩,
   rcases totally_bounded_iff_subset.1
     (totally_bounded_subset (image_preimage_subset f s) hs) _ ht' with ⟨c, cs, hfc, hct⟩,
-  refine ⟨f ⁻¹' c, finite_preimage hf.1 hfc, λ x h, _⟩,
+  refine ⟨f ⁻¹' c, finite_preimage (inj_on_of_injective _ hf.1) hfc, λ x h, _⟩,
   have := hct (mem_image_of_mem f h), simp at this ⊢,
   rcases this with ⟨z, zc, zt⟩,
   rcases cs zc with ⟨y, yc, rfl⟩,

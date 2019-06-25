@@ -185,15 +185,10 @@ section ring
 variables [ring α]
 
 @[simp] theorem neg_mul (M : matrix m n α) (N : matrix n o α) :
-  (-M) ⬝ N = - M ⬝ N := rfl
+  (-M) ⬝ N = -(M ⬝ N) := by ext; simp [matrix.mul]
 
 @[simp] theorem mul_neg (M : matrix m n α) (N : matrix n o α) :
-  M ⬝ (-N) = - M ⬝ N :=
-begin
-  ext i j,
-  unfold matrix.mul,
-  simp,
-end
+  M ⬝ (-N) = -(M ⬝ N) := by ext; simp [matrix.mul]
 
 end ring
 

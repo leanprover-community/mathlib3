@@ -185,10 +185,10 @@ section ring
 variables [ring α]
 
 @[simp] theorem neg_mul (M : matrix m n α) (N : matrix n o α) :
-  (-M) ⬝ N = - (M ⬝ N) := by ext; simp [matrix.mul]
+  (-M) ⬝ N = -(M ⬝ N) := by ext; simp [matrix.mul]
 
 @[simp] theorem mul_neg (M : matrix m n α) (N : matrix n o α) :
-  M ⬝ (-N) = - M ⬝ N := by ext; simp [matrix.mul]
+  M ⬝ (-N) = -(M ⬝ N) := by ext; simp [matrix.mul]
 
 end ring
 

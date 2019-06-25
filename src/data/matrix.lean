@@ -185,15 +185,10 @@ section ring
 variables [ring α]
 
 @[simp] theorem neg_mul (M : matrix m n α) (N : matrix n o α) :
-  (-M) ⬝ N = - M ⬝ N := rfl
+  (-M) ⬝ N = -(M ⬝ N) := by ext; simp [matrix.mul]
 
 @[simp] theorem mul_neg (M : matrix m n α) (N : matrix n o α) :
-  M ⬝ (-N) = - M ⬝ N :=
-begin
-  ext i j,
-  unfold matrix.mul,
-  simp,
-end
+  M ⬝ (-N) = -(M ⬝ N) := by ext; simp [matrix.mul]
 
 end ring
 
@@ -273,6 +268,15 @@ lemma vec_mul_vec_eq (w : m → α) (v : n → α) :
 by simp [matrix.mul]; refl
 
 end semiring
+
+instance [partial_order α] : partial_order (matrix m n α) := pi.partial_order
+
+instance [ordered_comm_group α] : ordered_comm_group (matrix m n α) :=
+pi.ordered_comm_group
+
+instance [partial_order α] [decidable_rel ((≤) : α → α → Prop)] : 
+  decidable_rel ((≤) : Π a b : matrix m n α, Prop) :=
+λ M N, show decidable (∀ i j, M i j ≤ N i j), by apply_instance
 
 section transpose
 

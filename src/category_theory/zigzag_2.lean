@@ -61,10 +61,30 @@ end
 
 end Δ
 
+-- These two lemmas should go in fin.lean. Something similiar might already be in mathlib.
+lemma cast_succ_val_lt {n : ℕ} {i : fin n} : (fin.cast_succ i).val < n :=
+begin
+ rw [fin.cast_succ_val],
+ exact i.is_lt,
+end
+
+lemma cast_lt_cast_succ {n : ℕ} (i : fin n) ( h : (fin.cast_succ i).val < n):
+  fin.cast_lt (fin.cast_succ i) h = i :=
+fin.eq_of_veq (by simp only [fin.cast_lt_val, fin.cast_succ_val])
 
 section T
 def T_map {n m : Δ} (f : n ⟶ m) : fin (n + 1) →  fin (m + 1) :=
 λ i, if h : i.val < n then (f (i.cast_lt h)).cast_succ else fin.last _
+
+lemma T_f_eq_f {n m : Δ} (f : n ⟶ m) {j : fin n} :
+  T_map f (fin.cast_succ j) = fin.cast_succ (f j) :=
+begin
+  dsimp [T_map],
+  split_ifs,
+  {rw [cast_lt_cast_succ]},
+  {exact absurd j.is_lt h}
+end
+
 
 lemma T_map_mono {n m : Δ} {f : n ⟶ m} : monotone (T_map f) :=
 λ a b h,
@@ -88,16 +108,6 @@ begin
   { exact fin.eq_of_veq (eq.trans rfl (eq.symm (nat.eq_of_lt_succ_of_not_lt a.is_lt h))) }
 end
 
--- These two lemmas should go in fin.lean. Something similiar might already be in mathlib.
-lemma cast_succ_val_lt {n : ℕ} {i : fin n} : (fin.cast_succ i).val < n :=
-begin
- rw [fin.cast_succ_val],
- exact i.is_lt,
-end
-
-lemma cast_lt_cast_succ {n : ℕ} (i : fin n) :
-  fin.cast_lt (fin.cast_succ i) (cast_succ_val_lt) = i :=
-fin.eq_of_veq (by simp only [fin.cast_lt_val, fin.cast_succ_val])
 
 lemma T_map_comp {l m n : Δ} {f : l ⟶ m} {g : m ⟶ n} : T_map (f ≫ g) = (T_map g) ∘ (T_map f) :=
 funext (λ a,
@@ -409,9 +419,14 @@ lemma prime_inv_map_fn_aux_mem_below {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j : fin n}
   prime_inv_map_fn_aux f j ∈ below f (fin.cast_succ j) :=
 finset.max'_mem _ _
 
-lemma prime_inv_map_fn_aux_le {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j : fin n} :
+lemma f_prime_inv_map_fn_aux_le {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j : fin n} :
   f (prime_inv_map_fn_aux f j) ≤ fin.cast_succ j :=
 mem_below_iff.1 prime_inv_map_fn_aux_mem_below
+
+lemma prime_inv_map_fn_aux_le {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j : fin n} {i : fin (m + 1)}
+    (h : ∀ k : fin (m + 1), f k ≤ fin.cast_succ j → k ≤ i) : prime_inv_map_fn_aux f j ≤ i :=
+finset.max'_le _ _ _(λ k w, h _ (mem_below_iff.1 w))
+
 
 lemma prime_inv_map_fn_aux_ge {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j : fin n} {i : fin (m + 1)}
     (h : f i ≤ (fin.cast_succ j)) :
@@ -419,6 +434,8 @@ lemma prime_inv_map_fn_aux_ge {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j : fin n} {i : f
 
 -- Again these should go in fin
 lemma cast_succ_le {n : ℕ} {j k : fin n} (h : j ≤ k) : fin.cast_succ j ≤ fin.cast_succ k := h
+
+lemma cast_succ_le' {n : ℕ} {j k : fin n} (h : fin.cast_succ j ≤ fin.cast_succ k) : j ≤ k := h
 
 lemma cast_lt_le {n : ℕ} {j k : fin (n + 1)} {j_lt : j.val < n} {k_lt : k.val < n} (h : j ≤ k) :
   fin.cast_lt j j_lt ≤ fin.cast_lt k k_lt :=
@@ -455,11 +472,11 @@ fin.cast_lt (prime_inv_map_fn_aux f j) prime_inv_map_fn_aux_lt_n
 lemma cast_succ_prime_inv_map_fn {n m : Δ_ᵒᵖ} (f : n ⟶ m) (j : fin n) :
   fin.cast_succ (prime_inv_map_fn f j) = prime_inv_map_fn_aux f j := fin.cast_succ_cast_lt _ _
 
-lemma prime_inv_map_fn_le {n m : Δ_ᵒᵖ} (f : n ⟶ m) (j : fin n) :
+lemma f_prime_inv_map_fn_le {n m : Δ_ᵒᵖ} (f : n ⟶ m) (j : fin n) :
   f (fin.cast_succ (prime_inv_map_fn f j)) ≤ fin.cast_succ j :=
 begin
   rw [cast_succ_prime_inv_map_fn],
-  exact cast_succ_le prime_inv_map_fn_aux_le,
+  exact cast_succ_le f_prime_inv_map_fn_aux_le,
 end
 
 
@@ -467,6 +484,16 @@ lemma prime_inv_map_fn_ge {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j : fin n} {i : fin (
     (h : f i ≤ (fin.cast_succ j)) :
   i ≤ fin.cast_succ (prime_inv_map_fn f j) :=
 finset.le_max' _ _ _ (mem_below_iff.2 h)
+
+lemma prime_inv_map_fn_le {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j : fin n} {i : fin m}
+    (h : ∀ k : fin (m + 1), f k ≤ fin.cast_succ j → k ≤ fin.cast_succ i) :
+  prime_inv_map_fn f j ≤ i :=
+begin
+  dsimp [prime_inv_map_fn],
+  rw [←cast_lt_cast_succ i],
+  apply prime_inv_map_fn_aux_le h,
+  exact i.is_lt,
+end
 
 lemma prime_inv_map_fn_mono {n m : Δ_ᵒᵖ} {f : n ⟶ m} : monotone (prime_inv_map_fn f) :=
 λ _ _ h, cast_lt_le (prime_inv_map_fn_aux_mono h)
@@ -487,11 +514,10 @@ begin
   { apply fin.le_last },
 end
 
-#print monotone
 
 lemma prime_inv_map_fn_implies_le {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j : fin (m + 1)} {k : fin n}
   (h : fin.cast_succ (prime_inv_map_fn f k) ≥ j) : f j ≤ fin.cast_succ k :=
-le_trans ((f_op_mono f) h) (prime_inv_map_fn_le f k)
+le_trans ((f_op_mono f) h) (f_prime_inv_map_fn_le f k)
 
 lemma le_prime_comp_prime_inv {n m : Δ_ᵒᵖ} (f : n ⟶ m) (j : fin (m + 1)) :
   f j ≤ prime.map (prime_inv_map f) j :=
@@ -504,12 +530,31 @@ begin
 end)
 
 
-
 lemma prime_comp_prime_inv {n m : Δ_ᵒᵖ} (f : n ⟶ m) : prime.map (prime_inv_map f) = f :=
 Δ_.op_hom_ext $ funext $
   λ j, le_antisymm (prime_comp_prime_inv_le f j) (le_prime_comp_prime_inv f j)
 
-lemma prime_inv_comp_prime {n m : Δ} (f : n ⟶ m) : prime_inv_map (prime.map f) = f := sorry
+lemma prime_inv_comp_prime_le {n m : Δ} (f : n ⟶ m) (j : fin n) :
+  prime_inv_map (prime.map f) j ≤ f j :=
+prime_inv_map_fn_le (λ k w,
+begin
+  dsimp [T, prime, prime_map_fn] at *,
+  have w'' := T_map_mono h,
+  rw [T_f_eq_f] at w'',
+  apply le_trans (T_f_of_prime_map_fn_ge f k) w'',
+end)
+
+lemma le_prime_inv_comp_prime {n m : Δ} (f : n ⟶ m) (j : fin n) :
+  f j ≤ prime_inv_map (prime.map f) j :=
+cast_succ_le' (prime_inv_map_fn_ge (prime_map_fn_le
+begin
+  dsimp [T],
+  rw [T_f_eq_f],
+  apply le_refl,
+end))
+
+lemma prime_inv_comp_prime {n m : Δ} (f : n ⟶ m) : prime_inv_map (prime.map f) = f := Δ.hom_ext $ funext $
+  λ j, le_antisymm (prime_inv_comp_prime_le f j) (le_prime_inv_comp_prime f j)
 
 end below
 

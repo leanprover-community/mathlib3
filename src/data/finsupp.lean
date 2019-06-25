@@ -257,16 +257,8 @@ end
 
 lemma emb_domain_inj {f : α₁ ↪ α₂} {l₁ l₂ : α₁ →₀ β} :
   emb_domain f l₁ = emb_domain f l₂ ↔ l₁ = l₂ :=
-begin
-  split,
-  { intro h,
-    ext a,
-    have eq : (emb_domain f l₁) (f a) = (emb_domain f l₂) (f a),
-      by rw h,
-    rwa [emb_domain_apply, emb_domain_apply] at eq },
-  { intro h,
-    rw h }
-end
+⟨λ h, finsupp.ext $ λ a, by simpa [emb_domain_apply] using finsupp.ext_iff.1 h (f a),
+  λ h, by rw h⟩
 
 lemma emb_domain_map_range
   {β₁ β₂ : Type*} [has_zero β₁] [has_zero β₂] [decidable_eq β₁] [decidable_eq β₂]

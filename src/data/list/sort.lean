@@ -221,6 +221,9 @@ using_well_founded {
   rel_tac := λ_ _, `[exact ⟨_, inv_image.wf length nat.lt_wf⟩],
   dec_tac := tactic.assumption }
 
+@[simp] lemma length_merge_sort (l : list α) : (merge_sort l).length = l.length :=
+perm_length (perm_merge_sort _)
+
 section total_and_transitive
 variables [is_total α r] [is_trans α r]
 

@@ -200,7 +200,7 @@ private meta def num_of_expr : expr → option num
 | `(@has_zero.zero %%α %%h) := some 0
 | `(@has_one.one %%α %%h) := some 1
 | `(@bit0 %%α %%h %%e) := do n ← num_of_expr e, some (bit0 n)
-| `(@bit1 %%α %%h1 %%h2 %%e) := do n ← num_of_expr e, some (bit1 1)
+| `(@bit1 %%α %%h1 %%h2 %%e) := do n ← num_of_expr e, some (bit1 n)
 | _ := none
 
 private meta def aux_num (α h_one h_add : expr) : pos_num → pexpr

@@ -8,7 +8,6 @@ Normalizing casts inside expressions.
 
 import tactic.basic tactic.interactive tactic.converter.interactive
 import data.buffer.parser
-import data.num.basic
 
 namespace tactic
 
@@ -47,6 +46,57 @@ end expr
 
 namespace norm_cast
 open tactic expr
+
+inductive pos_num : Type
+| one  : pos_num
+| bit1 : pos_num → pos_num
+| bit0 : pos_num → pos_num
+
+namespace pos_num
+
+instance : has_one pos_num := ⟨pos_num.one⟩
+
+def succ : pos_num → pos_num
+| 1        := bit0 one
+| (bit1 n) := bit0 (succ n)
+| (bit0 n) := bit1 n
+
+protected def add : pos_num → pos_num → pos_num
+| 1        b        := succ b
+| a        1        := succ a
+| (bit0 a) (bit0 b) := bit0 (add a b)
+| (bit1 a) (bit1 b) := bit0 (succ (add a b))
+| (bit0 a) (bit1 b) := bit1 (add a b)
+| (bit1 a) (bit0 b) := bit1 (add a b)
+
+instance : has_add pos_num := ⟨pos_num.add⟩
+
+end pos_num
+
+inductive num : Type
+| zero  : num
+| pos   : pos_num → num
+
+namespace num
+open pos_num
+
+instance : has_zero num := ⟨num.zero⟩
+instance : has_one num := ⟨num.pos 1⟩
+
+def succ' : num → pos_num
+| 0       := 1
+| (pos p) := succ p
+
+def succ (n : num) : num := pos (succ' n)
+
+protected def add : num → num → num
+| 0       a       := a
+| b       0       := b
+| (pos a) (pos b) := pos (a + b)
+
+instance : has_add num := ⟨num.add⟩
+
+end num
 
 private meta def new_name (n : name) : name := name.mk_string "reversed" n
 
@@ -149,8 +199,8 @@ do
 private meta def num_of_expr : expr → option num
 | `(@has_zero.zero %%α %%h) := some 0
 | `(@has_one.one %%α %%h) := some 1
-| `(@bit0 %%α %%h %%e) := do n ← num_of_expr e, some (2 * n)
-| `(@bit1 %%α %%h1 %%h2 %%e) := do n ← num_of_expr e, some (2 * n + 1)
+| `(@bit0 %%α %%h %%e) := do n ← num_of_expr e, some (bit0 n)
+| `(@bit1 %%α %%h1 %%h2 %%e) := do n ← num_of_expr e, some (bit1 1)
 | _ := none
 
 private meta def aux_num (α h_one h_add : expr) : pos_num → pexpr

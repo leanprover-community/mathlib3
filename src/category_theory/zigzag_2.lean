@@ -536,7 +536,7 @@ lemma prime_comp_prime_inv {n m : Δ_ᵒᵖ} (f : n ⟶ m) : prime.map (prime_in
 
 lemma prime_inv_comp_prime_le {n m : Δ} (f : n ⟶ m) (j : fin n) :
   prime_inv_map (prime.map f) j ≤ f j :=
-prime_inv_map_fn_le (λ k w,
+prime_inv_map_fn_le (λ k h,
 begin
   dsimp [T, prime, prime_map_fn] at *,
   have w'' := T_map_mono h,
@@ -584,11 +584,26 @@ structure zigzag :=
 (regular : fin (n+1) → C)
 (forwards : Π (i : fin n), regular (i.cast_succ) ⟶ singular i)
 (backwards : Π (i : fin n), regular (i.succ) ⟶ singular i)
+-- Need a lemma that says the regular i.succ = regular (i + 1).cast_succ
+
+lemma reg_succ {X : zigzag.{v₁} C} {i : fin X.n} {w : (i.val + 1) < X.n} :
+  X.regular (i.succ) = X.regular (fin.mk (i.val + 1) w).cast_succ :=
+congr_arg _ (fin.eq_of_veq (by {simp only [fin.cast_succ_val, fin.succ_val]}))
+
 
 namespace zigzag
 
 structure hom (X Y : zigzag.{v₁} C) :=
-(f : fin X.n → fin Y.n)
+(f_sing : X.n ⟶ Y.n)
+(g : Π (i : fin X.n), X.singular i ⟶ Y.singular ((f_sing : fin X.n → fin Y.n) i)) -- g_i arrows
+(reg_id : Π (j : fin (Y.n + 1)), Y.regular j = X.regular (prime.map f_sing j)) -- identity arrows
+(sing_comm_eq : ∀ (i : fin X.n) (w : (i.val + 1) < X.n)
+    (h : f_sing (fin.mk (i.val + 1) w) = f_sing i),
+      X.backwards i ≫ g i = eq_to_hom (reg_succ C) ≫ X.forwards (fin.mk (i.val + 1) w) ≫ g ((fin.mk (i.val + 1) w)) ≫ eq_to_hom (congr_arg Y.singular h))
+(reg_comm_eq : ∀ (j : fin (Y.n)) (w : (j.val + 1) < Y.n)
+    (h : (prime.map f_sing j.cast_succ) = (prime.map f_sing j.succ)), Y.forwards j = eq_to_hom (reg_id j.cast_succ) ≫ eq_to_hom (congr_arg X.regular h) ≫ eq_to_hom (eq.symm (reg_id j.succ)) ≫ Y.backwards j)
+
+
 
 
 end zigzag

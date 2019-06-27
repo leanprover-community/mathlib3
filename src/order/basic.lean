@@ -11,7 +11,7 @@ open function
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
-noncomputable def classical.decidable_linear_order [I : linear_order α] :
+protected noncomputable def classical.decidable_linear_order [I : linear_order α] :
   decidable_linear_order α :=
 { decidable_le := classical.dec_rel _,..I }
 

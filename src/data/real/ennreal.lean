@@ -22,8 +22,7 @@ namespace ennreal
 variables {a b c d : ennreal} {r p q : nnreal}
 
 instance : canonically_ordered_comm_semiring ennreal := by unfold ennreal; apply_instance
-instance decidable_linear_order :
-  decidable_linear_order ennreal := by unfold ennreal; apply_instance
+instance : decidable_linear_order ennreal := by unfold ennreal; apply_instance
 instance : complete_linear_order ennreal := by unfold ennreal; apply_instance
 instance : inhabited ennreal := ⟨0⟩
 
@@ -375,11 +374,11 @@ lemma sub_sub_cancel (h : a < ∞) (h2 : b ≤ a) : a - (a - b) = b :=
 by rw [← add_right_inj (lt_of_le_of_lt (sub_le_self _ _) h),
   sub_add_cancel_of_le (sub_le_self _ _), add_sub_cancel_of_le h2]
 
-lemma sub_left_inj {a b c : ennreal} (ha : a < ⊤) (hb : b ≤ a) (hc : c ≤ a) :
+lemma sub_left_inj {a b c : ennreal} (ha : a < ⊤) (hb : b ≤ a) (hc : c ≤ a) : 
   a - b = a - c ↔ b = c :=
-iff.intro
-  begin
-    assume h, have : a - (a - b) = a - (a - c), rw h,
+iff.intro 
+  begin 
+    assume h, have : a - (a - b) = a - (a - c), rw h, 
     rw [sub_sub_cancel ha hb, sub_sub_cancel ha hc] at this, exact this
   end
   (λ h, by rw h)

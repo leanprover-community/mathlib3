@@ -100,9 +100,9 @@ by by_cases a ≤ b; simp [h, max]
 abs_of_nonneg (cast_nonneg a)
 
 -- This lemma looks like it's backwards, but it's what's useful in the wild.
-@[simp, squash_cast] lemma cast_with_bot_cast {α} [add_monoid α] [has_one α] :
+@[simp] lemma nat.cast_with_bot_cast {α} [add_monoid α] [has_one α] :
   ∀ n : ℕ, (n : with_bot α) = ((n : α) : with_bot α)
 | 0 := rfl
-| (n+1) := by simp [cast_with_bot_cast n]
+| (n+1) := show ↑n + _ = ↑(↑n+_), by rw [n.cast_with_bot_cast]; refl
 
 end nat

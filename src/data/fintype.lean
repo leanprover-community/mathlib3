@@ -688,10 +688,10 @@ def well_founded_of_trans_of_irrefl [fintype α] (r : α → α → Prop)
   [is_trans α r] [is_irrefl α r] : well_founded r :=
 by classical; exact
 have ∀ x y, r x y → (univ.filter (λ z, r z x)).card < (univ.filter (λ z, r z y)).card,
-  from λ x y hxy, finset.card_lt_card
-      ⟨λ z, by simp only [mem_filter, mem_univ, true_and];
-        exact λ hzx, trans hzx hxy, not_forall_of_exists_not
-          ⟨x, by simp only [not_imp, mem_filter, hxy, mem_univ, true_and]; exact irrefl x⟩⟩,
+  from λ x y hxy, finset.card_lt_card $
+    by simp only [finset.lt_iff_ssubset.symm, lt_iff_le_not_le, 
+      finset.le_iff_subset, finset.subset_iff, mem_filter, true_and, mem_univ, hxy];
+    exact ⟨λ z hzx, trans hzx hxy, not_forall_of_exists_not ⟨x, not_imp.2 ⟨hxy, irrefl x⟩⟩⟩,
 subrelation.wf this (measure_wf _)
 
 def preorder.well_founded [fintype α] [preorder α] : well_founded ((<) : α → α → Prop) :=

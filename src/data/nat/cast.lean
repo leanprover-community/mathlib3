@@ -99,4 +99,10 @@ by by_cases a ≤ b; simp [h, max]
 @[simp, elim_cast] theorem abs_cast [decidable_linear_ordered_comm_ring α] (a : ℕ) : abs (a : α) = a :=
 abs_of_nonneg (cast_nonneg a)
 
+-- This lemma looks like it's backwards, but it's what's useful in the wild.
+@[simp, squash_cast] lemma cast_with_bot_cast {α} [add_monoid α] [has_one α] :
+  ∀ n : ℕ, (n : with_bot α) = ((n : α) : with_bot α)
+| 0 := rfl
+| (n+1) := by simp [cast_with_bot_cast n]
+
 end nat

@@ -684,6 +684,22 @@ lemma bijective_bij_inv (f_bij : bijective f) : bijective (bij_inv f_bij) :=
 
 end bijection_inverse
 
+def well_founded_of_trans_of_irrefl [fintype α] (r : α → α → Prop)
+  [is_trans α r] [is_irrefl α r] : well_founded r :=
+by classical; exact
+have ∀ x y, r x y → (univ.filter (λ z, r z x)).card < (univ.filter (λ z, r z y)).card,
+  from λ x y hxy, finset.card_lt_card
+      ⟨λ z, by simp only [mem_filter, mem_univ, true_and];
+        exact λ hzx, trans hzx hxy, not_forall_of_exists_not
+          ⟨x, by simp only [not_imp, mem_filter, hxy, mem_univ, true_and]; exact irrefl x⟩⟩,
+subrelation.wf this (measure_wf _)
+
+def preorder.well_founded [fintype α] [preorder α] : well_founded ((<) : α → α → Prop) :=
+well_founded_of_trans_of_irrefl _
+
+instance linear_order.is_well_order [fintype α] [linear_order α] : is_well_order α (<) :=
+{ wf := preorder.well_founded }
+
 end fintype
 
 class infinite (α : Type*) : Prop :=

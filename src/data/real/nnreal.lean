@@ -316,11 +316,11 @@ section sub
 lemma sub_eq_zero {r p : nnreal} (h : r ≤ p) : r - p = 0 :=
 nnreal.eq $ max_eq_right $ sub_le_iff_le_add.2 $ by simpa [nnreal.coe_le] using h
 
-protected lemma sub_lt_self {r p : nnreal} : r ≠ 0 → 0 < p → r - p < r :=
+protected lemma sub_lt_self {r p : nnreal} : r > 0 → p > 0 → r - p < r :=
 assume hr hp,
 begin
   cases le_total r p,
-  { rwa [sub_eq_zero h, zero_lt_iff_ne_zero] },
+  { rwa [sub_eq_zero h] },
   { rw [nnreal.coe_lt, nnreal.coe_sub _ _ h], exact sub_lt_self _ hp }
 end
 

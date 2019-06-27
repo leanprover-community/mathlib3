@@ -83,9 +83,9 @@ f.range.sum (λ (x : γ), (ennreal.to_real (volume (f ⁻¹' {x}))) • x)
 -- bochner integration over simple functions in l1 space
 def bochner_integral (f : α →ₛ γ) : γ := bochner_integral' (classical.some f.2)
 
-end integral -- section
+end integral
 
-end simple_func -- namespace
+end simple_func
 
 open simple_func
 
@@ -95,12 +95,13 @@ variables [normed_space ℝ γ]
 def bochner_integral (f : α →₁ γ) : γ :=
 dense_embedding.extend dense_embedding_of_simple_func simple_func.bochner_integral f
 
-end l1 -- namespace
+end l1
 
 variables [normed_space ℝ γ]
 
--- bochner integration
-def bochner_integral (f : α → γ) (hfm : measurable f) (hfi : integrable f) : γ :=
-(l1.mk f hfm hfi).bochner_integral
+def bochner_integral (f : α → γ) : γ :=
+if hf : measurable f ∧ integrable f
+then (l1.mk f hf.1 hf.2).bochner_integral
+else 0
 
-end measure_theory -- namespace
+end measure_theory

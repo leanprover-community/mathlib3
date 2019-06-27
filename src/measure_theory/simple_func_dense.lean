@@ -15,7 +15,7 @@ local attribute [instance] classical.prop_decidable
 
 universes u v
 variables {α : Type u} {β : Type v} {ι : Type*}
-----------------------------------------------------------------------------------------------------
+
 namespace set
 
 /-- Enumerate elements in a countable set.-/
@@ -41,7 +41,7 @@ lemma closure_range_enumerate {D : set β} (D_countable : countable D) (D_dense 
   (default : β) : closure (range (enumerate_countable D_countable default)) = univ :=
 dense_of_subset_dense (subset_range_enumerate D_countable default) D_dense
 
-end enumerate -- section
+end enumerate
 
 section other_lemmas
 
@@ -51,7 +51,7 @@ lemma exists_of_forall {p : α → Prop} [inhabited α] : (∀ N, p N) → ∃ N
 lemma not_mem_Union_iff {A : ℕ → ℕ → set α} {x : α} : (∀ {M k}, x ∉ A M k) ↔ x ∉ ⋃ M k, A M k :=
 by simp
 
-end other_lemmas -- section
+end other_lemmas
 
 namespace measure_theory
 open ennreal nat metric
@@ -315,4 +315,4 @@ begin
   simp only [lintegral_zero]
 end
 
-end measure_theory --namespace
+end measure_theory

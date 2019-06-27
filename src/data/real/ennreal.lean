@@ -370,7 +370,7 @@ match a, b with
 | (some a), (some b) :=
   begin
     simp only [some_eq_coe, coe_sub.symm, coe_pos, coe_eq_zero, coe_lt_coe, ne.def],
-    intros, apply nnreal.sub_lt_self, assumption, assumption
+    assume h₁ h₂, apply nnreal.sub_lt_self, exact zero_lt_iff_ne_zero.2 h₂
   end
 end
 

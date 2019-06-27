@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
+Copyright (c) 2019 Johannes Hölzl, Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Zhouhang Zhou
+Authors: Johannes Hölzl, Zhouhang Zhou
 
 We define almost everywhere equal functions, and show that
   • they form a vector space if the codomain is a vector space
@@ -39,7 +39,7 @@ end measurable_space
 
 namespace ae_eq_fun
 variables [measurable_space β]
--- helper functions and lemmas dealing with quotient
+
 def mk (f : α → β) (hf : measurable f) : α →ₘ β := quotient.mk ⟨f, hf⟩
 
 @[simp] lemma quot_mk_eq_mk (f : {f : α → β // measurable f}) : quot.mk setoid.r f = mk f.1 f.2 :=
@@ -81,8 +81,6 @@ def lift_rel_mk_mk {γ : Type*} [measurable_space γ] (r : β → γ → Prop)
   (f : α → β) (g : α → γ) (hf hg) : lift_rel r (mk f hf) (mk g hg) ↔ ∀ₘ a, r (f a) (g a) :=
 iff.rfl
 
--- end of helper definitions and functions
-
 section order
 variables [measurable_space β]
 
@@ -107,7 +105,7 @@ instance [partial_order β] : partial_order (α →ₘ β) :=
   end,
   .. measure_theory.ae_eq_fun.preorder }
 
-end order -- section
+end order
 
 variable (α)
 def const (b : β) : α →ₘ β := mk (λa:α, b) measurable_const
@@ -131,21 +129,13 @@ instance : has_add (α →ₘ γ) := ⟨ae_eq_fun.add⟩
 @[simp] lemma mk_add_mk (f g : α → γ) (hf hg) : (mk f hf) + (mk g hg) =
     mk (λa, (f a) + (g a)) (measurable_add hf hg) := rfl
 
-protected lemma add_zero : ∀ (a : α →ₘ γ), a + 0 = a :=
-by rintros ⟨a⟩; exact quotient.sound (univ_mem_sets' $ assume a, add_zero _)
-
-protected lemma zero_add : ∀ (a : α →ₘ γ), 0 + a = a :=
-by rintros ⟨a⟩; exact quotient.sound (univ_mem_sets' $ assume a, zero_add _)
-
-protected lemma add_assoc : ∀ (a b c : α →ₘ γ), a + b + c = a + (b + c) :=
-by rintros ⟨a⟩ ⟨b⟩ ⟨c⟩; exact quotient.sound (univ_mem_sets' $ assume a, add_assoc _ _ _)
-
 instance : add_monoid (α →ₘ γ) :=
 { zero      := 0,
   add       := ae_eq_fun.add,
-  add_zero  := ae_eq_fun.add_zero,
-  zero_add  := ae_eq_fun.zero_add,
-  add_assoc := ae_eq_fun.add_assoc }
+  add_zero  := by rintros ⟨a⟩; exact quotient.sound (univ_mem_sets' $ assume a, add_zero _),
+  zero_add  := by rintros ⟨a⟩; exact quotient.sound (univ_mem_sets' $ assume a, zero_add _),
+  add_assoc :=
+    by rintros ⟨a⟩ ⟨b⟩ ⟨c⟩; exact quotient.sound (univ_mem_sets' $ assume a, add_assoc _ _ _) }
 
 end add_monoid
 
@@ -153,11 +143,8 @@ section add_comm_monoid
 variables {γ : Type*}
   [topological_space γ] [second_countable_topology γ] [add_comm_monoid γ] [topological_add_monoid γ]
 
-protected lemma add_comm : ∀ (a b : α →ₘ γ), a + b = b + a :=
-by rintros ⟨a⟩ ⟨b⟩; exact quotient.sound (univ_mem_sets' $ assume a, add_comm _ _)
-
 instance : add_comm_monoid (α →ₘ γ) :=
-{ add_comm := ae_eq_fun.add_comm,
+{ add_comm := by rintros ⟨a⟩ ⟨b⟩; exact quotient.sound (univ_mem_sets' $ assume a, add_comm _ _),
   .. ae_eq_fun.add_monoid }
 
 end add_comm_monoid
@@ -173,16 +160,13 @@ instance : has_neg (α →ₘ γ) := ⟨ae_eq_fun.neg⟩
 
 @[simp] lemma neg_mk (f : α → γ) (hf) : -(mk f hf) = mk (-f) (measurable_neg hf) := rfl
 
-protected lemma add_left_neg : ∀ (a : α →ₘ γ), -a + a = 0 :=
-by rintros ⟨a⟩; exact quotient.sound (univ_mem_sets' $ assume a, add_left_neg _)
-
 instance : add_group (α →ₘ γ) :=
 { neg          := ae_eq_fun.neg,
-  add_left_neg := ae_eq_fun.add_left_neg,
+  add_left_neg := by rintros ⟨a⟩; exact quotient.sound (univ_mem_sets' $ assume a, add_left_neg _),
   .. ae_eq_fun.add_monoid
  }
 
-end add_group -- section
+end add_group
 
 section add_comm_group
 
@@ -190,11 +174,11 @@ variables {γ : Type*}
   [topological_space γ] [second_countable_topology γ] [add_comm_group γ] [topological_add_group γ]
 
 instance : add_comm_group (α →ₘ γ) :=
-{ add_comm := ae_eq_fun.add_comm
+{ add_comm := ae_eq_fun.add_comm_monoid.add_comm
   .. ae_eq_fun.add_group
 }
 
-end add_comm_group -- section
+end add_comm_group
 
 section semimodule
 
@@ -210,41 +194,27 @@ instance : has_scalar K (α →ₘ γ) := ⟨ae_eq_fun.smul⟩
 @[simp] lemma smul_mk (c : K) (f : α → γ) (hf) : c • (mk f hf) = mk (c • f) (measurable_smul hf) :=
 rfl
 
-protected lemma one_smul : ∀ (f : α →ₘ γ), (1 : K) • f = f :=
-by { rintros ⟨f, hf⟩, simp only [quot_mk_eq_mk, smul_mk, one_smul] }
-
-protected lemma mul_smul : ∀ (x y : K) (f : α →ₘ γ), (x * y) • f = x • y • f :=
-by { rintros x y ⟨f, hf⟩, simp only [quot_mk_eq_mk, smul_mk, mul_action.mul_smul x y f], refl }
-
 variables [topological_add_monoid γ]
 
-protected lemma smul_add : ∀ (x : K) (f g : α →ₘ γ), x • (f + g) = x • f + x • g :=
-begin
-  rintros x ⟨f, hf⟩ ⟨g, hg⟩, simp only [quot_mk_eq_mk, smul_mk, mk_add_mk],
-  congr, exact smul_add x f g
-end
-
-protected lemma smul_zero : ∀ (x : K), x • (0 : α →ₘ γ) = 0 :=
-by { intro x, simp only [zero_def, smul_mk], congr, exact smul_zero x }
-
-protected lemma add_smul : ∀ (x y : K) (f : α →ₘ γ), (x + y) • f = x • f + y • f :=
-begin
-  intros x y, rintro ⟨f, hf⟩, simp only [quot_mk_eq_mk, smul_mk, mk_add_mk], congr,
-  exact add_smul x y f
-end
-
-protected lemma zero_smul : ∀ f : α →ₘ γ, (0 : K) • f = 0 :=
-by { rintro ⟨f, hf⟩, simp only [quot_mk_eq_mk, smul_mk, zero_def], congr, exact zero_smul K f }
-
 instance : semimodule K (α →ₘ γ) :=
-{ one_smul  := ae_eq_fun.one_smul,
-  mul_smul  := ae_eq_fun.mul_smul,
-  smul_add  := ae_eq_fun.smul_add,
-  smul_zero := ae_eq_fun.smul_zero,
-  add_smul  := ae_eq_fun.add_smul,
-  zero_smul := ae_eq_fun.zero_smul }
+{ one_smul  := by { rintros ⟨f, hf⟩, simp only [quot_mk_eq_mk, smul_mk, one_smul] },
+  mul_smul  :=
+    by { rintros x y ⟨f, hf⟩, simp only [quot_mk_eq_mk, smul_mk, mul_action.mul_smul x y f], refl },
+  smul_add  :=
+  begin
+    rintros x ⟨f, hf⟩ ⟨g, hg⟩, simp only [quot_mk_eq_mk, smul_mk, mk_add_mk],
+    congr, exact smul_add x f g
+  end,
+  smul_zero := by { intro x, simp only [zero_def, smul_mk], congr, exact smul_zero x },
+  add_smul  :=
+  begin
+    intros x y, rintro ⟨f, hf⟩, simp only [quot_mk_eq_mk, smul_mk, mk_add_mk], congr,
+    exact add_smul x y f
+  end,
+  zero_smul :=
+    by { rintro ⟨f, hf⟩, simp only [quot_mk_eq_mk, smul_mk, zero_def], congr, exact zero_smul K f }}
 
-end semimodule -- section
+end semimodule
 
 section vector_space
 
@@ -254,7 +224,7 @@ variables {γ : Type*} [topological_space γ] [second_countable_topology γ] [ad
 
 instance : vector_space K (α →ₘ γ) := { .. ae_eq_fun.semimodule }
 
-end vector_space -- section
+end vector_space
 
 open ennreal
 -- integral on ae_eq_fun
@@ -289,7 +259,7 @@ begin
   filter_upwards [h], simp
 end
 
-section metric -- ae_eq_fun forms an emetric space if the codomain is a metric space
+section metric
 
 variables {γ : Type*} [metric_space γ] [second_countable_topology γ]
 
@@ -305,41 +275,29 @@ instance : has_edist (α →ₘ γ) := ⟨ae_eq_fun.edist⟩
 @[simp] lemma edist_mk_mk {f g : α → γ} (hf hg) :
   edist (mk f hf) (mk g hg) = integral (comp_nndist (mk f hf) (mk g hg)) := rfl
 
-protected lemma edist_self : ∀ (f : α →ₘ γ), edist f f = 0 :=
-assume f, (integral_eq_zero_iff _).2 (comp_nndist_self _)
-
-protected lemma edist_comm : ∀ (f g : α →ₘ γ), edist f g = edist g f :=
-by { rintros ⟨f⟩ ⟨g⟩, simp [comp_nndist, nndist_comm] }
-
-protected lemma edist_triangle : ∀ (f g h : α →ₘ γ), edist f h ≤ edist f g + edist g h :=
-begin
-  rintros ⟨f, hf⟩ ⟨g, hg⟩ ⟨h, hh⟩,
-  simp only [comp_nndist, edist, ae_eq_fun.edist, quot_mk_eq_mk,
-             comp₂_mk_mk, (integral_add _ _).symm, mk_add_mk],
-  refine integral_le_integral _, simp only [mk_le_mk],
-  filter_upwards [], simp [nndist_triangle]
-end
-
-protected lemma eq_of_edist_eq_zero : ∀ (f g : α →ₘ γ), edist f g = 0 → f = g :=
-by { rintros ⟨f⟩ ⟨g⟩, simp [comp_nndist, zero_def, -integral_mk] }
-
 instance : emetric_space (α →ₘ γ) :=
-{ edist_self          := ae_eq_fun.edist_self,
-  edist_comm          := ae_eq_fun.edist_comm,
-  edist_triangle      := ae_eq_fun.edist_triangle,
-  eq_of_edist_eq_zero := ae_eq_fun.eq_of_edist_eq_zero }
+{ edist_self          := assume f, (integral_eq_zero_iff _).2 (comp_nndist_self _),
+  edist_comm          := by { rintros ⟨f⟩ ⟨g⟩, simp [comp_nndist, nndist_comm] },
+  edist_triangle      :=
+  begin
+    rintros ⟨f, hf⟩ ⟨g, hg⟩ ⟨h, hh⟩,
+    simp only [comp_nndist, edist, ae_eq_fun.edist, quot_mk_eq_mk,
+               comp₂_mk_mk, (integral_add _ _).symm, mk_add_mk],
+    refine integral_le_integral _, simp only [mk_le_mk],
+    filter_upwards [], simp [nndist_triangle]
+  end,
+  eq_of_edist_eq_zero := by { rintros ⟨f⟩ ⟨g⟩, simp [comp_nndist, zero_def, -integral_mk] } }
 
-end metric -- section
+end metric
 
 section normed_group
 
 variables {γ : Type*} [normed_group γ] [second_countable_topology γ] [topological_add_group γ]
 
--- edist is translation invariant
 lemma edist_eq_add_add : ∀ {f g h : α →ₘ γ}, edist f g = edist (f + h) (g + h) :=
 by { rintros ⟨f⟩ ⟨g⟩ ⟨h⟩, apply lintegral_congr_ae, filter_upwards [], simp [nndist_eq_nnnorm] }
 
-end normed_group -- section
+end normed_group
 
 section normed_space
 
@@ -364,7 +322,7 @@ begin
     end
 end
 
-end normed_space -- section
+end normed_space
 
 end ae_eq_fun
 

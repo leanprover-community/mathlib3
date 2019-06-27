@@ -69,7 +69,7 @@ begin
     end
 end
 
-end normed_space -- section
+end normed_space
 
 namespace ae_eq_fun
 
@@ -102,12 +102,13 @@ variables {K : Type*} [normed_field K] [second_countable_topology K] [normed_spa
 lemma integrable_smul : ∀ {c : K} {f : α →ₘ γ}, integrable f → integrable (c • f) :=
 by { assume c, rintros ⟨f, hf⟩, have := integrable_smul hf, simpa }
 
-end normed_space -- section
+end normed_space
 
 end ae_eq_fun
 
 section
 variables (α γ)
+
 def l1 : Type* := subtype (@ae_eq_fun.integrable α _ γ _ _)
 
 local notation `L¹` := l1
@@ -144,7 +145,7 @@ instance : has_norm (α →₁ γ) := ⟨λ f, dist f 0⟩
 instance : normed_group (α →₁ γ) := normed_group.of_add_dist (λ x, rfl) $ by
 { rintros ⟨f, _⟩ ⟨g, _⟩ ⟨h, _⟩, simp only [dist_def, add_def], rw [edist_eq_add_add] }
 
-end normed_group -- section
+end normed_group
 
 section normed_space
 
@@ -156,44 +157,24 @@ instance : has_scalar K (α →₁ γ) := ⟨l1.smul⟩
 
 @[simp] lemma smul_def {x : K} {f : α →₁ γ} : x • f = ⟨x • f.1, ae_eq_fun.integrable_smul f.2⟩ := rfl
 
-protected lemma one_smul : ∀ f : α →₁ γ, (1 : K) • f = f :=
-by { rintros ⟨f, hf⟩, simp [ae_eq_fun.one_smul f] }
-
-protected lemma mul_smul : ∀ (x y : K) (f : α →₁ γ), (x * y) • f = x • y • f :=
-by { rintros x y ⟨f, hf⟩, simp [ae_eq_fun.mul_smul x y f] }
-
-protected lemma smul_add : ∀ (x : K) (f g : α →₁ γ), x • (f + g) = x • f + x • g :=
-by { rintros x ⟨f, hf⟩ ⟨g, hg⟩, simp [smul_add x f g] }
-
-protected lemma smul_zero : ∀ (x : K), x • (0 : α →₁ γ) = 0 :=
-by { assume x, simp [smul_zero x] }
-
-protected lemma add_smul : ∀ (x y : K) (f : α →₁ γ), (x + y) • f = x • f + y • f :=
-by { rintros x y ⟨f, hf⟩, simp [add_smul x y f] }
-
-protected lemma zero_smul : ∀ f : α →₁ γ, (0 : K) • f = 0 :=
-by { rintro ⟨f, hf⟩, simp [zero_smul K f] }
-
-protected lemma norm_smul : ∀ (x : K) (f : α →₁ γ), norm (x • f) = norm x * norm f :=
-begin
-  rintros x ⟨f, hf⟩,
-  show ennreal.to_real (edist (x • f) 0) = ∥x∥ * ennreal.to_real (edist f 0),
-  rw [edist_smul, to_real_of_real_mul], exact norm_nonneg _
-end
-
 instance : semimodule K (α →₁ γ) :=
-{ one_smul  := l1.one_smul,
-  mul_smul  := l1.mul_smul,
-  smul_add  := l1.smul_add,
-  smul_zero := l1.smul_zero,
-  add_smul  := l1.add_smul,
-  zero_smul := l1.zero_smul }
+{ one_smul  := by { rintros ⟨f, hf⟩, simp [ae_eq_fun.semimodule.one_smul] },
+  mul_smul  := by { rintros x y ⟨f, hf⟩, simp [ae_eq_fun.semimodule.mul_smul] },
+  smul_add  := by { rintros x ⟨f, hf⟩ ⟨g, hg⟩, simp [smul_add] },
+  smul_zero := by { assume x, simp [smul_zero x] },
+  add_smul  := by { rintros x y ⟨f, hf⟩, simp [add_smul x y f] },
+  zero_smul := by { rintro ⟨f, hf⟩, simp [zero_smul K f] } }
 
 instance : vector_space K (α →₁ γ) := { .. l1.semimodule }
 
-instance : normed_space K (α →₁ γ) := ⟨l1.norm_smul⟩
+instance : normed_space K (α →₁ γ) :=
+⟨ begin
+    rintros x ⟨f, hf⟩,
+    show ennreal.to_real (edist (x • f) 0) = ∥x∥ * ennreal.to_real (edist f 0),
+    rw [edist_smul, to_real_of_real_mul], exact norm_nonneg _
+  end ⟩
 
-end normed_space -- section
+end normed_space
 
 end l1
 

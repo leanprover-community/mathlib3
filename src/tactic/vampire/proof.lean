@@ -28,7 +28,7 @@ inductive proof (m : mat) : cla → Type
   proof (c ++ d)
 | rot (k : nat) (c : cla) :
   proof c → proof (c.rot k)
-| sub (μ : smaps) (c : cla) :
+| sub (μ : mappings) (c : cla) :
   proof c → proof (c.subst μ)
 | con (l : lit) (c : cla) :
   proof (l :: l :: c) → proof (l :: c)

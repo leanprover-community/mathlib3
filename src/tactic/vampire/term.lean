@@ -53,8 +53,6 @@ def write : term → string
 | (term.app t s) := "( " ++ t.write ++ " "   ++ s.write ++ " )"
 | (term.vpp t k) := "( " ++ t.write ++ " V " ++ k.repr  ++ " )"
 
--- def repr : term → string := repr_core tt
-
 instance has_repr : has_repr term := ⟨repr⟩
 meta instance has_to_format : has_to_format term := ⟨λ x, repr x⟩
 
@@ -78,9 +76,9 @@ def rename (f : nat → nat) : term → term
 
 end term
 
-@[reducible] def smap : Type := nat × (nat ⊕ term)
+@[reducible] def mapping : Type := nat × (nat ⊕ term)
 
-meta def smap.to_expr : smap → expr
+meta def mapping.to_expr : mapping → expr
 | (k, sum.inl m) :=
   expr.mk_app
     `(@prod.mk nat (nat ⊕ term))
@@ -90,19 +88,19 @@ meta def smap.to_expr : smap → expr
     `(@prod.mk nat (nat ⊕ term))
     [k.to_expr, expr.app `(@sum.inr nat term) t.to_expr]
 
-instance smap.decidable_eq : decidable_eq smap := by apply_instance
+instance mapping.decidable_eq : decidable_eq mapping := by apply_instance
 
-@[reducible] def smaps : Type := list smap
+@[reducible] def mappings : Type := list mapping
 
-meta def smaps.to_expr : smaps → expr
-| []        := `(@list.nil smap)
-| (m :: ms) := expr.mk_app `(@list.cons smap) [m.to_expr, smaps.to_expr ms]
+meta def mappings.to_expr : mappings → expr
+| []        := `(@list.nil mapping)
+| (m :: ms) := expr.mk_app `(@list.cons mapping) [m.to_expr, mappings.to_expr ms]
 
-def smaps.get (k : nat) : smaps → (nat ⊕ term)
+def mappings.get (k : nat) : mappings → (nat ⊕ term)
 | []            := sum.inl k
-| ((m, t) :: μ) := if k = m then t else smaps.get μ
+| ((m, t) :: μ) := if k = m then t else mappings.get μ
 
-def term.subst (μ : smaps) : term → term
+def term.subst (μ : mappings) : term → term
 | (& k)   := & k
 | (t & s) := t.subst & s.subst
 | (t # k) :=
@@ -111,26 +109,26 @@ def term.subst (μ : smaps) : term → term
   | (sum.inr s) := t.subst & s
   end
 
-def smaps.compose (μ : smaps) : smaps → smaps
+def mappings.compose (μ : mappings) : mappings → mappings
 | []                    := μ
-| ((k, sum.inr t) :: ν) := (k, sum.inr (t.subst μ)) :: smaps.compose ν
-| ((k, sum.inl m) :: ν) := (k, μ.get m) :: smaps.compose ν
+| ((k, sum.inr t) :: ν) := (k, sum.inr (t.subst μ)) :: mappings.compose ν
+| ((k, sum.inl m) :: ν) := (k, μ.get m) :: mappings.compose ν
 
 namespace vas
 
-def subst (M : model α) (v : vas α) (μ : smaps) (k : nat) : α :=
+def subst (M : model α) (v : vas α) (μ : mappings) (k : nat) : α :=
 match μ.get k with
 | (inl m) := v m
 | (inr t) := (t.val M v []).fst
 end
 
 lemma subst_eq_of_eq_inl (M : model α)
-  (v : vas α) {μ : smaps} {k m : nat} :
+  (v : vas α) {μ : mappings} {k m : nat} :
 μ.get k = inl m → v.subst M μ k = v m :=
 by { intro h1, simp only [h1, subst] }
 
 lemma subst_eq_of_eq_inr (M : model α)
-  (v : vas α) {μ : smaps} {k : nat} {t : term} :
+  (v : vas α) {μ : mappings} {k : nat} {t : term} :
 μ.get k = inr t → v.subst M μ k = (t.val M v []).fst :=
 by { intro h1, simp only [h1, subst] }
 
@@ -138,11 +136,11 @@ end vas
 
 namespace term
 
-lemma subst_eq_of_eq_inl {μ : smaps} (t : term) {k m : nat} :
+lemma subst_eq_of_eq_inl {μ : mappings} (t : term) {k m : nat} :
 μ.get k = inl m → (t # k).subst μ = t.subst μ # m :=
 by { intro h, simp only [h, subst, eq_self_iff_true, and_self] }
 
-lemma subst_eq_of_eq_inr {μ : smaps} (t s : term) {k : nat} :
+lemma subst_eq_of_eq_inr {μ : mappings} (t s : term) {k : nat} :
 μ.get k = inr s → (t # k).subst μ = t.subst μ & s :=
 by { intro h, simp only [h, subst, eq_self_iff_true, and_self] }
 
@@ -152,7 +150,7 @@ lemma val_rename (M : model α) (v : vas α) (f : nat → nat) :
 | (t & s) := by simp only [val, rename, val_rename]
 | (t # k) := by simp only [val, rename, val_rename]
 
-lemma val_subst (M : model α) (v : vas α) (μ : smaps) :
+lemma val_subst (M : model α) (v : vas α) (μ : mappings) :
   ∀ t : term, (t.subst μ).val M v = t.val M (v.subst M μ)
 | (& k)   := rfl
 | (t & s) := by simp only [val, subst, val_subst]
@@ -167,7 +165,7 @@ lemma val_subst (M : model α) (v : vas α) (μ : smaps) :
       val_subst, val]
   end
 
-lemma holds_subst (M : model α) (v : vas α) (μ : smaps) (t : term) :
+lemma holds_subst (M : model α) (v : vas α) (μ : mappings) (t : term) :
   (t.subst μ).holds M v ↔ t.holds M (v.subst M μ) :=
 by {unfold holds, rw val_subst}
 

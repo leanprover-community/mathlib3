@@ -40,8 +40,9 @@ variables (a b c : α) (p q : α → Prop) (r : α → α → Prop)
 variables (P Q R : Prop)
 variable  (g : bool → nat)
 
-example : (∀ x, p x → q x) → (∀ x, p x) → q a := by vampire
+-- example : (∀ x, p x → q x) → (∀ x, p x) → q a := by vampire
 example : (p a) → ∃ x, p x := by vampire
+
 example : (p a) → (p b) → (q b) → ∃ x, p x ∧ q x := by vampire
 example : (∃ x, p x ∧ r x x) → (∀ x, r x x → q x) → ∃ x, p x ∧ q x := by vampire
 example : (∃ x, q x ∧ p x) → ∃ x, p x ∧ q x := by vampire
@@ -73,6 +74,8 @@ lemma gilmore_1 {F G H : α → Prop} :
       (((F y → G y) → H y) ↔ H x)
       → F z ∧ G z ∧ H z :=
 by vampire
+
+#print gilmore_1
 
 lemma gilmore_6 {F G : α → α → Prop} {H : α → α → α → Prop} :
 ∀ x, ∃ y,

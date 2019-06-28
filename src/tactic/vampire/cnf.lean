@@ -52,7 +52,7 @@ def holds (M : model α) (v : nat → α) : lit → Prop
 | (tt, a)  :=    (a.val M v []).snd
 | (ff, a)  :=  ¬ (a.val M v []).snd
 
-def subst (σ : smaps) : lit → lit
+def subst (σ : mappings) : lit → lit
 | (b, a) := (b, a.subst σ)
 
 lemma holds_neg (M : model α) (v : nat → α) (l : lit) :
@@ -60,7 +60,7 @@ lemma holds_neg (M : model α) (v : nat → α) (l : lit) :
 by { cases l with b; cases b; simp only
      [bnot, neg, holds, list.map, classical.not_not] }
 
-lemma holds_subst (M : model α) (v : vas α) (σ : smaps) (l : lit) :
+lemma holds_subst (M : model α) (v : vas α) (σ : mappings) (l : lit) :
   holds M v (l.subst σ) ↔ holds M (v.subst M σ) l :=
 by { cases l with b a, cases b;
      simp only [holds, subst, vas.subst,
@@ -81,7 +81,7 @@ meta def to_expr : cla → expr
 | []       := `(@list.nil lit)
 | (l :: c) := expr.mk_app `(@list.cons lit) [l.to_expr, to_expr c]
 
-def subst (π : smaps) : cla → cla :=
+def subst (π : mappings) : cla → cla :=
 list.map (lit.subst π)
 
 def holds (M : model α) (v : vas α) (c : cla) : Prop :=
@@ -93,7 +93,7 @@ def fav (M : model α) (c : cla) : Prop :=
 def satisfies (M : model α) (c : cla) : Prop :=
 ∀ v : vas α, holds M v c
 
-lemma holds_subst (M : model α) (v : vas α) (μ : smaps) (c : cla) :
+lemma holds_subst (M : model α) (v : vas α) (μ : mappings) (c : cla) :
   holds M v (c.subst μ) ↔ holds M (v.subst M μ) c :=
 begin
   simp only [cla.subst, vas.subst, cla.holds],

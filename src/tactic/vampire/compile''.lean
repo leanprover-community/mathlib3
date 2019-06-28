@@ -110,7 +110,7 @@ meta def allign_premises (ifs1 ifs2 : infs) :
 
 meta def rots (ifs : infs) (c : cla) : list (infs × cla) :=
 (list.range c.length).map
-  (λ x, (ifs ++ [inf.n x, inf.t], c.rot x))
+  (λ x, (inf.rt :: inf.nm x :: ifs, c.rot x))
 
 meta def lit.unifier : lit → lit → tactic mappings
 | (a, t) (b, s) :=
@@ -159,8 +159,8 @@ meta def compile_cnts_aux :
   ( do n ← index_of' k ks,
        ks' ← remove_nth' ks n,
        c'  ← remove_nth' c n,
-       (ifs, ks'', c'') ← compile_cnts_aux (k :: ks') (l :: c'),
-       return ((inf.n (n + 1) :: inf.t :: inf.c :: ifs), ks'', c'') ) <|>
+       (is, ks'', c'') ← compile_cnts_aux (k :: ks') (l :: c'),
+       return (is ++ [inf.ct, inf.rt, inf.nm (n + 1)], ks'', c'') ) <|>
   ( return ([], k :: ks, l :: c) )
 | _ _ := failed
 
@@ -174,7 +174,7 @@ meta def compile_cnts (d : cla) :
   do i ← index_of' k ks,
      (ifs1, ks', c') ← compile_cnts_aux (ks.rot i) (c.rot i),
      (ifs2, c'') ← compile_cnts k ks' c',
-     return ((inf.n i :: inf.t :: (ifs1 ++ ifs2)), c'')
+     return (ifs2 ++ ifs1 ++ [inf.rt, inf.nm i], c'')
 
 meta def compile_map (c d : cla) : tactic (infs × cla) :=
 do let δ  := disjoiner d c,
@@ -182,7 +182,7 @@ do let δ  := disjoiner d c,
    (μ, ks) ← compute_map d cδ [] [] d.length,
    let cδμ := cδ.subst μ,
    (ifs, c') ← compile_cnts d d.length ks cδμ,
-   return (δ.to_infs ++ inf.s :: (μ.to_infs ++ inf.s :: ifs), c')
+   return (ifs ++ (inf.sb :: μ.to_infs) ++ (inf.sb :: δ.to_infs), c')
 
 meta def compile_res (d : cla) :
   list ((infs × cla) × (infs × cla)) → tactic (infs × cla)
@@ -192,14 +192,14 @@ meta def compile_res (d : cla) :
        let tcl := ((ff, tl) :: cl),
        let tcr := ((tt, tr) :: cr),
        (μ, ν) ← unifiers (disjoiner tcl tcr) tl tr,
-       let isl' : infs := isl ++ μ.to_infs ++ [inf.s],
-       let isr' : infs := isr ++ ν.to_infs ++ [inf.s],
+       let isl' : infs := inf.sb :: (μ.to_infs ++ isl),
+       let isr' : infs := inf.sb :: (ν.to_infs ++ isr),
        let t    : term := tl.subst μ,
        let clμ  : cla  := cl.subst μ,
        let crν  : cla  := cr.subst ν,
        let c    : cla  := clμ ++ crν,
        (is, c') ← compile_map c d,
-       return (isl' ++ isr' ++ (inf.r :: is), c') ) <|>
+       return (isl' ++ isr' ++ (inf.res :: is), c') ) <|>
   ( compile_res l )
 
 meta def compile_core : list line →
@@ -207,7 +207,8 @@ meta def compile_core : list line →
 | ls m k d rule.inp :=
   let c := m.nth (k - 1) in
   do (is, c') ← compile_map c d,
-     return (inf.n (k - 1) :: inf.h :: is, c')
+     trace (inf.hyp (k - 1) :: is),
+     return (inf.hyp (k - 1) :: is, c')
 | ls m k d (rule.map n) :=
   do ⟨k', d', r⟩ ← find_line n ls,
      (is1, c) ← compile_core ls m k' d' r,
@@ -221,16 +222,10 @@ meta def compile_core : list line →
      let ccs := list.product (rots is1 d1) (rots is2 d2),
      compile_res d ccs
 
-def infs.filter : infs → infs
-| []  := []
-| [i] := [i]
-| (inf.n 0 :: inf.t :: is) := infs.filter is
-| (inf.e :: inf.s :: is) := infs.filter is
-| (i1 :: i2 :: is) := i1 :: infs.filter (i2 :: is)
-
 meta def compile (m : mat) (ls : list line) : tactic infs :=
 do ⟨k, [], r⟩ ← list.find (λ l, line.c l = []) ls,
    (is, _) ← compile_core ls m k [] r,
-   return is.filter
+   trace "Before filter : ", trace is,
+   return (is.filter (λ x, x ≠ inf.rot 0 ∧ x ≠ inf.sub []))
 
 end vampire

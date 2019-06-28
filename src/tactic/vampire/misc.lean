@@ -24,10 +24,6 @@ def option.if_is_some (p : α → Prop) : option α → Prop
 | none     := true
 | (some a) := p a
 
--- def list.write (f : α → string) (s : string) : list α → string
--- j| []        := ""
--- j| (a :: as) := f a ++ s ++ list.write as
-
 lemma bnot_eq_iff_ne {a b : bool} :
   bnot a = b ↔ a ≠ b :=
 by cases a; cases b; simp only

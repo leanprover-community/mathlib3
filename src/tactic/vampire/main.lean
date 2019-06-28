@@ -70,10 +70,54 @@ begin
   apply @tas_of_proof α _ _ hρ
 end
 
+meta def build_proof_core (m : mat) (mx : expr) :
+  list (expr × cla) → infs → tactic expr
+| stk (inf.hyp k :: infs) :=
+  -- do trace "Hypo : ", trace k,
+  --    trace "Produced : ",
+  --    trace (m.nth k),
+  build_proof_core ((expr.mk_app `(@proof.hyp) [mx, k.to_expr], m.nth k) :: stk) infs
+| ((σx, ((tt, s) :: d)) :: (πx, ((ff, t) :: c)) :: stk) (inf.res :: infs) :=
+  -- do trace "First expected : ",
+  --    trace ((ff, t) :: c),
+  --    trace "Second expected : ",
+  --    trace ((tt, s) :: d),
+  --    trace "Produced : ",
+  --    trace (c ++ d),
+  build_proof_core
+    ( ( expr.mk_app `(@proof.res)
+        [mx, t.to_expr, cla.to_expr c, cla.to_expr d, πx, σx],
+      c ++ d) :: stk) infs
+| ((πx, c) :: stk) (inf.rot k :: infs) :=
+  -- do trace "Expected : ",
+  --    trace c,
+  --    trace "Produced : ",
+  --    trace (c.rot k),
+  build_proof_core
+    ((expr.mk_app `(@proof.rot) [mx, k.to_expr, c.to_expr, πx], c.rot k) :: stk) infs
+| ((πx, c) :: stk) (inf.sub μ :: infs) :=
+  -- do trace "Expected : ",
+  --    trace c,
+  --    trace "Produced : ",
+  --    trace (c.subst μ),
+  build_proof_core
+   ((expr.mk_app `(@proof.sub) [mx, μ.to_expr, c.to_expr, πx], c.subst μ) :: stk) infs
+| ((πx, (l :: _ :: c)) :: stk) (inf.con :: infs) :=
+  -- do trace "Expected : ",
+  --    trace (l :: l :: c),
+  --    trace "Produced : ",
+  --    trace (l :: c),
+  build_proof_core
+    ((expr.mk_app `(@proof.con) [mx, l.to_expr, cla.to_expr c, πx], (l :: c)) :: stk) infs
+| [(πx, _)] [] := return πx
+| _ _ := fail "invalid inference"
+
 /- Return ⌜π : arifix (model.default ⟦αx⟧) p⌝ -/
 meta def build_proof (ls : list line)
   (αx ix : expr) (p : form₂) (m : mat) : tactic expr :=
-do πx ← compile m ls,
+do is ← compile m ls,
+   trace "Infs : ", trace is,
+   πx ← build_proof_core m m.to_expr [] is,
    let px   : expr := form₂.to_expr p,
    let foqx : expr := expr.mk_app `(foq) [`(tt), px],
    let decx : expr := expr.mk_app `(foq.decidable) [`(tt), px],
@@ -81,29 +125,14 @@ do πx ← compile m ls,
    let x    : expr := expr.mk_app `(@arifix_of_proof) [αx, ix, px, fx],
    return (expr.app x πx)
 
-meta def vampire (inp : option string) : tactic unit :=
+meta def vampire : tactic unit :=
 do (dx, ix, p) ← reify,
    let m := clausify p,
-   s ← (inp <|> vampire_output (mat.to_tptp m)) ,
+   s ← vampire_output (mat.to_tptp m),
    ss ← proof_line_strings s,
-   if inp = none
-   then trace
-     (string.join $ ((("\"" :: ss) ++ ["\""]).map (λ x, x ++ "\n")))
-   else skip,
+   trace (string.join $ ((("\"" :: ss) ++ ["\""]).map (λ x, x ++ "\n"))),
    ls ← monad.mapm proof_line ss,
    x ← build_proof ls dx ix p m,
    apply x, skip
 
 end vampire
-
-open lean.parser interactive vampire tactic
-
-meta def tactic.interactive.vampire
-  (ids : parse (many ident))
-  (inp : option string := none) : tactic unit :=
-( if `all ∈ ids
-  then local_context >>= monad.filter is_proof >>=
-       revert_lst >> skip
-  else do hs ← mmap tactic.get_local ids,
-               revert_lst hs, skip ) >>
-vampire inp

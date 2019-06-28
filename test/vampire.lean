@@ -6,6 +6,7 @@
 
 import tactic.vampire
 
+#exit
 section
 
 /- Examples from finish. -/

@@ -96,7 +96,10 @@ end
 def digits : parser string := many_char (one_of digits)
 
 def nat : parser nat :=
-digits >>= (return ∘ string.to_nat)
+( digits >>=
+  (λ s, if s = ""
+        then parser.fail "Not a number, empty input"
+        else return (string.to_nat s)) )
 
 def character : parser char := sat (λ x, x ≠ '\n')
 

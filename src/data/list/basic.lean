@@ -132,6 +132,11 @@ end
   f a ∈ map f l ↔ a ∈ l :=
 ⟨λ m, let ⟨a', m', e⟩ := exists_of_mem_map m in H e ▸ m', mem_map_of_mem _⟩
 
+@[simp] lemma map_nil (f : α → β) : list.map f [] = [] := rfl
+
+@[simp] lemma map_eq_nil {f : α → β} {l : list α} : list.map f l = [] ↔ l = [] :=
+⟨by cases l; simp, λ h, h.symm ▸ map_nil _⟩
+
 @[simp] theorem mem_join {a : α} : ∀ {L : list (list α)}, a ∈ join L ↔ ∃ l, l ∈ L ∧ a ∈ l
 | []       := ⟨false.elim, λ⟨_, h, _⟩, false.elim h⟩
 | (c :: L) := by simp only [join, mem_append, @mem_join L, mem_cons_iff, or_and_distrib_right, exists_or_distrib, exists_eq_left]
@@ -4188,6 +4193,12 @@ theorem reverse_range' : ∀ s n : ℕ,
     reverse_singleton, map_cons, nat.sub_zero, cons_append,
     nil_append, eq_self_iff_true, true_and, map_map]
   using reverse_range' s n
+
+def fin_range (n : ℕ) : list (fin n) :=
+(range n).pmap fin.mk (λ _, list.mem_range.1)
+
+@[simp] lemma mem_fin_range {n : ℕ} (a : fin n) : a ∈ fin_range n :=
+mem_pmap.2 ⟨a.1, mem_range.2 a.2, fin.eta _ _⟩
 
 /--
 `Ico n m` is the list of natural numbers `n ≤ x < m`.

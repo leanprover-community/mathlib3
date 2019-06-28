@@ -147,7 +147,7 @@ by simp [nndist, edist_dist, nnreal.of_real, max_eq_left dist_nonneg, ennreal.of
 
 /--Express `edist` in terms of `nndist`-/
 lemma edist_nndist (x y : α) : edist x y = ↑(nndist x y) :=
-by simp [nndist, edist_dist, nnreal.of_real, max_eq_left dist_nonneg, ennreal.of_real]
+by { rw [edist_dist, nndist, ennreal.of_real_eq_coe_nnreal] }
 
 /--In a metric space, the extended distance is always finite-/
 lemma edist_ne_top (x y : α) : edist x y ≠ ⊤ :=

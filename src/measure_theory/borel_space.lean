@@ -514,8 +514,9 @@ measurable.comp (measurable_of_continuous (continuous_smul continuous_const cont
 lemma measurable_dist' {α : Type*} [metric_space α] [second_countable_topology α] :
   measurable (λp:α×α, dist p.1 p.2) :=
 begin
-  rw [borel_prod], apply measurable_of_continuous,
-	exact continuous_dist continuous_fst continuous_snd
+  rw [borel_prod],
+  apply measurable_of_continuous,
+  exact continuous_dist continuous_fst continuous_snd
 end
 
 lemma measurable_dist {α : Type*} [metric_space α] [second_countable_topology α]
@@ -526,8 +527,9 @@ measurable.comp measurable_dist' (measurable_prod_mk hf hg)
 lemma measurable_nndist' {α : Type*} [metric_space α] [second_countable_topology α] :
   measurable (λp:α×α, nndist p.1 p.2) :=
 begin
-  rw [borel_prod], apply measurable_of_continuous,
-	exact continuous_nndist continuous_fst continuous_snd
+  rw [borel_prod],
+  apply measurable_of_continuous,
+  exact continuous_nndist continuous_fst continuous_snd
 end
 
 lemma measurable_nndist {α : Type*} [metric_space α] [second_countable_topology α]
@@ -538,7 +540,8 @@ measurable.comp measurable_nndist' (measurable_prod_mk hf hg)
 lemma measurable_edist' {α : Type*} [emetric_space α] [second_countable_topology α] :
   measurable (λp:α×α, edist p.1 p.2) :=
 begin
-  rw [borel_prod], apply measurable_of_continuous,
+  rw [borel_prod],
+  apply measurable_of_continuous,
   exact continuous_edist continuous_fst continuous_snd
 end
 

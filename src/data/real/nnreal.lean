@@ -304,10 +304,16 @@ begin
   { assume h, rw [h] }
 end
 
-lemma of_real_mul {p q : ℝ} (hp : 0 ≤ p) (hq : 0 ≤ q) :
+lemma of_real_mul {p q : ℝ} (hp : 0 ≤ p) :
   nnreal.of_real (p * q) = nnreal.of_real p * nnreal.of_real q :=
-nnreal.eq $
-by { have := max_eq_left (zero_le_mul hp hq), simpa [nnreal.of_real, hp, hq, max_eq_left] }
+begin
+  cases le_total 0 q with hq hq,
+  { apply nnreal.eq,
+    have := max_eq_left (zero_le_mul hp hq),
+    simpa [nnreal.of_real, hp, hq, max_eq_left] },
+  { have hpq := mul_nonpos_of_nonneg_of_nonpos hp hq,
+    rw [of_real_eq_zero.2 hq, of_real_eq_zero.2 hpq, mul_zero] }
+end
 
 end mul
 
@@ -316,7 +322,7 @@ section sub
 lemma sub_eq_zero {r p : nnreal} (h : r ≤ p) : r - p = 0 :=
 nnreal.eq $ max_eq_right $ sub_le_iff_le_add.2 $ by simpa [nnreal.coe_le] using h
 
-protected lemma sub_lt_self {r p : nnreal} : r > 0 → p > 0 → r - p < r :=
+protected lemma sub_lt_self {r p : nnreal} : 0 < r → 0 < p → r - p < r :=
 assume hr hp,
 begin
   cases le_total r p,

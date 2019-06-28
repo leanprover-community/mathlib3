@@ -69,7 +69,7 @@ end
 lemma is_open_ne_top : is_open {a : ennreal | a ≠ ⊤} :=
 is_open_neg (is_closed_eq continuous_id continuous_const)
 
-protected lemma is_open_Ico : is_open (Ico 0 b) := by { rw ennreal.Ico_eq_Iio, exact is_open_Iio}
+lemma is_open_Ico : is_open (Ico 0 b) := by { rw ennreal.Ico_eq_Iio, exact is_open_Iio}
 
 lemma coe_range_mem_nhds : range (coe : nnreal → ennreal) ∈ nhds (r : ennreal) :=
 have {a : ennreal | a ≠ ⊤} = range (coe : nnreal → ennreal),
@@ -130,7 +130,6 @@ begin
   { rintros ⟨a, ha⟩, use {b : ennreal | a < b}, refine infi_le_of_le _ _,
     { simp only [mem_set_of_eq], split, { rwa lt_top_iff_ne_top }, { use a, exact or.inl rfl } },
     { simp only [mem_principal_sets, le_principal_iff], assume a, simp } },
-
   { rcases hs with ⟨ht, ⟨a, hs⟩⟩, cases hs,
     case or.inl
       { rw [hs, mem_set_of_eq, lt_top_iff_ne_top] at ht,
@@ -173,9 +172,9 @@ begin
   by_cases x0 : x = 0,
   { use Iio (x + ε),
     have : Iio (x + ε) ⊆ Icc (x - ε) (x + ε), assume a, rw x0, simpa using le_of_lt,
-    use this, exact ⟨is_open_Iio, ennreal.mem_Iio xt ε0⟩ },
+    use this, exact ⟨is_open_Iio, mem_Iio_self_add xt ε0⟩ },
   { use Ioo (x - ε) (x + ε), use Ioo_subset_Icc_self,
-    exact ⟨is_open_Ioo, ennreal.mem_Ioo xt x0 ε0 ε0 ⟩ }
+    exact ⟨is_open_Ioo, mem_Ioo_self_sub_add xt x0 ε0 ε0 ⟩ }
 end
 
 lemma nhds_of_ne_top : x ≠ ⊤ → nhds x = ⨅ε:{ε:ennreal // ε > 0}, principal (Icc (x - ε) (x + ε)) :=

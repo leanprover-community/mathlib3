@@ -358,7 +358,7 @@ lemma measurable_from_nat [measurable_space α] {f : ℕ → α} : measurable f 
 assume s hs, show is_measurable {n : ℕ | f n ∈ s}, from trivial
 
 lemma measurable_to_nat [measurable_space α] {f : α → ℕ} :
-(∀ k, is_measurable {x | f x = k }) → measurable f :=
+(∀ k, is_measurable {x | f x = k}) → measurable f :=
 begin
   assume h s hs, show is_measurable {x | f x ∈ s},
   have : {x | f x ∈ s} = ⋃ (n ∈ s), {x | f x = n}, { ext, simp },

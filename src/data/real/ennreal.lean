@@ -60,6 +60,13 @@ lemma coe_to_nnreal_le_self : ∀{a:ennreal}, ↑(a.to_nnreal) ≤ a
 | (some r) := by rw [some_eq_coe, to_nnreal_coe]; exact le_refl _
 | none     := le_top
 
+lemma coe_nnreal_eq (r : nnreal) : (r : ennreal) = ennreal.of_real r :=
+by { rw [ennreal.of_real, nnreal.of_real], cases r with r h, congr, dsimp, rw max_eq_left h }
+
+lemma of_real_eq_coe_nnreal {x : real} (h : x ≥ 0) :
+  ennreal.of_real x = @coe nnreal ennreal _ (⟨x, h⟩ : nnreal) :=
+by { rw [coe_nnreal_eq], refl }
+
 @[simp] lemma coe_zero : ↑(0 : nnreal) = (0 : ennreal) := rfl
 @[simp] lemma coe_one : ↑(1 : nnreal) = (1 : ennreal) := rfl
 
@@ -195,7 +202,7 @@ with_top.add_lt_add_iff_right
 lemma lt_add_right (ha : a < ⊤) (hb : 0 < b) : a < a + b :=
 by rwa [← add_lt_add_iff_left ha, add_zero] at hb
 
-lemma le_of_forall_epsilon_le : ∀{a b : ennreal}, (∀ε:nnreal, ε > 0 → b < ∞ → a ≤ b + ε) → a ≤ b
+lemma le_of_forall_epsilon_le : ∀{a b : ennreal}, (∀ε:nnreal, 0 < ε → b < ∞ → a ≤ b + ε) → a ≤ b
 | a    none     h := le_top
 | none (some a) h :=
   have (⊤:ennreal) ≤ ↑a + ↑(1:nnreal), from h 1 zero_lt_one coe_lt_top,
@@ -410,13 +417,13 @@ ext $ assume a, iff.intro
   (assume ⟨_, hx⟩, hx)
   (assume hx, ⟨zero_le _, hx⟩)
 
-protected lemma mem_Iio : x ≠ ⊤ → 0 < ε → x ∈ Iio (x + ε) :=
+lemma mem_Iio_self_add : x ≠ ⊤ → 0 < ε → x ∈ Iio (x + ε) :=
 assume xt ε0, lt_add_right (by rwa lt_top_iff_ne_top) ε0
 
-lemma not_mem_Ioo : x = 0 → x ∉ Ioo (x - ε) y :=
+lemma not_mem_Ioo_self_sub : x = 0 → x ∉ Ioo (x - ε) y :=
 assume x0, by simp [x0]
 
-protected lemma mem_Ioo : x ≠ ⊤ → x ≠ 0 → 0 < ε₁ → 0 < ε₂ → x ∈ Ioo (x - ε₁) (x + ε₂) :=
+lemma mem_Ioo_self_sub_add : x ≠ ⊤ → x ≠ 0 → 0 < ε₁ → 0 < ε₂ → x ∈ Ioo (x - ε₁) (x + ε₂) :=
 assume xt x0 ε0 ε0',
   ⟨ennreal.sub_lt_sub_self xt x0 ε0, lt_add_right (by rwa [lt_top_iff_ne_top]) ε0'⟩
 
@@ -695,9 +702,9 @@ begin
     simpa [ennreal.of_real, ennreal.to_real, some_eq_coe] }
 end
 
-lemma of_real_mul {p q : ℝ} (hp : 0 ≤ p) (hq : 0 ≤ q) :
+lemma of_real_mul {p q : ℝ} (hp : 0 ≤ p):
   ennreal.of_real (p * q) = (ennreal.of_real p) * (ennreal.of_real q) :=
-by { simp only [ennreal.of_real, coe_mul.symm, coe_eq_coe], exact nnreal.of_real_mul hp hq }
+by { simp only [ennreal.of_real, coe_mul.symm, coe_eq_coe], exact nnreal.of_real_mul hp }
 
 lemma to_real_of_real_mul (c : ℝ) (a : ennreal) (h : c ≥ 0):
   ennreal.to_real ((ennreal.of_real c) * a) = c * ennreal.to_real a :=

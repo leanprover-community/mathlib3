@@ -70,12 +70,17 @@ end
     mk (λa, g (f₁ a) (f₂ a)) (measurable.comp hg (measurable_prod_mk hf₁ hf₂)) :=
 rfl
 
-def lift_rel {γ : Type*} [measurable_space γ] (r : β → γ → Prop) (f : α →ₘ β) (g : α →ₘ γ) : Prop :=
-quotient.lift_on₂ f g (λf g, ∀ₘ a, r (f.1 a) (g.1 a))
+def lift_pred (p : β → Prop) (f : α →ₘ β) : Prop :=
+quotient.lift_on f (λf, ∀ₘ a, p (f.1 a))
 begin
-  assume f₁ f₂ g₁ g₂ h₁ h₂, dsimp, refine propext (all_ae_congr _),
-  filter_upwards [h₁, h₂], simp {contextual := tt}
+  assume f g h, dsimp, refine propext (all_ae_congr _),
+  filter_upwards [h], simp {contextual := tt}
 end
+
+def lift_rel {γ : Type*} [measurable_space γ] (r : β → γ → Prop) (f : α →ₘ β) (g : α →ₘ γ) : Prop :=
+lift_pred (λp:β×γ, r p.1 p.2)
+  (comp₂ prod.mk (measurable_prod_mk
+    (measurable_fst measurable_id) (measurable_snd measurable_id)) f g)
 
 def lift_rel_mk_mk {γ : Type*} [measurable_space γ] (r : β → γ → Prop)
   (f : α → β) (g : α → γ) (hf hg) : lift_rel r (mk f hf) (mk g hg) ↔ ∀ₘ a, r (f a) (g a) :=
@@ -228,65 +233,70 @@ end vector_space
 
 open ennreal
 -- integral on ae_eq_fun
-def integral (f : α →ₘ nnreal) : ennreal :=
-quotient.lift_on f (λf, ∫⁻ a, f.1 a)
-  (assume ⟨f, hf⟩ ⟨g, hg⟩ eq, lintegral_congr_ae $ by simpa [coe_eq_coe])
+def eintegral (f : α →ₘ ennreal) : ennreal :=
+quotient.lift_on f (λf, lintegral f.1) (assume ⟨f, hf⟩ ⟨g, hg⟩ eq, lintegral_congr_ae eq)
 
-@[simp] lemma integral_mk (f : α → nnreal) (hf) : integral (mk f hf) = ∫⁻ a, f a :=
-rfl
+@[simp] lemma eintegral_mk (f : α → ennreal) (hf) : eintegral (mk f hf) = lintegral f := rfl
 
-@[simp] lemma integral_zero : integral (0 : α →ₘ nnreal) = 0 :=
-lintegral_zero
+@[simp] lemma eintegral_zero : eintegral (0 : α →ₘ ennreal) = 0 := lintegral_zero
 
-@[simp] lemma integral_eq_zero_iff (f : α →ₘ nnreal) : integral f = 0 ↔ f = 0 :=
+@[simp] lemma eintegral_eq_zero_iff (f : α →ₘ ennreal) : eintegral f = 0 ↔ f = 0 :=
 begin
   rcases f with ⟨f, hf⟩,
-  refine iff.trans (lintegral_eq_zero_iff _) ⟨_, _⟩,
-  { exact measurable_coe.comp hf },
-  { assume h, simp only [coe_eq_zero] at h, exact quotient.sound h },
-  { assume h, simp only [coe_eq_zero], exact quotient.exact h }
+  refine iff.trans (lintegral_eq_zero_iff hf) ⟨_, _⟩,
+  { assume h, exact quotient.sound h },
+  { assume h, exact quotient.exact h }
 end
 
-lemma integral_add : ∀(f g : α →ₘ nnreal), integral (f + g) = integral f + integral g :=
-by rintros ⟨f⟩ ⟨g⟩; simp only [quot_mk_eq_mk, mk_add_mk, integral_mk, coe_add,
-   lintegral_add (measurable_coe.comp f.2) (measurable_coe.comp g.2)]
+lemma eintegral_add : ∀(f g : α →ₘ ennreal), eintegral (f + g) = eintegral f + eintegral g :=
+by rintros ⟨f⟩ ⟨g⟩; simp only [quot_mk_eq_mk, mk_add_mk, eintegral_mk, lintegral_add f.2 g.2]
 
-lemma integral_le_integral {f g : α →ₘ nnreal} (h : f ≤ g) : integral f ≤ integral g :=
+lemma eintegral_le_eintegral {f g : α →ₘ ennreal} (h : f ≤ g) : eintegral f ≤ eintegral g :=
 begin
   rcases f with ⟨f, hf⟩, rcases g with ⟨g, hg⟩,
-  simp only [quot_mk_eq_mk, integral_mk, mk_le_mk] at *,
+  simp only [quot_mk_eq_mk, eintegral_mk, mk_le_mk] at *,
   refine lintegral_le_lintegral_ae _,
   filter_upwards [h], simp
 end
 
-section metric
+section
+variables {γ : Type*} [emetric_space γ] [second_countable_topology γ]
 
-variables {γ : Type*} [metric_space γ] [second_countable_topology γ]
+def comp_edist (f g : α →ₘ γ) : α →ₘ ennreal := comp₂ edist measurable_edist' f g
 
-def comp_nndist (f g : α →ₘ γ) : α →ₘ nnreal := comp₂ nndist measurable_nndist' f g
-
-lemma comp_nndist_self : ∀ (f : α →ₘ γ), comp_nndist f f = 0 :=
-by rintro ⟨f⟩; refine quotient.sound _; simp only [nndist_self]
-
-protected def edist (f g : α →ₘ γ) : ennreal := integral (comp_nndist f g)
-
-instance : has_edist (α →ₘ γ) := ⟨ae_eq_fun.edist⟩
-
-@[simp] lemma edist_mk_mk {f g : α → γ} (hf hg) :
-  edist (mk f hf) (mk g hg) = integral (comp_nndist (mk f hf) (mk g hg)) := rfl
+lemma comp_edist_self : ∀ (f : α →ₘ γ), comp_edist f f = 0 :=
+by rintro ⟨f⟩; refine quotient.sound _; simp only [edist_self]
 
 instance : emetric_space (α →ₘ γ) :=
-{ edist_self          := assume f, (integral_eq_zero_iff _).2 (comp_nndist_self _),
-  edist_comm          := by { rintros ⟨f⟩ ⟨g⟩, simp [comp_nndist, nndist_comm] },
+{ edist               := λf g, eintegral (comp_edist f g),
+  edist_self          := assume f, (eintegral_eq_zero_iff _).2 (comp_edist_self _),
+  edist_comm          :=
+    by rintros ⟨f⟩ ⟨g⟩; simp only [comp_edist, quot_mk_eq_mk, comp₂_mk_mk, edist_comm],
   edist_triangle      :=
   begin
-    rintros ⟨f, hf⟩ ⟨g, hg⟩ ⟨h, hh⟩,
-    simp only [comp_nndist, edist, ae_eq_fun.edist, quot_mk_eq_mk,
-               comp₂_mk_mk, (integral_add _ _).symm, mk_add_mk],
-    refine integral_le_integral _, simp only [mk_le_mk],
-    filter_upwards [], simp [nndist_triangle]
+    rintros ⟨f⟩ ⟨g⟩ ⟨h⟩,
+    simp only [comp_edist, quot_mk_eq_mk, comp₂_mk_mk, (eintegral_add _ _).symm],
+    exact lintegral_le_lintegral _ _ (assume a, edist_triangle _ _ _)
   end,
-  eq_of_edist_eq_zero := by { rintros ⟨f⟩ ⟨g⟩, simp [comp_nndist, zero_def, -integral_mk] } }
+  eq_of_edist_eq_zero :=
+  begin
+    rintros ⟨f⟩ ⟨g⟩,
+    simp only [edist, comp_edist, quot_mk_eq_mk, comp₂_mk_mk, eintegral_eq_zero_iff],
+    simp only [zero_def, mk_eq_mk, edist_eq_zero],
+    assume h, assumption
+  end }
+
+lemma edist_mk_mk {f g : α → γ} (hf hg) : edist (mk f hf) (mk g hg) = ∫⁻ x, edist (f x) (g x) := rfl
+
+end
+
+section metric
+variables {γ : Type*} [metric_space γ] [second_countable_topology γ]
+
+lemma edist_mk_mk' {f g : α → γ} (hf hg) :
+  edist (mk f hf) (mk g hg) = ∫⁻ x, nndist (f x) (g x) :=
+show  (∫⁻ x, edist (f x) (g x)) =  ∫⁻ x, nndist (f x) (g x), from
+lintegral_congr_ae $all_ae_of_all $ assume a, edist_nndist _ _
 
 end metric
 
@@ -295,7 +305,12 @@ section normed_group
 variables {γ : Type*} [normed_group γ] [second_countable_topology γ] [topological_add_group γ]
 
 lemma edist_eq_add_add : ∀ {f g h : α →ₘ γ}, edist f g = edist (f + h) (g + h) :=
-by { rintros ⟨f⟩ ⟨g⟩ ⟨h⟩, apply lintegral_congr_ae, filter_upwards [], simp [nndist_eq_nnnorm] }
+begin
+  rintros ⟨f⟩ ⟨g⟩ ⟨h⟩,
+  simp only [quot_mk_eq_mk, mk_add_mk, edist_mk_mk'],
+  apply lintegral_congr_ae,
+  filter_upwards [], simp [nndist_eq_nnnorm]
+end
 
 end normed_group
 
@@ -308,9 +323,8 @@ variables {γ : Type*} [normed_group γ] [second_countable_topology γ] [normed_
 
 lemma edist_smul (x : K) : ∀ f : α →ₘ γ, edist (x • f) 0 = (ennreal.of_real ∥x∥) * edist f 0 :=
 begin
-  rintros ⟨f, hf⟩, show
-  (∫⁻ (a : α), nndist (x • f a) 0) = (ennreal.of_real ∥x∥) * (∫⁻ (a : α), nndist (f a) 0),
-  calc
+  rintros ⟨f, hf⟩, simp only [zero_def, edist_mk_mk', quot_mk_eq_mk, smul_mk],
+  exact calc
     (∫⁻ (a : α), nndist (x • f a) 0) = (∫⁻ (a : α), (nnnorm x) * nnnorm (f a)) :
       lintegral_congr_ae $ by { filter_upwards [], assume a, simp [nndist_eq_nnnorm, nnnorm_smul] }
     ... = _ : lintegral_const_mul _ (measurable_coe_nnnorm hf)
@@ -319,7 +333,7 @@ begin
       convert rfl,
       { rw ← coe_nnnorm, rw [ennreal.of_real], congr, exact nnreal.of_real_coe },
       { funext, simp [nndist_eq_nnnorm] }
-    end
+    end,
 end
 
 end normed_space

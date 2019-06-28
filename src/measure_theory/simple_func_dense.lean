@@ -16,43 +16,6 @@ local attribute [instance] classical.prop_decidable
 universes u v
 variables {α : Type u} {β : Type v} {ι : Type*}
 
-namespace set
-
-/-- Enumerate elements in a countable set.-/
-def enumerate_countable {s : set α} (h : countable s) (default : α): ℕ → α :=
-assume n, match @encodable.decode s (h.to_encodable) n with
-        | (some y) := y
-        | (none)   := default
-        end
-
-lemma subset_range_enumerate {s : set α} (h : countable s) (default : α) :
-   s ⊆ range (enumerate_countable h default) :=
-assume x hx, ⟨@encodable.encode s h.to_encodable ⟨x, hx⟩, by simp [enumerate_countable, encodable.encodek]⟩
-
-end set
-
-open set
-
-section enumerate
-
-variables [topological_space β] [separable_space β]
-
-lemma closure_range_enumerate {D : set β} (D_countable : countable D) (D_dense : closure D = univ)
-  (default : β) : closure (range (enumerate_countable D_countable default)) = univ :=
-dense_of_subset_dense (subset_range_enumerate D_countable default) D_dense
-
-end enumerate
-
-section other_lemmas
-
-lemma exists_of_forall {p : α → Prop} [inhabited α] : (∀ N, p N) → ∃ N, p N :=
-λ h, ⟨default α, h $ default α⟩
-
-lemma not_mem_Union_iff {A : ℕ → ℕ → set α} {x : α} : (∀ {M k}, x ∉ A M k) ↔ x ∉ ⋃ M k, A M k :=
-by simp
-
-end other_lemmas
-
 namespace measure_theory
 open ennreal nat metric
 variables [measure_space α] [normed_group β] [second_countable_topology β]
@@ -67,7 +30,6 @@ let ⟨D, ⟨D_countable, D_dense⟩⟩ := separable_space.exists_countable_clos
 let e := enumerate_countable D_countable 0 in
 let E := range e in
 have E_dense : closure E = univ := closure_range_enumerate D_countable D_dense 0,
--- A' N k is a ball of radius 1 / (N + 1) around point e k
 let A' (N k : ℕ) : set α :=
   f ⁻¹' (metric.ball (e k) (1 / (N+1 : ℝ)) \ metric.ball 0 (1 / (N+1 : ℝ))) in
 let A N := disjointed (A' N) in
@@ -218,8 +180,7 @@ end,
     by { assume M k h, have := disjointed_subset h, exact absurd this x_not_mem_A' },
   have F_eq_0 : ∀ {N}, F N x = 0 := λ N, by simp [F, if_neg, mem_Union, x_not_mem_A],
   -- end of `have`
-  exists_of_forall $ λ n N hN, show dist (F N x) (f x) < ε,
-                                  by {rw [fx_eq_0, F_eq_0, dist_self], exact hε} )
+  ⟨0, λ n hn, show dist (F n x) (f x) < ε, by {rw [fx_eq_0, F_eq_0, dist_self], exact hε}⟩ )
 --second case : f x ≠ 0
 ( assume fx_ne_0 : f x ≠ 0,
   let ⟨N₀, hN⟩ := exists_nat_one_div_lt (lt_min ((norm_pos_iff _).2 fx_ne_0) hε) in

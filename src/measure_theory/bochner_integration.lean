@@ -55,7 +55,7 @@ begin
       by { simp only [zero_add, of_real_lt_of_real_iff ε0], exact half_lt_self ε0 },
   { refine ⟨mk (F N) (h₁ N), _⟩, rw dist_comm,
     rw lt_of_real_iff_to_real_lt _ at this,
-    { simpa [edist, comp_nndist, ae_eq_fun.edist, mk, l1.mk] },
+    { simpa [edist_mk_mk', mk, l1.mk, dist_def] },
     rw ← lt_top_iff_ne_top, exact lt_trans this (by simp [lt_top_iff_ne_top, of_real_ne_top]) },
   { exact zero_ne_top }
 end
@@ -77,11 +77,11 @@ section integral
 
 variables [normed_space ℝ γ]
 
-def bochner_integral' (f : measure_theory.simple_func α γ) : γ :=
-f.range.sum (λ (x : γ), (ennreal.to_real (volume (f ⁻¹' {x}))) • x)
+def to_simple_func (f : α →ₛ γ) : measure_theory.simple_func α γ := classical.some f.2
 
 -- bochner integration over simple functions in l1 space
-def bochner_integral (f : α →ₛ γ) : γ := bochner_integral' (classical.some f.2)
+def integral (f : α →ₛ γ) : γ :=
+(f.to_simple_func).range.sum (λ (x : γ), (ennreal.to_real (volume ((f.to_simple_func) ⁻¹' {x}))) • x)
 
 end integral
 
@@ -92,16 +92,16 @@ open simple_func
 variables [normed_space ℝ γ]
 
 -- bochner integration over functions in l1 space
-def bochner_integral (f : α →₁ γ) : γ :=
-dense_embedding.extend dense_embedding_of_simple_func simple_func.bochner_integral f
+def integral (f : α →₁ γ) : γ :=
+dense_embedding.extend dense_embedding_of_simple_func simple_func.integral f
 
 end l1
 
 variables [normed_space ℝ γ]
 
-def bochner_integral (f : α → γ) : γ :=
+def integral (f : α → γ) : γ :=
 if hf : measurable f ∧ integrable f
-then (l1.mk f hf.1 hf.2).bochner_integral
+then (l1.mk f hf.1 hf.2).integral
 else 0
 
 end measure_theory

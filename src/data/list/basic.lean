@@ -4194,12 +4194,6 @@ theorem reverse_range' : ∀ s n : ℕ,
     nil_append, eq_self_iff_true, true_and, map_map]
   using reverse_range' s n
 
-def fin_range (n : ℕ) : list (fin n) :=
-(range n).pmap fin.mk (λ _, list.mem_range.1)
-
-@[simp] lemma mem_fin_range {n : ℕ} (a : fin n) : a ∈ fin_range n :=
-mem_pmap.2 ⟨a.1, mem_range.2 a.2, fin.eta _ _⟩
-
 /--
 `Ico n m` is the list of natural numbers `n ≤ x < m`.
 (Ico stands for "interval, closed-open".)

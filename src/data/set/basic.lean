@@ -1258,7 +1258,7 @@ variable {α : Type*}
   range (@subtype.val _ p) = {x | p x} :=
 by rw ← image_univ; simp [-image_univ, subtype.val_image]
 
-@[simp] lemma range_coe_subtype (s : set α): range (coe : s → α) = s :=
+@[simp] lemma range_coe_subtype (s : set α) : range (coe : s → α) = s :=
 subtype.val_range
 
 end range

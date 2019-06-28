@@ -300,7 +300,7 @@ measurable.is_glb hf $ λ b, is_glb_infi
 
 lemma measurable.supr_Prop {α} [topological_space α] [complete_linear_order α]
   [orderable_topology α] [second_countable_topology α]
-  {β} [measurable_space β] {p : Prop} {f : β → α} (hf : measurable f):
+  {β} [measurable_space β] {p : Prop} {f : β → α} (hf : measurable f) :
   measurable (λ b, ⨆ h : p, f b) :=
 classical.by_cases
   (assume h : p, begin convert hf, funext, exact supr_pos h end)
@@ -308,7 +308,7 @@ classical.by_cases
 
 lemma measurable.infi_Prop {α} [topological_space α] [complete_linear_order α]
   [orderable_topology α] [second_countable_topology α]
-  {β} [measurable_space β] {p : Prop} {f : β → α} (hf : measurable f):
+  {β} [measurable_space β] {p : Prop} {f : β → α} (hf : measurable f) :
   measurable (λ b, ⨅ h : p, f b) :=
 classical.by_cases
   (assume h : p, begin convert hf, funext, exact infi_pos h end )

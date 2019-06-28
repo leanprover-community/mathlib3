@@ -504,11 +504,11 @@ lemma mul_eq_one_iff : ∀ {a b : ℕ}, a * b = 1 ↔ a = 1 ∧ b = 1
     (add_assoc _ _ _).symm, nat.succ_inj', add_eq_zero_iff] at h; simp [h.1.2, h.2],
   by clear_aux_decl; finish⟩
 
-lemma mul_right_eq_self_iff {a b : ℕ} (ha : 0 < a): a * b = a ↔ b = 1 :=
+lemma mul_right_eq_self_iff {a b : ℕ} (ha : 0 < a) : a * b = a ↔ b = 1 :=
 suffices a * b = a * 1 ↔ b = 1, by rwa mul_one at this,
 nat.mul_left_inj ha
 
-lemma mul_left_eq_self_iff {a b : ℕ} (hb : 0 < b): a * b = b ↔ a = 1 :=
+lemma mul_left_eq_self_iff {a b : ℕ} (hb : 0 < b) : a * b = b ↔ a = 1 :=
 by rw [mul_comm, nat.mul_right_eq_self_iff hb]
 
 lemma lt_succ_iff_lt_or_eq {n i : ℕ} : n < i.succ ↔ (n < i ∨ n = i) :=

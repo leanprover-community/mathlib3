@@ -173,7 +173,7 @@ mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
   hss' this
 
 lemma summable_sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
-  (hf : ∀b, summable (λc, f ⟨b, c⟩)) (ha : summable f) : summable (λb, ∑c, f ⟨b, c⟩):=
+  (hf : ∀b, summable (λc, f ⟨b, c⟩)) (ha : summable f) : summable (λb, ∑c, f ⟨b, c⟩) :=
 summable_spec $ has_sum_sigma (assume b, has_sum_tsum $ hf b) (has_sum_tsum ha)
 
 end has_sum
@@ -302,7 +302,7 @@ calc (∑b, f b) = (finset.singleton b).sum f : tsum_eq_sum $ by simp [hf] {cont
   ... = f b : by simp
 
 lemma tsum_sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
-  (h₁ : ∀b, summable (λc, f ⟨b, c⟩)) (h₂ : summable f) : (∑p, f p) = (∑b c, f ⟨b, c⟩):=
+  (h₁ : ∀b, summable (λc, f ⟨b, c⟩)) (h₂ : summable f) : (∑p, f p) = (∑b c, f ⟨b, c⟩) :=
 (tsum_eq_has_sum $ has_sum_sigma (assume b, has_sum_tsum $ h₁ b) $ has_sum_tsum h₂).symm
 
 @[simp] lemma tsum_ite_eq (b : β) (a : α) : (∑b', if b' = b then a else 0) = a :=

@@ -65,10 +65,10 @@ begin
     simp [X, monomial, single_mul_single, nat.succ_eq_add_one] }
 end
 
-lemma monomial_add_single : monomial (s + single n e) a = (monomial s a * X n ^ e):=
+lemma monomial_add_single : monomial (s + single n e) a = (monomial s a * X n ^ e) :=
 by rw [X_pow_eq_single, monomial, monomial, monomial, single_mul_single]; simp
 
-lemma monomial_single_add : monomial (single n e + s) a = (X n ^ e * monomial s a):=
+lemma monomial_single_add : monomial (single n e + s) a = (X n ^ e * monomial s a) :=
 by rw [X_pow_eq_single, monomial, monomial, monomial, single_mul_single]; simp
 
 lemma monomial_eq : monomial s a = C a * (s.prod $ λn e, X n ^ e : mv_polynomial σ α) :=

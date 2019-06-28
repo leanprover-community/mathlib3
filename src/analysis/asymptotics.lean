@@ -625,7 +625,7 @@ begin
 end
 
 theorem is_o_mul_left {f₁ f₂ : α → β} {g₁ g₂ : α → γ} {l : filter α}
-    (h₁ : is_O f₁ g₁ l) (h₂ : is_o f₂ g₂ l):
+    (h₁ : is_O f₁ g₁ l) (h₂ : is_o f₂ g₂ l) :
   is_o (λ x, f₁ x * f₂ x) (λ x, g₁ x * g₂ x) l :=
 begin
   intros c cpos,
@@ -639,12 +639,12 @@ begin
 end
 
 theorem is_o_mul_right {f₁ f₂ : α → β} {g₁ g₂ : α → γ} {l : filter α}
-    (h₁ : is_o f₁ g₁ l) (h₂ : is_O f₂ g₂ l):
+    (h₁ : is_o f₁ g₁ l) (h₂ : is_O f₂ g₂ l) :
   is_o (λ x, f₁ x * f₂ x) (λ x, g₁ x * g₂ x) l :=
 by convert is_o_mul_left h₂ h₁; simp only [mul_comm]
 
 theorem is_o_mul {f₁ f₂ : α → β} {g₁ g₂ : α → γ} {l : filter α}
-    (h₁ : is_o f₁ g₁ l) (h₂ : is_o f₂ g₂ l):
+    (h₁ : is_o f₁ g₁ l) (h₂ : is_o f₂ g₂ l) :
   is_o (λ x, f₁ x * f₂ x) (λ x, g₁ x * g₂ x) l :=
 is_o_mul_left h₁.to_is_O h₂
 

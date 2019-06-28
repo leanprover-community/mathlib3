@@ -754,7 +754,7 @@ lemma tendsto_cons' {a : α} {l : list α} :
 by rw [nhds_cons, tendsto, map_prod]; exact le_refl _
 
 lemma tendsto_cons {f : α → β} {g : α → list β}
-  {a : _root_.filter α} {b : β} {l : list β} (hf : tendsto f a (nhds b)) (hg : tendsto g a (nhds l)):
+  {a : _root_.filter α} {b : β} {l : list β} (hf : tendsto f a (nhds b)) (hg : tendsto g a (nhds l)) :
   tendsto (λa, list.cons (f a) (g a)) a (nhds (b :: l)) :=
 tendsto_cons'.comp (tendsto.prod_mk hf hg)
 

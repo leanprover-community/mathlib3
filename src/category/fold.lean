@@ -186,14 +186,7 @@ instance (f : α → β) : is_monoid_hom (free.map f) :=
 instance fold_foldl (f : β → α → β) :
   is_monoid_hom (foldl.of_free_monoid f) :=
 { map_one := rfl,
-  map_mul :=
-  begin
-    intros,
-    unfold_projs,
-    apply unop_inj,
-    simp only [foldl.of_free_monoid, flip, unop_op, list.foldl_append],
-    refl
-  end }
+  map_mul := by intros; simp only [free_monoid.mul_def, foldl.of_free_monoid, flip, unop_op, list.foldl_append, op_inj_iff]; refl }
 
 lemma foldl.unop_of_free_monoid  (f : β → α → β) (xs : free_monoid α) (a : β) :
   unop (foldl.of_free_monoid f xs) a = list.foldl f a xs := rfl
@@ -201,12 +194,7 @@ lemma foldl.unop_of_free_monoid  (f : β → α → β) (xs : free_monoid α) (a
 instance fold_foldr (f : α → β → β) :
   is_monoid_hom (foldr.of_free_monoid f) :=
 { map_one := rfl,
-  map_mul :=
-  begin
-    intros,
-    unfold_projs,
-    simp only [foldr.of_free_monoid, list.foldr_append, flip]
-  end }
+  map_mul := by intros; simp only [free_monoid.mul_def, foldr.of_free_monoid, list.foldr_append, flip]; refl }
 
 variables (m : Type u → Type u) [monad m] [is_lawful_monad m]
 
@@ -217,27 +205,12 @@ lemma mfoldl.unop_of_free_monoid  (f : β → α → m β) (xs : free_monoid α)
 instance fold_mfoldl (f : β → α → m β) :
   is_monoid_hom (mfoldl.of_free_monoid f) :=
 { map_one := rfl,
-  map_mul :=
-  begin
-    intros,
-    apply unop_inj,
-    unfold_projs,
-    ext,
-    simp only [mfoldl.unop_of_free_monoid],
-    apply list.mfoldl_append
-  end }
+  map_mul := by intros; apply unop_inj; ext; apply list.mfoldl_append }
 
 instance fold_mfoldr (f : α → β → m β) :
   is_monoid_hom (mfoldr.of_free_monoid f) :=
 { map_one := rfl,
-  map_mul :=
-  begin
-    intros,
-    unfold_projs,
-    ext,
-    simp only [mfoldr.of_free_monoid, flip],
-    apply list.mfoldr_append
-  end }
+  map_mul := by intros; ext; apply list.mfoldr_append }
 
 variables {t : Type u → Type u} [traversable t] [is_lawful_traversable t]
 open is_lawful_traversable
@@ -282,12 +255,7 @@ lemma foldr.of_free_monoid_comp_free_mk (f : β → α → α) : foldr.of_free_m
 
 @[simp]
 lemma mfoldl.of_free_monoid_comp_free_mk {m} [monad m] [is_lawful_monad m] (f : α → β → m α) : mfoldl.of_free_monoid f ∘ free.mk = mfoldl.mk ∘ flip f :=
-begin
-  ext,
-  apply unop_inj,
-  simp only [(∘), mfoldl.of_free_monoid, mfoldl.mk, flip, fold_mfoldl_cons],
-  refl
-end
+by ext; simp only [(∘), mfoldl.of_free_monoid, mfoldl.mk, flip, fold_mfoldl_cons]; refl
 
 @[simp]
 lemma mfoldr.of_free_monoid_comp_free_mk {m} [monad m] [is_lawful_monad m] (f : β → α → m α) : mfoldr.of_free_monoid f ∘ free.mk = mfoldr.mk ∘ f :=

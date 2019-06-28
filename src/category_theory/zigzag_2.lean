@@ -47,6 +47,8 @@ instance  {n m : Δ} : has_coe_to_fun (n ⟶ m) :=
 { F := λ f, fin n → fin m,
   coe := λ f, f.val }
 
+instance : has_coe Δ ℕ := {coe := λ n, n}
+
 @[simp] lemma id_coe {n : Δ} (x : fin n) : ((𝟙 n) : fin n → fin n) x = x := rfl
 @[simp] lemma comp_coe {l m n : Δ} (f : l ⟶ m) (g : m ⟶ n) (x : fin l) : (f ≫ g : fin l → fin n) x = g (f x) := rfl
 @[simp] lemma mk_coe {n m : Δ} (f : fin n → fin m) (h) (x) : (⟨f, h⟩ : n ⟶ m) x = f x := rfl
@@ -68,25 +70,22 @@ begin
  exact i.is_lt,
 end
 
-lemma cast_lt_cast_succ {n : ℕ} (i : fin n) ( h : (fin.cast_succ i).val < n):
+lemma cast_lt_cast_succ {n : ℕ} (i : fin n) (h : (fin.cast_succ i).val < n) :
   fin.cast_lt (fin.cast_succ i) h = i :=
 fin.eq_of_veq (by simp only [fin.cast_lt_val, fin.cast_succ_val])
+
+lemma cast_lt_succ {n : ℕ} (i : fin n) (h₁ : (fin.succ i).val < n) (h₂ : i.val + 1 < n) :
+  fin.cast_lt (fin.succ i) h₁ = ⟨i.val + 1, h₂⟩ :=
+fin.eq_of_veq $ by rw [fin.cast_lt_val, fin.succ_val]
 
 section T
 def T_map {n m : Δ} (f : n ⟶ m) : fin (n + 1) →  fin (m + 1) :=
 λ i, if h : i.val < n then (f (i.cast_lt h)).cast_succ else fin.last _
 
-lemma T_f_eq_f {n m : Δ} (f : n ⟶ m) {j : fin n} :
-  T_map f (fin.cast_succ j) = fin.cast_succ (f j) :=
-begin
-  dsimp [T_map],
-  split_ifs,
-  {rw [cast_lt_cast_succ]},
-  {exact absurd j.is_lt h}
-end
 
 
-lemma T_map_mono {n m : Δ} {f : n ⟶ m} : monotone (T_map f) :=
+
+lemma T_map_mono {n m : Δ} (f : n ⟶ m) : monotone (T_map f) :=
 λ a b h,
 begin
   cases f,
@@ -147,9 +146,25 @@ end)
 
 def T : Δ ⥤ Δ :=
 { obj := λ n, (n + 1 : ℕ),
-  map := λ n m f, ⟨T_map f, T_map_mono⟩,
+  map := λ n m f, ⟨T_map f, T_map_mono f⟩,
   map_id' := λ n, Δ.hom_ext (funext T_map_id),
   map_comp' := λ l n m f g, Δ.hom_ext T_map_comp}
+
+lemma T_map_f_eq_f {n m : Δ} (f : n ⟶ m) {j : fin n} :
+  T_map f (fin.cast_succ j) = fin.cast_succ (f j) :=
+begin
+  dsimp [T_map],
+  split_ifs,
+  {rw [cast_lt_cast_succ]},
+  {exact absurd j.is_lt h}
+end
+
+lemma T_f_eq_f {n m : Δ} (f : n ⟶ m) {j : fin n} :
+  T.map f (fin.cast_succ j) = fin.cast_succ (f j) :=
+begin
+  dsimp [T],
+  apply T_map_f_eq_f
+end
 
 
 
@@ -318,6 +333,17 @@ instance : has_coe Δ_ᵒᵖ ℕ := {coe := λ n, unop n}
   f = g :=
 has_hom.hom.unop_inj $ hom_ext h
 
+
+@[simp] lemma f_zero {m n : Δ_} {f : n ⟶ m} : f 0 = 0 := by tidy
+@[simp] lemma f_op_zero {m n : Δ_ᵒᵖ} {f : n ⟶ m} : f 0 = 0 := f_zero
+
+@[simp] lemma f_last {m n : Δ_} {f : n ⟶ m} : f (fin.last _) = fin.last _ := by tidy
+@[simp] lemma f_op_last {m n : Δ_ᵒᵖ} {f : n ⟶ m} : f (fin.last m) = fin.last _ := f_last
+
+lemma f_mono {n m : Δ_} (f : n ⟶ m) : monotone f :=
+by tidy
+lemma f_op_mono {n m : Δ_ᵒᵖ} (f : n ⟶ m) : monotone f := f_mono _
+
 end Δ_
 
 section prime
@@ -361,15 +387,80 @@ def prime : Δ ⥤ Δ_ᵒᵖ :=
   map_id' := prime_map_id,
   map_comp' := prime_map_comp }
 
-@[simp] lemma f_zero {m n : Δ_} {f : n ⟶ m} : f 0 = 0 := by tidy
-@[simp] lemma f_op_zero {m n : Δ_ᵒᵖ} {f : n ⟶ m} : f 0 = 0 := f_zero
+lemma f_lt_of_neq {n m : Δ} {f : n ⟶ m} {i j : fin n} (w : i ≤ j) (h : f i ≠ f j) :
+  f i < f j := lt_of_le_of_ne (f.property w) h
 
-@[simp] lemma f_last {m n : Δ_} {f : n ⟶ m} : f (fin.last _) = fin.last _ := by tidy
-@[simp] lemma f_op_last {m n : Δ_ᵒᵖ} {f : n ⟶ m} : f (fin.last m) = fin.last _ := f_last
+lemma prime_f_of_f_succ_le_succ  {n m : Δ} {f : n ⟶ m} {i : fin n} (w : i.val + 1 < n)
+    (h : f i ≠ f ⟨i.val+1,w⟩) : prime.map f (f i).succ ≤ i.succ :=
+prime_map_fn_le
+begin
+  have w'' : i ≤ ⟨i.val+1,w⟩ := nat.le_succ _,
+  have w' := f_lt_of_neq w'' h,
+  dsimp [T,T_map],
+  split_ifs with h₁,
+  { rw [cast_lt_succ i h₁ w],
+    dsimp [(≥), (≤), (<), (fin.le), (fin.lt)] at *,
+    rw [fin.succ_val] at *,
+    apply w',},
+  {apply fin.le_last}
+end
 
-lemma f_mono {n m : Δ_} (f : n ⟶ m) : monotone f :=
-by tidy
-lemma f_op_mono {n m : Δ_ᵒᵖ} (f : n ⟶ m) : monotone f := f_mono _
+lemma lt_succ_iff_le_cast_succ {n : ℕ} {i : fin n} {j : fin (n + 1)} :
+  j < i.succ ↔ j ≤ i.cast_succ :=
+begin
+  dsimp [(<), (≤), (fin.le), (fin.lt)],
+  rw fin.succ_val,
+  exact nat.lt_succ_iff
+end
+
+lemma succ_le_prime_f_of_f_succ  {n m : Δ} {f : n ⟶ m} {i : fin n} (w : i.val + 1 < n)
+    (h : f i ≠ f ⟨i.val+1,w⟩) : i.succ ≤ prime.map f (f i).succ :=
+le_prime_map_fn $ λ k T_k_ge,
+begin
+  by_contradiction, -- is there such a thing as by_contradiction with a?
+  have w' : T.map f k ≤ T.map f i.cast_succ :=
+      (T.map f).property (lt_succ_iff_le_cast_succ.1 (lt_of_not_ge a)),
+  rw [T_f_eq_f] at w',
+  exact nat.lt_le_antisymm (lt_succ_iff_le_cast_succ.2 w') T_k_ge
+end
+
+
+lemma prime_f_of_f {n m : Δ} {f : n ⟶ m} {i : fin n} {w : i.val + 1 < n} (h : f i ≠ f ⟨i.val+1,w⟩)
+ : i.succ = prime.map f (f i).succ  :=
+le_antisymm (succ_le_prime_f_of_f_succ w h) (prime_f_of_f_succ_le_succ w h)
+
+lemma prime_f_lt_n {n m : Δ} {f : n ⟶ m} {j : fin m} (h : prime.map f j.cast_succ ≠ prime.map f j.succ) :
+  (prime.map f j.cast_succ).val < n :=
+begin
+  have w : j.cast_succ ≤ j.succ := by {dsimp [(≤), fin.le], rw [fin.succ_val], apply nat.le_succ},
+  have w' : prime.map f j.cast_succ < prime.map f j.succ := lt_of_le_of_ne (Δ_.f_op_mono _ w) h,
+  dsimp [(<), fin.lt] at w',
+  exact lt_of_lt_of_le w' (fin.le_last _),
+end
+
+-- Still need to prove this lemma
+lemma f_prime_f_j_le_j {n m : Δ} {f : n ⟶ m} {j : fin m}
+    {h : prime.map f j.cast_succ ≠ prime.map f j.succ} :
+  f ((prime.map f j.cast_succ).cast_lt (prime_f_lt_n h)) ≤ j := sorry
+
+lemma j_le_f_prime_f_j {n m : Δ} {f : n ⟶ m} {j : fin m}
+    {h : prime.map f j.cast_succ ≠ prime.map f j.succ} :
+  j ≤ f ((prime.map f j.cast_succ).cast_lt (prime_f_lt_n h)) :=
+begin
+  dsimp [prime] at *,
+  have w := T_f_of_prime_map_fn_ge f j.cast_succ,
+  dsimp [T, T_map] at *,
+  split_ifs at w with h_1,
+  {apply w},
+  {exact absurd (prime_f_lt_n h) h_1},
+end
+
+
+lemma f_prime_f_j_eq_j {n m : Δ} {f : n ⟶ m} {j : fin m}
+    (h : prime.map f j.cast_succ ≠ prime.map f j.succ) :
+  f ((prime.map f j.cast_succ).cast_lt (prime_f_lt_n h)) = j :=
+le_antisymm f_prime_f_j_le_j j_le_f_prime_f_j
+
 
 end prime
 
@@ -389,7 +480,7 @@ lemma zero_mem_below {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j : fin (n + 1)} :
 mem_below_iff.2
 begin
   {show f 0 ≤ j,
-  rw [f_op_zero],
+  rw [Δ_.f_op_zero],
   exact fin.zero_le _,}
 end
 
@@ -405,7 +496,7 @@ lemma m_not_in_below {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j : fin n} :
   (fin.last m : fin (unop m + 1)) ∉ below f (fin.cast_succ j) := λ h,
 begin
   have w := mem_below_iff.1 h,
-  rw [f_op_last] at w,
+  rw [Δ_.f_op_last] at w,
   dsimp [fin.last, (≤), fin.le] at w,
   exact nat.lt_le_antisymm (j.is_lt) w
 end
@@ -517,7 +608,7 @@ end
 
 lemma prime_inv_map_fn_implies_le {n m : Δ_ᵒᵖ} {f : n ⟶ m} {j : fin (m + 1)} {k : fin n}
   (h : fin.cast_succ (prime_inv_map_fn f k) ≥ j) : f j ≤ fin.cast_succ k :=
-le_trans ((f_op_mono f) h) (f_prime_inv_map_fn_le f k)
+le_trans ((Δ_.f_op_mono f) h) (f_prime_inv_map_fn_le f k)
 
 lemma le_prime_comp_prime_inv {n m : Δ_ᵒᵖ} (f : n ⟶ m) (j : fin (m + 1)) :
   f j ≤ prime.map (prime_inv_map f) j :=
@@ -538,9 +629,9 @@ lemma prime_inv_comp_prime_le {n m : Δ} (f : n ⟶ m) (j : fin n) :
   prime_inv_map (prime.map f) j ≤ f j :=
 prime_inv_map_fn_le (λ k h,
 begin
-  dsimp [T, prime, prime_map_fn] at *,
-  have w'' := T_map_mono h,
-  rw [T_f_eq_f] at w'',
+  dsimp [prime, prime_map_fn] at *,
+  have w'' := T_map_mono f h,
+  rw [T_map_f_eq_f] at w'',
   apply le_trans (T_f_of_prime_map_fn_ge f k) w'',
 end)
 
@@ -548,7 +639,6 @@ lemma le_prime_inv_comp_prime {n m : Δ} (f : n ⟶ m) (j : fin n) :
   f j ≤ prime_inv_map (prime.map f) j :=
 cast_succ_le' (prime_inv_map_fn_ge (prime_map_fn_le
 begin
-  dsimp [T],
   rw [T_f_eq_f],
   apply le_refl,
 end))
@@ -584,11 +674,13 @@ structure zigzag :=
 (regular : fin (n+1) → C)
 (forwards : Π (i : fin n), regular (i.cast_succ) ⟶ singular i)
 (backwards : Π (i : fin n), regular (i.succ) ⟶ singular i)
--- Need a lemma that says the regular i.succ = regular (i + 1).cast_succ
 
 lemma reg_succ {X : zigzag.{v₁} C} {i : fin X.n} {w : (i.val + 1) < X.n} :
   X.regular (i.succ) = X.regular (fin.mk (i.val + 1) w).cast_succ :=
 congr_arg _ (fin.eq_of_veq (by {simp only [fin.cast_succ_val, fin.succ_val]}))
+
+
+
 
 
 namespace zigzag
@@ -601,9 +693,13 @@ structure hom (X Y : zigzag.{v₁} C) :=
     (h : f_sing (fin.mk (i.val + 1) w) = f_sing i),
       X.backwards i ≫ g i = eq_to_hom (reg_succ C) ≫ X.forwards (fin.mk (i.val + 1) w) ≫ g ((fin.mk (i.val + 1) w)) ≫ eq_to_hom (congr_arg Y.singular h))
 (reg_comm_eq : ∀ (j : fin (Y.n)) (w : (j.val + 1) < Y.n)
-    (h : (prime.map f_sing j.cast_succ) = (prime.map f_sing j.succ)), Y.forwards j = eq_to_hom (reg_id j.cast_succ) ≫ eq_to_hom (congr_arg X.regular h) ≫ eq_to_hom (eq.symm (reg_id j.succ)) ≫ Y.backwards j)
-
-
+    (h : (prime.map f_sing j.cast_succ) = (prime.map f_sing j.succ)),
+    Y.forwards j = eq_to_hom (reg_id j.cast_succ) ≫ eq_to_hom (congr_arg X.regular h) ≫ eq_to_hom (eq.symm (reg_id j.succ)) ≫ Y.backwards j)
+(sing_comm_neq : ∀ (i : fin X.n) (w : (i.val + 1) < X.n) (h : f_sing i ≠ f_sing (fin.mk (i.val + 1) w)),
+  X.backwards i ≫ g i = eq_to_hom (congr_arg X.regular (prime_f_of_f h)) ≫ eq_to_hom (eq.symm (reg_id (f_sing i).succ)) ≫ Y.backwards (f_sing i))
+(reg_comm_neq :  ∀ (j : fin Y.n) (h : prime.map f_sing j.cast_succ ≠ prime.map f_sing j.succ),
+  eq_to_hom (reg_id j.cast_succ) ≫ eq_to_hom (congr_arg X.regular (eq.symm (fin.cast_succ_cast_lt (prime.map f_sing j.cast_succ) (prime_f_lt_n h)))) ≫ X.forwards ((prime.map f_sing j.cast_succ).cast_lt (prime_f_lt_n h)) ≫ g ((prime.map f_sing j.cast_succ).cast_lt (prime_f_lt_n h)) ≫ eq_to_hom (congr_arg Y.singular (f_prime_f_j_eq_j h)) = Y.forwards j)
+-- Need to make sure the last square commutes
 
 
 end zigzag

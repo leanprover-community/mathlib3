@@ -21,7 +21,6 @@ open ennreal nat metric
 variables [measure_space α] [normed_group β] [second_countable_topology β]
 
 local infixr ` →ₛ `:25 := simple_func
-
 lemma simple_func_sequence_tendsto {f : α → β} (hf : measurable f) :
   ∃ (F : ℕ → (α →ₛ β)), ∀ x : α, tendsto (λ n, F n x) at_top (nhds (f x)) ∧
   ∀ n, ∥F n x∥ ≤ ∥f x∥ + ∥f x∥ :=
@@ -29,7 +28,8 @@ lemma simple_func_sequence_tendsto {f : α → β} (hf : measurable f) :
 let ⟨D, ⟨D_countable, D_dense⟩⟩ := separable_space.exists_countable_closure_eq_univ β in
 let e := enumerate_countable D_countable 0 in
 let E := range e in
-have E_dense : closure E = univ := closure_range_enumerate D_countable D_dense 0,
+have E_dense : closure E = univ :=
+  dense_of_subset_dense (subset_range_enumerate D_countable 0) D_dense,
 let A' (N k : ℕ) : set α :=
   f ⁻¹' (metric.ball (e k) (1 / (N+1 : ℝ)) \ metric.ball 0 (1 / (N+1 : ℝ))) in
 let A N := disjointed (A' N) in

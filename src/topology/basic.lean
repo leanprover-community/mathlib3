@@ -10,7 +10,7 @@ Parts of the formalization is based on the books:
   I. M. James: Topologies and Uniformities
 A major difference is that this formalization is heavily based on the filter library.
 -/
-import order.filter
+import order.filter data.set.countable
 
 open set filter lattice classical
 local attribute [instance] prop_decidable
@@ -306,6 +306,10 @@ end
 lemma dense_of_subset_dense {s₁ s₂ : set α} (h : s₁ ⊆ s₂) (hd : closure s₁ = univ) :
   closure s₂ = univ :=
 by { rw [← univ_subset_iff, ← hd], exact closure_mono h }
+
+lemma closure_range_enumerate {s : set α} (hc : countable s) (hd : closure s = univ)
+  (default : α) : closure (range (enumerate_countable hc default)) = univ :=
+dense_of_subset_dense (subset_range_enumerate hc default) hd
 
 /-- The frontier of a set is the set of points between the closure and interior. -/
 def frontier (s : set α) : set α := closure s \ interior s

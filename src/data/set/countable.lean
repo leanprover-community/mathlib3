@@ -6,7 +6,7 @@ Author: Johannes Hölzl
 Countable sets.
 -/
 
-import data.equiv.list data.set.finite logic.function data.set.function topology.basic
+import data.equiv.list data.set.finite logic.function data.set.function
 noncomputable theory
 
 open function set encodable
@@ -175,8 +175,6 @@ end
 
 section enumerate
 
-open topological_space
-
 /-- Enumerate elements in a countable set.-/
 def enumerate_countable {s : set α} (h : countable s) (default : α) : ℕ → α :=
 assume n, match @encodable.decode s (h.to_encodable) n with
@@ -186,15 +184,9 @@ assume n, match @encodable.decode s (h.to_encodable) n with
 
 lemma subset_range_enumerate {s : set α} (h : countable s) (default : α) :
    s ⊆ range (enumerate_countable h default) :=
-assume x hx, 
-⟨@encodable.encode s h.to_encodable ⟨x, hx⟩, 
+assume x hx,
+⟨@encodable.encode s h.to_encodable ⟨x, hx⟩,
 by simp [enumerate_countable, encodable.encodek]⟩
-
-variables [topological_space β]
-
-lemma closure_range_enumerate {D : set β} (D_countable : countable D) (D_dense : closure D = univ)
-  (default : β) : closure (range (enumerate_countable D_countable default)) = univ :=
-dense_of_subset_dense (subset_range_enumerate D_countable default) D_dense
 
 end enumerate
 

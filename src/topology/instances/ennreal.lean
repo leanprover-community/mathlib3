@@ -69,7 +69,7 @@ end
 lemma is_open_ne_top : is_open {a : ennreal | a ≠ ⊤} :=
 is_open_neg (is_closed_eq continuous_id continuous_const)
 
-lemma is_open_Ico : is_open (Ico 0 b) := by { rw ennreal.Ico_eq_Iio, exact is_open_Iio}
+lemma is_open_Ico_zero : is_open (Ico 0 b) := by { rw ennreal.Ico_eq_Iio, exact is_open_Iio}
 
 lemma coe_range_mem_nhds : range (coe : nnreal → ennreal) ∈ nhds (r : ennreal) :=
 have {a : ennreal | a ≠ ⊤} = range (coe : nnreal → ennreal),

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 
-import order.lexicographic algebra.order_functions tactic.tauto algebra.pi_instances
+import algebra.order_functions tactic.tauto algebra.pi_instances
 
 variables {ι : Type*} {β : ι → Type*} (r : ι → ι → Prop)
   (s : Π {i}, β i → β i → Prop)

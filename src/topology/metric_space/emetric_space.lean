@@ -520,7 +520,8 @@ begin
     apply mem_closure_iff'.2,
     intros ε εpos,
     rcases ennreal.exists_inv_nat_lt (bot_lt_iff_ne_bot.1 εpos) with ⟨n, hn⟩,
-    have inv_n_pos : (0 : ennreal) < (n : ℕ)⁻¹ := by simp [ennreal.bot_lt_iff_ne_bot],
+    have inv_n_pos : (0 : ennreal) < (n : ℕ)⁻¹ :=
+      by simp only [ennreal.bot_lt_iff_ne_bot, ennreal.nat_ne_top, ne.def, not_false_iff, ennreal.inv_eq_zero],
     have C : x ∈ (⋃y∈ T (n : ℕ)⁻¹, ball y (n : ℕ)⁻¹) :=
       mem_of_mem_of_subset x_in_s ((finite_T (n : ℕ)⁻¹).2 inv_n_pos),
     rcases mem_Union.1 C with ⟨y, _, ⟨y_in_T, rfl⟩, Dxy⟩,

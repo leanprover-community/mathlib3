@@ -127,12 +127,7 @@ by rw [←cardinal.lift_inj, ← (is_basis_span hv).mk_eq_dim,
 
 lemma dim_span_set [decidable_eq β] {s : set β} (hs : linear_independent α (λ x, x : s → β)) :
   dim α ↥(span α s) = cardinal.mk s :=
-begin
-  have hs' : linear_independent α (subtype.val : s → β) := hs,
-  have := dim_span hs',
-  rw [subtype.val_range, set_of_mem_eq] at this,
-  rw this --TODO: shorten?
-end
+by rw [← @set_of_mem_eq _ s, ← subtype.val_range]; exact dim_span hs
 
 lemma dim_span_le (s : set β) : dim α (span α s) ≤ cardinal.mk s :=
 begin

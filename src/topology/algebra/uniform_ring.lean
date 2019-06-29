@@ -115,7 +115,7 @@ by rw [@ring_sep_rel α r]; refl
 def sep_quot_equiv_ring_quot (α)
   [r : comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
   quotient (separation_setoid α) ≃ (⊥ : ideal α).closure.quotient :=
-quotient.congr $ assume x y, group_separation_rel x y
+quotient.congr_right $ assume x y, group_separation_rel x y
 
 /- TODO: use a form of transport a.k.a. lift definition a.k.a. transfer -/
 instance [comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :

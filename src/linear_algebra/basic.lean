@@ -7,7 +7,7 @@ Basics of linear algebra. This sets up the "categorical/lattice structure" of
 modules, submodules, and linear maps.
 -/
 
-import algebra.pi_instances data.finsupp order.order_iso
+import algebra.pi_instances data.finsupp data.equiv.algebra order.order_iso
 
 open function lattice
 
@@ -86,11 +86,11 @@ by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
    intros; ext; simp
 
 instance linear_map.is_add_group_hom : is_add_group_hom f :=
-by refine_struct {..}; simp
+{ map_add := f.add }
 
 instance linear_map_apply_is_add_group_hom (a : β) :
   is_add_group_hom (λ f : β →ₗ[α] γ, f a) :=
-by refine_struct {..}; simp
+{ map_add := λ f g, linear_map.add_apply f g a }
 
 lemma sum_apply [decidable_eq δ] (t : finset δ) (f : δ → β →ₗ[α] γ) (b : β) :
   t.sum f b = t.sum (λd, f d b) :=
@@ -124,8 +124,6 @@ instance endomorphism_ring : ring (β →ₗ[α] β) :=
 by refine {mul := (*), one := 1, ..linear_map.add_comm_group, ..};
   { intros, apply linear_map.ext, simp }
 
-/-- The group of invertible linear maps from `β` to itself -/
-def general_linear_group := units (β →ₗ[α] β)
 end
 
 section
@@ -1128,6 +1126,16 @@ variables [ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group δ]
 variables [module α β] [module α γ] [module α δ]
 include α
 
+instance : has_coe (β ≃ₗ[α] γ) (β →ₗ[α] γ) := ⟨to_linear_map⟩
+
+@[simp] theorem coe_apply (e : β ≃ₗ[α] γ) (b : β) : (e : β →ₗ[α] γ) b = e b := rfl
+
+lemma to_equiv_injective : function.injective (to_equiv : (β ≃ₗ[α] γ) → β ≃ γ) :=
+λ ⟨_, _, _, _, _, _⟩ ⟨_, _, _, _, _, _⟩ h, linear_equiv.mk.inj_eq.mpr (equiv.mk.inj h)
+
+@[extensionality] lemma ext {f g : β ≃ₗ[α] γ} (h : (f : β → γ) = g) : f = g :=
+to_equiv_injective (equiv.eq_of_to_fun_eq h)
+
 section
 variable (β)
 def refl : β ≃ₗ[α] β := { .. linear_map.id, .. equiv.refl β }
@@ -1141,12 +1149,8 @@ def trans (e₁ : β ≃ₗ[α] γ) (e₂ : γ ≃ₗ[α] δ) : β ≃ₗ[α] δ
 { .. e₂.to_linear_map.comp e₁.to_linear_map,
   .. e₁.to_equiv.trans e₂.to_equiv }
 
-instance : has_coe (β ≃ₗ[α] γ) (β →ₗ[α] γ) := ⟨to_linear_map⟩
-
 @[simp] theorem apply_symm_apply (e : β ≃ₗ[α] γ) (c : γ) : e (e.symm c) = c := e.6 c
 @[simp] theorem symm_apply_apply (e : β ≃ₗ[α] γ) (b : β) : e.symm (e b) = b := e.5 b
-
-@[simp] theorem coe_apply (e : β ≃ₗ[α] γ) (b : β) : (e : β →ₗ[α] γ) b = e b := rfl
 
 noncomputable def of_bijective
   (f : β →ₗ[α] γ) (hf₁ : f.ker = ⊥) (hf₂ : f.range = ⊤) : β ≃ₗ[α] γ :=
@@ -1501,5 +1505,68 @@ end
 end
 
 end pi
+
+variables (α β)
+
+instance automorphism_group : group (β ≃ₗ[α] β) :=
+{ mul := λ f g, g.trans f,
+  one := linear_equiv.refl β,
+  inv := λ f, f.symm,
+  mul_assoc := λ f g h, by {ext, refl},
+  mul_one := λ f, by {ext, refl},
+  one_mul := λ f, by {ext, refl},
+  mul_left_inv := λ f, by {ext, exact f.left_inv x} }
+
+instance automorphism_group.to_linear_map_is_monoid_hom :
+  is_monoid_hom (linear_equiv.to_linear_map : (β ≃ₗ[α] β) → (β →ₗ[α] β)) :=
+{ map_one := rfl,
+  map_mul := λ f g, rfl }
+
+/-- The group of invertible linear maps from `β` to itself -/
+def general_linear_group := units (β →ₗ[α] β)
+
+namespace general_linear_group
+variables {α β}
+
+instance : group (general_linear_group α β) := by delta general_linear_group; apply_instance
+
+def to_linear_equiv (f : general_linear_group α β) : (β ≃ₗ[α] β) :=
+{ inv_fun := f.inv.to_fun,
+  left_inv := λ m, show (f.inv * f.val) m = m,
+    by erw f.inv_val; simp,
+  right_inv := λ m, show (f.val * f.inv) m = m,
+    by erw f.val_inv; simp,
+  ..f.val }
+
+def of_linear_equiv (f : (β ≃ₗ[α] β)) : general_linear_group α β :=
+{ val := f,
+  inv := f.symm,
+  val_inv := linear_map.ext $ λ _, f.apply_symm_apply _,
+  inv_val := linear_map.ext $ λ _, f.symm_apply_apply _ }
+
+variables (α β)
+
+def general_linear_equiv : general_linear_group α β ≃* (β ≃ₗ[α] β) :=
+{ to_fun := to_linear_equiv,
+  inv_fun := of_linear_equiv,
+  left_inv := λ f,
+  begin
+    delta to_linear_equiv of_linear_equiv,
+    cases f with f f_inv, cases f, cases f_inv,
+    congr
+  end,
+  right_inv := λ f,
+  begin
+    delta to_linear_equiv of_linear_equiv,
+    cases f,
+    congr
+  end,
+  hom := ⟨λ x y, by {ext, refl}⟩ }
+
+@[simp] lemma general_linear_equiv_to_linear_map (f : general_linear_group α β) :
+  ((general_linear_equiv α β).to_equiv f).to_linear_map = f.val :=
+by {ext, refl}
+
+end general_linear_group
 
 end linear_map

@@ -7,18 +7,14 @@
 
    Also the Yoneda lemma, `yoneda_lemma : (yoneda_pairing C) ≅ (yoneda_evaluation C)`. -/
 
-import category_theory.natural_transformation
 import category_theory.opposites
-import category_theory.types
-import category_theory.fully_faithful
-import category_theory.natural_isomorphism
 
 namespace category_theory
 open opposite
 
 universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Sort u₁} [𝒞 : category.{v₁} C]
+variables {C : Type u₁} [𝒞 : category.{v₁} C]
 include 𝒞
 
 def yoneda : C ⥤ (Cᵒᵖ ⥤ Sort v₁) :=

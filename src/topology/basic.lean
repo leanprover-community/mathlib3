@@ -81,6 +81,15 @@ finite.induction_on hs
   (λ a s has hs ih h, by rw bInter_insert; exact
     is_open_inter (h a (mem_insert _ _)) (ih (λ i hi, h i (mem_insert_of_mem _ hi))))
 
+lemma is_open_Inter [fintype β] {s : β → set α}
+  (h : ∀ i, is_open (s i)) : is_open (⋂ i, s i) :=
+suffices is_open (⋂ (i : β) (hi : i ∈ @univ β), s i), by simpa,
+is_open_bInter finite_univ (λ i _, h i)
+
+lemma is_open_Inter_prop {p : Prop} {s : p → set α}
+  (h : ∀ h : p, is_open (s h)) : is_open (Inter s) :=
+by by_cases p; simp *
+
 lemma is_open_const {p : Prop} : is_open {a : α | p} :=
 by_cases
   (assume : p, begin simp only [this]; exact is_open_univ end)
@@ -118,12 +127,22 @@ is_open_inter h₁ $ is_open_compl_iff.mpr h₂
 lemma is_closed_inter (h₁ : is_closed s₁) (h₂ : is_closed s₂) : is_closed (s₁ ∩ s₂) :=
 by rw [is_closed, compl_inter]; exact is_open_union h₁ h₂
 
-lemma is_closed_Union {s : set β} {f : β → set α} (hs : finite s) :
+lemma is_closed_bUnion {s : set β} {f : β → set α} (hs : finite s) :
   (∀i∈s, is_closed (f i)) → is_closed (⋃i∈s, f i) :=
 finite.induction_on hs
   (λ _, by rw bUnion_empty; exact is_closed_empty)
   (λ a s has hs ih h, by rw bUnion_insert; exact
     is_closed_union (h a (mem_insert _ _)) (ih (λ i hi, h i (mem_insert_of_mem _ hi))))
+
+lemma is_closed_Union [fintype β] {s : β → set α}
+  (h : ∀ i, is_closed (s i)) : is_closed (Union s) :=
+suffices is_closed (⋃ (i : β) (hi : i ∈ @univ β), s i),
+  by convert this; simp [set.ext_iff],
+is_closed_bUnion finite_univ (λ i _, h i)
+
+lemma is_closed_Union_prop {p : Prop} {s : p → set α}
+  (h : ∀ h : p, is_closed (s h)) : is_closed (Union s) :=
+by by_cases p; simp *
 
 lemma is_closed_imp {p q : α → Prop} (hp : is_open {x | p x})
   (hq : is_closed {x | q x}) : is_closed {x | p x → q x} :=
@@ -526,6 +545,13 @@ begin
   exact ⟨u, λ x xu xs, hu ⟨xu, xs⟩, openu, au⟩
 end
 
+theorem self_mem_nhds_within {a : α} {s : set α} : s ∈ nhds_within a s :=
+begin
+  rw [nhds_within, mem_inf_principal],
+  simp only [imp_self],
+  exact univ_mem_sets
+end
+
 theorem inter_mem_nhds_within (s : set α) {t : set α} {a : α} (h : t ∈ nhds a) :
   s ∩ t ∈ nhds_within a s :=
 inter_mem_sets (mem_inf_sets_of_right (mem_principal_self s)) (mem_inf_sets_of_left h)
@@ -533,15 +559,28 @@ inter_mem_sets (mem_inf_sets_of_right (mem_principal_self s)) (mem_inf_sets_of_l
 theorem nhds_within_mono (a : α) {s t : set α} (h : s ⊆ t) : nhds_within a s ≤ nhds_within a t :=
 lattice.inf_le_inf (le_refl _) (principal_mono.mpr h)
 
-theorem nhds_within_restrict' {a : α} (s : set α) {t : set α} (h : t ∈ nhds a) :
+theorem nhds_within_restrict'' {a : α} (s : set α) {t : set α} (h : t ∈ nhds_within a s) :
   nhds_within a s = nhds_within a (s ∩ t) :=
 le_antisymm
-  (lattice.le_inf lattice.inf_le_left (le_principal_iff.mpr (inter_mem_nhds_within s h)))
+  (lattice.le_inf lattice.inf_le_left (le_principal_iff.mpr (inter_mem_sets self_mem_nhds_within h)))
   (lattice.inf_le_inf (le_refl _) (principal_mono.mpr (set.inter_subset_left _ _)))
+
+theorem nhds_within_restrict' {a : α} (s : set α) {t : set α} (h : t ∈ nhds a) :
+  nhds_within a s = nhds_within a (s ∩ t) :=
+nhds_within_restrict'' s $ mem_inf_sets_of_left h
 
 theorem nhds_within_restrict {a : α} (s : set α) {t : set α} (h₀ : a ∈ t) (h₁ : is_open t) :
   nhds_within a s = nhds_within a (s ∩ t) :=
 nhds_within_restrict' s (mem_nhds_sets h₁ h₀)
+
+theorem nhds_within_le_of_mem {a : α} {s t : set α} (h : s ∈ nhds_within a t) :
+  nhds_within a t ≤ nhds_within a s :=
+begin
+  rcases (mem_nhds_within _ _ _).1 h with ⟨u, u_open, au, uts⟩,
+  have : nhds_within a t = nhds_within a (t ∩ u) := nhds_within_restrict _ au u_open,
+  rw [this, inter_comm],
+  exact nhds_within_mono _ uts
+end
 
 theorem nhds_within_eq_nhds_within {a : α} {s t u : set α}
     (h₀ : a ∈ s) (h₁ : is_open s) (h₂ : t ∩ s = u ∩ s) :

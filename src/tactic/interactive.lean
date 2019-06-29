@@ -156,6 +156,8 @@ do h' ← get_unused_name `h,
 /--
 Similar to `refine` but generates equality proof obligations
 for every discrepancy between the goal and the type of the rule.
+`convert e using n` (with `n : ℕ`) bounds the depth of the search
+for discrepancies, analogous to `congr' n`.
 -/
 meta def convert (sym : parse (with_desc "←" (tk "<-")?)) (r : parse texpr) (n : parse (tk "using" *> small_nat)?) : tactic unit :=
 do v ← mk_mvar,
@@ -307,6 +309,11 @@ do k ← local_context,
 meta def guard_tags (tags : parse ident*) : tactic unit :=
 do (t : list name) ← get_main_tag,
    guard (t = tags)
+
+/-- `success_if_fail_with_msg { tac } msg` succeeds if the interactive tactic `tac` fails with
+    error message `msg` (for test writing purposes). -/
+meta def success_if_fail_with_msg (tac : tactic.interactive.itactic) :=
+tactic.success_if_fail_with_msg tac
 
 meta def get_current_field : tactic name :=
 do [_,field,str] ← get_main_tag,

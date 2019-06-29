@@ -98,7 +98,7 @@ def symmetry : swap C D ⋙ swap D C ≅ functor.id (C × D) :=
 end prod
 
 section
-variables (C : Sort u₁) [𝒞 : category.{v₁} C] (D : Sort u₂) [𝒟 : category.{v₂} D]
+variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
 def evaluation : C ⥤ (C ⥤ D) ⥤ D :=

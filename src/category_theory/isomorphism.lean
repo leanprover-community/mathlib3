@@ -228,18 +228,3 @@ by rw [←map_comp, is_iso.inv_hom_id, map_id]
 end functor
 
 end category_theory
-
-namespace category_theory
-
-variables {C : Type u} [𝒞 : category.{v+1} C]
-include 𝒞
-
-def Aut (X : C) := X ≅ X
-
-attribute [extensionality Aut] iso.ext
-
-instance {X : C} : group (Aut X) :=
-by refine { one := iso.refl X,
-            inv := iso.symm,
-            mul := flip iso.trans, .. } ; dunfold flip; obviously
-end category_theory

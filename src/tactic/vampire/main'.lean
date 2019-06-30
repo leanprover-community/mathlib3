@@ -105,7 +105,7 @@ meta def build_proof_core (m : mat) (mx : expr) :
   build_proof_core
     ( ( item.prf
           (expr.mk_app `(@proof.con) [mx, l.to_expr, cla.to_expr c, πx])
-          (l :: c) ) :: stk) infs
+          (l :: c) ) :: stk ) infs
 | stk (inf.e :: is) :=
   build_proof_core (item.mps [] :: stk) is
 | (item.nm k :: stk) (inf.y :: infs) :=
@@ -124,9 +124,7 @@ meta def build_proof_core (m : mat) (mx : expr) :
 meta def build_proof (is : infs)
   (αx ix : expr) (p : form₂) (m : mat)
   : tactic expr :=
-do -- is ← compile m ls,
-   -- trace "Infs : ", trace (infs.repr is),
-   πx ← build_proof_core m m.to_expr [] is,
+do πx ← build_proof_core m m.to_expr [] is,
    let px   : expr := form₂.to_expr p,
    let foqx : expr := expr.mk_app `(foq) [`(tt), px],
    let decx : expr := expr.mk_app `(foq.decidable) [`(tt), px],
@@ -134,11 +132,20 @@ do -- is ← compile m ls,
    let x    : expr := expr.mk_app `(@arifix_of_proof) [αx, ix, px, fx],
    return (expr.app x πx)
 
+meta def script_output (s : string) : tactic string :=
+unsafe_run_io $ io.cmd'
+{ cmd := "rr.pl",
+  args := [s] }
+
+meta def get_infs_string' (m : mat) : tactic string :=
+script_output m.to_rr --("\"" ++ m.to_rr ++ "\"")
+
 meta def get_infs_string (m : mat) : tactic string :=
 do s ← vampire_output (mat.to_tptp m),
    ss ← proof_line_strings s,
    ls ← monad.mapm proof_line ss,
    is ← compile m ls,
+   trace is,
    return (infs.repr is)
 
 meta def get_infs (s : string) : tactic infs :=
@@ -150,9 +157,18 @@ end
 meta def vampire : tactic unit :=
 do (dx, ix, p) ← reify,
    let m := clausify p,
-   is ← get_infs_string m >>= get_infs,
-   trace (infs.repr is),
-   x ← build_proof is dx ix p m,
-   apply x, skip
+   get_infs_string m,
+   iss' ← get_infs_string' m,
+   trace iss',
+   -- is ← get_infs iss,
+   -- trace (infs.repr is),
+   -- x ← build_proof is dx ix p m,
+   -- apply x,
+   skip
+
+example (A B C : Prop) : ¬ A → A → C := by vampire
+
+example (β : Type) [inhabited β] (p : β → Prop) (a : β) :
+  (p a) → ∃ x, p x := by vampire
 
 end vampire

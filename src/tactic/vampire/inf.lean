@@ -43,12 +43,27 @@ end inf
 
 def infs.repr : infs → string
 | [] := ""
+| [i] := i.repr
 | (i :: is) := i.repr ++ " " ++ infs.repr is
 
 def term.to_infs : term → infs
 | (term.sym k)   := [inf.n k, inf.y]
 | (term.app t s) := t.to_infs ++ s.to_infs ++ [inf.a]
 | (term.vpp t k) := t.to_infs ++ [inf.n k, inf.v]
+
+def term.to_rr : term → string := infs.repr ∘ term.to_infs
+
+def lit.to_rr : lit → string
+| (tt, t) := t.to_rr ++ " ps"
+| (ff, t) := t.to_rr ++ " ng"
+
+def cla.to_rr : cla → string
+| []       := "nl"
+| (l :: c) := cla.to_rr c ++ " " ++ l.to_rr ++ " cs"
+
+def mat.to_rr : mat → string
+| []       := "nl"
+| (c :: m) := mat.to_rr m ++ " " ++ c.to_rr ++ " cs"
 
 def mapping.to_infs : mapping → infs
 | (k, sum.inl m) := [inf.n k, inf.n m]

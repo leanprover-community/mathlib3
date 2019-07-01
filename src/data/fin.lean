@@ -257,7 +257,7 @@ begin
   { simp }
 end⟩
 
-lemma eq_none_find_iff {n : ℕ} {p : fin n → Prop} [decidable_pred p] :
+lemma find_eq_none_iff {n : ℕ} {p : fin n → Prop} [decidable_pred p] :
   find p = none ↔ ∀ i, ¬ p i :=
 by rw [← not_exists, ← is_some_find_iff]; cases (find p); simp
 
@@ -272,7 +272,7 @@ lemma find_min : Π {n : ℕ} {p : fin n → Prop} [decidable_pred p] {i : fin n
     split_ifs at hi with hl hl,
     { have := option.some_inj.1 hi,
       subst this,
-      rw [eq_none_find_iff] at h,
+      rw [find_eq_none_iff] at h,
       exact h ⟨j, hj⟩ hpj },
     { exact option.no_confusion hi } },
   { rw h at hi,
@@ -285,6 +285,20 @@ end
 lemma find_min' {p : fin n → Prop} [decidable_pred p] {i : fin n}
   (h : i ∈ fin.find p) {j : fin n} (hj : p j) : i ≤ j :=
 le_of_not_gt (λ hij, find_min h hij hj)
+
+lemma nat_find_mem_find {p : fin n → Prop} [decidable_pred p]
+  (h : ∃ i, ∃ hin : i < n, p ⟨i, hin⟩) :
+  (⟨nat.find h, (nat.find_spec h).fst⟩ : fin n) ∈ find p :=
+let ⟨i, hin, hi⟩ := h in
+begin
+  cases hf : find p with f,
+  { rw [find_eq_none_iff] at hf,
+    exact (hf ⟨i, hin⟩ hi).elim },
+  { refine option.some_inj.2 (le_antisymm _ _),
+    { exact find_min' hf (nat.find_spec h).snd },
+    { exact nat.find_min' _ ⟨f.2, by convert find_spec p hf;
+        exact fin.eta _ _⟩ } }
+end
 
 end find
 

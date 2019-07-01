@@ -1,4 +1,5 @@
-# Installing Lean and mathlib on Windows
+Installing Lean and mathlib on Windows
+===
 
 This document explains how to get started with Lean and mathlib.
 
@@ -11,7 +12,8 @@ Rather than installing Lean directly, we'll install a small program called `elan
 automatically provides the correct version of Lean on a per-project basis. This is recommended for
 all users.
 
-### Installing `elan`
+Installing `elan`
+---
 
 1. We'll need a terminal, along with some basic prerequisites.
    * Either (recommended): install [Git for Windows](https://gitforwindows.org/), after which you
@@ -32,11 +34,13 @@ all users.
    so that your environment knows about `elan`.
    (Alternatively, type `source $HOME/.elan/env` to update the current terminal.)
 
-### Installing mathlib supporting tools
+
+Installing mathlib supporting tools
+---
 
 In order to use mathlib supporting tools, you need to [get python](https://www.python.org/downloads/) first.
 
-#### Get Python
+### Get Python
 
 * Download the latest version of python [here](https://www.python.org/downloads/).
 * Run the downloaded file (`python-3.x.x.exe`)
@@ -49,19 +53,20 @@ In order to use mathlib supporting tools, you need to [get python](https://www.p
 * If `pip3 --version` doesn't give any output, run the command `python3 -m pip install --upgrade pip`, which should fix it.
 
 
-#### Configure Git
+### Configure Git
 
 * Run `git config --global core.autocrlf input` in Git bash
   * Alternatively, you can set it to `false`. If it is set to `true`, you might run into issues when running `update-mathlib` or `cache-olean --fetch`.
 
-#### Get Scripts
+### Get Scripts
 
 Then, at a terminal, run the command
   ```bash
   curl https://raw.githubusercontent.com/leanprover-community/mathlib-tools/master/scripts/remote-install-update-mathlib.sh -sSf | bash
   ```
 
-### Installing and configuring an editor
+Installing and configuring an editor
+---
 
 There are two Lean-aware editors, VS Code and emacs.
 This document describes using VS Code (for emacs, look at https://github.com/leanprover/lean-mode).

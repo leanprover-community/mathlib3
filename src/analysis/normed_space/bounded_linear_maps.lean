@@ -17,15 +17,15 @@ open filter (tendsto)
 open metric
 
 variables {k : Type*} [nondiscrete_normed_field k]
-variables {E : Type*} [normed_space k E]
-variables {F : Type*} [normed_space k F]
-variables {G : Type*} [normed_space k G]
+variables {E : Type*} [normed_group E] [normed_space k E]
+variables {F : Type*} [normed_group F] [normed_space k F]
+variables {G : Type*} [normed_group G] [normed_space k G]
 
+set_option class.instance_max_depth 70
 
-set_option class.instance_max_depth 80
-
-structure is_bounded_linear_map (k : Type*) [normed_field k] {E : Type*}
-  [normed_space k E] {F : Type*} [normed_space k F] (f : E → F)
+structure is_bounded_linear_map (k : Type*) [normed_field k]
+  {E : Type*} [normed_group E] [normed_space k E]
+  {F : Type*} [normed_group F] [normed_space k F] (f : E → F)
   extends is_linear_map k f : Prop :=
 (bound : ∃ M > 0, ∀ x : E, ∥ f x ∥ ≤ M * ∥ x ∥)
 
@@ -135,7 +135,7 @@ end
 end is_bounded_linear_map
 
 section
-set_option class.instance_max_depth 250
+set_option class.instance_max_depth 180
 
 lemma is_bounded_linear_map_prod_iso :
   is_bounded_linear_map k (λ(p : (E →L[k] F) × (E →L[k] G)),
@@ -271,9 +271,10 @@ def is_bounded_bilinear_map.deriv (h : is_bounded_bilinear_map k f) (p : E × F)
   ... = (C * ∥p.1∥ + C * ∥p.2∥) * ∥q∥ : by ring
 end
 
-set_option class.instance_max_depth 150
 @[simp] lemma is_bounded_bilinear_map_deriv_coe (h : is_bounded_bilinear_map k f) (p q : E × F) :
   h.deriv p q = f (p.1, q.2) + f (q.1, p.2) := rfl
+
+set_option class.instance_max_depth 95
 
 /-- Given a bounded bilinear map `f`, the map associating to a point `p` the derivative of `f` at
 `p` is itself a bounded linear map. -/

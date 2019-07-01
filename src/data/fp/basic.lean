@@ -6,7 +6,7 @@ Authors: Mario Carneiro
 Implementation of floating-point numbers (experimental).
 -/
 
-import data.rat data.semiquot
+import data.rat.basic data.semiquot
 
 def int.shift2 (a b : ℕ) : ℤ → ℕ × ℕ
 | (int.of_nat e) := (a.shiftl e, b)

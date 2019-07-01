@@ -100,6 +100,13 @@ by pi_instance
 instance ordered_cancel_comm_monoid [∀ i, ordered_cancel_comm_monoid $ f i] : ordered_cancel_comm_monoid (Π i : I, f i) :=
 by pi_instance
 
+instance ordered_comm_group [∀ i, ordered_comm_group $ f i] : ordered_comm_group (Π i : I, f i) :=
+{ add_lt_add_left := λ a b hab c, ⟨λ i, add_le_add_left (hab.1 i) (c i), 
+    λ h, hab.2 $ λ i, le_of_add_le_add_left (h i)⟩,
+  add_le_add_left := λ x y hxy c i, add_le_add_left (hxy i) _,
+  ..pi.add_comm_group,
+  ..pi.partial_order }
+
 attribute [to_additive pi.add_semigroup]              pi.semigroup
 attribute [to_additive pi.add_comm_semigroup]         pi.comm_semigroup
 attribute [to_additive pi.add_monoid]                 pi.monoid
@@ -236,10 +243,10 @@ lemma snd.is_monoid_hom [monoid α] [monoid β] : is_monoid_hom (prod.snd : α �
 
 @[to_additive fst.is_add_group_hom]
 lemma fst.is_group_hom [group α] [group β] : is_group_hom (prod.fst : α × β → α) :=
-by refine_struct {..}; simp
+{ map_mul := λ _ _, rfl }
 @[to_additive snd.is_add_group_hom]
 lemma snd.is_group_hom [group α] [group β] : is_group_hom (prod.snd : α × β → β) :=
-by refine_struct {..}; simp
+{ map_mul := λ _ _, rfl }
 
 attribute [instance] fst.is_monoid_hom fst.is_add_monoid_hom snd.is_monoid_hom snd.is_add_monoid_hom
 fst.is_group_hom fst.is_add_group_hom snd.is_group_hom snd.is_add_group_hom

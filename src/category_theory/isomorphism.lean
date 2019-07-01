@@ -9,7 +9,7 @@ universes v u -- declare the `v`'s first; see `category_theory.category` for an 
 namespace category_theory
 open category
 
-structure iso {C : Sort u} [category.{v} C] (X Y : C) :=
+structure iso {C : Type u} [category.{v} C] (X Y : C) :=
 (hom : X ⟶ Y)
 (inv : Y ⟶ X)
 (hom_inv_id' : hom ≫ inv = 𝟙 X . obviously)
@@ -21,7 +21,7 @@ attribute [simp] iso.hom_inv_id iso.inv_hom_id
 
 infixr ` ≅ `:10  := iso             -- type as \cong or \iso
 
-variables {C : Sort u} [𝒞 : category.{v} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 variables {X Y Z : C}
 
@@ -198,7 +198,7 @@ instance is_iso_id : is_iso (𝟙 X) := { inv := 𝟙 X }
 namespace functor
 
 universes u₁ v₁ u₂ v₂
-variables {D : Sort u₂}
+variables {D : Type u₂}
 
 variables [𝒟 : category.{v₂} D]
 include 𝒟
@@ -229,8 +229,7 @@ end category_theory
 
 namespace category_theory
 
--- We need to get the morphism universe level up into `Type`, in order to have group structures.
-variables {C : Sort u} [𝒞 : category.{v+1} C]
+variables {C : Type u} [𝒞 : category.{v+1} C]
 include 𝒞
 
 def Aut (X : C) := X ≅ X
@@ -240,6 +239,5 @@ attribute [extensionality Aut] iso.ext
 instance {X : C} : group (Aut X) :=
 by refine { one := iso.refl X,
             inv := iso.symm,
-            mul := iso.trans, .. } ; obviously
-
+            mul := flip iso.trans, .. } ; dunfold flip; obviously
 end category_theory

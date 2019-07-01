@@ -24,7 +24,7 @@ lemma mem_iff_mem_pop_back_or_read_last_eq {n : ℕ} (a : α) (x : array (n+1) �
     (λ hin : i = n, or.inr $ by clear_aux_decl; subst hin; exact hi),
   λ h, h.elim mem_of_mem_pop_back (λ h, h ▸ read_mem _ _)⟩
 
-instance mem_decidable {α : Type*} [decidable_eq α] : Π {n : ℕ}
+instance mem_decidable [decidable_eq α] : Π {n : ℕ}
   (x : array n α), decidable_pred (∈ x)
 | 0     x a := is_false (by simp)
 | (n+1) x a := by letI := mem_decidable x.pop_back a;

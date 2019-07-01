@@ -93,10 +93,10 @@ begin
   cases hc, { simp [hc] }, { simp [hc, mem_foldr_min] }
 end
 
-theorem mem_maximum {l : list α} (h : l ≠ []) : maximum l ∈ l :=
+theorem maximum_mem {l : list α} (h : l ≠ []) : maximum l ∈ l :=
 by { dsimp, rw foldl_eq_foldr max_comm max_assoc, apply mem_maximum_aux h }
 
-theorem mem_minimum {l : list α} (h : l ≠ []) : minimum l ∈ l :=
+theorem minimum_mem {l : list α} (h : l ≠ []) : minimum l ∈ l :=
 by { dsimp, rw foldl_eq_foldr min_comm min_assoc, apply mem_minimum_aux h }
 
 theorem le_maximum_aux_of_mem : Π {a : α} {l}, a ∈ l → a ≤ maximum_aux l

@@ -35,6 +35,27 @@ all users.
 ### Installing mathlib supporting tools
 
 In order to use mathlib supporting tools, you need to [get python](https://www.python.org/downloads/) first.
+
+#### Get Python
+
+* Download the latest version of python [here](https://www.python.org/downloads/).
+* Run the downloaded file (`python-3.x.x.exe`)
+* Check `Add Python 3.x to PATH`.
+* Choose the default installation.
+* Navigate to the folder where Python was installed. A reliable way to do this is to search for `python` in the Start Menu -> right click `Python 3.x (xx-bit)` -> open file location -> right click `Python 3.x (xx-bit)` -> open file location. The default location is something like `C:\Users\<user>\AppData\Local\Programs\Python\Python37-32`.
+* Copy the file `python.exe` to `python3.exe`.
+* Open Git bash (type `git bash` is the Start Menu)
+* Test whether everthing is working by typing `python3 --version` and `pip3 --version`. If commands should give a short output, everything is set-up correctly.
+* If `pip3 --version` doesn't give any output, run the command `python3 -m pip install --upgrade pip`, which should fix it.
+
+
+#### Configure Git
+
+* Run `git config --global core.autocrlf input` in Git bash
+  * Alternatively, you can set it to `false`. If it is set to `true`, you might run into issues when running `update-mathlib` or `cache-olean --fetch`.
+
+#### Get Scripts
+
 Then, at a terminal, run the command
   ```bash
   curl https://raw.githubusercontent.com/leanprover-community/mathlib-tools/master/scripts/remote-install-update-mathlib.sh -sSf | bash

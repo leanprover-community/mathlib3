@@ -16,11 +16,19 @@ instance types : large_category (Sort u) :=
   comp    := λ _ _ _ f g, g ∘ f }
 
 @[simp] lemma types_hom {α β : Sort u} : (α ⟶ β) = (α → β) := rfl
-@[simp] lemma types_id {α : Sort u} (a : α) : (𝟙 α : α → α) a = a := rfl
-@[simp] lemma types_comp {α β γ : Sort u} (f : α → β) (g : β → γ) (a : α) : (((f : α ⟶ β) ≫ (g : β ⟶ γ)) : α ⟶ γ) a = g (f a) := rfl
+@[simp] lemma types_id (X : Sort u) : 𝟙 X = id := rfl
+@[simp] lemma types_comp {X Y Z : Sort u} (f : X ⟶ Y) (g : Y ⟶ Z) : f ≫ g = g ∘ f := rfl
+
+namespace functor
+variables {J : Type u} [𝒥 : category.{v} J]
+include 𝒥
+
+def sections (F : J ⥤ Type w) : set (Π j, F.obj j) :=
+{ u | ∀ {j j'} (f : j ⟶ j'), F.map f (u j) = u j'}
+end functor
 
 namespace functor_to_types
-variables {C : Sort u} [𝒞 : category.{v} C] (F G H : C ⥤ Sort w) {X Y Z : C}
+variables {C : Type u} [𝒞 : category.{v} C] (F G H : C ⥤ Sort w) {X Y Z : C}
 include 𝒞
 variables (σ : F ⟶ G) (τ : G ⟶ H)
 
@@ -35,7 +43,7 @@ congr_fun (σ.naturality f) x
 
 @[simp] lemma comp (x : F.obj X) : (σ ≫ τ).app X x = τ.app X (σ.app X x) := rfl
 
-variables {D : Sort u'} [𝒟 : category.{u'} D] (I J : D ⥤ C) (ρ : I ⟶ J) {W : D}
+variables {D : Type u'} [𝒟 : category.{u'} D] (I J : D ⥤ C) (ρ : I ⟶ J) {W : D}
 
 @[simp] lemma hcomp (x : (I ⋙ F).obj W) : (ρ ◫ σ).app W x = (G.map (ρ.app W)) (σ.app (I.obj W) x) := rfl
 
@@ -47,13 +55,59 @@ def ulift_functor : Type u ⥤ Type (max u v) :=
 { obj := λ X, ulift.{v} X,
   map := λ X Y f, λ x : ulift.{v} X, ulift.up (f x.down) }
 
-@[simp] lemma ulift_functor.map {X Y : Type u} (f : X ⟶ Y) (x : ulift.{v} X) :
+@[simp] lemma ulift_functor_map {X Y : Type u} (f : X ⟶ Y) (x : ulift.{v} X) :
   ulift_functor.map f x = ulift.up (f x.down) := rfl
 
 instance ulift_functor_faithful : fully_faithful ulift_functor :=
 { preimage := λ X Y f x, (f (ulift.up x)).down,
   injectivity' := λ X Y f g p, funext $ λ x,
     congr_arg ulift.down ((congr_fun p (ulift.up x)) : ((ulift.up (f x)) = (ulift.up (g x)))) }
+
+def hom_of_element {X : Type u} (x : X) : punit ⟶ X := λ _, x
+
+lemma hom_of_element_eq_iff {X : Type u} (x y : X) :
+  hom_of_element x = hom_of_element y ↔ x = y :=
+⟨λ H, congr_fun H punit.star, by cc⟩
+
+lemma mono_iff_injective {X Y : Type u} (f : X ⟶ Y) : mono f ↔ function.injective f :=
+begin
+  split,
+  { intros H x x' h,
+    resetI,
+    rw ←hom_of_element_eq_iff at ⊢ h,
+    exact (cancel_mono f).mp h },
+  { refine λ H, ⟨λ Z g h H₂, _⟩,
+    ext z,
+    replace H₂ := congr_fun H₂ z,
+    exact H H₂ }
+end
+
+lemma epi_iff_surjective {X Y : Type u} (f : X ⟶ Y) : epi f ↔ function.surjective f :=
+begin
+  split,
+  { intros H,
+    let g : Y ⟶ ulift Prop := λ y, ⟨true⟩,
+    let h : Y ⟶ ulift Prop := λ y, ⟨∃ x, f x = y⟩,
+    suffices : f ≫ g = f ≫ h,
+    { resetI,
+      rw cancel_epi at this,
+      intro y,
+      replace this := congr_fun this y,
+      replace this : true = ∃ x, f x = y := congr_arg ulift.down this,
+      rw ←this,
+      trivial },
+    ext x,
+    change true ↔ ∃ x', f x' = f x,
+    rw true_iff,
+    exact ⟨x, rfl⟩ },
+  { intro H,
+    constructor,
+    intros Z g h H₂,
+    apply funext,
+    rw ←forall_iff_forall_surj H,
+    intro x,
+    exact (congr_fun H₂ x : _) }
+end
 
 end category_theory
 

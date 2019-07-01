@@ -181,9 +181,9 @@ lemma measurable_of_continuous2
 show measurable ((λp:α×β, c p.1 p.2) ∘ (λa, (f a, g a))),
 begin
   apply measurable.comp,
-  { exact measurable_prod_mk hf hg },
   { rw borel_prod,
-    exact measurable_of_continuous h }
+    exact measurable_of_continuous h },
+  { exact measurable_prod_mk hf hg }
 end
 
 lemma measurable_add
@@ -201,7 +201,7 @@ finset.induction_on s
 lemma measurable_neg
   [add_group α] [topological_add_group α] [measurable_space β] {f : β → α}
   (hf : measurable f) : measurable (λa, - f a) :=
-hf.comp (measurable_of_continuous continuous_neg')
+(measurable_of_continuous continuous_neg').comp hf
 
 lemma measurable_sub
   [add_group α] [topological_add_group α] [second_countable_topology α] [measurable_space β]
@@ -292,6 +292,22 @@ lemma measurable.infi {α} [topological_space α] [complete_linear_order α]
   measurable (λ b, ⨅ i, f i b) :=
 measurable.is_glb hf $ λ b, is_glb_infi
 
+lemma measurable.supr_Prop {α} [topological_space α] [complete_linear_order α]
+  [orderable_topology α] [second_countable_topology α]
+  {β} [measurable_space β] {p : Prop} {f : β → α} (hf : measurable f):
+  measurable (λ b, ⨆ h : p, f b) :=
+classical.by_cases
+  (assume h : p, begin convert hf, funext, exact supr_pos h end)
+  (assume h : ¬p, begin convert measurable_const, funext, exact supr_neg h end)
+
+lemma measurable.infi_Prop {α} [topological_space α] [complete_linear_order α]
+  [orderable_topology α] [second_countable_topology α]
+  {β} [measurable_space β] {p : Prop} {f : β → α} (hf : measurable f):
+  measurable (λ b, ⨅ h : p, f b) :=
+classical.by_cases
+  (assume h : p, begin convert hf, funext, exact infi_pos h end )
+  (assume h : ¬p, begin convert measurable_const, funext, exact infi_neg h end)
+
 end
 
 end measure_theory
@@ -335,6 +351,23 @@ end
 
 end real
 
+namespace nnreal
+open filter measure_theory
+
+lemma measurable_add [measurable_space α] {f : α → nnreal} {g : α → nnreal} :
+  measurable f → measurable g → measurable (λa, f a + g a) :=
+measurable_of_continuous2 continuous_add'
+
+lemma measurable_sub [measurable_space α] {f g: α → nnreal}
+  (hf : measurable f) (hg : measurable g) : measurable (λ a, f a - g a) :=
+measurable_of_continuous2 continuous_sub' hf hg
+
+lemma measurable_mul [measurable_space α] {f : α → nnreal} {g : α → nnreal} :
+  measurable f → measurable g → measurable (λa, f a * g a) :=
+measurable_of_continuous2 continuous_mul'
+
+end nnreal
+
 namespace ennreal
 open filter measure_theory
 
@@ -352,7 +385,7 @@ def ennreal_equiv_nnreal : measurable_equiv {r : ennreal | r < ⊤} nnreal :=
     refine measurable_of_continuous (continuous_iff_continuous_at.2 _),
     rintros ⟨r, hr⟩,
     simp [continuous_at, nhds_subtype_eq_comap],
-    refine tendsto.comp tendsto_comap (tendsto_to_nnreal (ne_of_lt hr))
+    refine tendsto.comp (tendsto_to_nnreal (ne_of_lt hr)) tendsto_comap
   end,
   measurable_inv_fun := measurable_subtype_mk measurable_coe }
 
@@ -396,21 +429,21 @@ begin
   { show measurable (λp:nnreal × nnreal, f p.1 p.2),
     exact h₁ },
   { show measurable (λp:nnreal × unit, f p.1 ⊤),
-    exact (measurable_fst measurable_id).comp h₃ },
+    exact h₃.comp (measurable_fst measurable_id) },
   { show measurable ((λp:nnreal, f ⊤ p) ∘ (λp:unit × nnreal, p.2)),
-    exact measurable.comp (measurable_snd measurable_id) h₂ },
+    exact h₂.comp (measurable_snd measurable_id) },
   { show measurable (λp:unit × unit, f ⊤ ⊤),
     exact measurable_const }
 end,
-(measurable_prod_mk hg hh).comp this
+this.comp (measurable_prod_mk hg hh)
 
 lemma measurable_mul {α : Type*} [measurable_space α] {f g : α → ennreal} :
   measurable f → measurable g → measurable (λa, f a * g a) :=
 begin
   refine measurable_of_measurable_nnreal_nnreal (*) _ _ _,
   { simp only [ennreal.coe_mul.symm],
-    exact (measurable_mul (measurable_fst measurable_id) (measurable_snd measurable_id)).comp
-      measurable_coe },
+    exact measurable_coe.comp
+      (measurable_mul (measurable_fst measurable_id) (measurable_snd measurable_id)) },
   { simp [top_mul],
     exact measurable.if
       (is_measurable_of_is_closed $ is_closed_eq continuous_id continuous_const)
@@ -421,6 +454,28 @@ begin
       (is_measurable_of_is_closed $ is_closed_eq continuous_id continuous_const)
       measurable_const
       measurable_const }
+end
+
+lemma measurable_add {α : Type*} [measurable_space α] {f g : α → ennreal} :
+  measurable f → measurable g → measurable (λa, f a + g a) :=
+begin
+  refine measurable_of_measurable_nnreal_nnreal (+) _ _ _,
+  { simp only [ennreal.coe_add.symm],
+    exact measurable_coe.comp
+      (measurable_add (measurable_fst measurable_id) (measurable_snd measurable_id)) },
+  { simp [measurable_const] },
+  { simp [measurable_const] }
+end
+
+lemma measurable_sub {α : Type*} [measurable_space α] {f g : α → ennreal} :
+  measurable f → measurable g → measurable (λa, f a - g a) :=
+begin
+  refine measurable_of_measurable_nnreal_nnreal (has_sub.sub) _ _ _,
+  { simp only [ennreal.coe_sub.symm],
+    exact measurable_coe.comp
+      (nnreal.measurable_sub (measurable_fst measurable_id) (measurable_snd measurable_id)) },
+  { simp [measurable_const] },
+  { simp [measurable_const] }
 end
 
 end ennreal

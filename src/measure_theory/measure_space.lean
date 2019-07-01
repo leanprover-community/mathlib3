@@ -393,7 +393,7 @@ begin
     ← ennreal.sub_sub_cancel (by exact hk) (measure_mono (Inter_subset _ k)),
     ← measure_diff (Inter_subset _ k) (h k) (is_measurable.Inter h)
       (lt_of_le_of_lt (measure_mono (Inter_subset _ k)) hk),
-    diff_Inter_left, measure_Union_eq_supr_nat],
+    diff_Inter, measure_Union_eq_supr_nat],
   { congr, funext i,
     cases le_total k i with ik ik,
     { exact measure_diff (hs _ _ ik) (h k) (h i)
@@ -603,10 +603,10 @@ by rw [map, dif_pos hf, to_measure_apply _ _ hs]; refl
 @[simp] lemma map_id : map id μ = μ :=
 ext $ λ s, map_apply measurable_id
 
-lemma map_map {f : α → β} {g : β → γ} (hf : measurable f) (hg : measurable g) :
+lemma map_map {g : β → γ} {f : α → β} (hg : measurable g) (hf : measurable f) :
   map g (map f μ) = map (g ∘ f) μ :=
 ext $ λ s hs,
-by simp [hf, hg, hs, hg.preimage hs, hf.comp hg];
+by simp [hf, hg, hs, hg.preimage hs, hg.comp hf];
    rw ← preimage_comp
 
 /-- The dirac measure. -/
@@ -872,6 +872,9 @@ iff.intro
   (assume h', by filter_upwards [h, h'] assume a hpq hq, hpq.2 hq)
 
 lemma all_ae_iff {p : α → Prop} : (∀ₘ a, p a) ↔ volume { a | ¬ p a } = 0 := iff.refl _
+
+lemma all_ae_of_all {p : α → Prop} : (∀a, p a) → ∀ₘ a, p a := assume h,
+by {rw all_ae_iff, convert volume_empty, simp only [h, not_true], reflexivity}
 
 lemma all_ae_all_iff {ι : Type*} [encodable ι] {p : α → ι → Prop} :
   (∀ₘ a, ∀i, p a i) ↔ (∀i, ∀ₘ a, p a i):=

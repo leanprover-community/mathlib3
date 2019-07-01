@@ -98,7 +98,7 @@ def symmetry : swap C D ⋙ swap D C ≅ functor.id (C × D) :=
 end prod
 
 section
-variables (C : Sort u₁) [𝒞 : category.{v₁} C] (D : Sort u₂) [𝒟 : category.{v₂} D]
+variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
 def evaluation : C ⥤ (C ⥤ D) ⥤ D :=
@@ -126,8 +126,8 @@ def evaluation_uncurried : C × (C ⥤ D) ⥤ D :=
   map_comp' := λ X Y Z f g,
   begin
     cases g, cases f, cases Z, cases Y, cases X,
-    simp only [prod_comp, functor.category.comp_app, functor.map_comp, category.assoc],
-    rw [←functor.category.comp_app, nat_trans.naturality, functor.category.comp_app,
+    simp only [prod_comp, nat_trans.comp_app, functor.map_comp, category.assoc],
+    rw [←nat_trans.comp_app, nat_trans.naturality, nat_trans.comp_app,
         category.assoc, nat_trans.naturality],
   end }
 

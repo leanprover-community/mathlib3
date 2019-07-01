@@ -565,7 +565,7 @@ noncomputable theorem dec_eq (α : Sort*) : decidable_eq α := by apply_instance
 noncomputable def {u} exists_cases {C : Sort u} (H0 : C) (H : ∀ a, p a → C) : C :=
 if h : ∃ a, p a then H (classical.some h) (classical.some_spec h) else H0
 
-lemma some_spec2 {α : Type*} {p : α → Prop} {h : ∃a, p a}
+lemma some_spec2 {α : Sort*} {p : α → Prop} {h : ∃a, p a}
   (q : α → Prop) (hpq : ∀a, p a → q a) : q (some h) :=
 hpq _ $ some_spec _
 

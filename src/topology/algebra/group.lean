@@ -44,12 +44,17 @@ topological_group.continuous_inv α
 @[to_additive continuous_neg]
 lemma continuous_inv [topological_group α] [topological_space β] {f : β → α}
   (hf : continuous f) : continuous (λx, (f x)⁻¹) :=
-hf.comp continuous_inv'
+continuous_inv'.comp hf
+
+@[to_additive continuous_on.neg]
+lemma continuous_on.inv [topological_group α] [topological_space β] {f : β → α} {s : set β}
+  (hf : continuous_on f s) : continuous_on (λx, (f x)⁻¹) s :=
+continuous_inv'.comp_continuous_on hf
 
 @[to_additive tendsto_neg]
 lemma tendsto_inv [topological_group α] {f : β → α} {x : filter β} {a : α}
   (hf : tendsto f x (nhds a)) : tendsto (λx, (f x)⁻¹) x (nhds a⁻¹) :=
-hf.comp (continuous_iff_continuous_at.mp (topological_group.continuous_inv α) a)
+tendsto.comp (continuous_iff_continuous_at.mp (topological_group.continuous_inv α) a) hf
 
 @[to_additive prod.topological_add_group]
 instance [topological_group α] [topological_space β] [group β] [topological_group β] :
@@ -200,13 +205,13 @@ end
 instance topological_group_quotient : topological_group (quotient N) :=
 { continuous_mul := begin
     have cont : continuous ((coe : α → quotient N) ∘ (λ (p : α × α), p.fst * p.snd)) :=
-      continuous.comp continuous_mul' continuous_quot_mk,
+      continuous_quot_mk.comp continuous_mul',
     have quot : quotient_map (λ p : α × α, ((p.1:quotient N), (p.2:quotient N))),
     { apply is_open_map.to_quotient_map,
       { exact is_open_map.prod (quotient_group.open_coe N) (quotient_group.open_coe N) },
       { apply continuous.prod_mk,
-        { exact continuous.comp continuous_fst continuous_quot_mk },
-        { exact continuous.comp continuous_snd continuous_quot_mk } },
+        { exact continuous_quot_mk.comp continuous_fst },
+        { exact continuous_quot_mk.comp continuous_snd } },
       { rintro ⟨⟨x⟩, ⟨y⟩⟩,
         exact ⟨(x, y), rfl⟩ } },
     exact (quotient_map.continuous_iff quot).2 cont,
@@ -214,7 +219,7 @@ instance topological_group_quotient : topological_group (quotient N) :=
   continuous_inv := begin
     apply continuous_quotient_lift,
     change continuous ((coe : α → quotient N) ∘ (λ (a : α), a⁻¹)),
-    exact continuous.comp continuous_inv' continuous_quot_mk
+    exact continuous_quot_mk.comp continuous_inv'
   end }
 
 attribute [instance] topological_add_group_quotient
@@ -231,6 +236,10 @@ by simp; exact continuous_add hf (continuous_neg hg)
 
 lemma continuous_sub' [topological_add_group α] : continuous (λp:α×α, p.1 - p.2) :=
 continuous_sub continuous_fst continuous_snd
+
+lemma continuous_on.sub [topological_add_group α] [topological_space β] {f : β → α} {g : β → α} {s : set β}
+  (hf : continuous_on f s) (hg : continuous_on g s) : continuous_on (λx, f x - g x) s :=
+continuous_sub'.comp_continuous_on (hf.prod hg)
 
 lemma tendsto_sub [topological_add_group α] {f : β → α} {g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) : tendsto (λx, f x - g x) x (nhds (a - b)) :=
@@ -266,13 +275,13 @@ lemma neg_Z : tendsto (λa:α, - a) (Z α) (Z α) :=
 have tendsto (λa, (0:α)) (Z α) (Z α),
   by refine le_trans (assume h, _) zero_Z; simp [univ_mem_sets'] {contextual := tt},
 have tendsto (λa:α, 0 - a) (Z α) (Z α), from
-  (tendsto.prod_mk this tendsto_id).comp sub_Z,
+  sub_Z.comp (tendsto.prod_mk this tendsto_id),
 by simpa
 
 lemma add_Z : tendsto (λp:α×α, p.1 + p.2) ((Z α).prod (Z α)) (Z α) :=
 suffices tendsto (λp:α×α, p.1 - -p.2) ((Z α).prod (Z α)) (Z α),
   by simpa,
-(tendsto.prod_mk tendsto_fst (tendsto_snd.comp neg_Z)).comp sub_Z
+sub_Z.comp (tendsto.prod_mk tendsto_fst (neg_Z.comp tendsto_snd))
 
 lemma exists_Z_half {s : set α} (hs : s ∈ Z α) : ∃ V ∈ Z α, ∀ v w ∈ V, v + w ∈ s :=
 begin
@@ -307,7 +316,7 @@ instance : topological_add_monoid α :=
     suffices :  tendsto ((λx:α, (a + b) + x) ∘ (λp:α×α,p.1 + p.2)) (filter.prod (Z α) (Z α))
       (map (λx:α, (a + b) + x) (Z α)),
     { simpa [(∘)] },
-    exact add_Z.comp tendsto_map
+    exact tendsto_map.comp add_Z
   end⟩
 
 instance : topological_add_group α :=
@@ -316,7 +325,7 @@ instance : topological_add_group α :=
     rw [continuous_at, nhds_eq, nhds_eq, tendsto_map'_iff],
     suffices : tendsto ((λx:α, x - a) ∘ (λx:α, -x)) (Z α) (map (λx:α, x - a) (Z α)),
     { simpa [(∘)] },
-    exact neg_Z.comp tendsto_map
+    exact tendsto_map.comp neg_Z
   end⟩
 
 end add_group_with_zero_nhd

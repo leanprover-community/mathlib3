@@ -36,9 +36,9 @@ begin
     trivial }
 end
 
-example (x : inhabited α × option β ⊕ γ) : true :=
+example : inhabited α × option β ⊕ γ → true :=
 begin
-  rcases x with ⟨⟨a⟩, _ | b⟩ | c,
+  rintro (⟨⟨a⟩, _ | b⟩ | c),
   { guard_hyp a := α, trivial },
   { guard_hyp a := α, guard_hyp b := β, trivial },
   { guard_hyp c := γ, trivial }

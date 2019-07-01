@@ -7,36 +7,33 @@
 
    Also the Yoneda lemma, `yoneda_lemma : (yoneda_pairing C) ≅ (yoneda_evaluation C)`. -/
 
-import category_theory.natural_transformation
 import category_theory.opposites
-import category_theory.types
-import category_theory.fully_faithful
-import category_theory.natural_isomorphism
 
 namespace category_theory
+open opposite
 
 universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Sort u₁} [𝒞 : category.{v₁} C]
+variables {C : Type u₁} [𝒞 : category.{v₁} C]
 include 𝒞
 
 def yoneda : C ⥤ (Cᵒᵖ ⥤ Sort v₁) :=
 { obj := λ X,
   { obj := λ Y, unop Y ⟶ X,
     map := λ Y Y' f g, f.unop ≫ g,
-    map_comp' := λ _ _ _ f g, begin ext1, dsimp at *, erw [category.assoc] end,
-    map_id' := λ Y, begin ext1, dsimp at *, erw [category.id_comp] end },
+    map_comp' := λ _ _ _ f g, begin ext1, dsimp, erw [category.assoc] end,
+    map_id' := λ Y, begin ext1, dsimp, erw [category.id_comp] end },
   map := λ X X' f, { app := λ Y g, g ≫ f } }
 
 def coyoneda : Cᵒᵖ ⥤ (C ⥤ Sort v₁) :=
 { obj := λ X,
   { obj := λ Y, unop X ⟶ Y,
     map := λ Y Y' f g, g ≫ f,
-    map_comp' := λ _ _ _ f g, begin ext1, dsimp at *, erw [category.assoc] end,
-    map_id' := λ Y, begin ext1, dsimp at *, erw [category.comp_id] end },
+    map_comp' := λ _ _ _ f g, begin ext1, dsimp, erw [category.assoc] end,
+    map_id' := λ Y, begin ext1, dsimp, erw [category.comp_id] end },
   map := λ X X' f, { app := λ Y g, f.unop ≫ g },
-  map_comp' := λ _ _ _ f g, begin ext1, ext1, dsimp at *, erw [category.assoc] end,
-  map_id' := λ X, begin ext1, ext1, dsimp at *, erw [category.id_comp] end }
+  map_comp' := λ _ _ _ f g, begin ext1, ext1, dsimp, erw [category.assoc] end,
+  map_id' := λ X, begin ext1, ext1, dsimp, erw [category.id_comp] end }
 
 namespace yoneda
 @[simp] lemma obj_obj (X : C) (Y : Cᵒᵖ) : (yoneda.obj X).obj Y = (unop Y ⟶ X) := rfl
@@ -99,6 +96,8 @@ namespace category_theory
 
 universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
+open opposite
+
 variables (C : Type u₁) [𝒞 : category.{v₁+1} C]
 include 𝒞
 
@@ -132,8 +131,9 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
     begin
       intros X Y f, ext1, ext1,
       cases f, cases Y, cases X,
-      dsimp at *, simp at *,
-      erw [←functor_to_types.naturality,
+      dsimp,
+      erw [category.id_comp,
+           ←functor_to_types.naturality,
            obj_map_id,
            functor_to_types.naturality,
            functor_to_types.map_id]
@@ -145,19 +145,19 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
       begin
         intros X Y f, ext1,
         cases x, cases F,
-        dsimp at *,
+        dsimp,
         erw [functor_to_types.map_comp]
       end },
     naturality' :=
     begin
       intros X Y f, ext1, ext1, ext1,
       cases x, cases f, cases Y, cases X,
-      dsimp at *,
+      dsimp,
       erw [←functor_to_types.naturality, functor_to_types.map_comp]
     end },
   hom_inv_id' :=
   begin
-    ext1, ext1, ext1, ext1, cases X, dsimp at *,
+    ext1, ext1, ext1, ext1, cases X, dsimp,
     erw [←functor_to_types.naturality,
          obj_map_id,
          functor_to_types.naturality,
@@ -168,14 +168,14 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
   begin
     ext1, ext1, ext1,
     cases x, cases X,
-    dsimp at *,
+    dsimp,
     erw [functor_to_types.map_id]
   end }.
 
 variables {C}
 
 @[simp] def yoneda_sections (X : C) (F : Cᵒᵖ ⥤ Type v₁) : (yoneda.obj X ⟶ F) ≅ ulift.{u₁} (F.obj (op X)) :=
-nat_iso.app (yoneda_lemma C) (op X, F)
+(yoneda_lemma C).app (op X, F)
 
 omit 𝒞
 @[simp] def yoneda_sections_small {C : Type u₁} [small_category C] (X : C) (F : Cᵒᵖ ⥤ Type u₁) : (yoneda.obj X ⟶ F) ≅ F.obj (op X) :=

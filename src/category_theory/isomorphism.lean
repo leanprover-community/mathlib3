@@ -1,14 +1,15 @@
 -- Copyright (c) 2017 Scott Morrison. All rights reserved.
 -- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Tim Baumann, Stephen Morgan, Scott Morrison
+-- Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
 
 import category_theory.functor
 
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory
+open category
 
-structure iso {C : Sort u} [category.{v} C] (X Y : C) :=
+structure iso {C : Type u} [category.{v} C] (X Y : C) :=
 (hom : X ⟶ Y)
 (inv : Y ⟶ X)
 (hom_inv_id' : hom ≫ inv = 𝟙 X . obviously)
@@ -20,7 +21,7 @@ attribute [simp] iso.hom_inv_id iso.inv_hom_id
 
 infixr ` ≅ `:10  := iso             -- type as \cong or \iso
 
-variables {C : Sort u} [𝒞 : category.{v} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 variables {X Y Z : C}
 
@@ -91,6 +92,19 @@ lemma comp_inv_eq (α : X ≅ Y) {f : Z ⟶ Y} {g : Z ⟶ X} : f ≫ α.inv = g 
 
 lemma eq_comp_inv (α : X ≅ Y) {f : Z ⟶ Y} {g : Z ⟶ X} : g = f ≫ α.inv ↔ g ≫ α.hom = f :=
 (comp_inv_eq α.symm).symm
+
+lemma inv_eq_inv (f g : X ≅ Y) : f.inv = g.inv ↔ f.hom = g.hom :=
+have ∀{X Y : C} (f g : X ≅ Y), f.hom = g.hom → f.inv = g.inv, from λ X Y f g h, by rw [ext _ _ h],
+⟨this f.symm g.symm, this f g⟩
+
+lemma hom_comp_eq_id (α : X ≅ Y) {f : Y ⟶ X} : α.hom ≫ f = 𝟙 X ↔ f = α.inv :=
+by rw [←eq_inv_comp, comp_id]
+
+lemma comp_hom_eq_id (α : X ≅ Y) {f : Y ⟶ X} : f ≫ α.hom = 𝟙 Y ↔ f = α.inv :=
+by rw [←eq_comp_inv, id_comp]
+
+lemma hom_eq_inv (α : X ≅ Y) (β : Y ≅ X) : α.hom = β.inv ↔ β.hom = α.inv :=
+by { erw [inv_eq_inv α.symm β, eq_comm], refl }
 
 end iso
 
@@ -173,10 +187,18 @@ instance (f : X ⟶ Y) : subsingleton (is_iso f) :=
  show (@as_iso C _ _ _ f a).inv = (@as_iso C _ _ _ f b).inv,
  by congr' 1; ext; refl⟩
 
+lemma is_iso.inv_eq_inv {f g : X ⟶ Y} [is_iso f] [is_iso g] : inv f = inv g ↔ f = g :=
+iso.inv_eq_inv (as_iso f) (as_iso g)
+
+instance is_iso_comp (f : X ⟶ Y) (g : Y ⟶ Z) [is_iso f] [is_iso g] : is_iso (f ≫ g) :=
+{ inv := inv g ≫ inv f }
+
+instance is_iso_id : is_iso (𝟙 X) := { inv := 𝟙 X }
+
 namespace functor
 
 universes u₁ v₁ u₂ v₂
-variables {D : Sort u₂}
+variables {D : Type u₂}
 
 variables [𝒟 : category.{v₂} D]
 include 𝒟
@@ -207,8 +229,7 @@ end category_theory
 
 namespace category_theory
 
--- We need to get the morphism universe level up into `Type`, in order to have group structures.
-variables {C : Sort u} [𝒞 : category.{v+1} C]
+variables {C : Type u} [𝒞 : category.{v+1} C]
 include 𝒞
 
 def Aut (X : C) := X ≅ X
@@ -218,6 +239,5 @@ attribute [extensionality Aut] iso.ext
 instance {X : C} : group (Aut X) :=
 by refine { one := iso.refl X,
             inv := iso.symm,
-            mul := iso.trans, .. } ; obviously
-
+            mul := flip iso.trans, .. } ; dunfold flip; obviously
 end category_theory

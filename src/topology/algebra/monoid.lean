@@ -9,6 +9,7 @@ TODO: generalize `topological_monoid` and `topological_add_monoid` to semigroups
 `topological_operator α (*)`.
 -/
 import topology.constructions
+import algebra.pi_instances
 
 open classical set lattice filter topological_space
 local attribute [instance] classical.prop_decidable
@@ -43,7 +44,21 @@ topological_monoid.continuous_mul α
 lemma continuous_mul [topological_space β] {f : β → α} {g : β → α}
   (hf : continuous f) (hg : continuous g) :
   continuous (λx, f x * g x) :=
-(hf.prod_mk hg).comp continuous_mul'
+continuous_mul'.comp (hf.prod_mk hg)
+
+@[to_additive continuous_add_left]
+lemma continuous_mul_left (a : α) : continuous (λ b:α, a * b) :=
+continuous_mul continuous_const continuous_id
+
+@[to_additive continuous_add_right]
+lemma continuous_mul_right (a : α) : continuous (λ b:α, b * a) :=
+continuous_mul continuous_id continuous_const
+
+@[to_additive continuous_on.add]
+lemma continuous_on.mul [topological_space β] {f : β → α} {g : β → α} {s : set β}
+  (hf : continuous_on f s) (hg : continuous_on g s) :
+  continuous_on (λx, f x * g x) s :=
+(continuous_mul'.comp_continuous_on (hf.prod hg) : _)
 
 -- @[to_additive continuous_smul]
 lemma continuous_pow : ∀ n : ℕ, continuous (λ a : α, a ^ n)
@@ -58,7 +73,7 @@ continuous_iff_continuous_at.mp (topological_monoid.continuous_mul α) (a, b)
 lemma tendsto_mul {f : β → α} {g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) :
   tendsto (λx, f x * g x) x (nhds (a * b)) :=
-(hf.prod_mk hg).comp (by rw [←nhds_prod_eq]; exact tendsto_mul')
+tendsto.comp (by rw [←nhds_prod_eq]; exact tendsto_mul') (hf.prod_mk hg)
 
 @[to_additive tendsto_list_sum]
 lemma tendsto_list_prod {f : γ → β → α} {x : filter β} {a : γ → α} :
@@ -83,8 +98,8 @@ continuous_iff_continuous_at.2 $ assume x, tendsto_list_prod l $ assume c hc,
 @[to_additive prod.topological_add_monoid]
 instance [topological_space β] [monoid β] [topological_monoid β] : topological_monoid (α × β) :=
 ⟨continuous.prod_mk
-  (continuous_mul (continuous_fst.comp continuous_fst) (continuous_snd.comp continuous_fst))
-  (continuous_mul (continuous_fst.comp continuous_snd) (continuous_snd.comp continuous_snd)) ⟩
+  (continuous_mul (continuous_fst.comp continuous_fst) (continuous_fst.comp continuous_snd))
+  (continuous_mul (continuous_snd.comp continuous_fst) (continuous_snd.comp continuous_snd)) ⟩
 
 attribute [instance] prod.topological_add_monoid
 

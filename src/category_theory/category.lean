@@ -31,13 +31,13 @@ powerful tactics.
 def_replacer obviously
 @[obviously] meta def obviously' := tactic.tidy
 
-class has_hom (obj : Sort u) : Sort (max u (v+1)) :=
+class has_hom (obj : Type u) : Type (max u v) :=
 (hom : obj → obj → Sort v)
 
 infixr ` ⟶ `:10 := has_hom.hom -- type as \h
 
-class category_struct (obj : Sort u)
-extends has_hom.{v} obj : Sort (max u (v+1)) :=
+class category_struct (obj : Type u)
+extends has_hom.{v} obj : Type (max u v) :=
 (id       : Π X : obj, hom X X)
 (comp     : Π {X Y Z : obj}, (X ⟶ Y) → (Y ⟶ Z) → (X ⟶ Z))
 
@@ -49,8 +49,8 @@ The typeclass `category C` describes morphisms associated to objects of type `C`
 The universe levels of the objects and morphisms are unconstrained, and will often need to be
 specified explicitly, as `category.{v} C`. (See also `large_category` and `small_category`.)
 -/
-class category (obj : Sort u)
-extends category_struct.{v} obj : Sort (max u (v+1)) :=
+class category (obj : Type u)
+extends category_struct.{v} obj : Type (max u v) :=
 (id_comp' : ∀ {X Y : obj} (f : hom X Y), 𝟙 X ≫ f = f . obviously)
 (comp_id' : ∀ {X Y : obj} (f : hom X Y), f ≫ 𝟙 Y = f . obviously)
 (assoc'   : ∀ {W X Y Z : obj} (f : hom W X) (g : hom X Y) (h : hom Y Z),
@@ -74,14 +74,14 @@ A `large_category` has objects in one universe level higher than the universe le
 the morphisms. It is useful for examples such as the category of types, or the category
 of groups, etc.
 -/
-abbreviation large_category (C : Sort (u+1)) : Sort (u+1) := category.{u} C
+abbreviation large_category (C : Type u) : Type u := category.{u} C
 /--
 A `small_category` has objects and morphisms in the same universe level.
 -/
-abbreviation small_category (C : Sort u)     : Sort (u+1) := category.{u} C
+abbreviation small_category (C : Type u) : Type (u+1) := category.{u+1} C
 
 section
-variables {C : Sort u} [𝒞 : category.{v} C] {X Y Z : C}
+variables {C : Type u} [𝒞 : category.{v} C] {X Y Z : C}
 include 𝒞
 
 lemma eq_of_comp_left_eq {f g : X ⟶ Y} (w : ∀ {Z : C} (h : Y ⟶ Z), f ≫ h = g ≫ h) : f = g :=
@@ -131,13 +131,14 @@ variables {C : Type u}
 def End [has_hom.{v} C] (X : C) := X ⟶ X
 
 instance End.has_one [category_struct.{v+1} C] {X : C} : has_one (End X) := by refine { one := 𝟙 X }
-instance End.has_mul [category_struct.{v+1} C] {X : C} : has_mul (End X) := by refine { mul := λ x y, x ≫ y }
+/-- Multiplication of endomorphisms agrees with `function.comp`, not `category_struct.comp`. -/
+instance End.has_mul [category_struct.{v+1} C] {X : C} : has_mul (End X) := by refine { mul := λ x y, y ≫ x }
 instance End.monoid [category.{v+1} C] {X : C} : monoid (End X) :=
 by refine { .. End.has_one, .. End.has_mul, .. }; dsimp [has_mul.mul,has_one.one]; obviously
 
 @[simp] lemma End.one_def {C : Type u} [category_struct.{v+1} C] {X : C} : (1 : End X) = 𝟙 X := rfl
 
-@[simp] lemma End.mul_def {C : Type u} [category_struct.{v+1} C] {X : C} (xs ys : End X) : xs * ys = xs ≫ ys := rfl
+@[simp] lemma End.mul_def {C : Type u} [category_struct.{v+1} C] {X : C} (xs ys : End X) : xs * ys = ys ≫ xs := rfl
 
 end
 

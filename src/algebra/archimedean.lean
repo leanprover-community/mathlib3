@@ -6,7 +6,7 @@ Authors: Mario Carneiro
 Archimedean groups and fields.
 -/
 import algebra.group_power algebra.field_power
-import data.rat tactic.linarith tactic.abel
+import data.rat.basic tactic.linarith tactic.abel
 
 local infix ` • ` := add_monoid.smul
 

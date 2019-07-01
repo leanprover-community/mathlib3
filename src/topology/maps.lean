@@ -25,7 +25,7 @@ variables [topological_space α] [topological_space β] [topological_space γ] [
 lemma embedding_id : embedding (@id α) :=
 ⟨assume a₁ a₂ h, h, induced_id.symm⟩
 
-lemma embedding_compose {f : α → β} {g : β → γ} (hf : embedding f) (hg : embedding g) :
+lemma embedding_compose {f : α → β} {g : β → γ} (hg : embedding g) (hf : embedding f) :
   embedding (g ∘ f) :=
 ⟨assume a₁ a₂ h, hf.left $ hg.left h, by rw [hf.right, hg.right, induced_compose]⟩
 
@@ -33,15 +33,15 @@ lemma embedding_prod_mk {f : α → β} {g : γ → δ} (hf : embedding f) (hg :
   embedding (λx:α×γ, (f x.1, g x.2)) :=
 ⟨assume ⟨x₁, x₂⟩ ⟨y₁, y₂⟩, by simp; exact assume h₁ h₂, ⟨hf.left h₁, hg.left h₂⟩,
   by rw [prod.topological_space, prod.topological_space, hf.right, hg.right,
-         induced_compose, induced_compose, induced_sup, induced_compose, induced_compose]⟩
+         induced_compose, induced_compose, induced_inf, induced_compose, induced_compose]⟩
 
 lemma embedding_of_embedding_compose {f : α → β} {g : β → γ} (hf : continuous f) (hg : continuous g)
   (hgf : embedding (g ∘ f)) : embedding f :=
 ⟨assume a₁ a₂ h, hgf.left $ by simp [h, (∘)],
   le_antisymm
-    (by rw [hgf.right, ← continuous_iff_induced_le];
-        apply continuous_induced_dom.comp hg)
-    (by rwa ← continuous_iff_induced_le)⟩
+    (by rwa ← continuous_iff_le_induced)
+    (by rw [hgf.right, ← continuous_iff_le_induced];
+        apply hg.comp continuous_induced_dom)⟩
 
 lemma embedding_open {f : α → β} {s : set α}
   (hf : embedding f) (h : is_open (range f)) (hs : is_open s) : is_open (f '' s) :=
@@ -276,13 +276,13 @@ protected lemma of_quotient_map_compose {f : α → β} {g : β → γ}
   (hgf : quotient_map (g ∘ f)) : quotient_map g :=
 ⟨assume b, let ⟨a, h⟩ := hgf.left b in ⟨f a, h⟩,
   le_antisymm
-    (by rwa ← continuous_iff_le_coinduced)
-    (by rw [hgf.right, ← continuous_iff_le_coinduced];
-        apply hf.comp continuous_coinduced_rng)⟩
+    (by rw [hgf.right, ← continuous_iff_coinduced_le];
+        apply continuous_coinduced_rng.comp hf)
+    (by rwa ← continuous_iff_coinduced_le)⟩
 
 protected lemma continuous_iff {f : α → β} {g : β → γ} (hf : quotient_map f) :
   continuous g ↔ continuous (g ∘ f) :=
-by rw [continuous_iff_le_coinduced, continuous_iff_le_coinduced, hf.right, coinduced_compose]
+by rw [continuous_iff_coinduced_le, continuous_iff_coinduced_le, hf.right, coinduced_compose]
 
 protected lemma continuous {f : α → β} (hf : quotient_map f) : continuous f :=
 hf.continuous_iff.mp continuous_id
@@ -394,7 +394,7 @@ lemma closed_embedding_of_continuous_injective_closed {f : α → β} (h₁ : co
   (h₂ : function.injective f) (h₃ : is_closed_map f) : closed_embedding f :=
 begin
   refine ⟨⟨h₂, _⟩, by convert h₃ univ is_closed_univ; simp⟩,
-  apply le_antisymm _ (continuous_iff_induced_le.mp h₁),
+  apply le_antisymm (continuous_iff_le_induced.mp h₁) _,
   intro s',
   change is_open _ ≤ is_open _,
   rw [←is_closed_compl_iff, ←is_closed_compl_iff],
@@ -408,8 +408,8 @@ lemma closed_embedding_id : closed_embedding (@id α) :=
 ⟨embedding_id, by convert is_closed_univ; apply range_id⟩
 
 lemma closed_embedding_compose {f : α → β} {g : β → γ}
-  (hf : closed_embedding f) (hg : closed_embedding g) : closed_embedding (g ∘ f) :=
-⟨embedding_compose hf.1 hg.1, show is_closed (range (g ∘ f)),
+  (hg : closed_embedding g) (hf : closed_embedding f) : closed_embedding (g ∘ f) :=
+⟨embedding_compose hg.1 hf.1, show is_closed (range (g ∘ f)),
  by rw [range_comp, ←hg.closed_iff_image_closed]; exact hf.2⟩
 
 end closed_embedding

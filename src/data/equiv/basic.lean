@@ -224,11 +224,10 @@ protected def plift : plift α ≃ α :=
   arrow_congr e₁ e₂ f x = (e₂ $ f $ e₁.symm x) :=
 rfl
 
-/- TODO: why Lean doesn't accept this lemma as a `simp` lemma? -/
-lemma arrow_congr_comp_apply {α₁ β₁ γ₁ α₂ β₂ γ₂ : Sort*}
-  (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) (ec : γ₁ ≃ γ₂) (f : α₁ → β₁) (g : β₁ → γ₁) (x : α₂) :
-  arrow_congr ea ec (g ∘ f) x = arrow_congr eb ec g (arrow_congr ea eb f x) :=
-by simp only [arrow_congr_apply, eb.symm_apply_apply]
+lemma arrow_congr_comp {α₁ β₁ γ₁ α₂ β₂ γ₂ : Sort*}
+  (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) (ec : γ₁ ≃ γ₂) (f : α₁ → β₁) (g : β₁ → γ₁) :
+  arrow_congr ea ec (g ∘ f) = (arrow_congr eb ec g) ∘ (arrow_congr ea eb f) :=
+by ext; simp only [comp, arrow_congr_apply, eb.symm_apply_apply]
 
 @[simp] lemma arrow_congr_refl {α β : Sort*} :
   arrow_congr (equiv.refl α) (equiv.refl β) = equiv.refl (α → β) := rfl
@@ -244,6 +243,10 @@ rfl
 
 def conj (e : α ≃ β) : (α → α) ≃ (β → β) := arrow_congr e e
 
+@[simp] lemma conj_apply (e : α ≃ β) (f : α → α) (x : β) :
+  e.conj f x = (e $ f $ e.symm x) :=
+rfl
+
 @[simp] lemma conj_refl : conj (equiv.refl α) = equiv.refl (α → α) := rfl
 
 @[simp] lemma conj_symm (e : α ≃ β) : e.conj.symm = e.symm.conj := rfl
@@ -252,13 +255,9 @@ def conj (e : α ≃ β) : (α → α) ≃ (β → β) := arrow_congr e e
   (e₁.trans e₂).conj = e₁.conj.trans e₂.conj :=
 rfl
 
-@[simp] lemma conj_apply (e : α ≃ β) (f : α → α) (x : β) :
-  e.conj f x = (e $ f $ e.inv_fun x) :=
-rfl
-
-@[simp] lemma conj_comp_apply (e : α ≃ β) (f₁ f₂ : α → α) (y : β) :
-  e.conj (f₁ ∘ f₂) y = e.conj f₁ (e.conj f₂ y) :=
-by apply arrow_congr_comp_apply
+@[simp] lemma conj_comp (e : α ≃ β) (f₁ f₂ : α → α) :
+  e.conj (f₁ ∘ f₂) = (e.conj f₁) ∘ (e.conj f₂) :=
+by apply arrow_congr_comp
 
 def punit_equiv_punit : punit.{v} ≃ punit.{w} :=
 ⟨λ _, punit.star, λ _, punit.star, λ u, by cases u; refl, λ u, by cases u; reflexivity⟩

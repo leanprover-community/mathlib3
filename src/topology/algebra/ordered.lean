@@ -271,6 +271,14 @@ begin
   letI := induced f ta,
   refine ⟨eq_of_nhds_eq_nhds (λ a, _)⟩,
   rw [nhds_induced_eq_comap, nhds_generate_from, @nhds_eq_orderable β _ _], apply le_antisymm,
+  { refine le_infi (λ s, le_infi $ λ hs, le_principal_iff.2 _),
+    rcases hs with ⟨ab, b, rfl|rfl⟩,
+    { exact mem_comap_sets.2 ⟨{x | f b < x},
+        mem_inf_sets_of_left $ mem_infi_sets _ $ mem_infi_sets (hf.2 ab) $ mem_principal_self _,
+        λ x, hf.1⟩ },
+    { exact mem_comap_sets.2 ⟨{x | x < f b},
+        mem_inf_sets_of_right $ mem_infi_sets _ $ mem_infi_sets (hf.2 ab) $ mem_principal_self _,
+        λ x, hf.1⟩ } },
   { rw [← map_le_iff_le_comap],
     refine le_inf _ _; refine le_infi (λ x, le_infi $ λ h, le_principal_iff.2 _); simp,
     { rcases H₁ h with ⟨b, ab, xb⟩,
@@ -279,14 +287,6 @@ begin
     { rcases H₂ h with ⟨b, ab, xb⟩,
       refine mem_infi_sets _ (mem_infi_sets ⟨ab, b, or.inr rfl⟩ (mem_principal_sets.2 _)),
       exact λ c hc, lt_of_lt_of_le (hf.2 hc) xb } },
-  refine le_infi (λ s, le_infi $ λ hs, le_principal_iff.2 _),
-  rcases hs with ⟨ab, b, rfl|rfl⟩,
-  { exact mem_comap_sets.2 ⟨{x | f b < x},
-      mem_inf_sets_of_left $ mem_infi_sets _ $ mem_infi_sets (hf.2 ab) $ mem_principal_self _,
-      λ x, hf.1⟩ },
-  { exact mem_comap_sets.2 ⟨{x | x < f b},
-      mem_inf_sets_of_right $ mem_infi_sets _ $ mem_infi_sets (hf.2 ab) $ mem_principal_self _,
-      λ x, hf.1⟩ }
 end
 
 theorem induced_orderable_topology {α : Type u} {β : Type v}
@@ -840,6 +840,28 @@ theorem Limsup_eq_of_le_nhds : ∀ {f : filter α} {a : α}, f ≠ ⊥ → f ≤
 @Liminf_eq_of_le_nhds (order_dual α) _ _ _
 
 end conditionally_complete_linear_order
+
+section complete_linear_order
+variables [complete_linear_order α] [topological_space α] [orderable_topology α]
+-- In complete_linear_order, the above theorems take a simpler form
+
+/-- If the liminf and the limsup of a function coincide, then the limit of the function 
+exists and has the same value -/
+theorem tendsto_of_liminf_eq_limsup {f : filter β} {u : β → α} {a : α} 
+  (h : liminf f u = a ∧ limsup f u = a) : tendsto u f (nhds a) := 
+  le_nhds_of_Limsup_eq_Liminf is_bounded_le_of_top is_bounded_ge_of_bot h.2 h.1
+
+/-- If a function has a limit, then its limsup coincides with its limit-/
+theorem limsup_eq_of_tendsto {f : filter β} {u : β → α} {a : α} (hf : f ≠ ⊥) 
+  (h : tendsto u f (nhds a)) : limsup f u = a := 
+  Limsup_eq_of_le_nhds (map_ne_bot hf) h 
+
+/-- If a function has a limit, then its liminf coincides with its limit-/
+theorem liminf_eq_of_tendsto {f : filter β} {u : β → α} {a : α} (hf : f ≠ ⊥) 
+  (h : tendsto u f (nhds a)) : liminf f u = a := 
+  Liminf_eq_of_le_nhds (map_ne_bot hf) h 
+  
+end complete_linear_order
 
 end liminf_limsup
 

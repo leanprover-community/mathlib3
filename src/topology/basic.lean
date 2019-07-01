@@ -545,6 +545,13 @@ begin
   exact ⟨u, λ x xu xs, hu ⟨xu, xs⟩, openu, au⟩
 end
 
+theorem self_mem_nhds_within {a : α} {s : set α} : s ∈ nhds_within a s :=
+begin
+  rw [nhds_within, mem_inf_principal],
+  simp only [imp_self],
+  exact univ_mem_sets
+end
+
 theorem inter_mem_nhds_within (s : set α) {t : set α} {a : α} (h : t ∈ nhds a) :
   s ∩ t ∈ nhds_within a s :=
 inter_mem_sets (mem_inf_sets_of_right (mem_principal_self s)) (mem_inf_sets_of_left h)
@@ -552,15 +559,28 @@ inter_mem_sets (mem_inf_sets_of_right (mem_principal_self s)) (mem_inf_sets_of_l
 theorem nhds_within_mono (a : α) {s t : set α} (h : s ⊆ t) : nhds_within a s ≤ nhds_within a t :=
 lattice.inf_le_inf (le_refl _) (principal_mono.mpr h)
 
-theorem nhds_within_restrict' {a : α} (s : set α) {t : set α} (h : t ∈ nhds a) :
+theorem nhds_within_restrict'' {a : α} (s : set α) {t : set α} (h : t ∈ nhds_within a s) :
   nhds_within a s = nhds_within a (s ∩ t) :=
 le_antisymm
-  (lattice.le_inf lattice.inf_le_left (le_principal_iff.mpr (inter_mem_nhds_within s h)))
+  (lattice.le_inf lattice.inf_le_left (le_principal_iff.mpr (inter_mem_sets self_mem_nhds_within h)))
   (lattice.inf_le_inf (le_refl _) (principal_mono.mpr (set.inter_subset_left _ _)))
+
+theorem nhds_within_restrict' {a : α} (s : set α) {t : set α} (h : t ∈ nhds a) :
+  nhds_within a s = nhds_within a (s ∩ t) :=
+nhds_within_restrict'' s $ mem_inf_sets_of_left h
 
 theorem nhds_within_restrict {a : α} (s : set α) {t : set α} (h₀ : a ∈ t) (h₁ : is_open t) :
   nhds_within a s = nhds_within a (s ∩ t) :=
 nhds_within_restrict' s (mem_nhds_sets h₁ h₀)
+
+theorem nhds_within_le_of_mem {a : α} {s t : set α} (h : s ∈ nhds_within a t) :
+  nhds_within a t ≤ nhds_within a s :=
+begin
+  rcases (mem_nhds_within _ _ _).1 h with ⟨u, u_open, au, uts⟩,
+  have : nhds_within a t = nhds_within a (t ∩ u) := nhds_within_restrict _ au u_open,
+  rw [this, inter_comm],
+  exact nhds_within_mono _ uts
+end
 
 theorem nhds_within_eq_nhds_within {a : α} {s t u : set α}
     (h₀ : a ∈ s) (h₁ : is_open s) (h₂ : t ∩ s = u ∩ s) :

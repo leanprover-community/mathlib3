@@ -14,6 +14,11 @@ variables {α : Type*} {β : Type*}
 theorem get_of_mem {a : α} : ∀ {o : option α} (h : is_some o), a ∈ o → option.get h = a
 | _ _ rfl := rfl
 
+@[simp] lemma some_get : ∀ {x : option α} (h : is_some x), some (option.get h) = x
+| (some x) hx := rfl
+
+@[simp] lemma get_some (x : α) (h : is_some (some x)) : option.get h = x := rfl
+
 theorem mem_unique {o : option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a = b :=
 option.some.inj $ ha.symm.trans hb
 

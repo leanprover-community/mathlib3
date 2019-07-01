@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 
 Type tags `multiplicative` and `additive` that turn additive structures into multiplicative, and vice versa
 -/
-import algebra.group.to_additive algebra.group.hom
+import algebra.group.hom
 
 universes u v
 variables {α : Type u} {β : Type v}

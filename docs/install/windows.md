@@ -16,11 +16,9 @@ Installing `elan`
 ---
 
 1. We'll need a terminal, along with some basic prerequisites.
-   * Either (recommended): install [Git for Windows](https://gitforwindows.org/), after which you
-     can open a terminal by typing "git bash" in the Windows search bar (you can accept all default answers during installation).
-   * Or: install [Msys2](https://www.msys2.org/), after which you can open a terminal by
-     typing "msys2" in the Windows search bar. You'll also need to run `pacman -S unzip git` in
-     an msys2 terminal.
+
+   Install [Git for Windows](https://gitforwindows.org/), after which you
+   can open a terminal by typing "git bash" in the Windows search bar (you can accept all default answers during installation).
 
 2. At a terminal, run the command
 

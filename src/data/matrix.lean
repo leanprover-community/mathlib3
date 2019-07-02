@@ -29,10 +29,10 @@ ext_iff.mp
 def transpose (M : matrix m n α) : matrix n m α
 | x y := M y x
 
-def row (w : m → α) : matrix m punit α
+def col (w : m → α) : matrix m punit α
 | x y := w x
 
-def col (v : n → α) : matrix punit n α
+def row (v : n → α) : matrix punit n α
 | x y := v y
 
 end ext
@@ -304,8 +304,8 @@ by ext i j; refl
 
 end transpose
 
-def minor (A : matrix m n α) (col : l → m) (row : o → n) : matrix l o α :=
-λ i j, A (col i) (row j)
+def minor (A : matrix m n α) (row : l → m) (col : o → n) : matrix l o α :=
+λ i j, A (row i) (col j)
 
 @[reducible]
 def sub_left {m l r : nat} (A : matrix (fin m) (fin (l + r)) α) : matrix (fin m) (fin l) α :=

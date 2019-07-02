@@ -27,8 +27,10 @@ begin
   exact denumerable.of_equiv T denumerable_aux
 end
 
-open cardinal
+end rat
+
+namespace cardinal
 lemma mk_rat : cardinal.mk ℚ = omega :=
 denumerable_iff.mp ⟨by apply_instance⟩
 
-end rat
+end cardinal

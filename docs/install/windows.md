@@ -47,7 +47,7 @@ In order to use mathlib supporting tools, you need to [get python](https://www.p
 * Navigate to the folder where Python was installed. A reliable way to do this is to search for `python` in the Start Menu -> right click `Python 3.x (xx-bit)` -> open file location -> right click `Python 3.x (xx-bit)` -> open file location. The default location is something like `C:\Users\<user>\AppData\Local\Programs\Python\Python37-32`.
 * Copy the file `python.exe` to `python3.exe`.
 * Open Git bash (type `git bash` is the Start Menu)
-* Test whether everthing is working by typing `python3 --version` and `pip3 --version`. If both commands give a short output and no error, everything is set-up correctly.
+* Test whether everything is working by typing `python3 --version` and `pip3 --version`. If both commands give a short output and no error, everything is set-up correctly.
 * If `pip3 --version` doesn't give any output, run the command `python3 -m pip install --upgrade pip`, which should fix it.
 
 

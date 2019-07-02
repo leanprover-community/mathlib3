@@ -1839,6 +1839,12 @@ by rw [← filter_map_eq_map, filter_filter_map, filter_map_filter]; refl
 | (a :: l) := by by_cases hp : p a; by_cases hq : q a; simp only [hp, hq, filter, if_true, if_false,
     true_and, false_and, filter_filter l, eq_self_iff_true]
 
+@[simp] lemma filter_true {h : decidable_pred (λ a : α, true)} (l : list α) : @filter α (λ _, true) h l = l :=
+by convert filter_eq_self.2 (λ _ _, trivial)
+
+@[simp] lemma filter_false {h : decidable_pred (λ a : α, false)} (l : list α) : @filter α (λ _, false) h l = [] :=
+by convert filter_eq_nil.2 (λ _ _, id)
+
 @[simp] theorem span_eq_take_drop (p : α → Prop) [decidable_pred p] : ∀ (l : list α), span p l = (take_while p l, drop_while p l)
 | []     := rfl
 | (a::l) := if pa : p a then by simp only [span, if_pos pa, span_eq_take_drop l, take_while, drop_while]

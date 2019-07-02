@@ -2920,6 +2920,10 @@ theorem erase_diff_erase_sublist_of_sublist {a : α} : ∀ {l₁ l₂ : list α}
 | (b::l₁) l₂ h := if heq : b = a then by simp only [heq, erase_cons_head, diff_cons]
                   else by simpa only [erase_cons_head, erase_cons_tail _ heq, diff_cons, erase_comm a b l₂]
                   using erase_diff_erase_sublist_of_sublist (erase_sublist_erase b h)
+                  
+lemma nodup_diff : ∀ {l₁ l₂ : list α} (h : l₁.nodup), (l₁.diff l₂).nodup
+| l₁ []      h := h
+| l₁ (a::l₂) h := by rw diff_cons; exact nodup_diff (nodup_erase_of_nodup _ h)
 
 end diff
 

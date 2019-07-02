@@ -264,7 +264,7 @@ begin
 end
 
 lemma vec_mul_vec_eq (w : m → α) (v : n → α) :
-  vec_mul_vec w v = (row w) ⬝ (col v) :=
+  vec_mul_vec w v = (col w) ⬝ (row v) :=
 by simp [matrix.mul]; refl
 
 end semiring

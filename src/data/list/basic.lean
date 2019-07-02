@@ -132,6 +132,10 @@ end
   f a ∈ map f l ↔ a ∈ l :=
 ⟨λ m, let ⟨a', m', e⟩ := exists_of_mem_map m in H e ▸ m', mem_map_of_mem _⟩
 
+@[simp] lemma map_eq_nil {f : α → β} {l : list α} : list.map f l = [] ↔ l = [] :=
+⟨by cases l; simp only [forall_prop_of_true, map, forall_prop_of_false, not_false_iff],
+  λ h, h.symm ▸ rfl⟩
+
 @[simp] theorem mem_join {a : α} : ∀ {L : list (list α)}, a ∈ join L ↔ ∃ l, l ∈ L ∧ a ∈ l
 | []       := ⟨false.elim, λ⟨_, h, _⟩, false.elim h⟩
 | (c :: L) := by simp only [join, mem_append, @mem_join L, mem_cons_iff, or_and_distrib_right, exists_or_distrib, exists_eq_left]

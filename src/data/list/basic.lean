@@ -1843,7 +1843,7 @@ by rw [← filter_map_eq_map, filter_filter_map, filter_map_filter]; refl
 by convert filter_eq_self.2 (λ _ _, trivial)
 
 @[simp] lemma filter_false {h : decidable_pred (λ a : α, false)} (l : list α) : @filter α (λ _, false) h l = []
-by convert_filter_eq_nil.2 (λ _ _, id)
+by convert filter_eq_nil.2 (λ _ _, id)
 
 @[simp] theorem span_eq_take_drop (p : α → Prop) [decidable_pred p] : ∀ (l : list α), span p l = (take_while p l, drop_while p l)
 | []     := rfl

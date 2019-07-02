@@ -120,6 +120,20 @@ meta def is_num_eq : expr → expr → bool
 | `(%%a/%%a') `(%%b/%%b') :=  a.is_num_eq b
 | _ _ := ff
 
+meta def simp (t : expr)
+  (cfg : simp_config := {}) (discharger : tactic unit := failed)
+  (no_defaults := ff) (attr_names : list name := []) (hs : list simp_arg_type := []) :
+  tactic (expr × expr) :=
+do (s, to_unfold) ← mk_simp_set no_defaults attr_names hs,
+   simplify s to_unfold t cfg `eq discharger
+
+meta def dsimp (t : expr)
+  (cfg : dsimp_config := {})
+  (no_defaults := ff) (attr_names : list name := []) (hs : list simp_arg_type := []) :
+  tactic expr :=
+do (s, to_unfold) ← mk_simp_set no_defaults attr_names hs,
+   s.dsimplify to_unfold t cfg
+
 end expr
 
 

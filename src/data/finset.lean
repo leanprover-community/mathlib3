@@ -1614,6 +1614,9 @@ list.to_finset_eq (sort_nodup r s) ▸ eq_of_veq (sort_eq r s)
 @[simp] theorem mem_sort {s : finset α} {a : α} : a ∈ sort r s ↔ a ∈ s :=
 multiset.mem_sort _
 
+@[simp] theorem length_sort {s : finset α} : (sort r s).length = s.card :=
+multiset.length_sort _
+
 end sort
 
 section disjoint

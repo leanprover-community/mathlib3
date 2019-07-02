@@ -239,6 +239,5 @@ attribute [extensionality Aut] iso.ext
 instance {X : C} : group (Aut X) :=
 by refine { one := iso.refl X,
             inv := iso.symm,
-            mul := iso.trans, .. } ; obviously
-
+            mul := flip iso.trans, .. } ; dunfold flip; obviously
 end category_theory

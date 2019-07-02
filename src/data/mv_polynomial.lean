@@ -19,6 +19,7 @@ def mv_polynomial (σ : Type*) (α : Type*) [comm_semiring α] := (σ →₀ ℕ
 
 namespace mv_polynomial
 variables {σ : Type*} {a a' a₁ a₂ : α} {e : ℕ} {n m : σ} {s : σ →₀ ℕ}
+
 variables [decidable_eq σ] [decidable_eq α]
 
 section comm_semiring
@@ -51,11 +52,17 @@ by simp [C, monomial, single_mul_single]
 
 @[simp] lemma C_mul : (C (a * a') : mv_polynomial σ α) = C a * C a' := C_mul_monomial.symm
 
+@[simp] lemma C_pow (a : α) (n : ℕ) : (C (a^n) : mv_polynomial σ α) = (C a)^n :=
+by induction n; simp [pow_succ, *]
+
 instance : is_semiring_hom (C : α → mv_polynomial σ α) :=
 { map_zero := C_0,
   map_one := C_1,
   map_add := λ a a', C_add,
   map_mul := λ a a', C_mul }
+
+lemma C_eq_coe_nat (n : ℕ) : (C ↑n : mv_polynomial σ α) = n :=
+by induction n; simp [nat.succ_eq_add_one, *]
 
 lemma X_pow_eq_single : X n ^ e = monomial (single n e) (1 : α) :=
 begin
@@ -114,85 +121,6 @@ lemma is_id (f : mv_polynomial σ α → mv_polynomial σ α) (hf : is_semiring_
   f p = p :=
 hom_eq_hom f id hf is_semiring_hom.id hC hX p
 
-section eval₂
-variables [comm_semiring β]
-variables (f : α → β) (g : σ → β)
-
-/-- Evaluate a polynomial `p` given a valuation `g` of all the variables
-  and a ring hom `f` from the scalar ring to the target -/
-def eval₂ (p : mv_polynomial σ α) : β :=
-p.sum (λs a, f a * s.prod (λn e, g n ^ e))
-
-@[simp] lemma eval₂_zero : (0 : mv_polynomial σ α).eval₂ f g = 0 :=
-finsupp.sum_zero_index
-
-variables [is_semiring_hom f]
-
-@[simp] lemma eval₂_add : (p + q).eval₂ f g = p.eval₂ f g + q.eval₂ f g :=
-finsupp.sum_add_index
-  (by simp [is_semiring_hom.map_zero f])
-  (by simp [add_mul, is_semiring_hom.map_add f])
-
-@[simp] lemma eval₂_monomial : (monomial s a).eval₂ f g = f a * s.prod (λn e, g n ^ e) :=
-finsupp.sum_single_index (by simp [is_semiring_hom.map_zero f])
-
-@[simp] lemma eval₂_C (a) : (C a).eval₂ f g = f a :=
-by simp [eval₂_monomial, C, prod_zero_index]
-
-@[simp] lemma eval₂_one : (1 : mv_polynomial σ α).eval₂ f g = 1 :=
-(eval₂_C _ _ _).trans (is_semiring_hom.map_one f)
-
-@[simp] lemma eval₂_X (n) : (X n).eval₂ f g = g n :=
-by simp [eval₂_monomial,
-  is_semiring_hom.map_one f, X, prod_single_index, pow_one]
-
-lemma eval₂_mul_monomial :
-  ∀{s a}, (p * monomial s a).eval₂ f g = p.eval₂ f g * f a * s.prod (λn e, g n ^ e) :=
-begin
-  apply mv_polynomial.induction_on p,
-  { assume a' s a,
-    simp [C_mul_monomial, eval₂_monomial, is_semiring_hom.map_mul f] },
-  { assume p q ih_p ih_q, simp [add_mul, eval₂_add, ih_p, ih_q] },
-  { assume p n ih s a,
-    from calc (p * X n * monomial s a).eval₂ f g = (p * monomial (single n 1 + s) a).eval₂ f g :
-        by simp [monomial_single_add, -add_comm, pow_one, mul_assoc]
-      ... = (p * monomial (single n 1) 1).eval₂ f g * f a * s.prod (λn e, g n ^ e) :
-        by simp [ih, prod_single_index, prod_add_index, pow_one, pow_add, mul_assoc, mul_left_comm,
-          is_semiring_hom.map_one f, -add_comm] }
-end
-
-lemma eval₂_mul : ∀{p}, (p * q).eval₂ f g = p.eval₂ f g * q.eval₂ f g :=
-begin
-  apply mv_polynomial.induction_on q,
-  { simp [C, eval₂_monomial, eval₂_mul_monomial, prod_zero_index] },
-  { simp [mul_add, eval₂_add] {contextual := tt} },
-  { simp [X, eval₂_monomial, eval₂_mul_monomial, (mul_assoc _ _ _).symm] { contextual := tt} }
-end
-
-lemma eval₂_pow {p:mv_polynomial σ α} : ∀{n:ℕ}, (p ^ n).eval₂ f g = (p.eval₂ f g)^n
-| 0       := eval₂_one _ _
-| (n + 1) := by rw [pow_add, pow_one, pow_add, pow_one, eval₂_mul, eval₂_pow]
-
-instance eval₂.is_semiring_hom : is_semiring_hom (eval₂ f g) :=
-{ map_zero := eval₂_zero _ _,
-  map_one := eval₂_one _ _,
-  map_add := λ p q, eval₂_add _ _,
-  map_mul := λ p q, eval₂_mul _ _ }
-
-lemma eval₂_comp_left {γ} [comm_semiring γ]
-  (k : β → γ) [is_semiring_hom k]
-  (f : α → β) [is_semiring_hom f] (g : σ → β)
-  (p) : k (eval₂ f g p) = eval₂ (k ∘ f) (k ∘ g) p :=
-by apply mv_polynomial.induction_on p; simp [
-  eval₂_add, is_semiring_hom.map_add k,
-  eval₂_mul, is_semiring_hom.map_mul k] {contextual := tt}
-
-lemma eval₂_eta (p : mv_polynomial σ α) : eval₂ C X p = p :=
-by apply mv_polynomial.induction_on p;
-   simp [eval₂_add, eval₂_mul] {contextual := tt}
-
-end eval₂
-
 section coeff
 
 def tmp.coe : has_coe_to_fun (mv_polynomial σ α) := by delta mv_polynomial; apply_instance
@@ -203,6 +131,10 @@ def coeff (m : σ →₀ ℕ) (p : mv_polynomial σ α) : α := p m
 
 lemma ext (p q : mv_polynomial σ α) :
   (∀ m, coeff m p = coeff m q) → p = q := ext
+
+lemma ext_iff (p q : mv_polynomial σ α) :
+  (∀ m, coeff m p = coeff m q) ↔ p = q :=
+⟨ext p q, λ h m, by rw h⟩
 
 @[simp] lemma coeff_add (m : σ →₀ ℕ) (p q : mv_polynomial σ α) :
   coeff m (p + q) = coeff m p + coeff m q := add_apply
@@ -232,8 +164,8 @@ single_apply
   coeff m (C a : mv_polynomial σ α) = if 0 = m then a else 0 :=
 single_apply
 
-lemma coeff_X [decidable_eq β] (i : β) (m) (k : ℕ) :
-  coeff m (X i ^ k : mv_polynomial β α) = if finsupp.single i k = m then 1 else 0 :=
+lemma coeff_X (i : σ) (m) (k : ℕ) :
+  coeff m (X i ^ k : mv_polynomial σ α) = if finsupp.single i k = m then 1 else 0 :=
 begin
   have := coeff_monomial m (finsupp.single i k) (1:α),
   rwa [@monomial_eq _ _ (1:α) (finsupp.single i k) _ _ _,
@@ -286,6 +218,111 @@ begin
 end
 
 end coeff
+
+section eval₂
+variables [comm_semiring β]
+variables (f : α → β) (g : σ → β)
+
+/-- Evaluate a polynomial `p` given a valuation `g` of all the variables
+  and a ring hom `f` from the scalar ring to the target -/
+def eval₂ (p : mv_polynomial σ α) : β :=
+p.sum (λs a, f a * s.prod (λn e, g n ^ e))
+
+@[simp] lemma eval₂_zero : (0 : mv_polynomial σ α).eval₂ f g = 0 :=
+finsupp.sum_zero_index
+
+variables [is_semiring_hom f]
+
+@[simp] lemma eval₂_add : (p + q).eval₂ f g = p.eval₂ f g + q.eval₂ f g :=
+finsupp.sum_add_index
+  (by simp [is_semiring_hom.map_zero f])
+  (by simp [add_mul, is_semiring_hom.map_add f])
+
+@[simp] lemma eval₂_monomial : (monomial s a).eval₂ f g = f a * s.prod (λn e, g n ^ e) :=
+finsupp.sum_single_index (by simp [is_semiring_hom.map_zero f])
+
+@[simp] lemma eval₂_C (a) : (C a).eval₂ f g = f a :=
+by simp [eval₂_monomial, C, prod_zero_index]
+
+@[simp] lemma eval₂_one : (1 : mv_polynomial σ α).eval₂ f g = 1 :=
+(eval₂_C _ _ _).trans (is_semiring_hom.map_one f)
+
+@[simp] lemma eval₂_X (n) : (X n).eval₂ f g = g n :=
+by simp [eval₂_monomial,
+  is_semiring_hom.map_one f, X, prod_single_index, pow_one]
+
+lemma eval₂_mul_monomial :
+  ∀{s a}, (p * monomial s a).eval₂ f g = p.eval₂ f g * f a * s.prod (λn e, g n ^ e) :=
+begin
+  apply mv_polynomial.induction_on p,
+  { assume a' s a,
+    simp [C_mul_monomial, eval₂_monomial, is_semiring_hom.map_mul f] },
+  { assume p q ih_p ih_q, simp [add_mul, eval₂_add, ih_p, ih_q] },
+  { assume p n ih s a,
+    from calc (p * X n * monomial s a).eval₂ f g = (p * monomial (single n 1 + s) a).eval₂ f g :
+        by simp [monomial_single_add, -add_comm, pow_one, mul_assoc]
+      ... = (p * monomial (single n 1) 1).eval₂ f g * f a * s.prod (λn e, g n ^ e) :
+        by simp [ih, prod_single_index, prod_add_index, pow_one, pow_add, mul_assoc, mul_left_comm,
+          is_semiring_hom.map_one f, -add_comm] }
+end
+
+@[simp] lemma eval₂_mul : ∀{p}, (p * q).eval₂ f g = p.eval₂ f g * q.eval₂ f g :=
+begin
+  apply mv_polynomial.induction_on q,
+  { simp [C, eval₂_monomial, eval₂_mul_monomial, prod_zero_index] },
+  { simp [mul_add, eval₂_add] {contextual := tt} },
+  { simp [X, eval₂_monomial, eval₂_mul_monomial, (mul_assoc _ _ _).symm] { contextual := tt} }
+end
+
+@[simp] lemma eval₂_pow {p:mv_polynomial σ α} : ∀{n:ℕ}, (p ^ n).eval₂ f g = (p.eval₂ f g)^n
+| 0       := eval₂_one _ _
+| (n + 1) := by rw [pow_add, pow_one, pow_add, pow_one, eval₂_mul, eval₂_pow]
+
+instance eval₂.is_semiring_hom : is_semiring_hom (eval₂ f g) :=
+{ map_zero := eval₂_zero _ _,
+  map_one := eval₂_one _ _,
+  map_add := λ p q, eval₂_add _ _,
+  map_mul := λ p q, eval₂_mul _ _ }
+
+lemma eval₂_comp_left {γ} [comm_semiring γ]
+  (k : β → γ) [is_semiring_hom k]
+  (f : α → β) [is_semiring_hom f] (g : σ → β)
+  (p) : k (eval₂ f g p) = eval₂ (k ∘ f) (k ∘ g) p :=
+by apply mv_polynomial.induction_on p; simp [
+  eval₂_add, is_semiring_hom.map_add k,
+  eval₂_mul, is_semiring_hom.map_mul k] {contextual := tt}
+
+@[simp] lemma eval₂_eta (p : mv_polynomial σ α) : eval₂ C X p = p :=
+by apply mv_polynomial.induction_on p;
+   simp [eval₂_add, eval₂_mul] {contextual := tt}
+
+lemma eval₂_congr (g₁ g₂ : σ → β)
+  (h : ∀ {i : σ} {c : σ →₀ ℕ}, i ∈ c.support → coeff c p ≠ 0 → g₁ i = g₂ i) :
+  p.eval₂ f g₁ = p.eval₂ f g₂ :=
+begin
+  apply finset.sum_congr rfl,
+  intros c hc, dsimp, congr' 1,
+  apply finset.prod_congr rfl,
+  intros i hi, dsimp, congr' 1,
+  apply h hi,
+  rwa finsupp.mem_support_iff at hc
+end
+
+@[simp] lemma eval₂_prod [decidable_eq γ] (s : finset γ) (p : γ → mv_polynomial σ α) :
+  eval₂ f g (s.prod p) = s.prod (λ x, eval₂ f g $ p x) :=
+(finset.prod_hom _).symm
+
+@[simp] lemma eval₂_sum [decidable_eq γ] (s : finset γ) (p : γ → mv_polynomial σ α) :
+  eval₂ f g (s.sum p) = s.sum (λ x, eval₂ f g $ p x) :=
+(finset.sum_hom _).symm
+
+attribute [to_additive mv_polynomial.eval₂_sum] eval₂_prod
+
+lemma eval₂_assoc [decidable_eq γ] (q : γ → mv_polynomial σ α) (p : mv_polynomial γ α) :
+  eval₂ f (λ t, eval₂ f g (q t)) p = eval₂ f g (eval₂ C q p) :=
+by { rw eval₂_comp_left (eval₂ f g), congr, funext, simp }
+
+end eval₂
 
 section eval
 variables {f : σ → α}
@@ -342,6 +379,9 @@ def map : mv_polynomial σ α → mv_polynomial σ β := eval₂ (C ∘ f) X
 @[simp] theorem map_mul (p q : mv_polynomial σ α) :
   map f (p * q) = map f p * map f q := eval₂_mul _ _
 
+@[simp] lemma map_pow (p : mv_polynomial σ α) (n : ℕ) :
+  map f (p^n) = (map f p)^n := eval₂_pow _ _
+
 instance map.is_semiring_hom :
   is_semiring_hom (map f : mv_polynomial σ α → mv_polynomial σ β) :=
 eval₂.is_semiring_hom _ _
@@ -395,6 +435,16 @@ begin
     simp only [hp, mem_support_iff, coeff_mul_X'],
     split_ifs, {refl},
     rw is_semiring_hom.map_zero f }
+end
+
+lemma map_injective (hf : function.injective f) :
+  function.injective (map f : mv_polynomial σ α → mv_polynomial σ β) :=
+λ p q h, ext _ _ $ λ m, hf $
+begin
+  rw ← ext_iff at h,
+  specialize h m,
+  rw [coeff_map, coeff_map] at h,
+  exact h
 end
 
 end map
@@ -806,6 +856,31 @@ finset.sup_le $ assume b,
     exact assume _ _ _, rfl
   end
 
+section
+variables [comm_semiring β] (f : α → β) [is_semiring_hom f]
+variables (k : γ → δ) (g : δ → β) (p : mv_polynomial γ α)
+
+lemma eval₂_rename : (p.rename k).eval₂ f g = p.eval₂ f (g ∘ k) :=
+by apply mv_polynomial.induction_on p; { intros, simp [*] }
+
+lemma rename_eval₂ (g : δ → mv_polynomial γ α) :
+  (p.eval₂ C (g ∘ k)).rename k = (p.rename k).eval₂ C (rename k ∘ g) :=
+by apply mv_polynomial.induction_on p; { intros, simp [*] }
+
+lemma rename_prodmk_eval₂ (d : δ) (g : γ → mv_polynomial γ α) :
+  (p.eval₂ C g).rename (prod.mk d) = p.eval₂ C (λ x, (g x).rename (prod.mk d)) :=
+by apply mv_polynomial.induction_on p; { intros, simp [*] }
+
+lemma eval₂_rename_prodmk (g : δ × γ → β) (d : δ) :
+  (rename (prod.mk d) p).eval₂ f g = eval₂ f (λ i, g (d, i)) p :=
+by apply mv_polynomial.induction_on p; { intros, simp [*] }
+
+lemma eval_rename_prodmk (g : δ × γ → α) (d : δ) :
+  (rename (prod.mk d) p).eval g = eval (λ i, g (d, i)) p :=
+eval₂_rename_prodmk id _ _ _
+
+end
+
 end rename
 
 lemma eval₂_cast_comp {β : Type u} {γ : Type v} [decidable_eq β] [decidable_eq γ] (f : γ → β)
@@ -826,6 +901,8 @@ section equiv
 
 variables (α) [comm_ring α]
 variables [decidable_eq β] [decidable_eq γ] [decidable_eq δ]
+
+set_option class.instance_max_depth 40
 
 def pempty_ring_equiv : mv_polynomial pempty α ≃r α :=
 { to_fun    := mv_polynomial.eval₂ id $ pempty.elim,

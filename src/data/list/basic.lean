@@ -1842,7 +1842,7 @@ by rw [← filter_map_eq_map, filter_filter_map, filter_map_filter]; refl
 @[simp] lemma filter_true {h : decidable_pred (λ a : α, true)} :
   ∀ (l : list α), @filter α (λ _, true) h l = l
 | []      := rfl
-| (a::l) := by simp [list.filter_true l]
+| (a::l) := by simp [filter_true l]
 
 @[simp] lemma filter_false {h : decidable_pred (λ a : α, false)} :
   ∀ (l : list α), @filter α (λ _, false) h l = []

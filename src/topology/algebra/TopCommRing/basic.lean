@@ -21,13 +21,11 @@ namespace TopCommRing
 instance : has_coe_to_sort TopCommRing :=
 { S := Type u, coe := TopCommRing.α }
 
-instance TopCommRing_comm_ring (R : TopCommRing) : comm_ring R := R.is_comm_ring
-instance TopCommRing_topological_space (R : TopCommRing) : topological_space R := R.is_topological_space
-instance TopCommRing_topological_ring (R : TopCommRing) : topological_ring R := R.is_topological_ring
+attribute [instance] is_comm_ring is_topological_space is_topological_ring
 
 instance TopCommRing_category : category TopCommRing :=
 { hom   := λ R S, {f : R → S // is_ring_hom f ∧ continuous f },
-  id    := λ R, ⟨id, by obviously⟩,
+  id    := λ R, ⟨id, by obviously⟩, -- TODO remove obviously?
   comp  := λ R S T f g, ⟨g.val ∘ f.val,
     begin -- TODO automate
       cases f, cases g, cases f_property, cases g_property, split,
@@ -56,18 +54,18 @@ def forget_to_Top : TopCommRing ⥤ Top :=
 { obj := λ R, { α := R },
   map := λ R S f, ⟨ f.1, f.2.right ⟩ }
 
-instance forget_to_Top_faithful : faithful (forget_to_Top) := by tidy
+instance forget_to_Top_faithful : faithful (forget_to_Top) := {}
 
 instance forget_to_Top_comm_ring (R : TopCommRing) : comm_ring (forget_to_Top.obj R) :=
 R.is_comm_ring
 instance forget_to_Top_topological_ring (R : TopCommRing) : topological_ring (forget_to_Top.obj R) :=
 R.is_topological_ring
 
-def forget : TopCommRing ⥤ (Type u) :=
+def forget : TopCommRing ⥤ Type u :=
 { obj := λ R, R,
   map := λ R S f, f.1 }
 
-instance forget_faithful : faithful (forget) := by tidy
+instance forget_faithful : faithful forget := {}
 
 instance forget_topological_space (R : TopCommRing) : topological_space (forget.obj R) :=
 R.is_topological_space

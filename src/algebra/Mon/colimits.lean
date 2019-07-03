@@ -148,9 +148,9 @@ begin
   apply relation.map,
 end
 
-@[simp] lemma cocone_naturality_components (j j' : J) (f : j ⟶ j') (x : F.obj j) :
-  (F.map f ≫ (cocone_morphism F j')) x = (cocone_morphism F j) x :=
-by rw cocone_naturality
+@[simp] lemma cocone_naturality_components (j j' : J) (f : j ⟶ j') (x : F.obj j):
+  (cocone_morphism F j') (F.map f x) = (cocone_morphism F j) x :=
+by { rw ←cocone_naturality F f, refl, }
 
 def colimit_cocone : cocone F :=
 { X := colimit F,

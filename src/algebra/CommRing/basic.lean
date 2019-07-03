@@ -40,7 +40,7 @@ namespace CommRing
 
 instance (x : CommRing) : comm_ring x := x.str
 
-@[reducible] def is_comm_ring_hom {α β} [comm_ring α] [comm_ring β] (f : α → β) : Prop :=
+abbreviation is_comm_ring_hom {α β} [comm_ring α] [comm_ring β] (f : α → β) : Prop :=
 is_ring_hom f
 
 instance concrete_is_comm_ring_hom : concrete_category @is_comm_ring_hom :=
@@ -55,12 +55,7 @@ instance hom_is_ring_hom {R S : CommRing} (f : R ⟶ S) : is_ring_hom (f : R →
 
 variables {R S T : CommRing.{u}}
 
--- TODO need to kill these
-@[simp] lemma id_val : subtype.val (𝟙 R) = id := rfl
-@[simp] lemma comp_val (f : R ⟶ S) (g : S ⟶ T) :
-  (f ≫ g).val = g.val ∘ f.val := rfl
-
--- TODO rename the next three lemmas?
+-- TODO rename the next two lemmas?
 def Int.cast {R : CommRing} : CommRing.of ℤ ⟶ R := { val := int.cast, property := by apply_instance }
 
 def Int.hom_unique {R : CommRing} : unique (CommRing.of ℤ ⟶ R) :=

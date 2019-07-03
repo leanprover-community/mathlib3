@@ -227,7 +227,7 @@ def postcompose {G : J ⥤ C} (α : F ⟶ G) : cone F ⥤ cone G :=
 @[simp] lemma postcompose_obj_π {G : J ⥤ C} (α : F ⟶ G) (c : cone F) :
   ((postcompose α).obj c).π = c.π ≫ α := rfl
 
-@[simp] lemma postcompose_map_hom {G : J ⥤ C} (α : F ⟶ G) {c₁ c₂ : cone F} (f : c₁ ⟶ c₂):
+@[simp] lemma postcompose_map_hom {G : J ⥤ C} (α : F ⟶ G) {c₁ c₂ : cone F} (f : c₁ ⟶ c₂) :
   ((postcompose α).map f).hom = f.hom := rfl
 
 def postcompose_comp {G H : J ⥤ C} (α : F ⟶ G) (β : G ⟶ H) :

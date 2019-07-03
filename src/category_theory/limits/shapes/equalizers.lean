@@ -134,11 +134,11 @@ def cocone.of_cofork
     end } }.
 
 @[simp] lemma cone.of_fork_π
-  {F : walking_parallel_pair.{v} ⥤ C} (t : fork (F.map left) (F.map right)) (j):
+  {F : walking_parallel_pair.{v} ⥤ C} (t : fork (F.map left) (F.map right)) (j) :
   (cone.of_fork t).π.app j = t.π.app j ≫ eq_to_hom (by tidy) := rfl
 
 @[simp] lemma cocone.of_cofork_ι
-  {F : walking_parallel_pair.{v} ⥤ C} (t : cofork (F.map left) (F.map right)) (j):
+  {F : walking_parallel_pair.{v} ⥤ C} (t : cofork (F.map left) (F.map right)) (j) :
   (cocone.of_cofork t).ι.app j = eq_to_hom (by tidy) ≫ t.ι.app j := rfl
 
 def fork.of_cone

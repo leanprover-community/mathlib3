@@ -25,7 +25,7 @@ def thunk.mk {α} (x : α) : thunk α := λ _, x
 protected def traverse {m : Type u → Type u} [applicative m] {α β : Type u}
     (f : α → m β) : lazy_list α → m (lazy_list β)
 | lazy_list.nil := pure lazy_list.nil
-| (lazy_list.cons x xs):= lazy_list.cons <$> f x <*> (thunk.mk <$> traverse (xs ()))
+| (lazy_list.cons x xs) := lazy_list.cons <$> f x <*> (thunk.mk <$> traverse (xs ()))
 
 instance : traversable lazy_list :=
 { map := @lazy_list.traverse id _,

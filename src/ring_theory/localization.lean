@@ -395,7 +395,7 @@ instance prime.is_submonoid :
 
 @[reducible] def at_prime := localization α (-P)
 
-instance at_prime.local_ring : is_local_ring (at_prime P) :=
+instance at_prime.local_ring : local_ring (at_prime P) :=
 local_of_nonunits_ideal
   (λ hze,
     let ⟨t, hts, ht⟩ := quotient.exact hze in

@@ -210,7 +210,7 @@ calc (𝓤 α).lift g ≤ (filter.map (@prod.swap α α) $ 𝓤 α).lift g :
   ... ≤ _ :
     by rw [map_lift_eq2 hg, image_swap_eq_preimage_swap]; exact h
 
-lemma uniformity_lift_le_comp {f : set (α×α) → filter β} (h : monotone f):
+lemma uniformity_lift_le_comp {f : set (α×α) → filter β} (h : monotone f) :
   (𝓤 α).lift (λs, f (comp_rel s s)) ≤ (𝓤 α).lift f :=
 calc (𝓤 α).lift (λs, f (comp_rel s s)) =
     ((𝓤 α).lift' (λs:set (α×α), comp_rel s s)).lift f :

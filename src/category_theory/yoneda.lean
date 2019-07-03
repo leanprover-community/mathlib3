@@ -70,17 +70,38 @@ def ext (X Y : C)
   (p : Π {Z : C}, (Z ⟶ X) → (Z ⟶ Y)) (q : Π {Z : C}, (Z ⟶ Y) → (Z ⟶ X))
   (h₁ : Π {Z : C} (f : Z ⟶ X), q (p f) = f) (h₂ : Π {Z : C} (f : Z ⟶ Y), p (q f) = f)
   (n : Π {Z Z' : C} (f : Z' ⟶ Z) (g : Z ⟶ X), p (f ≫ g) = f ≫ p g) : X ≅ Y :=
-@preimage_iso _ _ _ _ yoneda _ _ _ _
+@preimage_iso _ _ _ _ yoneda _ _ _
   (nat_iso.of_components (λ Z, { hom := p, inv := q, }) (by tidy))
+
+def is_iso {X Y : C} (f : X ⟶ Y) [is_iso (yoneda.map f)] : is_iso f :=
+is_iso_of_fully_faithful yoneda f
 
 end yoneda
 
 namespace coyoneda
+
 @[simp] lemma obj_obj (X : Cᵒᵖ) (Y : C) : (coyoneda.obj X).obj Y = (unop X ⟶ Y) := rfl
 @[simp] lemma obj_map {X' X : C} (f : X' ⟶ X) (Y : Cᵒᵖ) :
   (coyoneda.obj Y).map f = λ g, g ≫ f := rfl
 @[simp] lemma map_app (X : C) {Y Y' : Cᵒᵖ} (f : Y ⟶ Y') :
   (coyoneda.map f).app X = λ g, f.unop ≫ g := rfl
+
+@[simp] lemma naturality {X Y : Cᵒᵖ} (α : coyoneda.obj X ⟶ coyoneda.obj Y)
+  {Z Z' : C} (f : Z' ⟶ Z) (h : unop X ⟶ Z') : (α.app Z' h) ≫ f = α.app Z (h ≫ f) :=
+begin erw [functor_to_types.naturality], refl end
+
+instance coyoneda_fully_faithful : fully_faithful (@coyoneda C _) :=
+{ preimage := λ X Y f, ((f.app (unop X)) (𝟙 _)).op,
+  injectivity' := λ X Y f g p,
+  begin
+    injection p with h,
+    have t := (congr_fun (congr_fun h (unop X)) (𝟙 _)),
+    simpa using congr_arg has_hom.hom.op t,
+  end }
+
+def is_iso {X Y : Cᵒᵖ} (f : X ⟶ Y) [is_iso (coyoneda.map f)] : is_iso f :=
+is_iso_of_fully_faithful coyoneda f
+
 end coyoneda
 
 class representable (F : Cᵒᵖ ⥤ Sort v₁) :=
@@ -91,8 +112,7 @@ end category_theory
 
 namespace category_theory
 -- For the rest of the file, we are using product categories,
--- so need to restrict to the case we are in 'Type', not 'Sort',
--- for both objects and morphisms
+-- so need to restrict to the case morphisms are in 'Type', not 'Sort'.
 
 universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 

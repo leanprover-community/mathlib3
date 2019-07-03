@@ -42,7 +42,7 @@ instance : has_limits.{u} (Type u) :=
   (⟨λ j, (α.app j) (g.val j), λ j j' f,
     by {rw ←functor_to_types.naturality, dsimp, rw ←(g.property f)}⟩ : (limit G).X) := rfl
 
-@[simp] lemma types_limit_lift (F : J ⥤ Type u) (c : cone F) (x : c.X):
+@[simp] lemma types_limit_lift (F : J ⥤ Type u) (c : cone F) (x : c.X) :
   limit.lift F c x = (⟨λ j, c.π.app j x, λ j j' f, congr_fun (cone.w c f) x⟩ : (limit F).X) :=
 rfl
 

@@ -127,7 +127,7 @@ by rw [← f.quot_ker_equiv_range.dim_eq, dim_quotient]
 lemma dim_range_le (f : β →ₗ[α] γ) : dim α f.range ≤ dim α β :=
 by rw ← dim_range_add_dim_ker f; exact le_add_right (le_refl _)
 
-lemma dim_map_le (f : β →ₗ γ) (p : submodule α β): dim α (p.map f) ≤ dim α p :=
+lemma dim_map_le (f : β →ₗ γ) (p : submodule α β) : dim α (p.map f) ≤ dim α p :=
 begin
   have h := dim_range_le (f.comp (submodule.subtype p)),
   rwa [linear_map.range_comp, range_subtype] at h,

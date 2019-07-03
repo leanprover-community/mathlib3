@@ -1314,7 +1314,7 @@ by simp only [rpow_def, (complex.of_real_pow _ _).symm, complex.cpow_nat_cast,
 by simp only [rpow_def, (complex.of_real_fpow _ _).symm, complex.cpow_int_cast,
   complex.of_real_int_cast, complex.of_real_re]
 
-lemma mul_rpow {x y z : ℝ} (h : 0 ≤ x) (h₁ : 0 ≤ y): (x*y)^z = x^z * y^z :=
+lemma mul_rpow {x y z : ℝ} (h : 0 ≤ x) (h₁ : 0 ≤ y) : (x*y)^z = x^z * y^z :=
 begin
   iterate 3 { rw real.rpow_def_of_nonneg }, split_ifs; simp * at *,
   { have hx : 0 < x, cases lt_or_eq_of_le h with h₂ h₂, exact h₂, exfalso, apply h_2, exact eq.symm h₂,
@@ -1337,7 +1337,7 @@ begin
   { exact le_trans zero_le_one h},
 end
 
-lemma rpow_le_rpow {x y z: ℝ} (h : 0 ≤ x) (h₁ : x ≤ y) (h₂ : 0 ≤ z): x^z ≤ y^z :=
+lemma rpow_le_rpow {x y z: ℝ} (h : 0 ≤ x) (h₁ : x ≤ y) (h₂ : 0 ≤ z) : x^z ≤ y^z :=
 begin
   rw le_iff_eq_or_lt at h h₂, cases h₂,
   { rw [←h₂, rpow_zero, rpow_zero]},

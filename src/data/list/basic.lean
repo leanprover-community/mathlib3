@@ -4246,7 +4246,7 @@ by simp [Ico, nat.sub_eq_zero_of_le h]
 theorem map_add (n m k : ℕ) : (Ico n m).map ((+) k) = Ico (n + k) (m + k) :=
 by rw [Ico, Ico, map_add_range', nat.add_sub_add_right, add_comm n k]
 
-theorem map_sub (n m k : ℕ) (h₁ : k ≤ n): (Ico n m).map (λ x, x - k) = Ico (n - k) (m - k) :=
+theorem map_sub (n m k : ℕ) (h₁ : k ≤ n) : (Ico n m).map (λ x, x - k) = Ico (n - k) (m - k) :=
 begin
   by_cases h₂ : n < m,
   { rw [Ico, Ico],

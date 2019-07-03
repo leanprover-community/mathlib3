@@ -17,7 +17,7 @@ begin
   induction x,
   refl
 end
-def tidy_test_1 (a : string): ∀ x : unit, x = unit.star :=
+def tidy_test_1 (a : string) : ∀ x : unit, x = unit.star :=
 begin
   tidy -- intros x, exact dec_trivial
 end

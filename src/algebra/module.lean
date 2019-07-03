@@ -183,7 +183,7 @@ lemma is_linear_map_neg :
   is_linear_map α (λ (z : β), -z) :=
 is_linear_map.mk neg_add (λ x y, (smul_neg x y).symm)
 
-lemma is_linear_map_smul {α R : Type*} [add_comm_group α] [comm_ring R] [module R α] (c : R):
+lemma is_linear_map_smul {α R : Type*} [add_comm_group α] [comm_ring R] [module R α] (c : R) :
   is_linear_map R (λ (z : α), c • z) :=
 begin
   refine is_linear_map.mk (smul_add c) _,
@@ -193,7 +193,7 @@ begin
 end
 
 --TODO: move
-lemma is_linear_map_smul' {α R : Type*} [add_comm_group α] [comm_ring R] [module R α] (a : α):
+lemma is_linear_map_smul' {α R : Type*} [add_comm_group α] [comm_ring R] [module R α] (a : α) :
   is_linear_map R (λ (c : R), c • a) :=
 begin
   refine is_linear_map.mk (λ x y, add_smul x y a) _,

@@ -317,7 +317,7 @@ instance full_of_equivalence (F : C ⥤ D) [is_equivalence F] : full F :=
   map_comp' := λ X Y Z f g, by apply F.injectivity; simp }.
 
 def equivalence_of_fully_faithfully_ess_surj
-  (F : C ⥤ D) [full F] [faithful : faithful F] [ess_surj F] : is_equivalence F :=
+  (F : C ⥤ D) [fully_faithful F] [ess_surj F] : is_equivalence F :=
 is_equivalence.mk (equivalence_inverse F)
   (nat_iso.of_components
     (λ X, (preimage_iso $ F.fun_obj_preimage_iso $ F.obj X).symm)

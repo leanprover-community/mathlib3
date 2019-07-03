@@ -220,7 +220,7 @@ funext $ assume ⟨a, b⟩, rfl
 
 def restrict {α β} (f : α → β) (s : set α) : subtype s → β := λ x, f x.val
 
-theorem restrict_eq {α β} (f : α → β) (s : set α): function.restrict f s = f ∘ (@subtype.val _ s) := rfl
+theorem restrict_eq {α β} (f : α → β) (s : set α) : function.restrict f s = f ∘ (@subtype.val _ s) := rfl
 
 section bicomp
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ε : Type*}

@@ -267,7 +267,7 @@ Inf_le ⟨i, rfl⟩
 Inf_le ⟨i, rfl⟩
 
 /- I wanted to see if this would help for infi_comm; it doesn't.
-@[ematch] theorem infi_le₂' (s : ι → ι₂ → α) (i : ι) (j : ι₂): (: ⨅ i j, s i j :) ≤ (: s i j :) :=
+@[ematch] theorem infi_le₂' (s : ι → ι₂ → α) (i : ι) (j : ι₂) : (: ⨅ i j, s i j :) ≤ (: s i j :) :=
 begin
   transitivity,
   apply (infi_le (λ i, ⨅ j, s i j) i),

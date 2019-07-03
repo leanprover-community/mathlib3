@@ -26,13 +26,13 @@ instance : has_zero (polynomial α) := finsupp.has_zero
 instance : has_one (polynomial α) := finsupp.has_one
 instance : has_add (polynomial α) := finsupp.has_add
 instance : has_mul (polynomial α) := finsupp.has_mul
-instance : comm_semiring (polynomial α) := finsupp.to_comm_semiring
+instance : comm_semiring (polynomial α) := finsupp.comm_semiring
 instance : decidable_eq (polynomial α) := finsupp.decidable_eq
 
 def polynomial.has_coe_to_fun : has_coe_to_fun (polynomial α) :=
 finsupp.has_coe_to_fun
 
-local attribute [instance] finsupp.to_comm_semiring polynomial.has_coe_to_fun
+local attribute [instance] finsupp.comm_semiring polynomial.has_coe_to_fun
 
 @[simp] lemma support_zero : (0 : polynomial α).support = ∅ := rfl
 
@@ -1123,10 +1123,10 @@ end comm_semiring
 
 section comm_ring
 variables [comm_ring α] [decidable_eq α] {p q : polynomial α}
-instance : comm_ring (polynomial α) := finsupp.to_comm_ring
-instance : has_scalar α (polynomial α) := finsupp.to_has_scalar
+instance : comm_ring (polynomial α) := finsupp.comm_ring
+instance : has_scalar α (polynomial α) := finsupp.has_scalar
 -- TODO if this becomes a semimodule then the below lemma could be proved for semimodules
-instance : module α (polynomial α) := finsupp.to_module ℕ α
+instance : module α (polynomial α) := finsupp.module ℕ α
 
 -- TODO -- this is OK for semimodules
 @[simp] lemma coeff_smul (p : polynomial α) (r : α) (n : ℕ) :
@@ -1583,7 +1583,7 @@ by rw [← mod_by_monic_X_sub_C_eq_C_eval, C_0, sub_zero]
 
 section multiplicity
 
-def decidable_dvd_monic (p : polynomial α) (hq : monic q): decidable (q ∣ p) :=
+def decidable_dvd_monic (p : polynomial α) (hq : monic q) : decidable (q ∣ p) :=
 decidable_of_iff (p %ₘ q = 0) (dvd_iff_mod_by_monic_eq_zero hq)
 
 local attribute [instance, priority 0] classical.dec
@@ -1832,7 +1832,7 @@ le_antisymm nat_degree_comp_le
     ... ≠ 0 : mul_ne_zero (mt leading_coeff_eq_zero.1 hp0)
       (pow_ne_zero _ (mt leading_coeff_eq_zero.1 hq0)))
 
-lemma leading_coeff_comp (hq : nat_degree q ≠ 0): leading_coeff (p.comp q) =
+lemma leading_coeff_comp (hq : nat_degree q ≠ 0) : leading_coeff (p.comp q) =
   leading_coeff p * leading_coeff q ^ nat_degree p :=
 by rw [← coeff_comp_degree_mul_degree hq, ← nat_degree_comp]; refl
 
@@ -1880,8 +1880,7 @@ end integral_domain
 
 section field
 variables [discrete_field α] {p q : polynomial α}
-instance : vector_space α (polynomial α) :=
-{ ..finsupp.to_module ℕ α }
+instance : vector_space α (polynomial α) := finsupp.vector_space _ _
 
 lemma is_unit_iff_degree_eq_zero : is_unit p ↔ degree p = 0 :=
 ⟨degree_eq_zero_of_is_unit,

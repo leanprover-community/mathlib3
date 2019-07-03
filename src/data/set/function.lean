@@ -69,6 +69,10 @@ theorem inj_on_of_inj_on_of_subset {f : α → β} {a b : set α} (h₁ : inj_on
 lemma injective_iff_inj_on_univ {f : α → β} : injective f ↔ inj_on f univ :=
 iff.intro (λ h _ _ _ _ heq, h heq) (λ h _ _ heq, h trivial trivial heq)
 
+lemma inj_on_of_injective {α β : Type*} {f : α → β} (s : set α) (h : injective f) :
+  inj_on f s :=
+inj_on_of_inj_on_of_subset (injective_iff_inj_on_univ.1 h) (subset_univ s)
+
 theorem inj_on_comp {g : β → γ} {f : α → β} {a : set α} {b : set β}
     (h₁ : maps_to f a b) (h₂ : inj_on g b) (h₃: inj_on f a) :
   inj_on (g ∘ f) a :=

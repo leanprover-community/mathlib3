@@ -68,6 +68,9 @@ lemma congr_arg_heq {α} {β : α → Sort*} (f : ∀ a, β a) : ∀ {a₁ a₂ 
 lemma plift.down_inj {α : Sort*} : ∀ (a b : plift α), a.down = b.down → a = b
 | ⟨a⟩ ⟨b⟩ rfl := rfl
 
+@[simp] lemma nonempty_pempty : ¬ nonempty pempty :=
+assume ⟨h⟩, h.elim
+
 end miscellany
 
 /-
@@ -677,7 +680,7 @@ iff.intro (λ⟨a, _⟩, ⟨a⟩) (λ⟨a⟩, ⟨a, trivial⟩)
 @[simp] lemma nonempty_Prop {p : Prop} : nonempty p ↔ p :=
 iff.intro (assume ⟨h⟩, h) (assume h, ⟨h⟩)
 
-lemma not_nonempty_iff_imp_false {p : Prop} : ¬ nonempty α ↔ α → false :=
+lemma not_nonempty_iff_imp_false : ¬ nonempty α ↔ α → false :=
 ⟨λ h a, h ⟨a⟩, λ h ⟨a⟩, h a⟩
 
 @[simp] lemma nonempty_sigma : nonempty (Σa:α, γ a) ↔ (∃a:α, nonempty (γ a)) :=

@@ -16,7 +16,7 @@ so as to make the operations (addition etc.) "computable".
 -/
 
 import linear_algebra.direct_sum_module
-import linear_algebra.linear_combination
+import algebra.big_operators
 import ring_theory.free_comm_ring
 import ring_theory.ideal_operations
 

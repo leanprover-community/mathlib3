@@ -71,7 +71,7 @@ def ext (X Y : C)
   (p : Π {Z : C}, (Z ⟶ X) → (Z ⟶ Y)) (q : Π {Z : C}, (Z ⟶ Y) → (Z ⟶ X))
   (h₁ : Π {Z : C} (f : Z ⟶ X), q (p f) = f) (h₂ : Π {Z : C} (f : Z ⟶ Y), p (q f) = f)
   (n : Π {Z Z' : C} (f : Z' ⟶ Z) (g : Z ⟶ X), p (f ≫ g) = f ≫ p g) : X ≅ Y :=
-@preimage_iso _ _ _ _ yoneda _ _ _
+@preimage_iso _ _ _ _ yoneda _ _ _ _
   (nat_iso.of_components (λ Z, { hom := p, inv := q, }) (by tidy))
 
 def is_iso {X Y : C} (f : X ⟶ Y) [is_iso (yoneda.map f)] : is_iso f :=

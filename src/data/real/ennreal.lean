@@ -5,7 +5,7 @@ Author: Johannes Hölzl
 
 Extended non-negative reals
 -/
-import data.real.nnreal order.bounds tactic.norm_num
+import data.real.nnreal order.bounds data.set.intervals tactic.norm_num
 noncomputable theory
 open classical set lattice
 
@@ -59,6 +59,13 @@ by simp [ennreal.to_real, ennreal.of_real, nnreal.coe_of_real _ h]
 lemma coe_to_nnreal_le_self : ∀{a:ennreal}, ↑(a.to_nnreal) ≤ a
 | (some r) := by rw [some_eq_coe, to_nnreal_coe]; exact le_refl _
 | none     := le_top
+
+lemma coe_nnreal_eq (r : nnreal) : (r : ennreal) = ennreal.of_real r :=
+by { rw [ennreal.of_real, nnreal.of_real], cases r with r h, congr, dsimp, rw max_eq_left h }
+
+lemma of_real_eq_coe_nnreal {x : real} (h : x ≥ 0) :
+  ennreal.of_real x = @coe nnreal ennreal _ (⟨x, h⟩ : nnreal) :=
+by { rw [coe_nnreal_eq], refl }
 
 @[simp] lemma coe_zero : ↑(0 : nnreal) = (0 : ennreal) := rfl
 @[simp] lemma coe_one : ↑(1 : nnreal) = (1 : ennreal) := rfl
@@ -195,7 +202,7 @@ with_top.add_lt_add_iff_right
 lemma lt_add_right (ha : a < ⊤) (hb : 0 < b) : a < a + b :=
 by rwa [← add_lt_add_iff_left ha, add_zero] at hb
 
-lemma le_of_forall_epsilon_le : ∀{a b : ennreal}, (∀ε:nnreal, ε > 0 → b < ∞ → a ≤ b + ε) → a ≤ b
+lemma le_of_forall_epsilon_le : ∀{a b : ennreal}, (∀ε:nnreal, 0 < ε → b < ∞ → a ≤ b + ε) → a ≤ b
 | a    none     h := le_top
 | none (some a) h :=
   have (⊤:ennreal) ≤ ↑a + ↑(1:nnreal), from h 1 zero_lt_one coe_lt_top,
@@ -306,6 +313,8 @@ top_unique $ le_Inf $ by simp [add_eq_top]
 @[simp] lemma sub_eq_zero_of_le (h : a ≤ b) : a - b = 0 :=
 le_antisymm (Inf_le $ le_add_left h) (zero_le _)
 
+@[simp] lemma sub_self : a - a = 0 := sub_eq_zero_of_le $ le_refl _
+
 @[simp] lemma zero_sub : 0 - a = 0 :=
 le_antisymm (Inf_le $ zero_le _) (zero_le _)
 
@@ -358,6 +367,20 @@ iff.intro
     calc a - b ≤ (c + b) - b : sub_le_sub h (le_refl _)
       ... ≤ c : Inf_le (le_refl (c + b)))
 
+protected lemma sub_le_of_sub_le (h : a - b ≤ c) : a - c ≤ b :=
+ennreal.sub_le_iff_le_add.2 $ by { rw add_comm, exact ennreal.sub_le_iff_le_add.1 h }
+
+protected lemma sub_lt_sub_self : a ≠ ⊤ → a ≠ 0 → 0 < b → a - b < a :=
+match a, b with
+| none, _ := by { have := none_eq_top, assume h, contradiction }
+| (some a), none := by {intros, simp only [none_eq_top, sub_infty, zero_lt_iff_ne_zero], assumption}
+| (some a), (some b) :=
+  begin
+    simp only [some_eq_coe, coe_sub.symm, coe_pos, coe_eq_zero, coe_lt_coe, ne.def],
+    assume h₁ h₂, apply nnreal.sub_lt_self, exact zero_lt_iff_ne_zero.2 h₂
+  end
+end
+
 @[simp] lemma sub_eq_zero_iff_le : a - b = 0 ↔ a ≤ b :=
 by simpa [-ennreal.sub_le_iff_le_add] using @ennreal.sub_le_iff_le_add a b 0
 
@@ -384,6 +407,27 @@ iff.intro
   (λ h, by rw h)
 
 end sub
+
+section interval
+
+variables {x y z : ennreal} {ε ε₁ ε₂ : ennreal} {s : set ennreal}
+
+protected lemma Ico_eq_Iio : (Ico 0 y) = (Iio y) :=
+ext $ assume a, iff.intro
+  (assume ⟨_, hx⟩, hx)
+  (assume hx, ⟨zero_le _, hx⟩)
+
+lemma mem_Iio_self_add : x ≠ ⊤ → 0 < ε → x ∈ Iio (x + ε) :=
+assume xt ε0, lt_add_right (by rwa lt_top_iff_ne_top) ε0
+
+lemma not_mem_Ioo_self_sub : x = 0 → x ∉ Ioo (x - ε) y :=
+assume x0, by simp [x0]
+
+lemma mem_Ioo_self_sub_add : x ≠ ⊤ → x ≠ 0 → 0 < ε₁ → 0 < ε₂ → x ∈ Ioo (x - ε₁) (x + ε₂) :=
+assume xt x0 ε0 ε0',
+  ⟨ennreal.sub_lt_sub_self xt x0 ε0, lt_add_right (by rwa [lt_top_iff_ne_top]) ε0'⟩
+
+end interval
 
 section bit
 
@@ -625,6 +669,59 @@ by simp [ennreal.of_real]
 
 @[simp] lemma of_real_eq_zero {p : ℝ} : ennreal.of_real p = 0 ↔ p ≤ 0 :=
 by simp [ennreal.of_real]
+
+lemma of_real_le_iff_le_to_real {a : ℝ} {b : ennreal} (hb : b ≠ ⊤) :
+  ennreal.of_real a ≤ b ↔ a ≤ ennreal.to_real b :=
+begin
+  rcases b,
+  { have := none_eq_top, contradiction },
+  { have := nnreal.of_real_le_iff_le_coe,
+    simpa [ennreal.of_real, ennreal.to_real, some_eq_coe] }
+end
+
+lemma of_real_lt_iff_lt_to_real {a : ℝ} {b : ennreal} (ha : a ≥ 0) (hb : b ≠ ⊤) :
+  ennreal.of_real a < b ↔ a < ennreal.to_real b :=
+begin
+  rcases b,
+  { have := none_eq_top, contradiction },
+  { have := nnreal.of_real_lt_iff_lt_coe ha,
+    simpa [ennreal.of_real, ennreal.to_real, some_eq_coe] }
+end
+
+lemma le_of_real_iff_to_real_le {a : ennreal} {b : ℝ} (ha : a ≠ ⊤) (hb : b ≥ 0) :
+  a ≤ ennreal.of_real b ↔ ennreal.to_real a ≤ b :=
+begin
+  rcases a,
+  { have := none_eq_top, contradiction },
+  { have := nnreal.le_of_real_iff_coe_le hb,
+    simpa [ennreal.of_real, ennreal.to_real, some_eq_coe] }
+end
+
+lemma lt_of_real_iff_to_real_lt {a : ennreal} {b : ℝ} (ha : a ≠ ⊤) :
+  a < ennreal.of_real b ↔ ennreal.to_real a < b :=
+begin
+  rcases a,
+  { have := none_eq_top, contradiction },
+  { have := nnreal.lt_of_real_iff_coe_lt,
+    simpa [ennreal.of_real, ennreal.to_real, some_eq_coe] }
+end
+
+lemma of_real_mul {p q : ℝ} (hp : 0 ≤ p) :
+  ennreal.of_real (p * q) = (ennreal.of_real p) * (ennreal.of_real q) :=
+by { simp only [ennreal.of_real, coe_mul.symm, coe_eq_coe], exact nnreal.of_real_mul hp }
+
+lemma to_real_of_real_mul (c : ℝ) (a : ennreal) (h : c ≥ 0) :
+  ennreal.to_real ((ennreal.of_real c) * a) = c * ennreal.to_real a :=
+begin
+  cases a,
+  { simp only [none_eq_top, ennreal.to_real, top_to_nnreal, nnreal.coe_zero, mul_zero, mul_top],
+    by_cases h' : c ≤ 0,
+    { rw [if_pos], { simp }, { convert of_real_zero, exact le_antisymm h' h } },
+    { rw [if_neg], refl, rw [of_real_eq_zero], assumption } },
+  { simp only [ennreal.to_real, ennreal.to_nnreal],
+    simp only [some_eq_coe, ennreal.of_real, coe_mul.symm, to_nnreal_coe, nnreal.coe_mul],
+    congr, apply nnreal.coe_of_real, exact h }
+end
 
 end real
 

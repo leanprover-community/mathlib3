@@ -57,10 +57,10 @@ theorem forall_quotient_iff {α : Type*} [r : setoid α] {p : quotient r → Pro
   (∀a:quotient r, p a) ↔ (∀a:α, p ⟦a⟧) :=
 ⟨assume h x, h _, assume h a, a.induction_on h⟩
 
-@[simp] lemma quotient.lift_beta [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b) (x : α):
+@[simp] lemma quotient.lift_beta [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b) (x : α) :
 quotient.lift f h (quotient.mk x) = f x := rfl
 
-@[simp] lemma quotient.lift_on_beta [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b) (x : α):
+@[simp] lemma quotient.lift_on_beta [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b) (x : α) :
 quotient.lift_on (quotient.mk x) f h = f x := rfl
 
 /-- Choose an element of the equivalence class using the axiom of choice.
@@ -99,7 +99,7 @@ theorem quotient.choice_eq {ι : Type*} {α : ι → Type*} [∀ i, setoid (α i
   (f : ∀ i, α i) : quotient.choice (λ i, ⟦f i⟧) = ⟦f⟧ :=
 quotient.sound $ λ i, quotient.mk_out _
 
-lemma nonempty_quotient_iff (s : setoid α): nonempty (quotient s) ↔ nonempty α :=
+lemma nonempty_quotient_iff (s : setoid α) : nonempty (quotient s) ↔ nonempty α :=
 ⟨assume ⟨a⟩, quotient.induction_on a nonempty.intro, assume ⟨a⟩, ⟨⟦a⟧⟩⟩
 
 /-- `trunc α` is the quotient of `α` by the always-true relation. This

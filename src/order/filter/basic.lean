@@ -108,7 +108,7 @@ f.sets_of_superset
 lemma inter_mem_sets : ∀{s t}, s ∈ f → t ∈ f → s ∩ t ∈ f :=
 f.inter_sets
 
-lemma univ_mem_sets' (h : ∀ a, a ∈ s): s ∈ f :=
+lemma univ_mem_sets' (h : ∀ a, a ∈ s) : s ∈ f :=
 mem_sets_of_superset univ_mem_sets (assume x _, h x)
 
 lemma mp_sets (hs : s ∈ f) (h : {x | x ∈ s → x ∈ t} ∈ f) : t ∈ f :=
@@ -410,7 +410,7 @@ subset.antisymm
   (show u ≤ infi f, from le_infi $ assume i, le_supr (λi, (f i).sets) i)
   (Union_subset $ assume i, infi_le f i)
 
-lemma mem_infi {f : ι → filter α} (h : directed (≥) f) (ne : nonempty ι) (s):
+lemma mem_infi {f : ι → filter α} (h : directed (≥) f) (ne : nonempty ι) (s) :
   s ∈ infi f ↔ s ∈ ⋃ i, (f i).sets :=
 show  s  ∈ (infi f).sets ↔ s ∈ ⋃ i, (f i).sets, by rw infi_sets_eq h ne
 
@@ -432,7 +432,7 @@ begin
   apply_instance
 end
 
-lemma mem_infi_finite {f : ι → filter α} (s):
+lemma mem_infi_finite {f : ι → filter α} (s) :
   s ∈ infi f ↔ s ∈ ⋃t:finset (plift ι), (⨅i∈t, f (plift.down i)).sets :=
 show  s ∈ (infi f).sets ↔ s ∈ ⋃t:finset (plift ι), (⨅i∈t, f (plift.down i)).sets,
 by rw infi_sets_eq_finite
@@ -950,7 +950,7 @@ iff.intro
   (assume ⟨t, s, ht, hs, hts⟩, ⟨m '' s, image_mem_map hs, t, ht, assume f ⟨a, has, eq⟩, eq ▸ hts _ has⟩)
 
 lemma seq_mem_seq_sets {f : filter (α → β)} {g : filter α} {s : set (α → β)} {t : set α}
-  (hs : s ∈ f) (ht : t ∈ g): s.seq t ∈ f.seq g :=
+  (hs : s ∈ f) (ht : t ∈ g) : s.seq t ∈ f.seq g :=
 ⟨s, hs, t, ht, assume f hf a ha, ⟨f, hf, a, ha, rfl⟩⟩
 
 lemma le_seq {f : filter (α → β)} {g : filter α} {h : filter β}

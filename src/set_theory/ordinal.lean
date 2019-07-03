@@ -2945,6 +2945,13 @@ H3.symm ▸ (quotient.induction_on κ (λ α H1, nat.rec_on n
       from mul_le_mul_right _ ih)
     (mul_eq_self H1))) H1)
 
+lemma power_self_eq {c : cardinal} (h : omega ≤ c) : c ^ c = 2 ^ c :=
+begin
+  apply le_antisymm,
+  { apply le_trans (power_le_power_right $ le_of_lt $ cantor c), rw [power_mul, mul_eq_self h] },
+  { convert power_le_power_right (le_trans (le_of_lt $ nat_lt_omega 2) h), apply nat.cast_two.symm }
+end
+
 lemma power_nat_le {c : cardinal.{u}} {n : ℕ} (h  : omega ≤ c) : c ^ (n : cardinal.{u}) ≤ c :=
 pow_le h (nat_lt_omega n)
 

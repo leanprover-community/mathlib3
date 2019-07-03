@@ -293,14 +293,20 @@ begin
   apply relation.map,
 end
 
+<<<<<<< HEAD
 @[simp] lemma cocone_naturality_components (j j' : J) (f : j ⟶ j') (x : F.obj j) :
   (F.map f ≫ (cocone_morphism F j')) x = (cocone_morphism F j) x :=
 by rw cocone_naturality
+=======
+@[simp] lemma cocone_naturality_components (j j' : J) (f : j ⟶ j') (x : F.obj j):
+  (cocone_morphism F j') (F.map f x) = (cocone_morphism F j) x :=
+by { rw ←cocone_naturality F f, refl, }
+>>>>>>> category-of-uniform-spaces
 
 def colimit_cocone : cocone F :=
 { X := colimit F,
   ι :=
-  { app := cocone_morphism F, } }.
+  { app := cocone_morphism F } }.
 
 @[simp] def desc_fun_lift (s : cocone F) : prequotient F → s.X
 | (of j x)  := (s.ι.app j) x

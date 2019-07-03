@@ -54,7 +54,7 @@ def forget_to_Top : TopCommRing ⥤ Top :=
 { obj := λ R, { α := R },
   map := λ R S f, ⟨ f.1, f.2.right ⟩ }
 
-instance forget_to_Top_faithful : faithful (forget_to_Top) := by tidy
+instance forget_to_Top_faithful : faithful (forget_to_Top) := {}
 
 instance forget_to_Top_comm_ring (R : TopCommRing) : comm_ring (forget_to_Top.obj R) :=
 R.is_comm_ring

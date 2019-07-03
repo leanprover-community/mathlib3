@@ -418,6 +418,51 @@ begin
   apply has_limit_of_iso (e.inv_fun_id_assoc F),
 end
 
+def is_limit_map_cone {D : Type u'} [category.{v+1} D] (E : C ⥤ D) [is_equivalence E]
+  (c : cone F) (h : is_limit c) : is_limit (E.map_cone c) :=
+{ lift := λ s, (is_equivalence.counit_iso E).inv.app _ ≫ E.map (h.lift (E.map_cone_inv s)),
+  fac' := λ s j,
+  begin
+    dsimp [map_cone_inv],
+    rw [assoc, ←E.map_comp],
+    simp only [whisker_left.app, right_unitor_hom_app, map_comp, assoc, is_limit.fac,
+      is_equivalence.fun_inv_map, comp_id, map_cone_π, nat_trans.comp_app],
+    erw [←nat_trans.naturality, is_equivalence.fun_inv_map, assoc, assoc, nat_iso.inv_app_hom_app_id,
+      comp_id],
+    dsimp [inv_fun_id],
+    slice_lhs 1 2 { rw nat_iso.inv_app_hom_app_id, },
+    erw [id_comp, assoc, is_equivalence.counit_inv_functor_comp, comp_id],
+  end,
+  uniq' := λ s m w,
+  begin
+    have t := h.uniq (map_cone_inv E s),
+    let m' := (inv E).map m ≫ (is_equivalence.unit_iso E).inv.app _,
+    have t' := t m',
+    erw ←t',
+    { dsimp [m'],
+      erw [E.map_comp, is_equivalence.fun_inv_map],
+      dsimp [inv_fun_id],
+      slice_rhs 1 2 { rw nat_iso.inv_app_hom_app_id, },
+      erw [id_comp, assoc, is_equivalence.counit_inv_functor_comp, comp_id] },
+    { intro j,
+      dsimp [m', map_cone_inv],
+      erw ←w,
+      simp only [map_comp, assoc, comp_id, map_cone_π, is_equivalence.inv_fun_map],
+      dsimp [fun_inv_id],
+      erw [nat_iso.hom_app_inv_app_id, comp_id] }
+  end }
+
+instance has_limit_comp_equivalence {D : Type u'} [category.{v+1} D] (E : C ⥤ D) [is_equivalence E] [has_limit F] :
+  has_limit (F ⋙ E) :=
+{ cone := E.map_cone (limit.cone F),
+  is_limit := is_limit_map_cone _ _ (limit.is_limit F) }
+
+def has_limit_of_comp_equivalence {D : Type u'} [category.{v+1} D] (E : C ⥤ D) [is_equivalence E] [has_limit (F ⋙ E)] :
+  has_limit F :=
+@has_limit_of_iso _ _ _ _ (F ⋙ E ⋙ inv E) F
+(@limits.has_limit_comp_equivalence _ _ _ _ (F ⋙ E) _ _ (inv E) _ _)
+((iso_whisker_left F (fun_inv_id E)) ≪≫ (functor.right_unitor _))
+
 section lim_functor
 
 variables [has_limits_of_shape J C]

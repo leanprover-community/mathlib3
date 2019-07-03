@@ -40,6 +40,9 @@ lemma smul_smul : r • s • x = (r * s) • x := (mul_smul _ _ _).symm
 instance smul.is_add_monoid_hom {r : α} : is_add_monoid_hom (λ x : β, r • x) :=
 { map_add := smul_add _, map_zero := smul_zero _ }
 
+lemma semimodule.eq_zero_of_zero_eq_one (zero_eq_one : (0 : α) = 1) : x = 0 :=
+by rw [←one_smul α x, ←zero_eq_one, zero_smul]
+
 end semimodule
 
 /-- A module is a generalization of vector spaces to a scalar ring.
@@ -121,7 +124,7 @@ structure linear_map (α : Type u) (β : Type v) (γ : Type w)
 (smul : ∀(c : α) x, to_fun (c • x) = c • to_fun x)
 
 infixr ` →ₗ `:25 := linear_map _
-notation β ` →ₗ[`:25 α `] ` γ := linear_map α β γ
+notation β ` →ₗ[`:25 α:25 `] `:0 γ:0 := linear_map α β γ
 
 namespace linear_map
 
@@ -183,7 +186,7 @@ lemma is_linear_map_neg :
   is_linear_map α (λ (z : β), -z) :=
 is_linear_map.mk neg_add (λ x y, (smul_neg x y).symm)
 
-lemma is_linear_map_smul {α R : Type*} [add_comm_group α] [comm_ring R] [module R α] (c : R):
+lemma is_linear_map_smul {α R : Type*} [add_comm_group α] [comm_ring R] [module R α] (c : R) :
   is_linear_map R (λ (z : α), c • z) :=
 begin
   refine is_linear_map.mk (smul_add c) _,
@@ -193,7 +196,7 @@ begin
 end
 
 --TODO: move
-lemma is_linear_map_smul' {α R : Type*} [add_comm_group α] [comm_ring R] [module R α] (a : α):
+lemma is_linear_map_smul' {α R : Type*} [add_comm_group α] [comm_ring R] [module R α] (a : α) :
   is_linear_map R (λ (c : R), c • a) :=
 begin
   refine is_linear_map.mk (λ x y, add_smul x y a) _,
@@ -299,6 +302,9 @@ protected def subtype : p →ₗ[α] β :=
 by refine {to_fun := coe, ..}; simp [coe_smul]
 
 @[simp] theorem subtype_apply (x : p) : p.subtype x = x := rfl
+
+lemma subtype_eq_val (p : submodule α β) :
+  ((submodule.subtype p) : p → β) = subtype.val := rfl
 
 end submodule
 

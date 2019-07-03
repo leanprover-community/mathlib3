@@ -419,7 +419,7 @@ begin
 end
 
 lemma tendsto_measure_Inter {μ : measure α} {s : ℕ → set α}
-  (hs : ∀n, is_measurable (s n)) (hm : ∀n m, n ≤ m → s m ⊆ s n) (hf : ∃i, μ (s i) < ⊤):
+  (hs : ∀n, is_measurable (s n)) (hm : ∀n m, n ≤ m → s m ⊆ s n) (hf : ∃i, μ (s i) < ⊤) :
   tendsto (μ ∘ s) at_top (nhds (μ (⋂n, s n))) :=
 begin
   rw measure_Inter_eq_infi_nat hs hm hf,
@@ -877,7 +877,7 @@ lemma all_ae_of_all {p : α → Prop} : (∀a, p a) → ∀ₘ a, p a := assume 
 by {rw all_ae_iff, convert volume_empty, simp only [h, not_true], reflexivity}
 
 lemma all_ae_all_iff {ι : Type*} [encodable ι] {p : α → ι → Prop} :
-  (∀ₘ a, ∀i, p a i) ↔ (∀i, ∀ₘ a, p a i):=
+  (∀ₘ a, ∀i, p a i) ↔ (∀i, ∀ₘ a, p a i) :=
 begin
   refine iff.intro (assume h i, _) (assume h, _),
   { filter_upwards [h] assume a ha, ha i },

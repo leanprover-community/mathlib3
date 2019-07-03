@@ -561,13 +561,13 @@ lemma is_lub_of_is_glb_of_tendsto : ∀ {f : α → β} {s : set α} {a : α} {b
 lemma mem_closure_of_is_lub {a : α} {s : set α} (ha : is_lub s a) (hs : s ≠ ∅) : a ∈ closure s :=
 by rw closure_eq_nhds; exact nhds_principal_ne_bot_of_is_lub ha hs
 
-lemma mem_of_is_lub_of_is_closed {a : α} {s : set α} (ha : is_lub s a) (hs : s ≠ ∅) (sc : is_closed s): a ∈ s :=
+lemma mem_of_is_lub_of_is_closed {a : α} {s : set α} (ha : is_lub s a) (hs : s ≠ ∅) (sc : is_closed s) : a ∈ s :=
 by rw ←closure_eq_of_is_closed sc; exact mem_closure_of_is_lub ha hs
 
 lemma mem_closure_of_is_glb {a : α} {s : set α} (ha : is_glb s a) (hs : s ≠ ∅) : a ∈ closure s :=
 by rw closure_eq_nhds; exact nhds_principal_ne_bot_of_is_glb ha hs
 
-lemma mem_of_is_glb_of_is_closed {a : α} {s : set α} (ha : is_glb s a) (hs : s ≠ ∅) (sc : is_closed s): a ∈ s :=
+lemma mem_of_is_glb_of_is_closed {a : α} {s : set α} (ha : is_glb s a) (hs : s ≠ ∅) (sc : is_closed s) : a ∈ s :=
 by rw ←closure_eq_of_is_closed sc; exact mem_closure_of_is_glb ha hs
 
 /-- A compact set is bounded below -/
@@ -715,7 +715,7 @@ end
 /-- A continuous monotone function sends indexed infimum to indexed infimum in conditionally complete
 lattices, under a boundedness assumption. -/
 lemma cinfi_of_cinfi_of_monotone_of_continuous {f : α → β} {g : γ → α}
-  (Mf : continuous f) (Cf : monotone f) (H : bdd_below (range g)): f (infi g) = infi (f ∘ g) :=
+  (Mf : continuous f) (Cf : monotone f) (H : bdd_below (range g)) : f (infi g) = infi (f ∘ g) :=
 by rw [infi, cInf_of_cInf_of_monotone_of_continuous Mf Cf
   (λ h, range_eq_empty.1 h ‹_›) H, ← range_comp]; refl
 
@@ -845,22 +845,22 @@ section complete_linear_order
 variables [complete_linear_order α] [topological_space α] [orderable_topology α]
 -- In complete_linear_order, the above theorems take a simpler form
 
-/-- If the liminf and the limsup of a function coincide, then the limit of the function 
+/-- If the liminf and the limsup of a function coincide, then the limit of the function
 exists and has the same value -/
-theorem tendsto_of_liminf_eq_limsup {f : filter β} {u : β → α} {a : α} 
-  (h : liminf f u = a ∧ limsup f u = a) : tendsto u f (nhds a) := 
+theorem tendsto_of_liminf_eq_limsup {f : filter β} {u : β → α} {a : α}
+  (h : liminf f u = a ∧ limsup f u = a) : tendsto u f (nhds a) :=
   le_nhds_of_Limsup_eq_Liminf is_bounded_le_of_top is_bounded_ge_of_bot h.2 h.1
 
 /-- If a function has a limit, then its limsup coincides with its limit-/
-theorem limsup_eq_of_tendsto {f : filter β} {u : β → α} {a : α} (hf : f ≠ ⊥) 
-  (h : tendsto u f (nhds a)) : limsup f u = a := 
-  Limsup_eq_of_le_nhds (map_ne_bot hf) h 
+theorem limsup_eq_of_tendsto {f : filter β} {u : β → α} {a : α} (hf : f ≠ ⊥)
+  (h : tendsto u f (nhds a)) : limsup f u = a :=
+  Limsup_eq_of_le_nhds (map_ne_bot hf) h
 
 /-- If a function has a limit, then its liminf coincides with its limit-/
-theorem liminf_eq_of_tendsto {f : filter β} {u : β → α} {a : α} (hf : f ≠ ⊥) 
-  (h : tendsto u f (nhds a)) : liminf f u = a := 
-  Liminf_eq_of_le_nhds (map_ne_bot hf) h 
-  
+theorem liminf_eq_of_tendsto {f : filter β} {u : β → α} {a : α} (hf : f ≠ ⊥)
+  (h : tendsto u f (nhds a)) : liminf f u = a :=
+  Liminf_eq_of_le_nhds (map_ne_bot hf) h
+
 end complete_linear_order
 
 end liminf_limsup

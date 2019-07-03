@@ -11,6 +11,10 @@ open function
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
+protected noncomputable def classical.decidable_linear_order [I : linear_order α] :
+  decidable_linear_order α :=
+{ decidable_le := classical.dec_rel _, ..I }
+
 theorem ge_of_eq [preorder α] {a b : α} : a = b → a ≥ b :=
 λ h, h ▸ le_refl a
 

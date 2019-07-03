@@ -63,7 +63,7 @@ def monadic (h : L ⊣ R) := is_equivalence (monad.comparison h)
 
 end adjunction
 
-class reflective (R : D ⥤ C) extends is_right_adjoint R, fully_faithful R.
+class reflective (R : D ⥤ C) extends is_right_adjoint R, full R, faithful R.
 
 class monadic (R : D ⥤ C) extends is_right_adjoint R :=
 (monadic : adj.monadic)

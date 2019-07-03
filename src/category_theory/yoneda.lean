@@ -50,9 +50,10 @@ by obviously
   {Z Z' : C} (f : Z ⟶ Z') (h : Z' ⟶ X) : f ≫ α.app (op Z') h = α.app (op Z) (f ≫ h) :=
 begin erw [functor_to_types.naturality], refl end
 
-instance yoneda_fully_faithful : fully_faithful (@yoneda C _) :=
-{ preimage := λ X Y f, (f.app (op X)) (𝟙 X),
-  injectivity' := λ X Y f g p,
+instance yoneda_full : full (@yoneda C _) :=
+{ preimage := λ X Y f, (f.app (op X)) (𝟙 X) }
+instance yoneda_faithful : faithful (@yoneda C _) :=
+{ injectivity' := λ X Y f g p,
   begin
     injection p with h,
     convert (congr_fun (congr_fun h (op X)) (𝟙 X)); dsimp; simp,
@@ -90,9 +91,10 @@ namespace coyoneda
   {Z Z' : C} (f : Z' ⟶ Z) (h : unop X ⟶ Z') : (α.app Z' h) ≫ f = α.app Z (h ≫ f) :=
 begin erw [functor_to_types.naturality], refl end
 
-instance coyoneda_fully_faithful : fully_faithful (@coyoneda C _) :=
-{ preimage := λ X Y f, ((f.app (unop X)) (𝟙 _)).op,
-  injectivity' := λ X Y f g p,
+instance coyoneda_full : full (@coyoneda C _) :=
+{ preimage := λ X Y f, ((f.app (unop X)) (𝟙 _)).op }
+instance coyoneda_faithful : faithful (@coyoneda C _) :=
+{ injectivity' := λ X Y f g p,
   begin
     injection p with h,
     have t := (congr_fun (congr_fun h (unop X)) (𝟙 _)),

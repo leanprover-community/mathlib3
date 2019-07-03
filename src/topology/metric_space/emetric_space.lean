@@ -520,12 +520,10 @@ begin
     apply mem_closure_iff'.2,
     intros ε εpos,
     rcases ennreal.exists_inv_nat_lt (bot_lt_iff_ne_bot.1 εpos) with ⟨n, hn⟩,
-    have inv_n_pos : (0 : ennreal) < (n : ℕ)⁻¹ :=
-      by simp only [ennreal.bot_lt_iff_ne_bot, ennreal.nat_ne_top, ne.def, not_false_iff, ennreal.inv_eq_zero],
     have C : x ∈ (⋃y∈ T (n : ℕ)⁻¹, ball y (n : ℕ)⁻¹) :=
-      mem_of_mem_of_subset x_in_s ((finite_T (n : ℕ)⁻¹).2 inv_n_pos),
+      mem_of_mem_of_subset x_in_s ((finite_T (n : ℕ)⁻¹).2 (ennreal.inv_nat_pos n)),
     rcases mem_Union.1 C with ⟨y, _, ⟨y_in_T, rfl⟩, Dxy⟩,
-    simp at Dxy,  -- Dxy : edist x y < 1 / ↑n
+    rw [mem_ball] at Dxy,  -- Dxy : edist x y < 1 / ↑n
     have : y ∈ t := mem_of_mem_of_subset y_in_T (by apply subset_Union (λ (n:ℕ), T (n : ℕ)⁻¹)),
     have : edist x y < ε := lt_trans Dxy hn,
     exact ⟨y, ‹y ∈ t›, ‹edist x y < ε›⟩ },
@@ -598,7 +596,7 @@ show uniform_space.to_topological_space α = generate_from (⋃x ∈ S, ⋃ (n :
       ... < ε/2 + ε/2 : ennreal.add_lt_add εn εn
       ... = ε : ennreal.add_halves _,
     simp only [emetric.mem_ball, exists_prop, set.mem_Union, set.mem_singleton_iff],
-    exact ⟨⟨x, ⟨xS, ⟨n, rfl⟩⟩⟩, ⟨by simpa, subset.trans I εball⟩⟩ },
+    exact ⟨⟨x, ⟨xS, ⟨n, rfl⟩⟩⟩, ⟨by simpa using xdist, subset.trans I εball⟩⟩ },
   exact B.2.2 }⟩⟩⟩
 
 end second_countable

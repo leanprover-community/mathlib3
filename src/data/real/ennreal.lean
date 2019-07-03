@@ -172,7 +172,7 @@ section order
 @[simp] lemma coe_le_one_iff : ↑r ≤ (1:ennreal) ↔ r ≤ 1 := coe_le_coe
 @[simp] lemma coe_lt_one_iff : (↑p : ennreal) < 1 ↔ p < 1 := coe_lt_coe
 @[simp] lemma one_lt_zero_iff : 1 < (↑p : ennreal) ↔ 1 < p := coe_lt_coe
-@[simp] lemma coe_nat (n : nat) : ((n : nnreal) : ennreal) = n := with_top.coe_nat n
+@[simp] lemma coe_nat (n : nat) : (n : ennreal) = ((n : nnreal) : ennreal) := with_top.coe_nat n
 @[simp] lemma nat_ne_top (n : nat) : (n : ennreal) ≠ ⊤ := with_top.nat_ne_top n
 @[simp] lemma top_ne_nat (n : nat) : (⊤ : ennreal) ≠ n := with_top.top_ne_nat n
 
@@ -227,7 +227,7 @@ begin
   rcases lt_iff_exists_coe.1 (lt_top_iff_ne_top.2 h) with ⟨r, rfl, hb⟩,
   rcases exists_nat_gt r with ⟨n, hn⟩,
   refine ⟨n, _⟩,
-  rwa [← ennreal.coe_nat, ennreal.coe_lt_coe],
+  rwa [ennreal.coe_nat, ennreal.coe_lt_coe],
 end
 
 lemma add_lt_add (ac : a < c) (bd : b < d) : a + b < c + d :=
@@ -374,11 +374,11 @@ lemma sub_sub_cancel (h : a < ∞) (h2 : b ≤ a) : a - (a - b) = b :=
 by rw [← add_right_inj (lt_of_le_of_lt (sub_le_self _ _) h),
   sub_add_cancel_of_le (sub_le_self _ _), add_sub_cancel_of_le h2]
 
-lemma sub_left_inj {a b c : ennreal} (ha : a < ⊤) (hb : b ≤ a) (hc : c ≤ a) : 
+lemma sub_left_inj {a b c : ennreal} (ha : a < ⊤) (hb : b ≤ a) (hc : c ≤ a) :
   a - b = a - c ↔ b = c :=
-iff.intro 
-  begin 
-    assume h, have : a - (a - b) = a - (a - c), rw h, 
+iff.intro
+  begin
+    assume h, have : a - (a - b) = a - (a - c), rw h,
     rw [sub_sub_cancel ha hb, sub_sub_cancel ha hc] at this, exact this
   end
   (λ h, by rw h)
@@ -569,6 +569,10 @@ begin
   end,
   exact ⟨n, lt_of_le_of_lt I ba⟩
 end
+
+lemma inv_nat_pos (n : ℕ) : (0 : ennreal) < (n : ennreal)⁻¹ :=
+by simp [ennreal.bot_lt_iff_ne_bot]
+
 end inv
 
 section real

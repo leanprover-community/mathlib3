@@ -99,7 +99,9 @@ by by_cases a ≤ b; simp [h, max]
 @[simp, elim_cast] theorem abs_cast [decidable_linear_ordered_comm_ring α] (a : ℕ) : abs (a : α) = a :=
 abs_of_nonneg (cast_nonneg a)
 
--- This lemma looks like it's backwards, but it's what's useful in the wild.
+-- Contrary to first appearances, this is useful as a simp lemma:
+-- we turn one cast into two casts, but each is simpler, and there
+-- are lemmas about the simpler casts.
 @[simp] lemma cast_with_bot_cast {α} [add_monoid α] [has_one α] :
   ∀ n : ℕ, (n : with_bot α) = ((n : α) : with_bot α)
 | 0 := rfl

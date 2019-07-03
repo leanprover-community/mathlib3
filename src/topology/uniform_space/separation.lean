@@ -241,7 +241,7 @@ lift (quotient.mk ∘ f)
 lemma map_mk {f : α → β} (h : uniform_continuous f) (a : α) : map f ⟦a⟧ = ⟦f a⟧ :=
 by rw [map, lift_mk (uniform_continuous_quotient_mk.comp h)]
 
-lemma uniform_continuous_map (f : α → β): uniform_continuous (map f) :=
+lemma uniform_continuous_map (f : α → β) : uniform_continuous (map f) :=
 uniform_continuous_lift (quotient.mk ∘ f)
 
 lemma map_unique {f : α → β} (hf : uniform_continuous f)

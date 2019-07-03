@@ -137,7 +137,7 @@ have (single a b₁ : α →₀ β) a = (single a b₂ : α →₀ β) a, by rw 
 by rwa [single_eq_same, single_eq_same] at this
 
 lemma single_eq_single_iff (a₁ a₂ : α) (b₁ b₂ : β) :
-  single a₁ b₁ = single a₂ b₂ ↔ ((a₁ = a₂ ∧ b₁ = b₂) ∨ (b₁ = 0 ∧ b₂ = 0)):=
+  single a₁ b₁ = single a₂ b₂ ↔ ((a₁ = a₂ ∧ b₁ = b₂) ∨ (b₁ = 0 ∧ b₂ = 0)) :=
 begin
   split,
   { assume eq,
@@ -394,7 +394,7 @@ rfl
 lemma support_add {g₁ g₂ : α →₀ β} : (g₁ + g₂).support ⊆ g₁.support ∪ g₂.support :=
 support_zip_with
 
-lemma support_add_eq {g₁ g₂ : α →₀ β} (h : disjoint g₁.support g₂.support):
+lemma support_add_eq {g₁ g₂ : α →₀ β} (h : disjoint g₁.support g₂.support) :
   (g₁ + g₂).support = g₁.support ∪ g₂.support :=
 le_antisymm support_zip_with $ assume a ha,
 (finset.mem_union.1 ha).elim
@@ -613,7 +613,7 @@ calc (f - g).sum h = (f + - g).sum h : rfl
 @[to_additive finsupp.sum_finset_sum_index]
 lemma prod_finset_sum_index [add_comm_monoid β] [comm_monoid γ] [decidable_eq ι]
   {s : finset ι} {g : ι → α →₀ β}
-  {h : α → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂):
+  {h : α → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   s.prod (λi, (g i).prod h) = (s.sum g).prod h :=
 finset.induction_on s rfl $ λ a s has ih,
 by rw [prod_insert has, ih, sum_insert has, prod_add_index h_zero h_add]
@@ -622,7 +622,7 @@ by rw [prod_insert has, ih, sum_insert has, prod_add_index h_zero h_add]
 lemma prod_sum_index
   [decidable_eq α₁] [add_comm_monoid β₁] [add_comm_monoid β] [comm_monoid γ]
   {f : α₁ →₀ β₁} {g : α₁ → β₁ → α →₀ β}
-  {h : α → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂):
+  {h : α → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   (f.sum g).prod h = f.prod (λa b, (g a b).prod h) :=
 (prod_finset_sum_index h_zero h_add).symm
 
@@ -1315,7 +1315,7 @@ end
 
 def restrict_support_equiv [decidable_eq α] [decidable_eq β] [add_comm_monoid β]
   (s : set α) [decidable_pred (λx, x ∈ s)] :
-  {f : α →₀ β // ↑f.support ⊆ s } ≃ (s →₀ β):=
+  {f : α →₀ β // ↑f.support ⊆ s } ≃ (s →₀ β) :=
 begin
   refine ⟨λf, subtype_domain (λx, x ∈ s) f.1, λ f, ⟨f.map_domain subtype.val, _⟩, _, _⟩,
   { refine set.subset.trans (finset.coe_subset.2 map_domain_support) _,

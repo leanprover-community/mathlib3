@@ -1181,6 +1181,21 @@ by { ext, split, rintro ⟨x, h1, h2⟩, exact ⟨⟨x, h1⟩, h2⟩, rintro ⟨
   range (sum.elim f g) = range f ∪ range g :=
 by simp [set.ext_iff, mem_range]
 
+lemma range_ite_subset' {p : Prop} [decidable p] {f g : α → β} :
+  range (if p then f else g) ⊆ range f ∪ range g :=
+begin
+  by_cases h : p, {rw if_pos h, exact subset_union_left _ _},
+  {rw if_neg h, exact subset_union_right _ _}
+end
+
+lemma range_ite_subset {p : α → Prop} [decidable_pred p] {f g : α → β} :
+  range (λ x, if p x then f x else g x) ⊆ range f ∪ range g :=
+begin
+  rw range_subset_iff, intro x, by_cases h : p x,
+  simp [if_pos h, mem_union, mem_range_self],
+  simp [if_neg h, mem_union, mem_range_self]
+end
+
 end range
 
 /-- The set `s` is pairwise `r` if `r x y` for all *distinct* `x y ∈ s`. -/
@@ -1259,7 +1274,7 @@ variable {α : Type*}
   range (@subtype.val _ p) = {x | p x} :=
 by rw ← image_univ; simp [-image_univ, subtype.val_image]
 
-@[simp] lemma range_coe_subtype (s : set α): range (coe : s → α) = s :=
+@[simp] lemma range_coe_subtype (s : set α) : range (coe : s → α) = s :=
 subtype.val_range
 
 end range

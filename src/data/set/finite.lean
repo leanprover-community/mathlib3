@@ -362,6 +362,21 @@ begin
   exact ⟨_, ⟨_, hx, rfl⟩, hf ⟨x, hx⟩⟩
 end
 
+lemma finite_range_ite {p : α → Prop} [decidable_pred p] {f g : α → β} (hf : finite (range f))
+  (hg : finite (range g)) : finite (range (λ x, if p x then f x else g x)) :=
+finite_subset (finite_union hf hg) range_ite_subset
+
+lemma finite_range_const {c : β} : finite (range (λ x : α, c)) :=
+finite_subset (finite_singleton c) range_const_subset
+
+lemma range_find_greatest_subset {P : α → ℕ → Prop} [∀ x, decidable_pred (P x)] {b : ℕ}:
+  range (λ x, nat.find_greatest (P x) b) ⊆ ↑(finset.range (b + 1)) :=
+by { rw range_subset_iff, assume x, simp [nat.lt_succ_iff, nat.find_greatest_le] }
+
+lemma finite_range_find_greatest {P : α → ℕ → Prop} [∀ x, decidable_pred (P x)] {b : ℕ} :
+  finite (range (λ x, nat.find_greatest (P x) b)) :=
+finite_subset (finset.finite_to_set $ finset.range (b + 1)) range_find_greatest_subset
+
 lemma infinite_univ_nat : infinite (univ : set ℕ) :=
 assume (h : finite (univ : set ℕ)),
 let ⟨n, hn⟩ := finset.exists_nat_subset_range h.to_finset in

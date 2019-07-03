@@ -1238,7 +1238,7 @@ begin
   revert h₀ h₁, simp only [tendsto_def, mem_inf_principal],
   intros h₀ h₁ s hs,
   apply mem_sets_of_superset (inter_mem_sets (h₀ s hs) (h₁ s hs)),
-  rintros x ⟨hp₀, hp₁⟩, dsimp,
+  rintros x ⟨hp₀, hp₁⟩, simp only [mem_preimage],
   by_cases h : p x,
   { rw if_pos h, exact hp₀ h },
   rw if_neg h, exact hp₁ h
@@ -1604,7 +1604,7 @@ lemma ultrafilter_bind {f : filter α} (hf : is_ultrafilter f) {m : α → filte
   (hm : ∀ a, is_ultrafilter (m a)) : is_ultrafilter (f.bind m) :=
 begin
   simp only [ultrafilter_iff_compl_mem_iff_not_mem] at ⊢ hf hm, intro s,
-  dsimp [bind, join, map],
+  dsimp [bind, join, map, preimage],
   simp only [hm], apply hf
 end
 

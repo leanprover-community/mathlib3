@@ -152,7 +152,7 @@ structure dependent_fields :=
 (v : if a then ℕ else ℤ)
 
 @[extensionality] lemma df.ext (s t : dependent_fields) (h : s.a = t.a)
- (w : (@eq.rec _ s.a (λ b, if b then ℕ else ℤ) s.v t.a h) = t.v): s = t :=
+ (w : (@eq.rec _ s.a (λ b, if b then ℕ else ℤ) s.v t.a h) = t.v) : s = t :=
 begin
   cases s, cases t,
   dsimp at *,

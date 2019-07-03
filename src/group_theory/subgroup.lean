@@ -80,7 +80,7 @@ by induction n; simp [is_add_submonoid.smul_coe a]
 attribute [to_additive is_add_subgroup.gsmul_coe] is_subgroup.coe_gpow
 
 theorem is_subgroup.of_div (s : set α)
-  (one_mem : (1:α) ∈ s) (div_mem : ∀{a b:α}, a ∈ s → b ∈ s → a * b⁻¹ ∈ s):
+  (one_mem : (1:α) ∈ s) (div_mem : ∀{a b:α}, a ∈ s → b ∈ s → a * b⁻¹ ∈ s) :
   is_subgroup s :=
 have inv_mem : ∀a, a ∈ s → a⁻¹ ∈ s, from
   assume a ha,
@@ -93,7 +93,7 @@ have inv_mem : ∀a, a ∈ s → a⁻¹ ∈ s, from
   one_mem := one_mem }
 
 theorem is_add_subgroup.of_sub (s : set β)
-  (zero_mem : (0:β) ∈ s) (sub_mem : ∀{a b:β}, a ∈ s → b ∈ s → a - b ∈ s):
+  (zero_mem : (0:β) ∈ s) (sub_mem : ∀{a b:β}, a ∈ s → b ∈ s → a - b ∈ s) :
   is_add_subgroup s :=
 multiplicative.is_subgroup_iff.1 $
 @is_subgroup.of_div (multiplicative β) _ _ zero_mem @sub_mem

@@ -5,7 +5,7 @@ Author: Mario Carneiro
 
 Finite types.
 -/
-import data.finset algebra.big_operators data.array.lemmas
+import data.finset algebra.big_operators data.array.lemmas logic.unique
 universes u v
 
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -204,6 +204,9 @@ instance (n : ℕ) : fintype (fin n) :=
 
 @[simp] theorem fintype.card_fin (n : ℕ) : fintype.card (fin n) = n :=
 by rw [fin.fintype]; simp [fintype.card, card, univ]
+
+instance unique.fintype {α : Type*} [unique α] : fintype α :=
+⟨finset.singleton (default α), λ x, by rw [unique.eq_default x]; simp⟩
 
 instance : fintype empty := ⟨∅, empty.rec _⟩
 
@@ -685,6 +688,9 @@ end fintype
 
 class infinite (α : Type*) : Prop :=
 (not_fintype : fintype α → false)
+
+@[simp] lemma not_nonempty_fintype {α : Type*} : ¬nonempty (fintype α) ↔ infinite α :=
+⟨λf, ⟨λ x, f ⟨x⟩⟩, λ⟨f⟩ ⟨x⟩, f x⟩
 
 namespace infinite
 

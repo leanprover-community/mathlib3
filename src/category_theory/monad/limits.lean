@@ -109,7 +109,7 @@ instance comp_comparison_has_limit (F : J ⥤ D) (R : D ⥤ C) [monadic R] [has_
 monad.forget_creates_limits (F ⋙ monad.comparison (is_right_adjoint.adj R))
 
 def monadic_creates_limits (F : J ⥤ D) (R : D ⥤ C) [monadic R] [has_limit.{v₁} (F ⋙ R)] : has_limit F :=
-limits.has_limit_of_comp_equivalence (monad.comparison (is_right_adjoint.adj R))
+adjunction.has_limit_of_comp_equivalence (monad.comparison (is_right_adjoint.adj R))
 
 omit 𝒥
 

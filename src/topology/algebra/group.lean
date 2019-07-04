@@ -7,6 +7,7 @@ Theory of topological groups.
 
 -/
 import data.equiv.algebra
+import algebra.pointwise order.filter.pointwise
 import group_theory.quotient_group
 import topology.algebra.monoid topology.order
 
@@ -329,3 +330,60 @@ instance : topological_add_group α :=
   end⟩
 
 end add_group_with_zero_nhd
+
+section filter_mul
+local attribute [instance]
+  set.pointwise_one set.pointwise_mul set.pointwise_add filter.pointwise_mul filter.pointwise_add
+
+section
+variables [topological_space α] [group α] [topological_group α]
+
+@[to_additive is_open_pointwise_add_left]
+lemma is_open_pointwise_mul_left {s t : set α} : is_open t → is_open (s * t) := λ ht,
+begin
+  have : ∀a, is_open ((λ (x : α), a * x) '' t),
+    assume a, apply is_open_map_mul_left, exact ht,
+  rw pointwise_mul_eq_Union_mul_left,
+  exact is_open_Union (λa, is_open_Union $ λha, this _),
+end
+
+@[to_additive is_open_pointwise_add_right]
+lemma is_open_pointwise_mul_right {s t : set α} : is_open s → is_open (s * t) := λ hs,
+begin
+  have : ∀a, is_open ((λ (x : α), x * a) '' s),
+    assume a, apply is_open_map_mul_right, exact hs,
+  rw pointwise_mul_eq_Union_mul_right,
+  exact is_open_Union (λa, is_open_Union $ λha, this _),
+end
+
+end
+
+section
+variables [topological_space α] [comm_group α] [topological_group α]
+
+@[to_additive nhds_add_nhds]
+lemma nhds_mul_nhds (x y : α) : nhds x * nhds y = nhds (x * y) :=
+filter_eq $ set.ext $ assume s,
+begin
+  rw [← nhds_translation_mul_inv x, ← nhds_translation_mul_inv y, ← nhds_translation_mul_inv (x*y)],
+  split,
+  { rintros ⟨a, ⟨b, hb, ba⟩, c, ⟨d, hd, dc⟩, ac⟩,
+    refine ⟨b ∩ d, inter_mem_sets hb hd, assume v, _⟩,
+    simp only [preimage_subset_iff, mul_inv_rev, mem_preimage_eq] at *,
+    rintros ⟨vb, vd⟩,
+    refine ac ⟨v * y⁻¹, _, y, _, _⟩,
+    { rw ← mul_assoc _ _ _ at vb, exact ba _ vb },
+    { apply dc y, rw mul_right_inv, exact mem_of_nhds hd },
+    { simp only [inv_mul_cancel_right] } },
+  { rintros ⟨t, ht, ts⟩,
+    rcases exists_nhds_split ht with ⟨V, V_mem, h⟩,
+    refine ⟨(λa, a * x⁻¹) ⁻¹' V, ⟨V, V_mem, subset.refl _⟩,
+            (λa, a * y⁻¹) ⁻¹' V, ⟨V, V_mem, subset.refl _⟩, _⟩,
+    rintros a ⟨v, v_mem, w, w_mem, rfl⟩,
+    apply ts,
+    simpa [mul_comm, mul_assoc, mul_left_comm] using h (v * x⁻¹) (w * y⁻¹) v_mem w_mem }
+end
+
+end
+
+end filter_mul

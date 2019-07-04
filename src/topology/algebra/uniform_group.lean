@@ -220,6 +220,55 @@ end
 
 end topological_add_comm_group
 
+namespace dense_embedding
+open is_add_group_hom filter
+
+local attribute [instance]
+  set.pointwise_one set.pointwise_mul set.pointwise_add filter.pointwise_mul filter.pointwise_add
+local attribute [instance] topological_add_group_is_uniform topological_add_group.to_uniform_space
+
+universes u v w x
+variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
+variables [topological_space α] [add_comm_group α] [topological_add_group α]
+variables [topological_space β] [add_comm_group β] [topological_add_group β]
+variables {e : β → α} [is_add_group_hom e] (de : dense_embedding e)
+variables {G : Type*}
+variables [uniform_space G] [add_comm_group G] [uniform_add_group G] [t2_space G] [complete_space G]
+
+include de
+
+protected lemma uniform_embedding : uniform_embedding e :=
+and.intro de.2 $
+calc
+  comap (λx:β×β, (e x.1, e x.2)) (𝓤 α) =
+    comap (λx:β×β, (e x.1, e x.2)) (comap (λx:α×α, x.2 - x.1) (nhds (0:α))) :
+      by rw [uniformity_eq_comap_nhds_zero']
+  ... = comap (λx:β×β, e x.2 - e x.1) (nhds (0:α)) : comap_comap_comp
+  ... = comap (λx:β×β, e (x.2 - x.1)) (nhds (0:α)) : by { congr, ext x, exact (map_sub _ _ _).symm }
+  ... = comap (λx:β×β, x.2 - x.1) (comap e (nhds (0:α))) : comap_comap_comp.symm
+  ... = comap (λx:β×β, x.2 - x.1) (nhds (0:β)) : by { congr, convert de.3 0, exact (map_zero _).symm }
+  ... = 𝓤 β : rfl
+
+lemma is_add_group_hom_extend {f : β → G} [is_add_group_hom f] (hf : continuous f) :
+  is_add_group_hom (de.extend f) :=
+let df := de.extend f in
+is_add_group_hom.mk $ assume x y,
+have ue   : uniform_embedding e := de.uniform_embedding,
+have uf   : uniform_continuous f := uniform_continuous_of_continuous hf,
+have hfx  : tendsto f (comap e (nhds x)) (nhds (df x)) := uniformly_extend_spec ue de.dense uf x,
+have hfy  : tendsto f (comap e (nhds y)) (nhds (df y)) := uniformly_extend_spec ue de.dense uf y,
+have hfxy : tendsto f (comap e (nhds x + nhds y)) (nhds (df (x + y))),
+  by { convert uniformly_extend_spec ue de.dense uf (x + y), exact nhds_add_nhds _ _ },
+have h    : tendsto f (comap e (nhds x) + comap e (nhds y)) (nhds (df x + df y)),
+  by { convert tendsto_add_add hfx hfy, exact (nhds_add_nhds _ _).symm },
+begin
+  have := tendsto_le_left (comap_add_comap_le e) hfxy,
+  show df (x + y) = df x + df y,
+  refine tendsto_nhds_unique (add_ne_bot (comap_nhds_neq_bot de) (comap_nhds_neq_bot de)) this h
+end
+
+end dense_embedding
+
 namespace add_comm_group
 section Z_bilin
 

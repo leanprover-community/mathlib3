@@ -75,8 +75,6 @@ lemma gilmore_1 {F G H : α → Prop} :
       → F z ∧ G z ∧ H z :=
 by vampire
 
-#print gilmore_1
-
 lemma gilmore_6 {F G : α → α → Prop} {H : α → α → α → Prop} :
 ∀ x, ∃ y,
   (∃ u, ∀ v, F u x → G v u ∧ G u x)

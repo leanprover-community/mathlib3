@@ -132,20 +132,16 @@ do πx ← build_proof_core m m.to_expr [] is,
    let x    : expr := expr.mk_app `(@arifix_of_proof) [αx, ix, px, fx],
    return (expr.app x πx)
 
-meta def script_output (s : string) : tactic string :=
+meta def get_infs_string' (m : mat) : tactic string :=
 unsafe_run_io $ io.cmd'
 { cmd := "rr.pl",
-  args := [s] }
-
-meta def get_infs_string' (m : mat) : tactic string :=
-script_output m.to_rr --("\"" ++ m.to_rr ++ "\"")
+  args := [m.to_rr] }
 
 meta def get_infs_string (m : mat) : tactic string :=
 do s ← vampire_output (mat.to_tptp m),
    ss ← proof_line_strings s,
    ls ← monad.mapm proof_line ss,
    is ← compile m ls,
-   trace is,
    return (infs.repr is)
 
 meta def get_infs (s : string) : tactic infs :=
@@ -157,18 +153,18 @@ end
 meta def vampire : tactic unit :=
 do (dx, ix, p) ← reify,
    let m := clausify p,
-   get_infs_string m,
-   iss' ← get_infs_string' m,
-   trace iss',
-   -- is ← get_infs iss,
-   -- trace (infs.repr is),
-   -- x ← build_proof is dx ix p m,
-   -- apply x,
+   -- s1 ← get_infs_string m,
+   s1 ← get_infs_string' m,
+   is ← get_infs s1,
+   x ← build_proof is dx ix p m,
+   apply x,
    skip
 
-example (A B C : Prop) : ¬ A → A → C := by vampire
+lemma foo (A B C : Prop) : ¬ A → A → C := by vampire
 
-example (β : Type) [inhabited β] (p : β → Prop) (a : β) :
+#exit
+
+lemma bar (β : Type) [inhabited β] (p : β → Prop) (a : β) :
   (p a) → ∃ x, p x := by vampire
 
 end vampire

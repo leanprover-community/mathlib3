@@ -176,13 +176,16 @@ meta def compile_cnts (d : cla) :
      (ifs2, c'') ← compile_cnts k ks' c',
      return ((inf.n i :: inf.t :: (ifs1 ++ ifs2)), c'')
 
+     #check mappings.compose
+
 meta def compile_map (c d : cla) : tactic (infs × cla) :=
 do let δ  := disjoiner d c,
    let cδ := c.subst δ,
    (μ, ks) ← compute_map d cδ [] [] d.length,
    let cδμ := cδ.subst μ,
    (ifs, c') ← compile_cnts d d.length ks cδμ,
-   return (δ.to_infs ++ inf.s :: (μ.to_infs ++ inf.s :: ifs), c')
+   let ν := mappings.compose μ δ,
+   return (ν.to_infs ++ inf.s :: ifs, c')
 
 meta def compile_res (d : cla) :
   list ((infs × cla) × (infs × cla)) → tactic (infs × cla)
@@ -194,7 +197,7 @@ meta def compile_res (d : cla) :
        (μ, ν) ← unifiers (disjoiner tcl tcr) tl tr,
        let isl' : infs := isl ++ μ.to_infs ++ [inf.s],
        let isr' : infs := isr ++ ν.to_infs ++ [inf.s],
-       let t    : term := tl.subst μ,
+       --let t    : term := tl.subst μ,
        let clμ  : cla  := cl.subst μ,
        let crν  : cla  := cr.subst ν,
        let c    : cla  := clμ ++ crν,
@@ -205,9 +208,9 @@ meta def compile_res (d : cla) :
 meta def compile_core : list line →
   mat → nat → cla → rule → tactic (infs × cla)
 | ls m k d rule.inp :=
-  let c := m.nth (k - 1) in
+  let c := m.nth k in
   do (is, c') ← compile_map c d,
-     return (inf.n (k - 1) :: inf.h :: is, c')
+     return (inf.n k :: inf.h :: is, c')
 | ls m k d (rule.map n) :=
   do ⟨k', d', r⟩ ← find_line n ls,
      (is1, c) ← compile_core ls m k' d' r,

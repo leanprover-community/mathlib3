@@ -109,6 +109,7 @@ def term.subst (μ : mappings) : term → term
   | (sum.inr s) := t.subst & s
   end
 
+#check term
 def mappings.compose (μ : mappings) : mappings → mappings
 | []                    := μ
 | ((k, sum.inr t) :: ν) := (k, sum.inr (t.subst μ)) :: mappings.compose ν

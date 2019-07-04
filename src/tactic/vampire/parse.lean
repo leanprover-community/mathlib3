@@ -114,10 +114,10 @@ def ws : parser unit := many' (ch ' ')
 
 def rule : parser rule :=
 ( do (str "factoring" <|> str "duplicate literal removal") <* ws,
-     k ← nat, pure (rule.map k) ) <|>
+     (k + 1) ← nat, pure (rule.map k) ) <|>
 ( do (str "resolution" <|> str "subsumption resolution") <* ws,
-     k ← (nat <* ch ','),
-     m ← nat,
+     (k + 1) ← (nat <* ch ','),
+     (m + 1) ← nat,
      pure (rule.res k m) ) <|>
 ( do str "input", pure rule.inp )
 
@@ -154,7 +154,7 @@ ws *>
        pure ([], r) ) )
 
 meta def proof_line : parser line :=
-do n ← nat, ch '.',
+do (nat.succ n) ← nat, ch '.',
    (c, r) ← line_core,
    return ⟨n, c, r⟩
 

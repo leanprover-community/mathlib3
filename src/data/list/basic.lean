@@ -976,6 +976,16 @@ theorem nth_update_nth_ne (a : α) {m n} (l : list α) (h : m ≠ n) :
   nth (update_nth l m a) n = nth l n :=
 by simp only [update_nth_eq_modify_nth, nth_modify_nth_ne _ _ h]
 
+lemma mem_or_eq_of_mem_update_nth : ∀ {l : list α} {n : ℕ} {a b : α}
+  (h : a ∈ l.update_nth n b), a ∈ l ∨ a = b
+| []     n     a b h := false.elim h
+| (c::l) 0     a b h := ((mem_cons_iff _ _ _).1 h).elim
+  or.inr (or.inl ∘ mem_cons_of_mem _)
+| (c::l) (n+1) a b h := ((mem_cons_iff _ _ _).1 h).elim
+  (λ h, h ▸ or.inl (mem_cons_self _ _))
+  (λ h, (mem_or_eq_of_mem_update_nth h).elim
+    (or.inl ∘ mem_cons_of_mem _) or.inr)
+
 section insert_nth
 variable {a : α}
 
@@ -4016,6 +4026,31 @@ by rw [sublists'_eq_sublists, nodup_map_iff reverse_injective,
 lemma nodup_sublists_len {α : Type*} (n) {l : list α}
   (nd : nodup l) : (sublists_len n l).nodup :=
 nodup_of_sublist (sublists_len_sublist_sublists' _ _) (nodup_sublists'.2 nd)
+
+lemma diff_eq_filter_of_nodup [decidable_eq α] :
+  ∀ {l₁ l₂ : list α} (hl₁ : l₁.nodup), l₁.diff l₂ = l₁.filter (∉ l₂)
+| l₁ []      hl₁ := by simp
+| l₁ (a::l₂) hl₁ :=
+begin
+  rw [diff_cons, diff_eq_filter_of_nodup (nodup_erase_of_nodup _ hl₁),
+    nodup_erase_eq_filter _ hl₁, filter_filter],
+  simp only [mem_cons_iff, not_or_distrib, and.comm],
+  congr
+end
+
+lemma mem_diff_iff_of_nodup [decidable_eq α] {l₁ l₂ : list α} (hl₁ : l₁.nodup) {a : α} :
+  a ∈ l₁.diff l₂ ↔ a ∈ l₁ ∧ a ∉ l₂ :=
+by rw [diff_eq_filter_of_nodup hl₁, mem_filter]
+
+lemma nodup_update_nth : ∀ {l : list α} {n : ℕ} {a : α} (hl : l.nodup) (ha : a ∉ l),
+  (l.update_nth n a).nodup
+| []     n     a hl ha := nodup_nil
+| (b::l) 0     a hl ha := nodup_cons.2 ⟨mt (mem_cons_of_mem _) ha, (nodup_cons.1 hl).2⟩
+| (b::l) (n+1) a hl ha := nodup_cons.2
+  ⟨λ h, (mem_or_eq_of_mem_update_nth h).elim
+      (nodup_cons.1 hl).1
+      (λ hba, ha (hba ▸ mem_cons_self _ _)),
+    nodup_update_nth (nodup_cons.1 hl).2 (mt (mem_cons_of_mem _) ha)⟩
 
 end nodup
 

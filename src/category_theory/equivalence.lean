@@ -48,11 +48,11 @@ lemma counit_def (e : C ≌ D) : e.counit_iso.hom = e.counit := rfl
 lemma unit_inv_def (e : C ≌ D) : e.unit_iso.inv = e.unit_inv := rfl
 lemma counit_inv_def (e : C ≌ D) : e.counit_iso.inv = e.counit_inv := rfl
 
-lemma functor_unit_comp (e : C ≌ D) (X : C) : e.functor.map (e.unit.app X) ≫
+@[simp] lemma functor_unit_comp (e : C ≌ D) (X : C) : e.functor.map (e.unit.app X) ≫
   e.counit.app (e.functor.obj X) = 𝟙 (e.functor.obj X) :=
 e.functor_unit_iso_comp X
 
-lemma counit_inv_functor_comp (e : C ≌ D) (X : C) :
+@[simp] lemma counit_inv_functor_comp (e : C ≌ D) (X : C) :
   e.counit_inv.app (e.functor.obj X) ≫ e.functor.map (e.unit_inv.app X) = 𝟙 (e.functor.obj X) :=
 begin
   erw [iso.inv_eq_inv
@@ -70,7 +70,7 @@ by { erw [←iso.hom_comp_eq_id (e.functor.map_iso (e.unit_iso.app X)), functor_
 
 /-- The other triangle equality. The proof follows the following proof in Globular:
   http://globular.science/1905.001 -/
-lemma unit_inverse_comp (e : C ≌ D) (Y : D) :
+@[simp] lemma unit_inverse_comp (e : C ≌ D) (Y : D) :
   e.unit.app (e.inverse.obj Y) ≫ e.inverse.map (e.counit.app Y) = 𝟙 (e.inverse.obj Y) :=
 begin
   rw [←id_comp _ (e.inverse.map _), ←map_id e.inverse, ←counit_inv_functor_comp, map_comp,
@@ -91,7 +91,7 @@ begin
     (e.counit_iso.app _).hom_inv_id, map_id] }, erw [id_comp, (e.unit_iso.app _).hom_inv_id], refl
 end
 
-lemma inverse_counit_inv_comp (e : C ≌ D) (Y : D) :
+@[simp] lemma inverse_counit_inv_comp (e : C ≌ D) (Y : D) :
   e.inverse.map (e.counit_inv.app Y) ≫ e.unit_inv.app (e.inverse.obj Y) = 𝟙 (e.inverse.obj Y) :=
 begin
   erw [iso.inv_eq_inv
@@ -266,11 +266,11 @@ end
 
 -- We should probably restate many of the lemmas about `equivalence` for `is_equivalence`,
 -- but these are the only ones I need for now.
-lemma functor_unit_comp (E : C ⥤ D) [is_equivalence E] (Y) :
+@[simp] lemma functor_unit_comp (E : C ⥤ D) [is_equivalence E] (Y) :
   E.map (((is_equivalence.unit_iso E).hom).app Y) ≫ ((is_equivalence.counit_iso E).hom).app (E.obj Y) = 𝟙 _ :=
 equivalence.functor_unit_comp (E.as_equivalence) Y
 
-lemma counit_inv_functor_comp (E : C ⥤ D) [is_equivalence E] (Y) :
+@[simp] lemma counit_inv_functor_comp (E : C ⥤ D) [is_equivalence E] (Y) :
   ((is_equivalence.counit_iso E).inv).app (E.obj Y) ≫ E.map (((is_equivalence.unit_iso E).inv).app Y) = 𝟙 _ :=
 eq_of_inv_eq_inv (functor_unit_comp _ _)
 

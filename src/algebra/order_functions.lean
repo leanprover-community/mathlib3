@@ -239,6 +239,7 @@ max_distrib_of_monotone (monotone_mul_of_nonneg ha)
 
 lemma mul_min_of_nonneg (b c : α) (ha : 0 ≤ a) : a * min b c = min (a * b) (a * c) :=
 min_distrib_of_monotone (monotone_mul_of_nonneg ha)
+
 end decidable_linear_ordered_semiring
 
 section decidable_linear_ordered_comm_ring

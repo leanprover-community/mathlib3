@@ -1839,6 +1839,12 @@ by rw [← filter_map_eq_map, filter_filter_map, filter_map_filter]; refl
 | (a :: l) := by by_cases hp : p a; by_cases hq : q a; simp only [hp, hq, filter, if_true, if_false,
     true_and, false_and, filter_filter l, eq_self_iff_true]
 
+@[simp] lemma filter_true {h : decidable_pred (λ a : α, true)} (l : list α) : @filter α (λ _, true) h l = l :=
+by convert filter_eq_self.2 (λ _ _, trivial)
+
+@[simp] lemma filter_false {h : decidable_pred (λ a : α, false)} (l : list α) : @filter α (λ _, false) h l = [] :=
+by convert filter_eq_nil.2 (λ _ _, id)
+
 @[simp] theorem span_eq_take_drop (p : α → Prop) [decidable_pred p] : ∀ (l : list α), span p l = (take_while p l, drop_while p l)
 | []     := rfl
 | (a::l) := if pa : p a then by simp only [span, if_pos pa, span_eq_take_drop l, take_while, drop_while]
@@ -4197,6 +4203,18 @@ theorem reverse_range' : ∀ s n : ℕ,
     nil_append, eq_self_iff_true, true_and, map_map]
   using reverse_range' s n
 
+def fin_range (n : ℕ) : list (fin n) :=
+(range n).pmap fin.mk (λ _, list.mem_range.1)
+
+@[simp] lemma mem_fin_range {n : ℕ} (a : fin n) : a ∈ fin_range n :=
+mem_pmap.2 ⟨a.1, mem_range.2 a.2, fin.eta _ _⟩
+
+lemma nodup_fin_range (n : ℕ) : (fin_range n).nodup :=
+nodup_pmap (λ _ _ _ _, fin.veq_of_eq) (nodup_range _)
+
+@[simp] lemma length_fin_range (n : ℕ) : (fin_range n).length = n :=
+by rw [fin_range, length_pmap, length_range]
+
 /--
 `Ico n m` is the list of natural numbers `n ≤ x < m`.
 (Ico stands for "interval, closed-open".)
@@ -4244,7 +4262,7 @@ by simp [Ico, nat.sub_eq_zero_of_le h]
 theorem map_add (n m k : ℕ) : (Ico n m).map ((+) k) = Ico (n + k) (m + k) :=
 by rw [Ico, Ico, map_add_range', nat.add_sub_add_right, add_comm n k]
 
-theorem map_sub (n m k : ℕ) (h₁ : k ≤ n): (Ico n m).map (λ x, x - k) = Ico (n - k) (m - k) :=
+theorem map_sub (n m k : ℕ) (h₁ : k ≤ n) : (Ico n m).map (λ x, x - k) = Ico (n - k) (m - k) :=
 begin
   by_cases h₂ : n < m,
   { rw [Ico, Ico],

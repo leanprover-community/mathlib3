@@ -141,6 +141,9 @@ theorem subset_empty {s : finset α} : s ⊆ ∅ ↔ s = ∅ := subset_zero.tran
 theorem exists_mem_of_ne_empty {s : finset α} (h : s ≠ ∅) : ∃ a : α, a ∈ s :=
 exists_mem_of_ne_zero (mt val_eq_zero.1 h)
 
+theorem exists_mem_iff_ne_empty {s : finset α} : (∃ a : α, a ∈ s) ↔ ¬s = ∅ :=
+⟨λ ⟨a, ha⟩, ne_empty_of_mem ha, exists_mem_of_ne_empty⟩
+
 @[simp] lemma coe_empty : ↑(∅ : finset α) = (∅ : set α) := rfl
 
 lemma nonempty_iff_ne_empty (s : finset α) : nonempty (↑s : set α) ↔ s ≠ ∅  :=
@@ -1800,7 +1803,7 @@ namespace Ico
 theorem image_add (n m k : ℕ) : (Ico n m).image ((+) k) = Ico (n + k) (m + k) :=
 by simp [image, multiset.Ico.map_add]
 
-theorem image_sub (n m k : ℕ) (h : k ≤ n): (Ico n m).image (λ x, x - k) = Ico (n - k) (m - k) :=
+theorem image_sub (n m k : ℕ) (h : k ≤ n) : (Ico n m).image (λ x, x - k) = Ico (n - k) (m - k) :=
 begin
   dsimp [image],
   rw [multiset.Ico.map_sub _ _ _ h, ←multiset.to_finset_eq],

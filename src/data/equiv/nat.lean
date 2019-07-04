@@ -6,7 +6,7 @@ Author: Mario Carneiro
 Additional facts about equiv and encodable using the
 pairing function on nat.
 -/
-import data.equiv.basic data.nat.pairing
+import data.equiv.basic data.nat.pairing data.pnat.basic
 
 open nat
 
@@ -33,5 +33,10 @@ def prod_equiv_of_equiv_nat {α : Sort*} (e : α ≃ ℕ) : (α × α) ≃ α :=
 calc (α × α) ≃ (ℕ × ℕ) : prod_congr e e
         ...  ≃ ℕ       : nat_prod_nat_equiv_nat
         ...  ≃ α       : e.symm
+
+def pnat_equiv_nat : ℕ+ ≃ ℕ :=
+⟨λ n, pred n.1, succ_pnat,
+  λ ⟨n, h⟩, by { cases n, cases h, simp [succ_pnat, h] }, λ n, by simp [succ_pnat] ⟩
+
 
 end equiv

@@ -3940,6 +3940,10 @@ end
 theorem nodup_erase_of_nodup [decidable_eq α] (a : α) {l} : nodup l → nodup (l.erase a) :=
 nodup_of_sublist (erase_sublist _ _)
 
+theorem nodup_diff [decidable_eq α] : ∀ {l₁ l₂ : list α} (h : l₁.nodup), (l₁.diff l₂).nodup
+| l₁ []      h := h
+| l₁ (a::l₂) h := by rw diff_cons; exact nodup_diff (nodup_erase_of_nodup _ h)
+
 theorem mem_erase_iff_of_nodup [decidable_eq α] {a b : α} {l} (d : nodup l) :
   a ∈ l.erase b ↔ a ≠ b ∧ a ∈ l :=
 by rw nodup_erase_eq_filter b d; simp only [mem_filter, and_comm]

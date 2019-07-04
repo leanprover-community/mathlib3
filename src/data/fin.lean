@@ -304,6 +304,15 @@ begin
         exact fin.eta _ _⟩ } }
 end
 
+lemma mem_find_of_unique {p : fin n → Prop} [decidable_pred p]
+  (h : ∀ i j, p i → p j → i = j) {i : fin n} (hi : p i) : i ∈ fin.find p :=
+begin
+  cases hfp : fin.find p,
+  { rw [find_eq_none_iff] at hfp,
+    exact (hfp _ hi).elim },
+  { exact option.some_inj.2 (h _ _ (find_spec _ hfp) hi) }
+end
+
 end find
 
 end fin

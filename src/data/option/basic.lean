@@ -6,13 +6,16 @@ Authors: Mario Carneiro
 import logic.basic data.bool data.option.defs tactic.basic
 
 namespace option
-variables {α : Type*} {β : Type*}
+variables {α : Type*} {β : Type*} {γ : Type*}
 
 @[simp] theorem get_mem : ∀ {o : option α} (h : is_some o), option.get h ∈ o
 | (some a) _ := rfl
 
 theorem get_of_mem {a : α} : ∀ {o : option α} (h : is_some o), a ∈ o → option.get h = a
 | _ _ rfl := rfl
+
+@[simp] lemma not_mem_none (a : α) : a ∉ (none : option α) :=
+λ h, option.no_confusion h
 
 @[simp] lemma some_get : ∀ {x : option α} (h : is_some x), some (option.get h) = x
 | (some x) hx := rfl
@@ -59,6 +62,9 @@ by cases x; simp
 lemma bind_comm {α β γ} {f : α → β → option γ} (a : option α) (b : option β) :
   a.bind (λx, b.bind (f x)) = b.bind (λy, a.bind (λx, f x y)) :=
 by cases a; cases b; refl
+
+lemma bind_assoc (x : option α) (f : α → option β) (g : β → option γ) :
+  (x.bind f).bind g = x.bind (λ y, (f y).bind g) := by cases x; refl
 
 @[simp] theorem map_none {α β} {f : α → β} : f <$> none = none := rfl
 

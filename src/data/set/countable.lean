@@ -173,4 +173,21 @@ begin
   exact countable_range _
 end
 
+section enumerate
+
+/-- Enumerate elements in a countable set.-/
+def enumerate_countable {s : set α} (h : countable s) (default : α) : ℕ → α :=
+assume n, match @encodable.decode s (h.to_encodable) n with
+        | (some y) := y
+        | (none)   := default
+        end
+
+lemma subset_range_enumerate {s : set α} (h : countable s) (default : α) :
+   s ⊆ range (enumerate_countable h default) :=
+assume x hx,
+⟨@encodable.encode s h.to_encodable ⟨x, hx⟩,
+by simp [enumerate_countable, encodable.encodek]⟩
+
+end enumerate
+
 end set

@@ -61,7 +61,7 @@ lemma prod_image [decidable_eq α] {s : finset γ} {g : γ → α} :
 fold_image
 
 @[simp, to_additive sum_map]
-lemma prod_map (s : finset α) (e : α ↪ γ) (f : γ → β):
+lemma prod_map (s : finset α) (e : α ↪ γ) (f : γ → β) :
   (s.map e).prod f = s.prod (λa, f (e a)) :=
 by rw [finset.prod, finset.map_val, multiset.map_map]; refl
 
@@ -356,7 +356,7 @@ lemma sum_nat_cast [add_comm_monoid β] [has_one β] (s : finset α) (f : α →
 
 lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_comm_monoid β]
   (f : α → β) (h_zero : f 0 = 0) (h_add : ∀x y, f (x + y) ≤ f x + f y) (s : finset γ) (g : γ → α) :
-  f (s.sum g) ≤ s.sum (λc, f (g c)):=
+  f (s.sum g) ≤ s.sum (λc, f (g c)) :=
 begin
   refine le_trans (multiset.le_sum_of_subadditive f h_zero h_add _) _,
   rw [multiset.map_map],

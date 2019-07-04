@@ -224,7 +224,7 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
   split,
   -- `F` is finite
   { apply @finite_of_finite_image _ _ F (λf, f.val),
-    { simp [subtype.val_injective] },
+    { apply set.inj_on_of_injective, simp [subtype.val_injective] },
     { refine finite_subset (finite_subsets_of_finite fs) (λb, _),
       simp only [and_imp, set.mem_image, set.mem_set_of_eq, exists_imp_distrib],
       assume x hx hx',

@@ -303,6 +303,10 @@ begin
     exact h U U_op (ne_empty_of_mem x_in) },
 end
 
+lemma dense_of_subset_dense {s₁ s₂ : set α} (h : s₁ ⊆ s₂) (hd : closure s₁ = univ) :
+  closure s₂ = univ :=
+by { rw [← univ_subset_iff, ← hd], exact closure_mono h }
+
 /-- The frontier of a set is the set of points between the closure and interior. -/
 def frontier (s : set α) : set α := closure s \ interior s
 

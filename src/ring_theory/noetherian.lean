@@ -5,7 +5,7 @@ Authors: Mario Carneiro, Kevin Buzzard
 -/
 
 import data.equiv.algebra
-import linear_algebra.linear_combination
+import linear_algebra.finsupp
 import ring_theory.ideal_operations
 import ring_theory.subring
 
@@ -88,7 +88,7 @@ finitely generated then so is M. -/
 theorem fg_of_fg_map_of_fg_inf_ker {s : submodule α β}
   (hs1 : (s.map f).fg) (hs2 : (s ⊓ f.ker).fg) : s.fg :=
 begin
-  haveI := classical.dec_eq β, haveI := classical.dec_eq γ,
+  haveI := classical.dec_eq α, haveI := classical.dec_eq β, haveI := classical.dec_eq γ,
   cases hs1 with t1 ht1, cases hs2 with t2 ht2,
   have : ∀ y ∈ t1, ∃ x ∈ s, f x = y,
   { intros y hy,
@@ -112,24 +112,27 @@ begin
       exact this.1 } },
   intros x hx,
   have : f x ∈ map f s, { rw mem_map, exact ⟨x, hx, rfl⟩ },
-  rw [← ht1, mem_span_iff_lc] at this,
+  rw [← ht1,← set.image_id ↑t1, finsupp.mem_span_iff_total] at this,
   rcases this with ⟨l, hl1, hl2⟩,
-  refine mem_sup.2 ⟨lc.total α β ((lc.map α g : lc α γ → lc α β) l), _,
-    x - lc.total α β ((lc.map α g : lc α γ → lc α β) l), _, add_sub_cancel'_right _ _⟩,
-  { rw mem_span_iff_lc, refine ⟨_, _, rfl⟩,
-    rw [← lc.map_supported g, mem_map],
-    exact ⟨_, hl1, rfl⟩ },
+  refine mem_sup.2 ⟨(finsupp.total β β α id).to_fun ((finsupp.lmap_domain α α g : (γ →₀ α) → β →₀ α) l), _,
+    x - finsupp.total β β α id ((finsupp.lmap_domain α α g : (γ →₀ α) → β →₀ α) l), _, add_sub_cancel'_right _ _⟩,
+  { rw [← set.image_id (g '' ↑t1), finsupp.mem_span_iff_total], refine ⟨_, _, rfl⟩,
+    haveI : inhabited γ := ⟨0⟩,
+    rw [← finsupp.lmap_domain_supported _ _ g, mem_map],
+    refine ⟨l, hl1, _⟩,
+    refl, },
   rw [ht2, mem_inf], split,
   { apply s.sub_mem hx,
-    rw [lc.total_apply, lc.map_apply, finsupp.sum_map_domain_index],
+    rw [finsupp.total_apply, finsupp.lmap_domain_apply, finsupp.sum_map_domain_index],
     refine s.sum_mem _,
     { intros y hy, exact s.smul_mem _ (hg y (hl1 hy)).1 },
     { exact zero_smul _ }, { exact λ _ _ _, add_smul _ _ _ } },
   { rw [linear_map.mem_ker, f.map_sub, ← hl2],
-    rw [lc.total_apply, lc.total_apply, lc.map_apply],
+    rw [finsupp.total_apply, finsupp.total_apply, finsupp.lmap_domain_apply],
     rw [finsupp.sum_map_domain_index, finsupp.sum, finsupp.sum, f.map_sum],
     rw sub_eq_zero,
     refine finset.sum_congr rfl (λ y hy, _),
+    unfold id,
     rw [f.map_smul, (hg y (hl1 hy)).2],
     { exact zero_smul _ }, { exact λ _ _ _, add_smul _ _ _ } }
 end
@@ -323,6 +326,7 @@ theorem is_noetherian_of_fg_of_noetherian {R M} [ring R] [add_comm_group M] [mod
 let ⟨s, hs⟩ := hN in
 begin
   haveI := classical.dec_eq M,
+  haveI := classical.dec_eq R,
   letI : is_noetherian R R := by apply_instance,
   have : ∀ x ∈ s, x ∈ N, from λ x hx, hs ▸ submodule.subset_span hx,
   refine @@is_noetherian_of_surjective ((↑s : set M) → R) _ _ _ (pi.module _)
@@ -338,12 +342,12 @@ begin
       exact finset.sum_hom _ } },
   rw linear_map.range_eq_top,
   rintro ⟨n, hn⟩, change n ∈ N at hn,
-  rw [← hs, mem_span_iff_lc] at hn,
+  rw [← hs, ← set.image_id ↑s, finsupp.mem_span_iff_total] at hn,
   rcases hn with ⟨l, hl1, hl2⟩,
   refine ⟨λ x, l x.1, subtype.eq _⟩,
   change s.attach.sum (λ i, l i.1 • i.1) = n,
   rw [@finset.sum_attach M M s _ (λ i, l i • i), ← hl2,
-      lc.total_apply, finsupp.sum, eq_comm],
+      finsupp.total_apply, finsupp.sum, eq_comm],
   refine finset.sum_subset hl1 (λ x _ hx, _),
   rw [finsupp.not_mem_support_iff.1 hx, zero_smul]
 end

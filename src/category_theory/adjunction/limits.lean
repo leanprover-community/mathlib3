@@ -122,9 +122,11 @@ def is_limit_map_cone (E : D ⥤ C) [is_equivalence E]
 begin
   have P : preserves_limits E := adjunction.right_adjoint_preserves_limits E.inv.adjunction,
   have P' := P.preserves_limits_of_shape,
-  have P'' := P'.preserves_limit,
-  have P''' := P''.preserves,
-  exact P''' h,
+  have P'' := (P' J).preserves_limit,
+  have P''' := (P'' K).preserves,
+  resetI,
+
+  exact P''' c h,
 end
 
 instance has_limit_comp_equivalence (E : D ⥤ C) [is_equivalence E] [has_limit K] :

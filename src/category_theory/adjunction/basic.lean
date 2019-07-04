@@ -29,6 +29,14 @@ structure adjunction (F : C ⥤ D) (G : D ⥤ C) :=
 
 infix ` ⊣ `:15 := adjunction
 
+class is_left_adjoint (left : C ⥤ D) :=
+(right : D ⥤ C)
+(adj : left ⊣ right)
+
+class is_right_adjoint (right : D ⥤ C) :=
+(left : C ⥤ D)
+(adj : left ⊣ right)
+
 namespace adjunction
 
 restate_axiom hom_equiv_unit'
@@ -206,14 +214,6 @@ def comp (adj₁ : F ⊣ G) (adj₂ : H ⊣ I) : F ⋙ H ⊣ I ⋙ G :=
     (whisker_left I $ whisker_right adj₁.counit H) ≫ adj₂.counit }
 
 end
-
-structure is_left_adjoint (left : C ⥤ D) :=
-(right : D ⥤ C)
-(adj : left ⊣ right)
-
-structure is_right_adjoint (right : D ⥤ C) :=
-(left : C ⥤ D)
-(adj : left ⊣ right)
 
 section construct_left
 -- Construction of a left adjoint. In order to construct a left

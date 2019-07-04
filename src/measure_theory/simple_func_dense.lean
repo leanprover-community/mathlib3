@@ -172,7 +172,7 @@ end,
 ( assume fx_eq_0 : f x = 0,
   have x_not_mem_A' : ∀ {M k}, x ∉ A' M k := λ M k,
   begin
-    simp only [mem_preimage_eq, fx_eq_0, metric.mem_ball, one_div_eq_inv, norm_zero,
+    simp only [mem_preimage, fx_eq_0, metric.mem_ball, one_div_eq_inv, norm_zero,
                not_and, not_lt, add_comm, not_le, dist_zero_right, mem_diff],
     assume h, rw add_comm, exact inv_pos_of_nat
   end,
@@ -190,7 +190,7 @@ end,
     let ⟨k, hk⟩ := mem_closure_range_iff_nat.1 (by { rw E_dense, exact mem_univ (f x) }) N₀ in
     begin
       rw [Union_disjointed, mem_Union], use k,
-      rw [mem_preimage_eq], simp, rw [← one_div_eq_inv, add_comm],
+      rw [mem_preimage], simp, rw [← one_div_eq_inv, add_comm],
       exact ⟨hk , le_of_lt norm_fx_gt⟩
     end,
   let ⟨k₀, x_mem_A⟩ := mem_Union.1 x_mem_Union_k_N₀ in
@@ -211,7 +211,7 @@ end,
     ... < 1 / ((M N x : ℝ) + 1) :
     begin
       have := x_mem_A' (x_mem_Union_Union hN),
-      rw [mem_preimage_eq, mem_diff, metric.mem_ball, dist_comm] at this, exact this.1
+      rw [mem_preimage, mem_diff, metric.mem_ball, dist_comm] at this, exact this.1
     end
     ... ≤ 1 / ((N₀ : ℝ) + 1)  :
     @one_div_le_one_div_of_le _ _  ((N₀ : ℝ) + 1) ((M N x : ℝ) + 1) (nat.cast_add_one_pos N₀)

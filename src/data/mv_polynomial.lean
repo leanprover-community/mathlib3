@@ -30,7 +30,7 @@ instance : has_zero (mv_polynomial σ α) := finsupp.has_zero
 instance : has_one (mv_polynomial σ α) := finsupp.has_one
 instance : has_add (mv_polynomial σ α) := finsupp.has_add
 instance : has_mul (mv_polynomial σ α) := finsupp.has_mul
-instance : comm_semiring (mv_polynomial σ α) := finsupp.to_comm_semiring
+instance : comm_semiring (mv_polynomial σ α) := finsupp.comm_semiring
 
 /-- `monomial s a` is the monomial `a * X^s` -/
 def monomial (s : σ →₀ ℕ) (a : α) : mv_polynomial σ α := single s a
@@ -195,7 +195,7 @@ begin
   rw finset.sum_eq_single m,
   { rw if_pos rfl, refl },
   { intros m' hm' H, apply if_neg, intro h, apply H, ext j,
-    let c : σ →₀ ℕ → (σ → ℕ) := λ f, f, replace h := congr_arg c h, simpa [c] using congr_fun h j },
+    let c : (σ →₀ ℕ) → (σ → ℕ) := λ f, f, replace h := congr_arg c h, simpa [c] using congr_fun h j },
   { intros hm, rw if_pos rfl, rw not_mem_support_iff at hm, simp [hm] }
 end
 
@@ -644,10 +644,10 @@ section comm_ring
 variable [comm_ring α]
 variables {p q : mv_polynomial σ α}
 
-instance : ring (mv_polynomial σ α) := finsupp.to_ring
-instance : comm_ring (mv_polynomial σ α) := finsupp.to_comm_ring
-instance : has_scalar α (mv_polynomial σ α) := finsupp.to_has_scalar
-instance : module α (mv_polynomial σ α) := finsupp.to_module _ α
+instance : ring (mv_polynomial σ α) := finsupp.ring
+instance : comm_ring (mv_polynomial σ α) := finsupp.comm_ring
+instance : has_scalar α (mv_polynomial σ α) := finsupp.has_scalar
+instance : module α (mv_polynomial σ α) := finsupp.module _ α
 
 instance C.is_ring_hom : is_ring_hom (C : α → mv_polynomial σ α) :=
 by apply is_ring_hom.of_semiring

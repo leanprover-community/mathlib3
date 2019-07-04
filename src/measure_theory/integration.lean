@@ -137,7 +137,7 @@ by unfold_coes; simp [restrict, hs]; apply ite_apply hs
 theorem restrict_preimage [has_zero β]
   (f : α →ₛ β) {s : set α} (hs : is_measurable s)
   {t : set β} (ht : (0:β) ∉ t) : restrict f s ⁻¹' t = s ∩ f ⁻¹' t :=
-by ext a; dsimp; rw [restrict_apply]; by_cases a ∈ s; simp [h, hs, ht]
+by ext a; dsimp [preimage]; rw [restrict_apply]; by_cases a ∈ s; simp [h, hs, ht]
 
 def map (g : β → γ) (f : α →ₛ β) : α →ₛ γ := bind f (const α ∘ g)
 

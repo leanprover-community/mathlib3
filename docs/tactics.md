@@ -979,5 +979,27 @@ example (a b c d e f g N : ℕ) : (a + b) + (c + d) + (e + f) + g ≤ N :=
 begin
   ac_change a + d + e + f + c + g + b ≤ _,
 -- ⊢ a + d + e + f + c + g + b ≤ N
+```
+
+### apply_fun
+
+Apply a function to some local assumptions which are either equalities
+or inequalities. For instance, if the context contains `h : a = b` and
+some function `f` then `apply_fun f at h` turns `h` into
+`h : f a = f b`. When the assumption is an inequality `h : a ≤ b`, a side
+goal `monotone f` is created, unless this condition is provided using
+`apply_fun f at h using P` where `P : monotone f`, or the `mono` tactic
+can prove it.
+
+Typical usage is:
+```lean
+open function
+
+example (X Y Z : Type) (f : X → Y) (g : Y → Z) (H : injective $ g ∘ f) :
+  injective f :=
+begin
+  intros x x' h,
+  apply_fun g at h,
+  exact H h
 end
 ```

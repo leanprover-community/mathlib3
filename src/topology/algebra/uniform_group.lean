@@ -233,7 +233,7 @@ variables [topological_space α] [add_comm_group α] [topological_add_group α]
 variables [topological_space β] [add_comm_group β] [topological_add_group β]
 variables {e : β → α} [is_add_group_hom e] (de : dense_embedding e)
 variables {G : Type*}
-variables [uniform_space G] [add_comm_group G] [uniform_add_group G] [t2_space G] [complete_space G]
+variables [topological_space G] [add_comm_group G] [topological_add_group G] [t2_space G] [complete_space G]
 
 include de
 

@@ -141,8 +141,6 @@ lemma tendsto_mul_mul {f₁ g₁ : filter α} {f₂ g₂ : filter β} :
   tendsto m f₁ f₂ → tendsto m g₁ g₂ → tendsto m (f₁ * g₁) (f₂ * g₂) :=
 assume hf hg, by { rw [tendsto, ← map_mul_map m], exact mul_le_mul hf hg }
 
-variables (m)
-
 end map
 
 end filter

@@ -483,7 +483,7 @@ calc
             intros x hx y hy hxy,
             apply set.inj_on_of_bij_on hf,
             repeat { try { rw mem_preimage at hx hy,
-                          rw [set.mem_preimage_eq, mem_coe] },
+                          rw [set.mem_preimage, mem_coe] },
                     assumption },
           end
   ... = s.prod g : by rw image_preimage

@@ -383,7 +383,7 @@ eq_univ_of_forall $ λ x, begin
   intros U U_op x_in_U,
   let V := quotient.mk ⁻¹' U,
   cases quotient.exists_rep x with y y_x,
-  have y_in_V : y ∈ V, by simp only [mem_preimage, y_x, x_in_U],
+  have y_in_V : y ∈ V, by simp only [mem_preimage_eq, y_x, x_in_U],
   have V_op : is_open V := U_op,
   have : V ∩ s ≠ ∅ := mem_closure_iff.1 (H y) V V_op y_in_V,
   rcases exists_mem_of_ne_empty this with ⟨w, w_in_V, w_in_range⟩,

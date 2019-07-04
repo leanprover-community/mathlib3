@@ -199,7 +199,7 @@ set.ext $ assume ⟨a, b⟩, quotient.induction_on₂ a b $ assume a b,
       have s ∈ (𝓤 $ quotient $ separation_setoid α).comap (λp:(α×α), (⟦p.1⟧, ⟦p.2⟧)),
         from comap_quotient_le_uniformity hs,
       let ⟨t, ht, hts⟩ := this in
-      hts begin dsimp [preimage], exact h t ht end,
+      hts begin dsimp, exact h t ht end,
     show ⟦a⟧ = ⟦b⟧, from quotient.sound this,
 
   assume heq : ⟦a⟧ = ⟦b⟧, assume h hs,

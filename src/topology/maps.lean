@@ -73,7 +73,7 @@ hf.continuous_iff.mp continuous_id
 
 lemma embedding.closure_eq_preimage_closure_image {e : α → β} (he : embedding e) (s : set α) :
   closure s = e ⁻¹' closure (e '' s) :=
-by ext x; rw [set.mem_preimage, ← closure_induced he.1, he.2]
+by ext x; rw [set.mem_preimage_eq, ← closure_induced he.1, he.2]
 
 end embedding
 

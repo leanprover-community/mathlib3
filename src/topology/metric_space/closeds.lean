@@ -148,7 +148,7 @@ begin
     -- First, we check it belongs to `t0`.
     have : y ∈ t0 := mem_Inter.2 (λk, mem_closure_of_tendsto (by simp) y_lim
     begin
-      simp only [exists_prop, set.mem_Union, filter.mem_at_top_sets, set.mem_preimage, set.preimage_Union],
+      simp only [exists_prop, set.mem_Union, filter.mem_at_top_sets, set.mem_preimage_eq, set.preimage_Union],
       exact ⟨max n k, λm hm, ⟨m, ⟨le_trans (le_max_right _ _) hm, z_in_s m (le_trans (le_max_left _ _) hm)⟩⟩⟩,
     end),
     -- Then, we check that `y` is close to `x = z n`. This follows from the fact that `y`

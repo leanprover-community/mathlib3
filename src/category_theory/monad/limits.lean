@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.monad.adjunction
-import category_theory.limits.limits
+import category_theory.adjunction.limits
 
 namespace category_theory
 open category
@@ -109,7 +109,7 @@ instance comp_comparison_has_limit (F : J ⥤ D) (R : D ⥤ C) [monadic R] [has_
 monad.forget_creates_limits (F ⋙ monad.comparison (is_right_adjoint.adj R))
 
 def monadic_creates_limits (F : J ⥤ D) (R : D ⥤ C) [monadic R] [has_limit.{v₁} (F ⋙ R)] : has_limit F :=
-adjunction.has_limit_of_comp_equivalence (monad.comparison (is_right_adjoint.adj R))
+adjunction.has_limit_of_comp_equivalence _ (monad.comparison (is_right_adjoint.adj R))
 
 omit 𝒥
 

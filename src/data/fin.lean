@@ -28,6 +28,10 @@ iff.intro (congr_arg _) fin.eq_of_veq
 lemma eq_iff_veq (a b : fin n) : a = b ↔ a.1 = b.1 :=
 ⟨veq_of_eq, eq_of_veq⟩
 
+@[simp] protected lemma mk.inj_iff {n a b : ℕ} {ha : a < n} {hb : b < n} :
+  fin.mk a ha = fin.mk b hb ↔ a = b :=
+⟨fin.mk.inj, λ h, by subst h⟩
+
 instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨fin.val⟩
 
 @[simp] def mk_val {m n : ℕ} (h : m < n) : (⟨m, h⟩ : fin n).val = m := rfl

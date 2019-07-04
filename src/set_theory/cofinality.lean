@@ -401,7 +401,7 @@ begin
   { rintro x ⟨hx, hx'⟩, exact hx },
   { refine le_trans ha _, apply ge_of_eq, apply quotient.sound, constructor,
     refine equiv.trans _ (equiv.subtype_subtype_equiv_subtype _ _).symm,
-    simp only [set_coe_eq_subtype, mem_singleton_iff, mem_preimage_eq, mem_set_of_eq] },
+    simp only [set_coe_eq_subtype, mem_singleton_iff, mem_preimage, mem_set_of_eq] },
   rintro x ⟨hx, hx'⟩, exact hx'
 end
 

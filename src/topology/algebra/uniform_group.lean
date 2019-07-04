@@ -490,7 +490,7 @@ begin
       have := prod_mem_prod U'_nhd V'_nhd,
       tauto },
     { intros p h',
-      simp only [set.mem_preimage_eq, set.prod_mk_mem_set_prod_eq] at h',
+      simp only [set.mem_preimage, set.prod_mk_mem_set_prod_eq] at h',
       rcases p with ⟨⟨x, y⟩, ⟨x', y'⟩⟩,
       apply h ; tauto } }
 end

@@ -1305,6 +1305,7 @@ lemma with_bot.add_eq_one_iff : ∀ {n m : with_bot ℕ}, n + m = 1 ↔ (n = 0 �
 
 -- induction
 
+/-- Induction principle starting at a non-zero number. -/
 @[elab_as_eliminator] lemma le_induction {P : nat → Prop} {m} (h0 : P m) (h1 : ∀ n, m ≤ n → P n → P (n + 1)) :
   ∀ n, m ≤ n → P n :=
 by apply nat.less_than_or_equal.rec h0; exact h1

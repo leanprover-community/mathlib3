@@ -97,8 +97,6 @@ variables {C : Type u₁} [𝒞 : category.{v₁+1} C] {D : Type u₁} [𝒟 : c
 include 𝒞 𝒟
 variables {J : Type v₁} [𝒥 : small_category J]
 
--- instance (R : D ⥤ C) [monadic R] : is_equivalence (monad.comparison R) := monadic.eqv R
-
 include 𝒥
 
 instance comp_comparison_forget_has_limit

@@ -34,11 +34,6 @@ end adjunction
 
 namespace monad
 
--- TODO move
-instance μ_iso_of_reflective [full R] [faithful R] [is_right_adjoint R] :
-  is_iso (μ_ ((left_adjoint R) ⋙ R)) :=
-by { dsimp [adjunction.monad], apply_instance }
-
 def comparison [is_right_adjoint R] : D ⥤ algebra ((left_adjoint R) ⋙ R) :=
 let h := (is_right_adjoint.adj R) in
 { obj := λ X,
@@ -60,12 +55,15 @@ end monad
 
 class reflective (R : D ⥤ C) extends is_right_adjoint R, full R, faithful R.
 
+instance μ_iso_of_reflective [reflective R] : is_iso (μ_ ((left_adjoint R) ⋙ R)) :=
+by { dsimp [adjunction.monad], apply_instance }
+
 class monadic_right_adjoint (R : D ⥤ C) extends is_right_adjoint R :=
 (eqv : is_equivalence (monad.comparison R))
 
 attribute [instance] monadic_right_adjoint.eqv
 
--- TODO prove Beck's monadicity theorem, e.g. from Section 5.5 of Riehl
+-- PROJECT prove Beck's monadicity theorem, e.g. from Section 5.5 of Riehl
 
 namespace reflective
 

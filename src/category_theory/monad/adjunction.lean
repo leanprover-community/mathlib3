@@ -13,80 +13,76 @@ universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.c
 
 variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
-variables {L : C ⥤ D} {R : D ⥤ C}
+variables (R : D ⥤ C)
 
 namespace adjunction
 
-def monad (h : L ⊣ R) : monad.{v₁} C :=
-{ T := L ⋙ R,
-  η := h.unit,
+instance monad (R : D ⥤ C) [is_right_adjoint R] : monad.{v₁} ((left_adjoint R) ⋙ R) :=
+let L := left_adjoint R in
+let h := (is_right_adjoint.adj R) in
+{ η := h.unit,
   μ := whisker_right (whisker_left L h.counit) R,
   assoc' := λ X, by { dsimp, erw [←R.map_comp, h.counit.naturality, R.map_comp], refl },
   right_unit' := λ X, by { dsimp, rw [←R.map_comp], simp }, }
 
-@[simp] lemma monad_T_obj (h : L ⊣ R) (X) : h.monad.T.obj X = R.obj (L.obj X) := rfl
-@[simp] lemma monad_T_map (h : L ⊣ R) {X Y} (f : X ⟶ Y) : h.monad.T.map f = R.map (L.map f) := rfl
-@[simp] lemma monad_η_app (h : L ⊣ R) (X) : h.monad.η.app X = h.unit.app X := rfl
-@[simp] lemma monad_μ_app (h : L ⊣ R) (X) : h.monad.μ.app X = R.map (h.counit.app (L.obj X)) := rfl
+-- @[simp] lemma monad_T_obj (h : L ⊣ R) (X) : h.monad.T.obj X = R.obj (L.obj X) := rfl
+-- @[simp] lemma monad_T_map (h : L ⊣ R) {X Y} (f : X ⟶ Y) : h.monad.T.map f = R.map (L.map f) := rfl
+@[simp] lemma monad_η_app [is_right_adjoint R] (X) : (η_ ((left_adjoint R) ⋙ R)).app X = (is_right_adjoint.adj R).unit.app X := rfl
+@[simp] lemma monad_μ_app [is_right_adjoint R] (X) : (μ_ ((left_adjoint R) ⋙ R)).app X = R.map ((is_right_adjoint.adj R).counit.app ((left_adjoint R).obj X)) := rfl
 
 end adjunction
 
 namespace monad
 
 -- TODO move
-instance μ_iso_of_reflective [full R] [faithful R] (h : L ⊣ R) : is_iso (h.monad.μ) :=
+instance μ_iso_of_reflective [full R] [faithful R] [is_right_adjoint R] :
+  is_iso (μ_ ((left_adjoint R) ⋙ R)) :=
 by { dsimp [adjunction.monad], apply_instance }
 
-def comparison (h : L ⊣ R) : D ⥤ algebra h.monad :=
+def comparison [is_right_adjoint R] : D ⥤ algebra ((left_adjoint R) ⋙ R) :=
+let h := (is_right_adjoint.adj R) in
 { obj := λ X,
   { A := R.obj X,
     a := R.map (h.counit.app X),
     assoc' := by { dsimp, conv { to_rhs, erw [←R.map_comp, h.counit.naturality, R.map_comp], }, refl } },
   map := λ X Y f,
   { f := R.map f,
-    h' := begin dsimp, erw [←R.map_comp, h.counit.naturality, R.map_comp, functor.id_map], refl, end }}
+    h' := begin dsimp, erw [←R.map_comp, h.counit.naturality, R.map_comp, functor.id_map], refl, end } }.
 
-@[simp] lemma comparison_map_f (h : L ⊣ R) {X Y} (f : X ⟶ Y) : ((comparison h).map f).f = R.map f := rfl
-@[simp] lemma comparison_obj_a (h : L ⊣ R) (X) : ((comparison h).obj X).a = R.map (h.counit.app X) := rfl
+@[simp] lemma comparison_map_f [is_right_adjoint R] {X Y} (f : X ⟶ Y) : ((comparison R).map f).f = R.map f := rfl
+@[simp] lemma comparison_obj_a [is_right_adjoint R] (X) : ((comparison R).obj X).a = R.map ((is_right_adjoint.adj R).counit.app X) := rfl
 
-def comparison_forget (h : L ⊣ R) : comparison h ⋙ forget (h.monad) ≅ R :=
+def comparison_forget [is_right_adjoint R] : comparison R ⋙ forget ((left_adjoint R) ⋙ R) ≅ R :=
 { hom := { app := λ X, 𝟙 _, },
   inv := { app := λ X, 𝟙 _, } }
 
 end monad
 
-namespace adjunction
-
-def monadic (h : L ⊣ R) := is_equivalence (monad.comparison h)
-
--- TODO prove Beck's monadicity theorem, e.g. from Section 5.5 of Riehl
-
-end adjunction
-
 class reflective (R : D ⥤ C) extends is_right_adjoint R, full R, faithful R.
 
 class monadic (R : D ⥤ C) extends is_right_adjoint R :=
-(monadic : adj.monadic)
+(eqv : is_equivalence (monad.comparison R))
 
-def left (R : D ⥤ C) [is_right_adjoint R] : C ⥤ D :=
-is_right_adjoint.left R
-def right (L : C ⥤ D) [is_left_adjoint L] : D ⥤ C :=
-is_left_adjoint.right L
+attribute [instance] monadic.eqv
+
+-- TODO prove Beck's monadicity theorem, e.g. from Section 5.5 of Riehl
 
 namespace reflective
 
-lemma comparison_ess_surj_aux {L : C ⥤ D} {R : D ⥤ C} [full R] [faithful R] (h : L ⊣ R) (X : monad.algebra h.monad) :
-  (h.unit).app (R.obj (L.obj (X.A))) = R.map (L.map (h.unit.app X.A)) :=
+lemma comparison_ess_surj_aux [reflective R] (X : monad.algebra ((left_adjoint R) ⋙ R)) :
+  ((is_right_adjoint.adj R).unit).app (R.obj ((left_adjoint R).obj (X.A))) = R.map ((left_adjoint R).map ((is_right_adjoint.adj R).unit.app X.A)) :=
 begin
  -- both are left inverses to μ_X.
- apply (cancel_mono (h.monad.μ.app _)).1,
+ apply (cancel_mono ((μ_ ((left_adjoint R) ⋙ R)).app _)).1,
  { dsimp, erw [adjunction.right_triangle_components, ←R.map_comp], simp, },
  { apply is_iso.mono_of_iso _,
    apply nat_iso.is_iso_app_of_is_iso }
 end
 
-instance {L : C ⥤ D} {R : D ⥤ C} [full R] [faithful R] (h : L ⊣ R) (X : monad.algebra h.monad) :
-  is_iso (h.unit.app X.A) :=
+instance [reflective R] (X : monad.algebra ((left_adjoint R) ⋙ R)) :
+  is_iso ((is_right_adjoint.adj R).unit.app X.A) :=
+let L := left_adjoint R in
+let h := (is_right_adjoint.adj R) in
 { inv := X.a,
   hom_inv_id' := X.unit,
   inv_hom_id' :=
@@ -94,9 +90,12 @@ instance {L : C ⥤ D} {R : D ⥤ C} [full R] [faithful R] (h : L ⊣ R) (X : mo
     dsimp,
     erw [h.unit.naturality, comparison_ess_surj_aux,
           ←R.map_comp, ←L.map_comp, X.unit, L.map_id, R.map_id],
+    refl
   end }
 
-instance comparison_ess_surj {L : C ⥤ D} {R : D ⥤ C} [full R] [faithful R] (h : L ⊣ R) : ess_surj (monad.comparison h) :=
+instance comparison_ess_surj [reflective R]: ess_surj (monad.comparison R) :=
+let L := left_adjoint R in
+let h := (is_right_adjoint.adj R) in
 { obj_preimage := λ X, L.obj X.A,
   iso' := λ X,
   { hom :=
@@ -124,15 +123,15 @@ instance comparison_ess_surj {L : C ⥤ D} {R : D ⥤ C} [full R] [faithful R] (
     hom_inv_id' := by { ext, exact (as_iso (h.unit.app X.A)).inv_hom_id, },
     inv_hom_id' := by { ext, exact (as_iso (h.unit.app X.A)).hom_inv_id, }, } }
 
-instance comparison_full {L : C ⥤ D} {R : D ⥤ C} [full R] (h : L ⊣ R) : full (monad.comparison h) :=
+instance comparison_full [full R] [is_right_adjoint R] : full (monad.comparison R) :=
 { preimage := λ X Y f, R.preimage f.f }
-instance comparison_faithful {L : C ⥤ D} {R : D ⥤ C} [faithful R] (h : L ⊣ R) : faithful (monad.comparison h) :=
+instance comparison_faithful [faithful R] [is_right_adjoint R] : faithful (monad.comparison R) :=
 { injectivity' := λ X Y f g w, by { have w' := (congr_arg monad.algebra.hom.f w), exact R.injectivity w' } }
 
 end reflective
 
 -- Proposition 5.3.3 of Riehl
 instance monadic_of_reflective [reflective R] : monadic R :=
-{ monadic := equivalence.equivalence_of_fully_faithfully_ess_surj _ }
+{ eqv := equivalence.equivalence_of_fully_faithfully_ess_surj _ }
 
 end category_theory

@@ -10,11 +10,10 @@ open category
 
 universes v₁ u₁ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables (C : Type u₁) [𝒞 : category.{v₁} C]
+variables {C : Type u₁} [𝒞 : category.{v₁} C]
 include 𝒞
 
-structure monad :=
-(T : C ⥤ C)
+class monad (T : C ⥤ C) :=
 (η : functor.id _ ⟶ T)
 (μ : T ⋙ T ⟶ T)
 (assoc' : ∀ X : C, T.map (nat_trans.app μ X) ≫ μ.app _ = μ.app (T.obj X) ≫ μ.app _ . obviously)
@@ -25,5 +24,8 @@ restate_axiom monad.assoc'
 restate_axiom monad.left_unit'
 restate_axiom monad.right_unit'
 attribute [simp] monad.left_unit monad.right_unit
+
+notation `η_` := monad.η
+notation `μ_` := monad.μ
 
 end category_theory

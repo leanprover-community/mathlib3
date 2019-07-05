@@ -37,6 +37,11 @@ class is_right_adjoint (right : D ⥤ C) :=
 (left : C ⥤ D)
 (adj : left ⊣ right)
 
+def left_adjoint (R : D ⥤ C) [is_right_adjoint R] : C ⥤ D :=
+is_right_adjoint.left R
+def right_adjoint (L : C ⥤ D) [is_left_adjoint L] : D ⥤ C :=
+is_left_adjoint.right L
+
 namespace adjunction
 
 restate_axiom hom_equiv_unit'

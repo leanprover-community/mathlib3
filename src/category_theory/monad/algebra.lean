@@ -16,21 +16,21 @@ include 𝒞
 
 namespace monad
 
-structure algebra (T : monad.{v₁} C) : Type (max u₁ v₁) :=
+structure algebra (T : C ⥤ C) [monad.{v₁} T] : Type (max u₁ v₁) :=
 (A : C)
-(a : T.T.obj A ⟶ A)
-(unit' : T.η.app A ≫ a = 𝟙 A . obviously)
-(assoc' : (T.μ.app A ≫ a) = (T.T.map a ≫ a) . obviously)
+(a : T.obj A ⟶ A)
+(unit' : (η_ T).app A ≫ a = 𝟙 A . obviously)
+(assoc' : ((μ_ T).app A ≫ a) = (T.map a ≫ a) . obviously)
 
 restate_axiom algebra.unit'
 restate_axiom algebra.assoc'
 
 namespace algebra
-variables {T : monad.{v₁} C}
+variables {T : C ⥤ C} [monad.{v₁} T]
 
 structure hom (A B : algebra T) :=
 (f : A.A ⟶ B.A)
-(h' : T.T.map f ≫ B.a = A.a ≫ f . obviously)
+(h' : T.map f ≫ B.a = A.a ≫ f . obviously)
 
 restate_axiom hom.h'
 attribute [simp] hom.h
@@ -54,14 +54,14 @@ end hom
 instance EilenbergMoore : category (algebra T) :=
 { hom := hom,
   id := hom.id,
-  comp := @hom.comp _ _ _ }
+  comp := @hom.comp _ _ _ _ }
 
 @[simp] lemma id_f (P : algebra T) : hom.f (𝟙 P) = 𝟙 P.A := rfl
 @[simp] lemma comp_f {P Q R : algebra T} (f : P ⟶ Q) (g : Q ⟶ R) : (f ≫ g).f = f.f ≫ g.f := rfl
 
 end algebra
 
-variables (T : monad.{v₁} C)
+variables (T : C ⥤ C) [monad.{v₁} T]
 
 def forget : algebra T ⥤ C :=
 { obj := λ A, A.A,
@@ -71,38 +71,38 @@ def forget : algebra T ⥤ C :=
 
 def free : C ⥤ algebra T :=
 { obj := λ X,
-  { A := T.T.obj X,
-    a := T.μ.app X,
+  { A := T.obj X,
+    a := (μ_ T).app X,
     assoc' := (monad.assoc T _).symm },
   map := λ X Y f,
-  { f := T.T.map f,
-    h' := by erw T.μ.naturality } }
+  { f := T.map f,
+    h' := by erw (μ_ T).naturality } }
 
-@[simp] lemma free_obj_a (X) : ((free T).obj X).a = T.μ.app X := rfl
-@[simp] lemma free_map_f {X Y : C} (f : X ⟶ Y) : ((free T).map f).f = T.T.map f := rfl
+@[simp] lemma free_obj_a (X) : ((free T).obj X).a = (μ_ T).app X := rfl
+@[simp] lemma free_map_f {X Y : C} (f : X ⟶ Y) : ((free T).map f).f = T.map f := rfl
 
 def adj : free T ⊣ forget T :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y,
-  { to_fun := λ f, T.η.app X ≫ f.f,
+  { to_fun := λ f, (η_ T).app X ≫ f.f,
     inv_fun := λ f,
-    { f := T.T.map f ≫ Y.a,
+    { f := T.map f ≫ Y.a,
       h' :=
       begin
         dsimp, simp,
-        conv { to_rhs, rw [←category.assoc, ←T.μ.naturality, category.assoc], erw algebra.assoc },
+        conv { to_rhs, rw [←category.assoc, ←(μ_ T).naturality, category.assoc], erw algebra.assoc },
         refl,
       end },
     left_inv := λ f,
     begin
       ext1, dsimp,
       simp only [free_obj_a, functor.map_comp, algebra.hom.h, category.assoc],
-      erw [←category.assoc, T.right_unit, id_comp],
+      erw [←category.assoc, monad.right_unit, id_comp],
     end,
     right_inv := λ f,
     begin
       dsimp,
-      erw [←category.assoc, ←T.η.naturality, functor.id_map,
+      erw [←category.assoc, ←(η_ T).naturality, functor.id_map,
             category.assoc, Y.unit, comp_id],
     end }}
 

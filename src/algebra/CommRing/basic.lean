@@ -55,7 +55,7 @@ instance hom_is_ring_hom {R S : CommRing} (f : R ⟶ S) : is_ring_hom (f : R →
 
 variables {R S T : CommRing.{u}}
 
--- TODO rename the next two lemmas?
+-- TODO rename the next two definitions?
 def Int.cast {R : CommRing} : CommRing.of ℤ ⟶ R := { val := int.cast, property := by apply_instance }
 
 def Int.hom_unique {R : CommRing} : unique (CommRing.of ℤ ⟶ R) :=

@@ -60,10 +60,10 @@ end monad
 
 class reflective (R : D ⥤ C) extends is_right_adjoint R, full R, faithful R.
 
-class monadic (R : D ⥤ C) extends is_right_adjoint R :=
+class monadic_right_adjoint (R : D ⥤ C) extends is_right_adjoint R :=
 (eqv : is_equivalence (monad.comparison R))
 
-attribute [instance] monadic.eqv
+attribute [instance] monadic_right_adjoint.eqv
 
 -- TODO prove Beck's monadicity theorem, e.g. from Section 5.5 of Riehl
 
@@ -131,7 +131,7 @@ instance comparison_faithful [faithful R] [is_right_adjoint R] : faithful (monad
 end reflective
 
 -- Proposition 5.3.3 of Riehl
-instance monadic_of_reflective [reflective R] : monadic R :=
+instance monadic_of_reflective [reflective R] : monadic_right_adjoint R :=
 { eqv := equivalence.equivalence_of_fully_faithfully_ess_surj _ }
 
 end category_theory

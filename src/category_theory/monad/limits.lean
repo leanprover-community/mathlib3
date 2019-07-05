@@ -101,14 +101,18 @@ variables {J : Type v₁} [𝒥 : small_category J]
 
 include 𝒥
 
-instance comp_comparison_forget_has_limit (F : J ⥤ D) (R : D ⥤ C) [monadic R] [has_limit.{v₁} (F ⋙ R)] :
+instance comp_comparison_forget_has_limit
+  (F : J ⥤ D) (R : D ⥤ C) [monadic_right_adjoint R] [has_limit.{v₁} (F ⋙ R)] :
   has_limit ((F ⋙ monad.comparison R) ⋙ monad.forget ((left_adjoint R) ⋙ R)) :=
 (@has_limit_of_iso _ _ _ _ (F ⋙ R) _ _ (iso_whisker_left F (monad.comparison_forget R).symm))
 
-instance comp_comparison_has_limit (F : J ⥤ D) (R : D ⥤ C) [monadic R] [has_limit.{v₁} (F ⋙ R)] : has_limit (F ⋙ monad.comparison R) :=
+instance comp_comparison_has_limit
+  (F : J ⥤ D) (R : D ⥤ C) [monadic_right_adjoint R] [has_limit.{v₁} (F ⋙ R)] :
+  has_limit (F ⋙ monad.comparison R) :=
 monad.forget_creates_limits (F ⋙ monad.comparison R)
 
-def monadic_creates_limits (F : J ⥤ D) (R : D ⥤ C) [monadic R] [has_limit.{v₁} (F ⋙ R)] : has_limit F :=
+def monadic_creates_limits (F : J ⥤ D) (R : D ⥤ C) [monadic_right_adjoint R] [has_limit.{v₁} (F ⋙ R)] :
+  has_limit F :=
 adjunction.has_limit_of_comp_equivalence _ (monad.comparison R)
 
 omit 𝒥

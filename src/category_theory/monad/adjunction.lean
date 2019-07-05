@@ -25,8 +25,6 @@ let h := (is_right_adjoint.adj R) in
   assoc' := λ X, by { dsimp, erw [←R.map_comp, h.counit.naturality, R.map_comp], refl },
   right_unit' := λ X, by { dsimp, rw [←R.map_comp], simp }, }
 
--- @[simp] lemma monad_T_obj (h : L ⊣ R) (X) : h.monad.T.obj X = R.obj (L.obj X) := rfl
--- @[simp] lemma monad_T_map (h : L ⊣ R) {X Y} (f : X ⟶ Y) : h.monad.T.map f = R.map (L.map f) := rfl
 @[simp] lemma monad_η_app [is_right_adjoint R] (X) : (η_ ((left_adjoint R) ⋙ R)).app X = (is_right_adjoint.adj R).unit.app X := rfl
 @[simp] lemma monad_μ_app [is_right_adjoint R] (X) : (μ_ ((left_adjoint R) ⋙ R)).app X = R.map ((is_right_adjoint.adj R).counit.app ((left_adjoint R).obj X)) := rfl
 

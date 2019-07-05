@@ -117,7 +117,7 @@ match s, hs with
 | _, ⟨some r, or.inl rfl⟩, hr :=
   let ⟨n, hrn⟩ := exists_nat_gt r in
   mem_sets_of_superset (h n) $ assume a hnma, show ↑r < m a, from
-    lt_trans (show (r : ennreal) < n, from (coe_nat n) ▸ coe_lt_coe.2 hrn) hnma
+    lt_trans (show (r : ennreal) < n, from (coe_nat n).symm ▸ coe_lt_coe.2 hrn) hnma
 | _, ⟨a,      or.inr rfl⟩, hr := (not_top_lt $ show ⊤ < a, from hr).elim
 end
 
@@ -217,7 +217,7 @@ tendsto_nhds_top $ assume n,
 have {a : α | ↑(n+1) ≤ f a} ∈ l := h $ mem_at_top _,
 mem_sets_of_superset this $ assume a (ha : ↑(n+1) ≤ f a),
 begin
-  rw [← coe_nat],
+  rw [coe_nat],
   dsimp,
   exact coe_lt_coe.2 (lt_of_lt_of_le (nat.cast_lt.2 (nat.lt_succ_self _)) ha)
 end
@@ -227,7 +227,7 @@ instance : topological_add_monoid ennreal :=
   have hl : ∀a:ennreal, tendsto (λ (p : ennreal × ennreal), p.fst + p.snd) (nhds (⊤, a)) (nhds ⊤), from
     assume a, tendsto_nhds_top $ assume n,
     have set.prod {a | ↑n < a } univ ∈ nhds ((⊤:ennreal), a), from
-      prod_mem_nhds_sets (lt_mem_nhds $ coe_nat n ▸ coe_lt_top) univ_mem_sets,
+      prod_mem_nhds_sets (lt_mem_nhds $ (coe_nat n).symm ▸ coe_lt_top) univ_mem_sets,
     show {a : ennreal × ennreal | ↑n < a.fst + a.snd} ∈ nhds (⊤, a),
     begin filter_upwards [this] assume ⟨a₁, a₂⟩ ⟨h₁, h₂⟩, lt_of_lt_of_le h₁ (le_add_right $ le_refl _) end,
   begin

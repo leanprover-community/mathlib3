@@ -504,11 +504,11 @@ lemma mul_eq_one_iff : ∀ {a b : ℕ}, a * b = 1 ↔ a = 1 ∧ b = 1
     (add_assoc _ _ _).symm, nat.succ_inj', add_eq_zero_iff] at h; simp [h.1.2, h.2],
   by clear_aux_decl; finish⟩
 
-lemma mul_right_eq_self_iff {a b : ℕ} (ha : 0 < a): a * b = a ↔ b = 1 :=
+lemma mul_right_eq_self_iff {a b : ℕ} (ha : 0 < a) : a * b = a ↔ b = 1 :=
 suffices a * b = a * 1 ↔ b = 1, by rwa mul_one at this,
 nat.mul_left_inj ha
 
-lemma mul_left_eq_self_iff {a b : ℕ} (hb : 0 < b): a * b = b ↔ a = 1 :=
+lemma mul_left_eq_self_iff {a b : ℕ} (hb : 0 < b) : a * b = b ↔ a = 1 :=
 by rw [mul_comm, nat.mul_right_eq_self_iff hb]
 
 lemma lt_succ_iff_lt_or_eq {n i : ℕ} : n < i.succ ↔ (n < i ∨ n = i) :=
@@ -1004,6 +1004,23 @@ lemma le_find_greatest {b m} (hmb : m ≤ b) (hm : P m) : m ≤ nat.find_greates
 lemma find_greatest_is_greatest {P : ℕ → Prop} [decidable_pred P] {b} :
   (∃ m, m ≤ b ∧ P m) → ∀ k, nat.find_greatest P b < k ∧ k ≤ b → ¬ P k
 | ⟨m, hmb, hP⟩ k ⟨hk, hkb⟩ hPk := lt_irrefl k $ lt_of_le_of_lt (le_find_greatest hkb hPk) hk
+
+lemma find_greatest_eq_zero {P : ℕ → Prop} [decidable_pred P] :
+  ∀ {b}, (∀ n ≤ b, ¬ P n) → nat.find_greatest P b = 0
+| 0       h := find_greatest_zero
+| (n + 1) h :=
+begin
+  have := nat.find_greatest_of_not (h (n + 1) (le_refl _)),
+  rw this, exact find_greatest_eq_zero (assume k hk, h k (le_trans hk $ nat.le_succ _))
+end
+
+lemma find_greatest_of_ne_zero {P : ℕ → Prop} [decidable_pred P] :
+  ∀ {b m}, nat.find_greatest P b = m → m ≠ 0 → P m
+| 0       m rfl h := by { have := @find_greatest_zero P _, contradiction }
+| (b + 1) m rfl h :=
+decidable.by_cases
+  (assume hb : P (b + 1), by { have := find_greatest_eq hb, rw this, exact hb })
+  (assume hb : ¬ P (b + 1), find_greatest_of_ne_zero (find_greatest_of_not hb).symm h)
 
 end find_greatest
 

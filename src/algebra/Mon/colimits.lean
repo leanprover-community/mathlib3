@@ -149,8 +149,8 @@ begin
 end
 
 @[simp] lemma cocone_naturality_components (j j' : J) (f : j ⟶ j') (x : F.obj j):
-  (F.map f ≫ (cocone_morphism F j')) x = (cocone_morphism F j) x :=
-by rw cocone_naturality
+  (cocone_morphism F j') (F.map f x) = (cocone_morphism F j) x :=
+by { rw ←cocone_naturality F f, refl }
 
 def colimit_cocone : cocone F :=
 { X := colimit F,
@@ -229,7 +229,7 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
 -- FIXME why is this infer_instance needed!?
 instance has_colimits_Mon : @has_colimits Mon.{v} infer_instance :=
 { has_colimits_of_shape := λ J 𝒥,
-  { has_colimit := λ F, by resetI; exact
+  { has_colimit := λ F, by exactI
     { cocone := colimit_cocone F,
       is_colimit := colimit_is_colimit F } } }
 

@@ -73,7 +73,7 @@ hf.continuous_iff.mp continuous_id
 
 lemma embedding.closure_eq_preimage_closure_image {e : α → β} (he : embedding e) (s : set α) :
   closure s = e ⁻¹' closure (e '' s) :=
-by ext x; rw [set.mem_preimage_eq, ← closure_induced he.1, he.2]
+by ext x; rw [set.mem_preimage, ← closure_induced he.1, he.2]
 
 end embedding
 
@@ -106,7 +106,7 @@ protected lemma embedding (de : dense_embedding e) : embedding e :=
 protected lemma continuous_at (de : dense_embedding e) {a : α} : continuous_at e a :=
 by rw [continuous_at, ←de.induced a]; exact tendsto_comap
 
-protected lemma continuous (de : dense_embedding e) {a : α} : continuous e :=
+protected lemma continuous (de : dense_embedding e) : continuous e :=
 continuous_iff_continuous_at.mpr $ λ a, de.continuous_at
 
 lemma inj_iff (de : dense_embedding e) {x y} : e x = e y ↔ x = y := de.inj.eq_iff

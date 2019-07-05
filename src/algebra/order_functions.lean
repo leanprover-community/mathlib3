@@ -228,10 +228,8 @@ max_le_iff.2 (by split; simpa)
 
 end decidable_linear_ordered_comm_group
 
-section decidable_linear_ordered_comm_ring
-variables [decidable_linear_ordered_comm_ring α] {a b c d : α}
-
-@[simp] lemma abs_one : abs (1 : α) = 1 := abs_of_pos zero_lt_one
+section decidable_linear_ordered_semiring
+variables [decidable_linear_ordered_semiring α] {a b c d : α}
 
 lemma monotone_mul_of_nonneg (ha : 0 ≤ a) : monotone (λ x, a*x) :=
 assume b c b_le_c, mul_le_mul_of_nonneg_left b_le_c ha
@@ -241,6 +239,13 @@ max_distrib_of_monotone (monotone_mul_of_nonneg ha)
 
 lemma mul_min_of_nonneg (b c : α) (ha : 0 ≤ a) : a * min b c = min (a * b) (a * c) :=
 min_distrib_of_monotone (monotone_mul_of_nonneg ha)
+
+end decidable_linear_ordered_semiring
+
+section decidable_linear_ordered_comm_ring
+variables [decidable_linear_ordered_comm_ring α] {a b c d : α}
+
+@[simp] lemma abs_one : abs (1 : α) = 1 := abs_of_pos zero_lt_one
 
 lemma max_mul_mul_le_max_mul_max (b c : α) (ha : 0 ≤ a) (hd: 0 ≤ d) :
   max (a * b) (d * c) ≤ max a c * max d b :=

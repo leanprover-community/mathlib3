@@ -36,29 +36,24 @@ def functoriality_is_left_adjoint :
 instance left_adjoint_preserves_colimits : preserves_colimits F :=
 { preserves_colimits_of_shape := λ J 𝒥,
   { preserves_colimit := λ F,
-    by resetI; exact
+    by exactI
     { preserves := λ c hc, is_colimit_iso_unique_cocone_morphism.inv
         (λ s, (((adj.functoriality_is_left_adjoint _).adj).hom_equiv _ _).unique_of_equiv $
           is_colimit_iso_unique_cocone_morphism.hom hc _ ) } } }.
 
 omit adj
 
--- TODO the implicit arguments make preserves_colimit* quite hard to use.
--- This should be refactored at some point. (Possibly including making `is_colimit` a class.)
-def is_colimit_map_cocone (E : C ⥤ D) [is_equivalence E]
+instance is_equivalence_preserves_colimits (E : C ⥤ D) [is_equivalence E] : preserves_colimits E :=
+adjunction.left_adjoint_preserves_colimits E.adjunction
+
+-- verify the preserve_colimits instance works as expected:
+example (E : C ⥤ D) [is_equivalence E]
   (c : cocone K) (h : is_colimit c) : is_colimit (E.map_cocone c) :=
-begin
-  have P : preserves_colimits E := adjunction.left_adjoint_preserves_colimits E.adjunction,
-  have P' := P.preserves_colimits_of_shape,
-  have P'' := P'.preserves_colimit,
-  have P''' := P''.preserves,
-  exact P''' h,
-end
+by apply_instance
 
 instance has_colimit_comp_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimit K] :
   has_colimit (K ⋙ E) :=
-{ cocone := E.map_cocone (colimit.cocone K),
-  is_colimit := is_colimit_map_cocone _ _ _ (colimit.is_colimit K) }
+{ cocone := E.map_cocone (colimit.cocone K) }
 
 def has_colimit_of_comp_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimit (K ⋙ E)] :
   has_colimit K :=
@@ -83,29 +78,24 @@ def functoriality_is_right_adjoint :
 instance right_adjoint_preserves_limits : preserves_limits G :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ K,
-    by resetI; exact
+    by exactI
     { preserves := λ c hc, is_limit_iso_unique_cone_morphism.inv
         (λ s, (((adj.functoriality_is_right_adjoint _).adj).hom_equiv _ _).symm.unique_of_equiv $
           is_limit_iso_unique_cone_morphism.hom hc _) } } }.
 
 omit adj
 
--- TODO the implicit arguments make preserves_limit* quite hard to use.
--- This should be refactored at some point. (Possibly including making `is_limit` a class.)
-def is_limit_map_cone (E : D ⥤ C) [is_equivalence E]
-  (c : cone K) (h : is_limit c) : is_limit (E.map_cone c) :=
-begin
-  have P : preserves_limits E := adjunction.right_adjoint_preserves_limits E.inv.adjunction,
-  have P' := P.preserves_limits_of_shape,
-  have P'' := P'.preserves_limit,
-  have P''' := P''.preserves,
-  exact P''' h,
-end
+instance is_equivalence_preserves_limits (E : D ⥤ C) [is_equivalence E] : preserves_limits E :=
+adjunction.right_adjoint_preserves_limits E.inv.adjunction
+
+-- verify the preserve_limits instance works as expected:
+example (E : D ⥤ C) [is_equivalence E]
+  (c : cone K) [h : is_limit c] : is_limit (E.map_cone c) :=
+by apply_instance
 
 instance has_limit_comp_equivalence (E : D ⥤ C) [is_equivalence E] [has_limit K] :
   has_limit (K ⋙ E) :=
-{ cone := E.map_cone (limit.cone K),
-  is_limit := is_limit_map_cone _ _ _ (limit.is_limit K) }
+{ cone := E.map_cone (limit.cone K) }
 
 def has_limit_of_comp_equivalence (E : D ⥤ C) [is_equivalence E] [has_limit (K ⋙ E)] :
   has_limit K :=

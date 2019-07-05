@@ -120,14 +120,6 @@ end
 
 end adjunction
 
-class is_left_adjoint (left : C ⥤ D) :=
-(right : D ⥤ C)
-(adj : left ⊣ right)
-
-class is_right_adjoint (right : D ⥤ C) :=
-(left : C ⥤ D)
-(adj : left ⊣ right)
-
 namespace adjunction
 
 structure core_hom_equiv (F : C ⥤ D) (G : D ⥤ C) :=

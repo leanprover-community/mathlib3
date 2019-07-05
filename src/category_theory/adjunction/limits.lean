@@ -100,7 +100,7 @@ instance has_limit_comp_equivalence (E : D ⥤ C) [is_equivalence E] [has_limit 
 def has_limit_of_comp_equivalence (E : D ⥤ C) [is_equivalence E] [has_limit (K ⋙ E)] :
   has_limit K :=
 @has_limit_of_iso _ _ _ _ (K ⋙ E ⋙ inv E) K
-((@adjunction.has_limit_comp_equivalence _ _ _ _ _ _ (K ⋙ E) (inv E) _ _))
+(@adjunction.has_limit_comp_equivalence _ _ _ _ _ _ (K ⋙ E) (inv E) _ _)
 ((iso_whisker_left K (fun_inv_id E)) ≪≫ (functor.right_unitor _))
 
 end preservation_limits

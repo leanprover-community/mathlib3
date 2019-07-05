@@ -123,6 +123,14 @@ theorem sup_mul : (M ⊔ N) * P = M * P ⊔ N * P :=
 le_antisymm (mul_le.2 $ λ mn hmn p hp, let ⟨m, hm, n, hn, hmn⟩ := mem_sup.1 hmn in
   mem_sup.2 ⟨_, mul_mem_mul hm hp, _, mul_mem_mul hn hp, hmn ▸ (add_mul m n p).symm⟩)
 (sup_le (mul_le_mul_left le_sup_left) (mul_le_mul_left le_sup_right))
+
+lemma mul_subset_mul :
+  (↑M : set A) * (↑N : set A) ⊆ (↑(M * N) : set A) :=
+begin
+  rintros _ ⟨i, hi, j, hj, rfl⟩,
+  exact mul_mem_mul hi hj
+end
+
 variables {M N P}
 
 instance : semiring (submodule R A) :=
@@ -137,14 +145,7 @@ instance : semiring (submodule R A) :=
   ..submodule.has_one,
   ..submodule.has_mul }
 
-variables (M N)
-
-lemma mul_subset_mul :
-  (↑M : set A) * (↑N : set A) ⊆ (↑(M * N) : set A) :=
-begin
-  rintros _ ⟨i, hi, j, hj, rfl⟩,
-  exact mul_mem_mul hi hj
-end
+variables (M)
 
 lemma pow_subset_pow {n : ℕ} :
   (↑M : set A)^n ⊆ ↑(M^n : submodule R A) :=
@@ -155,6 +156,13 @@ begin
     refine set.subset.trans (set.pointwise_mul_subset_mul (set.subset.refl _) ih) _,
     apply mul_subset_mul }
 end
+
+instance span.is_semiring_hom : is_semiring_hom (submodule.span R : set A → submodule R A) :=
+{ map_zero := span_empty,
+  map_one := show _ = map _ ⊤,
+    by erw [← ideal.span_singleton_one, ← span_image, set.image_singleton, alg_hom.map_one]; refl,
+  map_add := span_union,
+  map_mul := λ s t, by erw [span_mul_span, set.pointwise_mul_eq_image] }
 
 end ring
 
@@ -174,6 +182,45 @@ le_antisymm (mul_le.2 $ λ r hrm s hsn, mul_mem_mul_rev hsn hrm)
 instance : comm_semiring (submodule R A) :=
 { mul_comm := submodule.mul_comm,
   .. submodule.semiring }
+
+variables (R A)
+
+instance semimodule_set : semimodule (set A) (submodule R A) :=
+{ smul := λ s P, span R s * P,
+  smul_add := λ _ _ _, mul_add _ _ _,
+  add_smul := λ s t P, show span R (s ⊔ t) * P = _, by { erw [span_union, right_distrib] },
+  mul_smul := λ s t P, show _ = _ * (_ * _),
+    by { rw [← mul_assoc, span_mul_span, set.pointwise_mul_eq_image] },
+  one_smul := λ P, show span R {(1 : A)} * P = _,
+    by { conv_lhs {erw ← span_eq P}, erw [span_mul_span, one_mul, span_eq] },
+  zero_smul := λ P, show span R ∅ * P = ⊥, by erw [span_empty, bot_mul],
+  smul_zero := λ _, mul_bot _ }
+
+set_option class.instance_max_depth 45
+
+variables {R A}
+
+lemma smul_def {s : set A} {P : submodule R A} :
+  s • P = span R s * P := rfl
+
+lemma smul_le_smul {s t : set A} {M N : submodule R A} (h₁ : s ≤ t) (h₂ : M ≤ N) :
+  s • M ≤ t • N :=
+mul_le_mul (span_mono h₁) h₂
+
+lemma smul_singleton (a : A) (M : submodule R A) :
+  ({a} : set A) • M = M.map (lmul_left _ _ a) :=
+begin
+  conv_lhs {rw ← span_eq M},
+  change span _ _ * span _ _ = _,
+  rw [span_mul_span],
+  apply le_antisymm,
+  { rw span_le,
+    rintros _ ⟨b, hb, m, hm, rfl⟩,
+    erw [mem_map, set.mem_singleton_iff.mp hb],
+    exact ⟨m, hm, rfl⟩ },
+  { rintros _ ⟨m, hm, rfl⟩,
+    exact subset_span ⟨a, set.mem_singleton a, m, hm, rfl⟩ }
+end
 
 end comm_ring
 

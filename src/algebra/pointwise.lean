@@ -167,7 +167,7 @@ lemma pointwise_mul_eq_Union_mul_right [has_mul α] {s t : set α} : s * t = ⋃
 by { ext y; split; simp only [mem_Union]; rintros ⟨a, ha, x, hx, ax⟩; exact ⟨x, hx, a, ha, ax.symm⟩ }
 
 @[to_additive set.pointwise_add_ne_empty]
-lemma pointwise_mul_ne_empty [has_mul α] {s t : set α} :s ≠ ∅ → t ≠ ∅ → s * t ≠ ∅ :=
+lemma pointwise_mul_ne_empty [has_mul α] {s t : set α} : s ≠ ∅ → t ≠ ∅ → s * t ≠ ∅ :=
 begin
   simp only [ne_empty_iff_exists_mem],
   rintros ⟨x, hx⟩ ⟨y, hy⟩,

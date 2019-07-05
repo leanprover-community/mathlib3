@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 
 Type tags `multiplicative` and `additive` that turn additive structures into multiplicative, and vice versa
 -/
-import algebra.group.to_additive algebra.group.hom
+import algebra.group.hom
 
 universes u v
 variables {α : Type u} {β : Type v}
@@ -13,13 +13,19 @@ variables {α : Type u} {β : Type v}
 def additive (α : Type*) := α
 def multiplicative (α : Type*) := α
 
+instance additive.has_add [has_mul α] : has_add (additive α) :=
+{ add := ((*) : α → α → α) }
+
+instance [has_add α] : has_mul (multiplicative α) :=
+{ mul := ((+) : α → α → α) }
+
 instance [semigroup α] : add_semigroup (additive α) :=
-{ add := ((*) : α → α → α),
-  add_assoc := @mul_assoc _ _ }
+{ add_assoc := @mul_assoc α _,
+  ..additive.has_add }
 
 instance [add_semigroup α] : semigroup (multiplicative α) :=
-{ mul := ((+) : α → α → α),
-  mul_assoc := @add_assoc _ _ }
+{ mul_assoc := @add_assoc α _,
+  ..multiplicative.has_mul }
 
 instance [comm_semigroup α] : add_comm_semigroup (additive α) :=
 { add_comm := @mul_comm _ _,
@@ -83,12 +89,26 @@ instance [add_comm_group α] : comm_group (multiplicative α) :=
 { mul_comm := @add_comm α _,
   ..multiplicative.group }
 
+instance additive.is_add_hom [has_mul α] [has_mul β] (f : α → β) [is_mul_hom f] :
+  @is_add_hom (additive α) (additive β) _ _ f :=
+{ map_add := @is_mul_hom.map_mul α β _ _ f _ }
+
+instance multiplicative.is_mul_hom [has_add α] [has_add β] (f : α → β) [is_add_hom f] :
+  @is_mul_hom (multiplicative α) (multiplicative β) _ _ f :=
+{ map_mul := @is_add_hom.map_add α β _ _ f _ }
+
+instance additive.is_add_monoid_hom [monoid α] [monoid β] (f : α → β) [is_monoid_hom f] :
+  @is_add_monoid_hom (additive α) (additive β) _ _ f :=
+{ map_zero := @is_monoid_hom.map_one α β _ _ f _ }
+
+instance multiplicative.is_monoid_hom [add_monoid α] [add_monoid β] (f : α → β) [is_add_monoid_hom f] :
+  @is_monoid_hom (multiplicative α) (multiplicative β) _ _ f :=
+{ map_one := @is_add_monoid_hom.map_zero α β _ _ f _ }
+
 instance additive.is_add_group_hom [group α] [group β] (f : α → β) [is_group_hom f] :
   @is_add_group_hom (additive α) (additive β) _ _ f :=
-⟨@is_group_hom.map_mul α β _ _ f _⟩
+{ map_add := @is_mul_hom.map_mul α β _ _ f _ }
 
 instance multiplicative.is_group_hom [add_group α] [add_group β] (f : α → β) [is_add_group_hom f] :
   @is_group_hom (multiplicative α) (multiplicative β) _ _ f :=
-⟨@is_add_group_hom.map_add α β _ _ f _⟩
-
-attribute [to_additive additive.is_add_group_hom] multiplicative.is_group_hom
+{ map_mul := @is_add_hom.map_add α β _ _ f _ }

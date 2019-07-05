@@ -27,7 +27,7 @@ variables {J : Type v} [small_category J] (K : J ⥤ C)
 def functoriality_is_left_adjoint :
   is_left_adjoint (@cocones.functoriality _ _ _ _ K _ _ F) :=
 { right := (cocones.functoriality G) ⋙ (cocones.precompose
-  (K.right_unitor.inv ≫ (whisker_left K adj.unit) ≫ (associator _ _ _).inv)),
+    (K.right_unitor.inv ≫ (whisker_left K adj.unit) ≫ (associator _ _ _).inv)),
   adj := mk_of_unit_counit
   { unit := { app := λ c, { hom := adj.unit.app c.X } },
     counit := { app := λ c, { hom := adj.counit.app c.X } } } }
@@ -49,7 +49,7 @@ variables {J : Type v} [small_category J] (K : J ⥤ D)
 def functoriality_is_right_adjoint :
   is_right_adjoint (@cones.functoriality _ _ _ _ K _ _ G) :=
 { left := (cones.functoriality F) ⋙ (cones.postcompose
-  ((associator _ _ _).hom ≫ (whisker_left K adj.counit) ≫ K.right_unitor.hom)),
+    ((associator _ _ _).hom ≫ (whisker_left K adj.counit) ≫ K.right_unitor.hom)),
   adj := mk_of_unit_counit
   { unit := { app := λ c, { hom := adj.unit.app c.X, } },
     counit := { app := λ c, { hom := adj.counit.app c.X, } } } }

@@ -24,38 +24,13 @@ include adj
 section preservation_colimits
 variables {J : Type v} [small_category J] (K : J ⥤ C)
 
-@[simp] def functoriality_right_adjoint : cocone (K ⋙ F) ⥤ cocone K :=
-(cocones.functoriality G) ⋙ (cocones.precompose
-  (K.right_unitor.inv ≫ (whisker_left K adj.unit) ≫ (associator _ _ _).inv))
-
-@[simp] def functoriality_is_left_adjoint_unit :
-  𝟭 (cocone K) ⟶ cocones.functoriality F ⋙ functoriality_right_adjoint adj K :=
-{ app := λ c,
-  { hom := adj.unit.app c.X,
-    w' := λ j, by have := adj.unit.naturality (c.ι.app j); tidy },
-  naturality' := λ _ _ f, by have := adj.unit.naturality (f.hom); tidy }.
-
-@[simp] def functoriality_is_left_adjoint_counit :
-  functoriality_right_adjoint adj K ⋙ cocones.functoriality F ⟶ 𝟭 (cocone (K ⋙ F)) :=
-{ app := λ c,
-  { hom := adj.counit.app c.X,
-    w' :=
-    begin
-      intro j,
-      dsimp,
-      erw [category.comp_id, category.id_comp, F.map_comp, category.assoc,
-        adj.counit.naturality (c.ι.app j), ← category.assoc,
-        adj.left_triangle_components, category.id_comp],
-      refl,
-    end },
-  naturality' := λ _ _ f, by have := adj.counit.naturality (f.hom); tidy }.
-
 def functoriality_is_left_adjoint :
   is_left_adjoint (@cocones.functoriality _ _ _ _ K _ _ F) :=
-{ right := functoriality_right_adjoint adj K,
+{ right := (cocones.functoriality G) ⋙ (cocones.precompose
+  (K.right_unitor.inv ≫ (whisker_left K adj.unit) ≫ (associator _ _ _).inv)),
   adj := mk_of_unit_counit
-  { unit := functoriality_is_left_adjoint_unit adj K,
-    counit := functoriality_is_left_adjoint_counit adj K, } }
+  { unit := { app := λ c, { hom := adj.unit.app c.X } },
+    counit := { app := λ c, { hom := adj.counit.app c.X } } } }
 
 /-- A left adjoint preserves colimits. -/
 instance left_adjoint_preserves_colimits : preserves_colimits F :=
@@ -71,38 +46,13 @@ end preservation_colimits
 section preservation_limits
 variables {J : Type v} [small_category J] (K : J ⥤ D)
 
-@[simp] def functoriality_left_adjoint : cone (K ⋙ G) ⥤ cone K :=
-(cones.functoriality F) ⋙ (cones.postcompose
-  ((associator _ _ _).hom ≫ (whisker_left K adj.counit) ≫ K.right_unitor.hom))
-
-@[simp] def functoriality_is_right_adjoint_unit :
-  𝟭 (cone (K ⋙ G)) ⟶ functoriality_left_adjoint adj K ⋙ cones.functoriality G :=
-{ app := λ c,
-  { hom := adj.unit.app c.X,
-    w' :=
-    begin
-      intro j,
-      dsimp,
-      erw [category.comp_id, category.id_comp, G.map_comp, ← category.assoc,
-        ← adj.unit.naturality (c.π.app j), category.assoc,
-        adj.right_triangle_components, category.comp_id],
-      refl,
-    end },
-  naturality' := λ _ _ f, by have := adj.unit.naturality (f.hom); tidy }.
-
-@[simp] def functoriality_is_right_adjoint_counit :
-  cones.functoriality G ⋙ functoriality_left_adjoint adj K ⟶ 𝟭 (cone K) :=
-{ app := λ c,
-  { hom := adj.counit.app c.X,
-    w' := λ j, by have := adj.counit.naturality (c.π.app j); tidy },
-  naturality' := λ _ _ f, by have := adj.counit.naturality (f.hom); tidy }.
-
 def functoriality_is_right_adjoint :
   is_right_adjoint (@cones.functoriality _ _ _ _ K _ _ G) :=
-{ left := functoriality_left_adjoint adj K,
+{ left := (cones.functoriality F) ⋙ (cones.postcompose
+  ((associator _ _ _).hom ≫ (whisker_left K adj.counit) ≫ K.right_unitor.hom)),
   adj := mk_of_unit_counit
-  { unit := functoriality_is_right_adjoint_unit adj K,
-    counit := functoriality_is_right_adjoint_counit adj K } }.
+  { unit := { app := λ c, { hom := adj.unit.app c.X, } },
+    counit := { app := λ c, { hom := adj.counit.app c.X, } } } }
 
 /-- A right adjoint preserves limits. -/
 instance right_adjoint_preserves_limits : preserves_limits G :=
@@ -153,12 +103,7 @@ nat_iso.of_components (λ Y,
         erw [← adj.hom_equiv_naturality_left_symm, ← adj.hom_equiv_naturality_right_symm, t.naturality],
         dsimp, simp
       end } } )
-begin
-  intros Y₁ Y₂ f,
-  ext1 t,
-  ext1 j,
-  apply adj.hom_equiv_naturality_right
-end
+(by tidy)
 
 -- Note: this is natural in K, but we do not yet have the tools to formulate that.
 def cones_iso {J : Type v} [small_category J] {K : J ⥤ D} :

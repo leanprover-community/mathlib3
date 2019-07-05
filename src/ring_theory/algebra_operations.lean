@@ -137,6 +137,33 @@ instance : semiring (submodule R A) :=
   ..submodule.has_one,
   ..submodule.has_mul }
 
+variables (M N)
+
+lemma pow_le_pow {m n : ℕ} (h : m ≤ n) :
+  M^n ≤ M^m :=
+begin
+  cases nat.exists_eq_add_of_le h with k hk,
+  rw [hk, pow_add],
+  exact le_trans (mul_le_inf) (lattice.inf_le_left)
+end
+
+lemma mul_subset_mul :
+  (↑M : set A) * (↑N : set A) ⊆ (↑(M * N) : set A) :=
+begin
+  rintros _ ⟨i, hi, j, hj, rfl⟩,
+  exact mul_mem_mul hi hj
+end
+
+lemma pow_subset_pow {n : ℕ} :
+  (↑M : set A)^n ⊆ ↑(M^n : submodule R A) :=
+begin
+  induction n with n ih,
+  { erw [pow_zero, pow_zero, set.singleton_subset_iff], simp },
+  { rw [pow_succ, pow_succ],
+    refine set.subset.trans (set.pointwise_mul_subset_mul (set.subset.refl _) ih) _,
+    apply mul_subset_mul I (I^n) }
+end
+
 end ring
 
 section comm_ring

@@ -418,6 +418,9 @@ begin
   apply has_limit_of_iso (e.inv_fun_id_assoc F),
 end
 
+-- `has_limit_comp_equivalence` and `has_limit_of_comp_equivalence`
+-- are proved in `category_theory/adjunction/limits.lean`.
+
 section lim_functor
 
 variables [has_limits_of_shape J C]

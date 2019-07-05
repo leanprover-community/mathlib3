@@ -281,6 +281,10 @@ mk_of_hom_equiv
 
 end construct_right
 
+end adjunction
+
+open adjunction
+
 namespace equivalence
 
 def to_adjunction (e : C ≌ D) : e.functor ⊣ e.inverse :=
@@ -289,6 +293,11 @@ mk_of_unit_counit ⟨e.unit, e.counit, by { ext, exact e.functor_unit_comp X },
 
 end equivalence
 
-end adjunction
+namespace functor
+
+def adjunction (E : C ⥤ D) [is_equivalence E] : E ⊣ E.inv :=
+(E.as_equivalence).to_adjunction
+
+end functor
 
 end category_theory

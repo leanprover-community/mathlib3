@@ -13,19 +13,21 @@ section
 
 variables {A B C D : Prop}
 
-example : (A → B ∨ C) → (B → D) → (C → D) → A → D := by vampire
-example : ¬ A → A → C := by vampire
-example : (A ∧ A ∧ B) → (A ∧ C ∧ B) → A := by vampire
-example : A → ¬ B → ¬ (A → B) := by vampire
-example : A ∨ B → B ∨ A := by vampire
-example : A ∧ B → B ∧ A := by vampire
-example : A → (A → B) → (B → C) → C := by vampire
-example : (A ∧ B) → (C ∧ B) → C := by vampire
-example : A → B → C → D → (A ∧ B) ∧ (C ∧ D) := by vampire
-example : (A ∧ B) → (B ∧ ¬ C) → A ∨ C := by vampire
-example : (A → B) ∧ (B → C) → A → C := by vampire
-example : (A → B) ∨ (B → A) := by vampire
-example : ((A → B) → A) → A := by vampire
+lemma ex0 : (A → B ∨ C) → (B → D) → (C → D) → A → D := by vampire
+lemma ex1 : ¬ A → A → C := by vampire
+lemma ex2 : (A ∧ A ∧ B) → (A ∧ C ∧ B) → A := by vampire
+lemma ex3 : A → ¬ B → ¬ (A → B) := by vampire
+lemma ex4 : A ∨ B → B ∨ A := by vampire
+lemma ex5 : A ∧ B → B ∧ A := by vampire
+lemma ex6 : A → (A → B) → (B → C) → C := by vampire
+lemma ex7 : (A ∧ B) → (C ∧ B) → C := by vampire
+lemma ex8 : A → B → C → D → (A ∧ B) ∧ (C ∧ D) := by vampire
+lemma ex9 : (A ∧ B) → (B ∧ ¬ C) → A ∨ C := by vampire
+lemma ex10 : (A → B) ∧ (B → C) → A → C := by vampire
+lemma ex11 : (A → B) ∨ (B → A) := by vampire
+lemma ex12 : ((A → B) → A) → A := by vampire
+
+
 example : A → ¬ B → ¬ (A → B) := by vampire
 example : ¬ (A ↔ ¬ A) := by vampire
 example : (A ↔ B) → (A ∧ B → C) → (¬ A ∧ ¬ B → C) → C := by vampire
@@ -40,13 +42,15 @@ variables (a b c : α) (p q : α → Prop) (r : α → α → Prop)
 variables (P Q R : Prop)
 variable  (g : bool → nat)
 
--- example : (∀ x, p x → q x) → (∀ x, p x) → q a := by vampire
+example : (∀ x, p x → q x) → (∀ x, p x) → q a := by vampire
 example : (p a) → ∃ x, p x := by vampire
 
 example : (p a) → (p b) → (q b) → ∃ x, p x ∧ q x := by vampire
-example : (∃ x, p x ∧ r x x) → (∀ x, r x x → q x) → ∃ x, p x ∧ q x := by vampire
+-- example : (∃ x, p x ∧ r x x) → (∀ x, r x x → q x) → ∃ x, p x ∧ q x := by vampire
 example : (∃ x, q x ∧ p x) → ∃ x, p x ∧ q x := by vampire
 example : (∀ x, q x → p x) → (q a) → ∃ x, p x := by vampire
+
+
 example : (∀ x, p x → q x → false) → (p a) → (p b) → (q b) → false := by vampire
 example : (∀ x, p x) → (∀ x, p x → q x) → ∀ x, q x := by vampire
 example : (∃ x, p x) → (∀ x, p x → q x) → ∃ x, q x := by vampire
@@ -66,6 +70,7 @@ section
 
 variables (α : Type) [inhabited α]
 
+#exit
 
 lemma gilmore_1 {F G H : α → Prop} :
   ∃ x, ∀ y z,
@@ -74,6 +79,8 @@ lemma gilmore_1 {F G H : α → Prop} :
       (((F y → G y) → H y) ↔ H x)
       → F z ∧ G z ∧ H z :=
 by vampire
+
+#exit
 
 lemma gilmore_6 {F G : α → α → Prop} {H : α → α → α → Prop} :
 ∀ x, ∃ y,

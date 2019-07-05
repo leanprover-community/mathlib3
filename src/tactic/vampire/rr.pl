@@ -2,6 +2,12 @@
 
 :- initialization(main, main).
 
+mat([Trm2, Trm1 | Stk], ["a" | Tks], Mat) :-
+  mat([app(Trm1, Trm2) | Stk], Tks, Mat).
+
+mat([Num, Trm | Stk], ["v" | Tks], Mat) :-
+  mat([vpp(Trm, Num) | Stk], Tks, Mat).
+
 mat(Stk, ["nl" | Tks], Mat) :-
   mat([[] | Stk], Tks, Mat).
 
@@ -35,6 +41,17 @@ join_string([Str | Strs], Jn, Rst) :-
 join_string(Strs, Str) :-
   join_string(Strs, "", Str).
 
+tptp_trm(app(Trm1, Trm2), Num, Strs) :-
+  tptp_trm(Trm1, Num, TmpStrs),
+  tptp_trm(Trm2, Str),
+  append(TmpStrs, [Str], Strs).
+
+tptp_trm(vpp(Trm, Num1), Num2, Strs) :-
+  tptp_trm(Trm, Num2, TmpStrs),
+  number_string(Num1, NumStr),
+  string_concat("X", NumStr, Str),
+  append(TmpStrs, [Str], Strs).
+
 tptp_trm(sym(Num), Num, []).
 
 tptp_trm(sym(Num), Str) :-
@@ -48,6 +65,15 @@ tptp_trm(app(Trm1, Trm2), Rst) :-
   append(Strs, [Str], ArgStrs),
   join_string(ArgStrs, ", ", ArgsStr),
   join_string(["s", NumStr, "(", ArgsStr, ")"], Rst).
+
+tptp_trm(vpp(Trm, Num), Rst) :-
+  tptp_trm(Trm, HdNum, Strs),
+  number_string(HdNum, HdNumStr),
+  number_string(Num, NumStr),
+  string_concat("X", NumStr, Str),
+  append(Strs, [Str], ArgStrs),
+  join_string(ArgStrs, ", ", ArgsStr),
+  join_string(["s", HdNumStr, "(", ArgsStr, ")"], Rst).
 
 tptp_lit(neg(Trm), Str) :-
   tptp_trm(Trm, Tmp),
@@ -113,6 +139,12 @@ head_is_digit([Cd | _]) :- is_digit(Cd).
 
 parse_rul("input", inp).
 
+parse_rul(Str, map(Idx)) :-
+  ( string_concat("factoring ", NumStr, Str) ;
+    string_concat("duplicate literal removal ", NumStr, Str) ),
+  number_string(Num, NumStr),
+  Idx is Num - 1.
+
 parse_rul(Str, res(Idx1, Idx2)) :-
   ( string_concat("resolution ", Tmp, Str) ;
     string_concat("subsumption resolution ", Tmp, Str) ),
@@ -130,8 +162,10 @@ parse_num(Acc, [Cd | Cds], Num, Rem) :-
   is_digit(Cd),
   parse_num([Cd | Acc], Cds, Num, Rem).
 
-parse_num(Acc, [Cd | Cds], Num, [Cd | Cds]) :-
-  not(is_digit(Cd)),
+parse_num(Acc, Cds, Num, Cds) :-
+  ( ( Cds = [Hd | _],
+      not(is_digit(Hd)) ) ;
+    ( Cds = [] ) ),
   reverse(Acc, Tmp),
   number_codes(Num, Tmp).
 
@@ -140,22 +174,48 @@ parse_num(Str, Num, Rem) :-
   parse_num([], Cds, Num, Tmp),
   string_codes(Rem, Tmp).
 
-parse_trm(Str, sym(Num), "") :-
-  string_concat("s", Tmp, Str),
-  number_string(Num, Tmp).
+% parse_trm(Str, sym(Num), "") :-
+%   string_concat("s", Tmp, Str),
+%   number_string(Num, Tmp).
 
-parse_trm(Str, Trm, Rem) :-
-  string_concat("s", Tmp, Str),
-  split_string_at(Tmp, "(", Fst, Snd),
-  number_string(Num, Fst),
-  parse_trm(sym(Num), Snd, Trm, Rem).
-
-parse_trm(Trm, Str, Trm, Rem) :-
+parse_args_core(Str, [], Rem) :-
   string_concat(")", Rem, Str).
 
-parse_trm(Acc, Str, Trm, Rem) :-
-  string_concat(", ", Tmp, Str),
-  parse_trm(Acc, Tmp, Trm, Rem).
+parse_args_core(Str, Args, Rem) :-
+  string_concat(", ", Str1, Str),
+  parse_args_core(Str1, Args, Rem).
+
+parse_args_core(Str, [ArgNum | Args], Rem) :-
+  string_concat("X", Str1, Str),
+  parse_num(Str1, ArgNum, Str2),
+  parse_args_core(Str2, Args, Rem).
+
+parse_args_core(Str, [ArgTrm | Args], Rem) :-
+  parse_trm(Str, ArgTrm, Str1),
+  parse_args_core(Str1, Args, Rem).
+
+parse_args(Str, [], Str) :-
+  not(string_concat("(", _, Str)).
+
+parse_args(Str, Args, Rem) :-
+  string_concat("(", Str1, Str),
+  parse_args_core(Str1, Args, Rem).
+
+apply_args(Trm, [], Trm).
+
+apply_args(Trm, [ArgNum | Args], Rst) :-
+  number(ArgNum),
+  apply_args(vpp(Trm, ArgNum), Args, Rst).
+
+apply_args(Trm, [ArgTrm | Args], Rst) :-
+  not(number(ArgTrm)),
+  apply_args(app(Trm, ArgTrm), Args, Rst).
+
+parse_trm(Str, Trm, Rem) :-
+  string_concat("s", Str1, Str),
+  parse_num(Str1, Num, Str2),
+  parse_args(Str2, Trms, Rem),
+  apply_args(sym(Num), Trms, Trm).
 
 parse_trm(Acc, Str, Trm, Rem) :-
   string_concat("X", Str1, Str),
@@ -187,10 +247,17 @@ parse_line(Cds, line(Idx, Cla, Rul)) :-
   parse_cla(ClaStr, Cla),
   parse_rul(RulStr, Rul).
 
+codes_string(Cds, Str) :- string_codes(Str, Cds).
+
 read_proof(Lns) :-
   vampire(Cds),
   include(head_is_digit, Cds, Tmp),
   maplist(parse_line, Tmp, Lns).
+
+% read_proof(Lns) :-
+%   vampire(Cds),
+%   include(head_is_digit, Cds, Tmp),
+%   maplist(codes_string, Tmp, Lns).
 
 compile(Mat, Lns, Num, Infs, Rst) :-
   member(line(Num, Tgt, Rul), Lns),
@@ -262,14 +329,13 @@ rot(Idx, [Hd | Tl], [NewHd, Hd | NewTl]) :-
   rot(NewIdx, Tl, [NewHd | NewTl]),
   Idx is NewIdx + 1.
 
-% rot_core([Lit | Cla], 0, Lit, Cla).
-%
-% rot_core([Lit1 | Cla1], Num, Lit2, [Lit1 | Cla2]) :-
-%   rot_core(Cla1, Tmp, Lit2, Cla2),
-%   Num is Tmp + 1.
-%
-% rot(Cla, [num(Num), rot], [NewLit | NewCla]) :-
-%   rot_core(Cla, Num, NewLit, NewCla).
+subst(Maps, Num, Num) :-
+  number(Num),
+  not(member(map(Num, _), Maps)).
+
+subst(Maps, Num, Tgt) :-
+  number(Num),
+  member(map(Num, Tgt), Maps).
 
 subst(_, sym(Num), sym(Num)).
 
@@ -278,14 +344,18 @@ subst(Maps, app(Trm1, Trm2), app(NewTrm1, NewTrm2)) :-
   subst(Maps, Trm2, NewTrm2).
 
 subst(Maps, vpp(Trm, Num), vpp(NewTrm, NewNum)) :-
-  member(map(Num, NewNum), Maps), !,
+  member(map(Num, NewNum), Maps),
   number(NewNum),
   subst(Maps, Trm, NewTrm).
 
 subst(Maps, vpp(Trm, Num), app(NewTrm1, NewTrm2)) :-
-  member(map(Num, NewTrm2), Maps), !,
+  member(map(Num, NewTrm2), Maps),
   not(number(NewTrm2)),
   subst(Maps, Trm, NewTrm1).
+
+subst(Maps, vpp(Trm, Num), vpp(NewTrm, Num)) :-
+  not(member(map(Num, _), Maps)),
+  subst(Maps, Trm, NewTrm).
 
 subst(Map, neg(Trm), neg(NewTrm)) :-
   subst(Map, Trm, NewTrm).
@@ -369,7 +439,7 @@ unifier(vpp(Trm1, Num1), vpp(Trm2, Num2), Maps) :-
   subst([map(Num2, Num1)], Trm1, NewTrm1),
   subst([map(Num2, Num1)], Trm2, NewTrm2),
   unifier(NewTrm1, NewTrm2, TmpMaps),
-  compose_maps([map(Num2, Trm1)], TmpMaps, Maps).
+  compose_maps([map(Num2, Num1)], TmpMaps, Maps).
 
 unifiers(Trm1, Trm2, Dsj, Unf1, Unf2) :-
   subst(Dsj, Trm2, NewTrm2),
@@ -442,20 +512,6 @@ surjective(Ran, Nums) :-
   range(Lth, Idxs),
   subset(Idxs, Nums).
 
-% increment(Num, SuccNum) :-
-%   SuccNum is Num + 1.
-
-% find_indices(_, [], []).
-%
-% find_indices(Elm, [Elm | Lst], [0 | Idxs]) :-
-%   find_indices(Elm, Lst, Tmp),
-%   maplist(increment, Tmp, Idxs).
-%
-% find_indices(Elm, [Hd | Lst], Idxs) :-
-%   not(Elm = Hd),
-%   find_indices(Elm, Lst, Tmp),
-%   maplist(increment, Tmp, Idxs).
-
 count(_, [], 0).
 
 count(Elm, [Elm | Lst], Cnt) :-
@@ -469,12 +525,12 @@ count(Elm, [Hd | Lst], Cnt) :-
 compile_cnts_aux(Cla, Idx, Tl, [], Cla, Tl) :-
   not(member(Idx, Tl)).
 
-compile_cnts_aux(Cla, Idx, Tl, [num(Num), rot, cont | Infs], RstCla, RstTl) :-
+compile_cnts_aux([Lit | Cla], Idx, Tl, [num(Num), rot, cont | Infs], RstCla, RstTl) :-
   nth0(PredNum, Tl, Idx),
   Num is PredNum + 1,
   rot(PredNum, Tl, [Idx | NewTl]),
-  rot(Num, Cla, NewCla),
-  compile_cnts_aux(NewCla, Idx, NewTl, Infs, RstCla, RstTl).
+  rot(PredNum, Cla, [Lit | NewCla]),
+  compile_cnts_aux([Lit | NewCla], Idx, NewTl, Infs, RstCla, RstTl).
 
 compile_cnts(Cla, Idx, Idxs, [], Cla) :-
   not(member(Idx, Idxs)).
@@ -530,8 +586,6 @@ compile(Mat, Lns, _, Tgt, res(Num1, Num2), Infs, Rst) :-
   compile_map(Tmp, Tgt, MapInfs, Rst),
   append(ResInfs, MapInfs, Infs).
 
-compile(_, _, _, _, res(Num1, Num2), resfail(Num1, Num2), _).
-
 compile(Mat, Lns, _, Tgt, map(Num), Infs, Rst) :-
   compile(Mat, Lns, Num, Infs1, Tmp),
   compile_map(Tmp, Tgt, Infs2, Rst),
@@ -562,6 +616,10 @@ format_infs(res, "r").
 format_infs(rot, "t").
 format_infs(cont, "c").
 format_infs(sub, "s").
+format_infs(nil, "e").
+format_infs(cons, "m").
+format_infs(sym, "y").
+format_infs(app, "a").
 
 print_infs(Infs) :-
   maplist(format_infs, Infs, Strs),
@@ -570,9 +628,18 @@ print_infs(Infs) :-
 
 main([Argv]) :-
   split_string(Argv, " ", " ", Tks),
-  mat([], Tks, Mat),
-  tptp_mat(Mat, 1, Goal),
-  write_goal(Goal),
-  read_proof(Lns),
-  compile(Mat, Lns, Infs),
-  print_infs(Infs).
+  (
+    (
+      mat([], Tks, Mat),
+      tptp_mat(Mat, 1, Goal),
+      write_goal(Goal),
+      read_proof(Lns),
+      compile(Mat, Lns, Infs),
+      print_infs(Infs)
+      % write(error(Mat, Lns))
+    ) ;
+    (
+      write("Compilation failed : "),
+      write(Tks)
+    )
+  ).

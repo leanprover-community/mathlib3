@@ -45,7 +45,6 @@ with the above definition of "preserves limits".
 
 -/
 
--- TODO make is_limit arguments []
 class preserves_limit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves : Π {c : cone K} [is_limit c], is_limit (F.map_cone c))
 class preserves_colimit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
@@ -104,11 +103,11 @@ local attribute [elab_simple] preserves_limit.preserves preserves_colimit.preser
 
 instance comp_preserves_limit [preserves_limit K F] [preserves_limit (K ⋙ F) G] :
   preserves_limit K (F ⋙ G) :=
-⟨λ c h, by exactI @preserves_limit.preserves _ _ _ _ _ _ _ G _ _ (preserves_limit.preserves K F)⟩
+⟨λ c h, by exactI @preserves_limit.preserves _ _ _ _ _ _ (K ⋙ F) G _ _ (preserves_limit.preserves K F)⟩
 
 instance comp_preserves_colimit [preserves_colimit K F] [preserves_colimit (K ⋙ F) G] :
   preserves_colimit K (F ⋙ G) :=
-⟨λ c h, by exactI @preserves_colimit.preserves _ _ _ _ _ _ _ G _ _ (preserves_colimit.preserves K F)⟩
+⟨λ c h, by exactI @preserves_colimit.preserves _ _ _ _ _ _ (K ⋙ F) G _ _ (preserves_colimit.preserves K F)⟩
 
 end
 

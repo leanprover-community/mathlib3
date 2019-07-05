@@ -318,7 +318,7 @@ by erw is_limit.fac
 def limit.hom_iso (F : J ⥤ C) [has_limit F] (W : C) : (W ⟶ limit F) ≅ (F.cones.obj (op W)) :=
 (limit.is_limit F).hom_iso W
 
-@[simp] lemma limit.hom_iso_hom (F : J ⥤ C) [has_limit F] {W : C} (f : W ⟶ limit F):
+@[simp] lemma limit.hom_iso_hom (F : J ⥤ C) [has_limit F] {W : C} (f : W ⟶ limit F) :
   (limit.hom_iso F W).hom f = (const J).map f ≫ (limit.cone F).π :=
 (limit.is_limit F).hom_iso_hom f
 
@@ -581,7 +581,7 @@ by erw is_colimit.fac
 def colimit.hom_iso (F : J ⥤ C) [has_colimit F] (W : C) : (colimit F ⟶ W) ≅ (F.cocones.obj W) :=
 (colimit.is_colimit F).hom_iso W
 
-@[simp] lemma colimit.hom_iso_hom (F : J ⥤ C) [has_colimit F] {W : C} (f : colimit F ⟶ W):
+@[simp] lemma colimit.hom_iso_hom (F : J ⥤ C) [has_colimit F] {W : C} (f : colimit F ⟶ W) :
   (colimit.hom_iso F W).hom f = (colimit.cocone F).ι ≫ (const J).map f :=
 (colimit.is_colimit F).hom_iso_hom f
 
@@ -623,7 +623,7 @@ colimit.desc (E ⋙ F)
 @[simp] lemma colimit.ι_pre (k : K) : colimit.ι (E ⋙ F) k ≫ colimit.pre F E = colimit.ι F (E.obj k) :=
 by erw is_colimit.fac
 
-@[simp] lemma colimit.ι_pre_assoc (k : K) {Z : C} (f : colimit F ⟶ Z):
+@[simp] lemma colimit.ι_pre_assoc (k : K) {Z : C} (f : colimit F ⟶ Z) :
   colimit.ι (E ⋙ F) k ≫ (colimit.pre F E) ≫ f = ((colimit.ι F (E.obj k)) : (E ⋙ F).obj k ⟶ colimit F) ≫ f :=
 by rw [←category.assoc, colimit.ι_pre]
 
@@ -661,7 +661,7 @@ colimit.desc (F ⋙ G)
 @[simp] lemma colimit.ι_post (j : J) : colimit.ι (F ⋙ G) j ≫ colimit.post F G  = G.map (colimit.ι F j) :=
 by erw is_colimit.fac
 
-@[simp] lemma colimit.ι_post_assoc (j : J) {Y : D} (f : G.obj (colimit F) ⟶ Y):
+@[simp] lemma colimit.ι_post_assoc (j : J) {Y : D} (f : G.obj (colimit F) ⟶ Y) :
   colimit.ι (F ⋙ G) j ≫ colimit.post F G  ≫ f = G.map (colimit.ι F j) ≫ f :=
 by rw [←category.assoc, colimit.ι_post]
 
@@ -740,7 +740,7 @@ variables {F} {G : J ⥤ C} (α : F ⟶ G)
 @[simp] lemma colim.ι_map (j : J) : colimit.ι F j ≫ colim.map α = α.app j ≫ colimit.ι G j :=
 by apply is_colimit.fac
 
-@[simp] lemma colim.ι_map_assoc (j : J) {Y : C} (f : colimit G ⟶ Y):
+@[simp] lemma colim.ι_map_assoc (j : J) {Y : C} (f : colimit G ⟶ Y) :
   colimit.ι F j ≫ colim.map α ≫ f = α.app j ≫ colimit.ι G j ≫ f :=
 by rw [←category.assoc, colim.ι_map, category.assoc]
 

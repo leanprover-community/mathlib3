@@ -304,6 +304,14 @@ theorem sup_mul : (I ⊔ J) * K = I * K ⊔ J * K :=
 submodule.sup_smul I J K
 variables {I J K}
 
+lemma pow_le_pow {m n : ℕ} (h : m ≤ n) :
+  I^n ≤ I^m :=
+begin
+  cases nat.exists_eq_add_of_le h with k hk,
+  rw [hk, pow_add],
+  exact le_trans (mul_le_inf) (lattice.inf_le_left)
+end
+
 def radical (I : ideal R) : ideal R :=
 { carrier := { r | ∃ n : ℕ, r ^ n ∈ I },
   zero := ⟨1, (pow_one (0:R)).symm ▸ I.zero_mem⟩,
@@ -471,6 +479,12 @@ theorem comap_radical : comap f (radical K) = radical (comap f K) :=
 le_antisymm (λ r ⟨n, hfrnk⟩, ⟨n, show f (r ^ n) ∈ K,
   from (is_semiring_hom.map_pow f r n).symm ▸ hfrnk⟩)
 (λ r ⟨n, hfrnk⟩, ⟨n, is_semiring_hom.map_pow f r n ▸ hfrnk⟩)
+
+@[simp] lemma map_quotient_self :
+  map (quotient.mk I) I = ⊥ :=
+lattice.eq_bot_iff.2 $ ideal.map_le_iff_le_comap.2 $ λ x hx,
+(submodule.mem_bot I.quotient).2 $ ideal.quotient.eq_zero_iff_mem.2 hx
+
 variables {I J K L}
 
 theorem map_inf_le : map f (I ⊓ J) ≤ map f I ⊓ map f J :=

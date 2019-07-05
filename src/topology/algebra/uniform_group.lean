@@ -258,13 +258,14 @@ have uf   : uniform_continuous f := uniform_continuous_of_continuous hf,
 have hfx  : tendsto f (comap e (nhds x)) (nhds (df x)) := uniformly_extend_spec ue de.dense uf x,
 have hfy  : tendsto f (comap e (nhds y)) (nhds (df y)) := uniformly_extend_spec ue de.dense uf y,
 have hfxy : tendsto f (comap e (nhds x + nhds y)) (nhds (df (x + y))),
-  by { convert uniformly_extend_spec ue de.dense uf (x + y), exact nhds_add_nhds _ _ },
+  by { convert uniformly_extend_spec ue de.dense uf (x + y), exact (nhds_pointwise_add _ _).symm },
 have h    : tendsto f (comap e (nhds x) + comap e (nhds y)) (nhds (df x + df y)),
-  by { convert tendsto_add_add hfx hfy, exact (nhds_add_nhds _ _).symm },
+  by { convert tendsto_add_add hfx hfy, exact nhds_pointwise_add _ _ },
 begin
   have := tendsto_le_left (comap_add_comap_le e) hfxy,
   show df (x + y) = df x + df y,
-  refine tendsto_nhds_unique (add_ne_bot (comap_nhds_neq_bot de) (comap_nhds_neq_bot de)) this h
+  exact tendsto_nhds_unique
+    (pointwise_add_ne_bot (comap_nhds_neq_bot de) (comap_nhds_neq_bot de)) this h
 end
 
 end dense_embedding

@@ -334,6 +334,7 @@ end add_group_with_zero_nhd
 section filter_mul
 local attribute [instance]
   set.pointwise_one set.pointwise_mul set.pointwise_add filter.pointwise_mul filter.pointwise_add
+  filter.pointwise_one
 
 section
 variables [topological_space α] [group α] [topological_group α]
@@ -361,12 +362,19 @@ end
 section
 variables [topological_space α] [comm_group α] [topological_group α]
 
-@[to_additive nhds_add_nhds]
-lemma nhds_mul_nhds (x y : α) : nhds x * nhds y = nhds (x * y) :=
+@[to_additive nhds_pointwise_add]
+lemma nhds_pointwise_mul (x y : α) : nhds (x * y) = nhds x * nhds y :=
 filter_eq $ set.ext $ assume s,
 begin
   rw [← nhds_translation_mul_inv x, ← nhds_translation_mul_inv y, ← nhds_translation_mul_inv (x*y)],
   split,
+  { rintros ⟨t, ht, ts⟩,
+    rcases exists_nhds_split ht with ⟨V, V_mem, h⟩,
+    refine ⟨(λa, a * x⁻¹) ⁻¹' V, ⟨V, V_mem, subset.refl _⟩,
+            (λa, a * y⁻¹) ⁻¹' V, ⟨V, V_mem, subset.refl _⟩, _⟩,
+    rintros a ⟨v, v_mem, w, w_mem, rfl⟩,
+    apply ts,
+    simpa [mul_comm, mul_assoc, mul_left_comm] using h (v * x⁻¹) (w * y⁻¹) v_mem w_mem },
   { rintros ⟨a, ⟨b, hb, ba⟩, c, ⟨d, hd, dc⟩, ac⟩,
     refine ⟨b ∩ d, inter_mem_sets hb hd, assume v, _⟩,
     simp only [preimage_subset_iff, mul_inv_rev, mem_preimage_eq] at *,
@@ -374,15 +382,11 @@ begin
     refine ac ⟨v * y⁻¹, _, y, _, _⟩,
     { rw ← mul_assoc _ _ _ at vb, exact ba _ vb },
     { apply dc y, rw mul_right_inv, exact mem_of_nhds hd },
-    { simp only [inv_mul_cancel_right] } },
-  { rintros ⟨t, ht, ts⟩,
-    rcases exists_nhds_split ht with ⟨V, V_mem, h⟩,
-    refine ⟨(λa, a * x⁻¹) ⁻¹' V, ⟨V, V_mem, subset.refl _⟩,
-            (λa, a * y⁻¹) ⁻¹' V, ⟨V, V_mem, subset.refl _⟩, _⟩,
-    rintros a ⟨v, v_mem, w, w_mem, rfl⟩,
-    apply ts,
-    simpa [mul_comm, mul_assoc, mul_left_comm] using h (v * x⁻¹) (w * y⁻¹) v_mem w_mem }
+    { simp only [inv_mul_cancel_right] } }
 end
+
+@[to_additive nhds_is_add_hom]
+def nhds_is_mul_hom : is_mul_hom (λx:α, nhds x) := ⟨λ_ _, nhds_pointwise_mul _ _⟩
 
 end
 

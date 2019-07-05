@@ -41,6 +41,31 @@ instance left_adjoint_preserves_colimits : preserves_colimits F :=
         (λ s, (((adj.functoriality_is_left_adjoint _).adj).hom_equiv _ _).unique_of_equiv $
           is_colimit_iso_unique_cocone_morphism.hom hc _ ) } } }.
 
+omit adj
+
+-- TODO the implicit arguments make preserves_colimit* quite hard to use.
+-- This should be refactored at some point. (Possibly including making `is_colimit` a class.)
+def is_colimit_map_cocone (E : C ⥤ D) [is_equivalence E]
+  (c : cocone K) (h : is_colimit c) : is_colimit (E.map_cocone c) :=
+begin
+  have P : preserves_colimits E := adjunction.left_adjoint_preserves_colimits E.adjunction,
+  have P' := P.preserves_colimits_of_shape,
+  have P'' := P'.preserves_colimit,
+  have P''' := P''.preserves,
+  exact P''' h,
+end
+
+instance has_colimit_comp_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimit K] :
+  has_colimit (K ⋙ E) :=
+{ cocone := E.map_cocone (colimit.cocone K),
+  is_colimit := is_colimit_map_cocone _ _ _ (colimit.is_colimit K) }
+
+def has_colimit_of_comp_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimit (K ⋙ E)] :
+  has_colimit K :=
+@has_colimit_of_iso _ _ _ _ (K ⋙ E ⋙ inv E) K
+(@adjunction.has_colimit_comp_equivalence _ _ _ _ _ _ (K ⋙ E) (inv E) _ _)
+((functor.right_unitor _).symm ≪≫ (iso_whisker_left K (fun_inv_id E)).symm)
+
 end preservation_colimits
 
 section preservation_limits

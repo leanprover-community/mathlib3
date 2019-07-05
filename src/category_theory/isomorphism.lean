@@ -223,6 +223,8 @@ by rw [←map_comp, is_iso.hom_inv_id, map_id]
   F.map (inv f) ≫ F.map f = 𝟙 (F.obj Y) :=
 by rw [←map_comp, is_iso.inv_hom_id, map_id]
 
+@[simp] lemma map_inv (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) [is_iso f] : F.map (inv f) = inv (F.map f) := rfl
+
 end functor
 
 end category_theory

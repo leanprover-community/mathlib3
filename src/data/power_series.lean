@@ -19,9 +19,45 @@ instance [partial_order α] [has_zero α] : partial_order (σ →₀ α) :=
 { le_antisymm := λ f g hfg hgf, finsupp.ext $ λ s, le_antisymm (hfg s) (hgf s),
   .. finsupp.preorder }
 
-instance [canonically_ordered_monoid α] : order_bot (σ →₀ α) :=
-{ bot := 0,
+instance [ordered_cancel_comm_monoid α] [decidable_eq α] :
+  add_left_cancel_semigroup (σ →₀ α) :=
+{ add_left_cancel := λ a b c h, finsupp.ext $ λ s,
+  by { rw finsupp.ext_iff at h, exact add_left_cancel (h s) },
+  .. finsupp.add_monoid }
+
+instance [ordered_cancel_comm_monoid α] [decidable_eq α] :
+  add_right_cancel_semigroup (σ →₀ α) :=
+{ add_right_cancel := λ a b c h, finsupp.ext $ λ s,
+  by { rw finsupp.ext_iff at h, exact add_right_cancel (h s) },
+  .. finsupp.add_monoid }
+
+instance [ordered_cancel_comm_monoid α] [decidable_eq α] :
+  ordered_cancel_comm_monoid (σ →₀ α) :=
+{ add_le_add_left := λ a b h c s, add_le_add_left (h s) (c s),
+  le_of_add_le_add_left := λ a b c h s, le_of_add_le_add_left (h s),
+  .. finsupp.add_comm_monoid, .. finsupp.partial_order,
+  .. finsupp.add_left_cancel_semigroup, .. finsupp.add_right_cancel_semigroup }
+
+instance [canonically_ordered_monoid α] [decidable_eq α] :
+  canonically_ordered_monoid (σ →₀ α) :=
+{ add_le_add_left := λ a b h c s,
+  begin
+    sorry,-- convert add_le_add_left (h s) (c s),
+  end,
+  lt_of_add_lt_add_left := λ a b c h,
+  begin
+    split,
+    { intro s,
+      refine le_of_lt (canonically_ordered_monoid.lt_of_add_lt_add_left (a s) _ _ _),
+
+       },
+  end, --lt_of_add_lt_add_left (h.1 s),
+  le_iff_exists_add := λ a b,
+  ⟨λ h, _,
+  by { rintros ⟨c, rfl⟩ s, exact le_add_right (le_refl _) }⟩,
+  bot := 0,
   bot_le := λ f s, zero_le _,
+  .. finsupp.add_comm_monoid,
   .. finsupp.partial_order }
 
 lemma le_iff [canonically_ordered_monoid α] (f g : σ →₀ α) :
@@ -32,11 +68,6 @@ lemma le_iff [canonically_ordered_monoid α] (f g : σ →₀ α) :
 def nat_downset (f : σ →₀ ℕ) : finset (σ →₀ ℕ) :=
 (f.support.pi (λ x, finset.range $ f x + 1)).image $
 λ g, f.support.attach.sum $ λ i, finsupp.single i.1 $ g i.1 i.2
-
-@[simp] lemma nat_downset_zero : nat_downset (0 : σ →₀ ℕ) = {0} :=
-begin
-  sorry
-end
 
 theorem sum_apply' [decidable_eq α] [add_comm_monoid α] {β : Type*} {f : β → σ →₀ α} {ι : finset β} {i : σ} :
   ι.sum f i = ι.sum (λ x, f x i) :=
@@ -72,6 +103,9 @@ begin
         exact nat.eq_zero_of_le_zero (hi ▸ hf i),
         { intros j hj, rw [single_apply, if_neg], rintros rfl, exact hi j.2 } } } }
 end
+
+@[simp] lemma nat_downset_zero : nat_downset (0 : σ →₀ ℕ) = {0} :=
+le_antisymm (λ a h, by { rw [mem_nat_downset_iff_le, ← bot_eq_zero] at h, }) _
 
 end finsupp
 

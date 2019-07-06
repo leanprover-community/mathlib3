@@ -10,7 +10,12 @@ import order.lexicographic
 namespace tactic
 open native
 
-local attribute [instance] lex_decidable_linear_order
+universes u v
+
+def pair_decidable_linear_order {α : Type u} {β : Type v} [decidable_linear_order α] [decidable_linear_order β] :
+  decidable_linear_order (α × β) := lex_decidable_linear_order
+
+local attribute [instance] pair_decidable_linear_order
 
 -- Just a check that we're actually using lexicographic ordering here.
 example : (5,10) ≤ (10,3) := by exact dec_trivial
@@ -306,7 +311,7 @@ do set_goals [g],
     -- TODO get rid of apply_thorough; instead explicitly put the two directions of iff lemmas in the pool.
     /- We apply the lemma, and then eagerly discharge propositional subgoals not containing metavariables, using the facts.
        It's important we leave other subgoals for the outside machinery, so that we can back out of incorrect choices. -/
-   seq (apply_thorough e.lem >> skip)
+   seq (apply_iff e.lem >> skip)
        ((do [g] ← get_goals,
           is_proof g >>= guardb,
           (list.empty ∘ expr.list_meta_vars) <$> infer_type g >>= guardb,
@@ -469,18 +474,18 @@ meta inductive back_arg_type : Type
 | back     : pexpr → back_arg_type
 | elim     : pexpr → back_arg_type
 
-meta def back_arg : parser back_arg_type :=
+meta def back_arg : lean.parser back_arg_type :=
 (tk "*" *> return back_arg_type.all_hyps)
 <|> (tk "-" *> back_arg_type.except <$> ident)
 <|> (tk "!" *> (back_arg_type.back <$> texpr))
 <|> (back_arg_type.elim <$> texpr)
 
-meta def back_arg_list : parser (list back_arg_type) :=
+meta def back_arg_list : lean.parser (list back_arg_type) :=
 (tk "*" *> return [back_arg_type.all_hyps]) <|> list_of back_arg <|> return []
 
 local postfix *:9001 := many
 
-meta def with_back_ident_list : parser (list (name × bool)) :=
+meta def with_back_ident_list : lean.parser (list (name × bool)) :=
 (tk "with" *> (((λ n, (n, ff)) <$> ident_) <|> (tk "!" *> (λ n, (n, tt)) <$> ident))*) <|> return []
 
 private meta def resolve_exception_ids (all_hyps : bool) :

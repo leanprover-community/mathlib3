@@ -193,13 +193,13 @@ section infinitude_of_prime_by_library_search
 
 -- set_option trace.back true
 
-example (N : ℕ) : (∃ p ≥ N, prime p) ∨ true :=
-begin
-  let M := fact N + 1,
-  let p := min_fac M,
-  have pp : prime p, { apply min_fac_prime, apply ne_of_gt, library_search, },
-  right, trivial
-end
+-- example (N : ℕ) : (∃ p ≥ N, prime p) ∨ true :=
+-- begin
+--   let M := fact N + 1,
+--   let p := min_fac M,
+--   have pp : prime p, { apply min_fac_prime, apply ne_of_gt, library_search, },
+--   right, trivial
+-- end
 
 -- works with timeLimit = 1,000,000
 -- example (N : ℕ) : (∃ p ≥ N, prime p) ∨ true :=
@@ -212,106 +212,106 @@ end
 
 end infinitude_of_prime_by_library_search
 
-section nat
+-- section nat
 
-example {a b : ℕ} : a ≤ a + b :=
-by library_search -- exact le_add_right a b
+-- example {a b : ℕ} : a ≤ a + b :=
+-- by library_search -- exact le_add_right a b
 
-example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
-by library_search -- exact nat.mul_sub_left_distrib n m k
+-- example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
+-- by library_search -- exact nat.mul_sub_left_distrib n m k
 
--- set_option trace.back true
+-- -- set_option trace.back true
 
-lemma div_dvd_of_dvd {a b : ℕ} (h : b ∣ a) : (a / b) ∣ a :=
--- The mathlib proof is: `⟨b, (nat.div_mul_cancel h).symm⟩`
-by library_search [-div_dvd_of_dvd]
--- We get: `dvd.intro b (nat.div_mul_cancel h)`
+-- lemma div_dvd_of_dvd {a b : ℕ} (h : b ∣ a) : (a / b) ∣ a :=
+-- -- The mathlib proof is: `⟨b, (nat.div_mul_cancel h).symm⟩`
+-- by library_search [-div_dvd_of_dvd]
+-- -- We get: `dvd.intro b (nat.div_mul_cancel h)`
 
-lemma div_pos {a b : ℕ} (hba : b ≤ a) (hb : 0 < b) : 0 < a / b :=
-by library_search
-
-example {a b : ℕ} (hba : b ≤ a) (hb : b ≠ 0) : 0 < a / b :=
-by library_search
-
--- set_option trace.back_lemmas true
-lemma one_le_of_lt {n m : ℕ} (h : n < m) : 1 ≤ m :=
-by library_search [-one_le_of_lt]
--- a human proof:
--- lt_of_le_of_lt (nat.zero_le _) h
-
--- 2nd library_search result:
--- lattice.distrib_lattice.le_trans 1 (succ n) m (succ_pos n) h
--- 1st library_search result:
--- lattice.distrib_lattice.le_trans 1 (succ n) m (lattice.le_of_inf_eq min_fac_one) h
-
--- It would be nice to just use `nat.le_trans` here!
-
-lemma le_pred_of_lt {n m : ℕ} (h : m < n) : m ≤ n - 1 :=
-by library_search [-le_pred_of_lt] -- says: `exact nat.le_sub_right_of_add_le h`
-
-example {α : Type} (x y : α) : x = y ↔ y = x :=
-by library_search -- says: `exact eq_comm`
-
-example (a b : ℕ) (ha : 0 < a) (hb : 0 < b) : 0 < a + b :=
-by library_search -- says: `exact add_pos_left ha b`
-
-example (a b : ℕ) : 0 < a → 0 < b → 0 < a + b :=
-by library_search -- says: `exact add_pos`
-
-example : ∀ P : Prop, ¬(P ↔ ¬P) :=
-by library_search -- says: `λ (a : Prop), (iff_not_self a).mp`
-
--- set_option trace.back_lemmas true
--- set_option trace.back false
-
-example (a b : ℕ) (h : a ∣ b) (w : b > 0) : a ≤ b :=
-by library_search
-
-example (a b : ℕ) (h : a ∣ b) (w : b ≥ 1) : a ≤ b :=
-by library_search
-
-example (a b : ℕ) (h : a ∣ b) (w : b ≠ 0) : a ≤ b :=
-by library_search
-
-example {a b : ℕ} (w : b ≥ 1) : a ≤ a * b :=
-by library_search
-
-example {b : ℕ} (w : b > 0) : b ≥ 1 :=
-by library_search
-
-example {b : ℕ} (w : b ≠ 0) : b ≥ 1 :=
-by library_search
-
--- Nope:
--- example (a b c : ℕ) (h : b ≤ c) (w : b ≥ 1) : a / c ≤ a / b :=
+-- lemma div_pos {a b : ℕ} (hba : b ≤ a) (hb : 0 < b) : 0 < a / b :=
 -- by library_search
 
--- example (a b c : ℕ) (h : b ≤ c) (w : b ≠ 0) : a / c ≤ a / b :=
+-- example {a b : ℕ} (hba : b ≤ a) (hb : b ≠ 0) : 0 < a / b :=
 -- by library_search
 
--- example {E : Type} (e : equiv E E) : function.surjective e :=
+-- -- set_option trace.back_lemmas true
+-- lemma one_le_of_lt {n m : ℕ} (h : n < m) : 1 ≤ m :=
+-- by library_search [-one_le_of_lt]
+-- -- a human proof:
+-- -- lt_of_le_of_lt (nat.zero_le _) h
+
+-- -- 2nd library_search result:
+-- -- lattice.distrib_lattice.le_trans 1 (succ n) m (succ_pos n) h
+-- -- 1st library_search result:
+-- -- lattice.distrib_lattice.le_trans 1 (succ n) m (lattice.le_of_inf_eq min_fac_one) h
+
+-- -- It would be nice to just use `nat.le_trans` here!
+
+-- lemma le_pred_of_lt {n m : ℕ} (h : m < n) : m ≤ n - 1 :=
+-- by library_search [-le_pred_of_lt] -- says: `exact nat.le_sub_right_of_add_le h`
+
+-- example {α : Type} (x y : α) : x = y ↔ y = x :=
+-- by library_search -- says: `exact eq_comm`
+
+-- example (a b : ℕ) (ha : 0 < a) (hb : 0 < b) : 0 < a + b :=
+-- by library_search -- says: `exact add_pos_left ha b`
+
+-- example (a b : ℕ) : 0 < a → 0 < b → 0 < a + b :=
+-- by library_search -- says: `exact add_pos`
+
+-- example : ∀ P : Prop, ¬(P ↔ ¬P) :=
+-- by library_search -- says: `λ (a : Prop), (iff_not_self a).mp`
+
+-- -- set_option trace.back_lemmas true
+-- -- set_option trace.back false
+
+-- example (a b : ℕ) (h : a ∣ b) (w : b > 0) : a ≤ b :=
 -- by library_search
 
-
--- FIXME why are these failing?
--- -- Works with timeLimit = 1,000,000
--- example {a b : ℕ} (w : b > 0) : a ≤ a * b :=
+-- example (a b : ℕ) (h : a ∣ b) (w : b ≥ 1) : a ≤ b :=
 -- by library_search
 
--- -- Doesn't work:
--- example {a b : ℕ} (w : b ≠ 0) : a ≤ a * b :=
+-- example (a b : ℕ) (h : a ∣ b) (w : b ≠ 0) : a ≤ b :=
 -- by library_search
 
+-- example {a b : ℕ} (w : b ≥ 1) : a ≤ a * b :=
+-- by library_search
 
--- An example to try, from James:
--- c : ℕ,
--- lH : c > succ n,
--- snec : succ n ≠ c,
--- onec : 1 ≠ c
--- ⊢ c ∣ succ n ↔ c = 1 ∨ c = succ n
+-- example {b : ℕ} (w : b > 0) : b ≥ 1 :=
+-- by library_search
 
--- Doesn't work
--- example (m n : ℕ) (h : 2*m ≤ n) : m ≤ n/2 := by library_search
+-- example {b : ℕ} (w : b ≠ 0) : b ≥ 1 :=
+-- by library_search
 
--- example (m n : ℕ) : m = 2 * m / 2 := by library_search
-end nat
+-- -- Nope:
+-- -- example (a b c : ℕ) (h : b ≤ c) (w : b ≥ 1) : a / c ≤ a / b :=
+-- -- by library_search
+
+-- -- example (a b c : ℕ) (h : b ≤ c) (w : b ≠ 0) : a / c ≤ a / b :=
+-- -- by library_search
+
+-- -- example {E : Type} (e : equiv E E) : function.surjective e :=
+-- -- by library_search
+
+
+-- -- FIXME why are these failing?
+-- -- -- Works with timeLimit = 1,000,000
+-- -- example {a b : ℕ} (w : b > 0) : a ≤ a * b :=
+-- -- by library_search
+
+-- -- -- Doesn't work:
+-- -- example {a b : ℕ} (w : b ≠ 0) : a ≤ a * b :=
+-- -- by library_search
+
+
+-- -- An example to try, from James:
+-- -- c : ℕ,
+-- -- lH : c > succ n,
+-- -- snec : succ n ≠ c,
+-- -- onec : 1 ≠ c
+-- -- ⊢ c ∣ succ n ↔ c = 1 ∨ c = succ n
+
+-- -- Doesn't work
+-- -- example (m n : ℕ) (h : 2*m ≤ n) : m ≤ n/2 := by library_search
+
+-- -- example (m n : ℕ) : m = 2 * m / 2 := by library_search
+-- end nat

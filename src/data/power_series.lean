@@ -6,6 +6,19 @@ Authors: Johan Commelin, Kenny Lau
 
 import data.finsupp order.complete_lattice algebra.ordered_group data.mv_polynomial
 
+section
+
+set_option old_structure_cmd true
+
+class canonically_ordered_cancel_monoid (α : Type*) extends
+  ordered_cancel_comm_monoid α, canonically_ordered_monoid α.
+
+instance : canonically_ordered_cancel_monoid ℕ :=
+{ ..nat.canonically_ordered_comm_semiring,
+  ..nat.decidable_linear_ordered_cancel_comm_monoid }
+
+end
+
 namespace finsupp
 open lattice
 variables {σ : Type*} {α : Type*} [decidable_eq σ]
@@ -38,27 +51,53 @@ instance [ordered_cancel_comm_monoid α] [decidable_eq α] :
   .. finsupp.add_comm_monoid, .. finsupp.partial_order,
   .. finsupp.add_left_cancel_semigroup, .. finsupp.add_right_cancel_semigroup }
 
-instance [canonically_ordered_monoid α] [decidable_eq α] :
-  canonically_ordered_monoid (σ →₀ α) :=
-{ add_le_add_left := λ a b h c s,
-  begin
-    sorry,-- convert add_le_add_left (h s) (c s),
-  end,
+instance [canonically_ordered_cancel_monoid α] [decidable_eq α] : ordered_comm_monoid (σ →₀ α) :=
+{ add_le_add_left := λ a b h c s, ordered_comm_monoid.add_le_add_left _ _ (h s) (c s),
   lt_of_add_lt_add_left := λ a b c h,
-  begin
-    split,
-    { intro s,
-      refine le_of_lt (canonically_ordered_monoid.lt_of_add_lt_add_left (a s) _ _ _),
-
-       },
-  end, --lt_of_add_lt_add_left (h.1 s),
-  le_iff_exists_add := λ a b,
-  ⟨λ h, _,
-  by { rintros ⟨c, rfl⟩ s, exact le_add_right (le_refl _) }⟩,
-  bot := 0,
-  bot_le := λ f s, zero_le _,
+  ⟨λ s, le_of_add_le_add_left (h.1 s),
+   λ H, h.2 $ λ s, add_le_add_left (H s) _⟩,
   .. finsupp.add_comm_monoid,
   .. finsupp.partial_order }
+
+instance [canonically_ordered_monoid α] : order_bot (σ →₀ α) :=
+{ bot := 0,
+  bot_le := λ f s, zero_le _,
+  .. finsupp.partial_order }
+
+instance [canonically_ordered_cancel_monoid α] [decidable_eq α] :
+  canonically_ordered_monoid (σ →₀ α) :=
+{ le_iff_exists_add := λ a b,
+  begin
+    split,
+    { intro h,
+      let c' : σ → α := λ s, classical.some (le_iff_exists_add.1 $ h s),
+      let hc : ∀ s, b s = a s + c' s :=
+        λ s, classical.some_spec (le_iff_exists_add.1 $ h s),
+      let c : σ →₀ α :=
+      { support := b.support.filter (λ s, b s ≠ a s),
+        to_fun := c',
+        mem_support_to_fun := λ s,
+        begin
+          rw [finset.mem_filter, finsupp.mem_support_iff], split; intro H,
+          { intro hcs, apply H.2, simpa [hcs] using hc s },
+          { split; intro H'; apply H,
+            { suffices ha : a s = 0, by simpa [ha, H'] using (hc s).symm,
+              rw ← bot_eq_zero at *,
+              simpa [H'] using h s },
+            { have := (hc s).symm,
+              conv_rhs at this { rw [H', ← add_zero (a s)] },
+              exact add_left_cancel this } }
+        end },
+      use c, ext1 s, exact hc s },
+    { rintros ⟨c, rfl⟩ s, exact le_add_right (le_refl _) }
+  end,
+  .. finsupp.lattice.order_bot,
+  .. finsupp.ordered_comm_monoid }
+
+instance [canonically_ordered_cancel_monoid α] [decidable_eq α] :
+  canonically_ordered_cancel_monoid (σ →₀ α) :=
+{ .. finsupp.ordered_cancel_comm_monoid,
+  .. finsupp.canonically_ordered_monoid }
 
 lemma le_iff [canonically_ordered_monoid α] (f g : σ →₀ α) :
   f ≤ g ↔ ∀ s ∈ f.support, f s ≤ g s :=
@@ -104,8 +143,15 @@ begin
         { intros j hj, rw [single_apply, if_neg], rintros rfl, exact hi j.2 } } } }
 end
 
+lemma nat_downset_subset (f g : σ →₀ ℕ) (h : f ≤ g) : nat_downset f ⊆ nat_downset g :=
+begin
+  intro x,
+  simp only [mem_nat_downset_iff_le],
+  intro hx, exact le_trans hx h
+end
+
 @[simp] lemma nat_downset_zero : nat_downset (0 : σ →₀ ℕ) = {0} :=
-le_antisymm (λ a h, by { rw [mem_nat_downset_iff_le, ← bot_eq_zero] at h, }) _
+by { ext a, erw mem_nat_downset_iff_le }
 
 end finsupp
 
@@ -334,6 +380,8 @@ lemma coeff_mul (φ ψ : mv_polynomial σ α) (n) :
   coeff n (φ * ψ) = finset.sum (finsupp.nat_downset n) (λ m, coeff m φ * coeff (n - m) ψ) :=
 begin
   have helper : ∀ (m : σ →₀ ℕ), m - 0 = m := λ m, finsupp.ext (λ s, nat.sub_zero _),
+  have helper₂ : ∀ (n : σ →₀ ℕ) (s : σ), nat_downset (n - single s 1) ⊆ nat_downset n,
+  { intros n s, apply nat_downset_subset, intro x, apply nat.sub_le_self },
   revert n,
   apply mv_polynomial.induction_on φ,
   { apply mv_polynomial.induction_on ψ,
@@ -351,7 +399,35 @@ begin
     { intros p s hp a n, specialize hp a,
       rw [coeff_C_mul, coeff_mul_X'],
       split_ifs,
-      { rw [← coeff_C_mul, hp], sorry },
+      { rw [← coeff_C_mul, hp, ← finset.sum_sdiff (helper₂ n s)],
+        symmetry,
+        rw [finset.sum_eq_zero, zero_add, finset.sum_congr rfl],
+        { intros m hm,
+          congr' 1,
+          rw coeff_mul_X',
+          -- suffices : ∀ m, n - single s 1 - m = n - m - single s 1,
+          -- simp [this],
+          -- simp [nat.sub.right_comm],
+          },
+        { intros m hm,
+          suffices : s ∉ (n - m).support,
+          { rw [coeff_mul_X', if_neg this, mul_zero] },
+          rw finset.mem_sdiff at hm,
+          cases hm with hm₁ hm₂,
+          rw finsupp.not_mem_support_iff,
+          apply nat.sub_eq_zero_of_le,
+          rw mem_nat_downset_iff_le at hm₁,
+          rw not_iff_not_of_iff (mem_nat_downset_iff_le _ _) at hm₂,
+          apply le_of_eq,
+          by_contra H, apply hm₂,
+          intro t, by_cases hst : s = t;
+          change _ ≤ _ - _;
+          simp [single_apply, *, hm₁ t],
+          subst hst,
+          apply nat.le_sub_left_of_add_le,
+          rw add_comm,
+          exact lt_of_le_of_ne (hm₁ s) (ne.symm H) },
+      },
       { rw [mul_zero, finset.sum_eq_zero],
         intros m hm,
         rw coeff_mul_X',

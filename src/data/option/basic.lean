@@ -112,6 +112,12 @@ by cases x; simp [is_some]; exact ⟨_, rfl⟩
 @[simp] theorem not_is_some {a : option α} : is_some a = ff ↔ a.is_none = tt :=
 by cases a; simp
 
+lemma not_is_some_iff_eq_none {o : option α} :  ¬o.is_some ↔ o = none :=
+by cases o; simp
+
+lemma ne_none_iff_is_some {o : option α} : o ≠ none ↔ o.is_some :=
+by cases o; simp
+
 theorem iget_mem [inhabited α] : ∀ {o : option α}, is_some o → o.iget ∈ o
 | (some a) _ := rfl
 

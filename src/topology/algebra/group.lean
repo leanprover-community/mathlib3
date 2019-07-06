@@ -184,7 +184,7 @@ lemma quotient_group_saturate (s : set α) :
   (coe : α → quotient N) ⁻¹' ((coe : α → quotient N) '' s) = (⋃ x : N, (λ y, y*x.1) '' s) :=
 begin
   ext x,
-  simp only [mem_preimage_eq, mem_image, mem_Union, quotient_group.eq],
+  simp only [mem_preimage, mem_image, mem_Union, quotient_group.eq],
   split,
   { exact assume ⟨a, a_in, h⟩, ⟨⟨_, h⟩, a, a_in, mul_inv_cancel_left _ _⟩ },
   { exact assume ⟨⟨i, hi⟩, a, ha, eq⟩,

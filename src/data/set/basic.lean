@@ -772,7 +772,7 @@ variables {f : α → β} {g : β → γ}
 
 @[simp] theorem preimage_empty : f ⁻¹' ∅ = ∅ := rfl
 
-@[simp] theorem mem_preimage_eq {s : set β} {a : α} : (a ∈ f ⁻¹' s) = (f a ∈ s) := rfl
+@[simp] theorem mem_preimage {s : set β} {a : α} : (a ∈ f ⁻¹' s) ↔ (f a ∈ s) := iff.rfl
 
 theorem preimage_mono {s t : set β} (h : s ⊆ t) : f ⁻¹' s ⊆ f ⁻¹' t :=
 assume x hx, h hx

@@ -39,6 +39,12 @@ begin
     rw [max_eq_left h2, max_eq_left (succ_le_succ h2)] }
 end
 
+lemma not_succ_lt_zero : ∀ (n : ℕ), succ n < 0 → false
+.
+
+lemma not_succ_lt_self : ∀ n : ℕ, ¬succ n < n :=
+λ n, nat.rec (not_succ_lt_zero 0) (λ a b c, b (le_of_succ_le_succ c)) n
+
 theorem lt_succ_iff {m n : ℕ} : m < succ n ↔ m ≤ n :=
 succ_le_succ_iff
 
@@ -306,6 +312,32 @@ lemma le_mul_of_pos_right {m n : ℕ} (h : n > 0) : m ≤ m * n :=
 begin
   conv {to_lhs, rw [← mul_one(m)]},
   exact mul_le_mul_of_nonneg_left (nat.succ_le_of_lt h) dec_trivial,
+end
+
+theorem odd_lt_even_of_lt : Π {n m}, m < n → 2 * m + 1 < 2 * n
+| 0 m h := absurd h $ not_lt_zero _
+| (n+1) m h := 
+begin 
+  cases eq_or_lt_of_le (le_of_lt_succ h) with heq hlt, 
+  { simp [heq, mul_add], exact dec_trivial },
+  { apply lt_trans (odd_lt_even_of_lt hlt), 
+    simp [mul_add], 
+    exact dec_trivial }
+end
+
+theorem even_ne_odd {n m} : 2 * n ≠ 2 * m + 1 :=
+begin
+  cases lt_trichotomy n m,
+  { intro heq, 
+    have := @nat.mul_lt_mul_of_pos_left _ _ 2 h dec_trivial, 
+    rw heq at this, 
+    apply not_succ_lt_self _ this },
+  { cases h, 
+    { intro heq, rw h at heq, apply succ_ne_self _ heq.symm }, 
+    { intro heq, 
+      have := odd_lt_even_of_lt h, 
+      rw heq at this, 
+      apply lt_irrefl _ this} }
 end
 
 @[elab_as_eliminator]

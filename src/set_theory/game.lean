@@ -5,9 +5,11 @@ Authors: Mario Carneiro
 
 The basic theory of combinatorial games. The surreal numbers will be built as a subtype.
 -/
-import tactic.interactive data.nat.cast data.equiv.basic
+import tactic.interactive data.nat.cast data.equiv.basic logic.embedding
 
 universes u
+
+@[simp] lemma equiv.refl_symm {α : Type u} (a : α) : (equiv.refl α).symm a = a := rfl
 
 /-- The type of pre-games, before we have quotiented
   by extensionality. In ZFC, a combinatorial game is constructed from
@@ -41,9 +43,9 @@ inductive r : pgame → pgame → Prop
 | right : Π (x : pgame) (j : x.right_moves), r (x.move_right j) x
 | trans : Π (x y z : pgame), r x y → r y z → r x z
 
-def r.left' {xl xr} {xL : xl → pgame} {xR : xr → pgame} {i : xl} : r (xL i) (mk xl xr xL xR) :=
+def r.left_move {xl xr} {xL : xl → pgame} {xR : xr → pgame} {i : xl} : r (xL i) (mk xl xr xL xR) :=
 r.left (mk xl xr xL xR) (by { convert i, refl })
-def r.right' {xl xr} {xL : xl → pgame} {xR : xr → pgame} {j : xr} : r (xR j) (mk xl xr xL xR) :=
+def r.right_move {xl xr} {xL : xl → pgame} {xR : xr → pgame} {j : xr} : r (xR j) (mk xl xr xL xR) :=
 r.right (mk xl xr xL xR) (by { convert j, refl })
 
 theorem wf_r : well_founded r :=
@@ -60,6 +62,25 @@ end⟩
 instance : has_well_founded pgame :=
 { r := r,
   wf := wf_r }
+
+-- FIXME, ugh, the current implementation of `solve_by_elim` apparently only uses each passed lemma
+-- once. We cheat for now by repeating some of the lemmas!!
+meta def pgame_wf_tac :=
+`[solve_by_elim
+  [psigma.lex.left, psigma.lex.left, psigma.lex.right, psigma.lex.right, r.left_move, r.right_move, r.left, r.right, r.trans]
+  { max_rep := 10 }]
+
+-- This is is just a temporary test to check pgame_wf_tac is working.
+example {xl xr xL xR yl yr yL yR zl zr} {zL : zl → pgame} {zR} {i : zl} :
+  has_well_founded.r
+    (⟨mk xl xr xL xR, ⟨mk yl yr yL yR, zL i⟩⟩ : Σ' (g : pgame), Σ' (h : pgame), pgame)
+    (⟨mk xl xr xL xR, ⟨mk yl yr yL yR, mk zl zr zL zR⟩⟩ : Σ' (g : pgame), Σ' (h : pgame), pgame) :=
+begin
+  -- apply psigma.lex.right,
+  -- apply psigma.lex.right,
+  -- apply r.left',
+  pgame_wf_tac
+end
 
 /-- The pre-surreal zero is defined by `0 = { | }`. -/
 instance : has_zero pgame := ⟨⟨pempty, pempty, pempty.elim, pempty.elim⟩⟩
@@ -170,6 +191,23 @@ begin
     exact h i }
 end
 
+theorem zero_le {x : pgame} : 0 ≤ x ↔
+  ∀ j : x.right_moves, ∃ i : (x.move_right j).left_moves, 0 ≤ (x.move_right j).move_left i :=
+begin
+  rw le_def,
+  conv { to_lhs, congr, erw [forall_pempty], },
+  rw [true_and],
+  constructor,
+  { intros h j,
+    have hj := h j,
+    erw exists_pempty at hj,
+    simpa using hj, },
+  { intros h j,
+    erw exists_pempty,
+    rw [false_or],
+    exact h j }
+end
+
 /-- Given a right-player-wins game, provide a response to any move by left. -/
 noncomputable def right_response {x : pgame} (h : x ≤ 0) (i : x.left_moves) : (x.move_left i).right_moves :=
 classical.some $ (le_zero.1 h) i
@@ -179,7 +217,14 @@ classical.some $ (le_zero.1 h) i
 lemma right_response_spec {x : pgame} (h : x ≤ 0) (i : x.left_moves) : (x.move_left i).move_right (right_response h i) ≤ 0 :=
 classical.some_spec $ (le_zero.1 h) i
 
--- TODO define zero_le, left_response, and left_response_spec
+/-- Given a left-player-wins game, provide a response to any move by right. -/
+noncomputable def left_response {x : pgame} (h : 0 ≤ x) (j : x.right_moves) : (x.move_right j).left_moves :=
+classical.some $ (zero_le.1 h) j
+
+/-- Show that the response for left provided by `left_response`
+    preserves the left-player-wins condition. -/
+lemma left_response_spec {x : pgame} (h : 0 ≤ x) (j : x.right_moves) : 0 ≤ (x.move_right j).move_left (left_response h j) :=
+classical.some_spec $ (zero_le.1 h) j
 
 theorem lt_of_le_mk {xl xr xL xR y i} :
   (⟨xl, xr, xL, xR⟩ : pgame) ≤ y → xL i < y :=
@@ -251,16 +296,74 @@ end
   `x`, `y` are equivalent if `x ≤ y` and `y ≤ x`. -/
 def equiv (x y : pgame) : Prop := x ≤ y ∧ y ≤ x
 
-theorem equiv_refl (x) : equiv x x := ⟨le_refl _, le_refl _⟩
-theorem equiv_symm {x y} : equiv x y → equiv y x | ⟨xy, yx⟩ := ⟨yx, xy⟩
-theorem equiv_trans {x y z} : equiv x y → equiv y z → equiv x z
+local infix ` ≈ ` := pgame.equiv
+
+theorem equiv_refl (x) : x ≈ x := ⟨le_refl _, le_refl _⟩
+theorem equiv_symm {x y} : x ≈ y → y ≈ x | ⟨xy, yx⟩ := ⟨yx, xy⟩
+theorem equiv_trans {x y z} : x ≈ y → y ≈ z → x ≈ z
 | ⟨xy, yx⟩ ⟨yz, zy⟩ := ⟨le_trans xy yz, le_trans zy yx⟩
 
-theorem le_congr {x₁ y₁ x₂ y₂} : equiv x₁ x₂ → equiv y₁ y₂ → (x₁ ≤ y₁ ↔ x₂ ≤ y₂)
+theorem le_congr {x₁ y₁ x₂ y₂} : x₁ ≈ x₂ → y₁ ≈ y₂ → (x₁ ≤ y₁ ↔ x₂ ≤ y₂)
 | ⟨x12, x21⟩ ⟨y12, y21⟩ := ⟨λ h, le_trans x21 (le_trans h y12), λ h, le_trans x12 (le_trans h y21)⟩
 
-theorem lt_congr {x₁ y₁ x₂ y₂} (hx : equiv x₁ x₂) (hy : equiv y₁ y₂) : x₁ < y₁ ↔ x₂ < y₂ :=
+theorem lt_congr {x₁ y₁ x₂ y₂} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ < y₁ ↔ x₂ < y₂ :=
 not_le.symm.trans $ (not_congr (le_congr hy hx)).trans not_le
+
+/-- `sub_game x y` says that left always has fewer moves in `x` than in `y`,
+     and right always has more moves in `x` than in `y` -/
+inductive sub_game : pgame.{u} → pgame.{u} → Type (u+1)
+| mk : Π (x y : pgame) (L : x.left_moves ↪ y.left_moves) (R : y.right_moves ↪ x.right_moves),
+         (∀ (i : x.left_moves), sub_game (x.move_left i) (y.move_left (L i))) →
+         (∀ (j : y.right_moves), sub_game (x.move_right (R j)) (y.move_right j)) → sub_game x y
+
+-- TODO prove `sub_game x y → sub_game y x → relabelling x y`
+-- TODO prove results below about relabelling for `sub_game`, as appropriate
+
+inductive relabelling : pgame.{u} → pgame.{u} → Type (u+1)
+| mk : Π (x y : pgame) (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves),
+         (∀ (i : x.left_moves), relabelling (x.move_left i) (y.move_left (L i))) →
+         (∀ (j : y.right_moves), relabelling (x.move_right (R.symm j)) (y.move_right j)) → relabelling x y
+
+@[refl] def relabelling.refl : Π (x : pgame), relabelling x x
+| (mk xl xr xL xR) :=
+  relabelling.mk (mk xl xr xL xR) (mk xl xr xL xR) (equiv.refl _) (equiv.refl _)
+    (λ i, relabelling.refl _) (λ j, relabelling.refl _)
+using_well_founded { dec_tac := pgame_wf_tac }
+
+@[symm] def relabelling.symm : Π {x y : pgame}, relabelling x y → relabelling y x
+| (mk xl xr xL xR) (mk yl yr yL yR) (relabelling.mk _ _ L_equiv R_equiv L_relabelling R_relabelling) :=
+begin
+  refine relabelling.mk _ _ L_equiv.symm R_equiv.symm _ _,
+  intro i,
+  simpa using (L_relabelling (L_equiv.symm i)).symm,
+  intro j,
+  simpa using (R_relabelling (R_equiv j)).symm,
+end
+
+-- TODO trans for relabelling?
+
+theorem le_of_relabelling : Π {x y : pgame} (r : relabelling x y), x ≤ y
+| (mk xl xr xL xR) (mk yl yr yL yR) (relabelling.mk _ _ L_equiv R_equiv L_relabelling R_relabelling) :=
+begin
+  rw le_def,
+  fsplit,
+  { intro i,
+    right,
+    use (L_equiv.to_fun i),
+    dsimp,
+    exact le_of_relabelling (L_relabelling i) },
+  { intro j,
+    left,
+    use (R_equiv.inv_fun j),
+    dsimp,
+    exact le_of_relabelling (R_relabelling j) },
+end
+
+theorem ge_of_relabelling {x y : pgame} (r : relabelling x y) : x ≥ y :=
+le_of_relabelling r.symm
+
+theorem equiv_of_relabelling {x y : pgame} (r : relabelling x y) : x ≈ y :=
+⟨le_of_relabelling r, ge_of_relabelling r⟩
 
 /-- The negation of `{L | R}` is `{-R | -L}`. -/
 def neg : pgame → pgame
@@ -270,7 +373,7 @@ instance : has_neg pgame := ⟨neg⟩
 
 @[simp] lemma neg_def {xl xr xL xR} : -(mk xl xr xL xR) = mk xr xl (λ j, -(xR j)) (λ i, -(xL i)) := rfl
 
-theorem neg_neg : Π {x : pgame}, -(-x) = x
+@[simp] theorem neg_neg : Π {x : pgame}, -(-x) = x
 | (mk xl xr xL xR) :=
 begin
   dsimp [has_neg.neg, neg],
@@ -281,36 +384,56 @@ begin
     exact t }
 end
 
-theorem neg_neg' {x : pgame} : neg (neg x) = x :=
+@[simp] theorem neg_neg' {x : pgame} : neg (neg x) = x :=
 begin
   have := neg_neg,
   dsimp [has_neg.neg] at this,
   exact this
 end
 
-theorem neg_zero : -(0 : pgame) = 0 :=
+@[simp] theorem neg_zero : -(0 : pgame) = 0 :=
 begin
   dsimp [has_zero.zero, has_neg.neg, neg],
   congr; funext i; cases i
 end
 
-def left_moves_neg {x : pgame} : (-x).left_moves ≃ x.right_moves :=
+def left_moves_neg (x : pgame) : (-x).left_moves ≃ x.right_moves :=
 begin
   induction x,
   refl,
 end
-def right_moves_neg {x : pgame} : (-x).right_moves ≃ x.left_moves :=
+def right_moves_neg (x : pgame) : (-x).right_moves ≃ x.left_moves :=
 begin
   induction x,
   refl,
 end
 
--- FIXME, ugh, the current implementation of `solve_by_elim` apparently only uses each passed lemma
--- once. We cheat for now by repeating some of the lemmas!!
-meta def pgame_wf_tac :=
-`[solve_by_elim
-  [psigma.lex.left, psigma.lex.left, psigma.lex.right, psigma.lex.right, r.left', r.right', r.left, r.right, r.trans]
-  { max_rep := 10 }]
+@[simp] lemma move_right_left_moves_neg {x : pgame} (i : left_moves (-x)) :
+move_right x ((left_moves_neg x) i) = -(move_left (-x) i) :=
+begin
+  induction x,
+  dsimp [left_moves_neg],
+  rw neg_neg,
+end
+@[simp] lemma move_left_right_moves_neg_symm {x : pgame} (i : right_moves x) :
+move_left (-x) ((left_moves_neg x).symm i) = -(move_right x i) :=
+begin
+  induction x,
+  refl,
+end
+@[simp] lemma move_left_right_moves_neg {x : pgame} (i : right_moves (-x)) :
+move_left x ((right_moves_neg x) i) = -(move_right (-x) i) :=
+begin
+  induction x,
+  dsimp [right_moves_neg],
+  rw neg_neg,
+end
+@[simp] lemma move_right_right_moves_neg_symm {x : pgame} (i : left_moves x) :
+move_right (-x) ((right_moves_neg x).symm i) = -(move_left x i) :=
+begin
+  induction x,
+  refl,
+end
 
 theorem le_iff_neg_ge : Π {x y : pgame}, x ≤ y ↔ -y ≤ -x
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
@@ -323,17 +446,17 @@ begin
     fsplit,
     { intro i, have t := h.right i, cases t,
       { right, cases t, use t_w, exact le_iff_neg_ge.1 t_h, },
-      { left,  cases t, use (@right_moves_neg (yR i)).symm t_w, convert le_iff_neg_ge.1 t_h, sorry } },
+      { left,  cases t, use (@right_moves_neg (yR i)).symm t_w, convert le_iff_neg_ge.1 t_h, simp } },
     { intro j, have t := h.left j, cases t,
-      { right, cases t, use (@left_moves_neg (xL j)).symm t_w, convert le_iff_neg_ge.1 t_h, sorry },
+      { right, cases t, use (@left_moves_neg (xL j)).symm t_w, convert le_iff_neg_ge.1 t_h, simp, },
       { left,  cases t, use t_w, exact le_iff_neg_ge.1 t_h, } } },
   { intro h,
     fsplit,
     { intro i, have t := h.right i, cases t,
       { right, cases t, use t_w, exact le_iff_neg_ge.2 t_h, },
-      { left,  cases t, use (@left_moves_neg (xL i)) t_w, convert le_iff_neg_ge.2 _, convert t_h, sorry } },
+      { left,  cases t, use (@left_moves_neg (xL i)) t_w, convert le_iff_neg_ge.2 _, convert t_h, simp, } },
     { intro j, have t := h.left j, cases t,
-      { right, cases t, use (@right_moves_neg (yR j)) t_w, convert le_iff_neg_ge.2 _, convert t_h, sorry },
+      { right, cases t, use (@right_moves_neg (yR j)) t_w, convert le_iff_neg_ge.2 _, convert t_h, simp },
       { left,  cases t, use t_w, exact le_iff_neg_ge.2 t_h, } } },
 end
 using_well_founded { dec_tac := pgame_wf_tac }
@@ -446,50 +569,6 @@ end
 
 instance : has_sub pgame := ⟨λ x y, x + -y⟩
 
-inductive relabelling : pgame.{u} → pgame.{u} → Type (u+1)
-| mk : Π (x y : pgame) (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves),
-         (∀ (i : x.left_moves), relabelling (x.move_left i) (y.move_left (L i))) →
-         (∀ (j : y.right_moves), relabelling (x.move_right (R.symm j)) (y.move_right j)) → relabelling x y
-
-
-@[refl] def relabelling.refl : Π (x : pgame), relabelling x x
-| (mk xl xr xL xR) :=
-  relabelling.mk (mk xl xr xL xR) (mk xl xr xL xR) (equiv.refl _) (equiv.refl _)
-    (λ i, relabelling.refl _) (λ j, relabelling.refl _)
-using_well_founded { dec_tac := pgame_wf_tac }
-
-@[symm] def relabelling.symm : Π {x y : pgame}, relabelling x y → relabelling y x
-| (mk xl xr xL xR) (mk yl yr yL yR) (relabelling.mk _ _ L_equiv R_equiv L_relabelling R_relabelling) :=
-begin
-  refine relabelling.mk _ _ L_equiv.symm R_equiv.symm _ _,
-  intro i,
-  simpa using (L_relabelling (L_equiv.symm i)).symm,
-  intro j,
-  simpa using (R_relabelling (R_equiv j)).symm,
-end
-
--- TODO trans for relabelling?
-
-theorem le_of_relabelling : Π {x y : pgame} (r : relabelling x y), x ≤ y
-| (mk xl xr xL xR) (mk yl yr yL yR) (relabelling.mk _ _ L_equiv R_equiv L_relabelling R_relabelling) :=
-begin
-  rw le_def,
-  fsplit,
-  { intro i,
-    right,
-    use (L_equiv.to_fun i),
-    dsimp,
-    exact le_of_relabelling (L_relabelling i) },
-  { intro j,
-    left,
-    use (R_equiv.inv_fun j),
-    dsimp,
-    exact le_of_relabelling (R_relabelling j) },
-end
-
-theorem ge_of_relabelling {x y : pgame} (r : relabelling x y) : x ≥ y :=
-le_of_relabelling r.symm
-
 def neg_add_relabelling : Π (x y : pgame), relabelling (-(x + y)) (-x + -y)
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
@@ -516,6 +595,7 @@ le_of_relabelling (neg_add_relabelling x y)
 theorem neg_add_ge {x y : pgame} : -(x + y) ≥ -x + -y :=
 ge_of_relabelling (neg_add_relabelling x y)
 
+-- TODO
 -- theorem le_iff_sub_le_zero {x y : pgame} : x ≤ y ↔ x - y ≤ 0 := sorry
 -- theorem le_iff_zero_le_sub {x y : pgame} : x ≤ y ↔ 0 ≤ y - x := sorry
 
@@ -525,7 +605,7 @@ begin
   intros hx hy,
   rw le_zero,
   intro i,
-  change xl ⊕ yl at i, -- FIXME dsimp should do this
+  change xl ⊕ yl at i, -- I wish dsimp would do this
   cases i,
   { use right_moves_add.inv_fun (sum.inl (right_response hx i)),
     simp,
@@ -554,17 +634,64 @@ begin
   solve_by_elim [add_le_zero_of_le_zero],
 end
 
--- This is is just a temporary test to check pgame_wf_tac is working.
-example {xl xr xL xR yl yr yL yR zl zr} {zL : zl → pgame} {zR} {i : zl} :
-  has_well_founded.r
-    (⟨mk xl xr xL xR, ⟨mk yl yr yL yR, zL i⟩⟩ : Σ' (g : pgame), Σ' (h : pgame), pgame)
-    (⟨mk xl xr xL xR, ⟨mk yl yr yL yR, mk zl zr zL zR⟩⟩ : Σ' (g : pgame), Σ' (h : pgame), pgame) :=
+def add_comm_relabelling : Π (x y : pgame.{u}), relabelling (x + y) (y + x)
+| (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
-  -- apply psigma.lex.right,
-  -- apply psigma.lex.right,
-  -- apply r.left',
-  pgame_wf_tac
+  fsplit,
+  { transitivity,
+    exact left_moves_add,
+    transitivity,
+    apply equiv.sum_comm,
+    exact left_moves_add.symm, },
+  { transitivity,
+    exact right_moves_add,
+    transitivity,
+    apply equiv.sum_comm,
+    exact right_moves_add.symm, },
+  { intros, simp, cases i; { dsimp [left_moves_add], apply add_comm_relabelling, } },
+  { intros, simp, cases j; { dsimp [right_moves_add], apply add_comm_relabelling, } },
 end
+using_well_founded { dec_tac := pgame_wf_tac }
+
+theorem add_comm_le {x y : pgame} : (x + y) ≤ (y + x) :=
+le_of_relabelling (add_comm_relabelling x y)
+
+-- --TODO how do we not already have this tactic?! `transport i e`
+-- example {α β : Type} (e : α ≃ β) (f : α → ℕ) (i : α) : f i = 0 :=
+-- begin
+--   have h : i = e.symm (e i) := by simp,
+--   revert h,
+--   generalize : e i = j,
+--   intro h,
+--   subst h,
+--   rename j i,
+-- end
+
+-- def add_assoc_relabelling : Π (x y z : pgame.{u}), relabelling ((x + y) + z) (x + (y + z))
+-- | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
+-- begin
+--   fsplit,
+--   { transitivity,
+--     exact left_moves_add,
+--     transitivity,
+--     apply equiv.sum_congr left_moves_add (equiv.refl _),
+--     apply equiv.sum_assoc, },
+--   { transitivity,
+--     exact right_moves_add,
+--     transitivity,
+--     apply equiv.sum_congr right_moves_add (equiv.refl _),
+--     apply equiv.sum_assoc, },
+--   { intros,
+
+--      rcases i with ⟨xi|yi⟩|zi,
+--    { dsimp [left_moves_add], apply add_assoc_relabelling, },
+--    { dsimp, sorry },
+--    { dsimp, sorry },
+--     },
+--   sorry
+-- end
+-- using_well_founded { dec_tac := pgame_wf_tac }
+
 
 theorem le_add_right : Π {x y z : pgame} (h : x ≤ y), x + z ≤ y + z
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
@@ -630,6 +757,25 @@ begin
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
+theorem le_add_left {x y z : pgame} (h : y ≤ z) : x + y ≤ x + z :=
+begin
+  transitivity,
+  apply add_comm_le,
+  transitivity,
+  apply le_add_right h,
+  apply add_comm_le,
+end
+
+theorem add_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : (w + y) ≈ (x + z) :=
+begin
+  fsplit,
+  { transitivity w + z,
+    exact le_add_left h₂.1,
+    exact le_add_right h₁.1, },
+  { transitivity x + y,
+    exact le_add_left h₂.2,
+    exact le_add_right h₁.2 }
+end
 
 /-- The pre-surreal number `ω`. (In fact all ordinals have surreal
   representatives.) -/
@@ -669,5 +815,13 @@ quotient.lift₂ (λ x y, x < y) (λ x₁ y₁ x₂ y₂ hx hy, propext (lt_cong
 
 theorem not_le : ∀ {x y : game}, ¬ le x y ↔ lt y x :=
 by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; exact not_le
+
+def add : game → game → game :=
+quotient.lift₂ (λ x y : pgame, ⟦x + y⟧) (λ x₁ y₁ x₂ y₂ hx hy, quot.sound (pgame.add_congr hx hy))
+
+instance : has_zero game := ⟨⟦0⟧⟩
+instance : has_one game := ⟨⟦1⟧⟩
+
+instance : has_add game := ⟨add⟩
 
 end game

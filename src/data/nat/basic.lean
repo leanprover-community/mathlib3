@@ -39,8 +39,8 @@ begin
     rw [max_eq_left h2, max_eq_left (succ_le_succ h2)] }
 end
 
-lemma not_succ_lt_self : ∀ n : ℕ, ¬succ n < n :=
-λ n, not_lt_of_ge (nat.le_succ _)
+lemma not_succ_lt_self {n : ℕ} : ¬succ n < n :=
+not_lt_of_ge (nat.le_succ _)
 
 theorem lt_succ_iff {m n : ℕ} : m < succ n ↔ m ≤ n :=
 succ_le_succ_iff
@@ -328,7 +328,7 @@ begin
   { intro heq, 
     have := @nat.mul_lt_mul_of_pos_left _ _ 2 h dec_trivial, 
     rw heq at this, 
-    apply not_succ_lt_self _ this },
+    apply not_succ_lt_self this },
   { cases h, 
     { intro heq, rw h at heq, apply succ_ne_self _ heq.symm }, 
     { intro heq, 

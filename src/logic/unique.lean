@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import logic.basic
-
 universes u v w
 
 variables {α : Sort u} {β : Sort v} {γ : Sort w}
@@ -18,6 +16,11 @@ attribute [class] unique
 instance punit.unique : unique punit.{u} :=
 { default := punit.star,
   uniq := λ x, punit_eq x _ }
+
+instance fin.unique : unique (fin 1) :=
+{ default := 0,
+  uniq := λ ⟨n, hn⟩, fin.eq_of_veq 
+    (nat.eq_zero_of_le_zero (nat.le_of_lt_succ hn)) }
 
 namespace unique
 open function
@@ -52,4 +55,3 @@ def of_surjective {f : α → β} (hf : surjective f) [unique α] : unique β :=
   end }
 
 end unique
-

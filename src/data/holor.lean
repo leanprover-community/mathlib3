@@ -11,12 +11,7 @@ community.
 
 Based on the tensor library found in https://www.isa-afp.org/entries/Deep_Learning.html.
 -/
-import data.list.basic
-import algebra.module
 import algebra.pi_instances
-import tactic.interactive
-import tactic.tidy
-import tactic.pi_instances
 
 universes u
 
@@ -128,7 +123,7 @@ begin
   rw append_assoc
 end)
 
-lemma mul_assoc [semigroup α] (x : holor α ds₁) (y : holor α ds₂) (z : holor α ds₃):
+lemma mul_assoc [semigroup α] (x : holor α ds₁) (y : holor α ds₂) (z : holor α ds₃) :
   mul (mul x y) z == (mul x (mul y z)) :=
 by simp [cast_heq, mul_assoc0, assoc_left].
 
@@ -161,7 +156,7 @@ def slice (x : holor α (d :: ds)) (i : ℕ) (h : i < d) : holor α ds :=
 def unit_vec [monoid α] [add_monoid α] (d : ℕ) (j : ℕ) : holor α [d] :=
   λ ti, if ti.1 = [j] then 1 else 0
 
-lemma holor_index_cons_decomp (p: holor_index (d :: ds) → Prop):
+lemma holor_index_cons_decomp (p: holor_index (d :: ds) → Prop) :
   Π (t : holor_index (d :: ds)),
     (∀ i is, Π h : t.1 = i :: is, p ⟨ i :: is, begin rw [←h], exact t.2 end ⟩ ) → p t
 | ⟨[], hforall₂⟩        hp := absurd (forall₂_nil_left_iff.1 hforall₂) (cons_ne_nil d ds)
@@ -186,14 +181,14 @@ funext $ λ t : holor_index ds, if h : i = j
   then by simp [slice, mul, holor_index.take, unit_vec, holor_index.drop, h]
   else by simp [slice, mul, holor_index.take, unit_vec, holor_index.drop, h]; refl
 
-lemma slice_add [has_add α] (i : ℕ) (hid : i < d)  (x : holor α (d :: ds)) (y : holor α (d :: ds)):
+lemma slice_add [has_add α] (i : ℕ) (hid : i < d)  (x : holor α (d :: ds)) (y : holor α (d :: ds)) :
   slice x i hid + slice y i hid = slice (x + y) i hid := funext (λ t, by simp [slice,(+)])
 
 lemma slice_zero [has_zero α] (i : ℕ) (hid : i < d)  :
   slice (0 : holor α (d :: ds)) i hid = 0 := funext (λ t, by simp [slice]; refl)
 
 lemma slice_sum [add_comm_monoid α] {β : Type}
-  (i : ℕ) (hid : i < d) (s : finset β) (f : β → holor α (d :: ds)):
+  (i : ℕ) (hid : i < d) (s : finset β) (f : β → holor α (d :: ds)) :
   finset.sum s (λ x, slice (f x) i hid) = slice (finset.sum s f) i hid :=
 begin
   letI := classical.dec_eq β,

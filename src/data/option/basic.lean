@@ -3,10 +3,10 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import logic.basic data.bool data.option.defs tactic.interactive
+import logic.basic data.bool data.option.defs tactic.basic
 
 namespace option
-variables {α : Type*} {β : Type*}
+variables {α : Type*} {β : Type*} {γ : Type*}
 
 @[simp] theorem get_mem : ∀ {o : option α} (h : is_some o), option.get h ∈ o
 | (some a) _ := rfl
@@ -14,11 +14,24 @@ variables {α : Type*} {β : Type*}
 theorem get_of_mem {a : α} : ∀ {o : option α} (h : is_some o), a ∈ o → option.get h = a
 | _ _ rfl := rfl
 
+@[simp] lemma not_mem_none (a : α) : a ∉ (none : option α) :=
+λ h, option.no_confusion h
+
+@[simp] lemma some_get : ∀ {x : option α} (h : is_some x), some (option.get h) = x
+| (some x) hx := rfl
+
+@[simp] lemma get_some (x : α) (h : is_some (some x)) : option.get h = x := rfl
+
 theorem mem_unique {o : option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a = b :=
 option.some.inj $ ha.symm.trans hb
 
 theorem injective_some (α : Type*) : function.injective (@some α) :=
 λ _ _, some_inj.mp
+
+/-- `option.map f` is injective if `f` is injective. -/
+theorem injective_map {f : α → β} (Hf : function.injective f) : function.injective (option.map f)
+| none      none      H := rfl
+| (some a₁) (some a₂) H := by rw Hf (option.some.inj H)
 
 @[extensionality] theorem ext : ∀ {o₁ o₂ : option α}, (∀ a, a ∈ o₁ ↔ a ∈ o₂) → o₁ = o₂
 | none     none     H := rfl
@@ -49,6 +62,9 @@ by cases x; simp
 lemma bind_comm {α β γ} {f : α → β → option γ} (a : option α) (b : option β) :
   a.bind (λx, b.bind (f x)) = b.bind (λy, a.bind (λx, f x y)) :=
 by cases a; cases b; refl
+
+lemma bind_assoc (x : option α) (f : α → option β) (g : β → option γ) :
+  (x.bind f).bind g = x.bind (λ y, (f y).bind g) := by cases x; refl
 
 @[simp] theorem map_none {α β} {f : α → β} : f <$> none = none := rfl
 

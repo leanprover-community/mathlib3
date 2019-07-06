@@ -14,7 +14,6 @@ Introduces notations
 -/
 
 import category_theory.category
-import tactic.tidy
 
 namespace category_theory
 
@@ -29,7 +28,7 @@ The axiom `map_id_lemma` expresses preservation of identities, and
 `map_comp_lemma` expresses functoriality.
 -/
 structure functor (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D] :
-  Type (max u₁ v₁ u₂ v₂) :=
+  Type (max v₁ v₂ u₁ u₂) :=
 (obj       : C → D)
 (map       : Π {X Y : C}, (X ⟶ Y) → ((obj X) ⟶ (obj Y)))
 (map_id'   : ∀ (X : C), map (𝟙 X) = 𝟙 (obj X) . obviously)
@@ -54,6 +53,8 @@ include 𝒞
 protected def id : C ⥤ C :=
 { obj := λ X, X,
   map := λ _ _ f, f }
+
+notation `𝟭` := functor.id
 
 variable {C}
 

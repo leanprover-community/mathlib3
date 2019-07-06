@@ -7,7 +7,7 @@ Basics of linear algebra. This sets up the "categorical/lattice structure" of
 modules, submodules, and linear maps.
 -/
 
-import algebra.pi_instances data.finsupp order.order_iso
+import algebra.pi_instances data.finsupp data.equiv.algebra order.order_iso
 
 open function lattice
 
@@ -86,11 +86,11 @@ by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
    intros; ext; simp
 
 instance linear_map.is_add_group_hom : is_add_group_hom f :=
-by refine_struct {..}; simp
+{ map_add := f.add }
 
 instance linear_map_apply_is_add_group_hom (a : β) :
   is_add_group_hom (λ f : β →ₗ[α] γ, f a) :=
-by refine_struct {..}; simp
+{ map_add := λ f g, linear_map.add_apply f g a }
 
 lemma sum_apply [decidable_eq δ] (t : finset δ) (f : δ → β →ₗ[α] γ) (b : β) :
   t.sum f b = t.sum (λd, f d b) :=
@@ -120,14 +120,10 @@ section
 variables (α β)
 include β
 
--- declaring this an instance breaks `real.lean` with reaching max. instance resolution depth
-def endomorphism_ring : ring (β →ₗ[α] β) :=
+instance endomorphism_ring : ring (β →ₗ[α] β) :=
 by refine {mul := (*), one := 1, ..linear_map.add_comm_group, ..};
   { intros, apply linear_map.ext, simp }
 
-/-- The group of invertible linear maps from `β` to itself -/
-def general_linear_group :=
-by haveI := endomorphism_ring α β; exact units (β →ₗ[α] β)
 end
 
 section
@@ -225,7 +221,7 @@ variables {r : α} {x y : β}
 open set lattice
 
 instance : partial_order (submodule α β) :=
-partial_order.lift (coe : submodule α β → set β) $ λ a b, ext'
+partial_order.lift (coe : submodule α β → set β) (λ a b, ext') (by apply_instance)
 
 lemma le_def {p p' : submodule α β} : p ≤ p' ↔ (p : set β) ⊆ p' := iff.rfl
 
@@ -262,6 +258,9 @@ instance : has_top (submodule α β) :=
 @[simp] lemma top_coe : ((⊤ : submodule α β) : set β) = univ := rfl
 
 @[simp] lemma mem_top : x ∈ (⊤ : submodule α β) := trivial
+
+lemma eq_bot_of_zero_eq_one (zero_eq_one : (0 : α) = 1) : p = ⊥ :=
+by ext x; simp [semimodule.eq_zero_of_zero_eq_one _ x zero_eq_one]
 
 instance : order_top (submodule α β) :=
 { top := ⊤,
@@ -609,6 +608,10 @@ span_eq_bot.trans $ by simp
 span_eq_of_le _ (image_subset _ subset_span) $ map_le_iff_le_comap.2 $
 span_le.2 $ image_subset_iff.1 subset_span
 
+lemma linear_eq_on (s : set β) {f g : β →ₗ[α] γ} (H : ∀x∈s, f x = g x) {x} (h : x ∈ span α s) :
+  f x = g x :=
+by apply span_induction h H; simp {contextual := tt}
+
 def prod : submodule α (β × γ) :=
 { carrier := set.prod p q,
   zero := ⟨zero_mem _, zero_mem _⟩,
@@ -777,6 +780,22 @@ by rw [← submodule.ext'_iff, range_coe, top_coe, set.range_iff_surjective]
 lemma range_le_iff_comap {f : β →ₗ[α] γ} {p : submodule α γ} : range f ≤ p ↔ comap f p = ⊤ :=
 by rw [range, map_le_iff_le_comap, eq_top_iff]
 
+lemma map_le_range {f : β →ₗ[α] γ} {p : submodule α β} : map f p ≤ range f :=
+map_mono le_top
+
+lemma sup_range_inl_inr :
+  (inl α β γ).range ⊔ (inr α β γ).range = ⊤ :=
+begin
+  refine eq_top_iff'.2 (λ x, mem_sup.2 _),
+  rcases x with ⟨x₁, x₂⟩ ,
+  have h₁ : prod.mk x₁ (0 : γ) ∈ (inl α β γ).range,
+    by simp,
+  have h₂ : prod.mk (0 : β) x₂ ∈ (inr α β γ).range,
+    by simp,
+  use [⟨x₁, 0⟩, h₁, ⟨0, x₂⟩, h₂],
+  simp
+end
+
 def ker (f : β →ₗ[α] γ) : submodule α β := comap f ⊥
 
 @[simp] theorem mem_ker {f : β →ₗ[α] γ} {y} : y ∈ ker f ↔ f y = 0 := mem_bot α
@@ -806,8 +825,17 @@ theorem inj_of_disjoint_ker {f : β →ₗ[α] γ} {p : submodule α β}
   ∀ x y ∈ s, f x = f y → x = y :=
 λ x y hx hy, disjoint_ker'.1 hd _ _ (h hx) (h hy)
 
+lemma disjoint_inl_inr : disjoint (inl α β γ).range (inr α β γ).range :=
+by simp [disjoint_def, @eq_comm β 0, @eq_comm γ 0] {contextual := tt}; intros; refl
+
 theorem ker_eq_bot {f : β →ₗ[α] γ} : ker f = ⊥ ↔ injective f :=
 by simpa [disjoint] using @disjoint_ker' _ _ _ _ _ _ _ _ f ⊤
+
+theorem ker_eq_bot' {f : β →ₗ[α] γ} :
+  ker f = ⊥ ↔ (∀ m, f m = 0 → m = 0) :=
+have h : (∀ m ∈ (⊤ : submodule α β), f m = 0 → m = 0) ↔ (∀ m, f m = 0 → m = 0),
+  from ⟨λ h m, h m mem_top, λ h m _, h m⟩,
+by simpa [h, disjoint] using @disjoint_ker _ _ _ _ _ _ _ _ f ⊤
 
 lemma le_ker_iff_map {f : β →ₗ[α] γ} {p : submodule α β} : p ≤ ker f ↔ map f p = ⊥ :=
 by rw [ker, eq_bot_iff, map_le_iff_le_comap]
@@ -915,6 +943,30 @@ lemma range_smul' (f : β →ₗ[α] γ) (a : α) : range (a • f) = ⨆(h : a 
 submodule.map_smul' f _ a
 
 end linear_map
+
+namespace is_linear_map
+
+lemma is_linear_map_add {α β : Type*} [ring α] [add_comm_group β] [module α β]:
+  is_linear_map α (λ (x : β × β), x.1 + x.2) :=
+begin
+  apply is_linear_map.mk,
+  { intros x y,
+    simp },
+  { intros x y,
+    simp [smul_add] }
+end
+
+lemma is_linear_map_sub {α β : Type*} [ring α] [add_comm_group β] [module α β]:
+  is_linear_map α (λ (x : β × β), x.1 - x.2) :=
+begin
+  apply is_linear_map.mk,
+  { intros x y,
+    simp },
+  { intros x y,
+    simp [smul_add] }
+end
+
+end is_linear_map
 
 namespace submodule
 variables {R:ring α} [add_comm_group β] [add_comm_group γ] [module α β] [module α γ]
@@ -1100,6 +1152,16 @@ variables [ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group δ]
 variables [module α β] [module α γ] [module α δ]
 include α
 
+instance : has_coe (β ≃ₗ[α] γ) (β →ₗ[α] γ) := ⟨to_linear_map⟩
+
+@[simp] theorem coe_apply (e : β ≃ₗ[α] γ) (b : β) : (e : β →ₗ[α] γ) b = e b := rfl
+
+lemma to_equiv_injective : function.injective (to_equiv : (β ≃ₗ[α] γ) → β ≃ γ) :=
+λ ⟨_, _, _, _, _, _⟩ ⟨_, _, _, _, _, _⟩ h, linear_equiv.mk.inj_eq.mpr (equiv.mk.inj h)
+
+@[extensionality] lemma ext {f g : β ≃ₗ[α] γ} (h : (f : β → γ) = g) : f = g :=
+to_equiv_injective (equiv.eq_of_to_fun_eq h)
+
 section
 variable (β)
 def refl : β ≃ₗ[α] β := { .. linear_map.id, .. equiv.refl β }
@@ -1113,12 +1175,8 @@ def trans (e₁ : β ≃ₗ[α] γ) (e₂ : γ ≃ₗ[α] δ) : β ≃ₗ[α] δ
 { .. e₂.to_linear_map.comp e₁.to_linear_map,
   .. e₁.to_equiv.trans e₂.to_equiv }
 
-instance : has_coe (β ≃ₗ[α] γ) (β →ₗ[α] γ) := ⟨to_linear_map⟩
-
 @[simp] theorem apply_symm_apply (e : β ≃ₗ[α] γ) (c : γ) : e (e.symm c) = c := e.6 c
 @[simp] theorem symm_apply_apply (e : β ≃ₗ[α] γ) (b : β) : e.symm (e b) = b := e.5 b
-
-@[simp] theorem coe_apply (e : β ≃ₗ[α] γ) (b : β) : (e : β →ₗ[α] γ) b = e b := rfl
 
 noncomputable def of_bijective
   (f : β →ₗ[α] γ) (hf₁ : f.ker = ⊥) (hf₂ : f.range = ⊤) : β ≃ₗ[α] γ :=
@@ -1142,10 +1200,10 @@ def of_linear (f : β →ₗ[α] γ) (g : γ →ₗ[α] β)
   (x : γ) : (of_linear f g h₁ h₂).symm x = g x := rfl
 
 @[simp] protected theorem ker (f : β ≃ₗ[α] γ) : (f : β →ₗ[α] γ).ker = ⊥ :=
-linear_map.ker_eq_bot.2 f.to_equiv.bijective.1
+linear_map.ker_eq_bot.2 f.to_equiv.injective
 
 @[simp] protected theorem range (f : β ≃ₗ[α] γ) : (f : β →ₗ[α] γ).range = ⊤ :=
-linear_map.range_eq_top.2 f.to_equiv.bijective.2
+linear_map.range_eq_top.2 f.to_equiv.surjective
 
 def of_top (p : submodule α β) (h : p = ⊤) : p ≃ₗ[α] β :=
 { inv_fun   := λ x, ⟨x, h.symm ▸ trivial⟩,
@@ -1176,6 +1234,8 @@ variables [comm_ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group
 variables [module α β] [module α γ] [module α δ]
 include α
 open linear_map
+
+set_option class.instance_max_depth 39
 
 def smul_of_unit (a : units α) : β ≃ₗ[α] β :=
 of_linear ((a:α) • 1 : β →ₗ β) (((a⁻¹ : units α) : α) • 1 : β →ₗ β)
@@ -1256,6 +1316,35 @@ noncomputable def sup_quotient_equiv_quotient_inf (p p' : submodule α β) :
       use [⟨y, hy⟩, trivial], apply (submodule.quotient.eq _).2,
       change y - (y + z) ∈ p', rwa [sub_add_eq_sub_sub, sub_self, zero_sub, neg_mem_iff]
     end }
+
+section prod
+
+def prod {α β γ δ : Type*} [ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group δ]
+  [module α β] [module α γ] [module α δ]
+  (f₁ : β →ₗ[α] γ) (f₂ : β →ₗ[α] δ) : β →ₗ[α] (γ × δ) :=
+{ to_fun := λx, (f₁ x, f₂ x),
+  add := λx y, begin
+    change (f₁ (x + y), f₂ (x+y)) = (f₁ x, f₂ x) + (f₁ y, f₂ y),
+    simp only [linear_map.map_add],
+    refl
+  end,
+  smul := λc x, by simp only [linear_map.map_smul] }
+
+lemma is_linear_map_prod_iso {α β γ δ : Type*} [comm_ring α] [add_comm_group β] [add_comm_group γ]
+  [add_comm_group δ] [module α β] [module α γ] [module α δ] :
+  is_linear_map α (λ(p : (β →ₗ[α] γ) × (β →ₗ[α] δ)), (linear_map.prod p.1 p.2 : (β →ₗ[α] (γ × δ)))) :=
+⟨λu v, rfl, λc u, rfl⟩
+
+def scalar_prod_space_iso {α β γ : Type*} [comm_ring α] [add_comm_group β] [add_comm_group γ]
+  [module α β] [module α γ] (c : β →ₗ[α] α) (f : γ) : β →ₗ[α] γ :=
+{ to_fun := λx, (c x) • f,
+  add := λx y, begin
+    change c (x + y) • f = (c x) • f + (c y) • f,
+    simp [add_smul],
+  end,
+  smul := λa x, by simp [smul_smul] }
+
+end prod
 
 section pi
 universe i
@@ -1442,5 +1531,68 @@ end
 end
 
 end pi
+
+variables (α β)
+
+instance automorphism_group : group (β ≃ₗ[α] β) :=
+{ mul := λ f g, g.trans f,
+  one := linear_equiv.refl β,
+  inv := λ f, f.symm,
+  mul_assoc := λ f g h, by {ext, refl},
+  mul_one := λ f, by {ext, refl},
+  one_mul := λ f, by {ext, refl},
+  mul_left_inv := λ f, by {ext, exact f.left_inv x} }
+
+instance automorphism_group.to_linear_map_is_monoid_hom :
+  is_monoid_hom (linear_equiv.to_linear_map : (β ≃ₗ[α] β) → (β →ₗ[α] β)) :=
+{ map_one := rfl,
+  map_mul := λ f g, rfl }
+
+/-- The group of invertible linear maps from `β` to itself -/
+def general_linear_group := units (β →ₗ[α] β)
+
+namespace general_linear_group
+variables {α β}
+
+instance : group (general_linear_group α β) := by delta general_linear_group; apply_instance
+
+def to_linear_equiv (f : general_linear_group α β) : (β ≃ₗ[α] β) :=
+{ inv_fun := f.inv.to_fun,
+  left_inv := λ m, show (f.inv * f.val) m = m,
+    by erw f.inv_val; simp,
+  right_inv := λ m, show (f.val * f.inv) m = m,
+    by erw f.val_inv; simp,
+  ..f.val }
+
+def of_linear_equiv (f : (β ≃ₗ[α] β)) : general_linear_group α β :=
+{ val := f,
+  inv := f.symm,
+  val_inv := linear_map.ext $ λ _, f.apply_symm_apply _,
+  inv_val := linear_map.ext $ λ _, f.symm_apply_apply _ }
+
+variables (α β)
+
+def general_linear_equiv : general_linear_group α β ≃* (β ≃ₗ[α] β) :=
+{ to_fun := to_linear_equiv,
+  inv_fun := of_linear_equiv,
+  left_inv := λ f,
+  begin
+    delta to_linear_equiv of_linear_equiv,
+    cases f with f f_inv, cases f, cases f_inv,
+    congr
+  end,
+  right_inv := λ f,
+  begin
+    delta to_linear_equiv of_linear_equiv,
+    cases f,
+    congr
+  end,
+  hom := ⟨λ x y, by {ext, refl}⟩ }
+
+@[simp] lemma general_linear_equiv_to_linear_map (f : general_linear_group α β) :
+  ((general_linear_equiv α β).to_equiv f).to_linear_map = f.val :=
+by {ext, refl}
+
+end general_linear_group
 
 end linear_map

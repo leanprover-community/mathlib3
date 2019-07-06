@@ -1,220 +1,258 @@
 /-
 Copyright (c) 2019 Jan-David Salchow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jan-David Salchow
+Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo
 
-The space of bounded linear maps
+Operator norm on the space of continuous linear maps
 
-Define the set of bounded linear maps between normed spaces and show basic facts about it. In
-particular
-
-(*) define a set L(E,F) of bounded linear maps between k normed spaces,
-(*) show that L(E,F) is a vector subspace of E → F,
-(*) define the 'operator norm' on L(E,F) and show that it induces the structure of a normed space
-    on L(E,F).
+Define the operator norm on the space of continuous linear maps between normed spaces, and prove
+its basic properties. In particular, show that this space is itself a normed space.
 -/
-import algebra.module
-import analysis.normed_space.bounded_linear_maps
 
-variables {k : Type*}
-variables {E : Type*} {F : Type*}
+import topology.metric_space.lipschitz
+import analysis.asymptotics
+noncomputable theory
+local attribute [instance] classical.prop_decidable
 
+set_option class.instance_max_depth 70
 
--- Define the subspace of bounded linear maps, introduce the notation L(E,F) for the set of bounded linear maps.
-section bounded_linear_maps
+variables {k : Type*} {E : Type*} {F : Type*} {G : Type*}
+[nondiscrete_normed_field k]
+[normed_group E] [normed_space k E]
+[normed_group F] [normed_space k F]
+[normed_group G] [normed_space k G]
+(c : k) (f g : E →L[k] F) (h : F →L[k] G) (x y z : E)
+include k
 
-variables [hnfk : normed_field k] [normed_space k E] [normed_space k F]
-include hnfk
+open metric continuous_linear_map
 
-def bounded_linear_maps : subspace k (E → F) :=
-{ carrier := {A : E → F | is_bounded_linear_map A},
-  zero := is_bounded_linear_map.zero,
-  add := assume A B, is_bounded_linear_map.add,
-  smul := assume c A, is_bounded_linear_map.smul c }
+lemma exists_pos_bound_of_bound {f : E → F} (M : ℝ) (h : ∀x, ∥f x∥ ≤ M * ∥x∥) :
+  ∃ N > 0, ∀x, ∥f x∥ ≤ N * ∥x∥ :=
+⟨max M 1, lt_of_lt_of_le zero_lt_one (le_max_right _ _), λx, calc
+  ∥f x∥ ≤ M * ∥x∥ : h x
+  ... ≤ max M 1 * ∥x∥ : mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg _) ⟩
 
-local notation `L(` E `,` F `)` := @bounded_linear_maps _ E F _ _ _
+lemma linear_map.continuous_of_bound (f : E →ₗ[k] F) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+  continuous f :=
+begin
+  have : ∀ (x y : E), dist (f x) (f y) ≤ C * dist x y := λx y, calc
+    dist (f x) (f y) = ∥f x - f y∥ : by rw dist_eq_norm
+    ... = ∥f (x - y)∥ : by simp
+    ... ≤ C * ∥x - y∥ : h _
+    ... = C * dist x y : by rw dist_eq_norm,
+  exact continuous_of_lipschitz this
+end
 
-/-- Coerce bounded linear maps to functions. -/
-instance bounded_linear_maps.to_fun : has_coe_to_fun $ L(E,F) :=
-{F :=  λ _, (E → F), coe := (λ f, f.val)}
+def linear_map.with_bound (f : E →ₗ[k] F) (h : ∃C : ℝ, ∀x, ∥f x∥ ≤ C * ∥x∥) : E →L[k] F :=
+⟨f, let ⟨C, hC⟩ := h in linear_map.continuous_of_bound f C hC⟩
 
-@[extensionality] theorem ext {A B : L(E,F)} (H : ∀ x, A x = B x) : A = B :=
-set_coe.ext $ funext H
+@[simp, elim_cast] lemma linear_map_with_bound_coe (f : E →ₗ[k] F) (h : ∃C : ℝ, ∀x, ∥f x∥ ≤ C * ∥x∥) :
+  ((f.with_bound h) : E →ₗ[k] F) = f := rfl
 
-/-- Bounded linear maps are ... bounded -/
-lemma exists_bound (A : L(E,F)) : ∃ c, c > 0 ∧ ∀ x : E, ∥A x∥ ≤ c * ∥x∥ := A.property.bound
+@[simp] lemma linear_map_with_bound_apply (f : E →ₗ[k] F) (h : ∃C : ℝ, ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
+  f.with_bound h x = f x := rfl
 
-/-- Bounded linear maps are conveniently bounded on the unit ball. -/
-lemma exists_bound' (A : L(E,F)) : ∃ c, c > 0 ∧ ∀ x : E, ∥x∥ ≤ 1 → ∥A x∥ ≤ c :=
-let ⟨c, _, H⟩ := exists_bound A in
-exists.intro c ⟨‹c > 0›,
-  assume x _,
-  calc ∥A x∥ ≤ c * ∥x∥ : H x
-        ... ≤ c * 1 : (mul_le_mul_left ‹c > 0›).mpr ‹∥x∥ ≤ 1›
-        ... = c : mul_one c⟩
+namespace continuous_linear_map
 
-end bounded_linear_maps
+/-- A continuous linear map between normed spaces is bounded when the field is nondiscrete.
+The continuity ensures boundedness on a ball of some radius δ. The nondiscreteness is then
+used to rescale any element into an element of norm in [δ/C, δ], whose image has a controlled norm.
+The norm control for the original element follows by rescaling. -/
+theorem bound : ∃ C > 0, ∀ x : E, ∥f x∥ ≤ C * ∥x∥ :=
+begin
+  have : continuous_at f 0 := continuous_iff_continuous_at.1 f.2 _,
+  rcases metric.tendsto_nhds_nhds.1 this 1 zero_lt_one with ⟨ε, ε_pos, hε⟩,
+  let δ := ε/2,
+  have δ_pos : δ > 0 := half_pos ε_pos,
+  have H : ∀{a}, ∥a∥ ≤ δ → ∥f a∥ ≤ 1,
+  { assume a ha,
+    have : dist (f a) (f 0) ≤ 1,
+    { apply le_of_lt (hε _),
+      rw [dist_eq_norm, sub_zero],
+      exact lt_of_le_of_lt ha (half_lt_self ε_pos) },
+    simpa using this },
+  rcases exists_one_lt_norm k with ⟨c, hc⟩,
+  refine ⟨δ⁻¹ * ∥c∥, mul_pos (inv_pos δ_pos) (lt_trans zero_lt_one hc), (λx, _)⟩,
+  by_cases h : x = 0,
+  { simp only [h, norm_zero, mul_zero, continuous_linear_map.map_zero], },
+  { rcases rescale_to_shell hc δ_pos h with ⟨d, hd, dxle, ledx, dinv⟩,
+    calc ∥f x∥
+      = ∥f ((d⁻¹ * d) • x)∥ : by rwa [inv_mul_cancel, one_smul]
+      ... = ∥d∥⁻¹ * ∥f (d • x)∥ :
+        by rw [mul_smul, map_smul, norm_smul, norm_inv]
+      ... ≤ ∥d∥⁻¹ * 1 :
+        mul_le_mul_of_nonneg_left (H dxle) (by { rw ← norm_inv, exact norm_nonneg _ })
+      ... ≤ δ⁻¹ * ∥c∥ * ∥x∥ : by { rw mul_one, exact dinv } }
+end
 
-/-
-Now define the operator norm. We only do this for normed spaces over ℝ, since we need a
-scalar multiplication with reals to prove that ∥A x∥ ≤ ∥A∥ * ∥x∥. It would be enough to
-have a vector space over a normed field k with a real scalar multiplication and certain
-compatibility conditions.
+section
+open asymptotics filter
 
-The main task is to show that the operator norm is definite, homogeneous, and satisfies the
-triangle inequality. This is done after a few preliminary lemmas necessary to deal with cSup.
--/
-section operator_norm
+theorem is_O_id (l : filter E) : is_O f (λ x, x) l :=
+let ⟨M, hMp, hM⟩ := f.bound in
+⟨M, hMp, mem_sets_of_superset univ_mem_sets (λ x _, hM x)⟩
 
-variables [normed_space ℝ E] [normed_space ℝ F]
-open lattice set
+theorem is_O_comp (g : F →L[k] G) (f : E → F) (l : filter E) :
+  is_O (λ x', g (f x')) f l :=
+((g.is_O_id ⊤).comp _).mono (map_le_iff_le_comap.mp lattice.le_top)
 
-local notation `L(` E `,` F `)` := @bounded_linear_maps _ E F _ _ _
+theorem is_O_sub (f : E →L[k] F) (l : filter E) (x : E) :
+  is_O (λ x', f (x' - x)) (λ x', x' - x) l :=
+is_O_comp f _ l
 
-noncomputable def to_linear_map (A : L(E, F)) : linear_map _ E F :=
-{to_fun := A.val, ..A.property}
+end
 
-/-- The operator norm of a bounded linear map A : E → F is the sup of
-    the set ∥A x∥ with ∥x∥ ≤ 1. If E = {0} we set ∥A∥ = 0. -/
-noncomputable def operator_norm (A : L(E, F)) : ℝ :=
-Sup (image (λ x, ∥A x∥) {x | ∥x∥ ≤ 1})
+section op_norm
+open set real
 
-noncomputable instance bounded_linear_maps.to_has_norm : has_norm L(E,F) :=
-{norm := operator_norm}
+set_option class.instance_max_depth 100
 
-lemma norm_of_unit_ball_bdd_above (A : L(E,F)) : bdd_above (image (norm ∘ A) {x | ∥x∥ ≤ 1}) :=
-let ⟨c, _, H⟩ := (exists_bound' A : ∃ c, c > 0 ∧ ∀ x : E, ∥x∥ ≤ 1 → ∥A x∥ ≤ c) in
-bdd_above.mk c
-  (assume r ⟨x, (_ : ∥x∥ ≤ 1), (_ : ∥A x∥ = r)⟩,
-    show r ≤ c, from
-      calc r = ∥A x∥ : eq.symm ‹∥A x∥ = r›
-         ... ≤ c : H x ‹∥x∥ ≤ 1›)
+/-- The operator norm of a continuous linear map is the inf of all its bounds. -/
+def op_norm := Inf { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ }
+instance has_op_norm : has_norm (E →L[k] F) := ⟨op_norm⟩
 
-lemma zero_in_im_ball (A : L(E,F)) : (0:ℝ) ∈ {r : ℝ | ∃ (x : E), ∥x∥ ≤ 1 ∧ ∥A x∥ = r} :=
-have A 0 = 0, from (to_linear_map A).map_zero,
-exists.intro (0:E) $ and.intro (by rw[norm_zero]; exact zero_le_one) (by rw[‹A 0 = 0›]; simp)
+-- So that invocations of real.Inf_le make sense: we show that the set of
+-- bounds is nonempty and bounded below.
+lemma bounds_nonempty {f : E →L[k] F} :
+  ∃ c, c ∈ { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ } :=
+let ⟨M, hMp, hMb⟩ := f.bound in ⟨M, le_of_lt hMp, hMb⟩
 
-lemma operator_norm_nonneg (A : L(E,F)) : 0 ≤ ∥A∥ :=
-have (0:ℝ) ∈ _, from zero_in_im_ball A,
-show 0 ≤ Sup (image (norm ∘ A) {x | ∥x∥ ≤ 1}), from
-let ⟨c, _, H⟩ := (exists_bound' A : ∃ c, c > 0 ∧ ∀ x : E, ∥x∥ ≤ 1 → ∥A x∥ ≤ c) in
-le_cSup (norm_of_unit_ball_bdd_above A) ‹(0:ℝ) ∈ _›
+lemma bounds_bdd_below {f : E →L[k] F} :
+  bdd_below { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ } :=
+⟨0, λ _ ⟨hn, _⟩, hn⟩
 
-lemma bounded_by_operator_norm_on_unit_vector (A : L(E, F)) {x : E} (_ : ∥x∥ = 1) : ∥A x∥ ≤ ∥A∥ :=
-show ∥A x∥ ≤ Sup (image (norm ∘ A) {x | ∥x∥ ≤ 1}), from
-let ⟨c, _, _⟩ := (exists_bound A : ∃ c, c > 0 ∧ ∀ x : E, ∥ A x ∥ ≤ c * ∥ x ∥) in
-have ∥A x∥ ∈ (image (norm ∘ A) {x | ∥x∥ ≤ 1}), from mem_image_of_mem _ $ le_of_eq ‹∥x∥ = 1›,
-le_cSup (norm_of_unit_ball_bdd_above A) ‹∥A x∥ ∈ _›
+lemma op_norm_nonneg : 0 ≤ ∥f∥ :=
+lb_le_Inf _ bounds_nonempty (λ _ ⟨hx, _⟩, hx)
 
-/-- This is the fundamental property of the operator norm: ∥A x∥ ≤ ∥A∥ * ∥x∥. -/
-theorem bounded_by_operator_norm {A : L(E,F)} {x : E} : ∥A x∥ ≤ ∥A∥ * ∥x∥ :=
-have A 0 = 0, from (to_linear_map A).map_zero,
+/-- The fundamental property of the operator norm: ∥f x∥ ≤ ∥f∥ * ∥x∥. -/
+theorem le_op_norm : ∥f x∥ ≤ ∥f∥ * ∥x∥ :=
 classical.by_cases
-  (assume : x = (0:E),
-    show ∥A x∥ ≤ ∥A∥ * ∥x∥, by rw[‹x = 0›, ‹A 0 = 0›, norm_zero, norm_zero, mul_zero]; exact le_refl 0)
-  (assume : x ≠ (0:E),
-    have ∥x∥ ≠ 0, from ne_of_gt $ (norm_pos_iff x).mpr ‹x ≠ 0›,
-    have ∥∥x∥⁻¹∥ = ∥x∥⁻¹, from abs_of_nonneg $ inv_nonneg.mpr $ norm_nonneg x,
-    have ∥∥x∥⁻¹•x∥ = 1, begin rw[norm_smul, ‹∥∥x∥⁻¹∥ = ∥x∥⁻¹›], exact inv_mul_cancel ‹∥x∥ ≠ 0› end,
-    calc ∥A x∥ = (∥x∥ * ∥x∥⁻¹) * ∥A x∥ : by rw[mul_inv_cancel ‹∥x∥ ≠ 0›]; ring
-          ... = ∥∥x∥⁻¹∥ * ∥A x∥ * ∥x∥  : by rw[‹∥∥x∥⁻¹∥ = ∥x∥⁻¹›]; ring
-          ... = ∥∥x∥⁻¹• A x ∥ * ∥x∥    : by rw[←normed_space.norm_smul ∥x∥⁻¹ (A x)]
-          ... = ∥A (∥x∥⁻¹• x)∥ * ∥x∥   : by {
-                                          change  ∥∥x∥⁻¹ • A.val x∥ * ∥x∥ = ∥A.val (∥x∥⁻¹ • x)∥ * ∥x∥,
-                                          rw A.property.smul}
-          ... ≤ ∥A∥ * ∥x∥              : (mul_le_mul_right ((norm_pos_iff x).mpr ‹x ≠ 0›)).mpr
-                                          (bounded_by_operator_norm_on_unit_vector A ‹∥∥x∥⁻¹•x∥ = 1›))
+  (λ heq : x = 0, by { rw heq, simp })
+  (λ hne, have hlt : 0 < ∥x∥, from (norm_pos_iff _).2 hne,
+    le_mul_of_div_le hlt ((le_Inf _ bounds_nonempty bounds_bdd_below).2
+    (λ c ⟨_, hc⟩, div_le_of_le_mul hlt (by { rw mul_comm, apply hc }))))
 
-lemma bounded_by_operator_norm_on_unit_ball (A : L(E, F)) {x : E} (_ : ∥x∥ ≤ 1) : ∥A x∥ ≤ ∥A∥ :=
-calc ∥A x∥ ≤ ∥A∥ * ∥x∥ : bounded_by_operator_norm
-        ... ≤ ∥A∥ * 1 : mul_le_mul_of_nonneg_left ‹∥x∥ ≤ 1› (operator_norm_nonneg A)
-        ... = ∥A∥ : mul_one ∥A∥
+lemma ratio_le_op_norm : ∥f x∥ / ∥x∥ ≤ ∥f∥ :=
+(or.elim (lt_or_eq_of_le (norm_nonneg _))
+  (λ hlt, div_le_of_le_mul hlt (by { rw mul_comm, apply le_op_norm }))
+  (λ heq, by { rw [←heq, div_zero], apply op_norm_nonneg }))
 
-lemma operator_norm_bounded_by {A : L(E,F)} (c : nnreal) :
-  (∀ x : E, ∥x∥ ≤ 1 → ∥A x∥ ≤ (c:ℝ)) → ∥A∥ ≤ c :=
-assume H : ∀ x : E, ∥x∥ ≤ 1 → ∥A x∥ ≤ c,
-suffices Sup (image (norm ∘ A) {x | ∥x∥ ≤ 1}) ≤ c, by assumption,
-cSup_le (set.ne_empty_of_mem $ zero_in_im_ball A)
-  (show ∀ (r : ℝ), r ∈ (image (norm ∘ A) {x | ∥x∥ ≤ 1}) → r ≤ c, from
-    assume r ⟨x, _, _⟩,
-      calc r = ∥A x∥ : eq.symm ‹_›
-         ... ≤ c : H x ‹_›)
+/-- The image of the unit ball under a continuous linear map is bounded. -/
+lemma unit_le_op_norm : ∥x∥ ≤ 1 → ∥f x∥ ≤ ∥f∥ :=
+λ hx, begin
+  rw [←(mul_one ∥f∥)],
+  calc _ ≤ ∥f∥ * ∥x∥ : le_op_norm _ _
+  ...    ≤ _ : mul_le_mul_of_nonneg_left hx (op_norm_nonneg _)
+end
 
-theorem operator_norm_triangle (A : L(E,F)) (B : L(E,F)) : ∥A + B∥ ≤ ∥A∥ + ∥B∥ :=
-operator_norm_bounded_by (⟨∥A∥, operator_norm_nonneg A⟩ + ⟨∥B∥, operator_norm_nonneg B⟩)
-  (assume x _, by exact
-    calc ∥(A + B) x∥ = ∥A x + B x∥ : by refl
-                ... ≤ ∥A x∥ + ∥B x∥ : by exact norm_triangle _ _
-                ... ≤ ∥A∥ + ∥B∥ : by exact add_le_add (bounded_by_operator_norm_on_unit_ball A ‹_›)
-                                            (bounded_by_operator_norm_on_unit_ball B ‹_›))
+/-- If one controls the norm of every A x, then one controls the norm of A. -/
+lemma op_norm_le_bound {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ x, ∥f x∥ ≤ M * ∥x∥) :
+  ∥f∥ ≤ M :=
+Inf_le _ bounds_bdd_below ⟨hMp, hM⟩
 
-theorem operator_norm_zero_iff (A : L(E,F)) : ∥A∥ = 0 ↔ A = 0 :=
-have A 0 = 0, from (to_linear_map A).map_zero,
+/-- The operator norm satisfies the triangle inequality. -/
+theorem op_norm_triangle : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=
+Inf_le _ bounds_bdd_below
+  ⟨add_nonneg (op_norm_nonneg _) (op_norm_nonneg _), λ x, by { rw add_mul,
+    calc _ ≤ ∥f x∥ + ∥g x∥ : norm_triangle _ _
+    ...    ≤ _             : add_le_add (le_op_norm _ _) (le_op_norm _ _) }⟩
+
+/-- An operator is zero iff its norm vanishes. -/
+theorem op_norm_zero_iff : ∥f∥ = 0 ↔ f = 0 :=
 iff.intro
-  (assume : ∥A∥ = 0,
-    suffices ∀ x, A x = 0, from ext this,
-    assume x,
-      have ∥A x∥ ≤ 0, from
-        calc ∥A x∥ ≤ ∥A∥ * ∥x∥ : bounded_by_operator_norm
-              ... = 0 : by rw[‹∥A∥ = 0›]; ring,
-      (norm_le_zero_iff (A x)).mp this)
-  (assume : A = 0,
-    let M := {r : ℝ | ∃ (x : E), ∥x∥ ≤ 1 ∧ ∥A x∥ = r} in
-    -- note that we have M = (image (norm ∘ A) {x | ∥x∥ ≤ 1}), from rfl
-    suffices Sup M = 0, by assumption,
-    suffices M = {0}, by rw[this]; exact cSup_singleton 0,
-    (set.ext_iff M {0}).mpr $ assume r, iff.intro
-      (assume : ∃ (x : E), ∥x∥ ≤ 1 ∧ ∥A x∥ = r,
-        let ⟨x, _, _⟩ := this in
-          have h : ∥(0:F)∥ = r, by rwa[‹A=0›] at *,
-          by finish)
-      (assume : r ∈ {0},
-        have r = 0, from set.eq_of_mem_singleton this,
-        exists.intro (0:E) $ ⟨by rw[norm_zero]; exact zero_le_one, by rw[this, ‹A 0 = 0›]; simp⟩))
+  (λ hn, continuous_linear_map.ext (λ x, (norm_le_zero_iff _).1
+    (calc _ ≤ ∥f∥ * ∥x∥ : le_op_norm _ _
+     ...     = _ : by rw [hn, zero_mul])))
+  (λ hf, le_antisymm (Inf_le _ bounds_bdd_below
+    ⟨ge_of_eq rfl, λ _, le_of_eq (by { rw [zero_mul, hf], exact norm_zero })⟩)
+    (op_norm_nonneg _))
 
-theorem operator_norm_homogeneous (c : ℝ) (A : L(E, F)) : ∥c • A∥ = ∥c∥ * ∥A∥ :=
--- ∥c • A∥ is the supremum of the image of the map x ↦ ∥c • A x∥ on the unit ball in E
--- we show that this is the same as ∥c∥ * ∥A∥ by showing 1) and 2):
--- 1) ∥c∥ * ∥A∥ is an upper bound for the image of x ↦ ∥c • A x∥ on the unit ball
--- 2) any w < ∥c∥ * ∥A∥ is not an upper bound (this is equivalent to showing that every upper bound is ≥ ∥c∥ * ∥A∥)
-suffices (∀ a ∈ _, a ≤ ∥c∥ * ∥A∥) ∧ (∀ (ub : ℝ), (∀ a ∈ _, a ≤ ub) → ∥c∥ * ∥A∥ ≤ ub), from
-  cSup_intro' (show _ ≠ ∅, from set.ne_empty_of_mem $ zero_in_im_ball _) this.1 this.2,
-and.intro
-  (show ∀ a ∈ image (λ x, ∥(c • A) x∥) {x : E | ∥x∥ ≤ 1}, a ≤ ∥c∥ * ∥A∥, from
-    assume a (hₐ : ∃ (x : E), ∥x∥ ≤ 1 ∧ ∥(c • A) x∥ = a),
-      let ⟨x, _, _⟩ := hₐ in
-        calc a = ∥c • A x∥    : eq.symm ‹_›
-           ... = ∥c∥ * ∥A x∥   : by rw[←norm_smul c (A x)]; refl
-           ... ≤ ∥c∥ * ∥A∥     : mul_le_mul_of_nonneg_left
-                                   (bounded_by_operator_norm_on_unit_ball A ‹∥x∥ ≤ 1›)
-                                   (norm_nonneg c))
-  (show ∀ (ub : ℝ), (∀ a ∈ image (λ (x : E), ∥(c • A) x∥) {x : E | ∥x∥ ≤ 1}, a ≤ ub) → ∥c∥ * ∥A∥ ≤ ub, from
-    assume u u_is_ub,
-      classical.by_cases
-        (assume : c = 0,
-          calc ∥c∥ * ∥A∥ = 0 : by rw[‹c=0›, norm_zero, zero_mul]
-                    ... ≤ u : u_is_ub (0:ℝ) $ zero_in_im_ball _)
-        (assume : c ≠ 0,
-          have ∥c∥ ≠ 0, from ne_of_gt $ (norm_pos_iff c).mpr ‹c ≠ 0›,
-          have bla : u = ∥c∥ * (∥c∥⁻¹ * u), by rw[←mul_assoc, mul_inv_cancel ‹∥c∥ ≠ 0›, one_mul],
-          suffices ∥A∥ ≤ ∥c∥⁻¹ * u, from
-            have u = ∥c∥ * (∥c∥⁻¹ * u), by rw[←mul_assoc, mul_inv_cancel ‹∥c∥ ≠ 0›, one_mul],
-            by rw[this]; exact mul_le_mul_of_nonneg_left ‹_› (norm_nonneg c),
-          cSup_le
-            (set.ne_empty_of_mem $ zero_in_im_ball _)
-            (assume n (H : ∃ (x : E), ∥x∥ ≤ 1 ∧ ∥A x∥ = n),
-              let ⟨x, _, _⟩ := H in
-              calc n = ∥A x∥             : eq.symm ‹∥A x∥ = n›
-                 ... = ∥c∥⁻¹ * ∥c • A x∥ : by rw[norm_smul, ←mul_assoc, inv_mul_cancel ‹∥c∥ ≠ 0›, one_mul]
-                 ... ≤ ∥c∥⁻¹ * u         : mul_le_mul_of_nonneg_left (u_is_ub ∥c • A x∥ ⟨x, ‹∥x∥ ≤ 1›, rfl⟩) $
-                                                                     inv_nonneg.mpr $ norm_nonneg c)))
+@[simp] lemma norm_zero : ∥(0 : E →L[k] F)∥ = 0 :=
+by rw op_norm_zero_iff
 
-/-- Expose L(E,F) equipped with the operator norm as normed space. -/
-noncomputable instance bounded_linear_maps.to_normed_space : normed_space ℝ L(E,F) :=
-normed_space.of_core ℝ L(E,F) {
-  norm_eq_zero_iff := operator_norm_zero_iff,
-  norm_smul := operator_norm_homogeneous,
-  triangle := operator_norm_triangle
-}
+/-- The norm of the identity is at most 1. It is in fact 1, except when the space is trivial where
+it is 0. It means that one can not do better than an inequality in general. -/
+lemma norm_id : ∥(id : E →L[k] E)∥ ≤ 1 :=
+op_norm_le_bound _ zero_le_one (λx, by simp)
 
-end operator_norm
+/-- The operator norm is homogeneous. -/
+lemma op_norm_smul : ∥c • f∥ = ∥c∥ * ∥f∥ :=
+le_antisymm
+  (Inf_le _ bounds_bdd_below
+    ⟨mul_nonneg (norm_nonneg _) (op_norm_nonneg _), λ _,
+    begin
+      erw [norm_smul, mul_assoc],
+      exact mul_le_mul_of_nonneg_left (le_op_norm _ _) (norm_nonneg _)
+    end⟩)
+  (lb_le_Inf _ bounds_nonempty (λ _ ⟨hn, hc⟩,
+    (or.elim (lt_or_eq_of_le (norm_nonneg c))
+      (λ hlt,
+        begin
+          rw mul_comm,
+          exact mul_le_of_le_div hlt (Inf_le _ bounds_bdd_below
+          ⟨div_nonneg hn hlt, λ _,
+          (by { rw div_mul_eq_mul_div, exact le_div_of_mul_le hlt
+          (by { rw [ mul_comm, ←norm_smul ], exact hc _ }) })⟩)
+        end)
+      (λ heq, by { rw [←heq, zero_mul], exact hn }))))
+
+lemma op_norm_neg : ∥-f∥ = ∥f∥ := calc
+  ∥-f∥ = ∥(-1:k) • f∥ : by rw neg_one_smul
+  ... = ∥(-1:k)∥ * ∥f∥ : by rw op_norm_smul
+  ... = ∥f∥ : by simp
+
+/-- Continuous linear maps themselves form a normed space with respect to
+    the operator norm. -/
+instance to_normed_group : normed_group (E →L[k] F) :=
+normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_triangle, op_norm_neg⟩
+
+/- The next instance should be found automatically, but it is not.
+TODO: fix me -/
+instance to_normed_group_prod : normed_group (E →L[k] (F × G)) :=
+continuous_linear_map.to_normed_group
+
+instance to_normed_space : normed_space k (E →L[k] F) :=
+⟨op_norm_smul⟩
+
+/-- The operator norm is submultiplicative. -/
+lemma op_norm_comp_le : ∥comp h f∥ ≤ ∥h∥ * ∥f∥ :=
+(Inf_le _ bounds_bdd_below
+  ⟨mul_nonneg (op_norm_nonneg _) (op_norm_nonneg _), λ x,
+  begin
+    rw mul_assoc,
+    calc _ ≤ ∥h∥ * ∥f x∥: le_op_norm _ _
+    ... ≤ _ : mul_le_mul_of_nonneg_left
+              (le_op_norm _ _) (op_norm_nonneg _)
+  end⟩)
+
+/-- continuous linear maps are Lipschitz continuous. -/
+theorem lipschitz : lipschitz_with ∥f∥ f :=
+⟨op_norm_nonneg _, λ x y,
+  by { rw [dist_eq_norm, dist_eq_norm, ←map_sub], apply le_op_norm }⟩
+
+end op_norm
+
+/-- The norm of the tensor product of a scalar linear map and of an element of a normed space
+is the product of the norms. -/
+@[simp] lemma scalar_prod_space_iso_norm {c : E →L[k] k} {f : F} :
+  ∥scalar_prod_space_iso c f∥ = ∥c∥ * ∥f∥ :=
+begin
+  refine le_antisymm _ _,
+  { apply op_norm_le_bound _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) (λx, _),
+    calc
+     ∥(c x) • f∥ = ∥c x∥ * ∥f∥ : norm_smul _ _
+     ... ≤ (∥c∥ * ∥x∥) * ∥f∥ :
+       mul_le_mul_of_nonneg_right (le_op_norm _ _) (norm_nonneg _)
+     ... = ∥c∥ * ∥f∥ * ∥x∥ : by ring },
+  { by_cases h : ∥f∥ = 0,
+    { rw h, simp [norm_nonneg] },
+    { have : 0 < ∥f∥ := lt_of_le_of_ne (norm_nonneg _) (ne.symm h),
+      rw ← le_div_iff this,
+      apply op_norm_le_bound _ (div_nonneg (norm_nonneg _) this) (λx, _),
+      rw [div_mul_eq_mul_div, le_div_iff this],
+      calc ∥c x∥ * ∥f∥ = ∥c x • f∥ : (norm_smul _ _).symm
+      ... = ∥((scalar_prod_space_iso c f) : E → F) x∥ : rfl
+      ... ≤ ∥scalar_prod_space_iso c f∥ * ∥x∥ : le_op_norm _ _ } },
+end
+
+end continuous_linear_map

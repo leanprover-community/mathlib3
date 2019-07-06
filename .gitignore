@@ -1,4 +1,5 @@
 *.olean
 /_target
 /leanpkg.path
-/_cache/
+_cache
+__pycache__

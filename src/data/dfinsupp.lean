@@ -108,7 +108,7 @@ instance [Π i, add_monoid (β i)] : add_monoid (Π₀ i, β i) :=
   add_zero  := λ f, ext $ λ i, by simp only [add_apply, zero_apply, add_zero] }
 
 instance [Π i, add_monoid (β i)] {i : ι} : is_add_monoid_hom (λ g : Π₀ i : ι, β i, g i) :=
-by refine_struct {..}; simp
+{ map_add := λ _ _, add_apply, map_zero := zero_apply }
 
 instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=
 ⟨λ f, f.map_range (λ _, has_neg.neg) (λ _, neg_zero)⟩
@@ -207,7 +207,7 @@ ext $ λ i, by simp only [add_apply, subtype_domain_apply]
 
 instance subtype_domain.is_add_monoid_hom [Π i, add_monoid (β i)] {p : ι → Prop} [decidable_pred p] :
   is_add_monoid_hom (subtype_domain p : (Π₀ i : ι, β i) → Π₀ i : subtype p, β i) :=
-by refine_struct {..}; simp
+{ map_add := λ _ _, subtype_domain_add, map_zero := subtype_domain_zero }
 
 @[simp] lemma subtype_domain_neg [Π i, add_group (β i)] {p : ι → Prop} [decidable_pred p] {v : Π₀ i, β i} :
   (- v).subtype_domain p = - v.subtype_domain p :=
@@ -559,6 +559,13 @@ support_zip_with
   support (-f) = support f :=
 by ext i; simp
 
+local attribute [instance] dfinsupp.to_module
+
+lemma support_smul {γ : Type w} [ring γ] [Π i, add_comm_group (β i)] [Π i, module γ (β i)]
+  [Π (i : ι), decidable_pred (eq (0 : β i))]
+  {b : γ} {v : Π₀ i, β i} : (b • v).support ⊆ v.support :=
+λ x, by simp [dfinsupp.mem_support_iff, not_imp_not] {contextual := tt}
+
 instance [decidable_eq ι] [Π i, has_zero (β i)] [Π i, decidable_eq (β i)] : decidable_eq (Π₀ i, β i) :=
 assume f g, decidable_of_iff (f.support = g.support ∧ (∀i∈f.support, f i = g i))
   ⟨assume ⟨h₁, h₂⟩, ext $ assume i,
@@ -702,7 +709,7 @@ lemma prod_finset_sum_index {γ : Type w} {α : Type x}
   [Π i, add_comm_monoid (β i)] [Π i, decidable_pred (eq (0 : β i))]
   [comm_monoid γ] [decidable_eq α]
   {s : finset α} {g : α → Π₀ i, β i}
-  {h : Π i, β i → γ} (h_zero : ∀i, h i 0 = 1) (h_add : ∀i b₁ b₂, h i (b₁ + b₂) = h i b₁ * h i b₂):
+  {h : Π i, β i → γ} (h_zero : ∀i, h i 0 = 1) (h_add : ∀i b₁ b₂, h i (b₁ + b₂) = h i b₁ * h i b₂) :
   s.prod (λi, (g i).prod h) = (s.sum g).prod h :=
 finset.induction_on s
   (by simp [prod_zero_index])
@@ -714,7 +721,7 @@ lemma prod_sum_index  {ι₁ : Type u₁} [decidable_eq ι₁] {β₁ : ι₁ �
   [Π i, add_comm_monoid (β i)] [Π i, decidable_pred (eq (0 : β i))]
   [comm_monoid γ]
   {f : Π₀ i₁, β₁ i₁} {g : Π i₁, β₁ i₁ → Π₀ i, β i}
-  {h : Π i, β i → γ} (h_zero : ∀i, h i 0 = 1) (h_add : ∀i b₁ b₂, h i (b₁ + b₂) = h i b₁ * h i b₂):
+  {h : Π i, β i → γ} (h_zero : ∀i, h i 0 = 1) (h_add : ∀i b₁ b₂, h i (b₁ + b₂) = h i b₁ * h i b₂) :
   (f.sum g).prod h = f.prod (λi b, (g i b).prod h) :=
 (prod_finset_sum_index h_zero h_add).symm
 

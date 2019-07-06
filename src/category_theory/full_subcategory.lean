@@ -24,7 +24,7 @@ section induced
 
 -/
 
-variables {C : Type u₁} {D : Type u₂} [𝒟 : category.{v u₂} D]
+variables {C : Type u₁} {D : Type u₂} [𝒟 : category.{v} D]
 include 𝒟
 variables (F : C → D)
 include F
@@ -42,8 +42,9 @@ def induced_functor : induced_category F ⥤ D :=
 @[simp] lemma induced_functor.obj {X} : (induced_functor F).obj X = F X := rfl
 @[simp] lemma induced_functor.hom {X Y} {f : X ⟶ Y} : (induced_functor F).map f = f := rfl
 
-instance induced_category.fully_faithful : fully_faithful (induced_functor F) :=
+instance induced_category.full : full (induced_functor F) :=
 { preimage := λ x y f, f }
+instance induced_category.faithful : faithful (induced_functor F) := {}
 
 end induced
 
@@ -65,8 +66,10 @@ induced_functor subtype.val
 @[simp] lemma full_subcategory_inclusion.map {X Y} {f : X ⟶ Y} :
   (full_subcategory_inclusion Z).map f = f := rfl
 
-instance full_subcategory.fully_faithful : fully_faithful (full_subcategory_inclusion Z) :=
-induced_category.fully_faithful subtype.val
+instance full_subcategory.ful : full (full_subcategory_inclusion Z) :=
+induced_category.full subtype.val
+instance full_subcategory.faithful : faithful (full_subcategory_inclusion Z) :=
+induced_category.faithful subtype.val
 
 end full_subcategory
 

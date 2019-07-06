@@ -24,7 +24,7 @@ bounded below.
 -/
 import
   order.lattice order.complete_lattice order.bounds
-  tactic.finish data.set.countable
+  tactic.finish data.set.finite
 
 set_option old_structure_cmd true
 
@@ -97,7 +97,7 @@ end preorder
 ⟨⊤, by intros; apply order_top.le_top⟩
 
 /--When there is a global minimum, every set is bounded below.-/
-@[simp] lemma bdd_below_bot [order_bot α] (s : set α): bdd_below s :=
+@[simp] lemma bdd_below_bot [order_bot α] (s : set α) : bdd_below s :=
 ⟨⊥, by intros; apply order_bot.bot_le⟩
 
 /-When there is a max (i.e., in the class semilattice_sup), then the union of

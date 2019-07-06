@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Some big operators for lists and finite sets.
 -/
-import data.list.basic data.list.perm data.finset
+import tactic.tauto data.list.basic data.finset
 import algebra.group algebra.ordered_group algebra.group_power
 
 universes u v w
@@ -20,6 +20,10 @@ multiset.induction_on s.1 (let ⟨z⟩ := hι in ⟨z, λ _, false.elim⟩) $
 ⟨k, λ a h, or.cases_on (multiset.mem_cons.1 h)
   (λ h, h.symm ▸ h₁)
   (λ h, trans (H _ h) h₂)⟩
+
+theorem finset.exists_le {α : Type u} [nonempty α] [directed_order α] (s : finset α) :
+  ∃ M, ∀ i ∈ s, i ≤ M :=
+directed.finset_le (by apply_instance) directed_order.directed s
 
 namespace finset
 variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
@@ -55,6 +59,11 @@ attribute [to_additive finset.sum_const_zero] prod_const_one
 lemma prod_image [decidable_eq α] {s : finset γ} {g : γ → α} :
   (∀x∈s, ∀y∈s, g x = g y → x = y) → (s.image g).prod f = s.prod (λx, f (g x)) :=
 fold_image
+
+@[simp, to_additive sum_map]
+lemma prod_map (s : finset α) (e : α ↪ γ) (f : γ → β) :
+  (s.map e).prod f = s.prod (λa, f (e a)) :=
+by rw [finset.prod, finset.map_val, multiset.map_map]; refl
 
 @[congr, to_additive finset.sum_congr]
 lemma prod_congr (h : s₁ = s₂) : (∀x∈s₂, f x = g x) → s₁.prod f = s₂.prod g :=
@@ -345,6 +354,19 @@ lemma sum_nat_cast [add_comm_monoid β] [has_one β] (s : finset α) (f : α →
   ↑(s.sum f) = s.sum (λa, f a : α → β) :=
 (sum_hom _).symm
 
+lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_comm_monoid β]
+  (f : α → β) (h_zero : f 0 = 0) (h_add : ∀x y, f (x + y) ≤ f x + f y) (s : finset γ) (g : γ → α) :
+  f (s.sum g) ≤ s.sum (λc, f (g c)) :=
+begin
+  refine le_trans (multiset.le_sum_of_subadditive f h_zero h_add _) _,
+  rw [multiset.map_map],
+  refl
+end
+
+lemma abs_sum_le_sum_abs [discrete_linear_ordered_field α] {f : β → α} {s : finset β} :
+  abs (s.sum f) ≤ s.sum (λa, abs (f a)) :=
+le_sum_of_subadditive _ abs_zero abs_add s f
+
 section comm_group
 variables [comm_group β]
 
@@ -397,6 +419,7 @@ finset.induction_on s (λ _, le_refl _) $ assume a s ha ih h,
   by simpa only [sum_insert ha]
 
 lemma zero_le_sum (h : ∀x∈s, 0 ≤ f x) : 0 ≤ s.sum f := le_trans (by rw [sum_const_zero]) (sum_le_sum h)
+
 lemma sum_le_zero (h : ∀x∈s, f x ≤ 0) : s.sum f ≤ 0 := le_trans (sum_le_sum h) (by rw [sum_const_zero])
 
 end ordered_cancel_comm_monoid
@@ -472,6 +495,7 @@ finset.induction_on s (λ _, le_refl _) $ assume a s ha ih h,
   by simpa only [sum_insert ha]
 
 lemma zero_le_sum' (h : ∀x∈s, 0 ≤ f x) : 0 ≤ s.sum f := le_trans (by rw [sum_const_zero]) (sum_le_sum' h)
+
 lemma sum_le_zero' (h : ∀x∈s, f x ≤ 0) : s.sum f ≤ 0 := le_trans (sum_le_sum' h) (by rw [sum_const_zero])
 
 lemma sum_le_sum_of_subset_of_nonneg
@@ -510,19 +534,6 @@ calc s₁.sum f = (s₁.filter (λx, f x = 0)).sum f + (s₁.filter (λx, f x �
       (sum_le_sum_of_subset $ by simpa only [subset_iff, mem_filter, and_imp])
 
 end canonically_ordered_monoid
-
-section discrete_linear_ordered_field
-variables [discrete_linear_ordered_field α] [decidable_eq β]
-
-lemma abs_sum_le_sum_abs {f : β → α} {s : finset β} : abs (s.sum f) ≤ s.sum (λa, abs (f a)) :=
-finset.induction_on s (le_of_eq abs_zero) $
-  assume a s has ih,
-  calc abs (sum (insert a s) f) ≤ abs (f a) + abs (sum s f) :
-      by rw sum_insert has; exact abs_add_le_abs_add_abs _ _
-    ... ≤ abs (f a) + s.sum (λa, abs (f a)) : add_le_add (le_refl _) ih
-    ... ≤ sum (insert a s) (λ (a : β), abs (f a)) : by rw sum_insert has
-
-end discrete_linear_ordered_field
 
 @[simp] lemma card_pi [decidable_eq α] {δ : α → Type*}
   (s : finset α) (t : Π a, finset (δ a)) :
@@ -581,23 +592,45 @@ by rw [geom_sum h₁, div_eq_iff_mul_eq h₂, ← domain.mul_left_inj h₃,
 
 end geom_sum
 
+namespace finset
+section gauss_sum
+
+/-- Gauss' summation formula -/
+lemma sum_range_id_mul_two :
+  ∀(n : ℕ), (finset.range n).sum (λi, i) * 2 = n * (n - 1)
+| 0       := rfl
+| 1       := rfl
+| ((n + 1) + 1) :=
+  begin
+    rw [sum_range_succ, add_mul, sum_range_id_mul_two (n + 1), mul_comm, two_mul,
+      nat.add_sub_cancel, nat.add_sub_cancel, mul_comm _ n],
+    simp only [add_mul, one_mul, add_comm, add_assoc, add_left_comm]
+  end
+
+/-- Gauss' summation formula -/
+lemma sum_range_id (n : ℕ) : (finset.range n).sum (λi, i) = (n * (n - 1)) / 2 :=
+by rw [← sum_range_id_mul_two n, nat.mul_div_cancel]; exact dec_trivial
+
+end gauss_sum
+end finset
+
 section group
 
 open list
 variables [group α] [group β]
 
-@[to_additive is_add_group_hom.sum]
-theorem is_group_hom.prod (f : α → β) [is_group_hom f] (l : list α) :
+@[to_additive is_add_group_hom.map_sum]
+theorem is_group_hom.map_prod (f : α → β) [is_group_hom f] (l : list α) :
   f (prod l) = prod (map f l) :=
-by induction l; simp only [*, is_group_hom.mul f, is_group_hom.one f, prod_nil, prod_cons, map]
+by induction l; simp only [*, is_group_hom.map_mul f, is_group_hom.map_one f, prod_nil, prod_cons, map]
 
-theorem is_group_anti_hom.prod (f : α → β) [is_group_anti_hom f] (l : list α) :
+theorem is_group_anti_hom.map_prod (f : α → β) [is_group_anti_hom f] (l : list α) :
   f (prod l) = prod (map f (reverse l)) :=
-by induction l with hd tl ih; [exact is_group_anti_hom.one f,
-  simp only [prod_cons, is_group_anti_hom.mul f, ih, reverse_cons, map_append, prod_append, map_singleton, prod_cons, prod_nil, mul_one]]
+by induction l with hd tl ih; [exact is_group_anti_hom.map_one f,
+  simp only [prod_cons, is_group_anti_hom.map_mul f, ih, reverse_cons, map_append, prod_append, map_singleton, prod_cons, prod_nil, mul_one]]
 
 theorem inv_prod : ∀ l : list α, (prod l)⁻¹ = prod (map (λ x, x⁻¹) (reverse l)) :=
-λ l, @is_group_anti_hom.prod _ _ _ _ _ inv_is_group_anti_hom l -- TODO there is probably a cleaner proof of this
+λ l, @is_group_anti_hom.map_prod _ _ _ _ _ inv_is_group_anti_hom l -- TODO there is probably a cleaner proof of this
 
 end group
 
@@ -605,19 +638,19 @@ section comm_group
 variables [comm_group α] [comm_group β] (f : α → β) [is_group_hom f]
 
 @[to_additive is_add_group_hom.multiset_sum]
-lemma is_group_hom.multiset_prod (m : multiset α) : f m.prod = (m.map f).prod :=
-quotient.induction_on m $ assume l, by simp [is_group_hom.prod f l]
+lemma is_group_hom.map_multiset_prod (m : multiset α) : f m.prod = (m.map f).prod :=
+quotient.induction_on m $ assume l, by simp [is_group_hom.map_prod f l]
 
 @[to_additive is_add_group_hom.finset_sum]
 lemma is_group_hom.finset_prod (g : γ → α) (s : finset γ) : f (s.prod g) = s.prod (f ∘ g) :=
-show f (s.val.map g).prod = (s.val.map (f ∘ g)).prod, by rw [is_group_hom.multiset_prod f]; simp
+show f (s.val.map g).prod = (s.val.map (f ∘ g)).prod, by rw [is_group_hom.map_multiset_prod f]; simp
 
 end comm_group
 
 @[to_additive is_add_group_hom_finset_sum]
 lemma is_group_hom_finset_prod {α β γ} [group α] [comm_group β] (s : finset γ)
   (f : γ → α → β) [∀c, is_group_hom (f c)] : is_group_hom (λa, s.prod (λc, f c a)) :=
-⟨assume a b, by simp only [λc, is_group_hom.mul (f c), finset.prod_mul_distrib]⟩
+⟨assume a b, by simp only [λc, is_group_hom.map_mul (f c), finset.prod_mul_distrib]⟩
 
 attribute [instance] is_group_hom_finset_prod is_add_group_hom_finset_sum
 

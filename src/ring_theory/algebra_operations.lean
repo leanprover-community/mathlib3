@@ -6,26 +6,48 @@ Authors: Kenny Lau
 Multiplication of submodules of an algebra.
 -/
 
-import ring_theory.algebra ring_theory.noetherian
+import ring_theory.algebra algebra.pointwise
+import tactic.chain
+import tactic.monotonicity.basic
 
 universes u v
 
-open lattice submodule
+open lattice algebra
 
-namespace algebra
+local attribute [instance] set.pointwise_mul_semiring
+
+namespace submodule
 
 variables {R : Type u} [comm_ring R]
 
 section ring
 
 variables {A : Type v} [ring A] [algebra R A]
+variables (S T : set A) {M N P Q : submodule R A} {m n : A}
+
+instance : has_one (submodule R A) :=
+⟨submodule.map (of_id R A).to_linear_map (⊤ : ideal R)⟩
+
+theorem one_eq_map_top :
+  (1 : submodule R A) = submodule.map (of_id R A).to_linear_map (⊤ : ideal R) := rfl
+
+theorem one_eq_span : (1 : submodule R A) = span R {1} :=
+begin
+  apply submodule.ext,
+  intro a,
+  erw [mem_map, mem_span_singleton],
+  apply exists_congr,
+  intro r,
+  simpa [smul_def],
+end
+
+theorem one_le : (1 : submodule R A) ≤ P ↔ (1 : A) ∈ P :=
+by simpa only [one_eq_span, span_le, set.singleton_subset_iff]
 
 set_option class.instance_max_depth 50
 instance : has_mul (submodule R A) :=
 ⟨λ M N, ⨆ s : M, N.map $ algebra.lmul R A s.1⟩
 set_option class.instance_max_depth 32
-
-variables (S T : set A) {M N P Q : submodule R A} {m n : A}
 
 theorem mul_mem_mul (hm : m ∈ M) (hn : n ∈ N) : m * n ∈ M * N :=
 (le_supr _ ⟨m, hm⟩ : _ ≤ M * N) ⟨n, hn, rfl⟩
@@ -42,26 +64,20 @@ theorem mul_le : M * N ≤ P ↔ ∀ (m ∈ M) (n ∈ N), m * n ∈ P :=
 (@mul_le _ _ _ _ _ _ _ ⟨C, h0, ha, hs⟩).2 hm hr
 
 variables R
-theorem span_mul_span : span R S * span R T = span R ((S.prod T).image (λ p, p.1 * p.2)) :=
-le_antisymm
-  (mul_le.2 $ λ x1 hx1 x2 hx2, span_induction hx1
-    (λ y1 hy1, span_induction hx2
-      (λ y2 hy2, subset_span ⟨(y1, y2), ⟨hy1, hy2⟩, rfl⟩)
-      ((mul_zero y1).symm ▸ zero_mem _)
-      (λ r1 r2, (mul_add y1 r1 r2).symm ▸ add_mem _)
-      (λ s r, (algebra.mul_smul_comm s y1 r).symm ▸ smul_mem _ _))
-    ((zero_mul x2).symm ▸ zero_mem _)
-    (λ r1 r2, (add_mul r1 r2 x2).symm ▸ add_mem _)
-    (λ s r, (algebra.smul_mul_assoc s r x2).symm ▸ smul_mem _ _))
-  (span_le.2 (set.image_subset_iff.2 $ λ ⟨x1, x2⟩ ⟨hx1, hx2⟩,
-    mul_mem_mul (subset_span hx1) (subset_span hx2)))
+theorem span_mul_span : span R S * span R T = span R (S * T) :=
+begin
+  apply le_antisymm,
+  { rw mul_le, intros a ha b hb,
+    apply span_induction ha,
+    work_on_goal 0 { intros, apply span_induction hb,
+      work_on_goal 0 { intros, exact subset_span ⟨_, ‹_›, _, ‹_›, rfl⟩ } },
+    all_goals { intros, simp only [mul_zero, zero_mul, zero_mem,
+        left_distrib, right_distrib, mul_smul_comm, smul_mul_assoc],
+      try {apply add_mem _ _ _}, try {apply smul_mem _ _ _} }, assumption' },
+  { rw span_le, rintros _ ⟨a, ha, b, hb, rfl⟩,
+    exact mul_mem_mul (subset_span ha) (subset_span hb) }
+end
 variables {R}
-
-theorem fg_mul (hm : M.fg) (hn : N.fg) : (M * N).fg :=
-let ⟨m, hf1, hm⟩ := fg_def.1 hm, ⟨n, hf2, hn⟩ := fg_def.1 hn in
-fg_def.2 ⟨(m.prod n).image (λ p, p.1 * p.2),
-set.finite_image _ (set.finite_prod hf1 hf2),
-span_mul_span R m n ▸ hm ▸ hn ▸ rfl⟩
 
 variables (M N P Q)
 set_option class.instance_max_depth 50
@@ -79,6 +95,13 @@ eq_bot_iff.2 $ mul_le.2 $ λ m hm n hn, by rw [submodule.mem_bot] at hn ⊢; rw 
 
 @[simp] theorem bot_mul : ⊥ * M = ⊥ :=
 eq_bot_iff.2 $ mul_le.2 $ λ m hm n hn, by rw [submodule.mem_bot] at hm ⊢; rw [hm, zero_mul]
+
+@[simp] protected theorem one_mul : (1 : submodule R A) * M = M :=
+by { conv_lhs { rw [one_eq_span, ← span_eq M] }, erw [span_mul_span, one_mul, span_eq] }
+
+@[simp] protected theorem mul_one : M * 1 = M :=
+by { conv_lhs { rw [one_eq_span, ← span_eq M] }, erw [span_mul_span, mul_one, span_eq] }
+
 variables {M N P Q}
 
 @[mono] theorem mul_le_mul (hmp : M ≤ P) (hnq : N ≤ Q) : M * N ≤ P * Q :=
@@ -102,19 +125,17 @@ le_antisymm (mul_le.2 $ λ mn hmn p hp, let ⟨m, hm, n, hn, hmn⟩ := mem_sup.1
 (sup_le (mul_le_mul_left le_sup_left) (mul_le_mul_left le_sup_right))
 variables {M N P}
 
-instance : semigroup (submodule R A) :=
-{ mul := (*),
-  mul_assoc := algebra.mul_assoc }
-
-instance : mul_zero_class (submodule R A) :=
-{ zero_mul := bot_mul,
-  mul_zero := mul_bot,
-  .. submodule.add_comm_monoid, .. algebra.semigroup  }
-
-instance : distrib (submodule R A) :=
-{ left_distrib := mul_sup,
+instance : semiring (submodule R A) :=
+{ one_mul       := submodule.one_mul,
+  mul_one       := submodule.mul_one,
+  mul_assoc     := submodule.mul_assoc,
+  zero_mul      := bot_mul,
+  mul_zero      := mul_bot,
+  left_distrib  := mul_sup,
   right_distrib := sup_mul,
-  .. submodule.add_comm_monoid, .. algebra.semigroup }
+  ..submodule.add_comm_monoid,
+  ..submodule.has_one,
+  ..submodule.has_mul }
 
 end ring
 
@@ -131,10 +152,10 @@ protected theorem mul_comm : M * N = N * M :=
 le_antisymm (mul_le.2 $ λ r hrm s hsn, mul_mem_mul_rev hsn hrm)
 (mul_le.2 $ λ r hrn s hsm, mul_mem_mul_rev hsm hrn)
 
-instance : comm_semigroup (submodule R A) :=
-{ mul_comm := algebra.mul_comm,
-  .. algebra.semigroup }
+instance : comm_semiring (submodule R A) :=
+{ mul_comm := submodule.mul_comm,
+  .. submodule.semiring }
 
 end comm_ring
 
-end algebra
+end submodule

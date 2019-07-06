@@ -31,6 +31,13 @@ prod.fst $ pop_nth_prefix_aux nm n
 meta def pop_prefix (n : name) : name :=
 pop_nth_prefix n 1
 
+private def from_components_aux : name → list string → name
+| n [] := n
+| n (s :: rest) := from_components_aux (name.mk_string s n) rest
+
+def from_components : list string → name :=
+from_components_aux name.anonymous
+
 -- `name`s can contain numeral pieces, which are not legal names
 -- when typed/passed directly to the parser. We turn an arbitrary
 -- name into a legal identifier name.
@@ -44,6 +51,16 @@ def append_suffix : name → string → name
 | n _ := n
 
 end name
+
+namespace level
+
+meta def nonzero : level → bool
+| (succ _) := tt
+| (max l₁ l₂) := l₁.nonzero || l₂.nonzero
+| (imax _ l₂) := l₂.nonzero
+| _ := ff
+
+end level
 
 namespace expr
 open tactic
@@ -102,6 +119,20 @@ meta def is_num_eq : expr → expr → bool
 | `(-%%a) `(-%%b) := a.is_num_eq b
 | `(%%a/%%a') `(%%b/%%b') :=  a.is_num_eq b
 | _ _ := ff
+
+meta def simp (t : expr)
+  (cfg : simp_config := {}) (discharger : tactic unit := failed)
+  (no_defaults := ff) (attr_names : list name := []) (hs : list simp_arg_type := []) :
+  tactic (expr × expr) :=
+do (s, to_unfold) ← mk_simp_set no_defaults attr_names hs,
+   simplify s to_unfold t cfg `eq discharger
+
+meta def dsimp (t : expr)
+  (cfg : dsimp_config := {})
+  (no_defaults := ff) (attr_names : list name := []) (hs : list simp_arg_type := []) :
+  tactic expr :=
+do (s, to_unfold) ← mk_simp_set no_defaults attr_names hs,
+   s.dsimplify to_unfold t cfg
 
 end expr
 

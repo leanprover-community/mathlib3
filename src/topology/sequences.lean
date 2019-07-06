@@ -33,7 +33,7 @@ variables [topological_space α] [topological_space β]
 
 /-- A sequence converges in the sence of topological spaces iff the associated statement for filter
 holds. -/
-@[simp] lemma topological_space.seq_tendsto_iff {x : ℕ → α} {limit : α} :
+lemma topological_space.seq_tendsto_iff {x : ℕ → α} {limit : α} :
   tendsto x at_top (nhds limit) ↔
     ∀ U : set α, limit ∈ U → is_open U → ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U :=
 iff.intro
@@ -133,7 +133,7 @@ lemma continuous.to_sequentially_continuous {f : α → β} (_ : continuous f) :
   sequentially_continuous f :=
 assume x limit (_ : x ⟶ limit),
 have tendsto f (nhds limit) (nhds (f limit)), from continuous.tendsto ‹continuous f› limit,
-show (f ∘ x) ⟶ (f limit), from tendsto.comp ‹(x ⟶ limit)› this
+show (f ∘ x) ⟶ (f limit), from tendsto.comp this ‹(x ⟶ limit)›
 
 /-- In a sequential space, continuity and sequential continuity coincide. -/
 lemma continuous_iff_sequentially_continuous {f : α → β} [sequential_space α] :

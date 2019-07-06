@@ -5,7 +5,7 @@ Author: Mario Carneiro
 
 Finite types.
 -/
-import data.finset algebra.big_operators data.array.lemmas data.vector2 data.equiv.encodable
+import data.finset algebra.big_operators data.array.lemmas logic.unique
 universes u v
 
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -205,6 +205,9 @@ instance (n : ℕ) : fintype (fin n) :=
 @[simp] theorem fintype.card_fin (n : ℕ) : fintype.card (fin n) = n :=
 by rw [fin.fintype]; simp [fintype.card, card, univ]
 
+instance unique.fintype {α : Type*} [unique α] : fintype α :=
+⟨finset.singleton (default α), λ x, by rw [unique.eq_default x]; simp⟩
+
 instance : fintype empty := ⟨∅, empty.rec _⟩
 
 @[simp] theorem fintype.univ_empty : @univ empty _ = ∅ := rfl
@@ -312,7 +315,7 @@ finset.card_le_card_of_inj_on f (λ _ _, finset.mem_univ _) (λ _ _ _ _ h, hf h)
 
 lemma fintype.card_eq_one_iff [fintype α] : fintype.card α = 1 ↔ (∃ x : α, ∀ y, y = x) :=
 by rw [← fintype.card_unit, fintype.card_eq]; exact
-⟨λ ⟨a⟩, ⟨a.symm (), λ y, a.bijective.1 (subsingleton.elim _ _)⟩,
+⟨λ ⟨a⟩, ⟨a.symm (), λ y, a.injective (subsingleton.elim _ _)⟩,
   λ ⟨x, hx⟩, ⟨⟨λ _, (), λ _, x, λ _, (hx _).trans (hx _).symm,
     λ _, subsingleton.elim _ _⟩⟩⟩
 
@@ -370,9 +373,9 @@ lemma fintype.injective_iff_surjective_of_equiv [fintype α] {f : α → β} (e 
   injective f ↔ surjective f :=
 have injective (e.symm ∘ f) ↔ surjective (e.symm ∘ f), from fintype.injective_iff_surjective,
 ⟨λ hinj, by simpa [function.comp] using
-  surjective_comp e.bijective.2 (this.1 (injective_comp e.symm.bijective.1 hinj)),
+  surjective_comp e.surjective (this.1 (injective_comp e.symm.injective hinj)),
 λ hsurj, by simpa [function.comp] using
-  injective_comp e.bijective.1 (this.2 (surjective_comp e.symm.bijective.2 hsurj))⟩
+  injective_comp e.injective (this.2 (surjective_comp e.symm.surjective hsurj))⟩
 
 instance list.subtype.fintype [decidable_eq α] (l : list α) : fintype {x // x ∈ l} :=
 fintype.of_list l.attach l.mem_attach
@@ -536,17 +539,17 @@ then
   mem_append_left _ $ mem_perms_of_list_of_mem
     (λ x hx, mem_of_ne_of_mem (λ h, by rw h at hx; exact hx hfa) (h x hx))
 else
-have hfa' : f (f a) ≠ f a, from mt (λ h, f.bijective.1 h) hfa,
+have hfa' : f (f a) ≠ f a, from mt (λ h, f.injective h) hfa,
 have ∀ (x : α), (swap a (f a) * f) x ≠ x → x ∈ l,
   from λ x hx, have hxa : x ≠ a, from λ h, by simpa [h, mul_apply] using hx,
-    have hfxa : f x ≠ f a, from mt (λ h, f.bijective.1 h) hxa,
+    have hfxa : f x ≠ f a, from mt (λ h, f.injective h) hxa,
     list.mem_of_ne_of_mem hxa
       (h x (λ h, by simp [h, mul_apply, swap_apply_def] at hx; split_ifs at hx; cc)),
 suffices f ∈ perms_of_list l ∨ ∃ (b : α), b ∈ l ∧ ∃ g : perm α, g ∈ perms_of_list l ∧ swap a b * g = f,
   by simpa [perms_of_list],
 (@or_iff_not_imp_left _ _ (classical.prop_decidable _)).2
   (λ hfl, ⟨f a,
-    if hffa : f (f a) = a then mem_of_ne_of_mem hfa (h _ (mt (λ h, f.bijective.1 h) hfa))
+    if hffa : f (f a) = a then mem_of_ne_of_mem hfa (h _ (mt (λ h, f.injective h) hfa))
       else this _ $ by simp [mul_apply, swap_apply_def]; split_ifs; cc,
     ⟨swap a (f a) * f, mem_perms_of_list_of_mem this,
       by rw [← mul_assoc, mul_def (swap a (f a)) (swap a (f a)), swap_swap, ← equiv.perm.one_def, one_mul]⟩⟩)
@@ -591,7 +594,7 @@ by rw [perms_of_list, list.nodup_append, list.nodup_bind, pairwise_iff_nth_le]; 
   λ f hf₁ hf₂,
     let ⟨x, hx, hx'⟩ := list.mem_bind.1 hf₂ in
     let ⟨g, hg⟩ := list.mem_map.1 hx' in
-    have hgxa : g⁻¹ x = a, from f.bijective.1 $
+    have hgxa : g⁻¹ x = a, from f.injective $
       by rw [hmeml hf₁, ← hg.2]; simp,
     have hxa : x ≠ a, from λ h, (list.nodup_cons.1 hl).1 (h ▸ hx),
     (list.nodup_cons.1 hl).1 $
@@ -681,4 +684,50 @@ lemma bijective_bij_inv (f_bij : bijective f) : bijective (bij_inv f_bij) :=
 
 end bijection_inverse
 
+lemma well_founded_of_trans_of_irrefl [fintype α] (r : α → α → Prop)
+  [is_trans α r] [is_irrefl α r] : well_founded r :=
+by classical; exact
+have ∀ x y, r x y → (univ.filter (λ z, r z x)).card < (univ.filter (λ z, r z y)).card,
+  from λ x y hxy, finset.card_lt_card $
+    by simp only [finset.lt_iff_ssubset.symm, lt_iff_le_not_le,
+      finset.le_iff_subset, finset.subset_iff, mem_filter, true_and, mem_univ, hxy];
+    exact ⟨λ z hzx, trans hzx hxy, not_forall_of_exists_not ⟨x, not_imp.2 ⟨hxy, irrefl x⟩⟩⟩,
+subrelation.wf this (measure_wf _)
+
+lemma preorder.well_founded [fintype α] [preorder α] : well_founded ((<) : α → α → Prop) :=
+well_founded_of_trans_of_irrefl _
+
+@[instance, priority 0] lemma linear_order.is_well_order [fintype α] [linear_order α] :
+  is_well_order α (<) :=
+{ wf := preorder.well_founded }
+
 end fintype
+
+class infinite (α : Type*) : Prop :=
+(not_fintype : fintype α → false)
+
+@[simp] lemma not_nonempty_fintype {α : Type*} : ¬nonempty (fintype α) ↔ infinite α :=
+⟨λf, ⟨λ x, f ⟨x⟩⟩, λ⟨f⟩ ⟨x⟩, f x⟩
+
+namespace infinite
+
+lemma exists_not_mem_finset [infinite α] (s : finset α) : ∃ x, x ∉ s :=
+classical.not_forall.1 $ λ h, not_fintype ⟨s, h⟩
+
+instance nonempty (α : Type*) [infinite α] : nonempty α :=
+nonempty_of_exists (exists_not_mem_finset (∅ : finset α))
+
+lemma of_injective [infinite β] (f : β → α) (hf : injective f) : infinite α :=
+⟨λ I, by exactI not_fintype (fintype.of_injective f hf)⟩
+
+lemma of_surjective [infinite β] (f : α → β) (hf : surjective f) : infinite α :=
+⟨λ I, by classical; exactI not_fintype (fintype.of_surjective f hf)⟩
+
+end infinite
+
+instance nat.infinite : infinite ℕ :=
+⟨λ ⟨s, hs⟩, not_le_of_gt (nat.lt_succ_self (s.sum id)) $
+  @finset.single_le_sum _ _ _ id _ _ (λ _ _, nat.zero_le _) _ (hs _)⟩
+
+instance int.infinite : infinite ℤ :=
+infinite.of_injective int.of_nat (λ _ _, int.of_nat_inj)

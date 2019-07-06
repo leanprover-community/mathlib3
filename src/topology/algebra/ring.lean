@@ -59,7 +59,7 @@ lemma quotient_ring_saturate (s : set α) :
   mk N ⁻¹' (mk N '' s) = (⋃ x : N, (λ y, x.1 + y) '' s) :=
 begin
   ext x,
-  simp only [mem_preimage_eq, mem_image, mem_Union, ideal.quotient.eq],
+  simp only [mem_preimage, mem_image, mem_Union, ideal.quotient.eq],
   split,
   { exact assume ⟨a, a_in, h⟩, ⟨⟨_, N.neg_mem h⟩, a, a_in, by simp⟩ },
   { exact assume ⟨⟨i, hi⟩, a, ha, eq⟩, ⟨a, ha,
@@ -80,8 +80,8 @@ begin
   apply is_open_map.to_quotient_map,
   { exact is_open_map.prod (quotient_ring.is_open_map_coe N) (quotient_ring.is_open_map_coe N) },
   { apply continuous.prod_mk,
-    { exact continuous.comp continuous_fst continuous_quot_mk },
-    { exact continuous.comp continuous_snd continuous_quot_mk } },
+    { exact continuous_quot_mk.comp continuous_fst },
+    { exact continuous_quot_mk.comp continuous_snd } },
   { rintro ⟨⟨x⟩, ⟨y⟩⟩,
     exact ⟨(x, y), rfl⟩ }
 end
@@ -89,12 +89,12 @@ end
 instance topological_ring_quotient : topological_ring N.quotient :=
 { continuous_add :=
     have cont : continuous (mk N ∘ (λ (p : α × α), p.fst + p.snd)) :=
-      continuous.comp continuous_add' continuous_quot_mk,
+      continuous_quot_mk.comp continuous_add',
     (quotient_map.continuous_iff (quotient_ring.quotient_map_coe_coe N)).2 cont,
-  continuous_neg := continuous_quotient_lift _ (continuous.comp continuous_neg' continuous_quot_mk),
+  continuous_neg := continuous_quotient_lift _ (continuous_quot_mk.comp continuous_neg'),
   continuous_mul :=
     have cont : continuous (mk N ∘ (λ (p : α × α), p.fst * p.snd)) :=
-      continuous.comp continuous_mul' continuous_quot_mk,
+      continuous_quot_mk.comp continuous_mul',
     (quotient_map.continuous_iff (quotient_ring.quotient_map_coe_coe N)).2 cont }
 
 end topological_ring

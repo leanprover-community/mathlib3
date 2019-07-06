@@ -8,9 +8,9 @@ Ring-theoretic supplement of data.polynomial.
 Main result: Hilbert basis theorem, that if a ring is noetherian then so is its polynomial ring.
 -/
 
-import data.polynomial data.multivariate_polynomial
-import ring_theory.principal_ideal_domain
+import data.polynomial data.mv_polynomial
 import ring_theory.subring
+import ring_theory.ideals ring_theory.noetherian
 
 universes u v w
 
@@ -28,7 +28,7 @@ theorem mem_degree_le {n : with_bot ℕ} {f : polynomial R} :
   f ∈ degree_le R n ↔ degree f ≤ n :=
 by simp only [degree_le, submodule.mem_infi, degree_le_iff_coeff_zero, linear_map.mem_ker]; refl
 
-theorem degree_le_mono {m n : with_bot ℕ} (H : m ≤ n):
+theorem degree_le_mono {m n : with_bot ℕ} (H : m ≤ n) :
   degree_le R m ≤ degree_le R n :=
 λ f hf, mem_degree_le.2 (le_trans (mem_degree_le.1 hf) H)
 

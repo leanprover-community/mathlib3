@@ -1,5 +1,9 @@
-
-import tactic.basic data.list.defs data.prod data.sum tactic.rcases
+/-
+Copyright (c) 2018 Simon Hudon. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Simon Hudon
+-/
+import tactic.rcases data.list.defs data.prod data.sum
 universes u₁ u₂
 
 open interactive interactive.types
@@ -167,7 +171,7 @@ do tgt ← target >>= whnf,
      then rintro [x] >> try_intros xs
      else pure (x :: xs)
 
-meta def ext1 (xs : ext_patt) (cfg : apply_cfg := {}): tactic ext_patt :=
+meta def ext1 (xs : ext_patt) (cfg : apply_cfg := {}) : tactic ext_patt :=
 do subject ← target >>= get_ext_subject,
    m ← extensional_attribute.get_cache,
    do { rule ← m.find subject,

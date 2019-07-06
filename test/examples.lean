@@ -113,6 +113,15 @@ begin
   trivial
 end
 
+-- Test `simp only [exists_prop]` gets applied after choosing.
+-- Because of this simp, we need a non-rfl goal
+example (h : ∀ n, ∃ k ≥ 0, n = k) : ∀ x : ℕ, 1 = 1 :=
+begin
+  choose u hu using h,
+  guard_hyp hu := ∀ n, u n ≥ 0 ∧ n = u n,
+  intro, refl
+end
+
 /- refine_struct -/
 section refine_struct
 

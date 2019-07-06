@@ -196,7 +196,7 @@ by unfold has_scalar.smul; apply_instance
 
 protected theorem smul_add (r : R) (x y : M ⊗[R] N) :
   r • (x + y) = r • x + r • y :=
-is_add_group_hom.add _ _ _
+is_add_group_hom.map_add _ _ _
 
 instance : module R (M ⊗ N) := module.of_core
 { smul := (•),
@@ -410,10 +410,10 @@ begin
     (lift $ direct_sum.to_module R _ _ $ λ i₁, flip $ direct_sum.to_module R _ _ $ λ i₂,
       flip $ curry $ direct_sum.lof R (ι₁ × ι₂) (λ i, β₁ i.1 ⊗[R] β₂ i.2) (i₁, i₂))
     (direct_sum.to_module R _ _ $ λ i, map (direct_sum.lof R _ _ _) (direct_sum.lof R _ _ _))
-    (linear_map.ext $ direct_sum.to_module.ext $ λ i, mk_compr₂_inj $
+    (linear_map.ext $ direct_sum.to_module.ext _ $ λ i, mk_compr₂_inj $
       linear_map.ext $ λ x₁, linear_map.ext $ λ x₂, _)
-    (mk_compr₂_inj $ linear_map.ext $ direct_sum.to_module.ext $ λ i₁, linear_map.ext $ λ x₁,
-      linear_map.ext $ direct_sum.to_module.ext $ λ i₂, linear_map.ext $ λ x₂, _);
+    (mk_compr₂_inj $ linear_map.ext $ direct_sum.to_module.ext _ $ λ i₁, linear_map.ext $ λ x₁,
+      linear_map.ext $ direct_sum.to_module.ext _ $ λ i₂, linear_map.ext $ λ x₂, _);
   repeat { rw compr₂_apply <|> rw comp_apply <|> rw id_apply <|> rw mk_apply <|>
     rw direct_sum.to_module_lof <|> rw map_tmul <|> rw lift.tmul <|> rw flip_apply <|>
     rw curry_apply },

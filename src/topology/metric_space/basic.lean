@@ -147,7 +147,7 @@ by simp [nndist, edist_dist, nnreal.of_real, max_eq_left dist_nonneg, ennreal.of
 
 /--Express `edist` in terms of `nndist`-/
 lemma edist_nndist (x y : α) : edist x y = ↑(nndist x y) :=
-by simp [nndist, edist_dist, nnreal.of_real, max_eq_left dist_nonneg, ennreal.of_real]
+by { rw [edist_dist, nndist, ennreal.of_real_eq_coe_nnreal] }
 
 /--In a metric space, the extended distance is always finite-/
 lemma edist_ne_top (x y : α) : edist x y ≠ ⊤ :=
@@ -737,21 +737,21 @@ end⟩)
 theorem uniform_continuous_dist [uniform_space β] {f g : β → α}
   (hf : uniform_continuous f) (hg : uniform_continuous g) :
   uniform_continuous (λb, dist (f b) (g b)) :=
-(hf.prod_mk hg).comp uniform_continuous_dist'
+uniform_continuous_dist'.comp (hf.prod_mk hg)
 
 theorem continuous_dist' : continuous (λp:α×α, dist p.1 p.2) :=
 uniform_continuous_dist'.continuous
 
 theorem continuous_dist [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, dist (f b) (g b)) :=
-(hf.prod_mk hg).comp continuous_dist'
+continuous_dist'.comp (hf.prod_mk hg)
 
 theorem tendsto_dist {f g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) :
   tendsto (λx, dist (f x) (g x)) x (nhds (dist a b)) :=
 have tendsto (λp:α×α, dist p.1 p.2) (nhds (a, b)) (nhds (dist a b)),
   from continuous_iff_continuous_at.mp continuous_dist' (a, b),
-(hf.prod_mk hg).comp (by rw [nhds_prod_eq] at this; exact this)
+tendsto.comp (by rw [nhds_prod_eq] at this; exact this) (hf.prod_mk hg)
 
 lemma nhds_comap_dist (a : α) : (nhds (0 : ℝ)).comap (λa', dist a' a) = nhds a :=
 have h₁ : ∀ε, (λa', dist a' a) ⁻¹' ball 0 ε ⊆ ball a ε,
@@ -772,6 +772,10 @@ uniform_continuous_subtype_mk uniform_continuous_dist' _
 
 lemma continuous_nndist' : continuous (λp:α×α, nndist p.1 p.2) :=
 uniform_continuous_nndist'.continuous
+
+lemma continuous_nndist [topological_space β] {f g : β → α}
+  (hf : continuous f) (hg : continuous g) : continuous (λb, nndist (f b) (g b)) :=
+continuous_nndist'.comp (hf.prod_mk hg)
 
 lemma tendsto_nndist' (a b :α) :
   tendsto (λp:α×α, nndist p.1 p.2) (filter.prod (nhds a) (nhds b)) (nhds (nndist a b)) :=
@@ -802,6 +806,25 @@ begin
   have B : b ∈ o ∩ s := ⟨hε (by simpa [dist_comm]), bs⟩,
   apply ne_empty_of_mem B
 end⟩
+
+lemma mem_closure_range_iff {α : Type u} [metric_space α] {e : β → α} {a : α} :
+  a ∈ closure (range e) ↔ ∀ε>0, ∃ k : β, dist a (e k) < ε :=
+iff.intro
+( assume ha ε hε,
+  let ⟨b, ⟨hb, hab⟩⟩ := metric.mem_closure_iff'.1 ha ε hε in
+  let ⟨k, hk⟩ := mem_range.1 hb in
+  ⟨k, by { rw hk, exact hab }⟩ )
+( assume h, metric.mem_closure_iff'.2 (assume ε hε,
+  let ⟨k, hk⟩ := h ε hε in
+  ⟨e k, ⟨mem_range.2 ⟨k, rfl⟩, hk⟩⟩) )
+
+lemma mem_closure_range_iff_nat {α : Type u} [metric_space α] {e : β → α} {a : α} :
+  a ∈ closure (range e) ↔ ∀n : ℕ, ∃ k : β, dist a (e k) < 1 / ((n : ℝ) + 1) :=
+⟨assume ha n, mem_closure_range_iff.1 ha (1 / ((n : ℝ) + 1)) nat.one_div_pos_of_nat,
+ assume h, mem_closure_range_iff.2 $ assume ε hε,
+  let ⟨n, hn⟩ := exists_nat_one_div_lt hε in
+  let ⟨k, hk⟩ := h n  in
+  ⟨k, calc dist a (e k) < 1 / ((n : ℝ) + 1) : hk ... < ε : hn⟩⟩
 
 theorem mem_of_closed' {α : Type u} [metric_space α] {s : set α} (hs : is_closed s)
   {a : α} : a ∈ s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=

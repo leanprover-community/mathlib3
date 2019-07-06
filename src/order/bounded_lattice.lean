@@ -168,6 +168,17 @@ end semilattice_sup_bot
 instance nat.semilattice_sup_bot : semilattice_sup_bot ℕ :=
 { bot := 0, bot_le := nat.zero_le, .. nat.distrib_lattice }
 
+private def bot_aux (s : set ℕ) [decidable_pred s] [h : nonempty s] : s :=
+have ∃ x, x ∈ s, from nonempty.elim h (λ x, ⟨x.1, x.2⟩),
+⟨nat.find this, nat.find_spec this⟩
+
+instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred s] [h : nonempty s] :
+  semilattice_sup_bot s :=
+{ bot := bot_aux s,
+  bot_le := λ x, nat.find_min' _ x.2,
+  ..subtype.linear_order s,
+  ..lattice.lattice_of_decidable_linear_order }
+
 /-- A `semilattice_inf_top` is a semilattice with top and meet. -/
 class semilattice_inf_top (α : Type u) extends order_top α, semilattice_inf α
 
@@ -323,7 +334,7 @@ instance has_lt [has_lt α] : has_lt (with_bot α) :=
   @has_lt.lt (with_bot α) _ (some a) (some b) ↔ a < b :=
 by simp [(<)]
 
-instance partial_order [partial_order α] : partial_order (with_bot α) :=
+instance [preorder α] : preorder (with_bot α) :=
 { le          := λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b,
   lt          := (<),
   lt_iff_le_not_le := by intros; cases a; cases b;
@@ -332,15 +343,18 @@ instance partial_order [partial_order α] : partial_order (with_bot α) :=
   le_refl     := λ o a ha, ⟨a, ha, le_refl _⟩,
   le_trans    := λ o₁ o₂ o₃ h₁ h₂ a ha,
     let ⟨b, hb, ab⟩ := h₁ a ha, ⟨c, hc, bc⟩ := h₂ b hb in
-    ⟨c, hc, le_trans ab bc⟩,
-  le_antisymm := λ o₁ o₂ h₁ h₂, begin
+    ⟨c, hc, le_trans ab bc⟩ }
+
+instance partial_order [partial_order α] : partial_order (with_bot α) :=
+{ le_antisymm := λ o₁ o₂ h₁ h₂, begin
     cases o₁ with a,
     { cases o₂ with b, {refl},
       rcases h₂ b rfl with ⟨_, ⟨⟩, _⟩ },
     { rcases h₁ a rfl with ⟨b, ⟨⟩, h₁'⟩,
       rcases h₂ b rfl with ⟨_, ⟨⟩, h₂'⟩,
       rw le_antisymm h₁' h₂' }
-  end }
+  end,
+  .. with_bot.preorder }
 
 instance order_bot [partial_order α] : order_bot (with_bot α) :=
 { bot_le := λ a a' h, option.no_confusion h,
@@ -723,4 +737,3 @@ instance [bounded_distrib_lattice α] [bounded_distrib_lattice β] :
 { .. prod.lattice.bounded_lattice α β, .. prod.lattice.distrib_lattice α β }
 
 end prod
-

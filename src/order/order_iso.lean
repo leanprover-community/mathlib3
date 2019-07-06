@@ -11,6 +11,17 @@ universes u v w
 variables {α : Type*} {β : Type*} {γ : Type*}
   {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop}
 
+/-- An increasing function is injective -/
+lemma injective_of_increasing (r : α → α → Prop) (s : β → β → Prop) [is_trichotomous α r]
+  [is_irrefl β s] (f : α → β) (hf : ∀{x y}, r x y → s (f x) (f y)) : injective f :=
+begin
+  intros x y hxy,
+  rcases trichotomous_of r x y with h | h | h,
+  have := hf h, rw hxy at this, exfalso, exact irrefl_of s (f y) this,
+  exact h,
+  have := hf h, rw hxy at this, exfalso, exact irrefl_of s (f y) this
+end
+
 structure order_embedding {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends α ↪ β :=
 (ord : ∀ {a b}, r a b ↔ s (to_embedding a) (to_embedding b))
 
@@ -194,9 +205,13 @@ def to_order_embedding (f : r ≃o s) : r ≼o s :=
 instance : has_coe (r ≃o s) (r ≼o s) := ⟨to_order_embedding⟩
 
 theorem coe_coe_fn (f : r ≃o s) : ((f : r ≼o s) : α → β) = f := rfl
+@[simp] lemma to_equiv_to_fun (f : r ≃o s) (x : α) : f.to_equiv.to_fun x = f x := rfl
 
 theorem ord' : ∀ (f : r ≃o s) {a b}, r a b ↔ s (f a) (f b)
 | ⟨f, o⟩ := @o
+
+lemma ord'' {r : α → α → Prop} {s : β → β → Prop} (f : r ≃o s) {x y : α} :
+    r x y ↔ s ((↑f : r ≼o s) x) ((↑f : r ≼o s) y) := f.ord'
 
 @[simp] theorem coe_fn_mk (f : α ≃ β) (o) :
   (@order_iso.mk _ _ r s f o : α → β) = f := rfl
@@ -261,7 +276,7 @@ theorem prod_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
   { generalize e : f b₁ = fb₁,
     intro h, cases h with _ _ _ _ h _ _ _ h,
     { subst e, left, exact hf.2 h },
-    { have := f.bijective.1 e, subst b₁,
+    { have := f.injective e, subst b₁,
       right, exact hg.2 h } }
 end⟩
 

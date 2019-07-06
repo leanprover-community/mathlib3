@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 
 Computational realization of filters (experimental).
 -/
-import order.filter
+import order.filter.basic
 open set filter
 
 /-- A `cfilter α σ` is a realization of a filter (base) on `α`,

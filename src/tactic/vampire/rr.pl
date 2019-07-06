@@ -63,7 +63,7 @@ tptp_trm(app(Trm1, Trm2), Rst) :-
   number_string(Num, NumStr),
   tptp_trm(Trm2, Str),
   append(Strs, [Str], ArgStrs),
-  join_string(ArgStrs, ", ", ArgsStr),
+  join_string(ArgStrs, ",", ArgsStr),
   join_string(["s", NumStr, "(", ArgsStr, ")"], Rst).
 
 tptp_trm(vpp(Trm, Num), Rst) :-
@@ -182,7 +182,7 @@ parse_args_core(Str, [], Rem) :-
   string_concat(")", Rem, Str).
 
 parse_args_core(Str, Args, Rem) :-
-  string_concat(", ", Str1, Str),
+  string_concat(",", Str1, Str),
   parse_args_core(Str1, Args, Rem).
 
 parse_args_core(Str, [ArgNum | Args], Rem) :-
@@ -246,6 +246,9 @@ parse_line(Cds, line(Idx, Cla, Rul)) :-
   Idx is Num - 1,
   parse_cla(ClaStr, Cla),
   parse_rul(RulStr, Rul).
+
+parse_line(Cds, failed(Str)) :-
+  codes_string(Cds, Str).
 
 codes_string(Cds, Str) :- string_codes(Str, Cds).
 
@@ -430,8 +433,8 @@ unifier(app(Trm1, Trm2), vpp(Trm3, Num), Maps) :-
 unifier(vpp(Trm1, Num), app(Trm2, Trm3), Maps) :-
   vars(Trm3, Nums),
   not(member(Num, Nums)),
-  subst([map(Num, Trm1)], Trm1, NewTrm1),
-  subst([map(Num, Trm2)], Trm2, NewTrm2),
+  subst([map(Num, Trm3)], Trm1, NewTrm1),
+  subst([map(Num, Trm3)], Trm2, NewTrm2),
   unifier(NewTrm1, NewTrm2, TmpMaps),
   compose_maps([map(Num, Trm3)], TmpMaps, Maps).
 
@@ -609,6 +612,8 @@ compile(Mat, Lns, Infs) :-
   compile(Mat, Lns, Num, [], Rul, TmpInfs, _),
   filter_infs(TmpInfs, Infs).
 
+compile(Mat, Lns, fail(Mat, Lns)).
+
 format_infs(num(Num), Str) :-
   number_string(Num, Str).
 format_infs(hyp, "h").
@@ -620,6 +625,7 @@ format_infs(nil, "e").
 format_infs(cons, "m").
 format_infs(sym, "y").
 format_infs(app, "a").
+format_infs(vpp, "v").
 
 print_infs(Infs) :-
   maplist(format_infs, Infs, Strs),
@@ -628,18 +634,9 @@ print_infs(Infs) :-
 
 main([Argv]) :-
   split_string(Argv, " ", " ", Tks),
-  (
-    (
-      mat([], Tks, Mat),
-      tptp_mat(Mat, 1, Goal),
-      write_goal(Goal),
-      read_proof(Lns),
-      compile(Mat, Lns, Infs),
-      print_infs(Infs)
-      % write(error(Mat, Lns))
-    ) ;
-    (
-      write("Compilation failed : "),
-      write(Tks)
-    )
-  ).
+  mat([], Tks, Mat),
+  tptp_mat(Mat, 1, Goal),
+  write_goal(Goal),
+  read_proof(Lns),
+  compile(Mat, Lns, Infs),
+  print_infs(Infs).

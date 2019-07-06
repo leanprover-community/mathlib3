@@ -153,22 +153,11 @@ end
 meta def vampire : tactic unit :=
 do (dx, ix, p) ← reify,
    let m := clausify p,
-   -- s1 ← get_infs_string m,
-   s ← get_infs_string' m,
-   trace s,
-   is ← get_infs s,
+   s2 ← get_infs_string' m,
+   trace s2,
+   is ← get_infs s2,
    x ← build_proof is dx ix p m,
    apply x,
    skip
-
---  lemma foo (A B C : Prop) : ¬ A → A → C := by vampire
---
-variables (β : Type) [inhabited β] (p q : β → Prop) (a b : β)
---
--- example : (∀ x, p x → q x) → (∀ x, p x) → q a := by vampire
---
---  example : (p a) → ∃ x, p x := by vampire
-
-example : (p a) → (p b) → (q b) → ∃ x, p x ∧ q x := by vampire
 
 end vampire

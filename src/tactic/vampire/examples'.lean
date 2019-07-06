@@ -46,7 +46,7 @@ example : (∀ x, p x → q x) → (∀ x, p x) → q a := by vampire
 example : (p a) → ∃ x, p x := by vampire
 
 example : (p a) → (p b) → (q b) → ∃ x, p x ∧ q x := by vampire
--- example : (∃ x, p x ∧ r x x) → (∀ x, r x x → q x) → ∃ x, p x ∧ q x := by vampire
+ example : (∃ x, p x ∧ r x x) → (∀ x, r x x → q x) → ∃ x, p x ∧ q x := by vampire
 example : (∃ x, q x ∧ p x) → ∃ x, p x ∧ q x := by vampire
 example : (∀ x, q x → p x) → (q a) → ∃ x, p x := by vampire
 
@@ -70,7 +70,6 @@ section
 
 variables (α : Type) [inhabited α]
 
-#exit
 
 lemma gilmore_1 {F G H : α → Prop} :
   ∃ x, ∀ y z,
@@ -79,8 +78,6 @@ lemma gilmore_1 {F G H : α → Prop} :
       (((F y → G y) → H y) ↔ H x)
       → F z ∧ G z ∧ H z :=
 by vampire
-
-#exit
 
 lemma gilmore_6 {F G : α → α → Prop} {H : α → α → α → Prop} :
 ∀ x, ∃ y,
@@ -113,6 +110,8 @@ lemma manthe_and_bry (agatha butler charles : α)
 by vampire
 
 /- A logic puzzle by Raymond Smullyan. -/
+
+#exit
 
 lemma knights_and_knaves (me : α) (knight knave rich poor : α → α)
   (a_truth says : α → α → Prop) (and : α → α → α) :

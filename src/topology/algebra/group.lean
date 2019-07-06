@@ -377,7 +377,7 @@ begin
     simpa [mul_comm, mul_assoc, mul_left_comm] using h (v * x⁻¹) (w * y⁻¹) v_mem w_mem },
   { rintros ⟨a, ⟨b, hb, ba⟩, c, ⟨d, hd, dc⟩, ac⟩,
     refine ⟨b ∩ d, inter_mem_sets hb hd, assume v, _⟩,
-    simp only [preimage_subset_iff, mul_inv_rev, mem_preimage_eq] at *,
+    simp only [preimage_subset_iff, mul_inv_rev, mem_preimage] at *,
     rintros ⟨vb, vd⟩,
     refine ac ⟨v * y⁻¹, _, y, _, _⟩,
     { rw ← mul_assoc _ _ _ at vb, exact ba _ vb },

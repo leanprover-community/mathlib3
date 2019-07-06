@@ -39,11 +39,8 @@ begin
     rw [max_eq_left h2, max_eq_left (succ_le_succ h2)] }
 end
 
-lemma not_succ_lt_zero : ∀ (n : ℕ), succ n < 0 → false
-.
-
 lemma not_succ_lt_self : ∀ n : ℕ, ¬succ n < n :=
-λ n, nat.rec (not_succ_lt_zero 0) (λ a b c, b (le_of_succ_le_succ c)) n
+λ n, nat.rec (not_lt_zero 1) (λ a b c, b (le_of_succ_le_succ c)) n
 
 theorem lt_succ_iff {m n : ℕ} : m < succ n ↔ m ≤ n :=
 succ_le_succ_iff

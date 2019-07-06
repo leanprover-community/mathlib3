@@ -153,7 +153,7 @@ finset.induction_on s (by simp only [prod_empty, prod_const_one]) $
 λ _ _ H ih, by simp only [prod_insert H, prod_mul_distrib, ih]
 
 lemma prod_hom [comm_monoid γ] (g : β → γ) [is_monoid_hom g] : s.prod (λx, g (f x)) = g (s.prod f) :=
-eq.trans (by rw is_monoid_hom.map_one g; refl) (fold_hom (λ _ _, is_monoid_hom.map_mul g))
+eq.trans (by rw is_monoid_hom.map_one g; refl) (fold_hom $ is_monoid_hom.map_mul g)
 
 @[to_additive finset.sum_hom_rel]
 lemma prod_hom_rel [comm_monoid γ] {r : β → γ → Prop} {f : α → β} {g : α → γ} {s : finset α}
@@ -332,7 +332,7 @@ end comm_monoid
 
 lemma sum_hom [add_comm_monoid β] [add_comm_monoid γ] (g : β → γ) [is_add_monoid_hom g] :
   s.sum (λx, g (f x)) = g (s.sum f) :=
-eq.trans (by rw is_add_monoid_hom.map_zero g; refl) (fold_hom (λ _ _, is_add_monoid_hom.map_add g))
+eq.trans (by rw is_add_monoid_hom.map_zero g; refl) (fold_hom $ is_add_monoid_hom.map_add g)
 attribute [to_additive finset.sum_hom] prod_hom
 
 lemma sum_smul [add_comm_monoid β] (s : finset α) (n : ℕ) (f : α → β) :

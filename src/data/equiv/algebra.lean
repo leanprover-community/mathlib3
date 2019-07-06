@@ -269,7 +269,7 @@ def map_equiv (h : α ≃* β) : units α ≃* units β :=
   inv_fun := map h.symm.to_equiv,
   left_inv := λ u, ext $ h.left_inv u,
   right_inv := λ u, ext $ h.right_inv u,
-  hom := ⟨λ a b, units.ext $ is_mul_hom.map_mul h.to_equiv⟩}
+  hom := ⟨λ a b, units.ext $ is_mul_hom.map_mul h.to_equiv a b⟩}
 
 end units
 

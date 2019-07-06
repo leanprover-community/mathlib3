@@ -11,10 +11,10 @@ universes u v
 variables {α : Type u} {β : Type v}
 
 class is_mul_hom {α β : Type*} [has_mul α] [has_mul β] (f : α → β) : Prop :=
-(map_mul : ∀ {x y}, f (x * y) = f x * f y)
+(map_mul : ∀ x y, f (x * y) = f x * f y)
 
 class is_add_hom {α β : Type*} [has_add α] [has_add β] (f : α → β) : Prop :=
-(map_add : ∀ {x y}, f (x + y) = f x + f y)
+(map_add : ∀ x y, f (x + y) = f x + f y)
 
 attribute [to_additive is_add_hom] is_mul_hom
 attribute [to_additive is_add_hom.cases_on] is_mul_hom.cases_on
@@ -62,16 +62,16 @@ attribute [to_additive is_add_monoid_hom.map_zero] is_monoid_hom.map_one
 namespace is_monoid_hom
 variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
 
-lemma map_mul {x y} : f (x * y) = f x * f y :=
-is_mul_hom.map_mul f
+lemma map_mul (x y) : f (x * y) = f x * f y :=
+is_mul_hom.map_mul f x y
 
 end is_monoid_hom
 
 namespace is_add_monoid_hom
 variables [add_monoid α] [add_monoid β] (f : α → β) [is_add_monoid_hom f]
 
-lemma map_add {x y} : f (x + y) = f x + f y :=
-is_add_hom.map_add f
+lemma map_add (x y) : f (x + y) = f x + f y :=
+is_add_hom.map_add f x y
 
 attribute [to_additive is_add_monoid_hom.map_add] is_monoid_hom.map_mul
 

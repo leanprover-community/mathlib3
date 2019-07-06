@@ -40,7 +40,7 @@ begin
 end
 
 lemma not_succ_lt_self : ∀ n : ℕ, ¬succ n < n :=
-λ n, nat.rec (not_lt_zero 1) (λ a b c, b (le_of_succ_le_succ c)) n
+λ n, not_lt_of_ge (nat.le_succ _)
 
 theorem lt_succ_iff {m n : ℕ} : m < succ n ↔ m ≤ n :=
 succ_le_succ_iff

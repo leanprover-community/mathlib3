@@ -167,6 +167,8 @@ lemma holds_cnf_of_holds {M : model α} {v : nat → α} :
     assumption
   end
 
+  #exit
+
 def term.to_tptp_core : term → list char
 | (& k) := ('s' :: k.repr.data).reverse
 | (t & s) :=

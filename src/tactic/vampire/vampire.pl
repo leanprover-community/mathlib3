@@ -614,8 +614,20 @@ compile(Mat, Lns, Infs) :-
 
 compile(Mat, Lns, fail(Mat, Lns)).
 
+number_binstr(0, "0").
+number_binstr(1, "1").
+number_binstr(Num, Str) :-
+  Num > 1,
+  Mod is Num mod 2,
+  Quo is Num // 2,
+  number_binstr(Quo, Str1),
+  number_binstr(Mod, Str2),
+  string_concat(Str1, Str2, Str).
+
 format_infs(num(Num), Str) :-
-  number_string(Num, Str).
+  number_binstr(Num, BinStr),
+  string_concat("n", BinStr, Str).
+
 format_infs(hyp, "h").
 format_infs(res, "r").
 format_infs(rot, "t").
@@ -627,10 +639,34 @@ format_infs(sym, "y").
 format_infs(app, "a").
 format_infs(vpp, "v").
 
+break_list(0, Lst, [], Lst).
+
+break_list(Num, [Elm | Lst], [Elm | Fst], Snd) :-
+  0 < Num,
+  NewNum is Num - 1,
+  break_list(NewNum, Lst, Fst, Snd).
+
+break_string(Num, Str, Fst, Snd) :-
+  string_codes(Str, Cds),
+  break_list(Num, Cds, FstCds, SndCds),
+  string_codes(Fst, FstCds),
+  string_codes(Snd, SndCds).
+
+break_string(Num, Str, [Str]) :-
+  string_length(Str, Lth),
+  Lth =< Num.
+
+break_string(Num, Str, [Hd | Tl]) :-
+  break_string(Num, Str, Hd, Rem),
+  break_string(Num, Rem, Tl).
+
 print_infs(Infs) :-
-  maplist(format_infs, Infs, Strs),
-  join_string(Strs, " ", Str),
-  write(Str).
+  maplist(format_infs, Infs, StrsA),
+  join_string(StrsA, StrA),
+  break_string(60, StrA, StrsB),
+  string_codes(Nl, [10]),
+  join_string(StrsB, Nl, StrB),
+  write(StrB).
 
 main([Argv]) :-
   split_string(Argv, " ", " ", Tks),

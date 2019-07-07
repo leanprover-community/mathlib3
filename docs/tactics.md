@@ -947,33 +947,25 @@ int.cats_id : int.cast_id : ∀ (n : ℤ), ↑n = n
 
 ### vampire
 
-`vampire` uses proof output from the Vampire theorem prover (https://vprover.github.io/) to discharge FOL goals. The tactic can either work in an online mode that calls Vampire to obtain a proof, or in an offline mode that uses a user-supplied proof. When invoked without a string argument, `vampire` defaults to the former to discharge the goal and displays the proof it used:
+`vampire` uses proof output from the Vampire theorem prover (https://vprover.github.io/) to discharge FOL goals. The tactic can either work in online mode which calls Vampire to obtain a proof, or in offline mode which uses the user-supplied proof. When invoked without a string argument, `vampire` defaults to the former to discharge the goal and displays the proof it used:
 ```
 variables [inhabited α] (p q : α → Prop) (a : α)
 example : (∀ x, p x → q x) → (∀ x, p x) → q a := by vampire
 /-
   Trace output :
-  "
-  1. ~s0(X0) | s1(X0) [input]
-  2. s0(X1) [input]
-  3. ~s1(s2) [input]
-  4. s1(X0) [resolution 1,2]
-  5. $false [resolution 4,3]
-  "
+  n10hen0n10ymsn0hen10n0mn1n0msen10n0msn1hen10n1mn0n1msen10n0m
+  n1n0msren1n0mn0n0msen0n10ymsr
 -/
 ```
 (Note the `inhabited` instance, which is required per the assumption of non-empty domain for FOL.)
-The online mode of `vampire` requires a local installation of Vampire (consult the readme in `tactic/vampire` for details). You can copy and paste the proof output as a string argument to use `vampire` in offline mode:
+The online mode of `vampire` requires a local installation of Vampire (consult the readme in `tactic/vampire` for details). To invoke `vampire` in offline mode, copy and paste the trace output as a string argument:
 ```
 variables [inhabited α] (p q : α → Prop) (a : α)
 example : (∀ x, p x → q x) → (∀ x, p x) → q a :=
 by vampire
 "
-1. ~s0(X0) | s1(X0) [input]
-2. s0(X1) [input]
-3. ~s1(s2) [input]
-4. s1(X0) [resolution 1,2]
-5. $false [resolution 4,3]
+n10hen0n10ymsn0hen10n0mn1n0msen10n0msn1hen10n1mn0n1msen10n0m
+n1n0msren1n0mn0n0msen0n10ymsr
 "
 ```
 `vampire` only proves valid formulas of FOL, which means that all the necessary hypotheses should be included in the goal as antecedents.
@@ -986,15 +978,8 @@ You can include the names of relevant hypotheses in order to revert them and cal
 example (p q : Prop) (h1 : p) (h2 : q) : p ∧ q :=
 by vampire h1 h2
 ```
-Use the `all` keyword to revert all hypotheses of type `Prop`. Hypothesis reversion also works in offline mode.
+Use the `all` keyword to revert all hypotheses of type `Prop`. Hypothesis reversion can be used in offline mode as well.
 ```
 example (p q : Prop) (h1 : p) (h2 : q) : p ∧ q :=
-by vampire all
-"
-1. s0 [input]
-2. s1 [input]
-3. ~s1 | ~s0 [input]
-4. ~s0 [subsumption resolution 3,2]
-5. $false [subsumption resolution 4,1]
-"
+by vampire all "n10hn1tn1hrn0hr"
 ```

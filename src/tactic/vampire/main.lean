@@ -7,9 +7,10 @@
 -/
 
 import system.io
+import data.num.basic
 import tactic.vampire.arifix
 import tactic.vampire.reify
-import tactic.vampire.inf
+import tactic.vampire.proof
 
 universe u
 
@@ -72,54 +73,62 @@ meta inductive item : Type
 | prf (x : expr) (c : cla) : item
 
 meta def build_proof_core (m : mat) (mx : expr) :
-  list item → infs → tactic expr
+  list item → list char → tactic expr
 | (item.prf x _ :: stk) [] := return x
-| stk (inf.n k :: infs) :=
-  build_proof_core (item.nm k :: stk) infs
-| (item.nm k :: stk) (inf.h :: infs) :=
+| stk (' ' :: chs) :=
+  build_proof_core stk chs
+| stk ('\n' :: chs) :=
+  build_proof_core stk chs
+| stk ('n' :: chs) :=
+  build_proof_core (item.nm 0 :: stk) chs
+| (item.nm k :: stk) ('0' :: chs) :=
+  build_proof_core (item.nm (k * 2) :: stk) chs
+| (item.nm k :: stk) ('1' :: chs) :=
+  build_proof_core (item.nm ((k * 2) + 1) :: stk) chs
+| (item.nm k :: stk) ('h' :: infs) :=
   build_proof_core
     (item.prf (expr.mk_app `(@proof.hyp) [mx, k.to_expr]) (m.nth k) :: stk)
     infs
-| ((item.prf σx ((tt, s) :: d)) :: (item.prf πx ((ff, t) :: c)) :: stk) (inf.r :: infs) :=
+| ((item.prf σx ((tt, s) :: d)) :: (item.prf πx ((ff, t) :: c)) :: stk) ('r' :: infs) :=
   build_proof_core
     ( ( item.prf
         ( expr.mk_app `(@proof.res) [mx, t.to_expr, cla.to_expr c, cla.to_expr d, πx, σx] )
         (c ++ d) ) :: stk )
     infs
-| (item.nm k :: (item.prf πx c) :: stk) (inf.t :: infs) :=
+| (item.nm k :: (item.prf πx c) :: stk) ('t' :: chs) :=
   build_proof_core
     ( ( item.prf
         ( expr.mk_app `(@proof.rot) [mx, k.to_expr, c.to_expr, πx] )
-        ( c.rot k ) ) :: stk ) infs
-| (item.mps μ :: item.prf πx c :: stk) (inf.s :: infs) :=
+        ( c.rot k ) ) :: stk ) chs
+| (item.mps μ :: item.prf πx c :: stk) ('s' :: chs) :=
   build_proof_core
     ( ( item.prf
           (expr.mk_app `(@proof.sub) [mx, μ.to_expr, c.to_expr, πx])
-          (c.subst μ) ) :: stk) infs
-| ((item.prf πx (l :: _ :: c)) :: stk) (inf.c :: infs) :=
+          (c.subst μ) ) :: stk) chs
+| ((item.prf πx (l :: _ :: c)) :: stk) ('c' :: chs) :=
   build_proof_core
     ( ( item.prf
           (expr.mk_app `(@proof.con) [mx, l.to_expr, cla.to_expr c, πx])
-          (l :: c) ) :: stk ) infs
-| stk (inf.e :: is) :=
-  build_proof_core (item.mps [] :: stk) is
-| (item.nm k :: stk) (inf.y :: infs) :=
-  build_proof_core (item.trm (term.sym k) :: stk) infs
-| (item.trm s :: item.trm t :: stk) (inf.a :: infs) :=
-  build_proof_core (item.trm (term.app t s) :: stk) infs
-| (item.nm k :: item.trm t :: stk) (inf.v :: infs) :=
-  build_proof_core (item.trm (term.vpp t k) :: stk) infs
-| (item.nm m :: item.nm k :: item.mps μ :: stk) (inf.m :: infs) :=
-  build_proof_core (item.mps ((k, sum.inl m) :: μ) :: stk) infs
-| (item.trm t :: item.nm k :: item.mps μ :: stk) (inf.m :: infs) :=
+          (l :: c) ) :: stk ) chs
+| stk ('e' :: chs) :=
+  build_proof_core (item.mps [] :: stk) chs
+| (item.nm k :: stk) ('y' :: chs) :=
+  build_proof_core (item.trm (term.sym k) :: stk) chs
+| (item.trm s :: item.trm t :: stk) ('a' :: chs) :=
+  build_proof_core (item.trm (term.app t s) :: stk) chs
+| (item.nm k :: item.trm t :: stk) ('v' :: chs) :=
+  build_proof_core (item.trm (term.vpp t k) :: stk) chs
+| (item.nm m :: item.nm k :: item.mps μ :: stk) ('m' :: chs) :=
+  build_proof_core (item.mps ((k, sum.inl m) :: μ) :: stk) chs
+| (item.trm t :: item.nm k :: item.mps μ :: stk) ('m' :: infs) :=
   build_proof_core (item.mps ((k, sum.inr t) :: μ) :: stk) infs
 | _ _ := fail "invalid inference"
 
 /- Return ⌜π : arifix (model.default ⟦αx⟧) p⌝ -/
-meta def build_proof (is : infs)
+meta def build_proof (chs : list char)
   (αx ix : expr) (p : form₂) (m : mat)
   : tactic expr :=
-do πx ← build_proof_core m m.to_expr [] is,
+do πx ← build_proof_core m m.to_expr [] chs,
    let px   : expr := form₂.to_expr p,
    let foqx : expr := expr.mk_app `(foq) [`(tt), px],
    let decx : expr := expr.mk_app `(foq.decidable) [`(tt), px],
@@ -127,25 +136,48 @@ do πx ← build_proof_core m m.to_expr [] is,
    let x    : expr := expr.mk_app `(@arifix_of_proof) [αx, ix, px, fx],
    return (expr.app x πx)
 
-meta def get_infs_string (m : mat) : tactic string :=
+def term.to_rr : term → string
+| (term.sym k)   := k.repr ++  " y"
+| (term.app t s) := string.join [t.to_rr, " ", s.to_rr, " a"]
+| (term.vpp t k) := string.join [t.to_rr, " ", k.repr, " v"]
+
+def lit.to_rr : lit → string
+| (tt, t) := t.to_rr ++ " ps"
+| (ff, t) := t.to_rr ++ " ng"
+
+def cla.to_rr : cla → string
+| []       := "nl"
+| (l :: c) := cla.to_rr c ++ " " ++ l.to_rr ++ " cs"
+
+def mat.to_rr : mat → string
+| []       := "nl"
+| (c :: m) := mat.to_rr m ++ " " ++ c.to_rr ++ " cs"
+
+meta def get_rr (m : mat) : tactic string :=
 unsafe_run_io $ io.cmd'
-{ cmd := "rr.pl",
+{ cmd := "vampire.pl",
   args := [m.to_rr] }
 
-meta def get_infs (s : string) : tactic infs :=
-match parser.run_string parse_infs s with
-| (sum.inl str) := fail str
-| (sum.inr ss)  := return ss
-end
-
-meta def vampire : tactic unit :=
+meta def vampire (inp : option string) : tactic unit :=
 do (dx, ix, p) ← reify,
    let m := clausify p,
-   s2 ← get_infs_string m,
-   trace s2,
-   is ← get_infs s2,
-   x ← build_proof is dx ix p m,
+   s ← (inp <|> get_rr m),
+   x ← build_proof s.data dx ix p m,
    apply x,
-   skip
+   if inp = none
+   then trace s
+   else skip
 
 end vampire
+
+open lean.parser interactive vampire tactic
+
+meta def tactic.interactive.vampire
+  (ids : parse (many ident))
+  (inp : option string := none) : tactic unit :=
+( if `all ∈ ids
+  then local_context >>= monad.filter is_proof >>=
+       revert_lst >> skip
+  else do hs ← mmap tactic.get_local ids,
+               revert_lst hs, skip ) >>
+vampire.vampire inp

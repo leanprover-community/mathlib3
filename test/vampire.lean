@@ -6,55 +6,161 @@
 
 import tactic.vampire
 
-#exit
 section
 
 /- Examples from finish. -/
 
 variables {A B C D : Prop}
 
-example : (A → B ∨ C) → (B → D) → (C → D) → A → D := by vampire
-example : ¬ A → A → C := by vampire
-example : (A ∧ A ∧ B) → (A ∧ C ∧ B) → A := by vampire
-example : A → ¬ B → ¬ (A → B) := by vampire
-example : A ∨ B → B ∨ A := by vampire
-example : A ∧ B → B ∧ A := by vampire
-example : A → (A → B) → (B → C) → C := by vampire
-example : (A ∧ B) → (C ∧ B) → C := by vampire
-example : A → B → C → D → (A ∧ B) ∧ (C ∧ D) := by vampire
-example : (A ∧ B) → (B ∧ ¬ C) → A ∨ C := by vampire
-example : (A → B) ∧ (B → C) → A → C := by vampire
-example : (A → B) ∨ (B → A) := by vampire
-example : ((A → B) → A) → A := by vampire
-example : A → ¬ B → ¬ (A → B) := by vampire
-example : ¬ (A ↔ ¬ A) := by vampire
-example : (A ↔ B) → (A ∧ B → C) → (¬ A ∧ ¬ B → C) → C := by vampire
-example : (A ↔ B) → ((A ∧ ¬ B) ∨ (¬ A ∧ B)) → C := by vampire
-example : (A → B) → A → B := by vampire
-example : (A → B) → (B → C) → A → C := by vampire
-example : (A → B ∨ C) → (B → D) → (C → D) → A → D := by vampire
-example : A ∨ B → B ∨ A := by vampire
+example : (A → B ∨ C) → (B → D) → (C → D) → A → D :=
+by vampire "n100hn1hn100hn10hn0hn11hrn1trrrr"
+
+example : ¬ A → A → C :=
+by vampire "n0hn1hr"
+
+example : (A ∧ A ∧ B) → (A ∧ C ∧ B) → A :=
+by vampire "n110hn0hr"
+
+example : A → ¬ B → ¬ (A → B) :=
+by vampire "n1hn10hn1trn0hr"
+
+example : A ∨ B → B ∨ A :=
+by vampire "n10hn1hn0hn1trr"
+
+example : A ∧ B → B ∧ A :=
+by vampire "n10hn1tn0hrn1hr"
+
+example : A → (A → B) → (B → C) → C :=
+by vampire "n11hn10hn1hn0hrrr"
+
+example : (A ∧ B) → (C ∧ B) → C :=
+by vampire "n100hn10hr"
+
+example : A → B → C → D → (A ∧ B) ∧ (C ∧ D) :=
+by vampire "n100hn11tn11hrn10tn10hrn1tn1hrn0hr"
+
+example : (A ∧ B) → (B ∧ ¬ C) → A ∨ C :=
+by vampire "n100hn0hr"
+
+example : (A → B) ∧ (B → C) → A → C :=
+by vampire "n11hn1hn0hn10hrrr"
+
+example : (A → B) ∨ (B → A) :=
+by vampire "n1hn10hr"
+
+example : ((A → B) → A) → A :=
+by vampire "n10hn0hn1tcr"
+
+example : A → ¬ B → ¬ (A → B) :=
+by vampire "n1hn10hn1trn0hr"
+
+example : ¬ (A ↔ ¬ A) :=
+by vampire "n0hn1tcn1hn1tcr"
+
+example : (A ↔ B) → (A ∧ B → C) → (¬ A ∧ ¬ B → C) → C :=
+by vampire "n100hn10hn1hrn10tcn0hn11hrn1tcrn1tcr"
+
+example : (A ↔ B) → ((A ∧ ¬ B) ∨ (¬ A ∧ B)) → C :=
+by vampire "n100hn0hn11hrn1tcrn1hn1tn0hn11hrn1tcrr"
+
+example : (A → B) → A → B :=
+by vampire "n10hn0hn1hrr"
+
+example : (A → B) → (B → C) → A → C :=
+by vampire "n11hn1hn0hn10hrrr"
+
+example : (A → B ∨ C) → (B → D) → (C → D) → A → D :=
+by vampire "n100hn1hn100hn10hn0hn11hrn1trrrr"
+
+example : A ∨ B → B ∨ A :=
+by vampire "n10hn1hn0hn1trr"
 
 variables (α : Type) [inhabited α]
 variables (a b c : α) (p q : α → Prop) (r : α → α → Prop)
 variables (P Q R : Prop)
 variable  (g : bool → nat)
 
-example : (∀ x, p x → q x) → (∀ x, p x) → q a := by vampire
-example : (p a) → ∃ x, p x := by vampire
-example : (p a) → (p b) → (q b) → ∃ x, p x ∧ q x := by vampire
-example : (∃ x, p x ∧ r x x) → (∀ x, r x x → q x) → ∃ x, p x ∧ q x := by vampire
-example : (∃ x, q x ∧ p x) → ∃ x, p x ∧ q x := by vampire
-example : (∀ x, q x → p x) → (q a) → ∃ x, p x := by vampire
-example : (∀ x, p x → q x → false) → (p a) → (p b) → (q b) → false := by vampire
-example : (∀ x, p x) → (∀ x, p x → q x) → ∀ x, q x := by vampire
-example : (∃ x, p x) → (∀ x, p x → q x) → ∃ x, q x := by vampire
-example : (¬ ∀ x, ¬ p x) → (∀ x, p x → q x) → (∀ x, ¬ q x) → false := by vampire
-example : (p a) → (p a → false) → false := by vampire
-example : (¬ (P → Q ∨ R)) → (¬ (Q ∨ ¬ R)) → false := by vampire
-example : (P → Q ∨ R) → (¬ Q) → P → R := by vampire
-example : (∃ x, p x → P) ↔ (∀ x, p x) → P := by vampire
-example : (∃ x, P → p x) ↔ (P → ∃ x, p x) := by vampire
+example : (∀ x, p x → q x) → (∀ x, p x) → q a :=
+by vampire
+"
+n10hen0n10ymsn0hen10n0mn1n0msen10n0msn1hen10n1mn0n1msen10n0m
+n1n0msren1n0mn0n0msen0n10ymsr
+"
+
+example : (p a) → ∃ x, p x :=
+by vampire "n1hen1n0mn0n0msen0n1ymsn0hen0n1ymsr"
+
+example : (p a) → (p b) → (q b) → ∃ x, p x ∧ q x :=
+by vampire "n11hen1n0mn0n0msn1ten0n10ymsn10hen0n10ymsrn1hr"
+
+example : (∃ x, p x ∧ r x x) → (∀ x, r x x → q x) → ∃ x, p x ∧ q x :=
+by vampire
+"
+n11hen10n1mn0n1msn1ten1n0ymsn10hen10n0mn1n0msen0n0ymsn1hen0n
+0ymsren1n0ymsrn0hr
+"
+
+example : (∃ x, q x ∧ p x) → ∃ x, p x ∧ q x :=
+by vampire "n10hen1n0mn0n0msen0n0ymsn1hen0n0ymsrn0hr"
+
+example : (∀ x, q x → p x) → (q a) → ∃ x, p x :=
+by vampire
+"
+n10hen10n1mn0n1msen1n10ymsn0hen10n0mn1n0msen0n10ymsn1hen0n10
+ymsren1n10ymsr
+"
+
+example : (∀ x, p x → q x → false) → (p a) → (p b) → (q b) → false :=
+by vampire "n0hen1n0mn0n0msn1ten0n11ymsn11hen0n11ymsrn10hr"
+
+example : (∀ x, p x) → (∀ x, p x → q x) → ∀ x, q x :=
+by vampire
+"
+n10hen1n0ymsn1hen10n1mn0n1msen10n1msn0hen10n0mn1n0msen10n1mn
+0n1msren11n1mn1n1msen1n0ymsr
+"
+
+example : (∃ x, p x) → (∀ x, p x → q x) → ∃ x, q x :=
+by vampire
+"
+n10hen10n1mn0n1msen1n0ymsn1hen10n0mn1n0msen0n0ymsn0hen0n0yms
+ren1n0ymsr
+"
+
+example : (¬ ∀ x, ¬ p x) → (∀ x, p x → q x) → (∀ x, ¬ q x) → false :=
+by vampire
+"
+n10hen10n1mn0n1msen1n0ymsn1hen10n0mn1n0msen0n0ymsn0hen0n0yms
+ren1n0ymsr
+"
+
+example : (p a) → (p a → false) → false :=
+by vampire "n1hn0hr"
+
+example : (¬ (P → Q ∨ R)) → (¬ (Q ∨ ¬ R)) → false :=
+by vampire "n10hn100hr"
+
+example : (P → Q ∨ R) → (¬ Q) → P → R :=
+by vampire "n11hn1hn0hn10hrrr"
+
+example : (∃ x, p x → P) ↔ (∀ x, p x) → P :=
+by vampire
+"
+n111hn1tcn10hn1tn11tcn10ten0n0ymsn0hen1n0mn0n0msn10ten0n0yms
+rn1tn10tcn1tn10tcn1ten1n1ymsn100hen11n1mn1n1msn1tn101hen11n1
+mn1n1msn1ten10n0ymsn11hen10n1mn11n0mn0n1mn1n0msen10n0ymn1n11
+mn0n0ymsren101n1mn11n1mn1n1msn10tcn1ten1n11msren101n1mn11n1m
+n1n1msn1tcen1n1ymsrr
+"
+
+example : (∃ x, P → p x) ↔ (P → ∃ x, p x) :=
+by vampire
+"
+n111hen10n1mn11n0mn0n1mn1n0msen0n0ymsn1000hen11n1mn1n1msn1tn
+11hn1tcren11n1mn1n1msn1ten0n0ymn1n11msren101n1mn11n1mn1n1msn
+1tcen1n1ymsn1hen1n0mn0n0msn10ten0n0ymsn10hn10tcn10ten0n0ymsr
+n1tn11tcn1tn10tcn1ten1n1ymsrn11hn1tcr
+"
 
 end
 
@@ -65,7 +171,6 @@ section
 
 variables (α : Type) [inhabited α]
 
-
 lemma gilmore_1 {F G H : α → Prop} :
   ∃ x, ∀ y z,
       ((F y → G y) ↔ F x) ∧
@@ -74,33 +179,47 @@ lemma gilmore_1 {F G H : α → Prop} :
       → F z ∧ G z ∧ H z :=
 by vampire
 "
-1. s2(s1(X0)) | s2(X0) [input]
-2. ~s3(s1(X0)) | s2(X0) [input]
-3. ~s2(s1(X0)) | s3(s1(X0)) | ~s2(X0) [input]
-4. s2(s1(X0)) | s3(X0) [input]
-5. ~s4(s1(X0)) | s3(X0) [input]
-6. ~s2(s1(X0)) | s4(s1(X0)) | ~s3(X0) [input]
-7. ~s2(s1(X0)) | s3(s1(X0)) | s4(X0) [input]
-8. ~s4(s1(X0)) | s4(X0) [input]
-11. ~s4(s0(X0)) | ~s3(s0(X0)) | ~s2(s0(X0)) [input]
-12. s3(s1(X0)) | ~s2(X0) | s3(X0) [resolution 3,4]
-19. s3(s1(X0)) | s4(X0) | s3(X0) [resolution 7,4]
-20. s3(s1(X1)) | s4(X1) | s2(X1) [resolution 7,1]
-21. s4(X1) | s2(X1) [subsumption resolution 20,2]
-22. s2(s1(X0)) | s4(X0) [resolution 21,8]
-27. s4(X1) | s4(s1(X1)) | ~s3(X1) [resolution 22,6]
-30. ~s3(X1) | s4(X1) [subsumption resolution 27,8]
-33. s4(s1(X0)) | ~s2(X0) | s3(X0) [resolution 30,12]
-34. ~s2(X0) | s3(X0) [subsumption resolution 33,5]
-38. s3(s1(X2)) | s2(X2) [resolution 34,1]
-39. s2(X2) [subsumption resolution 38,2]
-42. s4(X2) | s3(X2) | s4(s1(X2)) [resolution 19,30]
-43. s4(X2) | s4(s1(X2)) [subsumption resolution 42,30]
-44. s4(X2) [subsumption resolution 43,8]
-46. s3(X1) [resolution 44,5]
-47. ~s3(s0(X2)) | ~s2(s0(X2)) [resolution 44,11]
-48. ~s2(s0(X2)) [subsumption resolution 47,46]
-49. $false [subsumption resolution 48,39]
+n1010hen1n0mn0n0msn10ten11n0yn0vmsn111hen1n0mn0n0msen11n0msn
+111hen1n0mn0n0msen10n0msn101hen1n0mn0n0msen1n0msn111hen1n0mn
+0n0msen10n1yn0vmsn1hen1n0mn0n0msen10n0msn110hen1n0mn0n0msen1
+n0msn0hen1n0mn0n0msen1n0mn0n0msren10n1mn0n1msen10n0mn1n0msre
+n10n1mn0n1msn10tcn1ten10n1yn0vmn1n1yn0vmsren1n0mn0n0msn1ten1
+n0mn0n0msren10n1mn0n1msen10n0mn1n0msren10n1mn0n1msn10tcn1ten
+100n1msn111hen1n0mn0n0msen10n0msn101hen1n0mn0n0msen1n0msn111
+hen1n0mn0n0msen10n1yn0vmsn1hen1n0mn0n0msen10n0msn110hen1n0mn
+0n0msen1n0msn0hen1n0mn0n0msen1n0mn0n0msren10n1mn0n1msen10n0m
+n1n0msren10n1mn0n1msn10tcn1ten10n1yn0vmn1n1yn0vmsren1n0mn0n0
+msn1ten1n0mn0n0msren10n1mn0n1msen10n0mn1n0msren10n1mn0n1msn1
+0tcn1ten1n1yn10vmsn110hen1n0mn0n0msen1n0msn11hen1n0mn0n0msen
+1n0mn0n0msren1n0mn0n0msen1n1yn10vmn0n10msren101n10mn10n10msn
+10ten100n1mn10n1msren100n10mn1n10msn10tcn1ten11n0mn10n0msren
+11n10mn0n10msn1tcen11n0yn0vmn10n0yn0vmsren11n10mn0n10msn1ten
+100n0yn10vmsn100hen1n0mn0n0msen11n1yn0vmsn111hen1n0mn0n0msen
+11n0msn111hen1n0mn0n0msen10n0msn101hen1n0mn0n0msen1n0msn111h
+en1n0mn0n0msen10n1yn0vmsn1hen1n0mn0n0msen10n0msn110hen1n0mn0
+n0msen1n0msn0hen1n0mn0n0msen1n0mn0n0msren10n1mn0n1msen10n0mn
+1n0msren10n1mn0n1msn10tcn1ten10n1yn0vmn1n1yn0vmsren1n0mn0n0m
+sn1ten1n0mn0n0msren10n1mn0n1msen10n0mn1n0msren10n1mn0n1msn10
+tcn1ten100n1msn111hen1n0mn0n0msen10n0msn101hen1n0mn0n0msen1n
+0msn111hen1n0mn0n0msen10n1yn0vmsn1hen1n0mn0n0msen10n0msn110h
+en1n0mn0n0msen1n0msn0hen1n0mn0n0msen1n0mn0n0msren10n1mn0n1ms
+en10n0mn1n0msren10n1mn0n1msn10tcn1ten10n1yn0vmn1n1yn0vmsren1
+n0mn0n0msn1ten1n0mn0n0msren10n1mn0n1msen10n0mn1n0msren10n1mn
+0n1msn10tcn1ten1n1yn10vmsn110hen1n0mn0n0msen1n0msn11hen1n0mn
+0n0msen1n0mn0n0msren1n0mn0n0msen1n1yn10vmn0n10msren101n10mn1
+0n10msn10ten100n1mn10n1msren100n10mn1n10msn10tcn1ten11n0mn10
+n0msren11n10mn0n10msn1tcen11n1yn0vmn10n1yn0vmsren10n1mn0n1ms
+en100n0yn10vmn1n0yn10vmsren101n10mn10n10msen101n0yn10vmsn1he
+n1n0mn0n0msen11n0msn100hen1n0mn0n0msen1n0msn111hen1n0mn0n0ms
+en10n0msn101hen1n0mn0n0msen1n0msn111hen1n0mn0n0msen10n1yn0vm
+sn1hen1n0mn0n0msen10n0msn110hen1n0mn0n0msen1n0msn0hen1n0mn0n
+0msen1n0mn0n0msren10n1mn0n1msen10n0mn1n0msren10n1mn0n1msn10t
+cn1ten10n1yn0vmn1n1yn0vmsren1n0mn0n0msn1ten1n0mn0n0msren10n1
+mn0n1msen10n0mn1n0msren10n1mn0n1msn10tcn1ten1n1yn10vmsn10hen
+1n0mn0n0msen1n0msn11hen1n0mn0n0msen1n0mn0n0msren1n0mn0n0msen
+1n1yn10vmn0n10msren11n0mn10n0msen1n0mn0n0msren1n0mn0n0msn10t
+cn1ten0n1yn1vmsn0hen1n0mn0n0msen0n1msren100n10mn1n10msen11n0
+mn10n0msren11n10mn0n10msn1tcen101n0yn10vmn10n0yn10vmsr
 "
 
 lemma gilmore_6 {F G : α → α → Prop} {H : α → α → α → Prop} :
@@ -110,11 +229,11 @@ lemma gilmore_6 {F G : α → α → Prop} {H : α → α → α → Prop} :
        (∀ u v, ∃ w, G v u ∨ H w y u → G u w) :=
 by vampire
 "
-1. ~s5(s3(X0),s4) | s6(X1,s3(X0)) [input]
-3. s5(X2,X0) [input]
-6. ~s6(s1(X0),X3) [input]
-7. s6(X0,s3(X1)) [resolution 1,3]
-9. $false [resolution 7,6]
+n101hen100n11mn111n0mn11n0mn0n11msen100n1yn0vmn11n11yn101vms
+n0hen101n0mn100n1mn11n0mn10n1msen100n11yn0vmn10n100ymsn10hen
+110n0mn100n10mn1n10mn11n0msen100n11yn0vmn10n11yn0vmn0n100yms
+ren10n1mn11n0mn0n1mn1n0msen100n1yn0vmn11n11yn101vmn1n101mn0n
+1yn0vmsr
 "
 
 lemma gilmore_8 {G : α → Prop} {F : α → α → Prop} {H : α → α → α → Prop} :
@@ -124,14 +243,13 @@ lemma gilmore_8 {G : α → Prop} {F : α → α → Prop} {H : α → α → α
     F x y → F z z :=
 by vampire
 "
-2. s4(X0,X0) | s5(s3(X0)) [input]
-3. ~s6(s1(X0),X1,X0) | s4(X0,X0) [input]
-5. s6(X2,s0(X0,X2),s2(X0)) | ~s5(X0) [input]
-7. ~s4(s2(X0),s2(X0)) [input]
-8. s5(s3(s2(X0))) [resolution 2,7]
-9. ~s5(X0) | s4(s2(X0),s2(X0)) [resolution 5,3]
-10. ~s5(X0) [subsumption resolution 9,7]
-13. $false [resolution 10,8]
+n110hen11n0mn10n0msen1n0mn0n0msn10hen100n0mn11n1mn10n0mn1n1m
+sen100n1yn10yn10vamn1n0yn10vn1yn10yn10vaamn0n10yn10vmsn100he
+n101n0mn11n10mn10n0mn0n10msn1ten100n1yn10yn10vamn1n0yn10vn1y
+n10yn10vaamn0n10mn10n1yn10yn10vamsren11n0mn10n0msen1n0mn0n0m
+sren1n0mn0n0msen0n11yn10yn1vamsn110hen11n0mn10n0msen0n0mn1n1
+0yn0vmsn1hen11n0mn10n0msn1ten1n10yn0vmn0n10yn0vmsren1n0mn0n0
+msen0n1msr
 "
 
 lemma manthe_and_bry (agatha butler charles : α)
@@ -150,94 +268,14 @@ lemma manthe_and_bry (agatha butler charles : α)
        ¬ killed charles agatha :=
 by vampire
 "
-2. s0(s2) [input]
-4. s4(s3,s1) | s4(s2,s1) | s4(s1,s1) [input]
-5. ~s4(X0,X1) | s5(X0,X1) [input]
-6. ~s6(X0,X1) | ~s4(X0,X1) [input]
-7. ~s5(s3,X2) | ~s5(s1,X2) [input]
-8. s5(s1,s1) [input]
-9. s5(s1,s3) [input]
-10. s6(X3,s1) | s5(s2,X3) | ~s0(X3) [input]
-11. ~s5(s1,X4) | s5(s2,X4) [input]
-12. ~s5(X5,s3) | ~s5(X5,s2) | ~s5(X5,s1) [input]
-13. s4(s3,s1) | s4(s2,s1) | ~s4(s1,s1) [input]
-14. s4(s3,s1) | s4(s2,s1) [subsumption resolution 13,4]
-15. s5(s2,s1) [resolution 11,8]
-16. s5(s2,s3) [resolution 11,9]
-17. s5(s3,s1) | s4(s2,s1) [resolution 14,5]
-18. ~s4(X0,s1) | ~s0(X0) | s5(s2,X0) [resolution 10,6]
-20. s4(s2,s1) | ~s5(s1,s1) [resolution 17,7]
-21. s4(s2,s1) [subsumption resolution 20,8]
-23. ~s5(s2,s2) | ~s5(s2,s1) [resolution 12,16]
-25. ~s5(s2,s2) [subsumption resolution 23,15]
-28. ~s0(s2) | s5(s2,s2) [resolution 21,18]
-30. s5(s2,s2) [subsumption resolution 28,2]
-31. $false [subsumption resolution 30,25]
-"
-
-/- A logic puzzle by Raymond Smullyan. -/
-
-lemma knights_and_knaves (me : α) (knight knave rich poor : α → α)
-  (a_truth says : α → α → Prop) (and : α → α → α) :
-  ( (∀ X Y, ¬ a_truth (knight X) Y ∨ ¬ a_truth (knave X) Y ) ∧
-    (∀ X Y, a_truth (knight X) Y ∨ a_truth (knave X) Y ) ∧
-    (∀ X Y, ¬ a_truth (rich X) Y ∨ ¬ a_truth (poor X) Y ) ∧
-    (∀ X Y, a_truth (rich X) Y ∨ a_truth (poor X) Y ) ∧
-    (∀ X Y Z, ¬ a_truth (knight X) Z ∨ ¬ says X Y ∨ a_truth Y Z ) ∧
-    (∀ X Y Z, ¬ a_truth (knight X) Z ∨ says X Y ∨ ¬ a_truth Y Z ) ∧
-    (∀ X Y Z, ¬ a_truth (knave X) Z ∨ ¬ says X Y ∨ ¬ a_truth Y Z ) ∧
-    (∀ X Y Z, ¬ a_truth (knave X) Z ∨ says X Y ∨ a_truth Y Z ) ∧
-    (∀ X Y Z, ¬ a_truth (and X Y) Z ∨ a_truth X Z ) ∧
-    (∀ X Y Z, ¬ a_truth (and X Y) Z ∨ a_truth Y Z ) ∧
-    (∀ X Y Z, a_truth (and X Y) Z ∨ ¬ a_truth X Z ∨ ¬ a_truth Y Z ) ∧
-    (∀ X, ¬ says me X ∨ ¬ a_truth (and (knave me) (rich me)) X ) ∧
-    (∀ X, says me X ∨ a_truth (and (knave me) (rich me)) X ) ) → false :=
-by vampire
-"
-1. ~s0(s2(X0),X1) | ~s0(s1(X0),X1) [input]
-2. s0(s2(X2),X3) | s0(s1(X2),X3) [input]
-3. ~s0(s4(X4),X5) | ~s0(s3(X4),X5) [input]
-4. s0(s4(X6),X7) | s0(s3(X6),X7) [input]
-5. ~s0(s1(X8),X9) | ~s5(X8,X10) | s0(X10,X9) [input]
-6. ~s0(s1(X11),X12) | s5(X11,X13) | ~s0(X13,X12) [input]
-7. ~s0(s2(X14),X15) | ~s5(X14,X16) | ~s0(X16,X15) [input]
-8. ~s0(s2(X17),X18) | s5(X17,X19) | s0(X19,X18) [input]
-9. ~s0(s6(X20,X21),X22) | s0(X20,X22) [input]
-10. ~s0(s6(X23,X24),X25) | s0(X24,X25) [input]
-11. s0(s6(X26,X27),X28) | ~s0(X26,X28) | ~s0(X27,X28) [input]
-12. ~s0(s6(s2(s7),s3(s7)),X29) | ~s5(s7,X29) [input]
-13. s0(s6(s2(s7),s3(s7)),X30) | s5(s7,X30) [input]
-16. ~s5(X0,X1) | ~s0(X1,X2) | s0(s1(X0),X2) [resolution 7,2]
-17. s5(X0,X1) | s0(X1,X2) | s0(s1(X0),X2) [resolution 8,2]
-18. s0(s3(s7),X0) | s5(s7,X0) [resolution 13,10]
-19. s0(s2(s7),X1) | s5(s7,X1) [resolution 13,9]
-23. ~s0(s3(s7),X6) | ~s0(s2(s7),X6) | ~s5(s7,X6) [resolution 11,12]
-24. s5(s7,X0) | s5(s7,X1) | s0(X1,X0) [resolution 19,8]
-35. s5(X26,s6(X27,X28)) | s0(s1(X26),X29) | s0(X27,X29) [resolution 17,9]
-39. ~s5(X4,X7) | s0(X5,X6) | s5(X4,X5) | s0(X7,X6) [resolution 17,5]
-59. s5(s7,X0) | s0(X0,X0) [factoring 24]
-70. ~s0(s3(X5),s4(X5)) | s5(s7,s4(X5)) [resolution 59,3]
-156. s5(X0,s6(s1(X0),X1)) | s0(s1(X0),X2) [factoring 35]
-194. s0(X26,X27) | s5(s7,X26) | s0(X28,X27) | s0(X28,X28) [resolution 39,59]
-216. s5(s7,s4(s7)) | s5(s7,s4(s7)) [resolution 70,18]
-222. s5(s7,s4(s7)) [duplicate literal removal 216]
-261. ~s0(s4(s7),X3) | s0(s1(s7),X3) [resolution 222,16]
-321. s0(s3(s7),X0) | s0(s1(s7),X0) [resolution 261,4]
-343. s0(s1(s7),X0) | ~s0(s2(s7),X0) | ~s5(s7,X0) [resolution 321,23]
-350. ~s0(s2(s7),X0) | ~s5(s7,X0) [subsumption resolution 343,1]
-362. s0(s1(s7),X1) | ~s5(s7,X1) [resolution 350,2]
-386. ~s5(s7,X3) | s5(s7,X4) | ~s0(X4,X3) [resolution 362,6]
-387. ~s5(s7,X6) | ~s5(s7,X5) | s0(X6,X5) [resolution 362,5]
-1079. s5(s7,X18) | ~s0(X18,X19) | s0(X19,X19) [resolution 386,59]
-1118. s5(s7,X18) | s0(X19,X19) [subsumption resolution 1079,194]
-1794. ~s5(s7,X18) | s0(X19,X18) | s0(X19,X19) [resolution 387,59]
-1845. s0(X19,X18) | s0(X19,X19) [subsumption resolution 1794,1118]
-2009. s0(X0,X0) [factoring 1845]
-2119. ~s0(s1(X41),s2(X41)) [resolution 2009,1]
-2128. s0(X53,s6(X54,X53)) [resolution 2009,10]
-2571. s5(X36,s6(s1(X36),X37)) [resolution 2119,156]
-2803. ~s5(s7,s6(X1,s2(s7))) [resolution 2128,350]
-3239. $false [resolution 2803,2571]
+n1011hen110n101mn0n101msn10ten101n10ymsn1010hen110n100mn1n10
+0msen100n11ymsn1000hen100n11ymsren101n10ymsrn1010hen110n100m
+n1n100msen100n1ymsn111hen100n1ymsrrn101hen110n1mn111n0mn101n
+0mn100n1msn1ten101n0mn1n1ymsn1001hen110n11mn10n11msn1ten101n
+0mn1n1ymn11n0msren1n0mn0n0msen0n10ymsn110hen110n10mn11n10msn
+1ten10n1ymsn100hen110n1mn111n0mn101n0mn100n1msen0n11ymn1n1ym
+sn1100hn11hrn1tn11tcn1tn10tcn1ten0n11ymn1n1ymsren10n1ymsrn11
+1hren0n10ymsrn1hrr
 "
 
 end

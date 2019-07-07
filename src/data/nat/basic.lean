@@ -311,31 +311,8 @@ begin
   exact mul_le_mul_of_nonneg_left (nat.succ_le_of_lt h) dec_trivial,
 end
 
-theorem odd_lt_even_of_lt : Π {n m}, m < n → 2 * m + 1 < 2 * n
-| 0 m h := absurd h $ not_lt_zero _
-| (n+1) m h := 
-begin 
-  cases eq_or_lt_of_le (le_of_lt_succ h) with heq hlt, 
-  { simp [heq, mul_add], exact dec_trivial },
-  { apply lt_trans (odd_lt_even_of_lt hlt), 
-    simp [mul_add], 
-    exact dec_trivial }
-end
-
 theorem even_ne_odd {n m} : 2 * n ≠ 2 * m + 1 :=
-begin
-  cases lt_trichotomy n m,
-  { intro heq, 
-    have := @nat.mul_lt_mul_of_pos_left _ _ 2 h dec_trivial, 
-    rw heq at this, 
-    apply not_succ_lt_self this },
-  { cases h, 
-    { intro heq, rw h at heq, apply succ_ne_self _ heq.symm }, 
-    { intro heq, 
-      have := odd_lt_even_of_lt h, 
-      rw heq at this, 
-      apply lt_irrefl _ this} }
-end
+mt (congr_arg (%2)) (by rw [add_comm, add_mul_mod_self_left, mul_mod_right]; exact dec_trivial)
 
 @[elab_as_eliminator]
 protected def strong_rec' {p : ℕ → Sort u} (H : ∀ n, (∀ m, m < n → p m) → p n) : ∀ (n : ℕ), p n

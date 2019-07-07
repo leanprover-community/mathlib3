@@ -1,15 +1,23 @@
 /-
 Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro
+Authors: Mario Carneiro, Isabel Longbottom, Scott Morrison
 
 The basic theory of combinatorial games. The surreal numbers will be built as a subtype.
 -/
 import tactic.interactive data.nat.cast data.equiv.basic logic.embedding
+import data.fintype
 
 universes u
 
 @[simp] lemma equiv.refl_symm {α : Type u} (a : α) : (equiv.refl α).symm a = a := rfl
+@[simp] lemma equiv.sum_congr_symm {α β γ δ : Type u} (e : α ≃ β) (f : γ ≃ δ) (x) :
+  (equiv.sum_congr e f).symm x = (equiv.sum_congr (e.symm) (f.symm)) x :=
+begin
+  induction e, induction f,
+  dsimp [equiv.sum_congr, equiv.symm],
+  cases x; refl,
+end
 
 /-- The type of pre-games, before we have quotiented
   by extensionality. In ZFC, a combinatorial game is constructed from
@@ -461,6 +469,9 @@ begin
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
+theorem neg_congr {x y : pgame} (h : x ≈ y) : -x ≈ -y :=
+⟨le_iff_neg_ge.1 h.2, le_iff_neg_ge.1 h.1⟩
+
 theorem zero_le_iff_neg_le_zero {x : pgame} : 0 ≤ x ↔ -x ≤ 0 :=
 begin
   convert le_iff_neg_ge,
@@ -488,34 +499,69 @@ end
 
 instance : has_add pgame := ⟨add⟩
 
-def addL {xl xr yl yr} (xL : xl → pgame) (xR yL yR) (xy : xl ⊕ yl) : pgame :=
-sum.cases_on xy (λ i, xL i + mk yl yr yL yR) (λ i, mk xl xr xL xR + yL i)
+def add_zero_relabelling : Π (x : pgame), relabelling (x + 0) x
+| (mk xl xr xL xR) :=
+begin
+  fsplit,
+  exact equiv.sum_pempty xl,
+  exact equiv.sum_pempty xr,
+  { rintro (⟨i⟩|⟨⟨⟩⟩),
+    change relabelling (xL i + 0) (xL i),
+    apply add_zero_relabelling, },
+  { rintro j,
+    change relabelling (xR j + 0) (xR j),
+    apply add_zero_relabelling, }
+end
 
-@[simp] lemma addL_inl {xl xr yl yr} (xL xR yL yR) (i : xl) :
-  @addL xl xr yl yr xL xR yL yR (sum.inl i) = xL i + mk yl yr yL yR := rfl
+def add_zero_equiv (x : pgame) : x + 0 ≈ x :=
+equiv_of_relabelling (add_zero_relabelling x)
 
-@[simp] lemma addL_inr {xl xr yl yr} (xL xR yL yR) (i : yl) :
-  @addL xl xr yl yr xL xR yL yR (sum.inr i) = mk xl xr xL xR + yL i := rfl
+def zero_add_relabelling : Π (x : pgame), relabelling (0 + x) x
+| (mk xl xr xL xR) :=
+begin
+  fsplit,
+  exact equiv.pempty_sum xl,
+  exact equiv.pempty_sum xr,
+  { rintro (⟨⟨⟩⟩|⟨i⟩),
+    change relabelling (0 + xL i) (xL i),
+    apply zero_add_relabelling, },
+  { rintro j,
+    change relabelling (0 + xR j) (xR j),
+    apply zero_add_relabelling, }
+end
 
-def addR {xl xr yl yr} (xL) (xR : xr → pgame) (yL yR) (xy : xr ⊕ yr) : pgame :=
-sum.cases_on xy (λ i, xR i + mk yl yr yL yR) (λ i, mk xl xr xL xR + yR i)
+def zero_add_equiv (x : pgame) : 0 + x ≈ x :=
+equiv_of_relabelling (zero_add_relabelling x)
 
-@[simp] lemma addR_inl {xl xr yl yr} (xL xR yL yR) (i : xr) :
-  @addR xl xr yl yr xL xR yL yR (sum.inl i) = xR i + mk yl yr yL yR := rfl
 
-@[simp] lemma addR_inr {xl xr yl yr} (xL xR yL yR) (i : yr) :
-  @addR xl xr yl yr xL xR yL yR (sum.inr i) = mk xl xr xL xR + yR i := rfl
+-- def addL {xl xr yl yr} (xL : xl → pgame) (xR yL yR) (xy : xl ⊕ yl) : pgame :=
+-- sum.cases_on xy (λ i, xL i + mk yl yr yL yR) (λ i, mk xl xr xL xR + yL i)
 
-lemma add_def {xl xr : Type u} {xL xR} {yl yr : Type u} {yL yR} :
-  mk xl xr xL xR + mk yl yr yL yR =
-  mk (xl ⊕ yl) (xr ⊕ yr) (addL xL xR yL yR) (addR xL xR yL yR) := rfl
+-- @[simp] lemma addL_inl {xl xr yl yr} (xL xR yL yR) (i : xl) :
+--   @addL xl xr yl yr xL xR yL yR (sum.inl i) = xL i + mk yl yr yL yR := rfl
 
-def left_moves_add_mk {xl xr : Type u} {xL xR} {yl yr : Type u} {yL yR} :
-  (mk xl xr xL xR + mk yl yr yL yR).left_moves = ((mk xl xr xL xR).left_moves ⊕ (mk yl yr yL yR).left_moves) :=
-rfl
-def right_moves_add_mk {xl xr : Type u} {xL xR} {yl yr : Type u} {yL yR} :
-  (mk xl xr xL xR + mk yl yr yL yR).right_moves = ((mk xl xr xL xR).right_moves ⊕ (mk yl yr yL yR).right_moves) :=
-rfl
+-- @[simp] lemma addL_inr {xl xr yl yr} (xL xR yL yR) (i : yl) :
+--   @addL xl xr yl yr xL xR yL yR (sum.inr i) = mk xl xr xL xR + yL i := rfl
+
+-- def addR {xl xr yl yr} (xL) (xR : xr → pgame) (yL yR) (xy : xr ⊕ yr) : pgame :=
+-- sum.cases_on xy (λ i, xR i + mk yl yr yL yR) (λ i, mk xl xr xL xR + yR i)
+
+-- @[simp] lemma addR_inl {xl xr yl yr} (xL xR yL yR) (i : xr) :
+--   @addR xl xr yl yr xL xR yL yR (sum.inl i) = xR i + mk yl yr yL yR := rfl
+
+-- @[simp] lemma addR_inr {xl xr yl yr} (xL xR yL yR) (i : yr) :
+--   @addR xl xr yl yr xL xR yL yR (sum.inr i) = mk xl xr xL xR + yR i := rfl
+
+-- lemma add_def {xl xr : Type u} {xL xR} {yl yr : Type u} {yL yR} :
+--   mk xl xr xL xR + mk yl yr yL yR =
+--   mk (xl ⊕ yl) (xr ⊕ yr) (addL xL xR yL yR) (addR xL xR yL yR) := rfl
+
+-- def left_moves_add_mk {xl xr : Type u} {xL xR} {yl yr : Type u} {yL yR} :
+--   (mk xl xr xL xR + mk yl yr yL yR).left_moves = ((mk xl xr xL xR).left_moves ⊕ (mk yl yr yL yR).left_moves) :=
+-- rfl
+-- def right_moves_add_mk {xl xr : Type u} {xL xR} {yl yr : Type u} {yL yR} :
+--   (mk xl xr xL xR + mk yl yr yL yR).right_moves = ((mk xl xr xL xR).right_moves ⊕ (mk yl yr yL yR).right_moves) :=
+-- rfl
 
 def left_moves_add {x y : pgame} : (x + y).left_moves ≃ (x.left_moves ⊕ y.left_moves) :=
 begin
@@ -530,11 +576,38 @@ begin
   refl,
 end
 
+-- @[simp] lemma left_moves_add_mk_inl {xl xr : Type u} {xL xR} {yl yr : Type u} {yL yR} {i} :
+--   (@left_moves_add (mk xl xr xL xR) (mk yl yr yL yR)) (sum.inl i) = sum.inl i := rfl
+-- @[simp] lemma left_moves_add_mk_inr {xl xr : Type u} {xL xR} {yl yr : Type u} {yL yR} {i} :
+--   (@left_moves_add (mk xl xr xL xR) (mk yl yr yL yR)) (sum.inr i) = sum.inr i := rfl
+-- @[simp] lemma right_moves_add_mk_inl {xl xr : Type u} {xL xR} {yl yr : Type u} {yL yR} {i} :
+--   (@right_moves_add (mk xl xr xL xR) (mk yl yr yL yR)) (sum.inl i) = sum.inl i := rfl
+-- @[simp] lemma right_moves_add_mk_inr {xl xr : Type u} {xL xR} {yl yr : Type u} {yL yR} {i} :
+--   (@right_moves_add (mk xl xr xL xR) (mk yl yr yL yR)) (sum.inr i) = sum.inr i := rfl
+-- @[simp] lemma left_moves_add_mk_symm_inl {xl xr : Type u} {xL xR} {yl yr : Type u} {yL yR} {i} :
+--   (@left_moves_add (mk xl xr xL xR) (mk yl yr yL yR)).symm (sum.inl i) = sum.inl i := rfl
+-- @[simp] lemma left_moves_add_mk_symm_inr {xl xr : Type u} {xL xR} {yl yr : Type u} {yL yR} {i} :
+--   (@left_moves_add (mk xl xr xL xR) (mk yl yr yL yR)).symm (sum.inr i) = sum.inr i := rfl
+-- @[simp] lemma right_moves_add_mk_symm_inl {xl xr : Type u} {xL xR} {yl yr : Type u} {yL yR} {i} :
+--   (@right_moves_add (mk xl xr xL xR) (mk yl yr yL yR)).symm (sum.inl i) = sum.inl i := rfl
+-- @[simp] lemma right_moves_add_mk_symm_inr {xl xr : Type u} {xL xR} {yl yr : Type u} {yL yR} {i} :
+--   (@right_moves_add (mk xl xr xL xR) (mk yl yr yL yR)).symm (sum.inr i) = sum.inr i := rfl
+
+-- -- This is a bit of a pain...
+@[simp] lemma left_moves_add_inv_fun_inl {x y : pgame} {i : x.left_moves} :
+  left_moves_add.inv_fun (sum.inl i) = (@left_moves_add x y).symm (sum.inl i) := rfl
+@[simp] lemma left_moves_add_inv_fun_inr {x y : pgame} {i : y.left_moves} :
+  left_moves_add.inv_fun (sum.inr i) = (@left_moves_add x y).symm (sum.inr i) := rfl
+@[simp] lemma right_moves_add_inv_fun_inl {x y : pgame} {i : x.right_moves} :
+  right_moves_add.inv_fun (sum.inl i) = (@right_moves_add x y).symm (sum.inl i) := rfl
+@[simp] lemma right_moves_add_inv_fun_inr {x y : pgame} {i : y.right_moves} :
+  right_moves_add.inv_fun (sum.inr i) = (@right_moves_add x y).symm (sum.inr i) := rfl
+
 @[simp] lemma mk_add_move_left_inl {xl xr yl yr} {xL xR yL yR} {i} :
   (mk xl xr xL xR + mk yl yr yL yR).move_left (sum.inl i) = (mk xl xr xL xR).move_left i + (mk yl yr yL yR) :=
 rfl
 @[simp] lemma add_move_left_inl {x y : pgame} {i} :
-  (x + y).move_left (left_moves_add.inv_fun $ sum.inl i) = x.move_left i + y :=
+  (x + y).move_left ((@left_moves_add x y).symm (sum.inl i)) = x.move_left i + y :=
 begin
   cases x, cases y,
   refl,
@@ -543,7 +616,7 @@ end
   (mk xl xr xL xR + mk yl yr yL yR).move_right (sum.inl i) = (mk xl xr xL xR).move_right i + (mk yl yr yL yR) :=
 rfl
 @[simp] lemma add_move_right_inl {x y : pgame} {i} :
-  (x + y).move_right (right_moves_add.inv_fun $ sum.inl i) = x.move_right i + y :=
+  (x + y).move_right ((@right_moves_add x y).symm (sum.inl i)) = x.move_right i + y :=
 begin
   cases x, cases y,
   refl,
@@ -551,8 +624,8 @@ end
 @[simp] lemma mk_add_move_left_inr {xl xr yl yr} {xL xR yL yR} {i} :
   (mk xl xr xL xR + mk yl yr yL yR).move_left (sum.inr i) = (mk xl xr xL xR) + (mk yl yr yL yR).move_left i :=
 rfl
-@[simp] lemma add_move_left_inr {x y : pgame} {i} :
-  (x + y).move_left (left_moves_add.inv_fun $ sum.inr i) = x + y.move_left i :=
+@[simp] lemma add_move_left_inr {x y : pgame} {i : y.left_moves} :
+  (x + y).move_left ((@left_moves_add x y).symm (sum.inr i)) = x + y.move_left i :=
 begin
   cases x, cases y,
   refl,
@@ -561,7 +634,7 @@ end
   (mk xl xr xL xR + mk yl yr yL yR).move_right (sum.inr i) = (mk xl xr xL xR) + (mk yl yr yL yR).move_right i :=
 rfl
 @[simp] lemma add_move_right_inr {x y : pgame} {i} :
-  (x + y).move_right (right_moves_add.inv_fun $ sum.inr i) = x + y.move_right i :=
+  (x + y).move_right ((@right_moves_add x y).symm (sum.inr i)) = x + y.move_right i :=
 begin
   cases x, cases y,
   refl,
@@ -611,7 +684,7 @@ begin
     simp,
     have rs := right_response_spec hx i,
     dsimp,
-    simp,
+    simp only [add_move_right_inl],
     exact add_le_zero_of_le_zero rs hy, },
   { fsplit,
     change right_moves (mk xl xr xL xR + move_left (mk yl yr yL yR) i),
@@ -619,7 +692,7 @@ begin
     simp,
     have rs := right_response_spec hy i,
     dsimp,
-    simp,
+    simp only [add_move_right_inr],
     exact add_le_zero_of_le_zero hx rs, },
 end
 using_well_founded { dec_tac := pgame_wf_tac }
@@ -648,50 +721,47 @@ begin
     transitivity,
     apply equiv.sum_comm,
     exact right_moves_add.symm, },
-  { intros, simp, cases i; { dsimp [left_moves_add], apply add_comm_relabelling, } },
-  { intros, simp, cases j; { dsimp [right_moves_add], apply add_comm_relabelling, } },
+  { intros,
+    cases i; { dsimp [left_moves_add], apply add_comm_relabelling, } },
+  { intros,
+    simp only [equiv.symm_trans_apply, equiv.symm_symm_apply, equiv.sum_comm],
+    cases j; { dsimp [right_moves_add], apply add_comm_relabelling, } },
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
 theorem add_comm_le {x y : pgame} : (x + y) ≤ (y + x) :=
 le_of_relabelling (add_comm_relabelling x y)
 
--- --TODO how do we not already have this tactic?! `transport i e`
--- example {α β : Type} (e : α ≃ β) (f : α → ℕ) (i : α) : f i = 0 :=
--- begin
---   have h : i = e.symm (e i) := by simp,
---   revert h,
---   generalize : e i = j,
---   intro h,
---   subst h,
---   rename j i,
--- end
+theorem add_comm_equiv {x y : pgame} : (x + y) ≈ (y + x) :=
+⟨le_of_relabelling (add_comm_relabelling x y), ge_of_relabelling (add_comm_relabelling x y)⟩
 
--- def add_assoc_relabelling : Π (x y z : pgame.{u}), relabelling ((x + y) + z) (x + (y + z))
--- | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
--- begin
---   fsplit,
---   { transitivity,
---     exact left_moves_add,
---     transitivity,
---     apply equiv.sum_congr left_moves_add (equiv.refl _),
---     apply equiv.sum_assoc, },
---   { transitivity,
---     exact right_moves_add,
---     transitivity,
---     apply equiv.sum_congr right_moves_add (equiv.refl _),
---     apply equiv.sum_assoc, },
---   { intros,
+def add_assoc_relabelling : Π (x y z : pgame.{u}), relabelling ((x + y) + z) (x + (y + z))
+| (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
+begin
+  fsplit,
+  { transitivity,
+    exact left_moves_add,
+    transitivity,
+    apply equiv.sum_congr left_moves_add (equiv.refl _),
+    apply equiv.sum_assoc, },
+  { transitivity,
+    exact right_moves_add,
+    transitivity,
+    apply equiv.sum_congr right_moves_add (equiv.refl _),
+    apply equiv.sum_assoc, },
+  { rintro (⟨i|i⟩|i),
+    { apply add_assoc_relabelling, },
+    { change relabelling (mk xl xr xL xR + yL i + mk zl zr zL zR) (mk xl xr xL xR + (yL i + mk zl zr zL zR)), apply add_assoc_relabelling, },
+    { change relabelling (mk xl xr xL xR + mk yl yr yL yR + zL i) (mk xl xr xL xR + (mk yl yr yL yR + zL i)), apply add_assoc_relabelling, } },
+  { rintro (j|⟨j|j⟩),
+    { apply add_assoc_relabelling, },
+    { change relabelling (mk xl xr xL xR + yR j + mk zl zr zL zR) (mk xl xr xL xR + (yR j + mk zl zr zL zR)), apply add_assoc_relabelling, },
+    { change relabelling (mk xl xr xL xR + mk yl yr yL yR + zR j) (mk xl xr xL xR + (mk yl yr yL yR + zR j)), apply add_assoc_relabelling, } },
+end
+using_well_founded { dec_tac := pgame_wf_tac }
 
---      rcases i with ⟨xi|yi⟩|zi,
---    { dsimp [left_moves_add], apply add_assoc_relabelling, },
---    { dsimp, sorry },
---    { dsimp, sorry },
---     },
---   sorry
--- end
--- using_well_founded { dec_tac := pgame_wf_tac }
-
+theorem add_assoc_equiv {x y z : pgame} : ((x + y) + z) ≈ (x + (y + z)) :=
+⟨le_of_relabelling (add_assoc_relabelling x y z), ge_of_relabelling (add_assoc_relabelling x y z)⟩
 
 theorem le_add_right : Π {x y z : pgame} (h : x ≤ y), x + z ≤ y + z
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
@@ -711,19 +781,19 @@ begin
       { left,
         use right_moves_add.inv_fun (sum.inl j),
         dsimp,
-        simp,
+        simp only [add_move_right_inl],
         exact le_add_right jh },
       { right,
         use left_moves_add.inv_fun (sum.inl i),
         dsimp,
-        simp,
+        simp only [move_left_mk, add_move_left_inl],
         exact le_add_right ih, },
       },
     { -- or play in z
       right,
       use left_moves_add.inv_fun (sum.inr i),
       dsimp,
-      simp,
+      simp only [move_left_mk, add_move_left_inr],
       exact le_add_right h,
     }, },
   { -- if right plays first
@@ -738,19 +808,19 @@ begin
       { left,
         use right_moves_add.inv_fun (sum.inl j),
         dsimp,
-        simp,
+        simp only [move_left_mk, add_move_left_inr],
         exact le_add_right jh },
       { right,
         use left_moves_add.inv_fun (sum.inl i),
         dsimp,
-        simp,
+        simp only [add_move_left_inl],
         exact le_add_right ih, },
       },
     { -- or play in z
       left,
       use right_moves_add.inv_fun (sum.inr j),
       dsimp,
-      simp,
+      simp only [move_right_mk, add_move_right_inr],
       exact le_add_right h,
     }
   }
@@ -777,7 +847,120 @@ begin
     exact le_add_right h₁.2 }
 end
 
-/-- The pre-surreal number `ω`. (In fact all ordinals have surreal
+inductive short : pgame.{u} → Type (u+1)
+| mk : Π (x : pgame) [fintype x.left_moves] [fintype x.right_moves]
+         [∀ i : x.left_moves, short (x.move_left i)] [∀ j : x.right_moves, short (x.move_right j)], short x
+
+attribute [class] short
+
+instance fintype_left_moves (x : pgame) [S : short x] : fintype (x.left_moves) :=
+begin
+  tactic.unfreeze_local_instances,
+  induction S with _ F _ _ _,
+  apply F
+end
+instance fintype_right_moves (x : pgame) [S : short x] : fintype (x.right_moves) :=
+begin
+  tactic.unfreeze_local_instances,
+  induction S with _ _ F _ _,
+  apply F
+end
+instance move_left_short (x : pgame) [S : short x] (i : x.left_moves) : short (x.move_left i) :=
+begin
+  tactic.unfreeze_local_instances,
+  cases S with _ _ _ L _,
+  apply L
+end
+instance move_left_short' {xl xr xL xR} [S : short (mk xl xr xL xR)] (i : xl) : short (xL i) :=
+begin
+  tactic.unfreeze_local_instances,
+  cases S with _ _ _ L _,
+  apply L
+end
+instance move_right_short (x : pgame) [S : short x] (j : x.right_moves) : short (x.move_right j) :=
+begin
+  tactic.unfreeze_local_instances,
+  cases S with _ _ _ _ R,
+  apply R
+end
+instance move_right_short' {xl xr xL xR} [S : short (mk xl xr xL xR)] (j : xr) : short (xR j) :=
+begin
+  tactic.unfreeze_local_instances,
+  cases S with _ _ _ _ R,
+  apply R
+end
+
+instance short_0 : short 0 :=
+@short.mk 0 pempty.fintype pempty.fintype (λ i, by cases i) (λ j, by cases j)
+
+instance short_1 : short 1 :=
+@short.mk 1 punit.fintype pempty.fintype (λ i, begin cases i, dsimp, apply_instance, end) (λ j, by cases j)
+
+instance short_add : Π (x y : pgame.{u}) [short x] [short y], short (x + y)
+| (mk xl xr xL xR) (mk yl yr yL yR) _ _ :=
+begin
+  resetI,
+  apply @short.mk _ _ _ _ _,
+  { apply fintype.of_equiv _ (left_moves_add.symm),
+    apply sum.fintype },
+  { apply fintype.of_equiv _ (right_moves_add.symm),
+    apply sum.fintype },
+  { rintro ⟨i⟩,
+    { apply short_add, },
+    { change short (mk xl xr xL xR + yL i), apply short_add, } },
+  { rintro ⟨j⟩,
+    { apply short_add, },
+    { change short (mk xl xr xL xR + yR j), apply short_add, } },
+end
+using_well_founded { dec_tac := pgame_wf_tac }
+
+instance le_decidable : Π (x y : pgame.{u}) [short x] [short y], decidable (x ≤ y)
+| x y _ _ :=
+begin
+  resetI,
+  rw le_def,
+  apply @and.decidable _ _ _ _,
+  { apply @fintype.decidable_forall_fintype (left_moves x) (by apply_instance) _ _,
+    intro i,
+    apply @or.decidable _ _ _ _,
+    { apply @fintype.decidable_exists_fintype (right_moves (move_left x i)) (by apply_instance) _ _,
+      intro j,
+      apply le_decidable },
+    { apply @fintype.decidable_exists_fintype (left_moves y) (by apply_instance) _ _,
+      intro j,
+      apply le_decidable }, },
+  { apply @fintype.decidable_forall_fintype (right_moves y) (by apply_instance) _ _,
+    intro i,
+    apply @or.decidable _ _ _ _,
+    { apply @fintype.decidable_exists_fintype (right_moves x) (by apply_instance) _ _,
+      intro j,
+      apply le_decidable },
+    { apply @fintype.decidable_exists_fintype (left_moves (move_right y i)) (by apply_instance) _ _,
+      intro j,
+      apply le_decidable }, },
+end
+using_well_founded { dec_tac := pgame_wf_tac }
+
+instance equiv_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x ≈ y) :=
+and.decidable
+
+example : short 0 := by apply_instance
+example : short 1 := by apply_instance
+example : short (0 + 0) := by apply_instance
+
+example : decidable ((1 : pgame) ≤ 1) := by apply_instance
+
+#eval to_bool ((1 : pgame) ≤ 0)
+#eval to_bool ((0 : pgame) ≤ 1)
+#eval to_bool ((1 : pgame) ≤ 1)
+
+#eval to_bool ((1 : pgame) + 1 + 1 ≤ (1 + 0 + 1))
+
+-- TODO but this doesn't work?
+-- example : (0 : pgame) ≤ 0 := dec_trivial
+-- example : (1 : pgame) ≤ 1 := by exact dec_trivial
+
+/-- The game `ω`. (In fact all ordinals have surreal
   representatives.) -/
 def omega : pgame := ⟨ulift ℕ, pempty, λ n, ↑n.1, pempty.elim⟩
 
@@ -814,14 +997,206 @@ def lt : game → game → Prop :=
 quotient.lift₂ (λ x y, x < y) (λ x₁ y₁ x₂ y₂ hx hy, propext (lt_congr hx hy))
 
 theorem not_le : ∀ {x y : game}, ¬ le x y ↔ lt y x :=
-by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; exact not_le
-
-def add : game → game → game :=
-quotient.lift₂ (λ x y : pgame, ⟦x + y⟧) (λ x₁ y₁ x₂ y₂ hx hy, quot.sound (pgame.add_congr hx hy))
+by { rintro ⟨x⟩ ⟨y⟩, exact not_le }
 
 instance : has_zero game := ⟨⟦0⟧⟩
 instance : has_one game := ⟨⟦1⟧⟩
 
+def add : game → game → game :=
+quotient.lift₂ (λ x y : pgame, ⟦x + y⟧) (λ x₁ y₁ x₂ y₂ hx hy, quot.sound (pgame.add_congr hx hy))
+
 instance : has_add game := ⟨add⟩
 
+def add_assoc (x y z : game) : x + y + z = x + (y + z) :=
+begin
+  induction x generalizing y z,
+  induction y generalizing z,
+  induction z,
+  apply quot.sound,
+  exact add_assoc_equiv,
+  refl,
+  refl,
+  refl
+end
+
+instance : add_semigroup game :=
+{ add_assoc := add_assoc,
+  ..(by apply_instance : has_add game) }
+
+def add_zero (x : game) : x + 0 = x :=
+begin
+  induction x,
+  apply quot.sound,
+  apply add_zero_equiv,
+  refl
+end
+def zero_add (x : game) : 0 + x = x :=
+begin
+  induction x,
+  apply quot.sound,
+  apply zero_add_equiv,
+  refl
+end
+
+instance : add_monoid game :=
+{ add_zero := add_zero,
+  zero_add := zero_add,
+  ..(by apply_instance : has_zero game),
+  ..(by apply_instance : add_semigroup game) }
+
+def neg : game → game :=
+quot.lift (λ x, ⟦-x⟧) (λ x y h, quot.sound (@neg_congr x y h))
+
+instance : add_group game :=
+{ neg := neg,
+  add_left_neg := sorry,
+  ..(game.add_monoid) }
+
+def add_comm (x y : game) : x + y = y + x :=
+begin
+  induction x generalizing y,
+  induction y,
+  apply quot.sound,
+  exact add_comm_equiv,
+  refl,
+  refl,
+end
+
+instance : add_comm_semigroup game :=
+{ add_comm := add_comm,
+  ..(by apply_instance : add_semigroup game) }
+
+instance : add_comm_group game :=
+{ ..(game.add_comm_semigroup),
+  ..(game.add_group) }
+
+-- TODO show order properties
+
+namespace domineering_aux
+
+def shift_up : ℤ × ℤ ↪ ℤ × ℤ := ⟨λ p : ℤ × ℤ, (p.1, p.2 + 1), sorry⟩
+def shift_right : ℤ × ℤ ↪ ℤ × ℤ := ⟨λ p : ℤ × ℤ, (p.1 + 1, p.2), sorry⟩
+
+def left_set  (b : finset (ℤ × ℤ)) : finset (ℤ × ℤ) := b ∩ b.map shift_up
+def right_set (b : finset (ℤ × ℤ)) : finset (ℤ × ℤ) := b ∩ b.map shift_right
+
+def left  (b : finset (ℤ × ℤ)) : Type := { p | p ∈ left_set b }
+def right (b : finset (ℤ × ℤ)) : Type := { p | p ∈ right_set b }
+
+instance fintype_left (b : finset (ℤ × ℤ)) : fintype (left b) :=
+fintype.subtype _ (λ x, iff.refl _)
+
+instance fintype_right (b : finset (ℤ × ℤ)) : fintype (right b) :=
+fintype.subtype _ (λ x, iff.refl _)
+
+def move_left (b : finset (ℤ × ℤ)) (m : left b) : finset (ℤ × ℤ) :=
+(b.erase m.val).erase (m.val.1, m.val.2 - 1)
+def move_right (b : finset (ℤ × ℤ)) (m : right b) : finset (ℤ × ℤ) :=
+(b.erase m.val).erase (m.val.1 - 1, m.val.2)
+
+lemma int.succ_ne_self {x : ℤ} : x + 1 ≠ x :=
+begin
+  sorry
+end
+
+lemma move_left_smaller (b : finset (ℤ × ℤ)) (m : left b) :
+  finset.card (move_left b m) < finset.card b :=
+begin
+  dsimp [move_left],
+  rcases m with ⟨⟨x,y⟩,p⟩,
+  dsimp,
+  dsimp [left_set] at p,
+  simp at p,
+  cases p with p₁ p₂,
+  dsimp [shift_up] at p₂,
+  simp at p₂,
+  rcases p₂ with ⟨x,y,⟨p,rfl,rfl⟩⟩,
+  rw finset.card_erase_of_mem,
+  rw finset.card_erase_of_mem,
+  { apply lt_of_le_of_lt (nat.pred_le _),
+    exact nat.pred_lt (finset.card_ne_zero_of_mem p₁), },
+  { exact p₁ },
+  apply finset.mem_erase_of_ne_of_mem _ _,
+  { intro h,
+    replace h := congr_arg prod.snd h,
+    dsimp at h,
+    simp at h,
+    apply (int.succ_ne_self h.symm), },
+  { simpa using p },
+end
+lemma move_right_smaller (b : finset (ℤ × ℤ)) (m : right b) :
+  finset.card (move_right b m) < finset.card b :=
+begin
+  dsimp [move_right],
+  rcases m with ⟨⟨x,y⟩,p⟩,
+  dsimp,
+  dsimp [right_set] at p,
+  simp at p,
+  cases p with p₁ p₂,
+  dsimp [shift_right] at p₂,
+  simp at p₂,
+  rcases p₂ with ⟨x,y,⟨p,rfl,rfl⟩⟩,
+  rw finset.card_erase_of_mem,
+  rw finset.card_erase_of_mem,
+  { apply lt_of_le_of_lt (nat.pred_le _),
+    exact nat.pred_lt (finset.card_ne_zero_of_mem p₁), },
+  { exact p₁ },
+  apply finset.mem_erase_of_ne_of_mem _ _,
+  { intro h,
+    replace h := congr_arg prod.fst h,
+    dsimp at h,
+    simp at h,
+    apply (int.succ_ne_self h.symm), },
+  { simpa using p },
+end
+
+end domineering_aux
+
+
+section
+open domineering_aux
+
+instance : has_well_founded (finset (ℤ × ℤ)) := ⟨measure finset.card, measure_wf finset.card⟩
+
+def domineering : finset (ℤ × ℤ) → pgame
+| b := pgame.mk
+    (left b) (right b)
+    (λ m, have _, from move_left_smaller b m,  domineering (move_left b m))
+    (λ m, have _, from move_right_smaller b m, domineering (move_right b m))
+
+@[simp] lemma domineering_left_moves (b : finset (ℤ × ℤ)) :
+  (domineering b).left_moves = left b :=
+begin
+  sorry
+end
+@[simp] lemma domineering_right_moves (b : finset (ℤ × ℤ)) :
+  (domineering b).right_moves = right b :=
+begin
+  sorry
+end
+
+instance fintype_left_moves (b : finset (ℤ × ℤ)) : fintype ((domineering b).left_moves) :=
+begin
+  rw domineering_left_moves,
+  exact domineering_aux.fintype_left b,
+end
+instance fintype_right_moves (b : finset (ℤ × ℤ)) : fintype ((domineering b).right_moves) :=
+begin
+  rw domineering_right_moves,
+  exact domineering_aux.fintype_right b,
+end
+
+instance short_domineering : Π (b : finset (ℤ × ℤ)), short (domineering b)
+| b :=
+@short.mk (domineering b) (by apply_instance) (by apply_instance)
+begin
+  intro i,
+  apply short_domineering (move_left b i),
+end
+
+def domineering.half := domineering ([(0,2), (0,1), (0,0), (1,0)].to_finset)
+
+#eval to_bool (domineering.half + domineering.half ≈ 1)
+
+end
 end game

@@ -1167,7 +1167,7 @@ def domineering : finset (ℤ × ℤ) → pgame
 @[simp] lemma domineering_left_moves (b : finset (ℤ × ℤ)) :
   (domineering b).left_moves = left b :=
 begin
-  sorry
+  unfold domineering,
 end
 @[simp] lemma domineering_right_moves (b : finset (ℤ × ℤ)) :
   (domineering b).right_moves = right b :=

@@ -71,3 +71,6 @@ do cmd ← parser.pexpr, cmd ← i_to_expr cmd, cmd ← eval_expr string cmd,
 /-- Print all commands in a given notation namespace -/
 meta def print_localized_commands (ns : list name) : tactic unit :=
 do cmds ← get_localized ns, cmds.mmap' trace
+
+-- you can run `open_notation classical` to get the decidability of all propositions.
+localized "attribute [instance, priority 1] classical.prop_decidable" in classical

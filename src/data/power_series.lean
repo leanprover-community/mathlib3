@@ -153,6 +153,33 @@ end
 @[simp] lemma nat_downset_zero : nat_downset (0 : σ →₀ ℕ) = {0} :=
 by { ext a, erw mem_nat_downset_iff_le }
 
+lemma mem_support_iff_single_le (f : σ →₀ ℕ) (s : σ) :
+  s ∈ f.support ↔ single s 1 ≤ f :=
+begin
+  rw le_iff,
+  simp only [finsupp.mem_support_iff, finsupp.single_apply],
+  split,
+  { intros h t ht,
+    split_ifs at ht ⊢,
+    { subst t, exact nat.pos_of_ne_zero h },
+    { exact nat.zero_le _ } },
+  { intros h H, specialize h s, simp only [if_pos rfl, H] at h,
+    exact nat.not_succ_le_zero 0 (h one_ne_zero) }
+end
+
+lemma le_sub_left_iff_add_le {a b c : σ →₀ ℕ} (h : a ≤ c) :
+  b ≤ c - a ↔ a + b ≤ c :=
+begin
+  split; intros H s;
+  specialize h s;
+  specialize H s,
+  { exact (nat.le_sub_left_iff_add_le h).1 H },
+  { exact (nat.le_sub_left_iff_add_le h).2 H }
+end
+
+lemma sub_le {a b : σ →₀ ℕ} : a - b ≤ a :=
+λ s, nat.sub_le (a s) (b s)
+
 end finsupp
 
 /-- Multivariate power series, where `σ` is the index set of the variables
@@ -405,10 +432,15 @@ begin
         { intros m hm,
           congr' 1,
           rw coeff_mul_X',
-          -- suffices : ∀ m, n - single s 1 - m = n - m - single s 1,
-          -- simp [this],
-          -- simp [nat.sub.right_comm],
-          },
+          rw mem_support_iff_single_le at h,
+          rw mem_nat_downset_iff_le at hm,
+          have mle := le_trans hm sub_le,
+          rw [le_sub_left_iff_add_le h, add_comm,
+              ← le_sub_left_iff_add_le mle, ← mem_support_iff_single_le] at hm,
+          rw if_pos hm,
+          congr' 1,
+          ext s,
+          apply nat.sub.right_comm },
         { intros m hm,
           suffices : s ∉ (n - m).support,
           { rw [coeff_mul_X', if_neg this, mul_zero] },
@@ -445,7 +477,21 @@ begin
     conv_lhs { rw [mul_assoc, mul_comm (X s), ← mul_assoc] },
     rw coeff_mul_X',
     split_ifs,
-    { rw hp, sorry },
+    {
+      symmetry,
+      rw [hp, ← finset.sum_sdiff _, finset.sum_eq_zero, zero_add],
+      { symmetry,
+        apply finset.sum_bij (λ m hm, m + single s 1),
+        { intros m hm,
+          rw mem_support_iff_single_le at h,
+          rwa [mem_nat_downset_iff_le, le_sub_left_iff_add_le h,
+              add_comm, ← mem_nat_downset_iff_le] at hm },
+        { intros m hm, simp only [coeff_mul_X],
+          congr' 2, rw add_comm, ext t, apply nat.sub_sub },
+        { intros k m hk hm, apply add_right_cancel },
+        { intros m hm, sorry }
+         },
+      },
     { rw finset.sum_eq_zero,
       intros m hm,
       have : s ∉ m.support,

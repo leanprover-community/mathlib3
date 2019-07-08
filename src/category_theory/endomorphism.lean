@@ -77,20 +77,22 @@ namespace functor
 variables {C : Type u} [𝒞 : category.{v+1} C] {D : Type u'} [𝒟 : category.{v'+1} D] (f : C ⥤ D) {X : C}
 include 𝒞 𝒟
 
-instance map_End_is_monoid_hom :
-  is_monoid_hom (show (End X → End (f.obj X)), from functor.map f) :=
+def map_End : End X → End (f.obj X) := functor.map f
+
+instance map_End.is_monoid_hom : is_monoid_hom (f.map_End : End X → End (f.obj X)) :=
 { map_mul := λ x y, f.map_comp y x,
   map_one := f.map_id X }
 
-instance map_Aut_is_group_hom :
-  is_group_hom (show (Aut X → Aut (f.obj X)), from functor.map_iso f) :=
+def map_Aut : Aut X → Aut (f.obj X) := functor.map_iso f
+
+instance map_Aut.is_group_hom : is_group_hom (f.map_Aut : Aut X → Aut (f.obj X)) :=
 { map_mul := λ x y, f.map_iso_trans y x }
 
 end functor
 
 instance functor.map_End_is_group_hom {C : Type u} [𝒞 : groupoid.{v+1} C]
                                       {D : Type u'} [𝒟 : groupoid.{v'+1} D] (f : C ⥤ D) {X : C} :
-  is_group_hom (show (End X → End (f.obj X)), from functor.map f) :=
-{ ..functor.map_End_is_monoid_hom f }
+  is_group_hom (f.map_End : End X → End (f.obj X)) :=
+{ ..functor.map_End.is_monoid_hom f }
 
 end category_theory

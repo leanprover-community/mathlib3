@@ -1023,4 +1023,38 @@ meta def {u} success_if_fail_with_msg {α : Type u} (t : tactic α) (msg : strin
    mk_exception "success_if_fail_with_msg combinator failed, given tactic succeeded" none s
 end
 
+open lean interactive
+
+meta def pformat := tactic format
+
+meta def pformat.mk (fmt : format) : pformat := pure fmt
+
+meta def to_pfmt {α} [has_to_tactic_format α] (x : α) : pformat :=
+pp x
+
+meta instance pformat.has_to_tactic_format : has_to_tactic_format pformat :=
+⟨ id ⟩
+
+meta instance : has_append pformat :=
+⟨ λ x y, (++) <$> x <*> y ⟩
+
+private meta def parse_pformat : string → list char → parser pexpr
+| acc []            := pure ``(to_pfmt %%(reflect acc))
+| acc ('\n'::s)     :=
+do f ← parse_pformat "" s,
+   pure ``(to_pfmt %%(reflect acc) ++ pformat.mk format.line ++ %%f)
+| acc ('{'::'{'::s) := parse_pformat (acc ++ "{") s
+| acc ('{'::s) :=
+do (e, s) ← with_input (lean.parser.pexpr 0) s.as_string,
+   '}'::s ← return s.to_list | fail "'}' expected",
+   f ← parse_pformat "" s,
+   pure ``(to_pfmt %%(reflect acc) ++ to_pfmt %%e ++ %%f)
+| acc (c::s) := parse_pformat (acc.str c) s
+
+reserve prefix `pformat! `:100
+
+@[user_notation]
+meta def pformat_macro (_ : parse $ tk "pformat!") (s : string) : parser pexpr :=
+parse_pformat "" s.to_list
+
 end tactic

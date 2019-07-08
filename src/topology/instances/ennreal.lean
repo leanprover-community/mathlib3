@@ -48,8 +48,7 @@ instance : second_countable_topology ennreal :=
     end)⟩⟩
 
 lemma embedding_coe : embedding (coe : nnreal → ennreal) :=
-and.intro (assume a b, coe_eq_coe.1) $
-begin
+⟨⟨begin
   refine le_antisymm _ _,
   { rw [orderable_topology.topology_eq_generate_intervals ennreal,
       ← coinduced_le_iff_le_induced],
@@ -63,8 +62,9 @@ begin
     refine le_generate_from (assume s ha, _),
     rcases ha with ⟨a, rfl | rfl⟩,
     exact ⟨{b : ennreal | ↑a < b}, @is_open_lt' ennreal ennreal.topological_space _ _ _, by simp⟩,
-    exact ⟨{b : ennreal | b < ↑a}, @is_open_gt' ennreal ennreal.topological_space _ _ _, by simp⟩, },
-end
+    exact ⟨{b : ennreal | b < ↑a}, @is_open_gt' ennreal ennreal.topological_space _ _ _, by simp⟩ }
+  end⟩,
+  assume a b, coe_eq_coe.1⟩
 
 lemma is_open_ne_top : is_open {a : ennreal | a ≠ ⊤} :=
 is_open_neg (is_closed_eq continuous_id continuous_const)
@@ -85,7 +85,7 @@ continuous (λa, (f a : ennreal)) ↔ continuous f :=
 embedding_coe.continuous_iff.symm
 
 lemma nhds_coe {r : nnreal} : nhds (r : ennreal) = (nhds r).map coe :=
-by rw [embedding_coe.2, map_nhds_induced_eq coe_range_mem_nhds]
+by rw [embedding_coe.induced, map_nhds_induced_eq coe_range_mem_nhds]
 
 lemma nhds_coe_coe {r p : nnreal} : nhds ((r : ennreal), (p : ennreal)) =
   (nhds (r, p)).map (λp:nnreal×nnreal, (p.1, p.2)) :=

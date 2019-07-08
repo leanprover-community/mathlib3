@@ -78,3 +78,8 @@ instance lex.decidable [decidable_eq α] [decidable_eq β]
 λ p q, decidable_of_decidable_of_iff (by apply_instance) (lex_def r s).symm
 
 end prod
+
+lemma function.injective_prod {f : α → γ} {g : β → δ}
+  (hf : ∀ {a a'}, f a = f a' → a = a') (hg : ∀ {b b'}, g b = g b' → b = b') :
+  ∀ p p' : α × β, (f p.1, g p.2) = (f p'.1, g p'.2) → p = p' :=
+assume ⟨a₁, b₁⟩ ⟨a₂, b₂⟩, by { simp [prod.mk.inj_iff],exact λ ⟨eq₁, eq₂⟩, ⟨hf eq₁, hg eq₂⟩ }

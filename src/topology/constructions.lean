@@ -35,7 +35,7 @@ lemma is_open_prod {s : set α} {t : set β} (hs : is_open s) (ht : is_open t) :
 is_open_inter (continuous_fst s hs) (continuous_snd t ht)
 
 lemma nhds_prod_eq {a : α} {b : β} : nhds (a, b) = filter.prod (nhds a) (nhds b) :=
-by rw [filter.prod, prod.topological_space, nhds_inf, nhds_induced_eq_comap, nhds_induced_eq_comap]
+by rw [filter.prod, prod.topological_space, nhds_inf, nhds_induced, nhds_induced]
 
 instance [topological_space α] [discrete_topology α] [topological_space β] [discrete_topology β] :
   discrete_topology (α × β) :=
@@ -136,6 +136,12 @@ show (λp:α×β, f p.1 p.2) (a, b) ∈ closure u, from
 lemma is_closed_prod [topological_space α] [topological_space β] {s₁ : set α} {s₂ : set β}
   (h₁ : is_closed s₁) (h₂ : is_closed s₂) : is_closed (set.prod s₁ s₂) :=
 closure_eq_iff_is_closed.mp $ by simp [h₁, h₂, closure_prod_eq, closure_eq_of_is_closed]
+
+lemma dense_range_prod [topological_space δ] {f : α → β} {g : γ → δ} (hf : dense_range f)
+  (hg : dense_range g) : dense_range (λ p : α × γ, (f p.1, g p.2)) :=
+have closure (range $ λ p : α×γ, (f p.1, g p.2)) = set.prod (closure $ range f) (closure $ range g),
+    by rw [←closure_prod_eq, prod_range_range_eq],
+assume ⟨b, d⟩, this.symm ▸ mem_prod.2 ⟨hf _, hg _⟩
 
 protected lemma is_open_map.prod
   [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
@@ -338,8 +344,7 @@ lemma continuous_sum_rec {f : α → γ} {g : β → γ}
 continuous_sup_dom hf hg
 
 lemma embedding_inl : embedding (@sum.inl α β) :=
-⟨λ _ _, sum.inl.inj_iff.mp,
-  begin
+⟨⟨begin
     unfold sum.topological_space,
     apply le_antisymm,
     { rw ← coinduced_le_iff_le_induced, exact lattice.le_sup_left },
@@ -353,11 +358,10 @@ lemma embedding_inl : embedding (@sum.inl α β) :=
       have : sum.inr ⁻¹' (@sum.inl α β '' u) = ∅ :=
         eq_empty_iff_forall_not_mem.mpr (assume a ⟨b, _, h⟩, sum.inl_ne_inr h), rw this,
       exact ⟨⟨hu, is_open_empty⟩, rfl⟩ }
-  end⟩
+  end⟩, λ _ _, sum.inl.inj_iff.mp⟩
 
 lemma embedding_inr : embedding (@sum.inr α β) :=
-⟨λ _ _, sum.inr.inj_iff.mp,
-  begin
+⟨⟨begin
     unfold sum.topological_space,
     apply le_antisymm,
     { rw ← coinduced_le_iff_le_induced, exact lattice.le_sup_right },
@@ -371,7 +375,7 @@ lemma embedding_inr : embedding (@sum.inr α β) :=
       have : sum.inr ⁻¹' (@sum.inr α β '' u) = u :=
         preimage_image_eq u (λ _ _, sum.inr.inj_iff.mp), rw this,
       exact ⟨⟨is_open_empty, hu⟩, rfl⟩ }
-  end⟩
+  end⟩, λ _ _, sum.inr.inj_iff.mp⟩
 
 instance [topological_space α] [topological_space β] [compact_space α] [compact_space β] :
   compact_space (α ⊕ β) :=
@@ -392,7 +396,7 @@ lemma embedding_graph {f : α → β} (hf : continuous f) : embedding (λx, (x, 
 embedding_of_embedding_compose (continuous_id.prod_mk hf) continuous_fst embedding_id
 
 lemma embedding_subtype_val : embedding (@subtype.val α p) :=
-⟨subtype.val_injective, rfl⟩
+⟨⟨rfl⟩, subtype.val_injective⟩
 
 lemma continuous_subtype_val : continuous (@subtype.val α p) :=
 continuous_induced_dom
@@ -414,7 +418,7 @@ map_nhds_induced_eq (by simp [subtype.val_image, h])
 
 lemma nhds_subtype_eq_comap {a : α} {h : p a} :
   nhds (⟨a, h⟩ : subtype p) = comap subtype.val (nhds a) :=
-nhds_induced_eq_comap
+nhds_induced _ _
 
 lemma tendsto_subtype_rng [topological_space α] {p : α → Prop} {b : filter β} {f : β → subtype p} :
   ∀{a:subtype p}, tendsto f b (nhds a) ↔ tendsto (λx, subtype.val (f x)) b (nhds a.val)
@@ -471,11 +475,11 @@ iff.intro (assume h, compact_image h hf.continuous) $ assume h, begin
   let u' : filter β := map f u,
   have : u' ≤ principal (f '' s), begin
     rw [map_le_iff_le_comap, comap_principal], convert us',
-    exact preimage_image_eq _ hf.1
+    exact preimage_image_eq _ hf.inj
   end,
   rcases h u' (ultrafilter_map hu) this with ⟨_, ⟨a, ha, ⟨⟩⟩, _⟩,
   refine ⟨a, ha, _⟩,
-  rwa [hf.2, nhds_induced_eq_comap, ←map_le_iff_le_comap]
+  rwa [hf.induced, nhds_induced, ←map_le_iff_le_comap]
 end
 
 lemma compact_iff_compact_in_subtype {s : set {a // p a}} :
@@ -544,7 +548,7 @@ continuous_infi_dom continuous_induced_dom
 lemma nhds_pi [t : ∀i, topological_space (π i)] {a : Πi, π i} :
   nhds a = (⨅i, comap (λx, x i) (nhds (a i))) :=
 calc nhds a = (⨅i, @nhds _ (@topological_space.induced _ _ (λx:Πi, π i, x i) (t i)) a) : nhds_infi
-  ... = (⨅i, comap (λx, x i) (nhds (a i))) : by simp [nhds_induced_eq_comap]
+  ... = (⨅i, comap (λx, x i) (nhds (a i))) : by simp [nhds_induced]
 
 /-- Tychonoff's theorem -/
 lemma compact_pi_infinite [∀i, topological_space (π i)] {s : Πi:ι, set (π i)} :
@@ -713,7 +717,7 @@ continuous_sigma $ λ i,
 lemma embedding_sigma_map {τ : ι → Type*} [Π i, topological_space (τ i)]
   {f : Π i, σ i → τ i} (hf : ∀ i, embedding (f i)) : embedding (sigma.map id f) :=
 begin
-  refine ⟨injective_sigma_map function.injective_id (λ i, (hf i).1), _⟩,
+  refine ⟨⟨_⟩, injective_sigma_map function.injective_id (λ i, (hf i).inj)⟩,
   refine le_antisymm
     (continuous_iff_le_induced.mp (continuous_sigma_map (λ i, (hf i).continuous))) _,
   intros s hs,
@@ -722,7 +726,7 @@ begin
   { intro i,
     apply is_open_induced_iff.mp,
     convert hs i,
-    exact (hf i).2.symm },
+    exact (hf i).induced.symm },
   choose t ht using this,
   apply is_open_induced_iff.mpr,
   refine ⟨⋃ i, sigma.mk i '' t i, is_open_Union (λ i, is_open_map_sigma_mk _ (ht i).1), _⟩,
@@ -889,6 +893,15 @@ continuous_iff_continuous_at.mpr $ assume ⟨a, l⟩, continuous_at_remove_nth
 
 end vector
 
+namespace dense_inducing
+variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
+
+/-- The product of two dense inducings is a dense inducing -/
+protected def prod {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_inducing e₁) (de₂ : dense_inducing e₂) :
+  dense_inducing (λ(p : α × γ), (e₁ p.1, e₂ p.2)) :=
+{ induced := (inducing_prod_mk de₁.to_inducing de₂.to_inducing).induced,
+  dense := dense_range_prod de₁.dense de₂.dense }
+end dense_inducing
 
 namespace dense_embedding
 variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
@@ -896,16 +909,9 @@ variables [topological_space α] [topological_space β] [topological_space γ] [
 /-- The product of two dense embeddings is a dense embedding -/
 protected def prod {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_embedding e₁) (de₂ : dense_embedding e₂) :
   dense_embedding (λ(p : α × γ), (e₁ p.1, e₂ p.2)) :=
-{ dense_embedding .
-  dense   :=
-    have closure (range (λ(p : α × γ), (e₁ p.1, e₂ p.2))) =
-        set.prod (closure (range e₁)) (closure (range e₂)),
-      by rw [←closure_prod_eq, prod_range_range_eq],
-    assume ⟨b, d⟩, begin rw [this], simp, constructor, apply de₁.dense, apply de₂.dense end,
-  inj     := assume ⟨x₁, x₂⟩ ⟨y₁, y₂⟩,
+{ inj := assume ⟨x₁, x₂⟩ ⟨y₁, y₂⟩,
     by simp; exact assume h₁ h₂, ⟨de₁.inj h₁, de₂.inj h₂⟩,
-  induced := assume ⟨a, b⟩,
-    by rw [nhds_prod_eq, nhds_prod_eq, ←prod_comap_comap_eq, de₁.induced, de₂.induced] }
+  ..dense_inducing.prod de₁.to_dense_inducing de₂.to_dense_inducing }
 
 def subtype_emb (p : α → Prop) {e : α → β} (de : dense_embedding e) (x : {x // p x}) :
   {x // x ∈ closure (e '' {x | p x})} :=
@@ -924,8 +930,8 @@ protected def subtype (p : α → Prop) {e : α → β} (de : dense_embedding e)
       assumption
     end,
   inj     := assume ⟨x, hx⟩ ⟨y, hy⟩ h, subtype.eq $ de.inj $ @@congr_arg subtype.val h,
-  induced := assume ⟨x, hx⟩,
-    by simp [subtype_emb, nhds_subtype_eq_comap, comap_comap_comp, (∘), (de.induced x).symm] }
+  induced := (induced_iff_nhds_eq _).2 (assume ⟨x, hx⟩,
+    by simp [subtype_emb, nhds_subtype_eq_comap, de.to_inducing.nhds_eq_comap, comap_comap_comp, (∘)]) }
 
 end dense_embedding
 
@@ -942,14 +948,15 @@ lemma is_closed_property2 [topological_space α] [topological_space β] {e : α 
   (he : dense_embedding e) (hp : is_closed {q:β×β | p q.1 q.2}) (h : ∀a₁ a₂, p (e a₁) (e a₂)) :
   ∀b₁ b₂, p b₁ b₂ :=
 have ∀q:β×β, p q.1 q.2,
-  from is_closed_property (he.prod he).closure_range hp $ assume a, h _ _,
+  from is_closed_property (he.prod he).to_dense_inducing.closure_range hp $ assume a, h _ _,
 assume b₁ b₂, this ⟨b₁, b₂⟩
 
 lemma is_closed_property3 [topological_space α] [topological_space β] {e : α → β} {p : β → β → β → Prop}
   (he : dense_embedding e) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2}) (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃)) :
   ∀b₁ b₂ b₃, p b₁ b₂ b₃ :=
 have ∀q:β×β×β, p q.1 q.2.1 q.2.2,
-  from is_closed_property (he.prod $ he.prod he).closure_range hp $ assume ⟨a₁, a₂, a₃⟩, h _ _ _,
+  from is_closed_property (he.prod $ he.prod he).to_dense_inducing.closure_range hp $
+    assume ⟨a₁, a₂, a₃⟩, h _ _ _,
 assume b₁ b₂ b₃, this ⟨b₁, b₂, b₃⟩
 
 lemma mem_closure_of_continuous [topological_space α] [topological_space β]
@@ -1044,12 +1051,12 @@ lemma compact_preimage {s : set β} (h : α ≃ₜ β) : compact (h ⁻¹' s) �
 by rw ← image_symm; exact h.symm.compact_image
 
 protected lemma embedding (h : α ≃ₜ β) : embedding h :=
-⟨h.to_equiv.injective, h.induced_eq.symm⟩
+⟨⟨h.induced_eq.symm⟩, h.to_equiv.injective⟩
 
 protected lemma dense_embedding (h : α ≃ₜ β) : dense_embedding h :=
 { dense   := assume a, by rw [h.range_coe, closure_univ]; trivial,
   inj     := h.to_equiv.injective,
-  induced := assume a, by rw [← nhds_induced_eq_comap, h.induced_eq] }
+  induced := (induced_iff_nhds_eq _).2 (assume a, by rw [← nhds_induced, h.induced_eq]) }
 
 protected lemma is_open_map (h : α ≃ₜ β) : is_open_map h :=
 begin

@@ -1007,7 +1007,7 @@ end
 
 ### Localized Notation
 
-This consist of two user-commands which allow you to declare notation localized to a namespace.
+This consists of two user-commands which allow you to declare notation localized to a namespace.
 
 * Declare notation which is localized to a namespace using:
 ```
@@ -1021,4 +1021,8 @@ open_notation my.add
 * More generally, the following will declare all localized notation in the specified namespaces.
 ```
 open_notation namespace1 namespace2 ...
+```
+* You can also declare other localized commands, like local attributes
+```
+localized "attribute [simp] le_refl" in le
 ```

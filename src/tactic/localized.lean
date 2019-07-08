@@ -14,29 +14,33 @@ open_notation my.add
 ```
 open_notation namespace1 namespace2 ...
 ```
+* You can also declare other localized commands, like local attributes
+```
+localized "attribute [simp] le_refl" in le
+```
 The code is based on code from Gabriel Ebner from the hott3 repository.
 -/
 import tactic.core
 open lean lean.parser interactive tactic
 
 @[user_attribute]
-meta def localized_notation_attr : user_attribute unit name := {
-    name := `_localized_notation,
-    descr := "(interal) attribute that flags localized notation",
+meta def localized_attr : user_attribute unit name := {
+    name := `_localized,
+    descr := "(interal) attribute that flags localized commands",
     parser := ident
 }
 
 -- TODO: currently the implementation is inefficient
-meta def get_localized_notation (ns : list name) : tactic (list string) :=
-do decls ← attribute.get_instances localized_notation_attr.name,
+meta def get_localized (ns : list name) : tactic (list string) :=
+do decls ← attribute.get_instances localized_attr.name,
    decls ← decls.mfilter $ λ nm,
-   (do par ← user_attribute.get_param localized_notation_attr nm, return $ ns.mem par),
+   (do par ← user_attribute.get_param localized_attr nm, return $ ns.mem par),
    decls.mmap $ λ d, mk_const d >>= eval_expr string
 
 @[user_command] meta def open_notation_cmd (meta_info : decl_meta_info)
   (_ : parse $ tk "open_notation") : parser unit :=
 do ns ← many ident,
-   cmds ← get_localized_notation ns,
+   cmds ← get_localized ns,
    cmds.mmap' emit_code_here
 
 def string_hash (s : string) : ℕ :=
@@ -44,17 +48,17 @@ s.fold 1 (λ h c, (33*h + c.val) % unsigned_sz)
 
 reserve notation `localized`
 
-@[user_command] meta def localized_notation_cmd (meta_info : decl_meta_info)
+@[user_command] meta def localized_cmd (meta_info : decl_meta_info)
   (_ : parse $ tk "localized") : parser unit :=
 do cmd ← parser.pexpr, cmd ← i_to_expr cmd, cmd ← eval_expr string cmd,
    let cmd := "local " ++ cmd,
    emit_code_here cmd,
    tk "in",
    nm ← ident,
-   let dummy_decl_name := mk_num_name `_localized_notation_decl (string_hash cmd),
+   let dummy_decl_name := mk_num_name `_localized_decl (string_hash cmd),
    add_decl (declaration.defn dummy_decl_name [] `(string) (reflect cmd)
     (reducibility_hints.regular 1 tt) ff),
-   localized_notation_attr.set dummy_decl_name nm tt
+   localized_attr.set dummy_decl_name nm tt
 
-meta def print_localized_notations (ns : list name) : tactic unit :=
-do cmds ← get_localized_notation ns, cmds.mmap' trace
+meta def print_localized_commands (ns : list name) : tactic unit :=
+do cmds ← get_localized ns, cmds.mmap' trace

@@ -212,6 +212,10 @@ def map_iso (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : F.obj X ≅ F.obj Y :=
 @[simp] lemma map_iso_hom (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : (F.map_iso i).hom = F.map i.hom := rfl
 @[simp] lemma map_iso_inv (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : (F.map_iso i).inv = F.map i.inv := rfl
 
+@[simp] lemma map_iso_trans (F : C ⥤ D) {X Y Z : C} (i : X ≅ Y) (j : Y ≅ Z) :
+  F.map_iso (i ≪≫ j) = (F.map_iso i) ≪≫ (F.map_iso j) :=
+by ext; apply functor.map_comp
+
 instance (F : C ⥤ D) (f : X ⟶ Y) [is_iso f] : is_iso (F.map f) :=
 { ..(F.map_iso (as_iso f)) }
 

@@ -1,5 +1,5 @@
 /-
-This consist of two user-commands which allow you to declare notation localized to a namespace.
+This consists of two user-commands which allow you to declare notation localized to a namespace.
 
 * Declare notation which is localized to a namespace using:
 ```

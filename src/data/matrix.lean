@@ -112,11 +112,11 @@ theorem mul_val' [has_mul α] [add_comm_monoid α] {M N : matrix n n α} {i k} :
   (M * N) i k = finset.univ.sum (λ j, M i j * N j k) := rfl
 
 section semigroup
-variables [decidable_eq m] [decidable_eq n] [semiring α]
+variables [semiring α]
 
 protected theorem mul_assoc (L : matrix l m α) (M : matrix m n α) (N : matrix n o α) :
   (L ⬝ M) ⬝ N = L ⬝ (M ⬝ N) :=
-by funext i k;
+by classical; funext i k;
    simp [finset.mul_sum, finset.sum_mul, mul_assoc];
    rw finset.sum_comm
 

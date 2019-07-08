@@ -116,7 +116,7 @@ meta def build_proof_core (m : mat) (mx : expr) :
   build_proof_core (item.trm (term.sym k) :: stk) chs
 | (item.trm s :: item.trm t :: stk) ('a' :: chs) :=
   build_proof_core (item.trm (term.app t s) :: stk) chs
-| (item.nm k :: item.trm t :: stk) ('v' :: chs) :=
+| (item.nm k :: item.trm t :: stk) ('a' :: chs) :=
   build_proof_core (item.trm (term.vpp t k) :: stk) chs
 | (item.nm m :: item.nm k :: item.mps μ :: stk) ('m' :: chs) :=
   build_proof_core (item.mps ((k, sum.inl m) :: μ) :: stk) chs
@@ -181,3 +181,15 @@ meta def tactic.interactive.vampire
   else do hs ← mmap tactic.get_local ids,
                revert_lst hs, skip ) >>
 vampire.vampire inp
+
+variables [inhabited α]
+variables (a b c : α) (p q : α → Prop) (r : α → α → Prop)
+variables (P Q R : Prop)
+variable  (g : bool → nat)
+
+
+example : (p a) → ∃ x, p x :=
+by vampire
+
+example : (∀ x, p x → q x) → (∀ x, p x) → q a :=
+by vampire

@@ -179,47 +179,33 @@ lemma gilmore_1 {F G H : α → Prop} :
       → F z ∧ G z ∧ H z :=
 by vampire
 "
-n1010hen1n0mn0n0msn10ten11n0yn0vmsn111hen1n0mn0n0msen11n0msn
-111hen1n0mn0n0msen10n0msn101hen1n0mn0n0msen1n0msn111hen1n0mn
-0n0msen10n1yn0vmsn1hen1n0mn0n0msen10n0msn110hen1n0mn0n0msen1
-n0msn0hen1n0mn0n0msen1n0mn0n0msren10n1mn0n1msen10n0mn1n0msre
-n10n1mn0n1msn10tcn1ten10n1yn0vmn1n1yn0vmsren1n0mn0n0msn1ten1
-n0mn0n0msren10n1mn0n1msen10n0mn1n0msren10n1mn0n1msn10tcn1ten
-100n1msn111hen1n0mn0n0msen10n0msn101hen1n0mn0n0msen1n0msn111
-hen1n0mn0n0msen10n1yn0vmsn1hen1n0mn0n0msen10n0msn110hen1n0mn
-0n0msen1n0msn0hen1n0mn0n0msen1n0mn0n0msren10n1mn0n1msen10n0m
-n1n0msren10n1mn0n1msn10tcn1ten10n1yn0vmn1n1yn0vmsren1n0mn0n0
-msn1ten1n0mn0n0msren10n1mn0n1msen10n0mn1n0msren10n1mn0n1msn1
-0tcn1ten1n1yn10vmsn110hen1n0mn0n0msen1n0msn11hen1n0mn0n0msen
-1n0mn0n0msren1n0mn0n0msen1n1yn10vmn0n10msren101n10mn10n10msn
-10ten100n1mn10n1msren100n10mn1n10msn10tcn1ten11n0mn10n0msren
-11n10mn0n10msn1tcen11n0yn0vmn10n0yn0vmsren11n10mn0n10msn1ten
-100n0yn10vmsn100hen1n0mn0n0msen11n1yn0vmsn111hen1n0mn0n0msen
-11n0msn111hen1n0mn0n0msen10n0msn101hen1n0mn0n0msen1n0msn111h
-en1n0mn0n0msen10n1yn0vmsn1hen1n0mn0n0msen10n0msn110hen1n0mn0
-n0msen1n0msn0hen1n0mn0n0msen1n0mn0n0msren10n1mn0n1msen10n0mn
-1n0msren10n1mn0n1msn10tcn1ten10n1yn0vmn1n1yn0vmsren1n0mn0n0m
-sn1ten1n0mn0n0msren10n1mn0n1msen10n0mn1n0msren10n1mn0n1msn10
-tcn1ten100n1msn111hen1n0mn0n0msen10n0msn101hen1n0mn0n0msen1n
-0msn111hen1n0mn0n0msen10n1yn0vmsn1hen1n0mn0n0msen10n0msn110h
-en1n0mn0n0msen1n0msn0hen1n0mn0n0msen1n0mn0n0msren10n1mn0n1ms
-en10n0mn1n0msren10n1mn0n1msn10tcn1ten10n1yn0vmn1n1yn0vmsren1
-n0mn0n0msn1ten1n0mn0n0msren10n1mn0n1msen10n0mn1n0msren10n1mn
-0n1msn10tcn1ten1n1yn10vmsn110hen1n0mn0n0msen1n0msn11hen1n0mn
-0n0msen1n0mn0n0msren1n0mn0n0msen1n1yn10vmn0n10msren101n10mn1
-0n10msn10ten100n1mn10n1msren100n10mn1n10msn10tcn1ten11n0mn10
-n0msren11n10mn0n10msn1tcen11n1yn0vmn10n1yn0vmsren10n1mn0n1ms
-en100n0yn10vmn1n0yn10vmsren101n10mn10n10msen101n0yn10vmsn1he
-n1n0mn0n0msen11n0msn100hen1n0mn0n0msen1n0msn111hen1n0mn0n0ms
-en10n0msn101hen1n0mn0n0msen1n0msn111hen1n0mn0n0msen10n1yn0vm
-sn1hen1n0mn0n0msen10n0msn110hen1n0mn0n0msen1n0msn0hen1n0mn0n
-0msen1n0mn0n0msren10n1mn0n1msen10n0mn1n0msren10n1mn0n1msn10t
-cn1ten10n1yn0vmn1n1yn0vmsren1n0mn0n0msn1ten1n0mn0n0msren10n1
-mn0n1msen10n0mn1n0msren10n1mn0n1msn10tcn1ten1n1yn10vmsn10hen
-1n0mn0n0msen1n0msn11hen1n0mn0n0msen1n0mn0n0msren1n0mn0n0msen
-1n1yn10vmn0n10msren11n0mn10n0msen1n0mn0n0msren1n0mn0n0msn10t
-cn1ten0n1yn1vmsn0hen1n0mn0n0msen0n1msren100n10mn1n10msen11n0
-mn10n0msren11n10mn0n10msn1tcen101n0yn10vmn10n0yn10vmsr
+n1010hesn10ten10n0yn11amn0n11msn111hesen11n10mn0n10msn111hes
+en10n1mn0n1msn101hesen1n0msn111hesen1n1yn10amn0n10msn1hesen1
+0n1mn0n1msn110hesen1n0msn0hesen1n0msren0n1msen10n1msresn10tc
+n1ten1n1yn10amsren10n0msn1ten1n0msren0n1msen10n1msresn10tcn1
+ten100n10mn1n10msn111hesen10n1mn0n1msn101hesen1n0msn111hesen
+1n1yn10amn0n10msn1hesen10n1mn0n1msn110hesen1n0msn0hesen1n0ms
+ren0n1msen10n1msresn10tcn1ten1n1yn10amsren10n0msn1ten1n0msre
+n0n1msen10n1msresn10tcn1ten10n1yn0amn1n1yn0amsn110hesen1n0ms
+n11hesen1n0msresen10n1yn0amsren0n10msn10ten100n10msresn10tcn
+1ten11n10msresn1tcen10n0yn11amsren11n10msn1ten1n0yn100amn10n
+100msn100hesen10n1yn11amn0n11msn111hesen11n10mn0n10msn111hes
+en10n1mn0n1msn101hesen1n0msn111hesen1n1yn10amn0n10msn1hesen1
+0n1mn0n1msn110hesen1n0msn0hesen1n0msren0n1msen10n1msresn10tc
+n1ten1n1yn10amsren10n0msn1ten1n0msren0n1msen10n1msresn10tcn1
+ten100n10mn1n10msn111hesen10n1mn0n1msn101hesen1n0msn111hesen
+1n1yn10amn0n10msn1hesen10n1mn0n1msn110hesen1n0msn0hesen1n0ms
+ren0n1msen10n1msresn10tcn1ten1n1yn10amsren10n0msn1ten1n0msre
+n0n1msen10n1msresn10tcn1ten10n1yn0amn1n1yn0amsn110hesen1n0ms
+n11hesen1n0msresen10n1yn0amsren0n10msn10ten100n10msresn10tcn
+1ten11n10msresn1tcen10n1yn11amsren11n1msen1n0yn100amsren100n
+10msen10n101msn1hesen11n10mn0n10msn100hesen1n0msn111hesen10n
+1mn0n1msn101hesen1n0msn111hesen1n1yn10amn0n10msn1hesen10n1mn
+0n1msn110hesen1n0msn0hesen1n0msren0n1msen10n1msresn10tcn1ten
+1n1yn10amsren10n0msn1ten1n0msren0n1msen10n1msresn10tcn1ten10
+n1yn0amn1n1yn0amsn10hesen1n0msn11hesen1n0msresen10n1yn0amsre
+sen1n0msresn10tcn1ten1n1yn0amn0n1yn0amsn0hesen1n1yn0amsren0n
+10msen11n10msresn1tcen10n0yn101amsr
 "
 
 lemma gilmore_6 {F G : α → α → Prop} {H : α → α → α → Prop} :
@@ -229,28 +215,17 @@ lemma gilmore_6 {F G : α → α → Prop} {H : α → α → α → Prop} :
        (∀ u v, ∃ w, G v u ∨ H w y u → G u w) :=
 by vampire
 "
-n101hen100n11mn111n0mn11n0mn0n11msen100n1yn0vmn11n11yn101vms
-n0hen101n0mn100n1mn11n0mn10n1msen100n11yn0vmn10n100ymsn10hen
-110n0mn100n10mn1n10mn11n0msen100n11yn0vmn10n11yn0vmn0n100yms
-ren10n1mn11n0mn0n1mn1n0msen100n1yn0vmn11n11yn101vmn1n101mn0n
-1yn0vmsr
+n101hen0n11mn11n0msen101n11yn1amn11n11yn1amn0n10msn0hen11n0m
+n10n1msen10n11yn11amn0n11mn1n100msn10hen11n0mn1n10msen0n100y
+mn10n11yn11amsren11n1mn100n0msen101n11yn1amn0n1yn10amsr
 "
 
-lemma gilmore_8 {G : α → Prop} {F : α → α → Prop} {H : α → α → α → Prop} :
-  ∃ x, ∀ y z,
-    ((F y z → (G y → (∀ u, ∃ v, H u v x))) → F x x) ∧
-    ((F z x → G x) → (∀ u, ∃ v, H u v z)) ∧
-    F x y → F z z :=
-by vampire
-"
-n110hen11n0mn10n0msen1n0mn0n0msn10hen100n0mn11n1mn10n0mn1n1m
-sen100n1yn10yn10vamn1n0yn10vn1yn10yn10vaamn0n10yn10vmsn100he
-n101n0mn11n10mn10n0mn0n10msn1ten100n1yn10yn10vamn1n0yn10vn1y
-n10yn10vaamn0n10mn10n1yn10yn10vamsren11n0mn10n0msen1n0mn0n0m
-sren1n0mn0n0msen0n11yn10yn1vamsn110hen11n0mn10n0msen0n0mn1n1
-0yn0vmsn1hen11n0mn10n0msn1ten1n10yn0vmn0n10yn0vmsren1n0mn0n0
-msen0n1msr
-"
+-- To do : Fix substtitution bug
+-- lemma gilmore_8 {G : α → Prop} {F : α → α → Prop} {H : α → α → α → Prop} :
+--   ∃ x, ∀ y z,
+--     ((F y z → (G y → (∀ u, ∃ v, H u v x))) → F x x) ∧
+--     ((F z x → G x) → (∀ u, ∃ v, H u v z)) ∧
+--     F x y → F z z := by vampire
 
 lemma manthe_and_bry (agatha butler charles : α)
 (lives : α → Prop) (killed hates richer : α → α → Prop) :

@@ -152,10 +152,10 @@ by simp; rw finset.sum_eq_single i; simp [diagonal_val_ne'] {contextual := tt}
   (d : n → α) (M : matrix m n α) (i j) : (M ⬝ diagonal d) i j = M i j * d j :=
 by simp; rw finset.sum_eq_single j; simp {contextual := tt}
 
-protected theorem one_mul [decidable_eq m] (M : matrix m n α) : (1 : matrix m m α) ⬝ M = M :=
+@[simp] protected theorem one_mul [decidable_eq m] (M : matrix m n α) : (1 : matrix m m α) ⬝ M = M :=
 by ext i j; rw [← diagonal_one, diagonal_mul, one_mul]
 
-protected theorem mul_one [decidable_eq n] (M : matrix m n α) : M ⬝ (1 : matrix n n α) = M :=
+@[simp] protected theorem mul_one [decidable_eq n] (M : matrix m n α) : M ⬝ (1 : matrix n n α) = M :=
 by ext i j; rw [← diagonal_one, mul_diagonal, mul_one]
 
 instance [decidable_eq n] : monoid (matrix n n α) :=

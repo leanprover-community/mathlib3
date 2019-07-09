@@ -576,8 +576,8 @@ meta def change' (q : parse texpr) : parse (tk "with" *> texpr)? → parse locat
      when l.include_goal $ change q w (loc.ns [none])
 
 meta def convert_to_core (r : pexpr) : tactic unit :=
-do tgt <- target,
-   h   <- to_expr ``(_ : %%tgt = %%r),
+do tgt ← target,
+   h   ← to_expr ``(_ : %%tgt = %%r),
    rewrite_target h,
    swap
 
@@ -587,14 +587,14 @@ using `congr' n` to resolve discrepancies.
 
 `convert_to g` defaults to using `congr' 1`.
 -/
-meta def convert_to (r : parse texpr) (n : parse (tk "using" *> small_nat)?):  tactic unit :=
+meta def convert_to (r : parse texpr) (n : parse (tk "using" *> small_nat)?) : tactic unit :=
 match n with
   | none     := convert_to_core r >> `[congr' 1]
   | (some 0) := convert_to_core r
   | (some o) := convert_to_core r >> congr' o
 end
 
-/-- `ac_change g using n` is `convert_to g using n; try{ac_refl}` -/
+/-- `ac_change g using n` is `convert_to g using n; try {ac_refl}` -/
 meta def ac_change (r : parse texpr) (n : parse (tk "using" *> small_nat)?) : tactic unit :=
 convert_to r n; try ac_refl
 

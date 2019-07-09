@@ -964,4 +964,20 @@ nat.cast_sub : ∀ {α : Type*} [add_group α] [has_one α] {m n : ℕ}, m ≤ n
 int.cast_coe_nat : ∀ (n : ℕ), ↑↑n = ↑n
 
 int.cats_id : int.cast_id : ∀ (n : ℤ), ↑n = n
+
+### convert_to
+
+`convert_to g using n` attempts to change the current goal to `g`, but unlike `change`,
+it will generate equality proof obligations using `congr' n` to resolve discrepancies.
+`convert_to g` defaults to using `congr' 1`.
+
+`ac_change` is `convert_to` followed by `ac_refl`. It is useful for rearranging/reassociating
+e.g. sums:
+
+```lean
+example (a b c d e f g N : ℕ) : (a + b) + (c + d) + (e + f) + g ≤ N :=
+begin
+  ac_change a + d + e + f + c + g + b ≤ _,
+-- ⊢ a + d + e + f + c + g + b ≤ N
+end
 ```

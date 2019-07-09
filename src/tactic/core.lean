@@ -1053,6 +1053,7 @@ do (e, s) ← with_input (lean.parser.pexpr 0) s.as_string,
 
 reserve prefix `pformat! `:100
 
+/-- See `format!` in `init/meta/interactive_base.lean`. The only difference is that `pp` is called instead of `to_fmt` -/
 @[user_notation]
 meta def pformat_macro (_ : parse $ tk "pformat!") (s : string) : parser pexpr :=
 parse_pformat "" s.to_list

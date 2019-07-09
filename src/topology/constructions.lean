@@ -344,7 +344,7 @@ lemma continuous_sum_rec {f : α → γ} {g : β → γ}
 continuous_sup_dom hf hg
 
 lemma embedding_inl : embedding (@sum.inl α β) :=
-⟨⟨begin
+{ induced := begin
     unfold sum.topological_space,
     apply le_antisymm,
     { rw ← coinduced_le_iff_le_induced, exact lattice.le_sup_left },
@@ -358,10 +358,11 @@ lemma embedding_inl : embedding (@sum.inl α β) :=
       have : sum.inr ⁻¹' (@sum.inl α β '' u) = ∅ :=
         eq_empty_iff_forall_not_mem.mpr (assume a ⟨b, _, h⟩, sum.inl_ne_inr h), rw this,
       exact ⟨⟨hu, is_open_empty⟩, rfl⟩ }
-  end⟩, λ _ _, sum.inl.inj_iff.mp⟩
+  end,
+  inj := λ _ _, sum.inl.inj_iff.mp }
 
 lemma embedding_inr : embedding (@sum.inr α β) :=
-⟨⟨begin
+{ induced := begin
     unfold sum.topological_space,
     apply le_antisymm,
     { rw ← coinduced_le_iff_le_induced, exact lattice.le_sup_right },
@@ -375,7 +376,8 @@ lemma embedding_inr : embedding (@sum.inr α β) :=
       have : sum.inr ⁻¹' (@sum.inr α β '' u) = u :=
         preimage_image_eq u (λ _ _, sum.inr.inj_iff.mp), rw this,
       exact ⟨⟨is_open_empty, hu⟩, rfl⟩ }
-  end⟩, λ _ _, sum.inr.inj_iff.mp⟩
+  end,
+  inj := λ _ _, sum.inr.inj_iff.mp }
 
 instance [topological_space α] [topological_space β] [compact_space α] [compact_space β] :
   compact_space (α ⊕ β) :=

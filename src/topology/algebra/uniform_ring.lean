@@ -18,8 +18,8 @@ variables (α : Type*) [ring α] [uniform_space α] [uniform_add_group α] [topo
 
 instance : has_one (completion α) := ⟨(1:α)⟩
 
-instance : has_mul (completion α) := ⟨curry $ (dense_inducing_coe.prod dense_inducing_coe).extend
-(coe ∘ uncurry' (*))⟩
+instance : has_mul (completion α) :=
+  ⟨curry $ (dense_inducing_coe.prod dense_inducing_coe).extend (coe ∘ uncurry' (*))⟩
 
 @[elim_cast]
 lemma coe_one : ((1 : α) : completion α) = 1 := rfl

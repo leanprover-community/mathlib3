@@ -23,8 +23,8 @@ def uniform_inducing.mk' {f : α → β} (h : ∀ s, s ∈ 𝓤 α ↔
     ∃ t ∈ 𝓤 β, ∀ x y : α, (f x, f y) ∈ t → (x, y) ∈ s) : uniform_inducing f :=
 ⟨by simp [eq_comm, filter.ext_iff, subset_def, h]⟩
 
-lemma uniform_inducing.comp {f : α → β} (hf : uniform_inducing f)
-  {g : β → γ} (hg : uniform_inducing g) : uniform_inducing (g ∘ f) :=
+lemma uniform_inducing.comp {g : β → γ} (hg : uniform_inducing g)
+  {f : α → β} (hf : uniform_inducing f) : uniform_inducing (g ∘ f) :=
 ⟨ by rw [show (λ (x : α × α), ((g ∘ f) x.1, (g ∘ f) x.2)) =
          (λ y : β × β, (g y.1, g y.2)) ∘ (λ x : α × α, (f x.1, f x.2)), by ext ; simp,
         ← filter.comap_comap_comp, hg.1, hf.1]⟩
@@ -32,22 +32,23 @@ lemma uniform_inducing.comp {f : α → β} (hf : uniform_inducing f)
 structure uniform_embedding (f : α → β) extends uniform_inducing f : Prop :=
 (inj : function.injective f)
 
-lemma uniform_embedding.comp {f : α → β} (hf : uniform_embedding f)
-  {g : β → γ} (hg : uniform_embedding g) : uniform_embedding (g ∘ f) :=
+lemma uniform_embedding.comp {g : β → γ} (hg : uniform_embedding g)
+  {f : α → β} (hf : uniform_embedding f) : uniform_embedding (g ∘ f) :=
 { inj := function.injective_comp hg.inj hf.inj,
-  ..hf.to_uniform_inducing.comp hg.to_uniform_inducing }
+  ..hg.to_uniform_inducing.comp hf.to_uniform_inducing }
 
 theorem uniform_embedding_def {f : α → β} :
   uniform_embedding f ↔ function.injective f ∧ ∀ s, s ∈ 𝓤 α ↔
     ∃ t ∈ 𝓤 β, ∀ x y : α, (f x, f y) ∈ t → (x, y) ∈ s :=
 begin
-  split, rintro ⟨⟨h⟩, h'⟩,
-  rw [eq_comm, filter.ext_iff] at h,
-  simp [*, subset_def],
-  rintro ⟨h, h'⟩,
-  refine uniform_embedding.mk ⟨_⟩ h,
-  rw [eq_comm, filter.ext_iff],
-  simp [*, subset_def]
+  split,
+  { rintro ⟨⟨h⟩, h'⟩,
+    rw [eq_comm, filter.ext_iff] at h,
+    simp [*, subset_def] },
+  { rintro ⟨h, h'⟩,
+    refine uniform_embedding.mk ⟨_⟩ h,
+    rw [eq_comm, filter.ext_iff],
+    simp [*, subset_def] }
 end
 
 theorem uniform_embedding_def' {f : α → β} :

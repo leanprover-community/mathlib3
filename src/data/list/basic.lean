@@ -4252,9 +4252,9 @@ by rw [fin_range, length_pmap, length_range]
 
 @[simp, to_additive list.sum_range_succ]
 theorem prod_range_succ {α : Type u} [monoid α] (f : ℕ → α) (n : ℕ) :
-((range (succ n)).map f).prod = ((range n).map f).prod * f n :=
+  ((range n.succ).map f).prod = ((range n).map f).prod * f n :=
 by rw [range_concat, ←concat_eq_append, map_concat, concat_eq_append,
- prod_append, prod_cons, prod_nil, mul_one]
+  prod_append, prod_cons, prod_nil, mul_one]
 
 /--
 `Ico n m` is the list of natural numbers `n ≤ x < m`.

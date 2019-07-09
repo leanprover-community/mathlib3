@@ -28,6 +28,10 @@ iff.intro (congr_arg _) fin.eq_of_veq
 lemma eq_iff_veq (a b : fin n) : a = b ↔ a.1 = b.1 :=
 ⟨veq_of_eq, eq_of_veq⟩
 
+@[simp] protected lemma mk.inj_iff {n a b : ℕ} {ha : a < n} {hb : b < n} :
+  fin.mk a ha = fin.mk b hb ↔ a = b :=
+⟨fin.mk.inj, λ h, by subst h⟩
+
 instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨fin.val⟩
 
 @[simp] def mk_val {m n : ℕ} (h : m < n) : (⟨m, h⟩ : fin n).val = m := rfl
@@ -298,6 +302,15 @@ begin
     { exact find_min' hf (nat.find_spec h).snd },
     { exact nat.find_min' _ ⟨f.2, by convert find_spec p hf;
         exact fin.eta _ _⟩ } }
+end
+
+lemma mem_find_of_unique {p : fin n → Prop} [decidable_pred p]
+  (h : ∀ i j, p i → p j → i = j) {i : fin n} (hi : p i) : i ∈ fin.find p :=
+begin
+  cases hfp : fin.find p,
+  { rw [find_eq_none_iff] at hfp,
+    exact (hfp _ hi).elim },
+  { exact option.some_inj.2 (h _ _ (find_spec _ hfp) hi) }
 end
 
 end find

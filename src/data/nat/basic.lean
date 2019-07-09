@@ -311,7 +311,7 @@ begin
   exact mul_le_mul_of_nonneg_left (nat.succ_le_of_lt h) dec_trivial,
 end
 
-theorem even_ne_odd {n m} : 2 * n ≠ 2 * m + 1 :=
+theorem two_mul_ne_two_mul_add_one {n m} : 2 * n ≠ 2 * m + 1 :=
 mt (congr_arg (%2)) (by rw [add_comm, add_mul_mod_self_left, mul_mod_right]; exact dec_trivial)
 
 @[elab_as_eliminator]

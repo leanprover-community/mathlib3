@@ -270,7 +270,8 @@ theorem induced_orderable_topology' {α : Type u} {β : Type v}
 begin
   letI := induced f ta,
   refine ⟨eq_of_nhds_eq_nhds (λ a, _)⟩,
-  rw [nhds_induced_eq_comap, nhds_generate_from, @nhds_eq_orderable β _ _], apply le_antisymm,
+  rw [nhds_induced, nhds_generate_from, @nhds_eq_orderable β _ _],
+  apply le_antisymm,
   { refine le_infi (λ s, le_infi $ λ hs, le_principal_iff.2 _),
     rcases hs with ⟨ab, b, rfl|rfl⟩,
     { exact mem_comap_sets.2 ⟨{x | f b < x},

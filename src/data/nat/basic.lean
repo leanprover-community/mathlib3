@@ -39,6 +39,9 @@ begin
     rw [max_eq_left h2, max_eq_left (succ_le_succ h2)] }
 end
 
+lemma not_succ_lt_self {n : ℕ} : ¬succ n < n :=
+not_lt_of_ge (nat.le_succ _)
+
 theorem lt_succ_iff {m n : ℕ} : m < succ n ↔ m ≤ n :=
 succ_le_succ_iff
 
@@ -307,6 +310,9 @@ begin
   conv {to_lhs, rw [← mul_one(m)]},
   exact mul_le_mul_of_nonneg_left (nat.succ_le_of_lt h) dec_trivial,
 end
+
+theorem two_mul_ne_two_mul_add_one {n m} : 2 * n ≠ 2 * m + 1 :=
+mt (congr_arg (%2)) (by rw [add_comm, add_mul_mod_self_left, mul_mod_right]; exact dec_trivial)
 
 @[elab_as_eliminator]
 protected def strong_rec' {p : ℕ → Sort u} (H : ∀ n, (∀ m, m < n → p m) → p n) : ∀ (n : ℕ), p n

@@ -62,11 +62,47 @@ section
 local attribute [simp] id comp presheaf.pushforward
 
 instance category_of_PresheafedSpaces : category (PresheafedSpace.{v} C) :=
-{ hom  := hom,
-  id   := id,
-  comp := comp }
+{ hom := hom,
+  id := id,
+  comp := comp,
+  id_comp' :=
+  begin
+    intros X Y f,
+    dsimp at *,
+    tactic.ext1 [] {new_goals := tactic.new_goals.all},
+    work_on_goal 0 { simp only [category_theory.category.id_comp] },
+    dsimp at *,
+    ext1,
+    dsimp at *,
+    simp only [category.id_comp, category.assoc],
+    tactic.op_induction',
+    cases X_1,
+    dsimp at *,
+    simp only [category_theory.category.comp_id, category_theory.functor.map_id]
+  end,
+  comp_id' :=
+  begin
+    intros X Y f,
+    dsimp at *,
+    tactic.ext1 [] {new_goals := tactic.new_goals.all},
+    work_on_goal 0 { simp only [category_theory.category.comp_id] },
+    dsimp at *,
+    ext1,
+    dsimp at *,
+    tactic.op_induction',
+    cases X_1,
+    dsimp at *,
+    simp
+  end,
+  assoc' :=
+  begin
+    intros W X Y Z f g h,
+    simp only [true_and, presheaf.pushforward, id, comp, whisker_left_twice, whisker_left_comp,
+               heq_iff_eq, category.assoc],
+    split; refl
+  end }
+
 end
-.
 
 variables {C}
 
@@ -85,11 +121,14 @@ instance {X Y : PresheafedSpace.{v} C} : has_coe (X ⟶ Y) (X.to_Top ⟶ Y.to_To
 lemma id_c (X : PresheafedSpace.{v} C) :
   ((𝟙 X) : X ⟶ X).c =
   (((functor.left_unitor _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id _).hom) _)) := rfl
+
 lemma comp_c {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) :
   (α ≫ β).c = (β.c ≫ (whisker_left (opens.map β.f).op α.c)) := rfl
+
 @[simp] lemma id_c_app (X : PresheafedSpace.{v} C) (U) :
   ((𝟙 X) : X ⟶ X).c.app U = eq_to_hom (by tidy) :=
 by { simp only [id_c], tidy }
+
 @[simp] lemma comp_c_app {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) (U) :
   (α ≫ β).c.app U = (β.c).app U ≫ (α.c).app (op ((opens.map (β.f)).obj (unop U))) := rfl
 
@@ -115,7 +154,26 @@ namespace functor
 
 def map_presheaf (F : C ⥤ D) : PresheafedSpace.{v} C ⥤ PresheafedSpace.{v} D :=
 { obj := λ X, { to_Top := X.to_Top, 𝒪 := X.𝒪 ⋙ F },
-  map := λ X Y f, { f := f.f, c := whisker_right f.c F } }.
+  map := λ X Y f, { f := f.f, c := whisker_right f.c F },
+  map_id' :=
+  begin
+    intros X,
+    dsimp at *,
+    simp only [presheaf.pushforward, whisker_right_twice, whisker_right_comp],
+    tactic.ext1 [] {new_goals := tactic.new_goals.all},
+    work_on_goal 0 { refl },
+    dsimp at *,
+    ext1,
+    dsimp at *,
+    simp only [category_theory.category.comp_id, topological_space.opens.map_id_obj,
+               category_theory.category.id_comp, category_theory.functor.map_id]
+  end,
+  map_comp' :=
+  begin
+    intros X Y Z f g,
+    simp only [PresheafedSpace.comp_c, presheaf.pushforward, whisker_right_comp],
+    refl
+  end }
 
 @[simp] lemma map_presheaf_obj_X (F : C ⥤ D) (X : PresheafedSpace.{v} C) :
   ((F.map_presheaf.obj X) : Top.{v}) = (X : Top.{v}) := rfl
@@ -134,7 +192,23 @@ def on_presheaf {F G : C ⥤ D} (α : F ⟶ G) : G.map_presheaf ⟶ F.map_preshe
 { app := λ X,
   { f := 𝟙 _,
     c := whisker_left X.𝒪 α ≫ ((functor.left_unitor _).inv) ≫
-           (whisker_right (nat_trans.op (opens.map_id _).hom) _) } }.
+           (whisker_right (nat_trans.op (opens.map_id _).hom) _) },
+  naturality' :=
+  begin
+    intros X Y f,
+    dsimp at *,
+    tactic.ext1 [] {new_goals := tactic.new_goals.all},
+    work_on_goal 0 { refl },
+    dsimp at *,
+    ext1,
+    dsimp at *,
+    simp at *,
+    tactic.op_induction',
+    cases X_1,
+    dsimp at *,
+    simp at *
+  end }
+
 
 end nat_trans
 

@@ -6,6 +6,15 @@ Authors: Johan Commelin, Kenny Lau
 
 import data.finsupp order.complete_lattice algebra.ordered_group data.mv_polynomial
 
+namespace eq
+variables {α : Type*} {a b : α}
+
+@[reducible] def lhs (h : a = b) : α := a
+
+@[reducible] def rhs (h : a = b) : α := b
+
+end eq
+
 section
 
 set_option old_structure_cmd true
@@ -18,6 +27,161 @@ instance : canonically_ordered_cancel_monoid ℕ :=
   ..nat.decidable_linear_ordered_cancel_comm_monoid }
 
 end
+
+namespace multiset
+variables {α : Type*} [decidable_eq α]
+
+def to_finsupp (s : multiset α) : α →₀ ℕ :=
+{ support := s.to_finset,
+  to_fun := λ a, s.count a,
+  mem_support_to_fun := λ a,
+  begin
+    rw mem_to_finset,
+    convert not_iff_not_of_iff (count_eq_zero.symm),
+    rw not_not
+  end }
+
+@[simp] lemma to_finsupp_support (s : multiset α) :
+  s.to_finsupp.support = s.to_finset := rfl
+
+@[simp] lemma to_finsupp_apply (s : multiset α) (a : α) :
+  s.to_finsupp a = s.count a := rfl
+
+@[simp] lemma to_finsupp_zero :
+  to_finsupp (0 : multiset α) = 0 :=
+finsupp.ext $ λ a, count_zero a
+
+@[simp] lemma to_finsupp_add (s t : multiset α) :
+  to_finsupp (s + t) = to_finsupp s + to_finsupp t :=
+finsupp.ext $ λ a, count_add a s t
+
+namespace to_finsupp
+
+instance : is_add_monoid_hom (to_finsupp : multiset α → α →₀ ℕ) :=
+{ map_zero := to_finsupp_zero,
+  map_add  := to_finsupp_add }
+
+end to_finsupp
+
+@[simp] lemma to_finsupp_to_multiset (s : multiset α) :
+  s.to_finsupp.to_multiset = s :=
+ext.2 $ λ a, by rw [finsupp.count_to_multiset, to_finsupp_apply]
+
+end multiset
+
+namespace finsupp
+variables {σ : Type*} {α : Type*} [decidable_eq σ]
+
+attribute [simp] to_multiset_zero to_multiset_add
+
+@[simp] lemma to_multiset_to_finsupp (f : σ →₀ ℕ) :
+  f.to_multiset.to_finsupp = f :=
+ext $ λ s, by rw [multiset.to_finsupp_apply, count_to_multiset]
+
+def diagonal (f : σ →₀ ℕ) : finset ((σ →₀ ℕ) × (σ →₀ ℕ)) :=
+((multiset.diagonal f.to_multiset).map (prod.map multiset.to_finsupp multiset.to_finsupp)).to_finset
+
+lemma mem_diagonal {f : σ →₀ ℕ} {p : (σ →₀ ℕ) × (σ →₀ ℕ)} :
+  p ∈ diagonal f ↔ p.1 + p.2 = f :=
+begin
+  erw [multiset.mem_to_finset, multiset.mem_map],
+  split,
+  { rintros ⟨⟨a, b⟩, h, rfl⟩,
+    rw multiset.mem_diagonal at h,
+    simpa using congr_arg multiset.to_finsupp h },
+  { intro h,
+    refine ⟨⟨p.1.to_multiset, p.2.to_multiset⟩, _, _⟩,
+    { simpa using congr_arg to_multiset h },
+    { rw [prod.map, to_multiset_to_finsupp, to_multiset_to_finsupp, prod.mk.eta] } }
+end
+
+@[simp] lemma diagonal_zero : diagonal (0 : σ →₀ ℕ) = {(0,0)} := rfl
+
+end finsupp
+
+namespace mv_polynomial
+open finsupp
+variables {σ : Type*} {α : Type*} [decidable_eq σ] [decidable_eq α] [comm_semiring α]
+
+lemma coeff_mul (φ ψ : mv_polynomial σ α) :
+  ∀ n, coeff n (φ * ψ) = finset.sum (finsupp.diagonal n) (λ p, coeff p.1 φ * coeff p.2 ψ) :=
+begin
+  apply mv_polynomial.induction_on φ; clear φ,
+  { apply mv_polynomial.induction_on ψ,
+    { intros a b n, rw [← C_mul, coeff_C],
+      split_ifs,
+      { subst n, simp },
+      { rw finset.sum_eq_zero, intros p hp,
+        simp only [coeff_C],
+        rw mem_diagonal at hp,
+        split_ifs with h₁ h₂; try {simp * at *; done},
+        { rw [← h₁, ← h₂, zero_add] at hp, contradiction } } },
+    { intros p q hp hq a, specialize hp a, specialize hq a,
+      simp [coeff_C_mul, coeff_add, mul_add, finset.sum_add_distrib, *] at * },
+    { intros φ s hφ a n,
+      rw [coeff_C_mul],
+      have : ((0 : σ →₀ ℕ), n) ∈ diagonal n := by simp [mem_diagonal],
+      rw [← finset.insert_erase this, finset.sum_insert (finset.not_mem_erase _ _),
+          finset.sum_eq_zero, add_zero],
+      { refl },
+      { rintros ⟨i,j⟩ h,
+        rw [finset.mem_erase, mem_diagonal] at h, cases h with h₁ h₂,
+        by_cases H : 0 = i, { subst i, simp * at * },
+        rw [coeff_C, if_neg H, zero_mul] } } },
+  { intros p q hp hq n,
+    rw [add_mul, coeff_add, hp, hq, ← finset.sum_add_distrib],
+    apply finset.sum_congr rfl,
+    intros m hm, rw [coeff_add, add_mul] },
+  { intros φ s hφ n,
+    conv_lhs { rw [mul_assoc, mul_comm (X s), ← mul_assoc] },
+    rw coeff_mul_X',
+    split_ifs,
+    { symmetry,
+      let T : finset (_ × _) := (diagonal n).filter (λ p, p.1 s > 0),
+      have : T ⊆ diagonal n := finset.filter_subset _,
+      rw [hφ, ← finset.sum_sdiff this, finset.sum_eq_zero, zero_add],
+      { symmetry,
+        apply finset.sum_bij (λ (p : _ × _) hp, (p.1 + single s 1, p.2)),
+        { rintros ⟨i,j⟩ hij, rw [mem_diagonal] at hij,
+          rw [finset.mem_filter, mem_diagonal], dsimp at *,
+          split,
+          { rw [add_right_comm, hij_1],
+            ext t, by_cases hst : s = t,
+            { subst t, apply nat.sub_add_cancel, rw [single_apply, if_pos rfl],
+              apply nat.pos_of_ne_zero, rwa mem_support_iff at h },
+            { change _ - _ + _ = _, simp [single_apply, hst] } },
+          { apply nat.add_pos_right, rw [single_apply, if_pos rfl], exact nat.one_pos } },
+        { rintros ⟨i,j⟩ hij, rw coeff_mul_X', split_ifs with H,
+          { congr' 2, ext t, exact (nat.add_sub_cancel _ _).symm },
+          { exfalso, apply H, rw [mem_support_iff, add_apply, single_apply, if_pos rfl],
+            exact nat.succ_ne_zero _ } },
+        { rintros ⟨i,j⟩ ⟨k,l⟩ hij hkl, rw [prod.mk.inj_iff, add_right_inj, ← prod.mk.inj_iff],
+          exact id },
+        { rintros ⟨i,j⟩ hij, rw finset.mem_filter at hij, cases hij with h₁ h₂,
+          refine ⟨(i - single s 1, j), _, _⟩,
+          { rw mem_diagonal at h₁ ⊢, rw ← h₁, ext t, by_cases hst: s = t,
+            { subst t, apply (nat.sub_add_comm _).symm,
+              rwa [single_apply, if_pos rfl] },
+            { apply (nat.sub_add_comm _).symm,
+              simp [single_apply, hst] } },
+          { congr, ext t, by_cases hst: s = t,
+            { subst t, apply (nat.sub_add_cancel _).symm, rwa [single_apply, if_pos rfl] },
+            { change _ = _ - _ + _, simp [single_apply, hst] } } } },
+      { rintros ⟨i,j⟩ hij, rw finset.mem_sdiff at hij, cases hij with h₁ h₂,
+        rw coeff_mul_X', split_ifs with H,
+        { exfalso, apply h₂, rw finset.mem_filter, refine ⟨h₁, nat.pos_of_ne_zero _⟩,
+          rwa mem_support_iff at H },
+        { exact zero_mul _ } } },
+    { rw finset.sum_eq_zero,
+      rintros ⟨i,j⟩ hij,
+      rw [coeff_mul_X', if_neg, zero_mul],
+      intro H, apply h,
+      rw mem_support_iff at H ⊢,
+      rw mem_diagonal at hij,
+      rw ← hij, simp * at * } }
+end
+
+end mv_polynomial
 
 namespace finsupp
 open lattice
@@ -181,123 +345,6 @@ lemma sub_le {a b : σ →₀ ℕ} : a - b ≤ a :=
 λ s, nat.sub_le (a s) (b s)
 
 end finsupp
-
-namespace mv_polynomial
-open finsupp
-variables {σ : Type*} {α : Type*} [decidable_eq σ] [decidable_eq α] [comm_semiring α]
-
-lemma coeff_mul (φ ψ : mv_polynomial σ α) (n) :
-  coeff n (φ * ψ) = finset.sum (finsupp.nat_downset n) (λ m, coeff m φ * coeff (n - m) ψ) :=
-begin
-  have helper : ∀ (m : σ →₀ ℕ), m - 0 = m := λ m, finsupp.ext (λ s, nat.sub_zero _),
-  have helper₂ : ∀ (n : σ →₀ ℕ) (s : σ), nat_downset (n - single s 1) ⊆ nat_downset n,
-  { intros n s, apply nat_downset_subset, intro x, apply nat.sub_le_self },
-  revert n,
-  apply mv_polynomial.induction_on φ,
-  { apply mv_polynomial.induction_on ψ,
-    { intros a b n, rw [← C_mul, coeff_C],
-      split_ifs,
-      { subst n, erw [nat_downset_zero, finset.sum_singleton],
-        simp [helper] },
-      { rw finset.sum_eq_zero,
-        intros m hm,
-        by_cases H : m = 0,
-        { subst m, simp [helper, h] },
-        { rw ← ne_from_not_eq at H, simp [H.symm] } } },
-    { intros p q hp hq a, specialize hp a, specialize hq a,
-      simp [coeff_C_mul, coeff_add, mul_add, finset.sum_add_distrib, *] at * },
-    { intros p s hp a n, specialize hp a,
-      rw [coeff_C_mul, coeff_mul_X'],
-      split_ifs,
-      { rw [← coeff_C_mul, hp, ← finset.sum_sdiff (helper₂ n s)],
-        symmetry,
-        rw [finset.sum_eq_zero, zero_add, finset.sum_congr rfl],
-        { intros m hm,
-          congr' 1,
-          rw coeff_mul_X',
-          rw mem_support_iff_single_le at h,
-          rw mem_nat_downset_iff_le at hm,
-          have mle := le_trans hm sub_le,
-          rw [le_sub_left_iff_add_le h, add_comm,
-              ← le_sub_left_iff_add_le mle, ← mem_support_iff_single_le] at hm,
-          rw if_pos hm,
-          congr' 1,
-          ext s,
-          apply nat.sub.right_comm },
-        { intros m hm,
-          suffices : s ∉ (n - m).support,
-          { rw [coeff_mul_X', if_neg this, mul_zero] },
-          rw finset.mem_sdiff at hm,
-          cases hm with hm₁ hm₂,
-          rw finsupp.not_mem_support_iff,
-          apply nat.sub_eq_zero_of_le,
-          rw mem_nat_downset_iff_le at hm₁,
-          rw not_iff_not_of_iff (mem_nat_downset_iff_le _ _) at hm₂,
-          apply le_of_eq,
-          by_contra H, apply hm₂,
-          intro t, by_cases hst : s = t;
-          change _ ≤ _ - _;
-          simp [single_apply, *, hm₁ t],
-          subst hst,
-          apply nat.le_sub_left_of_add_le,
-          rw add_comm,
-          exact lt_of_le_of_ne (hm₁ s) (ne.symm H) } },
-      { rw [mul_zero, finset.sum_eq_zero],
-        intros m hm,
-        rw coeff_mul_X',
-        have : s ∉ (n - m).support,
-        { rw not_mem_support_iff at h ⊢,
-          show n s - m s = 0,
-          rw h,
-          apply nat.zero_sub },
-        rw [if_neg this, mul_zero] } } },
-  { intros p q hp hq n,
-    rw [add_mul, coeff_add, hp, hq, ← finset.sum_add_distrib],
-    apply finset.sum_congr rfl,
-    intros m hm, rw [coeff_add, add_mul] },
-  { intros p s hp n,
-    conv_lhs { rw [mul_assoc, mul_comm (X s), ← mul_assoc] },
-    rw coeff_mul_X',
-    split_ifs,
-    { symmetry,
-      have : (nat_downset n).filter (λ m, m s > 0) ⊆ nat_downset n := finset.filter_subset _,
-      rw [hp, ← finset.sum_sdiff this, finset.sum_eq_zero, zero_add],
-      { symmetry,
-        apply finset.sum_bij (λ m hm, m + single s 1),
-        { intros m hm,
-          rw finset.mem_filter,
-          rw mem_support_iff_single_le at h,
-          rw [mem_nat_downset_iff_le, le_sub_left_iff_add_le h,
-              add_comm, ← mem_nat_downset_iff_le] at hm,
-          refine ⟨hm, _⟩,
-          apply nat.add_pos_right,
-          rw [single_apply, if_pos rfl],
-          exact nat.one_pos },
-        { intros m hm, simp only [coeff_mul_X],
-          congr' 2, rw add_comm, ext t, apply nat.sub_sub },
-        { intros k m hk hm, apply add_right_cancel },
-        { intros m hm, rw finset.mem_filter at hm, cases hm with hm hms,
-          refine ⟨(m - single s 1), _, _⟩,
-          { rw mem_nat_downset_iff_le at hm ⊢,
-            intro t, exact nat.sub_le_sub_right (hm t) _ },
-          { ext t, apply (nat.sub_add_cancel _).symm, rw single_apply, split_ifs,
-            { subst t, exact hms },
-            { exact nat.zero_le _ } } } },
-      { intros m hm, rw finset.mem_sdiff at hm, cases hm with hm hms,
-        rw [coeff_mul_X', if_neg, zero_mul],
-        intro H, apply hms, rw mem_support_iff at H, rw finset.mem_filter,
-        exact ⟨hm, nat.pos_of_ne_zero H⟩ } },
-    { rw finset.sum_eq_zero,
-      intros m hm,
-      have : s ∉ m.support,
-      { rw not_mem_support_iff at h ⊢,
-        rw mem_nat_downset_iff_le at hm,
-        specialize hm s, rw h at hm,
-        exact nat.eq_zero_of_le_zero hm },
-      rw [coeff_mul_X', if_neg this, zero_mul] } }
-end
-
-end mv_polynomial
 
 /-- Multivariate power series, where `σ` is the index set of the variables
 and `α` is the coefficient ring.-/
@@ -467,31 +514,53 @@ lemma mul_assoc (φ₁ φ₂ φ₃ : mv_power_series σ α) :
   (φ₁ * φ₂) * φ₃ = φ₁ * (φ₂ * φ₃) :=
 ext $ λ n,
 begin
-  have := @finset.sum_bind ((σ →₀ ℕ) × (σ →₀ ℕ)) α (σ →₀ ℕ) _ _ _ (nat_downset n)
-  (λ m, finset.product {m} (nat_downset m)) _,
-  swap,
-  { intro p, exact (coeff p.2 φ₁ * coeff (p.1-p.2) φ₂) * coeff (n-p.1) φ₃ },
-  swap,
-  { intros, dsimp,
-    rw finset.eq_empty_iff_forall_not_mem,
-    intros p hp,
-    simp [finset.mem_inter, finset.mem_product] at hp,
-    rcases hp with ⟨⟨rfl, _⟩, ⟨rfl, _⟩⟩,
-    contradiction },
-  simp only [coeff_mul],
-  convert this.symm using 1; clear this,
-  { apply finset.sum_congr rfl,
-    intros m hm,
-    rw finset.sum_mul, symmetry,
-    apply finset.sum_bij (λ (p : (σ →₀ ℕ) × (σ →₀ ℕ)) hp, p.2),
-    { intros p hp, exact (finset.mem_product.1 hp).2 },
-    { intros p hp, erw [finset.mem_product, finset.mem_singleton] at hp, cases hp, subst m },
-    { rintros ⟨m₁,i₁⟩ ⟨m₂,i₂⟩ h₁ h₂ H, dsimp at *,
-      erw [finset.mem_product, finset.mem_singleton] at h₁ h₂,
-      dsimp at *, erw [h₁.1, h₂.1, H] },
-    { intros i hi, refine ⟨(m,i), _, rfl⟩,
-      { erw finset.mem_product, exact ⟨finset.mem_singleton_self m, hi⟩ } } },
-  sorry
+  have bind_left := @finset.sum_bind ((σ →₀ ℕ) × (σ →₀ ℕ)) α (σ →₀ ℕ)
+    (λ p, (coeff p.2 φ₁ * coeff (p.1-p.2) φ₂) * coeff (n-p.1) φ₃)
+    _ _ (nat_downset n) (λ m, finset.product {m} (nat_downset m))
+    begin
+      intros, dsimp,
+      rw finset.eq_empty_iff_forall_not_mem,
+      intros p hp,
+      simp [finset.mem_inter, finset.mem_product] at hp,
+      rcases hp with ⟨⟨rfl, _⟩, ⟨rfl, _⟩⟩,
+      contradiction
+    end,
+  have bind_right := @finset.sum_bind ((σ →₀ ℕ) × (σ →₀ ℕ)) α (σ →₀ ℕ)
+    (λ p, (coeff p.1 φ₁ * coeff (p.2) φ₂) * coeff (n-p.1-p.2) φ₃)
+    _ _ (nat_downset n) (λ m, finset.product {m} (nat_downset (n-m)))
+    begin
+      intros, dsimp,
+      rw finset.eq_empty_iff_forall_not_mem,
+      intros p hp,
+      simp [finset.mem_inter, finset.mem_product] at hp,
+      rcases hp with ⟨⟨rfl, _⟩, ⟨rfl, _⟩⟩,
+      contradiction
+    end,
+  calc coeff n (φ₁ * φ₂ * φ₃) = bind_left.rhs :
+    begin
+      apply finset.sum_congr rfl,
+      intros m hm,
+      rw [coeff_mul, finset.sum_mul], symmetry,
+      apply finset.sum_bij (λ (p : (σ →₀ ℕ) × (σ →₀ ℕ)) hp, p.2),
+      { intros p hp, exact (finset.mem_product.1 hp).2 },
+      { intros p hp, erw [finset.mem_product, finset.mem_singleton] at hp, cases hp, subst m },
+      { rintros ⟨m₁,i₁⟩ ⟨m₂,i₂⟩ h₁ h₂ H, dsimp at *,
+        erw [finset.mem_product, finset.mem_singleton] at h₁ h₂,
+        dsimp at *, erw [h₁.1, h₂.1, H] },
+      { intros i hi, refine ⟨(m,i), _, rfl⟩,
+        { erw finset.mem_product, exact ⟨finset.mem_singleton_self m, hi⟩ } }
+    end
+    ... = bind_left.lhs : bind_left.symm
+    ... = bind_right.lhs :
+    begin
+      apply finset.sum_bij (λ p hp, _),
+
+    end
+    ... = bind_right.rhs : bind_right
+    ... = _ :
+    begin
+
+    end
 end
 
 instance : comm_semiring (mv_power_series σ α) :=
@@ -519,117 +588,6 @@ end mv_power_series
 namespace mv_polynomial
 open finsupp
 variables {σ : Type*} {α : Type*} [decidable_eq σ] [decidable_eq α] [comm_semiring α]
-
-lemma coeff_mul (φ ψ : mv_polynomial σ α) (n) :
-  coeff n (φ * ψ) = finset.sum (finsupp.nat_downset n) (λ m, coeff m φ * coeff (n - m) ψ) :=
-begin
-  have helper : ∀ (m : σ →₀ ℕ), m - 0 = m := λ m, finsupp.ext (λ s, nat.sub_zero _),
-  have helper₂ : ∀ (n : σ →₀ ℕ) (s : σ), nat_downset (n - single s 1) ⊆ nat_downset n,
-  { intros n s, apply nat_downset_subset, intro x, apply nat.sub_le_self },
-  revert n,
-  apply mv_polynomial.induction_on φ,
-  { apply mv_polynomial.induction_on ψ,
-    { intros a b n, rw [← C_mul, coeff_C],
-      split_ifs,
-      { subst n, erw [nat_downset_zero, finset.sum_singleton],
-        simp [helper] },
-      { rw finset.sum_eq_zero,
-        intros m hm,
-        by_cases H : m = 0,
-        { subst m, simp [helper, h] },
-        { rw ← ne_from_not_eq at H, simp [H.symm] } } },
-    { intros p q hp hq a, specialize hp a, specialize hq a,
-      simp [coeff_C_mul, coeff_add, mul_add, finset.sum_add_distrib, *] at * },
-    { intros p s hp a n, specialize hp a,
-      rw [coeff_C_mul, coeff_mul_X'],
-      split_ifs,
-      { rw [← coeff_C_mul, hp, ← finset.sum_sdiff (helper₂ n s)],
-        symmetry,
-        rw [finset.sum_eq_zero, zero_add, finset.sum_congr rfl],
-        { intros m hm,
-          congr' 1,
-          rw coeff_mul_X',
-          rw mem_support_iff_single_le at h,
-          rw mem_nat_downset_iff_le at hm,
-          have mle := le_trans hm sub_le,
-          rw [le_sub_left_iff_add_le h, add_comm,
-              ← le_sub_left_iff_add_le mle, ← mem_support_iff_single_le] at hm,
-          rw if_pos hm,
-          congr' 1,
-          ext s,
-          apply nat.sub.right_comm },
-        { intros m hm,
-          suffices : s ∉ (n - m).support,
-          { rw [coeff_mul_X', if_neg this, mul_zero] },
-          rw finset.mem_sdiff at hm,
-          cases hm with hm₁ hm₂,
-          rw finsupp.not_mem_support_iff,
-          apply nat.sub_eq_zero_of_le,
-          rw mem_nat_downset_iff_le at hm₁,
-          rw not_iff_not_of_iff (mem_nat_downset_iff_le _ _) at hm₂,
-          apply le_of_eq,
-          by_contra H, apply hm₂,
-          intro t, by_cases hst : s = t;
-          change _ ≤ _ - _;
-          simp [single_apply, *, hm₁ t],
-          subst hst,
-          apply nat.le_sub_left_of_add_le,
-          rw add_comm,
-          exact lt_of_le_of_ne (hm₁ s) (ne.symm H) } },
-      { rw [mul_zero, finset.sum_eq_zero],
-        intros m hm,
-        rw coeff_mul_X',
-        have : s ∉ (n - m).support,
-        { rw not_mem_support_iff at h ⊢,
-          show n s - m s = 0,
-          rw h,
-          apply nat.zero_sub },
-        rw [if_neg this, mul_zero] } } },
-  { intros p q hp hq n,
-    rw [add_mul, coeff_add, hp, hq, ← finset.sum_add_distrib],
-    apply finset.sum_congr rfl,
-    intros m hm, rw [coeff_add, add_mul] },
-  { intros p s hp n,
-    conv_lhs { rw [mul_assoc, mul_comm (X s), ← mul_assoc] },
-    rw coeff_mul_X',
-    split_ifs,
-    { symmetry,
-      have : (nat_downset n).filter (λ m, m s > 0) ⊆ nat_downset n := finset.filter_subset _,
-      rw [hp, ← finset.sum_sdiff this, finset.sum_eq_zero, zero_add],
-      { symmetry,
-        apply finset.sum_bij (λ m hm, m + single s 1),
-        { intros m hm,
-          rw finset.mem_filter,
-          rw mem_support_iff_single_le at h,
-          rw [mem_nat_downset_iff_le, le_sub_left_iff_add_le h,
-              add_comm, ← mem_nat_downset_iff_le] at hm,
-          refine ⟨hm, _⟩,
-          apply nat.add_pos_right,
-          rw [single_apply, if_pos rfl],
-          exact nat.one_pos },
-        { intros m hm, simp only [coeff_mul_X],
-          congr' 2, rw add_comm, ext t, apply nat.sub_sub },
-        { intros k m hk hm, apply add_right_cancel },
-        { intros m hm, rw finset.mem_filter at hm, cases hm with hm hms,
-          refine ⟨(m - single s 1), _, _⟩,
-          { rw mem_nat_downset_iff_le at hm ⊢,
-            intro t, exact nat.sub_le_sub_right (hm t) _ },
-          { ext t, apply (nat.sub_add_cancel _).symm, rw single_apply, split_ifs,
-            { subst t, exact hms },
-            { exact nat.zero_le _ } } } },
-      { intros m hm, rw finset.mem_sdiff at hm, cases hm with hm hms,
-        rw [coeff_mul_X', if_neg, zero_mul],
-        intro H, apply hms, rw mem_support_iff at H, rw finset.mem_filter,
-        exact ⟨hm, nat.pos_of_ne_zero H⟩ } },
-    { rw finset.sum_eq_zero,
-      intros m hm,
-      have : s ∉ m.support,
-      { rw not_mem_support_iff at h ⊢,
-        rw mem_nat_downset_iff_le at hm,
-        specialize hm s, rw h at hm,
-        exact nat.eq_zero_of_le_zero hm },
-      rw [coeff_mul_X', if_neg this, zero_mul] } }
-end
 
 def to_mv_power_series (φ : mv_polynomial σ α) : mv_power_series σ α :=
 λ n, coeff n φ

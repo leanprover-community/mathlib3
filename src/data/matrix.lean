@@ -132,10 +132,10 @@ by ext i j; by_cases i = j; simp [h]
 section semiring
 variables [semiring α]
 
-theorem mul_zero (M : matrix m n α) : M ⬝ (0 : matrix n o α) = 0 :=
+@[simp] theorem mul_zero (M : matrix m n α) : M ⬝ (0 : matrix n o α) = 0 :=
 by ext i j; simp
 
-theorem zero_mul (M : matrix m n α) : (0 : matrix l m α) ⬝ M = 0 :=
+@[simp] theorem zero_mul (M : matrix m n α) : (0 : matrix l m α) ⬝ M = 0 :=
 by ext i j; simp
 
 theorem mul_add (L : matrix m n α) (M N : matrix n o α) : L ⬝ (M + N) = L ⬝ M + L ⬝ N :=

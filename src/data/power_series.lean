@@ -72,6 +72,34 @@ end multiset
 namespace finsupp
 variables {σ : Type*} {α : Type*} [decidable_eq σ]
 
+instance [preorder α] [has_zero α] : preorder (σ →₀ α) :=
+{ le := λ f g, ∀ s, f s ≤ g s,
+  le_refl := λ f s, le_refl _,
+  le_trans := λ f g h Hfg Hgh s, le_trans (Hfg s) (Hgh s) }
+
+instance [partial_order α] [has_zero α] : partial_order (σ →₀ α) :=
+{ le_antisymm := λ f g hfg hgf, finsupp.ext $ λ s, le_antisymm (hfg s) (hgf s),
+  .. finsupp.preorder }
+
+instance [ordered_cancel_comm_monoid α] [decidable_eq α] :
+  add_left_cancel_semigroup (σ →₀ α) :=
+{ add_left_cancel := λ a b c h, finsupp.ext $ λ s,
+  by { rw finsupp.ext_iff at h, exact add_left_cancel (h s) },
+  .. finsupp.add_monoid }
+
+instance [ordered_cancel_comm_monoid α] [decidable_eq α] :
+  add_right_cancel_semigroup (σ →₀ α) :=
+{ add_right_cancel := λ a b c h, finsupp.ext $ λ s,
+  by { rw finsupp.ext_iff at h, exact add_right_cancel (h s) },
+  .. finsupp.add_monoid }
+
+instance [ordered_cancel_comm_monoid α] [decidable_eq α] :
+  ordered_cancel_comm_monoid (σ →₀ α) :=
+{ add_le_add_left := λ a b h c s, add_le_add_left (h s) (c s),
+  le_of_add_le_add_left := λ a b c h s, le_of_add_le_add_left (h s),
+  .. finsupp.add_comm_monoid, .. finsupp.partial_order,
+  .. finsupp.add_left_cancel_semigroup, .. finsupp.add_right_cancel_semigroup }
+
 attribute [simp] to_multiset_zero to_multiset_add
 
 @[simp] lemma to_multiset_to_finsupp (f : σ →₀ ℕ) :
@@ -186,34 +214,6 @@ end mv_polynomial
 namespace finsupp
 open lattice
 variables {σ : Type*} {α : Type*} [decidable_eq σ]
-
-instance [preorder α] [has_zero α] : preorder (σ →₀ α) :=
-{ le := λ f g, ∀ s, f s ≤ g s,
-  le_refl := λ f s, le_refl _,
-  le_trans := λ f g h Hfg Hgh s, le_trans (Hfg s) (Hgh s) }
-
-instance [partial_order α] [has_zero α] : partial_order (σ →₀ α) :=
-{ le_antisymm := λ f g hfg hgf, finsupp.ext $ λ s, le_antisymm (hfg s) (hgf s),
-  .. finsupp.preorder }
-
-instance [ordered_cancel_comm_monoid α] [decidable_eq α] :
-  add_left_cancel_semigroup (σ →₀ α) :=
-{ add_left_cancel := λ a b c h, finsupp.ext $ λ s,
-  by { rw finsupp.ext_iff at h, exact add_left_cancel (h s) },
-  .. finsupp.add_monoid }
-
-instance [ordered_cancel_comm_monoid α] [decidable_eq α] :
-  add_right_cancel_semigroup (σ →₀ α) :=
-{ add_right_cancel := λ a b c h, finsupp.ext $ λ s,
-  by { rw finsupp.ext_iff at h, exact add_right_cancel (h s) },
-  .. finsupp.add_monoid }
-
-instance [ordered_cancel_comm_monoid α] [decidable_eq α] :
-  ordered_cancel_comm_monoid (σ →₀ α) :=
-{ add_le_add_left := λ a b h c s, add_le_add_left (h s) (c s),
-  le_of_add_le_add_left := λ a b c h s, le_of_add_le_add_left (h s),
-  .. finsupp.add_comm_monoid, .. finsupp.partial_order,
-  .. finsupp.add_left_cancel_semigroup, .. finsupp.add_right_cancel_semigroup }
 
 instance [canonically_ordered_cancel_monoid α] [decidable_eq α] : ordered_comm_monoid (σ →₀ α) :=
 { add_le_add_left := λ a b h c s, ordered_comm_monoid.add_le_add_left _ _ (h s) (c s),

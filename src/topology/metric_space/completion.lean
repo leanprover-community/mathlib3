@@ -57,7 +57,7 @@ end
 protected lemma completion.dist_triangle (x y z : completion α) : dist x z ≤ dist x y + dist y z :=
 begin
   apply induction_on₃ x y z,
-   { refine is_closed_le _ (continuous_add _ _),
+  { refine is_closed_le _ (continuous_add _ _),
     { have : continuous (λp : completion α × completion α × completion α, (p.1, p.2.2)) :=
         continuous.prod_mk continuous_fst (continuous.comp continuous_snd continuous_snd),
       exact (completion.uniform_continuous_dist.continuous.comp this : _) },

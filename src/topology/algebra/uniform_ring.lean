@@ -31,7 +31,7 @@ lemma coe_mul (a b : α) : ((a * b : α) : completion α) = a * b :=
 ((dense_inducing_coe.prod dense_inducing_coe).extend_eq_of_cont
   ((continuous_coe α).comp continuous_mul') (a, b)).symm
 
-lemma continuous_mul' : continuous (λp:completion α×completion α, p.1 * p.2) :=
+lemma continuous_mul' : continuous (λ p : completion α × completion α, p.1 * p.2) :=
 begin
   haveI : is_Z_bilin ((coe ∘ uncurry' (*)) : α × α → completion α) :=
   { add_left := begin
@@ -90,7 +90,7 @@ instance : ring (completion α) :=
 instance is_ring_hom_coe : is_ring_hom (coe : α → completion α) :=
 ⟨coe_one α, assume a b, coe_mul a b, assume a b, coe_add a b⟩
 
-universes u v
+universes u
 variables {β : Type u} [uniform_space β] [ring β] [uniform_add_group β] [topological_ring β]
           {f : α → β} [is_ring_hom f] (hf : continuous f)
 

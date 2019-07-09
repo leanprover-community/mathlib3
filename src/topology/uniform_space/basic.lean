@@ -773,7 +773,7 @@ by rw  [←uncurry'_curry f] {occs := occurrences.pos [2]} ; refl
 
 lemma uniform_continuous₂.comp {f : α → β → γ} {g : γ → δ}
   (hg : uniform_continuous g) (hf : uniform_continuous₂ f) :
-uniform_continuous₂ (g ∘₂ f) :=
+  uniform_continuous₂ (g ∘₂ f) :=
 hg.comp hf
 
 end

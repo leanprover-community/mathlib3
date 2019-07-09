@@ -24,7 +24,7 @@ eq_univ_iff_forall.symm
 
 variables {f}
 
-lemma dense_range_comp (hf : dense_range f) (hg : dense_range g) (cg : continuous g) :
+lemma dense_range.comp (hg : dense_range g) (hf : dense_range f) (cg : continuous g) :
   dense_range (g ∘ f) :=
 begin
   have : g '' (closure $ range f) ⊆ closure (g '' range f),
@@ -109,11 +109,11 @@ section embedding
   and for all `s : set α`, `s` is open iff it is the preimage of an open set. -/
 structure embedding [tα : topological_space α] [tβ : topological_space β] (f : α → β)
   extends inducing f : Prop :=
-(inj  :  function.injective f)
+(inj : function.injective f)
 
 variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
 
-def embedding.mk' (f : α → β) (inj  :  function.injective f)
+def embedding.mk' (f : α → β) (inj : function.injective f)
   (induced : ∀a, comap f (nhds (f a)) = nhds a) : embedding f :=
 ⟨⟨(induced_iff_nhds_eq f).2 (λ a, (induced a).symm)⟩, inj⟩
 
@@ -159,12 +159,12 @@ inducing.continuous hf.1
 
 lemma embedding.closure_eq_preimage_closure_image {e : α → β} (he : embedding e) (s : set α) :
   closure s = e ⁻¹' closure (e '' s) :=
-by { ext x,  rw [set.mem_preimage, ← closure_induced he.inj, he.induced] }
+by { ext x, rw [set.mem_preimage, ← closure_induced he.inj, he.induced] }
 
 end embedding
 
 structure dense_inducing [topological_space α] [topological_space β] (e : α → β)
-  extends inducing e : Prop  :=
+  extends inducing e : Prop :=
 (dense   : ∀x, x ∈ closure (range e))
 
 namespace dense_inducing
@@ -253,7 +253,7 @@ lemma extend_eq [t2_space γ] {b : β} {c : γ} {f : α → γ} (hf : map f (com
   di.extend f b = c :=
 @lim_eq _ _ (id _) _ _ _ (by simp; exact comap_nhds_neq_bot di) hf
 
-lemma extend_e_eq [t2_space γ] {f : α → γ} (a : α)  (hf : continuous_at f a) :
+lemma extend_e_eq [t2_space γ] {f : α → γ} (a : α) (hf : continuous_at f a) :
   di.extend f (e a) = f a :=
 extend_eq _ $ di.nhds_eq_comap a ▸ hf
 
@@ -316,7 +316,7 @@ end dense_inducing
 
 structure dense_embedding [topological_space α] [topological_space β] (e : α → β)
   extends dense_inducing e : Prop  :=
-(inj   : function.injective e)
+(inj : function.injective e)
 
 theorem dense_embedding.mk'
   [topological_space α] [topological_space β] (e : α → β)

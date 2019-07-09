@@ -90,7 +90,7 @@ by rw [embedding_coe.induced, map_nhds_induced_eq coe_range_mem_nhds]
 lemma nhds_coe_coe {r p : nnreal} : nhds ((r : ennreal), (p : ennreal)) =
   (nhds (r, p)).map (λp:nnreal×nnreal, (p.1, p.2)) :=
 begin
-  rw [(embedding_prod_mk embedding_coe embedding_coe).map_nhds_eq],
+  rw [(embedding_coe.prod_mk embedding_coe).map_nhds_eq],
   rw [← prod_range_range_eq],
   exact prod_mem_nhds_sets coe_range_mem_nhds coe_range_mem_nhds
 end

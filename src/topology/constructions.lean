@@ -901,7 +901,7 @@ variables [topological_space α] [topological_space β] [topological_space γ] [
 /-- The product of two dense inducings is a dense inducing -/
 protected def prod {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_inducing e₁) (de₂ : dense_inducing e₂) :
   dense_inducing (λ(p : α × γ), (e₁ p.1, e₂ p.2)) :=
-{ induced := (inducing_prod_mk de₁.to_inducing de₂.to_inducing).induced,
+{ induced := (de₁.to_inducing.prod_mk de₂.to_inducing).induced,
   dense := dense_range_prod de₁.dense de₂.dense }
 end dense_inducing
 

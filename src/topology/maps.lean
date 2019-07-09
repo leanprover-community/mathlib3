@@ -56,11 +56,11 @@ variables [topological_space α] [topological_space β] [topological_space γ] [
 lemma inducing_id : inducing (@id α) :=
 ⟨induced_id.symm⟩
 
-lemma inducing_compose {f : α → β} {g : β → γ} (hg : inducing g) (hf : inducing f) :
+lemma inducing.comp {f : α → β} {g : β → γ} (hg : inducing g) (hf : inducing f) :
   inducing (g ∘ f) :=
 ⟨by rw [hf.induced, hg.induced, induced_compose]⟩
 
-lemma inducing_prod_mk {f : α → β} {g : γ → δ} (hf : inducing f) (hg : inducing g) :
+lemma inducing.prod_mk {f : α → β} {g : γ → δ} (hf : inducing f) (hg : inducing g) :
   inducing (λx:α×γ, (f x.1, g x.2)) :=
 ⟨by rw [prod.topological_space, prod.topological_space, hf.induced, hg.induced,
          induced_compose, induced_compose, induced_inf, induced_compose, induced_compose]⟩
@@ -120,18 +120,21 @@ def embedding.mk' (f : α → β) (inj : function.injective f)
 lemma embedding_id : embedding (@id α) :=
 ⟨inducing_id, assume a₁ a₂ h, h⟩
 
-lemma embedding_compose {f : α → β} {g : β → γ} (hg : embedding g) (hf : embedding f) :
+lemma embedding.comp {f : α → β} {g : β → γ} (hg : embedding g) (hf : embedding f) :
   embedding (g ∘ f) :=
-⟨inducing_compose hg.1 hf.1, assume a₁ a₂ h, hf.inj $ hg.inj h⟩
+{ inj:= assume a₁ a₂ h, hf.inj $ hg.inj h,
+  ..hg.to_inducing.comp hf.to_inducing }
 
-lemma embedding_prod_mk {f : α → β} {g : γ → δ} (hf : embedding f) (hg : embedding g) :
+lemma embedding.prod_mk {f : α → β} {g : γ → δ} (hf : embedding f) (hg : embedding g) :
   embedding (λx:α×γ, (f x.1, g x.2)) :=
-⟨inducing_prod_mk hf.1 hg.1,
- assume ⟨x₁, x₂⟩ ⟨y₁, y₂⟩, by simp; exact assume h₁ h₂, ⟨hf.inj h₁, hg.inj h₂⟩⟩
+{ inj := assume ⟨x₁, x₂⟩ ⟨y₁, y₂⟩, by simp; exact assume h₁ h₂, ⟨hf.inj h₁, hg.inj h₂⟩,
+  ..hf.to_inducing.prod_mk hg.to_inducing }
+
 
 lemma embedding_of_embedding_compose {f : α → β} {g : β → γ} (hf : continuous f) (hg : continuous g)
   (hgf : embedding (g ∘ f)) : embedding f :=
-⟨inducing_of_inducing_compose hf hg hgf.1, assume a₁ a₂ h, hgf.inj $ by simp [h, (∘)]⟩
+{ induced := (inducing_of_inducing_compose hf hg hgf.to_inducing).induced,
+  inj := assume a₁ a₂ h, hgf.inj $ by simp [h, (∘)] }
 
 lemma embedding_open {f : α → β} {s : set α}
   (hf : embedding f) (h : is_open (range f)) (hs : is_open s) : is_open (f '' s) :=
@@ -164,7 +167,7 @@ by { ext x, rw [set.mem_preimage, ← closure_induced he.inj, he.induced] }
 end embedding
 
 structure dense_inducing [topological_space α] [topological_space β] (i : α → β)
-  extends inducing i : Prop  :=
+  extends inducing i : Prop :=
 (dense   : ∀x, x ∈ closure (range i))
 
 namespace dense_inducing
@@ -178,8 +181,8 @@ di.induced.symm ▸ nhds_induced i
 protected lemma continuous_at (di : dense_inducing i) {a : α} : continuous_at i a :=
 by rw [continuous_at, di.nhds_eq_comap a]; exact tendsto_comap
 
-protected lemma continuous (de : dense_inducing i) : continuous i :=
-continuous_iff_continuous_at.mpr $ λ a, de.continuous_at
+protected lemma continuous (di : dense_inducing i) : continuous i :=
+continuous_iff_continuous_at.mpr $ λ a, di.continuous_at
 
 lemma closure_range : closure (range i) = univ :=
 let h := di.dense in
@@ -315,7 +318,7 @@ lemma mk'
 end dense_inducing
 
 structure dense_embedding [topological_space α] [topological_space β] (e : α → β)
-  extends dense_inducing e : Prop  :=
+  extends dense_inducing e : Prop :=
 (inj : function.injective e)
 
 theorem dense_embedding.mk'
@@ -492,9 +495,9 @@ end
 lemma closed_embedding_id : closed_embedding (@id α) :=
 ⟨embedding_id, by convert is_closed_univ; apply range_id⟩
 
-lemma closed_embedding_compose {f : α → β} {g : β → γ}
+lemma closed_embedding.comp {f : α → β} {g : β → γ}
   (hg : closed_embedding g) (hf : closed_embedding f) : closed_embedding (g ∘ f) :=
-⟨embedding_compose hg.1 hf.1, show is_closed (range (g ∘ f)),
+⟨hg.1.comp hf.1, show is_closed (range (g ∘ f)),
  by rw [range_comp, ←hg.closed_iff_image_closed]; exact hf.2⟩
 
 end closed_embedding

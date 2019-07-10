@@ -1,5 +1,5 @@
 /-
-This consists of two user-commands which allow you to declare notation localized to a namespace.
+This consists of two user-commands which allow you to declare notation and commands localized to a namespace.
 
 * Declare notation which is localized to a namespace using:
 ```
@@ -8,11 +8,11 @@ localized "infix ` ⊹ `:60 := my_add" in my.add
 * After this command it will be available in the same section/namespace/file, just as if you wrote `local infix ` ⊹ `:60 := my_add`
 * You can open it in other places. The following command will declare the notation again as local notation in that section/namespace/files:
 ```
-open_notation my.add
+open_locale my.add
 ```
 * More generally, the following will declare all localized notation in the specified namespaces.
 ```
-open_notation namespace1 namespace2 ...
+open_locale namespace1 namespace2 ...
 ```
 * You can also declare other localized commands, like local attributes
 ```
@@ -39,8 +39,8 @@ do m ← localized_attr.get_cache,
    return (ns.bind $ λ nm, m.find nm)
 
 /-- Execute all commands in the given notation namespace -/
-@[user_command] meta def open_notation_cmd (meta_info : decl_meta_info)
-  (_ : parse $ tk "open_notation") : parser unit :=
+@[user_command] meta def open_locale_cmd (meta_info : decl_meta_info)
+  (_ : parse $ tk "open_locale") : parser unit :=
 do ns ← many ident,
    cmds ← get_localized ns,
    cmds.mmap' emit_code_here
@@ -69,5 +69,5 @@ do cmd ← parser.pexpr, cmd ← i_to_expr cmd, cmd ← eval_expr string cmd,
 meta def print_localized_commands (ns : list name) : tactic unit :=
 do cmds ← get_localized ns, cmds.mmap' trace
 
--- you can run `open_notation classical` to get the decidability of all propositions.
+-- you can run `open_locale classical` to get the decidability of all propositions.
 localized "attribute [instance, priority 1] classical.prop_decidable" in classical

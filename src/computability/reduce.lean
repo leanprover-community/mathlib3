@@ -70,18 +70,18 @@ def many_one_equiv {α} [primcodable α] (p q : α → Prop) := p ≤₀ q ∧ q
 
 def one_one_equiv {α} [primcodable α] (p q : α → Prop) := p ≤₁ q ∧ q ≤₁ p
 
-theorem equivalence_of_m_equiv {α} [primcodable α] : equivalence (@many_one_equiv α _) :=
+theorem equivalence_of_many_one_equiv {α} [primcodable α] : equivalence (@many_one_equiv α _) :=
 ⟨λ x,⟨reflexive_many_one_reducible _, reflexive_many_one_reducible _⟩,  
  λ x y h, ⟨h.2, h.1⟩, 
  λ x y z h₁ h₂, ⟨transitive_many_one_reducible h₁.1 h₂.1, transitive_many_one_reducible h₂.2 h₁.2⟩⟩
 
-theorem equivalence_of_one_equiv {α} [primcodable α] : equivalence (@one_one_equiv α _) :=
+theorem equivalence_of_one_one_equiv {α} [primcodable α] : equivalence (@one_one_equiv α _) :=
 ⟨λ x,⟨reflexive_one_one_reducible _, reflexive_one_one_reducible _⟩,  
  λ x y h, ⟨h.2, h.1⟩, 
  λ x y z h₁ h₂, ⟨transitive_one_one_reducible h₁.1 h₂.1, transitive_one_one_reducible h₂.2 h₁.2⟩⟩
 
 instance many_one_equiv_setoid {α} [primcodable α] : setoid (α → Prop) := 
-⟨many_one_equiv, @equivalence_of_m_equiv α _⟩
+⟨many_one_equiv, @equivalence_of_many_one_equiv α _⟩
 
 def many_one_degree {α} [primcodable α] := quotient (@many_one_equiv_setoid α _)
 

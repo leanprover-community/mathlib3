@@ -979,6 +979,7 @@ example (a b c d e f g N : ℕ) : (a + b) + (c + d) + (e + f) + g ≤ N :=
 begin
   ac_change a + d + e + f + c + g + b ≤ _,
 -- ⊢ a + d + e + f + c + g + b ≤ N
+end
 ```
 
 ### apply_fun

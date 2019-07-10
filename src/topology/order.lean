@@ -558,6 +558,10 @@ theorem nhds_induced [T : topological_space α] (f : β → α) (a : β) :
   @nhds β (topological_space.induced f T) a = comap f (nhds (f a)) :=
 filter_eq $ by ext s; rw mem_nhds_induced; rw mem_comap_sets
 
+lemma induced_iff_nhds_eq [tα : topological_space α] [tβ : topological_space β] (f : β → α) :
+tβ = tα.induced f ↔ ∀ b, nhds b = comap f (nhds $ f b) :=
+⟨λ h a, h.symm ▸ nhds_induced f a, λ h, eq_of_nhds_eq_nhds $ λ x, by rw [h, nhds_induced]⟩
+
 theorem map_nhds_induced_of_surjective [T : topological_space α]
     {f : β → α} (hf : function.surjective f) (a : β) (s : set α) :
   map f (@nhds β (topological_space.induced f T) a) = nhds (f a) :=
@@ -859,16 +863,9 @@ iff.refl _
 theorem is_open_induced {s : set β} (h : is_open s) : (induced f t).is_open (f ⁻¹' s) :=
 ⟨s, h, rfl⟩
 
-lemma nhds_induced_eq_comap {a : α} : @nhds α (induced f t) a = comap f (nhds (f a)) :=
-calc @nhds α (induced f t) a = (⨅ s (x : s ∈ preimage f '' set_of is_open ∧ a ∈ s), principal s) :
-    by simp [nhds, is_open_induced_eq, -mem_image, and_comm]
-  ... = (⨅ s (x : is_open s ∧ f a ∈ s), principal (f ⁻¹' s)) :
-    by simp only [infi_and, infi_image]; refl
-  ... = _ : by simp [nhds, comap_infi, and_comm]
-
 lemma map_nhds_induced_eq {a : α} (h : range f ∈ nhds (f a)) :
   map f (@nhds α (induced f t) a) = nhds (f a) :=
-by rw [nhds_induced_eq_comap, filter.map_comap h]
+by rw [nhds_induced, filter.map_comap h]
 
 lemma closure_induced [t : topological_space β] {f : α → β} {a : α} {s : set α}
   (hf : ∀x y, f x = f y → x = y) :
@@ -886,7 +883,7 @@ have comap f (nhds (f a) ⊓ principal (f '' s)) ≠ ⊥ ↔ nhds (f a) ⊓ prin
       ne_empty_of_mem $ hs $ by rwa [←ha₂] at hb₁⟩,
 calc a ∈ @closure α (topological_space.induced f t) s
     ↔ (@nhds α (topological_space.induced f t) a) ⊓ principal s ≠ ⊥ : by rw [closure_eq_nhds]; refl
-  ... ↔ comap f (nhds (f a)) ⊓ principal (f ⁻¹' (f '' s)) ≠ ⊥ : by rw [nhds_induced_eq_comap, preimage_image_eq _ hf]
+  ... ↔ comap f (nhds (f a)) ⊓ principal (f ⁻¹' (f '' s)) ≠ ⊥ : by rw [nhds_induced, preimage_image_eq _ hf]
   ... ↔ comap f (nhds (f a) ⊓ principal (f '' s)) ≠ ⊥ : by rw [comap_inf, ←comap_principal]
   ... ↔ _ : by rwa [closure_eq_nhds]
 

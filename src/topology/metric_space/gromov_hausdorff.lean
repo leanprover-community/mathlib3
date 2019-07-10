@@ -1005,7 +1005,8 @@ begin
   { assume n,
     rw [nonempty_compacts.to_GH_space, ← (u n).to_GH_space_rep,
         to_GH_space_eq_to_GH_space_iff_isometric],
-    exact ⟨(isom n).isometric_on_range.symm⟩
+    constructor,
+    convert (isom n).isometric_on_range.symm,
   },
   -- Finally, we have proved the convergence of `u n`
   exact ⟨L.to_GH_space, by simpa [this] using M⟩

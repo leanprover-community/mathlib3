@@ -6,7 +6,7 @@
 [mergify]: https://mergify.io
 [mergify-status]: https://gh.mergify.io/badges/leanprover-community/mathlib.png?style=cut
 
-Mathlib is a user maintained library for the [Lean theorem prover](https://leanprover.github.io). 
+[Mathlib](https://leanprover-community.github.io) is a user maintained library for the [Lean theorem prover](https://leanprover.github.io). 
 It contains both programming infrastructure and mathematics, as well as tactics that use the former and allow to develop the later.
 
 ## Installation

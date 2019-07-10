@@ -4250,7 +4250,7 @@ nodup_pmap (λ _ _ _ _, fin.veq_of_eq) (nodup_range _)
 @[simp] lemma length_fin_range (n : ℕ) : (fin_range n).length = n :=
 by rw [fin_range, length_pmap, length_range]
 
-@[simp, to_additive list.sum_range_succ]
+@[to_additive list.sum_range_succ]
 theorem prod_range_succ {α : Type u} [monoid α] (f : ℕ → α) (n : ℕ) :
   ((range n.succ).map f).prod = ((range n).map f).prod * f n :=
 by rw [range_concat, ←concat_eq_append, map_concat, concat_eq_append,

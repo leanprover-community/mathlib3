@@ -20,15 +20,10 @@ localized "attribute [simp] le_refl" in le
 ```
 The code is inspired by code from Gabriel Ebner from the hott3 repository.
 -/
-import tactic.core
+import tactic.core meta.rb_map
 open lean lean.parser interactive tactic native
 
 reserve notation `localized`
-
-meta def rb_lmap.of_list {key : Type} {data : Type} [has_lt key]
-  [decidable_rel ((<) : key → key → Prop)] : list (key × data) → rb_lmap key data
-| []           := rb_lmap.mk key data
-| ((k, v)::ls) := rb_lmap.insert (rb_lmap.of_list ls) k v
 
 @[user_attribute]
 meta def localized_attr : user_attribute (rb_lmap name string) unit := {
@@ -54,8 +49,8 @@ def string_hash (s : string) : ℕ :=
 s.fold 1 (λ h c, (33*h + c.val) % unsigned_sz)
 
 /-- Add a new command to a notation namespace and execute it right now.
-  The information in a notation namespace is stored into a declaration `_localized_decl.<namespace>`.
-  This declaration has attribute `_localized` with as argument the list of commands. -/
+  The new command is added as a declaration to the environment with name `_localized_decl.<number>`.
+  This declaration has attribute `_localized` and as value a name-string pair. -/
 @[user_command] meta def localized_cmd (meta_info : decl_meta_info)
   (_ : parse $ tk "localized") : parser unit :=
 do cmd ← parser.pexpr, cmd ← i_to_expr cmd, cmd ← eval_expr string cmd,

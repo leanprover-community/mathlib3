@@ -132,6 +132,10 @@ end
   f a ∈ map f l ↔ a ∈ l :=
 ⟨λ m, let ⟨a', m', e⟩ := exists_of_mem_map m in H e ▸ m', mem_map_of_mem _⟩
 
+@[simp] lemma map_eq_nil {f : α → β} {l : list α} : list.map f l = [] ↔ l = [] :=
+⟨by cases l; simp only [forall_prop_of_true, map, forall_prop_of_false, not_false_iff],
+  λ h, h.symm ▸ rfl⟩
+
 @[simp] theorem mem_join {a : α} : ∀ {L : list (list α)}, a ∈ join L ↔ ∃ l, l ∈ L ∧ a ∈ l
 | []       := ⟨false.elim, λ⟨_, h, _⟩, false.elim h⟩
 | (c :: L) := by simp only [join, mem_append, @mem_join L, mem_cons_iff, or_and_distrib_right, exists_or_distrib, exists_eq_left]
@@ -971,6 +975,16 @@ by rw [nth_update_nth_eq, nth_le_nth h]; refl
 theorem nth_update_nth_ne (a : α) {m n} (l : list α) (h : m ≠ n) :
   nth (update_nth l m a) n = nth l n :=
 by simp only [update_nth_eq_modify_nth, nth_modify_nth_ne _ _ h]
+
+lemma mem_or_eq_of_mem_update_nth : ∀ {l : list α} {n : ℕ} {a b : α}
+  (h : a ∈ l.update_nth n b), a ∈ l ∨ a = b
+| []     n     a b h := false.elim h
+| (c::l) 0     a b h := ((mem_cons_iff _ _ _).1 h).elim
+  or.inr (or.inl ∘ mem_cons_of_mem _)
+| (c::l) (n+1) a b h := ((mem_cons_iff _ _ _).1 h).elim
+  (λ h, h ▸ or.inl (mem_cons_self _ _))
+  (λ h, (mem_or_eq_of_mem_update_nth h).elim
+    (or.inl ∘ mem_cons_of_mem _) or.inr)
 
 section insert_nth
 variable {a : α}
@@ -1834,6 +1848,12 @@ by rw [← filter_map_eq_map, filter_filter_map, filter_map_filter]; refl
 | [] := rfl
 | (a :: l) := by by_cases hp : p a; by_cases hq : q a; simp only [hp, hq, filter, if_true, if_false,
     true_and, false_and, filter_filter l, eq_self_iff_true]
+
+@[simp] lemma filter_true {h : decidable_pred (λ a : α, true)} (l : list α) : @filter α (λ _, true) h l = l :=
+by convert filter_eq_self.2 (λ _ _, trivial)
+
+@[simp] lemma filter_false {h : decidable_pred (λ a : α, false)} (l : list α) : @filter α (λ _, false) h l = [] :=
+by convert filter_eq_nil.2 (λ _ _, id)
 
 @[simp] theorem span_eq_take_drop (p : α → Prop) [decidable_pred p] : ∀ (l : list α), span p l = (take_while p l, drop_while p l)
 | []     := rfl
@@ -3930,6 +3950,10 @@ end
 theorem nodup_erase_of_nodup [decidable_eq α] (a : α) {l} : nodup l → nodup (l.erase a) :=
 nodup_of_sublist (erase_sublist _ _)
 
+theorem nodup_diff [decidable_eq α] : ∀ {l₁ l₂ : list α} (h : l₁.nodup), (l₁.diff l₂).nodup
+| l₁ []      h := h
+| l₁ (a::l₂) h := by rw diff_cons; exact nodup_diff (nodup_erase_of_nodup _ h)
+
 theorem mem_erase_iff_of_nodup [decidable_eq α] {a b : α} {l} (d : nodup l) :
   a ∈ l.erase b ↔ a ≠ b ∧ a ∈ l :=
 by rw nodup_erase_eq_filter b d; simp only [mem_filter, and_comm]
@@ -4002,6 +4026,31 @@ by rw [sublists'_eq_sublists, nodup_map_iff reverse_injective,
 lemma nodup_sublists_len {α : Type*} (n) {l : list α}
   (nd : nodup l) : (sublists_len n l).nodup :=
 nodup_of_sublist (sublists_len_sublist_sublists' _ _) (nodup_sublists'.2 nd)
+
+lemma diff_eq_filter_of_nodup [decidable_eq α] :
+  ∀ {l₁ l₂ : list α} (hl₁ : l₁.nodup), l₁.diff l₂ = l₁.filter (∉ l₂)
+| l₁ []      hl₁ := by simp
+| l₁ (a::l₂) hl₁ :=
+begin
+  rw [diff_cons, diff_eq_filter_of_nodup (nodup_erase_of_nodup _ hl₁),
+    nodup_erase_eq_filter _ hl₁, filter_filter],
+  simp only [mem_cons_iff, not_or_distrib, and.comm],
+  congr
+end
+
+lemma mem_diff_iff_of_nodup [decidable_eq α] {l₁ l₂ : list α} (hl₁ : l₁.nodup) {a : α} :
+  a ∈ l₁.diff l₂ ↔ a ∈ l₁ ∧ a ∉ l₂ :=
+by rw [diff_eq_filter_of_nodup hl₁, mem_filter]
+
+lemma nodup_update_nth : ∀ {l : list α} {n : ℕ} {a : α} (hl : l.nodup) (ha : a ∉ l),
+  (l.update_nth n a).nodup
+| []     n     a hl ha := nodup_nil
+| (b::l) 0     a hl ha := nodup_cons.2 ⟨mt (mem_cons_of_mem _) ha, (nodup_cons.1 hl).2⟩
+| (b::l) (n+1) a hl ha := nodup_cons.2
+  ⟨λ h, (mem_or_eq_of_mem_update_nth h).elim
+      (nodup_cons.1 hl).1
+      (λ hba, ha (hba ▸ mem_cons_self _ _)),
+    nodup_update_nth (nodup_cons.1 hl).2 (mt (mem_cons_of_mem _) ha)⟩
 
 end nodup
 
@@ -4189,6 +4238,18 @@ theorem reverse_range' : ∀ s n : ℕ,
     nil_append, eq_self_iff_true, true_and, map_map]
   using reverse_range' s n
 
+def fin_range (n : ℕ) : list (fin n) :=
+(range n).pmap fin.mk (λ _, list.mem_range.1)
+
+@[simp] lemma mem_fin_range {n : ℕ} (a : fin n) : a ∈ fin_range n :=
+mem_pmap.2 ⟨a.1, mem_range.2 a.2, fin.eta _ _⟩
+
+lemma nodup_fin_range (n : ℕ) : (fin_range n).nodup :=
+nodup_pmap (λ _ _ _ _, fin.veq_of_eq) (nodup_range _)
+
+@[simp] lemma length_fin_range (n : ℕ) : (fin_range n).length = n :=
+by rw [fin_range, length_pmap, length_range]
+
 /--
 `Ico n m` is the list of natural numbers `n ≤ x < m`.
 (Ico stands for "interval, closed-open".)
@@ -4236,7 +4297,7 @@ by simp [Ico, nat.sub_eq_zero_of_le h]
 theorem map_add (n m k : ℕ) : (Ico n m).map ((+) k) = Ico (n + k) (m + k) :=
 by rw [Ico, Ico, map_add_range', nat.add_sub_add_right, add_comm n k]
 
-theorem map_sub (n m k : ℕ) (h₁ : k ≤ n): (Ico n m).map (λ x, x - k) = Ico (n - k) (m - k) :=
+theorem map_sub (n m k : ℕ) (h₁ : k ≤ n) : (Ico n m).map (λ x, x - k) = Ico (n - k) (m - k) :=
 begin
   by_cases h₂ : n < m,
   { rw [Ico, Ico],

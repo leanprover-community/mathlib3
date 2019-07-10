@@ -20,17 +20,17 @@ include U
 
 instance Pi.uniform_space : uniform_space (Πi, α i) :=
 uniform_space.of_core_eq
-  (⨆i, uniform_space.comap (λ a : Πi, α i, a i) (U i)).to_core
-  Pi.topological_space $ eq.symm to_topological_space_supr
+  (⨅i, uniform_space.comap (λ a : Πi, α i, a i) (U i)).to_core
+  Pi.topological_space $ eq.symm to_topological_space_infi
 
 lemma Pi.uniformity :
   𝓤 (Π i, α i) = ⨅ i : ι, filter.comap (λ a, (a.1 i, a.2 i)) $ 𝓤 (α i) :=
-supr_uniformity
+infi_uniformity
 
 lemma Pi.uniform_continuous_proj (i : ι) : uniform_continuous (λ (a : Π (i : ι), α i), a i) :=
 begin
   rw uniform_continuous_iff,
-  apply le_supr (λ j, uniform_space.comap (λ (a : Π (i : ι), α i), a j) (U j))
+  exact infi_le (λ j, uniform_space.comap (λ (a : Π (i : ι), α i), a j) (U j)) i
 end
 
 lemma Pi.uniform_space_topology :

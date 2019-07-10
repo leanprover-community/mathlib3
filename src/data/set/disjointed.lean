@@ -39,6 +39,15 @@ lemma disjoint_disjointed {f : ℕ → set α} : pairwise (disjoint on disjointe
   exact h₃ _ (lt_of_le_of_ne h' h) h₁
 end
 
+lemma disjoint_disjointed' {f : ℕ → set α} :
+  ∀ i j, i ≠ j → (disjointed f i) ∩ (disjointed f j) = ∅ :=
+begin
+  assume i j hij, have := @disjoint_disjointed _ f i j hij,
+  rw [function.on_fun, disjoint_iff] at this, exact this
+end
+
+lemma disjointed_subset {f : ℕ → set α} {n : ℕ} : disjointed f n ⊆ f n := inter_subset_left _ _
+
 lemma Union_lt_succ {f : ℕ → set α} {n} : (⋃i < nat.succ n, f i) = f n ∪ (⋃i < n, f i) :=
 ext $ λ a, by simp [nat.lt_succ_iff_lt_or_eq, or_and_distrib_right, exists_or_distrib, or_comm]
 

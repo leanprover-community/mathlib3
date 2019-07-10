@@ -2792,6 +2792,9 @@ quot.induction_on s $ λ l, quot.sound $ perm_merge_sort _ _
 @[simp] theorem mem_sort {s : multiset α} {a : α} : a ∈ sort r s ↔ a ∈ s :=
 by rw [← mem_coe, sort_eq]
 
+@[simp] theorem length_sort {s : multiset α} : (sort r s).length = s.card :=
+quot.induction_on s $ length_merge_sort _
+
 end sort
 
 instance [has_repr α] : has_repr (multiset α) :=

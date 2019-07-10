@@ -544,60 +544,25 @@ ext $ λ n,
 begin
   simp only [coeff_mul],
   have := @finset.sum_sigma ((σ →₀ ℕ) × (σ →₀ ℕ)) α _ _ (diagonal n)
-    (λ p, diagonal (p.1)) (λ x, coeff x.1.1 φ₁ * coeff x.1.2 φ₂ * coeff x.2.2 φ₃),
+    (λ p, diagonal (p.1)) (λ x, coeff x.2.1 φ₁ * coeff x.2.2 φ₂ * coeff x.1.2 φ₃),
   convert this.symm using 1; clear this,
   { apply finset.sum_congr rfl,
-    intros p hp,
-    dsimp,
-    apply finset.sum_congr rfl,
-    dsimp, }
-  -- have bind_left := @finset.sum_bind ((σ →₀ ℕ) × (σ →₀ ℕ)) α (σ →₀ ℕ)
-  --   (λ p, (coeff p.2 φ₁ * coeff (p.1-p.2) φ₂) * coeff (n-p.1) φ₃)
-  --   _ _ (nat_downset n) (λ m, finset.product {m} (nat_downset m))
-  --   begin
-  --     intros, dsimp,
-  --     rw finset.eq_empty_iff_forall_not_mem,
-  --     intros p hp,
-  --     simp [finset.mem_inter, finset.mem_product] at hp,
-  --     rcases hp with ⟨⟨rfl, _⟩, ⟨rfl, _⟩⟩,
-  --     contradiction
-  --   end,
-  -- have bind_right := @finset.sum_bind ((σ →₀ ℕ) × (σ →₀ ℕ)) α (σ →₀ ℕ)
-  --   (λ p, (coeff p.1 φ₁ * coeff (p.2) φ₂) * coeff (n-p.1-p.2) φ₃)
-  --   _ _ (nat_downset n) (λ m, finset.product {m} (nat_downset (n-m)))
-  --   begin
-  --     intros, dsimp,
-  --     rw finset.eq_empty_iff_forall_not_mem,
-  --     intros p hp,
-  --     simp [finset.mem_inter, finset.mem_product] at hp,
-  --     rcases hp with ⟨⟨rfl, _⟩, ⟨rfl, _⟩⟩,
-  --     contradiction
-  --   end,
-  -- calc coeff n (φ₁ * φ₂ * φ₃) = bind_left.rhs :
-  --   begin
-  --     apply finset.sum_congr rfl,
-  --     intros m hm,
-  --     rw [coeff_mul, finset.sum_mul], symmetry,
-  --     apply finset.sum_bij (λ (p : (σ →₀ ℕ) × (σ →₀ ℕ)) hp, p.2),
-  --     { intros p hp, exact (finset.mem_product.1 hp).2 },
-  --     { intros p hp, erw [finset.mem_product, finset.mem_singleton] at hp, cases hp, subst m },
-  --     { rintros ⟨m₁,i₁⟩ ⟨m₂,i₂⟩ h₁ h₂ H, dsimp at *,
-  --       erw [finset.mem_product, finset.mem_singleton] at h₁ h₂,
-  --       dsimp at *, erw [h₁.1, h₂.1, H] },
-  --     { intros i hi, refine ⟨(m,i), _, rfl⟩,
-  --       { erw finset.mem_product, exact ⟨finset.mem_singleton_self m, hi⟩ } }
-  --   end
-  --   ... = bind_left.lhs : bind_left.symm
-  --   ... = bind_right.lhs :
-  --   begin
-  --     apply finset.sum_bij (λ p hp, _),
-
-  --   end
-  --   ... = bind_right.rhs : bind_right
-  --   ... = _ :
-  --   begin
-
-  --   end
+    intros p hp, exact finset.sum_mul },
+  have := @finset.sum_sigma ((σ →₀ ℕ) × (σ →₀ ℕ)) α _ _ (diagonal n)
+    (λ p, diagonal (p.2)) (λ x, coeff x.1.1 φ₁ * (coeff x.2.1 φ₂ * coeff x.2.2 φ₃)),
+  convert this.symm using 1; clear this,
+  { apply finset.sum_congr rfl, intros p hp, rw finset.mul_sum },
+  apply finset.sum_bij,
+  swap 5,
+  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, exact ⟨(k, l+j), (l, j)⟩ },
+  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, simp only [finset.mem_sigma, mem_diagonal] at H ⊢, finish },
+  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, rw mul_assoc },
+  { rintros ⟨⟨a,b⟩, ⟨c,d⟩⟩ ⟨⟨i,j⟩, ⟨k,l⟩⟩ H₁ H₂,
+    simp only [finset.mem_sigma, mem_diagonal,
+      and_imp, prod.mk.inj_iff, add_comm, heq_iff_eq] at H₁ H₂ ⊢,
+    finish },
+  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, refine ⟨⟨(i+k, l), (i, k)⟩, _, _⟩;
+    { simp only [finset.mem_sigma, mem_diagonal] at H ⊢, finish } }
 end
 
 instance : comm_semiring (mv_power_series σ α) :=
@@ -619,6 +584,8 @@ instance : comm_semiring (mv_power_series σ α) :=
   .. mv_power_series.has_mul σ α }
 
 end ring
+
+-- TODO(jmc): once adic topology lands, show that this is complete
 
 end mv_power_series
 

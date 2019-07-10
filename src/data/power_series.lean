@@ -5,6 +5,9 @@ Authors: Johan Commelin, Kenny Lau
 -/
 
 import data.finsupp order.complete_lattice algebra.ordered_group data.mv_polynomial
+import ring_theory.ideal_operations
+import linear_algebra.basis
+import algebra.CommRing.limits
 
 namespace eq
 variables {α : Type*} {a b : α}
@@ -589,6 +592,61 @@ end ring
 
 end mv_power_series
 
+namespace mv_power_series
+variables {σ : Type*} {α : Type*} [decidable_eq σ] [comm_ring α]
+
+protected def neg (φ : mv_power_series σ α) : mv_power_series σ α := λ n, - coeff n φ
+
+instance : has_neg (mv_power_series σ α) := ⟨mv_power_series.neg⟩
+
+@[simp] lemma coeff_neg (φ : mv_power_series σ α) (n) : coeff n (- φ) = - coeff n φ := rfl
+
+lemma add_left_neg (φ : mv_power_series σ α) : (-φ) + φ = 0 :=
+ext $ λ n, by rw [coeff_add, coeff_zero, coeff_neg, add_left_neg]
+
+instance : comm_ring (mv_power_series σ α) :=
+{ add_left_neg := add_left_neg,
+  .. mv_power_series.has_neg, .. mv_power_series.comm_semiring }
+
+end mv_power_series
+
+namespace mv_power_series
+open category_theory opposite
+variables (σ : Type) (α : Type) [decidable_eq σ] [comm_ring α]
+
+section limit
+
+def X_ideal : ideal (mv_power_series σ α) :=
+ideal.span $ set.image X set.univ
+
+def diagram : ℕᵒᵖ ⥤ CommRing :=
+{ obj := λ i, CommRing.of (ideal.quotient ((X_ideal σ α)^(unop i))),
+  map := λ i j h, ⟨ideal.quotient.lift _ (ideal.quotient.mk _)
+  begin
+    intros φ hφ,
+    erw ideal.quotient.eq_zero_iff_mem,
+    sorry
+  end, by apply_instance⟩ }
+.
+
+#print is_basis
+
+@[simp] lemma diagram_obj (i) :
+  (diagram σ α).obj i = CommRing.of (ideal.quotient ((X_ideal σ α)^(unop i))) := rfl
+
+def cone : limits.cone (diagram σ α) :=
+{ X := CommRing.of (mv_power_series σ α),
+  π := { app := λ i, ⟨ideal.quotient.mk _, by apply_instance⟩ } }
+
+def is_limit : limits.is_limit (cone σ α) :=
+{ lift := λ c, ⟨λ x n,
+  let N : ℕ := n.sum (λ _, id) in
+  _, _⟩ }
+
+end limit
+
+end mv_power_series
+
 namespace mv_polynomial
 open finsupp
 variables {σ : Type*} {α : Type*} [decidable_eq σ] [decidable_eq α] [comm_semiring α]
@@ -614,5 +672,37 @@ instance : is_semiring_hom (to_mv_power_series : mv_polynomial σ α → mv_powe
   by simp only [to_mv_power_series_coeff, mv_power_series.coeff_mul, coeff_mul] }
 
 end to_mv_power_series
+
+end mv_polynomial
+
+namespace mv_polynomial
+open category_theory opposite
+variables (σ : Type) (α : Type) [decidable_eq σ] [decidable_eq α] [comm_ring α]
+
+section limit
+
+def X_ideal : ideal (mv_polynomial σ α) :=
+ideal.span $ set.image X set.univ
+
+-- def diagram : ℕᵒᵖ ⥤ CommRing :=
+-- { obj := λ i, CommRing.of (ideal.quotient ((X_ideal σ α)^(unop i))),
+--   map := λ i j h,
+--   ⟨ideal.quotient.lift _ (ideal.quotient.mk ((X_ideal σ α)^(unop j)))
+--   begin
+--     intros φ hφ,
+--     erw ideal.quotient.eq_zero_iff_mem,
+--     sorry
+--   end, by apply_instance⟩,
+--   map_comp' := λ i j k hij hjk,
+--   begin
+--     sorry
+--   end }
+-- .
+
+-- def cone : limits.cone (diagram σ α) :=
+-- { X := CommRing.of (mv_power_series σ α),
+--   π := _ }
+
+end limit
 
 end mv_polynomial

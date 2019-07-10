@@ -125,23 +125,6 @@ instance ulift_category : category.{v} (ulift.{u'} C) :=
 example (D : Type u) [small_category D] : large_category (ulift.{u+1} D) := by apply_instance
 end
 
-section
-variables {C : Type u}
-
-def End [has_hom.{v} C] (X : C) := X ⟶ X
-
-instance End.has_one [category_struct.{v+1} C] {X : C} : has_one (End X) := by refine { one := 𝟙 X }
-/-- Multiplication of endomorphisms agrees with `function.comp`, not `category_struct.comp`. -/
-instance End.has_mul [category_struct.{v+1} C] {X : C} : has_mul (End X) := by refine { mul := λ x y, y ≫ x }
-instance End.monoid [category.{v+1} C] {X : C} : monoid (End X) :=
-by refine { .. End.has_one, .. End.has_mul, .. }; dsimp [has_mul.mul,has_one.one]; obviously
-
-@[simp] lemma End.one_def {C : Type u} [category_struct.{v+1} C] {X : C} : (1 : End X) = 𝟙 X := rfl
-
-@[simp] lemma End.mul_def {C : Type u} [category_struct.{v+1} C] {X : C} (xs ys : End X) : xs * ys = ys ≫ xs := rfl
-
-end
-
 end category_theory
 
 open category_theory

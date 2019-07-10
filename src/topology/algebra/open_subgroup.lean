@@ -81,7 +81,7 @@ begin
   use (λ y, y * (x⁻¹ * g)) ⁻¹' U,
   split,
   { intros u hu,
-    erw set.mem_preimage_eq at hu,
+    erw set.mem_preimage at hu,
     replace hu := hU hu,
     replace hg := hU hg,
     have : (x⁻¹ * g)⁻¹ ∈ s,
@@ -91,7 +91,7 @@ begin
   { apply continuous_mul continuous_id continuous_const,
     { exact U.property },
     { apply_instance } },
-  { erw set.mem_preimage_eq,
+  { erw set.mem_preimage,
     convert hg,
     rw [← mul_assoc, mul_right_inv, one_mul] }
 end
@@ -110,14 +110,13 @@ begin
   use (λ y, y * x⁻¹) ⁻¹' U,
   split,
   { intros u hux,
-    erw set.mem_preimage_eq at hux,
+    erw set.mem_preimage at hux,
     rw set.mem_compl_iff at hx ⊢,
     intro hu, apply hx,
     convert is_submonoid.mul_mem (is_subgroup.inv_mem hux) hu,
     simp },
   split,
-  { -- TODO(jmc): Use continuous_mul_right once #1065 has landed.
-    exact continuous_mul continuous_id continuous_const _ U.is_open },
+  { exact (continuous_mul_right _) _ U.is_open },
   { simpa using is_submonoid.one_mem (U : set G) }
 end
 

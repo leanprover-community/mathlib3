@@ -152,6 +152,8 @@ instance (α : Type*) [decidable_linear_order α] : decidable_linear_order (orde
   decidable_lt := show decidable_rel (λa b:α, b < a), by apply_instance,
   .. order_dual.linear_order α }
 
+instance : Π [inhabited α], inhabited (order_dual α) := id
+
 end order_dual
 
 /- order instances on the function space -/

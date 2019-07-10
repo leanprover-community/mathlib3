@@ -71,6 +71,9 @@ lemma plift.down_inj {α : Sort*} : ∀ (a b : plift α), a.down = b.down → a 
 @[simp] lemma nonempty_pempty : ¬ nonempty pempty :=
 assume ⟨h⟩, h.elim
 
+-- missing [symm] attribute for ne in core.
+attribute [symm] ne.symm
+
 end miscellany
 
 /-

@@ -21,24 +21,27 @@ localized "attribute [simp] le_refl" in le
 The code is inspired by code from Gabriel Ebner from the hott3 repository.
 -/
 import tactic.core
-open lean lean.parser interactive tactic
+open lean lean.parser interactive tactic native
 
 reserve notation `localized`
 
+meta def rb_lmap.of_list {key : Type} {data : Type} [has_lt key]
+  [decidable_rel ((<) : key → key → Prop)] : list (key × data) → rb_lmap key data
+| []           := rb_lmap.mk key data
+| ((k, v)::ls) := rb_lmap.insert (rb_lmap.of_list ls) k v
+
 @[user_attribute]
-meta def localized_attr : user_attribute unit (list string) := {
-    name := "_localized",
-    descr := "(interal) attribute that flags localized commands",
-    parser := return list.nil
+meta def localized_attr : user_attribute (rb_lmap name string) unit := {
+  name := "_localized",
+  descr := "(interal) attribute that flags localized commands",
+  cache_cfg := ⟨λ ns, (do dcls ← ns.mmap (λ n, mk_const n >>= eval_expr (name × string)),
+                          return $ rb_lmap.of_list dcls), []⟩
 }
 
 /-- Get all commands in the given notation namespace and return them as a list of strings -/
 meta def get_localized (ns : list name) : tactic (list string) :=
-do env ← get_env,
-   attr ← eval_expr (user_attribute unit (list string)) `(localized_attr),
-   let ns := ns.filter $ λ nm, env.contains $ "_localized_decl" ++ nm,
-   decls : list (list string) ← ns.mmap $ λ nm, attr.get_param $ "_localized_decl" ++ nm,
-   return decls.join
+do m ← localized_attr.get_cache,
+   return (ns.bind $ λ nm, m.find nm)
 
 /-- Execute all commands in the given notation namespace -/
 @[user_command] meta def open_notation_cmd (meta_info : decl_meta_info)
@@ -46,6 +49,9 @@ do env ← get_env,
 do ns ← many ident,
    cmds ← get_localized ns,
    cmds.mmap' emit_code_here
+
+def string_hash (s : string) : ℕ :=
+s.fold 1 (λ h c, (33*h + c.val) % unsigned_sz)
 
 /-- Add a new command to a notation namespace and execute it right now.
   The information in a notation namespace is stored into a declaration `_localized_decl.<namespace>`.
@@ -58,15 +64,11 @@ do cmd ← parser.pexpr, cmd ← i_to_expr cmd, cmd ← eval_expr string cmd,
    tk "in",
    nm ← ident,
    env ← get_env,
-   attr ← eval_expr (user_attribute unit (list string)) `(localized_attr),
-   let decl_nm : name := "_localized_decl" ++ nm,
-   if env.contains decl_nm then
-    (do l ← attr.get_param decl_nm,
-        attr.set decl_nm (cmd::l) tt)
-   else
-    (do let decl := mk_definition decl_nm [] `(unit) `(unit.star),
-        add_decl $ decl,
-        attr.set decl_nm [cmd] tt)
+   let dummy_decl_name := mk_num_name `_localized_decl
+     ((string_hash (cmd ++ nm.to_string) + env.fingerprint) % unsigned_sz),
+   add_decl (declaration.defn dummy_decl_name [] `(name × string)
+    (reflect (⟨nm, cmd⟩ : name × string)) (reducibility_hints.regular 1 tt) ff),
+   localized_attr.set dummy_decl_name unit.star tt
 
 /-- Print all commands in a given notation namespace -/
 meta def print_localized_commands (ns : list name) : tactic unit :=

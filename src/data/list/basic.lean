@@ -4253,7 +4253,7 @@ by rw [fin_range, length_pmap, length_range]
 @[to_additive list.sum_range_succ]
 theorem prod_range_succ {α : Type u} [monoid α] (f : ℕ → α) (n : ℕ) :
   ((range n.succ).map f).prod = ((range n).map f).prod * f n :=
-by rw [range_concat, ←concat_eq_append, map_concat, concat_eq_append,
+by rw [range_concat, map_append, map_singleton,
   prod_append, prod_cons, prod_nil, mul_one]
 
 /--

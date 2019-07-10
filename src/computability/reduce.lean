@@ -58,11 +58,7 @@ theorem computable_of_many_one_reducible
 theorem computable_of_one_one_reducible
   {p q : α → Prop} 
   (h₁ : p ≤₁ q) (h₂ : computable_pred q) : computable_pred p := 
-  begin
-    rcases h₁ with ⟨f, c, hinj, hf⟩,
-    apply computable_of_many_one_reducible _ h₂,
-    use f, exact ⟨c, hf⟩
-  end
+  by { rcases h₁ with ⟨f, c, hinj, hf⟩, apply computable_of_many_one_reducible ⟨f, c, hf⟩ h₂ }
 
 end computable_pred
 
@@ -92,7 +88,7 @@ local infix ` ⊕ `:1001 := disjoin
 theorem mem_disjoin_left {p q : set ℕ} {n : ℕ} (h₁ : ¬nat.bodd n) (h₂ : (p ⊕ q) n) : p (nat.div2 n) :=
 begin
   cases h₂,
-  { rcases h₂ with ⟨w, hl, hr⟩, rw ←hr,  dsimp, rw ←nat.bit0_val, rw nat.div2_bit0, exact hl},
+  { rcases h₂ with ⟨w, hl, hr⟩, rw ←hr,  dsimp, rw ←nat.bit0_val, rw nat.div2_bit0, exact hl },
   { rcases h₂ with ⟨w, hl, hr⟩, rw ←hr at h₁, simp at h₁, contradiction }
 end
 
@@ -168,8 +164,8 @@ begin
    { intro h, cases heq : nat.bodd a,
      { simp [heq] at h, left, rw ←hr₁ at h, 
        use nat.div2 a, split, exact h,
-       have := nat.bodd_add_div2 a, simp [heq] at this, simp [this] },
+       simpa [heq] using nat.bodd_add_div2 a },
      { simp [heq] at h, right, rw ←hr₂ at h, 
        use nat.div2 a, split, exact h,
-       have := nat.bodd_add_div2 a, simp [heq] at this, simp [this] } } }
+       simpa [heq] using nat.bodd_add_div2 a } } }
 end

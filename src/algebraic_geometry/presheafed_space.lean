@@ -61,6 +61,8 @@ variables (C)
 section
 local attribute [simp] id comp presheaf.pushforward
 
+/- Ihis proof is filled in by the `tidy` hole command and modified for performance.
+   It should not remain like this. -/
 instance category_of_PresheafedSpaces : category (PresheafedSpace.{v} C) :=
 { hom := hom,
   id := id,
@@ -152,6 +154,8 @@ local attribute [simp] PresheafedSpace.id_c PresheafedSpace.comp_c presheaf.push
 
 namespace functor
 
+/- Ihis proof is filled in by the `tidy` hole command and modified for performance.
+   It should not remain like this. -/
 def map_presheaf (F : C ⥤ D) : PresheafedSpace.{v} C ⥤ PresheafedSpace.{v} D :=
 { obj := λ X, { to_Top := X.to_Top, 𝒪 := X.𝒪 ⋙ F },
   map := λ X Y f, { f := f.f, c := whisker_right f.c F },
@@ -188,6 +192,8 @@ end functor
 
 namespace nat_trans
 
+/- Ihis proof is filled in by the `tidy` hole command and modified for performance.
+   It should not remain like this. -/
 def on_presheaf {F G : C ⥤ D} (α : F ⟶ G) : G.map_presheaf ⟶ F.map_presheaf :=
 { app := λ X,
   { f := 𝟙 _,

@@ -54,7 +54,7 @@ lemma ext_iff {f g : pequiv α β} : f = g ↔ ∀ x, f x = g x :=
   inv_fun := f.1,
   inv := λ _ _, (f.inv _ _).symm }
 
-lemma mem_iff_mem (f : pequiv α β) : ∀ {a : α} {b : β}, a ∈ f.symm b ↔ b ∈ f a:= f.3
+lemma mem_iff_mem (f : pequiv α β) : ∀ {a : α} {b : β}, a ∈ f.symm b ↔ b ∈ f a := f.3
 
 lemma eq_some_iff (f : pequiv α β) : ∀ {a : α} {b : β}, f.symm b = some a ↔ f a = some b := f.3
 

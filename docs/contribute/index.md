@@ -29,7 +29,7 @@ for more details.
 In the `mathlib` git repository, you can run the following in a terminal:
 
 ```sh
-$ scripts/setup-dev-scripts.sh
+$ curl https://raw.githubusercontent.com/leanprover-community/mathlib-tools/master/scripts/remote-install-update-mathlib.sh -sSf | bash
 $ source ~/.profile
 $ setup-lean-git-hooks
 ```

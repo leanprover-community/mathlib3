@@ -24,11 +24,11 @@ def of (X : Type u) [topological_space X] : Top := ⟨X⟩
 abbreviation forget : Top.{u} ⥤ Type u := forget
 
 def discrete : Type u ⥤ Top.{u} :=
-{ obj := λ X, ⟨X, ⊤⟩,
-  map := λ X Y f, ⟨f, continuous_top⟩ }
-
-def trivial : Type u ⥤ Top.{u} :=
 { obj := λ X, ⟨X, ⊥⟩,
   map := λ X Y f, ⟨f, continuous_bot⟩ }
+
+def trivial : Type u ⥤ Top.{u} :=
+{ obj := λ X, ⟨X, ⊤⟩,
+  map := λ X Y f, ⟨f, continuous_top⟩ }
 
 end Top

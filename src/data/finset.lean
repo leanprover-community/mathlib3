@@ -141,6 +141,9 @@ theorem subset_empty {s : finset α} : s ⊆ ∅ ↔ s = ∅ := subset_zero.tran
 theorem exists_mem_of_ne_empty {s : finset α} (h : s ≠ ∅) : ∃ a : α, a ∈ s :=
 exists_mem_of_ne_zero (mt val_eq_zero.1 h)
 
+theorem exists_mem_iff_ne_empty {s : finset α} : (∃ a : α, a ∈ s) ↔ ¬s = ∅ :=
+⟨λ ⟨a, ha⟩, ne_empty_of_mem ha, exists_mem_of_ne_empty⟩
+
 @[simp] lemma coe_empty : ↑(∅ : finset α) = (∅ : set α) := rfl
 
 lemma nonempty_iff_ne_empty (s : finset α) : nonempty (↑s : set α) ↔ s ≠ ∅  :=
@@ -1614,6 +1617,9 @@ list.to_finset_eq (sort_nodup r s) ▸ eq_of_veq (sort_eq r s)
 @[simp] theorem mem_sort {s : finset α} {a : α} : a ∈ sort r s ↔ a ∈ s :=
 multiset.mem_sort _
 
+@[simp] theorem length_sort {s : finset α} : (sort r s).length = s.card :=
+multiset.length_sort _
+
 end sort
 
 section disjoint
@@ -1797,7 +1803,7 @@ namespace Ico
 theorem image_add (n m k : ℕ) : (Ico n m).image ((+) k) = Ico (n + k) (m + k) :=
 by simp [image, multiset.Ico.map_add]
 
-theorem image_sub (n m k : ℕ) (h : k ≤ n): (Ico n m).image (λ x, x - k) = Ico (n - k) (m - k) :=
+theorem image_sub (n m k : ℕ) (h : k ≤ n) : (Ico n m).image (λ x, x - k) = Ico (n - k) (m - k) :=
 begin
   dsimp [image],
   rw [multiset.Ico.map_sub _ _ _ h, ←multiset.to_finset_eq],

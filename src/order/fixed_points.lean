@@ -144,9 +144,9 @@ def prev_fixed (hf : monotone f) (a : α) (h : f a ≤ a) : fixed_points f :=
 theorem next_le {x : α} : x ≤ next f x := le_lfp $ λ z hz, le_trans le_sup_left hz
 
 lemma next_eq (hf : monotone f) {a : α} (h : a ≤ f a) : next f a = f (next f a) :=
-calc next f a = a ⊔ f (next f a):
+calc next f a = a ⊔ f (next f a) :
     lfp_eq $ show monotone (λz, a ⊔ f z), from assume x y h, sup_le_sup (le_refl _) (hf h)
- ... = f (next f a):
+ ... = f (next f a) :
     by rw [sup_of_le_right]; exact le_trans h (hf next_le)
 
 def next_fixed (hf : monotone f) (a : α) (h : a ≤ f a) : fixed_points f :=

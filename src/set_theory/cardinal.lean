@@ -97,7 +97,7 @@ instance : has_mul cardinal.{u} :=
 ⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, mk (α × β)) $ assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
   quotient.sound ⟨equiv.prod_congr e₁ e₂⟩⟩
 
-@[simp] theorem mul_def (α β) : mk α * mk β = mk (α × β) := rfl
+@[simp] theorem mul_def (α β : Type u) : mk α * mk β = mk (α × β) := rfl
 
 private theorem add_comm (a b : cardinal.{u}) : a + b = b + a :=
 quotient.induction_on₂ a b $ assume α β, quotient.sound ⟨equiv.sum_comm α β⟩
@@ -498,8 +498,17 @@ le_antisymm
   end)
   (succ_le.2 $ lift_lt.2 $ lt_succ_self _)
 
+@[simp] theorem lift_max {a : cardinal.{u}} {b : cardinal.{v}} :
+  lift.{u (max v w)} a = lift.{v (max u w)} b ↔ lift.{u v} a = lift.{v u} b :=
+calc lift.{u (max v w)} a = lift.{v (max u w)} b
+  ↔ lift.{(max u v) w} (lift.{u v} a)
+    = lift.{(max u v) w} (lift.{v u} b) : by simp
+  ... ↔ lift.{u v} a = lift.{v u} b : lift_inj
+
 /-- `ω` is the smallest infinite cardinal, also known as ℵ₀. -/
 def omega : cardinal.{u} := lift (mk ℕ)
+
+lemma mk_nat : mk nat = omega := (lift_id _).symm
 
 theorem omega_ne_zero : omega ≠ 0 :=
 ne_zero_iff_nonempty.2 ⟨⟨0⟩⟩
@@ -635,12 +644,25 @@ match a, b, lt_omega.1 ha, lt_omega.1 hb with
 | _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat_cast_pow]; apply nat_lt_omega
 end
 
+theorem infinite_iff {α : Type u} : infinite α ↔ omega ≤ mk α :=
+by rw [←not_lt, lt_omega_iff_fintype, not_nonempty_fintype]
+
 lemma countable_iff (s : set α) : countable s ↔ mk s ≤ omega :=
 begin
   rw [countable_iff_exists_injective], split,
   rintro ⟨f, hf⟩, exact ⟨embedding.trans ⟨f, hf⟩ equiv.ulift.symm.to_embedding⟩,
   rintro ⟨f'⟩, cases embedding.trans f' equiv.ulift.to_embedding with f hf, exact ⟨f, hf⟩
 end
+
+lemma denumerable_iff {α : Type u} : nonempty (denumerable α) ↔ mk α = omega :=
+⟨λ⟨h⟩, quotient.sound $ by exactI ⟨ (denumerable.eqv α).trans equiv.ulift.symm ⟩,
+ λ h, by { cases quotient.exact h with f, exact ⟨denumerable.mk' $ f.trans equiv.ulift⟩ }⟩
+
+lemma mk_int : mk ℤ = omega :=
+denumerable_iff.mp ⟨by apply_instance⟩
+
+lemma mk_pnat : mk ℕ+ = omega :=
+denumerable_iff.mp ⟨by apply_instance⟩
 
 lemma two_le_iff : (2 : cardinal) ≤ mk α ↔ ∃x y : α, x ≠ y :=
 begin
@@ -740,6 +762,14 @@ mk_le_of_surjective surjective_onto_range
 
 lemma mk_range_eq (f : α → β) (h : injective f) : mk (range f) = mk α :=
 quotient.sound ⟨(equiv.set.range f h).symm⟩
+
+lemma mk_range_eq_of_inj {α : Type u} {β : Type v} {f : α → β} (hf : injective f) :
+  lift.{v u} (mk (range f)) = lift.{u v} (mk α) :=
+begin
+  have := (@lift_mk_eq.{v u max u v} (range f) α).2 ⟨(equiv.set.range f hf).symm⟩,
+  simp only [lift_umax.{u v}, lift_umax.{v u}] at this,
+  exact this
+end
 
 theorem mk_image_eq {α β : Type u} {f : α → β} {s : set α} (hf : injective f) :
   mk (f '' s) = mk s :=

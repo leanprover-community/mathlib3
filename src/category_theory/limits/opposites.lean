@@ -12,7 +12,7 @@ open opposite
 
 namespace category_theory.limits
 
-variables {C : Sort u} [𝒞 : category.{v+1} C]
+variables {C : Type u} [𝒞 : category.{v+1} C]
 include 𝒞
 variables {J : Type v} [small_category J]
 variable (F : J ⥤ Cᵒᵖ)
@@ -77,14 +77,14 @@ instance has_coproducts_opposite [has_limits_of_shape (discrete X) C] :
   has_colimits_of_shape (discrete X) Cᵒᵖ :=
 begin
   haveI : has_limits_of_shape (discrete X)ᵒᵖ C :=
-    has_limits_of_shape_of_equivalence(discrete.opposite X).symm, apply_instance
+    has_limits_of_shape_of_equivalence (discrete.opposite X).symm, apply_instance
 end
 
 instance has_products_opposite [has_colimits_of_shape (discrete X) C] :
   has_limits_of_shape (discrete X) Cᵒᵖ :=
 begin
   haveI : has_colimits_of_shape (discrete X)ᵒᵖ C :=
-    has_colimits_of_shape_of_equivalence(discrete.opposite X).symm, apply_instance
+    has_colimits_of_shape_of_equivalence (discrete.opposite X).symm, apply_instance
 end
 
 

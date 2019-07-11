@@ -17,6 +17,11 @@ instance punit.unique : unique punit.{u} :=
 { default := punit.star,
   uniq := λ x, punit_eq x _ }
 
+instance fin.unique : unique (fin 1) :=
+{ default := 0,
+  uniq := λ ⟨n, hn⟩, fin.eq_of_veq 
+    (nat.eq_zero_of_le_zero (nat.le_of_lt_succ hn)) }
+
 namespace unique
 open function
 

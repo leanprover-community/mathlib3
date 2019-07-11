@@ -17,7 +17,7 @@ open category_theory
 -- not into `Sort v`.
 -- So we don't allow this case; it's not particularly useful anyway.
 variables {J : Type v} [small_category J]
-variables {C : Sort u} [𝒞 : category.{v+1} C]
+variables {C : Type u} [𝒞 : category.{v+1} C]
 include 𝒞
 
 open category_theory
@@ -227,7 +227,7 @@ def postcompose {G : J ⥤ C} (α : F ⟶ G) : cone F ⥤ cone G :=
 @[simp] lemma postcompose_obj_π {G : J ⥤ C} (α : F ⟶ G) (c : cone F) :
   ((postcompose α).obj c).π = c.π ≫ α := rfl
 
-@[simp] lemma postcompose_map_hom {G : J ⥤ C} (α : F ⟶ G) {c₁ c₂ : cone F} (f : c₁ ⟶ c₂):
+@[simp] lemma postcompose_map_hom {G : J ⥤ C} (α : F ⟶ G) {c₁ c₂ : cone F} (f : c₁ ⟶ c₂) :
   ((postcompose α).map f).hom = f.hom := rfl
 
 def postcompose_comp {G H : J ⥤ C} (α : F ⟶ G) (β : G ⟶ H) :
@@ -252,7 +252,7 @@ def forget : cone F ⥤ C :=
 @[simp] lemma forget_map {s t : cone F} {f : s ⟶ t} : forget.map f = f.hom := rfl
 
 section
-variables {D : Sort u'} [𝒟 : category.{v+1} D]
+variables {D : Type u'} [𝒟 : category.{v+1} D]
 include 𝒟
 
 @[simp] def functoriality (G : C ⥤ D) : cone F ⥤ cone (F ⋙ G) :=
@@ -334,7 +334,7 @@ def forget : cocone F ⥤ C :=
 @[simp] lemma forget_map {s t : cocone F} {f : s ⟶ t} : forget.map f = f.hom := rfl
 
 section
-variables {D : Sort u'} [𝒟 : category.{v+1} D]
+variables {D : Type u'} [𝒟 : category.{v+1} D]
 include 𝒟
 
 @[simp] def functoriality (G : C ⥤ D) : cocone F ⥤ cocone (F ⋙ G) :=
@@ -351,7 +351,7 @@ end limits
 
 namespace functor
 
-variables {D : Sort u'} [category.{v+1} D]
+variables {D : Type u'} [category.{v+1} D]
 variables {F : J ⥤ C} {G : J ⥤ C} (H : C ⥤ D)
 
 open category_theory.limits
@@ -360,6 +360,19 @@ open category_theory.limits
 def map_cone   (c : cone F)   : cone (F ⋙ H)   := (cones.functoriality H).obj c
 /-- The image of a cocone in C under a functor G : C ⥤ D is a cocone in D. -/
 def map_cocone (c : cocone F) : cocone (F ⋙ H) := (cocones.functoriality H).obj c
+
+@[simp] lemma map_cone_X (c : cone F) : (H.map_cone c).X = H.obj c.X := rfl
+@[simp] lemma map_cocone_X (c : cocone F) : (H.map_cocone c).X = H.obj c.X := rfl
+
+def map_cone_inv [is_equivalence H]
+  (c : cone (F ⋙ H)) : cone F :=
+let t := (inv H).map_cone c in
+let α : (F ⋙ H) ⋙ inv H ⟶ F :=
+  ((whisker_left F (is_equivalence.unit_iso H).inv) : F ⋙ (H ⋙ inv H) ⟶ _) ≫ (functor.right_unitor _).hom in
+{ X := t.X,
+  π := ((category_theory.cones J C).map α).app (op t.X) t.π }
+
+@[simp] lemma map_cone_inv_X [is_equivalence H] (c : cone (F ⋙ H)) : (H.map_cone_inv c).X = (inv H).obj c.X := rfl
 
 def map_cone_morphism   {c c' : cone F}   (f : cone_morphism c c')   :
   cone_morphism   (H.map_cone c)   (H.map_cone c')   := (cones.functoriality H).map f

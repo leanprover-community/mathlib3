@@ -375,7 +375,7 @@ instance : normed_field ℝ :=
 instance : nondiscrete_normed_field ℝ :=
 { non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
 
-lemma real.norm_eq_abs (r : ℝ): norm r = abs r := rfl
+lemma real.norm_eq_abs (r : ℝ) : norm r = abs r := rfl
 
 end normed_field
 

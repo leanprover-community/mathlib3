@@ -168,6 +168,17 @@ end semilattice_sup_bot
 instance nat.semilattice_sup_bot : semilattice_sup_bot ℕ :=
 { bot := 0, bot_le := nat.zero_le, .. nat.distrib_lattice }
 
+private def bot_aux (s : set ℕ) [decidable_pred s] [h : nonempty s] : s :=
+have ∃ x, x ∈ s, from nonempty.elim h (λ x, ⟨x.1, x.2⟩),
+⟨nat.find this, nat.find_spec this⟩
+
+instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred s] [h : nonempty s] :
+  semilattice_sup_bot s :=
+{ bot := bot_aux s,
+  bot_le := λ x, nat.find_min' _ x.2,
+  ..subtype.linear_order s,
+  ..lattice.lattice_of_decidable_linear_order }
+
 /-- A `semilattice_inf_top` is a semilattice with top and meet. -/
 class semilattice_inf_top (α : Type u) extends order_top α, semilattice_inf α
 
@@ -726,4 +737,3 @@ instance [bounded_distrib_lattice α] [bounded_distrib_lattice β] :
 { .. prod.lattice.bounded_lattice α β, .. prod.lattice.distrib_lattice α β }
 
 end prod
-

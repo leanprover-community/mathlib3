@@ -28,7 +28,7 @@ def sections (F : J ⥤ Type w) : set (Π j, F.obj j) :=
 end functor
 
 namespace functor_to_types
-variables {C : Sort u} [𝒞 : category.{v} C] (F G H : C ⥤ Sort w) {X Y Z : C}
+variables {C : Type u} [𝒞 : category.{v} C] (F G H : C ⥤ Sort w) {X Y Z : C}
 include 𝒞
 variables (σ : F ⟶ G) (τ : G ⟶ H)
 
@@ -43,7 +43,7 @@ congr_fun (σ.naturality f) x
 
 @[simp] lemma comp (x : F.obj X) : (σ ≫ τ).app X x = τ.app X (σ.app X x) := rfl
 
-variables {D : Sort u'} [𝒟 : category.{u'} D] (I J : D ⥤ C) (ρ : I ⟶ J) {W : D}
+variables {D : Type u'} [𝒟 : category.{u'} D] (I J : D ⥤ C) (ρ : I ⟶ J) {W : D}
 
 @[simp] lemma hcomp (x : (I ⋙ F).obj W) : (ρ ◫ σ).app W x = (G.map (ρ.app W)) (σ.app (I.obj W) x) := rfl
 
@@ -55,12 +55,13 @@ def ulift_functor : Type u ⥤ Type (max u v) :=
 { obj := λ X, ulift.{v} X,
   map := λ X Y f, λ x : ulift.{v} X, ulift.up (f x.down) }
 
-@[simp] lemma ulift_functor.map {X Y : Type u} (f : X ⟶ Y) (x : ulift.{v} X) :
+@[simp] lemma ulift_functor_map {X Y : Type u} (f : X ⟶ Y) (x : ulift.{v} X) :
   ulift_functor.map f x = ulift.up (f x.down) := rfl
 
-instance ulift_functor_faithful : fully_faithful ulift_functor :=
-{ preimage := λ X Y f x, (f (ulift.up x)).down,
-  injectivity' := λ X Y f g p, funext $ λ x,
+instance ulift_functor_full : full ulift_functor :=
+{ preimage := λ X Y f x, (f (ulift.up x)).down }
+instance ulift_functor_faithful : faithful ulift_functor :=
+{ injectivity' := λ X Y f g p, funext $ λ x,
     congr_arg ulift.down ((congr_fun p (ulift.up x)) : ((ulift.up (f x)) = (ulift.up (g x)))) }
 
 def hom_of_element {X : Type u} (x : X) : punit ⟶ X := λ _, x

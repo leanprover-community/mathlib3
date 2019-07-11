@@ -45,7 +45,7 @@ instance (X Y : walking_cospan) : subsingleton (X ⟶ Y) := by tidy
 -- failure in `cospan`, below.
 lemma hom_id (X : walking_cospan.{v}) : hom.id X = 𝟙 X := rfl
 
-instance : small_category.{v+1} walking_cospan.{v} := sparse_category
+instance : small_category.{v} walking_cospan.{v} := sparse_category
 
 end walking_cospan
 
@@ -75,13 +75,13 @@ instance (X Y : walking_span) : subsingleton (X ⟶ Y) := by tidy
 -- failure in `span`, below.
 lemma hom_id (X : walking_span.{v}) : hom.id X = 𝟙 X := rfl
 
-instance : small_category.{v+1} walking_span.{v} := sparse_category
+instance : small_category.{v} walking_span.{v} := sparse_category
 
 end walking_span
 
 open walking_span walking_cospan walking_span.hom walking_cospan.hom
 
-variables {C : Sort u} [𝒞 : category.{v+1} C]
+variables {C : Type u} [𝒞 : category.{v+1} C]
 include 𝒞
 
 def cospan {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) : walking_cospan.{v} ⥤ C :=
@@ -198,7 +198,7 @@ def cone.of_pullback_cone
     end } }.
 
 @[simp] lemma cone.of_pullback_cone_π
-  {F : walking_cospan.{v} ⥤ C} (t : pullback_cone (F.map inl) (F.map inr)) (j):
+  {F : walking_cospan.{v} ⥤ C} (t : pullback_cone (F.map inl) (F.map inr)) (j) :
   (cone.of_pullback_cone t).π.app j = t.π.app j ≫ eq_to_hom (by tidy) := rfl
 
 def cocone.of_pushout_cocone
@@ -214,7 +214,7 @@ def cocone.of_pushout_cocone
     end } }.
 
 @[simp] lemma cocone.of_pushout_cocone_ι
-  {F : walking_span.{v} ⥤ C} (t : pushout_cocone (F.map fst) (F.map snd)) (j):
+  {F : walking_span.{v} ⥤ C} (t : pushout_cocone (F.map fst) (F.map snd)) (j) :
   (cocone.of_pushout_cocone t).ι.app j = eq_to_hom (by tidy) ≫ t.ι.app j := rfl
 
 def pullback_cone.of_cone

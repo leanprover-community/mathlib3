@@ -6,8 +6,6 @@ Authors: Sébastien Gouëzel
 The mean value inequality: a bound on the derivative of a function implies that this function
 is Lipschitz continuous for the same bound.
 -/
-
-
 import analysis.calculus.deriv
 
 set_option class.instance_max_depth 90
@@ -16,7 +14,6 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E]
           {F : Type*} [normed_group F] [normed_space ℝ F]
 
 open metric set lattice asymptotics continuous_linear_map
-
 
 /-- The mean value theorem along a segment: a bound on the derivative of a function along a segment
 implies a bound on the distance of the endpoints images -/

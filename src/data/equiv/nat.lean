@@ -31,8 +31,8 @@ int_equiv_nat_sum_nat.trans nat_sum_nat_equiv_nat
 
 def prod_equiv_of_equiv_nat {α : Sort*} (e : α ≃ ℕ) : α × α ≃ α :=
 calc α × α ≃ ℕ × ℕ : prod_congr e e
-      ...  ≃ ℕ       : nat_prod_nat_equiv_nat
-      ...  ≃ α       : e.symm
+      ...  ≃ ℕ     : nat_prod_nat_equiv_nat
+      ...  ≃ α     : e.symm
 
 def pnat_equiv_nat : ℕ+ ≃ ℕ :=
 ⟨λ n, pred n.1, succ_pnat,

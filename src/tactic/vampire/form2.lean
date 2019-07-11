@@ -63,6 +63,9 @@ def holds : model α → form₂ → Prop
 | M (∀* p)   := ∀ x : value α, holds (M ₀↦ x) p
 | M (∃* p)   := ∃ x : value α, holds (M ₀↦ x) p
 
+def fholds (k : nat) (M : model α) (v : vas α) (p : form₂) : Prop :=
+holds (fmodel k _ M v) p
+
 infix `⊨` : 1000 := holds
 
 @[reducible] def size_of : form₂ → nat

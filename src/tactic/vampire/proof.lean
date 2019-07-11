@@ -88,3 +88,19 @@ begin
 end
 
 end vampire
+
+#exit
+
+
+
+
+proof vlth (x ++ m) []
+
+¬ ∃ u. ∀ v. v::u::M ⊨ m
+¬ ∃ u. ∀ v. v::u::M ⊨ -g
+¬ ∃ u. ∀ v. ¬ v::u::M ⊨ g
+¬ ¬ ∀ u. ∃ v. v::u::M ⊨ g
+∀ u. ∃ v. v::u::M ⊨ g
+M ⊨ ∀* x*. ∃* y*. g
+M ⊨ f
+p

@@ -83,6 +83,13 @@ def subst (σ : sub₂) : term₂ → term₂
 | (# k)   := (σ.get k).get_or_else (# k)
 | (a & b) := a.subst & b.subst
 
+def rsubst (n : nat) (σ : sub₂) : term₂ → term₂
+| (# k)   :=
+  if k < n
+  then (σ.get k).get_or_else (# k)
+  else (# k)
+| (a & b) := a.rsubst & b.rsubst
+
 lemma subst_eq_of_get_eq_none {σ : sub₂} {k : nat} :
   σ.get k = none → (# k).subst σ = # k :=
 by {intro h1, simp only [h1, option.get_or_else, subst]}

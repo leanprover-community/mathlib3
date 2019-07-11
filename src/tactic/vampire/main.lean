@@ -181,15 +181,3 @@ meta def tactic.interactive.vampire
   else do hs ← mmap tactic.get_local ids,
                revert_lst hs, skip ) >>
 vampire.vampire inp
-
-variables [inhabited α]
-variables (a b c : α) (p q : α → Prop) (r : α → α → Prop)
-variables (P Q R : Prop)
-variable  (g : bool → nat)
-
-
-example : (p a) → ∃ x, p x :=
-by vampire
-
-example : (∀ x, p x → q x) → (∀ x, p x) → q a :=
-by vampire

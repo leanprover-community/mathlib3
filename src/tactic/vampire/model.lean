@@ -60,4 +60,7 @@ begin
   simp only [model.decr_idxs, assign]
 end
 
+def fmodel (k : nat) (M : model α) (v : vas α) : model α
+| n := if n < k then evaluate (v n) else M n
+
 end vampire

@@ -616,7 +616,7 @@ local attribute [instance, priority 1] classical.prop_decidable
 section limit
 
 def X_ideal : ideal (mv_power_series σ α) :=
-ideal.span $ set.image X set.univ
+ideal.span $ set.range X
 
 def diagram : ℕᵒᵖ ⥤ CommRing :=
 { obj := λ i, CommRing.of (ideal.quotient ((X_ideal σ α)^(unop i))),
@@ -630,9 +630,9 @@ def diagram : ℕᵒᵖ ⥤ CommRing :=
 
 lemma is_basis (n : ℕ) :
   is_basis α (λ m : {m : σ →₀ ℕ // m.sum (λ _, id) ≤ n },
-    (ideal.quotient.mk (X_ideal σ α^n) (monomial m 1)) :=
+    (ideal.quotient.mk (X_ideal σ α^n) (monomial m 1))) :=
 begin
-
+  delta is_basis,
 end
 
 @[simp] lemma diagram_obj (i) :

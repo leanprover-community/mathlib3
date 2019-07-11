@@ -303,6 +303,7 @@ end is_add_subgroup
 -- Homomorphism subgroups
 namespace is_group_hom
 open is_submonoid is_subgroup
+open is_mul_hom (map_mul)
 variables [group α] [group β]
 
 @[to_additive is_add_group_hom.ker]

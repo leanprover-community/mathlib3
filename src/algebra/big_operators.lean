@@ -622,7 +622,7 @@ variables [group α] [group β]
 @[to_additive is_add_group_hom.map_sum]
 theorem is_group_hom.map_prod (f : α → β) [is_group_hom f] (l : list α) :
   f (prod l) = prod (map f l) :=
-by induction l; simp only [*, is_group_hom.map_mul f, is_group_hom.map_one f, prod_nil, prod_cons, map]
+by induction l; simp only [*, is_mul_hom.map_mul f, is_group_hom.map_one f, prod_nil, prod_cons, map]
 
 theorem is_group_anti_hom.map_prod (f : α → β) [is_group_anti_hom f] (l : list α) :
   f (prod l) = prod (map f (reverse l)) :=
@@ -650,7 +650,7 @@ end comm_group
 @[to_additive is_add_group_hom_finset_sum]
 lemma is_group_hom_finset_prod {α β γ} [group α] [comm_group β] (s : finset γ)
   (f : γ → α → β) [∀c, is_group_hom (f c)] : is_group_hom (λa, s.prod (λc, f c a)) :=
-⟨assume a b, by simp only [λc, is_group_hom.map_mul (f c), finset.prod_mul_distrib]⟩
+{ map_mul := assume a b, by simp only [λc, is_mul_hom.map_mul (f c), finset.prod_mul_distrib] }
 
 attribute [instance] is_group_hom_finset_prod is_add_group_hom_finset_sum
 

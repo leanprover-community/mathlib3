@@ -383,7 +383,7 @@ ext $ λ i, by simp only [neg_apply, mk_apply]; split_ifs; [refl, rw neg_zero]
 ext $ λ i, by simp only [sub_apply, mk_apply]; split_ifs; [refl, rw sub_zero]
 
 instance [Π i, add_group (β i)] {s : finset ι} : is_add_group_hom (@mk ι β _ _ s) :=
-⟨λ _ _, mk_add⟩
+{ map_add := λ _ _, mk_add }
 
 section
 local attribute [instance] to_module

@@ -60,18 +60,18 @@ instance : uniform_add_group (completion α) :=
                               (uniform_continuous_map.comp uniform_continuous_snd)) : _)⟩
 
 instance is_add_group_hom_coe : is_add_group_hom (coe : α → completion α) :=
-⟨ coe_add ⟩
+{ map_add := coe_add }
 
 variables {β : Type*} [uniform_space β] [add_group β] [uniform_add_group β]
 
 lemma is_add_group_hom_extension  [complete_space β] [separated β]
   {f : α → β} [is_add_group_hom f] (hf : continuous f) : is_add_group_hom (completion.extension f) :=
 have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
-⟨assume a b, completion.induction_on₂ a b
+{ map_add := assume a b, completion.induction_on₂ a b
   (is_closed_eq
     (continuous_extension.comp continuous_add')
     (continuous_add (continuous_extension.comp continuous_fst) (continuous_extension.comp continuous_snd)))
-  (assume a b, by rw_mod_cast [extension_coe hf, extension_coe hf, extension_coe hf, is_add_group_hom.map_add f])⟩
+  (assume a b, by rw_mod_cast [extension_coe hf, extension_coe hf, extension_coe hf, is_add_hom.map_add f]) }
 
 lemma is_add_group_hom_map [add_group β] [uniform_add_group β]
   {f : α → β} [is_add_group_hom f] (hf : continuous f) : is_add_group_hom (completion.map f) :=
@@ -84,7 +84,7 @@ set_option class.instance_max_depth 52
 
 lemma is_add_group_hom_prod [add_group β] [uniform_add_group β] :
   is_add_group_hom (@completion.prod α β _ _) :=
-⟨assume ⟨a₁, a₂⟩ ⟨b₁, b₂⟩,
+{ map_add := assume ⟨a₁, a₂⟩ ⟨b₁, b₂⟩,
   begin
     refine completion.induction_on₄ a₁ a₂ b₁ b₂ (is_closed_eq _ _) _,
     { refine continuous.comp uniform_continuous_prod.continuous _ ,
@@ -99,7 +99,7 @@ lemma is_add_group_hom_prod [add_group β] [uniform_add_group β] :
     { assume a b c d,
       show completion.prod (↑a + ↑c, ↑b + ↑d) = completion.prod (↑a, ↑b) + completion.prod (↑c, ↑d),
       norm_cast }
-  end⟩
+  end }
 
 end instance_max_depth
 

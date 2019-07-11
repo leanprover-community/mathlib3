@@ -5,7 +5,7 @@ Author: Andreas Swerdlow
 -/
 
 import analysis.normed_space.basic linear_algebra.sesquilinear_form topology.instances.complex
-import tactic.find
+
 open complex real
 
 lemma im_eq_zero_iff_conj_eq (x : ℂ) : x.im = 0 ↔ conj(x) = x :=

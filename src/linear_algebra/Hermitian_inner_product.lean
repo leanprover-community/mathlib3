@@ -5,7 +5,7 @@ Author: Andreas Swerdlow
 -/
 
 import analysis.normed_space.basic linear_algebra.sesquilinear_form topology.instances.complex
-
+import tactic.find
 open complex real
 
 lemma im_eq_zero_iff_conj_eq (x : ℂ) : x.im = 0 ↔ conj(x) = x :=
@@ -55,7 +55,8 @@ noncomputable def conj.ring_equiv : ℂ ≃r ℂ :=
 noncomputable def conj.ring_invo : ring_invo ℂ :=
 ⟨comm_ring.isom_to_anti_isom conj.ring_equiv, begin apply conj_conj end⟩
 
-class herm_inner_product_space (α : Type*) [add_comm_group α] [vector_space ℂ α] extends sym_sesq_form ℂ α conj.ring_invo :=
+class herm_inner_product_space (α : Type*) [add_comm_group α] [vector_space ℂ α] extends sesq_form ℂ α conj.ring_invo :=
+(to_sym_sesq_form : sym_sesq_form.is_sym to_sesq_form)
 (sesq_self_re_nonneg : ∀ (x : α), 0 ≤ (sesq x x).re)
 (sesq_self_eq_zero_iff : ∀ (x : α), sesq x x = 0 ↔ x = 0)
 
@@ -65,13 +66,13 @@ open ring_invo
 
 variables {α : Type*} [add_comm_group α] [vector_space ℂ α] [herm_inner_product_space α]
 
-noncomputable def inner_product : α → α → ℂ := (herm_inner_product_space.to_sym_sesq_form α).to_sesq_form.sesq  
+noncomputable def inner_product : α → α → ℂ := (herm_inner_product_space.to_sesq_form α).sesq
 
 local notation `ₕ⟨` : 1 x `|` : 1 y `⟩` : 1 := inner_product x y
 
 namespace inner_product
 
-lemma conj_sym (x y : α) : conj (ₕ⟨x|y⟩) = ₕ⟨y|x⟩ := sym_sesq_form.map_sesq conj.ring_invo y x 
+lemma conj_sym (x y : α) : conj (ₕ⟨x|y⟩) = ₕ⟨y|x⟩ := to_sym_sesq_form α x y   
 
 lemma self_re_nonneg (x : α) : 0 ≤ (ₕ⟨x|x⟩).re := sesq_self_re_nonneg x   
 
@@ -92,22 +93,22 @@ lemma self_eq_zero_iff {x : α} : (inner_product x x) = 0 ↔ x = (0 : α) := se
 open sym_sesq_form sesq_form
 
 @[simp] lemma zero_left (x : α) :
-ₕ⟨0|x⟩ = 0 := zero_sesq x  
+ₕ⟨0|x⟩ = 0 := zero_left x  
 
 @[simp] lemma zero_right (x : α) :
-ₕ⟨x|0⟩ = 0 := sesq_zero x 
+ₕ⟨x|0⟩ = 0 := zero_right x 
 
 @[simp] lemma neg_left (x y : α) : 
-ₕ⟨-x|y⟩ = -(ₕ⟨x|y⟩) := sesq_neg_left x y 
+ₕ⟨-x|y⟩ = -(ₕ⟨x|y⟩) := neg_left x y 
 
 @[simp] lemma neg_right (x y : α) : 
-ₕ⟨x| -y⟩ = -(ₕ⟨x|y⟩) := sesq_neg_right x y   
+ₕ⟨x| -y⟩ = -(ₕ⟨x|y⟩) := neg_right x y   
 
 @[simp] lemma sub_left (x y z : α) : 
-ₕ⟨(x - y)|z⟩ = (ₕ⟨x|z⟩) - (ₕ⟨y|z⟩) := sesq_sub_left x y z
+ₕ⟨(x - y)|z⟩ = (ₕ⟨x|z⟩) - (ₕ⟨y|z⟩) := sub_left x y z
 
 @[simp] lemma sub_right (x y z : α) : 
-ₕ⟨x|(y - z)⟩ = (ₕ⟨x|y⟩) - (ₕ⟨x|z⟩) := sesq_sub_right x y z
+ₕ⟨x|(y - z)⟩ = (ₕ⟨x|y⟩) - (ₕ⟨x|z⟩) := sub_right x y z
 
 lemma self_add (x y : α) :
 ₕ⟨x + y|x + y⟩ = (ₕ⟨x|x⟩) + (ₕ⟨y|y⟩) + (ₕ⟨x|y⟩) + (ₕ⟨y|x⟩) :=
@@ -175,23 +176,26 @@ cases le_or_lt 0 (ₕ⟨x|y⟩.re),
   { exact le_of_lt (lt_of_lt_of_le h (abs_nonneg ₕ⟨x|y⟩))},
 end
 
+lemma self_eq_of_real_re (x : α) : ₕ⟨x|x⟩ = ↑ₕ⟨x|x⟩.re :=
+ext (of_real_re _) (by rw [of_real_im, self_im])
+
 end inner_product
 
 def orthogonal (x y : α) : Prop := ₕ⟨x|y⟩ = 0 
 
 local notation a ⊥ b := orthogonal a b 
 
-def orthogonal_sym (x y : α) :
-(x ⊥ y) ↔ (y ⊥ x) := @sym_sesq_form.ortho_sym ℂ α _ conj.ring_invo _ _ (to_sym_sesq_form α) _ _ 
+lemma orthogonal_sym (x y : α) :
+(x ⊥ y) ↔ (y ⊥ x) := sym_sesq_form.ortho_sym (to_sym_sesq_form α)
  
 lemma orthogonal_refl_iff_zero (x : α) : 
 (x ⊥ x) ↔ x = 0 := inner_product.self_eq_zero_iff  
 
 def orthogonal_smul_left (x y : α) (a : ℂ) (ha : a ≠ 0) : 
-(x ⊥ y) ↔ ((a • x) ⊥ y) := @sesq_form.ortho_smul_left _ _ _ _ _ _ (herm_inner_product_space.to_sym_sesq_form α).to_sesq_form _ _ _ ha
+(x ⊥ y) ↔ ((a • x) ⊥ y) := sesq_form.ortho_smul_left ha
 
 def orthogonal_smul_right (x y : α) (a : ℂ) (ha : a ≠ 0) : 
-(x ⊥ y) ↔ (x ⊥ (a • y)) := @sesq_form.ortho_smul_right _ _ _ _ _ _ (herm_inner_product_space.to_sym_sesq_form α).to_sesq_form _ _ _ ha
+(x ⊥ y) ↔ (x ⊥ (a • y)) := sesq_form.ortho_smul_right ha
 
 theorem orthogonal_imp_not_lindep (x y : α) (hx : x ≠ 0) (hy : y ≠ 0) : 
 (x ⊥ y) → ¬∃ (a : ℂ), (a ≠ 0) ∧ (x = a • y ∨ a • x = y) :=
@@ -362,6 +366,9 @@ by {rw ←pow_two, exact norm_sqr x}
 
 @[simp] lemma of_real_norm_sqr (x : α) : 
 ↑( ∥x∥^2 ) = ₕ⟨x|x⟩ := by rw [norm_sqr, re_of_real (inner_product.self_im x)]
+
+@[simp] lemma of_real_norm_sqr' (x : α) : 
+↑ ∥x∥^2  = ₕ⟨x|x⟩ := by rw [←complex.of_real_pow, of_real_norm_sqr]
 
 @[simp] lemma of_real_norm_mul_self (x : α) : 
 ↑( ∥x∥*∥x∥ ) = ₕ⟨x|x⟩ := by rw [mul_self_norm, re_of_real (inner_product.self_im x)]

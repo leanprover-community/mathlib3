@@ -87,7 +87,7 @@ begin
   { rintros ⟨Ψ, ⟨isomΨ, rangeΨ⟩⟩,
     have f := ((Kuratowski_embedding_isometry α).isometric_on_range.symm.trans
                isomΨ.isometric_on_range).symm,
-    have E : range Ψ ≃ᵢ (nonempty_compacts.Kuratowski_embedding α).val = (p.val ≃ᵢ range (Kuratowski_embedding α)),
+    have E : (range Ψ ≃ᵢ (nonempty_compacts.Kuratowski_embedding α).val) = (p.val ≃ᵢ range (Kuratowski_embedding α)),
       by { dunfold nonempty_compacts.Kuratowski_embedding, rw [rangeΨ]; refl },
     have g := cast E f,
     exact ⟨g⟩ }

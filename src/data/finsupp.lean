@@ -1081,7 +1081,7 @@ by_contradiction (mt multiset.count_eq_zero.2 H)
   of_multiset m a = m.count a :=
 rfl
 
-def equiv_multiset [decidable_eq α] : (α →₀ ℕ) ≃ (multiset α) :=
+def equiv_multiset [decidable_eq α] : (α →₀ ℕ) ≃ multiset α :=
 ⟨ to_multiset, of_multiset,
 assume f, finsupp.ext $ λ a, by rw [of_multiset_apply, count_to_multiset],
 assume m, multiset.ext.2 $ λ a, by rw [count_to_multiset, of_multiset_apply] ⟩

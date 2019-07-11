@@ -210,8 +210,8 @@ attribute [to_additive add_equiv.mk] mul_equiv.mk
 attribute [to_additive add_equiv.to_equiv] mul_equiv.to_equiv
 attribute [to_additive add_equiv.hom] mul_equiv.hom
 
-infix ` ≃* `:50 := mul_equiv
-infix ` ≃+ `:50 := add_equiv
+infix ` ≃* `:25 := mul_equiv
+infix ` ≃+ `:25 := add_equiv
 
 namespace mul_equiv
 
@@ -276,7 +276,7 @@ end units
 structure ring_equiv (α β : Type*) [ring α] [ring β] extends α ≃ β :=
 (hom : is_ring_hom to_fun)
 
-infix ` ≃r `:50 := ring_equiv
+infix ` ≃r `:25 := ring_equiv
 
 namespace ring_equiv
 

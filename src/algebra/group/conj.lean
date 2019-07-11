@@ -45,4 +45,4 @@ end
 ⟨λ ⟨c, hc⟩, by rw [← hc, mul_right_comm, mul_inv_self, one_mul], λ h, by rw h⟩
 
 protected lemma is_group_hom.is_conj (f : α → β) [is_group_hom f] {a b : α} : is_conj a b → is_conj (f a) (f b)
-| ⟨c, hc⟩ := ⟨f c, by rw [← is_group_hom.map_mul f, ← is_group_hom.map_inv f, ← is_group_hom.map_mul f, hc]⟩
+| ⟨c, hc⟩ := ⟨f c, by rw [← is_mul_hom.map_mul f, ← is_group_hom.map_inv f, ← is_mul_hom.map_mul f, hc]⟩

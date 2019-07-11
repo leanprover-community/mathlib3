@@ -390,10 +390,10 @@ theorem gsmul_sub : ∀ (a b : β) (n : ℤ), gsmul n (a - b) = gsmul n a - gsmu
 by simp [gsmul_add, gsmul_neg]
 
 instance gpow.is_group_hom (n : ℤ) : is_group_hom ((^ n) : α → α) :=
-⟨λ _ _, mul_gpow _ _ n⟩
+{ map_mul := λ _ _, mul_gpow _ _ n }
 
 instance gsmul.is_add_group_hom (n : ℤ) : is_add_group_hom (gsmul n : β → β) :=
-⟨λ _ _, gsmul_add _ _ n⟩
+{ map_add := λ _ _, gsmul_add _ _ n }
 
 attribute [to_additive gsmul.is_add_group_hom] gpow.is_group_hom
 
@@ -405,7 +405,7 @@ section group
 theorem is_add_group_hom.gsmul
   {α β} [add_group α] [add_comm_group β] (f : α → β) [is_add_group_hom f] (z : ℤ) :
   is_add_group_hom (λa, gsmul z (f a)) :=
-⟨assume a b, by rw [is_add_group_hom.map_add f, gsmul_add]⟩
+{ map_add := assume a b, by rw [is_add_hom.map_add f, gsmul_add] }
 
 end group
 

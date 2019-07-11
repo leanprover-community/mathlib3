@@ -238,7 +238,7 @@ attribute [to_additive add_equiv.symm._proof_3] mul_equiv.symm._proof_3
 attribute [to_additive add_equiv.symm] mul_equiv.symm
 
 @[trans] def trans (h1 : α ≃* β) (h2 : β ≃* γ) : (α ≃* γ) :=
-{ hom := is_mul_hom.comp h1.hom h2.hom,
+{ hom := is_mul_hom.comp _ _,
   ..equiv.trans h1.to_equiv h2.to_equiv }
 
 attribute [to_additive add_equiv.trans._proof_1] mul_equiv.trans._proof_1
@@ -269,7 +269,7 @@ def map_equiv (h : α ≃* β) : units α ≃* units β :=
   inv_fun := map h.symm.to_equiv,
   left_inv := λ u, ext $ h.left_inv u,
   right_inv := λ u, ext $ h.right_inv u,
-  hom := ⟨λ a b, units.ext $ is_mul_hom.map_mul h.to_equiv⟩}
+  hom := ⟨λ a b, units.ext $ is_mul_hom.map_mul h.to_equiv a b⟩}
 
 end units
 

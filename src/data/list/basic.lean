@@ -4209,7 +4209,7 @@ mt mem_range.1 $ lt_irrefl _
 theorem nth_range {m n : ℕ} (h : m < n) : nth (range n) m = some m :=
 by simp only [range_eq_range', nth_range' _ h, zero_add]
 
-theorem range_concat (n : ℕ) : range (n + 1) = range n ++ [n] :=
+theorem range_concat (n : ℕ) : range (succ n) = range n ++ [n] :=
 by simp only [range_eq_range', range'_concat, zero_add]
 
 theorem iota_eq_reverse_range' : ∀ n : ℕ, iota n = reverse (range' 1 n)
@@ -4249,6 +4249,12 @@ nodup_pmap (λ _ _ _ _, fin.veq_of_eq) (nodup_range _)
 
 @[simp] lemma length_fin_range (n : ℕ) : (fin_range n).length = n :=
 by rw [fin_range, length_pmap, length_range]
+
+@[to_additive list.sum_range_succ]
+theorem prod_range_succ {α : Type u} [monoid α] (f : ℕ → α) (n : ℕ) :
+  ((range n.succ).map f).prod = ((range n).map f).prod * f n :=
+by rw [range_concat, map_append, map_singleton,
+  prod_append, prod_cons, prod_nil, mul_one]
 
 /--
 `Ico n m` is the list of natural numbers `n ≤ x < m`.

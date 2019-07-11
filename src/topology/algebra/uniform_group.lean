@@ -237,7 +237,7 @@ variables (f : α × β → γ) [is_Z_bilin f]
 
 instance is_Z_bilin.comp_hom {g : γ → δ} [add_comm_group δ] [is_add_group_hom g] :
   is_Z_bilin (g ∘ f) :=
-by constructor; simp [(∘), is_Z_bilin.add_left f, is_Z_bilin.add_right f, is_add_group_hom.map_add g]
+by constructor; simp [(∘), is_Z_bilin.add_left f, is_Z_bilin.add_right f, is_add_hom.map_add g]
 
 instance is_Z_bilin.comp_swap : is_Z_bilin (f ∘ prod.swap) :=
 ⟨λ a a' b, is_Z_bilin.add_right f b a a',

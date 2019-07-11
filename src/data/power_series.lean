@@ -18,42 +18,39 @@ variables {α : Type*} {a b : α}
 
 end eq
 
--- namespace finset
--- universe u
--- variables {α : Type*} {β : Type*} {γ : Type*}
--- variables [decidable_eq α] [decidable_eq β] [add_comm_monoid γ]
+section algebra
+variables {α : Type*} {β : Type*} [comm_ring α] [comm_ring β]
+variables {M : Type*} [add_comm_group M] [module β M]
 
--- #print sum_product
+def module.restriction_of_hom (f : α → β) [is_ring_hom f] : module α M :=
+{ smul := λ a m, f a • m,
+  one_smul := λ m, by simp only [is_ring_hom.map_one f, one_smul],
+  mul_smul := λ a b m, by simp only [is_ring_hom.map_mul f, mul_smul],
+  smul_add := λ a m n, smul_add _ _ _,
+  smul_zero := λ a, smul_zero _,
+  add_smul := λ a b m, by simp only [is_ring_hom.map_add f, add_smul],
+  zero_smul := λ m, by simp only [is_ring_hom.map_zero f, zero_smul], }
 
--- -- lemma sum_pi (s : finset α) (i : Πa:α, Type u) (t : Πa, finset (i a)) (f : Πa, i a → β) :
--- --   (finset.pi s t).sum (λ x, s.sum _) =
--- --   s.sum (λ a, (t a).sum (f a))
--- --    := _
+def submodule.restriction_of_hom (f : α → β) [is_ring_hom f] (N : submodule β M) :
+  @submodule α M _ _ (module.restriction_of_hom f) :=
+{ smul := λ a m hm, N.smul (f a) hm, .. N }
 
--- #print finset.sigma
+variables (β) [algebra α β]
+include β
 
--- #print sum_sigma
+def module.restriction : module α M :=
+module.restriction_of_hom (algebra_map β)
 
--- lemma sum_pi' (s : finset α) (t : α → finset β) (f : α → β → γ) :
---   (finset.bind s (λ a, (finset.product {a} (t a) : finset (α × β)))).sum (λ p, f p.1 p.2) =
---   s.sum (λ a, (t a).sum (f a)) :=
--- begin
---   rw [sum_bind, sum_congr rfl],
---   { intros a ha,
---     apply sum_bij (λ (p : _ × _) hp, p.2),
---     { rintros ⟨i,j⟩ hij, exact (finset.mem_product.1 hij).2 },
---     { rintros ⟨i,j⟩ hij, simp at hij, rcases hij with ⟨rfl, _⟩, refl },
---     { rintros ⟨i,j⟩ ⟨k,l⟩ hij hkl H, simp at hij hkl H,
---       rw [H, hij.1, hkl.1] },
---     { intros a ha, refine ⟨finset.product {a} (t a), _⟩, },
---      },
---   { intros a ha b hb hab,
---     rw finset.eq_empty_iff_forall_not_mem,
---     rintros ⟨i,j⟩ H, apply hab,
---     simp at H, rcases H with ⟨⟨rfl, _⟩, ⟨rfl, _⟩⟩, refl }
--- end
+def submodule.restriction : submodule β M → @submodule α M _ _ (module.restriction β) :=
+submodule.restriction_of_hom _
 
--- end finset
+omit β
+variable {β}
+
+instance ideal.quotient.module (I : ideal β) : module α I.quotient :=
+@module.restriction α β _ _ _ _ (submodule.quotient.module I) _
+
+end algebra
 
 section
 
@@ -174,82 +171,39 @@ namespace mv_polynomial
 open finsupp
 variables {σ : Type*} {α : Type*} [decidable_eq σ] [decidable_eq α] [comm_semiring α]
 
-lemma coeff_mul (φ ψ : mv_polynomial σ α) :
-  ∀ n, coeff n (φ * ψ) = finset.sum (finsupp.diagonal n) (λ p, coeff p.1 φ * coeff p.2 ψ) :=
+lemma coeff_mul (φ ψ : mv_polynomial σ α) (n : σ →₀ ℕ) :
+  coeff n (φ * ψ) = finset.sum (diagonal n) (λ p, coeff p.1 φ * coeff p.2 ψ) :=
 begin
-  apply mv_polynomial.induction_on φ; clear φ,
-  { apply mv_polynomial.induction_on ψ,
-    { intros a b n, rw [← C_mul, coeff_C],
-      split_ifs,
-      { subst n, simp },
-      { rw finset.sum_eq_zero, intros p hp,
-        simp only [coeff_C],
-        rw mem_diagonal at hp,
-        split_ifs with h₁ h₂; try {simp * at *; done},
-        { rw [← h₁, ← h₂, zero_add] at hp, contradiction } } },
-    { intros p q hp hq a, specialize hp a, specialize hq a,
-      simp [coeff_C_mul, coeff_add, mul_add, finset.sum_add_distrib, *] at * },
-    { intros φ s hφ a n,
-      rw [coeff_C_mul],
-      have : ((0 : σ →₀ ℕ), n) ∈ diagonal n := by simp [mem_diagonal],
-      rw [← finset.insert_erase this, finset.sum_insert (finset.not_mem_erase _ _),
-          finset.sum_eq_zero, add_zero],
-      { refl },
-      { rintros ⟨i,j⟩ h,
-        rw [finset.mem_erase, mem_diagonal] at h, cases h with h₁ h₂,
-        by_cases H : 0 = i, { subst i, simp * at * },
-        rw [coeff_C, if_neg H, zero_mul] } } },
-  { intros p q hp hq n,
-    rw [add_mul, coeff_add, hp, hq, ← finset.sum_add_distrib],
-    apply finset.sum_congr rfl,
-    intros m hm, rw [coeff_add, add_mul] },
-  { intros φ s hφ n,
-    conv_lhs { rw [mul_assoc, mul_comm (X s), ← mul_assoc] },
-    rw coeff_mul_X',
-    split_ifs,
-    { symmetry,
-      let T : finset (_ × _) := (diagonal n).filter (λ p, p.1 s > 0),
-      have : T ⊆ diagonal n := finset.filter_subset _,
-      rw [hφ, ← finset.sum_sdiff this, finset.sum_eq_zero, zero_add],
-      { symmetry,
-        apply finset.sum_bij (λ (p : _ × _) hp, (p.1 + single s 1, p.2)),
-        { rintros ⟨i,j⟩ hij, rw [mem_diagonal] at hij,
-          rw [finset.mem_filter, mem_diagonal], dsimp at *,
-          split,
-          { rw [add_right_comm, hij_1],
-            ext t, by_cases hst : s = t,
-            { subst t, apply nat.sub_add_cancel, rw [single_apply, if_pos rfl],
-              apply nat.pos_of_ne_zero, rwa mem_support_iff at h },
-            { change _ - _ + _ = _, simp [single_apply, hst] } },
-          { apply nat.add_pos_right, rw [single_apply, if_pos rfl], exact nat.one_pos } },
-        { rintros ⟨i,j⟩ hij, rw coeff_mul_X', split_ifs with H,
-          { congr' 2, ext t, exact (nat.add_sub_cancel _ _).symm },
-          { exfalso, apply H, rw [mem_support_iff, add_apply, single_apply, if_pos rfl],
-            exact nat.succ_ne_zero _ } },
-        { rintros ⟨i,j⟩ ⟨k,l⟩ hij hkl, rw [prod.mk.inj_iff, add_right_inj, ← prod.mk.inj_iff],
-          exact id },
-        { rintros ⟨i,j⟩ hij, rw finset.mem_filter at hij, cases hij with h₁ h₂,
-          refine ⟨(i - single s 1, j), _, _⟩,
-          { rw mem_diagonal at h₁ ⊢, rw ← h₁, ext t, by_cases hst: s = t,
-            { subst t, apply (nat.sub_add_comm _).symm,
-              rwa [single_apply, if_pos rfl] },
-            { apply (nat.sub_add_comm _).symm,
-              simp [single_apply, hst] } },
-          { congr, ext t, by_cases hst: s = t,
-            { subst t, apply (nat.sub_add_cancel _).symm, rwa [single_apply, if_pos rfl] },
-            { change _ = _ - _ + _, simp [single_apply, hst] } } } },
-      { rintros ⟨i,j⟩ hij, rw finset.mem_sdiff at hij, cases hij with h₁ h₂,
-        rw coeff_mul_X', split_ifs with H,
-        { exfalso, apply h₂, rw finset.mem_filter, refine ⟨h₁, nat.pos_of_ne_zero _⟩,
-          rwa mem_support_iff at H },
-        { exact zero_mul _ } } },
-    { rw finset.sum_eq_zero,
-      rintros ⟨i,j⟩ hij,
-      rw [coeff_mul_X', if_neg, zero_mul],
-      intro H, apply h,
-      rw mem_support_iff at H ⊢,
-      rw mem_diagonal at hij,
-      rw ← hij, simp * at * } }
+  rw mul_def,
+  have := @finset.sum_sigma (σ →₀ ℕ) α _ _ φ.support (λ _, ψ.support)
+    (λ x, if (x.1 + x.2 = n) then coeff x.1 φ * coeff x.2 ψ else 0),
+  convert this.symm using 1; clear this,
+  { rw [coeff],
+    repeat {rw sum_apply, apply finset.sum_congr rfl, intros, dsimp only},
+    exact single_apply },
+  { have : (diagonal n).filter (λ x, x.1 ∈ φ.support ∧ x.2 ∈ ψ.support) ⊆ (diagonal n) :=
+      finset.filter_subset _,
+    rw [← finset.sum_sdiff this, finset.sum_eq_zero, zero_add], swap,
+    { intros x hx, rw [finset.mem_sdiff, not_iff_not_of_iff (finset.mem_filter),
+        not_and, not_and, not_mem_support_iff] at hx,
+      by_cases H : x.1 ∈ φ.support,
+      { rw [coeff, coeff, hx.2 hx.1 H, mul_zero] },
+      { rw not_mem_support_iff at H, rw [coeff, H, zero_mul] } },
+    symmetry,
+    rw [← finset.sum_sdiff (finset.filter_subset _), finset.sum_eq_zero, zero_add], swap,
+    { intros x hx, rw [finset.mem_sdiff, not_iff_not_of_iff (finset.mem_filter), not_and] at hx,
+      replace hx := hx.2 hx.1, rw if_neg, exact hx },
+    { apply finset.sum_bij, swap 5, { intros x hx, exact (x.1, x.2) },
+      { intros x hx, rw [finset.mem_filter, finset.mem_sigma] at hx,
+        rw [finset.mem_filter, mem_diagonal],
+        dsimp, exact hx.symm },
+      { intros x hx, rw finset.mem_filter at hx, rw if_pos hx.2 },
+      { rintros ⟨i,j⟩ ⟨k,l⟩ hij hkl, simpa using and.intro },
+      { rintros ⟨i,j⟩ hij, refine ⟨⟨i,j⟩, _, _⟩, { apply_instance },
+        { rw [finset.mem_filter, mem_diagonal] at hij, rw [finset.mem_filter, finset.mem_sigma],
+          exact hij.symm },
+        { refl } } },
+    all_goals { apply_instance } }
 end
 
 end mv_polynomial
@@ -500,10 +454,22 @@ def mul (φ ψ : mv_power_series σ α) : mv_power_series σ α :=
 λ n, (finsupp.diagonal n).sum (λ p, coeff p.1 φ * coeff p.2 ψ)
 instance : has_mul (mv_power_series σ α) := ⟨mul σ α⟩
 
+variables {σ α}
+
 lemma coeff_mul :
   coeff n (φ * ψ) = (finsupp.diagonal n).sum (λ p, coeff p.1 φ * coeff p.2 ψ) := rfl
 
-variables {σ α}
+@[simp] lemma C_mul (a b : α) : (C (a * b) : mv_power_series σ α) = C a * C b :=
+ext $ λ n,
+begin
+  rw [coeff_C, coeff_mul],
+  split_ifs,
+  { subst n, erw [diagonal_zero, finset.sum_singleton, coeff_C_zero, coeff_C_zero] },
+  { rw finset.sum_eq_zero,
+    rintros ⟨i,j⟩ hij,
+    rw mem_diagonal at hij, rw [coeff_C, coeff_C],
+    split_ifs; try {simp * at *; done} }
+end
 
 @[simp] lemma zero_mul : (0 : mv_power_series σ α) * φ = 0 :=
 ext $ λ n, by simp [coeff_mul]
@@ -586,6 +552,21 @@ instance : comm_semiring (mv_power_series σ α) :=
   .. mv_power_series.has_add σ α,
   .. mv_power_series.has_mul σ α }
 
+instance C.is_semiring_hom : is_semiring_hom (C : α → mv_power_series σ α) :=
+{ map_zero := C_zero _ _,
+  map_one := C_one _ _,
+  map_add := C_add,
+  map_mul := C_mul }
+
+instance : semimodule α (mv_power_series σ α) :=
+{ smul := λ a φ, C a * φ,
+  one_smul := λ φ, one_mul _,
+  mul_smul := λ a b φ, by simp only [C_mul, mul_assoc],
+  smul_add := λ a φ ψ, mul_add _ _ _,
+  smul_zero := λ a, mul_zero _,
+  add_smul := λ a b φ, by simp only [C_add, add_mul],
+  zero_smul := λ φ, by simp only [zero_mul, C_zero] }
+
 end ring
 
 -- TODO(jmc): once adic topology lands, show that this is complete
@@ -608,11 +589,29 @@ instance : comm_ring (mv_power_series σ α) :=
 { add_left_neg := add_left_neg,
   .. mv_power_series.has_neg, .. mv_power_series.comm_semiring }
 
+instance C.is_ring_hom : is_ring_hom (C : α → mv_power_series σ α) :=
+{ map_one := C_one _ _,
+  map_add := C_add,
+  map_mul := C_mul }
+
+instance : module α (mv_power_series σ α) :=
+{ ..mv_power_series.semimodule }
+
+instance : algebra α (mv_power_series σ α) :=
+{ to_fun := C,
+  commutes' := λ _ _, mul_comm _ _,
+  smul_def' := λ c p, rfl,
+  .. mv_power_series.module }
+
 end mv_power_series
 
 namespace mv_power_series
 open category_theory opposite
-variables (σ : Type) (α : Type) [decidable_eq σ] [comm_ring α]
+variables (σ : Type) (α : Type) [comm_ring α]
+
+noncomputable theory
+
+local attribute [instance, priority 1] classical.prop_decidable
 
 section limit
 
@@ -629,7 +628,12 @@ def diagram : ℕᵒᵖ ⥤ CommRing :=
   end, by apply_instance⟩ }
 .
 
-#print is_basis
+lemma is_basis (n : ℕ) :
+  is_basis α (λ m : {m : σ →₀ ℕ // m.sum (λ _, id) ≤ n },
+    (ideal.quotient.mk (X_ideal σ α^n) (monomial m 1)) :=
+begin
+
+end
 
 @[simp] lemma diagram_obj (i) :
   (diagram σ α).obj i = CommRing.of (ideal.quotient ((X_ideal σ α)^(unop i))) := rfl

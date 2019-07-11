@@ -27,10 +27,10 @@ To be able to compute with derivatives, we write `fderiv_within k f s x` and `fd
 for some choice of a derivative if it exists, and the zero function otherwise. This choice only
 behaves well along sets for which the derivative is unique, i.e., those for which the tangent
 directions span a dense subset of the whole space. The predicates `unique_diff_within_at s x` and
-`unique_diff_on s` express this property, and we prove that indeed they imply the uniqueness of the
-derivative. This is satisfied for open subsets, and in particular for `univ`. This uniqueness
-only holds when the field is non-discrete, which we request at the very beginning:
-otherwise, a derivative can be defined, but it has no interesting properties whatsoever.
+`unique_diff_on s`, defined in `tangent_cone.lean` express this property. We prove that indeed
+they imply the uniqueness of the derivative. This is satisfied for open subsets, and in particular
+for `univ`. This uniqueness only holds when the field is non-discrete, which we request at the very
+beginning: otherwise, a derivative can be defined, but it has no interesting properties whatsoever.
 
 In addition to the definition and basic properties of the derivative, this file contains the
 usual formulas (and existence assertions) for the derivative of
@@ -158,7 +158,7 @@ begin
     have : y ∈ closure K := this hy,
     rwa closure_eq_of_is_closed (is_closed_eq f'.continuous f₁'.continuous) at this },
   unfold unique_diff_within_at at H,
-  rw H at C,
+  rw H.1 at C,
   ext y,
   exact C y (mem_univ _)
 end
@@ -255,7 +255,7 @@ theorem has_fderiv_at_unique
   (h₀ : has_fderiv_at f f₀' x) (h₁ : has_fderiv_at f f₁' x) : f₀' = f₁' :=
 begin
   rw ← has_fderiv_within_univ_at at h₀ h₁,
-  exact unique_diff_within_univ_at.eq h₀ h₁
+  exact unique_diff_within_at_univ.eq h₀ h₁
 end
 
 lemma differentiable_at.differentiable_within_at

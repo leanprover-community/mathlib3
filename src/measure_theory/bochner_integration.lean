@@ -93,7 +93,7 @@ variables [normed_space ℝ γ]
 
 -- bochner integration over functions in l1 space
 def integral (f : α →₁ γ) : γ :=
-dense_embedding.extend dense_embedding_of_simple_func simple_func.integral f
+dense_embedding_of_simple_func.to_dense_inducing.extend simple_func.integral f
 
 end l1
 

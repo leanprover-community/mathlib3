@@ -548,4 +548,23 @@ def subalgebra_of_subring (S : set R) [is_subring S] : subalgebra ℤ R :=
   x ∈ subalgebra_of_subring S ↔ x ∈ S :=
 iff.rfl
 
+section span_int
+open submodule
+
+lemma span_int_eq_add_group_closure (s : set R) :
+  ↑(span ℤ s) = add_group.closure s :=
+set.subset.antisymm (λ x hx, span_induction hx
+  (λ _, add_group.mem_closure)
+  (is_add_submonoid.zero_mem _)
+  (λ a b ha hb, is_add_submonoid.add_mem ha hb)
+  (λ n a ha, by { erw [show n • a = gsmul n a, from (gsmul_eq_mul a n).symm],
+    exact is_add_subgroup.gsmul_mem ha}))
+  (add_group.closure_subset subset_span)
+
+@[simp] lemma span_int_eq (s : set R) [is_add_subgroup s] :
+  (↑(span ℤ s) : set R) = s :=
+by rw [span_int_eq_add_group_closure, add_group.closure_add_subgroup]
+
+end span_int
+
 end int

@@ -3,7 +3,30 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 
-Define the p-adic valuation on ℤ and ℚ, and the p-adic norm on ℚ
+# p-adic norm
+
+This file defines the p-adic valuation and the p-adic norm on ℚ.
+
+The p-adic valuation on ℚ is the difference of the multiplicities of `p` in the numerator and
+denominator of `q`. This function obeys the standard properties of a valuation, with the appropriate
+assumptions on p.
+
+The valuation induces a norm on ℚ. This norm is a nonarchimedean absolute value.
+It takes values in {0} ∪ {1/p^k | k ∈ ℤ}.
+
+## Notations
+
+This file uses the local notation `/.` for `rat.mk`.
+
+## Implementation notes
+
+Much, but not all, of this file assumes that `p` is prime. This assumption is inferred automatically
+by taking (prime p) as a type class argument.
+
+## References
+
+Tags: p-adic, p adic, padic, norm, valuation
+
 -/
 
 import data.rat.basic algebra.gcd_domain algebra.field_power
@@ -21,6 +44,14 @@ local infix `/.`:70 := rat.mk
 
 open multiplicity
 
+/--
+For `p ≠ 1`, the p-adic valuation of an integer `z ≠ 0` is the largest natural number `n` such that
+p^n divides z.
+
+`padic_val_rat` defines the valuation of a rational `q` to be the valuation of `q.num` minus the
+valuation of `q.denom`.
+If `q = 0` or `p = 1`, then `padic_val_rat p q` defaults to 0.
+-/
 def padic_val_rat (p : ℕ) (q : ℚ) : ℤ :=
 if h : q ≠ 0 ∧ p ≠ 1
 then (multiplicity (p : ℤ) q.num).get
@@ -29,6 +60,9 @@ then (multiplicity (p : ℤ) q.num).get
     (multiplicity.finite_int_iff.2 ⟨h.2, by exact_mod_cast rat.denom_ne_zero _⟩)
 else 0
 
+/--
+Rewrites the definition of `padic_val_rat p q` when `q ≠ 0` and `p` is prime.
+-/
 lemma padic_val_rat_def (p : ℕ) [hp : p.prime] {q : ℚ} (hq : q ≠ 0) : padic_val_rat p q =
   (multiplicity (p : ℤ) q.num).get (finite_int_iff.2 ⟨hp.ne_one, rat.num_ne_zero_of_ne_zero hq⟩) -
   (multiplicity (p : ℤ) q.denom).get (finite_int_iff.2 ⟨hp.ne_one, by exact_mod_cast rat.denom_ne_zero _⟩) :=
@@ -39,6 +73,9 @@ open multiplicity
 section padic_val_rat
 variables {p : ℕ}
 
+/--
+`padic_val_rat p q` is symmetric in `q`.
+-/
 @[simp] protected lemma neg (q : ℚ) : padic_val_rat p (-q) = padic_val_rat p q :=
 begin
   unfold padic_val_rat,
@@ -49,12 +86,21 @@ begin
   { refl }
 end
 
+/--
+`padic_val_rat p 1` is 0 for any `p`.
+-/
 @[simp] protected lemma one : padic_val_rat p 1 = 0 :=
 by unfold padic_val_rat; split_ifs; simp *
 
+/--
+For `p ≠ 0, p ≠ 1, `padic_val_rat p p` is 1.
+-/
 @[simp] lemma padic_val_rat_self (hp : 1 < p) : padic_val_rat p p = 1 :=
 by unfold padic_val_rat; split_ifs; simp [*, nat.one_lt_iff_ne_zero_and_ne_one] at *
 
+/--
+The p-adic value of an integer `z ≠ 0` is the multiplicity of `p` in `z`.
+-/
 lemma padic_val_rat_of_int (z : ℤ) (hp : p ≠ 1) (hz : z ≠ 0) :
   padic_val_rat p (z : ℚ) = (multiplicity (p : ℤ) z).get
     (finite_int_iff.2 ⟨hp, hz⟩) :=
@@ -67,9 +113,15 @@ open multiplicity
 variables (p : ℕ) [p_prime : nat.prime p]
 include p_prime
 
+/--
+The multiplicity of `p : ℕ` in `a : ℤ` is finite exactly when `a ≠ 0`.
+-/
 lemma finite_int_prime_iff {p : ℕ} [p_prime : p.prime] {a : ℤ} : finite (p : ℤ) a ↔ a ≠ 0 :=
 by simp [finite_int_iff, ne.symm (ne_of_lt (p_prime.gt_one))]
 
+/--
+A rewrite lemma for `padic_val_rat p q` when `q` is expressed in terms of `rat.mk`.
+-/
 protected lemma defn {q : ℚ} {n d : ℤ} (hqz : q ≠ 0) (qdf : q = n /. d) :
   padic_val_rat p q = (multiplicity (p : ℤ) n).get (finite_int_iff.2
     ⟨ne.symm $ ne_of_lt p_prime.gt_one, λ hn, by simp * at *⟩) -
@@ -82,6 +134,9 @@ by rw [padic_val_rat, dif_pos];
   simp [hc1, hc2, multiplicity.mul' (nat.prime_iff_prime_int.1 p_prime),
     (ne.symm (ne_of_lt p_prime.gt_one)), hqz]
 
+/--
+A rewrite lemma for `padic_val_rat p (q * r)` with conditions `q ≠ 0`, `r ≠ 0`.
+-/
 protected lemma mul {q r : ℚ} (hq : q ≠ 0) (hr : r ≠ 0) :
   padic_val_rat p (q * r) = padic_val_rat p q + padic_val_rat p r :=
 have q*r = (q.num * r.num) /. (↑q.denom * ↑r.denom), by rw_mod_cast rat.mul_num_denom,
@@ -95,21 +150,34 @@ begin
   rw [multiplicity.mul' hp', multiplicity.mul' hp']; simp
 end
 
+/--
+A rewrite lemma for `padic_val_rat p (q^k) with condition `q ≠ 0`.
+-/
 protected lemma pow {q : ℚ} (hq : q ≠ 0) {k : ℕ} :
     padic_val_rat p (q ^ k) = k * padic_val_rat p q :=
 by induction k; simp [*, padic_val_rat.mul _ hq (pow_ne_zero _ hq),
   _root_.pow_succ, add_mul]
 
+/--
+A rewrite lemma for `padic_val_rat p (q⁻¹)` with condition `q ≠ 0`.
+-/
 protected lemma inv {q : ℚ} (hq : q ≠ 0) :
   padic_val_rat p (q⁻¹) = -padic_val_rat p q :=
 by rw [eq_neg_iff_add_eq_zero, ← padic_val_rat.mul p (inv_ne_zero hq) hq,
     inv_mul_cancel hq, padic_val_rat.one]
 
+/--
+A rewrite lemma for `padic_val_rat p (q / r)` with conditions `q ≠ 0`, `r ≠ 0`.
+-/
 protected lemma div {q r : ℚ} (hq : q ≠ 0) (hr : r ≠ 0) :
   padic_val_rat p (q / r) = padic_val_rat p q - padic_val_rat p r :=
 by rw [div_eq_mul_inv, padic_val_rat.mul p hq (inv_ne_zero hr),
     padic_val_rat.inv p hr, sub_eq_add_neg]
 
+/--
+Gives a condition for `padic_val_rat p (n₁ / d₁) ≤ padic_val_rat p (n₂ / d₂),
+in terms of divisibility by `p^n`.
+-/
 lemma padic_val_rat_le_padic_val_rat_iff {n₁ n₂ d₁ d₂ : ℤ}
   (hn₁ : n₁ ≠ 0) (hn₂ : n₂ ≠ 0) (hd₁ : d₁ ≠ 0) (hd₂ : d₂ ≠ 0) :
   padic_val_rat p (n₁ /. d₁) ≤ padic_val_rat p (n₂ /. d₂) ↔
@@ -173,6 +241,10 @@ theorem min_le_padic_val_rat_add {q r : ℚ}
 end padic_val_rat
 end padic_val_rat
 
+/--
+If `q ≠ 0`, the p-adic norm of a rational `q` is `p ^ (-(padic_val_rat p q))`.
+If `q = 0`, the p-adic norm of `q` is 0.
+-/
 def padic_norm (p : ℕ) (q : ℚ) : ℚ :=
 if q = 0 then 0 else (↑p : ℚ) ^ (-(padic_val_rat p q))
 

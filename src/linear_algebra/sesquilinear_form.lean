@@ -6,7 +6,7 @@ Author: Andreas Swerdlow
 
 import algebra.module ring_theory.involution linear_algebra.tensor_product
 
-open module ring_invo
+open ring_invo
 
 universes u v
 

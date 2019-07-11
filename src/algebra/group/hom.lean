@@ -127,6 +127,7 @@ attribute [to_additive is_add_group_hom.rec_on] is_group_hom.rec_on
 attribute [to_additive is_add_group_hom.drec_on] is_group_hom.drec_on
 attribute [to_additive is_add_group_hom.mk] is_group_hom.mk
 
+/-- Construct `is_group_hom` from its only hypothesis. The default constructor tries to get `is_mul_hom` from class instances, and this makes some proofs fail. -/
 @[to_additive is_add_group_hom.mk']
 lemma is_group_hom.mk' [group α] [group β] {f : α → β} (hf : ∀ x y, f (x * y) = f x * f y) :
   is_group_hom f :=

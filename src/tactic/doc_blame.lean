@@ -1,5 +1,4 @@
-import tactic.interactive
-
+import tactic.core
 open tactic declaration environment
 
 /-- test that name was not auto-generated -/
@@ -8,22 +7,18 @@ n.components.ilast ∉ [`no_confusion, `rec_on, `cases_on, `no_confusion_type, `
                       `rec, `mk, `sizeof_spec, `inj_arrow, `has_sizeof_inst, `inj_eq, `inj]
 
 /-- Print the declaration name if it's a definition without a docstring -/
-meta def print_item (env : environment) (decl : declaration) : tactic unit :=
-match decl with
-| (defn n _ _ _ _ _) := do { ds ← doc_string decl.to_name, skip } <|>
-                          when n.is_not_auto (trace n)
-| (cnst n _ _ _) := do { ds ← doc_string decl.to_name, skip } <|>
-                          when n.is_not_auto (trace n)
+meta def print_item (env : environment) : declaration → tactic unit
+| (defn n _ _ _ _ _) := doc_string n >> skip <|> when n.is_not_auto (trace n)
+| (cnst n _ _ _) := doc_string n >> skip <|> when n.is_not_auto (trace n)
 | _ := skip
-end
 
 /-- Print all definitions in the current file without a docstring -/
 meta def print_docstring_orphans : tactic unit :=
 do curr_env ← get_env,
-   let decls := curr_env.fold [] list.cons,
-   let local_decls := decls.filter
-     (λ x, environment.in_current_file' curr_env (to_name x) && not (to_name x).is_internal),
-local_decls.mmap' (print_item curr_env)
+   let local_decls : list declaration := curr_env.fold [] $ λ x t,
+     if environment.in_current_file' curr_env (to_name x) && not (to_name x).is_internal then x::t
+     else t,
+   local_decls.mmap' (print_item curr_env)
 
 setup_tactic_parser
 

@@ -18,7 +18,7 @@ namespace is_ring_anti_hom
 variables [ring R] [ring F] (f : R → F) [is_ring_anti_hom f]
 
 instance : is_add_group_hom f :=
-⟨λ _ _, is_ring_anti_hom.map_add f⟩
+{ to_is_add_hom := ⟨λ x y, is_ring_anti_hom.map_add f⟩ }
 
 lemma map_zero : f 0 = 0 :=
 is_add_group_hom.map_zero f

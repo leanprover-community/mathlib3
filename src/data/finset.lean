@@ -508,6 +508,9 @@ ext.2 $ λ a, by simpa only [mem_sdiff, mem_union, or_comm,
 @[simp] theorem union_sdiff_of_subset {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁ ∪ (s₂ \ s₁) = s₂ :=
 (union_comm _ _).trans (sdiff_union_of_subset h)
 
+theorem inter_sdiff (s t u : finset α) : s ∩ (t \ u) = s ∩ t \ u :=
+by { ext x, simp [and_assoc] }
+
 @[simp] theorem inter_sdiff_self (s₁ s₂ : finset α) : s₁ ∩ (s₂ \ s₁) = ∅ :=
 eq_empty_of_forall_not_mem $
 by simp only [mem_inter, mem_sdiff]; rintro x ⟨h, _, hn⟩; exact hn h
@@ -598,6 +601,19 @@ ext.2 $ λ _, by simp only [mem_filter, mem_union, or_and_distrib_right]
 theorem filter_union_right (p q : α → Prop) [decidable_pred p] [decidable_pred q] (s : finset α) :
   s.filter p ∪ s.filter q = s.filter (λx, p x ∨ q x) :=
 ext.2 $ λ x, by simp only [mem_filter, mem_union, and_or_distrib_left.symm]
+
+theorem filter_inter {s t : finset α} : filter p s ∩ t = filter p (s ∩ t) :=
+by {ext, simp [and_assoc], rw [and.left_comm] }
+
+theorem inter_filter {s t : finset α} : s ∩ filter p t = filter p (s ∩ t) :=
+by rw [inter_comm, filter_inter, inter_comm]
+
+theorem filter_insert (a : α) (s : finset α) :
+  filter p (insert a s) = if p a then insert a (filter p s) else (filter p s) :=
+by { ext x, simp, split_ifs with h; by_cases h' : x = a; simp [h, h'] }
+
+theorem filter_singleton (a : α) : filter p (singleton a) = if p a then singleton a else ∅ :=
+by { ext x, simp, split_ifs with h; by_cases h' : x = a; simp [h, h'] }
 
 theorem filter_or (s : finset α) : s.filter (λ a, p a ∨ q a) = s.filter p ∪ s.filter q :=
 ext.2 $ λ _, by simp only [mem_filter, mem_union, and_or_distrib_left]
@@ -1123,6 +1139,14 @@ ext.2 $ λ x, by simp only [mem_bind, exists_prop, mem_union, mem_insert,
 
 @[simp] lemma singleton_bind [decidable_eq α] {a : α} : (singleton a).bind t = t a :=
 show (insert a ∅ : finset α).bind t = t a, from bind_insert.trans $ union_empty _
+
+theorem bind_inter (s : finset α) (f : α → finset β) (t : finset β) :
+  s.bind f ∩ t = s.bind (λ x, f x ∩ t) :=
+by { ext x, simp, exact ⟨λ ⟨xt, y, ys, xf⟩, ⟨y, ys, xt, xf⟩, λ ⟨y, ys, xt, xf⟩, ⟨xt, y, ys, xf⟩⟩ }
+
+theorem inter_bind (t : finset β) (s : finset α) (f : α → finset β) :
+  t ∩ s.bind f = s.bind (λ x, t ∩ f x) :=
+by rw [inter_comm, bind_inter]; simp
 
 theorem image_bind [decidable_eq γ] {f : α → β} {s : finset α} {t : β → finset γ} :
   (s.image f).bind t = s.bind (λa, t (f a)) :=

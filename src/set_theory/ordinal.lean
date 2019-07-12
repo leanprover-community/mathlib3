@@ -20,7 +20,7 @@ variables {α : Type*} {β : Type*} {γ : Type*}
 structure initial_seg {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends r ≼o s :=
 (init : ∀ a b, s b (to_order_embedding a) → ∃ a', to_order_embedding a' = b)
 
-local infix ` ≼i `:50 := initial_seg
+local infix ` ≼i `:25 := initial_seg
 
 namespace initial_seg
 
@@ -122,7 +122,7 @@ structure principal_seg {α β : Type*} (r : α → α → Prop) (s : β → β 
 (top : β)
 (down : ∀ b, s b top ↔ ∃ a, to_order_embedding a = b)
 
-local infix ` ≺i `:50 := principal_seg
+local infix ` ≺i `:25 := principal_seg
 
 namespace principal_seg
 
@@ -245,7 +245,8 @@ def cod_restrict (p : set β) (f : r ≺i s)
 
 end principal_seg
 
-def initial_seg.lt_or_eq [is_well_order β s] (f : r ≼i s) : r ≺i s ⊕ r ≃o s :=
+def initial_seg.lt_or_eq [is_well_order β s] (f : r ≼i s) :
+  (r ≺i s) ⊕ (r ≃o s) :=
 if h : surjective f then sum.inr (order_iso.of_surjective f h) else
 have h' : _, from (initial_seg.eq_or_principal f).resolve_left h,
 sum.inl ⟨f, classical.some h', classical.some_spec h'⟩

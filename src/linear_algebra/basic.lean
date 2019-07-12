@@ -11,7 +11,7 @@ import algebra.pi_instances data.finsupp data.equiv.algebra order.order_iso
 
 open function lattice
 
-reserve infix `≃ₗ` : 50
+reserve infix ` ≃ₗ `:25
 
 universes u v w x y z
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type y} {ε : Type z} {ι : Type x}

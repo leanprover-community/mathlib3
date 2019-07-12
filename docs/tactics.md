@@ -1004,3 +1004,25 @@ begin
   exact H h
 end
 ```
+
+### Localized Notation
+
+This consists of two user-commands which allow you to declare notation and commands localized to a namespace.
+
+* Declare notation which is localized to a namespace using:
+```
+localized "infix ` ⊹ `:60 := my_add" in my.add
+```
+* After this command it will be available in the same section/namespace/file, just as if you wrote `local infix ` ⊹ `:60 := my_add`
+* You can open it in other places. The following command will declare the notation again as local notation in that section/namespace/files:
+```
+open_locale my.add
+```
+* More generally, the following will declare all localized notation in the specified namespaces.
+```
+open_locale namespace1 namespace2 ...
+```
+* You can also declare other localized commands, like local attributes
+```
+localized "attribute [simp] le_refl" in le
+```

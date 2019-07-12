@@ -5,6 +5,7 @@ Authors: Johan Commelin, Kenny Lau
 -/
 
 import data.finsupp order.complete_lattice algebra.ordered_group data.mv_polynomial
+import algebra.order_functions
 import ring_theory.ideal_operations
 import linear_algebra.basis
 import algebra.CommRing.limits
@@ -17,6 +18,29 @@ variables {α : Type*} {a b : α}
 @[reducible] def rhs (h : a = b) : α := b
 
 end eq
+
+namespace finsupp
+variables {α : Type*} [decidable_eq α] [add_comm_monoid α]
+
+lemma single_punit_eq (x : punit) (f : punit →₀ α) : single x (f x) = f :=
+ext $ λ y,
+match x, y with
+| punit.star, punit.star := by { rw [single_apply, if_pos rfl] }
+end
+
+lemma single_punit_eq_single_punit_iff (x y : punit) (a b : α) :
+  single x a = single y b ↔ a = b :=
+begin
+  rw [single_eq_single_iff],
+  split,
+  { rintros (⟨_, rfl⟩ | ⟨rfl, rfl⟩); refl },
+  { intro h, left, exact ⟨subsingleton.elim _ _, h⟩ }
+end
+
+lemma single_punit_eq_zero_iff (x : punit) (a : α) : single x a = 0 ↔ a = 0 :=
+by { rw [← single_zero, single_punit_eq_single_punit_iff], exact punit.star }
+
+end finsupp
 
 section algebra
 variables {α : Type*} {β : Type*} [comm_ring α] [comm_ring β]
@@ -164,6 +188,32 @@ lemma swap_mem_diagonal {n : σ →₀ ℕ} {f} (hf : f ∈ diagonal n) : f.swap
 by simpa [mem_diagonal, add_comm] using hf
 
 @[simp] lemma diagonal_zero : diagonal (0 : σ →₀ ℕ) = {(0,0)} := rfl
+
+lemma to_multiset_strict_mono : strict_mono (@to_multiset σ _) :=
+λ m n h,
+begin
+  rw lt_iff_le_and_ne at h ⊢, cases h with h₁ h₂,
+  split,
+  { rw multiset.le_iff_count, intro s, rw [count_to_multiset, count_to_multiset], exact h₁ s },
+  { intro H, apply h₂, replace H := congr_arg multiset.to_finsupp H, simpa using H }
+end
+
+lemma sum_lt_of_lt (m n : σ →₀ ℕ) (h : m < n) :
+  m.sum (λ _, id) < n.sum (λ _, id) :=
+begin
+  rw [← card_to_multiset, ← card_to_multiset],
+  apply multiset.card_lt_of_lt,
+  exact to_multiset_strict_mono _ _ h
+end
+
+variable (σ)
+
+def lt_wf : well_founded (@has_lt.lt (σ →₀ ℕ) _) :=
+subrelation.wf (sum_lt_of_lt) $ inv_image.wf _ nat.lt_wf
+
+-- instance : has_well_founded (σ →₀ ℕ) :=
+-- { r := (<),
+--   wf := lt_wf σ }
 
 end finsupp
 
@@ -349,7 +399,7 @@ def mv_power_series (σ : Type*) (α : Type*) := (σ →₀ ℕ) → α
 
 namespace mv_power_series
 open finsupp
-variables {σ : Type*} {α : Type*} [decidable_eq σ] [comm_semiring α]
+variables {σ : Type*} {α : Type*} [decidable_eq σ]
 
 def coeff (n : σ →₀ ℕ) (φ : mv_power_series σ α) := φ n
 
@@ -357,7 +407,9 @@ def coeff (n : σ →₀ ℕ) (φ : mv_power_series σ α) := φ n
 funext h
 
 lemma ext_iff {φ ψ : mv_power_series σ α} : φ = ψ ↔ (∀ n, coeff n φ = coeff n ψ) :=
-⟨congr_fun, ext⟩
+⟨λ h n, congr_arg (coeff n) h, ext⟩
+
+variables [comm_semiring α]
 
 def monomial (n : σ →₀ ℕ) (a : α) : mv_power_series σ α := λ m, if m = n then a else 0
 
@@ -558,6 +610,10 @@ instance C.is_semiring_hom : is_semiring_hom (C : α → mv_power_series σ α) 
   map_add := C_add,
   map_mul := C_mul }
 
+instance coeff.is_add_monoid_hom : is_add_monoid_hom (coeff n : mv_power_series σ α → α) :=
+{ map_zero := coeff_zero _ _ _,
+  map_add := coeff_add n }
+
 instance : semimodule α (mv_power_series σ α) :=
 { smul := λ a φ, C a * φ,
   one_smul := λ φ, one_mul _,
@@ -594,6 +650,10 @@ instance C.is_ring_hom : is_ring_hom (C : α → mv_power_series σ α) :=
   map_add := C_add,
   map_mul := C_mul }
 
+instance coeff.is_add_group_hom (n : σ →₀ ℕ) :
+  is_add_group_hom (coeff n : mv_power_series σ α → α) :=
+{ map_add := coeff_add n }
+
 instance : module α (mv_power_series σ α) :=
 { ..mv_power_series.semimodule }
 
@@ -603,7 +663,163 @@ instance : algebra α (mv_power_series σ α) :=
   smul_def' := λ c p, rfl,
   .. mv_power_series.module }
 
+def inv_of_unit (φ : mv_power_series σ α) (u : units α) (h : coeff 0 φ = u) : mv_power_series σ α
+| n := if n = 0 then ↑u⁻¹ else
+- ↑u⁻¹ * finset.sum (n.diagonal) (λ (x : (σ →₀ ℕ) × (σ →₀ ℕ)),
+    if h : x.1 < n then inv_of_unit x.1 * coeff x.2 φ else 0)
+using_well_founded { rel_tac := λ _ _, `[exact ⟨_, finsupp.lt_wf σ⟩] }
+
 end mv_power_series
+
+def power_series (α : Type*) := mv_power_series unit α
+
+namespace power_series
+open finsupp (single)
+variable {α : Type*}
+
+def coeff (n : ℕ) : power_series α → α := mv_power_series.coeff (single () n)
+
+@[extensionality] lemma ext {φ ψ : power_series α} (h : ∀ n, coeff n φ = coeff n ψ) : φ = ψ :=
+mv_power_series.ext $ λ n,
+begin
+  have : n = single () (n ()),
+  { ext x, exact match x with | () := by { rw [finsupp.single_apply, if_pos rfl] } end },
+  convert h (n ())
+end
+
+lemma ext_iff {φ ψ : power_series α} : φ = ψ ↔ (∀ n, coeff n φ = coeff n ψ) :=
+⟨λ h n, congr_arg (coeff n) h, ext⟩
+
+def mk (f : ℕ → α) : power_series α := λ s, f (s ())
+
+@[simp] lemma coeff_mk (n : ℕ) (f : ℕ → α) : coeff n (mk f) = f n := rfl
+
+section comm_semiring
+variable [comm_semiring α]
+
+instance : comm_semiring (power_series α) := by delta power_series; apply_instance
+
+def monomial (n : ℕ) : α → power_series α := mv_power_series.monomial (single () n)
+
+def C : α → power_series α := mv_power_series.C
+
+def X : power_series α := mv_power_series.X ()
+
+lemma coeff_monomial (m n : ℕ) (a : α) :
+  coeff m (monomial n a) = if m = n then a else 0 :=
+calc coeff m (monomial n a) = _ : mv_power_series.coeff_monomial _ _ _
+    ... = if m = n then a else 0 :
+if h : m = n then by { subst m, rw [if_pos rfl, if_pos rfl] } else
+begin
+  rw [if_neg, if_neg h], intro H, apply h,
+  rwa finsupp.single_punit_eq_single_punit_iff at H
+end
+
+lemma monomial_eq_mk (n : ℕ) (a : α) :
+  monomial n a = mk (λ m, if m = n then a else 0) :=
+ext $ λ m, coeff_monomial _ _ _
+
+@[simp] lemma coeff_monomial' (n : ℕ) (a : α) :
+  coeff n (monomial n a) = a := if_pos rfl
+
+lemma coeff_C (n : ℕ) (a : α) :
+  coeff n (C a : power_series α) = if n = 0 then a else 0 :=
+calc coeff n (C a) = _ : mv_power_series.coeff_C _ _
+    ... = if n = 0 then a else 0 :
+if h : n = 0 then
+by { rw [if_pos, if_pos h], rwa [finsupp.single_punit_eq_zero_iff] }
+else
+by { rw [if_neg, if_neg h], rwa [finsupp.single_punit_eq_zero_iff] }
+
+@[simp] lemma coeff_C_zero (a : α) : coeff 0 (C a) = a :=
+coeff_monomial' 0 a
+
+@[simp] lemma monomial_zero (a : α) : (monomial 0 a : power_series α) = C a := rfl
+
+lemma coeff_X (n : ℕ) :
+  coeff n (X : power_series α) = if n = 1 then 1 else 0 :=
+calc coeff n (X : power_series α) = _ : mv_power_series.coeff_X _ _
+    ... = if n = 1 then 1 else 0 :
+if h : n = 1 then
+by { rw [if_pos, if_pos h], rwa [finsupp.single_punit_eq_single_punit_iff] }
+else
+by { rw [if_neg, if_neg h], rwa [finsupp.single_punit_eq_single_punit_iff] }
+
+@[simp] lemma coeff_X' : coeff 1 (X : power_series α) = 1 :=
+by rw [coeff_X, if_pos rfl]
+
+@[simp] lemma coeff_zero (n : ℕ) : coeff n (0 : power_series α) = 0 := rfl
+
+@[simp] lemma C_zero : (C 0 : power_series α) = 0 := mv_power_series.C_zero _ _
+
+@[simp] lemma coeff_one (n : ℕ) :
+  coeff n (1 : power_series α) = if n = 0 then 1 else 0 :=
+calc coeff n (1 : power_series α) = _ : mv_power_series.coeff_one _ _ _
+    ... = if n = 0 then 1 else 0 :
+if h : n = 0 then by { rw [if_pos, if_pos h], rwa finsupp.single_punit_eq_zero_iff }
+else by { rw [if_neg, if_neg h], rwa finsupp.single_punit_eq_zero_iff }
+
+@[simp] lemma coeff_one_zero : coeff 0 (1 : power_series α) = 1 :=
+coeff_C_zero 1
+
+@[simp] lemma C_one : (C 1 : power_series α) = 1 := rfl
+
+@[simp] lemma coeff_add (n : ℕ) (φ ψ : power_series α) :
+  coeff n (φ + ψ) = coeff n φ + coeff n ψ := rfl
+
+@[simp] lemma monomial_add (n : ℕ) (a b : α) :
+  (monomial n (a + b) : power_series α) = monomial n a + monomial n b :=
+mv_power_series.monomial_add _ _ _
+
+@[simp] lemma C_add (a b : α) : (C (a + b) : power_series α) = C a + C b :=
+monomial_add 0 a b
+
+-- lemma coeff_mul (n : ℕ) (φ ψ : power_series α) :
+--   coeff n (φ * ψ) = (nat.diagonal n).sum (λ p, coeff p.1 φ * coeff p.2 ψ) := rfl
+
+@[simp] lemma C_mul (a b : α) : (C (a * b) : power_series α) = C a * C b :=
+mv_power_series.C_mul _ _
+
+instance C.is_semiring_hom : is_semiring_hom (C : α → power_series α) :=
+mv_power_series.C.is_semiring_hom
+
+instance coeff.is_add_monoid_hom (n : ℕ) : is_add_monoid_hom (coeff n : power_series α → α) :=
+{ map_zero := coeff_zero n,
+  map_add := coeff_add n }
+
+instance : semimodule α (power_series α) :=
+mv_power_series.semimodule
+
+end comm_semiring
+
+section comm_ring
+variables [comm_ring α]
+
+instance : comm_ring (power_series α) := by delta power_series; apply_instance
+
+instance C.is_ring_hom : is_ring_hom (C : α → power_series α) :=
+mv_power_series.C.is_ring_hom
+
+instance : module α (power_series α) :=
+mv_power_series.module
+
+instance : algebra α (power_series α) :=
+mv_power_series.algebra
+
+end comm_ring
+
+section local_ring
+variables [comm_ring α] [is_local_ring α]
+
+instance : is_local_ring (power_series α) :=
+_
+
+end local_ring
+
+end power_series
+
+
+#exit
 
 namespace mv_power_series
 open category_theory opposite

@@ -411,7 +411,7 @@ end
 
 theorem parallelogram_law (x y : α) :
 ∥x + y∥^2 + ∥x - y∥^2 = 2*∥x∥^2 + 2*∥y∥^2 :=
-by {rw [norm_add, norm_sub, simp [two_mul]}
+by {rw [norm_add, norm_sub], simp [two_mul]}
 
 lemma abs_inner_product (x y : α) : abs(ₕ⟨x|y⟩)^2 = (ₕ⟨x|y⟩*ₕ⟨y|x⟩).re :=
 by rw [←inner_product.conj_sym x, mul_conj, of_real_re, 

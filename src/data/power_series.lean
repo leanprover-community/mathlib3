@@ -10,6 +10,17 @@ import ring_theory.ideal_operations
 import linear_algebra.basis
 import algebra.CommRing.limits
 
+namespace discrete_field
+variables {α : Type*} [discrete_field α]
+
+instance : local_ring α :=
+{ is_local := λ a,
+  if h : a = 0
+  then or.inr (by rw [h, sub_zero]; exact is_unit_one)
+  else or.inl $ is_unit_of_mul_one a a⁻¹ $ div_self h }
+
+end discrete_field
+
 namespace eq
 variables {α : Type*} {a b : α}
 
@@ -161,6 +172,11 @@ instance [ordered_cancel_comm_monoid α] [decidable_eq α] :
   .. finsupp.add_comm_monoid, .. finsupp.partial_order,
   .. finsupp.add_left_cancel_semigroup, .. finsupp.add_right_cancel_semigroup }
 
+lemma le_iff [canonically_ordered_monoid α] (f g : σ →₀ α) :
+  f ≤ g ↔ ∀ s ∈ f.support, f s ≤ g s :=
+⟨λ h s hs, h s,
+λ h s, if H : s ∈ f.support then h s H else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
+
 attribute [simp] to_multiset_zero to_multiset_add
 
 @[simp] lemma to_multiset_to_finsupp (f : σ →₀ ℕ) :
@@ -211,9 +227,13 @@ variable (σ)
 def lt_wf : well_founded (@has_lt.lt (σ →₀ ℕ) _) :=
 subrelation.wf (sum_lt_of_lt) $ inv_image.wf _ nat.lt_wf
 
--- instance : has_well_founded (σ →₀ ℕ) :=
--- { r := (<),
---   wf := lt_wf σ }
+instance decidable_lt : decidable_rel (@has_lt.lt (σ →₀ ℕ) _) :=
+λ m n,
+begin
+  have h : _ := _,
+  rw lt_iff_le_and_ne, refine @and.decidable _ _ h _,
+  rw le_iff, apply_instance
+end
 
 end finsupp
 
@@ -309,11 +329,6 @@ instance [canonically_ordered_cancel_monoid α] [decidable_eq α] :
   canonically_ordered_cancel_monoid (σ →₀ α) :=
 { .. finsupp.ordered_cancel_comm_monoid,
   .. finsupp.canonically_ordered_monoid }
-
-lemma le_iff [canonically_ordered_monoid α] (f g : σ →₀ α) :
-  f ≤ g ↔ ∀ s ∈ f.support, f s ≤ g s :=
-⟨λ h s hs, h s,
-λ h s, if H : s ∈ f.support then h s H else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
 
 def nat_downset (f : σ →₀ ℕ) : finset (σ →₀ ℕ) :=
 (f.support.pi (λ x, finset.range $ f x + 1)).image $
@@ -623,6 +638,8 @@ instance : semimodule α (mv_power_series σ α) :=
   add_smul := λ a b φ, by simp only [C_add, add_mul],
   zero_smul := λ φ, by simp only [zero_mul, C_zero] }
 
+-- TODO(jmc) map and rename
+
 end ring
 
 -- TODO(jmc): once adic topology lands, show that this is complete
@@ -666,8 +683,71 @@ instance : algebra α (mv_power_series σ α) :=
 def inv_of_unit (φ : mv_power_series σ α) (u : units α) (h : coeff 0 φ = u) : mv_power_series σ α
 | n := if n = 0 then ↑u⁻¹ else
 - ↑u⁻¹ * finset.sum (n.diagonal) (λ (x : (σ →₀ ℕ) × (σ →₀ ℕ)),
-    if h : x.1 < n then inv_of_unit x.1 * coeff x.2 φ else 0)
-using_well_founded { rel_tac := λ _ _, `[exact ⟨_, finsupp.lt_wf σ⟩] }
+    if h : x.2 < n then coeff x.1 φ * inv_of_unit x.2 else 0)
+using_well_founded
+{ rel_tac := λ _ _, `[exact ⟨_, finsupp.lt_wf σ⟩],
+  dec_tac := tactic.assumption }
+
+lemma coeff_inv_of_unit (n : σ →₀ ℕ) (φ : mv_power_series σ α) (u : units α) (h : coeff 0 φ = u) :
+  coeff n (inv_of_unit φ u h) = if n = 0 then ↑u⁻¹ else
+  - ↑u⁻¹ * finset.sum (n.diagonal) (λ (x : (σ →₀ ℕ) × (σ →₀ ℕ)),
+    if x.2 < n then coeff x.1 φ * inv_of_unit φ u h x.2 else 0) :=
+by rw [coeff, inv_of_unit]
+
+@[simp] lemma coeff_zero_inv_of_unit (φ : mv_power_series σ α) (u : units α) (h : coeff 0 φ = u) :
+  coeff (0 : σ →₀ ℕ) (inv_of_unit φ u h) = ↑u⁻¹ :=
+by rw [coeff_inv_of_unit, if_pos rfl]
+
+lemma mul_inv_of_unit (φ : mv_power_series σ α) (u : units α) (h : coeff 0 φ = u) :
+  φ * inv_of_unit φ u h = 1 :=
+ext $ λ n,
+if H : n = 0 then
+by rw [H, coeff_mul, coeff_one_zero, finsupp.diagonal_zero, finset.insert_empty_eq_singleton,
+  finset.sum_singleton, coeff_zero_inv_of_unit, h, units.mul_inv]
+else
+begin
+  have : ((0 : σ →₀ ℕ), n) ∈ n.diagonal,
+  { rw [finsupp.mem_diagonal], simp },
+  rw [coeff_one, if_neg H, coeff_mul,
+    ← finset.insert_erase this, finset.sum_insert (finset.not_mem_erase _ _),
+    coeff_inv_of_unit, if_neg H, h,
+    neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm, units.mul_inv_cancel_left,
+    ← finset.insert_erase this, finset.sum_insert (finset.not_mem_erase _ _),
+    finset.insert_erase this, if_neg (not_lt_of_ge $ le_refl _), _root_.add_comm, _root_.zero_add,
+    ← sub_eq_add_neg, sub_eq_zero, finset.sum_congr rfl],
+  rintros ⟨i,j⟩ hij, rw [finset.mem_erase, finsupp.mem_diagonal] at hij, cases hij with h₁ h₂,
+  subst n, rw if_pos, {refl}, dsimp at *,
+  split,
+  { intro s, exact nat.le_add_left (j s) (i s) },
+  { intro H, apply h₁,
+    suffices : i = 0, { simp [this] },
+    ext1 s, specialize H s, rw ← _root_.zero_add (j s) at H,
+    apply nat.eq_zero_of_le_zero,
+    exact (add_le_add_iff_right (j s)).mp H }
+end
+
+section local_ring
+
+def is_local_ring (h : is_local_ring α) : is_local_ring (mv_power_series σ α) :=
+begin
+  split,
+  { intro this, apply ‹is_local_ring α›.1, simpa using congr_arg (coeff 0) this },
+  { intro φ, let c := coeff 0 φ,
+    have : is_unit c ∨ is_unit (1 - c) := ‹is_local_ring α›.2 c,
+    cases this with h h; [left, right]; cases h with u h;
+    { apply is_unit_of_mul_one _,
+      { apply mul_inv_of_unit, { exact h } } } }
+end
+
+end local_ring
+
+end mv_power_series
+
+namespace mv_power_series
+variables {σ : Type*} {α : Type*} [decidable_eq σ] [local_ring α]
+
+instance : local_ring (mv_power_series σ α) :=
+local_of_is_local_ring $ is_local_ring ⟨zero_ne_one, local_ring.is_local⟩
 
 end mv_power_series
 

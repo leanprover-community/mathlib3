@@ -433,5 +433,29 @@ meta def rintro : parse rintro_parse → tactic unit
 /-- Alias for `rintro`. -/
 meta def rintros := rintro
 
+setup_tactic_parser
+
+meta def obtain_parse : parser (option (listΣ rcases_patt_inverted) × pexpr) :=
+with_desc "patt_list? : expr" $ prod.mk <$> rcases_patt_parse_list? <*> (tk ":" >> texpr)
+
+/--
+The `obtain` tactic is a combination of `have` and `rcases`.
+`obtain ⟨patt⟩ : type,
+ { ... }`
+is equivalent to
+`have h : type,
+ { ... },
+ rcases h with ⟨patt⟩`.
+-/
+meta def obtain (p : interactive.parse obtain_parse)
+   : tactic unit :=
+do nm ← mk_fresh_name,
+   e ← to_expr p.2 >>= assert nm,
+   (g :: gs) ← get_goals,
+   set_goals gs,
+   tactic.rcases ``(%%e) $ rcases_patt_inverted.invert_list (p.1.get_or_else [default _]),
+   gs ← get_goals,
+   set_goals (g::gs)
+
 end interactive
 end tactic

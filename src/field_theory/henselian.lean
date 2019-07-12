@@ -1,4 +1,10 @@
-import algebra ring_theory.ideals data.real.basic data.polynomial data.finset
+/-
+Copyright (c) 2019 Casper Putz. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Sander Dahmen, Casper Putz
+-/
+
+import algebra data.real.basic data.polynomial data.finset ring_theory.integral_closure
 
 universe u
 
@@ -29,6 +35,9 @@ lemma val_ne_zero {x : α} (h : x ≠ 0) : val x ≠ 0 := (mt (definite x).mp) h
 
 /-- Shows that the valuation of a nonzero element is > 0. -/
 lemma val_pos {x : α} (h : x ≠ 0) : val x > 0 := lt_of_le_of_ne (non_neg x) (ne.symm $ val_ne_zero h)
+
+/-- Shows that the valuation of 0 equals 0. -/
+lemma val_zero : val (0 : α) = 0 := by rw [definite]
 
 /-- Shows that the valuation of 1 equals 1. -/
 lemma val_one : val (1 : α) = 1 :=
@@ -161,6 +170,25 @@ instance : nonarch_valued_ring (valuation_ring α) :=
   val_add := λ x y, by rw[coe_add]; exact valued_ring.val_add x y,
   nonarch := λ x y, by simp only [val_eq_coe, coe_add]; exact nonarch_valued_ring.nonarch x y }
 
+instance coe_is_ring_hom : @is_ring_hom _ _ (show ring (valuation_ring α), by apply_instance) _
+	(subtype.val : valuation_ring α → α) :=
+{ map_one := by rw[val_eq_coe, coe_one],
+	map_mul := λ x y, by simp only [val_eq_coe, coe_mul, val_eq_coe],
+	map_add := λ x y, by simp only [val_eq_coe, coe_add, val_eq_coe] }
+
+instance : algebra (valuation_ring α) α :=
+	algebra.of_ring_hom (subtype.val) valuation.coe_is_ring_hom
+set_option pp.structure_projections false
+lemma integrally_closed (x : α) (h : is_integral (valuation_ring α) x) :
+	valued_ring.val x ≤ 1 :=
+let ⟨p, hm, hp⟩ := h in
+begin
+	by_contradiction hn,
+	rw not_le at hn,
+	change finsupp.sum p (λ (e : ℕ) (a : valuation_ring α), a.val * x ^ e) = 0 at hp,
+	sorry
+end
+
 end valuation_ring
 
 end valuation
@@ -173,7 +201,21 @@ open valuation polynomial
 over this field . -/
 class henselian_field (α : Type u) [discrete_field α] [valued_ring α] :=
 (henselian : ∀ p : polynomial α, irreducible p →
-    ∀ k ≤ nat_degree p, valued_ring.val (p.coeff k) ≤ max (valued_ring.val (p.coeff 0)) (valued_ring.val (p.leading_coeff)))
+  ∀ k ≤ nat_degree p, valued_ring.val (p.coeff k) ≤ max (valued_ring.val (p.coeff 0)) (valued_ring.val (p.leading_coeff)))
+
+variables {α : Type u} [discrete_field α] [nonarch_valued_ring α] [henselian_field α]
+
+lemma integral_coeffs (p : polynomial α) (hp : irreducible p) (hm : monic p)
+  (h0 : valued_ring.val (p.coeff 0) ≤ 1) : ∀ n, valued_ring.val (p.coeff n) ≤ 1 :=
+λ k, or.elim (le_or_gt ↑k (degree p))
+	(λ hk, begin
+		rw[degree_eq_nat_degree (ne_zero_of_irreducible hp), with_bot.coe_le_coe] at hk,
+		have h : valued_ring.val (p.coeff k) ≤
+			max (valued_ring.val (p.coeff 0)) (valued_ring.val (p.leading_coeff)),
+			from henselian_field.henselian p hp k hk,
+		rwa [monic.def.mp hm, val_one, max_eq_right h0] at h
+	end)
+	(λ hk, by	rw [coeff_eq_zero_of_degree_lt hk, val_zero]; exact zero_le_one)
 
 
 end henselian

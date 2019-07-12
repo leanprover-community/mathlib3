@@ -98,7 +98,7 @@ else 0
 ```
 
 The `#doc_blame` command can be run at the bottom of a file to list all definitions that do not have
-doc strings. (It does not list theorems.)
+doc strings. `#doc_blame!` will also list theorems and lemmas.
 
 ## Theories documentation
 

@@ -447,8 +447,7 @@ is equivalent to
  { ... },
  rcases h with ⟨patt⟩`.
 -/
-meta def obtain (p : interactive.parse obtain_parse)
-   : tactic unit :=
+meta def obtain (p : interactive.parse obtain_parse) : tactic unit :=
 do nm ← mk_fresh_name,
    e ← to_expr p.2 >>= assert nm,
    (g :: gs) ← get_goals,

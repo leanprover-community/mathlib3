@@ -16,7 +16,7 @@ The other sections, with second level headers are (in this order):
 * *Main definitions* (optional, can be covered in the summary)
 * *Main statements* (optional, can be covered in the summary)
 * *Notations* (ommited only if no notation is introduced in this file)
-* *Implementation notes*
+* *Implementation notes* (description of important design decisions or interface features)
 * *References* (references to textbooks or papers, or Wikipedia pages)
 
 After references, we write "Tags:" followed by a list of keywords that could be useful when
@@ -61,9 +61,12 @@ Tags: p-adic, p adic, padic, norm, valuation
 
 ## Docstrings
 
-Every definition and major theorem is required to have a doc string. Those are introduced
-using `/--` and closed by `-/` above the definition. They can contain some markdown, e.g. backticks
-quotes. They should convey the mathematical meaning of the definition. It is allowed to lie slightly
+Every definition and major theorem is required to have a doc string.
+(Doc strings on lemmas are also encouraged, particularly if the lemma has any mathematical content
+or might be useful in another file.)
+These are introduced using `/--` and closed by `-/` above the definition.
+They can contain some markdown, e.g. backtick quotes.
+They should convey the mathematical meaning of the definition. It is allowed to lie slightly
 about the actual implementation. The following is a docstring example:
 
 ```lean
@@ -93,6 +96,9 @@ then (multiplicity (p : ℤ) q.num).get
     (multiplicity.finite_int_iff.2 ⟨h.2, by exact_mod_cast rat.denom_ne_zero _⟩)
 else 0
 ```
+
+The `#doc_blame` command can be run at the bottom of a file to list all definitions that do not have
+doc strings. (It does not list theorems.)
 
 ## Theories documentation
 

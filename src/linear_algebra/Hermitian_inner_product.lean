@@ -411,10 +411,53 @@ end
 
 theorem parallelogram_law (x y : α) :
 ∥x + y∥^2 + ∥x - y∥^2 = 2*∥x∥^2 + 2*∥y∥^2 :=
-begin
-  rw norm_add,
-  rw norm_sub,
-  simp [two_mul],
+by {rw [norm_add, norm_sub, simp [two_mul]}
+
+lemma abs_inner_product (x y : α) : abs(ₕ⟨x|y⟩)^2 = (ₕ⟨x|y⟩*ₕ⟨y|x⟩).re :=
+by rw [←inner_product.conj_sym x, mul_conj, of_real_re, 
+    complex.abs, sqr_sqrt (norm_sq_nonneg (ₕ⟨x|y⟩))]
+
+theorem abs_inner_product_eq_mul_norm_iff (x y : α) : 
+abs(ₕ⟨x|y⟩) = ∥x∥*∥y∥ ↔ (∃ (a : ℂ), x = a • y) ∨ (∃ (a : ℂ), y = a • x) :=
+begin 
+  classical, by_cases Hy : y = 0; split; intro H, 
+  { rw Hy,
+    exact or.inr ⟨0, eq.symm (zero_smul ℂ x)⟩ }, 
+
+  { rw Hy,
+    simp },
+
+  { have H1 : ∥ₕ⟨y|y⟩ • x - ₕ⟨x|y⟩ • y∥^2 = 0,
+    { rw [norm_sub, norm_smul, @norm_smul ℂ α _ _ _ (ₕ⟨x|y⟩)],
+      repeat {rw inner_product.smul_left},
+      repeat {rw inner_product.smul_right},
+      rw [inner_product.conj_sym, inner_product.conj_sym,
+        mul_comm (ₕ⟨x|y⟩), mul_assoc],
+      unfold norm,
+      rw [H, inner_product.abs_self],
+      repeat {rw mul_pow},
+      rw [norm_sqr, norm_sqr, herm_norm_sqr,
+        herm_norm_sqr, mul_re, mul_comm (ₕ⟨y|x⟩),
+        ←abs_inner_product, H, mul_pow, norm_sqr, norm_sqr],
+      simp [inner_product.self_im, pow_two, mul_comm, mul_comm (ₕ⟨y|y⟩.re) (ₕ⟨x|x⟩.re * ₕ⟨y|y⟩.re), mul_assoc, add_neg_self] },
+    have H2 : ∥ₕ⟨y|y⟩ • x - ₕ⟨x|y⟩ • y∥ = 0,
+    { exact pow_eq_zero H1 },
+    rw [norm_eq_zero, sub_eq_zero] at H2,
+    apply or.intro_left,
+    apply exists.intro (ₕ⟨y|y⟩⁻¹ * ₕ⟨x|y⟩),
+    rw [mul_smul, ←H2, smul_smul,
+      inv_mul_cancel (inner_product.self_ne_zero_iff.2 Hy), one_smul] },
+    
+  { cases H; apply exists.elim H; intros a Ha; rw Ha,
+    { rw [norm_smul, inner_product.smul_left,
+        complex.abs_mul, inner_product.abs_self,
+        mul_assoc, mul_self_norm y],
+      refl },
+
+    { rw [norm_smul, inner_product.smul_right,
+        complex.abs_mul, abs_conj, inner_product.abs_self,
+        ←mul_assoc, mul_comm (∥x∥), mul_assoc, mul_self_norm x],
+      refl } }
 end
 
 def is_normalized (x : α) := ∥x∥ = 1
@@ -495,11 +538,8 @@ begin
   { rw [Hx, zero_proj, norm_zero],
     exact norm_nonneg y },
 
-  { rw proj_eq_smul_normalize,
-    rw norm_smul,
-    rw norm_normalize Hx,
-    rw mul_one,
-    rw norm_div,
+  { rw [proj_eq_smul_normalize, norm_smul,
+      norm_normalize Hx, mul_one, norm_div],
     rw div_le_iff (lt_of_le_of_ne 
                       (norm_nonneg (↑∥x∥)) 
                       (by { rw [ne, eq_comm, norm_eq_zero, 

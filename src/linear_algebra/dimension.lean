@@ -310,12 +310,16 @@ begin
   simp [λ i, (hb i).mk_range_eq_dim.symm, cardinal.sum_mk]
 end
 
-lemma dim_fun :
+lemma dim_fun {β η : Type u} [fintype η] [add_comm_group β] [vector_space α β] :
+  vector_space.dim α (η → β) = fintype.card η * vector_space.dim α β :=
+by rw [dim_pi, cardinal.sum_const, cardinal.fintype_card]
+
+lemma dim_fun_eq_lift_mul :
   vector_space.dim α (η → β) = cardinal.lift.{u'' v} (fintype.card η : cardinal) * cardinal.lift.{v u''} (vector_space.dim α β) :=
 by rw [dim_pi, cardinal.sum_const_eq_lift_mul, cardinal.fintype_card]
 
 lemma dim_fun' : vector_space.dim α (η → α) = fintype.card η :=
-by rw [dim_fun, dim_of_field α, cardinal.lift_one, mul_one,
+by rw [dim_fun_eq_lift_mul, dim_of_field α, cardinal.lift_one, mul_one,
     cardinal.lift_nat_cast, cardinal.nat_cast_inj]
 
 lemma dim_fin_fun (n : ℕ) : dim α (fin n → α) = n :=

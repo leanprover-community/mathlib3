@@ -65,17 +65,13 @@ begin
   exact @modeq.modeq_mul _ _ 1 _ 1 h₁ h₂
 end
 
-@[parity_simps] theorem even_pow {m n : nat} : even (m^n) ↔ even m ∧ 0 < n :=
-begin
-  induction n with n ih,
-  { simp [*, even_succ, even_zero, lt_irrefl 0] },
-  simp [pow_succ, even_mul, ih, succ_pos n], tauto
-end
+@[parity_simps] theorem even_pow {m n : nat} : even (m^n) ↔ even m ∧ n ≠ 0 :=
+by { induction n with n ih; simp [*, pow_succ, even_mul], tauto }
 
 -- Here are examples of how `parity_simps` can be used with `nat`.
 
 example (m n : nat) (h : even m) : ¬ even (n + 3) ↔ even (m^2 + m + n) :=
-by simp [*, (dec_trivial : 0 < 2)] with parity_simps
+by simp [*, (dec_trivial : ¬ 2 = 0)] with parity_simps
 
 example : ¬ even 25394535 :=
 by simp

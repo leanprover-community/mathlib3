@@ -52,7 +52,7 @@ by simp [bit1] with parity_simps
 
 @[parity_simps] theorem even_sub {m n : int} : even (m - n) ↔ (even m ↔ even n) :=
 begin
-  conv { to_rhs, rw [←sub_add_cancel m n, even_add], },
+  conv { to_rhs, rw [←sub_add_cancel m n, even_add] },
   by_cases h : even n; simp [h]
 end
 
@@ -67,12 +67,7 @@ begin
 end
 
 @[parity_simps] theorem even_pow {m : int} {n : nat} : even (m^n) ↔ even m ∧ n ≠ 0 :=
-begin
-  induction n with n ih,
-  { have : ¬ even 1, by simp [even_iff]; refl,
-    simp * },
-  simp [pow_succ, even_mul, ih], tauto
-end
+by { induction n with n ih; simp [*, even_mul, pow_succ], tauto }
 
 -- Here are examples of how `parity_simps` can be used with `int`.
 

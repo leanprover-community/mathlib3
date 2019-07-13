@@ -391,6 +391,9 @@ variables {α : Sort*} {p q : α → Prop} {b : Prop}
 
 def Exists.imp := @exists_imp_exists
 
+lemma exists_imp_exists' {α β : Sort*} {p : α → Prop} {q : β → Prop} (f : α → β) (h : ∀ a, p a → q (f a)) (p : ∃ a, p a) : ∃ a, q a :=
+exists.elim p (λ a hp, ⟨_, h _ hp⟩)
+
 theorem forall_swap {α β} {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
 ⟨function.swap, function.swap⟩
 

@@ -185,9 +185,8 @@ namespace is_add_group_hom
 variables [add_group α] [add_group β] (f : α → β) [is_add_group_hom f]
 
 lemma map_sub (a b) : f (a - b) = f a - f b :=
-calc f (a - b) = f (a + -b)   : rfl
-           ... = f a + f (-b) : is_add_hom.map_add f _ _
-           ... = f a - f b    : by  simp[map_neg f]
+calc f (a + -b) = f a + f (-b) : is_add_hom.map_add f _ _
+            ... = f a + -f b   : by rw [map_neg f]
 
 end is_add_group_hom
 

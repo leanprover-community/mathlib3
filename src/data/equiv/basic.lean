@@ -416,6 +416,12 @@ def Pi_congr_right {α} {β₁ β₂ : α → Sort*} (F : ∀ a, β₁ a ≃ β�
 ⟨λ H a, F a (H a), λ H a, (F a).symm (H a),
  λ H, funext $ by simp, λ H, funext $ by simp⟩
 
+def Pi_curry {α} {β : α → Sort*} (γ : Π a, β a → Sort*) : (Π x : sigma β, γ x.1 x.2) ≃ (Π a b, γ a b) :=
+{ to_fun := λ f x y, f ⟨x,y⟩,
+  inv_fun := λ f x, f x.1 x.2,
+  left_inv := λ f, funext $ λ ⟨x,y⟩, rfl,
+  right_inv := λ f, funext $ λ x, funext $ λ y, rfl }
+
 end
 
 section

@@ -78,6 +78,10 @@ attribute [to_additive homeomorph.add_left] homeomorph.mul_left
 lemma is_open_map_mul_left [topological_group α] (a : α) : is_open_map (λ x, a * x) :=
 (homeomorph.mul_left a).is_open_map
 
+@[to_additive is_closed_map_add_left]
+lemma is_closed_map_mul_left [topological_group α] (a : α) : is_closed_map (λ x, a * x) :=
+(homeomorph.mul_left a).is_closed_map
+
 protected def homeomorph.mul_right
   {α : Type*} [topological_space α] [group α] [topological_group α] (a : α) :
   α ≃ₜ α :=
@@ -93,6 +97,10 @@ attribute [to_additive homeomorph.add_right] homeomorph.mul_right
 @[to_additive is_open_map_add_right]
 lemma is_open_map_mul_right [topological_group α] (a : α) : is_open_map (λ x, x * a) :=
 (homeomorph.mul_right a).is_open_map
+
+@[to_additive is_closed_map_add_right]
+lemma is_closed_map_mul_right [topological_group α] (a : α) : is_closed_map (λ x, x * a) :=
+(homeomorph.mul_right a).is_closed_map
 
 protected def homeomorph.inv (α : Type*) [topological_space α] [group α] [topological_group α] :
   α ≃ₜ α :=
@@ -356,6 +364,38 @@ begin
   rw pointwise_mul_eq_Union_mul_right,
   exact is_open_Union (λa, is_open_Union $ λha, this _),
 end
+
+variables (α)
+
+lemma topological_group.t1_space (h : @is_closed α _ {1}) : t1_space α :=
+⟨assume x, by { convert is_closed_map_mul_right x _ h, simp }⟩
+
+lemma topological_group.regular_space [t1_space α] : regular_space α :=
+⟨assume s a hs ha,
+ let f := λ p : α × α, p.1 * (p.2)⁻¹ in
+ have hf : continuous f :=
+   continuous.comp continuous_mul'
+     (continuous.prod_mk (continuous_fst) (continuous.comp continuous_inv' continuous_snd)),
+ -- a ∈ -s implies f (a, 1) ∈ -s, and so (a, 1) ∈ f⁻¹' (-s);
+ -- and so can find t₁ t₂ open such that a ∈ t₁ × t₂ ⊆ f⁻¹' (-s)
+ let ⟨t₁, t₂, ht₁, ht₂, a_mem_t₁, one_mem_t₂, t_subset⟩ :=
+   is_open_prod_iff.1 (hf _ (is_open_compl_iff.2 hs)) a (1:α) (by simpa [f]) in
+ begin
+   use s * t₂,
+   use is_open_pointwise_mul_left ht₂,
+   use λ x hx, ⟨x, hx, 1, one_mem_t₂, (mul_one _).symm⟩,
+   apply inf_principal_eq_bot,
+   rw mem_nhds_sets_iff,
+   refine ⟨t₁, _, ht₁, a_mem_t₁⟩,
+   rintros x hx ⟨y, hy, z, hz, yz⟩,
+   have : x * z⁻¹ ∈ -s := (prod_subset_iff.1 t_subset) x hx z hz,
+   have : x * z⁻¹ ∈ s, rw yz, simpa,
+   contradiction
+ end⟩
+
+local attribute [instance] topological_group.regular_space
+
+lemma topological_group.t2_space [t1_space α] : t2_space α := regular_space.t2_space α
 
 end
 

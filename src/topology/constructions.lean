@@ -1058,6 +1058,13 @@ begin
   exact h.symm.continuous s
 end
 
+protected lemma is_closed_map (h : α ≃ₜ β) : is_closed_map h :=
+begin
+  assume s,
+  rw ← h.preimage_symm,
+  exact continuous_iff_is_closed.1 (h.symm.continuous) _
+end
+
 protected lemma quotient_map (h : α ≃ₜ β) : quotient_map h :=
 ⟨h.to_equiv.surjective, h.coinduced_eq.symm⟩
 

@@ -1,3 +1,16 @@
+/-
+Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Zhouhang Zhou
+
+Pointwise addition and multiplication of filters.
+
+Has nice properties, such as
+  • map m (f₁ * f₂) = map m f₁ * map m f₂
+  • nhds x * nhds y = nhds (x * y)
+
+-/
+
 import algebra.pointwise
 import order.filter.basic
 

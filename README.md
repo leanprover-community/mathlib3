@@ -2,12 +2,11 @@
 
 [![Build Status](https://travis-ci.org/leanprover-community/mathlib.svg?branch=master)](https://travis-ci.org/leanprover-community/mathlib)
 [![Mergify Status][mergify-status]][mergify]
-[![Build status](https://ci.appveyor.com/api/projects/status/y0dfsknx5h4iq7pj/branch/master?svg=true)](https://ci.appveyor.com/project/cipher1024/mathlib/branch/master)
 
 [mergify]: https://mergify.io
 [mergify-status]: https://gh.mergify.io/badges/leanprover-community/mathlib.png?style=cut
 
-Mathlib is a user maintained library for the [Lean theorem prover](https://leanprover.github.io). 
+[Mathlib](https://leanprover-community.github.io) is a user maintained library for the [Lean theorem prover](https://leanprover.github.io). 
 It contains both programming infrastructure and mathematics, as well as tactics that use the former and allow to develop the later.
 
 ## Installation

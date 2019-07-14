@@ -111,6 +111,25 @@ funext $ λ x, with_one.cases_on x hf $ λ x, rfl
 
 end lift
 
+section map
+
+@[to_additive with_zero.map]
+def map {β : Type v} (f : α → β) : with_one α → with_one β := option.map f
+
+variables [semigroup α] {β : Type v} [semigroup β] (f : α → β)
+
+@[to_additive with_zero.map_eq]
+lemma map_eq [semigroup α] {β : Type v} [semigroup β] (f : α → β) :
+  map f = lift (coe ∘ f) :=
+funext $ assume x,
+@with_one.cases_on α (λ x, map f x = lift (coe ∘ f) x) x rfl (λ a, rfl)
+
+@[to_additive with_zero.map_is_add_monoid_hom]
+instance map_is_monoid_hom [is_mul_hom f] : is_monoid_hom (map f) :=
+by rw map_eq; apply with_one.lift_is_monoid_hom
+
+end map
+
 end with_one
 
 namespace with_zero

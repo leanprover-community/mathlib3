@@ -6,15 +6,16 @@ Authors: Sébastien Gouëzel
 Continuously differentiable functions.
 
 A function is C^1 on a domain if it is differentiable there, and its derivative is continuous.
-By induction, it is C^k if it is C^{k-1} and its (k-1)-th derivative is C^1 there or, equivalently,
-if it is C^1 and its derivative is C^{k-1}.
-Finally, it is C^∞ if it is C^k for all k.
+By induction, it is `C^n` if it is C^{n-1} and its (n-1)-th derivative is C^1 there or, equivalently,
+if it is C^1 and its derivative is C^{n-1}.
+Finally, it is C^∞ if it is `C^n` for all n.
 
-We formalize these notions by defining iteratively the k-th derivative of a function at the
-(k-1)-th derivative of the derivative. It is called `iterated_fderiv k f x` where `k` is the field,
-`f` is the function and `x` is the point. We also define a version `iterated_fderiv_within`
-relative to a domain, as well as predicates `times_cont_diff k n f` and `times_cont_diff_on k n f s`
-saying that the function is `C^n`, respectively in the whole space or on the set `s`.
+We formalize these notions by defining iteratively the n-th derivative of a function at the
+(n-1)-th derivative of the derivative. It is called `iterated_fderiv k n f x` where `k` is the
+field, `n` is the number of iterations, `f` is the function and `x` is the point. We also define a
+version `iterated_fderiv_within` relative to a domain, as well as predicates `times_cont_diff k n f`
+and `times_cont_diff_on k n f s` saying that the function is `C^n`, respectively in the whole space
+or on the set `s`.
 
 We prove basic properties of these notions.
 -/
@@ -40,7 +41,6 @@ variables {k : Type*} [nondiscrete_normed_field k]
 {n : ℕ}
 
 include k
-
 
 /-The n-th derivative of a function belongs to the space E →L[k] (E →L[k] (E ... F)...))),
 where there are n iterations of `E →L[k]`. We define this space inductively, call it
@@ -184,7 +184,7 @@ begin
   rw ← this
 end
 
-/- We turn to the definition of C^n functions. There are two equivalent definitions:
+/- We turn to the definition of `C^n` functions. There are two equivalent definitions:
 * require by induction that the function is differentiable, and that its derivative is C^{n-1}
 * or require that, for all m ≤ n, the m-th derivative is continuous, and for all m < n the m-th
 derivative is differentiable.
@@ -194,9 +194,13 @@ of view), and moreover it also makes sense for n = ∞.
 
 Therefore, we give (and use) both definitions, named respectively `times_cont_diff_rec` and
 `times_cont_diff` (as well as relativized versions on a set). We show that they are equivalent.
+The first one is mainly auxiliary: in applications, one should always use `times_cont_diff`
+(but the proofs below use heavily the equivalence to show that `times_cont_diff` is well behaved).
 
 We start with the first definition, by induction, first on the whole space -/
 
+/-- Auxiliary definition defining `C^n` functions by induction over `n`. In applications, use
+`times_cont_diff` instead. -/
 def times_cont_diff_rec (k : Type w) [nondiscrete_normed_field k] (n : ℕ)
   {E : Type u} [normed_group E] [normed_space k E] :
   ∀{F : Type u} [hF1 : normed_group F] [@normed_space k F _ hF1] (f : E → F), Prop :=
@@ -244,6 +248,8 @@ end
 
 /- We turn to the inductive definition, but relative to a subset `s` -/
 
+/-- Auxiliary definition defining `C^n` functions on a set by induction over `n`. In applications,
+use `times_cont_diff_on` instead. -/
 def times_cont_diff_on_rec (k : Type w) [nondiscrete_normed_field k] (n : ℕ)
   {E : Type u} [normed_group E] [normed_space k E] :
   ∀{F : Type u} [hF1 : normed_group F] [@normed_space k F _ hF1] (f : E → F) (s : set E), Prop :=
@@ -302,6 +308,8 @@ end
 /- Now, we give the second definition, directly in terms of iterated derivatives, first
 relative to a set `s` -/
 
+/-- A function is `C^n` on a set, for `n : with_top ℕ`, if its derivatives of order at most `n`
+are all well defined and continuous. -/
 def times_cont_diff_on (k : Type w) [nondiscrete_normed_field k] (n : with_top ℕ)
   {E F : Type u} [normed_group E] [normed_space k E]
   [normed_group F] [normed_space k F] (f : E → F) (s : set E) :=
@@ -312,6 +320,8 @@ def times_cont_diff_on (k : Type w) [nondiscrete_normed_field k] (n : with_top �
   times_cont_diff_on k 0 f s ↔ continuous_on f s :=
 by simp [times_cont_diff_on]
 
+/-- The two definitions of `C^n` functions on domains, directly in terms of continuity of all
+derivatives, or by induction, are equivalent. -/
 theorem times_cont_diff_on_iff_times_cont_diff_on_rec :
   times_cont_diff_on k n f s ↔ times_cont_diff_on_rec k n f s :=
 begin
@@ -353,6 +363,7 @@ begin
           exact H.differentiable_on } } } },
 end
 
+/- Next lemma is marked as a simp lemma as `C^(n+1)` functions appear mostly in inductions. -/
 @[simp] lemma times_cont_diff_on_succ :
   times_cont_diff_on k n.succ f s ↔
   differentiable_on k f s ∧ times_cont_diff_on k n (λx, fderiv_within k f s x) s :=
@@ -377,6 +388,8 @@ h.1 1 hn
 
 set_option class.instance_max_depth 50
 
+/-- If a function is at least `C^1`, its bundled derivative (mapping `(x, v)` to `Df(x) v`) is
+continuous -/
 lemma times_cont_diff_on.continuous_on_fderiv_within_apply
   {n : with_top ℕ} (h : times_cont_diff_on k n f s) (hn : 1 ≤ n) :
   continuous_on (λp : E × E, (fderiv_within k f s p.1 : E → F) p.2) (set.prod s univ) :=
@@ -457,6 +470,7 @@ lemma times_cont_diff_on.mono {n : with_top ℕ} {s t : set E} (h : times_cont_d
   (hst : s ⊆ t) (hs : unique_diff_on k s) : times_cont_diff_on k n f s :=
 times_cont_diff_on.congr_mono h hs (λx hx, rfl) hst
 
+/-- Being `C^n` is a local property -/
 lemma times_cont_diff_on_of_locally_times_cont_diff_on {n : with_top ℕ} {s : set E}
   (hs : unique_diff_on k s) (h : ∀x∈s, ∃u, is_open u ∧ x ∈ u ∧ times_cont_diff_on k n f (s ∩ u)) :
   times_cont_diff_on k n f s :=
@@ -481,6 +495,8 @@ end
 /- Now, we give the second definition, directly in terms of iterated derivatives, on the whole
 space -/
 
+/-- A function is `C^n`, for `n : with_top ℕ`, if its derivatives of order at most `n` are all well
+defined and continuous. -/
 def times_cont_diff (k : Type w) [nondiscrete_normed_field k] (n : with_top ℕ)
   {E F : Type u} [normed_group E] [normed_space k E]
   [normed_group F] [normed_space k F] (f : E → F) :=
@@ -593,7 +609,7 @@ begin
   { rw times_cont_diff_top, apply Itop }
 end
 
-/-- Composition by bounded linear maps preserves C^n functions on domains -/
+/-- Composition by bounded linear maps preserves `C^n` functions on domains -/
 lemma times_cont_diff_on.comp_is_bounded_linear {n : with_top ℕ} {s : set E} {f : E → F} {g : F → G}
   (hf : times_cont_diff_on k n f s) (hg : is_bounded_linear_map k g) (hs : unique_diff_on k s) :
   times_cont_diff_on k n (λx, g (f x)) s :=
@@ -620,14 +636,14 @@ begin
     apply Itop n (hf n) hg }
 end
 
-/-- Composition by bounded linear maps preserves C^n functions -/
+/-- Composition by bounded linear maps preserves `C^n` functions -/
 lemma times_cont_diff.comp_is_bounded_linear {n : with_top ℕ} {f : E → F} {g : F → G}
   (hf : times_cont_diff k n f) (hg : is_bounded_linear_map k g) :
   times_cont_diff k n (λx, g (f x)) :=
 times_cont_diff_on_univ.1 $ times_cont_diff_on.comp_is_bounded_linear (times_cont_diff_on_univ.2 hf)
   hg is_open_univ.unique_diff_on
 
-/-- The cartesian product of C^n functions on domains is C^n -/
+/-- The cartesian product of `C^n` functions on domains is `C^n` -/
 lemma times_cont_diff_on.prod {n : with_top ℕ} {s : set E} {f : E → F} {g : E → G}
   (hf : times_cont_diff_on k n f s) (hg : times_cont_diff_on k n g s) (hs : unique_diff_on k s) :
   times_cont_diff_on k n (λx:E, (f x, g x)) s :=
@@ -649,14 +665,14 @@ begin
     apply Itop n (hf n) (hg n) }
 end
 
-/-- The cartesian product of C^n functions is C^n -/
+/-- The cartesian product of `C^n` functions is `C^n` -/
 lemma times_cont_diff.prod {n : with_top ℕ} {f : E → F} {g : E → G}
   (hf : times_cont_diff k n f) (hg : times_cont_diff k n g) :
   times_cont_diff k n (λx:E, (f x, g x)) :=
 times_cont_diff_on_univ.1 $ times_cont_diff_on.prod (times_cont_diff_on_univ.2 hf)
   (times_cont_diff_on_univ.2 hg) is_open_univ.unique_diff_on
 
-/-- The composition of C^n functions on domains is C^n -/
+/-- The composition of `C^n` functions on domains is `C^n` -/
 lemma times_cont_diff_on.comp {n : with_top ℕ} {s : set E} {t : set F} {g : F → G} {f : E → F}
   (hg : times_cont_diff_on k n g t) (hf : times_cont_diff_on k n f s) (hs : unique_diff_on k s)
   (st : f '' s ⊆ t) : times_cont_diff_on k n (g ∘ f) s :=
@@ -686,14 +702,14 @@ begin
     apply Itop n (hg n) (hf n) hs st }
 end
 
-/-- The composition of C^n functions is C^n -/
+/-- The composition of `C^n` functions is `C^n` -/
 lemma times_cont_diff.comp {n : with_top ℕ} {g : F → G} {f : E → F}
   (hg : times_cont_diff k n g) (hf : times_cont_diff k n f) :
   times_cont_diff k n (g ∘ f) :=
 times_cont_diff_on_univ.1 $ times_cont_diff_on.comp (times_cont_diff_on_univ.2 hg)
   (times_cont_diff_on_univ.2 hf) is_open_univ.unique_diff_on (subset_univ _)
 
-/-- The bundled derivative of a C^{n+1} function is C^n -/
+/-- The bundled derivative of a `C^{n+1}` function is `C^n` -/
 lemma times_cont_diff_on_fderiv_within_apply {m n : with_top  ℕ} {s : set E}
   {f : E → F} (hf : times_cont_diff_on k n f s) (hs : unique_diff_on k s) (hmn : m + 1 ≤ n) :
   times_cont_diff_on k m (λp : E × E, (fderiv_within k f s p.1 : E →L[k] F) p.2) (set.prod s (univ : set E)) :=
@@ -720,7 +736,7 @@ begin
   apply times_cont_diff_on.comp A B U (subset_univ _),
 end
 
-/-- The bundled derivative of a C^{n+1} function is C^n -/
+/-- The bundled derivative of a `C^{n+1}` function is `C^n` -/
 lemma times_cont_diff.times_cont_diff_fderiv_apply {n m : with_top ℕ} {s : set E} {f : E → F}
   (hf : times_cont_diff k n f) (hmn : m + 1 ≤ n) :
   times_cont_diff k m (λp : E × E, (fderiv k f p.1 : E →L[k] F) p.2) :=

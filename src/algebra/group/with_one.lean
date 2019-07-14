@@ -83,6 +83,34 @@ attribute [to_additive with_zero.add_comm_monoid._proof_3] with_one.comm_monoid.
 attribute [to_additive with_zero.add_comm_monoid._proof_4] with_one.comm_monoid._proof_4
 attribute [to_additive with_zero.add_comm_monoid] with_one.comm_monoid
 
+section lift
+
+@[to_additive with_zero.lift]
+def lift {β : Type v} [has_one β] (f : α → β) : (with_one α) → β := λ x, option.cases_on x 1 f
+
+variables [semigroup α] {β : Type v} [monoid β] (f : α → β)
+
+@[simp, to_additive with_zero.lift_coe]
+lemma lift_coe (x : α) : lift f x = f x := rfl
+
+@[simp, to_additive with_zero.lift_zero]
+lemma lift_one : lift f 1 = 1 := rfl
+
+@[to_additive with_zero.lift_is_add_monoid_hom]
+instance lift_is_monoid_hom [hf : is_mul_hom f] : is_monoid_hom (lift f) :=
+{ map_one := lift_one f,
+  map_mul := λ x y,
+    with_one.cases_on x (by rw [one_mul, lift_one, one_mul]) $ λ x,
+    with_one.cases_on y (by rw [mul_one, lift_one, mul_one]) $ λ y,
+    @is_mul_hom.map_mul α β _ _ f hf x y }
+
+@[to_additive with_zero.lift_unique]
+theorem lift_unique (f : with_one α → β) (hf : f 1 = 1) :
+  f = lift (f ∘ coe) :=
+funext $ λ x, with_one.cases_on x hf $ λ x, rfl
+
+end lift
+
 end with_one
 
 namespace with_zero

@@ -13,6 +13,8 @@ variable {α : Type u}
 @[to_additive with_zero]
 def with_one (α) := option α
 
+namespace with_one
+
 @[to_additive with_zero.monad]
 instance : monad with_one := option.monad
 
@@ -23,24 +25,24 @@ instance : has_one (with_one α) := ⟨none⟩
 instance : has_coe_t α (with_one α) := ⟨some⟩
 
 @[simp, to_additive with_zero.zero_ne_coe]
-lemma with_one.one_ne_coe {a : α} : (1 : with_one α) ≠ a :=
+lemma one_ne_coe {a : α} : (1 : with_one α) ≠ a :=
 λ h, option.no_confusion h
 
 @[simp, to_additive with_zero.coe_ne_zero]
-lemma with_one.coe_ne_one {a : α} : (a : with_one α) ≠ (1 : with_one α) :=
+lemma coe_ne_one {a : α} : (a : with_one α) ≠ (1 : with_one α) :=
 λ h, option.no_confusion h
 
 @[to_additive with_zero.ne_zero_iff_exists]
-lemma with_one.ne_one_iff_exists : ∀ {x : with_one α}, x ≠ 1 ↔ ∃ (a : α), x = a
+lemma ne_one_iff_exists : ∀ {x : with_one α}, x ≠ 1 ↔ ∃ (a : α), x = a
 | 1       := ⟨λ h, false.elim $ h rfl, by { rintros ⟨a,ha⟩ h, simpa using h }⟩
 | (a : α) := ⟨λ h, ⟨a, rfl⟩, λ h, with_one.coe_ne_one⟩
 
 @[to_additive with_zero.coe_inj]
-lemma with_one.coe_inj {a b : α} : (a : with_one α) = b ↔ a = b :=
+lemma coe_inj {a b : α} : (a : with_one α) = b ↔ a = b :=
 option.some_inj
 
 @[elab_as_eliminator, to_additive with_zero.cases_on]
-protected lemma with_one.cases_on (P : with_one α → Prop) :
+protected lemma cases_on {P : with_one α → Prop} :
   ∀ (x : with_one α), P 1 → (∀ a : α, P a) → P x :=
 option.cases_on
 
@@ -51,7 +53,7 @@ instance [has_mul α] : has_mul (with_one α) :=
 { mul := option.lift_or_get (*) }
 
 @[simp, to_additive with_zero.add_coe]
-lemma with_one.mul_coe [has_mul α] (a b : α) : (a : with_one α) * b = (a * b : α) := rfl
+lemma mul_coe [has_mul α] (a b : α) : (a : with_one α) * b = (a * b : α) := rfl
 
 attribute [to_additive with_zero.has_add.equations._eqn_1] with_one.has_mul.equations._eqn_1
 
@@ -76,6 +78,8 @@ instance [add_comm_semigroup α] : add_comm_monoid (with_zero α) :=
 { add_comm := (option.lift_or_get_comm _).1,
   ..with_zero.add_monoid }
 attribute [to_additive with_zero.add_comm_monoid] with_one.comm_monoid
+
+end with_one
 
 namespace with_zero
 

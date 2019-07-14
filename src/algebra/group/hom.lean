@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2014 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Patrick Massot, Kevin Buzzard, Scott Morrison, Johan Commelin, Chris Hughes, Johannes Hölzl
+Authors: Patrick Massot, Kevin Buzzard, Scott Morrison, Johan Commelin, Chris Hughes, Johannes Hölzl, Yury Kudryashov
 
 Homomorphisms of multiplicative and additive (semi)groups and monoids.
 -/
@@ -73,20 +73,16 @@ attribute [to_additive is_add_monoid_hom.map_zero] is_monoid_hom.map_one
 namespace is_monoid_hom
 variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
 
+@[to_additive is_add_monoid_hom.map_add]
 lemma map_mul (x y) : f (x * y) = f x * f y :=
 is_mul_hom.map_mul f x y
 
 end is_monoid_hom
 
-namespace is_add_monoid_hom
-variables [add_monoid α] [add_monoid β] (f : α → β) [is_add_monoid_hom f]
-
-lemma map_add (x y) : f (x + y) = f x + f y :=
-is_add_hom.map_add f x y
-
-attribute [to_additive is_add_monoid_hom.map_add] is_monoid_hom.map_mul
-
-end is_add_monoid_hom
+@[to_additive is_add_monoid_hom.of_add]
+theorem is_monoid_hom.of_mul [monoid α] [group β] (f : α → β) [is_mul_hom f] :
+  is_monoid_hom f :=
+{ map_one := mul_self_iff_eq_one.1 $ by rw [← is_mul_hom.map_mul f, one_mul] }
 
 namespace is_monoid_hom
 variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
@@ -137,9 +133,12 @@ namespace is_group_hom
 variables [group α] [group β] (f : α → β) [is_group_hom f]
 open is_mul_hom (map_mul)
 
+@[to_additive is_add_group_hom.to_is_add_monoid_hom]
+instance to_is_monoid_hom : is_monoid_hom f :=
+is_monoid_hom.of_mul f
+
 @[to_additive is_add_group_hom.map_zero]
-theorem map_one : f 1 = 1 :=
-mul_self_iff_eq_one.1 $ by rw [← map_mul f, one_mul]
+lemma map_one : f 1 = 1 := is_monoid_hom.map_one f
 
 @[to_additive is_add_group_hom.map_neg]
 theorem map_inv (a : α) : f a⁻¹ = (f a)⁻¹ :=
@@ -151,10 +150,6 @@ instance id : is_group_hom (@id α) := { }
 @[to_additive is_add_group_hom.comp]
 instance comp {γ} [group γ] (g : β → γ) [is_group_hom g] : is_group_hom (g ∘ f) := { }
 
-@[to_additive is_add_group_hom.to_is_add_monoid_hom]
-lemma to_is_monoid_hom (f : α → β) [is_group_hom f] : is_monoid_hom f :=
-{ map_one := map_one f }
-
 @[to_additive is_add_group_hom.injective_iff]
 lemma injective_iff (f : α → β) [is_group_hom f] :
   function.injective f ↔ (∀ a, f a = 1 → a = 1) :=
@@ -162,9 +157,6 @@ lemma injective_iff (f : α → β) [is_group_hom f] :
   λ h x y hxy, by rw [← inv_inv (f x), inv_eq_iff_mul_eq_one, ← map_inv f,
       ← map_mul f] at hxy;
     simpa using inv_eq_of_mul_eq_one (h _ hxy)⟩
-
-attribute [instance] is_group_hom.to_is_monoid_hom
-  is_add_group_hom.to_is_add_monoid_hom
 
 @[to_additive is_add_group_hom.add]
 lemma mul {α β} [group α] [comm_group β]
@@ -193,9 +185,8 @@ namespace is_add_group_hom
 variables [add_group α] [add_group β] (f : α → β) [is_add_group_hom f]
 
 lemma map_sub (a b) : f (a - b) = f a - f b :=
-calc f (a - b) = f (a + -b)   : rfl
-           ... = f a + f (-b) : is_add_hom.map_add f _ _
-           ... = f a - f b    : by  simp[map_neg f]
+calc f (a + -b) = f a + f (-b) : is_add_hom.map_add f _ _
+            ... = f a + -f b   : by rw [map_neg f]
 
 end is_add_group_hom
 

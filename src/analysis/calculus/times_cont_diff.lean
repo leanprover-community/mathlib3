@@ -5,10 +5,10 @@ Authors: Sébastien Gouëzel
 
 Continuously differentiable functions.
 
-A function is C^1 on a domain if it is differentiable there, and its derivative is continuous.
-By induction, it is `C^n` if it is C^{n-1} and its (n-1)-th derivative is C^1 there or, equivalently,
-if it is C^1 and its derivative is C^{n-1}.
-Finally, it is C^∞ if it is `C^n` for all n.
+A function is `C^1` on a domain if it is differentiable there, and its derivative is continuous.
+By induction, it is `C^n` if it is `C^{n-1}` and its (n-1)-th derivative is `C^1` there or,
+equivalently, if it is `C^1` and its derivative is `C^{n-1}`.
+Finally, it is `C^∞` if it is `C^n` for all n.
 
 We formalize these notions by defining iteratively the n-th derivative of a function at the
 (n-1)-th derivative of the derivative. It is called `iterated_fderiv k n f x` where `k` is the

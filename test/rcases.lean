@@ -84,3 +84,10 @@ begin
   guard_hyp h := true,
   trivial
 end
+
+example : true :=
+begin
+  obtain h | ⟨⟨⟩⟩ : true ∨ false := or.inl trivial,
+  guard_hyp h := true,
+  trivial
+end

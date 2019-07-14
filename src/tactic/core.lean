@@ -626,6 +626,7 @@ do l ← local_context,
    r ← successes (l.reverse.map (λ h, cases h >> skip)),
    when (r.empty) failed
 
+/-- given a proof `pr : t`, adds `h : t` to the current context, where the name `h` is fresh.  -/
 meta def note_anon (e : expr) : tactic expr :=
 do n ← get_unused_name "lh",
    note n none e

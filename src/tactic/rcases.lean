@@ -435,8 +435,12 @@ meta def rintros := rintro
 
 setup_tactic_parser
 
-meta def obtain_parse : parser (option (listΣ rcases_patt_inverted) × pexpr) :=
-with_desc "patt_list? : expr" $ prod.mk <$> rcases_patt_parse_list? <*> (tk ":" >> texpr)
+meta def obtain_parse : parser (option (listΣ rcases_patt_inverted) × pexpr × (option pexpr)) :=
+with_desc "patt_list? : expr (:= expr)?" $
+  do pat ← rcases_patt_parse_list?,
+     tp  ← (tk ":" >> texpr),
+     val ←  (tk ":=" >> texpr)?,
+     return (pat, tp, val)
 
 /--
 The `obtain` tactic is a combination of `have` and `rcases`.
@@ -446,15 +450,20 @@ is equivalent to
 `have h : type,
  { ... },
  rcases h with ⟨patt⟩`.
+ The syntax `obtain ⟨patt⟩ : type := proof` is also supported.
 -/
-meta def obtain (p : interactive.parse obtain_parse) : tactic unit :=
+meta def obtain : interactive.parse obtain_parse → tactic unit
+| (pat, tp, none) :=
 do nm ← mk_fresh_name,
-   e ← to_expr p.2 >>= assert nm,
+   e ← to_expr tp >>= assert nm,
    (g :: gs) ← get_goals,
    set_goals gs,
-   tactic.rcases ``(%%e) $ rcases_patt_inverted.invert_list (p.1.get_or_else [default _]),
+   tactic.rcases ``(%%e) $ rcases_patt_inverted.invert_list (pat.get_or_else [default _]),
    gs ← get_goals,
    set_goals (g::gs)
+| (pat, tp, some val) :=
+do e ← to_expr ``(%%val : %%tp) >>= note_anon,
+   tactic.rcases ``(%%e) $ rcases_patt_inverted.invert_list (pat.get_or_else [default _])
 
 end interactive
 end tactic

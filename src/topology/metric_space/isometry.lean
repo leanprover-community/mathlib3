@@ -124,7 +124,7 @@ structure isometric (α : Type*) (β : Type*) [emetric_space α] [emetric_space 
 (isometry_to_fun  : isometry to_fun)
 (isometry_inv_fun : isometry inv_fun)
 
-infix ` ≃ᵢ`:50 := isometric
+infix ` ≃ᵢ `:25 := isometric
 
 namespace isometric
 variables [emetric_space α] [emetric_space β] [emetric_space γ]

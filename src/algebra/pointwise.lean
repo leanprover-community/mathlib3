@@ -223,16 +223,16 @@ set.ext $ assume y,
 begin
   split,
   { rintros ⟨_, ⟨_, _, _, _, rfl⟩, rfl⟩,
-    refine ⟨_, mem_image_of_mem _ ‹_›, _, mem_image_of_mem _ ‹_›, map_mul _⟩ },
+    refine ⟨_, mem_image_of_mem _ ‹_›, _, mem_image_of_mem _ ‹_›, map_mul _ _ _⟩ },
   { rintros ⟨_, ⟨_, _, rfl⟩, _, ⟨_, _, rfl⟩, rfl⟩,
-    refine ⟨_, ⟨_, ‹_›, _, ‹_›, rfl⟩, map_mul _⟩ }
+    refine ⟨_, ⟨_, ‹_›, _, ‹_›, rfl⟩, map_mul _ _ _⟩ }
 end
 
 @[to_additive is_add_hom.preimage_add_preimage_subset]
 lemma preimage_pointwise_mul_preimage_subset (s t : set β) : m ⁻¹' s * m ⁻¹' t ⊆ m ⁻¹' (s * t) :=
 begin
   rintros _ ⟨_, _, _, _, rfl⟩,
-  exact ⟨_, ‹_›, _, ‹_›, map_mul _⟩,
+  exact ⟨_, ‹_›, _, ‹_›, map_mul _ _ _⟩,
 end
 
 end is_mul_hom

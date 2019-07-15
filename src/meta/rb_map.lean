@@ -74,6 +74,16 @@ meta instance : has_to_tactic_format (rb_map key data) :=
 end
 
 end rb_map
+
+namespace rb_lmap
+
+/-- Construct a rb_lmap from a list of key-data pairs -/
+protected meta def of_list {key : Type} {data : Type} [has_lt key]
+  [decidable_rel ((<) : key → key → Prop)] : list (key × data) → rb_lmap key data
+| []           := rb_lmap.mk key data
+| ((k, v)::ls) := (of_list ls).insert k v
+
+end rb_lmap
 end native
 
 namespace name_set

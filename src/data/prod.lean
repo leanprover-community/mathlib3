@@ -24,6 +24,12 @@ attribute [simp] prod.map
 @[simp] lemma map_snd (f : α → γ) (g : β → δ) : ∀(p : α × β), (map f g p).2 = g (p.2)
 | ⟨a, b⟩ := rfl
 
+@[simp] lemma map_fst' (f : α → γ) (g : β → δ) : (prod.fst ∘ map f g) = f ∘ prod.fst :=
+funext $ map_fst f g
+
+@[simp] lemma map_snd' (f : α → γ) (g : β → δ) : (prod.snd ∘ map f g) = g ∘ prod.snd :=
+funext $ map_snd f g
+
 @[simp] theorem mk.inj_iff {a₁ a₂ : α} {b₁ b₂ : β} : (a₁, b₁) = (a₂, b₂) ↔ (a₁ = a₂ ∧ b₁ = b₂) :=
 ⟨prod.mk.inj, by cc⟩
 

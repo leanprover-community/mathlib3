@@ -662,7 +662,7 @@ lemma C_sub : (C (a - a') : mv_polynomial σ α) = C a - C a' := is_ring_hom.map
 
 instance coeff.is_add_group_hom (m : σ →₀ ℕ) :
   is_add_group_hom (coeff m : mv_polynomial σ α → α) :=
-⟨coeff_add m⟩
+{ map_add := coeff_add m }
 
 variables {σ} (p)
 theorem C_mul' : mv_polynomial.C a * p = a • p :=

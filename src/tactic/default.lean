@@ -28,3 +28,4 @@ import
   tactic.wlog
   tactic.tfae
   tactic.apply_fun
+  tactic.localized

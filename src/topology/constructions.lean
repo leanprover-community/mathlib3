@@ -987,7 +987,7 @@ structure homeomorph (α : Type*) (β : Type*) [topological_space α] [topologic
 (continuous_to_fun  : continuous to_fun)
 (continuous_inv_fun : continuous inv_fun)
 
-infix ` ≃ₜ `:50 := homeomorph
+infix ` ≃ₜ `:25 := homeomorph
 
 namespace homeomorph
 variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
@@ -1077,7 +1077,7 @@ end
 protected lemma quotient_map (h : α ≃ₜ β) : quotient_map h :=
 ⟨h.to_equiv.surjective, h.coinduced_eq.symm⟩
 
-def prod_congr (h₁ : α ≃ₜ β) (h₂ : γ ≃ₜ δ) : (α × γ) ≃ₜ (β × δ) :=
+def prod_congr (h₁ : α ≃ₜ β) (h₂ : γ ≃ₜ δ) : α × γ ≃ₜ β × δ :=
 { continuous_to_fun  :=
     continuous.prod_mk (h₁.continuous.comp continuous_fst) (h₂.continuous.comp continuous_snd),
   continuous_inv_fun :=
@@ -1087,12 +1087,12 @@ def prod_congr (h₁ : α ≃ₜ β) (h₂ : γ ≃ₜ δ) : (α × γ) ≃ₜ (
 section
 variables (α β γ)
 
-def prod_comm : (α × β) ≃ₜ (β × α) :=
+def prod_comm : α × β ≃ₜ β × α :=
 { continuous_to_fun  := continuous.prod_mk continuous_snd continuous_fst,
   continuous_inv_fun := continuous.prod_mk continuous_snd continuous_fst,
   .. equiv.prod_comm α β }
 
-def prod_assoc : ((α × β) × γ) ≃ₜ (α × (β × γ)) :=
+def prod_assoc : (α × β) × γ ≃ₜ α × (β × γ) :=
 { continuous_to_fun  :=
     continuous.prod_mk (continuous_fst.comp continuous_fst)
       (continuous.prod_mk (continuous_snd.comp continuous_fst) continuous_snd),

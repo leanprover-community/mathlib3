@@ -54,7 +54,33 @@ or.resolve_right
 /-- Shows that the valuation of -x equals x. -/
 lemma val_neg (x : α) : val (-x) = val x := by rw[←mul_neg_one, val_mul, val_neg_one, mul_one]
 
+/-- Shows that the valuation of x^n equals the n-th power of the valuation of x. -/
+lemma val_pow (x : α) (n : ℕ) : val (x^n) = (val x)^n :=
+begin
+  induction n,
+  { rw [pow_zero, pow_zero, val_one] },
+  { rw [pow_succ, pow_succ, val_mul, n_ih] }
+end
+
 end valued_ring
+
+section nonarch_valued_ring
+
+open valued_ring nonarch_valued_ring
+
+variables {α : Type u} [integral_domain α] [nonarch_valued_ring α]
+
+lemma val_sum (s : multiset α) (b : ℝ) (hb : b ≥ 0) : (∀ x ∈ s, val x ≤ b) → val (multiset.sum s) ≤ b :=
+multiset.induction_on s
+  (λ _, by rw[multiset.sum_zero, val_zero]; exact hb)
+  (assume x s h hs,
+  have hbx : val x ≤ b, from hs x (multiset.mem_cons_self x s),
+  have hbs : ∀ y ∈ s, val y ≤ b, from λ y hy, hs y (multiset.mem_cons_of_mem hy),
+  calc val (multiset.sum (x :: s)) ≤ val (x + multiset.sum s)           : by rw [multiset.sum_cons]
+                               ... ≤ max (val x) (val (multiset.sum s)) : nonarch x _
+                               ... ≤ b                                  : max_le hbx (h hbs))
+
+end nonarch_valued_ring
 
 /-- The *valuation ring* of a nonarchimedien valued field is the subring of all
 elements of valuation ≤ 1. -/
@@ -105,7 +131,6 @@ lemma zero_def : ∀ x : valuation_ring α, x = 0 ↔ x.val = 0
 | ⟨x, hx⟩ ⟨y, hy⟩ := rfl
 
 @[simp] lemma mk_zero {h} : (⟨0, h⟩ : valuation_ring α) = (0 : valuation_ring α) := rfl
-
 
 -- There is a coercion from the valuation ring of α to α; these lemmas below prove that the
 -- coercion has some natural properties.
@@ -170,23 +195,120 @@ instance : nonarch_valued_ring (valuation_ring α) :=
   val_add := λ x y, by rw[coe_add]; exact valued_ring.val_add x y,
   nonarch := λ x y, by simp only [val_eq_coe, coe_add]; exact nonarch_valued_ring.nonarch x y }
 
+/-- Shows that the valuation of the inverse is the inverse of the valuation. -/
+lemma val_inv (x : α) (h : x ≠ 0) : valued_ring.val x⁻¹ = (valued_ring.val x)⁻¹ :=
+begin
+  apply eq_of_mul_eq_mul_right (val_ne_zero h),
+  rw [inv_mul_cancel (val_ne_zero h), ←valued_ring.val_mul, inv_mul_cancel h, val_one]
+end
+
+/-- Shows that for x in a valued field, either x or x⁻¹ is in the valuation ring. -/
+lemma mem_or_inv_mem (x : α) (h : x ≠ 0) : valued_ring.val x ≤ 1 ∨ valued_ring.val x⁻¹ ≤ 1 :=
+suffices valued_ring.val x ≤ 1 ∨ valued_ring.val x⁻¹ < 1, from
+  or.elim this (λ hr, or.inl hr) (λ hl, or.inr (le_of_lt hl)),
+begin
+  rw [val_inv x h, inv_lt (val_pos h) zero_lt_one, inv_one],
+  exact le_or_gt _ _
+end
+
 instance coe_is_ring_hom : @is_ring_hom _ _ (show ring (valuation_ring α), by apply_instance) _
 	(subtype.val : valuation_ring α → α) :=
 { map_one := by rw[val_eq_coe, coe_one],
 	map_mul := λ x y, by simp only [val_eq_coe, coe_mul, val_eq_coe],
 	map_add := λ x y, by simp only [val_eq_coe, coe_add, val_eq_coe] }
 
+open polynomial
+
 instance : algebra (valuation_ring α) α :=
 	algebra.of_ring_hom (subtype.val) valuation.coe_is_ring_hom
-set_option pp.structure_projections false
-lemma integrally_closed (x : α) (h : is_integral (valuation_ring α) x) :
+
+lemma integrally_closed (x : α) (hi : is_integral (valuation_ring α) x) :
 	valued_ring.val x ≤ 1 :=
-let ⟨p, hm, hp⟩ := h in
+let ⟨p, hm, hp⟩ := hi in
 begin
-	by_contradiction hn,
-	rw not_le at hn,
-	change finsupp.sum p (λ (e : ℕ) (a : valuation_ring α), a.val * x ^ e) = 0 at hp,
-	sorry
+	by_contradiction hnx,
+  change p.eval₂ subtype.val x = 0 at hp,
+  let X : polynomial (valuation_ring α):= X,
+  have h : valued_ring.val (x^p.nat_degree) =
+           valued_ring.val ((X^p.nat_degree + -p).eval₂ subtype.val x), from
+    congr_arg _ (by rw[eval₂_add, eval₂_neg, hp, neg_zero, add_zero, eval₂_X_pow]),
+  rw [val_pow] at h,
+  have hn0 : p ≠ 0, from ne_zero_of_monic hm,
+  have h1 : valued_ring.val x ^ p.nat_degree ≤ valued_ring.val x ^ (p.nat_degree - 1),
+    begin
+      rw [h],
+      apply val_sum,
+      { cases nat.eq_zero_or_pos (nat_degree p - 1) with h0 h1,
+        { rw [h0, pow_zero], exact zero_le_one },
+        { rw [←zero_pow h1],
+          exact pow_le_pow_of_le_left (le_refl _) (valued_ring.non_neg x) _ } },
+      { intros y hy,
+        rw [multiset.mem_map] at hy,
+        cases hy with a ha,
+        have hd : a ≤ p.nat_degree - 1,
+          begin
+            rw [←finset.mem_def] at ha,
+            have ha1 : a ∈ (X ^ nat_degree p + -p).support, from ha.1,
+            have hna : a ≠ p.nat_degree, from λ hna,
+              begin rw [finsupp.mem_support_iff, hna] at ha1,
+                change coeff (X ^ nat_degree p + -p) (nat_degree p) ≠ 0 at ha1,
+                rw [monic.def] at hm,
+                unfold leading_coeff at hm,
+                rw [coeff_add, coeff_neg, coeff_X_pow, if_pos, hm, add_neg_self] at ha1,
+                exact ha1 rfl,
+                refl,
+              end,
+            have hm1 : a ∈ (X ^ nat_degree p).support ∪ (-p).support, from finset.mem_of_subset finsupp.support_add ha1,
+            have hm2 : (X ^ nat_degree p).support = finset.singleton (nat_degree p),
+              by rw [←one_mul (X^_), ←C_1, ←single_eq_C_mul_X, finsupp.support_single_ne_zero (one_ne_zero)]; refl,
+            have hm3 : (X ^ nat_degree p).support ⊆ (-p).support,
+            begin
+              rw [finsupp.support_neg, hm2, finset.subset_iff],
+              intros x hx,
+              rw [finset.mem_singleton] at hx,
+              rw [hx, finsupp.mem_support_iff],
+              change leading_coeff p ≠ 0,
+              rw [monic.def.mp hm],
+              exact one_ne_zero
+            end,
+            have : a ∈ p.support,
+            begin
+              rw [←finsupp.support_neg],
+              exact finset.mem_of_subset (finset.union_subset hm3 (finset.subset.refl _)) hm1
+            end,
+            have : a ≤ p.nat_degree, from
+            begin
+              rw [←with_bot.coe_le_coe, ←degree_eq_nat_degree hn0],
+              exact finset.le_sup this
+            end,
+            exact nat.le_pred_of_lt (lt_of_le_of_ne this hna)
+          end,
+        rw [←ha.2, valued_ring.val_mul],
+        exact calc valued_ring.val (((X ^ nat_degree p - p).to_fun a).val) * valued_ring.val (x ^ a)
+              ≤ valued_ring.val (x ^ a) :
+                  mul_le_of_le_one_left (valued_ring.non_neg _) (((X ^ nat_degree p - p).to_fun a).property)
+          ... ≤ valued_ring.val x ^ (p.nat_degree - 1) :
+                  by rw [val_pow]; exact pow_le_pow (le_of_not_ge hnx) hd }
+    end,
+  have h0 : 0 < nat_degree p, from
+    suffices ↑0 < degree p, by rwa [degree_eq_nat_degree hn0, with_bot.coe_lt_coe] at this,
+    (lt_of_not_ge $ λ hlt, begin
+      have := eq_C_of_degree_le_zero hlt,
+      rw [this, eval₂_C, ←zero_def] at hp,
+      exact hn0 (finsupp.ext (λ n, show coeff p n = 0, from
+        nat.cases_on n hp (λ _, coeff_eq_zero_of_degree_lt (lt_of_le_of_lt hlt
+          (with_bot.coe_lt_coe.2 (nat.succ_pos _))))))
+    end),
+  have hx : 0 < valued_ring.val x,
+    from val_pos (λ hn, by by_contradiction; rw [hn, val_zero] at hnx; exact hnx zero_le_one),
+  rw [←mul_le_mul_right hx, ←pow_succ' _ (_ - 1)] at h1,
+  change valued_ring.val x ^ p.nat_degree * valued_ring.val x ≤
+         valued_ring.val x ^ (nat.succ (nat.pred p.nat_degree)) at h1,
+  rw [nat.succ_pred_eq_of_pos h0] at h1,
+  have : valued_ring.val x ^ nat_degree p > 0,
+    by rw [←zero_pow h0]; exact pow_lt_pow_of_lt_left hx (le_refl 0) h0,
+  rw [mul_le_iff_le_one_right this] at h1,
+  contradiction
 end
 
 end valuation_ring

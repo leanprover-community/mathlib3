@@ -1785,7 +1785,7 @@ variables (S : finset α) (H : S ≠ ∅)
 
 theorem min'_mem : S.min' H ∈ S := mem_of_min $ by simp [min']
 
-theorem min'_le (x) (H2 : x ∈ S) : S.min' H ≤ x := le_min_of_mem H2 $ option.get_mem _
+theorem min'_le (x) (H2 : x ∈ S) : S.min' H ≤ x := min_le_of_mem H2 $ option.get_mem _
 
 theorem le_min' (x) (H2 : ∀ y ∈ S, x ≤ y) : x ≤ S.min' H := H2 _ $ min'_mem _ _
 

@@ -629,6 +629,14 @@ instance coeff.is_add_monoid_hom : is_add_monoid_hom (coeff n : mv_power_series 
 { map_zero := coeff_zero _ _ _,
   map_add := coeff_add n }
 
+instance coeff_zero.is_semiring_hom : is_semiring_hom (coeff 0 : mv_power_series σ α → α) :=
+{ map_one := coeff_one_zero _ _,
+  map_mul := λ φ ψ, by simp [coeff_mul],
+  .. coeff.is_add_monoid_hom 0 }
+
+lemma unit_coeff_zero (h : is_unit φ) : is_unit (coeff 0 φ) :=
+by { rcases h with ⟨φ, rfl⟩, exact ⟨units.map (coeff 0) φ, rfl⟩ }
+
 instance : semimodule α (mv_power_series σ α) :=
 { smul := λ a φ, C a * φ,
   one_smul := λ φ, one_mul _,
@@ -638,7 +646,47 @@ instance : semimodule α (mv_power_series σ α) :=
   add_smul := λ a b φ, by simp only [C_add, add_mul],
   zero_smul := λ φ, by simp only [zero_mul, C_zero] }
 
--- TODO(jmc) map and rename
+section map
+variables {β : Type*} {γ : Type*} [comm_semiring β] [comm_semiring γ]
+variables (f : α → β) (g : β → γ) [is_semiring_hom f] [is_semiring_hom g]
+
+def map : mv_power_series σ α → mv_power_series σ β :=
+λ φ n, f $ coeff n φ
+
+@[simp] lemma map_id : (map (id : α → α) : mv_power_series σ α → mv_power_series σ α) = id := rfl
+
+lemma map_comp : (map (g ∘ f) : mv_power_series σ α → mv_power_series σ γ) = map g ∘ map f := rfl
+
+@[simp] lemma coeff_map (n) (φ : mv_power_series σ α) :
+  coeff n (map f φ) = f (coeff n φ) := rfl
+
+@[simp] lemma map_zero : map f (0 : mv_power_series σ α) = 0 :=
+ext $ λ n, is_semiring_hom.map_zero f
+
+@[simp] lemma map_one : map f (1 : mv_power_series σ α) = 1 :=
+ext $ λ n,
+if h : n = 0
+then by rw [coeff_map, h, coeff_one_zero, is_semiring_hom.map_one f, coeff_one_zero]
+else by rw [coeff_map, coeff_one, if_neg h, is_semiring_hom.map_zero f, coeff_one, if_neg h]
+
+@[simp] lemma map_add (φ ψ : mv_power_series σ α) : map f (φ + ψ) = map f φ + map f ψ :=
+ext $ λ n, by rw [coeff_map, coeff_add, is_semiring_hom.map_add f, coeff_add, coeff_map, coeff_map]
+
+@[simp] lemma map_mul (φ ψ : mv_power_series σ α) : map f (φ * ψ) = map f φ * map f ψ :=
+ext $ λ n,
+begin
+  rw [coeff_map, coeff_mul, ← finset.sum_hom f, coeff_mul, finset.sum_congr rfl],
+  rintros ⟨i,j⟩ hij, rw [is_semiring_hom.map_mul f, coeff_map, coeff_map]
+end
+
+instance map.is_semiring_hom :
+  is_semiring_hom (map f : mv_power_series σ α → mv_power_series σ β) :=
+{ map_zero := map_zero f,
+  map_one := map_one f,
+  map_add := map_add f,
+  map_mul := map_mul f }
+
+end map
 
 end ring
 
@@ -671,6 +719,10 @@ instance coeff.is_add_group_hom (n : σ →₀ ℕ) :
   is_add_group_hom (coeff n : mv_power_series σ α → α) :=
 { map_add := coeff_add n }
 
+instance map.is_ring_hom {β : Type*} [comm_ring β] (f : α → β) [is_ring_hom f] :
+  is_ring_hom (map f : mv_power_series σ α → mv_power_series σ β) :=
+{ .. map.is_semiring_hom f }
+
 instance : module α (mv_power_series σ α) :=
 { ..mv_power_series.semimodule }
 
@@ -680,26 +732,35 @@ instance : algebra α (mv_power_series σ α) :=
   smul_def' := λ c p, rfl,
   .. mv_power_series.module }
 
-def inv_of_unit (φ : mv_power_series σ α) (u : units α) (h : coeff 0 φ = u) : mv_power_series σ α
-| n := if n = 0 then ↑u⁻¹ else
-- ↑u⁻¹ * finset.sum (n.diagonal) (λ (x : (σ →₀ ℕ) × (σ →₀ ℕ)),
-    if h : x.2 < n then coeff x.1 φ * inv_of_unit x.2 else 0)
+def inv.aux (a : α) (φ : mv_power_series σ α) : mv_power_series σ α
+| n := if n = 0 then a else
+- a * finset.sum (n.diagonal) (λ (x : (σ →₀ ℕ) × (σ →₀ ℕ)),
+    if h : x.2 < n then coeff x.1 φ * inv.aux x.2 else 0)
 using_well_founded
 { rel_tac := λ _ _, `[exact ⟨_, finsupp.lt_wf σ⟩],
   dec_tac := tactic.assumption }
 
-lemma coeff_inv_of_unit (n : σ →₀ ℕ) (φ : mv_power_series σ α) (u : units α) (h : coeff 0 φ = u) :
-  coeff n (inv_of_unit φ u h) = if n = 0 then ↑u⁻¹ else
-  - ↑u⁻¹ * finset.sum (n.diagonal) (λ (x : (σ →₀ ℕ) × (σ →₀ ℕ)),
-    if x.2 < n then coeff x.1 φ * inv_of_unit φ u h x.2 else 0) :=
-by rw [coeff, inv_of_unit]
+lemma coeff_inv_aux (n : σ →₀ ℕ) (a : α) (φ : mv_power_series σ α) :
+  coeff n (inv.aux a φ) = if n = 0 then a else
+  - a * finset.sum (n.diagonal) (λ (x : (σ →₀ ℕ) × (σ →₀ ℕ)),
+    if x.2 < n then coeff x.1 φ * coeff x.2 (inv.aux a φ) else 0) :=
+by rw [coeff, inv.aux]; refl
 
-@[simp] lemma coeff_zero_inv_of_unit (φ : mv_power_series σ α) (u : units α) (h : coeff 0 φ = u) :
-  coeff (0 : σ →₀ ℕ) (inv_of_unit φ u h) = ↑u⁻¹ :=
+def inv_of_unit (φ : mv_power_series σ α) (u : units α) : mv_power_series σ α :=
+inv.aux (↑u⁻¹) φ
+
+lemma coeff_inv_of_unit (n : σ →₀ ℕ) (φ : mv_power_series σ α) (u : units α) :
+  coeff n (inv_of_unit φ u) = if n = 0 then ↑u⁻¹ else
+  - ↑u⁻¹ * finset.sum (n.diagonal) (λ (x : (σ →₀ ℕ) × (σ →₀ ℕ)),
+    if x.2 < n then coeff x.1 φ * coeff x.2 (inv_of_unit φ u) else 0) :=
+coeff_inv_aux n (↑u⁻¹) φ
+
+@[simp] lemma coeff_zero_inv_of_unit (φ : mv_power_series σ α) (u : units α) :
+  coeff (0 : σ →₀ ℕ) (inv_of_unit φ u) = ↑u⁻¹ :=
 by rw [coeff_inv_of_unit, if_pos rfl]
 
 lemma mul_inv_of_unit (φ : mv_power_series σ α) (u : units α) (h : coeff 0 φ = u) :
-  φ * inv_of_unit φ u h = 1 :=
+  φ * inv_of_unit φ u = 1 :=
 ext $ λ n,
 if H : n = 0 then
 by rw [H, coeff_mul, coeff_one_zero, finsupp.diagonal_zero, finset.insert_empty_eq_singleton,
@@ -716,7 +777,7 @@ begin
     finset.insert_erase this, if_neg (not_lt_of_ge $ le_refl _), _root_.add_comm, _root_.zero_add,
     ← sub_eq_add_neg, sub_eq_zero, finset.sum_congr rfl],
   rintros ⟨i,j⟩ hij, rw [finset.mem_erase, finsupp.mem_diagonal] at hij, cases hij with h₁ h₂,
-  subst n, rw if_pos, {refl}, dsimp at *,
+  subst n, rw if_pos,
   split,
   { intro s, exact nat.le_add_left (j s) (i s) },
   { intro H, apply h₁,
@@ -744,10 +805,67 @@ end local_ring
 end mv_power_series
 
 namespace mv_power_series
-variables {σ : Type*} {α : Type*} [decidable_eq σ] [local_ring α]
+variables {σ : Type*} {α : Type*} {β : Type*} (f : α → β)
+variables [decidable_eq σ] [local_ring α] [local_ring β] [is_local_ring_hom f]
 
 instance : local_ring (mv_power_series σ α) :=
 local_of_is_local_ring $ is_local_ring ⟨zero_ne_one, local_ring.is_local⟩
+
+instance map.is_local_ring_hom : is_local_ring_hom (map f : mv_power_series σ α → mv_power_series σ β) :=
+{ map_nonunit :=
+  begin
+    rintros φ ⟨ψ, h⟩,
+    replace h := congr_arg (coeff 0) h,
+    rw coeff_map at h,
+    have : is_unit (coeff 0 ↑ψ) := @unit_coeff_zero σ β _ _ (↑ψ) (is_unit_unit ψ),
+    rw ← h at this,
+    rcases is_unit_of_map_unit f _ this with ⟨c, hc⟩,
+    refine is_unit_of_mul_one φ (inv_of_unit φ c) (mul_inv_of_unit φ c hc),
+  end,
+  .. map.is_ring_hom f }
+
+end mv_power_series
+
+namespace mv_power_series
+variables {σ : Type*} {α : Type*} [decidable_eq σ] [discrete_field α]
+
+def inv (φ : mv_power_series σ α) : mv_power_series σ α :=
+inv.aux (coeff 0 φ)⁻¹ φ
+
+instance : has_inv (mv_power_series σ α) := ⟨inv⟩
+
+lemma coeff_inv (n) (φ : mv_power_series σ α) :
+  coeff n (φ⁻¹) = if n = 0 then (coeff 0 φ)⁻¹ else
+  - (coeff 0 φ)⁻¹ * finset.sum (n.diagonal) (λ (x : (σ →₀ ℕ) × (σ →₀ ℕ)),
+    if x.2 < n then coeff x.1 φ * coeff x.2 (φ⁻¹) else 0) :=
+coeff_inv_aux n _ φ
+
+@[simp] lemma coeff_zero_inv (φ : mv_power_series σ α) :
+  coeff 0 (φ⁻¹) = (coeff 0 φ)⁻¹ :=
+by rw [coeff_inv, if_pos rfl]
+
+lemma inv_eq_zero (φ : mv_power_series σ α) (h : coeff 0 φ = 0) :
+  φ⁻¹ = 0 :=
+ext $ λ n, by { rw coeff_inv, split_ifs; simp [h] }
+
+@[simp] lemma inv_of_unit_eq (φ : mv_power_series σ α) (h : coeff 0 φ ≠ 0) :
+  inv_of_unit φ (units.mk0 _ h) = φ⁻¹ := rfl
+
+@[simp] lemma inv_of_unit_eq' (φ : mv_power_series σ α) (u : units α) (h : coeff 0 φ = u) :
+  inv_of_unit φ u = φ⁻¹ :=
+begin
+  rw ← inv_of_unit_eq,
+  { congr' 1, rw [units.ext_iff, ← h], refl },
+  { rw h, exact units.ne_zero _ }
+end
+
+@[simp] lemma mul_inv (φ : mv_power_series σ α) (h : coeff 0 φ ≠ 0) :
+  φ * φ⁻¹ = 1 :=
+by rw [← inv_of_unit_eq φ h, mul_inv_of_unit φ (units.mk0 _ h) rfl]
+
+@[simp] lemma inv_mul (φ : mv_power_series σ α) (h : coeff 0 φ ≠ 0) :
+  φ⁻¹ * φ = 1 :=
+by rw [mul_comm, mul_inv _ h]
 
 end mv_power_series
 
@@ -870,6 +988,38 @@ instance coeff.is_add_monoid_hom (n : ℕ) : is_add_monoid_hom (coeff n : power_
 instance : semimodule α (power_series α) :=
 mv_power_series.semimodule
 
+section map
+variables {β : Type*} {γ : Type*} [comm_semiring β] [comm_semiring γ]
+variables (f : α → β) (g : β → γ) [is_semiring_hom f] [is_semiring_hom g]
+
+def map : power_series α → power_series β :=
+mv_power_series.map f
+
+@[simp] lemma map_id : (map (id : α → α) : power_series α → power_series α) = id := rfl
+
+lemma map_comp : (map (g ∘ f) : power_series α → power_series γ) = map g ∘ map f := rfl
+
+@[simp] lemma coeff_map (n : ℕ) (φ : power_series α) :
+  coeff n (map f φ) = f (coeff n φ) := rfl
+
+@[simp] lemma map_zero : map f (0 : power_series α) = 0 :=
+mv_power_series.map_zero f
+
+@[simp] lemma map_one : map f (1 : power_series α) = 1 :=
+mv_power_series.map_one f
+
+@[simp] lemma map_add (φ ψ : power_series α) : map f (φ + ψ) = map f φ + map f ψ :=
+mv_power_series.map_add f φ ψ
+
+@[simp] lemma map_mul (φ ψ : power_series α) : map f (φ * ψ) = map f φ * map f ψ :=
+mv_power_series.map_mul f φ ψ
+
+instance map.is_semiring_hom :
+  is_semiring_hom (map f : power_series α → power_series β) :=
+mv_power_series.map.is_semiring_hom f
+
+end map
+
 end comm_semiring
 
 section comm_ring
@@ -879,6 +1029,10 @@ instance : comm_ring (power_series α) := by delta power_series; apply_instance
 
 instance C.is_ring_hom : is_ring_hom (C : α → power_series α) :=
 mv_power_series.C.is_ring_hom
+
+instance map.is_ring_hom {β : Type*} [comm_ring β] (f : α → β) [is_ring_hom f] :
+  is_ring_hom (map f : power_series α → power_series β) :=
+{ .. map.is_semiring_hom f }
 
 instance : module α (power_series α) :=
 mv_power_series.module

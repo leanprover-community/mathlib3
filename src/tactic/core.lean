@@ -573,6 +573,61 @@ do g₀ :: _ ← get_goals,
 
 meta def triv' : tactic unit := do c ← mk_const `trivial, exact c reducible
 
+meta def reorder_goals (gs : list (bool × expr)) : new_goals → list expr
+| new_goals.non_dep_first := (gs.reverse.filter $ coe ∘ bnot ∘ prod.fst).map prod.snd ++ (gs.reverse.filter $ coe ∘ prod.fst).map prod.snd
+| new_goals.non_dep_only := (gs.reverse.filter (coe ∘ bnot ∘ prod.fst)).map prod.snd
+| new_goals.all := gs.reverse.map prod.snd
+
+meta def retry_apply_aux : Π (e : expr) (cfg : apply_cfg), list (bool × expr) → tactic (list (name × expr))
+| e cfg gs :=
+focus1 (do {
+     r ← apply_core e cfg,
+     gs' ← get_goals,
+     set_goals (gs' ++ reorder_goals gs cfg.new_goals),
+     return r }) <|>
+do t ← infer_type e >>= whnf,
+   if t.is_pi
+     then do v ← mk_meta_var t.binding_domain,
+             let b := t.binding_body.has_var,
+             e ← head_beta $ e v,
+             retry_apply_aux e cfg ((b, v) :: gs)
+     else apply_core e cfg
+
+meta def retry_apply (e : expr) (cfg : apply_cfg) : tactic (list (name × expr)) :=
+retry_apply_aux e cfg []
+
+meta def apply' (e : expr) (cfg : apply_cfg := {}) : tactic (list (name × expr)) :=
+do r ← retry_apply e cfg,
+   try_apply_opt_auto_param_for_apply cfg r,
+   return r
+
+/-- Same as `apply` but __all__ arguments that weren't inferred are added to goal list. -/
+meta def fapply' (e : expr) : tactic (list (name × expr)) :=
+apply' e {new_goals := new_goals.all}
+/-- Same as `apply` but only goals that don't depend on other goals are added to goal list. -/
+meta def eapply' (e : expr) : tactic (list (name × expr)) :=
+apply' e {new_goals := new_goals.non_dep_only}
+
+private meta def relation_tactic (md : transparency) (op_for : environment → name → option name) (tac_name : string) : tactic unit :=
+do tgt   ← target >>= instantiate_mvars,
+   env   ← get_env,
+   let r := expr.get_app_fn tgt,
+   match op_for env (expr.const_name r) with
+   | (some refl) := do r ← mk_const refl,
+                       retry_apply r {md := md, new_goals := new_goals.non_dep_only },
+                       return ()
+   | none        := fail $ tac_name ++ " tactic failed, target is not a relation application with the expected property."
+   end
+
+meta def reflexivity' (md := semireducible) : tactic unit :=
+relation_tactic md environment.refl_for "reflexivity"
+
+meta def symmetry' (md := semireducible) : tactic unit :=
+relation_tactic md environment.symm_for "symmetry"
+
+meta def transitivity' (md := semireducible) : tactic unit :=
+relation_tactic md environment.trans_for "transitivity"
+
 variable {α : Type}
 
 private meta def iterate_aux (t : tactic α) : list α → tactic (list α)
@@ -1020,10 +1075,10 @@ local postfix `?`:9001 := optional
 local postfix *:9001 := many .
 "
 
-meta def trace_error (t : tactic α) (msg : string) : tactic α
+meta def trace_error (msg : string) (t : tactic α) : tactic α
 | s := match t s with
        | (result.success r s') := result.success r s'
-       | (result.exception (some msg) p s') := (trace (msg ()) >> result.exception (some msg) p) s'
+       | (result.exception (some msg') p s') := (trace msg >> trace (msg' ()) >> result.exception (some msg') p) s'
        | (result.exception none p s') := result.exception none p s'
        end
 

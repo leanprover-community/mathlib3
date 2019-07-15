@@ -232,6 +232,12 @@ variables [is_semiring_hom f]
 @[simp] lemma eval₂_X : X.eval₂ f x = x :=
 (sum_single_index $ by rw [map_zero f, zero_mul]).trans $ by rw [map_one f, one_mul, pow_one]
 
+@[simp] lemma eval₂_X_pow (n : ℕ) : (X^n).eval₂ f x = x^n :=
+begin
+  rw [←one_mul (X^n), ←C_1, ←single_eq_C_mul_X],
+  exact (sum_single_index $ by rw [map_zero f, zero_mul]).trans (by rw [map_one f, one_mul])
+end
+
 @[simp] lemma eval₂_zero : (0 : polynomial α).eval₂ f x = 0 :=
 finsupp.sum_zero_index
 
@@ -289,6 +295,8 @@ def eval : α → polynomial α → α := eval₂ id
 @[simp] lemma eval_C : (C a).eval x = a := eval₂_C _ _
 
 @[simp] lemma eval_X : X.eval x = x := eval₂_X _ _
+
+@[simp] lemma eval_X_pow (n : ℕ) : (X^n).eval x = x^n := eval₂_X_pow _ _ _
 
 @[simp] lemma eval_zero : (0 : polynomial α).eval x = 0 :=  eval₂_zero _ _
 

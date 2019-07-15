@@ -4470,9 +4470,9 @@ end Ico
   map prod.fst (enum l) = range l.length :=
 by simp only [enum, enum_from_map_fst, range_eq_range']
 
-theorem last'_mem {α} : ∀ a l, @last' α a l ∈ a :: l
+theorem ilast'_mem {α} : ∀ a l, @ilast' α a l ∈ a :: l
 | a []     := or.inl rfl
-| a (b::l) := or.inr (last'_mem b l)
+| a (b::l) := or.inr (ilast'_mem b l)
 
 @[simp] lemma nth_le_attach {α} (L : list α) (i) (H : i < L.attach.length) :
   (L.attach.nth_le i H).1 = L.nth_le i (length_attach L ▸ H) :=
@@ -4519,13 +4519,13 @@ theorem tfae_of_forall (b : Prop) (l : list Prop) (h : ∀ a ∈ l, a ↔ b) : t
 λ a₁ h₁ a₂ h₂, (h _ h₁).trans (h _ h₂).symm
 
 theorem tfae_of_cycle {a b} {l : list Prop} :
-  list.chain (→) a (b::l) → (last' b l → a) → tfae (a::b::l) :=
+  list.chain (→) a (b::l) → (ilast' b l → a) → tfae (a::b::l) :=
 begin
   induction l with c l IH generalizing a b; simp [tfae_cons_cons, tfae_singleton] at *,
   { intros a _ b, exact iff.intro a b },
   intros ab bc ch la,
   have := IH bc ch (ab ∘ la),
-  exact ⟨⟨ab, la ∘ (this.2 c (or.inl rfl) _ (last'_mem _ _)).1 ∘ bc⟩, this⟩
+  exact ⟨⟨ab, la ∘ (this.2 c (or.inl rfl) _ (ilast'_mem _ _)).1 ∘ bc⟩, this⟩
 end
 
 theorem tfae.out {l} (h : tfae l) (n₁ n₂)

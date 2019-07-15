@@ -59,6 +59,11 @@ by cases x; simp
 @[simp] theorem bind_eq_some' {x : option α} {f : α → option β} {b : β} : x.bind f = some b ↔ ∃ a, x = some a ∧ f a = some b :=
 by cases x; simp
 
+theorem bind_eq_none {o : option α} {f : α → option β} : o.bind f = none ↔ (∀ b a, a ∈ o → b ∉ f a) :=
+by simp only [option.eq_none_iff_forall_not_mem, not_exists, not_and,
+  option.mem_def, option.bind_eq_some']
+
+
 lemma bind_comm {α β γ} {f : α → β → option γ} (a : option α) (b : option β) :
   a.bind (λx, b.bind (f x)) = b.bind (λy, a.bind (λx, f x y)) :=
 by cases a; cases b; refl

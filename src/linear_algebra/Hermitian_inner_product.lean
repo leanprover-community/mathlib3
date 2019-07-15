@@ -5,46 +5,17 @@ Author: Andreas Swerdlow
 -/
 
 import analysis.normed_space.basic linear_algebra.sesquilinear_form topology.instances.complex
-
+import tactic.find
 open complex real
 
 lemma im_eq_zero_iff_conj_eq (x : ℂ) : x.im = 0 ↔ conj(x) = x :=
 begin
-  dunfold conj,
-  split; intro H,
-  { rw [H, neg_zero, ←H, complex.eta] },
-
-  { rw complex.ext_iff at H,
-    have : -x.im = x.im,
-    { exact H.right },
-    rw ←add_eq_zero_iff_neg_eq at this,
-    exact add_self_eq_zero.mp this}
+  rw [complex.ext_iff, conj_im, conj_re],
+  exact ⟨λ H, ⟨eq.refl x.re, (eq.symm H) ▸ neg_zero⟩, λ H, eq_zero_of_neg_eq H.2⟩,   
 end
 
-lemma ne_zero_im_zero_imp_re_ne_zero {x : ℂ} : x ≠ 0 → x.im = 0 → x.re ≠ 0 :=
-begin
-  intros H1 H2,
-  have Hx : x = ↑x.re,
-  { rw [←re_add_im x, H2, of_real_zero, 
-        zero_mul, field.add_zero, of_real_re] },
-  rw Hx at H1,
-  exact of_real_ne_zero.mp H1,
-end
-
-lemma re_of_real {x : ℂ} : x.im = 0 → ↑(x.re) = x :=
-begin
-  intros H,
-  rw [←re_add_im x, H, of_real_zero, zero_mul, field.add_zero, of_real_inj, of_real_re],
-end
-
-lemma of_real_pow (x : ℝ) (a : ℕ) : (↑(x^a) : ℂ) = (↑x)^a :=
-begin
-  induction a with d Hd,
-  { simp },
-  { rw [pow_succ, pow_succ],
-    rw of_real_mul,
-    rw Hd },
-end
+lemma re_of_real {x : ℂ} (H : x.im = 0) : ↑(x.re) = x :=
+by {rw [complex.ext_iff, of_real_re, of_real_im], exact ⟨eq.refl x.re, eq.symm H⟩} 
 
 def conj.equiv : equiv ℂ ℂ := 
 ⟨conj, conj, begin dunfold function.left_inverse, intros, simp, end, begin dunfold function.right_inverse, dunfold function.left_inverse, intros, simp, end⟩
@@ -117,7 +88,7 @@ begin
   simpa [field.add_assoc, field.add_comm],
 end
 
-theorem self_im (x : α) :
+lemma self_im (x : α) :
 (ₕ⟨x|x⟩).im = 0 :=
 (im_eq_zero_iff_conj_eq (ₕ⟨x|x⟩)).mpr (inner_product.conj_sym x x)
 
@@ -143,18 +114,8 @@ lemma self_ne_zero_iff {x : α} :
 
 lemma self_re_ne_zero_iff {x : α} : 
 (ₕ⟨x|x⟩).re ≠ 0 ↔ x ≠ 0 :=
-begin
-  split; intros H,
-  { have Ho : (ₕ⟨x|x⟩) ≠ 0,
-    { intros Hx,
-      rw [Hx, zero_re] at H,
-      trivial },
-    exact self_ne_zero_iff.mp Ho },
-
-  { have Ho : (ₕ⟨x|x⟩) ≠ 0,
-    { exact self_ne_zero_iff.mpr H },
-    exact ne_zero_im_zero_imp_re_ne_zero Ho (self_im x) } 
-end
+⟨ λ H, (iff_false_left H).mp inner_product.self_re_eq_zero_iff, 
+  λ H, (iff_false_right H).mp inner_product.self_re_eq_zero_iff⟩ 
 
 lemma re (x y : α) : (ₕ⟨x|y⟩).re = (ₕ⟨y|x⟩).re := 
 by rw [←inner_product.conj_sym, conj_re]

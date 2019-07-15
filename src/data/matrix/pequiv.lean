@@ -18,10 +18,10 @@ variables {α : Type v}
 local infix ` ⬝ `:70 := matrix.mul
 local postfix `ᵀ` : 1500 := transpose
 
-def to_matrix [has_one α] [has_zero α] (f : pequiv m n) : matrix m n α
+def to_matrix [has_one α] [has_zero α] (f : m ≃. n) : matrix m n α
 | i j := if j ∈ f i then 1 else 0
 
-lemma to_matrix_symm [has_one α] [has_zero α] (f : pequiv m n) :
+lemma to_matrix_symm [has_one α] [has_zero α] (f : m ≃. n) :
   (f.symm.to_matrix : matrix n m α) = f.to_matrixᵀ :=
 by ext; simp only [transpose, mem_iff_mem f, to_matrix]; congr
 
@@ -29,7 +29,7 @@ by ext; simp only [transpose, mem_iff_mem f, to_matrix]; congr
   ((pequiv.refl n).to_matrix : matrix n n α) = 1 :=
 by ext; simp [to_matrix, one_val]; congr
 
-lemma mul_matrix_apply [semiring α] (f : pequiv l m) (M : matrix m n α) (i j) :
+lemma mul_matrix_apply [semiring α] (f : l ≃. m) (M : matrix m n α) (i j) :
   (f.to_matrix ⬝ M) i j = option.cases_on (f i) 0 (λ fi, M fi j) :=
 begin
   dsimp [to_matrix, matrix.mul],
@@ -39,7 +39,7 @@ begin
     simp [h, eq_comm] {contextual := tt} }
 end
 
-lemma matrix_mul_apply [semiring α] (M : matrix l m α) (f : pequiv m n) (i j) :
+lemma matrix_mul_apply [semiring α] (M : matrix l m α) (f : m ≃. n) (i j) :
   (M ⬝ f.to_matrix) i j = option.cases_on (f.symm j) 0 (λ fj, M i fj) :=
 begin
   dsimp [to_matrix, matrix.mul],
@@ -50,7 +50,7 @@ begin
     simp [h, eq_comm] {contextual := tt} }
 end
 
-lemma to_matrix_trans [semiring α] (f : pequiv l m) (g : pequiv m n) :
+lemma to_matrix_trans [semiring α] (f : l ≃. m) (g : m ≃. n) :
   ((f.trans g).to_matrix : matrix l n α) = f.to_matrix ⬝ g.to_matrix :=
 begin
   ext i j,

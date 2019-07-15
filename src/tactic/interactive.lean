@@ -171,6 +171,38 @@ do v ← mk_mvar,
    gs' ← get_goals,
    set_goals $ gs' ++ gs
 
+
+/--
+Format the current goal as a stand-alone example. Useful for testing tactic.
+
+```lean
+example (i j k : ℕ) (h₀ : i ≤ j) (h₁ : j ≤ k) : i ≤ k :=
+begin
+  extract_example
+     -- prints:
+     -- example
+     --     (i : ℕ)
+     --     (j : ℕ)
+     --     (k : ℕ)
+     --     (h₀ : i ≤ j)
+     --     (h₁ : j ≤ k) :
+     --   i ≤ k :=
+     -- begin
+
+     -- end
+
+end
+```
+-/
+meta def extract_example (b : parse (tk "*")?) : tactic unit :=
+do cxt ← local_context,
+   tgt ← target,
+   trace "\nexample",
+   cxt.init.mmap' $ λ x, trace!"    ({x} : {infer_type x})",
+   cxt.last'.traverse $ λ x, trace!"    ({x} : {infer_type x}) :",
+   trace!"  {tgt} :=",
+   trace!"begin\n  \nend"
+
 meta def clean_ids : list name :=
 [``id, ``id_rhs, ``id_delta, ``hidden]
 

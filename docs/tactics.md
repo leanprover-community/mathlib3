@@ -97,6 +97,23 @@ two subgoals, one with variables `a d e` and the other with `b c d e`.
 result. Like `rcases?`, `rintro? : n` allows for modifying the
 depth of splitting; the default is 5.
 
+### obtain
+
+The `obtain` tactic is a combination of `have` and `rcases`.
+```lean
+obtain ⟨patt⟩ : type,
+{ ... }
+```
+is equivalent to
+```lean
+have h : type,
+{ ... },
+rcases h with ⟨patt⟩
+```
+
+ The syntax `obtain ⟨patt⟩ : type := proof` is also supported.
+
+
 ### simpa
 
 This is a "finishing" tactic modification of `simp`. It has two forms.

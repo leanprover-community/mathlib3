@@ -76,7 +76,7 @@ theorem equivalence_of_one_one_equiv {α} [primcodable α] : equivalence (@one_o
  λ x y h, ⟨h.2, h.1⟩, 
  λ x y z h₁ h₂, ⟨transitive_one_one_reducible h₁.1 h₂.1, transitive_one_one_reducible h₂.2 h₁.2⟩⟩
 
-instance many_one_equiv_setoid {α} [primcodable α] : setoid (α → Prop) := 
+instance many_one_equiv_setoid {α} [primcodable α] : setoid (set α) := 
 ⟨many_one_equiv, @equivalence_of_many_one_equiv α _⟩
 
 def many_one_degree {α} [primcodable α] := quotient (@many_one_equiv_setoid α _)
@@ -126,26 +126,29 @@ end nat.primrec
 
 open nat.primrec
 
-theorem many_one_reducible_of_disjoin_left {p q : ℕ → Prop} : p ≤₀ p ⊕ q := 
-⟨λ a, (2 * a), by { apply primrec.to_comp, exact double }, 
- λ a, ⟨λ h, by { dsimp [disjoin], left, use a, simpa [h] },
+theorem many_one_reducible_of_disjoin_left {p q r : ℕ → Prop} : 
+  p ≤₀ q → p ≤₀ q ⊕ r := λ ⟨f, hc, hf⟩, 
+⟨λ x, 2 * f x, 
+ by { exact computable.comp (primrec.to_comp double) hc }, 
+ λ a, ⟨λ h, by { dsimp [disjoin], left, use f a, exact ⟨(hf a).1 h, by simp⟩ },
        λ h, begin 
               dsimp [disjoin] at h, cases h, 
               { rcases h with ⟨b, hbl, hbr⟩, 
-                rw [← nat.eq_of_mul_eq_mul_left _ hbr], 
+                rw [hf, ← nat.eq_of_mul_eq_mul_left _ hbr], 
                 exact hbl, exact dec_trivial }, 
               { rcases h with ⟨b, hbl, hbr⟩, exfalso, apply nat.two_mul_ne_two_mul_add_one hbr.symm } 
             end⟩⟩
 
-theorem many_one_reducible_of_disjoin_right {p q : ℕ → Prop} : q ≤₀ p ⊕ q := 
-⟨λ a, (2 * a + 1), by {apply primrec.to_comp, exact double_succ },
- λ a, ⟨λ h, by { dsimp [disjoin], right, use a, simpa [h] },
+theorem many_one_reducible_of_disjoin_right {p q r : ℕ → Prop} : 
+  p ≤₀ r → p ≤₀ q ⊕ r := λ ⟨f, hc, hf⟩,  
+⟨λ a, (2 * f a + 1), by { exact computable.comp (primrec.to_comp double_succ) hc },
+ λ a, ⟨λ h, by { dsimp [disjoin], right, use f a, exact ⟨(hf a).1 h, by simp⟩ },
        λ h, begin 
               dsimp [disjoin] at h, cases h, 
               { rcases h with ⟨b, hbl, hbr⟩, exfalso, apply nat.two_mul_ne_two_mul_add_one hbr }, 
               { rcases h with ⟨b, hbl, hbr⟩,
                 simp only [add_left_inj, add_comm] at hbr,
-                rw [←nat.eq_of_mul_eq_mul_left _ hbr], 
+                rw [hf, ←nat.eq_of_mul_eq_mul_left _ hbr], 
                 exact hbl, exact dec_trivial } 
             end⟩⟩
 
@@ -169,3 +172,4 @@ begin
        use nat.div2 a, split, exact h,
        simpa [heq] using nat.bodd_add_div2 a } } }
 end
+

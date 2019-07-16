@@ -1427,6 +1427,16 @@ finsupp.ext $ λ a, count_zero a
   to_finsupp (s + t) = to_finsupp s + to_finsupp t :=
 finsupp.ext $ λ a, count_add a s t
 
+lemma to_finsupp_singleton (a : α) :
+  to_finsupp {a} = finsupp.single a 1 :=
+finsupp.ext $ λ b,
+if h : a = b then by simp [finsupp.single_apply, h] else
+begin
+  rw [to_finsupp_apply, finsupp.single_apply, if_neg h, count_eq_zero,
+      singleton_eq_singleton, mem_singleton],
+  rintro rfl, exact h rfl
+end
+
 namespace to_finsupp
 
 instance : is_add_monoid_hom (to_finsupp : multiset α → α →₀ ℕ) :=
@@ -1478,11 +1488,11 @@ attribute [simp] to_multiset_zero to_multiset_add
   f.to_multiset.to_finsupp = f :=
 ext $ λ s, by rw [multiset.to_finsupp_apply, count_to_multiset]
 
-def antidiagonal (f : σ →₀ ℕ) : finset ((σ →₀ ℕ) × (σ →₀ ℕ)) :=
-((multiset.antidiagonal f.to_multiset).map (prod.map multiset.to_finsupp multiset.to_finsupp)).to_finset
+def antidiagonal (f : σ →₀ ℕ) : ((σ →₀ ℕ) × (σ →₀ ℕ)) →₀ ℕ :=
+(f.to_multiset.antidiagonal.map (prod.map multiset.to_finsupp multiset.to_finsupp)).to_finsupp
 
-lemma mem_antidiagonal {f : σ →₀ ℕ} {p : (σ →₀ ℕ) × (σ →₀ ℕ)} :
-  p ∈ antidiagonal f ↔ p.1 + p.2 = f :=
+lemma mem_antidiagonal_support {f : σ →₀ ℕ} {p : (σ →₀ ℕ) × (σ →₀ ℕ)} :
+  p ∈ (antidiagonal f).support ↔ p.1 + p.2 = f :=
 begin
   erw [multiset.mem_to_finset, multiset.mem_map],
   split,
@@ -1495,9 +1505,11 @@ begin
     { rw [prod.map, to_multiset_to_finsupp, to_multiset_to_finsupp, prod.mk.eta] } }
 end
 
-@[simp] lemma antidiagonal_zero : antidiagonal (0 : σ →₀ ℕ) = {(0,0)} := rfl
+@[simp] lemma antidiagonal_zero : antidiagonal (0 : σ →₀ ℕ) = single (0,0) 1 :=
+by rw [← multiset.to_finsupp_singleton]; refl
 
-lemma swap_mem_antidiagonal {n : σ →₀ ℕ} {f} (hf : f ∈ antidiagonal n) : f.swap ∈ antidiagonal n :=
-by simpa [mem_antidiagonal, add_comm] using hf
+lemma swap_mem_antidiagonal_support {n : σ →₀ ℕ} {f} (hf : f ∈ (antidiagonal n).support) :
+  f.swap ∈ (antidiagonal n).support :=
+by simpa [mem_antidiagonal_support, add_comm] using hf
 
 end finsupp

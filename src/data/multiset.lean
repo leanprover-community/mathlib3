@@ -1587,16 +1587,16 @@ quotient.induction_on s $ by simp
 
 /- antidiagonal -/
 
-theorem revzip_powerset_aux {l : list α} ⦃s t⦄
-  (h : (s, t) ∈ revzip (powerset_aux l)) : s + t = ↑l :=
+theorem revzip_powerset_aux {l : list α} ⦃x⦄
+  (h : x ∈ revzip (powerset_aux l)) : x.1 + x.2 = ↑l :=
 begin
   rw [revzip, powerset_aux_eq_map_coe, ← map_reverse, zip_map, ← revzip] at h,
   simp at h, rcases h with ⟨l₁, l₂, h, rfl, rfl⟩,
   exact quot.sound (revzip_sublists _ _ _ h)
 end
 
-theorem revzip_powerset_aux' {l : list α} ⦃s t⦄
-  (h : (s, t) ∈ revzip (powerset_aux' l)) : s + t = ↑l :=
+theorem revzip_powerset_aux' {l : list α} ⦃x⦄
+  (h : x ∈ revzip (powerset_aux' l)) : x.1 + x.2 = ↑l :=
 begin
   rw [revzip, powerset_aux', ← map_reverse, zip_map, ← revzip] at h,
   simp at h, rcases h with ⟨l₁, l₂, h, rfl, rfl⟩,
@@ -1604,7 +1604,7 @@ begin
 end
 
 theorem revzip_powerset_aux_lemma [decidable_eq α] (l : list α)
-  {l' : list (multiset α)} (H : ∀ ⦃s t⦄, (s, t) ∈ revzip l' → s + t = ↑l) :
+  {l' : list (multiset α)} (H : ∀ ⦃x : _ × _⦄, x ∈ revzip l' → x.1 + x.2 = ↑l) :
   revzip l' = l'.map (λ x, (x, ↑l - x)) :=
 begin
   have : forall₂ (λ (p : multiset α × multiset α) (s : multiset α), p = (s, ↑l - s))
@@ -1654,7 +1654,8 @@ quotient.induction_on s $ λ l, begin
   simp [antidiagonal_coe], refine ⟨λ h, revzip_powerset_aux h, λ h, _⟩,
   haveI := classical.dec_eq α,
   simp [revzip_powerset_aux_lemma l revzip_powerset_aux, h.symm],
-  exact ⟨_, le_add_right _ _, rfl, add_sub_cancel_left _ _⟩
+  cases x with x₁ x₂,
+  exact ⟨_, le_add_right _ _, by rw add_sub_cancel_left _ _⟩
 end
 
 @[simp] theorem antidiagonal_map_fst (s : multiset α) :

@@ -1632,6 +1632,8 @@ begin
   exact perm_map _ (powerset_aux_perm p)
 end
 
+/-- The antidiagonal of a multiset `s` consists of all pairs `(t₁, t₂)`
+    such that `t₁ + t₂ = s`. These pairs are counted with multiplicities. -/
 def antidiagonal (s : multiset α) : multiset (multiset α × multiset α) :=
 quot.lift_on s
   (λ l, (revzip (powerset_aux l) : multiset (multiset α × multiset α)))
@@ -1644,8 +1646,10 @@ theorem antidiagonal_coe (l : list α) :
   @antidiagonal α l = revzip (powerset_aux' l) :=
 quot.sound revzip_powerset_aux_perm_aux'
 
-@[simp] theorem mem_antidiagonal {s₁ s₂ t : multiset α} :
-  (s₁, s₂) ∈ antidiagonal t ↔ s₁ + s₂ = t :=
+/-- A pair `(t₁, t₂)` of multisets is contained in `antidiagonal s`
+    if and only if `t₁ + t₂ = s`. -/
+@[simp] theorem mem_antidiagonal {s : multiset α} {x : multiset α × multiset α} :
+  x ∈ antidiagonal t ↔ x.1 + x.2 = t :=
 quotient.induction_on t $ λ l, begin
   simp [antidiagonal_coe], refine ⟨λ h, revzip_powerset_aux h, λ h, _⟩,
   haveI := classical.dec_eq α,

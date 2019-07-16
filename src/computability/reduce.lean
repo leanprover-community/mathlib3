@@ -128,8 +128,7 @@ open nat.primrec
 
 theorem many_one_reducible_of_disjoin_left {p q r : ℕ → Prop} : 
   p ≤₀ q → p ≤₀ q ⊕ r := λ ⟨f, hc, hf⟩, 
-⟨λ x, 2 * f x, 
- by { exact computable.comp (primrec.to_comp double) hc }, 
+⟨λ x, 2 * f x, by { exact computable.comp (primrec.to_comp double) hc }, 
  λ a, ⟨λ h, by { dsimp [disjoin], left, use f a, exact ⟨(hf a).1 h, by simp⟩ },
        λ h, begin 
               dsimp [disjoin] at h, cases h, 

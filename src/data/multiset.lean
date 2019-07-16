@@ -1649,8 +1649,8 @@ quot.sound revzip_powerset_aux_perm_aux'
 /-- A pair `(t₁, t₂)` of multisets is contained in `antidiagonal s`
     if and only if `t₁ + t₂ = s`. -/
 @[simp] theorem mem_antidiagonal {s : multiset α} {x : multiset α × multiset α} :
-  x ∈ antidiagonal t ↔ x.1 + x.2 = t :=
-quotient.induction_on t $ λ l, begin
+  x ∈ antidiagonal s ↔ x.1 + x.2 = s :=
+quotient.induction_on s $ λ l, begin
   simp [antidiagonal_coe], refine ⟨λ h, revzip_powerset_aux h, λ h, _⟩,
   haveI := classical.dec_eq α,
   simp [revzip_powerset_aux_lemma l revzip_powerset_aux, h.symm],

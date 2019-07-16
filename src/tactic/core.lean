@@ -626,6 +626,7 @@ do l ← local_context,
    r ← successes (l.reverse.map (λ h, cases h >> skip)),
    when (r.empty) failed
 
+/-- given a proof `pr : t`, adds `h : t` to the current context, where the name `h` is fresh.  -/
 meta def note_anon (e : expr) : tactic expr :=
 do n ← get_unused_name "lh",
    note n none e
@@ -691,6 +692,15 @@ meta def lock_tactic_state {α} (t : tactic α) : tactic α
        | result.success a s' := result.success a s
        | result.exception msg pos s' := result.exception msg pos s
 end
+
+/-- similar to `mk_local_pis` but make meta variables instead of
+    local constants -/
+meta def mk_meta_pis : expr → tactic (list expr × expr)
+| (expr.pi n bi d b) := do
+  p ← mk_meta_var d,
+  (ps, r) ← mk_meta_pis (expr.instantiate_var b p),
+  return ((p :: ps), r)
+| e := return ([], e)
 
 /--
 Hole command used to fill in a structure's field when specifying an instance.
@@ -1010,6 +1020,13 @@ local postfix `?`:9001 := optional
 local postfix *:9001 := many .
 "
 
+meta def trace_error (t : tactic α) (msg : string) : tactic α
+| s := match t s with
+       | (result.success r s') := result.success r s'
+       | (result.exception (some msg) p s') := (trace (msg ()) >> result.exception (some msg) p) s'
+       | (result.exception none p s') := result.exception none p s'
+       end
+
 /--
 This combinator is for testing purposes. It succeeds if `t` fails with message `msg`,
 and fails otherwise.
@@ -1038,6 +1055,9 @@ meta instance pformat.has_to_tactic_format : has_to_tactic_format pformat :=
 meta instance : has_append pformat :=
 ⟨ λ x y, (++) <$> x <*> y ⟩
 
+meta instance tactic.has_to_tactic_format [has_to_tactic_format α] : has_to_tactic_format (tactic α) :=
+⟨ λ x, x >>= to_pfmt ⟩
+
 private meta def parse_pformat : string → list char → parser pexpr
 | acc []            := pure ``(to_pfmt %%(reflect acc))
 | acc ('\n'::s)     :=
@@ -1053,9 +1073,49 @@ do (e, s) ← with_input (lean.parser.pexpr 0) s.as_string,
 
 reserve prefix `pformat! `:100
 
-/-- See `format!` in `init/meta/interactive_base.lean`. The only difference is that `pp` is called instead of `to_fmt` -/
+/-- See `format!` in `init/meta/interactive_base.lean`.
+
+The main differences are that `pp` is called instead of `to_fmt` and that we can use
+arguments of type `tactic α` in the quotations.
+
+Now, consider the following:
+```
+e ← to_expr ``(3 + 7),
+trace format!"{e}"  -- outputs `has_add.add.{0} nat nat.has_add (bit1.{0} nat nat.has_one nat.has_add (has_one.one.{0} nat nat.has_one)) ...`
+trace pformat!"{e}" -- outputs `3 + 7`
+```
+
+The difference is significant. And now, the following is expressible:
+
+```
+e ← to_expr ``(3 + 7),
+trace pformat!"{e} : {infer_type e}" -- outputs `3 + 7 : ℕ`
+```
+
+See also: `trace!` and `fail!`
+-/
 @[user_notation]
 meta def pformat_macro (_ : parse $ tk "pformat!") (s : string) : parser pexpr :=
 parse_pformat "" s.to_list
 
+reserve prefix `fail! `:100
+
+/--
+the combination of `pformat` and `fail`
+-/
+@[user_notation]
+meta def fail_macro (_ : parse $ tk "fail!") (s : string) : parser pexpr :=
+do e ← pformat_macro () s,
+   pure ``((%%e : pformat) >>= fail)
+
+reserve prefix `trace! `:100
+/--
+the combination of `pformat` and `fail`
+-/
+@[user_notation]
+meta def trace_macro (_ : parse $ tk "trace!") (s : string) : parser pexpr :=
+do e ← pformat_macro () s,
+   pure ``((%%e : pformat) >>= trace)
+
 end tactic
+open tactic

@@ -1585,7 +1585,7 @@ end
   card (powerset s) = 2 ^ card s :=
 quotient.induction_on s $ by simp
 
-/- diagonal -/
+/- antidiagonal -/
 
 theorem revzip_powerset_aux {l : list α} ⦃s t⦄
   (h : (s, t) ∈ revzip (powerset_aux l)) : s + t = ↑l :=
@@ -1632,55 +1632,56 @@ begin
   exact perm_map _ (powerset_aux_perm p)
 end
 
-def diagonal (s : multiset α) : multiset (multiset α × multiset α) :=
+def antidiagonal (s : multiset α) : multiset (multiset α × multiset α) :=
 quot.lift_on s
   (λ l, (revzip (powerset_aux l) : multiset (multiset α × multiset α)))
   (λ l₁ l₂ h, quot.sound (revzip_powerset_aux_perm h))
 
-theorem diagonal_coe (l : list α) :
-  @diagonal α l = revzip (powerset_aux l) := rfl
+theorem antidiagonal_coe (l : list α) :
+  @antidiagonal α l = revzip (powerset_aux l) := rfl
 
-@[simp] theorem diagonal_coe' (l : list α) :
-  @diagonal α l = revzip (powerset_aux' l) :=
+@[simp] theorem antidiagonal_coe' (l : list α) :
+  @antidiagonal α l = revzip (powerset_aux' l) :=
 quot.sound revzip_powerset_aux_perm_aux'
 
-@[simp] theorem mem_diagonal {s₁ s₂ t : multiset α} :
-  (s₁, s₂) ∈ diagonal t ↔ s₁ + s₂ = t :=
+@[simp] theorem mem_antidiagonal {s₁ s₂ t : multiset α} :
+  (s₁, s₂) ∈ antidiagonal t ↔ s₁ + s₂ = t :=
 quotient.induction_on t $ λ l, begin
-  simp [diagonal_coe], refine ⟨λ h, revzip_powerset_aux h, λ h, _⟩,
+  simp [antidiagonal_coe], refine ⟨λ h, revzip_powerset_aux h, λ h, _⟩,
   haveI := classical.dec_eq α,
   simp [revzip_powerset_aux_lemma l revzip_powerset_aux, h.symm],
   exact ⟨_, le_add_right _ _, rfl, add_sub_cancel_left _ _⟩
 end
 
-@[simp] theorem diagonal_map_fst (s : multiset α) :
-  (diagonal s).map prod.fst = powerset s :=
+@[simp] theorem antidiagonal_map_fst (s : multiset α) :
+  (antidiagonal s).map prod.fst = powerset s :=
 quotient.induction_on s $ λ l,
 by simp [powerset_aux']
 
-@[simp] theorem diagonal_map_snd (s : multiset α) :
-  (diagonal s).map prod.snd = powerset s :=
+@[simp] theorem antidiagonal_map_snd (s : multiset α) :
+  (antidiagonal s).map prod.snd = powerset s :=
 quotient.induction_on s $ λ l,
 by simp [powerset_aux']
 
-@[simp] theorem diagonal_zero : @diagonal α 0 = (0, 0)::0 := rfl
+@[simp] theorem antidiagonal_zero : @antidiagonal α 0 = (0, 0)::0 := rfl
 
-@[simp] theorem diagonal_cons (a : α) (s) : diagonal (a::s) =
-  map (prod.map id (cons a)) (diagonal s) +
-  map (prod.map (cons a) id) (diagonal s) :=
+@[simp] theorem antidiagonal_cons (a : α) (s) : antidiagonal (a::s) =
+  map (prod.map id (cons a)) (antidiagonal s) +
+  map (prod.map (cons a) id) (antidiagonal s) :=
 quotient.induction_on s $ λ l, begin
   simp [revzip, reverse_append],
   rw [← zip_map, ← zip_map, zip_append, (_ : _++_=_)],
   {congr; simp}, {simp}
 end
 
-@[simp] theorem card_diagonal (s : multiset α) :
-  card (diagonal s) = 2 ^ card s :=
+@[simp] theorem card_antidiagonal (s : multiset α) :
+  card (antidiagonal s) = 2 ^ card s :=
 by have := card_powerset s;
-   rwa [← diagonal_map_fst, card_map] at this
+   rwa [← antidiagonal_map_fst, card_map] at this
 
 lemma prod_map_add [comm_semiring β] {s : multiset α} {f g : α → β} :
-  prod (s.map (λa, f a + g a)) = sum ((diagonal s).map (λp, (p.1.map f).prod * (p.2.map g).prod)) :=
+  prod (s.map (λa, f a + g a)) =
+  sum ((antidiagonal s).map (λp, (p.1.map f).prod * (p.2.map g).prod)) :=
 begin
   refine s.induction_on _ _,
   { simp },

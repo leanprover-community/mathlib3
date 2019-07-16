@@ -525,7 +525,7 @@ end
 end well_founded
 
 variable (r)
-local infix `≼` : 50 := r
+local infix ` ≼ ` : 50 := r
 
 /-- A family of elements of α is directed (with respect to a relation `≼` on α)
   if there is a member of the family `≼`-above any pair in the family.  -/

@@ -2,7 +2,23 @@
 Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
+
+Using partial equivalences to represent matrices.
+
+This file instroduces the function `pequiv.to_matrix`, which returns a matrix containing ones and
+zeros.
+
+The following important properties of this function are proved
+`to_matrix_trans : (f.trans g).to_matrix = f.to_matrix ⬝ g.to_matrix`
+`to_matrix_symm  : f.symm.to_matrix = f.to_matrixᵀ`
+`to_matrix_refl : (pequiv.refl n).to_matrix = 1`
+`to_matrix_bot : ⊥.to_matrix = 0`
+
+This theory can help to prove properties of minors of matrices. Taking a row minor of a matrix
+corresponds to multiplication on the left by a `pequiv` matrix, and taking a column minor
+corresponds to multiplication on the right.
 -/
+
 import data.matrix.basic data.pequiv
 
 namespace pequiv
@@ -18,6 +34,8 @@ variables {α : Type v}
 local infix ` ⬝ `:70 := matrix.mul
 local postfix `ᵀ` : 1500 := transpose
 
+/-- `to_matrix` returns a matrix containing ones and zeros. `f.to_matrix i j` is `1` if
+  `f i = some j` and `0` otherwise -/
 def to_matrix [has_one α] [has_zero α] (f : m ≃. n) : matrix m n α
 | i j := if j ∈ f i then 1 else 0
 

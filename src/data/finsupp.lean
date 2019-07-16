@@ -1478,16 +1478,16 @@ attribute [simp] to_multiset_zero to_multiset_add
   f.to_multiset.to_finsupp = f :=
 ext $ λ s, by rw [multiset.to_finsupp_apply, count_to_multiset]
 
-def diagonal (f : σ →₀ ℕ) : finset ((σ →₀ ℕ) × (σ →₀ ℕ)) :=
-((multiset.diagonal f.to_multiset).map (prod.map multiset.to_finsupp multiset.to_finsupp)).to_finset
+def antidiagonal (f : σ →₀ ℕ) : finset ((σ →₀ ℕ) × (σ →₀ ℕ)) :=
+((multiset.antidiagonal f.to_multiset).map (prod.map multiset.to_finsupp multiset.to_finsupp)).to_finset
 
-lemma mem_diagonal {f : σ →₀ ℕ} {p : (σ →₀ ℕ) × (σ →₀ ℕ)} :
-  p ∈ diagonal f ↔ p.1 + p.2 = f :=
+lemma mem_antidiagonal {f : σ →₀ ℕ} {p : (σ →₀ ℕ) × (σ →₀ ℕ)} :
+  p ∈ antidiagonal f ↔ p.1 + p.2 = f :=
 begin
   erw [multiset.mem_to_finset, multiset.mem_map],
   split,
   { rintros ⟨⟨a, b⟩, h, rfl⟩,
-    rw multiset.mem_diagonal at h,
+    rw multiset.mem_antidiagonal at h,
     simpa using congr_arg multiset.to_finsupp h },
   { intro h,
     refine ⟨⟨p.1.to_multiset, p.2.to_multiset⟩, _, _⟩,
@@ -1495,9 +1495,9 @@ begin
     { rw [prod.map, to_multiset_to_finsupp, to_multiset_to_finsupp, prod.mk.eta] } }
 end
 
-@[simp] lemma diagonal_zero : diagonal (0 : σ →₀ ℕ) = {(0,0)} := rfl
+@[simp] lemma antidiagonal_zero : antidiagonal (0 : σ →₀ ℕ) = {(0,0)} := rfl
 
-lemma swap_mem_diagonal {n : σ →₀ ℕ} {f} (hf : f ∈ diagonal n) : f.swap ∈ diagonal n :=
-by simpa [mem_diagonal, add_comm] using hf
+lemma swap_mem_antidiagonal {n : σ →₀ ℕ} {f} (hf : f ∈ antidiagonal n) : f.swap ∈ antidiagonal n :=
+by simpa [mem_antidiagonal, add_comm] using hf
 
 end finsupp

@@ -194,7 +194,7 @@ begin
 end
 
 lemma coeff_mul (p q : mv_polynomial σ α) (n : σ →₀ ℕ) :
-  coeff n (p * q) = finset.sum (diagonal n) (λ x, coeff x.1 p * coeff x.2 q) :=
+  coeff n (p * q) = finset.sum (antidiagonal n) (λ x, coeff x.1 p * coeff x.2 q) :=
 begin
   rw mul_def,
   have := @finset.sum_sigma (σ →₀ ℕ) α _ _ p.support (λ _, q.support)
@@ -203,7 +203,7 @@ begin
   { rw [coeff],
     repeat {rw sum_apply, apply finset.sum_congr rfl, intros, dsimp only},
     exact single_apply },
-  { have : (diagonal n).filter (λ x, x.1 ∈ p.support ∧ x.2 ∈ q.support) ⊆ (diagonal n) :=
+  { have : (antidiagonal n).filter (λ x, x.1 ∈ p.support ∧ x.2 ∈ q.support) ⊆ (antidiagonal n) :=
       finset.filter_subset _,
     rw [← finset.sum_sdiff this, finset.sum_eq_zero, zero_add], swap,
     { intros x hx,
@@ -221,11 +221,11 @@ begin
     { apply finset.sum_bij, swap 5,
       { intros x hx, exact (x.1, x.2) },
       { intros x hx, rw [finset.mem_filter, finset.mem_sigma] at hx,
-        simpa [finset.mem_filter, mem_diagonal] using hx.symm },
+        simpa [finset.mem_filter, mem_antidiagonal] using hx.symm },
       { intros x hx, rw finset.mem_filter at hx, rw if_pos hx.2 },
       { rintros ⟨i,j⟩ ⟨k,l⟩ hij hkl, simpa using and.intro },
       { rintros ⟨i,j⟩ hij, refine ⟨⟨i,j⟩, _, _⟩, { apply_instance },
-        { rw [finset.mem_filter, mem_diagonal] at hij,
+        { rw [finset.mem_filter, mem_antidiagonal] at hij,
           simpa [finset.mem_filter, finset.mem_sigma] using hij.symm },
         { refl } } },
     all_goals { apply_instance } }
@@ -234,11 +234,11 @@ end
 @[simp] lemma coeff_mul_X (m) (s : σ) (p : mv_polynomial σ α) :
   coeff (m + single s 1) (p * X s) = coeff m p :=
 begin
-  have : (m, single s 1) ∈ (m + single s 1).diagonal := mem_diagonal.2 rfl,
+  have : (m, single s 1) ∈ (m + single s 1).antidiagonal := mem_antidiagonal.2 rfl,
   rw [coeff_mul, ← finset.insert_erase this, finset.sum_insert (finset.not_mem_erase _ _),
       finset.sum_eq_zero, add_zero, coeff_X, mul_one],
   rintros ⟨i,j⟩ hij,
-  rw [finset.mem_erase, mem_diagonal] at hij,
+  rw [finset.mem_erase, mem_antidiagonal] at hij,
   by_cases H : single s 1 = j,
   { subst j, simpa using hij },
   { rw [coeff_X', if_neg H, mul_zero] },

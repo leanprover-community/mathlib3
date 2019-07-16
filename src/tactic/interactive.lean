@@ -687,13 +687,13 @@ Examples:
 ```lean
 example (i j k : ℕ) (h₀ : i ≤ j) (h₁ : j ≤ k) : i ≤ k :=
 begin
-  extract_example
+  extract_goal,
      -- prints:
      -- example {i j k : ℕ} (h₀ : i ≤ j) (h₁ : j ≤ k) : i ≤ k :=
      -- begin
 
      -- end
-  extract_example my_lemma
+  extract_goal my_lemma
      -- lemma my_lemma {i j k : ℕ} (h₀ : i ≤ j) (h₁ : j ≤ k) : i ≤ k :=
      -- begin
 
@@ -702,7 +702,7 @@ end
 
 example {i j k x y z w p q r m n : ℕ} (h₀ : i ≤ j) (h₁ : j ≤ k) (h₁ : k ≤ p) (h₁ : p ≤ q) : i ≤ k :=
 begin
-  extract_example my_lemma
+  extract_goal my_lemma,
     -- prints:
     -- lemma my_lemma {i j k x y z w p q r m n : ℕ} (h₀ : i ≤ j) (h₁ : j ≤ k)
     --   (h₁ : k ≤ p) (h₁ : p ≤ q) : i ≤ k :=
@@ -710,7 +710,7 @@ begin
 
     -- end
 
-  extract_example my_lemma with i j k
+  extract_goal my_lemma with i j k
     -- prints:
     -- lemma my_lemma {i j k : ℕ} : i ≤ k :=
     -- begin
@@ -720,7 +720,7 @@ end
 ```
 
 -/
-meta def extract_example (n : parse ident?) (vs : parse with_ident_list) : tactic unit :=
+meta def extract_goal (n : parse ident?) (vs : parse with_ident_list) : tactic unit :=
 do (cxt,_) ← solve_aux `(true) $
        when (¬ vs.empty) (clear_except vs) >>
        local_context,

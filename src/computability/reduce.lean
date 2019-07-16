@@ -172,3 +172,54 @@ begin
        simpa [heq] using nat.bodd_add_div2 a } } }
 end
 
+theorem many_one_reducible_of_disjoin {p q r s: ℕ → Prop} (h₁ : p ≤₀ r) (h₂ : q ≤₀ s) : p ⊕ q ≤₀ r ⊕ s := 
+disjoin_many_one_reducible 
+(transitive_many_one_reducible h₁ (many_one_reducible_of_disjoin_left (reflexive_many_one_reducible _))) 
+(transitive_many_one_reducible h₂ (many_one_reducible_of_disjoin_right (reflexive_many_one_reducible _)))
+
+def many_one_degree_reduce {α} [primcodable α] : @many_one_degree α _ → @many_one_degree α _ → Prop := 
+quotient.lift₂ (λ a b : set α, a ≤₀ b) 
+(λ a b c d ⟨hl₁, hr₁⟩ ⟨hl₂, hr₂⟩, propext 
+   ⟨λ h, transitive_many_one_reducible hr₁ (transitive_many_one_reducible h hl₂), 
+    λ h, transitive_many_one_reducible hl₁ (transitive_many_one_reducible h hr₂)⟩) 
+
+instance many_one_degree_le {α} [primcodable α] : has_le (@many_one_degree α _) := ⟨many_one_degree_reduce⟩
+
+theorem refl_reduce {α} [primcodable α] (d : @many_one_degree α _) : 
+many_one_degree_reduce d d :=
+quotient.induction_on d (λ a b c, reflexive_many_one_reducible _) (set α) (set α)
+
+theorem antisymm_reduce {α} [primcodable α] {d₁ d₂ : @many_one_degree α _} : 
+d₁ ≤ d₂ → d₂ ≤ d₁ → d₁ = d₂ :=
+quotient.induction_on₂ d₁ d₂ 
+(λ a b c d h₁ h₂, begin apply quotient.sound, exact ⟨h₁, h₂⟩ end) (set α) (set α)
+
+theorem transitive_reduce {α} [primcodable α] {d₁ d₂ d₃ : @many_one_degree α _} : 
+d₁ ≤ d₂ → d₂ ≤ d₃ → d₁ ≤ d₃ :=
+quotient.induction_on₃ d₁ d₂ d₃ (λ a b c h₁ h₂, transitive_many_one_reducible h₁ h₂)
+
+def many_one_degree_disjoin : @many_one_degree ℕ _ → @many_one_degree ℕ _ → @many_one_degree ℕ _ := 
+quotient.lift₂ (λ a b : set ℕ, ⟦a ⊕ b⟧) 
+(λ _ _ _ _ ⟨hl₁, hr₁⟩ ⟨hl₂, hr₂⟩, 
+ quotient.sound ⟨many_one_reducible_of_disjoin hl₁ hl₂, many_one_reducible_of_disjoin hr₁ hr₂⟩)
+
+instance degree_add : has_add (@many_one_degree ℕ _) := ⟨many_one_degree_disjoin⟩
+
+theorem degree_le_sup_left {p q : @many_one_degree ℕ _} :  p ≤ p + q :=
+quotient.induction_on₂ p q (λ a b, many_one_reducible_of_disjoin_left (reflexive_many_one_reducible _))
+
+theorem degree_le_sup_right {p q : @many_one_degree ℕ _} :  q ≤ p + q :=
+quotient.induction_on₂ p q (λ a b, many_one_reducible_of_disjoin_right (reflexive_many_one_reducible _))
+
+theorem degree_sup_le {p q r : @many_one_degree ℕ _} : p ≤ r → q ≤ r → p + q ≤ r :=
+quotient.induction_on₃ p q r (λ a b c h₁ h₂, disjoin_many_one_reducible h₁ h₂)
+
+instance join_semilattice_many_one_degree : lattice.semilattice_sup (@many_one_degree ℕ _) := 
+{ le := has_le.le,
+  sup := has_add.add,
+  le_refl := refl_reduce,
+  le_antisymm := λ a b, antisymm_reduce,
+  le_trans := λ a b c, transitive_reduce,
+  le_sup_left := λ a b, degree_le_sup_left,
+  le_sup_right := λ a b, degree_le_sup_right,
+  sup_le := λ a b c, degree_sup_le }

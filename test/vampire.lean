@@ -13,67 +13,69 @@ section
 variables {A B C D : Prop}
 
 example : (A → B ∨ C) → (B → D) → (C → D) → A → D :=
-by vampire "n100hn1hn100hn10hn0hn11hrn1trrrr"
+by vampire
+"n100ean1ean100ean10ean1n0ean11eartrrrr"
+--"n100hn1hn100hn10hn0hn11hrn1trrrr"
 
 example : ¬ A → A → C :=
-by vampire "n0hn1hr"
+by vampire "n0ean1ear" -- "n0hn1hr"
 
 example : (A ∧ A ∧ B) → (A ∧ C ∧ B) → A :=
-by vampire "n110hn0hr"
+by vampire "n110ean0ear" -- "n110hn0hr"
 
 example : A → ¬ B → ¬ (A → B) :=
-by vampire "n1hn10hn1trn0hr"
+by vampire -- "n1hn10hn1trn0hr"
 
 example : A ∨ B → B ∨ A :=
-by vampire "n10hn1hn0hn1trr"
+by vampire  --"n10hn1hn0hn1trr"
 
 example : A ∧ B → B ∧ A :=
-by vampire "n10hn1tn0hrn1hr"
+by vampire -- "n10hn1tn0hrn1hr"
 
 example : A → (A → B) → (B → C) → C :=
-by vampire "n11hn10hn1hn0hrrr"
+by vampire -- "n11hn10hn1hn0hrrr"
 
 example : (A ∧ B) → (C ∧ B) → C :=
-by vampire "n100hn10hr"
+by vampire -- "n100hn10hr"
 
 example : A → B → C → D → (A ∧ B) ∧ (C ∧ D) :=
-by vampire "n100hn11tn11hrn10tn10hrn1tn1hrn0hr"
+by vampire -- "n100hn11tn11hrn10tn10hrn1tn1hrn0hr"
 
 example : (A ∧ B) → (B ∧ ¬ C) → A ∨ C :=
-by vampire "n100hn0hr"
+by vampire -- "n100hn0hr"
 
 example : (A → B) ∧ (B → C) → A → C :=
-by vampire "n11hn1hn0hn10hrrr"
+by vampire -- "n11hn1hn0hn10hrrr"
 
 example : (A → B) ∨ (B → A) :=
-by vampire "n1hn10hr"
+by vampire -- "n1hn10hr"
 
 example : ((A → B) → A) → A :=
-by vampire "n10hn0hn1tcr"
+by vampire -- "n10hn0hn1tcr"
 
 example : A → ¬ B → ¬ (A → B) :=
-by vampire "n1hn10hn1trn0hr"
+by vampire -- "n1hn10hn1trn0hr"
 
 example : ¬ (A ↔ ¬ A) :=
-by vampire "n0hn1tcn1hn1tcr"
+by vampire -- "n0hn1tcn1hn1tcr"
 
 example : (A ↔ B) → (A ∧ B → C) → (¬ A ∧ ¬ B → C) → C :=
-by vampire "n100hn10hn1hrn10tcn0hn11hrn1tcrn1tcr"
+by vampire -- "n100hn10hn1hrn10tcn0hn11hrn1tcrn1tcr"
 
 example : (A ↔ B) → ((A ∧ ¬ B) ∨ (¬ A ∧ B)) → C :=
-by vampire "n100hn0hn11hrn1tcrn1hn1tn0hn11hrn1tcrr"
+by vampire -- "n100hn0hn11hrn1tcrn1hn1tn0hn11hrn1tcrr"
 
 example : (A → B) → A → B :=
-by vampire "n10hn0hn1hrr"
+by vampire -- "n10hn0hn1hrr"
 
 example : (A → B) → (B → C) → A → C :=
-by vampire "n11hn1hn0hn10hrrr"
+by vampire -- "n11hn1hn0hn10hrrr"
 
 example : (A → B ∨ C) → (B → D) → (C → D) → A → D :=
-by vampire "n100hn1hn100hn10hn0hn11hrn1trrrr"
+by vampire -- "n100hn1hn100hn10hn0hn11hrn1trrrr"
 
 example : A ∨ B → B ∨ A :=
-by vampire "n10hn1hn0hn1trr"
+by vampire -- "n10hn1hn0hn1trr"
 
 variables (α : Type) [inhabited α]
 variables (a b c : α) (p q : α → Prop) (r : α → α → Prop)
@@ -81,89 +83,95 @@ variables (P Q R : Prop)
 variable  (g : bool → nat)
 
 example : (∀ x, p x → q x) → (∀ x, p x) → q a :=
-by vampire
-"
-n10hen0n10ymsn0hen10n0mn1n0msen10n0msn1hen10n1mn0n1msen10n0m
-n1n0msren1n0mn0n0msen0n10ymsr
-"
+by vampire "n10ean0en1n10sman1en0n10smarr"
+-- "
+-- n10hen0n10ymsn0hen10n0mn1n0msen10n0msn1hen10n1mn0n1msen10n0m
+-- n1n0msren1n0mn0n0msen0n10ymsr
+-- "
 
 example : (p a) → ∃ x, p x :=
-by vampire "n1hen1n0mn0n0msen0n1ymsn0hen0n1ymsr"
+by vampire -- "n1hen1n0mn0n0msen0n1ymsn0hen0n1ymsr"
 
 example : (p a) → (p b) → (q b) → ∃ x, p x ∧ q x :=
-by vampire "n11hen1n0mn0n0msn1ten0n10ymsn10hen0n10ymsrn1hr"
+by vampire -- "n11hen1n0mn0n0msn1ten0n10ymsn10hen0n10ymsrn1hr"
 
 example : (∃ x, p x ∧ r x x) → (∀ x, r x x → q x) → ∃ x, p x ∧ q x :=
-by vampire
-"
-n11hen10n1mn0n1msn1ten1n0ymsn10hen10n0mn1n0msen0n0ymsn1hen0n
-0ymsren1n0ymsrn0hr
-"
+by vampire "n1n11en0n0smatn10en1n0sman1earrn0ear"
+-- "
+-- n11hen10n1mn0n1msn1ten1n0ymsn10hen10n0mn1n0msen0n0ymsn1hen0n
+-- 0ymsren1n0ymsrn0hr
+-- "
 
 example : (∃ x, q x ∧ p x) → ∃ x, p x ∧ q x :=
-by vampire "n10hen1n0mn0n0msen0n0ymsn1hen0n0ymsrn0hr"
+by vampire -- "n10hen1n0mn0n0msen0n0ymsn1hen0n0ymsrn0hr"
 
 example : (∀ x, q x → p x) → (q a) → ∃ x, p x :=
-by vampire
-"
-n10hen10n1mn0n1msen1n10ymsn0hen10n0mn1n0msen0n10ymsn1hen0n10
-ymsren1n10ymsr
-"
+by vampire "n10en0n10sman0en1n10sman1earr"
+--  "
+--  n10hen10n1mn0n1msen1n10ymsn0hen10n0mn1n0msen0n10ymsn1hen0n10
+--  ymsren1n10ymsr
+--  "
 
 example : (∀ x, p x → q x → false) → (p a) → (p b) → (q b) → false :=
-by vampire "n0hen1n0mn0n0msn1ten0n11ymsn11hen0n11ymsrn10hr"
+by vampire  -- "n0hen1n0mn0n0msn1ten0n11ymsn11hen0n11ymsrn10hr"
 
 example : (∀ x, p x) → (∀ x, p x → q x) → ∀ x, q x :=
 by vampire
-"
-n10hen1n0ymsn1hen10n1mn0n1msen10n1msn0hen10n0mn1n0msen10n1mn
-0n1msren11n1mn1n1msen1n0ymsr
-"
+-- "
+-- n10hen1n0ymsn1hen10n1mn0n1msen10n1msn0hen10n0mn1n0msen10n1mn
+-- 0n1msren11n1mn1n1msen1n0ymsr
+-- "
 
 example : (∃ x, p x) → (∀ x, p x → q x) → ∃ x, q x :=
 by vampire
-"
-n10hen10n1mn0n1msen1n0ymsn1hen10n0mn1n0msen0n0ymsn0hen0n0yms
-ren1n0ymsr
-"
+-- "
+-- n10hen10n1mn0n1msen1n0ymsn1hen10n0mn1n0msen0n0ymsn0hen0n0yms
+-- ren1n0ymsr
+-- "
 
 example : (¬ ∀ x, ¬ p x) → (∀ x, p x → q x) → (∀ x, ¬ q x) → false :=
 by vampire
-"
-n10hen10n1mn0n1msen1n0ymsn1hen10n0mn1n0msen0n0ymsn0hen0n0yms
-ren1n0ymsr
-"
+-- "
+-- n10hen10n1mn0n1msen1n0ymsn1hen10n0mn1n0msen0n0ymsn0hen0n0yms
+-- ren1n0ymsr
+-- "
 
 example : (p a) → (p a → false) → false :=
-by vampire "n1hn0hr"
+by vampire -- "n1hn0hr"
 
 example : (¬ (P → Q ∨ R)) → (¬ (Q ∨ ¬ R)) → false :=
-by vampire "n10hn100hr"
+by vampire -- "n10hn100hr"
 
 example : (P → Q ∨ R) → (¬ Q) → P → R :=
-by vampire "n11hn1hn0hn10hrrr"
+by vampire -- "n11hn1hn0hn10hrrr"
 
 example : (∃ x, p x → P) ↔ (∀ x, p x) → P :=
 by vampire
-"
-n111hn1tcn10hn1tn11tcn10ten0n0ymsn0hen1n0mn0n0msn10ten0n0yms
-rn1tn10tcn1tn10tcn1ten1n1ymsn100hen11n1mn1n1msn1tn101hen11n1
-mn1n1msn1ten10n0ymsn11hen10n1mn11n0mn0n1mn1n0msen10n0ymn1n11
-mn0n0ymsren101n1mn11n1mn1n1msn10tcn1ten1n11msren101n1mn11n1m
-n1n1msn1tcen1n1ymsrr
-"
+
+--   n1n111eatcn10n1n11n10n11n1n10eattctn10n0en0n0smatrtcttcn1n1n
+--   100en1n1smatn1n10n1n101en1n1smatn11en0n0smn1n0smartctrtcrr
+
+#exit
+-- "
+-- n111hn1tcn10hn1tn11tcn10ten0n0ymsn0hen1n0mn0n0msn10ten0n0yms
+-- rn1tn10tcn1tn10tcn1ten1n1ymsn100hen11n1mn1n1msn1tn101hen11n1
+-- mn1n1msn1ten10n0ymsn11hen10n1mn11n0mn0n1mn1n0msen10n0ymn1n11
+-- mn0n0ymsren101n1mn11n1mn1n1msn10tcn1ten1n11msren101n1mn11n1m
+-- n1n1msn1tcen1n1ymsrr
+-- "
 
 example : (∃ x, P → p x) ↔ (P → ∃ x, p x) :=
 by vampire
-"
-n111hen10n1mn11n0mn0n1mn1n0msen0n0ymsn1000hen11n1mn1n1msn1tn
-11hn1tcren11n1mn1n1msn1ten0n0ymn1n11msren101n1mn11n1mn1n1msn
-1tcen1n1ymsn1hen1n0mn0n0msn10ten0n0ymsn10hn10tcn10ten0n0ymsr
-n1tn11tcn1tn10tcn1ten1n1ymsrn11hn1tcr
-"
+--  "
+--  n111hen10n1mn11n0mn0n1mn1n0msen0n0ymsn1000hen11n1mn1n1msn1tn
+--  11hn1tcren11n1mn1n1msn1ten0n0ymn1n11msren101n1mn11n1mn1n1msn
+--  1tcen1n1ymsn1hen1n0mn0n0msn10ten0n0ymsn10hn10tcn10ten0n0ymsr
+--  n1tn11tcn1tn10tcn1ten1n1ymsrn11hn1tcr
+--  "
 
 end
 
+#exit
 section
 
   /- Some harder examples, from John Harrison's

@@ -24,7 +24,7 @@ vampire(Loc, Cdss) :-
     close(Out)
   ).
 
-parse_rul("input", inp).
+parse_rul("input", asm).
 
 parse_rul(Str, map(Idx)) :-
   ( string_concat("factoring ", NumStr, Str) ;
@@ -32,7 +32,7 @@ parse_rul(Str, map(Idx)) :-
   number_string(Num, NumStr),
   Idx is Num - 1.
 
-parse_rul(Str, res(Idx1, Idx2)) :-
+parse_rul(Str, rsl(Idx1, Idx2)) :-
   ( string_concat("resolution ", Tmp, Str) ;
     string_concat("subsumption resolution ", Tmp, Str) ),
   split_string(Tmp, ",", "", [NumStr1, NumStr2]),

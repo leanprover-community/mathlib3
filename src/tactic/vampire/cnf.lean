@@ -129,7 +129,7 @@ def repr_core : nat → mat → string
 | k (c :: m) :=
   k.repr ++ ". " ++ c.repr ++ "\n" ++ repr_core (k + 1) m
 
-def repr : mat → string := repr_core 1
+def repr : mat → string := repr_core 0
 
 instance has_repr : has_repr mat := ⟨repr⟩
 

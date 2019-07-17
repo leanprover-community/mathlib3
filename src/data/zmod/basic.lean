@@ -184,7 +184,7 @@ instance (n : ℕ+) : fintype (zmod n) := fin.fintype _
 
 instance decidable_eq (n : ℕ+) : decidable_eq (zmod n) := fin.decidable_eq _
 
-instance (n : ℕ+) : has_repr (zmod n) := fin.has_repr _
+instance : has_repr (zmod n) := fin.has_repr _
 
 lemma card_zmod (n : ℕ+) : fintype.card (zmod n) = n := fintype.card_fin n
 

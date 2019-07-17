@@ -251,18 +251,6 @@ lemma snd.is_group_hom [group α] [group β] : is_group_hom (prod.snd : α × β
 attribute [instance] fst.is_monoid_hom fst.is_add_monoid_hom snd.is_monoid_hom snd.is_add_monoid_hom
 fst.is_group_hom fst.is_add_group_hom snd.is_group_hom snd.is_add_group_hom
 
-@[to_additive is_add_group_hom.prod]
-lemma is_group_hom.prod [group α] [group β] [group γ] [group δ]
-  (e : α → β) (f : γ → δ) [is_group_hom e] [is_group_hom f] :
-  is_group_hom (λp:α×γ, (e p.1, f p.2)) :=
-⟨ begin
-    rintros ⟨a₁, c₁⟩ ⟨a₂, c₂⟩,
-    simp only [prod.mk.inj_iff, prod.mk_mul_mk],
-    exact ⟨is_group_hom.map_mul _ _ _, is_group_hom.map_mul _ _ _⟩
-  end ⟩
-
-attribute [instance] is_group_hom.prod is_add_group_hom.prod
-
 @[to_additive prod.fst_sum]
 lemma fst_prod [comm_monoid α] [comm_monoid β] {t : finset γ} {f : γ → α × β} :
   (t.prod f).1 = t.prod (λc, (f c).1) :=

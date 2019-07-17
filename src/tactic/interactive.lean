@@ -4,7 +4,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Sebastien Gouezel, Scott Morrison
 -/
-import tactic.core data.list.defs
+import tactic.core data.list.defs data.string.defs
 
 open lean
 open lean.parser
@@ -659,6 +659,10 @@ private meta def format_binders : list name × binder_info × expr → tactic fo
 | (ns, binder_info.default, t) := pformat!"({format_names ns} : {t})"
 | (ns, binder_info.implicit, t) := pformat!"{{{format_names ns} : {t}}"
 | (ns, binder_info.strict_implicit, t) := pformat!"⦃{format_names ns} : {t}⦄"
+| ([n], binder_info.inst_implicit, t) :=
+  if "_".is_prefix_of n.to_string
+    then pformat!"[{t}]"
+    else pformat!"[{format_names [n]} : {t}]"
 | (ns, binder_info.inst_implicit, t) := pformat!"[{format_names ns} : {t}]"
 | (ns, binder_info.aux_decl, t) := pformat!"({format_names ns} : {t})"
 

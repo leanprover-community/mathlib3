@@ -1,5 +1,5 @@
 import ring_theory.algebra data.matrix
-import linear_algebra.basis linear_algebra.dimension linear_algebra.determinant
+import linear_algebra.basis linear_algebra.dimension linear_algebra.determinant linear_algebra.matrix
 
 universes u v
 
@@ -55,6 +55,14 @@ noncomputable def mul_matrix (a : K) :
 noncomputable def field_norm (K : field_extension α) [is_finite_dimensional K] : K → α :=
 λ a, det (mul_matrix a)
 
+lemma repr_mul {ι α β : Type*} {v : ι → β} [decidable_eq ι]
+  [decidable_eq α] [decidable_eq β] [ring α] [add_comm_group β] [module α β]
+  (hv : is_basis α v) (a : α) (b : β) :
+  (hv.repr).to_fun (a • b) = finsupp.map_range (λ x, a*x) (mul_zero a) (hv.repr b) :=
+begin
+sorry
+end
+
 lemma norm_base {K : field_extension α} [is_finite_dimensional K] (a : α) :
   field_norm K (K.i a) = a ^ (degree K) :=
 have h : mul_matrix (K.i a) = diagonal (λ _, a),
@@ -62,10 +70,18 @@ have h : mul_matrix (K.i a) = diagonal (λ _, a),
     funext,
     unfold mul_matrix,
     unfold diagonal,
-    --hv.repr (v i) = finsupp.single i 1
     apply congr_fun,
-    change ⇑((is_basis.repr _).to_fun ((λ (i : is_finite_dimensional.basis K), i.val) i)) = _,
+    change ((is_basis.repr _).to_fun (a • i.val)).to_fun = _,
+    rw [repr_mul],
+    funext,
     rw [is_basis.repr_eq_single],
+    change (finsupp.map_range (λ (x : α), a * x) _ (finsupp.single i 1)) x = _,
+    rw [finsupp.map_range_apply],
+    { rw [finsupp.single_apply],
+      split_ifs,
+      { exact mul_one a },
+      { exact mul_zero a} },
+    { exact mul_zero a }
   end,
 begin
 change det (mul_matrix (K.i a)) = a ^ (degree K),

@@ -675,6 +675,8 @@ meta def mk_paragraph_aux (right_margin : ℕ) : format → format → ℕ → l
   else
     mk_paragraph_aux (par ++ format.line ++ ln) ("  " ++ x ++ " ") len' xs
 
+/-- `mk_paragraph right_margin ls` packs `ls` into a paragraph where the lines have
+length at most `right_margin` -/
 meta def mk_paragraph (right_margin : ℕ) : list format → format :=
 mk_paragraph_aux right_margin "" "" 0
 

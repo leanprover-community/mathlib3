@@ -72,6 +72,43 @@ begin
   rw [mul_assoc]
 end
 
+def to_matrixₗ [decidable_eq n] : ((n → α) →ₗ[α] (m → α)) →ₗ[α] matrix m n α :=
+begin
+  refine linear_map.mk (λ f i j, f (λ n, ite (j = n) 1 0) i) _ _,
+  { assume f g, simp only [add_apply], refl },
+  { assume f g, simp only [smul_apply], refl }
+end
+
+def to_matrix [decidable_eq n]: ((n → α) →ₗ[α] (m → α)) → matrix m n α := to_matrixₗ.to_fun
+
+variables (f : (n → α) →ₗ[α] (m → α)) [decidable_eq n] (y : n → α)
+
+variables {R : Type*} [comm_ring R]
+variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*}
+variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q]
+variables [module R M] [module R N] [module R P] [module R Q]
+include R
+@[simp] theorem mk₂_apply2
+  (f : M → N → P) {H1 H2 H3 H4} (m : M) (n : N) :
+  ((mk₂ R f H1 H2 H3 H4 : M →ₗ[R] N →ₗ P).to_fun m).to_fun n = f m n := rfl
+
+lemma to_matrix_to_lin [decidable_eq n] {f : (n → α) →ₗ[α] (m → α)} : to_lin (to_matrix f) = f :=
+begin
+unfold to_lin,
+unfold eval,
+ext y : 1,
+change ((mk₂ α mul_vec _ _ _ _).to_fun (to_matrix f)).to_fun y = f.to_fun y,
+rw [mk₂_apply2],
+{ unfold to_matrix,
+  unfold to_matrixₗ,
+  simp,
+  sorry
+ },
+ repeat {sorry}
+end
+
+lemma to_lin_to_matrix [decidable_eq n] (M : matrix m n α) : to_matrix (to_lin M) = M := sorry
+
 section
 open linear_map
 

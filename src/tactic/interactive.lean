@@ -733,7 +733,7 @@ do (cxt,_) ← solve_aux `(true) $
    cxt' ← cxt.init.mmap format_binders,
    cxt'' ← cxt.last'.traverse $ λ x, pformat!"{format_binders x} :",
    stmt ← pformat!"{tgt} :=",
-   let fmt := mk_paragraph 80 $ title :: cxt' ++ [cxt''.get_or_else " :", stmt],
+   let fmt := mk_paragraph 80 $ title :: cxt' ++ [cxt''.get_or_else ":", stmt],
    trace fmt,
    trace!"begin\n  \nend"
 

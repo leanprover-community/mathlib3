@@ -519,6 +519,7 @@ variables (σ α)
 
 def mul (φ ψ : mv_power_series σ α) : mv_power_series σ α :=
 λ n, (finsupp.diagonal n).sum (λ p, coeff p.1 φ * coeff p.2 ψ)
+
 instance : has_mul (mv_power_series σ α) := ⟨mul σ α⟩
 
 variables {σ α}

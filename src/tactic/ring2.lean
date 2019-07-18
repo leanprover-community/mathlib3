@@ -490,7 +490,7 @@ do `[repeat {rw ← nat.pow_eq_pow}],
   let er₁ : expr := reflect r₁,
   let er₂ : expr := reflect r₂,
   cs ← mk_app ``comm_semiring [α] >>= mk_instance,
-  e ← to_expr ```(correctness %%se %%er₁ %%er₂ rfl)
+  e ← to_expr ``(correctness %%se %%er₁ %%er₂ rfl)
     <|> fail ("ring2 tactic failed, cannot show equality:\n"
       ++ to_string (horner_expr.of_csexpr r₁) ++
       "\n  =?=\n" ++ to_string (horner_expr.of_csexpr r₂)),

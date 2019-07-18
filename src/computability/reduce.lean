@@ -49,7 +49,7 @@ theorem computable_of_many_one_reducible
     rcases h₁ with ⟨f, c, hf⟩,
     rcases computable_iff.1 h₂ with ⟨g, hg, rfl⟩, split, 
     { apply computable.of_eq (cond (comp hg c) (const tt) (const ff)),
-      intro, dsimp, cases heq : g (f n), repeat { simp [hf, heq] },
+      intro, cases heq : g (f n), repeat { simp [hf, heq] },
       { intro, cases heq : g (f a), 
         { left, simp [hf, heq] },
         { right, simp [hf, heq] } } }
@@ -88,7 +88,7 @@ local infix ` ⊕ `:1001 := disjoin
 theorem mem_disjoin_left {p q : set ℕ} {n : ℕ} (h₁ : ¬nat.bodd n) (h₂ : (p ⊕ q) n) : p (nat.div2 n) :=
 begin
   cases h₂,
-  { rcases h₂ with ⟨w, hl, hr⟩, rw ←hr,  dsimp, rw ←nat.bit0_val, rw nat.div2_bit0, exact hl },
+  { rcases h₂ with ⟨w, hl, hr⟩, rw ←hr, dsimp, rw ←nat.bit0_val, simpa [nat.div2_bit0] using hl },
   { rcases h₂ with ⟨w, hl, hr⟩, rw ←hr at h₁, simp at h₁, contradiction }
 end
 
@@ -96,13 +96,13 @@ theorem mem_disjoin_right {p q : set ℕ} {n : ℕ} (h₁ : nat.bodd n) (h₂ : 
 begin
   cases h₂,
   { rcases h₂ with ⟨w, hl, hr⟩, rw ←hr at h₁, simp at h₁, contradiction },
-  { rcases h₂ with ⟨w, hl, hr⟩, rw ←hr, dsimp, rw ←nat.bit1_val, rw nat.div2_bit1, exact hl }
+  { rcases h₂ with ⟨w, hl, hr⟩, rw ←hr, dsimp, rw ←nat.bit1_val, simpa [nat.div2_bit1] using hl }
 end
 
 namespace nat.primrec
 
 lemma add1 : primrec (nat.unpaired (λ x y, nat.succ y)) :=
-by { rw primrec₂.unpaired, exact primrec.comp₂ primrec.succ primrec₂.right }
+by simp [primrec₂.unpaired, primrec.comp₂ primrec.succ primrec₂.right]
 
 lemma double : primrec (λ n, 2 * n) :=
 begin
@@ -129,9 +129,9 @@ open nat.primrec
 theorem many_one_reducible_of_disjoin_left {p q r : ℕ → Prop} : 
   p ≤₀ q → p ≤₀ q ⊕ r := λ ⟨f, hc, hf⟩, 
 ⟨λ x, 2 * f x, by { exact computable.comp (primrec.to_comp double) hc }, 
- λ a, ⟨λ h, by { dsimp [disjoin], left, use f a, exact ⟨(hf a).1 h, by simp⟩ },
+ λ a, ⟨λ h, by { left, use f a, exact ⟨(hf a).1 h, by simp⟩ },
        λ h, begin 
-              dsimp [disjoin] at h, cases h, 
+              cases h, 
               { rcases h with ⟨b, hbl, hbr⟩, 
                 rw [hf, ← nat.eq_of_mul_eq_mul_left _ hbr], 
                 exact hbl, exact dec_trivial }, 
@@ -141,9 +141,9 @@ theorem many_one_reducible_of_disjoin_left {p q r : ℕ → Prop} :
 theorem many_one_reducible_of_disjoin_right {p q r : ℕ → Prop} : 
   p ≤₀ r → p ≤₀ q ⊕ r := λ ⟨f, hc, hf⟩,  
 ⟨λ a, (2 * f a + 1), by { exact computable.comp (primrec.to_comp double_succ) hc },
- λ a, ⟨λ h, by { dsimp [disjoin], right, use f a, exact ⟨(hf a).1 h, by simp⟩ },
+ λ a, ⟨λ h, by { right, use f a, exact ⟨(hf a).1 h, by simp⟩ },
        λ h, begin 
-              dsimp [disjoin] at h, cases h, 
+              cases h, 
               { rcases h with ⟨b, hbl, hbr⟩, exfalso, apply nat.two_mul_ne_two_mul_add_one hbr }, 
               { rcases h with ⟨b, hbl, hbr⟩,
                 simp only [add_left_inj, add_comm] at hbr,

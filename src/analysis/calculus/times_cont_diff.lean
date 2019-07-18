@@ -3,7 +3,7 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 
-Continuously differentiable functions.
+# Multiply differentiable functions.
 
 A function is `C^1` on a domain if it is differentiable there, and its derivative is continuous.
 By induction, it is `C^n` if it is `C^{n-1}` and its (n-1)-th derivative is `C^1` there or,
@@ -18,6 +18,42 @@ and `times_cont_diff_on k n f s` saying that the function is `C^n`, respectively
 or on the set `s`.
 
 We prove basic properties of these notions.
+
+## Implementation notes
+
+The n-th derivative of a function belongs to the space E →L[k] (E →L[k] (E ... F)...))),
+where there are n iterations of `E →L[k]`. We define this space inductively, call it
+`iterated_continuous_linear_map k n E F`, and denote it by `E [×n]→L[k] F`. We can define
+it inductively either from the left (i.e., saying that the
+(n+1)-th space S_{n+1} is E →L[k] S_n) or from the right (i.e., saying that
+the (n+1)-th space associated to F, denoted by S_{n+1} (F), is equal to S_n (E →L[k] F)).
+For proofs, it turns out to be more convenient to use the latter approach (from the right),
+as it means to prove things at the (n+1)-th step we only need to understand well enough the
+derivative in E →L[k] F (contrary to the approach from the left, where one would need to know
+enough on the n-th derivative to deduce things on the (n+1)-th derivative).
+In other words, one could define the (n+1)-th derivative either as the derivative of the n-th
+derivative, or as the n-th derivative of the derivative. We use the latter definition.
+
+A difficulty is related to universes: the first and second spaces in the sequence, for n=0
+and 1, are F and E →L[k] F. If E has universe u and F has universe v, then the first one lives in
+v and the second one in max v u. Since they should live in the same universe (as all the other
+spaces in the construction), it means that at the 0-th step we should not use F, but ulift it to
+universe max v u. But we should also ulift its vector space structure and its normed space
+structure. This can certainly be done, but I decided it was not worth it for now. Therefore, the
+definition is only made when E and F live in the same universe.
+
+Regarding the definition of `C^n` functions, there are two equivalent definitions:
+* require by induction that the function is differentiable, and that its derivative is C^{n-1}
+* or require that, for all m ≤ n, the m-th derivative is continuous, and for all m < n the m-th
+derivative is differentiable.
+The first definition is more efficient for many proofs by induction. The second definition is more
+satisfactory as it gives concrete information about the n-th derivative (contrary to the first point
+of view), and moreover it also makes sense for n = ∞.
+
+Therefore, we give (and use) both definitions, named respectively `times_cont_diff_rec` and
+`times_cont_diff` (as well as relativized versions on a set). We show that they are equivalent.
+The first one is mainly auxiliary: in applications, one should always use `times_cont_diff`
+(but the proofs below use heavily the equivalence to show that `times_cont_diff` is well behaved).
 -/
 
 import analysis.calculus.deriv
@@ -26,8 +62,6 @@ noncomputable theory
 local attribute [instance, priority 0] classical.decidable_inhabited classical.prop_decidable
 
 universes u v w
-
-section deriv
 
 open set
 
@@ -42,71 +76,71 @@ variables {k : Type*} [nondiscrete_normed_field k]
 
 include k
 
-/-The n-th derivative of a function belongs to the space E →L[k] (E →L[k] (E ... F)...))),
-where there are n iterations of `E →L[k]`. We define this space inductively, call it
-`iterated_continuous_linear_map k n E F`, and denote it by `E [×n]→L[k] F`. We can define
-it inductively either from the left (i.e., saying that the
-(n+1)-th space S_{n+1} is E →L[k] S_n) or from the right (i.e., saying that
-the (n+1)-th space associated to F, denoted by S_{n+1} (F), is equal to S_n (E →L[k] F)).
-For proofs, it turns out to be more convenient to use the latter approach (from the right),
-as it means to prove things at the (n+1)-th step we only need to understand well enough the
-derivative in E →L[k] F (contrary to the approach from the left, where would would need to know
-enough on the n-th derivative to deduce things on the (n+1)-th derivative).
-In other words, one could define the (n+1)-th derivative either as the derivative of the n-th
-derivative, or as the n-th derivative of the derivative. We use the latter definition.
-
-A difficulty is related to universes: the first and second spaces in the sequence, for n=0
-and 1, are F and E →L[k] F. If E has universe u and F has universe v, then the first one lives in
-v and the second one in max v u. Since they should live in the same universe (as all the other
-spaces in the construction), it means that at the 0-th step we should not use F, but ulift it to
-universe max v u. But we should also ulift its vector space structure and its normed space
-structure. This can certainly be done, but I decided it was not worth it for now. Therefore, the
-definition is only made when E and F live in the same universe.
+/--
+The space `iterated_continuous_linear_map k n E F` is the space E →L[k] (E →L[k] (E ... F)...))),
+defined inductively over `n`. This is the space to which the `n`-th derivative of a function
+naturally belongs. It is only defined when `E` and `F` live in the same universe.
 -/
-def iterated_continuous_linear_map (k : Type w) [nondiscrete_normed_field k] (n : ℕ)
-  (E : Type u) [normed_group E] [normed_space k E] :
-  ∀(F : Type u) [hF1 : normed_group F] [hF : @normed_space k F _ hF1], Type u :=
-nat.rec_on n (λF hF1 hF, F) (λn aux_n F hF1 hF, by { resetI, exact aux_n (E →L[k] F) })
+def iterated_continuous_linear_map (k : Type w) [nondiscrete_normed_field k] :
+  Π (n : ℕ) (E : Type u) [gE : normed_group E] [@normed_space k E _ gE]
+    (F : Type u) [gF : normed_group F] [@normed_space k F _ gF], Type u
+| 0     E _ _ F _ _ := F
+| (n+1) E _ _ F _ _ := by { resetI, exact iterated_continuous_linear_map n E (E →L[k] F) }
 
 notation E `[×`:25 n `]→L[`:25 k `] ` F := iterated_continuous_linear_map k n E F
 
-/-- Define by induction a normed space structure on the space of iteratted continuous linear
-maps. To avoid `resetI` in the statement, use the @ version with all parameters. -/
+/--
+Define by induction a normed group structure on the space of iterated continuous linear
+maps. To avoid `resetI` in the statement, use the @ version with all parameters. As the equation
+compiler chokes on this one, we use the `nat.rec_on` version.
+-/
 def iterated_continuous_linear_map.normed_group_rec (k : Type w) [hk : nondiscrete_normed_field k]
-  (n : ℕ) (E : Type u) [hE1 : normed_group E] [hE : normed_space k E] :
-  ∀(F : Type u) [hF1 : normed_group F] [hF : @normed_space k F _ hF1],
-  normed_group (@iterated_continuous_linear_map k hk n E hE1 hE F hF1 hF) :=
-nat.rec_on n (λF hF1 hF, hF1) (λn aux_n F hF1 hF, by { resetI, apply aux_n })
+  (n : ℕ) (E : Type u) [gE : normed_group E] [sE : normed_space k E] :
+  ∀(F : Type u) [nF : normed_group F] [sF : @normed_space k F _ nF],
+  normed_group (@iterated_continuous_linear_map k hk n E gE sE F nF sF) :=
+nat.rec_on n (λF nF sF, nF) (λn aux_n F nF sF, by { resetI, apply aux_n })
 
+/--
+Define by induction a normed space structure on the space of iterated continuous linear
+maps. To avoid `resetI` in the statement, use the @ version with all parameters. As the equation
+compiler chokes on this one, we use the `nat.rec_on` version.
+-/
 def iterated_continuous_linear_map.normed_space_rec (k : Type w) [hk : nondiscrete_normed_field k]
-  (n : ℕ) (E : Type u) [hE1 : normed_group E] [hE : normed_space k E] :
-  ∀(F : Type u) [hF1 : normed_group F] [hF : @normed_space k F _ hF1],
-  @normed_space k (@iterated_continuous_linear_map k hk n E hE1 hE F hF1 hF)
-  _ (@iterated_continuous_linear_map.normed_group_rec k hk n E hE1 hE F hF1 hF) :=
-nat.rec_on n (λF hF1 hF, hF) (λn aux_n F hF1 hF, by { resetI, apply aux_n })
+  (n : ℕ) (E : Type u) [gE : normed_group E] [sE : normed_space k E] :
+  ∀(F : Type u) [nF : normed_group F] [sF : @normed_space k F _ nF],
+  @normed_space k (@iterated_continuous_linear_map k hk n E gE sE F nF sF)
+  _ (@iterated_continuous_linear_map.normed_group_rec k hk n E gE sE F nF sF) :=
+nat.rec_on n (λF nF sF, sF) (λn aux_n F nF sF, by { resetI, apply aux_n })
 
-/-- Explicit normed space structure on the space of iterated continuous linear maps. -/
+/--
+Explicit normed group structure on the space of iterated continuous linear maps.
+-/
 instance iterated_continuous_linear_map.normed_group (n : ℕ)
   (k : Type w) [hk : nondiscrete_normed_field k]
-  (E : Type u) [hE1 : normed_group E] [hE : normed_space k E]
-  (F : Type u) [hF1 : normed_group F] [hF : normed_space k F] :
+  (E : Type u) [gE : normed_group E] [sE : normed_space k E]
+  (F : Type u) [gF : normed_group F] [sF : normed_space k F] :
   normed_group (E [×n]→L[k] F) :=
 iterated_continuous_linear_map.normed_group_rec k n E F
 
+/--
+Explicit normed space structure on the space of iterated continuous linear maps.
+-/
 instance iterated_continuous_linear_map.normed_space (n : ℕ)
   (k : Type w) [hk : nondiscrete_normed_field k]
-  (E : Type u) [hE1 : normed_group E] [hE : normed_space k E]
-  (F : Type u) [hF1 : normed_group F] [hF : normed_space k F] :
+  (E : Type u) [gE : normed_group E] [sE : normed_space k E]
+  (F : Type u) [gF : normed_group F] [sF : normed_space k F] :
   normed_space k (E [×n]→L[k] F) :=
 iterated_continuous_linear_map.normed_space_rec k n E F
 
-/-- The n-th derivative of a function, defined inductively by saying that the (n+1)-th
-derivative of f is the n-th derivative of the derivative of f -/
+/--
+The n-th derivative of a function, defined inductively by saying that the (n+1)-th
+derivative of f is the n-th derivative of the derivative of f.
+-/
 def iterated_fderiv (k : Type w) [hk : nondiscrete_normed_field k] (n : ℕ)
-  {E : Type u} [hE1 : normed_group E] [hE : normed_space k E] :
-  ∀{F : Type u} [hF1 : normed_group F] [hF : @normed_space k F _ hF1] (f : E → F),
-  E → @iterated_continuous_linear_map k hk n E hE1 hE F hF1 hF :=
-nat.rec_on n (λF hF1 hF f, f) (λn rec F hF1 hF f, by { resetI, exact rec (fderiv k f) })
+  {E : Type u} [gE : normed_group E] [sE : normed_space k E] :
+  ∀{F : Type u} [gF : normed_group F] [sF : @normed_space k F _ gF] (f : E → F),
+  E → @iterated_continuous_linear_map k hk n E gE sE F gF sF :=
+nat.rec_on n (λF gF sF f, f) (λn rec F gF sF f, by { resetI, exact rec (fderiv k f) })
 
 @[simp] lemma iterated_fderiv_zero :
   iterated_fderiv k 0 f = f := rfl
@@ -114,13 +148,15 @@ nat.rec_on n (λF hF1 hF f, f) (λn rec F hF1 hF f, by { resetI, exact rec (fder
 @[simp] lemma iterated_fderiv_succ :
   iterated_fderiv k (n+1) f = (iterated_fderiv k n (λx, fderiv k f x) : _) := rfl
 
-/-- The n-th derivative of a function along a set, defined inductively by saying that the (n+1)-th
-derivative of f is the n-th derivative of the derivative of f -/
+/--
+The n-th derivative of a function along a set, defined inductively by saying that the (n+1)-th
+derivative of f is the n-th derivative of the derivative of f.
+-/
 def iterated_fderiv_within (k : Type w) [hk :nondiscrete_normed_field k] (n : ℕ)
-  {E : Type u} [hE1 : normed_group E] [hE : normed_space k E] :
-  ∀{F : Type u} [hF1 : normed_group F] [hF : @normed_space k F _ hF1] (f : E → F) (s : set E),
-  E → @iterated_continuous_linear_map k hk n E hE1 hE F hF1 hF :=
-nat.rec_on n (λF hF1 hF f s, f) (λn rec F hF1 hF f s, by { resetI, exact rec (fderiv_within k f s) s})
+  {E : Type u} [gE : normed_group E] [sE : normed_space k E] :
+  ∀{F : Type u} [gF : normed_group F] [sF : @normed_space k F _ gF] (f : E → F) (s : set E),
+  E → @iterated_continuous_linear_map k hk n E gE sE F gF sF :=
+nat.rec_on n (λF gF sF f s, f) (λn rec F gF sF f s, by { resetI, exact rec (fderiv_within k f s) s})
 
 @[simp] lemma iterated_fderiv_within_zero :
   iterated_fderiv_within k 0 f s = f := rfl
@@ -138,6 +174,10 @@ begin
   { simp [IH] }
 end
 
+/--
+If two functions coincide on a set `s` of unique differentiability, then their iterated
+differentials within this set coincide.
+-/
 lemma iterated_fderiv_within_congr (hs : unique_diff_on k s)
   (hL : ∀y∈s, f₁ y = f y) (hx : x ∈ s) :
   iterated_fderiv_within k n f₁ s x = iterated_fderiv_within k n f s x :=
@@ -150,6 +190,10 @@ begin
     apply fderiv_within_congr (hs y hy) hL (hL y hy) }
 end
 
+/--
+The iterated differential within a set `s` at a point `x` is not modified if one intersects
+`s` with an open set containing `x`.
+-/
 lemma iterated_fderiv_within_inter_open (xu : x ∈ u) (hu : is_open u) (xs : x ∈ s)
   (hs : unique_diff_on k (s ∩ u)) :
   iterated_fderiv_within k n f (s ∩ u) x = iterated_fderiv_within k n f s x :=
@@ -165,6 +209,10 @@ begin
     rwa unique_diff_within_at_inter (mem_nhds_sets hu hy.2) at this }
 end
 
+/--
+The iterated differential within a set `s` at a point `x` is not modified if one intersects
+`s` with a neighborhood of `x`.
+-/
 lemma iterated_fderiv_within_inter (hu : u ∈ nhds x) (xs : x ∈ s)
   (hs : unique_diff_on k s) :
   iterated_fderiv_within k n f (s ∩ u) x = iterated_fderiv_within k n f s x :=
@@ -184,28 +232,15 @@ begin
   rw ← this
 end
 
-/- We turn to the definition of `C^n` functions. There are two equivalent definitions:
-* require by induction that the function is differentiable, and that its derivative is C^{n-1}
-* or require that, for all m ≤ n, the m-th derivative is continuous, and for all m < n the m-th
-derivative is differentiable.
-The first definition is more efficient for many proofs by induction. The second definition is more
-satisfactory as it gives concrete information about the n-th derivative (contrary to the first point
-of view), and moreover it also makes sense for n = ∞.
-
-Therefore, we give (and use) both definitions, named respectively `times_cont_diff_rec` and
-`times_cont_diff` (as well as relativized versions on a set). We show that they are equivalent.
-The first one is mainly auxiliary: in applications, one should always use `times_cont_diff`
-(but the proofs below use heavily the equivalence to show that `times_cont_diff` is well behaved).
-
-We start with the first definition, by induction, first on the whole space -/
-
-/-- Auxiliary definition defining `C^n` functions by induction over `n`. In applications, use
-`times_cont_diff` instead. -/
-def times_cont_diff_rec (k : Type w) [nondiscrete_normed_field k] (n : ℕ)
-  {E : Type u} [normed_group E] [normed_space k E] :
-  ∀{F : Type u} [hF1 : normed_group F] [@normed_space k F _ hF1] (f : E → F), Prop :=
-nat.rec_on n (λF hF1 hF f, by { resetI, exact continuous f })
-  (λn rec F hF1 hF f, by { resetI, exact differentiable k f ∧ rec (fderiv k f) })
+/--
+Auxiliary definition defining `C^n` functions by induction over `n`.
+In applications, use `times_cont_diff` instead.
+-/
+def times_cont_diff_rec (k : Type w) [nondiscrete_normed_field k] :
+  Π (n : ℕ) {E : Type u} [gE : normed_group E] [@normed_space k E _ gE]
+    {F : Type u} [gF : normed_group F] [@normed_space k F _ gF] (f : E → F), Prop
+| 0     E _ _ F _ _ f := by { resetI, exact continuous f }
+| (n+1) E _ _ F _ _ f := by { resetI, exact differentiable k f ∧ times_cont_diff_rec n (fderiv k f) }
 
 @[simp] lemma times_cont_diff_rec_zero :
   times_cont_diff_rec k 0 f ↔ continuous f :=
@@ -246,15 +281,16 @@ begin
     apply IH h.2 }
 end
 
-/- We turn to the inductive definition, but relative to a subset `s` -/
-
-/-- Auxiliary definition defining `C^n` functions on a set by induction over `n`. In applications,
-use `times_cont_diff_on` instead. -/
-def times_cont_diff_on_rec (k : Type w) [nondiscrete_normed_field k] (n : ℕ)
-  {E : Type u} [normed_group E] [normed_space k E] :
-  ∀{F : Type u} [hF1 : normed_group F] [@normed_space k F _ hF1] (f : E → F) (s : set E), Prop :=
-nat.rec_on n (λF hF1 hF f s, by { resetI, exact continuous_on f s })
-  (λn rec F hF1 hF f s, by { resetI, exact differentiable_on k f s ∧ rec (fderiv_within k f s) s})
+/--
+Auxiliary definition defining `C^n` functions on a set by induction over `n`.
+In applications, use `times_cont_diff_on` instead.
+-/
+def times_cont_diff_on_rec (k : Type w) [nondiscrete_normed_field k] :
+  Π (n : ℕ) {E : Type u} [gE : normed_group E] [@normed_space k E _ gE]
+    {F : Type u} [gF : normed_group F] [@normed_space k F _ gF] (f : E → F) (s : set E), Prop
+| 0     E _ _ F _ _ f s := by { resetI, exact continuous_on f s }
+| (n+1) E _ _ F _ _ f s := by { resetI,
+                  exact differentiable_on k f s ∧ times_cont_diff_on_rec n (fderiv_within k f s) s}
 
 @[simp] lemma times_cont_diff_on_rec_zero :
   times_cont_diff_on_rec k 0 f s ↔ continuous_on f s :=
@@ -305,11 +341,10 @@ begin
   { rw [times_cont_diff_on_rec_succ, times_cont_diff_rec_succ, differentiable_on_univ, fderiv_within_univ, IH] }
 end
 
-/- Now, we give the second definition, directly in terms of iterated derivatives, first
-relative to a set `s` -/
-
-/-- A function is `C^n` on a set, for `n : with_top ℕ`, if its derivatives of order at most `n`
-are all well defined and continuous. -/
+/--
+A function is `C^n` on a set, for `n : with_top ℕ`, if its derivatives of order at most `n`
+are all well defined and continuous.
+-/
 def times_cont_diff_on (k : Type w) [nondiscrete_normed_field k] (n : with_top ℕ)
   {E F : Type u} [normed_group E] [normed_space k E]
   [normed_group F] [normed_space k F] (f : E → F) (s : set E) :=
@@ -320,8 +355,10 @@ def times_cont_diff_on (k : Type w) [nondiscrete_normed_field k] (n : with_top �
   times_cont_diff_on k 0 f s ↔ continuous_on f s :=
 by simp [times_cont_diff_on]
 
-/-- The two definitions of `C^n` functions on domains, directly in terms of continuity of all
-derivatives, or by induction, are equivalent. -/
+/--
+The two definitions of `C^n` functions on domains, directly in terms of continuity of all
+derivatives, or by induction, are equivalent.
+-/
 theorem times_cont_diff_on_iff_times_cont_diff_on_rec :
   times_cont_diff_on k n f s ↔ times_cont_diff_on_rec k n f s :=
 begin
@@ -388,8 +425,10 @@ h.1 1 hn
 
 set_option class.instance_max_depth 50
 
-/-- If a function is at least `C^1`, its bundled derivative (mapping `(x, v)` to `Df(x) v`) is
-continuous -/
+/--
+If a function is at least `C^1`, its bundled derivative (mapping `(x, v)` to `Df(x) v`) is
+continuous.
+-/
 lemma times_cont_diff_on.continuous_on_fderiv_within_apply
   {n : with_top ℕ} (h : times_cont_diff_on k n f s) (hn : 1 ≤ n) :
   continuous_on (λp : E × E, (fderiv_within k f s p.1 : E → F) p.2) (set.prod s univ) :=
@@ -470,7 +509,9 @@ lemma times_cont_diff_on.mono {n : with_top ℕ} {s t : set E} (h : times_cont_d
   (hst : s ⊆ t) (hs : unique_diff_on k s) : times_cont_diff_on k n f s :=
 times_cont_diff_on.congr_mono h hs (λx hx, rfl) hst
 
-/-- Being `C^n` is a local property -/
+/--
+Being `C^n` is a local property.
+-/
 lemma times_cont_diff_on_of_locally_times_cont_diff_on {n : with_top ℕ} {s : set E}
   (hs : unique_diff_on k s) (h : ∀x∈s, ∃u, is_open u ∧ x ∈ u ∧ times_cont_diff_on k n f (s ∩ u)) :
   times_cont_diff_on k n f s :=
@@ -492,11 +533,10 @@ begin
     exact iterated_fderiv_within_inter_open hy.2 u_open hy.1 (unique_diff_on_inter hs u_open) }
 end
 
-/- Now, we give the second definition, directly in terms of iterated derivatives, on the whole
-space -/
-
-/-- A function is `C^n`, for `n : with_top ℕ`, if its derivatives of order at most `n` are all well
-defined and continuous. -/
+/--
+A function is `C^n`, for `n : with_top ℕ`, if its derivatives of order at most `n` are all well
+defined and continuous.
+-/
 def times_cont_diff (k : Type w) [nondiscrete_normed_field k] (n : with_top ℕ)
   {E F : Type u} [normed_group E] [normed_space k E]
   [normed_group F] [normed_space k F] (f : E → F) :=
@@ -522,20 +562,18 @@ by simp [times_cont_diff_on_univ.symm, times_cont_diff_on_rec_univ.symm,
   differentiable k f ∧ times_cont_diff k n (λx, fderiv k f x) :=
 by simp [times_cont_diff_iff_times_cont_diff_rec]
 
-lemma times_cont_diff.of_le {m n : with_top ℕ}
- (h : times_cont_diff k n f) (le : m ≤ n) : times_cont_diff k m f :=
+lemma times_cont_diff.of_le {m n : with_top ℕ} (h : times_cont_diff k n f) (le : m ≤ n) :
+  times_cont_diff k m f :=
 ⟨λp hp, h.1 p (le_trans hp le), λp hp, h.2 p (lt_of_lt_of_le hp le)⟩
 
-lemma times_cont_diff.of_succ (h : times_cont_diff k n.succ f) :
-  times_cont_diff k n f :=
+lemma times_cont_diff.of_succ (h : times_cont_diff k n.succ f) : times_cont_diff k n f :=
 h.of_le (with_top.coe_le_coe.2 (nat.le_succ n))
 
 lemma times_cont_diff.continuous {n : with_top ℕ} (h : times_cont_diff k n f) :
   continuous f :=
 h.1 0 (by simp)
 
-lemma times_cont_diff.continuous_fderiv
-  {n : with_top ℕ} (h : times_cont_diff k n f) (hn : 1 ≤ n) :
+lemma times_cont_diff.continuous_fderiv {n : with_top ℕ} (h : times_cont_diff k n f) (hn : 1 ≤ n) :
   continuous (fderiv k f) :=
 h.1 1 hn
 
@@ -550,8 +588,7 @@ begin
   exact A.comp B
 end
 
-lemma times_cont_diff_top :
-  times_cont_diff k ⊤ f ↔ (∀n:ℕ, times_cont_diff k n f) :=
+lemma times_cont_diff_top : times_cont_diff k ⊤ f ↔ (∀n:ℕ, times_cont_diff k n f) :=
 by simp [times_cont_diff_on_univ.symm, times_cont_diff_on_rec_univ.symm,
         times_cont_diff_on_top]
 
@@ -559,9 +596,10 @@ lemma times_cont_diff.times_cont_diff_on {n : with_top ℕ} {s : set E}
   (h : times_cont_diff k n f) (hs : unique_diff_on k s) : times_cont_diff_on k n f s :=
 by { rw ← times_cont_diff_on_univ at h, apply times_cont_diff_on.mono h (subset_univ _) hs }
 
-/-- Constants are C^∞ -/
-lemma times_cont_diff_const {n : with_top ℕ} {c : F} :
-  times_cont_diff k n (λx : E, c) :=
+/--
+Constants are C^∞.
+-/
+lemma times_cont_diff_const {n : with_top ℕ} {c : F} : times_cont_diff k n (λx : E, c) :=
 begin
   tactic.unfreeze_local_instances,
   induction n using with_top.nat_induction with n IH Itop generalizing F,
@@ -574,9 +612,11 @@ begin
     assume n, apply Itop }
 end
 
-/-- Linear functions are C^∞ -/
-lemma is_bounded_linear_map.times_cont_diff {n : with_top ℕ}
-  (hf : is_bounded_linear_map k f) : times_cont_diff k n f :=
+/--
+Linear functions are C^∞.
+-/
+lemma is_bounded_linear_map.times_cont_diff {n : with_top ℕ} (hf : is_bounded_linear_map k f) :
+  times_cont_diff k n f :=
 begin
   induction n using with_top.nat_induction with n IH Itop,
   { rw times_cont_diff_zero,
@@ -587,18 +627,29 @@ begin
   { rw times_cont_diff_top, apply Itop }
 end
 
+/--
+The first projection in a product is C^∞.
+-/
 lemma times_cont_diff_fst {n : with_top ℕ} : times_cont_diff k n (prod.fst : E × F → E) :=
 is_bounded_linear_map.times_cont_diff is_bounded_linear_map.fst
 
+/--
+The second projection in a product is C^∞.
+-/
 lemma times_cont_diff_snd {n : with_top ℕ} : times_cont_diff k n (prod.snd : E × F → F) :=
 is_bounded_linear_map.times_cont_diff is_bounded_linear_map.snd
 
+/--
+The identity is C^∞.
+-/
 lemma times_cont_diff_id {n : with_top ℕ} : times_cont_diff k n (id : E → E) :=
 is_bounded_linear_map.id.times_cont_diff
 
-/-- Bilinear functions are C^∞ -/
-lemma is_bounded_bilinear_map.times_cont_diff {n : with_top ℕ}
-  (hb : is_bounded_bilinear_map k b) : times_cont_diff k n b :=
+/--
+Bilinear functions are C^∞.
+-/
+lemma is_bounded_bilinear_map.times_cont_diff {n : with_top ℕ} (hb : is_bounded_bilinear_map k b) :
+  times_cont_diff k n b :=
 begin
   induction n using with_top.nat_induction with n IH Itop,
   { rw times_cont_diff_zero,
@@ -609,7 +660,9 @@ begin
   { rw times_cont_diff_top, apply Itop }
 end
 
-/-- Composition by bounded linear maps preserves `C^n` functions on domains -/
+/--
+Composition by bounded linear maps preserves `C^n` functions on domains.
+-/
 lemma times_cont_diff_on.comp_is_bounded_linear {n : with_top ℕ} {s : set E} {f : E → F} {g : F → G}
   (hf : times_cont_diff_on k n f s) (hg : is_bounded_linear_map k g) (hs : unique_diff_on k s) :
   times_cont_diff_on k n (λx, g (f x)) s :=
@@ -636,14 +689,18 @@ begin
     apply Itop n (hf n) hg }
 end
 
-/-- Composition by bounded linear maps preserves `C^n` functions -/
+/--
+Composition by bounded linear maps preserves `C^n` functions.
+-/
 lemma times_cont_diff.comp_is_bounded_linear {n : with_top ℕ} {f : E → F} {g : F → G}
   (hf : times_cont_diff k n f) (hg : is_bounded_linear_map k g) :
   times_cont_diff k n (λx, g (f x)) :=
 times_cont_diff_on_univ.1 $ times_cont_diff_on.comp_is_bounded_linear (times_cont_diff_on_univ.2 hf)
   hg is_open_univ.unique_diff_on
 
-/-- The cartesian product of `C^n` functions on domains is `C^n` -/
+/--
+The cartesian product of `C^n` functions on domains is `C^n`.
+-/
 lemma times_cont_diff_on.prod {n : with_top ℕ} {s : set E} {f : E → F} {g : E → G}
   (hf : times_cont_diff_on k n f s) (hg : times_cont_diff_on k n g s) (hs : unique_diff_on k s) :
   times_cont_diff_on k n (λx:E, (f x, g x)) s :=
@@ -665,14 +722,18 @@ begin
     apply Itop n (hf n) (hg n) }
 end
 
-/-- The cartesian product of `C^n` functions is `C^n` -/
+/--
+The cartesian product of `C^n` functions is `C^n`.
+-/
 lemma times_cont_diff.prod {n : with_top ℕ} {f : E → F} {g : E → G}
   (hf : times_cont_diff k n f) (hg : times_cont_diff k n g) :
   times_cont_diff k n (λx:E, (f x, g x)) :=
 times_cont_diff_on_univ.1 $ times_cont_diff_on.prod (times_cont_diff_on_univ.2 hf)
   (times_cont_diff_on_univ.2 hg) is_open_univ.unique_diff_on
 
-/-- The composition of `C^n` functions on domains is `C^n` -/
+/--
+The composition of `C^n` functions on domains is `C^n`.
+-/
 lemma times_cont_diff_on.comp {n : with_top ℕ} {s : set E} {t : set F} {g : F → G} {f : E → F}
   (hg : times_cont_diff_on k n g t) (hf : times_cont_diff_on k n f s) (hs : unique_diff_on k s)
   (st : f '' s ⊆ t) : times_cont_diff_on k n (g ∘ f) s :=
@@ -682,6 +743,13 @@ begin
   { rw times_cont_diff_on_zero at hf hg ⊢,
     exact continuous_on.comp hg hf st },
   { rw times_cont_diff_on_succ at hf hg ⊢,
+    /- We have to show that the derivative of g ∘ f is C^n, given that g and f are C^(n+1).
+    By the chain rule, this derivative is Dg(f x) ⬝ Df(x). This is the composition of
+    x ↦ (Dg (f x), Df (x)) with the product of bounded linear maps, which is bilinear and therefore
+    C^∞. By the induction assumption, it suffices to show that x ↦ (Dg (f x), Df (x)) is C^n. It
+    is even enough to show that each component is C^n. This follows from the assumptions on f and g,
+    and the inductive assumption.
+    -/
     refine ⟨differentiable_on.comp hg.1 hf.1 st, _⟩,
     have : ∀x∈s, fderiv_within k (g ∘ f) s x =
       continuous_linear_map.comp (fderiv_within k g t (f x)) (fderiv_within k f s x),
@@ -702,14 +770,18 @@ begin
     apply Itop n (hg n) (hf n) hs st }
 end
 
-/-- The composition of `C^n` functions is `C^n` -/
+/--
+The composition of `C^n` functions is `C^n`.
+-/
 lemma times_cont_diff.comp {n : with_top ℕ} {g : F → G} {f : E → F}
   (hg : times_cont_diff k n g) (hf : times_cont_diff k n f) :
   times_cont_diff k n (g ∘ f) :=
 times_cont_diff_on_univ.1 $ times_cont_diff_on.comp (times_cont_diff_on_univ.2 hg)
   (times_cont_diff_on_univ.2 hf) is_open_univ.unique_diff_on (subset_univ _)
 
-/-- The bundled derivative of a `C^{n+1}` function is `C^n` -/
+/--
+The bundled derivative of a `C^{n+1}` function is `C^n`.
+-/
 lemma times_cont_diff_on_fderiv_within_apply {m n : with_top  ℕ} {s : set E}
   {f : E → F} (hf : times_cont_diff_on k n f s) (hs : unique_diff_on k s) (hmn : m + 1 ≤ n) :
   times_cont_diff_on k m (λp : E × E, (fderiv_within k f s p.1 : E →L[k] F) p.2) (set.prod s (univ : set E)) :=
@@ -736,7 +808,9 @@ begin
   apply times_cont_diff_on.comp A B U (subset_univ _),
 end
 
-/-- The bundled derivative of a `C^{n+1}` function is `C^n` -/
+/--
+The bundled derivative of a `C^{n+1}` function is `C^n`.
+-/
 lemma times_cont_diff.times_cont_diff_fderiv_apply {n m : with_top ℕ} {s : set E} {f : E → F}
   (hf : times_cont_diff k n f) (hmn : m + 1 ≤ n) :
   times_cont_diff k m (λp : E × E, (fderiv k f p.1 : E →L[k] F) p.2) :=
@@ -745,5 +819,3 @@ begin
   rw [← fderiv_within_univ, ← univ_prod_univ],
   exact times_cont_diff_on_fderiv_within_apply hf unique_diff_on_univ hmn
 end
-
-end deriv

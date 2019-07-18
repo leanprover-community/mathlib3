@@ -15,7 +15,7 @@ by cases mod_two_eq_zero_or_one n with h h; simp [h]
 @[simp] theorem mod_two_ne_zero {n : int} : ¬ n % 2 = 0 ↔ n % 2 = 1 :=
 by cases mod_two_eq_zero_or_one n with h h; simp [h]
 
-def even (n : int) : Prop := ∃ m, n = 2 * m
+def even (n : int) : Prop := 2 ∣ n
 
 @[simp] theorem even_coe_nat (n : nat) : even n ↔ nat.even n :=
 have ∀ m, 2 * to_nat m = to_nat (2 * m),

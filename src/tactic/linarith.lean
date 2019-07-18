@@ -11,7 +11,7 @@ A tactic for discharging linear arithmetic goals using Fourier-Motzkin eliminati
 @TODO: delay proofs of denominator normalization and nat casting until after contradiction is found
 -/
 
-import tactic.ring data.nat.gcd data.list.basic meta.rb_map
+import tactic.ring data.nat.gcd data.list.basic meta.rb_map data.tree
 
 meta def nat.to_pexpr : ℕ → pexpr
 | 0 := ``(0)
@@ -540,16 +540,6 @@ meta def is_numeric : expr → option ℚ
 | `(%%e1 / %%e2) := (/) <$> is_numeric e1 <*> is_numeric e2
 | `(-%%e) := rat.neg <$> is_numeric e
 | e := e.to_rat
-
-inductive {u} tree (α : Type u) : Type u
-| nil {} : tree
-| node : α → tree → tree → tree
-
-def tree.repr {α} [has_repr α] : tree α → string
-| tree.nil := "nil"
-| (tree.node a t1 t2) := "tree.node " ++ repr a ++ " (" ++ tree.repr t1 ++ ") (" ++ tree.repr t2 ++ ")"
-
-instance {α} [has_repr α] : has_repr (tree α) := ⟨tree.repr⟩
 
 meta def find_cancel_factor : expr → ℕ × tree ℕ
 | `(%%e1 + %%e2) :=

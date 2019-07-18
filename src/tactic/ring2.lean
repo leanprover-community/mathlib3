@@ -1,53 +1,35 @@
-/-
+import tactic.ring data.num.lemmas data.tree
+import tactic.converter.interactive
+
+/-!
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 
+# ring2
+
 An experimental variant on the `ring` tactic that uses computational
 reflection instead of proof generation. Useful for kernel benchmarking.
 -/
-import tactic.ring data.num.lemmas
-import tactic.converter.interactive
 
-namespace tactic.ring2
+namespace tree
 
-/-- Binary tree storage for elements of type α,
-with O(lg n) retrieval. -/
-@[derive has_reflect]
-inductive {u} tree (α : Type u) : Type u
-| nil {} : tree
-| node : α → tree → tree → tree
-
-def tree.get {α} [has_zero α] : pos_num → tree α → α
-| _                tree.nil            := 0
-| pos_num.one      (tree.node a t₁ t₂) := a
-| (pos_num.bit0 n) (tree.node a t₁ t₂) := t₁.get n
-| (pos_num.bit1 n) (tree.node a t₁ t₂) := t₂.get n
-
-/-- Makes a `tree α` out of a red-black tree. -/
-def tree.of_rbnode {α} : rbnode α → tree α
-| rbnode.leaf               := tree.nil
-| (rbnode.red_node l a r)   :=
-  tree.node a (tree.of_rbnode l) (tree.of_rbnode r)
-| (rbnode.black_node l a r) :=
-  tree.node a (tree.of_rbnode l) (tree.of_rbnode r)
-
-def tree.index_of {α} (lt : α → α → Prop) [decidable_rel lt]
-  (x : α) : tree α → option pos_num
-| tree.nil := none
-| (tree.node a t₁ t₂) :=
-  match cmp_using lt x a with
-  | ordering.lt := pos_num.bit0 <$> tree.index_of t₁
-  | ordering.eq := some pos_num.one
-  | ordering.gt := pos_num.bit1 <$> tree.index_of t₂
-  end
-
-/-- Reflects a tree of expressions into an expression that,
-when evaluated, yields the original tree. -/
-meta def tree.reflect' (u : level) (α : expr) : tree expr → expr
+/-- `(reflect' t u α)` turns a tree `(t: tree expr)` of reflected values
+of type `α` at level `u` into an `expr` which evaluates to a concrete
+`tree α` containing the evaluations of the `expr`s from the original `t`. -/
+protected meta def reflect' (u : level) (α : expr) : tree expr → expr
 | tree.nil := (expr.const ``tree.nil [u] : expr) α
 | (tree.node a t₁ t₂) :=
   (expr.const ``tree.node [u] : expr) α a t₁.reflect' t₂.reflect'
+
+/-- Returns an element indexed by `n`, or zero if `n` isn't a valid index.
+See `tree.get`. -/
+protected def get_or_zero {α} [has_zero α] (t : tree α) (n : pos_num) : α :=
+  t.get_or_else n 0
+
+end tree
+
+namespace tactic.ring2
 
 /-- A reflected/meta representation of an expression in a commutative
 semiring. This representation is a direct translation of such
@@ -56,7 +38,7 @@ expressions - see `horner_expr` for a normal form. -/
 inductive csring_expr
 /- (atom n) is an opaque element of the csring. For example,
 a local variable in the context. n indexes into a storage
-of such elements using `tree α`. -/
+of such atoms - a `tree α`. -/
 | atom : pos_num → csring_expr
 /- (const n) is technically the csring's one, added n times.
 Or the zero if n is 0. -/
@@ -71,7 +53,7 @@ namespace csring_expr
 original `comm_semiring` type `α`, retrieving opaque elements
 (atoms) from the tree `t`. -/
 def eval {α} [comm_semiring α] (t : tree α) : csring_expr → α
-| (atom n)  := @tree.get _ ⟨0⟩ n t
+| (atom n)  := t.get_or_zero n
 | (const n) := n
 | (add x y) := eval x + eval y
 | (mul x y) := eval x * eval y
@@ -82,7 +64,8 @@ end csring_expr
 /-- An efficient representation of expressions in a commutative
 semiring using the sparse Horner normal form. This type admits
 non-optimal instantiations (e.g. `P` can be represented as `P+0+0`),
-so care must be taken to maintain an optimal, *canonical* form.-/
+so to get good performance out of it, care must be taken to maintain
+an optimal, *canonical* form. -/
 @[derive decidable_eq]
 inductive horner_expr
 /- (const n) is a constant n in the csring, similarly to the same
@@ -94,8 +77,8 @@ in the atom tree. -/
 
 namespace horner_expr
 
-/-- "Is this `horner_expr` a valid `csring_expr`?" Basically all constants
-must be non-negative. -/
+/-- True iff the `horner_expr` argument is a valid `csring_expr`.
+For that to be the case, all its constants must be non-negative. -/
 def is_cs : horner_expr → Prop
 | (const n) := ∃ m:num, n = m.to_znum
 | (horner a x n b) := is_cs a ∧ is_cs b
@@ -239,10 +222,10 @@ def of_csexpr : csring_expr → horner_expr
 /-- Evaluates a reflected `horner_expr` - see `csring_expr.eval`. -/
 def cseval {α} [comm_semiring α] (t : tree α) : horner_expr → α
 | (const n)        := n.abs
-| (horner a x n b) := tactic.ring.horner (cseval a) (t.get x) n (cseval b)
+| (horner a x n b) := tactic.ring.horner (cseval a) (t.get_or_zero x) n (cseval b)
 
 theorem cseval_atom {α} [comm_semiring α] (t : tree α)
-  (n : pos_num) : (atom n).is_cs ∧ cseval t (atom n) = t.get n :=
+  (n : pos_num) : (atom n).is_cs ∧ cseval t (atom n) = t.get_or_zero n :=
 ⟨⟨⟨1, rfl⟩, ⟨0, rfl⟩⟩, (tactic.ring.horner_atom _).symm⟩
 
 theorem cseval_add_const {α} [comm_semiring α] (t : tree α)
@@ -264,7 +247,7 @@ end
 theorem cseval_horner' {α} [comm_semiring α] (t : tree α)
   (a x n b) (h₁ : is_cs a) (h₂ : is_cs b) :
   (horner' a x n b).is_cs ∧ cseval t (horner' a x n b) =
-    tactic.ring.horner (cseval t a) (t.get x) n (cseval t b) :=
+    tactic.ring.horner (cseval t a) (t.get_or_zero x) n (cseval t b) :=
 begin
   cases a with n₁ a₁ x₁ n₁ b₁; simp [horner']; split_ifs,
   { simp! [*, tactic.ring.horner] },
@@ -463,6 +446,11 @@ meta def reflect_expr : expr → csring_expr × dlist expr
   | none := (csring_expr.atom 1, dlist.singleton e)
   end
 
+/-- In the output of `reflect_expr`, `atom`s are initialized with incorrect indices.
+The indices cannot be computed until the whole tree is built, so another pass over
+the expressions is needed - this is what `replace` does. The computation (expressed
+in the state monad) fixes up `atom`s to match their positions in the atom tree.
+The initial state is a list of all atom occurrences in the goal, left-to-right. -/
 meta def csring_expr.replace (t : tree expr) : csring_expr → state_t (list expr) option csring_expr
 | (csring_expr.atom _)  := do e ← get,
   p ← monad_lift (t.index_of (<) e.head),

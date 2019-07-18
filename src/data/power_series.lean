@@ -7,8 +7,6 @@ Authors: Johan Commelin, Kenny Lau
 import data.finsupp order.complete_lattice algebra.ordered_group data.mv_polynomial
 import algebra.order_functions
 import ring_theory.ideal_operations
-import linear_algebra.basis
-import algebra.CommRing.limits
 
 namespace discrete_field
 variables {α : Type*} [discrete_field α]
@@ -214,7 +212,7 @@ begin
   { rw finset.sum_eq_zero,
     rintros ⟨i,j⟩ hij,
     rw mem_antidiagonal_support at hij, rw [coeff_C, coeff_C],
-    split_ifs; try {simp * at *; done} }
+    split_ifs; simp * at * }
 end
 
 @[simp] lemma zero_mul : (0 : mv_power_series σ α) * φ = 0 :=
@@ -233,13 +231,16 @@ ext $ λ n, finset.sum_bij (λ p hp, p.swap)
 @[simp] lemma one_mul : (1 : mv_power_series σ α) * φ = φ :=
 ext $ λ n,
 begin
-  have H : ((0 : σ →₀ ℕ), n) ∈ (antidiagonal n).support := by simp [mem_antidiagonal_support],
-  rw [coeff_mul, ← finset.insert_erase H, finset.sum_insert (finset.not_mem_erase _ _),
-    coeff_one_zero, one_mul, finset.sum_eq_zero, _root_.add_zero],
-  rintros ⟨i,j⟩ hij,
-  rw [finset.mem_erase, mem_antidiagonal_support] at hij,
-  rw [coeff_one, if_neg, _root_.zero_mul],
-  intro H, apply hij.1, simp * at *
+  rw [coeff_mul, finset.sum_eq_single ((0 : σ →₀ ℕ), n)],
+  { rw [coeff_one_zero, one_mul] },
+  { rintros ⟨i,j⟩ hij h,
+    suffices : i ≠ 0,
+    { rw [coeff_one, if_neg this, _root_.zero_mul] },
+    rw [mem_antidiagonal_support] at hij,
+    rw [ne.def, prod.mk.inj_iff, not_and] at h,
+    intro H, apply h H, rw [← hij, H, _root_.zero_add] },
+  { intro H, exfalso, apply H,
+    rw [mem_antidiagonal_support, _root_.zero_add] }
 end
 
 @[simp] lemma mul_one : φ * 1 = φ :=
@@ -314,7 +315,7 @@ instance coeff_zero.is_semiring_hom : is_semiring_hom (coeff 0 : mv_power_series
   map_mul := λ φ ψ, by simp [coeff_mul, support_single_ne_zero],
   .. coeff.is_add_monoid_hom 0 }
 
-lemma unit_coeff_zero (h : is_unit φ) : is_unit (coeff 0 φ) :=
+lemma is_unit_coeff_zero (h : is_unit φ) : is_unit (coeff 0 φ) :=
 by { rcases h with ⟨φ, rfl⟩, exact ⟨units.map (coeff 0) φ, rfl⟩ }
 
 instance : semimodule α (mv_power_series σ α) :=
@@ -344,8 +345,7 @@ lemma map_comp : (map (g ∘ f) : mv_power_series σ α → mv_power_series σ �
 ext $ λ n, is_semiring_hom.map_zero f
 
 @[simp] lemma map_one : map f (1 : mv_power_series σ α) = 1 :=
-ext $ λ n,
-if h : n = 0
+ext $ λ n, if h : n = 0
 then by rw [coeff_map, h, coeff_one_zero, is_semiring_hom.map_one f, coeff_one_zero]
 else by rw [coeff_map, coeff_one, if_neg h, is_semiring_hom.map_zero f, coeff_one, if_neg h]
 
@@ -443,21 +443,23 @@ lemma mul_inv_of_unit (φ : mv_power_series σ α) (u : units α) (h : coeff 0 �
   φ * inv_of_unit φ u = 1 :=
 ext $ λ n,
 if H : n = 0 then
-by rw [H, coeff_mul, coeff_one_zero, finsupp.antidiagonal_zero, finset.insert_empty_eq_singleton,
+by erw [H, coeff_mul, coeff_one_zero, finsupp.antidiagonal_zero,
   finset.sum_singleton, coeff_zero_inv_of_unit, h, units.mul_inv]
 else
 begin
-  have : ((0 : σ →₀ ℕ), n) ∈ n.diagonal,
-  { rw [finsupp.mem_diagonal], simp },
+  have : ((0 : σ →₀ ℕ), n) ∈ n.antidiagonal.support,
+  { rw [finsupp.mem_antidiagonal_support, _root_.zero_add] },
   rw [coeff_one, if_neg H, coeff_mul,
     ← finset.insert_erase this, finset.sum_insert (finset.not_mem_erase _ _),
-    coeff_inv_of_unit, if_neg H, h,
+    h, coeff_inv_of_unit, if_neg H,
     neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm, units.mul_inv_cancel_left,
     ← finset.insert_erase this, finset.sum_insert (finset.not_mem_erase _ _),
-    finset.insert_erase this, if_neg (not_lt_of_ge $ le_refl _), _root_.add_comm, _root_.zero_add,
+    finset.insert_erase this, if_neg (not_lt_of_ge $ le_refl _), _root_.zero_add, _root_.add_comm,
     ← sub_eq_add_neg, sub_eq_zero, finset.sum_congr rfl],
-  rintros ⟨i,j⟩ hij, rw [finset.mem_erase, finsupp.mem_diagonal] at hij, cases hij with h₁ h₂,
+  rintros ⟨i,j⟩ hij, rw [finset.mem_erase, finsupp.mem_antidiagonal_support] at hij,
+  cases hij with h₁ h₂,
   subst n, rw if_pos,
+  -- TODO(jmc): The rest of this proof should follow from a general lemma
   split,
   { intro s, exact nat.le_add_left (j s) (i s) },
   { intro H, apply h₁,
@@ -472,12 +474,10 @@ section local_ring
 def is_local_ring (h : is_local_ring α) : is_local_ring (mv_power_series σ α) :=
 begin
   split,
-  { intro this, apply ‹is_local_ring α›.1, simpa using congr_arg (coeff 0) this },
-  { intro φ, let c := coeff 0 φ,
-    have : is_unit c ∨ is_unit (1 - c) := ‹is_local_ring α›.2 c,
+  { intro H, apply ‹is_local_ring α›.1, simpa using congr_arg (coeff 0) H },
+  { intro φ, have := ‹is_local_ring α›.2 (coeff 0 φ),
     cases this with h h; [left, right]; cases h with u h;
-    { apply is_unit_of_mul_one _,
-      { apply mul_inv_of_unit, { exact h } } } }
+    { exact is_unit_of_mul_one _ _ (mul_inv_of_unit _ _ h) } }
 end
 
 end local_ring
@@ -497,10 +497,10 @@ instance map.is_local_ring_hom : is_local_ring_hom (map f : mv_power_series σ �
     rintros φ ⟨ψ, h⟩,
     replace h := congr_arg (coeff 0) h,
     rw coeff_map at h,
-    have : is_unit (coeff 0 ↑ψ) := @unit_coeff_zero σ β _ _ (↑ψ) (is_unit_unit ψ),
+    have : is_unit (coeff 0 ↑ψ) := @is_unit_coeff_zero σ β _ _ (↑ψ) (is_unit_unit ψ),
     rw ← h at this,
     rcases is_unit_of_map_unit f _ this with ⟨c, hc⟩,
-    refine is_unit_of_mul_one φ (inv_of_unit φ c) (mul_inv_of_unit φ c hc),
+    exact is_unit_of_mul_one φ (inv_of_unit φ c) (mul_inv_of_unit φ c hc)
   end,
   .. map.is_ring_hom f }
 
@@ -516,7 +516,7 @@ instance : has_inv (mv_power_series σ α) := ⟨inv⟩
 
 lemma coeff_inv (n) (φ : mv_power_series σ α) :
   coeff n (φ⁻¹) = if n = 0 then (coeff 0 φ)⁻¹ else
-  - (coeff 0 φ)⁻¹ * finset.sum (n.diagonal) (λ (x : (σ →₀ ℕ) × (σ →₀ ℕ)),
+  - (coeff 0 φ)⁻¹ * n.antidiagonal.support.sum (λ (x : (σ →₀ ℕ) × (σ →₀ ℕ)),
     if x.2 < n then coeff x.1 φ * coeff x.2 (φ⁻¹) else 0) :=
 coeff_inv_aux n _ φ
 
@@ -534,9 +534,8 @@ ext $ λ n, by { rw coeff_inv, split_ifs; simp [h] }
 @[simp] lemma inv_of_unit_eq' (φ : mv_power_series σ α) (u : units α) (h : coeff 0 φ = u) :
   inv_of_unit φ u = φ⁻¹ :=
 begin
-  rw ← inv_of_unit_eq,
-  { congr' 1, rw [units.ext_iff, ← h], refl },
-  { rw h, exact units.ne_zero _ }
+  rw ← inv_of_unit_eq φ (h.symm ▸ u.ne_zero),
+  congr' 1, rw [units.ext_iff], exact h.symm,
 end
 
 @[simp] lemma mul_inv (φ : mv_power_series σ α) (h : coeff 0 φ ≠ 0) :
@@ -559,11 +558,8 @@ def coeff (n : ℕ) : power_series α → α := mv_power_series.coeff (single ()
 
 @[extensionality] lemma ext {φ ψ : power_series α} (h : ∀ n, coeff n φ = coeff n ψ) : φ = ψ :=
 mv_power_series.ext $ λ n,
-begin
-  have : n = single () (n ()),
-  { ext x, exact match x with | () := by { rw [finsupp.single_apply, if_pos rfl] } end },
-  convert h (n ())
-end
+have this : n = single () (n ()), from (finsupp.single_punit_eq _ _).symm,
+by convert h (n ())
 
 lemma ext_iff {φ ψ : power_series α} : φ = ψ ↔ (∀ n, coeff n φ = coeff n ψ) :=
 ⟨λ h n, congr_arg (coeff n) h, ext⟩
@@ -712,10 +708,11 @@ mv_power_series.algebra
 end comm_ring
 
 section local_ring
-variables [comm_ring α] [is_local_ring α]
+variables [comm_ring α]
 
-instance : is_local_ring (power_series α) :=
-_
+lemma is_local_ring (h : is_local_ring α) :
+  is_local_ring (power_series α) :=
+mv_power_series.is_local_ring h
 
 end local_ring
 

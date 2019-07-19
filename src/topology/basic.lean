@@ -2,7 +2,11 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Jeremy Avigad
+-/
 
+import order.filter
+
+/-!
 # Basic theory of topological spaces.
 
 The main definition is the type class `topological space α` which endows a type `α` with a topology.
@@ -10,7 +14,7 @@ Then `set α` gets predicates `is_open`, `is_closed` and functions `interior`, `
 `frontier`. Each point `x` of `α` gets a neighborhood filter `nhds x`, and relative versions
 `nhds_within x s` for every set `s` in `α`.
 
-Locally finite family of subsets of `α` are defined.
+This file also defines locally finite families of subsets of `α`.
 
 For topological spaces `α` and `β`, a function `f : α → β` and a point `a : α`,
 `continuous_at f a` means `f` is continuous at `a`, and global continuity is
@@ -24,12 +28,13 @@ Topology in mathlib heavily uses filters (even more than in Bourbaki). See expla
 
 ## References
 
-*  N. Bourbaki: General Topology
-*  I. M. James: Topologies and Uniformities
+*  [N. Bourbaki, *General Topology*][bourbaki1966]
+*  [I. M. James, *Topologies and Uniformities*][james1999]
 
-tags: topological space, interior, closure, frontier, neighborhood, continuity, continuous function
+## Tags
+
+topological space, interior, closure, frontier, neighborhood, continuity, continuous function
 -/
-import order.filter
 
 open set filter lattice classical
 local attribute [instance, priority 0] prop_decidable
@@ -542,7 +547,7 @@ noncomputable def lim (f : filter α) : α := epsilon $ λa, f ≤ nhds a
 lemma lim_spec {f : filter α} (h : ∃a, f ≤ nhds a) : f ≤ nhds (lim f) := epsilon_spec h
 end lim
 
-/-- The neighborhood within filter. Elements of `nhds_within a s` are sets containing the
+/-- The "neighborhood within" filter. Elements of `nhds_within a s` are sets containing the
 intersection of `s` and a neighborhood of `a`. -/
 def nhds_within (a : α) (s : set α) : filter α := nhds a ⊓ principal s
 

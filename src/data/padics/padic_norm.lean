@@ -2,7 +2,14 @@
 Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
+-/
 
+import data.rat.basic algebra.gcd_domain algebra.field_power
+import ring_theory.multiplicity tactic.ring
+import data.real.cau_seq
+import tactic.norm_cast
+
+/-!
 # p-adic norm
 
 This file defines the p-adic valuation and the p-adic norm on ℚ.
@@ -25,14 +32,13 @@ by taking (prime p) as a type class argument.
 
 ## References
 
-Tags: p-adic, p adic, padic, norm, valuation
+* [F. Q. Gouêva, *p-adic numbers*][gouvea1997]
+* https://en.wikipedia.org/wiki/P-adic_number
 
+## Tags
+
+p-adic, p adic, padic, norm, valuation
 -/
-
-import data.rat.basic algebra.gcd_domain algebra.field_power
-import ring_theory.multiplicity tactic.ring
-import data.real.cau_seq
-import tactic.norm_cast
 
 universe u
 
@@ -61,7 +67,7 @@ then (multiplicity (p : ℤ) q.num).get
 else 0
 
 /--
-Rewrites the definition of `padic_val_rat p q` when `q ≠ 0` and `p` is prime.
+A simplification of the definition of `padic_val_rat p q` when `q ≠ 0` and `p` is prime.
 -/
 lemma padic_val_rat_def (p : ℕ) [hp : p.prime] {q : ℚ} (hq : q ≠ 0) : padic_val_rat p q =
   (multiplicity (p : ℤ) q.num).get (finite_int_iff.2 ⟨hp.ne_one, rat.num_ne_zero_of_ne_zero hq⟩) -
@@ -175,7 +181,7 @@ by rw [div_eq_mul_inv, padic_val_rat.mul p hq (inv_ne_zero hr),
     padic_val_rat.inv p hr, sub_eq_add_neg]
 
 /--
-Gives a condition for `padic_val_rat p (n₁ / d₁) ≤ padic_val_rat p (n₂ / d₂),
+A condition for `padic_val_rat p (n₁ / d₁) ≤ padic_val_rat p (n₂ / d₂),
 in terms of divisibility by `p^n`.
 -/
 lemma padic_val_rat_le_padic_val_rat_iff {n₁ n₂ d₁ d₂ : ℤ}
@@ -200,7 +206,7 @@ have hf2 : finite (p : ℤ) (n₂ * d₁),
   }
 
 /--
-Gives sufficient conditions to show that the p-adic valuation of `q` is less than or equal to the
+Sufficient conditions to show that the p-adic valuation of `q` is less than or equal to the
 p-adic vlauation of `q + r`.
 -/
 theorem le_padic_val_rat_add_of_le {q r : ℚ}

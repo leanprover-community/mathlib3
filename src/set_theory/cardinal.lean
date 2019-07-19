@@ -2,7 +2,11 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl, Mario Carneiro
+-/
 
+import data.set.countable data.quot logic.function set_theory.schroeder_bernstein
+
+/-!
 # Cardinal Numbers
 
 We define cardinal numbers as a quotient of types under the equivalence relation of equinumerity.
@@ -22,10 +26,10 @@ We define the order on cardinal numbers, define omega, and do basic cardinal ari
 
 * https://en.wikipedia.org/wiki/Cardinal_number
 
-Tags: cardinal number, cardinal arithmetic, cardinal exponentiation, omega
--/
+## Tags
 
-import data.set.countable data.quot logic.function set_theory.schroeder_bernstein
+cardinal number, cardinal arithmetic, cardinal exponentiation, omega
+-/
 
 open function lattice set
 local attribute [instance] classical.prop_decidable

@@ -404,7 +404,7 @@ local attribute [elab_as_eliminator] well_founded.fix
 
 lemma well_founded_dvd_not_unit : well_founded (λ a b : α, a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ b = a * x ) :=
 by simp only [ideal.span_singleton_lt_span_singleton.symm];
-   exact inv_image.wf (λ a, ideal.span ({a} : set α)) well_founded_submodule_gt
+   exact inv_image.wf (λ a, ideal.span ({a} : set α)) (well_founded_submodule_gt _ _)
 
 lemma exists_irreducible_factor {a : α} (ha : ¬ is_unit a) (ha0 : a ≠ 0) :
   ∃ i, irreducible i ∧ i ∣ a :=

@@ -5,9 +5,14 @@ requests must meet the following standards.
 
 ## Header comment
 
-Each mathlib file should start with a header comment with copyright information (see example below)
-followed by general documentation written using Markdown. Headers use atx-style headers (with hash
-signs, no underlying dash).
+Each mathlib file should start with:
+* a header comment with copyright information;
+* the list of imports;
+* a module docstring containing general documentation, written using Markdown.
+
+(See the example below.)
+
+Headers use atx-style headers (with hash signs, no underlying dash).
 
 The mandatory title of the file is a first level header. It is followed by a summary of the content
 of the file.
@@ -15,12 +20,13 @@ of the file.
 The other sections, with second level headers are (in this order):
 * *Main definitions* (optional, can be covered in the summary)
 * *Main statements* (optional, can be covered in the summary)
-* *Notations* (ommited only if no notation is introduced in this file)
+* *Notations* (omitted only if no notation is introduced in this file)
 * *Implementation notes* (description of important design decisions or interface features)
 * *References* (references to textbooks or papers, or Wikipedia pages)
+* *Tags* (a list of keywords that could be useful when doing text search in mathlib to find where
+  something is covered)
 
-After references, we write "Tags:" followed by a list of keywords that could be useful when
-doing text search in mathlib to find where something is covered.
+References should refer to bibtex entries in [the mathlib citations file](../references.bib).
 
 The following code block is an example of a file header.
 
@@ -29,7 +35,14 @@ The following code block is an example of a file header.
 Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
+-/
 
+import data.rat.basic algebra.gcd_domain algebra.field_power
+import ring_theory.multiplicity tactic.ring
+import data.real.cau_seq
+import tactic.norm_cast
+
+/-!
 # p-adic norm
 
 This file defines the p-adic valuation and the p-adic norm on ℚ.
@@ -52,10 +65,12 @@ by taking (prime p) as a type class argument.
 
 ## References
 
-* F. Q. Gouêva, *p-adic numbers*
+* [F. Q. Gouêva, *p-adic numbers*][gouvea1997]
 * https://en.wikipedia.org/wiki/P-adic_number
 
-Tags: p-adic, p adic, padic, norm, valuation
+## Tags
+
+p-adic, p adic, padic, norm, valuation
 -/
 ```
 

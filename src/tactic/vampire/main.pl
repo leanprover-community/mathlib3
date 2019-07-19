@@ -323,9 +323,9 @@ filter_maps(Prf, Maps, NewMaps) :-
 %   pushmaps_debug(Maps, PrfA, passed([Lit, Lit | Cla])),
 %   subst(Maps, CncA, [Lit | Cla]).
 %
-% pushmaps(Maps, asm(Num, Cnc), asm(Num, NewMaps)) :-
-%   vars(Cnc, Vars),
-%   include(relevant(Vars), Maps, NewMaps).
+pushmaps(Maps, asm(Num, Cnc), asm(Num, NewMaps)) :-
+  vars(Cnc, Vars),
+  include(relevant(Vars), Maps, NewMaps).
 
 pushmaps(Maps, rsl(PrfA, PrfB, _), rsl(CPrfA, CPrfB)) :-
   filter_maps(PrfA, Maps, MapsA),

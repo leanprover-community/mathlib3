@@ -20,9 +20,6 @@ local notation `&`     := term.sym
 local notation a `&` b := term.app a b
 local notation a `#` k := term.vpp a k
 
--- @[reducible] def sub : Type := nat × term
--- @[reducible] def subs : Type := list sub
-
 inductive proof (m : mat) : cla → Type
 | hyp (k : nat) : proof (m.nth k)
 | res (t : term) (c d : cla) :

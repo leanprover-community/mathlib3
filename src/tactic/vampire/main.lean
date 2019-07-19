@@ -14,7 +14,7 @@ import tactic.vampire.proof
 
 universe u
 
-variable {α : Type}
+variables {α : Type} [inhabited α]
 
 open tactic list
 
@@ -22,6 +22,14 @@ namespace vampire
 
 local notation `#`     := term₂.var
 local notation a `&` b := term₂.app a b
+
+
+local notation `+₂`     := form₂.lit tt
+local notation `-₂`     := form₂.lit ff
+local notation p `∨₂` q := form₂.bin tt p q
+local notation p `∧₂` q := form₂.bin ff p q
+local notation `∃₂`     := form₂.qua tt
+local notation `∀₂`     := form₂.qua ff
 
 def clausify (p : form₂) : mat :=
 cnf $ form.neg $ form₂.folize 0 $ prenexify $ swap_all ff p
@@ -48,8 +56,59 @@ do child ← io.proc.spawn { stdout := io.process.stdio.piped, ..args },
 /- Change to desired location of temporary goal file -/
 def temp_goal_file_path : string := "/var/tmp/temp_goal_file"
 
-lemma arifix_of_proof (α : Type) [inhabited α] (p : form₂) :
-  foq tt p → proof (clausify p) [] → arifix (model.default α) p :=
+def normalize (p : form₂) : form₂ :=
+prenexify $ swap_all ff p
+
+-- #check list.foldl
+-- def disj : form₂ → list form₂ → form₂
+-- | p []        := p
+-- | p (q :: qs) :=
+--
+def conditionalize : form₂ → list form₂ → form₂
+| p []        := p
+| p (q :: qs) := (conditionalize p qs) ∨₂ q.neg
+
+lemma of_holds_conditionalize (M : model α) (p : form₂) :
+  ∀ qs : list form₂, (conditionalize p qs).holds M →
+  (p.holds M ∨ (∃ q ∈ qs, ¬ form₂.holds M q))
+| []        h0 := or.inl h0
+| (q :: qs) h0 :=
+  begin
+    cases h0,
+    { rcases of_holds_conditionalize qs h0 with h1 | ⟨r, hr0, hr1⟩,
+      { exact or.inl h1 },
+      apply or.inr,
+      refine ⟨r, or.inr hr0, hr1⟩ },
+    apply or.inr,
+    refine ⟨q, or.inl rfl, _⟩,
+    rw ← holds_neg, exact h0
+  end
+
+lemma holds_of_holds_conditionalize
+  (M : model α) (p : form₂) (qs : list form₂) :
+  (∀ q ∈ qs, form₂.holds M q) →
+  (conditionalize p qs).holds M →
+  p.holds M :=
+begin
+  intros h0 h1,
+  rcases of_holds_conditionalize M p qs h1 with h2 | ⟨q, hq0, hq1⟩ ,
+  { exact h2 },
+  exact false.elim (hq1 $ h0 _ hq0)
+end
+
+-- lemma arifix_of_holds_normalize
+--   (α : Type) [inhabited α] (M : model α) (p : form₂) :
+--   foq tt p → (normalize p).holds M → arifix M p :=
+-- begin
+--   intros h0 h1,
+--   apply arifix_of_holds h0,
+--   rw [ ← @swap_all_eqv α _ ff _ h0 M,
+--        ← @prenexify_eqv α _ _ M ],
+--   exact h1
+-- end
+
+lemma arifix_of_proof (α : Type) [inhabited α] (M : model α) (p : form₂) :
+  foq tt p → proof (clausify p) [] → arifix M p :=
 begin
   intros h0 hρ,
   apply arifix_of_holds h0,
@@ -65,6 +124,24 @@ begin
   apply fam_of_tas_folize _ h1 h2,
   apply @tas_of_proof α _ _ hρ
 end
+
+-- lemma arifix_of_proof (α : Type) [inhabited α] (p : form₂) :
+--   foq tt p → proof (clausify p) [] → arifix (model.default α) p :=
+-- begin
+--   intros h0 hρ,
+--   apply arifix_of_holds h0,
+--   apply (@id (fam α p) _),
+--   apply (forall_congr (@swap_all_eqv α _ ff _ h0)).elim_left,
+--   apply (forall_congr (@prenexify_eqv α _ _)).elim_left,
+--   have h1 : foq tt (prenexify (swap_all ff p)),
+--   { apply foq_prenexify,
+--     apply foq_swap_all _ h0 },
+--   have h2 : form₂.QDF ff (prenexify (swap_all ff p)),
+--   { apply QDF_prenexify,
+--     apply QN_swap_all },
+--   apply fam_of_tas_folize _ h1 h2,
+--   apply @tas_of_proof α _ _ hρ
+-- end
 
 meta inductive item : Type
 | nm  (n : nat)            : item
@@ -115,11 +192,12 @@ meta def build_proof (chs : list char)
   (αx ix : expr) (p : form₂) (m : mat)
   : tactic expr :=
 do πx ← build_proof_core m m.to_expr [] chs,
+   Mx ← to_expr ``(model.default %%αx),
    let px   : expr := form₂.to_expr p,
    let foqx : expr := expr.mk_app `(foq) [`(tt), px],
    let decx : expr := expr.mk_app `(foq.decidable) [`(tt), px],
    let fx   : expr := expr.mk_app `(@of_as_true) [foqx, decx, `(trivial)],
-   let x    : expr := expr.mk_app `(@arifix_of_proof) [αx, ix, px, fx],
+   let x    : expr := expr.mk_app `(@arifix_of_proof) [αx, ix, Mx, px, fx],
    return (expr.app x πx)
 
 def term.to_rr : term → string
@@ -153,6 +231,21 @@ do (dx, ix, p) ← reify,
    if inp = none
    then trace s
    else skip
+
+axiom quodlibet (p : Prop) : p
+
+def refl_ax : form₂ :=
+  ∀₂ (+₂ ((# 1 & # 0) & #0))
+
+def symm_ax : form₂ :=
+  ∀₂ (∀₂ (-₂ ((# 2 & # 0) & #1) ∨₂ +₂ ((# 2 & # 1) & #0)))
+
+meta def vampire_eq : tactic unit :=
+do (αx, ihx, p) ← reify_eq,
+   let px   : expr := form₂.to_expr p,
+   x ← to_expr ``(quodlibet (@arifix %%αx %%ihx (@model.eq %%αx %%ihx) %%px)),
+   apply x,
+   skip
 
 end vampire
 

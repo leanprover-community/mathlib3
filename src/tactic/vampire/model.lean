@@ -22,6 +22,10 @@ def value (α : Type u) : Type u := list α → (α × Prop)
 def value.default [inhabited α] : value α :=
 λ as, (default α, false)
 
+def value.eq [inhabited α] : value α
+| [x, y] := (default α, x = y)
+| _      := (default α, false)
+
 def evaluate (a : α) : value α :=
 λ _, (a, false)
 
@@ -40,6 +44,10 @@ local infix `⬝` := value.app
 def model (α : Type u) : Type u := nat → value α
 
 def model.default (α : Type u) [inhabited α] : model α := λ _, value.default
+
+def model.eq (α : Type u) [inhabited α] : model α
+| 0       := value.eq
+| (k + 1) := value.default
 
 @[reducible] def vas (α : Type u) : Type u := nat → α
 

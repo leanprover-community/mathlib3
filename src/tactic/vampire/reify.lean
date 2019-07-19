@@ -20,13 +20,29 @@ meta def is_pred_type (dx : expr) : expr → bool
 | `(%%x → %%y) := (x = dx) && (is_pred_type y)
 | x            := x = `(Prop)
 
-meta def get_symb_aux (dx x : expr) : tactic expr :=
-do tx ← infer_type x,
-   if (is_pred_type dx tx || is_func_type dx tx)
-   then return x
-   else failed
+-- meta def compare : expr → expr → tactic unit
+-- | (expr.app x y) (expr.app z w) :=
+--   if x = z
+--   then trace "Fst eq"
+--   else trace "Fst not eq" >>
+--   if y = w
+--   then trace "Snd eq"
+--   else trace "Snd not eq"
+-- | _ _ := trace "Not apps"
+--
+-- meta def get_head : list expr → tactic expr
+-- | [] := failed
+-- | (x :: _) := return x
 
-meta def get_symb (dx : expr) : expr → tactic expr
+meta def get_symb_aux (dx x : expr) (xs : list expr) : tactic expr :=
+if x ∈ xs
+then failed
+else do tx ← infer_type x,
+        if (is_pred_type dx tx || is_func_type dx tx)
+        then return x
+        else failed
+
+meta def get_symb (dx : expr) (xs : list expr) : expr → tactic expr
 | `(true)   := failed
 | `(false)  := failed
 | `(¬ %%px) := get_symb px
@@ -38,8 +54,8 @@ meta def get_symb (dx : expr) : expr → tactic expr
 | x@(app x1 x2) :=
        get_symb x1
   <|>  get_symb x2
-  <|>  get_symb_aux dx x
-| x := get_symb_aux dx x
+  <|>  get_symb_aux dx x xs
+| x := get_symb_aux dx x xs
 
 meta def subst_symb (y : expr) : nat → expr → expr
 | k x@(app x1 x2) :=
@@ -52,9 +68,15 @@ meta def subst_symb (y : expr) : nat → expr → expr
 
 meta def abst (dx : expr) : expr → tactic expr
 | x :=
-  (do y ← get_symb dx x,
+  (do y ← get_symb dx [] x,
       abst (pi name.anonymous binder_info.default dx (subst_symb y 0 x))) <|>
   (return x)
+
+meta def abst_eq (dx eqx : expr) : expr → tactic expr
+| x :=
+  (do y ← get_symb dx [eqx] x,
+      abst_eq (pi name.anonymous binder_info.default dx (subst_symb y 0 x))) <|>
+  (return $ subst_symb eqx 0 x)
 
 meta def get_domain_core : expr → tactic expr
 | `(¬ %%p)     := get_domain_core p
@@ -134,6 +156,15 @@ do desugar,
    ihx ← to_expr ``(inhabited),
    ix ← mk_instance (app ihx dx),
    p ← target >>= abst dx >>= to_form 0,
+   return (dx, ix, p)
+
+meta def reify_eq : tactic (expr × expr × form₂) :=
+do desugar,
+   dx ← get_domain,
+   ihx ← to_expr ``(inhabited),
+   ix ← mk_instance (app ihx dx),
+   eqx ← to_expr ``(@eq %%dx),
+   p ← target >>= abst_eq dx eqx >>= to_form 0,
    return (dx, ix, p)
 
 end vampire

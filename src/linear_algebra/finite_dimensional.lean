@@ -30,22 +30,7 @@ variables {K : Type u} {V : Type v} [discrete_field K] [add_comm_group V] [vecto
 
 namespace finite_dimensional
 
-lemma finite_of_linear_independent {ι : Type w} [decidable_eq V] [decidable_eq ι]
-  [finite_dimensional K V] {s : ι → V} (hs : linear_independent K s) : nonempty (fintype ι) :=
-begin
-  cases is_noetherian.noetherian (span K (set.range s)) with t ht,
-  have := dim_span hs,
-  rw [← ht] at this,
-  rw [← lt_omega_iff_fintype, ← cardinal.lift_lt.{w (max v w)}],
-  calc cardinal.lift.{w (max v w)} (cardinal.mk ι) =
-    cardinal.lift (cardinal.mk ↥(set.range s)) : quotient.sound
-      ⟨equiv.ulift.trans ((equiv.set.range _
-        (hs.injective zero_ne_one)).trans equiv.ulift.symm)⟩
-  ... < _ : begin
-    rw [← this, lift_omega, ← lift_omega.{v w}, lift_lt],
-    exact dim_span_of_finset _
-  end
-end
+open is_noetherian
 
 lemma finite_dimensional_iff_dim_lt_omega : finite_dimensional K V ↔ dim K V < omega.{v} :=
 begin
@@ -155,7 +140,7 @@ lemma mul_eq_one_of_mul_eq_one [finite_dimensional K V] {f g : V →ₗ[K] V} (h
   g * f = 1 :=
 by classical; exact
 have ginj : injective g, from injective_of_has_left_inverse
-⟨f, λ x, show (f * g) x = (1 : V →ₗ[K] V) x, by rw hfg; refl⟩,
+  ⟨f, λ x, show (f * g) x = (1 : V →ₗ[K] V) x, by rw hfg; refl⟩,
 let ⟨i, hi⟩ := exists_right_inverse_linear_map_of_surjective
   (range_eq_top.2 (injective_iff_surjective.1 ginj)) in
 have f * (g * i) = f * 1, from congr_arg _ hi,

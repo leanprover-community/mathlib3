@@ -129,3 +129,4 @@ The following files are maintained as examples of good documentation style:
 
 * [data/padics/padic_norm](../../src/data/padics/padic_norm.lean)
 * [topology/basic](../../src/topology/basic.lean)
+* [analysis/calculus/times_cont_diff](../../src/analysis/calculus/times_cont_diff.lean)

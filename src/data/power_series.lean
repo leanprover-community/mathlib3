@@ -77,16 +77,12 @@ lemma single_eq_zero [has_zero α] [decidable_eq α] {s : σ} {a : α} :
 
 variable (σ)
 
+/-- The order on σ →₀ ℕ is well-founded.-/
 def lt_wf : well_founded (@has_lt.lt (σ →₀ ℕ) _) :=
 subrelation.wf (sum_lt_of_lt) $ inv_image.wf _ nat.lt_wf
 
-instance decidable_lt : decidable_rel (@has_lt.lt (σ →₀ ℕ) _) :=
-λ m n,
-begin
-  have h : _ := _,
-  rw lt_iff_le_and_ne, refine @and.decidable _ _ h _,
-  rw le_iff, apply_instance
-end
+instance decidable_le : decidable_rel (@has_le.le (σ →₀ ℕ) _) :=
+λ m n, by rw le_iff; apply_instance
 
 end finsupp
 
@@ -385,11 +381,65 @@ end map
 
 section trunc
 
-variable (n : σ →₀ ℕ)
+variables [decidable_eq α] (n : σ →₀ ℕ)
 
 /-- The `n`th truncation of a multivariate power series to a multivariate polynomial -/
 def trunc (φ : mv_power_series σ α) : mv_polynomial σ α :=
-_
+{ support := (n.antidiagonal.support.image prod.fst).filter (λ m, coeff m φ ≠ 0),
+  to_fun := λ m, if m ≤ n then coeff m φ else 0,
+  mem_support_to_fun := λ m,
+  begin
+    suffices : m ∈ finset.image prod.fst ((antidiagonal n).support) ↔ m ≤ n,
+    { rw [finset.mem_filter, this], split,
+      { intro h, rw [if_pos h.1], exact h.2 },
+      { intro h, split_ifs at h with H H,
+        { exact ⟨H, h⟩ },
+        { exfalso, exact h rfl } } },
+    rw finset.mem_image, split,
+    { rintros ⟨⟨i,j⟩, h, rfl⟩ s,
+      rw finsupp.mem_antidiagonal_support at h,
+      rw ← h, exact nat.le_add_right _ _ },
+    { intro h, refine ⟨(m, n-m), _, rfl⟩,
+      rw finsupp.mem_antidiagonal_support, ext s, exact nat.add_sub_of_le (h s) }
+  end }
+
+lemma coeff_trunc (m) (φ : mv_power_series σ α) :
+  mv_polynomial.coeff m (trunc n φ) =
+  if m ≤ n then coeff m φ else 0 := rfl
+
+@[simp] lemma trunc_zero : trunc n (0 : mv_power_series σ α) = 0 :=
+mv_polynomial.ext _ _ $ λ m,
+begin
+  rw [coeff_trunc, coeff_zero, mv_polynomial.coeff_zero],
+  split_ifs; refl
+end
+
+@[simp] lemma trunc_one : trunc n (1 : mv_power_series σ α) = 1 :=
+mv_polynomial.ext _ _ $ λ m,
+begin
+  rw [coeff_trunc, coeff_one],
+  split_ifs with H H' H',
+  { subst m, exact rfl },
+  { symmetry, exact if_neg (ne.elim (ne.symm H')) },
+  { symmetry, refine if_neg _,
+    intro H', apply H, subst m, intro s, exact nat.zero_le _ }
+end
+
+@[simp] lemma trunc_C (a : α) : trunc n (C a) = mv_polynomial.C a :=
+mv_polynomial.ext _ _ $ λ m,
+begin
+  rw [coeff_trunc, coeff_C, mv_polynomial.coeff_C],
+  split_ifs with H; refl <|> try {simp * at *},
+  exfalso, apply H, subst m, intro s, exact nat.zero_le _
+end
+
+@[simp] lemma trunc_add (φ ψ : mv_power_series σ α) :
+  trunc n (φ + ψ) = trunc n φ + trunc n ψ :=
+mv_polynomial.ext _ _ $ λ m,
+begin
+  simp only [coeff_trunc, coeff_add, mv_polynomial.coeff_add],
+  split_ifs with H, {refl}, {rw [zero_add]}
+end
 
 end trunc
 
@@ -742,6 +792,68 @@ instance map.is_semiring_hom :
 mv_power_series.map.is_semiring_hom f
 
 end map
+
+section trunc
+
+variables [decidable_eq α] (n : ℕ)
+
+/-- The `n`th truncation of a power series to a polynomial -/
+def trunc (φ : power_series α) : polynomial α :=
+{ support := ((finset.nat.antidiagonal n).image prod.fst).filter (λ m, coeff m φ ≠ 0),
+  to_fun := λ m, if m ≤ n then coeff m φ else 0,
+  mem_support_to_fun := λ m,
+  begin
+    suffices : m ∈ ((finset.nat.antidiagonal n).image prod.fst) ↔ m ≤ n,
+    { rw [finset.mem_filter, this], split,
+      { intro h, rw [if_pos h.1], exact h.2 },
+      { intro h, split_ifs at h with H H,
+        { exact ⟨H, h⟩ },
+        { exfalso, exact h rfl } } },
+    rw finset.mem_image, split,
+    { rintros ⟨⟨i,j⟩, h, rfl⟩,
+      rw finset.nat.mem_antidiagonal at h,
+      rw ← h, exact nat.le_add_right _ _ },
+    { intro h, refine ⟨(m, n-m), _, rfl⟩,
+      rw finset.nat.mem_antidiagonal, exact nat.add_sub_of_le h }
+  end }
+
+lemma coeff_trunc (m) (φ : power_series α) :
+  polynomial.coeff (trunc n φ) m = if m ≤ n then coeff m φ else 0 := rfl
+
+@[simp] lemma trunc_zero : trunc n (0 : power_series α) = 0 :=
+polynomial.ext.2 $ λ m,
+begin
+  rw [coeff_trunc, coeff_zero, polynomial.coeff_zero],
+  split_ifs; refl
+end
+
+@[simp] lemma trunc_one : trunc n (1 : power_series α) = 1 :=
+polynomial.ext.2 $ λ m,
+begin
+  rw [coeff_trunc, coeff_one],
+  split_ifs with H H' H',
+  { subst m, exact rfl },
+  { symmetry, exact if_neg (ne.elim (ne.symm H')) },
+  { symmetry, refine if_neg _,
+    intro H', apply H, subst m, exact nat.zero_le _ }
+end
+
+@[simp] lemma trunc_C (a : α) : trunc n (C a) = polynomial.C a :=
+polynomial.ext.2 $ λ m,
+begin
+  rw [coeff_trunc, coeff_C, polynomial.coeff_C],
+  split_ifs with H; refl <|> try {simp * at *}
+end
+
+@[simp] lemma trunc_add (φ ψ : power_series α) :
+  trunc n (φ + ψ) = trunc n φ + trunc n ψ :=
+polynomial.ext.2 $ λ m,
+begin
+  simp only [coeff_trunc, coeff_add, polynomial.coeff_add],
+  split_ifs with H, {refl}, {rw [zero_add]}
+end
+
+end trunc
 
 end comm_semiring
 

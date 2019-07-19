@@ -664,7 +664,7 @@ concat_tags (do e ← i_to_expr_for_apply q, tactic.apply' e cfg)
 
 /--
 Similar to the `apply` tactic, but uses matching instead of unification.
-`apply_match t` is equivalent to `apply_with t {unify := ff}`
+`mapply' t` is equivalent to `apply_with t {unify := ff}`
 -/
 meta def mapply' (q : parse texpr) : tactic unit :=
 concat_tags (do e ← i_to_expr_for_apply q, tactic.apply' e {unify := ff})

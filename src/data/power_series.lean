@@ -8,6 +8,32 @@ import data.finsupp order.complete_lattice algebra.ordered_group data.mv_polynom
 import algebra.order_functions
 import ring_theory.ideal_operations
 
+/-!
+# formal power series
+
+This file defines (multivariate) formal power series
+and develops the basic properties of these objects.
+
+The ring of formal power series is the completion of the polynomial ring.
+(One may take the topological or the algebraic completion,
+the resulting rings are canonically isomorphic.)
+
+If the constant coefficient of a formal power series is invertible,
+then this formal power series is invertible.
+
+Formal power series over a local ring form a local ring.
+
+## Implementation notes
+
+In this file we define multivariate power series with coefficients in `α` as
+(σ →₀ ℕ) → α
+Unfortunately there is not yet enough API to show that they are the completion
+of the ring of multivariate polynomials. However, we provide most of the infrastructure
+that is needed to do this. Once I-adic completion (topological or algebraic) is available
+it should not be hard to fill in the details.
+
+-/
+
 namespace discrete_field
 variables {α : Type*} [discrete_field α]
 

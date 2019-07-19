@@ -631,6 +631,35 @@ end discrete_field
 
 end mv_power_series
 
+namespace mv_polynomial
+open finsupp
+variables {σ : Type*} {α : Type*} [decidable_eq σ] [decidable_eq α] [comm_semiring α]
+
+/-- The natural inclusion from multivariate polynomials into multivariate power series.-/
+def to_mv_power_series (φ : mv_polynomial σ α) : mv_power_series σ α :=
+λ n, coeff n φ
+
+@[simp] lemma to_mv_power_series_coeff (φ : mv_polynomial σ α) (n) :
+mv_power_series.coeff n (φ.to_mv_power_series) = coeff n φ := rfl
+
+namespace to_mv_power_series
+
+instance : is_semiring_hom (to_mv_power_series : mv_polynomial σ α → mv_power_series σ α) :=
+{ map_zero := mv_power_series.ext $ λ n, by simp,
+  map_one := mv_power_series.ext $ λ n,
+  begin
+    rw [to_mv_power_series_coeff, mv_power_series.coeff_one],
+    split_ifs; rw ← C_1; simp [-C_1, h],
+    { rw ← ne_from_not_eq at h, simp [h.symm] }
+  end,
+  map_add := λ φ ψ, mv_power_series.ext $ λ n, by simp,
+  map_mul := λ φ ψ, mv_power_series.ext $ λ n,
+  by simp only [to_mv_power_series_coeff, mv_power_series.coeff_mul, coeff_mul] }
+
+end to_mv_power_series
+
+end mv_polynomial
+
 /-- Power series over the coefficient ring `α`.-/
 def power_series (α : Type*) := mv_power_series unit α
 
@@ -990,3 +1019,31 @@ mv_power_series.inv_mul φ h
 end discrete_field
 
 end power_series
+
+namespace polynomial
+open finsupp
+variables {σ : Type*} {α : Type*} [decidable_eq σ] [decidable_eq α] [comm_semiring α]
+
+/-- The natural inclusion from polynomials into power series.-/
+def to_power_series (φ : polynomial α) : power_series α :=
+power_series.mk $ λ n, coeff φ n
+
+@[simp] lemma to_power_series_coeff (φ : polynomial α) (n) :
+power_series.coeff n (φ.to_power_series) = coeff φ n := rfl
+
+namespace to_power_series
+
+instance : is_semiring_hom (to_power_series : polynomial α → power_series α) :=
+{ map_zero := power_series.ext $ λ n, by simp,
+  map_one := power_series.ext $ λ n,
+  begin
+    rw [to_power_series_coeff, polynomial.coeff_one, power_series.coeff_one],
+    split_ifs; refl <|> simp * at *
+  end,
+  map_add := λ φ ψ, power_series.ext $ λ n, by simp,
+  map_mul := λ φ ψ, power_series.ext $ λ n,
+  by simp only [to_power_series_coeff, power_series.coeff_mul, coeff_mul] }
+
+end to_power_series
+
+end polynomial

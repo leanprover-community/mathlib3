@@ -6,7 +6,7 @@ Authors: Yury Kudryashov
 # Category of categories
 
 This file contains definition of category `Cat` of all categories.  In
-this category, objects are categories, and morphisms are functors
+this category objects are categories and morphisms are functors
 between these categories.
 
 ## Implementation notes

@@ -206,7 +206,7 @@ instance (n : ℕ) : fintype (fin n) :=
 @[simp] theorem fintype.card_fin (n : ℕ) : fintype.card (fin n) = n :=
 by rw [fin.fintype]; simp [fintype.card, card, univ]
 
-instance unique.fintype {α : Type*} [unique α] : fintype α :=
+@[instance, priority 0] def unique.fintype {α : Type*} [unique α] : fintype α :=
 ⟨finset.singleton (default α), λ x, by rw [unique.eq_default x]; simp⟩
 
 instance : fintype empty := ⟨∅, empty.rec _⟩

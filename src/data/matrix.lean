@@ -195,8 +195,6 @@ end ring
 instance [decidable_eq n] [ring α] : ring (matrix n n α) :=
 { ..matrix.add_comm_group, ..matrix.semiring }
 
-instance [has_mul α] : has_scalar α (matrix m n α) := ⟨λ a M i j, a * M i j⟩
-
 instance [ring α] : module α (matrix m n α) := pi.module _
 
 section comm_ring

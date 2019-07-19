@@ -29,7 +29,12 @@ pull_request_rules:
         method: squash
         strict: smart
         strict_method: merge
-  
+# rule used to protect master branch
+  - name: approved by maintainer
+    conditions:
+      - approved-reviews-by=@leanprover-community/mathlib-maintainers
+    actions: {}
+
  # In practice this turns out to be really annoying.
  # - name: remove outdated reviews
  #   conditions:

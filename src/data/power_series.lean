@@ -98,18 +98,23 @@ namespace mv_power_series
 open finsupp
 variables {σ : Type*} {α : Type*} [decidable_eq σ]
 
+/-- The `n`th coefficient of a multivariate power series.-/
 def coeff (n : σ →₀ ℕ) (φ : mv_power_series σ α) := φ n
 
+/-- Two multivariate power series are equal if all their coefficients are equal.-/
 @[extensionality] lemma ext {φ ψ : mv_power_series σ α} (h : ∀ n, coeff n φ = coeff n ψ) :
   φ = ψ :=
 funext h
 
+/-- Two multivariate power series are equal if and only if all their coefficients are equal.-/
 lemma ext_iff {φ ψ : mv_power_series σ α} :
   φ = ψ ↔ (∀ n, coeff n φ = coeff n ψ) :=
 ⟨λ h n, congr_arg (coeff n) h, ext⟩
 
+section comm_semiring
 variables [comm_semiring α]
 
+/-- The `n`th monimial with coefficient `a` as multivariate power series.-/
 def monomial (n : σ →₀ ℕ) (a : α) : mv_power_series σ α :=
 λ m, if m = n then a else 0
 
@@ -119,6 +124,7 @@ lemma coeff_monomial (m n : σ →₀ ℕ) (a : α) :
 @[simp] lemma coeff_monomial' (n : σ →₀ ℕ) (a : α) :
   coeff n (monomial n a) = a := if_pos rfl
 
+/-- The constant multivariate power series.-/
 def C (a : α) : mv_power_series σ α := monomial 0 a
 
 lemma coeff_C (n : σ →₀ ℕ) (a : α) :
@@ -129,6 +135,7 @@ coeff_monomial' 0 a
 
 @[simp] lemma monomial_zero (a : α) : (monomial 0 a : mv_power_series σ α) = C a := rfl
 
+/-- The variables of the multivariate power series ring.-/
 def X (s : σ) : mv_power_series σ α := monomial (single s 1) 1
 
 lemma coeff_X (n : σ →₀ ℕ) (s : σ) :
@@ -142,21 +149,21 @@ by { simp only [coeff_X, single_eq_single_of_ne_zero one_ne_zero], split_ifs; re
   coeff (single s 1) (X s : mv_power_series σ α) = 1 :=
 by rw [coeff_X', if_pos rfl]
 
-section ring
+section ring_structure
 variables (σ) (α) (n : σ →₀ ℕ) (φ ψ : mv_power_series σ α)
 
-def zero : mv_power_series σ α := λ n, 0
+protected def zero : mv_power_series σ α := λ n, 0
 
-instance : has_zero (mv_power_series σ α) := ⟨zero σ α⟩
+instance : has_zero (mv_power_series σ α) := ⟨mv_power_series.zero σ α⟩
 
 @[simp] lemma coeff_zero : coeff n (0 : mv_power_series σ α) = 0 := rfl
 
 @[simp] lemma C_zero : (C 0 : mv_power_series σ α) = 0 :=
 ext $ λ n, if h : n = 0 then by simp [h] else by rw [coeff_C, if_neg h, coeff_zero]
 
-def one : mv_power_series σ α := C 1
+protected def one : mv_power_series σ α := C 1
 
-instance : has_one (mv_power_series σ α) := ⟨one σ α⟩
+instance : has_one (mv_power_series σ α) := ⟨mv_power_series.one σ α⟩
 
 @[simp] lemma coeff_one :
   coeff n (1 : mv_power_series σ α) = if n = 0 then 1 else 0 := rfl
@@ -166,22 +173,22 @@ coeff_C_zero 1
 
 @[simp] lemma C_one : (C 1 : mv_power_series σ α) = 1 := rfl
 
-def add (φ ψ : mv_power_series σ α) : mv_power_series σ α :=
+protected def add (φ ψ : mv_power_series σ α) : mv_power_series σ α :=
 λ n, coeff n φ + coeff n ψ
 
-instance : has_add (mv_power_series σ α) := ⟨add σ α⟩
+instance : has_add (mv_power_series σ α) := ⟨mv_power_series.add σ α⟩
 
 variables {σ α}
 
 @[simp] lemma coeff_add : coeff n (φ + ψ) = coeff n φ + coeff n ψ := rfl
 
-@[simp] lemma zero_add : (0 : mv_power_series σ α) + φ = φ := ext $ λ n, zero_add _
+@[simp] protected lemma zero_add : (0 : mv_power_series σ α) + φ = φ := ext $ λ n, zero_add _
 
-@[simp] lemma add_zero : φ + 0 = φ := ext $ λ n, add_zero _
+@[simp] protected lemma add_zero : φ + 0 = φ := ext $ λ n, add_zero _
 
-lemma add_comm : φ + ψ = ψ + φ := ext $ λ n, add_comm _ _
+protected lemma add_comm : φ + ψ = ψ + φ := ext $ λ n, add_comm _ _
 
-lemma add_assoc (φ₁ φ₂ φ₃ : mv_power_series σ α) :
+protected lemma add_assoc (φ₁ φ₂ φ₃ : mv_power_series σ α) :
   (φ₁ + φ₂) + φ₃ = φ₁ + (φ₂ + φ₃) := ext $ λ n, add_assoc _ _ _
 
 @[simp] lemma monomial_add (n : σ →₀ ℕ) (a b : α) :
@@ -193,10 +200,10 @@ monomial_add 0 a b
 
 variables (σ α)
 
-def mul (φ ψ : mv_power_series σ α) : mv_power_series σ α :=
+protected def mul (φ ψ : mv_power_series σ α) : mv_power_series σ α :=
 λ n, (finsupp.antidiagonal n).support.sum (λ p, coeff p.1 φ * coeff p.2 ψ)
 
-instance : has_mul (mv_power_series σ α) := ⟨mul σ α⟩
+instance : has_mul (mv_power_series σ α) := ⟨mv_power_series.mul σ α⟩
 
 variables {σ α}
 
@@ -215,46 +222,46 @@ begin
     split_ifs; simp * at * }
 end
 
-@[simp] lemma zero_mul : (0 : mv_power_series σ α) * φ = 0 :=
+@[simp] protected lemma zero_mul : (0 : mv_power_series σ α) * φ = 0 :=
 ext $ λ n, by simp [coeff_mul]
 
-@[simp] lemma mul_zero : φ * 0 = 0 :=
+@[simp] protected lemma mul_zero : φ * 0 = 0 :=
 ext $ λ n, by simp [coeff_mul]
 
-lemma mul_comm : φ * ψ = ψ * φ :=
+protected lemma mul_comm : φ * ψ = ψ * φ :=
 ext $ λ n, finset.sum_bij (λ p hp, p.swap)
   (λ p hp, swap_mem_antidiagonal_support hp)
   (λ p hp, mul_comm _ _)
   (λ p q hp hq H, by simpa using congr_arg prod.swap H)
   (λ p hp, ⟨p.swap, swap_mem_antidiagonal_support hp, p.swap_swap.symm⟩)
 
-@[simp] lemma one_mul : (1 : mv_power_series σ α) * φ = φ :=
+@[simp] protected lemma one_mul : (1 : mv_power_series σ α) * φ = φ :=
 ext $ λ n,
 begin
   rw [coeff_mul, finset.sum_eq_single ((0 : σ →₀ ℕ), n)],
   { rw [coeff_one_zero, one_mul] },
   { rintros ⟨i,j⟩ hij h,
     suffices : i ≠ 0,
-    { rw [coeff_one, if_neg this, _root_.zero_mul] },
+    { rw [coeff_one, if_neg this, zero_mul] },
     rw [mem_antidiagonal_support] at hij,
     rw [ne.def, prod.mk.inj_iff, not_and] at h,
-    intro H, apply h H, rw [← hij, H, _root_.zero_add] },
+    intro H, apply h H, rw [← hij, H, zero_add] },
   { intro H, exfalso, apply H,
-    rw [mem_antidiagonal_support, _root_.zero_add] }
+    rw [mem_antidiagonal_support, zero_add] }
 end
 
-@[simp] lemma mul_one : φ * 1 = φ :=
-by rw [mul_comm, one_mul]
+@[simp] protected lemma mul_one : φ * 1 = φ :=
+by rw [φ.mul_comm, φ.one_mul]
 
-lemma mul_add (φ₁ φ₂ φ₃ : mv_power_series σ α) :
+protected lemma mul_add (φ₁ φ₂ φ₃ : mv_power_series σ α) :
   φ₁ * (φ₂ + φ₃) = φ₁ * φ₂ + φ₁ * φ₃ :=
 ext $ λ n, by simp only [coeff_mul, coeff_add, mul_add, finset.sum_add_distrib]
 
-lemma add_mul (φ₁ φ₂ φ₃ : mv_power_series σ α) :
+protected lemma add_mul (φ₁ φ₂ φ₃ : mv_power_series σ α) :
   (φ₁ + φ₂) * φ₃ = φ₁ * φ₃ + φ₂ * φ₃ :=
 ext $ λ n, by simp only [coeff_mul, coeff_add, add_mul, finset.sum_add_distrib]
 
-lemma mul_assoc (φ₁ φ₂ φ₃ : mv_power_series σ α) :
+protected lemma mul_assoc (φ₁ φ₂ φ₃ : mv_power_series σ α) :
   (φ₁ * φ₂) * φ₃ = φ₁ * (φ₂ * φ₃) :=
 ext $ λ n,
 begin
@@ -283,22 +290,24 @@ begin
 end
 
 instance : comm_semiring (mv_power_series σ α) :=
-{ mul_one := mul_one,
-  one_mul := one_mul,
-  add_assoc := add_assoc,
-  zero_add := zero_add,
-  add_zero := add_zero,
-  add_comm := add_comm,
-  mul_assoc := mul_assoc,
-  mul_zero := mul_zero,
-  zero_mul := zero_mul,
-  mul_comm := mul_comm,
-  left_distrib := mul_add,
-  right_distrib := add_mul,
+{ mul_one := mv_power_series.mul_one,
+  one_mul := mv_power_series.one_mul,
+  add_assoc := mv_power_series.add_assoc,
+  zero_add := mv_power_series.zero_add,
+  add_zero := mv_power_series.add_zero,
+  add_comm := mv_power_series.add_comm,
+  mul_assoc := mv_power_series.mul_assoc,
+  mul_zero := mv_power_series.mul_zero,
+  zero_mul := mv_power_series.zero_mul,
+  mul_comm := mv_power_series.mul_comm,
+  left_distrib := mv_power_series.mul_add,
+  right_distrib := mv_power_series.add_mul,
   .. mv_power_series.has_zero σ α,
   .. mv_power_series.has_one σ α,
   .. mv_power_series.has_add σ α,
   .. mv_power_series.has_mul σ α }
+
+end ring_structure
 
 instance C.is_semiring_hom : is_semiring_hom (C : α → mv_power_series σ α) :=
 { map_zero := C_zero _ _,
@@ -306,7 +315,8 @@ instance C.is_semiring_hom : is_semiring_hom (C : α → mv_power_series σ α) 
   map_add := C_add,
   map_mul := C_mul }
 
-instance coeff.is_add_monoid_hom : is_add_monoid_hom (coeff n : mv_power_series σ α → α) :=
+instance coeff.is_add_monoid_hom (n : σ →₀ ℕ) :
+  is_add_monoid_hom (coeff n : mv_power_series σ α → α) :=
 { map_zero := coeff_zero _ _ _,
   map_add := coeff_add n }
 
@@ -315,7 +325,9 @@ instance coeff_zero.is_semiring_hom : is_semiring_hom (coeff 0 : mv_power_series
   map_mul := λ φ ψ, by simp [coeff_mul, support_single_ne_zero],
   .. coeff.is_add_monoid_hom 0 }
 
-lemma is_unit_coeff_zero (h : is_unit φ) : is_unit (coeff 0 φ) :=
+/-- If a multivariate power series is invertible, then so is its constant coefficient.-/
+lemma is_unit_coeff_zero (φ : mv_power_series σ α) (h : is_unit φ) :
+  is_unit (coeff 0 φ) :=
 by { rcases h with ⟨φ, rfl⟩, exact ⟨units.map (coeff 0) φ, rfl⟩ }
 
 instance : semimodule α (mv_power_series σ α) :=
@@ -329,8 +341,9 @@ instance : semimodule α (mv_power_series σ α) :=
 
 section map
 variables {β : Type*} {γ : Type*} [comm_semiring β] [comm_semiring γ]
-variables (f : α → β) (g : β → γ) [is_semiring_hom f] [is_semiring_hom g]
+variables (f : α → β) (g : β → γ)
 
+/-- The map between multivariate power series induced by a map on the coefficients.-/
 def map : mv_power_series σ α → mv_power_series σ β :=
 λ φ n, f $ coeff n φ
 
@@ -340,6 +353,8 @@ lemma map_comp : (map (g ∘ f) : mv_power_series σ α → mv_power_series σ �
 
 @[simp] lemma coeff_map (n) (φ : mv_power_series σ α) :
   coeff n (map f φ) = f (coeff n φ) := rfl
+
+variables [is_semiring_hom f] [is_semiring_hom g]
 
 @[simp] lemma map_zero : map f (0 : mv_power_series σ α) = 0 :=
 ext $ λ n, is_semiring_hom.map_zero f
@@ -368,14 +383,20 @@ instance map.is_semiring_hom :
 
 end map
 
-end ring
+section trunc
 
--- TODO(jmc): once adic topology lands, show that this is complete
+variable (n : σ →₀ ℕ)
 
-end mv_power_series
+/-- The `n`th truncation of a multivariate power series to a multivariate polynomial -/
+def trunc (φ : mv_power_series σ α) : mv_polynomial σ α :=
+_
 
-namespace mv_power_series
-variables {σ : Type*} {α : Type*} [decidable_eq σ] [comm_ring α]
+end trunc
+
+end comm_semiring
+
+section comm_ring
+variables [comm_ring α]
 
 protected def neg (φ : mv_power_series σ α) : mv_power_series σ α := λ n, - coeff n φ
 
@@ -383,11 +404,11 @@ instance : has_neg (mv_power_series σ α) := ⟨mv_power_series.neg⟩
 
 @[simp] lemma coeff_neg (φ : mv_power_series σ α) (n) : coeff n (- φ) = - coeff n φ := rfl
 
-lemma add_left_neg (φ : mv_power_series σ α) : (-φ) + φ = 0 :=
+protected lemma add_left_neg (φ : mv_power_series σ α) : (-φ) + φ = 0 :=
 ext $ λ n, by rw [coeff_add, coeff_zero, coeff_neg, add_left_neg]
 
 instance : comm_ring (mv_power_series σ α) :=
-{ add_left_neg := add_left_neg,
+{ add_left_neg := mv_power_series.add_left_neg,
   .. mv_power_series.has_neg, .. mv_power_series.comm_semiring }
 
 instance C.is_ring_hom : is_ring_hom (C : α → mv_power_series σ α) :=
@@ -412,6 +433,13 @@ instance : algebra α (mv_power_series σ α) :=
   smul_def' := λ c p, rfl,
   .. mv_power_series.module }
 
+/-
+The inverse of a multivariate power series is defined by
+well-founded recursion on the coeffients of the inverse.
+-/
+
+/-- Auxiliary definition that unifies the totalised inverse power series
+    and the inverse power series that depends on an inverse of the constant coefficient.-/
 def inv.aux (a : α) (φ : mv_power_series σ α) : mv_power_series σ α
 | n := if n = 0 then a else
 - a * n.antidiagonal.support.sum (λ (x : (σ →₀ ℕ) × (σ →₀ ℕ)),
@@ -426,6 +454,7 @@ lemma coeff_inv_aux (n : σ →₀ ℕ) (a : α) (φ : mv_power_series σ α) :
     if x.2 < n then coeff x.1 φ * coeff x.2 (inv.aux a φ) else 0) :=
 by rw [coeff, inv.aux]; refl
 
+/-- A multivariate power series is invertible if the constant coefficient is invertible.-/
 def inv_of_unit (φ : mv_power_series σ α) (u : units α) : mv_power_series σ α :=
 inv.aux (↑u⁻¹) φ
 
@@ -448,29 +477,29 @@ by erw [H, coeff_mul, coeff_one_zero, finsupp.antidiagonal_zero,
 else
 begin
   have : ((0 : σ →₀ ℕ), n) ∈ n.antidiagonal.support,
-  { rw [finsupp.mem_antidiagonal_support, _root_.zero_add] },
+  { rw [finsupp.mem_antidiagonal_support, zero_add] },
   rw [coeff_one, if_neg H, coeff_mul,
     ← finset.insert_erase this, finset.sum_insert (finset.not_mem_erase _ _),
     h, coeff_inv_of_unit, if_neg H,
     neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm, units.mul_inv_cancel_left,
     ← finset.insert_erase this, finset.sum_insert (finset.not_mem_erase _ _),
-    finset.insert_erase this, if_neg (not_lt_of_ge $ le_refl _), _root_.zero_add, _root_.add_comm,
+    finset.insert_erase this, if_neg (not_lt_of_ge $ le_refl _), zero_add, add_comm,
     ← sub_eq_add_neg, sub_eq_zero, finset.sum_congr rfl],
   rintros ⟨i,j⟩ hij, rw [finset.mem_erase, finsupp.mem_antidiagonal_support] at hij,
   cases hij with h₁ h₂,
   subst n, rw if_pos,
-  -- TODO(jmc): The rest of this proof should follow from a general lemma
+  suffices : (0 : _) + j < i + j, {simpa},
+  apply add_lt_add_right,
   split,
-  { intro s, exact nat.le_add_left (j s) (i s) },
+  { intro s, exact nat.zero_le _ },
   { intro H, apply h₁,
-    suffices : i = 0, { simp [this] },
-    ext1 s, specialize H s, rw ← _root_.zero_add (j s) at H,
-    apply nat.eq_zero_of_le_zero,
-    exact (add_le_add_iff_right (j s)).mp H }
+    suffices : i = 0, {simp [this]},
+    ext1 s, exact nat.eq_zero_of_le_zero (H s) }
 end
 
 section local_ring
 
+/-- Multivariate power series over a local ring form a local ring.-/
 def is_local_ring (h : is_local_ring α) : is_local_ring (mv_power_series σ α) :=
 begin
   split,
@@ -482,11 +511,13 @@ end
 
 end local_ring
 
-end mv_power_series
+-- TODO(jmc): once adic topology lands, show that this is complete
 
-namespace mv_power_series
-variables {σ : Type*} {α : Type*} {β : Type*} (f : α → β)
-variables [decidable_eq σ] [local_ring α] [local_ring β] [is_local_ring_hom f]
+end comm_ring
+
+section local_ring
+variables {β : Type*} (f : α → β)
+variables [local_ring α] [local_ring β] [is_local_ring_hom f]
 
 instance : local_ring (mv_power_series σ α) :=
 local_of_is_local_ring $ is_local_ring ⟨zero_ne_one, local_ring.is_local⟩
@@ -504,15 +535,15 @@ instance map.is_local_ring_hom : is_local_ring_hom (map f : mv_power_series σ �
   end,
   .. map.is_ring_hom f }
 
-end mv_power_series
+end local_ring
 
-namespace mv_power_series
-variables {σ : Type*} {α : Type*} [decidable_eq σ] [discrete_field α]
+section discrete_field
+variables [discrete_field α]
 
-def inv (φ : mv_power_series σ α) : mv_power_series σ α :=
+protected def inv (φ : mv_power_series σ α) : mv_power_series σ α :=
 inv.aux (coeff 0 φ)⁻¹ φ
 
-instance : has_inv (mv_power_series σ α) := ⟨inv⟩
+instance : has_inv (mv_power_series σ α) := ⟨mv_power_series.inv⟩
 
 lemma coeff_inv (n) (φ : mv_power_series σ α) :
   coeff n (φ⁻¹) = if n = 0 then (coeff 0 φ)⁻¹ else
@@ -538,32 +569,39 @@ begin
   congr' 1, rw [units.ext_iff], exact h.symm,
 end
 
-@[simp] lemma mul_inv (φ : mv_power_series σ α) (h : coeff 0 φ ≠ 0) :
+@[simp] protected lemma mul_inv (φ : mv_power_series σ α) (h : coeff 0 φ ≠ 0) :
   φ * φ⁻¹ = 1 :=
 by rw [← inv_of_unit_eq φ h, mul_inv_of_unit φ (units.mk0 _ h) rfl]
 
-@[simp] lemma inv_mul (φ : mv_power_series σ α) (h : coeff 0 φ ≠ 0) :
+@[simp] protected lemma inv_mul (φ : mv_power_series σ α) (h : coeff 0 φ ≠ 0) :
   φ⁻¹ * φ = 1 :=
-by rw [mul_comm, mul_inv _ h]
+by rw [mul_comm, φ.mul_inv h]
+
+end discrete_field
 
 end mv_power_series
 
+/-- Power series over the coefficient ring `α`.-/
 def power_series (α : Type*) := mv_power_series unit α
 
 namespace power_series
 open finsupp (single)
 variable {α : Type*}
 
+/-- The `n`th coefficient of a power series.-/
 def coeff (n : ℕ) : power_series α → α := mv_power_series.coeff (single () n)
 
+/-- Two power series are equal if all their coefficients are equal.-/
 @[extensionality] lemma ext {φ ψ : power_series α} (h : ∀ n, coeff n φ = coeff n ψ) : φ = ψ :=
 mv_power_series.ext $ λ n,
 have this : n = single () (n ()), from (finsupp.single_punit_eq _ _).symm,
 by convert h (n ())
 
+/-- Two power series are equal if all their coefficients are equal.-/
 lemma ext_iff {φ ψ : power_series α} : φ = ψ ↔ (∀ n, coeff n φ = coeff n ψ) :=
 ⟨λ h n, congr_arg (coeff n) h, ext⟩
 
+/-- Constructor for power series.-/
 def mk (f : ℕ → α) : power_series α := λ s, f (s ())
 
 @[simp] lemma coeff_mk (n : ℕ) (f : ℕ → α) : coeff n (mk f) = f n := rfl
@@ -573,10 +611,13 @@ variable [comm_semiring α]
 
 instance : comm_semiring (power_series α) := by delta power_series; apply_instance
 
+/-- The `n`th monimial with coefficient `a` as power series.-/
 def monomial (n : ℕ) : α → power_series α := mv_power_series.monomial (single () n)
 
+/-- The constant power series.-/
 def C : α → power_series α := mv_power_series.C
 
+/-- The variable of the power series ring.-/
 def X : power_series α := mv_power_series.X ()
 
 lemma coeff_monomial (m n : ℕ) (a : α) :
@@ -637,8 +678,22 @@ mv_power_series.monomial_add _ _ _
 @[simp] lemma C_add (a b : α) : (C (a + b) : power_series α) = C a + C b :=
 monomial_add 0 a b
 
--- lemma coeff_mul (n : ℕ) (φ ψ : power_series α) :
---   coeff n (φ * ψ) = (nat.diagonal n).sum (λ p, coeff p.1 φ * coeff p.2 ψ) := rfl
+lemma coeff_mul (n : ℕ) (φ ψ : power_series α) :
+  coeff n (φ * ψ) = (finset.nat.antidiagonal n).sum (λ p, coeff p.1 φ * coeff p.2 ψ) :=
+begin
+  symmetry,
+  apply finset.sum_bij (λ (p : ℕ × ℕ) h, (single () p.1, single () p.2)),
+  { rintros ⟨i,j⟩ hij, rw finset.nat.mem_antidiagonal at hij,
+    rw [finsupp.mem_antidiagonal_support, ← finsupp.single_add, hij] },
+  { rintros ⟨i,j⟩ hij, refl },
+  { rintros ⟨i,j⟩ ⟨k,l⟩ hij hkl,
+    simpa only [prod.mk.inj_iff, finsupp.single_punit_eq_single_punit_iff] using id },
+  { rintros ⟨f,g⟩ hfg,
+    refine ⟨(f (), g ()), _, _⟩,
+    { rw finsupp.mem_antidiagonal_support at hfg,
+      rw [finset.nat.mem_antidiagonal, ← finsupp.add_apply, hfg, finsupp.single_eq_same] },
+    { simp only [finsupp.single_punit_eq] } }
+end
 
 @[simp] lemma C_mul (a b : α) : (C (a * b) : power_series α) = C a * C b :=
 mv_power_series.C_mul _ _
@@ -655,8 +710,9 @@ mv_power_series.semimodule
 
 section map
 variables {β : Type*} {γ : Type*} [comm_semiring β] [comm_semiring γ]
-variables (f : α → β) (g : β → γ) [is_semiring_hom f] [is_semiring_hom g]
+variables (f : α → β) (g : β → γ)
 
+/-- The map between power series induced by a map on the coefficients.-/
 def map : power_series α → power_series β :=
 mv_power_series.map f
 
@@ -666,6 +722,8 @@ lemma map_comp : (map (g ∘ f) : power_series α → power_series γ) = map g �
 
 @[simp] lemma coeff_map (n : ℕ) (φ : power_series α) :
   coeff n (map f φ) = f (coeff n φ) := rfl
+
+variables [is_semiring_hom f] [is_semiring_hom g]
 
 @[simp] lemma map_zero : map f (0 : power_series α) = 0 :=
 mv_power_series.map_zero f
@@ -705,6 +763,58 @@ mv_power_series.module
 instance : algebra α (power_series α) :=
 mv_power_series.algebra
 
+def inv.aux : α → power_series α → power_series α :=
+mv_power_series.inv.aux
+
+lemma coeff_inv_aux (n : ℕ) (a : α) (φ : power_series α) :
+  coeff n (inv.aux a φ) = if n = 0 then a else
+  - a * (finset.nat.antidiagonal n).sum (λ (x : ℕ × ℕ),
+    if x.2 < n then coeff x.1 φ * coeff x.2 (inv.aux a φ) else 0) :=
+begin
+  rw [coeff, inv.aux, mv_power_series.coeff_inv_aux],
+  simp only [finsupp.single_eq_zero],
+  split_ifs, {refl},
+  congr' 1,
+  symmetry,
+  apply finset.sum_bij (λ (p : ℕ × ℕ) h, (single () p.1, single () p.2)),
+  { rintros ⟨i,j⟩ hij, rw finset.nat.mem_antidiagonal at hij,
+    rw [finsupp.mem_antidiagonal_support, ← finsupp.single_add, hij] },
+  { rintros ⟨i,j⟩ hij,
+    by_cases H : j < n,
+    { rw [if_pos H, if_pos], {refl},
+      split,
+      { rintro ⟨⟩, simpa [finsupp.single_eq_same] using le_of_lt H },
+      { intro hh, rw lt_iff_not_ge at H, apply H,
+        simpa [finsupp.single_eq_same] using hh () } },
+    { rw [if_neg H, if_neg], rintro ⟨h₁, h₂⟩, apply h₂, rintro ⟨⟩,
+     simpa [finsupp.single_eq_same] using not_lt.1 H } },
+  { rintros ⟨i,j⟩ ⟨k,l⟩ hij hkl,
+    simpa only [prod.mk.inj_iff, finsupp.single_punit_eq_single_punit_iff] using id },
+  { rintros ⟨f,g⟩ hfg,
+    refine ⟨(f (), g ()), _, _⟩,
+    { rw finsupp.mem_antidiagonal_support at hfg,
+      rw [finset.nat.mem_antidiagonal, ← finsupp.add_apply, hfg, finsupp.single_eq_same] },
+    { simp only [finsupp.single_punit_eq] } }
+end
+
+/-- A power series is invertible if the constant coefficient is invertible.-/
+def inv_of_unit (φ : power_series α) (u : units α) : power_series α :=
+mv_power_series.inv_of_unit φ u
+
+lemma coeff_inv_of_unit (n : ℕ) (φ : power_series α) (u : units α) :
+  coeff n (inv_of_unit φ u) = if n = 0 then ↑u⁻¹ else
+  - ↑u⁻¹ * (finset.nat.antidiagonal n).sum (λ (x : ℕ × ℕ),
+    if x.2 < n then coeff x.1 φ * coeff x.2 (inv_of_unit φ u) else 0) :=
+coeff_inv_aux n ↑u⁻¹ φ
+
+@[simp] lemma coeff_zero_inv_of_unit (φ : power_series α) (u : units α) :
+  coeff (0 : ℕ) (inv_of_unit φ u) = ↑u⁻¹ :=
+by rw [coeff_inv_of_unit, if_pos rfl]
+
+lemma mul_inv_of_unit (φ : power_series α) (u : units α) (h : coeff 0 φ = u) :
+  φ * inv_of_unit φ u = 1 :=
+mv_power_series.mul_inv_of_unit φ u h
+
 end comm_ring
 
 section local_ring
@@ -715,5 +825,56 @@ lemma is_local_ring (h : is_local_ring α) :
 mv_power_series.is_local_ring h
 
 end local_ring
+
+section local_ring
+variables {β : Type*} (f : α → β)
+variables [local_ring α] [local_ring β] [is_local_ring_hom f]
+
+instance : local_ring (power_series α) :=
+mv_power_series.local_ring
+
+instance map.is_local_ring_hom : is_local_ring_hom (map f : power_series α → power_series β) :=
+mv_power_series.map.is_local_ring_hom f
+
+end local_ring
+
+section discrete_field
+variables [discrete_field α]
+
+protected def inv : power_series α → power_series α :=
+mv_power_series.inv
+
+instance : has_inv (power_series α) := ⟨power_series.inv⟩
+
+lemma coeff_inv (n) (φ : power_series α) :
+  coeff n (φ⁻¹) = if n = 0 then (coeff 0 φ)⁻¹ else
+  - (coeff 0 φ)⁻¹ * (finset.nat.antidiagonal n).sum (λ (x : ℕ × ℕ),
+    if x.2 < n then coeff x.1 φ * coeff x.2 (φ⁻¹) else 0) :=
+coeff_inv_aux n _ φ
+
+@[simp] lemma coeff_zero_inv (φ : power_series α) :
+  coeff 0 (φ⁻¹) = (coeff 0 φ)⁻¹ :=
+mv_power_series.coeff_zero_inv φ
+
+lemma inv_eq_zero (φ : power_series α) (h : coeff 0 φ = 0) :
+  φ⁻¹ = 0 :=
+mv_power_series.inv_eq_zero φ h
+
+@[simp] lemma inv_of_unit_eq (φ : power_series α) (h : coeff 0 φ ≠ 0) :
+  inv_of_unit φ (units.mk0 _ h) = φ⁻¹ := rfl
+
+@[simp] lemma inv_of_unit_eq' (φ : power_series α) (u : units α) (h : coeff 0 φ = u) :
+  inv_of_unit φ u = φ⁻¹ :=
+mv_power_series.inv_of_unit_eq' φ u h
+
+@[simp] protected lemma mul_inv (φ : power_series α) (h : coeff 0 φ ≠ 0) :
+  φ * φ⁻¹ = 1 :=
+mv_power_series.mul_inv φ h
+
+@[simp] protected lemma inv_mul (φ : power_series α) (h : coeff 0 φ ≠ 0) :
+  φ⁻¹ * φ = 1 :=
+mv_power_series.inv_mul φ h
+
+end discrete_field
 
 end power_series

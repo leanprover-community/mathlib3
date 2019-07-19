@@ -6,7 +6,7 @@ Authors: Chris Hughes
 Definition and basic properties of finite dimensional vector spaces.
 
 The class `finite_dimensional` is defined to be `is_noetherian`, for ease of transfer of proofs.
-However an additional constructor `finite_dimensional.of_span_finite_eq_top` is provided to prove
+However an additional constructor `finite_dimensional.of_fg` is provided to prove
 finite dimensionality in a conventional manner.
 
 Also defined is `findim`, the dimension of a finite dimensional space, returning a `nat`,
@@ -23,7 +23,7 @@ open vector_space cardinal submodule module function
 variables {K : Type u} {V : Type v} [discrete_field K] [add_comm_group V] [vector_space K V]
 
 /-- `finite_dimensional` vector spaces are defined to be noetherian modules.
-  Use `finite_dimensional.of_span_finite_eq_top` to prove finite dimensional from a conventional
+  Use `finite_dimensional.of_fg` to prove finite dimensional from a conventional
   definition. -/
 @[reducible] def finite_dimensional (K V : Type*) [discrete_field K]
   [add_comm_group V] [vector_space K V] := is_noetherian K V
@@ -69,11 +69,11 @@ finite_dimensional_iff_dim_lt_omega.1
 
 set_option pp.universes true
 
-lemma of_span_finite_eq_top [decidable_eq V] {s : set V} (hsf : s.finite)
-  (hs : span K s = ⊤) : finite_dimensional K V :=
+lemma of_fg [decidable_eq V] (hfg : (⊤ : submodule K V).fg) : finite_dimensional K V :=
+let ⟨s, hs⟩ := hfg in
 begin
   rw [finite_dimensional_iff_dim_lt_omega, ← dim_top, ← hs],
-  exact lt_of_le_of_lt (dim_span_le _) (lt_omega_iff_finite.2 hsf)
+  exact lt_of_le_of_lt (dim_span_le _) (lt_omega_iff_finite.2 (set.finite_mem_finset s))
 end
 
 lemma exists_is_basis_finite (K V : Type*) [discrete_field K]

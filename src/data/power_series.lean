@@ -14,9 +14,11 @@ import ring_theory.ideal_operations
 This file defines (multivariate) formal power series
 and develops the basic properties of these objects.
 
-The ring of formal power series is the completion of the polynomial ring.
-(One may take the topological or the algebraic completion,
-the resulting rings are canonically isomorphic.)
+A formal power series is to a polynomial like an infinite sum is to a finite sum.
+
+We provide the natural inclusion from polynomials to power series.
+
+TODO(jmc): write about trunc
 
 If the constant coefficient of a formal power series is invertible,
 then this formal power series is invertible.
@@ -621,7 +623,7 @@ def coeff (n : ℕ) : power_series α → α := mv_power_series.coeff (single ()
 /-- Two power series are equal if all their coefficients are equal.-/
 @[extensionality] lemma ext {φ ψ : power_series α} (h : ∀ n, coeff n φ = coeff n ψ) : φ = ψ :=
 mv_power_series.ext $ λ n,
-have this : n = single () (n ()), from (finsupp.single_punit_eq _ _).symm,
+have this : n = single () (n ()), from (finsupp.unique_single _ _),
 by convert h (n ())
 
 /-- Two power series are equal if all their coefficients are equal.-/
@@ -651,7 +653,7 @@ lemma coeff_monomial (m n : ℕ) (a : α) :
   coeff m (monomial n a) = if m = n then a else 0 :=
 calc coeff m (monomial n a) = _ : mv_power_series.coeff_monomial _ _ _
     ... = if m = n then a else 0 :
-by { simp only [finsupp.single_punit_eq_single_punit_iff], split_ifs; refl }
+by { simp only [finsupp.unique_single_eq_iff], split_ifs; refl }
 
 lemma monomial_eq_mk (n : ℕ) (a : α) :
   monomial n a = mk (λ m, if m = n then a else 0) :=
@@ -675,7 +677,7 @@ lemma coeff_X (n : ℕ) :
   coeff n (X : power_series α) = if n = 1 then 1 else 0 :=
 calc coeff n (X : power_series α) = _ : mv_power_series.coeff_X _ _
     ... = if n = 1 then 1 else 0 :
-by { simp only [finsupp.single_punit_eq_single_punit_iff], split_ifs; refl }
+by { simp only [finsupp.unique_single_eq_iff], split_ifs; refl }
 
 @[simp] lemma coeff_X' : coeff 1 (X : power_series α) = 1 :=
 by rw [coeff_X, if_pos rfl]
@@ -714,12 +716,12 @@ begin
     rw [finsupp.mem_antidiagonal_support, ← finsupp.single_add, hij] },
   { rintros ⟨i,j⟩ hij, refl },
   { rintros ⟨i,j⟩ ⟨k,l⟩ hij hkl,
-    simpa only [prod.mk.inj_iff, finsupp.single_punit_eq_single_punit_iff] using id },
+    simpa only [prod.mk.inj_iff, finsupp.unique_single_eq_iff] using id },
   { rintros ⟨f,g⟩ hfg,
     refine ⟨(f (), g ()), _, _⟩,
     { rw finsupp.mem_antidiagonal_support at hfg,
       rw [finset.nat.mem_antidiagonal, ← finsupp.add_apply, hfg, finsupp.single_eq_same] },
-    { simp only [finsupp.single_punit_eq] } }
+    { simp only [finsupp.unique_single] } }
 end
 
 @[simp] lemma C_mul (a b : α) : (C (a * b) : power_series α) = C a * C b :=
@@ -878,12 +880,12 @@ begin
     { rw [if_neg H, if_neg], rintro ⟨h₁, h₂⟩, apply h₂, rintro ⟨⟩,
      simpa [finsupp.single_eq_same] using not_lt.1 H } },
   { rintros ⟨i,j⟩ ⟨k,l⟩ hij hkl,
-    simpa only [prod.mk.inj_iff, finsupp.single_punit_eq_single_punit_iff] using id },
+    simpa only [prod.mk.inj_iff, finsupp.unique_single_eq_iff] using id },
   { rintros ⟨f,g⟩ hfg,
     refine ⟨(f (), g ()), _, _⟩,
     { rw finsupp.mem_antidiagonal_support at hfg,
       rw [finset.nat.mem_antidiagonal, ← finsupp.add_apply, hfg, finsupp.single_eq_same] },
-    { simp only [finsupp.single_punit_eq] } }
+    { simp only [finsupp.unique_single] } }
 end
 
 /-- A power series is invertible if the constant coefficient is invertible.-/

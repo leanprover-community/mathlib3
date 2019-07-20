@@ -60,7 +60,7 @@ end sorted
 section sort
 universe variable uu
 parameters {α : Type uu} (r : α → α → Prop) [decidable_rel r]
-local infix `≼` : 50 := r
+local infix ` ≼ ` : 50 := r
 
 /- insertion sort -/
 

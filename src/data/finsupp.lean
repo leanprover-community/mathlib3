@@ -1098,7 +1098,7 @@ by_contradiction (mt multiset.count_eq_zero.2 H)
   of_multiset m a = m.count a :=
 rfl
 
-def equiv_multiset [decidable_eq α] : (α →₀ ℕ) ≃ (multiset α) :=
+def equiv_multiset [decidable_eq α] : (α →₀ ℕ) ≃ multiset α :=
 ⟨ to_multiset, of_multiset,
 assume f, finsupp.ext $ λ a, by rw [of_multiset_apply, count_to_multiset],
 assume m, multiset.ext.2 $ λ a, by rw [count_to_multiset, of_multiset_apply] ⟩
@@ -1417,20 +1417,92 @@ end sigma
 
 end finsupp
 
-namespace finsupp
-variables {α : Type*} [decidable_eq α] [add_comm_monoid α]
+namespace multiset
+variables [decidable_eq α]
 
-end finsupp
+def to_finsupp (s : multiset α) : α →₀ ℕ :=
+{ support := s.to_finset,
+  to_fun := λ a, s.count a,
+  mem_support_to_fun := λ a,
+  begin
+    rw mem_to_finset,
+    convert not_iff_not_of_iff (count_eq_zero.symm),
+    rw not_not
+  end }
+
+@[simp] lemma to_finsupp_support (s : multiset α) :
+  s.to_finsupp.support = s.to_finset := rfl
+
+@[simp] lemma to_finsupp_apply (s : multiset α) (a : α) :
+  s.to_finsupp a = s.count a := rfl
+
+@[simp] lemma to_finsupp_zero :
+  to_finsupp (0 : multiset α) = 0 :=
+finsupp.ext $ λ a, count_zero a
+
+@[simp] lemma to_finsupp_add (s t : multiset α) :
+  to_finsupp (s + t) = to_finsupp s + to_finsupp t :=
+finsupp.ext $ λ a, count_add a s t
+
+lemma to_finsupp_singleton (a : α) :
+  to_finsupp {a} = finsupp.single a 1 :=
+finsupp.ext $ λ b,
+if h : a = b then by simp [finsupp.single_apply, h] else
+begin
+  rw [to_finsupp_apply, finsupp.single_apply, if_neg h, count_eq_zero,
+      singleton_eq_singleton, mem_singleton],
+  rintro rfl, exact h rfl
+end
+
+namespace to_finsupp
+
+instance : is_add_monoid_hom (to_finsupp : multiset α → α →₀ ℕ) :=
+{ map_zero := to_finsupp_zero,
+  map_add  := to_finsupp_add }
+
+end to_finsupp
+
+@[simp] lemma to_finsupp_to_multiset (s : multiset α) :
+  s.to_finsupp.to_multiset = s :=
+ext.2 $ λ a, by rw [finsupp.count_to_multiset, to_finsupp_apply]
+
+end multiset
 
 namespace finsupp
-variables {σ : Type*} {α : Type*} [decidable_eq σ]
+variables {σ : Type*} [decidable_eq σ]
+
+instance [preorder α] [has_zero α] : preorder (σ →₀ α) :=
+{ le := λ f g, ∀ s, f s ≤ g s,
+  le_refl := λ f s, le_refl _,
+  le_trans := λ f g h Hfg Hgh s, le_trans (Hfg s) (Hgh s) }
+
+instance [partial_order α] [has_zero α] : partial_order (σ →₀ α) :=
+{ le_antisymm := λ f g hfg hgf, finsupp.ext $ λ s, le_antisymm (hfg s) (hgf s),
+  .. finsupp.preorder }
+
+instance [ordered_cancel_comm_monoid α] [decidable_eq α] :
+  add_left_cancel_semigroup (σ →₀ α) :=
+{ add_left_cancel := λ a b c h, finsupp.ext $ λ s,
+  by { rw finsupp.ext_iff at h, exact add_left_cancel (h s) },
+  .. finsupp.add_monoid }
+
+instance [ordered_cancel_comm_monoid α] [decidable_eq α] :
+  add_right_cancel_semigroup (σ →₀ α) :=
+{ add_right_cancel := λ a b c h, finsupp.ext $ λ s,
+  by { rw finsupp.ext_iff at h, exact add_right_cancel (h s) },
+  .. finsupp.add_monoid }
+
+instance [ordered_cancel_comm_monoid α] [decidable_eq α] :
+  ordered_cancel_comm_monoid (σ →₀ α) :=
+{ add_le_add_left := λ a b h c s, add_le_add_left (h s) (c s),
+  le_of_add_le_add_left := λ a b c h s, le_of_add_le_add_left (h s),
+  .. finsupp.add_comm_monoid, .. finsupp.partial_order,
+  .. finsupp.add_left_cancel_semigroup, .. finsupp.add_right_cancel_semigroup }
 
 lemma le_iff [canonically_ordered_monoid α] (f g : σ →₀ α) :
   f ≤ g ↔ ∀ s ∈ f.support, f s ≤ g s :=
 ⟨λ h s hs, h s,
 λ h s, if H : s ∈ f.support then h s H else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
-
-attribute [simp] to_multiset_zero to_multiset_add
 
 lemma to_multiset_strict_mono : strict_mono (@to_multiset σ _) :=
 λ m n h,
@@ -1457,6 +1529,38 @@ subrelation.wf (sum_lt_of_lt) $ inv_image.wf _ nat.lt_wf
 
 instance decidable_le : decidable_rel (@has_le.le (σ →₀ ℕ) _) :=
 λ m n, by rw le_iff; apply_instance
+
+variable {σ}
+
+attribute [simp] to_multiset_zero to_multiset_add
+
+@[simp] lemma to_multiset_to_finsupp (f : σ →₀ ℕ) :
+  f.to_multiset.to_finsupp = f :=
+ext $ λ s, by rw [multiset.to_finsupp_apply, count_to_multiset]
+
+def antidiagonal (f : σ →₀ ℕ) : ((σ →₀ ℕ) × (σ →₀ ℕ)) →₀ ℕ :=
+(f.to_multiset.antidiagonal.map (prod.map multiset.to_finsupp multiset.to_finsupp)).to_finsupp
+
+lemma mem_antidiagonal_support {f : σ →₀ ℕ} {p : (σ →₀ ℕ) × (σ →₀ ℕ)} :
+  p ∈ (antidiagonal f).support ↔ p.1 + p.2 = f :=
+begin
+  erw [multiset.mem_to_finset, multiset.mem_map],
+  split,
+  { rintros ⟨⟨a, b⟩, h, rfl⟩,
+    rw multiset.mem_antidiagonal at h,
+    simpa using congr_arg multiset.to_finsupp h },
+  { intro h,
+    refine ⟨⟨p.1.to_multiset, p.2.to_multiset⟩, _, _⟩,
+    { simpa using congr_arg to_multiset h },
+    { rw [prod.map, to_multiset_to_finsupp, to_multiset_to_finsupp, prod.mk.eta] } }
+end
+
+@[simp] lemma antidiagonal_zero : antidiagonal (0 : σ →₀ ℕ) = single (0,0) 1 :=
+by rw [← multiset.to_finsupp_singleton]; refl
+
+lemma swap_mem_antidiagonal_support {n : σ →₀ ℕ} {f} (hf : f ∈ (antidiagonal n).support) :
+  f.swap ∈ (antidiagonal n).support :=
+by simpa [mem_antidiagonal_support, add_comm] using hf
 
 end finsupp
 

@@ -502,7 +502,7 @@ end residue_field
 end local_ring
 
 namespace discrete_field
-variables {α : Type*} [discrete_field α]
+variables [discrete_field α]
 
 instance : local_ring α :=
 { is_local := λ a,
@@ -511,3 +511,4 @@ instance : local_ring α :=
   else or.inl $ is_unit_of_mul_one a a⁻¹ $ div_self h }
 
 end discrete_field
+

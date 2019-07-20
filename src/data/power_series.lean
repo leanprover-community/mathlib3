@@ -100,7 +100,7 @@ lemma coeff_X (n : σ →₀ ℕ) (s : σ) :
 
 lemma coeff_X' (s t : σ) :
   coeff (single t 1) (X s : mv_power_series σ α) = if t = s then 1 else 0 :=
-by { simp only [coeff_X, single_eq_single_of_ne_zero one_ne_zero], split_ifs; refl }
+by { simp only [coeff_X, single_right_inj one_ne_zero], split_ifs; refl }
 
 @[simp] lemma coeff_X'' (s : σ) :
   coeff (single s 1) (X s : mv_power_series σ α) = 1 :=
@@ -449,8 +449,8 @@ The inverse of a multivariate power series is defined by
 well-founded recursion on the coeffients of the inverse.
 -/
 
-/-- Auxiliary definition that unifies the totalised inverse power series
-    and the inverse power series that depends on an inverse of the constant coefficient.-/
+/-- Auxiliary definition that unifies the totalised inverse power series `(_)⁻¹` and
+ the inverse power series that depends on an inverse of the constant coefficient `inv_of_unit`.-/
 def inv.aux (a : α) (φ : mv_power_series σ α) : mv_power_series σ α
 | n := if n = 0 then a else
 - a * n.antidiagonal.support.sum (λ (x : (σ →₀ ℕ) × (σ →₀ ℕ)),

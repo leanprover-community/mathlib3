@@ -125,6 +125,14 @@ begin
   { rw [single_eq_of_ne h, zero_apply] }
 end
 
+lemma single_eq_single_of_ne_zero (h : b ≠ 0) :
+  single a b = single a' b ↔ a = a' :=
+⟨λ H, by simpa [h, single_eq_single_iff] using H, λ H, by rw [H]⟩
+
+lemma single_eq_zero : single a b = 0 ↔ b = 0 :=
+⟨λ h, by { rw ext_iff at h, simpa only [finsupp.single_eq_same, finsupp.zero_apply] using h s },
+λ h, by rw [h, single_zero]⟩
+
 lemma support_single_ne_zero (hb : b ≠ 0) : (single a b).support = {a} :=
 if_neg hb
 
@@ -160,6 +168,15 @@ by simp [single_apply]; ac_refl
 
 lemma unique_single [unique α] (x : α →₀ β) : x = single (default α) (x (default α)) :=
 by ext i; simp [unique.eq_default i]
+
+lemma unique_single_eq_iff [unique α] {b' : β} :
+  single a b = single a' b' ↔ b = b' :=
+begin
+  rw [single_eq_single_iff],
+  split,
+  { rintros (⟨_, rfl⟩ | ⟨rfl, rfl⟩); refl },
+  { intro h, left, exact ⟨subsingleton.elim _ _, h⟩ }
+end
 
 end single
 
@@ -1399,3 +1416,47 @@ by simp [sum, sigma_support, sum_sigma,split_apply]
 end sigma
 
 end finsupp
+
+namespace finsupp
+variables {α : Type*} [decidable_eq α] [add_comm_monoid α]
+
+end finsupp
+
+namespace finsupp
+variables {σ : Type*} {α : Type*} [decidable_eq σ]
+
+lemma le_iff [canonically_ordered_monoid α] (f g : σ →₀ α) :
+  f ≤ g ↔ ∀ s ∈ f.support, f s ≤ g s :=
+⟨λ h s hs, h s,
+λ h s, if H : s ∈ f.support then h s H else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
+
+attribute [simp] to_multiset_zero to_multiset_add
+
+lemma to_multiset_strict_mono : strict_mono (@to_multiset σ _) :=
+λ m n h,
+begin
+  rw lt_iff_le_and_ne at h ⊢, cases h with h₁ h₂,
+  split,
+  { rw multiset.le_iff_count, intro s, rw [count_to_multiset, count_to_multiset], exact h₁ s },
+  { intro H, apply h₂, replace H := congr_arg multiset.to_finsupp H, simpa using H }
+end
+
+lemma sum_lt_of_lt (m n : σ →₀ ℕ) (h : m < n) :
+  m.sum (λ _, id) < n.sum (λ _, id) :=
+begin
+  rw [← card_to_multiset, ← card_to_multiset],
+  apply multiset.card_lt_of_lt,
+  exact to_multiset_strict_mono _ _ h
+end
+
+variable (σ)
+
+/-- The order on σ →₀ ℕ is well-founded.-/
+def lt_wf : well_founded (@has_lt.lt (σ →₀ ℕ) _) :=
+subrelation.wf (sum_lt_of_lt) $ inv_image.wf _ nat.lt_wf
+
+instance decidable_le : decidable_rel (@has_le.le (σ →₀ ℕ) _) :=
+λ m n, by rw le_iff; apply_instance
+
+end finsupp
+

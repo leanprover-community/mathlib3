@@ -43,7 +43,7 @@ from the multivariate case to the single variable case.
 However, it means that power series are indexed by (unit →₀ ℕ),
 which is of course canonically isomorphic to ℕ.
 We then build some glue to treat power series as if they are indexed by ℕ.
-Occasionaly this leads to proofs that are uglier than expected.
+Occasionally this leads to proofs that are uglier than expected.
 
 -/
 

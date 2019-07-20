@@ -71,6 +71,9 @@ lemma plift.down_inj {α : Sort*} : ∀ (a b : plift α), a.down = b.down → a 
 @[simp] lemma nonempty_pempty : ¬ nonempty pempty :=
 assume ⟨h⟩, h.elim
 
+-- missing [symm] attribute for ne in core.
+attribute [symm] ne.symm
+
 end miscellany
 
 /-
@@ -384,14 +387,17 @@ end equality
 -/
 
 section quantifiers
-variables {α : Sort*} {p q : α → Prop} {b : Prop}
+variables {α : Sort*} {β : Sort*} {p q : α → Prop} {b : Prop}
 
 def Exists.imp := @exists_imp_exists
 
-theorem forall_swap {α β} {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
+lemma exists_imp_exists' {p : α → Prop} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a)) (hp : ∃ a, p a) : ∃ b, q b :=
+exists.elim hp (λ a hp', ⟨_, hpq _ hp'⟩)
+
+theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
 ⟨function.swap, function.swap⟩
 
-theorem exists_swap {α β} {p : α → β → Prop} : (∃ x y, p x y) ↔ ∃ y x, p x y :=
+theorem exists_swap {p : α → β → Prop} : (∃ x y, p x y) ↔ ∃ y x, p x y :=
 ⟨λ ⟨x, y, h⟩, ⟨y, x, h⟩, λ ⟨y, x, h⟩, ⟨x, y, h⟩⟩
 
 @[simp] theorem exists_imp_distrib : ((∃ x, p x) → b) ↔ ∀ x, p x → b :=

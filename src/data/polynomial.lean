@@ -166,8 +166,8 @@ end
   coeff (X^k : polynomial α) n = if n = k then 1 else 0 :=
 by simpa only [C_1, one_mul] using coeff_C_mul_X (1:α) k n
 
-lemma coeff_mul_left (p q : polynomial α) (n : ℕ) :
-  coeff (p * q) n = (range (n+1)).sum (λ k, coeff p k * coeff q (n-k)) :=
+lemma coeff_mul (p q : polynomial α) (n : ℕ) :
+  coeff (p * q) n = (nat.antidiagonal n).sum (λ x, coeff p x.1 * coeff q x.2) :=
 have hite : ∀ a : ℕ × ℕ, ite (a.1 + a.2 = n) (coeff p (a.fst) * coeff q (a.snd)) 0 ≠ 0
     → a.1 + a.2 = n, from λ a ha, by_contradiction
   (λ h, absurd (eq.refl (0 : α)) (by rwa if_neg h at ha)),
@@ -177,28 +177,51 @@ calc coeff (p * q) n = sum (p.support) (λ a, sum (q.support)
 ... = (p.support.product q.support).sum
     (λ v : ℕ × ℕ, ite (v.1 + v.2 = n) (coeff p v.1 * coeff q v.2) 0) :
   by rw sum_product
-... = (range (n+1)).sum (λ k, coeff p k * coeff q (n-k)) :
-  sum_bij_ne_zero (λ a _ _, a.1)
-  (λ a _ ha, mem_range.2 (nat.lt_succ_of_le (hite a ha ▸ le_add_right (le_refl _))))
-  (λ a₁ a₂ _ h₁ _ h₂ h, prod.ext h
-    ((add_left_inj a₁.1).1 (by rw [hite a₁ h₁, h, hite a₂ h₂])))
-  (λ a h₁ h₂, ⟨(a, n - a), mem_product.2
-      ⟨mem_support_iff.2 (ne_zero_of_mul_ne_zero_right h₂),
-      mem_support_iff.2 (ne_zero_of_mul_ne_zero_left h₂)⟩,
-    by simpa [nat.add_sub_cancel' (nat.le_of_lt_succ (mem_range.1 h₁))],
-    rfl⟩)
-  (λ a _ ha, by rw [← hite a ha, if_pos rfl, nat.add_sub_cancel_left])
+... = (nat.antidiagonal n).sum (λ x, coeff p x.1 * coeff q x.2) :
+begin
+  refine sum_bij_ne_zero (λ x _ _, x)
+  (λ x _ hx, nat.mem_antidiagonal.2 (hite x hx)) (λ _ _ _ _ _ _ h, h)
+  (λ x h₁ h₂, ⟨x, _, _, rfl⟩) _,
+  { rw [mem_product, mem_support_iff, mem_support_iff],
+    exact ⟨ne_zero_of_mul_ne_zero_right h₂, ne_zero_of_mul_ne_zero_left h₂⟩ },
+  { rw nat.mem_antidiagonal at h₁, rwa [if_pos h₁] },
+  { intros x h hx, rw [if_pos (hite x hx)] }
+end
 
-lemma coeff_mul_right (p q : polynomial α) (n : ℕ) :
-  coeff (p * q) n = (range (n+1)).sum (λ k, coeff p (n-k) * coeff q k) :=
-by rw [mul_comm, coeff_mul_left]; simp only [mul_comm]
+-- lemma coeff_mul_left (p q : polynomial α) (n : ℕ) :
+--   coeff (p * q) n = (range (n+1)).sum (λ k, coeff p k * coeff q (n-k)) :=
+-- have hite : ∀ a : ℕ × ℕ, ite (a.1 + a.2 = n) (coeff p (a.fst) * coeff q (a.snd)) 0 ≠ 0
+--     → a.1 + a.2 = n, from λ a ha, by_contradiction
+--   (λ h, absurd (eq.refl (0 : α)) (by rwa if_neg h at ha)),
+-- calc coeff (p * q) n = sum (p.support) (λ a, sum (q.support)
+--     (λ b, ite (a + b = n) (coeff p a * coeff q b) 0)) :
+--   by simp only [finsupp.mul_def, coeff_sum, coeff_single]; refl
+-- ... = (p.support.product q.support).sum
+--     (λ v : ℕ × ℕ, ite (v.1 + v.2 = n) (coeff p v.1 * coeff q v.2) 0) :
+--   by rw sum_product
+-- ... = (range (n+1)).sum (λ k, coeff p k * coeff q (n-k)) :
+--   sum_bij_ne_zero (λ a _ _, a.1)
+--   (λ a _ ha, mem_range.2 (nat.lt_succ_of_le (hite a ha ▸ le_add_right (le_refl _))))
+--   (λ a₁ a₂ _ h₁ _ h₂ h, prod.ext h
+--     ((add_left_inj a₁.1).1 (by rw [hite a₁ h₁, h, hite a₂ h₂])))
+--   (λ a h₁ h₂, ⟨(a, n - a), mem_product.2
+--       ⟨mem_support_iff.2 (ne_zero_of_mul_ne_zero_right h₂),
+--       mem_support_iff.2 (ne_zero_of_mul_ne_zero_left h₂)⟩,
+--     by simpa [nat.add_sub_cancel' (nat.le_of_lt_succ (mem_range.1 h₁))],
+--     rfl⟩)
+--   (λ a _ ha, by rw [← hite a ha, if_pos rfl, nat.add_sub_cancel_left])
+
+-- lemma coeff_mul_right (p q : polynomial α) (n : ℕ) :
+--   coeff (p * q) n = (range (n+1)).sum (λ k, coeff p (n-k) * coeff q k) :=
+-- by rw [mul_comm, coeff_mul_left]; simp only [mul_comm]
 
 theorem coeff_mul_X_pow (p : polynomial α) (n d : ℕ) :
   coeff (p * polynomial.X ^ n) (d + n) = coeff p d :=
 begin
-  rw [coeff_mul_right, sum_eq_single n, coeff_X_pow, if_pos rfl, mul_one, nat.add_sub_cancel],
-  { intros b h1 h2, rw [coeff_X_pow, if_neg h2, mul_zero] },
-  { exact λ h1, (h1 (mem_range.2 (nat.le_add_left _ _))).elim }
+  rw [coeff_mul, sum_eq_single (d,n), coeff_X_pow, if_pos rfl, mul_one],
+  { rintros ⟨i,j⟩ h1 h2, rw [coeff_X_pow, if_neg, mul_zero], rintro rfl, apply h2,
+    rw [nat.mem_antidiagonal, add_right_cancel_iff] at h1, subst h1 },
+  { exact λ h1, (h1 (nat.mem_antidiagonal.2 rfl)).elim }
 end
 
 theorem coeff_mul_X (p : polynomial α) (n : ℕ) :
@@ -670,20 +693,25 @@ by simp only [leading_coeff, this, nat_degree_eq_of_degree_eq h, coeff_add]
 @[simp] lemma coeff_mul_degree_add_degree (p q : polynomial α) :
   coeff (p * q) (nat_degree p + nat_degree q) = leading_coeff p * leading_coeff q :=
 calc coeff (p * q) (nat_degree p + nat_degree q) =
-    (range (nat_degree p + nat_degree q + 1)).sum
-    (λ k, coeff p k * coeff q (nat_degree p + nat_degree q - k)) : coeff_mul_left _ _ _
-... = coeff p (nat_degree p) * coeff q (nat_degree p + nat_degree q - nat_degree p) :
-  finset.sum_eq_single _ (λ n hn₁ hn₂, (le_total n (nat_degree p)).elim
-    (λ h, have degree q < (nat_degree p + nat_degree q - n : ℕ),
-        from lt_of_le_of_lt degree_le_nat_degree
-          (with_bot.coe_lt_coe.2 (nat.lt_sub_left_iff_add_lt.2
-            (add_lt_add_right (lt_of_le_of_ne h hn₂) _))),
-      by simp [coeff_eq_zero_of_degree_lt this])
-    (λ h, have degree p < n, from lt_of_le_of_lt degree_le_nat_degree
-        (with_bot.coe_lt_coe.2 (lt_of_le_of_ne h hn₂.symm)),
-      by simp [coeff_eq_zero_of_degree_lt this]))
-    (λ h, false.elim (h (mem_range.2 (lt_of_le_of_lt (nat.le_add_right _ _) (nat.lt_succ_self _)))))
-... = _ : by simp [leading_coeff, nat.add_sub_cancel_left]
+    (nat.antidiagonal (nat_degree p + nat_degree q)).sum
+    (λ x, coeff p x.1 * coeff q x.2) : coeff_mul _ _ _
+... = coeff p (nat_degree p) * coeff q (nat_degree q) :
+  begin
+    refine finset.sum_eq_single (nat_degree p, nat_degree q) _ _,
+    { rintro ⟨i,j⟩ h₁ h₂, rw nat.mem_antidiagonal at h₁,
+      by_cases H : nat_degree p < i,
+      { rw [coeff_eq_zero_of_degree_lt
+          (lt_of_le_of_lt degree_le_nat_degree (with_bot.coe_lt_coe.2 H)), zero_mul] },
+      { rw not_lt_iff_eq_or_lt at H, cases H,
+        { subst H, rw add_left_cancel_iff at h₁, dsimp at h₁, subst h₁, exfalso, exact h₂ rfl },
+        { suffices : nat_degree q < j,
+          { rw [coeff_eq_zero_of_degree_lt
+              (lt_of_le_of_lt degree_le_nat_degree (with_bot.coe_lt_coe.2 this)), mul_zero] },
+          { by_contra H', rw not_lt at H',
+            exact ne_of_lt (nat.lt_of_lt_of_le
+              (nat.add_lt_add_right H j) (nat.add_le_add_left H' _)) h₁ } } } },
+    { intro H, exfalso, apply H, rw nat.mem_antidiagonal }
+  end
 
 lemma degree_mul_eq' (h : leading_coeff p * leading_coeff q ≠ 0) :
   degree (p * q) = degree p + degree q :=
@@ -829,7 +857,8 @@ by rw [ne.def, ← degree_eq_bot];
   cases degree p; exact dec_trivial
 
 @[simp] lemma coeff_mul_X_zero (p : polynomial α) : coeff (p * X) 0 = 0 :=
-by rw [coeff_mul_left, sum_range_succ]; simp
+by rw [coeff_mul, nat.antidiagonal_zero];
+simp only [polynomial.coeff_X_zero, finset.insert_empty_eq_singleton, finset.sum_singleton, mul_zero]
 
 end comm_semiring
 
@@ -1786,7 +1815,7 @@ if hn : n = 0
 then if h : (X : polynomial α) ^ n - C a = 0
   then by simp only [nat.zero_le, nth_roots, roots, h, dif_pos rfl, card_empty]
   else with_bot.coe_le_coe.1 (le_trans (card_roots h)
-    (by rw [hn, pow_zero, ← @C_1 α _ _, ← is_ring_hom.map_sub (@C α _ _)];
+   (by rw [hn, pow_zero, ← @C_1 α _ _, ← @is_ring_hom.map_sub _ _ _ _ (@C α _ _)];
       exact degree_C_le))
 else by rw [← with_bot.coe_le_coe, ← degree_X_pow_sub_C (nat.pos_of_ne_zero hn) a];
   exact card_roots (X_pow_sub_C_ne_zero (nat.pos_of_ne_zero hn) a)

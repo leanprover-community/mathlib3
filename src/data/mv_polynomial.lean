@@ -164,14 +164,22 @@ single_apply
   coeff m (C a : mv_polynomial σ α) = if 0 = m then a else 0 :=
 single_apply
 
-lemma coeff_X (i : σ) (m) (k : ℕ) :
-  coeff m (X i ^ k : mv_polynomial σ α) = if finsupp.single i k = m then 1 else 0 :=
+lemma coeff_X_pow (i : σ) (m) (k : ℕ) :
+  coeff m (X i ^ k : mv_polynomial σ α) = if single i k = m then 1 else 0 :=
 begin
   have := coeff_monomial m (finsupp.single i k) (1:α),
   rwa [@monomial_eq _ _ (1:α) (finsupp.single i k) _ _ _,
     C_1, one_mul, finsupp.prod_single_index] at this,
   exact pow_zero _
 end
+
+lemma coeff_X' (i : σ) (m) :
+  coeff m (X i : mv_polynomial σ α) = if single i 1 = m then 1 else 0 :=
+by rw [← coeff_X_pow, pow_one]
+
+@[simp] lemma coeff_X (i : σ) :
+  coeff (single i 1) (X i : mv_polynomial σ α) = 1 :=
+by rw [coeff_X', if_pos rfl]
 
 @[simp] lemma coeff_C_mul (m) (a : α) (p : mv_polynomial σ α) : coeff m (C a * p) = a * coeff m p :=
 begin
@@ -185,36 +193,74 @@ begin
   { intros hm, rw if_pos rfl, rw not_mem_support_iff at hm, simp [hm] }
 end
 
-@[simp] lemma coeff_mul_X (m) (i : σ) (p : mv_polynomial σ α) :
-  coeff (m + single i 1) (p * X i) = coeff m p :=
+lemma coeff_mul (p q : mv_polynomial σ α) (n : σ →₀ ℕ) :
+  coeff n (p * q) = finset.sum (antidiagonal n).support (λ x, coeff x.1 p * coeff x.2 q) :=
 begin
-  rw [mul_def, X, monomial],
-  simp only [sum_single_index, mul_one, single_zero, mul_zero],
-  convert sum_apply,
-  simp only [single_apply, finsupp.sum],
-  rw finset.sum_eq_single m,
-  { rw if_pos rfl, refl },
-  { intros m' hm' H, apply if_neg, intro h, apply H, ext j,
-    let c : (σ →₀ ℕ) → (σ → ℕ) := λ f, f, replace h := congr_arg c h, simpa [c] using congr_fun h j },
-  { intros hm, rw if_pos rfl, rw not_mem_support_iff at hm, simp [hm] }
+  rw mul_def,
+  have := @finset.sum_sigma (σ →₀ ℕ) α _ _ p.support (λ _, q.support)
+    (λ x, if (x.1 + x.2 = n) then coeff x.1 p * coeff x.2 q else 0),
+  convert this.symm using 1; clear this,
+  { rw [coeff],
+    repeat {rw sum_apply, apply finset.sum_congr rfl, intros, dsimp only},
+    exact single_apply },
+  { have : (antidiagonal n).support.filter (λ x, x.1 ∈ p.support ∧ x.2 ∈ q.support) ⊆
+           (antidiagonal n).support := finset.filter_subset _,
+    rw [← finset.sum_sdiff this, finset.sum_eq_zero, zero_add], swap,
+    { intros x hx,
+      rw [finset.mem_sdiff, not_iff_not_of_iff (finset.mem_filter),
+          not_and, not_and, not_mem_support_iff] at hx,
+      by_cases H : x.1 ∈ p.support,
+      { rw [coeff, coeff, hx.2 hx.1 H, mul_zero] },
+      { rw not_mem_support_iff at H, rw [coeff, H, zero_mul] } },
+    symmetry,
+    rw [← finset.sum_sdiff (finset.filter_subset _), finset.sum_eq_zero, zero_add], swap,
+    { intros x hx,
+      rw [finset.mem_sdiff, not_iff_not_of_iff (finset.mem_filter), not_and] at hx,
+      rw if_neg,
+      exact hx.2 hx.1 },
+    { apply finset.sum_bij, swap 5,
+      { intros x hx, exact (x.1, x.2) },
+      { intros x hx, rw [finset.mem_filter, finset.mem_sigma] at hx,
+        simpa [finset.mem_filter, mem_antidiagonal_support] using hx.symm },
+      { intros x hx, rw finset.mem_filter at hx, rw if_pos hx.2 },
+      { rintros ⟨i,j⟩ ⟨k,l⟩ hij hkl, simpa using and.intro },
+      { rintros ⟨i,j⟩ hij, refine ⟨⟨i,j⟩, _, _⟩, { apply_instance },
+        { rw [finset.mem_filter, mem_antidiagonal_support] at hij,
+          simpa [finset.mem_filter, finset.mem_sigma] using hij.symm },
+        { refl } } },
+    all_goals { apply_instance } }
 end
 
-lemma coeff_mul_X' (m) (i : σ) (p : mv_polynomial σ α) :
-  coeff m (p * X i) = if i ∈ m.support then coeff (m - single i 1) p else 0 :=
+@[simp] lemma coeff_mul_X (m) (s : σ) (p : mv_polynomial σ α) :
+  coeff (m + single s 1) (p * X s) = coeff m p :=
+begin
+  have : (m, single s 1) ∈ (m + single s 1).antidiagonal.support := mem_antidiagonal_support.2 rfl,
+  rw [coeff_mul, ← finset.insert_erase this, finset.sum_insert (finset.not_mem_erase _ _),
+      finset.sum_eq_zero, add_zero, coeff_X, mul_one],
+  rintros ⟨i,j⟩ hij,
+  rw [finset.mem_erase, mem_antidiagonal_support] at hij,
+  by_cases H : single s 1 = j,
+  { subst j, simpa using hij },
+  { rw [coeff_X', if_neg H, mul_zero] },
+end
+
+lemma coeff_mul_X' (m) (s : σ) (p : mv_polynomial σ α) :
+  coeff m (p * X s) = if s ∈ m.support then coeff (m - single s 1) p else 0 :=
 begin
   split_ifs with h h,
-  { conv_rhs {rw ← coeff_mul_X _ i},
-    congr' 1, ext j,
-    by_cases hj : i = j,
-    { subst j, simp only [nat_sub_apply, add_apply, single_eq_same],
-      refine (nat.sub_add_cancel _).symm, rw mem_support_iff at h,
-      exact nat.pos_of_ne_zero h },
+  { conv_rhs {rw ← coeff_mul_X _ s},
+    congr' 1, ext t,
+    by_cases hj : s = t,
+    { subst t, simp only [nat_sub_apply, add_apply, single_eq_same],
+      refine (nat.sub_add_cancel $ nat.pos_of_ne_zero _).symm, rwa mem_support_iff at h },
     { simp [single_eq_of_ne hj] } },
   { delta coeff, rw ← not_mem_support_iff, intro hm, apply h,
     have H := support_mul _ _ hm, simp only [finset.mem_bind] at H,
     rcases H with ⟨j, hj, i', hi', H⟩,
-    delta X monomial at hi', rw mem_support_single at hi', cases hi',
-    simp * at * }
+    delta X monomial at hi', rw mem_support_single at hi', cases hi', subst i',
+    erw finset.mem_singleton at H, subst m,
+    rw [mem_support_iff, add_apply, single_apply, if_pos rfl],
+    intro H, rw [add_eq_zero_iff] at H, exact one_ne_zero H.2 }
 end
 
 end coeff
@@ -662,7 +708,7 @@ lemma C_sub : (C (a - a') : mv_polynomial σ α) = C a - C a' := is_ring_hom.map
 
 instance coeff.is_add_group_hom (m : σ →₀ ℕ) :
   is_add_group_hom (coeff m : mv_polynomial σ α → α) :=
-⟨coeff_add m⟩
+{ map_add := coeff_add m }
 
 variables {σ} (p)
 theorem C_mul' : mv_polynomial.C a * p = a • p :=

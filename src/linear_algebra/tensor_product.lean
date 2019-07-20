@@ -196,7 +196,7 @@ by unfold has_scalar.smul; apply_instance
 
 protected theorem smul_add (r : R) (x y : M ⊗[R] N) :
   r • (x + y) = r • x + r • y :=
-is_add_group_hom.map_add _ _ _
+is_add_hom.map_add _ _ _
 
 instance : module R (M ⊗ N) := module.of_core
 { smul := (•),
@@ -206,7 +206,7 @@ instance : module R (M ⊗ N) := module.of_core
       apply quotient_add_group.induction_on' x,
       intro z,
       symmetry,
-      refine @free_abelian_group.lift.unique _ _ _ _ _ ⟨λ p q, _⟩ _ z,
+      refine @free_abelian_group.lift.unique _ _ _ _ _ (is_add_group_hom.mk' $ λ p q, _) _ z,
       { simp [tensor_product.smul_add] },
       rintro ⟨m, n⟩,
       change (r • m) ⊗ₜ n + (s • m) ⊗ₜ n = ((r + s) • m) ⊗ₜ n,
@@ -218,7 +218,7 @@ instance : module R (M ⊗ N) := module.of_core
       intro z,
       symmetry,
       refine @free_abelian_group.lift.unique _ _ _ _ _
-        ⟨λ p q, _⟩ _ z,
+        (is_add_group_hom.mk' $ λ p q, _) _ z,
       { simp [tensor_product.smul_add] },
       rintro ⟨m, n⟩,
       change r • s • (m ⊗ₜ n) = ((r * s) • m) ⊗ₜ n,
@@ -306,7 +306,7 @@ theorem lift.unique {g : (M ⊗[R] N) →ₗ[R] P} (H : ∀ x y, g (x ⊗ₜ y) 
 linear_map.ext $ λ z, begin
   apply quotient_add_group.induction_on' z,
   intro z,
-  refine @free_abelian_group.lift.unique _ _ _ _ _ ⟨λ p q, _⟩ _ z,
+  refine @free_abelian_group.lift.unique _ _ _ _ _ (is_add_group_hom.mk' $ λ p q, _) _ z,
   { simp [g.2] },
   exact λ ⟨m, n⟩, H m n
 end

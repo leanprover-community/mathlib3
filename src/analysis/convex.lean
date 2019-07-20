@@ -156,6 +156,21 @@ begin
     { simp only [add_sub_cancel'_right] } }
 end
 
+lemma image_Icc_zero_one_eq_segment {x y : α} :
+   (λ (t : ℝ), x + t • (y - x)) '' Icc 0 1 = segment x y :=
+begin
+  apply subset.antisymm,
+  { intros z hz,
+    apply exists.elim hz,
+    intros x hx,
+    use x,
+    simp [hx.2.symm, hx.1] },
+  { intros z hz,
+    apply exists.elim hz,
+    intros a ha,
+    exact ⟨a, ha.1, add_eq_of_eq_sub' (eq.symm ha.2)⟩ }
+end
+
 /-- Alternative defintion of set convexity using segments -/
 lemma convex_segment_iff : convex A ↔ ∀ x y ∈ A, [x, y] ⊆ A :=
 begin
@@ -340,39 +355,12 @@ convex_inter _ _ (convex_Ioi _) (convex_Iic _)
 lemma convex_Icc (r : ℝ) (s : ℝ) : convex (Icc r s) :=
 convex_inter _ _ (convex_Ici _) (convex_Iic _)
 
-private lemma convex_segment0 (b : α) : convex [0, b] :=
-begin
-  let f := (λ x : ℝ, x • b),
-  have h_image : f '' (Icc 0 1) = [0, b],
-  { apply subset.antisymm,
-    { intros z hz,
-      apply exists.elim hz,
-      intros x hx,
-      use x,
-      simp [hx.2.symm, hx.1] },
-    { intros z hz,
-      apply exists.elim hz,
-      intros x hx,
-      use x,
-      simp at hx,
-      exact and.intro hx.1 hx.2.symm } },
-  have h_lin : is_linear_map ℝ f,
-    from is_linear_map.is_linear_map_smul' _,
-  show convex [0, b],
-  { rw [←h_image],
-    exact convex_linear_image _ f h_lin (convex_Icc _ _) }
-end
-
 lemma convex_segment (a b : α) : convex [a, b] :=
 begin
-  have h: (λx, a + x) '' [0, b-a] = [a, b],
-  { convert segment_translate_image _ _ _,
-    { simp },
-    { simp only [add_sub_cancel'_right] } },
-  show convex [a, b],
-  { rw [← h],
-    apply convex_translation,
-    apply convex_segment0 }
+  have : (λ (t : ℝ), a + t • (b - a)) = (λz : α, a + z) ∘ (λt:ℝ, t • (b - a)) := rfl,
+  rw [← image_Icc_zero_one_eq_segment, this, image_comp],
+  apply convex_translation _ _ (convex_linear_image _ _ _ (convex_Icc _ _)),
+  exact is_linear_map.is_linear_map_smul' _
 end
 
 lemma convex_halfspace_lt (f : α → ℝ) (h : is_linear_map ℝ f) (r : ℝ) :

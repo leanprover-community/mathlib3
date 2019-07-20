@@ -75,7 +75,7 @@ lemma to_End_def [monoid α] (x : α) : to_End x = x := rfl
 /-- There is a 1-1 correspondence between monoid homomorphisms `α → β` and functors between the
     corresponding single-object categories. It means that `single_obj` is a fully faithful
     functor. -/
-def map_hom_equiv {α : Type u} {β : Type v} [monoid α] [monoid β] :
+def map_hom_equiv (α : Type u) (β : Type v) [monoid α] [monoid β] :
   { f : α → β // is_monoid_hom f } ≃ (single_obj α) ⥤ (single_obj β) :=
 { to_fun := λ f,
   { obj := id,
@@ -89,9 +89,10 @@ def map_hom_equiv {α : Type u} {β : Type v} [monoid α] [monoid β] :
 
 /-- Reinterpret a monoid homomorphism `f : α → β` as a functor `(single_obj α) ⥤ (single_obj β)`.
 See also `map_hom_equiv` for an equivalence between these types. -/
-def map_hom {α : Type u} {β : Type v} [monoid α] [monoid β] (f : α → β) [hf : is_monoid_hom f] :
+@[reducible] def map_hom {α : Type u} {β : Type v} [monoid α] [monoid β]
+  (f : α → β) [hf : is_monoid_hom f] :
   (single_obj α) ⥤ (single_obj β) :=
-map_hom_equiv.to_fun ⟨f, hf⟩ -- FIXME: doesn't work using `⇑`
+map_hom_equiv α β ⟨f, hf⟩
 
 lemma map_hom_id {α : Type u} [monoid α] : map_hom (@id α) = 𝟭 _ := rfl
 
@@ -111,13 +112,13 @@ open category_theory
 /-- The fully faithful functor from `Mon` to `Cat`. -/
 def to_Cat : Mon ⥤ Cat :=
 { obj := λ x, Cat.of (single_obj x),
-  map := λ x y, single_obj.map_hom_equiv.to_fun }
+  map := λ x y f, single_obj.map_hom f }
 
 instance to_Cat_full : full to_Cat :=
-{ preimage := λ x y, single_obj.map_hom_equiv.inv_fun,
-  witness' := λ x y, single_obj.map_hom_equiv.right_inv }
+{ preimage := λ x y, (single_obj.map_hom_equiv x y).inv_fun,
+  witness' := λ x y, (single_obj.map_hom_equiv x y).right_inv }
 
 instance to_Cat_faithful : faithful to_Cat :=
-{ injectivity' := λ x y, single_obj.map_hom_equiv.injective }
+{ injectivity' := λ x y, (single_obj.map_hom_equiv x y).injective }
 
 end Mon

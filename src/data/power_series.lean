@@ -18,7 +18,8 @@ A formal power series is to a polynomial like an infinite sum is to a finite sum
 
 We provide the natural inclusion from polynomials to power series.
 
-TODO(jmc): write about trunc
+`trunc n φ` truncates a power series to the polynomial
+that has the same coefficients as φ, for all m ≤ n, and 0 otherwise.
 
 If the constant coefficient of a formal power series is invertible,
 then this formal power series is invertible.
@@ -28,11 +29,21 @@ Formal power series over a local ring form a local ring.
 ## Implementation notes
 
 In this file we define multivariate power series with coefficients in `α` as
-(σ →₀ ℕ) → α
+mv_power_series σ α := (σ →₀ ℕ) → α
 Unfortunately there is not yet enough API to show that they are the completion
 of the ring of multivariate polynomials. However, we provide most of the infrastructure
 that is needed to do this. Once I-adic completion (topological or algebraic) is available
 it should not be hard to fill in the details.
+
+Formal power series in one variable are defined as
+power_series α := mv_power_series unit α
+
+This allows us to port a lot of proofs and properties
+from the multivariate case to the single variable case.
+However, it means that power series are indexed by (unit →₀ ℕ),
+which is of course canonically isomorphic to ℕ.
+We then build some glue to treat power series as if they are indexed by ℕ.
+Occasionaly this leads to proofs that are uglier than expected.
 
 -/
 
@@ -623,7 +634,7 @@ def coeff (n : ℕ) : power_series α → α := mv_power_series.coeff (single ()
 /-- Two power series are equal if all their coefficients are equal.-/
 @[extensionality] lemma ext {φ ψ : power_series α} (h : ∀ n, coeff n φ = coeff n ψ) : φ = ψ :=
 mv_power_series.ext $ λ n,
-have this : n = single () (n ()), from (finsupp.unique_single _ _),
+have this : n = single () (n ()), from (finsupp.unique_single n),
 by convert h (n ())
 
 /-- Two power series are equal if all their coefficients are equal.-/
@@ -721,7 +732,8 @@ begin
     refine ⟨(f (), g ()), _, _⟩,
     { rw finsupp.mem_antidiagonal_support at hfg,
       rw [finset.nat.mem_antidiagonal, ← finsupp.add_apply, hfg, finsupp.single_eq_same] },
-    { simp only [finsupp.unique_single] } }
+    { rw prod.mk.inj_iff, dsimp,
+      exact ⟨finsupp.unique_single f, finsupp.unique_single g⟩ } }
 end
 
 @[simp] lemma C_mul (a b : α) : (C (a * b) : power_series α) = C a * C b :=
@@ -885,7 +897,8 @@ begin
     refine ⟨(f (), g ()), _, _⟩,
     { rw finsupp.mem_antidiagonal_support at hfg,
       rw [finset.nat.mem_antidiagonal, ← finsupp.add_apply, hfg, finsupp.single_eq_same] },
-    { simp only [finsupp.unique_single] } }
+    { rw prod.mk.inj_iff, dsimp,
+      exact ⟨finsupp.unique_single f, finsupp.unique_single g⟩ } }
 end
 
 /-- A power series is invertible if the constant coefficient is invertible.-/

@@ -125,14 +125,6 @@ begin
   { rw [single_eq_of_ne h, zero_apply] }
 end
 
-lemma single_eq_single_of_ne_zero (h : b ≠ 0) :
-  single a b = single a' b ↔ a = a' :=
-⟨λ H, by simpa [h, single_eq_single_iff] using H, λ H, by rw [H]⟩
-
-lemma single_eq_zero : single a b = 0 ↔ b = 0 :=
-⟨λ h, by { rw ext_iff at h, simpa only [finsupp.single_eq_same, finsupp.zero_apply] using h s },
-λ h, by rw [h, single_zero]⟩
-
 lemma support_single_ne_zero (hb : b ≠ 0) : (single a b).support = {a} :=
 if_neg hb
 
@@ -161,6 +153,14 @@ begin
     { refl },
     { rw [single_zero, single_zero] } }
 end
+
+lemma single_eq_single_of_ne_zero (h : b ≠ 0) :
+  single a b = single a' b ↔ a = a' :=
+⟨λ H, by simpa [h, single_eq_single_iff] using H, λ H, by rw [H]⟩
+
+lemma single_eq_zero : single a b = 0 ↔ b = 0 :=
+⟨λ h, by { rw ext_iff at h, simpa only [finsupp.single_eq_same, finsupp.zero_apply] using h a },
+λ h, by rw [h, single_zero]⟩
 
 lemma single_swap {α β : Type*} [decidable_eq α] [decidable_eq β] [has_zero β] (a₁ a₂ : α) (b : β) :
   (single a₁ b : α → β) a₂ = (single a₂ b : α → β) a₁ :=
@@ -1504,6 +1504,12 @@ lemma le_iff [canonically_ordered_monoid α] (f g : σ →₀ α) :
 ⟨λ h s hs, h s,
 λ h s, if H : s ∈ f.support then h s H else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
 
+attribute [simp] to_multiset_zero to_multiset_add
+
+@[simp] lemma to_multiset_to_finsupp (f : σ →₀ ℕ) :
+  f.to_multiset.to_finsupp = f :=
+ext $ λ s, by rw [multiset.to_finsupp_apply, count_to_multiset]
+
 lemma to_multiset_strict_mono : strict_mono (@to_multiset σ _) :=
 λ m n h,
 begin
@@ -1531,12 +1537,6 @@ instance decidable_le : decidable_rel (@has_le.le (σ →₀ ℕ) _) :=
 λ m n, by rw le_iff; apply_instance
 
 variable {σ}
-
-attribute [simp] to_multiset_zero to_multiset_add
-
-@[simp] lemma to_multiset_to_finsupp (f : σ →₀ ℕ) :
-  f.to_multiset.to_finsupp = f :=
-ext $ λ s, by rw [multiset.to_finsupp_apply, count_to_multiset]
 
 def antidiagonal (f : σ →₀ ℕ) : ((σ →₀ ℕ) × (σ →₀ ℕ)) →₀ ℕ :=
 (f.to_multiset.antidiagonal.map (prod.map multiset.to_finsupp multiset.to_finsupp)).to_finsupp

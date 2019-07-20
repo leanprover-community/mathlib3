@@ -1,4 +1,8 @@
-/-
+import category_theory.endomorphism category_theory.groupoid category_theory.Cat
+import data.equiv.algebra algebra.Mon.basic
+import tactic.find
+
+/-!
 Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
@@ -27,9 +31,6 @@ An element `x : α` can be reinterpreted as an element of `End (single_obj.star 
 - By default, Lean puts instances into `category_theory` namespace instead of
   `category_theory.single_obj`, so we give all names explicitly.
 -/
-import category_theory.endomorphism category_theory.groupoid category_theory.Cat
-import data.equiv.algebra algebra.Mon.basic
-import tactic.find
 
 universes u v w
 
@@ -109,7 +110,7 @@ open category_theory
 
 /-- The fully faithful functor from `Mon` to `Cat`. -/
 def to_Cat : Mon ⥤ Cat :=
-{ obj := λ x, mk_ob (single_obj x),
+{ obj := λ x, Cat.of (single_obj x),
   map := λ x y, single_obj.map_hom_equiv.to_fun }
 
 instance to_Cat_full : full to_Cat :=

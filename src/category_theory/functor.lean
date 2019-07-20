@@ -81,21 +81,7 @@ infixr ` ⋙ `:80 := comp
 @[simp] lemma comp_map (F : C ⥤ D) (G : D ⥤ E) (X Y : C) (f : X ⟶ Y) :
   (F ⋙ G).map f = G.map (F.map f) := rfl
 
-omit ℰ
-
-@[simp] protected lemma comp_id (F : C ⥤ D) : F ⋙ (𝟭 D) = F :=
-by rcases F; refl
-
-@[simp] protected lemma id_comp (F : C ⥤ D) : (𝟭 C) ⋙ F = F :=
-by rcases F; refl
-
 end
-
-@[simp] lemma functor.comp_assoc
-  {C : Type u} [category.{v} C] {C₁ : Type u₁} [category.{v₁} C₁] {C₂ : Type u₂} [category.{v₂} C₂]
-  {C₃ : Type u₃} [category.{v₃} C₃] (F₁ : C ⥤ C₁) (F₂ : C₁ ⥤ C₂) (F₃ : C₂ ⥤ C₃) :
-  (F₁ ⋙ F₂) ⋙ F₃ = F₁ ⋙ F₂ ⋙ F₃ :=
-rfl
 
 section
 variables (C : Type u₁) [𝒞 : category.{v₁} C]

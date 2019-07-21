@@ -91,6 +91,18 @@ theorem numeric_rec {C : pgame → Prop}
 | ⟨l, r, L, R⟩ ⟨h, hl, hr⟩ :=
   H _ _ _ _ h hl hr (λ i, numeric_rec _ (hl i)) (λ i, numeric_rec _ (hr i))
 
+theorem numeric_zero : numeric 0 :=
+⟨by rintros ⟨⟩ ⟨⟩, ⟨by rintros ⟨⟩, by rintros ⟨⟩⟩⟩
+theorem numeric_one : numeric 1 :=
+⟨by rintros ⟨⟩ ⟨⟩, ⟨λ x, numeric_zero, by rintros ⟨⟩⟩⟩
+
+theorem numeric_neg : Π {x : pgame} (o : numeric x), numeric (-x)
+| ⟨l, r, L, R⟩ o :=
+⟨λ j i, lt_iff_neg_gt.1 (o.1 i j),
+  ⟨λ j, numeric_neg (o.2.2 j), λ i, numeric_neg (o.2.1 i)⟩⟩
+
+-- TODO prove numeric_add
+
 theorem lt_asymm {x y : pgame} (ox : numeric x) (oy : numeric y) : x < y → ¬ y < x :=
 begin
   refine numeric_rec (λ xl xr xL xR hx oxl oxr IHxl IHxr, _) x ox y oy,
@@ -136,6 +148,11 @@ open pgame
 /-- Construct a surreal number from a valid pre-surreal. -/
 def mk (x : pgame) (h : x.numeric) : surreal := quotient.mk ⟨x, h⟩
 
+instance : has_zero surreal :=
+{ zero := ⟦⟨0, numeric_zero⟩⟧ }
+instance : has_one surreal :=
+{ one := ⟦⟨1, numeric_one⟩⟧ }
+
 /-- Lift an equivalence-respecting function on pre-surreals to surreals. -/
 def lift {α} (f : ∀ x, numeric x → α)
   (H : ∀ {x y} (hx : numeric x) (hy : numeric y), x.equiv y → f x hx = f y hy) : surreal → α :=
@@ -174,5 +191,21 @@ instance : linear_order surreal :=
 { le_total := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; classical; exact
     or_iff_not_imp_left.2 (λ h, le_of_lt oy ox (pgame.not_le.1 h)),
   ..surreal.partial_order }
+
+-- We conclude with some ideas for further work on surreals; these would make fun projects.
+
+-- TODO construct instances for add_semigroup, add_monoid, add_group, add_comm_semigroup,
+-- add_comm_group, ordered_comm_group, as per the instances for `game`
+
+-- TODO define the inclusion of groups `surreal → game`
+
+-- TODO define the dyadic rationals, and show they map into the surreals.
+-- TODO show this is a group homomorphism, and injective
+
+-- TODO map the reals into the surreals, using dyadic Dedekind cuts
+-- TODO show this is a group homomorphism, and injective
+
+-- TODO define the field structure on the surreals
+-- TODO show the maps from the dyadic rationals and from the reals into the surreals are multiplicative
 
 end surreal

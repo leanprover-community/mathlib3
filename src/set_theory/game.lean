@@ -757,7 +757,7 @@ begin
   intros h,
   rw le_def,
   split,
-  { -- if left plays first
+  { -- if Left plays first
     intros i,
     change xl ⊕ zl at i,
     cases i,
@@ -784,7 +784,7 @@ begin
       simp only [move_left_mk, add_move_left_inr],
       exact add_le_add_right h,
     }, },
-  { -- if right plays first
+  { -- if Right plays first
     intros j,
     change yr ⊕ zr at j,
     cases j,
@@ -821,15 +821,10 @@ calc x + y ≤ y + x : add_comm_le
      ... ≤ x + z : add_comm_le
 
 theorem add_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : (w + y) ≈ (x + z) :=
-begin
-  split,
-  { transitivity w + z,
-    exact add_le_add_left h₂.1,
-    exact add_le_add_right h₁.1, },
-  { transitivity x + y,
-    exact add_le_add_left h₂.2,
-    exact add_le_add_right h₁.2 }
-end
+⟨calc w + y ≤ w + z : add_le_add_left h₂.1
+        ... ≤ x + z : add_le_add_right h₁.1,
+ calc x + z ≤ x + y : add_le_add_left h₂.2
+        ... ≤ w + y : add_le_add_right h₁.2⟩
 
 theorem add_left_neg_le_zero : Π {x : pgame}, (-x) + x ≤ 0
 | ⟨xl, xr, xL, xR⟩ :=
@@ -915,13 +910,13 @@ begin
   intro w,
   replace w : (y + z) + (-z) ≤ (x + z) + (-z) := by apply add_le_add_right w,
   have h' : y ≤ x,
-  calc y ≤ y + 0 : le_of_relabelling (add_zero_relabelling _).symm
-       ... ≤ y + (z + -z) : @add_le_add_left y 0 (z + -z) zero_le_add_right_neg
+  calc y ≤ y + 0            : le_of_relabelling (add_zero_relabelling _).symm
+       ... ≤ y + (z + -z)   : @add_le_add_left y 0 (z + -z) zero_le_add_right_neg
        ... ≤ (y + z) + (-z) : le_of_relabelling (add_assoc_relabelling _ _ _).symm
        ... ≤ (x + z) + (-z) : w
-       ... ≤ x + (z + -z) : le_of_relabelling (add_assoc_relabelling _ _ _)
-       ... ≤ x + 0 : @add_le_add_left x (z + -z) 0 add_right_neg_le_zero
-       ... ≤ x : le_of_relabelling (add_zero_relabelling _),
+       ... ≤ x + (z + -z)   : le_of_relabelling (add_assoc_relabelling _ _ _)
+       ... ≤ x + 0          : @add_le_add_left x (z + -z) 0 add_right_neg_le_zero
+       ... ≤ x              : le_of_relabelling (add_zero_relabelling _),
   exact h h',
 end
 
@@ -933,14 +928,36 @@ begin
   intro w,
   replace w : -x + (x + z) ≤ -x + (x + y) := by apply add_le_add_left w,
   have h' : z ≤ y,
-  calc z ≤ 0 + z : le_of_relabelling (zero_add_relabelling _).symm
+  calc z ≤ 0 + z          : le_of_relabelling (zero_add_relabelling _).symm
        ... ≤ (-x + x) + z : @add_le_add_right 0 (-x + x) z zero_le_add_left_neg
        ... ≤ -x + (x + z) : le_of_relabelling (add_assoc_relabelling _ _ _)
        ... ≤ -x + (x + y) : w
        ... ≤ (-x + x) + y : le_of_relabelling (add_assoc_relabelling _ _ _).symm
-       ... ≤ 0 + y : @add_le_add_right (-x + x) 0 y add_left_neg_le_zero
-       ... ≤ y : le_of_relabelling (zero_add_relabelling _),
+       ... ≤ 0 + y        : @add_le_add_right (-x + x) 0 y add_left_neg_le_zero
+       ... ≤ y            : le_of_relabelling (zero_add_relabelling _),
   exact h h',
+end
+
+/-- The pre-game `star`, which is fuzzy/confused with zero -/
+def star : pgame := pgame.of_lists [0] [0]
+
+theorem star_lt_zero : star < 0 :=
+begin
+  rw lt_def,
+  right,
+  use 0,
+  exact zero_lt_one,
+  split;
+  rintros ⟨⟩,
+end
+theorem zero_lt_star : 0 < star :=
+begin
+  rw lt_def,
+  left,
+  use 0,
+  exact zero_lt_one,
+  split;
+  rintros ⟨⟩,
 end
 
 /-- The pre-game `ω`. (In fact all ordinals have game and surreal representatives.) -/
@@ -994,7 +1011,8 @@ by { rintro ⟨x⟩ ⟨y⟩, exact not_le }
 -- Be very careful here!
 -- The relations `≤` and `<` on games do not satisfy
 -- `lt_iff_le_not_le : ∀ a b : α, a < b ↔ (a ≤ b ∧ ¬ b ≤ a)`
--- (This is satisfied by surreal numbers, however.)
+-- (Consider `a = 0`, `b = star`.)
+-- (`lt_iff_le_not_le` is satisfied by surreal numbers, however.)
 -- Thus we can not use `<` when defining a `partial_order`.
 
 -- The default value of `lt` provided by `partial_order` is

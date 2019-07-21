@@ -197,7 +197,8 @@ instance : linear_order surreal :=
 
 -- TODO define the inclusion of groups `surreal → game`
 
--- TODO define the dyadic rationals, and show they map into the surreals.
+-- TODO define the dyadic rationals, and show they map into the surreals via the formula
+--   m / 2^n ↦ { (m-1) / 2^n | (m+1) / 2^n }
 -- TODO show this is a group homomorphism, and injective
 
 -- TODO map the reals into the surreals, using dyadic Dedekind cuts

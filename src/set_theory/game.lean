@@ -695,47 +695,6 @@ le_of_relabelling (neg_add_relabelling x y)
 theorem neg_add_ge {x y : pgame} : -(x + y) ≥ -x + -y :=
 ge_of_relabelling (neg_add_relabelling x y)
 
--- TODO
--- theorem le_iff_sub_le_zero {x y : pgame} : x ≤ y ↔ x - y ≤ 0 := sorry
--- theorem le_iff_zero_le_sub {x y : pgame} : x ≤ y ↔ 0 ≤ y - x := sorry
-
--- TODO are the next two theorems needed?
-
--- theorem add_le_zero_of_le_zero : Π {x y : pgame} (hx : x ≤ 0) (hy : y ≤ 0), x + y ≤ 0
--- | (mk xl xr xL xR) (mk yl yr yL yR) :=
--- begin
---   intros hx hy,
---   rw le_zero,
---   intro i,
---   change xl ⊕ yl at i,
---   cases i,
---   { use right_moves_add.inv_fun (sum.inl (right_response hx i)),
---     simp only [right_moves_add_inv_fun_inl],
---     have rs := right_response_spec hx i,
---     dsimp,
---     simp only [add_move_right_inl],
---     exact add_le_zero_of_le_zero rs hy, },
---   { fsplit,
---     change right_moves (mk xl xr xL xR + move_left (mk yl yr yL yR) i),
---     use right_moves_add.inv_fun (sum.inr (right_response hy i)),
---     simp only [id.def, right_moves_add_inv_fun_inr],
---     have rs := right_response_spec hy i,
---     dsimp,
---     simp only [add_move_right_inr],
---     exact add_le_zero_of_le_zero hx rs, },
--- end
--- using_well_founded { dec_tac := pgame_wf_tac }
-
--- theorem zero_le_add_of_zero_le : Π {x y : pgame} (hx : 0 ≤ x) (hy : 0 ≤ y), 0 ≤ x + y :=
--- begin
---   intros x y,
---   repeat { rw zero_le_iff_neg_le_zero },
---   intros hx hy,
---   transitivity,
---   exact neg_add_le,
---   solve_by_elim [add_le_zero_of_le_zero],
--- end
-
 def add_comm_relabelling : Π (x y : pgame.{u}), relabelling (x + y) (y + x)
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin

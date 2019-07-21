@@ -283,7 +283,9 @@ instance : linear_order surreal :=
   ..surreal.partial_order }
 
 def add : surreal → surreal → surreal :=
-surreal.lift₂ (λ (x y : pgame) (ox) (oy), ⟦⟨x + y, numeric_add ox oy⟩⟧) (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, quot.sound (pgame.add_congr hx hy))
+surreal.lift₂
+  (λ (x y : pgame) (ox) (oy), ⟦⟨x + y, numeric_add ox oy⟩⟧)
+  (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, quot.sound (pgame.add_congr hx hy))
 
 instance : has_add surreal := ⟨add⟩
 

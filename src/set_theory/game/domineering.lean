@@ -7,14 +7,29 @@ Domineering as a combinatorial game.
 -/
 import set_theory.game.short
 import tactic.norm_num
-import tactic.tidy
 
 open pgame
 
 namespace domineering_aux
 
-def shift_up : ℤ × ℤ ↪ ℤ × ℤ := ⟨λ p : ℤ × ℤ, (p.1, p.2 + 1), sorry⟩
-def shift_right : ℤ × ℤ ↪ ℤ × ℤ := ⟨λ p : ℤ × ℤ, (p.1 + 1, p.2), sorry⟩
+def shift_up : ℤ × ℤ ↪ ℤ × ℤ :=
+⟨λ p : ℤ × ℤ, (p.1, p.2 + 1), λ p q h,
+ begin
+   dsimp at h,
+   ext,
+   convert (congr_arg prod.fst h),
+   have h := (congr_arg (λ p : ℤ × ℤ, p.2 - 1) h),
+   simpa using h,
+ end⟩
+def shift_right : ℤ × ℤ ↪ ℤ × ℤ :=
+⟨λ p : ℤ × ℤ, (p.1 + 1, p.2), λ p q h,
+ begin
+   dsimp at h,
+   ext,
+   have h := (congr_arg (λ p : ℤ × ℤ, p.1 - 1) h),
+   simpa using h,
+   convert (congr_arg prod.snd h),
+ end⟩
 
 def left_set  (b : finset (ℤ × ℤ)) : finset (ℤ × ℤ) := b ∩ b.map shift_up
 def right_set (b : finset (ℤ × ℤ)) : finset (ℤ × ℤ) := b ∩ b.map shift_right
@@ -35,7 +50,11 @@ def move_right (b : finset (ℤ × ℤ)) (m : right b) : finset (ℤ × ℤ) :=
 
 lemma int.succ_ne_self {x : ℤ} : x + 1 ≠ x :=
 begin
-  sorry
+  intro h,
+  replace h := congr_arg (λ n : ℤ, n - x) h,
+  dsimp at h,
+  rw [add_assoc, add_comm, neg_add_cancel_right, add_right_neg] at h,
+  exact one_ne_zero h
 end
 
 lemma move_left_smaller (b : finset (ℤ × ℤ)) (m : left b) :
@@ -157,33 +176,36 @@ instance : short domineering.L := by { dsimp [domineering.L], apply_instance}
 -- Unfortunately dec_trivial can't keep up:
 -- example : domineering.L + domineering.L ≈ 1 := dec_trivial
 
-instance : short (pgame.of_lists [0] [1]) :=
-@pgame.short_of_lists [0] [1]
-begin
- intros l h, simp at h, subst h, apply_instance
-end
-begin
- intros l h, simp at h, subst h, apply_instance
-end
+-- instance : short (pgame.of_lists [0] [1]) :=
+-- @pgame.short_of_lists [0] [1]
+-- begin
+--  intros l h, simp at h, subst h, apply_instance
+-- end
+-- begin
+--  intros l h, simp at h, subst h, apply_instance
+-- end
 
-#eval to_bool (domineering.L ≈ pgame.of_lists [0] [1])
+-- #eval to_bool (domineering.L ≈ pgame.of_lists [0] [1])
+-- example : domineering.L ≈ pgame.of_lists [0] [1] := dec_trivial
 
-theorem L_left_moves : domineering.L.left_moves = { p | p ∈ [(0, 2), (0, 1)].to_finset } := sorry
-theorem L_right_moves : domineering.L.right_moves = { p | p ∈ [(1, 0)].to_finset } := sorry
+-- Work in progress, remove for PR.
 
-local infix ` ≈ ` := pgame.equiv
+-- theorem L_left_moves : domineering.L.left_moves = { p | p ∈ [(0, 2), (0, 1)].to_finset } := sorry
+-- theorem L_right_moves : domineering.L.right_moves = { p | p ∈ [(1, 0)].to_finset } := sorry
 
-theorem L_move_left_0_2 : domineering.L.move_left ⟨(0, 2), sorry⟩ ≈ -1 :=
-calc domineering.L.move_left ⟨(0, 2), sorry⟩ ≈ domineering ([(0,0), (1,0)].to_finset) : sorry
-     ... ≈ -1 : sorry
-theorem L_move_left_0_1 : domineering.L.move_left ⟨(0, 1), sorry⟩ ≈ 0 := sorry
-theorem L_move_right_1_0 : domineering.L.move_right ⟨(1, 0), sorry⟩ ≈ 1 := sorry
+-- local infix ` ≈ ` := pgame.equiv
 
-theorem domineering.L_eq_half' : domineering.L ≈ pgame.of_lists [-1, 0] [1] :=
-sorry
+-- theorem L_move_left_0_2 : domineering.L.move_left ⟨(0, 2), sorry⟩ ≈ -1 :=
+-- calc domineering.L.move_left ⟨(0, 2), sorry⟩ ≈ domineering ([(0,0), (1,0)].to_finset) : sorry
+--      ... ≈ -1 : sorry
+-- theorem L_move_left_0_1 : domineering.L.move_left ⟨(0, 1), sorry⟩ ≈ 0 := sorry
+-- theorem L_move_right_1_0 : domineering.L.move_right ⟨(1, 0), sorry⟩ ≈ 1 := sorry
 
-theorem domineering.L_eq_half : domineering.L ≈ pgame.of_lists [0] [1] :=
-sorry
-end
+-- theorem domineering.L_eq_half' : domineering.L ≈ pgame.of_lists [-1, 0] [1] :=
+-- sorry
+
+-- theorem domineering.L_eq_half : domineering.L ≈ pgame.of_lists [0] [1] :=
+-- sorry
+-- end
 
 end

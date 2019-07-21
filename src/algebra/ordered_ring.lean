@@ -435,4 +435,18 @@ by rw [coe_nat n]; apply coe_ne_top
 @[simp] lemma top_ne_nat (n : nat) : (⊤ : with_top α) ≠ n :=
 by rw [coe_nat n]; apply top_ne_coe
 
+@[elab_as_eliminator]
+lemma nat_induction {P : with_top ℕ → Prop} (a : with_top ℕ)
+  (h0 : P 0) (hsuc : ∀n:ℕ, P n → P n.succ) (htop : (∀n : ℕ, P n) → P ⊤) : P a :=
+begin
+  have A : ∀n:ℕ, P n,
+  { assume n,
+    induction n with n IH,
+    { exact h0 },
+    { exact hsuc n IH } },
+  cases a,
+  { exact htop A },
+  { exact A a }
+end
+
 end with_top

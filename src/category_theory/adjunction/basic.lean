@@ -29,6 +29,19 @@ structure adjunction (F : C ⥤ D) (G : D ⥤ C) :=
 
 infix ` ⊣ `:15 := adjunction
 
+class is_left_adjoint (left : C ⥤ D) :=
+(right : D ⥤ C)
+(adj : left ⊣ right)
+
+class is_right_adjoint (right : D ⥤ C) :=
+(left : C ⥤ D)
+(adj : left ⊣ right)
+
+def left_adjoint (R : D ⥤ C) [is_right_adjoint R] : C ⥤ D :=
+is_right_adjoint.left R
+def right_adjoint (L : C ⥤ D) [is_left_adjoint L] : D ⥤ C :=
+is_left_adjoint.right L
+
 namespace adjunction
 
 restate_axiom hom_equiv_unit'
@@ -104,6 +117,10 @@ by { rw [←assoc], dsimp, simp }
 by { rw [←assoc], dsimp, simp }
 
 end
+
+end adjunction
+
+namespace adjunction
 
 structure core_hom_equiv (F : C ⥤ D) (G : D ⥤ C) :=
 (hom_equiv : Π (X Y), (F.obj X ⟶ Y) ≃ (X ⟶ G.obj Y))
@@ -207,14 +224,6 @@ def comp (adj₁ : F ⊣ G) (adj₂ : H ⊣ I) : F ⋙ H ⊣ I ⋙ G :=
 
 end
 
-structure is_left_adjoint (left : C ⥤ D) :=
-(right : D ⥤ C)
-(adj : left ⊣ right)
-
-structure is_right_adjoint (right : D ⥤ C) :=
-(left : C ⥤ D)
-(adj : left ⊣ right)
-
 section construct_left
 -- Construction of a left adjoint. In order to construct a left
 -- adjoint to a functor G : D → C, it suffices to give the object part
@@ -281,6 +290,10 @@ mk_of_hom_equiv
 
 end construct_right
 
+end adjunction
+
+open adjunction
+
 namespace equivalence
 
 def to_adjunction (e : C ≌ D) : e.functor ⊣ e.inverse :=
@@ -289,6 +302,11 @@ mk_of_unit_counit ⟨e.unit, e.counit, by { ext, exact e.functor_unit_comp X },
 
 end equivalence
 
-end adjunction
+namespace functor
+
+def adjunction (E : C ⥤ D) [is_equivalence E] : E ⊣ E.inv :=
+(E.as_equivalence).to_adjunction
+
+end functor
 
 end category_theory

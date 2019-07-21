@@ -23,7 +23,7 @@ image_subset_iff.symm
 theorem maps_to_of_eq_on {f1 f2 : α → β} {a : set α} {b : set β} (h₁ : eq_on f1 f2 a)
     (h₂ : maps_to f1 a b) :
   maps_to f2 a b :=
-λ x h, by rw [mem_preimage_eq, ← h₁ _ h]; exact h₂ h
+λ x h, by rw [mem_preimage, ← h₁ _ h]; exact h₂ h
 
 theorem maps_to_comp {g : β → γ} {f : α → β} {a : set α} {b : set β} {c : set γ}
    (h₁ : maps_to g b c) (h₂ : maps_to f a b) : maps_to (g ∘ f) a c :=

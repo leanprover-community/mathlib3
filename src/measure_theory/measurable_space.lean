@@ -329,7 +329,7 @@ lemma measurable.if [measurable_space α] [measurable_space β]
 λ s hs, show is_measurable {a | (if p a then f a else g a) ∈ s},
 begin
   convert (hp.inter $ hf s hs).union (hp.compl.inter $ hg s hs),
-  exact ext (λ a, by by_cases p a; simp [h, mem_def])
+  exact ext (λ a, by by_cases p a ; { rw mem_def, simp [h] })
 end
 
 lemma measurable_const {α β} [measurable_space α] [measurable_space β] {a : α} : measurable (λb:β, a) :=

@@ -1,16 +1,16 @@
 /-
 Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro
+Authors: Mario Carneiro, Scott Morrison
 
-The basic theory of surreal numbers.
+The basic theory of surreal numbers, built on top of the theory of combinatorial games.
 -/
 import set_theory.game
 
 namespace pgame
 
 /- Multiplicative operations can be defined at the level of pre-games, but as
-they are only useful on surreal numbers, so we define them here. -/
+they are only useful on surreal numbers, we define them here. -/
 
 /-- The product of `x = {xL | xR}` and `y = {yL | yR}` is
   `{xL*y + x*yL - xL*yL, xR*y + x*yR - xR*yR | xL*y + x*yR - xL*yR, x*yL + xR*y - xR*yL }`. -/
@@ -73,12 +73,23 @@ if x = 0 then 0 else if 0 < x then inv' x else inv' (-x)
 noncomputable instance : has_inv pgame := ⟨inv⟩
 noncomputable instance : has_div pgame := ⟨λ x y, x * y⁻¹⟩
 
-/-- A pre-surreal is valid (wikipedia calls this "numeric") if
+/-- A pre-game is numeric if
   everything in the L set is less than everything in the R set,
-  and all the elements of L and R are also valid. -/
+  and all the elements of L and R are also numeric. -/
 def numeric : pgame → Prop
 | ⟨l, r, L, R⟩ :=
   (∀ i j, L i < R j) ∧ (∀ i, numeric (L i)) ∧ (∀ i, numeric (R i))
+
+def numeric.move_left {x : pgame} (o : numeric x) (i : x.left_moves) : numeric (x.move_left i) :=
+begin
+  cases x with xl xr xL xR,
+  exact o.2.1 i,
+end
+def numeric.move_right {x : pgame} (o : numeric x) (j : x.right_moves) : numeric (x.move_right j) :=
+begin
+  cases x with xl xr xL xR,
+  exact o.2.2 j,
+end
 
 @[elab_as_eliminator]
 theorem numeric_rec {C : pgame → Prop}
@@ -88,18 +99,6 @@ theorem numeric_rec {C : pgame → Prop}
   ∀ x, numeric x → C x
 | ⟨l, r, L, R⟩ ⟨h, hl, hr⟩ :=
   H _ _ _ _ h hl hr (λ i, numeric_rec _ (hl i)) (λ i, numeric_rec _ (hr i))
-
-theorem numeric_zero : numeric 0 :=
-⟨by rintros ⟨⟩ ⟨⟩, ⟨by rintros ⟨⟩, by rintros ⟨⟩⟩⟩
-theorem numeric_one : numeric 1 :=
-⟨by rintros ⟨⟩ ⟨⟩, ⟨λ x, numeric_zero, by rintros ⟨⟩⟩⟩
-
-theorem numeric_neg : Π {x : pgame} (o : numeric x), numeric (-x)
-| ⟨l, r, L, R⟩ o :=
-⟨λ j i, lt_iff_neg_gt.1 (o.1 i j),
-  ⟨λ j, numeric_neg (o.2.2 j), λ i, numeric_neg (o.2.1 i)⟩⟩
-
--- TODO prove numeric_add
 
 theorem lt_asymm {x y : pgame} (ox : numeric x) (oy : numeric y) : x < y → ¬ y < x :=
 begin
@@ -115,12 +114,110 @@ end
 theorem le_of_lt {x y : pgame} (ox : numeric x) (oy : numeric y) (h : x < y) : x ≤ y :=
 not_lt.1 (lt_asymm ox oy h)
 
+/-- On numeric pre-games, `<` and `≤` satisfy the axioms of a partial order (even though they
+    don't on all pre-games). -/
 theorem lt_iff_le_not_le {x y : pgame} (ox : numeric x) (oy : numeric y) : x < y ↔ x ≤ y ∧ ¬ y ≤ x :=
 ⟨λ h, ⟨le_of_lt ox oy h, not_le.2 h⟩, λ h, not_le.1 h.2⟩
 
+theorem numeric_zero : numeric 0 :=
+⟨by rintros ⟨⟩ ⟨⟩, ⟨by rintros ⟨⟩, by rintros ⟨⟩⟩⟩
+theorem numeric_one : numeric 1 :=
+⟨by rintros ⟨⟩ ⟨⟩, ⟨λ x, numeric_zero, by rintros ⟨⟩⟩⟩
+
+theorem numeric_neg : Π {x : pgame} (o : numeric x), numeric (-x)
+| ⟨l, r, L, R⟩ o :=
+⟨λ j i, lt_iff_neg_gt.1 (o.1 i j),
+  ⟨λ j, numeric_neg (o.2.2 j), λ i, numeric_neg (o.2.1 i)⟩⟩
+
+theorem numeric.move_left_lt {x : pgame} (o : numeric x) (i : x.left_moves) :
+  x.move_left i < x :=
+begin
+  rw lt_def_le,
+  left,
+  use i,
+end
+theorem numeric.move_left_le {x : pgame} (o : numeric x) (i : x.left_moves) :
+  x.move_left i ≤ x :=
+le_of_lt (o.move_left i) o (o.move_left_lt i)
+theorem numeric.lt_move_right {x : pgame} (o : numeric x) (j : x.right_moves) :
+  x < x.move_right j :=
+begin
+  rw lt_def_le,
+  right,
+  use j
+end
+theorem numeric.le_move_right {x : pgame} (o : numeric x) (j : x.right_moves) :
+  x ≤ x.move_right j :=
+le_of_lt o (o.move_right j) (o.lt_move_right j)
+
+theorem add_lt_add
+  {w x y z : pgame} (ow : numeric w) (ox : numeric x) (oy : numeric y) (oz : numeric z)
+  (hwx : w < x) (hyz : y < z) : w + y < x + z :=
+begin
+  rw lt_def_le at *,
+  rcases hwx with ⟨ix, hix⟩|⟨jw, hjw⟩;
+  rcases hyz with ⟨iz, hiz⟩|⟨jy, hjy⟩,
+  { left,
+    use left_moves_add.inv_fun (sum.inl ix),
+    simp,
+    calc w + y ≤ move_left x ix + y : add_le_add_right hix
+            ... ≤ move_left x ix + move_left z iz : add_le_add_left hiz
+            ... ≤ move_left x ix + z : add_le_add_left (oz.move_left_le iz) },
+  { left,
+    use left_moves_add.inv_fun (sum.inl ix),
+    simp,
+    calc w + y ≤ move_left x ix + y : add_le_add_right hix
+            ... ≤ move_left x ix + move_right y jy : add_le_add_left (oy.le_move_right jy)
+            ... ≤ move_left x ix + z : add_le_add_left hjy },
+  { right,
+    use right_moves_add.inv_fun (sum.inl jw),
+    simp,
+    calc move_right w jw + y ≤ x + y : add_le_add_right hjw
+            ... ≤ x + move_left z iz : add_le_add_left hiz
+            ... ≤ x + z : add_le_add_left (oz.move_left_le iz) },
+  { right,
+    use right_moves_add.inv_fun (sum.inl jw),
+    simp,
+    calc move_right w jw + y ≤ x + y : add_le_add_right hjw
+            ... ≤ x + move_right y jy : add_le_add_left (oy.le_move_right jy)
+            ... ≤ x + z : add_le_add_left hjy },
+end
+
+theorem numeric_add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeric (x + y)
+| ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ox oy :=
+⟨begin
+   rintros (ix|iy) (jx|jy),
+   { show xL ix + ⟨yl, yr, yL, yR⟩ < xR jx + ⟨yl, yr, yL, yR⟩,
+     exact add_lt_add_right (ox.1 ix jx), },
+   { show xL ix + ⟨yl, yr, yL, yR⟩ < ⟨xl, xr, xL, xR⟩ + yR jy,
+     apply add_lt_add (ox.move_left ix) ox oy (oy.move_right jy),
+     apply ox.move_left_lt,
+     apply oy.lt_move_right },
+   { --  show ⟨xl, xr, xL, xR⟩ + yL iy < xR jx + ⟨yl, yr, yL, yR⟩, -- fails?
+     apply add_lt_add ox (ox.move_right jx) (oy.move_left iy) oy,
+     apply ox.lt_move_right,
+     apply oy.move_left_lt, },
+   { --  show ⟨xl, xr, xL, xR⟩ + yL iy < ⟨xl, xr, xL, xR⟩ + yR jy, -- fails?
+     exact @add_lt_add_left ⟨xl, xr, xL, xR⟩ _ _ (oy.1 iy jy), }
+ end,
+ begin
+   split,
+   { rintros (ix|iy),
+     { apply numeric_add (ox.move_left ix) oy, },
+     { apply numeric_add ox (oy.move_left iy), }, },
+   { rintros (jx|jy),
+     { apply numeric_add (ox.move_right jx) oy, },
+     { apply numeric_add ox (oy.move_right jy), }, },
+ end⟩
+using_well_founded { dec_tac := pgame_wf_tac }
+
+-- TODO prove
+-- theorem numeric_nat (n : ℕ) : numeric n := sorry
+-- theorem numeric_omega : numeric omega := sorry
+
 end pgame
 
-/-- The equivalence on valid pre-surreal numbers. -/
+/-- The equivalence on numeric pre-games. -/
 def surreal.equiv (x y : {x // pgame.numeric x}) : Prop := x.1.equiv y.1
 local infix ` ≈ ` := surreal.equiv
 
@@ -130,20 +227,15 @@ instance surreal.setoid : setoid {x // pgame.numeric x} :=
  λ x y, pgame.equiv_symm,
  λ x y z, pgame.equiv_trans⟩
 
-/-- The type of surreal numbers. In ZFC, a surreal number is constructed from
-  two sets of surreal numbers that have been constructed at an earlier
-  stage. To do this in type theory, we say that a pre-surreal is built
-  inductively from two families of pre-surreals indexed over any type
-  in Type u. The resulting type `pSurreal.{u}` lives in `Type (u+1)`,
-  reflecting that it is a proper class in ZFC.
-  A surreal number is then constructed by discarding the invalid pre-surreals
-  and quotienting by equivalence so that the ordering becomes a total order. -/
+/-- The type of surreal numbers. These are the numeric pre-games quotiented
+  by the equivalence relation `x ≈ y ↔ x ≤ y ∧ y ≤ x`. In the quotient,
+  the order becomes a total order. -/
 def surreal := quotient surreal.setoid
 
 namespace surreal
 open pgame
 
-/-- Construct a surreal number from a valid pre-surreal. -/
+/-- Construct a surreal number from a numeric pre-game. -/
 def mk (x : pgame) (h : x.numeric) : surreal := quotient.mk ⟨x, h⟩
 
 instance : has_zero surreal :=
@@ -151,12 +243,12 @@ instance : has_zero surreal :=
 instance : has_one surreal :=
 { one := ⟦⟨1, numeric_one⟩⟧ }
 
-/-- Lift an equivalence-respecting function on pre-surreals to surreals. -/
+/-- Lift an equivalence-respecting function on pre-games to surreals. -/
 def lift {α} (f : ∀ x, numeric x → α)
   (H : ∀ {x y} (hx : numeric x) (hy : numeric y), x.equiv y → f x hx = f y hy) : surreal → α :=
 quotient.lift (λ x : {x // numeric x}, f x.1 x.2) (λ x y, H x.2 y.2)
 
-/-- Lift a binary equivalence-respecting function on pre-surreals to surreals. -/
+/-- Lift a binary equivalence-respecting function on pre-games to surreals. -/
 def lift₂ {α} (f : ∀ x y, numeric x → numeric y → α)
   (H : ∀ {x₁ y₁ x₂ y₂} (ox₁ : numeric x₁) (oy₁ : numeric y₁) (ox₂ : numeric x₂) (oy₂ : numeric y₂),
     x₁.equiv x₂ → y₁.equiv y₂ → f x₁ y₁ ox₁ oy₁ = f x₂ y₂ ox₂ oy₂) : surreal → surreal → α :=
@@ -190,10 +282,32 @@ instance : linear_order surreal :=
     or_iff_not_imp_left.2 (λ h, le_of_lt oy ox (pgame.not_le.1 h)),
   ..surreal.partial_order }
 
+def add : surreal → surreal → surreal :=
+surreal.lift₂ (λ (x y : pgame) (ox) (oy), ⟦⟨x + y, numeric_add ox oy⟩⟧) (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, quot.sound (pgame.add_congr hx hy))
+
+instance : has_add surreal := ⟨add⟩
+
+theorem add_assoc (x y z : surreal) : x + y + z = x + (y + z) :=
+begin
+  induction x generalizing y z,
+  induction y generalizing z,
+  induction z,
+  apply quot.sound,
+  exact add_assoc_equiv,
+  refl,
+  refl,
+  refl
+end
+
+instance : add_semigroup surreal :=
+{ add_assoc := add_assoc,
+  ..(by apply_instance : has_add surreal) }
+
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 
--- TODO construct instances for add_semigroup, add_monoid, add_group, add_comm_semigroup,
--- add_comm_group, ordered_comm_group, as per the instances for `game`
+-- TODO construct the remaining instances:
+--   add_monoid, add_group, add_comm_semigroup, add_comm_group, ordered_comm_group,
+-- as per the instances for `game`
 
 -- TODO define the inclusion of groups `surreal → game`
 

@@ -3,7 +3,8 @@ Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Isabel Longbottom, Scott Morrison
 
-The basic theory of combinatorial games. The surreal numbers will be built as a subtype.
+The basic theory of combinatorial games, based on Conway's book `On Numbers and Games`.
+The surreal numbers will be built as a subtype.
 -/
 import data.equiv.basic logic.embedding
 import data.nat.cast
@@ -429,11 +430,8 @@ begin
     exact le_of_relabelling (R_relabelling j) },
 end
 
-theorem ge_of_relabelling {x y : pgame} (r : relabelling x y) : x ≥ y :=
-le_of_relabelling r.symm
-
 theorem equiv_of_relabelling {x y : pgame} (r : relabelling x y) : x ≈ y :=
-⟨le_of_relabelling r, ge_of_relabelling r⟩
+⟨le_of_relabelling r, le_of_relabelling r.symm⟩
 
 /-- The negation of `{L | R}` is `{-R | -L}`. -/
 def neg : pgame → pgame
@@ -692,8 +690,8 @@ using_well_founded { dec_tac := pgame_wf_tac }
 
 theorem neg_add_le {x y : pgame} : -(x + y) ≤ -x + -y :=
 le_of_relabelling (neg_add_relabelling x y)
-theorem neg_add_ge {x y : pgame} : -(x + y) ≥ -x + -y :=
-ge_of_relabelling (neg_add_relabelling x y)
+-- theorem neg_add_ge {x y : pgame} : -(x + y) ≥ -x + -y :=
+-- ge_of_relabelling (neg_add_relabelling x y)
 
 def add_comm_relabelling : Π (x y : pgame.{u}), relabelling (x + y) (y + x)
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
@@ -721,7 +719,7 @@ theorem add_comm_le {x y : pgame} : (x + y) ≤ (y + x) :=
 le_of_relabelling (add_comm_relabelling x y)
 
 theorem add_comm_equiv {x y : pgame} : (x + y) ≈ (y + x) :=
-⟨le_of_relabelling (add_comm_relabelling x y), ge_of_relabelling (add_comm_relabelling x y)⟩
+⟨le_of_relabelling (add_comm_relabelling x y), le_of_relabelling (add_comm_relabelling x y).symm⟩
 
 def add_assoc_relabelling : Π (x y z : pgame.{u}), relabelling ((x + y) + z) (x + (y + z))
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
@@ -749,7 +747,7 @@ end
 using_well_founded { dec_tac := pgame_wf_tac }
 
 theorem add_assoc_equiv {x y z : pgame} : ((x + y) + z) ≈ (x + (y + z)) :=
-⟨le_of_relabelling (add_assoc_relabelling x y z), ge_of_relabelling (add_assoc_relabelling x y z)⟩
+⟨le_of_relabelling (add_assoc_relabelling x y z), le_of_relabelling (add_assoc_relabelling x y z).symm⟩
 
 theorem add_le_add_right : Π {x y z : pgame} (h : x ≤ y), x + z ≤ y + z
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
@@ -985,151 +983,151 @@ def game := quotient pgame.setoid
 
 open pgame
 
-namespace game
+-- namespace game
 
-/-- The relation `x ≤ y` on games. -/
-def le : game → game → Prop :=
-quotient.lift₂ (λ x y, x ≤ y) (λ x₁ y₁ x₂ y₂ hx hy, propext (le_congr hx hy))
+-- /-- The relation `x ≤ y` on games. -/
+-- def le : game → game → Prop :=
+-- quotient.lift₂ (λ x y, x ≤ y) (λ x₁ y₁ x₂ y₂ hx hy, propext (le_congr hx hy))
 
-instance : has_le game :=
-{ le := le }
+-- instance : has_le game :=
+-- { le := le }
 
-@[refl] theorem le_refl : ∀ x : game, x ≤ x :=
-by { rintro ⟨x⟩, apply pgame.le_refl }
-@[trans] theorem le_trans : ∀ x y z : game, x ≤ y → y ≤ z → x ≤ z :=
-by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, apply pgame.le_trans }
-theorem le_antisymm : ∀ x y : game, x ≤ y → y ≤ x → x = y :=
-by { rintro ⟨x⟩ ⟨y⟩ h₁ h₂, apply quot.sound, exact ⟨h₁, h₂⟩ }
+-- @[refl] theorem le_refl : ∀ x : game, x ≤ x :=
+-- by { rintro ⟨x⟩, apply pgame.le_refl }
+-- @[trans] theorem le_trans : ∀ x y z : game, x ≤ y → y ≤ z → x ≤ z :=
+-- by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, apply pgame.le_trans }
+-- theorem le_antisymm : ∀ x y : game, x ≤ y → y ≤ x → x = y :=
+-- by { rintro ⟨x⟩ ⟨y⟩ h₁ h₂, apply quot.sound, exact ⟨h₁, h₂⟩ }
 
-/-- The relation `x < y` on games. -/
-def lt : game → game → Prop :=
-quotient.lift₂ (λ x y, x < y) (λ x₁ y₁ x₂ y₂ hx hy, propext (lt_congr hx hy))
+-- /-- The relation `x < y` on games. -/
+-- def lt : game → game → Prop :=
+-- quotient.lift₂ (λ x y, x < y) (λ x₁ y₁ x₂ y₂ hx hy, propext (lt_congr hx hy))
 
-theorem not_le : ∀ {x y : game}, ¬ (x ≤ y) ↔ (lt y x) :=
-by { rintro ⟨x⟩ ⟨y⟩, exact not_le }
+-- theorem not_le : ∀ {x y : game}, ¬ (x ≤ y) ↔ (lt y x) :=
+-- by { rintro ⟨x⟩ ⟨y⟩, exact not_le }
 
--- Be very careful here!
--- The relations `≤` and `<` on games do not satisfy
--- `lt_iff_le_not_le : ∀ a b : α, a < b ↔ (a ≤ b ∧ ¬ b ≤ a)`
--- (Consider `a = 0`, `b = star`.)
--- (`lt_iff_le_not_le` is satisfied by surreal numbers, however.)
--- Thus we can not use `<` when defining a `partial_order`.
+-- -- Be very careful here!
+-- -- The relations `≤` and `<` on games do not satisfy
+-- -- `lt_iff_le_not_le : ∀ a b : α, a < b ↔ (a ≤ b ∧ ¬ b ≤ a)`
+-- -- (Consider `a = 0`, `b = star`.)
+-- -- (`lt_iff_le_not_le` is satisfied by surreal numbers, however.)
+-- -- Thus we can not use `<` when defining a `partial_order`.
 
--- The default value of `lt` provided by `partial_order` is
--- ```λ a b, a ≤ b ∧ ¬ b ≤ a```,
--- but this does not agree with `<` on games.
+-- -- The default value of `lt` provided by `partial_order` is
+-- -- ```λ a b, a ≤ b ∧ ¬ b ≤ a```,
+-- -- but this does not agree with `<` on games.
 
--- This instance has the effect that for the remainder of this file `<` has a different
--- meaning than it did above!
-instance : partial_order game :=
-{ le_refl := le_refl,
-  le_trans := le_trans,
-  le_antisymm := le_antisymm,
-  ..(game.has_le) }
+-- -- This instance has the effect that for the remainder of this file `<` has a different
+-- -- meaning than it did above!
+-- instance : partial_order game :=
+-- { le_refl := le_refl,
+--   le_trans := le_trans,
+--   le_antisymm := le_antisymm,
+--   ..(game.has_le) }
 
-instance : has_zero game := ⟨⟦0⟧⟩
-instance : has_one game := ⟨⟦1⟧⟩
+-- instance : has_zero game := ⟨⟦0⟧⟩
+-- instance : has_one game := ⟨⟦1⟧⟩
 
-def add : game → game → game :=
-quotient.lift₂ (λ x y : pgame, ⟦x + y⟧) (λ x₁ y₁ x₂ y₂ hx hy, quot.sound (pgame.add_congr hx hy))
+-- def add : game → game → game :=
+-- quotient.lift₂ (λ x y : pgame, ⟦x + y⟧) (λ x₁ y₁ x₂ y₂ hx hy, quot.sound (pgame.add_congr hx hy))
 
-instance : has_add game := ⟨add⟩
+-- instance : has_add game := ⟨add⟩
 
-theorem add_assoc (x y z : game) : x + y + z = x + (y + z) :=
-begin
-  induction x generalizing y z,
-  induction y generalizing z,
-  induction z,
-  apply quot.sound,
-  exact add_assoc_equiv,
-  refl,
-  refl,
-  refl
-end
+-- theorem add_assoc (x y z : game) : x + y + z = x + (y + z) :=
+-- begin
+--   induction x generalizing y z,
+--   induction y generalizing z,
+--   induction z,
+--   apply quot.sound,
+--   exact add_assoc_equiv,
+--   refl,
+--   refl,
+--   refl
+-- end
 
-instance : add_semigroup game.{u} :=
-{ add_assoc := add_assoc,
-  ..(by apply_instance : has_add game) }
+-- instance : add_semigroup game.{u} :=
+-- { add_assoc := add_assoc,
+--   ..(by apply_instance : has_add game) }
 
-theorem add_zero (x : game) : x + 0 = x :=
-begin
-  induction x,
-  apply quot.sound,
-  apply add_zero_equiv,
-  refl
-end
-theorem zero_add (x : game) : 0 + x = x :=
-begin
-  induction x,
-  apply quot.sound,
-  apply zero_add_equiv,
-  refl
-end
+-- theorem add_zero (x : game) : x + 0 = x :=
+-- begin
+--   induction x,
+--   apply quot.sound,
+--   apply add_zero_equiv,
+--   refl
+-- end
+-- theorem zero_add (x : game) : 0 + x = x :=
+-- begin
+--   induction x,
+--   apply quot.sound,
+--   apply zero_add_equiv,
+--   refl
+-- end
 
-instance : add_monoid game :=
-{ add_zero := add_zero,
-  zero_add := zero_add,
-  ..(by apply_instance : has_zero game),
-  ..(by apply_instance : add_semigroup game) }
+-- instance : add_monoid game :=
+-- { add_zero := add_zero,
+--   zero_add := zero_add,
+--   ..(by apply_instance : has_zero game),
+--   ..(by apply_instance : add_semigroup game) }
 
-def neg : game → game :=
-quot.lift (λ x, ⟦-x⟧) (λ x y h, quot.sound (@neg_congr x y h))
+-- def neg : game → game :=
+-- quot.lift (λ x, ⟦-x⟧) (λ x y h, quot.sound (@neg_congr x y h))
 
-instance : has_neg game :=
-{ neg := neg, }
+-- instance : has_neg game :=
+-- { neg := neg, }
 
-theorem add_left_neg (x : game) : (-x) + x = 0 :=
-begin
-  induction x,
-  apply quot.sound,
-  apply add_left_neg_equiv,
-  refl
-end
+-- theorem add_left_neg (x : game) : (-x) + x = 0 :=
+-- begin
+--   induction x,
+--   apply quot.sound,
+--   apply add_left_neg_equiv,
+--   refl
+-- end
 
-instance : add_group game :=
-{ add_left_neg := add_left_neg,
-  ..(game.has_neg),
-  ..(game.add_monoid) }
+-- instance : add_group game :=
+-- { add_left_neg := add_left_neg,
+--   ..(game.has_neg),
+--   ..(game.add_monoid) }
 
-def add_comm (x y : game) : x + y = y + x :=
-begin
-  induction x generalizing y,
-  induction y,
-  apply quot.sound,
-  exact add_comm_equiv,
-  refl,
-  refl,
-end
+-- def add_comm (x y : game) : x + y = y + x :=
+-- begin
+--   induction x generalizing y,
+--   induction y,
+--   apply quot.sound,
+--   exact add_comm_equiv,
+--   refl,
+--   refl,
+-- end
 
-instance : add_comm_semigroup game :=
-{ add_comm := add_comm,
-  ..(by apply_instance : add_semigroup game) }
+-- instance : add_comm_semigroup game :=
+-- { add_comm := add_comm,
+--   ..(by apply_instance : add_semigroup game) }
 
-instance : add_comm_group game :=
-{ ..(game.add_comm_semigroup),
-  ..(game.add_group) }
+-- instance : add_comm_group game :=
+-- { ..(game.add_comm_semigroup),
+--   ..(game.add_group) }
 
-theorem add_le_add_left : ∀ (a b : game), a ≤ b → ∀ (c : game), c + a ≤ c + b :=
-begin rintro ⟨a⟩ ⟨b⟩ h ⟨c⟩, apply pgame.add_le_add_left h, end
+-- theorem add_le_add_left : ∀ (a b : game), a ≤ b → ∀ (c : game), c + a ≤ c + b :=
+-- begin rintro ⟨a⟩ ⟨b⟩ h ⟨c⟩, apply pgame.add_le_add_left h, end
 
--- Per the warning above, remember that `<` here is not the usual `<` defined on pregames above,
--- but rather `a < b := a ≤ b ∧ ¬b ≤ a`.
-theorem add_lt_add_left (a b : game) (h : a < b) (c : game) : c + a < c + b :=
-begin
-  rw lt_iff_le_not_le at h,
-  rw lt_iff_le_not_le,
-  split,
-  { apply add_le_add_left _ _ h.1 },
-  { intro w,
-    replace w : -c + (c + b) ≤ -c + (c + a) := add_le_add_left _ _ w _,
-    simp only [add_zero, add_comm, add_left_neg, add_left_comm] at w,
-    exact h.2 w },
-end
+-- -- Per the warning above, remember that `<` here is not the usual `<` defined on pre-games above,
+-- -- but rather `a < b := a ≤ b ∧ ¬b ≤ a`.
+-- theorem add_lt_add_left (a b : game) (h : a < b) (c : game) : c + a < c + b :=
+-- begin
+--   rw lt_iff_le_not_le at h,
+--   rw lt_iff_le_not_le,
+--   split,
+--   { apply add_le_add_left _ _ h.1 },
+--   { intro w,
+--     replace w : -c + (c + b) ≤ -c + (c + a) := add_le_add_left _ _ w _,
+--     simp only [add_zero, add_comm, add_left_neg, add_left_comm] at w,
+--     exact h.2 w },
+-- end
 
-instance : ordered_comm_group game :=
-{ add_le_add_left := add_le_add_left,
-  add_lt_add_left := add_lt_add_left,
-  ..(game.partial_order),
-  ..(game.add_comm_group) }
+-- instance : ordered_comm_group game :=
+-- { add_le_add_left := add_le_add_left,
+--   add_lt_add_left := add_lt_add_left,
+--   ..(game.partial_order),
+--   ..(game.add_comm_group) }
 
-end game
+-- end game

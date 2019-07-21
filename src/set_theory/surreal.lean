@@ -73,8 +73,6 @@ if x = 0 then 0 else if 0 < x then inv' x else inv' (-x)
 noncomputable instance : has_inv pgame := ⟨inv⟩
 noncomputable instance : has_div pgame := ⟨λ x y, x * y⁻¹⟩
 
-
-
 /-- A pre-surreal is valid (wikipedia calls this "numeric") if
   everything in the L set is less than everything in the R set,
   and all the elements of L and R are also valid. -/
@@ -107,11 +105,11 @@ theorem lt_asymm {x y : pgame} (ox : numeric x) (oy : numeric y) : x < y → ¬ 
 begin
   refine numeric_rec (λ xl xr xL xR hx oxl oxr IHxl IHxr, _) x ox y oy,
   refine numeric_rec (λ yl yr yL yR hy oyl oyr IHyl IHyr, _),
-  simp, rintro (⟨i, h₁⟩ | ⟨i, h₁⟩) (⟨j, h₂⟩ | ⟨j, h₂⟩),
-  { exact IHxr _ _ (oyr _) (lt_of_mk_le h₁) (lt_of_mk_le h₂) },
-  { exact not_lt.2 (le_trans h₁ h₂) (hx _ _) },
+  simp, rintro (⟨i, h₁⟩ | ⟨j, h₁⟩) (⟨i, h₂⟩ | ⟨j, h₂⟩),
+  { exact IHxl _ _ (oyl _) (lt_of_le_mk h₁) (lt_of_le_mk h₂) },
   { exact not_lt.2 (le_trans h₂ h₁) (hy _ _) },
-  { exact IHxl _ _ (oyl _) (lt_of_le_mk h₁) (lt_of_le_mk h₂) }
+  { exact not_lt.2 (le_trans h₁ h₂) (hx _ _) },
+  { exact IHxr _ _ (oyr _) (lt_of_mk_le h₁) (lt_of_mk_le h₂) },
 end
 
 theorem le_of_lt {x y : pgame} (ox : numeric x) (oy : numeric y) (h : x < y) : x ≤ y :=

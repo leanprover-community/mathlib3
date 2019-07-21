@@ -7,6 +7,7 @@ Domineering as a combinatorial game.
 -/
 import set_theory.game.short
 import tactic.norm_num
+import tactic.tidy
 
 open pgame
 
@@ -167,18 +168,22 @@ end
 
 #eval to_bool (domineering.L ≈ pgame.of_lists [0] [1])
 
+theorem L_left_moves : domineering.L.left_moves = { p | p ∈ [(0, 2), (0, 1)].to_finset } := sorry
+theorem L_right_moves : domineering.L.right_moves = { p | p ∈ [(1, 0)].to_finset } := sorry
+
+local infix ` ≈ ` := pgame.equiv
+
+theorem L_move_left_0_2 : domineering.L.move_left ⟨(0, 2), sorry⟩ ≈ -1 :=
+calc domineering.L.move_left ⟨(0, 2), sorry⟩ ≈ domineering ([(0,0), (1,0)].to_finset) : sorry
+     ... ≈ -1 : sorry
+theorem L_move_left_0_1 : domineering.L.move_left ⟨(0, 1), sorry⟩ ≈ 0 := sorry
+theorem L_move_right_1_0 : domineering.L.move_right ⟨(1, 0), sorry⟩ ≈ 1 := sorry
+
+theorem domineering.L_eq_half' : domineering.L ≈ pgame.of_lists [-1, 0] [1] :=
+sorry
+
 theorem domineering.L_eq_half : domineering.L ≈ pgame.of_lists [0] [1] :=
-begin
-  split,
-  { rw le_def,
-    split,
-    { intro i,
-      cases i,
-      cases i_property,
-      -- Left has played at (0,2), from which Right can reach the zero game:
-      left,
-      use 0,
-      norm_num, } }
+sorry
 end
 
 end

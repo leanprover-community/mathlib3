@@ -122,8 +122,11 @@ def le_lt (x y : pgame) : Prop × Prop :=
 begin
   induction x with xl xr xL xR IHxl IHxr generalizing y,
   induction y with yl yr yL yR IHyl IHyr,
-  exact ((∀ i, (IHxl i ⟨yl, yr, yL, yR⟩).2) ∧ (∀ i, (IHyr i).2),
-         (∃ i, (IHxr i ⟨yl, yr, yL, yR⟩).1) ∨ (∃ i, (IHyl i).1))
+  -- the orderings of the clauses here are carefully chosen so that
+  --   and.left/or.inl refer to moves by Left, and
+  --   and.right/or.inr refer to moves by Right.
+  exact ((∀ i, (IHxl i ⟨yl, yr, yL, yR⟩).2) ∧ (∀ j, (IHyr j).2),
+         (∃ i, (IHyl i).1) ∨ (∃ j, (IHxr j ⟨yl, yr, yL, yR⟩).1))
 end
 
 instance : has_le pgame := ⟨λ x y, (le_lt x y).1⟩
@@ -133,7 +136,7 @@ instance : has_lt pgame := ⟨λ x y, (le_lt x y).2⟩
 @[simp] theorem mk_le_mk {xl xr xL xR yl yr yL yR} :
   (⟨xl, xr, xL, xR⟩ : pgame) ≤ ⟨yl, yr, yL, yR⟩ ↔
   (∀ i, xL i < ⟨yl, yr, yL, yR⟩) ∧
-  (∀ i, (⟨xl, xr, xL, xR⟩ : pgame) < yR i) := iff.rfl
+  (∀ j, (⟨xl, xr, xL, xR⟩ : pgame) < yR j) := iff.rfl
 
 /-- Definition of `x ≤ y` on pre-games, in terms of `<` -/
 theorem le_def_lt {x y : pgame} : x ≤ y ↔
@@ -149,13 +152,13 @@ end
 /-- Definition of `x < y` on pre-games built using the constructor. -/
 @[simp] theorem mk_lt_mk {xl xr xL xR yl yr yL yR} :
   (⟨xl, xr, xL, xR⟩ : pgame) < ⟨yl, yr, yL, yR⟩ ↔
-  (∃ j, xR j ≤ ⟨yl, yr, yL, yR⟩) ∨
-  (∃ i, (⟨xl, xr, xL, xR⟩ : pgame) ≤ yL i) := iff.rfl
+  (∃ i, (⟨xl, xr, xL, xR⟩ : pgame) ≤ yL i) ∨
+  (∃ j, xR j ≤ ⟨yl, yr, yL, yR⟩) := iff.rfl
 
 /-- Definition of `x < y` on pre-games, in terms of `≤` -/
 theorem lt_def_le {x y : pgame} : x < y ↔
-  (∃ j : x.right_moves, x.move_right j ≤ y) ∨
-  (∃ i : y.left_moves, x ≤ y.move_left i) :=
+  (∃ i : y.left_moves, x ≤ y.move_left i) ∨
+  (∃ j : x.right_moves, x.move_right j ≤ y) :=
 begin
   induction x with xl xr xL xR IHxl IHxr generalizing y,
   induction y with yl yr yL yR IHyl IHyr,
@@ -166,11 +169,11 @@ end
 /-- The definition of `x ≤ y` on pre-games, in terms of `≤` two moves later. -/
 theorem le_def {x y : pgame} : x ≤ y ↔
   (∀ i : x.left_moves,
-   (∃ j : (x.move_left i).right_moves, (x.move_left i).move_right j ≤ y) ∨
-   (∃ i' : y.left_moves, (x.move_left i) ≤ (y.move_left i'))) ∧
+   (∃ i' : y.left_moves, (x.move_left i) ≤ (y.move_left i')) ∨
+   (∃ j : (x.move_left i).right_moves, (x.move_left i).move_right j ≤ y)) ∧
   (∀ j : y.right_moves,
-   (∃ j' : x.right_moves, x.move_right j' ≤ (y.move_right j)) ∨
-   (∃ i : (y.move_right j).left_moves, x ≤ (y.move_right j).move_left i)) :=
+   (∃ i : (y.move_right j).left_moves, x ≤ (y.move_right j).move_left i) ∨
+   (∃ j' : x.right_moves, x.move_right j' ≤ (y.move_right j))) :=
 begin
   rw [le_def_lt],
   conv { to_lhs, simp [lt_def_le] },
@@ -178,12 +181,12 @@ end
 
 /-- The definition of `x < y` on pre-games, in terms of `<` two moves later. -/
 theorem lt_def {x y : pgame} : x < y ↔
+  (∃ (i : left_moves y),
+    (∀ (i' : left_moves x), move_left x i' < move_left y i) ∧
+    (∀ (j : right_moves (move_left y i)), x < move_right (move_left y i) j)) ∨
   (∃ (j : right_moves x),
     (∀ (i : left_moves (move_right x j)), move_left (move_right x j) i < y) ∧
-    (∀ (j_1 : right_moves y), move_right x j < move_right y j_1)) ∨
-  (∃ (i : left_moves y),
-    (∀ (i_1 : left_moves x), move_left x i_1 < move_left y i) ∧
-    (∀ (j : right_moves (move_left y i)), x < move_right (move_left y i) j)) :=
+    (∀ (j' : right_moves y), move_right x j < move_right y j')) :=
 begin
   rw [lt_def_le],
   conv { to_lhs, simp [le_def_lt] },
@@ -215,7 +218,7 @@ begin
     simpa using hi, },
   { intros h i,
     erw exists_pempty,
-    rw [or_false],
+    rw [false_or],
     exact h i }
 end
 
@@ -232,7 +235,7 @@ begin
     simpa using hj, },
   { intros h j,
     erw exists_pempty,
-    rw [false_or],
+    rw [or_false],
     exact h j }
 end
 
@@ -240,8 +243,8 @@ theorem lt_zero {x : pgame} : x < 0 ↔
   ∃ j : right_moves x, ∀ i : left_moves (x.move_right j), (x.move_right j).move_left i < 0 :=
 begin
   rw lt_def,
-  conv { to_lhs, congr, skip, erw [exists_pempty], },
-  rw [or_false],
+  conv { to_lhs, congr, erw [exists_pempty], },
+  rw [false_or],
   constructor,
   { rintros ⟨j, ⟨h₁, h₂⟩⟩,
     use j,
@@ -257,8 +260,8 @@ theorem zero_lt {x : pgame} : 0 < x ↔
   ∃ i : left_moves x, ∀ j : right_moves (x.move_left i), 0 < (x.move_left i).move_right j :=
 begin
   rw lt_def,
-  conv { to_lhs, congr, erw [exists_pempty], },
-  rw [false_or],
+  conv { to_lhs, congr, skip, erw [exists_pempty], },
+  rw [or_false],
   constructor,
   { rintros ⟨j, ⟨h₁, h₂⟩⟩,
     use j,
@@ -302,11 +305,11 @@ by cases x; exact λ h, h.2 i
 
 theorem mk_lt_of_le {xl xr xL xR y i} :
   (by exact xR i ≤ y) → (⟨xl, xr, xL, xR⟩ : pgame) < y :=
-by cases y; exact λ h, or.inl ⟨i, h⟩
+by cases y; exact λ h, or.inr ⟨i, h⟩
 
 theorem lt_mk_of_le {x : pgame} {yl yr yL yR i} :
   (by exact x ≤ yL i) → x < ⟨yl, yr, yL, yR⟩ :=
-by cases x; exact λ h, or.inr ⟨i, h⟩
+by cases x; exact λ h, or.inl ⟨i, h⟩
 
 theorem not_le_lt {x y : pgame} :
   (¬ x ≤ y ↔ y < x) ∧ (¬ x < y ↔ y ≤ x) :=
@@ -375,15 +378,16 @@ theorem le_congr {x₁ y₁ x₂ y₂} : x₁ ≈ x₂ → y₁ ≈ y₂ → (x�
 theorem lt_congr {x₁ y₁ x₂ y₂} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ < y₁ ↔ x₂ < y₂ :=
 not_le.symm.trans $ (not_congr (le_congr hy hx)).trans not_le
 
-/-- `sub_game x y` says that Left always has fewer moves in `x` than in `y`,
-     and Right always has more moves in `x` than in `y` -/
-inductive sub_game : pgame.{u} → pgame.{u} → Type (u+1)
+/-- `restricted x y` says that Left always has fewer moves in `x` than in `y`,
+     and Right always has fewer moves in `y` than in `x` -/
+inductive restricted : pgame.{u} → pgame.{u} → Type (u+1)
 | mk : Π (x y : pgame) (L : x.left_moves ↪ y.left_moves) (R : y.right_moves ↪ x.right_moves),
-         (∀ (i : x.left_moves), sub_game (x.move_left i) (y.move_left (L i))) →
-         (∀ (j : y.right_moves), sub_game (x.move_right (R j)) (y.move_right j)) → sub_game x y
+         (∀ (i : x.left_moves), restricted (x.move_left i) (y.move_left (L i))) →
+         (∀ (j : y.right_moves), restricted (x.move_right (R j)) (y.move_right j)) → restricted x y
 
--- TODO prove `sub_game x y → sub_game y x → relabelling x y`
--- TODO prove results below about relabelling for `sub_game`, as appropriate
+-- TODO prove `restricted x y → restricted y x → relabelling x y`
+-- TODO prove results below about relabelling for `restricted`, as appropriate
+-- TODO prove `restricted x y → x ≤ y`
 
 inductive relabelling : pgame.{u} → pgame.{u} → Type (u+1)
 | mk : Π (x y : pgame) (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves),
@@ -414,12 +418,12 @@ begin
   rw le_def,
   split,
   { intro i,
-    right,
+    left,
     use (L_equiv.to_fun i),
     dsimp,
     exact le_of_relabelling (L_relabelling i) },
   { intro j,
-    left,
+    right,
     use (R_equiv.inv_fun j),
     dsimp,
     exact le_of_relabelling (R_relabelling j) },
@@ -507,19 +511,19 @@ begin
   { intro h,
     split,
     { intro i, have t := h.right i, cases t,
-      { right, cases t, use t_w, exact le_iff_neg_ge.1 t_h, },
-      { left,  cases t, use (@right_moves_neg (yR i)).symm t_w, convert le_iff_neg_ge.1 t_h, simp } },
+      { right, cases t, use (@right_moves_neg (yR i)).symm t_w, convert le_iff_neg_ge.1 t_h, simp },
+      { left, cases t, use t_w, exact le_iff_neg_ge.1 t_h, } },
     { intro j, have t := h.left j, cases t,
-      { right, cases t, use (@left_moves_neg (xL j)).symm t_w, convert le_iff_neg_ge.1 t_h, simp, },
-      { left,  cases t, use t_w, exact le_iff_neg_ge.1 t_h, } } },
+      { right, cases t, use t_w, exact le_iff_neg_ge.1 t_h, },
+      { left, cases t, use (@left_moves_neg (xL j)).symm t_w, convert le_iff_neg_ge.1 t_h, simp, } } },
   { intro h,
     split,
     { intro i, have t := h.right i, cases t,
-      { right, cases t, use t_w, exact le_iff_neg_ge.2 t_h, },
-      { left,  cases t, use (@left_moves_neg (xL i)) t_w, convert le_iff_neg_ge.2 _, convert t_h, simp, } },
+      { right, cases t, use (@left_moves_neg (xL i)) t_w, convert le_iff_neg_ge.2 _, convert t_h, simp, },
+      { left, cases t, use t_w, exact le_iff_neg_ge.2 t_h, } },
     { intro j, have t := h.left j, cases t,
-      { right, cases t, use (@right_moves_neg (yR j)) t_w, convert le_iff_neg_ge.2 _, convert t_h, simp },
-      { left,  cases t, use t_w, exact le_iff_neg_ge.2 t_h, } } },
+      { right, cases t, use t_w, exact le_iff_neg_ge.2 t_h, },
+      { left, cases t, use (@right_moves_neg (yR j)) t_w, convert le_iff_neg_ge.2 _, convert t_h, simp } } },
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
@@ -802,20 +806,20 @@ begin
       rw le_def at h,
       cases h,
       have t := h_left i,
-      rcases t with ⟨j, jh⟩ | ⟨i, ih⟩,
+      rcases t with ⟨i', ih⟩ | ⟨j, jh⟩,
       { left,
+        use left_moves_add.inv_fun (sum.inl i'),
+        dsimp,
+        simp only [move_left_mk, add_move_left_inl],
+        exact add_le_add_right ih, },
+      { right,
         use right_moves_add.inv_fun (sum.inl j),
         dsimp,
         simp only [add_move_right_inl],
         exact add_le_add_right jh },
-      { right,
-        use left_moves_add.inv_fun (sum.inl i),
-        dsimp,
-        simp only [move_left_mk, add_move_left_inl],
-        exact add_le_add_right ih, },
       },
     { -- or play in z
-      right,
+      left,
       use left_moves_add.inv_fun (sum.inr i),
       dsimp,
       simp only [move_left_mk, add_move_left_inr],
@@ -829,20 +833,20 @@ begin
       rw le_def at h,
       cases h,
       have t := h_right j,
-      rcases t with ⟨j, jh⟩ | ⟨i, ih⟩,
+      rcases t with ⟨i, ih⟩ | ⟨j', jh⟩,
       { left,
-        use right_moves_add.inv_fun (sum.inl j),
-        dsimp,
-        simp only [move_left_mk, add_move_left_inr],
-        exact add_le_add_right jh },
-      { right,
         use left_moves_add.inv_fun (sum.inl i),
         dsimp,
         simp only [add_move_left_inl],
         exact add_le_add_right ih, },
+      { right,
+        use right_moves_add.inv_fun (sum.inl j'),
+        dsimp,
+        simp only [move_left_mk, add_move_left_inr],
+        exact add_le_add_right jh },
       },
     { -- or play in z
-      left,
+      right,
       use right_moves_add.inv_fun (sum.inr j),
       dsimp,
       simp only [move_right_mk, add_move_right_inr],
@@ -877,25 +881,25 @@ begin
     change xr ⊕ xl at i,
     cases i,
     { -- If Left played in -x, Right responds with the same move in x.
-      left,
-      fsplit,
-      dsimp,
-      apply right_moves_add.inv_fun,
       right,
-      use i,
-      dsimp,
-      simp only [move_right_mk, add_move_right_inr],
-      apply add_left_neg_le_zero, },
-    { -- If Left in x, Right responds with the same move in -x.
-      left,
       fsplit,
-      dsimp,
-      apply right_moves_add.inv_fun,
-      left,
-      use i,
-      dsimp,
-      simp only [move_right_mk, add_move_right_inl],
-      apply add_left_neg_le_zero, },
+      { dsimp,
+        apply right_moves_add.inv_fun,
+        right,
+        use i },
+      { dsimp,
+        simp only [move_right_mk, add_move_right_inr],
+        apply add_left_neg_le_zero, } },
+    { -- If Left in x, Right responds with the same move in -x.
+      right,
+      fsplit,
+      { dsimp,
+        apply right_moves_add.inv_fun,
+        left,
+        use i },
+      { dsimp,
+        simp only [move_right_mk, add_move_right_inl],
+        apply add_left_neg_le_zero, } },
   },
   { rintro ⟨⟩, }
 end
@@ -911,25 +915,25 @@ begin
     change xl ⊕ xr at i,
     cases i,
     { -- If Right played in -x, Left responds with the same move in x.
-      right,
-      fsplit,
-      dsimp,
-      apply left_moves_add.inv_fun,
-      right,
-      use i,
-      dsimp,
-      simp only [move_left_mk, add_move_left_inr],
-      apply zero_le_add_left_neg, },
-    { -- If Right in x, Left responds with the same move in -x.
-      right,
-      fsplit,
-      dsimp,
-      apply left_moves_add.inv_fun,
       left,
-      use i,
-      dsimp,
-      simp only [move_left_mk, add_move_left_inl],
-      apply zero_le_add_left_neg, },
+      fsplit,
+      { dsimp,
+        apply left_moves_add.inv_fun,
+        right,
+        use i },
+      { dsimp,
+        simp only [move_left_mk, add_move_left_inr],
+        apply zero_le_add_left_neg, } },
+    { -- If Right in x, Left responds with the same move in -x.
+      left,
+      fsplit,
+      { dsimp,
+        apply left_moves_add.inv_fun,
+        left,
+        use i },
+      { dsimp,
+        simp only [move_left_mk, add_move_left_inl],
+        apply zero_le_add_left_neg, } },
   },
 end
 using_well_founded { dec_tac := pgame_wf_tac }

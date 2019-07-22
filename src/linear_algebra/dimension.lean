@@ -23,7 +23,7 @@ open submodule lattice function set
 variables (α β)
 def vector_space.dim [decidable_eq β] : cardinal :=
 cardinal.min
-  (nonempty_subtype.2 (exists_is_basis α β))
+  (nonempty_subtype.2 (@exists_is_basis α β _ (classical.dec_eq _) _ _ _))
   (λ b, cardinal.mk b.1)
 variables {α β}
 
@@ -96,7 +96,7 @@ begin
   rw e,
   apply cardinal.lift_inj.1,
   rw cardinal.mk_range_eq_of_inj (h.injective zero_ne_one),
-  exact mk_eq_mk_of_basis h v'.property
+  convert @mk_eq_mk_of_basis _ _ _ _ _ (id _) _ _ _ (id _) _ _ h v'.property
 end
 
 theorem is_basis.mk_eq_dim [decidable_eq β] {v : ι → β} (h : is_basis α v) :
@@ -105,14 +105,17 @@ by rw [←h.mk_range_eq_dim, cardinal.mk_range_eq_of_inj (h.injective zero_ne_on
 
 variables [add_comm_group γ] [vector_space α γ]
 
-theorem linear_equiv.dim_eq [decidable_eq β] [decidable_eq γ] (f : β ≃ₗ[α] γ) :
+theorem linear_equiv.dim_eq (f : β ≃ₗ[α] γ) :
   dim α β = dim α γ :=
+by letI := classical.dec_eq β;
+letI := classical.dec_eq γ; exact
 let ⟨b, hb⟩ := exists_is_basis α β in
 cardinal.lift_inj.1 $ hb.mk_eq_dim.symm.trans (f.is_basis hb).mk_eq_dim
 
-lemma dim_bot [decidable_eq β] : dim α (⊥ : submodule α β) = 0 :=
-by rw [←cardinal.lift_inj,
-  ←(@is_basis_empty_bot (pempty) α β _ _ _ _ _ _ nonempty_pempty).mk_eq_dim, cardinal.mk_pempty]
+lemma dim_bot : dim α (⊥ : submodule α β) = 0 :=
+by letI := classical.dec_eq β;
+  rw [← cardinal.lift_inj, ← (@is_basis_empty_bot pempty α β _ _ _ _ _ _ nonempty_pempty).mk_eq_dim,
+    cardinal.mk_pempty]
 
 lemma dim_of_field (α : Type*) [discrete_field α] : dim α α = 1 :=
 by rw [←cardinal.lift_inj, ← (@is_basis_singleton_one punit _ α _ _ _).mk_eq_dim, cardinal.mk_punit]
@@ -124,15 +127,11 @@ by rw [←cardinal.lift_inj, ← (is_basis_span hv).mk_eq_dim,
 
 lemma dim_span_set [decidable_eq β] {s : set β} (hs : linear_independent α (λ x, x : s → β)) :
   dim α ↥(span α s) = cardinal.mk s :=
-begin
-  have hs' : linear_independent α (subtype.val : s → β) := hs,
-  have := dim_span hs',
-  rw [subtype.val_range, set_of_mem_eq] at this,
-  rw this --TODO: shorten?
-end
+by rw [← @set_of_mem_eq _ s, ← subtype.val_range]; exact dim_span hs
 
-lemma dim_span_le (s : set β) [decidable_eq β] : dim α (span α s) ≤ cardinal.mk s :=
+lemma dim_span_le (s : set β) : dim α (span α s) ≤ cardinal.mk s :=
 begin
+  classical,
   rcases
     exists_linear_independent linear_independent_empty (set.empty_subset s)
     with ⟨b, hb, _, hsb, hlib⟩,
@@ -142,7 +141,7 @@ begin
   rw [hsab, dim_span_set hlib]
 end
 
-lemma dim_span_of_finset [decidable_eq β] (s : finset β) :
+lemma dim_span_of_finset (s : finset β) :
   dim α (span α (↑s : set β)) < cardinal.omega :=
 calc dim α (span α (↑s : set β)) ≤ cardinal.mk (↑s : set β) : dim_span_le ↑s
                              ... = s.card : by rw ←cardinal.finset_card
@@ -150,6 +149,8 @@ calc dim α (span α (↑s : set β)) ≤ cardinal.mk (↑s : set β) : dim_span
 
 theorem dim_prod [decidable_eq β] [decidable_eq γ] : dim α (β × γ) = dim α β + dim α γ :=
 begin
+  letI := classical.dec_eq β,
+  letI := classical.dec_eq γ,
   rcases exists_is_basis α β with ⟨b, hb⟩,
   rcases exists_is_basis α γ with ⟨c, hc⟩,
   rw [← cardinal.lift_inj,
@@ -162,13 +163,12 @@ begin
       ⟨equiv.ulift.trans (equiv.sum_congr (@equiv.ulift b) (@equiv.ulift c)).symm ⟩),
 end
 
-theorem dim_quotient [decidable_eq β] (p : submodule α β) [decidable_eq p.quotient]:
+theorem dim_quotient (p : submodule α β) [decidable_eq p.quotient]:
   dim α p.quotient + dim α p = dim α β :=
-let ⟨f⟩ := quotient_prod_linear_equiv p in dim_prod.symm.trans f.dim_eq
+by classical; exact let ⟨f⟩ := quotient_prod_linear_equiv p in dim_prod.symm.trans f.dim_eq
 
 /-- rank-nullity theorem -/
-theorem dim_range_add_dim_ker [decidable_eq β] [decidable_eq γ] (f : β →ₗ[α] γ) :
-  dim α f.range + dim α f.ker = dim α β :=
+theorem dim_range_add_dim_ker (f : β →ₗ[α] γ) : dim α f.range + dim α f.ker = dim α β :=
 begin
   haveI := λ (p : submodule α β), classical.dec_eq p.quotient,
   rw [← f.quot_ker_equiv_range.dim_eq, dim_quotient]
@@ -178,15 +178,13 @@ lemma dim_range_le [decidable_eq β] [decidable_eq γ] (f : β →ₗ[α] γ) :
   dim α f.range ≤ dim α β :=
 by rw ← dim_range_add_dim_ker f; exact le_add_right (le_refl _)
 
-lemma dim_map_le [decidable_eq β] [decidable_eq γ] (f : β →ₗ γ) (p : submodule α β):
-  dim α (p.map f) ≤ dim α p :=
+lemma dim_map_le (f : β →ₗ γ) (p : submodule α β) : dim α (p.map f) ≤ dim α p :=
 begin
   have h := dim_range_le (f.comp (submodule.subtype p)),
   rwa [linear_map.range_comp, range_subtype] at h,
 end
 
-lemma dim_range_of_surjective [decidable_eq β] [decidable_eq γ] (f : β →ₗ[α] γ) (h : surjective f) :
-  dim α f.range = dim α γ :=
+lemma dim_range_of_surjective (f : β →ₗ[α] γ) (h : surjective f) : dim α f.range = dim α γ :=
 begin
   refine linear_equiv.dim_eq (linear_equiv.of_bijective (submodule.subtype _) _ _),
   exact linear_map.ker_eq_bot.2 subtype.val_injective,
@@ -208,6 +206,7 @@ by rw [← dim_range_add_dim_ker f, linear_map.ker_eq_bot.2 h]; simp [dim_bot]
 set_option class.instance_max_depth 37
 lemma dim_submodule_le [decidable_eq β] (s : submodule α β) : dim α s ≤ dim α β :=
 begin
+  letI := classical.dec_eq β,
   rcases exists_is_basis α s with ⟨bs, hbs⟩,
   have : linear_independent α (λ (i : bs), submodule.subtype s i.val) :=
     (linear_independent.image hbs.1) (linear_map.disjoint_ker'.2
@@ -227,7 +226,7 @@ begin
 end
 set_option class.instance_max_depth 32
 
-lemma dim_le_injective [decidable_eq β] [decidable_eq γ] (f : β →ₗ[α] γ) (h : injective f) :
+lemma dim_le_injective (f : β →ₗ[α] γ) (h : injective f) :
   dim α β ≤ dim α γ :=
 by rw [dim_eq_injective f h]; exact dim_submodule_le _
 
@@ -307,6 +306,7 @@ open linear_map
 
 lemma dim_pi : vector_space.dim α (Πi, φ i) = cardinal.sum (λi, vector_space.dim α (φ i)) :=
 begin
+  letI := λ i, classical.dec_eq (φ i),
   choose b hb using assume i, exists_is_basis α (φ i),
   haveI := classical.dec_eq η,
   have : is_basis α (λ (ji : Σ j, b j), std_basis α (λ j, φ j) ji.fst ji.snd.val),
@@ -315,7 +315,7 @@ begin
   simp [λ i, (hb i).mk_range_eq_dim.symm, cardinal.sum_mk]
 end
 
-lemma dim_fun {β : Type u} [decidable_eq β] [add_comm_group β] [vector_space α β] :
+lemma dim_fun {β : Type u} [add_comm_group β] [vector_space α β] :
   vector_space.dim α (η → β) = fintype.card η * vector_space.dim α β :=
 by rw [dim_pi, cardinal.sum_const, cardinal.fintype_card]
 
@@ -346,7 +346,6 @@ begin
 end
 
 section rank
-variables [decidable_eq γ]
 
 def rank (f : β →ₗ[α] γ) : cardinal := dim α f.range
 

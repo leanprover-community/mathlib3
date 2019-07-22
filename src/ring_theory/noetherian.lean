@@ -298,7 +298,7 @@ is_noetherian_iff_well_founded.mp
 instance is_noetherian_ring.to_is_noetherian {α : Type*} [ring α] :
   ∀ [is_noetherian_ring α], is_noetherian α α := id
 
-instance ring.is_noetherian_of_fintype (R M) [ring R] [add_comm_group M] [module R M] [fintype M] : is_noetherian R M :=
+instance ring.is_noetherian_of_fintype (R M) [fintype M] [ring R] [add_comm_group M] [module R M] : is_noetherian R M :=
 by letI := classical.dec; exact
 ⟨assume s, ⟨to_finset s, by rw [finset.coe_to_finset', submodule.span_eq]⟩⟩
 
@@ -432,5 +432,10 @@ local attribute [instance] set.pointwise_mul_semiring
 theorem fg_mul (hm : M.fg) (hn : N.fg) : (M * N).fg :=
 let ⟨m, hfm, hm⟩ := fg_def.1 hm, ⟨n, hfn, hn⟩ := fg_def.1 hn in
 fg_def.2 ⟨m * n, set.pointwise_mul_finite hfm hfn, span_mul_span R m n ▸ hm ▸ hn ▸ rfl⟩
+
+lemma fg_pow (h : M.fg) (n : ℕ) : (M^n).fg :=
+nat.rec_on n
+(⟨finset.singleton 1, by simp [one_eq_span]⟩)
+(λ n ih, by simpa [pow_succ] using fg_mul _ _ h ih)
 
 end submodule

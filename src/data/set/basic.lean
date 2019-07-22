@@ -772,7 +772,7 @@ variables {f : α → β} {g : β → γ}
 
 @[simp] theorem preimage_empty : f ⁻¹' ∅ = ∅ := rfl
 
-@[simp] theorem mem_preimage_eq {s : set β} {a : α} : (a ∈ f ⁻¹' s) = (f a ∈ s) := rfl
+@[simp] theorem mem_preimage {s : set β} {a : α} : (a ∈ f ⁻¹' s) ↔ (f a ∈ s) := iff.rfl
 
 theorem preimage_mono {s t : set β} (h : s ⊆ t) : f ⁻¹' s ⊆ f ⁻¹' t :=
 assume x hx, h hx
@@ -1179,26 +1179,21 @@ by { ext, split, rintro ⟨x, h1, h2⟩, exact ⟨⟨x, h1⟩, h2⟩, rintro ⟨
 
 @[simp] lemma sum.elim_range {α β γ : Type*} (f : α → γ) (g : β → γ) :
   range (sum.elim f g) = range f ∪ range g :=
+by simp [set.ext_iff, mem_range]
+
+lemma range_ite_subset' {p : Prop} [decidable p] {f g : α → β} :
+  range (if p then f else g) ⊆ range f ∪ range g :=
 begin
-  apply subset.antisymm,
-  { intros x hx,
-    rcases set.mem_range.1 hx with ⟨a, ha⟩,
-    cases a,
-    { apply mem_union_left,
-      rw ←ha,
-      exact mem_range_self _ },
-    { apply mem_union_right,
-      rw ←ha,
-      exact mem_range_self _ } },
-  { intros x hx,
-    cases hx,
-    { rcases set.mem_range.1 hx with ⟨a, ha⟩,
-      use a,
-      simpa },
-    { rcases set.mem_range.1 hx with ⟨a, ha⟩,
-      apply set.mem_range.2,
-      existsi (sum.inr a),
-      simpa } }
+  by_cases h : p, {rw if_pos h, exact subset_union_left _ _},
+  {rw if_neg h, exact subset_union_right _ _}
+end
+
+lemma range_ite_subset {p : α → Prop} [decidable_pred p] {f g : α → β} :
+  range (λ x, if p x then f x else g x) ⊆ range f ∪ range g :=
+begin
+  rw range_subset_iff, intro x, by_cases h : p x,
+  simp [if_pos h, mem_union, mem_range_self],
+  simp [if_neg h, mem_union, mem_range_self]
 end
 
 end range
@@ -1279,7 +1274,7 @@ variable {α : Type*}
   range (@subtype.val _ p) = {x | p x} :=
 by rw ← image_univ; simp [-image_univ, subtype.val_image]
 
-@[simp] lemma range_coe_subtype (s : set α): range (coe : s → α) = s :=
+@[simp] lemma range_coe_subtype (s : set α) : range (coe : s → α) = s :=
 subtype.val_range
 
 end range

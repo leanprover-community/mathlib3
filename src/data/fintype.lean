@@ -5,7 +5,7 @@ Author: Mario Carneiro
 
 Finite types.
 -/
-import data.finset algebra.big_operators data.array.lemmas
+import data.finset algebra.big_operators data.array.lemmas logic.unique
 universes u v
 
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -204,6 +204,9 @@ instance (n : ℕ) : fintype (fin n) :=
 
 @[simp] theorem fintype.card_fin (n : ℕ) : fintype.card (fin n) = n :=
 by rw [fin.fintype]; simp [fintype.card, card, univ]
+
+@[instance, priority 0] def unique.fintype {α : Type*} [unique α] : fintype α :=
+⟨finset.singleton (default α), λ x, by rw [unique.eq_default x]; simp⟩
 
 instance : fintype empty := ⟨∅, empty.rec _⟩
 
@@ -681,10 +684,30 @@ lemma bijective_bij_inv (f_bij : bijective f) : bijective (bij_inv f_bij) :=
 
 end bijection_inverse
 
+lemma well_founded_of_trans_of_irrefl [fintype α] (r : α → α → Prop)
+  [is_trans α r] [is_irrefl α r] : well_founded r :=
+by classical; exact
+have ∀ x y, r x y → (univ.filter (λ z, r z x)).card < (univ.filter (λ z, r z y)).card,
+  from λ x y hxy, finset.card_lt_card $
+    by simp only [finset.lt_iff_ssubset.symm, lt_iff_le_not_le,
+      finset.le_iff_subset, finset.subset_iff, mem_filter, true_and, mem_univ, hxy];
+    exact ⟨λ z hzx, trans hzx hxy, not_forall_of_exists_not ⟨x, not_imp.2 ⟨hxy, irrefl x⟩⟩⟩,
+subrelation.wf this (measure_wf _)
+
+lemma preorder.well_founded [fintype α] [preorder α] : well_founded ((<) : α → α → Prop) :=
+well_founded_of_trans_of_irrefl _
+
+@[instance, priority 0] lemma linear_order.is_well_order [fintype α] [linear_order α] :
+  is_well_order α (<) :=
+{ wf := preorder.well_founded }
+
 end fintype
 
 class infinite (α : Type*) : Prop :=
 (not_fintype : fintype α → false)
+
+@[simp] lemma not_nonempty_fintype {α : Type*} : ¬nonempty (fintype α) ↔ infinite α :=
+⟨λf, ⟨λ x, f ⟨x⟩⟩, λ⟨f⟩ ⟨x⟩, f x⟩
 
 namespace infinite
 

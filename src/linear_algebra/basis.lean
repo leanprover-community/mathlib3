@@ -135,7 +135,7 @@ begin
       intros i hi,
       rw mem_image,
       use subtype.mk i (((finsupp.mem_supported _ _).1 hl₁ : ↑(l.support) ⊆ s) hi),
-      rw mem_preimage_eq,
+      rw mem_preimage,
       exact ⟨hi, rfl⟩ },
     show l = 0,
     { apply finsupp.eq_zero_of_comap_domain_eq_zero (subtype.val : s → ι) _ h_bij,
@@ -149,7 +149,7 @@ begin
     have hl' : finsupp.total ι β α v (finsupp.emb_domain ⟨subtype.val, subtype.val_injective⟩ l) = 0,
     { rw finsupp.emb_domain_eq_map_domain ⟨subtype.val, subtype.val_injective⟩ l,
       apply hl },
-    apply (finsupp.emb_domain_congr ⟨subtype.val, subtype.val_injective⟩ l 0).1,
+    apply finsupp.emb_domain_inj.1,
     rw [h (finsupp.emb_domain ⟨subtype.val, subtype.val_injective⟩ l) _ hl',
         finsupp.emb_domain_zero],
     rw [finsupp.mem_supported, finsupp.support_emb_domain],
@@ -196,7 +196,7 @@ begin
     rcases mem_range.1 (((finsupp.mem_supported _ _).1 hl₁ : ↑(l.support) ⊆ range v) hx) with ⟨i, hi⟩,
     rw mem_image,
     use i,
-    rw [mem_preimage_eq, hi],
+    rw [mem_preimage, hi],
     exact ⟨hx, rfl⟩ },
   apply finsupp.eq_zero_of_comap_domain_eq_zero v l,
   apply linear_independent_iff.1 hv,
@@ -349,7 +349,8 @@ begin
       refine span_mono (@supr_le_supr2 (set β) _ _ _ _ _ _),
       rintros ⟨i⟩, exact ⟨i, le_refl _⟩ },
     { change finite (plift.up ⁻¹' s.to_set),
-      exact finite_preimage (assume i j, plift.up.inj) s.finite_to_set } }
+      exact finite_preimage (inj_on_of_injective _ (assume i j, plift.up.inj))
+        s.finite_to_set } }
 end
 
 lemma linear_independent_Union_finite {η : Type*} {ιs : η → Type*}
@@ -550,7 +551,7 @@ begin
   have inj_v : injective v := (linear_independent.injective zero_eq_one hv),
   have inj_v' : injective v' := (linear_independent.injective zero_eq_one hv'),
   apply linear_independent.of_subtype_range,
-  { apply sum.elim_injective _ _,
+  { apply sum.elim_injective,
     { exact injective_comp prod.injective_inl inj_v },
     { exact injective_comp prod.injective_inr inj_v' },
     { intros, simp [ne_zero_of_linear_independent zero_eq_one hv] } },
@@ -570,7 +571,7 @@ begin
 end
 
 variables (α) (v)
-/-- A set of vectors is a basis if it is linearly independent and all vectors are in the span α -/
+/-- A set of vectors is a basis if it is linearly independent and all vectors are in the span α. -/
 def is_basis := linear_independent α v ∧ span α (range v) = ⊤
 variables {α} {v}
 
@@ -862,6 +863,7 @@ let ⟨b, hb₀, hx, hb₂, hb₃⟩ := exists_linear_independent hs (@subset_un
 variables (α β)
 lemma exists_is_basis : ∃b : set β, is_basis α (λ i : b, i.val) :=
 let ⟨b, _, hb⟩ := exists_subset_is_basis linear_independent_empty in ⟨b, hb⟩
+
 variables {α β}
 
 -- TODO(Mario): rewrite?
@@ -946,8 +948,8 @@ begin
   rw image_subset_iff at BC,
   simp,
   have := BC (subtype.mem b),
-  rw mem_preimage_eq at this,
-  have : f (b.val) = (subtype.mk (f ↑b) (begin rw ←mem_preimage_eq, exact BC (subtype.mem b) end) : C).val,
+  rw mem_preimage at this,
+  have : f (b.val) = (subtype.mk (f ↑b) (begin rw ←mem_preimage, exact BC (subtype.mem b) end) : C).val,
     by simp; unfold_coes,
   rw this,
   rw [constr_basis hC],

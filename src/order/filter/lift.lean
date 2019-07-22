@@ -112,7 +112,7 @@ lemma lift_lift_same_le_lift {g : set α → set α → filter β} :
 le_infi $ assume s, le_infi $ assume hs, infi_le_of_le s $ infi_le_of_le hs $ infi_le_of_le s $ infi_le _ hs
 
 lemma lift_lift_same_eq_lift {g : set α → set α → filter β}
-  (hg₁ : ∀s, monotone (λt, g s t)) (hg₂ : ∀t, monotone (λs, g s t)):
+  (hg₁ : ∀s, monotone (λt, g s t)) (hg₂ : ∀t, monotone (λs, g s t)) :
   f.lift (λs, f.lift (g s)) = f.lift (λs, g s s) :=
 le_antisymm
   lift_lift_same_le_lift
@@ -264,7 +264,7 @@ lemma lift_lift'_same_le_lift' {g : set α → set α → set β} :
 lift_lift_same_le_lift
 
 lemma lift_lift'_same_eq_lift' {g : set α → set α → set β}
-  (hg₁ : ∀s, monotone (λt, g s t)) (hg₂ : ∀t, monotone (λs, g s t)):
+  (hg₁ : ∀s, monotone (λt, g s t)) (hg₂ : ∀t, monotone (λs, g s t)) :
   f.lift (λs, f.lift' (g s)) = f.lift' (λs, g s s) :=
 lift_lift_same_eq_lift
   (assume s, monotone_comp monotone_id $ monotone_comp (hg₁ s) monotone_principal)

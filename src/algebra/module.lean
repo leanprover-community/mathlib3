@@ -150,7 +150,7 @@ theorem ext_iff {f g : β →ₗ[α] γ} : f = g ↔ ∀ x, f x = g x :=
 @[simp] lemma map_zero : f 0 = 0 :=
 by rw [← zero_smul α, map_smul f 0 0, zero_smul]
 
-instance : is_add_group_hom f := ⟨map_add f⟩
+instance : is_add_group_hom f := { map_add := map_add f }
 
 @[simp] lemma map_neg (x : β) : f (- x) = - f x :=
 by rw [← neg_one_smul α, map_smul, neg_one_smul]
@@ -186,7 +186,7 @@ lemma is_linear_map_neg :
   is_linear_map α (λ (z : β), -z) :=
 is_linear_map.mk neg_add (λ x y, (smul_neg x y).symm)
 
-lemma is_linear_map_smul {α R : Type*} [add_comm_group α] [comm_ring R] [module R α] (c : R):
+lemma is_linear_map_smul {α R : Type*} [add_comm_group α] [comm_ring R] [module R α] (c : R) :
   is_linear_map R (λ (z : α), c • z) :=
 begin
   refine is_linear_map.mk (smul_add c) _,
@@ -196,7 +196,7 @@ begin
 end
 
 --TODO: move
-lemma is_linear_map_smul' {α R : Type*} [add_comm_group α] [comm_ring R] [module R α] (a : α):
+lemma is_linear_map_smul' {α R : Type*} [add_comm_group α] [comm_ring R] [module R α] (a : α) :
   is_linear_map R (λ (c : R), c • a) :=
 begin
   refine is_linear_map.mk (λ x y, add_smul x y a) _,
@@ -400,7 +400,7 @@ end add_comm_group
 def is_add_group_hom.to_linear_map [add_comm_group α] [add_comm_group β]
   (f : α → β) [is_add_group_hom f] : α →ₗ[ℤ] β :=
 { to_fun := f,
-  add := is_add_group_hom.map_add f,
+  add := is_add_hom.map_add f,
   smul := λ i x, int.induction_on i (by rw [zero_smul, zero_smul, is_add_group_hom.map_zero f])
-    (λ i ih, by rw [add_smul, add_smul, is_add_group_hom.map_add f, ih, one_smul, one_smul])
+    (λ i ih, by rw [add_smul, add_smul, is_add_hom.map_add f, ih, one_smul, one_smul])
     (λ i ih, by rw [sub_smul, sub_smul, is_add_group_hom.map_sub f, ih, one_smul, one_smul]) }

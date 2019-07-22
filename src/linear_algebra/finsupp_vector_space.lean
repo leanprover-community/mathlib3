@@ -47,7 +47,6 @@ variables [decidable_eq α] [decidable_eq β] [discrete_field γ] [add_comm_grou
 
 open linear_map submodule
 
-
 lemma is_basis_single {φ : α → Type*} [∀ a, decidable_eq (φ a)] (f : Π α, φ α → β)
   (hf : ∀a, is_basis γ (f a)) :
   is_basis γ (λ ax : Σ a, φ a, single ax.1 (f ax.1 ax.2)) :=

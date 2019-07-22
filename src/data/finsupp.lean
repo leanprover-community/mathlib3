@@ -141,7 +141,7 @@ have (single a b₁ : α →₀ β) a = (single a b₂ : α →₀ β) a, by rw 
 by rwa [single_eq_same, single_eq_same] at this
 
 lemma single_eq_single_iff (a₁ a₂ : α) (b₁ b₂ : β) :
-  single a₁ b₁ = single a₂ b₂ ↔ ((a₁ = a₂ ∧ b₁ = b₂) ∨ (b₁ = 0 ∧ b₂ = 0)):=
+  single a₁ b₁ = single a₂ b₂ ↔ ((a₁ = a₂ ∧ b₁ = b₂) ∨ (b₁ = 0 ∧ b₂ = 0)) :=
 begin
   split,
   { assume eq,
@@ -258,18 +258,10 @@ begin
   exact set.mem_range_self a
 end
 
-lemma emb_domain_congr (f : α₁ ↪ α₂) (l₁ l₂ : α₁ →₀ β) :
+lemma emb_domain_inj {f : α₁ ↪ α₂} {l₁ l₂ : α₁ →₀ β} :
   emb_domain f l₁ = emb_domain f l₂ ↔ l₁ = l₂ :=
-begin
-  split,
-  { intro h,
-    ext a,
-    have eq : (emb_domain f l₁) (f a) = (emb_domain f l₂) (f a),
-      by rw h,
-    rwa [emb_domain_apply, emb_domain_apply] at eq },
-  { intro h,
-    rw h }
-end
+⟨λ h, finsupp.ext $ λ a, by simpa [emb_domain_apply] using finsupp.ext_iff.1 h (f a),
+  λ h, by rw h⟩
 
 lemma emb_domain_map_range
   {β₁ β₂ : Type*} [has_zero β₁] [has_zero β₂]
@@ -624,7 +616,7 @@ by rw [prod_insert has, ih, sum_insert has, prod_add_index h_zero h_add]
 lemma prod_sum_index
   [add_comm_monoid β₁] [add_comm_monoid β] [comm_monoid γ]
   {f : α₁ →₀ β₁} {g : α₁ → β₁ → α →₀ β}
-  {h : α → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂):
+  {h : α → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   (f.sum g).prod h = f.prod (λa b, (g a b).prod h) :=
 (prod_finset_sum_index h_zero h_add).symm
 
@@ -765,7 +757,7 @@ noncomputable def comap_domain {α₁ α₂ γ : Type*} [has_zero γ]
   mem_support_to_fun :=
     begin
       intros a,
-      simp [finset.preimage, set.finite.to_finset],
+      simp only [finset.mem_def.symm, finset.mem_preimage],
       exact l.mem_support_to_fun (f a),
     end }
 
@@ -784,32 +776,28 @@ lemma sum_comap_domain {α₁ α₂ β γ : Type*} [has_zero β] [add_comm_monoi
   (comap_domain f l (set.inj_on_of_bij_on hf)).sum (g ∘ f) = l.sum g :=
 begin
   unfold sum,
-  simp only [comap_domain, comap_domain_apply, finset.sum_preimage f _ _ (λ (x : α₂), g x (l x))]
+  haveI := classical.dec_eq α₂,
+  simp only [comap_domain, comap_domain_apply, finset.sum_preimage f _ _ (λ (x : α₂), g x (l x))],
 end
 
 lemma eq_zero_of_comap_domain_eq_zero {α₁ α₂ γ : Type*} [add_comm_monoid γ]
-  (f : α₁ → α₂) (l : α₂ →₀ γ) (hf : set.bij_on f (f ⁻¹' l.support.to_set) l.support.to_set)
-  (h : comap_domain f l (set.inj_on_of_bij_on hf) = 0) : l = 0 :=
+  (f : α₁ → α₂) (l : α₂ →₀ γ) (hf : set.bij_on f (f ⁻¹' l.support.to_set) l.support.to_set) :
+   comap_domain f l (set.inj_on_of_bij_on hf) = 0 → l = 0 :=
 begin
-  ext a,
-  have h_preimage : ∀ a' (ha' : f a' = a), l a = 0,
-  { intros a' ha',
-    rw [← ha', ← comap_domain_apply, h],
-    refl },
-  simp,
-  by_contradiction h_contr,
-  { exfalso,
-    apply exists.elim ((set.mem_image _ _ _).1 (set.surj_on_of_bij_on hf (mem_support_iff.2 h_contr))),
-    intros a' ha',
-    apply h_contr (h_preimage a' ha'.2) }
+  rw [← support_eq_empty, ← support_eq_empty, comap_domain],
+  simp only [finset.ext, finset.not_mem_empty, iff_false, mem_preimage],
+  assume h a ha,
+  cases hf.2.2 ha with b hb,
+  exact h b (hb.2.symm ▸ ha)
 end
 
-lemma map_domain_comap_domain {α₁ α₂ γ : Type*}
-  [add_comm_monoid γ] (f : α₁ → α₂) (l : α₂ →₀ γ)
+lemma map_domain_comap_domain {α₁ α₂ γ : Type*} [add_comm_monoid γ]
+  (f : α₁ → α₂) (l : α₂ →₀ γ)
   (hf : function.injective f) (hl : ↑l.support ⊆ set.range f):
   map_domain f (comap_domain f l (set.inj_on_of_injective _ hf)) = l :=
 begin
   ext a,
+  haveI := classical.dec (a ∈ set.range f),
   by_cases h_cases: a ∈ set.range f,
   { rcases set.mem_range.1 h_cases with ⟨b, hb⟩,
     rw [hb.symm, map_domain_apply hf, comap_domain_apply] },
@@ -1365,68 +1353,146 @@ def split_support : finset ι := finset.image (sigma.fst) l.support
 lemma mem_split_support_iff_nonzero (i : ι) :
   i ∈ split_support l ↔ split l i ≠ 0 :=
 begin
-  split,
-  { intros hi h0,
-    unfold split_support at hi,
-    unfold split at h0,
-    rw mem_image at hi,
-    rcases hi with ⟨x, hx₁, hx₂⟩,
-    cases x,
-    rw mem_support_iff at hx₁,
-    rw ←hx₂ at h0,
-    have : comap_domain (sigma.mk x_fst) l _ x_snd = 0,
-    { rw h0,
-      simp },
-    rw comap_domain_apply at this,
-    exact hx₁ this },
-  { intros h,
-    unfold split_support,
-    unfold split at h,
-    rw mem_image,
-    have := imp_false.1 (λ h1, h (finsupp.ext h1)),
-    rw [not_forall] at this,
-    rcases this with ⟨a, ha⟩,
-    use ⟨i, a⟩,
-    simp [comap_domain_apply] at ha,
-    rw mem_support_iff,
-    use ha }
+  classical,
+  rw [split_support, mem_image, ne.def, ← support_eq_empty,
+    ← exists_mem_iff_ne_empty, split, comap_domain],
+  simp
 end
 
-noncomputable def split_comp [has_zero γ] (g : Π i, (αs i →₀ β) → γ) (hg : ∀ i x, x = 0 ↔ g i x = 0)
-  : ι →₀ γ :=
+noncomputable def split_comp [has_zero γ] (g : Π i, (αs i →₀ β) → γ)
+  (hg : ∀ i x, x = 0 ↔ g i x = 0) : ι →₀ γ :=
 { support := split_support l,
   to_fun := λ i, g i (split l i),
   mem_support_to_fun :=
   begin
     intros i,
     rw mem_split_support_iff_nonzero,
+    haveI := classical.dec,
     rwa not_iff_not,
     exact hg _ _,
   end }
 
 lemma sigma_support : l.support = l.split_support.sigma (λ i, (l.split i).support) :=
-begin
-  apply finset.subset.antisymm,
-  { intros x hx,
-    rcases x with ⟨i, x⟩,
-    rw mem_sigma,
-    split,
-    { rw [split_support, mem_image],
-      use ⟨i, x⟩,
-      use hx },
-    { simpa [split, comap_domain_apply] using hx } },
-  { intros x hx,
-    rcases x with ⟨i, x⟩,
-    rw mem_sigma at hx,
-    have := hx.2,
-    rw [mem_support_iff, split_apply] at this,
-    rwa mem_support_iff }
-end
+by simp [finset.ext, split_support, split, comap_domain]; tauto
 
 lemma sigma_sum [add_comm_monoid γ] (f : (Σ (i : ι), αs i) → β → γ) :
   l.sum f = (split_support l).sum (λ (i : ι), (split l i).sum (λ (a : αs i) b, f ⟨i, a⟩ b)) :=
 by simp [sum, sigma_support, sum_sigma,split_apply]
 
 end sigma
+
+end finsupp
+
+namespace multiset
+variables [decidable_eq α]
+
+def to_finsupp (s : multiset α) : α →₀ ℕ :=
+{ support := s.to_finset,
+  to_fun := λ a, s.count a,
+  mem_support_to_fun := λ a,
+  begin
+    rw mem_to_finset,
+    convert not_iff_not_of_iff (count_eq_zero.symm),
+    rw not_not
+  end }
+
+@[simp] lemma to_finsupp_support (s : multiset α) :
+  s.to_finsupp.support = s.to_finset := rfl
+
+@[simp] lemma to_finsupp_apply (s : multiset α) (a : α) :
+  s.to_finsupp a = s.count a := rfl
+
+@[simp] lemma to_finsupp_zero :
+  to_finsupp (0 : multiset α) = 0 :=
+finsupp.ext $ λ a, count_zero a
+
+@[simp] lemma to_finsupp_add (s t : multiset α) :
+  to_finsupp (s + t) = to_finsupp s + to_finsupp t :=
+finsupp.ext $ λ a, count_add a s t
+
+lemma to_finsupp_singleton (a : α) :
+  to_finsupp {a} = finsupp.single a 1 :=
+finsupp.ext $ λ b,
+if h : a = b then by simp [finsupp.single_apply, h] else
+begin
+  rw [to_finsupp_apply, finsupp.single_apply, if_neg h, count_eq_zero,
+      singleton_eq_singleton, mem_singleton],
+  rintro rfl, exact h rfl
+end
+
+namespace to_finsupp
+
+instance : is_add_monoid_hom (to_finsupp : multiset α → α →₀ ℕ) :=
+{ map_zero := to_finsupp_zero,
+  map_add  := to_finsupp_add }
+
+end to_finsupp
+
+@[simp] lemma to_finsupp_to_multiset (s : multiset α) :
+  s.to_finsupp.to_multiset = s :=
+ext.2 $ λ a, by rw [finsupp.count_to_multiset, to_finsupp_apply]
+
+end multiset
+
+namespace finsupp
+variables {σ : Type*} [decidable_eq σ]
+
+instance [preorder α] [has_zero α] : preorder (σ →₀ α) :=
+{ le := λ f g, ∀ s, f s ≤ g s,
+  le_refl := λ f s, le_refl _,
+  le_trans := λ f g h Hfg Hgh s, le_trans (Hfg s) (Hgh s) }
+
+instance [partial_order α] [has_zero α] : partial_order (σ →₀ α) :=
+{ le_antisymm := λ f g hfg hgf, finsupp.ext $ λ s, le_antisymm (hfg s) (hgf s),
+  .. finsupp.preorder }
+
+instance [ordered_cancel_comm_monoid α] [decidable_eq α] :
+  add_left_cancel_semigroup (σ →₀ α) :=
+{ add_left_cancel := λ a b c h, finsupp.ext $ λ s,
+  by { rw finsupp.ext_iff at h, exact add_left_cancel (h s) },
+  .. finsupp.add_monoid }
+
+instance [ordered_cancel_comm_monoid α] [decidable_eq α] :
+  add_right_cancel_semigroup (σ →₀ α) :=
+{ add_right_cancel := λ a b c h, finsupp.ext $ λ s,
+  by { rw finsupp.ext_iff at h, exact add_right_cancel (h s) },
+  .. finsupp.add_monoid }
+
+instance [ordered_cancel_comm_monoid α] [decidable_eq α] :
+  ordered_cancel_comm_monoid (σ →₀ α) :=
+{ add_le_add_left := λ a b h c s, add_le_add_left (h s) (c s),
+  le_of_add_le_add_left := λ a b c h s, le_of_add_le_add_left (h s),
+  .. finsupp.add_comm_monoid, .. finsupp.partial_order,
+  .. finsupp.add_left_cancel_semigroup, .. finsupp.add_right_cancel_semigroup }
+
+attribute [simp] to_multiset_zero to_multiset_add
+
+@[simp] lemma to_multiset_to_finsupp (f : σ →₀ ℕ) :
+  f.to_multiset.to_finsupp = f :=
+ext $ λ s, by rw [multiset.to_finsupp_apply, count_to_multiset]
+
+def antidiagonal (f : σ →₀ ℕ) : ((σ →₀ ℕ) × (σ →₀ ℕ)) →₀ ℕ :=
+(f.to_multiset.antidiagonal.map (prod.map multiset.to_finsupp multiset.to_finsupp)).to_finsupp
+
+lemma mem_antidiagonal_support {f : σ →₀ ℕ} {p : (σ →₀ ℕ) × (σ →₀ ℕ)} :
+  p ∈ (antidiagonal f).support ↔ p.1 + p.2 = f :=
+begin
+  erw [multiset.mem_to_finset, multiset.mem_map],
+  split,
+  { rintros ⟨⟨a, b⟩, h, rfl⟩,
+    rw multiset.mem_antidiagonal at h,
+    simpa using congr_arg multiset.to_finsupp h },
+  { intro h,
+    refine ⟨⟨p.1.to_multiset, p.2.to_multiset⟩, _, _⟩,
+    { simpa using congr_arg to_multiset h },
+    { rw [prod.map, to_multiset_to_finsupp, to_multiset_to_finsupp, prod.mk.eta] } }
+end
+
+@[simp] lemma antidiagonal_zero : antidiagonal (0 : σ →₀ ℕ) = single (0,0) 1 :=
+by rw [← multiset.to_finsupp_singleton]; refl
+
+lemma swap_mem_antidiagonal_support {n : σ →₀ ℕ} {f} (hf : f ∈ (antidiagonal n).support) :
+  f.swap ∈ (antidiagonal n).support :=
+by simpa [mem_antidiagonal_support, add_comm] using hf
 
 end finsupp

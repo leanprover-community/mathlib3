@@ -11,7 +11,7 @@ import algebra.pi_instances data.finsupp data.equiv.algebra order.order_iso
 
 open function lattice
 
-reserve infix `≃ₗ` : 50
+reserve infix ` ≃ₗ `:25
 
 universes u v w x y z
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type y} {ε : Type z} {ι : Type x}
@@ -826,17 +826,7 @@ theorem inj_of_disjoint_ker {f : β →ₗ[α] γ} {p : submodule α β}
 λ x y hx hy, disjoint_ker'.1 hd _ _ (h hx) (h hy)
 
 lemma disjoint_inl_inr : disjoint (inl α β γ).range (inr α β γ).range :=
-begin
-  rw disjoint_def,
-  intros x hx₁ hx₂,
-  rcases linear_map.mem_range.1 hx₁ with ⟨b, hb⟩,
-  rcases linear_map.mem_range.1 hx₂ with ⟨c, hc⟩,
-  have := hc.trans hb.symm,
-  rw [inl_apply, inr_apply, prod.mk.inj_iff] at this,
-  rw this.1.symm at hb,
-  rw [hb.symm],
-  refl
-end
+by simp [disjoint_def, @eq_comm β 0, @eq_comm γ 0] {contextual := tt}; intros; refl
 
 theorem ker_eq_bot {f : β →ₗ[α] γ} : ker f = ⊥ ↔ injective f :=
 by simpa [disjoint] using @disjoint_ker' _ _ _ _ _ _ _ _ f ⊤

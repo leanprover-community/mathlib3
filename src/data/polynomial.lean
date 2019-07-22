@@ -188,33 +188,6 @@ begin
   { intros x h hx, rw [if_pos (hite x hx)] }
 end
 
--- lemma coeff_mul_left (p q : polynomial α) (n : ℕ) :
---   coeff (p * q) n = (range (n+1)).sum (λ k, coeff p k * coeff q (n-k)) :=
--- have hite : ∀ a : ℕ × ℕ, ite (a.1 + a.2 = n) (coeff p (a.fst) * coeff q (a.snd)) 0 ≠ 0
---     → a.1 + a.2 = n, from λ a ha, by_contradiction
---   (λ h, absurd (eq.refl (0 : α)) (by rwa if_neg h at ha)),
--- calc coeff (p * q) n = sum (p.support) (λ a, sum (q.support)
---     (λ b, ite (a + b = n) (coeff p a * coeff q b) 0)) :
---   by simp only [finsupp.mul_def, coeff_sum, coeff_single]; refl
--- ... = (p.support.product q.support).sum
---     (λ v : ℕ × ℕ, ite (v.1 + v.2 = n) (coeff p v.1 * coeff q v.2) 0) :
---   by rw sum_product
--- ... = (range (n+1)).sum (λ k, coeff p k * coeff q (n-k)) :
---   sum_bij_ne_zero (λ a _ _, a.1)
---   (λ a _ ha, mem_range.2 (nat.lt_succ_of_le (hite a ha ▸ le_add_right (le_refl _))))
---   (λ a₁ a₂ _ h₁ _ h₂ h, prod.ext h
---     ((add_left_inj a₁.1).1 (by rw [hite a₁ h₁, h, hite a₂ h₂])))
---   (λ a h₁ h₂, ⟨(a, n - a), mem_product.2
---       ⟨mem_support_iff.2 (ne_zero_of_mul_ne_zero_right h₂),
---       mem_support_iff.2 (ne_zero_of_mul_ne_zero_left h₂)⟩,
---     by simpa [nat.add_sub_cancel' (nat.le_of_lt_succ (mem_range.1 h₁))],
---     rfl⟩)
---   (λ a _ ha, by rw [← hite a ha, if_pos rfl, nat.add_sub_cancel_left])
-
--- lemma coeff_mul_right (p q : polynomial α) (n : ℕ) :
---   coeff (p * q) n = (range (n+1)).sum (λ k, coeff p (n-k) * coeff q k) :=
--- by rw [mul_comm, coeff_mul_left]; simp only [mul_comm]
-
 theorem coeff_mul_X_pow (p : polynomial α) (n d : ℕ) :
   coeff (p * polynomial.X ^ n) (d + n) = coeff p d :=
 begin

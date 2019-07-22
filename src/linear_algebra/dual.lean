@@ -43,7 +43,7 @@ variables {K : Type u} {V : Type v} {ι : Type w}
 variables [discrete_field K] [add_comm_group V] [vector_space K V]
 open vector_space module module.dual submodule linear_map cardinal function
 
--- instance dual.vector_space : vector_space K (dual K V) := {..dual.module K V}
+instance dual.vector_space : vector_space K (dual K V) := {..dual.module K V}
 
 variables [decidable_eq V] [decidable_eq (module.dual K V)] [decidable_eq ι]
 variables {B : ι → V} (h : is_basis K B)
@@ -182,7 +182,7 @@ begin
   rcases exists_subset_is_basis (linear_independent_singleton H) with ⟨b, hv, hb⟩,
   swap 4, assumption,
   have hv' : v = (λ (i : b), i.val) ⟨v, hv (set.mem_singleton v)⟩ := rfl,
-  let hx := h (hb.to_dual v),
+  let hx := h ((hb.to_dual : V → dual K V) v),
   erw [eval_apply, hv', to_dual_apply, if_pos rfl, zero_apply _] at hx,
   exact one_ne_zero hx
 end

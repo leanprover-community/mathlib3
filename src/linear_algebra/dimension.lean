@@ -112,10 +112,13 @@ letI := classical.dec_eq γ; exact
 let ⟨b, hb⟩ := exists_is_basis α β in
 cardinal.lift_inj.1 $ hb.mk_eq_dim.symm.trans (f.is_basis hb).mk_eq_dim
 
-lemma dim_bot : dim α (⊥ : submodule α β) = 0 :=
+@[simp] lemma dim_bot : dim α (⊥ : submodule α β) = 0 :=
 by letI := classical.dec_eq β;
   rw [← cardinal.lift_inj, ← (@is_basis_empty_bot pempty α β _ _ _ _ _ _ nonempty_pempty).mk_eq_dim,
     cardinal.mk_pempty]
+
+@[simp] lemma dim_top : dim α (⊤ : submodule α β) = dim α β :=
+linear_equiv.dim_eq (linear_equiv.of_top _ rfl)
 
 lemma dim_of_field (α : Type*) [discrete_field α] : dim α α = 1 :=
 by rw [←cardinal.lift_inj, ← (@is_basis_singleton_one punit _ α _ _ _).mk_eq_dim, cardinal.mk_punit]

@@ -80,6 +80,10 @@ end dim
 end finsupp
 
 section vector_space
+/- We use `universe variables` instead of `universes` here because universes introduced by the
+   `universes` keyword do not get replaced by metavariables once a lemma has been proven. So if you
+   prove a lemma using universe `u`, you can only apply it to universe `u` in other lemmas of the
+   same section. -/
 universe variables u v w
 variables {α : Type u} {β γ : Type v} {β' : Type v} {γ' : Type w}
 variables [discrete_field α]
@@ -92,10 +96,12 @@ open vector_space
 
 set_option class.instance_max_depth 70
 
-lemma equiv_of_dim_eq_lift_dim [decidable_eq β'] [decidable_eq γ']
+lemma equiv_of_dim_eq_lift_dim
   (h : cardinal.lift.{v w} (dim α β') = cardinal.lift.{w v} (dim α γ')) :
   nonempty (β' ≃ₗ[α] γ') :=
 begin
+  haveI := classical.dec_eq β',
+  haveI := classical.dec_eq γ',
   rcases exists_is_basis α β' with ⟨b, hb⟩,
   rcases exists_is_basis α γ' with ⟨c, hc⟩,
   rw [←cardinal.lift_inj.1 hb.mk_eq_dim, ←cardinal.lift_inj.1 hc.mk_eq_dim] at h,
@@ -106,30 +112,31 @@ begin
       (module_equiv_finsupp hc).symm⟩,
 end
 
-lemma equiv_of_dim_eq_dim [decidable_eq β] [decidable_eq γ] (h : dim α β = dim α γ) :
-  nonempty (β ≃ₗ[α] γ) :=
-equiv_of_dim_eq_lift_dim (cardinal.lift_inj.2 h)
+def equiv_of_dim_eq_dim (h : dim α β = dim α γ) : β ≃ₗ[α] γ :=
+begin
+  classical,
+  exact classical.choice (equiv_of_dim_eq_lift_dim (cardinal.lift_inj.2 h))
+end
 
-lemma fin_dim_vectorspace_equiv [decidable_eq β] (n : ℕ)
-  (hn : (dim α β) = n) :
-  nonempty (β ≃ₗ[α] (fin n → α)) :=
+lemma fin_dim_vectorspace_equiv (n : ℕ)
+  (hn : (dim α β) = n) : β ≃ₗ[α] (fin n → α) :=
 begin
   have : cardinal.lift.{v u} (n : cardinal.{v}) = cardinal.lift.{u v} (n : cardinal.{u}),
     by simp,
   have hn := cardinal.lift_inj.{v u}.2 hn,
   rw this at hn,
   rw ←@dim_fin_fun α _ n at hn,
-  exact equiv_of_dim_eq_lift_dim hn,
+  exact classical.choice (equiv_of_dim_eq_lift_dim hn),
 end
 
-lemma eq_bot_iff_dim_eq_zero [decidable_eq β] (p : submodule α β) (h : dim α p = 0) : p = ⊥ :=
+lemma eq_bot_iff_dim_eq_zero (p : submodule α β) (h : dim α p = 0) : p = ⊥ :=
 begin
   have : dim α p = dim α (⊥ : submodule α β) := by rwa [dim_bot],
-  rcases equiv_of_dim_eq_dim this with ⟨e⟩,
+  let e := equiv_of_dim_eq_dim this,
   exact e.eq_bot_of_equiv _
 end
 
-lemma injective_of_surjective [decidable_eq β] [decidable_eq γ] (f : β →ₗ[α] γ)
+lemma injective_of_surjective (f : β →ₗ[α] γ)
   (hβ : dim α β < cardinal.omega) (heq : dim α γ = dim α β) (hf : f.range = ⊤) : f.ker = ⊥ :=
 have hk : dim α f.ker < cardinal.omega := lt_of_le_of_lt (dim_submodule_le _) hβ,
 begin

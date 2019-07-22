@@ -69,8 +69,8 @@ lemma ext_iff {φ ψ : mv_formal_power_series σ α} :
   φ = ψ ↔ (∀ n, coeff n φ = coeff n ψ) :=
 ⟨λ h n, congr_arg (coeff n) h, ext⟩
 
-section comm_semiring
-variables [comm_semiring α]
+section semiring
+variables [semiring α]
 
 /-- The `n`th monimial with coefficient `a` as multivariate formal power series.-/
 def monomial (n : σ →₀ ℕ) (a : α) : mv_formal_power_series σ α :=
@@ -186,13 +186,6 @@ ext $ λ n, by simp [coeff_mul]
 protected lemma mul_zero : φ * 0 = 0 :=
 ext $ λ n, by simp [coeff_mul]
 
-protected lemma mul_comm : φ * ψ = ψ * φ :=
-ext $ λ n, finset.sum_bij (λ p hp, p.swap)
-  (λ p hp, swap_mem_antidiagonal_support hp)
-  (λ p hp, mul_comm _ _)
-  (λ p q hp hq H, by simpa using congr_arg prod.swap H)
-  (λ p hp, ⟨p.swap, swap_mem_antidiagonal_support hp, p.swap_swap.symm⟩)
-
 protected lemma one_mul : (1 : mv_formal_power_series σ α) * φ = φ :=
 ext $ λ n,
 begin
@@ -209,7 +202,19 @@ begin
 end
 
 protected lemma mul_one : φ * 1 = φ :=
-by rw [φ.mul_comm, φ.one_mul]
+ext $ λ n,
+begin
+  rw [coeff_mul, finset.sum_eq_single (n, (0 : σ →₀ ℕ))],
+  { rw [coeff_one_zero, mul_one] },
+  { rintros ⟨i,j⟩ hij h,
+    suffices : j ≠ 0,
+    { rw [coeff_one, if_neg this, mul_zero] },
+    rw [mem_antidiagonal_support] at hij,
+    rw [ne.def, prod.mk.inj_iff, not_and] at h,
+    intro H, apply h _ H, rw [← hij, H, add_zero] },
+  { intro H, exfalso, apply H,
+    rw [mem_antidiagonal_support, add_zero] }
+end
 
 protected lemma mul_add (φ₁ φ₂ φ₃ : mv_formal_power_series σ α) :
   φ₁ * (φ₂ + φ₃) = φ₁ * φ₂ + φ₁ * φ₃ :=
@@ -247,7 +252,7 @@ begin
     { simp only [finset.mem_sigma, mem_antidiagonal_support] at H ⊢, finish } }
 end
 
-instance : comm_semiring (mv_formal_power_series σ α) :=
+instance : semiring (mv_formal_power_series σ α) :=
 { mul_one := mv_formal_power_series.mul_one,
   one_mul := mv_formal_power_series.one_mul,
   add_assoc := mv_formal_power_series.add_assoc,
@@ -257,7 +262,6 @@ instance : comm_semiring (mv_formal_power_series σ α) :=
   mul_assoc := mv_formal_power_series.mul_assoc,
   mul_zero := mv_formal_power_series.mul_zero,
   zero_mul := mv_formal_power_series.zero_mul,
-  mul_comm := mv_formal_power_series.mul_comm,
   left_distrib := mv_formal_power_series.mul_add,
   right_distrib := mv_formal_power_series.add_mul,
   .. mv_formal_power_series.has_zero σ α,
@@ -300,7 +304,7 @@ instance : semimodule α (mv_formal_power_series σ α) :=
   zero_smul := λ φ, by simp only [zero_mul, C_zero] }
 
 section map
-variables {β : Type*} {γ : Type*} [comm_semiring β] [comm_semiring γ]
+variables {β : Type*} {γ : Type*} [semiring β] [semiring γ]
 variables (f : α → β) (g : β → γ)
 
 /-- The map between multivariate formal power series induced by a map on the coefficients.-/
@@ -345,8 +349,24 @@ instance map.is_semiring_hom :
 
 end map
 
-section trunc
+end semiring
 
+section comm_semiring
+variables [comm_semiring α]
+variables (φ ψ : mv_formal_power_series σ α)
+
+protected lemma mul_comm : φ * ψ = ψ * φ :=
+ext $ λ n, finset.sum_bij (λ p hp, p.swap)
+  (λ p hp, swap_mem_antidiagonal_support hp)
+  (λ p hp, mul_comm _ _)
+  (λ p q hp hq H, by simpa using congr_arg prod.swap H)
+  (λ p hp, ⟨p.swap, swap_mem_antidiagonal_support hp, p.swap_swap.symm⟩)
+
+instance : comm_semiring (mv_formal_power_series σ α) :=
+{ mul_comm := mv_formal_power_series.mul_comm,
+  .. mv_formal_power_series.semiring }
+
+section trunc
 variables [decidable_eq α] (n : σ →₀ ℕ)
 
 /-- The `n`th truncation of a multivariate formal power series to a multivariate polynomial -/
@@ -411,8 +431,8 @@ end trunc
 
 end comm_semiring
 
-section comm_ring
-variables [comm_ring α]
+section ring
+variables [ring α]
 
 protected def neg (φ : mv_formal_power_series σ α) :
   mv_formal_power_series σ α := λ n, - coeff n φ
@@ -424,9 +444,9 @@ instance : has_neg (mv_formal_power_series σ α) := ⟨mv_formal_power_series.n
 protected lemma add_left_neg (φ : mv_formal_power_series σ α) : (-φ) + φ = 0 :=
 ext $ λ n, by rw [coeff_add, coeff_zero, coeff_neg, add_left_neg]
 
-instance : comm_ring (mv_formal_power_series σ α) :=
+instance : ring (mv_formal_power_series σ α) :=
 { add_left_neg := mv_formal_power_series.add_left_neg,
-  .. mv_formal_power_series.has_neg, .. mv_formal_power_series.comm_semiring }
+  .. mv_formal_power_series.has_neg, .. mv_formal_power_series.semiring }
 
 instance C.is_ring_hom : is_ring_hom (C : α → mv_formal_power_series σ α) :=
 { map_one := C_one _ _,
@@ -443,12 +463,6 @@ instance map.is_ring_hom {β : Type*} [comm_ring β] (f : α → β) [is_ring_ho
 
 instance : module α (mv_formal_power_series σ α) :=
 { ..mv_formal_power_series.semimodule }
-
-instance : algebra α (mv_formal_power_series σ α) :=
-{ to_fun := C,
-  commutes' := λ _ _, mul_comm _ _,
-  smul_def' := λ c p, rfl,
-  .. mv_formal_power_series.module }
 
 /-
 The inverse of a multivariate formal power series is defined by
@@ -516,7 +530,19 @@ begin
     ext1 s, exact nat.eq_zero_of_le_zero (H s) }
 end
 
-section local_ring
+end ring
+
+section comm_ring
+variables [comm_ring α]
+
+instance : comm_ring (mv_formal_power_series σ α) :=
+{ .. mv_formal_power_series.comm_semiring, .. mv_formal_power_series.ring }
+
+instance : algebra α (mv_formal_power_series σ α) :=
+{ to_fun := C,
+  commutes' := λ _ _, mul_comm _ _,
+  smul_def' := λ c p, rfl,
+  .. mv_formal_power_series.module }
 
 /-- Multivariate formal power series over a local ring form a local ring.-/
 def is_local_ring (h : is_local_ring α) : is_local_ring (mv_formal_power_series σ α) :=
@@ -527,8 +553,6 @@ begin
     cases this with h h; [left, right]; cases h with u h;
     { exact is_unit_of_mul_one _ _ (mul_inv_of_unit _ _ h) } }
 end
-
-end local_ring
 
 -- TODO(jmc): once adic topology lands, show that this is complete
 

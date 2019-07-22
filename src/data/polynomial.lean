@@ -30,7 +30,6 @@ instance : has_one (polynomial α) := finsupp.has_one
 instance : has_add (polynomial α) := finsupp.has_add
 instance : has_mul (polynomial α) := finsupp.has_mul
 instance : comm_semiring (polynomial α) := finsupp.comm_semiring
-instance : decidable_eq (polynomial α) := finsupp.decidable_eq
 
 def polynomial.has_coe_to_fun : has_coe_to_fun (polynomial α) :=
 finsupp.has_coe_to_fun
@@ -476,7 +475,7 @@ def monic (p : polynomial α) := leading_coeff p = (1 : α)
 
 lemma monic.def : monic p ↔ leading_coeff p = 1 := iff.rfl
 
-instance monic.decidable [decidable_eq α] : decidable (monic p) :=
+def monic.decidable [decidable_eq α] : decidable (monic p) :=
 by unfold monic; apply_instance
 
 @[simp] lemma degree_zero : degree (0 : polynomial α) = ⊥ := rfl

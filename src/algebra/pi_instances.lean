@@ -83,7 +83,7 @@ variables {I f}
 
 instance module         (α) {r : ring α}           [∀ i, add_comm_group $ f i]  [∀ i, module α $ f i]         : module α (Π i : I, f i)       := {..pi.semimodule I f α}
 
-instance vector_space   (α) {r : discrete_field α} [∀ i, add_comm_group $ f i]  [∀ i, vector_space α $ f i]   : vector_space α (Π i : I, f i) := {..pi.module α}
+-- instance vector_space   (α) {r : discrete_field α} [∀ i, add_comm_group $ f i]  [∀ i, vector_space α $ f i]   : vector_space α (Π i : I, f i) := {..pi.module α}
 
 instance left_cancel_semigroup [∀ i, left_cancel_semigroup $ f i] : left_cancel_semigroup (Π i : I, f i) :=
 by pi_instance
@@ -101,7 +101,7 @@ instance ordered_cancel_comm_monoid [∀ i, ordered_cancel_comm_monoid $ f i] : 
 by pi_instance
 
 instance ordered_comm_group [∀ i, ordered_comm_group $ f i] : ordered_comm_group (Π i : I, f i) :=
-{ add_lt_add_left := λ a b hab c, ⟨λ i, add_le_add_left (hab.1 i) (c i), 
+{ add_lt_add_left := λ a b hab c, ⟨λ i, add_le_add_left (hab.1 i) (c i),
     λ h, hab.2 $ λ i, le_of_add_le_add_left (h i)⟩,
   add_le_add_left := λ x y hxy c i, add_le_add_left (hxy i) _,
   ..pi.add_comm_group,
@@ -344,8 +344,8 @@ instance {r : semiring α} [add_comm_monoid β] [add_comm_monoid γ]
 instance {r : ring α} [add_comm_group β] [add_comm_group γ]
   [module α β] [module α γ] : module α (β × γ) := {}
 
-instance {r : discrete_field α} [add_comm_group β] [add_comm_group γ]
-  [vector_space α β] [vector_space α γ] : vector_space α (β × γ) := {}
+-- instance {r : discrete_field α} [add_comm_group β] [add_comm_group γ]
+--   [vector_space α β] [vector_space α γ] : vector_space α (β × γ) := {}
 
 section substructures
 variables (s : set α) (t : set β)

@@ -43,7 +43,7 @@ variables {K : Type u} {V : Type v} {ι : Type w}
 variables [discrete_field K] [add_comm_group V] [vector_space K V]
 open vector_space module module.dual submodule linear_map cardinal function
 
-instance dual.vector_space : vector_space K (dual K V) := {..dual.module K V}
+-- instance dual.vector_space : vector_space K (dual K V) := {..dual.module K V}
 
 variables [decidable_eq V] [decidable_eq (module.dual K V)] [decidable_eq ι]
 variables {B : ι → V} (h : is_basis K B)

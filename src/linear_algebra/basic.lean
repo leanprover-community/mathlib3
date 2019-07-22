@@ -706,8 +706,8 @@ module.of_core $ by refine {smul := (•), ..};
   repeat {rintro ⟨⟩ <|> intro}; simp [smul_add, add_smul, smul_smul,
     -mk_add, (mk_add p).symm, -mk_smul, (mk_smul p).symm]
 
-instance {α β} {R:discrete_field α} [add_comm_group β] [vector_space α β]
-  (p : submodule α β) : vector_space α (quotient p) := {}
+-- instance {α β} {R:discrete_field α} [add_comm_group β] [vector_space α β]
+--   (p : submodule α β) : vector_space α (quotient p) := {}
 
 end quotient
 

@@ -336,19 +336,20 @@ end ideal
   This is the traditional generalization of spaces like `ℝ^n`, which have a natural
   addition operation and a way to multiply them by real numbers, but no multiplication
   operation between vectors. -/
-class vector_space (α : Type u) (β : Type v) [discrete_field α] [add_comm_group β] extends module α β
+@[reducible] def vector_space (α : Type u) (β : Type v) [discrete_field α] [add_comm_group β] :=
+module α β
 
-instance discrete_field.to_vector_space {α : Type*} [discrete_field α] : vector_space α α :=
-{ .. ring.to_module }
+-- instance discrete_field.to_vector_space {α : Type*} [discrete_field α] : vector_space α α :=
+-- { .. ring.to_module }
 
-/-- Subspace of a vector space. Defined to equal `submodule`. -/
-@[reducible] def subspace (α : Type u) (β : Type v)
-  [discrete_field α] [add_comm_group β] [vector_space α β] : Type v :=
-submodule α β
+-- /-- Subspace of a vector space. Defined to equal `submodule`. -/
+-- @[reducible] def subspace (α : Type u) (β : Type v)
+--   [discrete_field α] [add_comm_group β] [vector_space α β] : Type v :=
+-- submodule α β
 
-instance subspace.vector_space {α β}
-  {f : discrete_field α} [add_comm_group β] [vector_space α β]
-  (p : subspace α β) : vector_space α p := {..submodule.module p}
+-- instance subspace.vector_space {α β}
+--   {f : discrete_field α} [add_comm_group β] [vector_space α β]
+--   (p : subspace α β) : vector_space α p := {..submodule.module p}
 
 namespace submodule
 

@@ -1880,7 +1880,7 @@ end integral_domain
 
 section field
 variables [discrete_field α] {p q : polynomial α}
-instance : vector_space α (polynomial α) := finsupp.vector_space _ _
+-- instance : vector_space α (polynomial α) := finsupp.vector_space _ _
 
 lemma is_unit_iff_degree_eq_zero : is_unit p ↔ degree p = 0 :=
 ⟨degree_eq_zero_of_is_unit,

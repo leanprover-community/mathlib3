@@ -1254,8 +1254,8 @@ instance [semiring γ] [add_comm_monoid β] [semimodule γ β] : semimodule γ (
 instance [ring γ] [add_comm_group β] [module γ β] : module γ (α →₀ β) :=
 { ..finsupp.semimodule α β }
 
-instance [discrete_field γ] [add_comm_group β] [vector_space γ β] : vector_space γ (α →₀ β) :=
-{ ..finsupp.module α β }
+-- instance [discrete_field γ] [add_comm_group β] [vector_space γ β] : vector_space γ (α →₀ β) :=
+-- { ..finsupp.module α β }
 
 variables {α β}
 lemma support_smul {R:semiring γ} [add_comm_monoid β] [semimodule γ β] {b : γ} {g : α →₀ β} :

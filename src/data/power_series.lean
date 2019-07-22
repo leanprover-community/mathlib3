@@ -575,9 +575,11 @@ coeff_inv_aux n _ φ
   coeff 0 (φ⁻¹) = (coeff 0 φ)⁻¹ :=
 by rw [coeff_inv, if_pos rfl]
 
-lemma inv_eq_zero (φ : mv_formal_power_series σ α) (h : coeff 0 φ = 0) :
-  φ⁻¹ = 0 :=
-ext $ λ n, by { rw coeff_inv, split_ifs; simp [h] }
+lemma inv_eq_zero {φ : mv_formal_power_series σ α} :
+  φ⁻¹ = 0 ↔ coeff 0 φ = 0 :=
+⟨λ h, by simpa using congr_arg (coeff 0) h,
+ λ h, ext $ λ n, by { rw coeff_inv, split_ifs;
+ simp only [h, mv_formal_power_series.coeff_zero, zero_mul, inv_zero, neg_zero] }⟩
 
 @[simp] lemma inv_of_unit_eq (φ : mv_formal_power_series σ α) (h : coeff 0 φ ≠ 0) :
   inv_of_unit φ (units.mk0 _ h) = φ⁻¹ := rfl
@@ -975,9 +977,9 @@ coeff_inv_aux n _ φ
   coeff 0 (φ⁻¹) = (coeff 0 φ)⁻¹ :=
 mv_formal_power_series.coeff_zero_inv φ
 
-lemma inv_eq_zero (φ : formal_power_series α) (h : coeff 0 φ = 0) :
-  φ⁻¹ = 0 :=
-mv_formal_power_series.inv_eq_zero φ h
+lemma inv_eq_zero {φ : formal_power_series α} :
+  φ⁻¹ = 0 ↔ coeff 0 φ = 0 :=
+mv_formal_power_series.inv_eq_zero
 
 @[simp] lemma inv_of_unit_eq (φ : formal_power_series α) (h : coeff 0 φ ≠ 0) :
   inv_of_unit φ (units.mk0 _ h) = φ⁻¹ := rfl

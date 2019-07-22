@@ -1519,7 +1519,7 @@ begin
   { intro H, apply h₂, replace H := congr_arg multiset.to_finsupp H, simpa using H }
 end
 
-lemma sim_id_lt_of_lt (m n : σ →₀ ℕ) (h : m < n) :
+lemma sum_id_lt_of_lt (m n : σ →₀ ℕ) (h : m < n) :
   m.sum (λ _, id) < n.sum (λ _, id) :=
 begin
   rw [← card_to_multiset, ← card_to_multiset],

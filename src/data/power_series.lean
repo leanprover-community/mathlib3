@@ -140,9 +140,9 @@ variables {σ α}
 
 @[simp] lemma coeff_add : coeff n (φ + ψ) = coeff n φ + coeff n ψ := rfl
 
-@[simp] protected lemma zero_add : (0 : mv_formal_power_series σ α) + φ = φ := ext $ λ n, zero_add _
+protected lemma zero_add : (0 : mv_formal_power_series σ α) + φ = φ := ext $ λ n, zero_add _
 
-@[simp] protected lemma add_zero : φ + 0 = φ := ext $ λ n, add_zero _
+protected lemma add_zero : φ + 0 = φ := ext $ λ n, add_zero _
 
 protected lemma add_comm : φ + ψ = ψ + φ := ext $ λ n, add_comm _ _
 
@@ -180,10 +180,10 @@ begin
     split_ifs; simp * at * }
 end
 
-@[simp] protected lemma zero_mul : (0 : mv_formal_power_series σ α) * φ = 0 :=
+protected lemma zero_mul : (0 : mv_formal_power_series σ α) * φ = 0 :=
 ext $ λ n, by simp [coeff_mul]
 
-@[simp] protected lemma mul_zero : φ * 0 = 0 :=
+protected lemma mul_zero : φ * 0 = 0 :=
 ext $ λ n, by simp [coeff_mul]
 
 protected lemma mul_comm : φ * ψ = ψ * φ :=
@@ -193,7 +193,7 @@ ext $ λ n, finset.sum_bij (λ p hp, p.swap)
   (λ p q hp hq H, by simpa using congr_arg prod.swap H)
   (λ p hp, ⟨p.swap, swap_mem_antidiagonal_support hp, p.swap_swap.symm⟩)
 
-@[simp] protected lemma one_mul : (1 : mv_formal_power_series σ α) * φ = φ :=
+protected lemma one_mul : (1 : mv_formal_power_series σ α) * φ = φ :=
 ext $ λ n,
 begin
   rw [coeff_mul, finset.sum_eq_single ((0 : σ →₀ ℕ), n)],
@@ -208,7 +208,7 @@ begin
     rw [mem_antidiagonal_support, zero_add] }
 end
 
-@[simp] protected lemma mul_one : φ * 1 = φ :=
+protected lemma mul_one : φ * 1 = φ :=
 by rw [φ.mul_comm, φ.one_mul]
 
 protected lemma mul_add (φ₁ φ₂ φ₃ : mv_formal_power_series σ α) :
@@ -459,7 +459,7 @@ well-founded recursion on the coeffients of the inverse.
  the totalised inverse formal power series `(_)⁻¹` and
  the inverse formal power series that depends on
  an inverse of the constant coefficient `inv_of_unit`.-/
-def inv.aux (a : α) (φ : mv_formal_power_series σ α) : mv_formal_power_series σ α
+protected def inv.aux (a : α) (φ : mv_formal_power_series σ α) : mv_formal_power_series σ α
 | n := if n = 0 then a else
 - a * n.antidiagonal.support.sum (λ (x : (σ →₀ ℕ) × (σ →₀ ℕ)),
     if h : x.2 < n then coeff x.1 φ * inv.aux x.2 else 0)
@@ -880,7 +880,7 @@ mv_formal_power_series.module
 instance : algebra α (formal_power_series α) :=
 mv_formal_power_series.algebra
 
-def inv.aux : α → formal_power_series α → formal_power_series α :=
+protected def inv.aux : α → formal_power_series α → formal_power_series α :=
 mv_formal_power_series.inv.aux
 
 lemma coeff_inv_aux (n : ℕ) (a : α) (φ : formal_power_series α) :

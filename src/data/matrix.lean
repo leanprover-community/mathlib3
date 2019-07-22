@@ -187,12 +187,12 @@ def is_add_monoid_hom_mul_right (M : matrix m n α) :
   is_add_monoid_hom (λ x : matrix l m α, x ⬝ M) :=
 { to_is_add_hom := ⟨λ _ _, matrix.add_mul _ _ _⟩, map_zero := matrix.zero_mul _ }
 
-lemma sum_mul {β : Type*} (s : finset β) (f : β → matrix l m α)
+protected lemma sum_mul {β : Type*} (s : finset β) (f : β → matrix l m α)
   (M : matrix m n α) : s.sum f ⬝ M = s.sum (λ a, f a ⬝ M) :=
 (@finset.sum_hom _ _ _ s f _ _ (λ x, x ⬝ M) 
   (id (@is_add_monoid_hom_mul_right l _ _ _ _ _ _ _ M) : _)).symm
 
-lemma mul_sum {β : Type*} (s : finset β) (f : β → matrix m n α)
+protected lemma mul_sum {β : Type*} (s : finset β) (f : β → matrix m n α)
   (M : matrix l m α) :  M ⬝ s.sum f = s.sum (λ a, M ⬝ f a) :=
 (@finset.sum_hom _ _ _ s f _ _ (λ x, M ⬝ x)
   (id (@is_add_monoid_hom_mul_left _ _ n _ _ _ _ _ M) : _)).symm

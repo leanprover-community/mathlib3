@@ -1,10 +1,12 @@
-import data.num.basic
-
-/-!
+/-
 Copyright (c) 2019 Mathlib Authors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Wojciech Nawrocki
+-/
 
+import data.num.basic
+
+/-!
 # Binary tree
 
 Provides binary tree storage for values of any type, with O(lg n) retrieval.

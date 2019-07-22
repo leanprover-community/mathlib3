@@ -1,11 +1,13 @@
+/-
+Copyright (c) 2018 Mario Carneiro. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Mario Carneiro
+-/
+
 import tactic.ring data.num.lemmas data.tree
 import tactic.converter.interactive
 
 /-!
-Copyright (c) 2018 Mario Carneiro. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro
-
 # ring2
 
 An experimental variant on the `ring` tactic that uses computational
@@ -15,8 +17,8 @@ reflection instead of proof generation. Useful for kernel benchmarking.
 namespace tree
 
 /-- `(reflect' t u α)` turns a tree `(t: tree expr)` of reflected values
-of type `α` at level `u` into an `expr` which evaluates to a concrete
-`tree α` containing the evaluations of the `expr`s from the original `t`. -/
+of type `α` at level `u` into an `expr` which concretizes to a `tree α`
+containing the concretizations of the `expr`s from the original `t`. -/
 protected meta def reflect' (u : level) (α : expr) : tree expr → expr
 | tree.nil := (expr.const ``tree.nil [u] : expr) α
 | (tree.node a t₁ t₂) :=
@@ -212,6 +214,7 @@ end
 
 def inv (e : horner_expr) : horner_expr := 0
 
+/-- Brings expressions into Horner normal form. -/
 def of_csexpr : csring_expr → horner_expr
 | (csring_expr.atom n)  := atom n
 | (csring_expr.const n) := const n.to_znum

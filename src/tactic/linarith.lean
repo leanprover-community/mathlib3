@@ -2,6 +2,11 @@
 Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Robert Y. Lewis
+-/
+
+import tactic.ring data.nat.gcd data.list.basic meta.rb_map data.tree
+
+/-!
 
 A tactic for discharging linear arithmetic goals using Fourier-Motzkin elimination.
 
@@ -10,8 +15,6 @@ A tactic for discharging linear arithmetic goals using Fourier-Motzkin eliminati
 @TODO: investigate storing comparisons in a list instead of a set, for possible efficiency gains
 @TODO: delay proofs of denominator normalization and nat casting until after contradiction is found
 -/
-
-import tactic.ring data.nat.gcd data.list.basic meta.rb_map data.tree
 
 meta def nat.to_pexpr : ℕ → pexpr
 | 0 := ``(0)

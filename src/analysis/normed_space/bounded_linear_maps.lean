@@ -58,6 +58,20 @@ lemma zero : is_bounded_linear_map k (λ (x:E), (0:F)) :=
 lemma id : is_bounded_linear_map k (λ (x:E), x) :=
 linear_map.id.is_linear.with_bound 1 $ by simp [le_refl]
 
+lemma fst : is_bounded_linear_map k (λ x : E × F, x.1) :=
+begin
+  refine (linear_map.fst k E F).is_linear.with_bound 1 (λx, _),
+  rw one_mul,
+  exact le_max_left _ _
+end
+
+lemma snd : is_bounded_linear_map k (λ x : E × F, x.2) :=
+begin
+  refine (linear_map.snd k E F).is_linear.with_bound 1 (λx, _),
+  rw one_mul,
+  exact le_max_right _ _
+end
+
 variables { f g : E → F }
 
 lemma smul (c : k) (hf : is_bounded_linear_map k f) :
@@ -235,6 +249,14 @@ lemma is_bounded_bilinear_map_comp :
     ∥continuous_linear_map.comp ((x, y).snd) ((x, y).fst)∥
       ≤ ∥y∥ * ∥x∥ : continuous_linear_map.op_norm_comp_le _ _
     ... = 1 * ∥x∥ * ∥ y∥ : by ring ⟩ }
+
+lemma is_bounded_bilinear_map_apply :
+  is_bounded_bilinear_map k (λp : (E →L[k] F) × E, p.1 p.2) :=
+{ add_left   := by simp,
+  smul_left  := by simp,
+  add_right  := by simp,
+  smul_right := by simp,
+  bound      := ⟨1, zero_lt_one, by simp [continuous_linear_map.le_op_norm]⟩ }
 
 /-- Definition of the derivative of a bilinear map `f`, given at a point `p` by
 `q ↦ f(p.1, q.2) + f(q.1, p.2)` as in the standard formula for the derivative of a product.

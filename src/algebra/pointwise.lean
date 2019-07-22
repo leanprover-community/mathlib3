@@ -37,11 +37,6 @@ lemma mem_pointwise_mul [has_mul α] {s t : set α} {a : α} :
 lemma mul_mem_pointwise_mul [has_mul α] {s t : set α} {a b : α} (ha : a ∈ s) (hb : b ∈ t) :
   a * b ∈ s * t := ⟨_, ha, _, hb, rfl⟩
 
-@[to_additive set.add_subset_add]
-lemma mul_subset_mul [has_mul α] {s₁ s₂ t₁ t₂ : set α} (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) :
-  s₁ * t₁ ⊆ s₂ * t₂ :=
-by { rintros _ ⟨a, ha, b, hb, rfl⟩, exact ⟨a, hs ha, b, ht hb, rfl⟩ }
-
 @[to_additive set.pointwise_add_eq_image]
 lemma pointwise_mul_eq_image [has_mul α] {s t : set α} :
   s * t = (λ x : α × α, x.fst * x.snd) '' s.prod t :=
@@ -163,6 +158,30 @@ begin
       simp * } }
 end
 
+@[to_additive set.pointwise_add_eq_Union_add_left]
+lemma pointwise_mul_eq_Union_mul_left [has_mul α] {s t : set α} : s * t = ⋃a∈s, (λx, a * x) '' t :=
+by { ext y; split; simp only [mem_Union]; rintros ⟨a, ha, x, hx, ax⟩; exact ⟨a, ha, x, hx, ax.symm⟩ }
+
+@[to_additive set.pointwise_add_eq_Union_add_right]
+lemma pointwise_mul_eq_Union_mul_right [has_mul α] {s t : set α} : s * t = ⋃a∈t, (λx, x * a) '' s :=
+by { ext y; split; simp only [mem_Union]; rintros ⟨a, ha, x, hx, ax⟩; exact ⟨x, hx, a, ha, ax.symm⟩ }
+
+@[to_additive set.pointwise_add_ne_empty]
+lemma pointwise_mul_ne_empty [has_mul α] {s t : set α} : s ≠ ∅ → t ≠ ∅ → s * t ≠ ∅ :=
+begin
+  simp only [ne_empty_iff_exists_mem],
+  rintros ⟨x, hx⟩ ⟨y, hy⟩,
+  exact ⟨x * y, mul_mem_pointwise_mul hx hy⟩
+end
+
+@[simp, to_additive univ_add_univ]
+lemma univ_pointwise_mul_univ [monoid α] : (univ : set α) * univ = univ :=
+begin
+  have : ∀x, ∃a b : α, x = a * b := λx, ⟨x, ⟨1, (mul_one x).symm⟩⟩,
+  show {a | ∃ x ∈ univ, ∃ y ∈ univ, a = x * y} = univ,
+  simpa [eq_univ_iff_forall]
+end
+
 def pointwise_mul_fintype [has_mul α] [decidable_eq α] (s t : set α) [hs : fintype s] [ht : fintype t] :
   fintype (s * t : set α) := by { rw pointwise_mul_eq_image, apply set.fintype_image }
 
@@ -193,22 +212,38 @@ def pointwise_mul_comm_semiring [comm_monoid α] : comm_semiring (set α) :=
 
 local attribute [instance] pointwise_mul_semiring
 
+section is_mul_hom
+open is_mul_hom
+
+variables [has_mul α] [has_mul β] (m : α → β) [is_mul_hom m]
+
+@[to_additive is_add_hom.image_add]
+lemma image_pointwise_mul (s t : set α) : m '' (s * t) = m '' s * m '' t :=
+set.ext $ assume y,
+begin
+  split,
+  { rintros ⟨_, ⟨_, _, _, _, rfl⟩, rfl⟩,
+    refine ⟨_, mem_image_of_mem _ ‹_›, _, mem_image_of_mem _ ‹_›, map_mul _ _ _⟩ },
+  { rintros ⟨_, ⟨_, _, rfl⟩, _, ⟨_, _, rfl⟩, rfl⟩,
+    refine ⟨_, ⟨_, ‹_›, _, ‹_›, rfl⟩, map_mul _ _ _⟩ }
+end
+
+@[to_additive is_add_hom.preimage_add_preimage_subset]
+lemma preimage_pointwise_mul_preimage_subset (s t : set β) : m ⁻¹' s * m ⁻¹' t ⊆ m ⁻¹' (s * t) :=
+begin
+  rintros _ ⟨_, _, _, _, rfl⟩,
+  exact ⟨_, ‹_›, _, ‹_›, map_mul _ _ _⟩,
+end
+
+end is_mul_hom
+
 variables [monoid α] [monoid β] [is_monoid_hom f]
 
 def pointwise_mul_image_is_semiring_hom : is_semiring_hom (image f) :=
 { map_zero := image_empty _,
   map_one := by erw [image_singleton, is_monoid_hom.map_one f]; refl,
   map_add := image_union _,
-  map_mul := λ s t, set.ext $ λ a,
-  begin
-    split,
-    { rintros ⟨_, ⟨_, _, _, _, rfl⟩, rfl⟩,
-      refine ⟨_, ⟨_, ‹_›, rfl⟩, _, ⟨_, ‹_›, rfl⟩, _⟩,
-      apply is_monoid_hom.map_mul f },
-    { rintros ⟨_, ⟨_, _, rfl⟩, _, ⟨_, _, rfl⟩, rfl⟩,
-      refine ⟨_, ⟨_, ‹_›, _, ‹_›, rfl⟩, _⟩,
-      apply is_monoid_hom.map_mul f }
-  end }
+  map_mul := image_pointwise_mul _ }
 
 local attribute [instance] singleton.is_monoid_hom
 

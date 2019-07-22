@@ -1384,7 +1384,6 @@ end sigma
 end finsupp
 
 namespace multiset
-variables [decidable_eq α]
 
 def to_finsupp (s : multiset α) : α →₀ ℕ :=
 { support := s.to_finset,

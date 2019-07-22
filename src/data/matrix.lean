@@ -195,15 +195,8 @@ end ring
 instance [decidable_eq n] [ring α] : ring (matrix n n α) :=
 { ..matrix.add_comm_group, ..matrix.semiring }
 
-instance [has_mul α] : has_scalar α (matrix m n α) := ⟨λ a M i j, a * M i j⟩
-
-instance [ring α] : module α (matrix m n α) :=
-module.of_core
-{ smul_add := λ a M N, ext $ λ i j, _root_.mul_add a (M i j) (N i j),
-  add_smul := λ a b M, ext $ λ i j, _root_.add_mul a b (M i j),
-  mul_smul := λ a b M, ext $ λ i j, mul_assoc a b (M i j),
-  one_smul := λ M, ext $ λ i j, one_mul (M i j),
-  .. (infer_instance : has_scalar α (matrix m n α)) }
+instance [semiring α] : has_scalar α (matrix m n α) := pi.has_scalar
+instance [ring α] : module α (matrix m n α) := pi.module _
 
 section comm_ring
 variables [comm_ring α]

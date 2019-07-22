@@ -320,7 +320,7 @@ end
 instance is_noetherian_ring.to_is_noetherian {α : Type*} [ring α] :
   ∀ [is_noetherian_ring α], is_noetherian α α := id
 
-instance ring.is_noetherian_of_fintype (R M) [ring R] [add_comm_group M] [module R M] [fintype M] : is_noetherian R M :=
+instance ring.is_noetherian_of_fintype (R M) [fintype M] [ring R] [add_comm_group M] [module R M] : is_noetherian R M :=
 by letI := classical.dec; exact
 ⟨assume s, ⟨to_finset s, by rw [finset.coe_to_finset', submodule.span_eq]⟩⟩
 

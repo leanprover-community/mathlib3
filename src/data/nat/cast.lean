@@ -77,6 +77,9 @@ by simpa [-cast_le] using not_congr (@cast_le α _ n m)
 @[simp] theorem cast_pos [linear_ordered_semiring α] {n : ℕ} : (0 : α) < n ↔ 0 < n :=
 by rw [← cast_zero, cast_lt]
 
+lemma cast_add_one_pos [linear_ordered_semiring α] (n : ℕ) : 0 < (n : α) + 1 :=
+  add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
+
 theorem eq_cast [add_monoid α] [has_one α] (f : ℕ → α)
   (H0 : f 0 = 0) (H1 : f 1 = 1)
   (Hadd : ∀ x y, f (x + y) = f x + f y) : ∀ n : ℕ, f n = n

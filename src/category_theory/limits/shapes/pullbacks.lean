@@ -198,7 +198,7 @@ def cone.of_pullback_cone
     end } }.
 
 @[simp] lemma cone.of_pullback_cone_π
-  {F : walking_cospan.{v} ⥤ C} (t : pullback_cone (F.map inl) (F.map inr)) (j):
+  {F : walking_cospan.{v} ⥤ C} (t : pullback_cone (F.map inl) (F.map inr)) (j) :
   (cone.of_pullback_cone t).π.app j = t.π.app j ≫ eq_to_hom (by tidy) := rfl
 
 def cocone.of_pushout_cocone
@@ -214,7 +214,7 @@ def cocone.of_pushout_cocone
     end } }.
 
 @[simp] lemma cocone.of_pushout_cocone_ι
-  {F : walking_span.{v} ⥤ C} (t : pushout_cocone (F.map fst) (F.map snd)) (j):
+  {F : walking_span.{v} ⥤ C} (t : pushout_cocone (F.map fst) (F.map snd)) (j) :
   (cocone.of_pushout_cocone t).ι.app j = eq_to_hom (by tidy) ≫ t.ι.app j := rfl
 
 def pullback_cone.of_cone

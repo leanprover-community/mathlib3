@@ -20,7 +20,7 @@ variables {α : Type*} {β : Type*} {γ : Type*}
 structure initial_seg {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends r ≼o s :=
 (init : ∀ a b, s b (to_order_embedding a) → ∃ a', to_order_embedding a' = b)
 
-local infix ` ≼i `:50 := initial_seg
+local infix ` ≼i `:25 := initial_seg
 
 namespace initial_seg
 
@@ -122,7 +122,7 @@ structure principal_seg {α β : Type*} (r : α → α → Prop) (s : β → β 
 (top : β)
 (down : ∀ b, s b top ↔ ∃ a, to_order_embedding a = b)
 
-local infix ` ≺i `:50 := principal_seg
+local infix ` ≺i `:25 := principal_seg
 
 namespace principal_seg
 
@@ -245,7 +245,8 @@ def cod_restrict (p : set β) (f : r ≺i s)
 
 end principal_seg
 
-def initial_seg.lt_or_eq [is_well_order β s] (f : r ≼i s) : r ≺i s ⊕ r ≃o s :=
+def initial_seg.lt_or_eq [is_well_order β s] (f : r ≼i s) :
+  (r ≺i s) ⊕ (r ≃o s) :=
 if h : surjective f then sum.inr (order_iso.of_surjective f h) else
 have h' : _, from (initial_seg.eq_or_principal f).resolve_left h,
 sum.inl ⟨f, classical.some h', classical.some_spec h'⟩
@@ -341,8 +342,11 @@ classical.choice $ embedding.total.resolve_left $ λ ⟨⟨f, hf⟩⟩,
   have g x ≤ sum g, from le_sum.{u u} g x,
   not_le_of_gt (by rw hx; exact cantor _) this
 
-theorem well_ordering_thm : ∃ (r : σ → σ → Prop), is_well_order σ r :=
-⟨_, (order_embedding.preimage embedding_to_cardinal (<)).is_well_order⟩
+/-- The relation whose existence is given by the well-ordering theorem -/
+def well_ordering_rel : σ → σ → Prop := embedding_to_cardinal ⁻¹'o (<)
+
+instance well_ordering_rel.is_well_order : is_well_order σ well_ordering_rel :=
+(order_embedding.preimage _ _).is_well_order
 
 end well_ordering_thm
 
@@ -1712,9 +1716,8 @@ open ordinal
 def ord (c : cardinal) : ordinal :=
 begin
   let ι := λ α, {r // is_well_order α r},
-  have : ∀ α, nonempty (ι α) := λ α,
-    ⟨classical.indefinite_description _ well_ordering_thm⟩,
-  let F := λ α, ordinal.min (this _) (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧),
+  have : Π α, ι α := λ α, ⟨well_ordering_rel, by apply_instance⟩,
+  let F := λ α, ordinal.min ⟨this _⟩ (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧),
   refine quot.lift_on c F _,
   suffices : ∀ {α β}, α ≈ β → F α ≤ F β,
   from λ α β h, le_antisymm (this h) (this (setoid.symm h)),
@@ -1731,14 +1734,14 @@ def ord_eq_min (α : Type u) : ord (mk α) =
 
 theorem ord_eq (α) : ∃ (r : α → α → Prop) [wo : is_well_order α r],
   ord (mk α) = @type α r wo :=
-let ⟨⟨r, wo⟩, h⟩ := @ordinal.min_eq _
-  ⟨classical.indefinite_description _ well_ordering_thm⟩
+let ⟨⟨r, wo⟩, h⟩ := @ordinal.min_eq {r // is_well_order α r}
+  ⟨⟨well_ordering_rel, by apply_instance⟩⟩
   (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) in
 ⟨r, wo, h⟩
 
 theorem ord_le_type (r : α → α → Prop) [is_well_order α r] : ord (mk α) ≤ ordinal.type r :=
-@ordinal.min_le _
-  ⟨classical.indefinite_description _ well_ordering_thm⟩
+@ordinal.min_le {r // is_well_order α r}
+  ⟨⟨well_ordering_rel, by apply_instance⟩⟩
   (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) ⟨r, _⟩
 
 theorem ord_le {c o} : ord c ≤ o ↔ c ≤ o.card :=
@@ -2942,6 +2945,13 @@ H3.symm ▸ (quotient.induction_on κ (λ α H1, nat.rec_on n
     (by rw [nat.cast_succ, power_add, power_one];
       from mul_le_mul_right _ ih)
     (mul_eq_self H1))) H1)
+
+lemma power_self_eq {c : cardinal} (h : omega ≤ c) : c ^ c = 2 ^ c :=
+begin
+  apply le_antisymm,
+  { apply le_trans (power_le_power_right $ le_of_lt $ cantor c), rw [power_mul, mul_eq_self h] },
+  { convert power_le_power_right (le_trans (le_of_lt $ nat_lt_omega 2) h), apply nat.cast_two.symm }
+end
 
 lemma power_nat_le {c : cardinal.{u}} {n : ℕ} (h  : omega ≤ c) : c ^ (n : cardinal.{u}) ≤ c :=
 pow_le h (nat_lt_omega n)

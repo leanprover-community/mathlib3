@@ -404,8 +404,14 @@ by rw [mul_comm, mul_mod_left]
 @[simp] theorem mod_self {a : ℤ} : a % a = 0 :=
 by have := mul_mod_left 1 a; rwa one_mul at this
 
-@[simp] lemma mod_mod (a b : ℤ) : a % b % b = a % b :=
+@[simp] theorem mod_mod (a b : ℤ) : a % b % b = a % b :=
 by conv {to_rhs, rw [← mod_add_div a b, add_mul_mod_self_left]}
+
+@[simp] theorem mod_mod_of_dvd (n : int) {m k : int} (h : m ∣ k) : n % k % m = n % m :=
+begin
+  conv { to_rhs, rw ←mod_add_div n k },
+  rcases h with ⟨t, rfl⟩, rw [mul_assoc, add_mul_mod_self_left]
+end
 
 /- properties of / and % -/
 

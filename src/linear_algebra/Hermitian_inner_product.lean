@@ -8,14 +8,11 @@ import analysis.normed_space.basic linear_algebra.sesquilinear_form topology.ins
 
 open complex real
 
-lemma im_eq_zero_iff_conj_eq (x : ℂ) : x.im = 0 ↔ conj(x) = x :=
-begin
-  rw [complex.ext_iff, conj_im, conj_re],
-  exact ⟨λ H, ⟨eq.refl x.re, (eq.symm H) ▸ neg_zero⟩, λ H, eq_zero_of_neg_eq H.2⟩,   
-end
+lemma im_eq_zero_iff_conj_eq (x : ℂ) : conj(x) = x ↔ x.im = 0 :=
+eq_conj_iff_re.trans $ complex.ext_iff.trans $ by simp [eq_comm] 
 
 lemma re_of_im_zero {x : ℂ} (H : x.im = 0) : ↑(x.re) = x :=
-by {rw [complex.ext_iff, of_real_re, of_real_im], exact ⟨eq.refl x.re, eq.symm H⟩} 
+complex.ext (of_real_re x.re) (H.symm ▸ (of_real_im x.re))
 
 def conj.equiv : equiv ℂ ℂ := 
 ⟨conj, conj, conj_conj, conj_conj⟩
@@ -90,7 +87,7 @@ end
 
 lemma self_im (x : α) :
 ₕ⟨x|x⟩.im = 0 :=
-(im_eq_zero_iff_conj_eq ₕ⟨x|x⟩).mpr (inner_product.conj_sym x x)
+(im_eq_zero_iff_conj_eq ₕ⟨x|x⟩).mp  (inner_product.conj_sym x x)
 
 lemma self_re_eq_zero_iff {x : α} : 
 ₕ⟨x|x⟩.re = 0 ↔ x = 0 := 
@@ -445,11 +442,8 @@ noncomputable def proj (x y : α) :=
 (ₕ⟨y|x⟩/ₕ⟨x|x⟩) • x
 
 lemma proj_eq_smul_normalize (x y : α) : proj x y  = (ₕ⟨y|x⟩/∥x∥) • normalize x :=
-begin
-  rw [proj, normalize, smul_smul, of_real_inv,
-    ←div_eq_mul_inv, div_div_eq_div_mul,
-    ←of_real_mul, of_real_norm_mul_self],
-end
+by rw [proj, normalize, smul_smul, of_real_inv, ←div_eq_mul_inv, 
+    div_div_eq_div_mul, ←of_real_mul, of_real_norm_mul_self]
 
 lemma zero_proj (x : α) :
 proj 0 x = 0 := by {dunfold proj, simp}
@@ -522,19 +516,11 @@ end
 
 lemma proj_eq_self_iff_lindep {x y : α} :
 proj x y = y ↔ ∃ (a : ℂ), y = a • x :=
-begin
-  split,
-  { dunfold proj, 
-    intros H,
-    exact exists.intro (ₕ⟨y|x⟩ / ₕ⟨x|x⟩) (eq_comm.mp H) },
-
-  { intros H,
-    cases H with a Ha,
-    rw [Ha, smul_proj, proj_self_eq_self] }
-end
+⟨ λ H, ⟨ₕ⟨y|x⟩ / ₕ⟨x|x⟩, eq_comm.mp H⟩ , 
+  λ ⟨a, Ha⟩, by rw [Ha, smul_proj, proj_self_eq_self]⟩ 
 
 end herm_inner_product_space
-
+ 
 class Hilbert_space (α : Type*) [add_comm_group α] [vector_space ℂ α] extends herm_inner_product_space α :=
 (complete : ∀{f : filter α}, cauchy f → ∃x, f ≤ nhds x) 
 

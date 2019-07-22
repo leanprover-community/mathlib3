@@ -1110,7 +1110,7 @@ calc (div_X p).degree < (div_X p * X + C (p.coeff 0)).degree :
       exact degree_lt_degree_mul_X hXp0
 ... = p.degree : by rw div_X_mul_X_add
 
-@[elab_as_eliminator] def rec_on_horner
+@[elab_as_eliminator] noncomputable def rec_on_horner
   {M : polynomial α → Sort*} : Π (p : polynomial α),
   M 0 →
   (Π p a, coeff p 0 = 0 → a ≠ 0 → M p → M (p + C a)) →
@@ -1268,7 +1268,7 @@ else
   h.2
   (by rw [leading_coeff_mul' hpq, leading_coeff_monomial, monic.def.1 hq, mul_one])
 
-def div_mod_by_monic_aux : Π (p : polynomial α) {q : polynomial α},
+noncomputable def div_mod_by_monic_aux : Π (p : polynomial α) {q : polynomial α},
   monic q → polynomial α × polynomial α
 | p := λ q hq, if h : degree q ≤ degree p ∧ p ≠ 0 then
   let z := C (leading_coeff p) * X^(nat_degree p - nat_degree q)  in

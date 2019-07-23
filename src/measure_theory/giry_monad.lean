@@ -184,6 +184,40 @@ begin
   exact one_mul _
 end
 
+lemma map_dirac {f : α → β} (hf : measurable f) (a : α) :
+  map f (dirac a) = dirac (f a) :=
+measure.ext $ assume s hs,
+  by rw [dirac_apply (f a) hs, map_apply hf hs, dirac_apply a (hf s hs), set.mem_preimage]
+
+lemma join_eq_bind (μ : measure (measure α)) : join μ = bind μ id :=
+by rw [bind, map_id]
+
+lemma join_map_map {f : α → β} (hf : measurable f) (μ : measure (measure α)) :
+  join (map (map f) μ) = map f (join μ) :=
+measure.ext $ assume s hs,
+  begin
+    rw [join_apply hs, map_apply hf hs, join_apply,
+      integral_map (measurable_coe hs) (measurable_map f hf)],
+    { congr, funext ν, exact map_apply hf hs },
+    exact hf s hs
+  end
+
+lemma join_map_join (μ : measure (measure (measure α))) :
+  join (map join μ) = join (join μ) :=
+begin
+  show bind μ join = join (join μ),
+  rw [join_eq_bind, join_eq_bind, bind_bind measurable_id measurable_id],
+  apply congr_arg (bind μ),
+  funext ν,
+  exact join_eq_bind ν
+end
+
+lemma join_map_dirac (μ : measure α) : join (map dirac μ) = μ :=
+dirac_bind
+
+lemma join_dirac (μ : measure α) : join (dirac μ) = μ :=
+eq.trans (join_eq_bind (dirac μ)) (bind_dirac measurable_id _)
+
 end measure
 
 end measure_theory

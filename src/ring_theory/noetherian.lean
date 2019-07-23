@@ -8,6 +8,7 @@ import data.equiv.algebra
 import linear_algebra.finsupp
 import ring_theory.ideal_operations
 import ring_theory.subring
+import linear_algebra.basis
 
 open set lattice
 
@@ -234,7 +235,7 @@ end
 
 end
 
-open is_noetherian
+open is_noetherian submodule function
 
 theorem is_noetherian_iff_well_founded
   {α β} [ring α] [add_comm_group β] [module α β] :
@@ -289,9 +290,30 @@ theorem is_noetherian_iff_well_founded
       rw [← hs₂, sup_assoc, ← submodule.span_union], simp }
   end⟩
 
-lemma well_founded_submodule_gt {α β} [ring α] [add_comm_group β] [module α β] :
+lemma well_founded_submodule_gt (α β) [ring α] [add_comm_group β] [module α β] :
   ∀ [is_noetherian α β], well_founded ((>) : submodule α β → submodule α β → Prop) :=
 is_noetherian_iff_well_founded.mp
+
+lemma finite_of_linear_independent {α β} [nonzero_comm_ring α] [add_comm_group β] [module α β]
+  [decidable_eq α] [decidable_eq β] [is_noetherian α β] {s : set β}
+  (hs : linear_independent α (subtype.val : s → β)) : s.finite :=
+begin
+  refine classical.by_contradiction (λ hf, order_embedding.well_founded_iff_no_descending_seq.1
+    (well_founded_submodule_gt α β) ⟨_⟩),
+  have f : ℕ ↪ s, from @infinite.nat_embedding s ⟨λ f, hf ⟨f⟩⟩,
+  have : ∀ n, (subtype.val ∘ f) '' {m | m ≤ n} ⊆ s,
+  { rintros n x ⟨y, hy₁, hy₂⟩, subst hy₂, exact (f y).2 },
+  have : ∀ a b : ℕ, a ≤ b ↔
+    span α ((subtype.val ∘ f) '' {m | m ≤ a}) ≤ span α ((subtype.val ∘ f) '' {m | m ≤ b}),
+  { assume a b,
+    rw [span_le_span_iff (@zero_ne_one α _) hs (this a) (this b),
+      set.image_subset_image_iff (injective_comp subtype.val_injective f.inj'),
+      set.subset_def],
+    exact ⟨λ hab x (hxa : x ≤ a), le_trans hxa hab, λ hx, hx a (le_refl a)⟩ },
+  exact ⟨⟨λ n, span α ((subtype.val ∘ f) '' {m | m ≤ n}),
+      λ x y, by simp [le_antisymm_iff, (this _ _).symm] {contextual := tt}⟩,
+    by dsimp [gt]; simp only [lt_iff_le_not_le, (this _ _).symm]; tauto⟩
+end
 
 @[class] def is_noetherian_ring (α) [ring α] : Prop := is_noetherian α α
 
@@ -382,7 +404,7 @@ local attribute [elab_as_eliminator] well_founded.fix
 
 lemma well_founded_dvd_not_unit : well_founded (λ a b : α, a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ b = a * x ) :=
 by simp only [ideal.span_singleton_lt_span_singleton.symm];
-   exact inv_image.wf (λ a, ideal.span ({a} : set α)) well_founded_submodule_gt
+   exact inv_image.wf (λ a, ideal.span ({a} : set α)) (well_founded_submodule_gt _ _)
 
 lemma exists_irreducible_factor {a : α} (ha : ¬ is_unit a) (ha0 : a ≠ 0) :
   ∃ i, irreducible i ∧ i ∣ a :=

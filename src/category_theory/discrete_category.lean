@@ -12,15 +12,15 @@ universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.c
 -- We only work in `Type`, rather than `Sort`, as we need to use `ulift`.
 def discrete (α : Type u₁) := α
 
-instance discrete_category (α : Type u₁) : small_category (discrete α) :=
-{ hom  := λ X Y, ulift (plift (X = Y)),
-  id   := λ X, ulift.up (plift.up rfl),
-  comp := λ X Y Z g f, by { rcases f with ⟨⟨rfl⟩⟩, exact g } }
+instance discrete_category (α : Type u₁) : category (discrete α) :=
+{ hom  := (=),
+  id   := eq.refl,
+  comp := λ X Y Z g f, by { rcases f with rfl, exact g } }
 
 namespace discrete
 
 variables {α : Type u₁}
-@[simp] lemma id_def (X : discrete α) : ulift.up (plift.up (eq.refl X)) = 𝟙 X := rfl
+@[simp] lemma id_def (X : discrete α) : eq.refl X = 𝟙 X := rfl
 
 end discrete
 
@@ -31,7 +31,7 @@ namespace functor
 
 @[simp] def of_function {I : Type u₁} (F : I → C) : (discrete I) ⥤ C :=
 { obj := F,
-  map := λ X Y f, begin cases f, cases f, cases f, exact 𝟙 (F X) end }
+  map := λ X Y f, begin cases f, exact 𝟙 (F X) end }
 
 end functor
 
@@ -77,11 +77,7 @@ include 𝒞
 
 @[simp] lemma functor_map_id
   (F : discrete J ⥤ C) {j : discrete J} (f : j ⟶ j) : F.map f = 𝟙 (F.obj j) :=
-begin
-  have h : f = 𝟙 j, cases f, cases f, ext,
-  rw h,
-  simp,
-end
+by simp
 
 end discrete
 

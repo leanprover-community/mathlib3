@@ -45,6 +45,7 @@ do
 end expr
 
 namespace norm_cast
+
 open tactic expr
 
 inductive pos_num : Type
@@ -55,21 +56,6 @@ inductive pos_num : Type
 namespace pos_num
 
 instance : has_one pos_num := ⟨pos_num.one⟩
-
-def succ : pos_num → pos_num
-| 1        := bit0 one
-| (bit1 n) := bit0 (succ n)
-| (bit0 n) := bit1 n
-
-protected def add : pos_num → pos_num → pos_num
-| 1        b        := succ b
-| a        1        := succ a
-| (bit0 a) (bit0 b) := bit0 (add a b)
-| (bit1 a) (bit1 b) := bit0 (succ (add a b))
-| (bit0 a) (bit1 b) := bit1 (add a b)
-| (bit1 a) (bit0 b) := bit1 (add a b)
-
-instance : has_add pos_num := ⟨pos_num.add⟩
 
 end pos_num
 
@@ -83,20 +69,83 @@ open pos_num
 instance : has_zero num := ⟨num.zero⟩
 instance : has_one num := ⟨num.pos 1⟩
 
-def succ' : num → pos_num
-| 0       := 1
-| (pos p) := succ p
-
-def succ (n : num) : num := pos (succ' n)
-
-protected def add : num → num → num
-| 0       a       := a
-| b       0       := b
-| (pos a) (pos b) := pos (a + b)
-
-instance : has_add num := ⟨num.add⟩
-
 end num
+
+namespace pos_num
+
+protected def pred : pos_num → num
+| 1        := 0
+| (bit0 n) := num.pos (num.cases_on (pred n) 1 bit1)
+| (bit1 n) := num.pos (bit0 n)
+
+end pos_num
+
+inductive znum : Type
+| zero : znum
+| pos  : pos_num → znum
+| neg  : pos_num → znum
+
+namespace znum
+
+instance : has_zero znum := ⟨znum.zero⟩
+instance : has_one znum := ⟨znum.pos 1⟩
+
+protected def zneg : znum → znum
+| 0       := 0
+| (pos a) := neg a
+| (neg a) := pos a
+
+protected def bit0 : znum → znum
+| 0       := 0
+| (pos n) := pos (pos_num.bit0 n)
+| (neg n) := neg (pos_num.bit0 n)
+
+protected def bit1 : znum → znum
+| 0       := 1
+| (pos n) := pos (pos_num.bit1 n)
+| (neg n) := neg (num.cases_on (pos_num.pred n) 1 pos_num.bit1)
+
+end znum
+
+private meta def znum_of_expr : expr → option znum
+| `(@has_zero.zero %%α %%h)  := some 0
+| `(@has_one.one %%α %%h)    := some 1
+| `(@bit0 %%α %%h %%e)       := do n ← znum_of_expr e, some (znum.bit0 n)
+| `(@bit1 %%α %%h1 %%h2 %%e) := do n ← znum_of_expr e, some (znum.bit1 n)
+| `(-%%e)                    := do n ← znum_of_expr e, some (znum.zneg n)
+| _ := none
+
+private meta def pexpr_of_pos_num (α h_one h_add : expr) : pos_num → pexpr
+| pos_num.one      := ``(@has_one.one %%α %%h_one)
+| (pos_num.bit0 n) := ``(@bit0 %%α %%h_add (%%(pexpr_of_pos_num n)))
+| (pos_num.bit1 n) := ``(@bit1 %%α %%h_one %%h_add (%%(pexpr_of_pos_num n)))
+
+private meta def expr_of_num (α : expr) (n : num) : tactic expr :=
+match n with
+| num.zero := do
+  h_zero ← mk_app `has_zero [α] >>= mk_instance,
+  to_expr ``(@has_zero.zero %%α %%h_zero)
+| (num.pos (pos_num.one)) := do
+  h_one ← mk_app `has_one [α] >>= mk_instance,
+  to_expr ``(@has_one.one %%α %%h_one)
+| (num.pos m) := do
+  h_one ← mk_app `has_one [α] >>= mk_instance,
+  h_add ← mk_app `has_add [α] >>= mk_instance,
+  to_expr (pexpr_of_pos_num α h_one h_add m)
+end
+
+private meta def expr_of_znum (α : expr) (n : znum) : tactic expr :=
+match n with
+| znum.zero := do
+  h_zero ← mk_app `has_zero [α] >>= mk_instance,
+  to_expr ``(@has_zero.zero %%α %%h_zero)
+| (znum.pos n) :=
+  expr_of_num α (num.pos n)
+| (znum.neg n) := do
+  h_neg ← mk_app `has_neg [α] >>= mk_instance,
+  e ← expr_of_num α (num.pos n),
+  to_expr ``(@has_neg.neg %%α %%h_neg %%e)
+end
 
 private meta def new_name (n : name) : name := name.mk_string "reversed" n
 
@@ -196,32 +245,6 @@ do
     is_def_eq e e',
     mk_eq_symm pr
 
-private meta def num_of_expr : expr → option num
-| `(@has_zero.zero %%α %%h) := some 0
-| `(@has_one.one %%α %%h) := some 1
-| `(@bit0 %%α %%h %%e) := do n ← num_of_expr e, some (bit0 n)
-| `(@bit1 %%α %%h1 %%h2 %%e) := do n ← num_of_expr e, some (bit1 n)
-| _ := none
-
-private meta def aux_num (α h_one h_add : expr) : pos_num → pexpr
-| pos_num.one := ``(@has_one.one %%α %%h_one)
-| (pos_num.bit0 n) := ``(@bit0 %%α %%h_add (%%(aux_num n)))
-| (pos_num.bit1 n) := ``(@bit1 %%α %%h_one %%h_add (%%(aux_num n)))
-
-private meta def expr_of_num (α : expr) (n : num) : tactic expr :=
-match n with
-| num.zero := do
-  h_zero ← mk_app `has_zero [α] >>= mk_instance',
-  to_expr ``(@has_zero.zero %%α %%h_zero)
-| (num.pos (pos_num.one)) := do
-  h_one ← mk_app `has_one [α] >>= mk_instance',
-  to_expr ``(@has_one.one %%α %%h_one)
-| (num.pos m) := do
-  h_one ← mk_app `has_one [α] >>= mk_instance',
-  h_add ← mk_app `has_add [α] >>= mk_instance',
-  to_expr (aux_num α h_one h_add m)
-end
-
 /-
 This is the main heuristic used alongside the elim_cast and move_cast lemmas.
 An expression of the shape: op (↑(x : α) : γ) (↑(y : β) : γ)
@@ -257,8 +280,8 @@ match e with
     δ ← infer_type x,
     `(@coe %%β %%γ %%coe1 %%yy) ← return y,
     is_def_eq δ γ,
-    n ← num_of_expr x,
-    new_x ← expr_of_num β n >>= λ e, to_expr ``(@coe %%β %%δ %%coe1 %%e),
+    n ← znum_of_expr x,
+    new_x ← expr_of_znum β n >>= λ e, to_expr ``(@coe %%β %%δ %%coe1 %%e),
     let new_e := app (app op new_x) y,
     eq_x ← aux_squash x new_x,
     pr ← mk_congr_arg op eq_x,
@@ -268,8 +291,8 @@ match e with
     `(@coe %%α %%δ %%coe1 %%xx) ← return x,
     γ ← infer_type y,
     is_def_eq δ γ,
-    n ← num_of_expr y,
-    new_y ← expr_of_num α n >>= λ e, to_expr ``(@coe %%α %%δ %%coe1 %%e),
+    n ← znum_of_expr y,
+    new_y ← expr_of_znum α n >>= λ e, to_expr ``(@coe %%α %%δ %%coe1 %%e),
     let new_e := app (app op x) new_y,
     eq_y ← aux_squash y new_y,
     pr ← mk_congr_arg (app op x) eq_y,
@@ -305,11 +328,10 @@ meta def derive (e : expr) : tactic (expr × expr) :=
 do
     s ← get_cache,
     e ← instantiate_mvars e,
-    let cfg : simp_config := {fail_if_unchanged := ff},
+    let cfg : simp_config := { fail_if_unchanged := ff },
 
     -- step 1: casts are moved upwards and eliminated
-    ((), new_e, pr1) ← simplify_bottom_up ()
-        (post s) e cfg,
+    ((), new_e, pr1) ← simplify_bottom_up () (post s) e cfg,
 
     -- step 2: casts are squashed
     s ← squash_cast_attr.get_cache,

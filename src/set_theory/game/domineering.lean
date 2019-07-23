@@ -49,13 +49,7 @@ def move_right (b : finset (ℤ × ℤ)) (m : right b) : finset (ℤ × ℤ) :=
 (b.erase m.val).erase (m.val.1 - 1, m.val.2)
 
 lemma int.succ_ne_self {x : ℤ} : x + 1 ≠ x :=
-begin
-  intro h,
-  replace h := congr_arg (λ n : ℤ, n - x) h,
-  dsimp at h,
-  rw [add_assoc, add_comm, neg_add_cancel_right, add_right_neg] at h,
-  exact one_ne_zero h
-end
+ne_of_gt (lt_add_one x)
 
 lemma move_left_smaller (b : finset (ℤ × ℤ)) (m : left b) :
   finset.card (move_left b m) < finset.card b :=

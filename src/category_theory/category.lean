@@ -133,9 +133,9 @@ namespace preorder
 
 variables (α : Type u)
 
-instance small_category [preorder α] : small_category α :=
-{ hom  := λ U V, ulift (plift (U ≤ V)),
-  id   := λ X, ⟨ ⟨ le_refl X ⟩ ⟩,
-  comp := λ X Y Z f g, ⟨ ⟨ le_trans _ _ _ f.down.down g.down.down ⟩ ⟩ }
+instance small_category [preorder α] : category α :=
+{ hom  := (≤),
+  id   := le_refl,
+  comp := @le_trans _ _ }
 
 end preorder

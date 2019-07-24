@@ -4,10 +4,12 @@
 
 import topology.Top.opens
 import category_theory.whiskering
+import category_theory.limits.functor_category
 
 universes v u
 
 open category_theory
+open category_theory.limits
 open topological_space
 open opposite
 
@@ -21,6 +23,14 @@ def presheaf (X : Top.{v}) := (opens X)ᵒᵖ ⥤ C
 instance category_presheaf (X : Top.{v}) : category (X.presheaf C) :=
 by dsimp [presheaf]; apply_instance
 
+instance (X : Top.{v}) {J : Type v} [small_category J] [has_limits_of_shape.{v} J C] :
+  has_limits_of_shape.{v} J (X.presheaf C) :=
+by { dsimp [presheaf], apply_instance }
+
+instance (X : Top.{v}) {J : Type v} [small_category J] [has_colimits_of_shape.{v} J C] :
+  has_colimits_of_shape.{v} J (X.presheaf C) :=
+by { dsimp [presheaf], apply_instance }
+
 namespace presheaf
 variables {C}
 
@@ -28,6 +38,12 @@ def pushforward {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) : Y.presheaf 
 (opens.map f).op ⋙ ℱ
 
 infix ` _* `: 80 := pushforward
+
+@[simp] lemma pushforward_obj {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) (U : (opens Y)ᵒᵖ) :
+  (f _* ℱ).obj U = ℱ.obj ((opens.map f).op.obj U) := rfl
+
+def pushforward_map {X Y : Top.{v}} (f : X ⟶ Y) {ℱ 𝒢 : X.presheaf C} (α : ℱ ⟶ 𝒢) : f _* ℱ ⟶ f _* 𝒢 :=
+whisker_left (opens.map f).op α
 
 def pushforward_eq {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf C) :
   f _* ℱ ≅ g _* ℱ :=

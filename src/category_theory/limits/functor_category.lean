@@ -94,6 +94,12 @@ instance functor_category_has_limits [has_limits.{v} C] : has_limits.{v} (K ⥤ 
 instance functor_category_has_colimits [has_colimits.{v} C] : has_colimits.{v} (K ⥤ C) :=
 { has_colimits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
+@[simp] lemma functor_category_limit_obj [has_limits_of_shape J C] (F : J ⥤ (K ⥤ C)) (k : K) :
+  (limit F).obj k = limit (F.flip.obj k) := rfl
+
+@[simp] lemma functor_category_colimit_obj [has_colimits_of_shape J C] (F : J ⥤ (K ⥤ C)) (k : K) :
+  (colimit F).obj k = colimit (F.flip.obj k) := rfl
+
 instance evaluation_preserves_limits_of_shape [has_limits_of_shape J C] (k : K) :
   preserves_limits_of_shape J ((evaluation K C).obj k) :=
 { preserves_limit :=

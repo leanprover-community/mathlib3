@@ -22,11 +22,11 @@ def pushforward_to_colimit (F : J ⥤ PresheafedSpace.{v} C) : J ⥤ ((colimit_t
   map := λ j j' f,
   begin
     have g := presheaf.pushforward_map (colimit.ι (F ⋙ PresheafedSpace.forget) j') (F.map f).c ≫
-                (presheaf.pushforward.comp _ _ _).inv,
-    erw limits.colimit.w (F ⋙ PresheafedSpace.forget) at g,
+                (presheaf.pushforward.comp _ _ _).inv ≫
+                (presheaf.pushforward_eq (limits.colimit.w (F ⋙ PresheafedSpace.forget) _) _).hom,
     exact g.op
   end,
-  map_id' := sorry,
+  map_id' := begin intros, dsimp, sorry end,
   map_comp' := sorry }
 
 @[simp] lemma pushforward_to_colimit_obj (F : J ⥤ PresheafedSpace.{v} C) (j) :
@@ -56,7 +56,7 @@ instance is_colimit (F : J ⥤ PresheafedSpace.{v} C) : is_colimit (colimit_coco
 { desc := λ s,
   { f := colimit.desc (F ⋙ PresheafedSpace.forget) (PresheafedSpace.forget.map_cocone s),
     c :=
-    { app := λ U, limit.lift ((functor.flip (functor.left_op (pushforward_to_colimit F))).obj
+    { app := λ U, limit.lift.{v} ((functor.flip (functor.left_op (pushforward_to_colimit F))).obj
          (op ((opens.map (colimit.desc (F ⋙ PresheafedSpace.forget) (functor.map_cocone PresheafedSpace.forget s))).obj
                (unop U))))
       { X := ((s.X).𝒪).obj U,

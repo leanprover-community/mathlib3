@@ -173,7 +173,7 @@ is rewritten as:            op (↑(↑(x : α) : β) : γ) (↑(y : β) : γ)
 when the squash_cast lemmas can prove that (↑(x : α) : γ) = (↑(↑(x : α) : β) : γ)
 -/
 private meta def heur (_ : unit) : expr → tactic (unit × expr × expr)
-| (app (expr.app op x) y) :=
+| (app (app op x) y) :=
 ( do
   `(@coe %%α %%δ %%coe1 %%xx) ← return x,
   `(@coe %%β %%γ %%coe2 %%yy) ← return y,
@@ -196,6 +196,24 @@ private meta def heur (_ : unit) : expr → tactic (unit × expr × expr)
     pr ← mk_congr_arg (app op x) eq_y,
     return ((), new_e, pr)
   )
+) <|> ( do
+  `(@coe %%α %%β %%coe1 %%xx) ← return x,
+  `(@has_one.one %%β %%h1) ← return y,
+  h2 ← to_expr ``(has_one %%α) >>= mk_instance',
+  new_y ← to_expr ``( @coe %%α %%β %%coe1 (@has_one.one %%α %%h2) ),
+  eq_y ← aux_squash y new_y,
+  let new_e := app (app op x) new_y,
+  pr ← mk_congr_arg (app op x) eq_y,
+  return ((), new_e, pr)
+) <|> ( do
+  `(@coe %%α %%β %%coe1 %%xx) ← return x,
+  `(@has_one.one %%β %%h1) ← return y,
+  h2 ← to_expr ``(has_one %%α) >>= mk_instance',
+  new_y ← to_expr ``( @coe %%α %%β %%coe1 (@has_one.one %%α %%h2) ),
+  eq_y ← aux_squash y new_y,
+  let new_e := app (app op x) new_y,
+  pr ← mk_congr_arg (app op x) eq_y,
+  return ((), new_e, pr)
 )
 | _ := failed
 
@@ -229,7 +247,6 @@ do
   new_e ← to_expr ``( (↑%%new_e : %%α) ),
   pr ← aux_squash e new_e,
   return (new_e, pr)
-
 
 /-
 Core function

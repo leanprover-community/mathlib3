@@ -28,6 +28,15 @@ def of (X : Type u) [measurable_space X] : Meas := ⟨X⟩
 -- local attribute [class] measurable
 -- instance {X Y : Meas} (f : X ⟶ Y) : measurable (f : X → Y) := f.2
 
+/-- `Measure X` is the measurable space of measures over the measurable space `X`. It is the
+weakest measurable space, s.t. λμ, μ s is measurable for all measurable sets `s` in `X`. An
+important purpose is to assign a monadic structure on it, the Giry monad. In the Giry monad,
+the pure values are the Dirac measure, and the bind operation maps to the integral:
+`(μ >>= ν) s = ∫ x. (ν x) s dμ`.
+
+In probability theory, the `Meas`-morphisms `X → Prob X` are (sub-)Markov kernels (here `Prob` is
+the restriction of `Measure` to (sub-)probability space.)
+-/
 def Measure : Meas ⥤ Meas :=
 { obj      := λX, ⟨@measure_theory.measure X.1 X.2⟩,
   map      := λX Y f, ⟨measure.map f, measure.measurable_map f f.2⟩,
@@ -35,6 +44,7 @@ def Measure : Meas ⥤ Meas :=
   map_comp':=
     assume X Y Z ⟨f, hf⟩ ⟨g, hg⟩, subtype.eq $ funext $ assume μ, (measure.map_map hg hf).symm }
 
+/-- The Giry monad, i.e. the monadic structure associated with `Measure`. -/
 instance : category_theory.monad Measure.{u} :=
 { η :=
   { app         := λX, ⟨@measure.dirac X.1 X.2, measure.measurable_dirac⟩,
@@ -48,8 +58,10 @@ instance : category_theory.monad Measure.{u} :=
   left_unit' := assume ⟨α, I⟩, subtype.eq $ funext $ assume μ, @measure.join_dirac α I μ,
   right_unit' := assume ⟨α, I⟩, subtype.eq $ funext $ assume μ, @measure.join_map_dirac α I μ }
 
+/-- An example for an algebra on `Measure`: the nonnegative Lebesgue integral is a hom, behaving
+nicely under the monad operations. -/
 def Integral : monad.algebra Measure :=
-{ A      := @category_theory.bundled.mk _ ennreal (borel ennreal),
+{ A      := Meas.of ennreal ,
   a      := ⟨ λm:measure ennreal, m.integral id, measure.measurable_integral _ measurable_id ⟩,
   unit'  := subtype.eq $ funext $ assume r:ennreal, measure.integral_dirac _ measurable_id,
   assoc' := subtype.eq $ funext $ assume μ : measure (measure ennreal),
@@ -62,5 +74,6 @@ def Integral : monad.algebra Measure :=
 
 end Meas
 
+/-- The Borel functor, the canonical embedding of topological spaces into measurable spaces. -/
 def Borel : Top ⥤ Meas :=
 concrete_functor @measure_theory.borel @measure_theory.measurable_of_continuous

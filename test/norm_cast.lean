@@ -87,11 +87,6 @@ option.some_inj
 
 example [has_mul α] [has_one α] (x y : α) (h : (x : with_zero α) * y = 1) :
   x*y = 1 :=
-begin
-  norm_cast at h,
-  rw ← coe_one at h, -- I want `norm_cast` to do that for me
-  -- norm_cast at h, -- this is actually fighting against me
-  rwa coe_inj at h,
-end
+by exact_mod_cast h
 
 end hidden

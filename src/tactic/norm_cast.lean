@@ -7,7 +7,7 @@ Normalizing casts inside expressions.
 -/
 
 import tactic.basic tactic.interactive tactic.converter.interactive
-import data.buffer.parser
+import data.buffer.parser data.num.basic
 
 namespace tactic
 
@@ -25,22 +25,33 @@ try_for 1000 (mk_instance e)
 end tactic
 
 namespace expr
+
 open tactic expr
 
 meta def flip_eq (ty : expr) : tactic (expr × (expr → expr)) :=
 do
-    (a, b) ← is_eq ty,
-    α ← infer_type a,
-    new_ty ← to_expr ``(%%b = %%a),
-    f ← to_expr ``(@eq.symm %%α %%a %%b),
-    return (new_ty, ⇑f)
+  (a, b) ← is_eq ty,
+  α ← infer_type a,
+  new_ty ← to_expr ``(%%b = %%a),
+  f ← to_expr ``(@eq.symm %%α %%a %%b),
+  return (new_ty, ⇑f)
 
 meta def flip_iff (ty : expr) : tactic (expr × (expr → expr)) :=
 do
-    (a, b) ← is_iff ty,
-    new_ty ← to_expr ``(%%b ↔ %%a),
-    f ← to_expr ``(@iff.symm %%a %%b),
-    return (new_ty, ⇑f)
+  (a, b) ← is_iff ty,
+  new_ty ← to_expr ``(%%b ↔ %%a),
+  f ← to_expr ``(@iff.symm %%a %%b),
+  return (new_ty, ⇑f)
+
+protected meta def to_pos_num : expr → option pos_num
+| `(@has_one.one %%α %%h) := some $ pos_num.one
+| `(@bit0 %%α %%h %%e) := do n ← to_pos_num e, return $ pos_num.bit0 n
+| `(@bit1 %%α %%h1 %%h2 %%e) := do n ← to_pos_num e, return $ pos_num.bit1 n
+| _ := none
+
+protected meta def to_num : expr → option num
+| `(@has_zero.zero %%α %%h) := some $ num.zero
+| e := do n ← e.to_pos_num, return $ num.pos n
 
 end expr
 
@@ -48,127 +59,37 @@ namespace norm_cast
 
 open tactic expr
 
-inductive pos_num : Type
-| one  : pos_num
-| bit1 : pos_num → pos_num
-| bit0 : pos_num → pos_num
+meta def pexpr_of_pos_num (α : expr) : pos_num → pexpr
+| pos_num.one := ``(has_one.one %%α)
+| (pos_num.bit0 n) := ``(bit0 %%(pexpr_of_pos_num n))
+| (pos_num.bit1 n) := ``(bit1 %%(pexpr_of_pos_num n))
 
-namespace pos_num
-
-instance : has_one pos_num := ⟨pos_num.one⟩
-
-end pos_num
-
-inductive num : Type
-| zero  : num
-| pos   : pos_num → num
-
-namespace num
-open pos_num
-
-instance : has_zero num := ⟨num.zero⟩
-instance : has_one num := ⟨num.pos 1⟩
-
-end num
-
-namespace pos_num
-
-protected def pred : pos_num → num
-| 1        := 0
-| (bit0 n) := num.pos (num.cases_on (pred n) 1 bit1)
-| (bit1 n) := num.pos (bit0 n)
-
-end pos_num
-
-inductive znum : Type
-| zero : znum
-| pos  : pos_num → znum
-| neg  : pos_num → znum
-
-namespace znum
-
-instance : has_zero znum := ⟨znum.zero⟩
-instance : has_one znum := ⟨znum.pos 1⟩
-
-protected def zneg : znum → znum
-| 0       := 0
-| (pos a) := neg a
-| (neg a) := pos a
-
-protected def bit0 : znum → znum
-| 0       := 0
-| (pos n) := pos (pos_num.bit0 n)
-| (neg n) := neg (pos_num.bit0 n)
-
-protected def bit1 : znum → znum
-| 0       := 1
-| (pos n) := pos (pos_num.bit1 n)
-| (neg n) := neg (num.cases_on (pos_num.pred n) 1 pos_num.bit1)
-
-end znum
-
-private meta def znum_of_expr : expr → option znum
-| `(@has_zero.zero %%α %%h)  := some 0
-| `(@has_one.one %%α %%h)    := some 1
-| `(@bit0 %%α %%h %%e)       := do n ← znum_of_expr e, some (znum.bit0 n)
-| `(@bit1 %%α %%h1 %%h2 %%e) := do n ← znum_of_expr e, some (znum.bit1 n)
-| `(-%%e)                    := do n ← znum_of_expr e, some (znum.zneg n)
-| _ := none
-
-private meta def pexpr_of_pos_num (α h_one h_add : expr) : pos_num → pexpr
-| pos_num.one      := ``(@has_one.one %%α %%h_one)
-| (pos_num.bit0 n) := ``(@bit0 %%α %%h_add (%%(pexpr_of_pos_num n)))
-| (pos_num.bit1 n) := ``(@bit1 %%α %%h_one %%h_add (%%(pexpr_of_pos_num n)))
-
-private meta def expr_of_num (α : expr) (n : num) : tactic expr :=
-match n with
-| num.zero := do
-  h_zero ← mk_app `has_zero [α] >>= mk_instance,
-  to_expr ``(@has_zero.zero %%α %%h_zero)
-| (num.pos (pos_num.one)) := do
-  h_one ← mk_app `has_one [α] >>= mk_instance,
-  to_expr ``(@has_one.one %%α %%h_one)
-| (num.pos m) := do
-  h_one ← mk_app `has_one [α] >>= mk_instance,
-  h_add ← mk_app `has_add [α] >>= mk_instance,
-  to_expr (pexpr_of_pos_num α h_one h_add m)
-end
-
-private meta def expr_of_znum (α : expr) (n : znum) : tactic expr :=
-match n with
-| znum.zero := do
-  h_zero ← mk_app `has_zero [α] >>= mk_instance,
-  to_expr ``(@has_zero.zero %%α %%h_zero)
-| (znum.pos n) :=
-  expr_of_num α (num.pos n)
-| (znum.neg n) := do
-  h_neg ← mk_app `has_neg [α] >>= mk_instance,
-  e ← expr_of_num α (num.pos n),
-  to_expr ``(@has_neg.neg %%α %%h_neg %%e)
-end
+meta def pexpr_of_num (α : expr) : num → pexpr
+| num.zero := ``(has_zero.zero %%α)
+| (num.pos n) := pexpr_of_pos_num α n
 
 private meta def new_name (n : name) : name := name.mk_string "reversed" n
 
 private meta def aux_after_set (tac : expr → tactic (expr × (expr → expr))) :
-    expr → tactic (expr × (expr → expr))
+  expr → tactic (expr × (expr → expr))
 | (pi n bi d b) := do
-    uniq_n ← mk_fresh_name,
-    let b' := b.instantiate_var (local_const uniq_n n bi d),
-    (b', f) ← aux_after_set b',
-    return $ (
-        pi n bi d $ b'.abstract_local uniq_n,
-        λ e, lam n bi d $ ( f $ e (local_const uniq_n n bi d) ).abstract_local uniq_n
-    )
+  uniq_n ← mk_fresh_name,
+  let b' := b.instantiate_var (local_const uniq_n n bi d),
+  (b', f) ← aux_after_set b',
+  return $ (
+    pi n bi d $ b'.abstract_local uniq_n,
+    λ e, lam n bi d $ ( f $ e (local_const uniq_n n bi d) ).abstract_local uniq_n
+  )
 | ty := tac ty
 
 private meta def after_set (decl : name) (prio : ℕ) (pers : bool) : tactic unit :=
 do
-    (declaration.thm n l ty e) ← get_decl decl | failed,
-    let tac := λ ty, (flip_eq ty <|> flip_iff ty),
-    (ty', f) ← aux_after_set tac ty,
-    let e' := task.map f e,
-    let n' := new_name n,
-    add_decl (declaration.thm n' l ty' e')
+  (declaration.thm n l ty e) ← get_decl decl | failed,
+  let tac := λ ty, (flip_eq ty <|> flip_iff ty),
+  (ty', f) ← aux_after_set tac ty,
+  let e' := task.map f e,
+  let n' := new_name n,
+  add_decl (declaration.thm n' l ty' e')
 
 private meta def mk_cache : list name → tactic simp_lemmas :=
 monad.foldl simp_lemmas.add_simp simp_lemmas.mk
@@ -184,11 +105,11 @@ attribute elim_cast.
 @[user_attribute]
 meta def elim_cast_attr : user_attribute simp_lemmas :=
 {
-    name      := `elim_cast,
-    descr     := "attribute for lemmas of the shape Π ..., P ↑a1 ... ↑an = P a1 ... an",
-    cache_cfg :=
-        { mk_cache     := mk_cache,
-          dependencies := [], },
+  name      := `elim_cast,
+  descr     := "attribute for lemmas of the shape Π ..., P ↑a1 ... ↑an = P a1 ... an",
+  cache_cfg :=
+    { mk_cache     := mk_cache,
+      dependencies := [], },
 }
 
 /--
@@ -202,19 +123,19 @@ attribute move_cast.
 @[user_attribute]
 meta def move_cast_attr : user_attribute simp_lemmas :=
 {
-    name      := `move_cast,
-    descr     := "attribute for lemmas of the shape Π ..., ↑(P a1 ... an) = P ↑a1 ... ↑an",
-    after_set := some after_set,
-    cache_cfg :=
-        { mk_cache     := mk_cache ∘ (list.map new_name),
-          dependencies := [], },
+  name      := `move_cast,
+  descr     := "attribute for lemmas of the shape Π ..., ↑(P a1 ... an) = P ↑a1 ... ↑an",
+  after_set := some after_set,
+  cache_cfg :=
+    { mk_cache     := mk_cache ∘ (list.map new_name),
+      dependencies := [], },
 }
 
 private meta def get_cache : tactic simp_lemmas :=
 do
-    a ← elim_cast_attr.get_cache,
-    b ← move_cast_attr.get_cache,
-    return $ simp_lemmas.join a b
+  a ← elim_cast_attr.get_cache,
+  b ← move_cast_attr.get_cache,
+  return $ simp_lemmas.join a b
 
 /--
 This is an attribute for simplification rules of the shape
@@ -225,13 +146,13 @@ They are used in a heuristic to infer intermediate casts.
 @[user_attribute]
 meta def squash_cast_attr : user_attribute simp_lemmas :=
 {
-    name      := `squash_cast,
-    descr     := "attribute for lemmas of the shape Π ..., ↑↑a = ↑a",
-    after_set := none,
-    cache_cfg := {
-        mk_cache     := monad.foldl simp_lemmas.add_simp simp_lemmas.mk,
-        dependencies := [],
-    }
+  name      := `squash_cast,
+  descr     := "attribute for lemmas of the shape Π ..., ↑↑a = ↑a",
+  after_set := none,
+  cache_cfg := {
+    mk_cache     := monad.foldl simp_lemmas.add_simp simp_lemmas.mk,
+    dependencies := [],
+  }
 }
 
 /-
@@ -240,10 +161,10 @@ using only squash_cast lemmas
 -/
 private meta def aux_squash (e new_e : expr) : tactic expr :=
 do
-    s ← squash_cast_attr.get_cache,
-    (e', pr) ← s.rewrite new_e,
-    is_def_eq e e',
-    mk_eq_symm pr
+  s ← squash_cast_attr.get_cache,
+  (e', pr) ← s.rewrite new_e,
+  is_def_eq e e',
+  mk_eq_symm pr
 
 /-
 This is the main heuristic used alongside the elim_cast and move_cast lemmas.
@@ -251,55 +172,32 @@ An expression of the shape: op (↑(x : α) : γ) (↑(y : β) : γ)
 is rewritten as:            op (↑(↑(x : α) : β) : γ) (↑(y : β) : γ)
 when the squash_cast lemmas can prove that (↑(x : α) : γ) = (↑(↑(x : α) : β) : γ)
 -/
-private meta def heur (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
-match e with
+private meta def heur (_ : unit) : expr → tactic (unit × expr × expr)
 | (app (expr.app op x) y) :=
 ( do
-    `(@coe %%α %%δ %%coe1 %%xx) ← return x,
-    `(@coe %%β %%γ %%coe2 %%yy) ← return y,
-    success_if_fail $ is_def_eq α β,
-    is_def_eq δ γ,
+  `(@coe %%α %%δ %%coe1 %%xx) ← return x,
+  `(@coe %%β %%γ %%coe2 %%yy) ← return y,
+  success_if_fail $ is_def_eq α β,
+  is_def_eq δ γ,
 
-    (do
-        coe3 ← mk_app `has_lift_t [α, β] >>= mk_instance',
-        new_x ← to_expr ``(@coe %%β %%δ %%coe2 (@coe %%α %%β %%coe3 %%xx)),
-        let new_e := app (app op new_x) y,
-        eq_x ← aux_squash x new_x,
-        pr ← mk_congr_arg op eq_x,
-        pr ← mk_congr_fun pr y,
-        return ((), new_e, pr)
-    ) <|> (do
-        coe3 ← mk_app `has_lift_t [β, α] >>= mk_instance',
-        new_y ← to_expr ``(@coe %%α %%δ %%coe1 (@coe %%β %%α %%coe3 %%yy)),
-        let new_e := app (app op x) new_y,
-        eq_y ← aux_squash y new_y,
-        pr ← mk_congr_arg (app op x) eq_y,
-        return ((), new_e, pr)
-    )
-) <|> ( do
-    δ ← infer_type x,
-    `(@coe %%β %%γ %%coe1 %%yy) ← return y,
-    is_def_eq δ γ,
-    n ← znum_of_expr x,
-    new_x ← expr_of_znum β n >>= λ e, to_expr ``(@coe %%β %%δ %%coe1 %%e),
+  (do
+    coe3 ← mk_app `has_lift_t [α, β] >>= mk_instance',
+    new_x ← to_expr ``(@coe %%β %%δ %%coe2 (@coe %%α %%β %%coe3 %%xx)),
     let new_e := app (app op new_x) y,
     eq_x ← aux_squash x new_x,
     pr ← mk_congr_arg op eq_x,
     pr ← mk_congr_fun pr y,
     return ((), new_e, pr)
-) <|> ( do
-    `(@coe %%α %%δ %%coe1 %%xx) ← return x,
-    γ ← infer_type y,
-    is_def_eq δ γ,
-    n ← znum_of_expr y,
-    new_y ← expr_of_znum α n >>= λ e, to_expr ``(@coe %%α %%δ %%coe1 %%e),
+  ) <|> (do
+    coe3 ← mk_app `has_lift_t [β, α] >>= mk_instance',
+    new_y ← to_expr ``(@coe %%α %%δ %%coe1 (@coe %%β %%α %%coe3 %%yy)),
     let new_e := app (app op x) new_y,
     eq_y ← aux_squash y new_y,
     pr ← mk_congr_arg (app op x) eq_y,
     return ((), new_e, pr)
+  )
 )
 | _ := failed
-end
 
 /-
 assumption is used to discharge proofs
@@ -309,37 +207,56 @@ assumption
 
 private meta def post (s : simp_lemmas) (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
 ( do
-    r ← mcond (is_prop e) (return `iff) (return `eq),
-    (new_e, pr) ← s.rewrite e prove r,
-    pr ← match r with
-    |`iff := mk_app `propext [pr]
-    | _   := return pr
-    end,
-    return ((), new_e, pr)
+  r ← mcond (is_prop e) (return `iff) (return `eq),
+  (new_e, pr) ← s.rewrite e prove r,
+  pr ← match r with
+  |`iff := mk_app `propext [pr]
+  | _   := return pr
+  end,
+  return ((), new_e, pr)
 ) <|> ( do
   (a, new_e, pr) ← heur () e,
   return (a, new_e, pr)
 )
+
+private meta def aux_num (e : expr) : tactic (expr × expr) :=
+do
+  α ← infer_type e,
+  success_if_fail $ is_def_eq α `(ℕ),
+  n ← e.to_num,
+  h ← mk_app `has_lift_t [`(ℕ), α] >>= mk_instance',
+  new_e ← to_expr $ pexpr_of_num `(ℕ) n,
+  new_e ← to_expr ``( (↑%%new_e : %%α) ),
+  pr ← aux_squash e new_e,
+  return (new_e, pr)
+
 
 /-
 Core function
 -/
 meta def derive (e : expr) : tactic (expr × expr) :=
 do
-    s ← get_cache,
-    e ← instantiate_mvars e,
-    let cfg : simp_config := { fail_if_unchanged := ff },
+  s ← get_cache,
+  e ← instantiate_mvars e,
+  let cfg : simp_config := { fail_if_unchanged := ff },
+  let new_e := e,
 
-    -- step 1: casts are moved upwards and eliminated
-    ((), new_e, pr1) ← simplify_bottom_up () (post s) e cfg,
+  -- step 1: pre-processing of numerals
+  ((), new_e, pr1) ← ext_simplify_core () cfg simp_lemmas.mk (λ _, failed)
+    (λ a _ _ _ e, do (new_e, pr) ← aux_num e, guard (¬ new_e =ₐ e), return (a, new_e, some pr, ff))
+    (λ _ _ _ _ _, failed)
+    `eq e,
 
-    -- step 2: casts are squashed
-    s ← squash_cast_attr.get_cache,
-    (new_e, pr2) ← simplify s [] new_e cfg,
+  -- step 2: casts are moved upwards and eliminated
+  ((), new_e, pr2) ← simplify_bottom_up () (post s) new_e cfg,
 
-    guard (¬ new_e =ₐ e),
-    pr ← mk_eq_trans pr1 pr2,
-    return (new_e, pr)
+  -- step 3: casts are squashed
+  s ← squash_cast_attr.get_cache,
+  (new_e, pr3) ← simplify s [] new_e cfg,
+
+  guard (¬ new_e =ₐ e),
+  pr ← mk_eq_trans pr2 pr3 >>= mk_eq_trans pr1,
+  return (new_e, pr)
 
 end norm_cast
 
@@ -350,39 +267,39 @@ open norm_cast
 private meta def aux_mod_cast (e : expr) (include_goal : bool := tt) : tactic expr :=
 match e with
 | local_const _ lc _ _ := do
-    e ← get_local lc,
-    replace_at derive [e] include_goal,
-    get_local lc
+  e ← get_local lc,
+  replace_at derive [e] include_goal,
+  get_local lc
 | e := do
-    t ← infer_type e,
-    e ← assertv `this t e,
-    replace_at derive [e] include_goal,
-    get_local `this
+  t ← infer_type e,
+  e ← assertv `this t e,
+  replace_at derive [e] include_goal,
+  get_local `this
 end
 
 meta def exact_mod_cast (e : expr) : tactic unit :=
 ( do
-    new_e ← aux_mod_cast e,
-    exact new_e
+  new_e ← aux_mod_cast e,
+  exact new_e
 ) <|> fail "exact_mod_cast failed"
 
 meta def apply_mod_cast (e : expr) : tactic (list (name × expr)) :=
 ( do
-    new_e ← aux_mod_cast e,
-    apply new_e
+  new_e ← aux_mod_cast e,
+  apply new_e
 ) <|> fail "apply_mod_cast failed"
 
 meta def assumption_mod_cast : tactic unit :=
 do {
-    let cfg : simp_config := {
-        fail_if_unchanged := ff,
-        canonize_instances := ff,
-        canonize_proofs := ff,
-        proj := ff
-    },
-    replace_at derive [] tt,
-    ctx ← local_context,
-    try_lst $ ctx.map (λ h, aux_mod_cast h ff >>= tactic.exact)
+  let cfg : simp_config := {
+    fail_if_unchanged := ff,
+    canonize_instances := ff,
+    canonize_proofs := ff,
+    proj := ff
+  },
+  replace_at derive [] tt,
+  ctx ← local_context,
+  try_lst $ ctx.map (λ h, aux_mod_cast h ff >>= tactic.exact)
 } <|> fail "assumption_mod_cast failed"
 
 end tactic
@@ -400,28 +317,27 @@ closing the goal.
 -/
 meta def norm_cast (loc : parse location) : tactic unit :=
 do
-    ns ← loc.get_locals,
-    tt ← replace_at derive ns loc.include_goal
-        | fail "norm_cast failed to simplify",
-    when loc.include_goal $ try tactic.reflexivity,
-    when loc.include_goal $ try tactic.triv,
-    when (¬ ns.empty) $ try tactic.contradiction
+  ns ← loc.get_locals,
+  tt ← replace_at derive ns loc.include_goal | fail "norm_cast failed to simplify",
+  when loc.include_goal $ try tactic.reflexivity,
+  when loc.include_goal $ try tactic.triv,
+  when (¬ ns.empty) $ try tactic.contradiction
 
 /--
 Rewrite with the given rule and normalize casts between steps.
 -/
 meta def rw_mod_cast (rs : parse rw_rules) (loc : parse location) : tactic unit :=
 ( do
-    let cfg_norm : simp_config := {},
-    let cfg_rw : rewrite_cfg := {},
-    ns ← loc.get_locals,
-    monad.mapm' (λ r : rw_rule, do
-        save_info r.pos,
-        replace_at derive ns loc.include_goal,
-        rw ⟨[r], none⟩ loc {}
-    ) rs.rules,
+  let cfg_norm : simp_config := {},
+  let cfg_rw : rewrite_cfg := {},
+  ns ← loc.get_locals,
+  monad.mapm' (λ r : rw_rule, do
+    save_info r.pos,
     replace_at derive ns loc.include_goal,
-    skip
+    rw ⟨[r], none⟩ loc {}
+  ) rs.rules,
+  replace_at derive ns loc.include_goal,
+  skip
 ) <|> fail "rw_mod_cast failed"
 
 /--
@@ -430,15 +346,15 @@ then close the goal with exact.
 -/
 meta def exact_mod_cast (e : parse texpr) : tactic unit :=
 do
-    e ← i_to_expr e <|> do {
-        ty ← target,
-        e ← i_to_expr_strict ``(%%e : %%ty),
-        pty ← pp ty, ptgt ← pp e,
-        fail ("exact_mod_cast failed, expression type not directly " ++
-        "inferrable. Try:\n\nexact_mod_cast ...\nshow " ++
-        to_fmt pty ++ ",\nfrom " ++ ptgt : format)
-    },
-    tactic.exact_mod_cast e
+  e ← i_to_expr e <|> do {
+    ty ← target,
+    e ← i_to_expr_strict ``(%%e : %%ty),
+    pty ← pp ty, ptgt ← pp e,
+    fail ("exact_mod_cast failed, expression type not directly " ++
+    "inferrable. Try:\n\nexact_mod_cast ...\nshow " ++
+    to_fmt pty ++ ",\nfrom " ++ ptgt : format)
+  },
+  tactic.exact_mod_cast e
 
 /--
 Normalize the goal and the given expression,
@@ -446,8 +362,8 @@ then apply the expression to the goal.
 -/
 meta def apply_mod_cast (e : parse texpr) : tactic unit :=
 do
-    e ← i_to_expr_for_apply e,
-    concat_tags $ tactic.apply_mod_cast e
+  e ← i_to_expr_for_apply e,
+  concat_tags $ tactic.apply_mod_cast e
 
 /--
 Normalize the goal and every expression in the local context,
@@ -481,6 +397,6 @@ attribute [move_cast] int.coe_nat_sub
 attribute [move_cast] int.coe_nat_mul
 
 @[move_cast] lemma ite_cast {α β : Type} [has_coe α β]
-    {c : Prop} [decidable c] {a b : α} :
-    ↑(ite c a b) = ite c (↑a : β) (↑b : β) :=
+  {c : Prop} [decidable c] {a b : α} :
+  ↑(ite c a b) = ite c (↑a : β) (↑b : β) :=
 by by_cases h : c; simp [h]

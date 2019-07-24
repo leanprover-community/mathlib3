@@ -84,7 +84,11 @@ def on_cover (c : cover.{v} X) : c.intersections ⥤ C :=
   map_id' := sorry,
   map_comp' := sorry, }
 
-def cover_cone (c : cover.{v} X) : cone (F.on_cover c) := sorry
+def cover_cone (c : cover.{v} X) : cone (F.on_cover c) :=
+{ X := c.total,
+  π :=
+  { app := sorry,
+    naturality' := sorry, }}
 
 def sheaf_condition := Π (c : cover.{v} X), is_limit (F.cover_cone c)
 end presheaf

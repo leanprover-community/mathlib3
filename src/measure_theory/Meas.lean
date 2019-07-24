@@ -41,7 +41,7 @@ instance : category_theory.monad Measure.{u} :=
     naturality' :=
       assume X Y ⟨f, hf⟩, subtype.eq $ funext $ assume a, (measure.map_dirac hf a).symm },
   μ :=
-  { app       := λX, ⟨@measure.join X.1 X.2, measure.measurable_join⟩,
+  { app         := λX, ⟨@measure.join X.1 X.2, measure.measurable_join⟩,
     naturality' :=
       assume X Y ⟨f, hf⟩, subtype.eq $ funext $ assume μ, measure.join_map_map hf μ },
   assoc' := assume ⟨α, I⟩, subtype.eq $ funext $ assume μ, @measure.join_map_join α I μ,

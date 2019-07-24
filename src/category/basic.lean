@@ -142,21 +142,21 @@ section
 variables {m : Type u → Type u} [monad m] [is_lawful_monad m]
 
 lemma mjoin_map_map {α β : Type u} (f : α → β) (a : m (m α)) :
-  mjoin (functor.map (functor.map f) a) = functor.map f (mjoin a) :=
+  mjoin (functor.map f <$> a) = f <$> (mjoin a) :=
 by simp only [mjoin, (∘), id.def,
   (bind_pure_comp_eq_map _ _ _).symm, bind_assoc, map_bind, pure_bind]
 
 lemma mjoin_map_mjoin {α : Type u} (a : m (m (m α))) :
-  mjoin (functor.map mjoin a) = mjoin (mjoin a) :=
+  mjoin (mjoin <$> a) = mjoin (mjoin a) :=
 by simp only [mjoin, (∘), id.def,
   map_bind, (bind_pure_comp_eq_map _ _ _).symm, bind_assoc, pure_bind]
 
-lemma mjoin_map_pure {α : Type u} (a : m α) :
-  mjoin (functor.map pure a) = a :=
+@[simp] lemma mjoin_map_pure {α : Type u} (a : m α) :
+  mjoin (pure <$> a) = a :=
 by simp only [mjoin, (∘), id.def,
   map_bind, (bind_pure_comp_eq_map _ _ _).symm, bind_assoc, pure_bind, bind_pure]
 
-lemma mjoin_pure {α : Type u} (a : m α) : mjoin (pure a) = a :=
+@[simp] lemma mjoin_pure {α : Type u} (a : m α) : mjoin (pure a) = a :=
 is_lawful_monad.pure_bind a id
 
 end

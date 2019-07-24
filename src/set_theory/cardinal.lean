@@ -505,6 +505,20 @@ calc lift.{u (max v w)} a = lift.{v (max u w)} b
     = lift.{(max u v) w} (lift.{v u} b) : by simp
   ... ↔ lift.{u v} a = lift.{v u} b : lift_inj
 
+theorem mk_prod {α : Type u} {β : Type v} :
+  mk (α × β) = lift.{u v} (mk α) * lift.{v u} (mk β) :=
+quotient.sound ⟨equiv.prod_congr (equiv.ulift).symm (equiv.ulift).symm⟩
+
+theorem sum_const_eq_lift_mul (ι : Type u) (a : cardinal.{v}) :
+  sum (λ _:ι, a) = lift.{u v} (mk ι) * lift.{v u} a :=
+begin
+  apply quotient.induction_on a,
+  intro α,
+  simp only [cardinal.mk_def, cardinal.sum_mk, cardinal.lift_id],
+  convert mk_prod using 1,
+  exact quotient.sound ⟨equiv.sigma_equiv_prod ι α⟩,
+end
+
 /-- `ω` is the smallest infinite cardinal, also known as ℵ₀. -/
 def omega : cardinal.{u} := lift (mk ℕ)
 

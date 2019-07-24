@@ -53,4 +53,45 @@ by assumption_mod_cast
 example : aq * bq = rat.mk (aq.num * bq.num) (↑aq.denom * ↑bq.denom) :=
 by rw_mod_cast rat.mul_num_denom
 example (h : an = 0) : (an : ℝ) = (bn : ℂ).im :=
-by exact_mod_cast h
+begin
+  norm_cast,
+  norm_cast, --TODO: one call to norm_cast should be enough
+  exact h
+end
+
+namespace hidden
+
+def with_zero (α) := option α
+
+variables {α : Type*}
+
+instance : has_coe_t α (with_zero α) := ⟨some⟩
+
+instance : has_zero (with_zero α) := ⟨none⟩
+
+instance [has_one α]: has_one (with_zero α) := ⟨some 1⟩
+
+instance [has_mul α] : mul_zero_class (with_zero α) :=
+{ mul       := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a * b)),
+  zero_mul  := λ a, rfl,
+  mul_zero  := λ a, by cases a; refl,
+  ..with_zero.has_zero }
+
+@[squash_cast] lemma coe_one [has_one α] : ((1 : α) : with_zero α) = 1 := rfl
+
+@[elim_cast] lemma coe_inj {a b : α} : (a : with_zero α) = b ↔ a = b :=
+option.some_inj
+
+@[move_cast] lemma mul_coe {α : Type*} [has_mul α] (a b : α) :
+  ((a * b : α) : with_zero α) = (a : with_zero α) * b := rfl
+
+example [has_mul α] [has_one α] (x y : α) (h : (x : with_zero α) * y = 1) :
+  x*y = 1 :=
+begin
+  norm_cast at h,
+  rw ← coe_one at h, -- I want `norm_cast` to do that for me
+  -- norm_cast at h, -- this is actually fighting against me
+  rwa coe_inj at h,
+end
+
+end hidden

@@ -43,11 +43,14 @@ def colimit_cocone_ι (F : J ⥤ PresheafedSpace.{v} C) (j : J) : F.obj j ⟶ co
 { f := (colimit.ι (F ⋙ PresheafedSpace.forget) j),
   c := limit.π ((pushforward_to_colimit F).left_op) (op j) }
 
+@[simp] lemma colimit_cocone_ι_c (F : J ⥤ PresheafedSpace.{v} C) (j : J) :
+  (colimit_cocone_ι F j).c = limit.π ((pushforward_to_colimit F).left_op) (op j) := rfl
+
 def colimit_cocone (F : J ⥤ PresheafedSpace.{v} C) : cocone F :=
 { X := colimit F,
   ι :=
   { app := λ j, colimit_cocone_ι F j,
-    naturality' := sorry } }
+    naturality' := λ j j f, begin dsimp, ext, dsimp, simp, sorry, sorry end } }
 
 @[simp] lemma colimit_cocone_X (F : J ⥤ PresheafedSpace.{v} C) :
   (colimit_cocone F).X = colimit F := rfl

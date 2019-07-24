@@ -11,7 +11,7 @@ import category_theory.types
 
 # Convert from `monad` (i.e. Lean's `Type`-based monads) to `category_theory.monad`
 
-This allows us to use these monadss in category theory.
+This allows us to use these monads in category theory.
 
 -/
 

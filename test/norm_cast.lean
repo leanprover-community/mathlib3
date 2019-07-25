@@ -50,14 +50,6 @@ example (h : bn ≤ an) : an - bn = 1 ↔ (an - bn : ℤ) = 1 :=
 by norm_cast
 example (h : (cz : ℚ) = az / bz) : (cz : ℝ) = az / bz :=
 by assumption_mod_cast
-example : aq * bq = rat.mk (aq.num * bq.num) (↑aq.denom * ↑bq.denom) :=
-by rw_mod_cast rat.mul_num_denom
-example (h : an = 0) : (an : ℝ) = (bn : ℂ).im :=
-begin
-  norm_cast,
-  norm_cast, --TODO: one call to norm_cast should be enough
-  exact h
-end
 
 namespace hidden
 

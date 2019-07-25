@@ -1,4 +1,4 @@
-import Project.operand
+import tactic.converter.interactive
 
 example (a b c d : ℕ) (h₁ : b = c) (h₂ : a + c = a + d) : a + b = a + d :=
 begin 

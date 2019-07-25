@@ -611,9 +611,7 @@ lemma abs_sqrt_sub_sqrt_le_sqrt_abs (x y : ℝ) : abs (sqrt x - sqrt y) ≤ sqrt
 nonneg_le_nonneg_of_squares_le (sqrt_nonneg _) $
 begin
   rw abs_mul_abs_self,
-  wlog h : y ≤ x using [x y, y x],
-  -- The case goal, i.e. the permutation covers all possible cases:
-  { exact le_total y x },
+  wlog h : y ≤ x using [x y],
   -- The main goal, i.e., prove the goal with `y ≤ x`
   { have eq₁ : sqrt (abs (x - y)) * sqrt (abs (x - y)) = x - y,
       rw mul_self_sqrt (abs_nonneg _), apply abs_of_nonneg, linarith,

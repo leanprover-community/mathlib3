@@ -704,6 +704,45 @@ end
 ```
 and likewise for `to_rhs`.
 
+### zoom
+
+The `zoom` tactic is essentially a `conv` within a `conv`. It allows the user to return to a previous state of the outer `conv` block to continue editing an expression without having to start a new `conv` block. For example:
+
+```lean
+example (a b c d : ℕ) (h₁ : b = c) (h₂ : a + c = a + d) : a + b = a + d :=
+by conv {
+  to_lhs,
+  zoom {
+    congr, skip,
+    rw h₁,
+  },
+  rw h₂,
+}
+```
+
+Without `zoom` the above example would need to be proved using two successive `conv` blocks.
+
+### operand
+
+The `operand` tactic is used in conversion mode. It allows the user to pull out the operand of a `finset.sum`, `finset.prod` or `finset.fold`, and gives a hypothesis `s_mem` which says that some variable is an element of the finset. For example:
+
+```lean
+lemma eq_big_sum_Z (f g : ℤ → ℤ) (S : finset ℤ)
+  (h : ∀ m ∈ S, f m = g m)
+  : finset.sum S (λ s, f s) = finset.sum S (λ s, g s) :=
+begin
+  conv
+    {                     -- | finset.sum S (λ (s : ℤ), f s) = finset.sum S (λ (s : ℤ), g s)
+      to_lhs,             -- | finset.sum S (λ (s : ℤ), f s)
+      operand {           -- | f s
+        rw [(h s) s_mem], -- | g s
+      },                  -- | finset.sum S (λ (s : ℤ), g s)
+    },                    -- goals accomplished
+end
+```
+
+In the above example, when the `operand` tactic is called it gives the hypothesis `s_mem : s ∈ S` which is is used to rewrite the `f s` to `g s`.
+
 ### mono
 
 - `mono` applies a monotonicity rule.

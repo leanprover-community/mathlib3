@@ -1,19 +1,19 @@
 /-
-	Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
-	Released under Apache 2.0 license as described in the file LICENSE.
-	Authors: Zhouhang Zhou
+  Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
+  Released under Apache 2.0 license as described in the file LICENSE.
+  Authors: Zhouhang Zhou
   -/
 
 import algebra.ordered_field
 import tactic.linarith tactic.ring
 
 /-!
-	# Solution of quadratics and quadratic discriminants
+  # Solution of quadratics and quadratic discriminants
 
   Define the discriminant of a quadratic and prove that
     a quadratic has roots if and only if its discriminant has square roots.
 
-	## Tags
+  ## Tags
 
   polynomial, quadratic, discriminant, root
   -/

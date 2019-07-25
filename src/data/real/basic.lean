@@ -603,7 +603,10 @@ by rw [mul_comm, sqrt_mul' _ hx, mul_comm]
 @[simp] theorem sqrt_div (hx : 0 ≤ x) (y : ℝ) : sqrt (x / y) = sqrt x / sqrt y :=
 by rw [division_def, sqrt_mul hx, sqrt_inv]; refl
 
-
+/--
+This is used in proving the lemma that `sqrt` is a continuous function.
+The lemma, called `real.continuous_sqrt`, is located at the file `analysis.specific_limits`
+-/
 lemma abs_sqrt_sub_sqrt_le_sqrt_abs (x y : ℝ) : abs (sqrt x - sqrt y) ≤ sqrt (abs (x - y)) :=
 nonneg_le_nonneg_of_squares_le (sqrt_nonneg _) $
 begin

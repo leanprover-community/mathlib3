@@ -8,10 +8,19 @@ import algebra.ordered_field
 import tactic.linarith tactic.ring
 
 /-!
-  # Solution of quadratics and quadratic discriminants
+  # Quadratic discriminants and roots of a quadratic
 
-  Define the discriminant of a quadratic and prove that
-    a quadratic has roots if and only if its discriminant has square roots.
+  This file defines the discriminant of a quadratic and prove their
+
+  ## Main definition
+
+  The discriminant of a quadratic `a*x*x + b*x + c` is `b*b - 4*a*c`.
+
+  ## Main statements
+  • Roots of a quadratic can be written as `(-b + s) / (2 * a)` or `(-b - s) / (2 * a)`,
+    where `s` is the square root of the discriminant.
+  • If the discriminant has no square root, then the corresponding quadratic has no root.
+  • If a quadratic is always non-negative, then its discriminant is non-positive.
 
   ## Tags
 

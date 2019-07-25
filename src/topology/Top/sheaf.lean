@@ -20,7 +20,7 @@ variables {X}
 
 namespace cover
 
-def total (c : cover X) : opens X := sorry
+def total (c : cover X) : opens X := lattice.supr c.map
 
 inductive intersections (c : cover X)
 | single : c.ι → intersections
@@ -68,26 +68,30 @@ variables (F : X.presheaf C)
 namespace presheaf
 variables (c : cover.{v} X)
 
-def on_cover_obj : c.intersections → C
+@[simp] def on_cover_obj : c.intersections → C
 | (single a) := F.obj (op (c.map a))
 | (double a b) := F.obj (op ((c.map a) ∩ (c.map b)))
 
-def on_cover_map : Π (x y : c.intersections) (f : x ⟶ y), on_cover_obj F c x ⟶ on_cover_obj F c y
+@[simp] def on_cover_map : Π (x y : c.intersections) (f : x ⟶ y), on_cover_obj F c x ⟶ on_cover_obj F c y
 | _ _ (hom.id_single _) := 𝟙 _
 | _ _ (hom.id_double _ _) := 𝟙 _
-| _ _ (hom.left a b) := sorry
-| _ _ (hom.right a b) := sorry
+| _ _ (hom.left a b) := F.map (has_hom.hom.op ⟨⟨lattice.inf_le_left⟩⟩) -- TODO lemma for this
+| _ _ (hom.right a b) := F.map (has_hom.hom.op ⟨⟨lattice.inf_le_right⟩⟩)
 
+section
+local attribute [tidy] tactic.case_bash
 def on_cover (c : cover.{v} X) : c.intersections ⥤ C :=
 { obj := on_cover_obj F c,
-  map := λ X Y f, on_cover_map F c X Y f,
-  map_id' := sorry,
-  map_comp' := sorry, }
+  map := λ X Y f, on_cover_map F c X Y f }
+end
 
 def cover_cone (c : cover.{v} X) : cone (F.on_cover c) :=
-{ X := c.total,
+{ X := F.obj (op c.total),
   π :=
-  { app := sorry,
+  { app := λ X, match X with
+    | (single a) := F.map begin sorry, end
+    | (double a b) := F.map begin sorry end
+    end,
     naturality' := sorry, }}
 
 def sheaf_condition := Π (c : cover.{v} X), is_limit (F.cover_cone c)

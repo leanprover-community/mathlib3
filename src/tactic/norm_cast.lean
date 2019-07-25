@@ -68,6 +68,28 @@ meta def pexpr_of_num (α : expr) : num → pexpr
 | num.zero := ``(has_zero.zero %%α)
 | (num.pos n) := pexpr_of_pos_num α n
 
+
+private meta def mk_cache : list name → tactic simp_lemmas :=
+monad.foldl simp_lemmas.add_simp simp_lemmas.mk
+
+/--
+This is an attribute of the norm_cast tactic.
+It's intended for lemmas of the following shapes:
+  - Π ..., P ↑a1 ... ↑an = P a1 ... an
+  - Π ..., P ↑a1 ... ↑an ↔ P a1 ... an
+-/
+@[user_attribute]
+meta def elim_cast_attr : user_attribute simp_lemmas :=
+{
+  name      := `elim_cast,
+  descr     := "attribute for lemmas of the shape Π ..., P ↑a1 ... ↑an = P a1 ... an",
+  cache_cfg :=
+    { mk_cache     := mk_cache,
+      dependencies := [], },
+}
+
+section move_cast
+
 private meta def new_name (n : name) : name := name.mk_string "reversed" n
 
 private meta def aux_after_set (tac : expr → tactic (expr × (expr → expr))) :
@@ -82,6 +104,15 @@ private meta def aux_after_set (tac : expr → tactic (expr × (expr → expr)))
   )
 | ty := tac ty
 
+/-
+By convention, composotional lemmas are written in the opposite direction than
+the one needed by norm_cast, therefore the labeled lemmas are "flipped" before
+being added to the set of move_cast lemmas.
+
+This is the reason why elim_cast and move_cast are two different attributes.
+
+TODO: merge them into one attribute?
+-/
 private meta def after_set (decl : name) (prio : ℕ) (pers : bool) : tactic unit :=
 do
   (declaration.thm n l ty e) ← get_decl decl | failed,
@@ -91,34 +122,13 @@ do
   let n' := new_name n,
   add_decl (declaration.thm n' l ty' e')
 
-private meta def mk_cache : list name → tactic simp_lemmas :=
-monad.foldl simp_lemmas.add_simp simp_lemmas.mk
+end move_cast
 
 /--
-This is an attribute for simplification rules that are
-used to normalize casts.
-
-Let r be = or ↔, then elimination lemmas of the shape
-Π ..., P ↑a1 ... ↑an r P a1 ... an should be given the
-attribute elim_cast.
--/
-@[user_attribute]
-meta def elim_cast_attr : user_attribute simp_lemmas :=
-{
-  name      := `elim_cast,
-  descr     := "attribute for lemmas of the shape Π ..., P ↑a1 ... ↑an = P a1 ... an",
-  cache_cfg :=
-    { mk_cache     := mk_cache,
-      dependencies := [], },
-}
-
-/--
-This is an attribute for simplification rules that are
-used to normalize casts.
-
-Let r be = or ↔, then compositional lemmas of the shape
-Π ..., ↑(P a1 ... an) r P ↑a1 ... ↑an should be given the
-attribute move_cast.
+This is an attribute of the norm_cast tactic.
+It's intended for lemmas of the following shapes:
+  - Π ..., ↑(P a1 ... an) = P ↑a1 ... ↑an
+  - Π ..., ↑(P a1 ... an) ↔ P ↑a1 ... ↑an
 -/
 @[user_attribute]
 meta def move_cast_attr : user_attribute simp_lemmas :=
@@ -131,6 +141,10 @@ meta def move_cast_attr : user_attribute simp_lemmas :=
       dependencies := [], },
 }
 
+/-
+this is an auxiliary function to merge the sets of elim_cast and move_cast lemmas,
+as they are used together in step 2.
+-/
 private meta def get_cache : tactic simp_lemmas :=
 do
   a ← elim_cast_attr.get_cache,
@@ -138,10 +152,16 @@ do
   return $ simp_lemmas.join a b
 
 /--
-This is an attribute for simplification rules of the shape
-Π ..., ↑↑a = ↑a or  Π ..., ↑a = a.
+This is an attribute of the norm_cast tactic for simplification rules that compose or
+remove casts, but without generalizing the expression in the way elim_cast lemmas do.
+It's intended for, but not restricted to, lemmas of the following shapes:
+  - Π ..., ↑↑a = ↑a
+  - Π ..., ↑a = a
+  - ((1 : α) : β) = (1 : β).
+  - see documentation for more examples
 
-They are used in a heuristic to infer intermediate casts.
+They are used in the heuristic to infer intermediate casts,
+and at the end of the tactic to "clean" the expression.
 -/
 @[user_attribute]
 meta def squash_cast_attr : user_attribute simp_lemmas :=
@@ -156,8 +176,7 @@ meta def squash_cast_attr : user_attribute simp_lemmas :=
 }
 
 /-
-This is an auxiliary function that proves e = new_e
-using only squash_cast lemmas
+This is an auxiliary function that proves e = new_e using only squash_cast lemmas.
 -/
 private meta def aux_squash (e new_e : expr) : tactic expr :=
 do
@@ -218,11 +237,16 @@ private meta def heur (_ : unit) : expr → tactic (unit × expr × expr)
 | _ := failed
 
 /-
-assumption is used to discharge proofs
+assumption is used to discharge proofs in step 2
 -/
 private meta def prove : tactic unit :=
 assumption
 
+/-
+This is an auxiliary function used in step 2.
+It tries to rewrite an expression using the elim_cast and move_cast lemmas.
+On failure, it calls the heuristic.
+-/
 private meta def post (s : simp_lemmas) (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
 ( do
   r ← mcond (is_prop e) (return `iff) (return `eq),
@@ -232,11 +256,12 @@ private meta def post (s : simp_lemmas) (_ : unit) (e : expr) : tactic (unit × 
   | _   := return pr
   end,
   return ((), new_e, pr)
-) <|> ( do
-  (a, new_e, pr) ← heur () e,
-  return (a, new_e, pr)
-)
+) <|> heur () e
 
+/-
+This is an auxiliary function used in step 1.
+It tries to rewrite a numeral of type α as the cast of a numeral of type ℕ.
+-/
 private meta def aux_num (e : expr) : tactic (expr × expr) :=
 do
   α ← infer_type e,
@@ -249,7 +274,7 @@ do
   return (new_e, pr)
 
 /-
-Core function
+Core function.
 -/
 meta def derive (e : expr) : tactic (expr × expr) :=
 do
@@ -329,8 +354,7 @@ local postfix `?`:9001 := optional
 
 /--
 Normalize casts at the given locations by moving them "upwards".
-As opposed to simp, norm_cast can be used without necessarily
-closing the goal.
+As opposed to simp, norm_cast can be used without necessarily closing the goal.
 -/
 meta def norm_cast (loc : parse location) : tactic unit :=
 do
@@ -358,8 +382,7 @@ meta def rw_mod_cast (rs : parse rw_rules) (loc : parse location) : tactic unit 
 ) <|> fail "rw_mod_cast failed"
 
 /--
-Normalize the goal and the given expression,
-then close the goal with exact.
+Normalize the goal and the given expression, then close the goal with exact.
 -/
 meta def exact_mod_cast (e : parse texpr) : tactic unit :=
 do
@@ -374,8 +397,7 @@ do
   tactic.exact_mod_cast e
 
 /--
-Normalize the goal and the given expression,
-then apply the expression to the goal.
+Normalize the goal and the given expression, then apply the expression to the goal.
 -/
 meta def apply_mod_cast (e : parse texpr) : tactic unit :=
 do
@@ -383,8 +405,7 @@ do
   concat_tags $ tactic.apply_mod_cast e
 
 /--
-Normalize the goal and every expression in the local context,
-then close the goal with assumption.
+Normalize the goal and every expression in the local context, then close the goal with assumption.
 -/
 meta def assumption_mod_cast : tactic unit :=
 tactic.assumption_mod_cast
@@ -399,20 +420,21 @@ meta def norm_cast : conv unit := replace_lhs derive
 
 end conv.interactive
 
+-- lemmas to handle the ≥, > and ≠ operators
 @[elim_cast] lemma ge_from_le {α} [has_le α] : ∀ (x y : α), x ≥ y ↔ y ≤ x := λ _ _, iff.rfl
 @[elim_cast] lemma gt_from_lt {α} [has_lt α] : ∀ (x y : α), x > y ↔ y < x := λ _ _, iff.rfl
 @[elim_cast] lemma ne_from_not_eq {α} : ∀ (x y : α), x ≠ y ↔ ¬(x = y) := λ _ _, iff.rfl
 
+-- lemmas defined in core
 attribute [squash_cast] int.coe_nat_zero
 attribute [squash_cast] int.coe_nat_one
-
 attribute [elim_cast] int.nat_abs_of_nat
-
 attribute [move_cast] int.coe_nat_succ
 attribute [move_cast] int.coe_nat_add
 attribute [move_cast] int.coe_nat_sub
 attribute [move_cast] int.coe_nat_mul
 
+-- TODO: move this elsewhere?
 @[move_cast] lemma ite_cast {α β : Type} [has_coe α β]
   {c : Prop} [decidable c] {a b : α} :
   ↑(ite c a b) = ite c (↑a : β) (↑b : β) :=

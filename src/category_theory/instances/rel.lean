@@ -19,7 +19,7 @@ def Rel := Type u
 /-- The category of types with binary relations as morphisms. -/
 -- We must work in `Type u` rather than `Sort u`, because
 -- `X → Y → Prop` is in `Sort (max u 1)`.
-def rel : large_category Rel.{u} :=
+instance rel : large_category Rel.{u} :=
 { hom  := λ X Y, X → Y → Prop,
   id   := λ X, λ x y, x = y,
   comp := λ X Y Z f g x z, ∃ y, f x y ∧ g y z }

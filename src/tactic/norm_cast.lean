@@ -258,19 +258,24 @@ private meta def post (s : simp_lemmas) (_ : unit) (e : expr) : tactic (unit × 
   return ((), new_e, pr)
 ) <|> heur () e
 
-/-
-This is an auxiliary function used in step 1.
-It tries to rewrite a numeral of type α as the cast of a numeral of type ℕ.
--/
-private meta def aux_num (e : expr) : tactic (expr × expr) :=
-do
-  α ← infer_type e,
+private meta def pre_num (e : expr) : tactic (expr × expr) :=
+match e with
+| `(@has_one.one %%α %%h1) := do
   success_if_fail $ is_def_eq α `(ℕ),
-  n ← e.to_num,
-  h ← mk_app `has_lift_t [`(ℕ), α] >>= mk_instance',
-  new_e ← to_expr $ pexpr_of_num `(ℕ) n,
-  new_e ← to_expr ``( (↑%%new_e : %%α) ),
+  h2 ← mk_app `has_lift_t [`(ℕ), α] >>= mk_instance',
+  new_e ← to_expr ``(@coe ℕ %%α %%h2 (1 : ℕ)),
   pr ← aux_squash e new_e,
+  return (new_e, pr)
+| _ := failure
+end
+
+private meta def post_num (e : expr) : tactic (expr × expr) :=
+do
+  `(@coe ℕ %%α %%h1 %%e) ← return e,
+  n ← e.to_num,
+  new_e ← to_expr $ pexpr_of_num α n,
+  h ← to_expr ``(%%e = %%new_e),
+  ((), pr) ← solve_aux h `[simp, done], --TODO: don't use simp
   return (new_e, pr)
 
 /-
@@ -285,7 +290,7 @@ do
 
   -- step 1: pre-processing of numerals
   ((), new_e, pr1) ← ext_simplify_core () cfg simp_lemmas.mk (λ _, failed)
-    (λ a _ _ _ e, do (new_e, pr) ← aux_num e, guard (¬ new_e =ₐ e), return (a, new_e, some pr, ff))
+    (λ a _ _ _ e, do (new_e, pr) ← pre_num e, guard (¬ new_e =ₐ e), return (a, new_e, some pr, ff))
     (λ _ _ _ _ _, failed)
     `eq e,
 
@@ -295,6 +300,13 @@ do
   -- step 3: casts are squashed
   s ← squash_cast_attr.get_cache,
   (new_e, pr3) ← simplify s [] new_e cfg,
+
+  -- step 4: post-processing of numerals
+  ((), new_e, pr1) ← ext_simplify_core () cfg simp_lemmas.mk (λ _, failed)
+    (λ a _ _ _ e, do (new_e, pr) ← post_num e, guard (¬ new_e =ₐ e), return (a, new_e, some pr, ff))
+    (λ _ _ _ _ _, failed)
+    `eq e,
+
 
   guard (¬ new_e =ₐ e),
   pr ← mk_eq_trans pr2 pr3 >>= mk_eq_trans pr1,

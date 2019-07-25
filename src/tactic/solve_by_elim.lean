@@ -7,7 +7,7 @@ import tactic.core
 
 namespace tactic
 
-meta def mk_assumption_set (no_dflt : bool) (hs : list simp_arg_type) (attr : list name): tactic (list expr) :=
+meta def mk_assumption_set (no_dflt : bool) (hs : list simp_arg_type) (attr : list name) : tactic (list expr) :=
 do (hs, gex, hex, all_hyps) ← decode_simp_arg_list hs,
    hs ← hs.mmap i_to_expr_for_apply,
    l ← attr.mmap $ λ a, attribute.get_instances a,

@@ -5,13 +5,15 @@ Authors: Mario Carneiro, Johan Commelin
 
 Various multiplicative and additive structures.
 -/
-import algebra.group.to_additive algebra.group.basic
+import algebra.group.to_additive algebra.group.basic algebra.group.hom
 
-universe u
+universes u v
 variable {α : Type u}
 
 @[to_additive with_zero]
 def with_one (α) := option α
+
+namespace with_one
 
 @[to_additive with_zero.monad]
 instance : monad with_one := option.monad
@@ -23,24 +25,24 @@ instance : has_one (with_one α) := ⟨none⟩
 instance : has_coe_t α (with_one α) := ⟨some⟩
 
 @[simp, to_additive with_zero.zero_ne_coe]
-lemma with_one.one_ne_coe {a : α} : (1 : with_one α) ≠ a :=
+lemma one_ne_coe {a : α} : (1 : with_one α) ≠ a :=
 λ h, option.no_confusion h
 
 @[simp, to_additive with_zero.coe_ne_zero]
-lemma with_one.coe_ne_one {a : α} : (a : with_one α) ≠ (1 : with_one α) :=
+lemma coe_ne_one {a : α} : (a : with_one α) ≠ (1 : with_one α) :=
 λ h, option.no_confusion h
 
 @[to_additive with_zero.ne_zero_iff_exists]
-lemma with_one.ne_one_iff_exists : ∀ {x : with_one α}, x ≠ 1 ↔ ∃ (a : α), x = a
+lemma ne_one_iff_exists : ∀ {x : with_one α}, x ≠ 1 ↔ ∃ (a : α), x = a
 | 1       := ⟨λ h, false.elim $ h rfl, by { rintros ⟨a,ha⟩ h, simpa using h }⟩
 | (a : α) := ⟨λ h, ⟨a, rfl⟩, λ h, with_one.coe_ne_one⟩
 
 @[to_additive with_zero.coe_inj]
-lemma with_one.coe_inj {a b : α} : (a : with_one α) = b ↔ a = b :=
+lemma coe_inj {a b : α} : (a : with_one α) = b ↔ a = b :=
 option.some_inj
 
 @[elab_as_eliminator, to_additive with_zero.cases_on]
-protected lemma with_one.cases_on (P : with_one α → Prop) :
+protected lemma cases_on {P : with_one α → Prop} :
   ∀ (x : with_one α), P 1 → (∀ a : α, P a) → P x :=
 option.cases_on
 
@@ -51,7 +53,10 @@ instance [has_mul α] : has_mul (with_one α) :=
 { mul := option.lift_or_get (*) }
 
 @[simp, to_additive with_zero.add_coe]
-lemma with_one.mul_coe [has_mul α] (a b : α) : (a : with_one α) * b = (a * b : α) := rfl
+lemma mul_coe [has_mul α] (a b : α) : (a : with_one α) * b = (a * b : α) := rfl
+
+@[to_additive with_zero.coe_is_add_hom]
+instance coe_is_mul_hom [has_mul α] : is_mul_hom (coe : α → with_one α) := { map_mul := λ a b, rfl }
 
 attribute [to_additive with_zero.has_add.equations._eqn_1] with_one.has_mul.equations._eqn_1
 
@@ -72,10 +77,60 @@ instance [comm_semigroup α] : comm_monoid (with_one α) :=
 { mul_comm := (option.lift_or_get_comm _).1,
   ..with_one.monoid }
 
-instance [add_comm_semigroup α] : add_comm_monoid (with_zero α) :=
-{ add_comm := (option.lift_or_get_comm _).1,
-  ..with_zero.add_monoid }
+attribute [to_additive with_zero.add_comm_monoid._proof_1] with_one.comm_monoid._proof_1
+attribute [to_additive with_zero.add_comm_monoid._proof_2] with_one.comm_monoid._proof_2
+attribute [to_additive with_zero.add_comm_monoid._proof_3] with_one.comm_monoid._proof_3
+attribute [to_additive with_zero.add_comm_monoid._proof_4] with_one.comm_monoid._proof_4
 attribute [to_additive with_zero.add_comm_monoid] with_one.comm_monoid
+
+section lift
+
+@[to_additive with_zero.lift]
+def lift {β : Type v} [has_one β] (f : α → β) : (with_one α) → β := λ x, option.cases_on x 1 f
+
+variables [semigroup α] {β : Type v} [monoid β] (f : α → β)
+
+@[simp, to_additive with_zero.lift_coe]
+lemma lift_coe (x : α) : lift f x = f x := rfl
+
+@[simp, to_additive with_zero.lift_zero]
+lemma lift_one : lift f 1 = 1 := rfl
+
+@[to_additive with_zero.lift_is_add_monoid_hom]
+instance lift_is_monoid_hom [hf : is_mul_hom f] : is_monoid_hom (lift f) :=
+{ map_one := lift_one f,
+  map_mul := λ x y,
+    with_one.cases_on x (by rw [one_mul, lift_one, one_mul]) $ λ x,
+    with_one.cases_on y (by rw [mul_one, lift_one, mul_one]) $ λ y,
+    @is_mul_hom.map_mul α β _ _ f hf x y }
+
+@[to_additive with_zero.lift_unique]
+theorem lift_unique (f : with_one α → β) (hf : f 1 = 1) :
+  f = lift (f ∘ coe) :=
+funext $ λ x, with_one.cases_on x hf $ λ x, rfl
+
+end lift
+
+section map
+
+@[to_additive with_zero.map]
+def map {β : Type v} (f : α → β) : with_one α → with_one β := option.map f
+
+variables [semigroup α] {β : Type v} [semigroup β] (f : α → β)
+
+@[to_additive with_zero.map_eq]
+lemma map_eq [semigroup α] {β : Type v} [semigroup β] (f : α → β) :
+  map f = lift (coe ∘ f) :=
+funext $ assume x,
+@with_one.cases_on α (λ x, map f x = lift (coe ∘ f) x) x rfl (λ a, rfl)
+
+@[to_additive with_zero.map_is_add_monoid_hom]
+instance map_is_monoid_hom [is_mul_hom f] : is_monoid_hom (map f) :=
+by rw map_eq; apply with_one.lift_is_monoid_hom
+
+end map
+
+end with_one
 
 namespace with_zero
 

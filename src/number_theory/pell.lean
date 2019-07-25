@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.nat.modeq data.zsqrtd.basic
+import data.nat.modeq data.zsqrtd.basic tactic.ring
 
 namespace pell
 open nat
@@ -319,15 +319,9 @@ section
       (modeq.modeq_zero_iff.2 $ by simp)
       (modeq.modeq_zero_iff.2 $ by simp).symm
 
-  -- TODO(Mario): Hopefully a tactic will be able to dispense this lemma
   lemma x_sub_y_dvd_pow_lem (y2 y1 y0 yn1 yn0 xn1 xn0 ay a2 : ℤ) :
     (a2 * yn1 - yn0) * ay + y2 - (a2 * xn1 - xn0) =
-      y2 - a2 * y1 + y0 + a2 * (yn1 * ay + y1 - xn1) - (yn0 * ay + y0 - xn0) :=
-  calc  (a2 * yn1 - yn0) * ay + y2 - (a2 * xn1 - xn0)
-      = a2 * yn1 * ay - yn0 * ay + y2 - (a2 * xn1 - xn0) : by rw [mul_sub_right_distrib]
-  ... = y2 + a2 * (yn1 * ay) - a2 * xn1 - yn0 * ay + xn0 : by simp [mul_comm, mul_left_comm]
-  ... = y2 + a2 * (yn1 * ay) - a2 * y1 + a2 * y1 - a2 * xn1 - yn0 * ay + y0 - y0 + xn0 : by rw [add_sub_cancel, sub_add_cancel]
-  ... = y2 - a2 * y1 + y0 + a2 * (yn1 * ay + y1 - xn1) - (yn0 * ay + y0 - xn0) : by simp [mul_add]
+      y2 - a2 * y1 + y0 + a2 * (yn1 * ay + y1 - xn1) - (yn0 * ay + y0 - xn0) := by ring
 
   theorem x_sub_y_dvd_pow (y : ℕ) :
     ∀ n, (2*a*y - y*y - 1 : ℤ) ∣ yz n * (a - y) + ↑(y^n) - xz n

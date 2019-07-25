@@ -25,7 +25,7 @@ end
 structure order_embedding {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends α ↪ β :=
 (ord : ∀ {a b}, r a b ↔ s (to_embedding a) (to_embedding b))
 
-infix ` ≼o `:50 := order_embedding
+infix ` ≼o `:25 := order_embedding
 
 /-- the induced order on a subtype is an embedding under the natural inclusion. -/
 definition subtype.order_embedding {X : Type*} (r : X → X → Prop) (p : X → Prop) :
@@ -195,7 +195,7 @@ instance fin.lt.is_well_order (n) : is_well_order (fin n) (<) :=
 structure order_iso {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends α ≃ β :=
 (ord : ∀ {a b}, r a b ↔ s (to_equiv a) (to_equiv b))
 
-infix ` ≃o `:50 := order_iso
+infix ` ≃o `:25 := order_iso
 
 namespace order_iso
 

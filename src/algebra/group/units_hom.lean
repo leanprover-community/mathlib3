@@ -19,9 +19,9 @@ definition map : units α → units β :=
       by rw [← is_monoid_hom.map_mul f, u.inv_val, is_monoid_hom.map_one f] ⟩
 
 instance : is_group_hom (units.map f) :=
-⟨λ a b, by ext; exact is_monoid_hom.map_mul f ⟩
+{ map_mul := λ a b, by ext; exact is_monoid_hom.map_mul f a b }
 
-instance : is_monoid_hom (coe : units α → α) :=
+instance coe_is_monoid_hom : is_monoid_hom (coe : units α → α) :=
 { map_one := rfl, map_mul := by simp }
 
 @[simp] lemma coe_map (u : units α) : (map f u : β) = f u := rfl
@@ -29,7 +29,5 @@ instance : is_monoid_hom (coe : units α → α) :=
 @[simp] lemma map_id : map (id : α → α) = id := by ext; refl
 
 lemma map_comp : map (g ∘ f) = map g ∘ map f := rfl
-
-lemma map_comp' : map (λ x, g (f x)) = λ x, map g (map f x) := rfl
 
 end units

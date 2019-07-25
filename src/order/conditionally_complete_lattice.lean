@@ -97,7 +97,7 @@ end preorder
 ⟨⊤, by intros; apply order_top.le_top⟩
 
 /--When there is a global minimum, every set is bounded below.-/
-@[simp] lemma bdd_below_bot [order_bot α] (s : set α): bdd_below s :=
+@[simp] lemma bdd_below_bot [order_bot α] (s : set α) : bdd_below s :=
 ⟨⊥, by intros; apply order_bot.bot_le⟩
 
 /-When there is a max (i.e., in the class semilattice_sup), then the union of

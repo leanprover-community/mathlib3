@@ -227,7 +227,7 @@ def postcompose {G : J ⥤ C} (α : F ⟶ G) : cone F ⥤ cone G :=
 @[simp] lemma postcompose_obj_π {G : J ⥤ C} (α : F ⟶ G) (c : cone F) :
   ((postcompose α).obj c).π = c.π ≫ α := rfl
 
-@[simp] lemma postcompose_map_hom {G : J ⥤ C} (α : F ⟶ G) {c₁ c₂ : cone F} (f : c₁ ⟶ c₂):
+@[simp] lemma postcompose_map_hom {G : J ⥤ C} (α : F ⟶ G) {c₁ c₂ : cone F} (f : c₁ ⟶ c₂) :
   ((postcompose α).map f).hom = f.hom := rfl
 
 def postcompose_comp {G H : J ⥤ C} (α : F ⟶ G) (β : G ⟶ H) :
@@ -360,6 +360,19 @@ open category_theory.limits
 def map_cone   (c : cone F)   : cone (F ⋙ H)   := (cones.functoriality H).obj c
 /-- The image of a cocone in C under a functor G : C ⥤ D is a cocone in D. -/
 def map_cocone (c : cocone F) : cocone (F ⋙ H) := (cocones.functoriality H).obj c
+
+@[simp] lemma map_cone_X (c : cone F) : (H.map_cone c).X = H.obj c.X := rfl
+@[simp] lemma map_cocone_X (c : cocone F) : (H.map_cocone c).X = H.obj c.X := rfl
+
+def map_cone_inv [is_equivalence H]
+  (c : cone (F ⋙ H)) : cone F :=
+let t := (inv H).map_cone c in
+let α : (F ⋙ H) ⋙ inv H ⟶ F :=
+  ((whisker_left F (is_equivalence.unit_iso H).inv) : F ⋙ (H ⋙ inv H) ⟶ _) ≫ (functor.right_unitor _).hom in
+{ X := t.X,
+  π := ((category_theory.cones J C).map α).app (op t.X) t.π }
+
+@[simp] lemma map_cone_inv_X [is_equivalence H] (c : cone (F ⋙ H)) : (H.map_cone_inv c).X = (inv H).obj c.X := rfl
 
 def map_cone_morphism   {c c' : cone F}   (f : cone_morphism c c')   :
   cone_morphism   (H.map_cone c)   (H.map_cone c')   := (cones.functoriality H).map f

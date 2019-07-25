@@ -2,13 +2,34 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl, Mario Carneiro
-
-Cardinal arithmetic.
-
-Cardinals are represented as quotient over equinumerous types.
 -/
 
 import data.set.countable data.quot logic.function set_theory.schroeder_bernstein
+
+/-!
+# Cardinal Numbers
+
+We define cardinal numbers as a quotient of types under the equivalence relation of equinumerity.
+We define the order on cardinal numbers, define omega, and do basic cardinal arithmetic:
+  addition, multiplication, power, cardinal successor, minimum, supremum,
+    infinitary sums and products
+
+## Implementation notes
+
+* There is a type of cardinal numbers in every universe level: `cardinal.{u} : Type (u + 1)`
+  is the quotient of types in `Type u`.
+  There is a lift operation lifting cardinal numbers to a higher level.
+* Cardinal arithmetic specifically for infinite cardinals (like `κ * κ = κ`) is in the file
+  `set_theory/ordinal.lean`, because concepts from that file are used in the proof.
+
+## References
+
+* https://en.wikipedia.org/wiki/Cardinal_number
+
+## Tags
+
+cardinal number, cardinal arithmetic, cardinal exponentiation, omega
+-/
 
 open function lattice set
 local attribute [instance] classical.prop_decidable
@@ -16,6 +37,9 @@ local attribute [instance] classical.prop_decidable
 universes u v w x
 variables {α β : Type u}
 
+/-- The equivalence relation on types given by equivalence (bijective correspondence) of types.
+  Quotienting by this equivalence relation gives the cardinal numbers.
+-/
 instance cardinal.is_equivalent : setoid (Type u) :=
 { r := λα β, nonempty (α ≃ β),
   iseqv := ⟨λα,
@@ -30,13 +54,15 @@ def cardinal : Type (u + 1) := quotient cardinal.is_equivalent
 
 namespace cardinal
 
-/-- The cardinal of a type -/
+/-- The cardinal number of a type -/
 def mk : Type u → cardinal := quotient.mk
 
 @[simp] theorem mk_def (α : Type u) : @eq cardinal ⟦α⟧ (mk α) := rfl
 
 @[simp] theorem mk_out (c : cardinal) : mk (c.out) = c := quotient.out_eq _
 
+/-- We define the order on cardinal numbers by `mk α ≤ mk β` if and only if
+  there exists an embedding (injective function) from α to β. -/
 instance : has_le cardinal.{u} :=
 ⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, nonempty $ α ↪ β) $
   assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
@@ -97,7 +123,7 @@ instance : has_mul cardinal.{u} :=
 ⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, mk (α × β)) $ assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
   quotient.sound ⟨equiv.prod_congr e₁ e₂⟩⟩
 
-@[simp] theorem mul_def (α β) : mk α * mk β = mk (α × β) := rfl
+@[simp] theorem mul_def (α β : Type u) : mk α * mk β = mk (α × β) := rfl
 
 private theorem add_comm (a b : cardinal.{u}) : a + b = b + a :=
 quotient.induction_on₂ a b $ assume α β, quotient.sound ⟨equiv.sum_comm α β⟩
@@ -401,7 +427,8 @@ end
 theorem prod_eq_zero {ι} (f : ι → cardinal) : prod f = 0 ↔ ∃ i, f i = 0 :=
 not_iff_not.1 $ by simpa using prod_ne_zero f
 
-/-- The universe lift operation on cardinals -/
+/-- The universe lift operation on cardinals. You can specify the universes explicitly with
+  `lift.{u v} : cardinal.{u} → cardinal.{max u v}` -/
 def lift (c : cardinal.{u}) : cardinal.{max u v} :=
 quotient.lift_on c (λ α, ⟦ulift α⟧) $ λ α β ⟨e⟩,
 quotient.sound ⟨equiv.ulift.trans $ e.trans equiv.ulift.symm⟩
@@ -498,8 +525,31 @@ le_antisymm
   end)
   (succ_le.2 $ lift_lt.2 $ lt_succ_self _)
 
+@[simp] theorem lift_max {a : cardinal.{u}} {b : cardinal.{v}} :
+  lift.{u (max v w)} a = lift.{v (max u w)} b ↔ lift.{u v} a = lift.{v u} b :=
+calc lift.{u (max v w)} a = lift.{v (max u w)} b
+  ↔ lift.{(max u v) w} (lift.{u v} a)
+    = lift.{(max u v) w} (lift.{v u} b) : by simp
+  ... ↔ lift.{u v} a = lift.{v u} b : lift_inj
+
+theorem mk_prod {α : Type u} {β : Type v} :
+  mk (α × β) = lift.{u v} (mk α) * lift.{v u} (mk β) :=
+quotient.sound ⟨equiv.prod_congr (equiv.ulift).symm (equiv.ulift).symm⟩
+
+theorem sum_const_eq_lift_mul (ι : Type u) (a : cardinal.{v}) :
+  sum (λ _:ι, a) = lift.{u v} (mk ι) * lift.{v u} a :=
+begin
+  apply quotient.induction_on a,
+  intro α,
+  simp only [cardinal.mk_def, cardinal.sum_mk, cardinal.lift_id],
+  convert mk_prod using 1,
+  exact quotient.sound ⟨equiv.sigma_equiv_prod ι α⟩,
+end
+
 /-- `ω` is the smallest infinite cardinal, also known as ℵ₀. -/
 def omega : cardinal.{u} := lift (mk ℕ)
+
+lemma mk_nat : mk nat = omega := (lift_id _).symm
 
 theorem omega_ne_zero : omega ≠ 0 :=
 ne_zero_iff_nonempty.2 ⟨⟨0⟩⟩
@@ -635,12 +685,25 @@ match a, b, lt_omega.1 ha, lt_omega.1 hb with
 | _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat_cast_pow]; apply nat_lt_omega
 end
 
+theorem infinite_iff {α : Type u} : infinite α ↔ omega ≤ mk α :=
+by rw [←not_lt, lt_omega_iff_fintype, not_nonempty_fintype]
+
 lemma countable_iff (s : set α) : countable s ↔ mk s ≤ omega :=
 begin
   rw [countable_iff_exists_injective], split,
   rintro ⟨f, hf⟩, exact ⟨embedding.trans ⟨f, hf⟩ equiv.ulift.symm.to_embedding⟩,
   rintro ⟨f'⟩, cases embedding.trans f' equiv.ulift.to_embedding with f hf, exact ⟨f, hf⟩
 end
+
+lemma denumerable_iff {α : Type u} : nonempty (denumerable α) ↔ mk α = omega :=
+⟨λ⟨h⟩, quotient.sound $ by exactI ⟨ (denumerable.eqv α).trans equiv.ulift.symm ⟩,
+ λ h, by { cases quotient.exact h with f, exact ⟨denumerable.mk' $ f.trans equiv.ulift⟩ }⟩
+
+lemma mk_int : mk ℤ = omega :=
+denumerable_iff.mp ⟨by apply_instance⟩
+
+lemma mk_pnat : mk ℕ+ = omega :=
+denumerable_iff.mp ⟨by apply_instance⟩
 
 lemma two_le_iff : (2 : cardinal) ≤ mk α ↔ ∃x y : α, x ≠ y :=
 begin
@@ -740,6 +803,14 @@ mk_le_of_surjective surjective_onto_range
 
 lemma mk_range_eq (f : α → β) (h : injective f) : mk (range f) = mk α :=
 quotient.sound ⟨(equiv.set.range f h).symm⟩
+
+lemma mk_range_eq_of_inj {α : Type u} {β : Type v} {f : α → β} (hf : injective f) :
+  lift.{v u} (mk (range f)) = lift.{u v} (mk α) :=
+begin
+  have := (@lift_mk_eq.{v u max u v} (range f) α).2 ⟨(equiv.set.range f hf).symm⟩,
+  simp only [lift_umax.{u v}, lift_umax.{v u}] at this,
+  exact this
+end
 
 theorem mk_image_eq {α β : Type u} {f : α → β} {s : set α} (hf : injective f) :
   mk (f '' s) = mk s :=

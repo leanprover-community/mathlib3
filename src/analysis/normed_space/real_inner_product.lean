@@ -39,14 +39,14 @@ export has_inner (inner)
 An inner product space is a real vector space with an additional operation called inner product.
 Inner product spaces over complex vector space will be defined in another file.
 -/
-class inner_product_space (α : Type*) [add_comm_group α] [vector_space ℝ α] extends has_inner α :=
+class inner_product_space (α : Type*) extends add_comm_group α, vector_space ℝ α, has_inner α :=
 (comm      : ∀ x y, inner x y = inner y x)
 (nonneg    : ∀ x, 0 ≤ inner x x)
 (definite  : ∀ x, inner x x = 0 → x = 0)
 (add_left  : ∀ x y z, inner (x + y) z = inner x z + inner y z)
 (smul_left : ∀ x y r, inner (r • x) y = r * inner x y)
 
-variables [add_comm_group α] [vector_space ℝ α] [inner_product_space α]
+variable [inner_product_space α]
 
 section basic_properties
 

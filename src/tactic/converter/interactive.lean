@@ -88,6 +88,14 @@ namespace interactive
 open interactive
 open tactic.interactive (rw_rules)
 
+meta def zoom (t : conv.interactive.itactic) : conv unit :=
+do transitivity,
+   a :: rest ← get_goals,
+   set_goals [a],
+   t,
+   all_goals reflexivity,
+   set_goals rest
+
 meta def erw (q : parse rw_rules) (cfg : rewrite_cfg := {md := semireducible}) : conv unit :=
 rw q cfg
 

@@ -1,3 +1,5 @@
+import category_theory.category
+
 /-!
 Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
@@ -11,8 +13,6 @@ of (co)limits.
 To construct a category instance one only needs to specify the `category_struct` part,
 as the axioms hold for free.
 -/
-
-import category_theory.category
 
 universes u v
 

@@ -1,3 +1,8 @@
+import category_theory.equivalence
+import category_theory.comma
+import category_theory.punit
+import category_theory.eq_to_hom
+
 /-!
 Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
@@ -8,12 +13,6 @@ The category of elements, also known as the Grothendieck construction.
 Given a functor `F : C ⥤ Type`, an object of `F.elements` is a pair `(X : C, x : F.obj X)`.
 A morphism `(X, x) ⟶ (Y, y)` is a morphism `f : X ⟶ Y` in `C`, so `F.map f` takes `x` to `y`.
 -/
-
-import category_theory.types
-import category_theory.comma
-import category_theory.equivalence
-import category_theory.punit
-import category_theory.eq_to_hom
 
 namespace category_theory
 

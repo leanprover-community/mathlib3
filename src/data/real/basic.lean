@@ -355,8 +355,8 @@ theorem Sup_empty : lattice.Sup (∅ : set ℝ) = 0 := dif_neg $ by simp
 theorem Sup_of_not_bdd_above {s : set ℝ} (hs : ¬ bdd_above s) : lattice.Sup s = 0 :=
 dif_neg $ assume h, hs h.2
 
-theorem Sup_univ : real.Sup set.univ = 0 := 
-real.Sup_of_not_bdd_above $ λ h, 
+theorem Sup_univ : real.Sup set.univ = 0 :=
+real.Sup_of_not_bdd_above $ λ h,
 Exists.dcases_on h $ λ x h', not_le_of_lt (lt_add_one _) $ h' (x + 1) $ set.mem_univ _
 
 theorem Inf_empty : lattice.Inf (∅ : set ℝ) = 0 :=
@@ -602,6 +602,52 @@ by rw [mul_comm, sqrt_mul' _ hx, mul_comm]
 
 @[simp] theorem sqrt_div (hx : 0 ≤ x) (y : ℝ) : sqrt (x / y) = sqrt x / sqrt y :=
 by rw [division_def, sqrt_mul hx, sqrt_inv]; refl
+
+
+lemma abs_sqrt_sub_sqrt_le_sqrt_abs (x y : ℝ) : abs (sqrt x - sqrt y) ≤ sqrt (abs (x - y)) :=
+nonneg_le_nonneg_of_squares_le (sqrt_nonneg _) $
+begin
+  rw abs_mul_abs_self,
+  wlog h : y ≤ x using [x y, y x],
+  -- The case goal, i.e. the permutation covers all possible cases:
+  { exact le_total y x },
+  -- The main goal, i.e., prove the goal with `y ≤ x`
+  { have eq₁ : sqrt (abs (x - y)) * sqrt (abs (x - y)) = x - y,
+      rw mul_self_sqrt (abs_nonneg _), apply abs_of_nonneg, linarith,
+    rw eq₁,
+    have eq₂ : (sqrt x - sqrt y) * (sqrt x - sqrt y) =
+      sqrt x * sqrt x - (2 * sqrt x * sqrt y - sqrt y * sqrt y), ring,
+    rw eq₂,
+    cases le_total 0 x with hx hx,
+    -- if `0 ≤ x`
+    rw mul_self_sqrt hx,
+    apply sub_le_sub_left,
+    cases le_total 0 y with hy hy,
+    { rw mul_self_sqrt hy,
+      exact calc
+        y ≤ 2 * y - y : by ring
+        ... = 2 * (sqrt y * sqrt y) - y : by rw mul_self_sqrt hy
+        ... ≤ 2 * (sqrt x * sqrt y) - y :
+        begin
+          apply sub_le_sub_right,
+          apply mul_le_mul_of_nonneg_left,
+          apply mul_le_mul_of_nonneg_right,
+          exact sqrt_le_sqrt h,
+          exact sqrt_nonneg _,
+          norm_num
+        end
+        ... ≤  2 * sqrt x * sqrt y - y : by ring },
+    { rw sqrt_eq_zero_of_nonpos hy, simpa },
+    -- if `x ≤ 0`
+    { rw sqrt_eq_zero_of_nonpos hx,
+      cases le_total 0 y with hy hy,
+        rw mul_self_sqrt hy, linarith,
+        rw sqrt_eq_zero_of_nonpos hy, linarith } },
+  -- The invariant goal
+  { rw abs_sub,
+    have : ∀ a b : ℝ, (a - b) * (a - b) = (b - a) * (b - a), intros, ring,
+    rwa this }
+end
 
 attribute [irreducible] real.le
 

@@ -36,9 +36,9 @@ end
 instance [add_monoid α] [has_one α] : is_add_monoid_hom (coe : ℕ → α) :=
 { map_zero := cast_zero, map_add := cast_add }
 
-@[simp, squash_cast] theorem cast_bit0 [add_monoid α] [has_one α] (n : ℕ) : ((bit0 n : ℕ) : α) = bit0 n := cast_add _ _
+@[simp, move_cast] theorem cast_bit0 [add_monoid α] [has_one α] (n : ℕ) : ((bit0 n : ℕ) : α) = bit0 n := cast_add _ _
 
-@[simp, squash_cast] theorem cast_bit1 [add_monoid α] [has_one α] (n : ℕ) : ((bit1 n : ℕ) : α) = bit1 n :=
+@[simp, move_cast] theorem cast_bit1 [add_monoid α] [has_one α] (n : ℕ) : ((bit1 n : ℕ) : α) = bit1 n :=
 by rw [bit1, cast_add_one, cast_bit0]; refl
 
 lemma cast_two {α : Type*} [semiring α] : ((2 : ℕ) : α) = 2 := by simp

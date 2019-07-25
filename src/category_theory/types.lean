@@ -110,6 +110,28 @@ begin
     exact (congr_fun H₂ x : _) }
 end
 
+section
+
+/-- `of_type_functor m` converts from Lean's `Type`-based `category` to `category_theory`. This
+allows us to use these functors in category theory. -/
+def of_type_functor (m : Type u → Type v) [_root_.functor m] [is_lawful_functor m] :
+  Type u ⥤ Type v :=
+{ obj       := m,
+  map       := λα β, _root_.functor.map,
+  map_id'   := assume α, _root_.functor.map_id,
+  map_comp' := assume α β γ f g, funext $ assume a, is_lawful_functor.comp_map f g _ }
+
+variables (m : Type u → Type v) [_root_.functor m] [is_lawful_functor m]
+
+@[simp]
+lemma of_type_functor_obj : (of_type_functor m).obj = m := rfl
+
+@[simp]
+lemma of_type_functor_map {α β} (f : α → β) :
+  (of_type_functor m).map f = (_root_.functor.map f : m α → m β) := rfl
+
+end
+
 end category_theory
 
 -- Isomorphisms in Type and equivalences.

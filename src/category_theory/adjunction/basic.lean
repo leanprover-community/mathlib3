@@ -37,6 +37,11 @@ class is_right_adjoint (right : D ⥤ C) :=
 (left : C ⥤ D)
 (adj : left ⊣ right)
 
+def left_adjoint (R : D ⥤ C) [is_right_adjoint R] : C ⥤ D :=
+is_right_adjoint.left R
+def right_adjoint (L : C ⥤ D) [is_left_adjoint L] : D ⥤ C :=
+is_left_adjoint.right L
+
 namespace adjunction
 
 restate_axiom hom_equiv_unit'
@@ -112,6 +117,10 @@ by { rw [←assoc], dsimp, simp }
 by { rw [←assoc], dsimp, simp }
 
 end
+
+end adjunction
+
+namespace adjunction
 
 structure core_hom_equiv (F : C ⥤ D) (G : D ⥤ C) :=
 (hom_equiv : Π (X Y), (F.obj X ⟶ Y) ≃ (X ⟶ G.obj Y))

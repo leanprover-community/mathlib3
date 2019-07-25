@@ -8,7 +8,7 @@ is Lipschitz continuous for the same bound.
 -/
 import analysis.calculus.deriv
 
-set_option class.instance_max_depth 90
+set_option class.instance_max_depth 100
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
           {F : Type*} [normed_group F] [normed_space ℝ F]

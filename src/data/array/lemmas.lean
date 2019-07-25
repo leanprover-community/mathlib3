@@ -241,7 +241,7 @@ theorem read_foreach_aux : ∀ i h (b : array n α) (j : fin n), j.1 < i →
       (ne.symm $ mt (@fin.eq_of_veq _ ⟨i, hi⟩ ⟨j, hj⟩) e) }
 end
 
-theorem read_foreach : (foreach a f).read i = f i (a.read i) :=
+@[simp] theorem read_foreach : (foreach a f).read i = f i (a.read i) :=
 read_foreach_aux _ _ _ _ i.2
 
 end foreach
@@ -261,7 +261,7 @@ end map
 section map₂
 variables {n : ℕ} {α : Type u} {i : fin n} {f : α → α → α} {a₁ a₂ : array n α}
 
-theorem read_map₂ : (map₂ f a₁ a₂).read i = f (a₁.read i) (a₂.read i) :=
+@[simp] theorem read_map₂ : (map₂ f a₁ a₂).read i = f (a₁.read i) (a₂.read i) :=
 read_foreach
 
 end map₂

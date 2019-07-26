@@ -1,10 +1,11 @@
+/-
+-- Copyright (c) 2019 Scott Morrison. All rights reserved.
+-- Released under Apache 2.0 license as described in the file LICENSE.
+-- Authors: Scott Morrison
+-/
 import category_theory.category
 
 /-!
-Copyright (c) 2019 Scott Morrison. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
-
 A sparse category is a category with at most one morphism between each pair of objects.
 
 Examples include posets, but many indexing categories (diagrams) for special shapes

@@ -1,17 +1,32 @@
+/-
+-- Copyright (c) 2019 Scott Morrison. All rights reserved.
+-- Released under Apache 2.0 license as described in the file LICENSE.
+-- Authors: Scott Morrison
+-/
 import category_theory.equivalence
 import category_theory.comma
 import category_theory.punit
 import category_theory.eq_to_hom
 
 /-!
-Copyright (c) 2019 Scott Morrison. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+# The category of elements
 
-The category of elements, also known as the Grothendieck construction.
+This file defines the category of elements, also known as (a special case of) the Grothendieck construction.
 
 Given a functor `F : C ⥤ Type`, an object of `F.elements` is a pair `(X : C, x : F.obj X)`.
 A morphism `(X, x) ⟶ (Y, y)` is a morphism `f : X ⟶ Y` in `C`, so `F.map f` takes `x` to `y`.
+
+## Implementation notes
+This construction is equivalent to a special case of a comma construction, so this is mostly just
+a more convenient API. We prove the equivalence in `category_theory.category_of_elements.comma_equivalence`.
+
+## References
+* [Emily Riehl, *Category Theory in Context*, Section 2.4][riehl2017]
+* https://en.wikipedia.org/wiki/Category_of_elements
+* https://ncatlab.org/nlab/show/category+of+elements
+
+## Tags
+category of elements, Grothendieck construction, comma category
 -/
 
 namespace category_theory

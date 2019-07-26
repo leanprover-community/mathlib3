@@ -6,6 +6,17 @@ Authors: Scott Morrison
 import category_theory.monad.basic
 import category_theory.adjunction.basic
 
+/-!
+# Eilenberg-Moore algebras for a monad
+
+This file defines Eilenberg-Moore algebras for a monad, and provides the category instance for them.
+Further it defines the adjoint pair of free and forgetful functors, respectively
+from and to the original category.
+
+## References
+* [Riehl, *Category theory in context*, Section 5.2.4][riehl2017]
+-/
+
 namespace category_theory
 open category
 
@@ -16,6 +27,8 @@ include 𝒞
 
 namespace monad
 
+/-- An Eilenberg-Moore algebra for a monad `T`.
+    cf Definition 5.2.3 in Riehl. -/
 structure algebra (T : C ⥤ C) [monad.{v₁} T] : Type (max u₁ v₁) :=
 (A : C)
 (a : T.obj A ⟶ A)
@@ -51,6 +64,8 @@ def comp {P Q R : algebra T} (f : hom P Q) (g : hom Q R) : hom P R :=
 @[simp] lemma comp_f {P Q R : algebra T} (f : hom P Q) (g : hom Q R) : (comp f g).f = f.f ≫ g.f := rfl
 end hom
 
+/-- The category of Eilenberg-Moore algebras for a monad.
+    cf Definition 5.2.4 in Riehl. -/
 instance EilenbergMoore : category (algebra T) :=
 { hom := hom,
   id := hom.id,
@@ -81,6 +96,8 @@ def free : C ⥤ algebra T :=
 @[simp] lemma free_obj_a (X) : ((free T).obj X).a = (μ_ T).app X := rfl
 @[simp] lemma free_map_f {X Y : C} (f : X ⟶ Y) : ((free T).map f).f = T.map f := rfl
 
+/-- The adjunction between the free and forgetful constructions for Eilenberg-Moore algebras for a monad.
+    cf Lemma 5.2.8 of Riehl. -/
 def adj : free T ⊣ forget T :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y,

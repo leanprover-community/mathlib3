@@ -1,15 +1,12 @@
+/-
 -- Copyright (c) 2019 Scott Morrison. All rights reserved.
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Scott Morrison
+-/
 import algebra.Mon.basic
 import category_theory.limits.limits
 
-universes v
-
-open category_theory
-open category_theory.limits
-
-/-
+/-!
 We build colimits of monoids.
 
 We do so knowing nothing about monoids.
@@ -29,6 +26,11 @@ colimits of commutative rings.
 
 A slightly bolder claim is that we could do this with tactics, as well.
 -/
+
+universes v
+
+open category_theory
+open category_theory.limits
 
 namespace Mon.colimits
 

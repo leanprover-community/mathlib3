@@ -1011,6 +1011,33 @@ meta def clear_aux_decl_aux : list expr → tactic unit
 meta def clear_aux_decl : tactic unit :=
 local_context >>= clear_aux_decl_aux
 
+meta def apply_at_aux (arg t : expr) : list expr → expr → expr → tactic (expr × list expr)
+| vs e (pi n bi d b) :=
+  do { v ← mk_meta_var d,
+       apply_at_aux (v :: vs) (e v) (b.instantiate_var v) } <|>
+  (e arg, vs) <$ unify d t
+| vs e _ := failed
+
+meta def apply_at (e h : expr) : tactic unit :=
+do ht ← infer_type h,
+   et ← infer_type e,
+   (h', gs') ← apply_at_aux h ht [] e et,
+   note h.local_pp_name none h',
+   clear h,
+   gs' ← gs'.mfilter is_assigned,
+   (g :: gs) ← get_goals,
+   set_goals (g :: gs' ++ gs)
+
+meta def symmetry_hyp (h : expr) (md := semireducible) : tactic unit :=
+do tgt   ← infer_type h,
+   env   ← get_env,
+   let r := get_app_fn tgt,
+   match env.symm_for (const_name r) with
+   | (some symm) := do s ← mk_const symm,
+                       apply_at s h
+   | none        := fail "symmetry tactic failed, target is not a relation application with the expected property."
+   end
+
 precedence `setup_tactic_parser`:0
 
 @[user_command]

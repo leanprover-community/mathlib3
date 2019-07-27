@@ -28,6 +28,9 @@ do (r, lhs, _) ← target_lhs_rhs,
    intro `s_mem,   
    t
    
+/-- The operand tactic is used in conversion mode. It allows the user to pull out the operand
+of a finset.sum, finset.prod or finset.fold, and gives a hypothesis s_mem which says that some
+variable is an element of the finset. -/
 meta def operand (t : conv.interactive.itactic) : conv unit :=
 zoom (operand_core t)
 

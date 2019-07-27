@@ -18,8 +18,7 @@ do (r, lhs, _) ← target_lhs_rhs,
    end,
    (a::gs) ← get_goals,
    set_goals [a],
-   (expr.lam n _ _ _) ← return lam,
-   intro n,
+   intro `s,
    intro `s_mem,   
    t
 

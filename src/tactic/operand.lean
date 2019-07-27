@@ -27,15 +27,6 @@ do (r, lhs, _) ← target_lhs_rhs,
    intro `s,
    intro `s_mem,   
    t
-
---Note: for mathlib this will be in tactic.converter.interactive
-meta def zoom (t : conv.interactive.itactic) : conv unit :=
-do transitivity,
-   a :: rest ← get_goals,
-   set_goals [a],
-   t,
-   all_goals reflexivity,
-   set_goals rest
    
 meta def operand (t : conv.interactive.itactic) : conv unit :=
 zoom (operand_core t)

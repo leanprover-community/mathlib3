@@ -88,6 +88,9 @@ namespace interactive
 open interactive
 open tactic.interactive (rw_rules)
 
+/-- The zoom tactic is essentially a conv within a conv. It allows the user to return to a 
+previous state of the outer conv block to continue editing an expression without having to
+start a new conv block. -/
 meta def zoom (t : conv.interactive.itactic) : conv unit :=
 do transitivity,
    a :: rest ← get_goals,

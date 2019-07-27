@@ -7,8 +7,36 @@ Homomorphisms of multiplicative and additive (semi)groups and monoids.
 
 explain why no group_hom G H
 -/
+
 import algebra.group.to_additive algebra.group.basic
 
+/-!
+# monoid and group homomorphisms
+
+This file defines the basic structures for monoid and group
+homomorphisms, both unbundled (e.g. `is_group_hom f`) and bundled
+(e.g. `group_hom f`). The unbundled ones are deprecated and the plan is
+to slowly remove them from mathlib.
+
+## main definitions
+
+moniod_hom, is_monoid_hom, group_hom. is_group_hom
+
+## Notations
+
+→* for bundled monoid homs (also use for group homs)
+→+ for bundled add_monoid homs (also use for add_group homs)
+
+## implementation notes
+
+There's a coercion from bundled homs to fun, and the canonical
+notation is to use the bundled hom as a function via this coercion.
+
+## Tags
+
+is_group_hom, group_hom, is_monoid_hom, monoid_hom
+
+-/
 universes u v
 variables {α : Type u} {β : Type v}
 

@@ -17,7 +17,6 @@ conv {     --| a + b = a + d
 },         -- goals accomplished
 end
 
---explain what's happening
 example : 1 + (5 * 8) - (3 * 14) + (4 * 99 - 45) - 350 = 1 :=
 begin
   have h₁ : 5 * 8 = 40, from dec_trivial,

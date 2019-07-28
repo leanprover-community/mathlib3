@@ -182,14 +182,6 @@ begin
   conv { to_lhs, simp [le_def_lt] },
 end
 
--- Possibly the next two lemmas belong elsewhere, but I'm not sure where.
-theorem forall_pempty {P : pempty → Prop} : (∀ x : pempty, P x) ↔ true :=
-⟨λ h, trivial, by rintros _ ⟨ ⟩⟩
-
-theorem exists_pempty {P : pempty → Prop} : (∃ x : pempty, P x) ↔ false :=
-⟨by rintro ⟨⟨ ⟩⟩, by rintro ⟨ ⟩⟩
-
-
 /-- The definition of `x ≤ 0` on pre-games, in terms of `≤ 0` two moves later. -/
 theorem le_zero {x : pgame} : x ≤ 0 ↔
   ∀ i : x.left_moves, ∃ j : (x.move_left i).right_moves, (x.move_left i).move_right j ≤ 0 :=

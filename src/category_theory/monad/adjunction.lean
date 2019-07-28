@@ -57,7 +57,7 @@ class reflective (R : D ⥤ C) extends is_right_adjoint R, full R, faithful R.
 instance μ_iso_of_reflective [reflective R] : is_iso (μ_ ((left_adjoint R) ⋙ R)) :=
 by { dsimp [adjunction.monad], apply_instance }
 
-/-- A right adjoint functor `R : D ⥤ C` is *monadic* is the comparison function `monad.comparison R` from `D` to the
+/-- A right adjoint functor `R : D ⥤ C` is *monadic* if the comparison function `monad.comparison R` from `D` to the
 category of Eilenberg-Moore algebras for the adjunction is an equivalence. -/
 class monadic_right_adjoint (R : D ⥤ C) extends is_right_adjoint R :=
 (eqv : is_equivalence (monad.comparison R))

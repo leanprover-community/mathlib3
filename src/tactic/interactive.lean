@@ -66,6 +66,10 @@ do gs ← get_goals,
    | _        := skip
    end
 
+/-- `rotate n` cyclically shifts the goals `n` times.
+ `rotate` defaults to `rotate 1`. -/
+meta def rotate (n := 1) : tactic unit := tactic.rotate n
+
 /-- Clear all hypotheses starting with `_`, like `_match` and `_let_match`. -/
 meta def clear_ : tactic unit := tactic.repeat $ do
   l ← local_context,

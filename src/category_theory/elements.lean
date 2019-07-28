@@ -1,7 +1,7 @@
 /-
--- Copyright (c) 2019 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison
+Copyright (c) 2019 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
 -/
 import category_theory.equivalence
 import category_theory.comma
@@ -35,10 +35,10 @@ universes v u
 variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
-/-- The type of objects for the category of elements of a functor `F` is a pair `(X : C, x : F.obj X)`. -/
+/-- The type of objects for the category of elements of a functor `F : C ⥤ Type` is a pair `(X : C, x : F.obj X)`. -/
 def functor.elements (F : C ⥤ Type u) := (Σ c : C, F.obj c)
 
-/-- The category structure on `F.elements`.
+/-- The category structure on `F.elements`, for `F : C ⥤ Type`.
     A morphism `(X, x) ⟶ (Y, y)` is a morphism `f : X ⟶ Y` in `C`, so `F.map f` takes `x` to `y`.
  -/
 instance category_of_elements (F : C ⥤ Type u) : category F.elements :=

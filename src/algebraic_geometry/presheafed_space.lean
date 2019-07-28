@@ -76,7 +76,7 @@ variables (C)
 section
 local attribute [simp] id comp presheaf.pushforward
 
-/- This proofs below can be done by `tidy`, but it is too slow,
+/- The proofs below can be done by `tidy`, but it is too slow,
    and we don't have a tactic caching mechanism. -/
 /-- The category of PresheafedSpaces. Morphisms are pairs, a continuous map and a presheaf map
     from the presheaf on the target to the pushforward of the presheaf on the source. -/

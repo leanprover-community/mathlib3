@@ -92,22 +92,47 @@ include R
   (f : M → N → P) {H1 H2 H3 H4} (m : M) (n : N) :
   ((mk₂ R f H1 H2 H3 H4 : M →ₗ[R] N →ₗ P).to_fun m).to_fun n = f m n := rfl
 
-lemma to_matrix_to_lin [decidable_eq n] {f : (n → α) →ₗ[α] (m → α)} : to_lin (to_matrix f) = f :=
+lemma to_matrix_to_lin [decidable_eq n] [decidable_eq α] {f : (n → α) →ₗ[α] (m → α)} : to_lin (to_matrix f) = f :=
 begin
-unfold to_lin,
-unfold eval,
 ext y : 1,
 change ((mk₂ α mul_vec _ _ _ _).to_fun (to_matrix f)).to_fun y = f.to_fun y,
 rw [mk₂_apply2],
-{ unfold to_matrix,
-  unfold to_matrixₗ,
-  simp,
+{ ext,
+  change finset.univ.sum (λ i, (f.to_fun (λ j, ite (i = j) 1 0) x) * (y i)) = _,
+  conv_lhs { congr, skip, funext, rw [mul_comm _ (y i)] },
+  change finset.univ.sum (λ i, (y i) • (f.to_fun (λ j, ite (i = j) 1 0) x)) = _,
+  have : ∀ i, (y i • (f.to_fun (λ (j : n), ite (i = j) 1 0) x) = (y i • f.to_fun (λ (j : n), ite (i = j) 1 0)) x),
+   from sorry,
+  have : (λ i, y i • (f.to_fun (λ j, ite (i = j) 1 0) x)) = (λ i, (f.to_fun (λ j, ite (i = j) (y i) 0) x)),
+    { ext i,
+      rw [this i, ←f.smul],
+      congr,
+      unfold has_scalar.smul,
+      ext,
+      split_ifs,
+      exact mul_one _,
+      exact ring.mul_zero _ },
+  rw [this],
   sorry
  },
  repeat {sorry}
 end
 
-lemma to_lin_to_matrix [decidable_eq n] (M : matrix m n α) : to_matrix (to_lin M) = M := sorry
+lemma to_lin_to_matrix [decidable_eq n] (M : matrix m n α) : to_matrix (to_lin M) = M :=
+begin
+  ext,
+  change finset.sum finset.univ (λ y, M i y * ite (j = y) 1 0) = M i j,
+  have : (λ y, M i y * ite (j = y) 1 0) = (λ y, ite (j = y) (M i y) 0),
+    { ext, split_ifs, exact mul_one _, exact ring.mul_zero _ },
+  rw [this],
+  --from proof of to_finset_sum_count_eq in big_operators.lean (make a lemma?)
+  have : finset.univ.sum (λ y, ite (j = y) (M i y) 0) = (finset.singleton j).sum (λ y, ite (j = y) (M i y) 0),
+  { refine (finset.sum_subset _ _).symm,
+    { intros _ H, rwa finset.mem_singleton.1 H, exact finset.mem_univ _ },
+    { exact λ _ _ H, if_neg (mt (finset.mem_singleton.2 ∘ eq.symm) H) } },
+  rw [this, finset.sum_singleton],
+  exact if_pos rfl,
+end
 
 section
 open linear_map

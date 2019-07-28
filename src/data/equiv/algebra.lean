@@ -342,7 +342,7 @@ by { cases f, cases g, congr, apply equiv.eq_of_to_fun_eq h }
 
 namespace group
 
-def aut (γ : Type) [group γ] := mul_equiv γ γ
+def aut (γ : Type*) [group γ] := mul_equiv γ γ
 
 /--
 The group operation on automorphisms of a group is defined by

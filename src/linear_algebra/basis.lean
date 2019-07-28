@@ -135,7 +135,7 @@ begin
       intros i hi,
       rw mem_image,
       use subtype.mk i (((finsupp.mem_supported _ _).1 hl₁ : ↑(l.support) ⊆ s) hi),
-      rw mem_preimage_eq,
+      rw mem_preimage,
       exact ⟨hi, rfl⟩ },
     show l = 0,
     { apply finsupp.eq_zero_of_comap_domain_eq_zero (subtype.val : s → ι) _ h_bij,
@@ -196,7 +196,7 @@ begin
     rcases mem_range.1 (((finsupp.mem_supported _ _).1 hl₁ : ↑(l.support) ⊆ range v) hx) with ⟨i, hi⟩,
     rw mem_image,
     use i,
-    rw [mem_preimage_eq, hi],
+    rw [mem_preimage, hi],
     exact ⟨hx, rfl⟩ },
   apply finsupp.eq_zero_of_comap_domain_eq_zero v l,
   apply linear_independent_iff.1 hv,
@@ -486,12 +486,12 @@ begin
   exact hi'.2
 end
 
-lemma eq_of_linear_independent_of_span_subtype {s t : set β} (zero_ne_one : (1 : α) ≠ 0)
+lemma eq_of_linear_independent_of_span_subtype {s t : set β} (zero_ne_one : (0 : α) ≠ 1)
   (hs : linear_independent α (λ x, x : s → β)) (h : t ⊆ s) (hst : s ⊆ span α t) : s = t :=
 begin
   let f : t ↪ s := ⟨λ x, ⟨x.1, h x.2⟩, λ a b hab, subtype.val_injective (subtype.mk.inj hab)⟩,
   have h_surj : surjective f,
-  { apply surjective_of_linear_independent_of_span hs f _ zero_ne_one.symm,
+  { apply surjective_of_linear_independent_of_span hs f _ zero_ne_one,
     convert hst; simp [f, comp], },
   show s = t,
   { apply subset.antisymm _ h,
@@ -569,6 +569,22 @@ begin
       { rw [set.range_comp, span_image],
         apply linear_map.map_le_range } } }
 end
+
+lemma le_of_span_le_span {s t u: set β} (zero_ne_one : (0 : α) ≠ 1)
+  (hl : linear_independent α (subtype.val : u → β )) (hsu : s ⊆ u) (htu : t ⊆ u)
+  (hst : span α s ≤ span α t) : s ⊆ t :=
+begin
+  have := eq_of_linear_independent_of_span_subtype zero_ne_one
+    (hl.mono (set.union_subset hsu htu))
+    (set.subset_union_right _ _)
+    (set.union_subset (set.subset.trans subset_span hst) subset_span),
+  rw ← this, apply set.subset_union_left
+end
+
+lemma span_le_span_iff {s t u: set β} (zero_ne_one : (0 : α) ≠ 1)
+  (hl : linear_independent α (subtype.val : u → β )) (hsu : s ⊆ u) (htu : t ⊆ u) :
+  span α s ≤ span α t ↔ s ⊆ t :=
+⟨le_of_span_le_span zero_ne_one hl hsu htu, span_mono⟩
 
 variables (α) (v)
 /-- A set of vectors is a basis if it is linearly independent and all vectors are in the span α. -/
@@ -876,7 +892,7 @@ have ∀t, ∀(s' : finset β), ↑s' ⊆ s → s ∩ ↑t = ∅ → s ⊆ (span
 assume t, finset.induction_on t
   (assume s' hs' _ hss',
     have s = ↑s',
-      from eq_of_linear_independent_of_span_subtype (@one_ne_zero α _) hs hs' $
+      from eq_of_linear_independent_of_span_subtype (@zero_ne_one α _) hs hs' $
           by simpa using hss',
     ⟨s', by simp [this]⟩)
   (assume b₁ t hb₁t ih s' hs' hst hss',
@@ -949,8 +965,8 @@ begin
   rw image_subset_iff at BC,
   simp,
   have := BC (subtype.mem b),
-  rw mem_preimage_eq at this,
-  have : f (b.val) = (subtype.mk (f ↑b) (begin rw ←mem_preimage_eq, exact BC (subtype.mem b) end) : C).val,
+  rw mem_preimage at this,
+  have : f (b.val) = (subtype.mk (f ↑b) (begin rw ←mem_preimage, exact BC (subtype.mem b) end) : C).val,
     by simp; unfold_coes,
   rw this,
   rw [constr_basis hC],

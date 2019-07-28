@@ -201,6 +201,27 @@ end
 
 end congr
 
+section convert_to
+
+example {a b c d : ℕ} (H : a = c) (H' : b = d) : a + b = d + c :=
+by {convert_to c + d = _ using 2, from H, from H', rw[add_comm]}
+
+example {a b c d : ℕ} (H : a = c) (H' : b = d) : a + b = d + c :=
+by {convert_to c + d = _ using 0, congr' 2, from H, from H', rw[add_comm]}
+
+example (a b c d e f g N : ℕ) : (a + b) + (c + d) + (e + f) + g ≤ a + d + e + f + c + g + b :=
+by {ac_change a + d + e + f + c + g + b ≤ _, refl}
+
+end convert_to
+
+section swap
+
+example {α₁ α₂ α₃ : Type} : true :=
+by {have : α₁, have : α₂, have : α₃, swap, swap,
+    rotate, rotate, rotate, rotate 2, rotate 2, triv, recover}
+
+end swap
+
 private meta def get_exception_message (t : lean.parser unit) : lean.parser string
 | s := match t s with
        | result.success a s' := result.success "No exception" s

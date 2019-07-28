@@ -562,7 +562,7 @@ def uniform_space.comap (f : α → β) (u : uniform_space β) : uniform_space �
     (comap_mono u.comp),
   is_open_uniformity := λ s, begin
     change (@is_open α (u.to_topological_space.induced f) s ↔ _),
-    simp [is_open_iff_nhds, nhds_induced_eq_comap, mem_nhds_uniformity_iff, filter.comap, and_comm],
+    simp [is_open_iff_nhds, nhds_induced, mem_nhds_uniformity_iff, filter.comap, and_comm],
     refine ball_congr (λ x hx, ⟨_, _⟩),
     { rintro ⟨t, hts, ht⟩, refine ⟨_, ht, _⟩,
       rintro ⟨x₁, x₂⟩ h rfl, exact hts (h rfl) },
@@ -588,15 +588,7 @@ tendsto_comap
 
 theorem to_topological_space_comap {f : α → β} {u : uniform_space β} :
   @uniform_space.to_topological_space _ (uniform_space.comap f u) =
-  topological_space.induced f (@uniform_space.to_topological_space β u) :=
-eq_of_nhds_eq_nhds $ assume a,
-begin
-  simp [nhds_induced_eq_comap, nhds_eq_uniformity, nhds_eq_uniformity],
-  change (u.uniformity.comap (λp:α×α, (f p.1, f p.2))).lift' (preimage (λa', (a, a'))) =
-           comap f ((𝓤 β).lift' (preimage (λb, (f a, b)))),
-  rw [comap_lift'_eq monotone_preimage, comap_lift'_eq2 monotone_preimage],
-  exact rfl
-end
+  topological_space.induced f (@uniform_space.to_topological_space β u) := rfl
 
 lemma uniform_continuous_comap' {f : γ → β} {g : α → γ} [v : uniform_space β] [u : uniform_space α]
   (h : uniform_continuous (f ∘ g)) : @uniform_continuous α γ u (uniform_space.comap f v) g :=
@@ -765,6 +757,26 @@ lemma to_topological_space_prod [u : uniform_space α] [v : uniform_space β] :
     @prod.topological_space α β u.to_topological_space v.to_topological_space := rfl
 
 end prod
+
+section
+open uniform_space function
+variables [uniform_space α] [uniform_space β] [uniform_space γ] [uniform_space δ]
+
+local notation f `∘₂` g := function.bicompr f g
+
+def uniform_continuous₂ (f : α → β → γ) := uniform_continuous (uncurry' f)
+
+lemma uniform_continuous₂_def (f : α → β → γ) : uniform_continuous₂ f ↔ uniform_continuous (uncurry' f) := iff.rfl
+
+lemma uniform_continuous₂_curry (f : α × β → γ) : uniform_continuous₂ (function.curry f) ↔ uniform_continuous f :=
+by rw  [←uncurry'_curry f] {occs := occurrences.pos [2]} ; refl
+
+lemma uniform_continuous₂.comp {f : α → β → γ} {g : γ → δ}
+  (hg : uniform_continuous g) (hf : uniform_continuous₂ f) :
+  uniform_continuous₂ (g ∘₂ f) :=
+hg.comp hf
+
+end
 
 lemma to_topological_space_subtype [u : uniform_space α] {p : α → Prop} :
   @uniform_space.to_topological_space (subtype p) subtype.uniform_space =

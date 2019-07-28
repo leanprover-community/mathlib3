@@ -101,7 +101,7 @@ instance ordered_cancel_comm_monoid [∀ i, ordered_cancel_comm_monoid $ f i] : 
 by pi_instance
 
 instance ordered_comm_group [∀ i, ordered_comm_group $ f i] : ordered_comm_group (Π i : I, f i) :=
-{ add_lt_add_left := λ a b hab c, ⟨λ i, add_le_add_left (hab.1 i) (c i), 
+{ add_lt_add_left := λ a b hab c, ⟨λ i, add_le_add_left (hab.1 i) (c i),
     λ h, hab.2 $ λ i, le_of_add_le_add_left (h i)⟩,
   add_le_add_left := λ x y hxy c i, add_le_add_left (hxy i) _,
   ..pi.add_comm_group,

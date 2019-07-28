@@ -300,6 +300,24 @@ instance : is_ring_hom (lift S f H) :=
   end }
 
 end quotient
+
+lemma eq_bot_or_top {K : Type u} [discrete_field K] (I : ideal K) :
+  I = ⊥ ∨ I = ⊤ :=
+begin
+  rw classical.or_iff_not_imp_right,
+  change _ ≠ _ → _,
+  rw ideal.ne_top_iff_one,
+  intro h1,
+  rw eq_bot_iff,
+  intros r hr,
+  by_cases H : r = 0, {simpa},
+  simpa [H, h1] using submodule.smul_mem I r⁻¹ hr,
+end
+
+lemma eq_bot_of_prime {K : Type u} [discrete_field K] (I : ideal K) [h : I.is_prime] :
+  I = ⊥ :=
+classical.or_iff_not_imp_right.mp I.eq_bot_or_top h.1
+
 end ideal
 
 def nonunits (α : Type u) [monoid α] : set α := { a | ¬is_unit a }
@@ -482,3 +500,15 @@ ideal.quotient.is_ring_hom
 end residue_field
 
 end local_ring
+
+namespace discrete_field
+variables [discrete_field α]
+
+instance : local_ring α :=
+{ is_local := λ a,
+  if h : a = 0
+  then or.inr (by rw [h, sub_zero]; exact is_unit_one)
+  else or.inl $ is_unit_of_mul_one a a⁻¹ $ div_self h }
+
+end discrete_field
+

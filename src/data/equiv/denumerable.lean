@@ -108,7 +108,7 @@ instance ulift : denumerable (ulift α) := of_equiv _ equiv.ulift
 
 instance plift : denumerable (plift α) := of_equiv _ equiv.plift
 
-def pair : (α × α) ≃ α := equiv₂ _ _
+def pair : α × α ≃ α := equiv₂ _ _
 
 end
 end denumerable

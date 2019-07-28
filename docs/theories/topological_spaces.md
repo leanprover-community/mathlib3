@@ -1,8 +1,8 @@
 # Maths in lean : Topological Spaces.
 
 The `topological_space` typeclass is defined in mathlib,
-in `analysis/topology/topological_space.lean`. There are over 4500
-lines of code in `analysis/topology` at the time of writing,
+in `topology/basic.lean`. There are over 4500
+lines of code in `topology` at the time of writing,
 covering the basics of topological spaces, continuous functions,
 topological groups and rings, and infinite sums. These docs
 are just concerned with the contents of the `topological_space.lean`
@@ -56,7 +56,7 @@ variables {X : Type} [topological_space X] {U V C D Y Z : set X}
 
 example : is_closed C → is_closed D → is_closed (C ∪ D) := is_closed_union
 
-example : is_open ( -C) ↔ is_closed C := is_open_compl_iff 
+example : is_open ( -C) ↔ is_closed C := is_open_compl_iff
 
 example : is_open U → is_closed C → is_open (U - C) := is_open_diff
 
@@ -86,9 +86,9 @@ Informally, one can think of `F` as the set of "big" subsets of `X`. For example
 
 Note that if `F` is a filter that contains the empty set, then it contains all subsets of `X` by the first axiom. This filter is sometimes called "bottom" (we will see why a little later on). Some references demand that the empty set is not allowed to be in a filter -- Lean does not have this restriction. A filter not containing the empty set is sometimes called a "proper filter".
 
-If `X` is a topological space, and `x ∈ X`, then the _neighbourhood filter_ `nhds x` of `x` is the set of subsets `Y` of `X` such that `x` is in the interior of `Y`. One checks easily that this is a filter (technical point: to see that this is actually the definition of `nhds x` in mathlib, it helps to know that the set of all filters on a type is a complete lattice, partially ordered using `F ≤ G` iff `G ⊆ F`, so the definition, which involves an inf, is actually a union; also, the definition I give is not literally the definition in mathlib, but `lemma nhds_sets` says that their definition is the one here. Note also that this is why the filter with the most sets is called bottom!). 
+If `X` is a topological space, and `x ∈ X`, then the _neighbourhood filter_ `nhds x` of `x` is the set of subsets `Y` of `X` such that `x` is in the interior of `Y`. One checks easily that this is a filter (technical point: to see that this is actually the definition of `nhds x` in mathlib, it helps to know that the set of all filters on a type is a complete lattice, partially ordered using `F ≤ G` iff `G ⊆ F`, so the definition, which involves an inf, is actually a union; also, the definition I give is not literally the definition in mathlib, but `lemma nhds_sets` says that their definition is the one here. Note also that this is why the filter with the most sets is called bottom!).
 
-Why are we interested in these filters? Well, given a map `f` from `ℕ` to a topological space `X`, one can check that the resulting sequence `f 0`, `f 1`, `f 2`... tends to `x ∈ F` if and only if the pre-image of any element in the filter `nhds x` is in the cofinite filter on `ℕ` -- this is just another way of saying that given any open set `U` containing `x`, there exists `N` such that for all `n ≥ N`, `f n ∈ U`. So filters provide a way of thinking about limits. 
+Why are we interested in these filters? Well, given a map `f` from `ℕ` to a topological space `X`, one can check that the resulting sequence `f 0`, `f 1`, `f 2`... tends to `x ∈ F` if and only if the pre-image of any element in the filter `nhds x` is in the cofinite filter on `ℕ` -- this is just another way of saying that given any open set `U` containing `x`, there exists `N` such that for all `n ≥ N`, `f n ∈ U`. So filters provide a way of thinking about limits.
 
 The _principal filter_ `principal Y` attached to a subset `Y` of a set `X` is the collection of all subsets of `X` that contain `Y`. So it's not difficult to convince yourself that the following results should be true:
 
@@ -117,8 +117,8 @@ Translated, this says that a subset `Y` of a topological space `X` is compact if
 One might ask why this definition of compactness has been chosen, rather than the standard one about open covers having finite subcovers. The reasons for this are in some sense computer-scientific rather than mathematical -- the issue should not be what definition is ultimately chosen (indeed the developers should feel free to choose whatever definition they like as long as it is logically equivalent to the usual one, and they might have reasons related to non-mathematical points such as running times), the issue should be how to prove that the inbuilt definition is equivalent to the one you want to use in practice. And fortunately, we have
 
 ```lean
-example : compact Y ↔ 
-  (∀ cov : set (set X), (∀ U ∈ cov, is_open U) → Y ⊆ ⋃₀ cov → 
+example : compact Y ↔
+  (∀ cov : set (set X), (∀ U ∈ cov, is_open U) → Y ⊆ ⋃₀ cov →
     ∃ fincov ⊆ cov, set.finite fincov ∧ Y ⊆ ⋃₀ fincov) := compact_iff_finite_subcover
 ```
 
@@ -152,7 +152,7 @@ a topology with the underlying collection of open sets), or more constructively
 as the sets "generated by" `S` using the axioms of a topological space.
 Unsurprisingly, it is this latter definition which is used in Lean, as the
 open sets are naturally an inductive type; the open sets are called
-`generate_open S` and the topology is `generate_from S`. 
+`generate_open S` and the topology is `generate_from S`.
 
 The definition of a basis for a topology in mathlib includes an axiom
 that the topology is generated from the basis in the sense above, which may make
@@ -161,7 +161,7 @@ directly. However again we have a theorem which reduces us to checking
 the two usual axioms for a basis:
 
 ```lean
-example (B : set (set X)) (h_open : ∀ V ∈ B, is_open V) 
+example (B : set (set X)) (h_open : ∀ V ∈ B, is_open V)
   (h_nhds : ∀ (x : X) (U : set X), x ∈ U → is_open U → ∃ V ∈ B, x ∈ V ∧ V ⊆ U) :
 is_topological_basis B :=
 is_topological_basis_of_open_of_nhds h_open h_nhds

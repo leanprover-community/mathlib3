@@ -51,7 +51,7 @@ open set lattice
 
 section order
 variables {α : Type u} (r : α → α → Prop)
-local infix `≼` : 50 := r
+local infix ` ≼ ` : 50 := r
 
 lemma directed_on_Union {r} {ι : Sort v} {f : ι → set α} (hd : directed (⊆) f)
   (h : ∀x, directed_on r (f x)) : directed_on r (⋃x, f x) :=
@@ -839,10 +839,10 @@ begin
   suffices : (∀ (A : set α) (B : set β), B ∈ F → f ⁻¹' B ⊆ A → x ∈ A) ↔
     ∀ (B : set β), B ∈ F → f x ∈ B,
   by simp only [mem_sInter, mem_Inter, mem_comap_sets, this, and_imp, mem_comap_sets, exists_prop, mem_sInter,
-    iff_self, mem_Inter, mem_preimage_eq, exists_imp_distrib],
+    iff_self, mem_Inter, mem_preimage, exists_imp_distrib],
   split,
   { intros h U U_in,
-    simpa only [set.subset.refl, forall_prop_of_true, mem_preimage_eq] using h (f ⁻¹' U) U U_in },
+    simpa only [set.subset.refl, forall_prop_of_true, mem_preimage] using h (f ⁻¹' U) U U_in },
   { intros h V U U_in f_U_V,
     exact f_U_V (h U U_in) },
 end
@@ -855,7 +855,7 @@ begin
   intros  m₁ m₂ h s hs,
   show {x | m₁ x ∈ s} ∈ f,
   filter_upwards [h, hs],
-  simp only [subset_def, mem_preimage_eq, mem_set_of_eq, forall_true_iff] {contextual := tt}
+  simp only [subset_def, mem_preimage, mem_set_of_eq, forall_true_iff] {contextual := tt}
 end,
 le_antisymm (this m₁ m₂ h) (this m₂ m₁ $ mem_sets_of_superset h $ assume x, eq.symm)
 
@@ -892,7 +892,7 @@ begin
   refine le_antisymm
     (le_inf (map_mono inf_le_left) (map_mono inf_le_right))
     (assume s hs, _),
-  simp only [map, mem_inf_sets, exists_prop, mem_map, mem_preimage_eq, mem_inf_sets] at hs ⊢,
+  simp only [map, mem_inf_sets, exists_prop, mem_map, mem_preimage, mem_inf_sets] at hs ⊢,
   rcases hs with ⟨t₁, h₁, t₂, h₂, hs⟩,
   refine ⟨m '' (t₁ ∩ t), _, m '' (t₂ ∩ t), _, _⟩,
   { filter_upwards [h₁, htf] assume a h₁ h₂, mem_image_of_mem _ ⟨h₁, h₂⟩ },
@@ -1238,7 +1238,7 @@ begin
   revert h₀ h₁, simp only [tendsto_def, mem_inf_principal],
   intros h₀ h₁ s hs,
   apply mem_sets_of_superset (inter_mem_sets (h₀ s hs) (h₁ s hs)),
-  rintros x ⟨hp₀, hp₁⟩, dsimp,
+  rintros x ⟨hp₀, hp₁⟩, simp only [mem_preimage],
   by_cases h : p x,
   { rw if_pos h, exact hp₀ h },
   rw if_neg h, exact hp₁ h
@@ -1604,7 +1604,7 @@ lemma ultrafilter_bind {f : filter α} (hf : is_ultrafilter f) {m : α → filte
   (hm : ∀ a, is_ultrafilter (m a)) : is_ultrafilter (f.bind m) :=
 begin
   simp only [ultrafilter_iff_compl_mem_iff_not_mem] at ⊢ hf hm, intro s,
-  dsimp [bind, join, map],
+  dsimp [bind, join, map, preimage],
   simp only [hm], apply hf
 end
 

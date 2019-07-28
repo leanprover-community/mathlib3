@@ -58,9 +58,10 @@ def ulift_functor : Type u ⥤ Type (max u v) :=
 @[simp] lemma ulift_functor_map {X Y : Type u} (f : X ⟶ Y) (x : ulift.{v} X) :
   ulift_functor.map f x = ulift.up (f x.down) := rfl
 
-instance ulift_functor_faithful : fully_faithful ulift_functor :=
-{ preimage := λ X Y f x, (f (ulift.up x)).down,
-  injectivity' := λ X Y f g p, funext $ λ x,
+instance ulift_functor_full : full ulift_functor :=
+{ preimage := λ X Y f x, (f (ulift.up x)).down }
+instance ulift_functor_faithful : faithful ulift_functor :=
+{ injectivity' := λ X Y f g p, funext $ λ x,
     congr_arg ulift.down ((congr_fun p (ulift.up x)) : ((ulift.up (f x)) = (ulift.up (g x)))) }
 
 def hom_of_element {X : Type u} (x : X) : punit ⟶ X := λ _, x
@@ -107,6 +108,28 @@ begin
     rw ←forall_iff_forall_surj H,
     intro x,
     exact (congr_fun H₂ x : _) }
+end
+
+section
+
+/-- `of_type_functor m` converts from Lean's `Type`-based `category` to `category_theory`. This
+allows us to use these functors in category theory. -/
+def of_type_functor (m : Type u → Type v) [_root_.functor m] [is_lawful_functor m] :
+  Type u ⥤ Type v :=
+{ obj       := m,
+  map       := λα β, _root_.functor.map,
+  map_id'   := assume α, _root_.functor.map_id,
+  map_comp' := assume α β γ f g, funext $ assume a, is_lawful_functor.comp_map f g _ }
+
+variables (m : Type u → Type v) [_root_.functor m] [is_lawful_functor m]
+
+@[simp]
+lemma of_type_functor_obj : (of_type_functor m).obj = m := rfl
+
+@[simp]
+lemma of_type_functor_map {α β} (f : α → β) :
+  (of_type_functor m).map f = (_root_.functor.map f : m α → m β) := rfl
+
 end
 
 end category_theory

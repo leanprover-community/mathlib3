@@ -1,3 +1,4 @@
+
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
@@ -64,6 +65,10 @@ do gs ← get_goals,
    | (some g) := set_goals (g :: gs.remove_nth (n-1))
    | _        := skip
    end
+
+/-- `rotate n` cyclically shifts the goals `n` times.
+ `rotate` defaults to `rotate 1`. -/
+meta def rotate (n := 1) : tactic unit := tactic.rotate n
 
 /-- Clear all hypotheses starting with `_`, like `_match` and `_let_match`. -/
 meta def clear_ : tactic unit := tactic.repeat $ do
@@ -573,6 +578,29 @@ meta def change' (q : parse texpr) : parse (tk "with" *> texpr)? → parse locat
   do l' ← loc.get_local_pp_names l,
      l'.mmap' (λ e, try (change_with_at q w e)),
      when l.include_goal $ change q w (loc.ns [none])
+
+meta def convert_to_core (r : pexpr) : tactic unit :=
+do tgt ← target,
+   h   ← to_expr ``(_ : %%tgt = %%r),
+   rewrite_target h,
+   swap
+
+/--
+`convert_to g using n` attempts to change the current goal to `g`,
+using `congr' n` to resolve discrepancies.
+
+`convert_to g` defaults to using `congr' 1`.
+-/
+meta def convert_to (r : parse texpr) (n : parse (tk "using" *> small_nat)?) : tactic unit :=
+match n with
+  | none     := convert_to_core r >> `[congr' 1]
+  | (some 0) := convert_to_core r
+  | (some o) := convert_to_core r >> congr' o
+end
+
+/-- `ac_change g using n` is `convert_to g using n; try {ac_refl}` -/
+meta def ac_change (r : parse texpr) (n : parse (tk "using" *> small_nat)?) : tactic unit :=
+convert_to r n; try ac_refl
 
 private meta def opt_dir_with : parser (option (bool × name)) :=
 (do tk "with",

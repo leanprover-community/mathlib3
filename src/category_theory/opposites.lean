@@ -70,6 +70,11 @@ def op_op : (Cᵒᵖ)ᵒᵖ ⥤ C :=
 
 -- TODO this is an equivalence
 
+def is_iso_of_op {X Y : C} (f : X ⟶ Y) [is_iso f.op] : is_iso f :=
+{ inv := (inv (f.op)).unop,
+  hom_inv_id' := has_hom.hom.op_inj (by simp),
+  inv_hom_id' := has_hom.hom.op_inj (by simp) }
+
 namespace functor
 
 section

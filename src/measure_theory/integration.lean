@@ -137,7 +137,7 @@ by unfold_coes; simp [restrict, hs]; apply ite_apply hs
 theorem restrict_preimage [has_zero β]
   (f : α →ₛ β) {s : set α} (hs : is_measurable s)
   {t : set β} (ht : (0:β) ∉ t) : restrict f s ⁻¹' t = s ∩ f ⁻¹' t :=
-by ext a; dsimp; rw [restrict_apply]; by_cases a ∈ s; simp [h, hs, ht]
+by ext a; dsimp [preimage]; rw [restrict_apply]; by_cases a ∈ s; simp [h, hs, ht]
 
 def map (g : β → γ) (f : α →ₛ β) : α →ₛ γ := bind f (const α ∘ g)
 
@@ -270,7 +270,7 @@ by rw [approx_apply _ hf, approx_apply _ (hf.comp hg)]
 end
 
 lemma supr_approx_apply [topological_space β] [complete_lattice β] [ordered_topology β] [has_zero β]
-  (i : ℕ → β) (f : α → β) (a : α) (hf : _root_.measurable f) (h_zero : (0 : β) = ⊥):
+  (i : ℕ → β) (f : α → β) (a : α) (hf : _root_.measurable f) (h_zero : (0 : β) = ⊥) :
   (⨆n, (approx i f n : α →ₛ β) a) = (⨆k (h : i k ≤ f a), i k) :=
 begin
   refine le_antisymm (supr_le $ assume n, _) (supr_le $ assume k, supr_le $ assume hk, _),
@@ -408,7 +408,7 @@ begin
 end
 
 lemma restrict_preimage' {r : ennreal} {s : set α}
-  (f : α →ₛ ennreal) (hs : is_measurable s) (hr : r ≠ 0):
+  (f : α →ₛ ennreal) (hs : is_measurable s) (hr : r ≠ 0) :
   (restrict f s) ⁻¹' {r} = (f ⁻¹' {r} ∩ s) :=
 begin
   ext a,
@@ -830,7 +830,7 @@ end
 /-- Monotone convergence theorem for nonincreasing sequences of functions -/
 lemma lintegral_infi_ae
   {f : ℕ → α → ennreal} (h_meas : ∀n, measurable (f n))
-  (h_mono : ∀n:ℕ, ∀ₘ a, f n.succ a ≤ f n a) (h_fin : lintegral (f 0) < ⊤):
+  (h_mono : ∀n:ℕ, ∀ₘ a, f n.succ a ≤ f n a) (h_fin : lintegral (f 0) < ⊤) :
   (∫⁻ a, ⨅n, f n a) = (⨅n, ∫⁻ a, f n a) :=
 have fn_le_f0 : (∫⁻ a, ⨅n, f n a) ≤ lintegral (f 0), from
   lintegral_le_lintegral _ _ (assume a, infi_le_of_le 0 (le_refl _)),

@@ -16,7 +16,7 @@ so as to make the operations (addition etc.) "computable".
 -/
 
 import linear_algebra.direct_sum_module
-import linear_algebra.linear_combination
+import algebra.big_operators
 import ring_theory.free_comm_ring
 import ring_theory.ideal_operations
 
@@ -216,7 +216,7 @@ linear_map.is_add_group_hom _
 module.direct_limit.of_f
 
 @[simp] lemma of_zero (i) : of G f i 0 = 0 := is_add_group_hom.map_zero _
-@[simp] lemma of_add (i x y) : of G f i (x + y) = of G f i x + of G f i y := is_add_group_hom.map_add _ _ _
+@[simp] lemma of_add (i x y) : of G f i (x + y) = of G f i x + of G f i y := is_add_hom.map_add _ _ _
 @[simp] lemma of_neg (i x) : of G f i (-x) = -of G f i x := is_add_group_hom.map_neg _ _
 @[simp] lemma of_sub (i x y) : of G f i (x - y) = of G f i x - of G f i y := is_add_group_hom.map_sub _ _ _
 
@@ -250,7 +250,7 @@ linear_map.is_add_group_hom _
 module.direct_limit.lift_of _ _ _
 
 @[simp] lemma lift_zero : lift G f P g Hg 0 = 0 := is_add_group_hom.map_zero _
-@[simp] lemma lift_add (x y) : lift G f P g Hg (x + y) = lift G f P g Hg x + lift G f P g Hg y := is_add_group_hom.map_add _ _ _
+@[simp] lemma lift_add (x y) : lift G f P g Hg (x + y) = lift G f P g Hg x + lift G f P g Hg y := is_add_hom.map_add _ _ _
 @[simp] lemma lift_neg (x) : lift G f P g Hg (-x) = -lift G f P g Hg x := is_add_group_hom.map_neg _ _
 @[simp] lemma lift_sub (x y) : lift G f P g Hg (x - y) = lift G f P g Hg x - lift G f P g Hg y := is_add_group_hom.map_sub _ _ _
 

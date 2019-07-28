@@ -124,7 +124,7 @@ begin
         split,
         apply div_nonneg ; linarith,
         apply (div_le_iff this).2,
-        simp, convert hzb, ring},
+        simp, convert hzb },
       use [(z-a)/(b-a), this],
       rw [smul_eq_mul, div_mul_cancel],
       ring,

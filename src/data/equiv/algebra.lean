@@ -401,7 +401,7 @@ by { cases f, cases g, congr, apply equiv.eq_of_to_fun_eq h }
 
 namespace ring
 
-def aut (R : Type) [ring R] := ring_equiv R R
+def aut (R : Type*) [ring R] := ring_equiv R R
 
 /--
 The group operation on automorphisms of a ring is defined by

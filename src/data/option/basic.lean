@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import logic.basic data.bool data.option.defs tactic.basic
+import logic.basic data.bool data.option.defs tactic.basic tactic.norm_cast
 
 namespace option
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -142,4 +142,25 @@ theorem lift_or_get_choice {f : α → α → α} (h : ∀ a b, f a b = a ∨ f 
 | none     (some b) := or.inr rfl
 | (some a) (some b) := by simpa [lift_or_get] using h a b
 
+/- Add functorial coercions and basic lemmas about it. -/
+section coercions
+variable [has_coe α β]
+
+instance option.to_option : has_coe (option α) (option β) := ⟨option.map (λ a, (a : β))⟩
+
+@[simp, move_cast]
+lemma option.coe_some (a : α) : (↑(some a : option α) : option β) = some ↑a := rfl
+
+@[simp, squash_cast]
+lemma option.coe_none : (↑(none : option α) : option β) = (none : option β) := rfl
+
+@[simp]
+lemma option.coe_value (a : α) : ↑a = some a := rfl
+
+@[simp, elim_cast]
+lemma option.coe_none_iff_none {o : option α} :
+  (↑(o : option α) : option β) = (none : option β) ↔ o = none :=
+by { cases o; simp }
+
+end coercions
 end option

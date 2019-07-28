@@ -100,13 +100,15 @@ by simp; refl
 @[simp] theorem prod_nat_of_nat : of_nat (ℕ × ℕ) = unpair :=
 by funext; simp
 
-instance int : denumerable ℤ := of_equiv _ equiv.int_equiv_nat
+instance int : denumerable ℤ := denumerable.mk' equiv.int_equiv_nat
+
+instance pnat : denumerable ℕ+ := denumerable.mk' equiv.pnat_equiv_nat
 
 instance ulift : denumerable (ulift α) := of_equiv _ equiv.ulift
 
 instance plift : denumerable (plift α) := of_equiv _ equiv.plift
 
-def pair : (α × α) ≃ α := equiv₂ _ _
+def pair : α × α ≃ α := equiv₂ _ _
 
 end
 end denumerable
@@ -168,7 +170,7 @@ if ht : t = [] then ⟨0, le_antisymm (@bot_le s _ _)
   (le_of_not_gt (λ h, list.not_mem_nil ⊥ $
     by rw [← ht, hmt]; exact h))⟩
 else by letI : inhabited s := ⟨⊥⟩;
-  exact have wf : (list.maximum t).1 < x, by simpa [hmt] using list.mem_maximum ht,
+  exact have wf : (list.maximum t).1 < x, by simpa [hmt] using list.maximum_mem ht,
   let ⟨a, ha⟩ := of_nat_surjective_aux (list.maximum t).2 in
   ⟨a + 1, le_antisymm
     (by rw of_nat; exact succ_le_of_lt (by rw ha; exact wf)) $

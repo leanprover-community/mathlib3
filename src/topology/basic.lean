@@ -1,22 +1,47 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Mario Carneiro
-
-Theory of topological spaces.
-
-Parts of the formalization is based on the books:
-  N. Bourbaki: General Topology
-  I. M. James: Topologies and Uniformities
-A major difference is that this formalization is heavily based on the filter library.
+Authors: Johannes Hölzl, Mario Carneiro, Jeremy Avigad
 -/
+
 import order.filter
 
+/-!
+# Basic theory of topological spaces.
+
+The main definition is the type class `topological space α` which endows a type `α` with a topology.
+Then `set α` gets predicates `is_open`, `is_closed` and functions `interior`, `closure` and
+`frontier`. Each point `x` of `α` gets a neighborhood filter `nhds x`, and relative versions
+`nhds_within x s` for every set `s` in `α`.
+
+This file also defines locally finite families of subsets of `α`.
+
+For topological spaces `α` and `β`, a function `f : α → β` and a point `a : α`,
+`continuous_at f a` means `f` is continuous at `a`, and global continuity is
+`continuous f`. There are also relative versions `continuous_within_at` and `continuous_on`
+and continuity `pcontinuous` for partially defined functions.
+
+## Implementation notes
+
+Topology in mathlib heavily uses filters (even more than in Bourbaki). See explanations in
+`docs/theories/topological_spaces.md`.
+
+## References
+
+*  [N. Bourbaki, *General Topology*][bourbaki1966]
+*  [I. M. James, *Topologies and Uniformities*][james1999]
+
+## Tags
+
+topological space, interior, closure, frontier, neighborhood, continuity, continuous function
+-/
+
 open set filter lattice classical
-local attribute [instance] prop_decidable
+local attribute [instance, priority 0] prop_decidable
 
 universes u v w
 
+/-- A topology on `α`. -/
 structure topological_space (α : Type u) :=
 (is_open       : set α → Prop)
 (is_open_univ   : is_open univ)
@@ -303,6 +328,10 @@ begin
     exact h U U_op (ne_empty_of_mem x_in) },
 end
 
+lemma dense_of_subset_dense {s₁ s₂ : set α} (h : s₁ ⊆ s₂) (hd : closure s₁ = univ) :
+  closure s₂ = univ :=
+by { rw [← univ_subset_iff, ← hd], exact closure_mono h }
+
 /-- The frontier of a set is the set of points between the closure and interior. -/
 def frontier (s : set α) : set α := closure s \ interior s
 
@@ -518,10 +547,8 @@ noncomputable def lim (f : filter α) : α := epsilon $ λa, f ≤ nhds a
 lemma lim_spec {f : filter α} (h : ∃a, f ≤ nhds a) : f ≤ nhds (lim f) := epsilon_spec h
 end lim
 
-/-
-The nhds_within filter.
--/
-
+/-- The "neighborhood within" filter. Elements of `nhds_within a s` are sets containing the
+intersection of `s` and a neighborhood of `a`. -/
 def nhds_within (a : α) (s : set α) : filter α := nhds a ⊓ principal s
 
 theorem nhds_within_eq (a : α) (s : set α) :
@@ -545,6 +572,13 @@ begin
   exact ⟨u, λ x xu xs, hu ⟨xu, xs⟩, openu, au⟩
 end
 
+theorem self_mem_nhds_within {a : α} {s : set α} : s ∈ nhds_within a s :=
+begin
+  rw [nhds_within, mem_inf_principal],
+  simp only [imp_self],
+  exact univ_mem_sets
+end
+
 theorem inter_mem_nhds_within (s : set α) {t : set α} {a : α} (h : t ∈ nhds a) :
   s ∩ t ∈ nhds_within a s :=
 inter_mem_sets (mem_inf_sets_of_right (mem_principal_self s)) (mem_inf_sets_of_left h)
@@ -552,15 +586,28 @@ inter_mem_sets (mem_inf_sets_of_right (mem_principal_self s)) (mem_inf_sets_of_l
 theorem nhds_within_mono (a : α) {s t : set α} (h : s ⊆ t) : nhds_within a s ≤ nhds_within a t :=
 lattice.inf_le_inf (le_refl _) (principal_mono.mpr h)
 
-theorem nhds_within_restrict' {a : α} (s : set α) {t : set α} (h : t ∈ nhds a) :
+theorem nhds_within_restrict'' {a : α} (s : set α) {t : set α} (h : t ∈ nhds_within a s) :
   nhds_within a s = nhds_within a (s ∩ t) :=
 le_antisymm
-  (lattice.le_inf lattice.inf_le_left (le_principal_iff.mpr (inter_mem_nhds_within s h)))
+  (lattice.le_inf lattice.inf_le_left (le_principal_iff.mpr (inter_mem_sets self_mem_nhds_within h)))
   (lattice.inf_le_inf (le_refl _) (principal_mono.mpr (set.inter_subset_left _ _)))
+
+theorem nhds_within_restrict' {a : α} (s : set α) {t : set α} (h : t ∈ nhds a) :
+  nhds_within a s = nhds_within a (s ∩ t) :=
+nhds_within_restrict'' s $ mem_inf_sets_of_left h
 
 theorem nhds_within_restrict {a : α} (s : set α) {t : set α} (h₀ : a ∈ t) (h₁ : is_open t) :
   nhds_within a s = nhds_within a (s ∩ t) :=
 nhds_within_restrict' s (mem_nhds_sets h₁ h₀)
+
+theorem nhds_within_le_of_mem {a : α} {s t : set α} (h : s ∈ nhds_within a t) :
+  nhds_within a t ≤ nhds_within a s :=
+begin
+  rcases (mem_nhds_within _ _ _).1 h with ⟨u, u_open, au, uts⟩,
+  have : nhds_within a t = nhds_within a (t ∩ u) := nhds_within_restrict _ au u_open,
+  rw [this, inter_comm],
+  exact nhds_within_mono _ uts
+end
 
 theorem nhds_within_eq_nhds_within {a : α} {s t u : set α}
     (h₀ : a ∈ s) (h₁ : is_open s) (h₂ : t ∩ s = u ∩ s) :
@@ -678,11 +725,17 @@ variables [topological_space α] [topological_space β] [topological_space γ]
   of every open set is open. -/
 def continuous (f : α → β) := ∀s, is_open s → is_open (f ⁻¹' s)
 
+/-- A function between topological spaces is continuous at a point `x₀`
+if `f x` tends to `f x₀` when `x` tends to `x₀`. -/
 def continuous_at (f : α → β) (x : α) := tendsto f (nhds x) (nhds (f x))
 
+/-- A function between topological spaces is continuous at a point `x₀` within a subset `s`
+if `f x` tends to `f x₀` when `x` tends to `x₀` while staying within `s`. -/
 def continuous_within_at (f : α → β) (s : set α) (x : α) : Prop :=
 tendsto f (nhds_within x s) (nhds (f x))
 
+/-- A function between topological spaces is continuous on a subset `s`
+when it's continuous at every point of `s` within `s`. -/
 def continuous_on (f : α → β) (s : set α) : Prop := ∀ x ∈ s, continuous_within_at f s x
 
 lemma continuous_id : continuous (id : α → α) :=
@@ -761,6 +814,7 @@ by rw [this]; exact is_closed_union
 
 /- Continuity and partial functions -/
 
+/-- Continuity of a partial function -/
 def pcontinuous (f : α →. β) := ∀ s, is_open s → is_open (f.preimage s)
 
 lemma open_dom_of_pcontinuous {f : α →. β} (h : pcontinuous f) : is_open f.dom :=

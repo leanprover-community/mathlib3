@@ -11,7 +11,7 @@ import algebra.pi_instances data.finsupp data.equiv.algebra order.order_iso
 
 open function lattice
 
-reserve infix `≃ₗ` : 50
+reserve infix ` ≃ₗ `:25
 
 universes u v w x y z
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type y} {ε : Type z} {ι : Type x}
@@ -258,6 +258,9 @@ instance : has_top (submodule α β) :=
 @[simp] lemma top_coe : ((⊤ : submodule α β) : set β) = univ := rfl
 
 @[simp] lemma mem_top : x ∈ (⊤ : submodule α β) := trivial
+
+lemma eq_bot_of_zero_eq_one (zero_eq_one : (0 : α) = 1) : p = ⊥ :=
+by ext x; simp [semimodule.eq_zero_of_zero_eq_one _ x zero_eq_one]
 
 instance : order_top (submodule α β) :=
 { top := ⊤,
@@ -605,6 +608,10 @@ span_eq_bot.trans $ by simp
 span_eq_of_le _ (image_subset _ subset_span) $ map_le_iff_le_comap.2 $
 span_le.2 $ image_subset_iff.1 subset_span
 
+lemma linear_eq_on (s : set β) {f g : β →ₗ[α] γ} (H : ∀x∈s, f x = g x) {x} (h : x ∈ span α s) :
+  f x = g x :=
+by apply span_induction h H; simp {contextual := tt}
+
 def prod : submodule α (β × γ) :=
 { carrier := set.prod p q,
   zero := ⟨zero_mem _, zero_mem _⟩,
@@ -773,6 +780,22 @@ by rw [← submodule.ext'_iff, range_coe, top_coe, set.range_iff_surjective]
 lemma range_le_iff_comap {f : β →ₗ[α] γ} {p : submodule α γ} : range f ≤ p ↔ comap f p = ⊤ :=
 by rw [range, map_le_iff_le_comap, eq_top_iff]
 
+lemma map_le_range {f : β →ₗ[α] γ} {p : submodule α β} : map f p ≤ range f :=
+map_mono le_top
+
+lemma sup_range_inl_inr :
+  (inl α β γ).range ⊔ (inr α β γ).range = ⊤ :=
+begin
+  refine eq_top_iff'.2 (λ x, mem_sup.2 _),
+  rcases x with ⟨x₁, x₂⟩ ,
+  have h₁ : prod.mk x₁ (0 : γ) ∈ (inl α β γ).range,
+    by simp,
+  have h₂ : prod.mk (0 : β) x₂ ∈ (inr α β γ).range,
+    by simp,
+  use [⟨x₁, 0⟩, h₁, ⟨0, x₂⟩, h₂],
+  simp
+end
+
 def ker (f : β →ₗ[α] γ) : submodule α β := comap f ⊥
 
 @[simp] theorem mem_ker {f : β →ₗ[α] γ} {y} : y ∈ ker f ↔ f y = 0 := mem_bot α
@@ -801,6 +824,9 @@ theorem inj_of_disjoint_ker {f : β →ₗ[α] γ} {p : submodule α β}
   {s : set β} (h : s ⊆ p) (hd : disjoint p (ker f)) :
   ∀ x y ∈ s, f x = f y → x = y :=
 λ x y hx hy, disjoint_ker'.1 hd _ _ (h hx) (h hy)
+
+lemma disjoint_inl_inr : disjoint (inl α β γ).range (inr α β γ).range :=
+by simp [disjoint_def, @eq_comm β 0, @eq_comm γ 0] {contextual := tt}; intros; refl
 
 theorem ker_eq_bot {f : β →ₗ[α] γ} : ker f = ⊥ ↔ injective f :=
 by simpa [disjoint] using @disjoint_ker' _ _ _ _ _ _ _ _ f ⊤

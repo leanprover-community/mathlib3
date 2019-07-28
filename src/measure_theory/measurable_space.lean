@@ -329,7 +329,7 @@ lemma measurable.if [measurable_space α] [measurable_space β]
 λ s hs, show is_measurable {a | (if p a then f a else g a) ∈ s},
 begin
   convert (hp.inter $ hf s hs).union (hp.compl.inter $ hg s hs),
-  exact ext (λ a, by by_cases p a; simp [h, mem_def])
+  exact ext (λ a, by by_cases p a ; { rw mem_def, simp [h] })
 end
 
 lemma measurable_const {α β} [measurable_space α] [measurable_space β] {a : α} : measurable (λb:β, a) :=
@@ -351,6 +351,38 @@ instance : measurable_space ℤ := ⊤
 lemma measurable_unit [measurable_space α] (f : unit → α) : measurable f :=
 have f = (λu, f ()) := funext $ assume ⟨⟩, rfl,
 by rw this; exact measurable_const
+
+section nat
+
+lemma measurable_from_nat [measurable_space α] {f : ℕ → α} : measurable f :=
+assume s hs, show is_measurable {n : ℕ | f n ∈ s}, from trivial
+
+lemma measurable_to_nat [measurable_space α] {f : α → ℕ} :
+(∀ k, is_measurable {x | f x = k}) → measurable f :=
+begin
+  assume h s hs, show is_measurable {x | f x ∈ s},
+  have : {x | f x ∈ s} = ⋃ (n ∈ s), {x | f x = n}, { ext, simp },
+  rw this, simp [is_measurable.Union, is_measurable.Union_Prop, h]
+end
+
+lemma measurable_find_greatest [measurable_space α] {p : ℕ → α → Prop} :
+  ∀ {N}, (∀ k ≤ N, is_measurable {x | nat.find_greatest (λ n, p n x) N = k}) →
+  measurable (λ x, nat.find_greatest (λ n, p n x) N)
+| 0 := assume h s hs, show is_measurable {x : α | (nat.find_greatest (λ n, p n x) 0) ∈ s},
+begin
+  by_cases h : 0 ∈ s,
+  { convert is_measurable.univ, simp only [nat.find_greatest_zero, h] },
+  { convert is_measurable.empty, simp only [nat.find_greatest_zero, h], refl }
+end
+| (n + 1) := assume h,
+begin
+  apply measurable_to_nat, assume k, by_cases hk : k ≤ n + 1,
+  { exact h k hk },
+  { have := is_measurable.empty, rw ← set_of_false at this, convert this, funext, rw eq_false,
+    assume h, rw ← h at hk, have := nat.find_greatest_le, contradiction }
+end
+
+end nat
 
 section subtype
 
@@ -811,7 +843,7 @@ def restrict_on {s : set α} (h : d.has s) : dynkin_system α :=
       (compl_subset_compl.mpr $ inter_subset_right _ _),
   has_Union_nat := assume f hd hf,
     begin
-      rw [inter_comm, inter_Union_left],
+      rw [inter_comm, inter_Union],
       apply d.has_Union_nat,
       { exact λ i j h x ⟨⟨_, h₁⟩, _, h₂⟩, hd i j h ⟨h₁, h₂⟩ },
       { simpa [inter_comm] using hf },

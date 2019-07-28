@@ -218,9 +218,20 @@ end update
 lemma uncurry_def {α β γ} (f : α → β → γ) : uncurry f = (λp, f p.1 p.2) :=
 funext $ assume ⟨a, b⟩, rfl
 
+-- `uncurry'` is the version of `uncurry` with correct definitional reductions
+def uncurry' {α β γ} (f : α → β → γ) := λ p : α × β, f p.1 p.2
+
+@[simp]
+lemma curry_uncurry' {α : Type*} {β : Type*} {γ : Type*} (f : α → β → γ) : curry (uncurry' f) = f :=
+by funext ; refl
+
+@[simp]
+lemma uncurry'_curry {α : Type*} {β : Type*} {γ : Type*} (f : α × β → γ) : uncurry' (curry f) = f :=
+by { funext, simp [curry, uncurry', prod.mk.eta] }
+
 def restrict {α β} (f : α → β) (s : set α) : subtype s → β := λ x, f x.val
 
-theorem restrict_eq {α β} (f : α → β) (s : set α): function.restrict f s = f ∘ (@subtype.val _ s) := rfl
+theorem restrict_eq {α β} (f : α → β) (s : set α) : function.restrict f s = f ∘ (@subtype.val _ s) := rfl
 
 section bicomp
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ε : Type*}
@@ -238,6 +249,8 @@ lemma uncurry_bicompr (f : α → β → γ) (g : γ → δ) :
   uncurry (g ∘₂ f) = (g ∘ uncurry f) :=
 funext $ λ ⟨p, q⟩, rfl
 
+lemma uncurry'_bicompr (f : α → β → γ) (g : γ → δ) :
+  uncurry' (g ∘₂ f) = (g ∘ uncurry' f) := rfl
 end bicomp
 
 end function

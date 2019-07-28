@@ -17,10 +17,11 @@ universes u v w
 variables {α : Type*} {β : Type*} {γ : Type*}
   {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop}
 
+/-- If `r` is a relation on `α` and `s` in a relation on `β`, then `f : r ≼i s` is an order embedding whose range is an initial segment. That is, whenever `b < f a` in `β` then `b` is in the range of `f`. -/
 structure initial_seg {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends r ≼o s :=
 (init : ∀ a b, s b (to_order_embedding a) → ∃ a', to_order_embedding a' = b)
 
-local infix ` ≼i `:50 := initial_seg
+local infix ` ≼i `:25 := initial_seg
 
 namespace initial_seg
 
@@ -44,9 +45,11 @@ theorem init_iff (f : r ≼i s) {a : α} {b : β} : s b (f a) ↔ ∃ a', f a' =
 def of_iso (f : r ≃o s) : r ≼i s :=
 ⟨f, λ a b h, ⟨f.symm b, order_iso.apply_symm_apply f _⟩⟩
 
+/-- The identity function shows that `≼i` is reflexive -/
 @[refl] protected def refl (r : α → α → Prop) : r ≼i r :=
 ⟨order_embedding.refl _, λ a b h, ⟨_, rfl⟩⟩
 
+/-- Composition of functions shows that `≼i` is transitive -/
 @[trans] protected def trans (f : r ≼i s) (g : s ≼i t) : r ≼i t :=
 ⟨f.1.trans g.1, λ a c h, begin
   simp at h ⊢,
@@ -83,6 +86,7 @@ by rw subsingleton.elim f g
 theorem antisymm.aux [is_well_order α r] (f : r ≼i s) (g : s ≼i r) : left_inverse g f :=
 initial_seg.eq (f.trans g) (initial_seg.refl _)
 
+/-- If we have order embeddings between `α` and `β` whose images are initial segments, and β is a well-order then `α` and `β` are order-isomorphic. -/
 def antisymm [is_well_order β s] (f : r ≼i s) (g : s ≼i r) : r ≃o s :=
 by haveI := f.to_order_embedding.is_well_order; exact
 ⟨⟨f, g, antisymm.aux f g, antisymm.aux g f⟩, f.ord⟩
@@ -122,7 +126,7 @@ structure principal_seg {α β : Type*} (r : α → α → Prop) (s : β → β 
 (top : β)
 (down : ∀ b, s b top ↔ ∃ a, to_order_embedding a = b)
 
-local infix ` ≺i `:50 := principal_seg
+local infix ` ≺i `:25 := principal_seg
 
 namespace principal_seg
 
@@ -245,7 +249,8 @@ def cod_restrict (p : set β) (f : r ≺i s)
 
 end principal_seg
 
-def initial_seg.lt_or_eq [is_well_order β s] (f : r ≼i s) : r ≺i s ⊕ r ≃o s :=
+def initial_seg.lt_or_eq [is_well_order β s] (f : r ≼i s) :
+  (r ≺i s) ⊕ (r ≃o s) :=
 if h : surjective f then sum.inr (order_iso.of_surjective f h) else
 have h' : _, from (initial_seg.eq_or_principal f).resolve_left h,
 sum.inl ⟨f, classical.some h', classical.some_spec h'⟩

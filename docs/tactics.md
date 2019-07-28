@@ -97,6 +97,23 @@ two subgoals, one with variables `a d e` and the other with `b c d e`.
 result. Like `rcases?`, `rintro? : n` allows for modifying the
 depth of splitting; the default is 5.
 
+### obtain
+
+The `obtain` tactic is a combination of `have` and `rcases`.
+```lean
+obtain ⟨patt⟩ : type,
+{ ... }
+```
+is equivalent to
+```lean
+have h : type,
+{ ... },
+rcases h with ⟨patt⟩
+```
+
+ The syntax `obtain ⟨patt⟩ : type := proof` is also supported.
+
+
 ### simpa
 
 This is a "finishing" tactic modification of `simp`. It has two forms.
@@ -1004,3 +1021,33 @@ begin
   exact H h
 end
 ```
+
+### Localized Notation
+
+This consists of two user-commands which allow you to declare notation and commands localized to a namespace.
+
+* Declare notation which is localized to a namespace using:
+```
+localized "infix ` ⊹ `:60 := my_add" in my.add
+```
+* After this command it will be available in the same section/namespace/file, just as if you wrote `local infix ` ⊹ `:60 := my_add`
+* You can open it in other places. The following command will declare the notation again as local notation in that section/namespace/files:
+```
+open_locale my.add
+```
+* More generally, the following will declare all localized notation in the specified namespaces.
+```
+open_locale namespace1 namespace2 ...
+```
+* You can also declare other localized commands, like local attributes
+```
+localized "attribute [simp] le_refl" in le
+```
+
+### swap
+
+`swap n` will move the `n`th goal to the front. `swap` defaults to `swap 2`, and so interchanges the first and second goals.
+
+### rotate
+
+`rotate` moves the first goal to the back. `rotate n` will do this `n` times.

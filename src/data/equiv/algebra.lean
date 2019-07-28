@@ -210,8 +210,8 @@ attribute [to_additive add_equiv.mk] mul_equiv.mk
 attribute [to_additive add_equiv.to_equiv] mul_equiv.to_equiv
 attribute [to_additive add_equiv.hom] mul_equiv.hom
 
-infix ` ≃* `:50 := mul_equiv
-infix ` ≃+ `:50 := add_equiv
+infix ` ≃* `:25 := mul_equiv
+infix ` ≃+ `:25 := add_equiv
 
 namespace mul_equiv
 
@@ -276,7 +276,7 @@ end units
 structure ring_equiv (α β : Type*) [ring α] [ring β] extends α ≃ β :=
 (hom : is_ring_hom to_fun)
 
-infix ` ≃r `:50 := ring_equiv
+infix ` ≃r `:25 := ring_equiv
 
 namespace ring_equiv
 
@@ -284,13 +284,17 @@ variables [ring α] [ring β] [ring γ]
 
 instance (h : α ≃r β) : is_ring_hom h.to_equiv := h.hom
 
+def to_mul_equiv (e : α ≃r β) : α ≃* β :=
+{ hom := by apply_instance, .. e.to_equiv }
+
+def to_add_equiv (e : α ≃r β) : α ≃+ β :=
+{ hom := by apply_instance, .. e.to_equiv }
+
 protected def refl (α : Type*) [ring α] : α ≃r α :=
 { hom := is_ring_hom.id, .. equiv.refl α }
 
 protected def symm {α β : Type*} [ring α] [ring β] (e : α ≃r β) : β ≃r α :=
-{ hom := ⟨(equiv.symm_apply_eq _).2 e.hom.1.symm,
-    λ x y, (equiv.symm_apply_eq _).2 $ show _ = e.to_equiv.to_fun _, by rw [e.2.2, e.1.4, e.1.4],
-    λ x y, (equiv.symm_apply_eq _).2 $ show _ = e.to_equiv.to_fun _, by rw [e.2.3, e.1.4, e.1.4]⟩,
+{ hom := { .. e.to_mul_equiv.symm.is_monoid_hom, .. e.to_add_equiv.symm.hom },
   .. e.to_equiv.symm }
 
 protected def trans {α β γ : Type*} [ring α] [ring β] [ring γ]

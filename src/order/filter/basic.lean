@@ -51,7 +51,7 @@ open set lattice
 
 section order
 variables {α : Type u} (r : α → α → Prop)
-local infix `≼` : 50 := r
+local infix ` ≼ ` : 50 := r
 
 lemma directed_on_Union {r} {ι : Sort v} {f : ι → set α} (hd : directed (⊆) f)
   (h : ∀x, directed_on r (f x)) : directed_on r (⋃x, f x) :=

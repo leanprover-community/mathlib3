@@ -214,6 +214,14 @@ by {ac_change a + d + e + f + c + g + b ≤ _, refl}
 
 end convert_to
 
+section swap
+
+example {α₁ α₂ α₃ : Type} : true :=
+by {have : α₁, have : α₂, have : α₃, swap, swap,
+    rotate, rotate, rotate, rotate 2, rotate 2, triv, recover}
+
+end swap
+
 private meta def get_exception_message (t : lean.parser unit) : lean.parser string
 | s := match t s with
        | result.success a s' := result.success "No exception" s

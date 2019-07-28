@@ -395,7 +395,7 @@ instance aut_group (γ : Type) [add_group γ] : group (aut γ) := add_monoid.aut
 end add_group
 
 
-@[extensionality] lemma ring_equiv.ext {R S : Type} [ring R] [ring S]
+@[extensionality] lemma ring_equiv.ext {R S : Type*} [ring R] [ring S]
 {f g : ring_equiv R S} (h : f.to_fun = g.to_fun) : f = g :=
 by { cases f, cases g, congr, apply equiv.eq_of_to_fun_eq h }
 

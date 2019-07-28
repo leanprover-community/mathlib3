@@ -408,7 +408,7 @@ The group operation on automorphisms of a ring is defined by
 λ g h, ring_equiv.trans h g.
 This means that multiplication agrees with composition, (g*h)(x) = g (h x) .
 -/
-instance aut_group (R : Type) [ring R] : group (aut R) :=
+instance aut_group (R : Type*) [ring R] : group (aut R) :=
 { mul := λ g h, ring_equiv.trans h g,
   one := ring_equiv.refl R,
   inv := ring_equiv.symm,

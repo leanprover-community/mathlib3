@@ -336,7 +336,7 @@ In each case this type also forms a group.
 -/
 
 @[extensionality] lemma mul_equiv.ext {α β : Type*} [group α] [group β]
-{f g : mul_equiv α β} (h : f.to_fun = g.to_fun) : f = g :=
+  {f g : mul_equiv α β} (h : f.to_fun = g.to_fun) : f = g :=
 by { cases f, cases g, congr, apply equiv.eq_of_to_fun_eq h }
 
 

@@ -181,9 +181,6 @@ begin
         exact le_of_lt hε }
 end
 
-lemma tendsto_sqrt (x : ℝ) : tendsto sqrt (nhds x) (nhds (sqrt x)) :=
-continuous_iff_continuous_at.1 continuous_sqrt _
-
 end real
 
 namespace nnreal

@@ -274,4 +274,12 @@ theorem chain.total {α : Type u} [preorder α]
   ∀ {x y}, x ∈ c → y ∈ c → x ≤ y ∨ y ≤ x :=
 @chain.total_of_refl _ (≤) ⟨le_refl⟩ _ H
 
+theorem chain.image {α β : Type*} (r : α → α → Prop)
+  (s : β → β → Prop) (f : α → β)
+  (h : ∀ x y, r x y → s (f x) (f y))
+  {c : set α} (hrc : chain r c) : chain s (f '' c) :=
+λ x ⟨a, ha₁, ha₂⟩ y ⟨b, hb₁, hb₂⟩, ha₂ ▸ hb₂ ▸ λ hxy,
+  (hrc a ha₁ b hb₁ (mt (congr_arg f) $ hxy)).elim
+    (or.inl ∘ h _ _) (or.inr ∘ h _ _)
+
 end zorn

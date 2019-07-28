@@ -47,7 +47,7 @@ attribute [to_additive quotient_add_group.add_group] quotient_group.group
 attribute [to_additive quotient_add_group.quotient.equations._eqn_1] quotient_group.quotient.equations._eqn_1
 attribute [to_additive quotient_add_group.add_group.equations._eqn_1] quotient_group.group.equations._eqn_1
 
-instance : is_group_hom (mk : G → quotient N) := ⟨λ _ _, rfl⟩
+instance : is_group_hom (mk : G → quotient N) := { map_mul := λ _ _, rfl }
 attribute [to_additive quotient_add_group.is_add_group_hom] quotient_group.is_group_hom
 attribute [to_additive quotient_add_group.is_add_group_hom.equations._eqn_1] quotient_group.is_group_hom.equations._eqn_1
 
@@ -91,10 +91,10 @@ local notation ` Q ` := quotient N
 
 def lift (φ : G → H) [is_group_hom φ] (HN : ∀x∈N, φ x = 1) (q : Q) : H :=
 q.lift_on' φ $ assume a b (hab : a⁻¹ * b ∈ N),
-(calc φ a = φ a * 1           : by simp
-...       = φ a * φ (a⁻¹ * b) : by rw HN (a⁻¹ * b) hab
-...       = φ (a * (a⁻¹ * b)) : by rw is_group_hom.map_mul φ a (a⁻¹ * b)
-...       = φ b               : by simp)
+(calc φ a = φ a * 1           : (mul_one _).symm
+...       = φ a * φ (a⁻¹ * b) : HN (a⁻¹ * b) hab ▸ rfl
+...       = φ (a * (a⁻¹ * b)) : (is_mul_hom.map_mul φ a (a⁻¹ * b)).symm
+...       = φ b               : by rw mul_inv_cancel_left)
 attribute [to_additive quotient_add_group.lift._proof_1] lift._proof_1
 attribute [to_additive quotient_add_group.lift] lift
 attribute [to_additive quotient_add_group.lift.equations._eqn_1] lift.equations._eqn_1
@@ -126,8 +126,7 @@ variables (φ : G → H) [is_group_hom φ] (HN : ∀x∈N, φ x = 1)
 
 instance is_group_hom_quotient_lift  :
   is_group_hom (lift N φ HN) :=
-⟨λ q r, quotient.induction_on₂' q r $ λ a b,
-  show φ (a * b) = φ a * φ b, from is_group_hom.map_mul φ a b⟩
+{ map_mul := λ q r, quotient.induction_on₂' q r $ is_mul_hom.map_mul φ }
 attribute [to_additive quotient_add_group.is_add_group_hom_quotient_lift] quotient_group.is_group_hom_quotient_lift
 attribute [to_additive quotient_add_group.is_add_group_hom_quotient_lift.equations._eqn_1] quotient_group.is_group_hom_quotient_lift.equations._eqn_1
 
@@ -163,7 +162,7 @@ quotient_group.is_group_hom_quotient_lift _ _ _
 lemma injective_ker_lift : injective (ker_lift φ) :=
 assume a b, quotient.induction_on₂' a b $ assume a b (h : φ a = φ b), quotient.sound' $
 show a⁻¹ * b ∈ ker φ, by rw [mem_ker φ,
-  is_group_hom.map_mul φ, ← h, is_group_hom.map_inv φ, inv_mul_self]
+  is_mul_hom.map_mul φ, ← h, is_group_hom.map_inv φ, inv_mul_self]
 
 --@[to_additive quotient_add_group.quotient_ker_equiv_range]
 noncomputable def quotient_ker_equiv_range : (quotient (ker φ)) ≃ set.range φ :=

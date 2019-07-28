@@ -2,10 +2,19 @@
 Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Scott Morrison
-
-The basic theory of surreal numbers, built on top of the theory of combinatorial games.
 -/
 import set_theory.game
+
+/-!
+# Surreal numbers
+
+The basic theory of surreal numbers, built on top of the theory of combinatorial games.
+
+## References
+* [Conway, *On numbers and games*][conway2001]
+-/
+
+universes u
 
 namespace pgame
 
@@ -31,7 +40,7 @@ instance : has_mul pgame := ⟨mul⟩
 /-- Because the two halves of the definition of inv produce more elements
   of each side, we have to define the two families inductively.
   This is the indexing set for the function, and `inv_val` is the function part. -/
-inductive {u} inv_ty (l r : Type u) : bool → Type u
+inductive inv_ty (l r : Type u) : bool → Type u
 | zero {} : inv_ty ff
 | left₁ : r → inv_ty ff → inv_ty ff
 | left₂ : l → inv_ty tt → inv_ty ff
@@ -129,12 +138,13 @@ theorem numeric_neg : Π {x : pgame} (o : numeric x), numeric (-x)
 ⟨λ j i, lt_iff_neg_gt.1 (o.1 i j),
   ⟨λ j, numeric_neg (o.2.2 j), λ i, numeric_neg (o.2.1 i)⟩⟩
 
-theorem numeric.move_left_lt {x : pgame} (o : numeric x) (i : x.left_moves) :
+theorem numeric.move_left_lt {x : pgame.{u}} (o : numeric x) (i : x.left_moves) :
   x.move_left i < x :=
 begin
   rw lt_def_le,
   left,
   use i,
+  apply le_refl,
 end
 theorem numeric.move_left_le {x : pgame} (o : numeric x) (i : x.left_moves) :
   x.move_left i ≤ x :=
@@ -144,14 +154,16 @@ theorem numeric.lt_move_right {x : pgame} (o : numeric x) (j : x.right_moves) :
 begin
   rw lt_def_le,
   right,
-  use j
+  use j,
+  apply le_refl,
 end
 theorem numeric.le_move_right {x : pgame} (o : numeric x) (j : x.right_moves) :
   x ≤ x.move_right j :=
 le_of_lt o (o.move_right j) (o.lt_move_right j)
 
+set_option pp.universes true
 theorem add_lt_add
-  {w x y z : pgame} (ow : numeric w) (ox : numeric x) (oy : numeric y) (oz : numeric z)
+  {w x y z : pgame.{u}} (ow : numeric w) (ox : numeric x) (oy : numeric y) (oz : numeric z)
   (hwx : w < x) (hyz : y < z) : w + y < x + z :=
 begin
   rw lt_def_le at *,
@@ -160,27 +172,32 @@ begin
   { left,
     use left_moves_add.inv_fun (sum.inl ix),
     simp,
-    calc w + y ≤ move_left x ix + y : add_le_add_right hix
-            ... ≤ move_left x ix + move_left z iz : add_le_add_left hiz
-            ... ≤ move_left x ix + z : add_le_add_left (oz.move_left_le iz) },
+    -- Not sure why these `calc` blocks fail:
+    -- calc w + y ≤ move_left x ix + y : add_le_add_right hix
+    --         ... ≤ move_left x ix + move_left z iz : add_le_add_left hiz
+    --         ... ≤ move_left x ix + z : add_le_add_left (oz.move_left_le iz),
+    exact le_trans (add_le_add_right hix) (le_trans (add_le_add_left hiz) (add_le_add_left (oz.move_left_le iz))), },
   { left,
     use left_moves_add.inv_fun (sum.inl ix),
     simp,
-    calc w + y ≤ move_left x ix + y : add_le_add_right hix
-            ... ≤ move_left x ix + move_right y jy : add_le_add_left (oy.le_move_right jy)
-            ... ≤ move_left x ix + z : add_le_add_left hjy },
+    -- calc w + y ≤ move_left x ix + y : add_le_add_right hix
+    --         ... ≤ move_left x ix + move_right y jy : add_le_add_left (oy.le_move_right jy)
+    --         ... ≤ move_left x ix + z : add_le_add_left hjy,
+    exact le_trans (add_le_add_right hix) (le_trans (add_le_add_left (oy.le_move_right jy)) (add_le_add_left hjy)) },
   { right,
     use right_moves_add.inv_fun (sum.inl jw),
     simp,
-    calc move_right w jw + y ≤ x + y : add_le_add_right hjw
-            ... ≤ x + move_left z iz : add_le_add_left hiz
-            ... ≤ x + z : add_le_add_left (oz.move_left_le iz) },
+    -- calc move_right w jw + y ≤ x + y : add_le_add_right hjw
+    --         ... ≤ x + move_left z iz : add_le_add_left hiz
+    --         ... ≤ x + z : add_le_add_left (oz.move_left_le iz),
+    exact le_trans (add_le_add_right hjw) (le_trans (add_le_add_left hiz) (add_le_add_left (oz.move_left_le iz))) },
   { right,
     use right_moves_add.inv_fun (sum.inl jw),
     simp,
-    calc move_right w jw + y ≤ x + y : add_le_add_right hjw
-            ... ≤ x + move_right y jy : add_le_add_left (oy.le_move_right jy)
-            ... ≤ x + z : add_le_add_left hjy },
+    -- calc move_right w jw + y ≤ x + y : add_le_add_right hjw
+    --         ... ≤ x + move_right y jy : add_le_add_left (oy.le_move_right jy)
+    --         ... ≤ x + z : add_le_add_left hjy,
+    exact le_trans (add_le_add_right hjw) (le_trans (add_le_add_left (oy.le_move_right jy)) (add_le_add_left hjy)) },
 end
 
 theorem numeric_add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeric (x + y)

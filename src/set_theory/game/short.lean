@@ -2,12 +2,15 @@
 Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
-
-Combinatorial games with a finite set of moves at every point.
 -/
 import set_theory.game
 import data.fintype
 
+/-!
+# Short games
+
+A combinatorial games is *short* if there is a finite set of moves at every point.
+-/
 universes u
 
 namespace pgame
@@ -144,13 +147,13 @@ example : short (0 + 0) := by apply_instance
 
 example : decidable ((1 : pgame) ≤ 1) := by apply_instance
 
-#eval to_bool ((1 : pgame) ≤ 0)
-#eval to_bool ((0 : pgame) ≤ 1)
-#eval to_bool ((1 : pgame) ≤ 1)
+-- #eval to_bool ((1 : pgame) ≤ 0)
+-- #eval to_bool ((0 : pgame) ≤ 1)
+-- #eval to_bool ((1 : pgame) ≤ 1)
 
-#eval to_bool ((1 : pgame) + 1 + 1 ≤ (1 + 0 + 1))
+-- #eval to_bool ((1 : pgame) + 1 + 1 ≤ (1 + 0 + 1))
 
--- TODO but this doesn't work?
+-- Unfortunately the kernal can't keep up...
 -- example : (0 : pgame) ≤ 0 := dec_trivial
 -- example : (1 : pgame) ≤ 1 := by exact dec_trivial
 

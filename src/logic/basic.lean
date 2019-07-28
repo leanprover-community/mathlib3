@@ -2,7 +2,9 @@
 Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
+-/
 
+/-!
 Theorems that require decidability hypotheses are in the namespace "decidable".
 Classical versions are in the namespace "classical".
 
@@ -10,11 +12,7 @@ Note: in the presence of automation, this whole file may be unnecessary. On the 
 maybe it is useful for writing automation.
 -/
 
-/-
-    miscellany
 
-    TODO: move elsewhere
--/
 
 section miscellany
 
@@ -62,14 +60,14 @@ def pempty.elim {C : Sort*} : pempty → C.
 
 instance subsingleton_pempty : subsingleton pempty := ⟨λa, a.elim⟩
 
+@[simp] lemma nonempty_pempty : ¬ nonempty pempty :=
+assume ⟨h⟩, h.elim
+
 lemma congr_arg_heq {α} {β : α → Sort*} (f : ∀ a, β a) : ∀ {a₁ a₂ : α}, a₁ = a₂ → f a₁ == f a₂
 | a _ rfl := heq.rfl
 
 lemma plift.down_inj {α : Sort*} : ∀ (a b : plift α), a.down = b.down → a = b
 | ⟨a⟩ ⟨b⟩ rfl := rfl
-
-@[simp] lemma nonempty_pempty : ¬ nonempty pempty :=
-assume ⟨h⟩, h.elim
 
 -- missing [symm] attribute for ne in core.
 attribute [symm] ne.symm

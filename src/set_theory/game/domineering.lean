@@ -182,7 +182,7 @@ instance : short domineering.L := by { dsimp [domineering.L], apply_instance}
 -- #eval to_bool (domineering.L ≈ pgame.of_lists [0] [1])
 -- example : domineering.L ≈ pgame.of_lists [0] [1] := dec_trivial
 
--- Work in progress, remove for PR.
+-- TODO: Prove some of the following facts:
 
 -- theorem L_left_moves : domineering.L.left_moves = { p | p ∈ [(0, 2), (0, 1)].to_finset } := sorry
 -- theorem L_right_moves : domineering.L.right_moves = { p | p ∈ [(1, 0)].to_finset } := sorry

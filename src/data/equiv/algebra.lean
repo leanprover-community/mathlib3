@@ -362,7 +362,7 @@ end group
 
 
 @[extensionality] lemma add_equiv.ext {α β : Type*} [has_add α] [has_add β]
-{f g : add_equiv α β} (h : f.to_fun = g.to_fun) : f = g :=
+  {f g : add_equiv α β} (h : f.to_fun = g.to_fun) : f = g :=
 by { cases f, cases g, congr, apply equiv.eq_of_to_fun_eq h }
 
 namespace add_monoid

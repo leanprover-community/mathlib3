@@ -51,7 +51,7 @@ def comparison_forget [is_right_adjoint R] : comparison R ⋙ forget ((left_adjo
 
 end monad
 
-/-- An functor is *reflective*, or *a reflective inclusion*, if it is fully faithful and right adjoint. -/
+/-- A functor is *reflective*, or *a reflective inclusion*, if it is fully faithful and right adjoint. -/
 class reflective (R : D ⥤ C) extends is_right_adjoint R, full R, faithful R.
 
 instance μ_iso_of_reflective [reflective R] : is_iso (μ_ ((left_adjoint R) ⋙ R)) :=

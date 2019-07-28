@@ -28,7 +28,7 @@ include 𝒞
 namespace monad
 
 /-- An Eilenberg-Moore algebra for a monad `T`.
-    cf Definition 5.2.3 in Riehl. -/
+    cf Definition 5.2.3 in [Riehl][riehl2017]. -/
 structure algebra (T : C ⥤ C) [monad.{v₁} T] : Type (max u₁ v₁) :=
 (A : C)
 (a : T.obj A ⟶ A)
@@ -65,7 +65,7 @@ def comp {P Q R : algebra T} (f : hom P Q) (g : hom Q R) : hom P R :=
 end hom
 
 /-- The category of Eilenberg-Moore algebras for a monad.
-    cf Definition 5.2.4 in Riehl. -/
+    cf Definition 5.2.4 in [Riehl][riehl2017]. -/
 instance EilenbergMoore : category (algebra T) :=
 { hom := hom,
   id := hom.id,
@@ -97,7 +97,7 @@ def free : C ⥤ algebra T :=
 @[simp] lemma free_map_f {X Y : C} (f : X ⟶ Y) : ((free T).map f).f = T.map f := rfl
 
 /-- The adjunction between the free and forgetful constructions for Eilenberg-Moore algebras for a monad.
-    cf Lemma 5.2.8 of Riehl. -/
+    cf Lemma 5.2.8 of [Riehl][riehl2017]. -/
 def adj : free T ⊣ forget T :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y,

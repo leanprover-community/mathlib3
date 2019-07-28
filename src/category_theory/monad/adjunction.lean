@@ -64,7 +64,7 @@ class monadic_right_adjoint (R : D ⥤ C) extends is_right_adjoint R :=
 
 attribute [instance] monadic_right_adjoint.eqv
 
--- PROJECT prove Beck's monadicity theorem, e.g. from Section 5.5 of Riehl
+-- PROJECT prove Beck's monadicity theorem, e.g. from Section 5.5 of [Riehl][riehl2017]
 
 namespace reflective
 

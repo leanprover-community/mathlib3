@@ -335,21 +335,20 @@ additive groups and rings using `mul_equiv`, `add_equiv` and `ring_equiv`.
 In each case this type also forms a group.
 -/
 
-@[extensionality] lemma mul_equiv.ext {α β : Type*} [group α] [group β]
+@[extensionality] lemma mul_equiv.ext {α β : Type*} [has_mul α] [has_mul β]
   {f g : mul_equiv α β} (h : f.to_fun = g.to_fun) : f = g :=
 by { cases f, cases g, congr, apply equiv.eq_of_to_fun_eq h }
 
+namespace monoid
 
-namespace group
-
-def aut (γ : Type*) [group γ] := mul_equiv γ γ
+def aut (γ : Type*) [has_mul γ] := mul_equiv γ γ
 
 /--
-The group operation on automorphisms of a group is defined by
+The group operation on automorphisms of a monoid is defined by
 λ g h, mul_equiv.trans h g.
 This means that multiplication agrees with composition, (g*h)(x) = g (h x) .
 -/
-instance aut_group (γ : Type) [group γ] : group (aut γ) :=
+instance aut_group (γ : Type) [has_mul γ] : group (aut γ) :=
 { mul := λ g h, mul_equiv.trans h g,
   one := mul_equiv.refl γ,
   inv := mul_equiv.symm,
@@ -357,6 +356,15 @@ instance aut_group (γ : Type) [group γ] : group (aut γ) :=
   one_mul := λ _, by { ext, refl },
   mul_one := λ _, by { ext, refl },
   mul_left_inv := λ _, by { ext, apply equiv.left_inv } }
+
+end monoid
+
+namespace group
+
+-- An group homomorphism is a monoid homomorphism between groups.
+def aut (γ : Type) [group γ] := mul_equiv γ γ
+
+instance aut_group (γ : Type) [group γ] : group (aut γ) := monoid.aut_group γ
 
 end group
 

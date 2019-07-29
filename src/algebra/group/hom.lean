@@ -460,7 +460,7 @@ protected def add {A B} [add_monoid A] [add_comm_monoid B] (f g : A →+ B) : A 
 { to_fun := λ m, f m + g m,
   map_zero' := show f 0 + g 0 = 0, by simp,
   map_add' := begin intros, show f (x + y) + g (x + y) = f x + g x + (f y + g y),
-    rw [f.map_add, g.map_add, ←add_assoc, ←add_assoc, add_right_comm (f x)], end}
+    rw [f.map_add, g.map_add, ←add_assoc, ←add_assoc, add_right_comm (f x)], end }
 
 attribute [to_additive add_monoid_hom.add] monoid_hom.mul
 attribute [to_additive add_monoid_hom.add._proof_1] monoid_hom.mul._proof_1

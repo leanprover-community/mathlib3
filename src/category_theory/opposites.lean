@@ -1,7 +1,8 @@
--- Copyright (c) 2017 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Stephen Morgan, Scott Morrison
-
+/-
+Copyright (c) 2017 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Stephen Morgan, Scott Morrison
+-/
 import category_theory.products
 import category_theory.types
 import category_theory.natural_isomorphism
@@ -69,6 +70,11 @@ def op_op : (Cᵒᵖ)ᵒᵖ ⥤ C :=
   map := λ X Y f, f.unop.unop }
 
 -- TODO this is an equivalence
+
+def is_iso_of_op {X Y : C} (f : X ⟶ Y) [is_iso f.op] : is_iso f :=
+{ inv := (inv (f.op)).unop,
+  hom_inv_id' := has_hom.hom.op_inj (by simp),
+  inv_hom_id' := has_hom.hom.op_inj (by simp) }
 
 namespace functor
 

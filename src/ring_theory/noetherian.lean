@@ -5,9 +5,10 @@ Authors: Mario Carneiro, Kevin Buzzard
 -/
 
 import data.equiv.algebra
-import linear_algebra.linear_combination
+import linear_algebra.finsupp
 import ring_theory.ideal_operations
 import ring_theory.subring
+import linear_algebra.basis
 
 open set lattice
 
@@ -88,7 +89,7 @@ finitely generated then so is M. -/
 theorem fg_of_fg_map_of_fg_inf_ker {s : submodule α β}
   (hs1 : (s.map f).fg) (hs2 : (s ⊓ f.ker).fg) : s.fg :=
 begin
-  haveI := classical.dec_eq β, haveI := classical.dec_eq γ,
+  haveI := classical.dec_eq α, haveI := classical.dec_eq β, haveI := classical.dec_eq γ,
   cases hs1 with t1 ht1, cases hs2 with t2 ht2,
   have : ∀ y ∈ t1, ∃ x ∈ s, f x = y,
   { intros y hy,
@@ -112,24 +113,27 @@ begin
       exact this.1 } },
   intros x hx,
   have : f x ∈ map f s, { rw mem_map, exact ⟨x, hx, rfl⟩ },
-  rw [← ht1, mem_span_iff_lc] at this,
+  rw [← ht1,← set.image_id ↑t1, finsupp.mem_span_iff_total] at this,
   rcases this with ⟨l, hl1, hl2⟩,
-  refine mem_sup.2 ⟨lc.total α β ((lc.map α g : lc α γ → lc α β) l), _,
-    x - lc.total α β ((lc.map α g : lc α γ → lc α β) l), _, add_sub_cancel'_right _ _⟩,
-  { rw mem_span_iff_lc, refine ⟨_, _, rfl⟩,
-    rw [← lc.map_supported g, mem_map],
-    exact ⟨_, hl1, rfl⟩ },
+  refine mem_sup.2 ⟨(finsupp.total β β α id).to_fun ((finsupp.lmap_domain α α g : (γ →₀ α) → β →₀ α) l), _,
+    x - finsupp.total β β α id ((finsupp.lmap_domain α α g : (γ →₀ α) → β →₀ α) l), _, add_sub_cancel'_right _ _⟩,
+  { rw [← set.image_id (g '' ↑t1), finsupp.mem_span_iff_total], refine ⟨_, _, rfl⟩,
+    haveI : inhabited γ := ⟨0⟩,
+    rw [← finsupp.lmap_domain_supported _ _ g, mem_map],
+    refine ⟨l, hl1, _⟩,
+    refl, },
   rw [ht2, mem_inf], split,
   { apply s.sub_mem hx,
-    rw [lc.total_apply, lc.map_apply, finsupp.sum_map_domain_index],
+    rw [finsupp.total_apply, finsupp.lmap_domain_apply, finsupp.sum_map_domain_index],
     refine s.sum_mem _,
     { intros y hy, exact s.smul_mem _ (hg y (hl1 hy)).1 },
     { exact zero_smul _ }, { exact λ _ _ _, add_smul _ _ _ } },
   { rw [linear_map.mem_ker, f.map_sub, ← hl2],
-    rw [lc.total_apply, lc.total_apply, lc.map_apply],
+    rw [finsupp.total_apply, finsupp.total_apply, finsupp.lmap_domain_apply],
     rw [finsupp.sum_map_domain_index, finsupp.sum, finsupp.sum, f.map_sum],
     rw sub_eq_zero,
     refine finset.sum_congr rfl (λ y hy, _),
+    unfold id,
     rw [f.map_smul, (hg y (hl1 hy)).2],
     { exact zero_smul _ }, { exact λ _ _ _, add_smul _ _ _ } }
 end
@@ -231,7 +235,7 @@ end
 
 end
 
-open is_noetherian
+open is_noetherian submodule function
 
 theorem is_noetherian_iff_well_founded
   {α β} [ring α] [add_comm_group β] [module α β] :
@@ -286,16 +290,37 @@ theorem is_noetherian_iff_well_founded
       rw [← hs₂, sup_assoc, ← submodule.span_union], simp }
   end⟩
 
-lemma well_founded_submodule_gt {α β} [ring α] [add_comm_group β] [module α β] :
+lemma well_founded_submodule_gt (α β) [ring α] [add_comm_group β] [module α β] :
   ∀ [is_noetherian α β], well_founded ((>) : submodule α β → submodule α β → Prop) :=
 is_noetherian_iff_well_founded.mp
+
+lemma finite_of_linear_independent {α β} [nonzero_comm_ring α] [add_comm_group β] [module α β]
+  [decidable_eq α] [decidable_eq β] [is_noetherian α β] {s : set β}
+  (hs : linear_independent α (subtype.val : s → β)) : s.finite :=
+begin
+  refine classical.by_contradiction (λ hf, order_embedding.well_founded_iff_no_descending_seq.1
+    (well_founded_submodule_gt α β) ⟨_⟩),
+  have f : ℕ ↪ s, from @infinite.nat_embedding s ⟨λ f, hf ⟨f⟩⟩,
+  have : ∀ n, (subtype.val ∘ f) '' {m | m ≤ n} ⊆ s,
+  { rintros n x ⟨y, hy₁, hy₂⟩, subst hy₂, exact (f y).2 },
+  have : ∀ a b : ℕ, a ≤ b ↔
+    span α ((subtype.val ∘ f) '' {m | m ≤ a}) ≤ span α ((subtype.val ∘ f) '' {m | m ≤ b}),
+  { assume a b,
+    rw [span_le_span_iff (@zero_ne_one α _) hs (this a) (this b),
+      set.image_subset_image_iff (injective_comp subtype.val_injective f.inj'),
+      set.subset_def],
+    exact ⟨λ hab x (hxa : x ≤ a), le_trans hxa hab, λ hx, hx a (le_refl a)⟩ },
+  exact ⟨⟨λ n, span α ((subtype.val ∘ f) '' {m | m ≤ n}),
+      λ x y, by simp [le_antisymm_iff, (this _ _).symm] {contextual := tt}⟩,
+    by dsimp [gt]; simp only [lt_iff_le_not_le, (this _ _).symm]; tauto⟩
+end
 
 @[class] def is_noetherian_ring (α) [ring α] : Prop := is_noetherian α α
 
 instance is_noetherian_ring.to_is_noetherian {α : Type*} [ring α] :
   ∀ [is_noetherian_ring α], is_noetherian α α := id
 
-instance ring.is_noetherian_of_fintype (R M) [ring R] [add_comm_group M] [module R M] [fintype M] : is_noetherian R M :=
+instance ring.is_noetherian_of_fintype (R M) [fintype M] [ring R] [add_comm_group M] [module R M] : is_noetherian R M :=
 by letI := classical.dec; exact
 ⟨assume s, ⟨to_finset s, by rw [finset.coe_to_finset', submodule.span_eq]⟩⟩
 
@@ -323,6 +348,7 @@ theorem is_noetherian_of_fg_of_noetherian {R M} [ring R] [add_comm_group M] [mod
 let ⟨s, hs⟩ := hN in
 begin
   haveI := classical.dec_eq M,
+  haveI := classical.dec_eq R,
   letI : is_noetherian R R := by apply_instance,
   have : ∀ x ∈ s, x ∈ N, from λ x hx, hs ▸ submodule.subset_span hx,
   refine @@is_noetherian_of_surjective ((↑s : set M) → R) _ _ _ (pi.module _)
@@ -338,12 +364,12 @@ begin
       exact finset.sum_hom _ } },
   rw linear_map.range_eq_top,
   rintro ⟨n, hn⟩, change n ∈ N at hn,
-  rw [← hs, mem_span_iff_lc] at hn,
+  rw [← hs, ← set.image_id ↑s, finsupp.mem_span_iff_total] at hn,
   rcases hn with ⟨l, hl1, hl2⟩,
   refine ⟨λ x, l x.1, subtype.eq _⟩,
   change s.attach.sum (λ i, l i.1 • i.1) = n,
   rw [@finset.sum_attach M M s _ (λ i, l i • i), ← hl2,
-      lc.total_apply, finsupp.sum, eq_comm],
+      finsupp.total_apply, finsupp.sum, eq_comm],
   refine finset.sum_subset hl1 (λ x _ hx, _),
   rw [finsupp.not_mem_support_iff.1 hx, zero_smul]
 end
@@ -378,7 +404,7 @@ local attribute [elab_as_eliminator] well_founded.fix
 
 lemma well_founded_dvd_not_unit : well_founded (λ a b : α, a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ b = a * x ) :=
 by simp only [ideal.span_singleton_lt_span_singleton.symm];
-   exact inv_image.wf (λ a, ideal.span ({a} : set α)) well_founded_submodule_gt
+   exact inv_image.wf (λ a, ideal.span ({a} : set α)) (well_founded_submodule_gt _ _)
 
 lemma exists_irreducible_factor {a : α} (ha : ¬ is_unit a) (ha0 : a ≠ 0) :
   ∃ i, irreducible i ∧ i ∣ a :=
@@ -428,5 +454,10 @@ local attribute [instance] set.pointwise_mul_semiring
 theorem fg_mul (hm : M.fg) (hn : N.fg) : (M * N).fg :=
 let ⟨m, hfm, hm⟩ := fg_def.1 hm, ⟨n, hfn, hn⟩ := fg_def.1 hn in
 fg_def.2 ⟨m * n, set.pointwise_mul_finite hfm hfn, span_mul_span R m n ▸ hm ▸ hn ▸ rfl⟩
+
+lemma fg_pow (h : M.fg) (n : ℕ) : (M^n).fg :=
+nat.rec_on n
+(⟨finset.singleton 1, by simp [one_eq_span]⟩)
+(λ n ih, by simpa [pow_succ] using fg_mul _ _ h ih)
 
 end submodule

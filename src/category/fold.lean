@@ -45,7 +45,7 @@ import tactic.squeeze
 import algebra.group algebra.opposites
 import data.list.basic
 import category.traversable.instances category.traversable.lemmas
-import category_theory.category category_theory.types category_theory.instances.kleisli
+import category_theory.category category_theory.endomorphism category_theory.types category_theory.instances.kleisli
 import category.applicative
 
 universes u v

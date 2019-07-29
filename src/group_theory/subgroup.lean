@@ -80,7 +80,7 @@ by induction n; simp [is_add_submonoid.smul_coe a]
 attribute [to_additive is_add_subgroup.gsmul_coe] is_subgroup.coe_gpow
 
 theorem is_subgroup.of_div (s : set α)
-  (one_mem : (1:α) ∈ s) (div_mem : ∀{a b:α}, a ∈ s → b ∈ s → a * b⁻¹ ∈ s):
+  (one_mem : (1:α) ∈ s) (div_mem : ∀{a b:α}, a ∈ s → b ∈ s → a * b⁻¹ ∈ s) :
   is_subgroup s :=
 have inv_mem : ∀a, a ∈ s → a⁻¹ ∈ s, from
   assume a ha,
@@ -93,7 +93,7 @@ have inv_mem : ∀a, a ∈ s → a⁻¹ ∈ s, from
   one_mem := one_mem }
 
 theorem is_add_subgroup.of_sub (s : set β)
-  (zero_mem : (0:β) ∈ s) (sub_mem : ∀{a b:β}, a ∈ s → b ∈ s → a - b ∈ s):
+  (zero_mem : (0:β) ∈ s) (sub_mem : ∀{a b:β}, a ∈ s → b ∈ s → a - b ∈ s) :
   is_add_subgroup s :=
 multiplicative.is_subgroup_iff.1 $
 @is_subgroup.of_div (multiplicative β) _ _ zero_mem @sub_mem
@@ -303,6 +303,7 @@ end is_add_subgroup
 -- Homomorphism subgroups
 namespace is_group_hom
 open is_submonoid is_subgroup
+open is_mul_hom (map_mul)
 variables [group α] [group β]
 
 @[to_additive is_add_group_hom.ker]
@@ -313,14 +314,14 @@ attribute [to_additive is_add_group_hom.ker.equations._eqn_1] ker.equations._eqn
 lemma mem_ker (f : α → β) [is_group_hom f] {x : α} : x ∈ ker f ↔ f x = 1 :=
 mem_trivial
 
-@[to_additive is_add_group_hom.map_zero_ker_neg]
+@[to_additive is_add_group_hom.zero_ker_neg]
 lemma one_ker_inv (f : α → β) [is_group_hom f] {a b : α} (h : f (a * b⁻¹) = 1) : f a = f b :=
 begin
   rw [map_mul f, map_inv f] at h,
   rw [←inv_inv (f b), eq_inv_of_mul_eq_one h]
 end
 
-@[to_additive is_add_group_hom.map_zero_ker_neg']
+@[to_additive is_add_group_hom.zero_ker_neg']
 lemma one_ker_inv' (f : α → β) [is_group_hom f] {a b : α} (h : f (a⁻¹ * b) = 1) : f a = f b :=
 begin
   rw [map_mul f, map_inv f] at h,
@@ -328,29 +329,29 @@ begin
   rw eq_inv_of_mul_eq_one h
 end
 
-@[to_additive is_add_group_hom.map_neg_ker_zero]
+@[to_additive is_add_group_hom.neg_ker_zero]
 lemma inv_ker_one (f : α → β) [is_group_hom f] {a b : α} (h : f a = f b) : f (a * b⁻¹) = 1 :=
 have f a * (f b)⁻¹ = 1, by rw [h, mul_right_inv],
 by rwa [←map_inv f, ←map_mul f] at this
 
-@[to_additive is_add_group_hom.map_neg_ker_zero']
+@[to_additive is_add_group_hom.neg_ker_zero']
 lemma inv_ker_one' (f : α → β) [is_group_hom f] {a b : α} (h : f a = f b) : f (a⁻¹ * b) = 1 :=
 have (f a)⁻¹ * f b = 1, by rw [h, mul_left_inv],
 by rwa [←map_inv f, ←map_mul f] at this
 
-@[to_additive is_add_group_hom.map_zero_iff_ker_neg]
+@[to_additive is_add_group_hom.zero_iff_ker_neg]
 lemma one_iff_ker_inv (f : α → β) [is_group_hom f] (a b : α) : f a = f b ↔ f (a * b⁻¹) = 1 :=
 ⟨inv_ker_one f, one_ker_inv f⟩
 
-@[to_additive is_add_group_hom.map_zero_iff_ker_neg']
+@[to_additive is_add_group_hom.zero_iff_ker_neg']
 lemma one_iff_ker_inv' (f : α → β) [is_group_hom f] (a b : α) : f a = f b ↔ f (a⁻¹ * b) = 1 :=
 ⟨inv_ker_one' f, one_ker_inv' f⟩
 
-@[to_additive is_add_group_hom.map_neg_iff_ker]
+@[to_additive is_add_group_hom.neg_iff_ker]
 lemma inv_iff_ker (f : α → β) [w : is_group_hom f] (a b : α) : f a = f b ↔ a * b⁻¹ ∈ ker f :=
 by rw [mem_ker]; exact one_iff_ker_inv _ _ _
 
-@[to_additive is_add_group_hom.map_neg_iff_ker']
+@[to_additive is_add_group_hom.neg_iff_ker']
 lemma inv_iff_ker' (f : α → β) [w : is_group_hom f] (a b : α) : f a = f b ↔ a⁻¹ * b ∈ ker f :=
 by rw [mem_ker]; exact one_iff_ker_inv' _ _ _
 
@@ -489,6 +490,9 @@ lemma closure_subset_iff (s t : set α) [is_subgroup t] : closure s ⊆ t ↔ s 
 theorem closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
 closure_subset $ set.subset.trans h subset_closure
 
+@[simp] lemma closure_subgroup (s : set α) [is_subgroup s] : closure s = s :=
+set.subset.antisymm (closure_subset $ set.subset.refl s) subset_closure
+
 theorem exists_list_of_mem_closure {s : set α} {a : α} (h : a ∈ closure s) :
   (∃l:list α, (∀x∈l, x ∈ s ∨ x⁻¹ ∈ s) ∧ l.prod = a) :=
 in_closure.rec_on h
@@ -587,9 +591,7 @@ theorem in_closure.rec_on {C : α → Prop}
   (H4 : ∀ {a b : α}, a ∈ closure s → b ∈ closure s → C a → C b → C (a + b)) :
   C a :=
 group.in_closure.rec_on H (λ _, H1) H2 (λ _, H3) (λ _ _, H4)
-
-theorem closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
-closure_subset $ set.subset.trans h subset_closure
+attribute [to_additive add_group.in_closure.rec_on] group.in_closure.rec_on
 
 lemma image_closure [add_group β] (f : α → β) [is_add_group_hom f] (s : set α) :
   f '' closure s = closure (f '' s) :=
@@ -603,23 +605,26 @@ le_antisymm
     { rw [is_add_monoid_hom.map_add f], solve_by_elim [is_add_submonoid.add_mem] }
   end
   (closure_subset $ set.image_subset _ subset_closure)
+attribute [to_additive add_group.image_closure] group.image_closure
 
 theorem exists_list_of_mem_closure {s : set α} {a : α} (h : a ∈ closure s) :
   (∃l:list α, (∀x∈l, x ∈ s ∨ -x ∈ s) ∧ l.sum = a) :=
 group.exists_list_of_mem_closure h
+attribute [to_additive add_group.exists_list_of_mem_closure] group.exists_list_of_mem_closure
 
-theorem mclosure_subset {s : set α} : add_monoid.closure s ⊆ closure s :=
-group.mclosure_subset
-
-theorem mclosure_inv_subset {s : set α} : add_monoid.closure (has_neg.neg ⁻¹' s) ⊆ closure s :=
-group.mclosure_inv_subset
+attribute [to_additive add_group.closure_mono] group.closure_mono
+attribute [to_additive add_group.closure_add_subgroup] group.closure_subgroup
+attribute [to_additive add_group.mclosure_subset] group.mclosure_subset
+attribute [to_additive add_group.mclosure_inv_subset] group.mclosure_inv_subset
 
 theorem closure_eq_mclosure {s : set α} : closure s = add_monoid.closure (s ∪ has_neg.neg ⁻¹' s) :=
 group.closure_eq_mclosure
+attribute [to_additive add_group.closure_eq_mclosure] group.closure_eq_mclosure
 
 theorem mem_closure_union_iff {α : Type*} [add_comm_group α] {s t : set α} {x : α} :
   x ∈ closure (s ∪ t) ↔ ∃ y ∈ closure s, ∃ z ∈ closure t, y + z = x :=
 group.mem_closure_union_iff
+attribute [to_additive add_group.mem_closure_union_iff] group.mem_closure_union_iff
 
 end add_group
 

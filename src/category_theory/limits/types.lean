@@ -1,7 +1,8 @@
--- Copyright (c) 2018 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison, Reid Barton
-
+/-
+Copyright (c) 2018 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison, Reid Barton
+-/
 import category_theory.limits.limits
 
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
@@ -42,7 +43,7 @@ instance : has_limits.{u} (Type u) :=
   (⟨λ j, (α.app j) (g.val j), λ j j' f,
     by {rw ←functor_to_types.naturality, dsimp, rw ←(g.property f)}⟩ : (limit G).X) := rfl
 
-@[simp] lemma types_limit_lift (F : J ⥤ Type u) (c : cone F) (x : c.X):
+@[simp] lemma types_limit_lift (F : J ⥤ Type u) (c : cone F) (x : c.X) :
   limit.lift F c x = (⟨λ j, c.π.app j x, λ j j' f, congr_fun (cone.w c f) x⟩ : (limit F).X) :=
 rfl
 

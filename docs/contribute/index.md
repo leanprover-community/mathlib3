@@ -15,6 +15,7 @@ to make the process of contributing as smooth as possible.
    - The [git commit conventions](https://github.com/leanprover/lean/blob/master/doc/commit_convention.md).
 3. Create a pull request from a feature branch on your personal fork,
    as explained in the link above, or from a branch of the main repository if you have commit access (you can ask for access on Zulip).
+4. If you've made a lot of changes/additions, try to make many PRs containing small, self-contained pieces. This helps you get feedback as you go along, and it is much easier to review. This is especially important for new contributors.
 
 
 ## The nursery
@@ -29,7 +30,7 @@ for more details.
 In the `mathlib` git repository, you can run the following in a terminal:
 
 ```sh
-$ scripts/setup-dev-scripts.sh
+$ curl https://raw.githubusercontent.com/leanprover-community/mathlib-tools/master/scripts/remote-install-update-mathlib.sh -sSf | bash
 $ source ~/.profile
 $ setup-lean-git-hooks
 ```

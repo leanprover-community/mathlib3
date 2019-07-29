@@ -19,6 +19,7 @@ def mv_polynomial (σ : Type*) (α : Type*) [comm_semiring α] := (σ →₀ ℕ
 
 namespace mv_polynomial
 variables {σ : Type*} {a a' a₁ a₂ : α} {e : ℕ} {n m : σ} {s : σ →₀ ℕ}
+
 variables [decidable_eq σ] [decidable_eq α]
 
 section comm_semiring
@@ -29,7 +30,7 @@ instance : has_zero (mv_polynomial σ α) := finsupp.has_zero
 instance : has_one (mv_polynomial σ α) := finsupp.has_one
 instance : has_add (mv_polynomial σ α) := finsupp.has_add
 instance : has_mul (mv_polynomial σ α) := finsupp.has_mul
-instance : comm_semiring (mv_polynomial σ α) := finsupp.to_comm_semiring
+instance : comm_semiring (mv_polynomial σ α) := finsupp.comm_semiring
 
 /-- `monomial s a` is the monomial `a * X^s` -/
 def monomial (s : σ →₀ ℕ) (a : α) : mv_polynomial σ α := single s a
@@ -51,11 +52,17 @@ by simp [C, monomial, single_mul_single]
 
 @[simp] lemma C_mul : (C (a * a') : mv_polynomial σ α) = C a * C a' := C_mul_monomial.symm
 
+@[simp] lemma C_pow (a : α) (n : ℕ) : (C (a^n) : mv_polynomial σ α) = (C a)^n :=
+by induction n; simp [pow_succ, *]
+
 instance : is_semiring_hom (C : α → mv_polynomial σ α) :=
 { map_zero := C_0,
   map_one := C_1,
   map_add := λ a a', C_add,
   map_mul := λ a a', C_mul }
+
+lemma C_eq_coe_nat (n : ℕ) : (C ↑n : mv_polynomial σ α) = n :=
+by induction n; simp [nat.succ_eq_add_one, *]
 
 lemma X_pow_eq_single : X n ^ e = monomial (single n e) (1 : α) :=
 begin
@@ -65,10 +72,10 @@ begin
     simp [X, monomial, single_mul_single, nat.succ_eq_add_one] }
 end
 
-lemma monomial_add_single : monomial (s + single n e) a = (monomial s a * X n ^ e):=
+lemma monomial_add_single : monomial (s + single n e) a = (monomial s a * X n ^ e) :=
 by rw [X_pow_eq_single, monomial, monomial, monomial, single_mul_single]; simp
 
-lemma monomial_single_add : monomial (single n e + s) a = (X n ^ e * monomial s a):=
+lemma monomial_single_add : monomial (single n e + s) a = (X n ^ e * monomial s a) :=
 by rw [X_pow_eq_single, monomial, monomial, monomial, single_mul_single]; simp
 
 lemma monomial_eq : monomial s a = C a * (s.prod $ λn e, X n ^ e : mv_polynomial σ α) :=
@@ -113,6 +120,150 @@ lemma is_id (f : mv_polynomial σ α → mv_polynomial σ α) (hf : is_semiring_
   (hC : ∀a:α, f (C a) = (C a)) (hX : ∀n:σ, f (X n) = (X n)) (p : mv_polynomial σ α) :
   f p = p :=
 hom_eq_hom f id hf is_semiring_hom.id hC hX p
+
+section coeff
+
+def tmp.coe : has_coe_to_fun (mv_polynomial σ α) := by delta mv_polynomial; apply_instance
+
+local attribute [instance] tmp.coe
+
+def coeff (m : σ →₀ ℕ) (p : mv_polynomial σ α) : α := p m
+
+lemma ext (p q : mv_polynomial σ α) :
+  (∀ m, coeff m p = coeff m q) → p = q := ext
+
+lemma ext_iff (p q : mv_polynomial σ α) :
+  (∀ m, coeff m p = coeff m q) ↔ p = q :=
+⟨ext p q, λ h m, by rw h⟩
+
+@[simp] lemma coeff_add (m : σ →₀ ℕ) (p q : mv_polynomial σ α) :
+  coeff m (p + q) = coeff m p + coeff m q := add_apply
+
+@[simp] lemma coeff_zero (m : σ →₀ ℕ) :
+  coeff m (0 : mv_polynomial σ α) = 0 := rfl
+
+@[simp] lemma coeff_zero_X (i : σ) : coeff 0 (X i : mv_polynomial σ α) = 0 := rfl
+
+instance coeff.is_add_monoid_hom (m : σ →₀ ℕ) :
+  is_add_monoid_hom (coeff m : mv_polynomial σ α → α) :=
+{ map_add := coeff_add m,
+  map_zero := coeff_zero m }
+
+lemma coeff_sum {X : Type*} (s : finset X) (f : X → mv_polynomial σ α) (m : σ →₀ ℕ) :
+  coeff m (s.sum f) = s.sum (λ x, coeff m (f x)) :=
+(finset.sum_hom _).symm
+
+lemma monic_monomial_eq (m) : monomial m (1:α) = (m.prod $ λn e, X n ^ e : mv_polynomial σ α) :=
+by simp [monomial_eq]
+
+@[simp] lemma coeff_monomial (m n) (a) :
+  coeff m (monomial n a : mv_polynomial σ α) = if n = m then a else 0 :=
+single_apply
+
+@[simp] lemma coeff_C (m) (a) :
+  coeff m (C a : mv_polynomial σ α) = if 0 = m then a else 0 :=
+single_apply
+
+lemma coeff_X_pow (i : σ) (m) (k : ℕ) :
+  coeff m (X i ^ k : mv_polynomial σ α) = if single i k = m then 1 else 0 :=
+begin
+  have := coeff_monomial m (finsupp.single i k) (1:α),
+  rwa [@monomial_eq _ _ (1:α) (finsupp.single i k) _ _ _,
+    C_1, one_mul, finsupp.prod_single_index] at this,
+  exact pow_zero _
+end
+
+lemma coeff_X' (i : σ) (m) :
+  coeff m (X i : mv_polynomial σ α) = if single i 1 = m then 1 else 0 :=
+by rw [← coeff_X_pow, pow_one]
+
+@[simp] lemma coeff_X (i : σ) :
+  coeff (single i 1) (X i : mv_polynomial σ α) = 1 :=
+by rw [coeff_X', if_pos rfl]
+
+@[simp] lemma coeff_C_mul (m) (a : α) (p : mv_polynomial σ α) : coeff m (C a * p) = a * coeff m p :=
+begin
+  rw [mul_def, C, monomial],
+  simp only [sum_single_index, zero_mul, single_zero, zero_add, sum_zero],
+  convert sum_apply,
+  simp only [single_apply, finsupp.sum],
+  rw finset.sum_eq_single m,
+  { rw if_pos rfl, refl },
+  { intros m' hm' H, apply if_neg, exact H },
+  { intros hm, rw if_pos rfl, rw not_mem_support_iff at hm, simp [hm] }
+end
+
+lemma coeff_mul (p q : mv_polynomial σ α) (n : σ →₀ ℕ) :
+  coeff n (p * q) = finset.sum (antidiagonal n).support (λ x, coeff x.1 p * coeff x.2 q) :=
+begin
+  rw mul_def,
+  have := @finset.sum_sigma (σ →₀ ℕ) α _ _ p.support (λ _, q.support)
+    (λ x, if (x.1 + x.2 = n) then coeff x.1 p * coeff x.2 q else 0),
+  convert this.symm using 1; clear this,
+  { rw [coeff],
+    repeat {rw sum_apply, apply finset.sum_congr rfl, intros, dsimp only},
+    exact single_apply },
+  { have : (antidiagonal n).support.filter (λ x, x.1 ∈ p.support ∧ x.2 ∈ q.support) ⊆
+           (antidiagonal n).support := finset.filter_subset _,
+    rw [← finset.sum_sdiff this, finset.sum_eq_zero, zero_add], swap,
+    { intros x hx,
+      rw [finset.mem_sdiff, not_iff_not_of_iff (finset.mem_filter),
+          not_and, not_and, not_mem_support_iff] at hx,
+      by_cases H : x.1 ∈ p.support,
+      { rw [coeff, coeff, hx.2 hx.1 H, mul_zero] },
+      { rw not_mem_support_iff at H, rw [coeff, H, zero_mul] } },
+    symmetry,
+    rw [← finset.sum_sdiff (finset.filter_subset _), finset.sum_eq_zero, zero_add], swap,
+    { intros x hx,
+      rw [finset.mem_sdiff, not_iff_not_of_iff (finset.mem_filter), not_and] at hx,
+      rw if_neg,
+      exact hx.2 hx.1 },
+    { apply finset.sum_bij, swap 5,
+      { intros x hx, exact (x.1, x.2) },
+      { intros x hx, rw [finset.mem_filter, finset.mem_sigma] at hx,
+        simpa [finset.mem_filter, mem_antidiagonal_support] using hx.symm },
+      { intros x hx, rw finset.mem_filter at hx, rw if_pos hx.2 },
+      { rintros ⟨i,j⟩ ⟨k,l⟩ hij hkl, simpa using and.intro },
+      { rintros ⟨i,j⟩ hij, refine ⟨⟨i,j⟩, _, _⟩, { apply_instance },
+        { rw [finset.mem_filter, mem_antidiagonal_support] at hij,
+          simpa [finset.mem_filter, finset.mem_sigma] using hij.symm },
+        { refl } } },
+    all_goals { apply_instance } }
+end
+
+@[simp] lemma coeff_mul_X (m) (s : σ) (p : mv_polynomial σ α) :
+  coeff (m + single s 1) (p * X s) = coeff m p :=
+begin
+  have : (m, single s 1) ∈ (m + single s 1).antidiagonal.support := mem_antidiagonal_support.2 rfl,
+  rw [coeff_mul, ← finset.insert_erase this, finset.sum_insert (finset.not_mem_erase _ _),
+      finset.sum_eq_zero, add_zero, coeff_X, mul_one],
+  rintros ⟨i,j⟩ hij,
+  rw [finset.mem_erase, mem_antidiagonal_support] at hij,
+  by_cases H : single s 1 = j,
+  { subst j, simpa using hij },
+  { rw [coeff_X', if_neg H, mul_zero] },
+end
+
+lemma coeff_mul_X' (m) (s : σ) (p : mv_polynomial σ α) :
+  coeff m (p * X s) = if s ∈ m.support then coeff (m - single s 1) p else 0 :=
+begin
+  split_ifs with h h,
+  { conv_rhs {rw ← coeff_mul_X _ s},
+    congr' 1, ext t,
+    by_cases hj : s = t,
+    { subst t, simp only [nat_sub_apply, add_apply, single_eq_same],
+      refine (nat.sub_add_cancel $ nat.pos_of_ne_zero _).symm, rwa mem_support_iff at h },
+    { simp [single_eq_of_ne hj] } },
+  { delta coeff, rw ← not_mem_support_iff, intro hm, apply h,
+    have H := support_mul _ _ hm, simp only [finset.mem_bind] at H,
+    rcases H with ⟨j, hj, i', hi', H⟩,
+    delta X monomial at hi', rw mem_support_single at hi', cases hi', subst i',
+    erw finset.mem_singleton at H, subst m,
+    rw [mem_support_iff, add_apply, single_apply, if_pos rfl],
+    intro H, rw [add_eq_zero_iff] at H, exact one_ne_zero H.2 }
+end
+
+end coeff
 
 section eval₂
 variables [comm_semiring β]
@@ -161,7 +312,7 @@ begin
           is_semiring_hom.map_one f, -add_comm] }
 end
 
-lemma eval₂_mul : ∀{p}, (p * q).eval₂ f g = p.eval₂ f g * q.eval₂ f g :=
+@[simp] lemma eval₂_mul : ∀{p}, (p * q).eval₂ f g = p.eval₂ f g * q.eval₂ f g :=
 begin
   apply mv_polynomial.induction_on q,
   { simp [C, eval₂_monomial, eval₂_mul_monomial, prod_zero_index] },
@@ -169,7 +320,7 @@ begin
   { simp [X, eval₂_monomial, eval₂_mul_monomial, (mul_assoc _ _ _).symm] { contextual := tt} }
 end
 
-lemma eval₂_pow {p:mv_polynomial σ α} : ∀{n:ℕ}, (p ^ n).eval₂ f g = (p.eval₂ f g)^n
+@[simp] lemma eval₂_pow {p:mv_polynomial σ α} : ∀{n:ℕ}, (p ^ n).eval₂ f g = (p.eval₂ f g)^n
 | 0       := eval₂_one _ _
 | (n + 1) := by rw [pow_add, pow_one, pow_add, pow_one, eval₂_mul, eval₂_pow]
 
@@ -187,105 +338,37 @@ by apply mv_polynomial.induction_on p; simp [
   eval₂_add, is_semiring_hom.map_add k,
   eval₂_mul, is_semiring_hom.map_mul k] {contextual := tt}
 
-lemma eval₂_eta (p : mv_polynomial σ α) : eval₂ C X p = p :=
+@[simp] lemma eval₂_eta (p : mv_polynomial σ α) : eval₂ C X p = p :=
 by apply mv_polynomial.induction_on p;
    simp [eval₂_add, eval₂_mul] {contextual := tt}
 
-end eval₂
+lemma eval₂_congr (g₁ g₂ : σ → β)
+  (h : ∀ {i : σ} {c : σ →₀ ℕ}, i ∈ c.support → coeff c p ≠ 0 → g₁ i = g₂ i) :
+  p.eval₂ f g₁ = p.eval₂ f g₂ :=
+begin
+  apply finset.sum_congr rfl,
+  intros c hc, dsimp, congr' 1,
+  apply finset.prod_congr rfl,
+  intros i hi, dsimp, congr' 1,
+  apply h hi,
+  rwa finsupp.mem_support_iff at hc
+end
 
-section coeff
+@[simp] lemma eval₂_prod [decidable_eq γ] (s : finset γ) (p : γ → mv_polynomial σ α) :
+  eval₂ f g (s.prod p) = s.prod (λ x, eval₂ f g $ p x) :=
+(finset.prod_hom _).symm
 
-def tmp.coe : has_coe_to_fun (mv_polynomial σ α) := by delta mv_polynomial; apply_instance
-
-local attribute [instance] tmp.coe
-
-def coeff (m : σ →₀ ℕ) (p : mv_polynomial σ α) : α := p m
-
-lemma ext (p q : mv_polynomial σ α) :
-  (∀ m, coeff m p = coeff m q) → p = q := ext
-
-@[simp] lemma coeff_add (m : σ →₀ ℕ) (p q : mv_polynomial σ α) :
-  coeff m (p + q) = coeff m p + coeff m q := add_apply
-
-@[simp] lemma coeff_zero (m : σ →₀ ℕ) :
-  coeff m (0 : mv_polynomial σ α) = 0 := rfl
-
-@[simp] lemma coeff_zero_X (i : σ) : coeff 0 (X i : mv_polynomial σ α) = 0 := rfl
-
-instance coeff.is_add_monoid_hom (m : σ →₀ ℕ) :
-  is_add_monoid_hom (coeff m : mv_polynomial σ α → α) :=
-{ map_add := coeff_add m,
-  map_zero := coeff_zero m }
-
-lemma coeff_sum {X : Type*} (s : finset X) (f : X → mv_polynomial σ α) (m : σ →₀ ℕ) :
-  coeff m (s.sum f) = s.sum (λ x, coeff m (f x)) :=
+@[simp] lemma eval₂_sum [decidable_eq γ] (s : finset γ) (p : γ → mv_polynomial σ α) :
+  eval₂ f g (s.sum p) = s.sum (λ x, eval₂ f g $ p x) :=
 (finset.sum_hom _).symm
 
-lemma monic_monomial_eq (m) : monomial m (1:α) = (m.prod $ λn e, X n ^ e : mv_polynomial σ α) :=
-by simp [monomial_eq]
+attribute [to_additive mv_polynomial.eval₂_sum] eval₂_prod
 
-@[simp] lemma coeff_monomial (m n) (a) :
-  coeff m (monomial n a : mv_polynomial σ α) = if n = m then a else 0 :=
-single_apply
+lemma eval₂_assoc [decidable_eq γ] (q : γ → mv_polynomial σ α) (p : mv_polynomial γ α) :
+  eval₂ f (λ t, eval₂ f g (q t)) p = eval₂ f g (eval₂ C q p) :=
+by { rw eval₂_comp_left (eval₂ f g), congr, funext, simp }
 
-@[simp] lemma coeff_C (m) (a) :
-  coeff m (C a : mv_polynomial σ α) = if 0 = m then a else 0 :=
-single_apply
-
-lemma coeff_X [decidable_eq β] (i : β) (m) (k : ℕ) :
-  coeff m (X i ^ k : mv_polynomial β α) = if finsupp.single i k = m then 1 else 0 :=
-begin
-  have := coeff_monomial m (finsupp.single i k) (1:α),
-  rwa [@monomial_eq _ _ (1:α) (finsupp.single i k) _ _ _,
-    C_1, one_mul, finsupp.prod_single_index] at this,
-  exact pow_zero _
-end
-
-@[simp] lemma coeff_C_mul (m) (a : α) (p : mv_polynomial σ α) : coeff m (C a * p) = a * coeff m p :=
-begin
-  rw [mul_def, C, monomial],
-  simp only [sum_single_index, zero_mul, single_zero, zero_add, sum_zero],
-  convert sum_apply,
-  simp only [single_apply, finsupp.sum],
-  rw finset.sum_eq_single m,
-  { rw if_pos rfl, refl },
-  { intros m' hm' H, apply if_neg, exact H },
-  { intros hm, rw if_pos rfl, rw not_mem_support_iff at hm, simp [hm] }
-end
-
-@[simp] lemma coeff_mul_X (m) (i : σ) (p : mv_polynomial σ α) :
-  coeff (m + single i 1) (p * X i) = coeff m p :=
-begin
-  rw [mul_def, X, monomial],
-  simp only [sum_single_index, mul_one, single_zero, mul_zero],
-  convert sum_apply,
-  simp only [single_apply, finsupp.sum],
-  rw finset.sum_eq_single m,
-  { rw if_pos rfl, refl },
-  { intros m' hm' H, apply if_neg, intro h, apply H, ext j,
-    let c : σ →₀ ℕ → (σ → ℕ) := λ f, f, replace h := congr_arg c h, simpa [c] using congr_fun h j },
-  { intros hm, rw if_pos rfl, rw not_mem_support_iff at hm, simp [hm] }
-end
-
-lemma coeff_mul_X' (m) (i : σ) (p : mv_polynomial σ α) :
-  coeff m (p * X i) = if i ∈ m.support then coeff (m - single i 1) p else 0 :=
-begin
-  split_ifs with h h,
-  { conv_rhs {rw ← coeff_mul_X _ i},
-    congr' 1, ext j,
-    by_cases hj : i = j,
-    { subst j, simp only [nat_sub_apply, add_apply, single_eq_same],
-      refine (nat.sub_add_cancel _).symm, rw mem_support_iff at h,
-      exact nat.pos_of_ne_zero h },
-    { simp [single_eq_of_ne hj] } },
-  { delta coeff, rw ← not_mem_support_iff, intro hm, apply h,
-    have H := support_mul _ _ hm, simp only [finset.mem_bind] at H,
-    rcases H with ⟨j, hj, i', hi', H⟩,
-    delta X monomial at hi', rw mem_support_single at hi', cases hi',
-    simp * at * }
-end
-
-end coeff
+end eval₂
 
 section eval
 variables {f : σ → α}
@@ -342,6 +425,9 @@ def map : mv_polynomial σ α → mv_polynomial σ β := eval₂ (C ∘ f) X
 @[simp] theorem map_mul (p q : mv_polynomial σ α) :
   map f (p * q) = map f p * map f q := eval₂_mul _ _
 
+@[simp] lemma map_pow (p : mv_polynomial σ α) (n : ℕ) :
+  map f (p^n) = (map f p)^n := eval₂_pow _ _
+
 instance map.is_semiring_hom :
   is_semiring_hom (map f : mv_polynomial σ α → mv_polynomial σ β) :=
 eval₂.is_semiring_hom _ _
@@ -395,6 +481,16 @@ begin
     simp only [hp, mem_support_iff, coeff_mul_X'],
     split_ifs, {refl},
     rw is_semiring_hom.map_zero f }
+end
+
+lemma map_injective (hf : function.injective f) :
+  function.injective (map f : mv_polynomial σ α → mv_polynomial σ β) :=
+λ p q h, ext _ _ $ λ m, hf $
+begin
+  rw ← ext_iff at h,
+  specialize h m,
+  rw [coeff_map, coeff_map] at h,
+  exact h
 end
 
 end map
@@ -594,10 +690,10 @@ section comm_ring
 variable [comm_ring α]
 variables {p q : mv_polynomial σ α}
 
-instance : ring (mv_polynomial σ α) := finsupp.to_ring
-instance : comm_ring (mv_polynomial σ α) := finsupp.to_comm_ring
-instance : has_scalar α (mv_polynomial σ α) := finsupp.to_has_scalar
-instance : module α (mv_polynomial σ α) := finsupp.to_module _ α
+instance : ring (mv_polynomial σ α) := finsupp.ring
+instance : comm_ring (mv_polynomial σ α) := finsupp.comm_ring
+instance : has_scalar α (mv_polynomial σ α) := finsupp.has_scalar
+instance : module α (mv_polynomial σ α) := finsupp.module _ α
 
 instance C.is_ring_hom : is_ring_hom (C : α → mv_polynomial σ α) :=
 by apply is_ring_hom.of_semiring
@@ -612,7 +708,7 @@ lemma C_sub : (C (a - a') : mv_polynomial σ α) = C a - C a' := is_ring_hom.map
 
 instance coeff.is_add_group_hom (m : σ →₀ ℕ) :
   is_add_group_hom (coeff m : mv_polynomial σ α → α) :=
-⟨coeff_add m⟩
+{ map_add := coeff_add m }
 
 variables {σ} (p)
 theorem C_mul' : mv_polynomial.C a * p = a • p :=
@@ -805,6 +901,31 @@ finset.sup_le $ assume b,
     exact assume _, rfl,
     exact assume _ _ _, rfl
   end
+
+section
+variables [comm_semiring β] (f : α → β) [is_semiring_hom f]
+variables (k : γ → δ) (g : δ → β) (p : mv_polynomial γ α)
+
+lemma eval₂_rename : (p.rename k).eval₂ f g = p.eval₂ f (g ∘ k) :=
+by apply mv_polynomial.induction_on p; { intros, simp [*] }
+
+lemma rename_eval₂ (g : δ → mv_polynomial γ α) :
+  (p.eval₂ C (g ∘ k)).rename k = (p.rename k).eval₂ C (rename k ∘ g) :=
+by apply mv_polynomial.induction_on p; { intros, simp [*] }
+
+lemma rename_prodmk_eval₂ (d : δ) (g : γ → mv_polynomial γ α) :
+  (p.eval₂ C g).rename (prod.mk d) = p.eval₂ C (λ x, (g x).rename (prod.mk d)) :=
+by apply mv_polynomial.induction_on p; { intros, simp [*] }
+
+lemma eval₂_rename_prodmk (g : δ × γ → β) (d : δ) :
+  (rename (prod.mk d) p).eval₂ f g = eval₂ f (λ i, g (d, i)) p :=
+by apply mv_polynomial.induction_on p; { intros, simp [*] }
+
+lemma eval_rename_prodmk (g : δ × γ → α) (d : δ) :
+  (rename (prod.mk d) p).eval g = eval (λ i, g (d, i)) p :=
+eval₂_rename_prodmk id _ _ _
+
+end
 
 end rename
 

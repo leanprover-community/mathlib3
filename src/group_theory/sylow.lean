@@ -206,7 +206,7 @@ have hxcard : ∀ {f : fintype (gpowers x)}, card (gpowers x) = p,
 have is_subgroup (mk ⁻¹' gpowers x),
   from is_group_hom.preimage _ _,
 have fintype (mk ⁻¹' gpowers x), by apply_instance,
-have hequiv : H ≃ (subtype.val ⁻¹' H : set (normalizer H)):=
+have hequiv : H ≃ (subtype.val ⁻¹' H : set (normalizer H)) :=
   ⟨λ a, ⟨⟨a.1, subset_normalizer _ a.2⟩, a.2⟩, λ a, ⟨a.1.1, a.2⟩,
     λ ⟨_, _⟩, rfl, λ ⟨⟨_, _⟩, _⟩, rfl⟩,
 ⟨subtype.val '' (mk ⁻¹' gpowers x), by apply_instance,

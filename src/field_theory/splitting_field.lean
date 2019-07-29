@@ -10,6 +10,8 @@ import ring_theory.unique_factorization_domain
 import data.polynomial ring_theory.principal_ideal_domain
        algebra.euclidean_domain
 
+local attribute [instance, priority 100000] is_ring_hom.id
+
 universes u v w
 
 variables {α : Type u} {β : Type v} {γ : Type w}

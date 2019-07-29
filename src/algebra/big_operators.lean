@@ -61,7 +61,7 @@ lemma prod_image [decidable_eq α] {s : finset γ} {g : γ → α} :
 fold_image
 
 @[simp, to_additive sum_map]
-lemma prod_map (s : finset α) (e : α ↪ γ) (f : γ → β):
+lemma prod_map (s : finset α) (e : α ↪ γ) (f : γ → β) :
   (s.map e).prod f = s.prod (λa, f (e a)) :=
 by rw [finset.prod, finset.map_val, multiset.map_map]; refl
 
@@ -153,7 +153,7 @@ finset.induction_on s (by simp only [prod_empty, prod_const_one]) $
 λ _ _ H ih, by simp only [prod_insert H, prod_mul_distrib, ih]
 
 lemma prod_hom [comm_monoid γ] (g : β → γ) [is_monoid_hom g] : s.prod (λx, g (f x)) = g (s.prod f) :=
-eq.trans (by rw is_monoid_hom.map_one g; refl) (fold_hom (λ _ _, is_monoid_hom.map_mul g))
+eq.trans (by rw is_monoid_hom.map_one g; refl) (fold_hom $ is_monoid_hom.map_mul g)
 
 @[to_additive finset.sum_hom_rel]
 lemma prod_hom_rel [comm_monoid γ] {r : β → γ → Prop} {f : α → β} {g : α → γ} {s : finset α}
@@ -332,7 +332,7 @@ end comm_monoid
 
 lemma sum_hom [add_comm_monoid β] [add_comm_monoid γ] (g : β → γ) [is_add_monoid_hom g] :
   s.sum (λx, g (f x)) = g (s.sum f) :=
-eq.trans (by rw is_add_monoid_hom.map_zero g; refl) (fold_hom (λ _ _, is_add_monoid_hom.map_add g))
+eq.trans (by rw is_add_monoid_hom.map_zero g; refl) (fold_hom $ is_add_monoid_hom.map_add g)
 attribute [to_additive finset.sum_hom] prod_hom
 
 lemma sum_smul [add_comm_monoid β] (s : finset α) (n : ℕ) (f : α → β) :
@@ -356,7 +356,7 @@ lemma sum_nat_cast [add_comm_monoid β] [has_one β] (s : finset α) (f : α →
 
 lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_comm_monoid β]
   (f : α → β) (h_zero : f 0 = 0) (h_add : ∀x y, f (x + y) ≤ f x + f y) (s : finset γ) (g : γ → α) :
-  f (s.sum g) ≤ s.sum (λc, f (g c)):=
+  f (s.sum g) ≤ s.sum (λc, f (g c)) :=
 begin
   refine le_trans (multiset.le_sum_of_subadditive f h_zero h_add _) _,
   rw [multiset.map_map],
@@ -622,7 +622,7 @@ variables [group α] [group β]
 @[to_additive is_add_group_hom.map_sum]
 theorem is_group_hom.map_prod (f : α → β) [is_group_hom f] (l : list α) :
   f (prod l) = prod (map f l) :=
-by induction l; simp only [*, is_group_hom.map_mul f, is_group_hom.map_one f, prod_nil, prod_cons, map]
+by induction l; simp only [*, is_mul_hom.map_mul f, is_group_hom.map_one f, prod_nil, prod_cons, map]
 
 theorem is_group_anti_hom.map_prod (f : α → β) [is_group_anti_hom f] (l : list α) :
   f (prod l) = prod (map f (reverse l)) :=
@@ -650,7 +650,7 @@ end comm_group
 @[to_additive is_add_group_hom_finset_sum]
 lemma is_group_hom_finset_prod {α β γ} [group α] [comm_group β] (s : finset γ)
   (f : γ → α → β) [∀c, is_group_hom (f c)] : is_group_hom (λa, s.prod (λc, f c a)) :=
-⟨assume a b, by simp only [λc, is_group_hom.map_mul (f c), finset.prod_mul_distrib]⟩
+{ map_mul := assume a b, by simp only [λc, is_mul_hom.map_mul (f c), finset.prod_mul_distrib] }
 
 attribute [instance] is_group_hom_finset_prod is_add_group_hom_finset_sum
 

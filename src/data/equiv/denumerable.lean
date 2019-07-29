@@ -100,13 +100,15 @@ by simp; refl
 @[simp] theorem prod_nat_of_nat : of_nat (ℕ × ℕ) = unpair :=
 by funext; simp
 
-instance int : denumerable ℤ := of_equiv _ equiv.int_equiv_nat
+instance int : denumerable ℤ := denumerable.mk' equiv.int_equiv_nat
+
+instance pnat : denumerable ℕ+ := denumerable.mk' equiv.pnat_equiv_nat
 
 instance ulift : denumerable (ulift α) := of_equiv _ equiv.ulift
 
 instance plift : denumerable (plift α) := of_equiv _ equiv.plift
 
-def pair : (α × α) ≃ α := equiv₂ _ _
+def pair : α × α ≃ α := equiv₂ _ _
 
 end
 end denumerable

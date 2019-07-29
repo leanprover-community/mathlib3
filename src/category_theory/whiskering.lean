@@ -1,6 +1,8 @@
--- Copyright (c) 2018 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison
+/-
+Copyright (c) 2018 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import category_theory.natural_isomorphism
 
 namespace category_theory
@@ -113,6 +115,11 @@ rfl
 @[simp] lemma iso_whisker_right_inv {G H : C ⥤ D} (α : G ≅ H) (F : D ⥤ E) :
   (iso_whisker_right α F).inv = whisker_right α.inv F :=
 rfl
+
+instance is_iso_whisker_left (F : C ⥤ D) {G H : D ⥤ E} (α : G ⟶ H) [is_iso α] : is_iso (whisker_left F α) :=
+{ .. iso_whisker_left F (as_iso α) }
+instance is_iso_whisker_right {G H : C ⥤ D} (α : G ⟶ H) (F : D ⥤ E) [is_iso α] : is_iso (whisker_right α F) :=
+{ .. iso_whisker_right (as_iso α) F }
 
 variables {B : Type u₄} [ℬ : category.{v₄} B]
 include ℬ

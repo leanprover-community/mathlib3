@@ -221,7 +221,7 @@ attribute [to_additive is_add_subgroup.left_add_coset_equiv_subgroup._match_1.eq
 attribute [to_additive is_add_subgroup.left_add_coset_equiv_subgroup._match_2.equations._eqn_1] left_coset_equiv_subgroup._match_2.equations._eqn_1
 
 noncomputable def group_equiv_quotient_times_subgroup (hs : is_subgroup s) :
-  α ≃ (quotient s × s) :=
+  α ≃ quotient s × s :=
 calc α ≃ Σ L : quotient s, {x : α // (x : quotient s)= L} :
   equiv.equiv_fib quotient_group.mk
     ... ≃ Σ L : quotient s, left_coset (quotient.out' L) s :
@@ -232,7 +232,7 @@ calc α ≃ Σ L : quotient s, {x : α // (x : quotient s)= L} :
     end)
     ... ≃ Σ L : quotient s, s :
   equiv.sigma_congr_right (λ L, left_coset_equiv_subgroup _)
-    ... ≃ (quotient s × s) :
+    ... ≃ quotient s × s :
   equiv.sigma_equiv_prod _ _
 attribute [to_additive is_add_subgroup.add_group_equiv_quotient_times_subgroup._proof_2] group_equiv_quotient_times_subgroup._proof_2
 attribute [to_additive is_add_subgroup.add_group_equiv_quotient_times_subgroup._proof_1] group_equiv_quotient_times_subgroup._proof_1
@@ -246,7 +246,7 @@ namespace quotient_group
 variables [group α]
 
 noncomputable def preimage_mk_equiv_subgroup_times_set
-  (s : set α) [is_subgroup s] (t : set (quotient s)) : quotient_group.mk ⁻¹' t ≃ (s × t) :=
+  (s : set α) [is_subgroup s] (t : set (quotient s)) : quotient_group.mk ⁻¹' t ≃ s × t :=
 have h : ∀ {x : quotient s} {a : α}, x ∈ t → a ∈ s →
   (quotient.mk' (quotient.out' x * a) : quotient s) = quotient.mk' (quotient.out' x) :=
     λ x a hx ha, quotient.sound' (show (quotient.out' x * a)⁻¹ * quotient.out' x ∈ s,

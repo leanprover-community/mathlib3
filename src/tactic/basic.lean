@@ -17,3 +17,4 @@ import
   tactic.squeeze
   tactic.where
   tactic.push_neg
+  tactic.doc_blame

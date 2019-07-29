@@ -386,8 +386,7 @@ instance {M G} [monoid M] [comm_group G] : has_inv (M →* G) := ⟨monoid_hom.i
 instance {M G} [monoid M] [comm_group G] : comm_group (M →* G) :=
 { inv := has_inv.inv,
   mul_left_inv := by intros; ext; apply mul_left_inv,
-  ..monoid_hom.comm_monoid
-}
+  ..monoid_hom.comm_monoid }
 
 end monoid_hom
 
@@ -425,7 +424,7 @@ instance {G : Type*} {H : Type*} [add_group G] [add_group H] (f : G →+ H) :
 def id (A : Type*) [add_monoid A] : A →+ A :=
 { to_fun := id,
   map_zero' := rfl,
-  map_add' := λ _ _, rfl}
+  map_add' := λ _ _, rfl }
 
 attribute [to_additive add_monoid_hom.id._proof_1] monoid_hom.id._proof_1
 attribute [to_additive add_monoid_hom.id._proof_2] monoid_hom.id._proof_2
@@ -515,7 +514,6 @@ instance {A B} [add_monoid A] [add_comm_group B]: has_neg (A →+ B) := ⟨add_m
 instance {A B} [add_monoid A] [add_comm_group B] : add_comm_group (A →+ B) :=
 { neg := has_neg.neg,
   add_left_neg := by intros; ext; apply add_left_neg,
-  ..add_monoid_hom.add_comm_monoid
-}
+  ..add_monoid_hom.add_comm_monoid }
 
 end add_monoid_hom

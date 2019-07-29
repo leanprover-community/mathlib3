@@ -683,10 +683,10 @@ mk_paragraph_aux right_margin "" "" 0
 /--
 Format the current goal as a stand-alone example. Useful for testing tactic.
 
-  * extract_example: formats the statement as an `example` declaration
-  * extract_example my_lemma: formats the statement as a `lemma` declaration
-    called `my_lemma`
-  * extract_example with i j k: only use local constants `i`, `j`, `k` in the declaration
+  * `extract_goal`: formats the statement as an `example` declaration
+  * `extract_goal my_decl`: formats the statement as a `lemma` or `def` declaration
+    called `my_decl`
+  * `extract_goal with i j k:` only use local constants `i`, `j`, `k` in the declaration
 
 Examples:
 
@@ -731,9 +731,11 @@ do (cxt,_) ← solve_aux `(true) $
        when (¬ vs.empty) (clear_except vs) >>
        local_context,
    tgt ← target,
-   let title := match n with
-                | none := to_fmt "example"
-                | (some n) := format!"lemma {n}"
+   is_prop ← is_prop tgt,
+   let title := match n, is_prop with
+                | none, _ := to_fmt "example"
+                | (some n), tt := format!"lemma {n}"
+                | (some n), ff := format!"def {n}"
                 end,
    cxt ← compact_decl cxt,
    cxt' ← cxt.init.mmap format_binders,

@@ -435,7 +435,7 @@ attribute [to_additive add_monoid_hom.id.equations._eqn_1] monoid_hom.id.equatio
 def comp (fbc : B →+ C) (fab : A →+ B) : A →+ C :=
 { to_fun := fbc ∘ fab,
   map_zero' := by simp,
-  map_add' := by simp}
+  map_add' := by simp }
 
 attribute [to_additive add_monoid_hom.comp] monoid_hom.comp
 attribute [to_additive add_monoid_hom.comp._proof_1] monoid_hom.comp._proof_1

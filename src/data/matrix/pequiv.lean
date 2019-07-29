@@ -2,11 +2,14 @@
 Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
+-/
+import data.matrix.basic data.pequiv
+/-
+# partial equivalences for matrices
 
 Using partial equivalences to represent matrices.
-
-This file instroduces the function `pequiv.to_matrix`, which returns a matrix containing ones and
-zeros.
+This file introduces the function `pequiv.to_matrix`, which returns a matrix containing ones and
+zeros. For any partial equivalence `f`, `f.to_matrix i j = 1 ↔ f i = some j`.
 
 The following important properties of this function are proved
 `to_matrix_trans : (f.trans g).to_matrix = f.to_matrix ⬝ g.to_matrix`
@@ -17,9 +20,11 @@ The following important properties of this function are proved
 This theory can help to prove properties of minors of matrices. Taking a row minor of a matrix
 corresponds to multiplication on the left by a `pequiv` matrix, and taking a column minor
 corresponds to multiplication on the right.
--/
 
-import data.matrix.basic data.pequiv
+## notations
+
+This file uses the notation ` ⬝ ` for `matrix.mul` and `ᵀ` for `matrix.transpose`.
+-/
 
 namespace pequiv
 open matrix
@@ -113,6 +118,8 @@ lemma single_mul_single_of_ne [semiring α] {b₁ b₂ : n} (hb : b₁ ≠ b₂)
   ((single a b₁).to_matrix : matrix _ _ α) ⬝ (single b₂ c).to_matrix = 0 :=
 by rw [← to_matrix_trans, single_trans_single_of_ne hb, to_matrix_bot]
 
+/-- Restatement of `single_mul_single`, which will simplify expressions in `simp` normal form,
+  when associativity may otherwise need to be carefully applied. -/
 @[simp] lemma single_mul_single_right [semiring α] (a :  m) (b : n) (c : k)
   (M : matrix k l α) : (single a b).to_matrix ⬝ ((single b c).to_matrix ⬝ M) =
   (single a c).to_matrix ⬝ M :=

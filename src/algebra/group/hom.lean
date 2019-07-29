@@ -348,7 +348,7 @@ protected def mul {M N} [monoid M] [comm_monoid N] (f g : M →* N) : M →* N :
 { to_fun := λ m, f m * g m,
   map_one' := show f 1 * g 1 = 1, by simp,
   map_mul' := begin intros, show f (x * y) * g (x * y) = f x * g x * (f y * g y),
-    rw [f.map_mul, g.map_mul, ←mul_assoc, ←mul_assoc, mul_right_comm (f x)], end}
+    rw [f.map_mul, g.map_mul, ←mul_assoc, ←mul_assoc, mul_right_comm (f x)], end }
 
 instance {M N} [monoid M] [comm_monoid N] : has_mul (M →* N) := ⟨monoid_hom.mul⟩
 

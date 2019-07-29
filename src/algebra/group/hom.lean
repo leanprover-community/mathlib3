@@ -320,35 +320,29 @@ def id (M : Type*) [monoid M] : M →* M :=
 def comp (hnp : N →* P) (hmn : M →* N) : M →* P :=
 { to_fun := hnp ∘ hmn,
   map_one' := by simp,
-  map_mul' := by simp,
-}
+  map_mul' := by simp }
 
 /-- The product of two monoids morphisms is a monoid morphism if the target is commutative. -/
 def mul {M N} [monoid M] [comm_monoid N] (f g : M →* N) : M →* N :=
 { to_fun := λ m, f m * g m,
   map_one' := show f 1 * g 1 = 1, by simp,
   map_mul' := begin intros, show f (x * y) * g (x * y) = f x * g x * (f y * g y),
-    rw [f.map_mul, g.map_mul, ←mul_assoc, ←mul_assoc, mul_right_comm (f x)], end
-}
+    rw [f.map_mul, g.map_mul, ←mul_assoc, ←mul_assoc, mul_right_comm (f x)], end}
 
 /-- Group homomorphisms preserve inverse. -/
 theorem map_inv {G H} [group G] [group H] (f : G →* H) (g : G) : f g⁻¹ = (f g)⁻¹ :=
 eq_inv_of_mul_eq_one $ by rw [←f.map_mul, inv_mul_self, f.map_one]
 
-/-- Makes a group homomomorphism from a proof that the map preserves multiplication. -/
-def mk' {f : M → G} (map_mul : ∀ a b : M, f (a * b) = f a * f b) : M →* G :=
+/-- Makes a group homomorphism from a map and a proof that it preserves multiplication. -/
+def mk' (f : M → G) (map_mul : ∀ a b : M, f (a * b) = f a * f b) : M →* G :=
 { to_fun := f,
   map_mul' := map_mul,
-  map_one' := mul_self_iff_eq_one.1 $ by rw [←map_mul, mul_one]
-}
-
-/-- Makes a group homomorphism from a map and a proof that it preserves multiplication. -/
-def mk'' (f : M → G) (map_mul : ∀ a b : M, f (a * b) = f a * f b) : M →* G := mk' map_mul
+  map_one' := mul_self_iff_eq_one.1 $ by rw [←map_mul, mul_one]}
 
 /-- The inverse of a monoid homomorphism is a monoid homomorphism if the target is
     a commutative group.-/
 def inv {M H} [monoid M] [comm_group H] (f : M →* H) : M →* H :=
-mk'' (λ g, (f g)⁻¹) $ λ a b, by rw [←mul_inv, f.map_mul]
+mk' (λ g, (f g)⁻¹) $ λ a b, by rw [←mul_inv, f.map_mul]
 
 end monoid_hom
 
@@ -387,8 +381,7 @@ attribute [to_additive add_monoid_hom.id.equations._eqn_1] monoid_hom.id.equatio
 def comp (fbc : B →+ C) (fab : A →+ B) : A →+ C :=
 { to_fun := fbc ∘ fab,
   map_zero' := by simp,
-  map_add' := by simp,
-}
+  map_add' := by simp}
 
 attribute [to_additive add_monoid_hom.comp] monoid_hom.comp
 attribute [to_additive add_monoid_hom.comp._proof_1] monoid_hom.comp._proof_1
@@ -401,8 +394,7 @@ def add {A B} [add_monoid A] [add_comm_monoid B] (f g : A →+ B) : A →+ B :=
 { to_fun := λ a, f a + g a,
   map_zero' := show f 0 + g 0 = 0, by simp,
   map_add' := begin intros, show f (x + y) + g (x + y) = f x + g x + (f y + g y),
-    rw [f.map_add, g.map_add, ←add_assoc, ←add_assoc, add_right_comm (f x)], end
-}
+    rw [f.map_add, g.map_add, ←add_assoc, ←add_assoc, add_right_comm (f x)], end}
 
 attribute [to_additive add_monoid_hom.add] monoid_hom.mul
 attribute [to_additive add_monoid_hom.add._proof_1] monoid_hom.mul._proof_1
@@ -415,24 +407,19 @@ eq_neg_of_add_eq_zero $ by rw [←f.map_add, neg_add_self, f.map_zero]
 attribute [to_additive add_monoid_hom.map_neg] monoid_hom.map_inv
 
 /-- makes an additive group homomomorphism from a proof that the map preserves addition -/
-def mk' {f : A → H} (map_add : ∀ x y : A, f (x + y) = f x + f y) : A →+ H :=
+def mk' (f : A → H) (map_add : ∀ x y : A, f (x + y) = f x + f y) : A →+ H :=
 { to_fun := f,
   map_add' := map_add,
-  map_zero' := add_self_iff_eq_zero.1 $ by rw [←map_add, add_zero]
-}
+  map_zero' := add_self_iff_eq_zero.1 $ by rw [←map_add, add_zero]}
+
 attribute [to_additive add_monoid_hom.mk'] monoid_hom.mk'
 attribute [to_additive add_monoid_hom.mk'._proof_1] monoid_hom.mk'._proof_1
 attribute [to_additive add_monoid_hom.mk'.equations._eqn_1] monoid_hom.mk'.equations._eqn_1
 
-def mk'' (f : A → H) (map_add : ∀ x y : A, f (x + y) = f x + f y) : A →+ H := mk' map_add
-
-attribute [to_additive add_monoid_hom.mk''] monoid_hom.mk''
-attribute [to_additive add_monoid_hom.mk''.equations._eqn_1] monoid_hom.mk''.equations._eqn_1
-
 /-- the additive inverse of an additive group homomorphism is an additive group homomorphism if the
 target is commutative-/
 def neg {A B} [add_monoid A] [add_comm_group B] (f : A →+ B) : A →+ B :=
-mk'' (λ g, -(f g)) $ λ a b, by rw [←neg_add, f.map_add]
+mk' (λ g, -(f g)) $ λ a b, by rw [←neg_add, f.map_add]
 
 attribute [to_additive add_monoid_hom.neg] monoid_hom.inv
 attribute [to_additive add_monoid_hom.neg._proof_1] monoid_hom.inv._proof_1

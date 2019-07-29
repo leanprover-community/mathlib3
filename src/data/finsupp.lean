@@ -154,12 +154,29 @@ begin
     { rw [single_zero, single_zero] } }
 end
 
+lemma single_right_inj (h : b ≠ 0) :
+  single a b = single a' b ↔ a = a' :=
+⟨λ H, by simpa [h, single_eq_single_iff] using H, λ H, by rw [H]⟩
+
+lemma single_eq_zero : single a b = 0 ↔ b = 0 :=
+⟨λ h, by { rw ext_iff at h, simpa only [finsupp.single_eq_same, finsupp.zero_apply] using h a },
+λ h, by rw [h, single_zero]⟩
+
 lemma single_swap {α β : Type*} [decidable_eq α] [decidable_eq β] [has_zero β] (a₁ a₂ : α) (b : β) :
   (single a₁ b : α → β) a₂ = (single a₂ b : α → β) a₁ :=
 by simp [single_apply]; ac_refl
 
 lemma unique_single [unique α] (x : α →₀ β) : x = single (default α) (x (default α)) :=
 by ext i; simp [unique.eq_default i]
+
+@[simp] lemma unique_single_eq_iff [unique α] {b' : β} :
+  single a b = single a' b' ↔ b = b' :=
+begin
+  rw [single_eq_single_iff],
+  split,
+  { rintros (⟨_, rfl⟩ | ⟨rfl, rfl⟩); refl },
+  { intro h, left, exact ⟨subsingleton.elim _ _, h⟩ }
+end
 
 end single
 
@@ -1397,5 +1414,152 @@ lemma sigma_sum [add_comm_monoid γ] (f : (Σ (i : ι), αs i) → β → γ) :
 by simp [sum, sigma_support, sum_sigma,split_apply]
 
 end sigma
+
+end finsupp
+
+namespace multiset
+variables [decidable_eq α]
+
+def to_finsupp (s : multiset α) : α →₀ ℕ :=
+{ support := s.to_finset,
+  to_fun := λ a, s.count a,
+  mem_support_to_fun := λ a,
+  begin
+    rw mem_to_finset,
+    convert not_iff_not_of_iff (count_eq_zero.symm),
+    rw not_not
+  end }
+
+@[simp] lemma to_finsupp_support (s : multiset α) :
+  s.to_finsupp.support = s.to_finset := rfl
+
+@[simp] lemma to_finsupp_apply (s : multiset α) (a : α) :
+  s.to_finsupp a = s.count a := rfl
+
+@[simp] lemma to_finsupp_zero :
+  to_finsupp (0 : multiset α) = 0 :=
+finsupp.ext $ λ a, count_zero a
+
+@[simp] lemma to_finsupp_add (s t : multiset α) :
+  to_finsupp (s + t) = to_finsupp s + to_finsupp t :=
+finsupp.ext $ λ a, count_add a s t
+
+lemma to_finsupp_singleton (a : α) :
+  to_finsupp {a} = finsupp.single a 1 :=
+finsupp.ext $ λ b,
+if h : a = b then by simp [finsupp.single_apply, h] else
+begin
+  rw [to_finsupp_apply, finsupp.single_apply, if_neg h, count_eq_zero,
+      singleton_eq_singleton, mem_singleton],
+  rintro rfl, exact h rfl
+end
+
+namespace to_finsupp
+
+instance : is_add_monoid_hom (to_finsupp : multiset α → α →₀ ℕ) :=
+{ map_zero := to_finsupp_zero,
+  map_add  := to_finsupp_add }
+
+end to_finsupp
+
+@[simp] lemma to_finsupp_to_multiset (s : multiset α) :
+  s.to_finsupp.to_multiset = s :=
+ext.2 $ λ a, by rw [finsupp.count_to_multiset, to_finsupp_apply]
+
+end multiset
+
+namespace finsupp
+variables {σ : Type*} [decidable_eq σ]
+
+instance [preorder α] [has_zero α] : preorder (σ →₀ α) :=
+{ le := λ f g, ∀ s, f s ≤ g s,
+  le_refl := λ f s, le_refl _,
+  le_trans := λ f g h Hfg Hgh s, le_trans (Hfg s) (Hgh s) }
+
+instance [partial_order α] [has_zero α] : partial_order (σ →₀ α) :=
+{ le_antisymm := λ f g hfg hgf, finsupp.ext $ λ s, le_antisymm (hfg s) (hgf s),
+  .. finsupp.preorder }
+
+instance [ordered_cancel_comm_monoid α] [decidable_eq α] :
+  add_left_cancel_semigroup (σ →₀ α) :=
+{ add_left_cancel := λ a b c h, finsupp.ext $ λ s,
+  by { rw finsupp.ext_iff at h, exact add_left_cancel (h s) },
+  .. finsupp.add_monoid }
+
+instance [ordered_cancel_comm_monoid α] [decidable_eq α] :
+  add_right_cancel_semigroup (σ →₀ α) :=
+{ add_right_cancel := λ a b c h, finsupp.ext $ λ s,
+  by { rw finsupp.ext_iff at h, exact add_right_cancel (h s) },
+  .. finsupp.add_monoid }
+
+instance [ordered_cancel_comm_monoid α] [decidable_eq α] :
+  ordered_cancel_comm_monoid (σ →₀ α) :=
+{ add_le_add_left := λ a b h c s, add_le_add_left (h s) (c s),
+  le_of_add_le_add_left := λ a b c h s, le_of_add_le_add_left (h s),
+  .. finsupp.add_comm_monoid, .. finsupp.partial_order,
+  .. finsupp.add_left_cancel_semigroup, .. finsupp.add_right_cancel_semigroup }
+
+lemma le_iff [canonically_ordered_monoid α] (f g : σ →₀ α) :
+  f ≤ g ↔ ∀ s ∈ f.support, f s ≤ g s :=
+⟨λ h s hs, h s,
+λ h s, if H : s ∈ f.support then h s H else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
+
+attribute [simp] to_multiset_zero to_multiset_add
+
+@[simp] lemma to_multiset_to_finsupp (f : σ →₀ ℕ) :
+  f.to_multiset.to_finsupp = f :=
+ext $ λ s, by rw [multiset.to_finsupp_apply, count_to_multiset]
+
+lemma to_multiset_strict_mono : strict_mono (@to_multiset σ _) :=
+λ m n h,
+begin
+  rw lt_iff_le_and_ne at h ⊢, cases h with h₁ h₂,
+  split,
+  { rw multiset.le_iff_count, intro s, rw [count_to_multiset, count_to_multiset], exact h₁ s },
+  { intro H, apply h₂, replace H := congr_arg multiset.to_finsupp H, simpa using H }
+end
+
+lemma sum_id_lt_of_lt (m n : σ →₀ ℕ) (h : m < n) :
+  m.sum (λ _, id) < n.sum (λ _, id) :=
+begin
+  rw [← card_to_multiset, ← card_to_multiset],
+  apply multiset.card_lt_of_lt,
+  exact to_multiset_strict_mono _ _ h
+end
+
+variable (σ)
+
+/-- The order on σ →₀ ℕ is well-founded.-/
+def lt_wf : well_founded (@has_lt.lt (σ →₀ ℕ) _) :=
+subrelation.wf (sum_id_lt_of_lt) $ inv_image.wf _ nat.lt_wf
+
+instance decidable_le : decidable_rel (@has_le.le (σ →₀ ℕ) _) :=
+λ m n, by rw le_iff; apply_instance
+
+variable {σ}
+
+def antidiagonal (f : σ →₀ ℕ) : ((σ →₀ ℕ) × (σ →₀ ℕ)) →₀ ℕ :=
+(f.to_multiset.antidiagonal.map (prod.map multiset.to_finsupp multiset.to_finsupp)).to_finsupp
+
+lemma mem_antidiagonal_support {f : σ →₀ ℕ} {p : (σ →₀ ℕ) × (σ →₀ ℕ)} :
+  p ∈ (antidiagonal f).support ↔ p.1 + p.2 = f :=
+begin
+  erw [multiset.mem_to_finset, multiset.mem_map],
+  split,
+  { rintros ⟨⟨a, b⟩, h, rfl⟩,
+    rw multiset.mem_antidiagonal at h,
+    simpa using congr_arg multiset.to_finsupp h },
+  { intro h,
+    refine ⟨⟨p.1.to_multiset, p.2.to_multiset⟩, _, _⟩,
+    { simpa using congr_arg to_multiset h },
+    { rw [prod.map, to_multiset_to_finsupp, to_multiset_to_finsupp, prod.mk.eta] } }
+end
+
+@[simp] lemma antidiagonal_zero : antidiagonal (0 : σ →₀ ℕ) = single (0,0) 1 :=
+by rw [← multiset.to_finsupp_singleton]; refl
+
+lemma swap_mem_antidiagonal_support {n : σ →₀ ℕ} {f} (hf : f ∈ (antidiagonal n).support) :
+  f.swap ∈ (antidiagonal n).support :=
+by simpa [mem_antidiagonal_support, add_comm] using hf
 
 end finsupp

@@ -1,7 +1,8 @@
--- Copyright (c) 2019 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison
-
+/-
+Copyright (c) 2019 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import algebra.CommRing.basic
 import topology.Top.basic
 import topology.instances.complex
@@ -25,7 +26,7 @@ attribute [instance] is_comm_ring is_topological_space is_topological_ring
 
 instance TopCommRing_category : category TopCommRing :=
 { hom   := λ R S, {f : R → S // is_ring_hom f ∧ continuous f },
-  id    := λ R, ⟨id, by obviously⟩,
+  id    := λ R, ⟨id, by obviously⟩, -- TODO remove obviously?
   comp  := λ R S T f g, ⟨g.val ∘ f.val,
     begin -- TODO automate
       cases f, cases g, cases f_property, cases g_property, split,

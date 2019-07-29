@@ -315,7 +315,7 @@ instance : fintype (zmodp p hp) := @zmod.fintype ⟨p, hp.pos⟩
 
 instance decidable_eq : decidable_eq (zmodp p hp) := fin.decidable_eq _
 
-instance (n : ℕ+) : has_repr (zmodp p hp) := fin.has_repr _
+instance : has_repr (zmodp p hp) := fin.has_repr _
 
 @[simp] lemma card_zmodp : fintype.card (zmodp p hp) = p :=
 @zmod.card_zmod ⟨p, hp.pos⟩

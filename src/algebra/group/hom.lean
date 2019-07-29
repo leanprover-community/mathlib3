@@ -359,7 +359,7 @@ instance {M N} [monoid M] [comm_monoid N] : comm_monoid (M →* N) :=
   one := 1,
   one_mul := by intros; ext; apply one_mul,
   mul_one := by intros; ext; apply mul_one,
-  mul_comm := by intros; ext; apply mul_comm}
+  mul_comm := by intros; ext; apply mul_comm }
 
 /-- Group homomorphisms preserve inverse. -/
 @[simp] theorem map_inv {G H} [group G] [group H] (f : G →* H) (g : G) : f g⁻¹ = (f g)⁻¹ :=

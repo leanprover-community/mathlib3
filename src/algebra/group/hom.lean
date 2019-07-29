@@ -373,7 +373,7 @@ eq_inv_of_mul_eq_one $ by rw [←f.map_mul, inv_mul_self, f.map_one]
 def mk' (f : M → G) (map_mul : ∀ a b : M, f (a * b) = f a * f b) : M →* G :=
 { to_fun := f,
   map_mul' := map_mul,
-  map_one' := mul_self_iff_eq_one.1 $ by rw [←map_mul, mul_one]}
+  map_one' := mul_self_iff_eq_one.1 $ by rw [←map_mul, mul_one] }
 
 /-- The inverse of a monoid homomorphism is a monoid homomorphism if the target is
     a commutative group.-/
@@ -494,7 +494,7 @@ attribute [to_additive add_monoid_hom.map_sub] monoid_hom.map_div
 def mk' (f : A → G) (map_add : ∀ x y : A, f (x + y) = f x + f y) : A →+ G :=
 { to_fun := f,
   map_add' := map_add,
-  map_zero' := add_self_iff_eq_zero.1 $ by rw [←map_add, add_zero]}
+  map_zero' := add_self_iff_eq_zero.1 $ by rw [←map_add, add_zero] }
 
 attribute [to_additive add_monoid_hom.mk'] monoid_hom.mk'
 attribute [to_additive add_monoid_hom.mk'._proof_1] monoid_hom.mk'._proof_1

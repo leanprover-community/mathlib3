@@ -1,7 +1,25 @@
+/-
+Copyright (c) 2019 Simon Hudon. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author(s): Simon Hudon
+-/
+
 import category.bitraversable.basic
        category.bitraversable.lemmas
        category.traversable.lemmas
        tactic.solve_by_elim
+
+/-!
+# bitraversable instances for
+ * prod
+ * sum
+ * const
+ * flip
+ * bicompl
+ * bicompr
+
+# traversable instances for bitraversable functors
+-/
 
 universes u v w
 

@@ -1,4 +1,24 @@
+/-
+Copyright (c) 2019 Simon Hudon. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author(s): Simon Hudon
+-/
+
 import category.bitraversable.basic
+
+/-!
+# specialized bitraverse
+  * tfst - traverse on first functor argument
+  * tsnd - traverse on second functor argument
+
+# properties of
+  * bitraverse
+  * tfst
+  * tsnd
+with
+  * id
+  * comp
+-/
 
 universes u
 

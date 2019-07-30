@@ -304,7 +304,7 @@ series_ratio_test n (complex.abs z / n) (div_nonneg_of_nonneg_of_pos (complex.ab
       mul_comm m.succ, nat.cast_mul, ← div_div_eq_div_mul, mul_div_assoc,
       mul_div_right_comm, abs_mul, abs_div, abs_cast_nat];
     exact mul_le_mul_of_nonneg_right
-      (div_le_div_of_le_left (abs_nonneg _) (nat.cast_pos.2 (nat.succ_pos _)) hn0
+      (div_le_div_of_le_left (abs_nonneg _) hn0
         (nat.cast_le.2 (le_trans hm (nat.le_succ _)))) (abs_nonneg _))
 
 noncomputable theory

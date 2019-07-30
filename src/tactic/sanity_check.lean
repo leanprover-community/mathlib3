@@ -100,5 +100,5 @@ get_all_unused_args_tac_sorted (λ d, is_in_mathlib d.to_name) >>= print_all_dec
 
 /-- Get all declarations in current file with unused arguments -/
 meta def get_all_unused_args_current_file : tactic unit :=
-get_all_unused_args_tac_sorted (λ d, do e ← get_env, return $ e.in_current_file d.to_name) >>=
-  print_all_decls
+get_all_unused_args_tac (λ d, do e ← get_env, return $ e.in_current_file d.to_name) >>=
+  print_decls

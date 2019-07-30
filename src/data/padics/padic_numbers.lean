@@ -101,7 +101,7 @@ lemma stationary_point_spec {f : padic_seq p} (hf : ¬ f ≈ 0) :
     padic_norm p (f n) = padic_norm p (f m) :=
 classical.some_spec $ stationary hf
 
-/-- Since the norm of the entries a Cauchy sequence is eventually stationary, we can lift the norm
+/-- Since the norm of the entries of a Cauchy sequence is eventually stationary, we can lift the norm
 to sequences. -/
 def norm (f : padic_seq p) : ℚ :=
 if hf : f ≈ 0 then 0 else padic_norm p (f (stationary_point hf))

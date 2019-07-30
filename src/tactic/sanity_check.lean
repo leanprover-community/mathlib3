@@ -17,10 +17,7 @@ s.mk_iterator.is_prefix s'.mk_iterator
 
 end string
 
-/-- A hackish way to get the `src` directory of mathlib. Requires the import of `tactic.cache`.
-  The string probably ends with
-    \mathlib\src\
-  -/
+/-- A hackish way to get the `src` directory of mathlib. Requires the import of `tactic.cache`. -/
 meta def get_mathlib_dir : tactic string :=
 do e ← get_env,
   s ← e.decl_olean `tactic.reset_instance_cache,

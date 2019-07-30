@@ -753,6 +753,10 @@ meta def strip_prefix : name → tactic name
 | n@(name.mk_string a a_1) := strip_prefix' n [a] a_1
 | _ := interaction_monad.failed
 
+meta def local_binding_info : expr → binder_info
+| (expr.local_const _ _ bi _) := bi
+| _ := binder_info.default
+
 meta def is_default_local : expr → bool
 | (expr.local_const _ _ binder_info.default _) := tt
 | _ := ff
@@ -1096,7 +1100,8 @@ See also: `trace!` and `fail!`
 -/
 @[user_notation]
 meta def pformat_macro (_ : parse $ tk "pformat!") (s : string) : parser pexpr :=
-parse_pformat "" s.to_list
+do e ← parse_pformat "" s.to_list,
+   return ``(%%e : pformat)
 
 reserve prefix `fail! `:100
 

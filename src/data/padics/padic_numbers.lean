@@ -30,7 +30,7 @@ We introduce the notation ℚ_[p] for the p-adic numbers.
 Much, but not all, of this file assumes that `p` is prime. This assumption is inferred automatically
 by taking (prime p) as a type class argument.
 
-We use the same concrete Cauchy sequence construction that is used to construct ℝ. ℚ_p inheirits a
+We use the same concrete Cauchy sequence construction that is used to construct ℝ. ℚ_p inherits a
 field structure from this construction. The extension of the norm on ℚ to ℚ_p is *not* analogous to
 extending the absolute value to ℝ, and hence the proof that ℚ_p is complete is different from the
 proof that ℝ is complete.

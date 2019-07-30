@@ -3,17 +3,64 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 
-Define the p-adic numbers (rationals) ℚ_p as the completion of ℚ wrt the p-adic norm.
-Show that the p-adic norm extends to ℚ_p, that ℚ is embedded in ℚ_p, and that ℚ_p is complete
 -/
 
 import data.real.cau_seq_completion topology.metric_space.cau_seq_filter
 import data.padics.padic_norm algebra.archimedean analysis.normed_space.basic
 import tactic.norm_cast
+
+/-!
+# p-adic numbers
+
+This file defines the p-adic numbers (rationals) ℚ_p as the completion of ℚ with respect to the
+p-adic norm. We show that the p-adic norm on ℚ extends to ℚ_p, that ℚ is embedded in ℚ_p, and that
+ℚ_p is Cauchy complete.
+
+## Important definitions
+
+* `padic` : the type of p-adic numbers
+* `padic_norm_e` : the rational ralued p-adic norm on ℚ_p
+
+## Notation
+
+We introduce the notation ℚ_[p] for the p-adic numbers.
+
+## Implementation notes
+
+Much, but not all, of this file assumes that `p` is prime. This assumption is inferred automatically
+by taking (prime p) as a type class argument.
+
+We use the same concrete Cauchy sequence construction that is used to construct ℝ. ℚ_p inheirits a
+field structure from this construction. The extension of the norm on ℚ to ℚ_p is *not* analogous to
+extending the absolute value to ℝ, and hence the proof that ℚ_p is complete is different from the
+proof that ℝ is complete.
+
+A small special-purpose simplification tactic, `padic_index_simp`, is used to manipulate sequence
+indices in the proof that the norm extends.
+
+`padic_norm_e` is the rational-valued p-adic norm on ℚ_p. To instantiate ℚ_p as a normed field, we
+must cast this into a ℝ-valued norm. The ℝ-valued norm, using notation ∥ ∥ from normed spaces, is
+the canonical representation of this norm.
+
+Coercions from ℚ to ℚ_p are set up to work with the `norm_cast` tactic.
+
+## References
+
+* [F. Q. Gouêva, *p-adic numbers*][gouvea1997]
+* [R. Y. Lewis, *A formal proof of Hensel's lemma over the p-adic integers*][lewis2019]
+* https://en.wikipedia.org/wiki/P-adic_number
+
+## Tags
+
+p-adic, p adic, padic, norm, valuation, cauchy, completion, p-adic completion
+-/
+
 noncomputable theory
 local attribute [instance, priority 1] classical.prop_decidable
 
 open nat multiplicity padic_norm cau_seq cau_seq.completion metric
+
+/-- The type of Cauchy sequences of rationals with respect to the p-adic norm. -/
 @[reducible] def padic_seq (p : ℕ) [p.prime] := cau_seq _ (padic_norm p)
 
 namespace padic_seq
@@ -21,6 +68,8 @@ namespace padic_seq
 section
 variables {p : ℕ} [nat.prime p]
 
+/-- The p-adic norm of the entries of a nonzero Cauchy sequence of rationals is eventually
+constant. -/
 lemma stationary {f : cau_seq ℚ (padic_norm p)} (hf : ¬ f ≈ 0) :
   ∃ N, ∀ m n, m ≥ N → n ≥ N → padic_norm p (f n) = padic_norm p (f m) :=
 have ∃ ε > 0, ∃ N1, ∀ j ≥ N1, ε ≤ padic_norm p (f j),
@@ -43,6 +92,7 @@ let ⟨ε, hε, N1, hN1⟩ := this,
     apply _root_.lt_irrefl _ (by simp at this; exact this)
   end ⟩
 
+/-- For all n ≥ stationary_point f hf, the p-adic norm of f n is the same. -/
 def stationary_point {f : padic_seq p} (hf : ¬ f ≈ 0) : ℕ :=
 classical.some $ stationary hf
 
@@ -51,6 +101,8 @@ lemma stationary_point_spec {f : padic_seq p} (hf : ¬ f ≈ 0) :
     padic_norm p (f n) = padic_norm p (f m) :=
 classical.some_spec $ stationary hf
 
+/-- Since the norm of the entries a Cauchy sequence is eventually stationary, we can lift the norm
+to sequences. -/
 def norm (f : padic_seq p) : ℚ :=
 if hf : f ≈ 0 then 0 else padic_norm p (f (stationary_point hf))
 
@@ -101,8 +153,10 @@ lemma norm_nonneg (f : padic_seq p) : f.norm ≥ 0 :=
 if hf : f ≈ 0 then by simp [hf, norm]
 else by simp [norm, hf, padic_norm.nonneg]
 
+/-- An auxiliary lemma for manipulating sequence indices. -/
 lemma lift_index_left_left {f : padic_seq p} (hf : ¬ f ≈ 0) (v2 v3 : ℕ) :
-  padic_norm p (f (stationary_point hf)) = padic_norm p (f (max (stationary_point hf) (max v2 v3))) :=
+  padic_norm p (f (stationary_point hf)) =
+    padic_norm p (f (max (stationary_point hf) (max v2 v3))) :=
 let i := max (stationary_point hf) (max v2 v3) in
 begin
   apply stationary_point_spec hf,
@@ -110,8 +164,10 @@ begin
   { apply le_refl }
 end
 
+/-- An auxiliary lemma for manipulating sequence indices. -/
 lemma lift_index_left {f : padic_seq p} (hf : ¬ f ≈ 0) (v1 v3 : ℕ) :
-  padic_norm p (f (stationary_point hf)) = padic_norm p (f (max v1 (max (stationary_point hf) v3))) :=
+  padic_norm p (f (stationary_point hf)) =
+    padic_norm p (f (max v1 (max (stationary_point hf) v3))) :=
 let i := max v1 (max (stationary_point hf) v3) in
 begin
   apply stationary_point_spec hf,
@@ -121,8 +177,10 @@ begin
   { apply le_refl }
 end
 
+/-- An auxiliary lemma for manipulating sequence indices. -/
 lemma lift_index_right {f : padic_seq p} (hf : ¬ f ≈ 0) (v1 v2 : ℕ) :
-  padic_norm p (f (stationary_point hf)) = padic_norm p (f (max v1 (max v2 (stationary_point hf)))) :=
+  padic_norm p (f (stationary_point hf)) =
+    padic_norm p (f (max v1 (max v2 (stationary_point hf)))) :=
 let i := max v1 (max v2 (stationary_point hf)) in
 begin
   apply stationary_point_spec hf,
@@ -139,7 +197,8 @@ end padic_seq
 section
 open padic_seq
 
-meta def index_simp_core (hh hf hg : expr) (at_ : interactive.loc := interactive.loc.ns [none]) : tactic unit :=
+private meta def index_simp_core (hh hf hg : expr)
+  (at_ : interactive.loc := interactive.loc.ns [none]) : tactic unit :=
 do [v1, v2, v3] ← [hh, hf, hg].mmap
      (λ n, tactic.mk_app ``stationary_point [n] <|> return n),
    e1 ← tactic.mk_app ``lift_index_left_left [hh, v2, v3] <|> return `(true),
@@ -334,6 +393,7 @@ end
 end embedding
 end padic_seq
 
+/-- The p-adic numbers `Q_[p]` are the Cauchy completion of `ℚ` with respect to the p-adic norm. -/
 def padic (p : ℕ) [nat.prime p] := @cau_seq.completion.Cauchy _ _ _ _ (padic_norm p) _
 notation `ℚ_[` p `]` := padic p
 
@@ -342,6 +402,7 @@ namespace padic
 section completion
 variables {p : ℕ} [nat.prime p]
 
+/-- The discrete field structure on ℚ_p is inherited from the Cauchy completion construction. -/
 instance discrete_field : discrete_field (ℚ_[p]) :=
 cau_seq.completion.discrete_field
 
@@ -357,6 +418,7 @@ instance : has_div ℚ_[p] := by apply_instance
 instance : add_comm_group ℚ_[p] := by apply_instance
 instance : comm_ring ℚ_[p] := by apply_instance
 
+/-- Builds the equivalence class of a Cauchy sequence of rationals. -/
 def mk : padic_seq p → ℚ_[p] := quotient.mk
 end completion
 
@@ -365,6 +427,7 @@ variables (p : ℕ) [nat.prime p]
 
 lemma mk_eq {f g : padic_seq p} : mk f = mk g ↔ f ≈ g := quotient.eq
 
+/-- Embeds the rational numbers in the p-adic numbers. -/
 def of_rat : ℚ → ℚ_[p] := cau_seq.completion.of_rat
 
 @[simp] lemma of_rat_add : ∀ (x y : ℚ), of_rat p (x + y) = of_rat p x + of_rat p y :=
@@ -420,7 +483,8 @@ lemma const_equiv {q r : ℚ} : const (padic_norm p) q ≈ const (padic_norm p) 
 lemma of_rat_eq {q r : ℚ} : of_rat p q = of_rat p r ↔ q = r :=
 ⟨(const_equiv p).1 ∘ quotient.eq.1, λ h, by rw h⟩
 
-@[elim_cast] lemma coe_inj {q r : ℚ} : (↑q : ℚ_[p]) = ↑r ↔ q = r := by simp [cast_eq_of_rat, of_rat_eq]
+@[elim_cast] lemma coe_inj {q r : ℚ} : (↑q : ℚ_[p]) = ↑r ↔ q = r :=
+by simp [cast_eq_of_rat, of_rat_eq]
 
 instance : char_zero ℚ_[p] :=
 ⟨λ m n, by { rw ← rat.cast_coe_nat, norm_cast }⟩
@@ -428,6 +492,8 @@ instance : char_zero ℚ_[p] :=
 end completion
 end padic
 
+/-- The rational-valued p-adic norm on ℚ_p is lifted from the norm on Cauchy sequences. The
+canonical form of this function is the normed space instance, with notation `∥ ∥`. -/
 def padic_norm_e {p : ℕ} [hp : nat.prime p] : ℚ_[p] → ℚ :=
 quotient.lift padic_seq.norm $ @padic_seq.norm_equiv _ _
 
@@ -469,16 +535,22 @@ quotient.induction_on q $
 @[simp] protected lemma zero : padic_norm_e (0 : ℚ_[p]) = 0 :=
 (zero_iff _).2 rfl
 
+/-- Theorems about `padic_norm_e` are named with a `'` so the names do not conflict with the
+equivalent theorems about `norm` (`∥ ∥`). -/
 @[simp] protected lemma one' : padic_norm_e (1 : ℚ_[p]) = 1 :=
 norm_one
 
 @[simp] protected lemma neg (q : ℚ_[p]) : padic_norm_e (-q) = padic_norm_e q :=
 quotient.induction_on q $ norm_neg
 
+/-- Theorems about `padic_norm_e` are named with a `'` so the names do not conflict with the
+equivalent theorems about `norm` (`∥ ∥`). -/
 theorem nonarchimedean' (q r : ℚ_[p]) :
   padic_norm_e (q + r) ≤ max (padic_norm_e q) (padic_norm_e r) :=
 quotient.induction_on₂ q r $ norm_nonarchimedean
 
+/-- Theorems about `padic_norm_e` are named with a `'` so the names do not conflict with the
+equivalent theorems about `norm` (`∥ ∥`). -/
 theorem add_eq_max_of_ne' {q r : ℚ_[p]} :
   padic_norm_e q ≠ padic_norm_e r → padic_norm_e (q + r) = max (padic_norm_e q) (padic_norm_e r) :=
 quotient.induction_on₂ q r $ λ _ _, padic_seq.add_eq_max_of_ne

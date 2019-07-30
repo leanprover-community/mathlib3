@@ -17,9 +17,13 @@ The following important properties of this function are proved
 `to_matrix_refl : (pequiv.refl n).to_matrix = 1`
 `to_matrix_bot : ⊥.to_matrix = 0`
 
-This theory can help to prove properties of minors of matrices. Taking a row minor of a matrix
-corresponds to multiplication on the left by a `pequiv` matrix, and taking a column minor
-corresponds to multiplication on the right.
+This theory gives the matrix representation of projection linear maps, and their right inverses.
+For example, the matrix `(single (0 : fin 1) (i : fin n)).to_matrix` corresponds to the the ith
+projection map from R^n to R.
+
+Any injective function `fin m → fin n` gives rise to a `pequiv`, whose matrix is the projection
+map from R^m → R^n represented by the same function. The transpose of this matrix is the right
+inverse of this map, sending anything not in the image to zero.
 
 ## notations
 

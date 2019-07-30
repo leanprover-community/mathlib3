@@ -171,10 +171,6 @@ lemma div_div_div_cancel_right (a b : α) (hc : c ≠ 0) : (a / c) / (b / c) = a
 if b0 : b = 0 then by simp only [b0, div_zero, zero_div] else
 field.div_div_div_cancel_right _ b0 hc
 
-/- lemma div_mul_div_cancel (a : α) (hb : b ≠ 0) (hc : c ≠ 0) : (a / c) * (c / b) = a / b :=
-if b0 : b = 0 then by simp only [b0, div_zero, mul_zero] else
-field.div_mul_div_cancel _ b0 hc -/
-
 lemma div_div_cancel (ha : a ≠ 0) : a / (a / b) = b :=
 if b0 : b = 0 then by simp only [b0, div_zero] else
 field.div_div_cancel ha b0

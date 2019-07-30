@@ -1024,6 +1024,224 @@ end discrete_field
 
 end formal_power_series
 
+namespace formal_power_series
+variable {α : Type*}
+
+local attribute [instance] classical.prop_decidable
+
+noncomputable theory
+section order_basic
+variables [comm_semiring α]
+
+def order (φ : formal_power_series α) : enat :=
+{ dom := ∃ i, φ.coeff i ≠ 0,
+  get := nat.find }
+
+lemma order_le (φ : formal_power_series α) (n : ℕ) (h : coeff n φ ≠ 0) :
+  order φ ≤ n :=
+begin
+  have : (order φ).dom := ⟨n, h⟩,
+  rw [← enat.coe_get this, enat.coe_le_coe],
+  apply nat.find_min' this h
+end
+
+lemma coeff_of_lt_order (φ : formal_power_series α) (n : ℕ) (h: ↑n < order φ) :
+  coeff n φ = 0 :=
+by { rw ← not_le at h, by_contra H, exact h (order_le _ n H) }
+
+lemma coeff_order (φ : formal_power_series α) (h : ∃ i, φ.coeff i ≠ 0) :
+  coeff (φ.order.get h) φ ≠ 0 :=
+nat.find_spec h
+
+lemma order_ge_nat (φ : formal_power_series α) (n : ℕ) (h : ∀ i < n, coeff i φ = 0) :
+  order φ ≥ n :=
+begin
+  by_contra H, rw not_le at H,
+  have : (order φ).dom := enat.dom_of_le_some (le_of_lt H),
+  rw [← enat.coe_get this, enat.coe_lt_coe] at H,
+  exact coeff_order _ this (h _ H)
+end
+
+@[simp] lemma order_zero : order (0 : formal_power_series α) = ⊤ :=
+roption.ext $ λ i,
+by { split; rintro ⟨⟨n, h⟩, rfl⟩, exfalso, exact h (coeff_zero n) }
+
+lemma order_eq_top {φ : formal_power_series α} :
+  φ.order = ⊤ ↔ φ = 0 :=
+begin
+  split,
+  { intro h, replace h : _ = false := congr_arg roption.dom h,
+    ext n, by_contra H, exact eq.rec_on h ⟨n, H⟩ },
+  { rintro rfl, exact order_zero }
+end
+
+lemma order_ge (φ : formal_power_series α) (n : enat) (h : ∀ i : ℕ, ↑i < n → coeff i φ = 0) :
+  order φ ≥ n :=
+begin
+  induction n using enat.cases_on,
+  { show _ ≤ _, rw [lattice.top_le_iff, order_eq_top],
+    ext i, exact h _ (enat.coe_lt_top i) },
+  { apply order_ge_nat, simpa only [enat.coe_lt_coe] using h }
+end
+
+lemma order_eq_nat {φ : formal_power_series α} {n : ℕ} :
+  order φ = n ↔ (coeff n φ ≠ 0) ∧ (∀ i:ℕ, i < n → coeff i φ = 0) :=
+begin
+  split,
+  { intro hn, have : (order φ).dom, { rw hn, exact trivial },
+    have R := coeff_of_lt_order φ,
+    simp only [hn, enat.coe_lt_coe] at R,
+    rw [← enat.coe_get this, enat.coe_inj] at hn, subst hn,
+    exact ⟨coeff_order φ this, R⟩ },
+  { rintro ⟨h₁, h₂⟩,
+    exact le_antisymm (order_le _ _ h₁) (order_ge_nat _ _ h₂) }
+end
+
+lemma order_eq {φ : formal_power_series α} {n : enat} :
+  order φ = n ↔ (∀ i:ℕ, ↑i = n → coeff i φ ≠ 0) ∧ (∀ i:ℕ, ↑i < n → coeff i φ = 0) :=
+begin
+  induction n using enat.cases_on,
+  { rw order_eq_top, split,
+    { rintro rfl, split; intros,
+      { exfalso, exact enat.coe_ne_top ‹_› ‹_› },
+      { exact coeff_zero _ } },
+    { rintro ⟨h₁, h₂⟩, ext i, exact h₂ i (enat.coe_lt_top i) } },
+  { simpa [enat.coe_inj] using order_eq_nat }
+end
+
+/-- The order of the sum of two formal power series
+ is at least the minimum of their orders.-/
+lemma order_add_ge (φ ψ : formal_power_series α) :
+  order (φ + ψ) ≥ order φ ⊓ order ψ :=
+order_ge _ _ $ λ n hn,
+begin
+  rw lattice.lt_inf_iff at hn,
+  rw [coeff_add, coeff_of_lt_order φ n hn.1, coeff_of_lt_order ψ n hn.2, zero_add]
+end
+
+private lemma order_add_of_order_eq.aux (φ ψ : formal_power_series α)
+  (h : order φ ≠ order ψ) (H : order φ < order ψ) :
+  order (φ + ψ) ≤ order φ ⊓ order ψ :=
+begin
+  suffices : order (φ + ψ) = order φ,
+  { rw [lattice.le_inf_iff, this], exact ⟨le_refl _, le_of_lt H⟩ },
+  { rw order_eq, split,
+    { intros i hi, rw [coeff_add, coeff_of_lt_order ψ i (hi.symm ▸ H), add_zero],
+      exact (order_eq_nat.1 hi.symm).1 },
+    { intros i hi,
+      rw [coeff_add, coeff_of_lt_order φ i hi, coeff_of_lt_order ψ i (lt_trans hi H), zero_add] } }
+end
+
+/-- The order of the sum of two formal power series
+ is the minimum of their orders if their orders differ.-/
+lemma order_add_of_order_eq (φ ψ : formal_power_series α) (h : order φ ≠ order ψ) :
+  order (φ + ψ) = order φ ⊓ order ψ :=
+begin
+  refine le_antisymm _ (order_add_ge _ _),
+  by_cases H₁ : order φ < order ψ,
+  { apply order_add_of_order_eq.aux _ _ h H₁ },
+  by_cases H₂ : order ψ < order φ,
+  { simpa only [add_comm, lattice.inf_comm] using order_add_of_order_eq.aux _ _ h.symm H₂ },
+  exfalso, exact h (le_antisymm (not_lt.1 H₂) (not_lt.1 H₁))
+end
+
+/-- The order of the product of two formal power series
+ is at least the sum of their orders.-/
+lemma order_mul_ge (φ ψ : formal_power_series α) :
+  order (φ * ψ) ≥ order φ + order ψ :=
+begin
+  apply order_ge,
+  intros n hn, rw [coeff_mul, finset.sum_eq_zero],
+  rintros ⟨i,j⟩ hij,
+  by_cases hi : ↑i < order φ,
+  { rw [coeff_of_lt_order φ i hi, zero_mul] },
+  by_cases hj : ↑j < order ψ,
+  { rw [coeff_of_lt_order ψ j hj, mul_zero] },
+  rw not_lt at hi hj, rw finset.nat.mem_antidiagonal at hij,
+  exfalso,
+  apply ne_of_lt (lt_of_lt_of_le hn $ add_le_add' hi hj),
+  rw [← enat.coe_add, hij]
+end
+
+/-- The order of the monomial a*X^n.-/
+lemma order_monomial (n : ℕ) (a : α) :
+  order (monomial n a) = if a = 0 then ⊤ else n :=
+begin
+  split_ifs with h,
+  { rw [h, order_eq_top], sorry },
+  { rw [order_eq], split; intros i hi,
+    { rw [enat.coe_inj] at hi, rwa [hi, coeff_monomial'] },
+    { rw [enat.coe_lt_coe] at hi, rw [coeff_monomial, if_neg], exact ne_of_lt hi } }
+end
+
+/-- The order of the monomial a*X^n is n if a ≠ 0.-/
+lemma order_monomial_of_ne_zero (n : ℕ) (a : α) (h : a ≠ 0) :
+  order (monomial n a) = n :=
+by rw [order_monomial, if_neg h]
+
+end order_basic
+
+section order_zero_ne_one
+variables [nonzero_comm_ring α]
+
+/-- The order of the formal power series 1 is 0.-/
+@[simp] lemma order_one : order (1 : formal_power_series α) = 0 :=
+order_eq_nat.2 $ by simp
+
+/-- The order of the formal power series X is 1.-/
+@[simp] lemma order_X : order (X : formal_power_series α) = 1 :=
+begin
+  rw [← X_eq],
+-- order_eq_nat.2 $ ⟨one_ne_zero, λ i hi,
+--   rw [coeff_X, if_neg],
+--   have := nat.eq_zero_of_le_zero (nat.le_of_succ_le_succ hi),
+--   subst i, exact zero_ne_one
+end⟩
+
+end order_zero_ne_one
+
+section order_integral_domain
+variables [integral_domain α]
+
+/-- The order of the product of two formal power series over an integral domain
+ is the sum of their orders.-/
+lemma order_mul (φ ψ : formal_power_series α) :
+  order (φ * ψ) = order φ + order ψ :=
+begin
+  apply le_antisymm _ (order_mul_ge _ _),
+  generalize h : order φ + order ψ = n,
+  induction n using enat.cases_on, { exact lattice.le_top },
+  apply order_le,
+  have H : (order φ + order ψ).dom, { rw h, exact trivial },
+  rw [← enat.coe_get H, enat.coe_inj, enat.get_add] at h,
+  rw [coeff_mul, finset.sum_eq_single ((order φ).get H.1, (order ψ).get H.2)],
+  { exact mul_ne_zero (coeff_order _ H.1) (coeff_order _ H.2) },
+  { rintro ⟨i,j⟩ hij hne,
+    by_cases hi : ↑i < order φ,
+    { rw [coeff_of_lt_order φ i hi, zero_mul] },
+    by_cases hj : ↑j < order ψ,
+    { rw [coeff_of_lt_order ψ j hj, mul_zero] },
+    rw not_lt at hi hj,
+    exfalso,
+    by_cases hi' : ↑i ≤ order φ,
+    { apply hne, have := le_antisymm hi hi',
+      rw [← enat.coe_get H.1, enat.coe_inj] at this, subst this,
+      rw [finset.nat.mem_antidiagonal, ← h] at hij,
+      simpa using add_left_cancel hij },
+    { rw not_le at hi',
+      rw [← enat.coe_get H.1] at hi hi',
+      rw [← enat.coe_get H.2] at hj,
+      simp only [enat.coe_le_coe, enat.coe_lt_coe] at hi hj hi',
+      have := add_lt_add_of_lt_of_le hi' hj,
+      rw finset.nat.mem_antidiagonal at hij,
+      rw h at this, exact ne_of_lt this hij.symm } },
+  { intro H', exfalso, apply H', rwa [finset.nat.mem_antidiagonal] }
+end
+
+end order_integral_domain
+
+end formal_power_series
+
 namespace polynomial
 open finsupp
 variables {σ : Type*} {α : Type*} [decidable_eq σ] [decidable_eq α] [comm_semiring α]

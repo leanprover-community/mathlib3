@@ -11,7 +11,7 @@ rather than rigid rules.
 
 - `u`, `v`, `w`, ... for universes
 - `α`, `β`, `γ`, ... for types
-- `a`, `b`, `c`, ... for propositions
+- `b`, `c`, ...      for propositions
 - `x`, `y`, `z`, ... for elements of a generic type
 - `h`, `h₁`, ...     for assumptions
 - `p`, `q`, `r`, ... for predicates and relations
@@ -19,7 +19,7 @@ rather than rigid rules.
 - `s`, `t`, ...      for sets
 - `m`, `n`, `k`, ... for natural numbers
 - `i`, `j`, `k`, ... for integers
-
+- The letter `a` should never be used as a variable, because there is a bug in Lean that assigns the letter `a` to nondependent arguments in tactic expressions, leading to errors.
 
 
 ### Line length ###

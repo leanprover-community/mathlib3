@@ -1011,6 +1011,8 @@ meta def clear_aux_decl_aux : list expr → tactic unit
 meta def clear_aux_decl : tactic unit :=
 local_context >>= clear_aux_decl_aux
 
+/-- `apply_at_aux e et [] h ht` (with `et` the type of `e` and `ht` the type of `h`)
+    finds a list of expressions `vs` and returns (e.mk_args (vs ++ [h]), vs) -/
 meta def apply_at_aux (arg t : expr) : list expr → expr → expr → tactic (expr × list expr)
 | vs e (pi n bi d b) :=
   do { v ← mk_meta_var d,
@@ -1018,6 +1020,7 @@ meta def apply_at_aux (arg t : expr) : list expr → expr → expr → tactic (e
   (e arg, vs) <$ unify d t
 | vs e _ := failed
 
+/-- `apply_at e h` applies implication `e` on hypothesis `h` and replaces `h` with the result -/
 meta def apply_at (e h : expr) : tactic unit :=
 do ht ← infer_type h,
    et ← infer_type e,
@@ -1028,6 +1031,7 @@ do ht ← infer_type h,
    (g :: gs) ← get_goals,
    set_goals (g :: gs' ++ gs)
 
+/-- `symmetry_hyp h` applies symmetry on hypothesis `h` -/
 meta def symmetry_hyp (h : expr) (md := semireducible) : tactic unit :=
 do tgt   ← infer_type h,
    env   ← get_env,

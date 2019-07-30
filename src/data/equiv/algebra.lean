@@ -2,6 +2,12 @@
 Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
+-/
+
+import data.equiv.basic algebra.field
+
+/-!
+# equivs in the algebraic heirarchy
 
 The role of this file is twofold. In the first part there are theorems of the following
 form: if α has a group structure and α ≃ β then β has a group structure, and
@@ -9,10 +15,26 @@ similarly for monoids, semigroups, rings, integral domains, fields and so on.
 
 In the second part there are extensions of equiv called add_equiv,
 mul_equiv, and ring_equiv, which are datatypes representing isomorphisms
-of monoids, groups and rings.
+of add_monoids/add_groups, monoids/groups and rings.
 
+## Notations
+
+The extended equivs all have coercions to functions, and the coercions are the canonical
+notation when treating the isomorphisms as maps.
+
+## Implementation notes
+
+Bundling structures means that many things turn into definitions, meaning that to_additive
+cannot do much work for us, and conversely that we have to do a lot of naming for it.
+
+The fields for mul_equiv and add_equiv now avoid the unbundled `is_mul_hom` and `is_add_hom`,
+as these are deprecated. However ring_equiv still relies on `is_ring_hom`; this should
+be rewritten in future.
+
+## Tags
+
+equiv, mul_equiv, add_equiv, ring_equiv
 -/
-import data.equiv.basic algebra.field
 
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}

@@ -9,10 +9,10 @@ import linear_algebra.basis
 import set_theory.ordinal
 noncomputable theory
 
-universes u v v' w w'
+universes u u' u'' v v' w w'
 
 variables {α : Type u} {β γ δ ε : Type v}
-variables {ι : Type w} {ι' : Type w'} {η : Type u} {φ : η → Type u}
+variables {ι : Type w} {ι' : Type w'} {η : Type u''} {φ : η → Type u'}
 -- TODO: relax these universe constraints
 
 section vector_space
@@ -112,10 +112,13 @@ letI := classical.dec_eq γ; exact
 let ⟨b, hb⟩ := exists_is_basis α β in
 cardinal.lift_inj.1 $ hb.mk_eq_dim.symm.trans (f.is_basis hb).mk_eq_dim
 
-lemma dim_bot : dim α (⊥ : submodule α β) = 0 :=
+@[simp] lemma dim_bot : dim α (⊥ : submodule α β) = 0 :=
 by letI := classical.dec_eq β;
   rw [← cardinal.lift_inj, ← (@is_basis_empty_bot pempty α β _ _ _ _ _ _ nonempty_pempty).mk_eq_dim,
     cardinal.mk_pempty]
+
+@[simp] lemma dim_top : dim α (⊤ : submodule α β) = dim α β :=
+linear_equiv.dim_eq (linear_equiv.of_top _ rfl)
 
 lemma dim_of_field (α : Type*) [discrete_field α] : dim α α = 1 :=
 by rw [←cardinal.lift_inj, ← (@is_basis_singleton_one punit _ α _ _ _).mk_eq_dim, cardinal.mk_punit]
@@ -310,12 +313,20 @@ begin
   simp [λ i, (hb i).mk_range_eq_dim.symm, cardinal.sum_mk]
 end
 
-lemma dim_fun {β : Type u} [add_comm_group β] [vector_space α β] :
+lemma dim_fun {β η : Type u} [fintype η] [add_comm_group β] [vector_space α β] :
   vector_space.dim α (η → β) = fintype.card η * vector_space.dim α β :=
 by rw [dim_pi, cardinal.sum_const, cardinal.fintype_card]
 
+lemma dim_fun_eq_lift_mul :
+  vector_space.dim α (η → β) = (fintype.card η : cardinal.{max u'' v}) *
+    cardinal.lift.{v u''} (vector_space.dim α β) :=
+by rw [dim_pi, cardinal.sum_const_eq_lift_mul, cardinal.fintype_card, cardinal.lift_nat_cast]
+
 lemma dim_fun' : vector_space.dim α (η → α) = fintype.card η :=
-by rw [dim_fun, dim_of_field α, mul_one]
+by rw [dim_fun_eq_lift_mul, dim_of_field α, cardinal.lift_one, mul_one, cardinal.nat_cast_inj]
+
+lemma dim_fin_fun (n : ℕ) : dim α (fin n → α) = n :=
+by simp [dim_fun']
 
 end fintype
 

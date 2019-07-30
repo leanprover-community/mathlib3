@@ -246,7 +246,7 @@ begin
   rw [← dn] at hd,
   /- Second step: use the norm control at index n to conclude -/
   have C : dist b (x n) - dist a (x n) = embedding_of_subset x b n - embedding_of_subset x a n :=
-    by { simp [embedding_of_subset_coe], ring },
+    by { simp [embedding_of_subset_coe] },
   have := calc
     dist a b ≤ dist a (x n) + dist (x n) b : dist_triangle _ _ _
     ...    = 2 * dist a (x n) + (dist b (x n) - dist a (x n)) : by { simp [dist_comm], ring }

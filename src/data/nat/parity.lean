@@ -15,7 +15,7 @@ by cases mod_two_eq_zero_or_one n with h h; simp [h]
 @[simp] theorem mod_two_ne_zero {n : nat} : ¬ n % 2 = 0 ↔ n % 2 = 1 :=
 by cases mod_two_eq_zero_or_one n with h h; simp [h]
 
-def even (n : nat) : Prop := ∃ m, n = 2 * m
+def even (n : nat) : Prop := 2 ∣ n
 
 theorem even_iff {n : nat} : even n ↔ n % 2 = 0 :=
 ⟨λ ⟨m, hm⟩, by simp [hm], λ h, ⟨n / 2, (mod_add_div n 2).symm.trans (by simp [h])⟩⟩

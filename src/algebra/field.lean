@@ -39,7 +39,7 @@ def mk0 (a : α) (ha : a ≠ 0) : units α :=
 @[simp] lemma mk0_coe (u : units α) (h : (u : α) ≠ 0) : mk0 (u : α) h = u :=
 units.ext rfl
 
-@[simp] lemma units.mk0_inj [field α] {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) :
+@[simp] lemma units.mk0_inj {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) :
   units.mk0 a ha = units.mk0 b hb ↔ a = b :=
 ⟨λ h, by injection h, λ h, units.ext h⟩
 
@@ -144,7 +144,7 @@ by rw [field.div_div_eq_div_mul _ hb hc, field.div_div_eq_div_mul _ hc hb, mul_c
 lemma field.div_div_div_cancel_right (a : α) (hb : b ≠ 0) (hc : c ≠ 0) : (a / c) / (b / c) = a / b :=
 by rw [field.div_div_eq_mul_div _ hb hc, div_mul_cancel _ hc]
 
-lemma field.div_mul_div_cancel (a : α) (hb : b ≠ 0) (hc : c ≠ 0) : (a / c) * (c / b) = a / b :=
+lemma div_mul_div_cancel (a : α) (hc : c ≠ 0) : (a / c) * (c / b) = a / b :=
 by rw [← mul_div_assoc, div_mul_cancel _ hc]
 
 lemma div_eq_div_iff (hb : b ≠ 0) (hd : d ≠ 0) : a / b = c / d ↔ a * d = c * b :=
@@ -171,9 +171,9 @@ lemma div_div_div_cancel_right (a b : α) (hc : c ≠ 0) : (a / c) / (b / c) = a
 if b0 : b = 0 then by simp only [b0, div_zero, zero_div] else
 field.div_div_div_cancel_right _ b0 hc
 
-lemma div_mul_div_cancel (a : α) (hb : b ≠ 0) (hc : c ≠ 0) : (a / c) * (c / b) = a / b :=
+/- lemma div_mul_div_cancel (a : α) (hb : b ≠ 0) (hc : c ≠ 0) : (a / c) * (c / b) = a / b :=
 if b0 : b = 0 then by simp only [b0, div_zero, mul_zero] else
-field.div_mul_div_cancel _ b0 hc
+field.div_mul_div_cancel _ b0 hc -/
 
 lemma div_div_cancel (ha : a ≠ 0) : a / (a / b) = b :=
 if b0 : b = 0 then by simp only [b0, div_zero] else

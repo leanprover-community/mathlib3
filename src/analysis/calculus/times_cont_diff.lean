@@ -2,7 +2,11 @@
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
+-/
 
+import analysis.calculus.deriv
+
+/-!
 # Higher differentiabiliity
 
 A function is `C^1` on a domain if it is differentiable there, and its derivative is continuous.
@@ -54,9 +58,12 @@ Therefore, we give (and use) both definitions, named respectively `times_cont_di
 `times_cont_diff` (as well as relativized versions on a set). We show that they are equivalent.
 The first one is mainly auxiliary: in applications, one should always use `times_cont_diff`
 (but the proofs below use heavily the equivalence to show that `times_cont_diff` is well behaved).
--/
 
-import analysis.calculus.deriv
+## Tags
+
+derivative, differentiability, higher derivative, C^n
+
+-/
 
 noncomputable theory
 local attribute [instance, priority 0] classical.decidable_inhabited classical.prop_decidable

@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Simon Hudon
 
 The Kleisli construction on the Type category
+
+TODO: generalise this to work with category_theory.monad
 -/
 import category_theory.category
 

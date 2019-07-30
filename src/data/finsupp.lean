@@ -1519,7 +1519,7 @@ begin
   { intro H, apply h₂, replace H := congr_arg multiset.to_finsupp H, simpa using H }
 end
 
-lemma sim_id_lt_of_lt (m n : σ →₀ ℕ) (h : m < n) :
+lemma sum_id_lt_of_lt (m n : σ →₀ ℕ) (h : m < n) :
   m.sum (λ _, id) < n.sum (λ _, id) :=
 begin
   rw [← card_to_multiset, ← card_to_multiset],
@@ -1531,7 +1531,7 @@ variable (σ)
 
 /-- The order on σ →₀ ℕ is well-founded.-/
 def lt_wf : well_founded (@has_lt.lt (σ →₀ ℕ) _) :=
-subrelation.wf (sim_id_lt_of_lt) $ inv_image.wf _ nat.lt_wf
+subrelation.wf (sum_id_lt_of_lt) $ inv_image.wf _ nat.lt_wf
 
 instance decidable_le : decidable_rel (@has_le.le (σ →₀ ℕ) _) :=
 λ m n, by rw le_iff; apply_instance

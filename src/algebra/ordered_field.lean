@@ -169,11 +169,11 @@ lemma mul_self_inj_of_nonneg {a b : α} (a0 : 0 ≤ a) (b0 : 0 ≤ b) : a * a = 
 (mul_self_eq_mul_self_iff a b).trans $ or_iff_left_of_imp $
 λ h, by subst a; rw [le_antisymm (neg_nonneg.1 a0) b0, neg_zero]
 
-lemma div_le_div_of_le_left {a b c : α} (ha : 0 ≤ a) (hb : 0 < b) (hc : 0 < c) (h : c ≤ b) :
+lemma div_le_div_of_le_left {a b c : α} (ha : 0 ≤ a) (hc : 0 < c) (h : c ≤ b) :
   a / b ≤ a / c :=
 by haveI := classical.dec_eq α; exact
 if ha0 : a = 0 then by simp [ha0]
-else (div_le_div_left (lt_of_le_of_ne ha (ne.symm ha0)) hb hc).2 h
+else (div_le_div_left (lt_of_le_of_ne ha (ne.symm ha0)) (lt_of_lt_of_le hc h) hc).2 h
 
 end linear_ordered_field
 

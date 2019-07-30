@@ -2,13 +2,31 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
-
-A basic theory of Cauchy sequences, used in the construction of the reals.
-Where applicable, lemmas that will be reused in other contexts have
-been stated in extra generality.
 -/
+
 import algebra.big_operators algebra.ordered_field
 
+/-!
+# Cauchy sequences
+
+A basic theory of Cauchy sequences, used in the construction of the reals and p-adic numbers. Where
+applicable, lemmas that will be reused in other contexts have been stated in extra generality.
+
+There are other "versions" of Cauchyness in the library, in particular Cauchy filters in topology.
+This is a concrete implementation that is useful for simplicity and computability reasons.
+
+## Important definitions
+
+* `is_absolute_value`: a type class stating that `f : β → α` satisfies the axioms of an abs val
+* `is_cau_seq`: a predicate that says `f : ℕ → β` is Cauchy.
+
+## Tags
+
+sequence, cauchy, abs val, absolute value
+-/
+
+/-- A function f is an absolute value if it is nonnegative, zero only at 0, additive, and
+multiplicative. -/
 class is_absolute_value {α} [discrete_linear_ordered_field α]
   {β} [ring β] (f : β → α) : Prop :=
 (abv_nonneg : ∀ x, 0 ≤ f x)
@@ -132,6 +150,7 @@ begin
 end
 end
 
+/-- A sequence is Cauchy if the distance between its entries tends to zero. -/
 def is_cau_seq {α : Type*} [discrete_linear_ordered_field α]
   {β : Type*} [ring β] (abv : β → α) (f : ℕ → β) :=
 ∀ ε > 0, ∃ i, ∀ j ≥ i, abv (f j - f i) < ε
@@ -220,8 +239,11 @@ instance : has_add (cau_seq β abv) :=
 @[simp] theorem add_apply (f g : cau_seq β abv) (i : ℕ) : (f + g) i = f i + g i := rfl
 
 variable (abv)
+
+/-- The constant Cauchy sequence. -/
 def const (x : β) : cau_seq β abv :=
 ⟨λ i, x, λ ε ε0, ⟨0, λ j ij, by simpa [abv_zero abv] using ε0⟩⟩
+
 variable {abv}
 
 local notation `const` := const abv
@@ -274,6 +296,7 @@ by rw [sub_eq_add_neg, const_add, const_neg, sub_eq_add_neg]
 
 @[simp] theorem sub_apply (f g : cau_seq β abv) (i : ℕ) : (f - g) i = f i - g i := rfl
 
+/-- `lim_zero f` holds when `f` approaches 0. -/
 def lim_zero (f : cau_seq β abv) := ∀ ε > 0, ∃ i, ∀ j ≥ i, abv (f j) < ε
 
 theorem add_lim_zero {f g : cau_seq β abv}
@@ -450,6 +473,7 @@ end discrete_field
 section abs
 local notation `const` := const abs
 
+/-- The entries of a positive Cauchy sequence eventually have a positive lower bound. -/
 def pos (f : cau_seq α abs) : Prop := ∃ K > 0, ∃ i, ∀ j ≥ i, K ≤ f j
 
 theorem not_lim_zero_of_pos {f : cau_seq α abs} : pos f → ¬ lim_zero f

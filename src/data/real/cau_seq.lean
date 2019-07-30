@@ -96,7 +96,7 @@ theorem rat_add_continuous_lemma
   by simpa [add_halves] using lt_of_le_of_lt (abv_add abv _ _) (add_lt_add h₁ h₂)⟩
 
 theorem rat_mul_continuous_lemma
-  {ε K₁ K₂ : α} (ε0 : 0 < ε) (K₁0 : 0 < K₁) (K₂0 : 0 < K₂) :
+  {ε K₁ K₂ : α} (ε0 : 0 < ε) (K₁0 : 0 < K₁) :
   ∃ δ > 0, ∀ {a₁ a₂ b₁ b₂ : β}, abv a₁ < K₁ → abv b₂ < K₂ →
   abv (a₁ - b₁) < δ → abv (a₂ - b₂) < δ → abv (a₁ * a₂ - b₁ * b₂) < ε :=
 begin
@@ -133,7 +133,7 @@ end
 end
 
 def is_cau_seq {α : Type*} [discrete_linear_ordered_field α]
-  {β : Type*} [ring β] (abv : β → α) [is_absolute_value abv] (f : ℕ → β) :=
+  {β : Type*} [ring β] (abv : β → α) (f : ℕ → β) :=
 ∀ ε > 0, ∃ i, ∀ j ≥ i, abv (f j - f i) < ε
 
 namespace is_cau_seq
@@ -156,14 +156,14 @@ let ⟨i, H⟩ := hf.cauchy₂ ε0 in ⟨i, λ j ij k jk, H _ _ (le_trans ij jk)
 end is_cau_seq
 
 def cau_seq {α : Type*} [discrete_linear_ordered_field α]
-  (β : Type*) [ring β] (abv : β → α) [is_absolute_value abv] :=
+  (β : Type*) [ring β] (abv : β → α) :=
 {f : ℕ → β // is_cau_seq abv f}
 
 namespace cau_seq
 variables {α : Type*} [discrete_linear_ordered_field α]
 
 section ring
-variables {β : Type*} [ring β] {abv : β → α} [is_absolute_value abv]
+variables {β : Type*} [ring β] {abv : β → α}
 
 instance : has_coe_to_fun (cau_seq β abv) := ⟨_, subtype.val⟩
 
@@ -177,6 +177,11 @@ theorem is_cau (f : cau_seq β abv) : is_cau_seq abv f := f.2
 
 theorem cauchy (f : cau_seq β abv) :
   ∀ {ε}, ε > 0 → ∃ i, ∀ j ≥ i, abv (f j - f i) < ε := f.2
+
+def of_eq (f : cau_seq β abv) (g : ℕ → β) (e : ∀ i, f i = g i) : cau_seq β abv :=
+⟨g, λ ε, by rw [show g = f, from (funext e).symm]; exact f.cauchy⟩
+
+variable [is_absolute_value abv]
 
 theorem cauchy₂ (f : cau_seq β abv) {ε:α} : ε > 0 →
   ∃ i, ∀ j k ≥ i, abv (f j - f k) < ε := f.2.cauchy₂
@@ -205,9 +210,6 @@ theorem bounded' (f : cau_seq β abv) (x : α) : ∃ r > x, ∀ i, abv (f i) < r
 let ⟨r, h⟩ := f.bounded in
 ⟨max r (x+1), lt_of_lt_of_le (lt_add_one _) (le_max_right _ _),
   λ i, lt_of_lt_of_le (h i) (le_max_left _ _)⟩
-
-def of_eq (f : cau_seq β abv) (g : ℕ → β) (e : ∀ i, f i = g i) : cau_seq β abv :=
-⟨g, λ ε, by rw [show g = f, from (funext e).symm]; exact f.cauchy⟩
 
 instance : has_add (cau_seq β abv) :=
 ⟨λ f g, ⟨λ i, (f i + g i : β), λ ε ε0,
@@ -241,7 +243,7 @@ ext $ λ i, rfl
 instance : has_mul (cau_seq β abv) :=
 ⟨λ f g, ⟨λ i, (f i * g i : β), λ ε ε0,
   let ⟨F, F0, hF⟩ := f.bounded' 0, ⟨G, G0, hG⟩ := g.bounded' 0,
-      ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma abv ε0 F0 G0,
+      ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma abv ε0 F0,
       ⟨i, H⟩ := exists_forall_ge_and (f.cauchy₃ δ0) (g.cauchy₃ δ0) in
   ⟨i, λ j ij, let ⟨H₁, H₂⟩ := H _ (le_refl _) in
     Hδ (hF j) (hG i) (H₁ _ ij) (H₂ _ ij)⟩⟩⟩

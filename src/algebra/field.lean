@@ -179,7 +179,7 @@ lemma div_div_cancel (ha : a ≠ 0) : a / (a / b) = b :=
 if b0 : b = 0 then by simp only [b0, div_zero] else
 field.div_div_cancel ha b0
 
-@[simp] lemma inv_eq_zero (a : α) : a⁻¹ = 0 ↔ a = 0 :=
+@[simp] lemma inv_eq_zero {a : α} : a⁻¹ = 0 ↔ a = 0 :=
 classical.by_cases (assume : a = 0, by simp [*])(assume : a ≠ 0, by simp [*, inv_ne_zero])
 
 lemma neg_inv' (a : α) : (-a)⁻¹ = - a⁻¹ :=

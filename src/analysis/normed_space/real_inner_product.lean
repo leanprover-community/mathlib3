@@ -7,6 +7,7 @@
 import analysis.convex
 import algebra.quadratic_discriminant
 import tactic.monotonicity
+import analysis.specific_limits
 
 /-!
 	# Inner Product Space
@@ -113,8 +114,8 @@ begin
       0 ≤ inner (x+t•y) (x+t•y) : inner_self_nonneg
       ... = inner y y * t * t + 2 * inner x y * t + inner x x :
         by { simp only [inner_add_add_self, inner_smul_right, inner_smul_left], ring },
-  have := discriminant_le_zero this,
-  have h : 2 * inner x y * (2 * inner x y) - 4 * inner y y * inner x x =
+  have := discriminant_le_zero this, rw discrim at this,
+  have h : (2 * inner x y)^2 - 4 * inner y y * inner x x =
                       4 * (inner x y * inner x y - inner x x * inner y y) := by ring,
   rw h at this,
   linarith
@@ -137,7 +138,7 @@ by { repeat {rw [pow_two, ← inner_self_eq_norm_square]}, exact inner_add_add_s
 
 /-- Same lemma as above but in a different form -/
 lemma norm_add_mul_self {x y : α} : ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + 2 * inner x y + ∥y∥ * ∥y∥ :=
-by { repeat {rw [← pow_two]}, exact norm_add_square }
+by { repeat {rw [← pow_two]}, exact norm_add_pow_two }
 
 /-- Expand the square -/
 lemma norm_sub_pow_two {x y : α} : ∥x - y∥^2 = ∥x∥^2 - 2 * inner x y + ∥y∥^2 :=
@@ -145,7 +146,7 @@ by { repeat {rw [pow_two, ← inner_self_eq_norm_square]}, exact inner_sub_sub_s
 
 /-- Same lemma as above but in a different form -/
 lemma norm_sub_mul_self {x y : α} : ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ - 2 * inner x y + ∥y∥ * ∥y∥ :=
-by { repeat {rw [← pow_two]}, exact norm_sub_square }
+by { repeat {rw [← pow_two]}, exact norm_sub_pow_two }
 
 /-- Cauchy–Schwarz inequality with norm -/
 lemma abs_inner_le_norm (x y : α) : abs (inner x y) ≤ ∥x∥ * ∥y∥ :=
@@ -250,9 +251,9 @@ begin
     calc
       4 * ∥u - half•(wq + wp)∥ * ∥u - half•(wq + wp)∥ + ∥wp - wq∥ * ∥wp - wq∥
           = (2*∥u - half•(wq + wp)∥) * (2 * ∥u - half•(wq + wp)∥) + ∥wp-wq∥*∥wp-wq∥ : by ring
-      ... = (abs((2:ℝ)) * ∥u - half•(wq + wp)∥) * (abs((2:ℝ)) * ∥u - half•(wq + wp)∥) + ∥wp-wq∥*∥wp-wq∥ :
+      ... = (abs((2:ℝ)) * ∥u - half•(wq + wp)∥) * (abs((2:ℝ)) * ∥u - half•(wq+wp)∥) + ∥wp-wq∥*∥wp-wq∥ :
       by { rw abs_of_nonneg, exact add_nonneg zero_le_one zero_le_one }
-      ... = ∥(2:ℝ) • (u - half • (wq + wp))∥ * ∥(2:ℝ) • (u - half • (wq + wp))∥ + ∥wp - wq∥ * ∥wp - wq∥ :
+      ... = ∥(2:ℝ) • (u - half • (wq + wp))∥ * ∥(2:ℝ) • (u - half • (wq + wp))∥ + ∥wp-wq∥ * ∥wp-wq∥ :
         by { rw [norm_smul], refl }
       ... = ∥a + b∥ * ∥a + b∥ + ∥a - b∥ * ∥a - b∥ :
       begin
@@ -281,7 +282,7 @@ begin
     apply nonneg_le_nonneg_of_squares_le, { exact sqrt_nonneg _ },
     rw mul_self_sqrt,
     exact calc
-      ∥wp - wq∥ * ∥wp - wq∥ = 2 * (∥a∥ * ∥a∥ + ∥b∥ * ∥b∥) - 4 * ∥u - half • (wq + wp)∥ * ∥u - half • (wq + wp)∥ :
+      ∥wp - wq∥ * ∥wp - wq∥ = 2 * (∥a∥*∥a∥ + ∥b∥*∥b∥) - 4 * ∥u - half • (wq+wp)∥ * ∥u - half • (wq+wp)∥ :
         by { rw ← this, simp }
       ... ≤ 2 * (∥a∥ * ∥a∥ + ∥b∥ * ∥b∥) - 4 * δ * δ : sub_le_sub_left eq₁ _
       ... ≤ 2 * ((δ + div) * (δ + div) + (δ + div) * (δ + div)) - 4 * δ * δ :
@@ -291,7 +292,7 @@ begin
       (mul_nonneg (mul_nonneg (by norm_num) (le_of_lt nat.one_div_pos_of_nat)) (le_of_lt nat.one_div_pos_of_nat)),
     -- third goal : `tendsto (λ (n : ℕ), sqrt (b n)) at_top (nhds 0)`
     apply tendsto.comp,
-    { convert tendsto_sqrt 0, exact sqrt_zero.symm },
+    { convert continuous_sqrt.continuous_at, exact sqrt_zero.symm },
     have eq₁ : tendsto (λ (n : ℕ), 8 * δ * (1 / (n + 1))) at_top (nhds (0:ℝ)),
       convert tendsto_mul (@tendsto_const_nhds _ _ _ (8 * δ) _) tendsto_one_div_add_at_top_nhds_0_nat,
       simp only [mul_zero],
@@ -346,7 +347,7 @@ begin
       end
       ... = ∥u - v∥^2 - 2 * θ * inner (u - v) (w - v) + θ*θ*∥w - v∥^2 :
       begin
-        rw [norm_sub_square, inner_smul_right, norm_smul],
+        rw [norm_sub_pow_two, inner_smul_right, norm_smul],
         simp only [pow_two],
         show ∥u-v∥*∥u-v∥-2*(θ*inner(u-v)(w-v))+abs(θ)*∥w-v∥*(abs(θ)*∥w-v∥)=
                 ∥u-v∥*∥u-v∥-2*θ*inner(u-v)(w-v)+θ*θ*(∥w-v∥*∥w-v∥),
@@ -386,7 +387,7 @@ begin
       ∥u - v∥ * ∥u - v∥ ≤ ∥u - v∥ * ∥u - v∥ - 2 * inner (u - v) ((w:α) - v) : by linarith
       ... ≤ ∥u - v∥^2 - 2 * inner (u - v) ((w:α) - v) + ∥(w:α) - v∥^2 :
         by { rw pow_two, refine le_add_of_nonneg_right _, exact pow_two_nonneg _ }
-      ... = ∥(u - v) - (w - v)∥^2 : norm_sub_square.symm
+      ... = ∥(u - v) - (w - v)∥^2 : norm_sub_pow_two.symm
       ... = ∥u - w∥ * ∥u - w∥ :
         by { have : (u - v) - (w - v) = u - w, abel, rw [this, pow_two] } },
   { show (⨅ (w : K), ∥u - w∥) ≤ (λw:K, ∥u - w∥) ⟨v, hv⟩,

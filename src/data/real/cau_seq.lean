@@ -114,15 +114,15 @@ theorem rat_add_continuous_lemma
   by simpa [add_halves] using lt_of_le_of_lt (abv_add abv _ _) (add_lt_add h₁ h₂)⟩
 
 theorem rat_mul_continuous_lemma
-  {ε K₁ K₂ : α} (ε0 : 0 < ε) (K₁0 : 0 < K₁) :
+  {ε K₁ K₂ : α} (ε0 : 0 < ε) :
   ∃ δ > 0, ∀ {a₁ a₂ b₁ b₂ : β}, abv a₁ < K₁ → abv b₂ < K₂ →
   abv (a₁ - b₁) < δ → abv (a₂ - b₂) < δ → abv (a₁ * a₂ - b₁ * b₂) < ε :=
 begin
-  have K0 := lt_of_lt_of_le K₁0 (le_max_left _ K₂),
+  have K0 : (0 : α) < max 1 (max K₁ K₂) := lt_of_lt_of_le zero_lt_one (le_max_left _ _),
   have εK := div_pos (half_pos ε0) K0,
   refine ⟨_, εK, λ a₁ a₂ b₁ b₂ ha₁ hb₂ h₁ h₂, _⟩,
-  replace ha₁ := lt_of_lt_of_le ha₁ (le_max_left _ K₂),
-  replace hb₂ := lt_of_lt_of_le hb₂ (le_max_right K₁ _),
+  replace ha₁ := lt_of_lt_of_le ha₁ (le_trans (le_max_left _ K₂) (le_max_right 1 _)),
+  replace hb₂ := lt_of_lt_of_le hb₂ (le_trans (le_max_right K₁ _) (le_max_right 1 _)),
   have := add_lt_add
     (mul_lt_mul' (le_of_lt h₁) hb₂ (abv_nonneg abv _) εK)
     (mul_lt_mul' (le_of_lt h₂) ha₁ (abv_nonneg abv _) εK),
@@ -265,7 +265,7 @@ ext $ λ i, rfl
 instance : has_mul (cau_seq β abv) :=
 ⟨λ f g, ⟨λ i, (f i * g i : β), λ ε ε0,
   let ⟨F, F0, hF⟩ := f.bounded' 0, ⟨G, G0, hG⟩ := g.bounded' 0,
-      ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma abv ε0 F0,
+      ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma abv ε0,
       ⟨i, H⟩ := exists_forall_ge_and (f.cauchy₃ δ0) (g.cauchy₃ δ0) in
   ⟨i, λ j ij, let ⟨H₁, H₂⟩ := H _ (le_refl _) in
     Hδ (hF j) (hG i) (H₁ _ ij) (H₂ _ ij)⟩⟩⟩

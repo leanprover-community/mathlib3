@@ -344,7 +344,6 @@ attribute [to_additive add_equiv.refl._proof_2] mul_equiv.refl._proof_2
 attribute [to_additive add_equiv.refl._proof_3] mul_equiv.refl._proof_3
 attribute [to_additive add_equiv.refl.equations._eqn_1] mul_equiv.refl.equations._eqn_1
 
--- TODO needs to_additive
 /-- The inverse of an isomorphism is an isomorphism. -/
 @[symm] def symm (h : α ≃+ β) : β ≃+ α :=
 { map_add' := λ n₁ n₂, function.injective_of_left_inverse h.left_inv begin

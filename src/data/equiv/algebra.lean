@@ -7,7 +7,7 @@ Authors: Johannes Hölzl
 import data.equiv.basic algebra.field
 
 /-!
-# equivs in the algebraic heirarchy
+# equivs in the algebraic hierarchy
 
 The role of this file is twofold. In the first part there are theorems of the following
 form: if α has a group structure and α ≃ β then β has a group structure, and

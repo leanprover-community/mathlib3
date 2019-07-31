@@ -15,9 +15,13 @@ else iterator.is_prefix n.next m.next
 meta def is_prefix (s s' : string) : bool :=
 s.mk_iterator.is_prefix s'.mk_iterator
 
+def popn (s : string) (n : nat) : string :=
+(s.mk_iterator.nextn n).next_to_string
+
 end string
 
-/-- A hackish way to get the `src` directory of mathlib. Requires the import of `tactic.cache`. -/
+
+/-- A hackish way to get the `src` directory of mathlib. -/
 meta def get_mathlib_dir : tactic string :=
 do e ← get_env,
   s ← e.decl_olean `tactic.reset_instance_cache,
@@ -29,6 +33,7 @@ do e ← get_env,
    ml ← get_mathlib_dir,
    let olean := e.decl_olean n,
    return $ ml.is_prefix $ olean.get_or_else ""
+
 
 meta def check_unused_arguments_aux : list ℕ → ℕ → expr → list ℕ
 := λ l n e,
@@ -59,12 +64,6 @@ do e ← get_env,
     let l := check_unused_arguments d.value in
     if l = [] then return ds else
     return $ (d,l)::ds
-
-namespace string
-def popn (s : string) (n : nat) : string :=
-(s.mk_iterator.nextn n).next_to_string
-end string
-
 
 open native
 

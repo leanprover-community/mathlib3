@@ -11,4 +11,10 @@ list.as_string ∘ f ∘ string.to_list
 def split_on (c : char) (s : string) : list string :=
 (s.to_list.split_on c).map list.as_string
 
+def is_prefix_of (x y : string) : bool :=
+x.to_list.is_prefix_of y.to_list
+
+def is_suffix_of (x y : string) : bool :=
+x.to_list.is_suffix_of y.to_list
+
 end string

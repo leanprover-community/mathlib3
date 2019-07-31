@@ -4,7 +4,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Sebastien Gouezel, Scott Morrison
 -/
-import tactic.core data.list.defs
+import tactic.core data.list.defs data.string.defs
 
 open lean
 open lean.parser
@@ -65,6 +65,10 @@ do gs ← get_goals,
    | (some g) := set_goals (g :: gs.remove_nth (n-1))
    | _        := skip
    end
+
+/-- `rotate n` cyclically shifts the goals `n` times.
+ `rotate` defaults to `rotate 1`. -/
+meta def rotate (n := 1) : tactic unit := tactic.rotate n
 
 /-- Clear all hypotheses starting with `_`, like `_match` and `_let_match`. -/
 meta def clear_ : tactic unit := tactic.repeat $ do
@@ -170,6 +174,23 @@ do v ← mk_mvar,
    try (congr' n),
    gs' ← get_goals,
    set_goals $ gs' ++ gs
+
+meta def compact_decl_aux : list name → binder_info → expr → list expr → tactic (list (list name × binder_info × expr))
+| ns bi t [] := pure [(ns.reverse, bi, t)]
+| ns bi t (v'@(local_const n pp bi' t') :: xs) :=
+  do t' ← infer_type v',
+     if bi = bi' ∧ t = t'
+       then compact_decl_aux (pp :: ns) bi t xs
+       else do vs ← compact_decl_aux [pp] bi' t' xs,
+               pure $ (ns.reverse, bi, t) :: vs
+| ns bi t (_ :: xs) := compact_decl_aux ns bi t xs
+
+meta def compact_decl : list expr → tactic (list (list name × binder_info × expr))
+| [] := pure []
+| (v@(local_const n pp bi t) :: xs)  :=
+  do t ← infer_type v,
+     compact_decl_aux [pp] bi t xs
+| (_ :: xs) := compact_decl xs
 
 meta def clean_ids : list name :=
 [``id, ``id_rhs, ``id_delta, ``hidden]
@@ -634,6 +655,106 @@ do let ns := name_set.of_list xs,
    local_context >>= mmap' (λ h : expr,
      when (¬ ns.contains h.local_pp_name) $
        try $ tactic.clear h) ∘ list.reverse
+
+meta def format_names (ns : list name) : format :=
+format.join $ list.intersperse " " (ns.map to_fmt)
+
+private meta def format_binders : list name × binder_info × expr → tactic format
+| (ns, binder_info.default, t) := pformat!"({format_names ns} : {t})"
+| (ns, binder_info.implicit, t) := pformat!"{{{format_names ns} : {t}}"
+| (ns, binder_info.strict_implicit, t) := pformat!"⦃{format_names ns} : {t}⦄"
+| ([n], binder_info.inst_implicit, t) :=
+  if "_".is_prefix_of n.to_string
+    then pformat!"[{t}]"
+    else pformat!"[{format_names [n]} : {t}]"
+| (ns, binder_info.inst_implicit, t) := pformat!"[{format_names ns} : {t}]"
+| (ns, binder_info.aux_decl, t) := pformat!"({format_names ns} : {t})"
+
+meta def mk_paragraph_aux (right_margin : ℕ) : format → format → ℕ → list format → format
+| par ln len [] := par ++ format.line ++ ln
+| par ln len (x :: xs) :=
+  let len' := x.to_string.length in
+  if len + len' ≤ right_margin then
+    mk_paragraph_aux par (ln ++ x ++ " ") (len + len' + 1) xs
+  else
+    mk_paragraph_aux (par ++ format.line ++ ln) ("  " ++ x ++ " ") len' xs
+
+/-- `mk_paragraph right_margin ls` packs `ls` into a paragraph where the lines have
+length at most `right_margin` -/
+meta def mk_paragraph (right_margin : ℕ) : list format → format :=
+mk_paragraph_aux right_margin "" "" 0
+
+/--
+Format the current goal as a stand-alone example. Useful for testing tactic.
+
+  * `extract_goal`: formats the statement as an `example` declaration
+  * `extract_goal my_decl`: formats the statement as a `lemma` or `def` declaration
+    called `my_decl`
+  * `extract_goal with i j k:` only use local constants `i`, `j`, `k` in the declaration
+
+Examples:
+
+```lean
+example (i j k : ℕ) (h₀ : i ≤ j) (h₁ : j ≤ k) : i ≤ k :=
+begin
+  extract_goal,
+     -- prints:
+     -- example {i j k : ℕ} (h₀ : i ≤ j) (h₁ : j ≤ k) : i ≤ k :=
+     -- begin
+
+     -- end
+  extract_goal my_lemma
+     -- lemma my_lemma {i j k : ℕ} (h₀ : i ≤ j) (h₁ : j ≤ k) : i ≤ k :=
+     -- begin
+
+     -- end
+end
+
+example {i j k x y z w p q r m n : ℕ} (h₀ : i ≤ j) (h₁ : j ≤ k) (h₁ : k ≤ p) (h₁ : p ≤ q) : i ≤ k :=
+begin
+  extract_goal my_lemma,
+    -- prints:
+    -- lemma my_lemma {i j k x y z w p q r m n : ℕ} (h₀ : i ≤ j) (h₁ : j ≤ k)
+    --   (h₁ : k ≤ p) (h₁ : p ≤ q) : i ≤ k :=
+    -- begin
+
+    -- end
+
+  extract_goal my_lemma with i j k
+    -- prints:
+    -- lemma my_lemma {i j k : ℕ} : i ≤ k :=
+    -- begin
+
+    -- end
+end
+```
+
+-/
+meta def extract_goal (n : parse ident?) (vs : parse with_ident_list) : tactic unit :=
+do (cxt,_) ← solve_aux `(true) $
+       when (¬ vs.empty) (clear_except vs) >>
+       local_context,
+   tgt ← target,
+   is_prop ← is_prop tgt,
+   let title := match n, is_prop with
+                | none, _ := to_fmt "example"
+                | (some n), tt := format!"lemma {n}"
+                | (some n), ff := format!"def {n}"
+                end,
+   cxt ← compact_decl cxt,
+   cxt' ← cxt.init.mmap format_binders,
+   cxt'' ← cxt.last'.traverse $ λ x, pformat!"{format_binders x} :",
+   stmt ← pformat!"{tgt} :=",
+   let fmt := mk_paragraph 80 $ title :: cxt' ++ [cxt''.get_or_else ":", stmt],
+   trace fmt,
+   trace!"begin\n  \nend"
+
+/--
+`symmetry'` behaves like `symmetry` but also offers the option `symmetry' at h` to apply symmetry to assumption `h`
+-/
+meta def symmetry' : parse location → tactic unit
+| l@loc.wildcard := l.try_apply symmetry_hyp symmetry
+| (loc.ns hs) := (loc.ns hs.reverse).apply symmetry_hyp symmetry
 
 end interactive
 end tactic

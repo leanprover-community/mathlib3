@@ -1587,7 +1587,7 @@ def general_linear_equiv : general_linear_group α β ≃* (β ≃ₗ[α] β) :=
     cases f,
     congr
   end,
-  hom := ⟨λ x y, by {ext, refl}⟩ }
+  map_mul' := λ x y, by {ext, refl} }
 
 @[simp] lemma general_linear_equiv_to_linear_map (f : general_linear_group α β) :
   ((general_linear_equiv α β).to_equiv f).to_linear_map = f.val :=

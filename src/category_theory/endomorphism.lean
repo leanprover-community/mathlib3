@@ -68,7 +68,7 @@ def units_End_eqv_Aut : units (End X) ≃* Aut X :=
   inv_fun := λ f, ⟨f.1, f.2, f.4, f.3⟩,
   left_inv := λ ⟨f₁, f₂, f₃, f₄⟩, rfl,
   right_inv := λ ⟨f₁, f₂, f₃, f₄⟩, rfl,
-  hom := ⟨λ f g, by rcases f; rcases g; refl⟩ }
+  map_mul' := λ f g, by rcases f; rcases g; refl }
 
 end Aut
 

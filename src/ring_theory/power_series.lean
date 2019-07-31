@@ -91,7 +91,9 @@ lemma coeff_C (n : σ →₀ ℕ) (a : α) :
 @[simp] lemma coeff_C_zero (a : α) : coeff 0 (C a : mv_power_series σ α) = a :=
 coeff_monomial' 0 a
 
-@[simp] lemma monomial_zero (a : α) : (monomial 0 a : mv_power_series σ α) = C a := rfl
+@[simp] lemma monomial_index_zero (a : α) : (monomial 0 a : mv_power_series σ α) = C a := rfl
+
+lemma C_eq (a : α) : (C a : mv_power_series σ α) = monomial 0 a := rfl
 
 /-- The variables of the multivariate formal power series ring.-/
 def X (s : σ) : mv_power_series σ α := monomial (single s 1) 1
@@ -99,13 +101,15 @@ def X (s : σ) : mv_power_series σ α := monomial (single s 1) 1
 lemma coeff_X (n : σ →₀ ℕ) (s : σ) :
   coeff n (X s : mv_power_series σ α) = if n = (single s 1) then 1 else 0 := rfl
 
-lemma coeff_X' (s t : σ) :
+lemma coeff_X_index_single (s t : σ) :
   coeff (single t 1) (X s : mv_power_series σ α) = if t = s then 1 else 0 :=
 by { simp only [coeff_X, single_right_inj one_ne_zero], split_ifs; refl }
 
-@[simp] lemma coeff_X'' (s : σ) :
+@[simp] lemma coeff_X_index_single_self (s : σ) :
   coeff (single s 1) (X s : mv_power_series σ α) = 1 :=
-by rw [coeff_X', if_pos rfl]
+by rw [coeff_X_index_single, if_pos rfl]
+
+lemma X_eq (s : σ) : X s = monomial (single s 1) 1 := rfl
 
 section ring_structure
 variables (σ) (α) (n : σ →₀ ℕ) (φ ψ : mv_power_series σ α)
@@ -137,6 +141,10 @@ protected def add (φ ψ : mv_power_series σ α) : mv_power_series σ α :=
 instance : has_add (mv_power_series σ α) := ⟨mv_power_series.add σ α⟩
 
 variables {σ α}
+
+@[simp] lemma monomial_coeff_zero (n : σ →₀ ℕ) :
+  (monomial n 0 : mv_power_series σ α) = 0 :=
+ext $ λ m, by { rw coeff_monomial, split_ifs; refl }
 
 @[simp] lemma coeff_add : coeff n (φ + ψ) = coeff n φ + coeff n ψ := rfl
 
@@ -288,12 +296,6 @@ instance coeff_zero.is_semiring_hom :
   map_mul := λ φ ψ, by simp [coeff_mul, support_single_ne_zero],
   .. coeff.is_add_monoid_hom 0 }
 
-/-- If a multivariate formal power series is invertible,
- then so is its constant coefficient.-/
-lemma is_unit_coeff_zero (φ : mv_power_series σ α) (h : is_unit φ) :
-  is_unit (coeff 0 φ) :=
-by { rcases h with ⟨φ, rfl⟩, exact ⟨units.map (coeff 0) φ, rfl⟩ }
-
 instance : semimodule α (mv_power_series σ α) :=
 { smul := λ a φ, C a * φ,
   one_smul := λ φ, one_mul _,
@@ -302,6 +304,45 @@ instance : semimodule α (mv_power_series σ α) :=
   smul_zero := λ a, mul_zero _,
   add_smul := λ a b φ, by simp only [C_add, add_mul],
   zero_smul := λ φ, by simp only [zero_mul, C_zero] }
+
+lemma monomial_mul_monomial (m n : σ →₀ ℕ) (a b : α) :
+  monomial m a * monomial n b = monomial (m + n) (a * b) :=
+begin
+  ext k, rw [coeff_mul, coeff_monomial], split_ifs with h,
+  { rw [h, finset.sum_eq_single (m,n)],
+    { rw [coeff_monomial', coeff_monomial'] },
+    { rintros ⟨i,j⟩ hij hne,
+      rw [ne.def, prod.mk.inj_iff, not_and] at hne,
+      by_cases H : i = m,
+      { rw [coeff_monomial j n b, if_neg (hne H), mul_zero] },
+      { rw [coeff_monomial, if_neg H, zero_mul] } },
+    { intro H, rw finsupp.mem_antidiagonal_support at H,
+      exfalso, exact H rfl } },
+  { rw [finset.sum_eq_zero], rintros ⟨i,j⟩ hij,
+    rw finsupp.mem_antidiagonal_support at hij,
+    by_cases H : i = m,
+    { subst i, have : j ≠ n, { rintro rfl, exact h hij.symm },
+      { rw [coeff_monomial j n b, if_neg this, mul_zero] } },
+    { rw [coeff_monomial, if_neg H, zero_mul] } }
+end
+
+lemma X_pow_eq (s : σ) (n : ℕ) :
+  (X s : mv_power_series σ α)^n = monomial (single s n) 1 :=
+begin
+  induction n with n ih,
+  { rw [pow_zero, finsupp.single_zero], refl },
+  { rw [pow_succ', ih, nat.succ_eq_add_one, finsupp.single_add, X, monomial_mul_monomial, one_mul] }
+end
+
+lemma coeff_X_pow (m) (s : σ) (n : ℕ) :
+  coeff m ((X s : mv_power_series σ α)^n) = if m = single s n then 1 else 0 :=
+by rw [X_pow_eq s n, coeff_monomial]
+
+/-- If a multivariate formal power series is invertible,
+ then so is its constant coefficient.-/
+lemma is_unit_coeff_zero (φ : mv_power_series σ α) (h : is_unit φ) :
+  is_unit (coeff 0 φ) :=
+by { rcases h with ⟨φ, rfl⟩, exact ⟨units.map (coeff 0) φ, rfl⟩ }
 
 section map
 variables {β : Type*} {γ : Type*} [semiring β] [semiring γ]
@@ -632,28 +673,27 @@ open finsupp
 variables {σ : Type*} {α : Type*} [decidable_eq σ] [decidable_eq α] [comm_semiring α]
 
 /-- The natural inclusion from multivariate polynomials into multivariate formal power series.-/
-def to_mv_power_series (φ : mv_polynomial σ α) : mv_power_series σ α :=
-λ n, coeff n φ
+instance coe_to_mv_power_series : has_coe (mv_polynomial σ α) (mv_power_series σ α) :=
+⟨λ φ n, coeff n φ⟩
 
-@[simp] lemma to_mv_power_series_coeff (φ : mv_polynomial σ α) (n) :
-mv_power_series.coeff n (φ.to_mv_power_series) = coeff n φ := rfl
+@[simp] lemma coeff_coe (φ : mv_polynomial σ α) (n) :
+mv_power_series.coeff n ↑φ = coeff n φ := rfl
 
-namespace to_mv_power_series
+namespace coe_to_mv_power_series
 
-instance :
-  is_semiring_hom (to_mv_power_series : mv_polynomial σ α → mv_power_series σ α) :=
+instance : is_semiring_hom (coe : mv_polynomial σ α → mv_power_series σ α) :=
 { map_zero := mv_power_series.ext $ λ n, by simp,
   map_one := mv_power_series.ext $ λ n,
   begin
-    rw [to_mv_power_series_coeff, mv_power_series.coeff_one],
+    rw [coeff_coe, mv_power_series.coeff_one],
     split_ifs; rw ← C_1; simp [-C_1, h],
     { rw ← ne_from_not_eq at h, simp [h.symm] }
   end,
   map_add := λ φ ψ, mv_power_series.ext $ λ n, by simp,
   map_mul := λ φ ψ, mv_power_series.ext $ λ n,
-  by simp only [to_mv_power_series_coeff, mv_power_series.coeff_mul, coeff_mul] }
+  by simp only [coeff_coe, mv_power_series.coeff_mul, coeff_mul] }
 
-end to_mv_power_series
+end coe_to_mv_power_series
 
 end mv_polynomial
 
@@ -683,10 +723,13 @@ def mk (f : ℕ → α) : power_series α := λ s, f (s ())
 
 @[simp] lemma coeff_mk (n : ℕ) (f : ℕ → α) : coeff n (mk f) = f n := rfl
 
-section comm_semiring
-variable [comm_semiring α]
+instance [semiring α] :      semiring (power_series α) :=      by delta power_series; apply_instance
+instance [comm_semiring α] : comm_semiring (power_series α) := by delta power_series; apply_instance
+instance [ring α] :          ring (power_series α) :=          by delta power_series; apply_instance
+instance [comm_ring α] :     comm_ring (power_series α) :=     by delta power_series; apply_instance
 
-instance : comm_semiring (power_series α) := by delta power_series; apply_instance
+section semiring
+variable [semiring α]
 
 /-- The `n`th monimial with coefficient `a` as formal power series.-/
 def monomial (n : ℕ) : α → power_series α := mv_power_series.monomial (single () n)
@@ -710,25 +753,35 @@ ext $ λ m, coeff_monomial _ _ _
 @[simp] lemma coeff_monomial' (n : ℕ) (a : α) :
   coeff n (monomial n a) = a := if_pos rfl
 
+@[simp] lemma monomial_index_zero (a : α) : (monomial 0 a : power_series α) = C a := rfl
+
+@[simp] lemma monomial_coeff_zero (n : ℕ) : (monomial n 0 : power_series α) = 0 :=
+mv_power_series.monomial_coeff_zero _
+
+lemma C_eq (a : α) : C a = monomial 0 a := rfl
+
 lemma coeff_C (n : ℕ) (a : α) :
   coeff n (C a : power_series α) = if n = 0 then a else 0 :=
-calc coeff n (C a) = _ : mv_power_series.coeff_C _ _
-    ... = if n = 0 then a else 0 :
-by { simp only [finsupp.single_eq_zero], split_ifs; refl }
+by rw [C_eq, coeff_monomial]
 
 @[simp] lemma coeff_C_zero (a : α) : coeff 0 (C a) = a :=
 coeff_monomial' 0 a
 
-@[simp] lemma monomial_zero (a : α) : (monomial 0 a : power_series α) = C a := rfl
+lemma X_eq : (X : power_series α) = monomial 1 1 := rfl
 
 lemma coeff_X (n : ℕ) :
   coeff n (X : power_series α) = if n = 1 then 1 else 0 :=
-calc coeff n (X : power_series α) = _ : mv_power_series.coeff_X _ _
-    ... = if n = 1 then 1 else 0 :
-by { simp only [finsupp.unique_single_eq_iff], split_ifs; refl }
+by rw [X_eq, coeff_monomial]
 
 @[simp] lemma coeff_X' : coeff 1 (X : power_series α) = 1 :=
 by rw [coeff_X, if_pos rfl]
+
+lemma X_pow_eq (n : ℕ) : (X : power_series α)^n = monomial n 1 :=
+mv_power_series.X_pow_eq _ n
+
+lemma coeff_X_pow (m n : ℕ) :
+  coeff m ((X : power_series α)^n) = if m = n then 1 else 0 :=
+by rw [X_pow_eq, coeff_monomial]
 
 @[simp] lemma coeff_zero (n : ℕ) : coeff n (0 : power_series α) = 0 := rfl
 
@@ -788,7 +841,7 @@ instance : semimodule α (power_series α) :=
 mv_power_series.semimodule
 
 section map
-variables {β : Type*} {γ : Type*} [comm_semiring β] [comm_semiring γ]
+variables {β : Type*} {γ : Type*} [semiring β] [semiring γ]
 variables (f : α → β) (g : β → γ)
 
 /-- The map between formal power series induced by a map on the coefficients.-/
@@ -824,9 +877,11 @@ mv_power_series.map.is_semiring_hom f
 
 end map
 
+end semiring
+
 section trunc
 
-variables [decidable_eq α] (n : ℕ)
+variables [comm_semiring α] [decidable_eq α] (n : ℕ)
 
 /-- The `n`th truncation of a formal power series to a polynomial -/
 def trunc (φ : power_series α) : polynomial α :=
@@ -886,12 +941,8 @@ end
 
 end trunc
 
-end comm_semiring
-
-section comm_ring
-variables [comm_ring α]
-
-instance : comm_ring (power_series α) := by delta power_series; apply_instance
+section ring
+variables [ring α]
 
 instance C.is_ring_hom : is_ring_hom (C : α → power_series α) :=
 mv_power_series.C.is_ring_hom
@@ -902,9 +953,6 @@ instance map.is_ring_hom {β : Type*} [comm_ring β] (f : α → β) [is_ring_ho
 
 instance : module α (power_series α) :=
 mv_power_series.module
-
-instance : algebra α (power_series α) :=
-mv_power_series.algebra
 
 protected def inv.aux : α → power_series α → power_series α :=
 mv_power_series.inv.aux
@@ -959,7 +1007,10 @@ lemma mul_inv_of_unit (φ : power_series α) (u : units α) (h : coeff 0 φ = u)
   φ * inv_of_unit φ u = 1 :=
 mv_power_series.mul_inv_of_unit φ u h
 
-end comm_ring
+end ring
+
+instance [comm_ring α] : algebra α (power_series α) :=
+mv_power_series.algebra
 
 section local_ring
 variables [comm_ring α]
@@ -1027,9 +1078,14 @@ end power_series
 namespace power_series
 variable {α : Type*}
 
+local attribute [instance, priority 1] classical.prop_decidable
+noncomputable theory
+
 section order_basic
 variables [comm_semiring α]
 
+/-- The order of a power series `φ` is the smallest `n : enat`
+  such that `X^n` divides `φ`. The order is `⊤` if and only if `φ = 0`. -/
 def order (φ : power_series α) : enat :=
 { dom := ∃ i, φ.coeff i ≠ 0,
   get := nat.find }
@@ -1165,7 +1221,7 @@ lemma order_monomial (n : ℕ) (a : α) :
   order (monomial n a) = if a = 0 then ⊤ else n :=
 begin
   split_ifs with h,
-  { rw [h, order_eq_top], sorry },
+  { rw [h, order_eq_top, monomial_coeff_zero] },
   { rw [order_eq], split; intros i hi,
     { rw [enat.coe_inj] at hi, rwa [hi, coeff_monomial'] },
     { rw [enat.coe_lt_coe] at hi, rw [coeff_monomial, if_neg], exact ne_of_lt hi } }
@@ -1187,13 +1243,7 @@ order_eq_nat.2 $ by simp
 
 /-- The order of the formal power series X is 1.-/
 @[simp] lemma order_X : order (X : power_series α) = 1 :=
-begin
-  rw [← X_eq],
--- order_eq_nat.2 $ ⟨one_ne_zero, λ i hi,
---   rw [coeff_X, if_neg],
---   have := nat.eq_zero_of_le_zero (nat.le_of_succ_le_succ hi),
---   subst i, exact zero_ne_one
-end⟩
+by { rw [X_eq, order_monomial, if_neg one_ne_zero], refl }
 
 end order_zero_ne_one
 
@@ -1225,7 +1275,7 @@ begin
       rw [← enat.coe_get H.1, enat.coe_inj] at this, subst this,
       rw [finset.nat.mem_antidiagonal, ← h] at hij,
       simpa using add_left_cancel hij },
-    { rw not_le at hi',
+    { change ¬ (↑i) ≤ order φ at hi', rw not_le at hi',
       rw [← enat.coe_get H.1] at hi hi',
       rw [← enat.coe_get H.2] at hj,
       simp only [enat.coe_le_coe, enat.coe_lt_coe] at hi hj hi',
@@ -1244,24 +1294,24 @@ open finsupp
 variables {σ : Type*} {α : Type*} [decidable_eq σ] [decidable_eq α] [comm_semiring α]
 
 /-- The natural inclusion from polynomials into formal power series.-/
-def to_power_series (φ : polynomial α) : power_series α :=
-power_series.mk $ λ n, coeff φ n
+instance coe_to_power_series : has_coe (polynomial α) (power_series α) :=
+⟨λ φ, power_series.mk $ λ n, coeff φ n⟩
 
-@[simp] lemma to_power_series_coeff (φ : polynomial α) (n) :
-power_series.coeff n (φ.to_power_series) = coeff φ n := rfl
+@[simp] lemma coeff_coe (φ : polynomial α) (n) :
+power_series.coeff n ↑φ = coeff φ n := rfl
 
 namespace to_power_series
 
-instance : is_semiring_hom (to_power_series : polynomial α → power_series α) :=
+instance : is_semiring_hom (coe : polynomial α → power_series α) :=
 { map_zero := power_series.ext $ λ n, by simp,
   map_one := power_series.ext $ λ n,
   begin
-    rw [to_power_series_coeff, polynomial.coeff_one, power_series.coeff_one],
+    rw [coeff_coe, polynomial.coeff_one, power_series.coeff_one],
     split_ifs; refl <|> simp * at *
   end,
   map_add := λ φ ψ, power_series.ext $ λ n, by simp,
   map_mul := λ φ ψ, power_series.ext $ λ n,
-  by simp only [to_power_series_coeff, power_series.coeff_mul, coeff_mul] }
+  by simp only [coeff_coe, power_series.coeff_mul, coeff_mul] }
 
 end to_power_series
 

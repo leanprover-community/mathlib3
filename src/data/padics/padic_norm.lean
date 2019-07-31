@@ -33,6 +33,7 @@ by taking (prime p) as a type class argument.
 ## References
 
 * [F. Q. Gouêva, *p-adic numbers*][gouvea1997]
+* [R. Y. Lewis, *A formal proof of Hensel's lemma over the p-adic integers*][lewis2019]
 * https://en.wikipedia.org/wiki/P-adic_number
 
 ## Tags
@@ -264,8 +265,26 @@ namespace padic_norm
 
 section padic_norm
 open padic_val_rat
-variables (p : ℕ) [hp : p.prime]
-include hp
+variables (p : ℕ)
+
+/--
+Unfolds the definition of the p-adic norm of `q` when `q ≠ 0`.
+-/
+@[simp] protected lemma eq_fpow_of_nonzero {q : ℚ} (hq : q ≠ 0) :
+  padic_norm p q = p ^ (-(padic_val_rat p q)) :=
+by simp [hq, padic_norm]
+
+/--
+The p-adic norm is nonnegative.
+-/
+protected lemma nonneg (q : ℚ) : padic_norm p q ≥ 0 :=
+if hq : q = 0 then by simp [hq]
+else
+  begin
+    unfold padic_norm; split_ifs,
+    apply fpow_nonneg_of_nonneg,
+    exact_mod_cast nat.zero_le _
+  end
 
 /--
 The p-adic norm of 0 is 0.
@@ -278,11 +297,13 @@ The p-adic norm of 1 is 1.
 @[simp] protected lemma one : padic_norm p 1 = 1 := by simp [padic_norm]
 
 /--
-Unfolds the definition of the p-adic norm of `q` when `q ≠ 0`.
+The image of `padic_norm p` is {0} ∪ {p^(-n) | n ∈ ℤ}.
 -/
-@[simp] protected lemma eq_fpow_of_nonzero {q : ℚ} (hq : q ≠ 0) :
-  padic_norm p q = p ^ (-(padic_val_rat p q)) :=
-by simp [hq, padic_norm]
+protected theorem image {q : ℚ} (hq : q ≠ 0) : ∃ n : ℤ, padic_norm p q = p ^ (-n) :=
+⟨ (padic_val_rat p q), by simp [padic_norm, hq] ⟩
+
+variable [hp : p.prime]
+include hp
 
 /--
 If `q ≠ 0`, then `padic_norm p q ≠ 0`.
@@ -312,18 +333,6 @@ begin
   apply fpow_ne_zero_of_ne_zero,
   exact_mod_cast hp.ne_zero
 end
-
-/--
-The p-adic norm is nonnegative.
--/
-protected lemma nonneg (q : ℚ) : padic_norm p q ≥ 0 :=
-if hq : q = 0 then by simp [hq]
-else
-  begin
-    unfold padic_norm; split_ifs,
-    apply fpow_nonneg_of_nonneg,
-    exact_mod_cast nat.zero_le _
-  end
 
 /--
 The p-adic norm is multiplicative.
@@ -437,12 +446,6 @@ begin
   { rw max_eq_left_of_lt hlt,
     assumption }
 end
-
-/--
-The image of `padic_norm p` is {0} ∪ {p^(-n) | n ∈ ℤ}.
--/
-protected theorem image {q : ℚ} (hq : q ≠ 0) : ∃ n : ℤ, padic_norm p q = p ^ (-n) :=
-⟨ (padic_val_rat p q), by simp [padic_norm, hq] ⟩
 
 /--
 The p-adic norm is an absolute value: positive-definite and multiplicative, satisfying the triangle

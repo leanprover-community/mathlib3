@@ -179,6 +179,28 @@ theorem diagonal_mul_diagonal [decidable_eq n] (d₁ d₂ : n → α) :
   diagonal d₁ * diagonal d₂ = diagonal (λ i, d₁ i * d₂ i) :=
 diagonal_mul_diagonal' _ _
 
+lemma is_add_monoid_hom_mul_left (M : matrix l m α) :
+  is_add_monoid_hom (λ x : matrix m n α, M ⬝ x) :=
+{ to_is_add_hom := ⟨matrix.mul_add _⟩, map_zero := matrix.mul_zero _ }
+
+def is_add_monoid_hom_mul_right (M : matrix m n α) :
+  is_add_monoid_hom (λ x : matrix l m α, x ⬝ M) :=
+{ to_is_add_hom := ⟨λ _ _, matrix.add_mul _ _ _⟩, map_zero := matrix.zero_mul _ }
+
+protected lemma sum_mul {β : Type*} (s : finset β) (f : β → matrix l m α)
+  (M : matrix m n α) : s.sum f ⬝ M = s.sum (λ a, f a ⬝ M) :=
+(@finset.sum_hom _ _ _ s f _ _ (λ x, x ⬝ M)
+/- This line does not type-check without `id` and `: _`. Lean did not recognize that two different
+  `add_monoid` instances were def-eq -/
+  (id (@is_add_monoid_hom_mul_right l _ _ _ _ _ _ _ M) : _)).symm
+
+protected lemma mul_sum {β : Type*} (s : finset β) (f : β → matrix m n α)
+  (M : matrix l m α) :  M ⬝ s.sum f = s.sum (λ a, M ⬝ f a) :=
+(@finset.sum_hom _ _ _ s f _ _ (λ x, M ⬝ x)
+/- This line does not type-check without `id` and `: _`. Lean did not recognize that two different
+  `add_monoid` instances were def-eq -/
+  (id (@is_add_monoid_hom_mul_left _ _ n _ _ _ _ _ M) : _)).symm
+
 end semiring
 
 section ring

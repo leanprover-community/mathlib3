@@ -401,7 +401,7 @@ Then there exists a unique `v` in `K` that minimizes the distance `∥u - v∥` 
 This point `v` is usually called the orthogonal projection of `u` onto `K`.
 -/
 theorem exists_norm_eq_infi_of_complete_subspace (K : subspace ℝ α) (ne : nonempty K)
-  (h : is_complete K.carrier) : ∀ u : α, ∃ v ∈ K, ∥u - v∥ = ⨅ w : K.carrier, ∥u - w∥ :=
+  (h : is_complete (↑K : set α)) : ∀ u : α, ∃ v ∈ K, ∥u - v∥ = ⨅ w : (↑K : set α), ∥u - w∥ :=
 exists_norm_eq_infi_of_complete_convex ne h (convex_submodule _)
 
 /--
@@ -411,10 +411,10 @@ Then point `v` minimizes the distance `∥u - v∥` if and only if
 for all `w ∈ K`, `inner (u - v) w = 0` (i.e., `u - v` is orthogonal to the subspace `K`)
 -/
 theorem norm_eq_infi_iff_inner_eq_zero (K : subspace ℝ α) (ne : nonempty K) {u : α} {v : α}
-  (hv : v ∈ K) : ∥u - v∥ = (⨅ w : K.carrier, ∥u - w∥) ↔ ∀ w ∈ K, inner (u - v) w = 0 :=
+  (hv : v ∈ K) : ∥u - v∥ = (⨅ w : (↑K : set α), ∥u - w∥) ↔ ∀ w ∈ K, inner (u - v) w = 0 :=
 iff.intro
 begin
-  assume h : ∥u - v∥ = (⨅ w : K.carrier, ∥u - w∥),
+  assume h,
   have h : ∀ w ∈ K, inner (u - v) (w - v) ≤ 0,
     rw norm_eq_infi_iff_inner_le_zero at h, exact h, exact ne, exact convex_submodule _, exact hv,
   assume w hw,

@@ -436,10 +436,10 @@ section submodule
 
 open submodule
 
-lemma convex_submodule (K : submodule ℝ α) : convex (K.carrier) :=
+lemma convex_submodule (K : submodule ℝ α) : convex (↑K : set α) :=
 by { repeat {intro}, refine add_mem _ (smul_mem _ _ _) (smul_mem _ _ _); assumption }
 
-lemma convex_subspace (K : subspace ℝ α) : convex (K.carrier) := convex_submodule K
+lemma convex_subspace (K : subspace ℝ α) : convex (↑K : set α) := convex_submodule K
 
 end submodule
 

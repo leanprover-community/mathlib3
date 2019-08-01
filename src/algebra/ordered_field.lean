@@ -181,7 +181,7 @@ namespace nat
 
 variables {α : Type*} [linear_ordered_field α]
 
-lemma inv_pos_of_nat {n : ℕ}  : 0 < ((n : α) + 1)⁻¹ :=
+lemma inv_pos_of_nat {n : ℕ} : 0 < ((n : α) + 1)⁻¹ :=
 inv_pos $ add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
 
 lemma one_div_pos_of_nat {n : ℕ} : 0 < 1 / ((n : α) + 1) :=

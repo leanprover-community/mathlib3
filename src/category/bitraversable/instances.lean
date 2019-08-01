@@ -10,7 +10,10 @@ import category.bitraversable.basic
        tactic.solve_by_elim
 
 /-!
-# bitraversable instances for
+# bitraversable instances
+
+## Instances
+
  * prod
  * sum
  * const
@@ -18,7 +21,14 @@ import category.bitraversable.basic
  * bicompl
  * bicompr
 
-# traversable instances for bitraversable functors
+## References
+
+ * Hackage: https://hackage.haskell.org/package/base-4.12.0.0/docs/Data-Bitraversable.html
+
+## Tags
+
+traversable bitraversable functor bifunctor applicative
+
 -/
 
 universes u v w

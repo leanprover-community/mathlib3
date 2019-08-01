@@ -7,6 +7,16 @@ Author(s): Simon Hudon
 import tactic.basic
 
 /-!
+# Monad
+
+## Attributes
+
+ * extensionality
+ * functor_norm
+ * monad_norm
+
+## Implementation Details
+
 Set of rewrite rules and automation for monads in general and
 `reader_t`, `state_t`, `except_t` and `option_t` in particular.
 
@@ -18,6 +28,11 @@ already present in an expression.
 In a context where monadic reasoning is desired `simp with monad_norm`
 will translate functor and applicative notation into monad notation
 and use regular `functor_norm` rules as well.
+
+## Tags
+
+functor, applicative, monad, simp
+
 -/
 
 run_cmd mk_simp_attr `monad_norm [`functor_norm]

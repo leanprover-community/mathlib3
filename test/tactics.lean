@@ -38,6 +38,17 @@ begin
   trivial
 end
 
+example (x y : ℕ) (p q : Prop) (h : x = y) (h' : p ↔ q) : true :=
+begin
+  symmetry' at h,
+  guard_hyp' h := y = x,
+  guard_hyp' h' := p ↔ q,
+  symmetry' at *,
+  guard_hyp' h := x = y,
+  guard_hyp' h' := q ↔ p,
+  trivial
+end
+
 section apply_rules
 
 example {a b c d e : nat} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :

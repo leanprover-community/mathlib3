@@ -54,10 +54,10 @@ end
 
 end lemmas
 
-variables [linear_ordered_field α] {a b c x : α}
-
 /-- Discriminant of a quadratic -/
 def discrim [ring α] (a b c : α) : α := b^2 - 4 * a * c
+
+variables [linear_ordered_field α] {a b c x : α}
 
 /--
 A quadratic has roots if and only if its discriminant equals some square.

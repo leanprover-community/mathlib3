@@ -101,9 +101,26 @@ lemma dvd_and_not_dvd_iff [integral_domain α] {x y : α} :
   λ ⟨hx0, d, hdu, hdx⟩, ⟨⟨d, hdx⟩, λ ⟨e, he⟩, hdu (is_unit_of_dvd_one _
     ⟨e, (domain.mul_left_inj hx0).1 $ by conv {to_lhs, rw [he, hdx]};simp [mul_assoc]⟩)⟩⟩
 
+lemma pow_dvd_pow_iff [integral_domain α] {x : α} {n m : ℕ} (h0 : x ≠ 0) (h1 : ¬ is_unit x) :
+  x ^ n ∣ x ^ m ↔ n ≤ m :=
+begin
+  split,
+  { intro h, rw [← not_lt], intro hmn, apply h1,
+    have : x * x ^ m ∣ 1 * x ^ m,
+    { rw [← pow_succ, one_mul], exact dvd_trans (pow_dvd_pow _ (nat.succ_le_of_lt hmn)) h },
+    rwa [mul_dvd_mul_iff_right, ← is_unit_iff_dvd_one] at this, apply pow_ne_zero m h0 },
+  { apply pow_dvd_pow }
+end
+
 /-- prime element of a semiring -/
 def prime [comm_semiring α] (p : α) : Prop :=
 p ≠ 0 ∧ ¬ is_unit p ∧ (∀a b, p ∣ a * b → p ∣ a ∨ p ∣ b)
+
+lemma ne_zero_of_prime [comm_semiring α] {p : α} (hp : prime p) : p ≠ 0 :=
+hp.1
+
+lemma not_unit_of_prime [comm_semiring α] {p : α} (hp : prime p) : ¬ is_unit p :=
+hp.2.1
 
 @[simp] lemma not_prime_zero [integral_domain α] : ¬ prime (0 : α)
 | ⟨h, _⟩ := h rfl

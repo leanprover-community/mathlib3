@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Some big operators for lists and finite sets.
 -/
-import tactic.tauto data.list.basic data.finset
+import tactic.tauto data.list.basic data.finset data.nat.enat
 import algebra.group algebra.ordered_group algebra.group_power
 
 universes u v w
@@ -354,6 +354,18 @@ lemma sum_nat_cast [add_comm_monoid β] [has_one β] (s : finset α) (f : α →
   ↑(s.sum f) = s.sum (λa, f a : α → β) :=
 (sum_hom _).symm
 
+lemma prod_nat_cast {α β} [comm_semiring β] (s : finset α) (f : α → ℕ) :
+  ↑(s.prod f) = s.prod (λa, f a : α → β) :=
+(prod_hom _).symm
+
+protected lemma sum_nat_coe_enat {α : Type*} [decidable_eq α] (s : finset α) (f : α → ℕ) :
+  s.sum (λ x, (f x : enat)) = (s.sum f : ℕ) :=
+begin
+  induction s using finset.induction with a s has ih h,
+  { simp },
+  { simp [has, ih] }
+end
+
 lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_comm_monoid β]
   (f : α → β) (h_zero : f 0 = 0) (h_add : ∀x y, f (x + y) ≤ f x + f y) (s : finset γ) (g : γ → α) :
   f (s.sum g) ≤ s.sum (λc, f (g c)) :=
@@ -519,6 +531,43 @@ calc s₁.sum f = (s₁.filter (λx, f x = 0)).sum f + (s₁.filter (λx, f x �
       (sum_le_sum_of_subset $ by simpa only [subset_iff, mem_filter, and_imp])
 
 end canonically_ordered_monoid
+
+section linear_ordered_comm_ring
+variables [decidable_eq α] [linear_ordered_comm_ring β]
+
+/- this is also true for a ordered commutative multiplicative monoid -/
+lemma prod_nonneg {s : finset α} {f : α → β}
+  (h0 : ∀(x ∈ s), 0 ≤ f x) : 0 ≤ s.prod f :=
+begin
+  induction s using finset.induction with a s has ih h,
+  { simp [zero_le_one] },
+  { simp [has], apply mul_nonneg, apply h0 a (mem_insert_self a s),
+    exact ih (λ x H, h0 x (mem_insert_of_mem H)) }
+end
+
+/- this is also true for a ordered commutative multiplicative monoid -/
+lemma prod_pos {s : finset α} {f : α → β} (h0 : ∀(x ∈ s), 0 < f x) : 0 < s.prod f :=
+begin
+  induction s using finset.induction with a s has ih h,
+  { simp [zero_lt_one] },
+  { simp [has], apply mul_pos, apply h0 a (mem_insert_self a s),
+    exact ih (λ x H, h0 x (mem_insert_of_mem H)) }
+end
+
+/- this is also true for a ordered commutative multiplicative monoid -/
+lemma prod_le_prod {s : finset α} {f g : α → β} (h0 : ∀(x ∈ s), 0 ≤ f x)
+  (h1 : ∀(x ∈ s), f x ≤ g x) : s.prod f ≤ s.prod g :=
+begin
+  induction s using finset.induction with a s has ih h,
+  { simp },
+  { simp [has], apply mul_le_mul,
+      exact h1 a (mem_insert_self a s),
+      apply ih (λ x H, h0 _ _) (λ x H, h1 _ _); exact (mem_insert_of_mem H),
+      apply prod_nonneg (λ x H, h0 x (mem_insert_of_mem H)),
+      apply le_trans (h0 a (mem_insert_self a s)) (h1 a (mem_insert_self a s)) }
+end
+
+end linear_ordered_comm_ring
 
 @[simp] lemma card_pi [decidable_eq α] {δ : α → Type*}
   (s : finset α) (t : Π a, finset (δ a)) :

@@ -209,6 +209,9 @@ by rw [fin.fintype]; simp [fintype.card, card, univ]
 @[instance, priority 0] def unique.fintype {α : Type*} [unique α] : fintype α :=
 ⟨finset.singleton (default α), λ x, by rw [unique.eq_default x]; simp⟩
 
+@[simp] lemma univ_unique {α : Type*} [unique α] [f : fintype α] : @finset.univ α _ = {default α} :=
+by rw [subsingleton.elim f (@unique.fintype α _)]; refl
+
 instance : fintype empty := ⟨∅, empty.rec _⟩
 
 @[simp] theorem fintype.univ_empty : @univ empty _ = ∅ := rfl

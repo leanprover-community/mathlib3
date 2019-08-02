@@ -449,6 +449,23 @@ instance finset.fintype [fintype α] : fintype (finset α) :=
 instance subtype.fintype [fintype α] (p : α → Prop) [decidable_pred p] : fintype {x // p x} :=
 set_fintype _
 
+instance psigma.fintype {α : Type*} {β : α → Type*} [fintype α] [∀ a, fintype (β a)] : 
+  fintype (Σ' a, β a) := 
+fintype.of_equiv _ (equiv.psigma_equiv_sigma _).symm
+
+instance psigma.fintype_prop_left {α : Prop} {β : α → Type*} [∀ a, fintype (β a)] [decidable α] : 
+  fintype (Σ' a, β a) :=
+if h : α then fintype.of_equiv (β h) ⟨λ x, ⟨h, x⟩, psigma.snd, λ _, rfl, λ ⟨_, _⟩, rfl⟩ 
+else ⟨∅, λ x, h x.1⟩
+
+instance psigma.fintype_prop_right {α : Type*} {β : α → Prop} [fintype α] [∀ a, decidable (β a)] : 
+  fintype (Σ' a, β a) :=
+fintype.of_equiv {a // β a} ⟨λ ⟨x, y⟩, ⟨x, y⟩, λ ⟨x, y⟩, ⟨x, y⟩, λ ⟨x, y⟩, rfl, λ ⟨x, y⟩, rfl⟩
+
+instance psigma.fintype_prop_prop {α : Prop} {β : α → Prop} [decidable α] [∀ a, decidable (β a)] : 
+  fintype (Σ' a, β a) :=
+if h : ∃ a, β a then ⟨{⟨h.fst, h.snd⟩}, λ ⟨_, _⟩, by simp⟩ else ⟨∅, λ ⟨x, y⟩, h ⟨x, y⟩⟩
+
 instance set.fintype [fintype α] [decidable_eq α] : fintype (set α) :=
 pi.fintype
 

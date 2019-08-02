@@ -628,14 +628,10 @@ begin
       calc y ≤ 2 * y - y : by ring
          ... = 2 * (sqrt y * sqrt y) - y : by rw mul_self_sqrt hy
          ... ≤ 2 * (sqrt x * sqrt y) - y :
-         begin
-           apply sub_le_sub_right,
-           apply mul_le_mul_of_nonneg_left,
-           apply mul_le_mul_of_nonneg_right,
-           exact sqrt_le_sqrt h,
-           exact sqrt_nonneg _,
-           norm_num
-         end
+        sub_le_sub_right
+          (mul_le_mul_of_nonneg_left
+            (mul_le_mul_of_nonneg_right (sqrt_le_sqrt h) (sqrt_nonneg _))
+            (by norm_num)) _
          ... ≤  2 * sqrt x * sqrt y - y : by ring },
     { rw sqrt_eq_zero_of_nonpos hy, simpa },
     -- if `x ≤ 0`

@@ -458,11 +458,11 @@ instance psigma.fintype_prop_left {α : Prop} {β : α → Type*} [∀ a, fintyp
 if h : α then fintype.of_equiv (β h) ⟨λ x, ⟨h, x⟩, psigma.snd, λ _, rfl, λ ⟨_, _⟩, rfl⟩ 
 else ⟨∅, λ x, h x.1⟩
 
-instance psigma.fintype_prop_right {α : Type*} {β : α → Prop} [∀ a, decidable (β a)] [fintype α] : 
+instance psigma.fintype_prop_right {α : Type*} {β : α → Prop} [fintype α] [∀ a, decidable (β a)] : 
   fintype (Σ' a, β a) :=
 fintype.of_equiv {a // β a} ⟨λ ⟨x, y⟩, ⟨x, y⟩, λ ⟨x, y⟩, ⟨x, y⟩, λ ⟨x, y⟩, rfl, λ ⟨x, y⟩, rfl⟩
 
-instance psigma.fintype_prop_prop {α : Prop} {β : α → Prop} [∀ a, decidable (β a)] [decidable α] : 
+instance psigma.fintype_prop_prop {α : Prop} {β : α → Prop} [decidable α] [∀ a, decidable (β a)] : 
   fintype (Σ' a, β a) :=
 if h : ∃ a, β a then ⟨{⟨h.fst, h.snd⟩}, λ ⟨_, _⟩, by simp⟩ else ⟨∅, λ ⟨x, y⟩, h ⟨x, y⟩⟩
 

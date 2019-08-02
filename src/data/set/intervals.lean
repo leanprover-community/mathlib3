@@ -330,8 +330,8 @@ section decidable_linear_ordered_comm_group
 variables {α : Type*} [decidable_linear_ordered_comm_group α]
 
 /-- If we remove a smaller interval from a larger, the result is nonempty -/
-lemma nonempty_Ico_sdiff {α} [decidable_linear_ordered_comm_group α] {x dx y dy : α}
-  (h : dy < dx) (hx : 0 < dx) : nonempty ↥(Ico x (x + dx) \ Ico y (y + dy)) :=
+lemma nonempty_Ico_sdiff {x dx y dy : α} (h : dy < dx) (hx : 0 < dx) :
+  nonempty ↥(Ico x (x + dx) \ Ico y (y + dy)) :=
 begin
   cases lt_or_le x y with h' h',
   { use x, simp* },

@@ -900,7 +900,7 @@ by  rw [← add_assoc, nat.fact_succ, mul_comm (nat.succ _), nat.pow_succ, ← m
 
 lemma monotone_fact : monotone fact := λ n m, fact_le
 
-lemma fact_lt {n m : ℕ} (h0 : 0 < n) : n.fact < m.fact ↔ n < m :=
+lemma fact_lt (h0 : 0 < n) : n.fact < m.fact ↔ n < m :=
 begin
   split; intro h,
   { rw [← not_le], intro hmn, apply not_le_of_lt h (fact_le hmn) },
@@ -912,17 +912,17 @@ begin
     { refine lt_trans (h_ih h0) (this _ _), exact lt_trans h0 (lt_of_succ_le h_a) }}
 end
 
-lemma one_lt_fact {n : ℕ} : 1 < n.fact ↔ 1 < n :=
+lemma one_lt_fact : 1 < n.fact ↔ 1 < n :=
 by { convert fact_lt _, refl, exact one_pos }
 
-lemma fact_eq_one {n : ℕ} : n.fact = 1 ↔ n ≤ 1 :=
+lemma fact_eq_one : n.fact = 1 ↔ n ≤ 1 :=
 begin
   split; intro h,
   { rw [← not_lt, ← one_lt_fact, h], apply lt_irrefl },
   { cases h with h h, refl, cases h, refl }
 end
 
-lemma fact_inj {n m : ℕ} (h0 : 1 < n.fact) : n.fact = m.fact ↔ n = m :=
+lemma fact_inj (h0 : 1 < n.fact) : n.fact = m.fact ↔ n = m :=
 begin
   split; intro h,
   { rcases lt_trichotomy n m with hnm|hnm|hnm,

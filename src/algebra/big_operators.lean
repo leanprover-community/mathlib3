@@ -354,11 +354,11 @@ lemma sum_nat_cast [add_comm_monoid β] [has_one β] (s : finset α) (f : α →
   ↑(s.sum f) = s.sum (λa, f a : α → β) :=
 (sum_hom _).symm
 
-lemma prod_nat_cast {α β} [comm_semiring β] (s : finset α) (f : α → ℕ) :
+lemma prod_nat_cast [comm_semiring β] (s : finset α) (f : α → ℕ) :
   ↑(s.prod f) = s.prod (λa, f a : α → β) :=
 (prod_hom _).symm
 
-protected lemma sum_nat_coe_enat {α : Type*} [decidable_eq α] (s : finset α) (f : α → ℕ) :
+protected lemma sum_nat_coe_enat [decidable_eq α] (s : finset α) (f : α → ℕ) :
   s.sum (λ x, (f x : enat)) = (s.sum f : ℕ) :=
 begin
   induction s using finset.induction with a s has ih h,

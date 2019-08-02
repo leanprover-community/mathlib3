@@ -329,8 +329,8 @@ begin
   exact finite_subset ‹finite s› this
 end
 
-lemma set.exists_min {α β} [decidable_linear_order β]
-  (s : set α) (f : α → β) (h1 : finite s) (h : nonempty s) : ∃ a, a ∈ s ∧ ∀ b ∈ s, f a ≤ f b :=
+lemma exists_min [decidable_linear_order β] (s : set α) (f : α → β) (h1 : finite s)
+  (h : nonempty s) : ∃ a, a ∈ s ∧ ∀ b ∈ s, f a ≤ f b :=
 begin
   have := (finite.to_finset h1).exists_min f,
   simp at this ⊢, unfreezeI, rcases h with ⟨⟨x, hx⟩⟩,

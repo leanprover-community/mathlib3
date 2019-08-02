@@ -790,7 +790,7 @@ namespace set
 
 protected theorem disjoint_iff {s t : set α} : disjoint s t ↔ s ∩ t ⊆ ∅ := iff.refl _
 
-lemma not_disjoint_iff {α} {s t : set α} : ¬disjoint s t ↔ ∃x, x ∈ s ∧ x ∈ t :=
+lemma not_disjoint_iff {s t : set α} : ¬disjoint s t ↔ ∃x, x ∈ s ∧ x ∈ t :=
 by { rw [set.disjoint_iff, subset_empty_iff], apply ne_empty_iff_exists_mem }
 
 theorem disjoint_diff {a b : set α} : disjoint a (b \ a) :=

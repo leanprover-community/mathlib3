@@ -8,41 +8,6 @@ import data.finsupp order.complete_lattice algebra.ordered_group data.mv_polynom
 import algebra.order_functions
 import ring_theory.ideal_operations
 
-namespace ideal
-variables {α : Type*} {β : Type*} (f : α → β) [comm_ring α]
-
-@[reducible] def ker [comm_ring β] (f : α → β) [is_ring_hom f] : ideal α :=
-comap f ⊥
-
-lemma mem_ker [comm_ring β] [is_ring_hom f] (a : α) :
-  a ∈ ker f ↔ f a = 0 :=
-by rw [ker, mem_comap, submodule.mem_bot]
-
-lemma not_one_mem_ker [nonzero_comm_ring β] [is_ring_hom f] : (1:α) ∉ ker f :=
-by { rw [mem_ker, is_ring_hom.map_one f], exact one_ne_zero }
-
-lemma ker_is_prime {α β : Type*} [comm_ring α] [integral_domain β] (f : α → β) [is_ring_hom f] :
-  (ker f).is_prime :=
-⟨by { rw [ne.def, eq_top_iff_one], exact not_one_mem_ker f },
-λ x y, by simpa only [mem_ker, is_ring_hom.map_mul f] using eq_zero_or_eq_zero_of_mul_eq_zero⟩
-
-lemma span_singleton_is_prime_iff {a : α} (h : a ≠ 0) :
-  (span ({a} : set α)).is_prime ↔ prime a :=
-begin
-  split; intro H; split,
-  { exact h },
-  { split,
-    { rintro ⟨⟨x,y,hxy,hyx⟩, rfl⟩, apply H.1,
-      refine eq_top_of_unit_mem _ x y _ hyx,
-      exact subset_span (set.mem_singleton _) },
-    { simpa only [mem_span_singleton.symm] using H.2 } },
-  { rw [ne.def, eq_top_iff_one, mem_span_singleton], rintro ⟨b, hab⟩, apply H.2.1,
-    exact ⟨⟨a, b, hab.symm, hab.symm ▸ mul_comm _ _⟩, rfl⟩ },
-  { simpa only [mem_span_singleton] using H.2.2 }
-end
-
-end ideal
-
 /-!
 # Formal power series
 
@@ -1216,8 +1181,9 @@ instance : integral_domain (power_series α) :=
     { contrapose!, intro h, rw finset.nat.mem_antidiagonal }
   end,
   .. mv_power_series.nonzero_comm_ring, .. mv_power_series.comm_ring }
-.
 
+/-- The ideal spanned by the variable in the power series ring
+ over an integral domain is a prime ideal.-/
 lemma span_X_is_prime : (ideal.span ({X} : set (power_series α))).is_prime :=
 begin
   suffices : ideal.span ({X} : set (power_series α)) = ideal.ker (coeff 0),
@@ -1226,9 +1192,10 @@ begin
   rw [ideal.mem_ker, ideal.mem_span_singleton, X_dvd_iff]
 end
 
+/-- The variable of the power series ring over an integral domain is prime.-/
 lemma X_prime : prime (X : power_series α) :=
 begin
-  rw ← ideal.span_singleton_is_prime_iff,
+  rw ← ideal.span_singleton_prime,
   { exact span_X_is_prime },
   { intro h, simpa only [coeff_one_X, one_ne_zero, coeff_zero] using congr_arg (coeff 1) h }
 end

@@ -318,6 +318,30 @@ lemma eq_bot_of_prime {K : Type u} [discrete_field K] (I : ideal K) [h : I.is_pr
   I = ⊥ :=
 classical.or_iff_not_imp_right.mp I.eq_bot_or_top h.1
 
+section ker
+variable (f : α → β)
+
+/-- The kernel of a ring homomorphism.-/
+@[reducible] def ker [comm_ring β] [is_ring_hom f] : ideal α :=
+comap f ⊥
+
+/-- An element is in the kernel if and only if it maps to zero.-/
+lemma mem_ker [comm_ring β] [is_ring_hom f] :
+  a ∈ ker f ↔ f a = 0 :=
+by rw [ker, mem_comap, submodule.mem_bot]
+
+/-- If the target is not the zero ring, then one is not in the kernel.-/
+lemma not_one_mem_ker [nonzero_comm_ring β] [is_ring_hom f] : (1:α) ∉ ker f :=
+by { rw [mem_ker, is_ring_hom.map_one f], exact one_ne_zero }
+
+/-- The kernel of a homomorphism to an integral domain is a prime ideal.-/
+lemma ker_is_prime {α β : Type*} [comm_ring α] [integral_domain β] (f : α → β) [is_ring_hom f] :
+  (ker f).is_prime :=
+⟨by { rw [ne.def, eq_top_iff_one], exact not_one_mem_ker f },
+λ x y, by simpa only [mem_ker, is_ring_hom.map_mul f] using eq_zero_or_eq_zero_of_mul_eq_zero⟩
+
+end ker
+
 end ideal
 
 def nonunits (α : Type u) [monoid α] : set α := { a | ¬is_unit a }

@@ -1616,8 +1616,8 @@ theorem min_le_of_mem {s : finset α} {a b : α} (h₁ : b ∈ s) (h₂ : a ∈ 
 by rcases @inf_le (with_top α) _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
    cases h₂.symm.trans hb; assumption
 
-lemma finset.exists_min {α β} [decidable_linear_order β]
-  (s : finset α) (f : α → β) (h : nonempty ↥(↑s : set α)) : ∃ x ∈ s, ∀ x' ∈ s, f x ≤ f x' :=
+lemma exists_min [decidable_linear_order β] (s : finset α) (f : α → β)
+  (h : nonempty ↥(↑s : set α)) : ∃ x ∈ s, ∀ x' ∈ s, f x ≤ f x' :=
 begin
   have : s.image f ≠ ∅,
     rwa [ne, image_eq_empty, ← ne.def, ← nonempty_iff_ne_empty],

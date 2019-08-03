@@ -150,7 +150,7 @@ structure alg_hom (R : Type u) (A : Type v) (B : Type w)
 (commutes' : ∀ r : R, to_fun (algebra_map A r) = algebra_map B r)
 
 infixr ` →ₐ `:25 := alg_hom _
-notation A ` →ₐ[`:25 R `] ` B := @alg_hom R A B _ _ _ _ _
+notation A ` →ₐ[`:25 R `] ` B := alg_hom R A B
 
 namespace alg_hom
 

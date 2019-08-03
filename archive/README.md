@@ -8,7 +8,7 @@ We keep these formalizations here so that when mathlib changes, we can keep thes
 
 If you have done a formalization which you want to add here, just make a pull request to mathlib.
 
-When you make a pull request, do make sure that you put all lemmas which should be in mathlib in the right place (in mathlib).
+When you make a pull request, do make sure that you put all lemmas which are generally useful in right place in mathlib (in the `src/` directory).
 
 Try to adhere to the guidelines for mathlib. They will be much less strictly enforced for the archive, but we still want you to adhere to all the conventions that make maintenance easier. This ensures that when mathlib is changing, the mathlib maintainers can fix these contributions without much effort. Here are the guidelines:
 - The [style guide](../docs/contribute/style.md) for contributors.

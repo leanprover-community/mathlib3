@@ -69,7 +69,7 @@ meta def take {α} : mllist m α → ℕ → m (list α)
 | _ 0 := pure []
 | (cons l) (n+1) :=
   do (x, xs) ← l,
-     some x ← pure x | take xs n,
+     some x ← pure x | take xs (n+1),
      (::) x <$> (take xs n)
 
 meta def map {α β : Type u} (f : α → β) : mllist m α → mllist m β

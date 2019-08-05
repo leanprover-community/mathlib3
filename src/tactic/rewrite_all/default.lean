@@ -1,7 +1,8 @@
--- Copyright (c) 2018 Keeley Hoek. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Keeley Hoek, Scott Morrison
-
+/-
+Copyright (c) 2018 Keeley Hoek. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Keeley Hoek, Scott Morrison
+-/
 -- There are two alternative backends, provided by `.congr` and `.kabstract`.
 --
 -- The kabstract backend is faster, but if there are multiple identical occurences of the

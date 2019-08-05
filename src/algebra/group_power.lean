@@ -504,6 +504,9 @@ lemma pow_abs [decidable_linear_ordered_comm_ring α] (a : α) (n : ℕ) : (abs 
 by induction n with n ih; [exact (abs_one).symm,
   rw [pow_succ, pow_succ, ih, abs_mul]]
 
+lemma abs_neg_one_pow [decidable_linear_ordered_comm_ring α] (n : ℕ) : abs ((-1 : α)^n) = 1 :=
+by rw [←pow_abs, abs_neg, abs_one, one_pow]
+
 lemma inv_pow' [discrete_field α] (a : α) (n : ℕ) : (a ^ n)⁻¹ = a⁻¹ ^ n :=
 by induction n; simp [*, pow_succ, mul_inv', mul_comm]
 

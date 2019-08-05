@@ -84,14 +84,6 @@ lemma prod_mem {M : Type*} [comm_monoid M] (S : submonoid M)
   (∀c ∈ t, f c ∈ S) → t.prod f ∈ S :=
 finset.induction_on t (by simp [S.one_mem]) (by simp [S.mul_mem] {contextual := tt})
 
---@[to_additive is_add_submonoid.inter]
-lemma inter (S₁ S₂ : submonoid M) :
-  submonoid M :=
-{ carrier := S₁ ∩ S₂,
-  one_mem' := ⟨S₁.one_mem, S₂.one_mem⟩,
-  mul_mem' := λ _ _ hx hy,
-    ⟨S₁.mul_mem hx.1 hy.1, S₂.mul_mem hx.2 hy.2⟩ }
-
 /-- A directed union of submonoids is a submonoid. -/
 def Union_of_directed {ι : Type*} [hι : nonempty ι]
   (s : ι → submonoid M)
@@ -125,15 +117,17 @@ def Union_of_directed {ι : Type*} [hι : nonempty ι]
 --lemma multiples.zero_mem {x : β} : (0 : β) ∈ multiples x := ⟨0, add_monoid.zero_smul _⟩
 --attribute [to_additive multiples.zero_mem] powers.one_mem
 
---lemma powers'.self_mem {x : M} : x ∈ powers' x := ⟨1, pow_one _⟩
---blah
---lemma multiples.self_mem {x : β} : x ∈ multiples x := ⟨1, add_monoid.one_smul _⟩
---attribute [to_additive multiples.self_mem] powers.self_mem
-
 def powers (x : M) : submonoid M :=
 { carrier := {y | ∃ n:ℕ, x^n = y},
   one_mem' := ⟨0, pow_zero x⟩,
   mul_mem' := by rintros x₁ x₂ ⟨n₁, rfl⟩ ⟨n₂, rfl⟩; exact ⟨n₁ + n₂, pow_add _ _ _ ⟩ }
+
+lemma powers.self_mem {x : M} : x ∈ powers x := ⟨1, pow_one _⟩
+
+--lemma multiples.self_mem {x : β} : x ∈ multiples x := ⟨1, add_monoid.one_smul _⟩
+--attribute [to_additive multiples.self_mem] powers.self_mem
+
+
 
 --instance multiples.is_add_submonoid (x : β) : is_add_submonoid (multiples x) :=
 --multiplicative.is_submonoid_iff.1 $ powers.is_submonoid _
@@ -144,6 +138,101 @@ def univ : submonoid M :=
 { carrier := set.univ,
   one_mem' := set.mem_univ 1,
   mul_mem' := λ _ _ _ _, set.mem_univ _ }
+
+def bot : submonoid M :=
+{ carrier := {1},
+  one_mem' := set.mem_singleton 1,
+  mul_mem' := λ a b ha hb, by simp * at *}
+
+-- partial order stuff
+instance : partial_order (submonoid M) :=
+partial_order.lift (coe : submonoid M → set M) (λ a b, ext') (by apply_instance)
+
+lemma le_def (p p' : submonoid M) : p ≤ p' ↔ ∀ x ∈ p, x ∈ p' := iff.rfl
+
+open lattice
+
+instance : has_bot (submonoid M) := ⟨submonoid.bot⟩
+
+@[simp] lemma mem_bot {x : M} : x ∈ (⊥ : submonoid M) ↔ x = 1 := set.mem_singleton_iff
+
+instance : order_bot (submonoid M) :=
+{ bot := ⊥,
+  bot_le := λ P x hx, by simp * at *; exact P.one_mem,
+  ..submonoid.partial_order
+  }
+
+instance : has_top (submonoid M) := ⟨univ⟩
+
+@[simp] lemma mem_top (x : M) : x ∈ (⊤ : submonoid M) := set.mem_univ x
+
+instance : order_top (submonoid M) :=
+{ top := ⊤,
+  le_top := λ p x _, mem_top x,
+  ..submonoid.partial_order}
+
+--@[to_additive is_add_submonoid.inter]
+def inf (S₁ S₂ : submonoid M) :
+  submonoid M :=
+{ carrier := S₁ ∩ S₂,
+  one_mem' := ⟨S₁.one_mem, S₂.one_mem⟩,
+  mul_mem' := λ _ _ ⟨hx, hx'⟩ ⟨hy, hy'⟩,
+    ⟨S₁.mul_mem hx hy, S₂.mul_mem hx' hy'⟩ }
+
+instance : has_inf (submonoid M) := ⟨inf⟩
+
+lemma mem_inf {p p' : submonoid M} {x : M} : x ∈ p ⊓ p' ↔ x ∈ p ∧ x ∈ p' :=
+⟨λ h, ⟨h.1, h.2⟩, λ h, (p ⊓ p').mem_coe.2 ⟨h.1, h.2⟩⟩
+
+instance : has_Inf (submonoid M) :=
+⟨λ s, {
+  carrier := ⋂ t ∈ s, ↑t,
+  one_mem' := set.mem_bInter $ λ i h, i.one_mem,
+  mul_mem' := λ x y hx hy, set.mem_bInter $ λ i h,
+    i.mul_mem (by apply set.mem_bInter_iff.1 hx i h) (by apply set.mem_bInter_iff.1 hy i h) }⟩
+
+lemma Inf_le' {S : set (submonoid M)} {p} : p ∈ S → Inf S ≤ p :=
+set.bInter_subset_of_mem
+
+lemma le_Inf' {S : set (submonoid M)} {p} : (∀p' ∈ S, p ≤ p') → p ≤ Inf S :=
+set.subset_bInter
+
+lemma mem_Inf {S : set (submonoid M)} {x : M} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_bInter_iff
+
+instance : lattice (submonoid M) :=
+{ sup          := λ a b, Inf {x | a ≤ x ∧ b ≤ x},
+  le_sup_left  := λ a b, le_Inf' $ λ x ⟨ha, hb⟩, ha,
+  le_sup_right := λ a b, le_Inf' $ λ x ⟨ha, hb⟩, hb,
+  sup_le       := λ a b c h₁ h₂, Inf_le' ⟨h₁, h₂⟩,
+  inf          := (⊓),
+  le_inf       := λ a b c ha hb, set.subset_inter ha hb,
+  inf_le_left  := λ a b, set.inter_subset_left _ _,
+  inf_le_right := λ a b, set.inter_subset_right _ _, ..submonoid.partial_order}
+
+instance : complete_lattice (submonoid M) :=
+{ Sup          := λ tt, Inf {t | ∀t'∈tt, t' ≤ t},
+  le_Sup       := λ s p hs, le_Inf' $ λ p' hp', hp' _ hs,
+  Sup_le       := λ s p hs, Inf_le' hs,
+  Inf          := Inf,
+  le_Inf       := λ s a, le_Inf',
+  Inf_le       := λ s a, Inf_le',
+  ..submonoid.lattice.order_top,
+  ..submonoid.lattice.order_bot,
+  ..submonoid.lattice.lattice}
+
+instance : add_comm_monoid (submonoid M) :=
+{ add := (⊔),
+  add_assoc := λ _ _ _, sup_assoc,
+  zero := ⊥,
+  zero_add := λ _, bot_sup_eq,
+  add_zero := λ _, sup_bot_eq,
+  add_comm := λ _ _, sup_comm }
+
+end submonoid
+
+namespace monoid_hom
+
+open submonoid
 
 -- used to be "preimage"
 /-- The preimage of a submonoid along a monoid homomorphism is a submonoid. -/
@@ -166,6 +255,10 @@ def map {N : Type*} [monoid N] (f : M →* N) (S : submonoid M) : submonoid N :=
 /-- The range of a monoid homomorphism is a submonoid. -/
 def range {N : Type*} [monoid N] (f : M →* N) :
   submonoid N := map f univ
+
+end monoid_hom
+
+namespace submonoid
 
 lemma pow_mem {a : M} (h : a ∈ S) : ∀ {n : ℕ}, a ^ n ∈ S
 | 0 := S.one_mem
@@ -219,14 +312,8 @@ instance : has_one S := ⟨⟨_, S.one_mem⟩⟩
 @[simp] lemma coe_mul (x y : S) : (↑(x * y) : M) = ↑x * ↑y := rfl
 @[simp] lemma coe_one : ((1 : S) : M) = 1 := rfl
 
-end submonoid
-
-instance subtype.monoid {M : Type*} [monoid M] {S : submonoid M} : monoid S :=
-{ mul := (*),
-  mul_assoc := by { intros, apply set_coe.ext, apply mul_assoc },
-  one := 1,
-  one_mul := by { intros, apply set_coe.ext, apply one_mul },
-  mul_one := by { intros, apply set_coe.ext, apply mul_one } }
+instance to_monoid {M : Type*} [monoid M] {S : submonoid M} : monoid S :=
+by refine { mul := (*), one := 1, ..}; by simp [mul_assoc]
 
 --attribute [to_additive subtype.add_monoid._proof_1] subtype.monoid._proof_1
 --attribute [to_additive subtype.add_monoid._proof_2] subtype.monoid._proof_2
@@ -240,8 +327,6 @@ instance subtype.monoid {M : Type*} [monoid M] {S : submonoid M} : monoid S :=
 
 --@[simp, to_additive is_add_submonoid.coe_add]
 --lemma is_submonoid.coe_mul [is_submonoid s] (a b : s) : ((a * b : s) : α) = a * b := rfl
-
-namespace submonoid
 
 @[simp] lemma coe_pow (a : S) (n : ℕ) : ((a ^ n : S) : M) = a ^ n :=
 by induction n; simp [*, pow_succ]
@@ -293,35 +378,37 @@ def closure (s : set M) : submonoid M :=
   one_mem' := in_closure.one s,
   mul_mem' := λ _ _, in_closure.mul}
 
-theorem subset_closure {s : set M} : s ≤ closure s :=
+theorem le_closure {s : set M} : s ≤ closure s :=
 λ a, in_closure.basic
 
-theorem closure_subset {s : set M} {T : submonoid M} (h : s ≤ T) : closure s ≤ T :=
-assume a ha, by induction ha;
-begin
-
-  sorry
+theorem closure_le {s : set M} {T : submonoid M} (h : s ≤ T) : closure s ≤ T :=
+λ a ha, begin induction ha with _ hb _ _ _ _ ha hb,
+  {exact h hb },
+  {exact T.one_mem },
+  {exact T.mul_mem ha hb }
 end
---simp [h _, *, T.one_mem, T.mul_mem]
 
-theorem closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
-closure_subset $ set.subset.trans h subset_closure
+theorem closure_mono {s t : set M} (h : s ≤ t) : closure s ≤ closure t :=
+closure_le $ set.subset.trans h le_closure
 
-theorem closure_singleton {x : α} : closure ({x} : set α) = powers x :=
-set.eq_of_subset_of_subset (closure_subset $ set.singleton_subset_iff.2 $ powers.self_mem) $
-  is_submonoid.power_subset $ set.singleton_subset_iff.1 $ subset_closure
+theorem closure_singleton {x : M} : closure ({x} : set M) = powers x :=
+ext' $ set.eq_of_subset_of_subset (closure_le $ set.singleton_subset_iff.2 powers.self_mem) $
+submonoid.power_subset _ $ in_closure.basic $ set.mem_singleton x
 
-lemma image_closure {β : Type*} [monoid β] (f : α → β) [is_monoid_hom f] (s : set α) :
-  f '' closure s = closure (f '' s) :=
+lemma image_closure {N : Type*} [monoid N] (f : M →* N) (s : set M) :
+  f.map (closure s) = closure (f '' s) :=
 le_antisymm
   begin
     rintros _ ⟨x, hx, rfl⟩,
     apply in_closure.rec_on hx; intros,
-    { solve_by_elim [subset_closure, set.mem_image_of_mem] },
-    { rw [is_monoid_hom.map_one f], apply is_submonoid.one_mem },
-    { rw [is_monoid_hom.map_mul f], solve_by_elim [is_submonoid.mul_mem] }
+    { solve_by_elim [le_closure, set.mem_image_of_mem] },
+    { rw f.map_one, apply submonoid.one_mem },
+    { rw f.map_mul, solve_by_elim [submonoid.mul_mem] }
   end
-  (closure_subset $ set.image_subset _ subset_closure)
+  (closure_le $ set.image_subset _ le_closure)
+
+#exit
+
 
 theorem exists_list_of_mem_closure {s : set α} {a : α} (h : a ∈ closure s) :
   (∃l:list α, (∀x∈l, x ∈ s) ∧ l.prod = a) :=
@@ -338,8 +425,20 @@ begin
   }
 end
 
-theorem mem_closure_union_iff {α : Type*} [comm_monoid α] {s t : set α} {x : α} :
+
+theorem mem_closure_union_iff {M : Type*} [comm_monoid M] {s t : set M} {x : M} :
   x ∈ closure (s ∪ t) ↔ ∃ y ∈ closure s, ∃ z ∈ closure t, y * z = x :=
+⟨λ hx, let ⟨L, HL1, HL2⟩ := exists_list_of_mem_closure hx in HL2 ▸
+  list.rec_on L (λ _, ⟨1, submonoid.one_mem _, 1, submonoid.one_mem _, mul_one _⟩)
+    (λ hd tl ih HL1, let ⟨y, hy, z, hz, hyzx⟩ := ih (list.forall_mem_of_forall_mem_cons HL1) in
+      or.cases_on (HL1 hd $ list.mem_cons_self _ _)
+        (λ hs, ⟨hd * y, submonoid.mul_mem (le_closure hs) hy, z, hz, by rw [mul_assoc, list.prod_cons, ← hyzx]; refl⟩)
+        (λ ht, ⟨y, hy, z * hd, submonoid.mul_mem hz (le_closure ht), by rw [← mul_assoc, list.prod_cons, ← hyzx, mul_comm hd]; refl⟩)) HL1,,
+λ ⟨y, hy, z, hz, hyzx⟩, hyzx ▸ submonoid.mul_mem _
+  ((closure_mono (set.subset_union_left s t)) hy)
+  ((closure_mono (set.subset_union_right s t)) hz)⟩
+
+#exit
 ⟨λ hx, let ⟨L, HL1, HL2⟩ := exists_list_of_mem_closure hx in HL2 ▸
   list.rec_on L (λ _, ⟨1, is_submonoid.one_mem _, 1, is_submonoid.one_mem _, mul_one _⟩)
     (λ hd tl ih HL1, let ⟨y, hy, z, hz, hyzx⟩ := ih (list.forall_mem_of_forall_mem_cons HL1) in

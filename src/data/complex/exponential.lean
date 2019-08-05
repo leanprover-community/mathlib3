@@ -253,7 +253,7 @@ have hsumlesum : (range (max N M + 1)).sum (λ i, abv (a i) *
 have hsumltP : sum (range (max N M + 1)) (λ n, abv (a n)) < P :=
   calc sum (range (max N M + 1)) (λ n, abv (a n))
       = abs (sum (range (max N M + 1)) (λ n, abv (a n))) :
-  eq.symm (abs_of_nonneg (zero_le_sum (λ x h, abv_nonneg abv (a x))))
+  eq.symm (abs_of_nonneg (sum_nonneg (λ x h, abv_nonneg abv (a x))))
   ... < P : hP (max N M + 1),
 begin
   rw [h₁, h₂, h₃, sum_mul, ← sub_sub, sub_right_comm, sub_self, zero_sub, abv_neg abv],

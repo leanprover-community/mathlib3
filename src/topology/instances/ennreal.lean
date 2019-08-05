@@ -331,7 +331,7 @@ begin
     simp only [finset.sum_insert has],
     rw [ih, supr_add_supr_of_monotone (hf a)],
     assume i j h,
-    exact (finset.sum_le_sum' $ assume a ha, hf a h) }
+    exact (finset.sum_le_sum $ assume a ha, hf a h) }
 end
 
 lemma mul_Sup {s : set ennreal} {a : ennreal} : a * Sup s = ⨆i∈s, a * i :=

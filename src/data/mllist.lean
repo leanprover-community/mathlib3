@@ -142,6 +142,8 @@ cons $ do (a, r) ← l,
 
 meta def enum {α : Type u} : mllist m α → mllist m (ℕ × α) := enum_from 0
 
+meta def range {m : Type → Type} [alternative m] : mllist m ℕ := mllist.fix (λ n, pure (n + 1)) 0
+
 meta def concat {α : Type u} : mllist m α → α → mllist m α
 | L a := (mllist.of_list [L, mllist.of_list [a]]).join
 

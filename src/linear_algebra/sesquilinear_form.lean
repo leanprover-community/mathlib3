@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Andreas Swerdlow
 -/
 
-import algebra.module ring_theory.involution linear_algebra.tensor_product
+import algebra.module ring_theory.maps linear_algebra.tensor_product
 
 /-!
 # Sesquilinear form

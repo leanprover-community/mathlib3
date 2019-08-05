@@ -473,10 +473,10 @@ begin
     apply neg_le_neg,
     rw padic_val_rat_of_int _ hp.ne_one _,
     { norm_cast,
-      rw [← enat.coe_le_coe, enat.coe_get],
-      apply multiplicity.le_multiplicity_of_pow_dvd,
-      exact_mod_cast hd },
-    { exact_mod_cast hz }}
+      { rw [← enat.coe_le_coe, enat.coe_get],
+        apply multiplicity.le_multiplicity_of_pow_dvd,
+        exact_mod_cast hd },
+      { exact_mod_cast hz } }}
 end
 
 end padic_norm

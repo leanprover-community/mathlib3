@@ -45,6 +45,7 @@ example : (an + 5) < 10 → (an : ℤ) + 5 < 10 := λ h, by exact_mod_cast h
 example : (an : ℤ) + 5 < 10 → (an + 5) < 10 := λ h, by exact_mod_cast h
 example : ((an + 5 : ℕ) : ℤ) < 10 → an + 5 < 10 := λ h, by exact_mod_cast h
 example : an + 5 < 10 → ((an + 5 : ℕ) : ℤ) < 10 := λ h, by exact_mod_cast h
+example : (az : ℚ) = 7 → az = 7 := λ h, by exact_mod_cast h
 
 example (h : bn ≤ an) : an - bn = 1 ↔ (an - bn : ℤ) = 1 :=
 by norm_cast

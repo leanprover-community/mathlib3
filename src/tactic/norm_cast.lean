@@ -68,6 +68,8 @@ meta def pexpr_of_num (α : expr) : num → pexpr
 | num.zero := ``(has_zero.zero %%α)
 | (num.pos n) := pexpr_of_pos_num α n
 
+meta def expr_of_num (α : expr) : num → tactic expr
+| n := to_expr $ pexpr_of_num α n
 
 private meta def mk_cache : list name → tactic simp_lemmas :=
 monad.foldl simp_lemmas.add_simp simp_lemmas.mk
@@ -238,6 +240,9 @@ private meta def heur (_ : unit) : expr → tactic (unit × expr × expr)
 
 /-
 assumption is used to discharge proofs in step 2
+
+TODO:
+norm_cast takes a list of expressions to use as lemmas for the discharger
 -/
 private meta def prove : tactic unit :=
 assumption
@@ -252,31 +257,36 @@ private meta def post (s : simp_lemmas) (_ : unit) (e : expr) : tactic (unit × 
   r ← mcond (is_prop e) (return `iff) (return `eq),
   (new_e, pr) ← s.rewrite e prove r,
   pr ← match r with
-  |`iff := mk_app `propext [pr]
-  | _   := return pr
+  | `iff := mk_app `propext [pr]
+  | _    := return pr
   end,
   return ((), new_e, pr)
 ) <|> heur () e
 
-private meta def pre_num (e : expr) : tactic (expr × expr) :=
-match e with
-| `(@has_one.one %%α %%h1) := do
-  success_if_fail $ is_def_eq α `(ℕ),
-  h2 ← mk_app `has_lift_t [`(ℕ), α] >>= mk_instance',
-  new_e ← to_expr ``(@coe ℕ %%α %%h2 (1 : ℕ)),
-  pr ← aux_squash e new_e,
-  return (new_e, pr)
-| _ := failure
-end
-
-private meta def post_num (e : expr) : tactic (expr × expr) :=
+private meta def aux_num_1 (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
 do
-  `(@coe ℕ %%α %%h1 %%e) ← return e,
+  α ← infer_type e,
+  success_if_fail $ is_def_eq α `(ℕ),
   n ← e.to_num,
+  h1 ← mk_app `has_lift_t [`(ℕ), α] >>= mk_instance',
+  new_e ← to_expr $ pexpr_of_num `(ℕ) n,
+  new_e ← to_expr ``(@coe ℕ %%α %%h1 %%new_e),
+  h ← to_expr ``(%%e = %%new_e),
+  ((), pr) ← solve_aux h `[refl, done],
+  -- TODO: refl is not enough,
+  -- for instance the following lemma cannot be proved by reflexivity:
+  -- ((1 : ℕ) : ℝ) = (1 : ℝ)
+  return ((), new_e, pr)
+
+
+private meta def aux_num_2 (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
+do
+  `(@coe ℕ %%α %%h1 %%e') ← return e,
+  n ← e'.to_num,
   new_e ← to_expr $ pexpr_of_num α n,
   h ← to_expr ``(%%e = %%new_e),
-  ((), pr) ← solve_aux h `[simp, done], --TODO: don't use simp
-  return (new_e, pr)
+  ((), pr) ← solve_aux h `[refl, done],
+  return ((), new_e, pr)
 
 /-
 Core function.
@@ -286,30 +296,35 @@ do
   s ← get_cache,
   e ← instantiate_mvars e,
   let cfg : simp_config := { fail_if_unchanged := ff },
-  let new_e := e,
+  let e0 := e,
+  trace ("norm_cast on: ", e0),
 
   -- step 1: pre-processing of numerals
-  ((), new_e, pr1) ← ext_simplify_core () cfg simp_lemmas.mk (λ _, failed)
-    (λ a _ _ _ e, do (new_e, pr) ← pre_num e, guard (¬ new_e =ₐ e), return (a, new_e, some pr, ff))
-    (λ _ _ _ _ _, failed)
-    `eq e,
+  ((), e1, _) ← simplify_top_down () aux_num_1 e0 cfg,
+  h1 ← to_expr ``(%%e0 = %%e1),
+  ((), pr1) ← solve_aux h1 `[refl, done],
+  trace ("step 1: ", e1),
 
   -- step 2: casts are moved upwards and eliminated
-  ((), new_e, pr2) ← simplify_bottom_up () (post s) new_e cfg,
+  ((), e2, pr2) ← simplify_bottom_up () (post s) e1 cfg,
+  trace ("step 2: ", e2),
 
   -- step 3: casts are squashed
   s ← squash_cast_attr.get_cache,
-  (new_e, pr3) ← simplify s [] new_e cfg,
+  (e3, pr3) ← simplify s [] e2 cfg,
+  trace ("step 3: ", e3),
 
-  -- step 4: post-processing of numerals
-  ((), new_e, pr1) ← ext_simplify_core () cfg simp_lemmas.mk (λ _, failed)
-    (λ a _ _ _ e, do (new_e, pr) ← post_num e, guard (¬ new_e =ₐ e), return (a, new_e, some pr, ff))
-    (λ _ _ _ _ _, failed)
-    `eq e,
+  --step 4: post-processing of numerals
+  ((), e4, _) ← simplify_top_down () aux_num_2 e3 cfg,
+  h4 ← to_expr ``(%%e3 = %%e4),
+  ((), pr4) ← solve_aux h4 `[refl, done],
+  trace ("step 4: ", e4),
 
-
+  let new_e := e4,
   guard (¬ new_e =ₐ e),
-  pr ← mk_eq_trans pr2 pr3 >>= mk_eq_trans pr1,
+  pr ← mk_eq_trans pr1 pr2,
+  pr ← mk_eq_trans pr pr3,
+  pr ← mk_eq_trans pr pr4,
   return (new_e, pr)
 
 end norm_cast

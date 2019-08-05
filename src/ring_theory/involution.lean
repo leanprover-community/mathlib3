@@ -7,7 +7,7 @@ Authors: Andreas Swerdlow, Kenny Lau
 import data.equiv.algebra
 
 /-!
-# Ring antihomomorphism, isomorphisms, antiisomorphism and involutions  
+# Ring antihomomorphisms, isomorphisms, antiisomorphisms and involutions  
 
 This file defines ring antihomomorphisms, antiisomorphism and involutions 
 and proves basic properties of them. 
@@ -23,7 +23,7 @@ All types defined in this file are given a coercion to the underlying function.
 
 ## Tags
 
-Ring isomorphism, automorphism, antihomomorphisms, antiisomorphism, antiautomorphism, involution  
+Ring isomorphism, automorphism, antihomomorphism, antiisomorphism, antiautomorphism, involution  
 -/
 
 variables {R : Type*} {F : Type*}

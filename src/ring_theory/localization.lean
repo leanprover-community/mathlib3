@@ -8,7 +8,7 @@ import tactic.ring data.quot data.equiv.algebra ring_theory.ideal_operations gro
 universes u v
 
 namespace localization
-variables (α : Type u) [comm_ring α] (S : set α) [is_submonoid S]
+variables (α : Type u) [comm_ring α] (S : submonoid α)
 
 def r (x y : α × S) : Prop :=
 ∃ t ∈ S, ((x.2 : α) * y.1 - y.2 * x.1) * t = 0
@@ -18,7 +18,7 @@ local infix ≈ := r α S
 section
 variables {α S}
 theorem r_of_eq {a₀ a₁ : α × S} (h : (a₀.2 : α) * a₁.1 = a₁.2 * a₀.1) : a₀ ≈ a₁ :=
-⟨1, is_submonoid.one_mem S, by rw [h, sub_self, mul_one]⟩
+⟨1, submonoid.one_mem S, by rw [h, sub_self, mul_one]⟩
 end
 
 theorem refl (x : α × S) : x ≈ x := r_of_eq rfl
@@ -28,7 +28,7 @@ theorem symm (x y : α × S) : x ≈ y → y ≈ x :=
 
 theorem trans : ∀ (x y z : α × S), x ≈ y → y ≈ z → x ≈ z :=
 λ ⟨r₁, s₁, hs₁⟩ ⟨r₂, s₂, hs₂⟩ ⟨r₃, s₃, hs₃⟩ ⟨t, hts, ht⟩ ⟨t', hts', ht'⟩,
-⟨s₂ * t' * t, is_submonoid.mul_mem (is_submonoid.mul_mem hs₂ hts') hts,
+⟨s₂ * t' * t, submonoid.mul_mem S (submonoid.mul_mem S hs₂ hts') hts,
   calc (s₁ * r₃ - s₃ * r₁) * (s₂ * t' * t) =
     t' * s₃ * ((s₁ * r₂ - s₂ * r₁) * t) + t * s₁ * ((s₂ * r₃ - s₃ * r₂) * t') :
       by simp [mul_left_comm, mul_add, mul_comm]
@@ -41,17 +41,17 @@ end localization
 
 /-- The localization of a ring at a submonoid:
  the elements of the submonoid become invertible in the localization.-/
-def localization (α : Type u) [comm_ring α] (S : set α) [is_submonoid S] :=
+def localization (α : Type u) [comm_ring α] (S : submonoid α):=
 quotient $ localization.setoid α S
 
 namespace localization
-variables (α : Type u) [comm_ring α] (S : set α) [is_submonoid S]
+variables (α : Type u) [comm_ring α] (S : submonoid α)
 
 instance : has_add (localization α S) :=
 ⟨quotient.lift₂
   (λ x y : α × S, (⟦⟨x.2 * y.1 + y.2 * x.1, x.2 * y.2⟩⟧ : localization α S)) $
   λ ⟨r₁, s₁, hs₁⟩ ⟨r₂, s₂, hs₂⟩ ⟨r₃, s₃, hs₃⟩ ⟨r₄, s₄, hs₄⟩ ⟨t₅, hts₅, ht₅⟩ ⟨t₆, hts₆, ht₆⟩,
-  quotient.sound ⟨t₆ * t₅, is_submonoid.mul_mem hts₆ hts₅,
+  quotient.sound ⟨t₆ * t₅, submonoid.mul_mem S hts₆ hts₅,
     calc (s₁ * s₂ * (s₃ * r₄ + s₄ * r₃) - s₃ * s₄ * (s₁ * r₂ + s₂ * r₁)) * (t₆ * t₅) =
       s₁ * s₃ * ((s₂ * r₄ - s₄ * r₂) * t₆) * t₅ + s₂ * s₄ * ((s₁ * r₃ - s₃ * r₁) * t₅) * t₆ : by ring
       ... = 0 : by simp only [subtype.coe_mk] at ht₅ ht₆; rw [ht₆, ht₅]; simp⟩⟩
@@ -67,7 +67,7 @@ instance : has_mul (localization α S) :=
 ⟨quotient.lift₂
   (λ x y : α × S, (⟦⟨x.1 * y.1, x.2 * y.2⟩⟧ : localization α S)) $
   λ ⟨r₁, s₁, hs₁⟩ ⟨r₂, s₂, hs₂⟩ ⟨r₃, s₃, hs₃⟩ ⟨r₄, s₄, hs₄⟩ ⟨t₅, hts₅, ht₅⟩ ⟨t₆, hts₆, ht₆⟩,
-  quotient.sound ⟨t₆ * t₅, is_submonoid.mul_mem hts₆ hts₅,
+  quotient.sound ⟨t₆ * t₅, submonoid.mul_mem S hts₆ hts₅,
     calc ((s₁ * s₂) * (r₃ * r₄) - (s₃ * s₄) * (r₁ * r₂)) * (t₆ * t₅) =
       t₆ * ((s₁ * r₃ - s₃ * r₁) * t₅) * r₂ * s₄ + t₅ * ((s₂ * r₄ - s₄ * r₂) * t₆) * r₃ * s₁ :
         by simp [mul_left_comm, mul_add, mul_comm]
@@ -164,8 +164,8 @@ end
 
 @[simp] lemma mk_self {x : α} {hx : x ∈ S} :
   (mk x ⟨x, hx⟩ : localization α S) = 1 :=
-quotient.sound ⟨1, is_submonoid.one_mem S,
-by simp only [subtype.coe_mk, is_submonoid.coe_one, mul_one, one_mul, sub_self]⟩
+quotient.sound ⟨1, submonoid.one_mem S,
+by simp only [subtype.coe_mk, submonoid.coe_one, mul_one, one_mul, sub_self]⟩
 
 @[simp] lemma mk_self' {s : S} :
   (mk s s : localization α S) = 1 :=
@@ -205,7 +205,7 @@ protected theorem induction_on {C : localization α S → Prop} (x : localizatio
 by rcases x with ⟨r, s⟩; exact ih r s
 
 section
-variables {β : Type v} [comm_ring β] {T : set β} [is_submonoid T] (f : α → β) [is_ring_hom f]
+variables {β : Type v} [comm_ring β] {T : submonoid β} (f : α → β) [is_ring_hom f]
 
 @[elab_with_expected_type]
 def lift' (g : S → units β) (hg : ∀ s, (g s : β) = f s) (x : localization α S) : β :=
@@ -322,21 +322,21 @@ lift'.is_ring_hom _ _ _
 @[simp] lemma map_id : map id (λ s (hs : s ∈ S), hs) = id :=
 localization.funext _ _ $ map_coe _ _
 
-lemma map_comp_map {γ : Type*} [comm_ring γ]  (hf : ∀ s ∈ S, f s ∈ T) (U : set γ)
-  [is_submonoid U] (g : β → γ) [is_ring_hom g] (hg : ∀ t ∈ T, g t ∈ U) :
+lemma map_comp_map {γ : Type*} [comm_ring γ]  (hf : ∀ s ∈ S, f s ∈ T) (U : submonoid γ)
+(g : β → γ) [is_ring_hom g] (hg : ∀ t ∈ T, g t ∈ U) :
   map g hg ∘ map f hf = map (λ x, g (f x)) (λ s hs, hg _ (hf _ hs)) :=
 localization.funext _ _ $ by simp
 
-lemma map_map {γ : Type*} [comm_ring γ]  (hf : ∀ s ∈ S, f s ∈ T) (U : set γ)
-  [is_submonoid U] (g : β → γ) [is_ring_hom g] (hg : ∀ t ∈ T, g t ∈ U) (x) :
+lemma map_map {γ : Type*} [comm_ring γ]  (hf : ∀ s ∈ S, f s ∈ T) (U : submonoid γ)
+(g : β → γ) [is_ring_hom g] (hg : ∀ t ∈ T, g t ∈ U) (x) :
   map g hg (map f hf x) = map (λ x, g (f x)) (λ s hs, hg _ (hf _ hs)) x :=
 congr_fun (map_comp_map _ _ _ _ _) x
 
 def equiv_of_equiv (h₁ : α ≃r β) (h₂ : h₁.to_equiv '' S = T) :
   localization α S ≃r localization β T :=
-{ to_fun := map h₁.to_equiv $ λ s hs, by {rw ← h₂, simp [hs]},
+{ to_fun := map h₁.to_equiv $ λ s hs, by {rw [← submonoid.mem_coe, ← h₂], simp [hs]},
   inv_fun := map h₁.symm.to_equiv $ λ t ht,
-    by simp [equiv.image_eq_preimage, set.preimage, set.ext_iff, *] at *,
+    by simp [submonoid.mem_coe, equiv.image_eq_preimage, set.preimage, set.ext_iff, *] at *,
   left_inv := λ _, by simp only [map_map, ring_equiv.to_equiv_symm_apply,
     equiv.symm_apply_apply]; erw map_id; refl,
   right_inv := λ _, by simp only [map_map, ring_equiv.to_equiv_symm_apply,
@@ -348,7 +348,7 @@ end
 section away
 variables {β : Type v} [comm_ring β] (f : α → β) [is_ring_hom f]
 
-@[reducible] def away (x : α) := localization α (powers x)
+@[reducible] def away (x : α) := localization α (submonoid.powers x)
 
 @[simp] def away.inv_self (x : α) : away x :=
 mk 1 ⟨x, 1, pow_one x⟩
@@ -388,12 +388,13 @@ section at_prime
 variables (P : ideal α) [hp : ideal.is_prime P]
 include hp
 
-instance prime.is_submonoid :
-  is_submonoid (-P : set α) :=
-{ one_mem := P.ne_top_iff_one.1 hp.1,
-  mul_mem := λ x y hnx hny hxy, or.cases_on (hp.2 hxy) hnx hny }
+def prime.submonoid : submonoid α :=
+{ carrier := (-P : set α),
+  one_mem' := P.ne_top_iff_one.1 hp.1,
+  mul_mem' := λ x y hnx hny hxy, or.cases_on (hp.2 hxy) hnx hny }
 
-@[reducible] def at_prime := localization α (-P)
+--This was more concise before; 'localization α (-P)'
+@[reducible] def at_prime := localization α (prime.submonoid P)
 
 instance at_prime.local_ring : local_ring (at_prime P) :=
 local_of_nonunits_ideal
@@ -423,15 +424,17 @@ end at_prime
 
 variable (α)
 
-def non_zero_divisors : set α := {x | ∀ z, z * x = 0 → z = 0}
+def non_zero_divisors' : set α := {x | ∀ z, z * x = 0 → z = 0}
 
-instance non_zero_divisors.is_submonoid : is_submonoid (non_zero_divisors α) :=
-{ one_mem := λ z hz, by rwa mul_one at hz,
-  mul_mem := λ x₁ x₂ hx₁ hx₂ z hz,
+--Was 'non_zero_divisors.submonoid' as an instance
+def non_zero_divisors : submonoid α :=
+{ carrier := non_zero_divisors' α,
+  one_mem' := λ z hz, by rwa mul_one at hz,
+  mul_mem' := λ x₁ x₂ hx₁ hx₂ z hz,
     have z * x₁ * x₂ = 0, by rwa mul_assoc,
     hx₁ z $ hx₂ (z * x₁) this }
 
-@[simp] lemma non_zero_divisors_one_val : (1 : non_zero_divisors α).val = 1 := rfl
+@[simp] lemma non_zero_divisors_one_val : ((1 : non_zero_divisors α) : α) = 1 := rfl
 
 /-- The field of fractions of an integral domain.-/
 @[reducible] def fraction_ring := localization α (non_zero_divisors α)
@@ -554,8 +557,9 @@ def equiv_of_equiv (h : A ≃r B) : fraction_ring A ≃r fraction_ring B :=
 localization.equiv_of_equiv h
 begin
   ext b,
-  rw [equiv.image_eq_preimage, set.preimage, set.mem_set_of_eq,
-    mem_non_zero_divisors_iff_ne_zero, mem_non_zero_divisors_iff_ne_zero, ne.def],
+ rw [submonoid.mem_coe, equiv.image_eq_preimage, set.preimage, set.mem_set_of_eq,
+    mem_non_zero_divisors_iff_ne_zero, submonoid.mem_coe,
+    mem_non_zero_divisors_iff_ne_zero, ne.def],
   exact ⟨mt (λ h, h.symm ▸ is_ring_hom.map_zero _),
     mt ((is_add_group_hom.injective_iff _).1 h.to_equiv.symm.injective _)⟩
 end

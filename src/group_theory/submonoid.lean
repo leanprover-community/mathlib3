@@ -366,7 +366,9 @@ subtype_mk _ S.subtype (λ x, h x.2)
 
 end monoid_hom
 
-namespace submonoid
+namespace monoid
+
+open submonoid
 
 inductive in_closure (s : set M) : M → Prop
 | basic {a : M} : a ∈ s → in_closure a
@@ -407,11 +409,8 @@ le_antisymm
   end
   (closure_le $ set.image_subset _ le_closure)
 
-#exit
-
-
-theorem exists_list_of_mem_closure {s : set α} {a : α} (h : a ∈ closure s) :
-  (∃l:list α, (∀x∈l, x ∈ s) ∧ l.prod = a) :=
+theorem exists_list_of_mem_closure {s : set M} {a : M} (h : a ∈ closure s) :
+  (∃l:list M, (∀x∈l, x ∈ s) ∧ l.prod = a) :=
 begin
   induction h,
   case in_closure.basic : a ha { existsi ([a]), simp [ha] },
@@ -425,35 +424,27 @@ begin
   }
 end
 
-
 theorem mem_closure_union_iff {M : Type*} [comm_monoid M] {s t : set M} {x : M} :
   x ∈ closure (s ∪ t) ↔ ∃ y ∈ closure s, ∃ z ∈ closure t, y * z = x :=
 ⟨λ hx, let ⟨L, HL1, HL2⟩ := exists_list_of_mem_closure hx in HL2 ▸
   list.rec_on L (λ _, ⟨1, submonoid.one_mem _, 1, submonoid.one_mem _, mul_one _⟩)
     (λ hd tl ih HL1, let ⟨y, hy, z, hz, hyzx⟩ := ih (list.forall_mem_of_forall_mem_cons HL1) in
       or.cases_on (HL1 hd $ list.mem_cons_self _ _)
-        (λ hs, ⟨hd * y, submonoid.mul_mem (le_closure hs) hy, z, hz, by rw [mul_assoc, list.prod_cons, ← hyzx]; refl⟩)
-        (λ ht, ⟨y, hy, z * hd, submonoid.mul_mem hz (le_closure ht), by rw [← mul_assoc, list.prod_cons, ← hyzx, mul_comm hd]; refl⟩)) HL1,,
+        (λ hs, ⟨hd * y, submonoid.mul_mem _ (le_closure hs) hy, z, hz,
+          by rw [mul_assoc, list.prod_cons, ← hyzx]; refl⟩)
+        (λ ht, ⟨y, hy, z * hd, submonoid.mul_mem _ hz (le_closure ht),
+          by rw [← mul_assoc, list.prod_cons, ← hyzx, mul_comm hd]; refl⟩)) HL1,
 λ ⟨y, hy, z, hz, hyzx⟩, hyzx ▸ submonoid.mul_mem _
   ((closure_mono (set.subset_union_left s t)) hy)
   ((closure_mono (set.subset_union_right s t)) hz)⟩
 
-#exit
-⟨λ hx, let ⟨L, HL1, HL2⟩ := exists_list_of_mem_closure hx in HL2 ▸
-  list.rec_on L (λ _, ⟨1, is_submonoid.one_mem _, 1, is_submonoid.one_mem _, mul_one _⟩)
-    (λ hd tl ih HL1, let ⟨y, hy, z, hz, hyzx⟩ := ih (list.forall_mem_of_forall_mem_cons HL1) in
-      or.cases_on (HL1 hd $ list.mem_cons_self _ _)
-        (λ hs, ⟨hd * y, is_submonoid.mul_mem (subset_closure hs) hy, z, hz, by rw [mul_assoc, list.prod_cons, ← hyzx]; refl⟩)
-        (λ ht, ⟨y, hy, z * hd, is_submonoid.mul_mem hz (subset_closure ht), by rw [← mul_assoc, list.prod_cons, ← hyzx, mul_comm hd]; refl⟩)) HL1,
-λ ⟨y, hy, z, hz, hyzx⟩, hyzx ▸ is_submonoid.mul_mem (closure_mono (set.subset_union_left _ _) hy)
-  (closure_mono (set.subset_union_right _ _) hz)⟩
-
 end monoid
 
+/-
 namespace add_monoid
 
-def closure (s : set β) : set β := @monoid.closure (multiplicative β) _ s
-attribute [to_additive add_monoid.closure] monoid.closure
+--def closure (s : set β) : set β := @monoid.closure (multiplicative β) _ s
+--attribute [to_additive add_monoid.closure] monoid.closure
 
 instance closure.is_add_submonoid (s : set β) : is_add_submonoid (closure s) :=
 multiplicative.is_submonoid_iff.1 $ monoid.closure.is_submonoid s
@@ -506,3 +497,4 @@ theorem mem_closure_union_iff {β : Type*} [add_comm_monoid β] {s t : set β} {
 monoid.mem_closure_union_iff
 
 end add_monoid
+-/

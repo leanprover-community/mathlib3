@@ -626,9 +626,6 @@ instance : decidable_linear_ordered_cancel_comm_monoid α :=
 lemma eq_of_abs_sub_nonpos {a b : α} (h : abs (a - b) ≤ 0) : a = b :=
 eq_of_abs_sub_eq_zero (le_antisymm _ _ h (abs_nonneg (a - b)))
 
-@[simp] lemma abs_nonpos_iff {a : α} : abs a ≤ 0 ↔ a = 0 :=
-by rw [← not_lt, abs_pos_iff, not_not]
-
 end decidable_linear_ordered_comm_group
 
 set_option old_structure_cmd true

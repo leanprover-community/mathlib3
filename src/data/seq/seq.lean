@@ -14,10 +14,16 @@ coinductive seq (α : Type u) : Type u
 | cons : α → seq α → seq α
 -/
 
+/--
+A stream `s : option α` is a sequence if `s.nth n = none` implies `s.nth (n + 1) = none`.
+-/
+def stream.is_seq {α : Type u} (s : stream (option α)) : Prop :=
+∀ {n : ℕ}, s n = none → s (n + 1) = none
+
 /-- `seq α` is the type of possibly infinite lists (referred here as sequences).
   It is encoded as an infinite stream of options such that if `f n = none`, then
   `f m = none` for all `m ≥ n`. -/
-def seq (α : Type u) : Type u := { f : stream (option α) // ∀ {n}, f n = none → f (n+1) = none }
+def seq (α : Type u) : Type u := { f : stream (option α) // f.is_seq }
 
 /-- `seq1 α` is the type of nonempty sequences. -/
 def seq1 (α) := α × seq α
@@ -55,6 +61,17 @@ instance : has_mem α (seq α) :=
 theorem le_stable (s : seq α) {m n} (h : m ≤ n) :
   s.1 m = none → s.1 n = none :=
 by {cases s with f al, induction h with n h IH, exacts [id, λ h2, al (IH h2)]}
+
+/--
+If `s.nth n = some aₙ` for some value `aₙ`, then there is also some value `aₘ` such
+that `s.nth = some aₘ` for `m ≤ n`.
+-/
+lemma ge_stable (s : seq α) {aₙ : α} {n m : ℕ} (m_le_n : m ≤ n)
+(s_nth_eq_some : s.nth n = some aₙ) :
+  ∃ (aₘ : α), s.nth m = some aₘ :=
+have s.nth n ≠ none, by simp [s_nth_eq_some],
+have s.nth m ≠ none, from mt (s.le_stable m_le_n) this,
+with_one.ne_one_iff_exists.elim_left this
 
 theorem not_mem_nil (a : α) : a ∉ @nil α :=
 λ ⟨n, (h : some a = none)⟩, by injection h
@@ -281,6 +298,12 @@ end
   run on an infinite sequence. -/
 meta def force_to_list (s : seq α) : list α := (to_lazy_list s).to_list
 
+/-- The sequence of natural numbers some 0, some 1, ... -/
+def nats : seq ℕ := stream.nats
+
+@[simp]
+lemma nats_nth (n : ℕ) : nats.nth n = some n := rfl
+
 /-- Append two sequences. If `s₁` is infinite, then `s₁ ++ s₂ = s₁`,
   otherwise it puts `s₂` at the location of the `nil` in `s₁`. -/
 def append (s₁ s₂ : seq α) : seq α :=
@@ -335,6 +358,8 @@ def split_at : ℕ → seq α → list α × seq α
   | some (x, s') := let (l, r) := split_at n s' in (list.cons x l, r)
   end
 
+section zip_with
+
 /-- Combine two sequences with a function -/
 def zip_with (f : α → β → γ) : seq α → seq β → seq γ
 | ⟨f₁, a₁⟩ ⟨f₂, a₂⟩ := ⟨λn,
@@ -344,11 +369,46 @@ def zip_with (f : α → β → γ) : seq α → seq β → seq γ
     end,
   λn, begin
     induction h1 : f₁ n,
-    { intro H, rw a₁ h1, refl },
+    { intro H, simp only [(a₁ h1)], refl },
     induction h2 : f₂ n; dsimp [seq.zip_with._match_1]; intro H,
-    { rw a₂ h2, cases f₁ (n + 1); refl },
-    { contradiction }
+    { rw (a₂ h2), cases f₁ (n + 1); refl },
+    { rw [h1, h2] at H, contradiction }
   end⟩
+
+variables {s : seq α} {s' : seq β} {n : ℕ}
+
+lemma zip_with_nth_some {a : α} {b : β} (s_nth_eq_some : s.nth n = some a)
+(s_nth_eq_some' : s'.nth n = some b) (f : α → β → γ) :
+  (zip_with f s s').nth n = some (f a b) :=
+begin
+  cases s with st,
+  have : st n = some a, from s_nth_eq_some,
+  cases s' with st',
+  have : st' n = some b, from s_nth_eq_some',
+  simp only [zip_with, seq.nth, *]
+end
+
+lemma zip_with_nth_none (s_nth_eq_none : s.nth n = none) (f : α → β → γ) :
+  (zip_with f s s').nth n = none :=
+begin
+  cases s with st,
+  have : st n = none, from s_nth_eq_none,
+  cases s' with st',
+  cases st'_nth_eq : st' n;
+  simp only [zip_with, seq.nth, *]
+end
+
+lemma zip_with_nth_none' (s'_nth_eq_none : s'.nth n = none) (f : α → β → γ) :
+  (zip_with f s s').nth n = none :=
+begin
+  cases s' with st',
+  have : st' n = none, from s'_nth_eq_none,
+  cases s with st,
+  cases st_nth_eq : st n;
+  simp only [zip_with, seq.nth, *]
+end
+
+end zip_with
 
 /-- Pair two sequences into a sequence of pairs -/
 def zip : seq α → seq β → seq (α × β) := zip_with prod.mk
@@ -548,6 +608,24 @@ by rw add_comm; symmetry; apply dropn_add
 
 theorem nth_tail : ∀ (s : seq α) n, nth (tail s) n = nth s (n + 1)
 | ⟨f, al⟩ n := rfl
+
+@[extensionality]
+protected lemma ext (s s': seq α) (hyp : ∀ (n : ℕ), s.nth n = s'.nth n) : s = s' :=
+begin
+  let ext := (λ (s s' : seq α), ∀ n, s.nth n = s'.nth n),
+  apply seq.eq_of_bisim ext _ hyp,
+  -- we have to show that ext is a bisimulation
+  clear hyp s s',
+  assume s s' (hyp : ext s s'),
+  unfold seq.destruct,
+  rw (hyp 0),
+  cases (s'.nth 0),
+  { simp [seq.bisim_o] }, -- option.none
+  { -- option.some
+    suffices : ext s.tail s'.tail, by simpa,
+    assume n,
+    simp only [seq.nth_tail _ n, (hyp $ n + 1)] }
+end
 
 @[simp] theorem head_dropn (s : seq α) (n) : head (drop s n) = nth s n :=
 begin

@@ -1043,3 +1043,11 @@ open_locale namespace1 namespace2 ...
 ```
 localized "attribute [simp] le_refl" in le
 ```
+
+### swap
+
+`swap n` will move the `n`th goal to the front. `swap` defaults to `swap 2`, and so interchanges the first and second goals.
+
+### rotate
+
+`rotate` moves the first goal to the back. `rotate n` will do this `n` times.

@@ -456,7 +456,7 @@ begin
         simp,
         exact hz k (finset.mem_insert_self k s) } },
     { have h_sum_nonneg : 0 ≤ s.sum a,
-      { apply finset.zero_le_sum',
+      { apply finset.sum_nonneg,
         intros i hi,
         apply ha _ (finset.mem_insert_of_mem hi) },
       have h_div_in_A: s.sum (λ (i : γ), ((s.sum a)⁻¹ * a i) • z i) ∈ A,

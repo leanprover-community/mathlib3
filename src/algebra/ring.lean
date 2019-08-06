@@ -475,7 +475,7 @@ section
   theorem mul_dvd_mul_iff_left {a b c : α} (ha : a ≠ 0) : a * b ∣ a * c ↔ b ∣ c :=
   exists_congr $ λ d, by rw [mul_assoc, domain.mul_left_inj ha]
 
-/-- Given to elements a, b of an integral domain and a nonzero element c, a*c divides b*c iff
+/-- Given two elements a, b of an integral domain and a nonzero element c, a*c divides b*c iff
     a divides b. -/
   theorem mul_dvd_mul_iff_right {a b c : α} (hc : c ≠ 0) : a * c ∣ b * c ↔ a ∣ b :=
   exists_congr $ λ d, by rw [mul_right_comm, domain.mul_right_inj hc]

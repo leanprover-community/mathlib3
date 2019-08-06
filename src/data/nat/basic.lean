@@ -964,6 +964,10 @@ choose_eq_zero_of_lt (lt_succ_self _)
 @[simp] lemma choose_one_right (n : ℕ) : choose n 1 = n :=
 by induction n; simp [*, choose]
 
+/-- `choose n 2` is the `n`-th triangle number. -/
+lemma choose_two_right (n : ℕ) : choose n 2 = n * (n - 1) / 2 :=
+by { induction n, simp, simpa [n_ih, choose, add_one] using (triangle_succ n_n).symm }
+
 lemma choose_pos : ∀ {n k}, k ≤ n → 0 < choose n k
 | 0             _ hk := by rw [eq_zero_of_le_zero hk]; exact dec_trivial
 | (n + 1)       0 hk := by simp; exact dec_trivial

@@ -340,28 +340,28 @@ lemma finset.prod {β : Type*} [decidable_eq β] {p : α} (hp : prime p) (s : fi
   multiplicity p (s.prod f) = s.sum (λ x, multiplicity p (f x)) :=
 begin
   induction s using finset.induction with a s has ih h,
-  { simp [one_right (not_unit_of_prime hp)] },
+  { simp [one_right hp.not_unit] },
   { simp [has, multiplicity.mul hp, ih] }
 end
 
 protected lemma pow' {p a : α} (hp : prime p) (ha : finite p a) : ∀ {k : ℕ},
   get (multiplicity p (a ^ k)) (finite_pow hp ha) = k * get (multiplicity p a) ha
-| 0     := by dsimp [_root_.pow_zero]; simp [one_right hp.2.1]; refl
+| 0     := by dsimp [_root_.pow_zero]; simp [one_right hp.not_unit]; refl
 | (k+1) := by dsimp only [_root_.pow_succ];
   erw [multiplicity.mul' hp, pow', add_mul, one_mul, add_comm]
 
 lemma pow {p a : α} (hp : prime p) : ∀ {k : ℕ},
   multiplicity p (a ^ k) = add_monoid.smul k (multiplicity p a)
-| 0        := by simp [one_right hp.2.1]
+| 0        := by simp [one_right hp.not_unit]
 | (succ k) := by simp [_root_.pow_succ, succ_smul, pow, multiplicity.mul hp]
 
-lemma multiplicity_pow_self {p : α} (hu : ¬ is_unit p) (h0 : p ≠ 0) (n : ℕ) :
+lemma multiplicity_pow_self {p : α} (h0 : p ≠ 0) (hu : ¬ is_unit p) (n : ℕ) :
   multiplicity p (p ^ n) = n :=
 by { rw [eq_some_iff], use dvd_refl _, rw [pow_dvd_pow_iff h0 hu], apply nat.not_succ_le_self }
 
 lemma multiplicity_pow_self_of_prime {p : α} (hp : prime p) (n : ℕ) :
   multiplicity p (p ^ n) = n :=
-multiplicity_pow_self (not_unit_of_prime hp) (ne_zero_of_prime hp) n
+multiplicity_pow_self hp.ne_zero hp.not_unit n
 
 
 end integral_domain

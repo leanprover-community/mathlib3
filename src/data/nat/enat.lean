@@ -223,23 +223,6 @@ begin
   apply_mod_cast nat.lt_succ_of_le, apply_mod_cast h
 end
 
-section mul
-
-instance : has_mul enat := ⟨λ x y, ⟨x.dom ∧ y.dom, λ h, get x h.1 * get y h.2⟩⟩
-
-instance : comm_monoid enat :=
-{ mul       := (*),
-  one       := (1),
-  mul_comm  := λ x y, roption.ext' and.comm (λ _ _, mul_comm _ _),
-  one_mul   := λ x, roption.ext' (true_and _) (λ _ _, one_mul _),
-  mul_one   := λ x, roption.ext' (and_true _) (λ _ _, mul_one _),
-  mul_assoc := λ x y z, roption.ext' and.assoc (λ _ _, mul_assoc _ _ _) }
-
-@[simp] lemma get_mul {x y : enat} (h : (x * y).dom) : get (x * y) h = x.get h.1 * y.get h.2 := rfl
-
-
-end mul
-
 section with_top
 
 def to_with_top (x : enat) [decidable x.dom]: with_top ℕ := x.to_option

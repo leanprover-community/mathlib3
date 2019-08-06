@@ -116,24 +116,32 @@ end
 def prime [comm_semiring α] (p : α) : Prop :=
 p ≠ 0 ∧ ¬ is_unit p ∧ (∀a b, p ∣ a * b → p ∣ a ∨ p ∣ b)
 
-lemma ne_zero_of_prime [comm_semiring α] {p : α} (hp : prime p) : p ≠ 0 :=
+namespace prime
+
+lemma ne_zero [comm_semiring α] {p : α} (hp : prime p) : p ≠ 0 :=
 hp.1
 
-lemma not_unit_of_prime [comm_semiring α] {p : α} (hp : prime p) : ¬ is_unit p :=
+lemma not_unit [comm_semiring α] {p : α} (hp : prime p) : ¬ is_unit p :=
 hp.2.1
 
-@[simp] lemma not_prime_zero [integral_domain α] : ¬ prime (0 : α)
-| ⟨h, _⟩ := h rfl
+lemma div_or_div [comm_semiring α] {p : α} (hp : prime p) {a b : α} (h : p ∣ a * b) :
+  p ∣ a ∨ p ∣ b :=
+hp.2.2 a b h
+
+end prime
+
+@[simp] lemma not_prime_zero [comm_semiring α] : ¬ prime (0 : α) :=
+λ h, h.ne_zero rfl
 
 @[simp] lemma not_prime_one [comm_semiring α] : ¬ prime (1 : α) :=
-λ h, h.2.1 is_unit_one
+λ h, h.not_unit is_unit_one
 
 lemma exists_mem_multiset_dvd_of_prime [comm_semiring α] {s : multiset α} {p : α} (hp : prime p) :
   p ∣ s.prod → ∃a∈s, p ∣ a :=
-multiset.induction_on s (assume h, (hp.2.1 $ is_unit_of_dvd_one _ h).elim) $
+multiset.induction_on s (assume h, (hp.not_unit $ is_unit_of_dvd_one _ h).elim) $
 assume a s ih h,
   have p ∣ a * s.prod, by simpa using h,
-  match hp.2.2 a s.prod this with
+  match hp.div_or_div this with
   | or.inl h := ⟨a, multiset.mem_cons_self a s, h⟩
   | or.inr h := let ⟨a, has, h⟩ := ih h in ⟨a, multiset.mem_cons_of_mem has, h⟩
   end

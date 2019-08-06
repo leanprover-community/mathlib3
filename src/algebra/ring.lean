@@ -347,16 +347,6 @@ def mk' {γ} [ring γ] (f : α →* γ) (map_add : ∀ a b : α, f (a + b) = f a
   map_mul' := f.map_mul,
   map_add' := map_add }
 
-/-- A semiring homomorphism is an additive monoid homomorphism. -/
-instance : is_add_monoid_hom f := is_semiring_hom.is_add_monoid_hom f
-
-/-- A semiring homomorphism is a monoid homomorphism. -/
-instance : is_monoid_hom f := is_semiring_hom.is_monoid_hom f
-
-/-- A semiring homomorphism of rings is an additive group homomorphism. -/
-instance {α γ} [ring α] [ring γ] {g : α →+* γ} : is_add_group_hom g :=
-is_ring_hom.is_add_group_hom g
-
 end semiring_hom
 
 /-- Predicate for commutative semirings in which zero does not equal one. -/

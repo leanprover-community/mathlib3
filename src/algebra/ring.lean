@@ -106,8 +106,6 @@ protected theorem neg_eq_neg_one_mul (u : units α) : -u = -1 * u := by simp
 
 end units
 
-/-- I'm confused. A semiring already has a zero. From the right_distrib proof it looks like
-    none = some zero. But surely that goes against option.no_confusion? -/
 instance [semiring α] : semiring (with_zero α) :=
 { left_distrib := λ a b c, begin
     cases a with a, {refl},

@@ -302,18 +302,22 @@ by cases f; cases g; cases h; refl
 /-- Semiring homomorphisms map one to one. -/
 @[simp] lemma map_one (f : α →+* β) : f 1 = 1 := f.map_one'
 
-/-- Semiring homomorphisms commute with addition. -/
+/-- Semiring homomorphisms preserve addition. -/
 @[simp] lemma map_add (f : α →+* β) (a b : α) : f (a + b) = f a + f b := f.map_add' a b
 
-/-- Semiring homomorphisms commute with multiplication. -/
+/-- Semiring homomorphisms preserve multiplication. -/
 @[simp] lemma map_mul (f : α →+* β) (a b : α) : f (a * b) = f a * f b := f.map_mul' a b
 
 instance {α : Type*} {β : Type*} [semiring α] [semiring β] (f : α →+* β) :
-  is_semiring_hom (f : α → β) :=
-{ map_zero := map_zero f,
-  map_one := map_one f,
-  map_add := map_add f,
-  map_mul := map_mul f   }
+  is_semiring_hom f :=
+{ map_zero := f.map_zero,
+  map_one := f.map_one,
+  map_add := f.map_add,
+  map_mul := f.map_mul }
+
+/-- A semiring homomorphism of rings is a ring homomorphism. -/
+instance {α γ} [ring α] [ring γ] {g : α →+* γ} : is_ring_hom g :=
+is_ring_hom.of_semiring g
 
 /-- The identity map from a semiring to itself. -/
 def id (α : Type*) [semiring α] : α →+* α :=
@@ -339,13 +343,9 @@ eq_neg_of_add_eq_zero $ by rw [←f.map_add, neg_add_self, f.map_zero]
 def mk' {γ} [ring γ] (f : α →* γ) (map_add : ∀ a b : α, f (a + b) = f a + f b) : α →+* γ :=
 { to_fun := f,
   map_zero' := add_self_iff_eq_zero.1 $ by rw [←map_add, add_zero],
-  map_one' := f.map_one',
-  map_mul' := f.map_mul',
+  map_one' := f.map_one,
+  map_mul' := f.map_mul,
   map_add' := map_add }
-
-/-- A semiring homomorphism of rings is a ring homomorphism. -/
-instance {α γ} [ring α] [ring γ] {g : α →+* γ} : is_ring_hom g :=
-is_ring_hom.of_semiring g
 
 /-- A semiring homomorphism is an additive monoid homomorphism. -/
 instance : is_add_monoid_hom f := is_semiring_hom.is_add_monoid_hom f
@@ -356,6 +356,7 @@ instance : is_monoid_hom f := is_semiring_hom.is_monoid_hom f
 /-- A semiring homomorphism of rings is an additive group homomorphism. -/
 instance {α γ} [ring α] [ring γ] {g : α →+* γ} : is_add_group_hom g :=
 is_ring_hom.is_add_group_hom g
+
 end semiring_hom
 
 /-- Predicate for commutative semirings in which zero does not equal one. -/
@@ -388,7 +389,7 @@ def nonzero_comm_ring.of_ne [comm_ring α] {x y : α} (h : x ≠ y) : nonzero_co
   zero_ne_one := λ h01, h $ by rw [← one_mul x, ← one_mul y, ← h01, zero_mul, zero_mul],
   ..show comm_ring α, by apply_instance }
 
-/-- Makes a nonzero commutative semiring from a commutative semiring containings at least two
+/-- Makes a nonzero commutative semiring from a commutative semiring containing at least two
     distinct elements. -/
 def nonzero_comm_semiring.of_ne [comm_semiring α] {x y : α} (h : x ≠ y) : nonzero_comm_semiring α :=
 { one := 1,

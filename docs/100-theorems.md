@@ -6,7 +6,7 @@ on the 100 theorems challenge: http://www.cs.ru.nl/~freek/100/.
 ## <a name="1"></a>1. The Irrationality of the Square Root of 2
 
 ```lean
-theorem irr_sqrt_two : irrational (sqrt 2) :=
+theorem irr_sqrt_two : irrational (sqrt 2)
 ```
 
 * Author: mathlib <!-- Jeremy Avigad, Mario Carneiro, Abhimanyu Pallavi Sudhir -->
@@ -15,18 +15,22 @@ theorem irr_sqrt_two : irrational (sqrt 2) :=
 ## <a name="2"></a>2. Fundamental Theorem of Algebra
 
 ```lean
-lemma exists_root {f : polynomial ℂ} (hf : 0 < degree f) : ∃ z : ℂ, is_root f z :=
+lemma exists_root {f : polynomial ℂ} (hf : 0 < degree f) : ∃ z : ℂ, is_root f z
 ```
 
 * Author: Chris Hughes
 * Link: https://github.com/leanprover-community/mathlib/blob/0b350228544244f2861ec8afc84dad0c27113a73/src/analysis/complex/polynomial.lean#L28
 
-<!--
 ## <a name="3"></a>3. The Denumerability of the Rational Numbers
 
-* Author:
-* Link:
+```lean
+instance : denumerable ℚ
+```
 
+* Author: Chris Hughes
+* Link: https://github.com/leanprover-community/mathlib/blob/57c1d6d74e365cb0be1ec148ea1c8ba75868c546/src/data/rat/denumerable.lean#L21
+
+<!--
 ## <a name="4"></a>4. Pythagorean Theorem
 
 * Author:
@@ -47,7 +51,7 @@ lemma exists_root {f : polynomial ℂ} (hf : 0 < degree f) : ∃ z : ℂ, is_roo
 
 ```lean
 theorem quadratic_reciprocity (hp : nat.prime p) (hq : nat.prime q) (hp1 : p % 2 = 1) (hq1 : q % 2 = 1) (hpq : p ≠ q) :
-legendre_sym p q hq * legendre_sym q p hp = (-1) ^ ((p / 2) * (q / 2)) :=
+legendre_sym p q hq * legendre_sym q p hp = (-1) ^ ((p / 2) * (q / 2))
 ```
 
 * Author: Chris Hughes
@@ -73,7 +77,7 @@ legendre_sym p q hq * legendre_sym q p hp = (-1) ^ ((p / 2) * (q / 2)) :=
 ## <a name="11"></a>11. The Infinitude of Primes
 
 ```lean
-theorem exists_infinite_primes (n : ℕ) : ∃ p, p ≥ n ∧ prime p :=
+theorem exists_infinite_primes (n : ℕ) : ∃ p, p ≥ n ∧ prime p
 ```
 
 * Author: Jeremy Avigad
@@ -135,12 +139,16 @@ lemma sum_two_squares {p : ℕ} (hp : p.prime) (hp1 : p % 4 = 1) :
 
 * Author:
 * Link:
+-->
 
 ## <a name="22"></a>22. The Non-Denumerability of the Continuum
+```lean
+lemma not_countable_real : ¬ countable (set.univ : set ℝ)
+```
+* Author: Floris van Doorn
+* Link: https://github.com/leanprover-community/mathlib/blob/57c1d6d74e365cb0be1ec148ea1c8ba75868c546/src/data/real/cardinality.lean#L114
 
-* Author:
-* Link:
-
+<!--
 ## <a name="23"></a>23. Formula for Pythagorean Triples
 
 * Author:

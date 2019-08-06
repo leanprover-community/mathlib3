@@ -207,7 +207,8 @@ is_unit_unit $ to_units ⟨s, ‹s ∈ S›⟩
 @[simp] lemma coe_is_unit' (s ∈ S) : is_unit (s : localization α S) := of_is_unit' _ _ _ ‹s ∈ S›
 end
 
-/-- Simplification lemmas for the elements of a commutative ring and a submonoid mk maps to one. -/
+/-- Simplification lemmas for the equivalence class of (1, 1) ∈ α × S, α a commutative ring and S a
+    submonoid, with respect to r. -/
 @[simp] lemma mk_self {x : α} {hx : x ∈ S} :
   (mk x ⟨x, hx⟩ : localization α S) = 1 :=
 quotient.sound ⟨1, S.one_mem,
@@ -221,30 +222,46 @@ by cases s; exact mk_self
   (mk s.1 s : localization α S) = 1 :=
 mk_self'
 
+/-- The map from α × S, α a commutative ring and S a submonoid, preserves multiplication in the
+    first argument. -/
 @[simp] lemma coe_mul_mk (x y : α) (s : S) :
   ↑x * mk y s = mk (x * y) s :=
 quotient.sound $ r_of_eq $ by rw one_mul
 
+/-- The equivalence class of (r, s) ∈ α × S, α a commutative ring and S a submonoid, factors as
+    the product of the equivalence classes of (r, 1) and (1, s) in the localization of α at S. -/
 lemma mk_eq_mul_mk_one (r : α) (s : S) :
   mk r s = r * mk 1 s :=
 by rw [coe_mul_mk, mul_one]
 
+/-- The natural map from α × S, α a commutative ring and S a submonoid, to the localization of α at
+    S preserves multiplication in both arguments. -/
 @[simp] lemma mk_mul_mk (x y : α) (s t : S) :
   mk x s * mk y t = mk (x * y) (s * t) := rfl
 
+/-- The natural map from α × S, α a commutative ring and S a submonoid, to the localization of α at
+    S, is left cancellative. -/
 @[simp] lemma mk_mul_cancel_left (r : α) (s : S) :
   mk (↑s * r) s = r :=
 by rw [mk_eq_mul_mk_one, mul_comm ↑s, coe_mul,
        mul_assoc, ← mk_eq_mul_mk_one, mk_self', mul_one]
 
+/-- The natural map from α × S, α a commutative ring and S a submonoid, to the localization of α at
+    S, is right cancellative. -/
 @[simp] lemma mk_mul_cancel_right (r : α) (s : S) :
   mk (r * s) s = r :=
 by rw [mul_comm, mk_mul_cancel_left]
 
+/-- The equivalence class of (r, s) ∈ α × S, α a commutative ring and S a submonoid, factors as
+    the product of the equivalence classe of (r, 1) and the inverse of the equivalence class of
+    (s, 1) in the localization of α at S. -/
 @[simp] lemma mk_eq (r : α) (s : S) :
   mk r s = r * ((to_units s)⁻¹ : units _) :=
 quotient.sound $ by simp
 
+/-- A proposition is true for all elements of a localization of a commutative ring α at a submonoid
+    S if it is true for all elements that are the equivalence class of (r, s) ∈ α × S for
+    some r, s. -/
 @[elab_as_eliminator]
 protected theorem induction_on {C : localization α S → Prop} (x : localization α S)
   (ih : ∀ r s, C (mk r s : localization α S)) : C x :=
@@ -253,6 +270,10 @@ by rcases x with ⟨r, s⟩; exact ih r s
 section
 variables {β : Type v} [comm_ring β] {T : submonoid β} (f : α → β) [is_ring_hom f]
 
+/-- Given a map g from a submonoid S of a commutative ring α mapping elements of S to another
+    commutative ring β, whose image is contained in the unit group of β, and a ring homomorphism
+    f from α to β, if g and f are equal on S we can construct a natural map from the localization
+    of α at S to β which takes (r, s) ∈ α × S to (f r) * (g s)⁻¹. -/
 @[elab_with_expected_type]
 def lift' (g : S → units β) (hg : ∀ s, (g s : β) = f s) (x : localization α S) : β :=
 quotient.lift_on x (λ p, f p.1 * ((g p.2)⁻¹ : units β)) $ λ ⟨r₁, s₁⟩ ⟨r₂, s₂⟩ ⟨t, hts, ht⟩,
@@ -271,6 +292,10 @@ calc  f r₁ * ↑(g s₁)⁻¹
      rw [mul_comm ↑(g s₁), ← mul_assoc, mul_assoc (f r₂), ← units.coe_mul,
          mul_inv_self, units.coe_one, mul_one]
 
+/-- Given a map g from a submonoid S of a commutative ring α mapping elements of S to another
+    commutative ring β, whose image is contained in the unit group of β, and a ring homomorphism
+    f from α to β, if g and f are equal on S, the natural map we can construct from the localization
+    of α at S to β is a ring homomorphism. -/
 instance lift'.is_ring_hom (g : S → units β) (hg : ∀ s, (g s : β) = f s) :
   is_ring_hom (localization.lift' f g hg) :=
 { map_one := have g 1 = 1, from units.ext (by rw hg; exact is_ring_hom.map_one f),
@@ -293,15 +318,25 @@ instance lift'.is_ring_hom (g : S → units β) (hg : ∀ s, (g s : β) = f s) :
        simp only [mul_assoc, mul_comm, mul_left_comm, (units.coe_mul _ _).symm];
        rw [mul_inv_cancel_left, mul_left_comm, ← mul_assoc, mul_inv_cancel_right, add_comm] }
 
+/-- Given a ring homomorphism f between commutative rings α and β mapping elements of a submonoid S
+    to the units in β, we can construct a natural map from the localization of α at S to β which
+    takes (r, s) ∈ α × S to (f r) * (f s)⁻¹. -/
 noncomputable def lift (h : ∀ s ∈ S, is_unit (f s)) :
   localization α S → β :=
 localization.lift' f (λ s, classical.some $ h s.1 s.2)
   (λ s, by rw [← classical.some_spec (h s.1 s.2)]; refl)
 
+/-- Given a ring homomorphism f between commutative rings α and β mapping elements of a submonoid S
+    to the units in β, the natural map we can construct from the localization of α at S to β is a
+    ring homomorphism. -/
 instance lift.is_ring_hom (h : ∀ s ∈ S, is_unit (f s)) :
   is_ring_hom (lift f h) :=
 lift'.is_ring_hom _ _ _
 
+/-- Simplification lemmas for the definition of the natural ring homomorphism from the localization
+    of a commutative ring α at a submonoid S to a commutative ring β, given a map g from S to β
+    whose image is contained in the unit group of β and a ring homomorphism f from α to β such that
+    g and f are equal on S. -/
 @[simp] lemma lift'_mk (g : S → units β) (hg : ∀ s, (g s : β) = f s) (r : α) (s : S) :
   lift' f g hg (mk r s) = f r * ↑(g s)⁻¹ := rfl
 
@@ -313,15 +348,26 @@ by simp [lift', quotient.lift_on_beta, of, mk, this]
 @[simp] lemma lift'_coe (g : S → units β) (hg : ∀ s, (g s : β) = f s) (a : α) :
   lift' f g hg a = f a := lift'_of _ _ _ _
 
+/-- Simplification lemmas for the definition of the natural ring homomorphism from the localization
+    of a commutative ring α at a submonoid S to a commutative ring β, given a ring homomorphism f
+    from α to β mapping elements of S to units in β. -/
 @[simp] lemma lift_of (h : ∀ s ∈ S, is_unit (f s)) (a : α) :
   lift f h (of a) = f a := lift'_of _ _ _ _
 
 @[simp] lemma lift_coe (h : ∀ s ∈ S, is_unit (f s)) (a : α) :
   lift f h a = f a := lift'_of _ _ _ _
 
+/-- Given a map g from a submonoid S of a commutative ring α mapping elements of S to another
+    commutative ring β, whose image is contained in the unit group of β, and a ring homomorphism
+    f from α to β, if g and f are equal on S, the natural ring homomorphism we can construct from
+    the localization of α at S to β makes the obvious diagram for α, β and the localization of α at
+    S commute. -/
 @[simp] lemma lift'_comp_of (g : S → units β) (hg : ∀ s, (g s : β) = f s) :
   lift' f g hg ∘ of = f := funext $ λ a, lift'_of _ _ _ a
 
+/-- Given a ring homomorphism f between commutative rings α and β mapping elements of a submonoid S
+    to the units in β, the natural ring homomorphism we can construct from the localization of α at
+    S to β makes the obvious diagram for α, β and the localization of α at S commute. -/
 @[simp] lemma lift_comp_of (h : ∀ s ∈ S, is_unit (f s)) :
   lift f h ∘ of = f := lift'_comp_of _ _ _
 

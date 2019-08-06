@@ -3,13 +3,39 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin
 -/
+
 import tactic.ring data.quot data.equiv.algebra ring_theory.ideal_operations group_theory.submonoid
+
+/-!
+# p-adic norm
+This file defines the p-adic valuation and the p-adic norm on ℚ.
+The p-adic valuation on ℚ is the difference of the multiplicities of `p` in the numerator and
+denominator of `q`. This function obeys the standard properties of a valuation, with the appropriate
+assumptions on p.
+The valuation induces a norm on ℚ. This norm is a nonarchimedean absolute value.
+It takes values in {0} ∪ {1/p^k | k ∈ ℤ}.
+
+## Notations
+This file uses the local notation `/.` for `rat.mk`.
+## Implementation notes
+Much, but not all, of this file assumes that `p` is prime. This assumption is inferred automatically
+by taking (prime p) as a type class argument.
+## References
+* [F. Q. Gouêva, *p-adic numbers*][gouvea1997]
+* [R. Y. Lewis, *A formal proof of Hensel's lemma over the p-adic integers*][lewis2019]
+* https://en.wikipedia.org/wiki/P-adic_number
+## Tags
+p-adic, p adic, padic, norm, valuation
+-/
 
 universes u v
 
 namespace localization
 variables (α : Type u) [comm_ring α] (S : submonoid α)
 
+/-- The equivalence relation on α × S, α a commutative ring α and S a submonoid of α, such that
+    ∀ x, y ∈ α × S, x is related to y iff x and y correspond to the same element of the localization
+    of α at S. -/
 def r (x y : α × S) : Prop :=
 ∃ t ∈ S, ((x.2 : α) * y.1 - y.2 * x.1) * t = 0
 
@@ -18,22 +44,27 @@ local infix ≈ := r α S
 section
 variables {α S}
 theorem r_of_eq {a₀ a₁ : α × S} (h : (a₀.2 : α) * a₁.1 = a₁.2 * a₀.1) : a₀ ≈ a₁ :=
-⟨1, submonoid.one_mem S, by rw [h, sub_self, mul_one]⟩
+⟨1, S.one_mem, by rw [h, sub_self, mul_one]⟩
 end
 
+/-- r is a reflexive binary relation. -/
 theorem refl (x : α × S) : x ≈ x := r_of_eq rfl
 
+/-- r is a symmetric binary relation. -/
 theorem symm (x y : α × S) : x ≈ y → y ≈ x :=
 λ ⟨t, hts, ht⟩, ⟨t, hts, by rw [← neg_sub, ← neg_mul_eq_neg_mul, ht, neg_zero]⟩
 
+/-- r is a transitive binary relation. -/
 theorem trans : ∀ (x y z : α × S), x ≈ y → y ≈ z → x ≈ z :=
 λ ⟨r₁, s₁, hs₁⟩ ⟨r₂, s₂, hs₂⟩ ⟨r₃, s₃, hs₃⟩ ⟨t, hts, ht⟩ ⟨t', hts', ht'⟩,
-⟨s₂ * t' * t, submonoid.mul_mem S (submonoid.mul_mem S hs₂ hts') hts,
+⟨s₂ * t' * t, S.mul_mem (S.mul_mem hs₂ hts') hts,
   calc (s₁ * r₃ - s₃ * r₁) * (s₂ * t' * t) =
     t' * s₃ * ((s₁ * r₂ - s₂ * r₁) * t) + t * s₁ * ((s₂ * r₃ - s₃ * r₂) * t') :
       by simp [mul_left_comm, mul_add, mul_comm]
     ... = 0 : by simp only [subtype.coe_mk] at ht ht'; rw [ht, ht']; simp⟩
 
+/-- r together with the proof r is an equivalence relation on the product of
+    a commutative ring with one of its submonoids. -/
 instance : setoid (α × S) :=
 ⟨r α S, refl α S, symm α S, trans α S⟩
 
@@ -47,15 +78,17 @@ quotient $ localization.setoid α S
 namespace localization
 variables (α : Type u) [comm_ring α] (S : submonoid α)
 
+/-- Instance defining addition in a commutative ring localized at a submonoid. -/
 instance : has_add (localization α S) :=
 ⟨quotient.lift₂
   (λ x y : α × S, (⟦⟨x.2 * y.1 + y.2 * x.1, x.2 * y.2⟩⟧ : localization α S)) $
   λ ⟨r₁, s₁, hs₁⟩ ⟨r₂, s₂, hs₂⟩ ⟨r₃, s₃, hs₃⟩ ⟨r₄, s₄, hs₄⟩ ⟨t₅, hts₅, ht₅⟩ ⟨t₆, hts₆, ht₆⟩,
-  quotient.sound ⟨t₆ * t₅, submonoid.mul_mem S hts₆ hts₅,
+  quotient.sound ⟨t₆ * t₅, S.mul_mem hts₆ hts₅,
     calc (s₁ * s₂ * (s₃ * r₄ + s₄ * r₃) - s₃ * s₄ * (s₁ * r₂ + s₂ * r₁)) * (t₆ * t₅) =
       s₁ * s₃ * ((s₂ * r₄ - s₄ * r₂) * t₆) * t₅ + s₂ * s₄ * ((s₁ * r₃ - s₃ * r₁) * t₅) * t₆ : by ring
       ... = 0 : by simp only [subtype.coe_mk] at ht₅ ht₆; rw [ht₆, ht₅]; simp⟩⟩
 
+/-- Instance defining additive inverse in a commutative ring localized at a submonoid. -/
 instance : has_neg (localization α S) :=
 ⟨quotient.lift (λ x : α × S, (⟦⟨-x.1, x.2⟩⟧ : localization α S)) $
   λ ⟨r₁, s₁, hs₁⟩ ⟨r₂, s₂, hs₂⟩ ⟨t, hts, ht⟩,
@@ -63,11 +96,12 @@ instance : has_neg (localization α S) :=
     calc (s₁ * -r₂ - s₂ * -r₁) * t = -((s₁ * r₂ - s₂ * r₁) * t) : by ring
       ... = 0 : by simp only [subtype.coe_mk] at ht; rw ht; simp⟩⟩
 
+/-- Instance defining multiplication in a commutative ring localized at a submonoid. -/
 instance : has_mul (localization α S) :=
 ⟨quotient.lift₂
   (λ x y : α × S, (⟦⟨x.1 * y.1, x.2 * y.2⟩⟧ : localization α S)) $
   λ ⟨r₁, s₁, hs₁⟩ ⟨r₂, s₂, hs₂⟩ ⟨r₃, s₃, hs₃⟩ ⟨r₄, s₄, hs₄⟩ ⟨t₅, hts₅, ht₅⟩ ⟨t₆, hts₆, ht₆⟩,
-  quotient.sound ⟨t₆ * t₅, submonoid.mul_mem S hts₆ hts₅,
+  quotient.sound ⟨t₆ * t₅, S.mul_mem hts₆ hts₅,
     calc ((s₁ * s₂) * (r₃ * r₄) - (s₃ * s₄) * (r₁ * r₂)) * (t₆ * t₅) =
       t₆ * ((s₁ * r₃ - s₃ * r₁) * t₅) * r₂ * s₄ + t₅ * ((s₂ * r₄ - s₄ * r₂) * t₆) * r₃ * s₁ :
         by simp [mul_left_comm, mul_add, mul_comm]
@@ -75,11 +109,14 @@ instance : has_mul (localization α S) :=
 
 variables {α S}
 
+/-- The natural map mapping an element r of a commutative ring and an element s of a submonoid
+    to the equivalence class of (r, s) in the ring's localization at the submonoid. -/
 def mk (r : α) (s : S) : localization α S := ⟦(r, s)⟧
 
 /-- The natural map from the ring to the localization.-/
 def of (r : α) : localization α S := mk r 1
 
+/-- The localization of a commutative ring at a submonoids is a commutative ring. -/
 instance : comm_ring (localization α S) :=
 by refine
 { add            := has_add.add,
@@ -105,6 +142,8 @@ by refine
   refine (quotient.sound $ r_of_eq _),
   simp [mul_left_comm, mul_add, mul_comm] }
 
+/-- The natural map from a commutative ring to its localization at a submonoid is a ring
+    homomomorphism. -/
 instance of.is_ring_hom : is_ring_hom (of : α → localization α S) :=
 { map_add := λ x y, quotient.sound $ by simp,
   map_mul := λ x y, quotient.sound $ by simp,
@@ -112,8 +151,12 @@ instance of.is_ring_hom : is_ring_hom (of : α → localization α S) :=
 
 variables {S}
 
+/-- Coercion allowing us to represent an element of a commutative ring as an element of the ring's
+    localization at a submonoid. -/
 instance : has_coe α (localization α S) := ⟨of⟩
 
+/-- The natural map from a commutative ring to its localization at a submonoid is a ring
+    homomomorphism. -/
 instance coe.is_ring_hom : is_ring_hom (coe : α → localization α S) :=
 localization.of.is_ring_hom
 
@@ -128,6 +171,8 @@ def to_units (s : S) : units (localization α S) :=
 
 section
 variables (α S) (x y : α) (n : ℕ)
+/-- Simplification lemmas for the properties and operations that the natural map from a
+    commutative ring to its localization at a submonoid preserves. -/
 @[simp] lemma of_zero : (of 0 : localization α S) = 0 := rfl
 @[simp] lemma of_one : (of 1 : localization α S) = 1 := rfl
 @[simp] lemma of_add : (of (x + y) : localization α S) = of x + of y :=
@@ -162,9 +207,10 @@ is_unit_unit $ to_units ⟨s, ‹s ∈ S›⟩
 @[simp] lemma coe_is_unit' (s ∈ S) : is_unit (s : localization α S) := of_is_unit' _ _ _ ‹s ∈ S›
 end
 
+/-- Simplification lemmas for the elements of a commutative ring and a submonoid mk maps to one. -/
 @[simp] lemma mk_self {x : α} {hx : x ∈ S} :
   (mk x ⟨x, hx⟩ : localization α S) = 1 :=
-quotient.sound ⟨1, submonoid.one_mem S,
+quotient.sound ⟨1, S.one_mem,
 by simp only [subtype.coe_mk, submonoid.coe_one, mul_one, one_mul, sub_self]⟩
 
 @[simp] lemma mk_self' {s : S} :
@@ -393,7 +439,6 @@ def prime.submonoid : submonoid α :=
   one_mem' := P.ne_top_iff_one.1 hp.1,
   mul_mem' := λ x y hnx hny hxy, or.cases_on (hp.2 hxy) hnx hny }
 
---This was more concise before; 'localization α (-P)'
 @[reducible] def at_prime := localization α (prime.submonoid P)
 
 instance at_prime.local_ring : local_ring (at_prime P) :=
@@ -426,7 +471,6 @@ variable (α)
 
 def non_zero_divisors' : set α := {x | ∀ z, z * x = 0 → z = 0}
 
---Was 'non_zero_divisors.submonoid' as an instance
 def non_zero_divisors : submonoid α :=
 { carrier := non_zero_divisors' α,
   one_mem' := λ z hz, by rwa mul_one at hz,
@@ -537,7 +581,7 @@ variables (f : A → B) [is_ring_hom f]
 
 def map (hf : injective f) : fraction_ring A → fraction_ring B :=
 localization.map f $ λ s h,
-  by rw [mem_non_zero_divisors_iff_ne_zero, ← map_zero f, ne.def, hf.eq_iff];
+  by rw [mem_non_zero_divisors_iff_ne_zero, ← f.map_zero, ne.def, hf.eq_iff];
     exact mem_non_zero_divisors_iff_ne_zero.1 h
 
 @[simp] lemma map_of (hf : injective f) (a : A) : map f hf (of a) = of (f a) :=

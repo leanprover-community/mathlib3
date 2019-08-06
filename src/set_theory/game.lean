@@ -5,16 +5,31 @@ Authors: Mario Carneiro, Isabel Longbottom, Scott Morrison
 -/
 import data.equiv.basic logic.embedding
 import data.nat.cast
+import data.finset
 
 /-!
 # Combinatorial games.
 
-The basic theory of combinatorial games, based on Conway's book `On Numbers and Games`.
-We construct "pregames", define an ordering and arithmetic operations on them, then
-show that the operations descend to "games", defined via the equivalence relation
-`p ≈ q ↔ p ≤ q ∧ q ≤ p`.
+The basic theory of combinatorial games, following Conway's book `On Numbers and Games`. We
+construct "pregames", define an ordering and arithmetic operations on them, then show that the
+operations descend to "games", defined via the equivalence relation `p ≈ q ↔ p ≤ q ∧ q ≤ p`.
 
 The surreal numbers will be built as a subtype.
+
+A pregame (`pgame` below) is axiomatised via an inductive type, whose sole constructor takes two
+types (thought of as indexing the the possible moves for the players Left and Right), and a pair of
+functions out of these types to `pgame` (thought of as describing the resulting game after making a
+move).
+
+By construction, the induction principle for pregames is exactly "Conway induction". That is, to
+prove some predicate `pgame → Prop` holds for all pregames, it suffices to prove that for every
+pregame `g`, if the predicate holds for every game resulting from making a move, then it also holds
+for `g`.
+
+While it is often convenient to work "by induction" on pregames, in some situations this becomes
+awkward, so we also define accessor functions `left_moves`, `right_moves`, `move_left` and
+`move_right`.
+
 
 ## References
 * [Conway, *On numbers and games*][conway2001]
@@ -34,7 +49,7 @@ inductive pgame : Type (u+1)
 
 namespace pgame
 
-def of_lists (L R : list pgame) : pgame :=
+def of_lists (L R : list pgame.{0}) : pgame.{0} :=
 pgame.mk (fin L.length) (fin R.length) (λ i, L.nth_le i.val i.is_lt) (λ j, R.nth_le j.val j.is_lt)
 
 /-- The indexing type for allowable moves by Left. -/

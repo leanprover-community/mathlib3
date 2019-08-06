@@ -13,24 +13,39 @@ import tactic.subtype_instance
 
 -- mention ≤ instead of ⊆ for inclusions
 
+no coercion from submonoid to subset, the idea is that the API does it all for us.
+there is ∈ though
+
 -/
---variables {α : Type*} [monoid α] {s : set α}
---variables {β : Type*} [add_monoid β] {t : set β}
 
 /-- A submonoid of a monoid α is a subset containing 1 and closed under multiplication. -/
 structure submonoid (α : Type*) [monoid α] :=
 (carrier : set α)
-(one_mem' : (1:α) ∈ carrier)
+(one_mem' : (1 : α) ∈ carrier)
 (mul_mem' {a b} : a ∈ carrier → b ∈ carrier → a * b ∈ carrier)
 
---/-- Coercion from a submonoid to the underlying subset -- TODO do I need this?-/
---instance (α : Type*) [monoid α] : has_coe_to_sort (submonoid α) := { S := _,
---  coe := submonoid.carrier }
+/-- A submonoid of a monoid α is a subset containing 1 and closed under multiplication. -/
+structure add_submonoid (α : Type*) [add_monoid α] :=
+(carrier : set α)
+(one_mem' : (0 : α) ∈ carrier)
+(mul_mem' {a b} : a ∈ carrier → b ∈ carrier → a + b ∈ carrier)
 
-
--- TODO -- add_submonoid structure, to_additive stuff
-
--- TODO -- additive to multiplicative stuff
+attribute [to_additive add_submonoid] submonoid
+attribute [to_additive add_submonoid.carrier] submonoid.carrier
+attribute [to_additive add_submonoid.cases_on] submonoid.cases_on
+attribute [to_additive add_submonoid.has_sizeof_inst] submonoid.has_sizeof_inst
+attribute [to_additive add_submonoid.mk] submonoid.mk
+attribute [to_additive add_submonoid.mk.inj] submonoid.mk.inj
+attribute [to_additive add_submonoid.mk.inj_arrow] submonoid.mk.inj_arrow
+attribute [to_additive add_submonoid.mk.inj_eq] submonoid.mk.inj_eq
+attribute [to_additive add_submonoid.mk.sizeof_spec] submonoid.mk.sizeof_spec
+attribute [to_additive add_submonoid.mul_mem'] submonoid.mul_mem'
+attribute [to_additive add_submonoid.no_confusion] submonoid.no_confusion
+attribute [to_additive add_submonoid.no_confusion_type] submonoid.no_confusion_type
+attribute [to_additive add_submonoid.one_mem'] submonoid.one_mem'
+attribute [to_additive add_submonoid.rec] submonoid.rec
+attribute [to_additive add_submonoid.rec_on] submonoid.rec_on
+attribute [to_additive add_submonoid.sizeof] submonoid.sizeof
 
 --instance additive.is_add_submonoid
 --  (s : set α) : ∀ [is_submonoid s], @is_add_submonoid (additive α) _ s
@@ -48,20 +63,17 @@ structure submonoid (α : Type*) [monoid α] :=
 --  {s : set β} : @is_submonoid (multiplicative β) _ s ↔ is_add_submonoid s :=
 --⟨λ ⟨h₁, h₂⟩, ⟨h₁, @h₂⟩, λ h, by resetI; apply_instance⟩
 
-variables {M : Type*} [monoid M] (S : submonoid M)
-
 namespace submonoid
 
-instance : has_coe (submonoid M) (set M) := ⟨submonoid.carrier⟩
+variables {M : Type*} [monoid M] (S : submonoid M)
 
--- not sure if this is a good idea
---instance : has_coe_to_sort (submonoid M) := ⟨_, λ S, subtype (S.carrier)⟩
+instance : has_coe (submonoid M) (set M) := ⟨submonoid.carrier⟩
 
 instance : has_mem M (submonoid M) := ⟨λ m S, m ∈ S.carrier⟩
 
 instance : has_le (submonoid M) := ⟨λ S T, S.carrier ⊆ T.carrier⟩
 
-@[simp] theorem mem_coe {m : M} : m ∈ (S : set M) ↔ m ∈ S := iff.rfl
+@[simp] lemma mem_coe {m : M} : m ∈ (S : set M) ↔ m ∈ S := iff.rfl
 
 theorem ext' {S T : submonoid M} (h : (S : set M) = T) : S = T :=
 by cases S; cases T; congr'
@@ -78,7 +90,6 @@ def one_mem : (1 : M) ∈ S := S.one_mem'
 /-- A submonoid is closed under multiplication. -/
 def mul_mem {x y : M} : x ∈ S → y ∈ S → x * y ∈ S := submonoid.mul_mem' S
 
--- TODO -- this is a theorem about comm_monoids; see line 275 of module
 lemma prod_mem {M : Type*} [comm_monoid M] (S : submonoid M)
   {ι : Type*} [decidable_eq ι] {t : finset ι} {f : ι → M} :
   (∀c ∈ t, f c ∈ S) → t.prod f ∈ S :=
@@ -106,17 +117,6 @@ def Union_of_directed {ι : Type*} [hι : nonempty ι]
 --  @is_submonoid_Union_of_directed (multiplicative β) _ _ _ s _ directed
 --attribute [to_additive is_add_submonoid_Union_of_directed] is_submonoid_Union_of_directed
 
---section powers
-
---def powers.carrier (x : M) : set M := {y | ∃ n:ℕ, x^n = y}
---def multiples (x : β) : set β := {y | ∃ n:ℕ, add_monoid.smul n x = y}
---attribute [to_additive multiples] powers
-
---lemma powers'.one_mem {x : M} : (1 : M) ∈ powers' x := ⟨0, pow_zero _⟩
-
---lemma multiples.zero_mem {x : β} : (0 : β) ∈ multiples x := ⟨0, add_monoid.zero_smul _⟩
---attribute [to_additive multiples.zero_mem] powers.one_mem
-
 def powers (x : M) : submonoid M :=
 { carrier := {y | ∃ n:ℕ, x^n = y},
   one_mem' := ⟨0, pow_zero x⟩,
@@ -124,16 +124,6 @@ def powers (x : M) : submonoid M :=
 
 lemma powers.self_mem {x : M} : x ∈ powers x := ⟨1, pow_one _⟩
 
---lemma multiples.self_mem {x : β} : x ∈ multiples x := ⟨1, add_monoid.one_smul _⟩
---attribute [to_additive multiples.self_mem] powers.self_mem
-
-
-
---instance multiples.is_add_submonoid (x : β) : is_add_submonoid (multiples x) :=
---multiplicative.is_submonoid_iff.1 $ powers.is_submonoid _
---attribute [to_additive multiples.is_add_submonoid] powers.is_submonoid
-
---@[to_additive univ.is_add_submonoid]
 def univ : submonoid M :=
 { carrier := set.univ,
   one_mem' := set.mem_univ 1,
@@ -230,7 +220,11 @@ instance : add_comm_monoid (submonoid M) :=
 
 end submonoid
 
+--
+
 namespace monoid_hom
+
+variables {M : Type*} [monoid M] (S : submonoid M)
 
 open submonoid
 
@@ -259,6 +253,8 @@ def range {N : Type*} [monoid N] (f : M →* N) :
 end monoid_hom
 
 namespace submonoid
+
+variables {M : Type*} [monoid M] (S : submonoid M)
 
 lemma pow_mem {a : M} (h : a ∈ S) : ∀ {n : ℕ}, a ^ n ∈ S
 | 0 := S.one_mem
@@ -354,6 +350,8 @@ end submonoid
 
 namespace monoid_hom
 
+variables {M : Type*} [monoid M] (S : submonoid M)
+
 --@[to_additive subtype_mk.is_add_monoid_hom]
 def subtype_mk {N : Type*} [monoid N] (f : N →* M) (h : ∀ x, f x ∈ S) : N →* S :=
 { to_fun := λ n, ⟨f n, h n⟩,
@@ -367,6 +365,8 @@ subtype_mk _ S.subtype (λ x, h x.2)
 end monoid_hom
 
 namespace monoid
+
+variables {M : Type*} [monoid M] (S : submonoid M)
 
 open submonoid
 

@@ -127,7 +127,7 @@ theorem cos_add_sin_mul_I_pow (n : ℕ) (z : ℂ) :
 * Author:
 * Link:
 -->
-## <a name="20"></a>20. All Primes Equal the Sum of Two Squares
+## <a name="20"></a>20. All Primes (1 mod 4) Equal the Sum of Two Squares
 ```lean
 lemma sum_two_squares {p : ℕ} (hp : p.prime) (hp1 : p % 4 = 1) :
   ∃ a b : ℕ, a ^ 2 + b ^ 2 = p

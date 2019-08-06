@@ -640,6 +640,7 @@ meta def get_contr_lemma_name : expr → option name
 | `(%%a < %%b) := return `lt_of_not_ge
 | `(%%a ≤ %%b) := return `le_of_not_gt
 | `(%%a = %%b) := return ``eq_of_not_lt_of_not_gt
+| `(%%a ≠ %%b) := return `not.intro
 | `(%%a ≥ %%b) := return `le_of_not_gt
 | `(%%a > %%b) := return `lt_of_not_ge
 | `(¬ %%a < %%b) := return `not.intro

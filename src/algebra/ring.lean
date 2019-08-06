@@ -470,7 +470,7 @@ section
   have b - c = 0, from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_left ha,
   eq_of_sub_eq_zero this
 
-/-- Given to elements b, c of an integral domain and a nonzero element a, a*b divides a*c iff
+/-- Given two elements b, c of an integral domain and a nonzero element a, a*b divides a*c iff
     b divides c. -/
   theorem mul_dvd_mul_iff_left {a b c : α} (ha : a ≠ 0) : a * b ∣ a * c ↔ b ∣ c :=
   exists_congr $ λ d, by rw [mul_assoc, domain.mul_left_inj ha]

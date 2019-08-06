@@ -313,7 +313,7 @@ instance {α : Type*} {β : Type*} [semiring α] [semiring β] (f : α →+* β)
 { map_zero := map_zero f,
   map_one := map_one f,
   map_add := map_add f,
-  map_mul := map_mul f   }
+  map_mul := map_mul f }
 
 /-- The identity map from a semiring to itself. -/
 def id (α : Type*) [semiring α] : α →+* α :=

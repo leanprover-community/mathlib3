@@ -5,7 +5,7 @@ Authors: Mario Carneiro, Isabel Longbottom, Scott Morrison
 -/
 import data.equiv.basic logic.embedding
 import data.nat.cast
-import data.finset
+import data.finset data.fintype
 
 /-!
 # Combinatorial games.
@@ -21,6 +21,8 @@ types (thought of as indexing the the possible moves for the players Left and Ri
 functions out of these types to `pgame` (thought of as describing the resulting game after making a
 move).
 
+## Conway induction
+
 By construction, the induction principle for pregames is exactly "Conway induction". That is, to
 prove some predicate `pgame → Prop` holds for all pregames, it suffices to prove that for every
 pregame `g`, if the predicate holds for every game resulting from making a move, then it also holds
@@ -28,8 +30,42 @@ for `g`.
 
 While it is often convenient to work "by induction" on pregames, in some situations this becomes
 awkward, so we also define accessor functions `left_moves`, `right_moves`, `move_left` and
-`move_right`.
+`move_right`. There is a relation `subsequent p q`, saying that `p` can be reached by playing some
+sequence of moves starting from `q`, an instance `well_founded subsequent`, and a local tactic
+`pgame_wf_tac` which is helpful for discharging proof obligations in inductive proofs relying on this
+relation.
 
+## Order properties
+
+Pregames have both a `≤` and a `<` relation, which are related in quite subtle way. In
+particular, it is worth noting that they _do not_ satisfy the axioms of a partial order.
+
+The statement `0 ≤ x` means that Left has a good response to any move by Right; in particular,
+the theorem `zero_le` below states
+```
+0 ≤ x ↔ ∀ j : x.right_moves, ∃ i : (x.move_right j).left_moves, 0 ≤ (x.move_right j).move_left i
+```
+On the other hand the statement `0 < x` means that Left has a good move; in particular
+the theorem `zero_lt` below states
+```
+0 < x ↔ ∃ i : left_moves x, ∀ j : right_moves (x.move_left i), 0 < (x.move_left i).move_right j
+```
+The theorems `le_def`, `lt_def`, `le_def_lt` and `lt_def_lt` give recursive characterisations of the
+two relations.
+
+We define an equivalence relation `equiv p q ↔ p ≤ q ∧ q ≤ p`. Later, games will be defined as the
+quotient by this relation.
+
+## Algebraic structures
+
+We next turn to defining the operations necessary to make games into a commutative additive group.
+Addition is defined for $x = \{xL | xR\}$ and $y = \{yL | yR\}$ by
+$x + y = \{xL + y, x + yL | xR + y, x + yR\}$.
+Negation is defined by $\{xL | xR\} = \{-xR | -xL\}$. We show that these operations respect the
+equivalence relation, and hence descend to games.
+At the level of games, these operations satisfy all the laws of a commutative group. To prove
+the necessary equivalence relations at the level of pregames, we introduce the notion of a `relabelling`
+of a game, and show, for example, that there is a relabelling between `x + (y + z)` and `(x + y) + z`.
 
 ## References
 * [Conway, *On numbers and games*][conway2001]
@@ -49,6 +85,9 @@ inductive pgame : Type (u+1)
 
 namespace pgame
 
+/-- Construct a pre-game from list of pre-games describing the available moves for Left and Right. -/
+-- TODO provide some API describing the interaction with `left_moves`, `right_moves`, `move_left` and `move_right` below.
+-- TODO define this at the level of games, as well, and perhaps also for finsets of games.
 def of_lists (L R : list pgame.{0}) : pgame.{0} :=
 pgame.mk (fin L.length) (fin R.length) (λ i, L.nth_le i.val i.is_lt) (λ j, R.nth_le j.val j.is_lt)
 
@@ -71,13 +110,13 @@ def move_right : Π (g : pgame), right_moves g → pgame
 @[simp] lemma right_moves_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).right_moves = xr := rfl
 @[simp] lemma move_right_mk {xl xr xL xR j} : (⟨xl, xr, xL, xR⟩ : pgame).move_right j = xR j := rfl
 
-/-- `r p q` says that `p` can be obtained by playing some sequence of moves from `q`. -/
-inductive r : pgame → pgame → Prop
-| left : Π (x : pgame) (i : x.left_moves), r (x.move_left i) x
-| right : Π (x : pgame) (j : x.right_moves), r (x.move_right j) x
-| trans : Π (x y z : pgame), r x y → r y z → r x z
+/-- `subsequent p q` says that `p` can be obtained by playing some sequence of moves from `q`. -/
+inductive subsequent : pgame → pgame → Prop
+| left : Π (x : pgame) (i : x.left_moves), subsequent (x.move_left i) x
+| right : Π (x : pgame) (j : x.right_moves), subsequent (x.move_right j) x
+| trans : Π (x y z : pgame), subsequent x y → subsequent y z → subsequent x z
 
-theorem wf_r : well_founded r :=
+theorem wf_subsequent : well_founded subsequent :=
 ⟨λ x, begin
   induction x with l r L R IHl IHr,
   refine ⟨_, λ y h, _⟩,
@@ -89,19 +128,23 @@ theorem wf_r : well_founded r :=
 end⟩
 
 instance : has_well_founded pgame :=
-{ r := r,
-  wf := wf_r }
+{ r := subsequent,
+  wf := wf_subsequent }
 
-def r.left_move {xl xr} {xL : xl → pgame} {xR : xr → pgame} {i : xl} : r (xL i) (mk xl xr xL xR) :=
-r.left (mk xl xr xL xR) (by { convert i, refl })
-def r.right_move {xl xr} {xL : xl → pgame} {xR : xr → pgame} {j : xr} : r (xR j) (mk xl xr xL xR) :=
-r.right (mk xl xr xL xR) (by { convert j, refl })
+def subsequent.left_move {xl xr} {xL : xl → pgame} {xR : xr → pgame} {i : xl} :
+  subsequent (xL i) (mk xl xr xL xR) :=
+subsequent.left (mk xl xr xL xR) (by { convert i, refl })
+def subsequent.right_move {xl xr} {xL : xl → pgame} {xR : xr → pgame} {j : xr} :
+  subsequent (xR j) (mk xl xr xL xR) :=
+subsequent.right (mk xl xr xL xR) (by { convert j, refl })
 
 /-- A local tactic for proving well-foundedness of recursive definitions involving pregames. -/
 meta def pgame_wf_tac :=
 `[solve_by_elim
-  [psigma.lex.left, psigma.lex.right, r.left_move, r.right_move, r.left, r.right, r.trans]
-  { max_rep := 10 }]
+  [psigma.lex.left, psigma.lex.right,
+   subsequent.left_move, subsequent.right_move,
+   subsequent.left, subsequent.right, subsequent.trans]
+  { max_rep := 6 }]
 
 /-- The pre-game `zero` is defined by `0 = { | }`. -/
 instance : has_zero pgame := ⟨⟨pempty, pempty, pempty.elim, pempty.elim⟩⟩
@@ -1033,7 +1076,7 @@ end
 
 instance : add_semigroup game.{u} :=
 { add_assoc := add_assoc,
-  ..(by apply_instance : has_add game) }
+  ..game.has_add }
 
 theorem add_zero (x : game) : x + 0 = x :=
 begin
@@ -1053,8 +1096,8 @@ end
 instance : add_monoid game :=
 { add_zero := add_zero,
   zero_add := zero_add,
-  ..(by apply_instance : has_zero game),
-  ..(by apply_instance : add_semigroup game) }
+  ..game.has_zero,
+  ..game.add_semigroup }
 
 def neg : game → game :=
 quot.lift (λ x, ⟦-x⟧) (λ x y h, quot.sound (@neg_congr x y h))
@@ -1072,8 +1115,8 @@ end
 
 instance : add_group game :=
 { add_left_neg := add_left_neg,
-  ..(game.has_neg),
-  ..(game.add_monoid) }
+  ..game.has_neg,
+  ..game.add_monoid }
 
 def add_comm (x y : game) : x + y = y + x :=
 begin
@@ -1087,11 +1130,11 @@ end
 
 instance : add_comm_semigroup game :=
 { add_comm := add_comm,
-  ..(by apply_instance : add_semigroup game) }
+  ..game.add_semigroup }
 
 instance : add_comm_group game :=
-{ ..(game.add_comm_semigroup),
-  ..(game.add_group) }
+{ ..game.add_comm_semigroup,
+  ..game.add_group }
 
 theorem add_le_add_left : ∀ (a b : game), a ≤ b → ∀ (c : game), c + a ≤ c + b :=
 begin rintro ⟨a⟩ ⟨b⟩ h ⟨c⟩, apply pgame.add_le_add_left h, end
@@ -1112,7 +1155,7 @@ def game_partial_order : partial_order game :=
 { le_refl := le_refl,
   le_trans := le_trans,
   le_antisymm := le_antisymm,
-  ..(game.has_le) }
+  ..game.has_le }
 
 local attribute [instance] game_partial_order
 
@@ -1132,6 +1175,6 @@ def ordered_comm_group_game : ordered_comm_group game :=
 { add_le_add_left := add_le_add_left,
   add_lt_add_left := add_lt_add_left,
   ..game_partial_order,
-  ..(game.add_comm_group) }
+  ..game.add_comm_group }
 
 end game

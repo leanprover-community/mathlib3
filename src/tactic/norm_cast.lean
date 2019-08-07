@@ -263,6 +263,15 @@ private meta def post (s : simp_lemmas) (_ : unit) (e : expr) : tactic (unit × 
   return ((), new_e, pr)
 ) <|> heur () e
 
+private meta def aux_num_0 (e : expr) : tactic expr :=
+do
+  s1 ← squash_cast_attr.get_cache,
+  s2 ← move_cast_attr.get_cache,
+  let s := simp_lemmas.join s1 s2,
+  (_, h) ← simplify s [] e { fail_if_unchanged := ff },
+  pr ← to_expr ``(eq.mpr %%h rfl),
+  return pr
+
 private meta def aux_num_1 (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
 do
   α ← infer_type e,
@@ -272,12 +281,8 @@ do
   new_e ← to_expr $ pexpr_of_num `(ℕ) n,
   new_e ← to_expr ``(@coe ℕ %%α %%h1 %%new_e),
   h ← to_expr ``(%%e = %%new_e),
-  ((), pr) ← solve_aux h `[refl, done],
-  -- TODO: refl is not enough,
-  -- for instance the following lemma cannot be proved by reflexivity:
-  -- ((1 : ℕ) : ℝ) = (1 : ℝ)
+  pr ← aux_num_0 h,
   return ((), new_e, pr)
-
 
 private meta def aux_num_2 (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
 do
@@ -285,7 +290,7 @@ do
   n ← e'.to_num,
   new_e ← to_expr $ pexpr_of_num α n,
   h ← to_expr ``(%%e = %%new_e),
-  ((), pr) ← solve_aux h `[refl, done],
+  pr ← aux_num_0 h,
   return ((), new_e, pr)
 
 /-
@@ -300,9 +305,8 @@ do
   trace ("norm_cast on: ", e0),
 
   -- step 1: pre-processing of numerals
-  ((), e1, _) ← simplify_top_down () aux_num_1 e0 cfg,
+  ((), e1, pr1) ← simplify_top_down () aux_num_1 e0 cfg,
   h1 ← to_expr ``(%%e0 = %%e1),
-  ((), pr1) ← solve_aux h1 `[refl, done],
   trace ("step 1: ", e1),
 
   -- step 2: casts are moved upwards and eliminated
@@ -315,9 +319,8 @@ do
   trace ("step 3: ", e3),
 
   --step 4: post-processing of numerals
-  ((), e4, _) ← simplify_top_down () aux_num_2 e3 cfg,
+  ((), e4, pr4) ← simplify_top_down () aux_num_2 e3 cfg,
   h4 ← to_expr ``(%%e3 = %%e4),
-  ((), pr4) ← solve_aux h4 `[refl, done],
   trace ("step 4: ", e4),
 
   let new_e := e4,

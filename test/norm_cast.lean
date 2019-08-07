@@ -52,6 +52,8 @@ by norm_cast
 example (h : (cz : ℚ) = az / bz) : (cz : ℝ) = az / bz :=
 by assumption_mod_cast
 
+example : ((1 : ℕ) : ℝ) = 1 := by norm_cast
+
 namespace hidden
 
 def with_zero (α) := option α

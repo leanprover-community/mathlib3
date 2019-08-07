@@ -928,6 +928,8 @@ Transforms the goal into its contrapositive.
 
 `contrapose! h`  first reverts the local assumption `h`, and then uses `contrapose!` and `intro h`
 
+`contrapose h with new_h` uses the name `new_h` for the introduced hypothesis
+
 ### norm_cast
 
 This tactic normalizes casts inside expressions.

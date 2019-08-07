@@ -253,7 +253,7 @@ have hsumlesum : (range (max N M + 1)).sum (λ i, abv (a i) *
 have hsumltP : sum (range (max N M + 1)) (λ n, abv (a n)) < P :=
   calc sum (range (max N M + 1)) (λ n, abv (a n))
       = abs (sum (range (max N M + 1)) (λ n, abv (a n))) :
-  eq.symm (abs_of_nonneg (zero_le_sum (λ x h, abv_nonneg abv (a x))))
+  eq.symm (abs_of_nonneg (sum_nonneg (λ x h, abv_nonneg abv (a x))))
   ... < P : hP (max N M + 1),
 begin
   rw [h₁, h₂, h₃, sum_mul, ← sub_sub, sub_right_comm, sub_self, zero_sub, abv_neg abv],
@@ -829,7 +829,7 @@ calc x + 1 ≤ lim (⟨(λ n : ℕ, ((exp' x) n).re), is_cau_seq_re (exp' x)⟩ 
           add_re, add_re, h₁, h₂, add_assoc,
           ← @sum_hom _ _ _ _ _ _ _ complex.re
             (is_add_group_hom.to_is_add_monoid_hom _)],
-        refine le_add_of_nonneg_of_le (zero_le_sum (λ m hm, _)) (le_refl _), dsimp [-nat.fact_succ],
+        refine le_add_of_nonneg_of_le (sum_nonneg (λ m hm, _)) (le_refl _), dsimp [-nat.fact_succ],
         rw [← of_real_pow, ← of_real_nat_cast, ← of_real_div, of_real_re],
         exact div_nonneg (pow_nonneg hx _) (nat.cast_pos.2 (nat.fact_pos _)),
       end⟩)

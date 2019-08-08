@@ -7,7 +7,7 @@ Authors: Zhouhang Zhou
 import analysis.convex
 import algebra.quadratic_discriminant
 import tactic.monotonicity
-import analysis.specific_limits
+import analysis.complex.exponential
 
 /-!
 # Inner Product Space

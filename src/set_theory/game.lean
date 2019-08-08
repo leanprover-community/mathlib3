@@ -37,7 +37,7 @@ relation.
 
 ## Order properties
 
-Pregames have both a `≤` and a `<` relation, which are related in quite subtle way. In
+Pregames have both a `≤` and a `<` relation, which are related in quite a subtle way. In
 particular, it is worth noting that they _do not_ satisfy the axioms of a partial order.
 
 The statement `0 ≤ x` means that Left has a good response to any move by Right; in particular,

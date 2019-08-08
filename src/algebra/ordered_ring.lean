@@ -174,6 +174,13 @@ lemma mul_self_pos {a : α} (ha : a ≠ 0) : 0 < a * a :=
 by rcases lt_trichotomy a 0 with h|h|h;
    [exact mul_pos_of_neg_of_neg h h, exact (ha h).elim, exact mul_pos h h]
 
+lemma mul_self_le_mul_self_of_le_of_neg_le {x y : α} (h₁ : x ≤ y) (h₂ : -x ≤ y) : x * x ≤ y * y :=
+begin
+  cases le_total 0 x,
+  { exact mul_self_le_mul_self h h₁ },
+  { rw ← neg_mul_neg, exact mul_self_le_mul_self (neg_nonneg_of_nonpos h) h₂ }
+end
+
 end linear_ordered_ring
 
 set_option old_structure_cmd true

@@ -304,14 +304,20 @@ begin
         exact fin.eta _ _⟩ } }
 end
 
+lemma mem_find_iff {p : fin n → Prop} [decidable_pred p] {i : fin n} : 
+  i ∈ fin.find p ↔ p i ∧ ∀ j, p j → i ≤ j :=
+⟨λ hi, ⟨find_spec _ hi, λ _, find_min' hi⟩, 
+  begin
+    rintros ⟨hpi, hj⟩,
+    cases hfp : fin.find p,
+    { rw [find_eq_none_iff] at hfp,
+      exact (hfp _ hpi).elim },
+    { exact option.some_inj.2 (le_antisymm (find_min' hfp hpi) (hj _ (find_spec _ hfp))) }
+  end⟩
+
 lemma mem_find_of_unique {p : fin n → Prop} [decidable_pred p]
   (h : ∀ i j, p i → p j → i = j) {i : fin n} (hi : p i) : i ∈ fin.find p :=
-begin
-  cases hfp : fin.find p,
-  { rw [find_eq_none_iff] at hfp,
-    exact (hfp _ hi).elim },
-  { exact option.some_inj.2 (h _ _ (find_spec _ hfp) hi) }
-end
+mem_find_iff.2 ⟨hi, λ j hj, le_of_eq $ h i j hi hj⟩
 
 end find
 

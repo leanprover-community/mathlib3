@@ -1,7 +1,8 @@
--- Copyright (c) 2019 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison
-
+/-
+Copyright (c) 2019 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import category_theory.adjunction.basic
 import category_theory.yoneda
 
@@ -18,7 +19,7 @@ variables {D : Type u₂} [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 variables {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R)
 
--- Lemma 4.5.13 from Riehl
+-- Lemma 4.5.13 from [Riehl][riehl2017]
 -- Proof in https://stacks.math.columbia.edu/tag/0036
 -- or at https://math.stackexchange.com/a/2727177
 instance unit_is_iso_of_L_fully_faithful [full L] [faithful L] : is_iso (adjunction.unit h) :=

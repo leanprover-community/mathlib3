@@ -144,13 +144,13 @@ variables {R A}
 end algebra
 
 /-- Defining the homomorphism in the category R-Alg. -/
-structure alg_hom {R : Type u} (A : Type v) (B : Type w)
+structure alg_hom (R : Type u) (A : Type v) (B : Type w)
   [comm_ring R] [ring A] [ring B] [algebra R A] [algebra R B] :=
 (to_fun : A → B) [hom : is_ring_hom to_fun]
 (commutes' : ∀ r : R, to_fun (algebra_map A r) = algebra_map B r)
 
-infixr ` →ₐ `:25 := alg_hom
-notation A ` →ₐ[`:25 R `] ` B := @alg_hom R A B _ _ _ _ _
+infixr ` →ₐ `:25 := alg_hom _
+notation A ` →ₐ[`:25 R `] ` B := alg_hom R A B
 
 namespace alg_hom
 

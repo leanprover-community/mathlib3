@@ -928,6 +928,8 @@ Transforms the goal into its contrapositive.
 
 `contrapose! h`  first reverts the local assumption `h`, and then uses `contrapose!` and `intro h`
 
+`contrapose h with new_h` uses the name `new_h` for the introduced hypothesis
+
 ### norm_cast
 
 This tactic normalizes casts inside expressions.
@@ -1043,3 +1045,11 @@ open_locale namespace1 namespace2 ...
 ```
 localized "attribute [simp] le_refl" in le
 ```
+
+### swap
+
+`swap n` will move the `n`th goal to the front. `swap` defaults to `swap 2`, and so interchanges the first and second goals.
+
+### rotate
+
+`rotate` moves the first goal to the back. `rotate n` will do this `n` times.

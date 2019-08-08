@@ -763,7 +763,7 @@ finset.induction_on s (by simp) $ assume a s ha ih,
   have ∀ (i j : ι), ∃ (k : ι), f k a + s.sum (f k) ≤ f i a + s.sum (f j),
     from assume i j,
     let ⟨k, hk⟩ := h (insert a s) i j in
-    ⟨k, add_le_add' (hk a (finset.mem_insert_self _ _)).left $ finset.sum_le_sum' $
+    ⟨k, add_le_add' (hk a (finset.mem_insert_self _ _)).left $ finset.sum_le_sum $
       assume a ha, (hk _ $ finset.mem_insert_of_mem ha).right⟩,
   by simp [ha, ih.symm, infi_add_infi this]
 

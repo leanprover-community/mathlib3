@@ -12,7 +12,7 @@ noncomputable theory
 open lattice set linear_map submodule
 
 namespace matrix
-universes u v
+universes u v w
 variables {l m n o : Type u} [fintype l] [fintype m] [fintype n] [fintype o]
 
 instance [decidable_eq m] [decidable_eq n] (α) [fintype α] : fintype (matrix m n α) :=
@@ -81,44 +81,58 @@ end
 
 def to_matrix [decidable_eq n]: ((n → α) →ₗ[α] (m → α)) → matrix m n α := to_matrixₗ.to_fun
 
-variables (f : (n → α) →ₗ[α] (m → α)) [decidable_eq n] (y : n → α)
+section
+open finsupp
 
-variables {R : Type*} [comm_ring R]
-variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*}
-variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q]
-variables [module R M] [module R N] [module R P] [module R Q]
-include R
-@[simp] theorem mk₂_apply2
-  (f : M → N → P) {H1 H2 H3 H4} (m : M) (n : N) :
-  ((mk₂ R f H1 H2 H3 H4 : M →ₗ[R] N →ₗ P).to_fun m).to_fun n = f m n := rfl
-
-lemma to_matrix_to_lin [decidable_eq n] [decidable_eq α] {f : (n → α) →ₗ[α] (m → α)} : to_lin (to_matrix f) = f :=
+lemma is_basis_single [decidable_eq n] [decidable_eq α] :
+  is_basis α (λ i:n, (single i (1:α)).to_fun) :=
 begin
-ext y : 1,
-change ((mk₂ α mul_vec _ _ _ _).to_fun (to_matrix f)).to_fun y = f.to_fun y,
-rw [mk₂_apply2],
-{ ext,
-  change finset.univ.sum (λ i, (f.to_fun (λ j, ite (i = j) 1 0) x) * (y i)) = _,
-  conv_lhs { congr, skip, funext, rw [mul_comm _ (y i)] },
-  change finset.univ.sum (λ i, (y i) • (f.to_fun (λ j, ite (i = j) 1 0) x)) = _,
-  have : ∀ i, (y i • (f.to_fun (λ (j : n), ite (i = j) 1 0) x) = (y i • f.to_fun (λ (j : n), ite (i = j) 1 0)) x),
-   from sorry,
-  have : (λ i, y i • (f.to_fun (λ j, ite (i = j) 1 0) x)) = (λ i, (f.to_fun (λ j, ite (i = j) (y i) 0) x)),
-    { ext i,
-      rw [this i, ←f.smul],
-      congr,
-      unfold has_scalar.smul,
-      ext,
-      split_ifs,
-      exact mul_one _,
-      exact ring.mul_zero _ },
-  rw [this],
-  sorry
- },
- repeat {sorry}
+  convert pi.is_basis_fun α; apply_instance <|>
+  ext i j,
+  rw [std_basis_apply, show (single _ _).to_fun _ = _, from single_apply],
+  split_ifs,
+  { rw [h, function.update_same] },
+  { rw [function.update_noteq (ne.symm h)], refl },
+  apply_instance
 end
 
-lemma to_lin_to_matrix [decidable_eq n] (M : matrix m n α) : to_matrix (to_lin M) = M :=
+lemma to_matrix_to_lin [decidable_eq n] [decidable_eq α] {f : (n → α) →ₗ[α] (m → α)} :
+  to_lin (to_matrix f) = f :=
+begin
+  ext g : 1,
+  convert linear_eq_on (set.range (λ i : n, (single i (1:α)).to_fun)) _ _,
+  { assume e he,
+    rw [set.mem_range] at he,
+    cases he with i h,
+    ext j,
+    change finset.univ.sum (λ k, (f.to_fun (single k 1).to_fun) j * (e k)) = _,
+    conv_lhs { congr, skip, funext, rw [mul_comm _ (e k)] },
+    change finset.univ.sum (λ k, (e k) • (f.to_fun (single k 1).to_fun) j) = _,
+    rw [←h],
+    conv_lhs { congr, skip, funext,
+      rw [←pi.smul_apply, ←linear_map.smul,
+        show (single _ _).to_fun _ = _, from @single_swap n α _ _ _ i k _],
+      rw [single_apply],
+      rw [show ite (k = i) (1:α) 0 • (single k (1:α)).to_fun = ite (k = i) (single i 1).to_fun 0, from
+        begin split_ifs, { rw[h_1, one_smul] }, { exact zero_smul _ _ } end],
+      rw [show f.to_fun (ite (k = i) (single i 1).to_fun 0) = ite (k = i) (f.to_fun (single k 1).to_fun) 0, from
+        begin split_ifs, { rw [h_1] }, { exact linear_map.map_zero f } end],
+      },
+      convert finset.sum_eq_single i _ _,
+      { rw [if_pos rfl], refl },
+      { assume _ _ hbi, rw [if_neg hbi], refl },
+      { assume hi, exact false.elim (hi $ finset.mem_univ i) } },
+  { refine is_basis.mem_span _ g,
+    convert pi.is_basis_fun α; apply_instance <|>
+    ext i j,
+    rw [std_basis_apply, show (single _ _).to_fun _ = _, from single_apply],
+    split_ifs,
+    { rw [h, function.update_same] },
+    { rw [function.update_noteq (ne.symm h)], refl },
+    apply_instance }
+end
+
+lemma to_lin_to_matrix [decidable_eq n] {M : matrix m n α} : to_matrix (to_lin M) = M :=
 begin
   ext,
   change finset.sum finset.univ (λ y, M i y * ite (j = y) 1 0) = M i j,
@@ -132,6 +146,45 @@ begin
     { exact λ _ _ H, if_neg (mt (finset.mem_singleton.2 ∘ eq.symm) H) } },
   rw [this, finset.sum_singleton],
   exact if_pos rfl,
+end
+
+def lin_equiv_matrix' [decidable_eq α] [decidable_eq n] : ((n → α) →ₗ[α] (m → α)) ≃ₗ[α] matrix m n α :=
+{ to_fun := to_matrix,
+  inv_fun := to_lin,
+  right_inv := λ _, to_lin_to_matrix,
+  left_inv := λ _, to_matrix_to_lin,
+  add := to_matrixₗ.add,
+  smul := to_matrixₗ.smul }
+
+def arrow_congr {α β₁ β₂ γ₁ γ₂ : Sort*} [comm_ring α]
+  [add_comm_group β₁] [add_comm_group β₂] [add_comm_group γ₁] [add_comm_group γ₂]
+  [module α β₁] [module α β₂] [module α γ₁] [module α γ₂]
+  (e₁ : β₁ ≃ₗ[α] β₂) (e₂ : γ₁ ≃ₗ[α] γ₂) :
+  (β₁ →ₗ[α] γ₁) ≃ₗ[α] (β₂ →ₗ[α] γ₂) :=
+{ to_fun := λ f, e₂.to_linear_map.comp $ f.comp e₁.symm.to_linear_map,
+  inv_fun := λ f, e₂.symm.to_linear_map.comp $ f.comp e₁.to_linear_map,
+  left_inv := λ f, by { ext x, unfold_coes,
+    change e₂.inv_fun (e₂.to_fun $ f.to_fun $ e₁.inv_fun $ e₁.to_fun x) = _,
+    rw [e₁.left_inv, e₂.left_inv] },
+  right_inv := λ f, by { ext x, dsimp, unfold_coes,
+    change e₂.to_fun (e₂.inv_fun $ f.to_fun $ e₁.to_fun $ e₁.inv_fun x) = _,
+    rw [e₁.right_inv, e₂.right_inv] },
+  add := λ f g, by { ext x, change e₂.to_fun ((f + g) (e₁.inv_fun x)) = _,
+    rw [linear_map.add_apply, e₂.add], refl },
+  smul := λ c f, by { ext x, change e₂.to_fun ((c • f) (e₁.inv_fun x)) = _,
+    rw [linear_map.smul_apply, e₂.smul], refl } }
+
+def conj {α : Type u} {β : Type v} {γ : Type w} [comm_ring α] [add_comm_group β] [add_comm_group γ]
+  [module α β] [module α γ] (e : β ≃ₗ[α] γ) : (β →ₗ[α] β) ≃ₗ[α] (γ →ₗ[α] γ) :=
+arrow_congr e e
+
+--TODO: Can do module instead of vector_space
+set_option class.instance_max_depth 60
+def lin_equiv_matrix {ι α : Type*} (β : Type*) [discrete_field α] [add_comm_group β] [decidable_eq β]
+  [decidable_eq (ι → β)] [vector_space α β] [fintype ι] [decidable_eq ι] {v : ι → β} (hv : is_basis α v) :
+  (β →ₗ[α] β) ≃ₗ[α] matrix ι ι α :=
+linear_equiv.trans (conj $ equiv_fun_basis hv) lin_equiv_matrix'
+
 end
 
 section

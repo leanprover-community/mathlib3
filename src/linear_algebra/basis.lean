@@ -1010,13 +1010,16 @@ variables (h : is_basis α v)
 
 local attribute [instance] submodule.module
 
-noncomputable def equiv_fun_basis [fintype ι] : β ≃ (ι → α) :=
-calc β ≃ (ι →₀ α) : (module_equiv_finsupp h).to_equiv
-   ... ≃ (ι → α)                              : finsupp.equiv_fun_on_fintype
+def equiv_fun_basis [fintype ι] : β ≃ₗ (ι → α) :=
+linear_equiv.trans (module_equiv_finsupp h)
+  { to_fun := finsupp.to_fun,
+    add := λ x y, by ext; exact finsupp.add_apply,
+    smul := λ x y, by ext; exact finsupp.smul_apply,
+    ..finsupp.equiv_fun_on_fintype }
 
 theorem vector_space.card_fintype [fintype ι] [fintype α] [fintype β] :
   card β = (card α) ^ (card ι) :=
-calc card β = card (ι → α)    : card_congr (equiv_fun_basis h)
+calc card β = card (ι → α)    : card_congr (equiv_fun_basis h).to_equiv
         ... = card α ^ card ι : card_fun
 
 theorem vector_space.card_fintype' [fintype α] [fintype β] :

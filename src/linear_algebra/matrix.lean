@@ -1,26 +1,50 @@
 /-
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl
+Author: Johannes Hölzl, Casper Putz
 
-Linear structures on function with finit support `α →₀ β` and multivariate polynomials.
+The equivalence between matrices and linear maps.
 -/
+
 import data.matrix
 import linear_algebra.dimension linear_algebra.tensor_product
+
+/-!
+
+# Summary
+
+This file defines the maps to send matrices to a linear map,
+and to send linear maps between finite-dimensional vector spaces
+to matrices.
+
+Some results are proved about the linear map corresponding to a
+diagonal matrix.
+
+## Main definitions
+
+to_lin, to_matrix, lin_equiv_matrix
+
+## Tags
+
+linear_map, matrix, linear_equiv, diagonal
+
+-/
+
 noncomputable theory
 
-open lattice set linear_map submodule
+open set submodule
+
+universes u v
+variables {l m n : Type u} [fintype l] [fintype m] [fintype n]
 
 namespace matrix
-universes u v w
-variables {l m n o : Type u} [fintype l] [fintype m] [fintype n] [fintype o]
 
+variables {α : Type v} [comm_ring α]
 instance [decidable_eq m] [decidable_eq n] (α) [fintype α] : fintype (matrix m n α) :=
 by unfold matrix; apply_instance
 
-section ring
-variables {α : Type v} [comm_ring α]
-
+/-- Evaluation of matrices gives a linear map from matrix m n α to
+linear maps (n → α) →ₗ[α] (m → α). -/
 def eval : (matrix m n α) →ₗ[α] ((n → α) →ₗ[α] (m → α)) :=
 begin
   refine linear_map.mk₂ α mul_vec _ _ _ _,
@@ -43,6 +67,8 @@ begin
     refl }
 end
 
+/-- Evaluation of matrices gives a map from matrix m n α to
+linear maps (n → α) →ₗ[α] (m → α). -/
 def to_lin : matrix m n α → (n → α) →ₗ[α] (m → α) := eval.to_fun
 
 lemma to_lin_add (M N : matrix m n α) : (M + N).to_lin = M.to_lin + N.to_lin :=
@@ -72,6 +98,13 @@ begin
   rw [mul_assoc]
 end
 
+end matrix
+
+namespace linear_map
+
+variables {α : Type v} [comm_ring α]
+
+/-- The linear map from linear maps (n → α) →ₗ[α] (m → α) to matrix m n α. -/
 def to_matrixₗ [decidable_eq n] : ((n → α) →ₗ[α] (m → α)) →ₗ[α] matrix m n α :=
 begin
   refine linear_map.mk (λ f i j, f (λ n, ite (j = n) 1 0) i) _ _,
@@ -79,76 +112,56 @@ begin
   { assume f g, simp only [smul_apply], refl }
 end
 
+/-- The map from linear maps (n → α) →ₗ[α] (m → α) to matrix m n α. -/
 def to_matrix [decidable_eq n]: ((n → α) →ₗ[α] (m → α)) → matrix m n α := to_matrixₗ.to_fun
 
-section
-open finsupp
+end linear_map
 
-lemma is_basis_single [decidable_eq n] [decidable_eq α] :
-  is_basis α (λ i:n, (single i (1:α)).to_fun) :=
-begin
-  convert pi.is_basis_fun α; apply_instance <|>
-  ext i j,
-  rw [std_basis_apply, show (single _ _).to_fun _ = _, from single_apply],
-  split_ifs,
-  { rw [h, function.update_same] },
-  { rw [function.update_noteq (ne.symm h)], refl },
-  apply_instance
-end
+section lin_equiv_matrix
 
-lemma to_matrix_to_lin [decidable_eq n] [decidable_eq α] {f : (n → α) →ₗ[α] (m → α)} :
+variables {α : Type v} [comm_ring α] [decidable_eq n]
+
+open finsupp matrix linear_map
+
+lemma to_matrix_to_lin [decidable_eq α] {f : (n → α) →ₗ[α] (m → α)} :
   to_lin (to_matrix f) = f :=
 begin
-  ext g : 1,
-  convert linear_eq_on (set.range (λ i : n, (single i (1:α)).to_fun)) _ _,
-  { assume e he,
-    rw [set.mem_range] at he,
-    cases he with i h,
-    ext j,
-    change finset.univ.sum (λ k, (f.to_fun (single k 1).to_fun) j * (e k)) = _,
-    conv_lhs { congr, skip, funext, rw [mul_comm _ (e k)] },
-    change finset.univ.sum (λ k, (e k) • (f.to_fun (single k 1).to_fun) j) = _,
-    rw [←h],
-    conv_lhs { congr, skip, funext,
-      rw [←pi.smul_apply, ←linear_map.smul,
-        show (single _ _).to_fun _ = _, from @single_swap n α _ _ _ i k _],
-      rw [single_apply],
-      rw [show ite (k = i) (1:α) 0 • (single k (1:α)).to_fun = ite (k = i) (single i 1).to_fun 0, from
-        begin split_ifs, { rw[h_1, one_smul] }, { exact zero_smul _ _ } end],
-      rw [show f.to_fun (ite (k = i) (single i 1).to_fun 0) = ite (k = i) (f.to_fun (single k 1).to_fun) 0, from
-        begin split_ifs, { rw [h_1] }, { exact linear_map.map_zero f } end],
-      },
-      convert finset.sum_eq_single i _ _,
-      { rw [if_pos rfl], refl },
-      { assume _ _ hbi, rw [if_neg hbi], refl },
-      { assume hi, exact false.elim (hi $ finset.mem_univ i) } },
-  { refine is_basis.mem_span _ g,
-    convert pi.is_basis_fun α; apply_instance <|>
-    ext i j,
-    rw [std_basis_apply, show (single _ _).to_fun _ = _, from single_apply],
-    split_ifs,
-    { rw [h, function.update_same] },
-    { rw [function.update_noteq (ne.symm h)], refl },
-    apply_instance }
+  ext : 1,
+  -- Show that the two sides are equal by showing that they are equal on a basis
+  convert linear_eq_on (set.range _) _ (is_basis.mem_span (@pi.is_basis_fun α _ n _ _ _) _),
+  assume e he,
+  rw [@std_basis_eq_single α _ _ _ _ 1] at he,
+  cases (set.mem_range.mp he) with i h,
+  ext j,
+  change finset.univ.sum (λ k, (f.to_fun (single k 1).to_fun) j * (e k)) = _,
+  rw [←h],
+  conv_lhs { congr, skip, funext,
+    rw [mul_comm, ←smul_eq_mul, ←pi.smul_apply, ←linear_map.smul, single_apply],
+    rw [show f.to_fun (ite (i = k) (1:α) 0 • (single k 1).to_fun) = ite (i = k) (f.to_fun ((single k 1).to_fun)) 0,
+      { split_ifs, { rw [one_smul] }, { rw [zero_smul], exact linear_map.map_zero f } }] },
+  convert finset.sum_eq_single i _ _,
+  { rw [if_pos rfl], refl },
+  { assume _ _ hbi, rw [if_neg $ ne.symm hbi], refl },
+  { assume hi, exact false.elim (hi $ finset.mem_univ i) }
 end
 
-lemma to_lin_to_matrix [decidable_eq n] {M : matrix m n α} : to_matrix (to_lin M) = M :=
+/-- to_lin is the right inverse of to_matrix. -/
+lemma to_lin_to_matrix {M : matrix m n α} : to_matrix (to_lin M) = M :=
 begin
   ext,
-  change finset.sum finset.univ (λ y, M i y * ite (j = y) 1 0) = M i j,
-  have : (λ y, M i y * ite (j = y) 1 0) = (λ y, ite (j = y) (M i y) 0),
+  change finset.univ.sum (λ y, M i y * ite (j = y) 1 0) = M i j,
+  have h1 : (λ y, M i y * ite (j = y) 1 0) = (λ y, ite (j = y) (M i y) 0),
     { ext, split_ifs, exact mul_one _, exact ring.mul_zero _ },
-  rw [this],
-  --from proof of to_finset_sum_count_eq in big_operators.lean (make a lemma?)
-  have : finset.univ.sum (λ y, ite (j = y) (M i y) 0) = (finset.singleton j).sum (λ y, ite (j = y) (M i y) 0),
+  have h2 : finset.univ.sum (λ y, ite (j = y) (M i y) 0) = (finset.singleton j).sum (λ y, ite (j = y) (M i y) 0),
   { refine (finset.sum_subset _ _).symm,
     { intros _ H, rwa finset.mem_singleton.1 H, exact finset.mem_univ _ },
     { exact λ _ _ H, if_neg (mt (finset.mem_singleton.2 ∘ eq.symm) H) } },
-  rw [this, finset.sum_singleton],
-  exact if_pos rfl,
+  rw [h1, h2, finset.sum_singleton],
+  exact if_pos rfl
 end
 
-def lin_equiv_matrix' [decidable_eq α] [decidable_eq n] : ((n → α) →ₗ[α] (m → α)) ≃ₗ[α] matrix m n α :=
+/-- Linear maps (n → α) →ₗ[α] (m → α) are linearly equivalent to matrix  m n α. -/
+def lin_equiv_matrix' [decidable_eq α] : ((n → α) →ₗ[α] (m → α)) ≃ₗ[α] matrix m n α :=
 { to_fun := to_matrix,
   inv_fun := to_lin,
   right_inv := λ _, to_lin_to_matrix,
@@ -156,39 +169,27 @@ def lin_equiv_matrix' [decidable_eq α] [decidable_eq n] : ((n → α) →ₗ[α
   add := to_matrixₗ.add,
   smul := to_matrixₗ.smul }
 
-def arrow_congr {α β₁ β₂ γ₁ γ₂ : Sort*} [comm_ring α]
-  [add_comm_group β₁] [add_comm_group β₂] [add_comm_group γ₁] [add_comm_group γ₂]
-  [module α β₁] [module α β₂] [module α γ₁] [module α γ₂]
-  (e₁ : β₁ ≃ₗ[α] β₂) (e₂ : γ₁ ≃ₗ[α] γ₂) :
-  (β₁ →ₗ[α] γ₁) ≃ₗ[α] (β₂ →ₗ[α] γ₂) :=
-{ to_fun := λ f, e₂.to_linear_map.comp $ f.comp e₁.symm.to_linear_map,
-  inv_fun := λ f, e₂.symm.to_linear_map.comp $ f.comp e₁.to_linear_map,
-  left_inv := λ f, by { ext x, unfold_coes,
-    change e₂.inv_fun (e₂.to_fun $ f.to_fun $ e₁.inv_fun $ e₁.to_fun x) = _,
-    rw [e₁.left_inv, e₂.left_inv] },
-  right_inv := λ f, by { ext x, dsimp, unfold_coes,
-    change e₂.to_fun (e₂.inv_fun $ f.to_fun $ e₁.to_fun $ e₁.inv_fun x) = _,
-    rw [e₁.right_inv, e₂.right_inv] },
-  add := λ f g, by { ext x, change e₂.to_fun ((f + g) (e₁.inv_fun x)) = _,
-    rw [linear_map.add_apply, e₂.add], refl },
-  smul := λ c f, by { ext x, change e₂.to_fun ((c • f) (e₁.inv_fun x)) = _,
-    rw [linear_map.smul_apply, e₂.smul], refl } }
+instance decidable_eq_fun (ι : Type*) [decidable_eq α] [fintype ι] : decidable_eq (ι → α)
+  | f g := if h : _ then is_true $ funext h else is_false (mt congr_fun h)
 
-def conj {α : Type u} {β : Type v} {γ : Type w} [comm_ring α] [add_comm_group β] [add_comm_group γ]
-  [module α β] [module α γ] (e : β ≃ₗ[α] γ) : (β →ₗ[α] β) ≃ₗ[α] (γ →ₗ[α] γ) :=
-arrow_congr e e
+/-- Given a basis of two modules β and γ over a commutative ring α, we get a linear equivalence
+between linear maps β →ₗ γ and matrices over α indexed by the bases. -/
+def lin_equiv_matrix {ι κ β γ : Type*} [decidable_eq α]
+  [add_comm_group β] [decidable_eq β] [module α β]
+  [add_comm_group γ] [decidable_eq γ] [module α γ]
+  [fintype ι] [decidable_eq ι] [fintype κ] [decidable_eq κ]
+  {v₁ : ι → β} {v₂ : κ → γ} (hv₁ : is_basis α v₁) (hv₂ : is_basis α v₂) :
+  (β →ₗ[α] γ) ≃ₗ[α] matrix κ ι α :=
+linear_equiv.trans (linear_equiv.arrow_congr (equiv_fun_basis hv₁) (equiv_fun_basis hv₂)) lin_equiv_matrix'
 
---TODO: Can do module instead of vector_space
-set_option class.instance_max_depth 60
-def lin_equiv_matrix {ι α : Type*} (β : Type*) [discrete_field α] [add_comm_group β] [decidable_eq β]
-  [decidable_eq (ι → β)] [vector_space α β] [fintype ι] [decidable_eq ι] {v : ι → β} (hv : is_basis α v) :
-  (β →ₗ[α] β) ≃ₗ[α] matrix ι ι α :=
-linear_equiv.trans (conj $ equiv_fun_basis hv) lin_equiv_matrix'
+end lin_equiv_matrix
 
-end
+namespace matrix
 
-section
-open linear_map
+section ring
+
+variables {α : Type v} [comm_ring α]
+open linear_map matrix
 
 lemma proj_diagonal [decidable_eq m] (i : m) (w : m → α) :
   (proj i).comp (to_lin (diagonal w)) = (w i) • proj i :=
@@ -204,14 +205,14 @@ begin
   { subst h },
   { rw [std_basis_ne α (λ_:n, α) _ _ (ne.symm h), _root_.mul_zero, _root_.mul_zero] }
 end
-end
 
 end ring
 
 section vector_space
+
 variables {α : Type u} [discrete_field α] -- maybe try to relax the universe constraint
 
-open linear_map
+open linear_map matrix
 
 lemma rank_vec_mul_vec [decidable_eq n] (w : m → α) (v : n → α) :
   rank (vec_mul_vec w v).to_lin ≤ 1 :=

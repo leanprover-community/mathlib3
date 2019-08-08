@@ -1,31 +1,31 @@
 /-
-  Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
-  Released under Apache 2.0 license as described in the file LICENSE.
-  Authors: Zhouhang Zhou
-  -/
+Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Zhouhang Zhou
+-/
 
 import algebra.ordered_field
 import tactic.linarith tactic.ring
 
 /-!
-  # Quadratic discriminants and roots of a quadratic
+# Quadratic discriminants and roots of a quadratic
 
-  This file defines the discriminant of a quadratic and prove their
+This file defines the discriminant of a quadratic and prove their
 
-  ## Main definition
+## Main definition
 
-  The discriminant of a quadratic `a*x*x + b*x + c` is `b*b - 4*a*c`.
+The discriminant of a quadratic `a*x*x + b*x + c` is `b*b - 4*a*c`.
 
-  ## Main statements
-  • Roots of a quadratic can be written as `(-b + s) / (2 * a)` or `(-b - s) / (2 * a)`,
-    where `s` is the square root of the discriminant.
-  • If the discriminant has no square root, then the corresponding quadratic has no root.
-  • If a quadratic is always non-negative, then its discriminant is non-positive.
+## Main statements
+• Roots of a quadratic can be written as `(-b + s) / (2 * a)` or `(-b - s) / (2 * a)`,
+  where `s` is the square root of the discriminant.
+• If the discriminant has no square root, then the corresponding quadratic has no root.
+• If a quadratic is always non-negative, then its discriminant is non-positive.
 
-  ## Tags
+## Tags
 
-  polynomial, quadratic, discriminant, root
-  -/
+polynomial, quadratic, discriminant, root
+-/
 
 variables {α : Type*}
 
@@ -33,16 +33,16 @@ section lemmas
 
 variables [linear_ordered_field α] {a b c : α}
 
-lemma exists_le_mul : ∀ a : α, ∃ x : α, a ≤ x * x :=
+lemma exists_le_mul_self : ∀ a : α, ∃ x : α, a ≤ x * x :=
 begin
   assume a, cases le_total 1 a with ha ha,
   { use a, exact le_mul_of_ge_one_left (by linarith) ha },
   { use 1, linarith }
 end
 
-lemma exists_lt_mul : ∀ a : α, ∃ x : α, a < x * x :=
+lemma exists_lt_mul_self : ∀ a : α, ∃ x : α, a < x * x :=
 begin
-  assume a, rcases (exists_le_mul a) with ⟨x, hx⟩,
+  assume a, rcases (exists_le_mul_self a) with ⟨x, hx⟩,
   cases le_total 0 x with hx' hx',
   { use (x + 1),
     have : (x+1)*(x+1) = x*x + 2*x + 1, ring,
@@ -65,16 +65,16 @@ A quadratic has roots if and only if its discriminant equals some square.
 lemma quadratic_eq_zero_iff_discrim_eq_square (ha : a ≠ 0) :
   ∀ x : α, a * x * x + b * x + c = 0 ↔  discrim a b c = (2 * a * x + b)^2 :=
 assume x, iff.intro
-  ( assume h, calc
+  (assume h, calc
       discrim a b c = 4*a*(a*x*x + b*x + c) + b*b - 4*a*c : by rw [h, discrim]; ring
-      ... = (2*a*x + b)^2 : by ring )
-  ( assume h,
+      ... = (2*a*x + b)^2 : by ring)
+  (assume h,
     have ha : 2*2*a ≠ 0 := mul_ne_zero (mul_ne_zero two_ne_zero two_ne_zero) ha,
     eq_of_mul_eq_mul_left_of_ne_zero ha $
     calc
       2 * 2 * a * (a * x * x + b * x + c) = (2*a*x + b)^2 - (b^2 - 4*a*c) : by ring
       ... = 0 : by { rw [← h, discrim], ring }
-      ... = 2*2*a*0 : by ring )
+      ... = 2*2*a*0 : by ring)
 
 /-- Roots of a quadratic -/
 lemma quadratic_eq_zero_iff (ha : a ≠ 0) {s : α} (h : discrim a b c = s * s) :
@@ -119,7 +119,7 @@ begin
   contradiction
 end
 
-/-- If a polynomial of degree 2 is always nonnegative, then its dicriminant is nonpositive -/
+/-- If a polynomial of degree 2 is always nonnegative, then its discriminant is nonpositive -/
 lemma discriminant_le_zero {a b c : α} (h : ∀ x : α,  0 ≤ a*x*x + b*x + c) : discrim a b c ≤ 0 :=
 have hc : 0 ≤ c, by { have := h 0, linarith },
 begin
@@ -128,7 +128,7 @@ begin
   -- if a < 0
   cases classical.em (b = 0) with hb hb,
   { rw hb at *,
-    rcases exists_lt_mul (-c/a) with ⟨x, hx⟩,
+    rcases exists_lt_mul_self (-c/a) with ⟨x, hx⟩,
     have := mul_lt_mul_of_neg_left hx ha,
     rw [mul_div_cancel' _ (ne_of_lt ha), ← mul_assoc] at this,
     have h₂ := h x, linarith },
@@ -160,7 +160,7 @@ begin
 end
 
 /--
-If a polynomial of degree 2 is always positive, then its dicriminant is negtive,
+If a polynomial of degree 2 is always positive, then its discriminant is negative,
 at least when the coefficient of the quadratic term is nonzero.
 -/
 lemma discriminant_lt_zero {a b c : α} (ha : a ≠ 0) (h : ∀ x : α,  0 < a*x*x + b*x + c) :

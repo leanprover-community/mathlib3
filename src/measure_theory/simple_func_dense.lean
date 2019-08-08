@@ -174,7 +174,7 @@ end,
   begin
     simp only [mem_preimage, fx_eq_0, metric.mem_ball, one_div_eq_inv, norm_zero,
                not_and, not_lt, add_comm, not_le, dist_zero_right, mem_diff],
-    assume h, rw add_comm, exact inv_pos_of_nat
+    assume h, rw add_comm, exact inv_pos (add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one)
   end,
   have x_not_mem_A  : ∀ {M k}, x ∉ A M k :=
     by { assume M k h, have := disjointed_subset h, exact absurd this x_not_mem_A' },

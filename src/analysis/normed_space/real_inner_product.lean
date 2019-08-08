@@ -1,8 +1,8 @@
 /-
-	Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
-	Released under Apache 2.0 license as described in the file LICENSE.
-	Authors: Zhouhang Zhou
-  -/
+Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Zhouhang Zhou
+-/
 
 import analysis.convex
 import algebra.quadratic_discriminant
@@ -10,22 +10,22 @@ import tactic.monotonicity
 import analysis.specific_limits
 
 /-!
-	# Inner Product Space
+# Inner Product Space
 
-  Define inner product space over reals and prove its basic properties.
+Define inner product space over reals and prove its basic properties.
 
-	## Implementation notes
+## Implementation notes
 
-	## Tags
+## Tags
 
-	inner product space, norm
+inner product space, norm
 
-	## References
-  *  [Clément & Martin, *The Lax-Milgram Theorem. A detailed proof to be formalized in Coq*]
-	*  [Clément & Martin, *A Coq formal proof of the Lax–Milgram theorem*]
+## References
+*  [Clément & Martin, *The Lax-Milgram Theorem. A detailed proof to be formalized in Coq*]
+*  [Clément & Martin, *A Coq formal proof of the Lax–Milgram theorem*]
 
-	The Coq code is available at the following address: http://www.lri.fr/~sboldo/elfic/index.html
-  -/
+The Coq code is available at the following address: http://www.lri.fr/~sboldo/elfic/index.html
+-/
 
 noncomputable theory
 

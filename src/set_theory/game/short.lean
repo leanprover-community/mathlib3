@@ -9,7 +9,13 @@ import data.fintype
 /-!
 # Short games
 
-A combinatorial games is *short* if there is a finite set of moves at every point.
+A combinatorial game is `short` if there is a finite set of moves at every point.
+(That is, the index types for both Left's and Right's moves are `fintype`, and every
+resulting game is also `short`.)
+
+We prove that the order relations `≤` and `<`, and the equivalence relation `≈`, are decidable on
+short games, although unfortunately in practice `dec_trivial` doesn't seem to be able to
+prove anything using these instances.
 -/
 universes u
 
@@ -138,6 +144,12 @@ begin
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
+instance lt_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x < y) :=
+begin
+  rw pgame.not_le.symm,
+  apply_instance,
+end
+
 instance equiv_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x ≈ y) :=
 and.decidable
 
@@ -147,13 +159,14 @@ example : short (0 + 0) := by apply_instance
 
 example : decidable ((1 : pgame) ≤ 1) := by apply_instance
 
+-- The VM can successfully compute the order relations in small examples:
 -- #eval to_bool ((1 : pgame) ≤ 0)
 -- #eval to_bool ((0 : pgame) ≤ 1)
 -- #eval to_bool ((1 : pgame) ≤ 1)
 
 -- #eval to_bool ((1 : pgame) + 1 + 1 ≤ (1 + 0 + 1))
 
--- Unfortunately the kernal can't keep up...
+-- Unfortunately the kernel can't keep up...
 -- example : (0 : pgame) ≤ 0 := dec_trivial
 -- example : (1 : pgame) ≤ 1 := by exact dec_trivial
 

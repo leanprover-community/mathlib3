@@ -2,16 +2,27 @@
 Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
-
-Domineering as a combinatorial game.
 -/
 import set_theory.game.short
 import tactic.norm_num
+
+/-!
+# Domineering as a combinatorial game.
+
+We define the game of Domineering, played on a chessboard of arbitrary shape (possibly even disconnected).
+Left moves by placing a domino vertically, while Right moves by placing a domino horizontally.
+
+This is only a fragment of a full development; in order to successfully analyse positions we would
+need some more theorems. Most importantly, we need a general statement that allows us to discard irrelevant moves.
+Specifically to domineering, we need the fact the disjoint parts of the chessboard give sums of games.
+-/
 
 open pgame
 
 namespace domineering_aux
 
+-- TODO express the next two in terms of addition on ℤ × ℤ, and factor out the common proofs
+/-- The embedding `(x, y) ↦ (x, y+1)`. -/
 def shift_up : ℤ × ℤ ↪ ℤ × ℤ :=
 ⟨λ p : ℤ × ℤ, (p.1, p.2 + 1), λ p q h,
  begin
@@ -21,6 +32,7 @@ def shift_up : ℤ × ℤ ↪ ℤ × ℤ :=
    have h := (congr_arg (λ p : ℤ × ℤ, p.2 - 1) h),
    simpa using h,
  end⟩
+/-- The embedding `(x, y) ↦ (x+1, y)`. -/
 def shift_right : ℤ × ℤ ↪ ℤ × ℤ :=
 ⟨λ p : ℤ × ℤ, (p.1 + 1, p.2), λ p q h,
  begin
@@ -31,11 +43,10 @@ def shift_right : ℤ × ℤ ↪ ℤ × ℤ :=
    convert (congr_arg prod.snd h),
  end⟩
 
-def left_set  (b : finset (ℤ × ℤ)) : finset (ℤ × ℤ) := b ∩ b.map shift_up
-def right_set (b : finset (ℤ × ℤ)) : finset (ℤ × ℤ) := b ∩ b.map shift_right
-
-def left  (b : finset (ℤ × ℤ)) : Type := { p | p ∈ left_set b }
-def right (b : finset (ℤ × ℤ)) : Type := { p | p ∈ right_set b }
+/-- Left can play anywhere that a square and the square above it are open. -/
+def left  (b : finset (ℤ × ℤ)) : Type := { p | p ∈ b ∩ b.map shift_up }
+/-- Right can play anywhere that a square and the square to the right are open. -/
+def right (b : finset (ℤ × ℤ)) : Type := { p | p ∈ b ∩ b.map shift_right }
 
 instance fintype_left (b : finset (ℤ × ℤ)) : fintype (left b) :=
 fintype.subtype _ (λ x, iff.refl _)
@@ -43,21 +54,24 @@ fintype.subtype _ (λ x, iff.refl _)
 instance fintype_right (b : finset (ℤ × ℤ)) : fintype (right b) :=
 fintype.subtype _ (λ x, iff.refl _)
 
+/-- After Left moves, two vertically adjacent squares are removed from the board. -/
 def move_left (b : finset (ℤ × ℤ)) (m : left b) : finset (ℤ × ℤ) :=
 (b.erase m.val).erase (m.val.1, m.val.2 - 1)
+/-- After Left moves, two horizontally adjacent squares are removed from the board. -/
 def move_right (b : finset (ℤ × ℤ)) (m : right b) : finset (ℤ × ℤ) :=
 (b.erase m.val).erase (m.val.1 - 1, m.val.2)
 
 lemma int.succ_ne_self {x : ℤ} : x + 1 ≠ x :=
 ne_of_gt (lt_add_one x)
 
+-- TODO the proofs of the next two lemmas are pretty unsatisfactory.
+-- They perhaps could be combined in some way.
 lemma move_left_smaller (b : finset (ℤ × ℤ)) (m : left b) :
   finset.card (move_left b m) < finset.card b :=
 begin
   dsimp [move_left],
   rcases m with ⟨⟨x,y⟩,p⟩,
   dsimp,
-  dsimp [left_set] at p,
   simp at p,
   cases p with p₁ p₂,
   dsimp [shift_up] at p₂,
@@ -82,7 +96,6 @@ begin
   dsimp [move_right],
   rcases m with ⟨⟨x,y⟩,p⟩,
   dsimp,
-  dsimp [right_set] at p,
   simp at p,
   cases p with p₁ p₂,
   dsimp [shift_right] at p₂,
@@ -110,6 +123,7 @@ open domineering_aux
 
 instance : has_well_founded (finset (ℤ × ℤ)) := ⟨measure finset.card, measure_wf finset.card⟩
 
+/-- We construct a domineering game from any finite subset of `ℤ × ℤ`. -/
 def domineering : finset (ℤ × ℤ) → pgame
 | b := pgame.mk
     (left b) (right b)
@@ -148,6 +162,7 @@ begin
   exact domineering_aux.fintype_right b,
 end
 
+/-- Domineering is always a short game, because the board is finite. -/
 instance short_domineering : Π (b : finset (ℤ × ℤ)), short (domineering b)
 | b :=
 @short.mk (domineering b) (by apply_instance) (by apply_instance)
@@ -160,6 +175,7 @@ end)
   exact have _, from move_right_smaller b (by { convert j, simp }), short_domineering (move_right b _),
 end)
 
+/-- The `L` shaped board, in which Left is exactly half a move ahead. -/
 def domineering.L := domineering ([(0,2), (0,1), (0,0), (1,0)].to_finset)
 
 instance : short domineering.L := by { dsimp [domineering.L], apply_instance}
@@ -182,7 +198,8 @@ instance : short domineering.L := by { dsimp [domineering.L], apply_instance}
 -- #eval to_bool (domineering.L ≈ pgame.of_lists [0] [1])
 -- example : domineering.L ≈ pgame.of_lists [0] [1] := dec_trivial
 
--- TODO: Prove some of the following facts:
+-- TODO: It would be nice to analyse the first interesting game in Domineering, the "L", in which
+-- Left is exactly half a move ahead. The following comments sketch the beginning of this argument.
 
 -- theorem L_left_moves : domineering.L.left_moves = { p | p ∈ [(0, 2), (0, 1)].to_finset } := sorry
 -- theorem L_right_moves : domineering.L.right_moves = { p | p ∈ [(1, 0)].to_finset } := sorry

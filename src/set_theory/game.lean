@@ -69,6 +69,11 @@ of a game, and show, for example, that there is a relabelling between `x + (y + 
 
 ## References
 * [Conway, *On numbers and games*][conway2001]
+
+An interested reader may like to pursue the material in
+* Andreas Blass, A game semantics for linear logic, Ann. Pure Appl. Logic 56 (1992), 183-220
+* A. Joyal, Remarques sur la théorie des jeux à deux personnes, Gazette des Sciences Mathematiques du Québec 1(4):46–52, 1977.
+  (English translation at https://bosker.files.wordpress.com/2010/12/joyal-games.pdf)
 -/
 
 universes u
@@ -131,9 +136,11 @@ instance : has_well_founded pgame :=
 { r := subsequent,
   wf := wf_subsequent }
 
+/-- A move by Left produces a subsequent game. -/
 def subsequent.left_move {xl xr} {xL : xl → pgame} {xR : xr → pgame} {i : xl} :
   subsequent (xL i) (mk xl xr xL xR) :=
 subsequent.left (mk xl xr xL xR) (by { convert i, refl })
+/-- A move by Right produces a subsequent game. -/
 def subsequent.right_move {xl xr} {xL : xl → pgame} {xR : xr → pgame} {j : xr} :
   subsequent (xR j) (mk xl xr xL xR) :=
 subsequent.right (mk xl xr xL xR) (by { convert j, refl })
@@ -417,16 +424,39 @@ theorem le_congr {x₁ y₁ x₂ y₂} : x₁ ≈ x₂ → y₁ ≈ y₂ → (x�
 theorem lt_congr {x₁ y₁ x₂ y₂} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ < y₁ ↔ x₂ < y₂ :=
 not_le.symm.trans $ (not_congr (le_congr hy hx)).trans not_le
 
-/-- `restricted x y` says that Left always has fewer moves in `x` than in `y`,
-     and Right always has fewer moves in `y` than in `x` -/
+/-- `restricted x y` says that Left always has no more moves in `x` than in `y`,
+     and Right always has no more moves in `y` than in `x` -/
 inductive restricted : pgame.{u} → pgame.{u} → Type (u+1)
 | mk : Π (x y : pgame) (L : x.left_moves ↪ y.left_moves) (R : y.right_moves ↪ x.right_moves),
          (∀ (i : x.left_moves), restricted (x.move_left i) (y.move_left (L i))) →
          (∀ (j : y.right_moves), restricted (x.move_right (R j)) (y.move_right j)) → restricted x y
 
--- TODO prove `restricted x y → restricted y x → relabelling x y`
--- TODO prove results below about relabelling for `restricted`, as appropriate
--- TODO prove `restricted x y → x ≤ y`
+/-- The identity restriction. -/
+@[refl] def restricted.refl : Π (x : pgame), restricted x x
+| (mk xl xr xL xR) :=
+  restricted.mk (mk xl xr xL xR) (mk xl xr xL xR)
+    (function.embedding.refl _) (function.embedding.refl _)
+    (λ i, restricted.refl _) (λ j, restricted.refl _)
+using_well_founded { dec_tac := pgame_wf_tac }
+
+-- TODO trans for restricted
+
+theorem le_of_restricted : Π {x y : pgame} (r : restricted x y), x ≤ y
+| (mk xl xr xL xR) (mk yl yr yL yR) (restricted.mk _ _ L_embedding R_embedding L_restriction R_restriction) :=
+begin
+  rw le_def,
+  split,
+  { intro i,
+    left,
+    use (L_embedding.to_fun i),
+    dsimp,
+    exact le_of_restricted (L_restriction i) },
+  { intro j,
+    right,
+    use (R_embedding.to_fun j),
+    dsimp,
+    exact le_of_restricted (R_restriction j) },
+end
 
 /-- `relabelling x y` says that `x` and `y` are really the same game, just dressed up differently.
   Specifically, there is a bijection between the moves for Left in `x` and in `y`, and similarly
@@ -436,12 +466,24 @@ inductive relabelling : pgame.{u} → pgame.{u} → Type (u+1)
          (∀ (i : x.left_moves), relabelling (x.move_left i) (y.move_left (L i))) →
          (∀ (j : y.right_moves), relabelling (x.move_right (R.symm j)) (y.move_right j)) → relabelling x y
 
+/-- If `x` is a relabelling of `y`, then Left and Right have the same moves in either game,
+    so `x` is a restriction of `y`. -/
+def restricted_of_relabelling : Π {x y : pgame} (r : relabelling x y), restricted x y
+| (mk xl xr xL xR) (mk yl yr yL yR) (relabelling.mk _ _ L_equiv R_equiv L_relabelling R_relabelling) :=
+restricted.mk _ _ L_equiv.to_embedding R_equiv.symm.to_embedding
+  (λ i, restricted_of_relabelling (L_relabelling i))
+  (λ j, restricted_of_relabelling (R_relabelling j))
+
+-- TODO prove `restricted x y → restricted y x → relabelling x y`
+
+/-- The identity relabelling. -/
 @[refl] def relabelling.refl : Π (x : pgame), relabelling x x
 | (mk xl xr xL xR) :=
   relabelling.mk (mk xl xr xL xR) (mk xl xr xL xR) (equiv.refl _) (equiv.refl _)
     (λ i, relabelling.refl _) (λ j, relabelling.refl _)
 using_well_founded { dec_tac := pgame_wf_tac }
 
+/-- Reverse a relabelling. -/
 @[symm] def relabelling.symm : Π {x y : pgame}, relabelling x y → relabelling y x
 | (mk xl xr xL xR) (mk yl yr yL yR) (relabelling.mk _ _ L_equiv R_equiv L_relabelling R_relabelling) :=
 begin
@@ -454,22 +496,8 @@ end
 
 -- TODO trans for relabelling?
 
-theorem le_of_relabelling : Π {x y : pgame} (r : relabelling x y), x ≤ y
-| (mk xl xr xL xR) (mk yl yr yL yR) (relabelling.mk _ _ L_equiv R_equiv L_relabelling R_relabelling) :=
-begin
-  rw le_def,
-  split,
-  { intro i,
-    left,
-    use (L_equiv.to_fun i),
-    dsimp,
-    exact le_of_relabelling (L_relabelling i) },
-  { intro j,
-    right,
-    use (R_equiv.inv_fun j),
-    dsimp,
-    exact le_of_relabelling (R_relabelling j) },
-end
+theorem le_of_relabelling {x y : pgame} (r : relabelling x y) : x ≤ y :=
+le_of_restricted (restricted_of_relabelling r)
 
 /-- A relabelling lets us prove equivalence of games. -/
 theorem equiv_of_relabelling {x y : pgame} (r : relabelling x y) : x ≈ y :=
@@ -610,6 +638,7 @@ end
 
 instance : has_add pgame := ⟨add⟩
 
+/-- `x + 0` has exactly the same moves as `x`. -/
 def add_zero_relabelling : Π (x : pgame.{u}), relabelling (x + 0) x
 | (mk xl xr xL xR) :=
 begin
@@ -624,9 +653,11 @@ begin
     apply add_zero_relabelling, }
 end
 
+/-- `x + 0` is equivalent to `x`. -/
 def add_zero_equiv (x : pgame.{u}) : x + 0 ≈ x :=
 equiv_of_relabelling (add_zero_relabelling x)
 
+/-- `0 + x` has exactly the same moves as `x`. -/
 def zero_add_relabelling : Π (x : pgame.{u}), relabelling (0 + x) x
 | (mk xl xr xL xR) :=
 begin
@@ -641,6 +672,7 @@ begin
     apply zero_add_relabelling, }
 end
 
+/-- `0 + x` is equivalent to `x`. -/
 def zero_add_equiv (x : pgame.{u}) : 0 + x ≈ x :=
 equiv_of_relabelling (zero_add_relabelling x)
 
@@ -709,6 +741,7 @@ end
 
 instance : has_sub pgame := ⟨λ x y, x + -y⟩
 
+/-- `-(x+y)` has exactly the same moves as `-x + -y`. -/
 def neg_add_relabelling : Π (x y : pgame), relabelling (-(x + y)) (-x + -y)
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
@@ -733,6 +766,7 @@ using_well_founded { dec_tac := pgame_wf_tac }
 theorem neg_add_le {x y : pgame} : -(x + y) ≤ -x + -y :=
 le_of_relabelling (neg_add_relabelling x y)
 
+/-- `x+y` has exactly the same moves as `y+x`. -/
 def add_comm_relabelling : Π (x y : pgame.{u}), relabelling (x + y) (y + x)
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
@@ -761,6 +795,7 @@ le_of_relabelling (add_comm_relabelling x y)
 theorem add_comm_equiv {x y : pgame} : (x + y) ≈ (y + x) :=
 equiv_of_relabelling (add_comm_relabelling x y)
 
+/-- `(x + y) + z` has exactly the same moves as `x + (y + z)`. -/
 def add_assoc_relabelling : Π (x y z : pgame.{u}), relabelling ((x + y) + z) (x + (y + z))
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
 begin
@@ -1057,6 +1092,15 @@ by { rintro ⟨x⟩ ⟨y⟩, exact not_le }
 instance : has_zero game := ⟨⟦0⟧⟩
 instance : has_one game := ⟨⟦1⟧⟩
 
+
+/-- The negation of `{L | R}` is `{-R | -L}`. -/
+def neg : game → game :=
+quot.lift (λ x, ⟦-x⟧) (λ x y h, quot.sound (@neg_congr x y h))
+
+instance : has_neg game :=
+{ neg := neg, }
+
+/-- The sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
 def add : game → game → game :=
 quotient.lift₂ (λ x y : pgame, ⟦x + y⟧) (λ x₁ y₁ x₂ y₂ hx hy, quot.sound (pgame.add_congr hx hy))
 
@@ -1099,12 +1143,6 @@ instance : add_monoid game :=
   ..game.has_zero,
   ..game.add_semigroup }
 
-def neg : game → game :=
-quot.lift (λ x, ⟦-x⟧) (λ x y h, quot.sound (@neg_congr x y h))
-
-instance : has_neg game :=
-{ neg := neg, }
-
 theorem add_left_neg (x : game) : (-x) + x = 0 :=
 begin
   induction x,
@@ -1118,7 +1156,7 @@ instance : add_group game :=
   ..game.has_neg,
   ..game.add_monoid }
 
-def add_comm (x y : game) : x + y = y + x :=
+theorem add_comm (x y : game) : x + y = y + x :=
 begin
   induction x generalizing y,
   induction y,

@@ -10,6 +10,35 @@ import set_theory.game
 
 The basic theory of surreal numbers, built on top of the theory of combinatorial games.
 
+A pregame is `numeric` if all the Left options are strictly smaller than all the Right options,
+and all those options are themselves numeric. In terms of combinatorial games, the
+numeric games have "frozen"; you can only make your position worse by playing, and Left is some
+definite "number" of moves ahead (or behind) Right.
+
+A surreal number is an equivalence class of numeric pregames.
+
+In fact, the surreals form a complete ordered field, containing a copy of the reals (and much else besides!)
+but we do not yet have a complete development.
+
+## Order properties
+Surreal numbers inherit the relations `≤` and `<` from games, and these relations
+satisfy the axioms of a partial order (recall that `x < y ↔ x ≤ y ∧ ¬ y ≤ x` did not hold for games).
+
+## Algebraic operations
+At this point, we have defined addition and negation (from pregames), and shown that surreals
+form an additive semigroup. It would be very little work to finish showing that the surreals form
+an ordered commutative group.
+
+We define the operations of multiplication and inverse on surreals, but do not yet establish any of the
+necessary properties to show the surreals form an ordered field.
+
+## Embeddings
+It would be nice projects to define the group homomorphism `surreal → game`, and also
+`ℤ → surreal`, and then the homomorphic inclusion of the dyadic rationals into surreals, and finally
+via dyadic Dedekind cuts the homomorphic inclusion of the reals into the surreals.
+
+One can also map all the cardinals into the surreals!
+
 ## References
 * [Conway, *On numbers and games*][conway2001]
 -/

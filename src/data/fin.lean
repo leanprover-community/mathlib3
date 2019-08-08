@@ -315,6 +315,10 @@ lemma mem_find_iff {p : fin n → Prop} [decidable_pred p] {i : fin n} :
     { exact option.some_inj.2 (le_antisymm (find_min' hfp hpi) (hj _ (find_spec _ hfp))) }
   end⟩
 
+lemma find_eq_some_iff {p : fin n → Prop} [decidable_pred p] {i : fin n} : 
+  fin.find p = some i ↔ p i ∧ ∀ j, p j → i ≤ j :=
+ mem_find_iff
+
 lemma mem_find_of_unique {p : fin n → Prop} [decidable_pred p]
   (h : ∀ i j, p i → p j → i = j) {i : fin n} (hi : p i) : i ∈ fin.find p :=
 mem_find_iff.2 ⟨hi, λ j hj, le_of_eq $ h i j hi hj⟩

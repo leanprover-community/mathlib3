@@ -2,13 +2,31 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
-
-A basic theory of Cauchy sequences, used in the construction of the reals.
-Where applicable, lemmas that will be reused in other contexts have
-been stated in extra generality.
 -/
+
 import algebra.big_operators algebra.ordered_field
 
+/-!
+# Cauchy sequences
+
+A basic theory of Cauchy sequences, used in the construction of the reals and p-adic numbers. Where
+applicable, lemmas that will be reused in other contexts have been stated in extra generality.
+
+There are other "versions" of Cauchyness in the library, in particular Cauchy filters in topology.
+This is a concrete implementation that is useful for simplicity and computability reasons.
+
+## Important definitions
+
+* `is_absolute_value`: a type class stating that `f : β → α` satisfies the axioms of an abs val
+* `is_cau_seq`: a predicate that says `f : ℕ → β` is Cauchy.
+
+## Tags
+
+sequence, cauchy, abs val, absolute value
+-/
+
+/-- A function f is an absolute value if it is nonnegative, zero only at 0, additive, and
+multiplicative. -/
 class is_absolute_value {α} [discrete_linear_ordered_field α]
   {β} [ring β] (f : β → α) : Prop :=
 (abv_nonneg : ∀ x, 0 ≤ f x)
@@ -96,15 +114,15 @@ theorem rat_add_continuous_lemma
   by simpa [add_halves] using lt_of_le_of_lt (abv_add abv _ _) (add_lt_add h₁ h₂)⟩
 
 theorem rat_mul_continuous_lemma
-  {ε K₁ K₂ : α} (ε0 : 0 < ε) (K₁0 : 0 < K₁) (K₂0 : 0 < K₂) :
+  {ε K₁ K₂ : α} (ε0 : 0 < ε) :
   ∃ δ > 0, ∀ {a₁ a₂ b₁ b₂ : β}, abv a₁ < K₁ → abv b₂ < K₂ →
   abv (a₁ - b₁) < δ → abv (a₂ - b₂) < δ → abv (a₁ * a₂ - b₁ * b₂) < ε :=
 begin
-  have K0 := lt_of_lt_of_le K₁0 (le_max_left _ K₂),
+  have K0 : (0 : α) < max 1 (max K₁ K₂) := lt_of_lt_of_le zero_lt_one (le_max_left _ _),
   have εK := div_pos (half_pos ε0) K0,
   refine ⟨_, εK, λ a₁ a₂ b₁ b₂ ha₁ hb₂ h₁ h₂, _⟩,
-  replace ha₁ := lt_of_lt_of_le ha₁ (le_max_left _ K₂),
-  replace hb₂ := lt_of_lt_of_le hb₂ (le_max_right K₁ _),
+  replace ha₁ := lt_of_lt_of_le ha₁ (le_trans (le_max_left _ K₂) (le_max_right 1 _)),
+  replace hb₂ := lt_of_lt_of_le hb₂ (le_trans (le_max_right K₁ _) (le_max_right 1 _)),
   have := add_lt_add
     (mul_lt_mul' (le_of_lt h₁) hb₂ (abv_nonneg abv _) εK)
     (mul_lt_mul' (le_of_lt h₂) ha₁ (abv_nonneg abv _) εK),
@@ -132,8 +150,9 @@ begin
 end
 end
 
+/-- A sequence is Cauchy if the distance between its entries tends to zero. -/
 def is_cau_seq {α : Type*} [discrete_linear_ordered_field α]
-  {β : Type*} [ring β] (abv : β → α) [is_absolute_value abv] (f : ℕ → β) :=
+  {β : Type*} [ring β] (abv : β → α) (f : ℕ → β) :=
 ∀ ε > 0, ∃ i, ∀ j ≥ i, abv (f j - f i) < ε
 
 namespace is_cau_seq
@@ -156,14 +175,14 @@ let ⟨i, H⟩ := hf.cauchy₂ ε0 in ⟨i, λ j ij k jk, H _ _ (le_trans ij jk)
 end is_cau_seq
 
 def cau_seq {α : Type*} [discrete_linear_ordered_field α]
-  (β : Type*) [ring β] (abv : β → α) [is_absolute_value abv] :=
+  (β : Type*) [ring β] (abv : β → α) :=
 {f : ℕ → β // is_cau_seq abv f}
 
 namespace cau_seq
 variables {α : Type*} [discrete_linear_ordered_field α]
 
 section ring
-variables {β : Type*} [ring β] {abv : β → α} [is_absolute_value abv]
+variables {β : Type*} [ring β] {abv : β → α}
 
 instance : has_coe_to_fun (cau_seq β abv) := ⟨_, subtype.val⟩
 
@@ -177,6 +196,11 @@ theorem is_cau (f : cau_seq β abv) : is_cau_seq abv f := f.2
 
 theorem cauchy (f : cau_seq β abv) :
   ∀ {ε}, ε > 0 → ∃ i, ∀ j ≥ i, abv (f j - f i) < ε := f.2
+
+def of_eq (f : cau_seq β abv) (g : ℕ → β) (e : ∀ i, f i = g i) : cau_seq β abv :=
+⟨g, λ ε, by rw [show g = f, from (funext e).symm]; exact f.cauchy⟩
+
+variable [is_absolute_value abv]
 
 theorem cauchy₂ (f : cau_seq β abv) {ε:α} : ε > 0 →
   ∃ i, ∀ j k ≥ i, abv (f j - f k) < ε := f.2.cauchy₂
@@ -206,9 +230,6 @@ let ⟨r, h⟩ := f.bounded in
 ⟨max r (x+1), lt_of_lt_of_le (lt_add_one _) (le_max_right _ _),
   λ i, lt_of_lt_of_le (h i) (le_max_left _ _)⟩
 
-def of_eq (f : cau_seq β abv) (g : ℕ → β) (e : ∀ i, f i = g i) : cau_seq β abv :=
-⟨g, λ ε, by rw [show g = f, from (funext e).symm]; exact f.cauchy⟩
-
 instance : has_add (cau_seq β abv) :=
 ⟨λ f g, ⟨λ i, (f i + g i : β), λ ε ε0,
   let ⟨δ, δ0, Hδ⟩ := rat_add_continuous_lemma abv ε0,
@@ -218,8 +239,11 @@ instance : has_add (cau_seq β abv) :=
 @[simp] theorem add_apply (f g : cau_seq β abv) (i : ℕ) : (f + g) i = f i + g i := rfl
 
 variable (abv)
+
+/-- The constant Cauchy sequence. -/
 def const (x : β) : cau_seq β abv :=
 ⟨λ i, x, λ ε ε0, ⟨0, λ j ij, by simpa [abv_zero abv] using ε0⟩⟩
+
 variable {abv}
 
 local notation `const` := const abv
@@ -241,7 +265,7 @@ ext $ λ i, rfl
 instance : has_mul (cau_seq β abv) :=
 ⟨λ f g, ⟨λ i, (f i * g i : β), λ ε ε0,
   let ⟨F, F0, hF⟩ := f.bounded' 0, ⟨G, G0, hG⟩ := g.bounded' 0,
-      ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma abv ε0 F0 G0,
+      ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma abv ε0,
       ⟨i, H⟩ := exists_forall_ge_and (f.cauchy₃ δ0) (g.cauchy₃ δ0) in
   ⟨i, λ j ij, let ⟨H₁, H₂⟩ := H _ (le_refl _) in
     Hδ (hF j) (hG i) (H₁ _ ij) (H₂ _ ij)⟩⟩⟩
@@ -272,6 +296,7 @@ by rw [sub_eq_add_neg, const_add, const_neg, sub_eq_add_neg]
 
 @[simp] theorem sub_apply (f g : cau_seq β abv) (i : ℕ) : (f - g) i = f i - g i := rfl
 
+/-- `lim_zero f` holds when `f` approaches 0. -/
 def lim_zero (f : cau_seq β abv) := ∀ ε > 0, ∃ i, ∀ j ≥ i, abv (f j) < ε
 
 theorem add_lim_zero {f g : cau_seq β abv}
@@ -448,6 +473,7 @@ end discrete_field
 section abs
 local notation `const` := const abs
 
+/-- The entries of a positive Cauchy sequence eventually have a positive lower bound. -/
 def pos (f : cau_seq α abs) : Prop := ∃ K > 0, ∃ i, ∀ j ≥ i, K ≤ f j
 
 theorem not_lim_zero_of_pos {f : cau_seq α abs} : pos f → ¬ lim_zero f

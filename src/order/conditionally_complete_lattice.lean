@@ -537,8 +537,8 @@ end conditionally_complete_lattice
 section conditionally_complete_linear_order
 variables [conditionally_complete_linear_order α] {s t : set α} {a b : α}
 
-/--When b < Sup s, there is an element a in s with b < a, if s is nonempty and the order is
-a linear order.-/
+/-- When b < Sup s, there is an element a in s with b < a, if s is nonempty and the order is
+a linear order. -/
 lemma exists_lt_of_lt_cSup (_ : s ≠ ∅) (_ : b < Sup s) : ∃a∈s, b < a :=
 begin
   classical, by_contra h,
@@ -546,6 +546,15 @@ begin
     by apply cSup_le ‹s ≠ ∅› _; finish,
   apply lt_irrefl b (lt_of_lt_of_le ‹b < Sup s› ‹Sup s ≤ b›)
 end
+
+/--
+Indexed version of the above lemma `exists_lt_of_lt_cSup`.
+When `b < supr f`, there is an element `i` such that `b < f i`.
+-/
+lemma exists_lt_of_lt_csupr {ι : Sort*} (ne : nonempty ι) {f : ι → α} (h : b < supr f) :
+  ∃i, b < f i :=
+have h' : range f ≠ ∅ := nonempty.elim ne (λ i, ne_empty_of_mem (mem_range_self i)),
+let ⟨_, ⟨i, rfl⟩, h⟩ := exists_lt_of_lt_cSup h' h in ⟨i, h⟩
 
 /--When Inf s < b, there is an element a in s with a < b, if s is nonempty and the order is
 a linear order.-/
@@ -556,6 +565,15 @@ begin
     by apply le_cInf ‹s ≠ ∅› _; finish,
   apply lt_irrefl b (lt_of_le_of_lt ‹b ≤ Inf s› ‹Inf s < b›)
 end
+
+/--
+Indexed version of the above lemma `exists_lt_of_cInf_lt`
+When `infi f < a`, there is an element `i` such that `f i < a`.
+-/
+lemma exists_lt_of_cinfi_lt {ι : Sort*} (ne : nonempty ι) {f : ι → α} (h : infi f < a) :
+  (∃i, f i < a) :=
+have h' : range f ≠ ∅ := nonempty.elim ne (λ i, ne_empty_of_mem (mem_range_self i)),
+let ⟨_, ⟨i, rfl⟩, h⟩ := exists_lt_of_cInf_lt h' h in ⟨i, h⟩
 
 /--Introduction rule to prove that b is the supremum of s: it suffices to check that
 1) b is an upper bound

@@ -9,7 +9,7 @@ import topology.instances.complex tactic.linarith data.complex.exponential
 /-!
 # Exponential
 
-This file contains the following definitions and their basic properties:
+This file contains the following definitions:
 • π, arcsin, arccos, arctan
 • argument of a complex number
 • logarithm on real and complex numbers

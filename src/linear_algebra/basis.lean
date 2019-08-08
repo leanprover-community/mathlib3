@@ -776,6 +776,21 @@ begin
   exact (submodule.mem_bot α).1 (subtype.mem x),
 end
 
+open fintype
+variables [fintype ι] (h : is_basis α v)
+
+def equiv_fun_basis  : β ≃ₗ[α] (ι → α) :=
+linear_equiv.trans (module_equiv_finsupp h)
+  { to_fun := finsupp.to_fun,
+    add := λ x y, by ext; exact finsupp.add_apply,
+    smul := λ x y, by ext; exact finsupp.smul_apply,
+    ..finsupp.equiv_fun_on_fintype }
+
+theorem module.card_fintype [fintype α] [fintype β] :
+  card β = (card α) ^ (card ι) :=
+calc card β = card (ι → α)    : card_congr (equiv_fun_basis h).to_equiv
+        ... = card α ^ card ι : card_fun
+
 end module
 
 section vector_space
@@ -1006,21 +1021,6 @@ begin
 end
 
 open fintype
-variables (h : is_basis α v)
-
-local attribute [instance] submodule.module
-
-def equiv_fun_basis [fintype ι] : β ≃ₗ (ι → α) :=
-linear_equiv.trans (module_equiv_finsupp h)
-  { to_fun := finsupp.to_fun,
-    add := λ x y, by ext; exact finsupp.add_apply,
-    smul := λ x y, by ext; exact finsupp.smul_apply,
-    ..finsupp.equiv_fun_on_fintype }
-
-theorem vector_space.card_fintype [fintype ι] [fintype α] [fintype β] :
-  card β = (card α) ^ (card ι) :=
-calc card β = card (ι → α)    : card_congr (equiv_fun_basis h).to_equiv
-        ... = card α ^ card ι : card_fun
 
 theorem vector_space.card_fintype' [fintype α] [fintype β] :
   ∃ n : ℕ, card β = (card α) ^ n :=
@@ -1029,7 +1029,7 @@ begin
   intros b hb,
   haveI := classical.dec_pred (λ x, x ∈ b),
   use card b,
-  exact vector_space.card_fintype hb,
+  exact module.card_fintype hb,
 end
 
 end vector_space

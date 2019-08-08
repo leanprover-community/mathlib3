@@ -201,6 +201,9 @@ iff.intro
 lemma abs_pos_iff {a : α} : 0 < abs a ↔ a ≠ 0 :=
 ⟨λ h, mt abs_eq_zero.2 (ne_of_gt h), abs_pos_of_ne_zero⟩
 
+@[simp] lemma abs_nonpos_iff {a : α} : abs a ≤ 0 ↔ a = 0 :=
+by rw [← not_lt, abs_pos_iff, not_not]
+
 lemma abs_le_max_abs_abs (hab : a ≤ b)  (hbc : b ≤ c) : abs b ≤ max (abs a) (abs c) :=
 abs_le_of_le_of_neg_le
   (by simp [le_max_iff, le_trans hbc (le_abs_self c)])

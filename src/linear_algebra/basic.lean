@@ -1242,12 +1242,27 @@ of_linear ((a:α) • 1 : β →ₗ β) (((a⁻¹ : units α) : α) • 1 : β �
   (by rw [smul_comp, comp_smul, smul_smul, units.mul_inv, one_smul]; refl)
   (by rw [smul_comp, comp_smul, smul_smul, units.inv_mul, one_smul]; refl)
 
-def congr_right (f : γ ≃ₗ[α] δ) : (β →ₗ[α] γ) ≃ₗ (β →ₗ δ) :=
-of_linear
-  f.to_linear_map.congr_right
-  f.symm.to_linear_map.congr_right
-  (linear_map.ext $ λ _, linear_map.ext $ λ _, f.6 _)
-  (linear_map.ext $ λ _, linear_map.ext $ λ _, f.5 _)
+def arrow_congr {α β₁ β₂ γ₁ γ₂ : Sort*} [comm_ring α]
+  [add_comm_group β₁] [add_comm_group β₂] [add_comm_group γ₁] [add_comm_group γ₂]
+  [module α β₁] [module α β₂] [module α γ₁] [module α γ₂]
+  (e₁ : β₁ ≃ₗ[α] β₂) (e₂ : γ₁ ≃ₗ[α] γ₂) :
+  (β₁ →ₗ[α] γ₁) ≃ₗ[α] (β₂ →ₗ[α] γ₂) :=
+{ to_fun := λ f, e₂.to_linear_map.comp $ f.comp e₁.symm.to_linear_map,
+  inv_fun := λ f, e₂.symm.to_linear_map.comp $ f.comp e₁.to_linear_map,
+  left_inv := λ f, by { ext x, unfold_coes,
+    change e₂.inv_fun (e₂.to_fun $ f.to_fun $ e₁.inv_fun $ e₁.to_fun x) = _,
+    rw [e₁.left_inv, e₂.left_inv] },
+  right_inv := λ f, by { ext x, unfold_coes,
+    change e₂.to_fun (e₂.inv_fun $ f.to_fun $ e₁.to_fun $ e₁.inv_fun x) = _,
+    rw [e₁.right_inv, e₂.right_inv] },
+  add := λ f g, by { ext x, change e₂.to_fun ((f + g) (e₁.inv_fun x)) = _,
+    rw [linear_map.add_apply, e₂.add], refl },
+  smul := λ c f, by { ext x, change e₂.to_fun ((c • f) (e₁.inv_fun x)) = _,
+    rw [linear_map.smul_apply, e₂.smul], refl } }
+
+def congr_right (f : γ ≃ₗ[α] δ) : (β →ₗ[α] γ) ≃ₗ (β →ₗ δ) := arrow_congr (linear_equiv.refl β) f
+
+def conj (e : β ≃ₗ[α] γ) : (β →ₗ[α] β) ≃ₗ[α] (γ →ₗ[α] γ) := arrow_congr e e
 
 end comm_ring
 
@@ -1526,6 +1541,16 @@ begin
     { exact (h ⟨hiI, hiJ⟩).elim },
     { exact hJ i hiJ } },
   { exact hI i hiI }
+end
+
+lemma std_basis_eq_single [decidable_eq α] {a : α} :
+  (λ (i : ι), (std_basis α (λ _ : ι, α) i) a) = λ (i : ι), (finsupp.single i a) :=
+begin
+  ext i j,
+  rw [std_basis_apply, finsupp.single_apply],
+  split_ifs,
+  { rw [h, function.update_same] },
+  { rw [function.update_noteq (ne.symm h)], refl },
 end
 
 end

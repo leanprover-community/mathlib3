@@ -409,21 +409,6 @@ variables {s s₁ s₂ : finset α} {f g : α → β} {b : β} {a : α}
 @[simp] lemma sum_sub_distrib [add_comm_group β] : s.sum (λx, f x - g x) = s.sum f - s.sum g :=
 sum_add_distrib.trans $ congr_arg _ sum_neg_distrib
 
-section ordered_cancel_comm_monoid
-variables [decidable_eq α] [ordered_cancel_comm_monoid β]
-
-lemma sum_le_sum : (∀x∈s, f x ≤ g x) → s.sum f ≤ s.sum g :=
-finset.induction_on s (λ _, le_refl _) $ assume a s ha ih h,
-  have f a + s.sum f ≤ g a + s.sum g,
-    from add_le_add (h _ (mem_insert_self _ _)) (ih $ assume x hx, h _ $ mem_insert_of_mem hx),
-  by simpa only [sum_insert ha]
-
-lemma zero_le_sum (h : ∀x∈s, 0 ≤ f x) : 0 ≤ s.sum f := le_trans (by rw [sum_const_zero]) (sum_le_sum h)
-
-lemma sum_le_zero (h : ∀x∈s, f x ≤ 0) : s.sum f ≤ 0 := le_trans (sum_le_sum h) (by rw [sum_const_zero])
-
-end ordered_cancel_comm_monoid
-
 section semiring
 variables [semiring β]
 
@@ -488,20 +473,20 @@ end integral_domain
 section ordered_comm_monoid
 variables [decidable_eq α] [ordered_comm_monoid β]
 
-lemma sum_le_sum' : (∀x∈s, f x ≤ g x) → s.sum f ≤ s.sum g :=
+lemma sum_le_sum : (∀x∈s, f x ≤ g x) → s.sum f ≤ s.sum g :=
 finset.induction_on s (λ _, le_refl _) $ assume a s ha ih h,
   have f a + s.sum f ≤ g a + s.sum g,
     from add_le_add' (h _ (mem_insert_self _ _)) (ih $ assume x hx, h _ $ mem_insert_of_mem hx),
   by simpa only [sum_insert ha]
 
-lemma zero_le_sum' (h : ∀x∈s, 0 ≤ f x) : 0 ≤ s.sum f := le_trans (by rw [sum_const_zero]) (sum_le_sum' h)
+lemma sum_nonneg (h : ∀x∈s, 0 ≤ f x) : 0 ≤ s.sum f := le_trans (by rw [sum_const_zero]) (sum_le_sum h)
 
-lemma sum_le_zero' (h : ∀x∈s, f x ≤ 0) : s.sum f ≤ 0 := le_trans (sum_le_sum' h) (by rw [sum_const_zero])
+lemma sum_nonpos (h : ∀x∈s, f x ≤ 0) : s.sum f ≤ 0 := le_trans (sum_le_sum h) (by rw [sum_const_zero])
 
 lemma sum_le_sum_of_subset_of_nonneg
   (h : s₁ ⊆ s₂) (hf : ∀x∈s₂, x ∉ s₁ → 0 ≤ f x) : s₁.sum f ≤ s₂.sum f :=
 calc s₁.sum f ≤ (s₂ \ s₁).sum f + s₁.sum f :
-    le_add_of_nonneg_left' $ zero_le_sum' $ by simpa only [mem_sdiff, and_imp]
+    le_add_of_nonneg_left' $ sum_nonneg $ by simpa only [mem_sdiff, and_imp]
   ... = (s₂ \ s₁ ∪ s₁).sum f : (sum_union (sdiff_inter_self _ _)).symm
   ... = s₂.sum f : by rw [sdiff_union_of_subset h]
 
@@ -509,7 +494,7 @@ lemma sum_eq_zero_iff_of_nonneg : (∀x∈s, 0 ≤ f x) → (s.sum f = 0 ↔ ∀
 finset.induction_on s (λ _, ⟨λ _ _, false.elim, λ _, rfl⟩) $ λ a s ha ih H,
 have ∀ x ∈ s, 0 ≤ f x, from λ _, H _ ∘ mem_insert_of_mem,
 by rw [sum_insert ha,
-  add_eq_zero_iff' (H _ $ mem_insert_self _ _) (zero_le_sum' this),
+  add_eq_zero_iff' (H _ $ mem_insert_self _ _) (sum_nonneg this),
   forall_mem_insert, ih this]
 
 lemma single_le_sum (hf : ∀x∈s, 0 ≤ f x) {a} (h : a ∈ s) : f a ≤ s.sum f :=
@@ -530,7 +515,7 @@ lemma sum_le_sum_of_ne_zero (h : ∀x∈s₁, f x ≠ 0 → x ∈ s₂) : s₁.s
 calc s₁.sum f = (s₁.filter (λx, f x = 0)).sum f + (s₁.filter (λx, f x ≠ 0)).sum f :
     by rw [←sum_union, filter_union_filter_neg_eq]; apply filter_inter_filter_neg_eq
   ... ≤ s₂.sum f : add_le_of_nonpos_of_le'
-      (sum_le_zero' $ by simp only [mem_filter, and_imp]; exact λ _ _, le_of_eq)
+      (sum_nonpos $ by simp only [mem_filter, and_imp]; exact λ _ _, le_of_eq)
       (sum_le_sum_of_subset $ by simpa only [subset_iff, mem_filter, and_imp])
 
 end canonically_ordered_monoid

@@ -156,6 +156,33 @@ begin
   { assume n, rw abs_of_nonneg (dist_nonneg), exact hu n }
 end
 
+namespace real
+
+lemma continuous_sqrt : continuous sqrt :=
+begin
+  rw continuous_iff_continuous_at, assume x,
+  rw [continuous_at, metric.tendsto_nhds],
+  assume ε hε,
+  refine ⟨set.Ioo (x - ε * ε) (x + ε * ε), _, _⟩,
+  { rw Ioo_eq_ball,
+    convert ball_mem_nhds _ _,
+    { finish },
+    { have : (x + ε * ε - (x - ε * ε)) / 2 = ε * ε, ring,
+      rw this,
+      exact mul_self_pos (ne_of_gt hε) } },
+  { assume y hy,
+    have : abs (x - y) < ε * ε,
+      rw abs_lt, rw set.mem_Ioo at hy, split, linarith [hy.2], linarith [hy.1],
+    show abs (sqrt y - sqrt x) < ε,
+      refine lt_of_le_of_lt (abs_sqrt_sub_sqrt_le_sqrt_abs _ _) _,
+      rw mul_self_lt_mul_self_iff,
+        rw mul_self_sqrt (abs_nonneg _), rwa abs_sub,
+        exact sqrt_nonneg _,
+        exact le_of_lt hε }
+end
+
+end real
+
 namespace nnreal
 
 theorem exists_pos_sum_of_encodable {ε : nnreal} (hε : 0 < ε) (ι) [encodable ι] :

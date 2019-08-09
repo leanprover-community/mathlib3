@@ -23,7 +23,6 @@ namespace vampire
 local notation `#`     := term₂.var
 local notation a `&` b := term₂.app a b
 
-
 local notation `+₂`     := form₂.lit tt
 local notation `-₂`     := form₂.lit ff
 local notation p `∨₂` q := form₂.bin tt p q
@@ -59,11 +58,6 @@ def temp_goal_file_path : string := "/var/tmp/temp_goal_file"
 def normalize (p : form₂) : form₂ :=
 prenexify $ swap_all ff p
 
--- #check list.foldl
--- def disj : form₂ → list form₂ → form₂
--- | p []        := p
--- | p (q :: qs) :=
---
 def conditionalize : form₂ → list form₂ → form₂
 | p []        := p
 | p (q :: qs) := (conditionalize p qs) ∨₂ q.neg
@@ -201,9 +195,9 @@ do πx ← build_proof_core m m.to_expr [] chs,
    return (expr.app x πx)
 
 def term.to_rr : term → string
-| (term.sym k)   := k.repr ++  " y"
-| (term.app t s) := string.join [t.to_rr, " ", s.to_rr, " a"]
-| (term.vpp t k) := string.join [t.to_rr, " ", k.repr, " v"]
+| (term.sym k)   := k.repr ++  " fn"
+| (term.app t s) := string.join [t.to_rr, " ", s.to_rr, " tp"]
+| (term.vpp t k) := string.join [t.to_rr, " ", k.repr, " vp"]
 
 def lit.to_rr : lit → string
 | (tt, t) := t.to_rr ++ " ps"
@@ -232,20 +226,20 @@ do (dx, ix, p) ← reify,
    then trace s
    else skip
 
-axiom quodlibet (p : Prop) : p
-
-def refl_ax : form₂ :=
-  ∀₂ (+₂ ((# 1 & # 0) & #0))
-
-def symm_ax : form₂ :=
-  ∀₂ (∀₂ (-₂ ((# 2 & # 0) & #1) ∨₂ +₂ ((# 2 & # 1) & #0)))
-
-meta def vampire_eq : tactic unit :=
-do (αx, ihx, p) ← reify_eq,
-   let px   : expr := form₂.to_expr p,
-   x ← to_expr ``(quodlibet (@arifix %%αx %%ihx (@model.eq %%αx %%ihx) %%px)),
-   apply x,
-   skip
+--axiom quodlibet (p : Prop) : p
+--
+--def refl_ax : form₂ :=
+--  ∀₂ (+₂ ((# 1 & # 0) & #0))
+--
+--def symm_ax : form₂ :=
+--  ∀₂ (∀₂ (-₂ ((# 2 & # 0) & #1) ∨₂ +₂ ((# 2 & # 1) & #0)))
+--
+--meta def vampire_eq : tactic unit :=
+--do (αx, ihx, p) ← reify_eq,
+--   let px   : expr := form₂.to_expr p,
+--   x ← to_expr ``(quodlibet (@arifix %%αx %%ihx (@model.eq %%αx %%ihx) %%px)),
+--   apply x,
+--   skip
 
 end vampire
 

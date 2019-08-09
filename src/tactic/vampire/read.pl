@@ -81,7 +81,8 @@ apply_args(Trm, [Arg | Args], Rst) :-
   apply_args(app(Trm, Arg), Args, Rst).
 
 parse_trm(Str, Trm, Rem) :-
-  string_concat("s", Str1, Str),
+  ( string_concat("f", Str1, Str) ;
+    string_concat("r", Str1, Str) ),
   parse_num(Str1, Num, Str2),
   parse_args(Str2, Trms, Rem),
   apply_args(sym(Num), Trms, Trm).

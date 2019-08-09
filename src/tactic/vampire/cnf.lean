@@ -40,7 +40,7 @@ def neg : lit → lit
 | ⟨b, a⟩ := ⟨bnot b, a⟩
 
 def repr : lit → string
-| ⟨b, a⟩ := (if b then "" else "¬") ++ a.repr
+| ⟨b, t⟩ := (if b then "" else "¬") ++ t.arepr
 
 instance has_repr : has_repr lit := ⟨repr⟩
 meta instance has_to_format : has_to_format lit := ⟨λ x, repr x⟩
@@ -127,7 +127,7 @@ def repr_core : nat → mat → string
 | _ []  := ""
 | k [c] := k.repr ++ ". " ++ c.repr
 | k (c :: m) :=
-  k.repr ++ ". " ++ c.repr ++ "\n" ++ repr_core (k + 1) m
+  k.repr ++ ". " ++ c.repr ++ "" ++ repr_core (k + 1) m
 
 def repr : mat → string := repr_core 0
 

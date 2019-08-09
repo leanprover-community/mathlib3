@@ -93,7 +93,7 @@ def pull' (o : option bool) (a : bool) : form₂ → form₂ → form₂
   else form₂.qua c (pull' p.incr q)
 
 /- Pull quantifiers over a binary connective.
-   'o' specifies the polairy of quantifiers being
+   'o' specifies the polarity of quantifiers being
    pulled, `b` specifies the binary connective. -/
 def pull (o : option bool) (b : bool) : form₂ → form₂ → form₂
 | ⟪c, t⟫            q := pull' o b ⟪c, t⟫ q

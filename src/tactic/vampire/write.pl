@@ -1,34 +1,39 @@
 :- [misc].
 
-tptp_trm(app(Trm1, Trm2), Num, Strs) :-
-  tptp_trm(Trm1, Num, TmpStrs),
-  tptp_trm(Trm2, Str),
+tptp_trms(app(Trm1, Trm2), Num, Strs) :-
+  tptp_trms(Trm1, Num, TmpStrs),
+  tptp_trm(trm, Trm2, Str),
   append(TmpStrs, [Str], Strs).
 
-tptp_trm(sym(Num), Num, []).
+tptp_trms(sym(Num), Num, []).
 
-tptp_trm(var(Num), Str) :-
+header(trm, "f").
+header(atm, "r").
+
+tptp_trm(trm, var(Num), Str) :-
   number_string(Num, NumStr),
   string_concat("X", NumStr, Str).
 
-tptp_trm(sym(Num), Str) :-
+tptp_trm(Typ, sym(Num), Str) :-
+  header(Typ, Hdr),
   number_string(Num, NumStr),
-  string_concat("s", NumStr, Str).
+  string_concat(Hdr, NumStr, Str).
 
-tptp_trm(app(Trm1, Trm2), Rst) :-
-  tptp_trm(Trm1, Num, Strs),
+tptp_trm(Typ, app(Trm1, Trm2), Rst) :-
+  header(Typ, Hdr),
+  tptp_trms(Trm1, Num, Strs),
   number_string(Num, NumStr),
-  tptp_trm(Trm2, Str),
+  tptp_trm(trm, Trm2, Str),
   append(Strs, [Str], ArgStrs),
   join_string(ArgStrs, ",", ArgsStr),
-  join_string(["s", NumStr, "(", ArgsStr, ")"], Rst).
+  join_string([Hdr, NumStr, "(", ArgsStr, ")"], Rst).
 
-tptp_lit(lit(neg, Trm), Str) :-
-  tptp_trm(Trm, Tmp),
+tptp_lit(lit(neg, Atm), Str) :-
+  tptp_trm(atm, Atm, Tmp),
   string_concat("~ " , Tmp, Str).
 
-tptp_lit(lit(pos, Trm), Str) :-
-  tptp_trm(Trm, Str).
+tptp_lit(lit(pos, Atm), Str) :-
+  tptp_trm(atm, Atm, Str).
 
 tptp_cla(Cla, Idx, Str) :-
   number_string(Idx, IdxStr),

@@ -43,6 +43,22 @@ def fresh_var : term → nat
 | (t & s) := max t.fresh_var s.fresh_var
 | (t # k) := max t.fresh_var (k + 1)
 
+def trepr_core : term → string
+| (& k)    := "F" ++ k.to_subs
+| (t & s) := t.trepr_core ++ " (" ++ s.trepr_core ++ ")"
+| (t # k) := t.trepr_core ++ " X" ++ k.to_subs
+
+def trepr (t : term) : string :=
+"(" ++ t.trepr_core ++ ")"
+
+def arepr_core : term → string
+| (& k)   := "R" ++ k.to_subs
+| (a & t) := a.arepr_core ++ " " ++ t.trepr
+| (a # k) := a.arepr_core ++ " X" ++ k.to_subs
+
+def arepr (t : term) : string :=
+"(" ++ t.arepr_core ++ ")"
+
 def repr : term → string
 | (term.sym k)   := "S" ++ k.to_subs
 | (term.app t s) := "(" ++ t.repr ++ " " ++ s.repr ++ ")"
@@ -109,7 +125,6 @@ def term.subst (μ : mappings) : term → term
   | (sum.inr s) := t.subst & s
   end
 
-#check term
 def mappings.compose (μ : mappings) : mappings → mappings
 | []                    := μ
 | ((k, sum.inr t) :: ν) := (k, sum.inr (t.subst μ)) :: mappings.compose ν

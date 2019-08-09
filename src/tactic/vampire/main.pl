@@ -4,13 +4,16 @@
 
 :- [write, read, check].
 
-parse_inp([Num | Stk], ["y" | Tks], Mat) :-
+parse_inp([Num | Stk], ["fn" | Tks], Mat) :-
   parse_inp([sym(Num) | Stk], Tks, Mat).
 
-parse_inp([Trm2, Trm1 | Stk], ["a" | Tks], Mat) :-
+parse_inp([Num | Stk], ["rl" | Tks], Mat) :-
+  parse_inp([sym(Num) | Stk], Tks, Mat).
+
+parse_inp([Trm2, Trm1 | Stk], ["tp" | Tks], Mat) :-
   parse_inp([app(Trm1, Trm2) | Stk], Tks, Mat).
 
-parse_inp([Num, Trm | Stk], ["v" | Tks], Mat) :-
+parse_inp([Num, Trm | Stk], ["vp" | Tks], Mat) :-
   parse_inp([app(Trm, var(Num)) | Stk], Tks, Mat).
 
 parse_inp(Stk, ["nl" | Tks], Mat) :-

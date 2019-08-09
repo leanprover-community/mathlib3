@@ -14,11 +14,13 @@ import linear_algebra.dimension linear_algebra.tensor_product
 # Summary
 
 This file defines the maps to send matrices to a linear map,
-and to send linear maps between finite-dimensional vector spaces
-to matrices.
+and to send linear maps between modules with a finite bases
+to matrices. This defines a linear equivalence between linear maps
+between finite-dimensional vector spaces and matrices indexed by
+the respective bases.
 
 Some results are proved about the linear map corresponding to a
-diagonal matrix.
+diagonal matrix (range, ker and rank).
 
 ## Main definitions
 
@@ -123,6 +125,7 @@ variables {α : Type v} [comm_ring α] [decidable_eq n]
 
 open finsupp matrix linear_map
 
+/-- to_lin is the left inverse of to_matrix. -/
 lemma to_matrix_to_lin [decidable_eq α] {f : (n → α) →ₗ[α] (m → α)} :
   to_lin (to_matrix f) = f :=
 begin
@@ -153,9 +156,9 @@ begin
   have h1 : (λ y, M i y * ite (j = y) 1 0) = (λ y, ite (j = y) (M i y) 0),
     { ext, split_ifs, exact mul_one _, exact ring.mul_zero _ },
   have h2 : finset.univ.sum (λ y, ite (j = y) (M i y) 0) = (finset.singleton j).sum (λ y, ite (j = y) (M i y) 0),
-  { refine (finset.sum_subset _ _).symm,
-    { intros _ H, rwa finset.mem_singleton.1 H, exact finset.mem_univ _ },
-    { exact λ _ _ H, if_neg (mt (finset.mem_singleton.2 ∘ eq.symm) H) } },
+    { refine (finset.sum_subset _ _).symm,
+      { intros _ H, rwa finset.mem_singleton.1 H, exact finset.mem_univ _ },
+      { exact λ _ _ H, if_neg (mt (finset.mem_singleton.2 ∘ eq.symm) H) } },
   rw [h1, h2, finset.sum_singleton],
   exact if_pos rfl
 end

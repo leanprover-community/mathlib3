@@ -49,6 +49,10 @@ by rw [mul_comm, lt_div_iff hc]
 lemma div_le_iff_of_neg (hc : c < 0) : b / c ≤ a ↔ a * c ≤ b :=
 ⟨mul_le_of_div_le_of_neg hc, div_le_of_mul_le_of_neg hc⟩
 
+lemma le_div_iff_of_neg (hc : c < 0) : a ≤ b / c ↔ b ≤ a * c :=
+by rw [← neg_neg c, mul_neg_eq_neg_mul_symm, div_neg _ (ne_of_gt (neg_pos.2 hc)), le_neg, 
+    div_le_iff (neg_pos.2 hc), neg_mul_eq_neg_mul_symm]
+
 lemma div_lt_iff (hc : 0 < c) : b / c < a ↔ b < a * c :=
 lt_iff_lt_of_le_iff_le (le_div_iff hc)
 
@@ -186,12 +190,6 @@ inv_pos $ add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
 
 lemma one_div_pos_of_nat {n : ℕ} : 0 < 1 / ((n : α) + 1) :=
 by { rw one_div_eq_inv, exact inv_pos_of_nat }
-
-lemma one_div_le_one_div {n m : ℕ} (h : n ≤ m) : 1 / ((m : α) + 1) ≤ 1 / ((n : α) + 1) :=
-by { refine one_div_le_one_div_of_le _ _, exact nat.cast_add_one_pos _, simpa }
-
-lemma one_div_lt_one_div {n m : ℕ} (h : n < m) : 1 / ((m : α) + 1) < 1 / ((n : α) + 1) :=
-by { refine one_div_lt_one_div_of_lt _ _, exact nat.cast_add_one_pos _, simpa }
 
 end nat
 

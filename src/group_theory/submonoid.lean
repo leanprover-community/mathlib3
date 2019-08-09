@@ -11,6 +11,8 @@ import tactic.subtype_instance
 
 # Submonoids
 
+First unbundled (is_submonoid) (deprecated) and then bundled.
+
 -- mention ≤ instead of ⊆ for inclusions
 
 no coercion from submonoid to subset, the idea is that the API does it all for us.
@@ -339,7 +341,7 @@ monoid.mem_closure_union_iff
 
 end add_monoid
 
--- bundled
+-- bundled submonoids and add_submonoids
 
 /-- A submonoid of a monoid α is a subset containing 1 and closed under multiplication. -/
 structure submonoid (α : Type*) [monoid α] :=
@@ -347,11 +349,12 @@ structure submonoid (α : Type*) [monoid α] :=
 (one_mem' : (1 : α) ∈ carrier)
 (mul_mem' {a b} : a ∈ carrier → b ∈ carrier → a * b ∈ carrier)
 
-/-- A submonoid of a monoid α is a subset containing 1 and closed under multiplication. -/
+/-- An  additive submonoid of an additive monoid α is a subset containing 0 and
+  closed under addition. -/
 structure add_submonoid (α : Type*) [add_monoid α] :=
 (carrier : set α)
-(one_mem' : (0 : α) ∈ carrier)
-(mul_mem' {a b} : a ∈ carrier → b ∈ carrier → a + b ∈ carrier)
+(zero_mem' : (0 : α) ∈ carrier)
+(add_mem' {a b} : a ∈ carrier → b ∈ carrier → a + b ∈ carrier)
 
 attribute [to_additive add_submonoid] submonoid
 attribute [to_additive add_submonoid.carrier] submonoid.carrier
@@ -362,61 +365,114 @@ attribute [to_additive add_submonoid.mk.inj] submonoid.mk.inj
 attribute [to_additive add_submonoid.mk.inj_arrow] submonoid.mk.inj_arrow
 attribute [to_additive add_submonoid.mk.inj_eq] submonoid.mk.inj_eq
 attribute [to_additive add_submonoid.mk.sizeof_spec] submonoid.mk.sizeof_spec
-attribute [to_additive add_submonoid.mul_mem'] submonoid.mul_mem'
+attribute [to_additive add_submonoid.add_mem'] submonoid.mul_mem'
 attribute [to_additive add_submonoid.no_confusion] submonoid.no_confusion
 attribute [to_additive add_submonoid.no_confusion_type] submonoid.no_confusion_type
-attribute [to_additive add_submonoid.one_mem'] submonoid.one_mem'
+attribute [to_additive add_submonoid.zero_mem'] submonoid.one_mem'
 attribute [to_additive add_submonoid.rec] submonoid.rec
 attribute [to_additive add_submonoid.rec_on] submonoid.rec_on
 attribute [to_additive add_submonoid.sizeof] submonoid.sizeof
 
---instance additive.is_add_submonoid
---  (s : set α) : ∀ [is_submonoid s], @is_add_submonoid (additive α) _ s
---| ⟨h₁, h₂⟩ := ⟨h₁, @h₂⟩
+/-- Map from submonoids of monoid α to add_submonoids of additive α. -/
+def submonoid.to_add_submonoid {α : Type*} [monoid α] (S : submonoid α) :
+  add_submonoid (additive α) :=
+{ carrier := S.carrier,
+  zero_mem' := S.one_mem',
+  add_mem' := S.mul_mem' }
 
---theorem additive.is_add_submonoid_iff
---  {s : set α} : @is_add_submonoid (additive α) _ s ↔ is_submonoid s :=
---⟨λ ⟨h₁, h₂⟩, ⟨h₁, @h₂⟩, λ h, by resetI; apply_instance⟩
+/-- Map from add_submonoids of additive α to submonoids of α. -/
+def submonoid.of_add_submonoid {α : Type*} [monoid α] (S : add_submonoid (additive α)) :
+  submonoid α :=
+{ carrier := S.carrier,
+  one_mem' := S.zero_mem',
+  mul_mem' := S.add_mem' }
 
---instance multiplicative.is_submonoid
---  (s : set β) : ∀ [is_add_submonoid s], @is_submonoid (multiplicative β) _ s
---| ⟨h₁, h₂⟩ := ⟨h₁, @h₂⟩
+/-- Map from add_submonoids of add_monoid α to submonoids of multiplicative α. -/
+def add_submonoid.to_submonoid {α : Type*} [add_monoid α] (S : add_submonoid α) :
+  submonoid (multiplicative α) :=
+{ carrier := S.carrier,
+  one_mem' := S.zero_mem',
+  mul_mem' := S.add_mem' }
 
---theorem multiplicative.is_submonoid_iff
---  {s : set β} : @is_submonoid (multiplicative β) _ s ↔ is_add_submonoid s :=
---⟨λ ⟨h₁, h₂⟩, ⟨h₁, @h₂⟩, λ h, by resetI; apply_instance⟩
+/-- Map from submonoids of multiplicative α to add_submonoids of add_monoid α. -/
+def add_submonoid.of_submonoid {α : Type*} [add_monoid α] (S : submonoid (multiplicative α)) :
+  add_submonoid α :=
+{ carrier := S.carrier,
+  zero_mem' := S.one_mem',
+  add_mem' := S.mul_mem' }
+
+/-- submonoids of monoid α are isomorphic to additive submonoids of additive α. -/
+def submonoid.add_submonoid_equiv (α : Type*) [monoid α] :
+submonoid α ≃ add_submonoid (additive α) :=
+{ to_fun := submonoid.to_add_submonoid,
+  inv_fun := submonoid.of_add_submonoid,
+  left_inv := λ x, by cases x; refl,
+  right_inv := λ x, by cases x; refl }
 
 namespace submonoid
 
 variables {M : Type*} [monoid M] (S : submonoid M)
 
+@[to_additive add_submonoid.has_coe]
 instance : has_coe (submonoid M) (set M) := ⟨submonoid.carrier⟩
 
+@[to_additive add_submonoid.has_mem]
 instance : has_mem M (submonoid M) := ⟨λ m S, m ∈ S.carrier⟩
 
+@[to_additive add_submonoid.has_le]
 instance : has_le (submonoid M) := ⟨λ S T, S.carrier ⊆ T.carrier⟩
 
-@[simp] lemma mem_coe {m : M} : m ∈ (S : set M) ↔ m ∈ S := iff.rfl
+@[simp, to_additive add_submonoid.mem_coe]
+lemma mem_coe {m : M} : m ∈ (S : set M) ↔ m ∈ S := iff.rfl
 
+/-- Two submonoids are equal if the underlying subsets are equal. -/
+@[to_additive add_submonoid.ext']
 theorem ext' {S T : submonoid M} (h : (S : set M) = T) : S = T :=
 by cases S; cases T; congr'
 
+run_cmd tactic.add_doc_string `add_submonoid.ext'
+  "Two add_submonoids are equal if the underling subsets are equal."
+
+/-- Two submonoids are equal if and only if the underlying subsets are equal. -/
+@[to_additive add_submonoid.ext'_iff]
 protected theorem ext'_iff {S T : submonoid M}  : (S : set M) = T ↔ S = T :=
 ⟨ext', λ h, h ▸ rfl⟩
 
-@[extensionality] theorem ext {S T : submonoid M}
+run_cmd tactic.add_doc_string `add_submonoid.ext'_iff
+  "Two add_submonoids are equal if and only if the underling subsets are equal."
+
+/-- Two submonoids are equal if they have the same elements. -/
+@[extensionality, to_additive add_submonoid.ext]
+theorem ext {S T : submonoid M}
   (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := ext' $ set.ext h
 
+attribute [extensionality] add_submonoid.ext
+run_cmd tactic.add_doc_string `add_submonoid.ext
+  "Two add_submonoids are equal if they have the same elements."
+
 /-- A submonoid contains the monoid's 1. -/
-def one_mem : (1 : M) ∈ S := S.one_mem'
+@[to_additive add_submonoid.zero_mem]
+theorem one_mem : (1 : M) ∈ S := S.one_mem'
+
+run_cmd tactic.add_doc_string `add_submonoid.zero_mem
+  "An add_submonoid contains the monoid's 0."
 
 /-- A submonoid is closed under multiplication. -/
-def mul_mem {x y : M} : x ∈ S → y ∈ S → x * y ∈ S := submonoid.mul_mem' S
+@[to_additive add_submonoid.add_mem]
+theorem mul_mem {x y : M} : x ∈ S → y ∈ S → x * y ∈ S := submonoid.mul_mem' S
 
+run_cmd tactic.add_doc_string `add_submonoid.add_mem
+  "An add_submonoid is closed under addition."
+
+/-- A finite product of elements of a submonoid of a commutative monoid is in the submonoid. -/
+@[to_additive add_submonoid.sum_mem]
 lemma prod_mem {M : Type*} [comm_monoid M] (S : submonoid M)
   {ι : Type*} [decidable_eq ι] {t : finset ι} {f : ι → M} :
   (∀c ∈ t, f c ∈ S) → t.prod f ∈ S :=
 finset.induction_on t (by simp [S.one_mem]) (by simp [S.mul_mem] {contextual := tt})
+
+run_cmd tactic.add_doc_string `add_submonoid.sum_mem
+  "A finite sum of elements of an add_submonoid of an add_comm_monoid is in the add_submonoid."
 
 /-- A directed union of submonoids is a submonoid. -/
 def Union_of_directed {ι : Type*} [hι : nonempty ι]
@@ -431,33 +487,87 @@ def Union_of_directed {ι : Type*} [hι : nonempty ι]
     let ⟨k, hk⟩ := directed i j in
     set.mem_Union.2 ⟨k, (s k).mul_mem (hk.1 hi) (hk.2 hj)⟩ }
 
--- need an additive version
---lemma is_add_submonoid_Union_of_directed {ι : Type*} [hι : nonempty ι]
---  (s : ι → set β) [∀ i, is_add_submonoid (s i)]
---  (directed : ∀ i j, ∃ k, s i ⊆ s k ∧ s j ⊆ s k) :
---  is_add_submonoid (⋃i, s i) :=
---multiplicative.is_submonoid_iff.1 $
---  @is_submonoid_Union_of_directed (multiplicative β) _ _ _ s _ directed
---attribute [to_additive is_add_submonoid_Union_of_directed] is_submonoid_Union_of_directed
+attribute [to_additive add_submonoid.Union_of_directed._match_1] submonoid.Union_of_directed._match_1
+attribute [to_additive add_submonoid.Union_of_directed._match_2] submonoid.Union_of_directed._match_2
+attribute [to_additive add_submonoid.Union_of_directed._match_3] submonoid.Union_of_directed._match_3
+attribute [to_additive add_submonoid.Union_of_directed._match_4] submonoid.Union_of_directed._match_4
+attribute [to_additive add_submonoid.Union_of_directed._proof_1] submonoid.Union_of_directed._proof_1
+attribute [to_additive add_submonoid.Union_of_directed] submonoid.Union_of_directed
+attribute [to_additive add_submonoid.Union_of_directed._match_1.equations._eqn_1] submonoid.Union_of_directed._match_1.equations._eqn_1
+attribute [to_additive add_submonoid.Union_of_directed._match_2.equations._eqn_1] submonoid.Union_of_directed._match_2.equations._eqn_1
+attribute [to_additive add_submonoid.Union_of_directed._match_3.equations._eqn_1] submonoid.Union_of_directed._match_3.equations._eqn_1
+attribute [to_additive add_submonoid.Union_of_directed._match_4.equations._eqn_1] submonoid.Union_of_directed._match_4.equations._eqn_1
+attribute [to_additive add_submonoid.Union_of_directed.equations._eqn_1] submonoid.Union_of_directed.equations._eqn_1
+run_cmd tactic.add_doc_string `add_submonoid.Union_of_directed
+  "A directed union of add_submonoids is an add_submonoid."
 
+/-- The powers 1, x, x^2, ... of an element x of a monoid M are a submonoid. -/
 def powers (x : M) : submonoid M :=
 { carrier := {y | ∃ n:ℕ, x^n = y},
   one_mem' := ⟨0, pow_zero x⟩,
   mul_mem' := by rintros x₁ x₂ ⟨n₁, rfl⟩ ⟨n₂, rfl⟩; exact ⟨n₁ + n₂, pow_add _ _ _ ⟩ }
 
+-- TODO -- move to appropriate places
+attribute [to_additive add_monoid.mul._main] monoid.pow._main
+attribute [to_additive add_monoid.mul] monoid.pow
+attribute [to_additive add_monoid.has_mul] monoid.has_pow
+attribute [to_additive multiples._proof_1] powers._proof_1
+attribute [to_additive multiples._proof_2] powers._proof_2
+
+attribute [to_additive add_submonoid.multiples] submonoid.powers
+attribute [to_additive add_submonoid.multiples._proof_1] submonoid.powers._proof_1
+attribute [to_additive add_submonoid.multiples._proof_2] submonoid.powers._proof_2
+attribute [to_additive add_submonoid.multiples.equations._eqn_1] submonoid.powers.equations._eqn_1
+run_cmd tactic.add_doc_string `add_submonoid.multiples
+  "The multiples 0, x, 2x, ... of an element x of an add_monoid M are an add_submonoid."
+
+/-- x is in the submonoid generated by x. -/
 lemma powers.self_mem {x : M} : x ∈ powers x := ⟨1, pow_one _⟩
 
+-- the to_additive machinery can't handle powers so we have to explicitly come out
+-- of the submonoid namespace and do the additive version by hand.
+
+end submonoid
+
+/-- x is in the add_submonoid generated by x. -/
+lemma add_submonoid.multiples.self_mem {M : Type*} [add_monoid M] {x : M} :
+  x ∈ add_submonoid.multiples x :=
+⟨1, add_monoid.one_smul x⟩
+
+attribute [to_additive add_submonoid.multiples.self_mem] submonoid.powers.self_mem
+
+namespace submonoid
+
+variables {M : Type*} [monoid M] (S : submonoid M)
+
+/-- `univ` is the submonoid M of the monoid M. -/
 def univ : submonoid M :=
 { carrier := set.univ,
   one_mem' := set.mem_univ 1,
   mul_mem' := λ _ _ _ _, set.mem_univ _ }
 
+attribute [to_additive add_submonoid.univ._proof_1] submonoid.univ._proof_1
+attribute [to_additive add_submonoid.univ._proof_2] submonoid.univ._proof_2
+attribute [to_additive add_submonoid.univ] submonoid.univ
+attribute [to_additive add_submonoid.univ.equations._eqn_1] submonoid.univ.equations._eqn_1
+run_cmd tactic.add_doc_string `add_submonoid.univ
+  "`univ` is the add_submonoid M of the add_monoid M."
+
+/-- ⊥ is the trivial submonoid of the monoid M. -/
 def bot : submonoid M :=
 { carrier := {1},
   one_mem' := set.mem_singleton 1,
   mul_mem' := λ a b ha hb, by simp * at *}
 
--- partial order stuff
+attribute [to_additive add_submonoid.bot._proof_1] submonoid.bot._proof_1
+attribute [to_additive add_submonoid.bot._proof_2] submonoid.bot._proof_2
+attribute [to_additive add_submonoid.bot] submonoid.bot
+attribute [to_additive add_submonoid.bot.equations._eqn_1] submonoid.bot.equations._eqn_1
+run_cmd tactic.add_doc_string `add_submonoid.bot
+  "⊥ is the zero submonoid of the add_monoid M."
+
+-- TODO: up to here with to_additive stuff
+
 instance : partial_order (submonoid M) :=
 partial_order.lift (coe : submonoid M → set M) (λ a b, ext') (by apply_instance)
 
@@ -542,8 +652,6 @@ instance : add_comm_monoid (submonoid M) :=
   add_comm := λ _ _, sup_comm }
 
 end submonoid
-
---
 
 namespace monoid_hom
 
@@ -634,28 +742,9 @@ instance : has_one S := ⟨⟨_, S.one_mem⟩⟩
 instance to_monoid {M : Type*} [monoid M] {S : submonoid M} : monoid S :=
 by refine { mul := (*), one := 1, ..}; by simp [mul_assoc]
 
---attribute [to_additive subtype.add_monoid._proof_1] subtype.monoid._proof_1
---attribute [to_additive subtype.add_monoid._proof_2] subtype.monoid._proof_2
---attribute [to_additive subtype.add_monoid._proof_3] subtype.monoid._proof_3
---attribute [to_additive subtype.add_monoid._proof_4] subtype.monoid._proof_4
---attribute [to_additive subtype.add_monoid._proof_5] subtype.monoid._proof_5
---attribute [to_additive subtype.add_monoid] subtype.monoid
-
---@[simp, to_additive is_add_submonoid.coe_zero]
---@[simp] lemma is_submonoid.coe_one [is_submonoid s] : ((1 : s) : α) = 1 := rfl
-
---@[simp, to_additive is_add_submonoid.coe_add]
---lemma is_submonoid.coe_mul [is_submonoid s] (a b : s) : ((a * b : s) : α) = a * b := rfl
-
 @[simp] lemma coe_pow (a : S) (n : ℕ) : ((a ^ n : S) : M) = a ^ n :=
 by induction n; simp [*, pow_succ]
 
---@[simp] lemma is_add_submonoid.smul_coe {β : Type*} [add_monoid β] {s : set β}
---  [is_add_submonoid s] (a : s) (n : ℕ) : ((add_monoid.smul n a : s) : β) = add_monoid.smul n a :=
---by induction n; [refl, simp [*, succ_smul]]
---attribute [to_additive is_add_submonoid.smul_coe] is_submonoid.coe_pow
-
---@[to_additive subtype_val.is_add_monoid_hom]
 def subtype : S →* M :=
 { to_fun := coe,
   map_one' := rfl,
@@ -665,23 +754,17 @@ def subtype : S →* M :=
 
 lemma subtype_eq_val : (S.subtype : S → M) = subtype.val := rfl
 
---@[to_additive coe.is_add_monoid_hom]
---instance coe.is_monoid_hom [is_submonoid s] : is_monoid_hom (coe : s → α) :=
---subtype_val.is_monoid_hom
-
 end submonoid
 
 namespace monoid_hom
 
 variables {M : Type*} [monoid M] (S : submonoid M)
 
---@[to_additive subtype_mk.is_add_monoid_hom]
 def subtype_mk {N : Type*} [monoid N] (f : N →* M) (h : ∀ x, f x ∈ S) : N →* S :=
 { to_fun := λ n, ⟨f n, h n⟩,
   map_one' := subtype.eq (is_monoid_hom.map_one f),
   map_mul' := λ x y, subtype.eq (is_monoid_hom.map_mul f x y) }
 
---@[to_additive set_inclusion.is_add_monoid_hom]
 def set_inclusion (T : submonoid M) (h : S ≤ T) : S →* T :=
 subtype_mk _ S.subtype (λ x, h x.2)
 
@@ -759,6 +842,9 @@ theorem mem_closure'_union_iff {M : Type*} [comm_monoid M] {s t : set M} {x : M}
 end monoid
 
 /-
+
+-- some stuff from is_submonoid which might need to be put into this language:
+
 namespace add_monoid
 
 --def closure (s : set β) : set β := @monoid.closure (multiplicative β) _ s

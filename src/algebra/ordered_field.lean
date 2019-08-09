@@ -197,6 +197,7 @@ by { refine one_div_le_one_div_of_le _ _, exact nat.cast_add_one_pos _, simpa }
 
 lemma one_div_lt_one_div {n m : ℕ} (h : n < m) : 1 / ((m : α) + 1) < 1 / ((n : α) + 1) :=
 by { refine one_div_lt_one_div_of_lt _ _, exact nat.cast_add_one_pos _, simpa }
+
 end nat
 
 section

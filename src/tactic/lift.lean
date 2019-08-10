@@ -9,15 +9,8 @@ class can_lift (α : Type u) (β : Type v) : Type (max u v) :=
 (cond : α → Prop)
 (prf : ∀(x : α), cond x → ∃(y : β), coe y = x)
 
-@[can_lift, reducible]
-instance : can_lift ℤ ℕ :=
+@[can_lift] instance : can_lift ℤ ℕ :=
 ⟨coe, λ n, 0 ≤ n, λ n hn, ⟨n.nat_abs, int.nat_abs_of_nonneg hn⟩⟩
-
--- lemma can_lift.prf2 (α : Type u) (β : Type v) (h : can_lift α β) (y : β) (hy : can_lift.cond α y) :
---   ∃(x : α), can_lift.coe β x = y :=
--- can_lift.prf y hy
-
-
 
 namespace tactic
 
@@ -86,8 +79,8 @@ namespace interactive
     wherever possible (keeping `hk` in the context).
   * If the name for `k` is not provided and `p` is a local constant,
     then the name of `p` will be used for `k`.
-  * If `h` is a local constant then `h` is cleared from local context, unless the third element of
-    `n` is the name of `h`.
+  * If `h` is a local constant then `h` is cleared from local context, unless you write `h` as the
+    third entry after `with`.
   * If you want to keep `h` in the local context, but still do the substitution on `p`, you can use
     `rfl` for the second element of `n`, like the following example.
     ```

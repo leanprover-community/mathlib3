@@ -9,6 +9,7 @@ import
   algebra.group algebra.ordered_group algebra.group_power
   algebra.ordered_field
   tactic.norm_cast
+  tactic.lift
 /-!
 # Basics for the Rational Numbers
 

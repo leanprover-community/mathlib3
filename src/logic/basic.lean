@@ -60,7 +60,7 @@ def pempty.elim {C : Sort*} : pempty → C.
 
 instance subsingleton_pempty : subsingleton pempty := ⟨λa, a.elim⟩
 
-@[simp] lemma nonempty_pempty : ¬ nonempty pempty :=
+@[simp] lemma not_nonempty_pempty : ¬ nonempty pempty :=
 assume ⟨h⟩, h.elim
 
 theorem forall_pempty {P : pempty → Prop} : (∀ x : pempty, P x) ↔ true :=

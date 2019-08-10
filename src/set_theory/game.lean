@@ -68,12 +68,13 @@ the necessary equivalence relations at the level of pregames, we introduce the n
 of a game, and show, for example, that there is a relabelling between `x + (y + z)` and `(x + y) + z`.
 
 ## References
+
+The material here is all drawn from
 * [Conway, *On numbers and games*][conway2001]
 
-An interested reader may like to pursue the material in
-* Andreas Blass, A game semantics for linear logic, Ann. Pure Appl. Logic 56 (1992), 183-220
-* A. Joyal, Remarques sur la théorie des jeux à deux personnes, Gazette des Sciences Mathematiques du Québec 1(4):46–52, 1977.
-  (English translation at https://bosker.files.wordpress.com/2010/12/joyal-games.pdf)
+An interested reader may like to formalise some of the material from
+* [Andreas Blass, *A game semantics for linear logic*][MR1167694]
+* [André Joyal, *Remarques sur la théorie des jeux à deux personnes*][joyal1997]
 -/
 
 universes u

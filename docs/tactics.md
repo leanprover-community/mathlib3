@@ -1059,3 +1059,29 @@ localized "attribute [simp] le_refl" in le
 The `#sanity_check` command checks for common mistakes in the current file or in all of mathlib, respectively.
 
 Currently this will check for unused arguments in declarations and whether a declaration is incorrectly marked as a def/lemma.
+
+### lift
+
+The tactic `lift p to t using h` lifts expression `p` to type `t` using proof obligation `h`.
+* Example usage: if `n : ℤ` and `hn : n ≥ 0` then the following tactic lifts `n` to `ℕ`.
+  ```
+    lift n to ℕ using hn
+  ```
+* This tactic will create a new variable `k` of type `t` and a proof `hk` stating that
+  `k` mapped to `type_p` is equal to `p` (where `type_p` is the type of `p`).
+* This tactic requires an instance of `can_lift type_p t`.
+* If `h` is not provided, this tactic creates a new goal for `h`.
+* Use `lift p to t using h with k hk` to specify the names of `k` and `hk`.
+* If the name for `hk` is not provided and `p` is a local constant, then the proof `hk` will be
+  used to substitute `p` everywhere (removing `p` and `hk` from the context).
+* If `p` is not a local constant, the equation `hk` will be used to rewrite the expression `p`
+  wherever possible (keeping `hk` in the context).
+* If the name for `k` is not provided and `p` is a local constant,
+  then the name of `p` will be used for `k`.
+* If `h` is a local constant then `h` is cleared from local context, unless you write `h` as the
+  third entry after `with`.
+* If you want to keep `h` in the local context, but still do the substitution on `p`, you can use
+  `rfl` for the second element of `n`, like the following example.
+  ```
+    lift p to t using h with p rfl h
+  ```

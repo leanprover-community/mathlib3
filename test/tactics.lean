@@ -3,7 +3,7 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Scott Morrison
 -/
-import tactic.interactive tactic.finish tactic.ext
+import tactic.interactive tactic.finish tactic.ext tactic.lift
 
 example (m n p q : nat) (h : m + n = p) : true :=
 begin
@@ -232,6 +232,30 @@ by {have : α₁, have : α₂, have : α₃, swap, swap,
     rotate, rotate, rotate, rotate 2, rotate 2, triv, recover}
 
 end swap
+
+section lift
+
+example (n m k x z u : ℤ) (hn : 0 < n) (hk : 0 ≤ k + n) (hu : 0 ≤ u) (h : k + n = 2 + x) :
+  k + n = m + x :=
+begin
+  lift n to ℕ using le_of_lt hn,
+    guard_target (k + ↑n = m + x), guard_hyp hn := (0 : ℤ) < ↑n,
+  lift m to ℕ,
+    guard_target (k + ↑n = ↑m + x), tactic.swap, guard_target (0 ≤ m), tactic.swap,
+    tactic.num_goals >>= λ n, guard (n = 2),
+  lift (k + n) to ℕ using hk with l hl,
+    guard_hyp l := ℕ, guard_hyp hl := ↑l = k + ↑n, guard_target (↑l = ↑m + x),
+    tactic.success_if_fail (tactic.get_local `hk),
+  lift x to ℕ with y hy,
+    guard_hyp y := ℕ, guard_hyp hy := ↑y = x, guard_target (↑l = ↑m + x),
+  lift z to ℕ with w,
+    guard_hyp w := ℕ, tactic.success_if_fail (tactic.get_local `z),
+  lift u to ℕ using hu with u rfl hu,
+    guard_hyp hu := (0 : ℤ) ≤ ↑u,
+  all_goals { admit }
+end
+
+end lift
 
 private meta def get_exception_message (t : lean.parser unit) : lean.parser string
 | s := match t s with

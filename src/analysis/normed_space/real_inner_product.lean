@@ -12,13 +12,27 @@ import tactic.monotonicity
 /-!
 # Inner Product Space
 
-Define inner product space over reals and prove its basic properties.
+This file defines real inner product space and proves its basic properties.
+
+An inner product space is a vector space endowed with an inner product. It generalizes the notion of
+dot product in `ℝ^n` and provides the means of defining the length of a vector and the angle between
+two vectors. In particular vectors `x` and `y` are orthogonal if their inner product equals zero.
+
+## Main statements
+
+Existence of orthogonal projection onto nonempty complete subspace:
+Let `u` be a point in an inner product space, and let `K` be a nonempty complete subspace.
+Then there exists a unique `v` in `K` that minimizes the distance `∥u - v∥` to `u`.
+The point `v` is usually called the orthogonal projection of `u` onto `K`.
 
 ## Implementation notes
 
+We decide to develop the theory of real inner product spaces and that of complex inner product
+spaces separately.
+
 ## Tags
 
-inner product space, norm
+inner product space, norm, orthogonal projection
 
 ## References
 *  [Clément & Martin, *The Lax-Milgram Theorem. A detailed proof to be formalized in Coq*]

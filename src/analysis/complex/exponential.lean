@@ -9,13 +9,17 @@ import topology.instances.complex tactic.linarith data.complex.exponential
 /-!
 # Exponential
 
+## Main definitions
+
 This file contains the following definitions:
 • π, arcsin, arccos, arctan
 • argument of a complex number
 • logarithm on real and complex numbers
 • complex and real power function
 
-In addition, the following functions are shown to be continuous:
+## Main statements
+
+The following functions are shown to be continuous:
 • complex and real exponential function
 • sin, cos, tan, sinh, cosh
 • logarithm on real numbers

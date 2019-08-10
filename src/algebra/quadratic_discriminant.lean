@@ -10,7 +10,7 @@ import tactic.linarith tactic.ring
 /-!
 # Quadratic discriminants and roots of a quadratic
 
-This file defines the discriminant of a quadratic and prove their
+This file defines the discriminant of a quadratic and gives the solution to a quadratic equation.
 
 ## Main definition
 

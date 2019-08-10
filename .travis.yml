@@ -15,6 +15,7 @@ cache:
   directories:
     - $TRAVIS_BUILD_DIR/test/
     - $TRAVIS_BUILD_DIR/src/
+    - $TRAVIS_BUILD_DIR/archive/
     - $HOME/.elan
 
 install:
@@ -87,6 +88,20 @@ jobs:
         - travis_long "leanpkg test"
         - lean --recursive --export=mathlib.txt src/
         - travis_long "leanchecker mathlib.txt"
+
+    - stage: Archive
+      env: TASK="check Lean proofs"
+      if: type != cron
+      script:
+        - travis_long "lean --make archive/"
+
+    - stage: Archive
+      env: TASK="check Lean proofs" LEAN="nightly"
+      if: type = cron
+      script:
+        - elan toolchain install leanprover-community/lean:nightly
+        - elan override set leanprover-community/lean:nightly
+        - travis_long "lean --make archive/"
 
   # allow_failures:
   #   - env: TASK="check Lean proofs" LEAN="nightly"

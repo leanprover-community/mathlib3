@@ -1,5 +1,4 @@
-import topology.Top.presheaf
-import category_theory.limits.limits
+import topology.Top.sheaf.cover
 
 universes v u
 
@@ -10,95 +9,57 @@ open opposite
 
 namespace Top
 
-variables (X : Top.{v})
-
-structure cover :=
-(ι : Type v)
-(map : ι → opens X)
-
-variables {X}
-
-namespace cover
-
-def total (c : cover X) : opens X := lattice.supr c.map
-
-inductive intersections (c : cover X)
-| single : c.ι → intersections
-| double : c.ι → c.ι → intersections
-.
-
-namespace intersections
-variable (c : cover.{v} X)
-
-inductive hom : intersections c → intersections c → Type v
-| id_single : Π (a : c.ι), hom (single a) (single a)
-| id_double : Π (a b : c.ι), hom (double a b) (double a b)
-| left : Π (a b : c.ι), hom (single a) (double a b)
-| right : Π (a b : c.ι), hom (single b) (double a b)
-.
-
-def id : Π j : intersections c, hom c j j
-| (single a) := hom.id_single a
-| (double a b) := hom.id_double a b
-.
-
-def comp : Π j₁ j₂ j₃ : intersections c, hom c j₁ j₂ → hom c j₂ j₃ → hom c j₁ j₃
-| _ _ _ (hom.id_single _) x := x
-| _ _ _ (hom.id_double _ _) x := x
-| _ _ _ (hom.left a b) (hom.id_double _ _) := hom.left a b
-| _ _ _ (hom.right a b) (hom.id_double _ _) := hom.right a b
-
-local attribute [tidy] tactic.case_bash
-instance : small_category (intersections c) :=
-{ hom := hom c,
-  id := id c,
-  comp := comp c }
-
-end intersections
-
-end cover
-
 open cover.intersections
 
 variables {C : Type u} [𝒞 : category.{v+1} C]
 include 𝒞
-
-variables (F : X.presheaf C)
+variables {X : Top.{v}}
 
 namespace presheaf
-variables (c : cover.{v} X)
+variables (F : X.presheaf C)
 
-@[simp] def on_cover_obj : c.intersections → C
-| (single a) := F.obj (op (c.map a))
-| (double a b) := F.obj (op ((c.map a) ∩ (c.map b)))
-
-@[simp] def on_cover_map : Π (x y : c.intersections) (f : x ⟶ y), on_cover_obj F c x ⟶ on_cover_obj F c y
-| _ _ (hom.id_single _) := 𝟙 _
-| _ _ (hom.id_double _ _) := 𝟙 _
-| _ _ (hom.left a b) := F.map (has_hom.hom.op ⟨⟨lattice.inf_le_left⟩⟩) -- TODO lemma for this
-| _ _ (hom.right a b) := F.map (has_hom.hom.op ⟨⟨lattice.inf_le_right⟩⟩)
-
-section
-local attribute [tidy] tactic.case_bash
-def on_cover (c : cover.{v} X) : c.intersections ⥤ C :=
-{ obj := on_cover_obj F c,
-  map := λ X Y f, on_cover_map F c X Y f }
-end
-
-def cover_cone (c : cover.{v} X) : cone (F.on_cover c) :=
-{ X := F.obj (op c.total),
-  π :=
-  { app := λ X, match X with
-    | (single a) := F.map begin sorry, end
-    | (double a b) := F.map begin sorry end
-    end,
-    naturality' := sorry, }}
-
-def sheaf_condition := Π (c : cover.{v} X), is_limit (F.cover_cone c)
+/--
+The sheaf condition on a presheaf `F` asserts that `F` preserves limits for the
+pairwise intersection diagram associated to any collection of open sets in `X`.
+-/
+def sheaf_condition := Π (c : cover.{v} X), preserves_limit c.diagram F
 end presheaf
 
-structure sheaf :=
+variables (C) (X)
+
+/--
+A sheaf is a presheaf satisfying the sheaf condition.
+-/
+structure sheaf : Type (max (v+1) u) :=
 (F : X.presheaf C)
 (condition : F.sheaf_condition)
+
+instance preserves_limit_cover_diagram (c : cover.{v} X) (ℱ : sheaf.{v} C X) : preserves_limit c.diagram ℱ.F := ℱ.condition c
+instance preserves_limit_cover_diagram_map {X Y : Top.{v}} (c : cover.{v} Y) (f : X ⟶ Y) (ℱ : sheaf.{v} C X) :
+  preserves_limit (cover.diagram c ⋙ functor.op (opens.map f)) (ℱ.F) :=
+begin
+  apply limits.preserves_limit_of_iso (c.map_diagram f).symm,
+  apply_instance
+end
+
+namespace sheaf
+
+/--
+Morphisms of sheaves are just morphisms of the underlying presheaves, so we
+transfer the category structure using `induced_category.category`.
+-/
+instance category_sheaf (X : Top.{v}) : category (sheaf.{v} C X) :=
+induced_category.category sheaf.F
+
+/--
+The pushforward of a sheaf is still a sheaf.
+-/
+def pushforward {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : sheaf.{v} C X) : sheaf.{v} C Y :=
+{ F := f _* ℱ.F,
+  condition := λ c, by { dsimp [presheaf.pushforward], apply_instance } }
+
+infix ` _* `: 80 := pushforward
+
+end sheaf
 
 end Top

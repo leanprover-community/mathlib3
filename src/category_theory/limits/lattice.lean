@@ -20,7 +20,7 @@ instance has_limits_of_complete_lattice [complete_lattice α] : has_limits.{u} �
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F,
     { cone :=
-      { X := Inf (set.range F.obj),
+      { X := infi F.obj,
         π :=
         { app := λ j, ⟨⟨complete_lattice.Inf_le _ _ (set.mem_range_self _)⟩⟩ } },
       is_limit :=
@@ -31,11 +31,18 @@ instance has_colimits_of_complete_lattice [complete_lattice α] : has_colimits.{
 { has_colimits_of_shape := λ J 𝒥, by exactI
   { has_colimit := λ F,
     { cocone :=
-      { X := Sup (set.range F.obj),
+      { X := supr F.obj,
         ι :=
         { app := λ j, ⟨⟨complete_lattice.le_Sup _ _ (set.mem_range_self _)⟩⟩ } },
       is_colimit :=
       { desc := λ s, ⟨⟨complete_lattice.Sup_le _ _
         begin rintros _ ⟨j, rfl⟩, exact (s.ι.app j).down.down, end⟩⟩ } } } }
+
+variables {J : Type u} [small_category J]
+variables [complete_lattice α]
+variable (F : J ⥤ α)
+
+def limit_in_complete_lattice : limit F ≅ infi F.obj := iso.refl _
+def colimit_in_complete_lattice : colimit F ≅ supr F.obj := iso.refl _
 
 end category_theory.limits

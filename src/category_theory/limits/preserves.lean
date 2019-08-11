@@ -111,6 +111,14 @@ instance comp_preserves_colimit [preserves_colimit K F] [preserves_colimit (K �
 
 end
 
+-- TODO Looks like we don't actually need this yet.
+-- section
+-- variables {J' : Type v} [small_category J'] {A : J' ⥤ J} [is_equivalence A]
+
+-- instance preserves_limit_equivalence_comp (F : C ⥤ D) [preserves_limit K F] : preserves_limit (A ⋙ K) F := sorry
+-- instance preserves_colimit_equivalence_comp (F : C ⥤ D) [preserves_colimit K F] : preserves_colimit (A ⋙ K) F := sorry
+-- end
+
 /-- If F preserves one limit cone for the diagram K,
   then it preserves any limit cone for K. -/
 def preserves_limit_of_preserves_limit_cone {F : C ⥤ D} {t : cone K}
@@ -122,6 +130,20 @@ def preserves_limit_of_preserves_limit_cone {F : C ⥤ D} {t : cone K}
 def preserves_colimit_of_preserves_colimit_cocone {F : C ⥤ D} {t : cocone K}
   (h : is_colimit t) (hF : is_colimit (F.map_cocone t)) : preserves_colimit K F :=
 ⟨λ t' h', is_colimit.of_iso_colimit hF (functor.map_iso _ (is_colimit.unique h h'))⟩
+
+instance op_preserves_limits_of_preserves_colimits {F : C ⥤ D} [preserves_colimits F] :
+  preserves_limits (F.op) :=
+sorry
+instance op_preserves_colimits_of_preserves_limits {F : C ⥤ D} [preserves_limits F] :
+  preserves_colimits (F.op) :=
+sorry
+
+def preserves_limit_of_iso {K K' : J ⥤ C} {F : C ⥤ D} [preserves_limit K F] (h : K ≅ K') :
+  preserves_limit K' F :=
+sorry
+def preserves_colimit_of_iso {K K' : J ⥤ C} {F : C ⥤ D} [preserves_colimit K F] (h : K ≅ K') :
+  preserves_colimit K' F :=
+sorry
 
 /-
 A functor F : C → D reflects limits if whenever the image of a cone

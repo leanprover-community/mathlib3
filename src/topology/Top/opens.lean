@@ -6,13 +6,16 @@ import topology.Top.basic
 import category_theory.natural_isomorphism
 import category_theory.opposites
 import category_theory.eq_to_hom
+import category_theory.limits.preserves
+import category_theory.limits.lattice
 import topology.opens
 
 open category_theory
+open category_theory.limits
 open topological_space
 open opposite
 
-universe u
+universes v u
 
 namespace topological_space.opens
 
@@ -26,7 +29,26 @@ instance opens_category : category.{u+1} (opens X) :=
 def to_Top (X : Top.{u}) : opens X ⥤ Top :=
 { obj := λ U, ⟨U.val, infer_instance⟩,
   map := λ U V i, ⟨λ x, ⟨x.1, i.down.down x.2⟩,
-    (embedding.continuous_iff embedding_subtype_val).2 continuous_induced_dom⟩ }
+    (embedding.continuous_iff embedding_subtype_val).2 continuous_induced_dom⟩ }.
+
+lemma eq_of_iso {U V : opens X} (i : U ≅ V) : U = V :=
+opens.ext (set.ext (λ x, ⟨λ h, i.hom.down.down h, λ h, i.inv.down.down h⟩))
+
+lemma op_eq_of_iso {U V : (opens X)ᵒᵖ} (i : U ≅ V) : U = V :=
+begin
+  -- TODO why isn't the op_induction tactic working here?
+  revert i,
+  revert U,
+  apply @opposite.op_induction (opens X) (λ U, (U ≅ V) → (U = V)),
+  intro U,
+  revert V,
+  apply @opposite.op_induction (opens X) (λ V, ((op U) ≅ V) → ((op U) = V)),
+  intro V,
+  intro i,
+  congr,
+  apply eq_of_iso,
+  exact i.unop.symm,
+end
 
 /-- `opens.map f` gives the functor from open sets in Y to open set in X,
     given by taking preimages under f. -/
@@ -36,6 +58,8 @@ def map (f : X ⟶ Y) : opens Y ⥤ opens X :=
 
 @[simp] lemma map_obj (f : X ⟶ Y) (U) (p) : (map f).obj ⟨U, p⟩ = ⟨ f.val ⁻¹' U, f.property _ p ⟩ :=
 rfl
+
+@[simp] lemma map_obj_val (f : X ⟶ Y) (U) : ((map f).obj U).val = f.val ⁻¹' U.val := rfl
 
 @[simp] lemma map_id_obj' (U) (p) : (map (𝟙 X)).obj ⟨U, p⟩ = ⟨U, p⟩ :=
 rfl
@@ -75,6 +99,34 @@ def map_comp (f : X ⟶ Y) (g : Y ⟶ Z) : map (f ≫ g) ≅ map g ⋙ map f :=
 
 @[simp] lemma map_comp_hom_app (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (map_comp f g).hom.app U = eq_to_hom (map_comp_obj f g U) := rfl
 @[simp] lemma map_comp_inv_app (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (map_comp f g).inv.app U = eq_to_hom (map_comp_obj f g U).symm := rfl
+
+/-- The preimage of a union is the union of the preimages. -/
+-- TODO surely we can just use this fact, already proved somewhere about sets...
+lemma map_supr (f : X ⟶ Y) {α} (ι : α → opens Y) : (map f).obj (lattice.supr ι) = lattice.supr ((map f).obj ∘ ι) :=
+begin
+  ext,
+  split,
+  { rintro ⟨_, ⟨⟨_, ⟨⟨z, rfl⟩, rfl⟩⟩, p⟩⟩,
+    exact opens.mem_of_subset_of_mem (lattice.le_supr ((map f).obj ∘ ι) z) p },
+  { rintro ⟨U, ⟨V, ⟨⟨t, rfl⟩, rfl⟩⟩, q⟩,
+    apply set.mem_of_subset_of_mem (lattice.le_supr ι t) q, }
+end
+
+def is_colimit_iff_supr {J : Type u} [small_category J] {F : J ⥤ opens X} (c : cocone F) :
+  is_colimit c ≃ c.X = lattice.supr F.obj :=
+{ to_fun := λ h, eq_of_iso (cocones.forget.map_iso (is_colimit.unique h (colimit.is_colimit F))),
+  inv_fun := λ h, is_colimit.of_iso_colimit (colimit.is_colimit F)
+    { hom := { hom := begin rw h, exact 𝟙 _, end }, inv := { hom := begin rw h, exact 𝟙 _, end } },
+  left_inv := by tidy,
+  right_inv := by tidy, }
+
+instance (f : X ⟶ Y) : preserves_colimits (map f) :=
+⟨λ J 𝒥, by exactI ⟨λ K, ⟨λ c is_colimit, begin
+  apply (is_colimit_iff_supr _).inv_fun,
+  have t := congr_arg (map f).obj ((is_colimit_iff_supr c).to_fun is_colimit),
+  rw map_supr at t,
+  exact t,
+end⟩⟩⟩
 
 -- We could make f g implicit here, but it's nice to be able to see when
 -- they are the identity (often!)

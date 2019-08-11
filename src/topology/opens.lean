@@ -49,7 +49,21 @@ instance : has_subset (opens α) :=
 instance : has_mem α (opens α) :=
 { mem := λ a U, a ∈ U.val }
 
+lemma subset_iff_val_subset {U V : opens α} : U ⊆ V ↔ U.val ⊆ V.val := iff.refl _
+
 @[extensionality] lemma ext {U V : opens α} (h : U.val = V.val) : U = V := subtype.ext.mpr h
+@[extensionality] lemma mem_ext {U V : opens α} (h : ∀ x, x ∈ U ↔ x ∈ V) : U = V :=
+ext (set.ext h)
+
+@[trans] lemma subset.trans {U V W : opens α} (h₁ : U ⊆ V) (h₂ : V ⊆ W) : U ⊆ W := set.subset.trans h₁ h₂
+
+@[refl] theorem subset.refl (a : opens α) : a ⊆ a := set.subset.refl a
+
+theorem subset.antisymm {a b : opens α} (h₁ : a ⊆ b) (h₂ : b ⊆ a) : a = b :=
+ext (set.subset.antisymm h₁ h₂)
+
+lemma mem_of_subset_of_mem {s₁ s₂ : opens α} {a : α} : s₁ ⊆ s₂ → a ∈ s₁ → a ∈ s₂ :=
+set.mem_of_subset_of_mem
 
 instance : partial_order (opens α) := subtype.partial_order _
 

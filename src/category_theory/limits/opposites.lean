@@ -43,8 +43,10 @@ instance [has_colimit.{v} F.left_op] : has_limit.{v} F :=
 instance [has_colimits_of_shape.{v} Jᵒᵖ C] : has_limits_of_shape.{v} J Cᵒᵖ :=
 { has_limit := λ F, by apply_instance }
 
-instance [has_colimits.{v} C] : has_limits.{v} Cᵒᵖ :=
+instance op_has_limits [has_colimits.{v} C] : has_limits.{v} Cᵒᵖ :=
 { has_limits_of_shape := λ J 𝒥, by { resetI, apply_instance } }
+
+def limit_in_op_iso_op_colimit [has_colimits.{v} C] : limit F ≅ op (colimit (F.left_op)) := iso.refl _
 
 instance [has_limit.{v} F.left_op] : has_colimit.{v} F :=
 { cocone := cocone_of_cone_left_op (limit.cone F.left_op),
@@ -69,8 +71,10 @@ instance [has_limit.{v} F.left_op] : has_colimit.{v} F :=
 instance [has_limits_of_shape.{v} Jᵒᵖ C] : has_colimits_of_shape.{v} J Cᵒᵖ :=
 { has_colimit := λ F, by apply_instance }
 
-instance [has_limits.{v} C] : has_colimits.{v} Cᵒᵖ :=
+instance op_has_colimits [has_limits.{v} C] : has_colimits.{v} Cᵒᵖ :=
 { has_colimits_of_shape := λ J 𝒥, by { resetI, apply_instance } }
+
+def colimit_in_op_iso_op_limit [has_limits.{v} C] : colimit F ≅ op (limit (F.left_op)) := iso.refl _
 
 variables (X : Type v)
 instance has_coproducts_opposite [has_limits_of_shape (discrete X) C] :

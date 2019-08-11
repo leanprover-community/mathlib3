@@ -42,10 +42,10 @@ local notation R `;` F `;` V `⊨` f := form.holds R F V f
 
 def pull_core (b : bool) : nat → form → form → form
 | 0       f      g      := form.bin b f g
-| (k + 1) (∀* f) g      := ∀* (pull_core k f (g.incr_vdx 0))
-| (k + 1) f      (∀* g) := ∀* (pull_core k (f.incr_vdx 0) g)
-| (k + 1) (∃* f) g      := ∃* (pull_core k f (g.incr_vdx 0))
-| (k + 1) f      (∃* g) := ∃* (pull_core k (f.incr_vdx 0) g)
+| (k + 1) (∀* f) g      := ∀* (pull_core k f (g.vinc 0))
+| (k + 1) f      (∀* g) := ∀* (pull_core k (f.vinc 0) g)
+| (k + 1) (∃* f) g      := ∃* (pull_core k f (g.vinc 0))
+| (k + 1) f      (∃* g) := ∃* (pull_core k (f.vinc 0) g)
 | (k + 1) _      _      := form.default
 
 def pull (b : bool) (f g : form) : form :=
@@ -53,7 +53,7 @@ pull_core b (f.cons_qua_count + g.cons_qua_count) f g
 
 lemma fa_pull_core (b : bool) (k : nat) (f g : form) :
   pull_core b (k + 1) (∀* f) g =
-  ∀* (pull_core b k f (g.incr_vdx 0)) :=
+  ∀* (pull_core b k f (g.vinc 0)) :=
 by cases g with l b f g b g; try { cases b }; refl
 
 lemma holds_bin_iff_holds_bin
@@ -118,61 +118,61 @@ begin
   apply exists_congr h0
 end
 
-lemma term.val_incr_vdx (F : fns α)
+lemma term.val_vinc (F : fns α)
   (k : nat) (V W : vas α) (h0 : insert_result k V W) :
-    ∀ t : term, (t.incr_vdx k).val F V = t.val F W
-| (# m)    := by simp only [term.incr_vdx, term.val]
+    ∀ t : term, (t.vinc k).val F V = t.val F W
+| (# m)    := by simp only [term.vinc, term.val]
 | (t &t s) :=
-  by simp only [term.incr_vdx, term.val,
-       term.val_incr_vdx t, term.val_incr_vdx s]
+  by simp only [term.vinc, term.val,
+       term.val_vinc t, term.val_vinc s]
 | (t &v m) :=
   begin
-    unfold term.incr_vdx,
+    unfold term.vinc,
     by_cases h1 : m < k,
     { rw if_pos h1,
       unfold term.val,
-      rw [term.val_incr_vdx t, h0.left _ h1] },
+      rw [term.val_vinc t, h0.left _ h1] },
     rw if_neg h1,
     unfold term.val,
     rw not_lt at h1,
-    rw [term.val_incr_vdx t, h0.right _ h1],
+    rw [term.val_vinc t, h0.right _ h1],
   end
 
-lemma atom.val_incr_vdx {R : rls α} {F : fns α}
+lemma atom.val_vinc {R : rls α} {F : fns α}
   {k : nat} {V W : vas α} (h0 : insert_result k V W) :
-    ∀ a : atom, (a.incr_vdx k).val R F V = a.val R F W
-| ($ m)    := by simp only [atom.incr_vdx, atom.val]
+    ∀ a : atom, (a.vinc k).val R F V = a.val R F W
+| ($ m)    := by simp only [atom.vinc, atom.val]
 | (a ^t t) :=
-  by simp only [atom.incr_vdx, term.incr_vdx, atom.val,
-       term.val, atom.val_incr_vdx a, term.val_incr_vdx F k V W h0 t]
+  by simp only [atom.vinc, term.vinc, atom.val,
+       term.val, atom.val_vinc a, term.val_vinc F k V W h0 t]
 | (a ^v m) :=
   begin
-    unfold atom.incr_vdx,
+    unfold atom.vinc,
     by_cases h1 : m < k,
     { rw if_pos h1,
       unfold atom.val,
-      rw [atom.val_incr_vdx a, h0.left _ h1] },
+      rw [atom.val_vinc a, h0.left _ h1] },
     rw if_neg h1,
     unfold atom.val,
     rw not_lt at h1,
-    rw [atom.val_incr_vdx a, h0.right _ h1],
+    rw [atom.val_vinc a, h0.right _ h1],
   end
 
-lemma holds_incr_vdx :
+lemma holds_vinc :
   ∀ {k : nat}, ∀ {V W : vas α}, (insert_result k V W) →
-  ∀ f : form, (f.incr_vdx k).holds R F V ↔ f.holds R F W
+  ∀ f : form, (f.vinc k).holds R F V ↔ f.holds R F W
 | k V W h0 (form.lit l) :=
   by cases l with a a;
-     simp only [form.incr_vdx, lit.holds,
-       lit.incr_vdx, form.holds,
-       atom.val_incr_vdx h0 a]
+     simp only [form.vinc, lit.holds,
+       lit.vinc, form.holds,
+       atom.val_vinc h0 a]
 | k V W h0 (form.bin b f g) :=
   by { apply holds_bin_iff_holds_bin;
-       apply holds_incr_vdx h0 _ }
+       apply holds_vinc h0 _ }
 | k V W h0 (form.qua b f) :=
   begin
     apply holds_qua_iff_holds_qua, intro v,
-    apply @holds_incr_vdx (k + 1) _ _
+    apply @holds_vinc (k + 1) _ _
       (insert_result_succ h0)
   end
 
@@ -180,51 +180,51 @@ lemma insert_result_zero (V : vas α) (a : α) :
   insert_result 0 (V ₀↦ a) V :=
 ⟨λ _ h, by cases h, λ _ _, rfl⟩
 
-lemma holds_incr_vdx_zero (a : α) (f : form) :
-  (R ; F ; (V ₀↦ a) ⊨ f.incr_vdx 0) ↔ (R ; F ; V ⊨ f) :=
-holds_incr_vdx (insert_result_zero _ _) _
+lemma holds_vinc_zero (a : α) (f : form) :
+  (R ; F ; (V ₀↦ a) ⊨ f.vinc 0) ↔ (R ; F ; V ⊨ f) :=
+holds_vinc (insert_result_zero _ _) _
 
-def fa_bin_incr_vdx_zero [inhabited α] (b : bool) (f g : form) :
-  ∀* (form.bin b f (g.incr_vdx 0)) <==α==> form.bin b (∀* f) g :=
+def fa_bin_vinc_zero [inhabited α] (b : bool) (f g : form) :
+  ∀* (form.bin b f (g.vinc 0)) <==α==> form.bin b (∀* f) g :=
 begin
   intros R F V,
   have a : α := (default α),
   constructor; intro h0; cases b,
   { constructor,
     { intro w, exact (h0 w).left },
-    rw ← holds_incr_vdx_zero a g,
+    rw ← holds_vinc_zero a g,
     exact (h0 a).right },
-  { cases classical.em (R ; F ; (V ₀↦ a) ⊨ g.incr_vdx 0) with h2 h2,
-    { rw holds_incr_vdx_zero at h2,
+  { cases classical.em (R ; F ; (V ₀↦ a) ⊨ g.vinc 0) with h2 h2,
+    { rw holds_vinc_zero at h2,
       right, exact h2 },
     left, intro w,
     cases (h0 w) with h3 h3,
     { exact h3 },
-    rw holds_incr_vdx_zero at h2,
-    rw holds_incr_vdx_zero at h3,
+    rw holds_vinc_zero at h2,
+    rw holds_vinc_zero at h3,
     cases (h2 h3) },
   { intro w,
     refine ⟨h0.left _, _⟩,
-    rw holds_incr_vdx_zero,
+    rw holds_vinc_zero,
     exact h0.right },
   { intro w,
-    cases classical.em (R ; F ; (V ₀↦ w) ⊨ g.incr_vdx 0) with h1 h1,
+    cases classical.em (R ; F ; (V ₀↦ w) ⊨ g.vinc 0) with h1 h1,
     { right, exact h1 },
     left, cases h0 with h2 h2,
     { apply h2 },
-    rw holds_incr_vdx_zero at h1,
+    rw holds_vinc_zero at h1,
     cases (h1 h2) }
 end
 
-lemma cons_qua_count_incr_vdx :
+lemma cons_qua_count_vinc :
   ∀ f : form, ∀ k : nat,
-  (f.incr_vdx k).cons_qua_count = f.cons_qua_count
+  (f.vinc k).cons_qua_count = f.cons_qua_count
 | (form.lit l) k     := rfl
 | (form.bin b f g) k := rfl
 | (form.qua b f) k   :=
-  by simp only [form.incr_vdx,
+  by simp only [form.vinc,
       form.cons_qua_count,
-      cons_qua_count_incr_vdx _ (k + 1)]
+      cons_qua_count_vinc _ (k + 1)]
 
 
 lemma neg_eqv_neg (f g : form) :
@@ -237,42 +237,42 @@ begin
   repeat {apply classical.dec _}
 end
 
-lemma neg_incr_vdx :
-  ∀ k : nat, ∀ f : form, (f.incr_vdx k).neg = f.neg.incr_vdx k
+lemma neg_vinc :
+  ∀ k : nat, ∀ f : form, (f.vinc k).neg = f.neg.vinc k
 | k (form.lit l) := by cases l; refl
 | k (form.bin b p q) :=
-  by simp only [form.neg, form.incr_vdx,
-     eq_self_iff_true, neg_incr_vdx, and_self ]
+  by simp only [form.neg, form.vinc,
+     eq_self_iff_true, neg_vinc, and_self ]
 | k (form.qua b p) :=
-  by simp only [form.neg, form.incr_vdx,
-     eq_self_iff_true, neg_incr_vdx, and_self ]
+  by simp only [form.neg, form.vinc,
+     eq_self_iff_true, neg_vinc, and_self ]
 
-def ex_bin_incr_vdx_zero [inhabited α] (b : bool) (f g : form) :
-  ∃* (form.bin b f (g.incr_vdx 0)) <==α==> (form.bin b (∃* f) g) :=
+def ex_bin_vinc_zero [inhabited α] (b : bool) (f g : form) :
+  ∃* (form.bin b f (g.vinc 0)) <==α==> (form.bin b (∃* f) g) :=
 by { rw ← neg_eqv_neg,
-     simp only [ form.neg, neg_incr_vdx 0,
-       bnot, fa_bin_incr_vdx_zero ] }
+     simp only [ form.neg, neg_vinc 0,
+       bnot, fa_bin_vinc_zero ] }
 
-def qua_bin_incr_vdx_zero [inhabited α] (ae ao : bool) (p q : form) :
-  form.qua ae (form.bin ao p (q.incr_vdx 0)) <==α==>
+def qua_bin_vinc_zero [inhabited α] (ae ao : bool) (p q : form) :
+  form.qua ae (form.bin ao p (q.vinc 0)) <==α==>
   form.bin ao (form.qua ae p) q :=
 by { cases ae,
-     apply fa_bin_incr_vdx_zero,
-     apply ex_bin_incr_vdx_zero }
+     apply fa_bin_vinc_zero,
+     apply ex_bin_vinc_zero }
 
 lemma bin_comm (b : bool) (p q : form) :
   form.bin b p q <==α==> form.bin b q p :=
 by { intros R F V, cases b, apply and.comm, apply or.comm }
 
-def qua_incr_vdx_zero_bin [inhabited α] (ae ao : bool) (p q : form) :
-  form.qua ae (form.bin ao (p.incr_vdx 0) q) <==α==>
+def qua_vinc_zero_bin [inhabited α] (ae ao : bool) (p q : form) :
+  form.qua ae (form.bin ao (p.vinc 0) q) <==α==>
   form.bin ao p (form.qua ae q) :=
 begin
-  have h0 : (form.qua ae (form.bin ao (p.incr_vdx 0) q) <==α==>
-             form.qua ae (form.bin ao q (p.incr_vdx 0))),
+  have h0 : (form.qua ae (form.bin ao (p.vinc 0) q) <==α==>
+             form.qua ae (form.bin ao q (p.vinc 0))),
   { apply qua_eqv_qua (bin_comm _ _ _) },
   intros R F V,
-  simp only [ h0 R F V, qua_bin_incr_vdx_zero ae ao q p R F V,
+  simp only [ h0 R F V, qua_bin_vinc_zero ae ao q p R F V,
     bin_comm ao p (form.qua ae q) R F V ]
 end
 
@@ -288,10 +288,10 @@ lemma pull_core_eqv [inhabited α] (b : bool) :
     rcases g with lg | ⟨bg, g1, g2⟩ | ⟨_ | _, g⟩;
     try { apply false.elim (succ_ne_zero _ h0) } ;
     { apply eqv_trans (qua_eqv_qua $ pull_core_eqv k _),
-      try { apply qua_incr_vdx_zero_bin },
-      try { apply qua_bin_incr_vdx_zero },
+      try { apply qua_vinc_zero_bin },
+      try { apply qua_bin_vinc_zero },
       simp only [ form.cons_qua_count, zero_add, add_zero,
-        cons_qua_count_incr_vdx, succ_add, add_def ] at *,
+        cons_qua_count_vinc, succ_add, add_def ] at *,
       apply succ_inj h0 },
   end
 
@@ -301,22 +301,22 @@ by { intros h0 h1, cases f with l b f g b f;
      try { trivial }, apply h0 }
 
 
-lemma F_incr_vdx :
+lemma F_vinc :
   ∀ f : form, ∀ m : nat,
-  f.F → (f.incr_vdx m).F
+  f.F → (f.vinc m).F
 | (form.lit _)   m h0 := trivial
 | (form.bin _ f g) m h0 :=
   by { cases h0, constructor;
-       apply F_incr_vdx; assumption }
+       apply F_vinc; assumption }
 
-lemma QF_incr_vdx :
+lemma QF_vinc :
   ∀ f : form, ∀ m : nat,
-  f.QF → (f.incr_vdx m).QF
+  f.QF → (f.vinc m).QF
 | (form.lit _)   m h0 := trivial
 | (form.bin _ f g) m h0 :=
   by { cases h0, constructor;
-       apply F_incr_vdx; assumption }
-| (form.qua _ f) m h0 := QF_incr_vdx f _ h0
+       apply F_vinc; assumption }
+| (form.qua _ f) m h0 := QF_vinc f _ h0
 
 lemma QF_pull_core (b : bool) :
   ∀ (k : nat) {f g : form},
@@ -342,11 +342,11 @@ lemma QF_pull_core (b : bool) :
       try { trivial };
       try { assumption };
       try { constructor;
-            apply F_incr_vdx;
+            apply F_vinc;
             assumption };
-      try { apply QF_incr_vdx; assumption },
+      try { apply QF_vinc; assumption },
       try { simp only [form.cons_qua_count,
-            cons_qua_count_incr_vdx, add_assoc,
+            cons_qua_count_vinc, add_assoc,
             succ_add] at * },
       apply succ_inj h1 }
   end
@@ -440,11 +440,11 @@ lemma holds_pull_core_ff [inhabited α]  :
     -- cases g with g b g; try { cases b };
     -- { intro a,
     --   apply holds_pull_core_ff _ (hf a),
-    --   { rw holds_incr_vdx (insert_result_zero _ _),
+    --   { rw holds_vinc (insert_result_zero _ _),
     --     exact hg },
     --   simp only [pnf.qua_count, add_zero] at h0,
     --   rw (succ_inj h0),
-    --   simp only [ pnf.qua_count, pnf.incr_vdx,
+    --   simp only [ pnf.qua_count, pnf.vinc,
     --     add_def, add_zero ] },
 
 
@@ -497,7 +497,7 @@ def pull (b : bool) : form → form → list nat → list nat → form
   ∃* (pull f g (ms.map nat.succ) (0 :: ns))
 | f (∃* g) ms ns :=
   ∃* (pull f g (0 :: ms) (ns.map nat.succ))
-| f g ms ns := form.bin b (f.incr_vdxs ms) (g.incr_vdxs ns)
+| f g ms ns := form.bin b (f.vincs ms) (g.vincs ns)
 
 
 
@@ -509,46 +509,46 @@ def pull (b : bool) : form → form → list nat → list nat → form
 
 
 
-def ex_bin_incr_vdx_zero (b : bool) (f g : form) :
-  ∃* (form.bin b f (g.incr_vdx 0)) <==α==> (form.bin b (∃* f) g) :=
+def ex_bin_vinc_zero (b : bool) (f g : form) :
+  ∃* (form.bin b f (g.vinc 0)) <==α==> (form.bin b (∃* f) g) :=
 by { rw ← neg_eqv_neg,
-     simp only [ form.neg, neg_incr_vdx 0,
-       bnot, fa_bin_incr_vdx_zero_eqv ] }
+     simp only [ form.neg, neg_vinc 0,
+       bnot, fa_bin_vinc_zero_eqv ] }
 
-def qua_bin_incr_vdx_zero (ae ao : bool) (p q : form) :
-  form.qua ae (form.bin ao p (q.incr_vdx 0)) <==α==>
+def qua_bin_vinc_zero (ae ao : bool) (p q : form) :
+  form.qua ae (form.bin ao p (q.vinc 0)) <==α==>
   form.bin ao (form.qua ae p) q :=
 by { cases ae,
-     apply fa_bin_incr_vdx_zero_eqv,
-     apply ex_bin_incr_vdx_zero }
+     apply fa_bin_vinc_zero_eqv,
+     apply ex_bin_vinc_zero }
 
 lemma bin_comm (b : bool) (p q : form) :
   form.bin b p q <==α==> form.bin b q p :=
 by { intros R F V, cases b, apply and.comm, apply or.comm }
 
-def qua_incr_vdx_zero_bin (ae ao : bool) (p q : form) :
-  form.qua ae (form.bin ao (p.incr_vdx 0) q) <==α==>
+def qua_vinc_zero_bin (ae ao : bool) (p q : form) :
+  form.qua ae (form.bin ao (p.vinc 0) q) <==α==>
   form.bin ao p (form.qua ae q) :=
 begin
-  have h0 : ( form.qua ae (form.bin ao (p.incr_vdx 0) q) <==α==>
-              form.qua ae (form.bin ao q (p.incr_vdx 0)) ) :=
+  have h0 : ( form.qua ae (form.bin ao (p.vinc 0) q) <==α==>
+              form.qua ae (form.bin ao q (p.vinc 0)) ) :=
   qua_eqv_qua (bin_comm _ _ _),
   intros R F V,
-  simp only [ h0 R F V, qua_bin_incr_vdx_zero ae ao q p R F V,
+  simp only [ h0 R F V, qua_bin_vinc_zero ae ao q p R F V,
     bin_comm ao p (form.qua ae q) R F V ]
 end
 
-lemma incr_vdxs_qua (b : bool) (f : form) :
+lemma vincs_qua (b : bool) (f : form) :
   ∀ (ms : list nat),
-  form.qua b (f.incr_vdxs $ ms.map nat.succ) =
-  (form.qua b f).incr_vdxs ms
+  form.qua b (f.vincs $ ms.map nat.succ) =
+  (form.qua b f).vincs ms
 | []        := rfl
 | (m :: ms) :=
   begin
-    unfold form.incr_vdxs,
-    rw ← incr_vdxs_qua ms,
+    unfold form.vincs,
+    rw ← vincs_qua ms,
     apply congr_arg,
-    simp only [ form.incr_vdx, form.incr_vdxs,
+    simp only [ form.vinc, form.vincs,
                 and_self, list.map]
   end
 
@@ -556,7 +556,7 @@ lemma incr_vdxs_qua (b : bool) (f : form) :
 lemma pull_eqv [inhabited α] (b : bool) :
   ∀ (f g : form) (ms ns : list nat),
   (pull b f g ms ns) <==α==>
-  (form.bin b (f.incr_vdxs ms) (g.incr_vdxs ns))
+  (form.bin b (f.vincs ms) (g.vincs ns))
 | (form.lit _ _)   (form.lit _ _)   ms ns := by simp only [pull, eqv_refl]
 | (form.lit _ _)   (form.bin _ _ _) ms ns := by simp only [pull, eqv_refl]
 | (form.bin _ _ _) (form.lit _ _)   ms ns := by simp only [pull, eqv_refl]
@@ -566,8 +566,8 @@ lemma pull_eqv [inhabited α] (b : bool) :
     cases bf;
     { unfold pull,
       apply eqv_trans (qua_eqv_qua $ pull_eqv _ _ _ _),
-      rw ← incr_vdxs_qua,
-      apply (qua_bin_incr_vdx_zero _ _ _ _),
+      rw ← vincs_qua,
+      apply (qua_bin_vinc_zero _ _ _ _),
       assumption },
   end
 | (form.qua bf f) (form.bin bg g1 g2) ms ns :=
@@ -575,8 +575,8 @@ lemma pull_eqv [inhabited α] (b : bool) :
     cases bf;
     { unfold pull,
       apply eqv_trans (qua_eqv_qua $ pull_eqv _ _ _ _),
-      rw ← incr_vdxs_qua,
-      apply (qua_bin_incr_vdx_zero _ _ _ _),
+      rw ← vincs_qua,
+      apply (qua_bin_vinc_zero _ _ _ _),
       assumption },
   end
 | (form.lit bf af) (form.qua bg g) ms ns :=
@@ -584,8 +584,8 @@ lemma pull_eqv [inhabited α] (b : bool) :
     cases bg;
     { unfold pull,
       apply eqv_trans (qua_eqv_qua $ pull_eqv _ _ _ _),
-      rw ← incr_vdxs_qua,
-      apply (qua_incr_vdx_zero_bin _ _ _ _),
+      rw ← vincs_qua,
+      apply (qua_vinc_zero_bin _ _ _ _),
       assumption },
   end
 | (form.bin bf f1 f2) (form.qua bg g) ms ns :=
@@ -593,16 +593,16 @@ lemma pull_eqv [inhabited α] (b : bool) :
     cases bg;
     { unfold pull,
       apply eqv_trans (qua_eqv_qua $ pull_eqv _ _ _ _),
-      rw ← incr_vdxs_qua,
-      apply (qua_incr_vdx_zero_bin _ _ _ _),
+      rw ← vincs_qua,
+      apply (qua_vinc_zero_bin _ _ _ _),
       assumption },
   end
 | (∀* f) (∀* g) ms ns :=
   begin
     unfold pull,
     apply eqv_trans (qua_eqv_qua $ pull_eqv _ _ _ _),
-    apply eqv_trans (qua_bin_incr_vdx_zero _ _ _ _),
-    rw incr_vdxs_qua,
+    apply eqv_trans (qua_bin_vinc_zero _ _ _ _),
+    rw vincs_qua,
     apply eqv_refl,
     assumption
   end
@@ -610,8 +610,8 @@ lemma pull_eqv [inhabited α] (b : bool) :
   begin
     unfold pull,
     apply eqv_trans (qua_eqv_qua $ pull_eqv _ _ _ _),
-    apply eqv_trans (qua_bin_incr_vdx_zero _ _ _ _),
-    rw incr_vdxs_qua,
+    apply eqv_trans (qua_bin_vinc_zero _ _ _ _),
+    rw vincs_qua,
     apply eqv_refl,
     assumption
   end
@@ -619,8 +619,8 @@ lemma pull_eqv [inhabited α] (b : bool) :
   begin
     unfold pull,
     apply eqv_trans (qua_eqv_qua $ pull_eqv _ _ _ _),
-    apply eqv_trans (qua_bin_incr_vdx_zero _ _ _ _),
-    rw incr_vdxs_qua,
+    apply eqv_trans (qua_bin_vinc_zero _ _ _ _),
+    rw vincs_qua,
     apply eqv_refl,
     assumption
   end
@@ -628,8 +628,8 @@ lemma pull_eqv [inhabited α] (b : bool) :
   begin
     unfold pull,
     apply eqv_trans (qua_eqv_qua $ pull_eqv _ _ _ _),
-    apply eqv_trans (qua_incr_vdx_zero_bin _ _ _ _),
-    rw incr_vdxs_qua,
+    apply eqv_trans (qua_vinc_zero_bin _ _ _ _),
+    rw vincs_qua,
     apply eqv_refl,
     assumption
   end
@@ -641,29 +641,29 @@ def prenexify : form → form
 
 
 
-lemma F_incr_vdxs :
+lemma F_vincs :
   ∀ f : form, ∀ ms : list nat,
-  f.F → (f.incr_vdxs ms).F
+  f.F → (f.vincs ms).F
 | f []        h0 := h0
 | f (m :: ms) h0 :=
-  by { apply F_incr_vdx,
-       apply F_incr_vdxs _ _ h0 }
+  by { apply F_vinc,
+       apply F_vincs _ _ h0 }
 
 lemma QF_pull (b : bool) :
   ∀ {f g : form}, ∀ ms ns : list nat,
   f.QF → g.QF → (pull b f g ms ns).QF
 | (form.lit _ _)   (form.lit _ _)   ms ns h0 h1 :=
   by { unfold pull, constructor;
-       apply F_incr_vdxs; assumption }
+       apply F_vincs; assumption }
 | (form.lit _ _)   (form.bin b f g) ms ns h0 h1 :=
   by { unfold pull, constructor;
-       apply F_incr_vdxs; assumption }
+       apply F_vincs; assumption }
 | (form.bin _ _ _) (form.lit _ _)   ms ns h0 h1:=
   by { unfold pull, constructor;
-       apply F_incr_vdxs; assumption }
+       apply F_vincs; assumption }
 | (form.bin _ _ _) (form.bin _ _ _) ms ns h0 h1 :=
   by { unfold pull, constructor;
-       apply F_incr_vdxs; assumption }
+       apply F_vincs; assumption }
 | (form.qua bf f) (form.lit bg ag)  ms ns h0 h1 :=
   by { cases bf; unfold pull;
        apply QF_pull; assumption }
@@ -691,7 +691,7 @@ lemma QF_pull (b : bool) :
 lemma fresh_vdx_pull (b : bool) :
   ∀ f g : form, ∀ ms ns : list nat,
   (pull b f g ms ns).fresh_vdx =
-  max (f.incr_vdxs ms).fresh_vdx (g.incr_vdxs ns).fresh_vdx
+  max (f.vincs ms).fresh_vdx (g.vincs ns).fresh_vdx
 | (form.lit _ _) (form.lit _ _) ms ns :=
   by simp only [pull, form.fresh_vdx]
 | (form.lit _ _) (form.bin _ _ _) ms ns :=
@@ -706,11 +706,11 @@ lemma fresh_vdx_pull (b : bool) :
     { simp only [pull, form.fresh_vdx],
       rw fresh_vdx_pull,
       apply eq.trans _ (succ_sub_one _),
-      rw [← max_succ_succ, ← incr_vdxs_qua],
+      rw [← max_succ_succ, ← vincs_qua],
       unfold form.fresh_vdx,
-      cases (form.fresh_vdx (form.incr_vdxs (list.map succ ms) f)) with k,
+      cases (form.fresh_vdx (form.vincs (list.map succ ms) f)) with k,
       rw zero_max,
-      unfold form.incr_vdxs,
+      unfold form.vincs,
 
 
       }

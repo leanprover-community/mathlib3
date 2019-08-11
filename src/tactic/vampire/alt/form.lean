@@ -84,20 +84,20 @@ def fresh_fdx : term → nat
 | (t &t s) := max t.fresh_fdx s.fresh_fdx
 | (t &v k) := t.fresh_fdx
 
-def incr_vdx (m : nat) : term → term
+def vinc (m : nat) : term → term
 | (# k)    := # k
-| (t &t s) := t.incr_vdx &t s.incr_vdx
-| (t &v k) := t.incr_vdx &v (if k < m then k else k + 1)
+| (t &t s) := t.vinc &t s.vinc
+| (t &v k) := t.vinc &v (if k < m then k else k + 1)
 
 def incr_fdx : term → term
 | (# k)    := # (k + 1)
 | (t &t s) := t.incr_fdx &t s.incr_fdx
 | (t &v k) := t.incr_fdx &v k
 
-def decr_vdx (m : nat) : term → term
+def vdec (m : nat) : term → term
 | (# k)    := # k
-| (t &t s) := t.decr_vdx &t s.decr_vdx
-| (t &v k) := t.decr_vdx &v (if m < k then k - 1 else k)
+| (t &t s) := t.vdec &t s.vdec
+| (t &v k) := t.vdec &v (if m < k then k - 1 else k)
 
 def subst (k : nat) (t : term) : term → term
 | (# m)    := # m
@@ -128,9 +128,9 @@ def vdx_occ (k : nat) : term → Prop
 | (t &t s) := (t.vdx_occ) ∨ (s.vdx_occ)
 | (t &v m) := t.vdx_occ ∨ m = k
 
-def incr_vdx_zeroes : nat → term → term
+def vinc_zeroes : nat → term → term
 | 0       t := t
-| (k + 1) t := (incr_vdx_zeroes k t).incr_vdx 0
+| (k + 1) t := (vinc_zeroes k t).vinc 0
 
 end term
 
@@ -186,15 +186,15 @@ def incr_fdx : atom → atom
 | (a ^t t) := a.incr_fdx ^t t.incr_fdx
 | (a ^v k) := a.incr_fdx ^v k
 
-def incr_vdx (m : nat) : atom → atom
+def vinc (m : nat) : atom → atom
 | ($ k)    := $ k
-| (a ^t t) := a.incr_vdx ^t (t.incr_vdx m)
-| (a ^v k) := a.incr_vdx ^v (if k < m then k else k + 1)
+| (a ^t t) := a.vinc ^t (t.vinc m)
+| (a ^v k) := a.vinc ^v (if k < m then k else k + 1)
 
-def decr_vdx (m : nat) : atom → atom
+def vdec (m : nat) : atom → atom
 | ($ k)    := $ k
-| (a ^t t) := a.decr_vdx ^t (t.decr_vdx m)
-| (a ^v k) := a.decr_vdx ^v (if m < k then k - 1 else k)
+| (a ^t t) := a.vdec ^t (t.vdec m)
+| (a ^v k) := a.vdec ^v (if m < k then k - 1 else k)
 
 def subst (k : nat) (t : term) : atom → atom
 | ($ m)    := $ m
@@ -265,13 +265,13 @@ def incr_fdx : lit → lit
 | (-* a) := -* a.incr_fdx
 | (+* a) := +* a.incr_fdx
 
-def incr_vdx : nat → lit → lit
-| k (-* a) := -* (a.incr_vdx k)
-| k (+* a) := +* (a.incr_vdx k)
+def vinc : nat → lit → lit
+| k (-* a) := -* (a.vinc k)
+| k (+* a) := +* (a.vinc k)
 
-def decr_vdx : nat → lit → lit
-| k (-* a) := -* (a.decr_vdx k)
-| k (+* a) := +* (a.decr_vdx k)
+def vdec : nat → lit → lit
+| k (-* a) := -* (a.vdec k)
+| k (+* a) := +* (a.vdec k)
 
 def subst (k : nat) (t : term) : lit → lit
 | (-* a) := -* (a.subst k t)
@@ -353,15 +353,15 @@ def fresh_vdx : form → nat
 | (form.bin _ f g) := max f.fresh_vdx g.fresh_vdx
 | (form.qua _ f)   := f.fresh_vdx - 1
 
-def incr_vdx : nat → form → form
-| m (form.lit l)     := form.lit (l.incr_vdx m)
-| m (form.bin b f g) := form.bin b (f.incr_vdx m) (g.incr_vdx m)
-| m (form.qua b f)   := form.qua b (f.incr_vdx $ m + 1)
+def vinc : nat → form → form
+| m (form.lit l)     := form.lit (l.vinc m)
+| m (form.bin b f g) := form.bin b (f.vinc m) (g.vinc m)
+| m (form.qua b f)   := form.qua b (f.vinc $ m + 1)
 
-def decr_vdx : nat → form → form
-| m (form.lit l)     := form.lit (l.decr_vdx m)
-| m (form.bin b f g) := form.bin b (f.decr_vdx m) (g.decr_vdx m)
-| m (form.qua b f)   := form.qua b (f.decr_vdx $ m + 1)
+def vdec : nat → form → form
+| m (form.lit l)     := form.lit (l.vdec m)
+| m (form.bin b f g) := form.bin b (f.vdec m) (g.vdec m)
+| m (form.qua b f)   := form.qua b (f.vdec $ m + 1)
 
 
 def default : form := ⟪ lit.default ⟫
@@ -374,7 +374,7 @@ def incr_fdx : form → form
 def subst : nat → term → form → form
 | k t (form.lit l)     := form.lit (l.subst k t)
 | k t (form.bin b f g) := form.bin b (f.subst k t) (g.subst k t)
-| k t (form.qua b f)   := form.qua b (f.subst (k + 1) (t.incr_vdx 0))
+| k t (form.qua b f)   := form.qua b (f.subst (k + 1) (t.vinc 0))
 
 def neg : form → form
 | (form.lit l)     := form.lit l.not
@@ -481,9 +481,9 @@ inductive qf : Type
 
 namespace qf
 
-def incr_vdx (k : nat) : qf → qf
-| (qf.lit l)     := qf.lit (l.incr_vdx k)
-| (qf.bin b f g) := qf.bin b f.incr_vdx g.incr_vdx
+def vinc (k : nat) : qf → qf
+| (qf.lit l)     := qf.lit (l.vinc k)
+| (qf.bin b f g) := qf.bin b f.vinc g.vinc
 
 def default : qf := qf.lit lit.default
 
@@ -500,9 +500,9 @@ def subst (k : nat) (t : term) : qf → qf
 | (qf.lit l)     := qf.lit (l.subst k t)
 | (qf.bin b f g) := qf.bin b f.subst g.subst
 
-def decr_vdx (k : nat) : qf → qf
-| (qf.lit l)     := qf.lit (l.decr_vdx k)
-| (qf.bin b f g) := qf.bin b f.decr_vdx g.decr_vdx
+def vdec (k : nat) : qf → qf
+| (qf.lit l)     := qf.lit (l.vdec k)
+| (qf.bin b f g) := qf.bin b f.vdec g.vdec
 
 end qf
 
@@ -520,9 +520,9 @@ def incr_fdx : pnf → pnf
 | (pnf.qf f)    := pnf.qf f.incr_fdx
 | (pnf.qua b f) := pnf.qua b f.incr_fdx
 
-def incr_vdx : nat → pnf → pnf
-| k (pnf.qf f)    := pnf.qf (f.incr_vdx k)
-| k (pnf.qua b f) := f.incr_vdx (k + 1)
+def vinc : nat → pnf → pnf
+| k (pnf.qf f)    := pnf.qf (f.vinc k)
+| k (pnf.qua b f) := f.vinc (k + 1)
 
 def default : pnf := pnf.qf qf.default
 
@@ -532,11 +532,11 @@ def qua_count : pnf → nat
 
 def subst : nat → term → pnf → pnf
 | k t (pnf.qf f)    := pnf.qf (f.subst k t)
-| k t (pnf.qua b f) := pnf.qua b (f.subst (k + 1) (t.incr_vdx 0))
+| k t (pnf.qua b f) := pnf.qua b (f.subst (k + 1) (t.vinc 0))
 
-def decr_vdx : nat → pnf → pnf
-| k (pnf.qf f)    := pnf.qf (f.decr_vdx k)
-| k (pnf.qua b f) := pnf.qua b (f.decr_vdx (k + 1))
+def vdec : nat → pnf → pnf
+| k (pnf.qf f)    := pnf.qf (f.vdec k)
+| k (pnf.qua b f) := pnf.qua b (f.vdec (k + 1))
 
 def univ : pnf → Prop
 | (pnf.qf _)    := true
@@ -958,9 +958,27 @@ lemma F_strip_fa :
 | (∀* f) h           := F_strip_fa f h
 | (∃* f) h           := by cases h
 
--- lemma fresh_vdx_incr_vdx_zero :
---   ∀ f : form, (f.incr_vdx 0).fresh_vdx = f.fresh_vdx + 1 := sorry
+lemma holds_bin_of_holds_bin {R' : rls α} {F' : fns α}
+  {V' : vas α} {b : bool} {f g f' g' : form} :
+  (f.holds R F V → f'.holds R' F' V') →
+  (g.holds R F V → g'.holds R' F' V') →
+  (form.bin b f g).holds R F V →
+  (form.bin b f' g').holds R' F' V' :=
+begin
+  intros h0 h1 h2, cases b,
+  { refine ⟨h0 h2.left, h1 h2.right⟩ },
+  cases h2,
+  { left, apply h0 h2 },
+  right, apply h1 h2
+end
 
+#exit
+lemma holds_qua_of_holds_qua {R' : rls α} {F' : fns α}
+  {V' : vas α} {b : bool} {f g : form} :
+  (f.holds R F V → f'.holds R' F' V') →
+  (g.holds R F V → g'.holds R' F' V') →
+  (form.bin b f g).holds R F V →
+  (form.bin b f' g').holds R' F' V' :=
 #exit
 lemma holds_strip_fa (f : form) :
   (R ; F ; Vdf α ⊨ f) →

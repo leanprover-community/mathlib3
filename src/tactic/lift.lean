@@ -1,9 +1,27 @@
+/-
+Copyright (c) 2019 Floris van Doorn. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Floris van Doorn
+-/
 import tactic.rcases
+
+/-!
+# lift tactic
+
+This file defines the lift tactic, allowing the user to lift elements from one type to another
+under a specified condition.
+
+## Tags
+
+lift, tactic
+-/
 
 universe variables u v
 
 run_cmd mk_simp_attr `can_lift
 
+/-- A class specifying that you can lift elements from `α` to `β` assuming `cond` is true.
+  Used by the tactic `lift`. -/
 class can_lift (α : Type u) (β : Type v) : Type (max u v) :=
 (coe : β → α)
 (cond : α → Prop)
@@ -21,8 +39,9 @@ do
   old_tp ← infer_type e,
   new_tp ← i_to_expr t,
   inst_type ← mk_app ``can_lift [old_tp, new_tp],
-  inst ← mk_instance inst_type
-    <|> pformat!"Failed to find a lift from {old_tp} to {new_tp}. Provide an instance of\n  {inst_type}" >>= fail,
+  inst ← mk_instance inst_type <|>
+    pformat!"Failed to find a lift from {old_tp} to {new_tp}. Provide an instance of\n  {inst_type}"
+    >>= fail,
   prf ← if h_some : h.is_some then
     (do prf ← i_to_expr (option.get h_some), prf_ty ← infer_type prf,
     expected_prf_ty ← mk_app `can_lift.cond [old_tp, new_tp, inst, e],

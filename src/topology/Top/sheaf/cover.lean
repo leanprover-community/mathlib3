@@ -72,17 +72,17 @@ def diagram_obj : intersections (c.ι) → (opens X)ᵒᵖ
 | _ _ (hom.left a b)      := has_hom.hom.op ⟨⟨lattice.inf_le_left⟩⟩ -- TODO lemma for this
 | _ _ (hom.right a b)     := has_hom.hom.op ⟨⟨lattice.inf_le_right⟩⟩
 
-section
-local attribute [tidy] tactic.case_bash
 def diagram : intersections (c.ι) ⥤ (opens X)ᵒᵖ :=
 { obj := diagram_obj c,
   map := diagram_map c, }
-end.
 
 @[simp] lemma diagram_obj_single (a) : c.diagram.obj (single a) = op (c.i a) := rfl
 @[simp] lemma diagram_obj_double (a b) : c.diagram.obj (double a b) = op ((c.i a) ∩ (c.i b)) := rfl
 
-/-- The union of all the sets in the cover is the same as the union of all the sets and all the pairwise intersections. -/
+/--
+The union of all the sets in the cover is the same as the union of all the sets and
+all the pairwise intersections.
+-/
 lemma supr_eq_supr_diagram : lattice.supr (c.i) = lattice.supr ((functor.left_op (diagram c)).obj) :=
 begin
   ext,
@@ -96,7 +96,8 @@ begin
     apply opens.subset_iff_val_subset.1,
     -- Unfortunately the `op_induction` tactic doesn't work here:
     revert i,
-    apply @opposite.op_induction (intersections (c.ι)) (λ i, unop ((diagram c).obj (unop i)) ⊆ lattice.supr (c.i)),
+    apply @opposite.op_induction (intersections (c.ι))
+      (λ i, unop ((diagram c).obj (unop i)) ⊆ lattice.supr (c.i)),
     rintro (i | ⟨i₁,i₂⟩),
     { exact lattice.le_supr c.i i },
     { exact le_trans lattice.inf_le_left (lattice.le_supr c.i i₁) }}

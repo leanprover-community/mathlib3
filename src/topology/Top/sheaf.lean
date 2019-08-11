@@ -34,8 +34,11 @@ structure sheaf : Type (max (v+1) u) :=
 (F : X.presheaf C)
 (condition : F.sheaf_condition)
 
-instance preserves_limit_cover_diagram (c : cover.{v} X) (ℱ : sheaf.{v} C X) : preserves_limit c.diagram ℱ.F := ℱ.condition c
-instance preserves_limit_cover_diagram_map {X Y : Top.{v}} (c : cover.{v} Y) (f : X ⟶ Y) (ℱ : sheaf.{v} C X) :
+instance preserves_limit_cover_diagram (c : cover.{v} X) (ℱ : sheaf.{v} C X) :
+  preserves_limit c.diagram ℱ.F :=
+ℱ.condition c
+instance preserves_limit_cover_diagram_map
+  {X Y : Top.{v}} (c : cover.{v} Y) (f : X ⟶ Y) (ℱ : sheaf.{v} C X) :
   preserves_limit (cover.diagram c ⋙ functor.op (opens.map f)) (ℱ.F) :=
 begin
   apply limits.preserves_limit_of_iso (c.map_diagram f).symm,

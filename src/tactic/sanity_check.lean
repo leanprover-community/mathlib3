@@ -6,20 +6,12 @@ setup_tactic_parser
 
 namespace string
 
-meta def iterator.is_prefix : iterator → iterator → bool | n m :=
-if ¬ n.has_next then tt
-else if ¬ m.has_next then ff
-else if n.curr ≠ m.curr then ff
-else iterator.is_prefix n.next m.next
-
-meta def is_prefix (s s' : string) : bool :=
-s.mk_iterator.is_prefix s'.mk_iterator
+def is_prefix : string → string → bool | ⟨s⟩ ⟨t⟩ := s.is_prefix_of t
 
 def popn (s : string) (n : nat) : string :=
 (s.mk_iterator.nextn n).next_to_string
 
 end string
-
 
 /-- A hackish way to get the `src` directory of mathlib. -/
 meta def get_mathlib_dir : tactic string :=
@@ -33,7 +25,6 @@ do e ← get_env,
    ml ← get_mathlib_dir,
    let olean := e.decl_olean n,
    return $ ml.is_prefix $ olean.get_or_else ""
-
 
 meta def check_unused_arguments_aux : list ℕ → ℕ → expr → list ℕ
 := λ l n e,

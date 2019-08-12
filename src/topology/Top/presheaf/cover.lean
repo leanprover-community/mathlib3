@@ -13,7 +13,7 @@ namespace Top
 
 variables (X : Top.{v})
 
-structure cover :=
+structure cover : Type (v+1) :=
 (ι : Type v)
 (i : ι → opens X)
 
@@ -52,6 +52,14 @@ instance : category (cover X) :=
   comp := comp }
 
 end hom
+
+end cover
+
+def cover_of (U : opens X) := { c : cover X // c.total = U }
+
+instance (U : opens X) : category (cover_of U) := sorry
+
+namespace cover
 
 inductive intersections (ι : Type v)
 | single : ι → intersections

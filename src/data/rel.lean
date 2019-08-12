@@ -18,6 +18,14 @@ variables {δ : Type*} (r : rel α β)
 instance : lattice.complete_lattice (rel α β) :=
 by unfold rel; apply_instance
 
+protected def graph : set (α × β) := function.uncurry r
+
+lemma mem_graph {x : α × β} : x ∈ r.graph ↔ r x.fst x.snd :=
+by unfold rel.graph; rw function.uncurry_def; refl
+
+lemma mk_mem_graph {x : α} {y : β} : (x, y) ∈ r.graph ↔ r x y :=
+@rel.mem_graph _ _ r (x, y)
+
 def inv : rel β α := flip r
 
 lemma inv_def (x : α) (y : β) : r.inv y x ↔ r x y := iff.rfl

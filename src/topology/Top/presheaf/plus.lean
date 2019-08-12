@@ -18,6 +18,7 @@ def plus_obj_obj_aux (ℱ : X.presheaf C) (U : (opens X)ᵒᵖ) : {c : cover X /
 ((full_subcategory_inclusion (λ c : cover X, c.total = unop U)).op ⋙ ℱ.cech_zero)
 
 -- Uh oh... universes.
+-- It looks like `cover X` is one universe level higher than we want it to be here.
 
 set_option pp.universes true
 #check λ U : (opens X)ᵒᵖ, {c : cover X // c.total = unop U}ᵒᵖ

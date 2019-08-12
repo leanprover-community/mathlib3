@@ -5,8 +5,10 @@ Authors: Sander Dahmen, Casper Putz
 -/
 
 import algebra data.real.basic data.polynomial data.finset ring_theory.integral_closure
+import field_theory.field_extension
+import analysis.complex.exponential
 
-universe u
+universes u v
 
 namespace valuation
 
@@ -27,6 +29,8 @@ class nonarch_valued_ring (α : Type u) [integral_domain α] extends valued_ring
 section valued_ring
 
 open valued_ring
+
+section integral_domain
 
 variables {α : Type u} [integral_domain α] [valued_ring α]
 
@@ -66,6 +70,25 @@ begin
   { rw [pow_zero, pow_zero, val_one] },
   { rw [pow_succ, pow_succ, val_mul, n_ih] }
 end
+
+end integral_domain
+
+section field
+
+variables {α : Type u} [discrete_field α] [valued_ring α]
+
+/-- Shows that the valuation of the inverse is the inverse of the valuation. -/
+lemma val_inv {x : α} (h : x ≠ 0) : valued_ring.val x⁻¹ = (valued_ring.val x)⁻¹ :=
+begin
+  apply eq_of_mul_eq_mul_right (val_ne_zero h),
+  rw [inv_mul_cancel (val_ne_zero h), ←valued_ring.val_mul, inv_mul_cancel h, val_one]
+end
+
+/-- Shows that taking valuations and dividing by non-zero elements commutes -/
+lemma val_div (x y : α) (hy : y ≠ 0) : val x / val y = val (x / y) :=
+by rw [div_eq_mul_inv, div_eq_mul_inv, val_mul, val_inv hy]
+
+end field
 
 end valued_ring
 
@@ -150,13 +173,6 @@ instance : nonarch_valued_ring (valuation_ring α) :=
   val_mul := λ x y, by rw [is_submonoid.coe_mul]; exact val_mul x y,
   val_add := λ x y, by rw [is_add_submonoid.coe_add]; exact val_add x y,
   nonarch := λ x y, nonarch x y }
-
-/-- Shows that the valuation of the inverse is the inverse of the valuation. -/
-lemma val_inv {x : α} (h : x ≠ 0) : valued_ring.val x⁻¹ = (valued_ring.val x)⁻¹ :=
-begin
-  apply eq_of_mul_eq_mul_right (val_ne_zero h),
-  rw [inv_mul_cancel (val_ne_zero h), ←valued_ring.val_mul, inv_mul_cancel h, val_one]
-end
 
 /-- Shows that for x in a valued field, either x or x⁻¹ is in the valuation ring. -/
 lemma mem_or_inv_mem (x : α) (h : x ≠ 0) : x ∈ valuation_ring α ∨ x⁻¹ ∈ valuation_ring α :=
@@ -269,7 +285,7 @@ end valuation
 
 namespace henselian
 
-open valuation polynomial
+open valuation polynomial field_extension finite_dimensional
 
 /-- A *henselian field* is a valued field `α` such that any irreducible polyomial
 over this field . -/
@@ -277,6 +293,7 @@ class henselian_field (α : Type u) [discrete_field α] [valued_ring α] :=
 (henselian : ∀ p : polynomial α, irreducible p →
   ∀ k ≤ nat_degree p, valued_ring.val (p.coeff k) ≤ max (valued_ring.val (p.coeff 0)) (valued_ring.val (p.leading_coeff)))
 
+section
 variables {α : Type u} [discrete_field α] [nonarch_valued_ring α] [henselian_field α]
 
 lemma integral_coeffs (p : polynomial α) (hp : irreducible p) (hm : monic p)
@@ -290,6 +307,84 @@ lemma integral_coeffs (p : polynomial α) (hp : irreducible p) (hm : monic p)
 		rwa [monic.def.mp hm, val_one, max_eq_right h0] at h
 	end)
 	(λ hk, by	rw [coeff_eq_zero_of_degree_lt hk, val_zero]; exact zero_le_one)
+
+end
+
+variables (α : Type u) [discrete_field α] [nonarch_valued_ring α] [henselian_field α]
+variables {β : Type v} [discrete_field β] [algebra α β] [finite_dimensional α β]
+
+-- TODO: move
+lemma rpow_zero_iff {x y : ℝ} (hx : x ≥ 0) (hy : y ≠ 0) : x ^ y = 0 ↔ x = 0 :=
+⟨λ h, by { rw [←real.rpow_one x, ←mul_inv_cancel hy, real.rpow_mul hx, h],
+  exact real.zero_rpow (inv_ne_zero hy) },
+λ h, by { rw [h], exact real.zero_rpow hy }⟩
+
+-- TODO
+lemma findim_ne_zero : findim α β ≠ 0 := sorry
+
+/-- The weak triangle inequality follows from the strong triangle inequality -/
+lemma weak_triangle_of_nonarch {α : Type u} [discrete_field α] (f : α → ℝ) (h0 : ∀ a, f a ≥ 0)
+  (h : ∀ a b : α, f (a + b) ≤ f a ∨ f (a + b) ≤ f b) :
+  ∀ a b : α, f (a + b) ≤ f a + f b :=
+begin
+  intros a b,
+  cases h a b,
+  { transitivity (f a), assumption, exact le_add_of_nonneg_right (h0 _)},
+  { transitivity (f b), assumption, exact le_add_of_nonneg_left (h0 _)},
+end
+
+noncomputable def val_ext : β → ℝ := λ b, (valued_ring.val (field_norm α β b)) ^ (1 / findim α β : ℝ)
+
+lemma val_ext_nonneg (b : β) : val_ext α b ≥ 0 := real.rpow_nonneg_of_nonneg (nonneg _) _
+
+lemma max_div (x y : ℝ) {z : ℝ} (hz : z > 0) : (max x y) / z = max (x / z) (y / z) := sorry
+
+lemma test1 (b : β) : val_ext α b ≤ 1 ↔ valued_ring.val (field_norm α β b) ≤ 1 := sorry
+
+--lemma test2 (a b : β) (γ : Type*) [comm_ring γ] [algebra γ α] [finite_dimensional γ α]
+--  (ha : is_integral γ (field_norm α β a)) (hb : is_integral γ (field_norm α β a)) :
+--  is_integral γ (field_norm α β (a + b)) := sorry
+
+noncomputable instance extend_valuation : nonarch_valued_ring β :=
+{ val := val_ext α,
+  nonneg := val_ext_nonneg α,
+  definite := λ b, begin
+      have : (1 / findim α β : ℝ) ≠ 0, from
+        by { rw [←inv_eq_one_div], refine inv_ne_zero _, norm_cast, exact findim_ne_zero α },
+      unfold val_ext,
+      rw [rpow_zero_iff (nonneg _) this, definite, norm_zero_iff_zero]
+    end,
+  val_mul := λ a b, by { unfold val_ext, rw [norm_mul, val_mul, real.mul_rpow (nonneg _) (nonneg _)] },
+  nonarch := λ a b,
+  suffices h : ∀ c : β, val_ext α c ≤ 1 → val_ext α (c + 1) ≤ max (val_ext α c) 1, from
+  begin
+    by_cases hb : b = 0,
+    { rw [hb, val_zero, add_zero], exact le_max_left _ _ },
+    { have : val_ext α b ≠ 0, from sorry,
+      have : val_ext α b > 0, from lt_of_le_of_ne (val_ext_nonneg α _) (ne.symm this),
+      rw [←div_le_div_right this, val_div, max_div _ _ this, val_div, val_div],
+      rw [add_div, div_self hb, val_one],
+
+      have : val_ext α a ≤ val_ext α b, from sorry, --wlog
+      have hc : val_ext α (a / b) ≤ 1, from sorry,
+      exact h (a / b) hc,
+      assumption' }
+  end,
+  begin
+    intros c hc,
+    rw [max_eq_right hc],
+    rw [test1] at hc ⊢,
+    have h1 : valued_ring.val (field_norm α β 1) ≤ 1, from sorry,
+    refine valuation.integrally_closed _ _,
+
+    --have hi1 := @is_integral_algebra_map (valuation_ring α) α _ _ _ _ _ ⟨field_norm α β 1, h1⟩,
+    --have hic := @is_integral_algebra_map (valuation_ring α) α _ _ _ _ _ ⟨field_norm α β c, hc⟩,
+    --have h := is_integral_add hic hi1,
+    --rw [←algebra.map_add] at h,
+  end,
+  val_add := sorry,
+}
+
 
 
 end henselian

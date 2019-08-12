@@ -47,7 +47,8 @@ lemma test (α β γ : Type*) [discrete_field α] [add_comm_group β] [add_comm_
   [module α β] [module α γ] (e : β ≃ₗ[α] γ) : e.to_fun = e.to_linear_map.to_fun := rfl
 
 @[simp] lemma norm_mul (b c : β) : field_norm α β (b * c) = field_norm α β b * field_norm α β c :=
-begin
+sorry
+/-begin
 unfold field_norm,
 unfold mul_matrix,
 simp,
@@ -56,7 +57,13 @@ congr,
 conv_rhs { rw [←smul_eq_mul], congr, skip, rw [test] },
 rw[←linear_map.smul (lin_equiv_matrix _ _).to_linear_map ((lin_equiv_matrix _ _).to_fun (mul_map α b)) (mul_map α c)],
 
-end
+end-/
+
+lemma norm_base (a : α) : field_norm α β (a • 1) = a ^ findim α β := sorry
+
+lemma norm_zero : field_norm α β 0 = 0 := sorry
+
+lemma norm_definite (b : β) : field_norm α β b = 0 ↔ b = 0 := sorry
 
 end field_norm
 

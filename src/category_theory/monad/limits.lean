@@ -70,7 +70,7 @@ let μ := limit.cone (D ⋙ forget T) in
 
 end forget_creates_limits
 
--- Theorem 5.6.5 from Riehl
+-- Theorem 5.6.5 from [Riehl][riehl2017]
 def forget_creates_limits (D : J ⥤ algebra T) [has_limit.{v₁} (D ⋙ forget T)] : has_limit D :=
 { cone :=
   { X := forget_creates_limits.cone_point D,

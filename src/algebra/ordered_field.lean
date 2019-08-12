@@ -49,6 +49,10 @@ by rw [mul_comm, lt_div_iff hc]
 lemma div_le_iff_of_neg (hc : c < 0) : b / c ≤ a ↔ a * c ≤ b :=
 ⟨mul_le_of_div_le_of_neg hc, div_le_of_mul_le_of_neg hc⟩
 
+lemma le_div_iff_of_neg (hc : c < 0) : a ≤ b / c ↔ b ≤ a * c :=
+by rw [← neg_neg c, mul_neg_eq_neg_mul_symm, div_neg _ (ne_of_gt (neg_pos.2 hc)), le_neg, 
+    div_le_iff (neg_pos.2 hc), neg_mul_eq_neg_mul_symm]
+
 lemma div_lt_iff (hc : 0 < c) : b / c < a ↔ b < a * c :=
 lt_iff_lt_of_le_iff_le (le_div_iff hc)
 
@@ -139,17 +143,17 @@ calc (λx, x * c) '' {r | a ≤ r ∧ r ≤ b } = (λx, x / c) ⁻¹' {r | a ≤
   ... = {r | a * c ≤ r ∧ r ≤ b * c} :
     set.ext $ by simp [le_div_iff, div_le_iff, hc]
 
-instance linear_ordered_field.to_densely_ordered [linear_ordered_field α] : densely_ordered α :=
+instance linear_ordered_field.to_densely_ordered : densely_ordered α :=
 { dense := assume a₁ a₂ h, ⟨(a₁ + a₂) / 2,
   calc a₁ = (a₁ + a₁) / 2 : (add_self_div_two a₁).symm
     ... < (a₁ + a₂) / 2 : div_lt_div_of_lt_of_pos (add_lt_add_left h _) two_pos,
   calc (a₁ + a₂) / 2 < (a₂ + a₂) / 2 : div_lt_div_of_lt_of_pos (add_lt_add_right h _) two_pos
     ... = a₂ : add_self_div_two a₂⟩ }
 
-instance linear_ordered_field.to_no_top_order [linear_ordered_field α] : no_top_order α :=
+instance linear_ordered_field.to_no_top_order : no_top_order α :=
 { no_top := assume a, ⟨a + 1, lt_add_of_le_of_pos (le_refl a) zero_lt_one ⟩ }
 
-instance linear_ordered_field.to_no_bot_order [linear_ordered_field α] : no_bot_order α :=
+instance linear_ordered_field.to_no_bot_order : no_bot_order α :=
 { no_bot := assume a, ⟨a + -1,
     add_lt_of_le_of_neg (le_refl _) (neg_lt_of_neg_lt $ by simp [zero_lt_one]) ⟩ }
 
@@ -169,11 +173,11 @@ lemma mul_self_inj_of_nonneg {a b : α} (a0 : 0 ≤ a) (b0 : 0 ≤ b) : a * a = 
 (mul_self_eq_mul_self_iff a b).trans $ or_iff_left_of_imp $
 λ h, by subst a; rw [le_antisymm (neg_nonneg.1 a0) b0, neg_zero]
 
-lemma div_le_div_of_le_left {a b c : α} (ha : 0 ≤ a) (hb : 0 < b) (hc : 0 < c) (h : c ≤ b) :
+lemma div_le_div_of_le_left {a b c : α} (ha : 0 ≤ a) (hc : 0 < c) (h : c ≤ b) :
   a / b ≤ a / c :=
 by haveI := classical.dec_eq α; exact
 if ha0 : a = 0 then by simp [ha0]
-else (div_le_div_left (lt_of_le_of_ne ha (ne.symm ha0)) hb hc).2 h
+else (div_le_div_left (lt_of_le_of_ne ha (ne.symm ha0)) (lt_of_lt_of_le hc h) hc).2 h
 
 end linear_ordered_field
 
@@ -181,11 +185,17 @@ namespace nat
 
 variables {α : Type*} [linear_ordered_field α]
 
-lemma inv_pos_of_nat [linear_ordered_field α] {n : ℕ}  : 0 < ((n : α) + 1)⁻¹ :=
+lemma inv_pos_of_nat {n : ℕ} : 0 < ((n : α) + 1)⁻¹ :=
 inv_pos $ add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
 
-lemma one_div_pos_of_nat [linear_ordered_field α] {n : ℕ} : 0 < 1 / ((n : α) + 1) :=
+lemma one_div_pos_of_nat {n : ℕ} : 0 < 1 / ((n : α) + 1) :=
 by { rw one_div_eq_inv, exact inv_pos_of_nat }
+
+lemma one_div_le_one_div {n m : ℕ} (h : n ≤ m) : 1 / ((m : α) + 1) ≤ 1 / ((n : α) + 1) :=
+by { refine one_div_le_one_div_of_le _ _, exact nat.cast_add_one_pos _, simpa }
+
+lemma one_div_lt_one_div {n m : ℕ} (h : n < m) : 1 / ((m : α) + 1) < 1 / ((n : α) + 1) :=
+by { refine one_div_lt_one_div_of_lt _ _, exact nat.cast_add_one_pos _, simpa }
 
 end nat
 

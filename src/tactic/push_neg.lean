@@ -142,6 +142,10 @@ meta def tactic.interactive.push_neg : parse location → tactic unit
 lemma imp_of_not_imp_not (P Q : Prop) [decidable Q] : (¬ Q → ¬ P) → (P → Q) :=
 λ h hP, by_contradiction (λ h', h h' hP)
 
+/-- Matches either an identifier "h" or a pair of identifiers "h with k" -/
+meta def name_with_opt : lean.parser (name × option name) :=
+prod.mk <$> ident <*> (some <$> (tk "with" >> ident) <|> return none)
+
 /--
 Transforms the goal into its contrapositive.
 `contrapose`     turns a goal `P → Q` into `¬ Q → ¬ P`
@@ -149,9 +153,10 @@ Transforms the goal into its contrapositive.
                  using `push_neg`
 `contrapose h`   first reverts the local assumption `h`, and then uses `contrapose` and `intro h`
 `contrapose! h`  first reverts the local assumption `h`, and then uses `contrapose!` and `intro h`
+`contrapose h with new_h` uses the name `new_h` for the introduced hypothesis.
 -/
-meta def tactic.interactive.contrapose (push : parse (tk "!" )?) : parse ident? → tactic unit
-| (some h) := get_local h >>= revert >> tactic.interactive.contrapose none >> intro h >> skip
+meta def tactic.interactive.contrapose (push : parse (tk "!" )?) : parse name_with_opt? → tactic unit
+| (some (h, h')) := get_local h >>= revert >> tactic.interactive.contrapose none >> intro (h'.get_or_else h) >> skip
 | none :=
   do `(%%P → %%Q) ← target | fail "The goal is not an implication, and you didn't specify an assumption",
   cp ← mk_mapp `imp_of_not_imp_not [P, Q, none] <|> fail "contrapose only applies to nondependent arrows between decidable props",

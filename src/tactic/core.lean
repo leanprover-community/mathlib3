@@ -753,6 +753,10 @@ meta def strip_prefix : name → tactic name
 | n@(name.mk_string a a_1) := strip_prefix' n [a] a_1
 | _ := interaction_monad.failed
 
+meta def local_binding_info : expr → binder_info
+| (expr.local_const _ _ bi _) := bi
+| _ := binder_info.default
+
 meta def is_default_local : expr → bool
 | (expr.local_const _ _ binder_info.default _) := tt
 | _ := ff
@@ -1007,6 +1011,37 @@ meta def clear_aux_decl_aux : list expr → tactic unit
 meta def clear_aux_decl : tactic unit :=
 local_context >>= clear_aux_decl_aux
 
+/-- `apply_at_aux e et [] h ht` (with `et` the type of `e` and `ht` the type of `h`)
+    finds a list of expressions `vs` and returns (e.mk_args (vs ++ [h]), vs) -/
+meta def apply_at_aux (arg t : expr) : list expr → expr → expr → tactic (expr × list expr)
+| vs e (pi n bi d b) :=
+  do { v ← mk_meta_var d,
+       apply_at_aux (v :: vs) (e v) (b.instantiate_var v) } <|>
+  (e arg, vs) <$ unify d t
+| vs e _ := failed
+
+/-- `apply_at e h` applies implication `e` on hypothesis `h` and replaces `h` with the result -/
+meta def apply_at (e h : expr) : tactic unit :=
+do ht ← infer_type h,
+   et ← infer_type e,
+   (h', gs') ← apply_at_aux h ht [] e et,
+   note h.local_pp_name none h',
+   clear h,
+   gs' ← gs'.mfilter is_assigned,
+   (g :: gs) ← get_goals,
+   set_goals (g :: gs' ++ gs)
+
+/-- `symmetry_hyp h` applies symmetry on hypothesis `h` -/
+meta def symmetry_hyp (h : expr) (md := semireducible) : tactic unit :=
+do tgt   ← infer_type h,
+   env   ← get_env,
+   let r := get_app_fn tgt,
+   match env.symm_for (const_name r) with
+   | (some symm) := do s ← mk_const symm,
+                       apply_at s h
+   | none        := fail "symmetry tactic failed, target is not a relation application with the expected property."
+   end
+
 precedence `setup_tactic_parser`:0
 
 @[user_command]
@@ -1096,7 +1131,8 @@ See also: `trace!` and `fail!`
 -/
 @[user_notation]
 meta def pformat_macro (_ : parse $ tk "pformat!") (s : string) : parser pexpr :=
-parse_pformat "" s.to_list
+do e ← parse_pformat "" s.to_list,
+   return ``(%%e : pformat)
 
 reserve prefix `fail! `:100
 

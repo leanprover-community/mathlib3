@@ -431,9 +431,18 @@ def map_last {α} (f : α → α) : list α → list α
 | [x] := [f x]
 | (x :: xs) := x :: map_last xs
 
-@[simp] def last' {α} : α → list α → α
+/-- `ilast' x xs` returns the last element of `xs` if `xs` is non-empty;
+it returns `x` otherwise -/
+@[simp] def ilast' {α} : α → list α → α
 | a []     := a
-| a (b::l) := last' b l
+| a (b::l) := ilast' b l
+
+/-- `last' xs` returns the last element of `xs` if `xs` is non-empty;
+it returns `none` otherwise -/
+@[simp] def last' {α} : list α → option α
+| []     := none
+| [a]    := some a
+| (b::l) := last' l
 
 /- tfae: The Following (propositions) Are Equivalent -/
 def tfae (l : list Prop) : Prop := ∀ x ∈ l, ∀ y ∈ l, x ↔ y

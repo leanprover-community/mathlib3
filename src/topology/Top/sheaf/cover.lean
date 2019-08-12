@@ -21,7 +21,37 @@ variables {X}
 
 namespace cover
 
+/-- The union of all the open sets in the cover. -/
+-- Implementation note: I was uncertain whether it would be better to parametrise cover by the union,
+-- and include a condition specifying `total = lattice.supr c.i`.
 def total (c : cover X) : opens X := lattice.supr c.i
+
+/--
+A morphism of covers.
+-/
+structure hom (c d : cover X) :=
+(s : c.ι → d.ι)
+(r : Π i : c.ι, c.i i ⟶ d.i (s i))
+
+namespace hom
+
+@[extensionality] lemma ext {c d : cover X} {f g : hom c d} (h : f.s = g.s) : f = g :=
+by { cases f, cases g, congr, assumption }
+
+def id (c : cover X) : hom c c :=
+{ s := id,
+  r := λ i, 𝟙 _ }
+
+def comp (c d e : cover X) (f : hom c d) (g : hom d e) : hom c e :=
+{ s := g.s ∘ f.s,
+  r := λ i, f.r i ≫ g.r (f.s i) }
+
+instance : category (cover X) :=
+{ hom := hom,
+  id := id,
+  comp := comp }
+
+end hom
 
 inductive intersections (ι : Type v)
 | single : ι → intersections

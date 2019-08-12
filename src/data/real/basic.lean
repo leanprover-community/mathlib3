@@ -122,7 +122,7 @@ instance : ordered_cancel_comm_monoid ℝ := by apply_instance
 instance : ordered_comm_monoid ℝ        := by apply_instance
 instance : domain ℝ                     := by apply_instance
 
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 noncomputable instance : discrete_linear_ordered_field ℝ :=
 { decidable_le := by apply_instance,

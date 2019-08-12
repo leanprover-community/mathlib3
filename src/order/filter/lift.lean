@@ -9,7 +9,7 @@ import order.filter.basic
 
 open lattice set
 
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 namespace filter
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Sort*}

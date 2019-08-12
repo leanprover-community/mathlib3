@@ -14,10 +14,10 @@ def left_coset [has_mul α] (a : α) (s : set α) : set α := (λ x, a * x) '' s
 @[to_additive right_add_coset]
 def right_coset [has_mul α] (s : set α) (a : α) : set α := (λ x, x * a) '' s
 
-local infix ` *l `:70 := left_coset
-local infix ` +l `:70 := left_add_coset
-local infix ` *r `:70 := right_coset
-local infix ` +r `:70 := right_add_coset
+localized "infix ` *l `:70 := left_coset" in coset
+localized "infix ` +l `:70 := left_add_coset" in coset
+localized "infix ` *r `:70 := right_coset" in coset
+localized "infix ` +r `:70 := right_add_coset" in coset
 
 section coset_mul
 variable [has_mul α]

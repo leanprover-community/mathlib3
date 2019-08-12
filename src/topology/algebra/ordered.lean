@@ -11,7 +11,7 @@ import topology.algebra.group
 import topology.constructions
 
 open classical set lattice filter topological_space
-local attribute [instance] classical.prop_decidable
+local attribute [instance] classical.prop_decidable -- warning: the priority of this instance is too high
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}

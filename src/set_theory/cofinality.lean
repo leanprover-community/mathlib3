@@ -9,7 +9,7 @@ import set_theory.ordinal
 noncomputable theory
 
 open function cardinal set
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 universes u v w
 variables {α : Type*} {r : α → α → Prop}

@@ -11,7 +11,7 @@ open lattice set
 
 universes u v w x y
 
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 namespace lattice
 variables {α : Type u} {ι : Sort v}

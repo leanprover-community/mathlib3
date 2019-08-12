@@ -149,6 +149,8 @@ filter_eq $ set.ext $ λ x,
 ⟨λ ⟨⟨s, as⟩, h⟩, mem_nhds_sets_iff.2 ⟨_, h, F.is_open _, as⟩,
  λ h, let ⟨s, h, as⟩ := F.mem_nhds.1 h in ⟨⟨s, h⟩, as⟩⟩⟩
 
+local notation f `→_{`:50 a `}`:0 b := filter.tendsto f (nhds a) (nhds b)
+
 @[simp] theorem nhds_σ (m : α → β) (F : realizer α) (a : α) :
   (F.nhds a).σ = {s : F.σ // a ∈ F.F s} := rfl
 @[simp] theorem nhds_F (m : α → β) (F : realizer α) (a : α) (s) :

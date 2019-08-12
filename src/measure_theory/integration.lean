@@ -14,7 +14,7 @@ import
   measure_theory.borel_space
 noncomputable theory
 open lattice set filter
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 section sequence_of_directed
 variables {α : Type*} {β : Type*} [encodable α] [inhabited α]
@@ -147,7 +147,8 @@ theorem map_map (g : β → γ) (h: γ → δ) (f : α →ₛ β) : (f.map g).ma
 
 theorem coe_map (g : β → γ) (f : α →ₛ β) : (f.map g : α → γ) = g ∘ f := rfl
 
-@[simp] theorem range_map (g : β → γ) (f : α →ₛ β) : (f.map g).range = f.range.image g :=
+@[simp] theorem range_map [decidable_eq γ] (g : β → γ) (f : α →ₛ β) :
+  (f.map g).range = f.range.image g :=
 begin
   ext c,
   simp [mem_range],

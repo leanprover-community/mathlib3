@@ -11,7 +11,7 @@ import topology.bounded_continuous_function topology.metric_space.gluing
 topology.metric_space.hausdorff_distance
 
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 universes u v w
 
 open classical lattice set function topological_space filter metric quotient

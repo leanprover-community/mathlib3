@@ -9,7 +9,7 @@ Theory of topological rings with uniform structure.
 import topology.algebra.group_completion topology.algebra.ring
 
 open classical set lattice filter topological_space add_comm_group
-local attribute [instance] classical.prop_decidable
+open_locale classical
 noncomputable theory
 
 namespace uniform_space.completion

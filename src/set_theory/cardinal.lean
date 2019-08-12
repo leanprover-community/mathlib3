@@ -32,7 +32,7 @@ cardinal number, cardinal arithmetic, cardinal exponentiation, omega
 -/
 
 open function lattice set
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 universes u v w x
 variables {α β : Type u}

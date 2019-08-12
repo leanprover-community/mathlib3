@@ -22,7 +22,7 @@ import logic.function algebra.big_operators data.set.lattice data.finset
 
 noncomputable theory
 open lattice finset filter function classical
-local attribute [instance] prop_decidable
+local attribute [instance] classical.prop_decidable -- warning: the priority of this instance is too high
 
 def option.cases_on' {α β} : option α → β → (α → β) → β
 | none     n s := n

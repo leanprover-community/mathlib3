@@ -268,7 +268,7 @@ real.intermediate_value'
 
 noncomputable def pi : ℝ := 2 * classical.some exists_cos_eq_zero
 
-local notation `π` := pi
+localized "notation `π` := real.pi" in real
 
 @[simp] lemma cos_pi_div_two : cos (π / 2) = 0 :=
 by rw [pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
@@ -926,7 +926,7 @@ end real
 
 namespace complex
 
-local notation `π` := real.pi
+open_locale real
 
 /-- `arg` returns values in the range (-π, π], such that for `x ≠ 0`,
   `sin (arg x) = x.im / x.abs` and `cos (arg x) = x.re / x.abs`,

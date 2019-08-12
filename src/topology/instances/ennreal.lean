@@ -8,10 +8,10 @@ Extended non-negative reals
 import topology.instances.nnreal data.real.ennreal
 noncomputable theory
 open classical set lattice filter metric
-local attribute [instance] prop_decidable
+open_locale classical
 variables {α : Type*} {β : Type*} {γ : Type*}
 
-local notation `∞` := (⊤ : ennreal)
+open_locale ennreal
 
 namespace ennreal
 variables {a b c d : ennreal} {r p q : nnreal}

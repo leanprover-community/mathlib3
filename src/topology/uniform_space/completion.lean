@@ -38,11 +38,10 @@ import data.set.basic
 import topology.uniform_space.uniform_embedding topology.uniform_space.separation
 
 noncomputable theory
-local attribute [instance] classical.prop_decidable
 open filter set
 universes u v w x
 
-local notation `𝓤` := uniformity
+open_locale uniformity classical
 
 /-- Space of Cauchy filters
 

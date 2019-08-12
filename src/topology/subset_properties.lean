@@ -10,7 +10,7 @@ connected, totally disconnected, totally separated.
 import topology.basic
 
 open set filter lattice classical
-local attribute [instance] prop_decidable
+open_locale classical
 
 universes u v
 variables {α : Type u} {β : Type v} [topological_space α]

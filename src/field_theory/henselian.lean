@@ -341,10 +341,6 @@ lemma max_div (x y : ℝ) {z : ℝ} (hz : z > 0) : (max x y) / z = max (x / z) (
 
 lemma test1 (b : β) : val_ext α b ≤ 1 ↔ valued_ring.val (field_norm α β b) ≤ 1 := sorry
 
---lemma test2 (a b : β) (γ : Type*) [comm_ring γ] [algebra γ α] [finite_dimensional γ α]
---  (ha : is_integral γ (field_norm α β a)) (hb : is_integral γ (field_norm α β a)) :
---  is_integral γ (field_norm α β (a + b)) := sorry
-
 noncomputable instance extend_valuation : nonarch_valued_ring β :=
 { val := val_ext α,
   nonneg := val_ext_nonneg α,
@@ -373,14 +369,33 @@ noncomputable instance extend_valuation : nonarch_valued_ring β :=
   begin
     intros c hc,
     rw [max_eq_right hc],
-    rw [test1] at hc ⊢,
-    have h1 : valued_ring.val (field_norm α β 1) ≤ 1, from sorry,
-    refine valuation.integrally_closed _ _,
+    rw [test1, ←valuation.mem_def] at hc ⊢,
 
-    --have hi1 := @is_integral_algebra_map (valuation_ring α) α _ _ _ _ _ ⟨field_norm α β 1, h1⟩,
-    --have hic := @is_integral_algebra_map (valuation_ring α) α _ _ _ _ _ ⟨field_norm α β c, hc⟩,
-    --have h := is_integral_add hic hi1,
-    --rw [←algebra.map_add] at h,
+    -- Construct the integral closure of valuation_ring α in β
+    letI : algebra (valuation_ring α) β := algebra.comap.algebra (valuation_ring α) α β,
+    let O := integral_closure (valuation_ring α) β,
+    -- O is the inverse image of the valuation ring of α under the norm map
+    have hO : O.carrier = set.preimage (field_norm α β) (valuation_ring α), from
+    begin
+      ext x,
+      rw [set.mem_preimage],
+      split,
+      { intro hx,
+        sorry },
+      { intro hx,
+        --change is_integral (valuation_ring α) x,
+        -- Minimal polynomial of x over α
+        have hb : ∃ f : polynomial α, monic f ∧ irreducible f ∧ aeval α β x f = 0, from sorry,
+        cases hb with f hf,
+        -- follows from henselian_field.henselian, field norms and minimal polynomials
+        have h : ∀ n : ℕ, valued_ring.val (f.coeff n) ≤ 1, from sorry,
+        let fo := (finsupp.mk (f.support) (λ n, ⟨f.coeff n, h n⟩) sorry : polynomial (valuation_ring α)),
+       }
+    end,
+
+    rw [←set.mem_preimage, ←hO] at hc ⊢,
+    exact is_add_submonoid.add_mem hc (is_submonoid.one_mem _)
+
   end,
   val_add := sorry,
 }

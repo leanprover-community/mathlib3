@@ -1,4 +1,4 @@
-import tactic.core
+import tactic.core data.string
 
 universe variable u
 open expr tactic native
@@ -7,73 +7,6 @@ setup_tactic_parser
 
 reserve notation `#sanity_check`
 reserve notation `#sanity_check_mathlib`
-
--- to other files
-namespace string
-
-/-- Tests whether the first string is a prefix of the second string -/
-def is_prefix : string → string → bool | ⟨s⟩ ⟨t⟩ := s.is_prefix_of t
-
-/-- Removes the first `n` elements from the string `s` -/
-def popn (s : string) (n : nat) : string :=
-(s.mk_iterator.nextn n).next_to_string
-
-end string
-
-meta def environment.mfold {α : Type} {m : Type → Type} [monad m] (e : environment) (x : α)
-  (fn : declaration → α → m α) : m α :=
-e.fold (return x) (λ d t, t >>= fn d)
-
-namespace declaration
-/-- Checks whether the declaration is declared in the current file. A simple wrapper around
-  `environment.in_current_file` -/
-meta def in_current_file (d : declaration) : tactic bool :=
-do e ← get_env, return $ e.in_current_file' d.to_name
-
-meta def is_constant : declaration → bool
-| (cnst _ _ _ _) := tt
-| _              := ff
-
-meta def is_axiom : declaration → bool
-| (ax _ _ _) := tt
-| _          := ff
-
-end declaration
-
-namespace name
-/-- Get the postfix of a name, assuming it is a string. -/
-def get_postfix : name → string
-| anonymous        := ""
-| (mk_string s p)  := s
-| (mk_numeral s p) := ""
-end name
-
-/-- A hackish way to get the `src` directory of mathlib. -/
-meta def get_mathlib_dir : tactic string :=
-do e ← get_env,
-  s ← e.decl_olean `tactic.reset_instance_cache,
-  return $ s.popn_back 17
-
-/-- Checks whether `ml` is a prefix of the file where `n` is declared.
-  If you want to run `is_in_mathlib` many times, you should use this tactic instead,
-  since it is expensive to execute get_mathlib_dir many times. -/
-meta def is_in_mathlib_aux (ml : string) (n : name) : tactic bool :=
-do e ← get_env, return $ ml.is_prefix $ (e.decl_olean n).get_or_else ""
-
-/-- Checks whether a declaration with the given name is declared in mathlib -/
-meta def is_in_mathlib (n : name) : tactic bool :=
-do ml ← get_mathlib_dir, is_in_mathlib_aux ml n
-
-/-- Auxilliary definition for `expr.pi_arity` -/
-meta def expr.pi_arity_aux : ℕ → expr → ℕ
-| n (pi _ _ _ b) := expr.pi_arity_aux (n + 1) b
-| n e            := n
-
-/-- The arity of a pi-type. Does not perform any reduction.
-  In one application this was ~30 times quicker than tactic.get_pi_arity -/
-meta def expr.pi_arity : expr → ℕ :=
-expr.pi_arity_aux 0
-
 
 /-- Find all (non-internal) declarations where tac returns `some x` and list them. -/
 meta def fold_over_with_cond {α} (tac : declaration → tactic (option α)) :
@@ -163,15 +96,15 @@ print_decls_current_file (return ∘ check_unused_arguments) >>= trace
 /-- Checks whether the correct declaration constructor (definition of theorem) by comparing it
   to its sort. This will automatically remove all instances and automatically generated
   definitions -/
-meta def correct_decl_constr (d : declaration) : tactic (option string) :=
+meta def incorrect_def_lemma (d : declaration) : tactic (option string) :=
 do
   e ← get_env,
   expr.sort n ← infer_type d.type,
   if d.is_constant ∨ d.is_axiom ∨ (e.is_projection d.to_name).is_some ∨
     (d.is_definition : bool) = (n ≠ level.zero : bool) ∨
-    (d.to_name.get_postfix ∈ ["inj","inj_eq","sizeof_spec"] ∧
+    (d.to_name.last ∈ ["inj","inj_eq","sizeof_spec"] ∧
       e.is_constructor d.to_name.get_prefix) ∨
-    (d.to_name.get_postfix ∈ ["dcases_on","drec_on","drec","cases_on","rec_on","binduction_on"] ∧
+    (d.to_name.last ∈ ["dcases_on","drec_on","drec","cases_on","rec_on","binduction_on"] ∧
       e.is_inductive d.to_name.get_prefix)
     then return none
     else (option.is_some <$> try_core (has_attribute `instance d.to_name)) >>=
@@ -180,7 +113,7 @@ do
     else "is a lemma/theorem, should be a def"
 
 /-- Get all declarations in mathlib incorrectly marked as def/lemma -/
-meta def get_all_decl_const_mathlib : tactic unit :=
+meta def incorrect_def_lemma_mathlib : tactic unit :=
 print_decls_mathlib (return ∘ check_unused_arguments) >>= trace
 
 /-- The command `#sanity_check` at the bottom of a file will warn you about some common mistakes
@@ -191,20 +124,19 @@ do
   f ← print_decls_current_file (return ∘ check_unused_arguments),
   if f.is_nil then trace "/- OK: No unused arguments in the current file. -/"
   else trace (to_fmt "/- Unused arguments in the current file: -/" ++ f ++ format.line),
-  f ← print_decls_current_file correct_decl_constr,
+  f ← print_decls_current_file incorrect_def_lemma,
   if f.is_nil then trace "/-OK: All declarations correctly marked as def/lemma -/"
   else trace (to_fmt "/- Declarations incorrectly marked as def/lemma: -/" ++ f ++ format.line),
   skip
 
-/-- The command `#sanity_check` at the bottom of a file will warn you about some common mistakes
-  in that file. -/
+/-- The command `#sanity_check_mathlib` checks all of mathlib for certain mistakes. -/
 @[user_command] meta def sanity_check_mathlib_cmd (_ : parse $ tk "#sanity_check_mathlib") :
   parser unit :=
 do
   trace "/- Note: This command is still in development. -/\n",
   f ← print_decls_mathlib (return ∘ check_unused_arguments),
   trace (to_fmt "/- UNUSED ARGUMENTS: -/" ++ f ++ format.line),
-  f ← print_decls_mathlib correct_decl_constr,
+  f ← print_decls_mathlib incorrect_def_lemma,
   trace (to_fmt "/- INCORRECT DEF/LEMMA: -/" ++ f ++ format.line),
   skip
 

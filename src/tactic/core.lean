@@ -107,6 +107,30 @@ meta def length : name → ℕ
 
 end name
 
+namespace declaration
+
+/-- Checks whether the declaration is declared in the current file.
+  This is a simple wrapper around `environment.in_current_file'` -/
+meta def in_current_file (d : declaration) : tactic bool :=
+do e ← get_env, return $ e.in_current_file' d.to_name
+
+/-- Checks whether a declaration is a theorem -/
+meta def is_theorem : declaration → bool
+| (thm _ _ _ _) := tt
+| _             := ff
+
+/-- Checks whether a declaration is a constant -/
+meta def is_constant : declaration → bool
+| (cnst _ _ _ _) := tt
+| _              := ff
+
+/-- Checks whether a declaration is a axiom -/
+meta def is_axiom : declaration → bool
+| (ax _ _ _) := tt
+| _          := ff
+
+end declaration
+
 namespace environment
 meta def decl_filter_map {α : Type} (e : environment) (f : declaration → option α) : list α :=
   e.fold [] $ λ d l, match f d with
@@ -125,6 +149,11 @@ meta def get_trusted_decls (e : environment) : list declaration :=
 
 meta def get_decl_names (e : environment) : list name :=
   e.decl_map declaration.to_name
+
+meta def mfold {α : Type} {m : Type → Type} [monad m] (e : environment) (x : α)
+  (fn : declaration → α → m α) : m α :=
+e.fold (return x) (λ d t, t >>= fn d)
+
 end environment
 
 namespace format
@@ -1152,6 +1181,23 @@ the combination of `pformat` and `fail`
 meta def trace_macro (_ : parse $ tk "trace!") (s : string) : parser pexpr :=
 do e ← pformat_macro () s,
    pure ``((%%e : pformat) >>= trace)
+
+/-- A hackish way to get the `src` directory of mathlib. -/
+meta def get_mathlib_dir : tactic string :=
+do e ← get_env,
+  s ← e.decl_olean `tactic.reset_instance_cache,
+  return $ s.popn_back 17
+
+/-- Checks whether `ml` is a prefix of the file where `n` is declared.
+  If you want to run `is_in_mathlib` many times, you should use this tactic instead,
+  since it is expensive to execute get_mathlib_dir many times. -/
+meta def is_in_mathlib_aux (ml : string) (n : name) : tactic bool :=
+do e ← get_env, return $ ml.is_prefix $ (e.decl_olean n).get_or_else ""
+
+/-- Checks whether a declaration with the given name is declared in mathlib -/
+meta def is_in_mathlib (n : name) : tactic bool :=
+do ml ← get_mathlib_dir, is_in_mathlib_aux ml n
+
 
 end tactic
 open tactic

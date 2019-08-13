@@ -218,6 +218,8 @@ by dsimp [single]; split_ifs; simp [*, eq_comm]
 
 @[simp] lemma single_apply (a : α) (b : β) : single a b a = some b := if_pos rfl
 
+@[simp] lemma symm_single_apply (a : α) (b : β) : (single a b).symm b = some a := by dsimp; simp
+
 lemma single_apply_of_ne {a₁ a₂ : α} (h : a₁ ≠ a₂) (b : β) : single a₁ b a₂ = none := if_neg h.symm
 
 lemma single_trans_of_mem (a : α) {b : β} {c : γ} {f : β ≃. γ} (h : c ∈ f b) :

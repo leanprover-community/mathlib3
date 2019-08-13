@@ -40,6 +40,13 @@ meta def is_axiom : declaration → bool
 
 end declaration
 
+namespace name
+/-- Get the postfix of a name, assuming it is a string. -/
+def get_postfix : name → string
+| anonymous        := ""
+| (mk_string s p)  := s
+| (mk_numeral s p) := ""
+end name
 
 /-- A hackish way to get the `src` directory of mathlib. -/
 meta def get_mathlib_dir : tactic string :=
@@ -154,16 +161,25 @@ meta def get_all_unused_args_current_file : tactic unit :=
 print_decls_current_file (return ∘ check_unused_arguments) >>= trace
 
 /-- Checks whether the correct declaration constructor (definition of theorem) by comparing it
-  to its sort -/
+  to its sort. This will automatically remove all instances and automatically generated
+  definitions -/
 meta def correct_decl_constr (d : declaration) : tactic (option string) :=
 do
+  e ← get_env,
   expr.sort n ← infer_type d.type,
-  return $ if d.is_constant ∨ d.is_axiom ∨ (d.is_definition : bool) = (n ≠ level.zero : bool)
-    then none
+  if d.is_constant ∨ d.is_axiom ∨ (e.is_projection d.to_name).is_some ∨
+    (d.is_definition : bool) = (n ≠ level.zero : bool) ∨
+    (d.to_name.get_postfix ∈ ["inj","inj_eq","sizeof_spec"] ∧
+      e.is_constructor d.to_name.get_prefix) ∨
+    (d.to_name.get_postfix ∈ ["dcases_on","drec_on","drec","cases_on","rec_on","binduction_on"] ∧
+      e.is_inductive d.to_name.get_prefix)
+    then return none
+    else (option.is_some <$> try_core (has_attribute `instance d.to_name)) >>=
+    λ b, return $ if b then none
     else if (d.is_definition : bool) then "is a def, should be a lemma/theorem"
     else "is a lemma/theorem, should be a def"
 
-/-- Get all declarations in mathlib with unused arguments -/
+/-- Get all declarations in mathlib incorrectly marked as def/lemma -/
 meta def get_all_decl_const_mathlib : tactic unit :=
 print_decls_mathlib (return ∘ check_unused_arguments) >>= trace
 
@@ -171,13 +187,13 @@ print_decls_mathlib (return ∘ check_unused_arguments) >>= trace
   in that file. -/
 @[user_command] meta def sanity_check_cmd (_ : parse $ tk "#sanity_check") : parser unit :=
 do
-  trace "Note: This command is still in development.\n",
+  trace "/- Note: This command is still in development. -/\n",
   f ← print_decls_current_file (return ∘ check_unused_arguments),
-  if f.is_nil then trace "OK: No unused arguments in the current file."
-  else trace (to_fmt "Unused arguments in the current file:" ++ f ++ format.line),
+  if f.is_nil then trace "/- OK: No unused arguments in the current file. -/"
+  else trace (to_fmt "/- Unused arguments in the current file: -/" ++ f ++ format.line),
   f ← print_decls_current_file correct_decl_constr,
-  if f.is_nil then trace "OK: All declarations correctly marked as def/lemma"
-  else trace (to_fmt "Declarations incorrectly marked as def/lemma:" ++ f ++ format.line),
+  if f.is_nil then trace "/-OK: All declarations correctly marked as def/lemma -/"
+  else trace (to_fmt "/- Declarations incorrectly marked as def/lemma: -/" ++ f ++ format.line),
   skip
 
 /-- The command `#sanity_check` at the bottom of a file will warn you about some common mistakes
@@ -185,11 +201,11 @@ do
 @[user_command] meta def sanity_check_mathlib_cmd (_ : parse $ tk "#sanity_check_mathlib") :
   parser unit :=
 do
-  trace "Note: This command is still in development.\n",
+  trace "/- Note: This command is still in development. -/\n",
   f ← print_decls_mathlib (return ∘ check_unused_arguments),
-  trace (to_fmt "UNUSED ARGUMENTS:" ++ f ++ format.line),
-  f ← print_decls_current_file correct_decl_constr,
-  trace (to_fmt "INCORRECT DEF/LEMMA:" ++ f ++ format.line),
+  trace (to_fmt "/- UNUSED ARGUMENTS: -/" ++ f ++ format.line),
+  f ← print_decls_mathlib correct_decl_constr,
+  trace (to_fmt "/- INCORRECT DEF/LEMMA: -/" ++ f ++ format.line),
   skip
 
 -- #sanity_check

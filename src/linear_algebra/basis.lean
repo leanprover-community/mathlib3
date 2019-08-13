@@ -779,6 +779,7 @@ end
 open fintype
 variables [fintype ι] (h : is_basis α v)
 
+/-- A module over α with a finite basis is linearly equivalent to functions from its basis to α. -/
 def equiv_fun_basis  : β ≃ₗ[α] (ι → α) :=
 linear_equiv.trans (module_equiv_finsupp h)
   { to_fun := finsupp.to_fun,
@@ -1022,7 +1023,7 @@ end
 
 open fintype
 
-theorem vector_space.card_fintype' [fintype α] [fintype β] :
+theorem vector_space.card_fintype [fintype α] [fintype β] :
   ∃ n : ℕ, card β = (card α) ^ n :=
 begin
   apply exists.elim (exists_is_basis α β),

@@ -1242,6 +1242,8 @@ of_linear ((a:α) • 1 : β →ₗ β) (((a⁻¹ : units α) : α) • 1 : β �
   (by rw [smul_comp, comp_smul, smul_smul, units.mul_inv, one_smul]; refl)
   (by rw [smul_comp, comp_smul, smul_smul, units.inv_mul, one_smul]; refl)
 
+/-- A linear isomorphism between the domains and codomains of two spaces of linear maps gives a
+linear isomorphism between the two function spaces. -/
 def arrow_congr {α β₁ β₂ γ₁ γ₂ : Sort*} [comm_ring α]
   [add_comm_group β₁] [add_comm_group β₂] [add_comm_group γ₁] [add_comm_group γ₂]
   [module α β₁] [module α β₂] [module α γ₁] [module α γ₂]
@@ -1260,8 +1262,12 @@ def arrow_congr {α β₁ β₂ γ₁ γ₂ : Sort*} [comm_ring α]
   smul := λ c f, by { ext x, change e₂.to_fun ((c • f) (e₁.inv_fun x)) = _,
     rw [linear_map.smul_apply, e₂.smul], refl } }
 
+/-- If γ and δ are linearly isomorphic then the two spaces of linear maps from β into γ and
+β into δ are linearly isomorphic. -/
 def congr_right (f : γ ≃ₗ[α] δ) : (β →ₗ[α] γ) ≃ₗ (β →ₗ δ) := arrow_congr (linear_equiv.refl β) f
 
+/-- If β and γ are linearly isomorphic then the two spaces of linear maps from β and γ to themselves
+are linearly isomorphic. -/
 def conj (e : β ≃ₗ[α] γ) : (β →ₗ[α] β) ≃ₗ[α] (γ →ₗ[α] γ) := arrow_congr e e
 
 end comm_ring

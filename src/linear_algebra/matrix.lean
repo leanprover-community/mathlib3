@@ -11,7 +11,7 @@ import linear_algebra.dimension linear_algebra.tensor_product
 
 /-!
 
-# Summary
+# Linear maps and matrices
 
 This file defines the maps to send matrices to a linear map,
 and to send linear maps between modules with a finite bases

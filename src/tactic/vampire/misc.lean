@@ -95,14 +95,7 @@ namespace nat
   lemma zero_ne_succ {k : nat} : 0 ≠ k.succ :=
   λ h, by cases h
 
-  -- lemma sub_add_eq_max (k m : nat) : (k - m) + m = max k m :=
-  -- begin
-  --   by_cases h0 : m ≤ k,
-  --   { rw nat.sub_add_cancel h0,
-  --     rw max_eq_left h0 },
-  --   have h1 := le_of_not_le h0,
-  --   simp only [ zero_add, max_eq_right h1,
-  --     nat.sub_eq_zero_iff_le.elim_right h1]
-  -- end
+  lemma pos_of_lt {k m : nat} : k < m → 0 < m :=
+  λ h0, lt_of_le_of_lt (nat.zero_le _) h0
 
 end nat

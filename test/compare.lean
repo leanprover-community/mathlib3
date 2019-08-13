@@ -6,10 +6,10 @@
 -/
 
 import tactic.vampire.main
-import tactic.vampire.alt.main
+import tactic.vampire.main
 
 meta def v1 : tactic unit := vampire.vampire none
-meta def v2 : tactic unit := alt.vampire none
+meta def v2 : tactic unit := vampire none
 
 meta def vtest : tactic unit := v2 >> v2
 section

@@ -65,7 +65,7 @@ example : (A ↔ B) → ((A ∧ ¬ B) ∨ (¬ A ∧ B)) → C :=
 by vampire
 
 example : (A → B) → A → B :=
-by vampire
+by vampire "n10ean0ean1earr"
 
 example : (A → B) → (B → C) → A → C :=
 by vampire
@@ -82,7 +82,7 @@ variables (P Q R : Prop)
 variable  (g : bool → nat)
 
 example : (∀ x, p x → q x) → (∀ x, p x) → q a :=
-by vampire "n10ean0en1n10sman1en0n10smarr"
+by vampire "n10ean0en1n0sman1en0n0smarr"
 
 example : (p a) → ∃ x, p x :=
 by vampire
@@ -91,13 +91,17 @@ example : (p a) → (p b) → (q b) → ∃ x, p x ∧ q x :=
 by vampire
 
 example : (∃ x, p x ∧ r x x) → (∀ x, r x x → q x) → ∃ x, p x ∧ q x :=
-by vampire "n1n11en0n0smatn10en1n0sman1earrn0ear"
+by vampire
+"
+n1n11en0n0sn0spn0spmatn10en1n0sn0spn0spman1en1n0smn0n0smarrn
+0en1n0smn0n0smar
+"
 
 example : (∃ x, q x ∧ p x) → ∃ x, p x ∧ q x :=
 by vampire
 
 example : (∀ x, q x → p x) → (q a) → ∃ x, p x :=
-by vampire "n10en0n10sman0en1n10sman1earr"
+by vampire
 
 example : (∀ x, p x → q x → false) → (p a) → (p b) → (q b) → false :=
 by vampire
@@ -109,7 +113,7 @@ example : (∃ x, p x) → (∀ x, p x → q x) → ∃ x, q x :=
 by vampire
 
 example : (¬ ∀ x, ¬ p x) → (∀ x, p x → q x) → (∀ x, ¬ q x) → false :=
-by vampire "n10en0n0sman1en1n0sman0earr"
+by vampire
 
 example : (p a) → (p a → false) → false :=
 by vampire
@@ -122,17 +126,9 @@ by vampire
 
 example : (∃ x, p x → P) ↔ (∀ x, p x) → P :=
 by vampire
-"
-n1n111eatcn10n1n11n10n11n1n10eattctn10n0en0n0smatrtcttcn1n1n
-100en1n1smatn1n10n1n101en1n1smatn11en0n1smn1n0smartctrtcrr
-"
 
 example : (∃ x, P → p x) ↔ (P → ∃ x, p x) :=
 by vampire
-"
-n1n111en0n1smn1n0sman1n1n1000en1n1smatn1n11eatcrtrtcn10n1n10
-n10n1en0n0smatn10n10n10eatctrtcttcrn1n11eatcr
-"
 
 end
 
@@ -177,21 +173,12 @@ lemma gilmore_6 {F G : α → α → Prop} {H : α → α → α → Prop} :
    → (∃ u, ∀ v, F u y → G v u ∧ G u y) ∨
        (∀ u v, ∃ w, G v u ∨ H w y u → G u w) :=
 by vampire
-"
-n101en0n11sn0spmn11n0sman0en11n0smn10n1sn0spman10en11n100smn
-1n11sn0spmarr
-"
 
 lemma gilmore_8 {G : α → Prop} {F : α → α → Prop} {H : α → α → α → Prop} :
   ∃ x, ∀ y z,
     ((F y z → (G y → (∀ u, ∃ v, H u v x))) → F x x) ∧
     ((F z x → G x) → (∀ u, ∃ v, H u v z)) ∧
     F x y → F z z := by vampire
-"
-n110en10n11sn10sn0sppman10en10n10sn11sn10sn0spppmn1n0sn11sn1
-0sn0spppn1sn10sn11sn10sn0spppppman1n100en10n11sn10sn0sppmn0n
-1sn10sn11sn10sn0sppppmatrrn110en10n0sman1n1en10n10sn0spmatrr
-"
 
 lemma manthe_and_bry (agatha butler charles : α)
 (lives : α → Prop) (killed hates richer : α → α → Prop) :
@@ -209,10 +196,10 @@ lemma manthe_and_bry (agatha butler charles : α)
        ¬ killed charles agatha :=
 by vampire
 "
-n10n1011en0n10smatn1010en1n11sman1000earrn1010en1n1sman111ea
-rrn1n101en100n1smn101n10smatn1n1001en10n10smatrn1n110en11n1s
-matn100en100n1smn101n11sman10n1n10n1100ean11eartcttcrrn111ea
-rrn1earr
+n10n1011en0n1smatn1010en1n10sman1000earrn1010en1n0sman111ear
+rn1n101en100n0smn101n1smatn1n1001en10n1smatrn1n110en11n0smat
+n100en100n0smn101n10sman10n1n10n1100ean11eartcttcrrn111earrn
+1earr
 "
 
 /- A logic puzzle by Raymond Smullyan. -/
@@ -234,93 +221,4 @@ lemma knights_and_knaves (me : α) (knight knave rich poor : α → α)
     (∀ X, says me X ∨ a_truth (and (knave me) (rich me)) X ) ) → false :=
 by vampire
 
-#exit
-
--- To do : find a way to avoid deep recursion with large proofs
-"
-n10n0en11101n110sn1sn111sppn10sn111sppmn11110n111sman10n10n1
-n1011en1n110sn1sn111sppn10sn111sppmatn1010en10n110sn1sn111sp
-pn10sn111sppmn11n11sn111spmn100n10sn111spmartn1n110en1110n11
-0sn1sn111sppn10sn111sppmn1111n100sn111spmn10000n111sman1n1en
-11011n110sn1sn111sppn10sn111sppmn11100n111smatrn1n1n10en1100
-1n100sn111spmn11010n111smatn1n10n111en1011n100sn111spmn1100n
-100sn111spmn1101n111sman1000en1000n100sn111spmn1010n10sn111s
-pmn1001n11sn111spman1n1100en0n100sn111spmatrrtctrn1001en101n
-100sn111spmn110n11sn111spmn111n10sn111spman1n1100en0n100sn11
-1spmatrrtcrn1n11en10111n110sn1sn111sppn10sn111sppmn11000n111
-smatrtrtrtcn1001en101n110sn1sn111sppn10sn111sppmn110n10sn111
-spmn111n1sn111spman1n10n1n1n100en10100n110sn1sn111sppn10sn11
-1sppmn10101n110sn1sn111sppn10sn111sppmn10110n111sman1n10n0en
-11101n110sn1sn111sppn10sn111sppmn11110n111sman10n10n1n1011en
-1n110sn1sn111sppn10sn111sppmatn1010en10n110sn1sn111sppn10sn1
-11sppmn11n11sn111spmn100n10sn111spmartn1n110en1110n110sn1sn1
-11sppn10sn111sppmn1111n100sn111spmn10000n111sman1n1en11011n1
-10sn1sn111sppn10sn111sppmn11100n111smatrn1n1n10en11001n100sn
-111spmn11010n111smatn1n10n111en1011n100sn111spmn1100n100sn11
-1spmn1101n111sman1000en1000n100sn111spmn1010n10sn111spmn1001
-n11sn111spman1n1100en0n100sn111spmatrrtctrn1001en101n100sn11
-1spmn110n11sn111spmn111n10sn111spman1n1100en0n100sn111spmatr
-rtcrn1n11en10111n110sn1sn111sppn10sn111sppmn11000n111smatrtr
-trtcn1n1en11011n110sn1sn111sppn10sn111sppmn11100n111smatrtrn
-10n111en1011n110sn1sn111sppn10sn111sppmn1100n110sn1sn111sppn
-10sn111sppmn1101n111sman1000en1000n110sn1sn111sppn10sn111spp
-mn1010n10sn111spmn1001n11sn111spman1n1100en0n110sn1sn111sppn
-10sn111sppmatrrtcrtn1n10n10n1n11n1n10n101en10001n110sn1sn111
-sppn10sn111sppmn10010n110sn1sn111sppn10sn111sppmn10011n111sm
-an1n10n0en11101n110sn1sn111sppn10sn111sppmn11110n111sman10n1
-0n1n1011en1n110sn1sn111sppn10sn111sppmatn1010en10n110sn1sn11
-1sppn10sn111sppmn11n11sn111spmn100n10sn111spmartn1n110en1110
-n110sn1sn111sppn10sn111sppmn1111n100sn111spmn10000n111sman1n
-1en11011n110sn1sn111sppn10sn111sppmn11100n111smatrn1n1n10en1
-1001n100sn111spmn11010n111smatn1n10n111en1011n100sn111spmn11
-00n100sn111spmn1101n111sman1000en1000n100sn111spmn1010n10sn1
-11spmn1001n11sn111spman1n1100en0n100sn111spmatrrtctrn1001en1
-01n100sn111spmn110n11sn111spmn111n10sn111spman1n1100en0n100s
-n111spmatrrtcrn1n11en10111n110sn1sn111sppn10sn111sppmn11000n
-111smatrtrtrtcn1n1en11011n110sn1sn111sppn10sn111sppmn11100n1
-11smatrtrtn10n111en1011n110sn1sn111sppn10sn111sppmn1100n110s
-n1sn111sppn10sn111sppmn1101n111sman1000en1000n110sn1sn111spp
-n10sn111sppmn1010n10sn111spmn1001n11sn111spman1n1100en0n110s
-n1sn111sppn10sn111sppmatrrtcrtn10n100en10100n110sn1sn111sppn
-10sn111sppmn10101n110sn1sn111sppn10sn111sppmn10110n111sman10
-n111en1011n110sn1sn111sppn10sn111sppmn1100n110sn1sn111sppn10
-sn111sppmn1101n111sman1n1en11011n110sn1sn111sppn10sn111sppmn
-11100n111smatrtrn10n111en1011n110sn1sn111sppn10sn111sppmn110
-0n110sn1sn111sppn10sn111sppmn1101n111sman1000en1000n110sn1sn
-111sppn10sn111sppmn1010n10sn111spmn1001n11sn111spman1n1100en
-0n110sn1sn111sppn10sn111sppmatrrtcrtrtcttctctrttctcrrn1n0en1
-1101n10sn111spmn11110n111smatn1n10n1n1n100en10100n10sn111spm
-n10101n10sn111spmn10110n111sman1n10n0en11101n10sn111spmn1111
-0n111sman10n10n1n1011en1n10sn111spmatn1010en10n10sn111spmn11
-n11sn111spmn100n10sn111spmartn1n110en1110n10sn111spmn1111n10
-0sn111spmn10000n111sman1n1en11011n10sn111spmn11100n111smatrn
-1n1n10en11001n100sn111spmn11010n111smatn1n10n111en1011n100sn
-111spmn1100n100sn111spmn1101n111sman1000en1000n100sn111spmn1
-010n10sn111spmn1001n11sn111spman1n1100en0n100sn111spmatrrtct
-rn1001en101n100sn111spmn110n11sn111spmn111n10sn111spman1n110
-0en0n100sn111spmatrrtcrn1n11en10111n10sn111spmn11000n111smat
-rtrtrtcn1n1en11011n10sn111spmn11100n111smatrtrn10n111en1011n
-10sn111spmn1100n10sn111spmn1101n111sman1000en1000n10sn111spm
-n1010n10sn111spmn1001n11sn111spman1n1100en0n10sn111spmatrrtc
-rtn1n10n10n1n11n1n10n101en10001n10sn111spmn10010n10sn111spmn
-10011n111sman1n10n0en11101n10sn111spmn11110n111sman10n10n1n1
-011en1n10sn111spmatn1010en10n10sn111spmn11n11sn111spmn100n10
-sn111spmartn1n110en1110n10sn111spmn1111n100sn111spmn10000n11
-1sman1n1en11011n10sn111spmn11100n111smatrn1n1n10en11001n100s
-n111spmn11010n111smatn1n10n111en1011n100sn111spmn1100n100sn1
-11spmn1101n111sman1000en1000n100sn111spmn1010n10sn111spmn100
-1n11sn111spman1n1100en0n100sn111spmatrrtctrn1001en101n100sn1
-11spmn110n11sn111spmn111n10sn111spman1n1100en0n100sn111spmat
-rrtcrn1n11en10111n10sn111spmn11000n111smatrtrtrtcn1n1en11011
-n10sn111spmn11100n111smatrtrtn10n111en1011n10sn111spmn1100n1
-0sn111spmn1101n111sman1000en1000n10sn111spmn1010n10sn111spmn
-1001n11sn111spman1n1100en0n10sn111spmatrrtcrtn10n100en10100n
-10sn111spmn10101n10sn111spmn10110n111sman10n111en1011n10sn11
-1spmn1100n10sn111spmn1101n111sman1n1en11011n10sn111spmn11100
-n111smatrtrn10n111en1011n10sn111spmn1100n10sn111spmn1101n111
-sman1000en1000n10sn111spmn1010n10sn111spmn1001n11sn111spman1
-n1100en0n10sn111spmatrrtcrtrtcttctctrttctcrn10n1000en1000n10
-sn111spmn1010n1sn111spmn1001n10sn111spman1n111en1011n10sn111
-spmn1100n110sn1sn111sppn10sn111sppmn1101n111sman1n1en11011n1
-0sn111spmn11100n111smatrtrtcrr
-"
+end

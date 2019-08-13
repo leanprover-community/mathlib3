@@ -13,67 +13,68 @@ section
 variables {A B C D : Prop}
 
 example : (A → B ∨ C) → (B → D) → (C → D) → A → D :=
-by vampire "n100hn1hn100hn10hn0hn11hrn1trrrr"
+by vampire "n100ean1ean100ean10ean1n0ean11eartrrrr"
 
 example : ¬ A → A → C :=
-by vampire "n0hn1hr"
+by vampire "n0ean1ear"
 
 example : (A ∧ A ∧ B) → (A ∧ C ∧ B) → A :=
-by vampire "n110hn0hr"
+by vampire "n110ean0ear"
 
 example : A → ¬ B → ¬ (A → B) :=
-by vampire "n1hn10hn1trn0hr"
+by vampire "n1ean1n10eatrn0ear"
 
 example : A ∨ B → B ∨ A :=
-by vampire "n10hn1hn0hn1trr"
+by vampire
 
 example : A ∧ B → B ∧ A :=
-by vampire "n10hn1tn0hrn1hr"
+by vampire
 
 example : A → (A → B) → (B → C) → C :=
-by vampire "n11hn10hn1hn0hrrr"
+by vampire
 
 example : (A ∧ B) → (C ∧ B) → C :=
-by vampire "n100hn10hr"
+by vampire
 
 example : A → B → C → D → (A ∧ B) ∧ (C ∧ D) :=
-by vampire "n100hn11tn11hrn10tn10hrn1tn1hrn0hr"
+by vampire
 
 example : (A ∧ B) → (B ∧ ¬ C) → A ∨ C :=
-by vampire "n100hn0hr"
+by vampire
 
 example : (A → B) ∧ (B → C) → A → C :=
-by vampire "n11hn1hn0hn10hrrr"
+by vampire
+
 
 example : (A → B) ∨ (B → A) :=
-by vampire "n1hn10hr"
+by vampire
 
 example : ((A → B) → A) → A :=
-by vampire "n10hn0hn1tcr"
+by vampire
 
 example : A → ¬ B → ¬ (A → B) :=
-by vampire "n1hn10hn1trn0hr"
+by vampire
 
 example : ¬ (A ↔ ¬ A) :=
-by vampire "n0hn1tcn1hn1tcr"
+by vampire
 
 example : (A ↔ B) → (A ∧ B → C) → (¬ A ∧ ¬ B → C) → C :=
-by vampire "n100hn10hn1hrn10tcn0hn11hrn1tcrn1tcr"
+by vampire
 
 example : (A ↔ B) → ((A ∧ ¬ B) ∨ (¬ A ∧ B)) → C :=
-by vampire "n100hn0hn11hrn1tcrn1hn1tn0hn11hrn1tcrr"
+by vampire
 
 example : (A → B) → A → B :=
-by vampire "n10hn0hn1hrr"
+by vampire "n10ean0ean1earr"
 
 example : (A → B) → (B → C) → A → C :=
-by vampire "n11hn1hn0hn10hrrr"
+by vampire
 
 example : (A → B ∨ C) → (B → D) → (C → D) → A → D :=
-by vampire "n100hn1hn100hn10hn0hn11hrn1trrrr"
+by vampire
 
 example : A ∨ B → B ∨ A :=
-by vampire "n10hn1hn0hn1trr"
+by vampire
 
 variables (α : Type) [inhabited α]
 variables (a b c : α) (p q : α → Prop) (r : α → α → Prop)
@@ -81,86 +82,53 @@ variables (P Q R : Prop)
 variable  (g : bool → nat)
 
 example : (∀ x, p x → q x) → (∀ x, p x) → q a :=
-by vampire
-"
-n10hen0n10ymsn0hen10n0mn1n0msen10n0msn1hen10n1mn0n1msen10n0m
-n1n0msren1n0mn0n0msen0n10ymsr
-"
+by vampire "n10ean0en1n0sman1en0n0smarr"
 
 example : (p a) → ∃ x, p x :=
-by vampire "n1hen1n0mn0n0msen0n1ymsn0hen0n1ymsr"
+by vampire
 
 example : (p a) → (p b) → (q b) → ∃ x, p x ∧ q x :=
-by vampire "n11hen1n0mn0n0msn1ten0n10ymsn10hen0n10ymsrn1hr"
+by vampire
 
 example : (∃ x, p x ∧ r x x) → (∀ x, r x x → q x) → ∃ x, p x ∧ q x :=
 by vampire
 "
-n11hen10n1mn0n1msn1ten1n0ymsn10hen10n0mn1n0msen0n0ymsn1hen0n
-0ymsren1n0ymsrn0hr
+n1n11en0n0sn0spn0spmatn10en1n0sn0spn0spman1en1n0smn0n0smarrn
+0en1n0smn0n0smar
 "
 
 example : (∃ x, q x ∧ p x) → ∃ x, p x ∧ q x :=
-by vampire "n10hen1n0mn0n0msen0n0ymsn1hen0n0ymsrn0hr"
+by vampire
 
 example : (∀ x, q x → p x) → (q a) → ∃ x, p x :=
 by vampire
-"
-n10hen10n1mn0n1msen1n10ymsn0hen10n0mn1n0msen0n10ymsn1hen0n10
-ymsren1n10ymsr
-"
 
 example : (∀ x, p x → q x → false) → (p a) → (p b) → (q b) → false :=
-by vampire "n0hen1n0mn0n0msn1ten0n11ymsn11hen0n11ymsrn10hr"
+by vampire
 
 example : (∀ x, p x) → (∀ x, p x → q x) → ∀ x, q x :=
 by vampire
-"
-n10hen1n0ymsn1hen10n1mn0n1msen10n1msn0hen10n0mn1n0msen10n1mn
-0n1msren11n1mn1n1msen1n0ymsr
-"
 
 example : (∃ x, p x) → (∀ x, p x → q x) → ∃ x, q x :=
 by vampire
-"
-n10hen10n1mn0n1msen1n0ymsn1hen10n0mn1n0msen0n0ymsn0hen0n0yms
-ren1n0ymsr
-"
 
 example : (¬ ∀ x, ¬ p x) → (∀ x, p x → q x) → (∀ x, ¬ q x) → false :=
 by vampire
-"
-n10hen10n1mn0n1msen1n0ymsn1hen10n0mn1n0msen0n0ymsn0hen0n0yms
-ren1n0ymsr
-"
 
 example : (p a) → (p a → false) → false :=
-by vampire "n1hn0hr"
+by vampire
 
 example : (¬ (P → Q ∨ R)) → (¬ (Q ∨ ¬ R)) → false :=
-by vampire "n10hn100hr"
+by vampire
 
 example : (P → Q ∨ R) → (¬ Q) → P → R :=
-by vampire "n11hn1hn0hn10hrrr"
+by vampire
 
 example : (∃ x, p x → P) ↔ (∀ x, p x) → P :=
 by vampire
-"
-n111hn1tcn10hn1tn11tcn10ten0n0ymsn0hen1n0mn0n0msn10ten0n0yms
-rn1tn10tcn1tn10tcn1ten1n1ymsn100hen11n1mn1n1msn1tn101hen11n1
-mn1n1msn1ten10n0ymsn11hen10n1mn11n0mn0n1mn1n0msen10n0ymn1n11
-mn0n0ymsren101n1mn11n1mn1n1msn10tcn1ten1n11msren101n1mn11n1m
-n1n1msn1tcen1n1ymsrr
-"
 
 example : (∃ x, P → p x) ↔ (P → ∃ x, p x) :=
 by vampire
-"
-n111hen10n1mn11n0mn0n1mn1n0msen0n0ymsn1000hen11n1mn1n1msn1tn
-11hn1tcren11n1mn1n1msn1ten0n0ymn1n11msren101n1mn11n1mn1n1msn
-1tcen1n1ymsn1hen1n0mn0n0msn10ten0n0ymsn10hn10tcn10ten0n0ymsr
-n1tn11tcn1tn10tcn1ten1n1ymsrn11hn1tcr
-"
 
 end
 
@@ -179,33 +147,24 @@ lemma gilmore_1 {F G H : α → Prop} :
       → F z ∧ G z ∧ H z :=
 by vampire
 "
-n1010hesn10ten10n0yn11amn0n11msn111hesen11n10mn0n10msn111hes
-en10n1mn0n1msn101hesen1n0msn111hesen1n1yn10amn0n10msn1hesen1
-0n1mn0n1msn110hesen1n0msn0hesen1n0msren0n1msen10n1msresn10tc
-n1ten1n1yn10amsren10n0msn1ten1n0msren0n1msen10n1msresn10tcn1
-ten100n10mn1n10msn111hesen10n1mn0n1msn101hesen1n0msn111hesen
-1n1yn10amn0n10msn1hesen10n1mn0n1msn110hesen1n0msn0hesen1n0ms
-ren0n1msen10n1msresn10tcn1ten1n1yn10amsren10n0msn1ten1n0msre
-n0n1msen10n1msresn10tcn1ten10n1yn0amn1n1yn0amsn110hesen1n0ms
-n11hesen1n0msresen10n1yn0amsren0n10msn10ten100n10msresn10tcn
-1ten11n10msresn1tcen10n0yn11amsren11n10msn1ten1n0yn100amn10n
-100msn100hesen10n1yn11amn0n11msn111hesen11n10mn0n10msn111hes
-en10n1mn0n1msn101hesen1n0msn111hesen1n1yn10amn0n10msn1hesen1
-0n1mn0n1msn110hesen1n0msn0hesen1n0msren0n1msen10n1msresn10tc
-n1ten1n1yn10amsren10n0msn1ten1n0msren0n1msen10n1msresn10tcn1
-ten100n10mn1n10msn111hesen10n1mn0n1msn101hesen1n0msn111hesen
-1n1yn10amn0n10msn1hesen10n1mn0n1msn110hesen1n0msn0hesen1n0ms
-ren0n1msen10n1msresn10tcn1ten1n1yn10amsren10n0msn1ten1n0msre
-n0n1msen10n1msresn10tcn1ten10n1yn0amn1n1yn0amsn110hesen1n0ms
-n11hesen1n0msresen10n1yn0amsren0n10msn10ten100n10msresn10tcn
-1ten11n10msresn1tcen10n1yn11amsren11n1msen1n0yn100amsren100n
-10msen10n101msn1hesen11n10mn0n10msn100hesen1n0msn111hesen10n
-1mn0n1msn101hesen1n0msn111hesen1n1yn10amn0n10msn1hesen10n1mn
-0n1msn110hesen1n0msn0hesen1n0msren0n1msen10n1msresn10tcn1ten
-1n1yn10amsren10n0msn1ten1n0msren0n1msen10n1msresn10tcn1ten10
-n1yn0amn1n1yn0amsn10hesen1n0msn11hesen1n0msresen10n1yn0amsre
-sen1n0msresn10tcn1ten1n1yn0amn0n1yn0amsn0hesen1n1yn0amsren0n
-10msen11n10msresn1tcen10n0yn101amsr
+n1n10n1010en0n0smatn1n111en0n0sn0spman1n10n1n10n111en0n0sn0s
+pman101en0n0sn0spman1n111en0n0sn0spman1n10n1en0n1sn0sn0sppma
+n110en0n1sn0sn0sppman0en0n1sn0sn0sppmarrtctrtrrtctn10n1n10n1
+11en0n1sn0sn0sppman101en0n1sn0sn0sppman1n111en0n1sn0sn0sppma
+n1n10n1en0n1sn1sn0sn0spppman110en0n1sn1sn0sn0spppman0en0n1sn
+1sn0sn0spppmarrtctrtrrtctn110en0n0sn0spman11en0n0sn0spmarrtr
+tctrtcrtn100en0n0sn0spman1n111en0n1sn0sn0sppman1n10n1n10n111
+en0n1sn0sn0sppman101en0n1sn0sn0sppman1n111en0n1sn0sn0sppman1
+n10n1en0n1sn1sn0sn0spppman110en0n1sn1sn0sn0spppman0en0n1sn1s
+n0sn0spppmarrtctrtrrtctn10n1n10n111en0n1sn1sn0sn0spppman101e
+n0n1sn1sn0sn0spppman1n111en0n1sn1sn0sn0spppman1n10n1en0n1sn1
+sn1sn0sn0sppppman110en0n1sn1sn1sn0sn0sppppman0en0n1sn1sn1sn0
+sn0sppppmarrtctrtrrtctn110en0n1sn0sn0sppman11en0n1sn0sn0sppm
+arrtrtctrtcrrn1n1en0n0sn0spman1n10n100en0n1sn0sn0sppman1n10n
+111en0n1sn1sn0sn0spppman101en0n1sn1sn0sn0spppman1n111en0n1sn
+1sn0sn0spppman1n10n1en0n1sn1sn1sn0sn0sppppman110en0n1sn1sn1s
+n0sn0sppppman0en0n1sn1sn1sn0sn0sppppmarrtctrtrrtctn10en0n1sn
+0sn0sppman11en0n1sn0sn0sppmarrrtctn0en0n0sn0spmarrtcr
 "
 
 lemma gilmore_6 {F G : α → α → Prop} {H : α → α → α → Prop} :
@@ -214,18 +173,12 @@ lemma gilmore_6 {F G : α → α → Prop} {H : α → α → α → Prop} :
    → (∃ u, ∀ v, F u y → G v u ∧ G u y) ∨
        (∀ u v, ∃ w, G v u ∨ H w y u → G u w) :=
 by vampire
-"
-n101hen0n11mn11n0msen101n11yn1amn11n11yn1amn0n10msn0hen11n0m
-n10n1msen10n11yn11amn0n11mn1n100msn10hen11n0mn1n10msen0n100y
-mn10n11yn11amsren11n1mn100n0msen101n11yn1amn0n1yn10amsr
-"
 
--- To do : Fix substtitution bug
--- lemma gilmore_8 {G : α → Prop} {F : α → α → Prop} {H : α → α → α → Prop} :
---   ∃ x, ∀ y z,
---     ((F y z → (G y → (∀ u, ∃ v, H u v x))) → F x x) ∧
---     ((F z x → G x) → (∀ u, ∃ v, H u v z)) ∧
---     F x y → F z z := by vampire
+lemma gilmore_8 {G : α → Prop} {F : α → α → Prop} {H : α → α → α → Prop} :
+  ∃ x, ∀ y z,
+    ((F y z → (G y → (∀ u, ∃ v, H u v x))) → F x x) ∧
+    ((F z x → G x) → (∀ u, ∃ v, H u v z)) ∧
+    F x y → F z z := by vampire
 
 lemma manthe_and_bry (agatha butler charles : α)
 (lives : α → Prop) (killed hates richer : α → α → Prop) :
@@ -243,14 +196,29 @@ lemma manthe_and_bry (agatha butler charles : α)
        ¬ killed charles agatha :=
 by vampire
 "
-n1011hen110n101mn0n101msn10ten101n10ymsn1010hen110n100mn1n10
-0msen100n11ymsn1000hen100n11ymsren101n10ymsrn1010hen110n100m
-n1n100msen100n1ymsn111hen100n1ymsrrn101hen110n1mn111n0mn101n
-0mn100n1msn1ten101n0mn1n1ymsn1001hen110n11mn10n11msn1ten101n
-0mn1n1ymn11n0msren1n0mn0n0msen0n10ymsn110hen110n10mn11n10msn
-1ten10n1ymsn100hen110n1mn111n0mn101n0mn100n1msen0n11ymn1n1ym
-sn1100hn11hrn1tn11tcn1tn10tcn1ten0n11ymn1n1ymsren10n1ymsrn11
-1hren0n10ymsrn1hrr
+n10n1011en0n1smatn1010en1n10sman1000earrn1010en1n0sman111ear
+rn1n101en100n0smn101n1smatn1n1001en10n1smatrn1n110en11n0smat
+n100en100n0smn101n10sman10n1n10n1100ean11eartcttcrrn111earrn
+1earr
 "
+
+/- A logic puzzle by Raymond Smullyan. -/
+
+lemma knights_and_knaves (me : α) (knight knave rich poor : α → α)
+  (a_truth says : α → α → Prop) (and : α → α → α) :
+  ( (∀ X Y, ¬ a_truth (knight X) Y ∨ ¬ a_truth (knave X) Y ) ∧
+    (∀ X Y, a_truth (knight X) Y ∨ a_truth (knave X) Y ) ∧
+    (∀ X Y, ¬ a_truth (rich X) Y ∨ ¬ a_truth (poor X) Y ) ∧
+    (∀ X Y, a_truth (rich X) Y ∨ a_truth (poor X) Y ) ∧
+    (∀ X Y Z, ¬ a_truth (knight X) Z ∨ ¬ says X Y ∨ a_truth Y Z ) ∧
+    (∀ X Y Z, ¬ a_truth (knight X) Z ∨ says X Y ∨ ¬ a_truth Y Z ) ∧
+    (∀ X Y Z, ¬ a_truth (knave X) Z ∨ ¬ says X Y ∨ ¬ a_truth Y Z ) ∧
+    (∀ X Y Z, ¬ a_truth (knave X) Z ∨ says X Y ∨ a_truth Y Z ) ∧
+    (∀ X Y Z, ¬ a_truth (and X Y) Z ∨ a_truth X Z ) ∧
+    (∀ X Y Z, ¬ a_truth (and X Y) Z ∨ a_truth Y Z ) ∧
+    (∀ X Y Z, a_truth (and X Y) Z ∨ ¬ a_truth X Z ∨ ¬ a_truth Y Z ) ∧
+    (∀ X, ¬ says me X ∨ ¬ a_truth (and (knave me) (rich me)) X ) ∧
+    (∀ X, says me X ∨ a_truth (and (knave me) (rich me)) X ) ) → false :=
+by vampire
 
 end

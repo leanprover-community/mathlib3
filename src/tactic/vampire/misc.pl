@@ -57,3 +57,16 @@ break_string(Num, Str, [Str]) :-
 break_string(Num, Str, [Hd | Tl]) :-
   break_string(Num, Str, Hd, Rem),
   break_string(Num, Rem, Tl).
+
+tor([Hd | Tl], 0, [Hd | Tl]).
+
+tor([Hd | Tl], Idx, [HdA, Hd | TlA]) :-
+  tor(Tl, IdxA, [HdA | TlA]),
+  Idx is IdxA + 1.
+
+rot(0, [Hd | Tl], [Hd | Tl]).
+
+rot(Idx, [Hd | Tl], [NewHd, Hd | NewTl]) :-
+  0 < Idx,
+  NewIdx is Idx - 1,
+  rot(NewIdx, Tl, [NewHd | NewTl]).

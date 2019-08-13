@@ -44,6 +44,10 @@ lemma pred_mono_2 {c : Prop → Prop → Prop} {a1 a2 b1 b2 : Prop} :
   (a1 ↔ a2) → (b1 ↔ b2) → (c a1 b1 ↔ c a2 b2) :=
 λ h1 h2, by rw [h1, h2]
 
+lemma fun_mono_2 {f : α → β → γ} {a1 a2 : α} {b1 b2 : β} :
+  (a1 = a2) → (b1 = b2) → (f a1 b1 = f a2 b2) :=
+λ h1 h2, by rw [h1, h2]
+
 def assign (a : α) (f : nat → α) : nat → α
 | 0       := a
 | (k + 1) := f k
@@ -59,7 +63,7 @@ def digit_to_subs : char → char
 | '7' := '₇'
 | '8' := '₈'
 | '9' := '₉'
-| _ := ' '
+| _   := ' '
 
 def nat.to_subs (n : nat) : string :=
 ⟨n.repr.data.map digit_to_subs⟩
@@ -90,5 +94,8 @@ namespace nat
 
   lemma zero_ne_succ {k : nat} : 0 ≠ k.succ :=
   λ h, by cases h
+
+  lemma pos_of_lt {k m : nat} : k < m → 0 < m :=
+  λ h0, lt_of_le_of_lt (nat.zero_le _) h0
 
 end nat

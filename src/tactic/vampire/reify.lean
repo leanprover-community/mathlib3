@@ -1,139 +1,159 @@
-/-
-  Copyright (c) 2019 Seul Baek. All rights reserved.
-  Released under Apache 2.0 license as described in the file LICENSE.
-  Author: Seul Baek
-
-  Reification of goals into deeply embedded SOL.
--/
-
-import tactic.vampire.form2 logic.basic
-
-open expr tactic
+import tactic.vampire.form
 
 namespace vampire
 
-meta def is_func_type (dx : expr) : expr → bool
-| `(%%x → %%y) := (x = dx) && (is_func_type y)
-| x            := x = dx
+local notation `#`      := term.fn
+local notation t `&t` s := term.tp t s
+local notation t `&v` k := term.vp t k
 
-meta def is_pred_type (dx : expr) : expr → bool
-| `(%%x → %%y) := (x = dx) && (is_pred_type y)
-| x            := x = `(Prop)
+local notation `$`      := atom.rl
+local notation a `^t` t := atom.tp a t
+local notation a `^v` t := atom.vp a t
 
-meta def get_symb_aux (dx x : expr) : tactic expr :=
-do tx ← infer_type x,
-   if (is_pred_type dx tx || is_func_type dx tx)
-   then return x
+local notation `-*` := lit.neg
+local notation `+*` := lit.pos
+
+local notation `⟪` l `⟫`       := form.lit l
+local notation p `∨*` q        := form.bin tt p q
+local notation p `∧*` q        := form.bin ff p q
+local notation `∃*`            := form.qua tt
+local notation `∀*`            := form.qua ff
+
+@[derive decidable_eq]
+meta inductive preterm : Type
+| var : bool → nat → preterm
+| exp : expr → preterm
+| app : preterm → preterm → preterm
+
+meta inductive preform : Type
+| lit : bool → preterm → preform
+| bin : bool → preform → preform → preform
+| qua : bool → preform → preform
+
+open tactic expr
+
+meta def to_preterm : expr → tactic preterm
+| (var k) :=
+  return (preterm.var tt k)
+| (app x y) :=
+  do t ← to_preterm x,
+     s ← to_preterm y,
+     return (preterm.app t s)
+| x := return (preterm.exp x)
+
+meta def to_preform : expr → tactic preform
+| `(%%px ∨ %%qx) :=
+  do φ ← to_preform px,
+     χ ← to_preform qx,
+     return (preform.bin tt φ χ)
+| `(%%px ∧ %%qx) :=
+  do φ ← to_preform px,
+     χ ← to_preform qx,
+     return (preform.bin ff φ χ)
+| (pi _ _ _ px) :=
+  do φ ← to_preform px,
+     return (preform.qua ff φ)
+| `(Exists %%(expr.lam _ _ _ px)) :=
+  do φ ← to_preform px,
+     return (preform.qua tt φ)
+| `(Exists %%prx) :=
+  do φ ← to_preform (app (prx.lift_vars 0 1) (var 0)),
+     return (preform.qua tt φ)
+| `(¬ %%px) :=
+  do t ← to_preterm px,
+     return (preform.lit ff t)
+| px        :=
+  do t ← to_preterm px,
+     return (preform.lit tt t)
+
+meta def to_term : preterm → tactic term
+| (preterm.var ff k) := return (# k)
+| (preterm.var tt k) := failed
+| (preterm.exp x)    := failed
+| (preterm.app pt (preterm.var tt k)) :=
+  do t ← to_term pt,
+     return (t &v k)
+| (preterm.app pt ps) :=
+  do t ← to_term pt,
+     s ← to_term ps,
+     return (t &t s)
+
+meta def to_atom : preterm → tactic atom
+| (preterm.var ff k) := return ($ k)
+| (preterm.var tt k) := failed
+| (preterm.exp x)    := failed
+| (preterm.app pt (preterm.var tt k)) :=
+  do a ← to_atom pt,
+     return (a ^v k)
+| (preterm.app pt ps) :=
+  do a ← to_atom pt,
+     t ← to_term ps,
+     return (a ^t t)
+
+meta def to_form : preform → tactic form
+| (preform.lit b pt)   :=
+  do a ← to_atom pt,
+     return (form.lit (if b then +* a else -* a))
+| (preform.bin b pf pg) :=
+  do f ← to_form pf,
+     g ← to_form pg,
+     return (form.bin b f g)
+| (preform.qua b pf) :=
+  do f ← to_form pf,
+     return (form.qua b f)
+
+meta def is_sym_type (b : bool) (αx : expr) : expr → bool
+| `(%%x → %%y) := (x = αx) && (is_sym_type y)
+| x            := if b then x = `(Prop) else x = αx
+
+meta def preterm.to_expr : preterm → tactic expr
+| (preterm.exp x) := return x
+| (preterm.app t s) :=
+  do x ← t.to_expr,
+     y ← s.to_expr,
+     return (app x y)
+| _ := failed
+
+meta def preterm.is_sym (b : bool) (αx) (t : preterm) : tactic unit :=
+do tx ← t.to_expr >>= infer_type,
+   if is_sym_type b αx tx
+   then skip
    else failed
 
-meta def get_symb (dx : expr) : expr → tactic expr
-| `(true)   := failed
-| `(false)  := failed
-| `(¬ %%px) := get_symb px
-| `(%%px ∨ %%qx) := get_symb px <|> get_symb qx
-| `(%%px ∧ %%qx) := get_symb px <|> get_symb qx
-| (pi _ _ _ px) := get_symb px
-| `(Exists %%(expr.lam _ _ _ px)) := get_symb px
-| `(Exists %%prx) := get_symb prx
-| x@(app x1 x2) :=
-       get_symb x1
-  <|>  get_symb x2
-  <|>  get_symb_aux dx x
-| x := get_symb_aux dx x
+meta def preterm.get_sym (b : bool) (αx : expr) : preterm → tactic preterm
+| r@(preterm.app t s) :=
+  t.get_sym <|>
+  s.get_sym <|>
+  (r.is_sym b αx >> return r)
+| t := t.is_sym b αx >> return t
 
-meta def subst_symb (y : expr) : nat → expr → expr
-| k x@(app x1 x2) :=
-  if y = x
-  then var k
-  else app (subst_symb k x1) (subst_symb k x2)
-| k (lam n b tx x) := lam n b tx (subst_symb (k+1) x)
-| k (pi n b tx x)  := pi n b tx (subst_symb (k+1) x)
-| k x := if y = x then var k else x
+meta def preform.get_sym (b : bool) (αx : expr) : preform → tactic preterm
+| (preform.lit _ x)   := x.get_sym b αx
+| (preform.bin _ x y) := x.get_sym <|> y.get_sym
+| (preform.qua _ x)   := x.get_sym
 
-meta def abst (dx : expr) : expr → tactic expr
-| x :=
-  (do y ← get_symb dx x,
-      abst (pi name.anonymous binder_info.default dx (subst_symb y 0 x))) <|>
-  (return x)
+meta def preterm.subst (s : preterm) (k : nat) : preterm → preterm
+| t@(preterm.app t1 t2) :=
+  if t = s
+  then preterm.var ff k
+  else preterm.app t1.subst t2.subst
+| t :=
+  if t = s
+  then preterm.var ff k
+  else t
 
-meta def get_domain_core : expr → tactic expr
-| `(¬ %%p)     := get_domain_core p
-| `(%%p ∨ %%q) := get_domain_core p <|> get_domain_core q
-| `(%%p ∧ %%q) := get_domain_core p <|> get_domain_core q
-| `(%%p ↔ %%q) := get_domain_core p <|> get_domain_core q
-| (pi _ _ p q) := mcond (is_prop p) (get_domain_core p <|> get_domain_core q) (return p)
-| `(@Exists %%t _) := return t
-| _ := failed
+meta def preform.subst (s : preterm) (k : nat) : preform → preform
+| (preform.lit b t)   := preform.lit b (preterm.subst s k t)
+| (preform.bin b f g) := preform.bin b f.subst g.subst
+| (preform.qua b f)   := preform.qua b f.subst
 
-meta def get_domain : tactic expr :=
-(target >>= get_domain_core) <|> return `(unit)
+meta def abst (αx : expr) : bool → nat → preform → tactic preform
+| b k f :=
+  (do s ← f.get_sym b αx,
+      abst b (k + 1) (f.subst s k)) <|>
+  (if b then return f else abst tt 0 f)
 
-local notation `#`     := term₂.var
-local notation t `&` s := term₂.app t s
-
-local notation `⟪` b `,` a `⟫` := form₂.lit b a
-local notation p `∨₂` q := form₂.bin tt p q
-local notation p `∧₂` q := form₂.bin ff p q
-local notation `∃₂` p := form₂.qua tt p
-local notation `∀₂` p := form₂.qua ff p
-
-meta def to_term (k : nat) : expr → tactic term₂
-| (app x y) :=
-  do a ← to_term x,
-     b ← to_term y,
-     return (a & b)
-| (var m) := return (# m)
-| _ := failed
-
-meta def to_form : nat → expr → tactic form₂
-| k `(%%px ∨ %%qx) :=
-  do φ ← to_form k px,
-     χ ← to_form k qx,
-     return (φ ∨₂ χ)
-| k `(%%px ∧ %%qx) :=
-  do φ ← to_form k px,
-     χ ← to_form k qx,
-     return (φ ∧₂ χ)
-| k (pi _ _ _ px) :=
-  do φ ← to_form (k+1) px, return (∀₂ φ)
-| k `(Exists %%(expr.lam _ _ _ px)) :=
-  do φ ← to_form (k+1) px, return (∃₂ φ)
-| k `(Exists %%prx) :=
-  do φ ← to_form (k+1) (app (prx.lift_vars 0 1) (var 0)),
-     return (∃₂ φ)
-| k `(¬ %%px) :=
-  do a ← to_term k px,
-     return ⟪ff, a⟫
-| k px :=
-  do a ← to_term k px,
-     return ⟪tt, a⟫
-
-run_cmd mk_simp_attr `sugar
-
-attribute [sugar]
-  -- logical constants
-  or_false  false_or
-  and_false false_and
-  or_true   true_or
-  and_true  true_and
-  -- implication elimination
-  classical.imp_iff_not_or
-  classical.iff_iff_not_or_and_or_not
-  -- NNF
-  classical.not_not
-  not_exists
-  not_or_distrib
-  classical.not_and_distrib
-  classical.not_forall
-
-meta def desugar := `[try {simp only with sugar}]
-
-meta def reify : tactic (expr × expr × form₂) :=
-do desugar,
-   dx ← get_domain,
-   ihx ← to_expr ``(inhabited),
-   ix ← mk_instance (app ihx dx),
-   p ← target >>= abst dx >>= to_form 0,
-   return (dx, ix, p)
+meta def reify (αx : expr) : tactic form :=
+target >>= to_preform >>= abst αx ff 0 >>= to_form
 
 end vampire

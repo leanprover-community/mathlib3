@@ -19,13 +19,24 @@ meta def to_additive_attr : user_attribute (name_map name) name :=
     val ← to_additive_attr.get_param n,
     pure $ dict.insert n val) mk_name_map, []⟩,
   parser    := lean.parser.ident,
-  after_set := some $ λ src _ _, do
+  after_set := some $ λ src prio persistent, do
     env ← get_env,
     dict ← to_additive_attr.get_cache,
     tgt ← to_additive_attr.get_param src,
-    (get_decl tgt >> skip) <|>
-      transport_with_dict dict src tgt }
-
+    let fields := env.structure_fields src,
+    match fields with
+    | some fields := do
+      tgt_fields ← env.structure_fields tgt,
+      guard (fields.length = tgt_fields.length) <|>
+        fail ("Structures " ++ src.to_string ++ " and " ++ tgt.to_string ++
+              " have different number of fields"),
+      (fields.zip tgt_fields).mmap
+        (λ names, to_additive_attr.set
+          (src.append names.fst) (tgt.append names.snd) persistent prio),
+      skip
+    | none := (get_decl tgt >> skip) <|>
+                transport_with_dict dict src tgt
+    end }
 end transport
 
 /- map operations -/

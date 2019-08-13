@@ -45,7 +45,6 @@ by vampire
 example : (A → B) ∧ (B → C) → A → C :=
 by vampire
 
-
 example : (A → B) ∨ (B → A) :=
 by vampire
 

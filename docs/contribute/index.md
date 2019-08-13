@@ -12,6 +12,7 @@ to make the process of contributing as smooth as possible.
 2. Adhere to the guidelines:
    - The [style guide](style.md) for contributors.
    - The explanation of [naming conventions](naming.md).
+   - The [documentation guidelines](doc.md).
    - The [git commit conventions](https://github.com/leanprover/lean/blob/master/doc/commit_convention.md).
 3. Create a pull request from a feature branch on your personal fork,
    as explained in the link above, or from a branch of the main repository if you have commit access (you can ask for access on Zulip).

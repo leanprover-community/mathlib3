@@ -6,7 +6,7 @@ Author: Johannes Hölzl, Casper Putz
 The equivalence between matrices and linear maps.
 -/
 
-import data.matrix
+import data.matrix.basic
 import linear_algebra.dimension linear_algebra.tensor_product
 
 /-!

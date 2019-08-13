@@ -45,8 +45,7 @@ if_pos (le_refl _)
 
 @[simp] lemma argmax_singleton {f : α → β} {a : α} : argmax f [a] = some a := rfl
 
-@[simp] lemma argmin_singleton {f : α → β} {a : α} : argmin f [a] = a :=
-@argmax_singleton _ (order_dual β) _ _ _
+@[simp] lemma argmin_singleton {f : α → β} {a : α} : argmin f [a] = a := rfl
 
 @[simp] lemma foldl_argmax₂_eq_none {f : α → β} {l : list α} {o : option α} :
   l.foldl (argmax₂ f) o = none ↔ l = [] ∧ o = none :=
@@ -204,6 +203,10 @@ def minimum (l : list α) : option α := argmin id l
 @[simp] lemma maximum_nil : maximum ([] : list α) = none := rfl
 
 @[simp] lemma minimum_nil : minimum ([] : list α) = none := rfl
+
+@[simp] lemma maximum_singleton (a : α) : maximum [a] = some a := rfl
+
+@[simp] lemma minimum_singleton (a : α) : minimum [a] = some a := rfl
 
 theorem maximum_mem {l : list α} {m : α} : m ∈ maximum l → m ∈ l := argmax_mem
 

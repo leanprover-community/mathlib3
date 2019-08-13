@@ -163,7 +163,7 @@ they are only meant to be used on small, straightforward problems.
 * safe:    splits freely, finishes off whatever subgoals it can, and leaves the rest
 
 All accept an optional list of simplifier rules, typically definitions that should be expanded.
-(The equations and identities should not refer to the local context.)
+(The equations and identities should not refer to the local context.) All also accept an optional list of `ematch` lemmas, which must be preceded by `using`.
 
 ### ring
 

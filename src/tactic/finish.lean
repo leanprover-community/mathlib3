@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jeremy Avigad
+Authors: Jeremy Avigad, Jesse Michael Han
 
 These tactics do straightforward things: they call the simplifier, split conjunctive assumptions,
 eliminate existential quantifiers on the left, and look for contradictions. They rely on ematching
@@ -305,7 +305,37 @@ meta def mk_hinst_lemmas : list expr → smt_tactic hinst_lemmas
                   | _ := return his
                   end
 
-meta def done (cfg : auto_config := {}) : tactic unit :=
+private meta def report_invalid_em_lemma {α : Type} (n : name) : smt_tactic α :=
+fail format!"invalid ematch lemma '{n}'"
+
+private meta def add_hinst_lemma_from_name (md : transparency) (lhs_lemma : bool) (n : name) (hs : hinst_lemmas) (ref : pexpr) : smt_tactic hinst_lemmas :=
+do
+  p ← resolve_name n,
+  match p with
+  | expr.const n _           :=
+    (do h ← hinst_lemma.mk_from_decl_core md n lhs_lemma, tactic.save_const_type_info n ref, return $ hs.add h)
+    <|>
+    (do hs₁ ← smt_tactic.mk_ematch_eqn_lemmas_for_core md n, tactic.save_const_type_info n ref, return $ hs.merge hs₁)
+    <|>
+    report_invalid_em_lemma n
+  | _ :=
+    (do e ← to_expr p, h ← hinst_lemma.mk_core md e lhs_lemma, try (tactic.save_type_info e ref), return $ hs.add h)
+    <|>
+    report_invalid_em_lemma n
+  end
+
+private meta def add_hinst_lemma_from_pexpr (md : transparency) (lhs_lemma : bool) (p : pexpr) (hs : hinst_lemmas) : smt_tactic hinst_lemmas :=
+match p with
+| (expr.const c [])          := add_hinst_lemma_from_name md lhs_lemma c hs p
+| (expr.local_const c _ _ _) := add_hinst_lemma_from_name md lhs_lemma c hs p
+| _                          := do new_e ← to_expr p, h ← hinst_lemma.mk_core md new_e lhs_lemma, return $ hs.add h
+end
+
+private meta def add_hinst_lemmas_from_pexprs (md : transparency) (lhs_lemma : bool) : list pexpr → hinst_lemmas → smt_tactic hinst_lemmas
+| []      hs := return hs
+| (p::ps) hs := do hs₁ ← add_hinst_lemma_from_pexpr md lhs_lemma p hs, add_hinst_lemmas_from_pexprs ps hs₁
+
+meta def done (ps : list pexpr) (cfg : auto_config := {}) : tactic unit :=
 do when_tracing `auto.done (trace "entering done" >> trace_state),
    contradiction <|>
    (solve1 $
@@ -314,9 +344,9 @@ do when_tracing `auto.done (trace "entering done" >> trace_state),
          (do smt_tactic.intros,
              ctx ← local_context,
              hs ← mk_hinst_lemmas ctx,
+             hs' ← add_hinst_lemmas_from_pexprs reducible ff ps hs,
              smt_tactic.iterate_at_most cfg.max_ematch_rounds
-               (smt_tactic.ematch_using hs >> smt_tactic.try smt_tactic.close))))
-
+               (smt_tactic.ematch_using hs' >> smt_tactic.try smt_tactic.close))))
 /-
   Tactics that perform case splits.
 -/
@@ -360,7 +390,7 @@ local_context >>= case_some_hyp_aux s cont
   The main tactics.
 -/
 
-meta def safe_core (s : simp_lemmas × list name) (cfg : auto_config) : case_option → tactic unit :=
+meta def safe_core (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config) : case_option → tactic unit :=
 λ co, focus1 $
 do when_tracing `auto.finish (trace "entering safe_core" >> trace_state),
    if cfg.use_simp then do
@@ -372,28 +402,29 @@ do when_tracing `auto.finish (trace "entering safe_core" >> trace_state),
    do when_tracing `auto.finish (trace "preprocessing hypotheses"),
       preprocess_hyps cfg,
       when_tracing `auto.finish (trace "result:" >> trace_state),
-      done cfg <|>
+      done ps cfg <|>
         (mcond (case_some_hyp co safe_core)
           skip
           (match co with
-            | case_option.force       := done cfg
-            | case_option.at_most_one := try (done cfg)
-            | case_option.accept      := try (done cfg)
+            | case_option.force       := done ps cfg
+            | case_option.at_most_one := try (done ps cfg)
+            | case_option.accept      := try (done ps cfg)
             end))
 
-meta def clarify (s : simp_lemmas × list name) (cfg : auto_config := {}) : tactic unit :=
-  safe_core s cfg case_option.at_most_one
-meta def safe (s : simp_lemmas × list name) (cfg : auto_config := {}) : tactic unit :=
-  safe_core s cfg case_option.accept
-meta def finish (s : simp_lemmas × list name) (cfg : auto_config := {}) : tactic unit :=
-  safe_core s cfg case_option.force
+meta def clarify (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config := {}) : tactic unit :=
+  safe_core s ps cfg case_option.at_most_one
+meta def safe (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config := {}) : tactic unit :=
+  safe_core s ps cfg case_option.accept
 
-meta def iclarify (s : simp_lemmas × list name) (cfg : auto_config := {}) : tactic unit :=
-  clarify s {classical := ff, ..cfg}
-meta def isafe (s : simp_lemmas × list name) (cfg : auto_config := {}) : tactic unit :=
-  safe s {classical := ff, ..cfg}
-meta def ifinish (s : simp_lemmas × list name) (cfg : auto_config := {}) : tactic unit :=
-  finish s {classical := ff, ..cfg}
+meta def finish (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config := {}) : tactic unit :=
+  safe_core s ps cfg case_option.force
+
+meta def iclarify (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config := {}) : tactic unit :=
+  clarify s ps {classical := ff, ..cfg}
+meta def isafe (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config := {}) : tactic unit :=
+  safe s ps {classical := ff, ..cfg}
+meta def ifinish (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config := {}) : tactic unit :=
+  finish s ps {classical := ff, ..cfg}
 
 end auto
 
@@ -409,29 +440,72 @@ open lean lean.parser interactive interactive.types
 local postfix `?`:9001 := optional
 local postfix *:9001 := many
 
-meta def clarify (hs : parse simp_arg_list) (cfg : auto_config := {}) : tactic unit :=
+meta def clarify (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?) (cfg : auto_config := {}) : tactic unit :=
 do s ← mk_simp_set ff [] hs,
-   auto.clarify s cfg
+   let ps' :=
+   match ps with
+   | none := []
+   | (some ps) := ps
+   end,
+   auto.clarify s ps' cfg
 
-meta def safe (hs : parse simp_arg_list) (cfg : auto_config := {}) : tactic unit :=
+meta def safe (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?) (cfg : auto_config := {}) : tactic unit :=
 do s ← mk_simp_set ff [] hs,
-   auto.safe s cfg
+   let ps' :=
+   match ps with
+   | none := []
+   | (some ps) := ps
+   end,
+   auto.safe s ps' cfg
 
-meta def finish (hs : parse simp_arg_list) (cfg : auto_config := {}) : tactic unit :=
-do s ← mk_simp_set ff [] hs,
-   auto.finish s cfg
+/--
+  `finish[h1,...,hn] using [e1,...,en]` negates the goal, normalizes hypotheses
+  (by splitting conjunctions, eliminating existentials, pushing negations inwards,
+  and calling `simp` with the supplied lemmas `h1,...,hn`), and then tries `contradiction`.
+  
+  If this fails, it will create an SMT state and repeatedly use `ematch`
+  (using `ematch` lemmas in the environment, universally quantified assumptions,
+  and the supplied lemmas `e1,...,en`) and congruence closure.
 
-meta def iclarify (hs : parse simp_arg_list) (cfg : auto_config := {}) : tactic unit :=
+  `finish` is complete for propositional logic.
+  
+  Either of the supplied simp lemmas or the supplied ematch lemmas are optional.
+-/
+meta def finish (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?) (cfg : auto_config := {}) : tactic unit :=
 do s ← mk_simp_set ff [] hs,
-   auto.iclarify s cfg
+   let ps' :=
+   match ps with
+   | none := []
+   | (some ps) := ps
+   end,
+   auto.finish s ps' cfg
 
-meta def isafe (hs : parse simp_arg_list) (cfg : auto_config := {}) : tactic unit :=
+meta def iclarify (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?) (cfg : auto_config := {}) : tactic unit :=
 do s ← mk_simp_set ff [] hs,
-   auto.isafe s cfg
+   let ps' :=
+   match ps with
+   | none := []
+   | (some ps) := ps
+   end,
+   auto.iclarify s ps' cfg
 
-meta def ifinish (hs : parse simp_arg_list) (cfg : auto_config := {}) : tactic unit :=
+meta def isafe (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?) (cfg : auto_config := {}) : tactic unit :=
 do s ← mk_simp_set ff [] hs,
-   auto.ifinish s cfg
+   let ps' :=
+   match ps with
+   | none := []
+   | (some ps) := ps
+   end,
+   auto.isafe s ps' cfg
+
+meta def ifinish (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?) (cfg : auto_config := {}) : tactic unit :=
+do s ← mk_simp_set ff [] hs,
+   let ps' :=
+   match ps with
+   | none := []
+   | (some ps) := ps
+   end,
+   auto.ifinish s ps' cfg
 
 end interactive
 end tactic

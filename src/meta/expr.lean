@@ -156,14 +156,14 @@ do (s, to_unfold) ← mk_simp_set no_defaults attr_names hs,
    s.dsimplify to_unfold t cfg
 
 /-- Auxilliary definition for `expr.pi_arity` -/
-meta def expr.pi_arity_aux : ℕ → expr → ℕ
-| n (pi _ _ _ b) := expr.pi_arity_aux (n + 1) b
+meta def pi_arity_aux : ℕ → expr → ℕ
+| n (pi _ _ _ b) := pi_arity_aux (n + 1) b
 | n e            := n
 
 /-- The arity of a pi-type. Does not perform any reduction of the expression.
   In one application this was ~30 times quicker than `tactic.get_pi_arity`. -/
-meta def expr.pi_arity : expr → ℕ :=
-expr.pi_arity_aux 0
+meta def pi_arity : expr → ℕ :=
+pi_arity_aux 0
 
 end expr
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 
-import tactic.core data.string
+import tactic.core
 
 /-!
 # sanity_check command
@@ -19,10 +19,10 @@ import tactic.core data.string
 universe variable u
 open expr tactic native
 
-setup_tactic_parser
-
 reserve notation `#sanity_check`
 reserve notation `#sanity_check_mathlib`
+
+setup_tactic_parser
 
 /-- Find all (non-internal) declarations where tac returns `some x` and list them. -/
 meta def fold_over_with_cond {α} (tac : declaration → tactic (option α)) :

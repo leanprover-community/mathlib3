@@ -115,7 +115,7 @@ begin
 end
 
 /-- The map from linear maps (n → α) →ₗ[α] (m → α) to matrix m n α. -/
-def to_matrix [decidable_eq n]: ((n → α) →ₗ[α] (m → α)) → matrix m n α := to_matrixₗ.to_fun
+def to_matrix [decidable_eq n] : ((n → α) →ₗ[α] (m → α)) → matrix m n α := to_matrixₗ.to_fun
 
 end linear_map
 
@@ -171,9 +171,6 @@ def lin_equiv_matrix' [decidable_eq α] : ((n → α) →ₗ[α] (m → α)) ≃
   left_inv := λ _, to_matrix_to_lin,
   add := to_matrixₗ.add,
   smul := to_matrixₗ.smul }
-
-instance decidable_eq_fun (ι : Type*) [decidable_eq α] [fintype ι] : decidable_eq (ι → α)
-  | f g := if h : _ then is_true $ funext h else is_false (mt congr_fun h)
 
 /-- Given a basis of two modules β and γ over a commutative ring α, we get a linear equivalence
 between linear maps β →ₗ γ and matrices over α indexed by the bases. -/

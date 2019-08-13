@@ -146,6 +146,9 @@ begin
   { intros x y, ext1 z, rw [is_ring_hom.map_add (f z)], refl, }
 end
 
+instance decidable_eq [fintype I] [Π i : I, decidable_eq (f i)] : decidable_eq (Π i : I, f i)
+  | f g := if h : _ then is_true $ funext h else is_false (mt congr_fun h)
+
 end pi
 
 namespace prod

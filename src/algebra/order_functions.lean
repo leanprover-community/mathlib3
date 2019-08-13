@@ -201,6 +201,9 @@ iff.intro
 lemma abs_pos_iff {a : α} : 0 < abs a ↔ a ≠ 0 :=
 ⟨λ h, mt abs_eq_zero.2 (ne_of_gt h), abs_pos_of_ne_zero⟩
 
+@[simp] lemma abs_nonpos_iff {a : α} : abs a ≤ 0 ↔ a = 0 :=
+by rw [← not_lt, abs_pos_iff, not_not]
+
 lemma abs_le_max_abs_abs (hab : a ≤ b)  (hbc : b ≤ c) : abs b ≤ max (abs a) (abs c) :=
 abs_le_of_le_of_neg_le
   (by simp [le_max_iff, le_trans hbc (le_abs_self c)])
@@ -228,10 +231,8 @@ max_le_iff.2 (by split; simpa)
 
 end decidable_linear_ordered_comm_group
 
-section decidable_linear_ordered_comm_ring
-variables [decidable_linear_ordered_comm_ring α] {a b c d : α}
-
-@[simp] lemma abs_one : abs (1 : α) = 1 := abs_of_pos zero_lt_one
+section decidable_linear_ordered_semiring
+variables [decidable_linear_ordered_semiring α] {a b c d : α}
 
 lemma monotone_mul_of_nonneg (ha : 0 ≤ a) : monotone (λ x, a*x) :=
 assume b c b_le_c, mul_le_mul_of_nonneg_left b_le_c ha
@@ -241,6 +242,13 @@ max_distrib_of_monotone (monotone_mul_of_nonneg ha)
 
 lemma mul_min_of_nonneg (b c : α) (ha : 0 ≤ a) : a * min b c = min (a * b) (a * c) :=
 min_distrib_of_monotone (monotone_mul_of_nonneg ha)
+
+end decidable_linear_ordered_semiring
+
+section decidable_linear_ordered_comm_ring
+variables [decidable_linear_ordered_comm_ring α] {a b c d : α}
+
+@[simp] lemma abs_one : abs (1 : α) = 1 := abs_of_pos zero_lt_one
 
 lemma max_mul_mul_le_max_mul_max (b c : α) (ha : 0 ≤ a) (hd: 0 ≤ d) :
   max (a * b) (d * c) ≤ max a c * max d b :=

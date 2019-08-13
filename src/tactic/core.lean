@@ -626,9 +626,10 @@ do l ← local_context,
    r ← successes (l.reverse.map (λ h, cases h >> skip)),
    when (r.empty) failed
 
-meta def note_anon (e : expr) : tactic unit :=
+/-- given a proof `pr : t`, adds `h : t` to the current context, where the name `h` is fresh.  -/
+meta def note_anon (e : expr) : tactic expr :=
 do n ← get_unused_name "lh",
-   note n none e, skip
+   note n none e
 
 /-- `find_local t` returns a local constant with type t, or fails if none exists. -/
 meta def find_local (t : pexpr) : tactic expr :=
@@ -692,6 +693,15 @@ meta def lock_tactic_state {α} (t : tactic α) : tactic α
        | result.exception msg pos s' := result.exception msg pos s
 end
 
+/-- similar to `mk_local_pis` but make meta variables instead of
+    local constants -/
+meta def mk_meta_pis : expr → tactic (list expr × expr)
+| (expr.pi n bi d b) := do
+  p ← mk_meta_var d,
+  (ps, r) ← mk_meta_pis (expr.instantiate_var b p),
+  return ((p :: ps), r)
+| e := return ([], e)
+
 /--
 Hole command used to fill in a structure's field when specifying an instance.
 
@@ -742,6 +752,10 @@ meta def strip_prefix' (n : name) : list string → name → tactic name
 meta def strip_prefix : name → tactic name
 | n@(name.mk_string a a_1) := strip_prefix' n [a] a_1
 | _ := interaction_monad.failed
+
+meta def local_binding_info : expr → binder_info
+| (expr.local_const _ _ bi _) := bi
+| _ := binder_info.default
 
 meta def is_default_local : expr → bool
 | (expr.local_const _ _ binder_info.default _) := tt
@@ -997,6 +1011,37 @@ meta def clear_aux_decl_aux : list expr → tactic unit
 meta def clear_aux_decl : tactic unit :=
 local_context >>= clear_aux_decl_aux
 
+/-- `apply_at_aux e et [] h ht` (with `et` the type of `e` and `ht` the type of `h`)
+    finds a list of expressions `vs` and returns (e.mk_args (vs ++ [h]), vs) -/
+meta def apply_at_aux (arg t : expr) : list expr → expr → expr → tactic (expr × list expr)
+| vs e (pi n bi d b) :=
+  do { v ← mk_meta_var d,
+       apply_at_aux (v :: vs) (e v) (b.instantiate_var v) } <|>
+  (e arg, vs) <$ unify d t
+| vs e _ := failed
+
+/-- `apply_at e h` applies implication `e` on hypothesis `h` and replaces `h` with the result -/
+meta def apply_at (e h : expr) : tactic unit :=
+do ht ← infer_type h,
+   et ← infer_type e,
+   (h', gs') ← apply_at_aux h ht [] e et,
+   note h.local_pp_name none h',
+   clear h,
+   gs' ← gs'.mfilter is_assigned,
+   (g :: gs) ← get_goals,
+   set_goals (g :: gs' ++ gs)
+
+/-- `symmetry_hyp h` applies symmetry on hypothesis `h` -/
+meta def symmetry_hyp (h : expr) (md := semireducible) : tactic unit :=
+do tgt   ← infer_type h,
+   env   ← get_env,
+   let r := get_app_fn tgt,
+   match env.symm_for (const_name r) with
+   | (some symm) := do s ← mk_const symm,
+                       apply_at s h
+   | none        := fail "symmetry tactic failed, target is not a relation application with the expected property."
+   end
+
 precedence `setup_tactic_parser`:0
 
 @[user_command]
@@ -1010,4 +1055,103 @@ local postfix `?`:9001 := optional
 local postfix *:9001 := many .
 "
 
+meta def trace_error (t : tactic α) (msg : string) : tactic α
+| s := match t s with
+       | (result.success r s') := result.success r s'
+       | (result.exception (some msg) p s') := (trace (msg ()) >> result.exception (some msg) p) s'
+       | (result.exception none p s') := result.exception none p s'
+       end
+
+/--
+This combinator is for testing purposes. It succeeds if `t` fails with message `msg`,
+and fails otherwise.
+-/
+meta def {u} success_if_fail_with_msg {α : Type u} (t : tactic α) (msg : string) : tactic unit :=
+λ s, match t s with
+| (interaction_monad.result.exception msg' _ s') :=
+  if msg = (msg'.iget ()).to_string then result.success () s
+  else mk_exception "failure messages didn't match" none s
+| (interaction_monad.result.success a s) :=
+   mk_exception "success_if_fail_with_msg combinator failed, given tactic succeeded" none s
+end
+
+open lean interactive
+
+meta def pformat := tactic format
+
+meta def pformat.mk (fmt : format) : pformat := pure fmt
+
+meta def to_pfmt {α} [has_to_tactic_format α] (x : α) : pformat :=
+pp x
+
+meta instance pformat.has_to_tactic_format : has_to_tactic_format pformat :=
+⟨ id ⟩
+
+meta instance : has_append pformat :=
+⟨ λ x y, (++) <$> x <*> y ⟩
+
+meta instance tactic.has_to_tactic_format [has_to_tactic_format α] : has_to_tactic_format (tactic α) :=
+⟨ λ x, x >>= to_pfmt ⟩
+
+private meta def parse_pformat : string → list char → parser pexpr
+| acc []            := pure ``(to_pfmt %%(reflect acc))
+| acc ('\n'::s)     :=
+do f ← parse_pformat "" s,
+   pure ``(to_pfmt %%(reflect acc) ++ pformat.mk format.line ++ %%f)
+| acc ('{'::'{'::s) := parse_pformat (acc ++ "{") s
+| acc ('{'::s) :=
+do (e, s) ← with_input (lean.parser.pexpr 0) s.as_string,
+   '}'::s ← return s.to_list | fail "'}' expected",
+   f ← parse_pformat "" s,
+   pure ``(to_pfmt %%(reflect acc) ++ to_pfmt %%e ++ %%f)
+| acc (c::s) := parse_pformat (acc.str c) s
+
+reserve prefix `pformat! `:100
+
+/-- See `format!` in `init/meta/interactive_base.lean`.
+
+The main differences are that `pp` is called instead of `to_fmt` and that we can use
+arguments of type `tactic α` in the quotations.
+
+Now, consider the following:
+```
+e ← to_expr ``(3 + 7),
+trace format!"{e}"  -- outputs `has_add.add.{0} nat nat.has_add (bit1.{0} nat nat.has_one nat.has_add (has_one.one.{0} nat nat.has_one)) ...`
+trace pformat!"{e}" -- outputs `3 + 7`
+```
+
+The difference is significant. And now, the following is expressible:
+
+```
+e ← to_expr ``(3 + 7),
+trace pformat!"{e} : {infer_type e}" -- outputs `3 + 7 : ℕ`
+```
+
+See also: `trace!` and `fail!`
+-/
+@[user_notation]
+meta def pformat_macro (_ : parse $ tk "pformat!") (s : string) : parser pexpr :=
+do e ← parse_pformat "" s.to_list,
+   return ``(%%e : pformat)
+
+reserve prefix `fail! `:100
+
+/--
+the combination of `pformat` and `fail`
+-/
+@[user_notation]
+meta def fail_macro (_ : parse $ tk "fail!") (s : string) : parser pexpr :=
+do e ← pformat_macro () s,
+   pure ``((%%e : pformat) >>= fail)
+
+reserve prefix `trace! `:100
+/--
+the combination of `pformat` and `fail`
+-/
+@[user_notation]
+meta def trace_macro (_ : parse $ tk "trace!") (s : string) : parser pexpr :=
+do e ← pformat_macro () s,
+   pure ``((%%e : pformat) >>= trace)
+
 end tactic
+open tactic

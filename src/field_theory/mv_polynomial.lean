@@ -6,12 +6,101 @@ Author: Johannes Hölzl
 Multivariate functions of the form `α^n → α` are isomorphic to multivariate polynomials in
 `n` variables.
 -/
-import linear_algebra.finsupp field_theory.finite
+import linear_algebra.finsupp_vector_space field_theory.finite data.mv_polynomial
 noncomputable theory
 
 local attribute [instance, priority 0] classical.prop_decidable
 
 open lattice set linear_map submodule
+
+namespace mv_polynomial
+universes u v
+variables {σ : Type u} {α : Type v} [decidable_eq σ]
+
+instance [discrete_field α] : vector_space α (mv_polynomial σ α) :=
+finsupp.vector_space _ _
+
+section
+variables (σ α) [discrete_field α] (m : ℕ)
+def restrict_total_degree : submodule α (mv_polynomial σ α) :=
+finsupp.supported _ _ {n | n.sum (λn e, e) ≤ m }
+
+lemma mem_restrict_total_degree (p : mv_polynomial σ α) :
+  p ∈ restrict_total_degree σ α m ↔ p.total_degree ≤ m :=
+begin
+  rw [total_degree, finset.sup_le_iff],
+  refl
+end
+
+end
+
+section
+variables (σ α)
+def restrict_degree (m : ℕ) [discrete_field α] : submodule α (mv_polynomial σ α) :=
+finsupp.supported _ _ {n | ∀i, n i ≤ m }
+end
+
+lemma mem_restrict_degree [discrete_field α] (p : mv_polynomial σ α) (n : ℕ) :
+  p ∈ restrict_degree σ α n ↔ (∀s ∈ p.support, ∀i, (s : σ →₀ ℕ) i ≤ n) :=
+begin
+  rw [restrict_degree, finsupp.mem_supported],
+  refl
+end
+
+lemma mem_restrict_degree_iff_sup [discrete_field α] (p : mv_polynomial σ α) (n : ℕ) :
+  p ∈ restrict_degree σ α n ↔ ∀i, p.degrees.count i ≤ n :=
+begin
+  simp only [mem_restrict_degree, degrees, multiset.count_sup, finsupp.count_to_multiset,
+    finset.sup_le_iff],
+  exact ⟨assume h n s hs, h s hs n, assume h s hs n, h n s hs⟩
+end
+
+lemma map_range_eq_map {β : Type*}
+  [decidable_eq α] [comm_ring α] [decidable_eq β] [comm_ring β] (p : mv_polynomial σ α)
+  (f : α → β) [is_semiring_hom f]:
+  finsupp.map_range f (is_semiring_hom.map_zero f) p = p.map f :=
+begin
+  rw [← finsupp.sum_single p, finsupp.sum, finsupp.map_range_finset_sum,
+    ← finset.sum_hom (map f)],
+  { refine finset.sum_congr rfl (assume n _, _),
+    rw [finsupp.map_range_single, ← monomial, ← monomial, map_monomial] },
+  apply_instance
+end
+
+section
+variables (σ α)
+
+lemma is_basis_monomials [discrete_field α] :
+  is_basis α ((λs, (monomial s 1 : mv_polynomial σ α))) :=
+suffices is_basis α (λ (sa : Σ _, unit), (monomial sa.1 1 : mv_polynomial σ α)),
+begin
+  apply is_basis.comp this (λ (s : σ →₀ ℕ), ⟨s, punit.star⟩),
+  split,
+  { intros x y hxy,
+    simpa using hxy },
+  { intros x,
+    rcases x with ⟨x₁, x₂⟩,
+    use x₁,
+    rw punit_eq punit.star x₂ }
+end,
+begin
+  apply finsupp.is_basis_single (λ _ _, (1 : α)),
+  intro _,
+  apply is_basis_singleton_one, end
+end
+
+end mv_polynomial
+
+namespace mv_polynomial
+universe u
+variables (σ : Type u) (α : Type u) [decidable_eq σ] [discrete_field α]
+
+local attribute [instance, priority 0] classical.prop_decidable
+
+lemma dim_mv_polynomial : vector_space.dim α (mv_polynomial σ α) = cardinal.mk (σ →₀ ℕ) :=
+by rw [← cardinal.lift_inj, ← (is_basis_monomials σ α).mk_eq_dim]
+
+end mv_polynomial
 
 namespace mv_polynomial
 
@@ -116,12 +205,16 @@ def R : Type u := restrict_degree σ α (fintype.card α - 1)
 instance R.add_comm_group : add_comm_group (R σ α) := by dunfold R; apply_instance
 instance R.vector_space : vector_space α (R σ α) := by dunfold R; apply_instance
 
-set_option class.instance_max_depth 50
+noncomputable instance decidable_restrict_degree (m : ℕ) :
+  decidable_pred (λn, n ∈ {n : σ →₀ ℕ | ∀i, n i ≤ m }) :=
+by simp only [set.mem_set_of_eq]; apply_instance
+
+set_option class.instance_max_depth 60
 lemma dim_R : vector_space.dim α (R σ α) = fintype.card (σ → α) :=
 calc vector_space.dim α (R σ α) =
   vector_space.dim α (↥{s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card α - 1} →₀ α) :
     linear_equiv.dim_eq
-      (finsupp.restrict_dom_equiv_finsupp α α {s : σ →₀ ℕ | ∀n:σ, s n ≤ fintype.card α - 1 })
+      (finsupp.supported_equiv_finsupp {s : σ →₀ ℕ | ∀n:σ, s n ≤ fintype.card α - 1 })
   ... = cardinal.mk {s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card α - 1} :
     by rw [finsupp.dim_eq, dim_of_field, mul_one]
   ... = cardinal.mk {s : σ → ℕ | ∀ (n : σ), s n < fintype.card α } :

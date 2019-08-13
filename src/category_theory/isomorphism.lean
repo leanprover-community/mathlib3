@@ -1,7 +1,8 @@
--- Copyright (c) 2017 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
-
+/-
+Copyright (c) 2017 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
+-/
 import category_theory.functor
 
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
@@ -9,7 +10,7 @@ universes v u -- declare the `v`'s first; see `category_theory.category` for an 
 namespace category_theory
 open category
 
-structure iso {C : Sort u} [category.{v} C] (X Y : C) :=
+structure iso {C : Type u} [category.{v} C] (X Y : C) :=
 (hom : X ⟶ Y)
 (inv : Y ⟶ X)
 (hom_inv_id' : hom ≫ inv = 𝟙 X . obviously)
@@ -21,7 +22,7 @@ attribute [simp] iso.hom_inv_id iso.inv_hom_id
 
 infixr ` ≅ `:10  := iso             -- type as \cong or \iso
 
-variables {C : Sort u} [𝒞 : category.{v} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 variables {X Y Z : C}
 
@@ -198,7 +199,7 @@ instance is_iso_id : is_iso (𝟙 X) := { inv := 𝟙 X }
 namespace functor
 
 universes u₁ v₁ u₂ v₂
-variables {D : Sort u₂}
+variables {D : Type u₂}
 
 variables [𝒟 : category.{v₂} D]
 include 𝒟
@@ -212,6 +213,10 @@ def map_iso (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : F.obj X ≅ F.obj Y :=
 @[simp] lemma map_iso_hom (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : (F.map_iso i).hom = F.map i.hom := rfl
 @[simp] lemma map_iso_inv (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : (F.map_iso i).inv = F.map i.inv := rfl
 
+@[simp] lemma map_iso_trans (F : C ⥤ D) {X Y Z : C} (i : X ≅ Y) (j : Y ≅ Z) :
+  F.map_iso (i ≪≫ j) = (F.map_iso i) ≪≫ (F.map_iso j) :=
+by ext; apply functor.map_comp
+
 instance (F : C ⥤ D) (f : X ⟶ Y) [is_iso f] : is_iso (F.map f) :=
 { ..(F.map_iso (as_iso f)) }
 
@@ -223,23 +228,8 @@ by rw [←map_comp, is_iso.hom_inv_id, map_id]
   F.map (inv f) ≫ F.map f = 𝟙 (F.obj Y) :=
 by rw [←map_comp, is_iso.inv_hom_id, map_id]
 
+@[simp] lemma map_inv (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) [is_iso f] : F.map (inv f) = inv (F.map f) := rfl
+
 end functor
-
-end category_theory
-
-namespace category_theory
-
--- We need to get the morphism universe level up into `Type`, in order to have group structures.
-variables {C : Sort u} [𝒞 : category.{v+1} C]
-include 𝒞
-
-def Aut (X : C) := X ≅ X
-
-attribute [extensionality Aut] iso.ext
-
-instance {X : C} : group (Aut X) :=
-by refine { one := iso.refl X,
-            inv := iso.symm,
-            mul := iso.trans, .. } ; obviously
 
 end category_theory

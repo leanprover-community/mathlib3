@@ -338,9 +338,12 @@ short definitions, or to group together a definition and notation.
 
 ## Comments
 
-Use comment delimeters `/-- -/` to provide section headers and
+Use comment delimiters `/- -/` to provide section headers and
 separators, and for long comments. Use `--` for short or in-line
 comments.
+
+Documentation strings for declarations are delimited with `/-- -/`.
+Documentation strings for modules are delimited with `/-! -/`.
 
 ------
 Copyright (c) 2016 Jeremy Avigad. All rights reserved.

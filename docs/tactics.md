@@ -97,6 +97,23 @@ two subgoals, one with variables `a d e` and the other with `b c d e`.
 result. Like `rcases?`, `rintro? : n` allows for modifying the
 depth of splitting; the default is 5.
 
+### obtain
+
+The `obtain` tactic is a combination of `have` and `rcases`.
+```lean
+obtain ⟨patt⟩ : type,
+{ ... }
+```
+is equivalent to
+```lean
+have h : type,
+{ ... },
+rcases h with ⟨patt⟩
+```
+
+ The syntax `obtain ⟨patt⟩ : type := proof` is also supported.
+
+
 ### simpa
 
 This is a "finishing" tactic modification of `simp`. It has two forms.
@@ -555,10 +572,18 @@ by linarith
 
 `linarith` will use all appropriate hypotheses and the negation of the goal, if applicable.
 
-`linarith h1 h2 h3` will ohly use the local hypotheses `h1`, `h2`, `h3`.
+`linarith [t1, t2, t3]` will additionally use proof terms `t1, t2, t3`.
 
-`linarith using [t1, t2, t3]` will add `t1`, `t2`, `t3` to the local context and then run
-`linarith`.
+`linarith only [h1, h2, h3, t1, t2, t3]` will use only the goal (if relevant), local hypotheses
+h1, h2, h3, and proofs t1, t2, t3. It will ignore the rest of the local context.
+
+`linarith!` will use a stronger reducibility setting to try to identify atoms. For example,
+```lean
+example (x : ℚ) : id x ≥ x :=
+by linarith
+```
+will fail, because `linarith` will not identify `x` and `id x`. `linarith!` will.
+This can sometimes be expensive.
 
 `linarith {discharger := tac, restrict_type := tp, exfalso := ff}` takes a config object with three optional
 arguments.
@@ -890,6 +915,21 @@ using the relevant lemmas. One can also use this tactic at the goal using `push_
 at every assumption and the goal using `push_neg at *` or at selected assumptions and the goal
 using say `push_neg at h h' ⊢` as usual.
 
+### contrapose
+
+Transforms the goal into its contrapositive.
+
+`contrapose`     turns a goal `P → Q` into `¬ Q → ¬ P`
+
+`contrapose!`    turns a goal `P → Q` into `¬ Q → ¬ P` and pushes negations inside `P` and `Q`
+                 using `push_neg`
+
+`contrapose h`   first reverts the local assumption `h`, and then uses `contrapose` and `intro h`
+
+`contrapose! h`  first reverts the local assumption `h`, and then uses `contrapose!` and `intro h`
+
+`contrapose h with new_h` uses the name `new_h` for the introduced hypothesis
+
 ### norm_cast
 
 This tactic normalizes casts inside expressions.
@@ -983,3 +1023,71 @@ Use the `all` keyword to revert all hypotheses of type `Prop`. Hypothesis revers
 example (p q : Prop) (h1 : p) (h2 : q) : p ∧ q :=
 by vampire all "n10hn1tn1hrn0hr"
 ```
+### convert_to
+
+`convert_to g using n` attempts to change the current goal to `g`, but unlike `change`,
+it will generate equality proof obligations using `congr' n` to resolve discrepancies.
+`convert_to g` defaults to using `congr' 1`.
+
+`ac_change` is `convert_to` followed by `ac_refl`. It is useful for rearranging/reassociating
+e.g. sums:
+```lean
+example (a b c d e f g N : ℕ) : (a + b) + (c + d) + (e + f) + g ≤ N :=
+begin
+  ac_change a + d + e + f + c + g + b ≤ _,
+-- ⊢ a + d + e + f + c + g + b ≤ N
+end
+```
+
+### apply_fun
+
+Apply a function to some local assumptions which are either equalities
+or inequalities. For instance, if the context contains `h : a = b` and
+some function `f` then `apply_fun f at h` turns `h` into
+`h : f a = f b`. When the assumption is an inequality `h : a ≤ b`, a side
+goal `monotone f` is created, unless this condition is provided using
+`apply_fun f at h using P` where `P : monotone f`, or the `mono` tactic
+can prove it.
+
+Typical usage is:
+```lean
+open function
+
+example (X Y Z : Type) (f : X → Y) (g : Y → Z) (H : injective $ g ∘ f) :
+  injective f :=
+begin
+  intros x x' h,
+  apply_fun g at h,
+  exact H h
+end
+```
+
+### Localized Notation
+
+This consists of two user-commands which allow you to declare notation and commands localized to a namespace.
+
+* Declare notation which is localized to a namespace using:
+```
+localized "infix ` ⊹ `:60 := my_add" in my.add
+```
+* After this command it will be available in the same section/namespace/file, just as if you wrote `local infix ` ⊹ `:60 := my_add`
+* You can open it in other places. The following command will declare the notation again as local notation in that section/namespace/files:
+```
+open_locale my.add
+```
+* More generally, the following will declare all localized notation in the specified namespaces.
+```
+open_locale namespace1 namespace2 ...
+```
+* You can also declare other localized commands, like local attributes
+```
+localized "attribute [simp] le_refl" in le
+```
+
+### swap
+
+`swap n` will move the `n`th goal to the front. `swap` defaults to `swap 2`, and so interchanges the first and second goals.
+
+### rotate
+
+`rotate` moves the first goal to the back. `rotate n` will do this `n` times.

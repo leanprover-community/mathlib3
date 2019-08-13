@@ -50,11 +50,26 @@ def append_suffix : name → string → name
 | (mk_string s n) s' := mk_string (s ++ s') n
 | n _ := n
 
+meta def head : name → string
+| (mk_string s anonymous) := s
+| (mk_string s p)         := head p
+| (mk_numeral n p)        := head p
+| anonymous               := "[anonymous]"
+
+meta def is_private (n : name) : bool :=
+n.head = "_private"
+
 /-- Get the last component of a name, assuming it is a string. -/
-def last : name → string
-| anonymous        := ""
-| (mk_string s p)  := s
-| (mk_numeral s p) := ""
+meta def last : name → string
+| (mk_string s _)  := s
+| (mk_numeral n _) := repr n
+| anonymous        := "[anonymous]"
+
+meta def length : name → ℕ
+| (mk_string s anonymous) := s.length
+| (mk_string s p)         := s.length + 1 + p.length
+| (mk_numeral n p)        := p.length
+| anonymous               := "[anonymous]".length
 
 end name
 
@@ -152,7 +167,6 @@ expr.pi_arity_aux 0
 
 end expr
 
-
 namespace environment
 
 meta def in_current_file' (env : environment) (n : name) : bool :=
@@ -174,4 +188,51 @@ option.is_some $ do
     (some di.type) | none,
   env.is_projection (n ++ x.deinternalize_field)
 
+meta def decl_filter_map {α : Type} (e : environment) (f : declaration → option α) : list α :=
+  e.fold [] $ λ d l, match f d with
+                     | some r := r :: l
+                     | none := l
+                     end
+
+meta def decl_map {α : Type} (e : environment) (f : declaration → α) : list α :=
+  e.decl_filter_map $ λ d, some (f d)
+
+meta def get_decls (e : environment) : list declaration :=
+  e.decl_map id
+
+meta def get_trusted_decls (e : environment) : list declaration :=
+  e.decl_filter_map (λ d, if d.is_trusted then some d else none)
+
+meta def get_decl_names (e : environment) : list name :=
+  e.decl_map declaration.to_name
+
+meta def mfold {α : Type} {m : Type → Type} [monad m] (e : environment) (x : α)
+  (fn : declaration → α → m α) : m α :=
+e.fold (return x) (λ d t, t >>= fn d)
+
 end environment
+
+namespace declaration
+
+open tactic
+/-- Checks whether the declaration is declared in the current file.
+  This is a simple wrapper around `environment.in_current_file'` -/
+meta def in_current_file (d : declaration) : tactic bool :=
+do e ← get_env, return $ e.in_current_file' d.to_name
+
+/-- Checks whether a declaration is a theorem -/
+meta def is_theorem : declaration → bool
+| (thm _ _ _ _) := tt
+| _             := ff
+
+/-- Checks whether a declaration is a constant -/
+meta def is_constant : declaration → bool
+| (cnst _ _ _ _) := tt
+| _              := ff
+
+/-- Checks whether a declaration is a axiom -/
+meta def is_axiom : declaration → bool
+| (ax _ _ _) := tt
+| _          := ff
+
+end declaration

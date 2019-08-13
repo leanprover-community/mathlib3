@@ -1,4 +1,20 @@
+/-
+Copyright (c) 2019 Floris van Doorn. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Floris van Doorn
+-/
+
 import tactic.core data.string
+
+/-!
+# sanity_check command
+ This file defines the `#sanity_check` and `#sanity_check_mathlib` commands, to spot common mistakes in the current file or in all of mathlib, respectively.
+
+ Currently this will check for unused arguments in declarations and whether a declaration is incorrectly marked as a def/lemma.
+
+ ## Tags
+ sanity check, sanity_check, cleanup, command, tactic
+-/
 
 universe variable u
 open expr tactic native

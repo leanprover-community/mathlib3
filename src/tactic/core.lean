@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
-import data.dlist.basic category.basic meta.expr meta.rb_map tactic.cache
+import data.dlist.basic category.basic meta.expr meta.rb_map data.string.defs
 
 namespace expr
 open tactic
@@ -82,79 +82,6 @@ meta def emit_code_here : string → lean.parser unit
             else emit_code_here left
 
 end lean.parser
-
-namespace name
-
-meta def head : name → string
-| (mk_string s anonymous) := s
-| (mk_string s p)         := head p
-| (mk_numeral n p)        := head p
-| anonymous               := "[anonymous]"
-
-meta def is_private (n : name) : bool :=
-n.head = "_private"
-
-meta def last : name → string
-| (mk_string s _)  := s
-| (mk_numeral n _) := repr n
-| anonymous        := "[anonymous]"
-
-meta def length : name → ℕ
-| (mk_string s anonymous) := s.length
-| (mk_string s p)         := s.length + 1 + p.length
-| (mk_numeral n p)        := p.length
-| anonymous               := "[anonymous]".length
-
-end name
-
-namespace declaration
-
-/-- Checks whether the declaration is declared in the current file.
-  This is a simple wrapper around `environment.in_current_file'` -/
-meta def in_current_file (d : declaration) : tactic bool :=
-do e ← get_env, return $ e.in_current_file' d.to_name
-
-/-- Checks whether a declaration is a theorem -/
-meta def is_theorem : declaration → bool
-| (thm _ _ _ _) := tt
-| _             := ff
-
-/-- Checks whether a declaration is a constant -/
-meta def is_constant : declaration → bool
-| (cnst _ _ _ _) := tt
-| _              := ff
-
-/-- Checks whether a declaration is a axiom -/
-meta def is_axiom : declaration → bool
-| (ax _ _ _) := tt
-| _          := ff
-
-end declaration
-
-namespace environment
-meta def decl_filter_map {α : Type} (e : environment) (f : declaration → option α) : list α :=
-  e.fold [] $ λ d l, match f d with
-                     | some r := r :: l
-                     | none := l
-                     end
-
-meta def decl_map {α : Type} (e : environment) (f : declaration → α) : list α :=
-  e.decl_filter_map $ λ d, some (f d)
-
-meta def get_decls (e : environment) : list declaration :=
-  e.decl_map id
-
-meta def get_trusted_decls (e : environment) : list declaration :=
-  e.decl_filter_map (λ d, if d.is_trusted then some d else none)
-
-meta def get_decl_names (e : environment) : list name :=
-  e.decl_map declaration.to_name
-
-meta def mfold {α : Type} {m : Type → Type} [monad m] (e : environment) (x : α)
-  (fn : declaration → α → m α) : m α :=
-e.fold (return x) (λ d t, t >>= fn d)
-
-end environment
 
 namespace format
 
@@ -1192,7 +1119,7 @@ do e ← get_env,
   If you want to run `is_in_mathlib` many times, you should use this tactic instead,
   since it is expensive to execute get_mathlib_dir many times. -/
 meta def is_in_mathlib_aux (ml : string) (n : name) : tactic bool :=
-do e ← get_env, return $ ml.is_prefix $ (e.decl_olean n).get_or_else ""
+do e ← get_env, return $ ml.is_prefix_of $ (e.decl_olean n).get_or_else ""
 
 /-- Checks whether a declaration with the given name is declared in mathlib -/
 meta def is_in_mathlib (n : name) : tactic bool :=

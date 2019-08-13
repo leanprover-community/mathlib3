@@ -67,11 +67,4 @@ by refine_struct {
     decidable_eq := by apply_instance, .. };
   { simp [-not_le], introv, apply_field }
 
-/-- Tests whether the first string is a prefix of the second string -/
-def is_prefix : string → string → bool | ⟨s⟩ ⟨t⟩ := s.is_prefix_of t
-
-/-- Removes the first `n` elements from the string `s` -/
-def popn (s : string) (n : nat) : string :=
-(s.mk_iterator.nextn n).next_to_string
-
 end string

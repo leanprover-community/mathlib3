@@ -140,7 +140,7 @@ match μ.get k with
 end
 
 inductive atom : Type
-| rl  : nat  → atom
+| rl : nat  → atom
 | tp : atom → term → atom
 | vp : atom → nat  → atom
 
@@ -232,75 +232,82 @@ def vocc (k : nat) : atom → Prop
 end atom
 
 inductive lit : Type
-| neg : atom → lit
-| pos : atom → lit
+| atom : bool → atom → lit
+| eq   : bool → term → term → lit
 
-local notation `-*` := lit.neg
-local notation `+*` := lit.pos
+local notation `-*`     := lit.atom ff
+local notation `+*`     := lit.atom tt
+local notation t `=*` s := lit.eq tt t s
+local notation t `≠*` s := lit.eq ff t s
 
 namespace lit
 
 def repr : lit → string
-| (-* a) := "¬" ++ a.repr
-| (+* a) := a.repr
+| (-* a)   := "¬" ++ a.repr
+| (+* a)   := a.repr
+| (t =* s) := t.repr ++ " = " ++ s.repr
+| (t ≠* s) := t.repr ++ " ≠ " ++ s.repr
 
 meta def to_expr : lit → expr
-| (-* a) := expr.mk_app `(lit.neg) [a.to_expr]
-| (+* a) := expr.mk_app `(lit.pos) [a.to_expr]
+| (lit.atom b a) := expr.mk_app `(lit.atom) [b.to_expr, a.to_expr]
+| (lit.eq b t s) := expr.mk_app `(lit.eq) [b.to_expr, t.to_expr, s.to_expr]
 
 def rnew : lit → nat
-| (-* a) := a.rnew
-| (+* a) := a.rnew
+| (lit.atom _ a) := a.rnew
+| (lit.eq _ _ _) := 0
 
 def fnew : lit → nat
-| (-* a) := a.fnew
-| (+* a) := a.fnew
+| (lit.atom _ a) := a.fnew
+| (lit.eq _ t s) := max t.fnew s.fnew
 
 def vnew : lit → nat
-| (-* a) := a.vnew
-| (+* a) := a.vnew
+| (lit.atom _ a) := a.vnew
+| (lit.eq _ t s) := max t.vnew s.vnew
 
 def finc : lit → lit
-| (-* a) := -* a.finc
-| (+* a) := +* a.finc
+| (lit.atom b a) := lit.atom b a.finc
+| (lit.eq b t s) := lit.eq b t.finc s.finc
 
-def vinc : nat → lit → lit
-| k (-* a) := -* (a.vinc k)
-| k (+* a) := +* (a.vinc k)
+def vinc (k : nat) : lit → lit
+| (lit.atom b a) := lit.atom b (a.vinc k)
+| (lit.eq b t s) := lit.eq b (t.vinc k) (s.vinc k)
 
-def vdec : nat → lit → lit
-| k (-* a) := -* (a.vdec k)
-| k (+* a) := +* (a.vdec k)
+def vdec (k : nat) : lit → lit
+| (lit.atom b a) := lit.atom b (a.vdec k)
+| (lit.eq b t s) := lit.eq b (t.vdec k) (s.vdec k)
 
-def subst (k : nat) (t : term) : lit → lit
-| (-* a) := -* (a.subst k t)
-| (+* a) := +* (a.subst k t)
+def subst (k : nat) (r : term) : lit → lit
+| (lit.atom b a) := lit.atom b (a.subst k r)
+| (lit.eq b t s) := lit.eq b (term.subst k r t) (term.subst k r s)
 
 def not : lit → lit
-| (-* a) := +* a
-| (+* a) := -* a
+| (lit.atom b a) := lit.atom (bnot b) a
+| (lit.eq b t s) := lit.eq (bnot b) t s
+
 
 def holds (R : rls α) (F : fns α) (V : vas α) : lit → Prop
-| (-* a) := ¬ (a.val R F V [])
-| (+* a) :=   (a.val R F V [])
+| (+* a)   :=   (a.val R F V [])
+| (-* a)   := ¬ (a.val R F V [])
+| (t =* s) :=   (t.val F V []) = (s.val F V [])
+| (t ≠* s) := ¬ (t.val F V []) = (s.val F V [])
 
 def rarity (k : nat) : lit → option nat
-| (-* a) := a.rarity k
-| (+* a) := a.rarity k
+| (lit.atom b a) := a.rarity k
+| (lit.eq b t s) := none
 
 def farity (k : nat) : lit → option nat
-| (-* a) := a.farity k
-| (+* a) := a.farity k
+| (lit.atom b a) := a.farity k
+| (lit.eq b t s) := t.farity k 0 <|> s.farity k 0
 
 def vocc (k : nat) : lit → Prop
-| (-* a) := a.vocc k
-| (+* a) := a.vocc k
+| (lit.atom b a) := a.vocc k
+| (lit.eq b t s) := t.vocc k ∨ s.vocc k
 
 def default : lit := +* ($ 0)
 
 def substs (μ : mappings) : lit → lit
-| (-* a) := -* (a.substs μ)
-| (+* a) := +* (a.substs μ)
+| (lit.atom b a) := lit.atom b (a.substs μ)
+| (lit.eq b t s) := lit.eq b (t.substs μ) (s.substs μ)
 
 instance has_repr : has_repr lit := ⟨repr⟩
 
@@ -361,7 +368,6 @@ def vdec : nat → form → form
 | m (form.lit l)     := form.lit (l.vdec m)
 | m (form.bin b f g) := form.bin b (f.vdec m) (g.vdec m)
 | m (form.qua b f)   := form.qua b (f.vdec $ m + 1)
-
 
 def default : form := ⟪ lit.default ⟫
 
@@ -475,11 +481,13 @@ local notation R `; ` F `; ` V ` ⊨ ` f := form.holds R F V f
 
 lemma lit.holds_not :
   ∀ {l : lit}, (l.not.holds R F V) ↔ ¬ (l.holds R F V)
-| (-* a ):=
-  by simp only [classical.not_not, lit.not,
+| (lit.atom b a):=
+  by cases b;
+     simp only [classical.not_not, lit.not,
        lit.holds, bool.bnot_true, bool.bnot_false]
-| (+* a ):=
-  by simp only [classical.not_not, lit.not,
+| (lit.eq b t s):=
+  by cases b;
+     simp only [classical.not_not, lit.not,
        lit.holds, bool.bnot_true, bool.bnot_false]
 
 lemma holds_neg : ∀ {V : vas α} {f : form},
@@ -592,10 +600,16 @@ lemma lit.holds_iff_holds {l : lit} {V W : vas α} :
   (∀ m : nat, l.vocc m → V m = W m) →
   (l.holds R F V ↔ l.holds R F W) :=
 begin
-  intro h0, cases l;
+  intro h0,
+  cases l with b a b t s;
+  cases b;
   unfold lit.holds;
-  rw atom.val_eq_val;
-  exact h0
+  try { rw atom.val_eq_val, exact h0 };
+  { rw [ term.val_eq_val V W t,
+         term.val_eq_val V W s ];
+    intros k h1; apply h0,
+    { right, exact h1 },
+    left, exact h1 },
 end
 
 lemma holds_iff_holds  :
@@ -663,12 +677,23 @@ lemma atom.lt_of_vnew_le (k m : nat) :
     apply nat.lt_of_succ_le (le_of_max_le_right h0),
   end
 
+lemma lit.lt_of_vnew_le :
+  ∀ {l : lit}, ∀ {k m : nat},
+  l.vnew ≤ k → l.vocc m → m < k
+| (lit.atom b a) k m h0 h1 :=
+  atom.lt_of_vnew_le _ _ _ h0 h1
+| (lit.eq b t s) k m h0 h1 :=
+  by { have ht := le_of_max_le_left h0,
+       have hs := le_of_max_le_right h0,
+       cases h1;
+       apply term.lt_of_vnew_le _ _ _ _ h1;
+       assumption }
+
 lemma form.lt_of_vnew_le :
   ∀ {f : form}, ∀ {k m : nat},
   f.vnew ≤ k → f.vocc m → m < k
 | (form.lit l) k m h0 h1 :=
-  by { cases l with a a;
-       apply atom.lt_of_vnew_le _ _ _ h0 h1 }
+  lit.lt_of_vnew_le h0 h1
 | (form.bin _ f g) k m h0 h1 :=
   begin
     cases h1;

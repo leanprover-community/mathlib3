@@ -118,8 +118,8 @@ begin
   apply exists_congr h0
 end
 
-lemma term.val_vinc (F : fns α)
-  (k : nat) (V W : vas α) (h0 : insert_result k V W) :
+lemma term.val_vinc
+  {k : nat} {V W : vas α} (h0 : insert_result k V W) :
     ∀ t : term, (t.vinc k).val F V = t.val F W
 | (# m)    := by simp only [term.vinc, term.val]
 | (t &t s) :=
@@ -144,7 +144,7 @@ lemma atom.val_vinc {R : rls α} {F : fns α}
 | ($ m)    := by simp only [atom.vinc, atom.val]
 | (a ^t t) :=
   by simp only [atom.vinc, term.vinc, atom.val,
-       term.val, atom.val_vinc a, term.val_vinc F k V W h0 t]
+       term.val, atom.val_vinc a, term.val_vinc h0 t]
 | (a ^v m) :=
   begin
     unfold atom.vinc,
@@ -158,14 +158,22 @@ lemma atom.val_vinc {R : rls α} {F : fns α}
     rw [atom.val_vinc a, h0.right _ h1],
   end
 
+lemma lit.holds_vinc :
+  ∀ {k : nat}, ∀ {V W : vas α}, (insert_result k V W) →
+  ∀ l : lit, (l.vinc k).holds R F V ↔ l.holds R F W
+| k V W h0 (lit.atom b a) :=
+  by cases b;
+     simp only [form.vinc, lit.holds,
+       lit.vinc, form.holds, atom.val_vinc h0 a]
+| k V W h0 (lit.eq b t s) :=
+  by cases b;
+     simp only [ form.vinc, lit.holds,
+       lit.vinc, form.holds, term.val_vinc h0 ]
+
 lemma holds_vinc :
   ∀ {k : nat}, ∀ {V W : vas α}, (insert_result k V W) →
   ∀ f : form, (f.vinc k).holds R F V ↔ f.holds R F W
-| k V W h0 (form.lit l) :=
-  by cases l with a a;
-     simp only [form.vinc, lit.holds,
-       lit.vinc, form.holds,
-       atom.val_vinc h0 a]
+| k V W h0 (form.lit l) := lit.holds_vinc h0 _
 | k V W h0 (form.bin b f g) :=
   by { apply holds_bin_iff_holds_bin;
        apply holds_vinc h0 _ }

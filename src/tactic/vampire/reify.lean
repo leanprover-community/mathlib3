@@ -10,8 +10,10 @@ local notation `$`      := atom.rl
 local notation a `^t` t := atom.tp a t
 local notation a `^v` t := atom.vp a t
 
-local notation `-*` := lit.neg
-local notation `+*` := lit.pos
+local notation `-*`     := lit.atom ff
+local notation `+*`     := lit.atom tt
+local notation t `=*` s := lit.eq tt t s
+local notation t `≠*` s := lit.eq ff t s
 
 local notation `⟪` l `⟫`       := form.lit l
 local notation p `∨*` q        := form.bin tt p q
@@ -25,8 +27,12 @@ meta inductive preterm : Type
 | exp : expr → preterm
 | app : preterm → preterm → preterm
 
+meta inductive preatom : Type
+| rel : preterm → preatom
+| eq  : preterm → preterm → preatom
+
 meta inductive preform : Type
-| lit : bool → preterm → preform
+| lit : bool → preatom → preform
 | bin : bool → preform → preform → preform
 | qua : bool → preform → preform
 
@@ -40,6 +46,15 @@ meta def to_preterm : expr → tactic preterm
      s ← to_preterm y,
      return (preterm.app t s)
 | x := return (preterm.exp x)
+
+meta def to_preatom : expr → tactic preatom
+| `(%%tx = %%sx) :=
+  do t ← to_preterm tx,
+     s ← to_preterm sx,
+     return (preatom.eq t s)
+| ax :=
+  do t ← to_preterm ax,
+     return (preatom.rel t)
 
 meta def to_preform : expr → tactic preform
 | `(%%px ∨ %%qx) :=
@@ -60,11 +75,11 @@ meta def to_preform : expr → tactic preform
   do φ ← to_preform (app (prx.lift_vars 0 1) (var 0)),
      return (preform.qua tt φ)
 | `(¬ %%px) :=
-  do t ← to_preterm px,
-     return (preform.lit ff t)
+  do a ← to_preatom px,
+     return (preform.lit ff a)
 | px        :=
-  do t ← to_preterm px,
-     return (preform.lit tt t)
+  do a ← to_preatom px,
+     return (preform.lit tt a)
 
 meta def to_term : preterm → tactic term
 | (preterm.var ff k) := return (# k)
@@ -90,10 +105,19 @@ meta def to_atom : preterm → tactic atom
      t ← to_term ps,
      return (a ^t t)
 
-meta def to_form : preform → tactic form
-| (preform.lit b pt)   :=
+meta def to_lit (b : bool) : preatom → tactic lit
+| (preatom.rel pt) :=
   do a ← to_atom pt,
-     return (form.lit (if b then +* a else -* a))
+     return (lit.atom b a)
+| (preatom.eq pt ps) :=
+  do t ← to_term pt,
+     s ← to_term ps,
+     return (lit.eq b t s)
+
+meta def to_form : preform → tactic form
+| (preform.lit b pa)   :=
+  do l ← to_lit b pa,
+     return (form.lit l)
 | (preform.bin b pf pg) :=
   do f ← to_form pf,
      g ← to_form pg,
@@ -127,6 +151,10 @@ meta def preterm.get_sym (b : bool) (αx : expr) : preterm → tactic preterm
   (r.is_sym b αx >> return r)
 | t := t.is_sym b αx >> return t
 
+meta def preatom.get_sym (b : bool) (αx : expr) : preatom → tactic preterm
+| (preatom.rel t)  := t.get_sym b αx
+| (preatom.eq t s) := t.get_sym b αx <|> s.get_sym b αx
+
 meta def preform.get_sym (b : bool) (αx : expr) : preform → tactic preterm
 | (preform.lit _ x)   := x.get_sym b αx
 | (preform.bin _ x y) := x.get_sym <|> y.get_sym
@@ -142,8 +170,12 @@ meta def preterm.subst (s : preterm) (k : nat) : preterm → preterm
   then preterm.var ff k
   else t
 
+meta def preatom.subst (r : preterm) (k : nat) : preatom → preatom
+| (preatom.rel t)  := preatom.rel (preterm.subst r k t)
+| (preatom.eq t s) := preatom.eq (preterm.subst r k t) (preterm.subst r k s)
+
 meta def preform.subst (s : preterm) (k : nat) : preform → preform
-| (preform.lit b t)   := preform.lit b (preterm.subst s k t)
+| (preform.lit b l)   := preform.lit b (l.subst s k)
 | (preform.bin b f g) := preform.bin b f.subst g.subst
 | (preform.qua b f)   := preform.qua b f.subst
 

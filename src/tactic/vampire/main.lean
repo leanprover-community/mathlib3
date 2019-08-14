@@ -15,8 +15,10 @@ local notation `$`      := atom.rl
 local notation a `^t` t := atom.tp a t
 local notation a `^v` t := atom.vp a t
 
-local notation `-*` := lit.neg
-local notation `+*` := lit.pos
+local notation `-*` := lit.atom ff
+local notation `+*` := lit.atom tt
+local notation t `=*` s := lit.eq tt t s
+local notation t `≠*` s := lit.eq ff t s
 local notation p `∨*` q        := form.bin tt p q
 local notation p `∧*` q        := form.bin ff p q
 local notation `∃*`            := form.qua tt
@@ -104,8 +106,10 @@ def atom.to_rr : atom → string
 | (atom.vp a k) := string.join [a.to_rr, " ", k.repr, " vp"]
 
 def lit.to_rr : lit → string
-| (-* a) := a.to_rr ++ " ng"
-| (+* a) := a.to_rr ++ " ps"
+| (-* a)   := a.to_rr ++ " ng"
+| (+* a)   := a.to_rr ++ " ps"
+| (t =* s) := t.to_rr ++ s.to_rr ++ " pe"
+| (t ≠* s) := t.to_rr ++ s.to_rr ++ " ne"
 
 def cla.to_rr : cla → string
 | []       := "nl"
@@ -183,14 +187,13 @@ cnf $ form.strip_fa $ normalize f
 lemma lit.holds_substs (μs : mappings) (l : lit) :
   (l.substs μs).holds R F V ↔
   l.holds R F (V.substs F μs) :=
-by { cases l with a a;
-     simp only [lit.holds, lit.substs, vas.substs,
-     list.map_map, atom.val_substs] }
+by cases l with b a b t s; cases b;
+   simp only [ lit.holds, lit.substs, vas.substs,
+     list.map_map, atom.val_substs, term.val_substs ]
 
 lemma cla.holds_substs {μs : mappings} {c : cla} :
   (c.substs μs).holds R F V ↔
-  c.holds R F (V.substs F μs)
-  :=
+  c.holds R F (V.substs F μs) :=
 by { apply @list.exists_mem_map_iff,
      apply lit.holds_substs }
 

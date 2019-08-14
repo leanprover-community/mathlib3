@@ -17,8 +17,8 @@ local notation `$`      := atom.rl
 local notation a `^t` t := atom.app a t
 local notation a `^v` t := atom.vpp a t
 
-local notation `-*` := lit.neg
-local notation `+*` := lit.pos
+local notation `-*` := lit.atom ff
+local notation `+*` := lit.atom tt
 
 local notation p `∨*` q := form.bin tt p q
 local notation p `∧*` q := form.bin ff p q
@@ -173,87 +173,5 @@ begin
   refine ⟨_, or.inr (or.inl rfl), h0⟩,
   refine ⟨_, or.inl rfl, h0⟩,
 end
-
-#exit
-
-
-namespace cla
-
-meta def to_expr : cla → expr
-| []       := `(@list.nil lit)
-| (l :: c) := expr.mk_app `(@list.cons lit) [l.to_expr, to_expr c]
-
-def subst (π : mappings) : cla → cla :=
-list.map (lit.subst π)
-
-def holds (M : model α) (v : vas α) (c : cla) : Prop :=
-∃ l ∈ c, lit.holds M v l
-
-def fav (M : model α) (c : cla) : Prop :=
-∀ v : vas α, holds M v c
-
-def satisfies (M : model α) (c : cla) : Prop :=
-∀ v : vas α, holds M v c
-
-lemma holds_subst (M : model α) (v : vas α) (μ : mappings) (c : cla) :
-  holds M v (c.subst μ) ↔ holds M (v.subst M μ) c :=
-begin
-  simp only [cla.subst, vas.subst, cla.holds],
-  apply @list.exists_mem_iff_exists_mem_map lit lit _
-  (lit.holds M v) (lit.subst μ) (lit.holds_subst _ _ _)
-end
-
-def vars : cla → list nat
-| c := (c.map (term.vars ∘ prod.snd)).foldl list.union []
-
-def fresh_var : cla → nat
-| c := ((c.map prod.snd).map term.fresh_var).maximum
-
-def tautology : cla := [(ff, & 0), (tt, & 0)]
-
-end cla
-
-namespace mat
-
-meta def to_expr : mat → expr
-| []       := `(@list.nil cla)
-| (c :: m) := expr.mk_app `(@list.cons cla) [c.to_expr, to_expr m]
-
-
-def fav (M : model α) (m : mat) : Prop :=
-∀ v : vas α, m.holds M v
-
-
-
-end mat
-
-lemma holds_cnf_of_holds {M : model α} {v : nat → α} :
-  ∀ p : form, p.holds M v → (cnf p).holds M v
-| ⟪b, a⟫ h0 :=
-  begin
-    intros c h1, cases b;
-    rw eq_of_mem_singleton h1;
-    refine ⟨_, or.inl rfl, _⟩;
-    apply h0
-  end
-| (p ∧₁ q) h0 :=
-  begin
-    cases h0 with hp hq,
-    replace hp := holds_cnf_of_holds _ hp,
-    replace hq := holds_cnf_of_holds _ hq,
-    simp only [mat.holds, cnf],
-    rw forall_mem_append, refine ⟨hp, hq⟩
-  end
-| (p ∨₁ q) h0 :=
-  begin
-    simp only [mat.holds, cnf, mem_map],
-    rintros c ⟨⟨c1, c2⟩, h1, h2⟩,
-    simp only [prod.fst, prod.snd] at h2, subst h2,
-    rw mem_product at h1, cases h1 with hc1 hc2,
-    simp only [cla.holds, exists_mem_append],
-    cases h0; [left, right];
-    apply holds_cnf_of_holds _ h0 _;
-    assumption
-  end
 
 end vampire

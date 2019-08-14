@@ -11,8 +11,11 @@ local notation `$`      := atom.rl
 local notation a `^t` t := atom.tp a t
 local notation a `^v` t := atom.vp a t
 
-local notation `-*` := form.lit ff
-local notation `+*` := form.lit tt
+local notation `-*`     := lit.atom ff
+local notation `+*`     := lit.atom tt
+local notation t `=*` s := lit.eq tt t s
+local notation t `≠*` s := lit.eq ff t s
+
 local notation p `∨*` q        := form.bin tt p q
 local notation p `∧*` q        := form.bin ff p q
 local notation `∃*`            := form.qua tt
@@ -181,12 +184,12 @@ lemma form.skolem_subst_bin
   (form.bin b f g).skolem_subst k s =
   form.bin b (f.skolem_subst k s) (g.skolem_subst k s) := rfl
 
-lemma lit.skolem_subst_neg (a : atom) (k : nat) (s : term) :
-  (lit.neg a).skolem_subst k s = lit.neg (a.skolem_subst k s) := rfl
+lemma lit.skolem_subst_atom (b : bool) (a : atom) (k : nat) (s : term) :
+  (lit.atom b a).skolem_subst k s = lit.atom b (a.skolem_subst k s) := rfl
 
-lemma lit.skolem_subst_pos
-  (a : atom) (k : nat) (s : term) :
-  (lit.pos a).skolem_subst k s = lit.pos (a.skolem_subst k s) := rfl
+lemma lit.skolem_subst_eq (b : bool) (t s : term) (k : nat) (r : term) :
+  (lit.eq b t s).skolem_subst k r =
+  lit.eq b (term.skolem_subst k r t) (term.skolem_subst k r s ) := rfl
 
 lemma term.skolem_subst_ap
   {t r : term} {k : nat} {s : term}  :
@@ -351,6 +354,23 @@ lemma atom.val_skolem_subst
        unfold atom.val,
        rw [ atom.val_skolem_subst, h0.left _ h2 ] }
 
+lemma lit.holds_skolem_subst {x : α} {y : fn α} :
+  ∀ {l : lit} {k : nat} {s : term} {W V : vas α},
+  splice k x W V →
+  ((s.vdec k).val (F ₀↦ y) V [] = x) →
+  (l.holds R F W) →
+  (l.skolem_subst k s).holds R (F ₀↦ y) V
+| (lit.atom b a) k s W V h0 h1 h2 :=
+  by { rw lit.skolem_subst_atom,
+       cases b; unfold lit.holds;
+       rw atom.val_skolem_subst h0 h1;
+       apply h2 }
+| (lit.eq b _ _) k s W V h0 h1 h2 :=
+  by { rw lit.skolem_subst_eq,
+       cases b; unfold lit.holds;
+       { repeat { rw term.val_skolem_subst h0 h1 },
+         apply h2 } }
+
 lemma holds_skolem_subst {x : α} {y : fn α} :
   ∀ {f : form} {k : nat} {s : term} {W V : vas α},
   splice k x W V →
@@ -358,14 +378,7 @@ lemma holds_skolem_subst {x : α} {y : fn α} :
   (R ; F ; W ⊨ f) →
   (R ; (F ₀↦ y) ; V ⊨ f.skolem_subst k s)
 | (form.lit l) k s W V h0 h1 h2 :=
-  by { rw form.skolem_subst_lit,
-       cases l with a;
-       try { rw lit.skolem_subst_neg };
-       try { rw lit.skolem_subst_pos };
-       unfold form.holds;
-       unfold lit.holds;
-       rw atom.val_skolem_subst h0 h1;
-       apply h2 }
+  lit.holds_skolem_subst h0 h1 h2
 | (form.bin b f g) k s W V h0 h1 h2 :=
   by { rw form.skolem_subst_bin,
        apply holds_bin_of_holds_bin _ _ h2;

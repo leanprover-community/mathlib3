@@ -166,7 +166,7 @@ lemma of_nat_surjective_aux : ∀ {x : ℕ} (hx : x ∈ s), ∃ n, of_nat s n = 
   (λ (y : ℕ) (hy : y ∈ s), ⟨y, hy⟩) (by simp) in
 have hmt : ∀ {y : s}, y ∈ t ↔ y < ⟨x, hx⟩,
   by simp [list.mem_filter, subtype.ext, t]; intros; refl,
-have wf : ∀ m : s, m ∈ list.maximum t → m.1 < x,
+have wf : ∀ m : s, list.maximum t = m → m.1 < x,
   from λ m hmax, by simpa [hmt] using list.maximum_mem hmax,
 begin
   cases hmax : list.maximum t with m,

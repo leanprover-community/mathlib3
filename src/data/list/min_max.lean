@@ -195,53 +195,67 @@ theorem argmin_eq_some_iff [decidable_eq α] {f : α → β} {m : α} {l : list 
 variable [decidable_linear_order α]
 
 /-- `maximum l` returns the largest element of `l`. `maximum [] = default α` -/
-def maximum (l : list α) : option α := argmax id l
+def maximum (l : list α) : with_bot α := argmax id l
 
 /-- `minimum l` returns the smallest element of `l`. `minimum [] = default α` -/
-def minimum (l : list α) : option α := argmin id l
+def minimum (l : list α) : with_top α := argmin id l
 
-@[simp] lemma maximum_nil : maximum ([] : list α) = none := rfl
+@[simp] lemma maximum_nil : maximum ([] : list α) = ⊥ := rfl
 
-@[simp] lemma minimum_nil : minimum ([] : list α) = none := rfl
+@[simp] lemma minimum_nil : minimum ([] : list α) = ⊤ := rfl
 
-@[simp] lemma maximum_singleton (a : α) : maximum [a] = some a := rfl
+@[simp] lemma maximum_singleton (a : α) : maximum [a] = a := rfl
 
-@[simp] lemma minimum_singleton (a : α) : minimum [a] = some a := rfl
+@[simp] lemma minimum_singleton (a : α) : minimum [a] = a := rfl
 
-theorem maximum_mem {l : list α} {m : α} : m ∈ maximum l → m ∈ l := argmax_mem
+theorem maximum_mem {l : list α} {m : α} : (maximum l : with_top α) = m → m ∈ l := argmax_mem
 
-theorem minimum_mem {l : list α} {m : α} : m ∈ minimum l → m ∈ l := argmin_mem
+theorem minimum_mem {l : list α} {m : α} : (minimum l : with_bot α) = m → m ∈ l := argmin_mem
 
 @[simp] theorem maximum_eq_none {l : list α} : l.maximum = none ↔ l = [] := argmax_eq_none
 
 @[simp] theorem minimum_eq_none {l : list α} : l.minimum = none ↔ l = [] := argmin_eq_none
 
-theorem le_maximum_of_mem {a m : α} {l : list α} : a ∈ l → m ∈ maximum l → a ≤ m :=
+theorem le_maximum_of_mem {a m : α} {l : list α} : a ∈ l → (maximum l : with_bot α) = m → a ≤ m :=
 le_argmax_of_mem
 
-theorem minimum_le_of_mem {a m : α} {l : list α} : a ∈ l → m ∈ minimum l → m ≤ a :=
+theorem minimum_le_of_mem {a m : α} {l : list α} : a ∈ l → (minimum l : with_top α) = m → m ≤ a :=
 argmin_le_of_mem
 
-theorem maximum_concat (a : α) (l : list α) : maximum (l ++ [a]) =
-  option.cases_on (maximum l) (some a) (λ b, some (max a b)) :=
-by simp only [maximum, argmax_concat, max]; congr; funext; split_ifs; refl
+theorem le_maximum_of_mem' {a : α} {l : list α} (ha : a ∈ l) : (a : with_bot α) ≤ maximum l :=
+option.cases_on (maximum l) (λ _ h, absurd ha ((h rfl).symm ▸ not_mem_nil _))
+  (λ m hm _, with_bot.coe_le_coe.2 $ hm _ rfl)
+  (λ m, @le_maximum_of_mem _ _ _ m _ ha)
+  (@maximum_eq_none _ _ l).1
 
-theorem minimum_concat (a : α) (l : list α) : minimum (l ++ [a]) =
-  option.cases_on (minimum l) (some a) (λ b, some (min a b))  :=
-by simp only [min_comm a]; exact @maximum_concat (order_dual α) _ _ _
+theorem le_minimum_of_mem' {a : α} {l : list α} (ha : a ∈ l) : minimum l ≤ (a : with_top α) :=
+@le_maximum_of_mem' (order_dual α) _ _ _ ha
 
-theorem maximum_cons (a : α) (l : list α) : maximum (a :: l) =
-  option.cases_on (maximum l) (some a) (λ b, some (max b a)) :=
-by simp only [maximum, argmax_cons, max]; congr; funext; split_ifs; refl
-
-theorem minimum_cons (a : α) (l : list α) : minimum (a :: l) =
-  option.cases_on (minimum l) (some a) (λ b, some (min b a)) :=
-by simp only [min_comm _ a]; exact @maximum_cons (order_dual α) _ _ _
-
-theorem mem_maximum_iff {m : α} {l : list α} :
-  m ∈ maximum l ↔ m ∈ l ∧ (∀ a ∈ l, a ≤ m) :=
+theorem maximum_concat (a : α) (l : list α) : maximum (l ++ [a]) = max (maximum l) a :=
 begin
-  simp only [maximum, mem_argmax_iff, id],
+  rw max_comm,
+  simp only [maximum, argmax_concat, id, max],
+  cases h : argmax id l,
+  { rw [if_neg], refl, exact not_le_of_gt (with_bot.bot_lt_some _) },
+  change (coe : α → with_bot α) with some,
+  simp, congr
+end
+
+theorem minimum_concat (a : α) (l : list α) : minimum (l ++ [a]) = min (minimum l) a :=
+by simp only [min_comm _ (a : with_top α)]; exact @maximum_concat (order_dual α) _ _ _
+
+theorem maximum_cons (a : α) (l : list α) : maximum (a :: l) = max a (maximum l) :=
+list.reverse_rec_on l (by simp [@max_eq_left (with_bot α) _ _ _ lattice.bot_le])
+  (λ tl hd ih, by rw [← cons_append, maximum_concat, ih, maximum_concat, max_assoc])
+
+theorem minimum_cons (a : α) (l : list α) : minimum (a :: l) = min a (minimum l) :=
+min_comm (minimum l) a ▸ @maximum_cons (order_dual α) _ _ _
+
+theorem maximum_eq_coe_iff {m : α} {l : list α} :
+  maximum l = m ↔ m ∈ l ∧ (∀ a ∈ l, a ≤ m) :=
+begin
+  unfold_coes,
+  simp only [maximum, argmax_eq_some_iff, id],
   split,
   { simp only [true_and, forall_true_iff] {contextual := tt} },
   { simp only [true_and, forall_true_iff] {contextual := tt},
@@ -249,8 +263,8 @@ begin
     rw [le_antisymm hma (h.2 a hal)] }
 end
 
-theorem mem_minimum_iff {m : α} {l : list α} :
-  m ∈ minimum l ↔ m ∈ l ∧ (∀ a ∈ l, m ≤ a) :=
-@mem_maximum_iff (order_dual α) _ _ _
+theorem minimum_eq_coe_iff {m : α} {l : list α} :
+  minimum l = m ↔ m ∈ l ∧ (∀ a ∈ l, m ≤ a) :=
+@maximum_eq_coe_iff (order_dual α) _ _ _
 
 end list

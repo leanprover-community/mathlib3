@@ -15,7 +15,8 @@ The main definition are `argmax`, `argmin`, `minimum` and `maximum` for lists.
   `f a = f b`, it returns whichever of `a` or `b` comes first in the list.
   `argmax f []` = none`
 
-`minimum l` returns the smallest element of `l`. `minimum [] = none`
+`minimum l` returns an `with_top α`, the smallest element of `l` for nonempty lists, and `⊤` for
+`[]`
 -/
 namespace list
 variables {α : Type*} {β : Type*} [decidable_linear_order β]
@@ -194,10 +195,12 @@ theorem argmin_eq_some_iff [decidable_eq α] {f : α → β} {m : α} {l : list 
 
 variable [decidable_linear_order α]
 
-/-- `maximum l` returns the largest element of `l`. `maximum [] = default α` -/
+/-- `maximum l` returns an `with_bot α`, the largest element of `l` for nonempty lists, and `⊥` for
+`[]`  -/
 def maximum (l : list α) : with_bot α := argmax id l
 
-/-- `minimum l` returns the smallest element of `l`. `minimum [] = default α` -/
+/-- `minimum l` returns an `with_top α`, the smallest element of `l` for nonempty lists, and `⊤` for
+`[]`  -/
 def minimum (l : list α) : with_top α := argmin id l
 
 @[simp] lemma maximum_nil : maximum ([] : list α) = ⊥ := rfl

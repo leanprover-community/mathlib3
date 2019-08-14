@@ -21,6 +21,10 @@ variables {X}
 
 namespace cover
 
+def of_sets (𝒰 : set (opens X)) : cover X :=
+{ ι := { U // U ∈ 𝒰 },
+  i := subtype.val }
+
 /-- The union of all the open sets in the cover. -/
 -- Implementation note: I was uncertain whether it would be better to parametrise cover by the union,
 -- and include a condition specifying `total = lattice.supr c.i`.
@@ -55,9 +59,10 @@ end hom
 
 end cover
 
-def cover_of (U : opens X) := { c : cover X // c.total = U }
+def covers_of (U : opens X) := { c : set (opens X) // lattice.Sup c = U }
 
-instance (U : opens X) : category (cover_of U) := sorry
+instance category_covers_of (U : opens X) : category (covers_of U) :=
+induced_category.category (λ 𝒰, cover.of_sets 𝒰.val)
 
 namespace cover
 
@@ -92,7 +97,21 @@ local attribute [tidy] tactic.case_bash
 instance : small_category (intersections ι) :=
 { hom := hom ι,
   id := id ι,
-  comp := comp ι }
+  comp := comp ι }.
+
+open hom
+
+@[simp] def map {ι κ : Type v} (r : ι → κ) : intersections ι ⥤ intersections κ :=
+{ obj := λ X, match X with
+  | (single a) := single (r a)
+  | (double a b) := double (r a) (r b)
+  end,
+  map := λ X Y f, match X, Y, f with
+  | _, _, (id_single a)   := id_single (r a)
+  | _, _, (id_double a b) := id_double (r a) (r b)
+  | _, _, (left a b)      := left (r a) (r b)
+  | _, _, (right a b)     := right (r a) (r b)
+  end }.
 
 end intersections
 

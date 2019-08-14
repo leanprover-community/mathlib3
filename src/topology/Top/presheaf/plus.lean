@@ -9,25 +9,22 @@ open opposite
 
 namespace Top
 
-variables {C : Type u} [𝒞 : category.{v+1} C]
-include 𝒞
-variables [has_limits.{v} C]
 variables {X : Top.{v}}
 
-def plus_obj_obj_aux (ℱ : X.presheaf C) (U : (opens X)ᵒᵖ) : {c : cover X // c.total = unop U}ᵒᵖ ⥤ C :=
-((full_subcategory_inclusion (λ c : cover X, c.total = unop U)).op ⋙ ℱ.cech_zero)
-
--- Uh oh... universes.
--- It looks like `cover X` is one universe level higher than we want it to be here.
-
-set_option pp.universes true
-#check λ U : (opens X)ᵒᵖ, {c : cover X // c.total = unop U}ᵒᵖ
+variables {C : Type u} [𝒞 : category.{v+1} C]
+include 𝒞
+variables [has_limits.{v} C] [has_colimits.{v} C]
 
 def plus_obj_obj (ℱ : X.presheaf C) (U : (opens X)ᵒᵖ) : C :=
-colimit.{v} (plus_obj_obj_aux ℱ U)
+colimit.{v} ((induced_functor (λ 𝒰 : covers_of (unop U), cover.of_sets 𝒰.val)).op ⋙ ℱ.cech_zero)
+
+def plus_obj_map (ℱ : X.presheaf C) (U V : (opens X)ᵒᵖ) (h : U ⟶ V) : plus_obj_obj ℱ U ⟶ plus_obj_obj ℱ V :=
+sorry
 
 def plus_obj (ℱ : X.presheaf C) : X.presheaf C :=
 { obj := plus_obj_obj ℱ,
-  map := sorry }
+  map := plus_obj_map ℱ,
+  map_id' := sorry,
+  map_comp' := sorry }
 
 end Top

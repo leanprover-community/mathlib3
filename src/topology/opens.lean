@@ -115,6 +115,9 @@ instance : has_emptyc (opens α) := ⟨⊥⟩
 @[simp] lemma union_eq (U V : opens α) : U ∪ V = U ⊔ V := rfl
 @[simp] lemma empty_eq : (∅ : opens α) = ⊥ := rfl
 
+lemma inter_subset_inter {s₁ s₂ t₁ t₂ : opens α} (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) : s₁ ∩ s₂ ⊆ t₁ ∩ t₂ :=
+set.inter_subset_inter h₁ h₂
+
 @[simp] lemma Sup_s {Us : set (opens α)} : (Sup Us).val = ⋃₀ (subtype.val '' Us) :=
 begin
   rw [@galois_connection.l_Sup (opens α) (set α) _ _ (subtype.val : opens α → set α) interior gc Us, set.sUnion_image],

@@ -76,44 +76,43 @@ of a proof, so that the proof is "flush left" in the file.
 ```lean
 open nat
 theorem nat_case {P : nat → Prop} (n : nat) (H1: P 0) (H2 : ∀m, P (succ m)) : P n :=
-nat.induction_on n H1 (take m IH, H2 m)
+nat.induction_on n H1 (assume m IH, H2 m)
 ```
 
-When a proof rule takes multiple arguments, it is sometimes clearer, and often
+When a proof rule assumes multiple arguments, it is sometimes clearer, and often
 necessary, to put some of the arguments on subsequent lines. In that case,
 indent each argument.
 ```lean
 open nat
 axiom zero_or_succ (n : nat) : n = zero ∨ n = succ (pred n)
 theorem nat_discriminate {B : Prop} {n : nat} (H1: n = 0 → B)
-    (H2 : ∀m, n = succ m → B) : B :=
+  (H2 : ∀m, n = succ m → B) : B :=
 or.elim (zero_or_succ n)
-  (take H3 : n = zero, H1 H3)
-  (take H3 : n = succ (pred n), H2 (pred n) H3)
+  (assume H3 : n = zero, H1 H3)
+  (assume H3 : n = succ (pred n), H2 (pred n) H3)
 ```
 Don't orphan parentheses; keep them with their arguments.
 
 Here is a longer example.
 ```lean
-import data.list
-open list eq.ops
+open list
 variable {T : Type}
-local attribute mem [reducible]
-local attribute append [reducible]
-theorem mem_split {x : T} {l : list T} : x ∈ l → ∃s t : list T, l ` s ++ (x::t) :`
-list.induction_on l
-  (take H : x ∈ [], false.elim (iff.elim_left !mem_nil_iff H))
-  (take y l,
+
+theorem mem_split {x : T} {l : list T} : x ∈ l → ∃s t : list T, l = s ++ (x::t) :=
+list.rec_on l
+  (assume H : x ∈ [], false.elim (iff.elim_left (mem_nil_iff _) H))
+  (assume y l,
     assume IH : x ∈ l → ∃s t : list T, l = s ++ (x::t),
     assume H : x ∈ y::l,
     or.elim (eq_or_mem_of_mem_cons H)
       (assume H1 : x = y,
-        exists.intro [] (!exists.intro (H1 ▸ rfl)))
+        exists.intro [] (exists.intro l (by rw H1; refl)))
       (assume H1 : x ∈ l,
-        obtain s (H2 : ∃t : list T, l = s ++ (x::t)), from IH H1,
-        obtain t (H3 : l = s ++ (x::t)), from H2,
-        have H4 : y :: l = (y::s) ++ (x::t), from H3 ▸ rfl,
-        !exists.intro (!exists.intro H4)))
+        let ⟨s, (H2 : ∃t : list T, l = s ++ (x::t))⟩ := IH H1,
+            ⟨t, (H3 : l = s ++ (x::t))⟩ := H2 in
+        have H4 : y :: l = (y::s) ++ (x::t), by rw H3; refl,
+        exists.intro (y::s) (exists.intro t H4)))
+
 ```
 
 A short definition can be written on a single line:
@@ -139,7 +138,7 @@ line as the "have", and then begin the justification indented on the next line.
 ```lean
 have n ≠ succ k, from
   not_intro
-    (take H4 : n = succ k,
+    (assume H4 : n = succ k,
       have H5 : succ l = succ k, from trans (symm H) H4,
       have H6 : l = k, from succ_inj H5,
       absurd H6 H2)))),
@@ -150,19 +149,18 @@ When the arguments themselves are long enough to require line breaks, use
 an additional indent for every line after the first, as in the following
 example:
 ```lean
-import data.nat
 open nat eq algebra
-theorem add_right_inj {n m k : nat} : n + m ` n + k → m = k :`
-nat.induction_on n
-  (take H : 0 + m = 0 + k,
+theorem add_right_inj {n m k : nat} : n + m = n + k → m = k :=
+nat.rec_on n
+  (assume H : 0 + m = 0 + k,
     calc
-        m = 0 + m : symm (zero_add m)
+        m = 0 + m : eq.symm (zero_add m)
       ... = 0 + k : H
-      ... = k     : zero_add)
-  (take (n : nat) (IH : n + m ` n + k → m = k) (H : succ n + m ` succ n + k),
+      ... = k     : zero_add _)
+  (assume (n : nat) (IH : n + m = n + k → m = k) (H : succ n + m = succ n + k),
     have H2 : succ (n + m) = succ (n + k), from
       calc
-        succ (n + m) = succ n + m   : symm (succ_add n m)
+        succ (n + m) = succ n + m   : eq.symm (succ_add n m)
                  ... = succ n + k   : H
                  ... = succ (n + k) : succ_add n k,
     have H3 : n + m = n + k, from succ.inj H2,
@@ -310,7 +308,7 @@ either write the tactics in one line, or indent the following tacic.
 
 ```lean
 begin
-  case x;
+  cases x;
     simp [a, b, c, d]
 end
 ```

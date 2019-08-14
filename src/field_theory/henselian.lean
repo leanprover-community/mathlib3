@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sander Dahmen, Casper Putz
 -/
 
-import algebra data.real.basic data.polynomial data.finset ring_theory.integral_closure
+import algebra data.real.basic data.finset ring_theory.integral_closure ring_theory.polynomial
 import field_theory.field_extension
 import analysis.complex.exponential
 
@@ -311,7 +311,7 @@ lemma integral_coeffs (p : polynomial α) (hp : irreducible p) (hm : monic p)
 end
 
 variables (α : Type u) [discrete_field α] [nonarch_valued_ring α] [henselian_field α]
-variables {β : Type v} [discrete_field β] [algebra α β] [finite_dimensional α β]
+variables {β : Type v} [discrete_field β] [field_extension α β] [finite_dimensional α β]
 
 -- TODO: move
 lemma rpow_zero_iff {x y : ℝ} (hx : x ≥ 0) (hy : y ≠ 0) : x ^ y = 0 ↔ x = 0 :=
@@ -389,7 +389,9 @@ noncomputable instance extend_valuation : nonarch_valued_ring β :=
         cases hb with f hf,
         -- follows from henselian_field.henselian, field norms and minimal polynomials
         have h : ∀ n : ℕ, valued_ring.val (f.coeff n) ≤ 1, from sorry,
-        let fo := (finsupp.mk (f.support) (λ n, ⟨f.coeff n, h n⟩) sorry : polynomial (valuation_ring α)),
+        let fo := f.to_subring (valuation_ring α)
+          (λ _ hy, let ⟨n, hn⟩ := (finsupp.mem_frange.mp hy).2 in hn ▸ h n),
+        sorry
        }
     end,
 

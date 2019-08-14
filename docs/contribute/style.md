@@ -79,7 +79,7 @@ theorem nat_case {P : nat → Prop} (n : nat) (H1: P 0) (H2 : ∀m, P (succ m)) 
 nat.induction_on n H1 (assume m IH, H2 m)
 ```
 
-When a proof rule assumes multiple arguments, it is sometimes clearer, and often
+When a proof rule takes multiple arguments, it is sometimes clearer, and often
 necessary, to put some of the arguments on subsequent lines. In that case,
 indent each argument.
 ```lean

@@ -470,8 +470,7 @@ do nm ← mk_fresh_name,
    gs ← get_goals,
    set_goals (g::gs)
 | (pat, some tp, some val) :=
-do e ← to_expr ``(%%val : %%tp) >>= note_anon,
-   tactic.rcases ``(%%e) $ rcases_patt_inverted.invert_list (pat.get_or_else [default _])
+  tactic.rcases ``(%%val : %%tp) $ rcases_patt_inverted.invert_list (pat.get_or_else [default _])
 
 end interactive
 end tactic

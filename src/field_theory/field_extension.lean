@@ -75,9 +75,11 @@ section minimal_polynomial
 open polynomial
 
 section
-variables (α : Type u) [comm_ring α] [division_ring α] [decidable_eq α]
-variables (β : Type v) [discrete_field β] [algebra α β] --[field_extension α β]
+variables (α : Type u) [discrete_field α]
+variables (β : Type v) [discrete_field β] [field_extension α β]
 variables (b : β)
+
+instance mpp : module (polynomial α) (polynomial α) := by apply_instance
 
 /-- The ideal of polynomial over α that vanish at b. -/
 def vanishing_ideal : ideal (polynomial α) := is_ring_hom.ker (aeval α β b)
@@ -91,24 +93,9 @@ class is_minimal_polynomial (p : polynomial α) : Prop :=
 
 end
 
-variables {α : Type u} [comm_ring α] [division_ring α] [decidable_eq α]
-variables {β : Type v} [discrete_field β] [algebra α β] --[field_extension α β]
+variables {α : Type u} [discrete_field α]
+variables {β : Type v} [discrete_field β] [field_extension α β]
 variables {b : β}
-
-set_option class.instance_max_depth 200
---set_option timeout 1000000
-
---set_option trace.class_instances true
-variables (I : ideal (polynomial α))
-#check (I : ideal (polynomial α))
-#check (I : submodule (polynomial α) (polynomial α))
-
-
-variables {γ : Type u} [integral_domain γ] [decidable_eq γ]
-variables (J : ideal (polynomial γ))
-#check J.carrier
-
-
 
 lemma mem_polynomial_ideal (p : polynomial α) : p ∈ (vanishing_ideal α β b) ↔ aeval α β b p = 0 :=
 is_add_group_hom.mem_ker _
@@ -125,18 +112,16 @@ have h2 : ¬degree p ≤ degree (p - q), from not_le_of_lt $ degree_sub_lt
   (by rw [monic.def.mp hp.monic, monic.def.mp hq.monic]),
 classical.by_contradiction
   (λ h, absurd (is_minimal_polynomial.minimal p (p-q) h1 (sub_ne_zero.mpr h)) h2)
-#check nat.find
-
-lemma test4 : (0 : polynomial α) ∈ vanishing_ideal α β b := submodule.zero_mem _
 
 lemma exists_mem_ne_zero_of_ne_bot (h : vanishing_ideal α β b ≠ ⊥) :
-  ∃ p : polynomial α, p ∈ (vanishing_ideal α β b) ∧ p ≠ 0 := sorry --exists_mem_ne_zero_of_ne_bot h
-/-begin
+  ∃ p : polynomial α, p ∈ (vanishing_ideal α β b) ∧ p ≠ 0 :=
+begin
   classical,
   by_contradiction hex,
-  have : ∀ x ∈ vanishing_ideal α β b, (x : polynomial α) = 0, { simpa only [not_exists, not_and, not_not, ne.def] using hex },
-  exact (h $ (begin ext, rw [submodule.mem_bot], split, exact this x, { intro h0, rw h0, exact submodule.zero_mem _ } end))--lattice.bot_unique $ assume s hs, (submodule.mem_bot α).2 $ this s hs)
-end-/
+  have : ∀ x ∈ vanishing_ideal α β b, (x : polynomial α) = 0,
+    { simpa only [not_exists, not_and, not_not, ne.def] using hex },
+  exact (h $ begin ext, rw [submodule.mem_bot], split, exact this x, intro hx, rw hx, simp only [submodule.zero_mem] end)
+end
 
 lemma minimal_polynomial.exists_iff :
   (∃ p, is_minimal_polynomial α β b p) ↔ vanishing_ideal α β b ≠ ⊥ :=
@@ -151,11 +136,25 @@ split,
   cases exists_mem_ne_zero_of_ne_bot h with q1 hq1,
   have h2 : ∃ n : ℕ, (∃ q2, (q2 ∈ vanishing_ideal α β b ∧ q2 ≠ 0) ∧ nat_degree q2 = n), from
     ⟨nat_degree q1, q1, ⟨hq1, rfl⟩⟩,
-  classical,
+  haveI : decidable_pred (λ (n : ℕ), ∃ (q2 : polynomial α), (q2 ∈ vanishing_ideal α β b ∧ q2 ≠ 0) ∧ nat_degree q2 = n) := sorry,
   let m := nat.find h2,
   cases nat.find_spec h2 with q2 hq2,
-  existsi (q2 / leading_coeff q2),
- }
+  existsi (q2 * C (leading_coeff q2)⁻¹),
+  have h0 : (leading_coeff q2)⁻¹ ≠ 0,
+    { assume h,
+      rw [inv_eq_zero, leading_coeff_eq_zero] at h,
+      exact hq2.left.right h },
+  split,
+  { exact ideal.mul_mem_right (vanishing_ideal α β b) hq2.left.left },
+  { exact monic_mul_leading_coeff_inv hq2.left.right },
+  { refine mul_ne_zero hq2.left.right _,
+    assume hC,
+    rw [←C_0, C_inj] at hC,
+    contradiction },
+  { assume q hq hq0,
+    rw [degree_mul_eq, degree_C h0, add_zero, degree_eq_nat_degree hq0,
+      degree_eq_nat_degree hq2.left.right, with_bot.coe_le_coe, hq2.right],
+    refine nat.find_min' h2 ⟨q, ⟨⟨hq, hq0⟩, rfl⟩⟩ } }
 
 end
 

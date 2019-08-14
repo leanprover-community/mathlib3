@@ -42,7 +42,6 @@ usual formulas (and existence assertions) for the derivative of
 * multiplication of a function by a scalar constant
 * negative of a function
 * subtraction of two functions
-* bounded bilinear maps
 * multiplication of a function by a scalar function
 * multiplication of two scalar functions
 * composition of functions (the chain rule)

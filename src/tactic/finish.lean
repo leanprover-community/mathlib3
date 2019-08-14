@@ -335,6 +335,11 @@ private meta def add_hinst_lemmas_from_pexprs (md : transparency) (lhs_lemma : b
 | []      hs := return hs
 | (p::ps) hs := do hs₁ ← add_hinst_lemma_from_pexpr md lhs_lemma p hs, add_hinst_lemmas_from_pexprs ps hs₁
 
+/--
+`done` first attempts to close the goal using `contradiction`. If this fails, it creates an
+SMT state and will repeatedly use `ematch` (using `ematch` lemmas in the environment,
+universally quantified assumptions, and the supplied lemmas `ps`) and congruence closure.
+-/
 meta def done (ps : list pexpr) (cfg : auto_config := {}) : tactic unit :=
 do when_tracing `auto.done (trace "entering done" >> trace_state),
    contradiction <|>
@@ -413,6 +418,7 @@ do when_tracing `auto.finish (trace "entering safe_core" >> trace_state),
 
 meta def clarify (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config := {}) : tactic unit :=
   safe_core s ps cfg case_option.at_most_one
+
 meta def safe (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config := {}) : tactic unit :=
   safe_core s ps cfg case_option.accept
 
@@ -421,8 +427,10 @@ meta def finish (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_con
 
 meta def iclarify (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config := {}) : tactic unit :=
   clarify s ps {classical := ff, ..cfg}
+
 meta def isafe (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config := {}) : tactic unit :=
   safe s ps {classical := ff, ..cfg}
+
 meta def ifinish (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config := {}) : tactic unit :=
   finish s ps {classical := ff, ..cfg}
 
@@ -440,7 +448,23 @@ open lean lean.parser interactive interactive.types
 local postfix `?`:9001 := optional
 local postfix *:9001 := many
 
-meta def clarify (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?) (cfg : auto_config := {}) : tactic unit :=
+/--
+  `clarify[h1,...,hn] using [e1,...,en]` negates the goal, normalizes hypotheses
+  (by splitting conjunctions, eliminating existentials, pushing negations inwards,
+  and calling `simp` with the supplied lemmas `h1,...,hn`), and then tries `contradiction`.
+  
+  If this fails, it will create an SMT state and repeatedly use `ematch`
+  (using `ematch` lemmas in the environment, universally quantified assumptions,
+  and the supplied lemmas `e1,...,en`) and congruence closure.
+
+  `clarify` is complete for propositional logic.
+  
+  Either of the supplied simp lemmas or the supplied ematch lemmas are optional.
+
+  `clarify` will fail if it produces more than one goal.
+-/
+meta def clarify (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?)
+  (cfg : auto_config := {}) : tactic unit :=
 do s ← mk_simp_set ff [] hs,
    let ps' :=
    match ps with
@@ -449,7 +473,24 @@ do s ← mk_simp_set ff [] hs,
    end,
    auto.clarify s ps' cfg
 
-meta def safe (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?) (cfg : auto_config := {}) : tactic unit :=
+
+/--
+  `safe[h1,...,hn] using [e1,...,en]` negates the goal, normalizes hypotheses
+  (by splitting conjunctions, eliminating existentials, pushing negations inwards,
+  and calling `simp` with the supplied lemmas `h1,...,hn`), and then tries `contradiction`.
+  
+  If this fails, it will create an SMT state and repeatedly use `ematch`
+  (using `ematch` lemmas in the environment, universally quantified assumptions,
+  and the supplied lemmas `e1,...,en`) and congruence closure.
+
+  `safe` is complete for propositional logic.
+  
+  Either of the supplied simp lemmas or the supplied ematch lemmas are optional.
+
+  `safe` ignores the number of goals it produces, and should never fail.
+-/
+meta def safe (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?)
+  (cfg : auto_config := {}) : tactic unit :=
 do s ← mk_simp_set ff [] hs,
    let ps' :=
    match ps with
@@ -470,8 +511,11 @@ do s ← mk_simp_set ff [] hs,
   `finish` is complete for propositional logic.
   
   Either of the supplied simp lemmas or the supplied ematch lemmas are optional.
+
+  `finish` will fail if it does not close the goal.
 -/
-meta def finish (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?) (cfg : auto_config := {}) : tactic unit :=
+meta def finish (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?)
+  (cfg : auto_config := {}) : tactic unit :=
 do s ← mk_simp_set ff [] hs,
    let ps' :=
    match ps with
@@ -480,7 +524,11 @@ do s ← mk_simp_set ff [] hs,
    end,
    auto.finish s ps' cfg
 
-meta def iclarify (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?) (cfg : auto_config := {}) : tactic unit :=
+/--
+  `iclarify` is like `clarify`, but only uses intuitionistic logic.
+-/
+meta def iclarify (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?)
+  (cfg : auto_config := {}) : tactic unit :=
 do s ← mk_simp_set ff [] hs,
    let ps' :=
    match ps with
@@ -489,7 +537,11 @@ do s ← mk_simp_set ff [] hs,
    end,
    auto.iclarify s ps' cfg
 
-meta def isafe (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?) (cfg : auto_config := {}) : tactic unit :=
+/--
+  `isafe` is like `safe`, but only uses intuitionistic logic.
+-/
+meta def isafe (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?)
+  (cfg : auto_config := {}) : tactic unit :=
 do s ← mk_simp_set ff [] hs,
    let ps' :=
    match ps with
@@ -498,7 +550,11 @@ do s ← mk_simp_set ff [] hs,
    end,
    auto.isafe s ps' cfg
 
-meta def ifinish (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?) (cfg : auto_config := {}) : tactic unit :=
+/--
+  `ifinish` is like `finish`, but only uses intuitionistic logic.
+-/
+meta def ifinish (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?)
+  (cfg : auto_config := {}) : tactic unit :=
 do s ← mk_simp_set ff [] hs,
    let ps' :=
    match ps with

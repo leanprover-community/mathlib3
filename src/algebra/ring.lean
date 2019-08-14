@@ -339,7 +339,7 @@ eq_neg_of_add_eq_zero $ by rw [←f.map_add, neg_add_self, f.map_zero]
 @[simp] theorem map_sub {α β} [ring α] [ring β] (f : α →+* β) (x y : α) :
   f (x - y) = (f x) - (f y) := by simp
 
-/-- Makes a ring homomomorphism from a proof that the monoid homomorphism preserves addition. -/
+/-- Makes a ring homomorphism from a proof that the monoid homomorphism preserves addition. -/
 def mk' {γ} [ring γ] (f : α →* γ) (map_add : ∀ a b : α, f (a + b) = f a + f b) : α →+* γ :=
 { to_fun := f,
   map_zero' := add_self_iff_eq_zero.1 $ by rw [←map_add, add_zero],

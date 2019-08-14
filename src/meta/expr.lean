@@ -59,7 +59,7 @@ meta def head : name → string
 meta def is_private (n : name) : bool :=
 n.head = "_private"
 
-/-- Get the last component of a name, assuming it is a string. -/
+/-- Get the last component of a name, and convert it to a string. -/
 meta def last : name → string
 | (mk_string s _)  := s
 | (mk_numeral n _) := repr n
@@ -206,6 +206,7 @@ meta def get_trusted_decls (e : environment) : list declaration :=
 meta def get_decl_names (e : environment) : list name :=
   e.decl_map declaration.to_name
 
+/-- Fold a monad over all declarations in the environment. -/
 meta def mfold {α : Type} {m : Type → Type} [monad m] (e : environment) (x : α)
   (fn : declaration → α → m α) : m α :=
 e.fold (return x) (λ d t, t >>= fn d)

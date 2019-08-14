@@ -113,6 +113,10 @@ rcases h with ⟨patt⟩
 
  The syntax `obtain ⟨patt⟩ : type := proof` is also supported.
 
+ If `⟨patt⟩` is omitted, `rcases` will try to infer the pattern.
+
+ If `type` is omitted, `:= proof` is required.
+
 
 ### simpa
 

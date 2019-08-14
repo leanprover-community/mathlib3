@@ -470,7 +470,7 @@ calc f.integral ⊔ g.integral =
   begin
     rw [map_integral, map_integral],
     refine sup_le _ _;
-      refine finset.sum_le_sum' (λ a _, canonically_ordered_semiring.mul_le_mul _ (le_refl _)),
+      refine finset.sum_le_sum (λ a _, canonically_ordered_semiring.mul_le_mul _ (le_refl _)),
     exact le_sup_left,
     exact le_sup_right
   end

@@ -308,32 +308,30 @@ meta def mk_hinst_lemmas : list expr → smt_tactic hinst_lemmas
 private meta def report_invalid_em_lemma {α : Type} (n : name) : smt_tactic α :=
 fail format!"invalid ematch lemma '{n}'"
 
-private meta def add_hinst_lemma_from_name (md : transparency) (lhs_lemma : bool) (n : name) (hs : hinst_lemmas) (ref : pexpr) : smt_tactic hinst_lemmas :=
-do
-  p ← resolve_name n,
-  match p with
-  | expr.const n _           :=
-    (do h ← hinst_lemma.mk_from_decl_core md n lhs_lemma, tactic.save_const_type_info n ref, return $ hs.add h)
-    <|>
-    (do hs₁ ← smt_tactic.mk_ematch_eqn_lemmas_for_core md n, tactic.save_const_type_info n ref, return $ hs.merge hs₁)
-    <|>
-    report_invalid_em_lemma n
-  | _ :=
-    (do e ← to_expr p, h ← hinst_lemma.mk_core md e lhs_lemma, try (tactic.save_type_info e ref), return $ hs.add h)
-    <|>
-    report_invalid_em_lemma n
-  end
+private meta def add_hinst_lemma_from_name (md : transparency) (lhs_lemma : bool) (n : name)
+  (hs : hinst_lemmas) (ref : pexpr) : smt_tactic hinst_lemmas :=
+do p ← resolve_name n,
+   match p with
+   | expr.const n _ := (do h ← hinst_lemma.mk_from_decl_core md n lhs_lemma,
+                           tactic.save_const_type_info n ref, return $ hs.add h) <|>
+                       (do hs₁ ← smt_tactic.mk_ematch_eqn_lemmas_for_core md n,
+                           tactic.save_const_type_info n ref, return $ hs.merge hs₁) <|>
+                        report_invalid_em_lemma n
+   | _              := (do e ← to_expr p, h ← hinst_lemma.mk_core md e lhs_lemma,
+                        try (tactic.save_type_info e ref), return $ hs.add h) <|>
+                        report_invalid_em_lemma n
+   end
 
-private meta def add_hinst_lemma_from_pexpr (md : transparency) (lhs_lemma : bool) (p : pexpr) (hs : hinst_lemmas) : smt_tactic hinst_lemmas :=
-match p with
-| (expr.const c [])          := add_hinst_lemma_from_name md lhs_lemma c hs p
-| (expr.local_const c _ _ _) := add_hinst_lemma_from_name md lhs_lemma c hs p
-| _                          := do new_e ← to_expr p, h ← hinst_lemma.mk_core md new_e lhs_lemma, return $ hs.add h
-end
+private meta def add_hinst_lemma_from_pexpr (md : transparency) (lhs_lemma : bool) (hs : hinst_lemmas)
+  : pexpr -> smt_tactic hinst_lemmas
+| p@(expr.const c [])          := add_hinst_lemma_from_name md lhs_lemma c hs p
+| p@(expr.local_const c _ _ _) := add_hinst_lemma_from_name md lhs_lemma c hs p
+| p                          := do new_e ← to_expr p, h ← hinst_lemma.mk_core md new_e lhs_lemma,
+                                   return $ hs.add h
 
-private meta def add_hinst_lemmas_from_pexprs (md : transparency) (lhs_lemma : bool) : list pexpr → hinst_lemmas → smt_tactic hinst_lemmas
-| []      hs := return hs
-| (p::ps) hs := do hs₁ ← add_hinst_lemma_from_pexpr md lhs_lemma p hs, add_hinst_lemmas_from_pexprs ps hs₁
+private meta def add_hinst_lemmas_from_pexprs (md : transparency) (lhs_lemma : bool)
+  (ps : list pexpr) (hs : hinst_lemmas) : smt_tactic hinst_lemmas :=
+list.mfoldl (add_hinst_lemma_from_pexpr md lhs_lemma) hs ps
 
 /--
 `done` first attempts to close the goal using `contradiction`. If this fails, it creates an

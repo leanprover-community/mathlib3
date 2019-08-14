@@ -114,7 +114,7 @@ cardinal.lift_inj.1 $ hb.mk_eq_dim.symm.trans (f.is_basis hb).mk_eq_dim
 
 @[simp] lemma dim_bot : dim α (⊥ : submodule α β) = 0 :=
 by letI := classical.dec_eq β;
-  rw [← cardinal.lift_inj, ← (@is_basis_empty_bot pempty α β _ _ _ _ _ _ nonempty_pempty).mk_eq_dim,
+  rw [← cardinal.lift_inj, ← (@is_basis_empty_bot pempty α β _ _ _ _ _ _ not_nonempty_pempty).mk_eq_dim,
     cardinal.mk_pempty]
 
 @[simp] lemma dim_top : dim α (⊤ : submodule α β) = dim α β :=

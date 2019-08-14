@@ -8,7 +8,7 @@ import category_theory.groupoid category_theory.Cat
 /-!
 # Category of groupoids
 
-This file contains the definition of category `Groupoid` of all groupoids.
+This file contains the definition of the category `Groupoid` of all groupoids.
 In this category objects are groupoids and morphisms are functors
 between these groupoids.
 

@@ -6,7 +6,7 @@ Author(s): Jesse Michael Han
 Tests for `finish using [...]`
 -/
 
-import tactic.finish order.boolean_algebra
+import tactic.finish
 
 section list_rev
 open list
@@ -23,9 +23,11 @@ def rev : list α → list α
 lemma hd_rev (a : α) (l : list α) :
   a :: rev l =  rev (append1 a l) :=
 begin
-  induction l, refl,
+  induction l with l_hd l_tl ih, refl,
   -- finish -- fails
-  -- finish[rev, length_rev, append1, length_append1] -- fails
+  -- finish[rev, append1] -- fails
+  -- finish[rev, append1, ih] -- fails
+  -- finish[rev, append1, ih.symm] -- times out
   finish using [rev, append1]
 end
 

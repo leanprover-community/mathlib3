@@ -101,7 +101,7 @@ instance : small_category (intersections ι) :=
 
 open hom
 
-@[simp] def map {ι κ : Type v} (r : ι → κ) : intersections ι ⥤ intersections κ :=
+def map {ι κ : Type v} (r : ι → κ) : intersections ι ⥤ intersections κ :=
 { obj := λ X, match X with
   | (single a) := single (r a)
   | (double a b) := double (r a) (r b)
@@ -112,6 +112,11 @@ open hom
   | _, _, (left a b)      := left (r a) (r b)
   | _, _, (right a b)     := right (r a) (r b)
   end }.
+
+@[simp] lemma map_obj_single {ι κ : Type v} (r : ι → κ) (a) :
+  (map r).obj (single a) = single (r a) := rfl
+@[simp] lemma map_obj_double {ι κ : Type v} (r : ι → κ) (a b) :
+  (map r).obj (double a b) = double (r a) (r b) := rfl
 
 end intersections
 
@@ -135,6 +140,24 @@ def diagram : intersections (c.ι) ⥤ (opens X)ᵒᵖ :=
 
 @[simp] lemma diagram_obj_single (a) : c.diagram.obj (single a) = op (c.i a) := rfl
 @[simp] lemma diagram_obj_double (a b) : c.diagram.obj (double a b) = op ((c.i a) ∩ (c.i b)) := rfl
+
+def intersections.map_diagram {c d : cover X} (f : c ⟶ d) :
+  intersections.map (f.s) ⋙ d.diagram ⟶ c.diagram :=
+{ app := λ j,
+  match j with
+  | (intersections.single a) := (f.r a).op
+  | (intersections.double a b) :=
+    begin
+      dsimp,
+      exact has_hom.hom.op ⟨⟨opens.inter_subset_inter (f.r a).down.down (f.r b).down.down⟩⟩
+    end
+  end }
+
+@[simp] lemma intersections.map_diagram_id (c : cover X) (j) :
+  (intersections.map_diagram (𝟙 c)).app j = c.diagram.map (eq_to_hom begin cases j; refl end) :=
+begin
+  cases j; refl
+end
 
 /--
 The union of all the sets in the cover is the same as the union of all the sets and

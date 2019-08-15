@@ -1068,12 +1068,13 @@ Lift an expression to another type.
   constant of type `ℕ`, also named `n` and replaces all occurrences of the old variable `(n : ℤ)`
   with `↑n` (where `n` in the new variable). It will remove `n` and `hn` from the context.
   + So for example the tactic `lift n to ℕ using hn` transforms the goal
-    `P : ℤ → Prop, n : ℤ, hn : n ≥ 0, h : P n ⊢ n = 3` to `P : ℤ → Prop, n : ℕ, h : P ↑n ⊢ ↑n = 3`.
+    `n : ℤ, hn : n ≥ 0, h : P n ⊢ n = 3` to `n : ℕ, h : P ↑n ⊢ ↑n = 3`
+    (here `P` is some term of type `ℤ → Prop`).
 * The argument `using hn` is optional, the tactic `lift n to ℕ` does the same, but also creates a
   new subgoal that `n ≥ 0` (where `n` is the old variable).
   + So for example the tactic `lift n to ℕ` transforms the goal
-    `P : ℤ → Prop, n : ℤ, h : P n ⊢ n = 3` to two goals
-    `P : ℤ → Prop, n : ℕ, h : P ↑n ⊢ ↑n = 3` and `P : ℤ → Prop, n : ℤ, h : P n ⊢ n ≥ 0`.
+    `n : ℤ, h : P n ⊢ n = 3` to two goals
+    `n : ℕ, h : P ↑n ⊢ ↑n = 3` and `n : ℤ, h : P n ⊢ n ≥ 0`.
 * You can also use `lift n to ℕ using e` where `e` is any expression of type `n ≥ 0`.
 * Use `lift n to ℕ with k` to specify the name of the new variable.
 * Use `lift n to ℕ with k hk` to also specify the name of the equality `↑k = n`. In this case, `n`
@@ -1083,8 +1084,8 @@ Lift an expression to another type.
   In this case, the `hk` will always stay in the context, but it will be used to rewrite `e` in
   all hypotheses and the target.
   + So for example the tactic `lift n + 3 to ℕ using hn with k hk` transforms the goal
-    `P : ℤ → Prop, n : ℤ, hn : n + 3 ≥ 0, h : P (n + 3) ⊢ n + 3 = 2 * n` to the goal
-    `P : ℤ → Prop, n : ℤ, k : ℕ, hk : ↑k = n + 3, h : P ↑k ⊢ ↑k = 2 * n`.
+    `n : ℤ, hn : n + 3 ≥ 0, h : P (n + 3) ⊢ n + 3 = 2 * n` to the goal
+    `n : ℤ, k : ℕ, hk : ↑k = n + 3, h : P ↑k ⊢ ↑k = 2 * n`.
 * The tactic `lift n to ℕ using h` will remove `h` from the context. If you want to keep it,
   specify it again as the third argument to `with`, like this: `lift n to ℕ using h with n rfl h`.
 * More generally, this can lift an expression from `α` to `β` assuming that there is an instance

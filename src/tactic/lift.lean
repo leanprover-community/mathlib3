@@ -34,6 +34,8 @@ class can_lift (α : Type u) (β : Type v) : Type (max u v) :=
 namespace tactic
 
 /- Construct the proof of `cond x` in the lift tactic.
+  `e` is the expression being lifted and `h` is the specified proof of `can_lift.cond e`.
+  `old_tp` and `new_tp` are the arguments to `can_lift` and `inst` is the `can_lift`-instance.
   If the proof was specified, we check whether it has the correct type.
     If it doesn't have the correct type, we display an error message
     (but first call dsimp on the expression in the message).
@@ -51,6 +53,10 @@ if h_some : h.is_some then
     prf ← mk_app `can_lift.cond [old_tp, new_tp, inst, e] >>= assert prf_nm,
     focus1 (interactive.dsimp tt [] [`can_lift] $ interactive.loc.ns [none]), swap, return prf)
 
+/-- Lift the expression `p` to the type `t`, with proof obligation given by `h`.
+  The list `n` is used for the two newly generated names, and to specify whether `h` should
+  remain in the local context. See the doc string of `tactic.interactive.lift` for more information.
+  -/
 meta def lift (p : pexpr) (t : pexpr) (h : option pexpr) (n : list name) : tactic unit :=
 do
   e ← i_to_expr p,

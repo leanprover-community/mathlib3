@@ -393,6 +393,22 @@ local_context >>= case_some_hyp_aux s cont
   The main tactics.
 -/
 
+/--
+  `safe_core s ps cfg opt` negates the goal, normalizes hypotheses
+  (by splitting conjunctions, eliminating existentials, pushing negations inwards,
+  and calling `simp` with the supplied lemmas `s`), and then tries `contradiction`.
+  
+  If this fails, it will create an SMT state and repeatedly use `ematch`
+  (using `ematch` lemmas in the environment, universally quantified assumptions,
+  and the supplied lemmas `ps`) and congruence closure.
+
+  `safe_core` is complete for propositional logic. Depending on the form of `opt`
+  it will:
+
+  - (if `opt` is `case_option.force`) fail if it does not close the goal,
+  - (if `opt` is `case_option.at_most_one`) fail if it produces more than one goal, and
+  - (if `opt` is `case_option.accept`) ignore the number of goals it produces.
+-/
 meta def safe_core (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config) : case_option → tactic unit :=
 λ co, focus1 $
 do when_tracing `auto.finish (trace "entering safe_core" >> trace_state),
@@ -414,21 +430,36 @@ do when_tracing `auto.finish (trace "entering safe_core" >> trace_state),
             | case_option.accept      := try (done ps cfg)
             end))
 
-meta def clarify (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config := {}) : tactic unit :=
-  safe_core s ps cfg case_option.at_most_one
+/--
+  `clarify` is `safe_core`, but with the `(opt : case_option)`
+  parameter fixed at `case_option.at_most_one`. 
+-/
+meta def clarify (s : simp_lemmas × list name) (ps : list pexpr)
+  (cfg : auto_config := {}) : tactic unit := safe_core s ps cfg case_option.at_most_one
 
-meta def safe (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config := {}) : tactic unit :=
-  safe_core s ps cfg case_option.accept
+/--
+  `safe` is `safe_core`, but with the `(opt : case_option)`
+  parameter fixed at `case_option.accept`.
+-/
+meta def safe (s : simp_lemmas × list name) (ps : list pexpr)
+  (cfg : auto_config := {}) : tactic unit := safe_core s ps cfg case_option.accept
 
-meta def finish (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config := {}) : tactic unit :=
-  safe_core s ps cfg case_option.force
+/--
+  `finish` is `safe_core`, but with the `(opt : case_option)`
+  parameter fixed at `case_option.force`.
+-/
+meta def finish (s : simp_lemmas × list name) (ps : list pexpr)
+  (cfg : auto_config := {}) : tactic unit := safe_core s ps cfg case_option.force
 
-meta def iclarify (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config := {}) : tactic unit :=
-  clarify s ps {classical := ff, ..cfg}
+/--  `iclarify` is like `clarify`, but only uses intuitionistic logic. -/
+meta def iclarify (s : simp_lemmas × list name) (ps : list pexpr)
+  (cfg : auto_config := {}) : tactic unit := clarify s ps {classical := ff, ..cfg}
 
-meta def isafe (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config := {}) : tactic unit :=
-  safe s ps {classical := ff, ..cfg}
+/-- `isafe` is like `safe`, but only uses intuitionistic logic. -/
+meta def isafe (s : simp_lemmas × list name) (ps : list pexpr)
+  (cfg : auto_config := {}) : tactic unit := safe s ps {classical := ff, ..cfg}
 
+/-- `ifinish` is like `finish`, but only uses intuitionistic logic. -/
 meta def ifinish (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config := {}) : tactic unit :=
   finish s ps {classical := ff, ..cfg}
 
@@ -447,7 +478,7 @@ local postfix `?`:9001 := optional
 local postfix *:9001 := many
 
 /--
-  `clarify[h1,...,hn] using [e1,...,en]` negates the goal, normalizes hypotheses
+  `clarify [h1,...,hn] using [e1,...,en]` negates the goal, normalizes hypotheses
   (by splitting conjunctions, eliminating existentials, pushing negations inwards,
   and calling `simp` with the supplied lemmas `h1,...,hn`), and then tries `contradiction`.
   
@@ -464,16 +495,10 @@ local postfix *:9001 := many
 meta def clarify (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?)
   (cfg : auto_config := {}) : tactic unit :=
 do s ← mk_simp_set ff [] hs,
-   let ps' :=
-   match ps with
-   | none := []
-   | (some ps) := ps
-   end,
-   auto.clarify s ps' cfg
-
+   auto.clarify s (ps.get_or_else []) cfg
 
 /--
-  `safe[h1,...,hn] using [e1,...,en]` negates the goal, normalizes hypotheses
+  `safe [h1,...,hn] using [e1,...,en]` negates the goal, normalizes hypotheses
   (by splitting conjunctions, eliminating existentials, pushing negations inwards,
   and calling `simp` with the supplied lemmas `h1,...,hn`), and then tries `contradiction`.
   
@@ -490,15 +515,10 @@ do s ← mk_simp_set ff [] hs,
 meta def safe (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?)
   (cfg : auto_config := {}) : tactic unit :=
 do s ← mk_simp_set ff [] hs,
-   let ps' :=
-   match ps with
-   | none := []
-   | (some ps) := ps
-   end,
-   auto.safe s ps' cfg
+   auto.safe s (ps.get_or_else []) cfg
 
 /--
-  `finish[h1,...,hn] using [e1,...,en]` negates the goal, normalizes hypotheses
+  `finish [h1,...,hn] using [e1,...,en]` negates the goal, normalizes hypotheses
   (by splitting conjunctions, eliminating existentials, pushing negations inwards,
   and calling `simp` with the supplied lemmas `h1,...,hn`), and then tries `contradiction`.
   
@@ -515,12 +535,7 @@ do s ← mk_simp_set ff [] hs,
 meta def finish (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?)
   (cfg : auto_config := {}) : tactic unit :=
 do s ← mk_simp_set ff [] hs,
-   let ps' :=
-   match ps with
-   | none := []
-   | (some ps) := ps
-   end,
-   auto.finish s ps' cfg
+   auto.finish s (ps.get_or_else []) cfg
 
 /--
   `iclarify` is like `clarify`, but only uses intuitionistic logic.
@@ -528,12 +543,7 @@ do s ← mk_simp_set ff [] hs,
 meta def iclarify (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?)
   (cfg : auto_config := {}) : tactic unit :=
 do s ← mk_simp_set ff [] hs,
-   let ps' :=
-   match ps with
-   | none := []
-   | (some ps) := ps
-   end,
-   auto.iclarify s ps' cfg
+   auto.iclarify s (ps.get_or_else []) cfg
 
 /--
   `isafe` is like `safe`, but only uses intuitionistic logic.
@@ -541,12 +551,7 @@ do s ← mk_simp_set ff [] hs,
 meta def isafe (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?)
   (cfg : auto_config := {}) : tactic unit :=
 do s ← mk_simp_set ff [] hs,
-   let ps' :=
-   match ps with
-   | none := []
-   | (some ps) := ps
-   end,
-   auto.isafe s ps' cfg
+   auto.isafe s (ps.get_or_else []) cfg
 
 /--
   `ifinish` is like `finish`, but only uses intuitionistic logic.
@@ -554,12 +559,7 @@ do s ← mk_simp_set ff [] hs,
 meta def ifinish (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?)
   (cfg : auto_config := {}) : tactic unit :=
 do s ← mk_simp_set ff [] hs,
-   let ps' :=
-   match ps with
-   | none := []
-   | (some ps) := ps
-   end,
-   auto.ifinish s ps' cfg
+   auto.ifinish s (ps.get_or_else []) cfg
 
 end interactive
 end tactic

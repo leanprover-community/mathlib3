@@ -136,7 +136,7 @@ else
       (λ p, by simp [@eq_comm _ _ p, -sub_eq_add_neg,
           irreducible_of_degree_eq_one (degree_X_sub_C _)] {contextual := tt})
       (associated.symm $ calc _ ~ᵤ f.map i :
-        ⟨units.map C (units.mk0 (f.map i).leading_coeff
+        ⟨(units.map' C : units β →* units (polynomial β)) (units.mk0 (f.map i).leading_coeff
             (mt leading_coeff_eq_zero.1 (mt (map_eq_zero i).1 hf0))),
           by conv_rhs {rw [hs, ← leading_coeff_map i, mul_comm]}; refl⟩
         ... ~ᵤ _ : associated.symm (unique_factorization_domain.factors_prod (by simpa using hf0))),

@@ -1090,5 +1090,3 @@ Lift an expression to another type.
   specify it again as the third argument to `with`, like this: `lift n to ℕ using h with n rfl h`.
 * More generally, this can lift an expression from `α` to `β` assuming that there is an instance
   of `can_lift α β`. In this case the proof obligation is specified by `can_lift.cond`.
-* If you declare a new instance of the `can_lift` class, give it the `[can_lift]` attribute,
-  like so: `@[can_lift] instance : can_lift ℤ ℕ := ⟨_, _, _⟩`.

@@ -255,6 +255,12 @@ begin
   all_goals { admit }
 end
 
+instance can_lift_unit : can_lift unit unit :=
+⟨id, λ x, true, λ x _, ⟨x, rfl⟩⟩
+
+/- test whether new instances of `can_lift` are added as simp lemmas -/
+run_cmd do l ← can_lift_attr.get_cache, guard (`can_lift_unit ∈ l)
+
 end lift
 
 private meta def get_exception_message (t : lean.parser unit) : lean.parser string

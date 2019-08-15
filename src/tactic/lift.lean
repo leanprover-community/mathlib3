@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import tactic.rcases
-
 /-!
 # lift tactic
 
@@ -18,17 +17,27 @@ lift, tactic
 
 universe variables u v
 
-run_cmd mk_simp_attr `can_lift
-
 /-- A class specifying that you can lift elements from `α` to `β` assuming `cond` is true.
-  Used by the tactic `lift`. For the proper functioning of the lift tactic, make sure that all
-  instances of this class have attribute `[can_lift]`. -/
+  Used by the tactic `lift`. -/
 class can_lift (α : Type u) (β : Type v) : Type (max u v) :=
 (coe : β → α)
 (cond : α → Prop)
 (prf : ∀(x : α), cond x → ∃(y : β), coe y = x)
 
-@[can_lift] instance : can_lift ℤ ℕ :=
+open tactic
+
+@[user_attribute]
+meta def can_lift_attr : user_attribute (list name) :=
+{ name := "_can_lift",
+  descr := "internal attribute used by the lift tactic",
+  cache_cfg := { mk_cache := λ _,
+    do { ls ← attribute.get_instances `instance,
+        ls.mfilter $ λ l,
+        do { (_,t) ← mk_const l >>= infer_type >>= mk_local_pis,
+         return $ t.is_app_of `can_lift } },
+  dependencies := [`instance] } }
+
+instance : can_lift ℤ ℕ :=
 ⟨coe, λ n, 0 ≤ n, λ n hn, ⟨n.nat_abs, int.nat_abs_of_nonneg hn⟩⟩
 
 namespace tactic
@@ -36,12 +45,14 @@ namespace tactic
 /- Construct the proof of `cond x` in the lift tactic.
   `e` is the expression being lifted and `h` is the specified proof of `can_lift.cond e`.
   `old_tp` and `new_tp` are the arguments to `can_lift` and `inst` is the `can_lift`-instance.
+  `s` and `to_unfold` contain the information of the simp set used to simplify.
   If the proof was specified, we check whether it has the correct type.
     If it doesn't have the correct type, we display an error message
     (but first call dsimp on the expression in the message).
   If the proof was not specified, we create assert it as a local constant.
   (The name of this local constant doesn't matter, since `lift` will remove it from the context) -/
-meta def get_lift_prf (h : option pexpr) (old_tp new_tp inst e : expr) : tactic expr :=
+meta def get_lift_prf (h : option pexpr) (old_tp new_tp inst e : expr)
+  (s : simp_lemmas) (to_unfold : list name) : tactic expr :=
 if h_some : h.is_some then
   (do prf ← i_to_expr (option.get h_some), prf_ty ← infer_type prf,
   expected_prf_ty ← mk_app `can_lift.cond [old_tp, new_tp, inst, e],
@@ -51,7 +62,7 @@ if h_some : h.is_some then
   return prf)
   else (do prf_nm ← get_unused_name,
     prf ← mk_app `can_lift.cond [old_tp, new_tp, inst, e] >>= assert prf_nm,
-    focus1 (interactive.dsimp tt [] [`can_lift] $ interactive.loc.ns [none]), swap, return prf)
+    dsimp_target s to_unfold {}, swap, return prf)
 
 /-- Lift the expression `p` to the type `t`, with proof obligation given by `h`.
   The list `n` is used for the two newly generated names, and to specify whether `h` should
@@ -66,7 +77,10 @@ do
   inst ← mk_instance inst_type <|>
     pformat!"Failed to find a lift from {old_tp} to {new_tp}. Provide an instance of\n  {inst_type}"
     >>= fail,
-  prf_cond ← get_lift_prf h old_tp new_tp inst e,
+  /- make the simp set to get rid of `can_lift` projections -/
+  can_lift_instances ← can_lift_attr.get_cache >>= λ l, l.mmap resolve_name,
+  (s, to_unfold) ← mk_simp_set tt [] $ can_lift_instances.map simp_arg_type.expr,
+  prf_cond ← get_lift_prf h old_tp new_tp inst e s to_unfold,
   let prf_nm := if prf_cond.is_local_constant then some prf_cond.local_pp_name else none,
   /- We use mk_mapp to apply `can_lift.prf` to all but one argument, and then just use expr.app
   for the last argument. For some reason we get an error when applying mk_mapp it to all
@@ -82,10 +96,10 @@ do
     else if e.is_local_constant then return `rfl
     else get_unused_name `h,
   /- We add the proof of the existential statement to the context and then apply
-  `dsimp only with can_lift` to it. -/
+  `dsimp` to it, unfolding all `can_lift` instances. -/
   temp_nm ← get_unused_name,
   temp_e ← note temp_nm none prf_ex,
-  interactive.dsimp tt [] [`can_lift] (interactive.loc.ns [temp_nm]),
+  dsimp_hyp temp_e s to_unfold {},
   /- We case on the existential. We use `rcases` because `eq_nm` could be `rfl`. -/
   rcases (pexpr.of_expr temp_e) [[rcases_patt.one new_nm, rcases_patt.one eq_nm]],
   /- If the lifted variable is not a local constant, try to rewrite it away using the new equality-/
@@ -123,8 +137,6 @@ namespace interactive
     specify it again as the third argument to `with`, like this: `lift n to ℕ using h with n rfl h`.
   * More generally, this can lift an expression from `α` to `β` assuming that there is an instance
     of `can_lift α β`. In this case the proof obligation is specified by `can_lift.cond`.
-  * If you declare a new instance of the `can_lift` class, give it the `[can_lift]` attribute,
-    like so: `@[can_lift] instance : can_lift ℤ ℕ := ⟨_, _, _⟩`.
 -/
 meta def lift (p : parse texpr) (t : parse to_texpr) (h : parse using_texpr)
   (n : parse with_ident_list) : tactic unit :=

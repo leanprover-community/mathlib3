@@ -8,24 +8,53 @@ Transport multiplicative to additive
 
 import tactic.basic data.option.defs
 
+meta def name.map_prefix (f : name → option name) :  name → option name :=
+λ n, f n <|> match n with
+| name.anonymous := none
+| name.mk_string s n' := name.mk_string s <$> n'.map_prefix
+| name.mk_numeral d n' := name.mk_numeral d <$> n'.map_prefix
+end
+
 section transport
 open tactic
+
+meta def apply_replacement_fun (f : name → option name) (e : expr) : expr :=
+e.replace $ λ e d,
+match e with
+| expr.const n ls := do
+  new_n ← f n,
+  return $ expr.const new_n ls
+| _ := none
+end
+
+meta def copy_decl_using_fun (f : name → option name) (src : name) (tgt : name) : command :=
+do decl     ← get_decl src,
+   let decl := decl.update_name $ tgt,
+   let decl := decl.update_type $ apply_replacement_fun f decl.type,
+   let decl := decl.map_value $ apply_replacement_fun f,
+   add_decl decl
+
+meta def transport_with_fun (f : name → option name) (src : name) (tgt : name) : command :=
+copy_decl_using_fun f src tgt
+>> copy_attribute `reducible src tt tgt
+>> copy_attribute `simp src tt tgt
+>> copy_attribute `instance src tt tgt
+
+meta def transport_with_prefix_dict (dict : name_map name) : name → name → command :=
+transport_with_fun (name.map_prefix dict.find)
 
 @[user_attribute]
 meta def to_additive_attr : user_attribute (name_map name) name :=
 { name      := `to_additive,
   descr     := "Transport multiplicative to additive",
-  cache_cfg := ⟨λ ns, ns.mfoldl (λ dict n, do
-    val ← to_additive_attr.get_param n,
-    pure $ dict.insert n val) mk_name_map, []⟩,
+  cache_cfg :=
+    ⟨λ ns, ns.mfoldl (λ dict n, dict.insert n <$> to_additive_attr.get_param n) mk_name_map, []⟩,
   parser    := lean.parser.ident,
   after_set := some $ λ src prio persistent, do
     env ← get_env,
-    dict ← to_additive_attr.get_cache,
-    tgt ← to_additive_attr.get_param src,
-    let fields := env.structure_fields src,
-    match fields with
+    match (env.structure_fields src) with
     | some fields := do
+      tgt ← to_additive_attr.get_param src,
       tgt_fields ← env.structure_fields tgt,
       guard (fields.length = tgt_fields.length) <|>
         fail ("Structures " ++ src.to_string ++ " and " ++ tgt.to_string ++
@@ -34,55 +63,48 @@ meta def to_additive_attr : user_attribute (name_map name) name :=
         (λ names, to_additive_attr.set
           (src.append names.fst) (tgt.append names.snd) persistent prio),
       skip
-    | none := (get_decl tgt >> skip) <|>
-                transport_with_dict dict src tgt
+    | none := do
+      tgt ← to_additive_attr.get_param src,
+      if env.contains tgt
+      then skip
+      else do
+        decl ← env.get src,
+        dict ← to_additive_attr.get_cache,
+        decl.value.fold skip
+          (λ e _ t,
+            match e with
+            | expr.const n _ :=
+              match n.map_prefix (λ n', if n' = src then some tgt else none) with
+              | some n' := t >> transport_with_prefix_dict dict n n'
+              | none := t
+              end
+            | _ := t
+            end),
+        transport_with_prefix_dict dict src tgt
     end }
 end transport
 
 /- map operations -/
-attribute [to_additive has_add.add] has_mul.mul
-attribute [to_additive has_zero.zero] has_one.one
-attribute [to_additive has_neg.neg] has_inv.inv
 attribute [to_additive has_add] has_mul
 attribute [to_additive has_zero] has_one
 attribute [to_additive has_neg] has_inv
 
-/- map constructors -/
-attribute [to_additive has_add.mk] has_mul.mk
-attribute [to_additive has_zero.mk] has_one.mk
-attribute [to_additive has_neg.mk] has_inv.mk
-
 /- map structures -/
 attribute [to_additive add_semigroup] semigroup
-attribute [to_additive add_semigroup.mk] semigroup.mk
 attribute [to_additive add_semigroup.to_has_add] semigroup.to_has_mul
-attribute [to_additive add_semigroup.add_assoc] semigroup.mul_assoc
-attribute [to_additive add_semigroup.add] semigroup.mul
 
 attribute [to_additive add_comm_semigroup] comm_semigroup
-attribute [to_additive add_comm_semigroup.mk] comm_semigroup.mk
 attribute [to_additive add_comm_semigroup.to_add_semigroup] comm_semigroup.to_semigroup
-attribute [to_additive add_comm_semigroup.add_comm] comm_semigroup.mul_comm
 
 attribute [to_additive add_left_cancel_semigroup] left_cancel_semigroup
-attribute [to_additive add_left_cancel_semigroup.mk] left_cancel_semigroup.mk
 attribute [to_additive add_left_cancel_semigroup.to_add_semigroup] left_cancel_semigroup.to_semigroup
-attribute [to_additive add_left_cancel_semigroup.add_left_cancel] left_cancel_semigroup.mul_left_cancel
 
 attribute [to_additive add_right_cancel_semigroup] right_cancel_semigroup
-attribute [to_additive add_right_cancel_semigroup.mk] right_cancel_semigroup.mk
 attribute [to_additive add_right_cancel_semigroup.to_add_semigroup] right_cancel_semigroup.to_semigroup
-attribute [to_additive add_right_cancel_semigroup.add_right_cancel] right_cancel_semigroup.mul_right_cancel
 
 attribute [to_additive add_monoid] monoid
-attribute [to_additive add_monoid.mk] monoid.mk
 attribute [to_additive add_monoid.to_has_zero] monoid.to_has_one
 attribute [to_additive add_monoid.to_add_semigroup] monoid.to_semigroup
-attribute [to_additive add_monoid.add] monoid.mul
-attribute [to_additive add_monoid.add_assoc] monoid.mul_assoc
-attribute [to_additive add_monoid.zero] monoid.one
-attribute [to_additive add_monoid.zero_add] monoid.one_mul
-attribute [to_additive add_monoid.add_zero] monoid.mul_one
 
 attribute [to_additive add_comm_monoid] comm_monoid
 attribute [to_additive add_comm_monoid.mk] comm_monoid.mk
@@ -90,27 +112,18 @@ attribute [to_additive add_comm_monoid.to_add_monoid] comm_monoid.to_monoid
 attribute [to_additive add_comm_monoid.to_add_comm_semigroup] comm_monoid.to_comm_semigroup
 
 attribute [to_additive add_group] group
-attribute [to_additive add_group.mk] group.mk
 attribute [to_additive add_group.to_has_neg] group.to_has_inv
 attribute [to_additive add_group.to_add_monoid] group.to_monoid
-attribute [to_additive add_group.add_left_neg] group.mul_left_inv
-attribute [to_additive add_group.add] group.mul
-attribute [to_additive add_group.add_assoc] group.mul_assoc
-attribute [to_additive add_group.zero] group.one
-attribute [to_additive add_group.zero_add] group.one_mul
-attribute [to_additive add_group.add_zero] group.mul_one
-attribute [to_additive add_group.neg] group.inv
 
 attribute [to_additive add_comm_group] comm_group
-attribute [to_additive add_comm_group.mk] comm_group.mk
 attribute [to_additive add_comm_group.to_add_group] comm_group.to_group
 attribute [to_additive add_comm_group.to_add_comm_monoid] comm_group.to_comm_monoid
 
 /- map theorems -/
 attribute [to_additive add_assoc] mul_assoc
-attribute [to_additive add_semigroup_to_is_associative] semigroup_to_is_associative
+attribute [to_additive add_semigroup_to_is_eq_associative] semigroup_to_is_associative
 attribute [to_additive add_comm] mul_comm
-attribute [to_additive add_comm_semigroup_to_is_commutative] comm_semigroup_to_is_commutative
+attribute [to_additive add_comm_semigroup_to_is_eq_commutative] comm_semigroup_to_is_commutative
 attribute [to_additive add_left_comm] mul_left_comm
 attribute [to_additive add_right_comm] mul_right_comm
 attribute [to_additive add_left_cancel] mul_left_cancel

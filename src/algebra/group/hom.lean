@@ -59,7 +59,6 @@ attribute [to_additive is_add_hom.cases_on] is_mul_hom.cases_on
 attribute [to_additive is_add_hom.dcases_on] is_mul_hom.dcases_on
 attribute [to_additive is_add_hom.drec] is_mul_hom.drec
 attribute [to_additive is_add_hom.drec_on] is_mul_hom.drec_on
-attribute [to_additive is_add_hom.map_add] is_mul_hom.map_mul
 attribute [to_additive is_add_hom.mk] is_mul_hom.mk
 attribute [to_additive is_add_hom.rec] is_mul_hom.rec
 attribute [to_additive is_add_hom.rec_on] is_mul_hom.rec_on
@@ -106,7 +105,6 @@ class is_add_monoid_hom [add_monoid α] [add_monoid β] (f : α → β) extends 
 (map_zero : f 0 = 0)
 
 attribute [to_additive is_add_monoid_hom] is_monoid_hom
-attribute [to_additive is_add_monoid_hom.to_is_add_hom] is_monoid_hom.to_is_mul_hom
 attribute [to_additive is_add_monoid_hom.mk] is_monoid_hom.mk
 attribute [to_additive is_add_monoid_hom.cases_on] is_monoid_hom.cases_on
 attribute [to_additive is_add_monoid_hom.dcases_on] is_monoid_hom.dcases_on
@@ -288,8 +286,6 @@ instance {A : Type*} {B : Type*} [add_monoid A] [add_monoid B] : has_coe_to_fun 
 
 attribute [to_additive add_monoid_hom] monoid_hom
 attribute [to_additive add_monoid_hom.has_sizeof_inst] monoid_hom.has_sizeof_inst
-attribute [to_additive add_monoid_hom.map_zero'] monoid_hom.map_one'
-attribute [to_additive add_monoid_hom.map_add'] monoid_hom.map_mul'
 attribute [to_additive add_monoid_hom.mk] monoid_hom.mk
 attribute [to_additive add_monoid_hom.mk.inj] monoid_hom.mk.inj
 attribute [to_additive add_monoid_hom.mk.inj_arrow] monoid_hom.mk.inj_arrow
@@ -300,7 +296,6 @@ attribute [to_additive add_monoid_hom.no_confusion_type] monoid_hom.no_confusion
 attribute [to_additive add_monoid_hom.rec] monoid_hom.rec
 attribute [to_additive add_monoid_hom.rec_on] monoid_hom.rec_on
 attribute [to_additive add_monoid_hom.sizeof] monoid_hom.sizeof
-attribute [to_additive add_monoid_hom.to_fun] monoid_hom.to_fun
 
 namespace monoid_hom
 variables {M : Type*} {N : Type*} {P : Type*} [monoid M] [monoid N] [monoid P]
@@ -325,6 +320,7 @@ instance {G : Type*} {H : Type*} [group G] [group H] (f : G →* H) :
 { map_mul := f.map_mul }
 
 /-- The identity map from a monoid to itself. -/
+@[to_additive add_monoid_hom.id]
 def id (M : Type*) [monoid M] : M →* M :=
 { to_fun := id,
   map_one' := rfl,
@@ -420,14 +416,9 @@ instance {G : Type*} {H : Type*} [add_group G] [add_group H] (f : G →+ H) :
   is_add_group_hom (f : G → H) :=
 { map_add := f.map_add }
 
-/-- the identity map from an add_monoid to itself -/
-def id (A : Type*) [add_monoid A] : A →+ A :=
-{ to_fun := id,
-  map_zero' := rfl,
-  map_add' := λ _ _, rfl }
-
 attribute [to_additive add_monoid_hom.id._proof_1] monoid_hom.id._proof_1
 attribute [to_additive add_monoid_hom.id._proof_2] monoid_hom.id._proof_2
+attribute [to_additive add_monoid_hom.id] monoid_hom.id
 attribute [to_additive add_monoid_hom.id.equations._eqn_1] monoid_hom.id.equations._eqn_1
 
 /-- composition of additive monoid morphisms is an additive monoid morphism -/

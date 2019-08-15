@@ -234,22 +234,17 @@ structure add_equiv (α β : Type*) [has_add α] [has_add β] extends α ≃ β 
 attribute [to_additive add_equiv] mul_equiv
 attribute [to_additive add_equiv.cases_on] mul_equiv.cases_on
 attribute [to_additive add_equiv.has_sizeof_inst] mul_equiv.has_sizeof_inst
-attribute [to_additive add_equiv.inv_fun] mul_equiv.inv_fun
-attribute [to_additive add_equiv.left_inv] mul_equiv.left_inv
 attribute [to_additive add_equiv.mk] mul_equiv.mk
 attribute [to_additive add_equiv.mk.inj] mul_equiv.mk.inj
 attribute [to_additive add_equiv.mk.inj_arrow] mul_equiv.mk.inj_arrow
 attribute [to_additive add_equiv.mk.inj_eq] mul_equiv.mk.inj_eq
 attribute [to_additive add_equiv.mk.sizeof_spec] mul_equiv.mk.sizeof_spec
-attribute [to_additive add_equiv.map_add'] mul_equiv.map_mul'
 attribute [to_additive add_equiv.no_confusion] mul_equiv.no_confusion
 attribute [to_additive add_equiv.no_confusion_type] mul_equiv.no_confusion_type
 attribute [to_additive add_equiv.rec] mul_equiv.rec
 attribute [to_additive add_equiv.rec_on] mul_equiv.rec_on
-attribute [to_additive add_equiv.right_inv] mul_equiv.right_inv
 attribute [to_additive add_equiv.sizeof] mul_equiv.sizeof
 attribute [to_additive add_equiv.to_equiv] mul_equiv.to_equiv
-attribute [to_additive add_equiv.to_fun] mul_equiv.to_fun
 
 infix ` ≃* `:25 := mul_equiv
 infix ` ≃+ `:25 := add_equiv

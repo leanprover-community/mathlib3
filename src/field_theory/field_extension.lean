@@ -76,7 +76,7 @@ open polynomial
 
 section
 variables (α : Type u) [discrete_field α]
-variables (β : Type v) [discrete_field β] [field_extension α β]
+variables {β : Type v} [discrete_field β] [field_extension α β]
 variables (b : β)
 
 instance mpp : module (polynomial α) (polynomial α) := by apply_instance
@@ -86,10 +86,10 @@ def vanishing_ideal : ideal (polynomial α) := is_ring_hom.ker (aeval α β b)
 
 /-- A minimal polynomial for b is a non-zero monic polynomial vanishing at b of minimal degree. -/
 class is_minimal_polynomial (p : polynomial α) : Prop :=
-(vanish : p ∈ vanishing_ideal α β b)
+(vanish : p ∈ vanishing_ideal α b)
 (monic : p.monic)
 (nonzero : p ≠ 0)
-(minimal : ∀ q ∈ (vanishing_ideal α β b), q ≠ 0 → degree p ≤ degree q)
+(minimal : ∀ q ∈ (vanishing_ideal α b), q ≠ 0 → degree p ≤ degree q)
 
 end
 
@@ -97,34 +97,39 @@ variables {α : Type u} [discrete_field α]
 variables {β : Type v} [discrete_field β] [field_extension α β]
 variables {b : β}
 
-lemma mem_polynomial_ideal (p : polynomial α) : p ∈ (vanishing_ideal α β b) ↔ aeval α β b p = 0 :=
+lemma mem_polynomial_ideal (p : polynomial α) : p ∈ (vanishing_ideal α b) ↔ aeval α β b p = 0 :=
 is_add_group_hom.mem_ker _
 
 lemma minimal_polynomial.degree_unique {p q : polynomial α}
-  (hp : is_minimal_polynomial α β b p) (hq : is_minimal_polynomial α β b q) : degree p = degree q :=
+  (hp : is_minimal_polynomial α b p) (hq : is_minimal_polynomial α b q) : degree p = degree q :=
 le_antisymm (is_minimal_polynomial.minimal p q hq.1 hq.3) (is_minimal_polynomial.minimal q p hp.1 hp.3)
 
 lemma minimal_polynomial.unique (p q : polynomial α)
-  [hp : is_minimal_polynomial α β b p] [hq : is_minimal_polynomial α β b q] : p = q :=
-have h1 : p - q ∈ vanishing_ideal α β b, from ideal.sub_mem _ hp.vanish hq.vanish,
+  [hp : is_minimal_polynomial α b p] [hq : is_minimal_polynomial α b q] : p = q :=
+have h1 : p - q ∈ vanishing_ideal α b, from ideal.sub_mem _ hp.vanish hq.vanish,
 have h2 : ¬degree p ≤ degree (p - q), from not_le_of_lt $ degree_sub_lt
   (minimal_polynomial.degree_unique hp hq) (hp.nonzero)
   (by rw [monic.def.mp hp.monic, monic.def.mp hq.monic]),
 classical.by_contradiction
   (λ h, absurd (is_minimal_polynomial.minimal p (p-q) h1 (sub_ne_zero.mpr h)) h2)
 
-lemma exists_mem_ne_zero_of_ne_bot (h : vanishing_ideal α β b ≠ ⊥) :
-  ∃ p : polynomial α, p ∈ (vanishing_ideal α β b) ∧ p ≠ 0 :=
+lemma exists_mem_ne_zero_of_ne_bot (h : vanishing_ideal α b ≠ ⊥) :
+  ∃ p : polynomial α, p ∈ (vanishing_ideal α b) ∧ p ≠ 0 :=
 begin
   classical,
   by_contradiction hex,
-  have : ∀ x ∈ vanishing_ideal α β b, (x : polynomial α) = 0,
+  have : ∀ x ∈ vanishing_ideal α b, (x : polynomial α) = 0,
     { simpa only [not_exists, not_and, not_not, ne.def] using hex },
   exact (h $ begin ext, rw [submodule.mem_bot], split, exact this x, intro hx, rw hx, simp only [submodule.zero_mem] end)
 end
 
+-- TODO: change this lemma in data.set.lean
+lemma mem_diff_singleton {α : Type u} {s s' : α} {t : set α} : s ∈ t \ {s'} ↔ (s ∈ t ∧ s ≠ s') :=
+by simp
+
+/-- A minimal polynomial exists iff there exists some nonzero polynomial which vanishes at b. -/
 lemma minimal_polynomial.exists_iff :
-  (∃ p, is_minimal_polynomial α β b p) ↔ vanishing_ideal α β b ≠ ⊥ :=
+  (∃ p, is_minimal_polynomial α b p) ↔ vanishing_ideal α b ≠ ⊥ :=
 begin
 split,
 { assume h hb,
@@ -133,30 +138,39 @@ split,
   have : p ≠ 0, from hp.nonzero,
   contradiction },
 { assume h,
+  -- We first pick some nonzero polynomial q1 which vanishes at b
   cases exists_mem_ne_zero_of_ne_bot h with q1 hq1,
-  have h2 : ∃ n : ℕ, (∃ q2, (q2 ∈ vanishing_ideal α β b ∧ q2 ≠ 0) ∧ nat_degree q2 = n), from
-    ⟨nat_degree q1, q1, ⟨hq1, rfl⟩⟩,
-  haveI : decidable_pred (λ (n : ℕ), ∃ (q2 : polynomial α), (q2 ∈ vanishing_ideal α β b ∧ q2 ≠ 0) ∧ nat_degree q2 = n) := sorry,
-  let m := nat.find h2,
-  cases nat.find_spec h2 with q2 hq2,
+  have : (vanishing_ideal α b).carrier \ {0} ≠ ∅, from set.ne_empty_of_mem (mem_diff_singleton.mpr hq1),
+  -- Since polynomials are well-founded under the degree-less-than relation we may pick a nonzero
+  -- element q2 from the vanishing ideal with minimal degree
+  let q2 : polynomial α := well_founded.min _ _ this,
+  have h0 : q2 ≠ 0, from (mem_diff_singleton.mp (well_founded.min_mem degree_lt_wf _ this)).right,
+  have hc0 : (leading_coeff q2)⁻¹ ≠ 0,
+    { assume h, rw [inv_eq_zero, leading_coeff_eq_zero] at h, contradiction },
+  -- We make q2 monic by dividing by its leading coefficient
   existsi (q2 * C (leading_coeff q2)⁻¹),
-  have h0 : (leading_coeff q2)⁻¹ ≠ 0,
-    { assume h,
-      rw [inv_eq_zero, leading_coeff_eq_zero] at h,
-      exact hq2.left.right h },
   split,
-  { exact ideal.mul_mem_right (vanishing_ideal α β b) hq2.left.left },
-  { exact monic_mul_leading_coeff_inv hq2.left.right },
-  { refine mul_ne_zero hq2.left.right _,
+  { exact ideal.mul_mem_right (vanishing_ideal α b)
+      ((submodule.mem_coe _).mp $ set.mem_of_mem_diff $ well_founded.min_mem _ _ _) },
+  { exact monic_mul_leading_coeff_inv h0 },
+  { refine mul_ne_zero h0 _,
     assume hC,
     rw [←C_0, C_inj] at hC,
     contradiction },
   { assume q hq hq0,
-    rw [degree_mul_eq, degree_C h0, add_zero, degree_eq_nat_degree hq0,
-      degree_eq_nat_degree hq2.left.right, with_bot.coe_le_coe, hq2.right],
-    refine nat.find_min' h2 ⟨q, ⟨⟨hq, hq0⟩, rfl⟩⟩ } }
-
+    rw [degree_mul_eq, degree_C hc0, add_zero],
+    apply @le_of_not_lt _ _ (degree q) _,
+    exact well_founded.not_lt_min degree_lt_wf ((vanishing_ideal α b).carrier \ {0}) _ (mem_diff_singleton.mpr ⟨hq, hq0⟩) } }
 end
+
+section finite_dimensional
+
+variable [finite_dimensional α β]
+
+lemma minimal_polynomial.exists : ∃ p, is_minimal_polynomial α b p :=
+sorry
+
+end finite_dimensional
 
 end minimal_polynomial
 

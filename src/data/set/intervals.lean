@@ -14,7 +14,7 @@ Each interval has the name `I` + letter for left side + letter for right side
 
 TODO: This is just the beginning; a lot of rules are missing
 -/
-import algebra.order algebra.order_functions
+import algebra.order algebra.order_functions data.set.lattice
 import tactic.tauto
 
 namespace set
@@ -269,6 +269,18 @@ set.ext $ by simp [Ico, Iio, iff_def, lt_min_iff] {contextual:=tt}
 lemma Ioo_inter_Ioo {a b c d : α} : Ioo a b ∩ Ioo c d = Ioo (max a c) (min b d) :=
 set.ext $ by simp [iff_def, Ioo, lt_min_iff, max_lt_iff] {contextual := tt}
 
+/-- If two half-open intervals are disjoint and the endpoint of one lies in the other,
+  then it must be equal to the endpoint of the other. -/
+lemma eq_of_Ico_disjoint {x₁ x₂ y₁ y₂ : α}
+  (h : disjoint (Ico x₁ x₂) (Ico y₁ y₂)) (hx : x₁ < x₂) (hy : y₁ < y₂) (h2 : x₂ ∈ Ico y₁ y₂) :
+  y₁ = x₂ :=
+begin
+  apply le_antisymm h2.1, rw [←not_lt], intro h3,
+  apply not_disjoint_iff.mpr ⟨max y₁ x₁, _, _⟩ h,
+  simp [le_refl, h3, hx],
+  simp [le_refl, hy, lt_trans hx h2.2]
+end
+
 end decidable_linear_order
 
 section ordered_comm_group
@@ -312,5 +324,20 @@ begin
 end
 
 end ordered_comm_group
+
+section decidable_linear_ordered_comm_group
+
+variables {α : Type*} [decidable_linear_ordered_comm_group α]
+
+/-- If we remove a smaller interval from a larger, the result is nonempty -/
+lemma nonempty_Ico_sdiff {x dx y dy : α} (h : dy < dx) (hx : 0 < dx) :
+  nonempty ↥(Ico x (x + dx) \ Ico y (y + dy)) :=
+begin
+  cases lt_or_le x y with h' h',
+  { use x, simp* },
+  { use max x (x + dy), simp [*, le_refl] }
+end
+
+end decidable_linear_ordered_comm_group
 
 end set

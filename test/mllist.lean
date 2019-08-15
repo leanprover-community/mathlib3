@@ -32,3 +32,13 @@ meta def ll : mllist S nat := (mllist.of_list [l1, l2]).join
 run_cmd
 (do let x := ll.force.run [],
     guard $ x = (some ([0, 1, 2, 3, 4, 5], [])))
+
+meta def half_or_fail (n : ℕ) : tactic ℕ :=
+do guard (n % 2 = 0),
+   pure (n / 2)
+
+run_cmd
+(do let x : mllist tactic ℕ := mllist.range,
+    let y := x.mfilter_map half_or_fail,
+    z ← y.take 10,
+    guard $ z.length = 10)

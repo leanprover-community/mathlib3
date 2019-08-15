@@ -208,7 +208,7 @@ namespace add_equiv
 
 variables [has_add α] [has_add β] [has_add γ]
 
-@[refl] def refl (α : Type) [has_add α] : α ≃+ α :=
+@[refl] def refl (α : Type*) [has_add α] : α ≃+ α :=
 { hom := is_add_hom.id
   ..equiv.refl _}
 
@@ -348,7 +348,7 @@ The group operation on automorphisms of a monoid is defined by
 λ g h, mul_equiv.trans h g.
 This means that multiplication agrees with composition, (g*h)(x) = g (h x) .
 -/
-instance aut_group (γ : Type) [has_mul γ] : group (aut γ) :=
+instance aut_group (γ : Type*) [has_mul γ] : group (aut γ) :=
 { mul := λ g h, mul_equiv.trans h g,
   one := mul_equiv.refl γ,
   inv := mul_equiv.symm,
@@ -362,9 +362,9 @@ end monoid
 namespace group
 
 -- An group homomorphism is a monoid homomorphism between groups.
-def aut (γ : Type) [group γ] := mul_equiv γ γ
+def aut (γ : Type*) [group γ] := mul_equiv γ γ
 
-instance aut_group (γ : Type) [group γ] : group (aut γ) := monoid.aut_group γ
+instance aut_group (γ : Type*) [group γ] : group (aut γ) := monoid.aut_group γ
 
 end group
 
@@ -375,14 +375,14 @@ by { cases f, cases g, congr, apply equiv.eq_of_to_fun_eq h }
 
 namespace add_monoid
 
-def aut (α : Type) [has_add α] := add_equiv α α
+def aut (α : Type*) [has_add α] := add_equiv α α
 
 /--
 The group operation on automorphisms of an additive monoid is defined by
 λ g h, add_equiv.trans h g.
 This means that multiplication agrees with composition, (g*h)(x) = g (h x) .
 -/
-instance aut_group (α : Type) [has_add α] : group (aut α) :=
+instance aut_group (α : Type*) [has_add α] : group (aut α) :=
 { mul := λ g h, add_equiv.trans h g,
   one := add_equiv.refl α,
   inv := add_equiv.symm,
@@ -396,9 +396,9 @@ end add_monoid
 namespace add_group
 
 -- An additive group homomorphism is an additive monoid homomorphism between groups.
-def aut (γ : Type) [add_group γ] := add_equiv γ γ
+def aut (γ : Type*) [add_group γ] := add_equiv γ γ
 
-instance aut_group (γ : Type) [add_group γ] : group (aut γ) := add_monoid.aut_group γ
+instance aut_group (γ : Type*) [add_group γ] : group (aut γ) := add_monoid.aut_group γ
 
 end add_group
 
@@ -424,5 +424,12 @@ instance aut_group (R : Type*) [ring R] : group (aut R) :=
   one_mul := λ _, by { ext, refl },
   mul_one := λ _, by { ext, refl },
   mul_left_inv := λ _, by { ext, apply equiv.left_inv } }
+
+/--
+Map from the automorphisms of a ring to the automorphisms of the additive
+group defined by addition in R.
+-/
+def ring_aut_to_add_monoid_aut (R : Type*) [ring R] (f : aut R) : add_monoid.aut R :=
+⟨ f.1,  ⟨ f.hom.map_add ⟩ ⟩
 
 end ring

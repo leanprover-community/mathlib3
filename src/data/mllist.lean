@@ -69,7 +69,7 @@ meta def take {α} : mllist m α → ℕ → m (list α)
 | _ 0 := pure []
 | (cons l) (n+1) :=
   do (x, xs) ← l,
-     some x ← pure x | take xs n,
+     some x ← pure x | take xs (n+1),
      (::) x <$> (take xs n)
 
 meta def map {α β : Type u} (f : α → β) : mllist m α → mllist m β
@@ -141,6 +141,8 @@ cons $ do (a, r) ← l,
           return ((n, a), (enum_from (n + 1) r))
 
 meta def enum {α : Type u} : mllist m α → mllist m (ℕ × α) := enum_from 0
+
+meta def range {m : Type → Type} [alternative m] : mllist m ℕ := mllist.fix (λ n, pure (n + 1)) 0
 
 meta def concat {α : Type u} : mllist m α → α → mllist m α
 | L a := (mllist.of_list [L, mllist.of_list [a]]).join

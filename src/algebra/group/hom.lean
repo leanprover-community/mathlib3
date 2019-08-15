@@ -275,6 +275,17 @@ infixr ` →* `:25 := monoid_hom
 instance {M : Type*} {N : Type*} [monoid M] [monoid N] : has_coe_to_fun (M →* N) :=
 ⟨_, monoid_hom.to_fun⟩
 
+/-- Reinterpret a map `f : M → N` as a homomorphism `M →* N` -/
+def as_monoid_hom {M : Type u} {N : Type v} [monoid M] [monoid N]
+  (f : M → N) [h : is_monoid_hom f] : M →* N :=
+{ to_fun := f,
+  map_one' := h.2,
+  map_mul' := h.1.1 }
+
+@[simp] lemma coe_as_monoid_hom {M : Type u} {N : Type v} [monoid M] [monoid N]
+  (f : M → N) [is_monoid_hom f] : ⇑ (as_monoid_hom f) = f :=
+rfl
+
 /-- Bundled add_monoid homomorphisms; use this for bundled add_group homomorphisms too. -/
 structure add_monoid_hom (M : Type*) (N : Type*) [add_monoid M] [add_monoid N] :=
 (to_fun : M → N)
@@ -301,6 +312,8 @@ attribute [to_additive add_monoid_hom.rec] monoid_hom.rec
 attribute [to_additive add_monoid_hom.rec_on] monoid_hom.rec_on
 attribute [to_additive add_monoid_hom.sizeof] monoid_hom.sizeof
 attribute [to_additive add_monoid_hom.to_fun] monoid_hom.to_fun
+attribute [to_additive as_add_monoid_hom._proof_1] as_monoid_hom._proof_1
+attribute [to_additive as_add_monoid_hom] as_monoid_hom
 
 namespace monoid_hom
 variables {M : Type*} {N : Type*} {P : Type*} [monoid M] [monoid N] [monoid P]

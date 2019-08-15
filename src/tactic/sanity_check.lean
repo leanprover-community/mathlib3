@@ -64,9 +64,7 @@ print_decls_sorted <$> fold_over_with_cond_sorted tac
 meta def print_decls_current_file {α} [has_to_format α] (tac : declaration → tactic (option α)) :
   tactic format :=
 print_decls <$> fold_over_with_cond
-  (λ d, if name.is_internal d.to_name then return none else
-    d.in_current_file >>= λ b,
-      if b then tac d else return none)
+  (λ d, d.in_current_file >>= λ b, if b then tac d else return none)
 
 /- Print (non-internal) declarations in mathlib where tac return `some x` -/
 meta def print_decls_mathlib {α} [has_to_format α] (tac : declaration → tactic (option α)) :

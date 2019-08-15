@@ -434,11 +434,10 @@ variables [monoid α] [monoid β] [monoid γ]
 (f : α → β) (g : β → γ) [is_monoid_hom f] [is_monoid_hom g]
 
 def map_equiv (h : α ≃* β) : units α ≃* units β :=
-{ to_fun := map h,
-  inv_fun := map h.symm,
+{ inv_fun := map h.symm.to_monoid_hom,
   left_inv := λ u, ext $ h.left_inv u,
   right_inv := λ u, ext $ h.right_inv u,
-  map_mul' := λ a b, units.ext $ h.map_mul a b}
+  .. map h.to_monoid_hom }
 
 end units
 

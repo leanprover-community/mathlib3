@@ -49,6 +49,7 @@ lemma pointwise_mul_finite [has_mul α] {s t : set α} (hs : finite s) (ht : fin
   finite (s * t) :=
 by { rw pointwise_mul_eq_image, apply set.finite_image, exact set.finite_prod hs ht }
 
+@[to_additive set.pointwise_add_add_semigroup]
 def pointwise_mul_semigroup [semigroup α] : semigroup (set α) :=
 { mul_assoc := λ _ _ _, set.ext $ λ _,
   begin
@@ -60,20 +61,7 @@ def pointwise_mul_semigroup [semigroup α] : semigroup (set α) :=
   end,
   ..pointwise_mul }
 
-def pointwise_add_add_semigroup [add_semigroup α] : add_semigroup (set α) :=
-{ add_assoc := λ _ _ _, set.ext $ λ _,
-  begin
-    split,
-    { rintros ⟨_, ⟨_, _, _, _, rfl⟩, _, _, rfl⟩,
-      exact ⟨_, ‹_›, _, ⟨_, ‹_›, _, ‹_›, rfl⟩, add_assoc _ _ _⟩ },
-    { rintros ⟨_, _, _, ⟨_, _, _, _, rfl⟩, rfl⟩,
-      exact ⟨_, ⟨_, ‹_›, _, ‹_›, rfl⟩, _, ‹_›, (add_assoc _ _ _).symm⟩ }
-  end,
-  ..pointwise_add }
-
-attribute [to_additive set.pointwise_add_add_semigroup._proof_1] pointwise_mul_semigroup._proof_1
-attribute [to_additive set.pointwise_add_add_semigroup] pointwise_mul_semigroup
-
+@[to_additive set.pointwise_add_add_monoid]
 def pointwise_mul_monoid [monoid α] : monoid (set α) :=
 { one_mul := λ s, set.ext $ λ a,
     ⟨by {rintros ⟨_, _, _, _, rfl⟩, simp * at *},
@@ -83,21 +71,6 @@ def pointwise_mul_monoid [monoid α] : monoid (set α) :=
      λ h, ⟨a, h, 1, mem_singleton 1, (mul_one a).symm⟩⟩,
   ..pointwise_mul_semigroup,
   ..pointwise_one }
-
-def pointwise_add_add_monoid [add_monoid α] : add_monoid (set α) :=
-{ zero_add := λ s, set.ext $ λ a,
-    ⟨by {rintros ⟨_, _, _, _, rfl⟩, simp * at *},
-     λ h, ⟨0, mem_singleton 0, a, h, (zero_add a).symm⟩⟩,
-  add_zero := λ s, set.ext $ λ a,
-    ⟨by {rintros ⟨_, _, _, _, rfl⟩, simp * at *},
-     λ h, ⟨a, h, 0, mem_singleton 0, (add_zero a).symm⟩⟩,
-  ..pointwise_add_add_semigroup,
-  ..pointwise_zero }
-
-attribute [to_additive set.pointwise_add_add_monoid._proof_1] pointwise_mul_monoid._proof_1
-attribute [to_additive set.pointwise_add_add_monoid._proof_2] pointwise_mul_monoid._proof_2
-attribute [to_additive set.pointwise_add_add_monoid._proof_3] pointwise_mul_monoid._proof_3
-attribute [to_additive set.pointwise_add_add_monoid] pointwise_mul_monoid
 
 local attribute [instance] pointwise_mul_monoid
 

@@ -10,20 +10,16 @@ import tactic.subtype_instance
 variables {α : Type*} [monoid α] {s : set α}
 variables {β : Type*} [add_monoid β] {t : set β}
 
-/-- `s` is a submonoid: a set containing 1 and closed under multiplication. -/
-class is_submonoid (s : set α) : Prop :=
-(one_mem : (1:α) ∈ s)
-(mul_mem {a b} : a ∈ s → b ∈ s → a * b ∈ s)
-
 /-- `s` is an additive submonoid: a set containing 0 and closed under addition. -/
 class is_add_submonoid (s : set β) : Prop :=
 (zero_mem : (0:β) ∈ s)
 (add_mem {a b} : a ∈ s → b ∈ s → a + b ∈ s)
 
-attribute [to_additive is_add_submonoid] is_submonoid
-attribute [to_additive is_add_submonoid.zero_mem] is_submonoid.one_mem
-attribute [to_additive is_add_submonoid.add_mem] is_submonoid.mul_mem
-attribute [to_additive is_add_submonoid.mk] is_submonoid.mk
+/-- `s` is a submonoid: a set containing 1 and closed under multiplication. -/
+@[to_additive is_add_submonoid]
+class is_submonoid (s : set α) : Prop :=
+(one_mem : (1:α) ∈ s)
+(mul_mem {a b} : a ∈ s → b ∈ s → a * b ∈ s)
 
 instance additive.is_add_submonoid
   (s : set α) : ∀ [is_submonoid s], @is_add_submonoid (additive α) _ s
@@ -48,6 +44,7 @@ lemma is_submonoid.inter (s₁ s₂ : set α) [is_submonoid s₁] [is_submonoid 
   mul_mem := λ x y hx hy,
     ⟨is_submonoid.mul_mem hx.1 hy.1, is_submonoid.mul_mem hx.2 hy.2⟩ }
 
+@[to_additive is_add_submonoid_Union_of_directed]
 lemma is_submonoid_Union_of_directed {ι : Type*} [hι : nonempty ι]
   (s : ι → set α) [∀ i, is_submonoid (s i)]
   (directed : ∀ i j, ∃ k, s i ⊆ s k ∧ s j ⊆ s k) :
@@ -58,14 +55,6 @@ lemma is_submonoid_Union_of_directed {ι : Type*} [hι : nonempty ι]
     let ⟨j, hj⟩ := set.mem_Union.1 hb in
     let ⟨k, hk⟩ := directed i j in
     set.mem_Union.2 ⟨k, is_submonoid.mul_mem (hk.1 hi) (hk.2 hj)⟩ }
-
-lemma is_add_submonoid_Union_of_directed {ι : Type*} [hι : nonempty ι]
-  (s : ι → set β) [∀ i, is_add_submonoid (s i)]
-  (directed : ∀ i j, ∃ k, s i ⊆ s k ∧ s j ⊆ s k) :
-  is_add_submonoid (⋃i, s i) :=
-multiplicative.is_submonoid_iff.1 $
-  @is_submonoid_Union_of_directed (multiplicative β) _ _ _ s _ directed
-attribute [to_additive is_add_submonoid_Union_of_directed] is_submonoid_Union_of_directed
 
 section powers
 
@@ -163,15 +152,9 @@ lemma finset_prod_mem {α β} [comm_monoid α] (s : set α) [is_submonoid s] (f 
 
 end is_submonoid
 
+@[to_additive subtype.add_monoid]
 instance subtype.monoid {s : set α} [is_submonoid s] : monoid s :=
 by subtype_instance
-
-attribute [to_additive subtype.add_monoid._proof_1] subtype.monoid._proof_1
-attribute [to_additive subtype.add_monoid._proof_2] subtype.monoid._proof_2
-attribute [to_additive subtype.add_monoid._proof_3] subtype.monoid._proof_3
-attribute [to_additive subtype.add_monoid._proof_4] subtype.monoid._proof_4
-attribute [to_additive subtype.add_monoid._proof_5] subtype.monoid._proof_5
-attribute [to_additive subtype.add_monoid] subtype.monoid
 
 @[simp, to_additive is_add_submonoid.coe_zero]
 lemma is_submonoid.coe_one [is_submonoid s] : ((1 : s) : α) = 1 := rfl

@@ -8,6 +8,13 @@ Additional non-tactic operations on expr and related types
 
 namespace name
 
+/-- Find the largest prefix `n` of a `name` such that `f n ≠ none`, then replace this prefix
+with the value of `f n`. -/
+def map_prefix (f : name → option name) : name → name
+| anonymous := anonymous
+| (mk_string s n') := (f (mk_string s n')).get_or_else (mk_string s $ map_prefix n')
+| (mk_numeral d n') := (f (mk_numeral d n')).get_or_else (mk_numeral d $ map_prefix n')
+
 meta def deinternalize_field : name → name
 | (name.mk_string s name.anonymous) :=
   let i := s.mk_iterator in
@@ -64,6 +71,14 @@ end level
 
 namespace expr
 open tactic
+
+/-- Apply a function to each constant (inductive type, defined function etc) in an expression. -/
+protected meta def apply_replacement_fun (f : name → name) (e : expr) : expr :=
+e.replace $ λ e d,
+  match e with
+  | expr.const n ls := some $ expr.const (f n) ls
+  | _ := none
+  end
 
 protected meta def to_pos_nat : expr → option ℕ
 | `(has_one.one _) := some 1
@@ -159,3 +174,13 @@ option.is_some $ do
   env.is_projection (n ++ x.deinternalize_field)
 
 end environment
+
+namespace declaration
+
+protected meta def update_with_fun (f : name → name) (tgt : name) (decl : declaration) :
+  declaration :=
+let decl := decl.update_name $ tgt in
+let decl := decl.update_type $ decl.type.apply_replacement_fun f in
+decl.update_value $ decl.value.apply_replacement_fun f
+
+end declaration

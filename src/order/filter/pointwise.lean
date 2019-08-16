@@ -34,6 +34,7 @@ calc
   s ∈ (1:filter α) ↔ {(1:α)} ⊆ s : iff.rfl
   ... ↔ (1:α) ∈ s : by simp
 
+@[to_additive filter.pointwise_add]
 def pointwise_mul [monoid α] : has_mul (filter α) := ⟨λf g,
 { sets             := { s | ∃t₁∈f, ∃t₂∈g, t₁ * t₂  ⊆ s },
   univ_sets        :=
@@ -55,34 +56,6 @@ def pointwise_mul [monoid α] : has_mul (filter α) := ⟨λf g,
     subset.trans (pointwise_mul_subset_mul (inter_subset_left _ _) (inter_subset_left _ _)) s₁s₂,
     subset.trans (pointwise_mul_subset_mul (inter_subset_right _ _) (inter_subset_right _ _)) t₁t₂⟩,
   end }⟩
-
-def pointwise_add [add_monoid α] : has_add (filter α) := ⟨λf g,
-{ sets             := { s | ∃t₁∈f, ∃t₂∈g, t₁ + t₂  ⊆ s },
-  univ_sets        :=
-  begin
-    have h₁ : (∃x, x ∈ f.sets) := ⟨univ, univ_sets f⟩,
-    have h₂ : (∃x, x ∈ g.sets) := ⟨univ, univ_sets g⟩,
-    simpa using and.intro h₁ h₂
-  end,
-  sets_of_superset := λx y hx hxy,
-  begin
-   rcases hx with ⟨t₁, ht₁, t₂, ht₂, t₁t₂⟩,
-   exact ⟨t₁, ht₁, t₂, ht₂, subset.trans t₁t₂ hxy⟩
-  end,
-  inter_sets       := λx y,
-  begin
-    simp only [exists_prop, mem_set_of_eq, subset_inter_iff],
-    rintros ⟨s₁, hs₁, s₂, hs₂, s₁s₂⟩ ⟨t₁, ht₁, t₂, ht₂, t₁t₂⟩,
-    exact ⟨s₁ ∩ t₁, inter_sets f hs₁ ht₁, s₂ ∩ t₂, inter_sets g hs₂ ht₂,
-    subset.trans (pointwise_add_subset_add (inter_subset_left _ _) (inter_subset_left _ _)) s₁s₂,
-    subset.trans (pointwise_add_subset_add (inter_subset_right _ _) (inter_subset_right _ _)) t₁t₂⟩,
-  end }⟩
-
-attribute [to_additive filter.pointwise_add] pointwise_mul
-attribute [to_additive filter.pointwise_add._proof_1] pointwise_mul._proof_1
-attribute [to_additive filter.pointwise_add._proof_2] pointwise_mul._proof_2
-attribute [to_additive filter.pointwise_add._proof_3] pointwise_mul._proof_3
-attribute [to_additive filter.pointwise_add.equations.eqn_1] filter.pointwise_mul.equations._eqn_1
 
 local attribute [instance] pointwise_mul pointwise_add
 

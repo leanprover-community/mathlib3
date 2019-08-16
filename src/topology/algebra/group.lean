@@ -19,22 +19,18 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 
 section topological_group
 
-/-- A topological group is a group in which the multiplication and inversion operations are
-continuous. -/
-class topological_group (α : Type*) [topological_space α] [group α]
-  extends topological_monoid α : Prop :=
-(continuous_inv : continuous (λa:α, a⁻¹))
-
 /-- A topological (additive) group is a group in which the addition and negation operations are
 continuous. -/
 class topological_add_group (α : Type u) [topological_space α] [add_group α]
   extends topological_add_monoid α : Prop :=
 (continuous_neg : continuous (λa:α, -a))
 
-attribute [to_additive topological_add_group] topological_group
-attribute [to_additive topological_add_group.mk] topological_group.mk
-attribute [to_additive topological_add_group.continuous_neg] topological_group.continuous_inv
-attribute [to_additive topological_add_group.to_topological_add_monoid] topological_group.to_topological_monoid
+/-- A topological group is a group in which the multiplication and inversion operations are
+continuous. -/
+@[to_additive topological_add_group]
+class topological_group (α : Type*) [topological_space α] [group α]
+  extends topological_monoid α : Prop :=
+(continuous_inv : continuous (λa:α, a⁻¹))
 
 variables [topological_space α] [group α]
 
@@ -64,15 +60,11 @@ instance [topological_group α] [topological_space β] [group β] [topological_g
 
 attribute [instance] prod.topological_add_group
 
+@[to_additive homeomorph.add_left]
 protected def homeomorph.mul_left [topological_group α] (a : α) : α ≃ₜ α :=
 { continuous_to_fun  := continuous_mul continuous_const continuous_id,
   continuous_inv_fun := continuous_mul continuous_const continuous_id,
   .. equiv.mul_left a }
-attribute [to_additive homeomorph.add_left._proof_1] homeomorph.mul_left._proof_1
-attribute [to_additive homeomorph.add_left._proof_2] homeomorph.mul_left._proof_2
-attribute [to_additive homeomorph.add_left._proof_3] homeomorph.mul_left._proof_3
-attribute [to_additive homeomorph.add_left._proof_4] homeomorph.mul_left._proof_4
-attribute [to_additive homeomorph.add_left] homeomorph.mul_left
 
 @[to_additive is_open_map_add_left]
 lemma is_open_map_mul_left [topological_group α] (a : α) : is_open_map (λ x, a * x) :=
@@ -82,17 +74,13 @@ lemma is_open_map_mul_left [topological_group α] (a : α) : is_open_map (λ x, 
 lemma is_closed_map_mul_left [topological_group α] (a : α) : is_closed_map (λ x, a * x) :=
 (homeomorph.mul_left a).is_closed_map
 
+@[to_additive homeomorph.add_right]
 protected def homeomorph.mul_right
   {α : Type*} [topological_space α] [group α] [topological_group α] (a : α) :
   α ≃ₜ α :=
 { continuous_to_fun  := continuous_mul continuous_id continuous_const,
   continuous_inv_fun := continuous_mul continuous_id continuous_const,
   .. equiv.mul_right a }
-attribute [to_additive homeomorph.add_right._proof_1] homeomorph.mul_right._proof_1
-attribute [to_additive homeomorph.add_right._proof_2] homeomorph.mul_right._proof_2
-attribute [to_additive homeomorph.add_right._proof_3] homeomorph.mul_right._proof_3
-attribute [to_additive homeomorph.add_right._proof_4] homeomorph.mul_right._proof_4
-attribute [to_additive homeomorph.add_right] homeomorph.mul_right
 
 @[to_additive is_open_map_add_right]
 lemma is_open_map_mul_right [topological_group α] (a : α) : is_open_map (λ x, x * a) :=
@@ -102,14 +90,12 @@ lemma is_open_map_mul_right [topological_group α] (a : α) : is_open_map (λ x,
 lemma is_closed_map_mul_right [topological_group α] (a : α) : is_closed_map (λ x, x * a) :=
 (homeomorph.mul_right a).is_closed_map
 
+@[to_additive homeomorph.neg]
 protected def homeomorph.inv (α : Type*) [topological_space α] [group α] [topological_group α] :
   α ≃ₜ α :=
 { continuous_to_fun  := continuous_inv',
   continuous_inv_fun := continuous_inv',
   .. equiv.inv α }
-attribute [to_additive homeomorph.neg._proof_1] homeomorph.inv._proof_1
-attribute [to_additive homeomorph.neg._proof_2] homeomorph.inv._proof_2
-attribute [to_additive homeomorph.neg] homeomorph.inv
 
 @[to_additive exists_nhds_half]
 lemma exists_nhds_split [topological_group α] {s : set α} (hs : s ∈ nhds (1 : α)) :

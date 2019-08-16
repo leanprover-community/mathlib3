@@ -46,8 +46,6 @@ protected lemma cases_on {P : with_one α → Prop} :
   ∀ (x : with_one α), P 1 → (∀ a : α, P a) → P x :=
 option.cases_on
 
-attribute [to_additive with_zero.has_zero.equations._eqn_1] with_one.has_one.equations._eqn_1
-
 @[to_additive with_zero.has_add]
 instance [has_mul α] : has_mul (with_one α) :=
 { mul := option.lift_or_get (*) }
@@ -58,8 +56,7 @@ lemma mul_coe [has_mul α] (a b : α) : (a : with_one α) * b = (a * b : α) := 
 @[to_additive with_zero.coe_is_add_hom]
 instance coe_is_mul_hom [has_mul α] : is_mul_hom (coe : α → with_one α) := { map_mul := λ a b, rfl }
 
-attribute [to_additive with_zero.has_add.equations._eqn_1] with_one.has_mul.equations._eqn_1
-
+@[to_additive with_zero.add_monoid]
 instance [semigroup α] : monoid (with_one α) :=
 { mul_assoc := (option.lift_or_get_assoc _).1,
   one_mul   := (option.lift_or_get_is_left_id _).1,
@@ -67,21 +64,10 @@ instance [semigroup α] : monoid (with_one α) :=
   ..with_one.has_one,
   ..with_one.has_mul }
 
-attribute [to_additive with_zero.add_monoid._proof_1] with_one.monoid._proof_1
-attribute [to_additive with_zero.add_monoid._proof_2] with_one.monoid._proof_2
-attribute [to_additive with_zero.add_monoid._proof_3] with_one.monoid._proof_3
-attribute [to_additive with_zero.add_monoid] with_one.monoid
-attribute [to_additive with_zero.add_monoid.equations._eqn_1] with_one.monoid.equations._eqn_1
-
+@[to_additive with_zero.add_comm_monoid]
 instance [comm_semigroup α] : comm_monoid (with_one α) :=
 { mul_comm := (option.lift_or_get_comm _).1,
   ..with_one.monoid }
-
-attribute [to_additive with_zero.add_comm_monoid._proof_1] with_one.comm_monoid._proof_1
-attribute [to_additive with_zero.add_comm_monoid._proof_2] with_one.comm_monoid._proof_2
-attribute [to_additive with_zero.add_comm_monoid._proof_3] with_one.comm_monoid._proof_3
-attribute [to_additive with_zero.add_comm_monoid._proof_4] with_one.comm_monoid._proof_4
-attribute [to_additive with_zero.add_comm_monoid] with_one.comm_monoid
 
 section lift
 

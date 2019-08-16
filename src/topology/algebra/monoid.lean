@@ -30,8 +30,6 @@ class topological_add_monoid (α : Type u) [topological_space α] [add_monoid α
 (continuous_add : continuous (λp:α×α, p.1 + p.2))
 
 attribute [to_additive topological_add_monoid] topological_monoid
-attribute [to_additive topological_add_monoid.mk] topological_monoid.mk
-attribute [to_additive topological_add_monoid.continuous_add] topological_monoid.continuous_mul
 
 section
 variables [topological_space α] [monoid α] [topological_monoid α]

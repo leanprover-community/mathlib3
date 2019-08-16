@@ -6,42 +6,10 @@ Authors: Mario Carneiro.
 Transport multiplicative to additive
 -/
 
-import tactic.basic data.option.defs
-
-meta def name.map_prefix (f : name → option name) :  name → option name :=
-λ n, f n <|> match n with
-| name.anonymous := none
-| name.mk_string s n' := name.mk_string s <$> n'.map_prefix
-| name.mk_numeral d n' := name.mk_numeral d <$> n'.map_prefix
-end
+import tactic.basic tactic.transport tactic.algebra
 
 section transport
 open tactic
-
-meta def apply_replacement_fun (f : name → option name) (e : expr) : expr :=
-e.replace $ λ e d,
-match e with
-| expr.const n ls := do
-  new_n ← f n,
-  return $ expr.const new_n ls
-| _ := none
-end
-
-meta def copy_decl_using_fun (f : name → option name) (src : name) (tgt : name) : command :=
-do decl     ← get_decl src,
-   let decl := decl.update_name $ tgt,
-   let decl := decl.update_type $ apply_replacement_fun f decl.type,
-   let decl := decl.map_value $ apply_replacement_fun f,
-   add_decl decl
-
-meta def transport_with_fun (f : name → option name) (src : name) (tgt : name) : command :=
-copy_decl_using_fun f src tgt
->> copy_attribute `reducible src tt tgt
->> copy_attribute `simp src tt tgt
->> copy_attribute `instance src tt tgt
-
-meta def transport_with_prefix_dict (dict : name_map name) : name → name → command :=
-transport_with_fun (name.map_prefix dict.find)
 
 @[user_attribute]
 meta def to_additive_attr : user_attribute (name_map name) name :=
@@ -59,28 +27,25 @@ meta def to_additive_attr : user_attribute (name_map name) name :=
       guard (fields.length = tgt_fields.length) <|>
         fail ("Structures " ++ src.to_string ++ " and " ++ tgt.to_string ++
               " have different number of fields"),
-      (fields.zip tgt_fields).mmap
-        (λ names, to_additive_attr.set
-          (src.append names.fst) (tgt.append names.snd) persistent prio),
+      (fields.zip tgt_fields).mmap $
+        λ names,
+          to_additive_attr.set (src.append names.fst) (tgt.append names.snd) persistent prio,
+      ancestors ← ancestor_attr.get_param src <|> pure [],
+      ancestors.mmap
+        (λ n, do
+          n' ← to_additive_attr.get_param n,
+          to_additive_attr.set
+            (src.mk_string $ "to_" ++ n.to_string)
+            (tgt.mk_string $ "to_" ++ n'.to_string)
+            persistent prio),
       skip
     | none := do
       tgt ← to_additive_attr.get_param src,
       if env.contains tgt
       then skip
       else do
-        decl ← env.get src,
         dict ← to_additive_attr.get_cache,
-        decl.value.fold skip
-          (λ e _ t,
-            match e with
-            | expr.const n _ :=
-              match n.map_prefix (λ n', if n' = src then some tgt else none) with
-              | some n' := t >> transport_with_prefix_dict dict n n'
-              | none := t
-              end
-            | _ := t
-            end),
-        transport_with_prefix_dict dict src tgt
+        transport_with_prefix_dict dict src tgt [`reducible, `simp, `instance, `refl, `symm, `trans]
     end }
 end transport
 
@@ -91,33 +56,15 @@ attribute [to_additive has_neg] has_inv
 
 /- map structures -/
 attribute [to_additive add_semigroup] semigroup
-attribute [to_additive add_semigroup.to_has_add] semigroup.to_has_mul
-
 attribute [to_additive add_comm_semigroup] comm_semigroup
-attribute [to_additive add_comm_semigroup.to_add_semigroup] comm_semigroup.to_semigroup
-
 attribute [to_additive add_left_cancel_semigroup] left_cancel_semigroup
-attribute [to_additive add_left_cancel_semigroup.to_add_semigroup] left_cancel_semigroup.to_semigroup
-
 attribute [to_additive add_right_cancel_semigroup] right_cancel_semigroup
-attribute [to_additive add_right_cancel_semigroup.to_add_semigroup] right_cancel_semigroup.to_semigroup
+
 
 attribute [to_additive add_monoid] monoid
-attribute [to_additive add_monoid.to_has_zero] monoid.to_has_one
-attribute [to_additive add_monoid.to_add_semigroup] monoid.to_semigroup
-
 attribute [to_additive add_comm_monoid] comm_monoid
-attribute [to_additive add_comm_monoid.mk] comm_monoid.mk
-attribute [to_additive add_comm_monoid.to_add_monoid] comm_monoid.to_monoid
-attribute [to_additive add_comm_monoid.to_add_comm_semigroup] comm_monoid.to_comm_semigroup
-
 attribute [to_additive add_group] group
-attribute [to_additive add_group.to_has_neg] group.to_has_inv
-attribute [to_additive add_group.to_add_monoid] group.to_monoid
-
 attribute [to_additive add_comm_group] comm_group
-attribute [to_additive add_comm_group.to_add_group] comm_group.to_group
-attribute [to_additive add_comm_group.to_add_comm_monoid] comm_group.to_comm_monoid
 
 /- map theorems -/
 attribute [to_additive add_assoc] mul_assoc

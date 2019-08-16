@@ -72,7 +72,7 @@ by rw coe_int_eq_of_int; refl
 lemma coe_int_num_of_denom_eq_one {q : ℚ} (hq : q.denom = 1) : ↑(q.num) = q :=
 by { conv_rhs { rw [num_denom q, hq] }, rw [coe_int_eq_mk], refl }
 
-@[can_lift] instance : can_lift ℚ ℤ :=
+instance : can_lift ℚ ℤ :=
 ⟨coe, λ q, q.denom = 1, λ q hq, ⟨q.num, coe_int_num_of_denom_eq_one hq⟩⟩
 
 theorem coe_nat_eq_mk (n : ℕ) : ↑n = n /. 1 :=

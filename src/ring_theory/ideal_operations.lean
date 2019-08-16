@@ -561,6 +561,9 @@ def ker : ideal R := ideal.comap f ⊥
 
 lemma ker_eq : ((ker f) : set R) = is_add_group_hom.ker f := rfl
 
+lemma mem_ker (x : R) : x ∈ ker f ↔ f x = 0 :=
+by { rw [←submodule.mem_coe (ker f), ker_eq, is_add_group_hom.mem_ker] }
+
 lemma inj_iff_ker_eq_bot : function.injective f ↔ ker f = ⊥ :=
 by rw [←submodule.ext'_iff, ker_eq]; exact is_add_group_hom.inj_iff_trivial_ker f
 

@@ -2,7 +2,7 @@ import ring_theory.algebra data.matrix
 import linear_algebra.finite_dimensional linear_algebra.matrix linear_algebra.determinant
 import ring_theory.polynomial
 
-universes u v
+universes u v w
 
 class field_extension (α : Type u) (β : Type v) [discrete_field α] [discrete_field β] extends algebra α β
 
@@ -84,6 +84,9 @@ instance mpp : module (polynomial α) (polynomial α) := by apply_instance
 /-- The ideal of polynomial over α that vanish at b. -/
 def vanishing_ideal : ideal (polynomial α) := is_ring_hom.ker (aeval α β b)
 
+lemma mem_vanishing_ideal (p : polynomial α) : p ∈ vanishing_ideal α b ↔ aeval α β b p = 0 :=
+is_ring_hom.mem_ker _ _
+
 /-- A minimal polynomial for b is a non-zero monic polynomial vanishing at b of minimal degree. -/
 class is_minimal_polynomial (p : polynomial α) : Prop :=
 (vanish : p ∈ vanishing_ideal α b)
@@ -93,35 +96,44 @@ class is_minimal_polynomial (p : polynomial α) : Prop :=
 
 end
 
-variables {α : Type u} [discrete_field α]
+section is_minimal_polynomial
+
+variables (α : Type u) [discrete_field α]
 variables {β : Type v} [discrete_field β] [field_extension α β]
-variables {b : β}
+variables (b : β)
 
 lemma mem_polynomial_ideal (p : polynomial α) : p ∈ (vanishing_ideal α b) ↔ aeval α β b p = 0 :=
 is_add_group_hom.mem_ker _
 
-lemma minimal_polynomial.degree_unique {p q : polynomial α}
-  (hp : is_minimal_polynomial α b p) (hq : is_minimal_polynomial α b q) : degree p = degree q :=
+lemma minimal_polynomial.degree_unique (p q : polynomial α)
+  [hp : is_minimal_polynomial α b p] [hq : is_minimal_polynomial α b q] : degree p = degree q :=
 le_antisymm (is_minimal_polynomial.minimal p q hq.1 hq.3) (is_minimal_polynomial.minimal q p hp.1 hp.3)
 
 lemma minimal_polynomial.unique (p q : polynomial α)
   [hp : is_minimal_polynomial α b p] [hq : is_minimal_polynomial α b q] : p = q :=
 have h1 : p - q ∈ vanishing_ideal α b, from ideal.sub_mem _ hp.vanish hq.vanish,
 have h2 : ¬degree p ≤ degree (p - q), from not_le_of_lt $ degree_sub_lt
-  (minimal_polynomial.degree_unique hp hq) (hp.nonzero)
+  (minimal_polynomial.degree_unique α b p q) (hp.nonzero)
   (by rw [monic.def.mp hp.monic, monic.def.mp hq.monic]),
 classical.by_contradiction
   (λ h, absurd (is_minimal_polynomial.minimal p (p-q) h1 (sub_ne_zero.mpr h)) h2)
 
-lemma exists_mem_ne_zero_of_ne_bot (h : vanishing_ideal α b ≠ ⊥) :
-  ∃ p : polynomial α, p ∈ (vanishing_ideal α b) ∧ p ≠ 0 :=
+--TODO: move
+lemma exists_mem_ne_zero_of_ne_bot {α β : Type*} [comm_ring α] [add_comm_group β] [module α β]
+  {s : submodule α β} (h : s ≠ ⊥) : ∃ x : β, x ∈ s ∧ x ≠ 0 :=
 begin
   classical,
   by_contradiction hex,
-  have : ∀ x ∈ vanishing_ideal α b, (x : polynomial α) = 0,
+  have : ∀ x : β, x ∈ s → x = 0,
     { simpa only [not_exists, not_and, not_not, ne.def] using hex },
   exact (h $ begin ext, rw [submodule.mem_bot], split, exact this x, intro hx, rw hx, simp only [submodule.zero_mem] end)
 end
+
+--TODO: move
+lemma exists_mem_ne_zero_iff_ne_bot {α β : Type*} [comm_ring α] [add_comm_group β] [module α β]
+  {s : submodule α β} : (∃ x : β, x ∈ s ∧ x ≠ 0) ↔ s ≠ ⊥ :=
+⟨λ h hn, begin cases h with p hp, rw [hn, submodule.mem_bot] at hp, exact hp.2 hp.1 end,
+exists_mem_ne_zero_of_ne_bot⟩
 
 -- TODO: change this lemma in data.set.lean
 lemma mem_diff_singleton {α : Type u} {s s' : α} {t : set α} : s ∈ t \ {s'} ↔ (s ∈ t ∧ s ≠ s') :=
@@ -163,12 +175,108 @@ split,
     exact well_founded.not_lt_min degree_lt_wf ((vanishing_ideal α b).carrier \ {0}) _ (mem_diff_singleton.mpr ⟨hq, hq0⟩) } }
 end
 
+lemma minimal_polynomial.degree_pos (p : polynomial α) [is_minimal_polynomial α b p] :
+  degree p > 0 :=
+classical.by_contradiction (λ hn,
+begin
+  rw [not_lt, degree_le_zero_iff] at hn,
+  have hv : _ := (mem_vanishing_ideal α b p).mp (is_minimal_polynomial.vanish b p),
+  change eval₂ (algebra_map β) b p = 0 at hv,
+  rw [hn, eval₂_C, ←algebra.map_zero α β] at hv,
+  have h0 : coeff p 0 = 0, from is_field_hom.injective (algebra_map β) hv,
+  rw [h0, C_0] at hn,
+  exact (is_minimal_polynomial.nonzero b p) hn
+end)
+
+lemma minimal_polynomial.not_is_unit (p : polynomial α) [h : is_minimal_polynomial α b p] :
+  ¬ is_unit p :=
+λ h, not_lt.mpr (le_refl (0 : with_bot ℕ))
+  (by {convert minimal_polynomial.degree_pos α b p, exact eq.symm (degree_eq_zero_of_is_unit h) })
+
+lemma minimal_polynomial.irreducible {p : polynomial α} [h : is_minimal_polynomial α b p] : irreducible p :=
+classical.by_contradiction (λ hn,
+begin
+  unfold irreducible at hn,
+  rw [not_and] at hn,
+  replace hn := hn (minimal_polynomial.not_is_unit α b p),
+  rw [classical.not_forall] at hn,
+  cases hn with q1 hn,
+  rw [classical.not_forall] at hn,
+  cases hn with q2 hn2,
+  apply hn2,
+  intro hq,
+  sorry
+end)
+
+end is_minimal_polynomial
+
 section finite_dimensional
 
-variable [finite_dimensional α β]
+open vector_space
 
-lemma minimal_polynomial.exists : ∃ p, is_minimal_polynomial α b p :=
-sorry
+--TODO: universe issue with cardinals
+variables (α : Type u) [discrete_field α]
+variables {β : Type u} [discrete_field β] [field_extension α β] [finite_dimensional α β]
+variables (b : β)
+
+instance mf : module α (ℕ →₀ α) := finsupp.module ℕ α
+
+def power_basis : (ℕ →₀ α) →ₗ[α] β :=
+{ to_fun := λ f, finsupp.sum f (λ i a, algebra_map β a * b ^ i),
+  add := λ f g, begin refine finsupp.sum_add_index _ _,
+      { intro, rw [algebra.map_zero, zero_mul] },
+      { intros, rw [algebra.map_add, add_mul] } end,
+  smul := λ f g, begin
+      rw [finsupp.sum_smul_index, finsupp.smul_sum],
+      conv_rhs { congr, skip, funext, rw [algebra.smul_def, ←mul_assoc, ←algebra.map_mul] },
+      { intro, rw [algebra.map_zero, zero_mul] } end }
+
+--TODO: set priorities correct to avoid these instances
+instance ms (p : submodule α (ℕ →₀ α)) : module α p := submodule.module p
+instance vs (p : submodule α (ℕ →₀ α)) : vector_space α p := vector_space.mk α p
+
+-- move
+lemma dim_finsupp (α : Type u) (η : Type v) (β : Type w) [discrete_field α] [add_comm_group β] [decidable_eq β] [decidable_eq η]
+  [vector_space α β] : dim α (η →₀ β) = cardinal.lift (cardinal.mk η) := sorry
+
+lemma power_basis.ker_omega : dim α (power_basis α b).ker ≥ cardinal.omega :=
+begin
+  -- Assume that the kernel has finite dimension
+  by_contradiction h1,
+  rw [←lt_iff_not_ge] at h1,
+  have h2 : dim α (power_basis α b).range < cardinal.omega, from
+    lt_of_le_of_lt (dim_submodule_le _) (finite_dimensional.dim_lt_omega α β),
+  -- Since the range has finite dimension, so has the direct sum of the range and kernel
+  have h3 : dim α (power_basis α b).range + (dim α (power_basis α b).ker) < cardinal.omega, from
+    cardinal.add_lt_omega h2 h1,
+  letI : vector_space α (ℕ →₀ α) := vector_space.mk α (ℕ →₀ α), --hint
+  have h4 : dim α (ℕ →₀ α) = cardinal.omega, from dim_finsupp α ℕ α,
+  rw [dim_range_add_dim_ker, h4] at h3,
+  -- We arrive at a contradiction since the domain has infinite dimension
+  exact (not_lt.mpr $ le_refl cardinal.omega) h3
+end
+
+lemma power_basis.ker_pos : dim α (power_basis α b).ker > 0 :=
+lt_of_lt_of_le cardinal.omega_pos $ power_basis.ker_omega α b
+
+instance : vector_space α (ℕ →₀ α) := vector_space.mk α (ℕ →₀ α)
+instance : add_comm_group (ℕ →₀ α) := by apply_instance
+
+theorem minimal_polynomial.exists : ∃ p, is_minimal_polynomial α b p :=
+begin
+  cases exists_mem_ne_zero_of_dim_pos (power_basis.ker_pos α b : dim α (power_basis α b).ker > 0) with p hp,
+  rw [minimal_polynomial.exists_iff, ←exists_mem_ne_zero_iff_ne_bot],
+  existsi p,
+  rw [linear_map.mem_ker] at hp,
+  rwa [mem_vanishing_ideal]
+end
+
+/-- The minimal polynomial of b over α. -/
+noncomputable def minimal_polynomial : polynomial α :=
+classical.some $ minimal_polynomial.exists α b
+
+instance minimal_polynomial_is_mp : is_minimal_polynomial α b (minimal_polynomial α b) :=
+classical.some_spec $ minimal_polynomial.exists α b
 
 end finite_dimensional
 

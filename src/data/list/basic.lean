@@ -1026,6 +1026,16 @@ lemma insert_nth_comm (a b : α) :
   assume h₀ h₁,
   by simp [insert_nth]; exact insert_nth_comm i j l (nat.le_of_succ_le_succ h₀) (nat.le_of_succ_le_succ h₁)
 
+lemma mem_insert_nth {a b : α} : ∀ {n : ℕ} {l : list α} (hi : n ≤ l.length),
+  a ∈ l.insert_nth n b ↔ a = b ∨ a ∈ l
+| 0     as       h := iff.rfl
+| (n+1) []       h := (nat.not_succ_le_zero _ h).elim
+| (n+1) (a'::as) h := begin
+  dsimp [list.insert_nth],
+  erw [list.mem_cons_iff, list.mem_insert_nth (nat.le_of_succ_le_succ h), list.mem_cons_iff,
+    ← or.assoc, or_comm (a = a'), or.assoc]
+end
+
 end insert_nth
 
 /- take, drop -/

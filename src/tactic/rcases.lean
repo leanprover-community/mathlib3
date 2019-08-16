@@ -456,21 +456,20 @@ is equivalent to
  If `type` is omitted, `:= proof` is required.
 -/
 meta def obtain : interactive.parse obtain_parse → tactic unit
-| (pat, none, some val) :=
-  tactic.rcases val $ rcases_patt_inverted.invert_list (pat.get_or_else [default _])
+| (pat, tp, some val) :=
+  tactic.rcases ``(%%val : %%(tp.get_or_else pexpr.mk_placeholder)) $
+    rcases_patt_inverted.invert_list (pat.get_or_else [default _])
+| (pat, some tp, none) :=
+  do nm ← mk_fresh_name,
+    e ← to_expr tp >>= assert nm,
+    (g :: gs) ← get_goals,
+    set_goals gs,
+    tactic.rcases ``(%%e) $ rcases_patt_inverted.invert_list (pat.get_or_else [default _]),
+    gs ← get_goals,
+    set_goals (g::gs)
 | (pat, none, none) :=
   fail $ "`obtain` requires either an expected type or a value.\n" ++
          "usage: `obtain ⟨patt⟩? : type (:= val)?` or `obtain ⟨patt⟩? (: type)? := val`"
-| (pat, some tp, none) :=
-do nm ← mk_fresh_name,
-   e ← to_expr tp >>= assert nm,
-   (g :: gs) ← get_goals,
-   set_goals gs,
-   tactic.rcases ``(%%e) $ rcases_patt_inverted.invert_list (pat.get_or_else [default _]),
-   gs ← get_goals,
-   set_goals (g::gs)
-| (pat, some tp, some val) :=
-  tactic.rcases ``(%%val : %%tp) $ rcases_patt_inverted.invert_list (pat.get_or_else [default _])
 
 end interactive
 end tactic

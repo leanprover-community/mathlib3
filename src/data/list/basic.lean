@@ -976,6 +976,15 @@ theorem nth_update_nth_ne (a : α) {m n} (l : list α) (h : m ≠ n) :
   nth (update_nth l m a) n = nth l n :=
 by simp only [update_nth_eq_modify_nth, nth_modify_nth_ne _ _ h]
 
+@[simp] lemma nth_le_update_nth_eq (l : list α) (i : ℕ) (a : α)
+  (h : i < (l.update_nth i a).length) : (l.update_nth i a).nth_le i h = a :=
+by rw [← option.some_inj, ← nth_le_nth, nth_update_nth_eq, nth_le_nth]; simp * at *
+
+@[simp] lemma nth_le_update_nth_of_ne {l : list α} {i j : ℕ} (h : i ≠ j) (a : α)
+  (hj : j < (l.update_nth i a).length) :
+  (l.update_nth i a).nth_le j hj = l.nth_le j (by simpa using hj) :=
+by rw [← option.some_inj, ← list.nth_le_nth, list.nth_update_nth_ne _ _ h, list.nth_le_nth]
+
 lemma mem_or_eq_of_mem_update_nth : ∀ {l : list α} {n : ℕ} {a b : α}
   (h : a ∈ l.update_nth n b), a ∈ l ∨ a = b
 | []     n     a b h := false.elim h

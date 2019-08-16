@@ -860,6 +860,12 @@ lemma exp_injective : function.injective exp := exp_strict_mono.injective
 @[simp] lemma exp_eq_one_iff : exp x = 1 ↔ x = 0 :=
 by rw [← exp_zero, exp_injective.eq_iff]
 
+lemma one_lt_exp_iff {x : ℝ} : 1 < exp x ↔ 0 < x :=
+by rw [← exp_zero, exp_lt_exp]
+
+lemma exp_lt_one_iff {x : ℝ} : exp x < 1 ↔ x < 0 :=
+by rw [← exp_zero, exp_lt_exp]
+
 end real
 
 namespace complex

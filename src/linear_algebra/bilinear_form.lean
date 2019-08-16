@@ -46,8 +46,7 @@ def linear_map.to_bilin {χ : Type u} {β : Type v} [comm_ring χ] [add_comm_gro
   bilin_add_left := λ x y z, (linear_map.map_add f x y).symm ▸ linear_map.add_apply (f x) (f y) z,
   bilin_smul_left := λ a x y, by {rw linear_map.map_smul, rw linear_map.smul_apply, rw smul_eq_mul},
   bilin_add_right := λ x y z, linear_map.map_add (f x) y z,
-  bilin_smul_right := λ a x y, linear_map.map_smul (f x) a y
-  }
+  bilin_smul_right := λ a x y, linear_map.map_smul (f x) a y }
 
 namespace bilin_form
 
@@ -90,26 +89,22 @@ instance : add_comm_group (bilin_form α β) :=
                   bilin_add_left := λ x y z, by {rw add_left, rw add_left, simp},
                   bilin_smul_left := λ a x y, by {rw [smul_left, smul_left, mul_add]}, 
                   bilin_add_right := λ x y z, by {rw add_right, rw add_right, simp},
-                  bilin_smul_right := λ a x y, by {rw [smul_right, smul_right, mul_add]}
-                  }, 
+                  bilin_smul_right := λ a x y, by {rw [smul_right, smul_right, mul_add]} }, 
   add_assoc := by {intros, ext, unfold coe_fn has_coe_to_fun.coe bilin coe_fn has_coe_to_fun.coe bilin, rw add_assoc},
   zero := { bilin := λ x y, 0,
             bilin_add_left := λ x y z, (add_zero 0).symm,
             bilin_smul_left := λ a x y, (mul_zero a).symm,
             bilin_add_right := λ x y z, (zero_add 0).symm,
-            bilin_smul_right := λ a x y, (mul_zero a).symm,
-            },
+            bilin_smul_right := λ a x y, (mul_zero a).symm },
   zero_add := by {intros, ext, unfold coe_fn has_coe_to_fun.coe bilin, rw zero_add},
   add_zero := by {intros, ext, unfold coe_fn has_coe_to_fun.coe bilin, rw add_zero},
   neg := λ B, { bilin := λ x y, - (B.1 x y), 
                 bilin_add_left := λ x y z, by rw [bilin_add_left, neg_add],
                 bilin_smul_left := λ a x y, by rw [bilin_smul_left, mul_neg_eq_neg_mul_symm],
                 bilin_add_right := λ x y z, by rw [bilin_add_right, neg_add],
-                bilin_smul_right := λ a x y, by rw [bilin_smul_right, mul_neg_eq_neg_mul_symm],
-                },
+                bilin_smul_right := λ a x y, by rw [bilin_smul_right, mul_neg_eq_neg_mul_symm] },
   add_left_neg := by {intros, ext, unfold coe_fn has_coe_to_fun.coe bilin, rw neg_add_self},
-  add_comm := by {intros, ext, unfold coe_fn has_coe_to_fun.coe bilin, rw add_comm},
-}
+  add_comm := by {intros, ext, unfold coe_fn has_coe_to_fun.coe bilin, rw add_comm} }
 
 section 
 
@@ -120,15 +115,13 @@ instance to_module : module χ (bilin_form χ β) :=
                     bilin_add_left := λ x y z, by {unfold coe_fn has_coe_to_fun.coe bilin, rw [bilin_add_left, left_distrib]},
                     bilin_smul_left := λ a x y, by {unfold coe_fn has_coe_to_fun.coe bilin, rw [bilin_smul_left, ←mul_assoc, mul_comm c, mul_assoc]},
                     bilin_add_right := λ x y z, by {unfold coe_fn has_coe_to_fun.coe bilin, rw [bilin_add_right, left_distrib]},
-                    bilin_smul_right := λ a x y, by {unfold coe_fn has_coe_to_fun.coe bilin, rw [bilin_smul_right, ←mul_assoc, mul_comm c, mul_assoc]},
-                    },
+                    bilin_smul_right := λ a x y, by {unfold coe_fn has_coe_to_fun.coe bilin, rw [bilin_smul_right, ←mul_assoc, mul_comm c, mul_assoc]} },
   smul_add := λ c B D, by {ext, unfold coe_fn has_coe_to_fun.coe bilin, rw left_distrib},
   add_smul := λ c B D, by {ext, unfold coe_fn has_coe_to_fun.coe bilin, rw right_distrib},
   mul_smul := λ a c D, by {ext, unfold coe_fn has_coe_to_fun.coe bilin, rw mul_assoc},
   one_smul := λ B, by {ext, unfold coe_fn has_coe_to_fun.coe bilin, rw one_mul},
   zero_smul := λ B, by {ext, unfold coe_fn has_coe_to_fun.coe bilin, rw zero_mul},
-  smul_zero := λ B, by {ext, unfold coe_fn has_coe_to_fun.coe bilin, rw mul_zero}, 
-  }
+  smul_zero := λ B, by {ext, unfold coe_fn has_coe_to_fun.coe bilin, rw mul_zero} }
 
 def to_linear_map : β →ₗ[χ] β →ₗ[χ] χ := 
 linear_map.mk₂ χ F.1 (bilin_add_left F) (bilin_smul_left F) (bilin_add_right F) (bilin_smul_right F)  
@@ -139,8 +132,7 @@ def bilin_linear_map_equiv : (bilin_form χ β) ≃ₗ[χ] (β →ₗ[χ] β →
   smul := λ a B, rfl,
   inv_fun := linear_map.to_bilin,
   left_inv := λ B, by {ext, refl},
-  right_inv := λ B, by {ext, refl},
-}
+  right_inv := λ B, by {ext, refl} }
 
 end 
 
@@ -161,11 +153,9 @@ begin
   dunfold is_ortho,
   split; intro H,
   { rw [smul_left, H, ring.mul_zero] },
-
   { rw [smul_left, mul_eq_zero] at H,
     cases H,
     { trivial },
-
     { exact H }}
 end
 
@@ -175,11 +165,9 @@ begin
   dunfold is_ortho,
   split; intro H,
   { rw [smul_right, H, ring.mul_zero] },
-
   { rw [smul_right, mul_eq_zero] at H,
     cases H,
     { trivial },
-
     { exact H }}
 end
 

@@ -1,8 +1,9 @@
 import .tac
 import category_theory.monoidal.category
 import category_theory.opposites
+import category_theory.products
 
-universes v u
+universes v v' u u'
 
 namespace category_theory
 
@@ -90,9 +91,9 @@ reassoc_axiom coprod_intro_right_elim
 reassoc_axiom coprod_intro_left_elim
 end cocartesian_category
 
-variables {C : Type u}
-variables [𝒞 : category.{v} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
+
 open opposite
 
 namespace cartesian_category
@@ -105,9 +106,7 @@ variables {X₁ X₂ Y₁ Y₂ Z W : C}
 
 lemma prod_hom_def (f : X₁ ⟶ Y₁) (g : X₂ ⟶ Y₂) :
   f π g = prod_intro (prod_elim_left _ _ ≫ f) (prod_elim_right _ _ ≫ g) :=
-begin
-  rw [← hom_elim_left _ f g,← hom_elim_right _ f g,prod_intro_comp]
-end
+by rw [← hom_elim_left _ f g,← hom_elim_right _ f g,prod_intro_comp]
 
 @[extensionality]
 lemma ext (f g : Z ⟶ X₁ π X₂)
@@ -139,6 +138,14 @@ by ext; simp
 @[simp]
 lemma prod_id {X Y : C} : 𝟙 X π 𝟙 Y = 𝟙 (X π Y) :=
 by simp [prod_hom_def]
+
+variables [𝒞' : category.{v+1} C] [𝒟' : cartesian_category.{v+1} C]
+omit 𝒞 𝒟
+include 𝒞' 𝒟'
+
+def prod : C × C ⥤ C :=
+{ obj := λ X, prod_obj X.1 X.2,
+  map := λ X Y f, prod_hom f.1 f.2 }
 
 end cartesian_category
 
@@ -173,6 +180,14 @@ ext _ _
 
 @[simp]
 lemma elim_unique' (f f' : zero C ⟶ Z) : f = f' ↔ true := by simp [elim_unique _ _ f,elim_unique _ _ f']
+
+variables [𝒞' : category.{v+1} C] [𝒟' : cocartesian_category.{v+1} C]
+omit 𝒞
+include 𝒞' 𝒟'
+
+def coprod : C × C ⥤ C :=
+{ obj := λ X, coprod_obj X.1 X.2,
+  map := λ X Y f, coprod_hom f.1 f.2 }
 
 end cocartesian_category
 
@@ -226,12 +241,27 @@ omit 𝒞 𝒟
 
 instance : cartesian_category (Type*) :=
 { one := punit,
-  prod_obj := prod,
+  prod_obj := _root_.prod,
   prod_hom := @prod.map,
   intro := λ X a, punit.star,
   prod_intro := λ X Y₁ Y₂ f g x, (f x, g x),
   prod_elim_left := λ Y₁ Y₂, @_root_.prod.fst Y₁ Y₂,
   prod_elim_right := λ Y₁ Y₂, @_root_.prod.snd Y₁ Y₂ }
+
+variables {D : Type.{u+1}} {D' : Type.{u'+1}}
+variables [category.{v+1} D] [category.{v'+1} D']
+variables [𝒞' : cartesian_category.{v+1} D]
+variables [𝒟' : cartesian_category.{v'+1} D']
+include 𝒞' 𝒟'
+
+instance prod.cartesian_category : cartesian_category (D × D') :=
+{ prod_obj := λ X Y, (X.1 π Y.1, X.2 π Y.2),
+  prod_hom := λ X₁ Y₁ X₂ Y₂ f g, (f.1 π g.1,f.2 π g.2),
+  one := (one D, one D'),
+  intro := λ X, (intro X.1, intro X.2),
+  prod_intro := λ X Y₁ Y₂ f g, (prod_intro f.1 g.1,prod_intro f.2 g.2),
+  prod_elim_left := λ Y₁ Y₂, (prod_elim_left _ _, prod_elim_left _ _),
+  prod_elim_right := λ Y₁ Y₂, (prod_elim_right _ _, prod_elim_right _ _), }
 
 end cartesian_category
 
@@ -261,6 +291,21 @@ instance : cocartesian_category Type* :=
   coprod_elim := λ X Y Z f g a, sum.cases_on a f g,
   coprod_intro_left := @sum.inl,
   coprod_intro_right := @sum.inr }
+
+variables {D : Type.{u+1}} {D' : Type.{u'+1}}
+variables [category.{v+1} D] [category.{v'+1} D']
+variables [𝒞' : cocartesian_category.{v+1} D]
+variables [𝒟' : cocartesian_category.{v'+1} D']
+include 𝒞' 𝒟'
+
+instance prod.cocartesian_category : cocartesian_category (D × D') :=
+{ zero := (zero D, zero D'),
+  elim := λ X, (elim X.1, elim X.2),
+  coprod_obj := λ X Y, (X.1 ⨿ Y.1, X.2 ⨿ Y.2),
+  coprod_hom := λ X₁ Y₁ X₂ Y₂ f g, (f.1 ⨿ g.1, f.2 ⨿ g.2),
+  coprod_elim := λ X₁ X₂ Y f g, (coprod_elim f.1 g.1, coprod_elim f.2 g.2),
+  coprod_intro_left := λ Y₁ Y₂, (coprod_intro_left _ _, coprod_intro_left _ _),
+  coprod_intro_right := λ Y₁ Y₂, (coprod_intro_right _ _, coprod_intro_right _ _) }
 
 end cocartesian_category
 

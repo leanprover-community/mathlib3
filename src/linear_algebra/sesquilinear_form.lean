@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Andreas Swerdlow
 -/
 
-import algebra.module ring_theory.maps linear_algebra.tensor_product
+import algebra.module ring_theory.maps 
 
 /-!
 # Sesquilinear form
@@ -83,26 +83,22 @@ instance : add_comm_group (sesq_form α β I) :=
                   sesq_add_left := λ x y z, by {rw add_left, rw add_left, simp},
                   sesq_smul_left := λ a x y, by {rw [smul_left, smul_left, mul_add]}, 
                   sesq_add_right := λ x y z, by {rw add_right, rw add_right, simp},
-                  sesq_smul_right := λ a x y, by {rw [smul_right, smul_right, mul_add]}
-                  }, 
+                  sesq_smul_right := λ a x y, by {rw [smul_right, smul_right, mul_add]} }, 
   add_assoc := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq coe_fn has_coe_to_fun.coe sesq, rw add_assoc},
   zero := { sesq := λ x y, 0,
             sesq_add_left := λ x y z, (add_zero 0).symm,
             sesq_smul_left := λ a x y, (mul_zero a).symm,
             sesq_add_right := λ x y z, (zero_add 0).symm,
-            sesq_smul_right := λ a x y, (mul_zero (I a)).symm,
-            },
+            sesq_smul_right := λ a x y, (mul_zero (I a)).symm },
   zero_add := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw zero_add},
   add_zero := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw add_zero},
   neg := λ S, { sesq := λ x y, - (S.1 x y), 
                 sesq_add_left := λ x y z, by rw [sesq_add_left, neg_add],
                 sesq_smul_left := λ a x y, by rw [sesq_smul_left, mul_neg_eq_neg_mul_symm],
                 sesq_add_right := λ x y z, by rw [sesq_add_right, neg_add],
-                sesq_smul_right := λ a x y, by rw [sesq_smul_right, mul_neg_eq_neg_mul_symm],
-                },
+                sesq_smul_right := λ a x y, by rw [sesq_smul_right, mul_neg_eq_neg_mul_symm] },
   add_left_neg := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw neg_add_self},
-  add_comm := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw add_comm},
-}
+  add_comm := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw add_comm} }
 
 section 
 
@@ -113,19 +109,17 @@ instance to_module : module χ (sesq_form χ β J) :=
                     sesq_add_left := λ x y z, by {unfold coe_fn has_coe_to_fun.coe sesq, rw [sesq_add_left, left_distrib]},
                     sesq_smul_left := λ a x y, by {unfold coe_fn has_coe_to_fun.coe sesq, rw [sesq_smul_left, ←mul_assoc, mul_comm c, mul_assoc]},
                     sesq_add_right := λ x y z, by {unfold coe_fn has_coe_to_fun.coe sesq, rw [sesq_add_right, left_distrib]},
-                    sesq_smul_right := λ a x y, by {unfold coe_fn has_coe_to_fun.coe sesq, rw [sesq_smul_right, ←mul_assoc, mul_comm c, mul_assoc], refl},
-                    },
+                    sesq_smul_right := λ a x y, by {unfold coe_fn has_coe_to_fun.coe sesq, rw [sesq_smul_right, ←mul_assoc, mul_comm c, mul_assoc], refl} },
   smul_add := λ c S D, by {ext, unfold coe_fn has_coe_to_fun.coe sesq, rw left_distrib},
   add_smul := λ c S D, by {ext, unfold coe_fn has_coe_to_fun.coe sesq, rw right_distrib},
   mul_smul := λ a c D, by {ext, unfold coe_fn has_coe_to_fun.coe sesq, rw mul_assoc},
   one_smul := λ S, by {ext, unfold coe_fn has_coe_to_fun.coe sesq, rw one_mul},
   zero_smul := λ S, by {ext, unfold coe_fn has_coe_to_fun.coe sesq, rw zero_mul},
-  smul_zero := λ S, by {ext, unfold coe_fn has_coe_to_fun.coe sesq, rw mul_zero}, 
-  }
+  smul_zero := λ S, by {ext, unfold coe_fn has_coe_to_fun.coe sesq, rw mul_zero} }
 
 end 
 
-/-- The proposition that two elements of a bilinear form space are orthogonal -/
+/-- The proposition that two elements of a sesquilinear form space are orthogonal -/
 def is_ortho (S : sesq_form α β I) (x y : β) : Prop :=
 S x y = 0
 
@@ -142,11 +136,9 @@ begin
   dunfold is_ortho,
   split; intro H,
   { rw [smul_left, H, ring.mul_zero] },
-
   { rw [smul_left, mul_eq_zero] at H,
     cases H,
     { trivial },
-
     { exact H }}
 end
 
@@ -156,11 +148,9 @@ begin
   dunfold is_ortho,
   split; intro H,
   { rw [smul_right, H, ring.mul_zero] },
-
   { rw [smul_right, mul_eq_zero] at H,
     cases H,
     { rw map_zero_iff at H, trivial },
-
     { exact H }}
 end
 

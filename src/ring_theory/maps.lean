@@ -203,12 +203,12 @@ variables {R F}
 theorem comm_ring.hom_to_anti_hom (f : R → F) [is_ring_hom f] : is_ring_anti_hom f :=
 { map_add := λ _ _, is_ring_hom.map_add f,
   map_mul := λ _ _, by rw [is_ring_hom.map_mul f, mul_comm],
-  map_one := is_ring_hom.map_one f}
+  map_one := is_ring_hom.map_one f }
 
 theorem comm_ring.anti_hom_to_hom (f : R → F) [is_ring_anti_hom f] : is_ring_hom f :=
 { map_add := λ _ _, is_ring_anti_hom.map_add f,
   map_mul := λ _ _, by rw [is_ring_anti_hom.map_mul f, mul_comm],
-  map_one := is_ring_anti_hom.map_one f}
+  map_one := is_ring_anti_hom.map_one f }
 
 def comm_ring.equiv_to_anti_equiv (Hs : R ≃r F) : ring_anti_equiv R F :=
 { anti_hom := comm_ring.hom_to_anti_hom Hs,

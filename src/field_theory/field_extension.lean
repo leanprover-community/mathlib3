@@ -193,7 +193,7 @@ lemma minimal_polynomial.not_is_unit (p : polynomial α) [h : is_minimal_polynom
 λ h, not_lt.mpr (le_refl (0 : with_bot ℕ))
   (by {convert minimal_polynomial.degree_pos α b p, exact eq.symm (degree_eq_zero_of_is_unit h) })
 
-lemma minimal_polynomial.irreducible {p : polynomial α} [h : is_minimal_polynomial α b p] : irreducible p :=
+lemma minimal_polynomial.irreducible {p : polynomial α} [is_minimal_polynomial α b p] : irreducible p :=
 classical.by_contradiction (λ hn,
 begin
   unfold irreducible at hn,
@@ -202,10 +202,46 @@ begin
   rw [classical.not_forall] at hn,
   cases hn with q1 hn,
   rw [classical.not_forall] at hn,
-  cases hn with q2 hn2,
-  apply hn2,
+  cases hn with q2 hn,
+  apply hn,
   intro hq,
-  sorry
+  rw [@or_iff_not_and_not _ _ (classical.dec _) (classical.dec _)],
+  intro hnu,
+  have h0q1 : q1 ≠ 0, from λ h, by {rw [h, zero_mul] at hq, exact (is_minimal_polynomial.nonzero b p) hq},
+  have hq1 : 0 < (nat_degree q1 : with_bot ℕ),
+    { rw [←degree_eq_nat_degree h0q1], exact degree_pos_of_ne_zero_of_nonunit h0q1 hnu.1 },
+  have h0q2 : q2 ≠ 0, from λ h, by {rw [h, mul_zero] at hq, exact (is_minimal_polynomial.nonzero b p) hq},
+  have hq2 : 0 < (nat_degree q2 : with_bot ℕ),
+    { rw [←degree_eq_nat_degree h0q2], exact degree_pos_of_ne_zero_of_nonunit h0q2 hnu.2 },
+  rw [←with_bot.coe_zero, with_bot.coe_lt_coe] at hq1 hq2,
+  have hq1q : ¬degree p ≤ degree q1, from
+    suffices ¬nat_degree p ≤ nat_degree q1,
+      by rwa [degree_eq_nat_degree h0q1, degree_eq_nat_degree (is_minimal_polynomial.nonzero b p), with_bot.coe_le_coe],
+    (λ h, begin
+      rw [hq, nat_degree_mul_eq h0q1 h0q2] at h,
+      have : nat_degree q1 > nat_degree q1 + 0, from lt_of_lt_of_le (add_lt_add_left hq2 _) h,
+      rw [add_zero] at this,
+      exact (not_lt.mpr (le_refl _)) this
+    end),
+  have hq2q : ¬degree p ≤ degree q2, from
+    suffices ¬nat_degree p ≤ nat_degree q2,
+      by rwa [degree_eq_nat_degree h0q2, degree_eq_nat_degree (is_minimal_polynomial.nonzero b p), with_bot.coe_le_coe],
+    (λ h, begin
+      rw [hq, nat_degree_mul_eq h0q1 h0q2] at h,
+      have : nat_degree q2 > 0 + nat_degree q2, from lt_of_lt_of_le (add_lt_add_right hq1 _) h,
+      rw [zero_add] at this,
+      exact (not_lt.mpr (le_refl _)) this
+    end),
+  have h : eval₂ (algebra_map β) b p = 0, from (mem_vanishing_ideal α b p).mp (is_minimal_polynomial.vanish b p),
+  rw [hq, eval₂_mul] at h,
+  replace h := integral_domain.eq_zero_or_eq_zero_of_mul_eq_zero _ _ h,
+  cases h,
+  { replace h := (mem_polynomial_ideal α b _).mpr h,
+    apply hq1q,
+    exact is_minimal_polynomial.minimal p _ h h0q1 },
+  { replace h := (mem_polynomial_ideal α b _).mpr h,
+    apply hq2q,
+    exact is_minimal_polynomial.minimal p _ h h0q2 }
 end)
 
 end is_minimal_polynomial
@@ -235,9 +271,65 @@ def power_basis : (ℕ →₀ α) →ₗ[α] β :=
 instance ms (p : submodule α (ℕ →₀ α)) : module α p := submodule.module p
 instance vs (p : submodule α (ℕ →₀ α)) : vector_space α p := vector_space.mk α p
 
+instance (α : Type*) [division_ring α] : ring α := by apply_instance --hint
+--TODO: move
+lemma smul_eq_zero_iff_eq_zero {α β : Type*} [division_ring α] [decidable_eq α] [integral_domain β] [module α β]
+  (r : α) {b : β} (hb : b ≠ 0) : r • b = 0 ↔ r = 0 :=
+⟨λ h, classical.by_contradiction (λ hn, begin
+  have hr : r⁻¹ • r • b = r⁻¹ • 0, from congr_arg _ h,
+  rw [smul_smul, smul_zero] at hr,
+  apply hb,
+  rwa [←one_smul α b, ←division_ring.inv_mul_cancel hn],
+end),
+λ h, by { rw [h, zero_smul] }⟩
+
+lemma sum_mem_span {α β γ ι : Type*} [comm_ring α] [comm_ring β] [add_comm_group γ] [module α β] [module β γ] [module α γ]
+  (v : ι → γ) (f : ι →₀ β) : finsupp.sum f (λ i a, a • v i) ∈ submodule.span α (set.range v) := sorry
+
+set_option class.instance_max_depth 50
+--set_option pp.all true
 -- move
-lemma dim_finsupp (α : Type u) (η : Type v) (β : Type w) [discrete_field α] [add_comm_group β] [decidable_eq β] [decidable_eq η]
-  [vector_space α β] : dim α (η →₀ β) = cardinal.lift (cardinal.mk η) := sorry
+lemma dim_finsupp (α : Type u) (η : Type v) (β : Type w) [discrete_field α] [integral_domain β] [decidable_eq β] [decidable_eq η]
+  [vector_space α β] : dim α (η →₀ β) = cardinal.lift (cardinal.mk η) :=
+have is_basis α (λ i : η, finsupp.single i (1:β)), from
+begin
+  split,
+  { rw [linear_independent_iff],
+    assume f hf,
+    ext i,
+    rw [finsupp.total_apply, finsupp.ext_iff] at hf,
+    replace hf := hf i,
+    rw [finsupp.sum_apply, show ((0 : η →₀ β) i) = 0, from rfl] at hf,
+    conv_lhs at hf { congr, skip, funext, funext, rw [finsupp.smul_single, finsupp.single_apply] },
+    unfold finsupp.sum at hf,
+    letI : module α β := by apply_instance, --hint
+    have h : f.support.sum (λ (a : η), ite (a = i) (f a • (1:β)) 0) =
+      (finset.singleton i).sum (λ (a : η), ite (a = i) (f a • 1) 0),
+    { by_cases h : i ∈ f.support,
+      { refine (finset.sum_subset _ _).symm,
+        { rw [finset.subset_iff], intros _ hx, rw [finset.mem_singleton] at hx, rwa [hx] },
+        { intros j _ hj, rw [finset.not_mem_singleton] at hj, exact if_neg hj } },
+      { convert (rfl : (0:β) = 0),
+        apply finset.sum_eq_zero,
+        intros j hj,
+        rw [finset.mem_singleton] at hj,
+        rw [finsupp.not_mem_support_iff] at h,
+        rw [if_pos hj, hj, h, zero_smul] } },
+    rwa [h, finset.sum_singleton, if_pos rfl, smul_eq_zero_iff_eq_zero] at hf,
+    exact one_ne_zero },
+  { rw [submodule.eq_top_iff'],
+    assume f,
+    letI : module β (η →₀ β) := by apply_instance,
+    have : f = finsupp.sum f (λ (i : η) (a : β), a • finsupp.single i (1:β)), from sorry,
+    rw [this],
+    exact sum_mem_span (λ i : η, finsupp.single i (1:β)) f }
+end,
+begin
+  rw [←cardinal.lift_id' (dim α (η →₀ β))],
+  symmetry,
+  convert this.mk_eq_dim,
+  rw [cardinal.lift_umax]
+end
 
 lemma power_basis.ker_omega : dim α (power_basis α b).ker ≥ cardinal.omega :=
 begin

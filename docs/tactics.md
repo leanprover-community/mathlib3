@@ -163,7 +163,7 @@ they are only meant to be used on small, straightforward problems.
 * safe:    splits freely, finishes off whatever subgoals it can, and leaves the rest
 
 All accept an optional list of simplifier rules, typically definitions that should be expanded.
-(The equations and identities should not refer to the local context.)
+(The equations and identities should not refer to the local context.) All also accept an optional list of `ematch` lemmas, which must be preceded by `using`.
 
 ### ring
 
@@ -1053,3 +1053,9 @@ localized "attribute [simp] le_refl" in le
 ### rotate
 
 `rotate` moves the first goal to the back. `rotate n` will do this `n` times.
+
+### sanity_check
+
+The `#sanity_check` command checks for common mistakes in the current file or in all of mathlib, respectively.
+
+Currently this will check for unused arguments in declarations and whether a declaration is incorrectly marked as a def/lemma.

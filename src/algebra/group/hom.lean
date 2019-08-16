@@ -369,6 +369,14 @@ eq_inv_of_mul_eq_one $ by rw [←f.map_mul, inv_mul_self, f.map_one]
 @[simp] theorem map_div {G H} [group G] [group H] (f : G →* H) (g h : G) :
   f (g * h⁻¹) = (f g) * (f h)⁻¹ := by rw [f.map_mul, f.map_inv]
 
+/-- A group homomorphism is injective iff its kernel is trivial. -/
+lemma injective_iff {G H} [group G] [group H] (f : G →* H) (g h : G) :
+  function.injective f ↔ (∀ a, f a = 1 → a = 1) :=
+⟨λ h _, by rw ← f.map_one; exact @h _ _,
+  λ h x y hxy, by rw [← inv_inv (f x), inv_eq_iff_mul_eq_one, ← f.map_inv,
+      ← f.map_mul] at hxy;
+    simpa using inv_eq_of_mul_eq_one (h _ hxy)⟩
+
 /-- Makes a group homomomorphism from a proof that the map preserves multiplication. -/
 def mk' (f : M → G) (map_mul : ∀ a b : M, f (a * b) = f a * f b) : M →* G :=
 { to_fun := f,
@@ -488,6 +496,16 @@ attribute [to_additive add_monoid_hom.map_neg] monoid_hom.map_inv
   f (g - h) = (f g) - (f h) := by simp [f.map_add, f.map_neg]
 
 attribute [to_additive add_monoid_hom.map_sub] monoid_hom.map_div
+
+/-- An additive group homomorphism is injective iff its kernel is trivial. -/
+lemma injective_iff {G H} [add_group G] [add_group H] (f : G →+ H) (g h : G) :
+  function.injective f ↔ (∀ a, f a = 0 → a = 0) :=
+⟨λ h _, by rw ← f.map_zero; exact @h _ _,
+  λ h x y hxy, by rw [← neg_neg (f x), neg_eq_iff_add_eq_zero, ← f.map_neg,
+      ← f.map_add] at hxy;
+    simpa using neg_eq_of_add_eq_zero (h _ hxy)⟩
+
+attribute [to_additive add_monoid_hom.injective_iff] monoid_hom.injective_iff
 
 /-- makes an additive group homomomorphism from a proof that the map preserves addition -/
 def mk' (f : A → G) (map_add : ∀ x y : A, f (x + y) = f x + f y) : A →+ G :=

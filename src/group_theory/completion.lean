@@ -7,13 +7,15 @@ local notation `top` := (⊤ : submonoid X)
 
 variables (X)
 
-@[reducible] def completion := (submonoid.fracr (⊤ : submonoid X)).quotient
+@[reducible] def completion := (submonoid.r (⊤ : submonoid X)).quotient
+
 namespace completion
+
 instance : has_coe (X × top) (completion X) := infer_instance
 
 instance : has_inv (completion X) :=
-⟨frac.lift top (λ x, (((x.2 : X), (⟨x.1, set.mem_univ x.1⟩ : top)) : completion X)) $
-λ a b ⟨w, hw⟩, con.quotient.eq.2 $ ⟨w, by dsimp; rw [mul_comm _ b.1, mul_comm _ a.1, hw]⟩⟩
+⟨localization.lift top (λ x, (((x.2 : X), (⟨x.1, set.mem_univ x.1⟩ : top)) : completion X)) $
+λ a b ⟨w, hw⟩, con.eq.2 $ ⟨w, by dsimp; rw [mul_comm _ b.1, mul_comm _ a.1, hw]⟩⟩
 
 def inv : completion X →* completion X :=
 ⟨λ x, x⁻¹, rfl, λ x y, by induction x; induction y; refl⟩
@@ -28,13 +30,14 @@ by tidy
 
 @[simp] lemma one_eq {x : X} :
   ((x, (⟨x, set.mem_univ x⟩ : top)) : completion X) = 1 :=
-by {rw (show x = ((⟨x, set.mem_univ x⟩ : top) : X), by tidy), apply frac.mk_self}
+by {rw (show x = ((⟨x, set.mem_univ x⟩ : top) : X), by tidy), apply localization.mk_self}
 
 lemma mul_left_inv (x : completion X) : x⁻¹ * x = 1 :=
 begin
-  apply con.quotient.induction_on' x,
-  intro y,
-  rw [←inv_apply, ←frac.mk_mul, ←(@prod.mk.eta _ _ y), prod.mk_mul_mk, mul_comm],
+  apply con.induction_on' x,
+  rintro ⟨y1, y2⟩,
+  rw [←inv_apply, ←localization.mk_apply, ←localization.mk_apply,
+      localization.mk_mul_mk, mul_comm],
   apply one_eq,
 end
 
@@ -50,12 +53,12 @@ instance : comm_group (completion X) :=
 
 lemma inj_of_group_of {G : Type*} [comm_group G] {x y : G}
 (H : (x : completion G) = (y : completion G)) : x = y :=
-by {cases con.quotient.eq.1 H with w hw, simp * at *}
+by {cases con.eq.1 H with w hw, simp * at *}
 
 lemma surj_of_group_of {G : Type*} [comm_group G] {y : completion G} :
   ∃ x : G, (x : completion G) = y :=
 begin
-  apply con.quotient.induction_on' y,
+  apply con.induction_on' y,
   intro z,
   use z.1*(↑z.2)⁻¹,
   simp,

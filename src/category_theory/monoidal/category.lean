@@ -18,7 +18,9 @@ open category_theory.iso
 
 namespace category_theory
 
-class monoidal_category (C : Type u) extends category.{v} C :=
+open has_hom
+
+class monoidal_category (C : Type u) [category.{v} C] :=
 -- curried tensor product of objects:
 (tensor_obj               : C → C → C)
 (infixr ` ⊗ `:70          := tensor_obj) -- This notation is only temporary
@@ -74,7 +76,7 @@ local notation `α_` := associator
 local notation `λ_` := left_unitor
 local notation `ρ_` := right_unitor
 
-def tensor_iso {C : Type u} {X Y X' Y' : C} [monoidal_category.{v} C] (f : X ≅ Y) (g : X' ≅ Y') :
+def tensor_iso {C : Type u} {X Y X' Y' : C} [category.{v} C] [monoidal_category.{v} C] (f : X ≅ Y) (g : X' ≅ Y') :
     X ⊗ X' ≅ Y ⊗ Y' :=
 { hom := f.hom ⊗ g.hom,
   inv := f.inv ⊗ g.inv,
@@ -87,7 +89,7 @@ namespace monoidal_category
 
 section
 
-variables {C : Type u} [𝒞 : monoidal_category.{v} C]
+variables {C : Type u} [category.{v} C] [𝒞 : monoidal_category.{v} C]
 include 𝒞
 
 instance tensor_is_iso {W X Y Z : C} (f : W ⟶ X) [is_iso f] (g : Y ⟶ Z) [is_iso g] : is_iso (f ⊗ g) :=
@@ -329,7 +331,7 @@ section
 -- In order to be able to describe the tensor product as a functor, we
 -- need to be up in at least `Type 0` for both objects and morphisms,
 -- so that we can construct products.
-variables (C : Type u) [𝒞 : monoidal_category.{v+1} C]
+variables (C : Type u) [category.{v+1} C] [𝒞 : monoidal_category.{v+1} C]
 include 𝒞
 
 def tensor : (C × C) ⥤ C :=

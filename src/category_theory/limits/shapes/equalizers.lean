@@ -3,6 +3,7 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import data.fintype
 import category_theory.limits.limits
 
 open category_theory
@@ -15,6 +16,10 @@ universes v u
 
 @[derive decidable_eq] inductive walking_parallel_pair : Type v
 | zero | one
+
+instance : fintype walking_parallel_pair :=
+{ elems := [walking_parallel_pair.zero, walking_parallel_pair.one].to_finset,
+  complete := λ x, by { cases x; simp } }
 
 open walking_parallel_pair
 

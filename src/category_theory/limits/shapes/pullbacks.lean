@@ -3,6 +3,7 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import data.fintype
 import category_theory.limits.limits
 import category_theory.sparse
 
@@ -18,6 +19,14 @@ local attribute [tidy] tactic.case_bash
 | left | right | one
 @[derive decidable_eq] inductive walking_span : Type v
 | zero | left | right
+
+instance fintype_walking_cospan : fintype walking_cospan :=
+{ elems := [walking_cospan.left, walking_cospan.right, walking_cospan.one].to_finset,
+  complete := λ x, by { cases x; simp } }
+
+instance fintype_walking_span : fintype walking_span :=
+{ elems := [walking_span.zero, walking_span.left, walking_span.right].to_finset,
+  complete := λ x, by { cases x; simp } }
 
 namespace walking_cospan
 

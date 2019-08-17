@@ -31,6 +31,18 @@ include 𝒞
 def pair (X Y : C) : discrete walking_pair ⥤ C :=
 functor.of_function (pair_function X Y)
 
+@[simp] lemma pair_obj_left (X Y : C) : (pair X Y).obj walking_pair.left = X := rfl
+@[simp] lemma pair_obj_right (X Y : C) : (pair X Y).obj walking_pair.right = Y := rfl
+
+def map_pair {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) : pair W X ⟶ pair Y Z :=
+{ app := λ j, match j with
+  | walking_pair.left := f
+  | walking_pair.right := g
+  end }
+
+@[simp] lemma map_pair_left {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) : (map_pair f g).app walking_pair.left = f := rfl
+@[simp] lemma map_pair_right {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) : (map_pair f g).app walking_pair.right = g := rfl
+
 abbreviation binary_fan (X Y : C) := cone (pair X Y)
 abbreviation binary_cofan (X Y : C) := cocone (pair X Y)
 
@@ -55,11 +67,26 @@ def binary_cofan.mk {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) : binary_cofan X
 abbreviation prod (X Y : C) [has_limit (pair X Y)] := limit (pair X Y)
 abbreviation coprod (X Y : C) [has_colimit (pair X Y)] := colimit (pair X Y)
 
-abbreviation prod.fst (X Y : C) [has_limit (pair X Y)] : prod X Y ⟶ X := limit.π _ walking_pair.left
-abbreviation prod.snd (X Y : C) [has_limit (pair X Y)] : prod X Y ⟶ Y := limit.π _ walking_pair.right
+abbreviation prod.fst (X Y : C) [has_limit (pair X Y)] : prod X Y ⟶ X :=
+limit.π (pair X Y) walking_pair.left
+abbreviation prod.snd (X Y : C) [has_limit (pair X Y)] : prod X Y ⟶ Y :=
+limit.π (pair X Y) walking_pair.right
+abbreviation coprod.inl (X Y : C) [has_colimit (pair X Y)] : X ⟶ coprod X Y :=
+colimit.ι (pair X Y) walking_pair.left
+abbreviation coprod.inr (X Y : C) [has_colimit (pair X Y)] : Y ⟶ coprod X Y :=
+colimit.ι (pair X Y) walking_pair.right
 
 abbreviation prod.lift {W X Y : C} [has_limit (pair X Y)] (f : W ⟶ X) (g : W ⟶ Y) : W ⟶ prod X Y :=
 limit.lift _ (binary_fan.mk f g)
+abbreviation coprod.desc {W X Y : C} [has_colimit (pair X Y)] (f : X ⟶ W) (g : Y ⟶ W) : coprod X Y ⟶ W :=
+colimit.desc _ (binary_cofan.mk f g)
+
+abbreviation prod.map {W X Y Z : C} [has_limits_of_shape.{v} (discrete walking_pair) C]
+  (f : W ⟶ Y) (g : X ⟶ Z) : prod W X ⟶ prod Y Z :=
+lim.map (map_pair f g)
+abbreviation coprod.map {W X Y Z : C} [has_colimits_of_shape.{v} (discrete walking_pair) C]
+  (f : W ⟶ Y) (g : X ⟶ Z) : coprod W X ⟶ coprod Y Z :=
+colim.map (map_pair f g)
 
 variables (C)
 

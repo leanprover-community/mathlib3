@@ -191,21 +191,22 @@ end insert_nth
 
 section update_nth
 
+/-- `update_nth v n a` replaces the `n`th element of `v` with `a` -/
 def update_nth (v : vector α n) (i : fin n) (a : α) : vector α n :=
 ⟨v.1.update_nth i.1 a, by rw [list.update_nth_length, v.2]⟩
 
-@[simp] lemma nth_update_nth_eq (v : vector α n) (i : fin n) (a : α) :
+@[simp] lemma nth_update_nth_same (v : vector α n) (i : fin n) (a : α) :
   (v.update_nth i a).nth i = a :=
 by cases v; cases i; simp [vector.update_nth, vector.nth_eq_nth_le]
 
-lemma nth_update_nth_ne {v : vector α n} {i j : fin n} (h : i ≠ j) (a : α) :
+lemma nth_update_nth_of_ne {v : vector α n} {i j : fin n} (h : i ≠ j) (a : α) :
   (v.update_nth i a).nth j = v.nth j :=
 by cases v; cases i; cases j; simp [vector.update_nth, vector.nth_eq_nth_le,
   list.nth_le_update_nth_of_ne (fin.vne_of_ne h)]
 
-lemma nth_update_nth {v : vector α n} {i j : fin n} (a : α) :
+lemma nth_update_nth_eq_if {v : vector α n} {i j : fin n} (a : α) :
   (v.update_nth i a).nth j = if i = j then a else v.nth j :=
-by split_ifs; try {simp *}; try {rw nth_update_nth_ne}; assumption
+by split_ifs; try {simp *}; try {rw nth_update_nth_of_ne}; assumption
 
 end update_nth
 

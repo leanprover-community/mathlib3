@@ -17,7 +17,7 @@ universes v u
 @[derive decidable_eq] inductive walking_parallel_pair : Type v
 | zero | one
 
-instance : fintype walking_parallel_pair :=
+instance fintype_walking_parallel_pair : fintype walking_parallel_pair :=
 { elems := [walking_parallel_pair.zero, walking_parallel_pair.one].to_finset,
   complete := λ x, by { cases x; simp } }
 

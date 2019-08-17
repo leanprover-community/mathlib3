@@ -17,7 +17,7 @@ namespace category_theory.limits
 inductive walking_pair : Type v
 | left | right
 
-instance : fintype walking_pair :=
+instance fintype_walking_pair : fintype walking_pair :=
 { elems := [walking_pair.left, walking_pair.right].to_finset,
   complete := λ x, by { cases x; simp } }
 

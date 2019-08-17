@@ -17,6 +17,9 @@ namespace category_theory
 variables (C : Type u) [𝒞 : category.{v+1} C]
 include 𝒞
 
+section
+local attribute [tidy] tactic.case_bash
+
 instance [has_finite_products.{v} C] : monoidal_category C :=
 { tensor_unit  := terminal C,
   tensor_obj   := λ X Y, prod X Y,
@@ -24,6 +27,7 @@ instance [has_finite_products.{v} C] : monoidal_category C :=
   associator   := prod.associator,
   left_unitor  := prod.left_unitor,
   right_unitor := prod.right_unitor }
+end
 
 end category_theory
 

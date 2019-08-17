@@ -97,6 +97,11 @@ class has_binary_coproducts :=
 
 attribute [instance] has_binary_products.has_limits_of_shape has_binary_coproducts.has_colimits_of_shape
 
+instance [has_finite_products.{v} C] : has_binary_products.{v} C :=
+{ has_limits_of_shape := by apply_instance }
+instance [has_finite_coproducts.{v} C] : has_binary_coproducts.{v} C :=
+{ has_colimits_of_shape := by apply_instance }
+
 variables {C} [has_binary_products.{v} C]
 
 local attribute [tidy] tactic.case_bash

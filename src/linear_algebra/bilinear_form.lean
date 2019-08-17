@@ -11,7 +11,7 @@ import linear_algebra.tensor_product
 
 This file defines a bilinear form over a module. Basic ideas
 such as orthogonality are also introduced, as well as reflexivive, 
-symmetric and altenating bilinear forms.
+symmetric and alternating bilinear forms.
 
 A bilinear form on an R-module V, is a function from V x V to R, 
 that is linear in both arguments 

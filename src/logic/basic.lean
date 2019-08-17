@@ -92,6 +92,8 @@ theorem iff_of_eq (e : a = b) : a ↔ b := e ▸ iff.rfl
 
 theorem iff_iff_eq : (a ↔ b) ↔ a = b := ⟨propext, iff_of_eq⟩
 
+@[simp] lemma eq_iff_iff {p q : Prop} : (p = q) ↔ (p ↔ q) := iff_iff_eq.symm
+
 @[simp] theorem imp_self : (a → a) ↔ true := iff_true_intro id
 
 theorem imp_intro {α β} (h : α) (h₂ : β) : α := h

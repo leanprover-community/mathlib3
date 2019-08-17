@@ -36,6 +36,7 @@ attribute [sugar_nat]
   or_false false_or
   and_true true_and
   ge gt mul_add add_mul mul_comm
+  one_mul mul_one
   classical.imp_iff_not_or
   classical.iff_iff_not_or_and_or_not
 
@@ -165,6 +166,7 @@ meta def to_form : nat → expr → tactic (form × nat)
 
 meta def prove_lna : tactic expr :=
 do (p,m) ← target >>= to_form 0,
+    trace p,
    prove_univ_close m p
 
 end nat

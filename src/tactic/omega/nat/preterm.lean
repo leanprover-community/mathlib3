@@ -93,7 +93,7 @@ def val_constant (v w : nat → nat) :
 
 def repr : preterm → string
 | (& i)      := i.repr
-| (i ** n)   := i.repr ++ "*x" ++ n.repr
+| (i ** n)   := "*x" ++ n.repr ++ " * " ++ i.repr
 | (t1 +* t2) := "(" ++ t1.repr ++ " + " ++ t2.repr ++ ")"
 | (t1 -* t2) := "(" ++ t1.repr ++ " - " ++ t2.repr ++ ")"
 

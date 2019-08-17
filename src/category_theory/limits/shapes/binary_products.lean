@@ -3,7 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.limits.cones
+import category_theory.limits.limits
 import category_theory.discrete_category
 
 universes v u
@@ -36,5 +36,17 @@ def binary_fan.mk {P : C} (π₁ : P ⟶ X) (π₂ : P ⟶ Y) : binary_fan X Y :
 def binary_cofan.mk {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) : binary_cofan X Y :=
 { X := P,
   ι := { app := λ j, walking_pair.cases_on j ι₁ ι₂ }}
+
+abbreviation prod (X Y : C) [has_limit (pair X Y)] := limit (pair X Y)
+abbreviation coprod (X Y : C) [has_colimit (pair X Y)] := colimit (pair X Y)
+
+variables (C)
+
+class has_binary_products :=
+(has_limits_of_shape : has_limits_of_shape.{v} (discrete walking_pair) C)
+class has_binary_coproducts :=
+(has_colimits_of_shape : has_colimits_of_shape.{v} (discrete walking_pair) C)
+
+attribute [instance] has_binary_products.has_limits_of_shape has_binary_coproducts.has_colimits_of_shape
 
 end category_theory.limits

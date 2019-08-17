@@ -234,4 +234,19 @@ def pushout_cocone.of_cocone
 @[simp] lemma pushout_cocone.of_cocone_ι {F : walking_span.{v} ⥤ C} (t : cocone F) (j) :
   (pushout_cocone.of_cocone t).ι.app j = eq_to_hom (by tidy) ≫ t.ι.app j := rfl
 
+
+abbreviation equalizer {X Y : C} (f g : X ⟶ Y) [has_limit (parallel_pair f g)] :=
+limit (parallel_pair f g)
+abbreviation coequalizer {X Y : C} (f g : X ⟶ Y) [has_colimit (parallel_pair f g)] :=
+colimit (parallel_pair f g)
+
+variables (C)
+
+class has_equalizers :=
+(has_limits_of_shape : has_limits_of_shape.{v} walking_parallel_pair C)
+class has_coequalizers :=
+(has_colimits_of_shape : has_colimits_of_shape.{v} walking_parallel_pair C)
+
+attribute [instance] has_equalizers.has_limits_of_shape has_coequalizers.has_colimits_of_shape
+
 end category_theory.limits

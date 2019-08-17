@@ -102,6 +102,7 @@ instance [has_finite_products.{v} C] : has_binary_products.{v} C :=
 instance [has_finite_coproducts.{v} C] : has_binary_coproducts.{v} C :=
 { has_colimits_of_shape := by apply_instance }
 
+section
 variables {C} [has_binary_products.{v} C]
 
 local attribute [tidy] tactic.case_bash
@@ -136,5 +137,43 @@ variables [has_terminal.{v} C]
   (P : C) : (prod P (terminal C)) ≅ P :=
 { hom := prod.fst _ _,
   inv := prod.lift (𝟙 _) (terminal.from P) }
+end
+
+section
+variables {C} [has_binary_coproducts.{v} C]
+
+local attribute [tidy] tactic.case_bash
+
+@[simp] def coprod.braiding (P Q : C) : coprod P Q ≅ coprod Q P :=
+{ hom := coprod.desc (coprod.inr Q P) (coprod.inl Q P),
+  inv := coprod.desc (coprod.inr P Q) (coprod.inl P Q) }
+
+def coprod.symmetry (P Q : C) :
+  (coprod.braiding P Q).hom ≫ (coprod.braiding Q P).hom = 𝟙 _ :=
+by tidy
+
+@[simp] def coprod.associator
+  (P Q R : C) : (coprod (coprod P Q) R) ≅ (coprod P (coprod Q R)) :=
+{ hom :=
+  coprod.desc
+    (coprod.desc (coprod.inl _ _) (coprod.inl _ _ ≫ coprod.inr _ _))
+    (coprod.inr _ _ ≫ coprod.inr _ _),
+  inv :=
+  coprod.desc
+    (coprod.inl _ _ ≫ coprod.inl _ _)
+    (coprod.desc (coprod.inr _ _ ≫ coprod.inl _ _ ) (coprod.inr _ _)) }
+
+variables [has_initial.{v} C]
+
+@[simp] def coprod.left_unitor
+  (P : C) : (coprod (initial C) P) ≅ P :=
+{ hom := coprod.desc (initial.to P) (𝟙 _),
+  inv := coprod.inr _ _ }
+
+@[simp] def coprod.right_unitor
+  (P : C) : (coprod P (initial C)) ≅ P :=
+{ hom := coprod.desc (𝟙 _) (initial.to P),
+  inv := coprod.inl _ _ }
+end
 
 end category_theory.limits

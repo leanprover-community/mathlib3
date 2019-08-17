@@ -32,7 +32,7 @@ example (x y : nat) :  x ≤ 3 * y → 3 * x ≤ 9 * y := by omega
 example (x y z : nat) : (x ≤ y) → (z > y) → (x - z = 0) := by omega
 example (x y z : nat) : x - 5 > 122 → y ≤ 127 → y < x := by omega
 example : ∀ (x y : nat), x ≤ y ↔ x - y = 0 := by omega
-example (k : ℕ) (hx : 1 * 1 + 1 * 1 + 1 = 1 * 1 * k) : k = 3 := by omega
+example (k : nat) (h : 1 * 1 + 1 * 1 + 1 = 1 * 1 * k) : k = 3 := by omega
 
 /-
 Use `omega manual` to disable automatic reverts,

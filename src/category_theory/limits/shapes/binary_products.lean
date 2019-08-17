@@ -3,7 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.limits.limits
+import category_theory.limits.shapes.finite_products
 import category_theory.discrete_category
 
 universes v u
@@ -12,8 +12,13 @@ open category_theory
 
 namespace category_theory.limits
 
-@[derive decidable_eq] inductive walking_pair : Type v
+@[derive decidable_eq]
+inductive walking_pair : Type v
 | left | right
+
+instance : fintype walking_pair :=
+{ elems := [walking_pair.left, walking_pair.right].to_finset,
+  complete := λ x, by { cases x; simp } }
 
 def pair_function {C : Type u} (X Y : C) : walking_pair → C
 | walking_pair.left := X
@@ -48,5 +53,8 @@ class has_binary_coproducts :=
 (has_colimits_of_shape : has_colimits_of_shape.{v} (discrete walking_pair) C)
 
 attribute [instance] has_binary_products.has_limits_of_shape has_binary_coproducts.has_colimits_of_shape
+
+instance [has_finite_products.{v} C] : has_binary_products.{v} C :=
+sorry
 
 end category_theory.limits

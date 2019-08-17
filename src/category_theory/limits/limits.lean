@@ -460,6 +460,10 @@ variables {F} {G : J ⥤ C} (α : F ⟶ G)
 @[simp] lemma lim.map_π (j : J) : lim.map α ≫ limit.π G j = limit.π F j ≫ α.app j :=
 by apply is_limit.fac
 
+@[simp] lemma lim.map_π_assoc (j : J) (W) (f : _ ⟶ W) :
+  lim.map α ≫ limit.π G j ≫ f = limit.π F j ≫ α.app j ≫ f :=
+by rw [←category.assoc, lim.map_π, category.assoc]
+
 @[simp] lemma limit.lift_map (c : cone F) :
   limit.lift F c ≫ lim.map α = limit.lift G ((cones.postcompose α).obj c) :=
 by ext; rw [assoc, lim.map_π, ←assoc, limit.lift_π, limit.lift_π]; refl

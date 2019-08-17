@@ -27,14 +27,35 @@ meta inductive preterm : Type
 | exp : expr → preterm
 | app : preterm → preterm → preterm
 
+meta def preterm.repr : preterm → string
+| (preterm.var tt k) := "X" ++ k.to_subs
+| (preterm.var ff k) := "S" ++ k.to_subs
+| (preterm.exp x)    := (to_fmt x).to_string
+| (preterm.app t s)  := "(" ++ t.repr ++ " " ++ s.repr ++ ")"
+
 meta inductive preatom : Type
 | rel : preterm → preatom
 | eq  : preterm → preterm → preatom
+
+meta def preatom.repr : preatom → string
+| (preatom.rel t)  := t.repr
+| (preatom.eq t s) := "(" ++ t.repr ++ " = " ++ s.repr ++ ")"
 
 meta inductive preform : Type
 | lit : bool → preatom → preform
 | bin : bool → preform → preform → preform
 | qua : bool → preform → preform
+
+meta def preform.repr : preform → string
+| (preform.lit tt a)   := a.repr
+| (preform.lit ff a)   := "¬" ++ a.repr
+| (preform.bin tt f g) := "(" ++ f.repr ++ " ∨ " ++ g.repr ++ ")"
+| (preform.bin ff f g) := "(" ++ f.repr ++ " ∧ " ++ g.repr ++ ")"
+| (preform.qua ff f) := "∀ " ++ f.repr
+| (preform.qua tt f) := "∃ " ++ f.repr
+
+meta instance preform.has_to_format : has_to_format preform :=
+⟨λ x, x.repr⟩
 
 open tactic expr
 
@@ -93,6 +114,12 @@ meta def to_term : preterm → tactic term
      s ← to_term ps,
      return (t &t s)
 
+meta def to_eqterm : preterm → tactic eqterm
+| (preterm.var tt k) := return (eqterm.vr k)
+| pt :=
+  do t ← to_term pt,
+     return (eqterm.tm t)
+
 meta def to_atom : preterm → tactic atom
 | (preterm.var ff k) := return ($ k)
 | (preterm.var tt k) := failed
@@ -110,19 +137,19 @@ meta def to_lit (b : bool) : preatom → tactic lit
   do a ← to_atom pt,
      return (lit.atom b a)
 | (preatom.eq pt ps) :=
-  do t ← to_term pt,
-     s ← to_term ps,
+  do t ← to_eqterm pt,
+     s ← to_eqterm ps,
      return (lit.eq b t s)
 
 meta def to_form : preform → tactic form
-| (preform.lit b pa)   :=
+| foo@(preform.lit b pa)   :=
   do l ← to_lit b pa,
      return (form.lit l)
-| (preform.bin b pf pg) :=
+| foo@(preform.bin b pf pg) :=
   do f ← to_form pf,
      g ← to_form pg,
      return (form.bin b f g)
-| (preform.qua b pf) :=
+| foo@(preform.qua b pf) :=
   do f ← to_form pf,
      return (form.qua b f)
 
@@ -186,6 +213,10 @@ meta def abst (αx : expr) : bool → nat → preform → tactic preform
   (if b then return f else abst tt 0 f)
 
 meta def reify (αx : expr) : tactic form :=
-target >>= to_preform >>= abst αx ff 0 >>= to_form
+do t ← target,
+   x ← to_preform t,
+   y ← abst αx ff 0 x,
+   z ← to_form y,
+   return z
 
 end vampire

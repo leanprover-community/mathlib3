@@ -138,6 +138,21 @@ lemma term.val_vinc
     rw [term.val_vinc t, h0.right _ h1],
   end
 
+lemma eqterm.val_vinc
+  {k : nat} {V W : vas α} (h0 : insert_result k V W) :
+    ∀ t : eqterm, (t.vinc k).val F V = t.val F W
+| (eqterm.vr m) :=
+  by { unfold eqterm.vinc,
+       by_cases h1 : m < k,
+       { rw if_pos h1,
+         apply funext, intro as,
+         apply h0.left m h1 },
+       rw if_neg h1,
+       apply funext, intro as,
+       rw not_lt at h1,
+       apply h0.right _ h1 }
+| (eqterm.tm t) := term.val_vinc h0 _
+
 lemma atom.val_vinc {R : rls α} {F : fns α}
   {k : nat} {V W : vas α} (h0 : insert_result k V W) :
     ∀ a : atom, (a.vinc k).val R F V = a.val R F W
@@ -167,8 +182,8 @@ lemma lit.holds_vinc :
        lit.vinc, form.holds, atom.val_vinc h0 a]
 | k V W h0 (lit.eq b t s) :=
   by cases b;
-     simp only [ form.vinc, lit.holds,
-       lit.vinc, form.holds, term.val_vinc h0 ]
+     simp only [ form.vinc, lit.holds, lit.vinc,
+       form.holds, term.val_vinc h0, eqterm.val_vinc h0 ]
 
 lemma holds_vinc :
   ∀ {k : nat}, ∀ {V W : vas α}, (insert_result k V W) →

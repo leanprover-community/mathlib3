@@ -70,6 +70,14 @@ def nat.to_subs (n : nat) : string :=
 
 namespace nat
 
+  def bstr_core : nat → string :=
+  @nat.binary_rec (λ _, string) ""
+    (λ b k s, if b then (s ++ "1") else (s ++ "0"))
+
+  def bstr (k : nat) : string :=
+    let s := bstr_core k in
+    if s = "" then "0" else s
+
   meta def to_expr : nat → expr
   | 0            := `(0)
   | (nat.succ k) := expr.app `(nat.succ) k.to_expr

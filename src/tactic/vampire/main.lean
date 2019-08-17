@@ -64,6 +64,26 @@ do ihx ← tactic.to_expr ``(inhabited),
 
 variables {α : Type} [inhabited α]
 
+def term.replace (t s : term) : term → term
+| (# k)       := # k
+| ru@(r &t u) := if ru = t then s else r.replace &t u.replace
+| (r &v k)    := r.replace &v k
+
+def eqterm.replace (t s : term) : eqterm → eqterm
+| (eqterm.vr k) := eqterm.vr k
+| (eqterm.tm r) := eqterm.tm (r.replace t s)
+
+def atom.replace (t s : term) : atom → atom
+| ($ k)    := $ k
+| (a ^t r) := a.replace ^t r.replace t s
+| (a ^v k) := a.replace ^v k
+
+def lit.replace (t s : term) : lit → lit
+| (lit.eq b et es) :=
+  lit.eq b (et.replace t s) (es.replace t s)
+| (lit.atom b a) :=
+  lit.atom b (a.replace t s)
+
 inductive proof (m : mat) : cla → Type
 | ins (k : nat) (μ : mappings) : proof ((m.nth k).substs μ)
 | res (a : atom) (c d : cla) :
@@ -74,6 +94,12 @@ inductive proof (m : mat) : cla → Type
   proof c → proof (c.rot k)
 | con (l : lit) (c : cla) :
   proof (l :: l :: c) → proof (l :: c)
+| rep (t s : term) (l : lit) (c d : cla) :
+  proof (l :: c) →
+  proof (((eqterm.tm t =* eqterm.tm s) :: d)) →
+  proof (l.replace t s :: c ++ d)
+
+#exit
 
 /- Same as is.fs.read_to_end and io.cmd,
    except for configurable read length. -/
@@ -95,29 +121,34 @@ do child ← io.proc.spawn { stdout := io.process.stdio.piped, ..args },
   return buf.to_string
 open tactic
 
+def nat.to_rr (k : nat) : string := "b" ++ k.bstr
+
 def term.to_rr : term → string
-| (term.fn k)   := k.repr ++  " fn"
-| (term.tp t s) := string.join [t.to_rr, " ", s.to_rr, " tp"]
-| (term.vp t k) := string.join [t.to_rr, " ", k.repr, " vp"]
+| (term.fn k)   := nat.to_rr k ++ "f"
+| (term.tp t s) := string.join [t.to_rr, s.to_rr, "a"]
+| (term.vp t k) := string.join [t.to_rr, nat.to_rr k, "va"]
+
+def eqterm.to_rr : eqterm → string
+| (eqterm.vr k) := nat.to_rr k ++ "v"
+| (eqterm.tm t) := t.to_rr
 
 def atom.to_rr : atom → string
-| (atom.rl k)   := k.repr ++  " rl"
-| (atom.tp a t) := string.join [a.to_rr, " ", t.to_rr, " tp"]
-| (atom.vp a k) := string.join [a.to_rr, " ", k.repr, " vp"]
+| (atom.rl k)   := nat.to_rr k ++ "r"
+| (atom.tp a t) := string.join [a.to_rr, t.to_rr, "a"]
+| (atom.vp a k) := string.join [a.to_rr, nat.to_rr k, "va"]
 
 def lit.to_rr : lit → string
-| (-* a)   := a.to_rr ++ " ng"
-| (+* a)   := a.to_rr ++ " ps"
-| (t =* s) := t.to_rr ++ s.to_rr ++ " pe"
-| (t ≠* s) := t.to_rr ++ s.to_rr ++ " ne"
+| (lit.atom b a) := a.to_rr ++ (if b then "p" else "n")
+| (lit.eq b t s) :=
+  string.join [t.to_rr, s.to_rr, "q", if b then "p" else "n"]
 
 def cla.to_rr : cla → string
-| []       := "nl"
-| (l :: c) := cla.to_rr c ++ " " ++ l.to_rr ++ " cs"
+| []       := "e"
+| (l :: c) := string.join [cla.to_rr c, l.to_rr, "c"]
 
 def mat.to_rr : mat → string
-| []       := "nl"
-| (c :: m) := mat.to_rr m ++ " " ++ c.to_rr ++ " cs"
+| []       := "e"
+| (c :: m) := string.join [mat.to_rr m, c.to_rr, "c"]
 
 meta def get_rr (m : mat) : tactic string :=
 unsafe_run_io $ io.cmd'
@@ -187,9 +218,10 @@ cnf $ form.strip_fa $ normalize f
 lemma lit.holds_substs (μs : mappings) (l : lit) :
   (l.substs μs).holds R F V ↔
   l.holds R F (V.substs F μs) :=
-by cases l with b a b t s; cases b;
+by { cases l with b a b t s; cases b;
    simp only [ lit.holds, lit.substs, vas.substs,
-     list.map_map, atom.val_substs, term.val_substs ]
+     list.map_map, atom.val_substs, term.val_substs,
+     eqterm.val_substs ] }
 
 lemma cla.holds_substs {μs : mappings} {c : cla} :
   (c.substs μs).holds R F V ↔
@@ -277,6 +309,24 @@ do πx ← build_proof_core m m.to_expr [] chs,
      [αx, ix, rnx, Rx, fnx, Fx, fx, hx, πx],
    return x
 
+axiom qlb (α : Type) : α
+
+meta def build_proof'
+  (αx ix : expr) (f : form) (m : mat) : tactic expr :=
+do -- πx ← build_proof_core m m.to_expr [] chs,
+   let πx : expr := `(qlb (proof %%m.to_expr [])),
+   let rnx : expr := f.rnew.to_expr,
+   let fnx : expr := f.fnew.to_expr,
+   let Rx : expr := `(Rdf %%αx),
+   let Fx : expr := `(@Fdf %%αx %%ix),
+   let fx : expr := f.to_expr,
+   let eqx  : expr := `(form.vnew (normalize %%fx) = 0 : Prop),
+   let decx : expr := expr.mk_app `(vampire.decidable_vnew_eq_zero) [fx],
+   let hx   : expr := expr.mk_app `(@of_as_true) [eqx, decx, `(trivial)],
+   let x : expr := expr.mk_app `(@frxffx_of_proof)
+     [αx, ix, rnx, Rx, fnx, Fx, fx, hx, πx],
+   return x
+
 meta def vampire (inp : option string) : tactic unit :=
 do desugar,
    αx ← get_domain,
@@ -289,6 +339,7 @@ do desugar,
    if inp = none
    then trace s
    else skip
+
 
 end vampire
 
@@ -303,3 +354,18 @@ meta def tactic.interactive.vampire
   else do hs ← mmap tactic.get_local ids,
                revert_lst hs, skip ) >>
 vampire.vampire inp
+
+
+
+meta def vampire_eq : tactic unit :=
+do desugar,
+   αx ← get_domain,
+   ix ← get_inhabitance αx,
+   f ← reify αx,
+   let m := clausify f,
+   trace m,
+   s ← get_rr m,
+   trace s,
+   -- x ← build_proof s.data αx ix f m,
+   -- apply x,
+   skip

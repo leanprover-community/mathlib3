@@ -40,6 +40,7 @@ def Vdf (α : Type) [inhabited α] : vas α := λ _, default α
 
 local notation f `₀↦` a := assign a f
 
+@[derive decidable_eq]
 inductive term : Type
 | fn : nat  → term
 | tp : term → term → term
@@ -69,7 +70,7 @@ def repr (t : term) : string :=
 instance has_repr : has_repr term := ⟨repr⟩
 
 meta def to_expr : term → expr
-| (term.fn k)    := expr.mk_app `(term.fn) [k.to_expr]
+| (term.fn k)   := expr.mk_app `(term.fn) [k.to_expr]
 | (term.tp t s) := expr.mk_app `(term.tp) [t.to_expr, s.to_expr]
 | (term.vp t k) := expr.mk_app `(term.vp) [t.to_expr, k.to_expr]
 
@@ -138,6 +139,79 @@ match μ.get k with
 | none     := V k
 | (some t) := t.val F V []
 end
+
+inductive eqterm : Type
+| vr  : nat  → eqterm
+| tm : term → eqterm
+
+namespace eqterm
+
+def repr : eqterm → string
+| (eqterm.vr k)  := "X" ++ k.to_subs
+| (eqterm.tm t) := t.repr
+
+meta def to_expr : eqterm → expr
+| (eqterm.vr k) := expr.mk_app `(eqterm.vr) [k.to_expr]
+| (eqterm.tm t) := expr.mk_app `(eqterm.tm) [t.to_expr]
+
+def fnew : eqterm → nat
+| (eqterm.vr k) := 0
+| (eqterm.tm t) := t.fnew
+
+def vnew : eqterm → nat
+| (eqterm.vr k) := k + 1
+| (eqterm.tm t) := t.vnew
+
+def finc : eqterm → eqterm
+| (eqterm.vr k) := eqterm.vr k
+| (eqterm.tm t) := eqterm.tm t.finc
+
+def vinc (m : nat) : eqterm → eqterm
+| (eqterm.vr k) := eqterm.vr (if k < m then k else k + 1)
+| (eqterm.tm t) := eqterm.tm (t.vinc m)
+
+def vdec (m : nat) : eqterm → eqterm
+| (eqterm.vr k) := eqterm.vr (if m < k then k - 1 else k)
+| (eqterm.tm t) := eqterm.tm (t.vdec m)
+
+def subst (k : nat) (t : term) : eqterm → eqterm
+| (eqterm.vr m) :=
+  if k = m then eqterm.tm t else eqterm.vr m
+| (eqterm.tm s) := eqterm.tm (term.subst k t s)
+
+-- #exit
+-- def subst (k : nat) (t : term) : term → term
+-- | (# m)    := # m
+-- | (s &t r) := s.subst &t r.subst
+-- | (s &v m) := if k = m then s.subst &t t else s.subst &v m
+
+def val (F : fns α) (V : vas α) : eqterm → list α → α
+| (eqterm.vr k) := λ _, V k
+| (eqterm.tm t) := t.val F V
+
+def substs (μs : mappings) : eqterm → eqterm
+| (eqterm.vr k) :=
+   match μs.get k with
+   | none     := eqterm.vr k
+   | (some t) := eqterm.tm t
+   end
+| (eqterm.tm t) := eqterm.tm (t.substs μs)
+
+
+-- def val (F : fns α) (V : vas α) : term → (list α → α)
+-- | (# k)    := F k
+-- | (t &t s) := t.val ∘ list.cons (s.val [])
+-- | (t &v k) := t.val ∘ list.cons (V k)
+
+def farity (fdx : nat) : eqterm → option nat
+| (eqterm.vr _) := none
+| (eqterm.tm t) := t.farity fdx 0
+
+def vocc (k : nat) : eqterm → Prop
+| (eqterm.vr m) := k = m
+| (eqterm.tm t) := t.vocc k
+
+end eqterm
 
 inductive atom : Type
 | rl : nat  → atom
@@ -233,7 +307,7 @@ end atom
 
 inductive lit : Type
 | atom : bool → atom → lit
-| eq   : bool → term → term → lit
+| eq   : bool → eqterm → eqterm → lit
 
 local notation `-*`     := lit.atom ff
 local notation `+*`     := lit.atom tt
@@ -278,12 +352,11 @@ def vdec (k : nat) : lit → lit
 
 def subst (k : nat) (r : term) : lit → lit
 | (lit.atom b a) := lit.atom b (a.subst k r)
-| (lit.eq b t s) := lit.eq b (term.subst k r t) (term.subst k r s)
+| (lit.eq b t s) := lit.eq b (eqterm.subst k r t) (eqterm.subst k r s)
 
 def not : lit → lit
 | (lit.atom b a) := lit.atom (bnot b) a
 | (lit.eq b t s) := lit.eq (bnot b) t s
-
 
 def holds (R : rls α) (F : fns α) (V : vas α) : lit → Prop
 | (+* a)   :=   (a.val R F V [])
@@ -297,7 +370,7 @@ def rarity (k : nat) : lit → option nat
 
 def farity (k : nat) : lit → option nat
 | (lit.atom b a) := a.farity k
-| (lit.eq b t s) := t.farity k 0 <|> s.farity k 0
+| (lit.eq b t s) := t.farity k <|> s.farity k
 
 def vocc (k : nat) : lit → Prop
 | (lit.atom b a) := a.vocc k
@@ -576,6 +649,14 @@ lemma term.val_eq_val (V W : vas α) :
     left, exact h1
   end
 
+lemma eqterm.val_eq_val (V W : vas α) :
+  ∀ t : eqterm, (∀ m : nat, t.vocc m → V m = W m) →
+  (t.val F V = t.val F W)
+| (eqterm.vr k) h0 :=
+  by { apply funext,
+       intro _, apply h0 _ rfl }
+| (eqterm.tm t) h0 := term.val_eq_val _ _ _ h0
+
 lemma atom.val_eq_val (R) (F) (V W : vas α) :
   ∀ a : atom, (∀ m : nat, a.vocc m → V m = W m) →
   (a.val R F V = a.val R F W)
@@ -605,8 +686,8 @@ begin
   cases b;
   unfold lit.holds;
   try { rw atom.val_eq_val, exact h0 };
-  { rw [ term.val_eq_val V W t,
-         term.val_eq_val V W s ];
+  { rw [ eqterm.val_eq_val V W t,
+         eqterm.val_eq_val V W s ];
     intros k h1; apply h0,
     { right, exact h1 },
     left, exact h1 },
@@ -636,6 +717,7 @@ lemma holds_iff_holds  :
     try {refl}; apply h0; exact h1
   end
 
+
 lemma term.lt_of_vnew_le (k m : nat) :
   ∀ t : term, t.vnew ≤ k →
   t.vocc m → m < k
@@ -655,6 +737,14 @@ lemma term.lt_of_vnew_le (k m : nat) :
     rw ← h1,
     apply nat.lt_of_succ_le (le_of_max_le_right h0),
   end
+
+lemma eqterm.lt_of_vnew_le (k m : nat) :
+  ∀ t : eqterm, t.vnew ≤ k →
+  t.vocc m → m < k
+| (eqterm.vr n) h0 h1 :=
+  by { cases h1, apply h0 }
+| (eqterm.tm t) h0 h1 :=
+  term.lt_of_vnew_le _ _ _ h0 h1
 
 lemma atom.lt_of_vnew_le (k m : nat) :
   ∀ a : atom, a.vnew ≤ k →
@@ -686,7 +776,7 @@ lemma lit.lt_of_vnew_le :
   by { have ht := le_of_max_le_left h0,
        have hs := le_of_max_le_right h0,
        cases h1;
-       apply term.lt_of_vnew_le _ _ _ _ h1;
+       apply eqterm.lt_of_vnew_le _ _ _ _ h1;
        assumption }
 
 lemma form.lt_of_vnew_le :
@@ -748,6 +838,15 @@ lemma term.val_substs (μs : mappings) :
     { simp only [term.val, term.substs, h1,
         term.val_substs t, vas.substs] }
 
+lemma eqterm.val_substs (μs : mappings) :
+  ∀ t : eqterm, (t.substs μs).val F V [] = t.val F (V.substs F μs) []
+| (eqterm.vr k) :=
+  by { cases h0 : μs.get k with s;
+       simp only [ eqterm.substs, h0,
+         vas.substs, eqterm.val, term.val] }
+| (eqterm.tm t) :=
+  by simp only [ eqterm.substs, eqterm.val, term.val_substs ]
+
 lemma atom.val_substs (μs : mappings) :
   ∀ a : atom, (a.substs μs).val R F V = a.val R F (V.substs F μs)
 | ($ k)   := rfl
@@ -793,7 +892,6 @@ lemma forall_ext_holds_of_fvx :
     { rw zero_add, refl },
     rw nat.succ_add, apply h1
   end
-
 
 lemma holds_of_forall_vxt_holds {k : nat} {f : form} :
   f.vnew ≤ k → (∀^ V' ∷ k ⇒ V, f.holds R F V') →

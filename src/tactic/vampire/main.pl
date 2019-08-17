@@ -4,33 +4,43 @@
 
 :- [write, read, check].
 
-parse_inp([Num | Stk], ["fn" | Tks], Mat) :-
-  parse_inp([sym(Num) | Stk], Tks, Mat).
+parse_inp([num(Num) | Stk], ['f' | Chs], Mat) :-
+  parse_inp([fn(Num) | Stk], Chs, Mat).
 
-parse_inp([Num | Stk], ["rl" | Tks], Mat) :-
-  parse_inp([sym(Num) | Stk], Tks, Mat).
+parse_inp([num(Num) | Stk], ['r' | Chs], Mat) :-
+  parse_inp([rl(Num) | Stk], Chs, Mat).
 
-parse_inp([Trm2, Trm1 | Stk], ["tp" | Tks], Mat) :-
-  parse_inp([app(Trm1, Trm2) | Stk], Tks, Mat).
+parse_inp([Y, X | Stk], ['a' | Chs], Mat) :-
+  parse_inp([app(X, Y) | Stk], Chs, Mat).
 
-parse_inp([Num, Trm | Stk], ["vp" | Tks], Mat) :-
-  parse_inp([app(Trm, var(Num)) | Stk], Tks, Mat).
+parse_inp([num(Num) | Stk], ['v' | Chs], Mat) :-
+  parse_inp([var(Num) | Stk], Chs, Mat).
 
-parse_inp(Stk, ["nl" | Tks], Mat) :-
-  parse_inp([[] | Stk], Tks, Mat).
+parse_inp([Y, X | Stk], ['q' | Tks], Mat) :-
+  parse_inp([eq(X, Y) | Stk], Tks, Mat).
 
-parse_inp([Trm | Stk], ["ng" | Tks], Mat) :-
-  parse_inp([lit(neg, Trm) | Stk], Tks, Mat).
+parse_inp([Atm | Stk], ['n' | Tks], Mat) :-
+  parse_inp([lit(neg, Atm) | Stk], Tks, Mat).
 
-parse_inp([Trm | Stk], ["ps" | Tks], Mat) :-
-  parse_inp([lit(pos, Trm) | Stk], Tks, Mat).
+parse_inp([Atm | Stk], ['p' | Tks], Mat) :-
+  parse_inp([lit(pos, Atm) | Stk], Tks, Mat).
 
-parse_inp([Hd, Tl | Stk], ["cs" | Tks], Mat) :-
-  parse_inp([[Hd | Tl] | Stk], Tks, Mat).
+parse_inp(Stk, ['e' | Chs], Mat) :-
+  parse_inp([[] | Stk], Chs, Mat).
 
-parse_inp(Stk, [NumStr | Tks], Mat) :-
-  number_string(Num, NumStr),
-  parse_inp([Num | Stk], Tks, Mat).
+parse_inp([Hd, Tl | Stk], ['c' | Chs], Mat) :-
+  parse_inp([[Hd | Tl] | Stk], Chs, Mat).
+
+parse_inp(Stk, ['b' | Chs], Mat) :-
+  parse_inp([num(0) | Stk], Chs, Mat).
+
+parse_inp([num(Num) | Stk], ['0' | Chs], Mat) :-
+  NewNum is Num * 2,
+  parse_inp([num(NewNum) | Stk], Chs, Mat).
+
+parse_inp([num(Num) | Stk], ['1' | Chs], Mat) :-
+  NewNum is (Num * 2) + 1,
+  parse_inp([num(NewNum) | Stk], Chs, Mat).
 
 parse_inp([Mat], [], Mat).
 
@@ -580,13 +590,18 @@ vcheck(Mat, sub(Maps, PrfA, Cnc)) :-
   subst(Maps, CncA, Cnc).
 
 main([Argv]) :-
-  split_string(Argv, " ", " ", Tks),
-  parse_inp([], Tks, Mat),
+
+  % split_string(Argv, " ", " ", Tks),
+  % parse_inp([], Tks, Mat),
+  string_chars(Argv, Chs),
+  parse_inp([], Chs, Mat),
   temp_loc(Loc),
   write_goal(Loc, Mat),
-  read_proof(Loc, Lns),
-  compile(Mat, Lns, Prf),
-  compress(Prf, CPrf),
-  linearize_proof(CPrf, LPrf),
-  string_block(LPrf, Str),
-  write(Str).
+  read_proof_alt(Loc, Strs),
+
+  % read_proof(Loc, Lns),
+  % compile(Mat, Lns, Prf),
+  % compress(Prf, CPrf),
+  % linearize_proof(CPrf, LPrf),
+  % string_block(LPrf, Str),
+  write(Strs).

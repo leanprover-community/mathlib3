@@ -42,6 +42,10 @@ def skolem_term : nat → term
   (k : nat) (s : term) (t : term) :=
 (term.subst k s t.finc).vdec k
 
+@[reducible] def eqterm.skolem_subst
+  (k : nat) (s : term) (t : eqterm) :=
+(eqterm.subst k s t.finc).vdec k
+
 @[reducible] def atom.skolem_subst
   (k : nat) (s : term) (a : atom) :=
 (a.finc.subst k s).vdec k
@@ -187,14 +191,21 @@ lemma form.skolem_subst_bin
 lemma lit.skolem_subst_atom (b : bool) (a : atom) (k : nat) (s : term) :
   (lit.atom b a).skolem_subst k s = lit.atom b (a.skolem_subst k s) := rfl
 
-lemma lit.skolem_subst_eq (b : bool) (t s : term) (k : nat) (r : term) :
+lemma lit.skolem_subst_eq (b : bool) (t s : eqterm) (k : nat) (r : term) :
   (lit.eq b t s).skolem_subst k r =
-  lit.eq b (term.skolem_subst k r t) (term.skolem_subst k r s ) := rfl
+  lit.eq b (t.skolem_subst k r) (s.skolem_subst k r) := rfl
 
 lemma term.skolem_subst_ap
   {t r : term} {k : nat} {s : term}  :
   term.skolem_subst k s (t &t r) =
   (term.skolem_subst k s t &t term.skolem_subst k s r) := rfl
+
+lemma eqterm.skolem_subst_tm
+  {t : term} {k : nat} {s : term}  :
+  eqterm.skolem_subst k s (eqterm.tm t) =
+  eqterm.tm (term.skolem_subst k s t) := rfl
+
+  --(term.skolem_subst k s t &t term.skolem_subst k s r) := rfl
 
 lemma atom.skolem_subst_ap
   {a : atom} {t : term} {k : nat} {s : term}  :
@@ -329,6 +340,37 @@ lemma term.val_skolem_subst
        unfold term.val,
        rw [ term.val_skolem_subst, h0.left _ h2 ] }
 
+lemma eqterm.val_skolem_subst
+  {x : α} {y : fn α} {s : term} {k : nat} {W V : vas α}
+  (h0 : splice k x W V) (h1 : (s.vdec k).val (F ₀↦ y) V [] = x) :
+  ∀ t : eqterm, (t.skolem_subst k s).val (F ₀↦ y) V [] = t.val F W []
+| (eqterm.vr m) :=
+  by { unfold eqterm.skolem_subst,
+       unfold eqterm.finc,
+       unfold eqterm.subst,
+       rcases nat.lt_trichotomy k m with h2 | h2 | h2,
+       { rw if_neg (ne_of_lt h2),
+         unfold eqterm.vdec,
+         rw if_pos h2,
+         have foo := h0.right.right (m - 1) (le_pred_of_lt h2),
+         unfold eqterm.val,
+         rw [ ← h0.right.right (m - 1) (le_pred_of_lt h2),
+              nat.sub_add_cancel ],
+         apply succ_le_iff.elim_right,
+         apply pos_of_lt h2 },
+       { rw if_pos h2,
+         simp only [ eqterm.vdec, eqterm.val,
+           h1, h2.symm, h0.right.left ] },
+       rw if_neg (ne_of_gt h2),
+       unfold eqterm.vdec,
+       rw if_neg (not_lt_of_gt h2),
+       unfold eqterm.val,
+       rw h0.left m h2 }
+| (eqterm.tm t) :=
+  by { rw eqterm.skolem_subst_tm,
+       unfold eqterm.val,
+       rw term.val_skolem_subst h0 h1 }
+
 lemma atom.val_skolem_subst
   {x : α} {y : fn α} {s : term} {k : nat} {W V : vas α}
   (h0 : splice k x W V) (h1 : (s.vdec k).val (F ₀↦ y) V [] = x) :
@@ -368,7 +410,7 @@ lemma lit.holds_skolem_subst {x : α} {y : fn α} :
 | (lit.eq b _ _) k s W V h0 h1 h2 :=
   by { rw lit.skolem_subst_eq,
        cases b; unfold lit.holds;
-       { repeat { rw term.val_skolem_subst h0 h1 },
+       { repeat { rw eqterm.val_skolem_subst h0 h1 },
          apply h2 } }
 
 lemma holds_skolem_subst {x : α} {y : fn α} :

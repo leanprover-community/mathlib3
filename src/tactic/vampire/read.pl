@@ -32,9 +32,23 @@ parse_rul(Str, map(Idx)) :-
   number_string(Num, NumStr),
   Idx is Num - 1.
 
+parse_rul(Str, trv(Idx)) :-
+  string_concat("trivial inequality removal ", NumStr, Str),
+  number_string(Num, NumStr),
+  Idx is Num - 1.
+
 parse_rul(Str, rsl(Idx1, Idx2)) :-
   ( string_concat("resolution ", Tmp, Str) ;
     string_concat("subsumption resolution ", Tmp, Str) ),
+  split_string(Tmp, ",", "", [NumStr1, NumStr2]),
+  number_string(Num1, NumStr1),
+  Idx1 is Num1 - 1,
+  number_string(Num2, NumStr2),
+  Idx2 is Num2 - 1.
+
+parse_rul(Str, rep(Idx1, Idx2)) :-
+  ( string_concat("superposition ", Tmp, Str) ;
+    string_concat("forward demodulation ", Tmp, Str) ),
   split_string(Tmp, ",", "", [NumStr1, NumStr2]),
   number_string(Num1, NumStr1),
   Idx1 is Num1 - 1,
@@ -125,3 +139,8 @@ read_proof(Loc, Lns) :-
   vampire(Loc, Cds),
   include(head_is_digit, Cds, Tmp),
   maplist(parse_line, Tmp, Lns).
+
+read_proof_alt(Loc, Strs) :-
+  vampire(Loc, Cdss),
+  include(head_is_digit, Cdss, Tmp),
+  maplist(string_codes, Strs, Tmp).

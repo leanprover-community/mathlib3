@@ -4,7 +4,7 @@ variables {M : Type*} {N : Type*} {P : Type*} [monoid M] [monoid N] [monoid P]
 
 set_option old_structure_cmd true
 
-/- Bunch of stuff I haven't organised but needed -/
+/- Bunch of stuff I haven't organised, some of which possibly shouldn't exist -/
 namespace monoid_hom
 
 @[simp] lemma comp_apply (f : M →* N) (g : N →* P) {x : M} : g.comp f x = g (f x) := rfl
@@ -22,7 +22,7 @@ variables {R : Type*} {S : Type*} {T : Type*} [semiring R] [semiring S] [semirin
 @[simp] lemma comp_apply (f : R →+* S) (g : S →+* T) {x : R} : g.comp f x = g (f x) := rfl
 
 end semiring_hom
-/-- Auxiliary bundled equivs for now -/
+
 structure monoid_equiv (M N) [monoid M] [monoid N] extends equiv M N, monoid_hom M N
 
 namespace monoid_equiv
@@ -80,15 +80,21 @@ begin
   refl,
 end
 
-def mul_equiv_to_monoid_equiv (g : M ≃ N) (H : ∀ x y, g (x*y) = g x * g y) : monoid_equiv M N :=
+end monoid_equiv
+
+namespace mul_equiv
+def to_monoid_equiv (g : M ≃ N) (H : ∀ x y, g (x*y) = g x * g y) : monoid_equiv M N :=
 {  to_fun := g,
     map_one' := by cases (equiv.surjective g) 1 with a ha;
               rw [←one_mul (g 1), ←ha, ←H, mul_one],
     map_mul' := H,
     ..g}
+end mul_equiv
+
+namespace monoid_equiv
 
 def submonoid_congr {A B : submonoid M} (h : A = B) : monoid_equiv A B :=
-mul_equiv_to_monoid_equiv (equiv.set_congr $ submonoid.ext'_iff.2 h) $ λ x y, by tidy
+mul_equiv.to_monoid_equiv (equiv.set_congr $ submonoid.ext'_iff.2 h) $ λ x y, by tidy
 
 end monoid_equiv
 
@@ -287,8 +293,7 @@ set.ext $ λ x,
  λ h, (set.mem_singleton_iff.1 (set.mem_preimage.1 h)).symm⟩
 
 def congr {c d : con M} (h : c = d) : monoid_equiv c.quotient d.quotient :=
-monoid_equiv.mul_equiv_to_monoid_equiv
-(quotient.congr (equiv.refl M) $ ext_iff.2 h) $ by tidy
+mul_equiv.to_monoid_equiv (quotient.congr (equiv.refl M) $ ext_iff.2 h) $ by tidy
 
 open lattice
 
@@ -517,7 +522,7 @@ variables {f}
 
 /-- First Isomorphism Theorem-/
 noncomputable def quotient_ker_equiv_range (f : M →* P) : monoid_equiv (con.ker f).quotient f.range :=
-monoid_equiv.mul_equiv_to_monoid_equiv (@equiv.of_bijective _ _
+mul_equiv.to_monoid_equiv (@equiv.of_bijective _ _
 ((monoid_equiv.submonoid_congr ker_lift_range_eq).to_monoid_hom.comp
 f.ker_lift.range_mk) $ function.bijective_comp (equiv.bijective _)
 ⟨λ x y h, injective_ker_lift f $ by tidy, by simp * at *⟩) (λ x y, by tidy)
@@ -527,7 +532,7 @@ lemma lift_surjective_of_surjective (hf : function.surjective f) : function.surj
 
 noncomputable def quotient_ker_equiv_of_surjective (f : M →* P) (hf : function.surjective f) :
   monoid_equiv (con.ker f).quotient P :=
-monoid_equiv.mul_equiv_to_monoid_equiv
+mul_equiv.to_monoid_equiv
  (@equiv.of_bijective _ _ f.ker_lift ⟨injective_ker_lift f, lift_surjective_of_surjective hf⟩)
 (λ x y, by simp * at *)
 

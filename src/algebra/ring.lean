@@ -340,9 +340,9 @@ eq_neg_of_add_eq_zero $ by rw [←f.map_add, neg_add_self, f.map_zero]
   f (x - y) = (f x) - (f y) := by simp
 
 /-- A ring homomorphism is injective iff its kernel is trivial. -/
-theorem injective_iff {α β} [ring α] [ring β] (f : α →+* β) (x y : α) :
+theorem injective_iff {α β} [ring α] [ring β] (f : α →+* β) :
   function.injective f ↔ (∀ a, f a = 0 → a = 0) :=
-add_monoid_hom.injective_iff f.to_add_monoid_hom x y
+add_monoid_hom.injective_iff f.to_add_monoid_hom
 
 /-- Makes a ring homomomorphism from a proof that the monoid homomorphism preserves addition. -/
 def mk' {γ} [ring γ] (f : α →* γ) (map_add : ∀ a b : α, f (a + b) = f a + f b) : α →+* γ :=

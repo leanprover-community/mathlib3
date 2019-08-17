@@ -370,7 +370,7 @@ eq_inv_of_mul_eq_one $ by rw [←f.map_mul, inv_mul_self, f.map_one]
   f (g * h⁻¹) = (f g) * (f h)⁻¹ := by rw [f.map_mul, f.map_inv]
 
 /-- A group homomorphism is injective iff its kernel is trivial. -/
-lemma injective_iff {G H} [group G] [group H] (f : G →* H) (g h : G) :
+lemma injective_iff {G H} [group G] [group H] (f : G →* H) :
   function.injective f ↔ (∀ a, f a = 1 → a = 1) :=
 ⟨λ h _, by rw ← f.map_one; exact @h _ _,
   λ h x y hxy, by rw [← inv_inv (f x), inv_eq_iff_mul_eq_one, ← f.map_inv,
@@ -498,7 +498,7 @@ attribute [to_additive add_monoid_hom.map_neg] monoid_hom.map_inv
 attribute [to_additive add_monoid_hom.map_sub] monoid_hom.map_div
 
 /-- An additive group homomorphism is injective iff its kernel is trivial. -/
-lemma injective_iff {G H} [add_group G] [add_group H] (f : G →+ H) (g h : G) :
+lemma injective_iff {G H} [add_group G] [add_group H] (f : G →+ H) :
   function.injective f ↔ (∀ a, f a = 0 → a = 0) :=
 ⟨λ h _, by rw ← f.map_zero; exact @h _ _,
   λ h x y hxy, by rw [← neg_neg (f x), neg_eq_iff_add_eq_zero, ← f.map_neg,

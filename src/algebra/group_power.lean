@@ -443,10 +443,9 @@ theorem is_semiring_hom.map_pow {β} [semiring α] [semiring β]
 by induction n with n ih; [exact is_semiring_hom.map_one f,
   rw [pow_succ, pow_succ, is_semiring_hom.map_mul f, ih]]
 
-theorem semiring_hom.map_pow {β} [semiring α] [semiring β]
-  (f : α →+* β) (x : α) (n : ℕ) : f (x ^ n) = f x ^ n :=
-by induction n with n ih; [exact f.map_one,
-  rw [pow_succ, pow_succ, f.map_mul, ih]]
+lemma map_pow {β} [semiring α] [semiring β] (f : α →+* β) (a : α) : ∀(n : ℕ), f (a ^ n) = (f a) ^ n
+| 0            := f.map_one
+| (nat.succ n) := by rw [pow_succ, semiring_hom.map_mul, map_pow n]; refl
 
 theorem neg_one_pow_eq_or {R} [ring R] : ∀ n : ℕ, (-1 : R)^n = 1 ∨ (-1 : R)^n = -1
 | 0     := or.inl rfl

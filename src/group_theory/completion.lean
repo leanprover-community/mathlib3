@@ -1,11 +1,9 @@
 import group_theory.quotient_monoid
 
-variables {α : Type*} [monoid α] {X : Type*} [comm_monoid X]
+variables {α : Type*} [monoid α] (X : Type*) [comm_monoid X]
           {Z : Type*} [comm_monoid Z]
 
 local notation `top` := (⊤ : submonoid X)
-
-variables (X)
 
 @[reducible] def completion := (submonoid.r (⊤ : submonoid X)).quotient
 
@@ -66,8 +64,6 @@ begin
 end
 
 end completion
-
-
 
 /-open category_theory
 

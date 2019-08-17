@@ -393,8 +393,8 @@ monoid_hom.funext _ _ $ map_coe _
     S is contained in a submonoid T and g's image on T is contained in a submonoid U, composition of
     the natural ring homomorphisms we can construct between the respective localizations commutes
     with composition of f and g. -/
-lemma map_comp_map {A : Type*} [comm_monoid A] (hf : ∀ y : Y, f y ∈ W) (V : submonoid A)
-(g : Z →* A) (hg : ∀ w : W, g w ∈ V) :
+lemma map_comp_map {A : Type*} [comm_monoid A] {V : submonoid A} (g : Z →* A)
+  (hf : ∀ y : Y, f y ∈ W) (hg : ∀ w : W, g w ∈ V) :
   (map g hg).comp (map f hf) = map (g.comp f) (λ y, hg ⟨f y, (hf y)⟩) :=
 monoid_hom.funext _ _ $ λ x, by simp only [map_coe, monoid_hom.comp_apply]
 
@@ -402,10 +402,10 @@ monoid_hom.funext _ _ $ λ x, by simp only [map_coe, monoid_hom.comp_apply]
     S is contained in a submonoid T and g's image on T is contained in a submonoid U, composition of
     the natural ring homomorphisms we can construct between the respective localizations commutes
     with composition of f and g. -/
-lemma map_map {A : Type*} [comm_monoid A] (hf : ∀ y : Y, f y ∈ W) (V : submonoid A)
-(g : Z →* A) (hg : ∀ w : W, g w ∈ V) (x : localization X Y) :
+lemma map_map {A : Type*} [comm_monoid A] {V : submonoid A} (g : Z →* A)
+  (hf : ∀ y : Y, f y ∈ W) (hg : ∀ w : W, g w ∈ V) (x : localization X Y) :
   map g hg (map f hf x) = map (g.comp f) (λ y : Y, hg (⟨f y, (hf y)⟩ : W)) x :=
-by {rw ←(map_comp_map hf V g hg), refl}
+by {rw ←(map_comp_map g hf hg), refl}
 
 variables (f)
 
@@ -785,8 +785,8 @@ semiring_hom.funext _ _ $ map_coe _
     S is contained in a submonoid T and g's image on T is contained in a submonoid U, composition of
     the natural ring homomorphisms we can construct between the respective localizations commutes
     with composition of f and g. -/
-lemma map_comp_map {γ : Type*} [comm_ring γ] (hf : ∀ s : S, f s ∈ T) (U : submonoid γ)
-(g : β →+* γ) (hg : ∀ t : T, g t ∈ U) :
+lemma map_comp_map {γ : Type*} [comm_ring γ] {U : submonoid γ} (g : β →+* γ)
+(hf : ∀ s : S, f s ∈ T) (hg : ∀ t : T, g t ∈ U) :
   (map g hg).comp (map f hf) = map (g.comp f) (λ y, hg ⟨f y, (hf y)⟩) :=
 semiring_hom.funext _ _ $ λ x, by simp only [semiring_hom.comp_apply, map_coe]
 
@@ -794,10 +794,10 @@ semiring_hom.funext _ _ $ λ x, by simp only [semiring_hom.comp_apply, map_coe]
     S is contained in a submonoid T and g's image on T is contained in a submonoid U, composition of
     the natural ring homomorphisms we can construct between the respective localizations commutes
     with composition of f and g. -/
-lemma map_map {γ : Type*} [comm_ring γ] (hf : ∀ s : S, f s ∈ T) (U : submonoid γ)
-(g : β →+* γ) (hg : ∀ t : T, g t ∈ U) (x : localization α S) :
+lemma map_map {γ : Type*} [comm_ring γ] {U : submonoid γ} (g : β →+* γ)
+(hf : ∀ s : S, f s ∈ T) (hg : ∀ t : T, g t ∈ U) (x : localization α S) :
   map g hg (map f hf x) = map (g.comp f) (λ s : S, hg (⟨f s, (hf s)⟩ : T)) x :=
-by {rw ←(map_comp_map hf U g hg), refl}
+by {rw ←(map_comp_map g hf hg), refl}
 
 lemma map_ext (hf : ∀ s : S, f s ∈ T) (g : α →+* β) (hg : ∀ s : S, g s ∈ T) (h : f = g)
   (x : localization α S) :

@@ -1,6 +1,7 @@
 import group_theory.submonoid order.order_iso algebra.pi_instances tactic.default
 
-variables {M : Type*} {N : Type*} {P : Type*} [monoid M] [monoid N] [monoid P]
+variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*}
+          [monoid M] [monoid N] [monoid P] [monoid Q]
 
 set_option old_structure_cmd true
 
@@ -12,6 +13,9 @@ namespace monoid_hom
 lemma map_pow (f : M →*P) (a : M) : ∀(n : ℕ), f (a ^ n) = (f a) ^ n
 | 0            := map_one f
 | (nat.succ n) := by rw [pow_succ, map_mul, map_pow n]; refl
+
+lemma comp_assoc (f : M →* N) (g : N →* P) (h : P →* Q) : h.comp (g.comp f) = (h.comp g).comp f :=
+rfl
 
 end monoid_hom
 

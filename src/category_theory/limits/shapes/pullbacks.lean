@@ -15,8 +15,10 @@ universes v u
 
 local attribute [tidy] tactic.case_bash
 
+/-- The type of objects for the diagram indexing a pullback. -/
 @[derive decidable_eq] inductive walking_cospan : Type v
 | left | right | one
+/-- The type of objects for the diagram indexing a pushout. -/
 @[derive decidable_eq] inductive walking_span : Type v
 | zero | left | right
 
@@ -30,6 +32,7 @@ instance fintype_walking_span : fintype walking_span :=
 
 namespace walking_cospan
 
+/-- The arrows in a pullback diagram. -/
 inductive hom : walking_cospan → walking_cospan → Type v
 | inl : hom left one
 | inr : hom right one
@@ -54,12 +57,14 @@ instance (X Y : walking_cospan) : subsingleton (X ⟶ Y) := by tidy
 -- failure in `cospan`, below.
 lemma hom_id (X : walking_cospan.{v}) : hom.id X = 𝟙 X := rfl
 
+/-- The walking_cospan is the index diagram for a pullback. -/
 instance : small_category.{v} walking_cospan.{v} := sparse_category
 
 end walking_cospan
 
 namespace walking_span
 
+/-- The arrows in a pushout diagram. -/
 inductive hom : walking_span → walking_span → Type v
 | fst : hom zero left
 | snd : hom zero right
@@ -84,6 +89,7 @@ instance (X Y : walking_span) : subsingleton (X ⟶ Y) := by tidy
 -- failure in `span`, below.
 lemma hom_id (X : walking_span.{v}) : hom.id X = 𝟙 X := rfl
 
+/-- The walking_span is the index diagram for a pushout. -/
 instance : small_category.{v} walking_span.{v} := sparse_category
 
 end walking_span

@@ -6,6 +6,12 @@ Authors: Scott Morrison
 import category_theory.discrete_category
 import category_theory.equivalence
 
+/-!
+# The empty category
+
+Defines a category structure on `pempty`, and the unique functor `pempty ⥤ C` for any category `C`.
+-/
+
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory

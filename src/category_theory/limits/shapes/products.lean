@@ -30,11 +30,13 @@ def cofan.mk {f : β → C} {P : C} (p : Π b, f b ⟶ P) : cofan f :=
 { X := P,
   ι := { app := p } }
 
--- TODO decide an appropriate name for the next two
 /-- `Prod f` computes the product of a family of elements `f`. (It is defined as an abbreviation
    for `limit (functor.of_function f)`, so for most facts about `Prod f`, you will just use general facts
    about limits.) -/
 abbreviation Prod (f : β → C) [has_limit (functor.of_function f)] := limit (functor.of_function f)
+/-- `Coprod f` computes the coproduct of a family of elements `f`. (It is defined as an abbreviation
+   for `colimit (functor.of_function f)`, so for most facts about `Coprod f`, you will just use general facts
+   about colimits.) -/
 abbreviation Coprod (f : β → C) [has_colimit (functor.of_function f)] := colimit (functor.of_function f)
 
 variables (C)

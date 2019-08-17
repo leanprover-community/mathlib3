@@ -265,11 +265,15 @@ private meta def post (s : simp_lemmas) (_ : unit) (e : expr) : tactic (unit × 
 
 private meta def aux_num_0 (e : expr) : tactic expr :=
 do
-  s1 ← squash_cast_attr.get_cache,
-  s2 ← move_cast_attr.get_cache,
-  let s := simp_lemmas.join s1 s2,
-  (_, h) ← simplify s [] e { fail_if_unchanged := ff },
-  pr ← to_expr ``(eq.mpr %%h rfl),
+  s ← simp_lemmas.mk_default, --TODO: replace this with norm_cast lemmas
+  (_, h) ← simplify s [] e,
+
+  --verifying
+  tmp ← infer_type h,
+  (_, a) ← tmp.is_eq,
+  is_def_eq a `(true),
+
+  pr ← to_expr ``(eq.mpr %%h trivial),
   return pr
 
 private meta def aux_num_1 (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
@@ -293,6 +297,12 @@ do
   pr ← aux_num_0 h,
   return ((), new_e, pr)
 
+private meta def simplify_top_down' {α} (a : α) (pre : α → expr → tactic (α × expr × expr)) (e : expr) (cfg : simp_config := {}) : tactic (α × expr × expr) :=
+ext_simplify_core a cfg simp_lemmas.mk (λ _, failed)
+  (λ a _ _ _ e, do (new_a, new_e, pr) ← pre a e, guard (¬ new_e =ₐ e), return (new_a, new_e, some pr, ff))
+  (λ _ _ _ _ _, failed)
+  `eq e
+
 /-
 Core function.
 -/
@@ -305,7 +315,7 @@ do
   trace ("norm_cast on: ", e0),
 
   -- step 1: pre-processing of numerals
-  ((), e1, pr1) ← simplify_top_down () aux_num_1 e0 cfg,
+  ((), e1, pr1) ← simplify_top_down' () aux_num_1 e0 cfg,
   h1 ← to_expr ``(%%e0 = %%e1),
   trace ("step 1: ", e1),
 
@@ -319,7 +329,7 @@ do
   trace ("step 3: ", e3),
 
   --step 4: post-processing of numerals
-  ((), e4, pr4) ← simplify_top_down () aux_num_2 e3 cfg,
+  ((), e4, pr4) ← simplify_top_down' () aux_num_2 e3 cfg,
   h4 ← to_expr ``(%%e3 = %%e4),
   trace ("step 4: ", e4),
 

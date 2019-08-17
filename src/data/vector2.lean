@@ -70,7 +70,7 @@ begin
     have := @h ⟨i, hi⟩ ⟨j, hj⟩, simp [nth_eq_nth_le] at *, tauto }
 end
 
-@[simp] lemma vector.nth_mem (i : fin n) (v : vector α n) : v.nth i ∈ v.to_list :=
+@[simp] lemma nth_mem (i : fin n) (v : vector α n) : v.nth i ∈ v.to_list :=
 by rw [nth_eq_nth_le]; exact list.nth_le_mem _ _ _
 
 theorem head'_to_list : ∀ (v : vector α n.succ),

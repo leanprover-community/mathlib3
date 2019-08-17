@@ -43,6 +43,7 @@ section
 local attribute [instance] monoidal_of_has_finite_products
 example : monoidal_category.{u+1} (Type u) := by apply_instance
 end
+
 section
 local attribute [instance] monoidal_of_has_finite_coproducts
 example : monoidal_category.{u+1} (Type u) := by apply_instance

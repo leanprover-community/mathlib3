@@ -3,8 +3,7 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.eq_to_hom
-import category_theory.limits.cones
+import category_theory.limits.limits
 import category_theory.sparse
 
 open category_theory
@@ -235,18 +234,18 @@ def pushout_cocone.of_cocone
   (pushout_cocone.of_cocone t).ι.app j = eq_to_hom (by tidy) ≫ t.ι.app j := rfl
 
 
-abbreviation equalizer {X Y : C} (f g : X ⟶ Y) [has_limit (parallel_pair f g)] :=
-limit (parallel_pair f g)
-abbreviation coequalizer {X Y : C} (f g : X ⟶ Y) [has_colimit (parallel_pair f g)] :=
-colimit (parallel_pair f g)
+abbreviation pullback {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) [has_limit (cospan f g)] :=
+limit (cospan f g)
+abbreviation pushout {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) [has_colimit (span f g)] :=
+colimit (span f g)
 
 variables (C)
 
-class has_equalizers :=
-(has_limits_of_shape : has_limits_of_shape.{v} walking_parallel_pair C)
-class has_coequalizers :=
-(has_colimits_of_shape : has_colimits_of_shape.{v} walking_parallel_pair C)
+class has_pullbacks :=
+(has_limits_of_shape : has_limits_of_shape.{v} walking_cospan C)
+class has_pushouts :=
+(has_colimits_of_shape : has_colimits_of_shape.{v} walking_span C)
 
-attribute [instance] has_equalizers.has_limits_of_shape has_coequalizers.has_colimits_of_shape
+attribute [instance] has_pullbacks.has_limits_of_shape has_pushouts.has_colimits_of_shape
 
 end category_theory.limits

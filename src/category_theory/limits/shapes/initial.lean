@@ -26,9 +26,11 @@ class has_terminal :=
 attribute [instance] has_initial.has_limits_of_shape has_terminal.has_colimits_of_shape
 
 instance [has_finite_products.{v} C] : has_initial.{v} C :=
-{ has_limits_of_shape := sorry } -- needs to use the equivalence between `pempty` and `discrete pempty`!
+{ has_limits_of_shape :=
+  { has_limit := λ F, has_limit_of_equivalence_comp ((functor.empty (discrete pempty)).as_equivalence.symm) } }
 instance [has_finite_coproducts.{v} C] : has_terminal.{v} C :=
-{ has_colimits_of_shape := sorry }
+{ has_colimits_of_shape :=
+  { has_colimit := λ F, has_colimit_of_equivalence_comp ((functor.empty (discrete pempty)).as_equivalence.symm) } }
 
 
 end category_theory.limits

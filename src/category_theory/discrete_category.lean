@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import data.ulift
+import data.fintype
 import category_theory.opposites category_theory.equivalence
 
 namespace category_theory
@@ -12,6 +13,9 @@ universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.c
 
 -- We only work in `Type`, rather than `Sort`, as we need to use `ulift`.
 def discrete (α : Type u₁) := α
+
+instance {α : Type u₁} [fintype α] : fintype (discrete α) :=
+by { dsimp [discrete], apply_instance }
 
 instance discrete_category (α : Type u₁) : small_category (discrete α) :=
 { hom  := λ X Y, ulift (plift (X = Y)),

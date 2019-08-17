@@ -7,6 +7,19 @@ import data.fintype
 import category_theory.limits.limits
 import category_theory.sparse
 
+/-!
+# Pullbacks
+
+We define a category `walking_cospan` (resp. `walking_span`), which is the index category
+for the given data for a pullback (resp. pushout) diagram. Convenience methods `cospan f g`
+and `span f g` construct functors from the walking (co)span, hitting the given morphisms.
+
+We define `pullback f g` and `pushout f g` as limits and colimits of such functors.
+
+Typeclasses `has_pullbacks` and `has_pushouts` assert the existence of (co)limits shaped as
+walking (co)spans.
+-/
+
 open category_theory
 
 namespace category_theory.limits
@@ -99,6 +112,7 @@ open walking_span walking_cospan walking_span.hom walking_cospan.hom
 variables {C : Type u} [𝒞 : category.{v+1} C]
 include 𝒞
 
+/-- `cospan f g` is the functor from the walking cospan hitting `f` and `g`. -/
 def cospan {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) : walking_cospan.{v} ⥤ C :=
 { obj := λ x, match x with
   | left := X
@@ -110,6 +124,8 @@ def cospan {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) : walking_cospan.{v} ⥤ C :=
   | _, _, inl := f
   | _, _, inr := g
   end }
+
+/-- `span f g` is the functor from the walking span hitting `f` and `g`. -/
 def span {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) : walking_span.{v} ⥤ C :=
 { obj := λ x, match x with
   | zero := X
@@ -253,6 +269,22 @@ abbreviation pullback {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) [has_limit (cospan
 limit (cospan f g)
 abbreviation pushout {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) [has_colimit (span f g)] :=
 colimit (span f g)
+
+abbreviation pullback.π₁ {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) [has_limit (cospan f g)] : pullback f g ⟶ X :=
+limit.π (cospan f g) walking_cospan.left
+abbreviation pullback.π₂ {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) [has_limit (cospan f g)] : pullback f g ⟶ Y :=
+limit.π (cospan f g) walking_cospan.right
+abbreviation pushout.ι₁ {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) [has_colimit (span f g)] : Y ⟶ pushout f g :=
+colimit.ι (span f g) walking_span.left
+abbreviation pushout.ι₂ {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) [has_colimit (span f g)] : Z ⟶ pushout f g :=
+colimit.ι (span f g) walking_span.right
+
+abbreviation pullback.lift {W X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) [has_limit (cospan f g)]
+  (h : W ⟶ X) (k : W ⟶ Y) (w : h ≫ f = k ≫ g): W ⟶ pullback f g :=
+limit.lift _ (pullback_cone.mk h k w)
+abbreviation pushout.desc {W X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) [has_colimit (span f g)]
+  (h : Y ⟶ W) (k : Z ⟶ W) (w : f ≫ h = g ≫ k) : pushout f g ⟶ W :=
+colimit.desc _ (pushout_cocone.mk h k w)
 
 variables (C)
 

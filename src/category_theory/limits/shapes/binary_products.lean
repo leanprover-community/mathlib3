@@ -7,12 +7,26 @@ import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.terminal
 import category_theory.discrete_category
 
+/-!
+# Pullbacks
+
+We define a category `walking_pair`, which is the index category
+for a binary (co)product diagram. A convenience method `pair X Y`
+constructs the functor from the walking pair, hitting the given objects.
+
+We define `prod X Y` and `coprod X Y` as limits and colimits of such functors.
+
+Typeclasses `has_binary_products` and `has_binary_coproducts` assert the existence
+of (co)limits shaped as walking pairs.
+-/
+
 universes v u
 
 open category_theory
 
 namespace category_theory.limits
 
+/-- The type of objects for the diagram indexing a binary (co)product. -/
 @[derive decidable_eq]
 inductive walking_pair : Type v
 | left | right
@@ -107,14 +121,17 @@ variables {C} [has_binary_products.{v} C]
 
 local attribute [tidy] tactic.case_bash
 
+/-- The braiding isomorphism which swaps a binary product. -/
 @[simp] def prod.braiding (P Q : C) : prod P Q ≅ prod Q P :=
 { hom := prod.lift (prod.snd P Q) (prod.fst P Q),
   inv := prod.lift (prod.snd Q P) (prod.fst Q P) }
 
+/-- The braiding isomorphism is symmetric. -/
 def prod.symmetry (P Q : C) :
   (prod.braiding P Q).hom ≫ (prod.braiding Q P).hom = 𝟙 _ :=
 by tidy
 
+/-- The associator isomorphism for binary products. -/
 @[simp] def prod.associator
   (P Q R : C) : (prod (prod P Q) R) ≅ (prod P (prod Q R)) :=
 { hom :=
@@ -128,11 +145,13 @@ by tidy
 
 variables [has_terminal.{v} C]
 
+/-- The left unitor isomorphism for binary products with the terminal object. -/
 @[simp] def prod.left_unitor
   (P : C) : (prod (terminal C) P) ≅ P :=
 { hom := prod.snd _ _,
   inv := prod.lift (terminal.from P) (𝟙 _) }
 
+/-- The right unitor isomorphism for binary products with the terminal object. -/
 @[simp] def prod.right_unitor
   (P : C) : (prod P (terminal C)) ≅ P :=
 { hom := prod.fst _ _,
@@ -144,14 +163,17 @@ variables {C} [has_binary_coproducts.{v} C]
 
 local attribute [tidy] tactic.case_bash
 
+/-- The braiding isomorphism which swaps a binary coproduct. -/
 @[simp] def coprod.braiding (P Q : C) : coprod P Q ≅ coprod Q P :=
 { hom := coprod.desc (coprod.inr Q P) (coprod.inl Q P),
   inv := coprod.desc (coprod.inr P Q) (coprod.inl P Q) }
 
+/-- The braiding isomorphism is symmetric. -/
 def coprod.symmetry (P Q : C) :
   (coprod.braiding P Q).hom ≫ (coprod.braiding Q P).hom = 𝟙 _ :=
 by tidy
 
+/-- The associator isomorphism for binary coproducts. -/
 @[simp] def coprod.associator
   (P Q R : C) : (coprod (coprod P Q) R) ≅ (coprod P (coprod Q R)) :=
 { hom :=
@@ -165,11 +187,13 @@ by tidy
 
 variables [has_initial.{v} C]
 
+/-- The left unitor isomorphism for binary coproducts with the initial object. -/
 @[simp] def coprod.left_unitor
   (P : C) : (coprod (initial C) P) ≅ P :=
 { hom := coprod.desc (initial.to P) (𝟙 _),
   inv := coprod.inr _ _ }
 
+/-- The right unitor isomorphism for binary coproducts with the initial object. -/
 @[simp] def coprod.right_unitor
   (P : C) : (coprod P (initial C)) ≅ P :=
 { hom := coprod.desc (𝟙 _) (initial.to P),

@@ -166,7 +166,6 @@ meta def to_form : nat → expr → tactic (form × nat)
 
 meta def prove_lna : tactic expr :=
 do (p,m) ← target >>= to_form 0,
-    trace p,
    prove_univ_close m p
 
 end nat

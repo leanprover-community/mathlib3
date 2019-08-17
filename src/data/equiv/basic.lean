@@ -569,6 +569,16 @@ def subtype_subtype_equiv_subtype {α : Type u} (p : α → Prop) (q : subtype p
   λ⟨a, ha⟩, ⟨⟨a, ha.cases_on $ assume h _, h⟩, by { cases ha, exact ha_h }⟩,
   assume ⟨⟨a, ha⟩, h⟩, rfl, assume ⟨a, h₁, h₂⟩, rfl⟩
 
+/- A subtype of a sigma-type is a sigma-type over a subtype. -/
+def sigma_subtype {α : Type u} (p : α → Type v) (q : α → Prop) :
+  { y : sigma p // q y.1 } ≃ Σ(x : subtype q), p x.1 :=
+begin
+  fsplit,
+  rintro ⟨⟨x, y⟩, z⟩, exact ⟨⟨x, z⟩, y⟩,
+  rintro ⟨⟨x, y⟩, z⟩, exact ⟨⟨x, z⟩, y⟩,
+  rintro ⟨⟨x, y⟩, z⟩, refl,
+  rintro ⟨⟨x, y⟩, z⟩, refl,
+end
 /-- aka coimage -/
 def equiv_sigma_subtype {α : Type u} {β : Type v} (f : α → β) : α ≃ Σ b, {x : α // f x = b} :=
 ⟨λ x, ⟨f x, x, rfl⟩, λ x, x.2.1, λ x, rfl, λ ⟨b, x, H⟩, sigma.eq H $ eq.drec_on H $ subtype.eq rfl⟩

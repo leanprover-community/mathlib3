@@ -22,9 +22,25 @@ section
 variables {C}
 
 abbreviation terminal.from [has_limit (functor.empty C)] (P : C) : P ⟶ terminal C :=
-limit.lift (functor.empty C) { X := P, π := by tidy }
+limit.lift (functor.empty C) { X := P, π := by tidy }.
 abbreviation initial.to [has_colimit (functor.empty C)] (P : C) : initial C ⟶ P :=
-colimit.desc (functor.empty C) { X := P, ι := by tidy }
+colimit.desc (functor.empty C) { X := P, ι := by tidy }.
+
+instance unique_to_terminal [has_limit (functor.empty C)] (P : C) : unique (P ⟶ terminal C) :=
+{ default := terminal.from P,
+  uniq := λ m,
+  begin
+    rw [is_limit.hom_lift infer_instance m],
+    congr, funext j, cases j,
+  end }
+
+instance unique_from_initial [has_colimit (functor.empty C)] (P : C) : unique (initial C ⟶ P) :=
+{ default := initial.to P,
+  uniq := λ m,
+  begin
+    rw [is_colimit.hom_desc infer_instance m],
+    congr, funext j, cases j,
+  end }
 end
 
 class has_terminal :=

@@ -18,9 +18,12 @@ variables (C : Type u) [𝒞 : category.{v+1} C]
 include 𝒞
 
 instance [has_finite_products.{v} C] : monoidal_category C :=
-{ tensor_unit := terminal C,
-  tensor_obj := λ X Y, prod X Y,
-  tensor_hom := λ W X Y Z f g, limits.prod.map f g }
+{ tensor_unit  := terminal C,
+  tensor_obj   := λ X Y, prod X Y,
+  tensor_hom   := λ W X Y Z f g, limits.prod.map f g,
+  associator   := @prod.associator C _ _,
+  left_unitor  := prod.left_unitor,
+  right_unitor := prod.right_unitor }
 
 end category_theory
 

@@ -264,9 +264,10 @@ def pushout_cocone.of_cocone
 @[simp] lemma pushout_cocone.of_cocone_ι {F : walking_span.{v} ⥤ C} (t : cocone F) (j) :
   (pushout_cocone.of_cocone t).ι.app j = eq_to_hom (by tidy) ≫ t.ι.app j := rfl
 
-
+/-- `pullback f g` computes the pullback of a pair of morphisms with the same target. -/
 abbreviation pullback {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) [has_limit (cospan f g)] :=
 limit (cospan f g)
+/-- `pushout f g` computes the pushout of a pair of morphisms with the same source. -/
 abbreviation pushout {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) [has_colimit (span f g)] :=
 colimit (span f g)
 

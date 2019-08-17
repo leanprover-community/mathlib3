@@ -18,8 +18,8 @@ section
 
 open monoidal_category
 
-variables (C : Type u₁) [𝒞 : monoidal_category.{v₁} C]
-          (D : Type u₂) [𝒟 : monoidal_category.{v₂} D]
+variables (C : Type u₁) [category.{v₁} C] [𝒞 : monoidal_category.{v₁} C]
+          (D : Type u₂) [category.{v₂} D] [𝒟 : monoidal_category.{v₂} D]
 include 𝒞 𝒟
 
 structure lax_monoidal_functor extends C ⥤ D :=
@@ -84,8 +84,8 @@ namespace monoidal_functor
 section
 -- In order to express the tensorator as a natural isomorphism,
 -- we need to be in at least `Type 0`, so we have products.
-variables {C : Type u₁} [𝒞 : monoidal_category.{v₁+1} C]
-variables {D : Type u₂} [𝒟 : monoidal_category.{v₂+1} D]
+variables {C : Type u₁} [category.{v₁+1} C] [𝒞 : monoidal_category.{v₁+1} C]
+variables {D : Type u₂} [category.{v₂+1} D] [𝒟 : monoidal_category.{v₂+1} D]
 include 𝒞 𝒟
 
 def μ_nat_iso (F : monoidal_functor.{v₁+1 v₂+1} C D) :
@@ -96,7 +96,7 @@ nat_iso.of_components
 end
 
 section
-variables (C : Type u₁) [𝒞 : monoidal_category.{v₁} C]
+variables (C : Type u₁) [category.{v₁} C] [𝒞 : monoidal_category.{v₁} C]
 include 𝒞
 
 def id : monoidal_functor.{v₁ v₁} C C :=
@@ -113,9 +113,9 @@ end
 
 end monoidal_functor
 
-variables {C : Type u₁} [𝒞 : monoidal_category.{v₁} C]
-variables {D : Type u₂} [𝒟 : monoidal_category.{v₂} D]
-variables {E : Type u₃} [ℰ : monoidal_category.{v₃} E]
+variables {C : Type u₁} [category.{v₁} C] [𝒞 : monoidal_category.{v₁} C]
+variables {D : Type u₂} [category.{v₂} D] [𝒟 : monoidal_category.{v₂} D]
+variables {E : Type u₃} [category.{v₃} E] [ℰ : monoidal_category.{v₃} E]
 
 include 𝒞 𝒟 ℰ
 

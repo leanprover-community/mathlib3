@@ -52,9 +52,9 @@ by norm_cast
 example (h : (cz : ℚ) = az / bz) : (cz : ℝ) = az / bz :=
 by assumption_mod_cast
 
-example : ((42 : ℕ) : ℤ) = 42 := by norm_cast2
-example : ((42 : ℕ) : ℚ) = 42 := by norm_cast2
-example : ((42 : ℕ) : ℝ) = 42 := by norm_cast2
+example : ((42 : ℕ) : ℤ) = 42 := by norm_cast
+example : ((42 : ℕ) : ℚ) = 42 := by norm_cast
+example : ((42 : ℕ) : ℝ) = 42 := by norm_cast
 
 namespace hidden
 

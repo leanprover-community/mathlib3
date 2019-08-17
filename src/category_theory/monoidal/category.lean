@@ -3,7 +3,7 @@ Copyright (c) 2018 Michael Jendrusch. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Jendrusch, Scott Morrison
 -/
-import category_theory.monoidal.category_aux
+import category_theory.products
 import category_theory.natural_isomorphism
 import tactic.basic
 import tactic.slice
@@ -34,24 +34,31 @@ class monoidal_category (C : Type u) [𝒞 : category.{v} C] :=
   (f₁ ≫ g₁) ⊗' (f₂ ≫ g₂) = (f₁ ⊗' f₂) ≫ (g₁ ⊗' g₂) . obviously)
 -- tensor unit:
 (tensor_unit              : C)
+(notation `𝟙_`            := tensor_unit)
 -- associator:
 (associator               :
   Π X Y Z : C, (X ⊗ Y) ⊗ Z ≅ X ⊗ (Y ⊗ Z))
+(notation `α_`            := associator)
 (associator_naturality'   :
-  assoc_natural tensor_obj @tensor_hom associator . obviously)
+  ∀ {X₁ X₂ X₃ Y₁ Y₂ Y₃ : C} (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (f₃ : X₃ ⟶ Y₃),
+  ((f₁ ⊗' f₂) ⊗' f₃) ≫ (α_ Y₁ Y₂ Y₃).hom = (α_ X₁ X₂ X₃).hom ≫ (f₁ ⊗' (f₂ ⊗' f₃)) . obviously)
 -- left unitor:
 (left_unitor              : Π X : C, tensor_unit ⊗ X ≅ X)
+(notation `λ_`            := left_unitor)
 (left_unitor_naturality'  :
-  left_unitor_natural tensor_obj @tensor_hom tensor_unit left_unitor . obviously)
+  ∀ {X Y : C} (f : X ⟶ Y), ((𝟙 tensor_unit) ⊗' f) ≫ (λ_ Y).hom = (λ_ X).hom ≫ f . obviously)
 -- right unitor:
 (right_unitor             : Π X : C, X ⊗ tensor_unit ≅ X)
+(notation `ρ_`            := right_unitor)
 (right_unitor_naturality' :
-  right_unitor_natural tensor_obj @tensor_hom tensor_unit right_unitor . obviously)
+  ∀ {X Y : C} (f : X ⟶ Y), (f ⊗' (𝟙 tensor_unit)) ≫ (ρ_ Y).hom = (ρ_ X).hom ≫ f . obviously)
 -- pentagon identity:
-(pentagon'                : pentagon @tensor_hom associator . obviously)
+(pentagon'                : ∀ W X Y Z : C,
+  ((α_ W X Y).hom ⊗' (𝟙 Z)) ≫ (α_ W (X ⊗ Y) Z).hom ≫ ((𝟙 W) ⊗' (α_ X Y Z).hom)
+  = (α_ (W ⊗ X) Y Z).hom ≫ (α_ W X (Y ⊗ Z)).hom . obviously)
 -- triangle identity:
 (triangle'                :
-  triangle @tensor_hom left_unitor right_unitor associator . obviously)
+  ∀ X Y : C, (α_ X 𝟙_ Y).hom ≫ ((𝟙 X) ⊗' (λ_ Y).hom) = (ρ_ X).hom ⊗' (𝟙 Y) . obviously)
 
 restate_axiom monoidal_category.tensor_id'
 attribute [simp] monoidal_category.tensor_id
@@ -333,8 +340,8 @@ variables (C : Type u) [category.{v+1} C] [𝒞 : monoidal_category.{v+1} C]
 include 𝒞
 
 def tensor : (C × C) ⥤ C :=
-{ obj := λ X, tensor_obj X.1 X.2,
-  map := λ {X Y : C × C} (f : X ⟶ Y), tensor_hom f.1 f.2 }
+{ obj := λ X, X.1 ⊗ X.2,
+  map := λ {X Y : C × C} (f : X ⟶ Y), f.1 ⊗ f.2 }
 
 def left_assoc_tensor : (C × C × C) ⥤ C :=
 { obj := λ X, (X.1 ⊗ X.2.1) ⊗ X.2.2,

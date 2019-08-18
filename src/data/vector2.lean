@@ -29,6 +29,9 @@ subtype.val_injective
   ∀ (v : vector α n) h, (⟨to_list v, h⟩ : vector α n) = v
 | ⟨l, h₁⟩ h₂ := rfl
 
+@[simp] lemma to_list_map {β : Type*} (v : vector α n) (f : α → β) : (v.map f).to_list =
+  v.to_list.map f := by cases v; refl
+
 theorem nth_eq_nth_le : ∀ (v : vector α n) (i),
   nth v i = v.to_list.nth_le i.1 (by rw to_list_length; exact i.2)
 | ⟨l, h⟩ i := rfl

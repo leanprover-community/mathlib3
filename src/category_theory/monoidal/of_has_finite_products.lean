@@ -39,16 +39,6 @@ def monoidal_of_has_finite_coproducts [has_finite_coproducts.{v} C] : monoidal_c
 
 end
 
-section
-local attribute [instance] monoidal_of_has_finite_products
-example : monoidal_category.{u+1} (Type u) := by apply_instance
-end
-
-section
-local attribute [instance] monoidal_of_has_finite_coproducts
-example : monoidal_category.{u+1} (Type u) := by apply_instance
-end
-
 end category_theory
 
 -- TODO in fact, a category with finite products is braided, and symmetric,

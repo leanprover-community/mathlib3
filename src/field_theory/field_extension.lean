@@ -1,8 +1,19 @@
 import ring_theory.algebra data.matrix
 import linear_algebra.finite_dimensional linear_algebra.matrix linear_algebra.determinant
 import ring_theory.polynomial
+import algebra.big_operators
 
 universes u v w
+
+section
+
+
+variables {ι₁ ι₂ α β γ : Type u} [ring α] [ring β] [add_comm_group γ] [module α β] [module β γ] [module α γ]
+  [decidable_eq α] [decidable_eq β] [decidable_eq γ] [decidable_eq ι₁] [decidable_eq ι₂]
+  {v₁ : ι₁ → β} {v₂ : ι₂ → γ} (hv₁ : is_basis α v₁) (hv₂ : is_basis β v₂) (f : ι₂ × ι₁ →₀ α)
+#check finsupp.map_range (λ (g : ι₁ →₀ α), finsupp.sum g (λ (a : ι₁) (b : α), b • v₁ a)) sorry (finsupp.curry f)
+
+end
 
 class field_extension (α : Type u) (β : Type v) [discrete_field α] [discrete_field β] extends algebra α β
 
@@ -273,7 +284,7 @@ instance vs (p : submodule α (ℕ →₀ α)) : vector_space α p := vector_spa
 
 instance (α : Type*) [division_ring α] : ring α := by apply_instance --hint
 --TODO: move
-lemma smul_eq_zero_iff_eq_zero {α β : Type*} [division_ring α] [decidable_eq α] [integral_domain β] [module α β]
+lemma smul_eq_zero_iff_eq_zero_left {α β : Type*} [division_ring α] [decidable_eq α] [add_comm_group β] [module α β]
   (r : α) {b : β} (hb : b ≠ 0) : r • b = 0 ↔ r = 0 :=
 ⟨λ h, classical.by_contradiction (λ hn, begin
   have hr : r⁻¹ • r • b = r⁻¹ • 0, from congr_arg _ h,
@@ -282,53 +293,187 @@ lemma smul_eq_zero_iff_eq_zero {α β : Type*} [division_ring α] [decidable_eq 
   rwa [←one_smul α b, ←division_ring.inv_mul_cancel hn],
 end),
 λ h, by { rw [h, zero_smul] }⟩
+--TODO: move
+lemma smul_eq_zero_iff_eq_zero_right {α β : Type*} [division_ring α] [decidable_eq α] [add_comm_group β] [module α β]
+  {r : α} (hr : r ≠ 0) (b : β) : r • b = 0 ↔ b = 0 :=
+⟨λ h, classical.by_contradiction (λ hn,
+  by { rw [smul_eq_zero_iff_eq_zero_left _ hn] at h, contradiction, apply_instance }),
+λ h, by { rw [h, smul_zero] }⟩
 
-lemma sum_mem_span {α β γ ι : Type*} [comm_ring α] [comm_ring β] [add_comm_group γ] [module α β] [module β γ] [module α γ]
-  (v : ι → γ) (f : ι →₀ β) : finsupp.sum f (λ i a, a • v i) ∈ submodule.span α (set.range v) := sorry
+--TODO: move
+lemma smul_inj {α β : Type*} [division_ring α] [decidable_eq α] [add_comm_group β] [module α β]
+  (b c : β) {r : α} (hr : r ≠ 0) : r • b = r • c ↔ b = c :=
+by rw [←sub_eq_zero, ←smul_sub, smul_eq_zero_iff_eq_zero_right hr, sub_eq_zero]
+
+
+--TODO: exists_is_basis has decidable_eq α and discrete_field α !!!
+
+-- move
+lemma sum_ite {α β γ : Type*} [decidable_eq α] [has_zero β] [add_comm_monoid γ]
+  (f : α →₀ β) (g : α → β → γ) (hg : ∀ a : α, g a 0 = 0) (a : α) :
+  finsupp.sum f (λ (a₂ : α) (b : β), ite (a₂ = a) (g a b) 0) =
+  g a (f a) :=
+suffices finsupp.sum f (λ (a₂ : α) (b : β), ite (a₂ = a) (g a b) 0) =
+  (finset.singleton a).sum (λ (a₂ : α), ite (a₂ = a) (g a (f a₂)) 0),
+  by { convert this, rw [finset.sum_singleton, if_pos rfl] },
+begin
+  unfold finsupp.sum,
+  by_cases ha : a ∈ f.support,
+  { refine (finset.sum_subset _ _).symm,
+    { assume x hx, rw [finset.mem_singleton] at hx, rwa [hx] },
+    { assume x _ hx, rw [finset.not_mem_singleton] at hx, rwa [if_neg] } },
+  { convert (rfl : (0:γ) = 0),
+    { apply finset.sum_eq_zero,
+      intros j hj,
+      apply if_neg,
+      intro h,
+      exact ha (h ▸ hj) },
+    { apply finset.sum_eq_zero,
+      intros j hj,
+      rw [finset.mem_singleton] at hj,
+      rw [if_pos hj],
+      convert hg a,
+      have h : ¬(f j ≠ 0), from mt (finsupp.mem_support_to_fun f j).mpr ((eq.symm hj) ▸ ha),
+      rwa [ne.def, classical.not_not] at h } }
+end
+
+--move
+lemma finsupp.curry_apply {α β γ : Type*} [decidable_eq α] [decidable_eq β] [decidable_eq γ] [add_comm_monoid γ]
+  (f : (α × β) →₀ γ) (x : α) (y : β) : ((finsupp.curry f) x) y = f (x, y) :=
+begin
+change ((f.sum $ λ p c, finsupp.single p.1 (finsupp.single p.2 c)) x) y = f (x, y),
+rw [finsupp.sum_apply, finsupp.sum_apply],
+conv_lhs { congr, skip, funext, rw [finsupp.single_apply],
+  change (ite (a₁.fst = x) (finsupp.single (a₁.snd) b) 0).to_fun y,
+  rw [show (ite (a₁.fst = x) (finsupp.single (a₁.snd) b) 0).to_fun y =
+    ite (a₁ = (x, y)) b 0, { split_ifs with hx h,
+    { rwa [show (finsupp.single _ _).to_fun _ = _, from finsupp.single_apply, h, if_pos rfl] },
+    { rw [show (finsupp.single _ _).to_fun _ = _, from finsupp.single_apply],
+      rw [show a₁ = (a₁.fst, a₁.snd), from eq.symm prod.mk.eta, ←hx, prod.mk.inj_iff, not_and] at h,
+      rwa [if_neg (h rfl)] },
+    { rw [show a₁ = (a₁.fst, a₁.snd), from eq.symm prod.mk.eta, prod.mk.inj_iff] at h, exact false.elim (hx h.1) },
+    { refl } }]
+ },
+refine sum_ite f (λ _ b, b) _ _,
+intro _, refl
+end
+
+lemma finsupp.sum_smul {α β γ δ : Type*} [has_zero β] [ring γ] [add_comm_group δ] [module γ δ]
+  (f : α →₀ β) (g : α → β → γ) (x : δ) : f.sum (λ a b, g a b • x) = (f.sum (λ a b, g a b)) • x :=
+begin
+letI : is_add_monoid_hom (λ (g : γ), g • x) :=
+  { map_zero := zero_smul _ _,
+    map_add := λ _ _, add_smul _ _ x },
+exact finset.sum_hom (λ g : γ, g • x)
+end
 
 set_option class.instance_max_depth 50
---set_option pp.all true
+
 -- move
-lemma dim_finsupp (α : Type u) (η : Type v) (β : Type w) [discrete_field α] [integral_domain β] [decidable_eq β] [decidable_eq η]
-  [vector_space α β] : dim α (η →₀ β) = cardinal.lift (cardinal.mk η) :=
-have is_basis α (λ i : η, finsupp.single i (1:β)), from
+lemma finsupp_basis (α : Type*) (ι : Type*) [discrete_field α] [decidable_eq ι] :
+  is_basis α (λ i : ι, finsupp.single i (1:α)) :=
+begin
+  split,
+  { rw [linear_independent_iff],
+    intros f hf,
+    ext i,
+    rw [finsupp.total_apply, finsupp.ext_iff] at hf,
+    replace hf := hf i,
+    rw [finsupp.sum_apply] at hf,
+    conv_lhs at hf { congr, skip, funext, rw [finsupp.smul_single, finsupp.single_apply] },
+    rwa [sum_ite, smul_eq_mul, mul_one] at hf,
+    intro _, exact zero_smul _ _ },
+  { rw [submodule.eq_top_iff'],
+    intro f,
+    rw [←set.image_univ, finsupp.mem_span_iff_total],
+    have H : f ∈ finsupp.supported α α (set.univ : set ι),
+      { rw [finsupp.supported_univ], exact submodule.mem_top },
+    existsi [f, H],
+    rw [finsupp.total_apply],
+    ext i,
+    rw [finsupp.sum_apply],
+    conv_lhs { congr, skip, funext, rw [finsupp.smul_single, finsupp.single_apply] },
+    rw [sum_ite, smul_eq_mul, mul_one],
+    intro _, exact zero_smul _ _ }
+end
+
+--move
+lemma comp_basis {ι₁ ι₂ α β γ : Type*} [ring α] [ring β] [add_comm_group γ] [module α β] [module β γ] [module α γ]
+  [decidable_eq α] [decidable_eq β] [decidable_eq γ] [decidable_eq ι₁] [decidable_eq ι₂]
+  {v₁ : ι₁ → β} {v₂ : ι₂ → γ} (hv₁ : is_basis α v₁) (hv₂ : is_basis β v₂)
+  (hm : ∀ (a : α) (b : β) (g : γ), a • b • g = (a • b) • g) :
+  is_basis α (λ i : ι₂ × ι₁, v₁ i.snd • v₂ i.fst) :=
 begin
   split,
   { rw [linear_independent_iff],
     assume f hf,
     ext i,
-    rw [finsupp.total_apply, finsupp.ext_iff] at hf,
-    replace hf := hf i,
-    rw [finsupp.sum_apply, show ((0 : η →₀ β) i) = 0, from rfl] at hf,
-    conv_lhs at hf { congr, skip, funext, funext, rw [finsupp.smul_single, finsupp.single_apply] },
-    unfold finsupp.sum at hf,
-    letI : module α β := by apply_instance, --hint
-    have h : f.support.sum (λ (a : η), ite (a = i) (f a • (1:β)) 0) =
-      (finset.singleton i).sum (λ (a : η), ite (a = i) (f a • 1) 0),
-    { by_cases h : i ∈ f.support,
-      { refine (finset.sum_subset _ _).symm,
-        { rw [finset.subset_iff], intros _ hx, rw [finset.mem_singleton] at hx, rwa [hx] },
-        { intros j _ hj, rw [finset.not_mem_singleton] at hj, exact if_neg hj } },
-      { convert (rfl : (0:β) = 0),
-        apply finset.sum_eq_zero,
-        intros j hj,
-        rw [finset.mem_singleton] at hj,
-        rw [finsupp.not_mem_support_iff] at h,
-        rw [if_pos hj, hj, h, zero_smul] } },
-    rwa [h, finset.sum_singleton, if_pos rfl, smul_eq_zero_iff_eq_zero] at hf,
-    exact one_ne_zero },
+    rw [finsupp.total_apply] at hf,
+    conv_lhs at hf { congr, skip, funext, rw [hm] },
+    rw [←finsupp.sum_curry_index f (λ (i₂ : ι₂) (i₁ : ι₁) (a : α), (a • v₁ i₁) • v₂ i₂)] at hf,
+    { change (finsupp.curry f).sum (λ (i₂ : ι₂) (f : ι₁ →₀ α), f.sum ((λ (i₁ : ι₁) (a : α), (a • v₁ i₁) • v₂ i₂))) = 0 at hf,
+      conv_lhs at hf { congr, skip, funext, rw [finsupp.sum_smul] },
+      let e := λ (i₁ : ι₁) (a : α), a • v₁ i₁,
+      have h : _ := linear_independent_iff.mp hv₂.1 (finsupp.map_range (λ g, finsupp.sum g e) finsupp.sum_zero_index (finsupp.curry f)),
+      rw [finsupp.total_apply, finsupp.sum_map_range_index] at h,
+      replace h := h hf,
+      have h2 : (finsupp.map_range (λ (g : ι₁ →₀ α), finsupp.sum g e) finsupp.sum_zero_index
+        (finsupp.curry f)) i.fst = (0 : ι₂ →₀ β) i.fst, by { apply congr_fun, congr, exact h },
+      rw [finsupp.map_range_apply] at h2,
+      have h3 : (finsupp.curry f) (i.fst) = 0, from linear_independent_iff.mp hv₁.1 _ h2,
+      have h4 : ((finsupp.curry f) (i.fst)) (i.snd) = 0, by { rw [h3], refl },
+      rwa [finsupp.curry_apply, prod.mk.eta] at h4,
+      intro _, rw [zero_smul] },
+    { intros _ _, simp only [zero_smul] },
+    { intros _ _ _ _, simp only [add_smul] } },
   { rw [submodule.eq_top_iff'],
-    assume f,
-    letI : module β (η →₀ β) := by apply_instance,
-    have : f = finsupp.sum f (λ (i : η) (a : β), a • finsupp.single i (1:β)), from sorry,
-    rw [this],
-    exact sum_mem_span (λ i : η, finsupp.single i (1:β)) f }
-end,
+    intro g,
+    rw [←set.image_univ, finsupp.mem_span_iff_total],
+    let f := finsupp.uncurry (finsupp.map_range hv₁.repr.to_fun (hv₁.repr).map_zero (hv₂.repr g)),
+    have H : f ∈ finsupp.supported α α (set.univ : set (ι₂ × ι₁)),
+      { rw [finsupp.supported_univ], exact submodule.mem_top },
+    existsi [f, H],
+    rw [finsupp.total_apply],
+    conv_lhs { congr, skip, funext, rw [hm] },
+    rw [←finsupp.sum_curry_index f (λ (i₂ : ι₂) (i₁ : ι₁) (a : α), (a • v₁ i₁) • v₂ i₂)],
+    have : finsupp.curry f = finsupp.map_range hv₁.repr.to_fun (hv₁.repr).map_zero (hv₂.repr g), from
+      finsupp.finsupp_prod_equiv.right_inv _,
+    rw [this, finsupp.sum_map_range_index],
+    change (hv₂.repr g).sum (λ (i₂ : ι₂) (b : β), (hv₁.repr b).sum (λ (i₁ : ι₁) (a : α), (a • v₁ i₁) • v₂ i₂)) = g,
+    conv_lhs { congr, skip, funext, rw [finsupp.sum_smul],
+      rw [show finsupp.sum (hv₁.repr b) (λ (i₁ : ι₁) (a : α), a • v₁ i₁) = ((finsupp.total ι₁ β α v₁).comp hv₁.repr) b,
+        by simp only [finsupp.total_apply, linear_map.comp_apply]],
+      rw [hv₁.total_comp_repr, linear_map.id_apply] },
+    rw [show finsupp.sum (hv₂.repr g) (λ (i₂ : ι₂) (b : β), b • v₂ i₂) = ((finsupp.total ι₂ γ β v₂).comp hv₂.repr) g,
+        by simp only [finsupp.total_apply, linear_map.comp_apply]],
+    rw [hv₂.total_comp_repr, linear_map.id_apply],
+    { intro _, exact finsupp.sum_zero_index },
+    { intros _ _, simp only [zero_smul] },
+    { intros _ _ _ _, simp only [add_smul] } }
+end
+
+set_option profiler true
+set_option pp.universes true
+-- move
+lemma dim_finsupp (α : Type u) (β : Type w) (η : Type v) [discrete_field α] [discrete_field β]
+  [decidable_eq η] [algebra α β] :
+  dim α (η →₀ β) = cardinal.lift.{v w} (cardinal.mk η) * cardinal.lift.{w v} (dim α β) :=
+let ⟨b, hb⟩ := exists_is_basis α β in
+have h : is_basis α (λ i : η × b, _), from
+  comp_basis hb (finsupp_basis β η) sorry,
+calc dim α (η →₀ β) = cardinal.lift.{(max v w) (max v w)} (dim α (η →₀ β))      : eq.symm $ cardinal.lift_id _
+                ... = cardinal.lift.{(max v w) (max v w)} (cardinal.mk (η × b)) : eq.symm $ h.mk_eq_dim
+                ... = cardinal.lift.{(max v w) (max v w)} (cardinal.lift.{v w} (cardinal.mk η) * cardinal.lift.{w v} (cardinal.mk b)) : by rw [cardinal.mk_prod]
+                ... = cardinal.lift.{v w} (cardinal.mk η) * cardinal.lift.{w (max w v)} (cardinal.mk.{w} b) : by rw[cardinal.lift_mul, cardinal.lift_lift, cardinal.lift_lift, cardinal.lift_umax]
+                ... = cardinal.lift.{v w} (cardinal.mk η) * cardinal.lift.{w v} (cardinal.lift.{w w} (cardinal.mk.{w} b)) : by rw [cardinal.lift_id, cardinal.lift_umax]
+                ... = cardinal.lift.{v w} (cardinal.mk η) * cardinal.lift.{w v} (dim α β) : by rw [hb.mk_eq_dim, cardinal.lift_id]
+--dim_lt_omega
+lemma dim_finsupp_findim (α : Type u) (β : Type w) (η : Type v) [discrete_field α] [discrete_field β]
+  [decidable_eq η] [algebra α β] [finite_dimensional α β] :
+  dim α (η →₀ β) = cardinal.lift (cardinal.mk η) :=
 begin
-  rw [←cardinal.lift_id' (dim α (η →₀ β))],
-  symmetry,
-  convert this.mk_eq_dim,
-  rw [cardinal.lift_umax]
+  convert dim_finsupp α β η,
+  sorry
 end
 
 lemma power_basis.ker_omega : dim α (power_basis α b).ker ≥ cardinal.omega :=
@@ -342,7 +487,7 @@ begin
   have h3 : dim α (power_basis α b).range + (dim α (power_basis α b).ker) < cardinal.omega, from
     cardinal.add_lt_omega h2 h1,
   letI : vector_space α (ℕ →₀ α) := vector_space.mk α (ℕ →₀ α), --hint
-  have h4 : dim α (ℕ →₀ α) = cardinal.omega, from dim_finsupp α ℕ α,
+  have h4 : dim α (ℕ →₀ α) = cardinal.omega, from dim_finsupp_findim α α ℕ,
   rw [dim_range_add_dim_ker, h4] at h3,
   -- We arrive at a contradiction since the domain has infinite dimension
   exact (not_lt.mpr $ le_refl cardinal.omega) h3

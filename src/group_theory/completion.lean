@@ -125,24 +125,18 @@ end adjunction
 #exit
 section
 open localization localization.fraction_ring classical
-variables (R : Type u) [integral_domain R] [decidable_eq R]
+variables (R : Type*) [integral_domain R] [decidable_eq R]
 
-def non_zero_divisors' : submonoid R :=
-⟨non_zero_divisors R, λ z hz, by rwa monoid.mul_one at hz,
- λ x₁ x₂ hx₁ hx₂ z hz,
- have z * x₁ * x₂ = 0, by rwa monoid.mul_assoc,
- hx₁ z $ hx₂ (z * x₁) this⟩
+--lemma ne_zero_of_non_zero_divisors' {x : non_zero_divisors' R} : (x : R) ≠ 0 :=
+--λ hm, absurd (x.2 1 (by rw [hm.symm, monoid.one_mul]; finish)).symm zero_ne_one
 
-lemma ne_zero_of_non_zero_divisors' {x : non_zero_divisors' R} : (x : R) ≠ 0 :=
-λ hm, absurd (x.2 1 (by rw [hm.symm, monoid.one_mul]; finish)).symm zero_ne_one
-
-local notation `fracR` := fractions (⊤ : submonoid (non_zero_divisors' R))
+--local notation `fracR` := fractions (⊤ : submonoid (non_zero_divisors' R))
 variables {R}
-lemma of_inv_eq {x : non_zero_divisors' R} : (of (x : R) :  fraction_ring R)⁻¹ = mk 1 x :=
-by tidy
+--lemma of_inv_eq {x : non_zero_divisors R} : (of (x : R) :  fraction_ring R)⁻¹ = mk 1 x :=
+--by tidy
 
-lemma ne_zero_of {x : non_zero_divisors' R} : (of x : fraction_ring R) ≠ 0 :=
-λ h, absurd (of.injective (by rwa ←of_zero at h)) (ne_zero_of_non_zero_divisors' R)
+--lemma ne_zero_of {x : non_zero_divisors' R} : (of x : fraction_ring R) ≠ 0 :=
+--λ h, absurd (of.injective (by rwa ←of_zero at h)) (ne_zero_of_non_zero_divisors' R)
 
 variables (R)
 

@@ -1,4 +1,4 @@
-import group_theory.submonoid order.order_iso algebra.pi_instances tactic.default
+import group_theory.submonoid order.order_iso algebra.pi_instances tactic.default data.equiv.algebra
 
 variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*}
           [monoid M] [monoid N] [monoid P] [monoid Q]
@@ -27,73 +27,27 @@ variables {R : Type*} {S : Type*} {T : Type*} [semiring R] [semiring S] [semirin
 
 end semiring_hom
 
-structure monoid_equiv (M N) [monoid M] [monoid N] extends equiv M N, monoid_hom M N
-
-namespace monoid_equiv
-
-variable (h : monoid_equiv M N)
-
-instance : has_coe_to_fun (monoid_equiv M N) := ⟨_, λ f, f.1⟩
-
-@[refl] def refl : monoid_equiv M M :=
-{ map_one' := rfl,
-  map_mul' := λ x y, rfl,
-..equiv.refl M}
-
-@[symm] def symm : monoid_equiv N M :=
-{ map_one' := by rw ←h.5; apply h.3,
-  map_mul' := λ x y,
-  let ⟨a, ha⟩ := h.to_equiv.surjective x in
-  let ⟨b, hb⟩ := h.to_equiv.surjective y in by
-  {  show h.2 _ = h.2 _ * h.2 _,
-     rw [(show x = h.1 a, from ha.symm), (show y = h.1 b, from hb.symm), ←h.6, h.3, h.3, h.3]},
-  ..h.to_equiv.symm}
-
-@[trans] def trans (h1 : monoid_equiv M N) (h2 : monoid_equiv N P) : monoid_equiv M P :=
-{   map_one' := show h2.1 (h1.1 1) = 1, by rw [h1.5, h2.5],
-    map_mul' := λ x y, show h2.1 (h1.1 (x*y)) = (h2.1 (h1.1 x))*(h2.1 (h1.1 y)), by rw [h1.6, h2.6],
-  ..equiv.trans h1.to_equiv h2.to_equiv}
-
-def inv_hom : N →* M :=
-⟨h.symm, h.symm.to_monoid_hom.map_one, h.symm.to_monoid_hom.map_mul⟩
-
-@[simp] lemma to_monoid_hom_apply {x : M} : h.to_monoid_hom x = h x := rfl
-
-@[simp] lemma left_inv_apply {x : M} : h.symm (h x) = x :=
-show h.2 (h.1 x) = x, from h.3 x
-
-@[simp] lemma right_inv_apply {x : N} : h (h.symm x) = x :=
-show h.1 (h.2 x) = x, from h.4 x
-
-@[simp] lemma symm_apply {x : N} : h.to_equiv.symm.1 x = h.to_equiv.symm x := rfl
-
-@[simp] lemma trans_apply {k : monoid_equiv N P} {x : M} :
-  (equiv.trans h.to_equiv k.to_equiv).1 x = k (h x) := rfl
-
-@[simp] lemma left_inv_hom : h.symm.to_monoid_hom.comp h.to_monoid_hom = monoid_hom.id M :=
-by {ext, simp, refl}
-
-@[simp] lemma right_inv_hom : h.to_monoid_hom.comp h.symm.to_monoid_hom = monoid_hom.id N :=
-by {ext, simp, refl}
-
-end monoid_equiv
-
 namespace mul_equiv
 
-def to_monoid_equiv (g : M ≃ N) (H : ∀ x y, g (x*y) = g x * g y) : monoid_equiv M N :=
-{  to_fun := g,
-    map_one' := by cases (equiv.surjective g) 1 with a ha;
-                   rw [←one_mul (g 1), ←ha, ←H, mul_one],
-    map_mul' := H, ..g}
+@[simp] lemma to_monoid_hom_apply {h : M ≃* N} {x : M} : h.to_monoid_hom x = h x := rfl
 
+@[simp] lemma to_monoid_hom_symm_apply {h : M ≃* N} {x : N} :
+  h.symm.to_monoid_hom x = h.symm x := rfl
+
+@[simp] lemma to_monoid_hom_left_inv {h : M ≃* N} :
+h.symm.to_monoid_hom.comp h.to_monoid_hom = monoid_hom.id M :=
+by ext; simp; refl
+
+@[simp] lemma to_monoid_hom_right_inv {h : M ≃* N} :
+h.to_monoid_hom.comp h.symm.to_monoid_hom = monoid_hom.id N :=
+by ext; simp; refl
+
+def submonoid_congr {A B : submonoid M} (h : A = B) : A ≃* B :=
+{ map_mul' := λ x y, rfl, ..equiv.set_congr $ submonoid.ext'_iff.2 h}
+
+def submonoid.to_monoid_hom {A B : submonoid M} (h : A ≃* B) : A →* B :=
+@mul_equiv.to_monoid_hom A B _ _ h
 end mul_equiv
-
-namespace monoid_equiv
-
-def submonoid_congr {A B : submonoid M} (h : A = B) : monoid_equiv A B :=
-mul_equiv.to_monoid_equiv (equiv.set_congr $ submonoid.ext'_iff.2 h) $ λ x y, by tidy
-
-end monoid_equiv
 
 namespace monoid_hom
 
@@ -289,8 +243,8 @@ set.ext $ λ x,
 ⟨λ h, set.mem_preimage.2 (set.mem_singleton_iff.2 h.symm),
  λ h, (set.mem_singleton_iff.1 (set.mem_preimage.1 h)).symm⟩
 
-def congr {c d : con M} (h : c = d) : monoid_equiv c.quotient d.quotient :=
-mul_equiv.to_monoid_equiv (quotient.congr (equiv.refl M) $ ext_iff.2 h) $ by tidy
+def congr {c d : con M} (h : c = d) :  c.quotient ≃* d.quotient :=
+{map_mul' := λ x y, by tidy, ..quotient.congr (equiv.refl M) $ by apply ext_iff.2 h}
 
 open lattice
 
@@ -502,20 +456,19 @@ by ext; tidy
 variables {f}
 
 /-- First Isomorphism Theorem-/
-noncomputable def quotient_ker_equiv_range (f : M →* P) : monoid_equiv (con.ker f).quotient f.range :=
-mul_equiv.to_monoid_equiv (@equiv.of_bijective _ _
-((monoid_equiv.submonoid_congr ker_lift_range_eq).to_monoid_hom.comp
+noncomputable def quotient_ker_equiv_range (f : M →* P) : (con.ker f).quotient ≃* f.range :=
+{ map_mul' := monoid_hom.map_mul _, ..@equiv.of_bijective _ _
+((mul_equiv.submonoid.to_monoid_hom (mul_equiv.submonoid_congr ker_lift_range_eq)).comp
 f.ker_lift.range_mk) $ function.bijective_comp (equiv.bijective _)
-⟨λ x y h, injective_ker_lift f $ by tidy, by simp * at *⟩) (λ x y, by tidy)
+⟨λ x y h, injective_ker_lift f $ by tidy, by simp * at *⟩}
 
 lemma lift_surjective_of_surjective (hf : function.surjective f) : function.surjective f.ker_lift :=
 λ y, exists.elim (hf y) $ λ w hw, ⟨w, by tidy⟩
 
 noncomputable def quotient_ker_equiv_of_surjective (f : M →* P) (hf : function.surjective f) :
-  monoid_equiv (con.ker f).quotient P :=
-mul_equiv.to_monoid_equiv
- (@equiv.of_bijective _ _ f.ker_lift ⟨injective_ker_lift f, lift_surjective_of_surjective hf⟩)
-(λ x y, by simp * at *)
+  (con.ker f).quotient ≃* P :=
+{map_mul' := monoid_hom.map_mul _, ..
+(@equiv.of_bijective _ _ f.ker_lift ⟨injective_ker_lift f, lift_surjective_of_surjective hf⟩)}
 
 lemma subtype_eq (A : submonoid M) : c.subtype A = con.ker (c.mk'.comp A.subtype) :=
 con.ext $ λ x y,
@@ -524,16 +477,15 @@ con.ext $ λ x y,
 
 /-- Second Isomorphism Theorem -/
 noncomputable def submonoid_quotient_equiv (A : submonoid M) :
-  monoid_equiv (c.subtype A).quotient (c.mk'.comp A.subtype).range :=
-monoid_equiv.trans (congr (subtype_eq c A)) $
-quotient_ker_equiv_range (c.mk'.comp A.subtype)
+  (c.subtype A).quotient ≃* (c.mk'.comp A.subtype).range :=
+mul_equiv.trans (congr (subtype_eq c A)) $ quotient_ker_equiv_range (c.mk'.comp A.subtype)
 
 lemma surjective_of_con_lift (d : con M) (h : c ≤ d) : function.surjective (c.map d h) :=
 λ x, induction_on' x $ λ z, ⟨z, by tidy⟩
 
 /-- Third Isomorphism Theorem -/
 noncomputable def quotient_quotient_equiv_quotient --????
-(c d : con M) (h : c ≤ d) : monoid_equiv (con.ker (c.map d h)).quotient d.quotient :=
+(c d : con M) (h : c ≤ d) : (con.ker (c.map d h)).quotient ≃* d.quotient :=
 quotient_ker_equiv_of_surjective _ $ surjective_of_con_lift c d h
 
 --/-- Fourth Isomorphism Theorem -/

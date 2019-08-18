@@ -23,20 +23,17 @@ import data.equiv.congruence algebra.associated data.equiv.algebra
 
 namespace ring_equiv
 
-instance is_ring_hom_of_monoid_equiv {R : Type*} {S : Type*} [ring R] [ring S]
-  (h : monoid_equiv R S) (H: ∀ x y : R, h (x + y) = h x + h y) : is_ring_hom h :=
+instance is_ring_hom_of_mul_equiv {R : Type*} {S : Type*} [ring R] [ring S]
+  (h : R ≃* S) (H: ∀ x y : R, h (x + y) = h x + h y) : is_ring_hom h :=
 @semiring_hom.is_ring_hom _ _ _ _ $ semiring_hom.mk' h.to_monoid_hom H
 
-def of_monoid_equiv {R : Type*} {S : Type*} [ring R] [ring S] (h : monoid_equiv R S)
+def of_mul_equiv {R : Type*} {S : Type*} [ring R] [ring S] (h : R ≃* S)
   (H: ∀ x y : R, h (x + y) = h x + h y) : R ≃r S :=
-{hom := ring_equiv.is_ring_hom_of_monoid_equiv h H, ..h.to_equiv}
+{hom := ring_equiv.is_ring_hom_of_mul_equiv h H, ..h.to_equiv}
 
 def to_semiring_hom {R : Type*} {S : Type*} [ring R] [ring S] (h : R ≃r S) : R →+* S :=
 ⟨h.to_equiv, is_ring_hom.map_one _, λ x y, is_ring_hom.map_mul _,
 is_ring_hom.map_zero _, λ x y, is_ring_hom.map_add _⟩
-
-def to_monoid_equiv {R : Type*} {S : Type*} [ring R] [ring S] (h : R ≃r S) :
-  monoid_equiv R S := mul_equiv.to_monoid_equiv h.to_equiv $ h.hom.map_mul
 
 end ring_equiv
 
@@ -417,7 +414,7 @@ end monoid_hom
 
 end localization
 
-namespace monoid_equiv
+namespace mul_equiv
 
 open localization
 
@@ -425,30 +422,30 @@ variables {X Y} (f : X →* Y) {W : submonoid Z}
 
 /-- Given a ring isomorphism h₁ between commutative rings α and β, if h₁'s image on a submonoid S is
     a submonoid T, we can construct a natural isomorphism between the respective localizations. -/
-@[reducible] def equiv_of_equiv_aux (h : monoid_equiv X Z) (H : h.to_monoid_hom.map Y = W) :
+@[reducible] def equiv_of_equiv_aux (h : X ≃* Z) (H : h.to_monoid_hom.map Y = W) :
   localization X Y ≃ localization Z W :=
 let H1 : ∀ y : Y, h y ∈ W :=
 by { intro y, rw [←H, ←submonoid.mem_coe], change _ ∈ (h '' Y), exact ⟨(y: X), y.2, rfl⟩} in
 let H2 : ∀ w : W, h.symm w ∈ Y :=
 by { intro w, rcases (show (w : Z) ∈ h.to_monoid_hom.map Y, by {rw H, apply w.2}) with ⟨y, hym, hy⟩,
-   rw [hy.symm, h.to_monoid_hom_apply, h.left_inv_apply], exact (submonoid.mem_coe Y).1 hym} in
+   rw [hy.symm, (show h.to_monoid_hom y = h y, from rfl), mul_equiv.symm_apply_apply],
+   exact (submonoid.mem_coe Y).1 hym} in
 { to_fun := @localization.monoid_hom.map _ _ Y _ _ h.to_monoid_hom W $ H1,
   inv_fun := @localization.monoid_hom.map _ _ W _ _ h.symm.to_monoid_hom Y $ H2,
   left_inv := λ x, by {erw [monoid_hom.map_map,
     monoid_hom.map_ext (h.symm.to_monoid_hom.comp h.to_monoid_hom) (monoid_hom.id X)
     (λ (y : Y), show _ ∈ Y, by {convert (submonoid.mem_coe _).1 y.2, simp, refl})
-    (λ (y : Y), show (y : X) ∈ Y, from y.2) (by simp) x, monoid_hom.map_id], refl},
+    (λ (y : Y), show (y : X) ∈ Y, from y.2) (by {simp, }) x, monoid_hom.map_id], refl},
   right_inv := λ x, by {erw [monoid_hom.map_map,
     monoid_hom.map_ext (h.to_monoid_hom.comp h.symm.to_monoid_hom) (monoid_hom.id Z)
     (λ (w : W), show _ ∈ W, by {convert (submonoid.mem_coe _).1 w.2, simp, refl})
     (λ (w : W), show (w : Z) ∈ W, from w.2) (by simp) x, monoid_hom.map_id], refl}}
 
-def equiv_of_equiv (h : monoid_equiv X Z) (H : h.to_monoid_hom.map Y = W) :
-  monoid_equiv (localization X Y) (localization Z W) :=
-mul_equiv.to_monoid_equiv (equiv_of_equiv_aux h H) $
-λ x y, monoid_hom.map_mul _ x y
+def equiv_of_equiv (h : X ≃* Z) (H : h.to_monoid_hom.map Y = W) :
+  (localization X Y) ≃* (localization Z W) :=
+{map_mul' := monoid_hom.map_mul _, ..equiv_of_equiv_aux h H}
 
-end monoid_equiv
+end mul_equiv
 
 namespace submonoid
 
@@ -464,7 +461,7 @@ end submonoid
 
 namespace localization
 
-namespace monoid_equiv
+namespace mul_equiv
 
 variables {X Y}
 
@@ -476,7 +473,7 @@ function.surjective (monoid_hom.lift' f f' hf) ∧ con.ker f = Y.r_restrict
 def char_pred (H : ∀ y : Y, is_unit (f y)) :=
 function.surjective (monoid_hom.lift f H) ∧ con.ker f = Y.r_restrict
 
-lemma char_pred_of_equiv (H : ∀ y : Y, is_unit (f y)) (h : monoid_equiv (localization X Y) Z)
+lemma char_pred_of_equiv (H : ∀ y : Y, is_unit (f y)) (h : (localization X Y) ≃* Z)
   (hf : monoid_hom.lift f H = h.to_monoid_hom) : char_pred f H :=
 ⟨λ x, let ⟨p, hp⟩ := h.to_equiv.surjective x in ⟨p, by {rw [←hp, hf], refl}⟩,
 con.ext $ λ x y, ⟨λ h', let ⟨c, hc⟩ := con.eq.1 (h.to_equiv.injective $
@@ -505,16 +502,15 @@ end
 Hp.1
 
 noncomputable def equiv_of_char_pred' (f' : Y → units Z) (hf : ∀ y:Y, f y = f' y)
-  (Hp : char_pred' f f' hf) : monoid_equiv (localization X Y) Z :=
-mul_equiv.to_monoid_equiv (equiv_of_char_pred'_aux f f' hf Hp) $
-(monoid_hom.lift' f f' hf).map_mul
+  (Hp : char_pred' f f' hf) : (localization X Y) ≃* Z :=
+{map_mul' := (monoid_hom.lift' f f' hf).map_mul, ..equiv_of_char_pred'_aux f f' hf Hp}
 
 noncomputable def equiv_of_char_pred (H : ∀ y : Y, is_unit (f y)) (Hp : char_pred f H) :
-monoid_equiv (localization X Y) Z :=
+(localization X Y) ≃* Z :=
 equiv_of_char_pred' f (λ y, classical.some $ H y)
   (λ y, by rw [← classical.some_spec (H y)]; refl) Hp
 
-end monoid_equiv
+end mul_equiv
 
 section away
 
@@ -800,25 +796,25 @@ variables {β : Type*} [comm_ring β] {T : submonoid β} (f : α →+* β)
 
 def equiv_of_equiv (h₁ : α ≃r β) (h₂ : h₁.to_equiv '' S = T) :
   localization α S ≃r localization β T :=
-let H1 : h₁.to_monoid_equiv.to_monoid_hom.map S = T := by
+let H1 : h₁.to_mul_equiv.to_monoid_hom.map S = T := by
  { ext, rw [←submonoid.mem_coe T, ←h₂], refl} in
-{hom := ring_equiv.is_ring_hom_of_monoid_equiv
-  (h₁.to_monoid_equiv.equiv_of_equiv H1) $
+{hom := ring_equiv.is_ring_hom_of_mul_equiv
+  (h₁.to_mul_equiv.equiv_of_equiv H1) $
   λ (x y : localization α S), by
   convert semiring_hom.lift'_add ((semiring_hom.of T).comp h₁.to_semiring_hom) _ _ x y,
-..(h₁.to_monoid_equiv.equiv_of_equiv H1).to_equiv }
+..(h₁.to_mul_equiv.equiv_of_equiv H1).to_equiv }
 
 def char_pred (H : ∀ s : S, is_unit (f s)) :=
-monoid_equiv.char_pred f.to_monoid_hom H
+mul_equiv.char_pred f.to_monoid_hom H
 
 lemma char_pred_of_equiv (H : ∀ s : S, is_unit (f s)) (h : (localization α S) ≃r β)
   (hf : semiring_hom.lift f H = h.to_semiring_hom) : char_pred f H :=
-by convert monoid_equiv.char_pred_of_equiv f.to_monoid_hom H h.to_monoid_equiv
+by convert mul_equiv.char_pred_of_equiv f.to_monoid_hom H h.to_mul_equiv
 (show monoid_hom.lift f.to_monoid_hom H = h.to_semiring_hom.to_monoid_hom, by {rw hf.symm, refl})
 
 noncomputable def equiv_of_char_pred (H : ∀ s : S, is_unit (f s)) (Hp : char_pred f H) :
   (localization α S) ≃r β :=
-ring_equiv.of_monoid_equiv (monoid_equiv.equiv_of_char_pred f.to_monoid_hom H Hp) $
+ring_equiv.of_mul_equiv (mul_equiv.equiv_of_char_pred f.to_monoid_hom H Hp) $
 λ x y, by convert semiring_hom.lift'_add f _ _ _ _
 
 end ring_equiv

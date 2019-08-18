@@ -210,7 +210,34 @@ rfl
   @fin.cases n C H0 Hs i.succ = Hs i :=
 by cases i; refl
 
+lemma forall_fin_succ {P : fin (n+1) → Prop} :
+  (∀ i, P i) ↔ P 0 ∧ (∀ i:fin n, P i.succ) :=
+⟨λ H, ⟨H 0, λ i, H _⟩, λ ⟨H0, H1⟩ i, fin.cases H0 H1 i⟩
+
+lemma exists_fin_succ {P : fin (n+1) → Prop} :
+  (∃ i, P i) ↔ P 0 ∨ (∃i:fin n, P i.succ) :=
+⟨λ ⟨i, h⟩, fin.cases or.inl (λ i hi, or.inr ⟨i, hi⟩) i h,
+  λ h, or.elim h (λ h, ⟨0, h⟩) $ λ⟨i, hi⟩, ⟨i.succ, hi⟩⟩
+
 end rec
+
+section tuple
+/- We can think of the type `fin n → α` as `n`-tuples in `α`. Here are some relevant operations. -/
+
+def tail {α} (p : fin (n+1) → α) : fin n → α := λ i, p i.succ
+def cons {α} (x : α) (v : fin n → α) : fin (n+1) → α :=
+λ j, fin.cases x v j
+
+@[simp] lemma tail_cons {α} (x : α) (p : fin n → α) : tail (cons x p) = p :=
+by simp [tail, cons]
+
+@[simp] lemma cons_succ {α} (x : α) (p : fin n → α) (i : fin n) : cons x p i.succ = p i :=
+by simp [cons]
+
+@[simp] lemma cons_zero {α} (x : α) (p : fin n → α) : cons x p 0 = x :=
+by simp [cons]
+
+end tuple
 
 section find
 

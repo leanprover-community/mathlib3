@@ -1098,3 +1098,8 @@ Here too, the `reassoc` attribute can be used instead. It works well when combin
 ```lean
 attribute [simp, reassoc] some_class.bar
 ```
+### sanity_check
+
+The `#sanity_check` command checks for common mistakes in the current file or in all of mathlib, respectively.
+
+Currently this will check for unused arguments in declarations and whether a declaration is incorrectly marked as a def/lemma.

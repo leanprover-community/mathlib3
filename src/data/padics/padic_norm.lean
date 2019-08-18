@@ -344,7 +344,7 @@ else if hr : r = 0 then
   by simp [hr]
 else
   have q*r ≠ 0, from mul_ne_zero hq hr,
-  have (↑p : ℚ) ≠ 0, by simp [prime.ne_zero hp],
+  have (↑p : ℚ) ≠ 0, by simp [hp.ne_zero],
   by simp [padic_norm, *, padic_val_rat.mul, fpow_add this]
 
 /--

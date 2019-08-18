@@ -432,6 +432,17 @@ convex_halfspace_gt _ (is_linear_map.mk complex.add_im complex.smul_im) _
 lemma convex_halfspace_im_lge (r : ℝ) : convex {c : ℂ | r ≤ c.im} :=
 convex_halfspace_ge _ (is_linear_map.mk complex.add_im complex.smul_im) _
 
+section submodule
+
+open submodule
+
+lemma convex_submodule (K : submodule ℝ α) : convex (↑K : set α) :=
+by { repeat {intro}, refine add_mem _ (smul_mem _ _ _) (smul_mem _ _ _); assumption }
+
+lemma convex_subspace (K : subspace ℝ α) : convex (↑K : set α) := convex_submodule K
+
+end submodule
+
 lemma convex_sum {γ : Type*} (hA : convex A) (z : γ → α) (s : finset γ) :
   ∀ a : γ → ℝ, s.sum a = 1 → (∀ i ∈ s, 0 ≤ a i) → (∀ i ∈ s, z i ∈ A) → s.sum (λi, a i • z i) ∈ A :=
 begin

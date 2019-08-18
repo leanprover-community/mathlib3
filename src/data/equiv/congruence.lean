@@ -42,10 +42,10 @@ instance : has_coe_to_fun (monoid_equiv M N) := ⟨_, λ f, f.1⟩
 
 @[symm] def symm : monoid_equiv N M :=
 { map_one' := by rw ←h.5; apply h.3,
-  map_mul' := λ x y, by
-  {  cases (equiv.surjective h.to_equiv) x with a ha,
-     cases (equiv.surjective h.to_equiv) y with b hb,
-     show h.2 _ = h.2 _ * h.2 _,
+  map_mul' := λ x y,
+  let ⟨a, ha⟩ := h.to_equiv.surjective x in
+  let ⟨b, hb⟩ := h.to_equiv.surjective y in by
+  {  show h.2 _ = h.2 _ * h.2 _,
      rw [(show x = h.1 a, from ha.symm), (show y = h.1 b, from hb.symm), ←h.6, h.3, h.3, h.3]},
   ..h.to_equiv.symm}
 
@@ -71,28 +71,21 @@ show h.1 (h.2 x) = x, from h.4 x
   (equiv.trans h.to_equiv k.to_equiv).1 x = k (h x) := rfl
 
 @[simp] lemma left_inv_hom : h.symm.to_monoid_hom.comp h.to_monoid_hom = monoid_hom.id M :=
-begin
-  ext,
-  simp,
-  refl,
-end
+by {ext, simp, refl}
 
 @[simp] lemma right_inv_hom : h.to_monoid_hom.comp h.symm.to_monoid_hom = monoid_hom.id N :=
-begin
-  ext,
-  simp,
-  refl,
-end
+by {ext, simp, refl}
 
 end monoid_equiv
 
 namespace mul_equiv
+
 def to_monoid_equiv (g : M ≃ N) (H : ∀ x y, g (x*y) = g x * g y) : monoid_equiv M N :=
 {  to_fun := g,
     map_one' := by cases (equiv.surjective g) 1 with a ha;
-              rw [←one_mul (g 1), ←ha, ←H, mul_one],
-    map_mul' := H,
-    ..g}
+                   rw [←one_mul (g 1), ←ha, ←H, mul_one],
+    map_mul' := H, ..g}
+
 end mul_equiv
 
 namespace monoid_equiv
@@ -384,15 +377,9 @@ lemma le_Inf' (s : set (con M)) : (∀d ∈ s, c ≤ d) → c ≤ Inf s :=
 λ h, le_def'.2 $ (Inf_eq s).symm ▸ (submonoid.le_Inf' $ λ d' ⟨d, hs, hd⟩, hd ▸ (le_def'.1 $ h d hs))
 
 lemma rel_Inf_iff (S : set (con M)) (x y : M) : (Inf S) x y ↔ (∀ p : con M, p ∈ S → p x y) :=
-begin
-  split,
-    intros h p hp,
-    apply (le_def _ _).1 (Inf_le' p hp) x y h,
-  rw [←mem_iff_rel, ←mem_coe, Inf_eq, submonoid.mem_Inf],
-  rintro h p' ⟨q, hm, hq⟩,
-  rw ←hq,
-  exact mem_coe.2 (h q hm),
-end
+⟨λ h p hp, (le_def _ _).1 (Inf_le' p hp) x y h,
+by { rw [←mem_iff_rel, ←mem_coe, Inf_eq, submonoid.mem_Inf],
+     rintro h p' ⟨q, hm, hq⟩, rw ←hq, exact mem_coe.2 (h q hm)}⟩
 
 instance : has_sup (con M) := ⟨λ c d, Inf { x | c ≤ x ∧ d ≤ x}⟩
 
@@ -450,20 +437,10 @@ variables {f : M →* P} {c : con M}
 
 @[simp] lemma lift_apply_mk' (f : c.quotient →* P) :
   (f.comp c.mk').lift c (λ x y h, by simp [con.eq.2 h]) = f :=
-begin
-  ext,
-  apply con.induction_on' x,
-  intro y,
-  simp,
-end
+by {ext, apply con.induction_on' x, intro y, simp}
 
 protected lemma lift.funext (f g : c.quotient →* P) (h : ∀ a : M, f a = g a) : f = g :=
-begin
-  rw [←lift_apply_mk' f, ← lift_apply_mk' g],
-  congr' 1,
-  ext,
-  apply h x,
-end
+by {rw [←lift_apply_mk' f, ← lift_apply_mk' g], congr' 1, ext, apply h x}
 
 theorem lift_unique (H : ∀ x y, c x y → f x = f y) (g : c.quotient →* P)
 (Hg : g.comp c.mk' = f) : g = f.lift c H :=
@@ -566,19 +543,8 @@ def correspondence : ((≤) : {d // c ≤ d} → {d // c ≤ d} → Prop) ≃o
   inv_fun := λ d, subtype.mk (c.of_con d) (c.le_of_con d),
   left_inv := λ d, by simp [c.left_inverse d],
   right_inv := λ d, by simp [c.right_inverse d],
-  ord := begin
-    rintro ⟨a, ha⟩ ⟨b, hb⟩,
-    change a ≤ b ↔ _,
-    split,
-      intro hle,
-      rw le_def,
-      intros x y,
-      apply con.induction_on₂' x y,
-      intros w z h,
-      show b w z, from (le_def _ _).1 hle w z h,
-    rw [le_def, le_def],
-    intros H p q h,
-    apply H ↑p ↑q h,
-    end}
+  ord := λ a b, ⟨λ hle, (le_def _ _).2 $ λ x y, con.induction_on₂' x y $
+    λ w z h, by apply (le_def _ _).1 hle w z h,
+    λ H, (le_def _ _).2 $ λ p q h, by apply (le_def _ _).1 H (p : c.quotient) (q : c.quotient) h⟩}
 
 end con

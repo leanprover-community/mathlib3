@@ -478,24 +478,13 @@ function.surjective (monoid_hom.lift f H) ∧ con.ker f = Y.r_restrict
 
 lemma char_pred_of_equiv (H : ∀ y : Y, is_unit (f y)) (h : monoid_equiv (localization X Y) Z)
   (hf : monoid_hom.lift f H = h.to_monoid_hom) : char_pred f H :=
-begin
-  split,
-  intro x,
-    cases h.to_equiv.surjective x with p hp,
-    exact ⟨p, by {rw ←hp, tidy}⟩,
-  ext x y,
-  split,
-    intro h',
-    rw con.ker_rel at h',
-    cases (con.eq.1 (h.to_equiv.injective
-          (show h.to_monoid_hom x = h.to_monoid_hom y, by
-            {rwa [←hf, monoid_hom.lift_coe, monoid_hom.lift_coe]}))) with c hc,
-    exact ⟨c, hc⟩,
-  rintro ⟨w, hw⟩,
-  cases H w with v hv,
-  rw [con.ker_rel, ←one_mul (f x), ←one_mul (f y), ←units.inv_mul v, ←hv,
-      mul_assoc, mul_assoc, ←f.map_mul, ←f.map_mul, show (↑w * x = ↑w * y), by simp * at *],
-end
+⟨λ x, let ⟨p, hp⟩ := h.to_equiv.surjective x in ⟨p, by {rw [←hp, hf], refl}⟩,
+con.ext $ λ x y, ⟨λ h', let ⟨c, hc⟩ := con.eq.1 (h.to_equiv.injective $
+  show h.to_monoid_hom x = h.to_monoid_hom y, by
+    rwa [←hf, monoid_hom.lift_coe, monoid_hom.lift_coe]) in ⟨c, hc⟩,
+λ ⟨w, hw⟩, let ⟨v, hv⟩ := H w in by
+rw [con.ker_rel, ←one_mul (f x), ←one_mul (f y), ←units.inv_mul v, ←hv,
+    mul_assoc, mul_assoc, ←f.map_mul, ←f.map_mul, show (↑w * x = ↑w * y), by simp * at *]⟩⟩
 
 noncomputable def equiv_of_char_pred'_aux (f' : Y → units Z) (hf : ∀ y : Y, f y = f' y)
   (Hp : char_pred' f f' hf) : localization X Y ≃ Z :=
@@ -511,7 +500,7 @@ begin
         h, mul_assoc, mul_comm ↑(f' w.2), mul_assoc, ←mul_assoc _ ↑(f' z.2), units.inv_mul, one_mul],
   rw [←con.ker_rel, Hp.2] at this,
   cases this with c hc,
-  rw localization.eq, exact ⟨c, by {simp at hc, exact hc}⟩,
+  rw localization.eq, exact ⟨c, by simpa using hc⟩,
 end
 Hp.1
 
@@ -865,13 +854,11 @@ by rw [away.inv_self, coe_mul_mk, semiring_hom.of_apply, coe_mul_mk, mul_one,
        mk_self (show (x*y) ∈ submonoid.powers (x*y), from ⟨1, pow_one (x*y)⟩)]
 
 end
-/- Needs ring_theory.ideals to compile
+/- This compiles when I have ring_theory.ideals imported.
 section at_prime
 
 variables (P : ideal α) [hp : ideal.is_prime P]
 include hp
-/- From here onwards I've translated the old file very lazily, just changing enough so that it
-    compiles. I'm going to try and golf it and make better use of the rest of the file. -/
 
 /-- The submonoid of a commutative ring α whose underlying set is the complement of a prime
     ideal. -/
@@ -952,7 +939,8 @@ variable (β)
 /-- Auxiliary function for the definition of inverses in the field of fractions of an integral
     domain.-/
 def inv_aux (x : β × (non_zero_divisors β)) : fraction_ring β :=
-if h : x.1 = 0 then 0 else ((x.2 : β), (⟨x.1, mem_non_zero_divisors_iff_ne_zero.mpr h⟩ : non_zero_divisors β))
+if h : x.1 = 0 then 0 else
+  ((x.2 : β), (⟨x.1, mem_non_zero_divisors_iff_ne_zero.mpr h⟩ : non_zero_divisors β))
 
 /-- An instance defining inverses in the field of fractions of an integral domain. -/
 instance : has_inv (fraction_ring β) :=
@@ -1028,11 +1016,8 @@ by erw ← mk_eq_div; cases x; refl
 
 /-- If an element x of an integral domain β is zero in the field of fractions of β, x is zero in β. -/
 lemma eq_zero_of (x : β) (h : (localization.of x : fraction_ring β) = 0) : x = 0 :=
-begin
-  rcases con.eq.1 h with ⟨t, ht⟩,
-  exact or.resolve_left
-    (show t.1 = 0 ∨ _, by simpa using ht) (mem_non_zero_divisors_iff_ne_zero.1 t.2),
-end
+let ⟨t, ht⟩ := con.eq.1 h in
+or.resolve_left (show t.1 = 0 ∨ x = 0, by simpa using ht) (mem_non_zero_divisors_iff_ne_zero.1 t.2)
 
 variables (β)
 def of : β →+* fraction_ring β := semiring_hom.of (non_zero_divisors β)

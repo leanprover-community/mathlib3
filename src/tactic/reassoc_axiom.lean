@@ -2,11 +2,50 @@
 Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author(s): Simon Hudon
-
-Reformula category-theoretic axioms in a more associativity-friendly way
 -/
-
 import category_theory.category
+
+/-!
+Reformulate category-theoretic axioms in a more associativity-friendly way.
+
+## The `reassoc` attribute
+
+The `reassoc` attribute can be applied to a lemma
+
+```lean
+@[reassoc]
+lemma some_lemma : foo ≫ bar = baz := ...
+```
+
+and produce
+
+```lean
+lemma some_lemma_assoc {Y : C} (f : X ⟶ Y) : foo ≫ bar ≫ f = baz ≫ f := ...
+```
+
+The name of the produced lemma can be specified with `@[reassoc other_lemma_name]`. If
+`simp` is added first, the generated lemma will also have the `simp` attribute.
+
+## The `reassoc_axiom` command
+
+When declaring a class of categories, the axioms can be reformulated to be more amenable
+to manipulation in right associated expressions:
+
+```
+class some_class (C : Type) [category C] :=
+(foo : Π X : C, X ⟶ X)
+(bar : ∀ {X Y : C} (f : X ⟶ Y), foo X ≫ f = f ≫ foo Y)
+
+reassoc_axiom some_class.bar
+```
+
+Here too, the `reassoc` attribute can be used instead. It works well when combined with
+`simp`:
+
+```
+attribute [simp, reassoc] some_class.bar
+```
+-/
 
 namespace tactic
 

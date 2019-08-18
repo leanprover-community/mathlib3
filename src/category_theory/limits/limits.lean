@@ -548,22 +548,19 @@ def colimit.desc (F : J ⥤ C) [has_colimit F] (c : cocone F) : colimit F ⟶ c.
 @[simp] lemma colimit.is_colimit_desc {F : J ⥤ C} [has_colimit F] (c : cocone F) :
   (colimit.is_colimit F).desc c = colimit.desc F c := rfl
 
+/--
+We have lots of lemmas describing how to simplify `colimit.ι F j ≫ _`,
+and combined with `colimit.ext` we rely on these lemmas for many calculations.
+
+However, since `category.assoc` is a `@[simp]` lemma, often expressions are
+right associated, and it's hard to apply these lemmas about `colimit.ι`.
+
+We thus use `reassoc` to define additional `@[simp]` lemmas, with an arbitrary extra morphism.
+(see `tactic/reassoc_axiom.lean`)
+ -/
 @[simp, reassoc] lemma colimit.ι_desc {F : J ⥤ C} [has_colimit F] (c : cocone F) (j : J) :
   colimit.ι F j ≫ colimit.desc F c = c.ι.app j :=
 is_colimit.fac _ c j
-
--- /--
--- We have lots of lemmas describing how to simplify `colimit.ι F j ≫ _`,
--- and combined with `colimit.ext` we rely on these lemmas for many calculations.
-
--- However, since `category.assoc` is a `@[simp]` lemma, often expressions are
--- right associated, and it's hard to apply these lemmas about `colimit.ι`.
-
--- We thus define some additional `@[simp]` lemmas, with an arbitrary extra morphism.
---  -/
--- @[simp] lemma colimit.ι_desc_assoc {F : J ⥤ C} [has_colimit F] (c : cocone F) (j : J) {Y : C} (f : c.X ⟶ Y) :
---   colimit.ι F j ≫ colimit.desc F c ≫ f = c.ι.app j ≫ f :=
--- by rw [←category.assoc, colimit.ι_desc]
 
 def colimit.cocone_morphism {F : J ⥤ C} [has_colimit F] (c : cocone F) :
   cocone_morphism (colimit.cocone F) c :=

@@ -84,7 +84,6 @@ that the new name differs from the original one.
 
 * Rewrite rules for the last part of the name that work in more
   cases. E.g., we can replace `monoid` with `add_monoid` etc.
-
 -/
 
 namespace to_additive
@@ -96,9 +95,21 @@ meta def aux_attr : user_attribute (name_map name) name :=
   descr     := "Auxiliary attribute for `to_additive`. DON'T USE IT",
   cache_cfg := ⟨λ ns,
                 ns.mfoldl
-                  (λ dict n, dict.insert n <$> aux_attr.get_param n)
+                  (λ dict n',
+                   let n := match n' with
+                            | name.mk_string s pre := if s = "_to_additive" then pre else n'
+                            | _ := n'
+                            end
+                   in dict.insert n <$> aux_attr.get_param n')
                   mk_name_map, []⟩,
   parser    := lean.parser.ident }
+
+meta def map_namespace (src tgt : name) : command :=
+do decl ← get_decl `bool, -- random choice
+   let n := src.mk_string "_to_additive",
+   let decl := decl.update_name n,
+   add_decl decl,
+   aux_attr.set n tgt tt
 
 @[derive has_reflect]
 structure value_type := (tgt : name) (doc : option string)

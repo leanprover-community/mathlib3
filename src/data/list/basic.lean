@@ -4499,7 +4499,7 @@ section tfae
 /- tfae: The Following (propositions) Are Equivalent -/
 
 theorem tfae_nil : tfae [] := forall_mem_nil _
-theorem tfae_singleton (p) : tfae [p] := by simp [tfae]
+theorem tfae_singleton (p) : tfae [p] := by simp [tfae, -eq_iff_iff]
 
 theorem tfae_cons_of_mem {a b} {l : list Prop} (h : b ∈ l) :
   tfae (a::l) ↔ (a ↔ b) ∧ tfae l :=

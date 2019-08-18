@@ -698,8 +698,13 @@ end sign
 
 end equiv.perm
 
-@[to_additive]
 lemma finset.prod_univ_perm [fintype α] [comm_monoid β] {f : α → β} (σ : perm α) :
   (univ : finset α).prod f = univ.prod (λ z, f (σ z)) :=
 eq.symm $ prod_bij (λ z _, σ z) (λ _ _, mem_univ _) (λ _ _, rfl)
   (λ _ _ _ _ H, σ.injective H) (λ b _, ⟨σ⁻¹ b, mem_univ _, by simp⟩)
+
+lemma finset.sum_univ_perm [fintype α] [add_comm_monoid β] {f : α → β} (σ : perm α) :
+  (univ : finset α).sum f = univ.sum (λ z, f (σ z)) :=
+@finset.prod_univ_perm _ (multiplicative β) _ _ f σ
+
+attribute [to_additive] finset.prod_univ_perm

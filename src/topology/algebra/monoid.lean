@@ -52,7 +52,7 @@ continuous_mul continuous_const continuous_id
 lemma continuous_mul_right (a : α) : continuous (λ b:α, b * a) :=
 continuous_mul continuous_id continuous_const
 
-@[to_additive continuous_on.add]
+@[to_additive add]
 lemma continuous_on.mul [topological_space β] {f : β → α} {g : β → α} {s : set β}
   (hf : continuous_on f s) (hg : continuous_on g s) :
   continuous_on (λx, f x * g x) s :=
@@ -93,7 +93,7 @@ lemma continuous_list_prod [topological_space β] {f : γ → β → α} (l : li
 continuous_iff_continuous_at.2 $ assume x, tendsto_list_prod l $ assume c hc,
   continuous_iff_continuous_at.1 (h c hc) x
 
-@[to_additive prod.topological_add_monoid]
+@[to_additive topological_add_monoid]
 instance [topological_space β] [monoid β] [topological_monoid β] : topological_monoid (α × β) :=
 ⟨continuous.prod_mk
   (continuous_mul (continuous_fst.comp continuous_fst) (continuous_fst.comp continuous_snd))
@@ -127,7 +127,7 @@ lemma continuous_finset_prod [topological_space β] {f : γ → β → α} (s : 
   (∀c∈s, continuous (f c)) → continuous (λa, s.prod (λc, f c a)) :=
 continuous_multiset_prod _
 
-@[to_additive is_add_submonoid.mem_nhds_zero]
+@[to_additive mem_nhds_zero]
 lemma is_submonoid.mem_nhds_one (β : set α) [is_submonoid β] (oβ : is_open β) :
   β ∈ nhds (1 : α) :=
 mem_nhds_sets_iff.2 ⟨β, (by refl), oβ, is_submonoid.one_mem _⟩

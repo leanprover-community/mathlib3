@@ -18,11 +18,9 @@ section
 open topological_space
 variables (G : Type*) [add_group G] [topological_space G] [topological_add_group G]
 
-instance open_add_subgroup.has_coe :
-  has_coe (open_add_subgroup G) (opens G) := ⟨λ U, ⟨U.1, U.2.1⟩⟩
-
-attribute [to_additive open_add_subgroup.has_coe] open_subgroup.has_coe
-attribute [to_additive open_add_subgroup.has_coe.equations._eqn_1] open_subgroup.has_coe.equations._eqn_1
+attribute [to_additive] open_subgroup.has_coe
+attribute [to_additive open_add_subgroup.has_coe.equations._eqn_1]
+  open_subgroup.has_coe.equations._eqn_1
 
 end
 
@@ -31,28 +29,29 @@ open function lattice topological_space
 variables {G : Type*} [group G] [topological_space G] [topological_group G]
 variables {U V : open_subgroup G}
 
-@[to_additive open_add_subgroup.has_mem]
+@[to_additive has_mem]
 instance : has_mem G (open_subgroup G) := ⟨λ g U, g ∈ (U : set G)⟩
 
-attribute [to_additive open_add_subgroup.has_mem.equations._eqn_1] open_subgroup.has_mem.equations._eqn_1
+attribute [to_additive open_add_subgroup.has_mem.equations._eqn_1]
+  open_subgroup.has_mem.equations._eqn_1
 
-@[to_additive open_add_subgroup.ext]
+@[to_additive ext]
 lemma ext : (U = V) ↔ ((U : set G) = V) :=
 by cases U; cases V; split; intro h; try {congr}; assumption
 
-@[extensionality, to_additive open_add_subgroup.ext']
+@[extensionality, to_additive ext']
 lemma ext' (h : (U : set G) = V) : (U = V) :=
 ext.mpr h
 
-@[to_additive open_add_subgroup.coe_injective]
+@[to_additive coe_injective]
 lemma coe_injective : injective (λ U : open_subgroup G, (U : set G)) :=
 λ U V h, ext' h
 
-@[to_additive open_add_subgroup.is_add_subgroup]
+@[to_additive is_add_subgroup]
 instance : is_subgroup (U : set G) := U.2.2
 
 variable (U)
-@[to_additive open_add_subgroup.is_open]
+@[to_additive is_open]
 protected lemma is_open : is_open (U : set G) := U.2.1
 
 protected lemma one_mem : (1 : G) ∈ U := is_submonoid.one_mem (U : set G)
@@ -70,7 +69,7 @@ variable {U}
 instance : inhabited (open_subgroup G) :=
 { default := ⟨set.univ, ⟨is_open_univ, by apply_instance⟩⟩ }
 
-@[to_additive open_add_subgroup.is_open_of_nonempty_open_subset]
+@[to_additive is_open_of_nonempty_open_subset]
 lemma is_open_of_nonempty_open_subset {s : set G} [is_subgroup s]
   (h : ∃ U : opens G, nonempty U ∧ (U : set G) ⊆ s) :
   is_open s :=
@@ -101,7 +100,7 @@ lemma is_open_of_open_subgroup {s : set G} [is_subgroup s]
 is_open_of_nonempty_open_subset $ let ⟨U, hU⟩ := h in ⟨U, ⟨⟨1, U.one_mem⟩⟩, hU⟩
 
 
-@[to_additive open_add_subgroup.is_closed]
+@[to_additive is_closed]
 lemma is_closed (U : open_subgroup G) : is_closed (U : set G) :=
 begin
   show is_open (-(U : set G)),
@@ -168,19 +167,19 @@ variables {U V : open_add_subgroup G}
 variable (U)
 
 protected lemma zero_mem : (0 : G) ∈ U := is_add_submonoid.zero_mem (U : set G)
-attribute [to_additive open_add_subgroup.zero_mem] open_subgroup.one_mem
+attribute [to_additive zero_mem] open_subgroup.one_mem
 
 protected lemma neg_mem {g : G} (h : g ∈ U) : -g ∈ U :=
   @is_add_subgroup.neg_mem G _ U _ g h
-attribute [to_additive open_add_subgroup.neg_mem] open_subgroup.inv_mem
+attribute [to_additive neg_mem] open_subgroup.inv_mem
 
 protected lemma add_mem {g₁ g₂ : G} (h₁ : g₁ ∈ U) (h₂ : g₂ ∈ U) : g₁ + g₂ ∈ U :=
   @is_add_submonoid.add_mem G _ U _ g₁ g₂ h₁ h₂
-attribute [to_additive open_add_subgroup.add_mem] open_subgroup.mul_mem
+attribute [to_additive add_mem] open_subgroup.mul_mem
 
 lemma mem_nhds_zero : (U : set G) ∈ nhds (0 : G) :=
 mem_nhds_sets U.is_open U.zero_mem
-attribute [to_additive open_add_subgroup.mem_nhds_zero] open_subgroup.mem_nhds_one
+attribute [to_additive mem_nhds_zero] open_subgroup.mem_nhds_one
 
 variable {U}
 
@@ -188,60 +187,34 @@ lemma is_open_of_open_add_subgroup {s : set G} [_root_.is_add_subgroup s]
   (h : ∃ U : open_add_subgroup G, (U : set G) ⊆ s) : _root_.is_open s :=
 is_open_of_nonempty_open_subset $ let ⟨U, hU⟩ := h in ⟨U, ⟨⟨0, U.zero_mem⟩⟩, hU⟩
 
-attribute [to_additive open_add_subgroup.is_open_of_open_add_subgroup]
+attribute [to_additive is_open_of_open_add_subgroup]
 open_subgroup.is_open_of_open_subgroup
 
 section
 variables {H : Type*} [add_group H] [topological_space H] [topological_add_group H]
 
-def prod (U : open_add_subgroup G) (V : open_add_subgroup H) : open_add_subgroup (G × H) :=
-⟨(U : set G).prod (V : set H), is_open_prod U.is_open V.is_open, by apply_instance⟩
-attribute [to_additive open_add_subgroup.prod] open_subgroup.prod
+attribute [to_additive] open_subgroup.prod
 attribute [to_additive open_add_subgroup.prod.equations._eqn_1] open_subgroup.prod.equations._eqn_1
 
 end
 
-instance : inhabited (open_add_subgroup G) :=
-{ default := ⟨set.univ, ⟨is_open_univ, by apply_instance⟩⟩ }
-attribute [to_additive open_add_subgroup.inhabited] open_subgroup.inhabited
+attribute [to_additive] open_subgroup.inhabited
+attribute [to_additive] open_subgroup.partial_order
+attribute [to_additive open_add_subgroup.partial_order.equations._eqn_1]
+  open_subgroup.partial_order.equations._eqn_1
 
-instance : partial_order (open_add_subgroup G) := partial_order.lift _ coe_injective (by apply_instance)
-attribute [to_additive open_add_subgroup.partial_order] open_subgroup.partial_order
-attribute [to_additive open_add_subgroup.partial_order.equations._eqn_1] open_subgroup.partial_order.equations._eqn_1
+attribute [to_additive open_add_subgroup.lattice.semilattice_inf_top]
+  open_subgroup.lattice.semilattice_inf_top
+attribute [to_additive open_add_subgroup.lattice.semilattice_inf_top.equations._eqn_1]
+  open_subgroup.lattice.semilattice_inf_top.equations._eqn_1
 
-instance : semilattice_inf_top (open_add_subgroup G) :=
-{ inf := λ U V, ⟨(U : set G) ∩ V, is_open_inter U.is_open V.is_open, by apply_instance⟩,
-  inf_le_left := λ U V, set.inter_subset_left _ _,
-  inf_le_right := λ U V, set.inter_subset_right _ _,
-  le_inf := λ U V W hV hW, set.subset_inter hV hW,
-  top := default _,
-  le_top := λ U, set.subset_univ _,
-  ..open_add_subgroup.partial_order }
-attribute [to_additive open_add_subgroup.lattice.semilattice_inf_top] open_subgroup.lattice.semilattice_inf_top
-attribute [to_additive open_add_subgroup.lattice.semilattice_inf_top.equations._eqn_1] open_subgroup.lattice.semilattice_inf_top.equations._eqn_1
+attribute [to_additive open_add_subgroup.lattice.semilattice_sup_top]
+  open_subgroup.lattice.semilattice_sup_top
+attribute [to_additive open_add_subgroup.lattice.semilattice_sup_top.equations._eqn_1]
+  open_subgroup.lattice.semilattice_sup_top.equations._eqn_1
 
-instance : semilattice_sup_top (open_add_subgroup G) :=
-{ sup := λ U V,
-  { val := add_group.closure ((U : set G) ∪ V),
-    property :=
-    begin
-      have subgrp := _, refine ⟨_, subgrp⟩,
-      { refine is_open_of_open_add_subgroup _,
-        exact ⟨U, set.subset.trans (set.subset_union_left _ _) add_group.subset_closure⟩ },
-      { apply_instance }
-    end },
-  le_sup_left := λ U V, set.subset.trans (set.subset_union_left _ _) group.subset_closure,
-  le_sup_right := λ U V, set.subset.trans (set.subset_union_right _ _) group.subset_closure,
-  sup_le := λ U V W hU hV, group.closure_subset $ set.union_subset hU hV,
-  ..open_add_subgroup.lattice.semilattice_inf_top }
-attribute [to_additive open_add_subgroup.lattice.semilattice_sup_top] open_subgroup.lattice.semilattice_sup_top
-attribute [to_additive open_add_subgroup.lattice.semilattice_sup_top.equations._eqn_1] open_subgroup.lattice.semilattice_sup_top.equations._eqn_1
-
-@[simp] lemma coe_inf : (↑(U ⊓ V) : set G) = (U : set G) ∩ V := rfl
-attribute [to_additive open_add_subgroup.coe_inf] open_subgroup.coe_inf
-
-lemma le_iff : U ≤ V ↔ (U : set G) ⊆ V := iff.rfl
-attribute [to_additive open_add_subgroup.le_iff] open_subgroup.le_iff
+attribute [to_additive coe_inf] open_subgroup.coe_inf
+attribute [to_additive le_iff] open_subgroup.le_iff
 
 end open_add_subgroup
 

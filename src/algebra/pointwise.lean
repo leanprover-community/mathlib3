@@ -13,43 +13,43 @@ open function
 
 variables {α : Type*} {β : Type*} (f : α → β)
 
-@[to_additive set.pointwise_zero]
+@[to_additive pointwise_zero]
 def pointwise_one [has_one α] : has_one (set α) := ⟨{1}⟩
 
 local attribute [instance] pointwise_one
 
-@[simp, to_additive set.mem_pointwise_zero]
+@[simp, to_additive mem_pointwise_zero]
 lemma mem_pointwise_one [has_one α] (a : α) :
   a ∈ (1 : set α) ↔ a = 1 :=
 mem_singleton_iff
 
-@[to_additive set.pointwise_add]
+@[to_additive pointwise_add]
 def pointwise_mul [has_mul α] : has_mul (set α) :=
   ⟨λ s t, {a | ∃ x ∈ s, ∃ y ∈ t, a = x * y}⟩
 
 local attribute [instance] pointwise_one pointwise_mul pointwise_add
 
-@[to_additive set.mem_pointwise_add]
+@[to_additive mem_pointwise_add]
 lemma mem_pointwise_mul [has_mul α] {s t : set α} {a : α} :
   a ∈ s * t ↔ ∃ x ∈ s, ∃ y ∈ t, a = x * y := iff.rfl
 
-@[to_additive set.add_mem_pointwise_add]
+@[to_additive add_mem_pointwise_add]
 lemma mul_mem_pointwise_mul [has_mul α] {s t : set α} {a b : α} (ha : a ∈ s) (hb : b ∈ t) :
   a * b ∈ s * t := ⟨_, ha, _, hb, rfl⟩
 
-@[to_additive set.pointwise_add_eq_image]
+@[to_additive pointwise_add_eq_image]
 lemma pointwise_mul_eq_image [has_mul α] {s t : set α} :
   s * t = (λ x : α × α, x.fst * x.snd) '' s.prod t :=
 set.ext $ λ a,
 ⟨ by { rintros ⟨_, _, _, _, rfl⟩, exact ⟨(_, _), mem_prod.mpr ⟨‹_›, ‹_›⟩, rfl⟩ },
   by { rintros ⟨_, _, rfl⟩, exact ⟨_, (mem_prod.mp ‹_›).1, _, (mem_prod.mp ‹_›).2, rfl⟩ }⟩
 
-@[to_additive set.pointwise_add_finite]
+@[to_additive pointwise_add_finite]
 lemma pointwise_mul_finite [has_mul α] {s t : set α} (hs : finite s) (ht : finite t) :
   finite (s * t) :=
 by { rw pointwise_mul_eq_image, apply set.finite_image, exact set.finite_prod hs ht }
 
-@[to_additive set.pointwise_add_add_semigroup]
+@[to_additive pointwise_add_add_semigroup]
 def pointwise_mul_semigroup [semigroup α] : semigroup (set α) :=
 { mul_assoc := λ _ _ _, set.ext $ λ _,
   begin
@@ -61,7 +61,7 @@ def pointwise_mul_semigroup [semigroup α] : semigroup (set α) :=
   end,
   ..pointwise_mul }
 
-@[to_additive set.pointwise_add_add_monoid]
+@[to_additive pointwise_add_add_monoid]
 def pointwise_mul_monoid [monoid α] : monoid (set α) :=
 { one_mul := λ s, set.ext $ λ a,
     ⟨by {rintros ⟨_, _, _, _, rfl⟩, simp * at *},
@@ -74,34 +74,34 @@ def pointwise_mul_monoid [monoid α] : monoid (set α) :=
 
 local attribute [instance] pointwise_mul_monoid
 
-@[to_additive set.singleton.is_add_hom]
+@[to_additive is_add_hom]
 def singleton.is_mul_hom [has_mul α] : is_mul_hom (singleton : α → set α) :=
 { map_mul := λ x y, set.ext $ λ a, by simp [mem_singleton_iff, mem_pointwise_mul] }
 
-@[to_additive set.singleton.is_add_monoid_hom]
+@[to_additive is_add_monoid_hom]
 def singleton.is_monoid_hom [monoid α] : is_monoid_hom (singleton : α → set α) :=
 { map_one := rfl, ..singleton.is_mul_hom }
 
-@[to_additive set.pointwise_neg]
+@[to_additive pointwise_neg]
 def pointwise_inv [has_inv α] : has_inv (set α) :=
 ⟨λ s, {a | a⁻¹ ∈ s}⟩
 
-@[simp, to_additive set.pointwise_add_empty]
+@[simp, to_additive pointwise_add_empty]
 lemma pointwise_mul_empty [has_mul α] (s : set α) :
   s * ∅ = ∅ :=
 set.ext $ λ a, ⟨by {rintros ⟨_, _, _, _, rfl⟩, tauto}, false.elim⟩
 
-@[simp, to_additive set.empty_pointwise_add]
+@[simp, to_additive empty_pointwise_add]
 lemma empty_pointwise_mul [has_mul α] (s : set α) :
   ∅ * s = ∅ :=
 set.ext $ λ a, ⟨by {rintros ⟨_, _, _, _, rfl⟩, tauto}, false.elim⟩
 
-@[to_additive set.pointwise_add_subset_add]
+@[to_additive pointwise_add_subset_add]
 lemma pointwise_mul_subset_mul [has_mul α] {s₁ s₂ t₁ t₂ : set α} (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) :
   s₁ * s₂ ⊆ t₁ * t₂ :=
 by {rintros _ ⟨_, _, _, _, rfl⟩, exact ⟨_, h₁ ‹_›, _, h₂ ‹_›, rfl⟩ }
 
-@[to_additive set.pointwise_add_union]
+@[to_additive pointwise_add_union]
 lemma pointwise_mul_union [has_mul α] (s t u : set α) :
   s * (t ∪ u) = (s * t) ∪ (s * u) :=
 begin
@@ -116,7 +116,7 @@ begin
       simp * } }
 end
 
-@[to_additive set.union_pointwise_add]
+@[to_additive union_pointwise_add]
 lemma union_pointwise_mul [has_mul α] (s t u : set α) :
   (s ∪ t) * u = (s * u) ∪ (t * u) :=
 begin
@@ -131,15 +131,15 @@ begin
       simp * } }
 end
 
-@[to_additive set.pointwise_add_eq_Union_add_left]
+@[to_additive pointwise_add_eq_Union_add_left]
 lemma pointwise_mul_eq_Union_mul_left [has_mul α] {s t : set α} : s * t = ⋃a∈s, (λx, a * x) '' t :=
 by { ext y; split; simp only [mem_Union]; rintros ⟨a, ha, x, hx, ax⟩; exact ⟨a, ha, x, hx, ax.symm⟩ }
 
-@[to_additive set.pointwise_add_eq_Union_add_right]
+@[to_additive pointwise_add_eq_Union_add_right]
 lemma pointwise_mul_eq_Union_mul_right [has_mul α] {s t : set α} : s * t = ⋃a∈t, (λx, x * a) '' s :=
 by { ext y; split; simp only [mem_Union]; rintros ⟨a, ha, x, hx, ax⟩; exact ⟨x, hx, a, ha, ax.symm⟩ }
 
-@[to_additive set.pointwise_add_ne_empty]
+@[to_additive pointwise_add_ne_empty]
 lemma pointwise_mul_ne_empty [has_mul α] {s t : set α} : s ≠ ∅ → t ≠ ∅ → s * t ≠ ∅ :=
 begin
   simp only [ne_empty_iff_exists_mem],
@@ -161,7 +161,7 @@ def pointwise_mul_fintype [has_mul α] [decidable_eq α] (s t : set α) [hs : fi
 def pointwise_add_fintype [has_add α] [decidable_eq α] (s t : set α) [hs : fintype s] [ht : fintype t] :
   fintype (s + t : set α) := by { rw pointwise_add_eq_image, apply set.fintype_image }
 
-attribute [to_additive set.pointwise_add_fintype] set.pointwise_mul_fintype
+attribute [to_additive pointwise_add_fintype] set.pointwise_mul_fintype
 
 section monoid
 
@@ -190,7 +190,7 @@ open is_mul_hom
 
 variables [has_mul α] [has_mul β] (m : α → β) [is_mul_hom m]
 
-@[to_additive is_add_hom.image_add]
+@[to_additive image_add]
 lemma image_pointwise_mul (s t : set α) : m '' (s * t) = m '' s * m '' t :=
 set.ext $ assume y,
 begin
@@ -201,7 +201,7 @@ begin
     refine ⟨_, ⟨_, ‹_›, _, ‹_›, rfl⟩, map_mul _ _ _⟩ }
 end
 
-@[to_additive is_add_hom.preimage_add_preimage_subset]
+@[to_additive preimage_add_preimage_subset]
 lemma preimage_pointwise_mul_preimage_subset (s t : set β) : m ⁻¹' s * m ⁻¹' t ⊆ m ⁻¹' (s * t) :=
 begin
   rintros _ ⟨_, _, _, _, rfl⟩,

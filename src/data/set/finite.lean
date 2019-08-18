@@ -470,7 +470,7 @@ suffices f '' (f ⁻¹' ↑s) = ↑s, by simpa,
 
 end preimage
 
-@[to_additive finset.sum_preimage]
+@[to_additive sum_preimage]
 lemma prod_preimage [comm_monoid β] (f : α → γ) (s : finset γ)
   (hf : set.bij_on f (f ⁻¹' ↑s) ↑s) (g : γ → β) :
   (preimage s (set.inj_on_of_bij_on hf)).prod (g ∘ f) = s.prod g :=

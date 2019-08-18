@@ -532,7 +532,7 @@ begin
   simp [this], exact setoid.refl _
 end
 
-@[simp, to_additive finset.sum_attach_univ]
+@[simp, to_additive]
 lemma finset.prod_attach_univ [fintype α] [comm_monoid β] (f : {a : α // a ∈ @univ α _} → β) :
   univ.attach.prod (λ x, f x) = univ.prod (λ x, f ⟨x, (mem_univ _)⟩) :=
 prod_bij (λ x _, x.1) (λ _ _, mem_univ _) (λ _ _ , by simp) (by simp) (λ b _, ⟨⟨b, mem_univ _⟩, by simp⟩)

@@ -44,21 +44,21 @@ namespace equiv
 section group
 variables [group α]
 
-@[to_additive equiv.add_left]
+@[to_additive]
 protected def mul_left (a : α) : α ≃ α :=
 { to_fun    := λx, a * x,
   inv_fun   := λx, a⁻¹ * x,
   left_inv  := assume x, show a⁻¹ * (a * x) = x, from inv_mul_cancel_left a x,
   right_inv := assume x, show a * (a⁻¹ * x) = x, from mul_inv_cancel_left a x }
 
-@[to_additive equiv.add_right]
+@[to_additive]
 protected def mul_right (a : α) : α ≃ α :=
 { to_fun    := λx, x * a,
   inv_fun   := λx, x * a⁻¹,
   left_inv  := assume x, show (x * a) * a⁻¹ = x, from mul_inv_cancel_right x a,
   right_inv := assume x, show (x * a⁻¹) * a = x, from inv_mul_cancel_right x a }
 
-@[to_additive equiv.neg]
+@[to_additive]
 protected def inv (α) [group α] : α ≃ α :=
 { to_fun    := λa, a⁻¹,
   inv_fun   := λa, a⁻¹,
@@ -219,7 +219,7 @@ structure add_equiv (α β : Type*) [has_add α] [has_add β] extends α ≃ β 
 (map_add' : ∀ x y : α, to_fun (x + y) = to_fun x + to_fun y)
 
 /-- mul_equiv α β is the type of an equiv α ≃ β which preserves multiplication. -/
-@[to_additive add_equiv]
+@[to_additive]
 structure mul_equiv (α β : Type*) [has_mul α] [has_mul β] extends α ≃ β :=
 (map_mul' : ∀ x y : α, to_fun (x * y) = to_fun x * to_fun y)
 
@@ -228,27 +228,27 @@ infix ` ≃+ `:25 := add_equiv
 
 namespace mul_equiv
 
-@[to_additive add_equiv.has_coe_to_fun]
+@[to_additive]
 instance {α β} [has_mul α] [has_mul β] : has_coe_to_fun (α ≃* β) := ⟨_, mul_equiv.to_fun⟩
 
 variables [has_mul α] [has_mul β] [has_mul γ]
 
 /-- A multiplicative isomorphism preserves multiplication (canonical form). -/
-@[to_additive add_equiv.map_add]
+@[to_additive]
 def map_mul (f : α ≃* β) :  ∀ x y : α, f (x * y) = f x * f y := f.map_mul'
 
 /-- A multiplicative isomorphism preserves multiplication (deprecated). -/
-@[to_additive add_equiv.is_add_hom]
+@[to_additive]
 instance (h : α ≃* β) : is_mul_hom h := ⟨h.map_mul⟩
 
 /-- The identity map is a multiplicative isomorphism. -/
-@[refl, to_additive add_equiv.refl]
+@[refl, to_additive]
 def refl (α : Type*) [has_mul α] : α ≃* α :=
 { map_mul' := λ _ _,rfl,
 ..equiv.refl _}
 
 /-- The inverse of an isomorphism is an isomorphism. -/
-@[symm, to_additive add_equiv.symm]
+@[symm, to_additive]
 def symm (h : α ≃* β) : β ≃* α :=
 { map_mul' := λ n₁ n₂, function.injective_of_left_inverse h.left_inv begin
     show h.to_equiv (h.to_equiv.symm (n₁ * n₂)) =
@@ -258,33 +258,33 @@ def symm (h : α ≃* β) : β ≃* α :=
    rw [h.to_equiv.apply_symm_apply, h.to_equiv.apply_symm_apply, h.to_equiv.apply_symm_apply], end,
   ..h.to_equiv.symm}
 
-@[simp, to_additive add_equiv.to_equiv_symm]
+@[simp, to_additive]
 theorem to_equiv_symm (f : α ≃* β) : f.symm.to_equiv = f.to_equiv.symm := rfl
 
 /-- Transitivity of multiplication-preserving isomorphisms -/
-@[trans, to_additive add_equiv.trans]
+@[trans, to_additive]
 def trans (h1 : α ≃* β) (h2 : β ≃* γ) : (α ≃* γ) :=
 { map_mul' := λ x y, show h2 (h1 (x * y)) = h2 (h1 x) * h2 (h1 y),
     by rw [h1.map_mul, h2.map_mul],
   ..h1.to_equiv.trans h2.to_equiv }
 
 /-- e.right_inv in canonical form -/
-@[simp, to_additive add_equiv.apply_symm_apply]
+@[simp, to_additive]
 def apply_symm_apply (e : α ≃* β) : ∀ (y : β), e (e.symm y) = y :=
 e.to_equiv.apply_symm_apply
 
 /-- e.left_inv in canonical form -/
-@[simp, to_additive add_equiv.symm_apply_apply]
+@[simp, to_additive]
 def symm_apply_apply (e : α ≃* β) : ∀ (x : α), e.symm (e x) = x :=
 equiv.symm_apply_apply (e.to_equiv)
 
 /-- a multiplicative equiv of monoids sends 1 to 1 (and is hence a monoid isomorphism) -/
-@[simp, to_additive add_equiv.map_zero]
+@[simp, to_additive]
 def map_one {α β} [monoid α] [monoid β] (h : α ≃* β) : h 1 = 1 :=
 by rw [←mul_one (h 1), ←h.apply_symm_apply 1, ←h.map_mul, one_mul]
 
 /-- A multiplicative bijection between two monoids is an isomorphism. -/
-@[to_additive add_equiv.to_add_monoid_hom]
+@[to_additive to_add_monoid_hom]
 def to_monoid_hom {α β} [monoid α] [monoid β] (h : α ≃* β) : (α →* β) :=
 { to_fun := h,
   map_mul' := h.map_mul,
@@ -292,13 +292,13 @@ def to_monoid_hom {α β} [monoid α] [monoid β] (h : α ≃* β) : (α →* β
 
 /-- A multiplicative bijection between two monoids is a monoid hom
   (deprecated -- use to_monoid_hom). -/
-@[to_additive add_equiv.is_add_monoid_hom]
+@[to_additive is_add_monoid_hom]
 instance is_monoid_hom {α β} [monoid α] [monoid β] (h : α ≃* β) : is_monoid_hom h :=
 ⟨h.map_one⟩
 
 /-- A multiplicative bijection between two groups is a group hom
   (deprecated -- use to_monoid_hom). -/
-@[to_additive add_equiv.is_add_group_hom]
+@[to_additive is_add_group_hom]
 instance is_group_hom {α β} [group α] [group β] (h : α ≃* β) :
   is_group_hom h := { map_mul := h.map_mul }
 

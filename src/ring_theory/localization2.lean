@@ -421,8 +421,11 @@ variables (β)
 def of : β →+* fraction_ring β := semiring_hom.of (non_zero_divisors β)
 variables {β}
 
-lemma of.injective : injective (of β : β → fraction_ring β) :=
+lemma of.injective' : injective (of β : β → fraction_ring β) :=
 (semiring_hom.injective_iff _).2 (λ x h, eq_zero_of x (show localization.of x = 0, from h))
+
+lemma of.injective : function.injective (localization.of : β → fraction_ring β) :=
+λ x y h, by convert of.injective' h
 
 section map
 

@@ -92,12 +92,48 @@ protected definition op (F : C ⥤ D) : Cᵒᵖ ⥤ Dᵒᵖ :=
 @[simp] lemma op_obj (F : C ⥤ D) (X : Cᵒᵖ) : (F.op).obj X = op (F.obj (unop X)) := rfl
 @[simp] lemma op_map (F : C ⥤ D) {X Y : Cᵒᵖ} (f : X ⟶ Y) : (F.op).map f = (F.map f.unop).op := rfl
 
+section
+variables (C)
+omit 𝒟
+
+def op_id : (functor.id C).op ≅ functor.id (Cᵒᵖ) :=
+{ hom := { app := λ X, 𝟙 _ },
+  inv := { app := λ X, 𝟙 _ }, }
+end
+
+section
+variables {E : Type u₂} [ℰ : category.{v₂} E]
+include ℰ
+
+def op_comp (F : C ⥤ D) (G : D ⥤ E) : (F ⋙ G).op ≅ F.op ⋙ G.op :=
+{ hom := { app := λ X, 𝟙 _ },
+  inv := { app := λ X, 𝟙 _ }, }
+end
+
 protected definition unop (F : Cᵒᵖ ⥤ Dᵒᵖ) : C ⥤ D :=
 { obj := λ X, unop (F.obj (op X)),
   map := λ X Y f, (F.map f.op).unop }
 
 @[simp] lemma unop_obj (F : Cᵒᵖ ⥤ Dᵒᵖ) (X : C) : (F.unop).obj X = unop (F.obj (op X)) := rfl
 @[simp] lemma unop_map (F : Cᵒᵖ ⥤ Dᵒᵖ) {X Y : C} (f : X ⟶ Y) : (F.unop).map f = (F.map f.op).unop := rfl
+
+section
+variables (C)
+omit 𝒟
+
+def unop_id : (functor.id Cᵒᵖ).unop ≅ functor.id C :=
+{ hom := { app := λ X, 𝟙 _ },
+  inv := { app := λ X, 𝟙 _ }, }
+end
+
+section
+variables {E : Type u₂} [ℰ : category.{v₂} E]
+include ℰ
+
+def unop_comp (F : Cᵒᵖ ⥤ Dᵒᵖ) (G : Dᵒᵖ ⥤ Eᵒᵖ) : (F ⋙ G).unop ≅ F.unop ⋙ G.unop :=
+{ hom := { app := λ X, 𝟙 _ },
+  inv := { app := λ X, 𝟙 _ }, }
+end
 
 variables (C D)
 

@@ -39,6 +39,13 @@ instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨fin.val⟩
 instance {n : ℕ} : decidable_linear_order (fin n) :=
 decidable_linear_order.lift fin.val (@fin.eq_of_veq _) (by apply_instance)
 
+lemma exists_iff {p : fin n → Prop} : (∃ i, p i) ↔ ∃ i h, p ⟨i, h⟩ :=
+⟨λ h, exists.elim h (λ ⟨i, hi⟩ hpi, ⟨i, hi, hpi⟩),
+  λ h, exists.elim h (λ i hi, ⟨⟨i, hi.fst⟩, hi.snd⟩)⟩
+
+lemma forall_iff {p : fin n → Prop} : (∀ i, p i) ↔ ∀ i h, p ⟨i, h⟩ :=
+⟨λ h i hi, h ⟨i, hi⟩, λ h ⟨i, hi⟩, h i hi⟩
+
 lemma zero_le (a : fin (n + 1)) : 0 ≤ a := zero_le a.1
 
 lemma lt_iff_val_lt_val : a < b ↔ a.val < b.val := iff.refl _
@@ -331,9 +338,9 @@ begin
         exact fin.eta _ _⟩ } }
 end
 
-lemma mem_find_iff {p : fin n → Prop} [decidable_pred p] {i : fin n} : 
+lemma mem_find_iff {p : fin n → Prop} [decidable_pred p] {i : fin n} :
   i ∈ fin.find p ↔ p i ∧ ∀ j, p j → i ≤ j :=
-⟨λ hi, ⟨find_spec _ hi, λ _, find_min' hi⟩, 
+⟨λ hi, ⟨find_spec _ hi, λ _, find_min' hi⟩,
   begin
     rintros ⟨hpi, hj⟩,
     cases hfp : fin.find p,
@@ -342,7 +349,7 @@ lemma mem_find_iff {p : fin n → Prop} [decidable_pred p] {i : fin n} :
     { exact option.some_inj.2 (le_antisymm (find_min' hfp hpi) (hj _ (find_spec _ hfp))) }
   end⟩
 
-lemma find_eq_some_iff {p : fin n → Prop} [decidable_pred p] {i : fin n} : 
+lemma find_eq_some_iff {p : fin n → Prop} [decidable_pred p] {i : fin n} :
   fin.find p = some i ↔ p i ∧ ∀ j, p j → i ≤ j :=
  mem_find_iff
 

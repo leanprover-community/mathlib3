@@ -449,6 +449,13 @@ rw [mul_assoc, nat.add_mul_div_left _ _ (nat.pos_of_ne_zero hb), add_mul_mod_sel
 lemma mod_mul_left_div_self (a b c : ℕ) : a % (c * b) / b = (a / b) % c :=
 by rw [mul_comm c, mod_mul_right_div_self]
 
+/- The `n+1`-st triangle number is `n` more than the `n`-th triangle number -/
+lemma triangle_succ (n : ℕ) : (n + 1) * ((n + 1) - 1) / 2 = n * (n - 1) / 2 + n :=
+begin
+  rw [← add_mul_div_left, mul_comm 2 n, ← mul_add, nat.add_sub_cancel, mul_comm],
+  cases n; refl, apply zero_lt_succ
+end
+
 @[simp] protected theorem dvd_one {n : ℕ} : n ∣ 1 ↔ n = 1 :=
 ⟨eq_one_of_dvd_one, λ e, e.symm ▸ dvd_refl _⟩
 
@@ -891,6 +898,42 @@ by  rw [← add_assoc, nat.fact_succ, mul_comm (nat.succ _), nat.pow_succ, ← m
   exact mul_le_mul fact_mul_pow_le_fact
     (nat.succ_le_succ (nat.le_add_right _ _)) (nat.zero_le _) (nat.zero_le _)
 
+lemma monotone_fact : monotone fact := λ n m, fact_le
+
+lemma fact_lt (h0 : 0 < n) : n.fact < m.fact ↔ n < m :=
+begin
+  split; intro h,
+  { rw [← not_le], intro hmn, apply not_le_of_lt h (fact_le hmn) },
+  { have : ∀(n : ℕ), 0 < n → n.fact < n.succ.fact,
+    { intros k hk, rw [fact_succ, succ_mul, lt_add_iff_pos_left],
+      apply mul_pos hk (fact_pos k) },
+    induction h generalizing h0,
+    { exact this _ h0, },
+    { refine lt_trans (h_ih h0) (this _ _), exact lt_trans h0 (lt_of_succ_le h_a) }}
+end
+
+lemma one_lt_fact : 1 < n.fact ↔ 1 < n :=
+by { convert fact_lt _, refl, exact one_pos }
+
+lemma fact_eq_one : n.fact = 1 ↔ n ≤ 1 :=
+begin
+  split; intro h,
+  { rw [← not_lt, ← one_lt_fact, h], apply lt_irrefl },
+  { cases h with h h, refl, cases h, refl }
+end
+
+lemma fact_inj (h0 : 1 < n.fact) : n.fact = m.fact ↔ n = m :=
+begin
+  split; intro h,
+  { rcases lt_trichotomy n m with hnm|hnm|hnm,
+    { exfalso, rw [← fact_lt, h] at hnm, exact lt_irrefl _ hnm,
+      rw [one_lt_fact] at h0, exact lt_trans one_pos h0 },
+    { exact hnm },
+    { exfalso, rw [← fact_lt, h] at hnm, exact lt_irrefl _ hnm,
+      rw [h, one_lt_fact] at h0, exact lt_trans one_pos h0 }},
+  { rw h }
+end
+
 /- choose -/
 
 def choose : ℕ → ℕ → ℕ
@@ -920,6 +963,10 @@ choose_eq_zero_of_lt (lt_succ_self _)
 
 @[simp] lemma choose_one_right (n : ℕ) : choose n 1 = n :=
 by induction n; simp [*, choose]
+
+/-- `choose n 2` is the `n`-th triangle number. -/
+lemma choose_two_right (n : ℕ) : choose n 2 = n * (n - 1) / 2 :=
+by { induction n, simp, simpa [n_ih, choose, add_one] using (triangle_succ n_n).symm }
 
 lemma choose_pos : ∀ {n k}, k ≤ n → 0 < choose n k
 | 0             _ hk := by rw [eq_zero_of_le_zero hk]; exact dec_trivial

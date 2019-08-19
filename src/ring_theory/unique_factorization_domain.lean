@@ -70,8 +70,8 @@ multiset.induction_on (factors a)
               mt is_unit_of_mul_is_unit_left $ mt is_unit_of_mul_is_unit_left
                 (hs p (multiset.mem_cons_self _ _)).2.1),
     ⟨associated.symm (by clear _let_match; simp * at *), hs0 ▸ rfl⟩⟩)
-  (factors_prod (ne_zero_of_irreducible ha))
-  (prime_factors (ne_zero_of_irreducible ha))
+  (factors_prod ha.ne_zero)
+  (prime_factors ha.ne_zero)
 
 lemma irreducible_iff_prime {p : α} : irreducible p ↔ prime p :=
 by letI := classical.dec_eq α; exact
@@ -110,7 +110,7 @@ by haveI := classical.dec_eq α; exact
         (λ q (hq : q ∈ g.erase b), hg q (multiset.mem_of_mem_erase hq))
         (associated_mul_left_cancel
           (by rwa [← multiset.prod_cons, ← multiset.prod_cons, multiset.cons_erase hbg]) hb
-        (ne_zero_of_irreducible (hf p (by simp)))))
+        (hf p (by simp)).ne_zero))
     end)
 
 end unique_factorization_domain
@@ -148,7 +148,7 @@ def of_unique_irreducible_factorization {α : Type*} [integral_domain α]
 by letI := classical.dec_eq α; exact
 { prime_factors := λ a h p (hpa : p ∈ o.factors a),
     have hpi : irreducible p, from o.irreducible_factors h _ hpa,
-    ⟨ne_zero_of_irreducible hpi, hpi.1,
+    ⟨hpi.ne_zero, hpi.1,
       λ a b ⟨x, hx⟩,
       if hab0 : a * b = 0
       then (eq_zero_or_eq_zero_of_mul_eq_zero hab0).elim

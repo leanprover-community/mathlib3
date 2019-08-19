@@ -16,9 +16,9 @@ reflection instead of proof generation. Useful for kernel benchmarking.
 
 namespace tree
 
-/-- `(reflect' t u α)` turns a tree `(t: tree expr)` of reflected values
-of type `α` at level `u` into an `expr` which concretizes to a `tree α`
-containing the concretizations of the `expr`s from the original `t`. -/
+/-- `(reflect' t u α)` quasiquotes a tree `(t: tree expr)` of quoted
+values of type `α` at level `u` into an `expr` which reifies to a `tree α`
+containing the reifications of the `expr`s from the original `t`. -/
 protected meta def reflect' (u : level) (α : expr) : tree expr → expr
 | tree.nil := (expr.const ``tree.nil [u] : expr) α
 | (tree.node a t₁ t₂) :=

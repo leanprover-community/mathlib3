@@ -36,7 +36,8 @@ scans its type and value for names starting with `src`, and transports
 them. This includes auxiliary definitions like `src._match_1`,
 `src._proof_1`.
 
-TODO: automatically transport `src.equations._eqn_1` etc.
+After transporting the “main” declaration, `to_additive` transports
+its equational lemmas.
 
 ### Structure fields and constructors
 
@@ -73,8 +74,6 @@ that the new name differs from the original one.
 * Automatically transport structures and other inductive types.
 
 * Handle `protected` attribute. Currently all new definitions are public.
-
-* Automatically transport `src.equations._eqn_1` etc.
 
 * For structures, automatically generate theorems like `group α ↔
   add_group (additive α)`.

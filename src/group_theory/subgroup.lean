@@ -205,8 +205,6 @@ lemma mem_norm_comm_iff {s : set α} [normal_subgroup s] {a b : α} : a * b ∈ 
 @[to_additive]
 def trivial (α : Type*) [group α] : set α := {1}
 
-attribute [to_additive] is_subgroup.trivial.equations._eqn_1
-
 @[simp, to_additive]
 lemma mem_trivial [group α] {g : α} : g ∈ trivial α ↔ g = 1 :=
 mem_singleton_iff
@@ -227,8 +225,6 @@ by refine {..}; simp
 
 @[to_additive add_center]
 def center (α : Type*) [group α] : set α := {z | ∀ g, g * z = z * g}
-
-attribute [to_additive] center.equations._eqn_1
 
 @[to_additive mem_add_center]
 lemma mem_center {a : α} : a ∈ center α ↔ ∀g, g * a = a * g := iff.rfl
@@ -251,8 +247,6 @@ instance center_normal : normal_subgroup (center α) :=
 @[to_additive add_normalizer]
 def normalizer (s : set α) : set α :=
 {g : α | ∀ n, n ∈ s ↔ g * n * g⁻¹ ∈ s}
-
-attribute [to_additive add_normalizer.equations._eqn_1] normalizer.equations._eqn_1
 
 @[to_additive normalizer_is_add_subgroup]
 instance normalizer_is_subgroup (s : set α) [is_subgroup s] : is_subgroup (normalizer s) :=
@@ -289,7 +283,6 @@ variables [group α] [group β]
 
 @[to_additive]
 def ker (f : α → β) [is_group_hom f] : set α := preimage f (trivial β)
-attribute [to_additive is_add_group_hom.ker.equations._eqn_1] ker.equations._eqn_1
 
 @[to_additive]
 lemma mem_ker (f : α → β) [is_group_hom f] {x : α} : x ∈ ker f ↔ f x = 1 :=
@@ -348,8 +341,6 @@ instance image_subgroup (f : α → β) [is_group_hom f] (s : set α) [is_subgro
 instance range_subgroup (f : α → β) [is_group_hom f] : is_subgroup (set.range f) :=
 @set.image_univ _ _ f ▸ is_group_hom.image_subgroup f set.univ
 
-attribute [to_additive] is_group_hom.range_subgroup.equations._eqn_1
-
 local attribute [simp] one_mem inv_mem mul_mem normal_subgroup.normal
 
 @[to_additive]
@@ -357,20 +348,14 @@ instance preimage (f : α → β) [is_group_hom f] (s : set β) [is_subgroup s] 
   is_subgroup (f ⁻¹' s) :=
 by refine {..}; simp [map_mul f, map_one f, map_inv f, @inv_mem β _ s] {contextual:=tt}
 
-attribute [to_additive] is_group_hom.preimage.equations._eqn_1
-
 @[to_additive]
 instance preimage_normal (f : α → β) [is_group_hom f] (s : set β) [normal_subgroup s] :
   normal_subgroup (f ⁻¹' s) :=
 ⟨by simp [map_mul f, map_inv f] {contextual:=tt}⟩
 
-attribute [to_additive] is_group_hom.preimage_normal.equations._eqn_1
-
 @[to_additive]
 instance normal_subgroup_ker (f : α → β) [is_group_hom f] : normal_subgroup (ker f) :=
 is_group_hom.preimage_normal f (trivial β)
-
-attribute [to_additive] is_group_hom.normal_subgroup_ker.equations._eqn_1
 
 @[to_additive]
 lemma inj_of_trivial_ker (f : α → β) [is_group_hom f] (h : ker f = trivial α) :

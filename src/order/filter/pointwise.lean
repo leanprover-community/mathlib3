@@ -22,19 +22,19 @@ local attribute [instance] classical.prop_decidable pointwise_one pointwise_mul 
 namespace filter
 open set
 
-@[to_additive pointwise_zero]
+@[to_additive]
 def pointwise_one [has_one α] : has_one (filter α) := ⟨principal {1}⟩
 
 local attribute [instance] pointwise_one
 
-@[simp, to_additive mem_pointwise_zero]
+@[simp, to_additive]
 lemma mem_pointwise_one [has_one α] (s : set α) :
   s ∈ (1 : filter α) ↔ (1:α) ∈ s :=
 calc
   s ∈ (1:filter α) ↔ {(1:α)} ⊆ s : iff.rfl
   ... ↔ (1:α) ∈ s : by simp
 
-@[to_additive pointwise_add]
+@[to_additive]
 def pointwise_mul [monoid α] : has_mul (filter α) := ⟨λf g,
 { sets             := { s | ∃t₁∈f, ∃t₂∈g, t₁ * t₂  ⊆ s },
   univ_sets        :=
@@ -59,19 +59,19 @@ def pointwise_mul [monoid α] : has_mul (filter α) := ⟨λf g,
 
 local attribute [instance] pointwise_mul pointwise_add
 
-@[to_additive mem_pointwise_add]
+@[to_additive]
 lemma mem_pointwise_mul [monoid α] {f g : filter α} {s : set α} :
   s ∈ f * g ↔ ∃ t₁ ∈ f, ∃ t₂ ∈ g, t₁ * t₂ ⊆ s := iff.rfl
 
-@[to_additive add_mem_pointwise_add]
+@[to_additive]
 lemma mul_mem_pointwise_mul [monoid α] {f g : filter α} {s t : set α} (hs : s ∈ f) (ht : t ∈ g) :
   s * t ∈ f * g := ⟨_, hs, _, ht, subset.refl _⟩
 
-@[to_additive pointwise_add_le_add]
+@[to_additive]
 lemma pointwise_mul_le_mul [monoid α] {f₁ f₂ g₁ g₂ : filter α} (hf : f₁ ≤ f₂) (hg : g₁ ≤ g₂) :
   f₁ * g₁ ≤ f₂ * g₂ := assume _ ⟨s, hs, t, ht, hst⟩, ⟨s, hf hs, t, hg ht, hst⟩
 
-@[to_additive pointwise_add_ne_bot]
+@[to_additive]
 lemma pointwise_mul_ne_bot [monoid α] {f g : filter α} : f ≠ ⊥ → g ≠ ⊥ → f * g ≠ ⊥ :=
 begin
   simp only [forall_sets_neq_empty_iff_neq_bot.symm],
@@ -80,7 +80,7 @@ begin
   exact ne_empty_iff_exists_mem.2 ⟨x, ab hx⟩
 end
 
-@[to_additive pointwise_add_assoc]
+@[to_additive]
 lemma pointwise_mul_assoc [monoid α] (f g h : filter α) : f * g * h = f * (g * h) :=
 begin
   ext s, split,
@@ -100,7 +100,7 @@ end
 
 local attribute [instance] pointwise_mul_monoid
 
-@[to_additive pointwise_zero_add]
+@[to_additive]
 lemma pointwise_one_mul [monoid α] (f : filter α) : 1 * f = f :=
 begin
   ext s, split,
@@ -112,7 +112,7 @@ begin
     refine ⟨(1:set α), mem_principal_self _, s, hs, by simp only [one_mul]⟩ }
 end
 
-@[to_additive pointwise_add_zero]
+@[to_additive]
 lemma pointwise_mul_one [monoid α] (f : filter α) : f * 1 = f :=
 begin
   ext s, split,
@@ -139,7 +139,7 @@ open is_mul_hom
 
 variables [monoid α] [monoid β] {f : filter α} (m : α → β)
 
-@[to_additive map_pointwise_add]
+@[to_additive]
 lemma map_pointwise_mul [is_mul_hom m] {f₁ f₂ : filter α} : map m (f₁ * f₂) = map m f₁ * map m f₂ :=
 filter_eq $ set.ext $ assume s,
 begin
@@ -155,7 +155,7 @@ begin
       (pointwise_mul_subset_mul (image_preimage_subset _ _) (image_preimage_subset _ _)) t₁t₂ },
 end
 
-@[to_additive map_pointwise_zero]
+@[to_additive]
 lemma map_pointwise_one [is_monoid_hom m] : map m (1:filter α) = 1 :=
 le_antisymm
   (le_principal_iff.2 $ mem_map_sets_iff.2 ⟨(1:set α), by simp,
@@ -179,7 +179,7 @@ def pointwise_add_map_is_add_monoid_hom {α : Type*} {β : Type*} [add_monoid α
 attribute [to_additive pointwise_add_map_is_add_monoid_hom] pointwise_mul_map_is_monoid_hom
 
 -- The other direction does not hold in general.
-@[to_additive comap_add_comap_le]
+@[to_additive]
 lemma comap_mul_comap_le [is_mul_hom m] {f₁ f₂ : filter β} :
   comap m f₁ * comap m f₂ ≤ comap m (f₁ * f₂) :=
 begin
@@ -191,7 +191,7 @@ end
 
 variables {m}
 
-@[to_additive tendsto_add_add]
+@[to_additive]
 lemma tendsto_mul_mul [is_mul_hom m] {f₁ g₁ : filter α} {f₂ g₂ : filter β} :
   tendsto m f₁ f₂ → tendsto m g₁ g₂ → tendsto m (f₁ * g₁) (f₂ * g₂) :=
 assume hf hg, by { rw [tendsto, map_pointwise_mul m], exact pointwise_mul_le_mul hf hg }

@@ -1366,7 +1366,6 @@ end mfoldl_mfoldr
 /- sum -/
 
 attribute [to_additive] list.prod
-attribute [to_additive] list.prod.equations._eqn_1
 
 section monoid
 variables [monoid α] {l l₁ l₂ : list α} {a : α}

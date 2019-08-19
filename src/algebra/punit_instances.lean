@@ -70,14 +70,11 @@ by refine
 intros; exact subsingleton.elim _ _
 
 @[simp] lemma zero_eq : (0 : punit) = star := rfl
-@[simp] lemma one_eq : (1 : punit) = star := rfl
-attribute [to_additive zero_eq] punit.one_eq
+@[simp, to_additive] lemma one_eq : (1 : punit) = star := rfl
 @[simp] lemma add_eq : x + y = star := rfl
-@[simp] lemma mul_eq : x * y = star := rfl
-attribute [to_additive add_eq] punit.mul_eq
+@[simp, to_additive] lemma mul_eq : x * y = star := rfl
 @[simp] lemma neg_eq : -x = star := rfl
-@[simp] lemma inv_eq : x⁻¹ = star := rfl
-attribute [to_additive neg_eq] punit.inv_eq
+@[simp, to_additive] lemma inv_eq : x⁻¹ = star := rfl
 @[simp] lemma smul_eq : x • y = star := rfl
 @[simp] lemma top_eq : (⊤ : punit) = star := rfl
 @[simp] lemma bot_eq : (⊥ : punit) = star := rfl

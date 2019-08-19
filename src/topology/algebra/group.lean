@@ -34,21 +34,21 @@ class topological_group (α : Type*) [topological_space α] [group α]
 
 variables [topological_space α] [group α]
 
-@[to_additive continuous_neg']
+@[to_additive]
 lemma continuous_inv' [topological_group α] : continuous (λx:α, x⁻¹) :=
 topological_group.continuous_inv α
 
-@[to_additive continuous_neg]
+@[to_additive]
 lemma continuous_inv [topological_group α] [topological_space β] {f : β → α}
   (hf : continuous f) : continuous (λx, (f x)⁻¹) :=
 continuous_inv'.comp hf
 
-@[to_additive neg]
+@[to_additive]
 lemma continuous_on.inv [topological_group α] [topological_space β] {f : β → α} {s : set β}
   (hf : continuous_on f s) : continuous_on (λx, (f x)⁻¹) s :=
 continuous_inv'.comp_continuous_on hf
 
-@[to_additive tendsto_neg]
+@[to_additive]
 lemma tendsto_inv [topological_group α] {f : β → α} {x : filter β} {a : α}
   (hf : tendsto f x (nhds a)) : tendsto (λx, (f x)⁻¹) x (nhds a⁻¹) :=
 tendsto.comp (continuous_iff_continuous_at.mp (topological_group.continuous_inv α) a) hf
@@ -60,21 +60,21 @@ instance [topological_group α] [topological_space β] [group β] [topological_g
 
 attribute [instance] prod.topological_add_group
 
-@[to_additive add_left]
+@[to_additive]
 protected def homeomorph.mul_left [topological_group α] (a : α) : α ≃ₜ α :=
 { continuous_to_fun  := continuous_mul continuous_const continuous_id,
   continuous_inv_fun := continuous_mul continuous_const continuous_id,
   .. equiv.mul_left a }
 
-@[to_additive is_open_map_add_left]
+@[to_additive]
 lemma is_open_map_mul_left [topological_group α] (a : α) : is_open_map (λ x, a * x) :=
 (homeomorph.mul_left a).is_open_map
 
-@[to_additive is_closed_map_add_left]
+@[to_additive]
 lemma is_closed_map_mul_left [topological_group α] (a : α) : is_closed_map (λ x, a * x) :=
 (homeomorph.mul_left a).is_closed_map
 
-@[to_additive add_right]
+@[to_additive]
 protected def homeomorph.mul_right
   {α : Type*} [topological_space α] [group α] [topological_group α] (a : α) :
   α ≃ₜ α :=
@@ -82,15 +82,15 @@ protected def homeomorph.mul_right
   continuous_inv_fun := continuous_mul continuous_id continuous_const,
   .. equiv.mul_right a }
 
-@[to_additive is_open_map_add_right]
+@[to_additive]
 lemma is_open_map_mul_right [topological_group α] (a : α) : is_open_map (λ x, x * a) :=
 (homeomorph.mul_right a).is_open_map
 
-@[to_additive is_closed_map_add_right]
+@[to_additive]
 lemma is_closed_map_mul_right [topological_group α] (a : α) : is_closed_map (λ x, x * a) :=
 (homeomorph.mul_right a).is_closed_map
 
-@[to_additive neg]
+@[to_additive]
 protected def homeomorph.inv (α : Type*) [topological_space α] [group α] [topological_group α] :
   α ≃ₜ α :=
 { continuous_to_fun  := continuous_inv',
@@ -133,7 +133,7 @@ end
 
 section
 variable (α)
-@[to_additive nhds_zero_symm]
+@[to_additive]
 lemma nhds_one_symm [topological_group α] : comap (λr:α, r⁻¹) (nhds (1 : α)) = nhds (1 : α) :=
 begin
   have lim : tendsto (λr:α, r⁻¹) (nhds 1) (nhds 1),
@@ -143,7 +143,7 @@ begin
 end
 end
 
-@[to_additive nhds_translation_add_neg]
+@[to_additive]
 lemma nhds_translation_mul_inv [topological_group α] (x : α) :
   comap (λy:α, y * x⁻¹) (nhds 1) = nhds x :=
 begin
@@ -155,7 +155,7 @@ begin
     exact tendsto_mul tendsto_id tendsto_const_nhds }
 end
 
-@[to_additive ext]
+@[to_additive]
 lemma topological_group.ext {G : Type*} [group G] {t t' : topological_space G}
   (tg : @topological_group G t _) (tg' : @topological_group G t' _)
   (h : @nhds G t 1 = @nhds G t' 1) : t = t' :=
@@ -166,11 +166,9 @@ end topological_group
 section quotient_topological_group
 variables [topological_space α] [group α] [topological_group α] (N : set α) [normal_subgroup N]
 
-@[to_additive topological_space]
+@[to_additive]
 instance : topological_space (quotient_group.quotient N) :=
 by dunfold quotient_group.quotient; apply_instance
-
-attribute [instance] quotient_add_group.quotient.topological_space
 
 open quotient_group
 @[to_additive quotient_add_group_saturate]
@@ -185,7 +183,7 @@ begin
       ⟨a, ha, by simp only [eq.symm, (mul_assoc _ _ _).symm, inv_mul_cancel_left, hi]⟩ }
 end
 
-@[to_additive quotient_add_group.open_coe]
+@[to_additive]
 lemma quotient_group.open_coe : is_open_map (coe : α →  quotient N) :=
 begin
   intros s s_op,
@@ -333,7 +331,7 @@ local attribute [instance]
 section
 variables [topological_space α] [group α] [topological_group α]
 
-@[to_additive is_open_pointwise_add_left]
+@[to_additive]
 lemma is_open_pointwise_mul_left {s t : set α} : is_open t → is_open (s * t) := λ ht,
 begin
   have : ∀a, is_open ((λ (x : α), a * x) '' t),
@@ -342,7 +340,7 @@ begin
   exact is_open_Union (λa, is_open_Union $ λha, this _),
 end
 
-@[to_additive is_open_pointwise_add_right]
+@[to_additive]
 lemma is_open_pointwise_mul_right {s t : set α} : is_open s → is_open (s * t) := λ hs,
 begin
   have : ∀a, is_open ((λ (x : α), x * a) '' s),
@@ -388,7 +386,7 @@ end
 section
 variables [topological_space α] [comm_group α] [topological_group α]
 
-@[to_additive nhds_pointwise_add]
+@[to_additive]
 lemma nhds_pointwise_mul (x y : α) : nhds (x * y) = nhds x * nhds y :=
 filter_eq $ set.ext $ assume s,
 begin
@@ -411,7 +409,7 @@ begin
     { simp only [inv_mul_cancel_right] } }
 end
 
-@[to_additive nhds_is_add_hom]
+@[to_additive]
 def nhds_is_mul_hom : is_mul_hom (λx:α, nhds x) := ⟨λ_ _, nhds_pointwise_mul _ _⟩
 
 end

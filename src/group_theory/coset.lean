@@ -10,11 +10,9 @@ variable {α : Type*}
 
 @[to_additive left_add_coset]
 def left_coset [has_mul α] (a : α) (s : set α) : set α := (λ x, a * x) '' s
-attribute [to_additive left_add_coset.equations._eqn_1] left_coset.equations._eqn_1
 
 @[to_additive right_add_coset]
 def right_coset [has_mul α] (s : set α) (a : α) : set α := (λ x, x * a) '' s
-attribute [to_additive right_add_coset.equations._eqn_1] right_coset.equations._eqn_1
 
 local infix ` *l `:70 := left_coset
 local infix ` +l `:70 := left_add_coset

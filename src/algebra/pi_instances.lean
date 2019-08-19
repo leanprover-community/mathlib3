@@ -23,8 +23,8 @@ instance has_zero [∀ i, has_zero $ f i] : has_zero (Π i : I, f i) := ⟨λ i,
 instance has_one [∀ i, has_one $ f i] : has_one (Π i : I, f i) := ⟨λ i, 1⟩
 @[simp] lemma one_apply [∀ i, has_one $ f i] : (1 : Π i, f i) i = 1 := rfl
 
-attribute [to_additive has_zero] pi.has_one
-attribute [to_additive zero_apply] pi.one_apply
+attribute [to_additive] pi.has_one
+attribute [to_additive] pi.one_apply
 
 instance has_add [∀ i, has_add $ f i] : has_add (Π i : I, f i) := ⟨λ x y, λ i, x i + y i⟩
 @[simp] lemma add_apply [∀ i, has_add $ f i] : (x + y) i = x i + y i := rfl
@@ -32,8 +32,8 @@ instance has_add [∀ i, has_add $ f i] : has_add (Π i : I, f i) := ⟨λ x y, 
 instance has_mul [∀ i, has_mul $ f i] : has_mul (Π i : I, f i) := ⟨λ x y, λ i, x i * y i⟩
 @[simp] lemma mul_apply [∀ i, has_mul $ f i] : (x * y) i = x i * y i := rfl
 
-attribute [to_additive has_add] pi.has_mul
-attribute [to_additive add_apply] pi.mul_apply
+attribute [to_additive] pi.has_mul
+attribute [to_additive] pi.mul_apply
 
 instance has_inv [∀ i, has_inv $ f i] : has_inv (Π i : I, f i) := ⟨λ x, λ i, (x i)⁻¹⟩
 @[simp] lemma inv_apply [∀ i, has_inv $ f i] : x⁻¹ i = (x i)⁻¹ := rfl
@@ -41,8 +41,8 @@ instance has_inv [∀ i, has_inv $ f i] : has_inv (Π i : I, f i) := ⟨λ x, λ
 instance has_neg [∀ i, has_neg $ f i] : has_neg (Π i : I, f i) := ⟨λ x, λ i, -(x i)⟩
 @[simp] lemma neg_apply [∀ i, has_neg $ f i] : (-x) i = -x i := rfl
 
-attribute [to_additive has_neg] pi.has_inv
-attribute [to_additive neg_apply] pi.inv_apply
+attribute [to_additive] pi.has_inv
+attribute [to_additive] pi.inv_apply
 
 instance has_scalar {α : Type*} [∀ i, has_scalar α $ f i] : has_scalar α (Π i : I, f i) := ⟨λ s x, λ i, s • (x i)⟩
 @[simp] lemma smul_apply {α : Type*} [∀ i, has_scalar α $ f i] (s : α) : (s • x) i = s • x i := rfl
@@ -116,18 +116,18 @@ attribute [to_additive add_comm_group]             pi.comm_group
 attribute [to_additive add_left_cancel_semigroup]  pi.left_cancel_semigroup
 attribute [to_additive add_right_cancel_semigroup] pi.right_cancel_semigroup
 
-@[to_additive list_sum_apply]
+@[to_additive]
 lemma list_prod_apply {α : Type*} {β : α → Type*} [∀a, monoid (β a)] (a : α) :
   ∀ (l : list (Πa, β a)), l.prod a = (l.map (λf:Πa, β a, f a)).prod
 | []       := rfl
 | (f :: l) := by simp [mul_apply f l.prod a, list_prod_apply l]
 
-@[to_additive multiset_sum_apply]
+@[to_additive]
 lemma multiset_prod_apply {α : Type*} {β : α → Type*} [∀a, comm_monoid (β a)] (a : α)
   (s : multiset (Πa, β a)) : s.prod a = (s.map (λf:Πa, β a, f a)).prod :=
 quotient.induction_on s $ assume l, begin simp [list_prod_apply a l] end
 
-@[to_additive finset_sum_apply]
+@[to_additive]
 lemma finset_prod_apply {α : Type*} {β : α → Type*} {γ} [∀a, comm_monoid (β a)] (a : α)
   (s : finset γ) (g : γ → Πa, β a) : s.prod g a = s.prod (λc, g c a) :=
 show (s.val.map g).prod a = (s.val.map (λc, g c a)).prod,
@@ -154,38 +154,38 @@ variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {p q : α × β}
 
 instance [has_add α] [has_add β] : has_add (α × β) :=
 ⟨λp q, (p.1 + q.1, p.2 + q.2)⟩
-@[to_additive has_add]
+@[to_additive]
 instance [has_mul α] [has_mul β] : has_mul (α × β) :=
 ⟨λp q, (p.1 * q.1, p.2 * q.2)⟩
 
-@[simp, to_additive fst_add]
+@[simp, to_additive]
 lemma fst_mul [has_mul α] [has_mul β] : (p * q).1 = p.1 * q.1 := rfl
-@[simp, to_additive snd_add]
+@[simp, to_additive]
 lemma snd_mul [has_mul α] [has_mul β] : (p * q).2 = p.2 * q.2 := rfl
-@[simp, to_additive mk_add_mk]
+@[simp, to_additive]
 lemma mk_mul_mk [has_mul α] [has_mul β] (a₁ a₂ : α) (b₁ b₂ : β) :
   (a₁, b₁) * (a₂, b₂) = (a₁ * a₂, b₁ * b₂) := rfl
 
 instance [has_zero α] [has_zero β] : has_zero (α × β) := ⟨(0, 0)⟩
-@[to_additive has_zero]
+@[to_additive]
 instance [has_one α] [has_one β] : has_one (α × β) := ⟨(1, 1)⟩
 
-@[simp, to_additive fst_zero]
+@[simp, to_additive]
 lemma fst_one [has_one α] [has_one β] : (1 : α × β).1 = 1 := rfl
-@[simp, to_additive snd_zero]
+@[simp, to_additive]
 lemma snd_one [has_one α] [has_one β] : (1 : α × β).2 = 1 := rfl
-@[to_additive zero_eq_mk]
+@[to_additive]
 lemma one_eq_mk [has_one α] [has_one β] : (1 : α × β) = (1, 1) := rfl
 
 instance [has_neg α] [has_neg β] : has_neg (α × β) := ⟨λp, (- p.1, - p.2)⟩
-@[to_additive has_neg]
+@[to_additive]
 instance [has_inv α] [has_inv β] : has_inv (α × β) := ⟨λp, (p.1⁻¹, p.2⁻¹)⟩
 
-@[simp, to_additive fst_neg]
+@[simp, to_additive]
 lemma fst_inv [has_inv α] [has_inv β] : (p⁻¹).1 = (p.1)⁻¹ := rfl
-@[simp, to_additive snd_neg]
+@[simp, to_additive]
 lemma snd_inv [has_inv α] [has_inv β] : (p⁻¹).2 = (p.2)⁻¹ := rfl
-@[to_additive neg_mk]
+@[to_additive]
 lemma inv_mk [has_inv α] [has_inv β] (a : α) (b : β) : (a, b)⁻¹ = (a⁻¹, b⁻¹) := rfl
 
 instance [add_semigroup α] [add_semigroup β] : add_semigroup (α × β) :=
@@ -251,12 +251,12 @@ lemma snd.is_group_hom [group α] [group β] : is_group_hom (prod.snd : α × β
 attribute [instance] fst.is_monoid_hom fst.is_add_monoid_hom snd.is_monoid_hom snd.is_add_monoid_hom
 fst.is_group_hom fst.is_add_group_hom snd.is_group_hom snd.is_add_group_hom
 
-@[to_additive fst_sum]
+@[to_additive]
 lemma fst_prod [comm_monoid α] [comm_monoid β] {t : finset γ} {f : γ → α × β} :
   (t.prod f).1 = t.prod (λc, (f c).1) :=
 (finset.prod_hom prod.fst).symm
 
-@[to_additive snd_sum]
+@[to_additive]
 lemma snd_prod [comm_monoid α] [comm_monoid β] {t : finset γ} {f : γ → α × β} :
   (t.prod f).2 = t.prod (λc, (f c).2) :=
 (finset.prod_hom prod.snd).symm

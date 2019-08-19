@@ -55,6 +55,9 @@ instance : category (cover X) :=
   id := id,
   comp := comp }
 
+@[simp] lemma id_s (c : cover X) : ((𝟙 c) : hom c c).s = λ i, i := rfl
+@[simp] lemma comp_s {c d e : cover X} (f : c ⟶ d) (g : d ⟶ e): (f ≫ g).s = g.s ∘ f.s := rfl
+
 end hom
 
 end cover
@@ -117,6 +120,13 @@ def map {ι κ : Type v} (r : ι → κ) : intersections ι ⥤ intersections κ
   (map r).obj (single a) = single (r a) := rfl
 @[simp] lemma map_obj_double {ι κ : Type v} (r : ι → κ) (a b) :
   (map r).obj (double a b) = double (r a) (r b) := rfl
+
+@[simp] lemma map_id {ι : Type v} (j) : (map (λ i : ι, i)).obj j = j :=
+by { cases j; refl }
+
+@[simp] lemma limit_π_map_id {ι : Type v} {C : Type u} [category.{v+1} C] (F : intersections ι ⥤ C) [has_limit F] (j) :
+  limit.π F ((map (λ i : ι, i)).obj j) = limit.π F j ≫ F.map (eq_to_hom (map_id j).symm) :=
+limit.π_congr _ _
 
 end intersections
 

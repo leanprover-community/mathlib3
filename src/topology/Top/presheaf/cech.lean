@@ -22,40 +22,31 @@ variables (F : X.presheaf C)
 def cech_zero_obj (c : (cover X)ᵒᵖ) := limit ((unop c).diagram ⋙ F)
 
 def cech_zero_map (c d : (cover X)ᵒᵖ) (f : c ⟶ d) : cech_zero_obj F c ⟶ cech_zero_obj F d :=
-limit.lift ((unop d).diagram ⋙ F)
-{ X := limit ((unop c).diagram ⋙ F),
-  π :=
-  { app := λ j,
-    begin
-      dsimp,
-      transitivity,
-      { apply limit.π,
-        exact (intersections.map f.unop.s).obj j },
-      { dsimp,
-        apply F.map,
-        exact (intersections.map_diagram f.unop).app j,
-      }
-    end,
-    naturality' := λ j j' g,
-    begin
-      cases j; cases j'; cases g,
-      { dsimp, simp only [category.id_comp, category.assoc], rw ←F.map_comp, congr, },
-      { dsimp, simp only [category.id_comp, category.assoc],
-        rw [←F.map_comp, ←nat_trans.naturality, F.map_comp, ←category.assoc], erw limit.w, refl, },
-      { dsimp, simp only [category.id_comp, category.assoc],
-        rw [←F.map_comp, ←nat_trans.naturality, F.map_comp, ←category.assoc], erw limit.w, refl, },
-      { dsimp, simp only [category.id_comp, category.assoc], rw ←F.map_comp, congr, },
-    end } }.
+limit.pre _ _ ≫ limits.lim.map (whisker_right (intersections.map_diagram f.unop) F)
 
-local attribute [simp] cech_zero_map
+@[simp] lemma cech_zero_map_π (c d : (cover X)ᵒᵖ) (f : c ⟶ d) (j) :
+  cech_zero_map F c d f ≫ limit.π (diagram (unop d) ⋙ F) j =
+    limit.π ((unop c).diagram ⋙ F) ((intersections.map (f.unop.s)).obj j) ≫
+      F.map ((intersections.map_diagram f.unop).app j) :=
+by { dsimp [cech_zero_map], simp }
+
 
 def cech_zero : (cover X)ᵒᵖ ⥤ C :=
 { obj := cech_zero_obj F,
   map := cech_zero_map F,
   map_id' := λ 𝒰,
   begin
-    dsimp, ext, dsimp, simp only [limit.lift_π],
-    erw [category.id_comp, intersections.map_diagram_id, limit.w],
+    ext,
+    dsimp,
+    squeeze_simp,
+    dsimp,
+    squeeze_simp,
+    dsimp,
+    simp,
+    rw intersections.map_diagram_id,
+    rw [eq_to_hom_map],
+    rw [eq_to_hom_map],
+    tidy,
   end,
   map_comp' := sorry, }
 

@@ -282,6 +282,10 @@ def limit (F : J ⥤ C) [has_limit F] := (limit.cone F).X
 def limit.π (F : J ⥤ C) [has_limit F] (j : J) : limit F ⟶ F.obj j :=
 (limit.cone F).π.app j
 
+lemma limit.π_congr (F : J ⥤ C) [has_limit F] {j j' : J} (h : j = j') :
+  limit.π F j = limit.π F j' ≫ F.map (eq_to_hom h.symm) :=
+by {subst h, simp}
+
 @[simp] lemma limit.cone_π {F : J ⥤ C} [has_limit F] (j : J) :
   (limit.cone F).π.app j = limit.π _ j := rfl
 
@@ -356,6 +360,9 @@ limit.lift (E ⋙ F)
 
 @[simp] lemma limit.pre_π (k : K) : limit.pre F E ≫ limit.π (E ⋙ F) k = limit.π F (E.obj k) :=
 by erw is_limit.fac
+
+@[simp] lemma limit.pre_π_assoc (k : K) (W) (f : _ ⟶ W): limit.pre F E ≫ limit.π (E ⋙ F) k ≫ f = limit.π F (E.obj k) ≫ f :=
+by rw [←category.assoc, limit.pre_π]
 
 @[simp] lemma limit.lift_pre (c : cone F) :
   limit.lift F c ≫ limit.pre F E = limit.lift (E ⋙ F) (c.whisker E) :=

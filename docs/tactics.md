@@ -113,6 +113,10 @@ rcases h with ⟨patt⟩
 
  The syntax `obtain ⟨patt⟩ : type := proof` is also supported.
 
+ If `⟨patt⟩` is omitted, `rcases` will try to infer the pattern.
+
+ If `type` is omitted, `:= proof` is required.
+
 
 ### simpa
 
@@ -1054,6 +1058,50 @@ localized "attribute [simp] le_refl" in le
 
 `rotate` moves the first goal to the back. `rotate n` will do this `n` times.
 
+### The `reassoc` attribute
+
+The `reassoc` attribute can be applied to a lemma
+
+```lean
+@[reassoc]
+lemma some_lemma : foo ≫ bar = baz := ...
+```
+
+and produce
+
+```lean
+lemma some_lemma_assoc {Y : C} (f : X ⟶ Y) : foo ≫ bar ≫ f = baz ≫ f := ...
+```
+
+The name of the produced lemma can be specified with `@[reassoc other_lemma_name]`. If
+`simp` is added first, the generated lemma will also have the `simp` attribute.
+
+### The `reassoc_axiom` command
+
+When declaring a class of categories, the axioms can be reformulated to be more amenable
+to manipulation in right associated expressions:
+
+```lean
+class some_class (C : Type) [category C] :=
+(foo : Π X : C, X ⟶ X)
+(bar : ∀ {X Y : C} (f : X ⟶ Y), foo X ≫ f = f ≫ foo Y)
+
+reassoc_axiom some_class.bar
+```
+
+The above will produce:
+
+```lean
+lemma some_class.bar_assoc {Z : C} (g : Y ⟶ Z) :
+  foo X ≫ f ≫ g = f ≫ foo Y ≫ g := ...
+```
+
+Here too, the `reassoc` attribute can be used instead. It works well when combined with
+`simp`:
+
+```lean
+attribute [simp, reassoc] some_class.bar
+```
 ### sanity_check
 
 The `#sanity_check` command checks for common mistakes in the current file or in all of mathlib, respectively.

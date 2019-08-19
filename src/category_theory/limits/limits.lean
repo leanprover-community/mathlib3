@@ -359,11 +359,8 @@ limit.lift (E ⋙ F)
   { X := limit F,
     π := { app := λ k, limit.π F (E.obj k) } }
 
-@[simp] lemma limit.pre_π (k : K) : limit.pre F E ≫ limit.π (E ⋙ F) k = limit.π F (E.obj k) :=
+@[simp, reassoc] lemma limit.pre_π (k : K) : limit.pre F E ≫ limit.π (E ⋙ F) k = limit.π F (E.obj k) :=
 by erw is_limit.fac
-
-@[simp] lemma limit.pre_π_assoc (k : K) (W) (f : _ ⟶ W): limit.pre F E ≫ limit.π (E ⋙ F) k ≫ f = limit.π F (E.obj k) ≫ f :=
-by rw [←category.assoc, limit.pre_π]
 
 @[simp] lemma limit.lift_pre (c : cone F) :
   limit.lift F c ≫ limit.pre F E = limit.lift (E ⋙ F) (c.whisker E) :=

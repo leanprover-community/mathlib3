@@ -1,31 +1,45 @@
 /-
-	Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
-	Released under Apache 2.0 license as described in the file LICENSE.
-	Authors: Zhouhang Zhou
-  -/
+Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Zhouhang Zhou
+-/
 
-import analysis.convex
-import algebra.quadratic_discriminant
+import analysis.convex algebra.quadratic_discriminant analysis.complex.exponential
+       analysis.specific_limits
 import tactic.monotonicity
-import analysis.specific_limits
+
 
 /-!
-	# Inner Product Space
+# Inner Product Space
 
-  Define inner product space over reals and prove its basic properties.
+This file defines real inner product space and proves its basic properties.
 
-	## Implementation notes
+An inner product space is a vector space endowed with an inner product. It generalizes the notion of
+dot product in `ℝ^n` and provides the means of defining the length of a vector and the angle between
+two vectors. In particular vectors `x` and `y` are orthogonal if their inner product equals zero.
 
-	## Tags
+## Main statements
 
-	inner product space, norm
+Existence of orthogonal projection onto nonempty complete subspace:
+Let `u` be a point in an inner product space, and let `K` be a nonempty complete subspace.
+Then there exists a unique `v` in `K` that minimizes the distance `∥u - v∥` to `u`.
+The point `v` is usually called the orthogonal projection of `u` onto `K`.
 
-	## References
-  *  [Clément & Martin, *The Lax-Milgram Theorem. A detailed proof to be formalized in Coq*]
-	*  [Clément & Martin, *A Coq formal proof of the Lax–Milgram theorem*]
+## Implementation notes
 
-	The Coq code is available at the following address: http://www.lri.fr/~sboldo/elfic/index.html
-  -/
+We decide to develop the theory of real inner product spaces and that of complex inner product
+spaces separately.
+
+## Tags
+
+inner product space, norm, orthogonal projection
+
+## References
+*  [Clément & Martin, *The Lax-Milgram Theorem. A detailed proof to be formalized in Coq*]
+*  [Clément & Martin, *A Coq formal proof of the Lax–Milgram theorem*]
+
+The Coq code is available at the following address: http://www.lri.fr/~sboldo/elfic/index.html
+-/
 
 noncomputable theory
 

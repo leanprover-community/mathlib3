@@ -129,13 +129,13 @@ le_of_lt_succ i.is_lt
 
 @[simp] lemma cast_add_val (k : fin m) : (k.cast_add n).val = k.val := rfl
 
-@[simp] lemma last_val (n : ℕ) : (fin.last n).val = n := rfl
+@[simp] lemma last_val (n : ℕ) : (last n).val = n := rfl
 
 @[simp] lemma cast_succ_cast_lt (i : fin (n + 1)) (h : i.val < n) : cast_succ (cast_lt i h) = i :=
 fin.eq_of_veq rfl
 
-@[simp] lemma cast_lt_cast_succ {n : ℕ} (a : fin n) (h : a.1 < n) :
-  a.cast_succ.cast_lt h = a := by cases a; refl
+@[simp] lemma cast_lt_cast_succ {n : ℕ} (a : fin n) (h : a.1 < n) : cast_lt (cast_succ a) h = a :=
+by cases a; refl
 
 @[simp] lemma sub_nat_val (i : fin (n + m)) (h : i.val ≥ m) : (i.sub_nat m h).val = i.val - m :=
 rfl

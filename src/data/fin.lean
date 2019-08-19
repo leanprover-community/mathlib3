@@ -210,7 +210,34 @@ rfl
   @fin.cases n C H0 Hs i.succ = Hs i :=
 by cases i; refl
 
+lemma forall_fin_succ {P : fin (n+1) → Prop} :
+  (∀ i, P i) ↔ P 0 ∧ (∀ i:fin n, P i.succ) :=
+⟨λ H, ⟨H 0, λ i, H _⟩, λ ⟨H0, H1⟩ i, fin.cases H0 H1 i⟩
+
+lemma exists_fin_succ {P : fin (n+1) → Prop} :
+  (∃ i, P i) ↔ P 0 ∨ (∃i:fin n, P i.succ) :=
+⟨λ ⟨i, h⟩, fin.cases or.inl (λ i hi, or.inr ⟨i, hi⟩) i h,
+  λ h, or.elim h (λ h, ⟨0, h⟩) $ λ⟨i, hi⟩, ⟨i.succ, hi⟩⟩
+
 end rec
+
+section tuple
+/- We can think of the type `fin n → α` as `n`-tuples in `α`. Here are some relevant operations. -/
+
+def tail {α} (p : fin (n+1) → α) : fin n → α := λ i, p i.succ
+def cons {α} (x : α) (v : fin n → α) : fin (n+1) → α :=
+λ j, fin.cases x v j
+
+@[simp] lemma tail_cons {α} (x : α) (p : fin n → α) : tail (cons x p) = p :=
+by simp [tail, cons]
+
+@[simp] lemma cons_succ {α} (x : α) (p : fin n → α) (i : fin n) : cons x p i.succ = p i :=
+by simp [cons]
+
+@[simp] lemma cons_zero {α} (x : α) (p : fin n → α) : cons x p 0 = x :=
+by simp [cons]
+
+end tuple
 
 section find
 
@@ -304,14 +331,24 @@ begin
         exact fin.eta _ _⟩ } }
 end
 
+lemma mem_find_iff {p : fin n → Prop} [decidable_pred p] {i : fin n} : 
+  i ∈ fin.find p ↔ p i ∧ ∀ j, p j → i ≤ j :=
+⟨λ hi, ⟨find_spec _ hi, λ _, find_min' hi⟩, 
+  begin
+    rintros ⟨hpi, hj⟩,
+    cases hfp : fin.find p,
+    { rw [find_eq_none_iff] at hfp,
+      exact (hfp _ hpi).elim },
+    { exact option.some_inj.2 (le_antisymm (find_min' hfp hpi) (hj _ (find_spec _ hfp))) }
+  end⟩
+
+lemma find_eq_some_iff {p : fin n → Prop} [decidable_pred p] {i : fin n} : 
+  fin.find p = some i ↔ p i ∧ ∀ j, p j → i ≤ j :=
+ mem_find_iff
+
 lemma mem_find_of_unique {p : fin n → Prop} [decidable_pred p]
   (h : ∀ i j, p i → p j → i = j) {i : fin n} (hi : p i) : i ∈ fin.find p :=
-begin
-  cases hfp : fin.find p,
-  { rw [find_eq_none_iff] at hfp,
-    exact (hfp _ hi).elim },
-  { exact option.some_inj.2 (h _ _ (find_spec _ hfp) hi) }
-end
+mem_find_iff.2 ⟨hi, λ j hj, le_of_eq $ h i j hi hj⟩
 
 end find
 

@@ -3,9 +3,8 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Chris Hughes
 -/
-import algebra.associated data.int.gcd data.nat.enat
+import algebra.associated data.int.gcd algebra.big_operators
 import tactic.converter.interactive
-import tactic.norm_cast
 
 variables {α : Type*}
 
@@ -98,6 +97,10 @@ le_of_not_gt $ λ hk', is_greatest hk' hk
 lemma pow_dvd_iff_le_multiplicity {a b : α}
   {k : ℕ} : a ^ k ∣ b ↔ (k : enat) ≤ multiplicity a b :=
 ⟨le_multiplicity_of_pow_dvd, pow_dvd_of_le_multiplicity⟩
+
+lemma multiplicity_lt_iff_neg_dvd {a b : α} {k : ℕ} :
+  multiplicity a b < (k : enat) ↔ ¬ a ^ k ∣ b :=
+by { rw [pow_dvd_iff_le_multiplicity, not_le] }
 
 lemma eq_some_iff {a b : α} {n : ℕ} :
   multiplicity a b = (n : enat) ↔ a ^ n ∣ b ∧ ¬a ^ (n + 1) ∣ b :=
@@ -206,6 +209,32 @@ roption.ext' (by simp only [multiplicity]; conv in (_ ∣ - _) {rw dvd_neg})
     eq.symm (unique ((dvd_neg _ _).2 (pow_multiplicity_dvd _))
       (mt (dvd_neg _ _).1 (is_greatest' _ (lt_succ_self _))))))
 
+lemma multiplicity_add_of_gt {p a b : α} (h : multiplicity p b < multiplicity p a) :
+  multiplicity p (a + b) = multiplicity p b :=
+begin
+  apply le_antisymm,
+  { apply enat.le_of_lt_add_one,
+    cases enat.ne_top_iff.mp (enat.ne_top_of_lt h) with k hk,
+    rw [hk], rw_mod_cast [multiplicity_lt_iff_neg_dvd], intro h_dvd,
+    rw [← dvd_add_iff_right] at h_dvd,
+    apply multiplicity.is_greatest _ h_dvd, rw [hk], apply_mod_cast nat.lt_succ_self,
+    rw [pow_dvd_iff_le_multiplicity, enat.coe_add, ← hk], exact enat.add_one_le_of_lt h },
+  { convert min_le_multiplicity_add, rw [min_eq_right (le_of_lt h)] }
+end
+
+lemma multiplicity_sub_of_gt {p a b : α} (h : multiplicity p b < multiplicity p a) :
+  multiplicity p (a - b) = multiplicity p b :=
+by { rw [sub_eq_add_neg, multiplicity_add_of_gt]; rwa [multiplicity.neg] }
+
+lemma multiplicity_add_eq_min {p a b : α} (h : multiplicity p a ≠ multiplicity p b) :
+  multiplicity p (a + b) = min (multiplicity p a) (multiplicity p b) :=
+begin
+  rcases lt_trichotomy (multiplicity p a) (multiplicity p b) with hab|hab|hab,
+  { rw [add_comm, multiplicity_add_of_gt hab, min_eq_left], exact le_of_lt hab },
+  { contradiction },
+  { rw [multiplicity_add_of_gt hab, min_eq_right], exact le_of_lt hab},
+end
+
 end comm_ring
 
 section integral_domain
@@ -307,16 +336,33 @@ else begin
     simp [eq_top_iff_not_finite.2 h]
 end
 
+lemma finset.prod {β : Type*} [decidable_eq β] {p : α} (hp : prime p) (s : finset β) (f : β → α) :
+  multiplicity p (s.prod f) = s.sum (λ x, multiplicity p (f x)) :=
+begin
+  induction s using finset.induction with a s has ih h,
+  { simp [one_right hp.not_unit] },
+  { simp [has, multiplicity.mul hp, ih] }
+end
+
 protected lemma pow' {p a : α} (hp : prime p) (ha : finite p a) : ∀ {k : ℕ},
   get (multiplicity p (a ^ k)) (finite_pow hp ha) = k * get (multiplicity p a) ha
-| 0     := by dsimp [_root_.pow_zero]; simp [one_right hp.2.1]; refl
+| 0     := by dsimp [_root_.pow_zero]; simp [one_right hp.not_unit]; refl
 | (k+1) := by dsimp only [_root_.pow_succ];
   erw [multiplicity.mul' hp, pow', add_mul, one_mul, add_comm]
 
 lemma pow {p a : α} (hp : prime p) : ∀ {k : ℕ},
   multiplicity p (a ^ k) = add_monoid.smul k (multiplicity p a)
-| 0        := by simp [one_right hp.2.1]
+| 0        := by simp [one_right hp.not_unit]
 | (succ k) := by simp [_root_.pow_succ, succ_smul, pow, multiplicity.mul hp]
+
+lemma multiplicity_pow_self {p : α} (h0 : p ≠ 0) (hu : ¬ is_unit p) (n : ℕ) :
+  multiplicity p (p ^ n) = n :=
+by { rw [eq_some_iff], use dvd_refl _, rw [pow_dvd_pow_iff h0 hu], apply nat.not_succ_le_self }
+
+lemma multiplicity_pow_self_of_prime {p : α} (hp : prime p) (n : ℕ) :
+  multiplicity p (p ^ n) = n :=
+multiplicity_pow_self hp.ne_zero hp.not_unit n
+
 
 end integral_domain
 

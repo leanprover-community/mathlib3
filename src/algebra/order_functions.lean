@@ -45,6 +45,9 @@ lemma le_iff_le (H : strict_mono f) {a b} :
  λ h, (lt_or_eq_of_le h).elim (λ h', le_of_lt (H _ _ h')) (λ h', h' ▸ le_refl _)⟩
 end
 
+protected lemma nat {β} [preorder β] {f : ℕ → β} (h : ∀n, f n < f (n+1)) : strict_mono f :=
+by { intros n m hnm, induction hnm with m' hnm' ih, apply h, exact lt.trans ih (h _) }
+
 -- `preorder α` isn't strong enough: if the preorder on α is an equivalence relation,
 -- then `strict_mono f` is vacuously true.
 lemma monotone [partial_order α] [preorder β] {f : α → β} (H : strict_mono f) : monotone f :=
@@ -200,6 +203,9 @@ iff.intro
 
 lemma abs_pos_iff {a : α} : 0 < abs a ↔ a ≠ 0 :=
 ⟨λ h, mt abs_eq_zero.2 (ne_of_gt h), abs_pos_of_ne_zero⟩
+
+@[simp] lemma abs_nonpos_iff {a : α} : abs a ≤ 0 ↔ a = 0 :=
+by rw [← not_lt, abs_pos_iff, not_not]
 
 lemma abs_le_max_abs_abs (hab : a ≤ b)  (hbc : b ≤ c) : abs b ≤ max (abs a) (abs c) :=
 abs_le_of_le_of_neg_le

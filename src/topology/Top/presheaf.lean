@@ -1,7 +1,8 @@
--- Copyright (c) 2018 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison, Mario Carneiro, Reid Barton
-
+/-
+Copyright (c) 2018 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison, Mario Carneiro, Reid Barton
+-/
 import topology.Top.opens
 import category_theory.whiskering
 import category_theory.limits.functor_category

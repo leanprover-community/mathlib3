@@ -161,24 +161,11 @@ theorem card_congr {α β} [fintype α] [fintype β] (f : α ≃ β) : card α =
 by rw ← of_equiv_card f; congr
 
 theorem card_eq {α β} [F : fintype α] [G : fintype β] : card α = card β ↔ nonempty (α ≃ β) :=
-⟨λ e, match F, G, e with ⟨⟨s, nd⟩, h⟩, ⟨⟨s', nd'⟩, h'⟩, e' := begin
-  change multiset.card s = multiset.card s' at e',
-  revert nd nd' h h' e',
-  refine quotient.induction_on₂ s s' (λ l₁ l₂
-    (nd₁ : l₁.nodup) (nd₂ : l₂.nodup)
-    (h₁ : ∀ x, x ∈ l₁) (h₂ : ∀ x, x ∈ l₂)
-    (e' : l₁.length = l₂.length), _),
-  haveI := classical.dec_eq α,
-  refine ⟨equiv.of_bijective ⟨_, _⟩⟩,
-  { refine λ a, l₂.nth_le (l₁.index_of a) _,
-    rw ← e', exact list.index_of_lt_length.2 (h₁ a) },
-  { intros a b h, simpa [h₁] using congr_arg l₁.nth
-      (list.nodup_iff_nth_le_inj.1 nd₂ _ _ _ _ h) },
-  { have := classical.dec_eq β,
-    refine λ b, ⟨l₁.nth_le (l₂.index_of b) _, _⟩,
-    { rw e', exact list.index_of_lt_length.2 (h₂ b) },
-    { simp [nd₁] } }
-end end, λ ⟨f⟩, card_congr f⟩
+⟨λ h, ⟨by classical; 
+  calc α ≃ fin (card α) : trunc.out (equiv_fin α)
+     ... ≃ fin (card β) : by rw h
+     ... ≃ β : (trunc.out (equiv_fin β)).symm⟩, 
+λ ⟨f⟩, card_congr f⟩
 
 def of_subsingleton (a : α) [subsingleton α] : fintype α :=
 ⟨finset.singleton a, λ b, finset.mem_singleton.2 (subsingleton.elim _ _)⟩
@@ -208,6 +195,9 @@ by rw [fin.fintype]; simp [fintype.card, card, univ]
 
 @[instance, priority 0] def unique.fintype {α : Type*} [unique α] : fintype α :=
 ⟨finset.singleton (default α), λ x, by rw [unique.eq_default x]; simp⟩
+
+@[simp] lemma univ_unique {α : Type*} [unique α] [f : fintype α] : @finset.univ α _ = {default α} :=
+by rw [subsingleton.elim f (@unique.fintype α _)]; refl
 
 instance : fintype empty := ⟨∅, empty.rec _⟩
 
@@ -445,6 +435,23 @@ instance finset.fintype [fintype α] : fintype (finset α) :=
 
 instance subtype.fintype [fintype α] (p : α → Prop) [decidable_pred p] : fintype {x // p x} :=
 set_fintype _
+
+instance psigma.fintype {α : Type*} {β : α → Type*} [fintype α] [∀ a, fintype (β a)] : 
+  fintype (Σ' a, β a) := 
+fintype.of_equiv _ (equiv.psigma_equiv_sigma _).symm
+
+instance psigma.fintype_prop_left {α : Prop} {β : α → Type*} [∀ a, fintype (β a)] [decidable α] : 
+  fintype (Σ' a, β a) :=
+if h : α then fintype.of_equiv (β h) ⟨λ x, ⟨h, x⟩, psigma.snd, λ _, rfl, λ ⟨_, _⟩, rfl⟩ 
+else ⟨∅, λ x, h x.1⟩
+
+instance psigma.fintype_prop_right {α : Type*} {β : α → Prop} [fintype α] [∀ a, decidable (β a)] : 
+  fintype (Σ' a, β a) :=
+fintype.of_equiv {a // β a} ⟨λ ⟨x, y⟩, ⟨x, y⟩, λ ⟨x, y⟩, ⟨x, y⟩, λ ⟨x, y⟩, rfl, λ ⟨x, y⟩, rfl⟩
+
+instance psigma.fintype_prop_prop {α : Prop} {β : α → Prop} [decidable α] [∀ a, decidable (β a)] : 
+  fintype (Σ' a, β a) :=
+if h : ∃ a, β a then ⟨{⟨h.fst, h.snd⟩}, λ ⟨_, _⟩, by simp⟩ else ⟨∅, λ ⟨x, y⟩, h ⟨x, y⟩⟩
 
 instance set.fintype [fintype α] [decidable_eq α] : fintype (set α) :=
 pi.fintype

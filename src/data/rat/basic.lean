@@ -1,19 +1,40 @@
 /-
-Copyright (c) 2017 Johannes Hölzl. All rights reserved.
+Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
-
-Introduces the rational numbers as discrete, linear ordered field.
 -/
-
 import
   data.nat.gcd
   data.pnat.basic data.int.sqrt data.equiv.encodable
   algebra.group algebra.ordered_group algebra.group_power
   algebra.ordered_field
   tactic.norm_cast
+/-!
+# Basics for the Rational Numbers
 
-/- rational numbers -/
+## Summary
+
+We define a rational number `q` as a structure `{ num, denom, pos, cop }`, where
+- `num` is the numerator of `q`,
+- `denom` is the denominator of `q`,
+- `pos` is a proof that `denom > 0`, and
+- `cop` is a proof `num` and `denom` are coprime.
+
+We then define the expected (discrete) field structure on `ℚ` and prove basic lemmas about it.
+
+## Main Definitions
+
+- `rat` is the structure encoding `ℚ`.
+- `rat.mk n d` constructs a rational number `q = n / d` from `n d : ℤ`.
+
+## Notations
+
+- `/.` is infix notation for `rat.mk`.
+
+## Tags
+
+rat, rationals, field, ℚ, numerator, denominator, num, denom
+-/
 
 /-- `rat`, or `ℚ`, is the type of rational numbers. It is defined
   as the set of pairs ⟨n, d⟩ of integers such that `d` is positive and `n` and
@@ -195,6 +216,8 @@ theorem num_denom : ∀ a : ℚ, a = a.num /. a.denom
   by simp [mk_nat, ne_of_gt h, mk_pnat, c]
 
 theorem num_denom' (n d h c) : (⟨n, d, h, c⟩ : ℚ) = n /. d := num_denom _
+
+theorem of_int_eq_mk (z : ℤ) : of_int z = z /. 1 := num_denom' _ _ _ _
 
 @[elab_as_eliminator] theorem {u} num_denom_cases_on {C : ℚ → Sort u}
    : ∀ (a : ℚ) (H : ∀ n d, d > 0 → (int.nat_abs n).coprime d → C (n /. d)), C a
@@ -437,507 +460,6 @@ theorem sub_def {a b c d : ℤ} (b0 : b ≠ 0) (d0 : d ≠ 0) :
   a /. b - c /. d = (a * d - c * b) /. (b * d) :=
 by simp [b0, d0]
 
-protected def nonneg : ℚ → Prop
-| ⟨n, d, h, c⟩ := n ≥ 0
-
-@[simp] theorem mk_nonneg (a : ℤ) {b : ℤ} (h : b > 0) : (a /. b).nonneg ↔ a ≥ 0 :=
-begin
-  generalize ha : a /. b = x, cases x with n₁ d₁ h₁ c₁, rw num_denom' at ha,
-  simp [rat.nonneg],
-  have d0 := int.coe_nat_lt.2 h₁,
-  have := (mk_eq (ne_of_gt h) (ne_of_gt d0)).1 ha,
-  constructor; intro h₂,
-  { apply nonneg_of_mul_nonneg_right _ d0,
-    rw this, exact mul_nonneg h₂ (le_of_lt h) },
-  { apply nonneg_of_mul_nonneg_right _ h,
-    rw ← this, exact mul_nonneg h₂ (int.coe_zero_le _) },
-end
-
-protected def nonneg_add {a b} : rat.nonneg a → rat.nonneg b → rat.nonneg (a + b) :=
-num_denom_cases_on' a $ λ n₁ d₁ h₁,
-num_denom_cases_on' b $ λ n₂ d₂ h₂,
-begin
-  have d₁0 : (d₁:ℤ) > 0 := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₁),
-  have d₂0 : (d₂:ℤ) > 0 := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₂),
-  simp [d₁0, d₂0, h₁, h₂, mul_pos d₁0 d₂0],
-  intros n₁0 n₂0,
-  apply add_nonneg; apply mul_nonneg; {assumption <|> apply int.coe_zero_le}
-end
-
-protected def nonneg_mul {a b} : rat.nonneg a → rat.nonneg b → rat.nonneg (a * b) :=
-num_denom_cases_on' a $ λ n₁ d₁ h₁,
-num_denom_cases_on' b $ λ n₂ d₂ h₂,
-begin
-  have d₁0 : (d₁:ℤ) > 0 := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₁),
-  have d₂0 : (d₂:ℤ) > 0 := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₂),
-  simp [d₁0, d₂0, h₁, h₂, mul_pos d₁0 d₂0],
-  exact mul_nonneg
-end
-
-protected def nonneg_antisymm {a} : rat.nonneg a → rat.nonneg (-a) → a = 0 :=
-num_denom_cases_on' a $ λ n d h,
-begin
-  have d0 : (d:ℤ) > 0 := int.coe_nat_pos.2 (nat.pos_of_ne_zero h),
-  simp [d0, h],
-  exact λ h₁ h₂, le_antisymm (nonpos_of_neg_nonneg h₂) h₁
-end
-
-protected def nonneg_total : rat.nonneg a ∨ rat.nonneg (-a) :=
-by cases a with n; exact
-or.imp_right neg_nonneg_of_nonpos (le_total 0 n)
-
-instance decidable_nonneg : decidable (rat.nonneg a) :=
-by cases a; unfold rat.nonneg; apply_instance
-
-protected def le (a b : ℚ) := rat.nonneg (b - a)
-
-instance : has_le ℚ := ⟨rat.le⟩
-
-instance decidable_le : decidable_rel ((≤) : ℚ → ℚ → Prop)
-| a b := show decidable (rat.nonneg (b - a)), by apply_instance
-
-protected theorem le_def {a b c d : ℤ} (b0 : b > 0) (d0 : d > 0) :
-  a /. b ≤ c /. d ↔ a * d ≤ c * b :=
-show rat.nonneg _ ↔ _,
-by simpa [ne_of_gt b0, ne_of_gt d0, mul_pos b0 d0, mul_comm]
-   using @sub_nonneg _ _ (b * c) (a * d)
-
-protected theorem le_refl : a ≤ a :=
-show rat.nonneg (a - a), by rw sub_self; exact le_refl (0 : ℤ)
-
-protected theorem le_total : a ≤ b ∨ b ≤ a :=
-by have := rat.nonneg_total (b - a); rwa neg_sub at this
-
-protected theorem le_antisymm {a b : ℚ} (hab : a ≤ b) (hba : b ≤ a) : a = b :=
-by have := eq_neg_of_add_eq_zero (rat.nonneg_antisymm hba $ by simpa);
-   rwa neg_neg at this
-
-protected theorem le_trans {a b c : ℚ} (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c :=
-have rat.nonneg (b - a + (c - b)), from rat.nonneg_add hab hbc,
-by simpa
-
-instance : decidable_linear_order ℚ :=
-{ le              := rat.le,
-  le_refl         := rat.le_refl,
-  le_trans        := @rat.le_trans,
-  le_antisymm     := @rat.le_antisymm,
-  le_total        := rat.le_total,
-  decidable_eq    := by apply_instance,
-  decidable_le    := assume a b, rat.decidable_nonneg (b - a) }
-
-/- Extra instances to short-circuit type class resolution -/
-instance : has_lt ℚ                  := by apply_instance
-instance : lattice.distrib_lattice ℚ := by apply_instance
-instance : lattice.lattice ℚ         := by apply_instance
-instance : lattice.semilattice_inf ℚ := by apply_instance
-instance : lattice.semilattice_sup ℚ := by apply_instance
-instance : lattice.has_inf ℚ         := by apply_instance
-instance : lattice.has_sup ℚ         := by apply_instance
-instance : linear_order ℚ            := by apply_instance
-instance : partial_order ℚ           := by apply_instance
-instance : preorder ℚ                := by apply_instance
-
-theorem nonneg_iff_zero_le {a} : rat.nonneg a ↔ 0 ≤ a :=
-show rat.nonneg a ↔ rat.nonneg (a - 0), by simp
-
-theorem num_nonneg_iff_zero_le : ∀ {a : ℚ}, 0 ≤ a.num ↔ 0 ≤ a
-| ⟨n, d, h, c⟩ := @nonneg_iff_zero_le ⟨n, d, h, c⟩
-
-theorem mk_le {a b c d : ℤ} (h₁ : b > 0) (h₂ : d > 0) :
-  a /. b ≤ c /. d ↔ a * d ≤ c * b :=
-by conv in (_ ≤ _) {
-  simp only [(≤), rat.le],
-  rw [sub_def (ne_of_gt h₂) (ne_of_gt h₁),
-      mk_nonneg _ (mul_pos h₂ h₁), ge, sub_nonneg] }
-
-protected theorem add_le_add_left {a b c : ℚ} : c + a ≤ c + b ↔ a ≤ b :=
-by unfold has_le.le rat.le; rw add_sub_add_left_eq_sub
-
-protected theorem mul_nonneg {a b : ℚ} (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a * b :=
-by rw ← nonneg_iff_zero_le at ha hb ⊢; exact rat.nonneg_mul ha hb
-
-instance : discrete_linear_ordered_field ℚ :=
-{ zero_lt_one     := dec_trivial,
-  add_le_add_left := assume a b ab c, rat.add_le_add_left.2 ab,
-  add_lt_add_left := assume a b ab c, lt_of_not_ge $ λ ba,
-    not_le_of_lt ab $ rat.add_le_add_left.1 ba,
-  mul_nonneg      := @rat.mul_nonneg,
-  mul_pos         := assume a b ha hb, lt_of_le_of_ne
-    (rat.mul_nonneg (le_of_lt ha) (le_of_lt hb))
-    (mul_ne_zero (ne_of_lt ha).symm (ne_of_lt hb).symm).symm,
-  ..rat.discrete_field, ..rat.decidable_linear_order }
-
-/- Extra instances to short-circuit type class resolution -/
-instance : linear_ordered_field ℚ                := by apply_instance
-instance : decidable_linear_ordered_comm_ring ℚ  := by apply_instance
-instance : linear_ordered_comm_ring ℚ            := by apply_instance
-instance : linear_ordered_ring ℚ                 := by apply_instance
-instance : ordered_ring ℚ                        := by apply_instance
-instance : decidable_linear_ordered_semiring ℚ   := by apply_instance
-instance : linear_ordered_semiring ℚ             := by apply_instance
-instance : ordered_semiring ℚ                    := by apply_instance
-instance : decidable_linear_ordered_comm_group ℚ := by apply_instance
-instance : ordered_comm_group ℚ                  := by apply_instance
-instance : ordered_cancel_comm_monoid ℚ          := by apply_instance
-instance : ordered_comm_monoid ℚ                 := by apply_instance
-
-attribute [irreducible] rat.le
-
-theorem num_pos_iff_pos {a : ℚ} : 0 < a.num ↔ 0 < a :=
-lt_iff_lt_of_le_iff_le $
-by simpa [(by cases a; refl : (-a).num = -a.num)]
-   using @num_nonneg_iff_zero_le (-a)
-
-theorem of_int_eq_mk (z : ℤ) : of_int z = z /. 1 := num_denom' _ _ _ _
-
-theorem coe_int_eq_mk : ∀ z : ℤ, ↑z = z /. 1
-| (n : ℕ) := show (n:ℚ) = n /. 1,
-  by induction n with n IH n; simp [*, show (1:ℚ) = 1 /. 1, from rfl]
-| -[1+ n] := show (-(n + 1) : ℚ) = -[1+ n] /. 1, begin
-  induction n with n IH, {refl},
-  show -(n + 1 + 1 : ℚ) = -[1+ n.succ] /. 1,
-  rw [neg_add, IH],
-  simpa [show -1 = (-1) /. 1, from rfl]
-end
-
-theorem coe_int_eq_of_int (z : ℤ) : ↑z = of_int z :=
-(coe_int_eq_mk z).trans (of_int_eq_mk z).symm
-
-theorem mk_eq_div (n d : ℤ) : n /. d = (n / d : ℚ) :=
-begin
-  by_cases d0 : d = 0, {simp [d0, div_zero]},
-  rw [division_def, coe_int_eq_mk, coe_int_eq_mk, inv_def,
-      mul_def one_ne_zero d0, one_mul, mul_one]
-end
-
-/-- `floor q` is the largest integer `z` such that `z ≤ q` -/
-def floor : ℚ → ℤ
-| ⟨n, d, h, c⟩ := n / d
-
-theorem le_floor {z : ℤ} : ∀ {r : ℚ}, z ≤ floor r ↔ (z : ℚ) ≤ r
-| ⟨n, d, h, c⟩ := begin
-  simp [floor],
-  rw [num_denom'],
-  have h' := int.coe_nat_lt.2 h,
-  conv { to_rhs,
-    rw [coe_int_eq_mk, mk_le zero_lt_one h', mul_one] },
-  exact int.le_div_iff_mul_le h'
-end
-
-theorem floor_lt {r : ℚ} {z : ℤ} : floor r < z ↔ r < z :=
-lt_iff_lt_of_le_iff_le le_floor
-
-theorem floor_le (r : ℚ) : (floor r : ℚ) ≤ r :=
-le_floor.1 (le_refl _)
-
-theorem lt_succ_floor (r : ℚ) : r < (floor r).succ :=
-floor_lt.1 $ int.lt_succ_self _
-
-@[simp] theorem floor_coe (z : ℤ) : floor z = z :=
-eq_of_forall_le_iff $ λ a, by rw [le_floor, int.cast_le]
-
-theorem floor_mono {a b : ℚ} (h : a ≤ b) : floor a ≤ floor b :=
-le_floor.2 (le_trans (floor_le _) h)
-
-@[simp] theorem floor_add_int (r : ℚ) (z : ℤ) : floor (r + z) = floor r + z :=
-eq_of_forall_le_iff $ λ a, by rw [le_floor,
-  ← sub_le_iff_le_add, ← sub_le_iff_le_add, le_floor, int.cast_sub]
-
-theorem floor_sub_int (r : ℚ) (z : ℤ) : floor (r - z) = floor r - z :=
-eq.trans (by rw [int.cast_neg]; refl) (floor_add_int _ _)
-
-/-- `ceil q` is the smallest integer `z` such that `q ≤ z` -/
-def ceil (r : ℚ) : ℤ :=
--(floor (-r))
-
-theorem ceil_le {z : ℤ} {r : ℚ} : ceil r ≤ z ↔ r ≤ z :=
-by rw [ceil, neg_le, le_floor, int.cast_neg, neg_le_neg_iff]
-
-theorem le_ceil (r : ℚ) : r ≤ ceil r :=
-ceil_le.1 (le_refl _)
-
-@[simp] theorem ceil_coe (z : ℤ) : ceil z = z :=
-by rw [ceil, ← int.cast_neg, floor_coe, neg_neg]
-
-theorem ceil_mono {a b : ℚ} (h : a ≤ b) : ceil a ≤ ceil b :=
-ceil_le.2 (le_trans h (le_ceil _))
-
-@[simp] theorem ceil_add_int (r : ℚ) (z : ℤ) : ceil (r + z) = ceil r + z :=
-by rw [ceil, neg_add', floor_sub_int, neg_sub, sub_eq_neg_add]; refl
-
-theorem ceil_sub_int (r : ℚ) (z : ℤ) : ceil (r - z) = ceil r - z :=
-eq.trans (by rw [int.cast_neg]; refl) (ceil_add_int _ _)
-
-/- cast (injection into fields) -/
-
-section cast
-variables {α : Type*}
-
-section
-variables [division_ring α]
-
-/-- Construct the canonical injection from `ℚ` into an arbitrary
-  division ring. If the field has positive characteristic `p`,
-  we define `1 / p = 1 / 0 = 0` for consistency with our
-  division by zero convention. -/
-protected def cast : ℚ → α
-| ⟨n, d, h, c⟩ := n / d
-
-@[priority 0] instance cast_coe : has_coe ℚ α := ⟨rat.cast⟩
-
-@[simp] theorem cast_of_int (n : ℤ) : (of_int n : α) = n :=
-show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one]
-
-@[simp, squash_cast] theorem cast_coe_int (n : ℤ) : ((n : ℚ) : α) = n :=
-by rw [coe_int_eq_of_int, cast_of_int]
-
-@[simp, elim_cast] theorem coe_int_num (n : ℤ) : (n : ℚ).num = n :=
-by rw coe_int_eq_of_int; refl
-
-@[simp, elim_cast] theorem coe_int_denom (n : ℤ) : (n : ℚ).denom = 1 :=
-by rw coe_int_eq_of_int; refl
-
-@[simp, elim_cast] theorem coe_nat_num (n : ℕ) : (n : ℚ).num = n :=
-by rw [← int.cast_coe_nat, coe_int_num]
-
-@[simp, elim_cast] theorem coe_nat_denom (n : ℕ) : (n : ℚ).denom = 1 :=
-by rw [← int.cast_coe_nat, coe_int_denom]
-
-@[simp, squash_cast] theorem cast_coe_nat (n : ℕ) : ((n : ℚ) : α) = n := cast_coe_int n
-
-@[simp, squash_cast] theorem cast_zero : ((0 : ℚ) : α) = 0 :=
-(cast_of_int _).trans int.cast_zero
-
-@[simp, squash_cast] theorem cast_one : ((1 : ℚ) : α) = 1 :=
-(cast_of_int _).trans int.cast_one
-
-theorem mul_cast_comm (a : α) :
-  ∀ (n : ℚ), (n.denom : α) ≠ 0 → a * n = n * a
-| ⟨n, d, h, c⟩ h₂ := show a * (n * d⁻¹) = n * d⁻¹ * a,
-  by rw [← mul_assoc, int.mul_cast_comm, mul_assoc, mul_assoc,
-         ← show (d:α)⁻¹ * a = a * d⁻¹, from
-           division_ring.inv_comm_of_comm h₂ (int.mul_cast_comm a d).symm]
-
-@[move_cast] theorem cast_mk_of_ne_zero (a b : ℤ)
-  (b0 : (b:α) ≠ 0) : (a /. b : α) = a / b :=
-begin
-  have b0' : b ≠ 0, { refine mt _ b0, simp {contextual := tt} },
-  cases e : a /. b with n d h c,
-  have d0 : (d:α) ≠ 0,
-  { intro d0,
-    have dd := denom_dvd a b,
-    cases (show (d:ℤ) ∣ b, by rwa e at dd) with k ke,
-    have : (b:α) = (d:α) * (k:α), {rw [ke, int.cast_mul], refl},
-    rw [d0, zero_mul] at this, contradiction },
-  rw [num_denom'] at e,
-  have := congr_arg (coe : ℤ → α) ((mk_eq b0' $ ne_of_gt $ int.coe_nat_pos.2 h).1 e),
-  rw [int.cast_mul, int.cast_mul, int.cast_coe_nat] at this,
-  symmetry, change (a * b⁻¹ : α) = n / d,
-  rw [eq_div_iff_mul_eq _ _ d0, mul_assoc, nat.mul_cast_comm,
-      ← mul_assoc, this, mul_assoc, mul_inv_cancel b0, mul_one]
-end
-
-@[move_cast] theorem cast_add_of_ne_zero : ∀ {m n : ℚ},
-  (m.denom : α) ≠ 0 → (n.denom : α) ≠ 0 → ((m + n : ℚ) : α) = m + n
-| ⟨n₁, d₁, h₁, c₁⟩ ⟨n₂, d₂, h₂, c₂⟩ := λ (d₁0 : (d₁:α) ≠ 0) (d₂0 : (d₂:α) ≠ 0), begin
-  have d₁0' : (d₁:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d₁0; exact d₁0 rfl),
-  have d₂0' : (d₂:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d₂0; exact d₂0 rfl),
-  rw [num_denom', num_denom', add_def d₁0' d₂0'],
-  suffices : (n₁ * (d₂ * (d₂⁻¹ * d₁⁻¹)) +
-    n₂ * (d₁ * d₂⁻¹) * d₁⁻¹ : α) = n₁ * d₁⁻¹ + n₂ * d₂⁻¹,
-  { rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, cast_mk_of_ne_zero],
-    { simpa [division_def, left_distrib, right_distrib, mul_inv_eq,
-             d₁0, d₂0, division_ring.mul_ne_zero d₁0 d₂0, mul_assoc] },
-    all_goals {simp [d₁0, d₂0, division_ring.mul_ne_zero d₁0 d₂0]} },
-  rw [← mul_assoc (d₂:α), mul_inv_cancel d₂0, one_mul,
-      ← nat.mul_cast_comm], simp [d₁0, mul_assoc]
-end
-
-@[simp, move_cast] theorem cast_neg : ∀ n, ((-n : ℚ) : α) = -n
-| ⟨n, d, h, c⟩ := show (↑-n * d⁻¹ : α) = -(n * d⁻¹),
-  by rw [int.cast_neg, neg_mul_eq_neg_mul]
-
-@[move_cast] theorem cast_sub_of_ne_zero {m n : ℚ}
-  (m0 : (m.denom : α) ≠ 0) (n0 : (n.denom : α) ≠ 0) : ((m - n : ℚ) : α) = m - n :=
-have ((-n).denom : α) ≠ 0, by cases n; exact n0,
-by simp [m0, this, cast_add_of_ne_zero]
-
-@[move_cast] theorem cast_mul_of_ne_zero : ∀ {m n : ℚ},
-  (m.denom : α) ≠ 0 → (n.denom : α) ≠ 0 → ((m * n : ℚ) : α) = m * n
-| ⟨n₁, d₁, h₁, c₁⟩ ⟨n₂, d₂, h₂, c₂⟩ := λ (d₁0 : (d₁:α) ≠ 0) (d₂0 : (d₂:α) ≠ 0), begin
-  have d₁0' : (d₁:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d₁0; exact d₁0 rfl),
-  have d₂0' : (d₂:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d₂0; exact d₂0 rfl),
-  rw [num_denom', num_denom', mul_def d₁0' d₂0'],
-  suffices : (n₁ * ((n₂ * d₂⁻¹) * d₁⁻¹) : α) = n₁ * (d₁⁻¹ * (n₂ * d₂⁻¹)),
-  { rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, cast_mk_of_ne_zero],
-    { simpa [division_def, mul_inv_eq, d₁0, d₂0, division_ring.mul_ne_zero d₁0 d₂0, mul_assoc] },
-    all_goals {simp [d₁0, d₂0, division_ring.mul_ne_zero d₁0 d₂0]} },
-  rw [division_ring.inv_comm_of_comm d₁0 (nat.mul_cast_comm _ _).symm]
-end
-
-@[move_cast] theorem cast_inv_of_ne_zero : ∀ {n : ℚ},
-  (n.num : α) ≠ 0 → (n.denom : α) ≠ 0 → ((n⁻¹ : ℚ) : α) = n⁻¹
-| ⟨n, d, h, c⟩ := λ (n0 : (n:α) ≠ 0) (d0 : (d:α) ≠ 0), begin
-  have n0' : (n:ℤ) ≠ 0 := λ e, by rw e at n0; exact n0 rfl,
-  have d0' : (d:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d0; exact d0 rfl),
-  rw [num_denom', inv_def],
-  rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, inv_div];
-  simp [n0, d0]
-end
-
-@[move_cast] theorem cast_div_of_ne_zero {m n : ℚ} (md : (m.denom : α) ≠ 0)
-  (nn : (n.num : α) ≠ 0) (nd : (n.denom : α) ≠ 0) : ((m / n : ℚ) : α) = m / n :=
-have (n⁻¹.denom : ℤ) ∣ n.num,
-by conv in n⁻¹.denom { rw [num_denom n, inv_def] };
-   apply denom_dvd,
-have (n⁻¹.denom : α) = 0 → (n.num : α) = 0, from
-λ h, let ⟨k, e⟩ := this in
-  by have := congr_arg (coe : ℤ → α) e;
-     rwa [int.cast_mul, int.cast_coe_nat, h, zero_mul] at this,
-by rw [division_def, cast_mul_of_ne_zero md (mt this nn), cast_inv_of_ne_zero nn nd, division_def]
-
-@[simp, elim_cast] theorem cast_inj [char_zero α] : ∀ {m n : ℚ}, (m : α) = n ↔ m = n
-| ⟨n₁, d₁, h₁, c₁⟩ ⟨n₂, d₂, h₂, c₂⟩ := begin
-  refine ⟨λ h, _, congr_arg _⟩,
-  have d₁0 : d₁ ≠ 0 := ne_of_gt h₁,
-  have d₂0 : d₂ ≠ 0 := ne_of_gt h₂,
-  have d₁a : (d₁:α) ≠ 0 := nat.cast_ne_zero.2 d₁0,
-  have d₂a : (d₂:α) ≠ 0 := nat.cast_ne_zero.2 d₂0,
-  rw [num_denom', num_denom'] at h ⊢,
-  rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero] at h; simp [d₁0, d₂0] at h ⊢,
-  rwa [eq_div_iff_mul_eq _ _ d₂a, division_def, mul_assoc,
-    division_ring.inv_comm_of_comm d₁a (nat.mul_cast_comm _ _),
-    ← mul_assoc, ← division_def, eq_comm, eq_div_iff_mul_eq _ _ d₁a, eq_comm,
-    ← int.cast_coe_nat, ← int.cast_mul, ← int.cast_coe_nat, ← int.cast_mul,
-    int.cast_inj, ← mk_eq (int.coe_nat_ne_zero.2 d₁0) (int.coe_nat_ne_zero.2 d₂0)] at h
-end
-
-theorem cast_injective [char_zero α] : function.injective (coe : ℚ → α)
-| m n := cast_inj.1
-
-@[simp] theorem cast_eq_zero [char_zero α] {n : ℚ} : (n : α) = 0 ↔ n = 0 :=
-by rw [← cast_zero, cast_inj]
-
-@[simp] theorem cast_ne_zero [char_zero α] {n : ℚ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
-not_congr cast_eq_zero
-
-theorem eq_cast_of_ne_zero (f : ℚ → α) (H1 : f 1 = 1)
-  (Hadd : ∀ x y, f (x + y) = f x + f y)
-  (Hmul : ∀ x y, f (x * y) = f x * f y) :
-  ∀ n : ℚ, (n.denom : α) ≠ 0 → f n = n
-| ⟨n, d, h, c⟩ := λ (h₂ : ((d:ℤ):α) ≠ 0), show _ = (n / (d:ℤ) : α), begin
-  rw [num_denom', mk_eq_div, eq_div_iff_mul_eq _ _ h₂],
-  have : ∀ n : ℤ, f n = n, { apply int.eq_cast; simp [H1, Hadd] },
-  rw [← this, ← this, ← Hmul, div_mul_cancel],
-  exact int.cast_ne_zero.2 (int.coe_nat_ne_zero.2 $ ne_of_gt h),
-end
-
-theorem eq_cast [char_zero α] (f : ℚ → α) (H1 : f 1 = 1)
-  (Hadd : ∀ x y, f (x + y) = f x + f y)
-  (Hmul : ∀ x y, f (x * y) = f x * f y) (n : ℚ) : f n = n :=
-eq_cast_of_ne_zero _ H1 Hadd Hmul _ $
-  nat.cast_ne_zero.2 $ ne_of_gt n.pos
-
-end
-
-@[move_cast] theorem cast_mk [discrete_field α] [char_zero α] (a b : ℤ) : ((a /. b) : α) = a / b :=
-if b0 : b = 0 then by simp [b0, div_zero]
-else cast_mk_of_ne_zero a b (int.cast_ne_zero.2 b0)
-
-@[simp, move_cast] theorem cast_add [division_ring α] [char_zero α] (m n) : ((m + n : ℚ) : α) = m + n :=
-cast_add_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
-
-@[simp, move_cast] theorem cast_sub [division_ring α] [char_zero α] (m n) : ((m - n : ℚ) : α) = m - n :=
-cast_sub_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
-
-@[simp, move_cast] theorem cast_mul [division_ring α] [char_zero α] (m n) : ((m * n : ℚ) : α) = m * n :=
-cast_mul_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
-
-@[simp, move_cast] theorem cast_inv [discrete_field α] [char_zero α] (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ :=
-if n0 : n.num = 0 then
-  by simp [show n = 0, by rw [num_denom n, n0]; simp, inv_zero] else
-cast_inv_of_ne_zero (int.cast_ne_zero.2 n0) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
-
-@[simp, move_cast] theorem cast_div [discrete_field α] [char_zero α] (m n) : ((m / n : ℚ) : α) = m / n :=
-by rw [division_def, cast_mul, cast_inv, division_def]
-
-@[simp, move_cast] theorem cast_pow [discrete_field α] [char_zero α] (q) (k : ℕ) : ((q ^ k : ℚ) : α) = q ^ k :=
-by induction k; simp only [*, cast_one, cast_mul, pow_zero, pow_succ]
-
-@[simp, squash_cast, move_cast] theorem cast_bit0 [division_ring α] [char_zero α] (n : ℚ) : ((bit0 n : ℚ) : α) = bit0 n := cast_add _ _
-
-@[simp, squash_cast, move_cast] theorem cast_bit1 [division_ring α] [char_zero α] (n : ℚ) : ((bit1 n : ℚ) : α) = bit1 n :=
-by rw [bit1, cast_add, cast_one, cast_bit0]; refl
-
-@[simp] theorem cast_nonneg [linear_ordered_field α] : ∀ {n : ℚ}, 0 ≤ (n : α) ↔ 0 ≤ n
-| ⟨n, d, h, c⟩ := show 0 ≤ (n * d⁻¹ : α) ↔ 0 ≤ (⟨n, d, h, c⟩ : ℚ),
-  by rw [num_denom', ← nonneg_iff_zero_le, mk_nonneg _ (int.coe_nat_pos.2 h),
-    mul_nonneg_iff_right_nonneg_of_pos (@inv_pos α _ _ (nat.cast_pos.2 h)),
-    int.cast_nonneg]
-
-@[simp, elim_cast] theorem cast_le [linear_ordered_field α] {m n : ℚ} : (m : α) ≤ n ↔ m ≤ n :=
-by rw [← sub_nonneg, ← cast_sub, cast_nonneg, sub_nonneg]
-
-@[simp, elim_cast] theorem cast_lt [linear_ordered_field α] {m n : ℚ} : (m : α) < n ↔ m < n :=
-by simpa [-cast_le] using not_congr (@cast_le α _ n m)
-
-@[simp] theorem cast_nonpos [linear_ordered_field α] {n : ℚ} : (n : α) ≤ 0 ↔ n ≤ 0 :=
-by rw [← cast_zero, cast_le]
-
-@[simp] theorem cast_pos [linear_ordered_field α] {n : ℚ} : (0 : α) < n ↔ 0 < n :=
-by rw [← cast_zero, cast_lt]
-
-@[simp] theorem cast_lt_zero [linear_ordered_field α] {n : ℚ} : (n : α) < 0 ↔ n < 0 :=
-by rw [← cast_zero, cast_lt]
-
-@[simp, squash_cast] theorem cast_id : ∀ n : ℚ, ↑n = n
-| ⟨n, d, h, c⟩ := show (n / (d : ℤ) : ℚ) = _, by rw [num_denom', mk_eq_div]
-
-@[simp, move_cast] theorem cast_min [discrete_linear_ordered_field α] {a b : ℚ} : (↑(min a b) : α) = min a b :=
-by by_cases a ≤ b; simp [h, min]
-
-@[simp, move_cast] theorem cast_max [discrete_linear_ordered_field α] {a b : ℚ} : (↑(max a b) : α) = max a b :=
-by by_cases a ≤ b; simp [h, max]
-
-@[simp, move_cast] theorem cast_abs [discrete_linear_ordered_field α] {q : ℚ} : ((abs q : ℚ) : α) = abs q :=
-by simp [abs]
-
-end cast
-
-/- nat ceiling -/
-
-/-- `nat_ceil q` is the smallest nonnegative integer `n` with `q ≤ n`.
-  It is the same as `ceil q` when `q ≥ 0`, otherwise it is `0`. -/
-def nat_ceil (q : ℚ) : ℕ := int.to_nat (ceil q)
-
-theorem nat_ceil_le {q : ℚ} {n : ℕ} : nat_ceil q ≤ n ↔ q ≤ n :=
-by rw [nat_ceil, int.to_nat_le, ceil_le]; refl
-
-theorem lt_nat_ceil {q : ℚ} {n : ℕ} : n < nat_ceil q ↔ (n : ℚ) < q :=
-not_iff_not.1 $ by rw [not_lt, not_lt, nat_ceil_le]
-
-theorem le_nat_ceil (q : ℚ) : q ≤ nat_ceil q :=
-nat_ceil_le.1 (le_refl _)
-
-theorem nat_ceil_mono {q₁ q₂ : ℚ} (h : q₁ ≤ q₂) : nat_ceil q₁ ≤ nat_ceil q₂ :=
-nat_ceil_le.2 (le_trans h (le_nat_ceil _))
-
-@[simp] theorem nat_ceil_coe (n : ℕ) : nat_ceil n = n :=
-show (ceil (n:ℤ)).to_nat = n, by rw [ceil_coe]; refl
-
-@[simp] theorem nat_ceil_zero : nat_ceil 0 = 0 := nat_ceil_coe 0
-
-theorem nat_ceil_add_nat {q : ℚ} (hq : 0 ≤ q) (n : ℕ) : nat_ceil (q + n) = nat_ceil q + n :=
-show int.to_nat (ceil (q + (n:ℤ))) = int.to_nat (ceil q) + n,
-by rw [ceil_add_int]; exact
-match ceil q, int.eq_coe_of_zero_le (ceil_mono hq) with
-| _, ⟨m, rfl⟩ := rfl
-end
-
-theorem nat_ceil_lt_add_one {q : ℚ} (hq : q ≥ 0) : ↑(nat_ceil q) < q + 1 :=
-lt_nat_ceil.1 $ by rw [
-  show nat_ceil (q+1) = nat_ceil q+1, from nat_ceil_add_nat hq 1]; apply nat.lt_succ_self
-
 @[simp] lemma denom_neg_eq_denom : ∀ q : ℚ, (-q).denom = q.denom
 | ⟨_, d, _, _⟩ := rfl
 
@@ -1034,41 +556,11 @@ theorem mul_self_denom (q : ℚ) : (q * q).denom = q.denom * q.denom :=
 by rw [rat.mul_denom, int.nat_abs_mul, nat.coprime.gcd_eq_one, nat.div_one];
 exact (q.cop.mul_right q.cop).mul (q.cop.mul_right q.cop)
 
-theorem abs_def (q : ℚ) : abs q = q.num.nat_abs /. q.denom :=
-begin
-  have hz : (0:ℚ) = 0 /. 1 := rfl,
-  cases le_total q 0 with hq hq,
-  { rw [abs_of_nonpos hq],
-    rw [num_denom q, hz, rat.le_def (int.coe_nat_pos.2 q.pos) zero_lt_one,
-        mul_one, zero_mul] at hq,
-    rw [int.of_nat_nat_abs_of_nonpos hq, ← neg_def, ← num_denom q] },
-  { rw [abs_of_nonneg hq],
-    rw [num_denom q, hz, rat.le_def zero_lt_one (int.coe_nat_pos.2 q.pos),
-        mul_one, zero_mul] at hq,
-    rw [int.nat_abs_of_nonneg hq, ← num_denom q] }
-end
-
 lemma add_num_denom (q r : ℚ) : q + r =
   ((q.num * r.denom + q.denom * r.num : ℤ)) /. (↑q.denom * ↑r.denom : ℤ) :=
 have hqd : (q.denom : ℤ) ≠ 0, from int.coe_nat_ne_zero_iff_pos.2 q.3,
 have hrd : (r.denom : ℤ) ≠ 0, from int.coe_nat_ne_zero_iff_pos.2 r.3,
 by conv { to_lhs, rw [rat.num_denom q, rat.num_denom r, rat.add_def hqd hrd] };
   simp [mul_comm]
-
-def sqrt (q : ℚ) : ℚ :=
-rat.mk (int.sqrt q.num) (nat.sqrt q.denom)
-
-theorem sqrt_eq (q : ℚ) : rat.sqrt (q*q) = abs q :=
-by rw [sqrt, mul_self_num, mul_self_denom,
-       int.sqrt_eq, nat.sqrt_eq, abs_def]
-
-theorem exists_mul_self (x : ℚ) :
-  (∃ q, q * q = x) ↔ rat.sqrt x * rat.sqrt x = x :=
-⟨λ ⟨n, hn⟩, by rw [← hn, sqrt_eq, abs_mul_abs_self],
-λ h, ⟨rat.sqrt x, h⟩⟩
-
-theorem sqrt_nonneg (q : ℚ) : 0 ≤ rat.sqrt q :=
-nonneg_iff_zero_le.1 $ (mk_nonneg _ $ int.coe_nat_pos.2 $
-nat.pos_of_ne_zero $ λ H, nat.pos_iff_ne_zero.1 q.pos $ nat.sqrt_eq_zero.1 H).2 trivial
 
 end rat

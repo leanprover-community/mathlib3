@@ -8,6 +8,7 @@ Pi instances for algebraic structures.
 import order.basic
 import algebra.module algebra.group
 import data.finset
+import ring_theory.subring
 import tactic.pi_instances
 
 namespace pi
@@ -99,6 +100,13 @@ by pi_instance
 instance ordered_cancel_comm_monoid [∀ i, ordered_cancel_comm_monoid $ f i] : ordered_cancel_comm_monoid (Π i : I, f i) :=
 by pi_instance
 
+instance ordered_comm_group [∀ i, ordered_comm_group $ f i] : ordered_comm_group (Π i : I, f i) :=
+{ add_lt_add_left := λ a b hab c, ⟨λ i, add_le_add_left (hab.1 i) (c i),
+    λ h, hab.2 $ λ i, le_of_add_le_add_left (h i)⟩,
+  add_le_add_left := λ x y hxy c i, add_le_add_left (hxy i) _,
+  ..pi.add_comm_group,
+  ..pi.partial_order }
+
 attribute [to_additive pi.add_semigroup]              pi.semigroup
 attribute [to_additive pi.add_comm_semigroup]         pi.comm_semigroup
 attribute [to_additive pi.add_monoid]                 pi.monoid
@@ -125,7 +133,7 @@ lemma finset_prod_apply {α : Type*} {β : α → Type*} {γ} [∀a, comm_monoid
 show (s.val.map g).prod a = (s.val.map (λc, g c a)).prod,
   by rw [multiset_prod_apply, multiset.map_map]
 
-def is_ring_hom_pi
+instance is_ring_hom_pi
   {α : Type u} {β : α → Type v} [R : Π a : α, ring (β a)]
   {γ : Type w} [ring γ]
   (f : Π a : α, γ → β a) [Rh : Π a : α, is_ring_hom (f a)] :
@@ -137,7 +145,6 @@ begin
   { intros x y, ext1 z, rw [is_ring_hom.map_mul (f z)], refl, },
   { intros x y, ext1 z, rw [is_ring_hom.map_add (f z)], refl, }
 end
-
 
 end pi
 
@@ -236,10 +243,10 @@ lemma snd.is_monoid_hom [monoid α] [monoid β] : is_monoid_hom (prod.snd : α �
 
 @[to_additive fst.is_add_group_hom]
 lemma fst.is_group_hom [group α] [group β] : is_group_hom (prod.fst : α × β → α) :=
-by refine_struct {..}; simp
+{ map_mul := λ _ _, rfl }
 @[to_additive snd.is_add_group_hom]
 lemma snd.is_group_hom [group α] [group β] : is_group_hom (prod.snd : α × β → β) :=
-by refine_struct {..}; simp
+{ map_mul := λ _ _, rfl }
 
 attribute [instance] fst.is_monoid_hom fst.is_add_monoid_hom snd.is_monoid_hom snd.is_add_monoid_hom
 fst.is_group_hom fst.is_add_group_hom snd.is_group_hom snd.is_add_group_hom
@@ -339,6 +346,27 @@ instance {r : ring α} [add_comm_group β] [add_comm_group γ]
 
 instance {r : discrete_field α} [add_comm_group β] [add_comm_group γ]
   [vector_space α β] [vector_space α γ] : vector_space α (β × γ) := {}
+
+section substructures
+variables (s : set α) (t : set β)
+
+@[to_additive prod.is_add_submonoid]
+instance [monoid α] [monoid β] [is_submonoid s] [is_submonoid t] :
+  is_submonoid (s.prod t) :=
+{ one_mem := by rw set.mem_prod; split; apply is_submonoid.one_mem,
+  mul_mem := by intros; rw set.mem_prod at *; split; apply is_submonoid.mul_mem; tauto }
+
+@[to_additive prod.is_add_subgroup]
+instance is_subgroup.prod [group α] [group β] [is_subgroup s] [is_subgroup t] :
+  is_subgroup (s.prod t) :=
+{ inv_mem := by intros; rw set.mem_prod at *; split; apply is_subgroup.inv_mem; tauto,
+  .. prod.is_submonoid s t }
+
+instance is_subring.prod [ring α] [ring β] [is_subring s] [is_subring t] :
+  is_subring (s.prod t) :=
+{ .. prod.is_submonoid s t, .. prod.is_add_subgroup s t }
+
+end substructures
 
 end prod
 

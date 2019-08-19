@@ -1,7 +1,8 @@
--- Copyright (c) 2018 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison
-
+/-
+Copyright (c) 2018 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import category_theory.limits.limits
 import category_theory.discrete_category
 
@@ -12,7 +13,7 @@ open category_theory
 namespace category_theory.limits
 
 variables {β : Type v}
-variables {C : Sort u} [𝒞 : category.{v+1} C]
+variables {C : Type u} [𝒞 : category.{v+1} C]
 include 𝒞
 
 -- We don't need an analogue of `pair` (for binary products), `parallel_pair` (for equalizers),

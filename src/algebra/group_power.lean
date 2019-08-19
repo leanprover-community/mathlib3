@@ -390,10 +390,10 @@ theorem gsmul_sub : ∀ (a b : β) (n : ℤ), gsmul n (a - b) = gsmul n a - gsmu
 by simp [gsmul_add, gsmul_neg]
 
 instance gpow.is_group_hom (n : ℤ) : is_group_hom ((^ n) : α → α) :=
-⟨λ _ _, mul_gpow _ _ n⟩
+{ map_mul := λ _ _, mul_gpow _ _ n }
 
 instance gsmul.is_add_group_hom (n : ℤ) : is_add_group_hom (gsmul n : β → β) :=
-⟨λ _ _, gsmul_add _ _ n⟩
+{ map_add := λ _ _, gsmul_add _ _ n }
 
 attribute [to_additive gsmul.is_add_group_hom] gpow.is_group_hom
 
@@ -405,7 +405,7 @@ section group
 theorem is_add_group_hom.gsmul
   {α β} [add_group α] [add_comm_group β] (f : α → β) [is_add_group_hom f] (z : ℤ) :
   is_add_group_hom (λa, gsmul z (f a)) :=
-⟨assume a b, by rw [is_add_group_hom.map_add f, gsmul_add]⟩
+{ map_add := assume a b, by rw [is_add_hom.map_add f, gsmul_add] }
 
 end group
 
@@ -503,6 +503,9 @@ theorem add_monoid.smul_nonneg [ordered_comm_monoid α] {a : α} (H : 0 ≤ a) :
 lemma pow_abs [decidable_linear_ordered_comm_ring α] (a : α) (n : ℕ) : (abs a)^n = abs (a^n) :=
 by induction n with n ih; [exact (abs_one).symm,
   rw [pow_succ, pow_succ, ih, abs_mul]]
+
+lemma abs_neg_one_pow [decidable_linear_ordered_comm_ring α] (n : ℕ) : abs ((-1 : α)^n) = 1 :=
+by rw [←pow_abs, abs_neg, abs_one, one_pow]
 
 lemma inv_pow' [discrete_field α] (a : α) (n : ℕ) : (a ^ n)⁻¹ = a⁻¹ ^ n :=
 by induction n; simp [*, pow_succ, mul_inv', mul_comm]

@@ -21,19 +21,30 @@ meta inductive mllist (m : Type u → Type u) (α : Type u) : Type u
 
 namespace mllist
 
-variables {m : Type u → Type u}
+variables {α β : Type u} {m : Type u → Type u} [alternative m]
 
-meta def fix {m : Type u → Type u} [alternative m]
-  {α} (f : α → m α) : α → mllist m α
+meta def fix (f : α → m α) : α → mllist m α
 | x := cons $ (λ a, (some x, fix a)) <$> f x <|> pure (some x, nil)
 
 variables [monad m]
 
+meta def fixl_with (f : α → m (α × list β)) : α → list β → mllist m β
+| s (b :: rest) := cons $ pure (some b, fixl_with s rest)
+| s [] := cons $ do {
+            (s', l) ← f s,
+            match l with
+            | (b :: rest) := pure (some b, fixl_with s' rest)
+            | [] := pure (none, fixl_with s' [])
+            end
+          } <|> pure (none, nil)
+
+meta def fixl (f : α → m (α × list β)) (s : α) : mllist m β := fixl_with f s []
+
 meta def uncons {α : Type u} : mllist m α → m (option (α × mllist m α))
 | nil := pure none
-| (cons l) := do (x,xs) ← l,
+| (cons l) := do (x, xs) ← l,
                  some x ← return x | uncons xs,
-                 return (x,xs)
+                 return (x, xs)
 
 meta def empty {α : Type u} (xs : mllist m α) : m (ulift bool) :=
 (ulift.up ∘ option.is_some) <$> uncons xs
@@ -49,7 +60,7 @@ meta def m_of_list {α : Type u} : list (m α) → mllist m α
 meta def force {α} : mllist m α → m (list α)
 | nil := pure []
 | (cons l) :=
-  do (x,xs) ← l,
+  do (x, xs) ← l,
      some x ← pure x | force xs,
      (::) x <$> (force xs)
 
@@ -57,39 +68,39 @@ meta def take {α} : mllist m α → ℕ → m (list α)
 | nil _ := pure []
 | _ 0 := pure []
 | (cons l) (n+1) :=
-  do (x,xs) ← l,
-     some x ← pure x | take xs n,
+  do (x, xs) ← l,
+     some x ← pure x | take xs (n+1),
      (::) x <$> (take xs n)
 
 meta def map {α β : Type u} (f : α → β) : mllist m α → mllist m β
 | nil := nil
-| (cons l) := cons $ do (x,xs) ← l, pure (f <$> x, map xs)
+| (cons l) := cons $ do (x, xs) ← l, pure (f <$> x, map xs)
 
 meta def mmap {α β : Type u} (f : α → m β) : mllist m α → mllist m β
 | nil := nil
 | (cons l) :=
-cons $ do (x,xs) ← l,
+cons $ do (x, xs) ← l,
           b ← x.traverse f,
           return (b, mmap xs)
 
 meta def filter {α : Type u} (p : α → Prop) [decidable_pred p] : mllist m α → mllist m α
 | nil := nil
 | (cons l) :=
-cons $ do (a,r) ← l ,
+cons $ do (a, r) ← l,
           some a ← return a | return (none, filter r),
           return (if p a then some a else none, filter r)
 
 meta def mfilter [alternative m] {α β : Type u} (p : α → m β) : mllist m α → mllist m α
 | nil := nil
 | (cons l) :=
-cons $ do (a,r) ← l,
+cons $ do (a, r) ← l,
           some a ← return a | return (none, mfilter r),
           (p a >> return (a, mfilter r)) <|> return (none , mfilter r)
 
 meta def filter_map {α β : Type u} (f : α → option β) : mllist m α → mllist m β
 | nil := nil
 | (cons l) :=
-cons $ do (a,r) ← l,
+cons $ do (a, r) ← l,
           some a ← return a | return (none, filter_map r),
           match f a with
           | (some b) := return (some b, filter_map r)
@@ -99,14 +110,14 @@ cons $ do (a,r) ← l,
 meta def mfilter_map [alternative m] {α β : Type u} (f : α → m β) : mllist m α → mllist m β
 | nil := nil
 | (cons l) :=
-cons $ do (a,r) ← l,
+cons $ do (a, r) ← l,
           some a ← return a | return (none, mfilter_map r),
           (f a >>= (λ b, return (some b, mfilter_map r))) <|> return (none, mfilter_map r)
 
 meta def append {α : Type u} : mllist m α → mllist m α → mllist m α
 | nil ys := ys
 | (cons xs) ys :=
-cons $ do (x,xs) ← xs,
+cons $ do (x, xs) ← xs,
           return (x, append xs ys)
 
 meta def join {α : Type u} : mllist m (mllist m α) → mllist m α
@@ -119,14 +130,19 @@ cons $ do (xs,r) ← l,
        | cons m := do (a,n) ← m, return (a, join (cons $ return (n, r)))
        end
 
+meta def squash {α} (t : m (mllist m α)) : mllist m α :=
+(mllist.m_of_list [t]).join
+
 meta def enum_from {α : Type u} : ℕ → mllist m α → mllist m (ℕ × α)
 | _ nil := nil
 | n (cons l) :=
-cons $ do (a,r) ← l,
+cons $ do (a, r) ← l,
           some a ← return a | return (none, enum_from n r),
           return ((n, a), (enum_from (n + 1) r))
 
 meta def enum {α : Type u} : mllist m α → mllist m (ℕ × α) := enum_from 0
+
+meta def range {m : Type → Type} [alternative m] : mllist m ℕ := mllist.fix (λ n, pure (n + 1)) 0
 
 meta def concat {α : Type u} : mllist m α → α → mllist m α
 | L a := (mllist.of_list [L, mllist.of_list [a]]).join
@@ -134,7 +150,7 @@ meta def concat {α : Type u} : mllist m α → α → mllist m α
 meta def bind_ {α β : Type u} : mllist m α → (α → mllist m β) → mllist m β
 | nil f := nil
 | (cons ll) f :=
-cons $ do (x,xs) ← ll,
+cons $ do (x, xs) ← ll,
           some x ← return x | return (none, bind_ xs f),
           return (none, append (f x) (bind_ xs f))
 

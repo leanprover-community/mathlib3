@@ -27,8 +27,8 @@ To apply a functor `F` to an object use `F.obj X`, and to a morphism use `F.map 
 The axiom `map_id_lemma` expresses preservation of identities, and
 `map_comp_lemma` expresses functoriality.
 -/
-structure functor (C : Sort u₁) [category.{v₁} C] (D : Sort u₂) [category.{v₂} D] :
-  Sort (max u₁ v₁ u₂ v₂ 1) :=
+structure functor (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D] :
+  Type (max v₁ v₂ u₁ u₂) :=
 (obj       : C → D)
 (map       : Π {X Y : C}, (X ⟶ Y) → ((obj X) ⟶ (obj Y)))
 (map_id'   : ∀ (X : C), map (𝟙 X) = 𝟙 (obj X) . obviously)
@@ -46,7 +46,7 @@ attribute [simp] functor.map_comp
 namespace functor
 
 section
-variables (C : Sort u₁) [𝒞 : category.{v₁} C]
+variables (C : Type u₁) [𝒞 : category.{v₁} C]
 include 𝒞
 
 /-- `functor.id C` is the identity functor on a category `C`. -/
@@ -63,9 +63,9 @@ variable {C}
 end
 
 section
-variables {C : Sort u₁} [𝒞 : category.{v₁} C]
-          {D : Sort u₂} [𝒟 : category.{v₂} D]
-          {E : Sort u₃} [ℰ : category.{v₃} E]
+variables {C : Type u₁} [𝒞 : category.{v₁} C]
+          {D : Type u₂} [𝒟 : category.{v₂} D]
+          {E : Type u₃} [ℰ : category.{v₃} E]
 include 𝒞 𝒟 ℰ
 
 /--
@@ -80,6 +80,7 @@ infixr ` ⋙ `:80 := comp
 @[simp] lemma comp_obj (F : C ⥤ D) (G : D ⥤ E) (X : C) : (F ⋙ G).obj X = G.obj (F.obj X) := rfl
 @[simp] lemma comp_map (F : C ⥤ D) (G : D ⥤ E) (X Y : C) (f : X ⟶ Y) :
   (F ⋙ G).map f = G.map (F.map f) := rfl
+
 end
 
 section

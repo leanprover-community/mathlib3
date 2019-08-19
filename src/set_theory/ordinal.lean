@@ -17,10 +17,11 @@ universes u v w
 variables {α : Type*} {β : Type*} {γ : Type*}
   {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop}
 
+/-- If `r` is a relation on `α` and `s` in a relation on `β`, then `f : r ≼i s` is an order embedding whose range is an initial segment. That is, whenever `b < f a` in `β` then `b` is in the range of `f`. -/
 structure initial_seg {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends r ≼o s :=
 (init : ∀ a b, s b (to_order_embedding a) → ∃ a', to_order_embedding a' = b)
 
-local infix ` ≼i `:50 := initial_seg
+local infix ` ≼i `:25 := initial_seg
 
 namespace initial_seg
 
@@ -44,9 +45,11 @@ theorem init_iff (f : r ≼i s) {a : α} {b : β} : s b (f a) ↔ ∃ a', f a' =
 def of_iso (f : r ≃o s) : r ≼i s :=
 ⟨f, λ a b h, ⟨f.symm b, order_iso.apply_symm_apply f _⟩⟩
 
+/-- The identity function shows that `≼i` is reflexive -/
 @[refl] protected def refl (r : α → α → Prop) : r ≼i r :=
 ⟨order_embedding.refl _, λ a b h, ⟨_, rfl⟩⟩
 
+/-- Composition of functions shows that `≼i` is transitive -/
 @[trans] protected def trans (f : r ≼i s) (g : s ≼i t) : r ≼i t :=
 ⟨f.1.trans g.1, λ a c h, begin
   simp at h ⊢,
@@ -83,6 +86,7 @@ by rw subsingleton.elim f g
 theorem antisymm.aux [is_well_order α r] (f : r ≼i s) (g : s ≼i r) : left_inverse g f :=
 initial_seg.eq (f.trans g) (initial_seg.refl _)
 
+/-- If we have order embeddings between `α` and `β` whose images are initial segments, and β is a well-order then `α` and `β` are order-isomorphic. -/
 def antisymm [is_well_order β s] (f : r ≼i s) (g : s ≼i r) : r ≃o s :=
 by haveI := f.to_order_embedding.is_well_order; exact
 ⟨⟨f, g, antisymm.aux f g, antisymm.aux g f⟩, f.ord⟩
@@ -122,7 +126,7 @@ structure principal_seg {α β : Type*} (r : α → α → Prop) (s : β → β 
 (top : β)
 (down : ∀ b, s b top ↔ ∃ a, to_order_embedding a = b)
 
-local infix ` ≺i `:50 := principal_seg
+local infix ` ≺i `:25 := principal_seg
 
 namespace principal_seg
 
@@ -245,7 +249,8 @@ def cod_restrict (p : set β) (f : r ≺i s)
 
 end principal_seg
 
-def initial_seg.lt_or_eq [is_well_order β s] (f : r ≼i s) : r ≺i s ⊕ r ≃o s :=
+def initial_seg.lt_or_eq [is_well_order β s] (f : r ≼i s) :
+  (r ≺i s) ⊕ (r ≃o s) :=
 if h : surjective f then sum.inr (order_iso.of_surjective f h) else
 have h' : _, from (initial_seg.eq_or_principal f).resolve_left h,
 sum.inl ⟨f, classical.some h', classical.some_spec h'⟩
@@ -331,134 +336,21 @@ theorem collapse_apply [is_well_order β s] (f : r ≼o s)
 end order_embedding
 
 section well_ordering_thm
-parameter {σ : Type*}
+parameter {σ : Type u}
+open function
 
-private def partial_wo := Σ p : set σ, {r // is_well_order p r}
+noncomputable lemma embedding_to_cardinal : σ ↪ cardinal.{u} :=
+classical.choice $ embedding.total.resolve_left $ λ ⟨⟨f, hf⟩⟩,
+  let g : σ → cardinal.{u} := inv_fun f in
+  let ⟨x, (hx : g x = 2 ^ sum g)⟩ := inv_fun_surjective hf (2 ^ sum g) in
+  have g x ≤ sum g, from le_sum.{u u} g x,
+  not_le_of_gt (by rw hx; exact cantor _) this
 
-private def partial_wo.le (x y : partial_wo) := ∃ f : x.2.1 ≼i y.2.1, ∀ x, (f x).1 = x.1
+/-- The relation whose existence is given by the well-ordering theorem -/
+def well_ordering_rel : σ → σ → Prop := embedding_to_cardinal ⁻¹'o (<)
 
-local infix ` ≤ `:50 := partial_wo.le
-
-private def partial_wo.is_refl : is_refl _ (≤) :=
-⟨λ a, ⟨initial_seg.refl _, λ x, rfl⟩⟩
-local attribute [instance] partial_wo.is_refl
-
-private def partial_wo.trans {a b c} : a ≤ b → b ≤ c → a ≤ c
-| ⟨f, hf⟩ ⟨g, hg⟩ := ⟨f.trans g, λ a, by rw [initial_seg.trans_apply, hg, hf]⟩
-
-private def sub_of_le {s t} : s ≤ t → s.1 ⊆ t.1
-| ⟨f, hf⟩ x h := by have := (f ⟨x, h⟩).2; rwa [hf ⟨x, h⟩] at this
-
-private def agree_of_le {s t} : s ≤ t → ∀ {a b} sa sb ta tb,
-  s.2.1 ⟨a, sa⟩ ⟨b, sb⟩ ↔ t.2.1 ⟨a, ta⟩ ⟨b, tb⟩
-| ⟨f, hf⟩ a b sa sb ta tb := by rw [f.to_order_embedding.ord',
-  show f.to_order_embedding ⟨a, sa⟩ = ⟨a, ta⟩, from subtype.eq (hf ⟨a, sa⟩),
-  show f.to_order_embedding ⟨b, sb⟩ = ⟨b, tb⟩, from subtype.eq (hf ⟨b, sb⟩)]
-
-section
-parameters {c : set partial_wo} (hc : zorn.chain (≤) c)
-
-private def U := ⋃₀ ((λ x:partial_wo, x.1) '' c)
-
-private def R (x y : U) := ∃ a : partial_wo, a ∈ c ∧
-  ∃ (hx : x.1 ∈ a.1) (hy : y.1 ∈ a.1), a.2.1 ⟨_, hx⟩ ⟨_, hy⟩
-
-private lemma mem_U {a} : a ∈ U ↔ ∃ s : partial_wo, s ∈ c ∧ a ∈ s.1 :=
-by simp only [U, set.sUnion_image, set.mem_Union, exists_prop]
-
-private lemma mem_U2 {a b} (au : a ∈ U) (bu : b ∈ U) :
-  ∃ s : partial_wo, s ∈ c ∧ a ∈ s.1 ∧ b ∈ s.1 :=
-let ⟨s, sc, as⟩ := mem_U.1 au, ⟨t, tc, bt⟩ := mem_U.1 bu,
-    ⟨k, kc, ks, kt⟩ := hc.directed sc tc in
-⟨k, kc, sub_of_le ks as, sub_of_le kt bt⟩
-
-private lemma R_ex {s : partial_wo} (sc : s ∈ c)
-  {a b : σ} (hb : b ∈ s.1) {au bu} :
-  R ⟨a, au⟩ ⟨b, bu⟩ → ∃ ha, s.2.1 ⟨a, ha⟩ ⟨b, hb⟩
-| ⟨t, tc, at', bt, h⟩ :=
-  match hc.total_of_refl sc tc with
-  | or.inr hr := ⟨sub_of_le hr at', (agree_of_le hr _ _ _ _).1 h⟩
-  | or.inl hr@⟨f, hf⟩ := begin
-      rw [← show (f ⟨b, hb⟩) = ⟨(subtype.mk b bu).val, bt⟩, from
-        subtype.eq (hf _)] at h,
-      rcases f.init_iff.1 h with ⟨⟨a', ha⟩, e, h'⟩,
-      have : a' = a,
-      { have := congr_arg subtype.val e, rwa hf at this },
-      subst a', exact ⟨_, h'⟩
-    end
-  end
-
-private lemma R_iff {s : partial_wo} (sc : s ∈ c)
-  {a b : σ} (ha hb) {au bu} :
-  R ⟨a, au⟩ ⟨b, bu⟩ ↔ s.2.1 ⟨a, ha⟩ ⟨b, hb⟩ :=
-⟨λ h, let ⟨_, h⟩ := R_ex sc hb h in h,
- λ h, ⟨s, sc, ha, hb, h⟩⟩
-
-private theorem wo : is_well_order U R :=
-{ trichotomous := λ ⟨a, au⟩ ⟨b, bu⟩,
-    let ⟨s, sc, ha, hb⟩ := mem_U2 au bu in
-    (@trichotomous _ s.2.1 s.2.2.1.1 ⟨a, ha⟩ ⟨b, hb⟩).imp
-      (R_iff sc _ _).2
-      (λ o, o.imp (subtype.eq ∘ subtype.mk.inj)
-      (R_iff sc _ _).2),
-  irrefl :=  λ ⟨a, au⟩ h, let ⟨s, sc, ha⟩ := mem_U.1 au in
-    -- by haveI := s.2.2; exact irrefl _ ((R_iff hc sc _ ha).1 h),
-    @irrefl _ s.2.1 s.2.2.1.2.1 _ ((R_iff sc _ ha).1 h),
-  trans := λ ⟨a, au⟩ ⟨b, bu⟩ ⟨d, du⟩ ab bd,
-    let ⟨s, sc, as, bs⟩ := mem_U2 au bu, ⟨t, tc, dt⟩ := mem_U.1 du,
-        ⟨k, kc, ks, kt⟩ := hc.directed sc tc in begin
-      simp only [R_iff hc kc, sub_of_le ks as, sub_of_le ks bs, sub_of_le kt dt] at ab bd ⊢,
-      -- haveI := k.2.2, exact trans ab bd
-      exact @trans _ k.2.1 k.2.2.1.2.2 _ _ _ ab bd
-    end,
-  wf := ⟨λ ⟨a, au⟩, let ⟨s, sc, ha⟩ := mem_U.1 au in
-    suffices ∀ (a : s.1) (au : a.1 ∈ U), acc R ⟨a.1, au⟩, from this ⟨a, ha⟩ au,
-    λ a, acc.rec_on ((@is_well_order.wf _ _ s.2.2).apply a) $
-    λ ⟨a, ha⟩ H IH au, ⟨_, λ ⟨b, hb⟩ h,
-      let ⟨hb, h⟩ := R_ex sc ha h in IH ⟨b, hb⟩ h _⟩⟩ }
-
-theorem chain_ub : ∃ ub, ∀ a ∈ c, a ≤ ub :=
-⟨⟨U, R, wo⟩, λ s sc, ⟨⟨⟨⟨
-  λ a, ⟨a.1, mem_U.2 ⟨s, sc, a.2⟩⟩,
-  λ a b h, subtype.eq $ subtype.mk.inj h⟩,
-  λ a b, by cases a with a ha; cases b with b hb; exact
-     (R_iff hc sc _ _).symm⟩,
-  λ ⟨a, ha⟩ ⟨b, hb⟩ h,
-    let ⟨bs, h'⟩ := R_ex sc ha h in ⟨⟨_, bs⟩, rfl⟩⟩,
-  λ a, rfl⟩⟩
-
-end
-
-theorem well_ordering_thm : ∃ r, is_well_order σ r :=
-let ⟨m, MM⟩ := zorn.zorn (λ c, chain_ub) (λ a b c, partial_wo.trans) in
-suffices hf : ∀ a, a ∈ m.1, from
-  let f : σ ≃ m.1 := ⟨λ a, ⟨a, hf a⟩, λ a, a.1, λ a, rfl, λ ⟨a, ha⟩, rfl⟩ in
-  ⟨order.preimage f m.2.1,
-    @order_embedding.is_well_order _ _ _ _ (order_iso.preimage f m.2.1 : f ⁻¹'o m.2.1 ≼o m.2.1) m.2.2⟩,
-λ a, classical.by_contradiction $ λ ha,
-let f : (insert a m.1 : set σ) ≃ (m.1 ⊕ unit) :=
- ⟨λ x, if h : x.1 ∈ m.1 then sum.inl ⟨_, h⟩ else sum.inr ⟨⟩,
-  λ x, sum.cases_on x (λ x, ⟨x.1, or.inr x.2⟩) (λ _, ⟨a, or.inl rfl⟩),
-  λ x, match x with
-    | ⟨_, or.inl rfl⟩ := by dsimp only; rw dif_neg ha
-    | ⟨x, or.inr h⟩ := by dsimp only; rw dif_pos h
-    end,
-  λ x, by rcases x with ⟨x, h⟩ | ⟨⟨⟩⟩; dsimp only;
-    [rw [dif_pos h], rw [dif_neg ha]]⟩ in
-let r' := sum.lex m.2.1 (@empty_relation unit) in
-have r'wo : is_well_order _ r' := @sum.lex.is_well_order _ _ _ _ m.2.2 _,
-let m' : partial_wo := ⟨insert a m.1, order.preimage f r',
-  @order_embedding.is_well_order _ _ _ _ ↑(order_iso.preimage f r') r'wo⟩ in
-let g : m.2.1 ≼i r' := ⟨⟨⟨sum.inl, λ a b, sum.inl.inj⟩,
-  λ a b, sum.lex_inl_inl.symm⟩,
-  λ a b h, begin
-    rcases b with b | ⟨⟨⟩⟩,
-    { exact ⟨_, rfl⟩ },
-    { cases sum.lex_inr_inl h }
-  end⟩ in
-ha (sub_of_le (MM m' ⟨g.trans
-  (initial_seg.of_iso (order_iso.preimage f r').symm),
-  λ x, rfl⟩) (or.inl rfl))
+instance well_ordering_rel.is_well_order : is_well_order σ well_ordering_rel :=
+(order_embedding.preimage _ _).is_well_order
 
 end well_ordering_thm
 
@@ -1828,9 +1720,8 @@ open ordinal
 def ord (c : cardinal) : ordinal :=
 begin
   let ι := λ α, {r // is_well_order α r},
-  have : ∀ α, nonempty (ι α) := λ α,
-    ⟨classical.indefinite_description _ well_ordering_thm⟩,
-  let F := λ α, ordinal.min (this _) (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧),
+  have : Π α, ι α := λ α, ⟨well_ordering_rel, by apply_instance⟩,
+  let F := λ α, ordinal.min ⟨this _⟩ (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧),
   refine quot.lift_on c F _,
   suffices : ∀ {α β}, α ≈ β → F α ≤ F β,
   from λ α β h, le_antisymm (this h) (this (setoid.symm h)),
@@ -1847,14 +1738,14 @@ def ord_eq_min (α : Type u) : ord (mk α) =
 
 theorem ord_eq (α) : ∃ (r : α → α → Prop) [wo : is_well_order α r],
   ord (mk α) = @type α r wo :=
-let ⟨⟨r, wo⟩, h⟩ := @ordinal.min_eq _
-  ⟨classical.indefinite_description _ well_ordering_thm⟩
+let ⟨⟨r, wo⟩, h⟩ := @ordinal.min_eq {r // is_well_order α r}
+  ⟨⟨well_ordering_rel, by apply_instance⟩⟩
   (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) in
 ⟨r, wo, h⟩
 
 theorem ord_le_type (r : α → α → Prop) [is_well_order α r] : ord (mk α) ≤ ordinal.type r :=
-@ordinal.min_le _
-  ⟨classical.indefinite_description _ well_ordering_thm⟩
+@ordinal.min_le {r // is_well_order α r}
+  ⟨⟨well_ordering_rel, by apply_instance⟩⟩
   (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) ⟨r, _⟩
 
 theorem ord_le {c o} : ord c ≤ o ↔ c ≤ o.card :=
@@ -3058,6 +2949,13 @@ H3.symm ▸ (quotient.induction_on κ (λ α H1, nat.rec_on n
     (by rw [nat.cast_succ, power_add, power_one];
       from mul_le_mul_right _ ih)
     (mul_eq_self H1))) H1)
+
+lemma power_self_eq {c : cardinal} (h : omega ≤ c) : c ^ c = 2 ^ c :=
+begin
+  apply le_antisymm,
+  { apply le_trans (power_le_power_right $ le_of_lt $ cantor c), rw [power_mul, mul_eq_self h] },
+  { convert power_le_power_right (le_trans (le_of_lt $ nat_lt_omega 2) h), apply nat.cast_two.symm }
+end
 
 lemma power_nat_le {c : cardinal.{u}} {n : ℕ} (h  : omega ≤ c) : c ^ (n : cardinal.{u}) ≤ c :=
 pow_le h (nat_lt_omega n)

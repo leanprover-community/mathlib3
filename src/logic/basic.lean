@@ -68,6 +68,12 @@ lemma congr_arg_heq {α} {β : α → Sort*} (f : ∀ a, β a) : ∀ {a₁ a₂ 
 lemma plift.down_inj {α : Sort*} : ∀ (a b : plift α), a.down = b.down → a = b
 | ⟨a⟩ ⟨b⟩ rfl := rfl
 
+@[simp] lemma nonempty_pempty : ¬ nonempty pempty :=
+assume ⟨h⟩, h.elim
+
+-- missing [symm] attribute for ne in core.
+attribute [symm] ne.symm
+
 end miscellany
 
 /-
@@ -381,14 +387,17 @@ end equality
 -/
 
 section quantifiers
-variables {α : Sort*} {p q : α → Prop} {b : Prop}
+variables {α : Sort*} {β : Sort*} {p q : α → Prop} {b : Prop}
 
 def Exists.imp := @exists_imp_exists
 
-theorem forall_swap {α β} {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
+lemma exists_imp_exists' {p : α → Prop} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a)) (hp : ∃ a, p a) : ∃ b, q b :=
+exists.elim hp (λ a hp', ⟨_, hpq _ hp'⟩)
+
+theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
 ⟨function.swap, function.swap⟩
 
-theorem exists_swap {α β} {p : α → β → Prop} : (∃ x y, p x y) ↔ ∃ y x, p x y :=
+theorem exists_swap {p : α → β → Prop} : (∃ x y, p x y) ↔ ∃ y x, p x y :=
 ⟨λ ⟨x, y, h⟩, ⟨y, x, h⟩, λ ⟨y, x, h⟩, ⟨x, y, h⟩⟩
 
 @[simp] theorem exists_imp_distrib : ((∃ x, p x) → b) ↔ ∀ x, p x → b :=
@@ -565,7 +574,7 @@ noncomputable theorem dec_eq (α : Sort*) : decidable_eq α := by apply_instance
 noncomputable def {u} exists_cases {C : Sort u} (H0 : C) (H : ∀ a, p a → C) : C :=
 if h : ∃ a, p a then H (classical.some h) (classical.some_spec h) else H0
 
-lemma some_spec2 {α : Type*} {p : α → Prop} {h : ∃a, p a}
+lemma some_spec2 {α : Sort*} {p : α → Prop} {h : ∃a, p a}
   (q : α → Prop) (hpq : ∀a, p a → q a) : q (some h) :=
 hpq _ $ some_spec _
 
@@ -677,7 +686,7 @@ iff.intro (λ⟨a, _⟩, ⟨a⟩) (λ⟨a⟩, ⟨a, trivial⟩)
 @[simp] lemma nonempty_Prop {p : Prop} : nonempty p ↔ p :=
 iff.intro (assume ⟨h⟩, h) (assume h, ⟨h⟩)
 
-lemma not_nonempty_iff_imp_false {p : Prop} : ¬ nonempty α ↔ α → false :=
+lemma not_nonempty_iff_imp_false : ¬ nonempty α ↔ α → false :=
 ⟨λ h a, h ⟨a⟩, λ h ⟨a⟩, h a⟩
 
 @[simp] lemma nonempty_sigma : nonempty (Σa:α, γ a) ↔ (∃a:α, nonempty (γ a)) :=

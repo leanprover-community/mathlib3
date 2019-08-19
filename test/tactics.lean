@@ -38,6 +38,17 @@ begin
   trivial
 end
 
+example (x y : ℕ) (p q : Prop) (h : x = y) (h' : p ↔ q) : true :=
+begin
+  symmetry' at h,
+  guard_hyp' h := y = x,
+  guard_hyp' h' := p ↔ q,
+  symmetry' at *,
+  guard_hyp' h := x = y,
+  guard_hyp' h' := q ↔ p,
+  trivial
+end
+
 section apply_rules
 
 example {a b c d e : nat} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
@@ -200,6 +211,27 @@ begin
 end
 
 end congr
+
+section convert_to
+
+example {a b c d : ℕ} (H : a = c) (H' : b = d) : a + b = d + c :=
+by {convert_to c + d = _ using 2, from H, from H', rw[add_comm]}
+
+example {a b c d : ℕ} (H : a = c) (H' : b = d) : a + b = d + c :=
+by {convert_to c + d = _ using 0, congr' 2, from H, from H', rw[add_comm]}
+
+example (a b c d e f g N : ℕ) : (a + b) + (c + d) + (e + f) + g ≤ a + d + e + f + c + g + b :=
+by {ac_change a + d + e + f + c + g + b ≤ _, refl}
+
+end convert_to
+
+section swap
+
+example {α₁ α₂ α₃ : Type} : true :=
+by {have : α₁, have : α₂, have : α₃, swap, swap,
+    rotate, rotate, rotate, rotate 2, rotate 2, triv, recover}
+
+end swap
 
 private meta def get_exception_message (t : lean.parser unit) : lean.parser string
 | s := match t s with

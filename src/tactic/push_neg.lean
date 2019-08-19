@@ -114,10 +114,13 @@ do H ← target,
    replace_target e pr
 end push_neg
 
-open interactive (parse)
-open interactive (loc.ns loc.wildcard)
-open interactive.types (location)
+open interactive (parse loc.ns loc.wildcard)
+open interactive.types (location texpr)
+open lean.parser (tk ident many) interactive.loc
+local postfix `?`:9001 := optional
+local postfix *:9001 := many
 open push_neg
+
 /--
 Push negations in the goal of some assumption.
 For instance, given `h : ¬ ∀ x, ∃ y, x ≤ y`, will be transformed by `push_neg at h` into
@@ -135,3 +138,27 @@ meta def tactic.interactive.push_neg : parse location → tactic unit
     push_neg_at_goal,
     local_context >>= mmap' (λ h, push_neg_at_hyp (local_pp_name h)) ,
     try `[simp only [push_neg.not_eq] at * { eta := ff }]
+
+lemma imp_of_not_imp_not (P Q : Prop) [decidable Q] : (¬ Q → ¬ P) → (P → Q) :=
+λ h hP, by_contradiction (λ h', h h' hP)
+
+/-- Matches either an identifier "h" or a pair of identifiers "h with k" -/
+meta def name_with_opt : lean.parser (name × option name) :=
+prod.mk <$> ident <*> (some <$> (tk "with" >> ident) <|> return none)
+
+/--
+Transforms the goal into its contrapositive.
+`contrapose`     turns a goal `P → Q` into `¬ Q → ¬ P`
+`contrapose!`    turns a goal `P → Q` into `¬ Q → ¬ P` and pushes negations inside `P` and `Q`
+                 using `push_neg`
+`contrapose h`   first reverts the local assumption `h`, and then uses `contrapose` and `intro h`
+`contrapose! h`  first reverts the local assumption `h`, and then uses `contrapose!` and `intro h`
+`contrapose h with new_h` uses the name `new_h` for the introduced hypothesis.
+-/
+meta def tactic.interactive.contrapose (push : parse (tk "!" )?) : parse name_with_opt? → tactic unit
+| (some (h, h')) := get_local h >>= revert >> tactic.interactive.contrapose none >> intro (h'.get_or_else h) >> skip
+| none :=
+  do `(%%P → %%Q) ← target | fail "The goal is not an implication, and you didn't specify an assumption",
+  cp ← mk_mapp `imp_of_not_imp_not [P, Q, none] <|> fail "contrapose only applies to nondependent arrows between decidable props",
+  apply cp,
+  when push.is_some $ try (tactic.interactive.push_neg (loc.ns [none]))

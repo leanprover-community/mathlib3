@@ -75,16 +75,16 @@ end functor
   F.map (eq_to_hom p) ≫ F.map (eq_to_hom q) = F.map (eq_to_hom (eq.trans p q)) :=
 by cases p; simp
 
--- @[simp] lemma eq_to_hom_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
---   F.map (eq_to_hom p) = eq_to_hom (congr_arg F.obj p) :=
--- by cases p; simp
+lemma eq_to_hom_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
+  F.map (eq_to_hom p) = eq_to_hom (congr_arg F.obj p) :=
+by cases p; simp
 
--- @[simp] lemma eq_to_iso_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
---   F.map_iso (eq_to_iso p) = eq_to_iso (congr_arg F.obj p) :=
--- by ext; cases p; simp
+lemma eq_to_iso_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
+  F.map_iso (eq_to_iso p) = eq_to_iso (congr_arg F.obj p) :=
+by ext; cases p; simp
 
--- @[simp] lemma eq_to_hom_app {F G : C ⥤ D} (h : F = G) (X : C) :
---   (eq_to_hom h : F ⟶ G).app X = eq_to_hom (functor.congr_obj h X) :=
--- by subst h; refl
+lemma eq_to_hom_app {F G : C ⥤ D} (h : F = G) (X : C) :
+  (eq_to_hom h : F ⟶ G).app X = eq_to_hom (functor.congr_obj h X) :=
+by subst h; refl
 
 end category_theory

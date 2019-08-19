@@ -30,7 +30,6 @@ limit.pre _ _ ≫ limits.lim.map (whisker_right (intersections.map_diagram f.uno
       F.map ((intersections.map_diagram f.unop).app j) :=
 by { dsimp [cech_zero_map], simp }
 
-
 def cech_zero : (cover X)ᵒᵖ ⥤ C :=
 { obj := cech_zero_obj F,
   map := cech_zero_map F,
@@ -42,11 +41,12 @@ def cech_zero : (cover X)ᵒᵖ ⥤ C :=
     dsimp,
     squeeze_simp,
     dsimp,
-    simp,
     rw intersections.map_diagram_id,
-    rw [eq_to_hom_map],
-    rw [eq_to_hom_map],
-    tidy,
+    rw ←functor.map_comp,
+    rw ←functor.map_comp,
+    rw eq_to_hom_trans,
+    rw eq_to_hom_refl,
+    simp,
   end,
   map_comp' := sorry, }
 

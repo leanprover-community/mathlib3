@@ -21,7 +21,7 @@ variables {X}
 
 namespace cover
 
-def of_sets (𝒰 : set (opens X)) : cover X :=
+def of_set (𝒰 : set (opens X)) : cover X :=
 { ι := { U // U ∈ 𝒰 },
   i := subtype.val }
 
@@ -57,6 +57,8 @@ instance : category (cover X) :=
 
 @[simp] lemma id_s (c : cover X) : ((𝟙 c) : hom c c).s = λ i, i := rfl
 @[simp] lemma comp_s {c d e : cover X} (f : c ⟶ d) (g : d ⟶ e): (f ≫ g).s = g.s ∘ f.s := rfl
+@[simp] lemma id_r (c : cover X) : ((𝟙 c) : hom c c).r = λ i, 𝟙 _ := rfl
+@[simp] lemma comp_r {c d e : cover X} (f : c ⟶ d) (g : d ⟶ e): (f ≫ g).r = λ i, f.r i ≫ g.r (f.s i) := rfl
 
 end hom
 
@@ -65,7 +67,10 @@ end cover
 def covers_of (U : opens X) := { c : set (opens X) // lattice.Sup c = U }
 
 instance category_covers_of (U : opens X) : category (covers_of U) :=
-induced_category.category (λ 𝒰, cover.of_sets 𝒰.val)
+induced_category.category (λ 𝒰, cover.of_set 𝒰.val)
+
+def covers_of.forget (U : opens X) : covers_of U ⥤ cover X :=
+(induced_functor (λ 𝒰 : covers_of U, cover.of_set 𝒰.val))
 
 namespace cover
 
@@ -121,12 +126,17 @@ def map {ι κ : Type v} (r : ι → κ) : intersections ι ⥤ intersections κ
 @[simp] lemma map_obj_double {ι κ : Type v} (r : ι → κ) (a b) :
   (map r).obj (double a b) = double (r a) (r b) := rfl
 
-@[simp] lemma map_id {ι : Type v} (j) : (map (λ i : ι, i)).obj j = j :=
-by { cases j; refl }
+@[simp] lemma map_id_obj_single {ι : Type v} (a : ι) :
+  (map _root_.id).obj (single a) = single a := rfl
+@[simp] lemma map_id_obj_double {ι : Type v} (a b : ι) :
+  (map _root_.id).obj (double a b) = double a b := rfl
+
+-- @[simp] lemma map_id {ι : Type v} (j) : (map (λ i : ι, i)).obj j = j :=
+-- by { cases j; refl }
 
 @[simp] lemma limit_π_map_id {ι : Type v} {C : Type u} [category.{v+1} C] (F : intersections ι ⥤ C) [has_limit F] (j) :
-  limit.π F ((map (λ i : ι, i)).obj j) = limit.π F j ≫ F.map (eq_to_hom (map_id j).symm) :=
-limit.π_congr _ _
+  limit.π F ((map (λ i : ι, i)).obj j) = limit.π F j ≫ eq_to_hom (by cases j; refl) :=
+limit.π_congr _ (by cases j; refl)
 
 end intersections
 
@@ -163,10 +173,26 @@ def intersections.map_diagram {c d : cover X} (f : c ⟶ d) :
     end
   end }
 
-@[simp] lemma intersections.map_diagram_id (c : cover X) (j) :
-  (intersections.map_diagram (𝟙 c)).app j = c.diagram.map (eq_to_hom begin cases j; refl end) :=
-begin
-  cases j; refl
+@[simp] lemma intersections.map_diagram_id_single (c : cover X) (a) :
+  (intersections.map_diagram (𝟙 c)).app (single a) = 𝟙 _ := rfl
+@[simp] lemma intersections.map_diagram_id_double (c : cover X) (a b) :
+  (intersections.map_diagram (𝟙 c)).app (double a b) = 𝟙 _ := rfl
+
+@[simp] lemma intersections.map_diagram_comp_single (c d e : cover X) (f : c ⟶ d) (g : d ⟶ e) (a) :
+  (intersections.map_diagram (f ≫ g)).app (single a) = (intersections.map_diagram g).app (single (f.s a)) ≫ (intersections.map_diagram f).app (single a) := rfl
+@[simp] lemma intersections.map_diagram_comp_double (c d e : cover X) (f : c ⟶ d) (g : d ⟶ e) (a b) :
+  (intersections.map_diagram (f ≫ g)).app (double a b) = (intersections.map_diagram g).app (double (f.s a) (f.s b)) ≫ (intersections.map_diagram f).app (double a b) := rfl
+
+
+
+section
+open tactic
+/-- Applies `cases` on an `intersection X` hypothesis. -/
+meta def cases_intersection : tactic unit :=
+do l ← local_context,
+   l.mmap (λ h,
+     (do `(intersections _) ← infer_type h, cases h, skip) <|> skip),
+   skip
 end
 
 /--

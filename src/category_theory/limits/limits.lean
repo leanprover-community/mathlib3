@@ -283,7 +283,7 @@ def limit.π (F : J ⥤ C) [has_limit F] (j : J) : limit F ⟶ F.obj j :=
 (limit.cone F).π.app j
 
 lemma limit.π_congr (F : J ⥤ C) [has_limit F] {j j' : J} (h : j = j') :
-  limit.π F j = limit.π F j' ≫ F.map (eq_to_hom h.symm) :=
+  limit.π F j = limit.π F j' ≫ eq_to_hom (congr_arg F.obj h.symm) :=
 by {subst h, simp}
 
 @[simp] lemma limit.cone_π {F : J ⥤ C} [has_limit F] (j : J) :

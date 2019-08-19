@@ -31,94 +31,106 @@ lemma map_pow (f : α →+* β) (a : α) : ∀(n : ℕ), f (a ^ n) = (f a) ^ n
 
 end semiring_hom
 
+variables (α : Type*) [comm_ring α] (S : submonoid α)
+
 namespace localization
 
-variables (α : Type*) [comm_ring α] (S : submonoid α)
 
 instance : has_add (localization α S) :=
 ⟨lift₂ S S
-(λ x y : α × S, (((x.2 : α) * y.1 + y.2 * x.1, x.2 * y.2) : localization α S))
-$ λ ⟨r1, s1⟩ ⟨r2, s2⟩ ⟨r3, s3⟩ ⟨r4, s4⟩ ⟨v, hv⟩ ⟨w, hw⟩,
-by { rw localization.eq, use (↑w*↑v),
-     apply S.mul_mem w.2 v.2,
-     calc
-       ↑w * ↑v * ((↑s1 * r2 + ↑s2 * r1) * (↑s3 * ↑s4))
-         = ↑w * (r2 * ↑s4) * ↑v * (↑s1 * ↑s3) + ↑w * (↑v * (r1 * ↑s3)) * (↑s2 * ↑s4) : by ring
-     ... = ↑w * ↑v * ((↑s3 * r4 + ↑s4 * r3) * (↑s1 * ↑s2)) : by rw [hv, hw]; ring}⟩
+(λ x y : α × S, (mk ((y.2 : α) * x.1 + x.2 * y.1) (y.2 * x.2)))
+$ λ x y w z ⟨s, hs⟩ ⟨t, ht⟩,
+by { rw localization.eq, use (↑s*↑t),
+     apply S.mul_mem s.2 t.2,
+  calc
+    ↑s * ↑t * ((↑y.2 * x.1 + ↑x.2 * y.1) * (↑z.2 * ↑w.2))
+    = ↑s * (x.1 * ↑w.2) * ↑t * (↑y.2 * ↑z.2) + ↑s * (↑t * (y.1 * ↑z.2)) * (↑x.2 * ↑w.2) : by ring
+... = ↑s * ↑t * ((↑z.2 * w.1 + ↑w.2 * z.1) * (↑y.2 * ↑x.2)) : by rw [hs, ht]; ring}⟩
 
 instance : has_neg (localization α S) :=
-⟨lift S (λ x : α × S, ((-x.1, x.2) : localization α S)) $
-λ ⟨r1, s1⟩ ⟨r2, s2⟩ ⟨v, hv⟩,
-by {rw localization.eq, use v, ring at hv ⊢, rw mul_neg_eq_neg_mul_symm, simp [hv]}⟩
+⟨lift₁ S (λ x : α × S, (mk (-x.1) x.2)) $ λ ⟨r1, s1⟩ ⟨r2, s2⟩ ⟨v, hv⟩,
+  by {rw localization.eq, use v, ring at hv ⊢, rw mul_neg_eq_neg_mul_symm, simp [hv]}⟩
 
 instance : comm_ring (localization α S) :=
 by refine
 { add            := has_add.add,
-  add_assoc      := λ m n k, quotient.induction_on₃' m n k _,
-  zero           := (((0 : α), (1 : S)) : localization α S),
-  zero_add       := quotient.ind' _,
-  add_zero       := quotient.ind' _,
+  add_assoc      := λ x y z, induction_on₃ x y z _,
+  zero           := mk (0 : α) (1 : S),
+  zero_add       := ind _,
+  add_zero       := ind _,
   neg            := has_neg.neg,
-  add_left_neg   := quotient.ind' _,
-  add_comm       := quotient.ind₂' _,
-  left_distrib   := λ m n k, quotient.induction_on₃' m n k _,
-  right_distrib  := λ m n k, quotient.induction_on₃' m n k _,
+  add_left_neg   := ind _,
+  add_comm       := λ x y, induction_on₂ x y _,
+  left_distrib   := λ x y z, induction_on₃ x y z _,
+  right_distrib  := λ x y z, induction_on₃ x y z _,
   ..localization.comm_monoid};
 { intros,
-  try {rcases a with ⟨r₁, s₁⟩},
-  try {rcases b with ⟨r₂, s₂⟩},
-  try {rcases c with ⟨r₃, s₃⟩},
   refine r_of_eq _,
-  norm_num,
+  simp only [submonoid.coe_mul, prod.snd, prod.fst, pow_two],
   try {ring}}
 
 variables {α S}
 
-variables (x y : α)
+@[simp] lemma add_def (x y : α × S) :
+  mk x.1 x.2 + mk y.1 y.2 = mk ((y.2 : α) * x.1 + x.2 * y.1) (y.2 * x.2) := rfl
 
-@[simp] lemma of_zero : of 0 = (0 : localization α S) := rfl
+@[simp] lemma neg_def (x : α × S) : -(mk x.1 x.2) = mk (-x.1) x.2 := rfl
 
-@[simp] lemma of_neg : (of (-x) : localization α S) = -of x := rfl
+@[simp] lemma sub_def (x y : α × S) : mk x.1 x.2 - mk y.1 y.2 =
+  mk ((y.2 : α) * x.1 - x.2 * y.1) (y.2 * x.2) :=
+by rw [sub_eq_add_neg, neg_def, add_def _ (-y.1, y.2), sub_eq_add_neg, ←mul_neg_eq_neg_mul_symm]
 
-@[simp] lemma of_add : (of (x + y) : localization α S) = of x + of y :=
-show _ = (↑(1 * y + 1 * x, (1 : S) * 1) : localization α S), by norm_num; use 1
-
-@[simp] lemma of_sub : (of (x - y) : localization α S) = of x - of y :=
-by simp; use 1
-
-@[simp] lemma coe_zero : ((0 : α) : localization α S) = 0 := of_zero
-
-@[simp] lemma coe_add : (↑(x + y) : localization α S) = x + y := of_add _ _
-
-@[simp] lemma coe_sub : (↑(x - y) : localization α S) = x - y := of_sub _ _
-
-@[simp] lemma coe_neg : (↑(-x) : localization α S) = -x := of_neg _
-
-namespace semiring_hom
-
-variables {β : Type*} [comm_ring β] {T : submonoid β} (f : α →+* β) (f' : S → units β) (S)
+variables (S)
 
 def of : α →+* localization α S :=
 semiring_hom.mk' (monoid_hom.of S) $
-λ x y, show ↑((x+y), (1 : S)) = ↑(1 * y + 1 * x, (1 : S) * 1), by norm_num; use 1
+λ x y, r_of_eq $ by {suffices : 1 * (1 * x + 1 * y) = 1 * _, by unfold_coes; simpa, ring}
 
-variables {S}
+variables {S} {β : Type*} [comm_ring β]
 
-@[simp] lemma of_apply {a : α} : of S a = (a : localization α S) := rfl
+lemma of_eq_mk {a : α} : of S a = mk a 1 := rfl
+
+@[simp] lemma of_mul_mk (x y : α) (v : S) :
+  of S x * mk y v = mk (x * y) v := monoid_hom.of_mul_mk _ _ _
+
+lemma mk_eq_mul_mk_one (x : α) (y : S) :
+  mk x y = of S x * mk 1 y := monoid_hom.mk_eq_mul_mk_one _ _
+
+@[simp] lemma mk_mul_cancel_left (x : α) (y : S) :
+  mk ((y : α) * x) y = of S x := monoid_hom.mk_mul_cancel_left _ _
+
+@[simp] lemma mk_mul_cancel_right (x : α) (y : S) :
+  mk (x * y) y = of S x := monoid_hom.mk_mul_cancel_right _ _
+
+@[simp] lemma of_is_unit (y : S) : is_unit (of S y) := monoid_hom.of_is_unit _
+
+@[simp] lemma of_is_unit' (x : α) (hx : x ∈ S) : is_unit (of S x) :=
+monoid_hom.of_is_unit' _ hx
+
+lemma to_units_map (g : localization α S →+* β) (y : S) :
+g (to_units S y) = g.to_monoid_hom.units_map (to_units S y) :=
+monoid_hom.to_units_map g.to_monoid_hom _
+
+lemma to_units_map_inv (g : localization α S →+* β) (y : S) :
+g ((to_units S y)⁻¹ : _) = ((g.to_monoid_hom.units_map (to_units S y))⁻¹ : _) :=
+monoid_hom.to_units_map_inv g.to_monoid_hom _
+
+lemma mk_eq (x : α) (y : S) :
+  mk x y = of S x * ((to_units S y)⁻¹ : _) := monoid_hom.mk_eq x y
+
+variables {T : submonoid β} (f : α →+* β) (f' : S → units β)
 
 lemma lift'_add (H : ∀ s : S, f s = f' s) (a b : localization α S) :
-(monoid_hom.lift' f.to_monoid_hom f' H) (a + b) =
-(monoid_hom.lift' f.to_monoid_hom f' H) a + (monoid_hom.lift' f.to_monoid_hom f' H) b :=
-con.induction_on₂' a b $ λ x y, by
-{ change (monoid_hom.lift' _ f' _) ↑(_ + _, _) = _,
-  rw [monoid_hom.lift', con.lift_coe, con.lift_coe, con.lift_coe],
-  change f ((x.2 : α) * _ + y.2 * _) * ((f' (_ * _))⁻¹ : _) = _*((f' _)⁻¹ : _) + _*((f' _)⁻¹ : _),
+  (monoid_hom.lift' f.to_monoid_hom f' H) (a + b) =
+  (monoid_hom.lift' f.to_monoid_hom f' H) a + (monoid_hom.lift' f.to_monoid_hom f' H) b :=
+induction_on₂ a b $ λ x y, by
+{ rw [monoid_hom.lift'_mk, monoid_hom.lift'_mk, add_def, monoid_hom.lift'_mk],
+  change f _ * _ = f _ * _ + f _ * _,
   ring,
-  rw [f.map_add, ←units.mul_left_inj (f' (x.2 * y.2)), ←mul_assoc, units.mul_inv, one_mul,
-     ←monoid_hom.map_mul_restrict f.to_monoid_hom f' H, units.coe_mul, mul_comm ↑(f' x.2), mul_add,
-     ←mul_assoc, mul_assoc ↑(f' y.2), units.mul_inv, ←mul_assoc, mul_assoc ↑(f' y.2) ↑(f' x.2),
-     mul_comm ↑(f' x.2), ←mul_assoc, units.mul_inv, ←H x.2, ←H y.2],
-  change _ =  f _ * _ * f _ + _ * f _ * f _,
+  rw [f.map_add, ←units.mul_left_inj (f' (y.2 * x.2)), ←mul_assoc, units.mul_inv, one_mul,
+     ←monoid_hom.map_mul_restrict f.to_monoid_hom f' H, units.coe_mul, mul_comm ↑(f' y.2), mul_add,
+     ←mul_assoc _ _ (f y.1), mul_assoc _ _ ↑(f' y.2)⁻¹, units.mul_inv, ←mul_assoc,
+     mul_assoc ↑(f' x.2) ↑(f' y.2), mul_comm ↑(f' y.2), ←mul_assoc, units.mul_inv, ←H y.2, ←H x.2],
   simp}
 
 @[elab_with_expected_type]
@@ -137,17 +149,11 @@ variables {f f'}
   lift' f f' H (mk r s) = f r * ↑(f' s)⁻¹ := rfl
 
 @[simp] lemma lift'_of (H : ∀ (s : S), f.to_monoid_hom s = f' s) (a : α) :
-  lift' f f' H (localization.of a) = f a :=
+  lift' f f' H (of S a) = f a :=
 by convert monoid_hom.lift'_of H a
 
-@[simp] lemma lift'_coe (H : ∀ (s : S), f.to_monoid_hom s = f' s) (a : α) :
-  lift' f f' H a = f a := lift'_of _ _
-
-@[simp] lemma lift_hom_of (h : ∀ s : S, is_unit (f s)) (a : α) :
-  lift f h (localization.of a) = f a := lift'_of _ _
-
-@[simp] lemma lift_coe (h : ∀ s : S, is_unit (f s)) (a : α) :
-  lift f h a = f a := lift'_of _ _
+@[simp] lemma lift_of (h : ∀ s : S, is_unit (f s)) (a : α) :
+  lift f h (of S a) = f a := lift'_of _ _
 
 @[simp] lemma lift'_comp_of (H : ∀ (s : S), f.to_monoid_hom s = f' s) :
   (lift' f f' H).comp (of S) = f :=
@@ -156,57 +162,50 @@ semiring_hom.ext _ _ $ funext $ λ a, lift'_of H a
 @[simp] lemma lift_comp_of (h : ∀ s : S, is_unit (f s)) :
   (lift f h).comp (of S) = f := lift'_comp_of _
 
-@[simp] lemma lift'_apply_coe (g : localization α S →+* β) (H : ∀ s : S, g.comp (of S) s = f' s) :
+@[simp] lemma lift'_apply_of (g : localization α S →+* β) (H : ∀ s : S, g.comp (of S) s = f' s) :
   lift' (g.comp (of S)) f' H = g :=
 begin
-  have h : _ := monoid_hom.lift'_apply_coe g.to_monoid_hom (λ s, show _, by apply H s),
+  have h : _ := monoid_hom.lift'_apply_of g.to_monoid_hom (λ s, show _, by apply H s),
   ext,
   change _ = g.to_monoid_hom x,
   rw h.symm,
   refl,
 end
 
-@[simp] lemma lift_apply_coe (g : localization α S →+* β) :
-  lift (g.comp (of S)) (λ y, is_unit_unit (g.to_monoid_hom.units_map (to_units y))) = g :=
-by rw [lift, lift'_apply_coe]
+@[simp] lemma lift_apply_of (g : localization α S →+* β) :
+  lift (g.comp (of S)) (λ y, is_unit_unit (g.to_monoid_hom.units_map (to_units S y))) = g :=
+by rw [lift, lift'_apply_of]
 
 protected lemma funext (f g : localization α S →+* β)
-  (h : ∀ a : α, f a = g a) : f = g :=
-begin
-  rw [← lift_apply_coe f, ← lift_apply_coe g],
-  congr' 1,
-  ext,
-  convert h x,
-end
+  (h : ∀ a : α, f (of S a) = g (of S a)) : f = g :=
+semiring_hom.ext f g $
+  let h' := monoid_hom.funext f.to_monoid_hom g.to_monoid_hom h in by injections with h'
 
 variables (f)
 
 def map (hf : ∀ s : S, f s ∈ T) : localization α S →+* localization β T :=
 semiring_hom.mk' (monoid_hom.lift' ((of T).comp f).to_monoid_hom
-  (to_units_hom.comp ((f.to_monoid_hom.comp S.subtype).subtype_mk T hf)) $ λ y, rfl)
+  ((to_units T).comp ((f.to_monoid_hom.comp S.subtype).subtype_mk T hf)) $ λ y, rfl)
 $ λ a b, lift'_add _ _ _ _ _
 
 variables {f}
 
 lemma map_of (hf : ∀ s : S, f s ∈ T) (a : α) :
-  map f hf (localization.of a) = localization.of (f a) := lift'_of _ _
-
-lemma map_coe (hf : ∀ s : S, f s ∈ T) (a : α) :
-  map f hf a = (f a) := lift'_of _ _
+  map f hf (of S a) = of T (f a) := lift'_of _ _
 
 @[simp] lemma map_comp_of (hf : ∀ s : S, f s ∈ T) :
   (map f hf).comp (of S) = (of T).comp f := lift'_comp_of _
 
 @[simp] lemma map_id : map (semiring_hom.id α) (λ y, y.2) = semiring_hom.id (localization α S) :=
-semiring_hom.funext _ _ $ map_coe _
+localization.funext _ _ $ map_of _
 
 lemma map_comp_map {γ : Type*} [comm_ring γ] {U : submonoid γ} (g : β →+* γ)
-(hf : ∀ s : S, f s ∈ T) (hg : ∀ t : T, g t ∈ U) :
+  (hf : ∀ s : S, f s ∈ T) (hg : ∀ t : T, g t ∈ U) :
   (map g hg).comp (map f hf) = map (g.comp f) (λ y, hg ⟨f y, (hf y)⟩) :=
-semiring_hom.funext _ _ $ λ x, by simp only [semiring_hom.comp_apply, map_coe]
+localization.funext _ _ $ λ x, by simp only [semiring_hom.comp_apply, map_of]
 
 lemma map_map {γ : Type*} [comm_ring γ] {U : submonoid γ} (g : β →+* γ)
-(hf : ∀ s : S, f s ∈ T) (hg : ∀ t : T, g t ∈ U) (x : localization α S) :
+  (hf : ∀ s : S, f s ∈ T) (hg : ∀ t : T, g t ∈ U) (x : localization α S) :
   map g hg (map f hf x) = map (g.comp f) (λ s : S, hg (⟨f s, (hf s)⟩ : T)) x :=
 by {rw ←(map_comp_map g hf hg), refl}
 
@@ -214,62 +213,60 @@ lemma map_ext (hf : ∀ s : S, f s ∈ T) (g : α →+* β) (hg : ∀ s : S, g s
   (x : localization α S) :
   map f hf x = map g hg x := by tidy
 
-end semiring_hom
-
 namespace ring_equiv
 
-variables {β : Type*} [comm_ring β] {T : submonoid β} (f : α →+* β)
+variables (f)
 
 def equiv_of_equiv (h₁ : α ≃r β) (h₂ : h₁.to_equiv '' S = T) :
   localization α S ≃r localization β T :=
 let H1 : h₁.to_mul_equiv.to_monoid_hom.map S = T := by
  { ext, rw [←submonoid.mem_coe T, ←h₂], refl} in
 {hom := ring_equiv.is_ring_hom_of_mul_equiv
-  (h₁.to_mul_equiv.equiv_of_equiv H1) $
-  λ (x y : localization α S), by
-  convert semiring_hom.lift'_add ((semiring_hom.of T).comp h₁.to_semiring_hom) _ _ x y,
-..(h₁.to_mul_equiv.equiv_of_equiv H1).to_equiv }
+  (mul_equiv.equiv_of_equiv h₁.to_mul_equiv H1) $
+  λ (x y : localization α S), by convert lift'_add ((of T).comp h₁.to_semiring_hom) _ _ x y,
+..(mul_equiv.equiv_of_equiv h₁.to_mul_equiv H1).to_equiv }
 
 def char_pred (H : ∀ s : S, is_unit (f s)) :=
 mul_equiv.char_pred f.to_monoid_hom H
 
 lemma char_pred_of_equiv (H : ∀ s : S, is_unit (f s)) (h : (localization α S) ≃r β)
-  (hf : semiring_hom.lift f H = h.to_semiring_hom) : char_pred f H :=
+  (hf : lift f H = h.to_semiring_hom) : char_pred f H :=
 by convert mul_equiv.char_pred_of_equiv f.to_monoid_hom H h.to_mul_equiv
 (show monoid_hom.lift f.to_monoid_hom H = h.to_semiring_hom.to_monoid_hom, by {rw hf.symm, refl})
 
 noncomputable def equiv_of_char_pred (H : ∀ s : S, is_unit (f s)) (Hp : char_pred f H) :
   (localization α S) ≃r β :=
 ring_equiv.of_mul_equiv (mul_equiv.equiv_of_char_pred f.to_monoid_hom H Hp) $
-λ x y, by convert semiring_hom.lift'_add f _ _ _ _
+λ x y, by convert lift'_add f _ _ _ _
 
 end ring_equiv
 
-section
-variables {β : Type*} [comm_ring β] {T : submonoid β} (f : α →+* β)
+section away
+
+variables (f)
 
 @[elab_with_expected_type]
 noncomputable def away.lift {x : α} (hfx : is_unit (f x)) : away x →+* β :=
 semiring_hom.mk' (away.monoid_hom.lift f.to_monoid_hom hfx) $
-semiring_hom.lift'_add f (λ s, classical.some hfx ^ classical.some s.2) $ λ s,
+lift'_add f (λ s, classical.some hfx ^ classical.some s.2) $ λ s,
 by rw [units.coe_pow, ← classical.some_spec hfx,
        ← f.map_pow, classical.some_spec s.2]; refl
 
 @[simp] lemma away.lift_of {x : α} (hfx : is_unit (f x)) (a : α) :
-  away.lift f hfx (localization.of a) = f a := semiring_hom.lift'_of _ _
-
-@[simp] lemma away.lift_coe {x : α} (hfx : is_unit (f x)) (a : α) :
-  away.lift f hfx a = f a := semiring_hom.lift'_of _ _
+  away.lift f hfx (of (submonoid.powers x) a) = f a := lift'_of _ _
 
 @[simp] lemma away.lift_comp_of {x : α} (hfx : is_unit (f x)) :
-  (away.lift f hfx).comp (semiring_hom.of _) = f := semiring_hom.lift'_comp_of _
+  (away.lift f hfx).comp (of _) = f := lift'_comp_of _
 
 noncomputable def away_to_away_right (x y : α) : away x →+* away (x * y) :=
-away.lift (semiring_hom.of _) $ is_unit_of_mul_one x (y * away.inv_self (x * y)) $
-by rw [away.inv_self, coe_mul_mk, semiring_hom.of_apply, coe_mul_mk, mul_one,
-       mk_self (show (x*y) ∈ submonoid.powers (x*y), from ⟨1, pow_one (x*y)⟩)]
+away.lift (of (submonoid.powers (x*y))) $
+  is_unit_of_mul_one _ (((of _).1 y) * away.inv_self (x * y)) $ by unfold_coes;
+  rw [away.inv_self, ←mul_assoc, ←semiring_hom.map_mul',
+      ←mk_self (show (x*y) ∈ submonoid.powers (x*y), from ⟨1, pow_one _⟩),
+      monoid_hom.mk_eq_mul_mk_one (x*y) _]; refl
 
-end
+end away
+end localization
 /- This compiles when I have ring_theory.ideals imported.
 section at_prime
 
@@ -315,7 +312,6 @@ local_of_nonunits_ideal
 
 end at_prime
 -/
-variable (α)
 
 def non_zero_divisors' : set α := {x | ∀ z, z * x = 0 → z = 0}
 
@@ -332,9 +328,10 @@ def non_zero_divisors : submonoid α :=
 
 namespace fraction_ring
 
-open function
+open function localization
 
 variables {β : Type*} [integral_domain β] [decidable_eq β]
+
 
 lemma eq_zero_of_ne_zero_of_mul_eq_zero {x y : β} :
   x ≠ 0 → y * x = 0 → y = 0 :=
@@ -349,10 +346,10 @@ variable (β)
 
 def inv_aux (x : β × (non_zero_divisors β)) : fraction_ring β :=
 if h : x.1 = 0 then 0 else
-  ((x.2 : β), (⟨x.1, mem_non_zero_divisors_iff_ne_zero.mpr h⟩ : non_zero_divisors β))
+  mk (x.2 : β) (⟨x.1, mem_non_zero_divisors_iff_ne_zero.mpr h⟩ : non_zero_divisors β)
 
 instance : has_inv (fraction_ring β) :=
-⟨lift (non_zero_divisors β) (inv_aux β) $
+⟨lift₁ (non_zero_divisors β) (inv_aux β) $
 λ ⟨r₁, s₁⟩ ⟨r₂, s₂⟩ ⟨t, ht⟩,
 begin
     have hrs : (s₁ : β) * r₂ = 0 + s₂ * r₁,
@@ -373,8 +370,9 @@ begin
 lemma mk_inv {r : β} {s : non_zero_divisors β} :
   (mk r s : fraction_ring β)⁻¹ =
   if h : r = 0 then 0 else
-  ((s : β), (⟨r, mem_non_zero_divisors_iff_ne_zero.mpr h⟩ : non_zero_divisors β)) := rfl
+  mk (s : β) (⟨r, mem_non_zero_divisors_iff_ne_zero.mpr h⟩ : non_zero_divisors β) := rfl
 
+#exit
 lemma mk_inv' : ∀ (x : β × (non_zero_divisors β)), (x⁻¹ : fraction_ring β) =
   if h : x.1 = 0 then 0 else
   ((x.2 : β), (⟨x.1, mem_non_zero_divisors_iff_ne_zero.mpr h⟩ : non_zero_divisors β))

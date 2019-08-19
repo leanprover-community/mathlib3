@@ -336,6 +336,13 @@ def comp (hnp : N →* P) (hmn : M →* N) : M →* P :=
   map_one' := by simp,
   map_mul' := by simp }
 
+@[simp] lemma comp_apply (g : N →* P) (f : M →* N) {x : M} : g.comp f x = g (f x) := rfl
+
+/-- Composition of monoid homomorphisms is associative. -/
+lemma comp_assoc {Q : Type*} [monoid Q] (f : M →* N) (g : N →* P) (h : P →* Q) :
+  (h.comp g).comp f = h.comp (g.comp f) :=
+rfl
+
 protected def one : M →* N :=
 { to_fun := λ _, 1,
   map_one' := rfl,
@@ -448,6 +455,17 @@ attribute [to_additive add_monoid_hom.comp] monoid_hom.comp
 attribute [to_additive add_monoid_hom.comp._proof_1] monoid_hom.comp._proof_1
 attribute [to_additive add_monoid_hom.comp._proof_2] monoid_hom.comp._proof_2
 attribute [to_additive add_monoid_hom.comp.equations._eqn_1] monoid_hom.comp.equations._eqn_1
+
+@[simp] lemma comp_apply (g : B →+ C) (f : A →+ B) {x : A} : g.comp f x = g (f x) := rfl
+
+attribute [to_additive add_monoid_hom.comp_apply] monoid_hom.comp_apply
+
+/-- Composition of additive monoid homomorphisms is associative. -/
+lemma comp_assoc {D : Type*} [add_monoid D] (f : A →+ B) (g : B →+ C) (h : C →+ D) :
+  (h.comp g).comp f = h.comp (g.comp f) :=
+rfl
+
+attribute [to_additive add_monoid_hom.comp_assoc] monoid_hom.comp_assoc
 
 protected def zero : A →+ B :=
 { to_fun := λ _, 0,

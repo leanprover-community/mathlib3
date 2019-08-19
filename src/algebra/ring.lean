@@ -331,6 +331,12 @@ def comp {γ} [semiring γ] (hnp : β →+* γ) (hmn : α →+* β) : α →+* �
   map_add' := λ x y, by simp,
   map_mul' := λ x y, by simp}
 
+@[simp] lemma comp_apply {γ} [semiring γ] (g : β →+* γ) (f : α →+* β) {x : α} : g.comp f x = g (f x) := rfl
+
+/-- Composition of semiring homomorphisms is associative. -/
+lemma comp_assoc {γ} {δ} [semiring γ] [semiring δ] (f : α →+* β) (g : β →+* γ) (h : γ →+* δ) :
+  (h.comp g).comp f = h.comp (g.comp f) := rfl
+
 /-- Ring homomorphisms preserve additive inverse. -/
 @[simp] theorem map_neg {α β} [ring α] [ring β] (f : α →+* β) (x : α) : f (-x) = -(f x) :=
 eq_neg_of_add_eq_zero $ by rw [←f.map_add, neg_add_self, f.map_zero]

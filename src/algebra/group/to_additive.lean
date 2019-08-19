@@ -157,10 +157,9 @@ do
   tgt_fields ← f tgt,
   guard (src_fields.length = tgt_fields.length) <|>
     fail ("Failed to map fields of " ++ src.to_string),
-  (src_fields.zip tgt_fields).mmap $
+  (src_fields.zip tgt_fields).mmap' $
     λ names, guard (names.fst = names.snd) <|>
-      aux_attr.set (src.append names.fst) (tgt.append names.snd) tt prio,
-  skip
+      aux_attr.set (src.append names.fst) (tgt.append names.snd) tt prio
 
 meta def proceed_fields (env : environment) (src tgt : name) (prio : ℕ) : command :=
 let aux := proceed_fields_aux src tgt prio in

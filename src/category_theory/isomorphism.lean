@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import category_theory.functor
+import tactic.reassoc_axiom
 
 /-!
 # Isomorphisms
@@ -42,7 +43,7 @@ structure iso {C : Type u} [category.{v} C] (X Y : C) :=
 
 restate_axiom iso.hom_inv_id'
 restate_axiom iso.inv_hom_id'
-attribute [simp] iso.hom_inv_id iso.inv_hom_id
+attribute [simp, reassoc] iso.hom_inv_id iso.inv_hom_id
 
 infixr ` ≅ `:10  := iso             -- type as \cong or \iso
 
@@ -51,12 +52,6 @@ include 𝒞
 variables {X Y Z : C}
 
 namespace iso
-
-@[simp] lemma hom_inv_id_assoc (α : X ≅ Y) (f : X ⟶ Z) : α.hom ≫ α.inv ≫ f = f :=
-by rw [←category.assoc, α.hom_inv_id, category.id_comp]
-
-@[simp] lemma inv_hom_id_assoc (α : X ≅ Y) (f : Y ⟶ Z) : α.inv ≫ α.hom ≫ f = f :=
-by rw [←category.assoc, α.inv_hom_id, category.id_comp]
 
 @[extensionality] lemma ext (α β : X ≅ Y) (w : α.hom = β.hom) : α = β :=
 suffices α.inv = β.inv, by cases α; cases β; cc,

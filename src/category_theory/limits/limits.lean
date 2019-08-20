@@ -1,7 +1,8 @@
--- Copyright (c) 2018 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Reid Barton, Mario Carneiro, Scott Morrison, Floris van Doorn
-
+/-
+Copyright (c) 2018 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Reid Barton, Mario Carneiro, Scott Morrison, Floris van Doorn
+-/
 import category_theory.whiskering
 import category_theory.yoneda
 import category_theory.limits.cones
@@ -547,10 +548,6 @@ def colimit.desc (F : J ⥤ C) [has_colimit F] (c : cocone F) : colimit F ⟶ c.
 @[simp] lemma colimit.is_colimit_desc {F : J ⥤ C} [has_colimit F] (c : cocone F) :
   (colimit.is_colimit F).desc c = colimit.desc F c := rfl
 
-@[simp] lemma colimit.ι_desc {F : J ⥤ C} [has_colimit F] (c : cocone F) (j : J) :
-  colimit.ι F j ≫ colimit.desc F c = c.ι.app j :=
-is_colimit.fac _ c j
-
 /--
 We have lots of lemmas describing how to simplify `colimit.ι F j ≫ _`,
 and combined with `colimit.ext` we rely on these lemmas for many calculations.
@@ -558,11 +555,12 @@ and combined with `colimit.ext` we rely on these lemmas for many calculations.
 However, since `category.assoc` is a `@[simp]` lemma, often expressions are
 right associated, and it's hard to apply these lemmas about `colimit.ι`.
 
-We thus define some additional `@[simp]` lemmas, with an arbitrary extra morphism.
+We thus use `reassoc` to define additional `@[simp]` lemmas, with an arbitrary extra morphism.
+(see `tactic/reassoc_axiom.lean`)
  -/
-@[simp] lemma colimit.ι_desc_assoc {F : J ⥤ C} [has_colimit F] (c : cocone F) (j : J) {Y : C} (f : c.X ⟶ Y) :
-  colimit.ι F j ≫ colimit.desc F c ≫ f = c.ι.app j ≫ f :=
-by rw [←category.assoc, colimit.ι_desc]
+@[simp, reassoc] lemma colimit.ι_desc {F : J ⥤ C} [has_colimit F] (c : cocone F) (j : J) :
+  colimit.ι F j ≫ colimit.desc F c = c.ι.app j :=
+is_colimit.fac _ c j
 
 def colimit.cocone_morphism {F : J ⥤ C} [has_colimit F] (c : cocone F) :
   cocone_morphism (colimit.cocone F) c :=
@@ -620,12 +618,8 @@ colimit.desc (E ⋙ F)
   { X := colimit F,
     ι := { app := λ k, colimit.ι F (E.obj k) } }
 
-@[simp] lemma colimit.ι_pre (k : K) : colimit.ι (E ⋙ F) k ≫ colimit.pre F E = colimit.ι F (E.obj k) :=
+@[simp, reassoc] lemma colimit.ι_pre (k : K) : colimit.ι (E ⋙ F) k ≫ colimit.pre F E = colimit.ι F (E.obj k) :=
 by erw is_colimit.fac
-
-@[simp] lemma colimit.ι_pre_assoc (k : K) {Z : C} (f : colimit F ⟶ Z) :
-  colimit.ι (E ⋙ F) k ≫ (colimit.pre F E) ≫ f = ((colimit.ι F (E.obj k)) : (E ⋙ F).obj k ⟶ colimit F) ≫ f :=
-by rw [←category.assoc, colimit.ι_pre]
 
 @[simp] lemma colimit.pre_desc (c : cocone F) :
   colimit.pre F E ≫ colimit.desc F c = colimit.desc (E ⋙ F) (c.whisker E) :=
@@ -658,12 +652,8 @@ colimit.desc (F ⋙ G)
     naturality' :=
       by intros j j' f; erw [←G.map_comp, limits.cocone.w, comp_id]; refl } }
 
-@[simp] lemma colimit.ι_post (j : J) : colimit.ι (F ⋙ G) j ≫ colimit.post F G  = G.map (colimit.ι F j) :=
+@[simp, reassoc] lemma colimit.ι_post (j : J) : colimit.ι (F ⋙ G) j ≫ colimit.post F G  = G.map (colimit.ι F j) :=
 by erw is_colimit.fac
-
-@[simp] lemma colimit.ι_post_assoc (j : J) {Y : D} (f : G.obj (colimit F) ⟶ Y) :
-  colimit.ι (F ⋙ G) j ≫ colimit.post F G  ≫ f = G.map (colimit.ι F j) ≫ f :=
-by rw [←category.assoc, colimit.ι_post]
 
 @[simp] lemma colimit.post_desc (c : cocone F) :
   colimit.post F G ≫ G.map (colimit.desc F c) = colimit.desc (F ⋙ G) (G.map_cocone c) :=
@@ -737,12 +727,8 @@ def colim : (J ⥤ C) ⥤ C :=
 
 variables {F} {G : J ⥤ C} (α : F ⟶ G)
 
-@[simp] lemma colim.ι_map (j : J) : colimit.ι F j ≫ colim.map α = α.app j ≫ colimit.ι G j :=
+@[simp, reassoc] lemma colim.ι_map (j : J) : colimit.ι F j ≫ colim.map α = α.app j ≫ colimit.ι G j :=
 by apply is_colimit.fac
-
-@[simp] lemma colim.ι_map_assoc (j : J) {Y : C} (f : colimit G ⟶ Y) :
-  colimit.ι F j ≫ colim.map α ≫ f = α.app j ≫ colimit.ι G j ≫ f :=
-by rw [←category.assoc, colim.ι_map, category.assoc]
 
 @[simp] lemma colimit.map_desc (c : cocone G) :
   colim.map α ≫ colimit.desc G c = colimit.desc F ((cocones.precompose α).obj c) :=

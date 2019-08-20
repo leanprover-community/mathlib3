@@ -188,33 +188,6 @@ begin
   { intros x h hx, rw [if_pos (hite x hx)] }
 end
 
--- lemma coeff_mul_left (p q : polynomial α) (n : ℕ) :
---   coeff (p * q) n = (range (n+1)).sum (λ k, coeff p k * coeff q (n-k)) :=
--- have hite : ∀ a : ℕ × ℕ, ite (a.1 + a.2 = n) (coeff p (a.fst) * coeff q (a.snd)) 0 ≠ 0
---     → a.1 + a.2 = n, from λ a ha, by_contradiction
---   (λ h, absurd (eq.refl (0 : α)) (by rwa if_neg h at ha)),
--- calc coeff (p * q) n = sum (p.support) (λ a, sum (q.support)
---     (λ b, ite (a + b = n) (coeff p a * coeff q b) 0)) :
---   by simp only [finsupp.mul_def, coeff_sum, coeff_single]; refl
--- ... = (p.support.product q.support).sum
---     (λ v : ℕ × ℕ, ite (v.1 + v.2 = n) (coeff p v.1 * coeff q v.2) 0) :
---   by rw sum_product
--- ... = (range (n+1)).sum (λ k, coeff p k * coeff q (n-k)) :
---   sum_bij_ne_zero (λ a _ _, a.1)
---   (λ a _ ha, mem_range.2 (nat.lt_succ_of_le (hite a ha ▸ le_add_right (le_refl _))))
---   (λ a₁ a₂ _ h₁ _ h₂ h, prod.ext h
---     ((add_left_inj a₁.1).1 (by rw [hite a₁ h₁, h, hite a₂ h₂])))
---   (λ a h₁ h₂, ⟨(a, n - a), mem_product.2
---       ⟨mem_support_iff.2 (ne_zero_of_mul_ne_zero_right h₂),
---       mem_support_iff.2 (ne_zero_of_mul_ne_zero_left h₂)⟩,
---     by simpa [nat.add_sub_cancel' (nat.le_of_lt_succ (mem_range.1 h₁))],
---     rfl⟩)
---   (λ a _ ha, by rw [← hite a ha, if_pos rfl, nat.add_sub_cancel_left])
-
--- lemma coeff_mul_right (p q : polynomial α) (n : ℕ) :
---   coeff (p * q) n = (range (n+1)).sum (λ k, coeff p (n-k) * coeff q k) :=
--- by rw [mul_comm, coeff_mul_left]; simp only [mul_comm]
-
 theorem coeff_mul_X_pow (p : polynomial α) (n d : ℕ) :
   coeff (p * polynomial.X ^ n) (d + n) = coeff p d :=
 begin
@@ -1925,7 +1898,8 @@ lemma is_unit_iff_degree_eq_zero : is_unit p ↔ degree p = 0 :=
 lemma degree_pos_of_ne_zero_of_nonunit (hp0 : p ≠ 0) (hp : ¬is_unit p) :
   0 < degree p :=
 lt_of_not_ge (λ h, by rw [eq_C_of_degree_le_zero h] at hp0 hp;
-  exact hp ⟨units.map C (units.mk0 (coeff p 0) (mt C_inj.2 (by simpa using hp0))), rfl⟩)
+  exact (hp $ is_unit.map' C $
+    is_unit.mk0 (coeff p 0) (mt C_inj.2 (by simpa using hp0))))
 
 lemma irreducible_of_degree_eq_one (hp1 : degree p = 1) : irreducible p :=
 ⟨mt is_unit_iff_dvd_one.1 (λ ⟨q, hq⟩,

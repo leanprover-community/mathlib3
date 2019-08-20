@@ -2,31 +2,64 @@
 Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Mario Carneiro
-
-Define the p-adic integers ℤ_p as a subtype of ℚ_p. Construct algebraic structures on ℤ_p.
 -/
 
 import data.padics.padic_numbers ring_theory.ideals data.int.modeq
-import tactic.linarith
+
+/-!
+# p-adic integers
+
+This file defines the p-adic integers ℤ_p as the subtype of ℚ_p with norm ≤ 1. We show that ℤ_p is a
+complete nonarchimedean normed local ring.
+
+## Important definitions
+
+* `padic_int` : the type of p-adic numbers
+
+## Notation
+
+We introduce the notation ℤ_[p] for the p-adic integers.
+
+## Implementation notes
+
+Much, but not all, of this file assumes that `p` is prime. This assumption is inferred automatically
+by taking (prime p) as a type class argument.
+
+Coercions into ℤ_p are set up to work with the `norm_cast` tactic.
+
+## References
+
+* [F. Q. Gouêva, *p-adic numbers*][gouvea1997]
+* [R. Y. Lewis, *A formal proof of Hensel's lemma over the p-adic integers*][lewis2019]
+* https://en.wikipedia.org/wiki/P-adic_number
+
+## Tags
+
+p-adic, p adic, padic, p-adic integer
+-/
 
 open nat padic metric
 noncomputable theory
 local attribute [instance] classical.prop_decidable
 
+/-- The p-adic integers ℤ_p are the p-adic numbers with norm ≤ 1. -/
 def padic_int (p : ℕ) [p.prime] := {x : ℚ_[p] // ∥x∥ ≤ 1}
 notation `ℤ_[`p`]` := padic_int p
 
 namespace padic_int
 variables {p : ℕ} [nat.prime p]
 
+/-- Addition on ℤ_p is inherited from ℚ_p. -/
 def add : ℤ_[p] → ℤ_[p] → ℤ_[p]
 | ⟨x, hx⟩ ⟨y, hy⟩ := ⟨x+y,
     le_trans (padic_norm_e.nonarchimedean _ _) (max_le_iff.2 ⟨hx,hy⟩)⟩
 
+/-- Multiplication on ℤ_p is inherited from ℚ_p. -/
 def mul : ℤ_[p] → ℤ_[p] → ℤ_[p]
 | ⟨x, hx⟩ ⟨y, hy⟩ := ⟨x*y,
     begin rw padic_norm_e.mul, apply mul_le_one; {assumption <|> apply norm_nonneg} end⟩
 
+/-- Negation on ℤ_p is inherited from ℚ_p. -/
 def neg : ℤ_[p] → ℤ_[p]
 | ⟨x, hx⟩ := ⟨-x, by simpa⟩
 
@@ -83,6 +116,8 @@ instance : has_coe ℤ_[p] ℚ_[p] := ⟨subtype.val⟩
 lemma mk_coe : ∀ (k : ℤ_[p]), (⟨↑k, k.2⟩ : ℤ_[p]) = k
 | ⟨_, _⟩ := rfl
 
+/-- The inverse of a p-adic integer with norm equal to 1 is also a p-adic integer. Otherwise, the
+inverse is defined to be 0. -/
 def inv : ℤ_[p] → ℤ_[p]
 | ⟨k, _⟩ := if h : ∥k∥ = 1 then ⟨1/k, by simp [h]⟩ else 0
 

@@ -593,8 +593,7 @@ do t ← infer_type e >>= whnf,
              retry_apply_aux e cfg ((b, v) :: gs)
      else apply_core e cfg
 
-/-- `retry_apply` mimics the behavior of `apply_core`. When `apply_core` fails, it is retried by providing the term with meta variables as additional arguments. The meta variables can then become new goals depending on the `cfg.new_goals` policy.
-/-
+/-- `retry_apply` mimics the behavior of `apply_core`. When `apply_core` fails, it is retried by providing the term with meta variables as additional arguments. The meta variables can then become new goals depending on the `cfg.new_goals` policy. -/
 meta def retry_apply (e : expr) (cfg : apply_cfg) : tactic (list (name × expr)) :=
 retry_apply_aux e cfg []
 

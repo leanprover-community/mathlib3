@@ -510,7 +510,7 @@ def powers (x : M) : submonoid M :=
 -- TODO -- move to appropriate places
 attribute [to_additive add_monoid.mul._main] monoid.pow._main
 attribute [to_additive add_monoid.mul] monoid.pow
-attribute [to_additive add_monoid.has_mul] monoid.has_pow
+attribute [to_additive add_monoid.has_smul] monoid.has_pow
 attribute [to_additive multiples._proof_1] powers._proof_1
 attribute [to_additive multiples._proof_2] powers._proof_2
 

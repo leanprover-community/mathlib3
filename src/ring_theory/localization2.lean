@@ -1,4 +1,4 @@
-import group_theory.quotient_monoid
+import group_theory.quotient_monoid ring_theory.ideal_operations
 
 namespace ring_equiv
 
@@ -17,13 +17,8 @@ is_ring_hom.map_zero _, λ x y, is_ring_hom.map_add _⟩
 end ring_equiv
 
 namespace semiring_hom
+
 variables {α : Type*} {β : Type*} [semiring α] [semiring β]
-
-/-pows in semirings are currently broken in some way. They're the reason ring_theory.ideals
-  data.polynomial etc don't compile; I think they'll compile when group_theory.subgroup
-  does. -/
-
-instance : has_pow α ℕ := ⟨monoid.pow⟩
 
 lemma map_pow (f : α →+* β) (a : α) : ∀(n : ℕ), f (a ^ n) = (f a) ^ n
 | 0            := f.map_one
@@ -34,7 +29,6 @@ end semiring_hom
 variables (α : Type*) [comm_ring α] (S : submonoid α)
 
 namespace localization
-
 
 instance : has_add (localization α S) :=
 ⟨lift₂ S S
@@ -71,14 +65,16 @@ by refine
 
 variables {α S}
 
-@[simp] lemma add_def (x y : α × S) :
+@[simp] lemma mk_add_mk (x y : α × S) :
   mk x.1 x.2 + mk y.1 y.2 = mk ((y.2 : α) * x.1 + x.2 * y.1) (y.2 * x.2) := rfl
 
-@[simp] lemma neg_def (x : α × S) : -(mk x.1 x.2) = mk (-x.1) x.2 := rfl
+@[simp] lemma neg_mk (x : α × S) : -(mk x.1 x.2) = mk (-x.1) x.2 := rfl
 
-@[simp] lemma sub_def (x y : α × S) : mk x.1 x.2 - mk y.1 y.2 =
+@[simp] lemma mk_sub_mk (x y : α × S) : mk x.1 x.2 - mk y.1 y.2 =
   mk ((y.2 : α) * x.1 - x.2 * y.1) (y.2 * x.2) :=
-by rw [sub_eq_add_neg, neg_def, add_def _ (-y.1, y.2), sub_eq_add_neg, ←mul_neg_eq_neg_mul_symm]
+by rw [sub_eq_add_neg, neg_mk, mk_add_mk _ (-y.1, y.2), sub_eq_add_neg, ←mul_neg_eq_neg_mul_symm]
+
+lemma mk_zero (y : S) : mk 0 y = 0 := localization.eq.2 ⟨1, by norm_num⟩
 
 variables (S)
 
@@ -124,7 +120,7 @@ lemma lift'_add (H : ∀ s : S, f s = f' s) (a b : localization α S) :
   (monoid_hom.lift' f.to_monoid_hom f' H) (a + b) =
   (monoid_hom.lift' f.to_monoid_hom f' H) a + (monoid_hom.lift' f.to_monoid_hom f' H) b :=
 induction_on₂ a b $ λ x y, by
-{ rw [monoid_hom.lift'_mk, monoid_hom.lift'_mk, add_def, monoid_hom.lift'_mk],
+{ rw [monoid_hom.lift'_mk, monoid_hom.lift'_mk, mk_add_mk, monoid_hom.lift'_mk],
   change f _ * _ = f _ * _ + f _ * _,
   ring,
   rw [f.map_add, ←units.mul_left_inj (f' (y.2 * x.2)), ←mul_assoc, units.mul_inv, one_mul,
@@ -266,25 +262,23 @@ away.lift (of (submonoid.powers (x*y))) $
       monoid_hom.mk_eq_mul_mk_one (x*y) _]; refl
 
 end away
-end localization
-/- This compiles when I have ring_theory.ideals imported.
-section at_prime
 
-variables (P : ideal α) [hp : ideal.is_prime P]
+section at_prime
+variables {α} (P : ideal α) [hp : ideal.is_prime P]
 include hp
 
-/-- The submonoid of a commutative ring α whose underlying set is the complement of a prime
-    ideal. -/
+/- I can't coerce ideals to sets at any point after the monoid instance for
+   quotient monoids (line 204 in data/equiv/congruence.lean).
+   I have no idea why. Changing the instance priority doesn't seem to help. -/
+instance : has_coe_to_fun (ideal α) := ⟨_, λ I, I.1⟩
+
 def prime.submonoid : submonoid α :=
 { carrier := (-P : set α),
   one_mem' := P.ne_top_iff_one.1 hp.1,
   mul_mem' := λ x y hnx hny hxy, or.cases_on (hp.2 hxy) hnx hny }
 
-/-- The localization of a commutative ring α at the complement of a prime ideal. -/
 @[reducible] def at_prime := localization α (prime.submonoid P)
 
-/-- The localization of a commutative ring α at the complement of a prime ideal is a local
-    ring. -/
 instance at_prime.local_ring : local_ring (at_prime P) :=
 local_of_nonunits_ideal
   (λ hze,
@@ -297,21 +291,22 @@ local_of_nonunits_ideal
     rcases is_unit_iff_exists_inv.1 hu with ⟨⟨⟨r₃, s₃⟩⟩, hz⟩,
     rcases con.eq.1 hz with ⟨t, ht⟩,
     simp at ht,
-    have : ∀ {r : α} {s : prime.submonoid P}, ((r, s) : at_prime P) ∈ nonunits (at_prime P) → r ∈ P,
+    have : ∀ {r : α} {s : prime.submonoid P}, mk r s ∈ nonunits (at_prime P) → r ∈ P,
     { haveI := classical.dec,
       exact λ r s, not_imp_comm.1 (λ nr,
-        is_unit_iff_exists_inv.2 ⟨(((s : α), (⟨r, nr⟩ : prime.submonoid P)) : at_prime P),
-          by {rw con.coe_mul, exact (r_of_eq (by simp [mul_comm]))}⟩)},
+        is_unit_iff_exists_inv.2 ⟨mk (s : α) (⟨r, nr⟩ : prime.submonoid P),
+          by {rw mk_mul_mk, exact (r_of_eq (by simp [mul_comm]))}⟩)},
     rw [←sub_eq_zero, ←mul_sub] at ht,
     have hr₃ := (hp.mem_or_mem_of_mul_eq_zero ht).resolve_left t.2,
     have := (ideal.neg_mem_iff _).1 ((ideal.add_mem_iff_right _ _).1 hr₃),
-    { exact not_or (mt hp.mem_or_mem (not_or s₁.2 s₂.2)) s₃.2 (hp.mem_or_mem this) },
+    { exact not_or (mt hp.mem_or_mem (not_or s₂.2 s₁.2)) s₃.2 (hp.mem_or_mem this)},
     { exact (P.mul_mem_right
         (P.add_mem (P.mul_mem_left (this hy)) (P.mul_mem_left (this hx)))) }
   end)
 
 end at_prime
--/
+
+end localization
 
 def non_zero_divisors' : set α := {x | ∀ z, z * x = 0 → z = 0}
 
@@ -322,18 +317,19 @@ def non_zero_divisors : submonoid α :=
     have z * x₁ * x₂ = 0, by rwa mul_assoc,
     hx₁ z $ hx₂ (z * x₁) this }
 
-@[simp] lemma non_zero_divisors_one_val : ((1 : non_zero_divisors α) : α) = 1 := rfl
-
 @[reducible] def fraction_ring := localization α (non_zero_divisors α)
 
-def of : α →+* fraction_ring α := localization.of (non_zero_divisors α)
+def fraction_ring.of : α →+* fraction_ring α := localization.of (non_zero_divisors α)
+
+variables {α}
+
+@[simp] lemma non_zero_divisors_one_val  : ((1 : non_zero_divisors α) : α) = 1 := rfl
 
 namespace fraction_ring
 
 open function localization
 
 variables {β : Type*} [integral_domain β] [decidable_eq β]
-
 
 lemma eq_zero_of_ne_zero_of_mul_eq_zero {x y : β} :
   x ≠ 0 → y * x = 0 → y = 0 :=
@@ -460,27 +456,24 @@ end map
 
 end fraction_ring
 
-/-
 section ideals
 
-/--The image of the preimage of an ideal of a localization of a commutative ring under the natural
-   map from the ring to the localization equals the original ideal. -/
-theorem map_comap (J : ideal (localization α S)) :
-  ideal.map coe (ideal.comap (coe : α → localization α S) J) = J :=
-le_antisymm (ideal.map_le_iff_le_comap.2 (le_refl _)) $ λ x,
-localization.induction_on x $ λ r s hJ, (submodule.mem_coe _).2 $
-mul_one r ▸ coe_mul_mk r 1 s ▸ (ideal.mul_mem_right _ $ ideal.mem_map_of_mem $
-have _ := @ideal.mul_mem_left (localization α S) _ _ s _ hJ,
-by rwa [coe_coe, coe_mul_mk, mk_mul_cancel_left] at this)
+open localization
 
-/-- There is an order embedding between the ideals of a localization of a commutative ring and the
-    ideals of the ring, ordered by inclusion. -/
+theorem map_comap (J : ideal (localization α S)) :
+  ideal.map (of S) (ideal.comap (of S : α → localization α S) J) = J :=
+le_antisymm (ideal.map_le_iff_le_comap.2 (le_refl _)) $ λ x,
+localization.induction_on x $ λ x hJ, (submodule.mem_coe _).2 $
+mul_one x.1 ▸ of_mul_mk x.1 1 x.2 ▸ (ideal.mul_mem_right _ $ ideal.mem_map_of_mem $
+have _ := @ideal.mul_mem_left (localization α S) _ _ (of S x.2) _ hJ,
+by rwa [of_mul_mk, mk_mul_cancel_left] at this)
+
 def le_order_embedding :
   ((≤) : ideal (localization α S) → ideal (localization α S) → Prop) ≼o
   ((≤) : ideal α → ideal α → Prop) :=
-{ to_fun := λ J, ideal.comap coe J,
-  inj := function.injective_of_left_inverse (map_comap α),
+{ to_fun := λ J, ideal.comap (of S) J,
+  inj := function.injective_of_left_inverse (map_comap S),
   ord := λ J₁ J₂, ⟨ideal.comap_mono, λ hJ,
-    map_comap α J₁ ▸ map_comap α J₂ ▸ ideal.map_mono hJ⟩ }
+    map_comap S J₁ ▸ map_comap S J₂ ▸ ideal.map_mono hJ⟩ }
 
-end ideals-/
+end ideals

@@ -68,6 +68,9 @@ theorem induction_on₃ {p : localization X Y → localization Z W → localizat
   (H : ∀ (a : X × Y) (b : Z × W) (c : A × B), p (mk a.1 a.2) (mk b.1 b.2) (mk c.1 c.2)) : p x z a :=
 induction_on₂ x z $ λ p q, induction_on a $ λ r, H p q r
 
+lemma exists_rep (x : localization X Y) : ∃ y : X × Y, mk y.1 y.2 = x :=
+induction_on x $ λ y, ⟨y, rfl⟩
+
 end
 protected lemma mul_comm : ∀ x y : localization X Y, x * y = y * x :=
 λ x y, con.induction_on₂ x y (λ a b, by rw [con.coe_mul, con.coe_mul, mul_comm])

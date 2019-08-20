@@ -196,9 +196,6 @@ instance : inhabited (c.quotient) := ⟨((1 : M) : c.quotient)⟩
 @[simp] protected lemma eq {a b : M} : (a : c.quotient) = b ↔ c a b :=
 quotient.eq'
 
-lemma exists_rep (x : c.quotient) : ∃ y : M, (y : c.quotient) = x :=
-@quotient.exists_rep _ c.setoid x
-
 variables (c)
 
 instance monoid : monoid (c.quotient) :=

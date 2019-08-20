@@ -62,7 +62,6 @@ instance : comm_group (completion X) :=
    mul_left_inv := completion.mul_left_inv,
    ..localization.comm_monoid}
 
-#exit
 noncomputable def completion_of_group_equiv {G : Type*} [comm_group G] : G ≃* completion G :=
 let H : ∀ g : G, is_unit (monoid_hom.id G g) := λ g, ⟨(lift g : units G), by refl⟩ in
 { to_fun := localization.monoid_hom.of (⊤ : submonoid G),
@@ -73,10 +72,8 @@ let H : ∀ g : G, is_unit (monoid_hom.id G g) := λ g, ⟨(lift g : units G), b
       intro z,
       have : (lift (z.2 : G) : units G) = classical.some (H (z.2 : G)), by
        { ext, show monoid_hom.id G z.2 = _, apply classical.some_spec (H (z.2 : G))},
-      rw localization.monoid_hom.of_apply,
       apply localization.r_of_eq,
-      rw [←@prod.mk.eta _ _ z, ←localization.mk_apply, localization.monoid_hom.lift,
-          localization.monoid_hom.lift'_mk, ←this],
+      rw [localization.monoid_hom.lift, localization.monoid_hom.lift'_mk, ←this],
       show 1 * z.1 = (z.2 : G) * (z.1 * (z.2 : G)⁻¹),
       simp [mul_comm z.1]
     end,
@@ -84,9 +81,6 @@ let H : ∀ g : G, is_unit (monoid_hom.id G g) := λ g, ⟨(lift g : units G), b
 
 end completion
 
-/- Redoing the adjunction without the category theory library. I don't really know how to do
-   forgetful functors without the category theory library. I could map G to @set.univ G but
-   that's 'too forgetful' and it's not really materially saying anything. -/
 namespace completion_functor
 
 def obj := completion X
@@ -119,7 +113,7 @@ variables (X G)
 noncomputable def hom_equiv : (completion_functor.obj X →* G) ≃ (X →* G) :=
 { to_fun := λ f, f.comp (localization.monoid_hom.of top),
   inv_fun := λ f, localization.monoid_hom.lift f $ λ (x : top), ⟨(lift (f (x : X)) : units G), rfl⟩,
-  left_inv := λ f, localization.monoid_hom.lift_apply_coe f,
+  left_inv := λ f, localization.monoid_hom.lift_apply_of f,
   right_inv := λ f, @localization.monoid_hom.lift_comp_of X _ top G _ f
     (λ (x : top), ⟨(lift (f (x : X)) : units G), rfl⟩)}
 
@@ -132,63 +126,67 @@ begin
   rw equiv.eq_symm_apply,
   show ((localization.monoid_hom.lift g _).comp
     (localization.monoid_hom.map f _)).comp (localization.monoid_hom.of top) = g.comp f,
-  rw [←monoid_hom.comp_assoc, localization.monoid_hom.map_comp_of,
-      monoid_hom.comp_assoc, localization.monoid_hom.lift_comp_of],
+  rw [monoid_hom.comp_assoc, localization.monoid_hom.map_comp_of, ←monoid_hom.comp_assoc,
+      localization.monoid_hom.lift_comp_of],
 end
 
 end adjunction
 
-open localization localization.fraction_ring
+open localization fraction_ring
 variables (R : Type*) [integral_domain R] [decidable_eq R]
 
+lemma units.mk0_mul {α : Type*} [discrete_field α] (a b : α) (ha : a ≠ 0) (hb : b ≠ 0) :
+  units.mk0 (a*b) (mul_ne_zero ha hb) = units.mk0 a ha * units.mk0 b hb :=
+by ext; refl
+
 def non_zero_divisors_map : (non_zero_divisors R) →* units (fraction_ring R) :=
-{ to_fun := λ x, units.mk0 (localization.of x.1 : fraction_ring R)
+{ to_fun := λ x, units.mk0 (fraction_ring.of R x.1)
     (λ h, absurd (eq_zero_of x.1 h) (mem_non_zero_divisors_iff_ne_zero.1 x.2)),
-  map_one' := by {ext, refl},
-  map_mul' := λ x y, by {ext, show ↑(x.val * y.val) = ↑(x.val) * ↑(y.val),
-    apply localization.coe_mul}}
+  map_one' := by ext; refl,
+  map_mul' := λ x y, by ext; convert (fraction_ring.of R).map_mul _ _}
+
+@[simp] lemma non_zero_divisors_map_apply (x : non_zero_divisors R) :
+  non_zero_divisors_map R x = units.mk0 (fraction_ring.of R (x : R))
+  (λ h, absurd (eq_zero_of x.1 h) (mem_non_zero_divisors_iff_ne_zero.1 x.2)) := rfl
 
 noncomputable def fraction_ring_units_equiv :
   completion (non_zero_divisors R) ≃* units (fraction_ring R) :=
 let H : ∀ w : non_zero_divisors R, is_unit (non_zero_divisors_map R w) :=
 (λ x, ⟨lift (non_zero_divisors_map R x), rfl⟩) in
-localization.mul_equiv.equiv_of_char_pred (non_zero_divisors_map R)
+mul_equiv.equiv_of_char_pred (non_zero_divisors_map R)
 (λ w, H (w : non_zero_divisors R)) $ by
 { split,
     intro y,
-    cases con.exists_rep (y : fraction_ring R) with w hw,
+    cases exists_rep (y : fraction_ring R) with w hw,
     have h0 : w.1 ≠ 0,
     by { assume h, suffices : (y : fraction_ring R) = 0, by simpa,
-         rw [←hw, ←localization.coe_zero],
-         apply r_of_eq, rw h, simp},
-    use (((⟨w.1, mem_non_zero_divisors_iff_ne_zero.2 h0⟩, w.2) :
-          (non_zero_divisors R × (⊤ : submonoid (non_zero_divisors R)))) :
-            completion (non_zero_divisors R)),
-    ext, rw ←hw,
-    suffices : ↑((non_zero_divisors_map R) ⟨w.fst, _⟩ * ↑(classical.some _)⁻¹) = ↑w, by exact this,
-    have : (lift (non_zero_divisors_map R w.2 : units (fraction_ring R)) :
-            units (units (fraction_ring R))) = classical.some (H w.2), by
-       { apply units.ext, show non_zero_divisors_map R w.2 = _, apply classical.some_spec (H w.2)},
-    dsimp, rw [←this],
-    show ((units.mk0 (of (⟨w.1, mem_non_zero_divisors_iff_ne_zero.2 h0⟩ : non_zero_divisors R).1 :
-            fraction_ring R) (λ hn, absurd (eq_zero_of _ hn) h0)) : fraction_ring R) *
-          ((units.mk0 (of (w.2 : non_zero_divisors R) : fraction_ring R)
-          (λ hn, absurd (eq_zero_of _ hn) (mem_non_zero_divisors_iff_ne_zero.1
-            (w.2 : non_zero_divisors R).2)))⁻¹ : fraction_ring R) = _,
-    simp [(mk_eq_div R).symm, mk_eq, units.inv_eq_inv, to_units_coe],
+         rw ←hw, apply r_of_eq, rw h, simp},
+    use mk (⟨w.1, mem_non_zero_divisors_iff_ne_zero.2 h0⟩) w.2,
+    ext,
+    rw [←hw, ←units.mk0_val (λ (h : localization.mk w.1 w.2 = 0),
+      let ⟨t, ht⟩ := localization.eq.1 h in
+      absurd (eq_zero_of_ne_zero_of_mul_eq_zero h0 (by simpa using ht))
+             (mem_non_zero_divisors_iff_ne_zero.1 t.2))],
+    congr,
+    erw monoid_hom.lift_mk,
+    have : (lift (non_zero_divisors_map R w.2 : units _) : units (units _)) = classical.some (H w.2),
+      by {apply units.ext, show non_zero_divisors_map R w.2 = _, apply classical.some_spec (H w.2)},
+    dsimp,
+    erw [←this, non_zero_divisors_map_apply, units.coe_inv, _root_.lift, mul_inv_eq_iff_eq_mul,
+         ←units.mk0_mul, units.units.mk0_inj, mul_comm, of_mul_mk, mul_comm ↑w.2,
+         mk_mul_cancel_right],
+    refl,
   ext x y,
   split,
     intro h,
     use 1,
     simp [subtype.ext.2 (of.injective ((units.units.mk0_inj _ _).1 ((con.ker_rel _).1 h)))],
   rintro ⟨t, ht⟩,
-  rw con.ker_rel,
-  show units.mk0 (of (x : R)) _ = units.mk0 (of (y : R)) _,
-  congr' 1,
-  rw [←units.mul_left_inj
-      ((units.mk0 (localization.of ((t : non_zero_divisors R) : R) : fraction_ring R))
-      (λ h, absurd (eq_zero_of _ h) (mem_non_zero_divisors_iff_ne_zero.1 t.1.2))), units.mk0_val,
-      ←of_mul, ←of_mul, ←submonoid.coe_mul, ←submonoid.coe_mul],
-  congr' 2, simpa using ht}
+  rw [con.ker_rel, non_zero_divisors_map_apply, non_zero_divisors_map_apply, units.units.mk0_inj,
+      ←units.mul_left_inj (units.mk0 (fraction_ring.of R (t : non_zero_divisors R) : _)
+      (λ h, absurd (eq_zero_of _ h) $ mem_non_zero_divisors_iff_ne_zero.1 t.1.2)), units.mk0_val,
+      ←(fraction_ring.of R).map_mul, ←(fraction_ring.of R).map_mul, ←submonoid.coe_mul,
+      ←submonoid.coe_mul],
+  exact congr_arg (fraction_ring.of R) (congr_arg (subtype.val) (by simpa using ht))}
 
 end completion

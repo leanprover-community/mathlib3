@@ -36,6 +36,10 @@ theorem nth_eq_nth_le : ∀ (v : vector α n) (i),
   nth v i = v.to_list.nth_le i.1 (by rw to_list_length; exact i.2)
 | ⟨l, h⟩ i := rfl
 
+@[simp] lemma nth_map {β : Type*} (v : vector α n) (f : α → β) (i : fin n) : 
+  (v.map f).nth i = f (v.nth i) :=
+by simp [nth_eq_nth_le]
+
 @[simp] theorem nth_of_fn {n} (f : fin n → α) (i) : nth (of_fn f) i = f i :=
 by rw [nth_eq_nth_le, ← list.nth_le_of_fn f];
    congr; apply to_list_of_fn

@@ -593,6 +593,8 @@ do t ← infer_type e >>= whnf,
              retry_apply_aux e cfg ((b, v) :: gs)
      else apply_core e cfg
 
+/-- `retry_apply` mimics the behavior of `apply_core`. When `apply_core` fails, it is retried by providing the term with meta variables as additional arguments. The meta variables can then become new goals depending on the `cfg.new_goals` policy.
+/-
 meta def retry_apply (e : expr) (cfg : apply_cfg) : tactic (list (name × expr)) :=
 retry_apply_aux e cfg []
 
@@ -601,13 +603,14 @@ do r ← retry_apply e cfg,
    try_apply_opt_auto_param_for_apply cfg r,
    return r
 
-/-- Same as `apply` but __all__ arguments that weren't inferred are added to goal list. -/
+/-- Same as `apply'` but __all__ arguments that weren't inferred are added to goal list. -/
 meta def fapply' (e : expr) : tactic (list (name × expr)) :=
 apply' e {new_goals := new_goals.all}
-/-- Same as `apply` but only goals that don't depend on other goals are added to goal list. -/
+/-- Same as `apply'` but only goals that don't depend on other goals are added to goal list. -/
 meta def eapply' (e : expr) : tactic (list (name × expr)) :=
 apply' e {new_goals := new_goals.non_dep_only}
 
+/-- `relation_tactic` finds a proof rule for the relation found in the goal and uses `apply'` to make one proof step. -/
 private meta def relation_tactic (md : transparency) (op_for : environment → name → option name) (tac_name : string) : tactic unit :=
 do tgt   ← target >>= instantiate_mvars,
    env   ← get_env,
@@ -619,12 +622,15 @@ do tgt   ← target >>= instantiate_mvars,
    | none        := fail $ tac_name ++ " tactic failed, target is not a relation application with the expected property."
    end
 
+/-- Similar to `reflexivity` with the difference that `apply'` is used instead of `apply` -/
 meta def reflexivity' (md := semireducible) : tactic unit :=
 relation_tactic md environment.refl_for "reflexivity"
 
+/-- Similar to `symmetry` with the difference that `apply'` is used instead of `apply` -/
 meta def symmetry' (md := semireducible) : tactic unit :=
 relation_tactic md environment.symm_for "symmetry"
 
+/-- Similar to `transitivity` with the difference that `apply'` is used instead of `apply` -/
 meta def transitivity' (md := semireducible) : tactic unit :=
 relation_tactic md environment.trans_for "transitivity"
 

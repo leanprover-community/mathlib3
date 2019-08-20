@@ -314,14 +314,14 @@ attribute [to_additive is_add_group_hom.ker.equations._eqn_1] ker.equations._eqn
 lemma mem_ker (f : α → β) [is_group_hom f] {x : α} : x ∈ ker f ↔ f x = 1 :=
 mem_trivial
 
-@[to_additive is_add_group_hom.map_zero_ker_neg]
+@[to_additive is_add_group_hom.zero_ker_neg]
 lemma one_ker_inv (f : α → β) [is_group_hom f] {a b : α} (h : f (a * b⁻¹) = 1) : f a = f b :=
 begin
   rw [map_mul f, map_inv f] at h,
   rw [←inv_inv (f b), eq_inv_of_mul_eq_one h]
 end
 
-@[to_additive is_add_group_hom.map_zero_ker_neg']
+@[to_additive is_add_group_hom.zero_ker_neg']
 lemma one_ker_inv' (f : α → β) [is_group_hom f] {a b : α} (h : f (a⁻¹ * b) = 1) : f a = f b :=
 begin
   rw [map_mul f, map_inv f] at h,
@@ -329,29 +329,29 @@ begin
   rw eq_inv_of_mul_eq_one h
 end
 
-@[to_additive is_add_group_hom.map_neg_ker_zero]
+@[to_additive is_add_group_hom.neg_ker_zero]
 lemma inv_ker_one (f : α → β) [is_group_hom f] {a b : α} (h : f a = f b) : f (a * b⁻¹) = 1 :=
 have f a * (f b)⁻¹ = 1, by rw [h, mul_right_inv],
 by rwa [←map_inv f, ←map_mul f] at this
 
-@[to_additive is_add_group_hom.map_neg_ker_zero']
+@[to_additive is_add_group_hom.neg_ker_zero']
 lemma inv_ker_one' (f : α → β) [is_group_hom f] {a b : α} (h : f a = f b) : f (a⁻¹ * b) = 1 :=
 have (f a)⁻¹ * f b = 1, by rw [h, mul_left_inv],
 by rwa [←map_inv f, ←map_mul f] at this
 
-@[to_additive is_add_group_hom.map_zero_iff_ker_neg]
+@[to_additive is_add_group_hom.zero_iff_ker_neg]
 lemma one_iff_ker_inv (f : α → β) [is_group_hom f] (a b : α) : f a = f b ↔ f (a * b⁻¹) = 1 :=
 ⟨inv_ker_one f, one_ker_inv f⟩
 
-@[to_additive is_add_group_hom.map_zero_iff_ker_neg']
+@[to_additive is_add_group_hom.zero_iff_ker_neg']
 lemma one_iff_ker_inv' (f : α → β) [is_group_hom f] (a b : α) : f a = f b ↔ f (a⁻¹ * b) = 1 :=
 ⟨inv_ker_one' f, one_ker_inv' f⟩
 
-@[to_additive is_add_group_hom.map_neg_iff_ker]
+@[to_additive is_add_group_hom.neg_iff_ker]
 lemma inv_iff_ker (f : α → β) [w : is_group_hom f] (a b : α) : f a = f b ↔ a * b⁻¹ ∈ ker f :=
 by rw [mem_ker]; exact one_iff_ker_inv _ _ _
 
-@[to_additive is_add_group_hom.map_neg_iff_ker']
+@[to_additive is_add_group_hom.neg_iff_ker']
 lemma inv_iff_ker' (f : α → β) [w : is_group_hom f] (a b : α) : f a = f b ↔ a⁻¹ * b ∈ ker f :=
 by rw [mem_ker]; exact one_iff_ker_inv' _ _ _
 

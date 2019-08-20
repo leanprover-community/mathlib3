@@ -1,7 +1,8 @@
--- Copyright (c) 2017 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
-
+/-
+Copyright (c) 2017 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
+-/
 import category_theory.functor_category
 import category_theory.isomorphism
 
@@ -81,6 +82,12 @@ def is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso 
 
 instance is_iso_of_is_iso_app' (α : F ⟶ G) [H : ∀ X : C, is_iso (nat_trans.app α X)] : is_iso α :=
 @nat_iso.is_iso_of_is_iso_app _ _ _ _ _ _ α H
+
+-- TODO can we make this an instance?
+def is_iso_app_of_is_iso (α : F ⟶ G) [is_iso α] (X) : is_iso (α.app X) :=
+{ inv := (inv α).app X,
+  hom_inv_id' := congr_fun (congr_arg nat_trans.app (is_iso.hom_inv_id α)) X,
+  inv_hom_id' := congr_fun (congr_arg nat_trans.app (is_iso.inv_hom_id α)) X }
 
 def of_components (app : ∀ X : C, (F.obj X) ≅ (G.obj X))
   (naturality : ∀ {X Y : C} (f : X ⟶ Y), (F.map f) ≫ ((app Y).hom) = ((app X).hom) ≫ (G.map f)) :

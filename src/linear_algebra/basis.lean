@@ -486,12 +486,12 @@ begin
   exact hi'.2
 end
 
-lemma eq_of_linear_independent_of_span_subtype {s t : set β} (zero_ne_one : (1 : α) ≠ 0)
+lemma eq_of_linear_independent_of_span_subtype {s t : set β} (zero_ne_one : (0 : α) ≠ 1)
   (hs : linear_independent α (λ x, x : s → β)) (h : t ⊆ s) (hst : s ⊆ span α t) : s = t :=
 begin
   let f : t ↪ s := ⟨λ x, ⟨x.1, h x.2⟩, λ a b hab, subtype.val_injective (subtype.mk.inj hab)⟩,
   have h_surj : surjective f,
-  { apply surjective_of_linear_independent_of_span hs f _ zero_ne_one.symm,
+  { apply surjective_of_linear_independent_of_span hs f _ zero_ne_one,
     convert hst; simp [f, comp], },
   show s = t,
   { apply subset.antisymm _ h,
@@ -569,6 +569,22 @@ begin
       { rw [set.range_comp, span_image],
         apply linear_map.map_le_range } } }
 end
+
+lemma le_of_span_le_span {s t u: set β} (zero_ne_one : (0 : α) ≠ 1)
+  (hl : linear_independent α (subtype.val : u → β )) (hsu : s ⊆ u) (htu : t ⊆ u)
+  (hst : span α s ≤ span α t) : s ⊆ t :=
+begin
+  have := eq_of_linear_independent_of_span_subtype zero_ne_one
+    (hl.mono (set.union_subset hsu htu))
+    (set.subset_union_right _ _)
+    (set.union_subset (set.subset.trans subset_span hst) subset_span),
+  rw ← this, apply set.subset_union_left
+end
+
+lemma span_le_span_iff {s t u: set β} (zero_ne_one : (0 : α) ≠ 1)
+  (hl : linear_independent α (subtype.val : u → β )) (hsu : s ⊆ u) (htu : t ⊆ u) :
+  span α s ≤ span α t ↔ s ⊆ t :=
+⟨le_of_span_le_span zero_ne_one hl hsu htu, span_mono⟩
 
 variables (α) (v)
 /-- A set of vectors is a basis if it is linearly independent and all vectors are in the span α. -/
@@ -760,6 +776,22 @@ begin
   exact (submodule.mem_bot α).1 (subtype.mem x),
 end
 
+open fintype
+variables [fintype ι] (h : is_basis α v)
+
+/-- A module over α with a finite basis is linearly equivalent to functions from its basis to α. -/
+def equiv_fun_basis  : β ≃ₗ[α] (ι → α) :=
+linear_equiv.trans (module_equiv_finsupp h)
+  { to_fun := finsupp.to_fun,
+    add := λ x y, by ext; exact finsupp.add_apply,
+    smul := λ x y, by ext; exact finsupp.smul_apply,
+    ..finsupp.equiv_fun_on_fintype }
+
+theorem module.card_fintype [fintype α] [fintype β] :
+  card β = (card α) ^ (card ι) :=
+calc card β = card (ι → α)    : card_congr (equiv_fun_basis h).to_equiv
+        ... = card α ^ card ι : card_fun
+
 end module
 
 section vector_space
@@ -876,7 +908,7 @@ have ∀t, ∀(s' : finset β), ↑s' ⊆ s → s ∩ ↑t = ∅ → s ⊆ (span
 assume t, finset.induction_on t
   (assume s' hs' _ hss',
     have s = ↑s',
-      from eq_of_linear_independent_of_span_subtype (@one_ne_zero α _) hs hs' $
+      from eq_of_linear_independent_of_span_subtype (@zero_ne_one α _) hs hs' $
           by simpa using hss',
     ⟨s', by simp [this]⟩)
   (assume b₁ t hb₁t ih s' hs' hst hss',
@@ -990,27 +1022,15 @@ begin
 end
 
 open fintype
-variables (h : is_basis α v)
 
-local attribute [instance] submodule.module
-
-noncomputable def equiv_fun_basis [fintype ι] : β ≃ (ι → α) :=
-calc β ≃ (ι →₀ α) : (module_equiv_finsupp h).to_equiv
-   ... ≃ (ι → α)                              : finsupp.equiv_fun_on_fintype
-
-theorem vector_space.card_fintype [fintype ι] [fintype α] [fintype β] :
-  card β = (card α) ^ (card ι) :=
-calc card β = card (ι → α)    : card_congr (equiv_fun_basis h)
-        ... = card α ^ card ι : card_fun
-
-theorem vector_space.card_fintype' [fintype α] [fintype β] :
+theorem vector_space.card_fintype [fintype α] [fintype β] :
   ∃ n : ℕ, card β = (card α) ^ n :=
 begin
   apply exists.elim (exists_is_basis α β),
   intros b hb,
   haveI := classical.dec_pred (λ x, x ∈ b),
   use card b,
-  exact vector_space.card_fintype hb,
+  exact module.card_fintype hb,
 end
 
 end vector_space

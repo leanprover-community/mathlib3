@@ -10,7 +10,7 @@ into all uniform spaces. Any uniform space `α` gets a completion `completion α
 (ie. uniformly continuous map) `completion : α → completion α` which solves the universal
 mapping problem of factorizing morphisms from `α` to any complete Hausdorff uniform space `β`.
 It means any uniformly continuous `f : α → β` gives rise to a unique morphism
-`completion.map f : completion α → β` such that `f = completion.extension f ∘ completion α`.
+`completion.extension f : completion α → β` such that `f = completion.extension f ∘ completion α`.
 Actually `completion.extension f` is defined for all maps from `α` to `β` but it has the desired
 properties only if `f` is uniformly continuous.
 
@@ -491,6 +491,10 @@ begin
   simpa only [extension_coe hf] using h
 end
 
+@[simp] lemma extension_comp_coe {f : completion α → β} (hf : uniform_continuous f) :
+  completion.extension (f ∘ coe) = f :=
+funext $ λ x, completion.induction_on x (is_closed_eq continuous_extension hf.continuous)
+    (λ y, completion.extension_coe (hf.comp $ uniform_continuous_coe α) y)
 end extension
 
 section map
@@ -518,7 +522,7 @@ begin
   rw [extension_coe (hg.comp (uniform_continuous_coe α))]
 end
 
-lemma map_id : completion.map (@id α) = id :=
+@[simp] lemma map_id : completion.map (@id α) = id :=
 map_unique uniform_continuous_id (assume a, rfl)
 
 lemma extension_map [complete_space γ] [separated γ] {f : β → γ} {g : α → β}

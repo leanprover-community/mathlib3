@@ -976,6 +976,15 @@ theorem nth_update_nth_ne (a : α) {m n} (l : list α) (h : m ≠ n) :
   nth (update_nth l m a) n = nth l n :=
 by simp only [update_nth_eq_modify_nth, nth_modify_nth_ne _ _ h]
 
+@[simp] lemma nth_le_update_nth_eq (l : list α) (i : ℕ) (a : α)
+  (h : i < (l.update_nth i a).length) : (l.update_nth i a).nth_le i h = a :=
+by rw [← option.some_inj, ← nth_le_nth, nth_update_nth_eq, nth_le_nth]; simp * at *
+
+@[simp] lemma nth_le_update_nth_of_ne {l : list α} {i j : ℕ} (h : i ≠ j) (a : α)
+  (hj : j < (l.update_nth i a).length) :
+  (l.update_nth i a).nth_le j hj = l.nth_le j (by simpa using hj) :=
+by rw [← option.some_inj, ← list.nth_le_nth, list.nth_update_nth_ne _ _ h, list.nth_le_nth]
+
 lemma mem_or_eq_of_mem_update_nth : ∀ {l : list α} {n : ℕ} {a b : α}
   (h : a ∈ l.update_nth n b), a ∈ l ∨ a = b
 | []     n     a b h := false.elim h
@@ -1025,6 +1034,16 @@ lemma insert_nth_comm (a b : α) :
 | (i + 1) (j+1) (c::l) :=
   assume h₀ h₁,
   by simp [insert_nth]; exact insert_nth_comm i j l (nat.le_of_succ_le_succ h₀) (nat.le_of_succ_le_succ h₁)
+
+lemma mem_insert_nth {a b : α} : ∀ {n : ℕ} {l : list α} (hi : n ≤ l.length),
+  a ∈ l.insert_nth n b ↔ a = b ∨ a ∈ l
+| 0     as       h := iff.rfl
+| (n+1) []       h := (nat.not_succ_le_zero _ h).elim
+| (n+1) (a'::as) h := begin
+  dsimp [list.insert_nth],
+  erw [list.mem_cons_iff, mem_insert_nth (nat.le_of_succ_le_succ h), list.mem_cons_iff,
+    ← or.assoc, or_comm (a = a'), or.assoc]
+end
 
 end insert_nth
 
@@ -4470,9 +4489,9 @@ end Ico
   map prod.fst (enum l) = range l.length :=
 by simp only [enum, enum_from_map_fst, range_eq_range']
 
-theorem last'_mem {α} : ∀ a l, @last' α a l ∈ a :: l
+theorem ilast'_mem {α} : ∀ a l, @ilast' α a l ∈ a :: l
 | a []     := or.inl rfl
-| a (b::l) := or.inr (last'_mem b l)
+| a (b::l) := or.inr (ilast'_mem b l)
 
 @[simp] lemma nth_le_attach {α} (L : list α) (i) (H : i < L.attach.length) :
   (L.attach.nth_le i H).1 = L.nth_le i (length_attach L ▸ H) :=
@@ -4519,13 +4538,13 @@ theorem tfae_of_forall (b : Prop) (l : list Prop) (h : ∀ a ∈ l, a ↔ b) : t
 λ a₁ h₁ a₂ h₂, (h _ h₁).trans (h _ h₂).symm
 
 theorem tfae_of_cycle {a b} {l : list Prop} :
-  list.chain (→) a (b::l) → (last' b l → a) → tfae (a::b::l) :=
+  list.chain (→) a (b::l) → (ilast' b l → a) → tfae (a::b::l) :=
 begin
   induction l with c l IH generalizing a b; simp [tfae_cons_cons, tfae_singleton] at *,
   { intros a _ b, exact iff.intro a b },
   intros ab bc ch la,
   have := IH bc ch (ab ∘ la),
-  exact ⟨⟨ab, la ∘ (this.2 c (or.inl rfl) _ (last'_mem _ _)).1 ∘ bc⟩, this⟩
+  exact ⟨⟨ab, la ∘ (this.2 c (or.inl rfl) _ (ilast'_mem _ _)).1 ∘ bc⟩, this⟩
 end
 
 theorem tfae.out {l} (h : tfae l) (n₁ n₂)
@@ -4938,6 +4957,41 @@ begin
 end
 
 end func
+
+namespace nat
+
+/-- The antidiagonal of a natural number `n` is the list of pairs `(i,j)` such that `i+j = n`. -/
+def antidiagonal (n : ℕ) : list (ℕ × ℕ) :=
+(range (n+1)).map (λ i, (i, n - i))
+
+/-- A pair (i,j) is contained in the antidiagonal of `n` if and only if `i+j=n`. -/
+@[simp] lemma mem_antidiagonal {n : ℕ} {x : ℕ × ℕ} :
+  x ∈ antidiagonal n ↔ x.1 + x.2 = n :=
+begin
+  rw [antidiagonal, mem_map], split,
+  { rintros ⟨i, hi, rfl⟩, rw [mem_range, lt_succ_iff] at hi, exact add_sub_of_le hi },
+  { rintro rfl, refine ⟨x.fst, _, _⟩,
+    { rw [mem_range, add_assoc, lt_add_iff_pos_right], exact zero_lt_succ _ },
+    { exact prod.ext rfl (nat.add_sub_cancel_left _ _) } }
+end
+
+/-- The length of the antidiagonal of `n` is `n+1`. -/
+@[simp] lemma length_antidiagonal (n : ℕ) : (antidiagonal n).length = n+1 :=
+by rw [antidiagonal, length_map, length_range]
+
+/-- The antidiagonal of `0` is the list `[(0,0)]` -/
+@[simp] lemma antidiagonal_zero : antidiagonal 0 = [(0, 0)] :=
+ext_le (length_antidiagonal 0) $ λ n h₁ h₂,
+begin
+  rw [length_antidiagonal, lt_succ_iff, le_zero_iff] at h₁,
+  subst n, simp [antidiagonal]
+end
+
+/-- The antidiagonal of `n` does not contain duplicate entries. -/
+lemma nodup_antidiagonal (n : ℕ) : nodup (antidiagonal n) :=
+nodup_map (@injective_of_left_inverse ℕ (ℕ × ℕ) prod.fst (λ i, (i, n-i)) $ λ i, rfl) (nodup_range _)
+
+end nat
 
 end list
 

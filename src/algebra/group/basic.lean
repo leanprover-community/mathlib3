@@ -199,6 +199,9 @@ section add_comm_group
 
   lemma add_sub_cancel'_right (a b : α) : a + (b - a) = b :=
   by rw [← add_sub_assoc, add_sub_cancel']
+  
+  @[simp] lemma add_add_neg_cancel'_right (a b : α) : a + (b + -a) = b :=
+  add_sub_cancel'_right a b 
 
   lemma sub_right_comm (a b c : α) : a - b - c = a - c - b :=
   add_right_comm _ _ _

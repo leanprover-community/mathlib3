@@ -217,6 +217,8 @@ theorem num_denom : ∀ a : ℚ, a = a.num /. a.denom
 
 theorem num_denom' (n d h c) : (⟨n, d, h, c⟩ : ℚ) = n /. d := num_denom _
 
+theorem of_int_eq_mk (z : ℤ) : of_int z = z /. 1 := num_denom' _ _ _ _
+
 @[elab_as_eliminator] theorem {u} num_denom_cases_on {C : ℚ → Sort u}
    : ∀ (a : ℚ) (H : ∀ n d, d > 0 → (int.nat_abs n).coprime d → C (n /. d)), C a
 | ⟨n, d, h, c⟩ H := by rw num_denom'; exact H n d h c

@@ -515,7 +515,7 @@ summable_iff_vanishing_norm.2 $ assume ε hε,
   let ⟨s, hs⟩ := summable_iff_vanishing_norm.1 hf ε hε in
   ⟨s, assume t ht,
     have ∥t.sum g∥ < ε := hs t ht,
-    have nn : 0 ≤ t.sum g := finset.zero_le_sum (assume a _, le_trans (norm_nonneg _) (h a)),
+    have nn : 0 ≤ t.sum g := finset.sum_nonneg (assume a _, le_trans (norm_nonneg _) (h a)),
     lt_of_le_of_lt (norm_triangle_sum t f) $ lt_of_le_of_lt (finset.sum_le_sum $ assume i _, h i) $
       by rwa [real.norm_eq_abs, abs_of_nonneg nn] at this⟩
 

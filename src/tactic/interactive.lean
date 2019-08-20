@@ -635,63 +635,60 @@ do let ns := name_set.of_list xs,
      when (¬ ns.contains h.local_pp_name) $
        try $ tactic.clear h) ∘ list.reverse
 
--- meta def retry_apply : Π (e : expr) (cfg : apply_cfg), tactic (list (name × expr))
 /--
-The `apply` tactic tries to match the current goal against the conclusion of the type of term. The argument term should be a term well-formed in the local context of the main goal. If it succeeds, then the tactic returns as many subgoals as the number of premises that have not been fixed by type inference or type class resolution. Non-dependent premises are added before dependent ones.
+Similarly to `apply`, the `apply'` tactic tries to match the current goal against the conclusion of the type of term. 
 
-The `apply` tactic uses higher-order pattern matching, type class resolution, and first-order unification with dependent types.
+It differs from `apply` in that it does not unfold definition in order to find out what the assumptions of the provided term is. It is especially useful when defining relations on function spaces (e.g. `≤`) so that rules like transitivity on `le : (α → β) → (α → β) → (α → β)` will be considered to have three parameters and two assumptions (i.e. `f g h : α → β`, `H₀ : f ≤ g`, `H₁ : g ≤ h`) instead of three parameters, two assumptions and then one more parameter (i.e. `f g h : α → β`, `H₀ : f ≤ g`, `H₁ : g ≤ h`, `x : α`). Whereas `apply` would expect the goal `f x ≤ h x`, `apply'` will work with the goal `f ≤ h`.
 -/
 meta def apply' (q : parse texpr) : tactic unit :=
 concat_tags (do h ← i_to_expr_for_apply q, tactic.apply' h)
 
 /--
-Similar to the `apply` tactic, but does not reorder goals.
+Similar to the `apply'` tactic, but does not reorder goals.
 -/
 meta def fapply' (q : parse texpr) : tactic unit :=
 concat_tags (i_to_expr_for_apply q >>= tactic.fapply')
 
 /--
-Similar to the `apply` tactic, but only creates subgoals for non-dependent premises that have not been fixed by type inference or type class resolution.
+Similar to the `apply'` tactic, but only creates subgoals for non-dependent premises that have not been fixed by type inference or type class resolution.
 -/
 meta def eapply' (q : parse texpr) : tactic unit :=
 concat_tags (i_to_expr_for_apply q >>= tactic.eapply')
 
 /--
-Similar to the `apply` tactic, but allows the user to provide a `apply_cfg` configuration object.
+Similar to the `apply'` tactic, but allows the user to provide a `apply_cfg` configuration object.
 -/
 meta def apply_with' (q : parse parser.pexpr) (cfg : apply_cfg) : tactic unit :=
 concat_tags (do e ← i_to_expr_for_apply q, tactic.apply' e cfg)
 
 /--
-Similar to the `apply` tactic, but uses matching instead of unification.
-`mapply' t` is equivalent to `apply_with t {unify := ff}`
+Similar to the `apply'` tactic, but uses matching instead of unification.
+`mapply' t` is equivalent to `apply_with' t {unify := ff}`
 -/
 meta def mapply' (q : parse texpr) : tactic unit :=
 concat_tags (do e ← i_to_expr_for_apply q, tactic.apply' e {unify := ff})
 
 
 /--
-This tactic applies to a goal whose target has the form `t ~ u` where `~` is a reflexive relation, that is, a relation which has a reflexivity lemma tagged with the attribute `[refl]`. The tactic checks whether `t` and `u` are definitionally equal and then solves the goal.
+Similar to `reflexivity` with the difference that `apply'` is used instead of `apply`.
 -/
 meta def reflexivity' : tactic unit :=
 tactic.reflexivity'
 
 /--
-Shorter name for the tactic `reflexivity`.
+Shorter name for the tactic `reflexivity'`.
 -/
 meta def refl' : tactic unit :=
 tactic.reflexivity'
 
 /--
-This tactic applies to a goal whose target has the form `t ~ u` where `~` is a symmetric relation, that is, a relation which has a symmetry lemma tagged with the attribute `[symm]`. It replaces the target with `u ~ t`.
+Similar to `symmetry` with the difference that `apply'` is used instead of `apply`.
 -/
 meta def symmetry' : tactic unit :=
 tactic.symmetry'
 
 /--
-This tactic applies to a goal whose target has the form `t ~ u` where `~` is a transitive relation, that is, a relation which has a transitivity lemma tagged with the attribute `[trans]`.
-
-`transitivity s` replaces the goal with the two subgoals `t ~ s` and `s ~ u`. If `s` is omitted, then a metavariable is used instead.
+Similar to `transitivity` with the difference that `apply'` is used instead of `apply`.
 -/
 meta def transitivity' (q : parse texpr?) : tactic unit :=
 tactic.transitivity' >> match q with

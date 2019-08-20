@@ -34,27 +34,32 @@ include 𝒞
 
 namespace functor
 
-@[simp] def of_function {I : Type u₁} (F : I → C) : (discrete I) ⥤ C :=
+def of_function {I : Type u₁} (F : I → C) : (discrete I) ⥤ C :=
 { obj := F,
   map := λ X Y f, begin cases f, cases f, cases f, exact 𝟙 (F X) end }
+
+@[simp] lemma of_function_obj  {I : Type u₁} (F : I → C) (i : I) : (of_function F).obj i = F i := rfl
 
 end functor
 
 namespace nat_trans
 
-@[simp] def of_homs {I : Type u₁} {F G : discrete I ⥤ C}
+def of_homs {I : Type u₁} {F G : discrete I ⥤ C}
   (f : Π i : discrete I, F.obj i ⟶ G.obj i) : F ⟶ G :=
 { app := f }
 
-@[simp] def of_function {I : Type u₁} {F G : I → C} (f : Π i : I, F i ⟶ G i) :
+def of_function {I : Type u₁} {F G : I → C} (f : Π i : I, F i ⟶ G i) :
   (functor.of_function F) ⟶ (functor.of_function G) :=
 of_homs f
+
+@[simp] lemma of_function_app {I : Type u₁} {F G : I → C} (f : Π i : I, F i ⟶ G i) (i : I) :
+  (of_function f).app i = f i := rfl
 
 end nat_trans
 
 namespace nat_iso
 
-@[simp] def of_isos {I : Type u₁} {F G : discrete I ⥤ C}
+def of_isos {I : Type u₁} {F G : discrete I ⥤ C}
   (f : Π i : discrete I, F.obj i ≅ G.obj i) : F ≅ G :=
 of_components f (by tidy)
 

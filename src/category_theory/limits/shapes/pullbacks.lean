@@ -178,16 +178,16 @@ abbreviation pullback_cone (f : X ⟶ Z) (g : Y ⟶ Z) := cone (cospan f g)
 namespace pullback_cone
 variables {f : X ⟶ Z} {g : Y ⟶ Z}
 
-def π₁ (t : pullback_cone f g) : t.X ⟶ X := t.π.app left
-def π₂ (t : pullback_cone f g) : t.X ⟶ Y := t.π.app right
+def fst (t : pullback_cone f g) : t.X ⟶ X := t.π.app left
+def snd (t : pullback_cone f g) : t.X ⟶ Y := t.π.app right
 
-def mk {W : C} (π₁ : W ⟶ X) (π₂ : W ⟶ Y) (eq : π₁ ≫ f = π₂ ≫ g) : pullback_cone f g :=
+def mk {W : C} (fst : W ⟶ X) (snd : W ⟶ Y) (eq : fst ≫ f = snd ≫ g) : pullback_cone f g :=
 { X := W,
   π :=
-  { app := λ j, walking_cospan.cases_on j π₁ π₂ (π₁ ≫ f),
+  { app := λ j, walking_cospan.cases_on j fst snd (fst ≫ f),
     naturality' := λ j j' f, by cases f; obviously } }
 
-lemma condition (t : pullback_cone f g) : (π₁ t) ≫ f = (π₂ t) ≫ g :=
+lemma condition (t : pullback_cone f g) : (fst t) ≫ f = (snd t) ≫ g :=
 begin
   erw [t.w inl, ← t.w inr], refl
 end
@@ -200,16 +200,16 @@ namespace pushout_cocone
 
 variables {f : X ⟶ Y} {g : X ⟶ Z}
 
-def ι₁ (t : pushout_cocone f g) : Y ⟶ t.X := t.ι.app left
-def ι₂ (t : pushout_cocone f g) : Z ⟶ t.X := t.ι.app right
+def inl (t : pushout_cocone f g) : Y ⟶ t.X := t.ι.app left
+def inr (t : pushout_cocone f g) : Z ⟶ t.X := t.ι.app right
 
-def mk {W : C} (ι₁ : Y ⟶ W) (ι₂ : Z ⟶ W) (eq : f ≫ ι₁ = g ≫ ι₂) : pushout_cocone f g :=
+def mk {W : C} (inl : Y ⟶ W) (inr : Z ⟶ W) (eq : f ≫ inl = g ≫ inr) : pushout_cocone f g :=
 { X := W,
   ι :=
-  { app := λ j, walking_span.cases_on j (f ≫ ι₁) ι₁ ι₂,
+  { app := λ j, walking_span.cases_on j (f ≫ inl) inl inr,
     naturality' := λ j j' f, by cases f; obviously } }
 
-lemma condition (t : pushout_cocone f g) : f ≫ (ι₁ t) = g ≫ (ι₂ t) :=
+lemma condition (t : pushout_cocone f g) : f ≫ (inl t) = g ≫ (inr t) :=
 begin
   erw [t.w fst, ← t.w snd], refl
 end
@@ -271,17 +271,17 @@ limit (cospan f g)
 abbreviation pushout {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) [has_colimit (span f g)] :=
 colimit (span f g)
 
-abbreviation pullback.π₁ {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) [has_limit (cospan f g)] : pullback f g ⟶ X :=
+abbreviation pullback.fst {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) [has_limit (cospan f g)] : pullback f g ⟶ X :=
 limit.π (cospan f g) walking_cospan.left
-abbreviation pullback.π₂ {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) [has_limit (cospan f g)] : pullback f g ⟶ Y :=
+abbreviation pullback.snd {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) [has_limit (cospan f g)] : pullback f g ⟶ Y :=
 limit.π (cospan f g) walking_cospan.right
-abbreviation pushout.ι₁ {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) [has_colimit (span f g)] : Y ⟶ pushout f g :=
+abbreviation pushout.inl {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) [has_colimit (span f g)] : Y ⟶ pushout f g :=
 colimit.ι (span f g) walking_span.left
-abbreviation pushout.ι₂ {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) [has_colimit (span f g)] : Z ⟶ pushout f g :=
+abbreviation pushout.inr {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) [has_colimit (span f g)] : Z ⟶ pushout f g :=
 colimit.ι (span f g) walking_span.right
 
 abbreviation pullback.lift {W X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) [has_limit (cospan f g)]
-  (h : W ⟶ X) (k : W ⟶ Y) (w : h ≫ f = k ≫ g): W ⟶ pullback f g :=
+  (h : W ⟶ X) (k : W ⟶ Y) (w : h ≫ f = k ≫ g) : W ⟶ pullback f g :=
 limit.lift _ (pullback_cone.mk h k w)
 abbreviation pushout.desc {W X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) [has_colimit (span f g)]
   (h : Y ⟶ W) (k : Z ⟶ W) (w : f ≫ h = g ≫ k) : pushout f g ⟶ W :=

@@ -1,6 +1,6 @@
 import ring_theory.localization2
 
-variables {α : Type*} [monoid α] (X : Type*) [comm_monoid X]
+variables (X : Type*) [comm_monoid X]
           {Y : Type*} [comm_monoid Y] {Z : Type*} [comm_monoid Z]
 
 local notation `top` := (⊤ : submonoid X)
@@ -10,37 +10,51 @@ local notation `top` := (⊤ : submonoid X)
 namespace completion
 
 instance top_coe : has_coe X top := ⟨λ x, ⟨x, set.mem_univ x⟩⟩
-instance : has_coe (X × top) (completion X) := infer_instance
-instance of_coe : has_coe X (completion X) := infer_instance
+
+def of : X →* completion X := localization.monoid_hom.of top
+def r : X × X → X × X → Prop := λ x y, (⊤ : submonoid X).r (x.1, x.2) (y.1, y.2)
+
+@[elab_as_eliminator, reducible]
+def lift₁ {β : Type*} (f : X × X → β) (H : ∀ (a b : X × X), r X a b → f a = f b) :
+  completion X → β :=
+localization.lift₁ top (λ x, f (x.1, (x.2 : X))) $ λ x y, H (x.1, x.2) (y.1, y.2)
 
 variables {X}
-
+def mk (x y : X) : completion X := localization.mk x y
+@[simp] lemma top_coe_mul {x y : X} : (((x*y) : X) : top) = (x : top) * (y : top) := rfl
 @[simp] lemma top_coe_apply (x : X) : ((x : top) : X) = x := rfl
 lemma top_coe_inj {x y : X} (h : (x : top) = y) : x = y :=
 by rw [←top_coe_apply x, ←top_coe_apply y, h]
 
+@[simp] lemma mk_mul_mk (x y s t : X) :
+  mk x s * mk y t = mk (x * y) (s * t) := rfl
+
+@[elab_as_eliminator]
+theorem ind {p : completion X → Prop} (H : ∀ (y : X × X), p (mk y.1 y.2))
+  (x : completion X) : p x :=
+by {apply localization.ind, intro y, convert H (y.1, (y.2 : X)), cases y, cases y_snd, refl}
+
+@[elab_as_eliminator]
+theorem induction_on {p : completion X → Prop} (x : completion X)
+  (H : ∀ (y : X × X), p (mk y.1 y.2)) : p x := ind H x
+
 instance : has_inv (completion X) :=
-⟨localization.lift top (λ x, (((x.2 : X), (x.1: top)) : completion X)) $
-λ a b ⟨w, hw⟩, con.eq.2 $ ⟨w, by {dsimp, rw [mul_comm _ b.1, mul_comm _ a.1, hw]}⟩⟩
+⟨lift₁ X (λ x, (mk x.2 x.1)) $
+λ a b ⟨w, hw⟩, con.eq.2 $ ⟨w, by {dsimp at hw ⊢, rw [mul_comm a.2, mul_comm b.2, hw]}⟩⟩
 
 def inv : completion X →* completion X :=
-⟨λ x, x⁻¹, rfl, λ x y, by induction x; induction y; refl⟩
+⟨λ x, x⁻¹, rfl, λ x y, by rcases x; rcases y; refl⟩
 
-@[simp] lemma inv_apply (x :  X × top) :
-(((x.2 : X), (x.1 : top)) : completion X) = x⁻¹ := rfl
+@[simp] lemma inv_apply (x :  X × X) :
+(mk x.1 x.2)⁻¹ = mk x.2 x.1 := rfl
 
-@[simp] lemma coe_mul {x y : X} : (x : top) * (y : top) = ((x * y : X) : top) := rfl
-
-@[simp] lemma coe_self {x : X} : ((x, (x : top)) : completion X) = 1 :=
+@[simp] lemma mk_self {x : X} : mk x x = 1 :=
 by apply localization.mk_self
 
 protected lemma mul_left_inv (x : completion X) : x⁻¹ * x = 1 :=
 begin
-  apply con.induction_on' x,
-  rintro ⟨y1, y2⟩,
-  rw [←inv_apply, ←localization.mk_apply, ←localization.mk_apply,
-      localization.mk_mul_mk, mul_comm],
-  apply coe_self,
+  apply induction_on x,
+  intro y, simp [mul_comm],
 end
 
 instance : comm_group (completion X) :=
@@ -48,13 +62,14 @@ instance : comm_group (completion X) :=
    mul_left_inv := completion.mul_left_inv,
    ..localization.comm_monoid}
 
+#exit
 noncomputable def completion_of_group_equiv {G : Type*} [comm_group G] : G ≃* completion G :=
 let H : ∀ g : G, is_unit (monoid_hom.id G g) := λ g, ⟨(lift g : units G), by refl⟩ in
 { to_fun := localization.monoid_hom.of (⊤ : submonoid G),
   inv_fun := localization.monoid_hom.lift (monoid_hom.id G) $ λ (g : (⊤ : submonoid G)), H (g : G),
   left_inv := λ x, localization.monoid_hom.lift_of _ x,
   right_inv := λ x, begin
-      apply con.induction_on' x,
+      apply localization.induction_on x,
       intro z,
       have : (lift (z.2 : G) : units G) = classical.some (H (z.2 : G)), by
        { ext, show monoid_hom.id G z.2 = _, apply classical.some_spec (H (z.2 : G))},

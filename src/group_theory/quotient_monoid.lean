@@ -108,7 +108,7 @@ mk_self' ⟨x, hx⟩
 
 @[simp] lemma lift_mk {β : Type*} (f : (X × Y) → β)
   (H : ∀ a b, Y.r a b → f a = f b) {x : X} {y : Y} :
-con.lift_on' (mk x y) f H = f (x, y) := rfl
+lift₁ Y f H (mk x y) = f (x, y):= rfl
 
 def monoid_hom.of (Y : submonoid X) : X →* localization X Y :=
 Y.r.mk'.comp ⟨λ x, (x,1), refl 1, λ x y, by simp only [prod.mk_mul_mk, one_mul]⟩

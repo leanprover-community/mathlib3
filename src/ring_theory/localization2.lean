@@ -326,6 +326,8 @@ def non_zero_divisors : submonoid α :=
 
 @[reducible] def fraction_ring := localization α (non_zero_divisors α)
 
+def of : α →+* fraction_ring α := localization.of (non_zero_divisors α)
+
 namespace fraction_ring
 
 open function localization
@@ -368,14 +370,13 @@ begin
   end⟩
 
 lemma mk_inv {r : β} {s : non_zero_divisors β} :
-  (mk r s : fraction_ring β)⁻¹ =
+  (mk r s)⁻¹ =
   if h : r = 0 then 0 else
   mk (s : β) (⟨r, mem_non_zero_divisors_iff_ne_zero.mpr h⟩ : non_zero_divisors β) := rfl
 
-#exit
-lemma mk_inv' : ∀ (x : β × (non_zero_divisors β)), (x⁻¹ : fraction_ring β) =
+lemma mk_inv' : ∀ (x : β × (non_zero_divisors β)), (mk x.1 x.2)⁻¹ =
   if h : x.1 = 0 then 0 else
-  ((x.2 : β), (⟨x.1, mem_non_zero_divisors_iff_ne_zero.mpr h⟩ : non_zero_divisors β))
+  mk (x.2 : β) (⟨x.1, mem_non_zero_divisors_iff_ne_zero.mpr h⟩ : non_zero_divisors β)
 | ⟨r,s,hs⟩ := rfl
 
 instance (x y : β × (non_zero_divisors β)) : decidable ((non_zero_divisors β).r x y) :=
@@ -397,32 +398,29 @@ by refine { inv := has_inv.inv,
   inv_zero := dif_pos rfl,
   ..localization.comm_ring β (non_zero_divisors β)};
 { intro a,
-  exact con.induction_on' a (λ x h, by {unfold has_inv.inv, rw [lift_beta, inv_aux, dif_neg
+  exact induction_on a (λ x h, by {unfold has_inv.inv, rw [lift_mk, inv_aux, dif_neg
     (show x.1 ≠ 0, from λ hx, h (r_of_eq $ by simp [hx]))], exact (r_of_eq $ by simp [mul_comm])})}
 
 @[simp] lemma mk_eq_div {r : β} {s : non_zero_divisors β} :
-  (mk r s : fraction_ring β) = (r / (s : β) : fraction_ring β) :=
-show mk r s = r * dite (s.1 = 0) _ _, by rw [dif_neg (mem_non_zero_divisors_iff_ne_zero.mp s.2)];
-exact mk_eq_mul_mk_one _ _
+  mk r s = of β r / of β (s : β) :=
+show mk r s = mk r 1 * dite (s.1 = 0) _ _, by
+rw [dif_neg (mem_non_zero_divisors_iff_ne_zero.mp s.2)]; exact mk_eq_mul_mk_one _ _
 
 variables {β}
 
 @[simp] lemma mk_eq_div' (x : β × (non_zero_divisors β)) :
-  (x : fraction_ring β) = ((x.1) / ((x.2) : β) : fraction_ring β) :=
+  mk x.1 x.2 = of β x.1 / of β ((x.2) : β) :=
 by erw ← mk_eq_div; cases x; refl
 
-lemma eq_zero_of (x : β) (h : (localization.of x : fraction_ring β) = 0) : x = 0 :=
+lemma eq_zero_of (x : β) (h : (of β x : fraction_ring β) = 0) : x = 0 :=
 let ⟨t, ht⟩ := con.eq.1 h in
 or.resolve_left (show t.1 = 0 ∨ x = 0, by simpa using ht) (mem_non_zero_divisors_iff_ne_zero.1 t.2)
 
-variables (β)
-def of : β →+* fraction_ring β := semiring_hom.of (non_zero_divisors β)
-variables {β}
-
 lemma of.injective' : injective (of β : β → fraction_ring β) :=
-(semiring_hom.injective_iff _).2 (λ x h, eq_zero_of x (show localization.of x = 0, from h))
+(semiring_hom.injective_iff _).2 (λ x h, eq_zero_of x (show of β x = 0, from h))
 
-lemma of.injective : function.injective (localization.of : β → fraction_ring β) :=
+lemma of.injective :
+  function.injective (localization.of (non_zero_divisors β) : β → fraction_ring β) :=
 λ x y h, by convert of.injective' h
 
 section map
@@ -433,19 +431,16 @@ variables {B : Type*} [integral_domain B] [decidable_eq B]
 variables (g : A →+* B)
 
 def map (hg : injective g) : fraction_ring A →+* fraction_ring B :=
-semiring_hom.map g $ λ s,
+map g $ λ s,
   by rw [mem_non_zero_divisors_iff_ne_zero, ← g.map_zero, ne.def, hg.eq_iff];
     exact mem_non_zero_divisors_iff_ne_zero.1 s.2
 
 @[simp] lemma map_of (hg : injective g) (a : A) :
-  (map g hg).1 (localization.of a) = (localization.of (g a) : fraction_ring B) :=
-semiring_hom.map_of _ _
-
-@[simp] lemma map_coe (hg : injective g) (a : A) : (map g hg).1 a = g a :=
-semiring_hom.map_coe _ _
+  (map g hg).1 (of A a) = (of B (g a) : fraction_ring B) :=
+map_of _ _
 
 @[simp] lemma map_comp_of (hg : injective g) : (map g hg).comp (of A) = (of B).comp g :=
-semiring_hom.map_comp_of _
+map_comp_of _
 
 instance map.is_field_hom (hg : injective g) : is_field_hom (map g hg) :=
 semiring_hom.is_ring_hom
@@ -465,7 +460,6 @@ end map
 
 end fraction_ring
 
-end localization
 /-
 section ideals
 

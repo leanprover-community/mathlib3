@@ -163,6 +163,25 @@ lemma min_sub {α : Type u} [decidable_linear_ordered_comm_group α] (a b c : α
       min a b - c = min (a - c) (b - c) :=
 by simp [min_add, sub_eq_add_neg]
 
+
+/- Some lemmas about types that have an ordering and a binary operation, with no
+  rules relating them. -/
+lemma fn_min_add_fn_max [decidable_linear_order α] [add_comm_semigroup β] (f : α → β) (n m : α) :
+  f (min n m) + f (max n m) = f n + f m :=
+by { cases le_total n m with h h; simp [h] }
+
+lemma min_add_max [decidable_linear_order α] [add_comm_semigroup α] (n m : α) :
+  min n m + max n m = n + m :=
+fn_min_add_fn_max id n m
+
+lemma fn_min_mul_fn_max [decidable_linear_order α] [comm_semigroup β] (f : α → β) (n m : α) :
+  f (min n m) * f (max n m) = f n * f m :=
+by { cases le_total n m with h h; simp [h, mul_comm] }
+
+lemma min_mul_max [decidable_linear_order α] [comm_semigroup α] (n m : α) :
+  min n m * max n m = n * m :=
+fn_min_mul_fn_max id n m
+
 section decidable_linear_ordered_comm_group
 variables [decidable_linear_ordered_comm_group α] {a b c : α}
 

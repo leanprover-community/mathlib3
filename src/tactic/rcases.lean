@@ -435,10 +435,11 @@ meta def rintros := rintro
 
 setup_tactic_parser
 
-meta def obtain_parse : parser (option (listΣ rcases_patt_inverted) × pexpr × (option pexpr)) :=
-with_desc "patt_list? : expr (:= expr)?" $
+meta def obtain_parse :
+  parser (option (listΣ rcases_patt_inverted) × (option pexpr) × (option pexpr)) :=
+with_desc "patt_list? (: expr)? (:= expr)?" $
   do pat ← rcases_patt_parse_list?,
-     tp  ← (tk ":" >> texpr),
+     tp  ← (tk ":" >> texpr)?,
      val ←  (tk ":=" >> texpr)?,
      return (pat, tp, val)
 
@@ -451,19 +452,24 @@ is equivalent to
  { ... },
  rcases h with ⟨patt⟩`.
  The syntax `obtain ⟨patt⟩ : type := proof` is also supported.
+ If `⟨patt⟩` is omitted, `rcases` will try to infer the pattern.
+ If `type` is omitted, `:= proof` is required.
 -/
 meta def obtain : interactive.parse obtain_parse → tactic unit
-| (pat, tp, none) :=
-do nm ← mk_fresh_name,
-   e ← to_expr tp >>= assert nm,
-   (g :: gs) ← get_goals,
-   set_goals gs,
-   tactic.rcases ``(%%e) $ rcases_patt_inverted.invert_list (pat.get_or_else [default _]),
-   gs ← get_goals,
-   set_goals (g::gs)
 | (pat, tp, some val) :=
-do e ← to_expr ``(%%val : %%tp) >>= note_anon,
-   tactic.rcases ``(%%e) $ rcases_patt_inverted.invert_list (pat.get_or_else [default _])
+  tactic.rcases ``(%%val : %%(tp.get_or_else pexpr.mk_placeholder)) $
+    rcases_patt_inverted.invert_list (pat.get_or_else [default _])
+| (pat, some tp, none) :=
+  do nm ← mk_fresh_name,
+    e ← to_expr tp >>= assert nm,
+    (g :: gs) ← get_goals,
+    set_goals gs,
+    tactic.rcases ``(%%e) $ rcases_patt_inverted.invert_list (pat.get_or_else [default _]),
+    gs ← get_goals,
+    set_goals (g::gs)
+| (pat, none, none) :=
+  fail $ "`obtain` requires either an expected type or a value.\n" ++
+         "usage: `obtain ⟨patt⟩? : type (:= val)?` or `obtain ⟨patt⟩? (: type)? := val`"
 
 end interactive
 end tactic

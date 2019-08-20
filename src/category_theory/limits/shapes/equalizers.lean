@@ -21,6 +21,17 @@ instance fintype_walking_parallel_pair : fintype walking_parallel_pair :=
 { elems := [walking_parallel_pair.zero, walking_parallel_pair.one].to_finset,
   complete := λ x, by { cases x; simp } }
 
+section
+open tactic
+/-- Applies `cases` on a `walking_parallel_pair` hypothesis. -/
+-- TODO find a more general approach!
+meta def cases_walking_parallel_pair : tactic unit :=
+do l ← local_context,
+   l.mmap (λ h,
+     (do `(walking_parallel_pair) ← infer_type h, cases h, skip) <|> skip),
+   skip
+end
+
 open walking_parallel_pair
 
 inductive walking_parallel_pair_hom : walking_parallel_pair → walking_parallel_pair → Type v

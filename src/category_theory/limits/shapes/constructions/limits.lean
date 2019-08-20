@@ -43,23 +43,29 @@ def limits_from_equalizers_and_products
       { app := λ j, equalizer.ι s t ≫ pi.π β_obj j,
         naturality' := λ j j' f,
         begin
-          rw category.assoc,
-          have p := congr_arg (λ φ, φ ≫ pi.π β_hom ⟨ ⟨ j, j' ⟩, f ⟩) (equalizer.w s t),
-          -- TODO cleanup
+          dsimp,
+          simp only [category.id_comp, category.assoc],
+          have p := congr_arg (λ φ, φ ≫ pi.π β_hom ⟨ ⟨ j, j' ⟩, f ⟩) (equalizer.w s t).symm,
           dsimp at p,
-          simp,
-          erw category.id_comp,
-          erw category.assoc at p,
-          simp at p,
-          exact (eq.symm p)
+          simp only [limit.lift_π, fan.mk_π_app, category.assoc] at p,
+          exact p
         end } }
   end,
   is_limit :=
-  { lift := λ c,
-        equalizer.lift _ _
-          (pi.lift (λ j : J, begin have r := c.π.app j, dsimp at r, exact r end))
-          (begin ext1, dsimp, simp, end),
-      uniq' := begin tidy, end }
+  { lift := λ c, equalizer.lift _ _
+      (pi.lift (λ j : J, begin have r := c.π.app j, dsimp at r, exact r end))
+      (begin ext1, dsimp, simp, end),
+    uniq' := λ s m w,
+    begin
+      dsimp at *,
+      ext1 z, cases z,
+      { ext1 j, simp, rw ←(w j), },
+      { ext1 j, simp, rw ←(w j.1.2), dsimp,
+        erw ←(limit.w (parallel_pair _ _) walking_parallel_pair_hom.left),
+        rw category.assoc,
+        dsimp,
+        simp,
+        sorry } end }
 } } }
 
 end category_theory.limits

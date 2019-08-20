@@ -31,6 +31,10 @@ subtype.val_injective
 
 @[simp] lemma to_list_map {β : Type*} (v : vector α n) (f : α → β) : (v.map f).to_list =
   v.to_list.map f := by cases v; refl
+  
+@[simp] lemma nth_map {β : Type*} (v : vector α n) (f : α → β) (i : fin n) : 
+  (v.map f).nth i = f (v.nth i) :=
+by simp [nth_eq_nth_le]
 
 theorem nth_eq_nth_le : ∀ (v : vector α n) (i),
   nth v i = v.to_list.nth_le i.1 (by rw to_list_length; exact i.2)

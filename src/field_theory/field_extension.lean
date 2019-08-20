@@ -1,6 +1,6 @@
 import ring_theory.algebra data.matrix
 import linear_algebra.finite_dimensional linear_algebra.matrix linear_algebra.determinant
-import ring_theory.polynomial
+import ring_theory.polynomial ring_theory.integral_closure
 import algebra.big_operators
 
 universes u v w
@@ -81,29 +81,111 @@ lemma norm_zero_iff_zero (b : β) : field_norm α β b = 0 ↔ b = 0 := sorry
 
 end field_norm
 
-section minimal_polynomial
+end field_extension
+
+section
+
+open polynomial
+
+variables (α : Type u) [discrete_field α]
+variables {β : Type v} [discrete_field β] [field_extension α β]
+
+instance mpp : module (polynomial α) (polynomial α) := by apply_instance
+
+/-- The ideal of polynomial over α that vanish at b. -/
+private def vanishing_ideal (b : β) : ideal (polynomial α) := is_ring_hom.ker (aeval α β b)
+
+lemma mem_vanishing_ideal (b : β) (p : polynomial α) : p ∈ vanishing_ideal α b ↔ aeval α β b p = 0 :=
+is_ring_hom.mem_ker _ _
+
+instance (b : β) : ideal.is_principal (vanishing_ideal α b) := by apply_instance
+
+noncomputable def minimal_polynomial {b : β} (hb : is_integral α b) : polynomial α :=
+  ideal.is_principal.generator (vanishing_ideal α b) * C (leading_coeff $ ideal.is_principal.generator (vanishing_ideal α b))⁻¹
+
+end
+
+namespace minimal_polynomial
+
+open polynomial ideal.is_principal
+
+variables (α : Type u) [discrete_field α]
+variables {β : Type v} [discrete_field β] [field_extension α β]
+variables {b : β} (hb : is_integral α b)
+
+include hb
+lemma vanishing_ideal_ne_bot_of_is_integral : vanishing_ideal α b ≠ ⊥ :=
+λ h, begin cases hb with p hp,
+  have : p = 0, by { rw [←submodule.mem_bot (polynomial α), ←h, mem_vanishing_ideal], exact hp.2 },
+  rw [this] at hp,
+  exact not_monic_zero hp.1
+end
+
+lemma gen_ne_zero : generator (vanishing_ideal α b) ≠ 0 :=
+mt (eq_bot_iff_generator_eq_zero _).mpr $ vanishing_ideal_ne_bot_of_is_integral α hb
+
+lemma nonzero : minimal_polynomial α hb ≠ 0 :=
+mul_ne_zero (gen_ne_zero α hb)
+  (λ h, by { rw [←C_0, C_inj, inv_eq_zero, leading_coeff_eq_zero] at h, exact (gen_ne_zero α hb) h })
+
+lemma monic : monic (minimal_polynomial α hb) :=
+monic_mul_leading_coeff_inv (gen_ne_zero α hb)
+
+lemma aeval_zero : aeval α β b (minimal_polynomial α hb) = 0 := rfl
+
+lemma degree_pos : degree (minimal_polynomial α hb) > 0 :=
+classical.by_contradiction (λ hn,
+begin
+  rw [not_lt, degree_le_zero_iff] at hn,
+  let f := minimal_polynomial α hb,
+  have hv : aeval α β b f = 0, from aeval_zero α hb,
+  change eval₂ (algebra_map β) b f = 0 at hv,
+  change f = C (coeff f 0) at hn,
+  rw [hn, eval₂_C, ←algebra.map_zero α β] at hv,
+  rw [is_field_hom.injective (algebra_map β) hv, C_0] at hn,
+  exact (nonzero α hb) hn
+end)
+
+
+lemma irreducible : irreducible (minimal_polynomial α hb) := sorry
+
+
+end minimal_polynomial
+
+
+/-section minimal_polynomial
 
 open polynomial
 
 section
 variables (α : Type u) [discrete_field α]
 variables {β : Type v} [discrete_field β] [field_extension α β]
-variables (b : β)
 
 instance mpp : module (polynomial α) (polynomial α) := by apply_instance
 
 /-- The ideal of polynomial over α that vanish at b. -/
-def vanishing_ideal : ideal (polynomial α) := is_ring_hom.ker (aeval α β b)
+private def vanishing_ideal (b : β) : ideal (polynomial α) := is_ring_hom.ker (aeval α β b)
 
-lemma mem_vanishing_ideal (p : polynomial α) : p ∈ vanishing_ideal α b ↔ aeval α β b p = 0 :=
+lemma mem_vanishing_ideal (b : β) (p : polynomial α) : p ∈ vanishing_ideal α b ↔ aeval α β b p = 0 :=
 is_ring_hom.mem_ker _ _
 
+instance (b : β) : ideal.is_principal (vanishing_ideal α b) := by apply_instance
+
+noncomputable def minimal_polynomial {b : β} (hb : is_integral α b) : polynomial α :=
+  ideal.is_principal.generator (vanishing_ideal α b) * C (leading_coeff $ ideal.is_principal.generator (vanishing_ideal α b))⁻¹
+
+variables {b : β} (hb : is_integral α b)
+
+lemma minimal_polynomial.nonzero : minimal_polynomial α hb ≠ 0 := sorry
+
+lemma minimal_polynomial.monic : monic (minimal_polynomial α hb) :=
+monic_mul_leading_coeff_inv nonzero
 /-- A minimal polynomial for b is a non-zero monic polynomial vanishing at b of minimal degree. -/
-class is_minimal_polynomial (p : polynomial α) : Prop :=
+/-class is_minimal_polynomial (p : polynomial α) : Prop :=
 (vanish : p ∈ vanishing_ideal α b)
 (monic : p.monic)
 (nonzero : p ≠ 0)
-(minimal : ∀ q ∈ (vanishing_ideal α b), q ≠ 0 → degree p ≤ degree q)
+(minimal : ∀ q ∈ (vanishing_ideal α b), q ≠ 0 → degree p ≤ degree q)-/
 
 end
 
@@ -520,3 +602,4 @@ end finite_dimensional
 end minimal_polynomial
 
 end field_extension
+-/

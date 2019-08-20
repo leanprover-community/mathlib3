@@ -290,7 +290,7 @@ section transpose
 
 local postfix `ᵀ` : 1500 := transpose
 
-lemma transpose_transpose (M : matrix m n α) :
+@[simp] lemma transpose_transpose (M : matrix m n α) :
   Mᵀᵀ = M :=
 by ext; refl
 

@@ -212,10 +212,10 @@ by rw [_root_.mul_comm b c];
 from (quotient.induction_on₃ a b c $ assume α β γ,
   quotient.sound ⟨equiv.arrow_arrow_equiv_prod_arrow γ β α⟩)
 
-lemma monoid_pow_eq_cardinal_pow {κ : cardinal.{u}} :
-  ∀ n : ℕ, κ ^ n = (κ ^ (↑n : cardinal.{u}))
+@[simp] lemma pow_cast_right (κ : cardinal.{u}) :
+  ∀ n : ℕ, (κ ^ (↑n : cardinal.{u})) = @has_pow.pow _ _ monoid.has_pow κ n
 | 0 := by simp
-| (_+1) := by rw [nat.cast_succ, power_add, ←monoid_pow_eq_cardinal_pow, power_one, _root_.mul_comm]
+| (_+1) := by rw [nat.cast_succ, power_add, power_one, _root_.mul_comm, pow_succ, pow_cast_right]
 
 section order_properties
 open sum

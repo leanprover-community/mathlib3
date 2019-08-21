@@ -362,7 +362,7 @@ end
   eval₂ f g (s.sum p) = s.sum (λ x, eval₂ f g $ p x) :=
 (finset.sum_hom _).symm
 
-attribute [to_additive mv_polynomial.eval₂_sum] eval₂_prod
+attribute [to_additive] eval₂_prod
 
 lemma eval₂_assoc [decidable_eq γ] (q : γ → mv_polynomial σ α) (p : mv_polynomial γ α) :
   eval₂ f (λ t, eval₂ f g (q t)) p = eval₂ f g (eval₂ C q p) :=

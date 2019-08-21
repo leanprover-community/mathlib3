@@ -228,6 +228,17 @@ section comm_ring
   theorem dvd_add_right {a b c : α} (h : a ∣ b) : a ∣ b + c ↔ a ∣ c :=
   (dvd_add_iff_right h).symm
 
+/-- Vieta's formula for a quadratic equation, relating the coefficients of the polynomial with
+  its roots. This particular version states that if we have a root `x` of a monic quadratic
+  polynomial, then there is another root `y` such that `x + y` is negative the `a_1` coefficient
+  and `x * y` is the `a_0` coefficient. -/
+lemma Vieta_formula_quadratic {b c x : α} (h : x * x - b * x + c = 0) :
+  ∃ y : α, y * y - b * y + c = 0 ∧ x + y = b ∧ x * y = c :=
+begin
+  have : c = b * x - x * x, { apply eq_of_sub_eq_zero, simpa using h },
+  use b - x, simp [left_distrib, mul_comm, this],
+end
+
 end comm_ring
 
 /-- Predicate for ring homomorphisms (deprecated -- use the bundled `semiring_hom` version). -/
@@ -405,6 +416,9 @@ section domain
 
   @[simp] theorem zero_eq_mul {a b : α} : 0 = a * b ↔ a = 0 ∨ b = 0 :=
   by rw [eq_comm, mul_eq_zero]
+
+  lemma mul_self_eq_zero {α} [domain α] {x : α} : x * x = 0 ↔ x = 0 := by simp
+  lemma zero_eq_mul_self {α} [domain α] {x : α} : 0 = x * x ↔ x = 0 := by simp
 
 /-- The product of two nonzero elements of a domain is nonzero. -/
   theorem mul_ne_zero' {a b : α} (h₁ : a ≠ 0) (h₂ : b ≠ 0) : a * b ≠ 0 :=

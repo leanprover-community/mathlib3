@@ -171,10 +171,10 @@ def of_subsingleton (a : α) [subsingleton α] : fintype α :=
 ⟨finset.singleton a, λ b, finset.mem_singleton.2 (subsingleton.elim _ _)⟩
 
 @[simp] theorem univ_of_subsingleton (a : α) [subsingleton α] :
-@univ _ (of_subsingleton a) = finset.singleton a := rfl
+  @univ _ (of_subsingleton a) = finset.singleton a := rfl
 
 @[simp] theorem card_of_subsingleton (a : α) [subsingleton α] :
-@fintype.card _ (of_subsingleton a) = 1 := rfl
+  @fintype.card _ (of_subsingleton a) = 1 := rfl
 
 lemma fintype.card_eq_sum_ones {α} [fintype α] : fintype.card α = (fintype.elems α).sum (λ _, 1) :=
 finset.card_eq_sum_ones _

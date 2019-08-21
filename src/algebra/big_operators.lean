@@ -647,7 +647,7 @@ by rw [← sum_range_id_mul_two n, nat.mul_div_cancel]; exact dec_trivial
 
 end gauss_sum
 
-lemma card_eq_sum_ones (s : finset α) : s.card = (s.sum $ λ _, 1) :=
+lemma card_eq_sum_ones (s : finset α) : s.card = s.sum (λ _, 1) :=
 by simp
 
 end finset

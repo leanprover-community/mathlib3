@@ -687,31 +687,15 @@ end
 after `fin_cases p; simp`, there are three goals, `f 0`, `f 1`, and `f 2`.
 
 ### conv
-The `conv` tactic is built-in to lean. Currently mathlib additionally provides
+The `conv` tactic is built-in to lean. Inside `conv` blocks mathlib currently
+additionally provides
    * `erw`,
-   * `ring` and `ring2`, and
-   * `norm_num`
-inside `conv` blocks. Also, as a shorthand `conv_lhs` and `conv_rhs`
-are provided, so that
-```
-example : 0 + 0 = 0 :=
-begin
-  conv_lhs {simp}
-end
-```
-just means
-```
-example : 0 + 0 = 0 :=
-begin
-  conv {to_lhs, simp}
-end
-```
-and likewise for `to_rhs`.
-
-### conv
-
-The `conv` tactic provides a `conv` within a `conv`. It allows the user to return to a previous state of the outer `conv` block to continue editing an expression without having to start a new `conv` block. For example:
-
+   * `ring` and `ring2`,
+   * `norm_num`, and
+   * `conv` (within another `conv`).
+Using `conv` inside a `conv` block allows the user to return to the previous
+state of an outer `conv` block to continue editing an expression without
+having to start a new `conv` block. For example:
 ```lean
 example (a b c d : ℕ) (h₁ : b = c) (h₂ : a + c = a + d) : a + b = a + d :=
 by conv {
@@ -723,8 +707,24 @@ by conv {
   rw h₂,
 }
 ```
-
 Without `conv` the above example would need to be proved using two successive `conv` blocks.
+
+Also, as a shorthand `conv_lhs` and `conv_rhs`
+are provided, so that
+```lean
+example : 0 + 0 = 0 :=
+begin
+  conv_lhs { simp }
+end
+```
+just means
+```lean
+example : 0 + 0 = 0 :=
+begin
+  conv { to_lhs, simp }
+end
+```
+and likewise for `to_rhs`.
 
 ### mono
 

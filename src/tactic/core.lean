@@ -543,7 +543,9 @@ focus1 (do {
      set_goals (gs' ++ r.map prod.snd),
      return r }) <|>
 do (expr.pi n bi d b) ← infer_type e >>= whnf | apply_core e cfg,
-   v ← mk_instance d <|> mk_meta_var d,
+   v ← mcond (is_class d)
+     (mk_instance d <|> mk_meta_var d)
+     (mk_meta_var d),
    let b := b.has_var,
    e ← head_beta $ e v,
    retry_apply_aux e cfg ((b, n, v) :: gs)

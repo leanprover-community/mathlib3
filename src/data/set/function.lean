@@ -292,4 +292,8 @@ theorem bij_on_of_inv_on {g : β → α} {f : α → β} {a : set α} {b : set �
   (h₂ : maps_to g b a) (h₃ : inv_on g f a b) : bij_on f a b :=
 ⟨h₁, inj_on_of_left_inv_on h₃.left, surj_on_of_right_inv_on h₂ h₃.right⟩
 
+lemma range_restrict {α : Type*} {β : Type*} (f : α → β) (p : α → Prop) :
+  range (restrict f p) = f '' (p : set α) :=
+by { ext x, simp [restrict], refl }
+
 end set

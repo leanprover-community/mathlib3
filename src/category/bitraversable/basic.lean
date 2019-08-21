@@ -31,7 +31,7 @@ and value respectively with `bitraverse f g : alist key val → io (alist key' v
 
 ## Tags
 
-traversable bitraversable functor bifunctor applicative
+traversable bitraversable iterator functor bifunctor applicative
 
 -/
 

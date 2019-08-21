@@ -74,6 +74,8 @@ assume ⟨h⟩, h.elim
 -- missing [symm] attribute for ne in core.
 attribute [symm] ne.symm
 
+lemma ne.symm_iff {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨ne.symm, ne.symm⟩
+
 end miscellany
 
 /-

@@ -401,6 +401,19 @@ by rw [inter_comm, singleton_inter_of_mem h]
 @[simp] theorem inter_singleton_of_not_mem {a : α} {s : finset α} (h : a ∉ s) : s ∩ ι a = ∅ :=
 by rw [inter_comm, singleton_inter_of_not_mem h]
 
+lemma inter_subset_inter {x y s t : finset α} (h : x ⊆ y) (h' : s ⊆ t) : x ∩ s ⊆ y ∩ t :=
+begin
+  intros a a_in,
+  rw finset.mem_inter at a_in ⊢,
+  exact ⟨h a_in.1, h' a_in.2⟩
+end
+
+lemma inter_subset_inter_left {x y s : finset α} (h : x ⊆ y) : x ∩ s ⊆ y ∩ s :=
+finset.inter_subset_inter h (finset.subset.refl _)
+
+lemma inter_subset_inter_right {x y s : finset α} (h : x ⊆ y) : s ∩ x ⊆ s ∩ y :=
+finset.inter_subset_inter (finset.subset.refl _) h
+
 /- lattice laws -/
 
 instance : lattice (finset α) :=

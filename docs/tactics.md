@@ -694,8 +694,9 @@ additionally provides
    * `norm_num`, and
    * `conv` (within another `conv`).
 Using `conv` inside a `conv` block allows the user to return to the previous
-state of an outer `conv` block to continue editing an expression without
-having to start a new `conv` block. For example:
+state of the outer `conv` block after it is finished. Thus you can continue
+editing an expression without having to start a new `conv` block and re-scoping
+everything. For example:
 ```lean
 example (a b c d : ℕ) (h₁ : b = c) (h₂ : a + c = a + d) : a + b = a + d :=
 by conv {
@@ -707,10 +708,10 @@ by conv {
   rw h₂,
 }
 ```
-Without `conv` the above example would need to be proved using two successive `conv` blocks.
+Without `conv` the above example would need to be proved using two successive
+`conv` blocks each beginning with `to_lhs`.
 
-Also, as a shorthand `conv_lhs` and `conv_rhs`
-are provided, so that
+Also, as a shorthand `conv_lhs` and `conv_rhs` are provided, so that
 ```lean
 example : 0 + 0 = 0 :=
 begin

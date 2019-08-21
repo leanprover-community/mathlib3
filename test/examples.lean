@@ -1,5 +1,6 @@
 import tactic data.stream.basic data.set.basic data.finset data.multiset
-       category.traversable.derive algebra.pi_instances order.basic
+       category.traversable.derive
+
 open tactic
 
 universe u
@@ -176,32 +177,3 @@ meta structure meta_struct (α : Type u) : Type u :=
   (z : list α)
   (k : list (list α))
   (w : expr)
-
-example : ∀ n m : ℕ, n + m = m + n :=
-begin
-  apply' nat.rec,
-  -- refine nat.rec _ _,
-  simp, admit
-end
-
-instance : partial_order unit :=
-{ le := λ _ _, ∀ (x : ℕ), x = x,
-  lt := λ _ _, false,
-  le_refl := λ _ _, rfl,
-  le_trans := λ _ _ _ _ _ _, rfl,
-  lt_iff_le_not_le := λ _ _, by simp,
-  le_antisymm := λ ⟨⟩ ⟨⟩ _ _, rfl }
-
-example : unit.star ≤ unit.star :=
-begin
-  apply' le_trans,
-  -- refine le_trans _ _,
-  -- exact unit.star,
-  refl', refl'
-  -- refine le_refl _, refine le_refl _,
-end
-
-example {α β : Type*} [partial_order β] (x y z : α → β) (h₀ : x ≤ y) (h₁ : y ≤ z) : x ≤ z :=
-begin
-  transitivity'; assumption
-end

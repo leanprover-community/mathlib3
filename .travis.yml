@@ -93,6 +93,7 @@ jobs:
       env: TASK="check Lean proofs"
       if: type != cron
       script:
+        - leanpkg configure
         - travis_long "lean --make archive/"
 
     - stage: Archive
@@ -101,6 +102,7 @@ jobs:
       script:
         - elan toolchain install leanprover-community/lean:nightly
         - elan override set leanprover-community/lean:nightly
+        - leanpkg configure
         - travis_long "lean --make archive/"
 
   # allow_failures:

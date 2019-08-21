@@ -112,7 +112,7 @@ lemma eq_symm_apply {α β} (e : α ≃ β) {x y} : y = e.symm x ↔ e y = x :=
 
 @[simp] theorem trans_refl (e : α ≃ β) : e.trans (equiv.refl β) = e := by { cases e, refl }
 
-@[simp] theorem refl_symm {α : Type u} (a : α) : (equiv.refl α).symm a = a := rfl
+@[simp] theorem refl_symm : (equiv.refl α).symm = equiv.refl α := rfl
 
 @[simp] theorem refl_trans (e : α ≃ β) : (equiv.refl α).trans e = e := by { cases e, refl }
 

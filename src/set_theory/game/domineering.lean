@@ -21,27 +21,16 @@ open pgame
 
 namespace domineering_aux
 
--- TODO express the next two in terms of addition on ℤ × ℤ, and factor out the common proofs
 /-- The embedding `(x, y) ↦ (x, y+1)`. -/
 def shift_up : ℤ × ℤ ↪ ℤ × ℤ :=
-⟨λ p : ℤ × ℤ, (p.1, p.2 + 1), λ p q h,
- begin
-   dsimp at h,
-   ext,
-   convert (congr_arg prod.fst h),
-   have h := (congr_arg (λ p : ℤ × ℤ, p.2 - 1) h),
-   simpa using h,
- end⟩
+⟨λ p : ℤ × ℤ, (p.1, p.2 + 1),
+ have function.injective (λ (n : ℤ), n + 1) := λ _ _, (add_right_inj 1).mp,
+ function.injective_prod function.injective_id this⟩
 /-- The embedding `(x, y) ↦ (x+1, y)`. -/
 def shift_right : ℤ × ℤ ↪ ℤ × ℤ :=
-⟨λ p : ℤ × ℤ, (p.1 + 1, p.2), λ p q h,
- begin
-   dsimp at h,
-   ext,
-   have h := (congr_arg (λ p : ℤ × ℤ, p.1 - 1) h),
-   simpa using h,
-   convert (congr_arg prod.snd h),
- end⟩
+⟨λ p : ℤ × ℤ, (p.1 + 1, p.2),
+ have function.injective (λ (n : ℤ), n + 1) := λ _ _, (add_right_inj 1).mp,
+ function.injective_prod this function.injective_id⟩
 
 /-- Left can play anywhere that a square and the square above it are open. -/
 def left  (b : finset (ℤ × ℤ)) : Type := { p | p ∈ b ∩ b.map shift_up }
@@ -61,59 +50,14 @@ def move_left (b : finset (ℤ × ℤ)) (m : left b) : finset (ℤ × ℤ) :=
 def move_right (b : finset (ℤ × ℤ)) (m : right b) : finset (ℤ × ℤ) :=
 (b.erase m.val).erase (m.val.1 - 1, m.val.2)
 
-lemma int.succ_ne_self {x : ℤ} : x + 1 ≠ x :=
-ne_of_gt (lt_add_one x)
-
--- TODO the proofs of the next two lemmas are pretty unsatisfactory.
--- They perhaps could be combined in some way.
 lemma move_left_smaller (b : finset (ℤ × ℤ)) (m : left b) :
   finset.card (move_left b m) < finset.card b :=
-begin
-  dsimp [move_left],
-  rcases m with ⟨⟨x,y⟩,p⟩,
-  dsimp,
-  simp at p,
-  cases p with p₁ p₂,
-  dsimp [shift_up] at p₂,
-  simp at p₂,
-  rcases p₂ with ⟨x,y,⟨p,rfl,rfl⟩⟩,
-  rw finset.card_erase_of_mem,
-  rw finset.card_erase_of_mem,
-  { apply lt_of_le_of_lt (nat.pred_le _),
-    exact nat.pred_lt (finset.card_ne_zero_of_mem p₁), },
-  { exact p₁ },
-  apply finset.mem_erase_of_ne_of_mem _ _,
-  { intro h,
-    replace h := congr_arg prod.snd h,
-    dsimp at h,
-    simp at h,
-    apply (int.succ_ne_self h.symm), },
-  { simpa using p },
-end
+lt_of_le_of_lt finset.card_erase_le $
+  finset.card_erase_lt_of_mem (finset.mem_of_mem_inter_left m.property)
 lemma move_right_smaller (b : finset (ℤ × ℤ)) (m : right b) :
   finset.card (move_right b m) < finset.card b :=
-begin
-  dsimp [move_right],
-  rcases m with ⟨⟨x,y⟩,p⟩,
-  dsimp,
-  simp at p,
-  cases p with p₁ p₂,
-  dsimp [shift_right] at p₂,
-  simp at p₂,
-  rcases p₂ with ⟨x,y,⟨p,rfl,rfl⟩⟩,
-  rw finset.card_erase_of_mem,
-  rw finset.card_erase_of_mem,
-  { apply lt_of_le_of_lt (nat.pred_le _),
-    exact nat.pred_lt (finset.card_ne_zero_of_mem p₁), },
-  { exact p₁ },
-  apply finset.mem_erase_of_ne_of_mem _ _,
-  { intro h,
-    replace h := congr_arg prod.fst h,
-    dsimp at h,
-    simp at h,
-    apply (int.succ_ne_self h.symm), },
-  { simpa using p },
-end
+lt_of_le_of_lt finset.card_erase_le $
+  finset.card_erase_lt_of_mem (finset.mem_of_mem_inter_left m.property)
 
 end domineering_aux
 
@@ -136,14 +80,14 @@ by { rcases b with ⟨⟨b, _⟩|⟨h, t⟩, n⟩; refl }
 @[simp] lemma domineering_right_moves (b : finset (ℤ × ℤ)) :
   (domineering b).right_moves = right b :=
 by { rcases b with ⟨⟨b, _⟩|⟨h, t⟩, n⟩; refl }
-@[simp] lemma domineering_move_left (b : finset (ℤ × ℤ)) (i : left_moves (domineering b)):
+@[simp] lemma domineering_move_left (b : finset (ℤ × ℤ)) (i : left_moves (domineering b)) :
   (domineering b).move_left i = domineering (move_left b (by { convert i, simp })) :=
 begin
   rcases b with ⟨⟨b, _⟩|⟨h, t⟩, n⟩,
   { dsimp, rcases i with ⟨i, ⟨⟩⟩, },
   { refl }
 end
-@[simp] lemma domineering_move_right (b : finset (ℤ × ℤ)) (j : right_moves (domineering b)):
+@[simp] lemma domineering_move_right (b : finset (ℤ × ℤ)) (j : right_moves (domineering b)) :
   (domineering b).move_right j = domineering (move_right b (by { convert j, simp })) :=
 begin
   rcases b with ⟨⟨b, _⟩|⟨h, t⟩, n⟩,

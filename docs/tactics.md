@@ -708,6 +708,24 @@ end
 ```
 and likewise for `to_rhs`.
 
+### conv
+
+The `conv` tactic provides a `conv` within a `conv`. It allows the user to return to a previous state of the outer `conv` block to continue editing an expression without having to start a new `conv` block. For example:
+
+```lean
+example (a b c d : ℕ) (h₁ : b = c) (h₂ : a + c = a + d) : a + b = a + d :=
+by conv {
+  to_lhs,
+  conv {
+    congr, skip,
+    rw h₁,
+  },
+  rw h₂,
+}
+```
+
+Without `conv` the above example would need to be proved using two successive `conv` blocks.
+
 ### mono
 
 - `mono` applies a monotonicity rule.

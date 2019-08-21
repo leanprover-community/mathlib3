@@ -529,29 +529,28 @@ do g₀ :: _ ← get_goals,
 
 meta def triv' : tactic unit := do c ← mk_const `trivial, exact c reducible
 
-meta def reorder_goals (gs : list (bool × expr)) : new_goals → list expr
+def reorder_goals {α} (gs : list (bool × α)) : new_goals → list α
 | new_goals.non_dep_first := (gs.reverse.filter $ coe ∘ bnot ∘ prod.fst).map prod.snd ++ (gs.reverse.filter $ coe ∘ prod.fst).map prod.snd
 | new_goals.non_dep_only := (gs.reverse.filter (coe ∘ bnot ∘ prod.fst)).map prod.snd
 | new_goals.all := gs.reverse.map prod.snd
 
-meta def retry_apply_aux : Π (e : expr) (cfg : apply_cfg), list (bool × expr) → tactic (list (name × expr))
+meta def retry_apply_aux : Π (e : expr) (cfg : apply_cfg), list (bool × name ×  expr) → tactic (list (name × expr))
 | e cfg gs :=
 focus1 (do {
-     r ← apply_core e cfg,
+     exact e,
      gs' ← get_goals,
-     set_goals (gs' ++ reorder_goals gs cfg.new_goals),
+     let r := reorder_goals gs cfg.new_goals,
+     set_goals (gs' ++ r.map prod.snd),
      return r }) <|>
-do t ← infer_type e >>= whnf,
-   if t.is_pi
-     then do v ← mk_meta_var t.binding_domain,
-             let b := t.binding_body.has_var,
-             e ← head_beta $ e v,
-             retry_apply_aux e cfg ((b, v) :: gs)
-     else apply_core e cfg
+do (expr.pi n bi d b) ← infer_type e >>= whnf | apply_core e cfg,
+   v ← mk_meta_var d,
+   let b := b.has_var,
+   e ← head_beta $ e v,
+   retry_apply_aux e cfg ((b, n, v) :: gs)
 
 /-- `retry_apply` mimics the behavior of `apply_core`. When `apply_core` fails, it is retried by providing the term with meta variables as additional arguments. The meta variables can then become new goals depending on the `cfg.new_goals` policy. -/
 meta def retry_apply (e : expr) (cfg : apply_cfg) : tactic (list (name × expr)) :=
-retry_apply_aux e cfg []
+apply_core e cfg <|> retry_apply_aux e cfg []
 
 meta def apply' (e : expr) (cfg : apply_cfg := {}) : tactic (list (name × expr)) :=
 do r ← retry_apply e cfg,

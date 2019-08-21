@@ -212,6 +212,11 @@ by rw [_root_.mul_comm b c];
 from (quotient.induction_on₃ a b c $ assume α β γ,
   quotient.sound ⟨equiv.arrow_arrow_equiv_prod_arrow γ β α⟩)
 
+lemma monoid_pow_eq_cardinal_pow {κ : cardinal.{u}} :
+  ∀ n : ℕ, κ ^ n = (κ ^ (↑n : cardinal.{u}))
+| 0 := by simp
+| (_+1) := by rw [nat.cast_succ, power_add, ←monoid_pow_eq_cardinal_pow, power_one, _root_.mul_comm]
+
 section order_properties
 open sum
 
@@ -581,10 +586,10 @@ begin
   rw [cardinal.fintype_card, fintype.card_coe]
 end
 
-@[simp] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
+@[simp, elim_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
 by induction n; simp [nat.pow_succ, -_root_.add_comm, power_add, *]
 
-@[simp] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
+@[simp, elim_cast] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
 by rw [← lift_mk_fin, ← lift_mk_fin, lift_le]; exact
 ⟨λ ⟨⟨f, hf⟩⟩, begin
   have : _ = fintype.card _ := finset.card_image_of_injective finset.univ hf,
@@ -595,13 +600,13 @@ end,
 λ h, ⟨⟨λ i, ⟨i.1, lt_of_lt_of_le i.2 h⟩, λ a b h,
   have _, from fin.veq_of_eq h, fin.eq_of_veq this⟩⟩⟩
 
-@[simp] theorem nat_cast_lt {m n : ℕ} : (m : cardinal) < n ↔ m < n :=
+@[simp, elim_cast] theorem nat_cast_lt {m n : ℕ} : (m : cardinal) < n ↔ m < n :=
 by simp [lt_iff_le_not_le, -not_le]
 
-@[simp] theorem nat_cast_inj {m n : ℕ} : (m : cardinal) = n ↔ m = n :=
+@[simp, elim_cast] theorem nat_cast_inj {m n : ℕ} : (m : cardinal) = n ↔ m = n :=
 by simp [le_antisymm_iff]
 
-@[simp] theorem nat_succ (n : ℕ) : succ n = n.succ :=
+@[simp, elim_cast] theorem nat_succ (n : ℕ) : succ n = n.succ :=
 le_antisymm (succ_le.2 $ nat_cast_lt.2 $ nat.lt_succ_self _) (add_one_le_succ _)
 
 @[simp] theorem succ_zero : succ 0 = 1 :=

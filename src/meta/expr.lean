@@ -16,6 +16,14 @@ Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lew
 -/
 
 namespace name
+
+/-- Find the largest prefix `n` of a `name` such that `f n ≠ none`, then replace this prefix
+with the value of `f n`. -/
+def map_prefix (f : name → option name) : name → name
+| anonymous := anonymous
+| (mk_string s n') := (f (mk_string s n')).get_or_else (mk_string s $ map_prefix n')
+| (mk_numeral d n') := (f (mk_numeral d n')).get_or_else (mk_numeral d $ map_prefix n')
+
 /-- If `nm` is a simple name (having only one string component) starting with `_`, then `deinternalize_field nm` removes the underscore. Otherwise, it does nothing. -/
 meta def deinternalize_field : name → name
 | (mk_string s name.anonymous) :=
@@ -106,6 +114,14 @@ end level
 
 namespace expr
 open tactic
+
+/-- Apply a function to each constant (inductive type, defined function etc) in an expression. -/
+protected meta def apply_replacement_fun (f : name → name) (e : expr) : expr :=
+e.replace $ λ e d,
+  match e with
+  | expr.const n ls := some $ expr.const (f n) ls
+  | _ := none
+  end
 
 /-- Turns an expression into a positive natural number, assuming it is only built up from
   `has_one.one`, `bit0` and `bit1`. -/
@@ -261,8 +277,14 @@ e.fold (return x) (λ d t, t >>= fn d)
 end environment
 
 namespace declaration
-
 open tactic
+
+protected meta def update_with_fun (f : name → name) (tgt : name) (decl : declaration) :
+  declaration :=
+let decl := decl.update_name $ tgt in
+let decl := decl.update_type $ decl.type.apply_replacement_fun f in
+decl.update_value $ decl.value.apply_replacement_fun f
+
 /-- Checks whether the declaration is declared in the current file.
   This is a simple wrapper around `environment.in_current_file'` -/
 meta def in_current_file (d : declaration) : tactic bool :=

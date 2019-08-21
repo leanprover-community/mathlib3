@@ -162,15 +162,15 @@ notation x ` ⊗ₜ[`:100 R `] ` y := tmul R x y
 
 lemma add_tmul (m₁ m₂ : M) (n : N) : (m₁ + m₂) ⊗ₜ n = m₁ ⊗ₜ n + m₂ ⊗ₜ[R] n :=
 eq.symm $ sub_eq_zero.1 $ eq.symm $ quotient.sound $
-  group.in_closure.basic $ or.inl $ ⟨m₁, m₂, n, rfl⟩
+  add_group.in_closure.basic $ or.inl $ ⟨m₁, m₂, n, rfl⟩
 
 lemma tmul_add (m : M) (n₁ n₂ : N) : m ⊗ₜ (n₁ + n₂) = m ⊗ₜ n₁ + m ⊗ₜ[R] n₂ :=
 eq.symm $ sub_eq_zero.1 $ eq.symm $ quotient.sound $
-  group.in_closure.basic $ or.inr $ or.inl $ ⟨m, n₁, n₂, rfl⟩
+  add_group.in_closure.basic $ or.inr $ or.inl $ ⟨m, n₁, n₂, rfl⟩
 
 lemma smul_tmul (r : R) (m : M) (n : N) : (r • m) ⊗ₜ n = m ⊗ₜ[R] (r • n) :=
 sub_eq_zero.1 $ eq.symm $ quotient.sound $
-  group.in_closure.basic $ or.inr $ or.inr $ ⟨r, m, n, rfl⟩
+  add_group.in_closure.basic $ or.inr $ or.inr $ ⟨r, m, n, rfl⟩
 
 local attribute [instance] quotient_add_group.is_add_group_hom_quotient_lift
 

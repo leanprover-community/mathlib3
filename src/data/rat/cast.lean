@@ -3,7 +3,7 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import data.rat.order
+import data.rat.order tactic.lift
 /-!
 # Casts for Rational Numbers
 
@@ -68,6 +68,12 @@ by rw coe_int_eq_of_int; refl
 
 @[simp, elim_cast] theorem coe_int_denom (n : ℤ) : (n : ℚ).denom = 1 :=
 by rw coe_int_eq_of_int; refl
+
+lemma coe_int_num_of_denom_eq_one {q : ℚ} (hq : q.denom = 1) : ↑(q.num) = q :=
+by { conv_rhs { rw [num_denom q, hq] }, rw [coe_int_eq_mk], refl }
+
+instance : can_lift ℚ ℤ :=
+⟨coe, λ q, q.denom = 1, λ q hq, ⟨q.num, coe_int_num_of_denom_eq_one hq⟩⟩
 
 theorem coe_nat_eq_mk (n : ℕ) : ↑n = n /. 1 :=
 by rw [← int.cast_coe_nat, coe_int_eq_mk]

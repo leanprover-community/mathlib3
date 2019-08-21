@@ -530,9 +530,9 @@ do g₀ :: _ ← get_goals,
 meta def triv' : tactic unit := do c ← mk_const `trivial, exact c reducible
 
 def reorder_goals {α} (gs : list (bool × α)) : new_goals → list α
-| new_goals.non_dep_first := (gs.reverse.filter $ coe ∘ bnot ∘ prod.fst).map prod.snd ++ (gs.reverse.filter $ coe ∘ prod.fst).map prod.snd
-| new_goals.non_dep_only := (gs.reverse.filter (coe ∘ bnot ∘ prod.fst)).map prod.snd
-| new_goals.all := gs.reverse.map prod.snd
+| new_goals.non_dep_first := (gs.filter $ coe ∘ bnot ∘ prod.fst).map prod.snd ++ (gs.filter $ coe ∘ prod.fst).map prod.snd
+| new_goals.non_dep_only := (gs.filter (coe ∘ bnot ∘ prod.fst)).map prod.snd
+| new_goals.all := gs.map prod.snd
 
 meta def retry_apply_aux : Π (e : expr) (cfg : apply_cfg), list (bool × name ×  expr) → tactic (list (name × expr))
 | e cfg gs :=
@@ -543,7 +543,7 @@ focus1 (do {
      set_goals (gs' ++ r.map prod.snd),
      return r }) <|>
 do (expr.pi n bi d b) ← infer_type e >>= whnf | apply_core e cfg,
-   v ← mk_meta_var d,
+   v ← mk_instance d <|> mk_meta_var d,
    let b := b.has_var,
    e ← head_beta $ e v,
    retry_apply_aux e cfg ((b, n, v) :: gs)

@@ -1,5 +1,7 @@
 
-import topology.instances.real algebra.pi_instances order.basic
+import topology.instances.real
+       -- algebra.pi_instances
+       order.basic
 
 example : ∀ n m : ℕ, n + m = m + n :=
 begin
@@ -29,11 +31,11 @@ example {α β : Type*} [partial_order β] (x y z : α → β) (h₀ : x ≤ y) 
 begin
   transitivity'; assumption
 end
-
+#print instances topological_add_monoid
 example : continuous (λ (x : ℝ), x + x) :=
 begin
   apply' continuous_add,
-  guard_target' topological_add_monoid ℝ, admit,
   guard_target' continuous (λ (x : ℝ), x), admit,
   guard_target' continuous (λ (x : ℝ), x), admit,
+  -- guard_target' topological_add_monoid ℝ, admit,
 end

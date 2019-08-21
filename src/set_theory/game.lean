@@ -14,7 +14,7 @@ The basic theory of combinatorial games, following Conway's book `On Numbers and
 construct "pregames", define an ordering and arithmetic operations on them, then show that the
 operations descend to "games", defined via the equivalence relation `p ≈ q ↔ p ≤ q ∧ q ≤ p`.
 
-The surreal numbers will be built as a subtype.
+The surreal numbers will be built as a quotient of a subtype of pregames.
 
 A pregame (`pgame` below) is axiomatised via an inductive type, whose sole constructor takes two
 types (thought of as indexing the the possible moves for the players Left and Right), and a pair of
@@ -225,11 +225,11 @@ end
 /-- The definition of `x ≤ y` on pre-games, in terms of `≤` two moves later. -/
 theorem le_def {x y : pgame} : x ≤ y ↔
   (∀ i : x.left_moves,
-   (∃ i' : y.left_moves, (x.move_left i) ≤ (y.move_left i')) ∨
+   (∃ i' : y.left_moves, x.move_left i ≤ y.move_left i') ∨
    (∃ j : (x.move_left i).right_moves, (x.move_left i).move_right j ≤ y)) ∧
   (∀ j : y.right_moves,
    (∃ i : (y.move_right j).left_moves, x ≤ (y.move_right j).move_left i) ∨
-   (∃ j' : x.right_moves, x.move_right j' ≤ (y.move_right j))) :=
+   (∃ j' : x.right_moves, x.move_right j' ≤ y.move_right j)) :=
 begin
   rw [le_def_lt],
   conv { to_lhs, simp [lt_def_le] },
@@ -237,12 +237,12 @@ end
 
 /-- The definition of `x < y` on pre-games, in terms of `<` two moves later. -/
 theorem lt_def {x y : pgame} : x < y ↔
-  (∃ (i : left_moves y),
-    (∀ (i' : left_moves x), move_left x i' < move_left y i) ∧
-    (∀ (j : right_moves (move_left y i)), x < move_right (move_left y i) j)) ∨
-  (∃ (j : right_moves x),
-    (∀ (i : left_moves (move_right x j)), move_left (move_right x j) i < y) ∧
-    (∀ (j' : right_moves y), move_right x j < move_right y j')) :=
+  (∃ i : y.left_moves,
+    (∀ i' : x.left_moves, x.move_left i' < y.move_left i) ∧
+    (∀ j : (y.move_left i).right_moves, x < (y.move_left i).move_right j)) ∨
+  (∃ j : x.right_moves,
+    (∀ i : (x.move_right j).left_moves, (x.move_right j).move_left i < y) ∧
+    (∀ j' : y.right_moves, x.move_right j < y.move_right j')) :=
 begin
   rw [lt_def_le],
   conv { to_lhs, simp [le_def_lt] },
@@ -286,7 +286,7 @@ end
 
 /-- The definition of `x < 0` on pre-games, in terms of `< 0` two moves later. -/
 theorem lt_zero {x : pgame} : x < 0 ↔
-  ∃ j : right_moves x, ∀ i : left_moves (x.move_right j), (x.move_right j).move_left i < 0 :=
+  ∃ j : x.right_moves, ∀ i : (x.move_right j).left_moves, (x.move_right j).move_left i < 0 :=
 begin
   rw lt_def,
   conv { to_lhs, congr, erw [exists_pempty], },
@@ -304,7 +304,7 @@ end
 
 /-- The definition of `0 < x` on pre-games, in terms of `< x` two moves later. -/
 theorem zero_lt {x : pgame} : 0 < x ↔
-  ∃ i : left_moves x, ∀ j : right_moves (x.move_left i), 0 < (x.move_left i).move_right j :=
+  ∃ i : x.left_moves, ∀ j : (x.move_left i).right_moves, 0 < (x.move_left i).move_right j :=
 begin
   rw lt_def,
   conv { to_lhs, congr, skip, erw [exists_pempty], },
@@ -364,8 +364,9 @@ begin
   induction x with xl xr xL xR IHxl IHxr generalizing y,
   induction y with yl yr yL yR IHyl IHyr,
   classical,
-  simp [not_and_distrib, not_or_distrib, not_forall, not_exists,
-    and_comm, or_comm, IHxl, IHxr, IHyl, IHyr]
+  simp only [mk_le_mk, mk_lt_mk,
+    not_and_distrib, not_or_distrib, not_forall, not_exists,
+    and_comm, or_comm, IHxl, IHxr, IHyl, IHyr, iff_self, and_self]
 end
 
 theorem not_le {x y : pgame} : ¬ x ≤ y ↔ y < x := not_le_lt.1
@@ -373,7 +374,7 @@ theorem not_lt {x y : pgame} : ¬ x < y ↔ y ≤ x := not_le_lt.2
 
 @[refl] theorem le_refl : ∀ x : pgame, x ≤ x
 | ⟨l, r, L, R⟩ :=
-  ⟨λ i, lt_mk_of_le (le_refl _), λ i, mk_lt_of_le (le_refl _)⟩
+⟨λ i, lt_mk_of_le (le_refl _), λ i, mk_lt_of_le (le_refl _)⟩
 
 theorem lt_irrefl (x : pgame) : ¬ x < x :=
 not_lt.2 (le_refl _)
@@ -443,20 +444,13 @@ using_well_founded { dec_tac := pgame_wf_tac }
 -- TODO trans for restricted
 
 theorem le_of_restricted : Π {x y : pgame} (r : restricted x y), x ≤ y
-| (mk xl xr xL xR) (mk yl yr yL yR) (restricted.mk _ _ L_embedding R_embedding L_restriction R_restriction) :=
+| (mk xl xr xL xR) (mk yl yr yL yR)
+  (restricted.mk _ _ L_embedding R_embedding L_restriction R_restriction) :=
 begin
   rw le_def,
-  split,
-  { intro i,
-    left,
-    use (L_embedding.to_fun i),
-    dsimp,
-    exact le_of_restricted (L_restriction i) },
-  { intro j,
-    right,
-    use (R_embedding.to_fun j),
-    dsimp,
-    exact le_of_restricted (R_restriction j) },
+  exact
+    ⟨λ i, or.inl ⟨L_embedding i, le_of_restricted (L_restriction i)⟩,
+     λ i, or.inr ⟨R_embedding i, le_of_restricted (R_restriction i)⟩⟩
 end
 
 /-- `relabelling x y` says that `x` and `y` are really the same game, just dressed up differently.
@@ -465,7 +459,8 @@ end
 inductive relabelling : pgame.{u} → pgame.{u} → Type (u+1)
 | mk : Π (x y : pgame) (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves),
          (∀ (i : x.left_moves), relabelling (x.move_left i) (y.move_left (L i))) →
-         (∀ (j : y.right_moves), relabelling (x.move_right (R.symm j)) (y.move_right j)) → relabelling x y
+         (∀ (j : y.right_moves), relabelling (x.move_right (R.symm j)) (y.move_right j)) →
+       relabelling x y
 
 /-- If `x` is a relabelling of `y`, then Left and Right have the same moves in either game,
     so `x` is a restriction of `y`. -/
@@ -790,10 +785,10 @@ begin
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-theorem add_comm_le {x y : pgame} : (x + y) ≤ (y + x) :=
+theorem add_comm_le {x y : pgame} : x + y ≤ y + x :=
 le_of_relabelling (add_comm_relabelling x y)
 
-theorem add_comm_equiv {x y : pgame} : (x + y) ≈ (y + x) :=
+theorem add_comm_equiv {x y : pgame} : x + y ≈ y + x :=
 equiv_of_relabelling (add_comm_relabelling x y)
 
 /-- `(x + y) + z` has exactly the same moves as `x + (y + z)`. -/
@@ -830,7 +825,7 @@ begin
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-theorem add_assoc_equiv {x y z : pgame} : ((x + y) + z) ≈ (x + (y + z)) :=
+theorem add_assoc_equiv {x y z : pgame} : (x + y) + z ≈ x + (y + z) :=
 equiv_of_relabelling (add_assoc_relabelling x y z)
 
 theorem add_le_add_right : Π {x y z : pgame} (h : x ≤ y), x + z ≤ y + z
@@ -902,7 +897,7 @@ calc x + y ≤ y + x : add_comm_le
      ... ≤ z + x : add_le_add_right h
      ... ≤ x + z : add_comm_le
 
-theorem add_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : (w + y) ≈ (x + z) :=
+theorem add_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w + y ≈ x + z :=
 ⟨calc w + y ≤ w + z : add_le_add_left h₂.1
         ... ≤ x + z : add_le_add_right h₁.1,
  calc x + z ≤ x + y : add_le_add_left h₂.2
@@ -1099,7 +1094,7 @@ def neg : game → game :=
 quot.lift (λ x, ⟦-x⟧) (λ x y h, quot.sound (@neg_congr x y h))
 
 instance : has_neg game :=
-{ neg := neg, }
+{ neg := neg }
 
 /-- The sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
 def add : game → game → game :=
@@ -1107,35 +1102,28 @@ quotient.lift₂ (λ x y : pgame, ⟦x + y⟧) (λ x₁ y₁ x₂ y₂ hx hy, qu
 
 instance : has_add game := ⟨add⟩
 
-theorem add_assoc (x y z : game) : x + y + z = x + (y + z) :=
+theorem add_assoc : ∀ (x y z : game), (x + y) + z = x + (y + z) :=
 begin
-  induction x generalizing y z,
-  induction y generalizing z,
-  induction z,
+  rintros ⟨x⟩ ⟨y⟩ ⟨z⟩,
   apply quot.sound,
-  exact add_assoc_equiv,
-  refl,
-  refl,
-  refl
+  exact add_assoc_equiv
 end
 
 instance : add_semigroup game.{u} :=
 { add_assoc := add_assoc,
   ..game.has_add }
 
-theorem add_zero (x : game) : x + 0 = x :=
+theorem add_zero : ∀ (x : game), x + 0 = x :=
 begin
-  induction x,
+  rintro ⟨x⟩,
   apply quot.sound,
-  apply add_zero_equiv,
-  refl
+  apply add_zero_equiv
 end
-theorem zero_add (x : game) : 0 + x = x :=
+theorem zero_add : ∀ (x : game), 0 + x = x :=
 begin
-  induction x,
+  rintro ⟨x⟩,
   apply quot.sound,
-  apply zero_add_equiv,
-  refl
+  apply zero_add_equiv
 end
 
 instance : add_monoid game :=
@@ -1144,12 +1132,11 @@ instance : add_monoid game :=
   ..game.has_zero,
   ..game.add_semigroup }
 
-theorem add_left_neg (x : game) : (-x) + x = 0 :=
+theorem add_left_neg : ∀ (x : game), (-x) + x = 0 :=
 begin
-  induction x,
+  rintro ⟨x⟩,
   apply quot.sound,
-  apply add_left_neg_equiv,
-  refl
+  apply add_left_neg_equiv
 end
 
 instance : add_group game :=
@@ -1157,14 +1144,11 @@ instance : add_group game :=
   ..game.has_neg,
   ..game.add_monoid }
 
-theorem add_comm (x y : game) : x + y = y + x :=
+theorem add_comm : ∀ (x y : game), x + y = y + x :=
 begin
-  induction x generalizing y,
-  induction y,
+  rintros ⟨x⟩ ⟨y⟩,
   apply quot.sound,
-  exact add_comm_equiv,
-  refl,
-  refl,
+  exact add_comm_equiv
 end
 
 instance : add_comm_semigroup game :=

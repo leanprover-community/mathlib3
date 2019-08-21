@@ -24,21 +24,22 @@ namespace pgame
 /-- A short game is a game with a finite set of moves at every turn. -/
 inductive short : pgame.{u} → Type (u+1)
 | mk : Π (x : pgame) [fintype x.left_moves] [fintype x.right_moves]
-         [∀ i : x.left_moves, short (x.move_left i)] [∀ j : x.right_moves, short (x.move_right j)], short x
+         [∀ i : x.left_moves, short (x.move_left i)] [∀ j : x.right_moves, short (x.move_right j)],
+       short x
 
 attribute [class] short
 
 instance fintype_left_moves (x : pgame) [S : short x] : fintype (x.left_moves) :=
 begin
   tactic.unfreeze_local_instances,
-  induction S with _ F _ _ _,
-  apply F
+  cases S with _ F _ _ _,
+  exact F
 end
 instance fintype_right_moves (x : pgame) [S : short x] : fintype (x.right_moves) :=
 begin
   tactic.unfreeze_local_instances,
-  induction S with _ _ F _ _,
-  apply F
+  cases S with _ _ F _ _,
+  exact F
 end
 instance move_left_short (x : pgame) [S : short x] (i : x.left_moves) : short (x.move_left i) :=
 begin

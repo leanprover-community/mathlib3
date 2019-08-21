@@ -176,7 +176,7 @@ def of_subsingleton (a : α) [subsingleton α] : fintype α :=
 @[simp] theorem card_of_subsingleton (a : α) [subsingleton α] :
   @fintype.card _ (of_subsingleton a) = 1 := rfl
 
-lemma fintype.card_eq_sum_ones {α} [fintype α] : fintype.card α = (fintype.elems α).sum (λ _, 1) :=
+lemma card_eq_sum_ones {α} [fintype α] : fintype.card α = (finset.univ : finset α).sum (λ _, 1) :=
 finset.card_eq_sum_ones _
 
 end fintype

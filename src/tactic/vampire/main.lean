@@ -64,25 +64,11 @@ do ihx ← tactic.to_expr ``(inhabited),
 
 variables {α : Type} [inhabited α]
 
-def term.replace (t s : term) : term → term
-| (# k)       := # k
-| ru@(r &t u) := if ru = t then s else r.replace &t u.replace
-| (r &v k)    := r.replace &v k
 
-def eqterm.replace (t s : term) : eqterm → eqterm
-| (eqterm.vr k) := eqterm.vr k
-| (eqterm.tm r) := eqterm.tm (r.replace t s)
 
-def atom.replace (t s : term) : atom → atom
-| ($ k)    := $ k
-| (a ^t r) := a.replace ^t r.replace t s
-| (a ^v k) := a.replace ^v k
 
-def lit.replace (t s : term) : lit → lit
-| (lit.eq b et es) :=
-  lit.eq b (et.replace t s) (es.replace t s)
-| (lit.atom b a) :=
-  lit.atom b (a.replace t s)
+
+
 
 inductive proof (m : mat) : cla → Type
 | ins (k : nat) (μ : mappings) : proof ((m.nth k).substs μ)
@@ -94,12 +80,14 @@ inductive proof (m : mat) : cla → Type
   proof c → proof (c.rot k)
 | con (l : lit) (c : cla) :
   proof (l :: l :: c) → proof (l :: c)
-| rep (t s : term) (l : lit) (c d : cla) :
+| sub (t s : term) (l : lit) (c d : cla) :
   proof (l :: c) →
   proof (((eqterm.tm t =* eqterm.tm s) :: d)) →
   proof (l.replace t s :: c ++ d)
-
-#exit
+| sym (b : bool) (t s : eqterm) (c : cla) :
+  proof (lit.eq b t s :: c) → proof (lit.eq b s t :: c)
+| trv (t : eqterm) (c : cla) :
+  proof ((t ≠* t) :: c) → proof c
 
 /- Same as is.fs.read_to_end and io.cmd,
    except for configurable read length. -/
@@ -161,6 +149,20 @@ meta inductive item : Type
 | mps (m : mappings)       : item
 | prf (x : expr) (c : cla) : item
 
+namespace item
+ 
+meta def repr : item → string 
+| (item.nm n) := n.repr
+| (item.trm t) := t.repr
+| (item.mps m) := "MAPPING"
+| (item.prf x c) := c.repr
+
+meta instance has_repr : has_repr item := ⟨repr⟩ 
+
+meta instance has_to_format : has_to_format item := ⟨λ x, repr x⟩ 
+
+end item
+
 meta def mapping.to_expr : mapping → expr
 | (k, t) := expr.mk_app `(@prod.mk nat term) [k.to_expr, t.to_expr]
 
@@ -181,28 +183,52 @@ meta def build_proof_core (m : mat) (mx : expr) :
   build_proof_core (item.nm (k * 2) :: stk) chs
 | (item.nm k :: stk) ('1' :: chs) :=
   build_proof_core (item.nm ((k * 2) + 1) :: stk) chs
-| (item.mps μs :: item.nm k :: stk) ('a' :: infs) :=
+| (item.mps μs :: item.nm k :: stk) ('I' :: infs) :=
   let c := (m.nth k).substs μs in
   let πx := expr.mk_app `(@proof.ins) [mx, k.to_expr, μs.to_expr] in
   build_proof_core (item.prf πx c :: stk) infs
-| ((item.prf σx ((+* a) :: d)) :: (item.prf πx ((-* b) :: c)) :: stk) ('r' :: infs) :=
+| ((item.prf σx ((+* a) :: d)) :: (item.prf πx ((-* b) :: c)) :: stk) ('R' :: infs) :=
   let πx := expr.mk_app `(@proof.res) [mx, a.to_expr, cla.to_expr c, cla.to_expr d, πx, σx] in
   build_proof_core (item.prf πx (c ++ d) :: stk) infs
-| ((item.prf πx c) :: item.nm k :: stk) ('t' :: chs) :=
+| ((item.prf πx c) :: item.nm k :: stk) ('T' :: chs) :=
   let πx := expr.mk_app `(@proof.rot) [mx, k.to_expr, c.to_expr, πx] in
   build_proof_core (item.prf πx (c.rot k) :: stk) chs
-| ((item.prf πx (l :: _ :: c)) :: stk) ('c' :: chs) :=
+| ((item.prf πx (l :: _ :: c)) :: stk) ('C' :: chs) :=
   let πx := expr.mk_app `(@proof.con) [mx, l.to_expr, cla.to_expr c, πx] in
   build_proof_core (item.prf πx (l :: c) :: stk) chs
+| ( (item.prf σx ((eqterm.tm t =* eqterm.tm s) :: d)) :: 
+    (item.prf πx (l :: c)) :: stk ) ('S' :: chs) :=
+  let ρx := expr.mk_app `(@proof.sub) [mx, t.to_expr, s.to_expr, l.to_expr, cla.to_expr c, cla.to_expr d, πx, σx] in
+  -- trace "Before : " >>
+  -- trace (l :: c) >>
+  -- trace "Left : " >>
+  -- trace t >>
+  -- trace "Right : " >>
+  -- trace s >>
+  -- trace "After : " >>
+  -- trace (lit.replace t s l :: c ++ d) >>
+  build_proof_core (item.prf ρx (lit.replace t s l :: c ++ d) :: stk) chs
+| ((item.prf πx (lit.eq b t s :: c)) :: stk) ('Y' :: chs) :=
+  let πx' := expr.mk_app `(@proof.sym) [mx, b.to_expr, t.to_expr, s.to_expr, cla.to_expr c, πx] in
+  build_proof_core (item.prf πx' ((s =* t) :: c) :: stk) chs
+| ((item.prf πx ((t ≠* _) :: c)) :: stk) ('V' :: chs) :=
+  let πx' := expr.mk_app `(@proof.trv) [mx, t.to_expr, cla.to_expr c, πx] in
+  build_proof_core (item.prf πx' c :: stk) chs
 | stk ('e' :: chs) :=
   build_proof_core (item.mps [] :: stk) chs
-| (item.nm k :: stk) ('s' :: chs) :=
+| (item.nm k :: stk) ('f' :: chs) :=
   build_proof_core (item.trm (term.fn k) :: stk) chs
-| (item.trm s :: item.trm t :: stk) ('p' :: chs) :=
+| (item.trm s :: item.trm t :: stk) ('a' :: chs) :=
   build_proof_core (item.trm (term.tp t s) :: stk) chs
-| (item.trm t :: item.nm k :: item.mps μ :: stk) ('m' :: infs) :=
+| (item.trm t :: item.nm k :: item.mps μ :: stk) ('c' :: infs) :=
   build_proof_core (item.mps ((k, t) :: μ) :: stk) infs
-| _ _ := fail "invalid inference"
+| (X :: Y :: _) chs := 
+  trace "Stack top : " >> trace X >> trace Y >> 
+  trace "Remaining proof" >> trace chs >> failed
+| (X :: _) chs := 
+  trace "Stack top : " >> trace X >>
+  trace "Remaining proof" >> trace chs >> failed
+| [] chs := trace "Stack empty, remaining proof : " >> trace chs >> failed
 
 variables {R : rls α} {F : fns α} {V : vas α}
 variables {b : bool} (f g : form)
@@ -219,7 +245,7 @@ lemma lit.holds_substs (μs : mappings) (l : lit) :
   (l.substs μs).holds R F V ↔
   l.holds R F (V.substs F μs) :=
 by { cases l with b a b t s; cases b;
-   simp only [ lit.holds, lit.substs, vas.substs,
+     simp only [ lit.holds, lit.substs, vas.substs,
      list.map_map, atom.val_substs, term.val_substs,
      eqterm.val_substs ] }
 
@@ -240,7 +266,10 @@ begin
   k μs
   t c1 c2 π1 π2 h1 h2
   k d π h1
-  l d π h1,
+  l d π h1
+  t s l c d π σ h1 h2
+  b et es d h1 h2
+  et d h1 h2,
   { unfold mat.nth,
     cases h1 : list.nth m k;
     unfold option.get_or_else,
@@ -264,7 +293,24 @@ begin
     refine ⟨_, _, h3⟩,
     { left, exact h2 },
     { left, exact h2 },
-    right, exact h2 }
+    right, exact h2 },
+  { rcases (exists_mem_cons_iff _ _ _).elim_left h1 with h3 | ⟨w, h3, h4⟩,
+    { rcases (exists_mem_cons_iff _ _ _).elim_left h2 with h4 | ⟨w, h4, h5⟩,
+      { refine ⟨_, or.inl rfl, _⟩, 
+        apply lit.holds_replace h4 _ h3 },
+      refine ⟨w, or.inr (mem_append_right _ h4), h5⟩ },
+    refine ⟨w, or.inr (mem_append_left _ h3), h4⟩ },
+  { cases b;
+    { rcases h2 with ⟨l, h2 | h2, h3⟩, 
+      { refine ⟨_, or.inl rfl, _⟩, 
+        rw h2 at h3,
+        try { apply ne.symm h3 },
+        try { apply eq.symm h3 } },
+      refine ⟨l, or.inr h2, h3⟩ } },
+  { rcases h2 with ⟨l, h2 | h2, h3⟩, 
+    { rw h2 at h3,
+      exfalso, apply h3 rfl },
+    refine ⟨l, h2, h3⟩ }
 end
 
 lemma frxffx_of_proof
@@ -309,24 +355,6 @@ do πx ← build_proof_core m m.to_expr [] chs,
      [αx, ix, rnx, Rx, fnx, Fx, fx, hx, πx],
    return x
 
-axiom qlb (α : Type) : α
-
-meta def build_proof'
-  (αx ix : expr) (f : form) (m : mat) : tactic expr :=
-do -- πx ← build_proof_core m m.to_expr [] chs,
-   let πx : expr := `(qlb (proof %%m.to_expr [])),
-   let rnx : expr := f.rnew.to_expr,
-   let fnx : expr := f.fnew.to_expr,
-   let Rx : expr := `(Rdf %%αx),
-   let Fx : expr := `(@Fdf %%αx %%ix),
-   let fx : expr := f.to_expr,
-   let eqx  : expr := `(form.vnew (normalize %%fx) = 0 : Prop),
-   let decx : expr := expr.mk_app `(vampire.decidable_vnew_eq_zero) [fx],
-   let hx   : expr := expr.mk_app `(@of_as_true) [eqx, decx, `(trivial)],
-   let x : expr := expr.mk_app `(@frxffx_of_proof)
-     [αx, ix, rnx, Rx, fnx, Fx, fx, hx, πx],
-   return x
-
 meta def vampire (inp : option string) : tactic unit :=
 do desugar,
    αx ← get_domain,
@@ -339,7 +367,6 @@ do desugar,
    if inp = none
    then trace s
    else skip
-
 
 end vampire
 
@@ -355,17 +382,13 @@ meta def tactic.interactive.vampire
                revert_lst hs, skip ) >>
 vampire.vampire inp
 
-
-
 meta def vampire_eq : tactic unit :=
 do desugar,
    αx ← get_domain,
    ix ← get_inhabitance αx,
    f ← reify αx,
    let m := clausify f,
-   trace m,
    s ← get_rr m,
-   trace s,
-   -- x ← build_proof s.data αx ix f m,
-   -- apply x,
+   x ← build_proof s.data αx ix f m,
+   apply x,
    skip

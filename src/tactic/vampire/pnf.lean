@@ -145,13 +145,14 @@ lemma eqterm.val_vinc
   by { unfold eqterm.vinc,
        by_cases h1 : m < k,
        { rw if_pos h1,
-         apply funext, intro as,
          apply h0.left m h1 },
        rw if_neg h1,
-       apply funext, intro as,
        rw not_lt at h1,
        apply h0.right _ h1 }
-| (eqterm.tm t) := term.val_vinc h0 _
+| (eqterm.tm t) := 
+  by { unfold eqterm.vinc,
+       unfold eqterm.val,
+       rw term.val_vinc h0 }
 
 lemma atom.val_vinc {R : rls α} {F : fns α}
   {k : nat} {V W : vas α} (h0 : insert_result k V W) :

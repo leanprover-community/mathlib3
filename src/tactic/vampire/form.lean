@@ -69,6 +69,8 @@ def repr (t : term) : string :=
 
 instance has_repr : has_repr term := ⟨repr⟩
 
+meta instance has_to_format : has_to_format term := ⟨λ x, repr x⟩ 
+
 meta def to_expr : term → expr
 | (term.fn k)   := expr.mk_app `(term.fn) [k.to_expr]
 | (term.tp t s) := expr.mk_app `(term.tp) [t.to_expr, s.to_expr]
@@ -132,6 +134,14 @@ def vinc_zeroes : nat → term → term
 | 0       t := t
 | (k + 1) t := (vinc_zeroes k t).vinc 0
 
+def replace (t s : term) : bool → term → term
+| tt (# k)       := # k
+| ff r@(# k)     := if r = t then s else # k
+| tt (r &v k)    := r.replace tt &v k
+| ff rk@(r &v k) := if rk = t then s else r.replace tt &v k
+| tt (r &t u)    := r.replace tt &t u.replace ff
+| ff ru@(r &t u) := if ru = t then s else r.replace tt &t u.replace ff
+
 end term
 
 def vas.substs (F : fns α) (μ : mappings) (V : vas α) (k : nat) : α :=
@@ -153,6 +163,10 @@ def repr : eqterm → string
 meta def to_expr : eqterm → expr
 | (eqterm.vr k) := expr.mk_app `(eqterm.vr) [k.to_expr]
 | (eqterm.tm t) := expr.mk_app `(eqterm.tm) [t.to_expr]
+
+instance has_repr : has_repr eqterm := ⟨repr⟩ 
+
+meta instance has_to_format : has_to_format eqterm := ⟨λ x, repr x⟩ 
 
 def fnew : eqterm → nat
 | (eqterm.vr k) := 0
@@ -179,15 +193,9 @@ def subst (k : nat) (t : term) : eqterm → eqterm
   if k = m then eqterm.tm t else eqterm.vr m
 | (eqterm.tm s) := eqterm.tm (term.subst k t s)
 
--- #exit
--- def subst (k : nat) (t : term) : term → term
--- | (# m)    := # m
--- | (s &t r) := s.subst &t r.subst
--- | (s &v m) := if k = m then s.subst &t t else s.subst &v m
-
-def val (F : fns α) (V : vas α) : eqterm → list α → α
-| (eqterm.vr k) := λ _, V k
-| (eqterm.tm t) := t.val F V
+def val (F : fns α) (V : vas α) : eqterm →  α
+| (eqterm.vr k) := V k
+| (eqterm.tm t) := t.val F V []
 
 def substs (μs : mappings) : eqterm → eqterm
 | (eqterm.vr k) :=
@@ -197,12 +205,6 @@ def substs (μs : mappings) : eqterm → eqterm
    end
 | (eqterm.tm t) := eqterm.tm (t.substs μs)
 
-
--- def val (F : fns α) (V : vas α) : term → (list α → α)
--- | (# k)    := F k
--- | (t &t s) := t.val ∘ list.cons (s.val [])
--- | (t &v k) := t.val ∘ list.cons (V k)
-
 def farity (fdx : nat) : eqterm → option nat
 | (eqterm.vr _) := none
 | (eqterm.tm t) := t.farity fdx 0
@@ -210,6 +212,10 @@ def farity (fdx : nat) : eqterm → option nat
 def vocc (k : nat) : eqterm → Prop
 | (eqterm.vr m) := k = m
 | (eqterm.tm t) := t.vocc k
+
+def replace (t s : term) : eqterm → eqterm
+| (eqterm.vr k) := eqterm.vr k
+| (eqterm.tm r) := eqterm.tm (term.replace t s ff r)
 
 end eqterm
 
@@ -303,6 +309,11 @@ def vocc (k : nat) : atom → Prop
 | (a ^t t) := a.vocc ∨ t.vocc k
 | (a ^v m) := a.vocc ∨ m = k
 
+def replace (t s : term) : atom → atom
+| ($ k)    := $ k
+| (a ^t r) := a.replace ^t (term.replace t s ff r)
+| (a ^v k) := a.replace ^v k
+
 end atom
 
 inductive lit : Type
@@ -361,8 +372,8 @@ def not : lit → lit
 def holds (R : rls α) (F : fns α) (V : vas α) : lit → Prop
 | (+* a)   :=   (a.val R F V [])
 | (-* a)   := ¬ (a.val R F V [])
-| (t =* s) :=   (t.val F V []) = (s.val F V [])
-| (t ≠* s) := ¬ (t.val F V []) = (s.val F V [])
+| (t =* s) :=   t.val F V = s.val F V 
+| (t ≠* s) := ¬ t.val F V = s.val F V
 
 def rarity (k : nat) : lit → option nat
 | (lit.atom b a) := a.rarity k
@@ -385,6 +396,12 @@ def substs (μ : mappings) : lit → lit
 instance has_repr : has_repr lit := ⟨repr⟩
 
 meta instance has_to_format : has_to_format lit := ⟨λ x, repr x⟩
+
+def replace (t s : term) : lit → lit
+| (lit.eq b et es) :=
+  lit.eq b (et.replace t s) (es.replace t s)
+| (lit.atom b a) :=
+  lit.atom b (a.replace t s)
 
 end lit
 
@@ -629,7 +646,7 @@ def exists_ext (k : nat) (f : nat → β) (p : (nat → β) → Prop) : Prop :=
 
 local notation `∃^` binders ` ∷ ` k ` ⇒ `  F `, ` r:(scoped p, exists_ext k F p) := r
 
-lemma term.val_eq_val (V W : vas α) :
+lemma term.val_eq_val (F : fns α) {V W : vas α} :
   ∀ t : term, (∀ m : nat, t.vocc m → V m = W m) →
   (t.val F V = t.val F W)
 | (# _)    _  := rfl
@@ -652,10 +669,10 @@ lemma term.val_eq_val (V W : vas α) :
 lemma eqterm.val_eq_val (V W : vas α) :
   ∀ t : eqterm, (∀ m : nat, t.vocc m → V m = W m) →
   (t.val F V = t.val F W)
-| (eqterm.vr k) h0 :=
-  by { apply funext,
-       intro _, apply h0 _ rfl }
-| (eqterm.tm t) h0 := term.val_eq_val _ _ _ h0
+| (eqterm.vr k) h0 := h0 _ rfl 
+| (eqterm.tm t) h0 := 
+  by { unfold eqterm.val,
+       rw term.val_eq_val F t h0 }
 
 lemma atom.val_eq_val (R) (F) (V W : vas α) :
   ∀ a : atom, (∀ m : nat, a.vocc m → V m = W m) →
@@ -664,7 +681,7 @@ lemma atom.val_eq_val (R) (F) (V W : vas α) :
 | (a ^t t) h0 :=
   begin
     unfold atom.val,
-    rw [atom.val_eq_val a _, term.val_eq_val V W t _];
+    rw [atom.val_eq_val a _, term.val_eq_val F t _];
     intros m h1; apply h0,
     { right, exact h1 },
     left, exact h1
@@ -717,6 +734,67 @@ lemma holds_iff_holds  :
     try {refl}; apply h0; exact h1
   end
 
+lemma term.val_replace {t s : term} (h0 : t.val F V [] = s.val F V []) : 
+  ∀ r : term, 
+    (term.replace t s ff r).val F V [] = r.val F V [] ∧ 
+    (term.replace t s tt r).val F V = r.val F V 
+| (term.fn k)   := 
+  by { constructor; 
+       unfold term.replace,
+       by_cases h1 : # k = t,
+       { rw [ if_pos h1, h1, h0 ] },
+       rw if_neg h1 }
+| (term.tp r u) :=  
+  by { constructor;
+       unfold term.replace,  
+       { by_cases h1 : (r &t u) = t,
+         { rw [ if_pos h1, h1, h0 ] },
+         rw [ if_neg h1 ],
+         unfold term.val,
+         rw [ (term.val_replace r).right,
+              (term.val_replace u).left ] },
+       unfold term.val,
+       rw [ (term.val_replace r).right,
+            (term.val_replace u).left ] } 
+| (term.vp r k) :=  
+  by { constructor;
+       unfold term.replace,  
+       { by_cases h1 : (r &v k) = t,
+         { rw [ if_pos h1, h1, h0 ] },
+         rw [ if_neg h1 ],
+         unfold term.val,
+         rw (term.val_replace r).right },
+       unfold term.val,
+       rw (term.val_replace r).right }
+
+lemma eqterm.val_replace {t s : term} (h0 : t.val F V [] = s.val F V []) : 
+  ∀ et : eqterm, (et.replace t s).val F V = et.val F V 
+| (eqterm.vr k) := rfl
+| (eqterm.tm t) := (term.val_replace h0 t).left
+
+lemma atom.val_replace {t s : term} (h0 : t.val F V [] = s.val F V []) : 
+  ∀ a : atom, (a.replace t s).val R F V = a.val R F V 
+| (atom.rl k)   := rfl
+| (atom.tp a r) := 
+  by { unfold atom.replace,
+       unfold atom.val,
+       rw [ atom.val_replace a, 
+            (term.val_replace h0 r).left ] }
+| (atom.vp a k) := 
+  by { unfold atom.replace,
+       unfold atom.val,
+       rw atom.val_replace a }
+
+lemma lit.holds_replace {t s : term} (h0 : t.val F V [] = s.val F V []) : 
+  ∀ l : lit, l.holds R F V → (l.replace t s).holds R F V 
+| (lit.eq b et es) h1 := 
+  by { cases b;
+    simp only [ lit.replace, lit.holds, eqterm.val_replace h0 ];
+    apply h1 }
+| (lit.atom b a) h1 := 
+  by { cases b;
+    simp only [ lit.replace, lit.holds, atom.val_replace h0 ];
+    apply h1 }
 
 lemma term.lt_of_vnew_le (k m : nat) :
   ∀ t : term, t.vnew ≤ k →
@@ -839,7 +917,7 @@ lemma term.val_substs (μs : mappings) :
         term.val_substs t, vas.substs] }
 
 lemma eqterm.val_substs (μs : mappings) :
-  ∀ t : eqterm, (t.substs μs).val F V [] = t.val F (V.substs F μs) []
+  ∀ t : eqterm, (t.substs μs).val F V = t.val F (V.substs F μs) 
 | (eqterm.vr k) :=
   by { cases h0 : μs.get k with s;
        simp only [ eqterm.substs, h0,

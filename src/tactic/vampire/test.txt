@@ -1,0 +1,44 @@
+1. f2(X0,f2(X1,X2)) = f2(f2(X0,X1),X2) [input]
+2. f2(f1,X3) = X3 [input]
+3. f2(f3(X4),X4) = f1 [input]
+4. f2(f0(X4,X3,X2,X1,X0),f3(f0(X4,X3,X2,X1,X0))) != f1 [input]
+6. f2(f1,X3) = f2(f3(X2),f2(X2,X3)) [superposition 1,3]
+8. f2(f3(X2),f2(X2,X3)) = X3 [forward demodulation 6,2]
+14. f2(X5,X6) = f2(f3(f3(X5)),X6) [superposition 8,8]
+24. f2(X0,f3(X0)) = f1 [superposition 14,3]
+96. f1 != f1 [superposition 4,24]
+103. $false [trivial inequality removal 96]]
+
+
+trv(
+  rep(
+    sub(
+      [map(5,app(app(app(app(app(fn(0),var(4)),var(3)),var(2)),var(1)),var(0))),map(0,var(0)),map(1,var(1)),map(2,var(2)),map(3,var(3)),map(4,var(4))]
+      sub([map(4,var(4)),map(3,var(3)),map(2,var(2)),map(1,var(1)),map(0,var(0))],sub([map(0,var(4)),map(1,var(3)),map(2,var(2)),map(3,var(1)),map(4,var(0))],asm(3,[lit(neg,eq(app(app(fn(2),app(app(app(app(app(fn(0),var(0)),var(1)),var(2)),var(3)),var(4))),app(fn(3),app(app(app(app(app(fn(0),var(0)),var(1)),var(2)),var(3)),var(4)))),fn(1)))]),[lit(neg,eq(app(app(fn(2),app(app(app(app(app(fn(0),var(4)),var(3)),var(2)),var(1)),var(0))),app(fn(3),app(app(app(app(app(fn(0),var(4)),var(3)),var(2)),var(1)),var(0)))),fn(1)))]),[lit(neg,eq(app(app(fn(2),app(app(app(app(app(fn(0),var(4)),var(3)),var(2)),var(1)),var(0))),app(fn(3),app(app(app(app(app(fn(0),var(4)),var(3)),var(2)),var(1)),var(0)))),fn(1)))])
+      [
+        lit(
+          neg
+          eq(
+            app(app(fn(2),app(app(app(app(app(fn(0),var(4)),var(3)),var(2)),var(1)),var(0))),app(fn(3),app(app(app(app(app(fn(0),var(4)),var(3)),var(2)),var(1)),var(0))))
+            fn(1)
+          )
+        )
+      ]   
+    )
+    sub(
+      [map(5,app(app(app(app(app(fn(0),var(4)),var(3)),var(2)),var(1)),var(0))),map(0,var(0)),map(1,var(1)),map(2,var(2)),map(3,var(3)),map(4,var(4))]
+      sub([map(0,var(5))],rep(sub([map(6,var(0)),map(7,app(fn(3),var(0))),map(12,app(fn(3),var(0))),map(0,var(0))],sub([map(5,var(6)),map(6,var(7))],rep(sub([map(10,app(app(fn(2),app(fn(3),app(fn(3),var(5)))),var(6))),map(9,var(13)),map(13,var(13)),map(14,app(app(fn(2),app(fn(3),app(fn(3),var(5)))),var(6))),map(5,app(fn(3),app(fn(3),var(5)))),map(6,var(6))],sub([map(2,var(9)),map(3,var(10))],rep(sub([map(6,app(app(fn(2),fn(1)),var(3))),map(11,var(3)),map(2,var(3)),map(7,var(3)),map(3,var(3))],sub([map(2,var(6)),map(3,var(7))],sym(rep(sub([map(5,var(2)),map(4,app(fn(3),var(2))),map(6,var(3)),map(11,var(2)),map(2,var(2)),map(3,var(3))],sub([map(0,var(4)),map(1,var(5)),map(2,var(6))],sym(sub([map(4,var(0)),map(3,var(1)),map(2,var(2))],asm(0,[lit(pos,eq(app(app(fn(2),var(4)),app(app(fn(2),var(3)),var(2))),app(app(fn(2),app(app(fn(2),var(4)),var(3))),var(2))))]),[lit(pos,eq(app(app(fn(2),var(0)),app(app(fn(2),var(1)),var(2))),app(app(fn(2),app(app(fn(2),var(0)),var(1))),var(2))))]),[lit(pos,eq(app(app(fn(2),app(app(fn(2),var(0)),var(1))),var(2)),app(app(fn(2),var(0)),app(app(fn(2),var(1)),var(2)))))]),[lit(pos,eq(app(app(fn(2),app(app(fn(2),var(4)),var(5))),var(6)),app(app(fn(2),var(4)),app(app(fn(2),var(5)),var(6)))))]),[lit(pos,eq(app(app(fn(2),app(app(fn(2),app(fn(3),var(2))),var(2))),var(3)),app(app(fn(2),app(fn(3),var(2))),app(app(fn(2),var(2)),var(3)))))]),sub([map(5,var(2)),map(4,app(fn(3),var(2))),map(6,var(3)),map(11,var(2)),map(2,var(2)),map(3,var(3))],sub([map(4,var(11))],sub([map(0,var(4))],asm(2,[lit(pos,eq(app(app(fn(2),app(fn(3),var(0))),var(0)),fn(1)))]),[lit(pos,eq(app(app(fn(2),app(fn(3),var(4))),var(4)),fn(1)))]),[lit(pos,eq(app(app(fn(2),app(fn(3),var(11))),var(11)),fn(1)))]),[lit(pos,eq(app(app(fn(2),app(fn(3),var(2))),var(2)),fn(1)))]),[lit(pos,eq(app(app(fn(2),fn(1)),var(3)),app(app(fn(2),app(fn(3),var(2))),app(app(fn(2),var(2)),var(3)))))]),[lit(pos,eq(app(app(fn(2),app(fn(3),var(2))),app(app(fn(2),var(2)),var(3))),app(app(fn(2),fn(1)),var(3))))]),[lit(pos,eq(app(app(fn(2),app(fn(3),var(6))),app(app(fn(2),var(6)),var(7))),app(app(fn(2),fn(1)),var(7))))]),[lit(pos,eq(app(app(fn(2),app(fn(3),app(app(fn(2),fn(1)),var(3)))),app(app(fn(2),app(app(fn(2),fn(1)),var(3))),var(3))),app(app(fn(2),fn(1)),var(3))))]),sub([map(6,app(app(fn(2),fn(1)),var(3))),map(11,var(3)),map(2,var(3)),map(7,var(3)),map(3,var(3))],sub([map(3,var(11))],sub([map(1,var(3))],asm(1,[lit(pos,eq(app(app(fn(2),fn(1)),var(1)),var(1)))]),[lit(pos,eq(app(app(fn(2),fn(1)),var(3)),var(3)))]),[lit(pos,eq(app(app(fn(2),fn(1)),var(11)),var(11)))]),[lit(pos,eq(app(app(fn(2),fn(1)),var(3)),var(3)))]),[lit(pos,eq(app(app(fn(2),app(fn(3),var(2))),app(app(fn(2),var(2)),var(3))),var(3)))]),[lit(pos,eq(app(app(fn(2),app(fn(3),var(9))),app(app(fn(2),var(9)),var(10))),var(10)))]),[lit(pos,eq(app(app(fn(2),app(fn(3),var(13))),app(app(fn(2),var(13)),app(app(fn(2),app(fn(3),app(fn(3),var(5)))),var(6)))),app(app(fn(2),app(fn(3),app(fn(3),var(5)))),var(6))))]),sub([map(10,app(app(fn(2),app(fn(3),app(fn(3),var(5)))),var(6))),map(9,var(13)),map(13,var(13)),map(14,app(app(fn(2),app(fn(3),app(fn(3),var(5)))),var(6))),map(5,app(fn(3),app(fn(3),var(5)))),map(6,var(6))],sub([map(2,var(13)),map(3,var(14))],rep(sub([map(6,app(app(fn(2),fn(1)),var(3))),map(11,var(3)),map(2,var(3)),map(7,var(3)),map(3,var(3))],sub([map(2,var(6)),map(3,var(7))],sym(rep(sub([map(5,var(2)),map(4,app(fn(3),var(2))),map(6,var(3)),map(11,var(2)),map(2,var(2)),map(3,var(3))],sub([map(0,var(4)),map(1,var(5)),map(2,var(6))],sym(sub([map(4,var(0)),map(3,var(1)),map(2,var(2))],asm(0,[lit(pos,eq(app(app(fn(2),var(4)),app(app(fn(2),var(3)),var(2))),app(app(fn(2),app(app(fn(2),var(4)),var(3))),var(2))))]),[lit(pos,eq(app(app(fn(2),var(0)),app(app(fn(2),var(1)),var(2))),app(app(fn(2),app(app(fn(2),var(0)),var(1))),var(2))))]),[lit(pos,eq(app(app(fn(2),app(app(fn(2),var(0)),var(1))),var(2)),app(app(fn(2),var(0)),app(app(fn(2),var(1)),var(2)))))]),[lit(pos,eq(app(app(fn(2),app(app(fn(2),var(4)),var(5))),var(6)),app(app(fn(2),var(4)),app(app(fn(2),var(5)),var(6)))))]),[lit(pos,eq(app(app(fn(2),app(app(fn(2),app(fn(3),var(2))),var(2))),var(3)),app(app(fn(2),app(fn(3),var(2))),app(app(fn(2),var(2)),var(3)))))]),sub([map(5,var(2)),map(4,app(fn(3),var(2))),map(6,var(3)),map(11,var(2)),map(2,var(2)),map(3,var(3))],sub([map(4,var(11))],sub([map(0,var(4))],asm(2,[lit(pos,eq(app(app(fn(2),app(fn(3),var(0))),var(0)),fn(1)))]),[lit(pos,eq(app(app(fn(2),app(fn(3),var(4))),var(4)),fn(1)))]),[lit(pos,eq(app(app(fn(2),app(fn(3),var(11))),var(11)),fn(1)))]),[lit(pos,eq(app(app(fn(2),app(fn(3),var(2))),var(2)),fn(1)))]),[lit(pos,eq(app(app(fn(2),fn(1)),var(3)),app(app(fn(2),app(fn(3),var(2))),app(app(fn(2),var(2)),var(3)))))]),[lit(pos,eq(app(app(fn(2),app(fn(3),var(2))),app(app(fn(2),var(2)),var(3))),app(app(fn(2),fn(1)),var(3))))]),[lit(pos,eq(app(app(fn(2),app(fn(3),var(6))),app(app(fn(2),var(6)),var(7))),app(app(fn(2),fn(1)),var(7))))]),[lit(pos,eq(app(app(fn(2),app(fn(3),app(app(fn(2),fn(1)),var(3)))),app(app(fn(2),app(app(fn(2),fn(1)),var(3))),var(3))),app(app(fn(2),fn(1)),var(3))))]),sub([map(6,app(app(fn(2),fn(1)),var(3))),map(11,var(3)),map(2,var(3)),map(7,var(3)),map(3,var(3))],sub([map(3,var(11))],sub([map(1,var(3))],asm(1,[lit(pos,eq(app(app(fn(2),fn(1)),var(1)),var(1)))]),[lit(pos,eq(app(app(fn(2),fn(1)),var(3)),var(3)))]),[lit(pos,eq(app(app(fn(2),fn(1)),var(11)),var(11)))]),[lit(pos,eq(app(app(fn(2),fn(1)),var(3)),var(3)))]),[lit(pos,eq(app(app(fn(2),app(fn(3),var(2))),app(app(fn(2),var(2)),var(3))),var(3)))]),[lit(pos,eq(app(app(fn(2),app(fn(3),var(13))),app(app(fn(2),var(13)),var(14))),var(14)))]),[lit(pos,eq(app(app(fn(2),app(fn(3),var(13))),app(app(fn(2),var(13)),app(app(fn(2),app(fn(3),app(fn(3),var(5)))),var(6)))),app(app(fn(2),app(fn(3),app(fn(3),var(5)))),var(6))))]),[lit(pos,eq(app(app(fn(2),var(5)),var(6)),app(app(fn(2),app(fn(3),app(fn(3),var(5)))),var(6))))]),[lit(pos,eq(app(app(fn(2),var(6)),var(7)),app(app(fn(2),app(fn(3),app(fn(3),var(6)))),var(7))))]),[lit(pos,eq(app(app(fn(2),var(0)),app(fn(3),var(0))),app(app(fn(2),app(fn(3),app(fn(3),var(0)))),app(fn(3),var(0)))))]),sub([map(6,var(0)),map(7,app(fn(3),var(0))),map(12,app(fn(3),var(0))),map(0,var(0))],sub([map(4,var(12))],sub([map(0,var(4))],asm(2,[lit(pos,eq(app(app(fn(2),app(fn(3),var(0))),var(0)),fn(1)))]),[lit(pos,eq(app(app(fn(2),app(fn(3),var(4))),var(4)),fn(1)))]),[lit(pos,eq(app(app(fn(2),app(fn(3),var(12))),var(12)),fn(1)))]),[lit(pos,eq(app(app(fn(2),app(fn(3),app(fn(3),var(0)))),app(fn(3),var(0))),fn(1)))]),[lit(pos,eq(app(app(fn(2),var(0)),app(fn(3),var(0))),fn(1)))]),[lit(pos,eq(app(app(fn(2),var(5)),app(fn(3),var(5))),fn(1)))])
+      [ 
+        lit( 
+          pos,
+          eq(
+            app(app(fn(2),app(app(app(app(app(fn(0),var(4)),var(3)),var(2)),var(1)),var(0))),app(fn(3),app(app(app(app(app(fn(0),var(4)),var(3)),var(2)),var(1)),var(0))))
+            fn(1) 
+          )
+        )
+      ]
+    )
+    [lit(neg,eq(fn(1),fn(1)))]
+  ),
+  []
+)

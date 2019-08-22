@@ -6,10 +6,6 @@
 
 import tactic.vampire
 
-set_option profiler true
-
-namespace vampire
-
 section
 
 variables {α : Type} [inhabited α]
@@ -19,21 +15,23 @@ variables {p q : α → Prop}
 variables {mult : α → α → α}
 local notation x `*` y := mult x y
 
-open tactic  expr
+open tactic expr vampire
 
-example : ∀ x y, (p x ∧ x = f y) → p (f y) :=
-by vampire_eq
+-- #eval [lit.replace (term.fn 1) (term.fn 1) (lit.eq ff (eqterm.tm (term.tp (term.tp (term.fn (nat.succ 1)) (term.tp (term.tp (term.tp (term.tp (term.tp (term.fn 0) (term.fn 0)) (term.fn 0)) (term.fn 0)) (term.fn 0)) (term.fn 0))) (term.tp (term.fn (nat.succ (nat.succ 1))) (term.tp (term.tp (term.tp (term.tp (term.tp (term.fn 0) (term.fn 0)) (term.fn 0)) (term.fn 0)) (term.fn 0)) (term.fn 0))))) (eqterm.tm (term.fn 1)))] 
+-- 
+-- #eval [lit.eq ff (eqterm.tm (term.tp (term.tp (term.fn (nat.succ 1)) (term.tp (term.tp (term.tp (term.tp (term.tp (term.fn 0) (term.fn 0)) (term.fn 0)) (term.fn 0)) (term.fn 0)) (term.fn 0))) (term.tp (term.fn (nat.succ (nat.succ 1))) (term.tp (term.tp (term.tp (term.tp (term.tp (term.fn 0) (term.fn 0)) (term.fn 0)) (term.fn 0)) (term.fn 0)) (term.fn 0))))) (eqterm.tm (term.tp (term.tp (term.fn (nat.succ 1)) (term.tp (term.tp (term.tp (term.tp (term.tp (term.fn 0) (term.fn 0)) (term.fn 0)) (term.fn 0)) (term.fn 0)) (term.fn 0))) (term.tp (term.fn (nat.succ (nat.succ 1))) (term.tp (term.tp (term.tp (term.tp (term.tp (term.fn 0) (term.fn 0)) (term.fn 0)) (term.fn 0)) (term.fn 0)) (term.fn 0)))))]
 
-example :
-   (exists x, x = f(g(x)) ∧ forall x', x' = f(g(x')) → x = x') ↔
-   (exists y, y = g(f(y)) ∧ forall y', y' = g(f(y')) → y = y') :=
-by vampire_eq
+ example (x y z : ℕ) (p : ℕ → Prop) :
+   x = y → y = z → (∀ w, w = z → p w) → p x :=
+ by vampire_eq
+ 
+ example : ∀ x y : ℕ, x = y ∨ ¬ x = y := 
+ by vampire_eq
+ 
+ example : ∀ x y, (p x ∧ x = f y) → p (f y) :=
+ by vampire_eq
 
-example :
-   (exists x, x = f(g(x)) ∧ forall x', x' = f(g(x')) → x = x') ↔
-   (exists y, y = g(f(y)) ∧ forall y', y' = g(f(y')) → y = y') :=
-by vampire_eq
-
+#exit
 example :
    forall e,
    (forall x y z, x * (y * z) = (x * y) * z) ∧
@@ -41,6 +39,23 @@ example :
    (forall x, i x * x = e) →
    forall x, x * i x = e :=
 by vampire_eq
+
+#exit
+
+
+
+#exit
+
+-- example :
+--    (exists x, x = f(g(x)) ∧ forall x', x' = f(g(x')) → x = x') ↔
+--    (exists y, y = g(f(y)) ∧ forall y', y' = g(f(y')) → y = y') :=
+-- by vampire_eq
+-- 
+-- example :
+--    (exists x, x = f(g(x)) ∧ forall x', x' = f(g(x')) → x = x') ↔
+--    (exists y, y = g(f(y)) ∧ forall y', y' = g(f(y')) → y = y') :=
+-- by vampire_eq
+
 
 #exit
 

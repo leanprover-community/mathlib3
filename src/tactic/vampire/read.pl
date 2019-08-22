@@ -37,6 +37,11 @@ parse_rul(Str, trv(Idx)) :-
   number_string(Num, NumStr),
   Idx is Num - 1.
 
+parse_rul(Str, eqres(Idx)) :-
+  string_concat("equality resolution ", NumStr, Str),
+  number_string(Num, NumStr),
+  Idx is Num - 1.
+
 parse_rul(Str, rsl(Idx1, Idx2)) :-
   ( string_concat("resolution ", Tmp, Str) ;
     string_concat("subsumption resolution ", Tmp, Str) ),
@@ -46,9 +51,11 @@ parse_rul(Str, rsl(Idx1, Idx2)) :-
   number_string(Num2, NumStr2),
   Idx2 is Num2 - 1.
 
+
 parse_rul(Str, rep(Idx1, Idx2)) :-
   ( string_concat("superposition ", Tmp, Str) ;
-    string_concat("forward demodulation ", Tmp, Str) ),
+    string_concat("forward demodulation ", Tmp, Str) ;
+    string_concat("definition unfolding ", Tmp, Str) ),
   split_string(Tmp, ",", "", [NumStr1, NumStr2]),
   number_string(Num1, NumStr1),
   Idx1 is Num1 - 1,
@@ -95,31 +102,49 @@ apply_args(Trm, [Arg | Args], Rst) :-
   apply_args(app(Trm, Arg), Args, Rst).
 
 parse_trm(Str, Trm, Rem) :-
-  ( string_concat("f", Str1, Str) ;
-    string_concat("r", Str1, Str) ),
+  string_concat("f", Str1, Str),
   parse_num(Str1, Num, Str2),
   parse_args(Str2, Trms, Rem),
-  apply_args(sym(Num), Trms, Trm).
+  apply_args(fn(Num), Trms, Trm).
 
 parse_trm(Str, var(Num), Rem) :-
   string_concat("X", Str1, Str),
   parse_num(Str1, Num, Rem).
 
-% parse_trm(Acc, Str, Trm, Rem) :-
-%   string_concat("X", Str1, Str),
-%   parse_num(Str1, Num, Str2),
-%   parse_trm(vpp(Acc, Num), Str2, Trm, Rem).
-%
-% parse_trm(Acc, Str, Trm, Rem) :-
-%   parse_trm(Str, Arg, Tmp),
-%   parse_trm(app(Acc, Arg), Tmp, Trm, Rem).
+parse_atm(Str, Atm, Rem) :-
+  string_concat("r", Str1, Str), 
+  parse_num(Str1, Num, Str2),
+  parse_args(Str2, Trms, Rem),
+  apply_args(rl(Num), Trms, Atm).
 
-parse_lit(Str, lit(neg, Trm)) :-
+parse_atm(Str, eq(TrmA, TrmB), Rem) :-
+  parse_trm(Str, TrmA, Str1), 
+  string_concat(" = ", Str2, Str1),
+  parse_trm(Str2, TrmB, Rem). 
+
+parse_atm(Str, ne(TrmA, TrmB), Rem) :-
+  parse_trm(Str, TrmA, Str1), 
+  string_concat(" != ", Str2, Str1),
+  parse_trm(Str2, TrmB, Rem). 
+
+parse_lit_core(Str, lit(neg, Atm)) :-
   string_concat("~", Tmp, Str),
-  parse_trm(Tmp, Trm, "").
+  parse_atm(Tmp, Atm, "").
 
-parse_lit(Str, lit(pos, Trm)) :-
-  parse_trm(Str, Trm, "").
+parse_lit_core(Str, lit(pos, Atm)) :-
+  parse_atm(Str, Atm, "").
+
+negate(neg, pos).
+negate(pos, neg).
+
+rmv_ne(TmpPol, ne(TrmA, TrmB), Pol, eq(TrmA, TrmB)) :- 
+  !, negate(TmpPol, Pol).
+
+rmv_ne(Pol, Atm, Pol, Atm). 
+
+parse_lit(Str, lit(Pol, Atm)) :-
+  parse_lit_core(Str, lit(TmpPol, TmpAtm)),
+  rmv_ne(TmpPol, TmpAtm, Pol, Atm). 
 
 parse_cla("$false", []) :- !.
 
@@ -127,8 +152,7 @@ parse_cla(Str, Cla) :-
   split_string(Str, "|", " ", LitStrs),
   maplist(parse_lit, LitStrs, Cla).
 
-parse_line(Cds, line(Idx, Cla, Rul)) :-
-  string_codes(Str, Cds),
+parse_line(Str, line(Idx, Cla, Rul)) :-
   split_string(Str, ".[", "] ", [NumStr, ClaStr, RulStr]),
   number_string(Num, NumStr),
   Idx is Num - 1,
@@ -138,9 +162,10 @@ parse_line(Cds, line(Idx, Cla, Rul)) :-
 read_proof(Loc, Lns) :-
   vampire(Loc, Cds),
   include(head_is_digit, Cds, Tmp),
-  maplist(parse_line, Tmp, Lns).
+  maplist(string_codes, Strs, Tmp),
+  maplist(parse_line, Strs, Lns).
 
-read_proof_alt(Loc, Strs) :-
-  vampire(Loc, Cdss),
-  include(head_is_digit, Cdss, Tmp),
+read_test(Loc, Strs) :-
+  vampire(Loc, Cds),
+  include(head_is_digit, Cds, Tmp),
   maplist(string_codes, Strs, Tmp).

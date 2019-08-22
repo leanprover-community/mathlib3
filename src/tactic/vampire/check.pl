@@ -1,23 +1,34 @@
 :- [misc].
 
-subst(Maps, var(Num), var(Num)) :-
+subst_trm(Maps, var(Num), var(Num)) :-
   not(member(map(Num, _), Maps)).
 
-subst(Maps, var(Num), Trm) :-
+subst_trm(Maps, var(Num), Trm) :-
   member(map(Num, Trm), Maps).
 
-subst(_, sym(Num), sym(Num)).
+subst_trm(_, fn(Num), fn(Num)).
 
-subst(Maps, app(Trm1, Trm2), app(NewTrm1, NewTrm2)) :-
-  subst(Maps, Trm1, NewTrm1),
-  subst(Maps, Trm2, NewTrm2).
+subst_trm(Maps, app(Trm1, Trm2), app(NewTrm1, NewTrm2)) :-
+  subst_trm(Maps, Trm1, NewTrm1),
+  subst_trm(Maps, Trm2, NewTrm2).
 
-subst(Map, lit(Pol, Trm1), lit(Pol, Trm2)) :-
-  subst(Map, Trm1, Trm2).
+subst_atm(Maps, eq(SrcTrmA, SrcTrmB), eq(TgtTrmA, TgtTrmB)) :-
+  subst_trm(Maps, SrcTrmA, TgtTrmA),
+  subst_trm(Maps, SrcTrmB, TgtTrmB).
 
-subst(Maps, Cla, NewCla) :-
-  maplist(subst(Maps), Cla, NewCla).
+subst_atm(_, rl(Num), rl(Num)).
 
+subst_atm(Maps, app(SrcAtm, SrcTrm), app(TgtAtm, TgtTrm)) :-
+  subst_atm(Maps, SrcAtm, TgtAtm),
+  subst_trm(Maps, SrcTrm, TgtTrm).
+
+subst_lit(Map, lit(Pol, SrcAtm), lit(Pol, TgtAtm)) :-
+  subst_atm(Map, SrcAtm, TgtAtm).
+
+subst_cla(Maps, Cla, NewCla) :-
+  maplist(subst_lit(Maps), Cla, NewCla).
+
+/* 
 check(Mat, LPrf, success) :-
   string_codes(LPrf, Prf),
   check(Mat, [], Prf).
@@ -64,3 +75,5 @@ check(Mat, [trm(TrmB), trm(TrmA) | Stk], [112 | Prf]) :-
 
 check(Mat, [trm(Trm), num(Num), maps(Maps) | Stk], [109 | Prf]) :-
   check(Mat, [maps([map(Num, Trm) | Maps]) | Stk], Prf).
+*/
+

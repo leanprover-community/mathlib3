@@ -343,7 +343,7 @@ lemma term.val_skolem_subst
 lemma eqterm.val_skolem_subst
   {x : α} {y : fn α} {s : term} {k : nat} {W V : vas α}
   (h0 : splice k x W V) (h1 : (s.vdec k).val (F ₀↦ y) V [] = x) :
-  ∀ t : eqterm, (t.skolem_subst k s).val (F ₀↦ y) V [] = t.val F W []
+  ∀ t : eqterm, (t.skolem_subst k s).val (F ₀↦ y) V = t.val F W 
 | (eqterm.vr m) :=
   by { unfold eqterm.skolem_subst,
        unfold eqterm.finc,

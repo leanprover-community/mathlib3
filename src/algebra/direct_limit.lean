@@ -123,7 +123,8 @@ lemma to_module_totalize_of_le {x : direct_sum ι G} {i j : ι}
   direct_sum.to_module R ι (G j) (λ k, totalize G f k j) x =
   f i j hij (direct_sum.to_module R ι (G i) (λ k, totalize G f k i) x) :=
 begin
-  rw [← @dfinsupp.sum_single ι G _ _ _ x, dfinsupp.sum],
+  rw [← @dfinsupp.sum_single ι G _ _ _ x],
+  unfold dfinsupp.sum,
   simp only [linear_map.map_sum],
   refine finset.sum_congr rfl (λ k hk, _),
   rw direct_sum.single_eq_lof R k (x k),
@@ -517,6 +518,12 @@ protected noncomputable def field : field (ring.direct_limit G f) :=
   mul_inv_cancel := λ p, direct_limit.mul_inv_cancel G f,
   inv_mul_cancel := λ p, direct_limit.inv_mul_cancel G f,
   .. direct_limit.nonzero_comm_ring G f }
+
+protected noncomputable def discrete_field : discrete_field (ring.direct_limit G f) :=
+{ has_decidable_eq := classical.dec_eq _,
+  inv_zero := dif_pos rfl,
+  ..direct_limit.field G f }  
+
 end
 
 end direct_limit

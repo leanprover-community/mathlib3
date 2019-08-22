@@ -656,69 +656,6 @@ do let ns := name_set.of_list xs,
      when (¬ ns.contains h.local_pp_name) $
        try $ tactic.clear h) ∘ list.reverse
 
-/--
-Similarly to `apply`, the `apply'` tactic tries to match the current goal against the conclusion of the type of term. 
-
-It differs from `apply` in that it does not unfold definition in order to find out what the assumptions of the provided term is. It is especially useful when defining relations on function spaces (e.g. `≤`) so that rules like transitivity on `le : (α → β) → (α → β) → (α → β)` will be considered to have three parameters and two assumptions (i.e. `f g h : α → β`, `H₀ : f ≤ g`, `H₁ : g ≤ h`) instead of three parameters, two assumptions and then one more parameter (i.e. `f g h : α → β`, `H₀ : f ≤ g`, `H₁ : g ≤ h`, `x : α`). Whereas `apply` would expect the goal `f x ≤ h x`, `apply'` will work with the goal `f ≤ h`.
--/
-meta def apply' (q : parse texpr) : tactic unit :=
-concat_tags (do h ← i_to_expr_for_apply q, tactic.apply' h)
-
-/--
-Similar to the `apply'` tactic, but does not reorder goals.
--/
-meta def fapply' (q : parse texpr) : tactic unit :=
-concat_tags (i_to_expr_for_apply q >>= tactic.fapply')
-
-/--
-Similar to the `apply'` tactic, but only creates subgoals for non-dependent premises that have not been fixed by type inference or type class resolution.
--/
-meta def eapply' (q : parse texpr) : tactic unit :=
-concat_tags (i_to_expr_for_apply q >>= tactic.eapply')
-
-/--
-Similar to the `apply'` tactic, but allows the user to provide a `apply_cfg` configuration object.
--/
-meta def apply_with' (q : parse parser.pexpr) (cfg : apply_cfg) : tactic unit :=
-concat_tags (do e ← i_to_expr_for_apply q, tactic.apply' e cfg)
-
-/--
-Similar to the `apply'` tactic, but uses matching instead of unification.
-`mapply' t` is equivalent to `apply_with' t {unify := ff}`
--/
-meta def mapply' (q : parse texpr) : tactic unit :=
-concat_tags (do e ← i_to_expr_for_apply q, tactic.apply' e {unify := ff})
-
-
-/--
-Similar to `reflexivity` with the difference that `apply'` is used instead of `apply`.
--/
-meta def reflexivity' : tactic unit :=
-tactic.reflexivity'
-
-/--
-Shorter name for the tactic `reflexivity'`.
--/
-meta def refl' : tactic unit :=
-tactic.reflexivity'
-
--- /--
--- Similar to `symmetry` with the difference that `apply'` is used instead of `apply`.
--- -/
--- meta def symmetry' : tactic unit :=
--- tactic.symmetry'
-
-/--
-Similar to `transitivity` with the difference that `apply'` is used instead of `apply`.
--/
-meta def transitivity' (q : parse texpr?) : tactic unit :=
-tactic.transitivity' >> match q with
-| none := skip
-| some q :=
-  do (r, lhs, rhs) ← target_lhs_rhs,
-     i_to_expr q >>= unify rhs
-end
-
 meta def format_names (ns : list name) : format :=
 format.join $ list.intersperse " " (ns.map to_fmt)
 
@@ -811,13 +748,6 @@ do (cxt,_) ← solve_aux `(true) $
    let fmt := mk_paragraph 80 $ title :: cxt' ++ [cxt''.get_or_else ":", stmt],
    trace fmt,
    trace!"begin\n  \nend"
-
-/--
-`symmetry'` behaves like `symmetry` but also offers the option `symmetry' at h` to apply symmetry to assumption `h`
--/
-meta def symmetry' : parse location → tactic unit
-| l@loc.wildcard := l.try_apply symmetry_hyp symmetry
-| (loc.ns hs) := (loc.ns hs.reverse).apply symmetry_hyp symmetry
 
 end interactive
 end tactic

@@ -95,7 +95,7 @@ def hom_iso (h : is_limit t) (W : C) : (W ⟶ t.X) ≅ ((const J).obj W ⟶ F) :
 /-- The limit of `F` represents the functor taking `W` to
   the set of cones on `F` with vertex `W`. -/
 def nat_iso (h : is_limit t) : yoneda.obj t.X ≅ F.cones :=
-nat_iso.of_components (λ W, is_limit.hom_iso h (unop W)) (by tidy)
+nat_iso.of_components (λ W, is_limit.hom_iso h (unop W)) (by tidy).
 
 def hom_iso' (h : is_limit t) (W : C) :
   ((W ⟶ t.X) : Type v) ≅ { p : Π j, W ⟶ F.obj j // ∀ {j j'} (f : j ⟶ j'), p j ≫ F.map f = p j' } :=
@@ -132,6 +132,70 @@ def is_limit_iso_unique_cone_morphism {t : cone F} :
   inv := λ h,
   { lift := λ s, (h s).default.hom,
     uniq' := λ s f w, congr_arg cone_morphism.hom ((h s).uniq ⟨f, w⟩) } }
+
+namespace of_nat_iso
+variables {X : C} (h : yoneda.obj X ≅ F.cones)
+
+def cone_of_hom {Y : C} (f : Y ⟶ X) : cone F :=
+{ X := Y, π := h.hom.app (op Y) f }
+
+def hom_of_cone (s : cone F) : s.X ⟶ X := h.inv.app (op s.X) s.π
+
+@[simp] lemma cone_of_hom_of_cone (s : cone F) : cone_of_hom h (hom_of_cone h s) = s :=
+begin
+  dsimp [cone_of_hom, hom_of_cone], cases s, congr, dsimp,
+  exact congr_fun (congr_fun (congr_arg nat_trans.app h.inv_hom_id) (op s_X)) s_π,
+end
+@[simp] lemma hom_of_cone_of_hom {Y : C} (f : Y ⟶ X) : hom_of_cone h (cone_of_hom h f) = f :=
+congr_fun (congr_fun (congr_arg nat_trans.app h.hom_inv_id) (op Y)) f
+
+def limit_cone  : cone F :=
+cone_of_hom h (𝟙 X)
+
+lemma cone_of_hom_fac {Y : C} (f : Y ⟶ X) :
+cone_of_hom h f = (limit_cone h).extend f :=
+begin
+  -- TODO cleanup
+  dsimp [cone_of_hom, limit_cone, cone.extend],
+  congr,
+  ext j,
+  dsimp,
+  have t := congr_fun (h.hom.naturality f.op) (𝟙 X),
+  dsimp at t,
+  simp at t,
+  have t' := congr_arg nat_trans.app t,
+  have t'' := congr_fun t' j,
+  rw t'',
+  refl,
+end
+
+lemma cone_fac (s : cone F) : (limit_cone h).extend (hom_of_cone h s) = s :=
+begin
+  rw ←cone_of_hom_of_cone h s,
+  conv_lhs { simp only [hom_of_cone_of_hom] },
+  apply (cone_of_hom_fac _ _).symm,
+end
+
+end of_nat_iso
+
+section
+open of_nat_iso
+
+def of_nat_iso {X : C} (h : yoneda.obj X ≅ F.cones) :
+  is_limit (limit_cone h) :=
+{ lift := λ s, hom_of_cone h s,
+  fac' := λ s j,
+  begin
+    have := cone_fac h s,
+    -- TODO: gross
+    dsimp [cone.extend] at this,
+    cases s,
+    injection this with h1 h2,
+    simp at h2,
+    conv_rhs { rw ← h2 }, refl,
+  end,
+  uniq' := λ s m w, begin end }
+
 
 /-- A cocone `t` on `F` is a colimit cocone if each cocone on `F` admits a unique
   cocone morphism from `t`. -/

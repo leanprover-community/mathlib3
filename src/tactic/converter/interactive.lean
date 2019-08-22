@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Leonardo de Moura, Keeley Hoek
+Authors: Lucas Allen, Keeley Hoek, Leonardo de Moura
 
 Converter monad for building simplifiers.
 -/
@@ -87,6 +87,17 @@ do pf ← lock_tactic_state (do m ← lhs >>= mk_meta_var,
 namespace interactive
 open interactive
 open tactic.interactive (rw_rules)
+
+/-- The `conv` tactic provides a `conv` within a `conv`. It allows the user to return to a
+previous state of the outer conv block to continue editing an expression without having to
+start a new conv block. -/
+protected meta def conv (t : conv.interactive.itactic) : conv unit :=
+do transitivity,
+   a :: rest ← get_goals,
+   set_goals [a],
+   t,
+   all_goals reflexivity,
+   set_goals rest
 
 meta def erw (q : parse rw_rules) (cfg : rewrite_cfg := {md := semireducible}) : conv unit :=
 rw q cfg

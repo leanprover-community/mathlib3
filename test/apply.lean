@@ -1,13 +1,13 @@
 
+import tactic.interactive
 import topology.instances.real
        -- algebra.pi_instances
-       order.basic
 
 example : ∀ n m : ℕ, n + m = m + n :=
 begin
   apply' nat.rec,
   -- refine nat.rec _ _,
-  simp, admit
+  admit, admit
 end
 
 instance : partial_order unit :=
@@ -31,7 +31,6 @@ example {α β : Type*} [partial_order β] (x y z : α → β) (h₀ : x ≤ y) 
 begin
   transitivity'; assumption
 end
-#print instances topological_add_monoid
 example : continuous (λ (x : ℝ), x + x) :=
 begin
   apply' continuous_add,

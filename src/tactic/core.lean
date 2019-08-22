@@ -534,6 +534,23 @@ def reorder_goals {α} (gs : list (bool × α)) : new_goals → list α
 | new_goals.non_dep_only := (gs.filter (coe ∘ bnot ∘ prod.fst)).map prod.snd
 | new_goals.all := gs.map prod.snd
 
+meta def has_opt_auto_param_inst_for_apply (ms : list (name × expr)) : tactic bool :=
+ms.mfoldl
+ (λ r m, do type ← infer_type m.2,
+            b ← is_class type,
+            return $ r || type.is_napp_of `opt_param 2 || type.is_napp_of `auto_param 2 || b)
+ ff
+
+meta def try_apply_opt_auto_param_instance_for_apply (cfg : apply_cfg) (ms : list (name × expr)) : tactic unit :=
+mwhen (has_opt_auto_param_inst_for_apply ms) $ do
+  gs ← get_goals,
+  ms.mmap' (λ m, mwhen (bnot <$> (is_assigned m.2)) $
+                   set_goals [m.2] >>
+                   try apply_instance >>
+                   when cfg.opt_param (try apply_opt_param) >>
+                   when cfg.auto_param (try apply_auto_param)),
+  set_goals gs
+
 meta def retry_apply_aux : Π (e : expr) (cfg : apply_cfg), list (bool × name ×  expr) → tactic (list (name × expr))
 | e cfg gs :=
 focus1 (do {
@@ -543,9 +560,7 @@ focus1 (do {
      set_goals (gs' ++ r.map prod.snd),
      return r }) <|>
 do (expr.pi n bi d b) ← infer_type e >>= whnf | apply_core e cfg,
-   v ← mcond (is_class d)
-     (mk_instance d <|> mk_meta_var d)
-     (mk_meta_var d),
+   v ← mk_meta_var d,
    let b := b.has_var,
    e ← head_beta $ e v,
    retry_apply_aux e cfg ((b, n, v) :: gs)
@@ -556,7 +571,7 @@ apply_core e cfg <|> retry_apply_aux e cfg []
 
 meta def apply' (e : expr) (cfg : apply_cfg := {}) : tactic (list (name × expr)) :=
 do r ← retry_apply e cfg,
-   try_apply_opt_auto_param_for_apply cfg r,
+   try_apply_opt_auto_param_instance_for_apply cfg r,
    return r
 
 /-- Same as `apply'` but __all__ arguments that weren't inferred are added to goal list. -/

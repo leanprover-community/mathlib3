@@ -10,7 +10,7 @@ import tactic.interactive
 namespace category_theory
 
 universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄ -- declare the `v`'s first; see `category_theory.category` for an explanation
--- Am awkward note on universes:
+-- An awkward note on universes:
 -- we need to make sure we're in `Type`, not `Sort`
 -- for both objects and morphisms when taking products.
 

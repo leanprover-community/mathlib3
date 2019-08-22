@@ -25,19 +25,22 @@ Because `x ≤ z` is definitionally equal to `∀ i, x i ≤ z i`, `apply` will 
 
 namespace tactic
 
+/-- With `gs` a list of proof goals, `reorder_goals gs new_g` will use the `new_goals` policy `new_g` to rearrange the
+    dependent goals to either drop them, push them to the end of the list or leave them in place. The `bool` values in
+    `gs` indicates whether the goal is dependent or not. -/
 def reorder_goals {α} (gs : list (bool × α)) : new_goals → list α
 | new_goals.non_dep_first := (gs.filter $ coe ∘ bnot ∘ prod.fst).map prod.snd ++ (gs.filter $ coe ∘ prod.fst).map prod.snd
 | new_goals.non_dep_only := (gs.filter (coe ∘ bnot ∘ prod.fst)).map prod.snd
 | new_goals.all := gs.map prod.snd
 
-meta def has_opt_auto_param_inst_for_apply (ms : list (name × expr)) : tactic bool :=
+private meta def has_opt_auto_param_inst_for_apply (ms : list (name × expr)) : tactic bool :=
 ms.mfoldl
  (λ r m, do type ← infer_type m.2,
             b ← is_class type,
             return $ r || type.is_napp_of `opt_param 2 || type.is_napp_of `auto_param 2 || b)
  ff
 
-meta def try_apply_opt_auto_param_instance_for_apply (cfg : apply_cfg) (ms : list (name × expr)) : tactic unit :=
+private meta def try_apply_opt_auto_param_instance_for_apply (cfg : apply_cfg) (ms : list (name × expr)) : tactic unit :=
 mwhen (has_opt_auto_param_inst_for_apply ms) $ do
   gs ← get_goals,
   ms.mmap' (λ m, mwhen (bnot <$> (is_assigned m.2)) $
@@ -47,7 +50,7 @@ mwhen (has_opt_auto_param_inst_for_apply ms) $ do
                    when cfg.auto_param (try apply_auto_param)),
   set_goals gs
 
-meta def retry_apply_aux : Π (e : expr) (cfg : apply_cfg), list (bool × name ×  expr) → tactic (list (name × expr))
+private meta def retry_apply_aux : Π (e : expr) (cfg : apply_cfg), list (bool × name ×  expr) → tactic (list (name × expr))
 | e cfg gs :=
 focus1 (do {
      exact e,
@@ -61,10 +64,15 @@ do (expr.pi n bi d b) ← infer_type e >>= whnf | apply_core e cfg,
    e ← head_beta $ e v,
    retry_apply_aux e cfg ((b, n, v) :: gs)
 
-/-- `retry_apply` mimics the behavior of `apply_core`. When `apply_core` fails, it is retried by providing the term with meta variables as additional arguments. The meta variables can then become new goals depending on the `cfg.new_goals` policy. -/
-meta def retry_apply (e : expr) (cfg : apply_cfg) : tactic (list (name × expr)) :=
+private meta def retry_apply (e : expr) (cfg : apply_cfg) : tactic (list (name × expr)) :=
 apply_core e cfg <|> retry_apply_aux e cfg []
 
+/-- `apply'` mimics the behavior of `apply_core`. When
+`apply_core` fails, it is retried by providing the term with meta
+variables as additional arguments. The meta variables can then
+become new goals depending on the `cfg.new_goals` policy.
+
+`apply'` also finds instances and applies opt_params and auto_params. -/
 meta def apply' (e : expr) (cfg : apply_cfg := {}) : tactic (list (name × expr)) :=
 do r ← retry_apply e cfg,
    try_apply_opt_auto_param_instance_for_apply cfg r,

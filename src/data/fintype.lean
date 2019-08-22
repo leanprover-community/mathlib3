@@ -161,24 +161,11 @@ theorem card_congr {α β} [fintype α] [fintype β] (f : α ≃ β) : card α =
 by rw ← of_equiv_card f; congr
 
 theorem card_eq {α β} [F : fintype α] [G : fintype β] : card α = card β ↔ nonempty (α ≃ β) :=
-⟨λ e, match F, G, e with ⟨⟨s, nd⟩, h⟩, ⟨⟨s', nd'⟩, h'⟩, e' := begin
-  change multiset.card s = multiset.card s' at e',
-  revert nd nd' h h' e',
-  refine quotient.induction_on₂ s s' (λ l₁ l₂
-    (nd₁ : l₁.nodup) (nd₂ : l₂.nodup)
-    (h₁ : ∀ x, x ∈ l₁) (h₂ : ∀ x, x ∈ l₂)
-    (e' : l₁.length = l₂.length), _),
-  haveI := classical.dec_eq α,
-  refine ⟨equiv.of_bijective ⟨_, _⟩⟩,
-  { refine λ a, l₂.nth_le (l₁.index_of a) _,
-    rw ← e', exact list.index_of_lt_length.2 (h₁ a) },
-  { intros a b h, simpa [h₁] using congr_arg l₁.nth
-      (list.nodup_iff_nth_le_inj.1 nd₂ _ _ _ _ h) },
-  { have := classical.dec_eq β,
-    refine λ b, ⟨l₁.nth_le (l₂.index_of b) _, _⟩,
-    { rw e', exact list.index_of_lt_length.2 (h₂ b) },
-    { simp [nd₁] } }
-end end, λ ⟨f⟩, card_congr f⟩
+⟨λ h, ⟨by classical; 
+  calc α ≃ fin (card α) : trunc.out (equiv_fin α)
+     ... ≃ fin (card β) : by rw h
+     ... ≃ β : (trunc.out (equiv_fin β)).symm⟩, 
+λ ⟨f⟩, card_congr f⟩
 
 def of_subsingleton (a : α) [subsingleton α] : fintype α :=
 ⟨finset.singleton a, λ b, finset.mem_singleton.2 (subsingleton.elim _ _)⟩
@@ -532,7 +519,7 @@ begin
   simp [this], exact setoid.refl _
 end
 
-@[simp, to_additive finset.sum_attach_univ]
+@[simp, to_additive]
 lemma finset.prod_attach_univ [fintype α] [comm_monoid β] (f : {a : α // a ∈ @univ α _} → β) :
   univ.attach.prod (λ x, f x) = univ.prod (λ x, f ⟨x, (mem_univ _)⟩) :=
 prod_bij (λ x _, x.1) (λ _ _, mem_univ _) (λ _ _ , by simp) (by simp) (λ b _, ⟨⟨b, mem_univ _⟩, by simp⟩)

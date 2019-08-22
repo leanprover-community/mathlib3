@@ -139,6 +139,24 @@ end monoid_hom
 
 namespace con
 
+variables {M}
+
+protected def prod (c : con M) (d : con N) : con (M × N) :=
+{ r := λ x y, c x.1 y.1 ∧ d x.2 y.2,
+  r_iseqv := ⟨λ x, ⟨c.refl x.1, d.refl x.2⟩, λ _ _ h, ⟨c.symm h.1, d.symm h.2⟩,
+            λ _ _ _ h1 h2, ⟨c.trans h1.1 h2.1, d.trans h1.2 h2.2⟩⟩,
+  r_mul := λ _ _ _ _ h1 h2, ⟨c.mul h1.1 h2.1, d.mul h1.2 h2.2⟩ }
+
+def prod_fst (c : con (M × N)) : con M :=
+{ r := λ x y, c (x, 1) (y, 1),
+  r_iseqv := ⟨λ x, c.refl (x, 1), λ _ _ h, c.symm h, λ _ _ _ h1 h2, c.trans h1 h2⟩,
+  r_mul := λ _ _ _ _ h1 h2, by convert c.mul h1 h2; simp}
+
+def prod_snd (c : con (M × N)) : con N :=
+{ r := λ x y, c (1, x) (1, y),
+  r_iseqv := ⟨λ x, c.refl (1, x), λ _ _ h, c.symm h, λ _ _ _ h1 h2, c.trans h1 h2⟩,
+  r_mul := λ _ _ _ _ h1 h2, by convert c.mul h1 h2; simp}
+
 lemma ker_rel (f : M →* P) {x y : M} : con.ker f x y ↔ f x = f y := iff.rfl
 
 variable (c : con M)
@@ -410,6 +428,7 @@ c.lift d.mk' $ λ x y hc, show (con.ker d.mk') x y, from
 @[simp] lemma map_apply {c d : con M} (h : c ≤ d) (x : c.quotient) :
   c.map d h x = c.lift d.mk'
     (λ x y, (le_def c $ con.ker d.mk').1 ((mk'_ker d).symm ▸ h) x y) x := rfl
+
 
 variables (c)
 

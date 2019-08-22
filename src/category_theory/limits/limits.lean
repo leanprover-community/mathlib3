@@ -195,7 +195,7 @@ def of_nat_iso {X : C} (h : yoneda.obj X ≅ F.cones) :
     conv_rhs { rw ← h2 }, refl,
   end,
   uniq' := λ s m w, begin end }
-
+end
 
 /-- A cocone `t` on `F` is a colimit cocone if each cocone on `F` admits a unique
   cocone morphism from `t`. -/

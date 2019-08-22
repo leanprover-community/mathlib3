@@ -1,5 +1,5 @@
 
-import tactic.interactive
+import tactic.apply
 import topology.instances.real
        -- algebra.pi_instances
 

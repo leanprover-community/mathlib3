@@ -11,7 +11,7 @@ instance : comm_monoid Y :=
 by refine {mul_comm := _, ..submonoid.to_monoid};
   { intros, rw subtype.ext, apply mul_comm }
 
-def r : con (X × Y) :=
+def r' : con (X × Y) :=
 { r := λ a b, ∃ c : Y, (c:X) * (a.1 * b.2) = c * (b.1 * a.2),
   r_iseqv :=
     ⟨λ a, ⟨1, rfl⟩, λ a b ⟨c, hc⟩, ⟨c, hc.symm⟩,
@@ -32,7 +32,21 @@ def r : con (X × Y) :=
              mul_assoc, ←mul_assoc ↑a.2, mul_comm _ d.1],
          simp only [mul_assoc] }}
 
+def r : con (X × Y) := lattice.Inf {c | ∀ y : Y, c 1 (y, y)}
+
 end submonoid
+
+theorem r_eq_r' : Y.r = Y.r' :=
+le_antisymm
+  (lattice.Inf_le $ λ y, ⟨1, by norm_num⟩)
+  (lattice.le_Inf $ λ b H, (Y.r'.le_def _).2 $ λ x y ⟨t, ht⟩, by
+    {rw [(show x = (1*x.1, 1*x.2), by simp), (show y = (1*y.1, 1*y.2), by simp)],
+     refine b.trans
+       (show b _ (((t : X) * y.2) * x.1, (t * y.2) * x.2), from
+         (b.mul (H (t * y.2)) (b.refl (x.1, x.2)))) _,
+     rw [mul_assoc, mul_comm _ x.1, ht, mul_comm y.1,
+         mul_assoc, mul_comm y.2, ←mul_assoc, ←mul_assoc],
+     exact b.mul (b.symm (H (t*x.2))) (b.refl (y.1, y.2))})
 
 variables (X)
 
@@ -80,7 +94,9 @@ by refine { mul_comm := localization.mul_comm, ..localization.monoid}
 
 protected lemma eq {a₁ b₁ : X} {a₂ b₂ : Y} :
   mk a₁ a₂ = mk b₁ b₂ ↔ ∃ c:Y, (c:X) * (a₁ * b₂) = (c:X) * (b₁ * a₂) :=
-⟨λ h, exists.elim (con.eq.1 h) $ λ w hw, exists.intro w hw, λ ⟨w, hw⟩, con.eq.2 ⟨w, hw⟩⟩
+⟨λ h, exists.elim (show Y.r' (a₁, a₂)(b₁, b₂), by rw [←r_eq_r', ←con.eq]; exact h) $
+  λ w hw, exists.intro w hw,
+λ ⟨w, hw⟩, show ↑(a₁, a₂) = ↑(b₁, b₂), by rw [con.eq, r_eq_r']; exact ⟨w, hw⟩⟩
 
 variables (Y)
 
@@ -101,7 +117,7 @@ lemma r_of_eq {a₁ b₁ : X} {a₂ b₂ : Y} (h : (a₂ : X) * b₁ = b₂ * a�
 localization.eq.2 $ ⟨1, by rw [mul_comm b₁, h, mul_comm a₁]⟩
 
 @[simp] lemma mk_self' (x : Y) : mk (x : X) x = 1 :=
-con.eq.2 ⟨1, by {dsimp, rw [mul_comm ↑x, ←Y.coe_one], refl}⟩
+localization.eq.2 ⟨1, by {dsimp, rw [mul_comm ↑x, ←Y.coe_one], refl}⟩
 
 @[simp] lemma mk_self {x : X} (hx : x ∈ Y) : mk x ⟨x, hx⟩ = 1 :=
 mk_self' ⟨x, hx⟩
@@ -193,12 +209,10 @@ def aux_lift (H : ∀ y : Y, f y = f' y) : X × Y →* Z :=
 variables (f f')
 
 def lift' (H : ∀ y : Y, f y = f' y) : localization X Y →* Z :=
-Y.r.lift (aux_lift H) $ λ a b ⟨v, hv⟩, show _ * _ = _ * _, by
-   rw [mul_comm (f a.1), mul_comm (f b.1), ←mul_one (f a.1), ←(f' b.2).mul_inv,
-       mul_comm ↑(f' b.2)⁻¹, ←mul_assoc (f a.1), ←H b.2, ←f.map_mul, ←one_mul (f (a.1*↑b.2)),
-       ←(f' v).inv_mul, mul_assoc ↑(f' v)⁻¹, ←H v, ←f.map_mul, hv, f.map_mul,
-       ←mul_assoc ↑(f' v)⁻¹, H v, (f' v).inv_mul, one_mul, f.map_mul, mul_comm (f b.1),
-       ←mul_assoc, ←mul_assoc, H a.2, (f' a.2).inv_mul, one_mul]
+Y.r.lift (aux_lift H) $ λ a b h, (con.ker_rel _).1 $
+  (con.Inf_iff _ a b).1 h (con.ker (aux_lift H)) $ λ y, by
+     erw [con.ker_rel, (aux_lift H).map_one, ←units.mul_right_inj (f' y),
+          mul_assoc, units.inv_mul, ←H y]; simp
 
 noncomputable def lift (H : ∀ y : Y, is_unit (f y)) : localization X Y →* Z :=
 lift' f (λ y, classical.some $ H y)
@@ -347,12 +361,13 @@ function.surjective (monoid_hom.lift f H) ∧ con.ker f = Y.r_restrict
 lemma char_pred_of_equiv (H : ∀ y : Y, is_unit (f y)) (h : (localization X Y) ≃* Z)
   (hf : monoid_hom.lift f H = h.to_monoid_hom) : char_pred f H :=
 ⟨λ x, let ⟨p, hp⟩ := h.to_equiv.surjective x in ⟨p, by {rw [←hp, hf], refl}⟩,
-con.ext $ λ x y, ⟨λ h', let ⟨c, hc⟩ := con.eq.1 (h.to_equiv.injective $
+(r_eq_r' Y).symm ▸
+(con.ext $ λ x y, ⟨λ h', let ⟨c, hc⟩ := localization.eq.1 (h.to_equiv.injective $
   show h.to_monoid_hom (monoid_hom.of Y x) = h.to_monoid_hom (monoid_hom.of Y y), by
     rwa [←hf, monoid_hom.lift_of, monoid_hom.lift_of]) in ⟨c, hc⟩,
 λ ⟨w, hw⟩, let ⟨v, hv⟩ := H w in show f x = f y, by
 rw [←one_mul (f x), ←one_mul (f y), ←units.inv_mul v, ←hv, mul_assoc, mul_assoc, ←f.map_mul,
-    ←f.map_mul, show (↑w * x = ↑w * y), by simp only [*, mul_one, Y.coe_one] at *]⟩⟩
+    ←f.map_mul, show (↑w * x = ↑w * y), by simp only [*, mul_one, Y.coe_one] at *]⟩)⟩
 
 noncomputable def equiv_of_char_pred'_aux (f' : Y → units Z) (hf : ∀ y : Y, f y = f' y)
   (Hp : char_pred' f f' hf) : localization X Y ≃ Z :=

@@ -115,7 +115,6 @@ theorem eq_ff_of_bnot_eq_tt : ∀ {a : bool}, bnot a = tt → a = ff := dec_triv
 
 @[simp] theorem bxor_left_comm : ∀ a b c, bxor a (bxor b c) = bxor b (bxor a c) := dec_trivial
 
-lemma bxor_of_ne {x y : bool} (h : x ≠ y) : bxor x y = tt :=
-by cases x; cases y; refl <|> contradiction
+lemma bxor_of_ne : ∀ {x y : bool}, x ≠ y ↔ bxor x y = tt := dec_trivial
 
 end bool

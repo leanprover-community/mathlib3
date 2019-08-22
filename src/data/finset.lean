@@ -408,10 +408,10 @@ begin
   exact ⟨h a_in.1, h' a_in.2⟩
 end
 
-lemma inter_subset_inter_left {x y s : finset α} (h : x ⊆ y) : x ∩ s ⊆ y ∩ s :=
+lemma inter_subset_inter_right {x y s : finset α} (h : x ⊆ y) : x ∩ s ⊆ y ∩ s :=
 finset.inter_subset_inter h (finset.subset.refl _)
 
-lemma inter_subset_inter_right {x y s : finset α} (h : x ⊆ y) : s ∩ x ⊆ s ∩ y :=
+lemma inter_subset_inter_left {x y s : finset α} (h : x ⊆ y) : s ∩ x ⊆ s ∩ y :=
 finset.inter_subset_inter (finset.subset.refl _) h
 
 /- lattice laws -/

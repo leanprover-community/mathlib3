@@ -29,7 +29,7 @@ end semiring_hom
 variables (α : Type*) [comm_ring α] (S : submonoid α)
 
 namespace localization
-
+#exit
 instance : has_add (localization α S) :=
 ⟨lift₂ S S
 (λ x y : α × S, (mk ((y.2 : α) * x.1 + x.2 * y.1) (y.2 * x.2)))

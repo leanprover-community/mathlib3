@@ -14,6 +14,7 @@ instance top_coe : has_coe X top := ⟨λ x, ⟨x, set.mem_univ x⟩⟩
 def of : X →* completion X := localization.monoid_hom.of top
 def r : X × X → X × X → Prop := λ x y, (⊤ : submonoid X).r (x.1, x.2) (y.1, y.2)
 
+#exit
 @[elab_as_eliminator, reducible]
 def lift₁ {β : Type*} (f : X × X → β) (H : ∀ (a b : X × X), r X a b → f a = f b) :
   completion X → β :=

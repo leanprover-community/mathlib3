@@ -11,7 +11,7 @@ instance : comm_monoid Y :=
 by refine {mul_comm := _, ..submonoid.to_monoid};
   { intros, rw subtype.ext, apply mul_comm }
 
-def r : con (X × Y) :=
+def r' : con (X × Y) :=
 { r := λ a b, ∃ c : Y, (c:X) * (a.1 * b.2) = c * (b.1 * a.2),
   r_iseqv :=
     ⟨λ a, ⟨1, rfl⟩, λ a b ⟨c, hc⟩, ⟨c, hc.symm⟩,
@@ -32,14 +32,30 @@ def r : con (X × Y) :=
              mul_assoc, ←mul_assoc ↑a.2, mul_comm _ d.1],
          simp only [mul_assoc] }}
 
+def r : con (X × Y) := lattice.Inf {c | ∀ y : Y, c 1 (y, y)}
+
 end submonoid
+
+theorem r_eq_r' : Y.r = Y.r' :=
+le_antisymm
+  (lattice.Inf_le $ λ y, ⟨1, by norm_num⟩)
+  (lattice.le_Inf $ λ b H, (Y.r'.le_def _).2 $ λ x y ⟨t, ht⟩, by
+    {rw [(show x = (1*x.1, 1*x.2), by simp), (show y = (1*y.1, 1*y.2), by simp)],
+     refine b.trans
+       (show b _ (((t : X) * y.2) * x.1, (t * y.2) * x.2), from
+         (b.mul (H (t * y.2)) (b.refl (x.1, x.2)))) _,
+     rw [mul_assoc, mul_comm _ x.1, ht, mul_comm y.1,
+         mul_assoc, mul_comm y.2, ←mul_assoc, ←mul_assoc],
+     exact b.mul (b.symm (H (t*x.2))) (b.refl (y.1, y.2))})
 
 variables (X)
 
 def localization := Y.r.quotient
 
 variables {X Y}
+
 namespace localization
+
 instance : monoid (localization X Y) := con.monoid Y.r
 
 def mk : X → Y → localization X Y := λ x y, Y.r.mk' (x, y)
@@ -54,6 +70,7 @@ theorem induction_on {p : localization X Y → Prop} (x : localization X Y)
   (H : ∀ (y : X × Y), p (mk y.1 y.2)) : p x := ind H x
 
 section
+
 variables {W : submonoid Z} {A : Type*} [comm_monoid A] {B : submonoid A}
 
 @[elab_as_eliminator]
@@ -64,14 +81,15 @@ induction_on x $ λ a, induction_on z $ λ b, H a b
 
 @[elab_as_eliminator]
 theorem induction_on₃ {p : localization X Y → localization Z W → localization A B → Prop}
-  (x : localization X Y) (z : localization Z W) (a : localization A B)
-  (H : ∀ (a : X × Y) (b : Z × W) (c : A × B), p (mk a.1 a.2) (mk b.1 b.2) (mk c.1 c.2)) : p x z a :=
-induction_on₂ x z $ λ p q, induction_on a $ λ r, H p q r
+    (x : localization X Y) (z : localization Z W) (a : localization A B)
+    (H : ∀ (a : X × Y) (b : Z × W) (c : A × B), p (mk a.1 a.2) (mk b.1 b.2) (mk c.1 c.2)) :
+  p x z a := induction_on₂ x z $ λ p q, induction_on a $ λ r, H p q r
 
 lemma exists_rep (x : localization X Y) : ∃ y : X × Y, mk y.1 y.2 = x :=
 induction_on x $ λ y, ⟨y, rfl⟩
 
 end
+
 protected lemma mul_comm : ∀ x y : localization X Y, x * y = y * x :=
 λ x y, con.induction_on₂ x y (λ a b, by rw [con.coe_mul, con.coe_mul, mul_comm])
 
@@ -80,7 +98,8 @@ by refine { mul_comm := localization.mul_comm, ..localization.monoid}
 
 protected lemma eq {a₁ b₁ : X} {a₂ b₂ : Y} :
   mk a₁ a₂ = mk b₁ b₂ ↔ ∃ c:Y, (c:X) * (a₁ * b₂) = (c:X) * (b₁ * a₂) :=
-⟨λ h, exists.elim (con.eq.1 h) $ λ w hw, exists.intro w hw, λ ⟨w, hw⟩, con.eq.2 ⟨w, hw⟩⟩
+⟨λ h, exists.elim ((show Y.r' (a₁, a₂) (b₁, b₂), by rw [←r_eq_r' Y, ←con.eq]; convert h)) $
+      λ w hw, exists.intro w hw, λ ⟨w, hw⟩, con.eq.2 $ by rw r_eq_r' Y; exact ⟨w, hw⟩⟩
 
 variables (Y)
 
@@ -101,7 +120,7 @@ lemma r_of_eq {a₁ b₁ : X} {a₂ b₂ : Y} (h : (a₂ : X) * b₁ = b₂ * a�
 localization.eq.2 $ ⟨1, by rw [mul_comm b₁, h, mul_comm a₁]⟩
 
 @[simp] lemma mk_self' (x : Y) : mk (x : X) x = 1 :=
-con.eq.2 ⟨1, by {dsimp, rw [mul_comm ↑x, ←Y.coe_one], refl}⟩
+localization.eq.2 ⟨1, by {dsimp, rw [mul_comm ↑x, ←Y.coe_one], refl}⟩
 
 @[simp] lemma mk_self {x : X} (hx : x ∈ Y) : mk x ⟨x, hx⟩ = 1 :=
 mk_self' ⟨x, hx⟩
@@ -119,8 +138,6 @@ Y.r.mk'.comp ⟨λ x, (x,1), refl 1, λ x y, by simp only [prod.mk_mul_mk, one_m
 def to_units (Y : submonoid X) : Y →* units (localization X Y) :=
 ⟨λ y, ⟨mk y 1, mk 1 y, by simp, by simp⟩, rfl,
  λ x y, by ext; convert (monoid_hom.of Y).map_mul x y⟩
-
-variables {Y}
 
 @[simp] lemma to_units_mk (y : Y) : (to_units Y y : localization X Y) = mk y 1 := rfl
 
@@ -193,12 +210,10 @@ def aux_lift (H : ∀ y : Y, f y = f' y) : X × Y →* Z :=
 variables (f f')
 
 def lift' (H : ∀ y : Y, f y = f' y) : localization X Y →* Z :=
-Y.r.lift (aux_lift H) $ λ a b ⟨v, hv⟩, show _ * _ = _ * _, by
-   rw [mul_comm (f a.1), mul_comm (f b.1), ←mul_one (f a.1), ←(f' b.2).mul_inv,
-       mul_comm ↑(f' b.2)⁻¹, ←mul_assoc (f a.1), ←H b.2, ←f.map_mul, ←one_mul (f (a.1*↑b.2)),
-       ←(f' v).inv_mul, mul_assoc ↑(f' v)⁻¹, ←H v, ←f.map_mul, hv, f.map_mul,
-       ←mul_assoc ↑(f' v)⁻¹, H v, (f' v).inv_mul, one_mul, f.map_mul, mul_comm (f b.1),
-       ←mul_assoc, ←mul_assoc, H a.2, (f' a.2).inv_mul, one_mul]
+Y.r.lift (aux_lift H) $ λ a b h, (con.ker_rel _).1 $
+  (con.Inf_iff _ a b).1 h (con.ker (aux_lift H)) $ λ y, by
+     erw [con.ker_rel, (aux_lift H).map_one, ←units.mul_right_inj (f' y),
+          mul_assoc, units.inv_mul, ←H y]; simp
 
 noncomputable def lift (H : ∀ y : Y, is_unit (f y)) : localization X Y →* Z :=
 lift' f (λ y, classical.some $ H y)
@@ -289,19 +304,18 @@ induction_on x $ λ a, by {rw [map_mk, ←to_units_inv], congr; rw h; refl}
 end monoid_hom
 
 namespace mul_equiv
+open mul_equiv
+variables {X Y} (f : X →* Z) {W : submonoid Z}
 
-variables {X Y} (f : X →* Y) {W : submonoid Z}
-
-@[reducible] def equiv_of_equiv_aux (h : X ≃* Z) (H : h.to_monoid_hom.map Y = W) :
-  localization X Y ≃ localization Z W :=
-let H1 : ∀ y : Y, h y ∈ W :=
-by { intro y, rw [←H, ←submonoid.mem_coe], change _ ∈ (h '' Y), exact ⟨(y: X), y.2, rfl⟩} in
-let H2 : ∀ w : W, h.symm w ∈ Y :=
-by { intro w, rcases (show (w : Z) ∈ h.to_monoid_hom.map Y, by {rw H, apply w.2}) with ⟨y, hym, hy⟩,
-   rw [hy.symm, (show h.to_monoid_hom y = h y, from rfl), mul_equiv.symm_apply_apply],
-   exact (submonoid.mem_coe Y).1 hym} in
-{ to_fun := @localization.monoid_hom.map _ _ Y _ _ h.to_monoid_hom W $ H1,
-  inv_fun := @localization.monoid_hom.map _ _ W _ _ h.symm.to_monoid_hom Y $ H2,
+def localization.equiv_of_equiv (h : X ≃* Z) (H : h.to_monoid_hom.map Y = W) :
+  localization X Y ≃* localization Z W :=
+{ to_fun := @localization.monoid_hom.map _ _ Y _ _ h.to_monoid_hom W $
+    by {intro y, rw [←H, ←submonoid.mem_coe], change _ ∈ (h '' Y), exact ⟨(y: X), y.2, rfl⟩},
+  inv_fun := @localization.monoid_hom.map _ _ W _ _ h.symm.to_monoid_hom Y $
+    by {intro w,
+        rcases (show (w : Z) ∈ h.to_monoid_hom.map Y, by {rw H, apply w.2}) with ⟨y, hym, hy⟩,
+        rw [hy.symm, to_monoid_hom_symm_apply, to_monoid_hom_apply, symm_apply_apply],
+        exact (submonoid.mem_coe Y).1 hym},
   left_inv := λ x, by {erw [monoid_hom.map_map,
     monoid_hom.map_ext (h.symm.to_monoid_hom.comp h.to_monoid_hom) (monoid_hom.id X)
     (λ (y : Y), show _ ∈ Y, by {convert (submonoid.mem_coe _).1 y.2, simp, refl})
@@ -309,72 +323,44 @@ by { intro w, rcases (show (w : Z) ∈ h.to_monoid_hom.map Y, by {rw H, apply w.
   right_inv := λ x, by {erw [monoid_hom.map_map,
     monoid_hom.map_ext (h.to_monoid_hom.comp h.symm.to_monoid_hom) (monoid_hom.id Z)
     (λ (w : W), show _ ∈ W, by {convert (submonoid.mem_coe _).1 w.2, simp, refl})
-    (λ (w : W), show (w : Z) ∈ W, from w.2) (by simp) x, monoid_hom.map_id], refl }}
+    (λ (w : W), show (w : Z) ∈ W, from w.2) (by simp) x, monoid_hom.map_id], refl },
+  map_mul' := monoid_hom.map_mul _}
 
-def equiv_of_equiv (h : X ≃* Z) (H : h.to_monoid_hom.map Y = W) :
-  (localization X Y) ≃* (localization Z W) :=
-{ map_mul' := monoid_hom.map_mul _,
-  ..equiv_of_equiv_aux h H}
-
-end mul_equiv
-end localization
-namespace submonoid
-
-variables {X} (Y)
-
-def r_restrict : con X :=
-{ r := λ a b, Y.r (a,1) (b,1),
-  r_iseqv := ⟨λ x, Y.r.refl (x,1), λ _ _ h, Y.r.symm h,
-            λ _ _ _ hm hn, Y.r.trans hm hn⟩,
-  r_mul := λ _ _ _ _ h1 h2, by convert Y.r.mul h1 h2; simp }
-
-end submonoid
-
-namespace localization
-
-namespace mul_equiv
-
-variables {X Y}
-
-variables (f : X →* Z)
+variables (f)
 
 def char_pred' (f' : Y → units Z) (hf : ∀ y:Y, f y = f' y) :=
-function.surjective (monoid_hom.lift' f f' hf) ∧ con.ker f = Y.r_restrict
+function.surjective (monoid_hom.lift' f f' hf) ∧ con.ker f = Y.r.prod_fst
 
 def char_pred (H : ∀ y : Y, is_unit (f y)) :=
-function.surjective (monoid_hom.lift f H) ∧ con.ker f = Y.r_restrict
+function.surjective (monoid_hom.lift f H) ∧ con.ker f = Y.r.prod_fst
 
 lemma char_pred_of_equiv (H : ∀ y : Y, is_unit (f y)) (h : (localization X Y) ≃* Z)
   (hf : monoid_hom.lift f H = h.to_monoid_hom) : char_pred f H :=
 ⟨λ x, let ⟨p, hp⟩ := h.to_equiv.surjective x in ⟨p, by {rw [←hp, hf], refl}⟩,
-con.ext $ λ x y, ⟨λ h', let ⟨c, hc⟩ := con.eq.1 (h.to_equiv.injective $
+(r_eq_r' Y).symm ▸
+(con.ext $ λ x y, ⟨λ h', let ⟨c, hc⟩ := localization.eq.1 (h.to_equiv.injective $
   show h.to_monoid_hom (monoid_hom.of Y x) = h.to_monoid_hom (monoid_hom.of Y y), by
     rwa [←hf, monoid_hom.lift_of, monoid_hom.lift_of]) in ⟨c, hc⟩,
 λ ⟨w, hw⟩, let ⟨v, hv⟩ := H w in show f x = f y, by
 rw [←one_mul (f x), ←one_mul (f y), ←units.inv_mul v, ←hv, mul_assoc, mul_assoc, ←f.map_mul,
-    ←f.map_mul, show (↑w * x = ↑w * y), by simp only [*, mul_one, Y.coe_one] at *]⟩⟩
-
-noncomputable def equiv_of_char_pred'_aux (f' : Y → units Z) (hf : ∀ y : Y, f y = f' y)
-  (Hp : char_pred' f f' hf) : localization X Y ≃ Z :=
-@equiv.of_bijective _ _ (monoid_hom.lift' f f' hf) $ and.intro
-begin
-  intros x y,
-  apply induction_on x,
-  apply induction_on y,
-  intros a b h,
-  rw [monoid_hom.lift'_mk, monoid_hom.lift'_mk] at h,
-  have : f (a.1*b.2) = f (b.1*a.2), by
-    rw [f.map_mul, f.map_mul, hf b.2, hf a.2, ←mul_one (f a.1), ←units.inv_mul (f' a.2), ←mul_assoc,
-        ←h, mul_assoc, mul_comm ↑(f' a.2), mul_assoc, ←mul_assoc _ ↑(f' b.2), units.inv_mul, one_mul],
-  cases (show Y.r_restrict _ _, by rw ←Hp.2; exact this) with c hc,
-  rw localization.eq, exact ⟨c, by simpa using hc.symm⟩,
-end
-Hp.1
+    ←f.map_mul, show (↑w * x = ↑w * y), by simp only [*, mul_one, Y.coe_one] at *]⟩)⟩
 
 noncomputable def equiv_of_char_pred' (f' : Y → units Z) (hf : ∀ y:Y, f y = f' y)
   (Hp : char_pred' f f' hf) : (localization X Y) ≃* Z :=
 { map_mul' := (monoid_hom.lift' f f' hf).map_mul,
-  ..equiv_of_char_pred'_aux f f' hf Hp}
+  ..@equiv.of_bijective _ _ (monoid_hom.lift' f f' hf) $ and.intro
+begin
+  intros x y,
+  apply induction_on₂ x y,
+  intros a b h,
+  rw [monoid_hom.lift'_mk, monoid_hom.lift'_mk] at h,
+  have : f (a.1*b.2) = f (b.1*a.2), by sorry, sorry,
+   /- rw [f.map_mul, f.map_mul, hf b.2, hf a.2, ←mul_one (f a.1), ←units.inv_mul (f' a.2), ←mul_assoc,
+        ←h, mul_assoc, mul_comm ↑(f' a.2), mul_assoc, ←mul_assoc _ ↑(f' b.2), units.inv_mul, one_mul],
+  cases (show Y.r'.prod_fst _ _, by rw [←r_eq_r' Y, ←Hp.2]; exact this) with c hc,
+  rw localization.eq, exact ⟨c, by simpa using hc.symm⟩,-/
+end
+Hp.1}
 
 noncomputable def equiv_of_char_pred (H : ∀ y : Y, is_unit (f y)) (Hp : char_pred f H) :
   (localization X Y) ≃* Z :=

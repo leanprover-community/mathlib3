@@ -67,6 +67,11 @@ At the level of games, these operations satisfy all the laws of a commutative gr
 the necessary equivalence relations at the level of pregames, we introduce the notion of a `relabelling`
 of a game, and show, for example, that there is a relabelling between `x + (y + z)` and `(x + y) + z`.
 
+## Future work
+Someone might like to add the theory of dominated and reversible positions, and unique normal form
+for short games. The development of surreal numbers, based on this development of combinatorial games,
+is still quite incomplete.
+
 ## References
 
 The material here is all drawn from
@@ -1174,6 +1179,7 @@ begin rintro ⟨a⟩ ⟨b⟩ h ⟨c⟩, apply pgame.add_le_add_left h, end
 -- Because of this issue, we define the `partial_order` and `ordered_comm_group` instances,
 -- but do not actually mark them as instances, for safety.
 
+/-- The `<` operation provided by this partial order is not the usual `<` on games! -/
 def game_partial_order : partial_order game :=
 { le_refl := le_refl,
   le_trans := le_trans,
@@ -1182,22 +1188,8 @@ def game_partial_order : partial_order game :=
 
 local attribute [instance] game_partial_order
 
-theorem add_lt_add_left (a b : game) (h : a < b) (c : game) : c + a < c + b :=
-begin
-  rw lt_iff_le_not_le at h,
-  rw lt_iff_le_not_le,
-  split,
-  { apply add_le_add_left _ _ h.1 },
-  { intro w,
-    replace w : -c + (c + b) ≤ -c + (c + a) := add_le_add_left _ _ w _,
-    simp only [add_zero, add_comm, add_left_neg, add_left_comm] at w,
-    exact h.2 w },
-end
-
+/-- The `<` operation provided by this `ordered_comm_group` is not the usual `<` on games! -/
 def ordered_comm_group_game : ordered_comm_group game :=
-{ add_le_add_left := add_le_add_left,
-  add_lt_add_left := add_lt_add_left,
-  ..game_partial_order,
-  ..game.add_comm_group }
+ordered_comm_group.mk' add_le_add_left
 
 end game

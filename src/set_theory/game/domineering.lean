@@ -109,7 +109,7 @@ end
 /-- Domineering is always a short game, because the board is finite. -/
 instance short_domineering : Π (b : finset (ℤ × ℤ)), short (domineering b)
 | b :=
-@short.mk (domineering b) (by apply_instance) (by apply_instance)
+short.mk'
 (λ i, begin
   simp only [domineering_move_left, domineering_left_moves],
   exact have _, from move_left_smaller b (by { convert i, simp }), short_domineering (move_left b _),

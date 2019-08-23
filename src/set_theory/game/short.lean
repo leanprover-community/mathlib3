@@ -9,9 +9,8 @@ import data.fintype
 /-!
 # Short games
 
-A combinatorial game is `short` if there is a finite set of moves at every point.
-(That is, the index types for both Left's and Right's moves are `fintype`, and every
-resulting game is also `short`.)
+A combinatorial game is `short` [Conway, ch.9][conway2001] if it has only finitely many positions.
+In particular, this means there is a finite set of moves at every point.
 
 We prove that the order relations `≤` and `<`, and the equivalence relation `≈`, are decidable on
 short games, although unfortunately in practice `dec_trivial` doesn't seem to be able to
@@ -23,58 +22,70 @@ namespace pgame
 
 /-- A short game is a game with a finite set of moves at every turn. -/
 inductive short : pgame.{u} → Type (u+1)
-| mk : Π (x : pgame) [fintype x.left_moves] [fintype x.right_moves]
-         [∀ i : x.left_moves, short (x.move_left i)] [∀ j : x.right_moves, short (x.move_right j)],
-       short x
+| mk : Π {α β : Type u} {L : α → pgame.{u}} {R : β → pgame.{u}}
+         (sL : ∀ i : α, short (L i)) (sR : ∀ j : β, short (R j))
+         [fintype α] [fintype β],
+       short ⟨α, β, L, R⟩
+
+def short.mk' {x : pgame} [fintype x.left_moves] [fintype x.right_moves]
+  (sL : ∀ i : x.left_moves, short (x.move_left i)) (sR : ∀ j : x.right_moves, short (x.move_right j)) :
+  short x :=
+by { tactic.unfreeze_local_instances, cases x, dsimp at *, exact short.mk sL sR }
 
 attribute [class] short
 
-instance fintype_left_moves (x : pgame) [S : short x] : fintype (x.left_moves) :=
+instance fintype_left {α β : Type u} {L : α → pgame.{u}} {R : β → pgame.{u}} [S : short ⟨α, β, L, R⟩] : fintype α :=
 begin
   tactic.unfreeze_local_instances,
-  cases S with _ F _ _ _,
+  cases S with _ _ _ _ _ _ F _,
+  exact F
+end
+instance fintype_left_moves (x : pgame) [S : short x] : fintype (x.left_moves) :=
+by { tactic.unfreeze_local_instances, cases x, dsimp, apply_instance, }
+
+instance fintype_right {α β : Type u} {L : α → pgame.{u}} {R : β → pgame.{u}} [S : short ⟨α, β, L, R⟩] : fintype β :=
+begin
+  tactic.unfreeze_local_instances,
+  cases S with _ _ _ _ _ _ _ F,
   exact F
 end
 instance fintype_right_moves (x : pgame) [S : short x] : fintype (x.right_moves) :=
-begin
-  tactic.unfreeze_local_instances,
-  cases S with _ _ F _ _,
-  exact F
-end
+by { tactic.unfreeze_local_instances, cases x, dsimp, apply_instance, }
+
 instance move_left_short (x : pgame) [S : short x] (i : x.left_moves) : short (x.move_left i) :=
 begin
   tactic.unfreeze_local_instances,
-  cases S with _ _ _ L _,
+  cases S with _ _ _ _ L _ _ _,
   apply L
 end
 instance move_left_short' {xl xr xL xR} [S : short (mk xl xr xL xR)] (i : xl) : short (xL i) :=
 begin
   tactic.unfreeze_local_instances,
-  cases S with _ _ _ L _,
+  cases S with _ _ _ _ L _ _ _,
   apply L
 end
 instance move_right_short (x : pgame) [S : short x] (j : x.right_moves) : short (x.move_right j) :=
 begin
   tactic.unfreeze_local_instances,
-  cases S with _ _ _ _ R,
+  cases S with _ _ _ _ _ R _ _,
   apply R
 end
 instance move_right_short' {xl xr xL xR} [S : short (mk xl xr xL xR)] (j : xr) : short (xR j) :=
 begin
   tactic.unfreeze_local_instances,
-  cases S with _ _ _ _ R,
+  cases S with _ _ _ _ _ R _ _,
   apply R
 end
 
 instance short_0 : short 0 :=
-@short.mk 0 pempty.fintype pempty.fintype (λ i, by cases i) (λ j, by cases j)
+short.mk (λ i, by cases i) (λ j, by cases j)
 
 instance short_1 : short 1 :=
-@short.mk 1 punit.fintype pempty.fintype (λ i, begin cases i, dsimp, apply_instance, end) (λ j, by cases j)
+short.mk (λ i, begin cases i, apply_instance, end) (λ j, by cases j)
 
 instance short_of_lists (L R : list pgame) [sL : ∀ l ∈ L, short l] [sR : ∀ r ∈ R, short r] :
   short (pgame.of_lists L R) :=
-@short.mk (pgame.of_lists L R) (fin.fintype _) (fin.fintype _)
+short.mk
 (λ i, sL _ (list.nth_le_mem _ _ _))
 (λ j, sR _ (list.nth_le_mem _ _ _))
 
@@ -82,21 +93,13 @@ instance short_neg : Π (x : pgame.{u}) [short x], short (-x)
 | (mk xl xr xL xR) _ :=
 begin
   resetI,
-  apply @short.mk _ _ _ _ _,
-  { apply fintype.of_equiv _ ((left_moves_neg _).symm),
-    apply_instance },
-  { apply fintype.of_equiv _ ((right_moves_neg _).symm),
-    apply_instance },
+  apply short.mk,
   { rintro i,
-    dsimp,
-    dsimp at i,
     apply short_neg _,
     apply_instance, },
   { rintro j,
-    dsimp,
-    dsimp at j,
     apply short_neg _,
-    apply_instance, },
+    apply_instance, }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
@@ -104,11 +107,7 @@ instance short_add : Π (x y : pgame.{u}) [short x] [short y], short (x + y)
 | (mk xl xr xL xR) (mk yl yr yL yR) _ _ :=
 begin
   resetI,
-  apply @short.mk _ _ _ _ _,
-  { apply fintype.of_equiv _ (left_moves_add.symm),
-    apply sum.fintype },
-  { apply fintype.of_equiv _ (right_moves_add.symm),
-    apply sum.fintype },
+  apply short.mk,
   { rintro ⟨i⟩,
     { apply short_add, },
     { change short (mk xl xr xL xR + yL i), apply short_add, } },

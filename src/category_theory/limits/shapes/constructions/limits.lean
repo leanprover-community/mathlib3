@@ -16,6 +16,7 @@ TODO: provide the dual result.
 -/
 
 open category_theory
+open opposite
 
 namespace category_theory.limits
 
@@ -23,30 +24,12 @@ universes v u
 variables {C : Type u} [𝒞 : category.{v+1} C]
 include 𝒞
 
--- This should be easy: a limit of F is exactly on object representing F.cones.
 def has_limit.of_cones_iso {J K : Type v} [small_category J] [small_category K] (F : J ⥤ C) (G : K ⥤ C)
-  (h : F.cones ≅ G.cones) [has_limit F] : has_limit G := sorry
--- { cone :=
---   let t := ((cone.equiv F).hom (limit.cone F)) in
---   (cone.equiv G).inv ⟨_, (h.hom.app t.1 t.2)⟩,
---   is_limit :=
---   begin
---     apply is_limit.of_nat_iso,
---     transitivity,
---     swap,
---     exact h,
---     dsimp,
---     transitivity,
---     swap,
---     apply is_limit.nat_iso (limit.is_limit F),
---     apply nat_iso.of_components,
---     swap,
---     intros,
---     dsimp,
-
---   end }
+  (h : F.cones ≅ G.cones) [has_limit F] : has_limit G :=
+⟨_, is_limit.of_nat_iso ((is_limit.nat_iso (limit.is_limit F)) ≪≫ h)⟩
 
 def equalizer_diagram [has_products.{v} C] {J} [small_category J] (F : J ⥤ C) : walking_parallel_pair ⥤ C :=
+-- TODO: probably can inline some of these lets
 let β_obj := (λ j : J, F.obj j) in
 let β_hom := (λ f : (Σ p : J × J, p.1 ⟶ p.2), F.obj f.1.2) in
 let pi_obj := limits.pi_obj β_obj in
@@ -62,7 +45,19 @@ def equalizer_diagram.cones_iso [has_products.{v} C] {J} [small_category J] (F :
 { hom :=
   { app := λ X c,
     { app := λ j, c.app walking_parallel_pair.zero ≫ pi.π _ j,
-      naturality' := λ j j' f, sorry }, },
+      naturality' := λ j j' f,
+      begin
+        have L := c.naturality walking_parallel_pair_hom.left,
+        have R := c.naturality walking_parallel_pair_hom.right,
+        have := L.symm.trans R,
+        dsimp [equalizer_diagram] at this,
+        have t := congr_arg (λ g, g ≫ pi.π _ (⟨(j, j'), f⟩ : Σ (p : J × J), p.fst ⟶ p.snd)) this,
+        dsimp at t,
+        simp at t,
+        dsimp,
+        simp,
+        exact t.symm
+      end }, },
   inv := sorry,
   hom_inv_id' := sorry,
   inv_hom_id' := sorry, }

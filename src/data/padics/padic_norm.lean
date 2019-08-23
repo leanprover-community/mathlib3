@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
 
-import data.rat.basic algebra.gcd_domain algebra.field_power
+import data.rat algebra.gcd_domain algebra.field_power
 import ring_theory.multiplicity tactic.ring
 import data.real.cau_seq
 import tactic.norm_cast
@@ -33,6 +33,7 @@ by taking (prime p) as a type class argument.
 ## References
 
 * [F. Q. Gouêva, *p-adic numbers*][gouvea1997]
+* [R. Y. Lewis, *A formal proof of Hensel's lemma over the p-adic integers*][lewis2019]
 * https://en.wikipedia.org/wiki/P-adic_number
 
 ## Tags
@@ -264,8 +265,26 @@ namespace padic_norm
 
 section padic_norm
 open padic_val_rat
-variables (p : ℕ) [hp : p.prime]
-include hp
+variables (p : ℕ)
+
+/--
+Unfolds the definition of the p-adic norm of `q` when `q ≠ 0`.
+-/
+@[simp] protected lemma eq_fpow_of_nonzero {q : ℚ} (hq : q ≠ 0) :
+  padic_norm p q = p ^ (-(padic_val_rat p q)) :=
+by simp [hq, padic_norm]
+
+/--
+The p-adic norm is nonnegative.
+-/
+protected lemma nonneg (q : ℚ) : padic_norm p q ≥ 0 :=
+if hq : q = 0 then by simp [hq]
+else
+  begin
+    unfold padic_norm; split_ifs,
+    apply fpow_nonneg_of_nonneg,
+    exact_mod_cast nat.zero_le _
+  end
 
 /--
 The p-adic norm of 0 is 0.
@@ -278,11 +297,13 @@ The p-adic norm of 1 is 1.
 @[simp] protected lemma one : padic_norm p 1 = 1 := by simp [padic_norm]
 
 /--
-Unfolds the definition of the p-adic norm of `q` when `q ≠ 0`.
+The image of `padic_norm p` is {0} ∪ {p^(-n) | n ∈ ℤ}.
 -/
-@[simp] protected lemma eq_fpow_of_nonzero {q : ℚ} (hq : q ≠ 0) :
-  padic_norm p q = p ^ (-(padic_val_rat p q)) :=
-by simp [hq, padic_norm]
+protected theorem image {q : ℚ} (hq : q ≠ 0) : ∃ n : ℤ, padic_norm p q = p ^ (-n) :=
+⟨ (padic_val_rat p q), by simp [padic_norm, hq] ⟩
+
+variable [hp : p.prime]
+include hp
 
 /--
 If `q ≠ 0`, then `padic_norm p q ≠ 0`.
@@ -314,18 +335,6 @@ begin
 end
 
 /--
-The p-adic norm is nonnegative.
--/
-protected lemma nonneg (q : ℚ) : padic_norm p q ≥ 0 :=
-if hq : q = 0 then by simp [hq]
-else
-  begin
-    unfold padic_norm; split_ifs,
-    apply fpow_nonneg_of_nonneg,
-    exact_mod_cast nat.zero_le _
-  end
-
-/--
 The p-adic norm is multiplicative.
 -/
 @[simp] protected theorem mul (q r : ℚ) : padic_norm p (q*r) = padic_norm p q * padic_norm p r :=
@@ -335,7 +344,7 @@ else if hr : r = 0 then
   by simp [hr]
 else
   have q*r ≠ 0, from mul_ne_zero hq hr,
-  have (↑p : ℚ) ≠ 0, by simp [prime.ne_zero hp],
+  have (↑p : ℚ) ≠ 0, by simp [hp.ne_zero],
   by simp [padic_norm, *, padic_val_rat.mul, fpow_add this]
 
 /--
@@ -437,12 +446,6 @@ begin
   { rw max_eq_left_of_lt hlt,
     assumption }
 end
-
-/--
-The image of `padic_norm p` is {0} ∪ {p^(-n) | n ∈ ℤ}.
--/
-protected theorem image {q : ℚ} (hq : q ≠ 0) : ∃ n : ℤ, padic_norm p q = p ^ (-n) :=
-⟨ (padic_val_rat p q), by simp [padic_norm, hq] ⟩
 
 /--
 The p-adic norm is an absolute value: positive-definite and multiplicative, satisfying the triangle

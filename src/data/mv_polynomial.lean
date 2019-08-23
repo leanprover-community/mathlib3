@@ -362,7 +362,7 @@ end
   eval₂ f g (s.sum p) = s.sum (λ x, eval₂ f g $ p x) :=
 (finset.sum_hom _).symm
 
-attribute [to_additive mv_polynomial.eval₂_sum] eval₂_prod
+attribute [to_additive] eval₂_prod
 
 lemma eval₂_assoc [decidable_eq γ] (q : γ → mv_polynomial σ α) (p : mv_polynomial γ α) :
   eval₂ f (λ t, eval₂ f g (q t)) p = eval₂ f g (eval₂ C q p) :=
@@ -983,14 +983,14 @@ def ring_equiv_of_equiv (e : β ≃ γ) : mv_polynomial β α ≃r mv_polynomial
   hom       := rename.is_ring_hom e }
 
 def ring_equiv_congr [comm_ring γ] (e : α ≃r γ) : mv_polynomial β α ≃r mv_polynomial β γ :=
-{ to_fun    := map e.to_fun,
-  inv_fun   := map e.symm.to_fun,
+{ to_fun    := map e.to_equiv,
+  inv_fun   := map e.symm.to_equiv,
   left_inv  := assume p,
-    have (e.symm.to_equiv.to_fun ∘ e.to_equiv.to_fun) = id,
+    have (e.symm.to_equiv ∘ e.to_equiv) = id,
     { ext a, exact e.to_equiv.symm_apply_apply a },
     by simp only [map_map, this, map_id],
   right_inv := assume p,
-    have (e.to_equiv.to_fun ∘ e.symm.to_equiv.to_fun) = id,
+    have (e.to_equiv ∘ e.symm.to_equiv) = id,
     { ext a, exact e.to_equiv.apply_symm_apply a },
     by simp only [map_map, this, map_id],
   hom       := map.is_ring_hom e.to_fun }

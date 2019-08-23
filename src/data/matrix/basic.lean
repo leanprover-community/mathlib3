@@ -132,16 +132,16 @@ by ext i j; by_cases i = j; simp [h]
 section semiring
 variables [semiring α]
 
-@[simp] theorem mul_zero (M : matrix m n α) : M ⬝ (0 : matrix n o α) = 0 :=
+@[simp] protected theorem mul_zero (M : matrix m n α) : M ⬝ (0 : matrix n o α) = 0 :=
 by ext i j; simp
 
-@[simp] theorem zero_mul (M : matrix m n α) : (0 : matrix l m α) ⬝ M = 0 :=
+@[simp] protected theorem zero_mul (M : matrix m n α) : (0 : matrix l m α) ⬝ M = 0 :=
 by ext i j; simp
 
-theorem mul_add (L : matrix m n α) (M N : matrix n o α) : L ⬝ (M + N) = L ⬝ M + L ⬝ N :=
+protected theorem mul_add (L : matrix m n α) (M N : matrix n o α) : L ⬝ (M + N) = L ⬝ M + L ⬝ N :=
 by ext i j; simp [finset.sum_add_distrib, mul_add]
 
-theorem add_mul (L M : matrix l m α) (N : matrix m n α) : (L + M) ⬝ N = L ⬝ N + M ⬝ N :=
+protected theorem add_mul (L M : matrix l m α) (N : matrix m n α) : (L + M) ⬝ N = L ⬝ N + M ⬝ N :=
 by ext i j; simp [finset.sum_add_distrib, add_mul]
 
 @[simp] theorem diagonal_mul [decidable_eq m]
@@ -164,10 +164,10 @@ instance [decidable_eq n] : monoid (matrix n n α) :=
   ..matrix.has_one, ..matrix.semigroup }
 
 instance [decidable_eq n] : semiring (matrix n n α) :=
-{ mul_zero := mul_zero,
-  zero_mul := zero_mul,
-  left_distrib := mul_add,
-  right_distrib := add_mul,
+{ mul_zero := matrix.mul_zero,
+  zero_mul := matrix.zero_mul,
+  left_distrib := matrix.mul_add,
+  right_distrib := matrix.add_mul,
   ..matrix.add_comm_monoid,
   ..matrix.monoid }
 
@@ -178,6 +178,28 @@ by ext i j; by_cases i = j; simp [h]
 theorem diagonal_mul_diagonal [decidable_eq n] (d₁ d₂ : n → α) :
   diagonal d₁ * diagonal d₂ = diagonal (λ i, d₁ i * d₂ i) :=
 diagonal_mul_diagonal' _ _
+
+lemma is_add_monoid_hom_mul_left (M : matrix l m α) :
+  is_add_monoid_hom (λ x : matrix m n α, M ⬝ x) :=
+{ to_is_add_hom := ⟨matrix.mul_add _⟩, map_zero := matrix.mul_zero _ }
+
+def is_add_monoid_hom_mul_right (M : matrix m n α) :
+  is_add_monoid_hom (λ x : matrix l m α, x ⬝ M) :=
+{ to_is_add_hom := ⟨λ _ _, matrix.add_mul _ _ _⟩, map_zero := matrix.zero_mul _ }
+
+protected lemma sum_mul {β : Type*} (s : finset β) (f : β → matrix l m α)
+  (M : matrix m n α) : s.sum f ⬝ M = s.sum (λ a, f a ⬝ M) :=
+(@finset.sum_hom _ _ _ s f _ _ (λ x, x ⬝ M)
+/- This line does not type-check without `id` and `: _`. Lean did not recognize that two different
+  `add_monoid` instances were def-eq -/
+  (id (@is_add_monoid_hom_mul_right l _ _ _ _ _ _ _ M) : _)).symm
+
+protected lemma mul_sum {β : Type*} (s : finset β) (f : β → matrix m n α)
+  (M : matrix l m α) :  M ⬝ s.sum f = s.sum (λ a, M ⬝ f a) :=
+(@finset.sum_hom _ _ _ s f _ _ (λ x, M ⬝ x)
+/- This line does not type-check without `id` and `: _`. Lean did not recognize that two different
+  `add_monoid` instances were def-eq -/
+  (id (@is_add_monoid_hom_mul_left _ _ n _ _ _ _ _ M) : _)).symm
 
 end semiring
 
@@ -268,7 +290,7 @@ section transpose
 
 local postfix `ᵀ` : 1500 := transpose
 
-lemma transpose_transpose (M : matrix m n α) :
+@[simp] lemma transpose_transpose (M : matrix m n α) :
   Mᵀᵀ = M :=
 by ext; refl
 

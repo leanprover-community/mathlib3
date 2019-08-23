@@ -1,13 +1,18 @@
--- Copyright (c) 2017 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison
-
-/- The Yoneda embedding, as a functor `yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁)`,
-   along with an instance that it is `fully_faithful`.
-
-   Also the Yoneda lemma, `yoneda_lemma : (yoneda_pairing C) ≅ (yoneda_evaluation C)`. -/
-
+/-
+Copyright (c) 2017 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import category_theory.opposites
+
+/-!
+# The Yoneda embedding
+
+The Yoneda embedding as a functor `yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁)`,
+along with an instance that it is `fully_faithful`.
+
+Also the Yoneda lemma, `yoneda_lemma : (yoneda_pairing C) ≅ (yoneda_evaluation C)`.
+-/
 
 namespace category_theory
 open opposite

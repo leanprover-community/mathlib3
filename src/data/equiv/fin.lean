@@ -5,12 +5,15 @@ Author: Kenny Lau
 
 Equivalences between finite numbers.
 -/
-import data.fin data.equiv.basic
+import data.fin data.equiv.basic data.equiv.functor
 
 variables {m n : ℕ}
 
 def fin_zero_equiv : fin 0 ≃ empty :=
 ⟨fin_zero_elim, empty.elim, assume a, fin_zero_elim a, assume a, empty.elim a⟩
+
+def fin_zero_equiv_pempty : fin 0 ≃ pempty :=
+⟨fin_zero_elim, pempty.elim, assume a, fin_zero_elim a, assume a, pempty.elim a⟩
 
 def fin_one_equiv : fin 1 ≃ punit :=
 ⟨λ_, (), λ_, 0, fin.cases rfl (λa, fin_zero_elim a), assume ⟨⟩, rfl⟩
@@ -45,6 +48,12 @@ def sum_fin_sum_equiv : fin m ⊕ fin n ≃ fin (m + n) :=
     { dsimp, rw [dif_pos H], simp },
     { dsimp, rw [dif_neg H], simp [fin.ext_iff, nat.add_sub_of_le (le_of_not_gt H)] }
   end }
+
+def punit_equiv_fin : punit ≃ fin 1 :=
+equiv_punit_of_unique.symm
+
+def option_equiv_fin : option (fin n) ≃ fin n.succ :=
+(equiv.option_equiv_sum_punit _).trans $ (functor.map_equiv punit_equiv_fin).trans sum_fin_sum_equiv
 
 def fin_prod_fin_equiv : fin m × fin n ≃ fin (m * n) :=
 { to_fun := λ x, ⟨x.2.1 + n * x.1.1,

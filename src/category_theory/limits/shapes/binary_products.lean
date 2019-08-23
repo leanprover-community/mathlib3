@@ -188,7 +188,7 @@ instance is_limits.option {A} (F : discrete (option A) ⥤ C) (s : cone $ functo
            rw category.assoc, apply h' (some j) },
          { apply h' none } } }
 
-instance : limits.has_limits_of_shape.{v} (discrete punit) C :=
+instance punit.has_limits_of_shape : limits.has_limits_of_shape.{v} (discrete punit) C :=
 { has_limit := λ F, { cone := cone.unit F, is_limit := is_limits.unit F } }
 
 def option.limits.has_limits {A} (F : discrete (option A) ⥤ C)

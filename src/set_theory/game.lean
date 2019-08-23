@@ -1061,8 +1061,8 @@ instance pgame.setoid : setoid pgame :=
   inductively from two families of combinatorial games indexed over any type
   in Type u. The resulting type `pgame.{u}` lives in `Type (u+1)`,
   reflecting that it is a proper class in ZFC.
-  A combinatorial game is then constructed by quotienting by equivalence so that
-  the ordering becomes a total order. -/
+  A combinatorial game is then constructed by quotienting by the equivalence
+  `x ≈ y ↔ x ≤ y ∧ y ≤ x`. -/
 def game := quotient pgame.setoid
 
 open pgame

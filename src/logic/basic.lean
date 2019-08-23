@@ -78,6 +78,8 @@ lemma plift.down_inj {α : Sort*} : ∀ (a b : plift α), a.down = b.down → a 
 -- missing [symm] attribute for ne in core.
 attribute [symm] ne.symm
 
+lemma ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨ne.symm, ne.symm⟩
+
 end miscellany
 
 /-

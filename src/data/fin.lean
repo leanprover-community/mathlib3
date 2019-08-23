@@ -39,6 +39,13 @@ instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨fin.val⟩
 instance {n : ℕ} : decidable_linear_order (fin n) :=
 decidable_linear_order.lift fin.val (@fin.eq_of_veq _) (by apply_instance)
 
+lemma exists_iff {p : fin n → Prop} : (∃ i, p i) ↔ ∃ i h, p ⟨i, h⟩ :=
+⟨λ h, exists.elim h (λ ⟨i, hi⟩ hpi, ⟨i, hi, hpi⟩),
+  λ h, exists.elim h (λ i hi, ⟨⟨i, hi.fst⟩, hi.snd⟩)⟩
+
+lemma forall_iff {p : fin n → Prop} : (∀ i, p i) ↔ ∀ i h, p ⟨i, h⟩ :=
+⟨λ h i hi, h ⟨i, hi⟩, λ h ⟨i, hi⟩, h i hi⟩
+
 lemma zero_le (a : fin (n + 1)) : 0 ≤ a := zero_le a.1
 
 lemma lt_iff_val_lt_val : a < b ↔ a.val < b.val := iff.refl _
@@ -50,6 +57,9 @@ by cases j; simp [fin.succ]
 
 protected theorem succ.inj (p : fin.succ a = fin.succ b) : a = b :=
 by cases a; cases b; exact eq_of_veq (nat.succ.inj (veq_of_eq p))
+
+lemma succ_ne_zero {n} : ∀ k : fin n, fin.succ k ≠ 0
+| ⟨k, hk⟩ heq := nat.succ_ne_zero k $ (fin.ext_iff _ _).1 heq
 
 @[simp] lemma pred_val (j : fin (n+1)) (h : j ≠ 0) : (j.pred h).val = j.val.pred :=
 by cases j; simp [fin.pred]
@@ -118,8 +128,17 @@ le_of_lt_succ i.is_lt
 
 @[simp] lemma cast_lt_val (k : fin m) (h : k.1 < n) : (k.cast_lt h).val = k.val := rfl
 
+@[simp] lemma cast_le_val (k : fin m) (h : m ≤ n) : (k.cast_le h).val = k.val := rfl
+
+@[simp] lemma cast_add_val (k : fin m) : (k.cast_add n).val = k.val := rfl
+
+@[simp] lemma last_val (n : ℕ) : (last n).val = n := rfl
+
 @[simp] lemma cast_succ_cast_lt (i : fin (n + 1)) (h : i.val < n) : cast_succ (cast_lt i h) = i :=
 fin.eq_of_veq rfl
+
+@[simp] lemma cast_lt_cast_succ {n : ℕ} (a : fin n) (h : a.1 < n) : cast_lt (cast_succ a) h = a :=
+by cases a; refl
 
 @[simp] lemma sub_nat_val (i : fin (n + m)) (h : i.val ≥ m) : (i.sub_nat m h).val = i.val - m :=
 rfl
@@ -331,9 +350,9 @@ begin
         exact fin.eta _ _⟩ } }
 end
 
-lemma mem_find_iff {p : fin n → Prop} [decidable_pred p] {i : fin n} : 
+lemma mem_find_iff {p : fin n → Prop} [decidable_pred p] {i : fin n} :
   i ∈ fin.find p ↔ p i ∧ ∀ j, p j → i ≤ j :=
-⟨λ hi, ⟨find_spec _ hi, λ _, find_min' hi⟩, 
+⟨λ hi, ⟨find_spec _ hi, λ _, find_min' hi⟩,
   begin
     rintros ⟨hpi, hj⟩,
     cases hfp : fin.find p,
@@ -342,7 +361,7 @@ lemma mem_find_iff {p : fin n → Prop} [decidable_pred p] {i : fin n} :
     { exact option.some_inj.2 (le_antisymm (find_min' hfp hpi) (hj _ (find_spec _ hfp))) }
   end⟩
 
-lemma find_eq_some_iff {p : fin n → Prop} [decidable_pred p] {i : fin n} : 
+lemma find_eq_some_iff {p : fin n → Prop} [decidable_pred p] {i : fin n} :
   fin.find p = some i ↔ p i ∧ ∀ j, p j → i ≤ j :=
  mem_find_iff
 

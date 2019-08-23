@@ -53,7 +53,15 @@ example (p q : Prop) [decidable q] [decidable p] (h : ¬ (p ↔ q)) (h' : ¬ q) 
 example (p q r : Prop) [decidable q] [decidable p] (h : p ↔ q) (h' : r ↔ q) (h'' : ¬ r) : ¬ p := by tauto
 example (p q r : Prop) (h : p ↔ q) (h' : r ↔ q) : p ↔ r :=
 by tauto!
+
 example (p q r : Prop) (h : ¬ p = q) (h' : r = q) : p ↔ ¬ r := by tauto!
+
+example (p : Prop) : p → ¬ (p → ¬ p) := by tauto
+
+example (p : Prop) (em : p ∨ ¬ p) : ¬ (p ↔ ¬ p) := by tauto
+
+example (P : ℕ → Prop) (n : ℕ) : P n → n = 7 ∨ n = 0 ∨ ¬ (n = 7 ∨ n = 0) ∧ P n :=
+by tauto
 
 section modulo_symmetry
 variables {p q r : Prop} {α : Type} {x y : α}

@@ -142,7 +142,7 @@ theorem lt_asymm {x y : pgame} (ox : numeric x) (oy : numeric y) : x < y → ¬ 
 begin
   refine numeric_rec (λ xl xr xL xR hx oxl oxr IHxl IHxr, _) x ox y oy,
   refine numeric_rec (λ yl yr yL yR hy oyl oyr IHyl IHyr, _),
-  simp, rintro (⟨i, h₁⟩ | ⟨j, h₁⟩) (⟨i, h₂⟩ | ⟨j, h₂⟩),
+  rw [mk_lt_mk, mk_lt_mk], rintro (⟨i, h₁⟩ | ⟨j, h₁⟩) (⟨i, h₂⟩ | ⟨j, h₂⟩),
   { exact IHxl _ _ (oyl _) (lt_of_le_mk h₁) (lt_of_le_mk h₂) },
   { exact not_lt.2 (le_trans h₂ h₁) (hy _ _) },
   { exact not_lt.2 (le_trans h₁ h₂) (hx _ _) },
@@ -175,9 +175,11 @@ begin
   use i,
   apply le_refl,
 end
+
 theorem numeric.move_left_le {x : pgame} (o : numeric x) (i : x.left_moves) :
   x.move_left i ≤ x :=
 le_of_lt (o.move_left i) o (o.move_left_lt i)
+
 theorem numeric.lt_move_right {x : pgame} (o : numeric x) (j : x.right_moves) :
   x < x.move_right j :=
 begin
@@ -186,11 +188,11 @@ begin
   use j,
   apply le_refl,
 end
+
 theorem numeric.le_move_right {x : pgame} (o : numeric x) (j : x.right_moves) :
   x ≤ x.move_right j :=
 le_of_lt o (o.move_right j) (o.lt_move_right j)
 
-set_option pp.universes true
 theorem add_lt_add
   {w x y z : pgame.{u}} (ow : numeric w) (ox : numeric x) (oy : numeric y) (oz : numeric z)
   (hwx : w < x) (hyz : y < z) : w + y < x + z :=
@@ -200,7 +202,7 @@ begin
   rcases hyz with ⟨iz, hiz⟩|⟨jy, hjy⟩,
   { left,
     use left_moves_add.inv_fun (sum.inl ix),
-    simp,
+    simp only [add_move_left_inl, left_moves_add_inv_fun_inl],
     -- Not sure why these `calc` blocks fail:
     -- calc w + y ≤ move_left x ix + y : add_le_add_right hix
     --         ... ≤ move_left x ix + move_left z iz : add_le_add_left hiz
@@ -208,21 +210,21 @@ begin
     exact le_trans (add_le_add_right hix) (le_trans (add_le_add_left hiz) (add_le_add_left (oz.move_left_le iz))), },
   { left,
     use left_moves_add.inv_fun (sum.inl ix),
-    simp,
+    simp only [add_move_left_inl, left_moves_add_inv_fun_inl],
     -- calc w + y ≤ move_left x ix + y : add_le_add_right hix
     --         ... ≤ move_left x ix + move_right y jy : add_le_add_left (oy.le_move_right jy)
     --         ... ≤ move_left x ix + z : add_le_add_left hjy,
     exact le_trans (add_le_add_right hix) (le_trans (add_le_add_left (oy.le_move_right jy)) (add_le_add_left hjy)) },
   { right,
     use right_moves_add.inv_fun (sum.inl jw),
-    simp,
+    simp only [add_move_right_inl, right_moves_add_inv_fun_inl],
     -- calc move_right w jw + y ≤ x + y : add_le_add_right hjw
     --         ... ≤ x + move_left z iz : add_le_add_left hiz
     --         ... ≤ x + z : add_le_add_left (oz.move_left_le iz),
     exact le_trans (add_le_add_right hjw) (le_trans (add_le_add_left hiz) (add_le_add_left (oz.move_left_le iz))) },
   { right,
     use right_moves_add.inv_fun (sum.inl jw),
-    simp,
+    simp only [add_move_right_inl, right_moves_add_inv_fun_inl],
     -- calc move_right w jw + y ≤ x + y : add_le_add_right hjw
     --         ... ≤ x + move_right y jy : add_le_add_left (oy.le_move_right jy)
     --         ... ≤ x + z : add_le_add_left hjy,
@@ -335,16 +337,11 @@ surreal.lift₂
 
 instance : has_add surreal := ⟨add⟩
 
-theorem add_assoc (x y z : surreal) : x + y + z = x + (y + z) :=
+theorem add_assoc : ∀ (x y z : surreal), (x + y) + z = x + (y + z) :=
 begin
-  induction x generalizing y z,
-  induction y generalizing z,
-  induction z,
+  rintros ⟨x⟩ ⟨y⟩ ⟨z⟩,
   apply quot.sound,
   exact add_assoc_equiv,
-  refl,
-  refl,
-  refl
 end
 
 instance : add_semigroup surreal :=

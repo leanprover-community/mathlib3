@@ -112,7 +112,7 @@ lemma eq_symm_apply {α β} (e : α ≃ β) {x y} : y = e.symm x ↔ e y = x :=
 
 @[simp] theorem trans_refl (e : α ≃ β) : e.trans (equiv.refl β) = e := by { cases e, refl }
 
-@[simp] theorem refl_symm {α : Type u} (a : α) : (equiv.refl α).symm a = a := rfl
+@[simp] theorem refl_symm : (equiv.refl α).symm = equiv.refl α := rfl
 
 @[simp] theorem refl_trans (e : α ≃ β) : (equiv.refl α).trans e = e := by { cases e, refl }
 
@@ -574,6 +574,17 @@ def subtype_subtype_equiv_subtype {α : Type u} (p : α → Prop) (q : subtype p
 ⟨λ⟨⟨a, ha⟩, ha'⟩, ⟨a, ha, ha'⟩,
   λ⟨a, ha⟩, ⟨⟨a, ha.cases_on $ assume h _, h⟩, by { cases ha, exact ha_h }⟩,
   assume ⟨⟨a, ha⟩, h⟩, rfl, assume ⟨a, h₁, h₂⟩, rfl⟩
+
+/- A subtype of a sigma-type is a sigma-type over a subtype. -/
+def subtype_sigma_equiv {α : Type u} (p : α → Type v) (q : α → Prop) :
+  { y : sigma p // q y.1 } ≃ Σ(x : subtype q), p x.1 :=
+begin
+  fsplit,
+  rintro ⟨⟨x, y⟩, z⟩, exact ⟨⟨x, z⟩, y⟩,
+  rintro ⟨⟨x, y⟩, z⟩, exact ⟨⟨x, z⟩, y⟩,
+  rintro ⟨⟨x, y⟩, z⟩, refl,
+  rintro ⟨⟨x, y⟩, z⟩, refl,
+end
 
 /-- aka coimage -/
 def equiv_sigma_subtype {α : Type u} {β : Type v} (f : α → β) : α ≃ Σ b, {x : α // f x = b} :=

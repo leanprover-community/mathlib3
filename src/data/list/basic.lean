@@ -1374,32 +1374,31 @@ end mfoldl_mfoldr
 
 /- sum -/
 
-attribute [to_additive list.sum] list.prod
-attribute [to_additive list.sum.equations._eqn_1] list.prod.equations._eqn_1
+attribute [to_additive] list.prod
 
 section monoid
 variables [monoid α] {l l₁ l₂ : list α} {a : α}
 
-@[simp, to_additive list.sum_nil]
+@[simp, to_additive]
 theorem prod_nil : ([] : list α).prod = 1 := rfl
 
-@[simp, to_additive list.sum_cons]
+@[simp, to_additive]
 theorem prod_cons : (a::l).prod = a * l.prod :=
 calc (a::l).prod = foldl (*) (a * 1) l : by simp only [list.prod, foldl_cons, one_mul, mul_one]
   ... = _ : foldl_assoc
 
-@[simp, to_additive list.sum_append]
+@[simp, to_additive]
 theorem prod_append : (l₁ ++ l₂).prod = l₁.prod * l₂.prod :=
 calc (l₁ ++ l₂).prod = foldl (*) (foldl (*) 1 l₁ * 1) l₂ : by simp [list.prod]
   ... = l₁.prod * l₂.prod : foldl_assoc
 
-@[simp, to_additive list.sum_join]
+@[simp, to_additive]
 theorem prod_join {l : list (list α)} : l.join.prod = (l.map list.prod).prod :=
 by induction l; [refl, simp only [*, list.join, map, prod_append, prod_cons]]
 
 end monoid
 
-@[simp, to_additive list.sum_erase]
+@[simp, to_additive]
 theorem prod_erase [decidable_eq α] [comm_monoid α] {a} :
   Π {l : list α}, a ∈ l → a * (l.erase a).prod = l.prod
 | (b::l) h :=
@@ -2645,7 +2644,7 @@ lemma rel_filter_map {f : α → option γ} {q : β → option δ} :
   | _, _, option.rel.some h := forall₂.cons h (rel_filter_map @hfg h₂)
   end
 
-@[to_additive list.rel_sum]
+@[to_additive]
 lemma rel_prod [monoid α] [monoid β]
   (h : r 1 1) (hf : (r ⇒ r ⇒ r) (*) (*)) : (forall₂ r ⇒ r) prod prod :=
 assume a b, rel_foldl (assume a b, hf) h
@@ -4321,7 +4320,7 @@ nodup_pmap (λ _ _ _ _, fin.veq_of_eq) (nodup_range _)
 @[simp] lemma length_fin_range (n : ℕ) : (fin_range n).length = n :=
 by rw [fin_range, length_pmap, length_range]
 
-@[to_additive list.sum_range_succ]
+@[to_additive]
 theorem prod_range_succ {α : Type u} [monoid α] (f : ℕ → α) (n : ℕ) :
   ((range n.succ).map f).prod = ((range n).map f).prod * f n :=
 by rw [range_concat, map_append, map_singleton,
@@ -4518,7 +4517,7 @@ section tfae
 /- tfae: The Following (propositions) Are Equivalent -/
 
 theorem tfae_nil : tfae [] := forall_mem_nil _
-theorem tfae_singleton (p) : tfae [p] := by simp [tfae]
+theorem tfae_singleton (p) : tfae [p] := by simp [tfae, -eq_iff_iff]
 
 theorem tfae_cons_of_mem {a b} {l : list Prop} (h : b ∈ l) :
   tfae (a::l) ↔ (a ↔ b) ∧ tfae l :=

@@ -74,6 +74,8 @@ assume ⟨h⟩, h.elim
 -- missing [symm] attribute for ne in core.
 attribute [symm] ne.symm
 
+lemma ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨ne.symm, ne.symm⟩
+
 end miscellany
 
 /-
@@ -91,6 +93,8 @@ variables {a b c d : Prop}
 theorem iff_of_eq (e : a = b) : a ↔ b := e ▸ iff.rfl
 
 theorem iff_iff_eq : (a ↔ b) ↔ a = b := ⟨propext, iff_of_eq⟩
+
+@[simp] lemma eq_iff_iff {p q : Prop} : (p = q) ↔ (p ↔ q) := iff_iff_eq.symm
 
 @[simp] theorem imp_self : (a → a) ↔ true := iff_true_intro id
 
@@ -375,6 +379,9 @@ by subst h; refl
 protected lemma eq.congr {x₁ x₂ y₁ y₂ : α} (h₁ : x₁ = y₁) (h₂ : x₂ = y₂) :
   (x₁ = x₂) ↔ (y₁ = y₂) :=
 by { subst h₁, subst h₂ }
+
+lemma eq.congr_left {x y z : α} (h : x = y) : x = z ↔ y = z := by rw [h]
+lemma eq.congr_right {x y z : α} (h : x = y) : z = x ↔ z = y := by rw [h]
 
 lemma congr_arg2 {α β γ : Type*} (f : α → β → γ) {x x' : α} {y y' : β}
   (hx : x = x') (hy : y = y') : f x y = f x' y' :=

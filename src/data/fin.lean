@@ -58,6 +58,9 @@ by cases j; simp [fin.succ]
 protected theorem succ.inj (p : fin.succ a = fin.succ b) : a = b :=
 by cases a; cases b; exact eq_of_veq (nat.succ.inj (veq_of_eq p))
 
+lemma succ_ne_zero {n} : ∀ k : fin n, fin.succ k ≠ 0
+| ⟨k, hk⟩ heq := nat.succ_ne_zero k $ (fin.ext_iff _ _).1 heq
+
 @[simp] lemma pred_val (j : fin (n+1)) (h : j ≠ 0) : (j.pred h).val = j.val.pred :=
 by cases j; simp [fin.pred]
 

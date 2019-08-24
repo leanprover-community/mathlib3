@@ -437,14 +437,14 @@ not_le.symm.trans $ (not_congr (le_congr hy hx)).trans not_le
 /-- `restricted x y` says that Left always has no more moves in `x` than in `y`,
      and Right always has no more moves in `y` than in `x` -/
 inductive restricted : pgame.{u} → pgame.{u} → Type (u+1)
-| mk : Π (x y : pgame) (L : x.left_moves ↪ y.left_moves) (R : y.right_moves ↪ x.right_moves),
+| mk : Π {x y : pgame} (L : x.left_moves ↪ y.left_moves) (R : y.right_moves ↪ x.right_moves),
          (∀ (i : x.left_moves), restricted (x.move_left i) (y.move_left (L i))) →
          (∀ (j : y.right_moves), restricted (x.move_right (R j)) (y.move_right j)) → restricted x y
 
 /-- The identity restriction. -/
 @[refl] def restricted.refl : Π (x : pgame), restricted x x
 | (mk xl xr xL xR) :=
-  restricted.mk (mk xl xr xL xR) (mk xl xr xL xR)
+  restricted.mk
     (function.embedding.refl _) (function.embedding.refl _)
     (λ i, restricted.refl _) (λ j, restricted.refl _)
 using_well_founded { dec_tac := pgame_wf_tac }
@@ -453,7 +453,7 @@ using_well_founded { dec_tac := pgame_wf_tac }
 
 theorem le_of_restricted : Π {x y : pgame} (r : restricted x y), x ≤ y
 | (mk xl xr xL xR) (mk yl yr yL yR)
-  (restricted.mk _ _ L_embedding R_embedding L_restriction R_restriction) :=
+  (restricted.mk L_embedding R_embedding L_restriction R_restriction) :=
 begin
   rw le_def,
   exact
@@ -465,7 +465,7 @@ end
   Specifically, there is a bijection between the moves for Left in `x` and in `y`, and similarly
   for Right, and under these bijections we inductively have `relabelling`s for the consequent games. -/
 inductive relabelling : pgame.{u} → pgame.{u} → Type (u+1)
-| mk : Π (x y : pgame) (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves),
+| mk : Π {x y : pgame} (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves),
          (∀ (i : x.left_moves), relabelling (x.move_left i) (y.move_left (L i))) →
          (∀ (j : y.right_moves), relabelling (x.move_right (R.symm j)) (y.move_right j)) →
        relabelling x y
@@ -473,8 +473,8 @@ inductive relabelling : pgame.{u} → pgame.{u} → Type (u+1)
 /-- If `x` is a relabelling of `y`, then Left and Right have the same moves in either game,
     so `x` is a restriction of `y`. -/
 def restricted_of_relabelling : Π {x y : pgame} (r : relabelling x y), restricted x y
-| (mk xl xr xL xR) (mk yl yr yL yR) (relabelling.mk _ _ L_equiv R_equiv L_relabelling R_relabelling) :=
-restricted.mk _ _ L_equiv.to_embedding R_equiv.symm.to_embedding
+| (mk xl xr xL xR) (mk yl yr yL yR) (relabelling.mk L_equiv R_equiv L_relabelling R_relabelling) :=
+restricted.mk L_equiv.to_embedding R_equiv.symm.to_embedding
   (λ i, restricted_of_relabelling (L_relabelling i))
   (λ j, restricted_of_relabelling (R_relabelling j))
 
@@ -483,15 +483,15 @@ restricted.mk _ _ L_equiv.to_embedding R_equiv.symm.to_embedding
 /-- The identity relabelling. -/
 @[refl] def relabelling.refl : Π (x : pgame), relabelling x x
 | (mk xl xr xL xR) :=
-  relabelling.mk (mk xl xr xL xR) (mk xl xr xL xR) (equiv.refl _) (equiv.refl _)
+  relabelling.mk (equiv.refl _) (equiv.refl _)
     (λ i, relabelling.refl _) (λ j, relabelling.refl _)
 using_well_founded { dec_tac := pgame_wf_tac }
 
 /-- Reverse a relabelling. -/
 @[symm] def relabelling.symm : Π {x y : pgame}, relabelling x y → relabelling y x
-| (mk xl xr xL xR) (mk yl yr yL yR) (relabelling.mk _ _ L_equiv R_equiv L_relabelling R_relabelling) :=
+| (mk xl xr xL xR) (mk yl yr yL yR) (relabelling.mk L_equiv R_equiv L_relabelling R_relabelling) :=
 begin
-  refine relabelling.mk _ _ L_equiv.symm R_equiv.symm _ _,
+  refine relabelling.mk L_equiv.symm R_equiv.symm _ _,
   intro i,
   simpa using (L_relabelling (L_equiv.symm i)).symm,
   intro j,

@@ -108,8 +108,7 @@ end
 /-- Domineering is always a short game, because the board is finite. -/
 -- Implementation note:
 -- This instance isn't usable inside `dec_trivial`, because the `unfold domineering` below
--- is not a definitional unfolding, and so the `decidable` instances are poisoned by
--- `eq.mpr`, as in https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/dec_trivial.20fails.20with.20instances.20using.20.60rw.60
+-- is not a definitional unfolding, and so the `decidable` instances don't reduce fully.
 instance short_domineering : Π (b : finset (ℤ × ℤ)), short (domineering b)
 | b :=
 begin
@@ -158,23 +157,5 @@ instance : short domineering.L := by { dsimp [domineering.L], apply_instance }
 
 -- TODO: It would be nice to analyse the first interesting game in Domineering, the "L", in which
 -- Left is exactly half a move ahead. The following comments sketch the beginning of this argument.
-
--- theorem L_left_moves : domineering.L.left_moves = { p | p ∈ [(0, 2), (0, 1)].to_finset } := sorry
--- theorem L_right_moves : domineering.L.right_moves = { p | p ∈ [(1, 0)].to_finset } := sorry
-
--- local infix ` ≈ ` := pgame.equiv
-
--- theorem L_move_left_0_2 : domineering.L.move_left ⟨(0, 2), sorry⟩ ≈ -1 :=
--- calc domineering.L.move_left ⟨(0, 2), sorry⟩ ≈ domineering ([(0,0), (1,0)].to_finset) : sorry
---      ... ≈ -1 : sorry
--- theorem L_move_left_0_1 : domineering.L.move_left ⟨(0, 1), sorry⟩ ≈ 0 := sorry
--- theorem L_move_right_1_0 : domineering.L.move_right ⟨(1, 0), sorry⟩ ≈ 1 := sorry
-
--- theorem domineering.L_eq_half' : domineering.L ≈ pgame.of_lists [-1, 0] [1] :=
--- sorry
-
--- theorem domineering.L_eq_half : domineering.L ≈ pgame.of_lists [0] [1] :=
--- sorry
--- end
 
 end

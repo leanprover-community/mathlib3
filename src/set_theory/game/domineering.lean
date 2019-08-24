@@ -61,7 +61,6 @@ lt_of_le_of_lt finset.card_erase_le $
 
 end domineering_aux
 
-
 section
 open domineering_aux
 
@@ -97,32 +96,33 @@ end
 
 instance fintype_left_moves (b : finset (ℤ × ℤ)) : fintype ((domineering b).left_moves) :=
 begin
-  rw domineering_left_moves,
+  unfold domineering {single_pass := tt},
   exact domineering_aux.fintype_left b,
 end
 instance fintype_right_moves (b : finset (ℤ × ℤ)) : fintype ((domineering b).right_moves) :=
 begin
-  rw domineering_right_moves,
+  unfold domineering {single_pass := tt},
   exact domineering_aux.fintype_right b,
 end
 
 /-- Domineering is always a short game, because the board is finite. -/
+-- Implementation note:
+-- This instance isn't usable inside `dec_trivial`, because the `unfold domineering` below
+-- is not a definitional unfolding, and so the `decidable` instances are poisoned by
+-- `eq.mpr`, as in https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/dec_trivial.20fails.20with.20instances.20using.20.60rw.60
 instance short_domineering : Π (b : finset (ℤ × ℤ)), short (domineering b)
 | b :=
-short.mk'
-(λ i, begin
-  simp only [domineering_move_left, domineering_left_moves],
-  exact have _, from move_left_smaller b (by { convert i, simp }), short_domineering (move_left b _),
-end)
-(λ j, begin
-  simp only [domineering_move_right, domineering_right_moves],
-  exact have _, from move_right_smaller b (by { convert j, simp }), short_domineering (move_right b _),
-end)
+begin
+  unfold domineering {single_pass := tt},
+  exact short.mk
+  (λ i, by exact have _, from move_left_smaller b i, short_domineering (move_left b i))
+  (λ j, by exact have _, from move_right_smaller b j, short_domineering (move_right b j))
+end
 
 /-- The `L` shaped board, in which Left is exactly half a move ahead. -/
 def domineering.L := domineering ([(0,2), (0,1), (0,0), (1,0)].to_finset)
 
-instance : short domineering.L := by { dsimp [domineering.L], apply_instance}
+instance : short domineering.L := by { dsimp [domineering.L], apply_instance }
 
 -- The VM can play small games successfully:
 -- #eval to_bool (domineering.L + domineering.L ≈ 1)

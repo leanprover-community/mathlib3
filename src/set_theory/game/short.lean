@@ -117,38 +117,35 @@ begin
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-instance le_decidable : Π (x y : pgame.{u}) [short x] [short y], decidable (x ≤ y)
-| x y _ _ :=
+def le_lt_decidable : Π (x y : pgame.{u}) [short x] [short y], decidable (x ≤ y) × decidable (x < y)
+| (mk xl xr xL xR) (mk yl yr yL yR) shortx shorty :=
 begin
   resetI,
-  rw le_def,
-  apply @and.decidable _ _ _ _,
-  { apply @fintype.decidable_forall_fintype (left_moves x) (by apply_instance) _ _,
-    intro i,
+  split,
+  { simp [mk_le_mk],
+    apply @and.decidable _ _ _ _,
+    { apply @fintype.decidable_forall_fintype xl (by apply_instance) _ _,
+      intro i,
+      apply (@le_lt_decidable _ _ _ _).2; apply_instance, },
+    { apply @fintype.decidable_forall_fintype yr (by apply_instance) _ _,
+      intro i,
+      apply (@le_lt_decidable _ _ _ _).2; apply_instance, }, },
+  { simp [mk_lt_mk],
     apply @or.decidable _ _ _ _,
-    { apply @fintype.decidable_exists_fintype (left_moves y) (by apply_instance) _ _,
-      intro j,
-      apply le_decidable },
-    { apply @fintype.decidable_exists_fintype (right_moves (move_left x i)) (by apply_instance) _ _,
-      intro j,
-      apply le_decidable }, },
-  { apply @fintype.decidable_forall_fintype (right_moves y) (by apply_instance) _ _,
-    intro i,
-    apply @or.decidable _ _ _ _,
-    { apply @fintype.decidable_exists_fintype (left_moves (move_right y i)) (by apply_instance) _ _,
-      intro j,
-      apply le_decidable },
-    { apply @fintype.decidable_exists_fintype (right_moves x) (by apply_instance) _ _,
-      intro j,
-      apply le_decidable }, },
+    { apply @fintype.decidable_exists_fintype yl (by apply_instance) _ _,
+      intro i,
+      apply (@le_lt_decidable _ _ _ _).1; apply_instance, },
+    { apply @fintype.decidable_exists_fintype xr (by apply_instance) _ _,
+      intro i,
+      apply (@le_lt_decidable _ _ _ _).1; apply_instance, }, },
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
+instance le_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x ≤ y) :=
+(le_lt_decidable x y).1
+
 instance lt_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x < y) :=
-begin
-  rw pgame.not_le.symm,
-  apply_instance,
-end
+(le_lt_decidable x y).2
 
 instance equiv_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x ≈ y) :=
 and.decidable
@@ -159,15 +156,7 @@ example : short (0 + 0) := by apply_instance
 
 example : decidable ((1 : pgame) ≤ 1) := by apply_instance
 
--- The VM can successfully compute the order relations in small examples:
--- #eval to_bool ((1 : pgame) ≤ 0)
--- #eval to_bool ((0 : pgame) ≤ 1)
--- #eval to_bool ((1 : pgame) ≤ 1)
-
--- #eval to_bool ((1 : pgame) + 1 + 1 ≤ (1 + 0 + 1))
-
--- Unfortunately the kernel can't keep up...
--- example : (0 : pgame) ≤ 0 := dec_trivial
--- example : (1 : pgame) ≤ 1 := by exact dec_trivial
+example : (0 : pgame) ≤ 0 := dec_trivial
+example : (1 : pgame) ≤ 1 := dec_trivial
 
 end pgame

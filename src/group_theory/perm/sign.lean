@@ -707,4 +707,4 @@ lemma finset.sum_univ_perm [fintype α] [add_comm_monoid β] {f : α → β} (σ
   (univ : finset α).sum f = univ.sum (λ z, f (σ z)) :=
 @finset.prod_univ_perm _ (multiplicative β) _ _ f σ
 
-attribute [to_additive finset.sum_univ_perm] finset.prod_univ_perm
+attribute [to_additive] finset.prod_univ_perm

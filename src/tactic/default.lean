@@ -29,3 +29,4 @@ import
   tactic.tfae
   tactic.apply_fun
   tactic.localized
+  tactic.apply

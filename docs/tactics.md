@@ -113,6 +113,10 @@ rcases h with ⟨patt⟩
 
  The syntax `obtain ⟨patt⟩ : type := proof` is also supported.
 
+ If `⟨patt⟩` is omitted, `rcases` will try to infer the pattern.
+
+ If `type` is omitted, `:= proof` is required.
+
 
 ### simpa
 
@@ -683,23 +687,42 @@ end
 after `fin_cases p; simp`, there are three goals, `f 0`, `f 1`, and `f 2`.
 
 ### conv
-The `conv` tactic is built-in to lean. Currently mathlib additionally provides
+The `conv` tactic is built-in to lean. Inside `conv` blocks mathlib currently
+additionally provides
    * `erw`,
-   * `ring` and `ring2`, and
-   * `norm_num`
-inside `conv` blocks. Also, as a shorthand `conv_lhs` and `conv_rhs`
-are provided, so that
+   * `ring` and `ring2`,
+   * `norm_num`, and
+   * `conv` (within another `conv`).
+Using `conv` inside a `conv` block allows the user to return to the previous
+state of the outer `conv` block after it is finished. Thus you can continue
+editing an expression without having to start a new `conv` block and re-scoping
+everything. For example:
+```lean
+example (a b c d : ℕ) (h₁ : b = c) (h₂ : a + c = a + d) : a + b = a + d :=
+by conv {
+  to_lhs,
+  conv {
+    congr, skip,
+    rw h₁,
+  },
+  rw h₂,
+}
 ```
+Without `conv` the above example would need to be proved using two successive
+`conv` blocks each beginning with `to_lhs`.
+
+Also, as a shorthand `conv_lhs` and `conv_rhs` are provided, so that
+```lean
 example : 0 + 0 = 0 :=
 begin
-  conv_lhs {simp}
+  conv_lhs { simp }
 end
 ```
 just means
-```
+```lean
 example : 0 + 0 = 0 :=
 begin
-  conv {to_lhs, simp}
+  conv { to_lhs, simp }
 end
 ```
 and likewise for `to_rhs`.
@@ -1054,8 +1077,83 @@ localized "attribute [simp] le_refl" in le
 
 `rotate` moves the first goal to the back. `rotate n` will do this `n` times.
 
+### The `reassoc` attribute
+
+The `reassoc` attribute can be applied to a lemma
+
+```lean
+@[reassoc]
+lemma some_lemma : foo ≫ bar = baz := ...
+```
+
+and produce
+
+```lean
+lemma some_lemma_assoc {Y : C} (f : X ⟶ Y) : foo ≫ bar ≫ f = baz ≫ f := ...
+```
+
+The name of the produced lemma can be specified with `@[reassoc other_lemma_name]`. If
+`simp` is added first, the generated lemma will also have the `simp` attribute.
+
+### The `reassoc_axiom` command
+
+When declaring a class of categories, the axioms can be reformulated to be more amenable
+to manipulation in right associated expressions:
+
+```lean
+class some_class (C : Type) [category C] :=
+(foo : Π X : C, X ⟶ X)
+(bar : ∀ {X Y : C} (f : X ⟶ Y), foo X ≫ f = f ≫ foo Y)
+
+reassoc_axiom some_class.bar
+```
+
+The above will produce:
+
+```lean
+lemma some_class.bar_assoc {Z : C} (g : Y ⟶ Z) :
+  foo X ≫ f ≫ g = f ≫ foo Y ≫ g := ...
+```
+
+Here too, the `reassoc` attribute can be used instead. It works well when combined with
+`simp`:
+
+```lean
+attribute [simp, reassoc] some_class.bar
+```
 ### sanity_check
 
 The `#sanity_check` command checks for common mistakes in the current file or in all of mathlib, respectively.
 
 Currently this will check for unused arguments in declarations and whether a declaration is incorrectly marked as a def/lemma.
+
+### lift
+
+Lift an expression to another type.
+* Usage: `'lift' expr 'to' expr ('using' expr)? ('with' id (id id?)?)?`.
+* If `n : ℤ` and `hn : n ≥ 0` then the tactic `lift n to ℕ using hn` creates a new
+  constant of type `ℕ`, also named `n` and replaces all occurrences of the old variable `(n : ℤ)`
+  with `↑n` (where `n` in the new variable). It will remove `n` and `hn` from the context.
+  + So for example the tactic `lift n to ℕ using hn` transforms the goal
+    `n : ℤ, hn : n ≥ 0, h : P n ⊢ n = 3` to `n : ℕ, h : P ↑n ⊢ ↑n = 3`
+    (here `P` is some term of type `ℤ → Prop`).
+* The argument `using hn` is optional, the tactic `lift n to ℕ` does the same, but also creates a
+  new subgoal that `n ≥ 0` (where `n` is the old variable).
+  + So for example the tactic `lift n to ℕ` transforms the goal
+    `n : ℤ, h : P n ⊢ n = 3` to two goals
+    `n : ℕ, h : P ↑n ⊢ ↑n = 3` and `n : ℤ, h : P n ⊢ n ≥ 0`.
+* You can also use `lift n to ℕ using e` where `e` is any expression of type `n ≥ 0`.
+* Use `lift n to ℕ with k` to specify the name of the new variable.
+* Use `lift n to ℕ with k hk` to also specify the name of the equality `↑k = n`. In this case, `n`
+  will remain in the context. You can use `rfl` for the name of `hk` to substitute `n` away
+  (i.e. the default behavior).
+* You can also use `lift e to ℕ with k hk` where `e` is any expression of type `ℤ`.
+  In this case, the `hk` will always stay in the context, but it will be used to rewrite `e` in
+  all hypotheses and the target.
+  + So for example the tactic `lift n + 3 to ℕ using hn with k hk` transforms the goal
+    `n : ℤ, hn : n + 3 ≥ 0, h : P (n + 3) ⊢ n + 3 = 2 * n` to the goal
+    `n : ℤ, k : ℕ, hk : ↑k = n + 3, h : P ↑k ⊢ ↑k = 2 * n`.
+* The tactic `lift n to ℕ using h` will remove `h` from the context. If you want to keep it,
+  specify it again as the third argument to `with`, like this: `lift n to ℕ using h with n rfl h`.
+* More generally, this can lift an expression from `α` to `β` assuming that there is an instance
+  of `can_lift α β`. In this case the proof obligation is specified by `can_lift.cond`.

@@ -205,6 +205,16 @@ lt_of_not_ge (λ ha, absurd h (not_lt_of_ge (mul_nonneg_of_nonpos_of_nonpos ha h
 lemma pos_of_mul_neg_right {a b : α} (h : a * b < 0) (ha : a ≤ 0) : 0 < b :=
 lt_of_not_ge (λ hb, absurd h (not_lt_of_ge (mul_nonneg_of_nonpos_of_nonpos ha hb)))
 
+/- The sum of two squares is zero iff both elements are zero. -/
+lemma mul_self_add_mul_self_eq_zero {x y : α} : x * x + y * y = 0 ↔ x = 0 ∧ y = 0 :=
+begin
+  split; intro h, swap, { rcases h with ⟨rfl, rfl⟩, simp },
+  have : y * y ≤ 0, { rw [← h], apply le_add_of_nonneg_left (mul_self_nonneg x) },
+  have : y * y = 0 := le_antisymm this (mul_self_nonneg y),
+  have hx : x = 0, { rwa [this, add_zero, mul_self_eq_zero] at h },
+  rw mul_self_eq_zero at this, split; assumption
+end
+
 end linear_ordered_ring
 
 set_option old_structure_cmd true

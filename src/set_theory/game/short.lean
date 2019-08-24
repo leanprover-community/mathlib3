@@ -27,6 +27,18 @@ inductive short : pgame.{u} → Type (u+1)
          [fintype α] [fintype β],
        short ⟨α, β, L, R⟩
 
+instance subsingleton_short : Π (x : pgame), subsingleton (short x)
+| (mk xl xr xL xR) :=
+⟨λ a b, begin
+  cases a; cases b,
+  congr,
+  { funext,
+    apply @subsingleton.elim _ (subsingleton_short (xL x)) },
+  { funext,
+    apply @subsingleton.elim _ (subsingleton_short (xR x)) },
+end⟩
+using_well_founded { dec_tac := pgame_wf_tac }
+
 def short.mk' {x : pgame} [fintype x.left_moves] [fintype x.right_moves]
   (sL : ∀ i : x.left_moves, short (x.move_left i)) (sR : ∀ j : x.right_moves, short (x.move_right j)) :
   short x :=

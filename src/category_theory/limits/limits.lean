@@ -298,13 +298,9 @@ def limit.lift (F : J ⥤ C) [has_limit F] (c : cone F) : c.X ⟶ limit F :=
 @[simp] lemma limit.is_limit_lift {F : J ⥤ C} [has_limit F] (c : cone F) :
   (limit.is_limit F).lift c = limit.lift F c := rfl
 
-@[simp] lemma limit.lift_π {F : J ⥤ C} [has_limit F] (c : cone F) (j : J) :
+@[simp,reassoc] lemma limit.lift_π {F : J ⥤ C} [has_limit F] (c : cone F) (j : J) :
   limit.lift F c ≫ limit.π F j = c.π.app j :=
 is_limit.fac _ c j
-
-@[simp] lemma limit.lift_π_assoc {F : J ⥤ C} [has_limit F] (c : cone F) (j : J) (W) (f : _ ⟶ W):
-  limit.lift F c ≫ limit.π F j ≫ f = c.π.app j ≫ f :=
-by { rw ←category.assoc, simp }
 
 def limit.cone_morphism {F : J ⥤ C} [has_limit F] (c : cone F) :
   cone_morphism c (limit.cone F) :=
@@ -457,12 +453,8 @@ def lim : (J ⥤ C) ⥤ C :=
 
 variables {F} {G : J ⥤ C} (α : F ⟶ G)
 
-@[simp] lemma lim.map_π (j : J) : lim.map α ≫ limit.π G j = limit.π F j ≫ α.app j :=
+@[simp,reassoc] lemma lim.map_π (j : J) : lim.map α ≫ limit.π G j = limit.π F j ≫ α.app j :=
 by apply is_limit.fac
-
-@[simp] lemma lim.map_π_assoc (j : J) (W) (f : _ ⟶ W) :
-  lim.map α ≫ limit.π G j ≫ f = limit.π F j ≫ α.app j ≫ f :=
-by rw [←category.assoc, lim.map_π, category.assoc]
 
 @[simp] lemma limit.lift_map (c : cone F) :
   limit.lift F c ≫ lim.map α = limit.lift G ((cones.postcompose α).obj c) :=

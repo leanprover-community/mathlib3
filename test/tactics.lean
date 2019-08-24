@@ -3,7 +3,8 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Scott Morrison
 -/
-import tactic.interactive tactic.finish tactic.ext tactic.lift
+
+import tactic.interactive tactic.finish tactic.ext tactic.lift tactic.apply
 
 example (m n p q : nat) (h : m + n = p) : true :=
 begin

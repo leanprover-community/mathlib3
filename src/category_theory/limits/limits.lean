@@ -337,6 +337,7 @@ begin
   dsimp [cocone_of_hom, hom_of_cocone], cases s, congr, dsimp,
   exact congr_fun (congr_fun (congr_arg nat_trans.app h.inv_hom_id) s_X) s_ι,
 end
+
 @[simp] lemma hom_of_cocone_of_hom {Y : C} (f : X ⟶ Y) : hom_of_cocone h (cocone_of_hom h f) = f :=
 congr_fun (congr_fun (congr_arg nat_trans.app h.hom_inv_id) Y) f
 

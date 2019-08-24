@@ -119,16 +119,30 @@ begin
   (λ j, by exact have _, from move_right_smaller b j, short_domineering (move_right b j))
 end
 
+
+def domineering.one := domineering ([(0,0), (0,1)].to_finset)
+
 /-- The `L` shaped board, in which Left is exactly half a move ahead. -/
 def domineering.L := domineering ([(0,2), (0,1), (0,0), (1,0)].to_finset)
 
+instance : short domineering.one := by { dsimp [domineering.one], apply_instance }
 instance : short domineering.L := by { dsimp [domineering.L], apply_instance }
 
 -- The VM can play small games successfully:
+-- #eval to_bool (domineering.one ≈ 1)
 -- #eval to_bool (domineering.L + domineering.L ≈ 1)
 
 -- Unfortunately dec_trivial can't keep up:
+-- example : domineering.one ≈ 1 := dec_trivial
 -- example : domineering.L + domineering.L ≈ 1 := dec_trivial
+
+-- It's not clear why the decidable instances do not reduce to `is_true _`:
+-- set_option pp.implicit true
+-- set_option pp.proofs true
+-- set_option pp.max_steps 1000000
+-- set_option pp.max_depth 1000000
+-- run_cmd tactic.whnf `(by apply_instance : decidable (domineering.one ≤ 1)) >>= tactic.trace
+
 
 -- instance : short (pgame.of_lists [0] [1]) :=
 -- @pgame.short_of_lists [0] [1]

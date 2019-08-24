@@ -68,8 +68,13 @@ the necessary equivalence relations at the level of pregames, we introduce the n
 of a game, and show, for example, that there is a relabelling between `x + (y + z)` and `(x + y) + z`.
 
 ## Future work
-Someone might like to add the theory of dominated and reversible positions, and unique normal form
-for short games. The development of surreal numbers, based on this development of combinatorial games,
+* The theory of dominated and reversible positions, and unique normal form
+for short games.
+* Analysis of basic domineering positions.
+* Impartial games, nym, and the Sprague-Grundy theorem.
+* Hex.
+* Temperature.
+* The development of surreal numbers, based on this development of combinatorial games,
 is still quite incomplete.
 
 ## References
@@ -179,16 +184,14 @@ instance : has_one pgame := ⟨⟨punit, pempty, λ _, 0, pempty.elim⟩⟩
   This is a tricky induction because it only decreases one side at
   a time, and it also swaps the arguments in the definition of `<`.
   The solution is to define `x < y` and `x <= y` simultaneously. -/
-def le_lt (x y : pgame) : Prop × Prop :=
-begin
-  induction x with xl xr xL xR IHxl IHxr generalizing y,
-  induction y with yl yr yL yR IHyl IHyr,
+def le_lt : Π (x y : pgame), Prop × Prop
+| (mk xl xr xL xR) (mk yl yr yL yR) :=
   -- the orderings of the clauses here are carefully chosen so that
   --   and.left/or.inl refer to moves by Left, and
   --   and.right/or.inr refer to moves by Right.
-  exact ((∀ i, (IHxl i ⟨yl, yr, yL, yR⟩).2) ∧ (∀ j, (IHyr j).2),
-         (∃ i, (IHyl i).1) ∨ (∃ j, (IHxr j ⟨yl, yr, yL, yR⟩).1))
-end
+((∀ i : xl, (le_lt (xL i) ⟨yl, yr, yL, yR⟩).2) ∧ (∀ j : yr, (le_lt ⟨xl, xr, xL, xR⟩ (yR j)).2),
+  (∃ i : yl, (le_lt ⟨xl, xr, xL, xR⟩ (yL i)).1) ∨ (∃ j : xr, (le_lt (xR j) ⟨yl, yr, yL, yR⟩).1))
+using_well_founded { dec_tac := pgame_wf_tac }
 
 instance : has_le pgame := ⟨λ x y, (le_lt x y).1⟩
 instance : has_lt pgame := ⟨λ x y, (le_lt x y).2⟩

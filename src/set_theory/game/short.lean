@@ -30,52 +30,27 @@ inductive short : pgame.{u} → Type (u+1)
 def short.mk' {x : pgame} [fintype x.left_moves] [fintype x.right_moves]
   (sL : ∀ i : x.left_moves, short (x.move_left i)) (sR : ∀ j : x.right_moves, short (x.move_right j)) :
   short x :=
-by { tactic.unfreeze_local_instances, cases x, dsimp at *, exact short.mk sL sR }
+by { resetI, cases x, dsimp at *, exact short.mk sL sR }
 
 attribute [class] short
 
 instance fintype_left {α β : Type u} {L : α → pgame.{u}} {R : β → pgame.{u}} [S : short ⟨α, β, L, R⟩] : fintype α :=
-begin
-  tactic.unfreeze_local_instances,
-  cases S with _ _ _ _ _ _ F _,
-  exact F
-end
+by { resetI, cases S with _ _ _ _ _ _ F _, exact F }
 instance fintype_left_moves (x : pgame) [S : short x] : fintype (x.left_moves) :=
-by { tactic.unfreeze_local_instances, cases x, dsimp, apply_instance, }
-
+by { resetI, cases x, dsimp, apply_instance, }
 instance fintype_right {α β : Type u} {L : α → pgame.{u}} {R : β → pgame.{u}} [S : short ⟨α, β, L, R⟩] : fintype β :=
-begin
-  tactic.unfreeze_local_instances,
-  cases S with _ _ _ _ _ _ _ F,
-  exact F
-end
+by { resetI, cases S with _ _ _ _ _ _ _ F, exact F }
 instance fintype_right_moves (x : pgame) [S : short x] : fintype (x.right_moves) :=
 by { tactic.unfreeze_local_instances, cases x, dsimp, apply_instance, }
 
 instance move_left_short (x : pgame) [S : short x] (i : x.left_moves) : short (x.move_left i) :=
-begin
-  tactic.unfreeze_local_instances,
-  cases S with _ _ _ _ L _ _ _,
-  apply L
-end
+by { resetI, cases S with _ _ _ _ L _ _ _, apply L }
 instance move_left_short' {xl xr xL xR} [S : short (mk xl xr xL xR)] (i : xl) : short (xL i) :=
-begin
-  tactic.unfreeze_local_instances,
-  cases S with _ _ _ _ L _ _ _,
-  apply L
-end
+by { resetI, cases S with _ _ _ _ L _ _ _, apply L }
 instance move_right_short (x : pgame) [S : short x] (j : x.right_moves) : short (x.move_right j) :=
-begin
-  tactic.unfreeze_local_instances,
-  cases S with _ _ _ _ _ R _ _,
-  apply R
-end
+by { resetI, cases S with _ _ _ _ _ R _ _, apply R }
 instance move_right_short' {xl xr xL xR} [S : short (mk xl xr xL xR)] (j : xr) : short (xR j) :=
-begin
-  tactic.unfreeze_local_instances,
-  cases S with _ _ _ _ _ R _ _,
-  apply R
-end
+by { resetI, cases S with _ _ _ _ _ R _ _, apply R }
 
 instance short_0 : short 0 :=
 short.mk (λ i, by cases i) (λ j, by cases j)

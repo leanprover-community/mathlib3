@@ -7,7 +7,7 @@ Authors: Sébastien Gouëzel
 import analysis.calculus.deriv
 
 /-!
-# Higher differentiabiliity
+# Higher differentiability
 
 A function is `C^1` on a domain if it is differentiable there, and its derivative is continuous.
 By induction, it is `C^n` if it is `C^{n-1}` and its (n-1)-th derivative is `C^1` there or,
@@ -429,6 +429,17 @@ lemma times_cont_diff_on.continuous_on_fderiv_within
   {n : with_top ℕ} (h : times_cont_diff_on 𝕜 n f s) (hn : 1 ≤ n) :
   continuous_on (fderiv_within 𝕜 f s) s :=
 h.1 1 hn
+
+lemma times_cont_diff_on.differentiable_on
+  {n : with_top ℕ} (h : times_cont_diff_on k n f s) (hn : 1 ≤ n) :
+  differentiable_on k f s :=
+begin
+  refine h.2 0 _,
+  refine lt_of_lt_of_le _ hn,
+  change ((0 : ℕ) : with_top ℕ) < (1 : ℕ),
+  rw with_top.coe_lt_coe,
+  exact zero_lt_one
+end
 
 set_option class.instance_max_depth 50
 

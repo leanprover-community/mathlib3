@@ -7,24 +7,16 @@ import tactic.vampire.skolemize
 
 namespace vampire
 
-local notation `#`      := term.fn
-local notation t `&t` s := term.tp t s
-local notation t `&v` k := term.vp t k
+local notation `r*`     := atm.rl 
+local notation t `=*` s := atm.eq t s 
+local notation `+*`     := frm.atm tt
+local notation `-*`     := frm.atm ff
+local notation p `∨*` q := frm.bin tt p q
+local notation p `∧*` q := frm.bin ff p q
+local notation `∃*` p   := frm.qua tt p
+local notation `∀*` p   := frm.qua ff p
+local notation R `;` F `;` V `⊨` f := frm.holds R F V f
 
-local notation `$`      := atom.rl
-local notation a `^t` t := atom.tp a t
-local notation a `^v` t := atom.vp a t
-
-local notation `-*` := lit.atom ff
-local notation `+*` := lit.atom tt
-local notation t `=*` s := lit.eq tt t s
-local notation t `≠*` s := lit.eq ff t s
-local notation p `∨*` q        := form.bin tt p q
-local notation p `∧*` q        := form.bin ff p q
-local notation `∃*`            := form.qua tt
-local notation `∀*`            := form.qua ff
-
-local notation R `;` F `;` V `⊨` f := form.holds R F V f
 run_cmd mk_simp_attr `sugars
 
 attribute [sugars]
@@ -64,31 +56,27 @@ do ihx ← tactic.to_expr ``(inhabited),
 
 variables {α : Type} [inhabited α]
 
-
-
-
-
-
-
 inductive proof (m : mat) : cla → Type
-| ins (k : nat) (μ : mappings) : proof ((m.nth k).substs μ)
-| res (a : atom) (c d : cla) :
-  proof ((-* a) :: c) →
-  proof ((+* a) :: d) →
+| ins (k : nat) (μs : vmaps) : proof ((m.nth k).vsubs μs)
+| res (a : atm) (c d : cla) :
+  proof ((ff, a) :: c) →
+  proof ((tt, a) :: d) →
   proof (c ++ d)
 | rot (k : nat) (c : cla) :
   proof c → proof (c.rot k)
 | con (l : lit) (c : cla) :
   proof (l :: l :: c) → proof (l :: c)
-| sub (t s : term) (l : lit) (c d : cla) :
-  proof (l :: c) →
-  proof (((eqterm.tm t =* eqterm.tm s) :: d)) →
-  proof (l.replace t s :: c ++ d)
-| sym (b : bool) (t s : eqterm) (c : cla) :
-  proof (lit.eq b t s :: c) → proof (lit.eq b s t :: c)
-| trv (t : eqterm) (c : cla) :
-  proof ((t ≠* t) :: c) → proof c
+| sub (b : bool) (a : atm) (t s : trm) (c d : cla) :
+  proof ((b, a) :: c) →
+  proof (((tt, t =* s) :: d)) →
+  proof ((b, a.replace t s) :: c ++ d)
+| sym (b : bool) (t s : trm) (c : cla) :
+  proof ((b, t =* s) :: c) → 
+  proof ((b, s =* t) :: c)
+| trv (t : trm) (c : cla) :
+  proof ((ff, t =* t) :: c) → proof c
 
+  #exit
 /- Same as is.fs.read_to_end and io.cmd,
    except for configurable read length. -/
 def io.fs.read_to_end' (h : io.handle) : io char_buffer :=
@@ -111,22 +99,22 @@ open tactic
 
 def nat.to_rr (k : nat) : string := "b" ++ k.bstr
 
-def term.to_rr : term → string
-| (term.fn k)   := nat.to_rr k ++ "f"
-| (term.tp t s) := string.join [t.to_rr, s.to_rr, "a"]
-| (term.vp t k) := string.join [t.to_rr, nat.to_rr k, "va"]
+def trm.to_rr : trm → string
+| (trm.fn k)   := nat.to_rr k ++ "f"
+| (trm.tp t s) := string.join [t.to_rr, s.to_rr, "a"]
+| (trm.vp t k) := string.join [t.to_rr, nat.to_rr k, "va"]
 
-def eqterm.to_rr : eqterm → string
-| (eqterm.vr k) := nat.to_rr k ++ "v"
-| (eqterm.tm t) := t.to_rr
+def extrm.to_rr : extrm → string
+| (extrm.vr k) := nat.to_rr k ++ "v"
+| (extrm.tm t) := t.to_rr
 
-def atom.to_rr : atom → string
-| (atom.rl k)   := nat.to_rr k ++ "r"
-| (atom.tp a t) := string.join [a.to_rr, t.to_rr, "a"]
-| (atom.vp a k) := string.join [a.to_rr, nat.to_rr k, "va"]
+def atm.to_rr : atm → string
+| (atm.rl k)   := nat.to_rr k ++ "r"
+| (atm.tp a t) := string.join [a.to_rr, t.to_rr, "a"]
+| (atm.vp a k) := string.join [a.to_rr, nat.to_rr k, "va"]
 
 def lit.to_rr : lit → string
-| (lit.atom b a) := a.to_rr ++ (if b then "p" else "n")
+| (lit.atm b a) := a.to_rr ++ (if b then "p" else "n")
 | (lit.eq b t s) :=
   string.join [t.to_rr, s.to_rr, "q", if b then "p" else "n"]
 
@@ -145,8 +133,8 @@ unsafe_run_io $ io.cmd'
 
 meta inductive item : Type
 | nm  (n : nat)            : item
-| trm (t : term)           : item
-| mps (m : mappings)       : item
+| trm (t : trm)           : item
+| mps (m : vmaps)       : item
 | prf (x : expr) (c : cla) : item
 
 namespace item
@@ -154,21 +142,21 @@ namespace item
 meta def repr : item → string 
 | (item.nm n) := n.repr
 | (item.trm t) := t.repr
-| (item.mps m) := "MAPPING"
+| (item.mps m) := "vmap"
 | (item.prf x c) := c.repr
 
 meta instance has_repr : has_repr item := ⟨repr⟩ 
 
-meta instance has_to_format : has_to_format item := ⟨λ x, repr x⟩ 
+meta instance has_to_frmat : has_to_frmat item := ⟨λ x, repr x⟩ 
 
 end item
 
-meta def mapping.to_expr : mapping → expr
-| (k, t) := expr.mk_app `(@prod.mk nat term) [k.to_expr, t.to_expr]
+meta def vmap.to_expr : vmap → expr
+| (k, t) := expr.mk_app `(@prod.mk nat trm) [k.to_expr, t.to_expr]
 
-meta def mappings.to_expr : mappings → expr
-| []        := `(@list.nil mapping)
-| (m :: ms) := expr.mk_app `(@list.cons mapping) [m.to_expr, mappings.to_expr ms]
+meta def vmaps.to_expr : vmaps → expr
+| []        := `(@list.nil vmap)
+| (m :: ms) := expr.mk_app `(@list.cons vmap) [m.to_expr, vmaps.to_expr ms]
 
 meta def build_proof_core (m : mat) (mx : expr) :
   list item → list char → tactic expr
@@ -196,7 +184,7 @@ meta def build_proof_core (m : mat) (mx : expr) :
 | ((item.prf πx (l :: _ :: c)) :: stk) ('C' :: chs) :=
   let πx := expr.mk_app `(@proof.con) [mx, l.to_expr, cla.to_expr c, πx] in
   build_proof_core (item.prf πx (l :: c) :: stk) chs
-| ( (item.prf σx ((eqterm.tm t =* eqterm.tm s) :: d)) :: 
+| ( (item.prf σx ((extrm.tm t =* extrm.tm s) :: d)) :: 
     (item.prf πx (l :: c)) :: stk ) ('S' :: chs) :=
   let ρx := expr.mk_app `(@proof.sub) [mx, t.to_expr, s.to_expr, l.to_expr, cla.to_expr c, cla.to_expr d, πx, σx] in
   -- trace "Before : " >>
@@ -217,9 +205,9 @@ meta def build_proof_core (m : mat) (mx : expr) :
 | stk ('e' :: chs) :=
   build_proof_core (item.mps [] :: stk) chs
 | (item.nm k :: stk) ('f' :: chs) :=
-  build_proof_core (item.trm (term.fn k) :: stk) chs
+  build_proof_core (item.trm (trm.fn k) :: stk) chs
 | (item.trm s :: item.trm t :: stk) ('a' :: chs) :=
-  build_proof_core (item.trm (term.tp t s) :: stk) chs
+  build_proof_core (item.trm (trm.tp t s) :: stk) chs
 | (item.trm t :: item.nm k :: item.mps μ :: stk) ('c' :: infs) :=
   build_proof_core (item.mps ((k, t) :: μ) :: stk) infs
 | (X :: Y :: _) chs := 
@@ -231,25 +219,25 @@ meta def build_proof_core (m : mat) (mx : expr) :
 | [] chs := trace "Stack empty, remaining proof : " >> trace chs >> failed
 
 variables {R : rls α} {F : fns α} {V : vas α}
-variables {b : bool} (f g : form)
+variables {b : bool} (f g : frm)
 
-local notation R `; ` F `; ` V ` ⊨ ` f := form.holds R F V f
+local notation R `; ` F `; ` V ` ⊨ ` f := frm.holds R F V f
 
-def normalize (f : form) : form :=
+def normalize (f : frm) : frm :=
 skolemize $ pnf $ f.neg
 
-def clausify (f : form) : mat :=
-cnf $ form.strip_fa $ normalize f
+def clausify (f : frm) : mat :=
+cnf $ frm.strip_fa $ normalize f
 
-lemma lit.holds_substs (μs : mappings) (l : lit) :
+lemma lit.holds_substs (μs : vmaps) (l : lit) :
   (l.substs μs).holds R F V ↔
   l.holds R F (V.substs F μs) :=
 by { cases l with b a b t s; cases b;
      simp only [ lit.holds, lit.substs, vas.substs,
-     list.map_map, atom.val_substs, term.val_substs,
-     eqterm.val_substs ] }
+     list.map_map, atm.val_substs, trm.val_substs,
+     extrm.val_substs ] }
 
-lemma cla.holds_substs {μs : mappings} {c : cla} :
+lemma cla.holds_substs {μs : vmaps} {c : cla} :
   (c.substs μs).holds R F V ↔
   c.holds R F (V.substs F μs) :=
 by { apply @list.exists_mem_map_iff,
@@ -274,7 +262,7 @@ begin
     cases h1 : list.nth m k;
     unfold option.get_or_else,
     { simp only [cla.substs, cla.tautology,
-        list.map, lit.substs, atom.substs],
+        list.map, lit.substs, atm.substs],
       apply holds_tautology },
     rw cla.holds_substs,
     apply h0,
@@ -314,7 +302,7 @@ begin
 end
 
 lemma frxffx_of_proof
-  (rn : nat) (R : rls α) (fn : nat) (F : fns α) (f : form) :
+  (rn : nat) (R : rls α) (fn : nat) (F : fns α) (f : frm) :
   (normalize f).vnew = 0 →
   proof (clausify f) [] → f.frxffx rn R fn F :=
 begin
@@ -325,7 +313,7 @@ begin
   rw ← holds_neg, intro h3,
   rw ← pnf_eqv at h3,
   rcases holds_skolemize h3 with ⟨F'', h4, h5⟩,
-  have hAF : (skolemize (pnf (form.neg f))).AF,
+  have hAF : (skolemize (pnf (frm.neg f))).AF,
   { apply AF_skolemize,
     apply QF_pnf },
   have h6 := holds_strip_fa hAF _ (forall_ext_zero h5),
@@ -337,18 +325,18 @@ begin
   apply le_of_eq hz
 end
 
-instance decidable_vnew_eq_zero (f : form) :
+instance decidable_vnew_eq_zero (f : frm) :
   decidable ((normalize f).vnew = 0) := by apply_instance
 
 meta def build_proof (chs : list char)
-  (αx ix : expr) (f : form) (m : mat) : tactic expr :=
+  (αx ix : expr) (f : frm) (m : mat) : tactic expr :=
 do πx ← build_proof_core m m.to_expr [] chs,
    let rnx : expr := f.rnew.to_expr,
    let fnx : expr := f.fnew.to_expr,
    let Rx : expr := `(Rdf %%αx),
    let Fx : expr := `(@Fdf %%αx %%ix),
    let fx : expr := f.to_expr,
-   let eqx  : expr := `(form.vnew (normalize %%fx) = 0 : Prop),
+   let eqx  : expr := `(frm.vnew (normalize %%fx) = 0 : Prop),
    let decx : expr := expr.mk_app `(vampire.decidable_vnew_eq_zero) [fx],
    let hx   : expr := expr.mk_app `(@of_as_true) [eqx, decx, `(trivial)],
    let x : expr := expr.mk_app `(@frxffx_of_proof)
@@ -389,6 +377,7 @@ do desugar,
    f ← reify αx,
    let m := clausify f,
    s ← get_rr m,
+   trace s,
    x ← build_proof s.data αx ix f m,
    apply x,
    skip

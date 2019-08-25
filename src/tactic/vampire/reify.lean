@@ -114,11 +114,11 @@ meta def to_term : preterm → tactic term
      s ← to_term ps,
      return (t &t s)
 
-meta def to_eqterm : preterm → tactic eqterm
-| (preterm.var tt k) := return (eqterm.vr k)
+meta def to_exterm : preterm → tactic exterm
+| (preterm.var tt k) := return (exterm.vr k)
 | pt :=
   do t ← to_term pt,
-     return (eqterm.tm t)
+     return (exterm.tm t)
 
 meta def to_atom : preterm → tactic atom
 | (preterm.var ff k) := return ($ k)
@@ -137,8 +137,8 @@ meta def to_lit (b : bool) : preatom → tactic lit
   do a ← to_atom pt,
      return (lit.atom b a)
 | (preatom.eq pt ps) :=
-  do t ← to_eqterm pt,
-     s ← to_eqterm ps,
+  do t ← to_exterm pt,
+     s ← to_exterm ps,
      return (lit.eq b t s)
 
 meta def to_form : preform → tactic form

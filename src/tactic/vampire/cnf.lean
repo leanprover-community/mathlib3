@@ -3,7 +3,7 @@
   Released under Apache 2.0 license as described in the file LICENSE.
   Author: Seul Baek
 
-  CNF formulas.
+  CNF frmulas.
 -/
 
 import tactic.vampire.pnf
@@ -13,18 +13,12 @@ namespace vampire
 
 variables {α : Type}
 
-local notation `$`      := atom.rl
-local notation a `^t` t := atom.app a t
-local notation a `^v` t := atom.vpp a t
+local notation p `∨*` q := frm.bin tt p q
+local notation p `∧*` q := frm.bin ff p q
+local notation `∃*` p   := frm.qua tt p
+local notation `∀*` p   := frm.qua ff p
 
-local notation `-*` := lit.atom ff
-local notation `+*` := lit.atom tt
-
-local notation p `∨*` q := form.bin tt p q
-local notation p `∧*` q := form.bin ff p q
-local notation `∃*` p := form.qua tt p
-local notation `∀*` p := form.qua ff p
-
+@[reducible] def lit : Type := bool × atm
 @[reducible] def cla : Type := list lit
 @[reducible] def mat : Type := list cla
 
@@ -45,18 +39,38 @@ lemma map_app_prod_nil :
 | (c :: m) :=
   by simp only [map_app_prod, map, map_app_prod_nil m, nil_append]
 
-def cnf : form → mat
-| (form.lit l)   := [[l]]
-| (f ∨* g)       := map_app_prod (cnf f) (cnf g)
-| (f ∧* g)       := (cnf f) ++ (cnf g)
-| (form.qua _ _) := []
+def cnf : frm → mat
+| (frm.atm b a) := [[(b, a)]]
+| (f ∨* g)      := map_app_prod (cnf f) (cnf g)
+| (f ∧* g)      := (cnf f) ++ (cnf g)
+| (frm.qua _ _) := []
+
+namespace lit 
+
+def vsubs (μs : vmaps) : lit → lit 
+| (b, a):= (b, a.vsubs μs)
+
+meta def to_expr : lit → expr
+| (b, a) := expr.mk_app `(@prod.mk bool atm) [b.to_expr, a.to_expr]
+
+def holds (R : rls α) (F : fns α) (V : vas α) : lit → Prop 
+| (ff, a):= ¬ a.holds R F V
+| (tt, a):=   a.holds R F V
+
+def repr : lit → string
+| (ff, a):= "-" ++ a.repr
+| (tt, a):= "+" ++ a.repr
+
+instance has_repr : has_repr lit := ⟨repr⟩
+
+end lit
 
 namespace cla
 
-def tautology : cla := [-* ($ 0), +* ($ 0)]
+def tautology : cla := [(tt, atm.default)]
 
-def substs (μ : mappings) : cla → cla :=
-list.map (lit.substs μ)
+def vsubs (μs : vmaps) : cla → cla :=
+list.map (lit.vsubs μs)
 
 meta def to_expr : cla → expr
 | []       := `(@list.nil lit)
@@ -133,13 +147,13 @@ lemma holds_map_app_prod_right :
   end
 
 lemma holds_cnf [inhabited α] :
-  ∀ {f : form}, f.F → f.holds R F V → (cnf f).holds R F V
-| (form.lit l) h0 h1 :=
+  ∀ {f : frm}, f.F → f.holds R F V → (cnf f).holds R F V
+| (frm.atm b a) h0 h1 :=
   begin
     intros c h2,
     rw list.eq_of_mem_singleton h2,
     refine ⟨_, or.inl rfl, _⟩,
-    exact h1,
+    cases b; exact h1
   end
 | (f ∧* g) h0 h1 :=
   begin
@@ -165,13 +179,7 @@ lemma not_holds_empty_cla :
   ¬ (cla.holds R F V []) :=
 by rintro ⟨_, ⟨_⟩, _⟩
 
-lemma holds_tautology :
-  cla.tautology.holds R F V :=
-begin
-  simp only [cla.tautology, cla.holds],
-  cases classical.em (lit.holds R F V (+* ($ 0))) with h0 h0,
-  refine ⟨_, or.inr (or.inl rfl), h0⟩,
-  refine ⟨_, or.inl rfl, h0⟩,
-end
+lemma holds_tautology : cla.tautology.holds R F V := 
+⟨_, or.inl rfl, rfl⟩ 
 
 end vampire

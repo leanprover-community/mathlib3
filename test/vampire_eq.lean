@@ -17,10 +17,6 @@ local notation x `*` y := mult x y
 
 open tactic expr vampire
 
--- #eval [lit.replace (term.fn 1) (term.fn 1) (lit.eq ff (eqterm.tm (term.tp (term.tp (term.fn (nat.succ 1)) (term.tp (term.tp (term.tp (term.tp (term.tp (term.fn 0) (term.fn 0)) (term.fn 0)) (term.fn 0)) (term.fn 0)) (term.fn 0))) (term.tp (term.fn (nat.succ (nat.succ 1))) (term.tp (term.tp (term.tp (term.tp (term.tp (term.fn 0) (term.fn 0)) (term.fn 0)) (term.fn 0)) (term.fn 0)) (term.fn 0))))) (eqterm.tm (term.fn 1)))] 
--- 
--- #eval [lit.eq ff (eqterm.tm (term.tp (term.tp (term.fn (nat.succ 1)) (term.tp (term.tp (term.tp (term.tp (term.tp (term.fn 0) (term.fn 0)) (term.fn 0)) (term.fn 0)) (term.fn 0)) (term.fn 0))) (term.tp (term.fn (nat.succ (nat.succ 1))) (term.tp (term.tp (term.tp (term.tp (term.tp (term.fn 0) (term.fn 0)) (term.fn 0)) (term.fn 0)) (term.fn 0)) (term.fn 0))))) (eqterm.tm (term.tp (term.tp (term.fn (nat.succ 1)) (term.tp (term.tp (term.tp (term.tp (term.tp (term.fn 0) (term.fn 0)) (term.fn 0)) (term.fn 0)) (term.fn 0)) (term.fn 0))) (term.tp (term.fn (nat.succ (nat.succ 1))) (term.tp (term.tp (term.tp (term.tp (term.tp (term.fn 0) (term.fn 0)) (term.fn 0)) (term.fn 0)) (term.fn 0)) (term.fn 0)))))]
-
  example (x y z : ℕ) (p : ℕ → Prop) :
    x = y → y = z → (∀ w, w = z → p w) → p x :=
  by vampire_eq

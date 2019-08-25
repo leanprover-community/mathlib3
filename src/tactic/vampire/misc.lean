@@ -40,6 +40,12 @@ by { intros h0 h1, by_cases h2 : p,
      { rw if_pos h2, exact h0 },
      rw if_neg h2, exact h1 }
 
+lemma dite_cases {r : α → Prop} {p : Prop} [decidable p] {a b : α} :
+  (p → r a) → (¬ p → r b) → r (ite p a b) :=
+by { intros h0 h1, by_cases h2 : p,
+     { rw if_pos h2, exact h0 h2 },
+       rw if_neg h2, exact h1 h2 }
+       
 lemma pred_mono_2 {c : Prop → Prop → Prop} {a1 a2 b1 b2 : Prop} :
   (a1 ↔ a2) → (b1 ↔ b2) → (c a1 b1 ↔ c a2 b2) :=
 λ h1 h2, by rw [h1, h2]

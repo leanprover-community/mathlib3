@@ -1,6 +1,7 @@
 import data.list.basic
 import tactic.vampire.misc
 
+
 namespace list
 
 variables {α β : Type}
@@ -57,5 +58,30 @@ lemma exists_mem_map_iff
     apply pred_mono_2 (h _),
     apply exists_mem_map_iff
   end
+
+def try (f : α → option β) : list α → option β
+| []        := none 
+| (a :: as) := f a <|> try as
+
+lemma map_eq_map_of_forall_mem_eq {f g : α → β} : 
+  ∀ {as : list α}, (∀ a ∈ as, f a = g a) → as.map f = as.map g 
+| []        _  := rfl
+| (a :: as) h0 := 
+  by { unfold map,
+       rw [ h0 _ (or.inl rfl),
+            map_eq_map_of_forall_mem_eq ],
+       intros x h1,
+       apply h0 _ (or.inr h1) }
+      
+lemma forall_mem_map_of_forall_mem 
+  {p : α → Prop} {q : β → Prop} {f : α → β} (h0 : ∀ a : α, p a → q (f a)) :
+  ∀ as : list α, (∀ a ∈ as, p a) → (∀ b ∈ as.map f, q b)
+| [] _ _ h2 := by cases h2
+| (a :: as) h1 b h2 := 
+  by { cases h2,
+       { rw h2, apply h0, 
+         apply h1 _ (or.inl rfl) },
+       apply forall_mem_map_of_forall_mem as _ _ h2,
+       apply forall_mem_of_forall_mem_cons h1 }
 
 end list

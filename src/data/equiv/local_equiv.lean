@@ -63,6 +63,10 @@ open function set
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
+/-- Local equivalence between subsets `source` and `target` of α and β respectively. The (global)
+maps `to_fun : α → β` and `inv_fun : β → α` map `source` to `target` and conversely, and are inverse
+to each other there. The values of `to_fun` outside of `source` and of `inv_fun` outside of `target`
+are irrelevant. -/
 structure local_equiv (α : Type*) (β : Type*) :=
 (to_fun     : α → β)
 (inv_fun    : β → α)
@@ -75,6 +79,7 @@ structure local_equiv (α : Type*) (β : Type*) :=
 
 attribute [simp] local_equiv.left_inv local_equiv.right_inv
 
+/-- Associating a local_equiv to an equiv-/
 def equiv.to_local_equiv (e : equiv α β) : local_equiv α β :=
 { to_fun     := e.to_fun,
   inv_fun    := e.inv_fun,
@@ -89,12 +94,14 @@ namespace local_equiv
 
 variables (e : local_equiv α β) (e' : local_equiv β γ)
 
+/-- Associating to a local_equiv an equiv between the source and the target -/
 protected def to_equiv : equiv (e.source) (e.target) :=
 { to_fun    := λ⟨x, hx⟩, ⟨e.to_fun x, e.map_source hx⟩,
   inv_fun   := λ⟨y, hy⟩, ⟨e.inv_fun y, e.map_target hy⟩,
   left_inv  := λ⟨x, hx⟩, subtype.eq $ e.left_inv hx,
   right_inv := λ⟨y, hy⟩, subtype.eq $ e.right_inv hy }
 
+/-- The inverse of a local equiv -/
 protected def symm : local_equiv β α :=
 { to_fun     := e.inv_fun,
   inv_fun    := e.to_fun,
@@ -111,6 +118,7 @@ protected def symm : local_equiv β α :=
 @[simp] lemma symm_target : e.symm.target = e.source := rfl
 @[simp] lemma symm_symm : e.symm.symm = e := by { cases e, refl }
 
+/-- A local equiv induces a bijection between its source and target -/
 lemma bij_on_source : bij_on e.to_fun e.source e.target :=
 bij_on_of_inv_on e.map_source e.map_target ⟨e.left_inv, e.right_inv⟩
 
@@ -159,6 +167,7 @@ image_eq_of_bij_on e.symm.bij_on_source
 lemma target_subset_preimage_source : e.target ⊆ e.inv_fun ⁻¹' e.source :=
 λx hx, e.map_target hx
 
+/-- Two local equivs that have the same source, same to_fun and same inv_fun, coincide. -/
 protected lemma eq (e' : local_equiv α β) (h : ∀x, e.to_fun x = e'.to_fun x)
   (hsymm : ∀x, e.inv_fun x = e'.inv_fun x) (hs : e.source = e'.source) : e = e' :=
 begin
@@ -443,6 +452,8 @@ begin
   simp [hx]
 end
 
+/-- Composition of the inverse of a local equiv and this local equiv is equivalent to the
+restriction of the identity to the target -/
 lemma trans_symm_self :
   e.symm.trans e ≈ local_equiv.of_set e.target :=
 trans_self_symm (e.symm)

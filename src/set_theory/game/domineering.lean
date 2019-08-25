@@ -50,6 +50,33 @@ def move_left (b : finset (ℤ × ℤ)) (m : left b) : finset (ℤ × ℤ) :=
 def move_right (b : finset (ℤ × ℤ)) (m : right b) : finset (ℤ × ℤ) :=
 (b.erase m.val).erase (m.val.1 - 1, m.val.2)
 
+-- FIXME Ugh! So sad I can't find this in mathlib.
+lemma int.succ_ne_self (n : ℤ) : n + 1 ≠ n :=
+λ h, one_ne_zero ((add_left_inj n).mp (by { convert h, simp }))
+lemma int.pred_ne_self (n : ℤ) : n - 1 ≠ n :=
+sorry
+
+-- TODO
+lemma move_left_card (b : finset (ℤ × ℤ)) (m : left b) :
+  finset.card (move_left b m) = finset.card b - 2 :=
+begin
+  erw finset.card_erase_of_mem,
+  erw finset.card_erase_of_mem,
+  refl,
+  exact finset.mem_of_mem_inter_left m.property,
+  apply finset.mem_erase_of_ne_of_mem,
+  { intro h,
+    replace h := congr_arg prod.snd h,
+    dsimp at h,
+    exact int.pred_ne_self m.val.2 h, },
+  have := finset.mem_of_mem_inter_right m.property,
+  dsimp [shift_up] at this,
+  sorry
+end
+lemma move_right_card (b : finset (ℤ × ℤ)) (m : right b) :
+  finset.card (move_right b m) = finset.card b - 2 :=
+sorry
+
 lemma move_left_smaller (b : finset (ℤ × ℤ)) (m : left b) :
   finset.card (move_left b m) < finset.card b :=
 lt_of_le_of_lt finset.card_erase_le $
@@ -66,58 +93,139 @@ open domineering_aux
 
 instance : has_well_founded (finset (ℤ × ℤ)) := ⟨measure finset.card, measure_wf finset.card⟩
 
-/-- We construct a domineering game from any finite subset of `ℤ × ℤ`. -/
+/-
+# Implementation note:
+It would be nice to just give the definition:
+```
 def domineering : finset (ℤ × ℤ) → pgame
 | b := pgame.mk
     (left b) (right b)
     (λ m, have _, from move_left_smaller b m,  domineering (move_left b m))
     (λ m, have _, from move_right_smaller b m, domineering (move_right b m))
+```
+And indeed that works, but I couldn't make it computational -- that is, I couldn't produce an
+instance of `short (domineering b)` that would reduce during `dec_trivial`.
+It appears that the reason for this is that this definition uses well-founded recursion,
+and we can't definitionally unfold --- only propositionally.
 
-@[simp] lemma domineering_left_moves (b : finset (ℤ × ℤ)) :
-  (domineering b).left_moves = left b :=
-by { rcases b with ⟨⟨b, _⟩|⟨h, t⟩, n⟩; refl }
-@[simp] lemma domineering_right_moves (b : finset (ℤ × ℤ)) :
-  (domineering b).right_moves = right b :=
-by { rcases b with ⟨⟨b, _⟩|⟨h, t⟩, n⟩; refl }
+Instead, we give the following auxiliary definition, which puts the fact that the number of
+board squares decreases at each step front and center.
+-/
+
+/-- An auxiliary definition for the construction of domineering games. -/
+def domineering' : Π (n : ℕ) (b : finset (ℤ × ℤ)), b.card = n → pgame
+| 0 b _ := pgame.mk (left b) (right b) (λ m, 0) (λ m, 0)
+| 1 b _ := pgame.mk (left b) (right b) (λ m, 0) (λ m, 0)
+| (n + 2) b h :=
+  pgame.mk (left b) (right b)
+    (λ m, domineering' n (move_left b m) begin have t := (move_left_card b m), rw h at t, simp at t, exact t, end )
+    (λ m, domineering' n (move_right b m) begin have t := (move_right_card b m), rw h at t, simp at t, exact t, end)
+
+/-- We construct a domineering game from any finite subset of `ℤ × ℤ`. -/
+def domineering (b : finset (ℤ × ℤ)) : pgame :=
+domineering' b.card b rfl
+
+-- We now prove that this definition is that same as the nicer non-computational one.
+-- This is grungy!
+
+lemma domineering_def' : Π (n : ℕ) (b : finset (ℤ × ℤ)) (h : b.card = n),
+  domineering b = pgame.mk
+    (left b) (right b)
+    (λ m, domineering (move_left b m))
+    (λ m, domineering (move_right b m))
+| 0 b h :=
+  begin
+    conv { to_lhs, dsimp [domineering] },
+    simp only [h],
+    dsimp [domineering'],
+    congr;
+    { funext, exfalso, rcases b with ⟨⟨⟨⟩⟩⟩, rcases m with ⟨_,⟨_⟩⟩, rcases h with ⟨_⟩, },
+  end
+| 1 b h :=
+  begin
+    conv { to_lhs, dsimp [domineering] },
+    simp only [h],
+    dsimp [domineering'],
+    congr,
+    { funext, exfalso,
+      rcases b with ⟨⟨⟨⟩|⟨hd,⟨⟩|⟨hd',tl⟩⟩⟩⟩,
+      { rcases m with ⟨_,⟨_⟩⟩, },
+      { rcases m with ⟨_,m⟩, simp at m, rcases m with ⟨rfl,⟨a,b,⟨rfl,m⟩⟩⟩,
+        injection m with m₁ m₂, dsimp at m₂,
+        exact int.succ_ne_self b m₂, },
+    { rcases h with ⟨_⟩, } },
+      { funext, exfalso,
+      rcases b with ⟨⟨⟨⟩|⟨hd,⟨⟩|⟨hd',tl⟩⟩⟩⟩,
+      { rcases m with ⟨_,⟨_⟩⟩, },
+      { rcases m with ⟨_,m⟩, simp at m, rcases m with ⟨rfl,⟨a,b,⟨rfl,m⟩⟩⟩,
+        injection m with m₁ m₂, dsimp at m₁,
+        exact int.succ_ne_self a m₁, },
+      { rcases h with ⟨_⟩, } },
+  end
+| (n+2) b h :=
+  begin
+    conv { to_lhs, dsimp [domineering] },
+    simp only [h],
+    dsimp [domineering'],
+    congr,
+    { funext, dsimp [domineering], congr, rw [move_left_card, h], simp },
+    { funext, dsimp [domineering], congr, rw [move_right_card, h], simp },
+  end
+
+lemma domineering_def (b : finset (ℤ × ℤ)) :
+  domineering b = pgame.mk
+    (left b) (right b)
+    (λ m, domineering (move_left b m))
+    (λ m, domineering (move_right b m)) :=
+domineering_def' b.card b rfl
+
+def domineering_left_moves (b : finset (ℤ × ℤ)) :
+  (domineering b).left_moves ≃ left b :=
+by { rw [domineering_def], refl }
+def domineering_right_moves (b : finset (ℤ × ℤ)) :
+  (domineering b).right_moves ≃ right b :=
+by { rw [domineering_def], refl }
+
+/-
+In the "noncomputational" definition of domineering, I could prove the following
+two lemmas. Now I can't, which is frustrating.
+```
 @[simp] lemma domineering_move_left (b : finset (ℤ × ℤ)) (i : left_moves (domineering b)) :
-  (domineering b).move_left i = domineering (move_left b (by { convert i, simp })) :=
-begin
-  rcases b with ⟨⟨b, _⟩|⟨h, t⟩, n⟩,
-  { dsimp, rcases i with ⟨i, ⟨⟩⟩, },
-  { refl }
-end
+  (domineering b).move_left i = domineering (move_left b (domineering_left_moves b i)) := sorry
 @[simp] lemma domineering_move_right (b : finset (ℤ × ℤ)) (j : right_moves (domineering b)) :
-  (domineering b).move_right j = domineering (move_right b (by { convert j, simp })) :=
-begin
-  rcases b with ⟨⟨b, _⟩|⟨h, t⟩, n⟩,
-  { dsimp, rcases j with ⟨j, ⟨⟩⟩, },
-  { refl }
-end
+  (domineering b).move_right j = domineering (move_right b (by { convert j, simp })) := sorry
+```
+-/
 
-instance fintype_left_moves (b : finset (ℤ × ℤ)) : fintype ((domineering b).left_moves) :=
-begin
-  unfold domineering {single_pass := tt},
-  exact domineering_aux.fintype_left b,
-end
-instance fintype_right_moves (b : finset (ℤ × ℤ)) : fintype ((domineering b).right_moves) :=
-begin
-  unfold domineering {single_pass := tt},
-  exact domineering_aux.fintype_right b,
-end
+instance fintype_left_moves' : Π (n : ℕ) (b : finset (ℤ × ℤ)) (h : b.card = n), fintype ((domineering' n b h).left_moves)
+| 0 b h := domineering_aux.fintype_left b
+| 1 b h := domineering_aux.fintype_left b
+| (n+2) b _ := domineering_aux.fintype_left b
+
+instance fintype_left_moves (b : finset (ℤ × ℤ )) : fintype ((domineering b).left_moves) :=
+by { dsimp [domineering], apply_instance }
+
+instance fintype_right_moves' : Π (n : ℕ) (b : finset (ℤ × ℤ)) (h : b.card = n), fintype ((domineering' n b h).right_moves)
+| 0 b h := domineering_aux.fintype_right b
+| 1 b h := domineering_aux.fintype_right b
+| (n+2) b _ := domineering_aux.fintype_right b
+
+instance fintype_right_moves (b : finset (ℤ × ℤ )) : fintype ((domineering b).right_moves) :=
+by { dsimp [domineering], apply_instance }
 
 /-- Domineering is always a short game, because the board is finite. -/
--- Implementation note:
--- This instance isn't usable inside `dec_trivial`, because the `unfold domineering` below
--- is not a definitional unfolding, and so the `decidable` instances don't reduce fully.
-instance short_domineering : Π (b : finset (ℤ × ℤ)), short (domineering b)
-| b :=
-begin
-  unfold domineering {single_pass := tt},
-  exact short.mk
-  (λ i, by exact have _, from move_left_smaller b i, short_domineering (move_left b i))
-  (λ j, by exact have _, from move_right_smaller b j, short_domineering (move_right b j))
-end
+instance short_domineering' : Π (n : ℕ) (b : finset (ℤ × ℤ)) (h : b.card = n), short (domineering' n b h)
+| 0 b h := begin dsimp [domineering'], fsplit; {intros, apply_instance} end
+| 1 b h := begin dsimp [domineering'], fsplit; {intros, apply_instance} end
+| (n+2) b _ :=
+  begin
+    dsimp [domineering'], fsplit,
+    { intro i, apply short_domineering', },
+    { intro i, apply short_domineering', },
+  end
 
+instance short_domineering (b : finset (ℤ × ℤ)) : short (domineering b) :=
+by { dsimp [domineering], apply_instance }
 
 def domineering.one := domineering ([(0,0), (0,1)].to_finset)
 
@@ -131,31 +239,22 @@ instance : short domineering.L := by { dsimp [domineering.L], apply_instance }
 -- #eval to_bool (domineering.one ≈ 1)
 -- #eval to_bool (domineering.L + domineering.L ≈ 1)
 
--- Unfortunately dec_trivial can't keep up:
--- example : domineering.one ≈ 1 := dec_trivial
--- example : domineering.L + domineering.L ≈ 1 := dec_trivial
+-- dec_trivial can handle most of the dictionary of small games described in [conway2001]
+example : domineering.one ≈ 1 := dec_trivial
+example : domineering.L + domineering.L ≈ 1 := dec_trivial
+example : domineering.L ≈ pgame.of_lists [0] [1] := dec_trivial
+example : (domineering ([(0,0), (0,1), (0,2), (0,3)].to_finset) ≈ 2) := dec_trivial
+example : (domineering ([(0,0), (0,1), (1,0), (1,1)].to_finset) ≈ pgame.of_lists [1] [-1]) := dec_trivial.
+example : (domineering ([(0,0), (0,1), (0,2), (1,0), (1,1), (1,2), (2,0), (2,1), (2,2)].to_finset) ≈ pgame.of_lists [1] [-1]) := dec_trivial
 
--- It's not clear why the decidable instances do not reduce to `is_true _`:
--- set_option pp.implicit true
--- set_option pp.proofs true
--- set_option pp.max_steps 1000000
--- set_option pp.max_depth 1000000
--- run_cmd tactic.whnf `(by apply_instance : decidable (domineering.one ≤ 1)) >>= tactic.trace
+-- But certainly not all! The 5x5 grid is actually 0, but this is too big even for the VM.
+-- #eval to_bool (domineering ([
+--   (0,0), (0,1), (0,2), (0,3), (0,4),
+--   (1,0), (1,1), (1,2), (1,3), (1,4),
+--   (2,0), (2,1), (2,2), (2,3), (2,4),
+--   (3,0), (3,1), (3,2), (3,3), (3,4),
+--   (4,0), (4,1), (4,2), (4,3), (4,4)
+--   ].to_finset) ≈ 0)
 
-
--- instance : short (pgame.of_lists [0] [1]) :=
--- @pgame.short_of_lists [0] [1]
--- begin
---  intros l h, simp at h, subst h, apply_instance
--- end
--- begin
---  intros l h, simp at h, subst h, apply_instance
--- end
-
--- #eval to_bool (domineering.L ≈ pgame.of_lists [0] [1])
--- example : domineering.L ≈ pgame.of_lists [0] [1] := dec_trivial
-
--- TODO: It would be nice to analyse the first interesting game in Domineering, the "L", in which
--- Left is exactly half a move ahead. The following comments sketch the beginning of this argument.
 
 end

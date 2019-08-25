@@ -70,11 +70,26 @@ short.mk (λ i, by cases i) (λ j, by cases j)
 instance short_1 : short 1 :=
 short.mk (λ i, begin cases i, apply_instance, end) (λ j, by cases j)
 
-instance short_of_lists (L R : list pgame) [sL : ∀ l ∈ L, short l] [sR : ∀ r ∈ R, short r] :
-  short (pgame.of_lists L R) :=
-short.mk
-(λ i, sL _ (list.nth_le_mem _ _ _))
-(λ j, sR _ (list.nth_le_mem _ _ _))
+inductive list_short : list pgame.{u} → Type (u+1)
+| nil : list_short []
+| cons : Π (hd : pgame.{u}) [short hd] (tl : list pgame.{u}) [list_short tl], list_short (hd :: tl)
+
+attribute [class] list_short
+attribute [instance] list_short.nil list_short.cons
+
+instance list_short_nth_le : Π (L : list pgame.{u}) [list_short L] (i : fin (list.length L)), short (list.nth_le L (i.val) i.is_lt)
+| [] _ n := begin exfalso, rcases n with ⟨_, ⟨⟩⟩, end
+| (hd :: tl) (@list_short.cons _ S _ _) ⟨0, _⟩ := S
+| (hd :: tl) (@list_short.cons _ _ _ S) ⟨n+1, h⟩ := @list_short_nth_le tl S ⟨n, (add_lt_add_iff_right 1).mp h⟩
+
+instance short_of_lists : Π (L R : list pgame) [list_short L] [list_short R], short (pgame.of_lists L R)
+| L R _ _ := by { resetI, apply short.mk; { intros, apply_instance } }
+
+-- instance short_of_lists (L R : list pgame) [sL : ∀ l ∈ L, short l] [sR : ∀ r ∈ R, short r] :
+--   short (pgame.of_lists L R) :=
+-- short.mk
+-- (λ i, sL _ (list.nth_le_mem _ _ _))
+-- (λ j, sR _ (list.nth_le_mem _ _ _))
 
 instance short_neg : Π (x : pgame.{u}) [short x], short (-x)
 | (mk xl xr xL xR) _ :=
@@ -103,6 +118,15 @@ begin
     { change short (mk xl xr xL xR + yR j), apply short_add, } },
 end
 using_well_founded { dec_tac := pgame_wf_tac }
+
+instance short_nat : Π n : ℕ, short n
+| 0 := pgame.short_0
+| (n+1) := @pgame.short_add _ _ (short_nat n) pgame.short_1
+
+instance short_bit0 (x : pgame.{u}) [short x] : short (bit0 x) :=
+by { dsimp [bit0], apply_instance }
+instance short_bit1 (x : pgame.{u}) [short x] : short (bit1 x) :=
+by { dsimp [bit1], apply_instance }
 
 def le_lt_decidable : Π (x y : pgame.{u}) [short x] [short y], decidable (x ≤ y) × decidable (x < y)
 | (mk xl xr xL xR) (mk yl yr yL yR) shortx shorty :=
@@ -137,6 +161,12 @@ and.decidable
 
 example : short 0 := by apply_instance
 example : short 1 := by apply_instance
+example : short 2 := by apply_instance
+example : short (-2) := by apply_instance
+
+example : short (of_lists [0] [1]) := by apply_instance
+example : short (of_lists [-2, -1] [1]) := by apply_instance
+
 example : short (0 + 0) := by apply_instance
 
 example : decidable ((1 : pgame) ≤ 1) := by apply_instance

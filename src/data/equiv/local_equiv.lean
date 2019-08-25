@@ -43,7 +43,7 @@ equivalence is not defined
 Each of these implementations has pros and cons.
 * When dealing with subtypes, one still need to define additional API for composition and
 restriction of domains. Checking that one always belongs to the right subtype makes things very
-tedious, and leads quickl to DTT hell (as the subtype `u ∩ v` is not the "same" as `v ∩ u`, for
+tedious, and leads quickly to DTT hell (as the subtype `u ∩ v` is not the "same" as `v ∩ u`, for
 instance).
 * With option-valued functions, the composition is very neat (it is just the usual composition, and
 the domain is restricted automatically). These are implemented in `pequiv.lean`. For manifolds,
@@ -168,7 +168,8 @@ lemma target_subset_preimage_source : e.target ⊆ e.inv_fun ⁻¹' e.source :=
 λx hx, e.map_target hx
 
 /-- Two local equivs that have the same source, same to_fun and same inv_fun, coincide. -/
-protected lemma eq (e' : local_equiv α β) (h : ∀x, e.to_fun x = e'.to_fun x)
+@[extensionality]
+protected lemma ext (e' : local_equiv α β) (h : ∀x, e.to_fun x = e'.to_fun x)
   (hsymm : ∀x, e.inv_fun x = e'.inv_fun x) (hs : e.source = e'.source) : e = e' :=
 begin
   have A : e.to_fun = e'.to_fun, by { ext x, exact h x },
@@ -210,7 +211,7 @@ protected def restr (s : set α) : local_equiv α β :=
 
 lemma restr_eq_of_source_subset {e : local_equiv α β} {s : set α} (h : e.source ⊆ s) :
   e.restr s = e :=
-local_equiv.eq _ _ (λ_, rfl) (λ_, rfl) (by simp [inter_eq_self_of_subset_left h])
+local_equiv.ext _ _ (λ_, rfl) (λ_, rfl) (by simp [inter_eq_self_of_subset_left h])
 
 @[simp] lemma restr_univ {e : local_equiv α β} : e.restr univ = e :=
 restr_eq_of_source_subset (subset_univ _)
@@ -327,25 +328,25 @@ lemma inv_image_trans_target : e'.inv_fun '' (e.trans e').target = e'.source ∩
 image_trans_source e'.symm e.symm
 
 lemma trans_assoc (e'' : local_equiv γ δ) : (e.trans e').trans e'' = e.trans (e'.trans e'') :=
-local_equiv.eq _ _ (λx, rfl) (λx, rfl) (by simp [trans_source, @preimage_comp α β γ, inter_assoc])
+local_equiv.ext _ _ (λx, rfl) (λx, rfl) (by simp [trans_source, @preimage_comp α β γ, inter_assoc])
 
 @[simp] lemma trans_refl : e.trans (local_equiv.refl β) = e :=
-local_equiv.eq _ _ (λx, rfl) (λx, rfl) (by simp [trans_source])
+local_equiv.ext _ _ (λx, rfl) (λx, rfl) (by simp [trans_source])
 
 @[simp] lemma refl_trans : (local_equiv.refl α).trans e = e :=
-local_equiv.eq _ _ (λx, rfl) (λx, rfl) (by simp [trans_source, preimage_id])
+local_equiv.ext _ _ (λx, rfl) (λx, rfl) (by simp [trans_source, preimage_id])
 
 lemma trans_refl_restr (s : set β) :
   e.trans ((local_equiv.refl β).restr s) = e.restr (e.to_fun ⁻¹' s) :=
-local_equiv.eq _ _ (λx, rfl) (λx, rfl) (by simp [trans_source])
+local_equiv.ext _ _ (λx, rfl) (λx, rfl) (by simp [trans_source])
 
 lemma trans_refl_restr' (s : set β) :
   e.trans ((local_equiv.refl β).restr s) = e.restr (e.source ∩ e.to_fun ⁻¹' s) :=
-local_equiv.eq _ _ (λx, rfl) (λx, rfl) $ by { simp [trans_source], rw [← inter_assoc, inter_self] }
+local_equiv.ext _ _ (λx, rfl) (λx, rfl) $ by { simp [trans_source], rw [← inter_assoc, inter_self] }
 
 lemma restr_trans (s : set α) :
   (e.restr s).trans e' = (e.trans e').restr s :=
-local_equiv.eq _ _ (λx, rfl) (λx, rfl) $ by { simp [trans_source, inter_comm], rwa inter_assoc }
+local_equiv.ext _ _ (λx, rfl) (λx, rfl) $ by { simp [trans_source, inter_comm], rwa inter_assoc }
 
 /-- `eq_on_source e e'` means that `e` and `e'` have the same source, and coincide there. Then `e`
 and `e'` should really be considered the same local equiv. -/
@@ -462,7 +463,7 @@ trans_self_symm (e.symm)
 lemma eq_of_eq_on_source_univ (e e' : local_equiv α β) (h : e ≈ e')
   (s : e.source = univ) (t : e.target = univ) : e = e' :=
 begin
-  apply local_equiv.eq _ _ (λx, _) (λx, _) h.1,
+  apply local_equiv.ext _ _ (λx, _) (λx, _) h.1,
   { apply h.2 x,
     rw s,
     exact mem_univ _ },
@@ -513,6 +514,6 @@ variables (e : equiv α β) (e' : equiv β γ)
 @[simp] lemma symm_to_local_equiv : e.symm.to_local_equiv = e.to_local_equiv.symm := rfl
 @[simp] lemma trans_to_local_equiv :
   (e.trans e').to_local_equiv = e.to_local_equiv.trans e'.to_local_equiv :=
-local_equiv.eq _ _ (λx, rfl) (λx, rfl) (by simp [local_equiv.trans_source, equiv.to_local_equiv])
+local_equiv.ext _ _ (λx, rfl) (λx, rfl) (by simp [local_equiv.trans_source, equiv.to_local_equiv])
 
 end equiv

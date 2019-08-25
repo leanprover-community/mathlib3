@@ -7,6 +7,12 @@ import category_theory.products
 import category_theory.equivalence
 import category_theory.eq_to_hom
 
+/-#
+The swap functor `C × D ⥤ D × C` is an equivalence.
+
+The associator functor `((C × D) × E) ⥤ (C × (D × E))` and its inverse form an equivalence.
+-/
+
 universes v₁ v₂ v₃ u₁ u₂ u₃
 
 open category_theory
@@ -15,6 +21,15 @@ namespace category_theory.prod
 
 variables (C : Type u₁) [𝒞 : category.{v₁+1} C] (D : Type u₂) [𝒟 : category.{v₂+1} D]
 include 𝒞 𝒟
+
+def braiding : C × D ≌ D × C :=
+equivalence.mk (swap C D) (swap D C)
+  (nat_iso.of_components (λ X, eq_to_iso (by simp)) (by tidy))
+  (nat_iso.of_components (λ X, eq_to_iso (by simp)) (by tidy))
+
+instance swap_is_equivalence : is_equivalence (swap C D) :=
+(by apply_instance : is_equivalence (braiding C D).functor)
+
 variables (E : Type u₃) [ℰ : category.{v₃+1} E]
 include ℰ
 
@@ -44,6 +59,12 @@ def associativity : (C × D) × E ≌ C × (D × E) :=
 equivalence.mk (associator C D E) (inverse_associator C D E)
   (nat_iso.of_components (λ X, eq_to_iso (by simp)) (by tidy))
   (nat_iso.of_components (λ X, eq_to_iso (by simp)) (by tidy))
+
+instance associator_is_equivalence : is_equivalence (associator C D E) :=
+(by apply_instance : is_equivalence (associativity C D E).functor)
+
+instance inverse_associator_is_equivalence : is_equivalence (inverse_associator C D E) :=
+(by apply_instance : is_equivalence (associativity C D E).inverse)
 
 -- TODO pentagon natural transformation? ...satisfying?
 end category_theory.prod

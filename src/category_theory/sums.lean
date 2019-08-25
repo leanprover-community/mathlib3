@@ -3,9 +3,12 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.functor_category
-import category_theory.isomorphism
-import tactic.interactive
+import category_theory.equivalence
+import category_theory.eq_to_hom
+
+/-#
+Disjoint unions of categories, functors, and natural transformations.
+-/
 
 namespace category_theory
 
@@ -53,7 +56,8 @@ namespace sum
 variables (C : Type u₁) [𝒞 : category.{v₁+1} C] (D : Type u₁) [𝒟 : category.{v₁+1} D]
 include 𝒞 𝒟
 
-/-- `inl` is the functor `X ↦ inl X`. -/
+/-- `inl_` is the functor `X ↦ inl X`. -/
+-- Unfortunate naming here, suggestions welcome.
 def inl_ : C ⥤ C ⊕ D :=
 { obj := λ X, inl X,
   map := λ X Y f, f }
@@ -61,7 +65,7 @@ def inl_ : C ⥤ C ⊕ D :=
 @[simp] lemma inl_obj (X : C) : (inl_ C D).obj X = inl X := rfl
 @[simp] lemma inl_map {X Y : C} {f : X ⟶ Y} : (inl_ C D).map f = f := rfl
 
-/-- `inr` is the functor `X ↦ inr X`. -/
+/-- `inr_` is the functor `X ↦ inr X`. -/
 def inr_ : D ⥤ C ⊕ D :=
 { obj := λ X, inr X,
   map := λ X Y f, f }
@@ -69,6 +73,7 @@ def inr_ : D ⥤ C ⊕ D :=
 @[simp] lemma inr_obj (X : D) : (inr_ C D).obj X = inr X := rfl
 @[simp] lemma inr_map {X Y : D} {f : X ⟶ Y} : (inr_ C D).map f = f := rfl
 
+/-- The functor exchanging two direct summand categories. -/
 def swap : C ⊕ D ⥤ D ⊕ C :=
 { obj :=
     λ X, match X with
@@ -86,9 +91,22 @@ def swap : C ⊕ D ⥤ D ⊕ C :=
 @[simp] lemma swap_map_inl {X Y : C} {f : inl X ⟶ inl Y} : (swap C D).map f = f := rfl
 @[simp] lemma swap_map_inr {X Y : D} {f : inr X ⟶ inr Y} : (swap C D).map f = f := rfl
 
+namespace swap
+
+/-- `swap` gives an equivalence between `C ⊕ D` and `D ⊕ C`. -/
+def equivalence : C ⊕ D ≌ D ⊕ C :=
+equivalence.mk (swap C D) (swap D C)
+  (nat_iso.of_components (λ X, eq_to_iso (by { cases X; refl })) (by tidy))
+  (nat_iso.of_components (λ X, eq_to_iso (by { cases X; refl })) (by tidy))
+
+instance is_equivalence : is_equivalence (swap C D) :=
+(by apply_instance : is_equivalence (equivalence C D).functor)
+
+/-- The double swap on `C ⊕ D` is naturally isomorphic to the identity functor. -/
 def symmetry : swap C D ⋙ swap D C ≅ functor.id (C ⊕ D) :=
-{ hom := { app := λ X, begin cases X; exact 𝟙 _ end },
-  inv := { app := λ X, begin cases X; exact 𝟙 _ end } }
+(equivalence C D).unit_iso.symm
+
+end swap
 
 end sum
 
@@ -100,7 +118,7 @@ include 𝒜 ℬ 𝒞 𝒟
 
 namespace functor
 
-/-- The sum product of two functors. -/
+/-- The sum of two functors. -/
 def sum (F : A ⥤ B) (G : C ⥤ D) : A ⊕ C ⥤ B ⊕ D :=
 { obj :=
     λ X, match X with

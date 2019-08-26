@@ -401,7 +401,7 @@ instance ordered_cancel_comm_monoid.to_ordered_comm_monoid
 { lt_of_add_lt_add_left := @lt_of_add_lt_add_left _ _, ..H }
 
 section ordered_cancel_comm_monoid
-variables [ordered_cancel_comm_monoid α] {a b c : α}
+variables [ordered_cancel_comm_monoid α] {a b c x y : α}
 
 @[simp] lemma add_le_add_iff_left (a : α) {b c : α} : a + b ≤ a + c ↔ b ≤ c :=
 ⟨le_of_add_le_add_left, λ h, add_le_add_left h _⟩
@@ -428,6 +428,18 @@ by rwa add_zero at this
 
 @[simp] lemma lt_add_iff_pos_left (a : α) {b : α} : a < b + a ↔ 0 < b :=
 by rw [add_comm, lt_add_iff_pos_right]
+
+@[simp] lemma add_le_iff_nonpos_left : x + y ≤ y ↔ x ≤ 0 :=
+by { convert add_le_add_iff_right y, rw [zero_add] }
+
+@[simp] lemma add_le_iff_nonpos_right : x + y ≤ x ↔ y ≤ 0 :=
+by { convert add_le_add_iff_left x, rw [add_zero] }
+
+@[simp] lemma add_lt_iff_neg_right : x + y < y ↔ x < 0 :=
+by { convert add_lt_add_iff_right y, rw [zero_add] }
+
+@[simp] lemma add_lt_iff_neg_left : x + y < x ↔ y < 0 :=
+by { convert add_lt_add_iff_left x, rw [add_zero] }
 
 lemma add_eq_zero_iff_eq_zero_of_nonneg
   (ha : 0 ≤ a) (hb : 0 ≤ b) : a + b = 0 ↔ a = 0 ∧ b = 0 :=

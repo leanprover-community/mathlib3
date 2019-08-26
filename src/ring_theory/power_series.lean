@@ -299,6 +299,12 @@ instance coeff_zero.is_semiring_hom :
   map_mul := λ φ ψ, by simp [coeff_mul, support_single_ne_zero],
   .. coeff.is_add_monoid_hom 0 }
 
+/-- If a multivariate formal power series is invertible,
+ then so is its constant coefficient.-/
+lemma is_unit_coeff_zero (φ : mv_power_series σ α) (h : is_unit φ) :
+  is_unit (coeff 0 φ) :=
+h.map' (coeff 0)
+
 instance : semimodule α (mv_power_series σ α) :=
 { smul := λ a φ, C a * φ,
   one_smul := λ φ, one_mul _,
@@ -340,12 +346,6 @@ end
 lemma coeff_X_pow (m) (s : σ) (n : ℕ) :
   coeff m ((X s : mv_power_series σ α)^n) = if m = single s n then 1 else 0 :=
 by rw [X_pow_eq s n, coeff_monomial]
-
-/-- If a multivariate formal power series is invertible,
- then so is its constant coefficient.-/
-lemma is_unit_coeff_zero (φ : mv_power_series σ α) (h : is_unit φ) :
-  is_unit (coeff 0 φ) :=
-by { rcases h with ⟨φ, rfl⟩, exact ⟨units.map (coeff 0) φ, rfl⟩ }
 
 section map
 variables {β : Type*} {γ : Type*} [semiring β] [semiring γ]

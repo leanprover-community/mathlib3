@@ -225,7 +225,7 @@ instance fintype_right_moves' : Π (n : ℕ) (b : finset (ℤ × ℤ)) (h : b.ca
 | 1 b h := domineering_aux.fintype_right b
 | (n+2) b _ := domineering_aux.fintype_right b
 
-instance fintype_right_moves (b : finset (ℤ × ℤ )) : fintype ((domineering b).right_moves) :=
+instance fintype_right_moves (b : finset (ℤ × ℤ)) : fintype ((domineering b).right_moves) :=
 by { dsimp [domineering], apply_instance }
 
 /-- Domineering is always a short game, because the board is finite. -/

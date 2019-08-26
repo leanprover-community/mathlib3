@@ -749,12 +749,5 @@ do (cxt,_) ← solve_aux `(true) $
    trace fmt,
    trace!"begin\n  \nend"
 
-/--
-`symmetry'` behaves like `symmetry` but also offers the option `symmetry' at h` to apply symmetry to assumption `h`
--/
-meta def symmetry' : parse location → tactic unit
-| l@loc.wildcard := l.try_apply symmetry_hyp symmetry
-| (loc.ns hs) := (loc.ns hs.reverse).apply symmetry_hyp symmetry
-
 end interactive
 end tactic

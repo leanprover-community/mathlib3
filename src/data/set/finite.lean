@@ -329,6 +329,14 @@ begin
   exact finite_subset ‹finite s› this
 end
 
+lemma exists_min [decidable_linear_order β] (s : set α) (f : α → β) (h1 : finite s)
+  (h : nonempty s) : ∃ a, a ∈ s ∧ ∀ b ∈ s, f a ≤ f b :=
+begin
+  have := (finite.to_finset h1).exists_min f,
+  simp at this ⊢, unfreezeI, rcases h with ⟨⟨x, hx⟩⟩,
+  exact this x hx
+end
+
 end set
 
 namespace finset
@@ -470,7 +478,7 @@ suffices f '' (f ⁻¹' ↑s) = ↑s, by simpa,
 
 end preimage
 
-@[to_additive finset.sum_preimage]
+@[to_additive]
 lemma prod_preimage [comm_monoid β] (f : α → γ) (s : finset γ)
   (hf : set.bij_on f (f ⁻¹' ↑s) ↑s) (g : γ → β) :
   (preimage s (set.inj_on_of_bij_on hf)).prod (g ∘ f) = s.prod g :=

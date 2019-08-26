@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 
-import ring_theory.adjoin_root
 import algebra.direct_limit
 import set_theory.schroeder_bernstein
-import ring_theory.integral_closure
+import field_theory.minimal_polynomial
 
 universes u v w
 open polynomial zorn set function
@@ -20,25 +19,6 @@ local attribute [instance, priority 0] subtype.decidable_eq
 
 lemma injective_eq {α : Sort*} : injective (eq : α → α → Prop) :=
 λ _ _ h, h.symm ▸ rfl
-
-section minimal_polynomial
-/- To be moved -/
-variables {α : Type u} {β : Type v} [discrete_field α] [discrete_field β] [algebra α β]
-
-def minimal_polynomial {x : β} (hx : is_integral α x) : polynomial α := sorry
-
-lemma minimal_polynomial_irreducible {x : β} (hx : is_integral α x) :
-  irreducible (minimal_polynomial hx) := sorry
-
-lemma minimal_polynomial_monic {x : β} (hx : is_integral α x) : monic (minimal_polynomial hx) := sorry
-
-@[simp] lemma aeval_minimal_polynomial {x : β} (hx : is_integral α x) :
-  aeval α β x (minimal_polynomial hx) = 0 := sorry
-
-lemma root_minimal_polynomial {x : β} (hx : is_integral α x) {y : α}
-  (h : (minimal_polynomial hx).eval y = 0) : algebra_map β y = x := sorry
-
-end minimal_polynomial
 
 @[instance] lemma equiv.is_ring_hom {α β : Type*} [ring β] (e : α ≃ β) :
   @is_ring_hom β α _ (equiv.ring e) e.symm :=
@@ -536,10 +516,10 @@ omit hif hxf
 private lemma surjective_maximal_subfield_and_hom_to_field :
   function.surjective (maximal_subfield_and_hom M hL).to_field :=
 λ x, let hx := is_integral_over_maximal M hL x in
-by letI := minimal_polynomial_irreducible hx; exact
-⟨_, root_minimal_polynomial hx
+by letI := minimal_polynomial.irreducible hx; exact
+⟨_, minimal_polynomial.root hx
   (exists_root_of_equiv (maximal_subfield_and_hom_equiv_adjoin_root M hL _
-    (aeval_minimal_polynomial hx)) (adjoin_root.eval₂_root _))⟩
+    (minimal_polynomial.aeval hx)) (adjoin_root.eval₂_root _))⟩
 
 private def equiv_maximal_subfield_and_hom :
   (maximal_subfield_and_hom M hL).carrier ≃ₐ[K] L :=

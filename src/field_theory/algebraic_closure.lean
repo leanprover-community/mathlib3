@@ -417,11 +417,23 @@ end chain
 private def maximal_extension_chain (c : set (extension K)) (hc : chain (≤) c) :
   { ub : extension K // ∀ L, L ∈ c → L ≤ ub } :=
 if h : nonempty c
-  then by letI : chain' c := ⟨hc⟩; exact
+  then
+  let L := classical.some (classical.exists_true_of_nonempty h) in
+  by letI : chain' c := ⟨hc⟩; exact
     ⟨{ carrier := ⋃ (i : c), i.1.carrier,
-       /- of_ring_hom probably works here. Field is isomorphic to direct limit of a bunch of extensions -/
-        algebra := sorry,
-        algebraic := sorry }, -- Field is isomorphic to direct limit of some algebraic extensions
+        algebra :=
+          algebra.of_ring_hom ((inclusion (set.subset_Union (λ i : c, i.1.carrier) L)) ∘ algebra_map _)
+          (by { refine @is_ring_hom.comp _ _ _ _ _ _ _ _ _ _ }),
+        algebraic :=
+        begin
+          rintro ⟨x, hx⟩,
+          rw mem_Union at hx,
+          cases hx with L' hx,
+          rcases (L'.val).algebraic ⟨x, hx⟩ with ⟨p, pmonic, hp⟩,
+          use [p, pmonic],
+          rw aeval_def at hp ⊢,
+          sorry,
+        end }, -- Field is isomorphic to direct limit of some algebraic extensions
     λ e he, ⟨by convert subset_Union _ (⟨e, he⟩ : c); refl,
       algebraic_closure.is_field_hom_Union c ⟨e, he⟩⟩⟩
   else ⟨base_extension K, λ a ha, (h ⟨⟨a, ha⟩⟩).elim⟩

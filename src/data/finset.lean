@@ -401,6 +401,19 @@ by rw [inter_comm, singleton_inter_of_mem h]
 @[simp] theorem inter_singleton_of_not_mem {a : α} {s : finset α} (h : a ∉ s) : s ∩ ι a = ∅ :=
 by rw [inter_comm, singleton_inter_of_not_mem h]
 
+lemma inter_subset_inter {x y s t : finset α} (h : x ⊆ y) (h' : s ⊆ t) : x ∩ s ⊆ y ∩ t :=
+begin
+  intros a a_in,
+  rw finset.mem_inter at a_in ⊢,
+  exact ⟨h a_in.1, h' a_in.2⟩
+end
+
+lemma inter_subset_inter_right {x y s : finset α} (h : x ⊆ y) : x ∩ s ⊆ y ∩ s :=
+finset.inter_subset_inter h (finset.subset.refl _)
+
+lemma inter_subset_inter_left {x y s : finset α} (h : x ⊆ y) : s ∩ x ⊆ s ∩ y :=
+finset.inter_subset_inter (finset.subset.refl _) h
+
 /- lattice laws -/
 
 instance : lattice (finset α) :=
@@ -1615,6 +1628,16 @@ finset.induction_on s (λ _ H, by cases H) $
 theorem min_le_of_mem {s : finset α} {a b : α} (h₁ : b ∈ s) (h₂ : a ∈ s.min) : a ≤ b :=
 by rcases @inf_le (with_top α) _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
    cases h₂.symm.trans hb; assumption
+
+lemma exists_min (s : finset β) (f : β → α)
+  (h : nonempty ↥(↑s : set β)) : ∃ x ∈ s, ∀ x' ∈ s, f x ≤ f x' :=
+begin
+  have : s.image f ≠ ∅,
+    rwa [ne, image_eq_empty, ← ne.def, ← nonempty_iff_ne_empty],
+  cases min_of_ne_empty this with y hy,
+  rcases mem_image.mp (mem_of_min hy) with ⟨x, hx, rfl⟩,
+  exact ⟨x, hx, λ x' hx', min_le_of_mem (mem_image_of_mem f hx') hy⟩
+end
 
 end max_min
 

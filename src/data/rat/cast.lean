@@ -3,14 +3,15 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import data.rat.order
+import data.rat.order tactic.lift
 /-!
 # Casts for Rational Numbers
 
 ## Summary
 
-We define the canonical injection from ℚ into an arbitrary division ring and prove various casting
-lemmas showing the well-behavedness of this injection.
+1. We define the canonical injection from ℚ into an arbitrary division ring and prove various
+casting lemmas showing the well-behavedness of this injection.
+2. We prove basic properties about the casts from ℤ and ℕ into ℚ (i.e. `(n : ℚ) = n / 1`) .
 
 ## Notations
 
@@ -37,6 +38,25 @@ protected def cast : ℚ → α
 
 @[priority 0] instance cast_coe : has_coe ℚ α := ⟨rat.cast⟩
 
+theorem coe_int_eq_mk : ∀ (z : ℤ), ↑z = z /. 1
+| (n : ℕ) := show (n:ℚ) = n /. 1,
+  by induction n with n IH n; simp [*, show (1:ℚ) = 1 /. 1, from rfl]
+| -[1+ n] := show (-(n + 1) : ℚ) = -[1+ n] /. 1, begin
+  induction n with n IH, {refl},
+  show -(n + 1 + 1 : ℚ) = -[1+ n.succ] /. 1,
+  rw [neg_add, IH],
+  simpa [show -1 = (-1) /. 1, from rfl]
+end
+
+theorem mk_eq_div (n d : ℤ) : n /. d = ((n : ℚ) / d) :=
+begin
+  by_cases d0 : d = 0, {simp [d0, div_zero]},
+  simp [division_def, coe_int_eq_mk, mul_def one_ne_zero d0]
+end
+
+theorem coe_int_eq_of_int (z : ℤ) : ↑z = of_int z :=
+(coe_int_eq_mk z).trans (of_int_eq_mk z).symm
+
 @[simp] theorem cast_of_int (n : ℤ) : (of_int n : α) = n :=
 show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one]
 
@@ -48,6 +68,15 @@ by rw coe_int_eq_of_int; refl
 
 @[simp, elim_cast] theorem coe_int_denom (n : ℤ) : (n : ℚ).denom = 1 :=
 by rw coe_int_eq_of_int; refl
+
+lemma coe_int_num_of_denom_eq_one {q : ℚ} (hq : q.denom = 1) : ↑(q.num) = q :=
+by { conv_rhs { rw [num_denom q, hq] }, rw [coe_int_eq_mk], refl }
+
+instance : can_lift ℚ ℤ :=
+⟨coe, λ q, q.denom = 1, λ q hq, ⟨q.num, coe_int_num_of_denom_eq_one hq⟩⟩
+
+theorem coe_nat_eq_mk (n : ℕ) : ↑n = n /. 1 :=
+by rw [← int.cast_coe_nat, coe_int_eq_mk]
 
 @[simp, elim_cast] theorem coe_nat_num (n : ℕ) : (n : ℚ).num = n :=
 by rw [← int.cast_coe_nat, coe_int_num]

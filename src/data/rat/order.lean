@@ -131,13 +131,6 @@ show rat.nonneg a ↔ rat.nonneg (a - 0), by simp
 theorem num_nonneg_iff_zero_le : ∀ {a : ℚ}, 0 ≤ a.num ↔ 0 ≤ a
 | ⟨n, d, h, c⟩ := @nonneg_iff_zero_le ⟨n, d, h, c⟩
 
-theorem mk_le {a b c d : ℤ} (h₁ : b > 0) (h₂ : d > 0) :
-  a /. b ≤ c /. d ↔ a * d ≤ c * b :=
-by conv in (_ ≤ _) {
-  simp only [(≤), rat.le],
-  rw [sub_def (ne_of_gt h₂) (ne_of_gt h₁),
-      mk_nonneg _ (mul_pos h₂ h₁), ge, sub_nonneg] }
-
 protected theorem add_le_add_left {a b c : ℚ} : c + a ≤ c + b ↔ a ≤ b :=
 by unfold has_le.le rat.le; rw add_sub_add_left_eq_sub
 
@@ -175,28 +168,6 @@ theorem num_pos_iff_pos {a : ℚ} : 0 < a.num ↔ 0 < a :=
 lt_iff_lt_of_le_iff_le $
 by simpa [(by cases a; refl : (-a).num = -a.num)]
    using @num_nonneg_iff_zero_le (-a)
-
-theorem of_int_eq_mk (z : ℤ) : of_int z = z /. 1 := num_denom' _ _ _ _
-
-theorem coe_int_eq_mk : ∀ z : ℤ, ↑z = z /. 1
-| (n : ℕ) := show (n:ℚ) = n /. 1,
-  by induction n with n IH n; simp [*, show (1:ℚ) = 1 /. 1, from rfl]
-| -[1+ n] := show (-(n + 1) : ℚ) = -[1+ n] /. 1, begin
-  induction n with n IH, {refl},
-  show -(n + 1 + 1 : ℚ) = -[1+ n.succ] /. 1,
-  rw [neg_add, IH],
-  simpa [show -1 = (-1) /. 1, from rfl]
-end
-
-theorem coe_int_eq_of_int (z : ℤ) : ↑z = of_int z :=
-(coe_int_eq_mk z).trans (of_int_eq_mk z).symm
-
-theorem mk_eq_div (n d : ℤ) : n /. d = (n / d : ℚ) :=
-begin
-  by_cases d0 : d = 0, {simp [d0, div_zero]},
-  rw [division_def, coe_int_eq_mk, coe_int_eq_mk, inv_def,
-      mul_def one_ne_zero d0, one_mul, mul_one]
-end
 
 theorem abs_def (q : ℚ) : abs q = q.num.nat_abs /. q.denom :=
 begin

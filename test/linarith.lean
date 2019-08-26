@@ -137,3 +137,7 @@ by linarith only [hx, hx2]
 
 example (x y z : ℚ) (hx : x < 5) (hy : y < 5000000000) (hz : z > 34*y) : x ≤ 5 :=
 by linarith only [hx]
+
+example (x y : ℚ) (h : x < y) : x ≠ y := by linarith
+
+example (x y : ℚ) (h : x < y) : ¬ x = y := by linarith

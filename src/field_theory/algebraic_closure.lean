@@ -55,6 +55,15 @@ by dsimp [left_inverse, function.right_inverse] at h₁ h₂; exact
     map_one := by rw [← h₁ 1, f.map_one] },
   commutes' := λ a, by rw [← h₁ (algebra_map β a), f.commutes] }
 
+instance quotient.algebra (I : ideal α) : algebra α I.quotient :=
+algebra.of_ring_hom (ideal.quotient.mk I) (ideal.quotient.is_ring_hom_mk I)
+
+def induced_quotient_map (I J : ideal α) (h : I ≤ J) :
+  I.quotient →ₐ[α] J.quotient :=
+{ to_fun := ideal.quotient.lift I (ideal.quotient.mk J) $
+  by { intros i hi, erw submodule.quotient.mk_eq_zero, exact h hi },
+  commutes' := λ a, by { erw ideal.quotient.lift_mk, refl } }
+
 end alg_hom
 
 set_option old_structure_cmd true
@@ -83,6 +92,61 @@ protected def symm (e : β ≃ₐ[α] γ) : γ ≃ₐ[α] β :=
 -- TODO: trans
 
 end alg_equiv
+
+namespace adjoin_root
+variables {α : Type*} [comm_ring α] [decidable_eq α] (f : polynomial α)
+
+instance : algebra α (adjoin_root f) :=
+algebra.of_ring_hom coe $ by apply_instance
+
+lemma fg_of_monic (hf : f.monic) : submodule.fg (⊤ : submodule α (adjoin_root f)) :=
+begin
+  refine ⟨(finset.range (f.nat_degree + 1)).image (λ i, adjoin_root.mk (X^i)), _⟩,
+  rw submodule.eq_top_iff',
+  intro a,
+  apply quotient.induction_on' a,
+  intro p, show mk p ∈ _,
+  rw [← mod_by_monic_add_div p hf, is_ring_hom.map_add mk, is_ring_hom.map_mul mk],
+  { refine submodule.add_mem _ _ _,
+    { apply_instance },
+    { rw [(p %ₘ f).as_sum, ← finset.sum_hom mk],
+      { refine submodule.sum_mem _ _,
+        intros i hi,
+        rw [is_ring_hom.map_mul mk],
+        { show algebra_map _ (coeff (p %ₘ f) i) * _ ∈ _,
+          rw ← algebra.smul_def,
+          refine submodule.smul_mem _ _ (submodule.subset_span _),
+          rw [finset.mem_coe, finset.mem_image],
+          refine ⟨i, _, rfl⟩,
+          rw finset.mem_range at hi ⊢,
+          refine lt_of_lt_of_le hi (nat.succ_le_succ _),
+          by_cases (p %ₘ f) = 0, { simp [h] },
+          rw ← with_bot.coe_le_coe,
+          rw ← degree_eq_nat_degree h,
+          apply le_trans (degree_mod_by_monic_le p hf),
+          exact degree_le_nat_degree },
+        { apply_instance } },
+      { apply_instance } },
+    { convert submodule.zero_mem _,
+      convert zero_mul _ using 2,
+      erw [submodule.quotient.mk_eq_zero _],
+      apply submodule.subset_span,
+      exact mem_singleton _ } },
+  all_goals { apply_instance }
+end
+
+lemma fg {f : polynomial K} (hf : f ≠ 0) : submodule.fg (⊤ : submodule K (adjoin_root f)) :=
+begin
+  have := fg_of_monic _ (monic_mul_leading_coeff_inv hf),
+  convert submodule.fg_map this, swap,
+  { apply alg_hom.to_linear_map,
+    sorry
+    -- I would like to use alg_hom.induced_quotient_map here
+     },
+  sorry
+end
+
+end adjoin_root
 
 section thing
 
@@ -232,8 +296,6 @@ private def base_extension (K : Type u) [discrete_field K] : extension K :=
     exact add_neg_self _
   end }
 
-#exit
-
 /-- not used but might help with sorries -/
 private def extension.of_algebraic {L : Type v} [discrete_field L] [algebra K L]
   (hL : ∀ x : L, is_integral K x) : extension K :=
@@ -378,17 +440,18 @@ instance adjoin_root_algebraic_closure.is_ring_hom :
 private def adjoin_root.of_embedding : L.carrier ↪ adjoin_root f :=
 ⟨adjoin_root.of, @is_field_hom.injective _ _ _ _ _ $ adjoin_root_algebraic_closure.is_ring_hom f⟩
 
-/- TODO: move -/
-instance adjoin_root.algebra : algebra K (adjoin_root f) :=
-algebra.of_ring_hom (adjoin_root.of ∘ algebra_map _) (is_ring_hom.comp _ _)
-
 variable (K)
+
+-- set_option class.instance_max_depth 80
+#exit
 
 private def adjoin_root_extension_map : adjoin_root f ↪ big_type K :=
 thing (adjoin_root.of_embedding f) ⟨subtype.val, subtype.val_injective⟩
   (λ i, let e : big_type K ↪ ℕ × polynomial K := i.trans
       (algebraic_embedding sorry) in --adjoining a root to an algebraic extension gives an algebraic extension
     cantor_injective e.1 e.2)
+
+-- GRRRR. The instance is there!! Why can't Lean find adjoin_root.algebra ???
 
 private lemma adjoin_root_extension_map_apply (x : L.carrier) :
   (adjoin_root_extension_map K f) (@adjoin_root.of _ _ _ f x) = x.val :=

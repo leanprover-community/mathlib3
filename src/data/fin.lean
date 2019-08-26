@@ -43,6 +43,13 @@ lemma coe_eq_val (a : fin n) : (a : ℕ) = a.val := rfl
 instance {n : ℕ} : decidable_linear_order (fin n) :=
 decidable_linear_order.lift fin.val (@fin.eq_of_veq _) (by apply_instance)
 
+lemma exists_iff {p : fin n → Prop} : (∃ i, p i) ↔ ∃ i h, p ⟨i, h⟩ :=
+⟨λ h, exists.elim h (λ ⟨i, hi⟩ hpi, ⟨i, hi, hpi⟩),
+  λ h, exists.elim h (λ i hi, ⟨⟨i, hi.fst⟩, hi.snd⟩)⟩
+
+lemma forall_iff {p : fin n → Prop} : (∀ i, p i) ↔ ∀ i h, p ⟨i, h⟩ :=
+⟨λ h i hi, h ⟨i, hi⟩, λ h ⟨i, hi⟩, h i hi⟩
+
 lemma zero_le (a : fin (n + 1)) : 0 ≤ a := zero_le a.1
 
 lemma lt_iff_val_lt_val : a < b ↔ a.val < b.val := iff.refl _
@@ -54,6 +61,9 @@ by cases j; simp [fin.succ]
 
 protected theorem succ.inj (p : fin.succ a = fin.succ b) : a = b :=
 by cases a; cases b; exact eq_of_veq (nat.succ.inj (veq_of_eq p))
+
+lemma succ_ne_zero {n} : ∀ k : fin n, fin.succ k ≠ 0
+| ⟨k, hk⟩ heq := nat.succ_ne_zero k $ (fin.ext_iff _ _).1 heq
 
 @[simp] lemma pred_val (j : fin (n+1)) (h : j ≠ 0) : (j.pred h).val = j.val.pred :=
 by cases j; simp [fin.pred]
@@ -122,8 +132,17 @@ le_of_lt_succ i.is_lt
 
 @[simp] lemma cast_lt_val (k : fin m) (h : k.1 < n) : (k.cast_lt h).val = k.val := rfl
 
+@[simp] lemma cast_le_val (k : fin m) (h : m ≤ n) : (k.cast_le h).val = k.val := rfl
+
+@[simp] lemma cast_add_val (k : fin m) : (k.cast_add n).val = k.val := rfl
+
+@[simp] lemma last_val (n : ℕ) : (last n).val = n := rfl
+
 @[simp] lemma cast_succ_cast_lt (i : fin (n + 1)) (h : i.val < n) : cast_succ (cast_lt i h) = i :=
 fin.eq_of_veq rfl
+
+@[simp] lemma cast_lt_cast_succ {n : ℕ} (a : fin n) (h : a.1 < n) : cast_lt (cast_succ a) h = a :=
+by cases a; refl
 
 @[simp] lemma sub_nat_val (i : fin (n + m)) (h : i.val ≥ m) : (i.sub_nat m h).val = i.val - m :=
 rfl
@@ -214,7 +233,34 @@ rfl
   @fin.cases n C H0 Hs i.succ = Hs i :=
 by cases i; refl
 
+lemma forall_fin_succ {P : fin (n+1) → Prop} :
+  (∀ i, P i) ↔ P 0 ∧ (∀ i:fin n, P i.succ) :=
+⟨λ H, ⟨H 0, λ i, H _⟩, λ ⟨H0, H1⟩ i, fin.cases H0 H1 i⟩
+
+lemma exists_fin_succ {P : fin (n+1) → Prop} :
+  (∃ i, P i) ↔ P 0 ∨ (∃i:fin n, P i.succ) :=
+⟨λ ⟨i, h⟩, fin.cases or.inl (λ i hi, or.inr ⟨i, hi⟩) i h,
+  λ h, or.elim h (λ h, ⟨0, h⟩) $ λ⟨i, hi⟩, ⟨i.succ, hi⟩⟩
+
 end rec
+
+section tuple
+/- We can think of the type `fin n → α` as `n`-tuples in `α`. Here are some relevant operations. -/
+
+def tail {α} (p : fin (n+1) → α) : fin n → α := λ i, p i.succ
+def cons {α} (x : α) (v : fin n → α) : fin (n+1) → α :=
+λ j, fin.cases x v j
+
+@[simp] lemma tail_cons {α} (x : α) (p : fin n → α) : tail (cons x p) = p :=
+by simp [tail, cons]
+
+@[simp] lemma cons_succ {α} (x : α) (p : fin n → α) (i : fin n) : cons x p i.succ = p i :=
+by simp [cons]
+
+@[simp] lemma cons_zero {α} (x : α) (p : fin n → α) : cons x p 0 = x :=
+by simp [cons]
+
+end tuple
 
 section find
 
@@ -308,9 +354,9 @@ begin
         exact fin.eta _ _⟩ } }
 end
 
-lemma mem_find_iff {p : fin n → Prop} [decidable_pred p] {i : fin n} : 
+lemma mem_find_iff {p : fin n → Prop} [decidable_pred p] {i : fin n} :
   i ∈ fin.find p ↔ p i ∧ ∀ j, p j → i ≤ j :=
-⟨λ hi, ⟨find_spec _ hi, λ _, find_min' hi⟩, 
+⟨λ hi, ⟨find_spec _ hi, λ _, find_min' hi⟩,
   begin
     rintros ⟨hpi, hj⟩,
     cases hfp : fin.find p,
@@ -319,7 +365,7 @@ lemma mem_find_iff {p : fin n → Prop} [decidable_pred p] {i : fin n} :
     { exact option.some_inj.2 (le_antisymm (find_min' hfp hpi) (hj _ (find_spec _ hfp))) }
   end⟩
 
-lemma find_eq_some_iff {p : fin n → Prop} [decidable_pred p] {i : fin n} : 
+lemma find_eq_some_iff {p : fin n → Prop} [decidable_pred p] {i : fin n} :
   fin.find p = some i ↔ p i ∧ ∀ j, p j → i ≤ j :=
  mem_find_iff
 

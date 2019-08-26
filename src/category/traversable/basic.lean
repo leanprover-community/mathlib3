@@ -2,13 +2,52 @@
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Simon Hudon
-
-Type classes for traversing collections. The concepts and laws are taken from
-http://hackage.haskell.org/package/base-4.11.1.0/docs/Data-Traversable.html
 -/
 
 import tactic.cache
 import category.applicative
+
+/-!
+# Traversable type class
+
+Type classes for traversing collections. The concepts and laws are taken from
+http://hackage.haskell.org/package/base-4.11.1.0/docs/Data-Traversable.html
+
+Traversable collections are a generalization of functors. Whereas
+functors (such as `list`) allow us to apply a function to every
+element, it does not allow functions which external effects encoded in
+a monad. Consider for instance a functor `invite : email -> io response`
+that takes an email address, sends an email and wait for a
+response. If we have a list `guests : list email`, using calling
+`invite` using `map` gives us the following: `map invite guests : list
+(io response)`.  It is not what we need. We need something of type `io
+(list response)`. Instead of using `map`, we can use `traverse` to
+send all the invites: `traverse invite guests : io (list response)`.
+`traverse` applies `invite` to every element of `guests` and combines
+all the resulting effects. In the example, the effect is encoded in the
+monad `io` but any applicative functor is accepted by `traverse`.
+
+For more on how to use traversable, consider the Haskell tutorial:
+https://en.wikibooks.org/wiki/Haskell/Traversable
+
+## Main definitions
+  * `traversable` type class - exposes the `traverse` function
+  * `sequence` - based on `traverse`, turns a collection of effects into an effect returning a collection
+  * is_lawful_traversable - laws
+
+## Tags
+
+traversable iterator functor applicative
+
+## References
+
+ * "Applicative Programming with Effects", by Conor McBride and Ross Paterson, Journal of Functional Programming 18:1 (2008) 1-13, online at http://www.soi.city.ac.uk/~ross/papers/Applicative.html.
+ * "The Essence of the Iterator Pattern", by Jeremy Gibbons and Bruno Oliveira, in Mathematically-Structured Functional Programming, 2006, online at http://web.comlab.ox.ac.uk/oucl/work/jeremy.gibbons/publications/#iterator.
+ * "An Investigation of the Laws of Traversals", by Mauro Jaskelioff and Ondrej Rypacek, in Mathematically-Structured Functional Programming, 2012, online at http://arxiv.org/pdf/1202.2919.
+Synopsis
+
+
+-/
 
 open function (hiding comp)
 

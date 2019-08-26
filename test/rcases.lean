@@ -91,3 +91,17 @@ begin
   guard_hyp h := true,
   trivial
 end
+
+example : true :=
+begin
+  obtain ⟨h, h2⟩ := and.intro trivial trivial,
+  guard_hyp h := true,
+  guard_hyp h2 := true,
+  trivial
+end
+
+example : true :=
+begin
+  success_if_fail {obtain ⟨h, h2⟩},
+  trivial
+end

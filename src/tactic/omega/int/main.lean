@@ -27,6 +27,7 @@ attribute [sugar]
   or_false false_or
   and_true true_and
   ge gt mul_add add_mul
+  one_mul mul_one
   mul_comm sub_eq_add_neg
   classical.imp_iff_not_or
   classical.iff_iff_not_or_and_or_not

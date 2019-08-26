@@ -292,7 +292,7 @@ instance coeff_zero.is_semiring_hom :
  then so is its constant coefficient.-/
 lemma is_unit_coeff_zero (φ : mv_power_series σ α) (h : is_unit φ) :
   is_unit (coeff 0 φ) :=
-by { rcases h with ⟨φ, rfl⟩, exact ⟨units.map (coeff 0) φ, rfl⟩ }
+h.map' (coeff 0)
 
 instance : semimodule α (mv_power_series σ α) :=
 { smul := λ a φ, C a * φ,

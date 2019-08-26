@@ -18,6 +18,10 @@ A formal power series is to a polynomial like an infinite sum is to a finite sum
 
 We provide the natural inclusion from polynomials to formal power series.
 
+## Generalities
+
+The file starts with setting up the (semi)ring structure on multivariate power series.
+
 `trunc n φ` truncates a formal power series to the polynomial
 that has the same coefficients as φ, for all m ≤ n, and 0 otherwise.
 
@@ -26,17 +30,28 @@ then this formal power series is invertible.
 
 Formal power series over a local ring form a local ring.
 
+## Formal power series in one variable
+
+We prove that if the ring of coefficients is an integral domain,
+then formal power series in one variable form an integral domain.
+
+The `order` of a formal power series `φ` is the multiplicity of the variable `X` in `φ`.
+
+If the coefficients form an integral domain, then `order` is a valuation
+(`order_mul`, `order_add_ge`).
+
 ## Implementation notes
 
-In this file we define multivariate formal power series with coefficients in `α` as
-mv_power_series σ α := (σ →₀ ℕ) → α
+In this file we define multivariate formal power series with
+variables indexed by `σ` and coefficients in `α` as
+mv_power_series σ α := (σ →₀ ℕ) → α.
 Unfortunately there is not yet enough API to show that they are the completion
 of the ring of multivariate polynomials. However, we provide most of the infrastructure
 that is needed to do this. Once I-adic completion (topological or algebraic) is available
 it should not be hard to fill in the details.
 
 Formal power series in one variable are defined as
-power_series α := mv_power_series unit α
+power_series α := mv_power_series unit α.
 
 This allows us to port a lot of proofs and properties
 from the multivariate case to the single variable case.
@@ -747,10 +762,10 @@ variables {σ : Type*} {α : Type*} [decidable_eq σ] [decidable_eq α] [comm_se
 instance coe_to_mv_power_series : has_coe (mv_polynomial σ α) (mv_power_series σ α) :=
 ⟨λ φ n, coeff n φ⟩
 
-@[simp] lemma coeff_coe (φ : mv_polynomial σ α) (n) :
+@[simp, elim_cast] lemma coeff_coe (φ : mv_polynomial σ α) (n) :
 mv_power_series.coeff n ↑φ = coeff n φ := rfl
 
-@[simp] lemma coe_monomial (n : σ →₀ ℕ) (a : α) :
+@[simp, elim_cast] lemma coe_monomial (n : σ →₀ ℕ) (a : α) :
   (monomial n a : mv_power_series σ α) = mv_power_series.monomial n a :=
 mv_power_series.ext $ λ m,
 begin
@@ -758,24 +773,24 @@ begin
   split_ifs with h₁ h₂; refl <|> subst m; contradiction
 end
 
-@[simp] lemma coe_zero : ((0 : mv_polynomial σ α) : mv_power_series σ α) = 0 := rfl
+@[simp, elim_cast] lemma coe_zero : ((0 : mv_polynomial σ α) : mv_power_series σ α) = 0 := rfl
 
-@[simp] lemma coe_one : ((1 : mv_polynomial σ α) : mv_power_series σ α) = 1 :=
+@[simp, elim_cast] lemma coe_one : ((1 : mv_polynomial σ α) : mv_power_series σ α) = 1 :=
 coe_monomial _ _
 
-@[simp] lemma coe_add (φ ψ : mv_polynomial σ α) :
+@[simp, elim_cast] lemma coe_add (φ ψ : mv_polynomial σ α) :
   ((φ + ψ : mv_polynomial σ α) : mv_power_series σ α) = φ + ψ := rfl
 
-@[simp] lemma coe_mul (φ ψ : mv_polynomial σ α) :
+@[simp, elim_cast] lemma coe_mul (φ ψ : mv_polynomial σ α) :
   ((φ * ψ : mv_polynomial σ α) : mv_power_series σ α) = φ * ψ :=
 mv_power_series.ext $ λ n,
 by simp only [coeff_coe, mv_power_series.coeff_mul, coeff_mul]
 
-@[simp] lemma coe_C (a : α) :
+@[simp, elim_cast] lemma coe_C (a : α) :
   ((C a : mv_polynomial σ α) : mv_power_series σ α) = mv_power_series.C a :=
 coe_monomial _ _
 
-@[simp] lemma coe_X (s : σ) :
+@[simp, elim_cast] lemma coe_X (s : σ) :
   ((X s : mv_polynomial σ α) : mv_power_series σ α) = mv_power_series.X s :=
 coe_monomial _ _
 
@@ -1275,8 +1290,8 @@ section order_basic
 open multiplicity
 variables [comm_semiring α]
 
-/-- The order of a power series `φ` is the smallest `n : enat`
-  such that `X^n` divides `φ`. The order is `⊤` if and only if `φ = 0`. -/
+/-- The order of a formal power series `φ` is the smallest `n : enat`
+such that `X^n` divides `φ`. The order is `⊤` if and only if `φ = 0`. -/
 @[reducible] def order (φ : power_series α) : enat :=
 multiplicity X φ
 
@@ -1287,6 +1302,8 @@ begin
   rw X_pow_dvd_iff, push_neg, exact ⟨n, lt_add_one n, h⟩
 end
 
+/-- If the order of a formal power series is finite,
+then the coefficient indexed by the order is nonzero.-/
 lemma coeff_order (φ : power_series α) (h : (order φ).dom) :
   coeff (φ.order.get h) φ ≠ 0 :=
 begin
@@ -1297,6 +1314,8 @@ begin
   have : m = nat.find h, {linarith}, {rwa this}
 end
 
+/-- If the `n`th coefficient of a formal power series is nonzero,
+then the order of the power series is less than or equal to `n`.-/
 lemma order_le (φ : power_series α) (n : ℕ) (h : coeff n φ ≠ 0) :
   order φ ≤ n :=
 begin
@@ -1307,10 +1326,13 @@ begin
   refine nat.find_min' this h
 end
 
+/-- The `n`th coefficient of a formal power series is `0` if `n` is strictly
+smaller than the order of the power series.-/
 lemma coeff_of_lt_order (φ : power_series α) (n : ℕ) (h: ↑n < order φ) :
   coeff n φ = 0 :=
 by { contrapose! h, exact order_le _ _ h }
 
+/-- The `0` power series is the unique power series with infinite order.-/
 lemma order_eq_top {φ : power_series α} :
   φ.order = ⊤ ↔ φ = 0 :=
 begin
@@ -1320,9 +1342,12 @@ begin
   { rintros rfl n, exact dvd_zero _ }
 end
 
+/-- The order of the `0` power series is infinite.-/
 @[simp] lemma order_zero : order (0 : power_series α) = ⊤ :=
 multiplicity.zero _
 
+/-- The order of a formal power series is at least `n` if
+the `i`th coefficient is `0` for all `i < n`.-/
 lemma order_ge_nat (φ : power_series α) (n : ℕ) (h : ∀ i < n, coeff i φ = 0) :
   order φ ≥ n :=
 begin
@@ -1332,6 +1357,8 @@ begin
   exact coeff_order _ this (h _ H)
 end
 
+/-- The order of a formal power series is at least `n` if
+the `i`th coefficient is `0` for all `i < n`.-/
 lemma order_ge (φ : power_series α) (n : enat) (h : ∀ i : ℕ, ↑i < n → coeff i φ = 0) :
   order φ ≥ n :=
 begin
@@ -1341,6 +1368,8 @@ begin
   { apply order_ge_nat, simpa only [enat.coe_lt_coe] using h }
 end
 
+/-- The order of a formal power series is exactly `n` if the `n`th coefficient is nonzero,
+and the `i`th coefficient is `0` for all `i < n`.-/
 lemma order_eq_nat {φ : power_series α} {n : ℕ} :
   order φ = n ↔ (coeff n φ ≠ 0) ∧ (∀ i, i < n → coeff i φ = 0) :=
 begin
@@ -1353,6 +1382,8 @@ begin
   { rintros ⟨h₁, h₂⟩, exact ⟨h₂, n, lt_add_one n, h₁⟩ }
 end
 
+/-- The order of a formal power series is exactly `n` if the `n`th coefficient is nonzero,
+and the `i`th coefficient is `0` for all `i < n`.-/
 lemma order_eq {φ : power_series α} {n : enat} :
   order φ = n ↔ (∀ i:ℕ, ↑i = n → coeff i φ ≠ 0) ∧ (∀ i:ℕ, ↑i < n → coeff i φ = 0) :=
 begin
@@ -1415,7 +1446,7 @@ begin
   rw [← enat.coe_add, hij]
 end
 
-/-- The order of the monomial a*X^n.-/
+/-- The order of the monomial `a*X^n` is infinite if `a = 0` and `n` otherwise.-/
 lemma order_monomial (n : ℕ) (a : α) :
   order (monomial n a) = if a = 0 then ⊤ else n :=
 begin
@@ -1426,7 +1457,7 @@ begin
     { rw [enat.coe_lt_coe] at hi, rw [coeff_monomial, if_neg], exact ne_of_lt hi } }
 end
 
-/-- The order of the monomial a*X^n is n if a ≠ 0.-/
+/-- The order of the monomial `a*X^n` is `n` if `a ≠ 0`.-/
 lemma order_monomial_of_ne_zero (n : ℕ) (a : α) (h : a ≠ 0) :
   order (monomial n a) = n :=
 by rw [order_monomial, if_neg h]
@@ -1436,14 +1467,15 @@ end order_basic
 section order_zero_ne_one
 variables [nonzero_comm_ring α]
 
-/-- The order of the formal power series 1 is 0.-/
+/-- The order of the formal power series `1` is `0`.-/
 @[simp] lemma order_one : order (1 : power_series α) = 0 :=
 order_monomial_of_ne_zero 0 (1:α) one_ne_zero
 
-/-- The order of the formal power series X is 1.-/
+/-- The order of the formal power series `X` is `1`.-/
 @[simp] lemma order_X : order (X : power_series α) = 1 :=
 order_monomial_of_ne_zero 1 (1:α) one_ne_zero
 
+/-- The order of the formal power series `X^n` is `n`.-/
 @[simp] lemma order_X_pow (n : ℕ) : order ((X : power_series α)^n) = n :=
 by { rw [X_pow_eq, order_monomial_of_ne_zero], exact one_ne_zero }
 
@@ -1470,12 +1502,12 @@ variables {σ : Type*} {α : Type*} [decidable_eq σ] [decidable_eq α] [comm_se
 instance coe_to_power_series : has_coe (polynomial α) (power_series α) :=
 ⟨λ φ, power_series.mk $ λ n, coeff φ n⟩
 
-@[simp] lemma coeff_coe (φ : polynomial α) (n) :
+@[simp, elim_cast] lemma coeff_coe (φ : polynomial α) (n) :
 power_series.coeff n ↑φ = coeff φ n := rfl
 
 @[reducible] def monomial (n : ℕ) (a : α) : polynomial α := single n a
 
-@[simp] lemma coe_monomial (n : ℕ) (a : α) :
+@[simp, elim_cast] lemma coe_monomial (n : ℕ) (a : α) :
   (monomial n a : power_series α) = power_series.monomial n a :=
 power_series.ext $ λ m,
 begin
@@ -1484,24 +1516,24 @@ begin
     ... = if m = n then a else 0 : by split_ifs with h₁ h₂; refl <|> subst m; contradiction
 end
 
-@[simp] lemma coe_zero : ((0 : polynomial α) : power_series α) = 0 := rfl
+@[simp, elim_cast] lemma coe_zero : ((0 : polynomial α) : power_series α) = 0 := rfl
 
-@[simp] lemma coe_one : ((1 : polynomial α) : power_series α) = 1 :=
+@[simp, elim_cast] lemma coe_one : ((1 : polynomial α) : power_series α) = 1 :=
 coe_monomial _ _
 
-@[simp] lemma coe_add (φ ψ : polynomial α) :
+@[simp, elim_cast] lemma coe_add (φ ψ : polynomial α) :
   ((φ + ψ : polynomial α) : power_series α) = φ + ψ := rfl
 
-@[simp] lemma coe_mul (φ ψ : polynomial α) :
+@[simp, elim_cast] lemma coe_mul (φ ψ : polynomial α) :
   ((φ * ψ : polynomial α) : power_series α) = φ * ψ :=
 power_series.ext $ λ n,
 by simp only [coeff_coe, power_series.coeff_mul, coeff_mul]
 
-@[simp] lemma coe_C (a : α) :
+@[simp, elim_cast] lemma coe_C (a : α) :
   ((C a : polynomial α) : power_series α) = power_series.C a :=
 coe_monomial _ _
 
-@[simp] lemma coe_X :
+@[simp, elim_cast] lemma coe_X :
   ((X : polynomial α) : power_series α) = power_series.X :=
 coe_monomial _ _
 

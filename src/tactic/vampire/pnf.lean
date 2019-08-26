@@ -15,9 +15,9 @@ namespace vampire
 
 open nat
 
-variables {α : Type}
-variables {R R1 R2 : rls α} {F F1 F2 : fns α} {V V1 V2 : vas α}
-variables {b : bool} (f f1 f2 g g1 g2 : frm)
+--variables {α : Type}
+--variables {R R1 R2 : rls α} {F F1 F2 : fns α} {V V1 V2 : vas α}
+--variables {b : bool} (f f1 f2 g g1 g2 : frm)
 
 local notation f `₀↦` a := assign a f
 local notation `#`     := trm.vr
@@ -32,8 +32,6 @@ local notation p `∧*` q := frm.bin ff p q
 local notation `∃*` p   := frm.qua tt p
 local notation `∀*` p   := frm.qua ff p
 local notation R `;` F `;` V `⊨` f := frm.holds R F V f
--- local notation F `∀⟹` k := forall_ext k F
--- local notation F `∃⟹` k := exists_ext k F
 
 def pull_core (b : bool) : nat → frm → frm → frm
 | 0       f      g      := frm.bin b f g
@@ -46,6 +44,7 @@ def pull_core (b : bool) : nat → frm → frm → frm
 def pull (b : bool) (f g : frm) : frm :=
 pull_core b (f.cons_qua_count + g.cons_qua_count) f g
 
+/-
 lemma fa_pull_core (b : bool) (k : nat) (f g : frm) :
   pull_core b (k + 1) (∀* f) g =
   ∀* (pull_core b k f (g.vinc 0 1)) :=
@@ -317,10 +316,6 @@ lemma pull_core_eqv [inhabited α] (b : bool) :
       apply succ_inj h0 },
   end
 
-lemma F_of_QF_of_cons_qua_count_eq_zero :
-  f.QF → f.cons_qua_count = 0 → f.F :=
-by { intros h0 h1, cases f with l b f g b f;
-     try { trivial }, apply h0 }
 
 
 lemma F_vinc :
@@ -339,6 +334,30 @@ lemma QF_vinc :
   by { cases h0, constructor;
        apply F_vinc; assumption }
 | (frm.qua _ f) m h0 := QF_vinc f _ h0
+
+
+lemma pull_eqv [inhabited α] (b : bool) (f g : frm) :
+  (pull b f g <==α==> frm.bin b f g) := pull_core_eqv _ _ rfl
+
+
+lemma pnf_eqv [inhabited α] :
+  ∀ f : frm, pnf f <==α==> f
+| (frm.lit l) := eqv_refl _
+| (frm.bin b f g) :=
+  begin
+    apply eqv_trans (@pull_eqv α _ _ _ _),
+    apply bin_eqv_bin;
+    apply pnf_eqv,
+  end
+| (frm.qua b f) := qua_eqv_qua (pnf_eqv _)
+
+
+-/ 
+
+lemma F_of_QF_of_cons_qua_count_eq_zero :
+  ∀ f : frm, f.QF → f.cons_qua_count = 0 → f.F :=
+by { intros f h0 h1, cases f with l b f g b f;
+     try { trivial }, apply h0 }
 
 lemma QF_pull_core (b : bool) :
   ∀ (k : nat) {f g : frm},
@@ -381,30 +400,16 @@ begin
   assumption,
 end
 
-lemma pull_eqv [inhabited α] (b : bool) (f g : frm) :
-  (pull b f g <==α==> frm.bin b f g) := pull_core_eqv _ _ rfl
-
 def pnf : frm → frm
-| (frm.lit l)     := frm.lit l
+| (frm.atm b a)   := frm.atm b a 
 | (frm.bin b f g) := pull b (pnf f) (pnf g)
 | (frm.qua b f)   := frm.qua b (pnf f)
 
-lemma pnf_eqv [inhabited α] :
-  ∀ f : frm, pnf f <==α==> f
-| (frm.lit l) := eqv_refl _
-| (frm.bin b f g) :=
-  begin
-    apply eqv_trans (@pull_eqv α _ _ _ _),
-    apply bin_eqv_bin;
-    apply pnf_eqv,
-  end
-| (frm.qua b f) := qua_eqv_qua (pnf_eqv _)
-
 lemma QF_pnf :
   ∀ f : frm, (pnf f).QF
-| (frm.lit l) := trivial
+| (frm.atm b a)   := trivial
 | (frm.bin b f g) :=
   by { apply QF_pull; apply QF_pnf }
-| (frm.qua b f) := QF_pnf f
+| (frm.qua b f)   := QF_pnf f
 
 end vampire

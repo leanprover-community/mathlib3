@@ -22,6 +22,9 @@ local notation F `∀⟹` k := forall_ext k F
 local notation F `∃⟹` k := exists_ext k F
 local notation R `;` F `;` V `⊨` f := frm.holds R F V f
 
+
+
+#exit
 def ex_count : frm → nat
 | (frm.atm _ _)   := 0
 | (frm.bin _ _ _) := 0

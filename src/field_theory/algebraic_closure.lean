@@ -42,6 +42,21 @@ begin
     equiv.apply_symm_apply, is_ring_hom.map_zero e.to_equiv, hx],
 end
 
+namespace alg_hom
+variables {α : Type u} {β : Type v} {γ : Type w} [comm_ring α] [ring β] [ring γ]
+  [algebra α β] [algebra α γ] (f : β →ₐ[α] γ)
+
+def inverse (g : γ → β) (h₁ : left_inverse g f) (h₂ : right_inverse g f) : γ →ₐ[α] β :=
+by dsimp [left_inverse, function.right_inverse] at h₁ h₂; exact
+{ to_fun := g,
+  hom := show is_ring_hom g, from
+  { map_add := λ x y, by rw [← h₁ (g x + g y), f.map_add, h₂, h₂],
+    map_mul := λ x y, by rw [← h₁ (g x * g y), f.map_mul, h₂, h₂],
+    map_one := by rw [← h₁ 1, f.map_one] },
+  commutes' := λ a, by rw [← h₁ (algebra_map β a), f.commutes] }
+
+end alg_hom
+
 set_option old_structure_cmd true
 
 structure alg_equiv (α β γ : Type*) [comm_ring α] [ring β] [ring γ]
@@ -56,7 +71,14 @@ namespace alg_equiv
 variables {α : Type u} {β : Type v} {γ : Type w} [comm_ring α] [ring β] [ring γ]
   [algebra α β] [algebra α γ]
 
-protected def symm (e : β ≃ₐ[α] γ) : γ ≃ₐ[α] β := sorry
+protected def refl : β ≃ₐ[α] β :=
+{ hom := is_ring_hom.id,
+  commutes' := λ b, rfl,
+  .. equiv.refl β }
+
+protected def symm (e : β ≃ₐ[α] γ) : γ ≃ₐ[α] β :=
+{ .. e.to_alg_hom.inverse e.inv_fun e.left_inv e.right_inv,
+  .. e.to_equiv.symm }
 
 end alg_equiv
 

@@ -125,6 +125,25 @@ instance : linear_order ℚ            := by apply_instance
 instance : partial_order ℚ           := by apply_instance
 instance : preorder ℚ                := by apply_instance
 
+protected lemma le_def' {p q : ℚ} (p_pos : 0 < p) (q_pos : 0 < q) :
+  p ≤ q ↔ p.num * q.denom ≤ q.num * p.denom :=
+begin
+  rw [←(@num_denom q), ←(@num_denom p)],
+  conv_rhs { simp only [num_denom] },
+  exact rat.le_def (by exact_mod_cast p.pos) (by exact_mod_cast q.pos)
+end
+
+protected lemma lt_def {p q : ℚ} (p_pos : 0 < p) (q_pos : 0 < q) :
+  p < q ↔ p.num * q.denom < q.num * p.denom :=
+begin
+  rw [lt_iff_le_and_ne, (rat.le_def' p_pos q_pos)],
+  suffices : p ≠ q ↔ p.num * q.denom ≠ q.num * p.denom, by {
+    split; intro h,
+    { exact lt_iff_le_and_ne.elim_right ⟨h.left, (this.elim_left h.right)⟩ },
+    { have tmp := lt_iff_le_and_ne.elim_left h, exact ⟨tmp.left, this.elim_right tmp.right⟩ }},
+  exact (not_iff_not.elim_right eq_iff_mul_eq_mul)
+end
+
 theorem nonneg_iff_zero_le {a} : rat.nonneg a ↔ 0 ≤ a :=
 show rat.nonneg a ↔ rat.nonneg (a - 0), by simp
 
@@ -169,18 +188,39 @@ lt_iff_lt_of_le_iff_le $
 by simpa [(by cases a; refl : (-a).num = -a.num)]
    using @num_nonneg_iff_zero_le (-a)
 
+lemma div_lt_div_iff_mul_lt_mul {a b c d : ℤ} (b_pos : 0 < b) (d_pos : 0 < d) :
+  (a : ℚ) / b < c / d ↔ a * d < c * b :=
+begin
+  simp only [lt_iff_le_not_le],
+  apply and_congr,
+  { simp [div_num_denom, (rat.le_def b_pos d_pos)] },
+  { apply not_iff_not_of_iff, simp [div_num_denom, (rat.le_def d_pos b_pos)] }
+end
+
+lemma lt_one_iff_num_lt_denom {q : ℚ} : q < 1 ↔ q.num < q.denom :=
+begin
+  cases decidable.em (0 < q) with q_pos q_nonpos,
+  { simp [(rat.lt_def q_pos zero_lt_one)] },
+  { replace q_nonpos : q ≤ 0, from not_lt.elim_left q_nonpos,
+    have : q.num < q.denom, by
+    { have : ¬0 < q.num ↔ ¬0 < q, from not_iff_not.elim_right num_pos_iff_pos,
+      simp only [not_lt] at this,
+      exact lt_of_le_of_lt (this.elim_right q_nonpos) (by exact_mod_cast q.pos) },
+    simp only [this, (lt_of_le_of_lt q_nonpos zero_lt_one)] }
+end
+
 theorem abs_def (q : ℚ) : abs q = q.num.nat_abs /. q.denom :=
 begin
   have hz : (0:ℚ) = 0 /. 1 := rfl,
   cases le_total q 0 with hq hq,
   { rw [abs_of_nonpos hq],
-    rw [num_denom q, hz, rat.le_def (int.coe_nat_pos.2 q.pos) zero_lt_one,
+    rw [←(@num_denom q), hz, rat.le_def (int.coe_nat_pos.2 q.pos) zero_lt_one,
         mul_one, zero_mul] at hq,
-    rw [int.of_nat_nat_abs_of_nonpos hq, ← neg_def, ← num_denom q] },
+    rw [int.of_nat_nat_abs_of_nonpos hq, ← neg_def, num_denom] },
   { rw [abs_of_nonneg hq],
-    rw [num_denom q, hz, rat.le_def zero_lt_one (int.coe_nat_pos.2 q.pos),
+    rw [←(@num_denom q), hz, rat.le_def zero_lt_one (int.coe_nat_pos.2 q.pos),
         mul_one, zero_mul] at hq,
-    rw [int.nat_abs_of_nonneg hq, ← num_denom q] }
+    rw [int.nat_abs_of_nonneg hq, num_denom] }
 end
 
 section sqrt

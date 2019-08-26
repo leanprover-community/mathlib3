@@ -146,6 +146,18 @@ lemma is_algebraically_closed_of_irreducible_has_root
 
 end is_algebraically_closed
 
+--move this
+namespace polynomial
+variables (R : Type u) (A : Type v)
+variables [comm_ring R] [comm_ring A] [algebra R A]
+variables [decidable_eq R] (x : A)
+
+@[simp] lemma aeval_X : aeval R A x X = x := eval₂_X _ x
+
+@[simp] lemma aeval_C (r : R) : aeval R A x (C r) = algebra_map A r := eval₂_C _ x
+
+end polynomial
+
 namespace algebraic_closure
 
 section classical
@@ -212,7 +224,15 @@ private def base_extension (K : Type u) [discrete_field K] : extension K :=
 { carrier := set.range (bembedding K),
   algebra := algebra.of_ring_hom (equiv.set.range _ (bembedding K).2).symm.symm
     (by apply_instance),
-  algebraic := sorry } --a field is algebraic over an isomorphic field
+  algebraic :=
+  begin
+    rintro ⟨_, x, rfl⟩,
+    refine ⟨X + C (-x), monic_X_add_C (-x), _⟩,
+    rw [alg_hom.map_add, C_neg, alg_hom.map_neg, polynomial.aeval_X, polynomial.aeval_C],
+    exact add_neg_self _
+  end }
+
+#exit
 
 /-- not used but might help with sorries -/
 private def extension.of_algebraic {L : Type v} [discrete_field L] [algebra K L]

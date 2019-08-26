@@ -80,6 +80,8 @@ protected def symm (e : β ≃ₐ[α] γ) : γ ≃ₐ[α] β :=
 { .. e.to_alg_hom.inverse e.inv_fun e.left_inv e.right_inv,
   .. e.to_equiv.symm }
 
+-- TODO: trans
+
 end alg_equiv
 
 section thing
@@ -212,7 +214,7 @@ private def base_extension (K : Type u) [discrete_field K] : extension K :=
     (by apply_instance),
   algebraic := sorry } --a field is algebraic over an isomorphic field
 
-/-- not used but might help woth sorries -/
+/-- not used but might help with sorries -/
 private def extension.of_algebraic {L : Type v} [discrete_field L] [algebra K L]
   (hL : ∀ x : L, is_integral K x) : extension K :=
 { carrier := set.range (algebraic_embedding_big_type hL),

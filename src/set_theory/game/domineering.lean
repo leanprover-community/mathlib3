@@ -54,28 +54,43 @@ def move_right (b : finset (ℤ × ℤ)) (m : right b) : finset (ℤ × ℤ) :=
 lemma int.succ_ne_self (n : ℤ) : n + 1 ≠ n :=
 λ h, one_ne_zero ((add_left_inj n).mp (by { convert h, simp }))
 lemma int.pred_ne_self (n : ℤ) : n - 1 ≠ n :=
-sorry
+λ h, one_ne_zero (neg_inj ((add_left_inj n).mp (by { convert h, simp })))
 
--- TODO
+-- TODO Golf?
 lemma move_left_card (b : finset (ℤ × ℤ)) (m : left b) :
   finset.card (move_left b m) = finset.card b - 2 :=
 begin
   erw finset.card_erase_of_mem,
-  erw finset.card_erase_of_mem,
-  refl,
-  exact finset.mem_of_mem_inter_left m.property,
-  apply finset.mem_erase_of_ne_of_mem,
-  { intro h,
-    replace h := congr_arg prod.snd h,
-    dsimp at h,
-    exact int.pred_ne_self m.val.2 h, },
-  have := finset.mem_of_mem_inter_right m.property,
-  dsimp [shift_up] at this,
-  sorry
+  { erw finset.card_erase_of_mem,
+    { refl },
+    { exact finset.mem_of_mem_inter_left m.property, } },
+  { apply finset.mem_erase_of_ne_of_mem,
+    { exact λ h, int.pred_ne_self m.val.2 (congr_arg prod.snd h), },
+    { have t := finset.mem_of_mem_inter_right m.property,
+      dsimp [shift_up] at t,
+      simp only [exists_prop, finset.mem_map, add_comm, function.embedding.coe_fn_mk, prod.exists] at t,
+      rcases t with ⟨x,y,w,h⟩,
+      rw ←h,
+      convert w,
+      simp, } }
 end
 lemma move_right_card (b : finset (ℤ × ℤ)) (m : right b) :
   finset.card (move_right b m) = finset.card b - 2 :=
-sorry
+begin
+  erw finset.card_erase_of_mem,
+  { erw finset.card_erase_of_mem,
+    { refl },
+    { exact finset.mem_of_mem_inter_left m.property, } },
+  { apply finset.mem_erase_of_ne_of_mem,
+    { exact λ h, int.pred_ne_self m.val.1 (congr_arg prod.fst h), },
+    { have t := finset.mem_of_mem_inter_right m.property,
+      dsimp [shift_right] at t,
+      simp only [exists_prop, finset.mem_map, add_comm, function.embedding.coe_fn_mk, prod.exists] at t,
+      rcases t with ⟨x,y,w,h⟩,
+      rw ←h,
+      convert w,
+      simp, } }
+end
 
 lemma move_left_smaller (b : finset (ℤ × ℤ)) (m : left b) :
   finset.card (move_left b m) < finset.card b :=
@@ -202,7 +217,7 @@ instance fintype_left_moves' : Π (n : ℕ) (b : finset (ℤ × ℤ)) (h : b.car
 | 1 b h := domineering_aux.fintype_left b
 | (n+2) b _ := domineering_aux.fintype_left b
 
-instance fintype_left_moves (b : finset (ℤ × ℤ )) : fintype ((domineering b).left_moves) :=
+instance fintype_left_moves (b : finset (ℤ × ℤ)) : fintype ((domineering b).left_moves) :=
 by { dsimp [domineering], apply_instance }
 
 instance fintype_right_moves' : Π (n : ℕ) (b : finset (ℤ × ℤ)) (h : b.card = n), fintype ((domineering' n b h).right_moves)

@@ -505,6 +505,14 @@ def has_limit_of_iso {F G : J ⥤ C} [has_limit F] (α : F ≅ G) : has_limit G 
       simpa using w j
     end } }
 
+/-- If a functor `G` has the same collection of cones as a functor `F`
+which has a limit, then `G` also has a limit. -/
+-- See the construction of limits from productrs and equalizers
+-- for an example usage.
+def has_limit.of_cones_iso {J K : Type v} [small_category J] [small_category K] (F : J ⥤ C) (G : K ⥤ C)
+  (h : F.cones ≅ G.cones) [has_limit F] : has_limit G :=
+⟨_, is_limit.of_nat_iso ((is_limit.nat_iso (limit.is_limit F)) ≪≫ h)⟩
+
 section pre
 variables (F) [has_limit F] (E : K ⥤ J) [has_limit (E ⋙ F)]
 
@@ -771,6 +779,12 @@ def has_colimit_of_iso {F G : J ⥤ C} [has_colimit F] (α : G ≅ F) : has_coli
         iso.eq_inv_comp],
       simpa using w j
     end } }
+
+/-- If a functor `G` has the same collection of cocones as a functor `F`
+which has a colimit, then `G` also has a colimit. -/
+def has_colimit.of_cocones_iso {J K : Type v} [small_category J] [small_category K] (F : J ⥤ C) (G : K ⥤ C)
+  (h : F.cocones ≅ G.cocones) [has_colimit F] : has_colimit G :=
+⟨_, is_colimit.of_nat_iso ((is_colimit.nat_iso (colimit.is_colimit F)) ≪≫ h)⟩
 
 section pre
 variables (F) [has_colimit F] (E : K ⥤ J) [has_colimit (E ⋙ F)]

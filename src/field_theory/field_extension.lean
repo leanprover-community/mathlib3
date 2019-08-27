@@ -95,7 +95,7 @@ instance mpp : module (polynomial α) (polynomial α) := by apply_instance
 /-- The ideal of polynomial over α that vanish at b. -/
 private def vanishing_ideal (b : β) : ideal (polynomial α) := is_ring_hom.ker (aeval α β b)
 
-lemma mem_vanishing_ideal (b : β) (p : polynomial α) : p ∈ vanishing_ideal α b ↔ aeval α β b p = 0 :=
+lemma mem_vanishing_ideal_iff (b : β) (p : polynomial α) : p ∈ vanishing_ideal α b ↔ aeval α β b p = 0 :=
 is_ring_hom.mem_ker _ _
 
 instance (b : β) : ideal.is_principal (vanishing_ideal α b) := by apply_instance
@@ -107,16 +107,19 @@ end
 
 namespace minimal_polynomial
 
-open polynomial ideal.is_principal
+open polynomial ideal ideal.is_principal
 
 variables (α : Type u) [discrete_field α]
 variables {β : Type v} [discrete_field β] [field_extension α β]
 variables {b : β} (hb : is_integral α b)
 
+lemma mem_vanishing_ideal : minimal_polynomial α hb ∈ vanishing_ideal α b :=
+ideal.mul_mem_right _ (generator_mem _)
+
 include hb
 lemma vanishing_ideal_ne_bot_of_is_integral : vanishing_ideal α b ≠ ⊥ :=
 λ h, begin cases hb with p hp,
-  have : p = 0, by { rw [←submodule.mem_bot (polynomial α), ←h, mem_vanishing_ideal], exact hp.2 },
+  have : p = 0, by { rw [←submodule.mem_bot (polynomial α), ←h, mem_vanishing_ideal_iff], exact hp.2 },
   rw [this] at hp,
   exact not_monic_zero hp.1
 end
@@ -124,14 +127,17 @@ end
 lemma gen_ne_zero : generator (vanishing_ideal α b) ≠ 0 :=
 mt (eq_bot_iff_generator_eq_zero _).mpr $ vanishing_ideal_ne_bot_of_is_integral α hb
 
+lemma C_ne_zero : (leading_coeff $ ideal.is_principal.generator (vanishing_ideal α b))⁻¹ ≠ 0 :=
+λ h, by { rw [inv_eq_zero, leading_coeff_eq_zero] at h, exact (gen_ne_zero α hb) h }
+
 lemma nonzero : minimal_polynomial α hb ≠ 0 :=
-mul_ne_zero (gen_ne_zero α hb)
-  (λ h, by { rw [←C_0, C_inj, inv_eq_zero, leading_coeff_eq_zero] at h, exact (gen_ne_zero α hb) h })
+mul_ne_zero (gen_ne_zero α hb) (λ h, by { rw [←C_0, C_inj] at h, exact (C_ne_zero α hb) h })
 
 lemma monic : monic (minimal_polynomial α hb) :=
 monic_mul_leading_coeff_inv (gen_ne_zero α hb)
 
-lemma aeval_zero : aeval α β b (minimal_polynomial α hb) = 0 := rfl
+lemma aeval_zero : aeval α β b (minimal_polynomial α hb) = 0 :=
+by { rw [←mem_vanishing_ideal_iff], exact mem_vanishing_ideal _ _ }
 
 lemma degree_pos : degree (minimal_polynomial α hb) > 0 :=
 classical.by_contradiction (λ hn,
@@ -146,152 +152,31 @@ begin
   exact (nonzero α hb) hn
 end)
 
-
-lemma irreducible : irreducible (minimal_polynomial α hb) := sorry
-
-
-end minimal_polynomial
-
-
-/-section minimal_polynomial
-
-open polynomial
-
-section
-variables (α : Type u) [discrete_field α]
-variables {β : Type v} [discrete_field β] [field_extension α β]
-
-instance mpp : module (polynomial α) (polynomial α) := by apply_instance
-
-/-- The ideal of polynomial over α that vanish at b. -/
-private def vanishing_ideal (b : β) : ideal (polynomial α) := is_ring_hom.ker (aeval α β b)
-
-lemma mem_vanishing_ideal (b : β) (p : polynomial α) : p ∈ vanishing_ideal α b ↔ aeval α β b p = 0 :=
-is_ring_hom.mem_ker _ _
-
-instance (b : β) : ideal.is_principal (vanishing_ideal α b) := by apply_instance
-
-noncomputable def minimal_polynomial {b : β} (hb : is_integral α b) : polynomial α :=
-  ideal.is_principal.generator (vanishing_ideal α b) * C (leading_coeff $ ideal.is_principal.generator (vanishing_ideal α b))⁻¹
-
-variables {b : β} (hb : is_integral α b)
-
-lemma minimal_polynomial.nonzero : minimal_polynomial α hb ≠ 0 := sorry
-
-lemma minimal_polynomial.monic : monic (minimal_polynomial α hb) :=
-monic_mul_leading_coeff_inv nonzero
-/-- A minimal polynomial for b is a non-zero monic polynomial vanishing at b of minimal degree. -/
-/-class is_minimal_polynomial (p : polynomial α) : Prop :=
-(vanish : p ∈ vanishing_ideal α b)
-(monic : p.monic)
-(nonzero : p ≠ 0)
-(minimal : ∀ q ∈ (vanishing_ideal α b), q ≠ 0 → degree p ≤ degree q)-/
-
+lemma aeval_zero_iff_dvd {p : polynomial α} (hp : aeval α β b p = 0) : minimal_polynomial α hb ∣ p :=
+begin
+rw [←mem_vanishing_ideal_iff, mem_iff_generator_dvd] at hp,
+exact (mul_dvd_of_is_unit_right $ is_unit_iff_degree_eq_zero.mpr $ degree_C $ C_ne_zero α hb).mpr hp
 end
 
-section is_minimal_polynomial
-
-variables (α : Type u) [discrete_field α]
-variables {β : Type v} [discrete_field β] [field_extension α β]
-variables (b : β)
-
-lemma mem_polynomial_ideal (p : polynomial α) : p ∈ (vanishing_ideal α b) ↔ aeval α β b p = 0 :=
-is_add_group_hom.mem_ker _
-
-lemma minimal_polynomial.degree_unique (p q : polynomial α)
-  [hp : is_minimal_polynomial α b p] [hq : is_minimal_polynomial α b q] : degree p = degree q :=
-le_antisymm (is_minimal_polynomial.minimal p q hq.1 hq.3) (is_minimal_polynomial.minimal q p hp.1 hp.3)
-
-lemma minimal_polynomial.unique (p q : polynomial α)
-  [hp : is_minimal_polynomial α b p] [hq : is_minimal_polynomial α b q] : p = q :=
-have h1 : p - q ∈ vanishing_ideal α b, from ideal.sub_mem _ hp.vanish hq.vanish,
-have h2 : ¬degree p ≤ degree (p - q), from not_le_of_lt $ degree_sub_lt
-  (minimal_polynomial.degree_unique α b p q) (hp.nonzero)
-  (by rw [monic.def.mp hp.monic, monic.def.mp hq.monic]),
-classical.by_contradiction
-  (λ h, absurd (is_minimal_polynomial.minimal p (p-q) h1 (sub_ne_zero.mpr h)) h2)
-
---TODO: move
-lemma exists_mem_ne_zero_of_ne_bot {α β : Type*} [comm_ring α] [add_comm_group β] [module α β]
-  {s : submodule α β} (h : s ≠ ⊥) : ∃ x : β, x ∈ s ∧ x ≠ 0 :=
+lemma minimal {p : polynomial α} (h0 : p ≠ 0) (hp : aeval α β b p = 0) :
+  degree (minimal_polynomial α hb) ≤ degree p :=
 begin
-  classical,
-  by_contradiction hex,
-  have : ∀ x : β, x ∈ s → x = 0,
-    { simpa only [not_exists, not_and, not_not, ne.def] using hex },
-  exact (h $ begin ext, rw [submodule.mem_bot], split, exact this x, intro hx, rw hx, simp only [submodule.zero_mem] end)
+cases exists_eq_mul_right_of_dvd (aeval_zero_iff_dvd α hb hp) with q h,
+have hq : q ≠ 0, from λ hn, by { rw [hn, mul_zero] at h, exact h0 h },
+rw [h],
+exact degree_le_mul_left _ hq
 end
 
---TODO: move
-lemma exists_mem_ne_zero_iff_ne_bot {α β : Type*} [comm_ring α] [add_comm_group β] [module α β]
-  {s : submodule α β} : (∃ x : β, x ∈ s ∧ x ≠ 0) ↔ s ≠ ⊥ :=
-⟨λ h hn, begin cases h with p hp, rw [hn, submodule.mem_bot] at hp, exact hp.2 hp.1 end,
-exists_mem_ne_zero_of_ne_bot⟩
-
--- TODO: change this lemma in data.set.lean
-lemma mem_diff_singleton {α : Type u} {s s' : α} {t : set α} : s ∈ t \ {s'} ↔ (s ∈ t ∧ s ≠ s') :=
-by simp
-
-/-- A minimal polynomial exists iff there exists some nonzero polynomial which vanishes at b. -/
-lemma minimal_polynomial.exists_iff :
-  (∃ p, is_minimal_polynomial α b p) ↔ vanishing_ideal α b ≠ ⊥ :=
-begin
-split,
-{ assume h hb,
-  cases h with p hp,
-  have : p = 0, from (submodule.mem_bot (polynomial α)).mp (hb ▸ hp.1),
-  have : p ≠ 0, from hp.nonzero,
-  contradiction },
-{ assume h,
-  -- We first pick some nonzero polynomial q1 which vanishes at b
-  cases exists_mem_ne_zero_of_ne_bot h with q1 hq1,
-  have : (vanishing_ideal α b).carrier \ {0} ≠ ∅, from set.ne_empty_of_mem (mem_diff_singleton.mpr hq1),
-  -- Since polynomials are well-founded under the degree-less-than relation we may pick a nonzero
-  -- element q2 from the vanishing ideal with minimal degree
-  let q2 : polynomial α := well_founded.min _ _ this,
-  have h0 : q2 ≠ 0, from (mem_diff_singleton.mp (well_founded.min_mem degree_lt_wf _ this)).right,
-  have hc0 : (leading_coeff q2)⁻¹ ≠ 0,
-    { assume h, rw [inv_eq_zero, leading_coeff_eq_zero] at h, contradiction },
-  -- We make q2 monic by dividing by its leading coefficient
-  existsi (q2 * C (leading_coeff q2)⁻¹),
-  split,
-  { exact ideal.mul_mem_right (vanishing_ideal α b)
-      ((submodule.mem_coe _).mp $ set.mem_of_mem_diff $ well_founded.min_mem _ _ _) },
-  { exact monic_mul_leading_coeff_inv h0 },
-  { refine mul_ne_zero h0 _,
-    assume hC,
-    rw [←C_0, C_inj] at hC,
-    contradiction },
-  { assume q hq hq0,
-    rw [degree_mul_eq, degree_C hc0, add_zero],
-    apply @le_of_not_lt _ _ (degree q) _,
-    exact well_founded.not_lt_min degree_lt_wf ((vanishing_ideal α b).carrier \ {0}) _ (mem_diff_singleton.mpr ⟨hq, hq0⟩) } }
-end
-
-lemma minimal_polynomial.degree_pos (p : polynomial α) [is_minimal_polynomial α b p] :
-  degree p > 0 :=
-classical.by_contradiction (λ hn,
-begin
-  rw [not_lt, degree_le_zero_iff] at hn,
-  have hv : _ := (mem_vanishing_ideal α b p).mp (is_minimal_polynomial.vanish b p),
-  change eval₂ (algebra_map β) b p = 0 at hv,
-  rw [hn, eval₂_C, ←algebra.map_zero α β] at hv,
-  have h0 : coeff p 0 = 0, from is_field_hom.injective (algebra_map β) hv,
-  rw [h0, C_0] at hn,
-  exact (is_minimal_polynomial.nonzero b p) hn
-end)
-
-lemma minimal_polynomial.not_is_unit (p : polynomial α) [h : is_minimal_polynomial α b p] :
-  ¬ is_unit p :=
+lemma not_is_unit : ¬ is_unit (minimal_polynomial α hb) :=
 λ h, not_lt.mpr (le_refl (0 : with_bot ℕ))
-  (by {convert minimal_polynomial.degree_pos α b p, exact eq.symm (degree_eq_zero_of_is_unit h) })
+  (by { convert degree_pos α hb, exact eq.symm (degree_eq_zero_of_is_unit h) })
 
-lemma minimal_polynomial.irreducible {p : polynomial α} [is_minimal_polynomial α b p] : irreducible p :=
+lemma irreducible : irreducible (minimal_polynomial α hb) :=
 classical.by_contradiction (λ hn,
 begin
   unfold irreducible at hn,
   rw [not_and] at hn,
-  replace hn := hn (minimal_polynomial.not_is_unit α b p),
+  replace hn := hn (not_is_unit α hb),
   rw [classical.not_forall] at hn,
   cases hn with q1 hn,
   rw [classical.not_forall] at hn,
@@ -300,44 +185,39 @@ begin
   intro hq,
   rw [@or_iff_not_and_not _ _ (classical.dec _) (classical.dec _)],
   intro hnu,
-  have h0q1 : q1 ≠ 0, from λ h, by {rw [h, zero_mul] at hq, exact (is_minimal_polynomial.nonzero b p) hq},
+  have h0q1 : q1 ≠ 0, from λ h, by {rw [h, zero_mul] at hq, exact (nonzero α hb) hq},
   have hq1 : 0 < (nat_degree q1 : with_bot ℕ),
     { rw [←degree_eq_nat_degree h0q1], exact degree_pos_of_ne_zero_of_nonunit h0q1 hnu.1 },
-  have h0q2 : q2 ≠ 0, from λ h, by {rw [h, mul_zero] at hq, exact (is_minimal_polynomial.nonzero b p) hq},
+  have h0q2 : q2 ≠ 0, from λ h, by {rw [h, mul_zero] at hq, exact (nonzero α hb) hq},
   have hq2 : 0 < (nat_degree q2 : with_bot ℕ),
     { rw [←degree_eq_nat_degree h0q2], exact degree_pos_of_ne_zero_of_nonunit h0q2 hnu.2 },
   rw [←with_bot.coe_zero, with_bot.coe_lt_coe] at hq1 hq2,
-  have hq1q : ¬degree p ≤ degree q1, from
-    suffices ¬nat_degree p ≤ nat_degree q1,
-      by rwa [degree_eq_nat_degree h0q1, degree_eq_nat_degree (is_minimal_polynomial.nonzero b p), with_bot.coe_le_coe],
+  have hq1q : ¬degree (minimal_polynomial α hb) ≤ degree q1, from
+    suffices ¬nat_degree (minimal_polynomial α hb) ≤ nat_degree q1,
+      by rwa [degree_eq_nat_degree h0q1, degree_eq_nat_degree (nonzero α hb), with_bot.coe_le_coe],
     (λ h, begin
       rw [hq, nat_degree_mul_eq h0q1 h0q2] at h,
       have : nat_degree q1 > nat_degree q1 + 0, from lt_of_lt_of_le (add_lt_add_left hq2 _) h,
       rw [add_zero] at this,
       exact (not_lt.mpr (le_refl _)) this
     end),
-  have hq2q : ¬degree p ≤ degree q2, from
-    suffices ¬nat_degree p ≤ nat_degree q2,
-      by rwa [degree_eq_nat_degree h0q2, degree_eq_nat_degree (is_minimal_polynomial.nonzero b p), with_bot.coe_le_coe],
+  have hq2q : ¬degree (minimal_polynomial α hb) ≤ degree q2, from
+    suffices ¬nat_degree (minimal_polynomial α hb) ≤ nat_degree q2,
+      by rwa [degree_eq_nat_degree h0q2, degree_eq_nat_degree (nonzero α hb), with_bot.coe_le_coe],
     (λ h, begin
       rw [hq, nat_degree_mul_eq h0q1 h0q2] at h,
       have : nat_degree q2 > 0 + nat_degree q2, from lt_of_lt_of_le (add_lt_add_right hq1 _) h,
       rw [zero_add] at this,
       exact (not_lt.mpr (le_refl _)) this
     end),
-  have h : eval₂ (algebra_map β) b p = 0, from (mem_vanishing_ideal α b p).mp (is_minimal_polynomial.vanish b p),
+  have h : eval₂ (algebra_map β) b (minimal_polynomial α hb) = 0, from aeval_zero α hb,
   rw [hq, eval₂_mul] at h,
-  replace h := integral_domain.eq_zero_or_eq_zero_of_mul_eq_zero _ _ h,
-  cases h,
-  { replace h := (mem_polynomial_ideal α b _).mpr h,
-    apply hq1q,
-    exact is_minimal_polynomial.minimal p _ h h0q1 },
-  { replace h := (mem_polynomial_ideal α b _).mpr h,
-    apply hq2q,
-    exact is_minimal_polynomial.minimal p _ h h0q2 }
+  cases (integral_domain.eq_zero_or_eq_zero_of_mul_eq_zero _ _ h) with h h,
+  { exact hq1q (minimal α hb h0q1 h) },
+  { exact hq2q (minimal α hb h0q2 h) }
 end)
 
-end is_minimal_polynomial
+end minimal_polynomial
 
 section finite_dimensional
 
@@ -364,7 +244,7 @@ def power_basis : (ℕ →₀ α) →ₗ[α] β :=
 instance ms (p : submodule α (ℕ →₀ α)) : module α p := submodule.module p
 instance vs (p : submodule α (ℕ →₀ α)) : vector_space α p := vector_space.mk α p
 
-instance (α : Type*) [division_ring α] : ring α := by apply_instance --hint
+--instance (α : Type*) [division_ring α] : ring α := by apply_instance --hint
 --TODO: move
 lemma smul_eq_zero_iff_eq_zero_left {α β : Type*} [division_ring α] [decidable_eq α] [add_comm_group β] [module α β]
   (r : α) {b : β} (hb : b ≠ 0) : r • b = 0 ↔ r = 0 :=
@@ -578,28 +458,19 @@ end
 lemma power_basis.ker_pos : dim α (power_basis α b).ker > 0 :=
 lt_of_lt_of_le cardinal.omega_pos $ power_basis.ker_omega α b
 
-instance : vector_space α (ℕ →₀ α) := vector_space.mk α (ℕ →₀ α)
-instance : add_comm_group (ℕ →₀ α) := by apply_instance
+instance vhint : vector_space α (ℕ →₀ α) := vector_space.mk α (ℕ →₀ α)
+instance ahint : add_comm_group (ℕ →₀ α) := by apply_instance
 
-theorem minimal_polynomial.exists : ∃ p, is_minimal_polynomial α b p :=
+lemma is_integral_of_aeval_ne_zero (b : β) : is_integral α b ↔
+  (∃ p : polynomial α, p ≠ 0 ∧ (polynomial.aeval α β b) p = 0) := sorry
+
+theorem finite_dimensional.integral (b : β) : is_integral α b :=
 begin
   cases exists_mem_ne_zero_of_dim_pos (power_basis.ker_pos α b : dim α (power_basis α b).ker > 0) with p hp,
-  rw [minimal_polynomial.exists_iff, ←exists_mem_ne_zero_iff_ne_bot],
+  unfold is_integral,
+  rw [test],
   existsi p,
-  rw [linear_map.mem_ker] at hp,
-  rwa [mem_vanishing_ideal]
+  rwa [linear_map.mem_ker, and_comm] at hp
 end
 
-/-- The minimal polynomial of b over α. -/
-noncomputable def minimal_polynomial : polynomial α :=
-classical.some $ minimal_polynomial.exists α b
-
-instance minimal_polynomial_is_mp : is_minimal_polynomial α b (minimal_polynomial α b) :=
-classical.some_spec $ minimal_polynomial.exists α b
-
 end finite_dimensional
-
-end minimal_polynomial
-
-end field_extension
--/

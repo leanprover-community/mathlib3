@@ -430,6 +430,7 @@ lemma times_cont_diff_on.continuous_on_fderiv_within
   continuous_on (fderiv_within 𝕜 f s) s :=
 h.1 1 hn
 
+/-- If a function is at least C^1 on a set, it is differentiable there. -/
 lemma times_cont_diff_on.differentiable_on
   {n : with_top ℕ} (h : times_cont_diff_on k n f s) (hn : 1 ≤ n) :
   differentiable_on k f s :=

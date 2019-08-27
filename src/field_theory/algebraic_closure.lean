@@ -154,15 +154,35 @@ begin
   all_goals { apply_instance }
 end
 
+open submodule
+
 lemma fg {f : polynomial K} (hf : f ≠ 0) : submodule.fg (⊤ : submodule K (adjoin_root f)) :=
 begin
-  have := fg_of_monic _ (monic_mul_leading_coeff_inv hf),
-  convert submodule.fg_map this, swap,
-  { apply alg_hom.to_linear_map,
-    sorry
-    -- I would like to use alg_hom.induced_quotient_map here
-     },
-  sorry
+  let tmp : _ := _,
+  let ψ : adjoin_root (f * C (leading_coeff f)⁻¹) →ₗ[K] adjoin_root f :=
+  { to_fun := ideal.quotient.lift _ mk tmp,
+    add := λ x y, is_ring_hom.map_add _,
+    smul := λ c x, is_ring_hom.map_mul _ },
+  have trick := fg_of_monic _ (monic_mul_leading_coeff_inv hf),
+  { convert fg_map trick, swap,
+    { exact ψ },
+    { refine (submodule.eq_top_iff'.mpr _).symm,
+      intros x, apply quotient.induction_on' x, clear x,
+      intro g,
+      rw mem_map,
+      use [mk g, mem_top, rfl] } },
+  { intros g hg, erw quotient.mk_eq_zero,
+    rw ideal.mem_span_singleton' at hg ⊢,
+    rcases hg with ⟨g, rfl⟩, rw [mul_comm f, ← mul_assoc],
+    exact ⟨_, rfl⟩ },
+end
+.
+
+lemma is_integral {f : polynomial K} (hf : f ≠ 0) (x : adjoin_root f) : is_integral K x :=
+begin
+  refine is_integral_of_mem_of_fg ⊤ _ x algebra.mem_top,
+  convert fg hf,
+  rw eq_top_iff', intro y, exact algebra.mem_top,
 end
 
 end adjoin_root
@@ -547,6 +567,30 @@ local attribute [instance] aux_instance
 
 lemma adjoin_root.algebraic (x : adjoin_root f) : is_integral K x :=
 begin
+  rcases adjoin_root.is_integral hif.ne_zero x with ⟨p, pmonic, hp⟩,
+  let S : set (adjoin_root f) :=
+    (↑((finset.range (f.nat_degree + 1)).image (λ i, (f.coeff i : adjoin_root f))) : set (adjoin_root f)),
+  let B := algebra.adjoin K S,
+  have Bfg : submodule.fg (B : submodule K (adjoin_root f)),
+  { apply fg_adjoin_of_finite,
+    { apply finset.finite_to_set },
+    { intros x hx,
+      rw [finset.mem_coe, finset.mem_image] at hx,
+      rcases hx with ⟨i, hi, rfl⟩,
+      rcases L.algebraic (f.coeff i) with ⟨q, qmonic, hq⟩,
+      use [q, qmonic],
+      replace hq := congr_arg (coe : L.carrier → adjoin_root f) hq,
+      convert hq using 1,
+      { symmetry, exact polynomial.hom_eval₂ _ _ _ _ },
+      { symmetry, exact is_ring_hom.map_zero _ } } },
+
+  -- (1) we know that x is integral over L, by adjoin_root.is_integral
+  -- (2) we know that B is fg over K
+  -- (3) we want to say that adjoin B {x} is fg over B, because (1)
+  -- (4) hence adjoin B {x} is fg over K
+  -- (5) and then we are done by is_integral_of_mem_of_fg
+
+  -- refine is_integral_of_mem_of_fg (algebra.adjoin K S) _ x (algebra.subset_adjoin $ mem_insert _ _),
   sorry
 end
 

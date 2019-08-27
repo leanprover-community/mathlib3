@@ -85,11 +85,16 @@ instance list_short_nth_le : Π (L : list pgame.{u}) [list_short L] (i : fin (li
 instance short_of_lists : Π (L R : list pgame) [list_short L] [list_short R], short (pgame.of_lists L R)
 | L R _ _ := by { resetI, apply short.mk; { intros, apply_instance } }
 
--- instance short_of_lists (L R : list pgame) [sL : ∀ l ∈ L, short l] [sR : ∀ r ∈ R, short r] :
---   short (pgame.of_lists L R) :=
--- short.mk
--- (λ i, sL _ (list.nth_le_mem _ _ _))
--- (λ j, sR _ (list.nth_le_mem _ _ _))
+def short_of_relabelling : Π {x y : pgame.{u}} (R : relabelling x y) [short x], short y
+| x y ⟨L, R, rL, rR⟩ S :=
+begin
+  resetI,
+  haveI := (fintype.of_equiv _ L),
+  haveI := (fintype.of_equiv _ R),
+  exact short.mk'
+    (λ i, by { rw ←(L.right_inv i), exact short_of_relabelling (rL (L.symm i)), })
+    (λ j, short_of_relabelling (rR j))
+end
 
 instance short_neg : Π (x : pgame.{u}) [short x], short (-x)
 | (mk xl xr xL xR) _ :=

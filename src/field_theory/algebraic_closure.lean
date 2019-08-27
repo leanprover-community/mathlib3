@@ -43,8 +43,11 @@ begin
 end
 
 namespace polynomial
-variables {α : Type*} {β : Type*} {γ : Type*}
-variables [decidable_eq α] [comm_semiring α] [comm_semiring β] [comm_semiring γ]
+
+variables {α : Type*} {β : Type*} {γ : Type*} [comm_semiring α] [comm_semiring β] [comm_semiring γ]
+
+section
+variables [decidable_eq α]
 variables (f : α → β) (g : β → γ) [is_semiring_hom f] [is_semiring_hom g] (p : polynomial α) (x : β)
 
 lemma hom_eval₂ : g (p.eval₂ f x) = p.eval₂ (g ∘ f) (g x) :=
@@ -57,7 +60,38 @@ begin
       eval₂_C, eval₂_mul, eval₂_X] at ih ⊢,
     rw ih }
 end
+end
 
+section injective
+variables [decidable_eq α] [decidable_eq β]
+variables {f : α → β} [is_semiring_hom f]
+
+lemma map_injective (hf : function.injective f) :
+  function.injective (map f : polynomial α → polynomial β) :=
+λ p q h, ext.mpr $ λ m, hf $
+begin
+  rw ext at h,
+  specialize h m,
+  rw [coeff_map f, coeff_map f] at h,
+  exact h
+end
+
+lemma leading_coeff_of_injective (hf : injective f) (p : polynomial α) :
+  leading_coeff (p.map f) = f (leading_coeff p) :=
+begin
+  delta leading_coeff,
+  rw [coeff_map f, nat_degree_map' p hf]
+end
+
+lemma monic_of_injective (hf : injective f) {p : polynomial α} (hp : (p.map f).monic) : p.monic :=
+begin
+  apply hf,
+  rw [← leading_coeff_of_injective hf, hp.leading_coeff, is_semiring_hom.map_one f]
+end
+
+end injective
+-- def mk' (n : ℕ) (coeffs : fin n → α) : polynomial α :=
+--   finset.univ.sum (λ i : fin n, C (coeffs i) * X^(i:ℕ))
 
 end polynomial
 
@@ -565,11 +599,13 @@ algebra.of_ring_hom (adjoin_root.of ∘ algebra_map _) (is_ring_hom.comp _ _)
 
 local attribute [instance] aux_instance
 
+-- set_option class.instance_max_depth 80
+
 lemma adjoin_root.algebraic (x : adjoin_root f) : is_integral K x :=
 begin
   rcases adjoin_root.is_integral hif.ne_zero x with ⟨p, pmonic, hp⟩,
   let S : set (adjoin_root f) :=
-    (↑((finset.range (f.nat_degree + 1)).image (λ i, (f.coeff i : adjoin_root f))) : set (adjoin_root f)),
+    (↑((finset.range (p.nat_degree + 1)).image (λ i, (p.coeff i : adjoin_root f))) : set (adjoin_root f)),
   let B := algebra.adjoin K S,
   have Bfg : submodule.fg (B : submodule K (adjoin_root f)),
   { apply fg_adjoin_of_finite,
@@ -577,21 +613,52 @@ begin
     { intros x hx,
       rw [finset.mem_coe, finset.mem_image] at hx,
       rcases hx with ⟨i, hi, rfl⟩,
-      rcases L.algebraic (f.coeff i) with ⟨q, qmonic, hq⟩,
+      rcases L.algebraic (p.coeff i) with ⟨q, qmonic, hq⟩,
       use [q, qmonic],
       replace hq := congr_arg (coe : L.carrier → adjoin_root f) hq,
       convert hq using 1,
       { symmetry, exact polynomial.hom_eval₂ _ _ _ _ },
       { symmetry, exact is_ring_hom.map_zero _ } } },
-
-  -- (1) we know that x is integral over L, by adjoin_root.is_integral
-  -- (2) we know that B is fg over K
-  -- (3) we want to say that adjoin B {x} is fg over B, because (1)
-  -- (4) hence adjoin B {x} is fg over K
-  -- (5) and then we are done by is_integral_of_mem_of_fg
-
-  -- refine is_integral_of_mem_of_fg (algebra.adjoin K S) _ x (algebra.subset_adjoin $ mem_insert _ _),
-  sorry
+  refine is_integral_of_mem_of_fg (algebra.adjoin K (S ∪ {x})) _ x (algebra.subset_adjoin _),
+  { apply algebra.fg_trans Bfg,
+    apply fg_adjoin_singleton_of_integral,
+    let pB : polynomial _ := _,
+    refine ⟨pB, _⟩, swap,
+    { refine (finset.range (p.nat_degree + 1)).sum
+        (λ i, C ⟨(p.coeff i : adjoin_root f), _⟩ * X^i),
+      by_cases hi : i ∈ finset.range (p.nat_degree + 1),
+      { apply algebra.subset_adjoin,
+        rw [finset.mem_coe, finset.mem_image],
+        use [i, hi, rfl] },
+      { rw [finset.mem_range, not_lt] at hi,
+        rw polynomial.coeff_eq_zero_nat_degree_lt hi,
+        rw [is_ring_hom.map_zero (coe : L.carrier → adjoin_root f)],
+        have : (0 : adjoin_root f) ∈ (B : submodule K (adjoin_root f)) :=
+        submodule.zero_mem _,
+        rwa ← submodule.mem_coe at this } },
+    let tmp : _ := _,
+    have hpB : pB.map (algebra_map _ : _ → adjoin_root f) = p.map (coe : L.carrier → adjoin_root f) := _,
+    { split,
+      { have := polynomial.monic_map (coe : L.carrier → adjoin_root f) pmonic,
+        rw ← hpB at this,
+        refine @polynomial.monic_of_injective
+          _ _ _ _ _ _ _ tmp _ _ this,
+        { exact subtype.val_injective } },
+      { rwa [aeval_def, ← @eval_map _ _ _ _ _ _ _ _ tmp _, hpB, eval_map], } },
+    { rw [p.as_sum, ← finset.sum_hom (map _), ← finset.sum_hom (map _)],
+      all_goals { try { apply_instance } },
+      { apply finset.sum_congr rfl,
+        intros i hi,
+        rw [@polynomial.map_mul _ _ _ _ _ _ _ _ _ tmp,
+            @polynomial.map_C _ _ _ _ _ _ _ _ tmp],
+        rw [polynomial.map_mul, polynomial.map_C],
+        refine congr_arg _ _,
+        rw [is_monoid_hom.map_pow (map _), is_monoid_hom.map_pow (map _)],
+        { rw [@polynomial.map_X _ _ _ _ _ _ _ tmp, polynomial.map_X] },
+        all_goals {sorry} },
+      all_goals {sorry} },
+    { exact ⟨rfl, rfl, λ _ _, rfl, λ _ _, rfl⟩ } },
+  { exact mem_union_right _ (mem_singleton _) }
 end
 
 private def adjoin_root_extension_map : adjoin_root f ↪ big_type K :=

@@ -42,6 +42,25 @@ begin
     equiv.apply_symm_apply, is_ring_hom.map_zero e.to_equiv, hx],
 end
 
+namespace polynomial
+variables {α : Type*} {β : Type*} {γ : Type*}
+variables [decidable_eq α] [comm_semiring α] [comm_semiring β] [comm_semiring γ]
+variables (f : α → β) (g : β → γ) [is_semiring_hom f] [is_semiring_hom g] (p : polynomial α) (x : β)
+
+lemma hom_eval₂ : g (p.eval₂ f x) = p.eval₂ (g ∘ f) (g x) :=
+begin
+  apply polynomial.induction_on p; clear p,
+  { intros a, rw [eval₂_C, eval₂_C] },
+  { intros p q hp hq, simp only [hp, hq, eval₂_add, is_semiring_hom.map_add g] },
+  { intros n a ih,
+    simp only [pow_succ', is_semiring_hom.map_mul g, (mul_assoc _ _ _).symm,
+      eval₂_C, eval₂_mul, eval₂_X] at ih ⊢,
+    rw ih }
+end
+
+
+end polynomial
+
 namespace alg_hom
 variables {α : Type u} {β : Type v} {γ : Type w} [comm_ring α] [ring β] [ring γ]
   [algebra α β] [algebra α γ] (f : β →ₐ[α] γ)
@@ -448,22 +467,26 @@ instance adjoin_root_algebraic_closure.field :
 instance adjoin_root_algebraic_closure.is_ring_hom :
   is_ring_hom (@adjoin_root.of _ _ _ f) := adjoin_root.is_ring_hom
 
---set_option class.instance_max_depth 100
 private def adjoin_root.of_embedding : L.carrier ↪ adjoin_root f :=
 ⟨adjoin_root.of, @is_field_hom.injective _ _ _ _ _ $ adjoin_root_algebraic_closure.is_ring_hom f⟩
 
 variable (K)
 
--- set_option class.instance_max_depth 80
-#exit
+def aux_instance : algebra K (adjoin_root f) :=
+algebra.of_ring_hom (adjoin_root.of ∘ algebra_map _) (is_ring_hom.comp _ _)
+
+local attribute [instance] aux_instance
+
+lemma adjoin_root.algebraic (x : adjoin_root f) : is_integral K x :=
+begin
+  sorry
+end
 
 private def adjoin_root_extension_map : adjoin_root f ↪ big_type K :=
 thing (adjoin_root.of_embedding f) ⟨subtype.val, subtype.val_injective⟩
   (λ i, let e : big_type K ↪ ℕ × polynomial K := i.trans
-      (algebraic_embedding sorry) in --adjoining a root to an algebraic extension gives an algebraic extension
+      (algebraic_embedding (adjoin_root.algebraic K f)) in
     cantor_injective e.1 e.2)
-
--- GRRRR. The instance is there!! Why can't Lean find adjoin_root.algebra ???
 
 private lemma adjoin_root_extension_map_apply (x : L.carrier) :
   (adjoin_root_extension_map K f) (@adjoin_root.of _ _ _ f x) = x.val :=
@@ -478,7 +501,19 @@ private def adjoin_root_extension : extension K :=
   algebra := algebra.of_ring_hom
     ((equiv.set.range _ (embedding.inj' (adjoin_root_extension_map K f))).symm.symm ∘
       algebra_map _) (is_ring_hom.comp _ _),
-  algebraic := sorry } -- adjoining a root to an algebraic extension gives an algebraic extension
+  algebraic :=
+  begin
+    rintro ⟨_, x, rfl⟩,
+    rcases adjoin_root.algebraic K f x with ⟨p, pmonic, hp⟩,
+    use [p, pmonic],
+    rw [aeval_def] at hp ⊢,
+    replace hp := congr_arg
+      ((equiv.set.range _ (embedding.inj' (adjoin_root_extension_map K f))).symm.symm) hp,
+    convert hp using 1,
+    symmetry,
+    convert polynomial.hom_eval₂ _ _ _ _,
+    all_goals {apply_instance}
+  end }
 
 variable {L}
 private lemma subset_adjoin_root_extension : L.carrier ⊆ (adjoin_root_extension K f).carrier :=

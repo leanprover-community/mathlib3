@@ -230,14 +230,9 @@ by { dsimp [domineering], apply_instance }
 
 /-- Domineering is always a short game, because the board is finite. -/
 instance short_domineering' : Π (n : ℕ) (b : finset (ℤ × ℤ)) (h : b.card = n), short (domineering' n b h)
-| 0 b h := begin dsimp [domineering'], fsplit; {intros, apply_instance} end
-| 1 b h := begin dsimp [domineering'], fsplit; {intros, apply_instance} end
-| (n+2) b _ :=
-  begin
-    dsimp [domineering'], fsplit,
-    { intro i, apply short_domineering', },
-    { intro i, apply short_domineering', },
-  end
+| 0 b h := by fsplit; { intros, apply_instance }
+| 1 b h := by fsplit; { intros, apply_instance }
+| (n+2) b _ := by fsplit; { intro i, apply short_domineering', }
 
 instance short_domineering (b : finset (ℤ × ℤ)) : short (domineering b) :=
 by { dsimp [domineering], apply_instance }

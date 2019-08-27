@@ -37,9 +37,9 @@ instance left_adjoint_preserves_colimits : preserves_colimits F :=
 { preserves_colimits_of_shape := λ J 𝒥,
   { preserves_colimit := λ F,
     by exactI
-    { preserves := λ c hc, is_colimit_iso_unique_cocone_morphism.inv
+    { preserves := λ c hc, is_colimit.iso_unique_cocone_morphism.inv
         (λ s, (((adj.functoriality_is_left_adjoint _).adj).hom_equiv _ _).unique_of_equiv $
-          is_colimit_iso_unique_cocone_morphism.hom hc _ ) } } }.
+          is_colimit.iso_unique_cocone_morphism.hom hc _ ) } } }.
 
 omit adj
 
@@ -79,9 +79,9 @@ instance right_adjoint_preserves_limits : preserves_limits G :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ K,
     by exactI
-    { preserves := λ c hc, is_limit_iso_unique_cone_morphism.inv
+    { preserves := λ c hc, is_limit.iso_unique_cone_morphism.inv
         (λ s, (((adj.functoriality_is_right_adjoint _).adj).hom_equiv _ _).symm.unique_of_equiv $
-          is_limit_iso_unique_cone_morphism.hom hc _) } } }.
+          is_limit.iso_unique_cone_morphism.hom hc _) } } }.
 
 omit adj
 

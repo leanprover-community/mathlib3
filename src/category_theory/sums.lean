@@ -24,27 +24,24 @@ include 𝒞 𝒟
 `sum C D` gives the direct sum of two categories.
 -/
 instance sum : category.{v₁+1} (C ⊕ D) :=
-{ hom     :=
+{ hom :=
     λ X Y, match X, Y with
     | inl X, inl Y := X ⟶ Y
     | inl X, inr Y := pempty
     | inr X, inl Y := pempty
     | inr X, inr Y := X ⟶ Y
     end,
-  id      :=
+  id :=
     λ X, match X with
     | inl X := 𝟙 X
     | inr X := 𝟙 X
     end,
-  comp    :=
+  comp :=
     λ X Y Z f g, match X, Y, Z, f, g with
     | inl X, inl Y, inl Z, f, g := f ≫ g
     | inr X, inr Y, inr Z, f, g := f ≫ g
     end }
 
--- TODO the next two simp lemmas seem to cause problems
--- @[simp] lemma sum_id_inl (X : C) : (𝟙 (inl X : C ⊕ D)) = (𝟙 X : X ⟶ X) := rfl
--- @[simp] lemma sum_id_inr (X : D) : (𝟙 (inr X : C ⊕ D)) = (𝟙 X : X ⟶ X) := rfl
 @[simp] lemma sum_comp_inl {P Q R : C} (f : (inl P : C ⊕ D) ⟶ inl Q) (g : inl Q ⟶ inl R) :
   f ≫ g = (f : P ⟶ Q) ≫ (g : Q ⟶ R) := rfl
 @[simp] lemma sum_comp_inr {P Q R : D} (f : (inr P : C ⊕ D) ⟶ inr Q) (g : inr Q ⟶ inr R) :

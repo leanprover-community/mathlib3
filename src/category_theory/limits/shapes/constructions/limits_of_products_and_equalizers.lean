@@ -42,7 +42,8 @@ parallel_pair s t
       have L := c.naturality walking_parallel_pair_hom.left,
       have R := c.naturality walking_parallel_pair_hom.right,
       have t := congr_arg (λ g, g ≫ pi.π _ (⟨(j, j'), f⟩ : Σ (p : J × J), p.fst ⟶ p.snd)) (R.symm.trans L),
-      simp only [limit.lift_π, equalizer_diagram_map_right, fan.mk_π_app, equalizer_diagram_map_left, category.assoc] at t,
+      dsimp at t,
+      simp only [limit.lift_π, fan.mk_π_app, category.assoc] at t,
       dsimp,
       simp only [category.id_comp, category.assoc],
       exact t
@@ -62,14 +63,7 @@ parallel_pair s t
       dsimp,
       simp only [category.id_comp], }
   end,
-  naturality' :=
-  begin
-    -- TODO cleanup. why are the erw's needed?
-    tidy,
-    cases X_1; tidy,
-    { erw functor.cones_map_app, simp, },
-    { erw functor.cones_map_app, simp, },
-  end }.
+  naturality' := λ X Y f, by { ext c j, cases j; tidy, } }.
 
 def equalizer_diagram.cones_iso [has_products.{v} C] {J} [small_category J] (F : J ⥤ C) :
   (equalizer_diagram F).cones ≅ F.cones :=
@@ -82,7 +76,7 @@ def equalizer_diagram.cones_iso [has_products.{v} C] {J} [small_category J] (F :
     { ext, simp },
     { ext,
       have t := c.naturality walking_parallel_pair_hom.left,
-      conv at t { to_lhs, dsimp, simp only [category.id_comp] },
+      conv at t { dsimp, to_lhs, simp only [category.id_comp] },
       simp [t], }
   end }
 

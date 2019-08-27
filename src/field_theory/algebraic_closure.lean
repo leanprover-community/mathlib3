@@ -315,20 +315,55 @@ private def base_extension (K : Type u) [discrete_field K] : extension K :=
     exact add_neg_self _
   end }
 
-/-- not used but might help with sorries -/
-private def extension.of_algebraic {L : Type v} [discrete_field L] [algebra K L]
-  (hL : ∀ x : L, is_integral K x) : extension K :=
-{ carrier := set.range (algebraic_embedding_big_type hL),
-  field := equiv.discrete_field (equiv.set.range _ (algebraic_embedding_big_type hL).2).symm,
-  algebra := sorry, -- a field isomorphic to an algebra is an algebra
-  algebraic := sorry -- a field isomorphic to an algebraic extension is algebraic
-  }
+-- /-- not used but might help with sorries -/
+-- private def extension.of_algebraic {L : Type v} [discrete_field L] [algebra K L]
+--   (hL : ∀ x : L, is_integral K x) : extension K :=
+-- { carrier := set.range (algebraic_embedding_big_type hL),
+--   field := equiv.discrete_field (equiv.set.range _ (algebraic_embedding_big_type hL).2).symm,
+--   algebra := sorry, -- a field isomorphic to an algebra is an algebra
+--   algebraic := sorry -- a field isomorphic to an algebraic extension is algebraic
+--   }
+
+@[simp] lemma inclusion_refl {α : Type*} {s : set α} (h : s ⊆ s) : inclusion h = id :=
+funext $ λ x, by { cases x, refl }
+
+@[simp] lemma inclusion_trans {α : Type*} {s t u : set α} (hst : s ⊆ t) (htu : t ⊆ u) :
+  inclusion (set.subset.trans hst htu) = inclusion htu ∘ inclusion hst :=
+funext $ λ x, by { cases x, refl }
 
 instance : preorder (extension K) :=
-{ le := λ L M, ∃ hLM : L.carrier ⊆ M.carrier, is_ring_hom (inclusion hLM),
-  le_refl := λ _, ⟨set.subset.refl _, by convert is_ring_hom.id; ext; simp⟩,
-  le_trans := λ L M N ⟨hLM₁, hLM₂⟩ ⟨hMN₁, hMN₂⟩, ⟨set.subset.trans hLM₁ hMN₁,
-    by resetI; convert is_ring_hom.comp (inclusion hLM₁) (inclusion hMN₁)⟩ }
+{ le := λ L M, ∃ hLM : L.carrier ⊆ M.carrier, (is_ring_hom (inclusion hLM) ∧
+    (inclusion hLM ∘ (algebra_map L.carrier : K → L.carrier) = algebra_map M.carrier)),
+  le_refl := λ L,
+    begin
+      use set.subset.refl L.carrier,
+      rw inclusion_refl,
+      exact ⟨is_ring_hom.id, comp.left_id _⟩
+    end,
+  le_trans := λ L M N ⟨hLM₁, hLM₂, hLM₃⟩ ⟨hMN₁, hMN₂, hMN₃⟩,
+    begin
+      use set.subset.trans hLM₁ hMN₁,
+      rw inclusion_trans, resetI,
+      refine ⟨is_ring_hom.comp _ _, _⟩,
+      rw [comp.assoc, hLM₃, hMN₃]
+    end }
+
+lemma le_def {L M : extension K} :
+  L ≤ M ↔ ∃ hLM : L.carrier ⊆ M.carrier, (is_ring_hom (inclusion hLM) ∧
+    (inclusion hLM ∘ (algebra_map L.carrier : K → L.carrier) = algebra_map M.carrier)) := iff.rfl
+
+lemma subset_of_le {L M : extension K} (h : L ≤ M) : L.carrier ⊆ M.carrier :=
+by { rw le_def at h, rcases h with ⟨_,_,_⟩, assumption }
+
+lemma ring_hom_of_le {L M : extension K} (h : L ≤ M) :
+  is_ring_hom (inclusion $ subset_of_le h) :=
+by { rw le_def at h, rcases h with ⟨_,_,_⟩, assumption }
+
+lemma compat {L M : extension K} (h : L ≤ M) :
+  inclusion (subset_of_le h) ∘ (algebra_map L.carrier : K → L.carrier) = algebra_map M.carrier :=
+by { rw le_def at h, rcases h with ⟨_,_,_⟩, assumption }
+
+local attribute [instance] ring_hom_of_le
 
 private structure chain' (c : set (extension K)) : Prop :=
 (chain : chain (≤) c)
@@ -354,10 +389,14 @@ private def chain_map (i j : c) (hij : i ≤ j) : i.1.carrier → j.1.carrier :=
 inclusion (exists.elim hij (λ h _, h))
 
 instance chain_field_hom (i j : c) (hij : i ≤ j) : is_field_hom (chain_map c i j hij) :=
-exists.elim hij (λ _, id)
+ring_hom_of_le hij
 
 instance chain_directed_system : directed_system (λ i : c, i.1.carrier) (chain_map c) :=
-by split; intros; simp [chain_map]
+begin
+  split; intros; simp only [chain_map],
+  { exact congr_fun (inclusion_refl _) x },
+  { exact (congr_fun (inclusion_trans _ _) x).symm }
+end
 
 private def chain_limit : Type u := ring.direct_limit (λ i : c, i.1.carrier) (chain_map c)
 
@@ -429,9 +468,33 @@ funext $ λ ⟨_, _⟩,
     by rw [function.comp_app, equiv.apply_symm_apply];
       exact of_eq_of _ _ _ _ _ _
 
-end chain
+def Union_algebra (L : c) : algebra K (⋃ i : c, i.1.carrier) :=
+algebra.of_ring_hom ((inclusion (set.subset_Union (λ i : c, i.1.carrier) L)) ∘ algebra_map _)
+(by { refine @is_ring_hom.comp _ _ _ _ _ _ _ _ _ _ })
 
---def maximal_extension (c : set (extension K)) (hc : chain (≤) c) : extension K :=
+lemma Union_compat (L : c) (M : c) :
+  (inclusion (set.subset_Union (λ i : c, i.1.carrier) M)) ∘
+    (algebra_map (M.val.carrier) : K → M.val.carrier) =
+  by haveI := Union_algebra c L; exact algebra_map (↥⋃ (i : ↥c), (i.val).carrier) :=
+begin
+  rcases chain.directed_on (is_chain c) L.1 L.2 M.1 M.2 with ⟨N, hN, hLN, hMN⟩,
+  rw show (inclusion (set.subset_Union (λ i : c, i.1.carrier) M)) =
+    ((inclusion (set.subset_Union (λ i : c, i.1.carrier) ⟨N, hN⟩)) ∘
+    inclusion (subset_of_le hMN)),
+  { funext x, refl },
+  rw comp.assoc,
+  rw show inclusion (subset_of_le hMN) ∘ (algebra_map _ : K → (M.val).carrier) =
+    inclusion (subset_of_le hLN) ∘ algebra_map _,
+  { rw [compat, ← compat] },
+  rw ← comp.assoc,
+  rw ← show (inclusion (set.subset_Union (λ i : c, i.1.carrier) L)) =
+    ((inclusion (set.subset_Union (λ i : c, i.1.carrier) ⟨N, hN⟩)) ∘
+    inclusion (subset_of_le hLN)),
+  { funext x, refl },
+  refl
+end
+
+end chain
 
 private def maximal_extension_chain (c : set (extension K)) (hc : chain (≤) c) :
   { ub : extension K // ∀ L, L ∈ c → L ≤ ub } :=
@@ -440,9 +503,7 @@ if h : nonempty c
   let L := classical.some (classical.exists_true_of_nonempty h) in
   by letI : chain' c := ⟨hc⟩; exact
     ⟨{ carrier := ⋃ (i : c), i.1.carrier,
-        algebra :=
-          algebra.of_ring_hom ((inclusion (set.subset_Union (λ i : c, i.1.carrier) L)) ∘ algebra_map _)
-          (by { refine @is_ring_hom.comp _ _ _ _ _ _ _ _ _ _ }),
+        algebra := Union_algebra c L,
         algebraic :=
         begin
           rintro ⟨x, hx⟩,
@@ -451,10 +512,17 @@ if h : nonempty c
           rcases (L'.val).algebraic ⟨x, hx⟩ with ⟨p, pmonic, hp⟩,
           use [p, pmonic],
           rw aeval_def at hp ⊢,
-          sorry,
-        end }, -- Field is isomorphic to direct limit of some algebraic extensions
+          replace hp := congr_arg (inclusion (set.subset_Union (λ i : c, i.1.carrier) L')) hp,
+          convert hp using 1; symmetry,
+          { rw polynomial.hom_eval₂ _ (inclusion _) p _,
+            congr' 1,
+            { exact Union_compat c L L' },
+            { apply_instance, },
+            { apply is_ring_hom.is_semiring_hom, } },
+          { refine is_ring_hom.map_zero _ },
+        end },
     λ e he, ⟨by convert subset_Union _ (⟨e, he⟩ : c); refl,
-      algebraic_closure.is_field_hom_Union c ⟨e, he⟩⟩⟩
+      algebraic_closure.is_field_hom_Union c ⟨e, he⟩, Union_compat c L ⟨e, he⟩⟩⟩
   else ⟨base_extension K, λ a ha, (h ⟨⟨a, ha⟩⟩).elim⟩
 
 section adjoin_root
@@ -525,7 +593,10 @@ funext $ λ ⟨_, _⟩, subtype.eq $ eq.symm $ adjoin_root_extension_map_apply _
 
 private lemma le_adjoin_root_extension : L ≤ adjoin_root_extension K f :=
 ⟨subset_adjoin_root_extension K f,
-  by rw [adjoin_root_inclusion_eq]; dsimp [adjoin_root.of_embedding]; exact is_ring_hom.comp _ _⟩
+  begin
+    rw [adjoin_root_inclusion_eq]; dsimp [adjoin_root.of_embedding],
+    exact ⟨is_ring_hom.comp _ _, rfl⟩
+  end⟩
 
 private def equiv_adjoin_root_of_le (h : adjoin_root_extension K f ≤ L) :
   L.carrier ≃r adjoin_root f :=

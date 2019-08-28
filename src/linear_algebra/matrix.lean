@@ -7,7 +7,8 @@ The equivalence between matrices and linear maps.
 -/
 
 import data.matrix
-import linear_algebra.dimension linear_algebra.tensor_product
+import linear_algebra.dimension linear_algebra.tensor_product linear_algebra.determinant
+import data.polynomial
 
 /-!
 
@@ -185,6 +186,23 @@ def lin_equiv_matrix {ι κ β γ : Type*} [decidable_eq α]
   (β →ₗ[α] γ) ≃ₗ[α] matrix κ ι α :=
 linear_equiv.trans (linear_equiv.arrow_congr (equiv_fun_basis hv₁) (equiv_fun_basis hv₂)) lin_equiv_matrix'
 
+--TODO: universes
+variables {ι₁ ι₂ ι₃ β₁ β₂ β₃ : Type u} [decidable_eq α]
+variables [add_comm_group β₁] [decidable_eq β₁] [module α β₁]
+variables [add_comm_group β₂] [decidable_eq β₂] [module α β₂]
+variables [add_comm_group β₃] [decidable_eq β₃] [module α β₃]
+variables [fintype ι₁] [decidable_eq ι₁] {v₁ : ι₁ → β₁} (hv₁ : is_basis α v₁)
+variables [fintype ι₂] [decidable_eq ι₂] {v₂ : ι₂ → β₂} (hv₂ : is_basis α v₂)
+variables [fintype ι₃] [decidable_eq ι₃] {v₃ : ι₃ → β₃} (hv₃ : is_basis α v₃)
+
+lemma lin_equiv_matrix_comp (f : β₁ →ₗ[α] β₂) (g : β₂ →ₗ[α] β₃) :
+  (lin_equiv_matrix hv₁ hv₃).to_fun (g.comp f) =
+  ((lin_equiv_matrix hv₂ hv₃).to_fun g).mul ((lin_equiv_matrix hv₁ hv₂).to_fun f) := sorry
+
+lemma lin_equiv_matrix_mul (M : matrix ι₂ ι₁ α) (N : matrix ι₃ ι₂ α) :
+  (lin_equiv_matrix hv₁ hv₃).inv_fun (N.mul M) =
+  ((lin_equiv_matrix hv₂ hv₃).inv_fun N).comp ((lin_equiv_matrix hv₁ hv₂).inv_fun M) := sorry
+
 end lin_equiv_matrix
 
 namespace matrix
@@ -267,3 +285,28 @@ end
 end vector_space
 
 end matrix
+
+
+open polynomial matrix
+
+variables {α : Type v} [decidable_eq α] [comm_ring α]
+variables [decidable_eq n]
+
+def char_polynomial (M : matrix n n α) : polynomial α :=
+det (diagonal (λ _:n, (X : polynomial α)) - (λ i j, C (M i j)))
+
+namespace char_polynomial
+
+variables (M : matrix n n α)
+
+lemma eval (b : α) : eval b (char_polynomial M) = det (diagonal (λ _:n, b) - M) :=
+begin
+change finsupp.sum (finset.univ.sum (λ (σ : equiv.perm n), ((equiv.perm.sign σ : ℤ) : polynomial α) *
+  finset.univ.prod (λ (i : n), (diagonal (λ (_x : n), X) - λ (i j : n), C (M i j)) (σ i) i))) (λ e a, a * b ^ e) = det (diagonal (λ (_x : n), b) - M),
+sorry
+end
+
+lemma constant_coeff : coeff (char_polynomial M) 0 = (-1) ^ fintype.card n * det M :=
+by rw [coeff_zero_eq_eval_zero, eval, diagonal_zero, zero_sub, det_neg]
+
+end char_polynomial

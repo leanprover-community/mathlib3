@@ -110,4 +110,9 @@ instance : is_monoid_hom (det : matrix n n R → R) :=
 { map_one := det_one,
   map_mul := det_mul }
 
+@[simp] lemma det_neg_one : det (-1 : matrix n n R) = (-1) ^ fintype.card n := sorry
+
+@[simp] lemma det_neg (M : matrix n n R) : det (-M) = (-1) ^ fintype.card n * det M :=
+by rw [neg_eq_neg_one_mul, det_mul, det_neg_one]
+
 end matrix

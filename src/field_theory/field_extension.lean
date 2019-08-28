@@ -5,44 +5,58 @@ import algebra.big_operators
 
 universes u v w
 
-section
-
-
-variables {ι₁ ι₂ α β γ : Type u} [ring α] [ring β] [add_comm_group γ] [module α β] [module β γ] [module α γ]
-  [decidable_eq α] [decidable_eq β] [decidable_eq γ] [decidable_eq ι₁] [decidable_eq ι₂]
-  {v₁ : ι₁ → β} {v₂ : ι₂ → γ} (hv₁ : is_basis α v₁) (hv₂ : is_basis β v₂) (f : ι₂ × ι₁ →₀ α)
-#check finsupp.map_range (λ (g : ι₁ →₀ α), finsupp.sum g (λ (a : ι₁) (b : α), b • v₁ a)) sorry (finsupp.curry f)
-
-end
-
 class field_extension (α : Type u) (β : Type v) [discrete_field α] [discrete_field β] extends algebra α β
 
 namespace field_extension
+
+variables (α : Type u) [discrete_field α]
+
+section
+
+open vector_space
+
+variables (β : Type v) [discrete_field β] [field_extension α β]
+
+lemma dim_ne_zero : dim α β ≠ 0 := sorry
+
+lemma dim_pos : dim α β > 0 := cardinal.pos_iff_ne_zero.mpr (dim_ne_zero α β)
+
+end
 
 section field_norm
 
 open finite_dimensional
 
-variables (α : Type u) [discrete_field α]
+section
+variables {β : Type v} [discrete_field β] [field_extension α β] [finite_dimensional α β]
 
-def mul_map {β : Type v} [discrete_field β] [field_extension α β] [finite_dimensional α β] (b : β) : β →ₗ[α] β :=
+private def mul_map (b : β) : β →ₗ[α] β :=
 { to_fun := λ x, b * x,
   add := mul_add b,
   smul := λ a, algebra.mul_smul_comm a b }
 
-lemma mul_map_mul {β : Type v} [discrete_field β] [field_extension α β] [finite_dimensional α β] (b c : β) :
-  mul_map α (b * c) = (mul_map α b).comp (mul_map α c) := sorry
+lemma mul_map_mul (b c : β) : mul_map α (b * c) = (mul_map α b).comp (mul_map α c) :=
+linear_map.ext (λ _, ring.mul_assoc _ _ _)
 
+end
+
+section
 variables (β : Type v) [discrete_field β] [field_extension α β] [finite_dimensional α β]
 
-def fin_basis : set β :=
+private def fin_basis : set β :=
 classical.some $ exists_is_basis_finite α β
 
 noncomputable instance fin_basis_fintype : fintype (fin_basis α β) :=
 (classical.some_spec $ exists_is_basis_finite α β).2.fintype
 
+instance fin_basis_decidable_eq : decidable_eq (fin_basis α β) := by apply_instance
+
 lemma fin_basis_is_basis : is_basis α (subtype.val : fin_basis α β → β) :=
 (classical.some_spec $ exists_is_basis_finite α β).1
+
+end
+
+variables {β : Type v} [discrete_field β] [field_extension α β] [finite_dimensional α β]
 
 --instance : module α β := by apply_instance
 --noncomputable def mul_matrix (b : β) : matrix {x // x ∈ fin_basis α β} {x // x ∈ fin_basis α β} α :=
@@ -55,29 +69,39 @@ by { letI : module α β := algebra.to_module α β,
      letI : module α (matrix {x // x ∈ fin_basis α β} {x // x ∈ fin_basis α β} α) := matrix.module,
      exact (lin_equiv_matrix (fin_basis_is_basis α β) (fin_basis_is_basis α β)).to_fun (mul_map α b) }
 
-noncomputable def field_norm (b : β) : α := matrix.det $ mul_matrix α β b
+lemma mul_matrix_mul (b c : β) : mul_matrix α (b * c) = (mul_matrix α b) * (mul_matrix α c) :=
+by { unfold mul_matrix, simp, rw [mul_map_mul, lin_equiv_matrix_comp (fin_basis_is_basis α β) _ _] }
+
+lemma mul_matrix_base (a : α) : mul_matrix α (algebra_map β a) = matrix.diagonal (λ _, a) := sorry
+
+noncomputable def field_norm (b : β) : α := matrix.det $ mul_matrix α b
 
 lemma test (α β γ : Type*) [discrete_field α] [add_comm_group β] [add_comm_group γ]
   [module α β] [module α γ] (e : β ≃ₗ[α] γ) : e.to_fun = e.to_linear_map.to_fun := rfl
 
-@[simp] lemma norm_mul (b c : β) : field_norm α β (b * c) = field_norm α β b * field_norm α β c :=
-sorry
-/-begin
+@[simp] lemma norm_mul (b c : β) : field_norm α (b * c) = field_norm α b * field_norm α c :=
+by { unfold field_norm, rw [mul_matrix_mul, matrix.det_mul] }
+
+lemma norm_base (a : α) : field_norm α (algebra_map β a) = a ^ findim α β :=
+begin
 unfold field_norm,
-unfold mul_matrix,
-simp,
-rw [←matrix.det_mul],
+rw [mul_matrix_base, matrix.det_diagonal, finset.prod_const, finset.card_univ],
 congr,
-conv_rhs { rw [←smul_eq_mul], congr, skip, rw [test] },
-rw[←linear_map.smul (lin_equiv_matrix _ _).to_linear_map ((lin_equiv_matrix _ _).to_fun (mul_map α b)) (mul_map α c)],
+exact card_eq_findim (fin_basis_is_basis α β)
+end
 
-end-/
+lemma norm_zero : field_norm α (0 : β) = 0 :=
+begin
+rw [←algebra.map_zero α β, norm_base],
+refine zero_pow _,
+rw [←cardinal.nat_cast_lt, findim_eq_dim],
+exact dim_pos α β
+end
 
-lemma norm_base (a : α) : field_norm α β (algebra_map β a) = a ^ findim α β := sorry
+lemma norm_zero_iff_zero (b : β) : field_norm α b = 0 ↔ b = 0 :=
+⟨sorry, λ h, by rw [h, norm_zero]⟩
 
-lemma norm_zero : field_norm α β 0 = 0 := sorry
-
-lemma norm_zero_iff_zero (b : β) : field_norm α β b = 0 ↔ b = 0 := sorry
+lemma norm_one : field_norm α (1 : β) = 1 := by rw [←algebra.map_one α β, norm_base, one_pow]
 
 end field_norm
 
@@ -158,9 +182,10 @@ rw [←mem_vanishing_ideal_iff, mem_iff_generator_dvd] at hp,
 exact (mul_dvd_of_is_unit_right $ is_unit_iff_degree_eq_zero.mpr $ degree_C $ C_ne_zero α hb).mpr hp
 end
 
-lemma minimal {p : polynomial α} (h0 : p ≠ 0) (hp : aeval α β b p = 0) :
+lemma minimal {p : polynomial α} (hp : p ∈ vanishing_ideal α b) (h0 : p ≠ 0) :
   degree (minimal_polynomial α hb) ≤ degree p :=
 begin
+rw [mem_vanishing_ideal_iff] at hp,
 cases exists_eq_mul_right_of_dvd (aeval_zero_iff_dvd α hb hp) with q h,
 have hq : q ≠ 0, from λ hn, by { rw [hn, mul_zero] at h, exact h0 h },
 rw [h],
@@ -213,9 +238,25 @@ begin
   have h : eval₂ (algebra_map β) b (minimal_polynomial α hb) = 0, from aeval_zero α hb,
   rw [hq, eval₂_mul] at h,
   cases (integral_domain.eq_zero_or_eq_zero_of_mul_eq_zero _ _ h) with h h,
-  { exact hq1q (minimal α hb h0q1 h) },
-  { exact hq2q (minimal α hb h0q2 h) }
+  { exact hq1q (minimal α hb ((mem_vanishing_ideal_iff α b _).mpr h) h0q1) },
+  { exact hq2q (minimal α hb ((mem_vanishing_ideal_iff α b _).mpr h) h0q2) }
 end)
+
+lemma degree_unique {p : polynomial α} (h0 : p ≠ 0) (hp : p ∈ vanishing_ideal α b)
+  (hmin : ∀ q ∈ vanishing_ideal α b, q ≠ 0 → degree p ≤ degree q) :
+  degree (minimal_polynomial α hb) = degree p :=
+le_antisymm (minimal α hb hp h0) (hmin _ (mem_vanishing_ideal α hb) (nonzero α hb))
+
+lemma unique {p : polynomial α} (h0 : p ≠ 0) (hp : p ∈ vanishing_ideal α b) (hm : p.monic)
+  (hmin : ∀ q ∈ vanishing_ideal α b, q ≠ 0 → degree p ≤ degree q) :
+  minimal_polynomial α hb = p :=
+have h1 : minimal_polynomial α hb - p ∈ vanishing_ideal α b, from ideal.sub_mem _ (mem_vanishing_ideal α hb) hp,
+have h2 : ¬degree (minimal_polynomial α hb) ≤ degree (minimal_polynomial α hb - p), from
+  not_le_of_lt $ degree_sub_lt
+    (degree_unique α hb h0 hp hmin) (nonzero α hb)
+    (by rw [monic.def.mp (monic α hb), monic.def.mp hm]),
+classical.by_contradiction
+  (λ h, absurd (minimal α hb h1 (sub_ne_zero.mpr h)) h2)
 
 end minimal_polynomial
 

@@ -45,14 +45,14 @@ do e ← get_env,
       #print <name> <open multiline comment> <elt of α> <close multiline comment> -/
 meta def print_decls {α} [has_to_format α] (ds : list (declaration × α)) : format :=
 ds.foldl
-  (λ f x, f ++ format.line ++ to_fmt "#print " ++ to_fmt x.1.to_name ++ " /- " ++ to_fmt x.2 ++ " -/")
+  (λ f x, f ++ "\n" ++ to_fmt "#print " ++ to_fmt x.1.to_name ++ " /- " ++ to_fmt x.2 ++ " -/")
   format.nil
 
 /-- Make the output of `fold_over_with_cond_sorted` printable, with the file path + name inserted.-/
 meta def print_decls_sorted {α} [has_to_format α] (ds : list (string × list (declaration × α))) :
   format :=
 ds.foldl
-  (λ f x, f ++ format.line ++ format.line ++ to_fmt "-- " ++ to_fmt x.1 ++ print_decls x.2)
+  (λ f x, f ++ "\n" ++ "\n" ++ to_fmt "-- " ++ to_fmt x.1 ++ print_decls x.2)
   format.nil
 
 /- Print all (non-internal) declarations where tac return `some x`-/
@@ -127,8 +127,7 @@ meta def get_all_unused_args_current_file : tactic unit :=
 print_decls_current_file prettify_unused_arguments >>= trace
 
 /-- Checks whether the correct declaration constructor (definition of theorem) by comparing it
-  to its sort. This will automatically remove all instances and automatically generated
-  definitions -/
+  to its sort. Instances will not be printed -/
 meta def incorrect_def_lemma (d : declaration) : tactic (option string) :=
 do
   e ← get_env,
@@ -145,6 +144,13 @@ do
 meta def incorrect_def_lemma_mathlib : tactic unit :=
 print_decls_mathlib prettify_unused_arguments >>= trace
 
+/-- Checks whether a declaration has a namespace twice consecutively in its name -/
+meta def dup_namespace (d : declaration) : tactic (option string) :=
+return $ let nm := d.to_name.components in if nm.chain' (≠) then none
+  else let s := (nm.find $ λ n, nm.count n ≥ 2).iget.to_string in
+  some $ "The namespace " ++ s ++ " is duplicated in the name"
+
+
 /-- Return the message printed by `#sanity_check`. -/
 meta def sanity_check : tactic format :=
 do
@@ -154,7 +160,10 @@ do
   else to_fmt "/- Unused arguments in the current file: -/" ++ f ++ "\n\n",
   f ← print_decls_current_file incorrect_def_lemma,
   let s := s ++ if f.is_nil then "/- OK: All declarations correctly marked as def/lemma -/\n\n"
-  else to_fmt "/- Declarations incorrectly marked as def/lemma: -/" ++ f ++ "\n",
+  else to_fmt "/- Declarations incorrectly marked as def/lemma: -/" ++ f ++ "\n\n",
+  f ← print_decls_current_file dup_namespace,
+  let s := s ++ if f.is_nil then "/- OK: No declarations have a duplicate namespace -/\n\n"
+  else to_fmt "/- Declarations with a namespace duplicated: -/" ++ f ++ "\n\n",
   return s
 
 /-- The command `#sanity_check` at the bottom of a file will warn you about some common mistakes
@@ -168,9 +177,11 @@ do s ← sanity_check, trace s
 do
   trace "/- Note: This command is still in development. -/\n",
   f ← print_decls_mathlib prettify_unused_arguments,
-  trace (to_fmt "/- UNUSED ARGUMENTS: -/" ++ f ++ format.line),
+  trace (to_fmt "/- UNUSED ARGUMENTS: -/" ++ f ++ "\n"),
   f ← print_decls_mathlib incorrect_def_lemma,
-  trace (to_fmt "/- INCORRECT DEF/LEMMA: -/" ++ f ++ format.line),
+  trace (to_fmt "/- INCORRECT DEF/LEMMA: -/" ++ f ++ "\n"),
+  f ← print_decls_mathlib dup_namespace,
+  trace (to_fmt "/- DUPLICATED NAMESPACES IN NAME: -/" ++ f ++ "\n"),
   skip
 
 @[hole_command] meta def sanity_check_hole_cmd : hole_command :=

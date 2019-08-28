@@ -96,7 +96,8 @@ if l = [] then none else
 let l2 := check_unused_arguments_aux [] 1 d.type.pi_arity d.type in
 (l.filter $ λ n, n ∈ l2).reverse
 
-/- Check for unused arguments and print them in a nice way.
+/- Check for unused arguments, and print them with their position, variable name, type and whether
+  the argument is a duplicate.
   See also `check_unused_arguments`.
   This tactic additionally filters out all unused arguments of type `parse _` -/
 meta def prettify_unused_arguments (d : declaration) : tactic (option format) :=

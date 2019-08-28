@@ -80,7 +80,7 @@ def equalizer_diagram.cones_iso [has_products.{v} C] {J} [small_category J] (F :
       simp [t], }
   end }
 
-instance [has_products.{v} C] [has_equalizers.{v} C] {J} [small_category J] (F : J ⥤ C) :
+instance has_limit_of_has_products_of_has_equalizers [has_products.{v} C] [has_equalizers.{v} C] {J} [small_category J] (F : J ⥤ C) :
   has_limit.{v} F :=
 has_limit.of_cones_iso (equalizer_diagram F) F (equalizer_diagram.cones_iso F)
 

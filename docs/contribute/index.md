@@ -32,7 +32,9 @@ to make the process of contributing as smooth as possible.
    ```
    find src/ -name '*.olean' -exec touch {} +
    ```
+   - You can also run `cache-olean` to save all your current `.olean` files (before you checkout another branch). After returning to this branch you can restore these `.olean` files by running `cache-olean --fetch`.
    - See [Caching compilation](#caching-compilation) for commands to do this automatically.
+
 
 ## The nursery
 

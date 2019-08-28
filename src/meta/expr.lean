@@ -338,7 +338,7 @@ meta structure binder :=
   (type : expr)
 
 namespace binder
-/- Turn a binder into a string. Uses expr.to_string for the type. -/
+/-- Turn a binder into a string. Uses expr.to_string for the type. -/
 protected meta def to_string (b : binder) : string :=
 let (l, r) := b.info.brackets in
 l ++ b.name.to_string ++ " : " ++ b.type.to_string ++ r

@@ -148,7 +148,7 @@ print_decls_mathlib prettify_unused_arguments >>= trace
 meta def sanity_check : tactic format :=
 do
   let s := to_fmt "/- Note: This command is still in development. -/\n\n",
-  f ← print_decls_current_file (prettify_unused_arguments),
+  f ← print_decls_current_file prettify_unused_arguments,
   let s := s ++ if f.is_nil then "/- OK: No unused arguments in the current file. -/\n\n"
   else to_fmt "/- Unused arguments in the current file: -/" ++ f ++ "\n\n",
   f ← print_decls_current_file incorrect_def_lemma,
@@ -166,7 +166,7 @@ do s ← sanity_check, trace s
   parser unit :=
 do
   trace "/- Note: This command is still in development. -/\n",
-  f ← print_decls_mathlib (prettify_unused_arguments),
+  f ← print_decls_mathlib prettify_unused_arguments,
   trace (to_fmt "/- UNUSED ARGUMENTS: -/" ++ f ++ format.line),
   f ← print_decls_mathlib incorrect_def_lemma,
   trace (to_fmt "/- INCORRECT DEF/LEMMA: -/" ++ f ++ format.line),

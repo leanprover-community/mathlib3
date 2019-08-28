@@ -12,6 +12,7 @@ import tactic.vampire.list
 namespace vampire
 
 variables {α : Type}
+variables {R : rls α} {F : fns α} {V : vas α}
 
 local notation p `∨*` q := frm.bin tt p q
 local notation p `∧*` q := frm.bin ff p q
@@ -61,7 +62,17 @@ def repr : lit → string
 | (ff, a):= "-" ++ a.repr
 | (tt, a):= "+" ++ a.repr
 
+def replace (t s : trm) : lit → lit 
+| (b, a) := (b, a.replace t s)
+
 instance has_repr : has_repr lit := ⟨repr⟩
+
+lemma holds_replace {r u : trm} 
+  (h0 : r.val F V = u.val F V) : 
+  ∀ l : lit, (l.replace r u).holds R F V ↔ l.holds R F V :=
+by rintro ⟨_ | _, a⟩; 
+   unfold replace; unfold holds;
+   rw atm.holds_replace h0
 
 end lit
 
@@ -104,8 +115,6 @@ def holds (R : rls α) (F : fns α) (V : vas α) (m : mat) : Prop :=
 ∀ c ∈ m, cla.holds R F V c
 
 end mat
-
-variables {R : rls α} {F : fns α} {V : vas α}
 
 lemma holds_map_app_prod_left :
   ∀ m n : mat, m.holds R F V →

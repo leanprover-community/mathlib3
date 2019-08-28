@@ -7,10 +7,12 @@ import tactic.vampire.skolemize
 
 namespace vampire
 
+local notation `v*` := xtrm.vr
+local notation `f*` := xtrm.fn
+local notation `[]*` := xtrm.nil
+local notation h `::*` ts  := xtrm.cons h ts
 local notation `r*`     := atm.rl 
 local notation t `=*` s := atm.eq t s 
-local notation `+*`     := frm.atm tt
-local notation `-*`     := frm.atm ff
 local notation p `∨*` q := frm.bin tt p q
 local notation p `∧*` q := frm.bin ff p q
 local notation `∃*` p   := frm.qua tt p
@@ -54,29 +56,30 @@ meta def get_inhabitance (αx : expr) : tactic expr :=
 do ihx ← tactic.to_expr ``(inhabited),
    tactic.mk_instance (expr.app ihx αx)
 
-variables {α : Type} [inhabited α]
+variables {α : Type} 
 
 inductive proof (m : mat) : cla → Type
-| ins (k : nat) (μs : vmaps) : proof ((m.nth k).vsubs μs)
-| res (a : atm) (c d : cla) :
+| H (k : nat) : proof (m.nth k)
+| C (l : lit) (c : cla) :
+  proof (l :: l :: c) → proof (l :: c)
+| R (a : atm) (c d : cla) :
   proof ((ff, a) :: c) →
   proof ((tt, a) :: d) →
   proof (c ++ d)
-| rot (k : nat) (c : cla) :
+| S (μs : vmaps) (c : cla) : 
+  proof c → proof (c.vsubs μs)
+| T (k : nat) (c : cla) :
   proof c → proof (c.rot k)
-| con (l : lit) (c : cla) :
-  proof (l :: l :: c) → proof (l :: c)
-| sub (b : bool) (a : atm) (t s : trm) (c d : cla) :
-  proof ((b, a) :: c) →
+| P (l : lit) (t s : trm) (c d : cla) :
+  proof (l :: c) →
   proof (((tt, t =* s) :: d)) →
-  proof ((b, a.replace t s) :: c ++ d)
-| sym (b : bool) (t s : trm) (c : cla) :
+  proof (l.replace t s :: c ++ d)
+| Y (b : bool) (t s : trm) (c : cla) :
   proof ((b, t =* s) :: c) → 
   proof ((b, s =* t) :: c)
-| trv (t : trm) (c : cla) :
+| V (t : trm) (c : cla) :
   proof ((ff, t =* t) :: c) → proof c
 
-  #exit
 /- Same as is.fs.read_to_end and io.cmd,
    except for configurable read length. -/
 def io.fs.read_to_end' (h : io.handle) : io char_buffer :=
@@ -97,57 +100,71 @@ do child ← io.proc.spawn { stdout := io.process.stdio.piped, ..args },
   return buf.to_string
 open tactic
 
-def nat.to_rr (k : nat) : string := "b" ++ k.bstr
+universe u
 
-def trm.to_rr : trm → string
-| (trm.fn k)   := nat.to_rr k ++ "f"
-| (trm.tp t s) := string.join [t.to_rr, s.to_rr, "a"]
-| (trm.vp t k) := string.join [t.to_rr, nat.to_rr k, "va"]
+class has_to_asm (α : Type u) :=
+(to_asm : α → string)
 
-def extrm.to_rr : extrm → string
-| (extrm.vr k) := nat.to_rr k ++ "v"
-| (extrm.tm t) := t.to_rr
+def to_asm {α : Type u} [has_to_asm α] : α → string :=
+has_to_asm.to_asm
 
-def atm.to_rr : atm → string
-| (atm.rl k)   := nat.to_rr k ++ "r"
-| (atm.tp a t) := string.join [a.to_rr, t.to_rr, "a"]
-| (atm.vp a k) := string.join [a.to_rr, nat.to_rr k, "va"]
+instance nat.has_to_asm : has_to_asm nat := ⟨λ k, "b" ++ k.bstr⟩
 
-def lit.to_rr : lit → string
-| (lit.atm b a) := a.to_rr ++ (if b then "p" else "n")
-| (lit.eq b t s) :=
-  string.join [t.to_rr, s.to_rr, "q", if b then "p" else "n"]
+def xtrm.to_asm : ∀ {b : bool}, xtrm b → string
+| _ []*        := "n"
+| _ (t ::* ts) := ts.to_asm ++ t.to_asm ++ "c"
+| _ (v* k)     := to_asm k ++ "v"
+| _ (f* k ts)  := ts.to_asm ++ to_asm k ++ "f"
 
-def cla.to_rr : cla → string
-| []       := "e"
-| (l :: c) := string.join [cla.to_rr c, l.to_rr, "c"]
+instance trm.has_to_asm : has_to_asm trm :=
+⟨xtrm.to_asm⟩ 
 
-def mat.to_rr : mat → string
-| []       := "e"
-| (c :: m) := string.join [mat.to_rr m, c.to_rr, "c"]
+def list.to_asm [has_to_asm α] : list α → string 
+| []        := "n"
+| (a :: as) := list.to_asm as ++ to_asm a ++ "c"
 
-meta def get_rr (m : mat) : tactic string :=
+instance list.has_to_asm [has_to_asm α] : has_to_asm (list α) :=
+⟨list.to_asm⟩  
+
+def atm.to_asm : atm → string
+| (r* k ts) := to_asm ts ++ to_asm k ++ "r"
+| (t =* s)  := to_asm t ++ to_asm s ++ "e"
+
+instance atm.has_to_asm : has_to_asm atm := ⟨atm.to_asm⟩
+
+def lit.to_asm : lit → string
+| (b, a) := to_asm a ++ if b then "+" else "-"
+
+instance lit.has_to_asm : has_to_asm lit := ⟨lit.to_asm⟩
+
+meta def get_asm (m : mat) : tactic string :=
 unsafe_run_io $ io.cmd'
 { cmd := "main.pl",
-  args := [m.to_rr] }
+  args := [to_asm m] }
 
 meta inductive item : Type
+| nl                       : item
 | nm  (n : nat)            : item
-| trm (t : trm)           : item
-| mps (m : vmaps)       : item
+| trm (t : trm)            : item
+| trms (ts : trms)         : item
+| mp (μ : vmap)            : item
+| mps (μs : vmaps)         : item
 | prf (x : expr) (c : cla) : item
 
 namespace item
  
 meta def repr : item → string 
-| (item.nm n) := n.repr
-| (item.trm t) := t.repr
-| (item.mps m) := "vmap"
+| item.nl        := "[]"
+| (item.nm n)    := n.repr
+| (item.trm t)   := t.repr
+| (item.trms ts) := ts.repr
+| (item.mp m)    := "VMAP"
+| (item.mps m)   := "VMAPS"
 | (item.prf x c) := c.repr
 
 meta instance has_repr : has_repr item := ⟨repr⟩ 
 
-meta instance has_to_frmat : has_to_frmat item := ⟨λ x, repr x⟩ 
+meta instance has_to_format : has_to_format item := ⟨λ x, repr x⟩ 
 
 end item
 
@@ -158,6 +175,8 @@ meta def vmaps.to_expr : vmaps → expr
 | []        := `(@list.nil vmap)
 | (m :: ms) := expr.mk_app `(@list.cons vmap) [m.to_expr, vmaps.to_expr ms]
 
+set_option eqn_compiler.max_steps 4096
+
 meta def build_proof_core (m : mat) (mx : expr) :
   list item → list char → tactic expr
 | (item.prf x _ :: stk) [] := return x
@@ -165,51 +184,54 @@ meta def build_proof_core (m : mat) (mx : expr) :
   build_proof_core stk chs
 | stk ('\n' :: chs) :=
   build_proof_core stk chs
-| stk ('n' :: chs) :=
+| (item.nm k :: stk) ('H' :: infs) :=
+  let πx := expr.mk_app `(@proof.H) [mx, k.to_expr] in
+  build_proof_core (item.prf πx (m.nth k) :: stk) infs
+| (item.mps μs :: item.prf πx c :: stk) ('S' :: infs) :=
+  let c' := c.vsubs μs in
+  let πx' := expr.mk_app `(@proof.S) [mx, μs.to_expr, cla.to_expr c, πx] in
+  build_proof_core (item.prf πx' c' :: stk) infs
+| ((item.prf σx ((tt, a) :: d)) :: (item.prf πx ((ff, b) :: c)) :: stk) ('R' :: infs) :=
+  let πx := expr.mk_app `(@proof.R) [mx, a.to_expr, cla.to_expr c, cla.to_expr d, πx, σx] in
+  build_proof_core (item.prf πx (c ++ d) :: stk) infs
+| ((item.prf πx c) :: item.nm k :: stk) ('T' :: chs) :=
+  let πx := expr.mk_app `(@proof.T) [mx, k.to_expr, c.to_expr, πx] in
+  build_proof_core (item.prf πx (c.rot k) :: stk) chs
+| ((item.prf πx (l :: _ :: c)) :: stk) ('C' :: chs) :=
+  let πx := expr.mk_app `(@proof.C) [mx, l.to_expr, cla.to_expr c, πx] in
+  build_proof_core (item.prf πx (l :: c) :: stk) chs
+| ( (item.prf σx ((tt, t =* s) :: d)) :: (item.prf πx (l :: c)) :: stk ) ('P' :: chs) :=
+  let ρx := expr.mk_app `(@proof.P) 
+    [mx, t.to_expr, s.to_expr, l.to_expr, cla.to_expr c, cla.to_expr d, πx, σx] in
+  build_proof_core (item.prf ρx (l.replace t s :: c ++ d) :: stk) chs
+| ((item.prf πx ((b, t =* s) :: c)) :: stk) ('Y' :: chs) :=
+  let πx' := expr.mk_app `(@proof.Y) [mx, b.to_expr, t.to_expr, s.to_expr, cla.to_expr c, πx] in
+  build_proof_core (item.prf πx' ((b, s =* t) :: c) :: stk) chs
+| ((item.prf πx ((ff, t =* _) :: c)) :: stk) ('V' :: chs) :=
+  let πx' := expr.mk_app `(@proof.V) [mx, t.to_expr, cla.to_expr c, πx] in
+  build_proof_core (item.prf πx' c :: stk) chs
+| stk ('b' :: chs) :=
   build_proof_core (item.nm 0 :: stk) chs
 | (item.nm k :: stk) ('0' :: chs) :=
   build_proof_core (item.nm (k * 2) :: stk) chs
 | (item.nm k :: stk) ('1' :: chs) :=
   build_proof_core (item.nm ((k * 2) + 1) :: stk) chs
-| (item.mps μs :: item.nm k :: stk) ('I' :: infs) :=
-  let c := (m.nth k).substs μs in
-  let πx := expr.mk_app `(@proof.ins) [mx, k.to_expr, μs.to_expr] in
-  build_proof_core (item.prf πx c :: stk) infs
-| ((item.prf σx ((+* a) :: d)) :: (item.prf πx ((-* b) :: c)) :: stk) ('R' :: infs) :=
-  let πx := expr.mk_app `(@proof.res) [mx, a.to_expr, cla.to_expr c, cla.to_expr d, πx, σx] in
-  build_proof_core (item.prf πx (c ++ d) :: stk) infs
-| ((item.prf πx c) :: item.nm k :: stk) ('T' :: chs) :=
-  let πx := expr.mk_app `(@proof.rot) [mx, k.to_expr, c.to_expr, πx] in
-  build_proof_core (item.prf πx (c.rot k) :: stk) chs
-| ((item.prf πx (l :: _ :: c)) :: stk) ('C' :: chs) :=
-  let πx := expr.mk_app `(@proof.con) [mx, l.to_expr, cla.to_expr c, πx] in
-  build_proof_core (item.prf πx (l :: c) :: stk) chs
-| ( (item.prf σx ((extrm.tm t =* extrm.tm s) :: d)) :: 
-    (item.prf πx (l :: c)) :: stk ) ('S' :: chs) :=
-  let ρx := expr.mk_app `(@proof.sub) [mx, t.to_expr, s.to_expr, l.to_expr, cla.to_expr c, cla.to_expr d, πx, σx] in
-  -- trace "Before : " >>
-  -- trace (l :: c) >>
-  -- trace "Left : " >>
-  -- trace t >>
-  -- trace "Right : " >>
-  -- trace s >>
-  -- trace "After : " >>
-  -- trace (lit.replace t s l :: c ++ d) >>
-  build_proof_core (item.prf ρx (lit.replace t s l :: c ++ d) :: stk) chs
-| ((item.prf πx (lit.eq b t s :: c)) :: stk) ('Y' :: chs) :=
-  let πx' := expr.mk_app `(@proof.sym) [mx, b.to_expr, t.to_expr, s.to_expr, cla.to_expr c, πx] in
-  build_proof_core (item.prf πx' ((s =* t) :: c) :: stk) chs
-| ((item.prf πx ((t ≠* _) :: c)) :: stk) ('V' :: chs) :=
-  let πx' := expr.mk_app `(@proof.trv) [mx, t.to_expr, cla.to_expr c, πx] in
-  build_proof_core (item.prf πx' c :: stk) chs
-| stk ('e' :: chs) :=
-  build_proof_core (item.mps [] :: stk) chs
-| (item.nm k :: stk) ('f' :: chs) :=
-  build_proof_core (item.trm (trm.fn k) :: stk) chs
-| (item.trm s :: item.trm t :: stk) ('a' :: chs) :=
-  build_proof_core (item.trm (trm.tp t s) :: stk) chs
-| (item.trm t :: item.nm k :: item.mps μ :: stk) ('c' :: infs) :=
-  build_proof_core (item.mps ((k, t) :: μ) :: stk) infs
+| (item.nm k :: stk) ('v' :: chs) :=
+  build_proof_core (item.trm (v* k) :: stk) chs
+| (item.trms ts :: item.nm k :: stk) ('f' :: chs) :=
+  build_proof_core (item.trm (f* k ts) :: stk) chs
+| stk ('n' :: chs) :=
+  build_proof_core (item.nl :: stk) chs
+| (item.trm t :: item.nm k :: stk) ('m' :: infs) :=
+  build_proof_core (item.mp (k, t) :: stk) infs
+| (item.trm t :: item.nl :: stk) ('c' :: infs) :=
+  build_proof_core (item.trms (t ::* []*) :: stk) infs
+| (item.trm t :: item.trms ts :: stk) ('c' :: infs) :=
+  build_proof_core (item.trms (t ::* ts) :: stk) infs
+| (item.mp μ :: item.nl :: stk) ('c' :: infs) :=
+  build_proof_core (item.mps [μ] :: stk) infs
+| (item.mp μ :: item.mps μs :: stk) ('c' :: infs) :=
+  build_proof_core (item.mps (μ :: μs) :: stk) infs
 | (X :: Y :: _) chs := 
   trace "Stack top : " >> trace X >> trace Y >> 
   trace "Remaining proof" >> trace chs >> failed
@@ -221,27 +243,25 @@ meta def build_proof_core (m : mat) (mx : expr) :
 variables {R : rls α} {F : fns α} {V : vas α}
 variables {b : bool} (f g : frm)
 
-local notation R `; ` F `; ` V ` ⊨ ` f := frm.holds R F V f
-
 def normalize (f : frm) : frm :=
 skolemize $ pnf $ f.neg
 
 def clausify (f : frm) : mat :=
 cnf $ frm.strip_fa $ normalize f
 
-lemma lit.holds_substs (μs : vmaps) (l : lit) :
-  (l.substs μs).holds R F V ↔
-  l.holds R F (V.substs F μs) :=
-by { cases l with b a b t s; cases b;
-     simp only [ lit.holds, lit.substs, vas.substs,
-     list.map_map, atm.val_substs, trm.val_substs,
-     extrm.val_substs ] }
+lemma lit.holds_vsubs (μs : vmaps) (l : lit) :
+  (l.vsubs μs).holds R F V ↔
+  l.holds R F (V.vsubs F μs) :=
+begin
+  cases l with b a; cases b;
+  simp only [ lit.holds, lit.vsubs, atm.holds_vsubs ]
+end
 
-lemma cla.holds_substs {μs : vmaps} {c : cla} :
-  (c.substs μs).holds R F V ↔
-  c.holds R F (V.substs F μs) :=
+lemma cla.holds_vsubs {μs : vmaps} {c : cla} :
+  (c.vsubs μs).holds R F V ↔
+  c.holds R F (V.vsubs F μs) :=
 by { apply @list.exists_mem_map_iff,
-     apply lit.holds_substs }
+     apply lit.holds_vsubs }
 
 open list
 
@@ -250,58 +270,68 @@ lemma holds_cla_of_proof {m : mat}
   ∀ {c : cla}, proof m c →
   (∀ V : vas α, c.holds R F V) :=
 begin
-  intros c π V, induction π with
-  k μs
-  t c1 c2 π1 π2 h1 h2
-  k d π h1
-  l d π h1
-  t s l c d π σ h1 h2
-  b et es d h1 h2
-  et d h1 h2,
+  intros c π, 
+  induction π with
+    k 
+    l d π h1
+    t c1 c2 π1 π2 h1 h2
+    μs c π h1
+    k d π h1
+    l t s c d π σ h1 h2
+    b t s d h1 h2
+    t d h1 h2,
   { unfold mat.nth,
     cases h1 : list.nth m k;
     unfold option.get_or_else,
-    { simp only [cla.substs, cla.tautology,
-        list.map, lit.substs, atm.substs],
-      apply holds_tautology },
-    rw cla.holds_substs,
-    apply h0,
+    { apply holds_tautology },
+    intro V, apply h0,
     apply list.mem_iff_nth.elim_right,
     refine ⟨_, h1⟩ },
-  { apply exists_mem_append.elim_right,
-    rcases h1 with ⟨la, hla1 | hla1, hla2⟩,
-    { rcases h2 with ⟨lb, hlb1 | hlb1, hlb2⟩,
-      { subst hla1, subst hlb1, cases hla2 hlb2 },
-      right, refine ⟨_, hlb1, hlb2⟩ },
-    left, refine ⟨_, hla1, hla2⟩ },
-  { rcases h1 with ⟨t, ht1, ht2⟩,
-    refine ⟨t, _, ht2⟩,
-    apply mem_rot _ ht1 },
-  { rcases h1 with ⟨t, h2 | h2 | h2, h3⟩;
+  { intro V,
+    rcases h1 V with ⟨t, h2 | h2 | h2, h3⟩;
     refine ⟨_, _, h3⟩,
     { left, exact h2 },
     { left, exact h2 },
     right, exact h2 },
-  { rcases (exists_mem_cons_iff _ _ _).elim_left h1 with h3 | ⟨w, h3, h4⟩,
-    { rcases (exists_mem_cons_iff _ _ _).elim_left h2 with h4 | ⟨w, h4, h5⟩,
+  { intro V,
+    apply exists_mem_append.elim_right,
+    rcases h1 V with ⟨la, hla1 | hla1, hla2⟩,
+    { rcases h2 V with ⟨lb, hlb1 | hlb1, hlb2⟩,
+      { subst hla1, subst hlb1, cases hla2 hlb2 },
+      right, refine ⟨_, hlb1, hlb2⟩ },
+    left, refine ⟨_, hla1, hla2⟩ },
+  { intro V,  
+    rw cla.holds_vsubs,
+    apply h1 },
+  { intro V,
+    rcases (h1 V) with ⟨t, ht1, ht2⟩,
+    refine ⟨t, _, ht2⟩,
+    apply mem_rot _ ht1 },
+  { intro V,
+    rcases (exists_mem_cons_iff _ _ _).elim_left 
+      (h1 V) with h3 | ⟨w, h3, h4⟩,
+    { rcases (exists_mem_cons_iff _ _ _).elim_left 
+        (h2 V) with h4 | ⟨w, h4, h5⟩,
       { refine ⟨_, or.inl rfl, _⟩, 
-        apply lit.holds_replace h4 _ h3 },
+        rw lit.holds_replace h4,
+        exact h3 },
       refine ⟨w, or.inr (mem_append_right _ h4), h5⟩ },
     refine ⟨w, or.inr (mem_append_left _ h3), h4⟩ },
-  { cases b;
-    { rcases h2 with ⟨l, h2 | h2, h3⟩, 
+  { intro V, cases b;
+    { rcases h2 V with ⟨l, h2 | h2, h3⟩, 
       { refine ⟨_, or.inl rfl, _⟩, 
         rw h2 at h3,
         try { apply ne.symm h3 },
         try { apply eq.symm h3 } },
       refine ⟨l, or.inr h2, h3⟩ } },
-  { rcases h2 with ⟨l, h2 | h2, h3⟩, 
+  { intro V,
+    rcases h2 V with ⟨l, h2 | h2, h3⟩, 
     { rw h2 at h3,
       exfalso, apply h3 rfl },
     refine ⟨l, h2, h3⟩ }
 end
 
-lemma frxffx_of_proof
+lemma frxffx_of_proof [inhabited α]
   (rn : nat) (R : rls α) (fn : nat) (F : fns α) (f : frm) :
   (normalize f).vnew = 0 →
   proof (clausify f) [] → f.frxffx rn R fn F :=
@@ -343,41 +373,50 @@ do πx ← build_proof_core m m.to_expr [] chs,
      [αx, ix, rnx, Rx, fnx, Fx, fx, hx, πx],
    return x
 
-meta def vampire (inp : option string) : tactic unit :=
-do desugar,
-   αx ← get_domain,
-   ix ← get_inhabitance αx,
-   f  ← reify αx,
-   let m := clausify f,
-   s ← (inp <|> get_rr m),
-   x ← build_proof s.data αx ix f m,
-   apply x,
-   if inp = none
-   then trace s
-   else skip
+-- meta def vampire (inp : option string) : tactic unit :=
+-- do desugar,
+--    αx ← get_domain,
+--    ix ← get_inhabitance αx,
+--    f  ← reify αx,
+--    let m := clausify f,
+--    s ← (inp <|> get_asm m),
+--    x ← build_proof s.data αx ix f m,
+--    apply x,
+--    if inp = none
+--    then trace s
+--    else skip
+-- 
 
 end vampire
+ 
+open tactic vampire
 
-open lean.parser interactive vampire tactic
-
-meta def tactic.interactive.vampire
-  (ids : parse (many ident))
-  (inp : option string := none) : tactic unit :=
-( if `all ∈ ids
-  then local_context >>= monad.filter is_proof >>=
-       revert_lst >> skip
-  else do hs ← mmap tactic.get_local ids,
-               revert_lst hs, skip ) >>
-vampire.vampire inp
-
-meta def vampire_eq : tactic unit :=
+meta def vampire : tactic unit :=
 do desugar,
    αx ← get_domain,
    ix ← get_inhabitance αx,
    f ← reify αx,
    let m := clausify f,
-   s ← get_rr m,
-   trace s,
-   x ← build_proof s.data αx ix f m,
-   apply x,
+   trace (to_asm m),
+   -- s ← get_asm m,
+   -- trace s,
+   -- x ← build_proof s.data αx ix f m,
+   -- apply x,
    skip
+
+
+
+-- open lean.parser interactive vampire tactic
+-- 
+-- meta def tactic.interactive.vampire
+--   (ids : parse (many ident))
+--   (inp : option string := none) : tactic unit :=
+-- ( if `all ∈ ids
+--   then local_context >>= monad.filter is_proof >>=
+--        revert_lst >> skip
+--   else do hs ← mmap tactic.get_local ids,
+--                revert_lst hs, skip ) >>
+-- vampire.vampire inp
+
+
+

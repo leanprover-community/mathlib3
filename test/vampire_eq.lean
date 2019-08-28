@@ -17,24 +17,24 @@ local notation x `*` y := mult x y
 
 open tactic expr vampire
 
+
  example (x y z : ℕ) (p : ℕ → Prop) :
    x = y → y = z → (∀ w, w = z → p w) → p x :=
- by vampire_eq
+ by vampire
  
  example : ∀ x y : ℕ, x = y ∨ ¬ x = y := 
- by vampire_eq
+ by vampire
  
  example : ∀ x y, (p x ∧ x = f y) → p (f y) :=
- by vampire_eq
+ by vampire
 
-#exit
 example :
    forall e,
    (forall x y z, x * (y * z) = (x * y) * z) ∧
    (forall x, e * x = x) ∧
    (forall x, i x * x = e) →
    forall x, x * i x = e :=
-by vampire_eq
+by vampire
 
 #exit
 
@@ -45,12 +45,12 @@ by vampire_eq
 -- example :
 --    (exists x, x = f(g(x)) ∧ forall x', x' = f(g(x')) → x = x') ↔
 --    (exists y, y = g(f(y)) ∧ forall y', y' = g(f(y')) → y = y') :=
--- by vampire_eq
+-- by vampire
 -- 
 -- example :
 --    (exists x, x = f(g(x)) ∧ forall x', x' = f(g(x')) → x = x') ↔
 --    (exists y, y = g(f(y)) ∧ forall y', y' = g(f(y')) → y = y') :=
--- by vampire_eq
+-- by vampire
 
 
 #exit

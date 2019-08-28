@@ -1,25 +1,20 @@
-import tactic.vampire.form
+import tactic.vampire.frm
 
 namespace vampire
 
-local notation `#`      := term.fn
-local notation t `&t` s := term.tp t s
-local notation t `&v` k := term.vp t k
-
-local notation `$`      := atom.rl
-local notation a `^t` t := atom.tp a t
-local notation a `^v` t := atom.vp a t
-
-local notation `-*`     := lit.atom ff
-local notation `+*`     := lit.atom tt
-local notation t `=*` s := lit.eq tt t s
-local notation t `≠*` s := lit.eq ff t s
-
-local notation `⟪` l `⟫`       := form.lit l
-local notation p `∨*` q        := form.bin tt p q
-local notation p `∧*` q        := form.bin ff p q
-local notation `∃*`            := form.qua tt
-local notation `∀*`            := form.qua ff
+local notation f `₀↦` a := assign a f
+local notation `v*` := xtrm.vr
+local notation `f*` := xtrm.fn
+local notation `[]*` := xtrm.nil
+local notation h `::*` ts  := xtrm.cons h ts
+local notation `r*`     := atm.rl 
+local notation t `=*` s := atm.eq t s 
+local notation `+*`     := frm.atm tt
+local notation `-*`     := frm.atm ff
+local notation p `∨*` q := frm.bin tt p q
+local notation p `∧*` q := frm.bin ff p q
+local notation `∃*` p   := frm.qua tt p
+local notation `∀*` p   := frm.qua ff p
 
 @[derive decidable_eq]
 meta inductive preterm : Type
@@ -41,20 +36,20 @@ meta def preatom.repr : preatom → string
 | (preatom.rel t)  := t.repr
 | (preatom.eq t s) := "(" ++ t.repr ++ " = " ++ s.repr ++ ")"
 
-meta inductive preform : Type
-| lit : bool → preatom → preform
-| bin : bool → preform → preform → preform
-| qua : bool → preform → preform
+meta inductive prefrm : Type
+| lit : bool → preatom → prefrm
+| bin : bool → prefrm → prefrm → prefrm
+| qua : bool → prefrm → prefrm
 
-meta def preform.repr : preform → string
-| (preform.lit tt a)   := a.repr
-| (preform.lit ff a)   := "¬" ++ a.repr
-| (preform.bin tt f g) := "(" ++ f.repr ++ " ∨ " ++ g.repr ++ ")"
-| (preform.bin ff f g) := "(" ++ f.repr ++ " ∧ " ++ g.repr ++ ")"
-| (preform.qua ff f) := "∀ " ++ f.repr
-| (preform.qua tt f) := "∃ " ++ f.repr
+meta def prefrm.repr : prefrm → string
+| (prefrm.lit tt a)   := a.repr
+| (prefrm.lit ff a)   := "¬" ++ a.repr
+| (prefrm.bin tt f g) := "(" ++ f.repr ++ " ∨ " ++ g.repr ++ ")"
+| (prefrm.bin ff f g) := "(" ++ f.repr ++ " ∧ " ++ g.repr ++ ")"
+| (prefrm.qua ff f) := "∀ " ++ f.repr
+| (prefrm.qua tt f) := "∃ " ++ f.repr
 
-meta instance preform.has_to_format : has_to_format preform :=
+meta instance prefrm.has_to_format : has_to_format prefrm :=
 ⟨λ x, x.repr⟩
 
 open tactic expr
@@ -77,81 +72,66 @@ meta def to_preatom : expr → tactic preatom
   do t ← to_preterm ax,
      return (preatom.rel t)
 
-meta def to_preform : expr → tactic preform
+meta def to_prefrm : expr → tactic prefrm
 | `(%%px ∨ %%qx) :=
-  do φ ← to_preform px,
-     χ ← to_preform qx,
-     return (preform.bin tt φ χ)
+  do φ ← to_prefrm px,
+     χ ← to_prefrm qx,
+     return (prefrm.bin tt φ χ)
 | `(%%px ∧ %%qx) :=
-  do φ ← to_preform px,
-     χ ← to_preform qx,
-     return (preform.bin ff φ χ)
+  do φ ← to_prefrm px,
+     χ ← to_prefrm qx,
+     return (prefrm.bin ff φ χ)
 | (pi _ _ _ px) :=
-  do φ ← to_preform px,
-     return (preform.qua ff φ)
+  do φ ← to_prefrm px,
+     return (prefrm.qua ff φ)
 | `(Exists %%(expr.lam _ _ _ px)) :=
-  do φ ← to_preform px,
-     return (preform.qua tt φ)
+  do φ ← to_prefrm px,
+     return (prefrm.qua tt φ)
 | `(Exists %%prx) :=
-  do φ ← to_preform (app (prx.lift_vars 0 1) (var 0)),
-     return (preform.qua tt φ)
+  do φ ← to_prefrm (app (prx.lift_vars 0 1) (var 0)),
+     return (prefrm.qua tt φ)
 | `(¬ %%px) :=
   do a ← to_preatom px,
-     return (preform.lit ff a)
+     return (prefrm.lit ff a)
 | px        :=
   do a ← to_preatom px,
-     return (preform.lit tt a)
+     return (prefrm.lit tt a)
 
-meta def to_term : preterm → tactic term
-| (preterm.var ff k) := return (# k)
-| (preterm.var tt k) := failed
-| (preterm.exp x)    := failed
-| (preterm.app pt (preterm.var tt k)) :=
-  do t ← to_term pt,
-     return (t &v k)
-| (preterm.app pt ps) :=
-  do t ← to_term pt,
-     s ← to_term ps,
-     return (t &t s)
+meta def to_trm : preterm → trms → tactic trm
+| (preterm.var ff k) []*       := return (v* k)
+| (preterm.var ff k) (_ ::* _) := fail "Variables cannot have arguments"
+| (preterm.var tt k) ts        := return (f* k ts)
+| (preterm.exp x)    _         := failed
+| (preterm.app pt ps) ts :=
+  do s ← to_trm ps []*,
+     to_trm pt (s ::* ts)
 
-meta def to_exterm : preterm → tactic exterm
-| (preterm.var tt k) := return (exterm.vr k)
-| pt :=
-  do t ← to_term pt,
-     return (exterm.tm t)
+meta def to_atm_aux : preterm → list trm → tactic atm
+| (preterm.var ff k) ts := return (r* k ts)
+| (preterm.var tt k) _  := failed
+| (preterm.exp x)    _  := failed
+| (preterm.app pt ps) ts :=
+  do t ← to_trm ps []*,
+     to_atm_aux pt (t :: ts)
 
-meta def to_atom : preterm → tactic atom
-| (preterm.var ff k) := return ($ k)
-| (preterm.var tt k) := failed
-| (preterm.exp x)    := failed
-| (preterm.app pt (preterm.var tt k)) :=
-  do a ← to_atom pt,
-     return (a ^v k)
-| (preterm.app pt ps) :=
-  do a ← to_atom pt,
-     t ← to_term ps,
-     return (a ^t t)
-
-meta def to_lit (b : bool) : preatom → tactic lit
-| (preatom.rel pt) :=
-  do a ← to_atom pt,
-     return (lit.atom b a)
+meta def to_atm : preatom → tactic atm
+| (preatom.rel pt) := to_atm_aux pt []
 | (preatom.eq pt ps) :=
-  do t ← to_exterm pt,
-     s ← to_exterm ps,
-     return (lit.eq b t s)
+  do t ← to_trm pt []*,
+     s ← to_trm ps []*,
+     return (t =* s)
 
-meta def to_form : preform → tactic form
-| foo@(preform.lit b pa)   :=
-  do l ← to_lit b pa,
-     return (form.lit l)
-| foo@(preform.bin b pf pg) :=
-  do f ← to_form pf,
-     g ← to_form pg,
-     return (form.bin b f g)
-| foo@(preform.qua b pf) :=
-  do f ← to_form pf,
-     return (form.qua b f)
+meta def to_frm : prefrm → tactic frm
+| foo@(prefrm.lit b pa)   :=
+  do a ← to_atm pa,
+     return (frm.atm b a)
+| foo@(prefrm.bin b pf pg) :=
+  do f ← to_frm pf,
+     g ← to_frm pg,
+     return (frm.bin b f g)
+| foo@(prefrm.qua b pf) :=
+  do f ← to_frm pf,
+     return (frm.qua b f)
 
 meta def is_sym_type (b : bool) (αx : expr) : expr → bool
 | `(%%x → %%y) := (x = αx) && (is_sym_type y)
@@ -182,10 +162,10 @@ meta def preatom.get_sym (b : bool) (αx : expr) : preatom → tactic preterm
 | (preatom.rel t)  := t.get_sym b αx
 | (preatom.eq t s) := t.get_sym b αx <|> s.get_sym b αx
 
-meta def preform.get_sym (b : bool) (αx : expr) : preform → tactic preterm
-| (preform.lit _ x)   := x.get_sym b αx
-| (preform.bin _ x y) := x.get_sym <|> y.get_sym
-| (preform.qua _ x)   := x.get_sym
+meta def prefrm.get_sym (b : bool) (αx : expr) : prefrm → tactic preterm
+| (prefrm.lit _ x)   := x.get_sym b αx
+| (prefrm.bin _ x y) := x.get_sym <|> y.get_sym
+| (prefrm.qua _ x)   := x.get_sym
 
 meta def preterm.subst (s : preterm) (k : nat) : preterm → preterm
 | t@(preterm.app t1 t2) :=
@@ -201,22 +181,22 @@ meta def preatom.subst (r : preterm) (k : nat) : preatom → preatom
 | (preatom.rel t)  := preatom.rel (preterm.subst r k t)
 | (preatom.eq t s) := preatom.eq (preterm.subst r k t) (preterm.subst r k s)
 
-meta def preform.subst (s : preterm) (k : nat) : preform → preform
-| (preform.lit b l)   := preform.lit b (l.subst s k)
-| (preform.bin b f g) := preform.bin b f.subst g.subst
-| (preform.qua b f)   := preform.qua b f.subst
+meta def prefrm.subst (s : preterm) (k : nat) : prefrm → prefrm
+| (prefrm.lit b l)   := prefrm.lit b (l.subst s k)
+| (prefrm.bin b f g) := prefrm.bin b f.subst g.subst
+| (prefrm.qua b f)   := prefrm.qua b f.subst
 
-meta def abst (αx : expr) : bool → nat → preform → tactic preform
+meta def abst (αx : expr) : bool → nat → prefrm → tactic prefrm
 | b k f :=
   (do s ← f.get_sym b αx,
       abst b (k + 1) (f.subst s k)) <|>
   (if b then return f else abst tt 0 f)
 
-meta def reify (αx : expr) : tactic form :=
+meta def reify (αx : expr) : tactic frm :=
 do t ← target,
-   x ← to_preform t,
+   x ← to_prefrm t,
    y ← abst αx ff 0 x,
-   z ← to_form y,
+   z ← to_frm y,
    return z
 
 end vampire

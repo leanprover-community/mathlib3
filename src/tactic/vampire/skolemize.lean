@@ -3,12 +3,11 @@ import data.vector
 
 namespace vampire
 
-variables {α : Type}
-variables {R : rls α} {F : fns α} {V V' : vas α}
-
-local notation `#`     := trm.vr
-local notation `$`     := trm.fn
-local notation t `&` s := trm.ap t s
+local notation f `₀↦` a := assign a f
+local notation `v*` := xtrm.vr
+local notation `f*` := xtrm.fn
+local notation `[]*` := xtrm.nil
+local notation h `::*` ts  := xtrm.cons h ts
 local notation `r*`     := atm.rl 
 local notation t `=*` s := atm.eq t s 
 local notation `+*`     := frm.atm tt
@@ -17,23 +16,24 @@ local notation p `∨*` q := frm.bin tt p q
 local notation p `∧*` q := frm.bin ff p q
 local notation `∃*` p   := frm.qua tt p
 local notation `∀*` p   := frm.qua ff p
-local notation R `;` F `;` V `⊨` f := frm.holds R F V f
 local notation F `∀⟹` k := forall_ext k F
 local notation F `∃⟹` k := exists_ext k F
-local notation R `;` F `;` V `⊨` f := frm.holds R F V f
 
+variables {α : Type}
+variables {R : rls α} {F : fns α} {V V' : vas α}
 
-
-#exit
 def ex_count : frm → nat
 | (frm.atm _ _)   := 0
 | (frm.bin _ _ _) := 0
 | (∀* f)          := ex_count f
 | (∃* f)          := ex_count f + 1
 
-def skolem_trm : nat → trm
-| 0       := $ 0
-| (k + 1) := (skolem_trm k) & (# (k + 1))
+def skolem_args : nat → nat → trms 
+| 0       _ := []*
+| (k + 1) m := v* m ::* skolem_args k (m + 1)
+
+def skolem_trm (k : nat) : trm := 
+f* 0 (skolem_args k 1)
 
 @[reducible] def trm.skolem_vsub
   (k : nat) (s : trm) (t : trm) :=
@@ -176,10 +176,15 @@ lemma frm.skolem_vsub_bin
   (frm.bin b f g).skolem_vsub k s =
   frm.bin b (f.skolem_vsub k s) (g.skolem_vsub k s) := rfl
 
-lemma trm.skolem_vsub_ap
-  {t r : trm} {k : nat} {s : trm}  :
-  trm.skolem_vsub k s (t & r) =
-  (trm.skolem_vsub k s t & trm.skolem_vsub k s r) := rfl
+lemma trm.skolem_vsub_fn
+  {k m : nat} {r : trm} {ts : trms}  :
+  trm.skolem_vsub m r (f* k ts) =
+  f* (k + 1) (trm.tmap (trm.skolem_vsub m r) ts) :=
+begin
+  unfold trm.skolem_vsub,
+  rw [ trm.finc_fn, trm.vsub_fn, trm.vdec_fn,
+    trm.tmap_tmap, trm.tmap_tmap ]
+end
 
 lemma atm.skolem_vsub_rl
   {k m : nat} {ts : list trm} {r : trm} :
@@ -194,23 +199,31 @@ lemma atm.skolem_vsub_eq
   (t =* s).skolem_vsub m r = 
   (trm.skolem_vsub m r t =* trm.skolem_vsub m r s) := rfl
 
-lemma trm.skolem_vsub_eq_of_eq
-  {k m : nat} {s : trm} (h0 : m = k) :
-  trm.skolem_vsub k s (# m) = s.vdec k :=
-by { simp only [ trm.val, trm.vdec, trm.vsub,
-       trm.skolem_vsub, trm.finc, if_pos h0 ] }
-
-lemma trm.skolem_vsub_eq_of_gt
-  {k m : nat} {s : trm} (h0 : m > k) :
-  trm.skolem_vsub k s (# m) = # (m - 1) :=
-by simp only [ trm.skolem_vsub, trm.vsub, trm.finc, 
-     if_neg (ne_of_gt h0), trm.vdec, if_pos h0 ]
+--lemma trm.skolem_vsub_eq_of_gt
+--  {k m : nat} {s : trm} (h0 : m > k) :
+--  trm.skolem_vsub k s (# m) = # (m - 1) :=
+--by simp only [ trm.skolem_vsub, trm.vsub, trm.finc, 
+--     if_neg (ne_of_gt h0), trm.vdec, if_pos h0 ]
 
 lemma trm.skolem_vsub_eq_of_lt
   {k m : nat} {s : trm} (h0 : m < k) :
-  trm.skolem_vsub k s (# m) = # m :=
-by simp only [ trm.skolem_vsub, trm.vsub, trm.finc, trm.vdec,
-      if_neg (ne_of_lt h0), if_neg (not_lt_of_gt h0) ] 
+  trm.skolem_vsub k s (v* m) = v* m :=
+by { unfold trm.skolem_vsub, 
+     rw [ trm.finc_vr, trm.vsub_vr, if_neg (ne_of_lt h0),
+       trm.vdec_vr, if_neg (not_lt_of_gt h0) ] } 
+
+lemma trm.skolem_vsub_eq_of_eq
+  {k m : nat} {s : trm} (h0 : m = k) :
+  trm.skolem_vsub k s (v* m) = s.vdec k :=
+by { unfold trm.skolem_vsub,
+     rw [ trm.finc_vr, trm.vsub_vr, if_pos h0 ], }
+
+lemma trm.skolem_vsub_eq_of_gt
+  {k m : nat} {s : trm} (h0 : m > k) :
+  trm.skolem_vsub k s (v* m) = v* (m - 1) :=
+by { unfold trm.skolem_vsub, 
+     rw [ trm.finc_vr, trm.vsub_vr, 
+       if_neg (ne_of_gt h0), trm.vdec_vr, if_pos h0 ] } 
 
 open nat
 
@@ -238,122 +251,103 @@ by { intros h0 h1, cases b,
      cases h1 with x h2,
      refine ⟨x, h0 x h2⟩ }
 
-lemma val_vdec_succ_vinc_zero {k : nat} {x : α}:
+lemma val_vdec_succ_vinc_zero {m : nat} {x : α}:
    ∀ t : trm,
-   ((t.vinc 0 1).vdec (k + 1)).val F (V ₀↦ x) =
-   (t.vdec k).val F V 
-| ($ m)    := rfl
-| (t & s) :=
-  by simp only [ trm.val, val_vdec_succ_vinc_zero t,
-       val_vdec_succ_vinc_zero s, trm.vdec, trm.vinc ]
-| (# m) :=
-  by { apply funext, intro,
-       unfold trm.vinc,
-       unfold trm.vdec,
-       unfold trm.val,
-       rw [ if_neg (not_lt_zero _), nat.add_sub_cancel ],
-       by_cases h0 : k < m,
-       { cases m,
-         { apply false.elim (not_lt_zero _ h0) },
-         rw [ if_pos h0, if_pos (succ_lt_succ h0) ],
-         refl },
-       rw [ if_neg h0, if_neg (λ h1, _) ],
-       { refl },
-       apply h0 (lt_of_succ_lt_succ h1) }
+   ((t.vinc 0 1).vdec (m + 1)).val F (V ₀↦ x) =
+   (t.vdec m).val F V :=
+trm.rec 
+ (begin
+    intro k,
+    rw [ trm.vinc_vr, trm.vdec_vr, trm.val_vr,
+      trm.vdec_vr, trm.val_vr ],
+    rw [ if_neg (not_lt_zero _), nat.add_sub_cancel ],
+    by_cases h0 : m < k,
+    { cases k,
+      { apply false.elim (not_lt_zero _ h0) },
+      rw [ if_pos h0, if_pos (succ_lt_succ h0) ],
+      refl },
+    rw [ if_neg h0, if_neg (λ h1, _) ],
+    { refl },
+    apply h0 (lt_of_succ_lt_succ h1)
+  end)
+ (begin
+    intros k ts ih, 
+    rw [ trm.vinc_fn, trm.vdec_fn, trm.val_fn,
+      trm.vdec_fn, trm.val_fn ], 
+    repeat {rw trm.lmap_tmap}, 
+    apply congr_arg,
+    apply trm.lmap_eq_lmap ih,
+  end)
 
-lemma trm.val_skolem_vsub_of_wfc
-  {x : α} {y : fn α} {r : trm} {k : nat} {W V : vas α}
-  (h0 : splice k x W V) (h1 : (r.vdec k).val (F ₀↦ y) V [] = x) :
-  ∀ t : trm, 
-    (t.wfc ff → (trm.skolem_vsub k r t).val (F ₀↦ y) V = t.val F W) ∧ 
-    (t.wfc tt → (trm.skolem_vsub k r t).val (F ₀↦ y) V [] = t.val F W [])  
-| (# m) := 
-  by { constructor; rintro ⟨_⟩,
-       rcases nat.lt_trichotomy m k with h2 | h2 | h2,
-       { rw trm.skolem_vsub_eq_of_lt h2,
-         simp only [ trm.val, h0.left _ h2 ] },
-       { rw [ trm.skolem_vsub_eq_of_eq h2, h1,
-              h2, (h0.right.left).symm ], refl },
-       rw trm.skolem_vsub_eq_of_gt h2,
-       cases m, { cases h2 },
-       rw lt_succ_iff at h2,
-       apply (h0.right.right m h2).symm }
-| ($ m) := by { constructor; intro; refl }
-| (t & s) :=
-  by constructor; intro h2; 
-     { rw trm.skolem_vsub_ap,
-       simp only [ trm.val,
-         (trm.val_skolem_vsub_of_wfc t).left h2.left,
-         (trm.val_skolem_vsub_of_wfc s).right h2.right ] } 
-
-lemma wfc_tt_of_wf :
-  ∀ t : trm, t.wf → t.wfc tt :=
-by { rintros (k | k | ⟨t, s⟩) h0; 
-     try { apply h0 }, 
-     unfold trm.wfc, refl }
-
-lemma wf_of_wfc {t : trm} {b : bool} : t.wfc b → t.wf :=
-by { intro h0, cases t with k k t s; 
-     try { apply h0 }, trivial, }
-
-lemma trm.val_skolem_vsub_of_wf
-  {x : α} {y : fn α} {r : trm} {k : nat} {W V : vas α}
-  (h0 : splice k x W V) (h1 : (r.vdec k).val (F ₀↦ y) V [] = x) 
-  {t : trm} (h2 : t.wf) : 
-  (trm.skolem_vsub k r t).val (F ₀↦ y) V [] = t.val F W [] :=
-(trm.val_skolem_vsub_of_wfc h0 h1 _).right (wfc_tt_of_wf _ h2) 
-
-def atm.wf : atm → Prop 
-| (atm.rl k ts) := ∀ t ∈ ts, trm.wf t
-| (atm.eq t s)  := t.wf ∧ s.wf 
+lemma trm.val_skolem_vsub
+  {x : α} {y : fn α} {r : trm} {m : nat} {W V : vas α}
+  (h0 : splice m x W V) (h1 : (r.vdec m).val (F ₀↦ y) V = x) :
+  ∀ t : trm, (trm.skolem_vsub m r t).val (F ₀↦ y) V = t.val F W := 
+trm.rec 
+ (begin
+    intro k,
+    rcases nat.lt_trichotomy k m with h2 | h2 | h2,
+    { rw [ trm.skolem_vsub_eq_of_lt h2, 
+        trm.val_vr, trm.val_vr, h0.left _ h2 ] },
+    { rw [ trm.skolem_vsub_eq_of_eq h2, 
+        trm.val_vr, h1, h0.right.left.symm, h2 ] },
+    rw [ trm.skolem_vsub_eq_of_gt h2,
+      trm.val_vr, trm.val_vr ],
+    cases k, { cases h2 },
+    rw lt_succ_iff at h2,
+    apply (h0.right.right k h2).symm 
+  end)
+ (begin
+    intros k ts ih,
+    rw [ trm.skolem_vsub_fn, trm.val_fn, 
+      trm.val_fn, trm.lmap_tmap ],
+    apply congr_arg,
+    apply trm.lmap_eq_lmap ih,
+  end)
 
 lemma atm.holds_skolem_vsub
   {x : α} {y : fn α} {s : trm} {k : nat} (R : rls α) {W V : vas α}
-  (h0 : splice k x W V) (h1 : (s.vdec k).val (F ₀↦ y) V [] = x) :
-  ∀ {a : atm}, a.wf → 
-    ((a.skolem_vsub k s).holds R (F ₀↦ y) V ↔ a.holds R F W)
-| (atm.rl k ts) h2 :=
-  by { rw atm.skolem_vsub_rl,
-       unfold atm.holds,
-       rw [list.map_map],
-       apply iff_of_eq (congr_arg _ _),
-       apply list.map_eq_map_of_forall_mem_eq,
-       intros t h4,
-       apply trm.val_skolem_vsub_of_wf h0 h1 (h2 _ h4) }
-| (atm.eq t s) h2 :=
-  by { rw atm.skolem_vsub_eq,
-       unfold atm.holds,
-       rw [ trm.val_skolem_vsub_of_wf h0 h1 h2.left,
-            trm.val_skolem_vsub_of_wf h0 h1 h2.right ] }
-
-def frm.wf : frm → Prop
-| (frm.atm _ a)   := a.wf
-| (frm.bin _ f g) := f.wf ∧ g.wf
-| (frm.qua _ f)   := f.wf 
+  (h0 : splice k x W V) (h1 : (s.vdec k).val (F ₀↦ y) V = x) :
+  ∀ {a : atm}, ((a.skolem_vsub k s).holds R (F ₀↦ y) V ↔ a.holds R F W)
+| (atm.rl k ts) :=
+  begin
+    rw atm.skolem_vsub_rl,
+    unfold atm.holds,
+    rw [list.map_map],
+    apply iff_of_eq (congr_arg _ _),
+    apply list.map_eq_map_of_forall_mem_eq,
+    intros t h4,
+    apply trm.val_skolem_vsub h0 h1 
+  end
+| (atm.eq t s) :=
+  begin
+    rw atm.skolem_vsub_eq,
+    unfold atm.holds,
+    rw [ trm.val_skolem_vsub h0 h1,
+      trm.val_skolem_vsub h0 h1 ] 
+  end
 
 lemma holds_skolem_vsub {x : α} {y : fn α} :
   ∀ {f : frm} {k : nat} {s : trm} {W V : vas α},
-  f.wf → splice k x W V →
-  ((s.vdec k).val (F ₀↦ y) V [] = x) →
-  (R ; F ; W ⊨ f) →
-  (R ; (F ₀↦ y) ; V ⊨ f.skolem_vsub k s)
-| (frm.atm b a) k s W V h0 h1 h2 h4 :=
+  splice k x W V →
+  ((s.vdec k).val (F ₀↦ y) V = x) →
+  (f.holds R F W) →
+  (f.skolem_vsub k s).holds R (F ₀↦ y) V 
+| (frm.atm b a) k s W V h1 h2 h4 :=
   by { rw frm.skolem_vsub_atm,
        cases b; unfold frm.holds;
-       rw atm.holds_skolem_vsub R h1 h2 h0;
+       rw atm.holds_skolem_vsub R h1 h2;
        exact h4 }
-| (frm.bin b f g) k s W V h0 h1 h2 h3 :=
-  by { cases h0,
-       rw frm.skolem_vsub_bin,
+| (frm.bin b f g) k s W V h1 h2 h3 :=
+  by { rw frm.skolem_vsub_bin,
        apply holds_bin_of_holds_bin _ _ h3;
-       apply holds_skolem_vsub _ h1 h2;
+       apply holds_skolem_vsub h1 h2;
        assumption }
-| (frm.qua b f) k s W V h0 h1 h2 h3 :=
+| (frm.qua b f) k s W V h1 h2 h3 :=
   by { rw frm.skolem_vsub_qua,
        apply holds_qua_of_holds_qua _ h3,
        intros a h3,
-       apply holds_skolem_vsub _ _ _ h3,
-       { exact h0 },
+       apply holds_skolem_vsub _ _ h3,
        { apply splice_succ h1 },
        rw val_vdec_succ_vinc_zero,
        apply h2 }
@@ -378,6 +372,17 @@ lemma lassign_eq_of_lt :
 | (k + 1) (m + 1) (a :: as) h0 h1 :=
   lassign_eq_of_lt (lt_of_succ_lt_succ h0) (succ_inj h1)
 
+lemma lassign_eq_of_nth_eq_some {a : α} :
+  ∀ {k : nat} {as : list α},
+  as.nth k = some a → lassign as V k = a  
+| 0       as h0 := by {cases as; cases h0, refl } 
+| (k + 1) as h0 :=
+  begin
+    cases as with _ as, { cases h0 },
+    unfold list.nth at h0,
+    unfold lassign,
+    apply lassign_eq_of_nth_eq_some h0,
+  end
 
 lemma vassign_eq_of_lt {k m : nat} (v : vector α k) (h0 : m < k) :
   vassign v V m = v.val.nth_le m (by {rw v.property, exact h0}) :=
@@ -397,54 +402,61 @@ lemma list.drop_eq_cons_of_lt :
     apply succ_inj h1,
   end
 
-lemma val_vdec_zero_skolem_trm [inhabited α]
-  {k : nat} (F : fns α) (V : vas α) (s : vector α k → α) {v : vector α k} :
-  ∀ m : nat, ∀ as : list α, m ≤ k → v.val.drop m = as →
-  ((skolem_trm m).vdec 0).val (F ₀↦ to_fn s) (vassign v V) as = s v
-| 0       as hle h0 :=
-  by simp only [ list.drop, skolem_trm, trm.val,
-       trm.vdec, assign, h0.symm, to_fn_eq ]
-| (m + 1) as h0 h1 :=
-  begin
-    have : ((skolem_trm m).vdec 0).val
-      (F ₀↦ to_fn s) (vassign v V) (vassign v V m :: as) = s v,
-    { apply val_vdec_zero_skolem_trm m _ (le_trans (le_succ _) h0),
-    rw [list.drop_eq_cons_of_lt, vassign_eq_of_lt, h1],
-    rwa succ_le_iff at h0 },
-    exact this
-  end
-
 lemma splice_zero (x : α) (V : vas α) : splice 0 x (V ₀↦ x) V :=
 ⟨λ _ h0, by cases h0, rfl, λ m _, rfl⟩
 
-lemma drop_eq_nil :
-  ∀ {l : list α}, ∀ {k : nat},
-  l.length = k → l.drop k = []
-| []        0       h0 := rfl
-| []        (k + 1) h0 := by cases h0
-| (a :: as) 0       h0 := by cases h0
-| (a :: as) (k + 1) h0 :=
-  by { unfold list.drop, apply drop_eq_nil,
-       apply nat.succ_inj h0 }
+lemma lmap_val_skolem_args (as1 : list α) :
+  ∀ as2 : list α, ∀ m : nat, 
+  list.suffix m as2 as1 → 
+  (trm.lmap (trm.val F (lassign as1 V)) (skolem_args as2.length m)) = as2
+| []         _  _ := rfl
+| (a :: as2) m h0 :=
+  begin
+    unfold list.length, 
+    unfold skolem_args,
+    unfold trm.lmap,
+    rw trm.val_vr,
+    have h1 := list.nth_eq_some_of_cons_suffix h0,
+    have h2 := lassign_eq_of_nth_eq_some h1,
+    rw [h2, lmap_val_skolem_args],
+    apply list.suffix_succ_of_suffix_cons h0
+  end
 
-lemma holds_skolemize_one_aux [inhabited α] 
-  {k : nat} {f : frm} (hwf : f.wf) :
+lemma tmap_vdec_skolem_args :
+  ∀ k m : nat, trm.tmap (trm.vdec 0) (skolem_args k (m + 1)) = skolem_args k m 
+| 0       m := rfl
+| (k + 1) m :=
+  begin
+    unfold skolem_args, 
+    unfold trm.tmap,
+    rw [trm.vdec_vr, if_pos (zero_lt_succ _)],
+    apply congr_arg,
+    apply tmap_vdec_skolem_args, 
+  end
+
+lemma holds_skolemize_one_aux [inhabited α] {k : nat} {f : frm} :
   (V ∀⟹ k) (λ V', ∃ a : α, f.holds R F (V' ₀↦ a)) →
   ∃ g : fn α, (V ∀⟹ k)
-    (λ V', ((f.finc.vsub 0 (skolem_trm k)).vdec 0).holds R (F ₀↦ g) V') :=
-by { intro h0,
-     have h1 : ∀ v : vector α k, ∃ a : α, f.holds R F ((vassign v V) ₀↦ a),
-     { intro v, apply h0 (vassign v V) (ext_vassign _ _) },
-     rw classical.skolem at h1,
-     cases h1 with s h1,
-     refine ⟨to_fn s, _⟩,
-     intros V' h2,
-     cases exists_eq_vassign_of_ext h2 with v h3,
-     rw h3,
-     have h5 := val_vdec_zero_skolem_trm F V s k []
-       (le_refl _) (drop_eq_nil v.property),
-     apply holds_skolem_vsub hwf (splice_zero (s v) _) h5 (h1 _) }
-
+    (λ V', (f.skolem_vsub 0 (skolem_trm k)).holds R (F ₀↦ g) V') :=
+begin 
+  intro h0,
+  have h1 : ∀ v : vector α k, ∃ a : α, f.holds R F ((vassign v V) ₀↦ a),
+  { intro v, apply h0 (vassign v V) (ext_vassign _ _) },
+  rw classical.skolem at h1,
+  cases h1 with s h1,
+  refine ⟨to_fn s, _⟩, intros V' h2,
+  cases exists_eq_vassign_of_ext h2 with v h3, 
+  rw h3,
+  apply holds_skolem_vsub (splice_zero (s v) _),
+  { unfold skolem_trm,
+    rw [trm.vdec_fn, trm.val_fn, tmap_vdec_skolem_args],
+    apply eq.trans (congr_arg _ _) (to_fn_eq _ _),
+    have h4 := lmap_val_skolem_args v.val v.val 0 rfl,
+    rw v.property at h4,
+    apply h4 },
+  apply h1 
+end
+     
 def AE : frm → Prop
 | (∀* f) := AE f
 | (∃* f) := true
@@ -482,17 +494,6 @@ lemma holds_AxE_imp :
        simp only [assign, (h1 m).symm, succ_add],
        refl }
 
-lemma holds_skolemize_one_of_not_AE :
-  ∀ f : frm, ¬ AE f →
-  ∀ R : rls α, ∀ F : fns α, ∀ V : vas α, ∀ k : nat,
-  (skolemize_one f k).holds R F V
-| (∀* f) h0 R F V k :=
-  by { unfold skolemize_one, intro a,
-       apply holds_skolemize_one_of_not_AE f h0 }
-| (∃* f) h0 R F V k := false.elim (h0 trivial)
-| (frm.atm _ _)   h0 R F V k := rfl
-| (frm.bin _ _ _) h0 R F V k := rfl
-
 lemma skolemize_one_AxE (f : frm) :
   ∀ k m : nat, skolemize_one (AxE f k) m =
   Ax ((f.finc.vsub 0 (skolem_trm (k + m))).vdec 0) k
@@ -524,20 +525,26 @@ lemma holds_Ax :
       intros V' h1,
       apply h0 _ (ext_succ h1) }
 
-lemma wf_of_wf_AxE : 
-  ∀ {k : nat} {f : frm}, (AxE f k).wf → f.wf 
-| 0       _ := id
-| (k + 1) f := @wf_of_wf_AxE k _ 
+lemma holds_skolemize_one_of_not_AE :
+  ∀ f : frm, ¬ AE f →
+  ∀ R : rls α, ∀ F : fns α, ∀ V : vas α, ∀ k : nat,
+  (skolemize_one f k).holds R F V
+| (∀* f) h0 R F V k :=
+  by { unfold skolemize_one, intro a,
+       apply holds_skolemize_one_of_not_AE f h0 }
+| (∃* f) h0 R F V k := false.elim (h0 trivial)
+| (frm.atm _ _)   h0 R F V k := rfl
+| (frm.bin _ _ _) h0 R F V k := rfl
 
 lemma holds_skolemize_one [inhabited α] {f : frm} :
-  f.wf → f.holds R F V →
+  f.holds R F V →
   ∃ g : fn α, (skolemize_one f 0).holds R (F ₀↦ g) V :=
 begin
-  intros hwf h0, 
+  intros h0, 
   cases (classical.em $ AE f) with h1 h1,
   { rcases exists_kernel_of_AE _ h1 with ⟨g, k, h2⟩,
     subst h2, 
-    cases holds_skolemize_one_aux (wf_of_wf_AxE hwf) 
+    cases holds_skolemize_one_aux 
       (holds_AxE_imp _ _ _ h0) with x h2,
     refine ⟨x, _⟩,
     rw [skolemize_one_AxE, add_zero, holds_Ax],
@@ -547,177 +554,26 @@ begin
   apply h1,
 end
 
-lemma frm.wf_default : frm.default.wf := 
-by constructor; exact trivial
-
-lemma trm.wfc_finc : 
-  ∀ {t : trm}, ∀ b : bool, t.wfc b → t.finc.wfc b
-| (# _)   _ h0 := h0
-| ($ _)   _ h0 := h0 
-| (t & s) _ h0 :=
-  by { cases h0, constructor; 
-       apply trm.wfc_finc; assumption } 
-
-lemma trm.wf_finc : ∀ {t : trm}, t.wf → t.finc.wf 
-| (# _)   _  := trivial 
-| ($ _)   _  := trivial 
-| (t & s) h0 :=
-  by { cases h0, constructor; 
-       apply trm.wfc_finc; assumption } 
-
-lemma atm.wf_finc : ∀ {a : atm}, a.wf → a.finc.wf 
-| (atm.rl _ ts) h0 := 
-  by { unfold atm.finc,
-       unfold atm.wf,
-       apply list.forall_mem_map_of_forall_mem,
-       apply trm.wf_finc, apply h0 }
-| (atm.eq t s) h0 := 
-  by { cases h0, constructor;
-       apply trm.wf_finc; assumption }
-
-lemma frm.wf_finc : ∀ {f : frm}, f.wf → f.finc.wf 
-| (frm.atm _ _)   h0 := atm.wf_finc h0
-| (frm.bin _ _ _) h0 := 
-  by { cases h0, constructor; 
-       apply frm.wf_finc; assumption }
-| (frm.qua _ f)   h0 := @frm.wf_finc f h0
-
-lemma trm.wfc_vdec {k : nat} : 
-  ∀ {t : trm}, ∀ b : bool, t.wfc b → (t.vdec k).wfc b
-| (# _)   _ h0 := h0
-| ($ _)   _ h0 := h0 
-| (t & s) _ h0 :=
-  by { cases h0, constructor; 
-       apply trm.wfc_vdec; assumption } 
-
-lemma trm.wf_vdec {k : nat} : 
-  ∀ {t : trm}, t.wf → (t.vdec k).wf 
-| (# _)   _  := trivial 
-| ($ _)   _  := trivial 
-| (t & s) h0 :=
-  by { cases h0, constructor; 
-       apply trm.wfc_vdec; assumption } 
-
-lemma atm.wf_vdec {k : nat} : 
-  ∀ {a : atm}, a.wf → (a.vdec k).wf 
-| (atm.rl _ ts) h0 := 
-  by { unfold atm.vdec,
-       unfold atm.wf,
-       apply list.forall_mem_map_of_forall_mem,
-       apply trm.wf_vdec, apply h0 }
-| (atm.eq t s) h0 := 
-  by { cases h0, constructor;
-       apply trm.wf_vdec; assumption }
-
-lemma frm.wf_vdec : 
-  ∀ (k : nat) {f : frm}, f.wf → (f.vdec k).wf 
-| _ (frm.atm _ _)   h0 := atm.wf_vdec h0
-| _ (frm.bin _ _ _) h0 := 
-  by { cases h0, constructor; 
-       apply frm.wf_vdec; assumption }
-| k (frm.qua _ f)   h0 := @frm.wf_vdec _ f h0
-
-lemma trm.wfc_vsub {m : nat} {r : trm} (h0 : r.wf) : 
-  ∀ {t : trm}, ∀ b : bool, t.wfc b → (trm.vsub m r t).wfc b
-| (# k) tt h1 := ite_cases (wfc_tt_of_wf _ h0) h1
-| ($ _) b h0 := h0 
-| (t & s) _ h0 :=
-  by { cases h0, constructor; 
-       apply trm.wfc_vsub; assumption } 
-
-lemma trm.wf_vsub {m : nat} {r : trm} {h0 : r.wf} : 
-  ∀ {t : trm}, t.wf → (trm.vsub m r t).wf 
-| (# k)   h1 := ite_cases h0 h1 
-| ($ _)   _  := trivial 
-| (t & s) h1 :=
-  by { cases h1, constructor; 
-       apply trm.wfc_vsub; assumption } 
-
-lemma atm.wf_vsub {m : nat} {r : trm} {h0 : r.wf} : 
-  ∀ {a : atm}, a.wf → (a.vsub m r).wf 
-| (r* _ ts) h1 := 
-  by { unfold atm.vsub,
-       unfold atm.wf,
-       apply list.forall_mem_map_of_forall_mem,
-       apply trm.wf_vsub,
-       apply h0, apply h1 }
-| (atm.eq t s) h1 := 
-  by { cases h1, constructor;
-       apply trm.wf_vsub; assumption }
-
-lemma trm.wfc_vinc {m n : nat} : 
-  ∀ t : trm, ∀ b : bool, t.wfc b → (t.vinc m n).wfc b 
-| (# k)   tt h0 := rfl
-| ($ k)   _  h0 := h0
-| (t & s) _  h0 := 
-  by { cases h0, constructor; 
-       apply trm.wfc_vinc; assumption }
-
-lemma trm.wf_vinc {m n : nat} : 
-  ∀ t : trm, t.wf → (t.vinc m n).wf 
-| (# k)   h0 := trivial
-| ($ k)   h0 := trivial
-| (t & s) h0 := 
-  by { cases h0, constructor; 
-       apply trm.wfc_vinc; assumption }
-
-lemma frm.wf_vsub : 
-  ∀ {f : frm} (k : nat) {t : trm}, 
-  f.wf → t.wf → (f.vsub k t).wf 
-| (frm.atm _ _)   k t h0 h1 := @atm.wf_vsub _ _ h1 _ h0 
-| (frm.bin b f g) k t h0 h1 := 
-  by { cases h0, constructor;
-       apply frm.wf_vsub; assumption }
-| (frm.qua _ f)   k t h0 h1 := 
-  @frm.wf_vsub f _ _ h0 (trm.wf_vinc _ h1)
-
-lemma wf_skolem_vsub {f : frm} {t : trm} (k : nat) :
-  f.wf → t.wf → (f.skolem_vsub k t).wf :=
-by { intros h0 h1, 
-     unfold frm.skolem_vsub,
-     apply frm.wf_vdec,
-     apply frm.wf_vsub _ _ h1,
-     apply frm.wf_finc h0 }
-
-lemma wfc_ff_skolem_trm : ∀ {k : nat}, (skolem_trm k).wfc ff 
-| 0       := trivial
-| (k + 1) := ⟨wfc_ff_skolem_trm, rfl⟩ 
-
-lemma wf_skolem_trm {k : nat} : (skolem_trm k).wf := 
-wf_of_wfc wfc_ff_skolem_trm
-
-lemma wf_skolemize_one : 
-  ∀ f : frm, f.wf → ∀ k : nat, (skolemize_one f k).wf 
-| (frm.atm _ _)   _ _ := frm.wf_default
-| (frm.bin _ _ _) _ _ := frm.wf_default
-| (∀* f) h0 k := by apply wf_skolemize_one f h0
-| (∃* f) h0 k := 
-  by { unfold skolemize_one,
-       apply wf_skolem_vsub,
-       exact h0,
-       apply wf_skolem_trm }
-
 lemma exists_fxt_holds_skolemize_core [inhabited α] :
   ∀ k : nat, ∀ F : fns α, ∀ f : frm,
-  f.wf → ex_count f = k → f.holds R F V →
+  ex_count f = k → f.holds R F V →
   (F ∃⟹ k) (λ F', (skolemize_core k f).holds R F' V)
-| 0       F f _   h0 h1 := ⟨F, ext_zero_refl _, h1⟩
-| (k + 1) F f hwf h0 h1 :=
+| 0       F f h0 h1 := ⟨F, ext_zero_refl _, h1⟩
+| (k + 1) F f h0 h1 :=
   begin
     unfold skolemize_core,
-    cases holds_skolemize_one hwf h1 with g h2,
+    cases holds_skolemize_one h1 with g h2,
     rcases exists_fxt_holds_skolemize_core
-      k (F ₀↦ g) (skolemize_one f 0) _
+      k (F ₀↦ g) (skolemize_one f 0) 
       (ex_count_skolemize_one_eq  _ h0) h2 with ⟨F', h3, h4⟩,
     { refine ⟨F', _, h4⟩,
-      apply ext_succ h3 },
-    apply wf_skolemize_one _ hwf
+      apply ext_succ h3 }
   end
 
 lemma holds_skolemize [inhabited α] {f : frm} :
-  f.wf → f.holds R F V →
+  f.holds R F V →
   (F ∃⟹ ex_count f) (λ F', (skolemize f).holds R F' V) :=
-λ h0 h1, exists_fxt_holds_skolemize_core _ _ _ h0 rfl h1
+λ h1, exists_fxt_holds_skolemize_core _ _ _ rfl h1
 
 lemma F_vdec :
   ∀ f : frm, ∀ m : nat, f.F → (f.vdec m).F

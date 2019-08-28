@@ -15,6 +15,19 @@ Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lew
  expr, name, declaration, level, environment, meta, metaprogramming, tactic
 -/
 
+namespace binder_info
+
+instance : inhabited binder_info := ⟨ binder_info.default ⟩
+
+/-- The brackets corresponding to a given binder_info. -/
+def brackets : binder_info → string × string
+| binder_info.implicit        := ("{", "}")
+| binder_info.strict_implicit := ("{{", "}}")
+| binder_info.inst_implicit   := ("[", "]")
+| _                           := ("(", ")")
+
+end binder_info
+
 namespace name
 
 /-- Find the largest prefix `n` of a `name` such that `f n ≠ none`, then replace this prefix
@@ -305,4 +318,37 @@ meta def is_axiom : declaration → bool
 | (ax _ _ _) := tt
 | _          := ff
 
+/-- Checks whether a declaration is automatically generated in the environment -/
+meta def is_auto_generated (e : environment) (d : declaration) : bool :=
+e.is_constructor d.to_name ∨
+(e.is_projection d.to_name).is_some ∨
+(e.is_constructor d.to_name.get_prefix ∧
+  d.to_name.last ∈ ["inj", "inj_eq", "sizeof_spec", "inj_arrow"]) ∨
+(e.is_inductive d.to_name.get_prefix ∧
+  d.to_name.last ∈ ["below", "binduction_on", "brec_on", "cases_on", "dcases_on", "drec_on", "drec",
+  "rec", "rec_on", "no_confusion", "no_confusion_type", "sizeof", "ibelow", "has_sizeof_inst"])
+
 end declaration
+
+/-- The type of binders containing a name, the binding info and the binding type -/
+@[derive decidable_eq]
+meta structure binder :=
+  (name : name)
+  (info : binder_info)
+  (type : expr)
+
+namespace binder
+/- Turn a binder into a string. Uses expr.to_string for the type. -/
+protected meta def to_string (b : binder) : string :=
+let (l, r) := b.info.brackets in
+l ++ b.name.to_string ++ " : " ++ b.type.to_string ++ r
+
+open tactic
+meta instance : inhabited binder := ⟨⟨default _, default _, default _⟩⟩
+meta instance : has_to_string binder := ⟨ binder.to_string ⟩
+meta instance : has_to_format binder := ⟨ λ b, b.to_string ⟩
+meta instance : has_to_tactic_format binder :=
+⟨ λ b, let (l, r) := b.info.brackets in
+  (λ e, l ++ b.name.to_string ++ " : " ++ e ++ r) <$> pp b.type ⟩
+
+end binder

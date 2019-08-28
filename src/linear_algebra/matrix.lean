@@ -299,14 +299,43 @@ namespace char_polynomial
 
 variables (M : matrix n n α)
 
-lemma eval (b : α) : eval b (char_polynomial M) = det (diagonal (λ _:n, b) - M) :=
+lemma eval (b : α) : eval b (char_polynomial M) = det (diagonal (λ _, b) - M) :=
 begin
-change finsupp.sum (finset.univ.sum (λ (σ : equiv.perm n), ((equiv.perm.sign σ : ℤ) : polynomial α) *
-  finset.univ.prod (λ (i : n), (diagonal (λ (_x : n), X) - λ (i j : n), C (M i j)) (σ i) i))) (λ e a, a * b ^ e) = det (diagonal (λ (_x : n), b) - M),
-sorry
+  change (λ p : polynomial α, eval b p) (det (diagonal (λ _:n, X) - λ (i j : n), C (M i j))) = _,
+  rw [det_map_hom (λ p : polynomial α, eval b p)],
+  congr,
+  ext,
+  simp,
+  unfold diagonal,
+  split_ifs,
+  exact eval_X,
+  exact eval_zero
 end
 
 lemma constant_coeff : coeff (char_polynomial M) 0 = (-1) ^ fintype.card n * det M :=
 by rw [coeff_zero_eq_eval_zero, eval, diagonal_zero, zero_sub, det_neg]
+
+lemma degree_prod (s : finset α) (f : α → polynomial α) :
+  degree (s.prod (λ i, f i)) = s.sum (λ i, degree (f i)) :=
+sorry
+
+lemma degree (α2 : Type v) [integral_domain α2] [decidable_eq α2] (M : matrix n n α2):
+  degree (char_polynomial M) ≤ fintype.card n :=
+begin
+  unfold char_polynomial,
+  unfold det,
+  convert degree_sum_le _ _,
+  --(λ i:n, (if (b i = i) then X else 0) - C (M (b i) i))
+  --(λ (i : n), (diagonal (λ (_x : n), X) - λ (i j : n), C (M i j)) (⇑b i) i)
+  --(λ (i : n), (diagonal (λ (_x : n), X) - λ (i j : n), C (M i j)) (⇑b i) i)
+  change _ = finset.univ.sup (λ (b : equiv.perm n), degree (_ *
+    finset.univ.prod (λ (i : n), _ (b i) i))),
+  have : ∀ b : equiv.perm n, ((equiv.perm.sign b : ℤ) : α2) ≠ 0, from sorry,
+  conv_rhs { congr, skip, funext,
+    rw [degree_mul_eq, int_cast_eq_C, degree_C (this b), zero_add,
+      degree_prod _],  },
+end
+
+lemma monic : monic (char_polynomial M) := sorry
 
 end char_polynomial

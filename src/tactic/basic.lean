@@ -15,6 +15,7 @@ import
   tactic.replacer
   tactic.restate_axiom
   tactic.rewrite
+  tactic.sanity_check
   tactic.simpa
   tactic.split_ifs
   tactic.squeeze

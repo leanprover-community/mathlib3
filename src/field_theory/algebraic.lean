@@ -104,15 +104,56 @@ end lift
 end polynomial
 
 namespace subalgebra
+open polynomial
 variables {R : Type*} {A : Type*}
 variables [comm_ring R] [comm_ring A] [algebra R A]
 
 lemma zero_mem (S : subalgebra R A) : (0 : A) ∈ S :=
 submodule.zero_mem (S : submodule R A)
 
-variable [decidable_eq A]
+variables [decidable_eq R] [decidable_eq A]
+
+lemma is_integral (S : subalgebra R A) (x : A) (hx : is_integral R x) :
+  is_integral S x :=
+begin
+  rcases hx with ⟨p, pmonic, hp⟩,
+  use p.map (algebra_map S),
+  split,
+  { exact monic_map _ pmonic },
+  { rwa [aeval_def, eval₂_map] }
+end
 
 end subalgebra
+
+namespace algebra
+open set polynomial
+variables {R : Type*} {A : Type*} {B : Type*}
+variables [decidable_eq R] [decidable_eq A] [decidable_eq B]
+variables [comm_ring R] [comm_ring A] [algebra R A] [comm_ring B]
+
+def adjoin_singleton_desc (x : A) (hx : is_integral R x)
+  (f : R → B) [is_ring_hom f] (y : B) (hy : is_root ((minimal_polynomial hx).map f) y) :
+(adjoin R ({x} : set A) : Type _) → B :=
+_
+
+instance adjoin_singleton_desc.is_ring_hom (x : A) (hx : is_integral R x)
+  (f : R → B) [is_ring_hom f] (y : B) (hy : is_root ((minimal_polynomial hx).map f) y) :
+  is_ring_hom (adjoin_singleton_desc x hx f y hy) :=
+_
+
+end algebra
+
+-- namespace subalgebra
+-- open set lattice
+-- variables {R : Type*} {A : Type*} {B : Type*}
+-- variables [comm_ring R] [comm_ring A] [algebra R A] [comm_ring B] [algebra R B]
+
+-- def Sup.desc (Ss : set (subalgebra R A)) (f : Π S : Ss, (S : subalgebra R A) →ₐ[R] B)
+--   (hf : ∀ S₁ S₂ : Ss, ∃ h : (S₁ : subalgebra R A) ≤ S₂, (f S₂) ∘ inclusion h = f S₁) :
+--   (Sup Ss : subalgebra R A) →ₐ[R] B :=
+-- sorry
+
+-- end subalgebra
 
 open function algebra polynomial
 variables {R : Type*} {A : Type*} {B : Type*}

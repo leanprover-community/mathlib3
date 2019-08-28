@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes
+Authors: Chris Hughes, Johan Commelin
 -/
 
 import algebra.direct_limit
@@ -224,6 +224,12 @@ lemma is_algebraically_closed_of_irreducible_has_root
   let ⟨x, hx⟩ := h g hg.1 in
   let ⟨i, hi⟩ := hg.2 in
   ⟨x, by rw [hi, is_root.def, eval_mul, show _ = _, from hx, zero_mul]⟩⟩
+
+variables (L : Type*) [nonzero_comm_ring L] [decidable_eq L] [is_algebraically_closed L]
+
+lemma exists_root (f : polynomial L) (hf : 0 < f.degree) :
+  ∃ x, is_root f x :=
+is_algebraically_closed.exists_root f hf
 
 -- /- An algebraic extension of -/
 -- lemma equiv_of_algebraic
@@ -673,91 +679,196 @@ protected def is_integral : ∀ x : algebraic_closure K, is_integral K x :=
 
 attribute [irreducible] algebraic_closure closed_extension algebraic_closure.algebra
 
-section lift
+namespace lift
 /- In this section, the homomorphism from any algebraic extension into an algebraically
   closed extension is proven to exist. The assumption that M is algebraically closed could probably
   easily be switched to an assumption that M contains all the roots of polynomials in K -/
 variables {L : Type v} {M : Type w} [discrete_field L] [algebra K L]
   [discrete_field M] [algebra K M] [is_algebraically_closed M] (hL : ∀ x : L, is_integral K x)
 
-/-- This structure is used to prove the existence of a homomorphism from any algebraic extension
-  into an algebraic closure -/
 variables (K L M)
 include hL
 
-private structure subfield_and_hom extends extension K :=
-( to_algebraically_closed : carrier →ₐ[K] M )
-( to_field : carrier →ₐ[K] L )
+/-- This structure is used to prove the existence of a homomorphism from any algebraic extension
+into an algebraic closure -/
+private structure subfield_with_hom :=
+(carrier : subalgebra K L)
+(emb : (@alg_hom K _ M _ _ _ (subalgebra.algebra carrier) _))
 
-variables {K L M}
+variables {K L M hL}
 
-instance subfield_and_hom.preorder : preorder (subfield_and_hom K L M hL) :=
-preorder.lift subfield_and_hom.to_extension (by apply_instance)
+namespace subfield_with_hom
+variables {E₁ E₂ E₃ : subfield_with_hom K L M hL}
 
-private def maximal_subfield_and_hom_chain (c : set (subfield_and_hom K L M hL)) (hc : chain (≤) c) :
-  ∃ ub : subfield_and_hom K L M hL, ∀ N, N ∈ c → N ≤ ub :=
-let ub := (maximal_extension_chain (subfield_and_hom.to_extension '' c) (chain.image (≤) _ _ (λ _ _, id) hc)) in
-⟨{ to_algebraically_closed := sorry, --field in question is direct limit of a bunch of fields with
-      --algebra homs into M
-    to_field := sorry, -- direct limit of a bunch of subfields is also a subfield
-    ..ub.1 },
-   λ n hN, ub.2 _ (mem_image_of_mem _ hN)⟩
+instance : has_le (subfield_with_hom K L M hL) :=
+{ le := λ E₁ E₂, ∃ h : E₁.carrier ≤ E₂.carrier, E₂.emb ∘ inclusion h = E₁.emb }
 
-private lemma exists_maximal_subfield_and_hom : ∃ N : subfield_and_hom K L M hL,
-  ∀ O, N ≤ O → O ≤ N :=
-zorn (maximal_subfield_and_hom_chain _) (λ _ _ _, le_trans)
+lemma le_def : E₁ ≤ E₂ ↔ ∃ h : E₁.carrier ≤ E₂.carrier, E₂.emb ∘ inclusion h = E₁.emb := iff.rfl
 
-variable (M)
+lemma subalgebra_le_of_le (h : E₁ ≤ E₂) : E₁.carrier ≤ E₂.carrier :=
+by { rw le_def at h, cases h, assumption }
 
-private def maximal_subfield_and_hom : subfield_and_hom K L M hL :=
-classical.some (exists_maximal_subfield_and_hom hL)
+lemma compat (h : E₁ ≤ E₂) : E₂.emb ∘ inclusion (subalgebra_le_of_le h) = E₁.emb :=
+by { rw le_def at h, cases h, assumption }
 
-instance akgh : algebra (maximal_subfield_and_hom M hL).carrier L :=
-algebra.of_ring_hom (maximal_subfield_and_hom M hL).to_field (by apply_instance)
+instance : preorder (subfield_with_hom K L M hL) :=
+{ le := λ E₁ E₂, ∃ h : E₁.carrier ≤ E₂.carrier, E₂.emb ∘ inclusion h = E₁.emb,
+  le_refl := λ E, ⟨le_refl _, by rw [inclusion_refl, comp.right_id]⟩,
+  le_trans := λ E₁ E₂ E₃ h₁₂ h₂₃, ⟨le_trans (subalgebra_le_of_le h₁₂) (subalgebra_le_of_le h₂₃),
+  begin
+    erw inclusion_trans (subalgebra_le_of_le h₁₂) (subalgebra_le_of_le h₂₃),
+    rw [← comp.assoc, compat, compat]
+  end⟩ }
 
--- Given K:L:M, if M is algebraic over K it is algebraic over L (names are different)
-private lemma is_integral_over_maximal (x : L) : is_integral (maximal_subfield_and_hom M hL).carrier x := sorry
+end subfield_with_hom
 
-variables (f : polynomial (maximal_subfield_and_hom M hL).carrier) [hif : irreducible f]
-  {x : L} (hxf : f.eval₂ (maximal_subfield_and_hom M hL).to_field x = 0)
+open lattice
 
-include hif hxf
+def maximal_subfield_with_hom_chain (c : set (subfield_with_hom K L M hL)) (hc : chain (≤) c) :
+  ∃ ub : subfield_with_hom K L M hL, ∀ N, N ∈ c → N ≤ ub :=
+let ub : subfield_with_hom K L M hL :=
+{ carrier := Sup (subfield_with_hom.carrier '' c),
+  emb := sorry } in
+⟨ub, λ N hN,
+begin
+  refine ⟨lattice.le_Sup ⟨N, hN, rfl⟩, _⟩,
+  sorry
+end⟩
 
-private def adjoin_root_subfield_and_hom : subfield_and_hom K L M hL :=
-{ to_algebraically_closed := sorry, -- should be adjoin_root.lift composed with an isomorphism
-  to_field := sorry, --
-  ..adjoin_root_extension K f }
+variables (hL M)
 
-private lemma le_adjoin_root_subfield_and_hom : maximal_subfield_and_hom M hL ≤
-  adjoin_root_subfield_and_hom M hL f hxf :=
-le_adjoin_root_extension _ _
+lemma exists_maximal_subfield_with_hom : ∃ E : subfield_with_hom K L M hL,
+  ∀ N, E ≤ N → N ≤ E :=
+zorn (maximal_subfield_with_hom_chain) (λ _ _ _, le_trans)
 
-private def maximal_subfield_and_hom_equiv_adjoin_root :=
-equiv_adjoin_root_of_le K f $
-  classical.some_spec (exists_maximal_subfield_and_hom hL) _
-    (le_adjoin_root_subfield_and_hom M hL f hxf)
+def maximal_subfield_with_hom : subfield_with_hom K L M hL :=
+classical.some (exists_maximal_subfield_with_hom M hL)
 
-omit hif hxf
+lemma maximal_subfield_with_hom_is_maximal :
+  ∀ (N : subfield_with_hom K L M hL), (maximal_subfield_with_hom M hL) ≤ N → N ≤ (maximal_subfield_with_hom M hL) :=
+classical.some_spec (exists_maximal_subfield_with_hom M hL)
 
-private lemma surjective_maximal_subfield_and_hom_to_field :
-  function.surjective (maximal_subfield_and_hom M hL).to_field :=
-λ x, let hx := is_integral_over_maximal M hL x in
-by letI := minimal_polynomial.irreducible hx; exact
-⟨_, minimal_polynomial.root hx
-  (exists_root_of_equiv (maximal_subfield_and_hom_equiv_adjoin_root M hL _
-    (minimal_polynomial.aeval hx)) (adjoin_root.eval₂_root _))⟩
+lemma maximal_subfield_with_hom_eq_top :
+  ((maximal_subfield_with_hom M hL).carrier : subalgebra K L) = (⊤ : subalgebra K L) :=
+begin
+  rw eq_top_iff,
+  rintros x hx,
+  replace hx := (maximal_subfield_with_hom M hL).carrier.is_integral x (hL x),
+  let p := minimal_polynomial hx,
+  have H := exists_root M (p.map (maximal_subfield_with_hom M hL).emb) _,
+  swap, { sorry },
+  let y := classical.some H,
+  let f := algebra.adjoin_singleton_desc x hx (maximal_subfield_with_hom M hL).emb y (classical.some_spec H),
+  let tmpa : subalgebra _ L := algebra.adjoin _ ({x} : set L),
+  let tmpb : _ := _,
+  let N : subfield_with_hom K L M hL :=
+  { carrier := subalgebra.under (maximal_subfield_with_hom M hL).carrier tmpa,
+    emb :=
+    { to_fun := f,
+      hom := algebra.adjoin_singleton_desc.is_ring_hom _ _ _ _ _,
+      commutes' := tmpb } },
+  have hN : x ∈ N.carrier := algebra.subset_adjoin (mem_singleton x),
+  refine subfield_with_hom.subalgebra_le_of_le (maximal_subfield_with_hom_is_maximal M hL N _) hN,
+  { refine ⟨λ l hl, ring.subset_closure (mem_union_left _ _), _⟩,
+    { rw mem_range, refine ⟨⟨l, hl⟩, rfl⟩ },
+    { sorry } },
+  { sorry }
+end
 
-private def equiv_maximal_subfield_and_hom :
-  (maximal_subfield_and_hom M hL).carrier ≃ₐ[K] L :=
-{ ..(maximal_subfield_and_hom M hL).to_field,
-  ..equiv.of_bijective
-    ⟨is_field_hom.injective _, surjective_maximal_subfield_and_hom_to_field _ _⟩ }
-
-/-- The hom from an algebraic extension of K into an algebraic closure -/
-def lift : L →ₐ[K] M :=
-(maximal_subfield_and_hom M hL).to_algebraically_closed.comp
-(equiv_maximal_subfield_and_hom M hL).symm.to_alg_hom
+def lift_fun : L → M :=
+λ l, (maximal_subfield_with_hom M hL).emb.to_fun ⟨l,
+by { rw maximal_subfield_with_hom_eq_top, show l ∈ (⊤ : subalgebra K L), sorry }⟩
 
 end lift
 
-end algebraic_closure
+variables {L : Type v} {M : Type w} [discrete_field L] [algebra K L]
+  [discrete_field M] [algebra K M] [is_algebraically_closed M] (hL : ∀ x : L, is_integral K x)
+
+variables (K L M)
+include hL
+
+/-- A (random) hom from an algebraic extension of K into an algebraic closure -/
+def lift : L →ₐ[K] M :=
+{ to_fun := lift.lift_fun M hL,
+  hom := sorry,
+  commutes' := sorry }
+
+-- #exit
+
+-- private structure subfield_and_hom extends extension K :=
+-- (to_algebraically_closed : carrier →ₐ[K] M)
+-- (to_field : carrier →ₐ[K] L)
+
+
+-- variables {K L M}
+
+-- instance subfield_and_hom.preorder : preorder (subfield_and_hom K L M hL) :=
+-- preorder.lift subfield_and_hom.to_extension (by apply_instance)
+
+-- private def maximal_subfield_and_hom_chain (c : set (subfield_and_hom K L M hL)) (hc : chain (≤) c) :
+--   ∃ ub : subfield_and_hom K L M hL, ∀ N, N ∈ c → N ≤ ub :=
+-- let ub := (maximal_extension_chain (subfield_and_hom.to_extension '' c) (chain.image (≤) _ _ (λ _ _, id) hc)) in
+-- ⟨{ to_algebraically_closed := sorry, --field in question is direct limit of a bunch of fields with
+--       --algebra homs into M
+--     to_field := sorry, -- direct limit of a bunch of subfields is also a subfield
+--     ..ub.1 },
+--    λ n hN, ub.2 _ (mem_image_of_mem _ hN)⟩
+
+-- private lemma exists_maximal_subfield_and_hom : ∃ N : subfield_and_hom K L M hL,
+--   ∀ O, N ≤ O → O ≤ N :=
+-- zorn (maximal_subfield_and_hom_chain _) (λ _ _ _, le_trans)
+
+-- variable (M)
+
+-- private def maximal_subfield_and_hom : subfield_and_hom K L M hL :=
+-- classical.some (exists_maximal_subfield_and_hom hL)
+
+-- instance akgh : algebra (maximal_subfield_and_hom M hL).carrier L :=
+-- algebra.of_ring_hom (maximal_subfield_and_hom M hL).to_field (by apply_instance)
+
+-- -- Given K:L:M, if M is algebraic over K it is algebraic over L (names are different)
+-- private lemma is_integral_over_maximal (x : L) : is_integral (maximal_subfield_and_hom M hL).carrier x := sorry
+
+-- variables (f : polynomial (maximal_subfield_and_hom M hL).carrier) [hif : irreducible f]
+--   {x : L} (hxf : f.eval₂ (maximal_subfield_and_hom M hL).to_field x = 0)
+
+-- include hif hxf
+
+-- private def adjoin_root_subfield_and_hom : subfield_and_hom K L M hL :=
+-- { to_algebraically_closed := sorry, -- should be adjoin_root.lift composed with an isomorphism
+--   to_field := sorry, --
+--   ..adjoin_root_extension K f }
+
+-- private lemma le_adjoin_root_subfield_and_hom : maximal_subfield_and_hom M hL ≤
+--   adjoin_root_subfield_and_hom M hL f hxf :=
+-- le_adjoin_root_extension _ _
+
+-- private def maximal_subfield_and_hom_equiv_adjoin_root :=
+-- equiv_adjoin_root_of_le K f $
+--   classical.some_spec (exists_maximal_subfield_and_hom hL) _
+--     (le_adjoin_root_subfield_and_hom M hL f hxf)
+
+-- omit hif hxf
+
+-- private lemma surjective_maximal_subfield_and_hom_to_field :
+--   function.surjective (maximal_subfield_and_hom M hL).to_field :=
+-- λ x, let hx := is_integral_over_maximal M hL x in
+-- by letI := minimal_polynomial.irreducible hx; exact
+-- ⟨_, minimal_polynomial.root hx
+--   (exists_root_of_equiv (maximal_subfield_and_hom_equiv_adjoin_root M hL _
+--     (minimal_polynomial.aeval hx)) (adjoin_root.eval₂_root _))⟩
+
+-- private def equiv_maximal_subfield_and_hom :
+--   (maximal_subfield_and_hom M hL).carrier ≃ₐ[K] L :=
+-- { ..(maximal_subfield_and_hom M hL).to_field,
+--   ..equiv.of_bijective
+--     ⟨is_field_hom.injective _, surjective_maximal_subfield_and_hom_to_field _ _⟩ }
+
+-- /-- The hom from an algebraic extension of K into an algebraic closure -/
+-- def lift : L →ₐ[K] M :=
+-- (maximal_subfield_and_hom M hL).to_algebraically_closed.comp
+-- (equiv_maximal_subfield_and_hom M hL).symm.to_alg_hom
+
+-- end lift
+
+-- end algebraic_closure

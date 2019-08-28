@@ -86,12 +86,20 @@ noncomputable theory
   to avoid diamonds -/
 local attribute [instance, priority 0] subtype.decidable_eq
 
-variables {α : Type u} {β : Type v} [discrete_field α] [discrete_field β] [algebra α β]
+variables {α : Type u} {β : Type v}
+
+section min_poly_def
+variables [decidable_eq α] [decidable_eq β] [comm_ring α] [comm_ring β] [algebra α β]
 
 def minimal_polynomial {x : β} (hx : is_integral α x) : polynomial α :=
 well_founded.min polynomial.degree_lt_wf _ (ne_empty_iff_exists_mem.mpr hx)
 
+end min_poly_def
+
 namespace minimal_polynomial
+
+section ring
+variables [decidable_eq α] [decidable_eq β] [comm_ring α] [comm_ring β] [algebra α β]
 variables {x : β} (hx : is_integral α x)
 
 lemma monic : monic (minimal_polynomial hx) :=
@@ -100,11 +108,17 @@ lemma monic : monic (minimal_polynomial hx) :=
 @[simp] lemma aeval : aeval α β x (minimal_polynomial hx) = 0 :=
 (well_founded.min_mem degree_lt_wf _ (ne_empty_iff_exists_mem.mpr hx)).2
 
-lemma ne_zero : (minimal_polynomial hx) ≠ 0 := ne_zero_of_monic (monic hx)
-
 lemma min {p : polynomial α} (pmonic : p.monic) (hp : polynomial.aeval α β x p = 0) :
   degree (minimal_polynomial hx) ≤ degree p :=
 le_of_not_lt $ well_founded.not_lt_min degree_lt_wf _ (ne_empty_iff_exists_mem.mpr hx) ⟨pmonic, hp⟩
+
+end ring
+
+section field
+variables [discrete_field α] [discrete_field β] [algebra α β]
+variables {x : β} (hx : is_integral α x)
+
+lemma ne_zero : (minimal_polynomial hx) ≠ 0 := ne_zero_of_monic (monic hx)
 
 lemma degree_le_of_ne_zero {p : polynomial α} (pnz : p ≠ 0) (hp : polynomial.aeval α β x p = 0) :
   degree (minimal_polynomial hx) ≤ degree p :=
@@ -156,6 +170,9 @@ begin
   exact degree_eq_zero_of_is_unit H
 end
 
+lemma degree_pos : 0 < degree (minimal_polynomial hx) :=
+degree_pos_of_ne_zero_of_nonunit (ne_zero hx) (not_is_unit hx)
+
 lemma prime : prime (minimal_polynomial hx) :=
 begin
   refine ⟨ne_zero hx, not_is_unit hx, _⟩,
@@ -186,5 +203,7 @@ begin
   rw (minimal_polynomial hx).as_sum at H,
   simpa [ndeg_one, finset.sum_range_succ, coeff_one, aeval_def] using H
 end
+
+end field
 
 end minimal_polynomial

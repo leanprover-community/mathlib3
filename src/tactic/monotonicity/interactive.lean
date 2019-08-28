@@ -489,12 +489,15 @@ do t ← target >>= instantiate_mvars,
     - left:  `x ≤ w` and `y < z` or
     - right: `x < w` and `y ≤ z`
 -/
-meta def mono (many : parse (tk "*")?) (dir : parse side)
+meta def mono (many : parse (tk "*")?)
+  (dir : parse side)
   (hyps : parse $ tk "with" *> pexpr_list_or_texpr <|> pure [])
+  (simp_rules : parse $ tk "using" *> simp_arg_list <|> pure [])
   (cfg : mono_cfg := { mono_cfg . }) :
   tactic unit :=
 do hyps ← hyps.mmap (λ p, to_expr p >>= mk_meta_var),
    hyps.mmap' (λ pr, do h ← get_unused_name `h, note h none pr),
+   when (¬ simp_rules.empty) (simp_core { } failed tt simp_rules [] (loc.ns [none])),
    if many.is_some
      then repeat $ mono_aux dir cfg
      else mono_aux dir cfg,

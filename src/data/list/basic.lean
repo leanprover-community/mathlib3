@@ -393,6 +393,11 @@ by cases n; refl
 @[simp] theorem join_repeat_nil (n : ℕ) : join (repeat [] n) = @nil α :=
 by induction n; [refl, simp only [*, repeat, join, append_nil]]
 
+/- pure -/
+
+@[simp] theorem mem_pure {α} (x y : α) :
+  x ∈ (pure y : list α) ↔ x = y := by simp! [pure,list.ret]
+
 /- bind -/
 
 @[simp] theorem bind_eq_bind {α β} (f : α → list β) (l : list α) :

@@ -7,6 +7,7 @@ Finite sets.
 -/
 import logic.embedding algebra.order_functions
   data.multiset data.sigma.basic data.set.lattice
+  tactic.monotonicity tactic.apply
 
 open multiset subtype nat lattice
 
@@ -76,7 +77,12 @@ theorem subset_def {s₁ s₂ : finset α} : s₁ ⊆ s₂ ↔ s₁.1 ⊆ s₂.1
 
 @[simp] theorem subset.refl (s : finset α) : s ⊆ s := subset.refl _
 
+@[trans]
 theorem subset.trans {s₁ s₂ s₃ : finset α} : s₁ ⊆ s₂ → s₂ ⊆ s₃ → s₁ ⊆ s₃ := subset.trans
+
+@[trans]
+theorem superset.trans {s₁ s₂ s₃ : finset α} : s₁ ⊇ s₂ → s₂ ⊇ s₃ → s₁ ⊇ s₃ :=
+λ h' h, subset.trans h h'
 
 theorem mem_of_subset {s₁ s₂ : finset α} {a : α} : s₁ ⊆ s₂ → a ∈ s₁ → a ∈ s₂ := mem_of_subset
 
@@ -401,6 +407,7 @@ by rw [inter_comm, singleton_inter_of_mem h]
 @[simp] theorem inter_singleton_of_not_mem {a : α} {s : finset α} (h : a ∉ s) : s ∩ ι a = ∅ :=
 by rw [inter_comm, singleton_inter_of_not_mem h]
 
+@[mono]
 lemma inter_subset_inter {x y s t : finset α} (h : x ⊆ y) (h' : s ⊆ t) : x ∩ s ⊆ y ∩ t :=
 begin
   intros a a_in,
@@ -531,8 +538,28 @@ by simp only [mem_inter, mem_sdiff]; rintro x ⟨h, _, hn⟩; exact hn h
 @[simp] theorem sdiff_inter_self (s₁ s₂ : finset α) : (s₂ \ s₁) ∩ s₁ = ∅ :=
 (inter_comm _ _).trans (inter_sdiff_self _ _)
 
+@[simp] theorem sdiff_self (s₁ : finset α) : s₁ \ s₁ = ∅ :=
+by ext; simp
+
+theorem sdiff_inter_distrib_right (s₁ s₂ s₃ : finset α) : s₁ \ (s₂ ∩ s₃) = (s₁ \ s₂) ∪ (s₁ \ s₃) :=
+by ext; simp only [and_or_distrib_left, mem_union, classical.not_and_distrib, mem_sdiff, mem_inter]
+
+@[simp] theorem sdiff_inter_self_left (s₁ s₂ : finset α) : s₁ \ (s₁ ∩ s₂) = s₁ \ s₂ :=
+by simp only [sdiff_inter_distrib_right, sdiff_self, empty_union]
+
+@[simp] theorem sdiff_inter_self_right (s₁ s₂ : finset α) : s₁ \ (s₂ ∩ s₁) = s₁ \ s₂ :=
+by simp only [sdiff_inter_distrib_right, sdiff_self, union_empty]
+
+@[simp] theorem sdiff_empty {s₁ : finset α} : s₁ \ ∅ = s₁ :=
+ext.2 (by simp)
+
+@[mono]
 theorem sdiff_subset_sdiff {s₁ s₂ t₁ t₂ : finset α} (h₁ : t₁ ⊆ t₂) (h₂ : s₂ ⊆ s₁) : t₁ \ s₁ ⊆ t₂ \ s₂ :=
 by simpa only [subset_iff, mem_sdiff, and_imp] using λ a m₁ m₂, and.intro (h₁ m₁) (mt (@h₂ _) m₂)
+
+theorem sdiff_subset_self {s₁ s₂ : finset α} : s₁ \ s₂ ⊆ s₁ :=
+suffices s₁ \ s₂ ⊆ s₁ \ ∅, by simpa [sdiff_empty] using this,
+sdiff_subset_sdiff (subset.refl _) (empty_subset _)
 
 @[simp] lemma coe_sdiff (s₁ s₂ : finset α) : ↑(s₁ \ s₂) = (↑s₁ \ ↑s₂ : set α) :=
 set.ext $ λ _, mem_sdiff
@@ -640,6 +667,16 @@ ext.2 $ by simpa only [mem_filter, mem_sdiff, and_comm, not_and] using λ a, and
 
 theorem sdiff_eq_filter (s₁ s₂ : finset α) :
   s₁ \ s₂ = filter (∉ s₂) s₁ := ext.2 $ λ _, by simp only [mem_sdiff, mem_filter]
+
+theorem sdiff_eq_self (s₁ s₂ : finset α) :
+  s₁ \ s₂ = s₁ ↔ s₁ ∩ s₂ ⊆ ∅ :=
+by { simp [subset.antisymm_iff,sdiff_subset_self],
+     split; intro h,
+     { transitivity' ((s₁ \ s₂) ∩ s₂), mono, simp },
+     { calc  s₁ \ s₂
+           ⊇ s₁ \ (s₁ ∩ s₂) : by simp [(⊇)]
+       ... ⊇ s₁ \ ∅         : by mono using [(⊇)]
+       ... ⊇ s₁             : by simp [(⊇)] } }
 
 theorem filter_union_filter_neg_eq (s : finset α) : s.filter p ∪ s.filter (λa, ¬ p a) = s :=
 by simp only [filter_not, union_sdiff_of_subset (filter_subset s)]

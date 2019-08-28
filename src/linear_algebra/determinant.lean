@@ -6,7 +6,7 @@ Authors: Kenny Lau, Chris Hughes
 import data.matrix
 import group_theory.perm.sign
 
-universes u v
+universes u v w
 open equiv equiv.perm finset function
 
 namespace matrix
@@ -110,9 +110,35 @@ instance : is_monoid_hom (det : matrix n n R → R) :=
 { map_one := det_one,
   map_mul := det_mul }
 
-@[simp] lemma det_neg_one : det (-1 : matrix n n R) = (-1) ^ fintype.card n := sorry
+@[simp] lemma det_neg_one : det (-1 : matrix n n R) = (-1) ^ fintype.card n :=
+by { rw [←diagonal_one, diagonal_neg, det_diagonal, finset.prod_const], refl }
 
 @[simp] lemma det_neg (M : matrix n n R) : det (-M) = (-1) ^ fintype.card n * det M :=
 by rw [neg_eq_neg_one_mul, det_mul, det_neg_one]
+
+--TODO: move
+lemma is_semiring_hom.map_nat_cast (a : ℕ) {S : Type w} [comm_ring S] (f : R → S) [hf : is_semiring_hom f] :
+  f a = a :=
+begin
+induction a with _ hn,
+{ rw_mod_cast [hf.map_zero] },
+{ rw [nat.succ_eq_add_one, nat.cast_add, hf.map_add], rw_mod_cast [hf.map_one, hn], refl }
+end
+
+lemma det_map_hom {S : Type w} [comm_ring S] (f : R → S) [is_ring_hom f] (M : matrix n n R) :
+  f (det M) = det (λ i j, f (M i j)) :=
+begin
+  unfold det,
+  rw [←finset.sum_hom f],
+  congr,
+  ext,
+  rw [is_ring_hom.map_mul f, ←finset.prod_hom f],
+  congr,
+  induction (sign x : ℤ) with _ n,
+  { exact is_semiring_hom.map_nat_cast _ f },
+  { rw [int.neg_succ_of_nat_eq, int.cast_neg, is_ring_hom.map_neg f],
+    norm_cast,
+    rw [is_semiring_hom.map_nat_cast _ f, int.cast_neg, int.cast_coe_nat] }
+end
 
 end matrix

@@ -93,11 +93,12 @@ def orelse : list (option α) → option α
 | []        := none 
 | (a :: as) := a <|> orelse as
 
-def disj (ps : list Prop) : Prop := ∃ p : Prop, p ∈ ps ∧ p
+def disj (ps : list Prop) : Prop := ∃ p ∈ ps, p
 def conj (ps : list Prop) : Prop := ∀ p ∈ ps, p
 
 lemma disj_cons (p : Prop) (ps : list Prop) :
-  (p :: ps).disj ↔ p ∨ ps.disj := sorry
+  (p :: ps).disj ↔ p ∨ ps.disj :=
+by { unfold disj, rw exists_mem_cons_iff }
 
 def suffix : nat → list α → list α → Prop 
 | 0       as1 as2        := as1 = as2 

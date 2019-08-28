@@ -179,11 +179,11 @@ lemma frm.skolem_vsub_bin
 lemma trm.skolem_vsub_fn
   {k m : nat} {r : trm} {ts : trms}  :
   trm.skolem_vsub m r (f* k ts) =
-  f* (k + 1) (trm.tmap (trm.skolem_vsub m r) ts) :=
+  f* (k + 1) (trms.tmap (trm.skolem_vsub m r) ts) :=
 begin
   unfold trm.skolem_vsub,
   rw [ trm.finc_fn, trm.vsub_fn, trm.vdec_fn,
-    trm.tmap_tmap, trm.tmap_tmap ]
+    trms.tmap_tmap, trms.tmap_tmap ]
 end
 
 lemma atm.skolem_vsub_rl
@@ -274,9 +274,9 @@ trm.rec
     intros k ts ih, 
     rw [ trm.vinc_fn, trm.vdec_fn, trm.val_fn,
       trm.vdec_fn, trm.val_fn ], 
-    repeat {rw trm.lmap_tmap}, 
+    repeat {rw trms.lmap_tmap}, 
     apply congr_arg,
-    apply trm.lmap_eq_lmap ih,
+    apply trms.lmap_eq_lmap ih,
   end)
 
 lemma trm.val_skolem_vsub
@@ -300,9 +300,9 @@ trm.rec
  (begin
     intros k ts ih,
     rw [ trm.skolem_vsub_fn, trm.val_fn, 
-      trm.val_fn, trm.lmap_tmap ],
+      trm.val_fn, trms.lmap_tmap ],
     apply congr_arg,
-    apply trm.lmap_eq_lmap ih,
+    apply trms.lmap_eq_lmap ih,
   end)
 
 lemma atm.holds_skolem_vsub
@@ -408,13 +408,13 @@ lemma splice_zero (x : α) (V : vas α) : splice 0 x (V ₀↦ x) V :=
 lemma lmap_val_skolem_args (as1 : list α) :
   ∀ as2 : list α, ∀ m : nat, 
   list.suffix m as2 as1 → 
-  (trm.lmap (trm.val F (lassign as1 V)) (skolem_args as2.length m)) = as2
+  (trms.lmap (trm.val F (lassign as1 V)) (skolem_args as2.length m)) = as2
 | []         _  _ := rfl
 | (a :: as2) m h0 :=
   begin
     unfold list.length, 
     unfold skolem_args,
-    unfold trm.lmap,
+    unfold trms.lmap,
     rw trm.val_vr,
     have h1 := list.nth_eq_some_of_cons_suffix h0,
     have h2 := lassign_eq_of_nth_eq_some h1,
@@ -423,12 +423,12 @@ lemma lmap_val_skolem_args (as1 : list α) :
   end
 
 lemma tmap_vdec_skolem_args :
-  ∀ k m : nat, trm.tmap (trm.vdec 0) (skolem_args k (m + 1)) = skolem_args k m 
+  ∀ k m : nat, trms.tmap (trm.vdec 0) (skolem_args k (m + 1)) = skolem_args k m 
 | 0       m := rfl
 | (k + 1) m :=
   begin
     unfold skolem_args, 
-    unfold trm.tmap,
+    unfold trms.tmap,
     rw [trm.vdec_vr, if_pos (zero_lt_succ _)],
     apply congr_arg,
     apply tmap_vdec_skolem_args, 

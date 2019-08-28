@@ -98,9 +98,9 @@ meta def to_prefrm : expr → tactic prefrm
      return (prefrm.lit tt a)
 
 meta def to_trm : preterm → trms → tactic trm
-| (preterm.var ff k) []*       := return (v* k)
-| (preterm.var ff k) (_ ::* _) := fail "Variables cannot have arguments"
-| (preterm.var tt k) ts        := return (f* k ts)
+| (preterm.var tt k) []*       := return (v* k)
+| (preterm.var tt k) (_ ::* _) := fail "Variables cannot have arguments"
+| (preterm.var ff k) ts        := return (f* k ts)
 | (preterm.exp x)    _         := failed
 | (preterm.app pt ps) ts :=
   do s ← to_trm ps []*,

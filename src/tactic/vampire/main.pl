@@ -4,43 +4,40 @@
 
 :- [write, read, check].
 
-parse_inp([num(Num) | Stk], ['f' | Chs], Mat) :-
-  parse_inp([fn(Num) | Stk], Chs, Mat).
-
-parse_inp([num(Num) | Stk], ['r' | Chs], Mat) :-
-  parse_inp([rl(Num) | Stk], Chs, Mat).
-
-parse_inp([Y, X | Stk], ['a' | Chs], Mat) :-
-  parse_inp([app(X, Y) | Stk], Chs, Mat).
-
-parse_inp([num(Num) | Stk], ['v' | Chs], Mat) :-
+parse_inp([Num | Stk], ['v' | Chs], Mat) :-
   parse_inp([var(Num) | Stk], Chs, Mat).
 
-parse_inp([Y, X | Stk], ['q' | Tks], Mat) :-
-  parse_inp([eq(X, Y) | Stk], Tks, Mat).
+parse_inp([Num, Trms | Stk], ['f' | Chs], Mat) :-
+  parse_inp([fn(Num, Trms) | Stk], Chs, Mat).
 
-parse_inp([Atm | Stk], ['n' | Tks], Mat) :-
+parse_inp([Num, Trms | Stk], ['r' | Chs], Mat) :-
+  parse_inp([rl(Num, Trms) | Stk], Chs, Mat).
+
+parse_inp([TrmB, TrmA | Stk], ['e' | Tks], Mat) :-
+  parse_inp([eq(TrmA, TrmB) | Stk], Tks, Mat).
+
+parse_inp([Atm | Stk], ['-' | Tks], Mat) :-
   parse_inp([lit(neg, Atm) | Stk], Tks, Mat).
 
-parse_inp([Atm | Stk], ['p' | Tks], Mat) :-
+parse_inp([Atm | Stk], ['+' | Tks], Mat) :-
   parse_inp([lit(pos, Atm) | Stk], Tks, Mat).
 
-parse_inp(Stk, ['e' | Chs], Mat) :-
+parse_inp(Stk, ['n' | Chs], Mat) :-
   parse_inp([[] | Stk], Chs, Mat).
 
 parse_inp([Hd, Tl | Stk], ['c' | Chs], Mat) :-
   parse_inp([[Hd | Tl] | Stk], Chs, Mat).
 
 parse_inp(Stk, ['b' | Chs], Mat) :-
-  parse_inp([num(0) | Stk], Chs, Mat).
+  parse_inp([0 | Stk], Chs, Mat).
 
-parse_inp([num(Num) | Stk], ['0' | Chs], Mat) :-
+parse_inp([Num | Stk], ['0' | Chs], Mat) :-
   NewNum is Num * 2,
-  parse_inp([num(NewNum) | Stk], Chs, Mat).
+  parse_inp([NewNum | Stk], Chs, Mat).
 
-parse_inp([num(Num) | Stk], ['1' | Chs], Mat) :-
+parse_inp([Num | Stk], ['1' | Chs], Mat) :-
   NewNum is (Num * 2) + 1,
-  parse_inp([num(NewNum) | Stk], Chs, Mat).
+  parse_inp([NewNum | Stk], Chs, Mat).
 
 parse_inp([Mat], [], Mat).
 
@@ -826,11 +823,11 @@ vcheck(Mat, sub(Maps, PrfA, Cnc)) :-
 main([Argv]) :-
   string_chars(Argv, Chs),
   parse_inp([], Chs, Mat),
-  temp_loc(Loc),
-  write_goal(Loc, Mat),
-  read_proof(Loc, Lns),
-  compile(Mat, Lns, Prf),
-  compress(Prf, CPrf),
-  linearize_prf(CPrf, LPrf),
-  string_block(LPrf, Str),
-  write(Str).
+  % temp_loc(Loc),
+  % write_goal(Loc, Mat),
+  % read_proof(Loc, Lns),
+  % compile(Mat, Lns, Prf),
+  % compress(Prf, CPrf),
+  % linearize_prf(CPrf, LPrf),
+  % string_block(LPrf, Str),
+  write(Mat).

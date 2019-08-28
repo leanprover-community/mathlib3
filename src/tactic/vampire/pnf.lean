@@ -95,8 +95,8 @@ trm.rec
     intros k ts ih, 
     rw [trm.vinc_fn, trm.val_fn, trm.val_fn],
     apply congr_arg,
-    rw trm.lmap_tmap,
-    apply trm.lmap_eq_lmap ih
+    rw trms.lmap_tmap,
+    apply trms.lmap_eq_lmap ih
   end)
 
 lemma atm.holds_vinc {R : rls α} {F : fns α}

@@ -154,7 +154,7 @@ meta inductive item : Type
 namespace item
  
 meta def repr : item → string 
-| item.nl        := "[]"
+| item.nl        := "()"
 | (item.nm n)    := n.repr
 | (item.trm t)   := t.repr
 | (item.trms ts) := ts.repr
@@ -397,9 +397,9 @@ do desugar,
    ix ← get_inhabitance αx,
    f ← reify αx,
    let m := clausify f,
-   trace (to_asm m),
-   -- s ← get_asm m,
-   -- trace s,
+   trace m.repr,
+   s ← get_asm m,
+   trace s,
    -- x ← build_proof s.data αx ix f m,
    -- apply x,
    skip

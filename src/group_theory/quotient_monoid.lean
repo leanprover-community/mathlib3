@@ -4,17 +4,13 @@ import group_theory.congruence algebra.associated data.equiv.algebra
    Everything is in the localization namespace to avoid having to duplicate things. -/
 
 variables {X : Type*} [comm_monoid X] (Y : submonoid X) {Z : Type*} [comm_monoid Z]
-          {α : Type*} (β : Type*) [monoid α] [monoid β] 
+          {α : Type*} {β : Type*} [monoid α] [monoid β] {γ : Type*} [monoid γ] 
 
 /-- I rw this and then use abel in some proofs; I don't know the canonical way to do this. -/
 lemma to_add {α} [has_mul α] : 
   @has_mul.mul α _ = @has_add.add (additive α) _ := rfl
 
 namespace monoid_hom
-
-variables {γ : Type*} [monoid γ] (f : α →* γ) (g : β →* γ)
-
-variables {α β} 
 
 def fst : α × β →* α :=
 ⟨λ x, x.1, rfl, λ _ _, prod.fst_mul⟩

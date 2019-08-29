@@ -16,28 +16,27 @@ and the plan is to slowly remove them from mathlib.
 
 ## Main definitions
 
-semiring_hom, is_semiring_hom (deprecated), is_ring_hom (deprecated), nonzero_comm_semiring,
+is_semiring_hom (deprecated), is_ring_hom (deprecated), ring_hom, nonzero_comm_semiring,
 nonzero_comm_ring, domain
 
 ## Notations
 
-→+* for bundled semiring homs (also use for ring homs)
+→+* for bundled ring homs (also use for semiring homs)
 
 ## Implementation notes
 
 There's a coercion from bundled homs to fun, and the canonical
 notation is to use the bundled hom as a function via this coercion.
 
-There is no `ring_hom` -- the idea is that `semiring_hom` is used.
-The constructor for `ring_hom` needs a proof of `map_zero`, `map_one` and
-`map_add` as well as `map_mul`; a separate constructor `semiring_hom.mk'`
-will construct ring homs (i.e. semiring homs between additive commutative groups) from
-monoid homs given only a proof that addition is preserved.
+There is no `semiring_hom` -- the idea is that `ring_hom` is used.
+The constructor for a `ring_hom` between semirings needs a proof of `map_zero`, `map_one` and
+`map_add` as well as `map_mul`; a separate constructor `ring_hom.mk'` will construct ring homs
+between rings from monoid homs given only a proof that addition is preserved.
 
 ## Tags
 
-is_ring_hom, is_semiring_hom, ring_hom, semiring, comm_semiring, ring, comm_ring, domain,
-integral_domain, nonzero_comm_semiring, nonzero_comm_ring, units
+is_ring_hom, is_semiring_hom, ring_hom, semiring_hom, semiring, comm_semiring, ring, comm_ring,
+domain, integral_domain, nonzero_comm_semiring, nonzero_comm_ring, units
 -/
 universes u v
 variable {α : Type u}
@@ -125,7 +124,7 @@ instance [semiring α] : semiring (with_zero α) :=
 attribute [refl] dvd_refl
 attribute [trans] dvd.trans
 
-/-- Predicate for semiring homomorphisms (deprecated -- use the bundled `semiring_hom` version). -/
+/-- Predicate for semiring homomorphisms (deprecated -- use the bundled `ring_hom` version). -/
 class is_semiring_hom {α : Type u} {β : Type v} [semiring α] [semiring β] (f : α → β) : Prop :=
 (map_zero : f 0 = 0)
 (map_one : f 1 = 1)
@@ -241,7 +240,7 @@ end
 
 end comm_ring
 
-/-- Predicate for ring homomorphisms (deprecated -- use the bundled `semiring_hom` version). -/
+/-- Predicate for ring homomorphisms (deprecated -- use the bundled `ring_hom` version). -/
 class is_ring_hom {α : Type u} {β : Type v} [ring α] [ring β] (f : α → β) : Prop :=
 (map_one : f 1 = 1)
 (map_mul : ∀ {x y}, f (x * y) = f x * f y)
@@ -291,15 +290,15 @@ end is_ring_hom
 set_option old_structure_cmd true
 
 /-- Bundled semiring homomorphisms; use this for bundled ring homomorphisms too. -/
-structure semiring_hom (α : Type*) (β : Type*) [semiring α] [semiring β]
+structure ring_hom (α : Type*) (β : Type*) [semiring α] [semiring β]
   extends monoid_hom α β, add_monoid_hom α β
 
-infixr ` →+* `:25 := semiring_hom
+infixr ` →+* `:25 := ring_hom
 
 instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe_to_fun (α →+* β) :=
-⟨_, semiring_hom.to_fun⟩
+⟨_, ring_hom.to_fun⟩
 
-namespace semiring_hom
+namespace ring_hom
 
 variables {β : Type v} [semiring α] [semiring β]
 variables (f : α →+* β) {x y : α}
@@ -307,16 +306,16 @@ variables (f : α →+* β) {x y : α}
 @[extensionality] theorem ext (f g : α →+* β) (h : (f : α → β) = g) : f = g :=
 by cases f; cases g; cases h; refl
 
-/-- Semiring homomorphisms map zero to zero. -/
+/-- Ring homomorphisms map zero to zero. -/
 @[simp] lemma map_zero (f : α →+* β) : f 0 = 0 := f.map_zero'
 
-/-- Semiring homomorphisms map one to one. -/
+/-- Ring homomorphisms map one to one. -/
 @[simp] lemma map_one (f : α →+* β) : f 1 = 1 := f.map_one'
 
-/-- Semiring homomorphisms preserve addition. -/
+/-- Ring homomorphisms preserve addition. -/
 @[simp] lemma map_add (f : α →+* β) (a b : α) : f (a + b) = f a + f b := f.map_add' a b
 
-/-- Semiring homomorphisms preserve multiplication. -/
+/-- Ring homomorphisms preserve multiplication. -/
 @[simp] lemma map_mul (f : α →+* β) (a b : α) : f (a * b) = f a * f b := f.map_mul' a b
 
 instance {α : Type*} {β : Type*} [semiring α] [semiring β] (f : α →+* β) :
@@ -326,15 +325,14 @@ instance {α : Type*} {β : Type*} [semiring α] [semiring β] (f : α →+* β)
   map_add := f.map_add,
   map_mul := f.map_mul }
 
-/-- A semiring homomorphism of rings is a ring homomorphism. -/
 instance {α γ} [ring α] [ring γ] {g : α →+* γ} : is_ring_hom g :=
 is_ring_hom.of_semiring g
 
-/-- The identity map from a semiring to itself. -/
+/-- The identity ring homomorphism from a semiring to itself. -/
 def id (α : Type*) [semiring α] : α →+* α :=
 by refine {to_fun := id, ..}; intros; refl
 
-/-- Composition of semiring homomorphisms is a semiring homomorphism. -/
+/-- Composition of ring homomorphisms is a ring homomorphism. -/
 def comp {γ} [semiring γ] (hnp : β →+* γ) (hmn : α →+* β) : α →+* γ :=
 { to_fun := hnp ∘ hmn,
   map_zero' := by simp,
@@ -361,7 +359,7 @@ theorem injective_iff {α β} [ring α] [ring β] (f : α →+* β) :
   function.injective f ↔ (∀ a, f a = 0 → a = 0) :=
 add_monoid_hom.injective_iff f.to_add_monoid_hom
 
-/-- Makes a ring homomorphism from a proof that the monoid homomorphism preserves addition. -/
+/-- Makes a ring homomorphism from a monoid homomorphism of rings which preserves addition. -/
 def mk' {γ} [ring γ] (f : α →* γ) (map_add : ∀ a b : α, f (a + b) = f a + f b) : α →+* γ :=
 { to_fun := f,
   map_zero' := add_self_iff_eq_zero.1 $ by rw [←map_add, add_zero],
@@ -369,7 +367,7 @@ def mk' {γ} [ring γ] (f : α →* γ) (map_add : ∀ a b : α, f (a + b) = f a
   map_mul' := f.map_mul,
   map_add' := map_add }
 
-end semiring_hom
+end ring_hom
 
 /-- Predicate for commutative semirings in which zero does not equal one. -/
 class nonzero_comm_semiring (α : Type*) extends comm_semiring α, zero_ne_one_class α

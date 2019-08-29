@@ -32,15 +32,18 @@ instance [has_finite_coproducts.{v} C] : has_initial.{v} C :=
 abbreviation terminal [has_terminal.{v} C] : C := limit (functor.empty C)
 abbreviation initial [has_initial.{v} C] : C := colimit (functor.empty C)
 
+notation `⊤_` C:20 := terminal C
+notation `⊥_` C:20 := initial C
+
 section
 variables {C}
 
-abbreviation terminal.from [has_terminal.{v} C] (P : C) : P ⟶ terminal C :=
+abbreviation terminal.from [has_terminal.{v} C] (P : C) : P ⟶ ⊤_ C :=
 limit.lift (functor.empty C) { X := P, π := by tidy }.
-abbreviation initial.to [has_initial.{v} C] (P : C) : initial C ⟶ P :=
+abbreviation initial.to [has_initial.{v} C] (P : C) : ⊥_ C ⟶ P :=
 colimit.desc (functor.empty C) { X := P, ι := by tidy }.
 
-instance unique_to_terminal [has_terminal.{v} C] (P : C) : unique (P ⟶ terminal C) :=
+instance unique_to_terminal [has_terminal.{v} C] (P : C) : unique (P ⟶ ⊤_ C) :=
 { default := terminal.from P,
   uniq := λ m,
   begin
@@ -48,7 +51,7 @@ instance unique_to_terminal [has_terminal.{v} C] (P : C) : unique (P ⟶ termina
     congr, funext j, cases j,
   end }
 
-instance unique_from_initial [has_initial.{v} C] (P : C) : unique (initial C ⟶ P) :=
+instance unique_from_initial [has_initial.{v} C] (P : C) : unique (⊥_ C ⟶ P) :=
 { default := initial.to P,
   uniq := λ m,
   begin

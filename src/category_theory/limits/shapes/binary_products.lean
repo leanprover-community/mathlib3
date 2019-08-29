@@ -23,7 +23,7 @@ of (co)limits shaped as walking pairs.
 
 universes v u
 
-open category_theory
+open category_theory enumerable
 
 namespace category_theory.limits
 
@@ -32,9 +32,9 @@ namespace category_theory.limits
 inductive walking_pair : Type v
 | left | right
 
-instance fintype_walking_pair : fintype walking_pair :=
-{ elems := [walking_pair.left, walking_pair.right].to_finset,
-  complete := λ x, by { cases x; simp } }
+instance fintype_walking_pair : enumerable walking_pair :=
+enumerable.of_list [walking_pair.left, walking_pair.right]
+(λ x, by { cases x; simp })
 
 def pair_function {C : Type u} (X Y : C) : walking_pair → C
 | walking_pair.left := X
@@ -157,14 +157,14 @@ variables {C} [has_binary_products.{v} C]
 
 local attribute [tidy] tactic.case_bash
 
-section some
+-- section some
 
-omit 𝒞
-def functor.some {A} : discrete A ⥤ discrete (option A) :=
-{ obj := some,
-  map := λ X Y ⟨⟨h⟩⟩, ⟨⟨congr_arg _ h⟩⟩ }
+-- omit 𝒞
+-- def functor.some {A} : discrete A ⥤ discrete (option A) :=
+-- { obj := some,
+--   map := λ X Y ⟨⟨h⟩⟩, ⟨⟨congr_arg _ h⟩⟩ }
 
-end some
+-- end some
 
 def cone.unit (F : discrete punit ⥤ C) : cone F :=
 { X := F.obj punit.star, π := { app := λ ⟨ ⟩, 𝟙 _ } }
@@ -174,16 +174,16 @@ def is_limit.unit (F : discrete punit.{v+1} ⥤ C) : limits.is_limit (cone.unit 
   fac' := λ s ⟨ ⟩, category.comp_id _ _,
   uniq' := λ s m h, by erw [← h,category.comp_id] }
 
-def cone.option {A} (F : discrete (option A) ⥤ C) (s : cone (functor.some ⋙ F)) : cone F :=
+def cone.option {A} (F : discrete (option A) ⥤ C) (s : cone (functor.of_function some ⋙ F)) : cone F :=
 { X := prod s.X (F.obj none),
   π := { app := λ X, option.cases_on X (prod.snd _ _) (λ val, prod.fst _ _ ≫ s.π.app _) } }
 
-instance is_limit.option {A} (F : discrete (option A) ⥤ C) (s : cone $ functor.some ⋙ F) [h : is_limit s] : is_limit (cone.option F s) :=
-{ lift := λ s', prod.lift (h.lift (cone.whisker functor.some s')) (s'.π.app none),
+instance is_limit.option {A} (F : discrete (option A) ⥤ C) (s : cone $ functor.of_function some ⋙ F) [h : is_limit s] : is_limit (cone.option F s) :=
+{ lift := λ s', prod.lift (h.lift (cone.whisker (functor.of_function some) s')) (s'.π.app none),
   fac' := λ s, by { rintro ⟨ ⟩; dsimp [cone.option]; simp, refl },
   uniq' := λ s' m h',
     by { ext ⟨ ⟩; simp *,
-         { apply h.uniq (limits.cone.whisker functor.some s'),
+         { apply h.uniq (limits.cone.whisker (functor.of_function some) s'),
            intro j,
            rw category.assoc, apply h' (some j) },
          { apply h' none } } }
@@ -192,7 +192,7 @@ instance punit.has_limits_of_shape : limits.has_limits_of_shape.{v} (discrete pu
 { has_limit := λ F, { cone := cone.unit F, is_limit := is_limit.unit F } }
 
 def option.limits.has_limits {A} (F : discrete (option A) ⥤ C)
-  [limits.has_limit.{v} $ functor.some ⋙ F] :
+  [limits.has_limit.{v} $ functor.of_function some ⋙ F] :
   limits.has_limit.{v} F :=
 { cone := cone.option F (limits.has_limit.cone _),
   is_limit := @is_limit.option _ _ _ _ _ _ (limits.has_limit.is_limit _) }
@@ -220,28 +220,19 @@ begin
             @ufunctor.map_equiv option.{v} option.{0} _ (ulift $ fin n) (fin n) (@equiv.ulift (fin n))
     ... ≃ fin n.succ                   : option_equiv_fin
     ... ≃ ulift.{v} (fin (nat.succ n)) : equiv.ulift.symm,
-    have : discrete.{v} (option (ulift (fin n))) ≌ discrete (ulift (fin (nat.succ n))) :=
-         discrete.equivalence_of_equiv this,
-    resetI, refine has_limits_of_shape_of_equivalence this }
+    resetI,
+    refine has_limits_of_shape_of_equivalence (discrete.equivalence_of_equiv this) }
 end
 
-open fintype
-section
-
-omit 𝒞
-def fintype.equiv_fin (J) [fintype J] (h : fin (card J) ≃ J) :
-  discrete (ulift.{u} (fin $ card J)) ≌ discrete J :=
-discrete.equivalence_of_equiv (equiv.ulift.trans h)
-
-end
-
-noncomputable def mk_has_finite_product [has_terminal.{v} C] : has_finite_products.{v} C :=
+def mk_has_finite_product [has_terminal.{v} C] : has_finite_products.{v} C :=
 { has_limits_of_shape :=
   begin
     introsI,
-    haveI : decidable_eq J := λ x y : J, classical.prop_decidable (x = y),
-    have h := (equiv_fin J).out.symm,
-    exact @has_limits_of_shape_of_equivalence _ _ C 𝒞 (discrete J) _ (fintype.equiv_fin.{v} J h) (fin.limits.has_limits_of_shape),
+    have : discrete (ulift.{v} (fin (card J))) ≌ discrete J :=
+      discrete.equivalence_of_equiv (equiv.ulift.trans (enumerable.equiv J).symm),
+    exact @has_limits_of_shape_of_equivalence _ _ C 𝒞 (discrete J) _
+          this
+          (fin.limits.has_limits_of_shape),
   end }
 
 /-- The braiding isomorphism which swaps a binary product. -/
@@ -284,7 +275,74 @@ end
 section
 variables {C} [has_binary_coproducts.{v} C]
 
+def cocone.unit (F : discrete punit ⥤ C) : cocone F :=
+{ X := F.obj punit.star, ι := { app := λ ⟨ ⟩, 𝟙 _ } }
+
+def is_colimit.unit (F : discrete punit.{v+1} ⥤ C) : limits.is_colimit (cocone.unit F) :=
+{ desc := λ s, s.ι.app _,
+  fac' := λ s, punit.rec $ by exact category.id_comp _ _,
+  uniq' := λ s m h, by erw [← h,category.id_comp] }
+
+def cocone.option {A} (F : discrete (option A) ⥤ C) (s : cocone (functor.of_function some ⋙ F)) : cocone F :=
+{ X := coprod s.X (F.obj none),
+  ι := { app := λ X, option.cases_on X (coprod.inr _ _) (λ val, s.ι.app _ ≫ coprod.inl _ _) } }
+
+instance is_colimit.option {A} (F : discrete (option A) ⥤ C) (s : cocone $ functor.of_function some ⋙ F)
+  [h : is_colimit s] : is_colimit (cocone.option F s) :=
+{ desc := λ s', coprod.desc (h.desc (cocone.whisker (functor.of_function some) s'))
+                            (s'.ι.app none),
+  fac' := λ s, by { rintro ⟨ ⟩; dsimp [cocone.option]; simp, refl },
+  uniq' := λ s' m h',
+    by { ext ⟨ ⟩; simp *,
+         { apply h.uniq (limits.cocone.whisker (functor.of_function some) s'),
+           intro j,
+           rw ← category.assoc, apply h' (some j) },
+         { apply h' none } } }
+
+def option.limits.has_colimits {A} (F : discrete (option A) ⥤ C)
+  [limits.has_colimit.{v} $ functor.of_function some ⋙ F] :
+  limits.has_colimit.{v} F :=
+{ cocone := cocone.option F (limits.has_colimit.cocone _),
+  is_colimit := @is_colimit.option _ _ _ _ _ _ (limits.has_colimit.is_colimit _) }
+
+instance option.limits.has_colimits_of_shape {A : Type v}
+  [limits.has_colimits_of_shape.{v} (discrete A) C] :
+  limits.has_colimits_of_shape.{v} (discrete (option A)) C :=
+{ has_colimit := λ F, option.limits.has_colimits F }
+
+instance fin.limits.has_colimits_of_shape [has_initial.{v} C] {n : ℕ} :
+  limits.has_colimits_of_shape.{v} (discrete (ulift (fin n))) C :=
+begin
+  induction n with n,
+  { have : pempty ≃ ulift (fin 0), symmetry,
+    calc  ulift (fin 0)
+        ≃ fin 0  : equiv.ulift
+    ... ≃ pempty : fin_zero_equiv_pempty,
+    have : pempty ≌ discrete (ulift $ fin 0) :=
+         equivalence.trans (functor.as_equivalence (functor.empty (discrete pempty)))
+                           (discrete.equivalence_of_equiv this),
+    refine has_colimits_of_shape_of_equivalence this },
+  { have : option.{v} (ulift.{v 0} (fin n)) ≃ ulift.{v 0} (fin (nat.succ n)),
+    calc  option.{v} (ulift (fin n))
+        ≃ option (fin n)               :
+            @ufunctor.map_equiv option.{v} option.{0} _ (ulift $ fin n) (fin n) (@equiv.ulift (fin n))
+    ... ≃ fin n.succ                   : option_equiv_fin
+    ... ≃ ulift.{v} (fin (nat.succ n)) : equiv.ulift.symm,
+    resetI,
+    refine has_colimits_of_shape_of_equivalence (discrete.equivalence_of_equiv this) }
+end
+
 local attribute [tidy] tactic.case_bash
+
+def mk_has_finite_coproduct [has_initial.{v} C] : has_finite_coproducts.{v} C :=
+{ has_colimits_of_shape :=
+  begin
+    introsI,
+    have : discrete (ulift.{v} (fin (enumerable.card J))) ≌ discrete J :=
+      discrete.equivalence_of_equiv (equiv.ulift.trans (enumerable.equiv J).symm),
+    exact @has_colimits_of_shape_of_equivalence _ _ C 𝒞 (discrete J) _
+          this (fin.limits.has_colimits_of_shape),
+  end }
 
 /-- The braiding isomorphism which swaps a binary coproduct. -/
 @[simp] def coprod.braiding (P Q : C) : P ⊕' Q ≅ Q ⊕' P :=

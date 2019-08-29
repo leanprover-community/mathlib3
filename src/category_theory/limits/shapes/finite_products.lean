@@ -17,9 +17,9 @@ variables (C : Type u) [𝒞 : category.{v+1} C]
 include 𝒞
 
 class has_finite_products :=
-(has_limits_of_shape : Π (J : Type v) [fintype J], has_limits_of_shape.{v} (discrete J) C)
+(has_limits_of_shape : Π (J : Type v) [enumerable J], has_limits_of_shape.{v} (discrete J) C)
 class has_finite_coproducts :=
-(has_colimits_of_shape : Π (J : Type v) [fintype J], has_colimits_of_shape.{v} (discrete J) C)
+(has_colimits_of_shape : Π (J : Type v) [enumerable J], has_colimits_of_shape.{v} (discrete J) C)
 
 attribute [instance] has_finite_products.has_limits_of_shape has_finite_coproducts.has_colimits_of_shape
 

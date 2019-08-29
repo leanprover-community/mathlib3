@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.limits.shapes.products
 import category_theory.discrete_category
-import data.fintype
+import data.enum
 
 universes v u
 
@@ -16,9 +16,9 @@ variables (C : Type u) [𝒞 : category.{v+1} C]
 include 𝒞
 
 class has_finite_limits :=
-(has_limits_of_shape : Π (J : Type v) [𝒥 : small_category J] [fintype J], has_limits_of_shape.{v} J C)
+(has_limits_of_shape : Π (J : Type v) [𝒥 : small_category J] [enumerable J], has_limits_of_shape.{v} J C)
 class has_finite_colimits :=
-(has_colimits_of_shape : Π (J : Type v) [𝒥 : small_category J] [fintype J], has_colimits_of_shape.{v} J C)
+(has_colimits_of_shape : Π (J : Type v) [𝒥 : small_category J] [enumerable J], has_colimits_of_shape.{v} J C)
 
 attribute [instance] has_finite_limits.has_limits_of_shape has_finite_colimits.has_colimits_of_shape
 

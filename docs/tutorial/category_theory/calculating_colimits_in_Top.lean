@@ -72,6 +72,7 @@ section Gluing
 
 -- Here's two copies of the real line glued together at a point.
 def f : pt ⟶ R := { val := λ _, (0 : ℝ), property := continuous_const }
+
 /-- Two copies of the real line glued together at 0. -/
 def X : Top := pushout f f
 

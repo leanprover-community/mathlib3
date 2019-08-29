@@ -42,8 +42,8 @@ abbreviation pi_obj (f : β → C) [has_limit (functor.of_function f)] := limit 
    about colimits.) -/
 abbreviation sigma_obj (f : β → C) [has_colimit (functor.of_function f)] := colimit (functor.of_function f)
 
-notation `∏ ` f := pi_obj f
-notation `∐ ` f := sigma_obj f
+notation `∏ ` f:20 := pi_obj f
+notation `∐ ` f:20 := sigma_obj f
 
 abbreviation pi.π (f : β → C) [has_limit (functor.of_function f)] (b : β) : ∏ f ⟶ f b :=
 limit.π (functor.of_function f) b

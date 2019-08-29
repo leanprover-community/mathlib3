@@ -117,6 +117,8 @@ instance [has_finite_coproducts.{v} C] : has_binary_coproducts.{v} C :=
 { has_colimits_of_shape := by apply_instance }
 
 section
+-- TODO The `@[simp] def`s below should probably have appropriate simp lemmas written.
+
 variables {C} [has_binary_products.{v} C]
 
 local attribute [tidy] tactic.case_bash
@@ -127,7 +129,7 @@ local attribute [tidy] tactic.case_bash
   inv := prod.lift prod.snd prod.fst }
 
 /-- The braiding isomorphism is symmetric. -/
-def prod.symmetry (P Q : C) :
+@[simp] lemma prod.symmetry (P Q : C) :
   (prod.braiding P Q).hom ≫ (prod.braiding Q P).hom = 𝟙 _ :=
 by tidy
 
@@ -169,7 +171,7 @@ local attribute [tidy] tactic.case_bash
   inv := coprod.desc coprod.inr coprod.inl }
 
 /-- The braiding isomorphism is symmetric. -/
-def coprod.symmetry (P Q : C) :
+@[simp] lemma coprod.symmetry (P Q : C) :
   (coprod.braiding P Q).hom ≫ (coprod.braiding Q P).hom = 𝟙 _ :=
 by tidy
 

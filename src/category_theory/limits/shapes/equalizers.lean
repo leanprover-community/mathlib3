@@ -14,6 +14,7 @@ local attribute [tidy] tactic.case_bash
 
 universes v u
 
+/-- The type of objects for the diagram indexing a (co)equalizer. -/
 @[derive decidable_eq] inductive walking_parallel_pair : Type v
 | zero | one
 
@@ -34,6 +35,7 @@ end
 
 open walking_parallel_pair
 
+/-- The type family of morphisms for the diagram indexing a (co)equalizer. -/
 inductive walking_parallel_pair_hom : walking_parallel_pair → walking_parallel_pair → Type v
 | left : walking_parallel_pair_hom zero one
 | right : walking_parallel_pair_hom zero one
@@ -181,7 +183,7 @@ abbreviation equalizer := limit (parallel_pair f g)
 abbreviation equalizer.ι : equalizer f g ⟶ X :=
 limit.π (parallel_pair f g) zero
 
-abbreviation equalizer.w : equalizer.ι f g ≫ f = equalizer.ι f g ≫ g :=
+@[simp, reassoc] lemma equalizer.condition : equalizer.ι f g ≫ f = equalizer.ι f g ≫ g :=
 begin
   erw limit.w (parallel_pair f g) walking_parallel_pair_hom.left,
   erw limit.w (parallel_pair f g) walking_parallel_pair_hom.right
@@ -199,7 +201,7 @@ abbreviation coequalizer := colimit (parallel_pair f g)
 abbreviation coequalizer.π : Y ⟶ coequalizer f g :=
 colimit.ι (parallel_pair f g) one
 
-abbreviation coequalizer.w :  f ≫ coequalizer.π f g = g ≫ coequalizer.π f g :=
+@[simp, reassoc] lemma coequalizer.condition : f ≫ coequalizer.π f g = g ≫ coequalizer.π f g :=
 begin
   erw colimit.w (parallel_pair f g) walking_parallel_pair_hom.left,
   erw colimit.w (parallel_pair f g) walking_parallel_pair_hom.right

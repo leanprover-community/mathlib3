@@ -33,5 +33,4 @@ instance has_finite_products_of_has_finite_limits [has_finite_limits.{v} C] : ha
 instance has_finite_coproducts_of_has_finite_colimits [has_finite_colimits.{v} C] : has_finite_coproducts.{v} C :=
 { has_colimits_of_shape := λ J _, by { resetI, apply_instance } }
 
-
 end category_theory.limits

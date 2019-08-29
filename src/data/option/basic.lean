@@ -22,10 +22,6 @@ theorem get_of_mem {a : α} : ∀ {o : option α} (h : is_some o), a ∈ o → o
 
 @[simp] lemma get_some (x : α) (h : is_some (some x)) : option.get h = x := rfl
 
-lemma eq_some_iff_get_eq {o : option α} {a : α} : 
-  o = some a ↔ ∃ h : o.is_some, option.get h = a :=
-by cases o; simp
-
 theorem mem_unique {o : option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a = b :=
 option.some.inj $ ha.symm.trans hb
 
@@ -123,6 +119,10 @@ by cases x; simp [is_some]; exact ⟨_, rfl⟩
 
 @[simp] theorem not_is_some {a : option α} : is_some a = ff ↔ a.is_none = tt :=
 by cases a; simp
+
+lemma eq_some_iff_get_eq {o : option α} {a : α} : 
+  o = some a ↔ ∃ h : o.is_some, option.get h = a :=
+by cases o; simp
 
 lemma not_is_some_iff_eq_none {o : option α} :  ¬o.is_some ↔ o = none :=
 by cases o; simp

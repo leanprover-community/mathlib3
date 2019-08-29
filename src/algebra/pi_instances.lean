@@ -356,6 +356,13 @@ instance [monoid α] [monoid β] [is_submonoid s] [is_submonoid t] :
 { one_mem := by rw set.mem_prod; split; apply is_submonoid.one_mem,
   mul_mem := by intros; rw set.mem_prod at *; split; apply is_submonoid.mul_mem; tauto }
 
+@[to_additive add_submonoid]
+def submonoid [monoid α] [monoid β] (s : submonoid α) (t : submonoid β) :
+  submonoid (α × β) :=
+{ carrier := (s : set α).prod t,
+  one_mem' := ⟨s.one_mem, t.one_mem⟩,
+  mul_mem' := λ _ _ h1 h2, ⟨s.mul_mem h1.1 h2.1, t.mul_mem h1.2 h2.2⟩}
+
 @[to_additive prod.is_add_subgroup.prod]
 instance is_subgroup.prod [group α] [group β] [is_subgroup s] [is_subgroup t] :
   is_subgroup (s.prod t) :=

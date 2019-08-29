@@ -300,10 +300,11 @@ def comp (hnp : N →* P) (hmn : M →* N) : M →* P :=
   map_one' := by simp,
   map_mul' := by simp }
 
-@[simp] lemma comp_apply (g : N →* P) (f : M →* N) {x : M} : g.comp f x = g (f x) := rfl
+@[simp, to_additive] lemma comp_apply (g : N →* P) (f : M →* N) (x : M) : 
+  g.comp f x = g (f x) := rfl
 
 /-- Composition of monoid homomorphisms is associative. -/
-lemma comp_assoc {Q : Type*} [monoid Q] (f : M →* N) (g : N →* P) (h : P →* Q) :
+@[to_additive] lemma comp_assoc {Q : Type*} [monoid Q] (f : M →* N) (g : N →* P) (h : P →* Q) :
   (h.comp g).comp f = h.comp (g.comp f) :=
 rfl
 

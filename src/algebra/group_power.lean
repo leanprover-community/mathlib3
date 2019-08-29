@@ -129,6 +129,24 @@ theorem map_smul (a : α) : ∀(n : ℕ), f (n • a) = n • (f a)
 
 end is_add_monoid_hom
 
+namespace monoid_hom 
+variables {β : Type v} [monoid α] [monoid β] (f : α →* β)
+
+theorem map_pow (a : α) : ∀(n : ℕ), f (a ^ n) = (f a) ^ n
+| 0            := f.map_one
+| (nat.succ n) := by rw [pow_succ, f.map_mul, map_pow n]; refl
+
+end monoid_hom
+
+namespace add_monoid_hom
+variables {β : Type*} [add_monoid α] [add_monoid β] (f : α →+ β)
+
+theorem map_smul (a : α) : ∀(n : ℕ), f (n • a) = n • (f a)
+| 0            := f.map_zero
+| (nat.succ n) := by rw [succ_smul, f.map_add, map_smul n]; refl
+
+end add_monoid_hom 
+
 @[simp] theorem nat.pow_eq_pow (p q : ℕ) :
   @has_pow.pow _ _ monoid.has_pow p q = p ^ q :=
 by induction q with q ih; [refl, rw [nat.pow_succ, pow_succ, mul_comm, ih]]
@@ -337,6 +355,23 @@ theorem map_gsmul (a : α) (n : ℤ) : f (gsmul n a) = gsmul n (f a) :=
 
 end is_add_group_hom
 
+namespace monoid_hom
+variables {β : Type v} [group α] [group β] (f : α →* β)
+
+theorem map_gpow (a : α) (n : ℤ) : f (a ^ n) = f a ^ n :=
+by cases n; [exact f.map_pow _ _,
+  exact (f.map_inv _).trans (congr_arg _ $ f.map_pow _ _)]
+
+end monoid_hom
+
+namespace add_monoid_hom
+variables {β : Type v} [add_group α] [add_group β] (f : α →+ β)
+
+theorem map_gsmul (a : α) (n : ℤ) : f (gsmul n a) = gsmul n (f a) :=
+by cases n; [exact f.map_smul _ _,
+  exact (f.map_neg _).trans (congr_arg _ $ f.map_smul _ _)]
+
+end add_monoid_hom
 local infix ` •ℤ `:70 := gsmul
 
 section comm_monoid

@@ -355,11 +355,15 @@ begin
   apply induction_on₂ x y,
   intros a b h,
   rw [monoid_hom.lift'_mk, monoid_hom.lift'_mk] at h,
-  have : f (a.1*b.2) = f (b.1*a.2), by sorry, sorry,
-   /- rw [f.map_mul, f.map_mul, hf b.2, hf a.2, ←mul_one (f a.1), ←units.inv_mul (f' a.2), ←mul_assoc,
-        ←h, mul_assoc, mul_comm ↑(f' a.2), mul_assoc, ←mul_assoc _ ↑(f' b.2), units.inv_mul, one_mul],
+  have htemp : f (a.1) = f (b.fst) * ↑(f' (b.snd))⁻¹ * f' (a.snd),
+    rw [←h, mul_assoc, units.inv_mul, mul_one],
+  have : f (a.1*b.2) = f (b.1*a.2),
+    rw [f.map_mul, f.map_mul, htemp],
+    rw [hf b.2, hf a.2, mul_assoc (f b.1), mul_assoc], congr' 1,
+    rw [mul_comm, ←mul_assoc, units.mul_inv, one_mul],
   cases (show Y.r'.prod_fst _ _, by rw [←r_eq_r' Y, ←Hp.2]; exact this) with c hc,
-  rw localization.eq, exact ⟨c, by simpa using hc.symm⟩,-/
+  rw localization.eq, refine ⟨c, _⟩,
+  simpa using hc,
 end
 Hp.1}
 

@@ -9,7 +9,7 @@ Separation properties of topological spaces.
 import topology.order
 
 open set filter lattice
-local attribute [instance] classical.prop_decidable -- warning: the priority of this instance is too high
+local attribute [instance] classical.prop_decidable -- TODO: use "open_locale classical"
 
 universes u v
 variables {α : Type u} {β : Type v} [topological_space α]

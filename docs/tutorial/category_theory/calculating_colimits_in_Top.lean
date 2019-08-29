@@ -78,7 +78,7 @@ def X : Top := pushout f f
 -- To define a map out of it, we define maps out of each copy of the line,
 -- and check the maps agree at 0.
 def g : X ⟶ R :=
-pushout.desc f f (𝟙 _) (𝟙 _) rfl
+pushout.desc (𝟙 _) (𝟙 _) rfl
 
 end Gluing
 

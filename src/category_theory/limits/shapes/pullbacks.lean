@@ -280,10 +280,10 @@ colimit.ι (span f g) walking_span.left
 abbreviation pushout.inr {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) [has_colimit (span f g)] : Z ⟶ pushout f g :=
 colimit.ι (span f g) walking_span.right
 
-abbreviation pullback.lift {W X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) [has_limit (cospan f g)]
+abbreviation pullback.lift {W X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)]
   (h : W ⟶ X) (k : W ⟶ Y) (w : h ≫ f = k ≫ g) : W ⟶ pullback f g :=
 limit.lift _ (pullback_cone.mk h k w)
-abbreviation pushout.desc {W X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) [has_colimit (span f g)]
+abbreviation pushout.desc {W X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (span f g)]
   (h : Y ⟶ W) (k : Z ⟶ W) (w : f ≫ h = g ≫ k) : pushout f g ⟶ W :=
 colimit.desc _ (pushout_cocone.mk h k w)
 

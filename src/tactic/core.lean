@@ -1011,10 +1011,10 @@ local postfix `?`:9001 := optional
 local postfix *:9001 := many .
 "
 
-meta def trace_error (t : tactic α) (msg : string) : tactic α
+meta def trace_error (msg : string) (t : tactic α) : tactic α
 | s := match t s with
        | (result.success r s') := result.success r s'
-       | (result.exception (some msg) p s') := (trace (msg ()) >> result.exception (some msg) p) s'
+       | (result.exception (some msg') p s') := (trace msg >> trace (msg' ()) >> result.exception (some msg') p) s'
        | (result.exception none p s') := result.exception none p s'
        end
 

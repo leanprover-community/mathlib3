@@ -412,7 +412,7 @@ lemma interior_mem_uniformity {s : set (α × α)} (hs : s ∈ 𝓤 α) :
   interior s ∈ 𝓤 α :=
 by rw [uniformity_eq_uniformity_interior]; exact mem_lift' hs
 
-lemma mem_uniformity_is_closed [uniform_space α] {s : set (α×α)} (h : s ∈ 𝓤 α) :
+lemma mem_uniformity_is_closed {s : set (α×α)} (h : s ∈ 𝓤 α) :
   ∃t ∈ 𝓤 α, is_closed t ∧ t ⊆ s :=
 have s ∈ (𝓤 α).lift' closure, by rwa [uniformity_eq_uniformity_closure] at h,
 have ∃ t ∈ 𝓤 α, closure t ⊆ s,
@@ -752,7 +752,7 @@ lemma uniform_continuous.prod_mk_right {f : α × β → γ} (h : uniform_contin
   uniform_continuous (λ b, f (a,b)) :=
 h.comp (uniform_continuous_const.prod_mk  uniform_continuous_id)
 
-lemma to_topological_space_prod [u : uniform_space α] [v : uniform_space β] :
+lemma to_topological_space_prod {α} {β} [u : uniform_space α] [v : uniform_space β] :
   @uniform_space.to_topological_space (α × β) prod.uniform_space =
     @prod.topological_space α β u.to_topological_space v.to_topological_space := rfl
 
@@ -849,12 +849,11 @@ begin
 end
 
 /- We can now define the uniform structure on the disjoint union -/
-instance sum.uniform_space [u₁ : uniform_space α] [u₂ : uniform_space β] : uniform_space (α ⊕ β) :=
+instance sum.uniform_space : uniform_space (α ⊕ β) :=
 { to_core := uniform_space.core.sum,
   is_open_uniformity := λ s, ⟨uniformity_sum_of_open_aux, open_of_uniformity_sum_aux⟩ }
 
-lemma sum.uniformity [uniform_space α] [uniform_space β] :
-  𝓤 (α ⊕ β) =
+lemma sum.uniformity : 𝓤 (α ⊕ β) =
     map (λ p : α × α, (inl p.1, inl p.2)) (𝓤 α) ⊔
     map (λ p : β × β, (inr p.1, inr p.2)) (𝓤 β) := rfl
 

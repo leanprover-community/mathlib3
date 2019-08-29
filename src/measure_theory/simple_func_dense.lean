@@ -13,6 +13,7 @@ noncomputable theory
 open lattice set filter topological_space
 open_locale classical
 
+
 universes u v
 variables {α : Type u} {β : Type v} {ι : Type*}
 
@@ -21,6 +22,7 @@ open ennreal nat metric
 open_locale measure_theory
 variables [measure_space α] [normed_group β] [second_countable_topology β]
 
+local infixr ` →ₛ `:25 := simple_func
 lemma simple_func_sequence_tendsto {f : α → β} (hf : measurable f) :
   ∃ (F : ℕ → (α →ₛ β)), ∀ x : α, tendsto (λ n, F n x) at_top (nhds (f x)) ∧
   ∀ n, ∥F n x∥ ≤ ∥f x∥ + ∥f x∥ :=

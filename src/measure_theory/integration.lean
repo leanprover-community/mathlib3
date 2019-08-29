@@ -866,6 +866,9 @@ calc
         (h_mono n))
   ... = lintegral (f 0) - (⨅n, ∫⁻ a, f n a) : ennreal.sub_infi.symm
 
+section priority
+-- for some reason the next proof fails without changing the priority of this instance
+local attribute [instance, priority 1000] classical.prop_decidable
 /-- Known as Fatou's lemma -/
 lemma lintegral_liminf_le {f : ℕ → α → ennreal} (h_meas : ∀n, measurable (f n)) :
   (∫⁻ a, liminf at_top (λ n, f n a)) ≤ liminf at_top (λ n, lintegral (f n)) :=
@@ -888,6 +891,7 @@ calc
       assume i, le_infi $ assume hi, lintegral_le_lintegral _ _
       $ assume a, infi_le_of_le i $ infi_le_of_le hi $ le_refl _
   ... = liminf at_top (λ n, lintegral (f n)) : liminf_eq_supr_infi_of_nat.symm
+end priority
 
 lemma limsup_lintegral_le {f : ℕ → α → ennreal} {g : α → ennreal}
   (hf_meas : ∀ n, measurable (f n)) (hg_meas : measurable g)

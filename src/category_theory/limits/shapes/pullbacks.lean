@@ -187,7 +187,7 @@ def mk {W : C} (fst : W ⟶ X) (snd : W ⟶ Y) (eq : fst ≫ f = snd ≫ g) : pu
   { app := λ j, walking_cospan.cases_on j fst snd (fst ≫ f),
     naturality' := λ j j' f, by cases f; obviously } }
 
-lemma condition (t : pullback_cone f g) : (fst t) ≫ f = (snd t) ≫ g :=
+@[reassoc] lemma w (t : pullback_cone f g) : (fst t) ≫ f = (snd t) ≫ g :=
 begin
   erw [t.w inl, ← t.w inr], refl
 end
@@ -209,7 +209,7 @@ def mk {W : C} (inl : Y ⟶ W) (inr : Z ⟶ W) (eq : f ≫ inl = g ≫ inr) : pu
   { app := λ j, walking_span.cases_on j (f ≫ inl) inl inr,
     naturality' := λ j j' f, by cases f; obviously } }
 
-lemma condition (t : pushout_cocone f g) : f ≫ (inl t) = g ≫ (inr t) :=
+@[reassoc] lemma w (t : pushout_cocone f g) : f ≫ (inl t) = g ≫ (inr t) :=
 begin
   erw [t.w fst, ← t.w snd], refl
 end

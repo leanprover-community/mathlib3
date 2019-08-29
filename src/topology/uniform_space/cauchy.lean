@@ -7,7 +7,6 @@ Theory of Cauchy filters in uniform spaces. Complete uniform spaces. Totally bou
 -/
 import topology.uniform_space.basic
 
-
 open filter topological_space lattice set classical
 local attribute [instance, priority 0] prop_decidable
 variables {α : Type*} {β : Type*} [uniform_space α]
@@ -112,7 +111,7 @@ lemma cauchy_comap [uniform_space β] {f : filter β} {m : α → β}
 /-- Cauchy sequences. Usually defined on ℕ, but often it is also useful to say that a function
 defined on ℝ is Cauchy at +∞ to deduce convergence. Therefore, we define it in a type class that
 is general enough to cover both ℕ and ℝ, which are the main motivating examples. -/
-def cauchy_seq [inhabited β] [semilattice_sup β] (u : β → α) := cauchy (at_top.map u)
+def cauchy_seq [semilattice_sup β] (u : β → α) := cauchy (at_top.map u)
 
 lemma cauchy_seq_iff_prod_map [inhabited β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ map (prod.map u u) at_top ≤ 𝓤 α :=
@@ -155,21 +154,21 @@ instance complete_space.prod [uniform_space β] [complete_space α] [complete_sp
 lemma complete_space_of_is_complete_univ (h : is_complete (univ : set α)) : complete_space α :=
 ⟨λ f hf, let ⟨x, _, hx⟩ := h f hf ((@principal_univ α).symm ▸ le_top) in ⟨x, hx⟩⟩
 
-lemma cauchy_iff_exists_le_nhds [uniform_space α] [complete_space α] {l : filter α} (hl : l ≠ ⊥) :
+lemma cauchy_iff_exists_le_nhds [complete_space α] {l : filter α} (hl : l ≠ ⊥) :
   cauchy l ↔ (∃x, l ≤ nhds x) :=
 ⟨complete_space.complete, assume ⟨x, hx⟩, cauchy_downwards cauchy_nhds hl hx⟩
 
-lemma cauchy_map_iff_exists_tendsto [uniform_space α] [complete_space α] {l : filter β} {f : β → α}
+lemma cauchy_map_iff_exists_tendsto [complete_space α] {l : filter β} {f : β → α}
   (hl : l ≠ ⊥) : cauchy (l.map f) ↔ (∃x, tendsto f l (nhds x)) :=
 cauchy_iff_exists_le_nhds (map_ne_bot hl)
 
 /-- A Cauchy sequence in a complete space converges -/
-theorem cauchy_seq_tendsto_of_complete [inhabited β] [semilattice_sup β] [complete_space α]
+theorem cauchy_seq_tendsto_of_complete [semilattice_sup β] [complete_space α]
   {u : β → α} (H : cauchy_seq u) : ∃x, tendsto u at_top (nhds x) :=
 complete_space.complete H
 
 /-- If `K` is a complete subset, then any cauchy sequence in `K` converges to a point in `K` -/
-lemma cauchy_seq_tendsto_of_is_complete [inhabited β] [semilattice_sup β] {K : set α} (h₁ : is_complete K)
+lemma cauchy_seq_tendsto_of_is_complete [semilattice_sup β] {K : set α} (h₁ : is_complete K)
   {u : β → α} (h₂ : ∀ n, u n ∈ K) (h₃ : cauchy_seq u) : ∃ v ∈ K, tendsto u at_top (nhds v) :=
 h₁ _ h₃ $ le_principal_iff.2 $ mem_map_sets_iff.2 ⟨univ, univ_mem_sets,
   by { simp only [image_univ], rintros _ ⟨n, rfl⟩, exact h₂ n }⟩
@@ -208,14 +207,14 @@ theorem totally_bounded_iff_subset {s : set α} : totally_bounded s ↔
 end,
 λ H d hd, let ⟨t, _, ht⟩ := H d hd in ⟨t, ht⟩⟩
 
-lemma totally_bounded_subset [uniform_space α] {s₁ s₂ : set α} (hs : s₁ ⊆ s₂)
+lemma totally_bounded_subset {s₁ s₂ : set α} (hs : s₁ ⊆ s₂)
   (h : totally_bounded s₂) : totally_bounded s₁ :=
 assume d hd, let ⟨t, ht₁, ht₂⟩ := h d hd in ⟨t, ht₁, subset.trans hs ht₂⟩
 
-lemma totally_bounded_empty [uniform_space α] : totally_bounded (∅ : set α) :=
+lemma totally_bounded_empty : totally_bounded (∅ : set α) :=
 λ d hd, ⟨∅, finite_empty, empty_subset _⟩
 
-lemma totally_bounded_closure [uniform_space α] {s : set α} (h : totally_bounded s) :
+lemma totally_bounded_closure {s : set α} (h : totally_bounded s) :
   totally_bounded (closure s) :=
 assume t ht,
 let ⟨t', ht', hct', htt'⟩ := mem_uniformity_is_closed ht, ⟨c, hcf, hc⟩ := h t' ht' in
@@ -226,7 +225,7 @@ let ⟨t', ht', hct', htt'⟩ := mem_uniformity_is_closed ht, ⟨c, hcf, hc⟩ :
     ... ⊆ _ : bUnion_subset $ assume i hi, subset.trans (assume x, @htt' (x, i))
       (subset_bUnion_of_mem hi)⟩
 
-lemma totally_bounded_image [uniform_space α] [uniform_space β] {f : α → β} {s : set α}
+lemma totally_bounded_image [uniform_space β] {f : α → β} {s : set α}
   (hf : uniform_continuous f) (hs : totally_bounded s) : totally_bounded (f '' s) :=
 assume t ht,
 have {p:α×α | (f p.1, f p.2) ∈ t} ∈ 𝓤 α,

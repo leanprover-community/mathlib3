@@ -43,7 +43,7 @@ def mapping_cylinder {X Y : Top} (f : X ⟶ Y) : Top := pushout f (cylinder₁ X
 for `f : X ⟶ Y`, as the composition of the inclusion of `X` into the bottom of the
 cylinder `prod X I`, followed by the map `pushout.inr` of `prod X I` into `mapping_cylinder f`. -/
 def mapping_cylinder₀ {X Y : Top} (f : X ⟶ Y) : X ⟶ mapping_cylinder f :=
-cylinder₀ X ≫ pushout.inr f (cylinder₁ X)
+cylinder₀ X ≫ pushout.inr
 
 /--
 The mapping cone is defined as the pushout of

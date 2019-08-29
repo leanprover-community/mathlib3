@@ -271,13 +271,13 @@ limit (cospan f g)
 abbreviation pushout {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) [has_colimit (span f g)] :=
 colimit (span f g)
 
-abbreviation pullback.fst {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) [has_limit (cospan f g)] : pullback f g ⟶ X :=
+abbreviation pullback.fst {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)] : pullback f g ⟶ X :=
 limit.π (cospan f g) walking_cospan.left
-abbreviation pullback.snd {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) [has_limit (cospan f g)] : pullback f g ⟶ Y :=
+abbreviation pullback.snd {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)] : pullback f g ⟶ Y :=
 limit.π (cospan f g) walking_cospan.right
-abbreviation pushout.inl {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) [has_colimit (span f g)] : Y ⟶ pushout f g :=
+abbreviation pushout.inl {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (span f g)] : Y ⟶ pushout f g :=
 colimit.ι (span f g) walking_span.left
-abbreviation pushout.inr {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) [has_colimit (span f g)] : Z ⟶ pushout f g :=
+abbreviation pushout.inr {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (span f g)] : Z ⟶ pushout f g :=
 colimit.ι (span f g) walking_span.right
 
 abbreviation pullback.lift {W X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)]

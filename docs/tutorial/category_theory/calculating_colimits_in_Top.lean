@@ -87,7 +87,7 @@ universes v u w
 section Products
 
 /-- The countably infinite product of copies of `ℝ`. -/
-def Y : Top := pi_obj (λ n : ℕ, R)
+def Y : Top := ∏ (λ n : ℕ, R)
 
 /-- We define a point of this infinite product by specifying its coordinates. -/
 def q : pt ⟶ Y :=

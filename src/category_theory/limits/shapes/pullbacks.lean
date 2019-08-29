@@ -224,7 +224,7 @@ def cone.of_pullback_cone
     naturality' := λ j j' g,
     begin
       cases j; cases j'; cases g; dsimp; simp,
-      erw ← t.w inl, refl,
+      erw ← t.w, refl,
       erw ← t.w inr, refl,
     end } }.
 

@@ -749,6 +749,16 @@ lemma maximal_subfield_with_hom_is_maximal :
     (maximal_subfield_with_hom M hL) ≤ N → N ≤ (maximal_subfield_with_hom M hL) :=
 classical.some_spec (exists_maximal_subfield_with_hom M hL)
 
+lemma emb_injective (E : subfield_with_hom K L M hL) :
+  injective E.emb :=
+begin
+  let tmpa : _ := _, let tmpb : _ := _,
+  refine @is_field_hom.injective _ M tmpa _ _ tmpb,
+  swap,
+  { },
+  { exact { .. E.emb.hom } }
+end
+
 lemma maximal_subfield_with_hom_surj :
   surjective (maximal_subfield_with_hom M hL).carrier.val :=
 begin
@@ -756,7 +766,17 @@ begin
   replace hx := (maximal_subfield_with_hom M hL).carrier.is_integral x (hL x),
   let p := minimal_polynomial hx,
   have H := exists_root M (p.map (maximal_subfield_with_hom M hL).emb) _,
-  swap, { sorry },
+  swap,
+  { calc 0 < degree p :
+    begin
+      sorry -- minimal_polynomial.degree_pos gives diamonds
+    end
+       ... = degree (p.map (maximal_subfield_with_hom M hL).emb) :
+    begin
+      symmetry,
+      refine @polynomial.degree_map' _ _ _ _ _ _ p _ (by exact is_ring_hom.is_semiring_hom _) _,
+      sorry,
+    end },
   let y := classical.some H,
   let f := algebra.adjoin_singleton_desc x hx
     (maximal_subfield_with_hom M hL).emb y (classical.some_spec H),

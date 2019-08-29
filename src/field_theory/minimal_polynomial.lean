@@ -66,17 +66,18 @@ begin
   end
 end
 
--- lemma explicit_form_of_degree_eq_one {α : Type*} [decidable_eq α] [comm_semiring α]
---   {p : polynomial α} (hp : degree p = 1) : p = C p.leading_coeff * X + C (coeff p 0) :=
--- begin
---   have ndeg : p.nat_degree = 1,
---   {  },
---   rw polynomial.ext, intro n,
---   by_cases hn : n ≤ 1,
---   { cases n, {simp},
---     obtain rfl : n = 0, { rwa [nat.succ_le_succ_iff, nat.le_zero_iff] at hn },
---     simp [hp, leading_coeff], }
--- end
+lemma zero_is_root_of_coeff_zero_eq_zero {p : polynomial α} (hp : p.coeff 0 = 0) :
+  is_root p 0 :=
+begin
+  rw p.as_sum,
+  calc _ = _ : (finset.sum_hom _).symm
+      ... = _ : finset.sum_eq_zero $
+  begin
+    intros i hi, clear hi,
+    by_cases hi : i = 0, { rw [hi, hp, C_0, zero_mul, eval_zero] },
+    rw [eval_mul, eval_pow, eval_X, zero_pow (nat.pos_of_ne_zero hi), mul_zero]
+  end
+end
 
 end polynomial
 
@@ -186,7 +187,7 @@ lemma irreducible : irreducible (minimal_polynomial hx) :=
 irreducible_of_prime (prime hx)
 
 lemma root {x : β} (hx : is_integral α x) {y : α}
-  (h : (minimal_polynomial hx).eval y = 0) : algebra_map β y = x :=
+  (h : is_root (minimal_polynomial hx) y) : algebra_map β y = x :=
 begin
   have ndeg_one : nat_degree (minimal_polynomial hx) = 1,
   { rw ← polynomial.degree_eq_iff_nat_degree_eq_of_pos (nat.zero_lt_one),
@@ -202,6 +203,14 @@ begin
   have H := aeval hx,
   rw (minimal_polynomial hx).as_sum at H,
   simpa [ndeg_one, finset.sum_range_succ, coeff_one, aeval_def] using H
+end
+
+lemma coeff_zero_ne_zero (h : x ≠ 0) : coeff (minimal_polynomial hx) 0 ≠ 0 :=
+begin
+  contrapose! h,
+  have zero_root := polynomial.zero_is_root_of_coeff_zero_eq_zero h,
+  rw ← root hx zero_root,
+  exact is_ring_hom.map_zero _
 end
 
 end field

@@ -2,6 +2,8 @@ import ring_theory.adjoin_root
 import ring_theory.integral_closure
 import field_theory.minimal_polynomial
 
+universe variables u v w
+
 namespace polynomial
 
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -113,7 +115,7 @@ submodule.zero_mem (S : submodule R A)
 
 variables [decidable_eq R] [decidable_eq A]
 
-lemma is_integral (S : subalgebra R A) (x : A) (hx : is_integral R x) :
+protected lemma is_integral (S : subalgebra R A) (x : A) (hx : is_integral R x) :
   is_integral S x :=
 begin
   rcases hx with ⟨p, pmonic, hp⟩,
@@ -122,6 +124,39 @@ begin
   { exact monic_map _ pmonic },
   { rwa [aeval_def, eval₂_map] }
 end
+
+end subalgebra
+
+section subfield
+variables {K : Type u} [discrete_field K]
+variables (s : set K) [is_subring s]
+
+def subfield_of_inv_mem (h : ∀ x ∈ s, x⁻¹ ∈ s) : discrete_field s :=
+{ inv := λ x, ⟨x⁻¹, h x.val x.property⟩,
+  zero_ne_one := λ h, zero_ne_one $ congr_arg subtype.val h,
+  mul_inv_cancel := λ x hx, subtype.val_injective $ mul_inv_cancel
+    $ λ hz, hx $ subtype.val_injective hz,
+  inv_mul_cancel := λ x hx, subtype.val_injective $ inv_mul_cancel
+    $ λ hz, hx $ subtype.val_injective hz,
+  inv_zero := subtype.val_injective $ inv_zero,
+  has_decidable_eq := subtype.decidable_eq,
+  .. @subtype.comm_ring K _ s _ }
+
+end subfield
+
+namespace subalgebra
+open polynomial
+variables {K : Type u} {L : Type v} [discrete_field K] [discrete_field L] [algebra K L]
+
+noncomputable def inv_poly (x : L) (hx : is_integral K x) : polynomial K :=
+let p := minimal_polynomial hx in
+((p - C (p.coeff 0)) /ₘ X) * C (p.coeff 0)⁻¹
+
+variables (L_alg : ∀ x:L, is_integral K x)
+include L_alg
+
+instance (E : subalgebra K L) : discrete_field (subtype E.carrier) :=
+subfield_of_inv_mem _ $ λ x (hx : x ∈ E), _
 
 end subalgebra
 
@@ -134,12 +169,12 @@ variables [comm_ring R] [comm_ring A] [algebra R A] [comm_ring B]
 def adjoin_singleton_desc (x : A) (hx : is_integral R x)
   (f : R → B) [is_ring_hom f] (y : B) (hy : is_root ((minimal_polynomial hx).map f) y) :
 (adjoin R ({x} : set A) : Type _) → B :=
-_
+sorry
 
 instance adjoin_singleton_desc.is_ring_hom (x : A) (hx : is_integral R x)
   (f : R → B) [is_ring_hom f] (y : B) (hy : is_root ((minimal_polynomial hx).map f) y) :
   is_ring_hom (adjoin_singleton_desc x hx f y hy) :=
-_
+sorry
 
 end algebra
 

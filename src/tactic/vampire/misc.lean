@@ -6,9 +6,17 @@
   Miscellaneous.
 -/
 
+import tactic.rcases
+import data.nat.basic
+
 universe u
 
 variables {α β γ δ : Type u}
+
+def string.tuplize : list string → string 
+| []        := ""
+| (s :: ss) := 
+  "(" ++ list.foldl (λ s1 s2, s1 ++ "," ++ s2) s ss ++ ")" 
 
 def spaces (k : nat) : string := ⟨list.repeat ' ' k⟩
 
@@ -73,6 +81,47 @@ def digit_to_subs : char → char
 
 def nat.to_subs (n : nat) : string :=
 ⟨n.repr.data.map digit_to_subs⟩
+
+def nat.max : nat → nat → nat 
+| 0 m := m 
+| k 0 := k 
+| (k + 1) (m + 1) := (nat.max k m) + 1
+
+lemma nat.le_max_left : ∀ k m : nat, k ≤ nat.max k m 
+| 0       m       := nat.zero_le _
+| k       0       := by cases k; apply le_refl 
+| (k + 1) (m + 1) := 
+  begin
+    unfold nat.max,
+    rw nat.succ_le_succ_iff,
+    apply nat.le_max_left
+  end
+
+lemma nat.le_max_right : ∀ k m : nat, m ≤ nat.max k m 
+| 0       m       := le_refl _
+| k       0       := nat.zero_le _
+| (k + 1) (m + 1) := 
+  begin
+    unfold nat.max,
+    rw nat.succ_le_succ_iff,
+    apply nat.le_max_right
+  end
+
+def nats.max : list nat → nat 
+| []        := 0
+| (k :: ks) := nat.max k (nats.max ks)
+
+lemma nats.le_max_of_mem :
+  ∀ {ks : list nat}, ∀ m ∈ ks, m ≤ nats.max ks 
+| [] _        := by rintro ⟨_⟩ 
+| (k :: ks) m := 
+  begin
+    rintro (h0 | h0),  
+    { rw h0, apply nat.le_max_left },
+    apply le_trans
+      (@nats.le_max_of_mem ks _ h0) 
+      (nat.le_max_right _ _),
+  end
 
 namespace nat
 

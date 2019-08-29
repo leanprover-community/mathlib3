@@ -41,58 +41,52 @@ parse_inp([Num | Stk], ['1' | Chs], Mat) :-
 
 parse_inp([Mat], [], Mat).
 
-vnew_trm(fn(_), 0).
-
 vnew_trm(var(NumA), NumB) :-
   NumB is NumA + 1.
 
-vnew_trm(app(Trm1, Trm2), Num) :-
-  vnew_trm(Trm1, Num1),
-  vnew_trm(Trm2, Num2),
-  max(Num1, Num2, Num).
+vnew_trm(fn(_, Trms), Num) :-
+  maplist(vnew_trm, Trms, Nums),
+  max_list([0 | Nums], Num).
 
-vnew_atm(rl(_), 0).
+vnew_atm(rl(_, Trms), Num) :-
+  maplist(vnew_trm, Trms, Nums),
+  max_list([0 | Nums], Num).
 
-vnew_atm(app(Atm, Trm), Num) :-
-  vnew_atm(Atm, Num1),
-  vnew_trm(Trm, Num2),
-  max(Num1, Num2, Num).
-
-vnew_atm(eq(Trm1, Trm2), Num) :-
-  vnew_trm(Trm1, Num1),
-  vnew_trm(Trm2, Num2),
-  max(Num1, Num2, Num).
+vnew_atm(eq(TrmA, TrmB), Num) :-
+  vnew_trm(TrmA, NumA),
+  vnew_trm(TrmB, NumB),
+  max(NumA, NumB, Num).
 
 vnew_lit(lit(_, Atm), Num) :-
   vnew_atm(Atm, Num).
 
 vnew_cla(Cla, Num) :-
   maplist(vnew_lit, Cla, Nums),
-  max_list(Nums, Num).
+  max_list([0 | Nums], Num).
 
 offset(Ofs, Src, map(Src, var(Tgt))) :-
   Tgt is Src + Ofs.
 
-vars_trm(fn(_), []).
+union_list([], []).
 
-vars_trm(app(Trm1, Trm2), Nums) :-
-  vars_trm(Trm1, Nums1),
-  vars_trm(Trm2, Nums2),
-  union(Nums1, Nums2, Nums).
+union_list([Lst | Lsts], Un) :-
+  union_list(Lsts, Tmp),
+  union(Lst, Tmp, Un).
 
 vars_trm(var(Num), [Num]).
 
-vars_atm(rl(_), []).
-
-vars_atm(app(Atm, Trm), Nums) :-
-  vars_atm(Atm, Nums1),
-  vars_trm(Trm, Nums2),
-  union(Nums1, Nums2, Nums).
+vars_trm(fn(_, Trms), Nums) :-
+  maplist(vars_trm, Trms, Numss),
+  union_list(Numss, Nums).
+  
+vars_atm(rl(_, Trms), Nums) :-
+  maplist(vars_trm, Trms, Numss),
+  union_list(Numss, Nums).
 
 vars_atm(eq(TrmA, TrmB), Nums) :-
-  vars_trm(TrmA, Nums1),
-  vars_trm(TrmB, Nums2),
-  union(Nums1, Nums2, Nums).
+  vars_trm(TrmA, NumsA),
+  vars_trm(TrmB, NumsB),
+  union(NumsA, NumsB, Nums).
 
 vars_lit(lit(_, Atm), Nums) :-
   vars_atm(Atm, Nums).
@@ -106,19 +100,33 @@ disjoiner(Cla1, Cla2, Dsj) :-
   vars_cla(Cla1, Nums),
   maplist(offset(Num), Nums, Dsj).
 
-map_source(map(Src, _), Src).
-
-domain(Maps, Dom) :-
-  maplist(map_source, Maps, Dom).
-
-in_domain(Dom, map(Src, _)) :-
-  member(Src, Dom).
+% map_source(map(Src, _), Src).
+% 
+% domain(Maps, Dom) :-
+%   maplist(map_source, Maps, Dom).
+% 
+% in_domain(Dom, map(Src, _)) :-
+%   member(Src, Dom).
 
 compose_maps(FstMaps, SndMaps, Maps) :-
   update_maps(FstMaps, SndMaps, NewFstMaps),
-  domain(FstMaps, Dom),
-  exclude(in_domain(Dom), SndMaps, NewSndMaps),
-  append(NewFstMaps, NewSndMaps, Maps).
+  % domain(FstMaps, Dom),
+  % exclude(in_domain(Dom), SndMaps, NewSndMaps),
+  append(NewFstMaps, SndMaps, Maps).
+
+src(Num, map(Num, _)).
+
+rm_red_maps([], []).
+
+rm_red_maps([map(Num, Trm) | Maps], [map(Num, Trm) | NewMaps]) :- 
+  exclude(src(Num), Maps, TmpMaps),
+  rm_red_maps(TmpMaps, NewMaps).
+
+idmap(map(Num, var(Num))).
+
+compress_maps(Maps, NewMaps) :-
+  rm_red_maps(Maps, TmpMaps),
+  exclude(idmap, TmpMaps, NewMaps).
 
 update_map(Map, map(Src, Tgt), map(Src, NewTgt)) :-
   subst_trm(Map, Tgt, NewTgt).
@@ -126,62 +134,56 @@ update_map(Map, map(Src, Tgt), map(Src, NewTgt)) :-
 update_maps(FstMaps, SndMaps, NewFstMaps) :-
   maplist(update_map(SndMaps), FstMaps, NewFstMaps).
 
-rep_trm(rgt, SrcTrm, TrmA, TrmB, TgtTrm, Rpl) :-
+rep_trm(SrcTrm, TrmA, TrmB, TgtTrm, Rpl) :-
   unif_trm(SrcTrm, TrmA, RplA),
   subst_trm(RplA, TrmB, TrmB1),
   inst_trm(TrmB1, TgtTrm, RplB),
   compose_maps(RplA, RplB, Rpl).
 
-rep_trm(_, fn(Num), _, _, fn(Num), []). 
+rep_trm(var(Num), _, _, TgtTrm, [map(Num, TgtTrm)]).
 
-rep_trm(rgt, var(Num), _, _, TgtTrm, [map(Num, TgtTrm)]).
+rep_trm(fn(Num, SrcTrms), TrmA, TrmB, fn(Num, TgtTrms), Rpl) :- 
+  rep_trms(SrcTrms, TrmA, TrmB, TgtTrms, Rpl).
 
-rep_trm(_, app(SrcTrmA, SrcTrmB), TrmA, TrmB, app(TgtTrmA, TgtTrmB), Rpl) :- 
-  rep_trm(lft, SrcTrmA, TrmA, TrmB, TgtTrmA, RplA), 
-  subst_trm(RplA, SrcTrmB, SrcTrmB1),
-  subst_trm(RplA, TrmA, TrmA1),
-  subst_trm(RplA, TrmB, TrmB1),
-  rep_trm(rgt, SrcTrmB1, TrmA1, TrmB1, TgtTrmB, RplB), 
-  compose_maps(RplA, RplB, Rpl).
+rep_trms([], _, _, [], []).
+
+rep_trms([SrcTrm | SrcTrms], TrmA, TrmB, [TgtTrm | TgtTrms], Rpl) :- 
+  rep_trm(SrcTrm, TrmA, TrmB, TgtTrm, Rpl1), 
+  maplist(subst_trm(Rpl1), SrcTrms, SrcTrms1),
+  subst_trm(Rpl1, TrmA, TrmA1),
+  subst_trm(Rpl1, TrmB, TrmB1),
+  rep_trms(SrcTrms1, TrmA1, TrmB1, TgtTrms, Rpl2), 
+  compose_maps(Rpl1, Rpl2, Rpl).
 
 rep_atm(eq(SrcTrmA, SrcTrmB), TrmA, TrmB, eq(TgtTrmA, TgtTrmB), Rpl) :- 
-  rep_trm(rgt, SrcTrmA, TrmA, TrmB, TgtTrmA, RplA), 
+  rep_trm(SrcTrmA, TrmA, TrmB, TgtTrmA, RplA), 
   subst_trm(RplA, SrcTrmB, SrcTrmB1),
   subst_trm(RplA, TrmA, TrmA1),
   subst_trm(RplA, TrmB, TrmB1),
-  rep_trm(rgt, SrcTrmB1, TrmA1, TrmB1, TgtTrmB, RplB), 
+  rep_trm(SrcTrmB1, TrmA1, TrmB1, TgtTrmB, RplB), 
   compose_maps(RplA, RplB, Rpl).
 
-rep_atm(rl(Num), _, _, rl(Num), []). 
+rep_atm(rl(Num, SrcTrms), TrmA, TrmB, rl(Num, TgtTrms), Rpl) :- 
+  rep_trms(SrcTrms, TrmA, TrmB, TgtTrms, Rpl).
 
-rep_atm(app(SrcAtm, SrcTrm), TrmA, TrmB, app(TgtAtm, TgtTrm), Rpl) :- 
-  rep_atm(SrcAtm, TrmA, TrmB, TgtAtm, RplA), 
-  subst_trm(RplA, SrcTrm, SrcTrm1),
-  subst_trm(RplA, TrmA, TrmA1),
-  subst_trm(RplA, TrmB, TrmB1),
-  rep_trm(rgt, SrcTrm1, TrmA1, TrmB1, TgtTrm, RplB), 
-  compose_maps(RplA, RplB, Rpl).
+unif_trms([], [], []).
+
+unif_trms([TrmA | TrmsA], [TrmB | TrmsB], Maps) :-
+  unif_trm(TrmA, TrmB, FstMaps),
+  subst_trms(FstMaps, TrmsA, TrmsA1),
+  subst_trms(FstMaps, TrmsB, TrmsB1),
+  unif_trms(TrmsA1, TrmsB1, SndMaps),
+  compose_maps(FstMaps, SndMaps, Maps).
 
 unif_trm(var(Num), Trm, [map(Num, Trm)]).
+
 unif_trm(Trm, var(Num), [map(Num, Trm)]).
 
-unif_trm(fn(Num), fn(Num), []).
+unif_trm(fn(Num, TrmsA), fn(Num, TrmsB), Maps) :- 
+  unif_trms(TrmsA, TrmsB, Maps).
 
-unif_trm(app(Trm1, Trm2), app(Trm3, Trm4), Maps) :-
-  unif_trm(Trm2, Trm4, FstMaps),
-  subst_trm(FstMaps, Trm1, NewTrm1),
-  subst_trm(FstMaps, Trm3, NewTrm3),
-  unif_trm(NewTrm1, NewTrm3, SndMaps),
-  compose_maps(FstMaps, SndMaps, Maps).
-
-unif_atm(rl(Num), rl(Num), []).
-
-unif_atm(app(AtmA, TrmA), app(AtmB, TrmB), Maps) :-
-  unif_atm(AtmA, AtmB, FstMaps),
-  subst_trm(FstMaps, TrmA, TrmA1),
-  subst_trm(FstMaps, TrmB, TrmB1),
-  unif_trm(TrmA1, TrmB1, SndMaps),
-  compose_maps(FstMaps, SndMaps, Maps).
+unif_atm(rl(Num, TrmsA), rl(Num, TrmsB), Maps) :- 
+  unif_trms(TrmsA, TrmsB, Maps).
 
 unif_atm(eq(TrmAL, TrmAR), eq(TrmBL, TrmBR), Maps) :-
   unif_trm(TrmAL, TrmBL, FstMaps),
@@ -212,21 +214,20 @@ merge_instantiators([map(Idx, Tgt) | Inst1], Inst2, [map(Idx, Tgt) | Inst]) :-
   not(member(map(Idx, _), Inst2)),
   merge_instantiators(Inst1, Inst2, Inst).
 
+inst_trms([], [], []).
+
+inst_trms([SrcTrm | SrcTrms], [TgtTrm | TgtTrms], Maps) :-
+  inst_trm(SrcTrm, TgtTrm, Maps1),
+  inst_trms(SrcTrms, TgtTrms, Maps2),
+  merge_instantiators(Maps1, Maps2, Maps).
+
 inst_trm(var(Num), Trm, [map(Num, Trm)]).
 
-inst_trm(fn(Num), fn(Num), []).
+inst_trm(fn(Num, SrcTrms), fn(Num, TgtTrms), Maps) :-
+  inst_trms(SrcTrms, TgtTrms, Maps).
 
-inst_trm(app(SrcTrmA, SrcTrmB), app(TgtTrmA, TgtTrmB), Maps) :-
-  inst_trm(SrcTrmA, TgtTrmA, Maps1),
-  inst_trm(SrcTrmB, TgtTrmB, Maps2),
-  merge_instantiators(Maps1, Maps2, Maps).
-
-inst_atm(rl(Num), rl(Num), []).
-
-inst_atm(app(SrcAtm, SrcTrm), app(TgtAtm, TgtTrm), Maps) :-
-  inst_atm(SrcAtm, TgtAtm, Maps1),
-  inst_trm(SrcTrm, TgtTrm, Maps2),
-  merge_instantiators(Maps1, Maps2, Maps).
+inst_atm(rl(Num, SrcTrms), rl(Num, TgtTrms), Maps) :-
+  inst_trms(SrcTrms, TgtTrms, Maps).
 
 inst_atm(eq(SrcTrmA, SrcTrmB), eq(TgtTrmA, TgtTrmB), Maps) :-
   inst_trm(SrcTrmA, TgtTrmA, Maps1),
@@ -365,11 +366,11 @@ compile_rsl(PrfA, PrfB, rsl(PrfA2, PrfB1, Cnc)) :-
   PrfB1 = sub(Unf, PrfB, CncB1),
   append(ClaA2, ClaB1, Cnc).
 
-compile(Mat, _, Num, Tgt, asm, Prf) :-
+compile(Mat, _, Tgt, asm, Prf) :-
   nth0(Num, Mat, Cla),
   compile_map(asm(Num, Cla), Tgt, Prf).
 
-compile(Mat, Lns, _, Tgt, rsl(NumA, NumB), Prf) :-
+compile(Mat, Lns, Tgt, rsl(NumA, NumB), Prf) :-
   compile(Mat, Lns, NumA, PrfA),
   compile(Mat, Lns, NumB, PrfB),
   conc(PrfA, CncA),
@@ -382,12 +383,12 @@ compile(Mat, Lns, _, Tgt, rsl(NumA, NumB), Prf) :-
     compile_rsl(PrfB1, PrfA1, SubPrf) ),
   compile_map(SubPrf, Tgt, Prf).
 
-compile(Mat, Lns, _, [TgtLit], rep(NumA, NumB), Prf) :-
+compile(Mat, Lns, [TgtLit], rep(NumA, NumB), Prf) :-
   compile(Mat, Lns, NumA, PrfA),
   compile(Mat, Lns, NumB, PrfB),
   compile_rep(PrfA, PrfB, TgtLit, Prf).
 
-compile(Mat, Lns, _, Tgt, eqres(Num), Prf) :-
+compile(Mat, Lns, Tgt, eqres(Num), Prf) :-
   compile(Mat, Lns, Num, Prf1),
   conc(Prf1, Cnc1),
   tor(Cnc1, Idx, Cnc2), 
@@ -400,43 +401,49 @@ compile(Mat, Lns, _, Tgt, eqres(Num), Prf) :-
   Prf4 = trv(Prf3, Tl),
   compile_map(Prf4, Tgt, Prf).
 
-compile(Mat, Lns, _, Tgt, trv(Num), trv(Prf, Tgt)) :-
+compile(Mat, Lns, Tgt, trv(Num), trv(Prf, Tgt)) :-
   compile(Mat, Lns, Num, Prf),
   conc(Prf, [lit(neg, eq(Trm, Trm)) | Tgt]).
 
-compile(Mat, Lns, _, Tgt, map(Num), Prf) :-
+compile(Mat, Lns, Tgt, map(Num), Prf) :-
   compile(Mat, Lns, Num, SubPrf),
   compile_map(SubPrf, Tgt, Prf).
 
 compile(Mat, Lns, Num, Prf) :-
   member(line(Num, Tgt, Rul), Lns),
-  compile(Mat, Lns, Num, Tgt, Rul, Prf).
+  compile(Mat, Lns, Tgt, Rul, Prf).
 
-dezerortt(asm(Num, Maps), asm(Num, Maps)).
+compress(asm(Num, Cla), asm(Num, Cla)).
 
-dezerortt(rtt(0, Prf), CPrf) :-
-  dezerortt(Prf, CPrf).
+compress(rtt(0, Prf, _), NewPrf) :-
+  compress(Prf, NewPrf).
 
-dezerortt(rtt(Num, Prf), rtt(Num, CPrf)) :-
+compress(rtt(Num, Prf, Cla), rtt(Num, NewPrf, Cla)) :-
   0 < Num,
-  dezerortt(Prf, CPrf).
+  compress(Prf, NewPrf).
 
-dezerortt(rsl(PrfA, PrfB), rsl(PrfA1, PrfB1)) :-
-  dezerortt(PrfA, PrfA1),
-  dezerortt(PrfB, PrfB1).
+compress(rsl(PrfA, PrfB, Cla), rsl(NewPrfA, NewPrfB, Cla)) :-
+  compress(PrfA, NewPrfA),
+  compress(PrfB, NewPrfB).
 
-dezerortt(rep(PrfA, PrfB), rep(PrfA1, PrfB1)) :-
-  dezerortt(PrfA, PrfA1),
-  dezerortt(PrfB, PrfB1).
+compress(sub(Maps, Prf, Cla), NewPrf) :-
+  ( compress_maps(Maps, []), compress(Prf, NewPrf) ) ; 
+  ( compress_maps(Maps, NewMaps), 
+    compress(Prf, TmpPrf), 
+    NewPrf = sub(NewMaps, TmpPrf, Cla) ).
 
-dezerortt(trv(Prf), trv(CPrf)) :-
-  dezerortt(Prf, CPrf).
+compress(rep(PrfA, PrfB, Cla), rep(NewPrfA, NewPrfB, Cla)) :-
+  compress(PrfA, NewPrfA),
+  compress(PrfB, NewPrfB).
 
-dezerortt(sym(Prf), sym(CPrf)) :-
-  dezerortt(Prf, CPrf).
+compress(trv(Prf, Cla), trv(NewPrf, Cla)) :-
+  compress(Prf, NewPrf).
 
-dezerortt(cnt(Prf), cnt(CPrf)) :-
-  dezerortt(Prf, CPrf).
+compress(sym(Prf, Cla), sym(NewPrf, Cla)) :-
+  compress(Prf, NewPrf).
+
+compress(cnt(Prf, Cla), cnt(NewPrf, Cla)) :-
+  compress(Prf, NewPrf).
 
 relevant(Vars, map(Num, _)) :-
   member(Num, Vars).
@@ -446,148 +453,11 @@ filter_maps(Prf, Maps, NewMaps) :-
   vars_cla(Cnc, Vars),
   include(relevant(Vars), Maps, NewMaps).
 
-% pushmaps_debug(Maps, asm(_, Cnc), passed(Cla)) :-
-%   vars(Cnc, Vars),
-%   include(relevant(Vars), Maps, NewMaps),
-%   subst(Maps, Cnc, Cla),
-%   subst(NewMaps, Cnc, Cla).
-%
-% pushmaps_debug(Maps, asm(Num, Cnc), failed(Maps, asm(Num, Cnc))) :-
-%   vars(Cnc, Vars),
-%   include(relevant(Vars), Maps, NewMaps),
-%   subst(Maps, Cnc, ClaA),
-%   subst(NewMaps, Cnc, ClaB),
-%   not(ClaA = ClaB).
-%
-% pushmaps_debug(Maps, rsl(PrfA, _, _), failed(X, Y)) :-
-%   filter_maps(PrfA, Maps, MapsA),
-%   pushmaps_debug(MapsA, PrfA, failed(X, Y)).
-%
-% pushmaps_debug(Maps, rsl(_, PrfB, _), failed(X, Y)) :-
-%   filter_maps(PrfB, Maps, MapsB),
-%   pushmaps_debug(MapsB, PrfB, failed(X, Y)).
-%
-% pushmaps_debug(Maps, rsl(PrfA, PrfB, Cnc), Rst) :-
-%   filter_maps(PrfA, Maps, MapsA),
-%   filter_maps(PrfB, Maps, MapsB),
-%   (
-%     pushmaps_debug(MapsA, PrfA, passed([lit(neg, Trm) | ClaA])),
-%     pushmaps_debug(MapsB, PrfB, passed([lit(pos, Trm) | ClaB])),
-%     subst(Maps, Cnc, Cla),
-%     append(ClaA, ClaB, Cla)
-%   ) -> Rst = passed(Cla) ; Rst  = failed(Maps, rsl(PrfA, PrfB, Cnc)).
-%
-% pushmaps_debug(Maps, rtt(_, Prf, _), failed(X, Y)) :-
-%   pushmaps_debug(Maps, Prf, failed(X, Y)).
-%
-% pushmaps_debug(Maps, rtt(Num, PrfA, CncA), passed(Cnc)) :-
-%   pushmaps_debug(Maps, PrfA, passed(CncB)),
-%   rot(Num, CncB, Cnc),
-%   subst(Maps, CncA, Cnc).
-%
-% pushmaps_debug(MapsA, sub(MapsB, Prf, _), failed(X, Y)) :-
-%   compose_maps(MapsB, MapsA, Maps),
-%   pushmaps_debug(Maps, Prf, failed(X, Y)).
-%
-% pushmaps_debug(MapsA, sub(MapsB, Prf, CncB), passed(Cnc)) :-
-%   compose_maps(MapsB, MapsA, Maps),
-%   pushmaps_debug(Maps, Prf, passed(Cnc)),
-%   subst(MapsA, CncB, Cnc).
-
-% pushmaps_debug(Maps, cnt(Prf, _), failed(X, Y)) :-
-%   pushmaps_debug(Maps, Prf, failed(X, Y)).
-%
-% pushmaps_debug(Maps, cnt(PrfA, CncA), passed([Lit | Cla])) :-
-%   pushmaps_debug(Maps, PrfA, passed([Lit, Lit | Cla])),
-%   subst(Maps, CncA, [Lit | Cla]).
-% instantiation
-% rotation
-% resolution
-% contraction
-% substitution
-% symmetry
-
-pushmaps(Maps, asm(Num, Cnc), asm(Num, NewMaps)) :-
-  vars_cla(Cnc, Vars),
-  include(relevant(Vars), Maps, NewMaps).
-
-pushmaps(Maps, rsl(PrfA, PrfB, _), rsl(CPrfA, CPrfB)) :-
-  filter_maps(PrfA, Maps, MapsA),
-  filter_maps(PrfB, Maps, MapsB),
-  pushmaps(MapsA, PrfA, CPrfA),
-  pushmaps(MapsB, PrfB, CPrfB).
-
-pushmaps(Maps, rep(PrfA, PrfB, _), rep(CPrfA, CPrfB)) :-
-  filter_maps(PrfA, Maps, MapsA),
-  filter_maps(PrfB, Maps, MapsB),
-  pushmaps(MapsA, PrfA, CPrfA),
-  pushmaps(MapsB, PrfB, CPrfB).
-
-pushmaps(Maps, sym(Prf, _), sym(CPrf)) :-
-  pushmaps(Maps, Prf, CPrf).
-
-pushmaps(Maps, rtt(Num, Prf, _), rtt(Num, CPrf)) :-
-  pushmaps(Maps, Prf, CPrf).
-
-pushmaps(MapsA, sub(MapsB, Prf, _), CPrf) :-
-  compose_maps(MapsB, MapsA, Maps),
-  pushmaps(Maps, Prf, CPrf).
-
-pushmaps(Maps, cnt(Prf, _), cnt(CPrf)) :-
-  pushmaps(Maps, Prf, CPrf).
-
-pushmaps(Maps, trv(Prf, _), trv(CPrf)) :-
-  pushmaps(Maps, Prf, CPrf).
-
-pushmaps(Prf, CPrf) :-
-  pushmaps([], Prf, CPrf).
-
-groundterm(var(_), fn(0)).
-
-groundterm(fn(Num), fn(Num)).
-
-groundterm(app(TrmA, TrmB), app(GndTrmA, GndTrmB)) :-
-  groundterm(TrmA, GndTrmA),
-  groundterm(TrmB, GndTrmB).
-
-groundmap(map(Num, Trm), map(Num, NewTrm)) :-
-  groundterm(Trm, NewTrm).
-
-groundmaps(asm(Num, Maps), asm(Num, NewMaps)) :-
-  maplist(groundmap, Maps, NewMaps).
-
-groundmaps(rsl(PrfA, PrfB), rsl(PrfA1, PrfB1)) :-
-  groundmaps(PrfA, PrfA1),
-  groundmaps(PrfB, PrfB1).
-
-groundmaps(rep(PrfA, PrfB), rep(PrfA1, PrfB1)) :-
-  groundmaps(PrfA, PrfA1),
-  groundmaps(PrfB, PrfB1).
-
-groundmaps(trv(Prf), trv(Prf1)) :-
-  groundmaps(Prf, Prf1).
-
-groundmaps(sym(Prf), sym(Prf1)) :-
-  groundmaps(Prf, Prf1).
-
-groundmaps(rtt(Num, Prf), rtt(Num, Prf1)) :-
-  groundmaps(Prf, Prf1).
-
-groundmaps(cnt(Prf), cnt(Prf1)) :-
-  groundmaps(Prf, Prf1).
-
-compress(RawPrf, Prf) :-
-  pushmaps(RawPrf, Prf1),
-  dezerortt(Prf1, Prf2),
-  groundmaps(Prf2, Prf).
-
-compress(RawPrf, compress_error(RawPrf)).
-
 compile(Mat, Lns, Prf) :-
   length(Lns, Lth),
   Idx is Lth - 1,
-  nth0(Idx, Lns, line(Num, [], Rul)),
-  compile(Mat, Lns, Num, [], Rul, Prf).
+  nth0(Idx, Lns, line(_, [], Rul)),
+  compile(Mat, Lns, [], Rul, Prf).
 
 compile(Mat, Lns, compile_error(Mat, Lns)).
 
@@ -596,27 +466,28 @@ string_block(Str, Blk) :-
   string_codes(Nl, [10]),
   join_string(Strs, Nl, Blk).
 
+trms_string(Trms, Str) :-
+  maplist(trm_string, Trms, TrmStrs),
+  tuple_string(TrmStrs, Str).
+
 trm_string(var(Num), Str) :-
   number_string(Num, NumStr),
   string_concat("X", NumStr, Str).
 
-trm_string(fn(Num), Str) :-
+trm_string(fn(Num, Trms), Str) :-
   number_string(Num, NumStr),
-  string_concat("f", NumStr, Str).
+  trms_string(Trms, TrmsStr),
+  join_string(["f", NumStr, TrmsStr], Str).
 
-trm_string(app(TrmA, TrmB), Str) :-
+atm_string(rl(Num, Trms), Str) :-
+  number_string(Num, NumStr),
+  trms_string(Trms, TrmsStr),
+  join_string(["r", NumStr, TrmsStr], Str).
+
+atm_string(eq(TrmA, TrmB), Str) :-
   trm_string(TrmA, StrA),
   trm_string(TrmB, StrB),
-  join_string(["(", StrA, " ", StrB, ")"], Str).
-
-atm_string(rl(Num), Str) :-
-  number_string(Num, NumStr),
-  string_concat("r", NumStr, Str).
-
-atm_string(app(Atm, Trm), Str) :-
-  atm_string(Atm, StrA),
-  trm_string(Trm, StrB),
-  join_string(["(", StrA, " ", StrB, ")"], Str).
+  join_string(["(", StrA, " = ", StrB, ")"], Str).
 
 lit_string(lit(pos, Atm), Str) :-
   atm_string(Atm, Str).
@@ -641,43 +512,43 @@ cla_string(Cla, Str) :-
 maps_string(Maps, Str) :-
   list_string(map_string, Maps, Str).
 
-cproof_string(Mat, Spcs, asm(Num, Maps), Str, Cnc) :-
-  string_concat("  ", Spcs, NewSpcs),
-  nth0(Num, Mat, Cla),
-  subst_cla(Maps, Cla, Cnc),
-  cla_string(Cnc, CncStr),
-  number_string(Num, NumStr),
-  maps_string(Maps, MapsStr),
-  string_codes(Nl, [10]),
-  join_string([Spcs, "asm ", NumStr, " : ", CncStr, Nl, NewSpcs, MapsStr], Str).
-
-cproof_string(Mat, Spcs, rsl(PrfA, PrfB), Str, Cnc) :-
-  string_concat("  ", Spcs, NewSpcs),
-  cproof_string(Mat, NewSpcs, PrfA, StrA, [_ | CncA]), !,
-  cproof_string(Mat, NewSpcs, PrfB, StrB, [_ | CncB]), !,
-  append(CncA, CncB, Cnc),
-  cla_string(Cnc, CncStr),
-  string_codes(Nl, [10]),
-  join_string([Spcs, "rsl : ", CncStr, Nl, StrA, Nl, StrB], Str).
-
-cproof_string(Mat, Spcs, rtt(Num, PrfA), Str, Cnc) :-
-  string_concat("  ", Spcs, NewSpcs),
-  number_string(Num, NumStr),
-  cproof_string(Mat, NewSpcs, PrfA, StrA, CncA), !,
-  rot(Num, CncA, Cnc),
-  cla_string(Cnc, CncStr),
-  string_codes(Nl, [10]),
-  join_string([Spcs, "rtt ", NumStr, " : ", CncStr, Nl, StrA], Str).
-
-cproof_string(Mat, Spcs, cnt(PrfA), Str, [Lit | Cla]) :-
-  string_concat("  ", Spcs, NewSpcs),
-  cproof_string(Mat, NewSpcs, PrfA, StrA, [Lit, Lit | Cla]), !,
-  cla_string([Lit | Cla], CncStr),
-  string_codes(Nl, [10]),
-  join_string([Spcs, "cnt : ", CncStr, Nl, StrA], Str).
-
-cproof_string(Mat, Prf, Str) :-
-  cproof_string(Mat, "", Prf, Str, _).
+% cproof_string(Mat, Spcs, asm(Num, Maps), Str, Cnc) :-
+%   string_concat("  ", Spcs, NewSpcs),
+%   nth0(Num, Mat, Cla),
+%   subst_cla(Maps, Cla, Cnc),
+%   cla_string(Cnc, CncStr),
+%   number_string(Num, NumStr),
+%   maps_string(Maps, MapsStr),
+%   string_codes(Nl, [10]),
+%   join_string([Spcs, "asm ", NumStr, " : ", CncStr, Nl, NewSpcs, MapsStr], Str).
+% 
+% cproof_string(Mat, Spcs, rsl(PrfA, PrfB), Str, Cnc) :-
+%   string_concat("  ", Spcs, NewSpcs),
+%   cproof_string(Mat, NewSpcs, PrfA, StrA, [_ | CncA]), !,
+%   cproof_string(Mat, NewSpcs, PrfB, StrB, [_ | CncB]), !,
+%   append(CncA, CncB, Cnc),
+%   cla_string(Cnc, CncStr),
+%   string_codes(Nl, [10]),
+%   join_string([Spcs, "rsl : ", CncStr, Nl, StrA, Nl, StrB], Str).
+% 
+% cproof_string(Mat, Spcs, rtt(Num, PrfA), Str, Cnc) :-
+%   string_concat("  ", Spcs, NewSpcs),
+%   number_string(Num, NumStr),
+%   cproof_string(Mat, NewSpcs, PrfA, StrA, CncA), !,
+%   rot(Num, CncA, Cnc),
+%   cla_string(Cnc, CncStr),
+%   string_codes(Nl, [10]),
+%   join_string([Spcs, "rtt ", NumStr, " : ", CncStr, Nl, StrA], Str).
+% 
+% cproof_string(Mat, Spcs, cnt(PrfA), Str, [Lit | Cla]) :-
+%   string_concat("  ", Spcs, NewSpcs),
+%   cproof_string(Mat, NewSpcs, PrfA, StrA, [Lit, Lit | Cla]), !,
+%   cla_string([Lit | Cla], CncStr),
+%   string_codes(Nl, [10]),
+%   join_string([Spcs, "cnt : ", CncStr, Nl, StrA], Str).
+% 
+% cproof_string(Mat, Prf, Str) :-
+%   cproof_string(Mat, "", Prf, Str, _).
 
 proof_string(Spcs, asm(Num, Cnc), Str) :-
   number_string(Num, NumStr),
@@ -733,101 +604,110 @@ lines_string(Lns, Str) :-
   string_codes(Nl, [10]),
   join_string(Strs, Nl, Str).
 
-linearize_trm(fn(Num), Str) :-
+linearize_trms([], "n").
+
+linearize_trms([Trm | Trms], Str) :-
+  linearize_trms(Trms, TrmsStr),
+  linearize_trm(Trm, TrmStr),
+  join_string([TrmsStr, TrmStr, "c"], Str).
+
+linearize_trm(var(Num), Str) :-
   number_binstr(Num, NumStr),
-  join_string(["n", NumStr, "f"], Str).
+  join_string(["b", NumStr, "v"], Str).
 
-linearize_trm(app(TrmA, TrmB), Str) :-
-  linearize_trm(TrmA, StrA),
-  linearize_trm(TrmB, StrB),
-  join_string([StrA, StrB, "a"], Str).
-
-linearize_atm(rl(Num), Str) :-
+linearize_trm(fn(Num, Trms), Str) :-
   number_binstr(Num, NumStr),
-  join_string(["n", NumStr, "r"], Str).
+  linearize_trms(Trms, TrmsStr), 
+  join_string([TrmsStr, "b", NumStr, "f"], Str).
 
-linearize_atm(app(Atm, Trm), Str) :-
-  linearize_atm(Atm, StrA),
-  linearize_trm(Trm, StrB),
-  join_string([StrA, StrB, "a"], Str).
+% linearize_atm(rl(Num, Trms), Str) :-
+%   number_binstr(Num, NumStr),
+%   linearize_trms(Trms, TrmsStr), 
+%   join_string([TrmsStr, "b", NumStr, "r"], Str).
+% 
+% linearize_atm(eq(TrmA, TrmB), Str) :-
+%   linearize_trm(TrmA, StrA),
+%   linearize_trm(TrmB, StrB),
+%   join_string([StrA, StrB, "e"], Str).
 
-linearize_atm(eq(TrmA, TrmB), Str) :-
-  linearize_trm(TrmA, StrA),
-  linearize_trm(TrmB, StrB),
-  join_string([StrA, StrB, "q"], Str).
-
-linearize_maps([], "e").
+linearize_maps([], "n").
 
 linearize_maps([map(Num, Trm) | Maps], Str) :-
   number_binstr(Num, NumStr),
   linearize_trm(Trm, TrmStr),
   linearize_maps(Maps, SubStr),
-  join_string([SubStr, "n", NumStr, TrmStr, "c"], Str).
+  join_string([SubStr, TrmStr, "b", NumStr, "mc"], Str).
 
-linearize_prf(asm(Num, Maps), LPrf) :-
+linearize_prf(asm(Num, _), Str) :-
   number_binstr(Num, NumStr),
+  join_string(["b", NumStr, "H"], Str).
+
+linearize_prf(rsl(PrfA, PrfB, _), Str) :-
+  linearize_prf(PrfA, StrA),
+  linearize_prf(PrfB, StrB),
+  join_string([StrA, StrB, "R"], Str).
+
+linearize_prf(rep(PrfA, PrfB, _), Str) :-
+  linearize_prf(PrfA, StrA),
+  linearize_prf(PrfB, StrB),
+  join_string([StrA, StrB, "P"], Str).
+
+linearize_prf(rtt(Num, Prf, _), Str) :-
+  number_binstr(Num, NumStr),
+  linearize_prf(Prf, PrfStr),
+  join_string([PrfStr, "b", NumStr, "T"], Str).
+
+linearize_prf(sub(Maps, Prf, _), Str) :-
   linearize_maps(Maps, MapsStr),
-  join_string(["n", NumStr, MapsStr, "I"], LPrf).
+  linearize_prf(Prf, PrfStr),
+  join_string([PrfStr, MapsStr, "S"], Str).
 
-linearize_prf(rsl(PrfA, PrfB), LPrf) :-
-  linearize_prf(PrfA, StrA),
-  linearize_prf(PrfB, StrB),
-  join_string([StrA, StrB, "R"], LPrf).
+linearize_prf(sym(Prf, _), Str) :-
+  linearize_prf(Prf, PrfStr),
+  join_string([PrfStr, "Y"], Str).
 
-linearize_prf(rep(PrfA, PrfB), LPrf) :-
-  linearize_prf(PrfA, StrA),
-  linearize_prf(PrfB, StrB),
-  join_string([StrA, StrB, "S"], LPrf).
+linearize_prf(trv(Prf, _), Str) :-
+  linearize_prf(Prf, PrfStr),
+  join_string([PrfStr, "V"], Str).
 
-linearize_prf(rtt(Num, PrfA), LPrf) :-
-  number_binstr(Num, NumStr),
-  linearize_prf(PrfA, StrA),
-  join_string(["n", NumStr, StrA, "T"], LPrf).
+linearize_prf(cnt(Prf, _), Str) :-
+  linearize_prf(Prf, PrfStr),
+  join_string([PrfStr, "C"], Str).
 
-linearize_prf(sym(PrfA), LPrf) :-
-  linearize_prf(PrfA, StrA),
-  join_string([StrA, "Y"], LPrf).
+linearize_prf(_, "linearize_error").
 
-linearize_prf(trv(PrfA), LPrf) :-
-  linearize_prf(PrfA, StrA),
-  join_string([StrA, "V"], LPrf).
-
-linearize_prf(cnt(PrfA), LPrf) :-
-  linearize_prf(PrfA, StrA),
-  join_string([StrA, "C"], LPrf).
-
-vcheck(Mat, asm(Num, Cnc)) :-
-  nth0(Num, Mat, Cnc).
-
-vcheck(Mat, rsl(PrfA, PrfB, Cnc)) :-
-  vcheck(Mat, PrfA),
-  vcheck(Mat, PrfB),
-  conc(PrfA, [lit(neg, Trm) | CncA]),
-  conc(PrfB, [lit(pos, Trm) | CncB]),
-  append(CncA, CncB, Cnc).
-
-vcheck(Mat, rtt(Num, PrfA, Cnc)) :-
-  vcheck(Mat, PrfA),
-  conc(PrfA, CncA),
-  rot(Num, CncA, Cnc).
-
-vcheck(Mat, cnt(PrfA, [Lit | Cla])) :-
-  vcheck(Mat, PrfA),
-  conc(PrfA, [Lit, Lit | Cla]).
-
-vcheck(Mat, sub(Maps, PrfA, Cnc)) :-
-  vcheck(Mat, PrfA),
-  conc(PrfA, CncA),
-  subst_cla(Maps, CncA, Cnc).
-
+% vcheck(Mat, asm(Num, Cnc)) :-
+%   nth0(Num, Mat, Cnc).
+% 
+% vcheck(Mat, rsl(PrfA, PrfB, Cnc)) :-
+%   vcheck(Mat, PrfA),
+%   vcheck(Mat, PrfB),
+%   conc(PrfA, [lit(neg, Trm) | CncA]),
+%   conc(PrfB, [lit(pos, Trm) | CncB]),
+%   append(CncA, CncB, Cnc).
+% 
+% vcheck(Mat, rtt(Num, PrfA, Cnc)) :-
+%   vcheck(Mat, PrfA),
+%   conc(PrfA, CncA),
+%   rot(Num, CncA, Cnc).
+% 
+% vcheck(Mat, cnt(PrfA, [Lit | Cla])) :-
+%   vcheck(Mat, PrfA),
+%   conc(PrfA, [Lit, Lit | Cla]).
+% 
+% vcheck(Mat, sub(Maps, PrfA, Cnc)) :-
+%   vcheck(Mat, PrfA),
+%   conc(PrfA, CncA),
+%   subst_cla(Maps, CncA, Cnc).
+ 
 main([Argv]) :-
   string_chars(Argv, Chs),
   parse_inp([], Chs, Mat),
-  % temp_loc(Loc),
-  % write_goal(Loc, Mat),
-  % read_proof(Loc, Lns),
-  % compile(Mat, Lns, Prf),
-  % compress(Prf, CPrf),
-  % linearize_prf(CPrf, LPrf),
-  % string_block(LPrf, Str),
-  write(Mat).
+  temp_loc(Loc),
+  write_goal(Loc, Mat),
+  read_proof(Loc, Lns),
+  compile(Mat, Lns, RawPrf),
+  compress(RawPrf, Prf),
+  linearize_prf(Prf, RawStr),
+  string_block(RawStr, Str),
+  write(Str).

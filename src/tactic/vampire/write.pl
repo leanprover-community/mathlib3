@@ -3,40 +3,36 @@
 comma(StrA, StrB, Str) :-
   join_string([StrB, ", ", StrA], Str).
 
-unpack(app(X, Y), Hd, Args) :- 
-  unpack(X, Hd, Tmp),
-  append(Tmp, [Y], Args).
+tuple_string([], ""). 
 
-unpack(X, X, []).
+tuple_string([Str | Strs], TupStr) :-
+  foldl(comma, Strs, Str, Tmp),
+  join_string(["(", Tmp, ")"], TupStr).
 
-tptp_tuple([], ""). 
+tptp_trms([], ""). 
 
-tptp_tuple([Hd | Tl], Str) :-
-  foldl(comma, Tl, Hd, Tmp),
-  join_string(["(", Tmp, ")"], Str).
+tptp_trms(Trms, Str) :-
+  maplist(tptp_trm, Trms, TrmStrs),
+  tuple_string(TrmStrs, Str).
 
 tptp_trm(var(Num), Str) :-
   number_string(Num, NumStr),
   string_concat("X", NumStr, Str).
 
-tptp_trm(Trm, Str) :-
-  unpack(Trm, fn(Num), Args),
+tptp_trm(fn(Num, Trms), Str) :-
   number_string(Num, NumStr),
-  maplist(tptp_trm, Args, ArgStrs),
-  tptp_tuple(ArgStrs, ArgsStr),
-  join_string(["f", NumStr, ArgsStr], Str).
+  tptp_trms(Trms, TrmsStr),
+  join_string(["f", NumStr, TrmsStr], Str).
 
 tptp_atm(eq(TrmA, TrmB), Str) :-
   tptp_trm(TrmA, StrA),
   tptp_trm(TrmB, StrB),
   join_string(["(", StrA, " = ", StrB, ")"], Str).
 
-tptp_atm(Atm, Str) :-
-  unpack(Atm, rl(Num), Args),
+tptp_atm(rl(Num, Trms), Str) :-
   number_string(Num, NumStr),
-  maplist(tptp_trm, Args, ArgStrs),
-  tptp_tuple(ArgStrs, ArgsStr),
-  join_string(["r", NumStr, ArgsStr], Str).
+  tptp_trms(Trms, TrmsStr),
+  join_string(["r", NumStr, TrmsStr], Str).
 
 tptp_lit(lit(neg, Atm), Str) :-
   tptp_atm(Atm, Tmp),

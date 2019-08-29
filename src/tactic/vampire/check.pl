@@ -1,26 +1,23 @@
 :- [misc].
 
+subst_trms(Maps, Trms, NewTrms) :-
+  maplist(subst_trm(Maps), Trms, NewTrms).
+
 subst_trm(Maps, var(Num), var(Num)) :-
   not(member(map(Num, _), Maps)).
 
 subst_trm(Maps, var(Num), Trm) :-
-  member(map(Num, Trm), Maps).
+  member(map(Num, Trm), Maps), !.
 
-subst_trm(_, fn(Num), fn(Num)).
-
-subst_trm(Maps, app(Trm1, Trm2), app(NewTrm1, NewTrm2)) :-
-  subst_trm(Maps, Trm1, NewTrm1),
-  subst_trm(Maps, Trm2, NewTrm2).
+subst_trm(Maps, fn(Num, Trms), fn(Num, NewTrms)) :-
+  subst_trms(Maps, Trms, NewTrms).
 
 subst_atm(Maps, eq(SrcTrmA, SrcTrmB), eq(TgtTrmA, TgtTrmB)) :-
   subst_trm(Maps, SrcTrmA, TgtTrmA),
   subst_trm(Maps, SrcTrmB, TgtTrmB).
 
-subst_atm(_, rl(Num), rl(Num)).
-
-subst_atm(Maps, app(SrcAtm, SrcTrm), app(TgtAtm, TgtTrm)) :-
-  subst_atm(Maps, SrcAtm, TgtAtm),
-  subst_trm(Maps, SrcTrm, TgtTrm).
+subst_atm(Maps, rl(Num, Trms), rl(Num, NewTrms)) :-
+  subst_trms(Maps, Trms, NewTrms).
 
 subst_lit(Map, lit(Pol, SrcAtm), lit(Pol, TgtAtm)) :-
   subst_atm(Map, SrcAtm, TgtAtm).

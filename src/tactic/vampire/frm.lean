@@ -1,7 +1,6 @@
 import logic.basic
 import data.bool
 import data.nat.basic
-import data.list.min_max
 import algebra.order_functions
 import tactic.vampire.list
 import tactic.vampire.misc
@@ -75,12 +74,21 @@ def size : ∀ {b : bool}, xtrm b → nat
 | tt []*        := 0
 | tt (t ::* ts) := t.size + ts.size + 1
 
+lemma succ_size_tail_le_size_cons {t : trm} {ts : trms} : 
+  succ (size ts) ≤ size (t::*ts) := 
+@eq.rec nat (size t + (size ts + 1)) (λ x, (size ts).succ ≤ x) 
+  (nat.le_add_left _ _) _ rfl
+
 lemma size_tail_lt_size_cons {t : trm} {ts : trms} : 
-  (xtrm.size ts) < xtrm.size (xtrm.cons t ts) :=  
-by { apply lt_of_lt_of_le (lt_succ_self _),
-     unfold xtrm.size,
-     rw add_assoc, 
-     apply nat.le_add_left }
+  (size ts) < size (cons t ts) :=  
+@nat.lt_of_lt_of_le _ (size ts).succ _ (lt_succ_self _) 
+  succ_size_tail_le_size_cons
+
+lemma size_head_lt_size_cons {t : trm} {ts : trms} :
+  xtrm.size t < xtrm.size (t ::* ts) := 
+nat.lt_of_le_of_lt 
+  (nat.le_add_right _ (xtrm.size ts)) 
+  (nat.lt_succ_self _)
 
 end xtrm
 
@@ -106,18 +114,34 @@ def length : trms → nat
 def lmap (f : trm → A) : trms → list A 
 | []*        := []
 | (t ::* ts) := f t :: lmap ts
+using_well_founded {
+  dec_tac := `[ apply xtrm.size_tail_lt_size_cons ],
+  rel_tac := λ _ _, `[exact ⟨_, measure_wf xtrm.size⟩]
+}
 
 def dlmap : ∀ {ts : trms}, (∀ t : trm, t ∈ ts → A) → list A 
-| []*  _       := []
-| (t ::* ts) f := (f t (or.inl rfl) :: @dlmap ts (λ x h, f x $ or.inr h))
+| []*        := λ _, []
+| (t ::* ts) := λ f, (f t (or.inl rfl) :: @dlmap ts (λ x h, f x $ or.inr h))
+using_well_founded {
+  dec_tac := `[ apply xtrm.size_tail_lt_size_cons ],
+  rel_tac := λ _ _, `[exact ⟨_, measure_wf xtrm.size⟩]
+}
 
 def tmap (f : trm → trm) : trms → trms 
 | []*        := []*
 | (t ::* ts) := f t ::* tmap ts
+using_well_founded {
+  dec_tac := `[ apply xtrm.size_tail_lt_size_cons ],
+  rel_tac := λ _ _, `[exact ⟨_, measure_wf xtrm.size⟩]
+}
 
 def dtmap : ∀ {ts : trms}, (∀ t : trm, t ∈ ts → trm) → trms  
-| []*  _       := []*
-| (t ::* ts) f := (f t (or.inl rfl) ::* @dtmap ts (λ x h, f x $ or.inr h))
+| []*        := λ _, []*
+| (t ::* ts) := λ f, (f t (or.inl rfl) ::* @dtmap ts (λ x h, f x $ or.inr h))
+using_well_founded {
+  dec_tac := `[ apply xtrm.size_tail_lt_size_cons ],
+  rel_tac := λ _ _, `[exact ⟨_, measure_wf xtrm.size⟩]
+}
 
 /- Lemmas -/
 
@@ -169,22 +193,25 @@ lemma lmap_eq_lmap {f g : trm → A} :
   
 end trms
 
-lemma xtrm.lt_size_fn {k : nat} :
+lemma xtrm.size_lt_size_of_mem :
   ∀ {ts : trms} {s : trm}, 
-  s ∈ ts → xtrm.size s < xtrm.size (f* k ts)  
+  s ∈ ts → xtrm.size s < xtrm.size ts   
 | []*        := by rintros _ ⟨_⟩
 | (t ::* ts) := 
-  by { intros s h0,
-       rw trms.mem_cons_iff at h0, cases h0,
-       { subst h0, unfold xtrm.size, 
-         repeat {rw [add_assoc]},
-         apply lt_trans (lt_succ_self _),
-         rw @add_lt_add_iff_left _ _ _ 1 _,
-         apply succ_lt_succ (zero_lt_succ _) },
-       apply lt_trans (@xtrm.lt_size_fn ts _ h0), 
-       apply succ_lt_succ,
-       apply xtrm.size_tail_lt_size_cons }
+  λ s h0, 
+    or.rec_on ((trms.mem_cons_iff _ _ _).elim_left h0) 
+    (λ h1, @eq.rec _ t (λ x, xtrm.size x < xtrm.size (t ::* ts)) 
+      xtrm.size_head_lt_size_cons s h1.symm)
+    (λ h1, nat.lt_trans (@xtrm.size_lt_size_of_mem ts s h1) 
+       (@xtrm.size_tail_lt_size_cons t ts)) 
+using_well_founded {
+  dec_tac := `[ apply xtrm.size_tail_lt_size_cons ],
+  rel_tac := λ _ _, `[exact ⟨_, measure_wf xtrm.size⟩]
+}
 
+lemma xtrm.lt_size_fn {k : nat} {s : trm} {ts : trms} :
+  s ∈ ts → xtrm.size s < xtrm.size (f* k ts) := 
+λ h0, nat.lt_trans (xtrm.size_lt_size_of_mem h0) (nat.lt_succ_self _)
 
 def vmap  : Type := nat × trm
 def vmaps : Type := list vmap
@@ -222,7 +249,7 @@ meta def rec_fn_l : tactic unit :=
 def repr : trm → string := 
 rec 
   (λ k, "X" ++ k.to_subs) 
-  (λ k ts f, "f" ++ k.to_subs ++ repr_tuple (trms.dlmap f))
+  (λ k ts f, "f" ++ k.to_subs ++ string.tuplize (trms.dlmap f))
 
 instance has_repr : has_repr trm := ⟨repr⟩
 
@@ -231,20 +258,19 @@ meta instance has_to_format : has_to_format trm := ⟨λ x, repr x⟩
 meta def to_expr : trm → expr :=
 rec 
   (λ k, expr.app `(xtrm.vr) k.to_expr) 
-  (λ k ts f, expr.app `(xtrm.fn) 
-    (foldr (λ x y, expr.mk_app `(xtrm.cons) [x, y]) `(xtrm.nil) (trms.dlmap f)))
-
+  (λ k ts f, expr.mk_app `(xtrm.fn) 
+    [k.to_expr, (foldr (λ x y, expr.mk_app `(xtrm.cons) [x, y]) `(xtrm.nil) (trms.dlmap f))])
 
 def vnew : trm → nat :=
-rec succ (λ _ _ f, (trms.dlmap f).maximum)
+rec succ (λ _ _ f, nats.max (trms.dlmap f))
 
 lemma vnew_fn (k : nat) (ts : trms) :
-  vnew (f* k ts) = (trms.lmap vnew ts).maximum := 
+  vnew (f* k ts) = nats.max (trms.lmap vnew ts) := 
 by { unfold vnew, unfold rec, 
     apply congr_arg, apply trms.dlmap_eq_lmap }
 
 def fnew : trm → nat :=
-rec (λ _, 0) (λ k _ f, max (k + 1) (trms.dlmap f).maximum)
+rec (λ _, 0) (λ k _ f, nat.max (k + 1) (nats.max (trms.dlmap f)))
 
 def vinc (m n : nat) : trm → trm :=
 rec 
@@ -417,10 +443,6 @@ trm.rec
   end)
 end trm
 
-def string.tuplize : list string → string 
-| []        := ""
-| (s :: ss) := "(" ++ foldl (λ s1 s2, s1 ++ "," ++ s2) s ss ++ ")" 
-
 def trms.repr (ts : trms) : string :=
 string.tuplize (trms.lmap trm.repr ts)
 
@@ -439,7 +461,7 @@ local notation t `=*` s := atm.eq t s
 namespace atm
 
 def repr : atm → string
-| (atm.rl k ts) := "r" ++ k.to_subs ++ ts.repr
+| (atm.rl k ts) := "r" ++ k.to_subs ++ string.tuplize (ts.map trm.repr)
 | (atm.eq t s) := t.repr ++ " = " ++ s.repr
 
 meta def to_expr : atm → expr
@@ -449,12 +471,12 @@ meta def to_expr : atm → expr
   expr.mk_app `(atm.eq) [t.to_expr, s.to_expr]
 
 def vnew : atm → nat
-| (atm.rl _ ts) := (ts.map trm.vnew).maximum
-| (atm.eq t s)  := max t.vnew s.vnew
+| (atm.rl _ ts) := nats.max (ts.map trm.vnew)
+| (atm.eq t s)  := nat.max t.vnew s.vnew
 
 def fnew : atm → nat
-| (atm.rl _ ts) := (ts.map trm.fnew).maximum
-| (atm.eq t s)  := max t.fnew s.fnew
+| (atm.rl _ ts) := nats.max (ts.map trm.fnew)
+| (atm.eq t s)  := nat.max t.fnew s.fnew
 
 def rnew : atm → nat
 | (atm.rl k _) := k + 1
@@ -473,7 +495,6 @@ def holds (R : rls α) (F : fns α) (V : vas α) : atm → Prop
 def vdec (m : nat) : atm → atm
 | (atm.rl k ts) := atm.rl k (ts.map $ trm.vdec m)
 | (atm.eq t s)  := atm.eq (t.vdec m) (s.vdec m)
-
 
 def finc : atm → atm
 | (atm.rl k ts) := atm.rl k (ts.map trm.finc) 
@@ -549,7 +570,7 @@ lemma holds_replace {r u : trm}
 end atm
 
 inductive frm : Type
-| atm : bool →  atm → frm
+| atm : bool → atm → frm
 | bin : bool → frm → frm → frm
 | qua : bool → frm → frm
 
@@ -581,17 +602,17 @@ meta def to_expr : frm → expr
 
 def rnew : frm → nat
 | (frm.atm _ a)   := a.rnew
-| (frm.bin _ f g) := max f.rnew g.rnew
+| (frm.bin _ f g) := nat.max f.rnew g.rnew
 | (frm.qua _ f)   := f.rnew
 
 def fnew : frm → nat
 | (frm.atm _ a)   := a.fnew
-| (frm.bin _ f g) := max (f.fnew) (g.fnew)
+| (frm.bin _ f g) := nat.max (f.fnew) (g.fnew)
 | (frm.qua _ f)   := f.fnew
 
 def vnew : frm → nat
 | (frm.atm _ a)   := a.vnew
-| (frm.bin _ f g) := max f.vnew g.vnew
+| (frm.bin _ f g) := nat.max f.vnew g.vnew
 | (frm.qua _ f)   := f.vnew - 1
 
 def vinc : nat → nat → frm → frm
@@ -859,7 +880,7 @@ trm.rec
     apply ih _ h2 _ h3,
     rw trm.vnew_fn at h0,
     apply le_trans _ h0,
-    apply list.le_maximum_of_mem,
+    apply nats.le_max_of_mem,
     apply trms.mem_lmap h2
   end)
 
@@ -870,11 +891,11 @@ lemma atm.lt_of_vnew_le :
   by { rcases h1 with ⟨t, h2, h3⟩, 
        apply trm.lt_of_vnew_le _ h3,
        apply le_trans _ h0,
-       apply list.le_maximum_of_mem,
+       apply nats.le_max_of_mem,
        apply list.mem_map_of_mem trm.vnew h2 }
 | (atm.eq t s) k m h0 h1 :=
-  by { have ht := le_of_max_le_left h0,
-       have hs := le_of_max_le_right h0,
+  by { have ht := le_trans (nat.le_max_left t.vnew s.vnew) h0,
+       have hs := le_trans (nat.le_max_right t.vnew s.vnew) h0,
        cases h1;
        apply trm.lt_of_vnew_le _ h1;
        assumption }
@@ -888,16 +909,18 @@ lemma frm.lt_of_vnew_le :
   begin
     cases h1;
     apply frm.lt_of_vnew_le _ h1,
-    { apply le_of_max_le_left h0 },
-    apply le_of_max_le_right h0
+    { apply le_trans (nat.le_max_left f.vnew g.vnew) h0 },
+    apply le_trans (nat.le_max_right f.vnew g.vnew) h0,
   end
 | (frm.qua _ f) k m h0 h1 :=
   begin
     rw ← nat.succ_lt_succ_iff,
     apply @frm.lt_of_vnew_le f (k + 1) (m + 1) _ h1,
     unfold frm.vnew at h0,
-    rw [← add_le_add_iff_right 1, nat.sub_add_eq_max] at h0,
-    apply le_trans (le_max_left _ _) h0,
+    cases f.vnew with n,
+    { apply nat.zero_le },
+    rw nat.succ_le_succ_iff,
+    apply h0
   end
 
 lemma ffx_of_forall_fxt [inhabited α] {R : rls α} :

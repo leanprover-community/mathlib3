@@ -13,16 +13,16 @@ section
 variables {A B C D : Prop}
 
 example : (A → B ∨ C) → (B → D) → (C → D) → A → D :=
-by vampire "n100ean1ean100ean10ean1n0ean11eartrrrr"
+by vampire 
 
 example : ¬ A → A → C :=
-by vampire "n0ean1ear"
+by vampire 
 
 example : (A ∧ A ∧ B) → (A ∧ C ∧ B) → A :=
-by vampire "n110ean0ear"
+by vampire 
 
 example : A → ¬ B → ¬ (A → B) :=
-by vampire "n1ean1n10eatrn0ear"
+by vampire 
 
 example : A ∨ B → B ∨ A :=
 by vampire
@@ -64,7 +64,7 @@ example : (A ↔ B) → ((A ∧ ¬ B) ∨ (¬ A ∧ B)) → C :=
 by vampire
 
 example : (A → B) → A → B :=
-by vampire "n10ean0ean1earr"
+by vampire 
 
 example : (A → B) → (B → C) → A → C :=
 by vampire
@@ -75,13 +75,17 @@ by vampire
 example : A ∨ B → B ∨ A :=
 by vampire
 
+end
+
+section
+
 variables (α : Type) [inhabited α]
 variables (a b c : α) (p q : α → Prop) (r : α → α → Prop)
 variables (P Q R : Prop)
 variable  (g : bool → nat)
 
 example : (∀ x, p x → q x) → (∀ x, p x) → q a :=
-by vampire "n10ean0en1n0sman1en0n0smarr"
+by vampire 
 
 example : (p a) → ∃ x, p x :=
 by vampire
@@ -91,10 +95,6 @@ by vampire
 
 example : (∃ x, p x ∧ r x x) → (∀ x, r x x → q x) → ∃ x, p x ∧ q x :=
 by vampire
-"
-n1n11en0n0sn0spn0spmatn10en1n0sn0spn0spman1en1n0smn0n0smarrn
-0en1n0smn0n0smar
-"
 
 example : (∃ x, q x ∧ p x) → ∃ x, p x ∧ q x :=
 by vampire
@@ -145,26 +145,6 @@ lemma gilmore_1 {F G H : α → Prop} :
       (((F y → G y) → H y) ↔ H x)
       → F z ∧ G z ∧ H z :=
 by vampire
-"
-n1n10n1010en0n0smatn1n111en0n0sn0spman1n10n1n10n111en0n0sn0s
-pman101en0n0sn0spman1n111en0n0sn0spman1n10n1en0n1sn0sn0sppma
-n110en0n1sn0sn0sppman0en0n1sn0sn0sppmarrtctrtrrtctn10n1n10n1
-11en0n1sn0sn0sppman101en0n1sn0sn0sppman1n111en0n1sn0sn0sppma
-n1n10n1en0n1sn1sn0sn0spppman110en0n1sn1sn0sn0spppman0en0n1sn
-1sn0sn0spppmarrtctrtrrtctn110en0n0sn0spman11en0n0sn0spmarrtr
-tctrtcrtn100en0n0sn0spman1n111en0n1sn0sn0sppman1n10n1n10n111
-en0n1sn0sn0sppman101en0n1sn0sn0sppman1n111en0n1sn0sn0sppman1
-n10n1en0n1sn1sn0sn0spppman110en0n1sn1sn0sn0spppman0en0n1sn1s
-n0sn0spppmarrtctrtrrtctn10n1n10n111en0n1sn1sn0sn0spppman101e
-n0n1sn1sn0sn0spppman1n111en0n1sn1sn0sn0spppman1n10n1en0n1sn1
-sn1sn0sn0sppppman110en0n1sn1sn1sn0sn0sppppman0en0n1sn1sn1sn0
-sn0sppppmarrtctrtrrtctn110en0n1sn0sn0sppman11en0n1sn0sn0sppm
-arrtrtctrtcrrn1n1en0n0sn0spman1n10n100en0n1sn0sn0sppman1n10n
-111en0n1sn1sn0sn0spppman101en0n1sn1sn0sn0spppman1n111en0n1sn
-1sn0sn0spppman1n10n1en0n1sn1sn1sn0sn0sppppman110en0n1sn1sn1s
-n0sn0sppppman0en0n1sn1sn1sn0sn0sppppmarrtctrtrrtctn10en0n1sn
-0sn0sppman11en0n1sn0sn0sppmarrrtctn0en0n0sn0spmarrtcr
-"
 
 lemma gilmore_6 {F G : α → α → Prop} {H : α → α → α → Prop} :
 ∀ x, ∃ y,
@@ -194,12 +174,6 @@ lemma manthe_and_bry (agatha butler charles : α)
        ¬ killed butler agatha ∧
        ¬ killed charles agatha :=
 by vampire
-"
-n10n1011en0n1smatn1010en1n10sman1000earrn1010en1n0sman111ear
-rn1n101en100n0smn101n1smatn1n1001en10n1smatrn1n110en11n0smat
-n100en100n0smn101n10sman10n1n10n1100ean11eartcttcrrn111earrn
-1earr
-"
 
 /- A logic puzzle by Raymond Smullyan. -/
 
@@ -219,5 +193,30 @@ lemma knights_and_knaves (me : α) (knight knave rich poor : α → α)
     (∀ X, ¬ says me X ∨ ¬ a_truth (and (knave me) (rich me)) X ) ∧
     (∀ X, says me X ∨ a_truth (and (knave me) (rich me)) X ) ) → false :=
 by vampire
+
+end
+
+section
+
+variables {α : Type} [inhabited α]
+variables {f g i : α → α}
+variables {p q : α → Prop}
+
+open tactic expr vampire
+
+example : ∀ x y : ℕ, x = y ∨ ¬ x = y := 
+by vampire
+
+example (x y z : ℕ) (p : ℕ → Prop) :
+  x = y → y = z → (∀ w, w = z → p w) → p x :=
+by vampire
+
+example : ∀ x y, (p x ∧ x = f y) → p (f y) :=
+by vampire
+
+example :
+  (∀ x, p x → q x) ∧ (∃ x, p x) ∧
+  (∀ x y, q x ∧ q y → x = y) → 
+  ∀ y, q y → p y := by vampire
 
 end

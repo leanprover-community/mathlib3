@@ -194,7 +194,7 @@ meta def build_proof_core (m : mat) (mx : expr) :
 | ((item.prf σx ((tt, a) :: d)) :: (item.prf πx ((ff, b) :: c)) :: stk) ('R' :: infs) :=
   let πx := expr.mk_app `(@proof.R) [mx, a.to_expr, cla.to_expr c, cla.to_expr d, πx, σx] in
   build_proof_core (item.prf πx (c ++ d) :: stk) infs
-| ((item.prf πx c) :: item.nm k :: stk) ('T' :: chs) :=
+| (item.nm k :: item.prf πx c :: stk) ('T' :: chs) :=
   let πx := expr.mk_app `(@proof.T) [mx, k.to_expr, c.to_expr, πx] in
   build_proof_core (item.prf πx (c.rot k) :: stk) chs
 | ((item.prf πx (l :: _ :: c)) :: stk) ('C' :: chs) :=
@@ -202,7 +202,7 @@ meta def build_proof_core (m : mat) (mx : expr) :
   build_proof_core (item.prf πx (l :: c) :: stk) chs
 | ( (item.prf σx ((tt, t =* s) :: d)) :: (item.prf πx (l :: c)) :: stk ) ('P' :: chs) :=
   let ρx := expr.mk_app `(@proof.P) 
-    [mx, t.to_expr, s.to_expr, l.to_expr, cla.to_expr c, cla.to_expr d, πx, σx] in
+    [mx, l.to_expr, t.to_expr, s.to_expr, cla.to_expr c, cla.to_expr d, πx, σx] in
   build_proof_core (item.prf ρx (l.replace t s :: c ++ d) :: stk) chs
 | ((item.prf πx ((b, t =* s) :: c)) :: stk) ('Y' :: chs) :=
   let πx' := expr.mk_app `(@proof.Y) [mx, b.to_expr, t.to_expr, s.to_expr, cla.to_expr c, πx] in
@@ -218,11 +218,13 @@ meta def build_proof_core (m : mat) (mx : expr) :
   build_proof_core (item.nm ((k * 2) + 1) :: stk) chs
 | (item.nm k :: stk) ('v' :: chs) :=
   build_proof_core (item.trm (v* k) :: stk) chs
-| (item.trms ts :: item.nm k :: stk) ('f' :: chs) :=
+| (item.nm k :: item.nl :: stk) ('f' :: chs) :=
+  build_proof_core (item.trm (f* k []*) :: stk) chs
+| (item.nm k :: item.trms ts :: stk) ('f' :: chs) :=
   build_proof_core (item.trm (f* k ts) :: stk) chs
 | stk ('n' :: chs) :=
   build_proof_core (item.nl :: stk) chs
-| (item.trm t :: item.nm k :: stk) ('m' :: infs) :=
+| (item.nm k :: item.trm t :: stk) ('m' :: infs) :=
   build_proof_core (item.mp (k, t) :: stk) infs
 | (item.trm t :: item.nl :: stk) ('c' :: infs) :=
   build_proof_core (item.trms (t ::* []*) :: stk) infs
@@ -397,11 +399,10 @@ do desugar,
    ix ← get_inhabitance αx,
    f ← reify αx,
    let m := clausify f,
-   trace m.repr,
+   trace (mat.repr m),
    s ← get_asm m,
-   trace s,
-   -- x ← build_proof s.data αx ix f m,
-   -- apply x,
+   x ← build_proof s.data αx ix f m,
+   apply x,
    skip
 
 

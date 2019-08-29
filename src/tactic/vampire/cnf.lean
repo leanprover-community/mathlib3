@@ -59,8 +59,8 @@ def holds (R : rls α) (F : fns α) (V : vas α) : lit → Prop
 | (tt, a):=   a.holds R F V
 
 def repr : lit → string
-| (ff, a):= "-" ++ a.repr
-| (tt, a):= "+" ++ a.repr
+| (ff, a):= "¬" ++ a.repr
+| (tt, a):=        a.repr
 
 def replace (t s : trm) : lit → lit 
 | (b, a) := (b, a.replace t s)
@@ -90,15 +90,20 @@ meta def to_expr : cla → expr
 def holds (R : rls α) (F : fns α) (V : vas α) (c : cla) : Prop :=
 ∃ l ∈ c, lit.holds R F V l
 
+def repr : cla → string 
+| []  := ""
+| [l] := l.repr
+| (l :: ls) := l.repr ++ " | " ++ repr ls
+
 end cla
 
 namespace mat
 
 def repr_core : nat → mat → string
 | _ []  := ""
-| k [c] := k.repr ++ ". " ++ c.repr
+| k [c] := k.repr ++ ". " ++ cla.repr c
 | k (c :: m) :=
-  k.repr ++ ". " ++ c.repr ++ "" ++ repr_core (k + 1) m
+  k.repr ++ ". " ++ cla.repr c ++ "\n" ++ repr_core (k + 1) m
 
 def repr : mat → string := repr_core 0
 

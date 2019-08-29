@@ -96,26 +96,19 @@ parse_args(Str, Args, Rem) :-
   string_concat("(", Str1, Str),
   parse_args_core(Str1, Args, Rem).
 
-apply_args(Trm, [], Trm).
-
-apply_args(Trm, [Arg | Args], Rst) :-
-  apply_args(app(Trm, Arg), Args, Rst).
-
-parse_trm(Str, Trm, Rem) :-
+parse_trm(Str, fn(Num, Trms), Rem) :-
   string_concat("f", Str1, Str),
   parse_num(Str1, Num, Str2),
-  parse_args(Str2, Trms, Rem),
-  apply_args(fn(Num), Trms, Trm).
+  parse_args(Str2, Trms, Rem).
 
 parse_trm(Str, var(Num), Rem) :-
   string_concat("X", Str1, Str),
   parse_num(Str1, Num, Rem).
 
-parse_atm(Str, Atm, Rem) :-
+parse_atm(Str, rl(Num, Trms), Rem) :-
   string_concat("r", Str1, Str), 
   parse_num(Str1, Num, Str2),
-  parse_args(Str2, Trms, Rem),
-  apply_args(rl(Num), Trms, Atm).
+  parse_args(Str2, Trms, Rem).
 
 parse_atm(Str, eq(TrmA, TrmB), Rem) :-
   parse_trm(Str, TrmA, Str1), 

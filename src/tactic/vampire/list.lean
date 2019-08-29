@@ -84,11 +84,6 @@ lemma forall_mem_map_of_forall_mem
        apply forall_mem_map_of_forall_mem as _ _ h2,
        apply forall_mem_of_forall_mem_cons h1 }
 
-def repr_tuple [has_repr α] : list α → string 
-| []        := ""
-| (a :: as) := 
-  "(" ++ foldl (λ s x, s ++ "," ++ repr x) (repr a) as ++ ")"
-
 def orelse : list (option α) → option α
 | []        := none 
 | (a :: as) := a <|> orelse as

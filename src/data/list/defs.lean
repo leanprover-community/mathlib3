@@ -144,7 +144,7 @@ find_indexes_aux p l 0
 
 /-- `lookmap` is a combination of `lookup` and `filter_map`.
   `lookmap f l` will apply `f : α → option α` to each element of the list,
-  replacing `a -> b` at the first value `a` in the list such that `f a = some b`. -/
+  replacing `a → b` at the first value `a` in the list such that `f a = some b`. -/
 def lookmap (f : α → option α) : list α → list α
 | []     := []
 | (a::l) :=

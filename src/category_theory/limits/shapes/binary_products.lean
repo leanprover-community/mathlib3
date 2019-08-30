@@ -32,7 +32,7 @@ namespace category_theory.limits
 inductive walking_pair : Type v
 | left | right
 
-instance fintype_walking_pair : enumerable walking_pair :=
+instance enumerable_walking_pair : enumerable walking_pair :=
 enumerable.of_list [walking_pair.left, walking_pair.right]
 (λ x, by { cases x; simp })
 

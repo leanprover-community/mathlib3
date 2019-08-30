@@ -395,7 +395,7 @@ variable {R}
 instance decidable_chain [decidable_rel R] (a : α) (l : list α) : decidable (chain R a l) :=
 by induction l generalizing a; simp only [chain.nil, chain_cons]; resetI; apply_instance
 
-instance decidable_chain' [decidable_rel R] (a : α) (l : list α) : decidable (chain' R l) :=
+instance decidable_chain' [decidable_rel R] (l : list α) : decidable (chain' R l) :=
 by cases l; dunfold chain'; apply_instance
 
 end chain

@@ -290,20 +290,6 @@ def to_monoid_hom {α β} [monoid α] [monoid β] (h : α ≃* β) : (α →* β
   map_mul' := h.map_mul,
   map_one' := h.map_one }
 
-@[simp, to_additive] lemma to_monoid_hom_apply {α β} [monoid α] [monoid β] (h : α ≃* β) (x : α) : 
-  h.to_monoid_hom x = h x := rfl
-
-@[simp, to_additive] lemma to_monoid_hom_symm_apply {α β} [monoid α] [monoid β] (h : α ≃* β) (x : β) :
-  h.symm.to_monoid_hom x = h.symm x := rfl
-
-@[simp, to_additive] lemma to_monoid_hom_left_inv {α β} [monoid α] [monoid β] (h : α ≃* β) :
-  h.symm.to_monoid_hom.comp h.to_monoid_hom = monoid_hom.id α :=
-by ext; simp; refl
-
-@[simp, to_additive] lemma to_monoid_hom_right_inv {α β} [monoid α] [monoid β] (h : α ≃* β) :
-  h.to_monoid_hom.comp h.symm.to_monoid_hom = monoid_hom.id β :=
-by ext; simp; refl
-
 /-- A multiplicative bijection between two monoids is a monoid hom
   (deprecated -- use to_monoid_hom). -/
 @[to_additive is_add_monoid_hom]

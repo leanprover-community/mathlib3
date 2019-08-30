@@ -128,16 +128,6 @@ protected def prod (c : con M) (d : con N) : con (M × N) :=
             λ _ _ _ h1 h2, ⟨c.trans h1.1 h2.1, d.trans h1.2 h2.2⟩⟩,
   r_mul := λ _ _ _ _ h1 h2, ⟨c.mul h1.1 h2.1, d.mul h1.2 h2.2⟩ }
 
-def prod_fst (c : con (M × N)) : con M :=
-{ r := λ x y, c (x, 1) (y, 1),
-  r_iseqv := ⟨λ x, c.refl (x, 1), λ _ _ h, c.symm h, λ _ _ _ h1 h2, c.trans h1 h2⟩,
-  r_mul := λ _ _ _ _ h1 h2, by convert c.mul h1 h2; simp}
-
-def prod_snd (c : con (M × N)) : con N :=
-{ r := λ x y, c (1, x) (1, y),
-  r_iseqv := ⟨λ x, c.refl (1, x), λ _ _ h, c.symm h, λ _ _ _ h1 h2, c.trans h1 h2⟩,
-  r_mul := λ _ _ _ _ h1 h2, by convert c.mul h1 h2; simp }
-
 def pi {ι : Type*} {f : ι → Type*} [Π i, monoid (f i)] 
   (C : Π i, con (f i)) : con (Π i, f i) :=
 { r := λ x y, ∀ i, (C i) (x i) (y i),
@@ -362,23 +352,6 @@ instance : complete_lattice (con M) :=
   le_Inf := λ _ _, le_Inf' _ _,
   ..con.partial_order,
   ..con.order_top, ..con.order_bot }
-
-variables (N)
-def prod_inl : con (M × N) := c.prod ⊤
-variables (M) {N}
-def prod_inr (c : con N) : con (M × N) := con.prod ⊤ c
-variables {M}
-
-theorem prod_eq_inf (d : con N) : c.prod d = c.prod_inl N ⊓ d.prod_inr M :=
-con.ext $ λ x y,
-  ⟨λ h, submonoid.mem_inf.2 ⟨⟨h.1, rfl⟩, ⟨rfl, h.2⟩⟩,
-   λ h, ⟨(submonoid.mem_inf.1 h).1.1, (submonoid.mem_inf.1 h).2.2⟩⟩
-
-@[simp] lemma fst_inl : (c.prod_inl N).prod_fst = c :=
-con.ext $ λ x y, ⟨λ h, h.1, λ h, ⟨h, by split⟩⟩
-
-@[simp] lemma snd_inr (d : con N) : (d.prod_inr M).prod_snd = d :=
-con.ext $ λ x y, ⟨λ h, h.2, λ h, ⟨by split, h⟩⟩
 
 def closure (s : set (M × M)) : con M := Inf {c : con M | s ≤ (c : submonoid (M × M))}
 

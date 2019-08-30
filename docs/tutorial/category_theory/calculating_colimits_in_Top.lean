@@ -94,7 +94,7 @@ def q : pt ⟶ Y :=
 pi.lift (λ (n : ℕ), ⟨λ (_ : pt), (n : ℝ), continuous_const⟩)
 
 -- "Looking under the hood", we see that `q` is a `subtype`, whose `val` is a function `unit → Y.α`.
-#check q.val
+-- #check q.val -- q.val : pt.α → Y.α
 -- `q.property` is the fact this function is continous (i.e. no content)
 
 -- We can check that this function is definitionally just the function we specified.

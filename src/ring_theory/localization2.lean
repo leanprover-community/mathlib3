@@ -1,40 +1,14 @@
 import group_theory.quotient_monoid ring_theory.ideal_operations
 
-namespace ring_equiv
-
-instance is_ring_hom_of_mul_equiv {R : Type*} {S : Type*} [ring R] [ring S]
-  (h : R ≃* S) (H: ∀ x y : R, h (x + y) = h x + h y) : is_ring_hom h :=
-@semiring_hom.is_ring_hom _ _ _ _ $ semiring_hom.mk' h.to_monoid_hom H
-
-def of_mul_equiv {R : Type*} {S : Type*} [ring R] [ring S] (h : R ≃* S)
-  (H: ∀ x y : R, h (x + y) = h x + h y) : R ≃r S :=
-{hom := ring_equiv.is_ring_hom_of_mul_equiv h H, ..h.to_equiv}
-
-def to_semiring_hom {R : Type*} {S : Type*} [ring R] [ring S] (h : R ≃r S) : R →+* S :=
-⟨h.to_equiv, is_ring_hom.map_one _, λ x y, is_ring_hom.map_mul _,
-is_ring_hom.map_zero _, λ x y, is_ring_hom.map_add _⟩
-
-end ring_equiv
-
-namespace semiring_hom
-
-variables {α : Type*} {β : Type*} [semiring α] [semiring β]
-
-lemma map_pow (f : α →+* β) (a : α) : ∀(n : ℕ), f (a ^ n) = (f a) ^ n
-| 0            := f.map_one
-| (nat.succ n) := by rw [pow_succ, semiring_hom.map_mul, map_pow n]; refl
-
-end semiring_hom
-
 variables (α : Type*) [comm_ring α] (S : submonoid α)
 
 namespace localization
-#exit
+
 instance : has_add (localization α S) :=
 ⟨lift₂ S S
 (λ x y : α × S, (mk ((y.2 : α) * x.1 + x.2 * y.1) (y.2 * x.2)))
 $ λ x y w z ⟨s, hs⟩ ⟨t, ht⟩,
-by { rw localization.eq, use (↑s*↑t),
+by { rw r_eq_r', use (↑s*↑t),
      apply S.mul_mem s.2 t.2,
   calc
     ↑s * ↑t * ((↑y.2 * x.1 + ↑x.2 * y.1) * (↑z.2 * ↑w.2))
@@ -43,7 +17,7 @@ by { rw localization.eq, use (↑s*↑t),
 
 instance : has_neg (localization α S) :=
 ⟨lift₁ S (λ x : α × S, (mk (-x.1) x.2)) $ λ ⟨r1, s1⟩ ⟨r2, s2⟩ ⟨v, hv⟩,
-  by {rw localization.eq, use v, ring at hv ⊢, rw mul_neg_eq_neg_mul_symm, simp [hv]}⟩
+  by {rw r_eq_r', use v, ring at hv ⊢, rw mul_neg_eq_neg_mul_symm, simp [hv]}⟩
 
 instance : comm_ring (localization α S) :=
 by refine

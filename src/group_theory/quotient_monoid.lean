@@ -388,9 +388,9 @@ equiv_of_char_pred' f (λ y, classical.some $ H y)
 lemma map_units_of_equiv (h : X ≃* Z) (H : h.to_monoid_hom.map Y = W) (y : Y) : 
   is_unit (of W (h y)) :=
 begin
-let hy : h y ∈ W := by rw ←H; exact ⟨y, ⟨y.2, rfl⟩⟩,
-use (to_units W ⟨(h y), hy⟩),
-refl,
+  let hy : h y ∈ W := by rw ←H; exact ⟨y, ⟨y.2, rfl⟩⟩,
+  use (to_units W ⟨(h y), hy⟩),
+  refl,
 end
 
 -- going to generalize and redo this in a bit

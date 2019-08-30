@@ -335,6 +335,18 @@ def to_mul_equiv (e : α ≃r β) : α ≃* β :=
 def to_add_equiv (e : α ≃r β) : α ≃+ β :=
 { map_add' := e.hom.map_add, .. e.to_equiv }
 
+instance is_ring_hom_of_mul_equiv {R : Type*} {S : Type*} [ring R] [ring S]
+  (h : R ≃* S) (H: ∀ x y : R, h (x + y) = h x + h y) : is_ring_hom h :=
+@ring_hom.is_ring_hom _ _ _ _ $ ring_hom.mk' h.to_monoid_hom H
+
+def of_mul_equiv {R : Type*} {S : Type*} [ring R] [ring S] (h : R ≃* S)
+  (H: ∀ x y : R, h (x + y) = h x + h y) : R ≃r S :=
+{hom := ring_equiv.is_ring_hom_of_mul_equiv h H, ..h.to_equiv}
+
+def to_ring_hom {R : Type*} {S : Type*} [ring R] [ring S] (h : R ≃r S) : R →+* S :=
+⟨h.to_equiv, is_ring_hom.map_one _, λ x y, is_ring_hom.map_mul _,
+is_ring_hom.map_zero _, λ x y, is_ring_hom.map_add _⟩
+
 protected def refl (α : Type*) [ring α] : α ≃r α :=
 { hom := is_ring_hom.id, .. equiv.refl α }
 

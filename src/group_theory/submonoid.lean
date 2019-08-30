@@ -735,6 +735,14 @@ def subtype_mk {N : Type*} [monoid N] (f : N →* M) (h : ∀ x, f x ∈ S) : N 
   map_one' := subtype.eq (is_monoid_hom.map_one f),
   map_mul' := λ x y, subtype.eq (is_monoid_hom.map_mul f x y) }
 
+def range_mk {N} [monoid N] (f : M →* N) : M →* f.range :=
+subtype_mk f.range f $ λ x, ⟨x, submonoid.mem_top x, rfl⟩
+
+lemma range_top_of_surjective {N} [monoid N] (f : M →* N) (hf : function.surjective f) :
+  f.range = (⊤ : submonoid N) :=
+submonoid.ext'_iff.1 $ (set.ext_iff _ _).2 $ λ x,
+⟨λ h, submonoid.mem_top x, λ h, exists.elim (hf x) $ λ w hw, ⟨w, submonoid.mem_top w, hw⟩⟩
+
 def set_inclusion (T : submonoid M) (h : S ≤ T) : S →* T :=
 subtype_mk _ S.subtype (λ x, h x.2)
 

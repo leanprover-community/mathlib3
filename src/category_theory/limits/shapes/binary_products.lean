@@ -128,10 +128,6 @@ abbreviation prod.map {W X Y Z : C} [has_limits_of_shape.{v} (discrete walking_p
   (f : W ⟶ Y) (g : X ⟶ Z) : W ×' X ⟶ Y ×' Z :=
 lim.map (map_pair f g)
 
-def functor.prod {W X Y Z : C} [has_limits_of_shape.{v} (discrete walking_pair) C] : C × C ⥤ C :=
-{ obj := λ X, prod X.1 X.2,
-  map := λ X Y f, prod.map f.1 f.2 }
-
 abbreviation coprod.map {W X Y Z : C} [has_colimits_of_shape.{v} (discrete walking_pair) C]
   (f : W ⟶ Y) (g : X ⟶ Z) : W ⊕' X ⟶ Y ⊕' Z :=
 colim.map (map_pair f g)
@@ -153,18 +149,72 @@ instance [has_finite_coproducts.{v} C] : has_binary_coproducts.{v} C :=
 section
 -- TODO The `@[simp] def`s below should probably instead have appropriate simp lemmas written.
 
-variables {C} [has_binary_products.{v} C]
+structure binary_product_spec :=
+(prod : C → C → C)
+(map : Π {X X' Y Y'} (f : X ⟶ Y) (g : X' ⟶ Y'), prod X X' ⟶ prod Y Y')
+(map_id : Π {X X'}, map (𝟙 X) (𝟙 X') = 𝟙 _)
+(map_comp : Π {X₀ X₁ Y₀ Y₁ Z₀ Z₁} (f₀ : X₀ ⟶ Y₀) (g₀ : Y₀ ⟶ Z₀)
+              (f₁ : X₁ ⟶ Y₁) (g₁ : Y₁ ⟶ Z₁),
+              map f₀ f₁ ≫ map g₀ g₁ = map (f₀ ≫ g₀) (f₁ ≫ g₁))
+(Δ : Π X, X ⟶ prod X X)
+(π₀ : Π X Y, prod X Y ⟶ X)
+(π₁ : Π X Y, prod X Y ⟶ Y)
+(h₀ : Π {X X' Y Y' : C} (f : X ⟶ Y) (g : X' ⟶ Y'), map f g ≫ π₀ Y Y' = π₀ X X' ≫ f)
+(h₁ : Π {X X' Y Y' : C} (f : X ⟶ Y) (g : X' ⟶ Y'), map f g ≫ π₁ Y Y' = π₁ X X' ≫ g)
+(h₂ : Π X, Δ X ≫ π₀ X X = 𝟙 _)
+(h₃ : Π X, Δ X ≫ π₁ X X = 𝟙 _)
+(h₄ : Π X Y, Δ (prod X Y) ≫ map (π₀ X Y) (π₁ X Y) = 𝟙 _)
+(h₅ : Π {X Y} (f : X ⟶ Y), Δ X ≫ map f f = f ≫ Δ Y)
+
+open binary_product_spec
+
+attribute [simp, reassoc] h₀ h₁ h₂ h₃ h₄ h₅
+
+variables {C}
+
+section binary_prod_spec
+
+variable S : binary_product_spec.{v} C
+include S
+
+@[extensionality]
+lemma binary_product_spec.ext {X Y Z : C} (f g : X ⟶ S.prod Y Z)
+  (h₀ : f ≫ S.π₀ _ _ = g ≫ S.π₀ _ _)
+  (h₁ : f ≫ S.π₁ _ _ = g ≫ S.π₁ _ _) :
+  f = g :=
+begin
+  suffices : f ≫ S.Δ (S.prod Y Z) ≫ S.map (S.π₀ Y Z) (S.π₁ Y Z) =
+             g ≫ S.Δ (S.prod Y Z) ≫ S.map (S.π₀ Y Z) (S.π₁ Y Z),
+  { simpa [S.h₄] using this, },
+  iterate 2 { rw [← category.assoc,← S.h₅] },
+  iterate 2 { rw [category.assoc,S.map_comp] },
+  rw [h₀,h₁]
+end
+
+def binary_products.cone (F : discrete walking_pair ⥤ C) : cone F :=
+{ X := S.prod (F.obj walking_pair.left) (F.obj walking_pair.right),
+  π := { app := λ X, walking_pair.cases_on X (S.π₀ _ _) (S.π₁ _ _) } }
+
+def binary_products.is_limit (F : discrete walking_pair ⥤ C) :
+  is_limit (binary_products.cone S F) :=
+{ lift := (λ s, S.Δ _ ≫ S.map (s.π.app _) (s.π.app _)),
+  uniq' := by { tidy; rw ← w; refl },
+  fac' := λ s j,
+    by { cases j; obviously,
+         { erw [S.h₀,← category.assoc,h₂,category.id_comp] },
+         { erw [h₁,← category.assoc,h₃,category.id_comp] }, } }
+
+def mk_binary_products : has_binary_products.{v} C :=
+{ has_limits_of_shape :=
+  { has_limit := λ F,
+    { cone := binary_products.cone S F,
+      is_limit := binary_products.is_limit S F } } }
+
+end binary_prod_spec
+
+variables [has_binary_products.{v} C]
 
 local attribute [tidy] tactic.case_bash
-
--- section some
-
--- omit 𝒞
--- def functor.some {A} : discrete A ⥤ discrete (option A) :=
--- { obj := some,
---   map := λ X Y ⟨⟨h⟩⟩, ⟨⟨congr_arg _ h⟩⟩ }
-
--- end some
 
 def cone.unit (F : discrete punit ⥤ C) : cone F :=
 { X := F.obj punit.star, π := { app := λ ⟨ ⟩, 𝟙 _ } }
@@ -224,17 +274,6 @@ begin
     refine has_limits_of_shape_of_equivalence (discrete.equivalence_of_equiv this) }
 end
 
-def mk_has_finite_product [has_terminal.{v} C] : has_finite_products.{v} C :=
-{ has_limits_of_shape :=
-  begin
-    introsI,
-    have : discrete (ulift.{v} (fin (card J))) ≌ discrete J :=
-      discrete.equivalence_of_equiv (equiv.ulift.trans (enumerable.equiv J).symm),
-    exact @has_limits_of_shape_of_equivalence _ _ C 𝒞 (discrete J) _
-          this
-          (fin.limits.has_limits_of_shape),
-  end }
-
 /-- The braiding isomorphism which swaps a binary product. -/
 @[simp] def prod.braiding (P Q : C) : P ×' Q ≅ Q ×' P :=
 { hom := prod.lift prod.snd prod.fst,
@@ -259,6 +298,16 @@ by tidy
 
 variables [has_terminal.{v} C]
 
+def mk_has_finite_product : has_finite_products.{v} C :=
+{ has_limits_of_shape :=
+  begin
+    introsI,
+    have : discrete (ulift.{v} (fin (card J))) ≌ discrete J :=
+      discrete.equivalence_of_equiv (equiv.ulift.trans (enumerable.equiv J).symm),
+    exact @has_limits_of_shape_of_equivalence _ _ C 𝒞 (discrete J) _
+          this (fin.limits.has_limits_of_shape),
+  end }
+
 /-- The left unitor isomorphism for binary products with the terminal object. -/
 @[simp] def prod.left_unitor
   (P : C) : ⊤_ C ×' P ≅ P :=
@@ -273,7 +322,71 @@ variables [has_terminal.{v} C]
 end
 
 section
-variables {C} [has_binary_coproducts.{v} C]
+
+structure binary_coproduct_spec :=
+(prod : C → C → C)
+(map : Π {X X' Y Y'} (f : X ⟶ Y) (g : X' ⟶ Y'), prod X X' ⟶ prod Y Y')
+(map_id : Π {X X'}, map (𝟙 X) (𝟙 X') = 𝟙 _)
+(map_comp : Π {X₀ X₁ Y₀ Y₁ Z₀ Z₁} (f₀ : X₀ ⟶ Y₀) (g₀ : Y₀ ⟶ Z₀)
+              (f₁ : X₁ ⟶ Y₁) (g₁ : Y₁ ⟶ Z₁),
+              map f₀ f₁ ≫ map g₀ g₁ = map (f₀ ≫ g₀) (f₁ ≫ g₁))
+(Δ : Π X, prod X X ⟶ X)
+(ι₀ : Π X Y, X ⟶ prod X Y)
+(ι₁ : Π X Y, Y ⟶ prod X Y)
+(h₀ : Π {X X' Y Y' : C} (f : X ⟶ Y) (g : X' ⟶ Y'), ι₀ X X' ≫ map f g = f ≫ ι₀ Y Y')
+(h₁ : Π {X X' Y Y' : C} (f : X ⟶ Y) (g : X' ⟶ Y'), ι₁ X X' ≫ map f g = g ≫ ι₁ Y Y')
+(h₂ : Π X, ι₀ X X ≫ Δ X = 𝟙 _)
+(h₃ : Π X, ι₁ X X ≫ Δ X = 𝟙 _)
+(h₄ : Π X Y, map (ι₀ X Y) (ι₁ X Y) ≫ Δ (prod X Y) = 𝟙 _)
+(h₅ : Π {X Y} (f : X ⟶ Y), map f f ≫ Δ Y = Δ X ≫ f)
+
+open binary_coproduct_spec
+
+attribute [simp, reassoc] h₀ h₁ h₂ h₃ h₄ h₅
+
+variables {C}
+
+section binary_coproduct_spec
+
+variable S : binary_coproduct_spec.{v} C
+include S
+
+@[extensionality]
+lemma binary_coproduct_spec.ext {X Y Z : C} (f g : S.prod X Y ⟶ Z)
+  (h₀ : S.ι₀ _ _ ≫ f = S.ι₀ _ _ ≫ g)
+  (h₁ : S.ι₁ _ _ ≫ f = S.ι₁ _ _ ≫ g) :
+  f = g :=
+begin
+  suffices : S.map (S.ι₀ X Y) (S.ι₁ X Y) ≫ S.Δ (S.prod X Y) ≫ f =
+             S.map (S.ι₀ X Y) (S.ι₁ X Y) ≫ S.Δ (S.prod X Y) ≫ g,
+  { simpa [S.h₄] using this, },
+  iterate 2 { rw [← S.h₅] },
+  iterate 2 { rw [← category.assoc,S.map_comp] },
+  rw [h₀,h₁]
+end
+
+def binary_coproducts.cocone (F : discrete walking_pair ⥤ C) : cocone F :=
+{ X := S.prod (F.obj walking_pair.left) (F.obj walking_pair.right),
+  ι := { app := λ X, walking_pair.cases_on X (S.ι₀ _ _) (S.ι₁ _ _) } }
+
+def binary_coproducts.is_colimit (F : discrete walking_pair ⥤ C) :
+  is_colimit (binary_coproducts.cocone S F) :=
+{ desc := (λ s, S.map (s.ι.app _) (s.ι.app _) ≫ S.Δ _),
+  uniq' := by { tidy; rw ← w; refl },
+  fac' := λ s j,
+    by { cases j, obviously,
+         { erw [S.h₀_assoc,S.h₂,category.comp_id] },
+         { erw [S.h₁_assoc,S.h₃,category.comp_id] }, } }
+
+def mk_binary_coproducts : has_binary_coproducts.{v} C :=
+{ has_colimits_of_shape :=
+  { has_colimit := λ F,
+    { cocone := binary_coproducts.cocone S F,
+      is_colimit := binary_coproducts.is_colimit S F } } }
+
+end binary_coproduct_spec
+
+variables [has_binary_coproducts.{v} C]
 
 def cocone.unit (F : discrete punit ⥤ C) : cocone F :=
 { X := F.obj punit.star, ι := { app := λ ⟨ ⟩, 𝟙 _ } }
@@ -334,16 +447,6 @@ end
 
 local attribute [tidy] tactic.case_bash
 
-def mk_has_finite_coproduct [has_initial.{v} C] : has_finite_coproducts.{v} C :=
-{ has_colimits_of_shape :=
-  begin
-    introsI,
-    have : discrete (ulift.{v} (fin (enumerable.card J))) ≌ discrete J :=
-      discrete.equivalence_of_equiv (equiv.ulift.trans (enumerable.equiv J).symm),
-    exact @has_colimits_of_shape_of_equivalence _ _ C 𝒞 (discrete J) _
-          this (fin.limits.has_colimits_of_shape),
-  end }
-
 /-- The braiding isomorphism which swaps a binary coproduct. -/
 @[simp] def coprod.braiding (P Q : C) : P ⊕' Q ≅ Q ⊕' P :=
 { hom := coprod.desc coprod.inr coprod.inl,
@@ -367,6 +470,16 @@ by tidy
     (coprod.desc (coprod.inr ≫ coprod.inl) coprod.inr) }
 
 variables [has_initial.{v} C]
+
+def mk_has_finite_coproduct : has_finite_coproducts.{v} C :=
+{ has_colimits_of_shape :=
+  begin
+    introsI,
+    have : discrete (ulift.{v} (fin (enumerable.card J))) ≌ discrete J :=
+      discrete.equivalence_of_equiv (equiv.ulift.trans (enumerable.equiv J).symm),
+    exact @has_colimits_of_shape_of_equivalence _ _ C 𝒞 (discrete J) _
+          this (fin.limits.has_colimits_of_shape),
+  end }
 
 /-- The left unitor isomorphism for binary coproducts with the initial object. -/
 @[simp] def coprod.left_unitor

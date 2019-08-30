@@ -60,4 +60,18 @@ instance unique_from_initial [has_initial.{v} C] (P : C) : unique (⊥_ C ⟶ P)
   end }
 end
 
+#check category_theory.functor.const pempty
+
+def mk_terminal (X : C) (hom : Π Y, Y ⟶ X) (h : ∀ Y (f : Y ⟶ X), f = hom Y) :  has_terminal.{v} C :=
+{ has_limits_of_shape :=
+  { has_limit := λ F,
+    { cone := { X := X, π := { app := λ h, pempty.elim h } },
+      is_limit := { lift := λ s, hom _ } } } }
+
+def mk_initial (X : C) (hom : Π Y, X ⟶ Y) (h : ∀ Y (f : X ⟶ Y), f = hom Y) :  has_initial.{v} C :=
+{ has_colimits_of_shape :=
+  { has_colimit := λ F,
+    { cocone := { X := X, ι := { app := λ h, pempty.elim h } },
+      is_colimit := { desc := λ s, hom _ } } } }
+
 end category_theory.limits

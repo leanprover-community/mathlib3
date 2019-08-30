@@ -10,7 +10,7 @@ import topology.uniform_space.uniform_embedding
 /-!
 # Abstract theory of Hausdorff completions of uniform spaces
 
-This file caracterizes Hausdorff completions of a uniform space α as complete Hausdorff spaces
+This file characterizes Hausdorff completions of a uniform space α as complete Hausdorff spaces
 equipped with a map from α which has dense image and induce the original uniform structure on α.
 Assuming these properties we "extend" uniformly continuous maps from α to complete Hausdorff spaces
 to the completions of α. This is the universal property expected from a completion.
@@ -35,7 +35,7 @@ derived from the predicate is more universe polymorphic.
 
 ## References
 
-We don't know any traditionnal text discussing this. Real world mathematics simply silently
+We don't know any traditional text discussing this. Real world mathematics simply silently
 identify the results of any two constructions that lead to something one could reasonnably
 call a completion.
 

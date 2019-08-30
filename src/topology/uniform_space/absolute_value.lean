@@ -10,10 +10,12 @@ import topology.uniform_space.basic
 /-!
 # Uniform structure induced by an absolute value
 
-We build an uniform space structure on a commutative ring `R` equipped with an absolute value into
+We build a uniform space structure on a commutative ring `R` equipped with an absolute value into
 a linear ordered field `𝕜`. Of course in the case `R` is `ℚ`, `ℝ` or `ℂ` and
 `𝕜 = ℝ`, we get the same thing as the metric space construction, and the general construction
 follows exactly the same path.
+
+## Implementation details
 
 Note that we import `data.real.cau_seq` because this is where absolute values are defined, but
 the current file does not depend on real numbers. TODO: extract absolute values from that

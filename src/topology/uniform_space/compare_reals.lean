@@ -12,7 +12,7 @@ import topology.uniform_space.completion
 # Comparison of Cauchy reals and Bourbaki reals
 
 In `data.real.basic` real numbers are defined using the so called Cauchy construction (although
-it is due to Georg Canter). More precisely, this construction applies to commutative rings equipped
+it is due to Georg Cantor). More precisely, this construction applies to commutative rings equipped
 with an absolute value with values in a linear ordered field.
 
 On the other hand, in the `uniform_space` folder, we construct completions of general uniform

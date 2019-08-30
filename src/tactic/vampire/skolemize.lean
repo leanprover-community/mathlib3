@@ -199,12 +199,6 @@ lemma atm.skolem_vsub_eq
   (t =* s).skolem_vsub m r = 
   (trm.skolem_vsub m r t =* trm.skolem_vsub m r s) := rfl
 
---lemma trm.skolem_vsub_eq_of_gt
---  {k m : nat} {s : trm} (h0 : m > k) :
---  trm.skolem_vsub k s (# m) = # (m - 1) :=
---by simp only [ trm.skolem_vsub, trm.vsub, trm.finc, 
---     if_neg (ne_of_gt h0), trm.vdec, if_pos h0 ]
-
 lemma trm.skolem_vsub_eq_of_lt
   {k m : nat} {s : trm} (h0 : m < k) :
   trm.skolem_vsub k s (v* m) = v* m :=

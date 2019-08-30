@@ -1,13 +1,6 @@
 /-
   Copyright (c) 2019 Seul Baek. All rights reserved.
-  Released under Apache 2.0 license as described in the file LICE/-
-lemma fa_pull_core (b : bool) (k : nat) (f g : frm) :
-  pull_core b (k + 1) (∀* f) g =
-  ∀* (pull_core b k f (g.vinc 0 1)) :=
-by { cases g with b a b f g b f; 
-     try { cases b }; refl }
-
-     -/NSE.
+  Released under Apache 2.0 license as described in the file LICENSE.
   Author: Seul Baek
 
   Pulling quantifiers for Skolemization and prenex normalization.
@@ -135,7 +128,6 @@ begin
   rw [holds_neg, holds_neg, @not_iff_not _ _ _ _],
   repeat {apply classical.dec _}
 end
-
 
 lemma holds_bin_iff_holds_bin
   {R1 R2 : rls α} {F1 F2 : fns α} {V1 V2 : vas α} 

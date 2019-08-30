@@ -125,43 +125,4 @@ lemma suffix_succ_of_suffix_cons {a1 : α} {as1 : list α} :
     apply h0
   end
 
-
-#exit
-def nth_inh [inhabited α] : list α → nat → α 
-| [] _              := default α
-| (a :: _)  0       := a
-| (_ :: as) (k + 1) := nth_inh as k
-
-def in_fix (k m : nat) (as1 as2 : list α) : Prop := 
-  ∀ n < m, as1.nth n = as2.nth (k + n) 
-
-
-#exit
-| 0 m as1 as2 := pre_fix m as1 as2 
-| (k + 1) m as1 (a :: as2) := in_fix k m as1 as2 
-| _ _ _ _ := false
-
-#exit
-def pre_fix : nat → list α → list α → Prop 
-| 0 [] _ := true
-| (k + 1) (a1 :: as1) (a2 :: as2) := a1 = a2 ∧ pre_fix k as1 as2
-| _ _ _ := false
-
-def in_fix : nat → nat → list α → list α → Prop 
-| 0 m as1 as2 := pre_fix m as1 as2 
-| (k + 1) m as1 (a :: as2) := in_fix k m as1 as2 
-| _ _ _ _ := false
-
-
-lemma in_fix_zero : 
-  ∀ m : nat, ∀ as : list α, m ≤ as.length → 
-  in_fix m 0 [] as
-| 0       _         _  := trivial
-| (m + 1) (a :: as) h0 :=
-  begin
-    apply in_fix_zero m,
-    apply nat.succ_le_succ_iff.elim_left h0 
-  end
-
-
 end list

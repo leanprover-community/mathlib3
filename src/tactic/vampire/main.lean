@@ -375,49 +375,29 @@ do πx ← build_proof_core m m.to_expr [] chs,
      [αx, ix, rnx, Rx, fnx, Fx, fx, hx, πx],
    return x
 
--- meta def vampire (inp : option string) : tactic unit :=
--- do desugar,
---    αx ← get_domain,
---    ix ← get_inhabitance αx,
---    f  ← reify αx,
---    let m := clausify f,
---    s ← (inp <|> get_asm m),
---    x ← build_proof s.data αx ix f m,
---    apply x,
---    if inp = none
---    then trace s
---    else skip
--- 
-
-end vampire
- 
-open tactic vampire
-
-meta def vampire : tactic unit :=
+meta def vampire (inp : option string) : tactic unit :=
 do desugar,
    αx ← get_domain,
    ix ← get_inhabitance αx,
-   f ← reify αx,
+   f  ← reify αx,
    let m := clausify f,
-   s ← get_asm m,
-   trace s,
+   s ← (inp <|> get_asm m),
    x ← build_proof s.data αx ix f m,
    apply x,
-   skip
+   if inp = none
+   then trace s
+   else skip
 
+end vampire
+ 
+open lean.parser interactive vampire tactic
 
-
--- open lean.parser interactive vampire tactic
--- 
--- meta def tactic.interactive.vampire
---   (ids : parse (many ident))
---   (inp : option string := none) : tactic unit :=
--- ( if `all ∈ ids
---   then local_context >>= monad.filter is_proof >>=
---        revert_lst >> skip
---   else do hs ← mmap tactic.get_local ids,
---                revert_lst hs, skip ) >>
--- vampire.vampire inp
-
-
-
+meta def tactic.interactive.vampire
+  (ids : parse (many ident))
+  (inp : option string := none) : tactic unit :=
+( if `all ∈ ids
+  then local_context >>= monad.filter is_proof >>=
+       revert_lst >> skip
+  else do hs ← mmap tactic.get_local ids,
+               revert_lst hs, skip ) >>
+vampire.vampire inp

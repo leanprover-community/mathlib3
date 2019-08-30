@@ -100,18 +100,8 @@ disjoiner(Cla1, Cla2, Dsj) :-
   vars_cla(Cla1, Nums),
   maplist(offset(Num), Nums, Dsj).
 
-% map_source(map(Src, _), Src).
-% 
-% domain(Maps, Dom) :-
-%   maplist(map_source, Maps, Dom).
-% 
-% in_domain(Dom, map(Src, _)) :-
-%   member(Src, Dom).
-
 compose_maps(FstMaps, SndMaps, Maps) :-
   update_maps(FstMaps, SndMaps, NewFstMaps),
-  % domain(FstMaps, Dom),
-  % exclude(in_domain(Dom), SndMaps, NewSndMaps),
   append(NewFstMaps, SndMaps, Maps).
 
 src(Num, map(Num, _)).
@@ -526,44 +516,6 @@ cla_string(Cla, Str) :-
 maps_string(Maps, Str) :-
   list_string(map_string, Maps, Str).
 
-% cproof_string(Mat, Spcs, asm(Num, Maps), Str, Cnc) :-
-%   string_concat("  ", Spcs, NewSpcs),
-%   nth0(Num, Mat, Cla),
-%   subst_cla(Maps, Cla, Cnc),
-%   cla_string(Cnc, CncStr),
-%   number_string(Num, NumStr),
-%   maps_string(Maps, MapsStr),
-%   string_codes(Nl, [10]),
-%   join_string([Spcs, "asm ", NumStr, " : ", CncStr, Nl, NewSpcs, MapsStr], Str).
-% 
-% cproof_string(Mat, Spcs, rsl(PrfA, PrfB), Str, Cnc) :-
-%   string_concat("  ", Spcs, NewSpcs),
-%   cproof_string(Mat, NewSpcs, PrfA, StrA, [_ | CncA]), !,
-%   cproof_string(Mat, NewSpcs, PrfB, StrB, [_ | CncB]), !,
-%   append(CncA, CncB, Cnc),
-%   cla_string(Cnc, CncStr),
-%   string_codes(Nl, [10]),
-%   join_string([Spcs, "rsl : ", CncStr, Nl, StrA, Nl, StrB], Str).
-% 
-% cproof_string(Mat, Spcs, rtt(Num, PrfA), Str, Cnc) :-
-%   string_concat("  ", Spcs, NewSpcs),
-%   number_string(Num, NumStr),
-%   cproof_string(Mat, NewSpcs, PrfA, StrA, CncA), !,
-%   rot(Num, CncA, Cnc),
-%   cla_string(Cnc, CncStr),
-%   string_codes(Nl, [10]),
-%   join_string([Spcs, "rtt ", NumStr, " : ", CncStr, Nl, StrA], Str).
-% 
-% cproof_string(Mat, Spcs, cnt(PrfA), Str, [Lit | Cla]) :-
-%   string_concat("  ", Spcs, NewSpcs),
-%   cproof_string(Mat, NewSpcs, PrfA, StrA, [Lit, Lit | Cla]), !,
-%   cla_string([Lit | Cla], CncStr),
-%   string_codes(Nl, [10]),
-%   join_string([Spcs, "cnt : ", CncStr, Nl, StrA], Str).
-% 
-% cproof_string(Mat, Prf, Str) :-
-%   cproof_string(Mat, "", Prf, Str, _).
-
 proof_string(Spcs, asm(Num, Cnc), Str) :-
   number_string(Num, NumStr),
   cla_string(Cnc, CncStr),
@@ -634,16 +586,6 @@ linearize_trm(fn(Num, Trms), Str) :-
   linearize_trms(Trms, TrmsStr), 
   join_string([TrmsStr, "b", NumStr, "f"], Str).
 
-% linearize_atm(rl(Num, Trms), Str) :-
-%   number_binstr(Num, NumStr),
-%   linearize_trms(Trms, TrmsStr), 
-%   join_string([TrmsStr, "b", NumStr, "r"], Str).
-% 
-% linearize_atm(eq(TrmA, TrmB), Str) :-
-%   linearize_trm(TrmA, StrA),
-%   linearize_trm(TrmB, StrB),
-%   join_string([StrA, StrB, "e"], Str).
-
 linearize_maps([], "n").
 
 linearize_maps([map(Num, Trm) | Maps], Str) :-
@@ -689,30 +631,6 @@ linearize_prf(cnt(Prf, _), Str) :-
   join_string([PrfStr, "C"], Str).
 
 linearize_prf(_, "linearize_error").
-
-% vcheck(Mat, asm(Num, Cnc)) :-
-%   nth0(Num, Mat, Cnc).
-% 
-% vcheck(Mat, rsl(PrfA, PrfB, Cnc)) :-
-%   vcheck(Mat, PrfA),
-%   vcheck(Mat, PrfB),
-%   conc(PrfA, [lit(neg, Trm) | CncA]),
-%   conc(PrfB, [lit(pos, Trm) | CncB]),
-%   append(CncA, CncB, Cnc).
-% 
-% vcheck(Mat, rtt(Num, PrfA, Cnc)) :-
-%   vcheck(Mat, PrfA),
-%   conc(PrfA, CncA),
-%   rot(Num, CncA, Cnc).
-% 
-% vcheck(Mat, cnt(PrfA, [Lit | Cla])) :-
-%   vcheck(Mat, PrfA),
-%   conc(PrfA, [Lit, Lit | Cla]).
-% 
-% vcheck(Mat, sub(Maps, PrfA, Cnc)) :-
-%   vcheck(Mat, PrfA),
-%   conc(PrfA, CncA),
-%   subst_cla(Maps, CncA, Cnc).
  
 main([Argv]) :-
   string_chars(Argv, Chs),

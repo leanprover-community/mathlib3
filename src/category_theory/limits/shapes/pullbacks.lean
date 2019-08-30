@@ -3,9 +3,22 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.eq_to_hom
-import category_theory.limits.cones
+import data.fintype
+import category_theory.limits.limits
 import category_theory.sparse
+
+/-!
+# Pullbacks
+
+We define a category `walking_cospan` (resp. `walking_span`), which is the index category
+for the given data for a pullback (resp. pushout) diagram. Convenience methods `cospan f g`
+and `span f g` construct functors from the walking (co)span, hitting the given morphisms.
+
+We define `pullback f g` and `pushout f g` as limits and colimits of such functors.
+
+Typeclasses `has_pullbacks` and `has_pushouts` assert the existence of (co)limits shaped as
+walking (co)spans.
+-/
 
 open category_theory
 
@@ -15,13 +28,24 @@ universes v u
 
 local attribute [tidy] tactic.case_bash
 
+/-- The type of objects for the diagram indexing a pullback. -/
 @[derive decidable_eq] inductive walking_cospan : Type v
 | left | right | one
+/-- The type of objects for the diagram indexing a pushout. -/
 @[derive decidable_eq] inductive walking_span : Type v
 | zero | left | right
 
+instance fintype_walking_cospan : fintype walking_cospan :=
+{ elems := [walking_cospan.left, walking_cospan.right, walking_cospan.one].to_finset,
+  complete := λ x, by { cases x; simp } }
+
+instance fintype_walking_span : fintype walking_span :=
+{ elems := [walking_span.zero, walking_span.left, walking_span.right].to_finset,
+  complete := λ x, by { cases x; simp } }
+
 namespace walking_cospan
 
+/-- The arrows in a pullback diagram. -/
 inductive hom : walking_cospan → walking_cospan → Type v
 | inl : hom left one
 | inr : hom right one
@@ -46,12 +70,14 @@ instance (X Y : walking_cospan) : subsingleton (X ⟶ Y) := by tidy
 -- failure in `cospan`, below.
 lemma hom_id (X : walking_cospan.{v}) : hom.id X = 𝟙 X := rfl
 
+/-- The walking_cospan is the index diagram for a pullback. -/
 instance : small_category.{v} walking_cospan.{v} := sparse_category
 
 end walking_cospan
 
 namespace walking_span
 
+/-- The arrows in a pushout diagram. -/
 inductive hom : walking_span → walking_span → Type v
 | fst : hom zero left
 | snd : hom zero right
@@ -76,6 +102,7 @@ instance (X Y : walking_span) : subsingleton (X ⟶ Y) := by tidy
 -- failure in `span`, below.
 lemma hom_id (X : walking_span.{v}) : hom.id X = 𝟙 X := rfl
 
+/-- The walking_span is the index diagram for a pushout. -/
 instance : small_category.{v} walking_span.{v} := sparse_category
 
 end walking_span
@@ -85,6 +112,7 @@ open walking_span walking_cospan walking_span.hom walking_cospan.hom
 variables {C : Type u} [𝒞 : category.{v+1} C]
 include 𝒞
 
+/-- `cospan f g` is the functor from the walking cospan hitting `f` and `g`. -/
 def cospan {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) : walking_cospan.{v} ⥤ C :=
 { obj := λ x, match x with
   | left := X
@@ -96,6 +124,8 @@ def cospan {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) : walking_cospan.{v} ⥤ C :=
   | _, _, inl := f
   | _, _, inr := g
   end }
+
+/-- `span f g` is the functor from the walking span hitting `f` and `g`. -/
 def span {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) : walking_span.{v} ⥤ C :=
 { obj := λ x, match x with
   | zero := X
@@ -148,16 +178,16 @@ abbreviation pullback_cone (f : X ⟶ Z) (g : Y ⟶ Z) := cone (cospan f g)
 namespace pullback_cone
 variables {f : X ⟶ Z} {g : Y ⟶ Z}
 
-def π₁ (t : pullback_cone f g) : t.X ⟶ X := t.π.app left
-def π₂ (t : pullback_cone f g) : t.X ⟶ Y := t.π.app right
+abbreviation fst (t : pullback_cone f g) : t.X ⟶ X := t.π.app left
+abbreviation snd (t : pullback_cone f g) : t.X ⟶ Y := t.π.app right
 
-def mk {W : C} (π₁ : W ⟶ X) (π₂ : W ⟶ Y) (eq : π₁ ≫ f = π₂ ≫ g) : pullback_cone f g :=
+def mk {W : C} (fst : W ⟶ X) (snd : W ⟶ Y) (eq : fst ≫ f = snd ≫ g) : pullback_cone f g :=
 { X := W,
   π :=
-  { app := λ j, walking_cospan.cases_on j π₁ π₂ (π₁ ≫ f),
+  { app := λ j, walking_cospan.cases_on j fst snd (fst ≫ f),
     naturality' := λ j j' f, by cases f; obviously } }
 
-lemma condition (t : pullback_cone f g) : (π₁ t) ≫ f = (π₂ t) ≫ g :=
+@[reassoc] lemma condition (t : pullback_cone f g) : (fst t) ≫ f = (snd t) ≫ g :=
 begin
   erw [t.w inl, ← t.w inr], refl
 end
@@ -170,16 +200,16 @@ namespace pushout_cocone
 
 variables {f : X ⟶ Y} {g : X ⟶ Z}
 
-def ι₁ (t : pushout_cocone f g) : Y ⟶ t.X := t.ι.app left
-def ι₂ (t : pushout_cocone f g) : Z ⟶ t.X := t.ι.app right
+abbreviation inl (t : pushout_cocone f g) : Y ⟶ t.X := t.ι.app left
+abbreviation inr (t : pushout_cocone f g) : Z ⟶ t.X := t.ι.app right
 
-def mk {W : C} (ι₁ : Y ⟶ W) (ι₂ : Z ⟶ W) (eq : f ≫ ι₁ = g ≫ ι₂) : pushout_cocone f g :=
+def mk {W : C} (inl : Y ⟶ W) (inr : Z ⟶ W) (eq : f ≫ inl = g ≫ inr) : pushout_cocone f g :=
 { X := W,
   ι :=
-  { app := λ j, walking_span.cases_on j (f ≫ ι₁) ι₁ ι₂,
+  { app := λ j, walking_span.cases_on j (f ≫ inl) inl inr,
     naturality' := λ j j' f, by cases f; obviously } }
 
-lemma condition (t : pushout_cocone f g) : f ≫ (ι₁ t) = g ≫ (ι₂ t) :=
+@[reassoc] lemma condition (t : pushout_cocone f g) : f ≫ (inl t) = g ≫ (inr t) :=
 begin
   erw [t.w fst, ← t.w snd], refl
 end
@@ -233,5 +263,50 @@ def pushout_cocone.of_cocone
 
 @[simp] lemma pushout_cocone.of_cocone_ι {F : walking_span.{v} ⥤ C} (t : cocone F) (j) :
   (pushout_cocone.of_cocone t).ι.app j = eq_to_hom (by tidy) ≫ t.ι.app j := rfl
+
+/-- `pullback f g` computes the pullback of a pair of morphisms with the same target. -/
+abbreviation pullback {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) [has_limit (cospan f g)] :=
+limit (cospan f g)
+/-- `pushout f g` computes the pushout of a pair of morphisms with the same source. -/
+abbreviation pushout {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) [has_colimit (span f g)] :=
+colimit (span f g)
+
+abbreviation pullback.fst {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)] : pullback f g ⟶ X :=
+limit.π (cospan f g) walking_cospan.left
+abbreviation pullback.snd {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)] : pullback f g ⟶ Y :=
+limit.π (cospan f g) walking_cospan.right
+abbreviation pushout.inl {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (span f g)] : Y ⟶ pushout f g :=
+colimit.ι (span f g) walking_span.left
+abbreviation pushout.inr {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (span f g)] : Z ⟶ pushout f g :=
+colimit.ι (span f g) walking_span.right
+
+abbreviation pullback.lift {W X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)]
+  (h : W ⟶ X) (k : W ⟶ Y) (w : h ≫ f = k ≫ g) : W ⟶ pullback f g :=
+limit.lift _ (pullback_cone.mk h k w)
+abbreviation pushout.desc {W X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (span f g)]
+  (h : Y ⟶ W) (k : Z ⟶ W) (w : f ≫ h = g ≫ k) : pushout f g ⟶ W :=
+colimit.desc _ (pushout_cocone.mk h k w)
+
+lemma pullback.condition {W X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)] :
+  (pullback.fst : pullback f g ⟶ X) ≫ f = pullback.snd ≫ g :=
+begin
+  erw limit.w (cospan f g) walking_cospan.hom.inl,
+  erw limit.w (cospan f g) walking_cospan.hom.inr
+end
+lemma pushout.condition {W X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (span f g)] :
+  f ≫ (pushout.inl : Y ⟶ pushout f g) = g ≫ pushout.inr :=
+begin
+  erw colimit.w (span f g) walking_span.hom.fst,
+  erw colimit.w (span f g) walking_span.hom.snd
+end
+
+variables (C)
+
+class has_pullbacks :=
+(has_limits_of_shape : has_limits_of_shape.{v} walking_cospan C)
+class has_pushouts :=
+(has_colimits_of_shape : has_colimits_of_shape.{v} walking_span C)
+
+attribute [instance] has_pullbacks.has_limits_of_shape has_pushouts.has_colimits_of_shape
 
 end category_theory.limits

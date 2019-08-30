@@ -320,33 +320,47 @@ compile_map(SubPrf, Tgt, Prf) :-
 rep_lit(lit(Pol, SrcAtm), TrmA, TrmB, lit(Pol, TgtAtm), Rpl) :-
   rep_atm(SrcAtm, TrmA, TrmB, TgtAtm, Rpl). 
 
-compile_rep_core(PrfA, PrfB, TgtLit, Prf) :-
-  conc(PrfA, [Lit]),
-  conc(PrfB, [lit(pos, eq(TrmA, TrmB))]),
-  disjoiner([Lit], [TgtLit], Dsj1),
-  subst_lit(Dsj1, Lit, Lit1),
-  disjoiner([lit(pos, eq(TrmA, TrmB))], [Lit1], Dsj2),
-  subst_trm(Dsj2, TrmA, TrmA1),
-  subst_trm(Dsj2, TrmB, TrmB1),
-  PrfA1 = sub(Dsj1, PrfA, [Lit1]),
-  PrfB1 = sub(Dsj2, PrfB, [lit(pos, eq(TrmA1, TrmB1))]),
-  rep_lit(Lit1, TrmA1, TrmB1, TgtLit, Rpl), 
-  subst_lit(Rpl, Lit1, Lit2),
-  PrfA2 = sub(Rpl, PrfA1, [Lit2]),
-  subst_cla(Rpl, [lit(pos, eq(TrmA1, TrmB1))], Cnc),
-  PrfB2 = sub(Rpl, PrfB1, Cnc),
-  Prf = rep(PrfA2, PrfB2, [TgtLit]).
+compile_rep_core(PrfA, PrfB, Tgt, Prf) :-
+  conc(PrfA, CncA),
+  CncA = [LitA | _],
+  conc(PrfB, CncB),
+  CncB = [lit(pos, eq(TrmA, TrmB)) | _],
+  member(LitB, Tgt),
+  rep_lit(LitA, TrmA, TrmB, LitB, Rpl), 
+  subst_cla(Rpl, CncA, CncA1),
+  PrfA1 = sub(Rpl, PrfA, CncA1),
+  subst_cla(Rpl, CncB, CncB1),
+  PrfB1 = sub(Rpl, PrfB, CncB1),
+  CncA1 = [_ | TlA],
+  CncB1 = [_ | TlB],
+  append(TlA, TlB, Tl),
+  compile_map(rep(PrfA1, PrfB1, [LitB | Tl]), Tgt, Prf).
 
 select_dir(Prf, Prf).
 
-select_dir(Prf, NewPrf) :- 
-  conc(Prf, [lit(Pol, eq(TrmA, TrmB)) | Cnc]),
-  NewPrf = sym(Prf, [lit(Pol, eq(TrmB, TrmA)) | Cnc]).
+select_dir(Prf, sym(Prf, [lit(Pol, eq(TrmB, TrmA)) | Cnc])) :-
+  conc(Prf, [lit(Pol, eq(TrmA, TrmB)) | Cnc]).
 
-compile_rep(PrfA, PrfB, TgtLit, Prf) :-
-  select_dir(PrfA, NewPrfA), 
-  select_dir(PrfB, NewPrfB), 
-  compile_rep_core(NewPrfA, NewPrfB, TgtLit, Prf).
+select_rot(Prf, rtt(Num, Prf, NewCnc)) :- 
+  conc(Prf, Cnc),
+  tor(Cnc, Num, NewCnc).
+
+select_lit(Prf, NewPrf) :-
+  select_rot(Prf, TmpPrf),
+  select_dir(TmpPrf, NewPrf).
+
+compile_rep(PrfA, PrfB, Tgt, Prf) :-
+  conc(PrfA, CncA),
+  conc(PrfB, CncB),
+  disjoiner(CncB, Tgt, DsjB),
+  subst_cla(DsjB, CncB, CncB1),
+  PrfB1 = sub(DsjB, PrfB, CncB1),
+  disjoiner(CncA, CncB1, DsjA),
+  subst_cla(DsjA, CncA, CncA1),
+  PrfA1 = sub(DsjA, PrfA, CncA1),
+  select_lit(PrfA1, PrfA2), 
+  select_lit(PrfB1, PrfB2), 
+  compile_rep_core(PrfA2, PrfB2, Tgt, Prf).
 
 compile_rsl(PrfA, PrfB, rsl(PrfA2, PrfB1, Cnc)) :-
   conc(PrfA, CncA),
@@ -383,10 +397,10 @@ compile(Mat, Lns, Tgt, rsl(NumA, NumB), Prf) :-
     compile_rsl(PrfB1, PrfA1, SubPrf) ),
   compile_map(SubPrf, Tgt, Prf).
 
-compile(Mat, Lns, [TgtLit], rep(NumA, NumB), Prf) :-
+compile(Mat, Lns, Tgt, rep(NumA, NumB), Prf) :-
   compile(Mat, Lns, NumA, PrfA),
   compile(Mat, Lns, NumB, PrfB),
-  compile_rep(PrfA, PrfB, TgtLit, Prf).
+  compile_rep(PrfA, PrfB, Tgt, Prf).
 
 compile(Mat, Lns, Tgt, eqres(Num), Prf) :-
   compile(Mat, Lns, Num, Prf1),

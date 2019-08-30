@@ -100,17 +100,17 @@ omit 𝒞
 
 variables {A : Type*} {B : Type*} (f : A ≃ B)
 
-def equiv_unit_iso : 𝟭 (discrete A) ≅ lift (f.to_fun) ⋙ lift (f.inv_fun) :=
+def equiv_unit_iso : 𝟭 (discrete A) ≅ lift f ⋙ lift f.symm :=
 { hom := { app := λ X, ⟨⟨(f.left_inv X).symm⟩⟩ },
   inv := { app := λ X, ⟨⟨f.left_inv X⟩⟩ } }
 
-def equiv_counit_iso : lift (f.inv_fun) ⋙ lift (f.to_fun) ≅ 𝟭 (discrete B) :=
+def equiv_counit_iso : lift f.symm ⋙ lift f ≅ 𝟭 (discrete B) :=
 { hom := { app := λ X, ⟨⟨f.right_inv X⟩⟩ },
   inv := { app := λ X, ⟨⟨(f.right_inv X).symm⟩⟩ } }
 
 def equivalence_of_equiv : discrete A ≌ discrete B :=
-{ functor := lift f.to_fun,
-  inverse := lift f.inv_fun,
+{ functor := lift f,
+  inverse := lift f.symm,
   unit_iso := equiv_unit_iso f,
   counit_iso := equiv_counit_iso f  }
 

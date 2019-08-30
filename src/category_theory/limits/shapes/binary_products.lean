@@ -103,9 +103,16 @@ abbreviation coprod.inr {X Y : C} [has_colimit (pair X Y)] : Y ⟶ X ⊕' Y :=
 colimit.ι (pair X Y) walking_pair.right
 
 @[extensionality]
-lemma prod.ext {X Y Z : C} [has_limit (pair X Y)] {f g : Z ⟶ prod X Y}
+lemma prod.ext {X Y Z : C} [has_limit (pair X Y)] {f g : Z ⟶ X ×' Y}
   (h₀ : f ≫ prod.fst = g ≫ prod.fst)
   (h₁ : f ≫ prod.snd = g ≫ prod.snd) :
+  f = g :=
+by ext ⟨ ⟩; assumption
+
+@[extensionality]
+lemma coprod.ext {X Y Z : C} [has_colimit (pair X Y)] {f g : X ⊕' Y ⟶ Z}
+  (h₀ : coprod.inl ≫ f = coprod.inl ≫ g)
+  (h₁ : coprod.inr ≫ f = coprod.inr ≫ g) :
   f = g :=
 by ext ⟨ ⟩; assumption
 

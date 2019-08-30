@@ -384,12 +384,13 @@ noncomputable def equiv_of_char_pred (H : ∀ y : Y, is_unit (f y)) (Hp : char_p
 equiv_of_char_pred' f (λ y, classical.some $ H y)
   (λ y, by rw [← classical.some_spec (H y)]; refl) Hp
 
+
 lemma map_units_of_equiv (h : X ≃* Z) (H : h.to_monoid_hom.map Y = W) (y : Y) : 
   is_unit (of W (h y)) :=
 begin
-  let hy : h y ∈ W := by rw ←H; exact ⟨y, ⟨y.2, rfl⟩⟩,
-  use (to_units W ⟨(h y), hy⟩),
-  refl,
+let hy : h y ∈ W := by rw ←H; exact ⟨y, ⟨y.2, rfl⟩⟩,
+use (to_units W ⟨(h y), hy⟩),
+refl,
 end
 
 -- going to generalize and redo this in a bit
@@ -431,10 +432,33 @@ begin
   exact ker_of_comp_equiv h H,
 end
 
-noncomputable def equiv_of_equiv (h : X ≃* Z) (H : h.to_monoid_hom.map Y = W) :
+noncomputable def equiv_of_equiv' (h : X ≃* Z) (H : h.to_monoid_hom.map Y = W) :
   localization X Y ≃* localization Z W :=
 equiv_of_char_pred ((of W).comp h.to_monoid_hom) (map_units_of_equiv h H) $
 char_pred_of_map h H
+--I didn't notice this would be noncomputable until I made it. :(
+
+def equiv_of_equiv (h : X ≃* Z) (H : h.to_monoid_hom.map Y = W) :
+  localization X Y ≃* localization Z W :=
+{ to_fun := localization.monoid_hom.map h.to_monoid_hom $
+    λ (y : Y), show h y ∈ W, from H ▸ (h.to_monoid_hom.map Y).mem_coe.1 ⟨y, y.2, rfl⟩,
+  inv_fun := localization.monoid_hom.map h.symm.to_monoid_hom $
+    λ (w : W), let ⟨y, hym, hy⟩ := show (w : Z) ∈ h.to_monoid_hom.map Y, from H.symm ▸ w.2 in
+      show h.symm w ∈ Y, by erw [hy.symm, symm_apply_apply];
+        exact (submonoid.mem_coe Y).1 hym,
+  left_inv := λ x, by {erw [monoid_hom.map_map,
+    monoid_hom.map_ext (h.symm.to_monoid_hom.comp h.to_monoid_hom) (monoid_hom.id X)
+      (λ (y : Y), show _ ∈ Y, by {convert (submonoid.mem_coe _).1 y.2, simp, 
+        erw mul_equiv.symm_apply_apply, refl})
+      (λ (y : Y), show (y : X) ∈ Y, from y.2) 
+        (by {ext, erw mul_equiv.symm_apply_apply, refl}) x, monoid_hom.map_id], refl},
+  right_inv := λ x, by {erw [monoid_hom.map_map,
+    monoid_hom.map_ext (h.to_monoid_hom.comp h.symm.to_monoid_hom) (monoid_hom.id Z)
+      (λ (w : W), show _ ∈ W, by {convert (submonoid.mem_coe _).1 w.2, 
+        erw mul_equiv.apply_symm_apply, refl})
+      (λ (w : W), show (w : Z) ∈ W, from w.2) 
+        (by ext; erw mul_equiv.apply_symm_apply; refl) x, monoid_hom.map_id], refl },
+  map_mul' := monoid_hom.map_mul _ }
 
 end mul_equiv
 

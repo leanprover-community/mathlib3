@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.rat.order
+import data.rat.cast
 /-!
 # Floor and Ceil Functions for Rational Numbers
 
@@ -38,7 +39,7 @@ theorem le_floor {z : ℤ} : ∀ {r : ℚ}, z ≤ floor r ↔ (z : ℚ) ≤ r
   rw [num_denom'],
   have h' := int.coe_nat_lt.2 h,
   conv { to_rhs,
-    rw [coe_int_eq_mk, mk_le zero_lt_one h', mul_one] },
+    rw [coe_int_eq_mk, rat.le_def zero_lt_one h', mul_one] },
   exact int.le_div_iff_mul_le h'
 end
 

@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
-import data.dlist.basic category.basic meta.expr meta.rb_map tactic.cache
+import data.dlist.basic category.basic meta.expr meta.rb_map data.string.defs
 
 namespace expr
 open tactic
@@ -82,50 +82,6 @@ meta def emit_code_here : string → lean.parser unit
             else emit_code_here left
 
 end lean.parser
-
-namespace name
-
-meta def head : name → string
-| (mk_string s anonymous) := s
-| (mk_string s p)         := head p
-| (mk_numeral n p)        := head p
-| anonymous               := "[anonymous]"
-
-meta def is_private (n : name) : bool :=
-n.head = "_private"
-
-meta def last : name → string
-| (mk_string s _)  := s
-| (mk_numeral n _) := repr n
-| anonymous        := "[anonymous]"
-
-meta def length : name → ℕ
-| (mk_string s anonymous) := s.length
-| (mk_string s p)         := s.length + 1 + p.length
-| (mk_numeral n p)        := p.length
-| anonymous               := "[anonymous]".length
-
-end name
-
-namespace environment
-meta def decl_filter_map {α : Type} (e : environment) (f : declaration → option α) : list α :=
-  e.fold [] $ λ d l, match f d with
-                     | some r := r :: l
-                     | none := l
-                     end
-
-meta def decl_map {α : Type} (e : environment) (f : declaration → α) : list α :=
-  e.decl_filter_map $ λ d, some (f d)
-
-meta def get_decls (e : environment) : list declaration :=
-  e.decl_map id
-
-meta def get_trusted_decls (e : environment) : list declaration :=
-  e.decl_filter_map (λ d, if d.is_trusted then some d else none)
-
-meta def get_decl_names (e : environment) : list name :=
-  e.decl_map declaration.to_name
-end environment
 
 namespace format
 
@@ -1055,10 +1011,10 @@ local postfix `?`:9001 := optional
 local postfix *:9001 := many .
 "
 
-meta def trace_error (t : tactic α) (msg : string) : tactic α
+meta def trace_error (msg : string) (t : tactic α) : tactic α
 | s := match t s with
        | (result.success r s') := result.success r s'
-       | (result.exception (some msg) p s') := (trace (msg ()) >> result.exception (some msg) p) s'
+       | (result.exception (some msg') p s') := (trace msg >> trace (msg' ()) >> result.exception (some msg') p) s'
        | (result.exception none p s') := result.exception none p s'
        end
 
@@ -1152,6 +1108,25 @@ the combination of `pformat` and `fail`
 meta def trace_macro (_ : parse $ tk "trace!") (s : string) : parser pexpr :=
 do e ← pformat_macro () s,
    pure ``((%%e : pformat) >>= trace)
+
+/-- A hackish way to get the `src` directory of mathlib. -/
+meta def get_mathlib_dir : tactic string :=
+do e ← get_env,
+  s ← e.decl_olean `tactic.reset_instance_cache,
+  return $ s.popn_back 17
+
+/-- Checks whether `ml` is a prefix of the file where `n` is declared.
+  If you want to run `is_in_mathlib` many times, you should use this tactic instead,
+  since it is expensive to execute get_mathlib_dir many times. -/
+meta def is_in_mathlib_aux (ml : string) (n : name) : tactic bool :=
+do e ← get_env, return $ ml.is_prefix_of $ (e.decl_olean n).get_or_else ""
+
+/-- Checks whether a declaration with the given name is declared in mathlib.
+  If you want to run this tactic many times, you should use `is_in_mathlib_aux` instead,
+  since it is expensive to execute get_mathlib_dir many times. -/
+meta def is_in_mathlib (n : name) : tactic bool :=
+do ml ← get_mathlib_dir, is_in_mathlib_aux ml n
+
 
 end tactic
 open tactic

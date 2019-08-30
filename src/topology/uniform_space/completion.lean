@@ -37,7 +37,6 @@ From a slightly different perspective in order to reuse material in topology.uni
 import data.set.basic
 import topology.uniform_space.uniform_embedding topology.uniform_space.separation
 
-
 noncomputable theory
 local attribute [instance] classical.prop_decidable
 open filter set
@@ -227,7 +226,6 @@ instance [h : nonempty α] : nonempty (Cauchy α) :=
 h.rec_on $ assume a, nonempty.intro $ Cauchy.pure_cauchy a
 
 section extend
-variables [_root_.complete_space β] [separated β]
 
 def extend (f : α → β) : (Cauchy α → β) :=
 if uniform_continuous f then
@@ -235,12 +233,16 @@ if uniform_continuous f then
 else
   λ x, f (classical.inhabited_of_nonempty $ nonempty_Cauchy_iff.1 ⟨x⟩).default
 
+variables [separated β]
+
 lemma extend_pure_cauchy {f : α → β} (hf : uniform_continuous f) (a : α) :
   extend f (pure_cauchy a) = f a :=
 begin
   rw [extend, if_pos hf],
   exact uniformly_extend_of_ind uniform_inducing_pure_cauchy pure_cauchy_dense hf _
 end
+
+variables [_root_.complete_space β]
 
 lemma uniform_continuous_extend {f : α → β} : uniform_continuous (extend f) :=
 begin
@@ -455,7 +457,6 @@ funext $ assume a, completion.induction_on a (is_closed_eq hf hg) h
 
 section extension
 variables {f : α → β}
-variables [complete_space β] [separated β]
 
 /-- "Extension" to the completion. It is defined for any map `f` but
 returns an arbitrary constant value if `f` is not uniformly continuous -/
@@ -464,6 +465,16 @@ if uniform_continuous f then
   dense_inducing_coe.extend f
 else
   λ x, f (classical.inhabited_of_nonempty $ (nonempty_completion_iff α).1 ⟨x⟩).default
+
+variables [separated β]
+
+@[simp] lemma extension_coe (hf : uniform_continuous f) (a : α) : (completion.extension f) a = f a :=
+begin
+  rw [completion.extension, if_pos hf],
+  exact dense_inducing_coe.extend_eq_of_cont hf.continuous a
+end
+
+variables [complete_space β]
 
 lemma uniform_continuous_extension : uniform_continuous (completion.extension f) :=
 begin
@@ -477,12 +488,6 @@ end
 
 lemma continuous_extension : continuous (completion.extension f) :=
 uniform_continuous_extension.continuous
-
-@[simp] lemma extension_coe (hf : uniform_continuous f) (a : α) : (completion.extension f) a = f a :=
-begin
-  rw [completion.extension, if_pos hf],
-  exact dense_inducing_coe.extend_eq_of_cont hf.continuous a
-end
 
 lemma extension_unique (hf : uniform_continuous f) {g : completion α → β} (hg : uniform_continuous g)
   (h : ∀ a : α, f a = g (a : completion α)) : completion.extension f = g :=
@@ -552,13 +557,13 @@ begin
     show completion.map quotient.mk (completion.extension (separation_quotient.lift coe) ↑⟦a⟧) = ↑⟦a⟧,
     rw [extension_coe (separation_quotient.uniform_continuous_lift _),
       separation_quotient.lift_mk (uniform_continuous_coe α),
-      completion.map_coe uniform_continuous_quotient_mk] },
+      completion.map_coe uniform_continuous_quotient_mk] ; apply_instance },
   { assume a,
     refine completion.induction_on a (is_closed_eq (continuous_extension.comp continuous_map) continuous_id) _,
     assume a,
     rw [map_coe uniform_continuous_quotient_mk,
       extension_coe (separation_quotient.uniform_continuous_lift _),
-      separation_quotient.lift_mk (uniform_continuous_coe α) _] }
+      separation_quotient.lift_mk (uniform_continuous_coe α) _] ; apply_instance }
 end
 
 lemma uniform_continuous_completion_separation_quotient_equiv :
@@ -592,23 +597,25 @@ lemma prod_coe_coe (a : α) (b : β) : coe (a, b) =
 end prod
 
 section extension₂
-variables [complete_space γ] [separated γ] (f : α → β → γ)
+variables (f : α → β → γ)
 open function
 
 protected def extension₂ (f : α → β → γ) : completion α → completion β → γ :=
 curry $ completion.extension (uncurry' f) ∘ completion.prod
+
+variables [separated γ] {f}
+
+@[simp] lemma extension₂_coe_coe (hf : uniform_continuous $ uncurry' f) (a : α) (b : β) :
+  completion.extension₂ f a b = f a b :=
+by simpa [completion.extension₂, curry, (prod_coe_coe _ _).symm, extension_coe hf]
+
+variables [complete_space γ] (f)
 
 lemma uniform_continuous_extension₂ : uniform_continuous₂ (completion.extension₂ f) :=
 begin
   rw [uniform_continuous₂_def, completion.extension₂, uncurry'_curry],
   exact uniform_continuous_extension.comp uniform_continuous_prod,
 end
-
-variables {f}
-
-@[simp] lemma extension₂_coe_coe (hf : uniform_continuous $ uncurry' f) (a : α) (b : β) :
-  completion.extension₂ f a b = f a b :=
-by simpa [completion.extension₂, curry, (prod_coe_coe _ _).symm, extension_coe hf]
 
 end extension₂
 

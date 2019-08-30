@@ -45,6 +45,9 @@ lemma le_iff_le (H : strict_mono f) {a b} :
  λ h, (lt_or_eq_of_le h).elim (λ h', le_of_lt (H _ _ h')) (λ h', h' ▸ le_refl _)⟩
 end
 
+protected lemma nat {β} [preorder β] {f : ℕ → β} (h : ∀n, f n < f (n+1)) : strict_mono f :=
+by { intros n m hnm, induction hnm with m' hnm' ih, apply h, exact lt.trans ih (h _) }
+
 -- `preorder α` isn't strong enough: if the preorder on α is an equivalence relation,
 -- then `strict_mono f` is vacuously true.
 lemma monotone [partial_order α] [preorder β] {f : α → β} (H : strict_mono f) : monotone f :=
@@ -159,6 +162,25 @@ else
 lemma min_sub {α : Type u} [decidable_linear_ordered_comm_group α] (a b c : α) :
       min a b - c = min (a - c) (b - c) :=
 by simp [min_add, sub_eq_add_neg]
+
+
+/- Some lemmas about types that have an ordering and a binary operation, with no
+  rules relating them. -/
+lemma fn_min_add_fn_max [decidable_linear_order α] [add_comm_semigroup β] (f : α → β) (n m : α) :
+  f (min n m) + f (max n m) = f n + f m :=
+by { cases le_total n m with h h; simp [h] }
+
+lemma min_add_max [decidable_linear_order α] [add_comm_semigroup α] (n m : α) :
+  min n m + max n m = n + m :=
+fn_min_add_fn_max id n m
+
+lemma fn_min_mul_fn_max [decidable_linear_order α] [comm_semigroup β] (f : α → β) (n m : α) :
+  f (min n m) * f (max n m) = f n * f m :=
+by { cases le_total n m with h h; simp [h, mul_comm] }
+
+lemma min_mul_max [decidable_linear_order α] [comm_semigroup α] (n m : α) :
+  min n m * max n m = n * m :=
+fn_min_mul_fn_max id n m
 
 section decidable_linear_ordered_comm_group
 variables [decidable_linear_ordered_comm_group α] {a b c : α}

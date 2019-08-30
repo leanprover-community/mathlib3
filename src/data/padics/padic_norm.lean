@@ -147,13 +147,13 @@ A rewrite lemma for `padic_val_rat p (q * r)` with conditions `q ≠ 0`, `r ≠ 
 protected lemma mul {q r : ℚ} (hq : q ≠ 0) (hr : r ≠ 0) :
   padic_val_rat p (q * r) = padic_val_rat p q + padic_val_rat p r :=
 have q*r = (q.num * r.num) /. (↑q.denom * ↑r.denom), by rw_mod_cast rat.mul_num_denom,
-have hq' : q.num /. q.denom ≠ 0, by rw ← rat.num_denom q; exact hq,
-have hr' : r.num /. r.denom ≠ 0, by rw ← rat.num_denom r; exact hr,
+have hq' : q.num /. q.denom ≠ 0, by rw rat.num_denom; exact hq,
+have hr' : r.num /. r.denom ≠ 0, by rw rat.num_denom; exact hr,
 have hp' : _root_.prime (p : ℤ), from nat.prime_iff_prime_int.1 p_prime,
 begin
   rw [padic_val_rat.defn p (mul_ne_zero hq hr) this],
-  conv_rhs { rw [rat.num_denom q, padic_val_rat.defn p hq',
-    rat.num_denom r, padic_val_rat.defn p hr'] },
+  conv_rhs { rw [←(@rat.num_denom q), padic_val_rat.defn p hq',
+    ←(@rat.num_denom r), padic_val_rat.defn p hr'] },
   rw [multiplicity.mul' hp', multiplicity.mul' hp']; simp
 end
 
@@ -225,11 +225,11 @@ have hqreq : q + r = (((q.num * r.denom + q.denom * r.num : ℤ)) /. (↑q.denom
 have hqrd : q.num * ↑(r.denom) + ↑(q.denom) * r.num ≠ 0,
   from rat.mk_num_ne_zero_of_ne_zero hqr hqreq,
 begin
-  conv_lhs { rw rat.num_denom q },
+  conv_lhs { rw ←(@rat.num_denom q) },
   rw [hqreq, padic_val_rat_le_padic_val_rat_iff p hqn hqrd hqd (mul_ne_zero hqd hrd),
     ← multiplicity_le_multiplicity_iff, mul_left_comm,
     multiplicity.mul (nat.prime_iff_prime_int.1 p_prime), add_mul],
-  rw [rat.num_denom q, rat.num_denom r, padic_val_rat_le_padic_val_rat_iff p hqn hrn hqd hrd,
+  rw [←(@rat.num_denom q), ←(@rat.num_denom r), padic_val_rat_le_padic_val_rat_iff p hqn hrn hqd hrd,
     ← multiplicity_le_multiplicity_iff] at h,
   calc _ ≤ min (multiplicity ↑p (q.num * ↑(r.denom) * ↑(q.denom)))
     (multiplicity ↑p (↑(q.denom) * r.num * ↑(q.denom))) : (le_min
@@ -344,7 +344,7 @@ else if hr : r = 0 then
   by simp [hr]
 else
   have q*r ≠ 0, from mul_ne_zero hq hr,
-  have (↑p : ℚ) ≠ 0, by simp [prime.ne_zero hp],
+  have (↑p : ℚ) ≠ 0, by simp [hp.ne_zero],
   by simp [padic_norm, *, padic_val_rat.mul, fpow_add this]
 
 /--

@@ -104,8 +104,8 @@ colimit.ι (pair X Y) walking_pair.right
 
 @[extensionality]
 lemma prod.ext {X Y Z : C} [has_limit (pair X Y)] {f g : Z ⟶ prod X Y}
-  (h₀ : f ≫ prod.fst _ _ = g ≫ prod.fst _ _)
-  (h₁ : f ≫ prod.snd _ _ = g ≫ prod.snd _ _) :
+  (h₀ : f ≫ prod.fst = g ≫ prod.fst)
+  (h₁ : f ≫ prod.snd = g ≫ prod.snd) :
   f = g :=
 by ext ⟨ ⟩; assumption
 
@@ -116,10 +116,10 @@ abbreviation coprod.desc {W X Y : C} [has_colimit (pair X Y)] (f : X ⟶ W) (g :
 colimit.desc _ (binary_cofan.mk f g)
 
 @[simp] lemma prod.lift_fst {W X Y : C} [has_limit (pair X Y)] (f : W ⟶ X) (g : W ⟶ Y) :
-  prod.lift f g ≫ prod.fst _ _ = f := limit.lift_π _ _
+  prod.lift f g ≫ prod.fst = f := limit.lift_π _ _
 
 @[simp] lemma prod.lift_snd {W X Y : C} [has_limit (pair X Y)] (f : W ⟶ X) (g : W ⟶ Y) :
-  prod.lift f g ≫ prod.snd _ _ = g := limit.lift_π _ _
+  prod.lift f g ≫ prod.snd = g := limit.lift_π _ _
 
 abbreviation prod.diag {X : C} [has_limit (pair X X)] : X ⟶ prod X X := prod.lift (𝟙 _) (𝟙 _)
 abbreviation coprod.diag {X : C} [has_colimit (pair X X)] : coprod X X ⟶ X := coprod.desc (𝟙 _) (𝟙 _)
@@ -226,7 +226,7 @@ def is_limit.unit (F : discrete punit.{v+1} ⥤ C) : limits.is_limit (cone.unit 
 
 def cone.option {A} (F : discrete (option A) ⥤ C) (s : cone (functor.of_function some ⋙ F)) : cone F :=
 { X := prod s.X (F.obj none),
-  π := { app := λ X, option.cases_on X (prod.snd _ _) (λ val, prod.fst _ _ ≫ s.π.app _) } }
+  π := { app := λ X, option.cases_on X prod.snd (λ val, prod.fst ≫ s.π.app _) } }
 
 instance is_limit.option {A} (F : discrete (option A) ⥤ C) (s : cone $ functor.of_function some ⋙ F) [h : is_limit s] : is_limit (cone.option F s) :=
 { lift := λ s', prod.lift (h.lift (cone.whisker (functor.of_function some) s')) (s'.π.app none),
@@ -398,7 +398,7 @@ def is_colimit.unit (F : discrete punit.{v+1} ⥤ C) : limits.is_colimit (cocone
 
 def cocone.option {A} (F : discrete (option A) ⥤ C) (s : cocone (functor.of_function some ⋙ F)) : cocone F :=
 { X := coprod s.X (F.obj none),
-  ι := { app := λ X, option.cases_on X (coprod.inr _ _) (λ val, s.ι.app _ ≫ coprod.inl _ _) } }
+  ι := { app := λ X, option.cases_on X coprod.inr (λ val, s.ι.app _ ≫ coprod.inl) } }
 
 instance is_colimit.option {A} (F : discrete (option A) ⥤ C) (s : cocone $ functor.of_function some ⋙ F)
   [h : is_colimit s] : is_colimit (cocone.option F s) :=

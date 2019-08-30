@@ -6,7 +6,7 @@ Authors: Simon Hudon, Mario Carneiro
 Evaluating arithmetic expressions including *, +, -, ^, ≤
 -/
 
-import algebra.group_power data.rat data.nat.prime
+import algebra.group_power data.rat.order data.nat.prime
 import tactic.interactive tactic.converter.interactive
 
 universes u v w

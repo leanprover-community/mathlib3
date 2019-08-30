@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.rat.order
 import data.rat.cast
+import algebra.floor
 /-!
 # Floor and Ceil Functions for Rational Numbers
 
@@ -43,11 +44,14 @@ theorem le_floor {z : ℤ} : ∀ {r : ℚ}, z ≤ floor r ↔ (z : ℚ) ≤ r
   exact int.le_div_iff_mul_le h'
 end
 
-theorem floor_lt {r : ℚ} {z : ℤ} : floor r < z ↔ r < z :=
-lt_iff_lt_of_le_iff_le le_floor
-
 theorem floor_le (r : ℚ) : (floor r : ℚ) ≤ r :=
 le_floor.1 (le_refl _)
+
+instance : floor_ring ℚ :=
+{ floor := rat.floor, le_floor := @rat.le_floor }
+
+theorem floor_lt {r : ℚ} {z : ℤ} : floor r < z ↔ r < z :=
+lt_iff_lt_of_le_iff_le le_floor
 
 theorem lt_succ_floor (r : ℚ) : r < (floor r).succ :=
 floor_lt.1 $ int.lt_succ_self _

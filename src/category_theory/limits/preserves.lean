@@ -118,13 +118,13 @@ end
   then it preserves any limit cone for K. -/
 def preserves_limit_of_preserves_limit_cone {F : C ⥤ D} {t : cone K}
   (h : is_limit t) (hF : is_limit (F.map_cone t)) : preserves_limit K F :=
-⟨λ t' h', is_limit.of_iso_limit hF (functor.map_iso _ (is_limit.unique h h'))⟩
+⟨λ t' h', is_limit.of_iso_limit hF (functor.map_iso _ (is_limit.unique_up_to_iso h h'))⟩
 
 /-- If F preserves one colimit cocone for the diagram K,
   then it preserves any colimit cocone for K. -/
 def preserves_colimit_of_preserves_colimit_cocone {F : C ⥤ D} {t : cocone K}
   (h : is_colimit t) (hF : is_colimit (F.map_cocone t)) : preserves_colimit K F :=
-⟨λ t' h', is_colimit.of_iso_colimit hF (functor.map_iso _ (is_colimit.unique h h'))⟩
+⟨λ t' h', is_colimit.of_iso_colimit hF (functor.map_iso _ (is_colimit.unique_up_to_iso h h'))⟩
 
 /-
 A functor F : C → D reflects limits if whenever the image of a cone

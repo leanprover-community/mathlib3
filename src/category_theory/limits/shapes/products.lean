@@ -42,21 +42,24 @@ abbreviation pi_obj (f : β → C) [has_limit (functor.of_function f)] := limit 
    about colimits.) -/
 abbreviation sigma_obj (f : β → C) [has_colimit (functor.of_function f)] := colimit (functor.of_function f)
 
-abbreviation pi.π (f : β → C) [has_limit (functor.of_function f)] (b : β) : pi_obj f ⟶ f b :=
+notation `∏ ` f:20 := pi_obj f
+notation `∐ ` f:20 := sigma_obj f
+
+abbreviation pi.π (f : β → C) [has_limit (functor.of_function f)] (b : β) : ∏ f ⟶ f b :=
 limit.π (functor.of_function f) b
-abbreviation sigma.ι (f : β → C) [has_colimit (functor.of_function f)] (b : β) : f b ⟶ sigma_obj f :=
+abbreviation sigma.ι (f : β → C) [has_colimit (functor.of_function f)] (b : β) : f b ⟶ ∐ f :=
 colimit.ι (functor.of_function f) b
 
-abbreviation pi.lift {f : β → C} [has_limit (functor.of_function f)] {P : C} (p : Π b, P ⟶ f b) : P ⟶ pi_obj f :=
+abbreviation pi.lift {f : β → C} [has_limit (functor.of_function f)] {P : C} (p : Π b, P ⟶ f b) : P ⟶ ∏ f :=
 limit.lift _ (fan.mk p)
-abbreviation sigma.desc {f : β → C} [has_colimit (functor.of_function f)] {P : C} (p : Π b, f b ⟶ P) : sigma_obj f ⟶ P :=
+abbreviation sigma.desc {f : β → C} [has_colimit (functor.of_function f)] {P : C} (p : Π b, f b ⟶ P) : ∐ f ⟶ P :=
 colimit.desc _ (cofan.mk p)
 
 abbreviation pi.map {f g : β → C} [has_limits_of_shape.{v} (discrete β) C]
-  (p : Π b, f b ⟶ g b) : pi_obj f ⟶ pi_obj g :=
+  (p : Π b, f b ⟶ g b) : ∏ f ⟶ ∏ g :=
 lim.map (nat_trans.of_function p)
 abbreviation sigma.map {f g : β → C} [has_colimits_of_shape.{v} (discrete β) C]
-  (p : Π b, f b ⟶ g b) : sigma_obj f ⟶ sigma_obj g :=
+  (p : Π b, f b ⟶ g b) : ∐ f ⟶ ∐ g :=
 colim.map (nat_trans.of_function p)
 
 variables (C)

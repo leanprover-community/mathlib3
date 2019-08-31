@@ -39,6 +39,9 @@ def of_function {I : Type u₁} (F : I → C) : (discrete I) ⥤ C :=
   map := λ X Y f, begin cases f, cases f, cases f, exact 𝟙 (F X) end }
 
 @[simp] lemma of_function_obj  {I : Type u₁} (F : I → C) (i : I) : (of_function F).obj i = F i := rfl
+@[simp] lemma of_function_map  {I : Type u₁} (F : I → C) {i : discrete I} (f : i ⟶ i) :
+  (of_function F).map f = 𝟙 (F i) :=
+by { cases f, cases f, cases f, refl }
 
 end functor
 

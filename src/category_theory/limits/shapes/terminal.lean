@@ -22,6 +22,30 @@ class has_initial :=
 
 attribute [instance] has_terminal.has_limits_of_shape has_initial.has_colimits_of_shape
 
+section
+variable {C}
+
+def has_terminal.of_unique (P : C) (h : ∀ X : C, unique (X ⟶ P)) : has_terminal.{v} C :=
+{ has_limits_of_shape :=
+  { has_limit := λ F,
+    { cone :=
+      { X := P,
+        π :=
+        { app := λ X, by { cases X } } },
+      is_limit :=
+      { lift := λ s, (h s.X).default } } } }
+
+def has_initial.of_unique (P : C) (h : ∀ X : C, unique (P ⟶ X)) : has_initial.{v} C :=
+{ has_colimits_of_shape :=
+  { has_colimit := λ F,
+    { cocone :=
+      { X := P,
+        ι :=
+        { app := λ X, by { cases X } } },
+      is_colimit :=
+      { desc := λ s, (h s.X).default } } } }
+end
+
 instance [has_finite_products.{v} C] : has_terminal.{v} C :=
 { has_limits_of_shape :=
   { has_limit := λ F, has_limit_of_equivalence_comp ((functor.empty (discrete pempty)).as_equivalence.symm) } }

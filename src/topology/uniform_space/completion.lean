@@ -475,10 +475,7 @@ cpkg.extend f
 variables [separated β]
 
 @[simp] lemma extension_coe (hf : uniform_continuous f) (a : α) : (completion.extension f) a = f a :=
-begin
-  rw [completion.extension, if_pos hf],
-  exact dense_inducing_coe.extend_eq_of_cont hf.continuous a
-end
+cpkg.extend_coe hf a
 
 variables [complete_space β]
 
@@ -487,9 +484,6 @@ cpkg.uniform_continuous_extend
 
 lemma continuous_extension : continuous (completion.extension f) :=
 cpkg.continuous_extend
-
-@[simp] lemma extension_coe (hf : uniform_continuous f) (a : α) : (completion.extension f) a = f a :=
-cpkg.extend_coe hf a
 
 lemma extension_unique (hf : uniform_continuous f) {g : completion α → β} (hg : uniform_continuous g)
   (h : ∀ a : α, f a = g (a : completion α)) : completion.extension f = g :=
@@ -580,18 +574,13 @@ variables [separated γ] {f}
 
 @[simp] lemma extension₂_coe_coe (hf : uniform_continuous $ uncurry' f) (a : α) (b : β) :
   completion.extension₂ f a b = f a b :=
-by simpa [completion.extension₂, curry, (prod_coe_coe _ _).symm, extension_coe hf]
+cpkg.extension₂_coe_coe cpkg hf a b
 
 variables [complete_space γ] (f)
 
 lemma uniform_continuous_extension₂ : uniform_continuous₂ (completion.extension₂ f) :=
 cpkg.uniform_continuous_extension₂ cpkg f
 
-variables {f}
-
-@[simp] lemma extension₂_coe_coe (hf : uniform_continuous $ uncurry' f) (a : α) (b : β) :
-  completion.extension₂ f a b = f a b :=
-cpkg.extension₂_coe_coe cpkg hf a b
 end extension₂
 
 section map₂

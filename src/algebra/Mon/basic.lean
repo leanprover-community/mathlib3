@@ -7,7 +7,9 @@ Introduce Mon -- the category of monoids.
 Currently only the basic setup.
 -/
 
-import category_theory.concrete_category algebra.group.hom
+import category_theory.concrete_category
+import category_theory.bundled_hom
+import algebra.group.hom
 
 universes u v
 
@@ -23,29 +25,20 @@ namespace Mon
 
 instance (x : Mon) : monoid x := x.str
 
--- TODO provide a generic constructor
-instance category_Mon : large_category Mon.{u} :=
-{ hom := λ X Y, X →* Y,
-  id := λ X, monoid_hom.id X,
-  comp := λ X Y Z f g, @monoid_hom.comp X.α Y.α Z.α _ _ _ g f, }
+instance : bundled_hom.{u} monoid :=
+{ hom := λ X Y _ _, by exactI X →* Y,
+  to_fun := λ X Y _ _ f, by exactI f.to_fun,
+  id := λ X _, by exactI monoid_hom.id X,
+  comp := λ X Y Z _ _ _ f g, by exactI monoid_hom.comp g f }
 
+/-- Construct a bundled monoid from an unbundled monoid. -/
 def of (X : Type u) [monoid X] : Mon := ⟨X⟩
 
-def forget : Mon ⥤ Type u :=
-{ obj := λ X, X.α,
-  map := λ X Y f, monoid_hom.to_fun f }
+/-- The forgetful functor from monoids to underlying types. -/
+abbreviation forget : Mon.{u} ⥤ Type u := bundled_hom.forget
 
--- TODO remove?
-instance hom_is_monoid_hom {R S : Mon} (f : R ⟶ S) : is_monoid_hom (f : R → S) := by apply_instance
-
--- TODO remove
--- /-- Morphisms in `Mon` are defined using `subtype is_monoid_hom`,
--- so we provide a canonical bijection with `R →* S`. -/
--- def hom_equiv_monoid_hom (R S : Mon) : (R ⟶ S) ≃ (R →* S) :=
--- { to_fun := λ f, @as_monoid_hom _ _ _ _ f.val f.property,
---   inv_fun := λ f, ⟨f, f.is_monoid_hom⟩,
---   right_inv := λ f, by rcases f; refl,
---   left_inv := λ f, by rcases f; refl }
+-- We already know that all forgetful functors out of bundled hom categories are faithful:
+example : faithful forget := by apply_instance
 
 end Mon
 
@@ -53,23 +46,23 @@ namespace CommMon
 
 instance (x : CommMon) : comm_monoid x := x.str
 
-instance category_CommMon : large_category CommMon.{u} :=
-{ hom := λ X Y, X →* Y,
-  id := λ X, monoid_hom.id X,
-  comp := λ X Y Z f g, @monoid_hom.comp X.α Y.α Z.α _ _ _ g f, }
+instance : bundled_hom.{u} comm_monoid :=
+{ hom := λ X Y _ _, by exactI X →* Y,
+  to_fun := λ X Y _ _ f, by exactI f.to_fun,
+  id := λ X _, by exactI monoid_hom.id X,
+  comp := λ X Y Z _ _ _ f g, by exactI monoid_hom.comp g f }
 
+/-- Construct a bundled commutative monoid from an unbundled commutative monoid. -/
 def of (X : Type u) [comm_monoid X] : CommMon := ⟨X⟩
 
-abbreviation forget : CommMon.{u} ⥤ Type u :=
-{ obj := λ X, X.α,
-  map := λ X Y f, monoid_hom.to_fun f }
+/-- The forgetful functor from commutative monoids to underlying types. -/
+abbreviation forget : CommMon.{u} ⥤ Type u := bundled_hom.forget
 
--- TODO provide a generic constructor
 /-- The forgetful functor from commutative monoids to monoids. -/
-def forget_to_Mon : CommMon ⥤ Mon :=
-{ obj := λ X, Mon.of X.α,
-  map := λ X Y f, f }
+def forget_to_Mon : CommMon ⥤ Mon := bundled_hom.forget_to comm_monoid monoid
 
 instance : faithful (forget_to_Mon) := {}
+instance : full (forget_to_Mon) :=
+{ preimage := λ X Y f, f }
 
 end CommMon

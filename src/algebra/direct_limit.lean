@@ -123,7 +123,8 @@ lemma to_module_totalize_of_le {x : direct_sum ι G} {i j : ι}
   direct_sum.to_module R ι (G j) (λ k, totalize G f k j) x =
   f i j hij (direct_sum.to_module R ι (G i) (λ k, totalize G f k i) x) :=
 begin
-  rw [← @dfinsupp.sum_single ι G _ _ _ x, dfinsupp.sum],
+  rw [← @dfinsupp.sum_single ι G _ _ _ x],
+  unfold dfinsupp.sum,
   simp only [linear_map.map_sum],
   refine finset.sum_congr rfl (λ k hk, _),
   rw direct_sum.single_eq_lof R k (x k),

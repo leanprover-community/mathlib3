@@ -362,7 +362,7 @@ end
   eval₂ f g (s.sum p) = s.sum (λ x, eval₂ f g $ p x) :=
 (finset.sum_hom _).symm
 
-attribute [to_additive mv_polynomial.eval₂_sum] eval₂_prod
+attribute [to_additive] eval₂_prod
 
 lemma eval₂_assoc [decidable_eq γ] (q : γ → mv_polynomial σ α) (p : mv_polynomial γ α) :
   eval₂ f (λ t, eval₂ f g (q t)) p = eval₂ f g (eval₂ C q p) :=
@@ -761,7 +761,7 @@ lemma eval₂_sub : (p - q).eval₂ f g = p.eval₂ f g - q.eval₂ f g := is_ri
 lemma hom_C (f : mv_polynomial σ ℤ → β) [is_ring_hom f] (n : ℤ) : f (C n) = (n : β) :=
 congr_fun (int.eq_cast' (f ∘ C)) n
 
-/-- A ring homomorphism f : Z[X_1, X_2, ...] -> R
+/-- A ring homomorphism f : Z[X_1, X_2, ...] → R
 is determined by the evaluations f(X_1), f(X_2), ... -/
 @[simp] lemma eval₂_hom_X {α : Type u} [decidable_eq α] (c : ℤ → β) [is_ring_hom c]
   (f : mv_polynomial α ℤ → β) [is_ring_hom f] (x : mv_polynomial α ℤ) :

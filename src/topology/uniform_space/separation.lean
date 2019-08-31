@@ -7,7 +7,6 @@ Hausdorff properties of uniform spaces. Separation quotient.
 -/
 import topology.uniform_space.basic
 
-
 open filter topological_space lattice set classical
 local attribute [instance, priority 0] prop_decidable
 noncomputable theory
@@ -162,7 +161,7 @@ lemma uniform_continuous_quotient_lift
   (hf : uniform_continuous f) : uniform_continuous (λa, quotient.lift f h a) :=
 uniform_continuous_quotient hf
 
-lemma uniform_continuous_quotient_lift₂ [uniform_space γ]
+lemma uniform_continuous_quotient_lift₂
   {f : α → β → γ} {h : ∀a c b d, (a, b) ∈ separation_rel α → (c, d) ∈ separation_rel β → f a c = f b d}
   (hf : uniform_continuous (λp:α×β, f p.1 p.2)) :
   uniform_continuous (λp:_×_, quotient.lift₂ f h p.1 p.2) :=

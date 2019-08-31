@@ -14,6 +14,7 @@ local attribute [tidy] tactic.case_bash
 
 universes v u
 
+/-- The type of objects for the diagram indexing a (co)equalizer. -/
 @[derive decidable_eq] inductive walking_parallel_pair : Type v
 | zero | one
 
@@ -23,6 +24,7 @@ instance fintype_walking_parallel_pair : fintype walking_parallel_pair :=
 
 open walking_parallel_pair
 
+/-- The type family of morphisms for the diagram indexing a (co)equalizer. -/
 inductive walking_parallel_pair_hom : walking_parallel_pair → walking_parallel_pair → Type v
 | left : walking_parallel_pair_hom zero one
 | right : walking_parallel_pair_hom zero one
@@ -160,10 +162,43 @@ def cofork.of_cocone
 @[simp] lemma cofork.of_cocone_ι {F : walking_parallel_pair.{v} ⥤ C} (t : cocone F) (j) :
   (cofork.of_cocone t).ι.app j = eq_to_hom (by tidy) ≫ t.ι.app j := rfl
 
-abbreviation equalizer {X Y : C} (f g : X ⟶ Y) [has_limit (parallel_pair f g)] :=
-limit (parallel_pair f g)
-abbreviation coequalizer {X Y : C} (f g : X ⟶ Y) [has_colimit (parallel_pair f g)] :=
-colimit (parallel_pair f g)
+variables (f g)
+
+section
+variables [has_limit (parallel_pair f g)]
+
+abbreviation equalizer := limit (parallel_pair f g)
+
+abbreviation equalizer.ι : equalizer f g ⟶ X :=
+limit.π (parallel_pair f g) zero
+
+@[simp, reassoc] lemma equalizer.condition : equalizer.ι f g ≫ f = equalizer.ι f g ≫ g :=
+begin
+  erw limit.w (parallel_pair f g) walking_parallel_pair_hom.left,
+  erw limit.w (parallel_pair f g) walking_parallel_pair_hom.right
+end
+
+abbreviation equalizer.lift {W : C} (k : W ⟶ X) (h : k ≫ f = k ≫ g) : W ⟶ equalizer f g :=
+limit.lift (parallel_pair f g) (fork.of_ι k h)
+end
+
+section
+variables [has_colimit (parallel_pair f g)]
+
+abbreviation coequalizer := colimit (parallel_pair f g)
+
+abbreviation coequalizer.π : Y ⟶ coequalizer f g :=
+colimit.ι (parallel_pair f g) one
+
+@[simp, reassoc] lemma coequalizer.condition : f ≫ coequalizer.π f g = g ≫ coequalizer.π f g :=
+begin
+  erw colimit.w (parallel_pair f g) walking_parallel_pair_hom.left,
+  erw colimit.w (parallel_pair f g) walking_parallel_pair_hom.right
+end
+
+abbreviation coequalizer.desc {W : C} (k : Y ⟶ W) (h : f ≫ k = g ≫ k) : coequalizer f g ⟶ W :=
+colimit.desc (parallel_pair f g) (cofork.of_π k h)
+end
 
 variables (C)
 

@@ -976,6 +976,15 @@ theorem nth_update_nth_ne (a : α) {m n} (l : list α) (h : m ≠ n) :
   nth (update_nth l m a) n = nth l n :=
 by simp only [update_nth_eq_modify_nth, nth_modify_nth_ne _ _ h]
 
+@[simp] lemma nth_le_update_nth_eq (l : list α) (i : ℕ) (a : α)
+  (h : i < (l.update_nth i a).length) : (l.update_nth i a).nth_le i h = a :=
+by rw [← option.some_inj, ← nth_le_nth, nth_update_nth_eq, nth_le_nth]; simp * at *
+
+@[simp] lemma nth_le_update_nth_of_ne {l : list α} {i j : ℕ} (h : i ≠ j) (a : α)
+  (hj : j < (l.update_nth i a).length) :
+  (l.update_nth i a).nth_le j hj = l.nth_le j (by simpa using hj) :=
+by rw [← option.some_inj, ← list.nth_le_nth, list.nth_update_nth_ne _ _ h, list.nth_le_nth]
+
 lemma mem_or_eq_of_mem_update_nth : ∀ {l : list α} {n : ℕ} {a b : α}
   (h : a ∈ l.update_nth n b), a ∈ l ∨ a = b
 | []     n     a b h := false.elim h
@@ -1025,6 +1034,16 @@ lemma insert_nth_comm (a b : α) :
 | (i + 1) (j+1) (c::l) :=
   assume h₀ h₁,
   by simp [insert_nth]; exact insert_nth_comm i j l (nat.le_of_succ_le_succ h₀) (nat.le_of_succ_le_succ h₁)
+
+lemma mem_insert_nth {a b : α} : ∀ {n : ℕ} {l : list α} (hi : n ≤ l.length),
+  a ∈ l.insert_nth n b ↔ a = b ∨ a ∈ l
+| 0     as       h := iff.rfl
+| (n+1) []       h := (nat.not_succ_le_zero _ h).elim
+| (n+1) (a'::as) h := begin
+  dsimp [list.insert_nth],
+  erw [list.mem_cons_iff, mem_insert_nth (nat.le_of_succ_le_succ h), list.mem_cons_iff,
+    ← or.assoc, or_comm (a = a'), or.assoc]
+end
 
 end insert_nth
 
@@ -1355,32 +1374,31 @@ end mfoldl_mfoldr
 
 /- sum -/
 
-attribute [to_additive list.sum] list.prod
-attribute [to_additive list.sum.equations._eqn_1] list.prod.equations._eqn_1
+attribute [to_additive] list.prod
 
 section monoid
 variables [monoid α] {l l₁ l₂ : list α} {a : α}
 
-@[simp, to_additive list.sum_nil]
+@[simp, to_additive]
 theorem prod_nil : ([] : list α).prod = 1 := rfl
 
-@[simp, to_additive list.sum_cons]
+@[simp, to_additive]
 theorem prod_cons : (a::l).prod = a * l.prod :=
 calc (a::l).prod = foldl (*) (a * 1) l : by simp only [list.prod, foldl_cons, one_mul, mul_one]
   ... = _ : foldl_assoc
 
-@[simp, to_additive list.sum_append]
+@[simp, to_additive]
 theorem prod_append : (l₁ ++ l₂).prod = l₁.prod * l₂.prod :=
 calc (l₁ ++ l₂).prod = foldl (*) (foldl (*) 1 l₁ * 1) l₂ : by simp [list.prod]
   ... = l₁.prod * l₂.prod : foldl_assoc
 
-@[simp, to_additive list.sum_join]
+@[simp, to_additive]
 theorem prod_join {l : list (list α)} : l.join.prod = (l.map list.prod).prod :=
 by induction l; [refl, simp only [*, list.join, map, prod_append, prod_cons]]
 
 end monoid
 
-@[simp, to_additive list.sum_erase]
+@[simp, to_additive]
 theorem prod_erase [decidable_eq α] [comm_monoid α] {a} :
   Π {l : list α}, a ∈ l → a * (l.erase a).prod = l.prod
 | (b::l) h :=
@@ -2626,7 +2644,7 @@ lemma rel_filter_map {f : α → option γ} {q : β → option δ} :
   | _, _, option.rel.some h := forall₂.cons h (rel_filter_map @hfg h₂)
   end
 
-@[to_additive list.rel_sum]
+@[to_additive]
 lemma rel_prod [monoid α] [monoid β]
   (h : r 1 1) (hf : (r ⇒ r ⇒ r) (*) (*)) : (forall₂ r ⇒ r) prod prod :=
 assume a b, rel_foldl (assume a b, hf) h
@@ -4302,7 +4320,7 @@ nodup_pmap (λ _ _ _ _, fin.veq_of_eq) (nodup_range _)
 @[simp] lemma length_fin_range (n : ℕ) : (fin_range n).length = n :=
 by rw [fin_range, length_pmap, length_range]
 
-@[to_additive list.sum_range_succ]
+@[to_additive]
 theorem prod_range_succ {α : Type u} [monoid α] (f : ℕ → α) (n : ℕ) :
   ((range n.succ).map f).prod = ((range n).map f).prod * f n :=
 by rw [range_concat, map_append, map_singleton,
@@ -4499,7 +4517,7 @@ section tfae
 /- tfae: The Following (propositions) Are Equivalent -/
 
 theorem tfae_nil : tfae [] := forall_mem_nil _
-theorem tfae_singleton (p) : tfae [p] := by simp [tfae]
+theorem tfae_singleton (p) : tfae [p] := by simp [tfae, -eq_iff_iff]
 
 theorem tfae_cons_of_mem {a b} {l : list Prop} (h : b ∈ l) :
   tfae (a::l) ↔ (a ↔ b) ∧ tfae l :=

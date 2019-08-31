@@ -3,7 +3,7 @@ Copyright (c) 2018 Michael Jendrusch. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Jendrusch, Scott Morrison
 -/
-import category_theory.monoidal.category_aux
+import category_theory.products
 import category_theory.natural_isomorphism
 import tactic.basic
 import tactic.slice
@@ -18,6 +18,13 @@ open category_theory.iso
 
 namespace category_theory
 
+/--
+In a monoidal category, we can take the tensor product of objects, `X ⊗ Y` and of morphisms `f ⊗ g`.
+Tensor product does not need to be strictly associative on objects, but there is a
+specified associator, `α_ X Y Z : (X ⊗ Y) ⊗ Z ≅ X ⊗ (Y ⊗ Z)`. There is a tensor unit `𝟙_ C`,
+with specified left and right unitor isomorphisms `λ_ X : 𝟙_ C ⊗ X ≅ X` and `ρ_ X : X ⊗ 𝟙_ C ≅ X`.
+These associators and unitors satisfy the pentagon and triangle equations.
+-/
 class monoidal_category (C : Type u) [𝒞 : category.{v} C] :=
 -- curried tensor product of objects:
 (tensor_obj               : C → C → C)
@@ -34,24 +41,31 @@ class monoidal_category (C : Type u) [𝒞 : category.{v} C] :=
   (f₁ ≫ g₁) ⊗' (f₂ ≫ g₂) = (f₁ ⊗' f₂) ≫ (g₁ ⊗' g₂) . obviously)
 -- tensor unit:
 (tensor_unit              : C)
+(notation `𝟙_`            := tensor_unit)
 -- associator:
 (associator               :
   Π X Y Z : C, (X ⊗ Y) ⊗ Z ≅ X ⊗ (Y ⊗ Z))
+(notation `α_`            := associator)
 (associator_naturality'   :
-  assoc_natural tensor_obj @tensor_hom associator . obviously)
+  ∀ {X₁ X₂ X₃ Y₁ Y₂ Y₃ : C} (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (f₃ : X₃ ⟶ Y₃),
+  ((f₁ ⊗' f₂) ⊗' f₃) ≫ (α_ Y₁ Y₂ Y₃).hom = (α_ X₁ X₂ X₃).hom ≫ (f₁ ⊗' (f₂ ⊗' f₃)) . obviously)
 -- left unitor:
-(left_unitor              : Π X : C, tensor_unit ⊗ X ≅ X)
+(left_unitor              : Π X : C, 𝟙_ ⊗ X ≅ X)
+(notation `λ_`            := left_unitor)
 (left_unitor_naturality'  :
-  left_unitor_natural tensor_obj @tensor_hom tensor_unit left_unitor . obviously)
+  ∀ {X Y : C} (f : X ⟶ Y), ((𝟙 𝟙_) ⊗' f) ≫ (λ_ Y).hom = (λ_ X).hom ≫ f . obviously)
 -- right unitor:
-(right_unitor             : Π X : C, X ⊗ tensor_unit ≅ X)
+(right_unitor             : Π X : C, X ⊗ 𝟙_ ≅ X)
+(notation `ρ_`            := right_unitor)
 (right_unitor_naturality' :
-  right_unitor_natural tensor_obj @tensor_hom tensor_unit right_unitor . obviously)
+  ∀ {X Y : C} (f : X ⟶ Y), (f ⊗' (𝟙 𝟙_)) ≫ (ρ_ Y).hom = (ρ_ X).hom ≫ f . obviously)
 -- pentagon identity:
-(pentagon'                : pentagon @tensor_hom associator . obviously)
+(pentagon'                : ∀ W X Y Z : C,
+  ((α_ W X Y).hom ⊗' (𝟙 Z)) ≫ (α_ W (X ⊗ Y) Z).hom ≫ ((𝟙 W) ⊗' (α_ X Y Z).hom)
+  = (α_ (W ⊗ X) Y Z).hom ≫ (α_ W X (Y ⊗ Z)).hom . obviously)
 -- triangle identity:
 (triangle'                :
-  triangle @tensor_hom left_unitor right_unitor associator . obviously)
+  ∀ X Y : C, (α_ X 𝟙_ Y).hom ≫ ((𝟙 X) ⊗' (λ_ Y).hom) = (ρ_ X).hom ⊗' (𝟙 Y) . obviously)
 
 restate_axiom monoidal_category.tensor_id'
 attribute [simp] monoidal_category.tensor_id
@@ -69,11 +83,12 @@ open monoidal_category
 infixr ` ⊗ `:70 := tensor_obj
 infixr ` ⊗ `:70 := tensor_hom
 
-local notation `𝟙_` := tensor_unit
-local notation `α_` := associator
-local notation `λ_` := left_unitor
-local notation `ρ_` := right_unitor
+notation `𝟙_` := tensor_unit
+notation `α_` := associator
+notation `λ_` := left_unitor
+notation `ρ_` := right_unitor
 
+/-- The tensor product of two isomorphisms is an isomorphism. -/
 def tensor_iso {C : Type u} {X Y X' Y' : C} [category.{v} C] [monoidal_category.{v} C] (f : X ≅ Y) (g : X' ≅ Y') :
     X ⊗ X' ≅ Y ⊗ Y' :=
 { hom := f.hom ⊗ g.hom,
@@ -332,10 +347,12 @@ section
 variables (C : Type u) [category.{v+1} C] [𝒞 : monoidal_category.{v+1} C]
 include 𝒞
 
+/-- The tensor product expressed as a functor. -/
 def tensor : (C × C) ⥤ C :=
-{ obj := λ X, tensor_obj X.1 X.2,
-  map := λ {X Y : C × C} (f : X ⟶ Y), tensor_hom f.1 f.2 }
+{ obj := λ X, X.1 ⊗ X.2,
+  map := λ {X Y : C × C} (f : X ⟶ Y), f.1 ⊗ f.2 }
 
+/-- The left-associated triple tensor product as a functor. -/
 def left_assoc_tensor : (C × C × C) ⥤ C :=
 { obj := λ X, (X.1 ⊗ X.2.1) ⊗ X.2.2,
   map := λ {X Y : C × C × C} (f : X ⟶ Y), (f.1 ⊗ f.2.1) ⊗ f.2.2 }
@@ -345,6 +362,7 @@ def left_assoc_tensor : (C × C × C) ⥤ C :=
 @[simp] lemma left_assoc_tensor_map {X Y} (f : X ⟶ Y) :
   (left_assoc_tensor C).map f = (f.1 ⊗ f.2.1) ⊗ f.2.2 := rfl
 
+/-- The right-associated triple tensor product as a functor. -/
 def right_assoc_tensor : (C × C × C) ⥤ C :=
 { obj := λ X, X.1 ⊗ (X.2.1 ⊗ X.2.2),
   map := λ {X Y : C × C × C} (f : X ⟶ Y), f.1 ⊗ (f.2.1 ⊗ f.2.2) }
@@ -354,9 +372,11 @@ def right_assoc_tensor : (C × C × C) ⥤ C :=
 @[simp] lemma right_assoc_tensor_map {X Y} (f : X ⟶ Y) :
   (right_assoc_tensor C).map f = f.1 ⊗ (f.2.1 ⊗ f.2.2) := rfl
 
+/-- The functor `λ X, 𝟙_ C ⊗ X`. -/
 def tensor_unit_left : C ⥤ C :=
 { obj := λ X, 𝟙_ C ⊗ X,
   map := λ {X Y : C} (f : X ⟶ Y), (𝟙 (𝟙_ C)) ⊗ f }
+/-- The functor `λ X, X ⊗ 𝟙_ C`. -/
 def tensor_unit_right : C ⥤ C :=
 { obj := λ X, X ⊗ 𝟙_ C,
   map := λ {X Y : C} (f : X ⟶ Y), f ⊗ (𝟙 (𝟙_ C)) }
@@ -364,18 +384,21 @@ def tensor_unit_right : C ⥤ C :=
 -- We can express the associator and the unitors, given componentwise above,
 -- as natural isomorphisms.
 
+/-- The associator as a natural isomorphism. -/
 def associator_nat_iso :
   left_assoc_tensor C ≅ right_assoc_tensor C :=
 nat_iso.of_components
   (by { intros, apply monoidal_category.associator })
   (by { intros, apply monoidal_category.associator_naturality })
 
+/-- The left unitor as a natural isomorphism. -/
 def left_unitor_nat_iso :
   tensor_unit_left C ≅ functor.id C :=
 nat_iso.of_components
   (by { intros, apply monoidal_category.left_unitor })
   (by { intros, apply monoidal_category.left_unitor_naturality })
 
+/-- The right unitor as a natural isomorphism. -/
 def right_unitor_nat_iso :
   tensor_unit_right C ≅ functor.id C :=
 nat_iso.of_components

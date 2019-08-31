@@ -105,8 +105,18 @@ meta def mk_user_fresh_name : tactic name :=
 do nm ← mk_fresh_name,
    return $ `user__ ++ nm.pop_prefix.sanitize_name ++ `user__
 
+
+/-- Checks whether n' has attribute n. -/
+meta def has_attribute' : name → name → tactic bool | n n' :=
+succeeds (has_attribute n n')
+
+/-- Checks whether the name is a simp lemma -/
 meta def is_simp_lemma : name → tactic bool :=
-succeeds ∘ tactic.has_attribute `simp
+has_attribute' `simp
+
+/-- Checks whether the name is an instance. -/
+meta def is_instance : name → tactic bool :=
+has_attribute' `instance
 
 meta def local_decls : tactic (name_map declaration) :=
 do e ← tactic.get_env,
@@ -314,6 +324,20 @@ whnf type >>= get_expl_pi_arity_aux
 /-- Compute the arity of explicit arguments of the given function -/
 meta def get_expl_arity (fn : expr) : tactic nat :=
 infer_type fn >>= get_expl_pi_arity
+
+/-- Auxilliary defintion for `get_pi_binders`. -/
+meta def get_pi_binders_aux : list binder → expr → tactic (list binder × expr)
+| es (expr.pi n bi d b) :=
+  do m ← mk_fresh_name,
+     let l := expr.local_const m n bi d,
+     let new_b := expr.instantiate_var b l,
+     get_pi_binders_aux (⟨n, bi, d⟩::es) new_b
+| es e                  := return (es, e)
+
+/-- Get the binders and target of a pi-type. Instantiates bound variables by
+  local constants. -/
+meta def get_pi_binders : expr → tactic (list binder × expr) | e :=
+do (es, e) ← get_pi_binders_aux [] e, return (es.reverse, e)
 
 /-- variation on `assert` where a (possibly incomplete)
     proof of the assertion is provided as a parameter.
@@ -1011,10 +1035,10 @@ local postfix `?`:9001 := optional
 local postfix *:9001 := many .
 "
 
-meta def trace_error (t : tactic α) (msg : string) : tactic α
+meta def trace_error (msg : string) (t : tactic α) : tactic α
 | s := match t s with
        | (result.success r s') := result.success r s'
-       | (result.exception (some msg) p s') := (trace (msg ()) >> result.exception (some msg) p) s'
+       | (result.exception (some msg') p s') := (trace msg >> trace (msg' ()) >> result.exception (some msg') p) s'
        | (result.exception none p s') := result.exception none p s'
        end
 

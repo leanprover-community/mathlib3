@@ -118,6 +118,9 @@ have ∀(x : α) (i : set α), i ∈ d → x ∈ i → (∃ (i : β), i ∈ f ''
   finite_image f hd₂,
   subset.trans hd₃ $ by simpa only [subset_def, mem_sUnion, exists_imp_distrib, mem_Union, exists_prop, and_imp]⟩
 
+section
+-- this proof times out without this
+local attribute [instance, priority 1000] classical.prop_decidable
 lemma compact_of_finite_subcover {s : set α}
   (h : ∀c, (∀t∈c, is_open t) → s ⊆ ⋃₀ c → ∃c'⊆c, finite c' ∧ s ⊆ ⋃₀ c') : compact s :=
 assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ nhds x ≠ ⊥),
@@ -152,6 +155,7 @@ assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ nhds
         ... ⊆ - - closure (b ⟨t, htc'⟩) : by rw lattice.neg_neg; exact subset.refl _),
     show false, from this hxt,
   hfn $ by rwa [empty_in_sets_eq_bot] at this
+end
 
 lemma compact_iff_finite_subcover {s : set α} :
   compact s ↔ (∀c, (∀t∈c, is_open t) → s ⊆ ⋃₀ c → ∃c'⊆c, finite c' ∧ s ⊆ ⋃₀ c') :=

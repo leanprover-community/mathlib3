@@ -9,6 +9,7 @@ import
   algebra.group algebra.ordered_group algebra.group_power
   algebra.ordered_field
   tactic.norm_cast
+  tactic.lift
 /-!
 # Basics for the Rational Numbers
 
@@ -21,6 +22,7 @@ We define a rational number `q` as a structure `{ num, denom, pos, cop }`, where
 - `cop` is a proof `num` and `denom` are coprime.
 
 We then define the expected (discrete) field structure on `ℚ` and prove basic lemmas about it.
+Moreoever, we provide the expected casts from `ℕ` and `ℤ` into `ℚ`, i.e. `(↑n : ℚ) = n / 1`.
 
 ## Main Definitions
 
@@ -211,13 +213,13 @@ begin
   apply (mk_eq (mul_ne_zero b0 c0) b0).2, simp [mul_comm, mul_assoc]
 end
 
-theorem num_denom : ∀ a : ℚ, a = a.num /. a.denom
-| ⟨n, d, h, (c:_=1)⟩ := show _ = mk_nat n d,
+@[simp] theorem num_denom : ∀ {a : ℚ}, a.num /. a.denom = a
+| ⟨n, d, h, (c:_=1)⟩ := show mk_nat n d = _,
   by simp [mk_nat, ne_of_gt h, mk_pnat, c]
 
-theorem num_denom' (n d h c) : (⟨n, d, h, c⟩ : ℚ) = n /. d := num_denom _
+theorem num_denom' {n d h c} : (⟨n, d, h, c⟩ : ℚ) = n /. d := num_denom.symm
 
-theorem of_int_eq_mk (z : ℤ) : of_int z = z /. 1 := num_denom' _ _ _ _
+theorem of_int_eq_mk (z : ℤ) : of_int z = z /. 1 := num_denom'
 
 @[elab_as_eliminator] theorem {u} num_denom_cases_on {C : ℚ → Sort u}
    : ∀ (a : ℚ) (H : ∀ n d, d > 0 → (int.nat_abs n).coprime d → C (n /. d)), C a
@@ -469,7 +471,7 @@ by simp [b0, d0]
 @[simp] lemma num_zero : rat.num 0 = 0 := rfl
 
 lemma zero_of_num_zero {q : ℚ} (hq : q.num = 0) : q = 0 :=
-have q = q.num /. q.denom, from num_denom _,
+have q = q.num /. q.denom, from num_denom.symm,
 by simpa [hq]
 
 lemma zero_iff_num_zero {q : ℚ} : q = 0 ↔ q.num = 0 :=
@@ -485,6 +487,12 @@ h $ zero_of_num_zero this
 
 lemma denom_ne_zero (q : ℚ) : q.denom ≠ 0 :=
 ne_of_gt q.pos
+
+lemma eq_iff_mul_eq_mul {p q : ℚ} : p = q ↔ p.num * q.denom = q.num * p.denom :=
+begin
+  conv_lhs { rw [←(@num_denom p), ←(@num_denom q)] },
+  exact rat.mk_eq (by exact_mod_cast p.denom_ne_zero) (by exact_mod_cast q.denom_ne_zero)
+end
 
 lemma mk_num_ne_zero_of_ne_zero {q : ℚ} {n d : ℤ} (hq : q ≠ 0) (hqnd : q = n /. d) : n ≠ 0 :=
 assume : n = 0,
@@ -502,15 +510,15 @@ lemma mul_num_denom (q r : ℚ) : q * r = (q.num * r.num) /. ↑(q.denom * r.den
 have hq' : (↑q.denom : ℤ) ≠ 0, by have := denom_ne_zero q; simpa,
 have hr' : (↑r.denom : ℤ) ≠ 0, by have := denom_ne_zero r; simpa,
 suffices (q.num /. ↑q.denom) * (r.num /. ↑r.denom) = (q.num * r.num) /. ↑(q.denom * r.denom),
-  by rwa [←num_denom q, ←num_denom r] at this,
-by simp [mul_def hq' hr']
+  by simpa using this,
+by simp [mul_def hq' hr', -num_denom]
 
 lemma div_num_denom (q r : ℚ) : q / r = (q.num * r.denom) /. (q.denom * r.num) :=
 if hr : r.num = 0 then
   have hr' : r = 0, from zero_of_num_zero hr,
   by simp *
 else calc q / r = q * r⁻¹ : div_eq_mul_inv
-            ... = (q.num /. q.denom) * (r.num /. r.denom)⁻¹ : by rw [←num_denom q, ←num_denom r]
+            ... = (q.num /. q.denom) * (r.num /. r.denom)⁻¹ : by simp
             ... = (q.num /. q.denom) * (r.denom /. r.num) : by rw inv_def
             ... = (q.num * r.denom) /. (q.denom * r.num) : mul_def (by simpa using denom_ne_zero q) hr
 
@@ -519,7 +527,7 @@ lemma num_denom_mk {q : ℚ} {n d : ℤ} (hn : n ≠ 0) (hd : d ≠ 0) (qdf : q 
 have hq : q ≠ 0, from
   assume : q = 0,
   hn $ (rat.mk_eq_zero hd).1 (by cc),
-have q.num /. q.denom = n /. d, by rwa [←rat.num_denom q],
+have q.num /. q.denom = n /. d, by rwa [num_denom],
 have q.num * d = n * ↑(q.denom), from (rat.mk_eq (by simp [rat.denom_ne_zero]) hd).1 this,
 begin
   existsi n / q.num,
@@ -560,7 +568,62 @@ lemma add_num_denom (q r : ℚ) : q + r =
   ((q.num * r.denom + q.denom * r.num : ℤ)) /. (↑q.denom * ↑r.denom : ℤ) :=
 have hqd : (q.denom : ℤ) ≠ 0, from int.coe_nat_ne_zero_iff_pos.2 q.3,
 have hrd : (r.denom : ℤ) ≠ 0, from int.coe_nat_ne_zero_iff_pos.2 r.3,
-by conv { to_lhs, rw [rat.num_denom q, rat.num_denom r, rat.add_def hqd hrd] };
+by conv_lhs { rw [←@num_denom q, ←@num_denom r, rat.add_def hqd hrd] };
   simp [mul_comm]
+
+section casts
+
+theorem coe_int_eq_mk : ∀ (z : ℤ), ↑z = z /. 1
+| (n : ℕ) := show (n:ℚ) = n /. 1,
+  by induction n with n IH n; simp [*, show (1:ℚ) = 1 /. 1, from rfl]
+| -[1+ n] := show (-(n + 1) : ℚ) = -[1+ n] /. 1, begin
+  induction n with n IH, {refl},
+  show -(n + 1 + 1 : ℚ) = -[1+ n.succ] /. 1,
+  rw [neg_add, IH],
+  simpa [show -1 = (-1) /. 1, from rfl]
+end
+
+theorem mk_eq_div (n d : ℤ) : n /. d = ((n : ℚ) / d) :=
+begin
+  by_cases d0 : d = 0, {simp [d0, div_zero]},
+  simp [division_def, coe_int_eq_mk, mul_def one_ne_zero d0]
+end
+
+theorem coe_int_eq_of_int (z : ℤ) : ↑z = of_int z :=
+(coe_int_eq_mk z).trans (of_int_eq_mk z).symm
+
+@[simp, elim_cast] theorem coe_int_num (n : ℤ) : (n : ℚ).num = n :=
+by rw coe_int_eq_of_int; refl
+
+@[simp, elim_cast] theorem coe_int_denom (n : ℤ) : (n : ℚ).denom = 1 :=
+by rw coe_int_eq_of_int; refl
+
+lemma coe_int_num_of_denom_eq_one {q : ℚ} (hq : q.denom = 1) : ↑(q.num) = q :=
+by { conv_rhs { rw [←(@num_denom q), hq] }, rw [coe_int_eq_mk], refl }
+
+instance : can_lift ℚ ℤ :=
+⟨coe, λ q, q.denom = 1, λ q hq, ⟨q.num, coe_int_num_of_denom_eq_one hq⟩⟩
+
+theorem coe_nat_eq_mk (n : ℕ) : ↑n = n /. 1 :=
+by rw [← int.cast_coe_nat, coe_int_eq_mk]
+
+@[simp, elim_cast] theorem coe_nat_num (n : ℕ) : (n : ℚ).num = n :=
+by rw [← int.cast_coe_nat, coe_int_num]
+
+@[simp, elim_cast] theorem coe_nat_denom (n : ℕ) : (n : ℚ).denom = 1 :=
+by rw [← int.cast_coe_nat, coe_int_denom]
+
+end casts
+
+lemma inv_def' {q : ℚ} : q⁻¹ = (q.denom : ℚ) / q.num :=
+by { conv_lhs { rw ←(@num_denom q) }, cases q, simp [div_num_denom] }
+
+@[simp] lemma mul_own_denom_eq_num {q : ℚ} : q * q.denom = q.num :=
+begin
+  suffices : mk (q.num) ↑(q.denom) * mk ↑(q.denom) 1 = mk (q.num) 1, by
+  { conv { for q [1] { rw ←(@num_denom q) }}, rwa [coe_int_eq_mk, coe_nat_eq_mk] },
+  have : (q.denom : ℤ) ≠ 0, from ne_of_gt (by exact_mod_cast q.pos),
+  rw [(rat.mul_def this one_ne_zero), (mul_comm (q.denom : ℤ) 1), (div_mk_div_cancel_left this)]
+end
 
 end rat

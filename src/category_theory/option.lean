@@ -40,6 +40,8 @@ include 𝒞
 section
 local attribute [tidy] tactic.case_bash
 
+/-- A category structure on `option C`, so there are no morphisms to or from `none`,
+  and the morphisms `some X ⟶ some Y` are just the original morphisms `X ⟶ Y`.-/
 instance category_option : category.{v₁} (option C) :=
 { hom := λ X Y, match X, Y with
   | some X, some Y := X ⟶ Y
@@ -55,6 +57,8 @@ instance category_option : category.{v₁} (option C) :=
   | none, none, none, _, _ := punit.star
   end }
 
+/-- A category structure on `with_bot C`, so `none` has a unique morphism to every object,
+  and the morphisms `some X ⟶ some Y` are just the original morphisms `X ⟶ Y`.-/
 instance category_with_bot : category.{v₁} (with_bot C) :=
 { hom := λ X Y, match X, Y with
   | some X, some Y := X ⟶ Y
@@ -70,6 +74,8 @@ instance category_with_bot : category.{v₁} (with_bot C) :=
   | none, _, _, _, _ := punit.star
   end }
 
+/-- A category structure on `with_top C`, so `none` has a unique morphism from every object,
+  and the morphisms `some X ⟶ some Y` are just the original morphisms `X ⟶ Y`.-/
 instance category_with_top : category.{v₁} (with_top C) :=
 { hom := λ X Y, match X, Y with
   | some X, some Y := X ⟶ Y
@@ -91,6 +97,7 @@ end
 
 namespace functor
 
+/-- The inclusion functor of `punit` into `option C`, sending `punit.star` to `option.none`. -/
 def none : punit.{u₁+1} ⥤ option C :=
 { obj := λ X, none,
   map := λ X Y f, 𝟙 _ }
@@ -99,6 +106,7 @@ instance full_none : full (none C) :=
 { preimage := λ X Y f, by { cases X, cases Y, exact punit.star } }
 instance faithful_none : faithful (none C) := {}
 
+/-- The inclusion functor of `C` into `option C`, sending `X` to `option.some X`. -/
 def some : C ⥤ option C :=
 { obj := λ X, some X,
   map := λ X Y f, f }
@@ -110,6 +118,7 @@ instance faithful_some : faithful (some C) := {}
 section
 local attribute [tidy] tactic.case_bash
 
+/-- The faithful functor from `option C` to `with_bot C`. -/
 def option_to_with_bot : option C ⥤ with_bot C :=
 { obj := λ X, X,
   map := λ X Y f, match X, Y, f with
@@ -119,6 +128,7 @@ def option_to_with_bot : option C ⥤ with_bot C :=
 
 instance faithful_option_to_with_bot : faithful (option_to_with_bot C) := {}
 
+/-- The faithful functor from `option C` to `with_top C`. -/
 def option_to_with_top : option C ⥤ with_top C :=
 { obj := λ X, X,
   map := λ X Y f, match X, Y, f with
@@ -140,12 +150,14 @@ namespace category_theory
 variables (C : Type u₁) [𝒞 : category.{v₁+1} C]
 include 𝒞
 
+/-- By construction `⊥ = ⊥_ (with_bot C)` -/
 instance has_initial_with_bot : has_initial.{v₁} (with_bot C) :=
 has_initial.of_unique none (λ X, by tidy)
 
 local attribute [tidy] tactic.case_bash
 
-instance has_terminal_with_bot : has_terminal.{v₁} (with_top C) :=
+/-- By construction `⊤ = ⊤_ (with_top C)` -/
+instance has_terminal_with_top : has_terminal.{v₁} (with_top C) :=
 has_terminal.of_unique none (λ X, by tidy)
 
 end category_theory

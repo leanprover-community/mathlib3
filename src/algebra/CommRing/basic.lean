@@ -7,7 +7,7 @@ Introduce CommRing -- the category of commutative rings.
 
 import algebra.Mon.basic
 import category_theory.fully_faithful
-import algebra.ring
+import algebra.ring.hom
 import data.int.basic
 
 universes u v

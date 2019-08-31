@@ -1376,7 +1376,7 @@ by simp only [rpow_def, complex.cpow_def];
 lemma rpow_def_of_pos {x : ℝ} (hx : 0 < x) (y : ℝ) : x ^ y = exp (log x * y) :=
 by rw [rpow_def_of_nonneg (le_of_lt hx), if_neg (ne_of_gt hx)]
 
-local notation `π` := pi
+open_locale real
 
 lemma rpow_def_of_neg {x : ℝ} (hx : x < 0) (y : ℝ) : x ^ y = exp (log (-x) * y) * cos (y * π) :=
 begin
@@ -1444,7 +1444,7 @@ end complex
 
 namespace real
 
-local notation `π` := pi
+open_locale real
 
 variables {x y z : ℝ}
 
@@ -1571,8 +1571,6 @@ have hn0 : (n : ℝ) ≠ 0, by simpa [nat.pos_iff_ne_zero'] using hn,
 by rw [← rpow_nat_cast, ← rpow_mul hx, mul_inv_cancel hn0, rpow_one]
 
 section prove_rpow_is_continuous
-
-local notation `π` := pi
 
 lemma continuous_rpow_aux1 : continuous (λp : {p:ℝ×ℝ // 0 < p.1}, p.val.1 ^ p.val.2) :=
 suffices h : continuous (λ p : {p:ℝ×ℝ // 0 < p.1 }, exp (log p.val.1 * p.val.2)),

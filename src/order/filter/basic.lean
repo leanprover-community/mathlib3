@@ -1249,13 +1249,13 @@ section prod
 variables {s : set α} {t : set β} {f : filter α} {g : filter β}
 /- The product filter cannot be defined using the monad structure on filters. For example:
 
-  F := do {x <- seq, y <- top, return (x, y)}
+  F := do {x ← seq, y ← top, return (x, y)}
   hence:
-    s ∈ F  <->  ∃n, [n..∞] × univ ⊆ s
+    s ∈ F  ↔  ∃n, [n..∞] × univ ⊆ s
 
-  G := do {y <- top, x <- seq, return (x, y)}
+  G := do {y ← top, x ← seq, return (x, y)}
   hence:
-    s ∈ G  <->  ∀i:ℕ, ∃n, [n..∞] × {i} ⊆ s
+    s ∈ G  ↔  ∀i:ℕ, ∃n, [n..∞] × {i} ⊆ s
 
   Now ⋃i, [i..∞] × {i}  is in G but not in F.
 

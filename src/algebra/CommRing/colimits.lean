@@ -266,26 +266,12 @@ def colimit : CommRing := ⟨colimit_type F, by apply_instance⟩
 def cocone_fun (j : J) (x : (F.obj j).α) : colimit_type F :=
 quot.mk _ (of j x)
 
-instance cocone_is_hom (j : J) : is_ring_hom (cocone_fun F j) :=
-{ map_one :=
-  begin
-    apply quot.sound,
-    apply relation.one,
-  end,
-  map_mul := λ x y,
-  begin
-    apply quot.sound,
-    apply relation.mul,
-  end,
-  map_add := λ x y,
-  begin
-    apply quot.sound,
-    apply relation.add,
-  end }
-
 def cocone_morphism (j : J) : F.obj j ⟶ colimit F :=
-{ val := cocone_fun F j,
-  property := by apply_instance }
+{ to_fun := cocone_fun F j,
+  map_one' := by apply quot.sound; apply relation.one,
+  map_mul' := by intros; apply quot.sound; apply relation.mul,
+  map_zero' := by apply quot.sound; apply relation.zero,
+  map_add' := by intros; apply quot.sound; apply relation.add }
 
 @[simp] lemma cocone_naturality {j j' : J} (f : j ⟶ j') :
   F.map f ≫ (cocone_morphism F j') = cocone_morphism F j :=
@@ -393,8 +379,23 @@ instance desc_fun_is_morphism (s : cocone F) : is_ring_hom (desc_fun F s) :=
   end, }
 
 @[simp] def desc_morphism (s : cocone F) : colimit F ⟶ s.X :=
-{ val := desc_fun F s,
-  property := by apply_instance }
+{ to_fun := desc_fun F s,
+  map_one' := rfl,
+  map_zero' := rfl,
+  map_add' := λ x y,
+  begin
+    induction x, induction y,
+    refl,
+    refl,
+    refl,
+  end,
+  map_mul' := λ x y,
+  begin
+    induction x, induction y,
+    refl,
+    refl,
+    refl,
+  end }
 
 def colimit_is_colimit : is_colimit (colimit_cocone F) :=
 { desc := λ s, desc_morphism F s,

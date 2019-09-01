@@ -17,14 +17,20 @@ namespace Meas
 
 instance (x : Meas) : measurable_space x := x.str
 
-instance : concrete_category @measurable := ⟨@measurable_id, @measurable.comp⟩
-
 def of (X : Type u) [measurable_space X] : Meas := ⟨X⟩
 
--- -- If `measurable` were a class, we would summon instances:
--- local attribute [class] measurable
--- instance {X Y : Meas} (f : X ⟶ Y) : measurable (f : X → Y) := f.2
+instance : bundled_category _ :=
+bundled_category.of_hom_class
+  @measurable
+  @measurable_id
+  @measurable.comp
+
 end Meas
 
-def Borel : Top ⥤ Meas :=
-concrete_functor @measure_theory.borel @measure_theory.measurable_of_continuous
+instance Top.has_forget_to_Meas : has_forget Top.{u} Meas.{u} :=
+bundled_has_forget
+  @measure_theory.borel
+  (λ α β f, ⟨f.1, measure_theory.measurable_of_continuous f.2⟩)
+  (by intros; refl)
+
+@[reducible] def Borel : Top.{u} ⥤ Meas.{u} := forget₂ Top.{u} Meas.{u}

@@ -31,24 +31,32 @@ namespace UniformSpace
 
 instance (x : UniformSpace) : uniform_space x := x.str
 
-/-- The category instance on `UniformSpace`. -/
-instance concrete_category_uniform_continuous : concrete_category @uniform_continuous :=
-⟨@uniform_continuous_id, by { introsI, apply uniform_continuous.comp; assumption }⟩
-
 def of (α : Type u) [uniform_space α] : UniformSpace := ⟨α⟩
 
-abbreviation forget : UniformSpace.{u} ⥤ Type u := forget
+/-- The category instance on `UniformSpace`. -/
+instance concrete_category_uniform_continuous : bundled_category _ :=
+bundled_category.of_hom_class
+  @uniform_continuous
+  @uniform_continuous_id
+  @uniform_continuous.comp
 
-instance forget.faithful : faithful (forget) := {}
+instance (X Y : UniformSpace) : has_coe_to_fun (X ⟶ Y) :=
+{ F := λ _, X → Y, coe := category_theory.functor.map (forget UniformSpace) }
+
+@[simp] lemma coe_comp {X Y Z : UniformSpace} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (f ≫ g : X → Z) = g ∘ f := rfl
+@[simp] lemma coe_id (X : UniformSpace) : (𝟙 X : X → X) = id := rfl
+@[simp] lemma coe_mk {X Y : UniformSpace} (f : X → Y) (hf : uniform_continuous f) :
+  ((⟨f, hf⟩ : X ⟶ Y) : X → Y) = f := rfl
+
+def hom_ext {X Y : UniformSpace} {f g : X ⟶ Y} : (f : X → Y) = g → f = g := subtype.ext.2
 
 /-- The forgetful functor from uniform spaces to topological spaces. -/
-def forget_to_Top : UniformSpace.{u} ⥤ Top.{u} :=
-{ obj := λ X, { α := X.1 },
-  map := λ X Y f, ⟨ f, uniform_continuous.continuous f.property ⟩ }
-
-/-- The natural isomorphism between forgetting from `UniformSpace` to `Type` via `Top`,
-and forgetting directly. -/
-def forget_to_Type_via_Top : forget_to_Top ⋙ Top.forget ≅ forget := iso.refl _
+instance has_forget_to_Top : has_forget UniformSpace.{u} Top.{u} :=
+bundled_has_forget
+  @uniform_space.to_topological_space
+  (λ X Y f, ⟨ f, uniform_continuous.continuous f.property ⟩)
+  (λ _ _ _, rfl)
 
 end UniformSpace
 
@@ -67,33 +75,19 @@ instance : has_coe_to_sort CpltSepUniformSpace :=
 attribute [instance] is_uniform_space is_complete_space is_separated
 
 def to_UniformSpace (X : CpltSepUniformSpace) : UniformSpace :=
-⟨X⟩
+UniformSpace.of X
 
 instance (X : CpltSepUniformSpace) : complete_space ((to_UniformSpace X).α) := CpltSepUniformSpace.is_complete_space X
 instance (X : CpltSepUniformSpace) : separated ((to_UniformSpace X).α) := CpltSepUniformSpace.is_separated X
 
-/-- The category instance on `CpltSepUniformSpace`. -/
-instance CpltSepUniformSpace_category : category CpltSepUniformSpace :=
-induced_category.category to_UniformSpace
-
 def of (X : Type u) [uniform_space X] [complete_space X] [separated X] : CpltSepUniformSpace := ⟨X⟩
 
-def forget_to_UniformSpace : CpltSepUniformSpace ⥤ UniformSpace := induced_functor to_UniformSpace
+/-- The category instance on `CpltSepUniformSpace`. -/
+instance concrete_category : concrete_category CpltSepUniformSpace :=
+induced_category.concrete_category to_UniformSpace
 
-/-- The forgetful functor from complete separated uniform spaces to `Type`. -/
-def forget : CpltSepUniformSpace ⥤ Type u :=
-{ obj := λ R, R,
-  map := λ R S f, f.1 }
-
-instance forget_faithful : faithful forget := {}
-instance forget_to_UniformSpace_full : full forget_to_UniformSpace :=
-induced_category.full _
-instance forget_to_UniformSpace_faithful : faithful forget_to_UniformSpace :=
-induced_category.faithful _
-
-/-- The natural isomorphism between forgetting from `CpltSepUniformSpace` to `Type` via `UniformSpace`,
-and forgetting directly. -/
-def forget_to_Type_via_UniformSpace : forget_to_UniformSpace ⋙ UniformSpace.forget ≅ forget := iso.refl _
+instance has_forget_to_UniformSpace : has_forget CpltSepUniformSpace UniformSpace :=
+induced_category.has_forget to_UniformSpace
 
 end CpltSepUniformSpace
 
@@ -107,10 +101,18 @@ noncomputable def completion_functor : UniformSpace ⥤ CpltSepUniformSpace :=
 { obj := λ X, CpltSepUniformSpace.of (completion X),
   map := λ X Y f, ⟨completion.map f.1, completion.uniform_continuous_map⟩,
   map_comp' := λ X Y Z f g,
-  begin cases f, cases g, apply subtype.ext.2, dsimp, rw ←completion.map_comp; assumption end }.
+  begin
+  apply subtype.ext.2,
+  dsimp,
+  rw ←completion.map_comp,
+  refl,
+  exact g.property,
+  exact f.property
+  end }.
 
 /-- The inclusion of any uniform spaces into its completion. -/
-def completion_hom (X : UniformSpace) : X ⟶ forget_to_UniformSpace.obj (completion_functor.obj X) :=
+def completion_hom (X : UniformSpace) :
+  X ⟶ (forget₂ CpltSepUniformSpace UniformSpace).obj (completion_functor.obj X) :=
 { val := (coe : X → completion X),
   property := completion.uniform_continuous_coe X }
 
@@ -118,22 +120,23 @@ def completion_hom (X : UniformSpace) : X ⟶ forget_to_UniformSpace.obj (comple
   (completion_hom X) x = (x : completion X) := rfl
 
 /-- The mate of a morphism from a `UniformSpace` to a `CpltSepUniformSpace`. -/
-noncomputable def extension_hom {X : UniformSpace} {Y : CpltSepUniformSpace} (f : X ⟶ forget_to_UniformSpace.obj Y) :
+noncomputable def extension_hom {X : UniformSpace} {Y : CpltSepUniformSpace}
+  (f : X ⟶ (forget₂ CpltSepUniformSpace UniformSpace).obj Y) :
   completion_functor.obj X ⟶ Y :=
 { val := completion.extension f,
   property := completion.uniform_continuous_extension }
 
 @[simp] lemma extension_hom_val {X : UniformSpace} {Y : CpltSepUniformSpace}
-  (f : X ⟶ forget_to_UniformSpace.obj Y) (x) :
+  (f : X ⟶ (forget₂ _ _).obj Y) (x) :
   (extension_hom f) x = completion.extension f x := rfl.
 
 @[simp] lemma extension_comp_coe {X : UniformSpace} {Y : CpltSepUniformSpace}
 (f : to_UniformSpace (CpltSepUniformSpace.of (completion X)) ⟶ to_UniformSpace Y) :
 extension_hom (completion_hom X ≫ f) = f :=
-by { ext x, exact congr_fun (completion.extension_comp_coe f.property) x }
+by { apply subtype.ext.2, funext x, exact congr_fun (completion.extension_comp_coe f.property) x }
 
 /-- The completion functor is left adjoint to the forgetful functor. -/
-noncomputable def adj : completion_functor ⊣ forget_to_UniformSpace :=
+noncomputable def adj : completion_functor ⊣ (forget₂ CpltSepUniformSpace UniformSpace) :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y,
   { to_fun := λ f, completion_hom X ≫ f,
@@ -141,25 +144,25 @@ adjunction.mk_of_hom_equiv
     left_inv := λ f, by { dsimp, erw extension_comp_coe },
     right_inv := λ f,
     begin
-      ext1, cases f,
+      apply subtype.ext.2, funext x, cases f,
       change completion.extension f_val _ = f_val x,
       erw completion.extension_coe, assumption
     end },
   hom_equiv_naturality_left_symm' := λ X X' Y f g,
   begin
-    ext1, dsimp,
-    erw ←completion.extension_map,
+    apply hom_ext, funext x, dsimp,
+    erw [coe_comp, ←completion.extension_map],
     refl, exact g.property, exact f.property,
   end }
 
-noncomputable instance : is_right_adjoint forget_to_UniformSpace :=
+noncomputable instance : is_right_adjoint (forget₂ CpltSepUniformSpace UniformSpace) :=
 ⟨completion_functor, adj⟩
-noncomputable instance : reflective forget_to_UniformSpace := {}
+noncomputable instance : reflective (forget₂ CpltSepUniformSpace UniformSpace) := {}
 
 open category_theory.limits
 
 -- TODO Once someone defines `has_limits UniformSpace`, turn this into an instance.
 noncomputable example [has_limits.{u} UniformSpace.{u}] : has_limits.{u} CpltSepUniformSpace.{u} :=
-has_limits_of_reflective forget_to_UniformSpace
+has_limits_of_reflective $ forget₂ CpltSepUniformSpace UniformSpace
 
 end UniformSpace

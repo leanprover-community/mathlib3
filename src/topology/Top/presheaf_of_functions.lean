@@ -24,12 +24,14 @@ def presheaf_to_Top (T : Top.{v}) : X.presheaf (Type v) :=
 
 -- TODO upgrade the result to TopCommRing?
 def continuous_functions (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) : CommRing.{v} :=
-{ α := unop X ⟶ TopCommRing.forget_to_Top.obj R,
+{ α := unop X ⟶ (forget₂ TopCommRing Top).obj R,
   str := _root_.continuous_comm_ring }
 
 namespace continuous_functions
 @[simp] lemma one (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (x) :
   (monoid.one ↥(continuous_functions X R)).val x = 1 := rfl
+@[simp] lemma zero (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (x) :
+  (comm_ring.zero ↥(continuous_functions X R)).val x = 0 := rfl
 @[simp] lemma add (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (f g : continuous_functions X R) (x) :
   (comm_ring.add f g).val x = f.1 x + g.1 x := rfl
 @[simp] lemma mul (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (f g : continuous_functions X R) (x) :
@@ -37,26 +39,24 @@ namespace continuous_functions
 
 def pullback {X Y : Topᵒᵖ} (f : X ⟶ Y) (R : TopCommRing) :
   continuous_functions X R ⟶ continuous_functions Y R :=
-{ val := λ g, f.unop ≫ g,
-  property :=
-  { map_one := rfl,
-    map_add := by tidy,
-    map_mul := by tidy } }
+{ to_fun := λ g, f.unop ≫ g,
+  map_one' := rfl,
+  map_zero' := rfl,
+  map_add' := by tidy,
+  map_mul' := by tidy }
 
 local attribute [extensionality] subtype.eq
 
 def map (X : Topᵒᵖ) {R S : TopCommRing} (φ : R ⟶ S) :
   continuous_functions X R ⟶ continuous_functions X S :=
-{ val := λ g, g ≫ (TopCommRing.forget_to_Top.map φ),
-  property :=
-  { map_one := begin ext1, ext1, simp only [one], exact φ.2.1.map_one end,
-    map_add := λ x y,
-    begin ext1, ext1, simp only [function.comp_app, add], apply φ.2.1.map_add end,
-    map_mul := λ x y,
-    begin ext1, ext1, simp only [function.comp_app, mul], apply φ.2.1.map_mul end } }
+{ to_fun := λ g, g ≫ ((forget₂ TopCommRing Top).map φ),
+  map_one' := by ext; exact φ.1.map_one,
+  map_zero' := by ext; exact φ.1.map_zero,
+  map_add' := by intros; ext; apply φ.1.map_add,
+  map_mul' := by intros; ext; apply φ.1.map_mul }
 end continuous_functions
 
-def CommRing_yoneda : TopCommRing ⥤ (Topᵒᵖ ⥤ CommRing) :=
+def CommRing_yoneda : TopCommRing.{u} ⥤ (Top.{u}ᵒᵖ ⥤ CommRing.{u}) :=
 { obj := λ R,
   { obj := λ X, continuous_functions X R,
     map := λ X Y f, continuous_functions.pullback f R },

@@ -32,7 +32,7 @@ namespace Groupoid
 
 instance str (C : Groupoid.{v u}) : groupoid.{v u} C.α := C.str
 
-def of (C : Type u) [groupoid.{v} C] : Groupoid.{v u} := mk_ob C
+def of (C : Type u) [groupoid.{v} C] : Groupoid.{v u} := bundled.of C
 
 /-- Category structure on `Groupoid` -/
 instance category : category.{(max u v)+1 (max v (u+1))} Groupoid.{v u} :=

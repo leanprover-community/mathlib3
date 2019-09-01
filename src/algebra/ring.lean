@@ -38,7 +38,7 @@ between rings from monoid homs given only a proof that addition is preserved.
 is_ring_hom, is_semiring_hom, ring_hom, semiring_hom, semiring, comm_semiring, ring, comm_ring,
 domain, integral_domain, nonzero_comm_semiring, nonzero_comm_ring, units
 -/
-universes u v
+universes u v w
 variable {α : Type u}
 
 section
@@ -300,7 +300,13 @@ instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe_to_fun 
 
 namespace ring_hom
 
-variables {β : Type v} [semiring α] [semiring β]
+def of {α : Type u} {β : Type v} [semiring α] [semiring β]
+  (f : α → β) [is_semiring_hom f] : α →+* β :=
+{ to_fun := f,
+  .. as_monoid_hom f,
+  .. as_add_monoid_hom f }
+
+variables {β : Type v} {γ : Type w} [semiring α] [semiring β] [semiring γ]
 variables (f : α →+* β) {x y : α}
 
 @[extensionality] theorem ext (f g : α →+* β) (h : (f : α → β) = g) : f = g :=
@@ -333,12 +339,14 @@ def id (α : Type*) [semiring α] : α →+* α :=
 by refine {to_fun := id, ..}; intros; refl
 
 /-- Composition of ring homomorphisms is a ring homomorphism. -/
-def comp {γ} [semiring γ] (hnp : β →+* γ) (hmn : α →+* β) : α →+* γ :=
+def comp (hnp : β →+* γ) (hmn : α →+* β) : α →+* γ :=
 { to_fun := hnp ∘ hmn,
   map_zero' := by simp,
   map_one' := by simp,
   map_add' := λ x y, by simp,
   map_mul' := λ x y, by simp}
+
+@[simp] lemma coe_comp (hnp : β →+* γ) (hmn : α →+* β) : (hnp.comp hmn : α → γ) = hnp ∘ hmn := rfl
 
 /-- Ring homomorphisms preserve additive inverse. -/
 @[simp] theorem map_neg {α β} [ring α] [ring β] (f : α →+* β) (x : α) : f (-x) = -(f x) :=

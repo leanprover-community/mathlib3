@@ -28,7 +28,7 @@ namespace Cat
 
 instance str (C : Cat.{v u}) : category.{v u} C.α := C.str
 
-def of (C : Type u) [category.{v} C] : Cat.{v u} := mk_ob C
+def of (C : Type u) [category.{v} C] : Cat.{v u} := bundled.of C
 
 /-- Category structure on `Cat` -/
 instance category : category.{(max u v)+1 (max v (u+1))} Cat.{v u} :=
@@ -48,4 +48,3 @@ def objects : Cat.{v u} ⥤ Type u :=
 end Cat
 
 end category_theory
-

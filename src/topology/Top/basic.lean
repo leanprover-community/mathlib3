@@ -18,11 +18,19 @@ namespace Top
 
 instance topological_space_unbundled (x : Top) : topological_space x := x.str
 
-instance concrete_category_continuous : concrete_category @continuous := ⟨@continuous_id, @continuous.comp⟩
+instance concrete_category_continuous : bundled_category _ :=
+bundled_category.of_hom_class
+  @continuous
+  @continuous_id
+  @continuous.comp
+
+instance hom_has_coe_to_fun (X Y : Top.{u}) : has_coe_to_fun (X ⟶ Y) :=
+{ F := _, coe := subtype.val }
+
+@[simp] lemma id_app (X : Top.{u}) (x : X) :
+  @coe_fn (X ⟶ X) (Top.hom_has_coe_to_fun X X) (𝟙 X) x = x := rfl
 
 def of (X : Type u) [topological_space X] : Top := ⟨X⟩
-
-abbreviation forget : Top.{u} ⥤ Type u := forget
 
 def discrete : Type u ⥤ Top.{u} :=
 { obj := λ X, ⟨X, ⊥⟩,

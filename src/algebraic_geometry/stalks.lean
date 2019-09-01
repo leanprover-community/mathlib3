@@ -44,7 +44,6 @@ begin
   convert (stalk_functor C x).map_id X.𝒪,
   tidy,
 end
-.
 
 @[simp] lemma comp {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) (x : X) :
   stalk_map (α ≫ β) x =

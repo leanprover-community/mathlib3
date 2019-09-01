@@ -330,6 +330,10 @@ instance eval₂.is_semiring_hom : is_semiring_hom (eval₂ f g) :=
   map_add := λ p q, eval₂_add _ _,
   map_mul := λ p q, eval₂_mul _ _ }
 
+def eval₂_hom : mv_polynomial σ α →+* β := ring_hom.of (eval₂ f g)
+
+lemma eval₂_hom_def : (eval₂_hom f g : mv_polynomial σ α → β) = eval₂ f g := rfl
+
 lemma eval₂_comp_left {γ} [comm_semiring γ]
   (k : β → γ) [is_semiring_hom k]
   (f : α → β) [is_semiring_hom f] (g : σ → β)
@@ -771,6 +775,13 @@ mv_polynomial.induction_on x
 (λ p q hp hq, by { rw [eval₂_add, hp, hq], exact (is_ring_hom.map_add f).symm })
 (λ p n hp, by { rw [eval₂_mul, eval₂_X, hp], exact (is_ring_hom.map_mul f).symm })
 
+def hom_equiv : (mv_polynomial σ ℤ →+* β) ≃ (σ → β) :=
+{ to_fun := λ f, ⇑f ∘ X,
+  inv_fun := λ f, eval₂_hom (λ n : ℤ, (n : β)) f,
+  left_inv := λ f, ring_hom.ext _ _ $ funext $ λ p, by rw [eval₂_hom_def, eval₂_hom_X],
+  right_inv := λ f, by ext1; unfold; rw [eval₂_hom_def, function.comp_app, eval₂_X]
+}
+
 end eval₂
 
 section eval
@@ -804,12 +815,13 @@ end comm_ring
 section rename
 variables {α} [comm_semiring α] [decidable_eq α] [decidable_eq β] [decidable_eq γ] [decidable_eq δ]
 
-def rename (f : β → γ) : mv_polynomial β α → mv_polynomial γ α :=
-eval₂ C (X ∘ f)
+def rename_hom (f : β → γ) : mv_polynomial β α →+* mv_polynomial γ α :=
+@ring_hom.of _ _ _ _ (eval₂ C (X ∘ f)) (eval₂.is_semiring_hom C (X ∘ f))
 
-instance rename.is_semiring_hom (f : β → γ) :
-  is_semiring_hom (rename f : mv_polynomial β α → mv_polynomial γ α) :=
-by unfold rename; apply_instance
+@[reducible] def rename (f : β → γ) : mv_polynomial β α → mv_polynomial γ α :=
+(rename_hom f : mv_polynomial β α →+* mv_polynomial γ α)
+
+lemma rename_app (f : β → γ) (p : mv_polynomial β α) : rename f p = eval₂ C (X ∘ f) p := rfl
 
 @[simp] lemma rename_C (f : β → γ) (a : α) : rename f (C a) = C a :=
 eval₂_C _ _ _
@@ -819,7 +831,7 @@ eval₂_X _ _ _
 
 @[simp] lemma rename_zero (f : β → γ) :
   rename f (0 : mv_polynomial β α) = 0 :=
-eval₂_zero _ _
+(rename_hom f).map_zero
 
 @[simp] lemma rename_one (f : β → γ) :
   rename f (1 : mv_polynomial β α) = 1 :=
@@ -855,13 +867,21 @@ mv_polynomial.induction_on p
 show rename g (eval₂ C (X ∘ f) p) = _,
   by simp only [eval₂_comp_left (rename g) C (X ∘ f) p, (∘), rename_C, rename_X]; refl
 
+lemma rename_hom_comp (f : β → γ) (g : γ → δ) :
+  (rename_hom (g ∘ f) : mv_polynomial β α →+* mv_polynomial δ α) =
+    (rename_hom g).comp (rename_hom f) :=
+ring_hom.ext _ _ $ funext $ λ p, (rename_rename f g p).symm
+
 @[simp] lemma rename_id (p : mv_polynomial β α) : rename id p = p :=
 eval₂_eta p
+
+lemma rename_hom_id : rename_hom (id : β → β) = ring_hom.id (mv_polynomial β α) :=
+ring_hom.ext _ _ $ funext rename_id
 
 lemma rename_monomial (f : β → γ) (p : β →₀ ℕ) (a : α) :
   rename f (monomial p a) = monomial (p.map_domain f) a :=
 begin
-  rw [rename, eval₂_monomial, monomial_eq, finsupp.prod_map_domain_index],
+  rw [rename_app, eval₂_monomial, monomial_eq, finsupp.prod_map_domain_index],
   { exact assume n, pow_zero _ },
   { exact assume n i₁ i₂, pow_add _ _ _ }
 end
@@ -869,7 +889,7 @@ end
 lemma rename_eq (f : β → γ) (p : mv_polynomial β α) :
   rename f p = finsupp.map_domain (finsupp.map_domain f) p :=
 begin
-  simp only [rename, eval₂, finsupp.map_domain],
+  simp only [rename_app, eval₂, finsupp.map_domain],
   congr, ext s a : 2,
   rw [← monomial, monomial_eq, finsupp.prod_sum_index],
   congr, ext n i : 2,
@@ -934,14 +954,8 @@ lemma eval₂_cast_comp {β : Type u} {γ : Type v} [decidable_eq β] [decidable
   eval₂ c (g ∘ f) x = eval₂ c g (rename f x) :=
 mv_polynomial.induction_on x
 (λ n, by simp only [eval₂_C, rename_C])
-(λ p q hp hq, by simp only [hp, hq, rename, eval₂_add])
-(λ p n hp, by simp only [hp, rename, eval₂_X, eval₂_mul])
-
-instance rename.is_ring_hom
-  {α} [comm_ring α] [decidable_eq α] [decidable_eq β] [decidable_eq γ] (f : β → γ) :
-  is_ring_hom (rename f : mv_polynomial β α → mv_polynomial γ α) :=
-@is_ring_hom.of_semiring (mv_polynomial β α) (mv_polynomial γ α) _ _ (rename f)
-  (rename.is_semiring_hom f)
+(λ p q hp hq, by simp only [hp, hq, rename_app, eval₂_add])
+(λ p n hp, by simp only [hp, rename_app, eval₂_X, eval₂_mul])
 
 section equiv
 
@@ -980,7 +994,7 @@ def ring_equiv_of_equiv (e : β ≃ γ) : mv_polynomial β α ≃r mv_polynomial
   inv_fun   := rename e.symm,
   left_inv  := λ p, by simp only [rename_rename, (∘), e.symm_apply_apply]; exact rename_id p,
   right_inv := λ p, by simp only [rename_rename, (∘), e.apply_symm_apply]; exact rename_id p,
-  hom       := rename.is_ring_hom e }
+  hom       := by apply_instance }
 
 def ring_equiv_congr [comm_ring γ] (e : α ≃r γ) : mv_polynomial β α ≃r mv_polynomial β γ :=
 { to_fun    := map e.to_equiv,
@@ -1102,3 +1116,4 @@ end
 end equiv
 
 end mv_polynomial
+

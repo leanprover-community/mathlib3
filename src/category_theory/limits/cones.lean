@@ -139,14 +139,21 @@ def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cone F) : cone (E
 section
 omit 𝒞
 variables {m : Type v → Type v}
-variables (hom : ∀ {α β : Type v}, m α → m β → (α → β) → Prop)
-variables [h : concrete_category @hom]
+variables (hom : ∀ {α β : Type v}, m α → m β → Type v)
+variables [h : bundled_category @hom]
 include h
+
+open bundled_category function
+
+local attribute [instance] bundled_category.has_coe_to_fun
 
 @[simp] lemma naturality_bundled {G : J ⥤ bundled m} (s : cone G) {j j' : J} (f : j ⟶ j') (x : s.X) :
    (G.map f) ((s.π.app j) x) = (s.π.app j') x :=
-congr_fun (congr_arg (λ k : s.X ⟶ G.obj j', (k : s.X → G.obj j')) (s.π.naturality f).symm) x
+by rw [← comp_app (G.map f), ← coe_comp, ← s.π.naturality f, coe_comp, comp_app, const.obj_map,
+  coe_id]; refl
+
 end
+
 end cone
 
 namespace cocone
@@ -172,13 +179,18 @@ def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cocone F) : cocon
 section
 omit 𝒞
 variables {m : Type v → Type v}
-variables (hom : ∀ {α β : Type v}, m α → m β → (α → β) → Prop)
-variables [h : concrete_category @hom]
+variables (hom : ∀ {α β : Type v}, m α → m β → Type v)
+variables [h : bundled_category @hom]
 include h
 
-@[simp] lemma naturality_bundled {G : J ⥤ bundled m} (s : cocone G) {j j' : J} (f : j ⟶ j') (x : G.obj j) :
+open bundled_category function
+
+local attribute [instance] bundled_category.has_coe_to_fun
+
+@[simp] lemma naturality_bundled {G : J ⥤ bundled m} (s : cocone G) {j j' : J} (f : j ⟶ j') (x : G.obj j):
   (s.ι.app j') ((G.map f) x) = (s.ι.app j) x :=
-congr_fun (congr_arg (λ k : G.obj j ⟶ s.X, (k : G.obj j → s.X)) (s.ι.naturality f)) x
+by rw [← comp_app ⇑((s.ι).app j'), ← coe_comp, s.ι.naturality, coe_comp, const.obj_map, coe_id]; refl
+
 end
 
 end cocone

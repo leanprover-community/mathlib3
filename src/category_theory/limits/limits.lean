@@ -626,7 +626,7 @@ lemma limit.map_pre' [has_limits_of_shape.{v} K C]
 by ext1; simp [(category.assoc _ _ _ _).symm]
 
 lemma limit.id_pre (F : J ⥤ C) :
-limit.pre F (functor.id _) = lim.map (functor.left_unitor F).inv := by tidy
+limit.pre F (𝟭 _) = lim.map (functor.left_unitor F).inv := by tidy
 
 lemma limit.map_post {D : Type u'} [category.{v+1} D] [has_limits_of_shape J D] (H : C ⥤ D) :
 /- H (limit F) ⟶ H (limit G) ⟶ limit (G ⋙ H) vs
@@ -900,7 +900,7 @@ lemma colimit.pre_map' [has_colimits_of_shape.{v} K C]
 by ext1; simp [(category.assoc _ _ _ _).symm]
 
 lemma colimit.pre_id (F : J ⥤ C) :
-colimit.pre F (functor.id _) = colim.map (functor.left_unitor F).hom := by tidy
+colimit.pre F (𝟭 _) = colim.map (functor.left_unitor F).hom := by tidy
 
 lemma colimit.map_post {D : Type u'} [category.{v+1} D] [has_colimits_of_shape J D] (H : C ⥤ D) :
 /- H (colimit F) ⟶ H (colimit G) ⟶ colimit (G ⋙ H) vs

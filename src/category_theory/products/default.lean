@@ -92,7 +92,7 @@ def swap : C × D ⥤ D × C :=
 @[simp] lemma swap_obj (X : C × D) : (swap C D).obj X = (X.2, X.1) := rfl
 @[simp] lemma swap_map {X Y : C × D} {f : X ⟶ Y} : (swap C D).map f = (f.2, f.1) := rfl
 
-def symmetry : swap C D ⋙ swap D C ≅ functor.id (C × D) :=
+def symmetry : swap C D ⋙ swap D C ≅ 𝟭 (C × D) :=
 { hom := { app := λ X, 𝟙 X },
   inv := { app := λ X, 𝟙 X } }
 

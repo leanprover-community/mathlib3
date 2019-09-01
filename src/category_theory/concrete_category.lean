@@ -5,13 +5,14 @@ Authors: Scott Morrison, Johannes Hölzl, Reid Barton, Sean Leather
 
 Bundled type and structure.
 -/
-import category_theory.functor
 import category_theory.types
+import category_theory.bundled
 
 universes u v
 
 namespace category_theory
 variables {c d : Type u → Type v} {α : Type u}
+
 
 /--
 `concrete_category @hom` collects the evidence that a type constructor `c` and a
@@ -26,29 +27,13 @@ structure concrete_category (hom : out_param $ ∀ {α β}, c α → c β → (�
 
 attribute [class] concrete_category
 
-/-- `bundled` is a type bundled with a type class instance for that type. Only
-the type class is exposed as a parameter. -/
-structure bundled (c : Type u → Type v) : Type (max (u+1) v) :=
-(α : Type u)
-(str : c α . tactic.apply_instance)
-
-def mk_ob {c : Type u → Type v} (α : Type u) [str : c α] : bundled c := ⟨α, str⟩
-
 namespace bundled
 
-instance : has_coe_to_sort (bundled c) :=
-{ S := Type u, coe := bundled.α }
-
-/-- Map over the bundled structure -/
-def map (f : ∀ {α}, c α → d α) (b : bundled c) : bundled d :=
-⟨b.α, f b.str⟩
-
-section concrete_category
 variables (hom : ∀ {α β : Type u}, c α → c β → (α → β) → Prop)
 variables [h : concrete_category @hom]
 include h
 
-instance : category (bundled c) :=
+instance : category.{u+1} (bundled c) :=
 { hom   := λ a b, subtype (hom a.2 b.2),
   id    := λ a, ⟨@id a.1, h.hom_id a.2⟩,
   comp  := λ a b c f g, ⟨g.1 ∘ f.1, h.hom_comp a.2 b.2 c.2 g.2 f.2⟩ }
@@ -72,8 +57,6 @@ instance : has_coe_to_fun (X ⟶ Y) :=
 @[simp] lemma coe_comp {X Y Z : bundled c} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) : (f ≫ g) x = g (f x) := rfl
 @[simp] lemma bundled_hom_coe (val : X → Y) (prop) (x : X) :
   (⟨val, prop⟩ : X ⟶ Y) x = val x := rfl
-
-end concrete_category
 
 end bundled
 

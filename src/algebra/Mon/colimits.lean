@@ -169,7 +169,7 @@ begin
     -- trans
     { exact eq.trans r_ih_h r_ih_k },
     -- map
-    { sorry }, -- { rw cocone.naturality_bundled, },
+    { rw cocone.naturality_bundled', },
     -- mul
     { rw is_monoid_hom.map_mul ⇑((s.ι).app r_j) },
     -- one

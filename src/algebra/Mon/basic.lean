@@ -25,6 +25,7 @@ namespace Mon
 
 instance (x : Mon) : monoid x := x.str
 
+-- TODO a tactic, so we could write `by bundled_hom monoid_hom`?
 instance : bundled_hom.{u} monoid :=
 { hom := λ X Y _ _, by exactI X →* Y,
   to_fun := λ X Y _ _ f, by exactI f.to_fun,

@@ -70,10 +70,10 @@ namespace category_theory
 variables {C : Type u₁} [𝒞 : category.{v₁} C]
 include 𝒞
 
-instance full.id : full (functor.id C) :=
+instance full.id : full (𝟭 C) :=
 { preimage := λ _ _ f, f }
 
-instance : faithful (functor.id C) := by obviously
+instance : faithful (𝟭 C) := by obviously
 
 variables {D : Type u₂} [𝒟 : category.{v₂} D] {E : Type u₃} [ℰ : category.{v₃} E]
 include 𝒟 ℰ

@@ -119,7 +119,7 @@ adjunction.mk_of_hom_equiv
     right_inv := λ f,
     begin
       dsimp,
-      erw [←category.assoc, ←(η_ T).naturality, functor.id_map,
+      erw [←category.assoc, ←(η_ T).naturality, 𝟭_map,
             category.assoc, Y.unit, comp_id],
     end }}
 

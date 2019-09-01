@@ -40,7 +40,7 @@ let h := (is_right_adjoint.adj R) in
     assoc' := by { dsimp, conv { to_rhs, erw [←R.map_comp, h.counit.naturality, R.map_comp], }, refl } },
   map := λ X Y f,
   { f := R.map f,
-    h' := begin dsimp, erw [←R.map_comp, h.counit.naturality, R.map_comp, functor.id_map], refl, end } }.
+    h' := begin dsimp, erw [←R.map_comp, h.counit.naturality, R.map_comp, 𝟭_map], refl, end } }.
 
 @[simp] lemma comparison_map_f [is_right_adjoint R] {X Y} (f : X ⟶ Y) : ((comparison R).map f).f = R.map f := rfl
 @[simp] lemma comparison_obj_a [is_right_adjoint R] (X) : ((comparison R).obj X).a = R.map ((is_right_adjoint.adj R).counit.app X) := rfl

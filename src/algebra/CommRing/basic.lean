@@ -7,7 +7,7 @@ Introduce CommRing -- the category of commutative rings.
 
 import algebra.Mon.basic
 import category_theory.fully_faithful
-import algebra.ring.hom
+import algebra.ring
 import data.int.basic
 
 universes u v
@@ -77,7 +77,7 @@ instance to_Ring.faithful : faithful (to_Ring) := {}
 /-- The forgetful functor from commutative rings to (multiplicative) commutative monoids. -/
 def forget_to_CommMon : CommRing.{u} ⥤ CommMon.{u} :=
 { obj := λ X, { α := X.1 },
-  map := λ X Y f, ⟨ f, by apply_instance ⟩ }
+  map := λ X Y f, as_monoid_hom f }
 
 instance forget_to_CommMon.faithful : faithful (forget_to_CommMon) := {}
 

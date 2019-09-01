@@ -110,10 +110,10 @@ def id : monoidal_functor.{v₁ v₁} C C :=
   μ := λ X Y, 𝟙 _,
   .. 𝟭 C }
 
-@[simp] lemma id_obj (X : C) : (monoidal_𝟭 C).obj X = X := rfl
-@[simp] lemma id_map {X X' : C} (f : X ⟶ X') : (monoidal_𝟭 C).map f = f := rfl
-@[simp] lemma id_ε : (monoidal_𝟭 C).ε = 𝟙 _ := rfl
-@[simp] lemma id_μ (X Y) : (monoidal_𝟭 C).μ X Y = 𝟙 _ := rfl
+@[simp] lemma id_obj (X : C) : (monoidal_functor.id C).obj X = X := rfl
+@[simp] lemma id_map {X X' : C} (f : X ⟶ X') : (monoidal_functor.id C).map f = f := rfl
+@[simp] lemma id_ε : (monoidal_functor.id C).ε = 𝟙 _ := rfl
+@[simp] lemma id_μ (X Y) : (monoidal_functor.id C).μ X Y = 𝟙 _ := rfl
 
 end
 

@@ -248,7 +248,7 @@ def postcompose_comp {G H : J ⥤ C} (α : F ⟶ G) (β : G ⟶ H) :
   postcompose (α ≫ β) ≅ postcompose α ⋙ postcompose β :=
 by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obviously }
 
-def postcompose_id : postcompose (𝟙 F) ≅ functor.id (cone F) :=
+def postcompose_id : postcompose (𝟙 F) ≅ 𝟭 (cone F) :=
 by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obviously }
 
 def postcompose_equivalence {G : J ⥤ C} (α : F ≅ G) : cone F ≌ cone G :=
@@ -331,7 +331,7 @@ def precompose_comp {G H : J ⥤ C} (α : F ⟶ G) (β : G ⟶ H) :
   precompose (α ≫ β) ≅ precompose β ⋙ precompose α :=
 by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obviously }
 
-def precompose_id : precompose (𝟙 F) ≅ functor.id (cocone F) :=
+def precompose_id : precompose (𝟙 F) ≅ 𝟭 (cocone F) :=
 by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obviously }
 
 def precompose_equivalence {G : J ⥤ C} (α : G ≅ F) : cocone F ≌ cocone G :=

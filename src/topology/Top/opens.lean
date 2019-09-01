@@ -51,7 +51,7 @@ by simp
 
 section
 variable (X)
-def map_id : map (𝟙 X) ≅ functor.id (opens X) :=
+def map_id : map (𝟙 X) ≅ 𝟭 (opens X) :=
 { hom := { app := λ U, eq_to_hom (map_id_obj U) },
   inv := { app := λ U, eq_to_hom (map_id_obj U).symm } }
 

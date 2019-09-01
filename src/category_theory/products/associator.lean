@@ -53,5 +53,6 @@ instance associator_is_equivalence : is_equivalence (associator C D E) :=
 instance inverse_associator_is_equivalence : is_equivalence (inverse_associator C D E) :=
 (by apply_instance : is_equivalence (associativity C D E).inverse)
 
+-- TODO unitors?
 -- TODO pentagon natural transformation? ...satisfying?
 end category_theory.prod

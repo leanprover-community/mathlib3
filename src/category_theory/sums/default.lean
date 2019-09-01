@@ -100,7 +100,7 @@ instance is_equivalence : is_equivalence (swap C D) :=
 (by apply_instance : is_equivalence (equivalence C D).functor)
 
 /-- The double swap on `C ⊕ D` is naturally isomorphic to the identity functor. -/
-def symmetry : swap C D ⋙ swap D C ≅ functor.id (C ⊕ D) :=
+def symmetry : swap C D ⋙ swap D C ≅ 𝟭 (C ⊕ D) :=
 (equivalence C D).unit_iso.symm
 
 end swap

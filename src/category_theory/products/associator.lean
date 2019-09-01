@@ -4,12 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison
 -/
 import category_theory.products
-import category_theory.equivalence
-import category_theory.eq_to_hom
 
 /-#
-The swap functor `C × D ⥤ D × C` is an equivalence.
-
 The associator functor `((C × D) × E) ⥤ (C × (D × E))` and its inverse form an equivalence.
 -/
 
@@ -19,19 +15,10 @@ open category_theory
 
 namespace category_theory.prod
 
-variables (C : Type u₁) [𝒞 : category.{v₁+1} C] (D : Type u₂) [𝒟 : category.{v₂+1} D]
-include 𝒞 𝒟
-
-def braiding : C × D ≌ D × C :=
-equivalence.mk (swap C D) (swap D C)
-  (nat_iso.of_components (λ X, eq_to_iso (by simp)) (by tidy))
-  (nat_iso.of_components (λ X, eq_to_iso (by simp)) (by tidy))
-
-instance swap_is_equivalence : is_equivalence (swap C D) :=
-(by apply_instance : is_equivalence (braiding C D).functor)
-
-variables (E : Type u₃) [ℰ : category.{v₃+1} E]
-include ℰ
+variables (C : Type u₁) [𝒞 : category.{v₁+1} C]
+          (D : Type u₂) [𝒟 : category.{v₂+1} D]
+          (E : Type u₃) [ℰ : category.{v₃+1} E]
+include 𝒞 𝒟 ℰ
 
 def associator : ((C × D) × E) ⥤ (C × (D × E)) :=
 { obj := λ X, (X.1.1, (X.1.2, X.2)),

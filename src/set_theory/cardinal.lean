@@ -74,6 +74,9 @@ theorem mk_le_of_injective {α β : Type u} {f : α → β} (hf : injective f) :
 theorem mk_le_of_surjective {α β : Type u} {f : α → β} (hf : surjective f) : mk β ≤ mk α :=
 ⟨embedding.of_surjective hf⟩
 
+theorem mk_le_of_subtype {α : Type u} (p : α → Prop) : mk (subtype p) ≤ mk α :=
+⟨embedding.subtype p⟩
+
 theorem le_mk_iff_exists_set {c : cardinal} {α : Type u} :
   c ≤ mk α ↔ ∃ p : set α, mk p = c :=
 ⟨quotient.induction_on c $ λ β ⟨⟨f, hf⟩⟩,

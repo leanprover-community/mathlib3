@@ -43,10 +43,8 @@ parallel_pair s t
       have R := c.naturality walking_parallel_pair_hom.right,
       have t := congr_arg (λ g, g ≫ pi.π _ (⟨(j, j'), f⟩ : Σ (p : J × J), p.fst ⟶ p.snd)) (R.symm.trans L),
       dsimp at t,
-      simp only [limit.lift_π, fan.mk_π_app, category.assoc] at t,
       dsimp,
-      simp only [category.id_comp, category.assoc],
-      exact t
+      simpa only [limit.lift_π, fan.mk_π_app, category.assoc, category.id_comp] using t,
     end }, }.
 
 @[simp] def equalizer_diagram.cones_inv [has_products.{v} C] {J} [small_category J] (F : J ⥤ C) :

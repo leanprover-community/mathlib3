@@ -86,6 +86,7 @@ def rational_cau_seq_pkg : @abstract_completion ℚ $ is_absolute_value.uniform_
                            exact uniform_embedding_of_rat.to_uniform_inducing },
   dense := dense_embedding_of_rat.dense }
 
+namespace compare_reals
 /-- Type wrapper around ℚ to make sure the absolute value uniform space instance is picked up
 instead of the metric space one. We proved in rat.uniform_space_eq that they are equal,
 but they are not definitionaly equal, so it would confuse the type class system (and probably
@@ -112,3 +113,4 @@ Bourbaki_pkg.uniform_continuous_compare_equiv _
 
 lemma compare_uc_symm : uniform_continuous (compare_equiv).symm :=
 Bourbaki_pkg.uniform_continuous_compare_equiv_symm _
+end compare_reals

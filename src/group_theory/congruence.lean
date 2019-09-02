@@ -387,6 +387,8 @@ instance : has_Inf (con M) :=
  λ _ _ _ h1 h2 c hc, c.trans (h1 c hc) $ h2 c hc⟩,
  λ _ _ _ _ h1 h2 c hc, c.mul (h1 c hc) $ h2 c hc⟩⟩
 
+lemma Inf_eq (S : set (con M)) : (Inf S).to_setoid = Inf (to_setoid '' S) := sorry 
+
 instance : has_inf (con M) :=
 ⟨λ c d, ⟨(c.to_setoid ⊓ d.to_setoid).1, (c.to_setoid ⊓ d.to_setoid).2, 
 λ _ _ _ _ h1 h2, ⟨c.mul h1.1 h2.1, d.mul h1.2 h2.2⟩⟩⟩
@@ -556,3 +558,21 @@ def correspondence : ((≤) : {d // c ≤ d} → {d // c ≤ d} → Prop) ≃o
      λ H p q h, by apply H (p : _) (q : _) h⟩ }
 
 end con
+
+def setoid.to_con (r : setoid M) := lattice.Inf {c : con M | r ≤ c.to_setoid}
+
+lemma con.left_inv (c : con M) : c.to_setoid.to_con = c :=
+begin
+apply le_antisymm,
+sorry, sorry,
+end 
+
+#exit
+def con.gi : @galois_insertion (setoid M) (con M) _ _ setoid.to_con con.to_setoid :=
+{ choice := λ r h, setoid.to_con r,
+  gc := λ r s, by {split, intros h x y hr,
+  have : s x y := h x y (setoid.le_Inf' (con.to_setoid '' {c : con M | r ≤ c.to_setoid}) r 
+  (λ s ⟨c, hm, hc⟩, hc ▸ hm) x y hr),
+  intros h x y hr, },
+  le_l_u := _,
+  choice_eq := _ }

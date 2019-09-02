@@ -120,6 +120,9 @@ section monoid
   @[simp] theorem divp_right_inj (u : units α) {a b : α} : a /ₚ u = b /ₚ u ↔ a = b :=
   units.mul_right_inj _
 
+  @[simp] theorem divp_divp_eq (x : α) (u₁ u₂ : units α) : (x /ₚ u₁) /ₚ u₂ = x /ₚ (u₂ * u₁) :=
+  by simp only [divp, mul_inv_rev, units.coe_mul, mul_assoc]
+
   theorem divp_eq_one (a : α) (u : units α) : a /ₚ u = 1 ↔ a = u :=
   (units.mul_right_inj u).symm.trans $ by rw [divp_mul_cancel, one_mul]
 
@@ -127,6 +130,27 @@ section monoid
   one_mul _
 
 end monoid
+
+section comm_monoid
+
+variables [comm_monoid α]
+
+theorem divp_eq_divp_of {x y : α} {ux uy : units α} (h : x * uy = y * ux) :
+  x /ₚ ux = y /ₚ uy :=
+calc x * (ux⁻¹ : units α) = x * uy * (uy⁻¹ : units α) * (ux⁻¹ : units α) :
+  by rw [units.mul_inv_cancel_right]
+                      ... = x * uy * (ux⁻¹ : units α) * (uy⁻¹ : units α) : mul_right_comm _ _ _
+                      ... = y * (uy⁻¹ : units α) : by rw [h, units.mul_inv_cancel_right]
+
+theorem divp_eq_divp_iff {x y : α} {ux uy : units α} :
+  x /ₚ ux = y /ₚ uy ↔ x * uy = y * ux :=
+⟨divp_eq_divp_of, divp_eq_divp_of⟩
+
+theorem divp_mul_divp_eq_mul_divp_mul (x y : α) (ux uy : units α) :
+  (x /ₚ ux) * (y /ₚ uy) = (x * y) /ₚ (ux * uy) :=
+by simp only [divp, mul_inv, units.coe_mul, mul_assoc, mul_left_comm y]
+
+end comm_monoid
 
 section group
   variables [group α]

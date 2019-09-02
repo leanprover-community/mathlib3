@@ -237,7 +237,7 @@ do to_remove ← hs.mfilter $ λ h, do {
     (new_t, pr) ← target >>= tac,
     replace_target new_t pr },
   to_remove.mmap' (λ h, try (clear h)),
-  return (¬ to_remove.empty ∨ goal_simplified)
+  return ((¬ to_remove.empty) || goal_simplified)
 
 meta def simp_bottom_up' (post : expr → tactic (expr × expr)) (e : expr) (cfg : simp_config := {}) : tactic (expr × expr) :=
 prod.snd <$> simplify_bottom_up () (λ _, (<$>) (prod.mk ()) ∘ post) e cfg

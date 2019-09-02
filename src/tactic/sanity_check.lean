@@ -145,7 +145,7 @@ do
   e ← get_env,
   expr.sort n ← infer_type d.type,
   let is_def : Prop := d.is_definition,
-  if d.is_constant ∨ d.is_axiom ∨ is_def ↔ (n ≠ level.zero)
+  if d.is_constant || d.is_axiom || (is_def ↔ (n ≠ level.zero))
     then return none
     else is_instance d.to_name >>= λ b, return $
     if b then none

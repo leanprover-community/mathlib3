@@ -16,8 +16,8 @@ http://hackage.haskell.org/package/base-4.11.1.0/docs/Data-Traversable.html
 Traversable collections are a generalization of functors. Whereas
 functors (such as `list`) allow us to apply a function to every
 element, it does not allow functions which external effects encoded in
-a monad. Consider for instance a functor `invite : email -> io response`
-that takes an email address, sends an email and wait for a
+a monad. Consider for instance a functor `invite : email → io response`
+that takes an email address, sends an email and waits for a
 response. If we have a list `guests : list email`, using calling
 `invite` using `map` gives us the following: `map invite guests : list
 (io response)`.  It is not what we need. We need something of type `io

@@ -23,21 +23,18 @@ reserve notation `#sanity_check`
 reserve notation `#sanity_check_mathlib`
 
 setup_tactic_parser
+universe variable v
 
-/-- Find all (non-internal) declarations where tac returns `some x` and list them. -/
-meta def fold_over_with_cond {α} (tac : declaration → tactic (option α)) :
+/-- Find all declarations in `l` where tac returns `some x` and list them. -/
+meta def fold_over_with_cond {α} (l : list declaration) (tac : declaration → tactic (option α)) :
   tactic (list (declaration × α)) :=
-do e ← get_env,
-   e.mfold [] $ λ d ds,
-     if d.to_name.is_internal || d.is_auto_generated e then return ds else
-     do o ← tac d,
-     if h : o.is_some then return $ (d, option.get h)::ds else return ds
+l.mmap_filter $ λ d, option.map (λ x, (d, x)) <$> tac d
 
-/-- Find all declarations where tac returns `some x` and sort the resulting list by file name. -/
-meta def fold_over_with_cond_sorted {α} (tac : declaration → tactic (option α)) :
-  tactic (list (string × list (declaration × α))) :=
+/-- Find all declarations in `l` where tac returns `some x` and sort the resulting list by file name. -/
+meta def fold_over_with_cond_sorted {α} (l : list declaration)
+  (tac : declaration → tactic (option α)) : tactic (list (string × list (declaration × α))) :=
 do e ← get_env,
-   ds ← fold_over_with_cond tac,
+   ds ← fold_over_with_cond l tac,
    let ds₂ := rb_lmap.of_list (ds.map (λ x, ((e.decl_olean x.1.to_name).iget, x))),
    return $ ds₂.to_list
 
@@ -55,30 +52,45 @@ ds.foldl
   (λ f x, f ++ "\n" ++ "\n" ++ to_fmt "-- " ++ to_fmt x.1 ++ print_decls x.2)
   format.nil
 
+/-- Same as `print_decls_sorted`, but removing the first `n` characters from the string.
+  Useful for omitting the mathlib directory from the output. -/
+meta def print_decls_sorted_mathlib {α} [has_to_format α] (n : ℕ)
+  (ds : list (string × list (declaration × α))) : format :=
+ds.foldl
+  (λ f x, f ++ "\n" ++ "\n" ++ to_fmt "-- " ++ to_fmt (x.1.popn n) ++ print_decls x.2)
+  format.nil
+
 /- Print all (non-internal) declarations where tac return `some x`-/
 meta def print_all_decls {α} [has_to_format α] (tac : declaration → tactic (option α)) :
   tactic format :=
-print_decls_sorted <$> fold_over_with_cond_sorted tac
+do
+  e ← get_env,
+  l ← e.mfilter (λ d, return $ ¬ d.to_name.is_internal && ¬ d.is_auto_generated e),
+  print_decls_sorted <$> fold_over_with_cond_sorted l tac
 
 /- Print (non-internal) declarations in the current file where tac return `some x`-/
 meta def print_decls_current_file {α} [has_to_format α] (tac : declaration → tactic (option α)) :
   tactic format :=
-print_decls <$> fold_over_with_cond
-  (λ d, d.in_current_file >>= λ b, if b then tac d else return none)
+do
+  e ← get_env,
+  l ← e.mfilter (λ d, return $
+    e.in_current_file' d.to_name && ¬ d.to_name.is_internal && ¬ d.is_auto_generated e),
+  print_decls <$> fold_over_with_cond l tac
 
 /- Print (non-internal) declarations in mathlib where tac return `some x` -/
 meta def print_decls_mathlib {α} [has_to_format α] (tac : declaration → tactic (option α)) :
   tactic format :=
-do ml ← get_mathlib_dir,
-   f ← fold_over_with_cond_sorted
-   (λ d, is_in_mathlib_aux ml d.to_name >>= λ b,
-      if b then tac d else return none),
-   return $ print_decls_sorted $ f.map (λ x, ⟨x.1.popn ml.length, x.2⟩)
+do
+  e ← get_env,
+  ml ← get_mathlib_dir,
+  l ← e.mfilter (λ d, return $
+    is_in_mathlib_aux e ml d.to_name && ¬ d.to_name.is_internal && ¬ d.is_auto_generated e),
+  print_decls_sorted_mathlib ml.length <$> fold_over_with_cond_sorted l tac
 
-/-- Auxilliary definition for `check_unused_arguments_aux` -/
+/-- Auxilliary definition for `check_unused_arguments` -/
 meta def check_unused_arguments_aux : list ℕ → ℕ → ℕ → expr → list ℕ | l n n_max e :=
 if n > n_max then l else
-if ¬is_lambda e ∧ ¬is_pi e then l else
+if ¬is_lambda e && ¬is_pi e then l else
   let b := e.binding_body in
   let l' := if b.has_var_idx 0 then l else n :: l in check_unused_arguments_aux l' (n+1) n_max b
 
@@ -100,7 +112,7 @@ let l2 := check_unused_arguments_aux [] 1 d.type.pi_arity d.type in
   the argument is a duplicate.
   See also `check_unused_arguments`.
   This tactic additionally filters out all unused arguments of type `parse _` -/
-meta def prettify_unused_arguments (d : declaration) : tactic (option format) :=
+meta def unused_arguments (d : declaration) : tactic (option format) :=
 do
   let ns := check_unused_arguments d,
   if ¬ ns.is_some then return none else do
@@ -116,15 +128,15 @@ do
 
 /-- Print all declarations with unused arguments -/
 meta def get_all_unused_args : tactic unit :=
-print_all_decls prettify_unused_arguments >>= trace
+print_all_decls unused_arguments >>= trace
 
 /-- Print all declarations in mathlib with unused arguments -/
 meta def get_all_unused_args_mathlib : tactic unit :=
-print_decls_mathlib prettify_unused_arguments >>= trace
+print_decls_mathlib unused_arguments >>= trace
 
 /-- Print all declarations in current file with unused arguments. -/
 meta def get_all_unused_args_current_file : tactic unit :=
-print_decls_current_file prettify_unused_arguments >>= trace
+print_decls_current_file unused_arguments >>= trace
 
 /-- Checks whether the correct declaration constructor (definition of theorem) by comparing it
   to its sort. Instances will not be printed -/
@@ -142,28 +154,49 @@ do
 
 /-- Print all declarations in mathlib incorrectly marked as def/lemma -/
 meta def incorrect_def_lemma_mathlib : tactic unit :=
-print_decls_mathlib prettify_unused_arguments >>= trace
+print_decls_mathlib unused_arguments >>= trace
 
 /-- Checks whether a declaration has a namespace twice consecutively in its name -/
 meta def dup_namespace (d : declaration) : tactic (option string) :=
 return $ let nm := d.to_name.components in if nm.chain' (≠) then none
   else let s := (nm.find $ λ n, nm.count n ≥ 2).iget.to_string in
-  some $ "The namespace " ++ s ++ " is duplicated in the name"
-
+  some $ "The namespace `" ++ s ++ "` is duplicated in the name"
 
 /-- Return the message printed by `#sanity_check`. -/
 meta def sanity_check : tactic format :=
 do
-  let s := to_fmt "/- Note: This command is still in development. -/\n\n",
-  f ← print_decls_current_file prettify_unused_arguments,
+  e ← get_env,
+  l ← e.mfilter (λ d,
+      return $ e.in_current_file' d.to_name && ¬ d.to_name.is_internal && ¬ d.is_auto_generated e),
+  let s : format := "/- Note: This command is still in development. -/\n",
+  let s := s ++ "/- Checking " ++ l.length ++ " declarations in the current file -/\n\n",
+  f ← print_decls <$> fold_over_with_cond l unused_arguments,
   let s := s ++ if f.is_nil then "/- OK: No unused arguments in the current file. -/\n\n"
-  else to_fmt "/- Unused arguments in the current file: -/" ++ f ++ "\n\n",
-  f ← print_decls_current_file incorrect_def_lemma,
+  else "/- Unused arguments in the current file: -/" ++ f ++ "\n\n",
+  f ← print_decls <$> fold_over_with_cond l incorrect_def_lemma,
   let s := s ++ if f.is_nil then "/- OK: All declarations correctly marked as def/lemma -/\n\n"
-  else to_fmt "/- Declarations incorrectly marked as def/lemma: -/" ++ f ++ "\n\n",
-  f ← print_decls_current_file dup_namespace,
+  else "/- Declarations incorrectly marked as def/lemma: -/" ++ f ++ "\n\n",
+  f ← print_decls <$> fold_over_with_cond l dup_namespace,
   let s := s ++ if f.is_nil then "/- OK: No declarations have a duplicate namespace -/\n\n"
-  else to_fmt "/- Declarations with a namespace duplicated: -/" ++ f ++ "\n\n",
+  else "/- Declarations with a namespace duplicated: -/" ++ f ++ "\n\n",
+  return s
+
+/-- Return the message printed by `#sanity_check_mathlib`. -/
+meta def sanity_check_mathlib : tactic format :=
+do
+  e ← get_env,
+  ml ← get_mathlib_dir,
+  l ← e.mfilter (λ d, return $
+    is_in_mathlib_aux e ml d.to_name && ¬ d.to_name.is_internal && ¬ d.is_auto_generated e),
+  let ml' := ml.length,
+  let s : format := "/- Note: This command is still in development. -/\n",
+  let s := s ++ "/- Checking " ++ l.length ++ " declarations in mathlib (only in imported files) -/\n\n",
+  f ← print_decls_sorted_mathlib ml' <$> fold_over_with_cond_sorted l unused_arguments,
+  let s := s ++ "/- UNUSED ARGUMENTS: -/" ++ f ++ "\n\n",
+  f ← print_decls_sorted_mathlib ml' <$> fold_over_with_cond_sorted l incorrect_def_lemma,
+  let s := s ++ "/- INCORRECT DEF/LEMMA: -/" ++ f ++ "\n\n",
+  f ← print_decls_sorted_mathlib ml' <$> fold_over_with_cond_sorted l dup_namespace,
+  let s := s ++ "/- DUPLICATED NAMESPACES IN NAME: -/" ++ f ++ "\n\n",
   return s
 
 /-- The command `#sanity_check` at the bottom of a file will warn you about some common mistakes
@@ -174,20 +207,15 @@ do s ← sanity_check, trace s
 /-- The command `#sanity_check_mathlib` checks all of mathlib for certain mistakes. -/
 @[user_command] meta def sanity_check_mathlib_cmd (_ : parse $ tk "#sanity_check_mathlib") :
   parser unit :=
-do
-  trace "/- Note: This command is still in development. -/\n",
-  f ← print_decls_mathlib prettify_unused_arguments,
-  trace (to_fmt "/- UNUSED ARGUMENTS: -/" ++ f ++ "\n"),
-  f ← print_decls_mathlib incorrect_def_lemma,
-  trace (to_fmt "/- INCORRECT DEF/LEMMA: -/" ++ f ++ "\n"),
-  f ← print_decls_mathlib dup_namespace,
-  trace (to_fmt "/- DUPLICATED NAMESPACES IN NAME: -/" ++ f ++ "\n"),
-  skip
+do s ← sanity_check_mathlib, trace s
 
 @[hole_command] meta def sanity_check_hole_cmd : hole_command :=
 { name := "Sanity Check",
   descr := "Sanity check: Find mistakes in current file.",
   action := λ es, do s ← sanity_check, return [(s.to_string,"")] }
 
+-- set_option profiler true
+-- run_cmd sanity_check
+-- run_cmd sanity_check_mathlib
 -- #sanity_check
 -- #sanity_check_mathlib

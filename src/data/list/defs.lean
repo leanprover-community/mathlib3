@@ -510,4 +510,11 @@ def sub {α : Type u} [has_zero α] [has_sub α] : list α → list α → list 
 
 end func
 
+/-- Filters and maps elements of a list -/
+def mmap_filter {m : Type → Type v} [monad m] {α β} (f : α → m (option β)) :
+  list α → m (list β)
+| []       := return []
+| (h :: t) := do b ← f h, t' ← t.mmap_filter, return $
+  match b with none := t' | (some x) := x::t' end
+
 end list

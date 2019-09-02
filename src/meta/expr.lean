@@ -287,6 +287,10 @@ meta def mfold {α : Type} {m : Type → Type} [monad m] (e : environment) (x : 
   (fn : declaration → α → m α) : m α :=
 e.fold (return x) (λ d t, t >>= fn d)
 
+/-- Filters all declarations in the environment. -/
+meta def mfilter (e : environment) (test : declaration → tactic bool) : tactic (list declaration) :=
+e.mfold [] $ λ d ds, do b ← test d, return $ if b then d::ds else ds
+
 end environment
 
 namespace declaration
@@ -299,7 +303,8 @@ let decl := decl.update_type $ decl.type.apply_replacement_fun f in
 decl.update_value $ decl.value.apply_replacement_fun f
 
 /-- Checks whether the declaration is declared in the current file.
-  This is a simple wrapper around `environment.in_current_file'` -/
+  This is a simple wrapper around `environment.in_current_file'`
+  Use `environment.in_current_file'` instead if performance matters. -/
 meta def in_current_file (d : declaration) : tactic bool :=
 do e ← get_env, return $ e.in_current_file' d.to_name
 

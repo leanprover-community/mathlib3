@@ -84,7 +84,7 @@ do
   e ← get_env,
   ml ← get_mathlib_dir,
   l ← e.mfilter (λ d, return $
-    is_in_mathlib_aux e ml d.to_name && ¬ d.to_name.is_internal && ¬ d.is_auto_generated e),
+    e.is_prefix_of_file ml d.to_name && ¬ d.to_name.is_internal && ¬ d.is_auto_generated e),
   print_decls_sorted_mathlib ml.length <$> fold_over_with_cond_sorted l tac
 
 /-- Auxilliary definition for `check_unused_arguments` -/
@@ -187,7 +187,7 @@ do
   e ← get_env,
   ml ← get_mathlib_dir,
   l ← e.mfilter (λ d, return $
-    is_in_mathlib_aux e ml d.to_name && ¬ d.to_name.is_internal && ¬ d.is_auto_generated e),
+    e.is_prefix_of_file ml d.to_name && ¬ d.to_name.is_internal && ¬ d.is_auto_generated e),
   let ml' := ml.length,
   let s : format := "/- Note: This command is still in development. -/\n",
   let s := s ++ "/- Checking " ++ l.length ++ " declarations in mathlib (only in imported files) -/\n\n",

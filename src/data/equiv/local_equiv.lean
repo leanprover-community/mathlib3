@@ -506,8 +506,8 @@ namespace equiv
 equiv to that of the equiv. -/
 variables (e : equiv α β) (e' : equiv β γ)
 
-@[simp] lemma to_local_equiv_to_fun (x : α) : e.to_local_equiv.to_fun = e.to_fun := rfl
-@[simp] lemma to_local_equiv_inv_fun (x : α) : e.to_local_equiv.inv_fun = e.inv_fun := rfl
+@[simp] lemma to_local_equiv_to_fun : e.to_local_equiv.to_fun = e.to_fun := rfl
+@[simp] lemma to_local_equiv_inv_fun : e.to_local_equiv.inv_fun = e.inv_fun := rfl
 @[simp] lemma to_local_equiv_source : e.to_local_equiv.source = univ := rfl
 @[simp] lemma to_local_equiv_target : e.to_local_equiv.target = univ := rfl
 @[simp] lemma refl_to_local_equiv : (equiv.refl α).to_local_equiv = local_equiv.refl α := rfl

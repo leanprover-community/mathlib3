@@ -33,11 +33,12 @@ dvd_antisymm
   (dvd_gcd (gcd_dvd_right m n) (gcd_dvd_left m n))
   (dvd_gcd (gcd_dvd_right n m) (gcd_dvd_left n m))
 
-theorem gcd_of_dvd_left {m n : ℕ} (h : m ∣ n) : gcd m n = m :=
-by rw [gcd_rec, mod_eq_zero_of_dvd h, gcd_zero_left]
+theorem gcd_eq_left_iff_dvd {m n : ℕ} : m ∣ n ↔ gcd m n = m :=
+⟨λ h, by rw [gcd_rec, mod_eq_zero_of_dvd h, gcd_zero_left],
+ λ h, h ▸ gcd_dvd_right m n⟩
 
-theorem gcd_of_dvd_right {m n : ℕ} (h : m ∣ n) : gcd n m = m :=
-(gcd_comm _ _).trans $ gcd_of_dvd_left h
+theorem gcd_eq_right_iff_dvd {m n : ℕ} : (m ∣ n) ↔ gcd n m = m :=
+by rw gcd_comm; apply gcd_eq_left_iff_dvd
 
 theorem gcd_assoc (m n k : ℕ) : gcd (gcd m n) k = gcd m (gcd n k) :=
 dvd_antisymm

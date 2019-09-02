@@ -3,7 +3,7 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl, Reid Barton, Sean Leather, Yury Kudryashov
 -/
-import category_theory.types category_theory.full_subcategory
+import category_theory.types category_theory.full_subcategory category_theory.bundled
 
 /-!
 # Concrete categories
@@ -118,26 +118,7 @@ instance (C : Type u₂) [concrete_category.{u₂ u₂} C] : has_forget C (Sort 
 { forget₂ := forget C,
   forget_comp := functor.comp_id _ }
 
-/-- `bundled` is a type bundled with a type class instance for that type. Only
-the type class is exposed as a parameter. -/
-structure bundled (c : Type u₂ → Type v) : Type (max (u₂+1) v) :=
-(α : Type u₂)
-(str : c α . tactic.apply_instance)
-
 namespace bundled
-
-variables {c d : Type u₂ → Type v}
-
-def of (α : Type u₂) [str : c α] : bundled c := ⟨α, str⟩
-
-instance : has_coe_to_sort (bundled c) :=
-{ S := Type u₂, coe := bundled.α }
-
-/-- Map over the bundled structure -/
-def map (f : ∀ {α}, c α → d α) (b : bundled c) : bundled d :=
-⟨b.α, f b.str⟩
-
-end bundled
 
 class bundled_category {c : Type u₂ → Type u₁} (hom : Π {α β}, c α → c β → Sort v) :=
 (to_fun : Π {α β} {ia : c α} {ib : c β}, hom ia ib → α → β)

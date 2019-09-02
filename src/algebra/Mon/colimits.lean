@@ -131,16 +131,8 @@ quot.mk _ (of j x)
 
 def cocone_morphism (j : J) : F.obj j ⟶ colimit F :=
 { to_fun := cocone_fun F j,
-  map_one' :=
-  begin
-    apply quot.sound,
-    apply relation.one,
-  end,
-  map_mul' := λ x y,
-  begin
-    apply quot.sound,
-    apply relation.mul,
-  end }
+  map_one' := quot.sound (relation.one _ _),
+  map_mul' := λ x y, quot.sound (relation.mul _ _ _) }
 
 @[simp] lemma cocone_naturality {j j' : J} (f : j ⟶ j') :
   F.map f ≫ (cocone_morphism F j') = cocone_morphism F j :=
@@ -177,7 +169,7 @@ begin
     -- trans
     { exact eq.trans r_ih_h r_ih_k },
     -- map
-    { rw cocone.naturality_bundled, },
+    { rw cocone.naturality_bundled', },
     -- mul
     { rw is_monoid_hom.map_mul ⇑((s.ι).app r_j) },
     -- one

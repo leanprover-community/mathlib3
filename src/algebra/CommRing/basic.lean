@@ -89,6 +89,7 @@ Ring.bundled_category.restrict_str @comm_ring.to_ring
 @[simp] lemma comp_eq {R₁ R₂ R₃ : CommRing} (f : R₁ ⟶ R₂) (g : R₂ ⟶ R₃) :
   f ≫ g = g.comp f := rfl
 
+
 @[simp] lemma forget_obj_eq_coe {R : CommRing} : (forget CommRing).obj R = R := rfl
 @[simp] lemma forget_map_eq_coe {R₁ R₂ : CommRing} (f : R₁ ⟶ R₂) :
   (forget CommRing).map f = f :=

@@ -298,10 +298,6 @@ def colimit_cocone : cocone F :=
 | (add x y) := desc_fun_lift x + desc_fun_lift y
 | (mul x y) := desc_fun_lift x * desc_fun_lift y
 
-@[simp] lemma naturality_bundled {G : J ⥤ CommRing} (s : cocone G) {j j' : J} (f : j ⟶ j') (x : G.obj j) :
-  (s.ι.app j') ((G.map f) x) = (s.ι.app j) x :=
-congr_fun (congr_arg (λ k : G.obj j ⟶ s.X, (k : G.obj j → s.X)) (s.ι.naturality f)) x
-
 def desc_fun (s : cocone F) : colimit_type F → s.X :=
 begin
   fapply quot.lift,
@@ -315,7 +311,7 @@ begin
     -- trans
     { exact eq.trans r_ih_h r_ih_k },
     -- map
-    { rw naturality_bundled, },
+    { rw cocone.naturality_bundled, },
     -- zero
     { erw is_ring_hom.map_zero ⇑((s.ι).app r), refl },
     -- one

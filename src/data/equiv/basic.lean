@@ -563,7 +563,7 @@ subtype_congr (equiv.refl α) (assume a, h ▸ iff.refl _)
 def set_congr {α : Type*} {s t : set α} (h : s = t) : s ≃ t :=
 subtype_congr_prop h
 
-def subtype_subtype_equiv_subtype_ex {α : Type u} (p : α → Prop) (q : subtype p → Prop) :
+def subtype_subtype_equiv_subtype_exists {α : Type u} (p : α → Prop) (q : subtype p → Prop) :
   subtype q ≃ {a : α // ∃h:p a, q ⟨a, h⟩ } :=
 ⟨λ⟨⟨a, ha⟩, ha'⟩, ⟨a, ha, ha'⟩,
   λ⟨a, ha⟩, ⟨⟨a, ha.cases_on $ assume h _, h⟩, by { cases ha, exact ha_h }⟩,
@@ -571,7 +571,7 @@ def subtype_subtype_equiv_subtype_ex {α : Type u} (p : α → Prop) (q : subtyp
 
 def subtype_subtype_equiv_subtype_inter {α : Type u} (p q : α → Prop) :
   {x : subtype p // q x.1} ≃ subtype (λ x, p x ∧ q x) :=
-(subtype_subtype_equiv_subtype_ex p _).trans $
+(subtype_subtype_equiv_subtype_exists p _).trans $
 subtype_congr_right $ λ x, exists_prop
 
 /-- If the outer subtype has more restrictive predicate than the inner one,
@@ -598,7 +598,7 @@ def subtype_sigma_equiv {α : Type u} (p : α → Type v) (q : α → Prop) :
  λ ⟨⟨x, y⟩, h⟩, rfl⟩
 
 /-- A sigma type over a subtype is equivalent to the sigma set over the original type,
-if the fiber if empty outside of the subset -/
+if the fiber is empty outside of the subset -/
 def sigma_subtype_equiv_of_subset {α : Type u} (p : α → Type v) (q : α → Prop)
   (h : ∀ x (y : p x), q x) :
   (Σ x : subtype q, p x) ≃ Σ x : α, p x :=
@@ -616,12 +616,12 @@ def sigma_subtype_preimage_equiv_subtype {α : Type u} {β : Type v} (f : α →
 calc (Σ y : subtype q, {x : α // f x = y}) ≃
   Σ y : subtype q, {x : subtype p // subtype.mk (f x) ((h x).1 x.2) = y} :
   begin
-  apply sigma_congr_right,
-  assume y,
-  symmetry,
-  refine (subtype_subtype_equiv_subtype_ex _ _).trans (subtype_congr_right _),
-  assume x,
-  exact ⟨λ ⟨hp, h'⟩, congr_arg subtype.val h', λ h', ⟨(h x).2 (h'.symm ▸ y.2), subtype.eq h'⟩⟩
+    apply sigma_congr_right,
+    assume y,
+    symmetry,
+    refine (subtype_subtype_equiv_subtype_exists _ _).trans (subtype_congr_right _),
+    assume x,
+    exact ⟨λ ⟨hp, h'⟩, congr_arg subtype.val h', λ h', ⟨(h x).2 (h'.symm ▸ y.2), subtype.eq h'⟩⟩
   end
 
    ... ≃ subtype p : sigma_preimage_equiv (λ x : subtype p, (⟨f x, (h x).1 x.property⟩ : subtype q))

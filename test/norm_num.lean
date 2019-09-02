@@ -21,6 +21,7 @@ example : (2:real) * 2 + 3 = 7 := by norm_num
 example : (6:real) < 10 := by norm_num
 example : (7:real)/2 > 3 := by norm_num
 example : (4:real)⁻¹ < 1 := by norm_num
+example : 2 ^ 17 - 1 = 131071 := by norm_num
 
 example : (5 / 2:ℕ) = 2 := by norm_num
 example : (5 / -2:ℤ) < -1 := by norm_num

@@ -30,7 +30,7 @@ inclusion, see `uniform_space/UniformSpace` for the category packaging.
 ## Implementation notes
 
 A tiny technical advantage of using a characteristic predicate such as the properties listed in
-`completion_pkg` instead of stating the universal property is that the universal property
+`abstract_completion` instead of stating the universal property is that the universal property
 derived from the predicate is more universe polymorphic.
 
 ## References
@@ -52,7 +52,7 @@ open filter set function
 universes u
 /-- A completion of `α` is the data of a complete separated uniform space (from the same universe)
 and a map from `α` with dense range and inducing the original uniform structure on `α`. -/
-structure completion_pkg (α : Type u) [uniform_space α] :=
+structure abstract_completion (α : Type u) [uniform_space α] :=
 (space : Type u)
 (coe : α → space)
 (uniform_struct : uniform_space space)
@@ -62,10 +62,10 @@ structure completion_pkg (α : Type u) [uniform_space α] :=
 (dense : dense_range coe)
 
 local attribute [instance]
-completion_pkg.uniform_struct completion_pkg.complete completion_pkg.separation
+abstract_completion.uniform_struct abstract_completion.complete abstract_completion.separation
 
-namespace completion_pkg
-variables {α : Type*} [uniform_space α] (pkg : completion_pkg α)
+namespace abstract_completion
+variables {α : Type*} [uniform_space α] (pkg : abstract_completion α)
 local notation `hatα` := pkg.space
 local notation `ι` := pkg.coe
 
@@ -144,7 +144,7 @@ end extend
 
 section map_sec
 
-variables (pkg' : completion_pkg β)
+variables (pkg' : abstract_completion β)
 local notation `hatβ` := pkg'.space
 local notation `ι'` := pkg'.coe
 
@@ -186,7 +186,7 @@ lemma extend_map [complete_space γ] [separated γ] {f : β → γ} {g : α → 
 pkg.funext (pkg'.continuous_extend.comp (pkg.continuous_map pkg' _)) pkg.continuous_extend $ λ a,
   by rw [pkg.extend_coe (hf.comp hg), comp_app, pkg.map_coe pkg' hg, pkg'.extend_coe hf]
 
-variables (pkg'' : completion_pkg γ)
+variables (pkg'' : abstract_completion γ)
 
 lemma map_comp {g : β → γ} {f : α → β} (hg : uniform_continuous g) (hf : uniform_continuous f) :
   (pkg'.map pkg'' g) ∘ (pkg.map pkg' f) = pkg.map pkg'' (g ∘ f) :=
@@ -197,7 +197,7 @@ end map_sec
 section compare
 -- We can now compare two completion packages for the same uniform space
 
-variables (pkg' : completion_pkg α)
+variables (pkg' : abstract_completion α)
 
 /-- The comparison map between two completions of the same uniform space. -/
 def compare : pkg.space → pkg'.space :=
@@ -235,12 +235,12 @@ pkg'.uniform_continuous_compare pkg
 end compare
 
 section prod
-variables (pkg' : completion_pkg β)
+variables (pkg' : abstract_completion β)
 local notation `hatβ` := pkg'.space
 local notation `ι'` := pkg'.coe
 
 /-- Products of completions -/
-protected def prod : completion_pkg (α × β) :=
+protected def prod : abstract_completion (α × β) :=
 { space := hatα × hatβ,
   coe := λ p, ⟨ι p.1, ι' p.2⟩,
   uniform_struct := prod.uniform_space,
@@ -253,7 +253,7 @@ end prod
 
 
 section extension₂
-variables (pkg' : completion_pkg β)
+variables (pkg' : abstract_completion β)
 local notation `hatβ` := pkg'.space
 local notation `ι'` := pkg'.coe
 
@@ -276,18 +276,18 @@ variables [complete_space γ] (f)
 
 lemma uniform_continuous_extension₂ : uniform_continuous₂ (pkg.extend₂ pkg' f) :=
 begin
-  rw [uniform_continuous₂_def, completion_pkg.extend₂, uncurry'_curry],
+  rw [uniform_continuous₂_def, abstract_completion.extend₂, uncurry'_curry],
   apply uniform_continuous_extend
 end
 
 end extension₂
 
 section map₂
-variables (pkg' : completion_pkg β)
+variables (pkg' : abstract_completion β)
 local notation `hatβ` := pkg'.space
 local notation `ι'` := pkg'.coe
 
-variables {γ : Type*} [uniform_space γ] (pkg'' : completion_pkg γ)
+variables {γ : Type*} [uniform_space γ] (pkg'' : abstract_completion γ)
 local notation `hatγ` := pkg''.space
 local notation `ι''` := pkg''.coe
 
@@ -310,4 +310,4 @@ lemma map₂_coe_coe (a : α) (b : β) (f : α → β → γ) (hf : uniform_cont
 pkg.extension₂_coe_coe pkg' (pkg''.uniform_continuous_coe.comp hf) a b
 
 end map₂
-end completion_pkg
+end abstract_completion

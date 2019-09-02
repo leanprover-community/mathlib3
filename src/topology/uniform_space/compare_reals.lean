@@ -35,7 +35,7 @@ TODO:
 
 ## Implementation notes
 
-The heavy work is done in `topology/uniform_space/completion_pkg` which provides an abstract
+The heavy work is done in `topology/uniform_space/abstract_completion` which provides an abstract
 caracterization of completions of uniform spaces, and isomorphisms between them. The only work left
 here is to prove the uniform space structure coming from the absolute value on ℚ (with values in ℚ,
 not referring to ℝ) coincides with the one coming from the metric space structure (which of course
@@ -76,7 +76,7 @@ end
 
 /-- Cauchy reals packaged as a completion of ℚ using the absolute value route. -/
 noncomputable
-def rational_cau_seq_pkg : @completion_pkg ℚ $ is_absolute_value.uniform_space (abs : ℚ → ℚ) :=
+def rational_cau_seq_pkg : @abstract_completion ℚ $ is_absolute_value.uniform_space (abs : ℚ → ℚ) :=
 { space := ℝ,
   coe := (coe : ℚ → ℝ),
   uniform_struct := by apply_instance,
@@ -101,7 +101,7 @@ def Bourbakiℝ : Type := completion Q
 instance : uniform_space Bourbakiℝ := completion.uniform_space Q
 
 /-- Bourbaki reals packaged as a completion of Q using the general theory. -/
-def Bourbaki_pkg : completion_pkg Q := completion.cpkg
+def Bourbaki_pkg : abstract_completion Q := completion.cpkg
 
 /-- The equivalence between Bourbaki and Cauchy reals-/
 noncomputable def compare_equiv : Bourbakiℝ ≃ ℝ :=

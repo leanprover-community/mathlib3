@@ -35,7 +35,7 @@ This formalization is mostly based on
 From a slightly different perspective in order to reuse material in topology.uniform_space.basic.
 -/
 import data.set.basic
-import topology.uniform_space.completion_pkg topology.uniform_space.separation
+import topology.uniform_space.abstract_completion topology.uniform_space.separation
 
 noncomputable theory
 local attribute [instance, priority 0] classical.prop_decidable
@@ -367,7 +367,7 @@ by rw [completion.coe_eq, range_comp]; exact quotient_dense_of_dense pure_cauchy
 
 variables (α)
 
-def cpkg {α : Type*} [uniform_space α] : completion_pkg α :=
+def cpkg {α : Type*} [uniform_space α] : abstract_completion α :=
 { space := completion α,
   coe := coe,
   uniform_struct := by apply_instance,
@@ -377,7 +377,7 @@ def cpkg {α : Type*} [uniform_space α] : completion_pkg α :=
   dense := (dense_range_iff_closure_eq _).2 completion.dense }
 
 local attribute [instance]
-completion_pkg.uniform_struct completion_pkg.complete completion_pkg.separation
+abstract_completion.uniform_struct abstract_completion.complete abstract_completion.separation
 
 lemma nonempty_completion_iff : nonempty (completion α) ↔ nonempty α :=
 (dense_range.nonempty (cpkg.dense)).symm

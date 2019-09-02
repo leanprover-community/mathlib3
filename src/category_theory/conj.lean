@@ -66,7 +66,7 @@ def conj : End X ≃* End Y :=
 { map_mul' := λ f g, hom_congr_comp α α α g f,
   .. hom_congr α α }
 
-@[simp] lemma conj_apply (f : End X) : α.conj f = α.inv ≫ f ≫ α.hom := rfl
+lemma conj_apply (f : End X) : α.conj f = α.inv ≫ f ≫ α.hom := rfl
 
 @[simp] lemma conj_comp (f g : End X) : α.conj (f ≫ g) = (α.conj f) ≫ (α.conj g) :=
 is_mul_hom.map_mul α.conj g f
@@ -95,7 +95,7 @@ def conj_Aut : Aut X ≃* Aut Y :=
 (units.map_equiv α.conj).trans $
 Aut.units_End_eqv_Aut Y
 
-@[simp] lemma conj_Aut_apply (f : Aut X) : α.conj_Aut f = α.symm ≪≫ f ≪≫ α :=
+lemma conj_Aut_apply (f : Aut X) : α.conj_Aut f = α.symm ≪≫ f ≪≫ α :=
 by cases f; cases α; ext; refl
 
 @[simp] lemma conj_Aut_hom (f : Aut X) : (α.conj_Aut f).hom = α.conj f.hom := rfl

@@ -505,7 +505,7 @@ def has_limit_of_iso {F G : J ⥤ C} [has_limit F] (α : F ≅ G) : has_limit G 
 
 /-- If a functor `G` has the same collection of cones as a functor `F`
 which has a limit, then `G` also has a limit. -/
--- See the construction of limits from productrs and equalizers
+-- See the construction of limits from products and equalizers
 -- for an example usage.
 def has_limit.of_cones_iso {J K : Type v} [small_category J] [small_category K] (F : J ⥤ C) (G : K ⥤ C)
   (h : F.cones ≅ G.cones) [has_limit F] : has_limit G :=

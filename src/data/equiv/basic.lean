@@ -600,7 +600,7 @@ def subtype_sigma_equiv {α : Type u} (p : α → Type v) (q : α → Prop) :
 /-- A sigma type over a subtype is equivalent to the sigma set over the original type,
 if the fiber is empty outside of the subset -/
 def sigma_subtype_equiv_of_subset {α : Type u} (p : α → Type v) (q : α → Prop)
-  (h : ∀ x (y : p x), q x) :
+  (h : ∀ x, p x → q x) :
   (Σ x : subtype q, p x) ≃ Σ x : α, p x :=
 (subtype_sigma_equiv p q).symm.trans $ subtype_univ_equiv $ λ x, h x.1 x.2
 

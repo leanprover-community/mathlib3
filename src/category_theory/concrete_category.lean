@@ -1,16 +1,79 @@
 /-
 Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison, Johannes Hölzl, Reid Barton, Sean Leather
-
-Bundled type and structure.
+Authors: Scott Morrison, Johannes Hölzl, Reid Barton, Sean Leather, Yury Kudryashov
 -/
 import category_theory.types category_theory.full_subcategory
+
+/-!
+# Concrete categories
+
+A concrete category is a category `C` with a fixed faithful functor
+`forget : C ⥤ Sort*`.
+
+## Main definitions
+
+### Concrete categories
+
+We define concrete categories using a `class concrete_category`.
+
+In particular, we impose no restrictions on the carrier type `C`, so
+`Type` is a concrete category with the identity forgetful functor.
+
+### `bundled` carrier type
+
+Since algebraic structures (`monoid`, `group`, `ring`, `field`) in
+Lean use unbundled classes, we define a unified way to bundle them.
+Given a function `c : Type u → Type v`, `bundled c` is the structure
+of pairs `(α, str)`, where `α : Type u`, and `str : c α`.
+
+For a concrete category on `bundled c`, it makes sense to require that
+`forget.obj X = X.α`. Some parts of mathlib use bundled morphism
+structures, other parts use unbundled morphism classes. We provide
+convenience functions to define concrete categories in both cases.
+
+In both cases this is done using the `bundled_category` class. Its
+default constructor assumes the bundled morphisms approach, and requires 
+
+* an injective `to_fun : hom (ia : c α) (ib : c β) → α → β` projection;
+* `id` and `comp g f` morphisms that project to `id` and `g ∘ f`.
+
+Note that the argument order agrees with `function.comp`, not
+`category_theory.comp`. This way we can directly use
+`@monoid_hom.comp` as an argument to `bundled_category.mk`.
+
+For a full concrete subcategory `D = bundled d` of a bundled category
+`C = bundled c` we provide `bundled_category.restrict_str`
+constructor. This constructor agrees with `induced_category` but also
+allows us to automatically prove that the `induced_functor : C ⥤ D` is
+a “partially forgetting” functor, i.e., `induced_functor ⋙ forget D =
+forget C`.
+
+For unbundled morphisms we provide a convenience constructor
+`bundled_category.of_hom_class`. It accepts a morphism class `hom : Π
+α β (ia : c α) (ib : c β), (α → β) → Prop` together with proofs of
+`hom id` and `hom g → hom f → hom (g ∘ f)`, and creates a
+`bundled_category` instance using `subtype hom` as the bundled
+morphisms type.
+
+## Forgetful functors
+
+Each concrete category `C` comes with a canonical faithful functor
+`forget C : C ⥤ Sort*`. We say that a concrete category `C` admits a
+forgetful functor to a concrete category `D`, if it has a functor
+`forget₂ C D : C ⥤ D` such that `(forget₂ C D) ⋙ (forget D) = forget
+C`, see `class has_forget`.
+
+We provide convenience constructors `has_forget.mk'` and
+`bundled_has_forget` to create instances of this class.
+
+-/
 
 universes v u₁ u₂ u₃
 
 namespace category_theory
 
+/-- A concrete category is a category `C` with a fixed faithful functor `forget : C ⥤ Type`. -/
 class concrete_category (C : Type u₂) extends category.{v} C :=
 (forget : C ⥤ Sort u₁)
 [forget_faithful : faithful forget]

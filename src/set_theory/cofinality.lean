@@ -400,7 +400,7 @@ begin
   refine ⟨a, {x | ∃(h : x ∈ s), f ⟨x, h⟩ = a}, _, _, _⟩,
   { rintro x ⟨hx, hx'⟩, exact hx },
   { refine le_trans ha _, apply ge_of_eq, apply quotient.sound, constructor,
-    refine equiv.trans _ (equiv.subtype_subtype_equiv_subtype_ex _ _).symm,
+    refine equiv.trans _ (equiv.subtype_subtype_equiv_subtype_exists _ _).symm,
     simp only [set_coe_eq_subtype, mem_singleton_iff, mem_preimage, mem_set_of_eq] },
   rintro x ⟨hx, hx'⟩, exact hx'
 end

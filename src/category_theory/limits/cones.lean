@@ -158,6 +158,8 @@ section bundled_hom
 variables [S : bundled_hom.{v} m]
 include S
 
+local attribute [instance] bundled_hom.has_coe_to_fun
+
 @[simp] lemma naturality_bundled' {G : J ⥤ bundled m} (s : cone G) {j j' : J} (f : j ⟶ j') (x : s.X) :
    (G.map f) ((s.π.app j) x) = (s.π.app j') x :=
 begin
@@ -210,6 +212,8 @@ end unbundled_hom
 section bundled_hom
 variables [S : bundled_hom.{v} m]
 include S
+
+local attribute [instance] bundled_hom.has_coe_to_fun
 
 @[simp] lemma naturality_bundled' {G : J ⥤ bundled m} (s : cocone G) {j j' : J} (f : j ⟶ j') (x : G.obj j) :
   (s.ι.app j') ((G.map f) x) = (s.ι.app j) x :=

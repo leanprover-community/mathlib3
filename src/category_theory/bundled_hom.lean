@@ -52,9 +52,11 @@ instance : category (bundled c) :=
   id := λ X, @bundled_hom.id c S X.α X.str,
   comp := λ X Y Z f g, @bundled_hom.comp c S X.α Y.α Z.α X.str Y.str Z.str f g }
 
-instance {X Y : bundled c} : has_coe_to_fun (X ⟶ Y) :=
+def has_coe_to_fun {X Y : bundled c} : has_coe_to_fun (X ⟶ Y) :=
 { F   := λ f, X → Y,
   coe := λ f, S.to_fun X.str Y.str f }
+
+local attribute [instance] has_coe_to_fun
 
 @[simp] lemma coe_id {X : bundled c} : ((𝟙 X) : X → X) = _root_.id :=
 S.id_to_fun X.str

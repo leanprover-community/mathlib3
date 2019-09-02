@@ -39,7 +39,7 @@ This lemma is then added to `simp`'s armoury. Note several things however.
 1) It might not be wise to make a random theorem into a simp lemma. Ideally the result has to be of a certain kind, the most important kinds being those of the form `A=B` and `A↔B`. Note however that if you want to add `fact` to `simp`'s weaponry, you can prove
 
 ```lean
-@[simp] lemma my_lemma : fact <-> true
+@[simp] lemma my_lemma : fact ↔ true
 ```
 
 (and in fact more recent versions of Lean do this automatically when you try to add random theorems to the simp dataset).

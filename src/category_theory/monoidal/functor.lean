@@ -108,7 +108,7 @@ include 𝒞
 def id : monoidal_functor.{v₁ v₁} C C :=
 { ε := 𝟙 _,
   μ := λ X Y, 𝟙 _,
-  .. functor.id C }
+  .. 𝟭 C }
 
 @[simp] lemma id_obj (X : C) : (monoidal_functor.id C).obj X = X := rfl
 @[simp] lemma id_map {X X' : C} (f : X ⟶ X') : (monoidal_functor.id C).map f = f := rfl

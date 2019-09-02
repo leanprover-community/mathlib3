@@ -171,13 +171,13 @@ do
   let s : format := "/- Note: This command is still in development. -/\n",
   let s := s ++ "/- Checking " ++ l.length ++ " declarations in the current file -/\n\n",
   f ← print_decls <$> fold_over_with_cond l unused_arguments,
-  let s := s ++ if f.is_nil then "/- OK: No unused arguments in the current file. -/\n\n"
+  let s := s ++ if f.is_nil then "/- OK: No unused arguments in the current file. -/\n"
   else "/- Unused arguments in the current file: -/" ++ f ++ "\n\n",
   f ← print_decls <$> fold_over_with_cond l incorrect_def_lemma,
-  let s := s ++ if f.is_nil then "/- OK: All declarations correctly marked as def/lemma -/\n\n"
+  let s := s ++ if f.is_nil then "/- OK: All declarations correctly marked as def/lemma -/\n"
   else "/- Declarations incorrectly marked as def/lemma: -/" ++ f ++ "\n\n",
   f ← print_decls <$> fold_over_with_cond l dup_namespace,
-  let s := s ++ if f.is_nil then "/- OK: No declarations have a duplicate namespace -/\n\n"
+  let s := s ++ if f.is_nil then "/- OK: No declarations have a duplicate namespace -/\n"
   else "/- Declarations with a namespace duplicated: -/" ++ f ++ "\n\n",
   return s
 

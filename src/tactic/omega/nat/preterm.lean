@@ -20,10 +20,10 @@ inductive preterm : Type
 | add : preterm → preterm → preterm
 | sub : preterm → preterm → preterm
 
-local notation `&` k := preterm.cst k
-local infix ` ** ` : 300 := preterm.var
-local notation t ` +* ` s := preterm.add t s
-local notation t ` -* ` s := preterm.sub t s
+localized "notation `&` k := omega.nat.preterm.cst k" in omega.nat
+localized "infix ` ** ` : 300 := omega.nat.preterm.var" in omega.nat
+localized "notation t ` +* ` s := omega.nat.preterm.add t s" in omega.nat
+localized "notation t ` -* ` s := omega.nat.preterm.sub t s" in omega.nat
 
 namespace preterm
 
@@ -107,7 +107,7 @@ def sub_free : preterm → Prop
 
 end preterm
 
-local notation as ` {` m ` ↦ ` a `}` := list.func.set a as m
+open_locale list.func -- get notation for list.func.set
 
 @[simp] def canonize : preterm → term
 | (& m)    := ⟨↑m, []⟩

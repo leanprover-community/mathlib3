@@ -47,7 +47,7 @@ open nat
 
 attribute [class] nat.prime
 
-local infix `/.`:70 := rat.mk
+open_locale rat
 
 open multiplicity
 

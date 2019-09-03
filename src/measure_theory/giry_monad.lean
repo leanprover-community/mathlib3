@@ -7,7 +7,7 @@ Giry monad: `measure` is a monad in the category of `measurable_space` and `meas
 -/
 import measure_theory.integration
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 
 open classical set lattice filter
 

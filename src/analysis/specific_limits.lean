@@ -9,7 +9,7 @@ import analysis.normed_space.basic
 import topology.instances.ennreal
 
 noncomputable theory
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 open classical function lattice filter finset metric
 

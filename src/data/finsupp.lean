@@ -78,7 +78,7 @@ lemma ext_iff {f g : α →₀ β} : f = g ↔ (∀a:α, f a = g a) :=
 
 -- TODO Since this file is mostly classical anyway, it's unclear if this is useful.
 -- In any case, it's no longer an instance.
-def decidable_eq [decidable_eq α] [decidable_eq β] : decidable_eq (α →₀ β) :=
+def finsupp.decidable_eq [decidable_eq α] [decidable_eq β] : decidable_eq (α →₀ β) :=
 assume f g, decidable_of_iff (f.support = g.support ∧ (∀a∈f.support, f a = g a))
   ⟨assume ⟨h₁, h₂⟩, ext $ assume a,
       if h : a ∈ f.support then h₂ a h else

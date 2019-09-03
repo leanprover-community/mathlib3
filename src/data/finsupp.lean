@@ -76,7 +76,9 @@ lemma ext_iff {f g : α →₀ β} : f = g ↔ (∀a:α, f a = g a) :=
 ⟨assume h, ext $ assume a, by_contradiction $ λ H, (finset.ext.1 h a).1 $
   mem_support_iff.2 H, by rintro rfl; refl⟩
 
-instance [decidable_eq α] [decidable_eq β] : decidable_eq (α →₀ β) :=
+-- TODO Since this file is mostly classical anyway, it's unclear if this is useful.
+-- In any case, it's no longer an instance.
+def decidable_eq [decidable_eq α] [decidable_eq β] : decidable_eq (α →₀ β) :=
 assume f g, decidable_of_iff (f.support = g.support ∧ (∀a∈f.support, f a = g a))
   ⟨assume ⟨h₁, h₂⟩, ext $ assume a,
       if h : a ∈ f.support then h₂ a h else
@@ -166,7 +168,7 @@ lemma single_eq_zero : single a b = 0 ↔ b = 0 :=
 ⟨λ h, by { rw ext_iff at h, simpa only [finsupp.single_eq_same, finsupp.zero_apply] using h a },
 λ h, by rw [h, single_zero]⟩
 
-lemma single_swap {α β : Type*} [decidable_eq α] [decidable_eq β] [has_zero β] (a₁ a₂ : α) (b : β) :
+lemma single_swap {α β : Type*} [has_zero β] (a₁ a₂ : α) (b : β) :
   (single a₁ b : α → β) a₂ = (single a₂ b : α → β) a₁ :=
 by simp [single_apply]; ac_refl
 
@@ -1452,7 +1454,7 @@ ext.2 $ λ a, by rw [finsupp.count_to_multiset, to_finsupp_apply]
 end multiset
 
 namespace finsupp
-variables {σ : Type*} [decidable_eq σ]
+variables {σ : Type*}
 
 instance [preorder α] [has_zero α] : preorder (σ →₀ α) :=
 { le := λ f g, ∀ s, f s ≤ g s,
@@ -1463,19 +1465,19 @@ instance [partial_order α] [has_zero α] : partial_order (σ →₀ α) :=
 { le_antisymm := λ f g hfg hgf, finsupp.ext $ λ s, le_antisymm (hfg s) (hgf s),
   .. finsupp.preorder }
 
-instance [ordered_cancel_comm_monoid α] [decidable_eq α] :
+instance [ordered_cancel_comm_monoid α] :
   add_left_cancel_semigroup (σ →₀ α) :=
 { add_left_cancel := λ a b c h, finsupp.ext $ λ s,
   by { rw finsupp.ext_iff at h, exact add_left_cancel (h s) },
   .. finsupp.add_monoid }
 
-instance [ordered_cancel_comm_monoid α] [decidable_eq α] :
+instance [ordered_cancel_comm_monoid α] :
   add_right_cancel_semigroup (σ →₀ α) :=
 { add_right_cancel := λ a b c h, finsupp.ext $ λ s,
   by { rw finsupp.ext_iff at h, exact add_right_cancel (h s) },
   .. finsupp.add_monoid }
 
-instance [ordered_cancel_comm_monoid α] [decidable_eq α] :
+instance [ordered_cancel_comm_monoid α] :
   ordered_cancel_comm_monoid (σ →₀ α) :=
 { add_le_add_left := λ a b h c s, add_le_add_left (h s) (c s),
   le_of_add_le_add_left := λ a b c h s, le_of_add_le_add_left (h s),
@@ -1493,12 +1495,12 @@ attribute [simp] to_multiset_zero to_multiset_add
   f.to_multiset.to_finsupp = f :=
 ext $ λ s, by rw [multiset.to_finsupp_apply, count_to_multiset]
 
-lemma to_multiset_strict_mono : strict_mono (@to_multiset σ _) :=
+lemma to_multiset_strict_mono : strict_mono (@to_multiset σ) :=
 λ m n h,
 begin
   rw lt_iff_le_and_ne at h ⊢, cases h with h₁ h₂,
   split,
-  { rw multiset.le_iff_count, intro s, rw [count_to_multiset, count_to_multiset], exact h₁ s },
+  { rw multiset.le_iff_count, intro s, erw [count_to_multiset m s, count_to_multiset], exact h₁ s },
   { intro H, apply h₂, replace H := congr_arg multiset.to_finsupp H, simpa using H }
 end
 

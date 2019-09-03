@@ -289,12 +289,6 @@ instance [subsingleton α] : comm_ring (free_ring α) :=
   .. free_ring.ring α }
 
 end free_ring
---set_option pp.all true
-#check free_comm_ring.of
-#check ((free_abelian_group.of (0 : multiset α)) : free_comm_ring α)
-
---example : (free_comm_ring.of α) = ((free_abelian_group.of (0 : multiset α)) : free_comm_ring α) :=
---  sorry
 
 def free_comm_ring_equiv_mv_polynomial_int :
   free_comm_ring α ≃r mv_polynomial α ℤ :=

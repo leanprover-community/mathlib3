@@ -791,8 +791,12 @@ mk_le_of_surjective quot.exists_rep
 theorem mk_quotient_le {α : Type u} {s : setoid α} : mk (quotient s) ≤ mk α :=
 mk_quot_le
 
-theorem mk_subtype_le {α : Type u} {s : set α} : mk s ≤ mk α :=
-mk_le_of_injective subtype.val_injective
+theorem mk_subtype_le {α : Type u} (p : α → Prop) : mk (subtype p) ≤ mk α :=
+⟨embedding.subtype p⟩
+
+theorem mk_subtype_le_of_subset {α : Type u} {p q : α → Prop} (h : ∀ ⦃x⦄, p x → q x) :
+  mk (subtype p) ≤ mk (subtype q) :=
+⟨embedding.subtype_map (embedding.refl α) h⟩
 
 @[simp] theorem mk_emptyc (α : Type u) : mk (∅ : set α) = 0 :=
 quotient.sound ⟨equiv.set.pempty α⟩
@@ -861,7 +865,7 @@ lemma mk_subtype_mono {p q : α → Prop} (h : ∀x, p x → q x) : mk {x // p x
 ⟨embedding_of_subset h⟩
 
 lemma mk_set_le (s : set α) : mk s ≤ mk α :=
-⟨⟨subtype.val, subtype.val_injective⟩⟩
+mk_subtype_le s
 
 lemma mk_image_eq_lift {α : Type u} {β : Type v} (f : α → β) (s : set α) (h : injective f) :
   lift.{v u} (mk (f '' s)) = lift.{u v} (mk s) :=

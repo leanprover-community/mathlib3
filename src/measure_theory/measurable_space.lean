@@ -514,7 +514,7 @@ measurable_space.comap_le_iff_le_map.1 $ lattice.le_supr _ a
 
 lemma measurable_pi_lambda {α : Type u} {β : α → Type v} {γ : Type w}
   [Πa, measurable_space (β a)] [measurable_space γ]
-  (f : γ → Πa, β a) (hf : ∀a, measurable (λc, f c a)):
+  (f : γ → Πa, β a) (hf : ∀a, measurable (λc, f c a)) :
   measurable f :=
 lattice.supr_le $ assume a, measurable_space.comap_le_iff_le_map.2 (hf a)
 

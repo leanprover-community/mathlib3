@@ -90,7 +90,7 @@ do
 /-- Auxilliary definition for `check_unused_arguments` -/
 meta def check_unused_arguments_aux : list ℕ → ℕ → ℕ → expr → list ℕ | l n n_max e :=
 if n > n_max then l else
-if ¬is_lambda e && ¬is_pi e then l else
+if (¬is_lambda e) && ¬is_pi e then l else
   let b := e.binding_body in
   let l' := if b.has_var_idx 0 then l else n :: l in check_unused_arguments_aux l' (n+1) n_max b
 

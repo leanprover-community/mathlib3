@@ -10,9 +10,9 @@ bounded linear map between Banach spaces has a bounded inverse.
 -/
 
 import topology.metric_space.baire analysis.normed_space.bounded_linear_maps
-local attribute [instance] classical.prop_decidable
 
 open function metric set filter finset
+open_locale classical
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [complete_space E] [normed_space 𝕜 E]

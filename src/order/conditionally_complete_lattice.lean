@@ -596,7 +596,7 @@ end conditionally_complete_linear_order_bot
 
 section
 
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 noncomputable instance : has_Inf ℕ :=
 ⟨λs, if h : ∃n, n ∈ s then @nat.find (λn, n ∈ s) _ h else 0⟩
@@ -637,7 +637,7 @@ end lattice /-end of namespace lattice-/
 
 namespace with_top
 open lattice
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 variables [conditionally_complete_linear_order_bot α]
 

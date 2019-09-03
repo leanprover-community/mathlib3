@@ -7,7 +7,7 @@ Measurable spaces -- σ-algberas
 -/
 import data.set.disjointed order.galois_connection data.set.countable
 open set lattice encodable
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x} {ι : Sort x}

@@ -10,10 +10,10 @@ import data.real.basic order.lattice algebra.field
 noncomputable theory
 open lattice
 
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 def nnreal := {r : ℝ // 0 ≤ r}
-local notation ` ℝ≥0 ` := nnreal
+localized "notation ` ℝ≥0 ` := nnreal" in nnreal
 
 namespace nnreal
 

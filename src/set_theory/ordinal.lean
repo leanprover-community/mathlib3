@@ -11,7 +11,7 @@ import order.order_iso set_theory.cardinal data.sum
 noncomputable theory
 
 open function cardinal set
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 universes u v w
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -880,6 +880,8 @@ theorem lt_lift_iff {a : ordinal.{u}} {b : ordinal.{max u v}} :
 
 /-- `ω` is the first infinite ordinal, defined as the order type of `ℕ`. -/
 def omega : ordinal.{u} := lift $ @type ℕ (<) _
+
+localized "notation `ω` := ordinal.omega.{0}" in ordinal
 
 theorem card_omega : card omega = cardinal.omega := rfl
 

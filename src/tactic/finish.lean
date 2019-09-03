@@ -111,7 +111,7 @@ variable  {α : Type u}
 variables (p q : Prop)
 variable  (s : α → Prop)
 
-local attribute [instance] classical.prop_decidable
+local attribute [instance, priority 1] classical.prop_decidable
 theorem not_not_eq : (¬ ¬ p) = p := propext not_not
 theorem not_and_eq : (¬ (p ∧ q)) = (¬ p ∨ ¬ q) := propext not_and_distrib
 theorem not_or_eq : (¬ (p ∨ q)) = (¬ p ∧ ¬ q) := propext not_or_distrib

@@ -439,6 +439,10 @@ instance finset.fintype [fintype α] : fintype (finset α) :=
 instance subtype.fintype [fintype α] (p : α → Prop) [decidable_pred p] : fintype {x // p x} :=
 set_fintype _
 
+theorem fintype.card_subtype_le [fintype α] (p : α → Prop) [decidable_pred p] :
+  fintype.card {x // p x} ≤ fintype.card α :=
+by rw fintype.subtype_card; exact card_le_of_subset (subset_univ _)
+
 instance psigma.fintype {α : Type*} {β : α → Type*} [fintype α] [∀ a, fintype (β a)] :
   fintype (Σ' a, β a) :=
 fintype.of_equiv _ (equiv.psigma_equiv_sigma _).symm

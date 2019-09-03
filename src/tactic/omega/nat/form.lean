@@ -20,11 +20,11 @@ inductive form
 | or  : form → form → form
 | and : form → form → form
 
-local notation x ` =* ` y := form.eq x y
-local notation x ` ≤* ` y := form.le x y
-local notation `¬* ` p   := form.not p
-local notation p ` ∨* ` q := form.or p q
-local notation p ` ∧* ` q := form.and p q
+localized "notation x ` =* ` y := omega.nat.form.eq x y" in omega.nat
+localized "notation x ` ≤* ` y := omega.nat.form.le x y" in omega.nat
+localized "notation `¬* ` p   := omega.nat.form.not p" in omega.nat
+localized "notation p ` ∨* ` q := omega.nat.form.or p q" in omega.nat
+localized "notation p ` ∧* ` q := omega.nat.form.and p q" in omega.nat
 
 namespace form
 

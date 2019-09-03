@@ -1068,6 +1068,8 @@ open_locale namespace1 namespace2 ...
 ```
 localized "attribute [simp] le_refl" in le
 ```
+* Warning 1: as a limitation on user commands, you cannot put `open_locale` directly after your imports. You have to write another command first (e.g. `open`, `namespace`, `universe variables`, `noncomputable theory`, `run_cmd tactic.skip`, ...).
+* Warning 2: You have to fully specify the names used in localized notation, so that the localized notation also works when the appropriate namespaces are not opened.
 
 ### swap
 

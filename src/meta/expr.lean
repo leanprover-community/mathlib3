@@ -330,13 +330,13 @@ meta def is_axiom : declaration → bool
 
 /-- Checks whether a declaration is automatically generated in the environment -/
 meta def is_auto_generated (e : environment) (d : declaration) : bool :=
-e.is_constructor d.to_name ||
-(e.is_projection d.to_name).is_some ||
-(e.is_constructor d.to_name.get_prefix &&
-  (d.to_name.last ∈ ["inj", "inj_eq", "sizeof_spec", "inj_arrow"] : Prop)) ||
-(e.is_inductive d.to_name.get_prefix &&
-  (d.to_name.last ∈ ["below", "binduction_on", "brec_on", "cases_on", "dcases_on", "drec_on", "drec",
-  "rec", "rec_on", "no_confusion", "no_confusion_type", "sizeof", "ibelow", "has_sizeof_inst"] : Prop))
+e.is_constructor d.to_name ∨
+(e.is_projection d.to_name).is_some ∨
+(e.is_constructor d.to_name.get_prefix ∧
+  d.to_name.last ∈ ["inj", "inj_eq", "sizeof_spec", "inj_arrow"]) ∨
+(e.is_inductive d.to_name.get_prefix ∧
+  d.to_name.last ∈ ["below", "binduction_on", "brec_on", "cases_on", "dcases_on", "drec_on", "drec",
+  "rec", "rec_on", "no_confusion", "no_confusion_type", "sizeof", "ibelow", "has_sizeof_inst"])
 
 end declaration
 

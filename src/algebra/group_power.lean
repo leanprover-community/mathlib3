@@ -41,15 +41,12 @@ variables [monoid α] {β : Type u} [add_monoid β]
 
 @[simp] theorem pow_zero (a : α) : a^0 = 1 := rfl
 @[simp] theorem add_monoid.zero_smul (a : β) : 0 • a = 0 := rfl
-attribute [to_additive add_monoid.zero_smul] pow_zero
 
 theorem pow_succ (a : α) (n : ℕ) : a^(n+1) = a * a^n := rfl
 theorem succ_smul (a : β) (n : ℕ) : (n+1)•a = a + n•a := rfl
-attribute [to_additive succ_smul] pow_succ
 
 @[simp] theorem pow_one (a : α) : a^1 = a := mul_one _
 @[simp] theorem add_monoid.one_smul (a : β) : 1•a = a := add_zero _
-attribute [to_additive add_monoid.one_smul] pow_one
 
 theorem pow_mul_comm' (a : α) (n : ℕ) : a^n * a = a * a^n :=
 by induction n with n ih; [rw [pow_zero, one_mul, mul_one],
@@ -61,63 +58,53 @@ theorem pow_succ' (a : α) (n : ℕ) : a^(n+1) = a^n * a :=
 by rw [pow_succ, pow_mul_comm']
 theorem succ_smul' (a : β) (n : ℕ) : (n+1)•a = n•a + a :=
 by rw [succ_smul, smul_add_comm']
-attribute [to_additive succ_smul'] pow_succ'
 
 theorem pow_two (a : α) : a^2 = a * a :=
 show a*(a*1)=a*a, by rw mul_one
 theorem two_smul (a : β) : 2•a = a + a :=
 show a+(a+0)=a+a, by rw add_zero
-attribute [to_additive two_smul] pow_two
 
 theorem pow_add (a : α) (m n : ℕ) : a^(m + n) = a^m * a^n :=
 by induction n with n ih; [rw [add_zero, pow_zero, mul_one],
   rw [pow_succ, ← pow_mul_comm', ← mul_assoc, ← ih, ← pow_succ']]; refl
 theorem add_monoid.add_smul : ∀ (a : β) (m n : ℕ), (m + n)•a = m•a + n•a :=
 @pow_add (multiplicative β) _
-attribute [to_additive add_monoid.add_smul] pow_add
 
 @[simp] theorem one_pow (n : ℕ) : (1 : α)^n = (1:α) :=
 by induction n with n ih; [refl, rw [pow_succ, ih, one_mul]]
 @[simp] theorem add_monoid.smul_zero (n : ℕ) : n•(0 : β) = (0:β) :=
 by induction n with n ih; [refl, rw [succ_smul, ih, zero_add]]
-attribute [to_additive add_monoid.smul_zero] one_pow
 
 theorem pow_mul (a : α) (m n : ℕ) : a^(m * n) = (a^m)^n :=
 by induction n with n ih; [rw mul_zero, rw [nat.mul_succ, pow_add, pow_succ', ih]]; refl
 theorem add_monoid.mul_smul' : ∀ (a : β) (m n : ℕ), m * n • a = n•(m•a) :=
 @pow_mul (multiplicative β) _
-attribute [to_additive add_monoid.mul_smul'] pow_mul
 
 theorem pow_mul' (a : α) (m n : ℕ) : a^(m * n) = (a^n)^m :=
 by rw [mul_comm, pow_mul]
 theorem add_monoid.mul_smul (a : β) (m n : ℕ) : m * n • a = m•(n•a) :=
 by rw [mul_comm, add_monoid.mul_smul']
-attribute [to_additive add_monoid.mul_smul] pow_mul'
 
 @[simp] theorem add_monoid.smul_one [has_one β] : ∀ n : ℕ, n • (1 : β) = n :=
 nat.eq_cast _ (add_monoid.zero_smul _) (add_monoid.one_smul _) (add_monoid.add_smul _)
 
 theorem pow_bit0 (a : α) (n : ℕ) : a ^ bit0 n = a^n * a^n := pow_add _ _ _
 theorem bit0_smul (a : β) (n : ℕ) : bit0 n • a = n•a + n•a := add_monoid.add_smul _ _ _
-attribute [to_additive bit0_smul] pow_bit0
 
 theorem pow_bit1 (a : α) (n : ℕ) : a ^ bit1 n = a^n * a^n * a :=
 by rw [bit1, pow_succ', pow_bit0]
 theorem bit1_smul : ∀ (a : β) (n : ℕ), bit1 n • a = n•a + n•a + a :=
 @pow_bit1 (multiplicative β) _
-attribute [to_additive bit1_smul] pow_bit1
 
 theorem pow_mul_comm (a : α) (m n : ℕ) : a^m * a^n = a^n * a^m :=
 by rw [←pow_add, ←pow_add, add_comm]
 theorem smul_add_comm : ∀ (a : β) (m n : ℕ), m•a + n•a = n•a + m•a :=
 @pow_mul_comm (multiplicative β) _
-attribute [to_additive smul_add_comm] pow_mul_comm
 
 @[simp] theorem list.prod_repeat (a : α) (n : ℕ) : (list.repeat a n).prod = a ^ n :=
 by induction n with n ih; [refl, rw [list.repeat_succ, list.prod_cons, ih]]; refl
 @[simp] theorem list.sum_repeat : ∀ (a : β) (n : ℕ), (list.repeat a n).sum = n • a :=
 @list.prod_repeat (multiplicative β) _
-attribute [to_additive list.sum_repeat] list.prod_repeat
 
 @[simp] lemma units.coe_pow (u : units α) (n : ℕ) : ((u ^ n : units α) : α) = u ^ n :=
 by induction n; simp [*, pow_succ]
@@ -142,8 +129,6 @@ theorem map_smul (a : α) : ∀(n : ℕ), f (n • a) = n • (f a)
 
 end is_add_monoid_hom
 
-attribute [to_additive is_add_monoid_hom.map_smul] is_monoid_hom.map_pow
-
 @[simp] theorem nat.pow_eq_pow (p q : ℕ) :
   @has_pow.pow _ _ monoid.has_pow p q = p ^ q :=
 by induction q with q ih; [refl, rw [nat.pow_succ, pow_succ, mul_comm, ih]]
@@ -162,15 +147,12 @@ by induction n with n ih; [exact (mul_one _).symm,
   simp only [pow_succ, ih, mul_assoc, mul_left_comm]]
 theorem add_monoid.smul_add : ∀ (a b : β) (n : ℕ), n•(a + b) = n•a + n•b :=
 @mul_pow (multiplicative β) _
-attribute [to_additive add_monoid.add_smul] mul_pow
 
 instance pow.is_monoid_hom (n : ℕ) : is_monoid_hom ((^ n) : α → α) :=
 { map_mul := λ _ _, mul_pow _ _ _, map_one := one_pow _ }
 
 instance add_monoid.smul.is_add_monoid_hom (n : ℕ) : is_add_monoid_hom (add_monoid.smul n : β → β) :=
 { map_add := λ _ _, add_monoid.smul_add _ _ _, map_zero := add_monoid.smul_zero _ }
-
-attribute [to_additive add_monoid.smul.is_add_monoid_hom] pow.is_monoid_hom
 
 end comm_monoid
 
@@ -184,7 +166,6 @@ by induction n with n ih; [exact one_inv.symm,
   rw [pow_succ', pow_succ, ih, mul_inv_rev]]
 @[simp] theorem add_monoid.neg_smul : ∀ (a : β) (n : ℕ), n•(-a) = -(n•a) :=
 @inv_pow (multiplicative β) _
-attribute [to_additive add_monoid.neg_smul] inv_pow
 
 theorem pow_sub (a : α) {m n : ℕ} (h : m ≥ n) : a^(m - n) = a^m * (a^n)⁻¹ :=
 have h1 : m - n + n = m, from nat.sub_add_cancel h,
@@ -192,13 +173,11 @@ have h2 : a^(m - n) * a^n = a^m, by rw [←pow_add, h1],
 eq_mul_inv_of_mul_eq h2
 theorem add_monoid.smul_sub : ∀ (a : β) {m n : ℕ}, m ≥ n → (m - n)•a = m•a - n•a :=
 @pow_sub (multiplicative β) _
-attribute [to_additive add_monoid.smul_sub] inv_pow
 
 theorem pow_inv_comm (a : α) (m n : ℕ) : (a⁻¹)^m * a^n = a^n * (a⁻¹)^m :=
 by rw inv_pow; exact inv_comm_of_comm (pow_mul_comm _ _ _)
 theorem add_monoid.smul_neg_comm : ∀ (a : β) (m n : ℕ), m•(-a) + n•a = n•a + m•(-a) :=
 @pow_inv_comm (multiplicative β) _
-attribute [to_additive add_monoid.smul_neg_comm] pow_inv_comm
 end nat
 
 open int
@@ -221,33 +200,27 @@ local infix ` •ℕ `:70 := add_monoid.smul
 
 @[simp] theorem gpow_coe_nat (a : α) (n : ℕ) : a ^ (n:ℤ) = a ^ n := rfl
 @[simp] theorem gsmul_coe_nat (a : β) (n : ℕ) : (n:ℤ) • a = n •ℕ a := rfl
-attribute [to_additive gsmul_coe_nat] gpow_coe_nat
 
 @[simp] theorem gpow_of_nat (a : α) (n : ℕ) : a ^ of_nat n = a ^ n := rfl
 @[simp] theorem gsmul_of_nat (a : β) (n : ℕ) : of_nat n • a = n •ℕ a := rfl
-attribute [to_additive gsmul_of_nat] gpow_of_nat
 
 @[simp] theorem gpow_neg_succ (a : α) (n : ℕ) : a ^ -[1+n] = (a ^ n.succ)⁻¹ := rfl
 @[simp] theorem gsmul_neg_succ (a : β) (n : ℕ) : -[1+n] • a = - (n.succ •ℕ a) := rfl
-attribute [to_additive gsmul_neg_succ] gpow_neg_succ
 
 local attribute [ematch] le_of_lt
 open nat
 
 @[simp] theorem gpow_zero (a : α) : a ^ (0:ℤ) = 1 := rfl
 @[simp] theorem zero_gsmul (a : β) : (0:ℤ) • a = 0 := rfl
-attribute [to_additive zero_gsmul] gpow_zero
 
 @[simp] theorem gpow_one (a : α) : a ^ (1:ℤ) = a := mul_one _
 @[simp] theorem one_gsmul (a : β) : (1:ℤ) • a = a := add_zero _
-attribute [to_additive one_gsmul] gpow_one
 
 @[simp] theorem one_gpow : ∀ (n : ℤ), (1 : α) ^ n = 1
 | (n : ℕ) := one_pow _
 | -[1+ n] := show _⁻¹=(1:α), by rw [_root_.one_pow, one_inv]
 @[simp] theorem gsmul_zero : ∀ (n : ℤ), n • (0 : β) = 0 :=
 @one_gpow (multiplicative β) _
-attribute [to_additive gsmul_zero] one_gpow
 
 @[simp] theorem gpow_neg (a : α) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
 | (n+1:ℕ) := rfl
@@ -256,11 +229,9 @@ attribute [to_additive gsmul_zero] one_gpow
 
 @[simp] theorem neg_gsmul : ∀ (a : β) (n : ℤ), -n • a = -(n • a) :=
 @gpow_neg (multiplicative β) _
-attribute [to_additive neg_gsmul] gpow_neg
 
 theorem gpow_neg_one (x : α) : x ^ (-1:ℤ) = x⁻¹ := congr_arg has_inv.inv $ pow_one x
 theorem neg_one_gsmul (x : β) : (-1:ℤ) • x = -x := congr_arg has_neg.neg $ add_monoid.one_smul x
-attribute [to_additive neg_one_gsmul] gpow_neg_one
 
 theorem inv_gpow (a : α) : ∀n:ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
 | (n : ℕ) := inv_pow a n
@@ -297,19 +268,16 @@ theorem gpow_add_one (a : α) (i : ℤ) : a ^ (i + 1) = a ^ i * a :=
 by rw [gpow_add, gpow_one]
 theorem add_one_gsmul : ∀ (a : β) (i : ℤ), (i + 1) • a = i • a + a :=
 @gpow_add_one (multiplicative β) _
-attribute [to_additive add_one_gsmul] gpow_add_one
 
 theorem gpow_one_add (a : α) (i : ℤ) : a ^ (1 + i) = a * a ^ i :=
 by rw [gpow_add, gpow_one]
 theorem one_add_gsmul : ∀ (a : β) (i : ℤ), (1 + i) • a = a + i • a :=
 @gpow_one_add (multiplicative β) _
-attribute [to_additive one_add_gsmul] gpow_one_add
 
 theorem gpow_mul_comm (a : α) (i j : ℤ) : a ^ i * a ^ j = a ^ j * a ^ i :=
 by rw [← gpow_add, ← gpow_add, add_comm]
 theorem gsmul_add_comm : ∀ (a : β) (i j), i • a + j • a = j • a + i • a :=
 @gpow_mul_comm (multiplicative β) _
-attribute [to_additive gsmul_add_comm] gpow_mul_comm
 
 theorem gpow_mul (a : α) : ∀ m n : ℤ, a ^ (m * n) = (a ^ m) ^ n
 | (m : ℕ) (n : ℕ) := pow_mul _ _ _
@@ -321,23 +289,19 @@ theorem gpow_mul (a : α) : ∀ m n : ℤ, a ^ (m * n) = (a ^ m) ^ n
   show _ = (_⁻¹^_)⁻¹, by rw [inv_pow, inv_inv]
 theorem gsmul_mul' : ∀ (a : β) (m n : ℤ), m * n • a = n • (m • a) :=
 @gpow_mul (multiplicative β) _
-attribute [to_additive gsmul_mul'] gpow_mul
 
 theorem gpow_mul' (a : α) (m n : ℤ) : a ^ (m * n) = (a ^ n) ^ m :=
 by rw [mul_comm, gpow_mul]
 theorem gsmul_mul (a : β) (m n : ℤ) : m * n • a = m • (n • a) :=
 by rw [mul_comm, gsmul_mul']
-attribute [to_additive gsmul_mul] gpow_mul'
 
 theorem gpow_bit0 (a : α) (n : ℤ) : a ^ bit0 n = a ^ n * a ^ n := gpow_add _ _ _
 theorem bit0_gsmul (a : β) (n : ℤ) : bit0 n • a = n • a + n • a := gpow_add _ _ _
-attribute [to_additive bit0_gsmul] gpow_bit0
 
 theorem gpow_bit1 (a : α) (n : ℤ) : a ^ bit1 n = a ^ n * a ^ n * a :=
 by rw [bit1, gpow_add]; simp [gpow_bit0]
 theorem bit1_gsmul : ∀ (a : β) (n : ℤ), bit1 n • a = n • a + n • a + a :=
 @gpow_bit1 (multiplicative β) _
-attribute [to_additive bit1_gsmul] gpow_bit1
 
 theorem gsmul_neg (a : β) (n : ℤ) : gsmul n (- a) = - gsmul n a :=
 begin
@@ -347,7 +311,6 @@ begin
   { rw [sub_eq_add_neg, add_comm] {occs := occurrences.pos [1]},
     simp [ih, add_gsmul, neg_gsmul, -add_comm] }
 end
-attribute [to_additive gsmul_neg] gpow_neg
 
 end group
 
@@ -384,7 +347,6 @@ theorem mul_gpow (a b : α) : ∀ n:ℤ, (a * b)^n = a^n * b^n
 | -[1+ n] := show _⁻¹=_⁻¹*_⁻¹, by rw [mul_pow, mul_inv_rev, mul_comm]
 theorem gsmul_add : ∀ (a b : β) (n : ℤ), n •ℤ (a + b) = n •ℤ a + n •ℤ b :=
 @mul_gpow (multiplicative β) _
-attribute [to_additive gsmul_add] mul_gpow
 
 theorem gsmul_sub : ∀ (a b : β) (n : ℤ), gsmul n (a - b) = gsmul n a - gsmul n b :=
 by simp [gsmul_add, gsmul_neg]
@@ -394,8 +356,6 @@ instance gpow.is_group_hom (n : ℤ) : is_group_hom ((^ n) : α → α) :=
 
 instance gsmul.is_add_group_hom (n : ℤ) : is_add_group_hom (gsmul n : β → β) :=
 { map_add := λ _ _, gsmul_add _ _ n }
-
-attribute [to_additive gsmul.is_add_group_hom] gpow.is_group_hom
 
 end comm_monoid
 
@@ -503,6 +463,9 @@ theorem add_monoid.smul_nonneg [ordered_comm_monoid α] {a : α} (H : 0 ≤ a) :
 lemma pow_abs [decidable_linear_ordered_comm_ring α] (a : α) (n : ℕ) : (abs a)^n = abs (a^n) :=
 by induction n with n ih; [exact (abs_one).symm,
   rw [pow_succ, pow_succ, ih, abs_mul]]
+
+lemma abs_neg_one_pow [decidable_linear_ordered_comm_ring α] (n : ℕ) : abs ((-1 : α)^n) = 1 :=
+by rw [←pow_abs, abs_neg, abs_one, one_pow]
 
 lemma inv_pow' [discrete_field α] (a : α) (n : ℕ) : (a ^ n)⁻¹ = a⁻¹ ^ n :=
 by induction n; simp [*, pow_succ, mul_inv', mul_comm]

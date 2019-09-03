@@ -2,13 +2,34 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl, Mario Carneiro
-
-Cardinal arithmetic.
-
-Cardinals are represented as quotient over equinumerous types.
 -/
 
 import data.set.countable data.quot logic.function set_theory.schroeder_bernstein
+
+/-!
+# Cardinal Numbers
+
+We define cardinal numbers as a quotient of types under the equivalence relation of equinumerity.
+We define the order on cardinal numbers, define omega, and do basic cardinal arithmetic:
+  addition, multiplication, power, cardinal successor, minimum, supremum,
+    infinitary sums and products
+
+## Implementation notes
+
+* There is a type of cardinal numbers in every universe level: `cardinal.{u} : Type (u + 1)`
+  is the quotient of types in `Type u`.
+  There is a lift operation lifting cardinal numbers to a higher level.
+* Cardinal arithmetic specifically for infinite cardinals (like `κ * κ = κ`) is in the file
+  `set_theory/ordinal.lean`, because concepts from that file are used in the proof.
+
+## References
+
+* https://en.wikipedia.org/wiki/Cardinal_number
+
+## Tags
+
+cardinal number, cardinal arithmetic, cardinal exponentiation, omega
+-/
 
 open function lattice set
 local attribute [instance] classical.prop_decidable
@@ -16,6 +37,9 @@ local attribute [instance] classical.prop_decidable
 universes u v w x
 variables {α β : Type u}
 
+/-- The equivalence relation on types given by equivalence (bijective correspondence) of types.
+  Quotienting by this equivalence relation gives the cardinal numbers.
+-/
 instance cardinal.is_equivalent : setoid (Type u) :=
 { r := λα β, nonempty (α ≃ β),
   iseqv := ⟨λα,
@@ -30,13 +54,15 @@ def cardinal : Type (u + 1) := quotient cardinal.is_equivalent
 
 namespace cardinal
 
-/-- The cardinal of a type -/
+/-- The cardinal number of a type -/
 def mk : Type u → cardinal := quotient.mk
 
 @[simp] theorem mk_def (α : Type u) : @eq cardinal ⟦α⟧ (mk α) := rfl
 
 @[simp] theorem mk_out (c : cardinal) : mk (c.out) = c := quotient.out_eq _
 
+/-- We define the order on cardinal numbers by `mk α ≤ mk β` if and only if
+  there exists an embedding (injective function) from α to β. -/
 instance : has_le cardinal.{u} :=
 ⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, nonempty $ α ↪ β) $
   assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
@@ -185,6 +211,11 @@ theorem power_mul {a b c : cardinal} : (a ^ b) ^ c = a ^ (b * c) :=
 by rw [_root_.mul_comm b c];
 from (quotient.induction_on₃ a b c $ assume α β γ,
   quotient.sound ⟨equiv.arrow_arrow_equiv_prod_arrow γ β α⟩)
+
+@[simp] lemma pow_cast_right (κ : cardinal.{u}) :
+  ∀ n : ℕ, (κ ^ (↑n : cardinal.{u})) = @has_pow.pow _ _ monoid.has_pow κ n
+| 0 := by simp
+| (_+1) := by rw [nat.cast_succ, power_add, power_one, _root_.mul_comm, pow_succ, pow_cast_right]
 
 section order_properties
 open sum
@@ -401,7 +432,8 @@ end
 theorem prod_eq_zero {ι} (f : ι → cardinal) : prod f = 0 ↔ ∃ i, f i = 0 :=
 not_iff_not.1 $ by simpa using prod_ne_zero f
 
-/-- The universe lift operation on cardinals -/
+/-- The universe lift operation on cardinals. You can specify the universes explicitly with
+  `lift.{u v} : cardinal.{u} → cardinal.{max u v}` -/
 def lift (c : cardinal.{u}) : cardinal.{max u v} :=
 quotient.lift_on c (λ α, ⟦ulift α⟧) $ λ α β ⟨e⟩,
 quotient.sound ⟨equiv.ulift.trans $ e.trans equiv.ulift.symm⟩
@@ -505,6 +537,20 @@ calc lift.{u (max v w)} a = lift.{v (max u w)} b
     = lift.{(max u v) w} (lift.{v u} b) : by simp
   ... ↔ lift.{u v} a = lift.{v u} b : lift_inj
 
+theorem mk_prod {α : Type u} {β : Type v} :
+  mk (α × β) = lift.{u v} (mk α) * lift.{v u} (mk β) :=
+quotient.sound ⟨equiv.prod_congr (equiv.ulift).symm (equiv.ulift).symm⟩
+
+theorem sum_const_eq_lift_mul (ι : Type u) (a : cardinal.{v}) :
+  sum (λ _:ι, a) = lift.{u v} (mk ι) * lift.{v u} a :=
+begin
+  apply quotient.induction_on a,
+  intro α,
+  simp only [cardinal.mk_def, cardinal.sum_mk, cardinal.lift_id],
+  convert mk_prod using 1,
+  exact quotient.sound ⟨equiv.sigma_equiv_prod ι α⟩,
+end
+
 /-- `ω` is the smallest infinite cardinal, also known as ℵ₀. -/
 def omega : cardinal.{u} := lift (mk ℕ)
 
@@ -540,10 +586,10 @@ begin
   rw [cardinal.fintype_card, fintype.card_coe]
 end
 
-@[simp] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
+@[simp, elim_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
 by induction n; simp [nat.pow_succ, -_root_.add_comm, power_add, *]
 
-@[simp] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
+@[simp, elim_cast] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
 by rw [← lift_mk_fin, ← lift_mk_fin, lift_le]; exact
 ⟨λ ⟨⟨f, hf⟩⟩, begin
   have : _ = fintype.card _ := finset.card_image_of_injective finset.univ hf,
@@ -554,13 +600,13 @@ end,
 λ h, ⟨⟨λ i, ⟨i.1, lt_of_lt_of_le i.2 h⟩, λ a b h,
   have _, from fin.veq_of_eq h, fin.eq_of_veq this⟩⟩⟩
 
-@[simp] theorem nat_cast_lt {m n : ℕ} : (m : cardinal) < n ↔ m < n :=
+@[simp, elim_cast] theorem nat_cast_lt {m n : ℕ} : (m : cardinal) < n ↔ m < n :=
 by simp [lt_iff_le_not_le, -not_le]
 
-@[simp] theorem nat_cast_inj {m n : ℕ} : (m : cardinal) = n ↔ m = n :=
+@[simp, elim_cast] theorem nat_cast_inj {m n : ℕ} : (m : cardinal) = n ↔ m = n :=
 by simp [le_antisymm_iff]
 
-@[simp] theorem nat_succ (n : ℕ) : succ n = n.succ :=
+@[simp, elim_cast] theorem nat_succ (n : ℕ) : succ n = n.succ :=
 le_antisymm (succ_le.2 $ nat_cast_lt.2 $ nat.lt_succ_self _) (add_one_le_succ _)
 
 @[simp] theorem succ_zero : succ 0 = 1 :=

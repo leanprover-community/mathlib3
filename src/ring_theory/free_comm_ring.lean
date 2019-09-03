@@ -265,21 +265,21 @@ end
 
 def subsingleton_equiv_free_comm_ring [subsingleton α] :
   free_ring α ≃r free_comm_ring α :=
-{ to_equiv := @functor.map_equiv _ _ free_abelian_group _ _ $ multiset.subsingleton_equiv α,
-  hom :=
+{ hom :=
   begin
     delta functor.map_equiv,
     rw congr_arg is_ring_hom _,
     work_on_goal 2 { symmetry, exact coe_eq α },
     apply_instance
-  end }
+  end,
+  ..@functor.map_equiv _ _ free_abelian_group _ _ $ multiset.subsingleton_equiv α }
 
 instance [subsingleton α] : comm_ring (free_ring α) :=
 { mul_comm := λ x y,
   by rw [← (subsingleton_equiv_free_comm_ring α).left_inv (y * x),
-        is_ring_hom.map_mul ((subsingleton_equiv_free_comm_ring α).to_equiv).to_fun,
+        is_ring_hom.map_mul ((subsingleton_equiv_free_comm_ring α)).to_fun,
         mul_comm,
-        ← is_ring_hom.map_mul ((subsingleton_equiv_free_comm_ring α).to_equiv).to_fun,
+        ← is_ring_hom.map_mul ((subsingleton_equiv_free_comm_ring α)).to_fun,
         (subsingleton_equiv_free_comm_ring α).left_inv],
   .. free_ring.ring α }
 

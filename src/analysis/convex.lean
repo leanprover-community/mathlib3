@@ -124,7 +124,7 @@ begin
         split,
         apply div_nonneg ; linarith,
         apply (div_le_iff this).2,
-        simp, convert hzb, ring},
+        simp, convert hzb },
       use [(z-a)/(b-a), this],
       rw [smul_eq_mul, div_mul_cancel],
       ring,
@@ -432,6 +432,17 @@ convex_halfspace_gt _ (is_linear_map.mk complex.add_im complex.smul_im) _
 lemma convex_halfspace_im_lge (r : ℝ) : convex {c : ℂ | r ≤ c.im} :=
 convex_halfspace_ge _ (is_linear_map.mk complex.add_im complex.smul_im) _
 
+section submodule
+
+open submodule
+
+lemma convex_submodule (K : submodule ℝ α) : convex (↑K : set α) :=
+by { repeat {intro}, refine add_mem _ (smul_mem _ _ _) (smul_mem _ _ _); assumption }
+
+lemma convex_subspace (K : subspace ℝ α) : convex (↑K : set α) := convex_submodule K
+
+end submodule
+
 lemma convex_sum {γ : Type*} (hA : convex A) (z : γ → α) (s : finset γ) :
   ∀ a : γ → ℝ, s.sum a = 1 → (∀ i ∈ s, 0 ≤ a i) → (∀ i ∈ s, z i ∈ A) → s.sum (λi, a i • z i) ∈ A :=
 begin
@@ -456,7 +467,7 @@ begin
         simp,
         exact hz k (finset.mem_insert_self k s) } },
     { have h_sum_nonneg : 0 ≤ s.sum a,
-      { apply finset.zero_le_sum',
+      { apply finset.sum_nonneg,
         intros i hi,
         apply ha _ (finset.mem_insert_of_mem hi) },
       have h_div_in_A: s.sum (λ (i : γ), ((s.sum a)⁻¹ * a i) • z i) ∈ A,
@@ -604,7 +615,7 @@ begin
       rw [finset.sum_insert hks, hak, finset.sum_eq_zero h_afz0],
       simp } },
   { have h_sum_nonneg : 0 ≤ s.sum a ,
-    { apply finset.zero_le_sum',
+    { apply finset.sum_nonneg,
       intros i hi,
       apply ha _ (finset.mem_insert_of_mem hi) },
     have ih_div: f (s.sum (λ (i : γ), ((s.sum a)⁻¹ * a i) • z i))

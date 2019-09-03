@@ -173,9 +173,11 @@ assume hps : is_supported (of p) s, begin
     { rintros _ ⟨z, hzs, rfl⟩ _ _, use 0, rw [lift_mul, lift_of, if_pos hzs, zero_mul], norm_cast },
     { rintros x y ⟨q, hq⟩ ⟨r, hr⟩, refine ⟨q+r, _⟩, rw [lift_add, hq, hr], norm_cast } },
   specialize this (of p) hps, rw [lift_of] at this, split_ifs at this, { exact h },
-  exfalso, apply int.zero_ne_one,
+  exfalso, apply ne.symm int.zero_ne_one,
   rcases this with ⟨w, H⟩, rw polynomial.int_cast_eq_C at H,
-  exact congr_arg (λ (f : polynomial ℤ), f.coeff 1) H.symm,
+  have : polynomial.X.coeff 1 = (polynomial.C ↑w).coeff 1, by rw H,
+  rwa [polynomial.coeff_C, if_neg one_ne_zero, polynomial.coeff_X, if_pos rfl] at this,
+  apply_instance
 end
 
 theorem map_subtype_val_restriction {x} (s : set α) [decidable_pred s] (hxs : is_supported x s) :
@@ -287,6 +289,12 @@ instance [subsingleton α] : comm_ring (free_ring α) :=
   .. free_ring.ring α }
 
 end free_ring
+--set_option pp.all true
+#check free_comm_ring.of
+#check ((free_abelian_group.of (0 : multiset α)) : free_comm_ring α)
+
+--example : (free_comm_ring.of α) = ((free_abelian_group.of (0 : multiset α)) : free_comm_ring α) :=
+--  sorry
 
 def free_comm_ring_equiv_mv_polynomial_int :
   free_comm_ring α ≃r mv_polynomial α ℤ :=
@@ -300,14 +308,17 @@ def free_comm_ring_equiv_mv_polynomial_int :
       @@is_ring_hom.is_semiring_hom _ _ _ (@@int.cast.is_ring_hom _),
     refine free_abelian_group.induction_on x rfl _ _ _,
     { intro s,
-      refine multiset.induction_on s rfl _,
-      intros hd tl ih,
-      show mv_polynomial.eval₂ coe free_comm_ring.of
-        (free_comm_ring.lift (λ a, mv_polynomial.X a)
-        (free_comm_ring.of hd * free_abelian_group.of tl)) =
-        free_comm_ring.of hd * free_abelian_group.of tl,
-      rw [free_comm_ring.lift_mul, free_comm_ring.lift_of,
-        mv_polynomial.eval₂_mul, mv_polynomial.eval₂_X, ih] },
+      refine multiset.induction_on s _ _,
+      { unfold free_comm_ring.lift,
+        rw [free_abelian_group.lift.of],
+        exact mv_polynomial.eval₂_one _ _ },
+      { intros hd tl ih,
+        show mv_polynomial.eval₂ coe free_comm_ring.of
+          (free_comm_ring.lift (λ a, mv_polynomial.X a)
+          (free_comm_ring.of hd * free_abelian_group.of tl)) =
+          free_comm_ring.of hd * free_abelian_group.of tl,
+        rw [free_comm_ring.lift_mul, free_comm_ring.lift_of,
+          mv_polynomial.eval₂_mul, mv_polynomial.eval₂_X, ih] } },
     { intros s ih,
       rw [free_comm_ring.lift_neg, ← neg_one_mul, mv_polynomial.eval₂_mul,
         ← mv_polynomial.C_1, ← mv_polynomial.C_neg, mv_polynomial.eval₂_C,

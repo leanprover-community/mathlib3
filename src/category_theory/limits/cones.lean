@@ -5,8 +5,7 @@ Authors: Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import category_theory.const
 import category_theory.yoneda
-import category_theory.concrete_category
-import category_theory.bundled_hom
+import category_theory.concrete_category.bundled_hom
 import category_theory.equivalence
 
 universes v u u' -- declare the `v`'s first; see `category_theory.category` for an explanation

@@ -60,7 +60,8 @@ inductive relation : prequotient F → prequotient F → Prop
 | symm : Π (x y) (h : relation x y), relation y x
 | trans : Π (x y z) (h : relation x y) (k : relation y z), relation x z
 -- There's always a `map` relation
-| map : Π (j j' : J) (f : j ⟶ j') (x : (F.obj j).α), relation (of j' ((F.map f) x)) (of j x)
+| map : Π (j j' : J) (f : j ⟶ j') (x : (F.obj j).α),
+      relation (of j' ((@coe_fn _ ring_hom.has_coe_to_fun $ F.map f) x)) (of j x)
 -- Then one relation per operation, describing the interaction with `of`
 | zero : Π (j), relation (of j 0) zero
 | one : Π (j), relation (of j 1) one
@@ -261,7 +262,7 @@ instance : comm_ring (colimit_type F) :=
 @[simp] lemma quot_add (x y) : quot.mk setoid.r (add x y) = ((quot.mk setoid.r x) + (quot.mk setoid.r y) : colimit_type F) := rfl
 @[simp] lemma quot_mul (x y) : quot.mk setoid.r (mul x y) = ((quot.mk setoid.r x) * (quot.mk setoid.r y) : colimit_type F) := rfl
 
-def colimit : CommRing := ⟨colimit_type F, by apply_instance⟩
+def colimit : CommRing := CommRing.of (colimit_type F)
 
 def cocone_fun (j : J) (x : (F.obj j).α) : colimit_type F :=
 quot.mk _ (of j x)

@@ -19,16 +19,13 @@ instance (x : Meas) : measurable_space x := x.str
 
 def of (X : Type u) [measurable_space X] : Meas := ⟨X⟩
 
-instance : bundled_category _ :=
-bundled_category.of_hom_class
-  @measurable
-  @measurable_id
-  @measurable.comp
+instance : unbundled_hom measurable_space :=
+⟨@measurable, @measurable_id, @measurable.comp⟩
 
 end Meas
 
 instance Top.has_forget_to_Meas : has_forget Top.{u} Meas.{u} :=
-bundled_has_forget
+bundled_hom.mk_has_forget
   @measure_theory.borel
   (λ α β f, ⟨f.1, measure_theory.measurable_of_continuous f.2⟩)
   (by intros; refl)

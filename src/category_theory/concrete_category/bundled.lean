@@ -9,7 +9,7 @@ Bundled types.
 /-!
 `bundled c` provides a uniform structure for bundling a type equipped with a type class.
 
-We provide `category` instances for these in `concrete_category.lean` (for categories with unbundled
+We provide `category` instances for these in `unbundled_hom.lean` (for categories with unbundled
 homs, e.g. topological spaces) and in `bundled_hom.lean` (for categories with bundled homs, e.g.
 monoids).
 -/
@@ -25,9 +25,9 @@ structure bundled (c : Type u → Type v) : Type (max (u+1) v) :=
 (α : Type u)
 (str : c α . tactic.apply_instance)
 
-def mk_ob {c : Type u → Type v} (α : Type u) [str : c α] : bundled c := ⟨α, str⟩
-
 namespace bundled
+
+def of {c : Type u → Type v} (α : Type u) [str : c α] : bundled c := ⟨α, str⟩
 
 instance : has_coe_to_sort (bundled c) :=
 { S := Type u, coe := bundled.α }

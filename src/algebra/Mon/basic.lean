@@ -7,8 +7,7 @@ Introduce Mon -- the category of monoids.
 Currently only the basic setup.
 -/
 
-import category_theory.concrete_category
-import category_theory.bundled_hom
+import category_theory.concrete_category.bundled_hom
 import algebra.group.hom
 
 universes u v
@@ -28,9 +27,8 @@ instance (x : Mon) : monoid x := x.str
 def of (M : Type u) [monoid M] : Mon := bundled.of M
 
 @[to_additive]
-instance bundled_hom : bundled_hom @monoid_hom :=
-⟨@monoid_hom.to_fun, @monoid_hom.ext, @monoid_hom.id, by intros; refl,
- @monoid_hom.comp, by intros; refl⟩
+instance bundled_hom : bundled_hom @monoid :=
+⟨@monoid_hom, @monoid_hom.to_fun, @monoid_hom.id, @monoid_hom.comp, @monoid_hom.ext⟩
 
 end Mon
 
@@ -47,11 +45,11 @@ instance (x : CommMon) : comm_monoid x := x.str
 def of (X : Type u) [comm_monoid X] : CommMon := bundled.of X
 
 @[to_additive]
-instance bundled_hom : bundled_hom _ :=
-Mon.bundled_hom.restrict_str @comm_monoid.to_monoid
+instance bundled_hom : bundled_hom @comm_monoid :=
+bundled_hom.full_subcategory @comm_monoid.to_monoid
 
 @[to_additive has_forget_to_AddMon]
 instance has_forget_to_Mon : has_forget CommMon.{u} Mon.{u} :=
-by apply bundled_hom.restrict_str_has_forget
+by apply bundled_hom.full_subcategory_has_forget
 
 end CommMon

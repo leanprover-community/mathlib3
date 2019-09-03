@@ -27,7 +27,8 @@ instance (G : Group) : group G := G.str
 @[to_additive] def of (X : Type u) [group X] : Group := bundled.of X
 
 @[to_additive]
-instance bundled_category : bundled_category _ := Mon.bundled_category.restrict_str @group.to_monoid
+instance bundled_hom : bundled_hom @group :=
+bundled_hom.full_subcategory @group.to_monoid
 
 @[to_additive]
 instance : has_one Group := ⟨Group.of punit⟩
@@ -46,12 +47,12 @@ instance (G : CommGroup) : comm_group G := G.str
 
 @[to_additive] def of (G : Type u) [comm_group G] : CommGroup := bundled.of G
 
-@[to_additive] instance : bundled_category _ :=
-Group.bundled_category.restrict_str @comm_group.to_group
+@[to_additive] instance : bundled_hom _ :=
+bundled_hom.full_subcategory @comm_group.to_group
 
 @[to_additive has_forget_to_AddGroup]
 instance has_forget_to_Group : has_forget CommGroup.{u} Group.{u} :=
-by apply bundled_category.restrict_str_has_forget
+bundled_hom.full_subcategory_has_forget _
 
 @[to_additive] instance : has_one CommGroup := ⟨CommGroup.of punit⟩
 

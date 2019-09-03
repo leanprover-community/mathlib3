@@ -3,8 +3,8 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.bundled
-import category_theory.types
+import category_theory.concrete_category.basic
+import category_theory.concrete_category.bundled
 
 /-!
 # Category instances for algebraic structures that use bundled homs.
@@ -22,19 +22,19 @@ namespace category_theory
 
 variables (c : Type u → Type v)
 
--- TODO the square brackets here are useless, remove them and the resulting @s?
+/-- Class for bundled homs. Note that the arguments order follows that of lemmas for `monoid_hom`.
+This way we can use `⟨@monoid_hom, @monoid_hom.to_fun, ...⟩` in an instance. -/
 structure bundled_hom :=
 (hom : Π {α β : Type u} (Iα : c α) (Iβ : c β), Type w)
 (to_fun : Π {α β : Type u} (Iα : c α) (Iβ : c β), hom Iα Iβ → α → β)
 (id : Π {α : Type u} (I : c α), hom I I)
 (comp : Π {α β γ : Type u} (Iα : c α) (Iβ : c β) (Iγ : c γ),
-  hom Iα Iβ → hom Iβ Iγ → hom Iα Iγ)
-(hom_ext : Π {α β : Type u} (Iα : c α) (Iβ : c β) {f g : hom Iα Iβ}
-  (h : to_fun Iα Iβ f = to_fun Iα Iβ g), f = g . obviously)
+  hom Iβ Iγ → hom Iα Iβ → hom Iα Iγ)
+(hom_ext : Π {α β : Type u} (Iα : c α) (Iβ : c β), function.injective (to_fun Iα Iβ) . obviously)
 (id_to_fun : Π {α : Type u} (I : c α), to_fun I I (id I) = _root_.id . obviously)
 (comp_to_fun : Π {α β γ : Type u} (Iα : c α) (Iβ : c β) (Iγ : c γ)
   (f : hom Iα Iβ) (g : hom Iβ Iγ),
-  to_fun Iα Iγ (comp Iα Iβ Iγ f g) = (to_fun Iβ Iγ g) ∘ (to_fun Iα Iβ f) . obviously)
+  to_fun Iα Iγ (comp Iα Iβ Iγ g f) = (to_fun Iβ Iγ g) ∘ (to_fun Iα Iβ f) . obviously)
 
 attribute [class] bundled_hom
 
@@ -43,14 +43,13 @@ attribute [simp] bundled_hom.id_to_fun bundled_hom.comp_to_fun
 
 namespace bundled_hom
 
-section
-variable [S : bundled_hom c]
+variable [S : bundled_hom.{w} c]
 include S
 
 instance : category (bundled c) :=
 { hom := λ X Y, @bundled_hom.hom c S X.α Y.α X.str Y.str,
   id := λ X, @bundled_hom.id c S X.α X.str,
-  comp := λ X Y Z f g, @bundled_hom.comp c S X.α Y.α Z.α X.str Y.str Z.str f g }
+  comp := λ X Y Z f g, @bundled_hom.comp c S X.α Y.α Z.α X.str Y.str Z.str g f }
 
 def has_coe_to_fun {X Y : bundled c} : has_coe_to_fun (X ⟶ Y) :=
 { F   := λ f, X → Y,
@@ -62,43 +61,48 @@ local attribute [instance] has_coe_to_fun
 S.id_to_fun X.str
 @[simp] lemma coe_comp {X Y Z : bundled c} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
   (f ≫ g) x = g (f x) :=
-begin
-  unfold_coes,
-  erw S.comp_to_fun
-end
-end
+congr_fun (by apply S.comp_to_fun) x
 
-variables {c}
+instance concrete_category : concrete_category (bundled c) :=
+{ forget := { obj := λ X, X,
+              map := λ X Y f, f,
+              map_id' := by apply coe_id,
+              map_comp' := by intros; funext; apply coe_comp },
+  forget_faithful := { injectivity' := by intros; ext1 } }
 
-def forget [S : bundled_hom c] : bundled c ⥤ Type u :=
-{ obj := λ X, X.α,
-  map := λ X Y f, @bundled_hom.to_fun c S X.α Y.α X.str Y.str f }
+variable {c}
 
-instance [S : bundled_hom c] : faithful (@forget c _) := {}
+section full_subcategory
 
-variables (c) (d : Type u → Type v)
+variables {d : Type u → Type v} (obj : ∀ {α}, d α → c α)
+include obj
 
-meta def trivial_forget_obj : tactic unit := `[exact (λ α s, by resetI; apply_instance)]
-meta def trivial_forget_hom : tactic unit := `[exact (λ X Y f, f)]
+/-- Construct a `bundled_hom` representing a full subcategory of a given `bundled_hom` category. -/
+protected def full_subcategory : bundled_hom d :=
+{ hom := λ α β Iα Iβ, S.hom (obj Iα) (obj Iβ),
+  to_fun := by intros; apply S.to_fun; assumption,
+  id := by intros; apply S.id,
+  id_to_fun := by intros; apply S.id_to_fun,
+  comp := by intros; apply S.comp; assumption,
+  comp_to_fun := by intros; apply S.comp_to_fun }
 
--- This has pretty disgusting arguments, but it should only be used in simple cases where
--- everything can be provided by `auto_param`.
--- Example usage is:
--- `def forget_to_Mon : CommMon ⥤ Mon := bundled_hom.forget_to comm_monoid monoid`
+def full_subcategory_has_forget :
+  @has_forget (bundled d) (bundled c)
+    (by haveI := bundled_hom.full_subcategory @obj; apply_instance) _ :=
+{ forget₂ := { obj := bundled.map @obj, map := by intros; assumption },
+  forget_comp := rfl }
 
-/--
-Construct a forgetful functor `bundled c ⥤ bundled d`, where the category instances were provided
-via `bundled_hom`. There are arguments providing evidence that there really is a forgetful functor,
-but can often be omitted, and provided via `auto_param` tactics.
--/
-def forget_to [Sc : bundled_hom c] [Sd : bundled_hom d]
-   (forget_obj : Π α, c α → d α . trivial_forget_obj)
-   (forget_hom : Π (X Y : bundled c), @bundled_hom.hom c Sc X.α Y.α X.str Y.str → @bundled_hom.hom d Sd X.α Y.α (forget_obj X.α X.str) (forget_obj Y.α Y.str) . trivial_forget_hom)
-   (map_id : Π X : bundled c, forget_hom X X (𝟙 X) = @bundled_hom.id d Sd X.α (forget_obj X.α X.str) . obviously)
-   (map_comp : Π (X Y Z : bundled c) (f : @bundled_hom.hom c Sc X.α Y.α X.str Y.str) (g : @bundled_hom.hom c Sc Y.α Z.α Y.str Z.str), forget_hom X Z (@bundled_hom.comp c Sc X.α Y.α Z.α X.str Y.str Z.str f g) = @bundled_hom.comp d Sd X.α Y.α Z.α (forget_obj X.α X.str) (forget_obj Y.α Y.str) (forget_obj Z.α Z.str) (forget_hom X Y f) (forget_hom Y Z g) . obviously)
-   : bundled c ⥤ bundled d :=
-{ obj := λ X, ⟨X.α, forget_obj X.α X.str⟩,
-  map := λ X Y f, forget_hom X Y f }
+end full_subcategory
+
+def mk_has_forget {d : Type u → Type v} [bundled_hom.{w} d] (obj : ∀ {α}, c α → d α)
+  (map : ∀ {X Y : bundled c}, (X ⟶ Y) → ((bundled.map @obj X) ⟶ (bundled.map @obj Y)))
+  (h_map : ∀ {X Y : bundled c} (f : X ⟶ Y), ⇑(map f) = (f : X → Y))
+  : has_forget (bundled c) (bundled d) :=
+has_forget.mk'
+  (bundled.map @obj)
+  (λ _, rfl)
+  @map
+  (by intros; apply heq_of_eq; apply h_map)
 
 end bundled_hom
 

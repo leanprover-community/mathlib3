@@ -69,20 +69,10 @@ calc det (M * N) = univ.sum (λ σ : perm n, (univ.pi (λ a, univ)).sum
 ... = univ.sum (λ p : n → n, univ.sum
     (λ σ : perm n, ε σ * univ.prod (λ i, M (σ i) (p i) * N (p i) i))) :
   finset.sum_comm
-... = ((@univ (n → n) _).filter bijective ∪ univ.filter (λ p : n → n, ¬bijective p)).sum
-    (λ p : n → n, univ.sum (λ σ : perm n, ε σ * univ.prod (λ i, M (σ i) (p i) * N (p i) i))) :
-  finset.sum_congr (finset.ext.2 (by simp; tauto)) (λ _ _, rfl)
 ... = ((@univ (n → n) _).filter bijective).sum (λ p : n → n, univ.sum
-    (λ σ : perm n, ε σ * univ.prod (λ i, M (σ i) (p i) * N (p i) i))) +
-    (univ.filter (λ p : n → n, ¬bijective p)).sum (λ p : n → n, univ.sum
     (λ σ : perm n, ε σ * univ.prod (λ i, M (σ i) (p i) * N (p i) i))) :
-  finset.sum_union (by simp [finset.ext]; tauto)
-... = ((@univ (n → n) _).filter bijective).sum (λ p : n → n, univ.sum
-    (λ σ : perm n, ε σ * univ.prod (λ i, M (σ i) (p i) * N (p i) i))) +
-    (univ.filter (λ p : n → n, ¬bijective p)).sum (λ p, 0) :
-  (add_left_inj _).2 (finset.sum_congr rfl $ λ p h, det_mul_aux (mem_filter.1 h).2)
-... = ((@univ (n → n) _).filter bijective).sum (λ p : n → n, univ.sum
-    (λ σ : perm n, ε σ * univ.prod (λ i, M (σ i) (p i) * N (p i) i))) : by simp
+  eq.symm $ sum_subset (filter_subset _) 
+    (λ f _ hbij, det_mul_aux $ by simpa using hbij)
 ... = (@univ (perm n) _).sum (λ τ, univ.sum
     (λ σ : perm n, ε σ * univ.prod (λ i, M (σ i) (τ i) * N (τ i) i))) :
   sum_bij (λ p h, equiv.of_bijective (mem_filter.1 h).2) (λ _ _, mem_univ _)

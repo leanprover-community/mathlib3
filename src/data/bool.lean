@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Leonardo de Moura, Jeremy Avigad
 -/
 
+prefix `!`:40 := bnot
+
 namespace bool
 
 @[simp] theorem coe_sort_tt : coe_sort.{1 1} tt = true := eq_true_intro rfl

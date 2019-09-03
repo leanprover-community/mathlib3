@@ -65,7 +65,7 @@ meta def print_all_decls {α} [has_to_format α] (tac : declaration → tactic (
   tactic format :=
 do
   e ← get_env,
-  l ← e.mfilter (λ d, return $ ¬ d.to_name.is_internal && ¬ d.is_auto_generated e),
+  l ← e.mfilter (λ d, return $ !d.to_name.is_internal && !d.is_auto_generated e),
   print_decls_sorted <$> fold_over_with_cond_sorted l tac
 
 /- Print (non-internal) declarations in the current file where tac return `some x`-/
@@ -74,7 +74,7 @@ meta def print_decls_current_file {α} [has_to_format α] (tac : declaration →
 do
   e ← get_env,
   l ← e.mfilter (λ d, return $
-    e.in_current_file' d.to_name && ¬ d.to_name.is_internal && ¬ d.is_auto_generated e),
+    e.in_current_file' d.to_name && !d.to_name.is_internal && !d.is_auto_generated e),
   print_decls <$> fold_over_with_cond l tac
 
 /- Print (non-internal) declarations in mathlib where tac return `some x` -/
@@ -84,13 +84,13 @@ do
   e ← get_env,
   ml ← get_mathlib_dir,
   l ← e.mfilter (λ d, return $
-    e.is_prefix_of_file ml d.to_name && ¬ d.to_name.is_internal && ¬ d.is_auto_generated e),
+    e.is_prefix_of_file ml d.to_name && !d.to_name.is_internal && !d.is_auto_generated e),
   print_decls_sorted_mathlib ml.length <$> fold_over_with_cond_sorted l tac
 
 /-- Auxilliary definition for `check_unused_arguments` -/
 meta def check_unused_arguments_aux : list ℕ → ℕ → ℕ → expr → list ℕ | l n n_max e :=
 if n > n_max then l else
-if (¬is_lambda e) && ¬is_pi e then l else
+if !is_lambda e && !is_pi e then l else
   let b := e.binding_body in
   let l' := if b.has_var_idx 0 then l else n :: l in check_unused_arguments_aux l' (n+1) n_max b
 
@@ -112,10 +112,10 @@ let l2 := check_unused_arguments_aux [] 1 d.type.pi_arity d.type in
   the argument is a duplicate.
   See also `check_unused_arguments`.
   This tactic additionally filters out all unused arguments of type `parse _` -/
-meta def unused_arguments (d : declaration) : tactic (option format) :=
+meta def unused_arguments (d : declaration) : tactic (option string) :=
 do
   let ns := check_unused_arguments d,
-  if ¬ ns.is_some then return none else do
+  if !ns.is_some then return none else do
   let ns := ns.iget,
   (ds, _) ← get_pi_binders d.type,
   let ns := ns.map (λ n, (n, (ds.nth $ n - 1).iget)),
@@ -167,7 +167,7 @@ meta def sanity_check : tactic format :=
 do
   e ← get_env,
   l ← e.mfilter (λ d,
-      return $ e.in_current_file' d.to_name && ¬ d.to_name.is_internal && ¬ d.is_auto_generated e),
+      return $ e.in_current_file' d.to_name && !d.to_name.is_internal && !d.is_auto_generated e),
   let s : format := "/- Note: This command is still in development. -/\n",
   let s := s ++ "/- Checking " ++ l.length ++ " declarations in the current file -/\n\n",
   f ← print_decls <$> fold_over_with_cond l unused_arguments,
@@ -187,7 +187,7 @@ do
   e ← get_env,
   ml ← get_mathlib_dir,
   l ← e.mfilter (λ d, return $
-    e.is_prefix_of_file ml d.to_name && ¬ d.to_name.is_internal && ¬ d.is_auto_generated e),
+    e.is_prefix_of_file ml d.to_name && !d.to_name.is_internal && !d.is_auto_generated e),
   let ml' := ml.length,
   let s : format := "/- Note: This command is still in development. -/\n",
   let s := s ++ "/- Checking " ++ l.length ++ " declarations in mathlib (only in imported files) -/\n\n",

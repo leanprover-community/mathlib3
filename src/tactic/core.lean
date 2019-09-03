@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
-import data.dlist.basic category.basic meta.expr meta.rb_map
+import data.dlist.basic category.basic meta.expr meta.rb_map data.bool
 
 namespace expr
 open tactic
@@ -237,7 +237,7 @@ do to_remove ← hs.mfilter $ λ h, do {
     (new_t, pr) ← target >>= tac,
     replace_target new_t pr },
   to_remove.mmap' (λ h, try (clear h)),
-  return ((¬ to_remove.empty) || goal_simplified)
+  return (! to_remove.empty || goal_simplified)
 
 meta def simp_bottom_up' (post : expr → tactic (expr × expr)) (e : expr) (cfg : simp_config := {}) : tactic (expr × expr) :=
 prod.snd <$> simplify_bottom_up () (λ _, (<$>) (prod.mk ()) ∘ post) e cfg

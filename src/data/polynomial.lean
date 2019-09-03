@@ -8,7 +8,7 @@ Theory of univariate polynomials, represented as `ℕ →₀ α`, where α is a 
 import data.finsupp algebra.gcd_domain ring_theory.euclidean_domain tactic.ring ring_theory.multiplicity
 
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+local attribute [instance, priority 100] classical.prop_decidable
 
 /-- `polynomial α` is the type of univariate polynomials over `α`.
 
@@ -583,8 +583,8 @@ lemma degree_le_zero_iff : degree p ≤ 0 ↔ p = C (coeff p 0) :=
 
 lemma degree_add_le (p q : polynomial α) : degree (p + q) ≤ max (degree p) (degree q) :=
 calc degree (p + q) = ((p + q).support).sup some : rfl
-  ... ≤ (p.support ∪ q.support).sup some : sup_mono support_add
-  ... = p.support.sup some ⊔ q.support.sup some : sup_union
+  ... ≤ (p.support ∪ q.support).sup some : by convert sup_mono support_add
+  ... = p.support.sup some ⊔ q.support.sup some : by convert sup_union
   ... = _ : with_bot.sup_eq_max _ _
 
 @[simp] lemma leading_coeff_zero : leading_coeff (0 : polynomial α) = 0 := rfl
@@ -624,11 +624,11 @@ le_antisymm (degree_add_le _ _) $
   end
 
 lemma degree_erase_le (p : polynomial α) (n : ℕ) : degree (p.erase n) ≤ degree p :=
-sup_mono (erase_subset _ _)
+by convert sup_mono (erase_subset _ _)
 
 lemma degree_erase_lt (hp : p ≠ 0) : degree (p.erase (nat_degree p)) < degree p :=
 lt_of_le_of_ne (degree_erase_le _ _) $
-  (degree_eq_nat_degree hp).symm ▸ λ h, not_mem_erase _ _ (mem_of_max h)
+  (degree_eq_nat_degree hp).symm ▸ (by convert λ h, not_mem_erase _ _ (mem_of_max h))
 
 lemma degree_sum_le (s : finset β) (f : β → polynomial α) :
   degree (s.sum f) ≤ s.sup (λ b, degree (f b)) :=
@@ -1713,7 +1713,7 @@ instance : integral_domain (polynomial α) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h, begin
     have : leading_coeff 0 = leading_coeff a * leading_coeff b := h ▸ leading_coeff_mul a b,
     rw [leading_coeff_zero, eq_comm] at this,
-    rw [← leading_coeff_eq_zero, ← leading_coeff_eq_zero],
+    erw [← leading_coeff_eq_zero, ← leading_coeff_eq_zero],
     exact eq_zero_or_eq_zero_of_mul_eq_zero this
   end,
   ..polynomial.nonzero_comm_ring }
@@ -1816,7 +1816,7 @@ if hn : n = 0
 then if h : (X : polynomial α) ^ n - C a = 0
   then by simp only [nat.zero_le, nth_roots, roots, h, dif_pos rfl, card_empty]
   else with_bot.coe_le_coe.1 (le_trans (card_roots h)
-   (by rw [hn, pow_zero, ← @C_1 α _ _, ← @is_ring_hom.map_sub _ _ _ _ (@C α _ _)];
+   (by rw [hn, pow_zero, ← C_1, ← @is_ring_hom.map_sub _ _ _ _ (@C α _)];
       exact degree_C_le))
 else by rw [← with_bot.coe_le_coe, ← degree_X_pow_sub_C (nat.pos_of_ne_zero hn) a];
   exact card_roots (X_pow_sub_C_ne_zero (nat.pos_of_ne_zero hn) a)

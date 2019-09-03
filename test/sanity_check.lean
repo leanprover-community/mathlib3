@@ -22,3 +22,5 @@ run_cmd do
   let e2 : list (name × _) := e.map $ λ x, ⟨x.1.to_name, x.2⟩,
   guard $ ∃(x ∈ e2), (x : name × _).1 = `foo2,
   guard $ ∃(x ∈ e2), (x : name × _).1 = `foo3
+
+-- #sanity_check_mathlib

@@ -5,13 +5,15 @@ Authors: Amelia Livingston
 -/
 import data.quot order.complete_lattice data.equiv.basic order.order_iso order.galois_connection
 /-!
-# Setoids
-Some definitions relating to equivalence relations, including the complete lattice of 
-equivalence relations on a type.
+# Equivalence relations
+Some definitions and results; in particular, the complete lattice of 
+equivalence relations an a type, results about the inductively defined equivalence closure
+of a binary relation, and the analogues of some isomorphism theorems for quotients of arbitrary 
+types.
 
 ## Implementation notes
 The definitions and lemmas ending in ' are to make it easier to talk about different equivalence 
-relations on the same type.
+relations on the same type without adding a coercion instance from setoid α to (α → α → Prop).
 
 ## Tags
 setoid, equivalence, iseqv, relation, equivalence relation
@@ -22,7 +24,7 @@ open lattice
 
 namespace setoid
 
-/-- A version of setoid.r that takes a setoid as an explicit argument. -/
+/-- A version of setoid.r that takes the equivalence relation as an explicit argument. -/
 def r' (r : setoid α) := @setoid.r _ r
 
 @[extensionality] lemma ext' {r s : setoid α} (H : ∀ a b, r.r' a b ↔ s.r' a b) : r = s := ext H
@@ -60,14 +62,17 @@ instance : has_Inf (setoid α) :=
 ⟨λ x r hr, r.refl' x, λ x y h r hr, r.symm' $ h r hr, 
  λ _ _ _ h1 h2 r hr, r.trans' (h1 r hr) $ h2 r hr⟩⟩⟩
 
+/-- The infimum of a set of equivalence relations is contained in any element of the set. -/
 lemma Inf_le (S : set (setoid α)) (r∈S) : Inf S ≤ r :=
 λ _ _ h, h r H
 
+/-- If an equivalence relation r is contained in every element of a set of equivalence relations,
+    r is contained in the infimum of the set. -/
 lemma le_Inf (S : set (setoid α)) (r) : (∀ s∈S, r ≤ s) → r ≤ Inf S :=
 λ H _ _ h s hs, H s hs _ _ h
 
 /-- The supremum of two equivalence relations, defined as the infimum of the set of
-    equivalence relations greater than or equal to both. -/
+    equivalence relations containing both. -/
 instance : has_sup (setoid α) := ⟨λ r s, Inf { x | r ≤ x ∧ s ≤ x}⟩
 
 /-- The complete lattice of equivalence relations on a type, with bottom element '='
@@ -130,7 +135,7 @@ le_antisymm (by rw eqv_gen_eq; exact Inf_le _ r (λ x y h, h)) eqv_gen.rel
   eqv_gen.setoid (eqv_gen.setoid r).r' = eqv_gen.setoid r :=
 eqv_gen_of_setoid _ 
 
-/-- The equivalence closure of a binary relation r is less than or equal to any equivalence
+/-- The equivalence closure of a binary relation r is contained in any equivalence
     relation containing r. -/
 theorem eqv_gen_le {r : α → α → Prop} {s : setoid α} (h : ∀ x y, r x y → s.r' x y) : 
   eqv_gen.setoid r ≤ s :=
@@ -156,7 +161,7 @@ set.ext $ λ x,
   ⟨λ h, set.mem_preimage.2 (set.mem_singleton_iff.2 h.symm),
    λ h, (set.mem_singleton_iff.1 (set.mem_preimage.1 h)).symm⟩
 
-/-- The uniqueness part of the universal property of quotients. -/
+/-- The uniqueness part of the universal property for quotients of an arbitrary type. -/
 theorem lift_unique {r : setoid α} {f : α → β} (H : r ≤ ker f) (g : quotient r → β)
   (Hg : f = g ∘ quotient.mk) : quotient.lift f H = g :=
 by ext; rcases x; erw [quotient.lift_beta f H, Hg]; refl
@@ -176,7 +181,7 @@ le_antisymm
 
 variables (r : setoid α) (f : α → β)
 
-/-- The quotient of a function f by its kernel bijects with f's image. -/
+/-- The quotient of α by the kernel of a function f bijects with f's image. -/
 noncomputable def quotient_ker_equiv_range : 
   quotient (ker f) ≃ set.range f :=
 @equiv.of_bijective _ (set.range f) (@quotient.lift _ (set.range f) (ker f) 
@@ -184,18 +189,18 @@ noncomputable def quotient_ker_equiv_range :
     ⟨λ x y h, injective_ker_lift f $ by rcases x; rcases y; injections, 
      λ ⟨w, z, hz⟩, ⟨@quotient.mk _ (ker f) z, by rw quotient.lift_beta; exact subtype.ext.2 hz⟩⟩
 
-/-- The quotient of a surjective function f by its kernel bijects with f's codomain. -/
+/-- The quotient of α by the kernel of a surjective function f bijects with f's codomain. -/
 noncomputable def quotient_ker_equiv_of_surjective (hf : surjective f) :
   quotient (ker f) ≃ β :=
 @equiv.of_bijective _ _ (@quotient.lift _ _ (ker f) f (λ _ _ h, h)) 
   ⟨injective_ker_lift f, λ y, exists.elim (hf y) $ λ w hw, ⟨quotient.mk' w, hw⟩⟩
 
-/-- The analogue of the third isomorphism theorem for bijections of quotients of arbitrary types. -/
+/-- The analogue of the third isomorphism theorem for quotients of arbitrary types. -/
 noncomputable def quotient_quotient_equiv_quotient (s : setoid α) (h : r ≤ s) :
   quotient (ker (quot.map_right h)) ≃ quotient s :=
 quotient_ker_equiv_of_surjective _ $ λ x, by rcases x; exact ⟨quotient.mk' x, rfl⟩
 
-/-- Given an equivalence relation r on α, the natural map from an equivalence relations containing
+/-- Given an equivalence relation r on α, the natural map from equivalence relations containing
     r to equivalence relations on the quotient of α by r. -/
 def to_con (s : {s // r ≤ s}) : setoid (quotient r) :=
 { r := λ x y, quotient.lift_on₂' x y s.1.r' $ λ _ _ _ _ ha hb, iff_iff_eq.1

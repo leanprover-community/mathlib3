@@ -17,7 +17,7 @@ This files introduces:
 import topology.metric_space.isometry topology.instances.ennreal
        topology.metric_space.lipschitz
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 universes u v w
 
 open classical lattice set function topological_space filter
@@ -25,7 +25,7 @@ open classical lattice set function topological_space filter
 namespace emetric
 
 section inf_edist
-local notation `∞` := (⊤ : ennreal)
+open_locale ennreal
 variables {α : Type u} {β : Type v} [emetric_space α] [emetric_space β] {x y : α} {s t : set α} {Φ : α → β}
 
 /-- The minimal edistance of a point to a set -/
@@ -145,7 +145,7 @@ lemma Hausdorff_edist_def {α : Type u} [emetric_space α] (s t : set α) :
 attribute [irreducible] Hausdorff_edist
 
 section Hausdorff_edist
-local notation `∞` := (⊤ : ennreal)
+open_locale ennreal
 variables {α : Type u} {β : Type v} [emetric_space α] [emetric_space β]
           {x y : α} {s t u : set α} {Φ : α → β}
 

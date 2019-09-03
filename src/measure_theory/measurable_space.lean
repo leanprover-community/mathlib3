@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 Measurable spaces -- σ-algberas
 -/
 import data.set.disjointed order.galois_connection data.set.countable
-open set lattice encodable
 
 /-!
 # Measurable spaces and measurable functions
@@ -58,6 +57,8 @@ measurable space, measurable function, dynkin system
 -/
 
 local attribute [instance] classical.prop_decidable
+open set lattice encodable
+open_locale classical
 
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x} {ι : Sort x}

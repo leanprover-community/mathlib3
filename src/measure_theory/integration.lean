@@ -14,7 +14,7 @@ import
   measure_theory.borel_space
 noncomputable theory
 open lattice set filter
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 section sequence_of_directed
 variables {α : Type*} {β : Type*} [encodable α] [inhabited α]
@@ -147,7 +147,8 @@ theorem map_map (g : β → γ) (h: γ → δ) (f : α →ₛ β) : (f.map g).ma
 
 theorem coe_map (g : β → γ) (f : α →ₛ β) : (f.map g : α → γ) = g ∘ f := rfl
 
-@[simp] theorem range_map (g : β → γ) (f : α →ₛ β) : (f.map g).range = f.range.image g :=
+@[simp] theorem range_map [decidable_eq γ] (g : β → γ) (f : α →ₛ β) :
+  (f.map g).range = f.range.image g :=
 begin
   ext c,
   simp [mem_range],
@@ -470,7 +471,7 @@ calc f.integral ⊔ g.integral =
   begin
     rw [map_integral, map_integral],
     refine sup_le _ _;
-      refine finset.sum_le_sum' (λ a _, canonically_ordered_semiring.mul_le_mul _ (le_refl _)),
+      refine finset.sum_le_sum (λ a _, canonically_ordered_semiring.mul_le_mul _ (le_refl _)),
     exact le_sup_left,
     exact le_sup_right
   end
@@ -865,6 +866,9 @@ calc
         (h_mono n))
   ... = lintegral (f 0) - (⨅n, ∫⁻ a, f n a) : ennreal.sub_infi.symm
 
+section priority
+-- for some reason the next proof fails without changing the priority of this instance
+local attribute [instance, priority 1000] classical.prop_decidable
 /-- Known as Fatou's lemma -/
 lemma lintegral_liminf_le {f : ℕ → α → ennreal} (h_meas : ∀n, measurable (f n)) :
   (∫⁻ a, liminf at_top (λ n, f n a)) ≤ liminf at_top (λ n, lintegral (f n)) :=
@@ -887,6 +891,7 @@ calc
       assume i, le_infi $ assume hi, lintegral_le_lintegral _ _
       $ assume a, infi_le_of_le i $ infi_le_of_le hi $ le_refl _
   ... = liminf at_top (λ n, lintegral (f n)) : liminf_eq_supr_infi_of_nat.symm
+end priority
 
 lemma limsup_lintegral_le {f : ℕ → α → ennreal} {g : α → ennreal}
   (hf_meas : ∀ n, measurable (f n)) (hg_meas : measurable g)

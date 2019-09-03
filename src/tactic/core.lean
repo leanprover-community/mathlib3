@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
-import data.dlist.basic category.basic meta.expr meta.rb_map tactic.cache
+import data.dlist.basic category.basic meta.expr meta.rb_map data.string.defs
 
 namespace expr
 open tactic
@@ -83,50 +83,6 @@ meta def emit_code_here : string → lean.parser unit
 
 end lean.parser
 
-namespace name
-
-meta def head : name → string
-| (mk_string s anonymous) := s
-| (mk_string s p)         := head p
-| (mk_numeral n p)        := head p
-| anonymous               := "[anonymous]"
-
-meta def is_private (n : name) : bool :=
-n.head = "_private"
-
-meta def last : name → string
-| (mk_string s _)  := s
-| (mk_numeral n _) := repr n
-| anonymous        := "[anonymous]"
-
-meta def length : name → ℕ
-| (mk_string s anonymous) := s.length
-| (mk_string s p)         := s.length + 1 + p.length
-| (mk_numeral n p)        := p.length
-| anonymous               := "[anonymous]".length
-
-end name
-
-namespace environment
-meta def decl_filter_map {α : Type} (e : environment) (f : declaration → option α) : list α :=
-  e.fold [] $ λ d l, match f d with
-                     | some r := r :: l
-                     | none := l
-                     end
-
-meta def decl_map {α : Type} (e : environment) (f : declaration → α) : list α :=
-  e.decl_filter_map $ λ d, some (f d)
-
-meta def get_decls (e : environment) : list declaration :=
-  e.decl_map id
-
-meta def get_trusted_decls (e : environment) : list declaration :=
-  e.decl_filter_map (λ d, if d.is_trusted then some d else none)
-
-meta def get_decl_names (e : environment) : list name :=
-  e.decl_map declaration.to_name
-end environment
-
 namespace format
 
 meta def intercalate (x : format) : list format → format :=
@@ -149,8 +105,18 @@ meta def mk_user_fresh_name : tactic name :=
 do nm ← mk_fresh_name,
    return $ `user__ ++ nm.pop_prefix.sanitize_name ++ `user__
 
+
+/-- Checks whether n' has attribute n. -/
+meta def has_attribute' : name → name → tactic bool | n n' :=
+succeeds (has_attribute n n')
+
+/-- Checks whether the name is a simp lemma -/
 meta def is_simp_lemma : name → tactic bool :=
-succeeds ∘ tactic.has_attribute `simp
+has_attribute' `simp
+
+/-- Checks whether the name is an instance. -/
+meta def is_instance : name → tactic bool :=
+has_attribute' `instance
 
 meta def local_decls : tactic (name_map declaration) :=
 do e ← tactic.get_env,
@@ -358,6 +324,20 @@ whnf type >>= get_expl_pi_arity_aux
 /-- Compute the arity of explicit arguments of the given function -/
 meta def get_expl_arity (fn : expr) : tactic nat :=
 infer_type fn >>= get_expl_pi_arity
+
+/-- Auxilliary defintion for `get_pi_binders`. -/
+meta def get_pi_binders_aux : list binder → expr → tactic (list binder × expr)
+| es (expr.pi n bi d b) :=
+  do m ← mk_fresh_name,
+     let l := expr.local_const m n bi d,
+     let new_b := expr.instantiate_var b l,
+     get_pi_binders_aux (⟨n, bi, d⟩::es) new_b
+| es e                  := return (es, e)
+
+/-- Get the binders and target of a pi-type. Instantiates bound variables by
+  local constants. -/
+meta def get_pi_binders : expr → tactic (list binder × expr) | e :=
+do (es, e) ← get_pi_binders_aux [] e, return (es.reverse, e)
 
 /-- variation on `assert` where a (possibly incomplete)
     proof of the assertion is provided as a parameter.
@@ -753,6 +733,10 @@ meta def strip_prefix : name → tactic name
 | n@(name.mk_string a a_1) := strip_prefix' n [a] a_1
 | _ := interaction_monad.failed
 
+meta def local_binding_info : expr → binder_info
+| (expr.local_const _ _ bi _) := bi
+| _ := binder_info.default
+
 meta def is_default_local : expr → bool
 | (expr.local_const _ _ binder_info.default _) := tt
 | _ := ff
@@ -1007,6 +991,37 @@ meta def clear_aux_decl_aux : list expr → tactic unit
 meta def clear_aux_decl : tactic unit :=
 local_context >>= clear_aux_decl_aux
 
+/-- `apply_at_aux e et [] h ht` (with `et` the type of `e` and `ht` the type of `h`)
+    finds a list of expressions `vs` and returns (e.mk_args (vs ++ [h]), vs) -/
+meta def apply_at_aux (arg t : expr) : list expr → expr → expr → tactic (expr × list expr)
+| vs e (pi n bi d b) :=
+  do { v ← mk_meta_var d,
+       apply_at_aux (v :: vs) (e v) (b.instantiate_var v) } <|>
+  (e arg, vs) <$ unify d t
+| vs e _ := failed
+
+/-- `apply_at e h` applies implication `e` on hypothesis `h` and replaces `h` with the result -/
+meta def apply_at (e h : expr) : tactic unit :=
+do ht ← infer_type h,
+   et ← infer_type e,
+   (h', gs') ← apply_at_aux h ht [] e et,
+   note h.local_pp_name none h',
+   clear h,
+   gs' ← gs'.mfilter is_assigned,
+   (g :: gs) ← get_goals,
+   set_goals (g :: gs' ++ gs)
+
+/-- `symmetry_hyp h` applies symmetry on hypothesis `h` -/
+meta def symmetry_hyp (h : expr) (md := semireducible) : tactic unit :=
+do tgt   ← infer_type h,
+   env   ← get_env,
+   let r := get_app_fn tgt,
+   match env.symm_for (const_name r) with
+   | (some symm) := do s ← mk_const symm,
+                       apply_at s h
+   | none        := fail "symmetry tactic failed, target is not a relation application with the expected property."
+   end
+
 precedence `setup_tactic_parser`:0
 
 @[user_command]
@@ -1020,10 +1035,10 @@ local postfix `?`:9001 := optional
 local postfix *:9001 := many .
 "
 
-meta def trace_error (t : tactic α) (msg : string) : tactic α
+meta def trace_error (msg : string) (t : tactic α) : tactic α
 | s := match t s with
        | (result.success r s') := result.success r s'
-       | (result.exception (some msg) p s') := (trace (msg ()) >> result.exception (some msg) p) s'
+       | (result.exception (some msg') p s') := (trace msg >> trace (msg' ()) >> result.exception (some msg') p) s'
        | (result.exception none p s') := result.exception none p s'
        end
 
@@ -1096,7 +1111,8 @@ See also: `trace!` and `fail!`
 -/
 @[user_notation]
 meta def pformat_macro (_ : parse $ tk "pformat!") (s : string) : parser pexpr :=
-parse_pformat "" s.to_list
+do e ← parse_pformat "" s.to_list,
+   return ``(%%e : pformat)
 
 reserve prefix `fail! `:100
 
@@ -1116,6 +1132,25 @@ the combination of `pformat` and `fail`
 meta def trace_macro (_ : parse $ tk "trace!") (s : string) : parser pexpr :=
 do e ← pformat_macro () s,
    pure ``((%%e : pformat) >>= trace)
+
+/-- A hackish way to get the `src` directory of mathlib. -/
+meta def get_mathlib_dir : tactic string :=
+do e ← get_env,
+  s ← e.decl_olean `tactic.reset_instance_cache,
+  return $ s.popn_back 17
+
+/-- Checks whether `ml` is a prefix of the file where `n` is declared.
+  If you want to run `is_in_mathlib` many times, you should use this tactic instead,
+  since it is expensive to execute get_mathlib_dir many times. -/
+meta def is_in_mathlib_aux (ml : string) (n : name) : tactic bool :=
+do e ← get_env, return $ ml.is_prefix_of $ (e.decl_olean n).get_or_else ""
+
+/-- Checks whether a declaration with the given name is declared in mathlib.
+  If you want to run this tactic many times, you should use `is_in_mathlib_aux` instead,
+  since it is expensive to execute get_mathlib_dir many times. -/
+meta def is_in_mathlib (n : name) : tactic bool :=
+do ml ← get_mathlib_dir, is_in_mathlib_aux ml n
+
 
 end tactic
 open tactic

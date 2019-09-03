@@ -19,7 +19,7 @@ open category_theory
 
 namespace CommRing
 
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 
 private def free_obj (α : Type u) : CommRing.{u} := ⟨mv_polynomial α ℤ⟩
 

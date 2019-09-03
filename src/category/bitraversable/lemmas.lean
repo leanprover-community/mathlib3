@@ -1,4 +1,37 @@
+/-
+Copyright (c) 2019 Simon Hudon. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author(s): Simon Hudon
+-/
+
 import category.bitraversable.basic
+
+/-!
+# Bitraversable Lemmas
+
+## Main definitions
+  * tfst - traverse on first functor argument
+  * tsnd - traverse on second functor argument
+
+## Lemmas
+
+Combination of
+  * bitraverse
+  * tfst
+  * tsnd
+
+with the applicatives `id` and `comp`
+
+## References
+
+ * Hackage: https://hackage.haskell.org/package/base-4.12.0.0/docs/Data-Bitraversable.html
+
+## Tags
+
+traversable bitraversable functor bifunctor applicative
+
+
+-/
 
 universes u
 
@@ -10,12 +43,12 @@ open functor is_lawful_applicative
 variables {F G : Type u → Type u}
           [applicative F] [applicative G]
 
-@[reducible]
-def tfst {α α'} (f : α → F α') : t α β → F (t α' β) :=
+/-- traverse on the first functor argument -/
+@[reducible] def tfst {α α'} (f : α → F α') : t α β → F (t α' β) :=
 bitraverse f pure
 
-@[reducible]
-def tsnd {α α'} (f : α → F α') : t β α → F (t β α') :=
+/-- traverse on the second functor argument -/
+@[reducible] def tsnd {α α'} (f : α → F α') : t β α → F (t β α') :=
 bitraverse pure f
 
 variables [is_lawful_bitraversable t]

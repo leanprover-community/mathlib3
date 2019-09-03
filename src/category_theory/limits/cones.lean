@@ -1,7 +1,8 @@
--- Copyright (c) 2017 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Stephen Morgan, Scott Morrison, Floris van Doorn
-
+/-
+Copyright (c) 2017 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Stephen Morgan, Scott Morrison, Floris van Doorn
+-/
 import category_theory.const
 import category_theory.yoneda
 import category_theory.concrete_category
@@ -86,7 +87,7 @@ A `c : cone F` is:
 * an object `c.X` and
 * a natural transformation `c.π : c.X ⟶ F` from the constant `c.X` functor to `F`.
 
-`cone F` is equivalent, in the obvious way, to `Σ X, F.cones.obj X`.
+`cone F` is equivalent, via `cone.equiv` below, to `Σ X, F.cones.obj X`.
 -/
 structure cone (F : J ⥤ C) :=
 (X : C)
@@ -101,7 +102,7 @@ A `c : cocone F` is
 * an object `c.X` and
 * a natural transformation `c.ι : F ⟶ c.X` from `F` to the constant `c.X` functor.
 
-`cocone F` is equivalent, in the obvious way, to `Σ X, F.cocones.obj X`.
+`cocone F` is equivalent, via `cone.equiv` below, to `Σ X, F.cocones.obj X`.
 -/
 structure cocone (F : J ⥤ C) :=
 (X : C)
@@ -115,6 +116,12 @@ by convert ←(c.ι.naturality f); apply comp_id
 variables {F : J ⥤ C}
 
 namespace cone
+
+def equiv (F : J ⥤ C) : cone F ≅ Σ X, F.cones.obj X :=
+{ hom := λ c, ⟨op c.X, c.π⟩,
+  inv := λ c, { X := unop c.1, π := c.2 },
+  hom_inv_id' := begin ext, cases x, refl, end,
+  inv_hom_id' := begin ext, cases x, refl, end }
 
 @[simp] def extensions (c : cone F) : yoneda.obj c.X ⟶ F.cones :=
 { app := λ X f, ((const J).map f) ≫ c.π }
@@ -149,6 +156,13 @@ end
 end cone
 
 namespace cocone
+
+def equiv (F : J ⥤ C) : cocone F ≅ Σ X, F.cocones.obj X :=
+{ hom := λ c, ⟨c.X, c.ι⟩,
+  inv := λ c, { X := c.1, ι := c.2 },
+  hom_inv_id' := begin ext, cases x, refl, end,
+  inv_hom_id' := begin ext, cases x, refl, end }
+
 @[simp] def extensions (c : cocone F) : coyoneda.obj (op c.X) ⟶ F.cocones :=
 { app := λ X f, c.ι ≫ (const J).map f }
 
@@ -234,7 +248,7 @@ def postcompose_comp {G H : J ⥤ C} (α : F ⟶ G) (β : G ⟶ H) :
   postcompose (α ≫ β) ≅ postcompose α ⋙ postcompose β :=
 by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obviously }
 
-def postcompose_id : postcompose (𝟙 F) ≅ functor.id (cone F) :=
+def postcompose_id : postcompose (𝟙 F) ≅ 𝟭 (cone F) :=
 by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obviously }
 
 def postcompose_equivalence {G : J ⥤ C} (α : F ≅ G) : cone F ≌ cone G :=
@@ -317,7 +331,7 @@ def precompose_comp {G H : J ⥤ C} (α : F ⟶ G) (β : G ⟶ H) :
   precompose (α ≫ β) ≅ precompose β ⋙ precompose α :=
 by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obviously }
 
-def precompose_id : precompose (𝟙 F) ≅ functor.id (cocone F) :=
+def precompose_id : precompose (𝟙 F) ≅ 𝟭 (cocone F) :=
 by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obviously }
 
 def precompose_equivalence {G : J ⥤ C} (α : G ≅ F) : cocone F ≌ cocone G :=

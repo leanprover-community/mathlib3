@@ -6,6 +6,8 @@ Author: Seul Baek
 Miscellaneous.
 -/
 
+import tactic.localized
+
 variables {α β γ : Type}
 
 namespace omega
@@ -25,7 +27,7 @@ lemma pred_mono_2' {c : Prop → Prop → Prop} {a1 a2 b1 b2 : Prop} :
 def update (m : nat) (a : α) (v : nat → α) : nat → α
 | n := if n = m then a else v n
 
-local notation v ` ⟨` m ` ↦ ` a `⟩` := update m a v
+localized "notation v ` ⟨` m ` ↦ ` a `⟩` := omega.update m a v" in omega
 
 lemma update_eq (m : nat) (a : α) (v : nat → α) : (v ⟨m ↦ a⟩) m = a :=
 by simp only [update, if_pos rfl]

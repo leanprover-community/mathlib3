@@ -22,7 +22,7 @@ import logic.function algebra.big_operators data.set.lattice data.finset
 
 noncomputable theory
 open lattice finset filter function classical
-local attribute [instance] prop_decidable
+local attribute [instance] classical.prop_decidable -- TODO: use "open_locale classical"
 
 def option.cases_on' {α β} : option α → β → (α → β) → β
 | none     n s := n
@@ -444,7 +444,7 @@ variables {f g : β → α} {a a₁ a₂ : α}
 
 lemma has_sum_le (h : ∀b, f b ≤ g b) (hf : has_sum f a₁) (hg : has_sum g a₂) : a₁ ≤ a₂ :=
 le_of_tendsto_of_tendsto at_top_ne_bot hf hg $ univ_mem_sets' $
-  assume s, sum_le_sum' $ assume b _, h b
+  assume s, sum_le_sum $ assume b _, h b
 
 lemma has_sum_le_inj {g : γ → α} (i : β → γ) (hi : injective i) (hs : ∀c∉set.range i, 0 ≤ g c)
   (h : ∀b, f b ≤ g (i b)) (hf : has_sum f a₁) (hg : has_sum g a₂) : a₁ ≤ a₂ :=

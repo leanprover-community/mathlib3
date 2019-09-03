@@ -31,7 +31,7 @@ topology.metric_space.completion
 
 
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 universes u v w
 
 open classical lattice set function topological_space filter metric quotient

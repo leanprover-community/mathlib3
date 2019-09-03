@@ -25,7 +25,7 @@ giry monad
 -/
 
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 
 open classical set lattice filter
 

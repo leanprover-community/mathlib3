@@ -82,6 +82,16 @@ theorem eq_none_iff {o : roption α} : o = none ↔ ∀ a, a ∉ o :=
 theorem eq_none_iff' {o : roption α} : o = none ↔ ¬ o.dom :=
 ⟨λ e, e.symm ▸ id, λ h, eq_none_iff.2 (λ a h', h h'.fst)⟩
 
+lemma some_ne_none (x : α) : some x ≠ none :=
+by { intro h, change none.dom, rw [← h], trivial }
+
+lemma ne_none_iff {o : roption α} : o ≠ none ↔ ∃x, o = some x :=
+begin
+  split,
+  { rw [ne, eq_none_iff], intro h, push_neg at h, cases h with x hx, use x, rwa [eq_some_iff] },
+  { rintro ⟨x, rfl⟩, apply some_ne_none }
+end
+
 @[simp] lemma some_inj {a b : α} : roption.some a = some b ↔ a = b :=
 function.injective.eq_iff (λ a b h, congr_fun (eq_of_heq (roption.mk.inj h).2) trivial)
 
@@ -535,7 +545,7 @@ begin
 end
 
 section
-local attribute  [instance] classical.prop_decidable
+open_locale classical
 
 lemma core_res (f : α → β) (s : set α) (t : set β) : core (res f s) t = -s ∪ f ⁻¹' t :=
 by { ext, rw mem_core_res, by_cases h : x ∈ s; simp [h] }

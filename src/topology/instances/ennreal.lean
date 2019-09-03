@@ -8,10 +8,10 @@ Extended non-negative reals
 import topology.instances.nnreal data.real.ennreal
 noncomputable theory
 open classical set lattice filter metric
-local attribute [instance] prop_decidable
+open_locale classical
 variables {α : Type*} {β : Type*} {γ : Type*}
 
-local notation `∞` := (⊤ : ennreal)
+open_locale ennreal
 
 namespace ennreal
 variables {a b c d : ennreal} {r p q : nnreal}
@@ -331,9 +331,12 @@ begin
     simp only [finset.sum_insert has],
     rw [ih, supr_add_supr_of_monotone (hf a)],
     assume i j h,
-    exact (finset.sum_le_sum' $ assume a ha, hf a h) }
+    exact (finset.sum_le_sum $ assume a ha, hf a h) }
 end
 
+section priority
+-- for some reason the next proof fails without changing the priority of this instance
+local attribute [instance, priority 1000] classical.prop_decidable
 lemma mul_Sup {s : set ennreal} {a : ennreal} : a * Sup s = ⨆i∈s, a * i :=
 begin
   by_cases hs : ∀x∈s, x = (0:ennreal),
@@ -354,6 +357,7 @@ begin
         (ennreal.tendsto_mul_right (tendsto_id' inf_le_left) (or.inl s₁))),
     rw [this.symm, Sup_image] }
 end
+end priority
 
 lemma mul_supr {ι : Sort*} {f : ι → ennreal} {a : ennreal} : a * supr f = ⨆i, a * f i :=
 by rw [← Sup_range, mul_Sup, supr_range]
@@ -536,7 +540,7 @@ lemma has_sum_iff_tendsto_nat_of_nonneg {f : ℕ → ℝ} (hf : ∀i, 0 ≤ f i)
 ⟨tendsto_sum_nat_of_has_sum,
   assume hfr,
   have 0 ≤ r := ge_of_tendsto at_top_ne_bot hfr $ univ_mem_sets' $ assume i,
-    show 0 ≤ (finset.range i).sum f, from finset.zero_le_sum $ assume i _, hf i,
+    show 0 ≤ (finset.range i).sum f, from finset.sum_nonneg $ assume i _, hf i,
   let f' (n : ℕ) : nnreal := ⟨f n, hf n⟩, r' : nnreal := ⟨r, this⟩ in
   have f_eq : f = (λi:ℕ, (f' i : ℝ)) := rfl,
   have r_eq : r = r' := rfl,

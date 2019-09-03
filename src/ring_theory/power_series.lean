@@ -48,6 +48,7 @@ Occasionally this leads to proofs that are uglier than expected.
 -/
 
 noncomputable theory
+local attribute [instance, priority 100] classical.prop_decidable
 
 /-- Multivariate formal power series, where `σ` is the index set of the variables
 and `α` is the coefficient ring.-/
@@ -55,7 +56,7 @@ def mv_power_series (σ : Type*) (α : Type*) := (σ →₀ ℕ) → α
 
 namespace mv_power_series
 open finsupp
-variables {σ : Type*} {α : Type*} [decidable_eq σ]
+variables {σ : Type*} {α : Type*}
 
 /-- The `n`th coefficient of a multivariate formal power series.-/
 def coeff (n : σ →₀ ℕ) (φ : mv_power_series σ α) := φ n
@@ -369,7 +370,7 @@ instance : comm_semiring (mv_power_series σ α) :=
   .. mv_power_series.semiring }
 
 section trunc
-variables [decidable_eq α] (n : σ →₀ ℕ)
+variables (n : σ →₀ ℕ)
 
 /-- The `n`th truncation of a multivariate formal power series to a multivariate polynomial -/
 def trunc (φ : mv_power_series σ α) : mv_polynomial σ α :=
@@ -634,7 +635,7 @@ end mv_power_series
 
 namespace mv_polynomial
 open finsupp
-variables {σ : Type*} {α : Type*} [decidable_eq σ] [decidable_eq α] [comm_semiring α]
+variables {σ : Type*} {α : Type*} [comm_semiring α]
 
 /-- The natural inclusion from multivariate polynomials into multivariate formal power series.-/
 def to_mv_power_series (φ : mv_polynomial σ α) : mv_power_series σ α :=
@@ -830,8 +831,6 @@ mv_power_series.map.is_semiring_hom f
 end map
 
 section trunc
-
-variables [decidable_eq α] (n : ℕ)
 
 /-- The `n`th truncation of a formal power series to a polynomial -/
 def trunc (φ : power_series α) : polynomial α :=
@@ -1031,7 +1030,7 @@ end power_series
 
 namespace polynomial
 open finsupp
-variables {σ : Type*} {α : Type*} [decidable_eq σ] [decidable_eq α] [comm_semiring α]
+variables {σ : Type*} {α : Type*} [comm_semiring α]
 
 /-- The natural inclusion from polynomials into formal power series.-/
 def to_power_series (φ : polynomial α) : power_series α :=

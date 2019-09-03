@@ -7,6 +7,9 @@ Authors: Kenny Lau, Johan Commelin
 import group_theory.free_abelian_group data.equiv.algebra data.equiv.functor data.polynomial
 import ring_theory.ideal_operations ring_theory.free_ring
 
+noncomputable theory
+local attribute [instance, priority 100] classical.prop_decidable
+
 universes u v
 
 variables (α : Type u)
@@ -172,7 +175,7 @@ assume hps : is_supported (of p) s, begin
   specialize this (of p) hps, rw [lift_of] at this, split_ifs at this, { exact h },
   exfalso, apply int.zero_ne_one,
   rcases this with ⟨w, H⟩, rw polynomial.int_cast_eq_C at H,
-  exact congr_arg (λ (f : polynomial ℤ), f.coeff 1) H.symm
+  exact congr_arg (λ (f : polynomial ℤ), f.coeff 1) H.symm,
 end
 
 theorem map_subtype_val_restriction {x} (s : set α) [decidable_pred s] (hxs : is_supported x s) :
@@ -284,8 +287,6 @@ instance [subsingleton α] : comm_ring (free_ring α) :=
   .. free_ring.ring α }
 
 end free_ring
-
-variables [decidable_eq α]
 
 def free_comm_ring_equiv_mv_polynomial_int :
   free_comm_ring α ≃r mv_polynomial α ℤ :=

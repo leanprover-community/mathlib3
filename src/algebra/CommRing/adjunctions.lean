@@ -36,7 +36,7 @@ def free : Type u ⥤ CommRing.{u} :=
 def hom_equiv (α : Type u) (R : CommRing.{u}) : (free.obj α ⟶ R) ≃ (α ⟶ forget.obj R) :=
 { to_fun    := λ f, f ∘ X,
   inv_fun   := λ f, ⟨eval₂ (λ n : ℤ, (n : R)) f, by { unfold_coes, apply_instance }⟩,
-  left_inv  := λ f, bundled.hom_ext (@eval₂_hom_X _ _ _ _ _ _ f.val _),
+  left_inv  := λ f, bundled.hom_ext (@eval₂_hom_X _ _ _ _ _ f.val _),
   right_inv := λ x, by { ext1, unfold_coes, simp only [function.comp_app, eval₂_X] } }
 
 def adj : free ⊣ (forget : CommRing ⥤ Type u) :=

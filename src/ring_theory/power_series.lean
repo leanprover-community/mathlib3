@@ -47,6 +47,8 @@ Occasionally this leads to proofs that are uglier than expected.
 
 -/
 
+noncomputable theory
+
 /-- Multivariate formal power series, where `σ` is the index set of the variables
 and `α` is the coefficient ring.-/
 def mv_power_series (σ : Type*) (α : Type*) := (σ →₀ ℕ) → α
@@ -173,7 +175,7 @@ ext $ λ n,
 begin
   rw [coeff_C, coeff_mul],
   split_ifs,
-  { subst n, erw [antidiagonal_zero, finset.sum_singleton, coeff_C_zero, coeff_C_zero] },
+  { subst n, erw [antidiagonal_zero, support_single_ne_zero, finset.sum_singleton, coeff_C_zero, coeff_C_zero], simp, },
   { rw finset.sum_eq_zero,
     rintros ⟨i,j⟩ hij,
     rw mem_antidiagonal_support at hij, rw [coeff_C, coeff_C],
@@ -405,9 +407,9 @@ mv_polynomial.ext _ _ $ λ m,
 begin
   rw [coeff_trunc, coeff_one],
   split_ifs with H H' H',
-  { subst m, exact rfl },
-  { symmetry, exact if_neg (ne.elim (ne.symm H')) },
-  { symmetry, refine if_neg _,
+  { subst m, erw mv_polynomial.coeff_C 0, simp },
+  { symmetry, erw mv_polynomial.coeff_monomial, convert if_neg (ne.elim (ne.symm H')), },
+  { symmetry, erw mv_polynomial.coeff_monomial, convert if_neg _,
     intro H', apply H, subst m, intro s, exact nat.zero_le _ }
 end
 
@@ -473,7 +475,7 @@ well-founded recursion on the coeffients of the inverse.
  the totalised inverse formal power series `(_)⁻¹` and
  the inverse formal power series that depends on
  an inverse of the constant coefficient `inv_of_unit`.-/
-protected def inv.aux (a : α) (φ : mv_power_series σ α) : mv_power_series σ α
+protected noncomputable def inv.aux (a : α) (φ : mv_power_series σ α) : mv_power_series σ α
 | n := if n = 0 then a else
 - a * n.antidiagonal.support.sum (λ (x : (σ →₀ ℕ) × (σ →₀ ℕ)),
     if h : x.2 < n then coeff x.1 φ * inv.aux x.2 else 0)
@@ -505,8 +507,11 @@ lemma mul_inv_of_unit (φ : mv_power_series σ α) (u : units α) (h : coeff 0 �
   φ * inv_of_unit φ u = 1 :=
 ext $ λ n,
 if H : n = 0 then
-by erw [H, coeff_mul, coeff_one_zero, finsupp.antidiagonal_zero,
-  finset.sum_singleton, coeff_zero_inv_of_unit, h, units.mul_inv]
+begin
+  erw [H, coeff_mul, coeff_one_zero, finsupp.antidiagonal_zero,
+          support_single_ne_zero, finset.sum_singleton, coeff_zero_inv_of_unit, h, units.mul_inv],
+  simp
+end
 else
 begin
   have : ((0 : σ →₀ ℕ), n) ∈ n.antidiagonal.support,

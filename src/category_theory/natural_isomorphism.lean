@@ -121,11 +121,11 @@ namespace functor
 variables {C : Type u₁} [𝒞 : category.{v₁} C]
 include 𝒞
 
-def ulift_down_up : ulift_down.{v₁} C ⋙ ulift_up C ≅ functor.id (ulift.{u₂} C) :=
+def ulift_down_up : ulift_down.{v₁} C ⋙ ulift_up C ≅ 𝟭 (ulift.{u₂} C) :=
 { hom := { app := λ X, @category_struct.id (ulift.{u₂} C) _ X },
   inv := { app := λ X, @category_struct.id (ulift.{u₂} C) _ X } }
 
-def ulift_up_down : ulift_up.{v₁} C ⋙ ulift_down C ≅ functor.id C :=
+def ulift_up_down : ulift_up.{v₁} C ⋙ ulift_down C ≅ 𝟭 C :=
 { hom := { app := λ X, 𝟙 X },
   inv := { app := λ X, 𝟙 X } }
 

@@ -120,7 +120,7 @@ instance top_ring_compl : topological_ring (completion α) :=
   continuous_neg := continuous_neg' }
 
 instance is_ring_hom_map : is_ring_hom (completion.map f) :=
-completion.is_ring_hom_extension $ (continuous_coe β).comp hf
+(completion.is_ring_hom_extension $ (continuous_coe β).comp hf : _)
 
 variables (R : Type*) [comm_ring R] [uniform_space R] [uniform_add_group R] [topological_ring R]
 

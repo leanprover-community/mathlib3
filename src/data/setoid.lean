@@ -48,8 +48,6 @@ def ker (f : α → β) : setoid α :=
 @[simp] lemma ker_mk_eq (r : setoid α) : ker (@quotient.mk _ r) = r :=
 ext' $ λ x y, quotient.eq
 
-open lattice
-
 /-- The infimum of two equivalence relations. -/
 instance : has_inf (setoid α) :=
 ⟨λ r s, ⟨λ x y, r.r' x y ∧ s.r' x y, ⟨λ x, ⟨r.refl' x, s.refl' x⟩, 

@@ -164,7 +164,9 @@ return $ let nm := d.to_name.components in if nm.chain' (≠) then none
 
 /-- Checks whether a declaration has a classical proof in the statement -/
 meta def classical_in_statement (d : declaration) : tactic (option string) :=
-return $ if d.type.contains_constant `classical.prop_decidable then some "classical" else none
+return $ if d.type.contains_constant (λ n, n.get_prefix = `classical ∧
+  n.last ∈ ["prop_decidable", "dec", "dec_rel", "dec_eq"])
+then some "the statement uses a classical instance" else none
 
 /-- Return the message printed by `#sanity_check`. -/
 meta def sanity_check : tactic format :=
@@ -224,8 +226,9 @@ do s ← sanity_check_mathlib, trace s
 -- #sanity_check
 -- #sanity_check_mathlib
 
-attribute [instance] classical.prop_decidable
+attribute [instance] classical.dec
 def foo : (if 3 = 3 then 1 else 2) = 1 := if_pos (by refl)
-
-set_option profiler true
-run_cmd print_decls_mathlib classical_in_statement >>= trace
+set_option pp.implicit true
+#print foo
+-- set_option profiler true
+run_cmd print_decls_current_file classical_in_statement >>= trace

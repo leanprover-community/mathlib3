@@ -186,10 +186,10 @@ e.fold mk_name_set $ λ e' _ l,
   | _ := l
   end
 
-/-- Returns a name_set of all constants in an expression.
-  Returns `true` if `n` is `name.anonymous` -/
-meta def contains_constant (e : expr) (n : name) : bool :=
-e.fold ff (λ e' _ b, if e'.const_name = n then tt else b)
+/-- Returns true if `e` contains a name `n` where `p n` is true.
+  Returns `true` if `p name.anonymous` is true -/
+meta def contains_constant (e : expr) (p : name → Prop) [decidable_pred p] : bool :=
+e.fold ff (λ e' _ b, if p (e'.const_name) then tt else b)
 
 /--
  is_num_eq n1 n2 returns true if n1 and n2 are both numerals with the same numeral structure,

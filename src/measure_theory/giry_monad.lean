@@ -2,10 +2,28 @@
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
-
-Giry monad: `measure` is a monad in the category of `measurable_space` and `measurable` functions.
 -/
 import measure_theory.integration
+
+/-!
+# The Giry monad
+
+Let X be a measurable space. The collection of all measures on X again
+forms a measurable space. This construction forms a monad on
+measurable spaces and measurable functions, called the Giry monad.
+
+Note that most sources use the term "Giry monad" for the restriction
+to *probability* measures. Here we include all measures on X.
+
+## References
+
+* https://ncatlab.org/nlab/show/Giry+monad
+
+## Tags
+
+giry monad
+-/
+
 noncomputable theory
 local attribute [instance, priority 0] classical.prop_decidable
 

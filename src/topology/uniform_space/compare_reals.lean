@@ -99,7 +99,7 @@ instance : uniform_space Q := is_absolute_value.uniform_space (abs : ℚ → ℚ
 /-- Real numbers constructed as in Bourbaki. -/
 def Bourbakiℝ : Type := completion Q
 
-instance : uniform_space Bourbakiℝ := completion.uniform_space Q
+instance bourbaki.uniform_space: uniform_space Bourbakiℝ := completion.uniform_space Q
 
 /-- Bourbaki reals packaged as a completion of Q using the general theory. -/
 def Bourbaki_pkg : abstract_completion Q := completion.cpkg

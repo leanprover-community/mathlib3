@@ -35,10 +35,10 @@ This formalization is mostly based on
 From a slightly different perspective in order to reuse material in topology.uniform_space.basic.
 -/
 import data.set.basic
-import topology.uniform_space.uniform_embedding topology.uniform_space.separation
+import topology.uniform_space.abstract_completion topology.uniform_space.separation
 
 noncomputable theory
-local attribute [instance] classical.prop_decidable
+local attribute [instance, priority 0] classical.prop_decidable
 open filter set
 universes u v w x
 
@@ -341,26 +341,10 @@ instance : t2_space (completion α) := separated_t2
 
 instance : regular_space (completion α) := separated_regular
 
-lemma nonempty_completion_iff : nonempty (completion α) ↔ nonempty α :=
-begin
-  conv_rhs { rw ← nonempty_Cauchy_iff },
-  split ; rintro ⟨c⟩,
-  { rcases quotient.exists_rep c with ⟨a, _⟩,
-    exact ⟨a⟩ },
-  { exact ⟨⟦c⟧⟩ }
-end
-
 /-- Automatic coercion from `α` to its completion. Not always injective. -/
 instance : has_coe α (completion α) := ⟨quotient.mk ∘ pure_cauchy⟩
 
 protected lemma coe_eq : (coe : α → completion α) = quotient.mk ∘ pure_cauchy := rfl
-
-lemma uniform_continuous_coe : uniform_continuous (coe : α → completion α) :=
-uniform_continuous.comp
-  uniform_continuous_quotient_mk uniform_inducing_pure_cauchy.uniform_continuous
-
-lemma continuous_coe : continuous (coe : α → completion α) :=
-uniform_continuous.continuous (uniform_continuous_coe α)
 
 lemma comap_coe_eq_uniformity :
   (𝓤 _).comap (λ(p:α×α), ((p.1 : completion α), (p.2 : completion α))) = 𝓤 α :=
@@ -376,14 +360,39 @@ end
 lemma uniform_inducing_coe : uniform_inducing  (coe : α → completion α) :=
 ⟨comap_coe_eq_uniformity α⟩
 
+variables {α}
+
+lemma dense : closure (range (coe : α → completion α)) = univ :=
+by rw [completion.coe_eq, range_comp]; exact quotient_dense_of_dense pure_cauchy_dense
+
+variables (α)
+
+def cpkg {α : Type*} [uniform_space α] : abstract_completion α :=
+{ space := completion α,
+  coe := coe,
+  uniform_struct := by apply_instance,
+  complete := by apply_instance,
+  separation := by apply_instance,
+  uniform_inducing := completion.uniform_inducing_coe α,
+  dense := (dense_range_iff_closure_eq _).2 completion.dense }
+
+local attribute [instance]
+abstract_completion.uniform_struct abstract_completion.complete abstract_completion.separation
+
+lemma nonempty_completion_iff : nonempty (completion α) ↔ nonempty α :=
+(dense_range.nonempty (cpkg.dense)).symm
+
+lemma uniform_continuous_coe : uniform_continuous (coe : α → completion α) :=
+cpkg.uniform_continuous_coe
+
+lemma continuous_coe : continuous (coe : α → completion α) :=
+cpkg.continuous_coe
+
 lemma uniform_embedding_coe [separated α] : uniform_embedding  (coe : α → completion α) :=
 { comap_uniformity := comap_coe_eq_uniformity α,
   inj := injective_separated_pure_cauchy }
 
 variable {α}
-
-lemma dense : closure (range (coe : α → completion α)) = univ :=
-by rw [completion.coe_eq, range_comp]; exact quotient_dense_of_dense pure_cauchy_dense
 
 lemma dense_inducing_coe : dense_inducing (coe : α → completion α) :=
 { dense := (dense_range_iff_closure_eq _).2 dense,
@@ -453,7 +462,7 @@ this ((a, b), (c, d))
 
 lemma ext [t2_space β] {f g : completion α → β} (hf : continuous f) (hg : continuous g)
   (h : ∀a:α, f a = g a) : f = g :=
-funext $ assume a, completion.induction_on a (is_closed_eq hf hg) h
+cpkg.funext hf hg h
 
 section extension
 variables {f : α → β}
@@ -461,45 +470,28 @@ variables {f : α → β}
 /-- "Extension" to the completion. It is defined for any map `f` but
 returns an arbitrary constant value if `f` is not uniformly continuous -/
 protected def extension (f : α → β) : completion α → β :=
-if uniform_continuous f then
-  dense_inducing_coe.extend f
-else
-  λ x, f (classical.inhabited_of_nonempty $ (nonempty_completion_iff α).1 ⟨x⟩).default
+cpkg.extend f
 
 variables [separated β]
 
 @[simp] lemma extension_coe (hf : uniform_continuous f) (a : α) : (completion.extension f) a = f a :=
-begin
-  rw [completion.extension, if_pos hf],
-  exact dense_inducing_coe.extend_eq_of_cont hf.continuous a
-end
+cpkg.extend_coe hf a
 
 variables [complete_space β]
 
 lemma uniform_continuous_extension : uniform_continuous (completion.extension f) :=
-begin
-  by_cases hf : uniform_continuous f,
-  { rw [completion.extension, if_pos hf],
-    exact uniform_continuous_uniformly_extend (uniform_inducing_coe α)
-      ((dense_range_iff_closure_eq _).2 dense) hf },
-  { rw [completion.extension, if_neg hf],
-    exact uniform_continuous_of_const (assume a b, by congr) }
-end
+cpkg.uniform_continuous_extend
 
 lemma continuous_extension : continuous (completion.extension f) :=
-uniform_continuous_extension.continuous
+cpkg.continuous_extend
 
 lemma extension_unique (hf : uniform_continuous f) {g : completion α → β} (hg : uniform_continuous g)
   (h : ∀ a : α, f a = g (a : completion α)) : completion.extension f = g :=
-begin
-  apply completion.ext uniform_continuous_extension.continuous hg.continuous,
-  simpa only [extension_coe hf] using h
-end
+cpkg.extend_unique hf hg h
 
 @[simp] lemma extension_comp_coe {f : completion α → β} (hf : uniform_continuous f) :
   completion.extension (f ∘ coe) = f :=
-funext $ λ x, completion.induction_on x (is_closed_eq continuous_extension hf.continuous)
-    (λ y, completion.extension_coe (hf.comp $ uniform_continuous_coe α) y)
+cpkg.extend_comp_coe hf
 end extension
 
 section map
@@ -507,28 +499,23 @@ variables {f : α → β}
 
 /-- Completion functor acting on morphisms -/
 protected def map (f : α → β) : completion α → completion β :=
-completion.extension (coe ∘ f)
+cpkg.map cpkg f
 
 lemma uniform_continuous_map : uniform_continuous (completion.map f) :=
-uniform_continuous_extension
+cpkg.uniform_continuous_map cpkg f
 
 lemma continuous_map : continuous (completion.map f) :=
-uniform_continuous_extension.continuous
+cpkg.continuous_map cpkg f
 
 @[simp] lemma map_coe (hf : uniform_continuous f) (a : α) : (completion.map f) a = f a :=
-by rw [completion.map, extension_coe]; from (uniform_continuous_coe β).comp hf
+cpkg.map_coe cpkg hf a
 
 lemma map_unique {f : α → β} {g : completion α → completion β}
   (hg : uniform_continuous g) (h : ∀a:α, ↑(f a) = g a) : completion.map f = g :=
-completion.ext continuous_map hg.continuous $
-begin
-  intro a,
-  simp only [completion.map, (∘), h],
-  rw [extension_coe (hg.comp (uniform_continuous_coe α))]
-end
+cpkg.map_unique cpkg hg h
 
 @[simp] lemma map_id : completion.map (@id α) = id :=
-map_unique uniform_continuous_id (assume a, rfl)
+cpkg.map_id
 
 lemma extension_map [complete_space γ] [separated γ] {f : β → γ} {g : α → β}
   (hf : uniform_continuous f) (hg : uniform_continuous g) :
@@ -576,46 +563,23 @@ uniform_continuous_map
 
 end separation_quotient_completion
 
-section prod
-
-protected def prod {α β} [uniform_space α] [uniform_space β] :
-  completion α × completion β → completion (α × β) :=
-dense_inducing.extend (dense_inducing_coe.prod dense_inducing_coe) coe
-
-lemma uniform_continuous_prod : uniform_continuous (@completion.prod α β _ _) :=
-uniform_continuous_uniformly_extend
-  ((uniform_inducing_coe α).prod $ uniform_inducing_coe β)
-  (eq_univ_iff_forall.1 dense₂)
-  (uniform_continuous_coe _)
-
-@[move_cast]
-lemma prod_coe_coe (a : α) (b : β) : coe (a, b) =
-  completion.prod ((a : completion α), (b : completion β)) :=
-(dense_inducing.extend_eq_of_cont (dense_inducing_coe.prod dense_inducing_coe)
-  (continuous_coe $ α × β) (a, b)).symm
-
-end prod
-
 section extension₂
 variables (f : α → β → γ)
 open function
 
 protected def extension₂ (f : α → β → γ) : completion α → completion β → γ :=
-curry $ completion.extension (uncurry' f) ∘ completion.prod
+cpkg.extend₂ cpkg f
 
 variables [separated γ] {f}
 
 @[simp] lemma extension₂_coe_coe (hf : uniform_continuous $ uncurry' f) (a : α) (b : β) :
   completion.extension₂ f a b = f a b :=
-by simpa [completion.extension₂, curry, (prod_coe_coe _ _).symm, extension_coe hf]
+cpkg.extension₂_coe_coe cpkg hf a b
 
 variables [complete_space γ] (f)
 
 lemma uniform_continuous_extension₂ : uniform_continuous₂ (completion.extension₂ f) :=
-begin
-  rw [uniform_continuous₂_def, completion.extension₂, uncurry'_curry],
-  exact uniform_continuous_extension.comp uniform_continuous_prod,
-end
+cpkg.uniform_continuous_extension₂ cpkg f
 
 end extension₂
 
@@ -623,19 +587,19 @@ section map₂
 open function
 
 protected def map₂ (f : α → β → γ) : completion α → completion β → completion γ :=
-completion.extension₂ (coe ∘ f)
+cpkg.map₂ cpkg cpkg f
 
 lemma uniform_continuous_map₂ (f : α → β → γ) : uniform_continuous (uncurry' $ completion.map₂ f) :=
-uniform_continuous_extension₂ _
+cpkg.uniform_continuous_map₂ cpkg cpkg f
 
 lemma continuous_map₂ {δ} [topological_space δ] {f : α → β → γ}
   {a : δ → completion α} {b : δ → completion β} (ha : continuous a) (hb : continuous b) :
   continuous (λd:δ, completion.map₂ f (a d) (b d)) :=
-((uniform_continuous_map₂ f).continuous.comp (continuous.prod_mk ha hb) : _)
+cpkg.continuous_map₂ cpkg cpkg ha hb
 
 lemma map₂_coe_coe (a : α) (b : β) (f : α → β → γ) (hf : uniform_continuous $ uncurry' f) :
   completion.map₂ f (a : completion α) (b : completion β) = f a b :=
-completion.extension₂_coe_coe ((uniform_continuous_coe γ).comp hf) a b
+cpkg.map₂_coe_coe cpkg cpkg a b f hf
 
 end map₂
 end completion

@@ -789,10 +789,13 @@ submonoid.ext'_iff.1 $ (set.ext_iff _ _).2 $ λ x,
 run_cmd tactic.add_doc_string `add_monoid_hom.range_top_of_surjective
   "The range of a surjective add_monoid_hom is the top add_submonoid."
 
-#check submonoid.subtype
+/-- The monoid_hom associated to an inclusion of submonoids. -/
 @[to_additive]
 def set_inclusion (T : submonoid M) (h : S ≤ T) : S →* T :=
 subtype_mk _ S.subtype (λ x, h x.2)
+
+run_cmd tactic.add_doc_string `add_monoid_hom.set_inclusion
+  "The add_monoid_hom associated to an inclusion of submonoids."
 
 end monoid_hom
 
@@ -822,7 +825,7 @@ closure'_le $ set.subset.trans h le_closure'
 
 theorem closure'_singleton {x : M} : closure' ({x} : set M) = powers x :=
 ext' $ set.eq_of_subset_of_subset (closure'_le $ set.singleton_subset_iff.2 powers.self_mem) $
-submonoid.power_subset _ $ in_closure.basic $ set.mem_singleton x
+submonoid.powers_subset _ $ in_closure.basic $ set.mem_singleton x
 
 lemma image_closure' {N : Type*} [monoid N] (f : M →* N) (s : set M) :
   f.map (closure' s) = closure' (f '' s) :=

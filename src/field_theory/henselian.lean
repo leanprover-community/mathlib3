@@ -333,36 +333,53 @@ begin
   { transitivity (f b), assumption, exact le_add_of_nonneg_left (h0 _)},
 end
 
-noncomputable def val_ext : β → ℝ := λ b, (valued_ring.val (field_norm α β b)) ^ (1 / findim α β : ℝ)
+noncomputable def val_ext : β → ℝ := λ b, (valued_ring.val (field_norm α b)) ^ (1 / findim α β : ℝ)
 
 lemma val_ext_nonneg (b : β) : val_ext α b ≥ 0 := real.rpow_nonneg_of_nonneg (nonneg _) _
 
+lemma val_ext_definite (b : β) : val_ext α b = 0 ↔ b = 0 :=
+begin
+  have : (1 / findim α β : ℝ) ≠ 0, from
+    by { rw [←inv_eq_one_div], refine inv_ne_zero _, norm_cast, exact findim_ne_zero α },
+  unfold val_ext,
+  rw [rpow_zero_iff (nonneg _) this, definite, norm_zero_iff_zero]
+end
+
+lemma val_ext_mul (b c : β) : val_ext α (b * c) = val_ext α b * val_ext α c :=
+by { unfold val_ext, rw [norm_mul, val_mul, real.mul_rpow (nonneg _) (nonneg _)] }
+
+lemma val_ext_one : val_ext α (1 : β) = 1 :=
+by { unfold val_ext, rw [norm_one, val_one, real.one_rpow] }
+
+lemma val_ext_inv {b : β} (h : b ≠ 0) : val_ext α b⁻¹ = (val_ext α b)⁻¹ :=
+begin
+  apply eq_of_mul_eq_mul_right (mt (val_ext_definite α b).mp h),
+  rw [inv_mul_cancel (mt (val_ext_definite α b).mp h), ←val_ext_mul, inv_mul_cancel h, val_ext_one]
+end
+
+lemma val_ext_div (b : β) {c : β} (h : c ≠ 0) : val_ext α (b / c) = val_ext α b / val_ext α c :=
+by rw [div_eq_mul_inv, div_eq_mul_inv, ←val_ext_inv _ h, val_ext_mul]
+
 lemma max_div (x y : ℝ) {z : ℝ} (hz : z > 0) : (max x y) / z = max (x / z) (y / z) := sorry
 
-lemma test1 (b : β) : val_ext α b ≤ 1 ↔ valued_ring.val (field_norm α β b) ≤ 1 := sorry
+lemma test1 (b : β) : val_ext α b ≤ 1 ↔ valued_ring.val (field_norm α b) ≤ 1 := sorry
 
 noncomputable instance extend_valuation : nonarch_valued_ring β :=
 { val := val_ext α,
   nonneg := val_ext_nonneg α,
-  definite := λ b, begin
-      have : (1 / findim α β : ℝ) ≠ 0, from
-        by { rw [←inv_eq_one_div], refine inv_ne_zero _, norm_cast, exact findim_ne_zero α },
-      unfold val_ext,
-      rw [rpow_zero_iff (nonneg _) this, definite, norm_zero_iff_zero]
-    end,
-  val_mul := λ a b, by { unfold val_ext, rw [norm_mul, val_mul, real.mul_rpow (nonneg _) (nonneg _)] },
+  definite := val_ext_definite α,
+  val_mul := val_ext_mul α,
   nonarch := λ a b,
   suffices h : ∀ c : β, val_ext α c ≤ 1 → val_ext α (c + 1) ≤ max (val_ext α c) 1, from
   begin
     by_cases hb : b = 0,
     { rw [hb, val_zero, add_zero], exact le_max_left _ _ },
-    { have : val_ext α b ≠ 0, from sorry,
-      have : val_ext α b > 0, from lt_of_le_of_ne (val_ext_nonneg α _) (ne.symm this),
-      rw [←div_le_div_right this, val_div, max_div _ _ this, val_div, val_div],
+    { have : val_ext α b ≠ 0, by rwa [ne.def, val_ext_definite α],
+      have hb0 : val_ext α b > 0, from lt_of_le_of_ne (val_ext_nonneg α _) (ne.symm this),
+      rw [←div_le_div_right hb0, val_div, max_div _ _ hb0, val_div, val_div],
       rw [add_div, div_self hb, val_one],
-
       have : val_ext α a ≤ val_ext α b, from sorry, --wlog
-      have hc : val_ext α (a / b) ≤ 1, from sorry,
+      have hc : val_ext α (a / b) ≤ 1, by rwa [val_ext_div α _ hb, div_le_one_iff_le hb0],
       exact h (a / b) hc,
       assumption' }
   end,
@@ -375,9 +392,9 @@ noncomputable instance extend_valuation : nonarch_valued_ring β :=
     letI : algebra (valuation_ring α) β := algebra.comap.algebra (valuation_ring α) α β,
     let O := integral_closure (valuation_ring α) β,
     -- O is the inverse image of the valuation ring of α under the norm map
-    have hO : O.carrier = set.preimage (field_norm α β) (valuation_ring α), from
-    begin
-      ext x,
+    --TODO: make this a seperate lemma
+    have hO : O.carrier = set.preimage (field_norm α) (valuation_ring α), from
+    { ext x,
       rw [set.mem_preimage],
       split,
       { intro hx,
@@ -385,19 +402,21 @@ noncomputable instance extend_valuation : nonarch_valued_ring β :=
       { intro hx,
         --change is_integral (valuation_ring α) x,
         -- Minimal polynomial of x over α
-        have hb : ∃ f : polynomial α, monic f ∧ irreducible f ∧ aeval α β x f = 0, from sorry,
+        have hb : ∃ f : polynomial α, irreducible f ∧ (monic f ∧ aeval α β x f = 0), from sorry,
         cases hb with f hf,
         -- follows from henselian_field.henselian, field norms and minimal polynomials
-        have h : ∀ n : ℕ, valued_ring.val (f.coeff n) ≤ 1, from sorry,
-        let fo := f.to_subring (valuation_ring α)
-          (λ _ hy, let ⟨n, hn⟩ := (finsupp.mem_frange.mp hy).2 in hn ▸ h n),
-        sorry
-       }
-    end,
-
+        have : valued_ring.val (f.coeff 0) ≤ 1, from sorry,
+        have h : ∀ n : ℕ, valued_ring.val (f.coeff n) ≤ 1, from integral_coeffs f hf.1 hf.2.1 this,
+        have hr : ↑(finsupp.frange f) ⊆ valuation_ring α, from
+          λ _ hy, let ⟨n, hn⟩ := (finsupp.mem_frange.mp hy).2 in hn ▸ h n,
+        let fo := f.to_subring (valuation_ring α) hr,
+        existsi fo,
+        split,
+        { exact (monic_to_subring _ _ _).mpr hf.2.1 },
+        { rw [←hf.2.2],
+          exact eq.symm (to_subring_eval₂ f (valuation_ring α) hr _ x) } } },
     rw [←set.mem_preimage, ←hO] at hc ⊢,
     exact is_add_submonoid.add_mem hc (is_submonoid.one_mem _)
-
   end,
   val_add := sorry,
 }

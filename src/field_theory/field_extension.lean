@@ -82,6 +82,9 @@ lemma test (α β γ : Type*) [discrete_field α] [add_comm_group β] [add_comm_
 @[simp] lemma norm_mul (b c : β) : field_norm α (b * c) = field_norm α b * field_norm α c :=
 by { unfold field_norm, rw [mul_matrix_mul, matrix.det_mul] }
 
+@[simp] lemma norm_div (b c : β) : field_norm α (b / c) = field_norm α b / field_norm α c :=
+sorry
+
 lemma norm_base (a : α) : field_norm α (algebra_map β a) = a ^ findim α β :=
 begin
 unfold field_norm,
@@ -131,7 +134,7 @@ end
 
 namespace minimal_polynomial
 
-open polynomial ideal ideal.is_principal
+open polynomial ideal ideal.is_principal field_extension
 
 variables (α : Type u) [discrete_field α]
 variables {β : Type v} [discrete_field β] [field_extension α β]
@@ -257,6 +260,16 @@ have h2 : ¬degree (minimal_polynomial α hb) ≤ degree (minimal_polynomial α 
     (by rw [monic.def.mp (monic α hb), monic.def.mp hm]),
 classical.by_contradiction
   (λ h, absurd (minimal α hb h1 (sub_ne_zero.mpr h)) h2)
+
+lemma congr (h1 h2 : is_integral α b) : minimal_polynomial α h1 = minimal_polynomial α h2 :=
+unique α h1 (nonzero α h2) (mem_vanishing_ideal α h2) (monic α h2) (λ _, minimal α h2)
+
+--TODO: remove finite_dimensional α β
+lemma const_eq_norm [finite_dimensional α β] :
+  coeff (minimal_polynomial α hb) 0 = (-1) ^ nat_degree (minimal_polynomial α hb) * (field_norm α b) :=
+begin
+sorry
+end
 
 end minimal_polynomial
 
@@ -454,56 +467,6 @@ begin
     { intros _ _, simp only [zero_smul] },
     { intros _ _ _ _, simp only [add_smul] } }
 end
-
-instance fhint (α β η : Type*) [discrete_field α] [discrete_field β] [algebra α β]
-  [decidable_eq η] : module α (η →₀ β) := by apply_instance
-
-variables {ι : Type*} [decidable_eq ι] {v : ι → β} (hv : is_basis α v)
-variables {η : Type*} [decidable_eq η] {f : ι × η →₀ α} {i : ι × η}
-
-#check linear_independent_iff.mp hv.1 (finsupp.map_range
-  (λ g : η →₀ α, g.sum (λ (j : ι) (g : η →₀ α), (g i.2) • (v j))) finsupp.sum_zero_index (finsupp.curry f)),
-#check @linear_independent_iff
-
-
-lemma finsupp_basis2 (α β ι η : Type*) [discrete_field α] [discrete_field β] [algebra α β]
-  [decidable_eq ι] [decidable_eq η] {v : ι → β} (hv : is_basis α v) :
-  is_basis α (λ i : ι × η, finsupp.single i.2 (v i.1)) :=
-begin
-  split,
-  { rw [linear_independent_iff],
-    intros f hf,
-    ext i,
-    rw [finsupp.total_apply, finsupp.ext_iff] at hf,
-    replace hf := hf i.2,
-    rw [finsupp.sum_apply] at hf,
-    conv_lhs at hf { congr, skip, funext, rw [finsupp.smul_single, finsupp.single_apply] },
-    rw [←finsupp.sum_curry_index f (λ (j : ι) (n : η) (b : α), ite (n = i.snd) (b • v j) 0)] at hf,
-    { change (finsupp.curry f).sum (λ (k : ι) (g : η →₀ α), g.sum (λ (n : η) (b : α), ite (n = i.snd) (b • v k) 0)) = 0 at hf,
-      conv_lhs at hf { congr, skip, funext,
-        rw [show (λ (n : η) (b : α), ite (n = i.snd) (b • v k) 0) =
-          (λ (n : η) (b : α), (ite (n = i.snd) b 0) • v k),
-          by { ext, split_ifs, refl, rw [zero_smul] }],
-        rw [finsupp.sum_smul, sum_ite _ (λ (n : η) (b : α), b) (λ _, rfl)] },
-      change (finsupp.curry f).sum (λ (j : ι) (g : η →₀ α), g i.2 • v j) = 0 at hf,
-      sorry
-    },
-    { sorry },
-    { sorry } },
-  { rw [submodule.eq_top_iff'],
-    intro f,
-    rw [←set.image_univ, finsupp.mem_span_iff_total],
-    have H : f ∈ finsupp.supported α α (set.univ : set ι),
-      { rw [finsupp.supported_univ], exact submodule.mem_top },
-    existsi [f, H],
-    rw [finsupp.total_apply],
-    ext i,
-    rw [finsupp.sum_apply],
-    conv_lhs { congr, skip, funext, rw [finsupp.smul_single, finsupp.single_apply] },
-    rw [sum_ite, smul_eq_mul, mul_one],
-    intro _, exact zero_smul _ _ }
-end
-
 
 set_option profiler true
 set_option pp.universes true

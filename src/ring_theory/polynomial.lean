@@ -111,6 +111,10 @@ omit hp
   (set.subset.trans (finset.coe_subset.2 finsupp.frange_single)
     (set.singleton_subset_iff.2 (is_submonoid.one_mem _))) = 1 :=
 ext.2 $ λ i, subtype.eq $ by rw [coeff_to_subring', coeff_one, coeff_one]; split_ifs; refl
+
+theorem to_subring_eval₂ {S : Type*} [semiring S] (f : R → S) (x : S) :
+  eval₂ (f ∘ subtype.val) x (to_subring p T hp) = eval₂ f x p := rfl
+
 end to_subring
 
 variables (T : set R) [is_subring T]

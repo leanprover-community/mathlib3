@@ -9,9 +9,7 @@ import algebra.field
 import analysis.normed_space.operator_norm
 
 noncomputable theory
-local attribute [instance] classical.prop_decidable
-
-local notation f ` →_{`:50 a `} `:0 b := filter.tendsto f (nhds a) (nhds b)
+open_locale classical filter
 
 open filter (tendsto)
 open metric

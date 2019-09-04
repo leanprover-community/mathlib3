@@ -17,9 +17,7 @@ import topology.uniform_space.uniform_embedding topology.uniform_space.complete_
 import topology.algebra.group
 
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
-
-local notation `𝓤` := uniformity
+open_locale classical uniformity
 
 section uniform_add_group
 open filter set

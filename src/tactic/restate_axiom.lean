@@ -8,8 +8,10 @@ import data.buffer.parser
 
 open lean.parser tactic interactive parser
 
-/-- 
-`restate_axiom` takes a structure field, and makes a new, definitionally simplified copy of it, appending `_lemma` to the name.
+/--
+`restate_axiom` takes a structure field, and makes a new, definitionally simplified copy of it.
+If the existing field name ends with a `'`, the new field just has the prime removed. Otherwise,
+we append `_lemma`.
 The main application is to provide clean versions of structure fields that have been tagged with an auto_param.
 -/
 meta def restate_axiom (d : declaration) (new_name : name) : tactic unit :=
@@ -20,7 +22,12 @@ do (levels, type, value, reducibility, trusted) ← pure (match d.to_definition 
   end),
   (s, u) ← mk_simp_set ff [] [],
   new_type ← (s.dsimplify [] type) <|> pure (type),
-  updateex_env $ λ env, env.add (declaration.defn new_name levels new_type value reducibility trusted)
+  prop ← is_prop new_type,
+  let new_decl := if prop then
+      declaration.thm new_name levels new_type (task.pure value)
+    else
+      declaration.defn new_name levels new_type value reducibility trusted,
+  updateex_env $ λ env, env.add new_decl
 
 private meta def name_lemma (old : name) (new : option name := none) : tactic name :=
 match new with
@@ -47,4 +54,3 @@ do from_lemma ← ident,
     new_name ← name_lemma from_lemma_fully_qualified new_name,
     restate_axiom d new_name
   }
-

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Scott Morrison
 -/
 import category_theory.opposites
-import category_theory.products
+import category_theory.products.basic
 
 /-!
 The hom functor, sending `(X, Y)` to the type `X ⟶ Y`.

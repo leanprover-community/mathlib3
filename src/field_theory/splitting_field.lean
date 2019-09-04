@@ -19,7 +19,7 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 namespace polynomial
 
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 variables [discrete_field α] [discrete_field β] [discrete_field γ]
 open polynomial
 

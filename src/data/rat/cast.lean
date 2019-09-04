@@ -23,7 +23,7 @@ rat, rationals, field, ℚ, numerator, denominator, num, denom, cast, coercion, 
 
 namespace rat
 variable {α : Type*}
-local infix ` /. `:70 := rat.mk
+open_locale rat
 
 section with_div_ring
 variable [division_ring α]

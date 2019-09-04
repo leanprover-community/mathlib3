@@ -27,7 +27,7 @@ A major difference is that this formalization is heavily based on the filter lib
 import order.filter.basic order.filter.lift topology.constructions
 
 open set lattice filter classical
-local attribute [instance, priority 0] prop_decidable
+open_locale classical
 
 set_option eqn_compiler.zeta true
 
@@ -152,7 +152,7 @@ variables [uniform_space α]
 def uniformity (α : Type u) [uniform_space α] : filter (α × α) :=
   (@uniform_space.to_core α _).uniformity
 
-local notation `𝓤` := uniformity
+localized "notation `𝓤` := uniformity" in uniformity
 
 lemma is_open_uniformity {s : set α} :
   is_open s ↔ (∀x∈s, { p : α × α | p.1 = x → p.2 ∈ s } ∈ 𝓤 α) :=
@@ -463,7 +463,7 @@ calc map f (nhds a) ≤
 end uniform_space
 end
 
-local notation `𝓤` := uniformity
+open_locale uniformity
 
 section constructions
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ι : Sort*}

@@ -16,8 +16,7 @@ noncomputable theory
 universes u v w u₁ v₁
 
 open lattice
-
-local infix ` ⊗ `:100 := tensor_product
+open_locale tensor_product
 
 /-- The category of R-algebras where R is a commutative
 ring is the under category R ↓ CRing. In the categorical

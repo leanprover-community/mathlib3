@@ -1592,7 +1592,7 @@ section multiplicity
 def decidable_dvd_monic (p : polynomial α) (hq : monic q) : decidable (q ∣ p) :=
 decidable_of_iff (p %ₘ q = 0) (dvd_iff_mod_by_monic_eq_zero hq)
 
-local attribute [instance, priority 0] classical.dec
+open_locale classical
 
 lemma multiplicity_X_sub_C_finite (a : α) (h0 : p ≠ 0) :
   multiplicity.finite (X - C a) p :=

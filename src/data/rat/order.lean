@@ -23,7 +23,7 @@ rat, rationals, field, ℚ, numerator, denominator, num, denom, order, ordering,
 
 namespace rat
 variables (a b c : ℚ)
-local infix ` /. `:70 := rat.mk
+open_locale rat
 
 protected def nonneg : ℚ → Prop
 | ⟨n, d, h, c⟩ := n ≥ 0

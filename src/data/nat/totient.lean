@@ -11,7 +11,7 @@ namespace nat
 
 def totient (n : ℕ) : ℕ := ((range n).filter (nat.coprime n)).card
 
-local notation `φ` := totient
+localized "notation `φ` := nat.totient" in nat
 
 lemma totient_le (n : ℕ) : φ n ≤ n :=
 calc totient n ≤ (range n).card : card_le_of_subset (filter_subset _)

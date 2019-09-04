@@ -8,11 +8,11 @@ Theory of Cauchy filters in uniform spaces. Complete uniform spaces. Totally bou
 import topology.uniform_space.basic
 
 open filter topological_space lattice set classical
-local attribute [instance, priority 0] prop_decidable
+open_locale classical
 variables {α : Type*} {β : Type*} [uniform_space α]
 universe u
 
-local notation `𝓤` := uniformity
+open_locale uniformity
 
 /-- A filter `f` is Cauchy if for every entourage `r`, there exists an
   `s ∈ f` such that `s × s ⊆ r`. This is a generalization of Cauchy

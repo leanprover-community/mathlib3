@@ -8,7 +8,7 @@ Probability mass function -- discrete probability measures
 import topology.instances.nnreal topology.instances.ennreal topology.algebra.infinite_sum
 noncomputable theory
 variables {α : Type*} {β : Type*} {γ : Type*}
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 /-- Probability mass functions, i.e. discrete probability measures -/
 def {u} pmf (α : Type u) : Type u := { f : α → nnreal // has_sum f 1 }

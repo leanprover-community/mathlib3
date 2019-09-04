@@ -12,7 +12,7 @@ its basic properties. In particular, show that this space is itself a normed spa
 import topology.metric_space.lipschitz
 import analysis.asymptotics
 noncomputable theory
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 set_option class.instance_max_depth 70
 

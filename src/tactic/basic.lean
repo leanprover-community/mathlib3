@@ -9,6 +9,7 @@ import
   tactic.interactive
   tactic.library_search
   tactic.lift
+  tactic.localized
   tactic.mk_iff_of_inductive_prop
   tactic.push_neg
   tactic.rcases

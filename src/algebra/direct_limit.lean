@@ -105,7 +105,7 @@ theorem lift_unique (F : direct_limit G f →ₗ[R] P) (x) :
 direct_limit.induction_on x $ λ i x, by rw lift_of; refl
 
 section totalize
-local attribute [instance, priority 0] classical.dec
+open_locale classical
 variables (G f)
 noncomputable def totalize : Π i j, G i →ₗ[R] G j :=
 λ i j, if h : i ≤ j then f i j h else 0
@@ -329,7 +329,7 @@ quotient.induction_on' z $ λ x, free_abelian_group.induction_on x
 let ⟨i, x, hx⟩ := exists_of z in hx ▸ ih i x
 
 section of_zero_exact
-local attribute [instance, priority 0] classical.dec
+open_locale classical
 variables (G f)
 lemma of.zero_exact_aux2 {x : free_comm_ring Σ i, G i} {s t} (hxs : is_supported x s) {j k}
   (hj : ∀ z : Σ i, G i, z ∈ s → z.1 ≤ j) (hk : ∀ z : Σ i, G i, z ∈ t → z.1 ≤ k)
@@ -502,7 +502,7 @@ ring.direct_limit.induction_on p $ λ i x H,
     ring.direct_limit.of_one]⟩
 
 section
-local attribute [instance, priority 0] classical.dec
+open_locale classical
 
 noncomputable def inv (p : ring.direct_limit G f) : ring.direct_limit G f :=
 if H : p = 0 then 0 else classical.some (direct_limit.exists_inv G f H)
@@ -522,7 +522,7 @@ protected noncomputable def field : field (ring.direct_limit G f) :=
 protected noncomputable def discrete_field : discrete_field (ring.direct_limit G f) :=
 { has_decidable_eq := classical.dec_eq _,
   inv_zero := dif_pos rfl,
-  ..direct_limit.field G f }  
+  ..direct_limit.field G f }
 
 end
 

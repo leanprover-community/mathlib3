@@ -16,7 +16,7 @@ always finite in this context.
 
 import topology.metric_space.hausdorff_distance topology.opens
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 
 universe u
 open classical lattice set function topological_space filter

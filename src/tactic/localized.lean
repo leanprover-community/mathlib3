@@ -74,4 +74,3 @@ localized "attribute [instance, priority 1] classical.prop_decidable" in classic
 
 localized "postfix `?`:9001 := optional" in parser
 localized "postfix *:9001 := lean.parser.many" in parser
-localized "prefix `!`:90 := bnot" in bool

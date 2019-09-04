@@ -128,9 +128,8 @@ section monoid
 
 end monoid
 
-section group
+namespace group
   variables [group α]
 
-  instance : has_lift α (units α) :=
-  ⟨λ a, ⟨a, a⁻¹, mul_inv_self _, inv_mul_self _⟩⟩
+  def to_units (x : α) : units α := ⟨x, x⁻¹, mul_inv_self _, inv_mul_self _⟩
 end group

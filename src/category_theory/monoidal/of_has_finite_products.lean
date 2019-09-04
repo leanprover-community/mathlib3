@@ -9,6 +9,12 @@ import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.terminal
 import category_theory.limits.types
 
+/-!
+# The natural monoidal structure on any category with finite (co)products.
+
+As this works with either products or coproducts, we don't set up either construct as an instance.
+-/
+
 open category_theory.limits
 
 universes v u
@@ -21,6 +27,7 @@ include 𝒞
 
 local attribute [tidy] tactic.case_bash
 
+/-- A category with finite products has a natural monoidal structure. -/
 def monoidal_of_has_finite_products [has_finite_products.{v} C] : monoidal_category C :=
 { tensor_unit  := terminal C,
   tensor_obj   := λ X Y, limits.prod X Y,
@@ -29,6 +36,7 @@ def monoidal_of_has_finite_products [has_finite_products.{v} C] : monoidal_categ
   left_unitor  := prod.left_unitor,
   right_unitor := prod.right_unitor }
 
+/-- A category with finite coproducts has a natural monoidal structure. -/
 def monoidal_of_has_finite_coproducts [has_finite_coproducts.{v} C] : monoidal_category C :=
 { tensor_unit  := initial C,
   tensor_obj   := λ X Y, limits.coprod X Y,

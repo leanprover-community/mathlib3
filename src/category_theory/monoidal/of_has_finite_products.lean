@@ -12,6 +12,10 @@ import category_theory.limits.types
 /-!
 # The natural monoidal structure on any category with finite (co)products.
 
+A category with a monoidal structure provided in this way is sometimes called a (co)cartesian category,
+although this is also sometimes used to mean a finitely complete category.
+(See https://ncatlab.org/nlab/show/cartesian+category.)
+
 As this works with either products or coproducts, we don't set up either construct as an instance.
 -/
 

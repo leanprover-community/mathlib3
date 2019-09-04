@@ -393,7 +393,7 @@ noncomputable instance extend_valuation : nonarch_valued_ring β :=
     let O := integral_closure (valuation_ring α) β,
     -- O is the inverse image of the valuation ring of α under the norm map
     --TODO: make this a seperate lemma
-    have hO : O.carrier = set.preimage (field_norm α) (valuation_ring α), from
+    have hO : O.carrier = set.preimage (field_norm α) (valuation_ring α),
     { ext x,
       rw [set.mem_preimage],
       split,

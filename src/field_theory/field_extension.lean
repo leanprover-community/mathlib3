@@ -82,8 +82,10 @@ lemma test (α β γ : Type*) [discrete_field α] [add_comm_group β] [add_comm_
 @[simp] lemma norm_mul (b c : β) : field_norm α (b * c) = field_norm α b * field_norm α c :=
 by { unfold field_norm, rw [mul_matrix_mul, matrix.det_mul] }
 
+@[simp] lemma norm_inv (b : β) : field_norm α b⁻¹ = (field_norm α b)⁻¹ := sorry
+
 @[simp] lemma norm_div (b c : β) : field_norm α (b / c) = field_norm α b / field_norm α c :=
-sorry
+by rw [div_eq_mul_inv, div_eq_mul_inv, ←norm_inv, norm_mul]
 
 lemma norm_base (a : α) : field_norm α (algebra_map β a) = a ^ findim α β :=
 begin
@@ -157,7 +159,7 @@ mt (eq_bot_iff_generator_eq_zero _).mpr $ vanishing_ideal_ne_bot_of_is_integral 
 lemma C_ne_zero : (leading_coeff $ ideal.is_principal.generator (vanishing_ideal α b))⁻¹ ≠ 0 :=
 λ h, by { rw [inv_eq_zero, leading_coeff_eq_zero] at h, exact (gen_ne_zero α hb) h }
 
-lemma nonzero : minimal_polynomial α hb ≠ 0 :=
+lemma ne_zero : minimal_polynomial α hb ≠ 0 :=
 mul_ne_zero (gen_ne_zero α hb) (λ h, by { rw [←C_0, C_inj] at h, exact (C_ne_zero α hb) h })
 
 lemma monic : monic (minimal_polynomial α hb) :=
@@ -176,7 +178,7 @@ begin
   change f = C (coeff f 0) at hn,
   rw [hn, eval₂_C, ←algebra.map_zero α β] at hv,
   rw [is_field_hom.injective (algebra_map β) hv, C_0] at hn,
-  exact (nonzero α hb) hn
+  exact (ne_zero α hb) hn
 end)
 
 lemma aeval_zero_iff_dvd {p : polynomial α} (hp : aeval α β b p = 0) : minimal_polynomial α hb ∣ p :=
@@ -213,16 +215,16 @@ begin
   intro hq,
   rw [@or_iff_not_and_not _ _ (classical.dec _) (classical.dec _)],
   intro hnu,
-  have h0q1 : q1 ≠ 0, from λ h, by {rw [h, zero_mul] at hq, exact (nonzero α hb) hq},
+  have h0q1 : q1 ≠ 0, from λ h, by {rw [h, zero_mul] at hq, exact (ne_zero α hb) hq},
   have hq1 : 0 < (nat_degree q1 : with_bot ℕ),
     { rw [←degree_eq_nat_degree h0q1], exact degree_pos_of_ne_zero_of_nonunit h0q1 hnu.1 },
-  have h0q2 : q2 ≠ 0, from λ h, by {rw [h, mul_zero] at hq, exact (nonzero α hb) hq},
+  have h0q2 : q2 ≠ 0, from λ h, by {rw [h, mul_zero] at hq, exact (ne_zero α hb) hq},
   have hq2 : 0 < (nat_degree q2 : with_bot ℕ),
     { rw [←degree_eq_nat_degree h0q2], exact degree_pos_of_ne_zero_of_nonunit h0q2 hnu.2 },
   rw [←with_bot.coe_zero, with_bot.coe_lt_coe] at hq1 hq2,
   have hq1q : ¬degree (minimal_polynomial α hb) ≤ degree q1, from
     suffices ¬nat_degree (minimal_polynomial α hb) ≤ nat_degree q1,
-      by rwa [degree_eq_nat_degree h0q1, degree_eq_nat_degree (nonzero α hb), with_bot.coe_le_coe],
+      by rwa [degree_eq_nat_degree h0q1, degree_eq_nat_degree (ne_zero α hb), with_bot.coe_le_coe],
     (λ h, begin
       rw [hq, nat_degree_mul_eq h0q1 h0q2] at h,
       have : nat_degree q1 > nat_degree q1 + 0, from lt_of_lt_of_le (add_lt_add_left hq2 _) h,
@@ -231,7 +233,7 @@ begin
     end),
   have hq2q : ¬degree (minimal_polynomial α hb) ≤ degree q2, from
     suffices ¬nat_degree (minimal_polynomial α hb) ≤ nat_degree q2,
-      by rwa [degree_eq_nat_degree h0q2, degree_eq_nat_degree (nonzero α hb), with_bot.coe_le_coe],
+      by rwa [degree_eq_nat_degree h0q2, degree_eq_nat_degree (ne_zero α hb), with_bot.coe_le_coe],
     (λ h, begin
       rw [hq, nat_degree_mul_eq h0q1 h0q2] at h,
       have : nat_degree q2 > 0 + nat_degree q2, from lt_of_lt_of_le (add_lt_add_right hq1 _) h,
@@ -248,7 +250,7 @@ end)
 lemma degree_unique {p : polynomial α} (h0 : p ≠ 0) (hp : p ∈ vanishing_ideal α b)
   (hmin : ∀ q ∈ vanishing_ideal α b, q ≠ 0 → degree p ≤ degree q) :
   degree (minimal_polynomial α hb) = degree p :=
-le_antisymm (minimal α hb hp h0) (hmin _ (mem_vanishing_ideal α hb) (nonzero α hb))
+le_antisymm (minimal α hb hp h0) (hmin _ (mem_vanishing_ideal α hb) (ne_zero α hb))
 
 lemma unique {p : polynomial α} (h0 : p ≠ 0) (hp : p ∈ vanishing_ideal α b) (hm : p.monic)
   (hmin : ∀ q ∈ vanishing_ideal α b, q ≠ 0 → degree p ≤ degree q) :
@@ -256,13 +258,13 @@ lemma unique {p : polynomial α} (h0 : p ≠ 0) (hp : p ∈ vanishing_ideal α b
 have h1 : minimal_polynomial α hb - p ∈ vanishing_ideal α b, from ideal.sub_mem _ (mem_vanishing_ideal α hb) hp,
 have h2 : ¬degree (minimal_polynomial α hb) ≤ degree (minimal_polynomial α hb - p), from
   not_le_of_lt $ degree_sub_lt
-    (degree_unique α hb h0 hp hmin) (nonzero α hb)
+    (degree_unique α hb h0 hp hmin) (ne_zero α hb)
     (by rw [monic.def.mp (monic α hb), monic.def.mp hm]),
 classical.by_contradiction
   (λ h, absurd (minimal α hb h1 (sub_ne_zero.mpr h)) h2)
 
 lemma congr (h1 h2 : is_integral α b) : minimal_polynomial α h1 = minimal_polynomial α h2 :=
-unique α h1 (nonzero α h2) (mem_vanishing_ideal α h2) (monic α h2) (λ _, minimal α h2)
+unique α h1 (ne_zero α h2) (mem_vanishing_ideal α h2) (monic α h2) (λ _, minimal α h2)
 
 --TODO: remove finite_dimensional α β
 lemma const_eq_norm [finite_dimensional α β] :
@@ -468,8 +470,6 @@ begin
     { intros _ _ _ _, simp only [add_smul] } }
 end
 
-set_option profiler true
-set_option pp.universes true
 -- move
 lemma dim_finsupp (α : Type u) (β : Type w) (η : Type v) [discrete_field α] [discrete_field β]
   [decidable_eq η] [algebra α β] :
@@ -483,16 +483,8 @@ calc dim α (η →₀ β) = cardinal.lift.{(max v w) (max v w)} (dim α (η →
                 ... = cardinal.lift.{v w} (cardinal.mk η) * cardinal.lift.{w (max w v)} (cardinal.mk.{w} b) : by rw[cardinal.lift_mul, cardinal.lift_lift, cardinal.lift_lift, cardinal.lift_umax]
                 ... = cardinal.lift.{v w} (cardinal.mk η) * cardinal.lift.{w v} (cardinal.lift.{w w} (cardinal.mk.{w} b)) : by rw [cardinal.lift_id, cardinal.lift_umax]
                 ... = cardinal.lift.{v w} (cardinal.mk η) * cardinal.lift.{w v} (dim α β) : by rw [hb.mk_eq_dim, cardinal.lift_id]
---dim_lt_omega
-lemma dim_finsupp_findim (α : Type u) (β : Type w) (η : Type v) [discrete_field α] [discrete_field β]
-  [decidable_eq η] [algebra α β] [finite_dimensional α β] :
-  dim α (η →₀ β) = cardinal.lift (cardinal.mk η) :=
-begin
-  convert dim_finsupp α β η,
-  sorry
-end
 
-lemma power_basis.ker_omega : dim α (power_basis α b).ker ≥ cardinal.omega :=
+lemma power_basis.dim_ker_ge_omega : dim α (power_basis α b).ker ≥ cardinal.omega :=
 begin
   -- Assume that the kernel has finite dimension
   by_contradiction h1,
@@ -503,28 +495,33 @@ begin
   have h3 : dim α (power_basis α b).range + (dim α (power_basis α b).ker) < cardinal.omega, from
     cardinal.add_lt_omega h2 h1,
   letI : vector_space α (ℕ →₀ α) := vector_space.mk α (ℕ →₀ α), --hint
-  have h4 : dim α (ℕ →₀ α) = cardinal.omega, from dim_finsupp_findim α α ℕ,
+  have h4 : dim α (ℕ →₀ α) = cardinal.omega, from --dim_finsupp_findim α α ℕ,
+    by { convert dim_finsupp α α ℕ, rw [dim_of_field, cardinal.lift_one, mul_one], refl },
   rw [dim_range_add_dim_ker, h4] at h3,
   -- We arrive at a contradiction since the domain has infinite dimension
   exact (not_lt.mpr $ le_refl cardinal.omega) h3
 end
 
 lemma power_basis.ker_pos : dim α (power_basis α b).ker > 0 :=
-lt_of_lt_of_le cardinal.omega_pos $ power_basis.ker_omega α b
-
-instance vhint : vector_space α (ℕ →₀ α) := vector_space.mk α (ℕ →₀ α)
-instance ahint : add_comm_group (ℕ →₀ α) := by apply_instance
+lt_of_lt_of_le cardinal.omega_pos $ power_basis.dim_ker_ge_omega α b
 
 lemma is_integral_of_aeval_ne_zero (b : β) : is_integral α b ↔
   (∃ p : polynomial α, p ≠ 0 ∧ (polynomial.aeval α β b) p = 0) := sorry
+
+instance vhint : vector_space α (ℕ →₀ α) := vector_space.mk α (ℕ →₀ α)
+open polynomial
 
 theorem finite_dimensional.integral (b : β) : is_integral α b :=
 begin
   cases exists_mem_ne_zero_of_dim_pos (power_basis.ker_pos α b : dim α (power_basis α b).ker > 0) with p hp,
   unfold is_integral,
-  rw [test],
-  existsi p,
-  rwa [linear_map.mem_ker, and_comm] at hp
+  existsi p * C (leading_coeff p)⁻¹,
+  split,
+  { exact monic_mul_leading_coeff_inv hp.2 },
+  { rw [linear_map.mem_ker, and_comm] at hp,
+    rw [(aeval α β b).map_mul],
+    convert zero_mul _,
+    exact hp.2 }
 end
 
 end finite_dimensional

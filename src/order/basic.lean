@@ -503,7 +503,7 @@ protected def lt_sup {α} {r : α → α → Prop} (wf : well_founded r) {s : se
 min_mem wf { x | ∀a ∈ s, r a x } (ne_empty_iff_exists_mem.mpr h) x hx
 
 section
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 protected noncomputable def succ {α} {r : α → α → Prop} (wf : well_founded r) (x : α) : α :=
 if h : ∃y, r x y then wf.min { y | r x y } (ne_empty_iff_exists_mem.mpr h) else x
 

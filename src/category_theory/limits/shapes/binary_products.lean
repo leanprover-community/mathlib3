@@ -187,7 +187,7 @@ by tidy
     (coprod.inr ≫ coprod.inr),
   inv :=
   coprod.desc
-    (coprod.inl≫ coprod.inl)
+    (coprod.inl ≫ coprod.inl)
     (coprod.desc (coprod.inr ≫ coprod.inl) coprod.inr) }
 
 variables [has_initial.{v} C]

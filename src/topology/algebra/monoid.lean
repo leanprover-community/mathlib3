@@ -12,7 +12,7 @@ import topology.constructions
 import algebra.pi_instances
 
 open classical set lattice filter topological_space
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}

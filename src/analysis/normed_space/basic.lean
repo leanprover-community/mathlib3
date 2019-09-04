@@ -15,7 +15,7 @@ variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 noncomputable theory
 open filter metric
-local notation f `→_{`:50 a `}`:0 b := tendsto f (nhds a) (nhds b)
+localized "notation f `→_{`:50 a `}`:0 b := filter.tendsto f (_root_.nhds a) (_root_.nhds b)" in filter
 
 class has_norm (α : Type*) := (norm : α → ℝ)
 
@@ -492,7 +492,7 @@ instance fintype.normed_space {E : ι → Type*} [fintype ι] [∀i, normed_grou
 end normed_space
 
 section summable
-local attribute [instance] classical.prop_decidable
+open_locale classical
 open finset filter
 variables [normed_group α] [complete_space α]
 

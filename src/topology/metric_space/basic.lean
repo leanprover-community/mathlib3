@@ -13,7 +13,7 @@ import data.real.nnreal topology.metric_space.emetric_space topology.algebra.ord
 open lattice set filter classical topological_space
 noncomputable theory
 
-local notation `𝓤` := uniformity
+open_locale uniformity
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}

@@ -37,7 +37,7 @@ topological space, interior, closure, frontier, neighborhood, continuity, contin
 -/
 
 open set filter lattice classical
-local attribute [instance, priority 0] prop_decidable
+open_locale classical
 
 universes u v w
 

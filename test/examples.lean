@@ -1,5 +1,6 @@
 import tactic data.stream.basic data.set.basic data.finset data.multiset
        category.traversable.derive
+
 open tactic
 
 universe u
@@ -111,6 +112,15 @@ begin
   guard_hyp j := ℕ → ℕ → ℕ → ℕ,
   guard_hyp h := ∀ (n m k : ℕ), m = k + i n m ∨ m + j n m k = k,
   trivial
+end
+
+-- Test `simp only [exists_prop]` gets applied after choosing.
+-- Because of this simp, we need a non-rfl goal
+example (h : ∀ n, ∃ k ≥ 0, n = k) : ∀ x : ℕ, 1 = 1 :=
+begin
+  choose u hu using h,
+  guard_hyp hu := ∀ n, u n ≥ 0 ∧ n = u n,
+  intro, refl
 end
 
 /- refine_struct -/

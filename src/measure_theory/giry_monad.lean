@@ -2,12 +2,30 @@
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
-
-Giry monad: `measure` is a monad in the category of `measurable_space` and `measurable` functions.
 -/
-import measure_theory.integration data.sum
+import measure_theory.integration
+
+/-!
+# The Giry monad
+
+Let X be a measurable space. The collection of all measures on X again
+forms a measurable space. This construction forms a monad on
+measurable spaces and measurable functions, called the Giry monad.
+
+Note that most sources use the term "Giry monad" for the restriction
+to *probability* measures. Here we include all measures on X.
+
+## References
+
+* https://ncatlab.org/nlab/show/Giry+monad
+
+## Tags
+
+giry monad
+-/
+
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 
 open classical set lattice filter
 
@@ -148,7 +166,7 @@ def bind (m : measure α) (f : α → measure β) : measure β := join (map f m)
 by rw [bind, join_apply hs, integral_map (measurable_coe hs) hf]
 
 lemma measurable_bind' {g : α → measure β} (hg : measurable g) : measurable (λm, bind m g) :=
-measurable.comp (measurable_map _ hg) measurable_join
+measurable_join.comp (measurable_map _ hg)
 
 lemma integral_bind {m : measure α} {g : α → measure β} {f : β → ennreal}
   (hg : measurable g) (hf : measurable f) :
@@ -164,14 +182,14 @@ lemma bind_bind {γ} [measurable_space γ] {m : measure α} {f : α → measure 
   bind (bind m f) g = bind m (λa, bind (f a) g) :=
 measure.ext $ assume s hs,
 begin
-  rw [bind_apply hs hg, bind_apply hs (hf.comp $ measurable_bind' hg), integral_bind hf],
+  rw [bind_apply hs hg, bind_apply hs ((measurable_bind' hg).comp hf), integral_bind hf],
   { congr, funext a,
     exact (bind_apply hs hg).symm },
-  exact hg.comp (measurable_coe hs)
+  exact (measurable_coe hs).comp hg
 end
 
 lemma bind_dirac {f : α → measure β} (hf : measurable f) (a : α) : bind (dirac a) f = f a :=
-measure.ext $ assume s hs, by rw [bind_apply hs hf, integral_dirac a (hf.comp (measurable_coe hs))]
+measure.ext $ assume s hs, by rw [bind_apply hs hf, integral_dirac a ((measurable_coe hs).comp hf)]
 
 lemma dirac_bind {m : measure α} : bind m dirac = m :=
 measure.ext $ assume s hs,
@@ -183,6 +201,40 @@ begin
   assumption,
   exact one_mul _
 end
+
+lemma map_dirac {f : α → β} (hf : measurable f) (a : α) :
+  map f (dirac a) = dirac (f a) :=
+measure.ext $ assume s hs,
+  by rw [dirac_apply (f a) hs, map_apply hf hs, dirac_apply a (hf s hs), set.mem_preimage]
+
+lemma join_eq_bind (μ : measure (measure α)) : join μ = bind μ id :=
+by rw [bind, map_id]
+
+lemma join_map_map {f : α → β} (hf : measurable f) (μ : measure (measure α)) :
+  join (map (map f) μ) = map f (join μ) :=
+measure.ext $ assume s hs,
+  begin
+    rw [join_apply hs, map_apply hf hs, join_apply,
+      integral_map (measurable_coe hs) (measurable_map f hf)],
+    { congr, funext ν, exact map_apply hf hs },
+    exact hf s hs
+  end
+
+lemma join_map_join (μ : measure (measure (measure α))) :
+  join (map join μ) = join (join μ) :=
+begin
+  show bind μ join = join (join μ),
+  rw [join_eq_bind, join_eq_bind, bind_bind measurable_id measurable_id],
+  apply congr_arg (bind μ),
+  funext ν,
+  exact join_eq_bind ν
+end
+
+lemma join_map_dirac (μ : measure α) : join (map dirac μ) = μ :=
+dirac_bind
+
+lemma join_dirac (μ : measure α) : join (dirac μ) = μ :=
+eq.trans (join_eq_bind (dirac μ)) (bind_dirac measurable_id _)
 
 end measure
 

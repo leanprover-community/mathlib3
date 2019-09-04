@@ -97,6 +97,27 @@ two subgoals, one with variables `a d e` and the other with `b c d e`.
 result. Like `rcases?`, `rintro? : n` allows for modifying the
 depth of splitting; the default is 5.
 
+### obtain
+
+The `obtain` tactic is a combination of `have` and `rcases`.
+```lean
+obtain ⟨patt⟩ : type,
+{ ... }
+```
+is equivalent to
+```lean
+have h : type,
+{ ... },
+rcases h with ⟨patt⟩
+```
+
+ The syntax `obtain ⟨patt⟩ : type := proof` is also supported.
+
+ If `⟨patt⟩` is omitted, `rcases` will try to infer the pattern.
+
+ If `type` is omitted, `:= proof` is required.
+
+
 ### simpa
 
 This is a "finishing" tactic modification of `simp`. It has two forms.
@@ -109,7 +130,7 @@ This is a "finishing" tactic modification of `simp`. It has two forms.
   more robust under changes to the simp lemma set.
 
 * `simpa [rules, ...]` will simplify the goal and the type of a
-  hypothesis `this` if present, then try to close the goal using
+  hypothesis `this` if present in the context, then try to close the goal using
   the `assumption` tactic.
 
 ### replace
@@ -142,11 +163,11 @@ The procedures *do* split on disjunctions and recreate the smt state for each te
 they are only meant to be used on small, straightforward problems.
 
 * finish:  solves the goal or fails
-* clarify:  makes as much progress as possible while not leaving more than one goal
-* safe:     splits freely, finishes off whatever subgoals it can, and leaves the rest
+* clarify: makes as much progress as possible while not leaving more than one goal
+* safe:    splits freely, finishes off whatever subgoals it can, and leaves the rest
 
 All accept an optional list of simplifier rules, typically definitions that should be expanded.
-(The equations and identities should not refer to the local context.)
+(The equations and identities should not refer to the local context.) All also accept an optional list of `ematch` lemmas, which must be preceded by `using`.
 
 ### ring
 
@@ -199,22 +220,57 @@ Unfold coercion-related definitions
 
 ### Instance cache tactics
 
-* `resetI`: Reset the instance cache. This allows any new instances
-  added to the context to be used in typeclass inference.
+For performance reasons, Lean does not automatically update its database
+of class instances during a proof. The group of tactics described below
+helps forcing such updates. For a simple (but very artificial) example,
+consider the function `default` from the core library. It has type
+`Π (α : Sort u) [inhabited α], α`, so one can use `default α` only if Lean
+can find a registered instance of `inhabited α`. Because the database of
+such instance is not automatically updated during a proof, the following
+attempt won't work (Lean will not pick up the instance from the local
+context):
+```lean
+def my_id (α : Type) : α → α :=
+begin
+  intro x,
+  have : inhabited α := ⟨x⟩,
+  exact default α, -- Won't work!
+end
+```
+However, it will work, producing the identity function, if one replaces have by its variant `haveI` described below.
+
+* `resetI`: Reset the instance cache. This allows any instances
+  currently in the context to be used in typeclass inference.
 
 * `unfreezeI`: Unfreeze local instances, which allows us to revert
   instances in the context
 
-* `introI`/`introsI`: Like `intro`/`intros`, but uses the introduced variable
-  in typeclass inference.
+* `introI`/`introsI`: `intro`/`intros` followed by `resetI`. Like
+  `intro`/`intros`, but uses the introduced variable in typeclass inference.
 
-* `haveI`/`letI`: Used to add typeclasses to the context so that they can
-  be used in typeclass inference. The syntax is the same as
-  `have`/`letI`, but the proof-omitted version of `have` is not supported
-  (for this one must write `have : t, { <proof> }, resetI, <proof>`).
+* `haveI`/`letI`: `have`/`let` followed by `resetI`. Used to add typeclasses
+  to the context so that they can be used in typeclass inference. The syntax
+  `haveI := <proof>` and `haveI : t := <proof>` is supported, but
+  `haveI : t, from _` and `haveI : t, { <proof> }` are not; in these cases
+  use `have : t, { <proof> }, resetI` directly).
 
-* `exactI`: Like `exact`, but uses all variables in the context
-  for typeclass inference.
+* `exactI`: `resetI` followed by `exact`. Like `exact`, but uses all
+  variables in the context for typeclass inference.
+
+### library_search
+
+`library_search` is a tactic to identify existing lemmas in the library. It tries to close the
+current goal by applying a lemma from the library, then discharging any new goals using
+`solve_by_elim`.
+
+Typical usage is:
+```
+example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
+by library_search -- exact nat.mul_sub_left_distrib n m k
+```
+
+`library_search` prints a trace message showing the proof it found, shown above as a comment.
+Typically you will then copy and paste this proof, replacing the call to `library_search`.
 
 ### find
 
@@ -235,6 +291,9 @@ The tactic `solve_by_elim` repeatedly applies assumptions to the current goal, a
 solve_by_elim { discharger := `[cc] }
 ```
 also attempts to discharge the goal using congruence closure before each round of applying assumptions.
+
+`solve_by_elim*` tries to solve all goals together, using backtracking if a solution for one goal
+makes other goals impossible.
 
 By default `solve_by_elim` also applies `congr_fun` and `congr_arg` against the goal.
 
@@ -440,7 +499,7 @@ new goal.
 `rewrite [h₀, ← h₁] at ⊢ h₂` with the exception that associativity is
 used implicitly to make rewriting possible.
 
-## restate_axiom
+### restate_axiom
 
 `restate_axiom` makes a new copy of a structure field, first definitionally simplifying the type.
 This is useful to remove `auto_param` or `opt_param` from the statement.
@@ -465,7 +524,7 @@ restate_axiom A.a f
 example (z : A) : z.x = 1 := by rw A.f
 ```
 
-## def_replacer
+### def_replacer
 
 `def_replacer foo` sets up a stub definition `foo : tactic unit`, which can
 effectively be defined and re-defined later, by tagging definitions with `@[foo]`.
@@ -481,7 +540,7 @@ custom input and output types. In this case all subsequent redefinitions must ha
 same type, or the type `α → β → tactic γ → tactic γ` or
 `α → β → option (tactic γ) → tactic γ` analogously to the previous cases.
 
-## tidy
+### tidy
 
 `tidy` attempts to use a variety of conservative tactics to solve the goals.
 In particular, `tidy` uses the `chain` tactic to repeatedly apply a list of tactics to
@@ -501,7 +560,7 @@ The default list of tactics can be found by looking up the definition of
 This list can be overriden using `tidy { tactics :=  ... }`. (The list must be a list of
 `tactic string`, so that `tidy?` can report a usable tactic script.)
 
-## linarith
+### linarith
 
 `linarith` attempts to find a contradiction between hypotheses that are linear (in)equalities.
 Equivalently, it can prove a linear inequality by assuming its negation and proving `false`.
@@ -517,10 +576,18 @@ by linarith
 
 `linarith` will use all appropriate hypotheses and the negation of the goal, if applicable.
 
-`linarith h1 h2 h3` will ohly use the local hypotheses `h1`, `h2`, `h3`.
+`linarith [t1, t2, t3]` will additionally use proof terms `t1, t2, t3`.
 
-`linarith using [t1, t2, t3]` will add `t1`, `t2`, `t3` to the local context and then run
-`linarith`.
+`linarith only [h1, h2, h3, t1, t2, t3]` will use only the goal (if relevant), local hypotheses
+h1, h2, h3, and proofs t1, t2, t3. It will ignore the rest of the local context.
+
+`linarith!` will use a stronger reducibility setting to try to identify atoms. For example,
+```lean
+example (x : ℚ) : id x ≥ x :=
+by linarith
+```
+will fail, because `linarith` will not identify `x` and `id x`. `linarith!` will.
+This can sometimes be expensive.
 
 `linarith {discharger := tac, restrict_type := tp, exfalso := ff}` takes a config object with three optional
 arguments.
@@ -532,7 +599,7 @@ if you have e.g. both integer and rational valued inequalities in the local cont
 sometimes confuse the tactic.
 * If `exfalso` is false, `linarith` will fail when the goal is neither an inequality nor `false`. (True by default.)
 
-## choose
+### choose
 
 `choose a b h using hyp` takes an hypothesis `hyp` of the form
 `∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b` for some `P : X → Y → A → B → Prop` and outputs
@@ -552,7 +619,7 @@ begin
 end
 ```
 
-## squeeze_simp / squeeze_simpa
+### squeeze_simp / squeeze_simpa
 
 `squeeze_simp` and `squeeze_simpa` perform the same task with
 the difference that `squeeze_simp` relates to `simp` while
@@ -602,35 +669,60 @@ Known limitation(s):
     It is likely that none of the suggestion is a good replacement but they can all be
     combined by concatenating their list of lemmas.
 
-## fin_cases
-Performs cases analysis on a `fin n` hypothesis. As an example, in
+### fin_cases
+`fin_cases h` performs case analysis on a hypothesis of the form
+1) `h : A`, where `[fintype A]` is available, or
+2) `h ∈ A`, where `A : finset X`, `A : multiset X` or `A : list X`.
+
+`fin_cases *` performs case analysis on all suitable hypotheses.
+
+As an example, in
 ```
 example (f : ℕ → Prop) (p : fin 3) (h0 : f 0) (h1 : f 1) (h2 : f 2) : f p.val :=
 begin
-  fin_cases p,
+  fin_cases p; simp,
   all_goals { assumption }
 end
 ```
-after `fin_cases p`, there are three goals, `f 0`, `f 1`, and `f 2`.
+after `fin_cases p; simp`, there are three goals, `f 0`, `f 1`, and `f 2`.
 
-## conv
-The `conv` tactic is built-in to lean. Currently mathlib additionally provides
+### conv
+The `conv` tactic is built-in to lean. Inside `conv` blocks mathlib currently
+additionally provides
    * `erw`,
-   * `ring` and `ring2`, and
-   * `norm_num`
-inside `conv` blocks. Also, as a shorthand `conv_lhs` and `conv_rhs`
-are provided, so that
+   * `ring` and `ring2`,
+   * `norm_num`, and
+   * `conv` (within another `conv`).
+Using `conv` inside a `conv` block allows the user to return to the previous
+state of the outer `conv` block after it is finished. Thus you can continue
+editing an expression without having to start a new `conv` block and re-scoping
+everything. For example:
+```lean
+example (a b c d : ℕ) (h₁ : b = c) (h₂ : a + c = a + d) : a + b = a + d :=
+by conv {
+  to_lhs,
+  conv {
+    congr, skip,
+    rw h₁,
+  },
+  rw h₂,
+}
 ```
+Without `conv` the above example would need to be proved using two successive
+`conv` blocks each beginning with `to_lhs`.
+
+Also, as a shorthand `conv_lhs` and `conv_rhs` are provided, so that
+```lean
 example : 0 + 0 = 0 :=
 begin
-  conv_lhs {simp}
+  conv_lhs { simp }
 end
 ```
 just means
-```
+```lean
 example : 0 + 0 = 0 :=
 begin
-  conv {to_lhs, simp}
+  conv { to_lhs, simp }
 end
 ```
 and likewise for `to_rhs`.
@@ -800,3 +892,270 @@ h : y = 3
 -/
 end
 ```
+
+### omega
+
+`omega` attempts to discharge goals in the quantifier-free fragment of linear integer and natural number arithmetic using the Omega test. In other words, the core procedure of `omega` works with goals of the form
+```lean
+∀ x₁, ... ∀ xₖ, P
+```
+where `x₁, ... xₖ` are integer (resp. natural number) variables, and `P` is a quantifier-free formula of linear integer (resp. natural number) arithmetic. For instance:
+```lean
+example : ∀ (x y : int), (x ≤ 5 ∧ y ≤ 3) → x + y ≤ 8 := by omega
+```
+By default, `omega` tries to guess the correct domain by looking at the goal and hypotheses, and then reverts all relevant hypotheses and variables (e.g., all variables of type `nat` and `Prop`s in linear natural number arithmetic, if the domain was determined to be `nat`) to universally close the goal before calling the main procedure. Therefore, `omega` will often work even if the goal is not in the above form:
+```lean
+example (x y : nat) (h : 2 * x + 1 = 2 * y) : false := by omega
+```
+But this behaviour is not always optimal, since it may revert irrelevant hypotheses or incorrectly guess the domain. Use `omega manual` to disable automatic reverts, and `omega int` or `omega nat` to specify the domain.
+```lean
+example (x y z w : int) (h1 : 3 * y ≥ x) (h2 : z > 19 * w) : 3 * x ≤ 9 * y :=
+by {revert h1 x y, omega manual}
+
+example (i : int) (n : nat) (h1 : i = 0) (h2 : n < n) : false := by omega nat
+
+example (n : nat) (h1 : n < 34) (i : int) (h2 : i * 9 = -72) : i = -8 :=
+by {revert h2 i, omega manual int}
+```
+`omega` handles `nat` subtraction by repeatedly rewriting goals of the form `P[t-s]` into `P[x] ∧ (t = s + x ∨ (t ≤ s ∧ x = 0))`, where `x` is fresh. This means that each (distinct) occurrence of subtraction will cause the goal size to double during DNF transformation.
+
+`omega` implements the real shadow step of the Omega test, but not the dark and gray shadows. Therefore, it should (in principle) succeed whenever the negation of the goal has no real solution, but it may fail if a real solution exists, even if there is no integer/natural number solution.
+
+### push_neg
+
+This tactic pushes negations inside expressions. For instance, given an assumption
+```lean
+h : ¬ ∀ ε > 0, ∃ δ > 0, ∀ x, |x - x₀| ≤ δ → |f x - y₀| ≤ ε)
+```
+writing `push_neg at h` will turn `h` into
+```lean
+h : ∃ ε, ε > 0 ∧ ∀ δ, δ > 0 → (∃ x, |x - x₀| ≤ δ ∧ ε < |f x - y₀|),
+```
+(the pretty printer does *not* use the abreviations `∀ δ > 0` and `∃ ε > 0` but this issue
+has nothing to do with `push_neg`).
+Note that names are conserved by this tactic, contrary to what would happen with `simp`
+using the relevant lemmas. One can also use this tactic at the goal using `push_neg`,
+at every assumption and the goal using `push_neg at *` or at selected assumptions and the goal
+using say `push_neg at h h' ⊢` as usual.
+
+### contrapose
+
+Transforms the goal into its contrapositive.
+
+`contrapose`     turns a goal `P → Q` into `¬ Q → ¬ P`
+
+`contrapose!`    turns a goal `P → Q` into `¬ Q → ¬ P` and pushes negations inside `P` and `Q`
+                 using `push_neg`
+
+`contrapose h`   first reverts the local assumption `h`, and then uses `contrapose` and `intro h`
+
+`contrapose! h`  first reverts the local assumption `h`, and then uses `contrapose!` and `intro h`
+
+`contrapose h with new_h` uses the name `new_h` for the introduced hypothesis
+
+### norm_cast
+
+This tactic normalizes casts inside expressions.
+It is basically a simp tactic with a specific set of lemmas to move casts
+upwards in the expression.
+Therefore it can be used more safely as a non-terminating tactic.
+It also has special handling of numerals.
+
+For instance, given an assumption
+```lean
+a b : ℤ
+h : ↑a + ↑b < (10 : ℚ)
+```
+
+writing `norm_cast at h` will turn `h` into
+```lean
+h : a + b < 10
+```
+
+You can also use `exact_mod_cast`, `apply_mod_cast`, `rw_mod_cast`
+or `assumption_mod_cast`.
+Writing `exact_mod_cast h` and `apply_mod_cast h` will normalize the goal and h before using `exact h` or `apply h`.
+Writing `assumption_mod_cast` will normalize the goal and for every
+expression `h` in the context it will try to normalize `h` and use
+`exact h`.
+`rw_mod_cast` acts like the `rw` tactic but it applies `norm_cast` between steps.
+
+These tactics work with three attributes,
+`elim_cast`, `move_cast` and `squash_cast`.
+
+`elim_cast` is for elimination lemmas of the shape
+`Π ..., P ↑a1 ... ↑an = P a1 ... an`, for instance:
+
+```lean
+int.coe_nat_inj' : ∀ {m n : ℕ}, ↑m = ↑n ↔ m = n
+
+rat.coe_int_denom : ∀ (n : ℤ), ↑n.denom = 1
+```
+
+`move_cast` is for compositional lemmas of the shape
+`Π ..., ↑(P a1 ... an) = P ↑a1 ... ↑an`, for instance:
+```lean
+int.coe_nat_add : ∀ (m n : ℕ), ↑(m + n) = ↑m + ↑n`
+
+nat.cast_sub : ∀ {α : Type*} [add_group α] [has_one α] {m n : ℕ}, m ≤ n → ↑(n - m) = ↑n - ↑m
+```
+
+`squash_cast` is for lemmas of the shape
+`Π ..., ↑↑a = ↑a`, for instance:
+```lean
+int.cast_coe_nat : ∀ (n : ℕ), ↑↑n = ↑n
+
+int.cats_id : int.cast_id : ∀ (n : ℤ), ↑n = n
+```
+
+### convert_to
+
+`convert_to g using n` attempts to change the current goal to `g`, but unlike `change`,
+it will generate equality proof obligations using `congr' n` to resolve discrepancies.
+`convert_to g` defaults to using `congr' 1`.
+
+`ac_change` is `convert_to` followed by `ac_refl`. It is useful for rearranging/reassociating
+e.g. sums:
+```lean
+example (a b c d e f g N : ℕ) : (a + b) + (c + d) + (e + f) + g ≤ N :=
+begin
+  ac_change a + d + e + f + c + g + b ≤ _,
+-- ⊢ a + d + e + f + c + g + b ≤ N
+end
+```
+
+### apply_fun
+
+Apply a function to some local assumptions which are either equalities
+or inequalities. For instance, if the context contains `h : a = b` and
+some function `f` then `apply_fun f at h` turns `h` into
+`h : f a = f b`. When the assumption is an inequality `h : a ≤ b`, a side
+goal `monotone f` is created, unless this condition is provided using
+`apply_fun f at h using P` where `P : monotone f`, or the `mono` tactic
+can prove it.
+
+Typical usage is:
+```lean
+open function
+
+example (X Y Z : Type) (f : X → Y) (g : Y → Z) (H : injective $ g ∘ f) :
+  injective f :=
+begin
+  intros x x' h,
+  apply_fun g at h,
+  exact H h
+end
+```
+
+### Localized Notation
+
+This consists of two user-commands which allow you to declare notation and commands localized to a namespace.
+
+* Declare notation which is localized to a namespace using:
+```
+localized "infix ` ⊹ `:60 := my_add" in my.add
+```
+* After this command it will be available in the same section/namespace/file, just as if you wrote `local infix ` ⊹ `:60 := my_add`
+* You can open it in other places. The following command will declare the notation again as local notation in that section/namespace/files:
+```
+open_locale my.add
+```
+* More generally, the following will declare all localized notation in the specified namespaces.
+```
+open_locale namespace1 namespace2 ...
+```
+* You can also declare other localized commands, like local attributes
+```
+localized "attribute [simp] le_refl" in le
+```
+* Warning 1: as a limitation on user commands, you cannot put `open_locale` directly after your imports. You have to write another command first (e.g. `open`, `namespace`, `universe variables`, `noncomputable theory`, `run_cmd tactic.skip`, ...).
+* Warning 2: You have to fully specify the names used in localized notation, so that the localized notation also works when the appropriate namespaces are not opened.
+
+### swap
+
+`swap n` will move the `n`th goal to the front. `swap` defaults to `swap 2`, and so interchanges the first and second goals.
+
+### rotate
+
+`rotate` moves the first goal to the back. `rotate n` will do this `n` times.
+
+### The `reassoc` attribute
+
+The `reassoc` attribute can be applied to a lemma
+
+```lean
+@[reassoc]
+lemma some_lemma : foo ≫ bar = baz := ...
+```
+
+and produce
+
+```lean
+lemma some_lemma_assoc {Y : C} (f : X ⟶ Y) : foo ≫ bar ≫ f = baz ≫ f := ...
+```
+
+The name of the produced lemma can be specified with `@[reassoc other_lemma_name]`. If
+`simp` is added first, the generated lemma will also have the `simp` attribute.
+
+### The `reassoc_axiom` command
+
+When declaring a class of categories, the axioms can be reformulated to be more amenable
+to manipulation in right associated expressions:
+
+```lean
+class some_class (C : Type) [category C] :=
+(foo : Π X : C, X ⟶ X)
+(bar : ∀ {X Y : C} (f : X ⟶ Y), foo X ≫ f = f ≫ foo Y)
+
+reassoc_axiom some_class.bar
+```
+
+The above will produce:
+
+```lean
+lemma some_class.bar_assoc {Z : C} (g : Y ⟶ Z) :
+  foo X ≫ f ≫ g = f ≫ foo Y ≫ g := ...
+```
+
+Here too, the `reassoc` attribute can be used instead. It works well when combined with
+`simp`:
+
+```lean
+attribute [simp, reassoc] some_class.bar
+```
+### sanity_check
+
+The `#sanity_check` command checks for common mistakes in the current file or in all of mathlib, respectively.
+
+Currently this will check for unused arguments in declarations and whether a declaration is incorrectly marked as a def/lemma.
+
+### lift
+
+Lift an expression to another type.
+* Usage: `'lift' expr 'to' expr ('using' expr)? ('with' id (id id?)?)?`.
+* If `n : ℤ` and `hn : n ≥ 0` then the tactic `lift n to ℕ using hn` creates a new
+  constant of type `ℕ`, also named `n` and replaces all occurrences of the old variable `(n : ℤ)`
+  with `↑n` (where `n` in the new variable). It will remove `n` and `hn` from the context.
+  + So for example the tactic `lift n to ℕ using hn` transforms the goal
+    `n : ℤ, hn : n ≥ 0, h : P n ⊢ n = 3` to `n : ℕ, h : P ↑n ⊢ ↑n = 3`
+    (here `P` is some term of type `ℤ → Prop`).
+* The argument `using hn` is optional, the tactic `lift n to ℕ` does the same, but also creates a
+  new subgoal that `n ≥ 0` (where `n` is the old variable).
+  + So for example the tactic `lift n to ℕ` transforms the goal
+    `n : ℤ, h : P n ⊢ n = 3` to two goals
+    `n : ℕ, h : P ↑n ⊢ ↑n = 3` and `n : ℤ, h : P n ⊢ n ≥ 0`.
+* You can also use `lift n to ℕ using e` where `e` is any expression of type `n ≥ 0`.
+* Use `lift n to ℕ with k` to specify the name of the new variable.
+* Use `lift n to ℕ with k hk` to also specify the name of the equality `↑k = n`. In this case, `n`
+  will remain in the context. You can use `rfl` for the name of `hk` to substitute `n` away
+  (i.e. the default behavior).
+* You can also use `lift e to ℕ with k hk` where `e` is any expression of type `ℤ`.
+  In this case, the `hk` will always stay in the context, but it will be used to rewrite `e` in
+  all hypotheses and the target.
+  + So for example the tactic `lift n + 3 to ℕ using hn with k hk` transforms the goal
+    `n : ℤ, hn : n + 3 ≥ 0, h : P (n + 3) ⊢ n + 3 = 2 * n` to the goal
+    `n : ℤ, k : ℕ, hk : ↑k = n + 3, h : P ↑k ⊢ ↑k = 2 * n`.
+* The tactic `lift n to ℕ using h` will remove `h` from the context. If you want to keep it,
+  specify it again as the third argument to `with`, like this: `lift n to ℕ using h with n rfl h`.
+* More generally, this can lift an expression from `α` to `β` assuming that there is an instance
+  of `can_lift α β`. In this case the proof obligation is specified by `can_lift.cond`.

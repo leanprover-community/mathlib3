@@ -49,11 +49,11 @@ variables {m : Type → Type*} [monad m]
 open function
 
 meta def mfilter {key val} [has_lt key] [decidable_rel ((<) : key → key → Prop)]
-  (s : rb_map key val) (P : key → val → m bool) : m (rb_map.{0 0} key val) :=
+  (P : key → val → m bool) (s : rb_map key val) : m (rb_map.{0 0} key val) :=
 rb_map.of_list <$> s.to_list.mfilter (uncurry P)
 
 meta def mmap {key val val'} [has_lt key] [decidable_rel ((<) : key → key → Prop)]
-  (s : rb_map key val) (f : val → m val') : m (rb_map.{0 0} key val') :=
+  (f : val → m val') (s : rb_map key val) : m (rb_map.{0 0} key val') :=
 rb_map.of_list <$> s.to_list.mmap (λ ⟨a,b⟩, prod.mk a <$> f b)
 
 meta def scale {α β} [has_lt α] [decidable_rel ((<) : α → α → Prop)] [has_mul β] (b : β) (m : rb_map α β) : rb_map α β :=
@@ -74,16 +74,32 @@ meta instance : has_to_tactic_format (rb_map key data) :=
 end
 
 end rb_map
+
+namespace rb_lmap
+
+/-- Construct a rb_lmap from a list of key-data pairs -/
+protected meta def of_list {key : Type} {data : Type} [has_lt key]
+  [decidable_rel ((<) : key → key → Prop)] : list (key × data) → rb_lmap key data
+| []           := rb_lmap.mk key data
+| ((k, v)::ls) := (of_list ls).insert k v
+
+end rb_lmap
 end native
 
 namespace name_set
-meta def filter (s : name_set) (P : name → bool) : name_set :=
+meta def filter (P : name → bool) (s : name_set) : name_set :=
 s.fold s (λ a m, if P a then m else m.erase a)
 
-meta def mfilter {m} [monad m] (s : name_set) (P : name → m bool) : m name_set :=
+meta def mfilter {m} [monad m] (P : name → m bool) (s : name_set) : m name_set :=
 s.fold (pure s) (λ a m,
   do x ← m,
      mcond (P a) (pure x) (pure $ x.erase a))
+
+meta def mmap {m} [monad m] (f : name → m name) (s : name_set) : m name_set :=
+s.fold (pure mk_name_set) (λ a m,
+  do x ← m,
+     b ← f a,
+     (pure $ x.insert b))
 
 meta def union (s t : name_set) : name_set :=
 s.fold t (λ a t, t.insert a)

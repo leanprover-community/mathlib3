@@ -5,7 +5,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 
 List permutations.
 -/
-import data.list.basic
+import data.list.basic logic.relation
 
 namespace list
 universe variables uu vv
@@ -39,10 +39,10 @@ trans (swap _ _ _) (skip _ $ skip _ p)
 
 attribute [trans] perm.trans
 
-theorem perm.eqv (α : Type) : equivalence (@perm α) :=
+theorem perm.eqv (α) : equivalence (@perm α) :=
 mk_equivalence (@perm α) (@perm.refl α) (@perm.symm α) (@perm.trans α)
 
-instance is_setoid (α : Type) : setoid (list α) :=
+instance is_setoid (α) : setoid (list α) :=
 setoid.mk (@perm α) (perm.eqv α)
 
 theorem perm_subset {l₁ l₂ : list α} (p : l₁ ~ l₂) : l₁ ⊆ l₂ :=
@@ -264,6 +264,9 @@ def subperm (l₁ l₂ : list α) : Prop := ∃ l ~ l₁, l <+ l₂
 
 infix ` <+~ `:50 := subperm
 
+theorem nil_subperm {l : list α} : [] <+~ l :=
+⟨[], perm.nil, by simp⟩
+
 theorem perm.subperm_left {l l₁ l₂ : list α} (p : l₁ ~ l₂) : l <+~ l₁ ↔ l <+~ l₂ :=
 suffices ∀ {l₁ l₂ : list α}, l₁ ~ l₂ → l <+~ l₁ → l <+~ l₂,
 from ⟨this p, this p.symm⟩,
@@ -371,11 +374,11 @@ section comm_monoid
 open list
 variable [comm_monoid α]
 
-@[to_additive list.sum_eq_of_perm]
+@[to_additive]
 lemma prod_eq_of_perm {l₁ l₂ : list α} (h : perm l₁ l₂) : prod l₁ = prod l₂ :=
 by induction h; simp [*, mul_left_comm]
 
-@[to_additive list.sum_reverse]
+@[to_additive]
 lemma prod_reverse (l : list α) : prod l.reverse = prod l :=
 prod_eq_of_perm $ reverse_perm l
 

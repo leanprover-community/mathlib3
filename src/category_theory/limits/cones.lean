@@ -1,24 +1,30 @@
--- Copyright (c) 2017 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Stephen Morgan, Scott Morrison
-
-import category_theory.natural_isomorphism
-import category_theory.whiskering
+/-
+Copyright (c) 2017 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Stephen Morgan, Scott Morrison, Floris van Doorn
+-/
 import category_theory.const
-import category_theory.opposites
 import category_theory.yoneda
+import category_theory.concrete_category
+import category_theory.equivalence
 
 universes v u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 open category_theory
 
+-- There is an awkward difficulty with universes here.
+-- If we allowed `J` to be a small category in `Prop`, we'd run into trouble
+-- because `yoneda.obj (F : (J ⥤ C)ᵒᵖ)` will be a functor into `Sort (max v 1)`,
+-- not into `Sort v`.
+-- So we don't allow this case; it's not particularly useful anyway.
 variables {J : Type v} [small_category J]
-variables {C : Type u} [𝒞 : category.{v} C]
+variables {C : Type u} [𝒞 : category.{v+1} C]
 include 𝒞
 
 open category_theory
 open category_theory.category
 open category_theory.functor
+open opposite
 
 namespace category_theory
 
@@ -44,7 +50,7 @@ An object corepresenting this functor is a colimit of `F`.
 -/
 def cocones : C ⥤ Type v := const J ⋙ coyoneda.obj (op F)
 
-lemma cocones_obj (X : C) : F.cocones.obj X = (F ⟹ (const J).obj X) := rfl
+lemma cocones_obj (X : C) : F.cocones.obj X = (F ⟶ (const J).obj X) := rfl
 
 @[simp] lemma cocones_map_app {X₁ X₂ : C} (f : X₁ ⟶ X₂) (t : F.cocones.obj X₁) (j : J) :
   (F.cocones.map f t).app j = t.app j ≫ f := rfl
@@ -79,13 +85,13 @@ namespace limits
 /--
 A `c : cone F` is:
 * an object `c.X` and
-* a natural transformation `c.π : c.X ⟹ F` from the constant `c.X` functor to `F`.
+* a natural transformation `c.π : c.X ⟶ F` from the constant `c.X` functor to `F`.
 
-`cone F` is equivalent, in the obvious way, to `Σ X, F.cones.obj X`.
+`cone F` is equivalent, via `cone.equiv` below, to `Σ X, F.cones.obj X`.
 -/
 structure cone (F : J ⥤ C) :=
 (X : C)
-(π : (const J).obj X ⟹ F)
+(π : (const J).obj X ⟶ F)
 
 @[simp] lemma cone.w {F : J ⥤ C} (c : cone F) {j j' : J} (f : j ⟶ j') :
   c.π.app j ≫ F.map f = c.π.app j' :=
@@ -94,13 +100,13 @@ by convert ←(c.π.naturality f).symm; apply id_comp
 /--
 A `c : cocone F` is
 * an object `c.X` and
-* a natural transformation `c.ι : F ⟹ c.X` from `F` to the constant `c.X` functor.
+* a natural transformation `c.ι : F ⟶ c.X` from `F` to the constant `c.X` functor.
 
-`cocone F` is equivalent, in the obvious way, to `Σ X, F.cocones.obj X`.
+`cocone F` is equivalent, via `cone.equiv` below, to `Σ X, F.cocones.obj X`.
 -/
 structure cocone (F : J ⥤ C) :=
 (X : C)
-(ι : F ⟹ (const J).obj X)
+(ι : F ⟶ (const J).obj X)
 
 @[simp] lemma cocone.w {F : J ⥤ C} (c : cocone F) {j j' : J} (f : j ⟶ j') :
   F.map f ≫ c.ι.app j' = c.ι.app j :=
@@ -111,6 +117,12 @@ variables {F : J ⥤ C}
 
 namespace cone
 
+def equiv (F : J ⥤ C) : cone F ≅ Σ X, F.cones.obj X :=
+{ hom := λ c, ⟨op c.X, c.π⟩,
+  inv := λ c, { X := unop c.1, π := c.2 },
+  hom_inv_id' := begin ext, cases x, refl, end,
+  inv_hom_id' := begin ext, cases x, refl, end }
+
 @[simp] def extensions (c : cone F) : yoneda.obj c.X ⟶ F.cones :=
 { app := λ X f, ((const J).map f) ≫ c.π }
 
@@ -119,22 +131,49 @@ namespace cone
 { X := X,
   π := c.extensions.app (op X) f }
 
+@[simp] lemma extend_π  (c : cone F) {X : Cᵒᵖ} (f : unop X ⟶ c.X) :
+  (extend c f).π = c.extensions.app X f :=
+rfl
+
 def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cone F) : cone (E ⋙ F) :=
 { X := c.X,
   π := whisker_left E c.π }
 
 @[simp] lemma whisker_π_app (c : cone F) {K : Type v} [small_category K] (E : K ⥤ J) (k : K) :
   (c.whisker E).π.app k = (c.π).app (E.obj k) := rfl
+
+section
+omit 𝒞
+variables {m : Type v → Type v}
+variables (hom : ∀ {α β : Type v}, m α → m β → (α → β) → Prop)
+variables [h : concrete_category @hom]
+include h
+
+@[simp] lemma naturality_bundled {G : J ⥤ bundled m} (s : cone G) {j j' : J} (f : j ⟶ j') (x : s.X) :
+   (G.map f) ((s.π.app j) x) = (s.π.app j') x :=
+congr_fun (congr_arg (λ k : s.X ⟶ G.obj j', (k : s.X → G.obj j')) (s.π.naturality f).symm) x
+end
 end cone
 
 namespace cocone
+
+def equiv (F : J ⥤ C) : cocone F ≅ Σ X, F.cocones.obj X :=
+{ hom := λ c, ⟨c.X, c.ι⟩,
+  inv := λ c, { X := c.1, ι := c.2 },
+  hom_inv_id' := begin ext, cases x, refl, end,
+  inv_hom_id' := begin ext, cases x, refl, end }
+
 @[simp] def extensions (c : cocone F) : coyoneda.obj (op c.X) ⟶ F.cocones :=
-{ app := λ X f, c.ι ≫ ((const J).map f) }
+{ app := λ X f, c.ι ≫ (const J).map f }
 
 /-- A map from the vertex of a cocone induces a cocone by composition. -/
 @[simp] def extend (c : cocone F) {X : C} (f : c.X ⟶ X) : cocone F :=
 { X := X,
   ι := c.extensions.app X f }
+
+@[simp] lemma extend_ι  (c : cocone F) {X : C} (f : c.X ⟶ X) :
+  (extend c f).ι = c.extensions.app X f :=
+rfl
 
 def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cocone F) : cocone (E ⋙ F) :=
 { X := c.X,
@@ -142,6 +181,19 @@ def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cocone F) : cocon
 
 @[simp] lemma whisker_ι_app (c : cocone F) {K : Type v} [small_category K] (E : K ⥤ J) (k : K) :
   (c.whisker E).ι.app k = (c.ι).app (E.obj k) := rfl
+
+section
+omit 𝒞
+variables {m : Type v → Type v}
+variables (hom : ∀ {α β : Type v}, m α → m β → (α → β) → Prop)
+variables [h : concrete_category @hom]
+include h
+
+@[simp] lemma naturality_bundled {G : J ⥤ bundled m} (s : cocone G) {j j' : J} (f : j ⟶ j') (x : G.obj j) :
+  (s.ι.app j') ((G.map f) x) = (s.ι.app j) x :=
+congr_fun (congr_arg (λ k : G.obj j ⟶ s.X, (k : G.obj j → s.X)) (s.ι.naturality f)) x
+end
+
 end cocone
 
 structure cone_morphism (A B : cone F) :=
@@ -155,7 +207,7 @@ attribute [simp] cone_morphism.w
   (w : f.hom = g.hom) : f = g :=
 by cases f; cases g; simpa using w
 
-instance cone.category : category.{v} (cone F) :=
+instance cone.category : category.{v+1} (cone F) :=
 { hom  := λ A B, cone_morphism A B,
   comp := λ X Y Z f g,
   { hom := f.hom ≫ g.hom,
@@ -175,8 +227,11 @@ namespace cones
 { hom := { hom := φ.hom },
   inv := { hom := φ.inv, w' := λ j, φ.inv_comp_eq.mpr (w j) } }
 
+@[simp] lemma ext_hom_hom {c c' : cone F} (φ : c.X ≅ c'.X)
+  (w : ∀ j, c.π.app j = φ.hom ≫ c'.π.app j) : (ext φ w).hom.hom = φ.hom := rfl
+
 def postcompose {G : J ⥤ C} (α : F ⟶ G) : cone F ⥤ cone G :=
-{ obj := λ c, { X := c.X, π := c.π ⊟ α },
+{ obj := λ c, { X := c.X, π := c.π ≫ α },
   map := λ c₁ c₂ f, { hom := f.hom, w' :=
   by intro; erw ← category.assoc; simp [-category.assoc] } }
 
@@ -184,10 +239,25 @@ def postcompose {G : J ⥤ C} (α : F ⟶ G) : cone F ⥤ cone G :=
   ((postcompose α).obj c).X = c.X := rfl
 
 @[simp] lemma postcompose_obj_π {G : J ⥤ C} (α : F ⟶ G) (c : cone F) :
-  ((postcompose α).obj c).π = c.π ⊟ α := rfl
+  ((postcompose α).obj c).π = c.π ≫ α := rfl
 
-@[simp] lemma postcompose_map_hom {G : J ⥤ C} (α : F ⟶ G) {c₁ c₂ : cone F} (f : c₁ ⟶ c₂):
+@[simp] lemma postcompose_map_hom {G : J ⥤ C} (α : F ⟶ G) {c₁ c₂ : cone F} (f : c₁ ⟶ c₂) :
   ((postcompose α).map f).hom = f.hom := rfl
+
+def postcompose_comp {G H : J ⥤ C} (α : F ⟶ G) (β : G ⟶ H) :
+  postcompose (α ≫ β) ≅ postcompose α ⋙ postcompose β :=
+by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obviously }
+
+def postcompose_id : postcompose (𝟙 F) ≅ 𝟭 (cone F) :=
+by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obviously }
+
+def postcompose_equivalence {G : J ⥤ C} (α : F ≅ G) : cone F ≌ cone G :=
+begin
+  refine equivalence.mk (postcompose α.hom) (postcompose α.inv) _ _,
+  { symmetry,
+    refine (postcompose_comp _ _).symm.trans _, rw [iso.hom_inv_id], exact postcompose_id },
+  { refine (postcompose_comp _ _).symm.trans _, rw [iso.inv_hom_id], exact postcompose_id }
+end
 
 def forget : cone F ⥤ C :=
 { obj := λ t, t.X, map := λ s t f, f.hom }
@@ -196,7 +266,7 @@ def forget : cone F ⥤ C :=
 @[simp] lemma forget_map {s t : cone F} {f : s ⟶ t} : forget.map f = f.hom := rfl
 
 section
-variables {D : Type u'} [𝒟 : category.{v} D]
+variables {D : Type u'} [𝒟 : category.{v+1} D]
 include 𝒟
 
 @[simp] def functoriality (G : C ⥤ D) : cone F ⥤ cone (F ⋙ G) :=
@@ -221,7 +291,7 @@ attribute [simp] cocone_morphism.w
   {A B : cocone F} {f g : cocone_morphism A B} (w : f.hom = g.hom) : f = g :=
 by cases f; cases g; simpa using w
 
-instance cocone.category : category.{v} (cocone F) :=
+instance cocone.category : category.{v+1} (cocone F) :=
 { hom  := λ A B, cocone_morphism A B,
   comp := λ _ _ _ f g,
   { hom := f.hom ≫ g.hom,
@@ -241,18 +311,35 @@ namespace cocones
 { hom := { hom := φ.hom },
   inv := { hom := φ.inv, w' := λ j, φ.comp_inv_eq.mpr (w j).symm } }
 
+@[simp] lemma ext_hom_hom {c c' : cocone F} (φ : c.X ≅ c'.X)
+  (w : ∀ j, c.ι.app j ≫ φ.hom = c'.ι.app j) : (ext φ w).hom.hom = φ.hom := rfl
+
 def precompose {G : J ⥤ C} (α : G ⟶ F) : cocone F ⥤ cocone G :=
-{ obj := λ c, { X := c.X, ι := α ⊟ c.ι },
+{ obj := λ c, { X := c.X, ι := α ≫ c.ι },
   map := λ c₁ c₂ f, { hom := f.hom } }
 
 @[simp] lemma precompose_obj_X {G : J ⥤ C} (α : G ⟶ F) (c : cocone F) :
   ((precompose α).obj c).X = c.X := rfl
 
 @[simp] lemma precompose_obj_ι {G : J ⥤ C} (α : G ⟶ F) (c : cocone F) :
-  ((precompose α).obj c).ι = α ⊟ c.ι := rfl
+  ((precompose α).obj c).ι = α ≫ c.ι := rfl
 
 @[simp] lemma precompose_map_hom {G : J ⥤ C} (α : G ⟶ F) {c₁ c₂ : cocone F} (f : c₁ ⟶ c₂) :
   ((precompose α).map f).hom = f.hom := rfl
+
+def precompose_comp {G H : J ⥤ C} (α : F ⟶ G) (β : G ⟶ H) :
+  precompose (α ≫ β) ≅ precompose β ⋙ precompose α :=
+by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obviously }
+
+def precompose_id : precompose (𝟙 F) ≅ 𝟭 (cocone F) :=
+by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obviously }
+
+def precompose_equivalence {G : J ⥤ C} (α : G ≅ F) : cocone F ≌ cocone G :=
+begin
+  refine equivalence.mk (precompose α.hom) (precompose α.inv) _ _,
+  { symmetry, refine (precompose_comp _ _).symm.trans _, rw [iso.inv_hom_id], exact precompose_id },
+  { refine (precompose_comp _ _).symm.trans _, rw [iso.hom_inv_id], exact precompose_id }
+end
 
 def forget : cocone F ⥤ C :=
 { obj := λ t, t.X, map := λ s t f, f.hom }
@@ -261,7 +348,7 @@ def forget : cocone F ⥤ C :=
 @[simp] lemma forget_map {s t : cocone F} {f : s ⟶ t} : forget.map f = f.hom := rfl
 
 section
-variables {D : Type u'} [𝒟 : category.{v} D]
+variables {D : Type u'} [𝒟 : category.{v+1} D]
 include 𝒟
 
 @[simp] def functoriality (G : C ⥤ D) : cocone F ⥤ cocone (F ⋙ G) :=
@@ -278,7 +365,7 @@ end limits
 
 namespace functor
 
-variables {D : Type u'} [category.{v} D]
+variables {D : Type u'} [category.{v+1} D]
 variables {F : J ⥤ C} {G : J ⥤ C} (H : C ⥤ D)
 
 open category_theory.limits
@@ -287,6 +374,19 @@ open category_theory.limits
 def map_cone   (c : cone F)   : cone (F ⋙ H)   := (cones.functoriality H).obj c
 /-- The image of a cocone in C under a functor G : C ⥤ D is a cocone in D. -/
 def map_cocone (c : cocone F) : cocone (F ⋙ H) := (cocones.functoriality H).obj c
+
+@[simp] lemma map_cone_X (c : cone F) : (H.map_cone c).X = H.obj c.X := rfl
+@[simp] lemma map_cocone_X (c : cocone F) : (H.map_cocone c).X = H.obj c.X := rfl
+
+def map_cone_inv [is_equivalence H]
+  (c : cone (F ⋙ H)) : cone F :=
+let t := (inv H).map_cone c in
+let α : (F ⋙ H) ⋙ inv H ⟶ F :=
+  ((whisker_left F (is_equivalence.unit_iso H).inv) : F ⋙ (H ⋙ inv H) ⟶ _) ≫ (functor.right_unitor _).hom in
+{ X := t.X,
+  π := ((category_theory.cones J C).map α).app (op t.X) t.π }
+
+@[simp] lemma map_cone_inv_X [is_equivalence H] (c : cone (F ⋙ H)) : (H.map_cone_inv c).X = (inv H).obj c.X := rfl
 
 def map_cone_morphism   {c c' : cone F}   (f : cone_morphism c c')   :
   cone_morphism   (H.map_cone c)   (H.map_cone c')   := (cones.functoriality H).map f
@@ -301,3 +401,53 @@ def map_cocone_morphism {c c' : cocone F} (f : cocone_morphism c c') :
 end functor
 
 end category_theory
+
+namespace category_theory.limits
+
+variables {F : J ⥤ Cᵒᵖ}
+
+def cone_of_cocone_left_op (c : cocone F.left_op) : cone F :=
+{ X := op c.X,
+  π := nat_trans.right_op (c.ι ≫ (const.op_obj_unop (op c.X)).hom) }
+
+@[simp] lemma cone_of_cocone_left_op_X (c : cocone F.left_op) :
+  (cone_of_cocone_left_op c).X = op c.X :=
+rfl
+@[simp] lemma cone_of_cocone_left_op_π_app (c : cocone F.left_op) (j) :
+  (cone_of_cocone_left_op c).π.app j = (c.ι.app (op j)).op :=
+by { dsimp [cone_of_cocone_left_op], simp }
+
+def cocone_left_op_of_cone (c : cone F) : cocone (F.left_op) :=
+{ X := unop c.X,
+  ι := nat_trans.left_op c.π }
+
+@[simp] lemma cocone_left_op_of_cone_X (c : cone F) :
+  (cocone_left_op_of_cone c).X = unop c.X :=
+rfl
+@[simp] lemma cocone_left_op_of_cone_ι_app (c : cone F) (j) :
+  (cocone_left_op_of_cone c).ι.app j = (c.π.app (unop j)).unop :=
+by { dsimp [cocone_left_op_of_cone], simp }
+
+def cocone_of_cone_left_op (c : cone F.left_op) : cocone F :=
+{ X := op c.X,
+  ι := nat_trans.right_op ((const.op_obj_unop (op c.X)).hom ≫ c.π) }
+
+@[simp] lemma cocone_of_cone_left_op_X (c : cone F.left_op) :
+  (cocone_of_cone_left_op c).X = op c.X :=
+rfl
+@[simp] lemma cocone_of_cone_left_op_ι_app (c : cone F.left_op) (j) :
+  (cocone_of_cone_left_op c).ι.app j = (c.π.app (op j)).op :=
+by { dsimp [cocone_of_cone_left_op], simp }
+
+def cone_left_op_of_cocone (c : cocone F) : cone (F.left_op) :=
+{ X := unop c.X,
+  π := nat_trans.left_op c.ι }
+
+@[simp] lemma cone_left_op_of_cocone_X (c : cocone F) :
+  (cone_left_op_of_cocone c).X = unop c.X :=
+rfl
+@[simp] lemma cone_left_op_of_cocone_π_app (c : cocone F) (j) :
+  (cone_left_op_of_cocone c).π.app j = (c.ι.app (unop j)).unop :=
+by { dsimp [cone_left_op_of_cocone], simp }
+
+end category_theory.limits

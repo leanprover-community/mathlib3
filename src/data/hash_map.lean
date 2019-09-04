@@ -3,7 +3,11 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import data.list.basic data.pnat data.array.lemmas
+import data.list.basic data.pnat.basic data.array.lemmas
+   logic.basic algebra.group
+   data.list.defs data.nat.basic data.option.basic
+   data.bool data.prod
+import tactic.finish data.sigma.basic
 
 universes u v w
 
@@ -149,7 +153,7 @@ begin
 end
 
 theorem mk_as_list (n : ℕ+) : bucket_array.as_list (mk_array n.1 [] : bucket_array α β n) = [] :=
-list.eq_nil_of_forall_not_mem $ λ x m,
+list.eq_nil_iff_forall_not_mem.mpr $ λ x m,
 let ⟨i, h⟩ := (bucket_array.mem_as_list _).1 m in h
 
 theorem mk_valid (n : ℕ+) : @valid n (mk_array n.1 []) 0 :=
@@ -223,13 +227,13 @@ theorem valid.replace_aux (a : α) (b : β a) : Π (l : list (Σ a, β a)), a �
 | (⟨a', b'⟩::t) := begin
   by_cases e : a' = a,
   { subst a',
-    suffices : ∃ u w (b'' : β a),
-      sigma.mk a b' :: t = u ++ ⟨a, b''⟩ :: w ∧
+    suffices : ∃ (u w : list Σ a, β a) (b'' : β a),
+      (sigma.mk a b') :: t = u ++ ⟨a, b''⟩ :: w ∧
       replace_aux a b (⟨a, b'⟩ :: t) = u ++ ⟨a, b⟩ :: w, {simpa},
     refine ⟨[], t, b', _⟩, simp [replace_aux] },
   { suffices : ∀ (x : β a) (_ : sigma.mk a x ∈ t), ∃ u w (b'' : β a),
-      sigma.mk a' b' :: t = u ++ ⟨a, b''⟩ :: w ∧
-      sigma.mk a' b' :: replace_aux a b t = u ++ ⟨a, b⟩ :: w,
+      (sigma.mk a' b') :: t = u ++ ⟨a, b''⟩ :: w ∧
+      (sigma.mk a' b') :: (replace_aux a b t) = u ++ ⟨a, b⟩ :: w,
     { simpa [replace_aux, ne.symm e, e] },
     intros x m,
     have IH : ∀ (x : β a) (_ : sigma.mk a x ∈ t), ∃ u w (b'' : β a),
@@ -278,11 +282,12 @@ theorem valid.erase_aux (a : α) : Π (l : list (Σ a, β a)), a ∈ l.map sigma
   by_cases e : a' = a,
   { subst a',
     simpa [erase_aux, and_comm] using show ∃ u w (x : β a),
-      t = u ++ w ∧ sigma.mk a b' :: t = u ++ ⟨a, x⟩ :: w, from ⟨[], t, b', by simp⟩ },
+      t = u ++ w ∧ (sigma.mk a b') :: t = u ++ ⟨a, x⟩ :: w,
+      from ⟨[], t, b', by simp⟩ },
   { simp [erase_aux, e, ne.symm e],
     suffices : ∀ (b : β a) (_ : sigma.mk a b ∈ t), ∃ u w (x : β a),
-      sigma.mk a' b' :: t = u ++ ⟨a, x⟩ :: w ∧
-      sigma.mk a' b' :: erase_aux a t = u ++ w,
+      (sigma.mk a' b') :: t = u ++ ⟨a, x⟩ :: w ∧
+      (sigma.mk a' b') :: (erase_aux a t) = u ++ w,
     { simpa [replace_aux, ne.symm e, e] },
     intros b m,
     have IH : ∀ (x : β a) (_ : sigma.mk a x ∈ t), ∃ u w (x : β a),

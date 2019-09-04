@@ -5,7 +5,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 
 Extra definitions on lists.
 -/
-import data.option.defs logic.basic logic.relator
+import data.option.defs logic.basic tactic.cache
 
 namespace list
 
@@ -23,6 +23,23 @@ def split_at : ℕ → list α → list α × list α
 | 0        a         := ([], a)
 | (succ n) []        := ([], [])
 | (succ n) (x :: xs) := let (l, r) := split_at n xs in (x :: l, r)
+
+
+def split_on_p_aux {α : Type u} (P : α → Prop) [decidable_pred P] : list α → (list α → list α) → list (list α)
+| [] f       := [f []]
+| (h :: t) f :=
+  if P h then f [] :: split_on_p_aux t id
+  else split_on_p_aux t (λ l, f (h :: l))
+
+/-- Split a list at every element satisfying a predicate. -/
+def split_on_p {α : Type u} (P : α → Prop) [decidable_pred P] (l : list α) : list (list α) :=
+split_on_p_aux P l id
+
+/-- Split a list at every occurrence of an element.
+
+    [1,1,2,3,2,4,4].split_on 2 = [[1,1],[3],[4,4]] -/
+def split_on {α : Type u} [decidable_eq α] (a : α) (as : list α) : list (list α) :=
+as.split_on_p (=a)
 
 /-- Concatenate an element at the end of a list.
 
@@ -127,7 +144,7 @@ find_indexes_aux p l 0
 
 /-- `lookmap` is a combination of `lookup` and `filter_map`.
   `lookmap f l` will apply `f : α → option α` to each element of the list,
-  replacing `a -> b` at the first value `a` in the list such that `f a = some b`. -/
+  replacing `a → b` at the first value `a` in the list such that `f a = some b`. -/
 def lookmap (f : α → option α) : list α → list α
 | []     := []
 | (a::l) :=
@@ -135,6 +152,13 @@ def lookmap (f : α → option α) : list α → list α
   | some b := b :: l
   | none   := a :: lookmap l
   end
+
+def map_with_index_core (f : ℕ → α → β) : ℕ → list α → list β
+| k []      := []
+| k (a::as) := f k a::(map_with_index_core (k+1) as)
+
+def map_with_index (f : ℕ → α → β) (as : list α) : list β :=
+map_with_index_core f 0 as
 
 /-- `indexes_of a l` is the list of all indexes of `a` in `l`.
 
@@ -209,7 +233,6 @@ def sublists_aux₁ : list α → (list α → list β) → list β
 
 section forall₂
 variables {r : α → β → Prop} {p : γ → δ → Prop}
-open relator
 
 inductive forall₂ (R : α → β → Prop) : list α → list β → Prop
 | nil {} : forall₂ [] []
@@ -372,7 +395,7 @@ variable {R}
 instance decidable_chain [decidable_rel R] (a : α) (l : list α) : decidable (chain R a l) :=
 by induction l generalizing a; simp only [chain.nil, chain_cons]; resetI; apply_instance
 
-instance decidable_chain' [decidable_rel R] (a : α) (l : list α) : decidable (chain' R l) :=
+instance decidable_chain' [decidable_rel R] (l : list α) : decidable (chain' R l) :=
 by cases l; dunfold chain'; apply_instance
 
 end chain
@@ -408,9 +431,18 @@ def map_last {α} (f : α → α) : list α → list α
 | [x] := [f x]
 | (x :: xs) := x :: map_last xs
 
-@[simp] def last' {α} : α → list α → α
+/-- `ilast' x xs` returns the last element of `xs` if `xs` is non-empty;
+it returns `x` otherwise -/
+@[simp] def ilast' {α} : α → list α → α
 | a []     := a
-| a (b::l) := last' b l
+| a (b::l) := ilast' b l
+
+/-- `last' xs` returns the last element of `xs` if `xs` is non-empty;
+it returns `none` otherwise -/
+@[simp] def last' {α} : list α → option α
+| []     := none
+| [a]    := some a
+| (b::l) := last' l
 
 /- tfae: The Following (propositions) Are Equivalent -/
 def tfae (l : list Prop) : Prop := ∀ x ∈ l, ∀ y ∈ l, x ↔ y
@@ -440,5 +472,42 @@ let ⟨a, ⟨a_mem_ls, pa⟩⟩ := choose_x ls (hp.imp
 def choose (hp : ∃ a, a ∈ l ∧ p a) : α := choose_x p l hp
 
 end choose
+
+namespace func
+
+/- Definitions for using lists as finite
+   representations of functions with domain ℕ. -/
+
+variables [inhabited α] [inhabited β]
+
+@[simp] def set (a : α) : list α → ℕ → list α
+| (_::as) 0     := a::as
+| []      0     := [a]
+| (h::as) (k+1) := h::(set as k)
+| []      (k+1) := (default α)::(set ([] : list α) k)
+
+@[simp] def get : ℕ → list α → α
+| _ []          := default α
+| 0 (a::as)     := a
+| (n+1) (a::as) := get n as
+
+def equiv (as1 as2 : list α) : Prop :=
+∀ (m : nat), get m as1 = get m as2
+
+def neg [has_neg α] (as : list α) := as.map (λ a, -a)
+
+@[simp] def pointwise (f : α → β → γ) : list α → list β → list γ
+| []      []      := []
+| []      (b::bs) := map (f $ default α) (b::bs)
+| (a::as) []      := map (λ x, f x $ default β) (a::as)
+| (a::as) (b::bs) := (f a b)::(pointwise as bs)
+
+def add {α : Type u} [has_zero α] [has_add α] : list α → list α → list α :=
+@pointwise α α α ⟨0⟩ ⟨0⟩ (+)
+
+def sub {α : Type u} [has_zero α] [has_sub α] : list α → list α → list α :=
+@pointwise α α α ⟨0⟩ ⟨0⟩ (@has_sub.sub α _)
+
+end func
 
 end list

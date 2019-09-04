@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import number_theory.pell data.set data.pfun
+import number_theory.pell data.pfun
 
 universe u
 
@@ -621,19 +621,19 @@ section
   by simp; exact ⟨proj_dioph none, (vector_allp_iff_forall _ _).2 $ λi,
     reindex_dioph_fn ((vector_allp_iff_forall _ _).1 dg _) _⟩
 
-  local notation x ` D∧ `:35 y := and_dioph x y
-  local notation x ` D∨ `:35 y := or_dioph x y
+  localized "notation x ` D∧ `:35 y := dioph.and_dioph x y" in dioph
+  localized "notation x ` D∨ `:35 y := dioph.or_dioph x y" in dioph
 
-  local notation `D∃`:30 := vec_ex1_dioph
+  localized "notation `D∃`:30 := dioph.vec_ex1_dioph" in dioph
 
-  local prefix `&`:max := of_nat'
+  localized "prefix `&`:max := of_nat'" in dioph
   theorem proj_dioph_of_nat {n : ℕ} (m : ℕ) [is_lt m n] : dioph_fn (λv : vector3 ℕ n, v &m) :=
   proj_dioph &m
-  local prefix `D&`:100 := proj_dioph_of_nat
+  localized "prefix `D&`:100 := dioph.proj_dioph_of_nat" in dioph
 
   theorem const_dioph (n : ℕ) : dioph_fn (const (α → ℕ) n) :=
   abs_poly_dioph (poly.const n)
-  local prefix `D.`:100 := const_dioph
+  localized "prefix `D.`:100 := dioph.const_dioph" in dioph
 
   variables {f g : (α → ℕ) → ℕ} (df : dioph_fn f) (dg : dioph_fn g)
   include df dg
@@ -650,26 +650,26 @@ section
   dioph_comp2 df dg $ of_no_dummies _ (poly.proj &0 - poly.proj &1)
     (λv, (int.coe_nat_eq_coe_nat_iff _ _).symm.trans
     ⟨@sub_eq_zero_of_eq ℤ _ (v &0) (v &1), eq_of_sub_eq_zero⟩)
-  local infix ` D= `:50 := eq_dioph
+  localized "infix ` D= `:50 := dioph.eq_dioph" in dioph
 
   theorem add_dioph : dioph_fn (λv, f v + g v) :=
   dioph_fn_comp2 df dg $ abs_poly_dioph (poly.proj &0 + poly.proj &1)
-  local infix ` D+ `:80 := add_dioph
+  localized "infix ` D+ `:80 := dioph.add_dioph" in dioph
 
   theorem mul_dioph : dioph_fn (λv, f v * g v) :=
   dioph_fn_comp2 df dg $ abs_poly_dioph (poly.proj &0 * poly.proj &1)
-  local infix ` D* `:90 := mul_dioph
+  localized "infix ` D* `:90 := dioph.mul_dioph" in dioph
 
   theorem le_dioph : dioph (λv, f v ≤ g v) :=
   dioph_comp2 df dg $ ext (D∃2 $ D&1 D+ D&0 D= D&2) (λv, ⟨λ⟨x, hx⟩, le.intro hx, le.dest⟩)
-  local infix ` D≤ `:50 := le_dioph
+  localized "infix ` D≤ `:50 := dioph.le_dioph" in dioph
 
   theorem lt_dioph : dioph (λv, f v < g v) := df D+ (D. 1) D≤ dg
-  local infix ` D< `:50 := lt_dioph
+  localized "infix ` D< `:50 := dioph.lt_dioph" in dioph
 
   theorem ne_dioph : dioph (λv, f v ≠ g v) :=
   ext (df D< dg D∨ dg D< df) $ λv, ne_iff_lt_or_gt.symm
-  local infix ` D≠ `:50 := ne_dioph
+  localized "infix ` D≠ `:50 := dioph.ne_dioph" in dioph
 
   theorem sub_dioph : dioph_fn (λv, f v - g v) :=
   dioph_fn_comp2 df dg $ (dioph_fn_vec _).2 $
@@ -685,11 +685,11 @@ section
     { exact or.inr ⟨yz, nat.sub_eq_zero_of_le yz⟩ },
     { exact or.inl (nat.sub_add_cancel zy).symm },
   end⟩
-  local infix ` D- `:80 := sub_dioph
+  localized "infix ` D- `:80 := dioph.sub_dioph" in dioph
 
   theorem dvd_dioph : dioph (λv, f v ∣ g v) :=
   dioph_comp (D∃2 $ D&2 D= D&1 D* D&0) [f, g] (by exact ⟨df, dg⟩)
-  local infix ` D∣ `:50 := dvd_dioph
+  localized "infix ` D∣ `:50 := dioph.dvd_dioph" in dioph
 
   theorem mod_dioph : dioph_fn (λv, f v % g v) :=
   have dioph (λv : vector3 ℕ 3, (v &2 = 0 ∨ v &0 < v &2) ∧ ∃ (x : ℕ), v &0 + v &2 * x = v &1),
@@ -698,11 +698,11 @@ section
   show ((y = 0 ∨ z < y) ∧ ∃ c, z + y * c = x) ↔ x % y = z, from
   ⟨λ⟨h, c, hc⟩, begin rw ← hc; simp; cases h with x0 hl, rw [x0, mod_zero], exact mod_eq_of_lt hl end,
   λe, by rw ← e; exact ⟨or_iff_not_imp_left.2 $ λh, mod_lt _ (nat.pos_of_ne_zero h), x / y, mod_add_div _ _⟩⟩
-  local infix ` D% `:80 := mod_dioph
+  localized "infix ` D% `:80 := dioph.mod_dioph" in dioph
 
   theorem modeq_dioph {h : (α → ℕ) → ℕ} (dh : dioph_fn h) : dioph (λv, f v ≡ g v [MOD h v]) :=
   df D% dh D= dg D% dh
-  local notation `D≡` := modeq_dioph
+  localized "notation `D≡` := dioph.modeq_dioph" in dioph
 
   theorem div_dioph : dioph_fn (λv, f v / g v) :=
   have dioph (λv : vector3 ℕ 3, v &2 = 0 ∧ v &0 = 0 ∨ v &0 * v &2 ≤ v &1 ∧ v &1 < (v &0 + 1) * v &2),
@@ -715,7 +715,7 @@ section
     (λypos, iff.trans ⟨λo, o.resolve_left $ λ⟨h1, _⟩, ne_of_gt ypos h1, or.inr⟩
       (le_antisymm_iff.trans $ and_congr (nat.le_div_iff_mul_le _ _ ypos) $
         iff.trans ⟨lt_succ_of_le, le_of_lt_succ⟩ (div_lt_iff_lt_mul _ _ ypos)).symm)
-  local infix ` D/ `:80 := div_dioph
+  localized "infix ` D/ `:80 := dioph.div_dioph" in dioph
 
   omit df dg
   open pell

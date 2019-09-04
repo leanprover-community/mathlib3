@@ -5,11 +5,12 @@ Authors: Mario Carneiro
 
 Archimedean groups and fields.
 -/
-import algebra.group_power data.rat tactic.linarith tactic.abel
-
-local infix ` • ` := add_monoid.smul
+import algebra.group_power algebra.field_power
+import data.rat tactic.linarith tactic.abel
 
 variables {α : Type*}
+
+open_locale add_monoid
 
 class floor_ring (α) [linear_ordered_ring α] :=
 (floor : α → ℤ)
@@ -68,13 +69,13 @@ theorem floor_sub_int (x : α) (z : ℤ) : ⌊x - z⌋ = ⌊x⌋ - z :=
 eq.trans (by rw [int.cast_neg]; refl) (floor_add_int _ _)
 
 lemma abs_sub_lt_one_of_floor_eq_floor {α : Type*} [decidable_linear_ordered_comm_ring α] [floor_ring α]
-  {x y : α} (h : floor x = floor y) : abs (x - y) < 1 :=
+  {x y : α} (h : ⌊x⌋ = ⌊y⌋) : abs (x - y) < 1 :=
 begin
-  have : x < (floor x) + 1         := lt_floor_add_one x,
-  have : y < (floor y) + 1         :=  lt_floor_add_one y,
-  have : ((floor x) : α) = floor y := int.cast_inj.2 h,
-  have : ((floor x) : α) ≤ x       := floor_le x,
-  have : ((floor y) : α) ≤ y       := floor_le y,
+  have : x < ⌊x⌋ + 1         := lt_floor_add_one x,
+  have : y < ⌊y⌋ + 1         :=  lt_floor_add_one y,
+  have : (⌊x⌋ : α) = ⌊y⌋ := int.cast_inj.2 h,
+  have : (⌊x⌋: α) ≤ x        := floor_le x,
+  have : (⌊y⌋ : α) ≤ y       := floor_le y,
   exact abs_sub_lt_iff.2 ⟨by linarith, by linarith⟩
 end
 
@@ -215,6 +216,17 @@ let ⟨n, h⟩ := archimedean.arch x hy0 in
        ... < 1 + n • (y - 1) : by rw add_comm; exact lt_add_one _
        ... ≤ y ^ n           : pow_ge_one_add_sub_mul (le_of_lt hy1) _⟩
 
+lemma exists_nat_pow_near {x : α} {y : α} (hx : 1 < x) (hy : 1 < y) :
+  ∃ n : ℕ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
+have h : ∃ n : ℕ, x < y ^ n, from pow_unbounded_of_gt_one _ hy,
+by classical; exact let n := nat.find h in
+  have hn  : x < y ^ n, from nat.find_spec h,
+  have hnp : 0 < n,     from nat.pos_iff_ne_zero.2 (λ hn0,
+    by rw [hn0, pow_zero] at hn; exact (not_lt_of_gt hn hx)),
+  have hnsp : nat.pred n + 1 = n,     from nat.succ_pred_eq_of_pos hnp,
+  have hltn : nat.pred n < n,         from nat.pred_lt (ne_of_gt hnp),
+  ⟨nat.pred n, le_of_not_lt (nat.find_min h hltn), by rwa hnsp⟩
+
 theorem exists_int_gt (x : α) : ∃ n : ℤ, x < n :=
 let ⟨n, h⟩ := exists_nat_gt x in ⟨n, by rwa ← coe_coe⟩
 
@@ -238,6 +250,21 @@ end
 end linear_ordered_ring
 
 section linear_ordered_field
+
+lemma exists_int_pow_near [discrete_linear_ordered_field α] [archimedean α]
+  {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
+  ∃ n : ℤ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
+by classical; exact
+let ⟨N, hN⟩ := pow_unbounded_of_gt_one x⁻¹ hy in
+  have he: ∃ m : ℤ, y ^ m ≤ x, from
+    ⟨-N, le_of_lt (by rw [(fpow_neg y (↑N)), one_div_eq_inv];
+    exact (inv_lt hx (lt_trans (inv_pos hx) hN)).1 hN)⟩,
+let ⟨M, hM⟩ := pow_unbounded_of_gt_one x hy in
+  have hb: ∃ b : ℤ, ∀ m, y ^ m ≤ x → m ≤ b, from
+    ⟨M, λ m hm, le_of_not_lt (λ hlt, not_lt_of_ge
+  (fpow_le_of_le (le_of_lt hy) (le_of_lt hlt)) (lt_of_le_of_lt hm hM))⟩,
+let ⟨n, hn₁, hn₂⟩ := int.exists_greatest_of_bdd hb he in
+  ⟨n, hn₁, lt_of_not_ge (λ hge, not_le_of_gt (int.lt_succ _) (hn₂ _ hge))⟩
 
 variables [linear_ordered_field α] [floor_ring α]
 
@@ -358,6 +385,9 @@ begin
     apply floor_le }
 end
 
+/-- `round` rounds a number to the nearest integer. `round (1 / 2) = 1` -/
+def round [floor_ring α] (x : α) : ℤ := ⌊x + 1 / 2⌋
+
 end linear_ordered_field
 
 section
@@ -369,7 +399,21 @@ let ⟨q, h₁, h₂⟩ := exists_rat_btwn $
   lt_trans ((sub_lt_self_iff x).2 ε0) ((lt_add_iff_pos_left x).2 ε0) in
 ⟨q, abs_sub_lt_iff.2 ⟨sub_lt.1 h₁, sub_lt_iff_lt_add.2 h₂⟩⟩
 
+lemma abs_sub_round [floor_ring α] (x : α) : abs (x - round x) ≤ 1 / 2 :=
+begin
+  rw [round, abs_sub_le_iff],
+  have := floor_le (x + 1 / 2),
+  have := lt_floor_add_one (x + 1 / 2),
+  split; linarith
 end
 
 instance : archimedean ℚ :=
 archimedean_iff_rat_le.2 $ λ q, ⟨q, by rw rat.cast_id⟩
+
+@[simp] theorem rat.cast_round {α : Type*} [discrete_linear_ordered_field α]
+  [archimedean α] (x : ℚ) : by haveI := archimedean.floor_ring α;
+  exact round (x:α) = round x :=
+have ((x + (1 : ℚ) / (2 : ℚ) : ℚ) : α) = x + 1 / 2, by simp,
+by rw [round, round, ← this, rat.cast_floor]
+
+end

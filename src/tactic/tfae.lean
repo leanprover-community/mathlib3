@@ -3,12 +3,12 @@ Copyright (c) 2018 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Reid Barton, Simon Hudon
 
-"The Following Are Equivalent" (tfae):
+"The Following Are Equivalent" (tfae) :
 Tactic for proving the equivalence of a set of proposition
 using various implications between them.
 -/
 
-import tactic.basic tactic.interactive data.list.basic
+import tactic.interactive data.list.basic
 import tactic.scc
 
 open expr tactic lean lean.parser

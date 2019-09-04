@@ -5,23 +5,15 @@ Authors: Johan Commelin
 
 Nonnegative real numbers.
 -/
-import data.real.basic order.lattice
-
-section discrete_field
-
-@[simp] lemma inv_eq_zero {α} [discrete_field α] (a : α) : a⁻¹ = 0 ↔ a = 0 :=
-classical.by_cases (assume : a = 0, by simp [*])(assume : a ≠ 0, by simp [*, inv_ne_zero])
-
-end discrete_field
-
+import data.real.basic order.lattice algebra.field
 
 noncomputable theory
 open lattice
 
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 def nnreal := {r : ℝ // 0 ≤ r}
-local notation ` ℝ≥0 ` := nnreal
+localized "notation ` ℝ≥0 ` := nnreal" in nnreal
 
 namespace nnreal
 
@@ -89,11 +81,14 @@ lemma smul_coe (r : ℝ≥0) : ∀n, ↑(add_monoid.smul n r) = add_monoid.smul 
 | (n + 1) := by simp [coe_nat_cast n]
 
 instance : decidable_linear_order ℝ≥0 :=
-decidable_linear_order.lift (coe : ℝ≥0 → ℝ) subtype.val_injective
+decidable_linear_order.lift (coe : ℝ≥0 → ℝ) subtype.val_injective (by apply_instance)
 
 protected lemma coe_le {r₁ r₂ : ℝ≥0} : r₁ ≤ r₂ ↔ (r₁ : ℝ) ≤ r₂ := iff.rfl
 protected lemma coe_lt {r₁ r₂ : ℝ≥0} : r₁ < r₂ ↔ (r₁ : ℝ) < r₂ := iff.rfl
 protected lemma coe_pos {r : ℝ≥0} : 0 < r ↔ (0 : ℝ) < r := iff.rfl
+
+instance : order_bot ℝ≥0 :=
+{ bot := ⊥, bot_le := assume ⟨a, h⟩, h, .. nnreal.decidable_linear_order }
 
 instance : canonically_ordered_monoid ℝ≥0 :=
 { add_le_add_left       := assume a b h c, @add_le_add_left ℝ _ a b h c,
@@ -105,10 +100,8 @@ instance : canonically_ordered_monoid ℝ≥0 :=
           nnreal.eq $ show b = a + (b - a), by rw [add_sub_cancel'_right]⟩)
       (assume ⟨⟨c, hc⟩, eq⟩, eq.symm ▸ show a ≤ a + c, from (le_add_iff_nonneg_right a).2 hc),
   ..nnreal.comm_semiring,
-  ..nnreal.decidable_linear_order}
-
-instance : order_bot ℝ≥0 :=
-{ bot := ⊥, bot_le := zero_le, .. nnreal.decidable_linear_order }
+  ..nnreal.lattice.order_bot,
+  ..nnreal.decidable_linear_order }
 
 instance : distrib_lattice ℝ≥0 := by apply_instance
 
@@ -276,6 +269,30 @@ nnreal.coe_le.2 $ max_le_max h $ le_refl _
 lemma of_real_add_le {r p : ℝ} : nnreal.of_real (r + p) ≤ nnreal.of_real r + nnreal.of_real p :=
 nnreal.coe_le.2 $ max_le (add_le_add (le_max_left _ _) (le_max_left _ _)) nnreal.zero_le_coe
 
+lemma of_real_le_iff_le_coe {r : ℝ} {p : nnreal} : nnreal.of_real r ≤ p ↔ r ≤ ↑p :=
+begin
+  cases le_total 0 r,
+  { rw [nnreal.coe_le, nnreal.coe_of_real r h] },
+  { rw [of_real_eq_zero.2 h], split,
+    intro, exact le_trans h (coe_nonneg _),
+    intro, exact zero_le _ }
+end
+
+lemma le_of_real_iff_coe_le {r : nnreal} {p : ℝ} (hp : p ≥ 0) : r ≤ nnreal.of_real p ↔ ↑r ≤ p :=
+by rw [nnreal.coe_le, nnreal.coe_of_real p hp]
+
+lemma of_real_lt_iff_lt_coe {r : ℝ} {p : nnreal} (ha : r ≥ 0) : nnreal.of_real r < p ↔ r < ↑p :=
+by rw [nnreal.coe_lt, nnreal.coe_of_real r ha]
+
+lemma lt_of_real_iff_coe_lt {r : nnreal} {p : ℝ} : r < nnreal.of_real p ↔ ↑r < p :=
+begin
+  cases le_total 0 p,
+  { rw [nnreal.coe_lt, nnreal.coe_of_real p h] },
+  { rw [of_real_eq_zero.2 h], split,
+    intro, have := not_lt_of_le (zero_le r), contradiction,
+    intro rp, have : ¬(p ≤ 0) := not_le_of_lt (lt_of_le_of_lt (coe_nonneg _) rp), contradiction }
+end
+
 end of_real
 
 section mul
@@ -287,12 +304,31 @@ begin
   { assume h, rw [h] }
 end
 
+lemma of_real_mul {p q : ℝ} (hp : 0 ≤ p) :
+  nnreal.of_real (p * q) = nnreal.of_real p * nnreal.of_real q :=
+begin
+  cases le_total 0 q with hq hq,
+  { apply nnreal.eq,
+    have := max_eq_left (zero_le_mul hp hq),
+    simpa [nnreal.of_real, hp, hq, max_eq_left] },
+  { have hpq := mul_nonpos_of_nonneg_of_nonpos hp hq,
+    rw [of_real_eq_zero.2 hq, of_real_eq_zero.2 hpq, mul_zero] }
+end
+
 end mul
 
 section sub
 
 lemma sub_eq_zero {r p : nnreal} (h : r ≤ p) : r - p = 0 :=
 nnreal.eq $ max_eq_right $ sub_le_iff_le_add.2 $ by simpa [nnreal.coe_le] using h
+
+protected lemma sub_lt_self {r p : nnreal} : 0 < r → 0 < p → r - p < r :=
+assume hr hp,
+begin
+  cases le_total r p,
+  { rwa [sub_eq_zero h] },
+  { rw [nnreal.coe_lt, nnreal.coe_sub _ _ h], exact sub_lt_self _ hp }
+end
 
 @[simp] lemma sub_le_iff_le_add {r p q : nnreal} : r - p ≤ q ↔ r ≤ q + p :=
 match le_total p r with

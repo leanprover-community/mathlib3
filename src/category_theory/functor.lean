@@ -14,7 +14,6 @@ Introduces notations
 -/
 
 import category_theory.category
-import tactic.tidy
 
 namespace category_theory
 
@@ -29,7 +28,7 @@ The axiom `map_id_lemma` expresses preservation of identities, and
 `map_comp_lemma` expresses functoriality.
 -/
 structure functor (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D] :
-  Type (max u₁ v₁ u₂ v₂) :=
+  Type (max v₁ v₂ u₁ u₂) :=
 (obj       : C → D)
 (map       : Π {X Y : C}, (X ⟶ Y) → ((obj X) ⟶ (obj Y)))
 (map_id'   : ∀ (X : C), map (𝟙 X) = 𝟙 (obj X) . obviously)
@@ -50,15 +49,17 @@ section
 variables (C : Type u₁) [𝒞 : category.{v₁} C]
 include 𝒞
 
-/-- `functor.id C` is the identity functor on a category `C`. -/
+/-- `𝟭 C` is the identity functor on a category `C`. -/
 protected def id : C ⥤ C :=
 { obj := λ X, X,
   map := λ _ _ f, f }
 
+notation `𝟭` := functor.id
+
 variable {C}
 
-@[simp] lemma id_obj (X : C) : (functor.id C).obj X = X := rfl
-@[simp] lemma id_map {X Y : C} (f : X ⟶ Y) : (functor.id C).map f = f := rfl
+@[simp] lemma id_obj (X : C) : (𝟭 C).obj X = X := rfl
+@[simp] lemma id_map {X Y : C} (f : X ⟶ Y) : (𝟭 C).map f = f := rfl
 end
 
 section
@@ -79,6 +80,7 @@ infixr ` ⋙ `:80 := comp
 @[simp] lemma comp_obj (F : C ⥤ D) (G : D ⥤ E) (X : C) : (F ⋙ G).obj X = G.obj (F.obj X) := rfl
 @[simp] lemma comp_map (F : C ⥤ D) (G : D ⥤ E) (X Y : C) (f : X ⟶ Y) :
   (F ⋙ G).map f = G.map (F.map f) := rfl
+
 end
 
 section

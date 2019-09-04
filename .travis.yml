@@ -1,30 +1,24 @@
 language: c
 sudo: false
-go:
-- 1.11.x
 os:
     - linux
-addons:
-    packages:
-        - python3.4
 branches:
-  except:
-    - /^lean-.*$/
+  only:
+    - master
+  # except:
+  #   - /^lean-.*$/
+env:
+  global:
+  - secure: "HxnRtl6pMc+nbszQgDgvMuroMG5AuviULPb0MxPfEIZqYSwKALgc0ILXc89kJyf9rFfpsUdKGmtrGOytzXIp8Yuxvp+fnk/rtuuRyMLeWA0sJ75/Jn+l0BKVid6LNwl7bA4aMOSkjL85kaxU2e5HtlROUkiAgmdAcV10BoK7Vh7yC/S4Zl3kzyCQd8AGSxk0AbeQrb9vK7T1+gWVkEjUFtUsFJ3q5SGrO/j3825qLoRnYj/bKUgtYExQNKjTnTYMbeok+mKJEO1VbLeTk1ri8bLyO2x25lhGImaJSgdPOzuH905ALrf+EHkKm/FYvy5w+zERiuidwwFK5OqVOVWsD5W0G5rYKmDKpzSd39FNnrvb2Tzl2kCin70j6SDOXyZ+4k/iGJpBnOtx3+Ez4gsBDWLIba1c5EXvzhvPoycddgSLBY2LNz4EJI+YqbBTBxG7dVr4NmKKjPowFerVMLM10SgkH9ZZjbAVMxejUJTzp/4gxTanlWm/xds5uC0E0mraLY1H1yzGtwij/lVJN8RGbuhvW9jluLYQzfN7Hb/MReBXTKwdVo5SnsZzv9GEM56IsQXgIhzRoHAuDHd8rS1rfXGaOVfsbYK7pBjtx9j+Pq3BNSPlIL5u4j2JXH6QVJSNaK1npCq81S21dIBfYTP49ft28bhgVE0czkD7kl3fCCk="
 
 cache:
   directories:
     - $TRAVIS_BUILD_DIR/test/
     - $TRAVIS_BUILD_DIR/src/
+    - $TRAVIS_BUILD_DIR/archive/
     - $HOME/.elan
 
-before_install:
-  - python3.4 -m venv .venv --without-pip
-  - curl -s https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-  - .venv/bin/python get-pip.py
-
 install:
-  - .venv/bin/python -m pip install toml
-  - export LEAN_VERSION=`.venv/bin/python scripts/lean_version.py`
   - |
     if [ ! -d "$HOME/.elan/toolchains/" ]; then
       curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
@@ -32,6 +26,10 @@ install:
   - source ~/.elan/env
   - mkdir $HOME/scripts || echo ""
   - export PATH="$HOME/scripts:$PATH"
+  - export OLEAN_RS=https://github.com/cipher1024/olean-rs/releases
+  - export latest=$(curl -sSf "$OLEAN_RS/latest" | cut -d'"' -f2 | awk -F/ '{print $NF}')
+  - curl -sSfL "$OLEAN_RS/download/$latest/olean-rs-linux" -o "$HOME/scripts/olean-rs"
+  - chmod +x $HOME/scripts/olean-rs
   - cp travis_long.sh $HOME/scripts/travis_long
   - chmod +x $HOME/scripts/travis_long
   - (git status | grep  -e "Changes not staged for commit:"); RESULT=$?
@@ -39,23 +37,76 @@ install:
   - git clean -d -f -q
   - ./purge_olean.sh
   - rm mathlib.txt || true
+  - export LEAN_VERSION=lean-`lean --run scripts/lean_version.lean`
 
 jobs:
   include:
     - stage: Pre-build-1
+      if: type != cron
+      env: TASK="check Lean proofs"
       script:
-        - travis_long "timeout 2400 leanpkg test" || true
+        - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
+
+    - stage: Pre-build-1
+      env: TASK="check Lean proofs" LEAN="nightly"
+      if: type = cron
+      script:
+        - elan toolchain install leanprover-community/lean:nightly
+        - elan override set leanprover-community/lean:nightly
+        - find . -name *.olean -delete
+        - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
 
     - stage: Pre-build-2
+      if: type != cron
+      env: TASK="check Lean proofs"
       script:
-        - travis_long "timeout 2400 leanpkg test" || true
+        - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
+
+    - stage: Pre-build-2
+      env: TASK="check Lean proofs" LEAN="nightly"
+      if: type = cron
+      script:
+        - elan toolchain install leanprover-community/lean:nightly
+        - elan override set leanprover-community/lean:nightly
+        - travis_long "timeout 2400 leanpkg test" | python scripts/detect_errors.py
 
     - stage: Test
+      env: TASK="check Lean proofs"
+      if: type != cron
       script:
-        - leanpkg test
+        - travis_long "leanpkg test"
         - lean --recursive --export=mathlib.txt src/
-        - leanchecker mathlib.txt
+        - travis_long "leanchecker mathlib.txt"
         - sh scripts/deploy_nightly.sh
+
+    - stage: Test
+      env: TASK="check Lean proofs" LEAN="nightly"
+      if: type = cron
+      script:
+        - elan toolchain install leanprover-community/lean:nightly
+        - elan override set leanprover-community/lean:nightly
+        - travis_long "leanpkg test"
+        - lean --recursive --export=mathlib.txt src/
+        - travis_long "leanchecker mathlib.txt"
+
+    - stage: Archive
+      env: TASK="check Lean proofs"
+      if: type != cron
+      script:
+        - leanpkg configure
+        - travis_long "lean --make archive/"
+
+    - stage: Archive
+      env: TASK="check Lean proofs" LEAN="nightly"
+      if: type = cron
+      script:
+        - elan toolchain install leanprover-community/lean:nightly
+        - elan override set leanprover-community/lean:nightly
+        - leanpkg configure
+        - travis_long "lean --make archive/"
+
+  # allow_failures:
+  #   - env: TASK="check Lean proofs" LEAN="nightly"
 
 notifications:
   webhooks:

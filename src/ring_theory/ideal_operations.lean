@@ -8,6 +8,8 @@ More operations on modules and ideals.
 
 import ring_theory.ideals data.nat.choose order.zorn
 import linear_algebra.tensor_product
+import data.equiv.algebra
+import ring_theory.algebra_operations
 
 universes u v w x
 
@@ -84,6 +86,15 @@ theorem smul_induction_on {p : M → Prop} {x} (H : x ∈ I • N)
   (H2 : ∀ (c:R) n, p n → p (c • n)) : p x :=
 (@smul_le _ _ _ _ _ _ _ ⟨p, H0, H1, H2⟩).2 Hb H
 
+theorem mem_smul_span_singleton {I : ideal R} {m : M} {x : M} :
+  x ∈ I • span R ({m} : set M) ↔ ∃ y ∈ I, y • m = x :=
+⟨λ hx, smul_induction_on hx
+  (λ r hri n hnm, let ⟨s, hs⟩ := mem_span_singleton.1 hnm in ⟨r * s, I.mul_mem_right hri, hs ▸ mul_smul r s m⟩)
+  ⟨0, I.zero_mem, by rw [zero_smul]⟩
+  (λ m1 m2 ⟨y1, hyi1, hy1⟩ ⟨y2, hyi2, hy2⟩, ⟨y1 + y2, I.add_mem hyi1 hyi2, by rw [add_smul, hy1, hy2]⟩)
+  (λ c r ⟨y, hyi, hy⟩, ⟨c * y, I.mul_mem_left hyi, by rw [mul_smul, hy]⟩),
+λ ⟨y, hyi, hy⟩, hy ▸ smul_mem_smul hyi (subset_span $ set.mem_singleton m)⟩
+
 theorem smul_le_right : I • N ≤ N :=
 smul_le.2 $ λ r hr n, N.smul_mem r
 
@@ -97,15 +108,15 @@ theorem smul_mono_right (h : N ≤ P) : I • N ≤ I • P :=
 smul_mono (le_refl I) h
 
 variables (I J N P)
-theorem smul_bot : I • (⊥ : submodule R M) = ⊥ :=
+@[simp] theorem smul_bot : I • (⊥ : submodule R M) = ⊥ :=
 eq_bot_iff.2 $ smul_le.2 $ λ r hri s hsb,
 (submodule.mem_bot R).2 $ ((submodule.mem_bot R).1 hsb).symm ▸ smul_zero r
 
-theorem bot_smul : (⊥ : ideal R) • N = ⊥ :=
+@[simp] theorem bot_smul : (⊥ : ideal R) • N = ⊥ :=
 eq_bot_iff.2 $ smul_le.2 $ λ r hrb s hsi,
 (submodule.mem_bot R).2 $ ((submodule.mem_bot R).1 hrb).symm ▸ zero_smul _ s
 
-theorem top_smul : (⊤ : ideal R) • N = N :=
+@[simp] theorem top_smul : (⊤ : ideal R) • N = N :=
 le_antisymm smul_le_right $ λ r hri, one_smul R r ▸ smul_mem_smul mem_top hri
 
 theorem smul_sup : I • (N ⊔ P) = I • N ⊔ I • P :=
@@ -150,6 +161,81 @@ smul_mem_smul (subset_span hrS) (subset_span hnT)
 end submodule
 
 namespace ideal
+
+section chinese_remainder
+variables {R : Type u} [comm_ring R] {ι : Type v}
+
+theorem exists_sub_one_mem_and_mem (s : finset ι) {f : ι → ideal R}
+  (hf : ∀ i ∈ s, ∀ j ∈ s, i ≠ j → f i ⊔ f j = ⊤) (i : ι) (his : i ∈ s) :
+  ∃ r : R, r - 1 ∈ f i ∧ ∀ j ∈ s, j ≠ i → r ∈ f j :=
+begin
+  have : ∀ j ∈ s, j ≠ i → ∃ r : R, ∃ H : r - 1 ∈ f i, r ∈ f j,
+  { intros j hjs hji, specialize hf i his j hjs hji.symm,
+    rw [eq_top_iff_one, submodule.mem_sup] at hf,
+    rcases hf with ⟨r, hri, s, hsj, hrs⟩, refine ⟨1 - r, _, _⟩,
+    { rw [sub_right_comm, sub_self, zero_sub], exact (f i).neg_mem hri },
+    { rw [← hrs, add_sub_cancel'], exact hsj } },
+  classical,
+  have : ∃ g : ι → R, (∀ j, g j - 1 ∈ f i) ∧ ∀ j ∈ s, j ≠ i → g j ∈ f j,
+  { choose g hg1 hg2,
+    refine ⟨λ j, if H : j ∈ s ∧ j ≠ i then g j H.1 H.2 else 1, λ j, _, λ j, _⟩,
+    { split_ifs with h, { apply hg1 }, rw sub_self, exact (f i).zero_mem },
+    { intros hjs hji, rw dif_pos, { apply hg2 }, exact ⟨hjs, hji⟩ } },
+  rcases this with ⟨g, hgi, hgj⟩, use (s.erase i).prod g, split,
+  { rw [← quotient.eq, quotient.mk_one, ← finset.prod_hom (quotient.mk (f i))],
+    apply finset.prod_eq_one, intros, rw [← quotient.mk_one, quotient.eq], apply hgi },
+  intros j hjs hji, rw [← quotient.eq_zero_iff_mem, ← finset.prod_hom (quotient.mk (f j))],
+  refine finset.prod_eq_zero (finset.mem_erase_of_ne_of_mem hji hjs) _,
+  rw quotient.eq_zero_iff_mem, exact hgj j hjs hji
+end
+
+theorem exists_sub_mem [fintype ι] {f : ι → ideal R}
+  (hf : ∀ i j, i ≠ j → f i ⊔ f j = ⊤) (g : ι → R) :
+  ∃ r : R, ∀ i, r - g i ∈ f i :=
+begin
+  have : ∃ φ : ι → R, (∀ i, φ i - 1 ∈ f i) ∧ (∀ i j, i ≠ j → φ i ∈ f j),
+  { have := exists_sub_one_mem_and_mem (finset.univ : finset ι) (λ i _ j _ hij, hf i j hij),
+    choose φ hφ, use λ i, φ i (finset.mem_univ i),
+    exact ⟨λ i, (hφ i _).1, λ i j hij, (hφ i _).2 j (finset.mem_univ j) hij.symm⟩ },
+  rcases this with ⟨φ, hφ1, hφ2⟩,
+  use finset.univ.sum (λ i, g i * φ i),
+  intros i,
+  rw [← quotient.eq, ← finset.sum_hom (quotient.mk (f i))],
+  refine eq.trans (finset.sum_eq_single i _ _) _,
+  { intros j _ hji, rw quotient.eq_zero_iff_mem, exact (f i).mul_mem_left (hφ2 j i hji) },
+  { intros hi, exact (hi $ finset.mem_univ i).elim },
+  specialize hφ1 i, rw [← quotient.eq, quotient.mk_one] at hφ1,
+  rw [quotient.mk_mul, hφ1, mul_one]
+end
+
+def quotient_inf_to_pi_quotient (f : ι → ideal R) :
+  (⨅ i, f i).quotient → Π i, (f i).quotient :=
+@@quotient.lift _ _ (⨅ i, f i) (λ r i, ideal.quotient.mk (f i) r)
+  (@pi.is_ring_hom_pi ι (λ i, (f i).quotient) _ R _ _ _)
+  (λ r hr, funext $ λ i, quotient.eq_zero_iff_mem.2 $ (submodule.mem_infi _).1 hr i)
+
+theorem is_ring_hom_quotient_inf_to_pi_quotient (f : ι → ideal R) :
+  is_ring_hom (quotient_inf_to_pi_quotient f) :=
+@@quotient.is_ring_hom _ _ _
+  (@pi.is_ring_hom_pi ι (λ i, (f i).quotient) _ R _ _ _) _
+
+theorem bijective_quotient_inf_to_pi_quotient [fintype ι] {f : ι → ideal R}
+  (hf : ∀ i j, i ≠ j → f i ⊔ f j = ⊤) :
+  function.bijective (quotient_inf_to_pi_quotient f) :=
+⟨λ x y, quotient.induction_on₂' x y $ λ r s hrs, quotient.eq.2 $
+  (submodule.mem_infi _).2 $ λ i, quotient.eq.1 $
+  show quotient_inf_to_pi_quotient f (quotient.mk' r) i = _, by rw hrs; refl,
+λ g, let ⟨r, hr⟩ := exists_sub_mem hf (λ i, quotient.out' (g i)) in
+⟨quotient.mk _ r, funext $ λ i, quotient.out_eq' (g i) ▸ quotient.eq.2 (hr i)⟩⟩
+
+/-- Chinese Remainder Theorem. Eisenbud Ex.2.6. Similar to Atiyah-Macdonald 1.10 and Stacks 00DT -/
+noncomputable def quotient_inf_ring_equiv_pi_quotient [fintype ι] (f : ι → ideal R)
+  (hf : ∀ i j, i ≠ j → f i ⊔ f j = ⊤) :
+  (⨅ i, f i).quotient ≃r Π i, (f i).quotient :=
+{ hom := is_ring_hom_quotient_inf_to_pi_quotient f,
+  .. equiv.of_bijective (bijective_quotient_inf_to_pi_quotient hf) }
+
+end chinese_remainder
 
 section mul_and_radical
 variables {R : Type u} [comm_ring R]
@@ -218,12 +304,20 @@ theorem sup_mul : (I ⊔ J) * K = I * K ⊔ J * K :=
 submodule.sup_smul I J K
 variables {I J K}
 
+lemma pow_le_pow {m n : ℕ} (h : m ≤ n) :
+  I^n ≤ I^m :=
+begin
+  cases nat.exists_eq_add_of_le h with k hk,
+  rw [hk, pow_add],
+  exact le_trans (mul_le_inf) (lattice.inf_le_left)
+end
+
 def radical (I : ideal R) : ideal R :=
 { carrier := { r | ∃ n : ℕ, r ^ n ∈ I },
   zero := ⟨1, (pow_one (0:R)).symm ▸ I.zero_mem⟩,
   add := λ x y ⟨m, hxmi⟩ ⟨n, hyni⟩, ⟨m + n,
     (add_pow x y (m + n)).symm ▸ I.sum_mem $
-    show ∀ c ∈ finset.range (nat.succ (m + n)), x ^ c * y ^ (m + n - c) * (choose (m + n) c) ∈ I,
+    show ∀ c ∈ finset.range (nat.succ (m + n)), x ^ c * y ^ (m + n - c) * (nat.choose (m + n) c) ∈ I,
     from λ c hc, or.cases_on (le_total c m)
       (λ hcm, I.mul_mem_right $ I.mul_mem_left $ nat.add_comm n m ▸ (nat.add_sub_assoc hcm n).symm ▸
         (pow_add y n (m-c)).symm ▸ I.mul_mem_right hyni)
@@ -294,22 +388,12 @@ have is_prime m, from ⟨by rintro rfl; rw radical_top at hrm; exact hrm trivial
     refine m.add_mem (m.mul_mem_right hpm) (m.add_mem (m.mul_mem_left hfm) (m.mul_mem_left hxym))⟩⟩,
 hrm $ this.radical.symm ▸ (Inf_le ⟨him, this⟩ : Inf {J : ideal R | I ≤ J ∧ is_prime J} ≤ m) hr
 
-instance : comm_semiring (ideal R) :=
-{ mul := (*),
-  mul_assoc := ideal.mul_assoc,
-  zero_mul := bot_mul,
-  mul_zero := mul_bot,
-  one := ⊤,
-  one_mul := top_mul,
-  mul_one := mul_top,
-  left_distrib := mul_sup,
-  right_distrib := sup_mul,
-  mul_comm := ideal.mul_comm,
-  .. submodule.add_comm_monoid }
+instance : comm_semiring (ideal R) := submodule.comm_semiring
 
 @[simp] lemma add_eq_sup : I + J = I ⊔ J := rfl
 @[simp] lemma zero_eq_bot : (0 : ideal R) = ⊥ := rfl
-@[simp] lemma one_eq_top : (1 : ideal R) = ⊤ := rfl
+@[simp] lemma one_eq_top : (1 : ideal R) = ⊤ :=
+by erw [submodule.one_eq_map_top, submodule.map_id]
 
 variables (I)
 theorem radical_pow (n : ℕ) (H : n > 0) : radical (I^n) = radical I :=
@@ -588,6 +672,12 @@ theorem comap_radical : comap f (radical K) = radical (comap f K) :=
 le_antisymm (λ r ⟨n, hfrnk⟩, ⟨n, show f (r ^ n) ∈ K,
   from (is_semiring_hom.map_pow f r n).symm ▸ hfrnk⟩)
 (λ r ⟨n, hfrnk⟩, ⟨n, is_semiring_hom.map_pow f r n ▸ hfrnk⟩)
+
+@[simp] lemma map_quotient_self :
+  map (quotient.mk I) I = ⊥ :=
+lattice.eq_bot_iff.2 $ ideal.map_le_iff_le_comap.2 $ λ x hx,
+(submodule.mem_bot I.quotient).2 $ ideal.quotient.eq_zero_iff_mem.2 hx
+
 variables {I J K L}
 
 theorem map_inf_le : map f (I ⊓ J) ≤ map f I ⊓ map f J :=
@@ -655,17 +745,38 @@ end map_and_comap
 
 end ideal
 
+namespace is_ring_hom
+
+variables {R : Type u} {S : Type v} [comm_ring R] [comm_ring S]
+variables (f : R → S) [is_ring_hom f]
+
+def ker : ideal R := ideal.comap f ⊥
+
+lemma ker_eq : ((ker f) : set R) = is_add_group_hom.ker f := rfl
+
+lemma inj_iff_ker_eq_bot : function.injective f ↔ ker f = ⊥ :=
+by rw [←submodule.ext'_iff, ker_eq]; exact is_add_group_hom.inj_iff_trivial_ker f
+
+lemma ker_eq_bot_iff_eq_zero : ker f = ⊥ ↔ ∀ x, f x = 0 → x = 0 :=
+by rw [←submodule.ext'_iff, ker_eq]; exact is_add_group_hom.trivial_ker_iff_eq_zero f
+
+lemma injective_iff : function.injective f ↔ ∀ x, f x = 0 → x = 0 :=
+is_add_group_hom.injective_iff f
+
+end is_ring_hom
+
 namespace submodule
 
 variables {R : Type u} {M : Type v}
 variables [comm_ring R] [add_comm_group M] [module R M]
-variables (I J : ideal R) (N P : submodule R M)
+
+-- It is even a semialgebra. But those aren't in mathlib yet.
 
 instance : semimodule (ideal R) (submodule R M) :=
 { smul_add := smul_sup,
   add_smul := sup_smul,
   mul_smul := smul_assoc,
-  one_smul := top_smul,
+  one_smul := by simp,
   zero_smul := bot_smul,
   smul_zero := smul_bot }
 

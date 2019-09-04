@@ -16,13 +16,14 @@ somehow well-behaved on non-measurable sets.
 This allows us for the `lebesgue` measure space to have the `borel` measurable space, but still be
 a complete measure.
 -/
-import data.set order.galois_connection topology.instances.ennreal
+import data.set.lattice data.set.finite
+import topology.instances.ennreal
        measure_theory.outer_measure
 
 noncomputable theory
 
 open classical set lattice filter finset function
-local attribute [instance] prop_decidable
+open_locale classical
 
 universes u v w x
 
@@ -392,7 +393,7 @@ begin
     ← ennreal.sub_sub_cancel (by exact hk) (measure_mono (Inter_subset _ k)),
     ← measure_diff (Inter_subset _ k) (h k) (is_measurable.Inter h)
       (lt_of_le_of_lt (measure_mono (Inter_subset _ k)) hk),
-    diff_Inter_left, measure_Union_eq_supr_nat],
+    diff_Inter, measure_Union_eq_supr_nat],
   { congr, funext i,
     cases le_total k i with ik ik,
     { exact measure_diff (hs _ _ ik) (h k) (h i)
@@ -418,7 +419,7 @@ begin
 end
 
 lemma tendsto_measure_Inter {μ : measure α} {s : ℕ → set α}
-  (hs : ∀n, is_measurable (s n)) (hm : ∀n m, n ≤ m → s m ⊆ s n) (hf : ∃i, μ (s i) < ⊤):
+  (hs : ∀n, is_measurable (s n)) (hm : ∀n m, n ≤ m → s m ⊆ s n) (hf : ∃i, μ (s i) < ⊤) :
   tendsto (μ ∘ s) at_top (nhds (μ (⋂n, s n))) :=
 begin
   rw measure_Inter_eq_infi_nat hs hm hf,
@@ -602,10 +603,10 @@ by rw [map, dif_pos hf, to_measure_apply _ _ hs]; refl
 @[simp] lemma map_id : map id μ = μ :=
 ext $ λ s, map_apply measurable_id
 
-lemma map_map {f : α → β} {g : β → γ} (hf : measurable f) (hg : measurable g) :
+lemma map_map {g : β → γ} {f : α → β} (hg : measurable g) (hf : measurable f) :
   map g (map f μ) = map (g ∘ f) μ :=
 ext $ λ s hs,
-by simp [hf, hg, hs, hg.preimage hs, hf.comp hg];
+by simp [hf, hg, hs, hg.preimage hs, hg.comp hf];
    rw ← preimage_comp
 
 /-- The dirac measure. -/
@@ -861,7 +862,7 @@ associated with `α`. This means that the measure of the complementary of `p` is
 
 In a probability measure, the measure of `p` is `1`, when `p` is measurable.
 -/
-def all_ae (p : α → Prop) : Prop := { a | p a } ∈ (@measure_space.μ α _).a_e.sets
+def all_ae (p : α → Prop) : Prop := { a | p a } ∈ (@measure_space.μ α _).a_e
 
 notation `∀ₘ` binders `, ` r:(scoped P, all_ae P) := r
 
@@ -872,8 +873,11 @@ iff.intro
 
 lemma all_ae_iff {p : α → Prop} : (∀ₘ a, p a) ↔ volume { a | ¬ p a } = 0 := iff.refl _
 
+lemma all_ae_of_all {p : α → Prop} : (∀a, p a) → ∀ₘ a, p a := assume h,
+by {rw all_ae_iff, convert volume_empty, simp only [h, not_true], reflexivity}
+
 lemma all_ae_all_iff {ι : Type*} [encodable ι] {p : α → ι → Prop} :
-  (∀ₘ a, ∀i, p a i) ↔ (∀i, ∀ₘ a, p a i):=
+  (∀ₘ a, ∀i, p a i) ↔ (∀i, ∀ₘ a, p a i) :=
 begin
   refine iff.intro (assume h i, _) (assume h, _),
   { filter_upwards [h] assume a ha, ha i },

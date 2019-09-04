@@ -26,7 +26,7 @@ class ordered_comm_monoid (α : Type*) extends add_comm_monoid α, partial_order
   which is to say, `a ≤ b` iff there exists `c` with `b = a + c`.
   This is satisfied by the natural numbers, for example, but not
   the integers or other ordered groups. -/
-class canonically_ordered_monoid (α : Type*) extends ordered_comm_monoid α :=
+class canonically_ordered_monoid (α : Type*) extends ordered_comm_monoid α, lattice.order_bot α :=
 (le_iff_exists_add : ∀a b:α, a ≤ b ↔ ∃c, b = a + c)
 
 end old_structure_cmd
@@ -136,8 +136,8 @@ end ordered_comm_monoid
 
 namespace units
 
-instance [monoid α] [preorder α] : preorder (units α) :=
-preorder.lift (coe : units α → α)
+instance [monoid α] [i : preorder α] : preorder (units α) :=
+preorder.lift (coe : units α → α) i
 
 @[simp] theorem coe_le_coe [monoid α] [preorder α] {a b : units α} :
   (a : α) ≤ b ↔ a ≤ b := iff.rfl
@@ -145,14 +145,14 @@ preorder.lift (coe : units α → α)
 @[simp] theorem coe_lt_coe [monoid α] [preorder α] {a b : units α} :
   (a : α) < b ↔ a < b := iff.rfl
 
-instance [monoid α] [partial_order α] : partial_order (units α) :=
-partial_order.lift (coe : units α → α) (by ext)
+instance [monoid α] [i : partial_order α] : partial_order (units α) :=
+partial_order.lift (coe : units α → α) (by ext) i
 
-instance [monoid α] [linear_order α] : linear_order (units α) :=
-linear_order.lift (coe : units α → α) (by ext)
+instance [monoid α] [i : linear_order α] : linear_order (units α) :=
+linear_order.lift (coe : units α → α) (by ext) i
 
-instance [monoid α] [decidable_linear_order α] : decidable_linear_order (units α) :=
-decidable_linear_order.lift (coe : units α → α) (by ext)
+instance [monoid α] [i : decidable_linear_order α] : decidable_linear_order (units α) :=
+decidable_linear_order.lift (coe : units α → α) (by ext) i
 
 theorem max_coe [monoid α] [decidable_linear_order α] {a b : units α} :
   (↑(max a b) : α) = max a b :=
@@ -167,6 +167,7 @@ end units
 namespace with_zero
 open lattice
 
+instance [preorder α] : preorder (with_zero α) := with_bot.preorder
 instance [partial_order α] : partial_order (with_zero α) := with_bot.partial_order
 instance [partial_order α] : order_bot (with_zero α) := with_bot.order_bot
 instance [lattice α] : lattice (with_zero α) := with_bot.lattice
@@ -292,6 +293,7 @@ instance [canonically_ordered_monoid α] : canonically_ordered_monoid (with_top 
     end
   | none, some b := show (⊤ : with_top α) ≤ b ↔ ∃c:with_top α, ↑b = ⊤ + c, by simp
   end,
+  .. with_top.order_bot,
   .. with_top.ordered_comm_monoid }
 
 end with_top
@@ -350,6 +352,9 @@ canonically_ordered_monoid.le_iff_exists_add a b
 
 @[simp] lemma zero_le (a : α) : 0 ≤ a := le_iff_exists_add.mpr ⟨a, by simp⟩
 
+lemma bot_eq_zero : (⊥ : α) = 0 :=
+le_antisymm lattice.bot_le (zero_le ⊥)
+
 @[simp] lemma add_eq_zero_iff : a + b = 0 ↔ a = 0 ∧ b = 0 :=
 add_eq_zero_iff' (zero_le _) (zero_le _)
 
@@ -385,7 +390,9 @@ instance with_zero.canonically_ordered_monoid :
         { exact ⟨_, (add_zero _).symm⟩ },
         { exact ⟨_, rfl⟩ } } }
   end,
-  ..with_zero.ordered_comm_monoid zero_le }
+  bot    := 0,
+  bot_le := assume a a' h, option.no_confusion h,
+  .. with_zero.ordered_comm_monoid zero_le }
 
 end canonically_ordered_monoid
 
@@ -394,7 +401,7 @@ instance ordered_cancel_comm_monoid.to_ordered_comm_monoid
 { lt_of_add_lt_add_left := @lt_of_add_lt_add_left _ _, ..H }
 
 section ordered_cancel_comm_monoid
-variables [ordered_cancel_comm_monoid α] {a b c : α}
+variables [ordered_cancel_comm_monoid α] {a b c x y : α}
 
 @[simp] lemma add_le_add_iff_left (a : α) {b c : α} : a + b ≤ a + c ↔ b ≤ c :=
 ⟨le_of_add_le_add_left, λ h, add_le_add_left h _⟩
@@ -421,6 +428,18 @@ by rwa add_zero at this
 
 @[simp] lemma lt_add_iff_pos_left (a : α) {b : α} : a < b + a ↔ 0 < b :=
 by rw [add_comm, lt_add_iff_pos_right]
+
+@[simp] lemma add_le_iff_nonpos_left : x + y ≤ y ↔ x ≤ 0 :=
+by { convert add_le_add_iff_right y, rw [zero_add] }
+
+@[simp] lemma add_le_iff_nonpos_right : x + y ≤ x ↔ y ≤ 0 :=
+by { convert add_le_add_iff_left x, rw [add_zero] }
+
+@[simp] lemma add_lt_iff_neg_right : x + y < y ↔ x < 0 :=
+by { convert add_lt_add_iff_right y, rw [zero_add] }
+
+@[simp] lemma add_lt_iff_neg_left : x + y < x ↔ y < 0 :=
+by { convert add_lt_add_iff_left x, rw [add_zero] }
 
 lemma add_eq_zero_iff_eq_zero_of_nonneg
   (ha : 0 ≤ a) (hb : 0 ≤ b) : a + b = 0 ↔ a = 0 ∧ b = 0 :=
@@ -450,6 +469,9 @@ end ordered_cancel_comm_monoid
 
 section ordered_comm_group
 variables [ordered_comm_group α] {a b c : α}
+
+lemma neg_neg_iff_pos {α : Type} [_inst_1 : ordered_comm_group α] {a : α} : -a < 0 ↔ 0 < a :=
+⟨ pos_of_neg_neg, neg_neg_of_pos ⟩
 
 @[simp] lemma neg_le_neg_iff : -a ≤ -b ↔ b ≤ a :=
 have a + b + -a ≤ a + b + -b ↔ -a ≤ -b, from add_le_add_iff_left _,
@@ -602,6 +624,21 @@ lemma sub_lt_self_iff (a : α) {b : α} : a - b < a ↔ 0 < b :=
 sub_lt_iff_lt_add'.trans (lt_add_iff_pos_left _)
 
 end ordered_comm_group
+
+namespace decidable_linear_ordered_comm_group
+variables [s : decidable_linear_ordered_comm_group α]
+include s
+
+instance : decidable_linear_ordered_cancel_comm_monoid α :=
+{ le_of_add_le_add_left := λ x y z, le_of_add_le_add_left,
+  add_left_cancel := λ x y z, add_left_cancel,
+  add_right_cancel := λ x y z, add_right_cancel,
+  ..s }
+
+lemma eq_of_abs_sub_nonpos {a b : α} (h : abs (a - b) ≤ 0) : a = b :=
+eq_of_abs_sub_eq_zero (le_antisymm _ _ h (abs_nonneg (a - b)))
+
+end decidable_linear_ordered_comm_group
 
 set_option old_structure_cmd true
 /-- This is not so much a new structure as a construction mechanism

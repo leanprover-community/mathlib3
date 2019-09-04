@@ -1,12 +1,10 @@
+
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Sebastien Gouezel, Scott Morrison
 -/
-import data.dlist data.dlist.basic data.prod category.basic
-  tactic.basic tactic.rcases tactic.generalize_proofs
-  tactic.split_ifs logic.basic tactic.ext tactic.tauto
-  tactic.replacer tactic.simpa tactic.squeeze
+import tactic.core data.list.defs data.string.defs
 
 open lean
 open lean.parser
@@ -17,64 +15,6 @@ local postfix *:9001 := many
 namespace tactic
 namespace interactive
 open interactive interactive.types expr
-
-/--
-The `rcases` tactic is the same as `cases`, but with more flexibility in the
-`with` pattern syntax to allow for recursive case splitting. The pattern syntax
-uses the following recursive grammar:
-
-```
-patt ::= (patt_list "|")* patt_list
-patt_list ::= id | "_" | "⟨" (patt ",")* patt "⟩"
-```
-
-A pattern like `⟨a, b, c⟩ | ⟨d, e⟩` will do a split over the inductive datatype,
-naming the first three parameters of the first constructor as `a,b,c` and the
-first two of the second constructor `d,e`. If the list is not as long as the
-number of arguments to the constructor or the number of constructors, the
-remaining variables will be automatically named. If there are nested brackets
-such as `⟨⟨a⟩, b | c⟩ | d` then these will cause more case splits as necessary.
-If there are too many arguments, such as `⟨a, b, c⟩` for splitting on
-`∃ x, ∃ y, p x`, then it will be treated as `⟨a, ⟨b, c⟩⟩`, splitting the last
-parameter as necessary.
-
-`rcases` also has special support for quotient types: quotient induction into Prop works like
-matching on the constructor `quot.mk`.
-
-`rcases? e` will perform case splits on `e` in the same way as `rcases e`,
-but rather than accepting a pattern, it does a maximal cases and prints the
-pattern that would produce this case splitting. The default maximum depth is 5,
-but this can be modified with `rcases? e : n`.
--/
-meta def rcases : parse rcases_parse → tactic unit
-| (p, sum.inl ids) := tactic.rcases p ids
-| (p, sum.inr depth) := do
-  patt ← tactic.rcases_hint p depth,
-  pe ← pp p,
-  trace $ ↑"snippet: rcases " ++ pe ++ " with " ++ to_fmt patt
-
-/--
-The `rintro` tactic is a combination of the `intros` tactic with `rcases` to
-allow for destructuring patterns while introducing variables. See `rcases` for
-a description of supported patterns. For example, `rintros (a | ⟨b, c⟩) ⟨d, e⟩`
-will introduce two variables, and then do case splits on both of them producing
-two subgoals, one with variables `a d e` and the other with `b c d e`.
-
-`rintro?` will introduce and case split on variables in the same way as
-`rintro`, but will also print the `rintro` invocation that would have the same
-result. Like `rcases?`, `rintro? : n` allows for modifying the
-depth of splitting; the default is 5.
--/
-meta def rintro : parse rintro_parse → tactic unit
-| (sum.inl []) := intros []
-| (sum.inl l)  := tactic.rintro l
-| (sum.inr depth) := do
-  ps ← tactic.rintro_hint depth,
-  trace $ ↑"snippet: rintro" ++ format.join (ps.map $ λ p,
-    format.space ++ format.group (p.format tt))
-
-/-- Alias for `rintro`. -/
-meta def rintros := rintro
 
 /-- `try_for n { tac }` executes `tac` for `n` ticks, otherwise uses `sorry` to close the goal.
 Never fails. Useful for debugging. -/
@@ -126,9 +66,9 @@ do gs ← get_goals,
    | _        := skip
    end
 
-/-- Generalize proofs in the goal, naming them with the provided list. -/
-meta def generalize_proofs : parse ident_* → tactic unit :=
-tactic.generalize_proofs
+/-- `rotate n` cyclically shifts the goals `n` times.
+ `rotate` defaults to `rotate 1`. -/
+meta def rotate (n := 1) : tactic unit := tactic.rotate n
 
 /-- Clear all hypotheses starting with `_`, like `_match` and `_let_match`. -/
 meta def clear_ : tactic unit := tactic.repeat $ do
@@ -139,6 +79,16 @@ meta def clear_ : tactic unit := tactic.repeat $ do
     cl ← infer_type h >>= is_class, guard (¬ cl),
     tactic.clear h
 
+meta def apply_iff_congr_core : tactic unit :=
+applyc ``iff_of_eq
+
+meta def congr_core' : tactic unit :=
+do tgt ← target,
+   apply_eq_congr_core tgt
+   <|> apply_heq_congr_core
+   <|> apply_iff_congr_core
+   <|> fail "congr tactic failed"
+
 /--
 Same as the `congr` tactic, but takes an optional argument which gives
 the depth of recursive applications. This is useful when `congr`
@@ -147,7 +97,7 @@ is too aggressive in breaking down the goal. For example, given
 and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`. -/
 meta def congr' : parse (with_desc "n" small_nat)? → tactic unit
 | (some 0) := failed
-| o        := focus1 (assumption <|> (congr_core >>
+| o        := focus1 (assumption <|> (congr_core' >>
   all_goals (reflexivity <|> `[apply proof_irrel_heq] <|>
              `[apply proof_irrel] <|> try (congr' (nat.pred <$> o)))))
 
@@ -167,84 +117,6 @@ do let h := h.get_or_else `this,
   | some o, some _ := tactic.clear o
   | some o, none   := swap >> tactic.clear o >> swap
   end
-
-/--
-`apply_assumption` looks for an assumption of the form `... → ∀ _, ... → head`
-where `head` matches the current goal.
-
-alternatively, when encountering an assumption of the form `sg₀ → ¬ sg₁`,
-after the main approach failed, the goal is dismissed and `sg₀` and `sg₁`
-are made into the new goal.
-
-optional arguments:
-- asms: list of rules to consider instead of the local constants
-- tac:  a tactic to run on each subgoals after applying an assumption; if
-        this tactic fails, the corresponding assumption will be rejected and
-        the next one will be attempted.
--/
-meta def apply_assumption
-  (asms : tactic (list expr) := local_context)
-  (tac : tactic unit := return ()) : tactic unit :=
-tactic.apply_assumption asms tac
-
-open nat
-
-meta def mk_assumption_set (no_dflt : bool) (hs : list simp_arg_type) (attr : list name): tactic (list expr) :=
-do (hs, gex, hex, all_hyps) ← decode_simp_arg_list hs,
-   hs ← hs.mmap i_to_expr_for_apply,
-   l ← attr.mmap $ λ a, attribute.get_instances a,
-   let l := l.join,
-   m ← list.mmap mk_const l,
-   let hs := (hs ++ m).filter $ λ h, expr.const_name h ∉ gex,
-   hs ← if no_dflt then
-          return hs
-        else
-          do { congr_fun ← mk_const `congr_fun,
-               congr_arg ← mk_const `congr_arg,
-               return (congr_fun :: congr_arg :: hs) },
-   if ¬ no_dflt ∨ all_hyps then do
-    ctx ← local_context,
-    return $ hs.append (ctx.filter (λ h, h.local_uniq_name ∉ hex)) -- remove local exceptions
-   else return hs
-
-/--
-`solve_by_elim` calls `apply_assumption` on the main goal to find an assumption whose head matches
-and then repeatedly calls `apply_assumption` on the generated subgoals until no subgoals remain,
-performing at most `max_rep` recursive steps.
-
-`solve_by_elim` discharges the current goal or fails
-
-`solve_by_elim` performs back-tracking if `apply_assumption` chooses an unproductive assumption
-
-By default, the assumptions passed to apply_assumption are the local context, `congr_fun` and
-`congr_arg`.
-
-`solve_by_elim [h₁, h₂, ..., hᵣ]` also applies the named lemmas.
-
-`solve_by_elim with attr₁ ... attrᵣ also applied all lemmas tagged with the specified attributes.
-
-`solve_by_elim only [h₁, h₂, ..., hᵣ]` does not include the local context, `congr_fun`, or `congr_arg`
-unless they are explicitly included.
-
-`solve_by_elim [-id]` removes a specified assumption.
-
-optional arguments:
-- discharger: a subsidiary tactic to try at each step (e.g. `cc` may be helpful)
-- max_rep: number of attempts at discharging generated sub-goals
--/
-meta def solve_by_elim (no_dflt : parse only_flag) (hs : parse simp_arg_list)  (attr_names : parse with_ident_list) (opt : by_elim_opt := { }) : tactic unit :=
-do asms ← mk_assumption_set no_dflt hs attr_names,
-   tactic.solve_by_elim { assumptions := return asms ..opt }
-
-/--
-`tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
-and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
-using `reflexivity` or `solve_by_elim`
--/
-meta def tautology (c : parse $ (tk "!")?) := tactic.tautology c.is_some
-
-/-- Shorter name for the tactic `tautology`. -/
-meta def tauto (c : parse $ (tk "!")?) := tautology c
 
 /-- Make every propositions in the context decidable -/
 meta def classical := tactic.classical
@@ -289,6 +161,8 @@ do h' ← get_unused_name `h,
 /--
 Similar to `refine` but generates equality proof obligations
 for every discrepancy between the goal and the type of the rule.
+`convert e using n` (with `n : ℕ`) bounds the depth of the search
+for discrepancies, analogous to `congr' n`.
 -/
 meta def convert (sym : parse (with_desc "←" (tk "<-")?)) (r : parse texpr) (n : parse (tk "using" *> small_nat)?) : tactic unit :=
 do v ← mk_mvar,
@@ -297,9 +171,26 @@ do v ← mk_mvar,
      else refine ``(eq.mpr %%v %%r),
    gs ← get_goals,
    set_goals [v],
-   congr' n,
+   try (congr' n),
    gs' ← get_goals,
    set_goals $ gs' ++ gs
+
+meta def compact_decl_aux : list name → binder_info → expr → list expr → tactic (list (list name × binder_info × expr))
+| ns bi t [] := pure [(ns.reverse, bi, t)]
+| ns bi t (v'@(local_const n pp bi' t') :: xs) :=
+  do t' ← infer_type v',
+     if bi = bi' ∧ t = t'
+       then compact_decl_aux (pp :: ns) bi t xs
+       else do vs ← compact_decl_aux [pp] bi' t' xs,
+               pure $ (ns.reverse, bi, t) :: vs
+| ns bi t (_ :: xs) := compact_decl_aux ns bi t xs
+
+meta def compact_decl : list expr → tactic (list (list name × binder_info × expr))
+| [] := pure []
+| (v@(local_const n pp bi t) :: xs)  :=
+  do t ← infer_type v,
+     compact_decl_aux [pp] bi t xs
+| (_ :: xs) := compact_decl xs
 
 meta def clean_ids : list name :=
 [``id, ``id_rhs, ``id_delta, ``hidden]
@@ -409,6 +300,30 @@ Fixes `guard_hyp` by instantiating meta variables
 meta def guard_hyp' (n : parse ident) (p : parse $ tk ":=" *> texpr) : tactic unit :=
 do h ← get_local n >>= infer_type >>= instantiate_mvars, guard_expr_eq h p
 
+/--
+`guard_expr_strict t := e` fails if the expr `t` is not equal to `e`. By contrast
+to `guard_expr`, this tests strict (syntactic) equality.
+We use this tactic for writing tests.
+-/
+meta def guard_expr_strict (t : expr) (p : parse $ tk ":=" *> texpr) : tactic unit :=
+do e ← to_expr p, guard (t = e)
+
+/--
+`guard_target_strict t` fails if the target of the main goal is not syntactically `t`.
+We use this tactic for writing tests.
+-/
+meta def guard_target_strict (p : parse texpr) : tactic unit :=
+do t ← target, guard_expr_strict t p
+
+
+/--
+`guard_hyp_strict h := t` fails if the hypothesis `h` does not have type syntactically equal
+to `t`.
+We use this tactic for writing tests.
+-/
+meta def guard_hyp_strict (n : parse ident) (p : parse $ tk ":=" *> texpr) : tactic unit :=
+do h ← get_local n >>= infer_type >>= instantiate_mvars, guard_expr_strict h p
+
 meta def guard_hyp_nums (n : ℕ) : tactic unit :=
 do k ← local_context,
    guard (n = k.length) <|> fail format!"{k.length} hypotheses found"
@@ -416,6 +331,11 @@ do k ← local_context,
 meta def guard_tags (tags : parse ident*) : tactic unit :=
 do (t : list name) ← get_main_tag,
    guard (t = tags)
+
+/-- `success_if_fail_with_msg { tac } msg` succeeds if the interactive tactic `tac` fails with
+    error message `msg` (for test writing purposes). -/
+meta def success_if_fail_with_msg (tac : tactic.interactive.itactic) :=
+tactic.success_if_fail_with_msg tac
 
 meta def get_current_field : tactic name :=
 do [_,field,str] ← get_main_tag,
@@ -592,6 +512,7 @@ tgt ← match tgt with
   | some e := tactic.i_to_expr_strict e
   end,
 tactic.choose tgt (first :: names),
+try (interactive.simp none tt [simp_arg_type.expr ``(exists_prop)] [] (loc.ns $ some <$> names)),
 try (tactic.clear tgt)
 
 meta def guard_expr_eq' (t : expr) (p : parse $ tk ":=" *> texpr) : tactic unit :=
@@ -675,6 +596,29 @@ meta def change' (q : parse texpr) : parse (tk "with" *> texpr)? → parse locat
      l'.mmap' (λ e, try (change_with_at q w e)),
      when l.include_goal $ change q w (loc.ns [none])
 
+meta def convert_to_core (r : pexpr) : tactic unit :=
+do tgt ← target,
+   h   ← to_expr ``(_ : %%tgt = %%r),
+   rewrite_target h,
+   swap
+
+/--
+`convert_to g using n` attempts to change the current goal to `g`,
+using `congr' n` to resolve discrepancies.
+
+`convert_to g` defaults to using `congr' 1`.
+-/
+meta def convert_to (r : parse texpr) (n : parse (tk "using" *> small_nat)?) : tactic unit :=
+match n with
+  | none     := convert_to_core r >> `[congr' 1]
+  | (some 0) := convert_to_core r
+  | (some o) := convert_to_core r >> congr' o
+end
+
+/-- `ac_change g using n` is `convert_to g using n; try {ac_refl}` -/
+meta def ac_change (r : parse texpr) (n : parse (tk "using" *> small_nat)?) : tactic unit :=
+convert_to r n; try ac_refl
+
 private meta def opt_dir_with : parser (option (bool × name)) :=
 (do tk "with",
    arrow ← (tk "<-")?,
@@ -702,6 +646,108 @@ do let vt := match tp with | some t := t | none := pexpr.mk_placeholder end,
         reflexivity
    | none := skip
    end
+
+/--
+`clear_except h₀ h₁` deletes all the assumptions it can except for `h₀` and `h₁`.
+-/
+meta def clear_except (xs : parse ident *) : tactic unit :=
+do let ns := name_set.of_list xs,
+   local_context >>= mmap' (λ h : expr,
+     when (¬ ns.contains h.local_pp_name) $
+       try $ tactic.clear h) ∘ list.reverse
+
+meta def format_names (ns : list name) : format :=
+format.join $ list.intersperse " " (ns.map to_fmt)
+
+private meta def format_binders : list name × binder_info × expr → tactic format
+| (ns, binder_info.default, t) := pformat!"({format_names ns} : {t})"
+| (ns, binder_info.implicit, t) := pformat!"{{{format_names ns} : {t}}"
+| (ns, binder_info.strict_implicit, t) := pformat!"⦃{format_names ns} : {t}⦄"
+| ([n], binder_info.inst_implicit, t) :=
+  if "_".is_prefix_of n.to_string
+    then pformat!"[{t}]"
+    else pformat!"[{format_names [n]} : {t}]"
+| (ns, binder_info.inst_implicit, t) := pformat!"[{format_names ns} : {t}]"
+| (ns, binder_info.aux_decl, t) := pformat!"({format_names ns} : {t})"
+
+meta def mk_paragraph_aux (right_margin : ℕ) : format → format → ℕ → list format → format
+| par ln len [] := par ++ format.line ++ ln
+| par ln len (x :: xs) :=
+  let len' := x.to_string.length in
+  if len + len' ≤ right_margin then
+    mk_paragraph_aux par (ln ++ x ++ " ") (len + len' + 1) xs
+  else
+    mk_paragraph_aux (par ++ format.line ++ ln) ("  " ++ x ++ " ") len' xs
+
+/-- `mk_paragraph right_margin ls` packs `ls` into a paragraph where the lines have
+length at most `right_margin` -/
+meta def mk_paragraph (right_margin : ℕ) : list format → format :=
+mk_paragraph_aux right_margin "" "" 0
+
+/--
+Format the current goal as a stand-alone example. Useful for testing tactic.
+
+  * `extract_goal`: formats the statement as an `example` declaration
+  * `extract_goal my_decl`: formats the statement as a `lemma` or `def` declaration
+    called `my_decl`
+  * `extract_goal with i j k:` only use local constants `i`, `j`, `k` in the declaration
+
+Examples:
+
+```lean
+example (i j k : ℕ) (h₀ : i ≤ j) (h₁ : j ≤ k) : i ≤ k :=
+begin
+  extract_goal,
+     -- prints:
+     -- example {i j k : ℕ} (h₀ : i ≤ j) (h₁ : j ≤ k) : i ≤ k :=
+     -- begin
+
+     -- end
+  extract_goal my_lemma
+     -- lemma my_lemma {i j k : ℕ} (h₀ : i ≤ j) (h₁ : j ≤ k) : i ≤ k :=
+     -- begin
+
+     -- end
+end
+
+example {i j k x y z w p q r m n : ℕ} (h₀ : i ≤ j) (h₁ : j ≤ k) (h₁ : k ≤ p) (h₁ : p ≤ q) : i ≤ k :=
+begin
+  extract_goal my_lemma,
+    -- prints:
+    -- lemma my_lemma {i j k x y z w p q r m n : ℕ} (h₀ : i ≤ j) (h₁ : j ≤ k)
+    --   (h₁ : k ≤ p) (h₁ : p ≤ q) : i ≤ k :=
+    -- begin
+
+    -- end
+
+  extract_goal my_lemma with i j k
+    -- prints:
+    -- lemma my_lemma {i j k : ℕ} : i ≤ k :=
+    -- begin
+
+    -- end
+end
+```
+
+-/
+meta def extract_goal (n : parse ident?) (vs : parse with_ident_list) : tactic unit :=
+do (cxt,_) ← solve_aux `(true) $
+       when (¬ vs.empty) (clear_except vs) >>
+       local_context,
+   tgt ← target,
+   is_prop ← is_prop tgt,
+   let title := match n, is_prop with
+                | none, _ := to_fmt "example"
+                | (some n), tt := format!"lemma {n}"
+                | (some n), ff := format!"def {n}"
+                end,
+   cxt ← compact_decl cxt,
+   cxt' ← cxt.init.mmap format_binders,
+   cxt'' ← cxt.last'.traverse $ λ x, pformat!"{format_binders x} :",
+   stmt ← pformat!"{tgt} :=",
+   let fmt := mk_paragraph 80 $ title :: cxt' ++ [cxt''.get_or_else ":", stmt],
+   trace fmt,
+   trace!"begin\n  \nend"
 
 end interactive
 end tactic

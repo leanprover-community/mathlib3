@@ -30,4 +30,4 @@ defined in `init/data/quot.lean` . The online document
 *Theorem Proving In Lean* has 
 [quite a good section about setoids and quotients](https://leanprover.github.io/theorem_proving_in_lean/axioms_and_computation.html#quotients)
 
-A nice mathematical example can be found in `linear_algebra/quotient_module`.
+A nice mathematical example can be found in `linear_algebra/basic.lean`. The definition of `quotient_rel` says that `x` and `y` are related iff `x - y` is in a fixed submodule `p`, and then it is proved (rather succinctly) that this is an equivalence relation, and the structure of a module is put on the equivalence classes. An example more readable for beginners is the file [Zmod37.lean](../tutorial/Zmod37.lean), where the structure of a ring is put on the quotient space Z/37Z.

@@ -1,7 +1,35 @@
+/-
+Copyright (c) 2019 Simon Hudon. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author(s): Simon Hudon
+-/
+
 import category.bitraversable.basic
        category.bitraversable.lemmas
        category.traversable.lemmas
-       tactic.interactive
+       tactic.solve_by_elim
+
+/-!
+# bitraversable instances
+
+## Instances
+
+ * prod
+ * sum
+ * const
+ * flip
+ * bicompl
+ * bicompr
+
+## References
+
+ * Hackage: https://hackage.haskell.org/package/base-4.12.0.0/docs/Data-Bitraversable.html
+
+## Tags
+
+traversable bitraversable functor bifunctor applicative
+
+-/
 
 universes u v w
 
@@ -59,10 +87,9 @@ open bitraversable functor
 instance bitraversable.traversable {α} : traversable (t α) :=
 { traverse := @tsnd t _ _ }
 
-open is_lawful_traversable
-
 @[priority 0]
-instance bitraversable.is_lawful_traversable [is_lawful_bitraversable t] {α} : is_lawful_traversable (t α) :=
+instance bitraversable.is_lawful_traversable [is_lawful_bitraversable t] {α} :
+  is_lawful_traversable (t α) :=
 by { constructor; introsI; simp [traverse,comp_tsnd] with functor_norm,
      { refl },
      { simp [tsnd_eq_snd_id], refl },
@@ -71,11 +98,13 @@ by { constructor; introsI; simp [traverse,comp_tsnd] with functor_norm,
 end
 
 open bifunctor traversable is_lawful_traversable is_lawful_bitraversable
+open function (bicompl bicompr)
 
 section bicompl
 variables (F G : Type u → Type u) [traversable F] [traversable G]
 
-def bicompl.bitraverse {m} [applicative m] {α β α' β'} (f : α → m β) (f' : α' → m β') : bicompl t F G α α' → m (bicompl t F G β β') :=
+def bicompl.bitraverse {m} [applicative m] {α β α' β'} (f : α → m β) (f' : α' → m β') :
+  bicompl t F G α α' → m (bicompl t F G β β') :=
 (bitraverse (traverse f) (traverse f') : t (F α) (G α') → m _)
 
 instance : bitraversable (bicompl t F G) :=
@@ -96,7 +125,8 @@ section bicompr
 
 variables (F : Type u → Type u) [traversable F]
 
-def bicompr.bitraverse {m} [applicative m] {α β α' β'} (f : α → m β) (f' : α' → m β') : bicompr F t α α' → m (bicompr F t β β') :=
+def bicompr.bitraverse {m} [applicative m] {α β α' β'} (f : α → m β) (f' : α' → m β') :
+  bicompr F t α α' → m (bicompr F t β β') :=
 (traverse (bitraverse f f') : F (t α α') → m _)
 
 instance : bitraversable (bicompr F t) :=

@@ -76,7 +76,7 @@ lemma val_between_eq_val_between
     apply nat.le_add_right
   end
 
-local notation as ` {` m ` ↦ ` a `}` := set a as m
+open_locale list.func
 
 def val_between_set {a : int} {l n : nat} :
   ∀ {m}, l ≤ n → n < l + m → val_between v ([] {n ↦ a}) l m = a * v n
@@ -195,7 +195,7 @@ begin
             { apply le_max_right <|> apply le_max_left } } }
 end
 
-local notation v ` ⟨` m ` ↦ ` a `⟩` := update m a v
+open_locale omega
 
 lemma val_except_update_set
   {n : nat} {as : list int} {i j : int} :

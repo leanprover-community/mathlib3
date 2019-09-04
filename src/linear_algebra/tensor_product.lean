@@ -138,8 +138,8 @@ def tensor_product : Type* :=
 quotient_add_group.quotient (tensor_product.relators R M N)
 variables {R}
 
-local infix ` ⊗ `:100 := tensor_product _
-local notation M ` ⊗[`:100 R `] ` N:100 := tensor_product R M N
+localized "infix ` ⊗ `:100 := tensor_product _" in tensor_product
+localized "notation M ` ⊗[`:100 R `] ` N:100 := tensor_product R M N" in tensor_product
 
 namespace tensor_product
 

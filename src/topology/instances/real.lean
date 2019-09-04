@@ -26,7 +26,7 @@ import topology.metric_space.basic topology.algebra.uniform_group
 
 noncomputable theory
 open classical set lattice filter topological_space metric
-local attribute [instance] prop_decidable
+open_locale classical
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}

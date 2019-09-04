@@ -160,11 +160,11 @@ by simp [monomial_eq]
 
 @[simp] lemma coeff_monomial (m n) (a) :
   coeff m (monomial n a : mv_polynomial σ α) = if n = m then a else 0 :=
-single_apply
+by convert single_apply
 
 @[simp] lemma coeff_C (m) (a) :
   coeff m (C a : mv_polynomial σ α) = if 0 = m then a else 0 :=
-single_apply
+by convert single_apply
 
 lemma coeff_X_pow (i : σ) (m) (k : ℕ) :
   coeff m (X i ^ k : mv_polynomial σ α) = if single i k = m then 1 else 0 :=

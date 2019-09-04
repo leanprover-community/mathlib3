@@ -163,6 +163,7 @@ return $ let nm := d.to_name.components in if nm.chain' (≠) then none
   some $ "The namespace `" ++ s ++ "` is duplicated in the name"
 
 /-- Checks whether a declaration has a classical proof in the statement -/
+-- TODO: this probably needs to also check whether the argument is a variable or @eq <var> _ _
 meta def classical_in_statement (d : declaration) : tactic (option string) :=
 return $ if d.type.contains_constant (λ n, n.get_prefix = `classical ∧
   n.last ∈ ["prop_decidable", "dec", "dec_rel", "dec_eq"])
@@ -231,4 +232,4 @@ def foo : (if 3 = 3 then 1 else 2) = 1 := if_pos (by refl)
 set_option pp.implicit true
 #print foo
 -- set_option profiler true
-run_cmd print_decls_current_file classical_in_statement >>= trace
+-- run_cmd print_decls_current_file classical_in_statement >>= trace

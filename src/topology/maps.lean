@@ -372,7 +372,7 @@ end is_closed_map
 section open_embedding
 variables [topological_space α] [topological_space β] [topological_space γ]
 
-/-- A open embedding is an embedding with open image. -/
+/-- An open embedding is an embedding with open image. -/
 def open_embedding (f : α → β) : Prop := embedding f ∧ is_open (range f)
 
 lemma open_embedding.open_iff_image_open {f : α → β} (hf : open_embedding f)

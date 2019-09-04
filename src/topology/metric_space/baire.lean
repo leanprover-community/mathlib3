@@ -16,7 +16,7 @@ the statement. "Baire" is however in the docstring of all the theorems, to facil
 -/
 import topology.metric_space.basic analysis.specific_limits
 noncomputable theory
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 open filter lattice encodable set
 

@@ -95,7 +95,7 @@ def hom_iso (h : is_limit t) (W : C) : (W ⟶ t.X) ≅ ((const J).obj W ⟶ F) :
 /-- The limit of `F` represents the functor taking `W` to
   the set of cones on `F` with vertex `W`. -/
 def nat_iso (h : is_limit t) : yoneda.obj t.X ≅ F.cones :=
-nat_iso.of_components (λ W, is_limit.hom_iso h (unop W)) (by tidy)
+nat_iso.of_components (λ W, is_limit.hom_iso h (unop W)) (by tidy).
 
 def hom_iso' (h : is_limit t) (W : C) :
   ((W ⟶ t.X) : Type v) ≅ { p : Π j, W ⟶ F.obj j // ∀ {j j'} (f : j ⟶ j'), p j ≫ F.map f = p j' } :=
@@ -503,6 +503,14 @@ def has_limit_of_iso {F G : J ⥤ C} [has_limit F] (α : F ≅ G) : has_limit G 
       simpa using w j
     end } }
 
+/-- If a functor `G` has the same collection of cones as a functor `F`
+which has a limit, then `G` also has a limit. -/
+-- See the construction of limits from products and equalizers
+-- for an example usage.
+def has_limit.of_cones_iso {J K : Type v} [small_category J] [small_category K] (F : J ⥤ C) (G : K ⥤ C)
+  (h : F.cones ≅ G.cones) [has_limit F] : has_limit G :=
+⟨_, is_limit.of_nat_iso ((is_limit.nat_iso (limit.is_limit F)) ≪≫ h)⟩
+
 section pre
 variables (F) [has_limit F] (E : K ⥤ J) [has_limit (E ⋙ F)]
 
@@ -626,7 +634,7 @@ lemma limit.map_pre' [has_limits_of_shape.{v} K C]
 by ext1; simp [(category.assoc _ _ _ _).symm]
 
 lemma limit.id_pre (F : J ⥤ C) :
-limit.pre F (functor.id _) = lim.map (functor.left_unitor F).inv := by tidy
+limit.pre F (𝟭 _) = lim.map (functor.left_unitor F).inv := by tidy
 
 lemma limit.map_post {D : Type u'} [category.{v+1} D] [has_limits_of_shape J D] (H : C ⥤ D) :
 /- H (limit F) ⟶ H (limit G) ⟶ limit (G ⋙ H) vs
@@ -766,6 +774,12 @@ def has_colimit_of_iso {F G : J ⥤ C} [has_colimit F] (α : G ≅ F) : has_coli
       simpa using w j
     end } }
 
+/-- If a functor `G` has the same collection of cocones as a functor `F`
+which has a colimit, then `G` also has a colimit. -/
+def has_colimit.of_cocones_iso {J K : Type v} [small_category J] [small_category K] (F : J ⥤ C) (G : K ⥤ C)
+  (h : F.cocones ≅ G.cocones) [has_colimit F] : has_colimit G :=
+⟨_, is_colimit.of_nat_iso ((is_colimit.nat_iso (colimit.is_colimit F)) ≪≫ h)⟩
+
 section pre
 variables (F) [has_colimit F] (E : K ⥤ J) [has_colimit (E ⋙ F)]
 
@@ -900,7 +914,7 @@ lemma colimit.pre_map' [has_colimits_of_shape.{v} K C]
 by ext1; simp [(category.assoc _ _ _ _).symm]
 
 lemma colimit.pre_id (F : J ⥤ C) :
-colimit.pre F (functor.id _) = colim.map (functor.left_unitor F).hom := by tidy
+colimit.pre F (𝟭 _) = colim.map (functor.left_unitor F).hom := by tidy
 
 lemma colimit.map_post {D : Type u'} [category.{v+1} D] [has_colimits_of_shape J D] (H : C ⥤ D) :
 /- H (colimit F) ⟶ H (colimit G) ⟶ colimit (G ⋙ H) vs

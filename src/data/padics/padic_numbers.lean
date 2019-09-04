@@ -56,7 +56,7 @@ p-adic, p adic, padic, norm, valuation, cauchy, completion, p-adic completion
 -/
 
 noncomputable theory
-local attribute [instance, priority 1] classical.prop_decidable
+open_locale classical
 
 open nat multiplicity padic_norm cau_seq cau_seq.completion metric
 

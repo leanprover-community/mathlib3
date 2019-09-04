@@ -84,14 +84,14 @@ by { split, intros, cases a, cases b, congr, funext J 𝒥, resetI, apply subsin
 instance preserves_colimits_subsingleton (F : C ⥤ D) : subsingleton (preserves_colimits F) :=
 by { split, intros, cases a, cases b, congr, funext J 𝒥, resetI, apply subsingleton.elim }
 
-instance id_preserves_limits : preserves_limits (functor.id C) :=
+instance id_preserves_limits : preserves_limits (𝟭 C) :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ K, by exactI ⟨λ c h,
   ⟨λ s, h.lift ⟨s.X, λ j, s.π.app j, λ j j' f, s.π.naturality f⟩,
    by cases K; rcases c with ⟨_, _, _⟩; intros s j; cases s; exact h.fac _ j,
    by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩; exact h.uniq _ m w⟩⟩ } }
 
-instance id_preserves_colimits : preserves_colimits (functor.id C) :=
+instance id_preserves_colimits : preserves_colimits (𝟭 C) :=
 { preserves_colimits_of_shape := λ J 𝒥,
   { preserves_colimit := λ K, by exactI ⟨λ c h,
   ⟨λ s, h.desc ⟨s.X, λ j, s.ι.app j, λ j j' f, s.ι.naturality f⟩,
@@ -179,14 +179,14 @@ instance reflects_colimits_of_shape_of_reflects_colimits (F : C ⥤ D)
   [H : reflects_colimits F] : reflects_colimits_of_shape J F :=
 reflects_colimits.reflects_colimits_of_shape F
 
-instance id_reflects_limits : reflects_limits (functor.id C) :=
+instance id_reflects_limits : reflects_limits (𝟭 C) :=
 { reflects_limits_of_shape := λ J 𝒥,
   { reflects_limit := λ K, by exactI ⟨λ c h,
   ⟨λ s, h.lift ⟨s.X, λ j, s.π.app j, λ j j' f, s.π.naturality f⟩,
    by cases K; rcases c with ⟨_, _, _⟩; intros s j; cases s; exact h.fac _ j,
    by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩; exact h.uniq _ m w⟩⟩ } }
 
-instance id_reflects_colimits : reflects_colimits (functor.id C) :=
+instance id_reflects_colimits : reflects_colimits (𝟭 C) :=
 { reflects_colimits_of_shape := λ J 𝒥,
   { reflects_colimit := λ K, by exactI ⟨λ c h,
   ⟨λ s, h.desc ⟨s.X, λ j, s.ι.app j, λ j j' f, s.ι.naturality f⟩,

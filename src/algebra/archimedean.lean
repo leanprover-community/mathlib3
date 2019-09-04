@@ -140,8 +140,8 @@ theorem archimedean_iff_rat_lt :
 ⟨@exists_rat_gt α _,
   λ H, archimedean_iff_nat_lt.2 $ λ x,
   let ⟨q, h⟩ := H x in
-  ⟨rat.nat_ceil q, lt_of_lt_of_le h $
-    by simpa only [rat.cast_coe_nat] using (@rat.cast_le α _ _ _).2 (rat.le_nat_ceil _)⟩⟩
+  ⟨nat_ceil q, lt_of_lt_of_le h $
+    by simpa only [rat.cast_coe_nat] using (@rat.cast_le α _ _ _).2 (le_nat_ceil _)⟩⟩
 
 theorem archimedean_iff_rat_le :
   archimedean α ↔ ∀ x : α, ∃ q : ℚ, x ≤ q :=

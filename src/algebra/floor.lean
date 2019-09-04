@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro
+Authors: Mario Carneiro, Kevin Kappelmann
 -/
 import data.int.basic
 import tactic.linarith tactic.abel
@@ -10,7 +10,7 @@ import tactic.linarith tactic.abel
 
 ## Summary
 
-We define `floor` and `ceil` functions on linear ordered rings.
+We define `floor`, `ceil`, and `nat_ceil` functions on linear ordered rings.
 
 ## Main Definitions
 
@@ -18,12 +18,16 @@ We define `floor` and `ceil` functions on linear ordered rings.
 - `floor x` is the greatest integer `z` such that `z ≤ x`.
 - `fract x` is the fractional part of x, that is `x - floor x`.
 - `ceil x` is the smallest integer `z` such that `x ≤ z`.
+- `nat_ceil x` is the smallest nonnegative integer `n` with `x ≤ n`.
 
 ## Notations
 
 - `⌊x⌋` is `floor x`.
 - `⌈x⌉` is `ceil x`.
 
+## Tags
+
+rounding
 -/
 
 variables {α : Type*}
@@ -35,6 +39,8 @@ A `floor_ring` is a linear ordered ring over `α` with a function
 class floor_ring (α) [linear_ordered_ring α] :=
 (floor : α → ℤ)
 (le_floor : ∀ (z : ℤ) (x : α), z ≤ floor x ↔ (z : α) ≤ x)
+
+instance : floor_ring ℤ := { floor := id, le_floor := λ _ _, by rw int.cast_id; refl }
 
 variables [linear_ordered_ring α] [floor_ring α]
 
@@ -215,3 +221,41 @@ lemma ceil_pos {a : α} : 0 < ⌈a⌉ ↔ 0 < a :=
 lemma ceil_nonneg [decidable_rel ((<) : α → α → Prop)] {q : α} (hq : q ≥ 0) : ⌈q⌉ ≥ 0 :=
 if h : q > 0 then le_of_lt $ ceil_pos.2 h
 else by rw [le_antisymm (le_of_not_lt h) hq, ceil_zero]; trivial
+
+/--
+`nat_ceil x` is the smallest nonnegative integer `n` with `x ≤ n`.
+It is the same as `⌈q⌉` when `q ≥ 0`, otherwise it is `0`.
+-/
+def nat_ceil (a : α) : ℕ := int.to_nat (⌈a⌉)
+
+theorem nat_ceil_le {a : α} {n : ℕ} : nat_ceil a ≤ n ↔ a ≤ n :=
+by rw [nat_ceil, int.to_nat_le, ceil_le]; refl
+
+theorem lt_nat_ceil {a : α} {n : ℕ} [decidable ((n : α) < a)] : n < nat_ceil a ↔ (n : α) < a :=
+not_iff_not.1 $ by rw [not_lt, not_lt, nat_ceil_le]
+
+theorem le_nat_ceil (a : α) : a ≤ nat_ceil a := nat_ceil_le.1 (le_refl _)
+
+theorem nat_ceil_mono {a₁ a₂ : α} (h : a₁ ≤ a₂) : nat_ceil a₁ ≤ nat_ceil a₂ :=
+nat_ceil_le.2 (le_trans h (le_nat_ceil _))
+
+@[simp] theorem nat_ceil_coe (n : ℕ) : nat_ceil (n : α) = n :=
+show (⌈((n : ℤ) : α)⌉).to_nat = n, by rw [ceil_coe]; refl
+
+@[simp] theorem nat_ceil_zero : nat_ceil (0 : α) = 0 := nat_ceil_coe 0
+
+theorem nat_ceil_add_nat {a : α} (a_nonneg : 0 ≤ a) (n : ℕ) : nat_ceil (a + n) = nat_ceil a + n :=
+begin
+  change int.to_nat (⌈a + (n:ℤ)⌉) = int.to_nat ⌈a⌉ + n,
+  rw [ceil_add_int],
+  have : 0 ≤ ⌈a⌉, by simpa using (ceil_mono a_nonneg),
+  obtain ⟨_, ceil_a_eq⟩ : ∃ (n : ℕ), ⌈a⌉ = n, from int.eq_coe_of_zero_le this,
+  rw ceil_a_eq,
+  refl
+end
+
+theorem nat_ceil_lt_add_one {a : α} (a_nonneg : 0 ≤ a) [decidable (↑(nat_ceil a) < a + 1)] :
+  ↑(nat_ceil a) < a + 1 :=
+lt_nat_ceil.1 $ by rw (
+  show nat_ceil (a + 1) = nat_ceil a + 1, by exact_mod_cast (nat_ceil_add_nat a_nonneg 1));
+  apply nat.lt_succ_self

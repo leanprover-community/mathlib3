@@ -22,6 +22,20 @@ instance bundled_hom : bundled_hom (λ α β (Iα : c α) (Iβ : c β), subtype 
   comp_to_fun := by intros; refl,
   hom_ext := by intros; apply subtype.eq }
 
+section has_forget
+
+variables {c hom} {c' : Type u → Type v} {hom' : Π ⦃α β⦄, c' α → c' β → (α → β) → Prop}
+  [𝒞' : unbundled_hom hom']
+include 𝒞'
+
+variables (obj : ∀ ⦃α⦄, c α → c' α)
+  (map : ∀ ⦃α β Iα Iβ f⦄, @hom α β Iα Iβ f → hom' (obj Iα) (obj Iβ) f)
+
+def mk_has_forget : has_forget (bundled c) (bundled c') :=
+bundled_hom.mk_has_forget obj (λ X Y f, ⟨f.val, map f.property⟩) (λ _ _ _, rfl)
+
+end has_forget
+
 end unbundled_hom
 
 end category_theory

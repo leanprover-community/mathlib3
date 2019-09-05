@@ -15,19 +15,18 @@ universes u v
 
 namespace Meas
 
-instance (x : Meas) : measurable_space x := x.str
+instance (X : Meas) : measurable_space X := X.str
 
-def of (X : Type u) [measurable_space X] : Meas := ⟨X⟩
+def of (α : Type u) [measurable_space α] : Meas := ⟨α⟩
 
-instance : unbundled_hom measurable_space :=
-⟨@measurable, @measurable_id, @measurable.comp⟩
+instance unbundled_hom : unbundled_hom @measurable := ⟨@measurable_id, @measurable.comp⟩
 
 end Meas
 
 instance Top.has_forget_to_Meas : has_forget Top.{u} Meas.{u} :=
 bundled_hom.mk_has_forget
   @measure_theory.borel
-  (λ α β f, ⟨f.1, measure_theory.measurable_of_continuous f.2⟩)
+  (λ X Y f, ⟨f.1, measure_theory.measurable_of_continuous f.2⟩)
   (by intros; refl)
 
 @[reducible] def Borel : Top.{u} ⥤ Meas.{u} := forget₂ Top.{u} Meas.{u}

@@ -23,8 +23,8 @@ def of (R : Type u) [semiring R] : SemiRing := bundled.of R
 
 instance (R : SemiRing) : semiring R := R.str
 
-instance bundled_hom : bundled_hom @semiring :=
-⟨@ring_hom, @ring_hom.to_fun, @ring_hom.id, @ring_hom.comp, @ring_hom.ext⟩
+instance bundled_hom : bundled_hom @ring_hom :=
+⟨@ring_hom.to_fun, @ring_hom.id, @ring_hom.comp, @ring_hom.ext⟩
 
 instance has_forget_to_Mon : has_forget SemiRing.{u} Mon.{u} :=
 bundled_hom.mk_has_forget @semiring.to_monoid (λ R₁ R₂ f, f.to_monoid_hom) (λ _ _ _, rfl)
@@ -40,11 +40,11 @@ instance (x : Ring) : ring x := x.str
 
 def of (R : Type u) [ring R] : Ring := bundled.of R
 
-instance bundled_hom : bundled_hom @ring :=
-bundled_hom.full_subcategory @ring.to_semiring
+instance bundled_hom : bundled_hom _ :=
+SemiRing.bundled_hom.full_subcategory @ring.to_semiring
 
 instance has_forget_to_SemiRing : has_forget Ring.{u} SemiRing.{u} :=
-bundled_hom.full_subcategory_has_forget _
+SemiRing.bundled_hom.full_subcategory_has_forget _
 
 end Ring
 
@@ -57,11 +57,11 @@ instance (x : CommSemiRing) : comm_semiring x := x.str
 
 def of (R : Type u) [comm_semiring R] : CommSemiRing := bundled.of R
 
-instance bundled_hom : bundled_hom @comm_semiring :=
-bundled_hom.full_subcategory @comm_semiring.to_semiring
+instance bundled_hom : bundled_hom _ :=
+SemiRing.bundled_hom.full_subcategory @comm_semiring.to_semiring
 
 instance has_forget_to_SemiRing : has_forget CommSemiRing.{u} SemiRing.{u} :=
-bundled_hom.full_subcategory_has_forget _
+bundled_hom.full_subcategory_has_forget _ _
 
 /-- The forgetful functor from commutative rings to (multiplicative) commutative monoids. -/
 instance has_forget_to_CommMon : has_forget CommSemiRing.{u} CommMon.{u} :=
@@ -81,17 +81,16 @@ instance (x : CommRing) : comm_ring x := x.str
 
 def of (R : Type u) [comm_ring R] : CommRing := bundled.of R
 
-instance bundled_hom : bundled_hom @comm_ring :=
-bundled_hom.full_subcategory @comm_ring.to_ring
+instance bundled_hom : bundled_hom _ :=
+Ring.bundled_hom.full_subcategory @comm_ring.to_ring
 
 @[simp] lemma id_eq (R : CommRing) : 𝟙 R = ring_hom.id R := rfl
 @[simp] lemma comp_eq {R₁ R₂ R₃ : CommRing} (f : R₁ ⟶ R₂) (g : R₂ ⟶ R₃) :
   f ≫ g = g.comp f := rfl
 
 @[simp] lemma forget_obj_eq_coe {R : CommRing} : (forget CommRing).obj R = R := rfl
--- Why does Lean need this explicit `ring_hom.has_coe_to_fun` argument?
 @[simp] lemma forget_map_eq_coe {R₁ R₂ : CommRing} (f : R₁ ⟶ R₂) :
-  (forget CommRing).map f = @coe_fn _ ring_hom.has_coe_to_fun f :=
+  (forget CommRing).map f = f :=
 rfl
 
 instance has_forget_to_Ring : has_forget CommRing.{u} Ring.{u} :=

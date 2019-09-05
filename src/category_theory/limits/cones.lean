@@ -147,7 +147,7 @@ def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cone F) : cone (E
 -- we prove this lemma twice, with slightly different hypotheses.
 section
 omit 𝒞
-variables {m : Type v → Type v} [S : bundled_hom.{v} m]
+variables {m : Type v → Type v} (hom : ∀ ⦃α β⦄ (Iα : m α) (Iβ : m β), Type v) [S : bundled_hom hom]
 include S
 
 local attribute [instance] bundled_hom.has_coe_to_fun
@@ -195,7 +195,7 @@ def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cocone F) : cocon
 -- we prove this lemma twice, with slightly different hypotheses.
 section
 omit 𝒞
-variables {m : Type v → Type v} [S : bundled_hom.{v} m]
+variables {m : Type v → Type v} (hom : ∀ ⦃α β⦄ (Iα : m α) (Iβ : m β), Type v) [S : bundled_hom hom]
 include S
 
 local attribute [instance] bundled_hom.has_coe_to_fun

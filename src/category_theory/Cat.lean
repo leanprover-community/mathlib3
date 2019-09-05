@@ -1,4 +1,4 @@
-import category_theory.concrete_category
+import category_theory.functor category_theory.types category_theory.concrete_category.bundled
 
 /-!
 Copyright (c) 2019 Yury Kudryashov. All rights reserved.

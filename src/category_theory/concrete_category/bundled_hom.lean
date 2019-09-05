@@ -20,12 +20,11 @@ universes w v u
 
 namespace category_theory
 
-variables (c : Type u → Type v)
+variables {c : Type u → Type v} (hom : Π ⦃α β : Type u⦄ (Iα : c α) (Iβ : c β), Type w)
 
 /-- Class for bundled homs. Note that the arguments order follows that of lemmas for `monoid_hom`.
 This way we can use `⟨@monoid_hom, @monoid_hom.to_fun, ...⟩` in an instance. -/
 structure bundled_hom :=
-(hom : Π {α β : Type u} (Iα : c α) (Iβ : c β), Type w)
 (to_fun : Π {α β : Type u} (Iα : c α) (Iβ : c β), hom Iα Iβ → α → β)
 (id : Π {α : Type u} (I : c α), hom I I)
 (comp : Π {α β γ : Type u} (Iα : c α) (Iβ : c β) (Iγ : c γ),
@@ -38,65 +37,71 @@ structure bundled_hom :=
 
 attribute [class] bundled_hom
 
-attribute [extensionality] bundled_hom.hom_ext
 attribute [simp] bundled_hom.id_to_fun bundled_hom.comp_to_fun
 
 namespace bundled_hom
 
-variable [S : bundled_hom.{w} c]
-include S
+variable [𝒞 : bundled_hom hom]
+include 𝒞
 
 instance : category (bundled c) :=
-{ hom := λ X Y, @bundled_hom.hom c S X.α Y.α X.str Y.str,
-  id := λ X, @bundled_hom.id c S X.α X.str,
-  comp := λ X Y Z f g, @bundled_hom.comp c S X.α Y.α Z.α X.str Y.str Z.str g f }
+by refine
+{ hom := λ X Y, @hom X.1 Y.1 X.str Y.str,
+  id := λ X, @bundled_hom.id c hom 𝒞 X X.str,
+  comp := λ X Y Z f g, @bundled_hom.comp c hom 𝒞 X Y Z X.str Y.str Z.str g f,
+  comp_id' := _,
+  id_comp' := _,
+  assoc' := _};
+intros; apply 𝒞.hom_ext;
+  simp only [𝒞.id_to_fun, 𝒞.comp_to_fun, function.left_id, function.right_id]
+
+instance concrete_category : concrete_category (bundled c) :=
+{ forget := { obj := λ X, X,
+              map := λ X Y f, 𝒞.to_fun X.str Y.str f,
+              map_id' := λ X, 𝒞.id_to_fun X.str,
+              map_comp' := by intros; erw 𝒞.comp_to_fun; refl },
+  forget_faithful := { injectivity' := by intros; apply 𝒞.hom_ext } }
 
 def has_coe_to_fun {X Y : bundled c} : has_coe_to_fun (X ⟶ Y) :=
 { F   := λ f, X → Y,
-  coe := λ f, S.to_fun X.str Y.str f }
+  coe := λ f, (forget _).map f }
 
 local attribute [instance] has_coe_to_fun
 
 @[simp] lemma coe_id {X : bundled c} : ((𝟙 X) : X → X) = _root_.id :=
-S.id_to_fun X.str
+(forget _).map_id X
 @[simp] lemma coe_comp {X Y Z : bundled c} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
   (f ≫ g) x = g (f x) :=
-congr_fun (by apply S.comp_to_fun) x
-
-instance concrete_category : concrete_category (bundled c) :=
-{ forget := { obj := λ X, X,
-              map := λ X Y f, f,
-              map_id' := by apply coe_id,
-              map_comp' := by intros; funext; apply coe_comp },
-  forget_faithful := { injectivity' := by intros; ext1 } }
-
-variable {c}
+congr_fun ((forget _).map_comp _ _) x
 
 section full_subcategory
 
-variables {d : Type u → Type v} (obj : ∀ {α}, d α → c α)
+variables {hom} (𝒞) {d : Type u → Type v} (obj : ∀ ⦃α⦄, d α → c α)
 include obj
 
 /-- Construct a `bundled_hom` representing a full subcategory of a given `bundled_hom` category. -/
-protected def full_subcategory : bundled_hom d :=
-{ hom := λ α β Iα Iβ, S.hom (obj Iα) (obj Iβ),
-  to_fun := by intros; apply S.to_fun; assumption,
-  id := by intros; apply S.id,
-  id_to_fun := by intros; apply S.id_to_fun,
-  comp := by intros; apply S.comp; assumption,
-  comp_to_fun := by intros; apply S.comp_to_fun }
+protected def full_subcategory : bundled_hom (λ α β (Iα : d α) (Iβ : d β), hom (obj Iα) (obj Iβ)) :=
+{ to_fun := by intros; apply 𝒞.to_fun; assumption,
+  id := by intros; apply 𝒞.id,
+  comp := by intros; apply 𝒞.comp; assumption,
+  hom_ext := by intros; apply 𝒞.hom_ext,
+  id_to_fun := by intros; apply 𝒞.id_to_fun,
+  comp_to_fun := by intros; apply 𝒞.comp_to_fun }
 
 def full_subcategory_has_forget :
   @has_forget (bundled d) (bundled c)
-    (by haveI := bundled_hom.full_subcategory @obj; apply_instance) _ :=
+    (by haveI := 𝒞.full_subcategory obj; apply_instance) _ :=
 { forget₂ := { obj := bundled.map @obj, map := by intros; assumption },
   forget_comp := rfl }
 
 end full_subcategory
 
-def mk_has_forget {d : Type u → Type v} [bundled_hom.{w} d] (obj : ∀ {α}, c α → d α)
-  (map : ∀ {X Y : bundled c}, (X ⟶ Y) → ((bundled.map @obj X) ⟶ (bundled.map @obj Y)))
-  (h_map : ∀ {X Y : bundled c} (f : X ⟶ Y), ⇑(map f) = (f : X → Y))
+variables {hom}
+
+def mk_has_forget {d : Type u → Type v} {hom_d : Π ⦃α β : Type u⦄ (Iα : d α) (Iβ : d β), Type w}
+  [bundled_hom hom_d] (obj : ∀ ⦃α⦄, c α → d α)
+  (map : ∀ {X Y : bundled c}, (X ⟶ Y) → ((bundled.map obj X) ⟶ (bundled.map obj Y)))
+  (h_map : ∀ {X Y : bundled c} (f : X ⟶ Y), (map f : X → Y) = f)
   : has_forget (bundled c) (bundled d) :=
 has_forget.mk'
   (bundled.map @obj)

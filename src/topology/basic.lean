@@ -421,7 +421,7 @@ all_mem_nhds _ _ (λ s t ssubt h, mem_sets_of_superset h (hf s t ssubt))
 
 theorem rtendsto_nhds {r : rel β α} {l : filter β} {a : α} :
   rtendsto r l (nhds a) ↔ (∀ s, is_open s → a ∈ s → r.core s ∈ l) :=
-all_mem_nhds_filter _ _ (λ s t h, λ x hx, λ y hy, h (hx y hy)) _
+all_mem_nhds_filter _ _ (λ s t, id) _
 
 theorem rtendsto'_nhds {r : rel β α} {l : filter β} {a : α} :
   rtendsto' r l (nhds a) ↔ (∀ s, is_open s → a ∈ s → r.preimage s ∈ l) :=

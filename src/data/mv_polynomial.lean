@@ -26,7 +26,7 @@ variables {σ : Type*} {a a' a₁ a₂ : α} {e : ℕ} {n m : σ} {s : σ →₀
 section comm_semiring
 variables [comm_semiring α] {p q : mv_polynomial σ α}
 
-def decidable_eq_mv_polynomial [decidable_eq σ] [decidable_eq α] : decidable_eq (mv_polynomial σ α) := finsupp.decidable_eq
+instance decidable_eq_mv_polynomial [decidable_eq σ] [decidable_eq α] : decidable_eq (mv_polynomial σ α) := finsupp.decidable_eq
 instance : has_zero (mv_polynomial σ α) := finsupp.has_zero
 instance : has_one (mv_polynomial σ α) := finsupp.has_one
 instance : has_add (mv_polynomial σ α) := finsupp.has_add

@@ -1180,3 +1180,21 @@ Lift an expression to another type.
 bug is often indicated by a message `nested exception message: tactic failed, there are no goals to be solved`,and solved by appending `using_well_founded wf_tacs` to the recursive definition.
 See also additional documentation of `using_well_founded` in
 [docs/extras/well_founded_recursion.md](extras/well_founded_recursion.md).
+
+### reduce_projections
+
+* The `@[reduce_projections]` attribute automatically derives lemmas specifying the projections of the declaration.
+* Example:
+  ```
+  @[reduce_projections] def refl (α) : α ≃ α := ⟨id, id, λ x, rfl, λ x, rfl⟩
+  ```
+  derives two simp-lemmas:
+  ```
+  @[simp] refl_to_fun (α) : (refl α).to_fun = id
+  @[simp] refl_inv_fun (α) : (refl α).inv_fun = id
+  ```
+* It does not derive simp-lemmas for the prop-valued projections.
+
+* You can use `@[reduce_projections no_simp]` to derive the lemmas, but not mark them as simp-lemmas.
+
+* If one of the projections is marked as a coercion, the generated lemmas do *not* use this coercion.

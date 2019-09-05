@@ -228,6 +228,17 @@ meta def pi_arity_aux : ℕ → expr → ℕ
 meta def pi_arity : expr → ℕ :=
 pi_arity_aux 0
 
+/-- Get the names of the bound variables by a sequence of pis or lambdas. -/
+meta def binding_names : expr → list name
+| (pi n _ _ e)  := n :: e.binding_names
+| (lam n _ _ e) := n :: e.binding_names
+| e             := []
+
+/-- Instantiate lambdas in the second argument by expressions from the first. -/
+meta def instantiate_lambdas : list expr → expr → expr
+| (e'::es) (lam n bi t e) := instantiate_lambdas es (e.instantiate_var e')
+| _        e              := e
+
 end expr
 
 namespace environment
@@ -258,6 +269,17 @@ option.is_some $ do
     (λ e : option expr, do expr.pi _ _ _ body ← e | none, some body)
     (some di.type) | none,
   env.is_projection (n ++ x.deinternalize_field)
+
+/-- Get all projections of the structure `n`. Returns `none` if `n` is not structure-like.
+  If `n` is not a structure, but is structure-like, this does not check whether the names
+  are existing declarations. -/
+meta def get_projections (env : environment) (n : name) : option (list name) := do
+  (nparams, intro) ← env.is_structure_like n,
+  di ← (env.get intro).to_option,
+  tgt ← nparams.iterate
+    (λ e : option expr, do expr.pi _ _ _ body ← e | none, some body)
+    (some di.type) | none,
+  return $ tgt.binding_names.map (λ x, n ++ x.deinternalize_field)
 
 /-- For all declarations `d` where `f d = some x` this adds `x` to the returned list.  -/
 meta def decl_filter_map {α : Type} (e : environment) (f : declaration → option α) : list α :=

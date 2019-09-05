@@ -21,7 +21,7 @@ import topology.uniform_space.separation topology.uniform_space.uniform_embeddin
 open lattice set filter classical
 noncomputable theory
 
-local notation `𝓤` := uniformity
+open_locale uniformity
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}

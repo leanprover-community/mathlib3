@@ -4665,7 +4665,7 @@ namespace func
 variables {a : α}
 variables {as as1 as2 as3 : list α}
 
-local notation as ` {` m ` ↦ ` a `}` := set a as m
+localized "notation as ` {` m ` ↦ ` a `}` := list.func.set a as m" in list.func
 
 /- set -/
 

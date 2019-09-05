@@ -19,11 +19,11 @@ inductive form
 | or  : form → form → form
 | and : form → form → form
 
-local notation x ` =* ` y := form.eq x y
-local notation x ` ≤* ` y := form.le x y
-local notation `¬* ` p   := form.not p
-local notation p ` ∨* ` q := form.or p q
-local notation p ` ∧* ` q := form.and p q
+localized "notation x ` =* ` y := omega.int.form.eq x y" in omega.int
+localized "notation x ` ≤* ` y := omega.int.form.le x y" in omega.int
+localized "notation `¬* ` p   := omega.int.form.not p" in omega.int
+localized "notation p ` ∨* ` q := omega.int.form.or p q" in omega.int
+localized "notation p ` ∧* ` q := omega.int.form.and p q" in omega.int
 
 namespace form
 

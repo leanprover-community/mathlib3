@@ -94,7 +94,7 @@ theorem right_inverse.comp {γ} {f : α → β} {g : β → α} {h : β → γ} 
   (hf : right_inverse f g) (hh : right_inverse h i) : right_inverse (h ∘ f) (g ∘ i) :=
 left_inverse.comp hh hf
 
-local attribute [instance] classical.prop_decidable
+local attribute [instance, priority 1] classical.prop_decidable
 
 /-- We can use choice to construct explicitly a partial inverse for
   a given injective function `f`. -/
@@ -119,7 +119,7 @@ end
 section inv_fun
 variables {α : Type u} [inhabited α] {β : Sort v} {f : α → β} {s : set α} {a : α} {b : β}
 
-local attribute [instance] classical.prop_decidable
+local attribute [instance, priority 1] classical.prop_decidable
 
 /-- Construct the inverse for a function `f` on domain `s`. -/
 noncomputable def inv_fun_on (f : α → β) (s : set α) (b : β) : α :=

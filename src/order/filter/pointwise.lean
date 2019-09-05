@@ -17,7 +17,8 @@ open classical set lattice
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-local attribute [instance] classical.prop_decidable pointwise_one pointwise_mul pointwise_add
+open_locale classical
+local attribute [instance] pointwise_one pointwise_mul pointwise_add
 
 namespace filter
 open set

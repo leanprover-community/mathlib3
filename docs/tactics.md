@@ -1190,8 +1190,8 @@ See also additional documentation of `using_well_founded` in
   ```
   derives two simp-lemmas:
   ```lean
-  @[simp] refl_to_fun (α) : (refl α).to_fun = id
-  @[simp] refl_inv_fun (α) : (refl α).inv_fun = id
+  @[simp] lemma refl_to_fun (α) : (refl α).to_fun = id
+  @[simp] lemma refl_inv_fun (α) : (refl α).inv_fun = id
   ```
 * It does not derive simp-lemmas for the prop-valued projections.
 

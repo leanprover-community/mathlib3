@@ -53,10 +53,10 @@ We can also use the word "self" to indicate a repeated argument:
 
 ### Dots ###
 
-Dots are used for namespaces, and also automatically generated names
-like recursors, eliminators, structure projections. They can also be
+Dots are used for namespaces, and also for automatically generated names
+like recursors, eliminators and structure projections. They can also be
 introduced manually, for example, where projector notation is
-useful. Thus they are used in all the following situations.
+useful. Thus they are used in all of the following situations.
 
 Intro, elim, and destruct rules for logical connectives, whether they
 are automatically generated or not:

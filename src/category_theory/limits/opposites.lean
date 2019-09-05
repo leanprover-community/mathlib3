@@ -24,7 +24,7 @@ instance [has_colimit.{v} F.left_op] : has_limit.{v} F :=
   { lift := λ s, (colimit.desc F.left_op (cocone_left_op_of_cone s)).op,
     fac' := λ s j,
     begin
-      rw [cone_of_cocone_left_op_π_app, colimit.cocone_ι, ←op_comp,
+      rw [cone_of_cocone_left_op_π_app, colimit.cocone_ι, ←category_theory.op_comp,
           colimit.ι_desc, cocone_left_op_of_cone_ι_app, has_hom.hom.op_unop],
       refl, end,
     uniq' := λ s m w,
@@ -55,7 +55,7 @@ instance [has_limit.{v} F.left_op] : has_colimit.{v} F :=
   { desc := λ s, (limit.lift F.left_op (cone_left_op_of_cocone s)).op,
     fac' := λ s j,
     begin
-      rw [cocone_of_cone_left_op_ι_app, limit.cone_π, ←op_comp,
+      rw [cocone_of_cone_left_op_ι_app, limit.cone_π, ←category_theory.op_comp,
           limit.lift_π, cone_left_op_of_cocone_π_app, has_hom.hom.op_unop],
       refl, end,
     uniq' := λ s m w,

@@ -1185,11 +1185,11 @@ See also additional documentation of `using_well_founded` in
 
 * The `@[reduce_projections]` attribute automatically derives lemmas specifying the projections of the declaration.
 * Example:
-  ```
+  ```lean
   @[reduce_projections] def refl (α) : α ≃ α := ⟨id, id, λ x, rfl, λ x, rfl⟩
   ```
   derives two simp-lemmas:
-  ```
+  ```lean
   @[simp] refl_to_fun (α) : (refl α).to_fun = id
   @[simp] refl_inv_fun (α) : (refl α).inv_fun = id
   ```

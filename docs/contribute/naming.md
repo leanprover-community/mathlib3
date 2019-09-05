@@ -54,7 +54,7 @@ We can also use the word "self" to indicate a repeated argument:
 ### Dots ###
 
 Dots are used for namespaces, and also automatically generated names
-like recursors, eliminators, strutures projections. They can also be
+like recursors, eliminators, structure projections. They can also be
 introduced manually, for example, where projector notation is
 useful. Thus they are used in all the following situations.
 

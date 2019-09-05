@@ -8,7 +8,7 @@ Order on topological structures. Lattice structure, Galois connection, and appli
 import topology.basic
 
 open set filter lattice classical
-local attribute [instance] prop_decidable
+open_locale classical
 
 universes u v w
 

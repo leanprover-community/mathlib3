@@ -8,9 +8,9 @@ Archimedean groups and fields.
 import algebra.group_power algebra.field_power
 import data.rat tactic.linarith tactic.abel
 
-local infix ` • ` := add_monoid.smul
-
 variables {α : Type*}
+
+open_locale add_monoid
 
 class floor_ring (α) [linear_ordered_ring α] :=
 (floor : α → ℤ)

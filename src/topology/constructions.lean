@@ -9,7 +9,7 @@ import topology.maps topology.subset_properties topology.separation topology.bas
 noncomputable theory
 
 open set filter lattice
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 

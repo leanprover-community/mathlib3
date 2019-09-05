@@ -7,11 +7,9 @@ Construction of the hyperreal numbers as an ultraproduct of real sequences.
 
 import data.real.basic algebra.field order.filter.filter_product analysis.specific_limits
 
-local attribute [instance] classical.prop_decidable
-
 open filter filter.filter_product
 
-open filter filter.filter_product
+local attribute [instance] classical.prop_decidable -- TODO: use "open_locale classical"
 
 /-- Hyperreal numbers on the ultrafilter extending the cofinite filter -/
 @[reducible] def hyperreal := filter.filterprod ℝ (@hyperfilter ℕ)
@@ -30,8 +28,8 @@ noncomputable def epsilon : ℝ* := of_seq (λ n, n⁻¹)
 /-- A sample infinite hyperreal-/
 noncomputable def omega : ℝ* := of_seq (λ n, n)
 
-local notation `ε` := epsilon
-local notation `ω` := omega
+localized "notation `ε` := hyperreal.epsilon" in hyperreal
+localized "notation `ω` := hyperreal.omega" in hyperreal
 
 lemma epsilon_eq_inv_omega : ε = ω⁻¹ := rfl
 

@@ -338,7 +338,7 @@ inductive stmt
   the tape head `a : Γ`, either halts (returns `none`) or returns
   a new state `q' : Λ` and a `stmt` describing what to do,
   either a move left or right, or a write command.
-  
+
   Both `Λ` and `Γ` are required to be inhabited; the default value
   for `Γ` is the "blank" tape value, and the default value of `Λ` is
   the initial state. -/
@@ -421,7 +421,7 @@ def machine.map : machine Γ' Λ'
 theorem machine.map_step {S} (ss : supports M S)
   [pointed_map f₁] (f₂₁ : function.right_inverse f₁ f₂)
   (g₂₁ : ∀ q ∈ S, g₂ (g₁ q) = q) :
-  ∀ c : cfg Γ Λ, c.q ∈ S → 
+  ∀ c : cfg Γ Λ, c.q ∈ S →
     (step M c).map (cfg.map f₁ g₁) =
     step (M.map f₁ f₂ g₁ g₂) (cfg.map f₁ g₁ c)
 | ⟨q, T⟩ h := begin
@@ -525,7 +525,7 @@ def supports_stmt (S : finset Λ) : stmt → Prop
 def supports (M : Λ → stmt) (S : finset Λ) :=
 default Λ ∈ S ∧ ∀ q ∈ S, supports_stmt S (M q)
 
-local attribute [instance] classical.dec
+open_locale classical
 noncomputable def stmts₁ : stmt → finset stmt
 | Q@(move d q)       := insert Q (stmts₁ q)
 | Q@(write a q)      := insert Q (stmts₁ q)
@@ -667,7 +667,7 @@ variables [fintype Γ] [fintype σ]
 noncomputable def tr_stmts (S : finset Λ) : finset Λ' :=
 (TM1.stmts M S).product finset.univ
 
-local attribute [instance] classical.dec
+open_locale classical
 local attribute [simp] TM1.stmts₁_self
 theorem tr_supports {S : finset Λ} (ss : TM1.supports M S) :
   TM0.supports tr (↑(tr_stmts S)) :=
@@ -976,7 +976,7 @@ fun_respects.2 $ λ ⟨l₁, v, (a, L, R)⟩, begin
     change (tape.mk' L R).1 with R.head,
     cases p R.head v; [apply IH₂, apply IH₁] },
   case TM1.stmt.goto : l {
-    simp only [tr_normal, step_aux_read enc dec enc0 encdec, step_aux], 
+    simp only [tr_normal, step_aux_read enc dec enc0 encdec, step_aux],
     apply refl_trans_gen.refl },
   case TM1.stmt.halt {
     simp only [tr_normal, step_aux, tr_cfg, step_aux_move enc enc0,
@@ -985,7 +985,7 @@ fun_respects.2 $ λ ⟨l₁, v, (a, L, R)⟩, begin
 end
 
 omit enc0 encdec
-local attribute [instance] classical.dec
+open_locale classical
 parameters [fintype Γ]
 noncomputable def writes : stmt₁ → finset Λ'
 | (stmt.move d q)       := writes q
@@ -1197,7 +1197,7 @@ def supports_stmt (S : finset Λ) : stmt → Prop
 def supports (M : Λ → stmt) (S : finset Λ) :=
 default Λ ∈ S ∧ ∀ q ∈ S, supports_stmt S (M q)
 
-local attribute [instance] classical.dec
+open_locale classical
 noncomputable def stmts₁ : stmt → finset stmt
 | Q@(push k f q)     := insert Q (stmts₁ q)
 | Q@(peek k f q)     := insert Q (stmts₁ q)
@@ -1304,11 +1304,11 @@ instance stackel.inhabited (k) : inhabited (stackel k) :=
 
 def stackel.is_bottom {k} : stackel k → bool
 | (stackel.bottom _) := tt
-| _ := ff 
+| _ := ff
 
 def stackel.is_top {k} : stackel k → bool
 | (stackel.top _) := tt
-| _ := ff 
+| _ := ff
 
 def stackel.get {k} : stackel k → option (Γ k)
 | (stackel.val a) := some a
@@ -1649,7 +1649,7 @@ begin
 end
 
 variables [fintype K] [∀ k, fintype (Γ k)] [fintype σ]
-local attribute [instance] classical.dec
+open_locale classical
 local attribute [simp] TM2.stmts₁_self
 
 noncomputable def tr_stmts₁ : stmt₂ → finset Λ'

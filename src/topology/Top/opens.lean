@@ -19,7 +19,7 @@ namespace topological_space.opens
 
 variables {X Y Z : Top.{u}}
 
-instance opens_category : category.{u+1} (opens X) :=
+instance opens_category : category.{u} (opens X) :=
 { hom  := λ U V, ulift (plift (U ≤ V)),
   id   := λ X, ⟨ ⟨ le_refl X ⟩ ⟩,
   comp := λ X Y Z f g, ⟨ ⟨ le_trans f.down.down g.down.down ⟩ ⟩ }

@@ -23,7 +23,7 @@ this is another small category at that level.
 However if `C` and `D` are both large categories at the same universe level,
 this is a small category at the next higher level.
 -/
-instance functor.category : category.{(max (u₁+1) v₂)} (C ⥤ D) :=
+instance functor.category : category.{(max u₁ v₂)} (C ⥤ D) :=
 { hom     := λ F G, nat_trans F G,
   id      := λ F, nat_trans.id F,
   comp    := λ _ _ _ α β, vcomp α β }

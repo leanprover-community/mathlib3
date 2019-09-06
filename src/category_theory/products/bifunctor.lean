@@ -10,12 +10,8 @@ open category_theory
 namespace category_theory.bifunctor
 
 universes v₁ v₂ v₃ u₁ u₂ u₃
-variable {C : Type u₁}
-variable [𝒞 : category.{v₁+1} C]
-variable {D : Type u₂}
-variable [𝒟 : category.{v₂+1} D]
-variable {E : Type u₃}
-variable [ℰ : category.{v₃+1} E]
+variables {C : Type u₁} {D : Type u₂} {E : Type u₃}
+variables [𝒞 : category.{v₁} C] [𝒟 : category.{v₂} D] [ℰ : category.{v₃} E]
 include 𝒞 𝒟 ℰ
 
 @[simp] lemma map_id (F : (C × D) ⥤ E) (X : C) (Y : D) :

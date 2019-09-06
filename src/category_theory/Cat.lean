@@ -31,7 +31,7 @@ instance str (C : Cat.{v u}) : category.{v u} C.α := C.str
 def of (C : Type u) [category.{v} C] : Cat.{v u} := mk_ob C
 
 /-- Category structure on `Cat` -/
-instance category : category.{(max u v)+1 (max v (u+1))} Cat.{v u} :=
+instance category : large_category.{max v u} Cat.{v u} :=
 { hom := λ C D, C.α ⥤ D.α,
   id := λ C, 𝟭 C.α,
   comp := λ C D E F G, F ⋙ G,
@@ -48,4 +48,3 @@ def objects : Cat.{v u} ⥤ Type u :=
 end Cat
 
 end category_theory
-

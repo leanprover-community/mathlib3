@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 
 The primitive recursive functions are the least collection of functions
-nat -> nat which are closed under projections (using the mkpair
+nat → nat which are closed under projections (using the mkpair
 pairing function), composition, zero, successor, and primitive recursion
 (i.e. nat.rec where the motive is C n := nat).
 

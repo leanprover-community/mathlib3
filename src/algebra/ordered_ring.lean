@@ -125,6 +125,18 @@ lemma mul_lt_iff_lt_one_right {a b : α} (hb : b > 0) : b * a < b ↔ a < 1 :=
 ⟨ λ h, lt_of_not_ge (mt (le_mul_iff_one_le_right hb).2 (not_le_of_gt h)),
   λ h, lt_of_not_ge (mt (le_mul_iff_one_le_right hb).1 (not_le_of_gt h)) ⟩
 
+lemma nonpos_of_mul_nonneg_left {a b : α} (h : 0 ≤ a * b) (hb : b < 0) : a ≤ 0 :=
+le_of_not_gt (λ ha, absurd h (not_le_of_gt (mul_neg_of_pos_of_neg ha hb)))
+
+lemma nonpos_of_mul_nonneg_right {a b : α} (h : 0 ≤ a * b) (ha : a < 0) : b ≤ 0 :=
+le_of_not_gt (λ hb, absurd h (not_le_of_gt (mul_neg_of_neg_of_pos ha hb)))
+
+lemma neg_of_mul_pos_left {a b : α} (h : 0 < a * b) (hb : b ≤ 0) : a < 0 :=
+lt_of_not_ge (λ ha, absurd h (not_lt_of_ge (mul_nonpos_of_nonneg_of_nonpos ha hb)))
+
+lemma neg_of_mul_pos_right {a b : α} (h : 0 < a * b) (ha : a ≤ 0) : b < 0 :=
+lt_of_not_ge (λ hb, absurd h (not_lt_of_ge (mul_nonpos_of_nonpos_of_nonneg ha hb)))
+
 end linear_ordered_semiring
 
 section decidable_linear_ordered_semiring
@@ -179,6 +191,28 @@ begin
   cases le_total 0 x,
   { exact mul_self_le_mul_self h h₁ },
   { rw ← neg_mul_neg, exact mul_self_le_mul_self (neg_nonneg_of_nonpos h) h₂ }
+end
+
+lemma nonneg_of_mul_nonpos_left {a b : α} (h : a * b ≤ 0) (hb : b < 0) : 0 ≤ a :=
+le_of_not_gt (λ ha, absurd h (not_le_of_gt (mul_pos_of_neg_of_neg ha hb)))
+
+lemma nonneg_of_mul_nonpos_right {a b : α} (h : a * b ≤ 0) (ha : a < 0) : 0 ≤ b :=
+le_of_not_gt (λ hb, absurd h (not_le_of_gt (mul_pos_of_neg_of_neg ha hb)))
+
+lemma pos_of_mul_neg_left {a b : α} (h : a * b < 0) (hb : b ≤ 0) : 0 < a :=
+lt_of_not_ge (λ ha, absurd h (not_lt_of_ge (mul_nonneg_of_nonpos_of_nonpos ha hb)))
+
+lemma pos_of_mul_neg_right {a b : α} (h : a * b < 0) (ha : a ≤ 0) : 0 < b :=
+lt_of_not_ge (λ hb, absurd h (not_lt_of_ge (mul_nonneg_of_nonpos_of_nonpos ha hb)))
+
+/- The sum of two squares is zero iff both elements are zero. -/
+lemma mul_self_add_mul_self_eq_zero {x y : α} : x * x + y * y = 0 ↔ x = 0 ∧ y = 0 :=
+begin
+  split; intro h, swap, { rcases h with ⟨rfl, rfl⟩, simp },
+  have : y * y ≤ 0, { rw [← h], apply le_add_of_nonneg_left (mul_self_nonneg x) },
+  have : y * y = 0 := le_antisymm this (mul_self_nonneg y),
+  have hx : x = 0, { rwa [this, add_zero, mul_self_eq_zero] at h },
+  rw mul_self_eq_zero at this, split; assumption
 end
 
 end linear_ordered_ring

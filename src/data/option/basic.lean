@@ -59,8 +59,13 @@ by cases x; simp
 @[simp] theorem bind_eq_some' {x : option α} {f : α → option β} {b : β} : x.bind f = some b ↔ ∃ a, x = some a ∧ f a = some b :=
 by cases x; simp
 
-theorem bind_eq_none {o : option α} {f : α → option β} : o.bind f = none ↔ (∀ b a, a ∈ o → b ∉ f a) :=
-by simp only [option.eq_none_iff_forall_not_mem, not_exists, not_and, option.mem_def, option.bind_eq_some']
+@[simp] theorem bind_eq_none' {o : option α} {f : α → option β} :
+  o.bind f = none ↔ (∀ b a, a ∈ o → b ∉ f a) :=
+by simp only [eq_none_iff_forall_not_mem, not_exists, not_and, mem_def, bind_eq_some']
+
+@[simp] theorem bind_eq_none {α β} {o : option α} {f : α → option β} :
+  o >>= f = none ↔ (∀ b a, a ∈ o → b ∉ f a) :=
+bind_eq_none'
 
 lemma bind_comm {α β γ} {f : α → β → option γ} (a : option α) (b : option β) :
   a.bind (λx, b.bind (f x)) = b.bind (λy, a.bind (λx, f x y)) :=
@@ -114,6 +119,10 @@ by cases x; simp [is_some]; exact ⟨_, rfl⟩
 
 @[simp] theorem not_is_some {a : option α} : is_some a = ff ↔ a.is_none = tt :=
 by cases a; simp
+
+lemma eq_some_iff_get_eq {o : option α} {a : α} : 
+  o = some a ↔ ∃ h : o.is_some, option.get h = a :=
+by cases o; simp
 
 lemma not_is_some_iff_eq_none {o : option α} :  ¬o.is_some ↔ o = none :=
 by cases o; simp

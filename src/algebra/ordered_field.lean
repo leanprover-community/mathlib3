@@ -49,6 +49,10 @@ by rw [mul_comm, lt_div_iff hc]
 lemma div_le_iff_of_neg (hc : c < 0) : b / c ≤ a ↔ a * c ≤ b :=
 ⟨mul_le_of_div_le_of_neg hc, div_le_of_mul_le_of_neg hc⟩
 
+lemma le_div_iff_of_neg (hc : c < 0) : a ≤ b / c ↔ b ≤ a * c :=
+by rw [← neg_neg c, mul_neg_eq_neg_mul_symm, div_neg _ (ne_of_gt (neg_pos.2 hc)), le_neg, 
+    div_le_iff (neg_pos.2 hc), neg_mul_eq_neg_mul_symm]
+
 lemma div_lt_iff (hc : 0 < c) : b / c < a ↔ b < a * c :=
 lt_iff_lt_of_le_iff_le (le_div_iff hc)
 

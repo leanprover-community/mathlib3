@@ -9,8 +9,8 @@ import data.rat.order
 
 ## Summary
 
-We define the canonical injection from ℚ into an arbitrary division ring and prove various casting
-lemmas showing the well-behavedness of this injection.
+We define the canonical injection from ℚ into an arbitrary division ring and prove various
+casting lemmas showing the well-behavedness of this injection.
 
 ## Notations
 
@@ -23,7 +23,7 @@ rat, rationals, field, ℚ, numerator, denominator, num, denom, cast, coercion, 
 
 namespace rat
 variable {α : Type*}
-local infix ` /. `:70 := rat.mk
+open_locale rat
 
 section with_div_ring
 variable [division_ring α]
@@ -42,18 +42,6 @@ show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one]
 
 @[simp, squash_cast] theorem cast_coe_int (n : ℤ) : ((n : ℚ) : α) = n :=
 by rw [coe_int_eq_of_int, cast_of_int]
-
-@[simp, elim_cast] theorem coe_int_num (n : ℤ) : (n : ℚ).num = n :=
-by rw coe_int_eq_of_int; refl
-
-@[simp, elim_cast] theorem coe_int_denom (n : ℤ) : (n : ℚ).denom = 1 :=
-by rw coe_int_eq_of_int; refl
-
-@[simp, elim_cast] theorem coe_nat_num (n : ℕ) : (n : ℚ).num = n :=
-by rw [← int.cast_coe_nat, coe_int_num]
-
-@[simp, elim_cast] theorem coe_nat_denom (n : ℕ) : (n : ℚ).denom = 1 :=
-by rw [← int.cast_coe_nat, coe_int_denom]
 
 @[simp, squash_cast] theorem cast_coe_nat (n : ℕ) : ((n : ℚ) : α) = n := cast_coe_int n
 
@@ -140,7 +128,7 @@ end
 @[move_cast] theorem cast_div_of_ne_zero {m n : ℚ} (md : (m.denom : α) ≠ 0)
   (nn : (n.num : α) ≠ 0) (nd : (n.denom : α) ≠ 0) : ((m / n : ℚ) : α) = m / n :=
 have (n⁻¹.denom : ℤ) ∣ n.num,
-by conv in n⁻¹.denom { rw [num_denom n, inv_def] };
+by conv in n⁻¹.denom { rw [←(@num_denom n), inv_def] };
    apply denom_dvd,
 have (n⁻¹.denom : α) = 0 → (n.num : α) = 0, from
 λ h, let ⟨k, e⟩ := this in
@@ -210,7 +198,7 @@ cast_mul_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ 
 
 @[simp, move_cast] theorem cast_inv [discrete_field α] [char_zero α] (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ :=
 if n0 : n.num = 0 then
-  by simp [show n = 0, by rw [num_denom n, n0]; simp, inv_zero] else
+  by simp [show n = 0, by rw [←(@num_denom n), n0]; simp, inv_zero] else
 cast_inv_of_ne_zero (int.cast_ne_zero.2 n0) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
 
 @[simp, move_cast] theorem cast_div [discrete_field α] [char_zero α] (m n) :

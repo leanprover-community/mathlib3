@@ -9,7 +9,7 @@ Multivariate functions of the form `α^n → α` are isomorphic to multivariate 
 import linear_algebra.finsupp_vector_space field_theory.finite data.mv_polynomial
 noncomputable theory
 
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 
 open lattice set linear_map submodule
 
@@ -95,7 +95,7 @@ namespace mv_polynomial
 universe u
 variables (σ : Type u) (α : Type u) [decidable_eq σ] [discrete_field α]
 
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 
 lemma dim_mv_polynomial : vector_space.dim α (mv_polynomial σ α) = cardinal.mk (σ →₀ ℕ) :=
 by rw [← cardinal.lift_inj, ← (is_basis_monomials σ α).mk_eq_dim]

@@ -1588,7 +1588,7 @@ section multiplicity
 def decidable_dvd_monic (p : polynomial α) (hq : monic q) : decidable (q ∣ p) :=
 decidable_of_iff (p %ₘ q = 0) (dvd_iff_mod_by_monic_eq_zero hq)
 
-local attribute [instance, priority 0] classical.dec
+open_locale classical
 
 lemma multiplicity_X_sub_C_finite (a : α) (h0 : p ≠ 0) :
   multiplicity.finite (X - C a) p :=
@@ -1898,7 +1898,8 @@ lemma is_unit_iff_degree_eq_zero : is_unit p ↔ degree p = 0 :=
 lemma degree_pos_of_ne_zero_of_nonunit (hp0 : p ≠ 0) (hp : ¬is_unit p) :
   0 < degree p :=
 lt_of_not_ge (λ h, by rw [eq_C_of_degree_le_zero h] at hp0 hp;
-  exact hp ⟨units.map C (units.mk0 (coeff p 0) (mt C_inj.2 (by simpa using hp0))), rfl⟩)
+  exact (hp $ is_unit.map' C $
+    is_unit.mk0 (coeff p 0) (mt C_inj.2 (by simpa using hp0))))
 
 lemma irreducible_of_degree_eq_one (hp1 : degree p = 1) : irreducible p :=
 ⟨mt is_unit_iff_dvd_one.1 (λ ⟨q, hq⟩,

@@ -122,7 +122,7 @@ instance : ordered_cancel_comm_monoid ℝ := by apply_instance
 instance : ordered_comm_monoid ℝ        := by apply_instance
 instance : domain ℝ                     := by apply_instance
 
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 noncomputable instance : discrete_linear_ordered_field ℝ :=
 { decidable_le := by apply_instance,
@@ -287,9 +287,13 @@ theorem Sup_le (S : set ℝ) (h₁ : ∃ x, x ∈ S) (h₂ : ∃ x, ∀ y ∈ S,
 by simp [Sup, h₁, h₂]; exact
 classical.some_spec (exists_sup S h₁ h₂) y
 
+section
+-- this proof times out without this
+local attribute [instance, priority 1000] classical.prop_decidable
 theorem lt_Sup (S : set ℝ) (h₁ : ∃ x, x ∈ S) (h₂ : ∃ x, ∀ y ∈ S, y ≤ x)
   {y} : y < Sup S ↔ ∃ z ∈ S, y < z :=
 by simpa [not_forall] using not_congr (@Sup_le S h₁ h₂ y)
+end
 
 theorem le_Sup (S : set ℝ) (h₂ : ∃ x, ∀ y ∈ S, y ≤ x) {x} (xS : x ∈ S) : x ≤ Sup S :=
 (Sup_le S ⟨_, xS⟩ h₂).1 (le_refl _) _ xS
@@ -315,9 +319,13 @@ begin
   { exact le_neg.2 (H _ hz) }
 end
 
+section
+-- this proof times out without this
+local attribute [instance, priority 1000] classical.prop_decidable
 theorem Inf_lt (S : set ℝ) (h₁ : ∃ x, x ∈ S) (h₂ : ∃ x, ∀ y ∈ S, x ≤ y)
   {y} : Inf S < y ↔ ∃ z ∈ S, z < y :=
 by simpa [not_forall] using not_congr (@le_Inf S h₁ h₂ y)
+end
 
 theorem Inf_le (S : set ℝ) (h₂ : ∃ x, ∀ y ∈ S, x ≤ y) {x} (xS : x ∈ S) : Inf S ≤ x :=
 (le_Inf S ⟨_, xS⟩ h₂).1 (le_refl _) _ xS
@@ -602,53 +610,6 @@ by rw [mul_comm, sqrt_mul' _ hx, mul_comm]
 
 @[simp] theorem sqrt_div (hx : 0 ≤ x) (y : ℝ) : sqrt (x / y) = sqrt x / sqrt y :=
 by rw [division_def, sqrt_mul hx, sqrt_inv]; refl
-
-/--
-This is used in proving the lemma that `sqrt` is a continuous function.
-The lemma, called `real.continuous_sqrt`, is located at the file `analysis.specific_limits`
--/
-lemma abs_sqrt_sub_sqrt_le_sqrt_abs (x y : ℝ) : abs (sqrt x - sqrt y) ≤ sqrt (abs (x - y)) :=
-nonneg_le_nonneg_of_squares_le (sqrt_nonneg _) $
-begin
-  rw abs_mul_abs_self,
-  wlog h : y ≤ x using [x y],
-  -- The main goal, i.e., prove the goal with `y ≤ x`
-  { have eq₁ : sqrt (abs (x - y)) * sqrt (abs (x - y)) = x - y,
-      rw mul_self_sqrt (abs_nonneg _), apply abs_of_nonneg, linarith,
-    rw eq₁,
-    have eq₂ : (sqrt x - sqrt y) * (sqrt x - sqrt y) =
-      sqrt x * sqrt x - (2 * sqrt x * sqrt y - sqrt y * sqrt y), ring,
-    rw eq₂,
-    cases le_total 0 x with hx hx,
-    -- if `0 ≤ x`
-    rw mul_self_sqrt hx,
-    apply sub_le_sub_left,
-    cases le_total 0 y with hy hy,
-    { rw mul_self_sqrt hy,
-      exact calc
-        y ≤ 2 * y - y : by ring
-        ... = 2 * (sqrt y * sqrt y) - y : by rw mul_self_sqrt hy
-        ... ≤ 2 * (sqrt x * sqrt y) - y :
-        begin
-          apply sub_le_sub_right,
-          apply mul_le_mul_of_nonneg_left,
-          apply mul_le_mul_of_nonneg_right,
-          exact sqrt_le_sqrt h,
-          exact sqrt_nonneg _,
-          norm_num
-        end
-        ... ≤  2 * sqrt x * sqrt y - y : by ring },
-    { rw sqrt_eq_zero_of_nonpos hy, simpa },
-    -- if `x ≤ 0`
-    { rw sqrt_eq_zero_of_nonpos hx,
-      cases le_total 0 y with hy hy,
-        rw mul_self_sqrt hy, linarith,
-        rw sqrt_eq_zero_of_nonpos hy, linarith } },
-  -- The invariant goal
-  { rw abs_sub,
-    have : ∀ a b : ℝ, (a - b) * (a - b) = (b - a) * (b - a), intros, ring,
-    rwa this }
-end
 
 attribute [irreducible] real.le
 

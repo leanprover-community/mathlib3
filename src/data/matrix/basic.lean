@@ -26,16 +26,18 @@ theorem ext_iff : (∀ i j, M i j = N i j) ↔ M = N :=
 @[extensionality] theorem ext : (∀ i j, M i j = N i j) → M = N :=
 ext_iff.mp
 
+end ext
+
 def transpose (M : matrix m n α) : matrix n m α
 | x y := M y x
+
+localized "postfix `ᵀ`:1500 := matrix.transpose" in matrix
 
 def col (w : m → α) : matrix m punit α
 | x y := w x
 
 def row (v : n → α) : matrix punit n α
 | x y := v y
-
-end ext
 
 instance [has_add α] : has_add (matrix m n α) := pi.has_add
 instance [add_semigroup α] : add_semigroup (matrix m n α) := pi.add_semigroup
@@ -96,7 +98,7 @@ protected def mul [has_mul α] [add_comm_monoid α] (M : matrix l m α) (N : mat
   matrix l n α :=
 λ i k, finset.univ.sum (λ j, M i j * N j k)
 
-local notation M `⬝` N := M.mul N
+localized "infixl ` ⬝ `:75 := matrix.mul" in matrix
 
 theorem mul_val [has_mul α] [add_comm_monoid α] {M : matrix l m α} {N : matrix m n α} {i k} :
   (M ⬝ N) i k = finset.univ.sum (λ j, M i j * N j k) := rfl
@@ -288,9 +290,9 @@ end semiring
 
 section transpose
 
-local postfix `ᵀ` : 1500 := transpose
+open_locale matrix
 
-lemma transpose_transpose (M : matrix m n α) :
+@[simp] lemma transpose_transpose (M : matrix m n α) :
   Mᵀᵀ = M :=
 by ext; refl
 

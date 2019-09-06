@@ -14,9 +14,8 @@ import tactic.linarith
 import linear_algebra.basic
 import ring_theory.algebra
 
-local attribute [instance] classical.prop_decidable
-
 open set
+open_locale classical
 
 section vector_space
 variables {α : Type*} {β : Type*} {ι : Sort _}

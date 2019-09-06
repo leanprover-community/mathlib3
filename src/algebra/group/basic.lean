@@ -10,34 +10,28 @@ import algebra.group.to_additive
 universe u
 variable {α : Type u}
 
+@[to_additive add_monoid_to_is_left_id]
 instance monoid_to_is_left_id {α : Type*} [monoid α]
 : is_left_id α (*) 1 :=
 ⟨ monoid.one_mul ⟩
 
+@[to_additive add_monoid_to_is_right_id]
 instance monoid_to_is_right_id {α : Type*} [monoid α]
 : is_right_id α (*) 1 :=
 ⟨ monoid.mul_one ⟩
 
-instance add_monoid_to_is_left_id {α : Type*} [add_monoid α]
-: is_left_id α (+) 0 :=
-⟨ add_monoid.zero_add ⟩
-
-instance add_monoid_to_is_right_id {α : Type*} [add_monoid α]
-: is_right_id α (+) 0 :=
-⟨ add_monoid.add_zero ⟩
-
-@[simp, to_additive add_left_inj]
+@[simp, to_additive]
 theorem mul_left_inj [left_cancel_semigroup α] (a : α) {b c : α} : a * b = a * c ↔ b = c :=
 ⟨mul_left_cancel, congr_arg _⟩
 
-@[simp, to_additive add_right_inj]
+@[simp, to_additive]
 theorem mul_right_inj [right_cancel_semigroup α] (a : α) {b c : α} : b * a = c * a ↔ b = c :=
 ⟨mul_right_cancel, congr_arg _⟩
 
 section comm_semigroup
   variables [comm_semigroup α] {a b c d : α}
 
-  @[to_additive add_add_add_comm]
+  @[to_additive]
   theorem mul_mul_mul_comm : (a * b) * (c * d) = (a * c) * (b * d) :=
   by simp [mul_left_comm, mul_assoc]
 
@@ -46,27 +40,27 @@ end comm_semigroup
 section group
   variables [group α] {a b c : α}
 
-  @[simp, to_additive neg_inj']
+  @[simp, to_additive]
   theorem inv_inj' : a⁻¹ = b⁻¹ ↔ a = b :=
   ⟨λ h, by rw [← inv_inv a, h, inv_inv], congr_arg _⟩
 
-  @[to_additive eq_of_neg_eq_neg]
+  @[to_additive]
   theorem eq_of_inv_eq_inv : a⁻¹ = b⁻¹ → a = b :=
   inv_inj'.1
 
-  @[simp, to_additive add_self_iff_eq_zero]
+  @[simp, to_additive]
   theorem mul_self_iff_eq_one : a * a = a ↔ a = 1 :=
   by have := @mul_left_inj _ _ a a 1; rwa mul_one at this
 
-  @[simp, to_additive neg_eq_zero]
+  @[simp, to_additive]
   theorem inv_eq_one : a⁻¹ = 1 ↔ a = 1 :=
   by rw [← @inv_inj' _ _ a 1, one_inv]
 
-  @[simp, to_additive neg_ne_zero]
+  @[simp, to_additive]
   theorem inv_ne_one : a⁻¹ ≠ 1 ↔ a ≠ 1 :=
   not_congr inv_eq_one
 
-  @[to_additive left_inverse_neg]
+  @[to_additive]
   theorem left_inverse_inv (α) [group α] :
     function.left_inverse (λ a : α, a⁻¹) (λ a, a⁻¹) :=
   assume a, inv_inv a
@@ -74,51 +68,51 @@ section group
   attribute [simp] mul_inv_cancel_left add_neg_cancel_left
                    mul_inv_cancel_right add_neg_cancel_right
 
-  @[to_additive eq_neg_iff_eq_neg]
+  @[to_additive]
   theorem eq_inv_iff_eq_inv : a = b⁻¹ ↔ b = a⁻¹ :=
   ⟨eq_inv_of_eq_inv, eq_inv_of_eq_inv⟩
 
-  @[to_additive neg_eq_iff_neg_eq]
+  @[to_additive]
   theorem inv_eq_iff_inv_eq : a⁻¹ = b ↔ b⁻¹ = a :=
   by rw [eq_comm, @eq_comm _ _ a, eq_inv_iff_eq_inv]
 
-  @[to_additive add_eq_zero_iff_eq_neg]
+  @[to_additive]
   theorem mul_eq_one_iff_eq_inv : a * b = 1 ↔ a = b⁻¹ :=
   by simpa [mul_left_inv, -mul_right_inj] using @mul_right_inj _ _ b a (b⁻¹)
 
-  @[to_additive add_eq_zero_iff_neg_eq]
+  @[to_additive]
   theorem mul_eq_one_iff_inv_eq : a * b = 1 ↔ a⁻¹ = b :=
   by rw [mul_eq_one_iff_eq_inv, eq_inv_iff_eq_inv, eq_comm]
 
-  @[to_additive eq_neg_iff_add_eq_zero]
+  @[to_additive]
   theorem eq_inv_iff_mul_eq_one : a = b⁻¹ ↔ a * b = 1 :=
   mul_eq_one_iff_eq_inv.symm
 
-  @[to_additive neg_eq_iff_add_eq_zero]
+  @[to_additive]
   theorem inv_eq_iff_mul_eq_one : a⁻¹ = b ↔ a * b = 1 :=
   mul_eq_one_iff_inv_eq.symm
 
-  @[to_additive eq_add_neg_iff_add_eq]
+  @[to_additive]
   theorem eq_mul_inv_iff_mul_eq : a = b * c⁻¹ ↔ a * c = b :=
   ⟨λ h, by rw [h, inv_mul_cancel_right], λ h, by rw [← h, mul_inv_cancel_right]⟩
 
-  @[to_additive eq_neg_add_iff_add_eq]
+  @[to_additive]
   theorem eq_inv_mul_iff_mul_eq : a = b⁻¹ * c ↔ b * a = c :=
   ⟨λ h, by rw [h, mul_inv_cancel_left], λ h, by rw [← h, inv_mul_cancel_left]⟩
 
-  @[to_additive neg_add_eq_iff_eq_add]
+  @[to_additive]
   theorem inv_mul_eq_iff_eq_mul : a⁻¹ * b = c ↔ b = a * c :=
   ⟨λ h, by rw [← h, mul_inv_cancel_left], λ h, by rw [h, inv_mul_cancel_left]⟩
 
-  @[to_additive add_neg_eq_iff_eq_add]
+  @[to_additive]
   theorem mul_inv_eq_iff_eq_mul : a * b⁻¹ = c ↔ a = c * b :=
   ⟨λ h, by rw [← h, inv_mul_cancel_right], λ h, by rw [h, mul_inv_cancel_right]⟩
 
-  @[to_additive add_neg_eq_zero]
+  @[to_additive]
   theorem mul_inv_eq_one {a b : α} : a * b⁻¹ = 1 ↔ a = b :=
   by rw [mul_eq_one_iff_eq_inv, inv_inv]
 
-  @[to_additive neg_comm_of_comm]
+  @[to_additive]
   theorem inv_comm_of_comm {a b : α} (H : a * b = b * a) : a⁻¹ * b = b * a⁻¹ :=
   begin
     have : a⁻¹ * (b * a) * a⁻¹ = a⁻¹ * (a * b) * a⁻¹ :=

@@ -1,19 +1,20 @@
--- Copyright (c) 2018 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison, Johan Commelin
-
+/-
+Copyright (c) 2018 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison, Johan Commelin
+-/
 import category_theory.isomorphism
 import category_theory.punit
 
 namespace category_theory
 
 universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
-variables {A : Sort u₁} [𝒜 : category.{v₁} A]
-variables {B : Sort u₂} [ℬ : category.{v₂} B]
-variables {T : Sort u₃} [𝒯 : category.{v₃} T]
+variables {A : Type u₁} [𝒜 : category.{v₁} A]
+variables {B : Type u₂} [ℬ : category.{v₂} B]
+variables {T : Type u₃} [𝒯 : category.{v₃} T]
 include 𝒜 ℬ 𝒯
 
-structure comma (L : A ⥤ T) (R : B ⥤ T) :=
+structure comma (L : A ⥤ T) (R : B ⥤ T) : Type (max u₁ u₂ v₃) :=
 (left : A . obviously)
 (right : B . obviously)
 (hom : L.obj left ⟶ R.obj right)
@@ -107,7 +108,7 @@ variables {X Y : comma L₂ R} {f : X ⟶ Y} {l : L₁ ⟶ L₂}
 @[simp] lemma map_left_map_right : ((map_left R l).map f).right = f.right               := rfl
 end
 
-def map_left_id : map_left R (𝟙 L) ≅ functor.id _ :=
+def map_left_id : map_left R (𝟙 L) ≅ 𝟭 _ :=
 { hom :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
   inv :=
@@ -155,7 +156,7 @@ variables {X Y : comma L R₁} {f : X ⟶ Y} {r : R₁ ⟶ R₂}
 @[simp] lemma map_right_map_right : ((map_right L r).map f).right = f.right                := rfl
 end
 
-def map_right_id : map_right L (𝟙 R) ≅ functor.id _ :=
+def map_right_id : map_right L (𝟙 R) ≅ 𝟭 _ :=
 { hom :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
   inv :=
@@ -189,7 +190,7 @@ end comma
 
 omit 𝒜 ℬ
 
-def over (X : T) := comma.{v₃ 1 v₃} (functor.id T) (functor.of.obj X)
+def over (X : T) := comma.{v₃ 1 v₃} (𝟭 T) (functor.of.obj X)
 
 namespace over
 
@@ -240,7 +241,7 @@ variables {Y : T} {f : X ⟶ Y} {U V : over X} {g : U ⟶ V}
 end
 
 section
-variables {D : Sort u₃} [𝒟 : category.{v₃} D]
+variables {D : Type u₃} [𝒟 : category.{v₃} D]
 include 𝒟
 
 def post (F : T ⥤ D) : over X ⥤ over (F.obj X) :=
@@ -253,7 +254,7 @@ end
 
 end over
 
-def under (X : T) := comma.{1 v₃ v₃} (functor.of.obj X) (functor.id T)
+def under (X : T) := comma.{1 v₃ v₃} (functor.of.obj X) (𝟭 T)
 
 namespace under
 
@@ -304,7 +305,7 @@ variables {Y : T} {f : X ⟶ Y} {U V : under Y} {g : U ⟶ V}
 end
 
 section
-variables {D : Sort u₃} [𝒟 : category.{v₃} D]
+variables {D : Type u₃} [𝒟 : category.{v₃} D]
 include 𝒟
 
 def post {X : T} (F : T ⥤ D) : under X ⥤ under (F.obj X) :=

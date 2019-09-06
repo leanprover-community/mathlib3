@@ -68,6 +68,14 @@ lemma congr_arg_heq {α} {β : α → Sort*} (f : ∀ a, β a) : ∀ {a₁ a₂ 
 lemma plift.down_inj {α : Sort*} : ∀ (a b : plift α), a.down = b.down → a = b
 | ⟨a⟩ ⟨b⟩ rfl := rfl
 
+@[simp] lemma nonempty_pempty : ¬ nonempty pempty :=
+assume ⟨h⟩, h.elim
+
+-- missing [symm] attribute for ne in core.
+attribute [symm] ne.symm
+
+lemma ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨ne.symm, ne.symm⟩
+
 end miscellany
 
 /-
@@ -85,6 +93,8 @@ variables {a b c d : Prop}
 theorem iff_of_eq (e : a = b) : a ↔ b := e ▸ iff.rfl
 
 theorem iff_iff_eq : (a ↔ b) ↔ a = b := ⟨propext, iff_of_eq⟩
+
+@[simp] lemma eq_iff_iff {p q : Prop} : (p = q) ↔ (p ↔ q) := iff_iff_eq.symm
 
 @[simp] theorem imp_self : (a → a) ↔ true := iff_true_intro id
 
@@ -370,6 +380,9 @@ protected lemma eq.congr {x₁ x₂ y₁ y₂ : α} (h₁ : x₁ = y₁) (h₂ :
   (x₁ = x₂) ↔ (y₁ = y₂) :=
 by { subst h₁, subst h₂ }
 
+lemma eq.congr_left {x y z : α} (h : x = y) : x = z ↔ y = z := by rw [h]
+lemma eq.congr_right {x y z : α} (h : x = y) : z = x ↔ z = y := by rw [h]
+
 lemma congr_arg2 {α β γ : Type*} (f : α → β → γ) {x x' : α} {y y' : β}
   (hx : x = x') (hy : y = y') : f x y = f x' y' :=
 by { subst hx, subst hy }
@@ -381,14 +394,17 @@ end equality
 -/
 
 section quantifiers
-variables {α : Sort*} {p q : α → Prop} {b : Prop}
+variables {α : Sort*} {β : Sort*} {p q : α → Prop} {b : Prop}
 
 def Exists.imp := @exists_imp_exists
 
-theorem forall_swap {α β} {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
+lemma exists_imp_exists' {p : α → Prop} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a)) (hp : ∃ a, p a) : ∃ b, q b :=
+exists.elim hp (λ a hp', ⟨_, hpq _ hp'⟩)
+
+theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
 ⟨function.swap, function.swap⟩
 
-theorem exists_swap {α β} {p : α → β → Prop} : (∃ x y, p x y) ↔ ∃ y x, p x y :=
+theorem exists_swap {p : α → β → Prop} : (∃ x y, p x y) ↔ ∃ y x, p x y :=
 ⟨λ ⟨x, y, h⟩, ⟨y, x, h⟩, λ ⟨y, x, h⟩, ⟨x, y, h⟩⟩
 
 @[simp] theorem exists_imp_distrib : ((∃ x, p x) → b) ↔ ∀ x, p x → b :=
@@ -677,7 +693,7 @@ iff.intro (λ⟨a, _⟩, ⟨a⟩) (λ⟨a⟩, ⟨a, trivial⟩)
 @[simp] lemma nonempty_Prop {p : Prop} : nonempty p ↔ p :=
 iff.intro (assume ⟨h⟩, h) (assume h, ⟨h⟩)
 
-lemma not_nonempty_iff_imp_false {p : Prop} : ¬ nonempty α ↔ α → false :=
+lemma not_nonempty_iff_imp_false : ¬ nonempty α ↔ α → false :=
 ⟨λ h a, h ⟨a⟩, λ h ⟨a⟩, h a⟩
 
 @[simp] lemma nonempty_sigma : nonempty (Σa:α, γ a) ↔ (∃a:α, nonempty (γ a)) :=

@@ -2,14 +2,44 @@
 Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
-
-Define the p-adic valuation on ℤ and ℚ, and the p-adic norm on ℚ
 -/
 
 import data.rat algebra.gcd_domain algebra.field_power
 import ring_theory.multiplicity tactic.ring
 import data.real.cau_seq
 import tactic.norm_cast
+
+/-!
+# p-adic norm
+
+This file defines the p-adic valuation and the p-adic norm on ℚ.
+
+The p-adic valuation on ℚ is the difference of the multiplicities of `p` in the numerator and
+denominator of `q`. This function obeys the standard properties of a valuation, with the appropriate
+assumptions on p.
+
+The valuation induces a norm on ℚ. This norm is a nonarchimedean absolute value.
+It takes values in {0} ∪ {1/p^k | k ∈ ℤ}.
+
+## Notations
+
+This file uses the local notation `/.` for `rat.mk`.
+
+## Implementation notes
+
+Much, but not all, of this file assumes that `p` is prime. This assumption is inferred automatically
+by taking (prime p) as a type class argument.
+
+## References
+
+* [F. Q. Gouêva, *p-adic numbers*][gouvea1997]
+* [R. Y. Lewis, *A formal proof of Hensel's lemma over the p-adic integers*][lewis2019]
+* https://en.wikipedia.org/wiki/P-adic_number
+
+## Tags
+
+p-adic, p adic, padic, norm, valuation
+-/
 
 universe u
 
@@ -21,6 +51,14 @@ local infix `/.`:70 := rat.mk
 
 open multiplicity
 
+/--
+For `p ≠ 1`, the p-adic valuation of an integer `z ≠ 0` is the largest natural number `n` such that
+p^n divides z.
+
+`padic_val_rat` defines the valuation of a rational `q` to be the valuation of `q.num` minus the
+valuation of `q.denom`.
+If `q = 0` or `p = 1`, then `padic_val_rat p q` defaults to 0.
+-/
 def padic_val_rat (p : ℕ) (q : ℚ) : ℤ :=
 if h : q ≠ 0 ∧ p ≠ 1
 then (multiplicity (p : ℤ) q.num).get
@@ -29,6 +67,9 @@ then (multiplicity (p : ℤ) q.num).get
     (multiplicity.finite_int_iff.2 ⟨h.2, by exact_mod_cast rat.denom_ne_zero _⟩)
 else 0
 
+/--
+A simplification of the definition of `padic_val_rat p q` when `q ≠ 0` and `p` is prime.
+-/
 lemma padic_val_rat_def (p : ℕ) [hp : p.prime] {q : ℚ} (hq : q ≠ 0) : padic_val_rat p q =
   (multiplicity (p : ℤ) q.num).get (finite_int_iff.2 ⟨hp.ne_one, rat.num_ne_zero_of_ne_zero hq⟩) -
   (multiplicity (p : ℤ) q.denom).get (finite_int_iff.2 ⟨hp.ne_one, by exact_mod_cast rat.denom_ne_zero _⟩) :=
@@ -39,6 +80,9 @@ open multiplicity
 section padic_val_rat
 variables {p : ℕ}
 
+/--
+`padic_val_rat p q` is symmetric in `q`.
+-/
 @[simp] protected lemma neg (q : ℚ) : padic_val_rat p (-q) = padic_val_rat p q :=
 begin
   unfold padic_val_rat,
@@ -49,12 +93,21 @@ begin
   { refl }
 end
 
+/--
+`padic_val_rat p 1` is 0 for any `p`.
+-/
 @[simp] protected lemma one : padic_val_rat p 1 = 0 :=
 by unfold padic_val_rat; split_ifs; simp *
 
+/--
+For `p ≠ 0, p ≠ 1, `padic_val_rat p p` is 1.
+-/
 @[simp] lemma padic_val_rat_self (hp : 1 < p) : padic_val_rat p p = 1 :=
 by unfold padic_val_rat; split_ifs; simp [*, nat.one_lt_iff_ne_zero_and_ne_one] at *
 
+/--
+The p-adic value of an integer `z ≠ 0` is the multiplicity of `p` in `z`.
+-/
 lemma padic_val_rat_of_int (z : ℤ) (hp : p ≠ 1) (hz : z ≠ 0) :
   padic_val_rat p (z : ℚ) = (multiplicity (p : ℤ) z).get
     (finite_int_iff.2 ⟨hp, hz⟩) :=
@@ -67,9 +120,15 @@ open multiplicity
 variables (p : ℕ) [p_prime : nat.prime p]
 include p_prime
 
+/--
+The multiplicity of `p : ℕ` in `a : ℤ` is finite exactly when `a ≠ 0`.
+-/
 lemma finite_int_prime_iff {p : ℕ} [p_prime : p.prime] {a : ℤ} : finite (p : ℤ) a ↔ a ≠ 0 :=
 by simp [finite_int_iff, ne.symm (ne_of_lt (p_prime.gt_one))]
 
+/--
+A rewrite lemma for `padic_val_rat p q` when `q` is expressed in terms of `rat.mk`.
+-/
 protected lemma defn {q : ℚ} {n d : ℤ} (hqz : q ≠ 0) (qdf : q = n /. d) :
   padic_val_rat p q = (multiplicity (p : ℤ) n).get (finite_int_iff.2
     ⟨ne.symm $ ne_of_lt p_prime.gt_one, λ hn, by simp * at *⟩) -
@@ -82,34 +141,50 @@ by rw [padic_val_rat, dif_pos];
   simp [hc1, hc2, multiplicity.mul' (nat.prime_iff_prime_int.1 p_prime),
     (ne.symm (ne_of_lt p_prime.gt_one)), hqz]
 
+/--
+A rewrite lemma for `padic_val_rat p (q * r)` with conditions `q ≠ 0`, `r ≠ 0`.
+-/
 protected lemma mul {q r : ℚ} (hq : q ≠ 0) (hr : r ≠ 0) :
   padic_val_rat p (q * r) = padic_val_rat p q + padic_val_rat p r :=
 have q*r = (q.num * r.num) /. (↑q.denom * ↑r.denom), by rw_mod_cast rat.mul_num_denom,
-have hq' : q.num /. q.denom ≠ 0, by rw ← rat.num_denom q; exact hq,
-have hr' : r.num /. r.denom ≠ 0, by rw ← rat.num_denom r; exact hr,
+have hq' : q.num /. q.denom ≠ 0, by rw rat.num_denom; exact hq,
+have hr' : r.num /. r.denom ≠ 0, by rw rat.num_denom; exact hr,
 have hp' : _root_.prime (p : ℤ), from nat.prime_iff_prime_int.1 p_prime,
 begin
   rw [padic_val_rat.defn p (mul_ne_zero hq hr) this],
-  conv_rhs { rw [rat.num_denom q, padic_val_rat.defn p hq',
-    rat.num_denom r, padic_val_rat.defn p hr'] },
+  conv_rhs { rw [←(@rat.num_denom q), padic_val_rat.defn p hq',
+    ←(@rat.num_denom r), padic_val_rat.defn p hr'] },
   rw [multiplicity.mul' hp', multiplicity.mul' hp']; simp
 end
 
+/--
+A rewrite lemma for `padic_val_rat p (q^k) with condition `q ≠ 0`.
+-/
 protected lemma pow {q : ℚ} (hq : q ≠ 0) {k : ℕ} :
     padic_val_rat p (q ^ k) = k * padic_val_rat p q :=
 by induction k; simp [*, padic_val_rat.mul _ hq (pow_ne_zero _ hq),
   _root_.pow_succ, add_mul]
 
+/--
+A rewrite lemma for `padic_val_rat p (q⁻¹)` with condition `q ≠ 0`.
+-/
 protected lemma inv {q : ℚ} (hq : q ≠ 0) :
   padic_val_rat p (q⁻¹) = -padic_val_rat p q :=
 by rw [eq_neg_iff_add_eq_zero, ← padic_val_rat.mul p (inv_ne_zero hq) hq,
     inv_mul_cancel hq, padic_val_rat.one]
 
+/--
+A rewrite lemma for `padic_val_rat p (q / r)` with conditions `q ≠ 0`, `r ≠ 0`.
+-/
 protected lemma div {q r : ℚ} (hq : q ≠ 0) (hr : r ≠ 0) :
   padic_val_rat p (q / r) = padic_val_rat p q - padic_val_rat p r :=
 by rw [div_eq_mul_inv, padic_val_rat.mul p hq (inv_ne_zero hr),
     padic_val_rat.inv p hr, sub_eq_add_neg]
 
+/--
+A condition for `padic_val_rat p (n₁ / d₁) ≤ padic_val_rat p (n₂ / d₂),
+in terms of divisibility by `p^n`.
+-/
 lemma padic_val_rat_le_padic_val_rat_iff {n₁ n₂ d₁ d₂ : ℤ}
   (hn₁ : n₁ ≠ 0) (hn₂ : n₂ ≠ 0) (hd₁ : d₁ ≠ 0) (hd₂ : d₂ ≠ 0) :
   padic_val_rat p (n₁ /. d₁) ≤ padic_val_rat p (n₂ /. d₂) ↔
@@ -131,7 +206,10 @@ have hf2 : finite (p : ℤ) (n₂ * d₁),
       enat.get_le_get, multiplicity_le_multiplicity_iff]
   }
 
-
+/--
+Sufficient conditions to show that the p-adic valuation of `q` is less than or equal to the
+p-adic vlauation of `q + r`.
+-/
 theorem le_padic_val_rat_add_of_le {q r : ℚ}
   (hq : q ≠ 0) (hr : r ≠ 0) (hqr : q + r ≠ 0)
   (h : padic_val_rat p q ≤ padic_val_rat p r) :
@@ -147,11 +225,11 @@ have hqreq : q + r = (((q.num * r.denom + q.denom * r.num : ℤ)) /. (↑q.denom
 have hqrd : q.num * ↑(r.denom) + ↑(q.denom) * r.num ≠ 0,
   from rat.mk_num_ne_zero_of_ne_zero hqr hqreq,
 begin
-  conv_lhs { rw rat.num_denom q },
+  conv_lhs { rw ←(@rat.num_denom q) },
   rw [hqreq, padic_val_rat_le_padic_val_rat_iff p hqn hqrd hqd (mul_ne_zero hqd hrd),
     ← multiplicity_le_multiplicity_iff, mul_left_comm,
     multiplicity.mul (nat.prime_iff_prime_int.1 p_prime), add_mul],
-  rw [rat.num_denom q, rat.num_denom r, padic_val_rat_le_padic_val_rat_iff p hqn hrn hqd hrd,
+  rw [←(@rat.num_denom q), ←(@rat.num_denom r), padic_val_rat_le_padic_val_rat_iff p hqn hrn hqd hrd,
     ← multiplicity_le_multiplicity_iff] at h,
   calc _ ≤ min (multiplicity ↑p (q.num * ↑(r.denom) * ↑(q.denom)))
     (multiplicity ↑p (↑(q.denom) * r.num * ↑(q.denom))) : (le_min
@@ -162,6 +240,9 @@ begin
     ... ≤ _ : min_le_multiplicity_add
 end
 
+/--
+The minimum of the valuations of `q` and `r` is less than or equal to the valuation of `q + r`.
+-/
 theorem min_le_padic_val_rat_add {q r : ℚ}
   (hq : q ≠ 0) (hr : r ≠ 0) (hqr : q + r ≠ 0) :
   min (padic_val_rat p q) (padic_val_rat p r) ≤ padic_val_rat p (q + r) :=
@@ -173,6 +254,10 @@ theorem min_le_padic_val_rat_add {q r : ℚ}
 end padic_val_rat
 end padic_val_rat
 
+/--
+If `q ≠ 0`, the p-adic norm of a rational `q` is `p ^ (-(padic_val_rat p q))`.
+If `q = 0`, the p-adic norm of `q` is 0.
+-/
 def padic_norm (p : ℕ) (q : ℚ) : ℚ :=
 if q = 0 then 0 else (↑p : ℚ) ^ (-(padic_val_rat p q))
 
@@ -180,37 +265,18 @@ namespace padic_norm
 
 section padic_norm
 open padic_val_rat
-variables (p : ℕ) [hp : p.prime]
-include hp
+variables (p : ℕ)
 
-@[simp] protected lemma zero : padic_norm p 0 = 0 := by simp [padic_norm]
-
-@[simp] protected lemma one : padic_norm p 1 = 1 := by simp [padic_norm]
-
+/--
+Unfolds the definition of the p-adic norm of `q` when `q ≠ 0`.
+-/
 @[simp] protected lemma eq_fpow_of_nonzero {q : ℚ} (hq : q ≠ 0) :
   padic_norm p q = p ^ (-(padic_val_rat p q)) :=
 by simp [hq, padic_norm]
 
-protected lemma nonzero {q : ℚ} (hq : q ≠ 0) : padic_norm p q ≠ 0 :=
-begin
-  rw padic_norm.eq_fpow_of_nonzero p hq,
-  apply fpow_ne_zero_of_ne_zero,
-  exact_mod_cast ne_of_gt hp.pos
-end
-
-@[simp] protected lemma neg (q : ℚ) : padic_norm p (-q) = padic_norm p q :=
-if hq : q = 0 then by simp [hq]
-else by simp [padic_norm, hq, hp.gt_one]
-
-lemma zero_of_padic_norm_eq_zero {q : ℚ} (h : padic_norm p q = 0) : q = 0 :=
-begin
-  apply by_contradiction, intro hq,
-  unfold padic_norm at h, rw if_neg hq at h,
-  apply absurd h,
-  apply fpow_ne_zero_of_ne_zero,
-  exact_mod_cast hp.ne_zero
-end
-
+/--
+The p-adic norm is nonnegative.
+-/
 protected lemma nonneg (q : ℚ) : padic_norm p q ≥ 0 :=
 if hq : q = 0 then by simp [hq]
 else
@@ -220,6 +286,57 @@ else
     exact_mod_cast nat.zero_le _
   end
 
+/--
+The p-adic norm of 0 is 0.
+-/
+@[simp] protected lemma zero : padic_norm p 0 = 0 := by simp [padic_norm]
+
+/--
+The p-adic norm of 1 is 1.
+-/
+@[simp] protected lemma one : padic_norm p 1 = 1 := by simp [padic_norm]
+
+/--
+The image of `padic_norm p` is {0} ∪ {p^(-n) | n ∈ ℤ}.
+-/
+protected theorem image {q : ℚ} (hq : q ≠ 0) : ∃ n : ℤ, padic_norm p q = p ^ (-n) :=
+⟨ (padic_val_rat p q), by simp [padic_norm, hq] ⟩
+
+variable [hp : p.prime]
+include hp
+
+/--
+If `q ≠ 0`, then `padic_norm p q ≠ 0`.
+-/
+protected lemma nonzero {q : ℚ} (hq : q ≠ 0) : padic_norm p q ≠ 0 :=
+begin
+  rw padic_norm.eq_fpow_of_nonzero p hq,
+  apply fpow_ne_zero_of_ne_zero,
+  exact_mod_cast ne_of_gt hp.pos
+end
+
+/--
+`padic_norm p` is symmetric.
+-/
+@[simp] protected lemma neg (q : ℚ) : padic_norm p (-q) = padic_norm p q :=
+if hq : q = 0 then by simp [hq]
+else by simp [padic_norm, hq, hp.gt_one]
+
+/--
+If the p-adic norm of `q` is 0, then `q` is 0.
+-/
+lemma zero_of_padic_norm_eq_zero {q : ℚ} (h : padic_norm p q = 0) : q = 0 :=
+begin
+  apply by_contradiction, intro hq,
+  unfold padic_norm at h, rw if_neg hq at h,
+  apply absurd h,
+  apply fpow_ne_zero_of_ne_zero,
+  exact_mod_cast hp.ne_zero
+end
+
+/--
+The p-adic norm is multiplicative.
+-/
 @[simp] protected theorem mul (q r : ℚ) : padic_norm p (q*r) = padic_norm p q * padic_norm p r :=
 if hq : q = 0 then
   by simp [hq]
@@ -227,13 +344,19 @@ else if hr : r = 0 then
   by simp [hr]
 else
   have q*r ≠ 0, from mul_ne_zero hq hr,
-  have (↑p : ℚ) ≠ 0, by simp [prime.ne_zero hp],
+  have (↑p : ℚ) ≠ 0, by simp [hp.ne_zero],
   by simp [padic_norm, *, padic_val_rat.mul, fpow_add this]
 
+/--
+The p-adic norm respects division.
+-/
 @[simp] protected theorem div (q r : ℚ) : padic_norm p (q / r) = padic_norm p q / padic_norm p r :=
 if hr : r = 0 then by simp [hr] else
 eq_div_of_mul_eq _ _ (padic_norm.nonzero _ hr) (by rw [←padic_norm.mul, div_mul_cancel _ hr])
 
+/--
+The p-adic norm of an integer is at most 1.
+-/
 protected theorem of_int (z : ℤ) : padic_norm p ↑z ≤ 1 :=
 if hz : z = 0 then by simp [hz] else
 begin
@@ -246,7 +369,6 @@ begin
   exact_mod_cast hz
 end
 
---TODO: p implicit
 private lemma nonarchimedean_aux {q r : ℚ} (h : padic_val_rat p q ≤ padic_val_rat p r) :
   padic_norm p (q + r) ≤ max (padic_norm p q) (padic_norm p r) :=
 have hnqp : padic_norm p q ≥ 0, from padic_norm.nonneg _ _,
@@ -272,6 +394,10 @@ else
       apply min_le_padic_val_rat_add; assumption }
   end
 
+/--
+The p-adic norm is nonarchimedean: the norm of `p + q` is at most the max of the norm of `p` and
+the norm of `q`.
+-/
 protected theorem nonarchimedean {q r : ℚ} :
   padic_norm p (q + r) ≤ max (padic_norm p q) (padic_norm p r) :=
 begin
@@ -279,14 +405,26 @@ begin
     exact nonarchimedean_aux p hle
 end
 
+/--
+The p-adic norm respects the triangle inequality: the norm of `p + q` is at most the norm of `p`
+plus the norm of `q`.
+-/
 theorem triangle_ineq (q r : ℚ) : padic_norm p (q + r) ≤ padic_norm p q + padic_norm p r :=
 calc padic_norm p (q + r) ≤ max (padic_norm p q) (padic_norm p r) : padic_norm.nonarchimedean p
                        ... ≤ padic_norm p q + padic_norm p r :
                          max_le_add_of_nonneg (padic_norm.nonneg p _) (padic_norm.nonneg p _)
 
+/--
+The p-adic norm of a difference is at most the max of each component. Restates the archimedean
+property of the p-adic norm.
+-/
 protected theorem sub {q r : ℚ} : padic_norm p (q - r) ≤ max (padic_norm p q) (padic_norm p r) :=
 by rw [sub_eq_add_neg, ←padic_norm.neg p r]; apply padic_norm.nonarchimedean
 
+/--
+If the p-adic norms of `q` and `r` are different, then the norm of `q + r` is equal to the max of
+the norms of `q` and `r`.
+-/
 lemma add_eq_max_of_ne {q r : ℚ} (hne : padic_norm p q ≠ padic_norm p r) :
   padic_norm p (q + r) = max (padic_norm p q) (padic_norm p r) :=
 begin
@@ -309,9 +447,10 @@ begin
     assumption }
 end
 
-protected theorem image {q : ℚ} (hq : q ≠ 0) : ∃ n : ℤ, padic_norm p q = p ^ (-n) :=
-⟨ (padic_val_rat p q), by simp [padic_norm, hq] ⟩
-
+/--
+The p-adic norm is an absolute value: positive-definite and multiplicative, satisfying the triangle
+inequality.
+-/
 instance : is_absolute_value (padic_norm p) :=
 { abv_nonneg := padic_norm.nonneg p,
   abv_eq_zero :=
@@ -324,6 +463,9 @@ instance : is_absolute_value (padic_norm p) :=
   abv_add := padic_norm.triangle_ineq p,
   abv_mul := padic_norm.mul p }
 
+/--
+If `p^n` divides an integer `z`, then the p-adic norm of `z` is at most `p^(-n)`.
+-/
 lemma le_of_dvd {n : ℕ} {z : ℤ} (hd : ↑(p^n) ∣ z) : padic_norm p z ≤ ↑p ^ (-n : ℤ) :=
 begin
   unfold padic_norm, split_ifs with hz hz,

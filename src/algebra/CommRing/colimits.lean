@@ -1,6 +1,8 @@
--- Copyright (c) 2019 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison
+/-
+Copyright (c) 2019 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import algebra.CommRing.basic
 import category_theory.limits.limits
 
@@ -294,13 +296,13 @@ begin
 end
 
 @[simp] lemma cocone_naturality_components (j j' : J) (f : j ⟶ j') (x : F.obj j):
-  (F.map f ≫ (cocone_morphism F j')) x = (cocone_morphism F j) x :=
-by rw cocone_naturality
+  (cocone_morphism F j') (F.map f x) = (cocone_morphism F j) x :=
+by { rw ←cocone_naturality F f, refl }
 
 def colimit_cocone : cocone F :=
 { X := colimit F,
   ι :=
-  { app := cocone_morphism F, } }.
+  { app := cocone_morphism F } }.
 
 @[simp] def desc_fun_lift (s : cocone F) : prequotient F → s.X
 | (of j x)  := (s.ι.app j) x
@@ -428,7 +430,7 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
 -- FIXME why is this infer_instance needed!?
 instance has_colimits_CommRing : @has_colimits CommRing.{v} infer_instance :=
 { has_colimits_of_shape := λ J 𝒥,
-  { has_colimit := λ F, by resetI; exact
+  { has_colimit := λ F, by exactI
     { cocone := colimit_cocone F,
       is_colimit := colimit_is_colimit F } } }
 

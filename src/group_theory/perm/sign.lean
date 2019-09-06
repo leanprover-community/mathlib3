@@ -26,14 +26,14 @@ def of_subtype {p : α → Prop} [decidable_pred p] (f : perm (subtype p)) : per
     by simp; split_ifs at *; simp * at *⟩
 
 instance of_subtype.is_group_hom {p : α → Prop} [decidable_pred p] : is_group_hom (@of_subtype α p _) :=
-⟨λ f g, equiv.ext _ _ $ λ x, begin
+{ map_mul := λ f g, equiv.ext _ _ $ λ x, begin
   rw [of_subtype, of_subtype, of_subtype],
   by_cases h : p x,
   { have h₁ : p (f (g ⟨x, h⟩)), from (f (g ⟨x, h⟩)).2,
     have h₂ : p (g ⟨x, h⟩), from (g ⟨x, h⟩).2,
     simp [h, h₁, h₂] },
   { simp [h] }
-end⟩
+end }
 
 @[simp] lemma of_subtype_one (p : α → Prop) [decidable_pred p] : @of_subtype α p _ 1 = 1 :=
 is_group_hom.map_one of_subtype
@@ -356,7 +356,7 @@ begin
       refl } }
 end
 
-instance sign_aux.is_group_hom {n : ℕ} : is_group_hom (@sign_aux n) := ⟨sign_aux_mul⟩
+instance sign_aux.is_group_hom {n : ℕ} : is_group_hom (@sign_aux n) := { map_mul := sign_aux_mul }
 
 private lemma sign_aux_swap_zero_one {n : ℕ} (hn : 2 ≤ n) :
   sign_aux (swap (⟨0, lt_of_lt_of_le dec_trivial hn⟩ : fin n)
@@ -451,14 +451,14 @@ permutations, `-1` for odd permutations. It is the unique surjective group homom
 def sign [fintype α] (f : perm α) := sign_aux3 f mem_univ
 
 instance sign.is_group_hom [fintype α] : is_group_hom (@sign α _ _) :=
-⟨λ f g, (sign_aux3_mul_and_swap f g _ mem_univ).1⟩
+{ map_mul := λ f g, (sign_aux3_mul_and_swap f g _ mem_univ).1 }
 
 section sign
 
 variable [fintype α]
 
 @[simp] lemma sign_mul (f g : perm α) : sign (f * g) = sign f * sign g :=
-is_group_hom.map_mul sign _ _
+is_mul_hom.map_mul sign _ _
 
 @[simp] lemma sign_one : (sign (1 : perm α)) = 1 :=
 is_group_hom.map_one sign
@@ -707,4 +707,4 @@ lemma finset.sum_univ_perm [fintype α] [add_comm_monoid β] {f : α → β} (σ
   (univ : finset α).sum f = univ.sum (λ z, f (σ z)) :=
 @finset.prod_univ_perm _ (multiplicative β) _ _ f σ
 
-attribute [to_additive finset.sum_univ_perm] finset.prod_univ_perm
+attribute [to_additive] finset.prod_univ_perm

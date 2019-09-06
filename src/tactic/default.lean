@@ -27,3 +27,6 @@ import
   tactic.linarith tactic.omega
   tactic.wlog
   tactic.tfae
+  tactic.apply_fun
+  tactic.localized
+  tactic.apply

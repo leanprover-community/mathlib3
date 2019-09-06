@@ -570,7 +570,7 @@ end
 theorem is_o_one_iff {f : α → β} {l : filter α} :
   is_o f (λ x, (1 : γ)) l ↔ tendsto f l (nhds 0) :=
 begin
-  rw [normed_space.tendsto_nhds_zero, is_o], split,
+  rw [normed_group.tendsto_nhds_zero, is_o], split,
   { intros h e epos,
     filter_upwards [h (e / 2) (half_pos epos)], simp,
     intros x hx,
@@ -625,7 +625,7 @@ begin
 end
 
 theorem is_o_mul_left {f₁ f₂ : α → β} {g₁ g₂ : α → γ} {l : filter α}
-    (h₁ : is_O f₁ g₁ l) (h₂ : is_o f₂ g₂ l):
+    (h₁ : is_O f₁ g₁ l) (h₂ : is_o f₂ g₂ l) :
   is_o (λ x, f₁ x * f₂ x) (λ x, g₁ x * g₂ x) l :=
 begin
   intros c cpos,
@@ -639,12 +639,12 @@ begin
 end
 
 theorem is_o_mul_right {f₁ f₂ : α → β} {g₁ g₂ : α → γ} {l : filter α}
-    (h₁ : is_o f₁ g₁ l) (h₂ : is_O f₂ g₂ l):
+    (h₁ : is_o f₁ g₁ l) (h₂ : is_O f₂ g₂ l) :
   is_o (λ x, f₁ x * f₂ x) (λ x, g₁ x * g₂ x) l :=
 by convert is_o_mul_left h₂ h₁; simp only [mul_comm]
 
 theorem is_o_mul {f₁ f₂ : α → β} {g₁ g₂ : α → γ} {l : filter α}
-    (h₁ : is_o f₁ g₁ l) (h₂ : is_o f₂ g₂ l):
+    (h₁ : is_o f₁ g₁ l) (h₂ : is_o f₂ g₂ l) :
   is_o (λ x, f₁ x * f₂ x) (λ x, g₁ x * g₂ x) l :=
 is_o_mul_left h₁.to_is_O h₂
 
@@ -656,7 +656,7 @@ scalar multiplication is multiplication.
 -/
 
 section
-variables {K : Type*} [normed_field K] [normed_space K β] [normed_group γ]
+variables {K : Type*} [normed_field K] [normed_group β] [normed_space K β] [normed_group γ]
 
 set_option class.instance_max_depth 43
 
@@ -697,7 +697,7 @@ end
 end
 
 section
-variables {K : Type*} [normed_group β] [normed_field K] [normed_space K γ]
+variables {K : Type*} [normed_group β] [normed_field K] [normed_group γ] [normed_space K γ]
 
 set_option class.instance_max_depth 43
 
@@ -720,7 +720,8 @@ end
 end
 
 section
-variables {K : Type*} [normed_field K] [normed_space K β] [normed_space K γ]
+variables {K : Type*} [normed_field K] [normed_group β] [normed_space K β]
+[normed_group γ] [normed_space K γ]
 
 set_option class.instance_max_depth 43
 

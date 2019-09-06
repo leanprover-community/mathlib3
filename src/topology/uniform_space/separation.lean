@@ -7,7 +7,6 @@ Hausdorff properties of uniform spaces. Separation quotient.
 -/
 import topology.uniform_space.basic
 
-
 open filter topological_space lattice set classical
 local attribute [instance, priority 0] prop_decidable
 noncomputable theory
@@ -162,7 +161,7 @@ lemma uniform_continuous_quotient_lift
   (hf : uniform_continuous f) : uniform_continuous (λa, quotient.lift f h a) :=
 uniform_continuous_quotient hf
 
-lemma uniform_continuous_quotient_lift₂ [uniform_space γ]
+lemma uniform_continuous_quotient_lift₂
   {f : α → β → γ} {h : ∀a c b d, (a, b) ∈ separation_rel α → (c, d) ∈ separation_rel β → f a c = f b d}
   (hf : uniform_continuous (λp:α×β, f p.1 p.2)) :
   uniform_continuous (λp:_×_, quotient.lift₂ f h p.1 p.2) :=
@@ -199,7 +198,7 @@ set.ext $ assume ⟨a, b⟩, quotient.induction_on₂ a b $ assume a b,
       have s ∈ (𝓤 $ quotient $ separation_setoid α).comap (λp:(α×α), (⟦p.1⟧, ⟦p.2⟧)),
         from comap_quotient_le_uniformity hs,
       let ⟨t, ht, hts⟩ := this in
-      hts begin dsimp, exact h t ht end,
+      hts begin dsimp [preimage], exact h t ht end,
     show ⟦a⟧ = ⟦b⟧, from quotient.sound this,
 
   assume heq : ⟦a⟧ = ⟦b⟧, assume h hs,
@@ -241,7 +240,7 @@ lift (quotient.mk ∘ f)
 lemma map_mk {f : α → β} (h : uniform_continuous f) (a : α) : map f ⟦a⟧ = ⟦f a⟧ :=
 by rw [map, lift_mk (uniform_continuous_quotient_mk.comp h)]
 
-lemma uniform_continuous_map (f : α → β): uniform_continuous (map f) :=
+lemma uniform_continuous_map (f : α → β) : uniform_continuous (map f) :=
 uniform_continuous_lift (quotient.mk ∘ f)
 
 lemma map_unique {f : α → β} (hf : uniform_continuous f)

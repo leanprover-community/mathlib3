@@ -16,10 +16,13 @@ local attribute [instance] classical.prop_decidable
 
 set_option class.instance_max_depth 70
 
-variables {k : Type*} {E : Type*} {F : Type*} {G : Type*}
-[nondiscrete_normed_field k] [normed_space k E] [normed_space k F] [normed_space k G]
-(c : k) (f g : E →L[k] F) (h : F →L[k] G) (x y z : E)
-include k
+variables {𝕜 : Type*} {E : Type*} {F : Type*} {G : Type*}
+[nondiscrete_normed_field 𝕜]
+[normed_group E] [normed_space 𝕜 E]
+[normed_group F] [normed_space 𝕜 F]
+[normed_group G] [normed_space 𝕜 G]
+(c : 𝕜) (f g : E →L[𝕜] F) (h : F →L[𝕜] G) (x y z : E)
+include 𝕜
 
 open metric continuous_linear_map
 
@@ -29,7 +32,7 @@ lemma exists_pos_bound_of_bound {f : E → F} (M : ℝ) (h : ∀x, ∥f x∥ ≤
   ∥f x∥ ≤ M * ∥x∥ : h x
   ... ≤ max M 1 * ∥x∥ : mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg _) ⟩
 
-lemma linear_map.continuous_of_bound (f : E →ₗ[k] F) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+lemma linear_map.continuous_of_bound (f : E →ₗ[𝕜] F) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   continuous f :=
 begin
   have : ∀ (x y : E), dist (f x) (f y) ≤ C * dist x y := λx y, calc
@@ -40,13 +43,13 @@ begin
   exact continuous_of_lipschitz this
 end
 
-def linear_map.with_bound (f : E →ₗ[k] F) (h : ∃C : ℝ, ∀x, ∥f x∥ ≤ C * ∥x∥) : E →L[k] F :=
+def linear_map.with_bound (f : E →ₗ[𝕜] F) (h : ∃C : ℝ, ∀x, ∥f x∥ ≤ C * ∥x∥) : E →L[𝕜] F :=
 ⟨f, let ⟨C, hC⟩ := h in linear_map.continuous_of_bound f C hC⟩
 
-@[simp, elim_cast] lemma linear_map_with_bound_coe (f : E →ₗ[k] F) (h : ∃C : ℝ, ∀x, ∥f x∥ ≤ C * ∥x∥) :
-  ((f.with_bound h) : E →ₗ[k] F) = f := rfl
+@[simp, elim_cast] lemma linear_map_with_bound_coe (f : E →ₗ[𝕜] F) (h : ∃C : ℝ, ∀x, ∥f x∥ ≤ C * ∥x∥) :
+  ((f.with_bound h) : E →ₗ[𝕜] F) = f := rfl
 
-@[simp] lemma linear_map_with_bound_apply (f : E →ₗ[k] F) (h : ∃C : ℝ, ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
+@[simp] lemma linear_map_with_bound_apply (f : E →ₗ[𝕜] F) (h : ∃C : ℝ, ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
   f.with_bound h x = f x := rfl
 
 namespace continuous_linear_map
@@ -68,7 +71,7 @@ begin
       rw [dist_eq_norm, sub_zero],
       exact lt_of_le_of_lt ha (half_lt_self ε_pos) },
     simpa using this },
-  rcases exists_one_lt_norm k with ⟨c, hc⟩,
+  rcases exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   refine ⟨δ⁻¹ * ∥c∥, mul_pos (inv_pos δ_pos) (lt_trans zero_lt_one hc), (λx, _)⟩,
   by_cases h : x = 0,
   { simp only [h, norm_zero, mul_zero, continuous_linear_map.map_zero], },
@@ -89,11 +92,11 @@ theorem is_O_id (l : filter E) : is_O f (λ x, x) l :=
 let ⟨M, hMp, hM⟩ := f.bound in
 ⟨M, hMp, mem_sets_of_superset univ_mem_sets (λ x _, hM x)⟩
 
-theorem is_O_comp (g : F →L[k] G) (f : E → F) (l : filter E) :
+theorem is_O_comp (g : F →L[𝕜] G) (f : E → F) (l : filter E) :
   is_O (λ x', g (f x')) f l :=
 ((g.is_O_id ⊤).comp _).mono (map_le_iff_le_comap.mp lattice.le_top)
 
-theorem is_O_sub (f : E →L[k] F) (l : filter E) (x : E) :
+theorem is_O_sub (f : E →L[𝕜] F) (l : filter E) (x : E) :
   is_O (λ x', f (x' - x)) (λ x', x' - x) l :=
 is_O_comp f _ l
 
@@ -106,15 +109,15 @@ set_option class.instance_max_depth 100
 
 /-- The operator norm of a continuous linear map is the inf of all its bounds. -/
 def op_norm := Inf { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ }
-instance has_op_norm : has_norm (E →L[k] F) := ⟨op_norm⟩
+instance has_op_norm : has_norm (E →L[𝕜] F) := ⟨op_norm⟩
 
--- So that invocations of real.Inf_le make sense: we show that the set of
+-- So that invocations of real.Inf_le ma𝕜e sense: we show that the set of
 -- bounds is nonempty and bounded below.
-lemma bounds_nonempty {f : E →L[k] F} :
+lemma bounds_nonempty {f : E →L[𝕜] F} :
   ∃ c, c ∈ { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ } :=
 let ⟨M, hMp, hMb⟩ := f.bound in ⟨M, le_of_lt hMp, hMb⟩
 
-lemma bounds_bdd_below {f : E →L[k] F} :
+lemma bounds_bdd_below {f : E →L[𝕜] F} :
   bdd_below { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ } :=
 ⟨0, λ _ ⟨hn, _⟩, hn⟩
 
@@ -164,12 +167,12 @@ iff.intro
     ⟨ge_of_eq rfl, λ _, le_of_eq (by { rw [zero_mul, hf], exact norm_zero })⟩)
     (op_norm_nonneg _))
 
-@[simp] lemma norm_zero : ∥(0 : E →L[k] F)∥ = 0 :=
+@[simp] lemma norm_zero : ∥(0 : E →L[𝕜] F)∥ = 0 :=
 by rw op_norm_zero_iff
 
 /-- The norm of the identity is at most 1. It is in fact 1, except when the space is trivial where
 it is 0. It means that one can not do better than an inequality in general. -/
-lemma norm_id : ∥(id : E →L[k] E)∥ ≤ 1 :=
+lemma norm_id : ∥(id : E →L[𝕜] E)∥ ≤ 1 :=
 op_norm_le_bound _ zero_le_one (λx, by simp)
 
 /-- The operator norm is homogeneous. -/
@@ -193,11 +196,23 @@ le_antisymm
         end)
       (λ heq, by { rw [←heq, zero_mul], exact hn }))))
 
+lemma op_norm_neg : ∥-f∥ = ∥f∥ := calc
+  ∥-f∥ = ∥(-1:𝕜) • f∥ : by rw neg_one_smul
+  ... = ∥(-1:𝕜)∥ * ∥f∥ : by rw op_norm_smul
+  ... = ∥f∥ : by simp
+
 /-- Continuous linear maps themselves form a normed space with respect to
     the operator norm. -/
-instance to_normed_space : normed_space k (E →L[k] F) :=
-normed_space.of_core _ _
-  ⟨op_norm_zero_iff, op_norm_smul, op_norm_triangle⟩
+instance to_normed_group : normed_group (E →L[𝕜] F) :=
+normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_triangle, op_norm_neg⟩
+
+/- The next instance should be found automatically, but it is not.
+TODO: fix me -/
+instance to_normed_group_prod : normed_group (E →L[𝕜] (F × G)) :=
+continuous_linear_map.to_normed_group
+
+instance to_normed_space : normed_space 𝕜 (E →L[𝕜] F) :=
+⟨op_norm_smul⟩
 
 /-- The operator norm is submultiplicative. -/
 lemma op_norm_comp_le : ∥comp h f∥ ≤ ∥h∥ * ∥f∥ :=
@@ -219,7 +234,7 @@ end op_norm
 
 /-- The norm of the tensor product of a scalar linear map and of an element of a normed space
 is the product of the norms. -/
-@[simp] lemma scalar_prod_space_iso_norm {c : E →L[k] k} {f : F} :
+@[simp] lemma scalar_prod_space_iso_norm {c : E →L[𝕜] 𝕜} {f : F} :
   ∥scalar_prod_space_iso c f∥ = ∥c∥ * ∥f∥ :=
 begin
   refine le_antisymm _ _,

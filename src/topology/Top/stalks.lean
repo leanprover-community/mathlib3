@@ -1,7 +1,8 @@
--- Copyright (c) 2019 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison
-
+/-
+Copyright (c) 2019 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import topology.Top.open_nhds
 import topology.Top.presheaf
 import category_theory.limits.limits
@@ -70,7 +71,13 @@ local attribute [tidy] tactic.op_induction'
   ℱ.stalk_pushforward C (𝟙 X) x = (stalk_functor C x).map ((pushforward.id ℱ).hom) :=
 begin
   dsimp [stalk_pushforward, stalk_functor],
-  tidy,
+  ext1,
+  tactic.op_induction',
+  cases j, cases j_val,
+  rw [colim.ι_map_assoc, colim.ι_map, colimit.ι_pre, whisker_left.app, whisker_right.app,
+       pushforward.id_hom_app, eq_to_hom_map, eq_to_hom_refl],
+  dsimp,
+  rw [category_theory.functor.map_id]
 end
 
 @[simp] lemma comp (ℱ : X.presheaf C) (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :

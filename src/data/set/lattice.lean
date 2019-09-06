@@ -109,7 +109,7 @@ theorem Union_subset {s : ι → set β} {t : set β} (h : ∀ i, s i ⊆ t) : (
 -- TODO: should be simpler when sets' order is based on lattices
 @supr_le (set β) _ set.lattice_set _ _ h
 
-theorem Union_subset_iff {α : Sort u} {s : α → set β} {t : set β} : (⋃ i, s i) ⊆ t ↔ (∀ i, s i ⊆ t):=
+theorem Union_subset_iff {α : Sort u} {s : α → set β} {t : set β} : (⋃ i, s i) ⊆ t ↔ (∀ i, s i ⊆ t) :=
 ⟨assume h i, subset.trans (le_supr s _) h, Union_subset⟩
 
 theorem mem_Inter_of_mem {α : Sort u} {x : β} {s : α → set β} : (∀ i, x ∈ s i) → (x ∈ ⋂ i, s i) :=
@@ -145,11 +145,11 @@ by simp [compl_Inter, compl_compl]
 theorem Inter_eq_comp_Union_comp (s : ι → set β) : (⋂ i, s i) = - (⋃ i, -s i) :=
 by simp [compl_compl]
 
-theorem inter_Union_left (s : set β) (t : ι → set β) :
+theorem inter_Union (s : set β) (t : ι → set β) :
   s ∩ (⋃ i, t i) = ⋃ i, s ∩ t i :=
 ext $ by simp
 
-theorem inter_Union_right (s : set β) (t : ι → set β) :
+theorem Union_inter (s : set β) (t : ι → set β) :
   (⋃ i, t i) ∩ s = ⋃ i, t i ∩ s :=
 ext $ by simp
 
@@ -161,38 +161,38 @@ theorem Inter_inter_distrib (s : ι → set β) (t : ι → set β) :
   (⋂ i, s i ∩ t i) = (⋂ i, s i) ∩ (⋂ i, t i) :=
 ext $ by simp [forall_and_distrib]
 
-theorem union_Union_left [inhabited ι] (s : set β) (t : ι → set β) :
+theorem union_Union [inhabited ι] (s : set β) (t : ι → set β) :
   s ∪ (⋃ i, t i) = ⋃ i, s ∪ t i :=
 by rw [Union_union_distrib, Union_const]
 
-theorem union_Union_right [inhabited ι] (s : set β) (t : ι → set β) :
+theorem Union_union [inhabited ι] (s : set β) (t : ι → set β) :
   (⋃ i, t i) ∪ s = ⋃ i, t i ∪ s :=
 by rw [Union_union_distrib, Union_const]
 
-theorem inter_Inter_left [inhabited ι] (s : set β) (t : ι → set β) :
+theorem inter_Inter [inhabited ι] (s : set β) (t : ι → set β) :
   s ∩ (⋂ i, t i) = ⋂ i, s ∩ t i :=
 by rw [Inter_inter_distrib, Inter_const]
 
-theorem inter_Inter_right [inhabited ι] (s : set β) (t : ι → set β) :
+theorem Inter_inter [inhabited ι] (s : set β) (t : ι → set β) :
   (⋂ i, t i) ∩ s = ⋂ i, t i ∩ s :=
 by rw [Inter_inter_distrib, Inter_const]
 
 -- classical
-theorem union_Inter_left (s : set β) (t : ι → set β) :
+theorem union_Inter (s : set β) (t : ι → set β) :
   s ∪ (⋂ i, t i) = ⋂ i, s ∪ t i :=
 ext $ assume x, by simp [classical.forall_or_distrib_left]
 
-theorem diff_Union_right (s : set β) (t : ι → set β) :
+theorem Union_diff (s : set β) (t : ι → set β) :
   (⋃ i, t i) \ s = ⋃ i, t i \ s :=
-inter_Union_right _ _
+Union_inter _ _
 
-theorem diff_Union_left [inhabited ι] (s : set β) (t : ι → set β) :
+theorem diff_Union [inhabited ι] (s : set β) (t : ι → set β) :
   s \ (⋃ i, t i) = ⋂ i, s \ t i :=
-by rw [diff_eq, compl_Union, inter_Inter_left]; refl
+by rw [diff_eq, compl_Union, inter_Inter]; refl
 
-theorem diff_Inter_left (s : set β) (t : ι → set β) :
+theorem diff_Inter (s : set β) (t : ι → set β) :
   s \ (⋂ i, t i) = ⋃ i, s \ t i :=
-by rw [diff_eq, compl_Inter, inter_Union_left]; refl
+by rw [diff_eq, compl_Inter, inter_Union]; refl
 
 /- bounded unions and intersections -/
 
@@ -316,6 +316,18 @@ ext (λ x, by simp)
 -- classical -- complete_boolean_algebra
 theorem compl_bInter (s : set α) (t : α → set β) : -(⋂ i ∈ s, t i) = (⋃ i ∈ s, - t i) :=
 ext (λ x, by simp [classical.not_forall])
+
+theorem inter_bUnion (s : set α) (t : α → set β) (u : set β) :
+  u ∩ (⋃ i ∈ s, t i) = ⋃ i ∈ s, u ∩ t i :=
+begin
+  ext x,
+  simp only [exists_prop, mem_Union, mem_inter_eq],
+  exact ⟨λ ⟨hx, ⟨i, is, xi⟩⟩, ⟨i, is, hx, xi⟩, λ ⟨i, is, hx, xi⟩, ⟨hx, ⟨i, is, xi⟩⟩⟩
+end
+
+theorem bUnion_inter (s : set α) (t : α → set β) (u : set β) :
+  (⋃ i ∈ s, t i) ∩ u = (⋃ i ∈ s, t i ∩ u) :=
+by simp [@inter_comm _ _ u, inter_bUnion]
 
 /-- Intersection of a set of sets. -/
 @[reducible] def sInter (S : set (set α)) : set α := Inf S
@@ -777,6 +789,9 @@ end disjoint
 namespace set
 
 protected theorem disjoint_iff {s t : set α} : disjoint s t ↔ s ∩ t ⊆ ∅ := iff.refl _
+
+lemma not_disjoint_iff {s t : set α} : ¬disjoint s t ↔ ∃x, x ∈ s ∧ x ∈ t :=
+by { rw [set.disjoint_iff, subset_empty_iff], apply ne_empty_iff_exists_mem }
 
 theorem disjoint_diff {a b : set α} : disjoint a (b \ a) :=
 disjoint_iff.2 (inter_diff_self _ _)

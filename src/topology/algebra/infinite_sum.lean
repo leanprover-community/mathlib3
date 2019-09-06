@@ -173,7 +173,7 @@ mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
   hss' this
 
 lemma summable_sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
-  (hf : ∀b, summable (λc, f ⟨b, c⟩)) (ha : summable f) : summable (λb, ∑c, f ⟨b, c⟩):=
+  (hf : ∀b, summable (λc, f ⟨b, c⟩)) (ha : summable f) : summable (λb, ∑c, f ⟨b, c⟩) :=
 summable_spec $ has_sum_sigma (assume b, has_sum_tsum $ hf b) (has_sum_tsum ha)
 
 end has_sum
@@ -302,7 +302,7 @@ calc (∑b, f b) = (finset.singleton b).sum f : tsum_eq_sum $ by simp [hf] {cont
   ... = f b : by simp
 
 lemma tsum_sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
-  (h₁ : ∀b, summable (λc, f ⟨b, c⟩)) (h₂ : summable f) : (∑p, f p) = (∑b c, f ⟨b, c⟩):=
+  (h₁ : ∀b, summable (λc, f ⟨b, c⟩)) (h₂ : summable f) : (∑p, f p) = (∑b c, f ⟨b, c⟩) :=
 (tsum_eq_has_sum $ has_sum_sigma (assume b, has_sum_tsum $ h₁ b) $ has_sum_tsum h₂).symm
 
 @[simp] lemma tsum_ite_eq (b : β) (a : α) : (∑b', if b' = b then a else 0) = a :=
@@ -371,6 +371,38 @@ tsum_eq_has_sum $ has_sum_neg $ has_sum_tsum $ hf
 lemma tsum_sub (hf : summable f) (hg : summable g) : (∑b, f b - g b) = (∑b, f b) - (∑b, g b) :=
 tsum_eq_has_sum $ has_sum_sub (has_sum_tsum hf) (has_sum_tsum hg)
 
+lemma tsum_eq_zero_add {f : ℕ → α} (hf : summable f) : (∑b, f b) = f 0 + (∑b, f (b + 1)) :=
+begin
+  let f₁ : ℕ → α := λ n, nat.rec (f 0) (λ _ _, 0) n,
+  let f₂ : ℕ → α := λ n, nat.rec 0 (λ k _, f (k+1)) n,
+  have : f = λ n, f₁ n + f₂ n, { ext n, symmetry, cases n, apply add_zero, apply zero_add },
+  have hf₁ : summable f₁,
+  { fapply summable_sum_of_ne_finset_zero,
+    { exact finset.singleton 0 },
+    { rintros (_ | n) hn,
+      { exfalso,
+        apply hn,
+        apply finset.mem_singleton_self },
+      { refl } } },
+  have hf₂ : summable f₂,
+  { have : f₂ = λ n, f n - f₁ n, ext, rw [eq_sub_iff_add_eq', this],
+    rw [this], apply summable_sub hf hf₁ },
+  conv_lhs { rw [this] },
+  rw [tsum_add hf₁ hf₂, tsum_eq_single 0],
+  { congr' 1,
+    fapply tsum_eq_tsum_of_ne_zero_bij (λ n _, n + 1),
+    { intros _ _ _ _, exact nat.succ_inj },
+    { rintros (_ | n) h,
+      { contradiction },
+      { exact ⟨n, h, rfl⟩ } },
+    { intros, refl },
+    { apply_instance } },
+  { rintros (_ | n) hn,
+    { contradiction },
+    { refl } },
+  { apply_instance }
+end
+
 end tsum
 
 end topological_group
@@ -412,7 +444,7 @@ variables {f g : β → α} {a a₁ a₂ : α}
 
 lemma has_sum_le (h : ∀b, f b ≤ g b) (hf : has_sum f a₁) (hg : has_sum g a₂) : a₁ ≤ a₂ :=
 le_of_tendsto_of_tendsto at_top_ne_bot hf hg $ univ_mem_sets' $
-  assume s, sum_le_sum' $ assume b _, h b
+  assume s, sum_le_sum $ assume b _, h b
 
 lemma has_sum_le_inj {g : γ → α} (i : β → γ) (hi : injective i) (hs : ∀c∉set.range i, 0 ≤ g c)
   (h : ∀b, f b ≤ g (i b)) (hf : has_sum f a₁) (hg : has_sum g a₂) : a₁ ≤ a₂ :=

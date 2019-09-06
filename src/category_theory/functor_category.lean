@@ -1,7 +1,8 @@
--- Copyright (c) 2017 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
-
+/-
+Copyright (c) 2017 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
+-/
 import category_theory.natural_transformation
 
 namespace category_theory
@@ -10,7 +11,7 @@ universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `categor
 
 open nat_trans category category_theory.functor
 
-variables (C : Sort u₁) [𝒞 : category.{v₁} C] (D : Sort u₂) [𝒟 : category.{v₂} D]
+variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
 /--
@@ -22,12 +23,12 @@ this is another small category at that level.
 However if `C` and `D` are both large categories at the same universe level,
 this is a small category at the next higher level.
 -/
-instance functor.category : category.{(max u₁ v₂ 1)} (C ⥤ D) :=
+instance functor.category : category.{(max (u₁+1) v₂)} (C ⥤ D) :=
 { hom     := λ F G, nat_trans F G,
   id      := λ F, nat_trans.id F,
   comp    := λ _ _ _ α β, vcomp α β }
 
-variables {C D} {E : Sort u₃} [ℰ : category.{v₃} E]
+variables {C D} {E : Type u₃} [ℰ : category.{v₃} E]
 variables {F G H I : C ⥤ D}
 
 namespace nat_trans
@@ -62,7 +63,8 @@ infix ` ◫ `:80 := hcomp
 @[simp] lemma hcomp_app {H I : D ⥤ E} (α : F ⟶ G) (β : H ⟶ I) (X : C) :
   (α ◫ β).app X = (β.app (F.obj X)) ≫ (I.map (α.app X)) := rfl
 
--- Note that we don't yet prove a `hcomp_assoc` lemma here: even stating it is painful, because we need to use associativity of functor composition
+-- Note that we don't yet prove a `hcomp_assoc` lemma here: even stating it is painful, because we
+-- need to use associativity of functor composition
 
 lemma exchange {I J K : D ⥤ E} (α : F ⟶ G) (β : G ⟶ H)
   (γ : I ⟶ J) (δ : J ⟶ K) : (α ≫ β) ◫ (γ ≫ δ) = (α ◫ γ) ≫ (β ◫ δ) :=

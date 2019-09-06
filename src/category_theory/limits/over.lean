@@ -1,7 +1,8 @@
--- Copyright (c) 2018 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Johan Commelin, Reid Barton
-
+/-
+Copyright (c) 2018 Johan Commelin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johan Commelin, Reid Barton
+-/
 import category_theory.comma
 import category_theory.limits.preserves
 
@@ -10,7 +11,7 @@ universes v u -- declare the `v`'s first; see `category_theory.category` for an 
 open category_theory category_theory.limits
 
 variables {J : Type v} [small_category J]
-variables {C : Sort u} [𝒞 : category.{v+1} C]
+variables {C : Type u} [𝒞 : category.{v+1} C]
 include 𝒞
 variable {X : C}
 

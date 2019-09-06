@@ -13,7 +13,8 @@ Uniform structure on topological groups:
 * `add_group_with_zero_nhd`: construct the topological structure from a group with a neighbourhood
   around zero. Then with `topological_add_group.to_uniform_space` one can derive a `uniform_space`.
 -/
-import topology.uniform_space.uniform_embedding topology.uniform_space.separation topology.algebra.group
+import topology.uniform_space.uniform_embedding topology.uniform_space.complete_separated
+import topology.algebra.group
 
 noncomputable theory
 local attribute [instance, priority 0] classical.prop_decidable
@@ -62,6 +63,7 @@ by simp * at *
 lemma uniform_continuous_add' : uniform_continuous (λp:α×α, p.1 + p.2) :=
 uniform_continuous_add uniform_continuous_fst uniform_continuous_snd
 
+@[priority 0]
 instance uniform_add_group.to_topological_add_group : topological_add_group α :=
 { continuous_add := uniform_continuous_add'.continuous,
   continuous_neg := uniform_continuous_neg'.continuous }
@@ -85,12 +87,12 @@ le_antisymm
       filter.map_mono (uniform_continuous_add uniform_continuous_id uniform_continuous_const))
 
 lemma uniform_embedding_translate (a : α) : uniform_embedding (λx:α, x + a) :=
-begin
-  refine ⟨assume x y, eq_of_add_eq_add_right, _⟩,
-  rw [← uniformity_translate a, comap_map] {occs := occurrences.pos [1]},
-  rintros ⟨p₁, p₂⟩ ⟨q₁, q₂⟩,
-  simp [prod.eq_iff_fst_eq_snd_eq] {contextual := tt}
-end
+{ comap_uniformity := begin
+    rw [← uniformity_translate a, comap_map] {occs := occurrences.pos [1]},
+    rintros ⟨p₁, p₂⟩ ⟨q₁, q₂⟩,
+    simp [prod.eq_iff_fst_eq_snd_eq] {contextual := tt}
+  end,
+  inj := assume x y, eq_of_add_eq_add_right }
 
 section
 variables (α)
@@ -236,7 +238,7 @@ variables (f : α × β → γ) [is_Z_bilin f]
 
 instance is_Z_bilin.comp_hom {g : γ → δ} [add_comm_group δ] [is_add_group_hom g] :
   is_Z_bilin (g ∘ f) :=
-by constructor; simp [(∘), is_Z_bilin.add_left f, is_Z_bilin.add_right f, is_add_group_hom.map_add g]
+by constructor; simp [(∘), is_Z_bilin.add_left f, is_Z_bilin.add_right f, is_add_hom.map_add g]
 
 instance is_Z_bilin.comp_swap : is_Z_bilin (f ∘ prod.swap) :=
 ⟨λ a a' b, is_Z_bilin.add_right f b a a',
@@ -312,7 +314,7 @@ variables [topological_space α] [add_comm_group α] [topological_add_group α]
 
 -- β is a dense subgroup of α, inclusion is denoted by e
 variables [topological_space β] [add_comm_group β] [topological_add_group β]
-variables {e : β → α} [is_add_group_hom e] (de : dense_embedding e)
+variables {e : β → α} [is_add_group_hom e] (de : dense_inducing e)
 include de
 
 lemma tendsto_sub_comap_self (x₀ : α) :
@@ -330,20 +332,7 @@ begin
 end
 end
 
-namespace dense_embedding
-open filter
-variables {α : Type*} [topological_space α]
-variables {β : Type*} [topological_space β]
-variables {γ : Type*} [uniform_space γ] [complete_space γ] [separated γ]
-
-lemma continuous_extend_of_cauchy {e : α → β} {f : α → γ}
-  (de : dense_embedding e) (h : ∀ b : β, cauchy (map f (comap e $ nhds b))) :
-  continuous (de.extend f) :=
-continuous_extend de $ λ b, complete_space.complete (h b)
-
-end dense_embedding
-
-namespace dense_embedding
+namespace dense_inducing
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 variables {G : Type*}
 
@@ -354,8 +343,8 @@ variables [topological_space β] [add_comm_group β] [topological_add_group β]
 variables [topological_space γ] [add_comm_group γ] [topological_add_group γ]
 variables [topological_space δ] [add_comm_group δ] [topological_add_group δ]
 variables [uniform_space G] [add_comm_group G] [uniform_add_group G] [separated G] [complete_space G]
-variables {e : β → α} [is_add_group_hom e] (de : dense_embedding e)
-variables {f : δ → γ} [is_add_group_hom f] (df : dense_embedding f)
+variables {e : β → α} [is_add_group_hom e] (de : dense_inducing e)
+variables {f : δ → γ} [is_add_group_hom f] (df : dense_inducing f)
 variables {φ : β × δ → G} (hφ : continuous φ) [bilin : is_Z_bilin φ]
 
 include de df hφ bilin
@@ -385,7 +374,7 @@ private lemma extend_Z_bilin_key (x₀ : α) (y₀ : γ) :
 begin
   let Nx := nhds x₀,
   let Ny := nhds y₀,
-  let dp := dense_embedding.prod de df,
+  let dp := dense_inducing.prod de df,
   let ee := λ u : β × β, (e u.1, e u.2),
   let ff := λ u : δ × δ, (f u.1, f u.2),
 
@@ -445,22 +434,24 @@ begin
 
   exact W4 h₁ h₂ h₃ h₄
 end
+
 omit W'_nhd
 
+open dense_inducing
+
 /-- Bourbaki GT III.6.5 Theorem I:
-ℤ-bilinear continuous maps from dense sub-groups into a complete Hausdorff group extend by continuity.
+ℤ-bilinear continuous maps from dense images into a complete Hausdorff group extend by continuity.
 Note: Bourbaki assumes that α and β are also complete Hausdorff, but this is not necessary. -/
-theorem extend_Z_bilin  : continuous (extend (dense_embedding.prod de df) φ) :=
+theorem extend_Z_bilin  : continuous (extend (de.prod df) φ) :=
 begin
-  let dp := dense_embedding.prod de df,
-  refine dense_embedding.continuous_extend_of_cauchy (dense_embedding.prod de df) _,
+  refine continuous_extend_of_cauchy _ _,
   rintro ⟨x₀, y₀⟩,
   split,
   { apply map_ne_bot,
     apply comap_neq_bot,
 
     intros U h,
-    rcases exists_mem_of_ne_empty (mem_closure_iff_nhds.1 (dp.dense (x₀, y₀)) U h)
+    rcases exists_mem_of_ne_empty (mem_closure_iff_nhds.1 ((de.prod df).dense (x₀, y₀)) U h)
       with ⟨x, x_in, ⟨z, z_x⟩⟩,
     existsi z,
     cc },
@@ -490,8 +481,8 @@ begin
       have := prod_mem_prod U'_nhd V'_nhd,
       tauto },
     { intros p h',
-      simp only [set.mem_preimage_eq, set.prod_mk_mem_set_prod_eq] at h',
+      simp only [set.mem_preimage, set.prod_mk_mem_set_prod_eq] at h',
       rcases p with ⟨⟨x, y⟩, ⟨x', y'⟩⟩,
       apply h ; tauto } }
 end
-end dense_embedding
+end dense_inducing

@@ -162,15 +162,15 @@ notation x ` ⊗ₜ[`:100 R `] ` y := tmul R x y
 
 lemma add_tmul (m₁ m₂ : M) (n : N) : (m₁ + m₂) ⊗ₜ n = m₁ ⊗ₜ n + m₂ ⊗ₜ[R] n :=
 eq.symm $ sub_eq_zero.1 $ eq.symm $ quotient.sound $
-  group.in_closure.basic $ or.inl $ ⟨m₁, m₂, n, rfl⟩
+  add_group.in_closure.basic $ or.inl $ ⟨m₁, m₂, n, rfl⟩
 
 lemma tmul_add (m : M) (n₁ n₂ : N) : m ⊗ₜ (n₁ + n₂) = m ⊗ₜ n₁ + m ⊗ₜ[R] n₂ :=
 eq.symm $ sub_eq_zero.1 $ eq.symm $ quotient.sound $
-  group.in_closure.basic $ or.inr $ or.inl $ ⟨m, n₁, n₂, rfl⟩
+  add_group.in_closure.basic $ or.inr $ or.inl $ ⟨m, n₁, n₂, rfl⟩
 
 lemma smul_tmul (r : R) (m : M) (n : N) : (r • m) ⊗ₜ n = m ⊗ₜ[R] (r • n) :=
 sub_eq_zero.1 $ eq.symm $ quotient.sound $
-  group.in_closure.basic $ or.inr $ or.inr $ ⟨r, m, n, rfl⟩
+  add_group.in_closure.basic $ or.inr $ or.inr $ ⟨r, m, n, rfl⟩
 
 local attribute [instance] quotient_add_group.is_add_group_hom_quotient_lift
 
@@ -196,7 +196,7 @@ by unfold has_scalar.smul; apply_instance
 
 protected theorem smul_add (r : R) (x y : M ⊗[R] N) :
   r • (x + y) = r • x + r • y :=
-is_add_group_hom.map_add _ _ _
+is_add_hom.map_add _ _ _
 
 instance : module R (M ⊗ N) := module.of_core
 { smul := (•),
@@ -206,7 +206,7 @@ instance : module R (M ⊗ N) := module.of_core
       apply quotient_add_group.induction_on' x,
       intro z,
       symmetry,
-      refine @free_abelian_group.lift.unique _ _ _ _ _ ⟨λ p q, _⟩ _ z,
+      refine @free_abelian_group.lift.unique _ _ _ _ _ (is_add_group_hom.mk' $ λ p q, _) _ z,
       { simp [tensor_product.smul_add] },
       rintro ⟨m, n⟩,
       change (r • m) ⊗ₜ n + (s • m) ⊗ₜ n = ((r + s) • m) ⊗ₜ n,
@@ -218,7 +218,7 @@ instance : module R (M ⊗ N) := module.of_core
       intro z,
       symmetry,
       refine @free_abelian_group.lift.unique _ _ _ _ _
-        ⟨λ p q, _⟩ _ z,
+        (is_add_group_hom.mk' $ λ p q, _) _ z,
       { simp [tensor_product.smul_add] },
       rintro ⟨m, n⟩,
       change r • s • (m ⊗ₜ n) = ((r * s) • m) ⊗ₜ n,
@@ -306,7 +306,7 @@ theorem lift.unique {g : (M ⊗[R] N) →ₗ[R] P} (H : ∀ x y, g (x ⊗ₜ y) 
 linear_map.ext $ λ z, begin
   apply quotient_add_group.induction_on' z,
   intro z,
-  refine @free_abelian_group.lift.unique _ _ _ _ _ ⟨λ p q, _⟩ _ z,
+  refine @free_abelian_group.lift.unique _ _ _ _ _ (is_add_group_hom.mk' $ λ p q, _) _ z,
   { simp [g.2] },
   exact λ ⟨m, n⟩, H m n
 end
@@ -410,10 +410,10 @@ begin
     (lift $ direct_sum.to_module R _ _ $ λ i₁, flip $ direct_sum.to_module R _ _ $ λ i₂,
       flip $ curry $ direct_sum.lof R (ι₁ × ι₂) (λ i, β₁ i.1 ⊗[R] β₂ i.2) (i₁, i₂))
     (direct_sum.to_module R _ _ $ λ i, map (direct_sum.lof R _ _ _) (direct_sum.lof R _ _ _))
-    (linear_map.ext $ direct_sum.to_module.ext $ λ i, mk_compr₂_inj $
+    (linear_map.ext $ direct_sum.to_module.ext _ $ λ i, mk_compr₂_inj $
       linear_map.ext $ λ x₁, linear_map.ext $ λ x₂, _)
-    (mk_compr₂_inj $ linear_map.ext $ direct_sum.to_module.ext $ λ i₁, linear_map.ext $ λ x₁,
-      linear_map.ext $ direct_sum.to_module.ext $ λ i₂, linear_map.ext $ λ x₂, _);
+    (mk_compr₂_inj $ linear_map.ext $ direct_sum.to_module.ext _ $ λ i₁, linear_map.ext $ λ x₁,
+      linear_map.ext $ direct_sum.to_module.ext _ $ λ i₂, linear_map.ext $ λ x₂, _);
   repeat { rw compr₂_apply <|> rw comp_apply <|> rw id_apply <|> rw mk_apply <|>
     rw direct_sum.to_module_lof <|> rw map_tmul <|> rw lift.tmul <|> rw flip_apply <|>
     rw curry_apply },

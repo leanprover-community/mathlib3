@@ -132,6 +132,10 @@ end
   f a ∈ map f l ↔ a ∈ l :=
 ⟨λ m, let ⟨a', m', e⟩ := exists_of_mem_map m in H e ▸ m', mem_map_of_mem _⟩
 
+@[simp] lemma map_eq_nil {f : α → β} {l : list α} : list.map f l = [] ↔ l = [] :=
+⟨by cases l; simp only [forall_prop_of_true, map, forall_prop_of_false, not_false_iff],
+  λ h, h.symm ▸ rfl⟩
+
 @[simp] theorem mem_join {a : α} : ∀ {L : list (list α)}, a ∈ join L ↔ ∃ l, l ∈ L ∧ a ∈ l
 | []       := ⟨false.elim, λ⟨_, h, _⟩, false.elim h⟩
 | (c :: L) := by simp only [join, mem_append, @mem_join L, mem_cons_iff, or_and_distrib_right, exists_or_distrib, exists_eq_left]
@@ -972,6 +976,25 @@ theorem nth_update_nth_ne (a : α) {m n} (l : list α) (h : m ≠ n) :
   nth (update_nth l m a) n = nth l n :=
 by simp only [update_nth_eq_modify_nth, nth_modify_nth_ne _ _ h]
 
+@[simp] lemma nth_le_update_nth_eq (l : list α) (i : ℕ) (a : α)
+  (h : i < (l.update_nth i a).length) : (l.update_nth i a).nth_le i h = a :=
+by rw [← option.some_inj, ← nth_le_nth, nth_update_nth_eq, nth_le_nth]; simp * at *
+
+@[simp] lemma nth_le_update_nth_of_ne {l : list α} {i j : ℕ} (h : i ≠ j) (a : α)
+  (hj : j < (l.update_nth i a).length) :
+  (l.update_nth i a).nth_le j hj = l.nth_le j (by simpa using hj) :=
+by rw [← option.some_inj, ← list.nth_le_nth, list.nth_update_nth_ne _ _ h, list.nth_le_nth]
+
+lemma mem_or_eq_of_mem_update_nth : ∀ {l : list α} {n : ℕ} {a b : α}
+  (h : a ∈ l.update_nth n b), a ∈ l ∨ a = b
+| []     n     a b h := false.elim h
+| (c::l) 0     a b h := ((mem_cons_iff _ _ _).1 h).elim
+  or.inr (or.inl ∘ mem_cons_of_mem _)
+| (c::l) (n+1) a b h := ((mem_cons_iff _ _ _).1 h).elim
+  (λ h, h ▸ or.inl (mem_cons_self _ _))
+  (λ h, (mem_or_eq_of_mem_update_nth h).elim
+    (or.inl ∘ mem_cons_of_mem _) or.inr)
+
 section insert_nth
 variable {a : α}
 
@@ -1011,6 +1034,16 @@ lemma insert_nth_comm (a b : α) :
 | (i + 1) (j+1) (c::l) :=
   assume h₀ h₁,
   by simp [insert_nth]; exact insert_nth_comm i j l (nat.le_of_succ_le_succ h₀) (nat.le_of_succ_le_succ h₁)
+
+lemma mem_insert_nth {a b : α} : ∀ {n : ℕ} {l : list α} (hi : n ≤ l.length),
+  a ∈ l.insert_nth n b ↔ a = b ∨ a ∈ l
+| 0     as       h := iff.rfl
+| (n+1) []       h := (nat.not_succ_le_zero _ h).elim
+| (n+1) (a'::as) h := begin
+  dsimp [list.insert_nth],
+  erw [list.mem_cons_iff, mem_insert_nth (nat.le_of_succ_le_succ h), list.mem_cons_iff,
+    ← or.assoc, or_comm (a = a'), or.assoc]
+end
 
 end insert_nth
 
@@ -1255,7 +1288,36 @@ section foldl_eq_foldr
   | a nil      := rfl
   | a (b :: l) :=
     by simp only [foldr_cons, foldl_eq_of_comm_of_assoc hcomm hassoc]; rw (foldl_eq_foldr a l)
+
 end foldl_eq_foldr
+
+section foldl_eq_foldlr'
+
+  variables {f : α → β → α}
+  variables hf : ∀ a b c, f (f a b) c = f (f a c) b
+  include hf
+
+  theorem foldl_eq_of_comm' : ∀ a b l, foldl f a (b::l) = f (foldl f a l) b
+  | a b [] := rfl
+  | a b (c :: l) := by rw [foldl,foldl,foldl,← foldl_eq_of_comm',foldl,hf]
+
+  theorem foldl_eq_foldr' : ∀ a l, foldl f a l = foldr (flip f) a l
+  | a [] := rfl
+  | a (b :: l) := by rw [foldl_eq_of_comm' hf,foldr,foldl_eq_foldr']; refl
+
+end foldl_eq_foldlr'
+
+section foldl_eq_foldlr'
+
+  variables {f : α → β → β}
+  variables hf : ∀ a b c, f a (f b c) = f b (f a c)
+  include hf
+
+  theorem foldr_eq_of_comm' : ∀ a b l, foldr f a (b::l) = foldr f (f b a) l
+  | a b [] := rfl
+  | a b (c :: l) := by rw [foldr,foldr,foldr,hf,← foldr_eq_of_comm']; refl
+
+end foldl_eq_foldlr'
 
 section
 variables {op : α → α → α} [ha : is_associative α op] [hc : is_commutative α op]
@@ -1312,32 +1374,31 @@ end mfoldl_mfoldr
 
 /- sum -/
 
-attribute [to_additive list.sum] list.prod
-attribute [to_additive list.sum.equations._eqn_1] list.prod.equations._eqn_1
+attribute [to_additive] list.prod
 
 section monoid
 variables [monoid α] {l l₁ l₂ : list α} {a : α}
 
-@[simp, to_additive list.sum_nil]
+@[simp, to_additive]
 theorem prod_nil : ([] : list α).prod = 1 := rfl
 
-@[simp, to_additive list.sum_cons]
+@[simp, to_additive]
 theorem prod_cons : (a::l).prod = a * l.prod :=
 calc (a::l).prod = foldl (*) (a * 1) l : by simp only [list.prod, foldl_cons, one_mul, mul_one]
   ... = _ : foldl_assoc
 
-@[simp, to_additive list.sum_append]
+@[simp, to_additive]
 theorem prod_append : (l₁ ++ l₂).prod = l₁.prod * l₂.prod :=
 calc (l₁ ++ l₂).prod = foldl (*) (foldl (*) 1 l₁ * 1) l₂ : by simp [list.prod]
   ... = l₁.prod * l₂.prod : foldl_assoc
 
-@[simp, to_additive list.sum_join]
+@[simp, to_additive]
 theorem prod_join {l : list (list α)} : l.join.prod = (l.map list.prod).prod :=
 by induction l; [refl, simp only [*, list.join, map, prod_append, prod_cons]]
 
 end monoid
 
-@[simp, to_additive list.sum_erase]
+@[simp, to_additive]
 theorem prod_erase [decidable_eq α] [comm_monoid α] {a} :
   Π {l : list α}, a ∈ l → a * (l.erase a).prod = l.prod
 | (b::l) h :=
@@ -1834,6 +1895,12 @@ by rw [← filter_map_eq_map, filter_filter_map, filter_map_filter]; refl
 | [] := rfl
 | (a :: l) := by by_cases hp : p a; by_cases hq : q a; simp only [hp, hq, filter, if_true, if_false,
     true_and, false_and, filter_filter l, eq_self_iff_true]
+
+@[simp] lemma filter_true {h : decidable_pred (λ a : α, true)} (l : list α) : @filter α (λ _, true) h l = l :=
+by convert filter_eq_self.2 (λ _ _, trivial)
+
+@[simp] lemma filter_false {h : decidable_pred (λ a : α, false)} (l : list α) : @filter α (λ _, false) h l = [] :=
+by convert filter_eq_nil.2 (λ _ _, id)
 
 @[simp] theorem span_eq_take_drop (p : α → Prop) [decidable_pred p] : ∀ (l : list α), span p l = (take_while p l, drop_while p l)
 | []     := rfl
@@ -2577,7 +2644,7 @@ lemma rel_filter_map {f : α → option γ} {q : β → option δ} :
   | _, _, option.rel.some h := forall₂.cons h (rel_filter_map @hfg h₂)
   end
 
-@[to_additive list.rel_sum]
+@[to_additive]
 lemma rel_prod [monoid α] [monoid β]
   (h : r 1 1) (hf : (r ⇒ r ⇒ r) (*) (*)) : (forall₂ r ⇒ r) prod prod :=
 assume a b, rel_foldl (assume a b, hf) h
@@ -3054,6 +3121,16 @@ by simp only [enum, enum_from_nth, zero_add]; intros; refl
 @[simp] theorem enum_map_snd : ∀ (l : list α),
   map prod.snd (enum l) = l := enum_from_map_snd _
 
+theorem mem_enum_from {x : α} {i : ℕ} : Π {j : ℕ} (xs : list α), (i, x) ∈ xs.enum_from j → j ≤ i ∧ i < j + xs.length ∧ x ∈ xs
+| j [] := by simp [enum_from]
+| j (y :: ys) := by { simp [enum_from,mem_enum_from ys],
+                      rintro (h|h),
+                      { refine ⟨le_of_eq h.1.symm,h.1 ▸ _,or.inl h.2⟩,
+                        apply lt_of_lt_of_le (nat.lt_add_of_pos_right zero_lt_one),
+                        apply nat.add_le_add_left, apply nat.le_add_right },
+                      { replace h := mem_enum_from _ h,
+                        simp at h, revert h, apply and_implies _ (and_implies id or.inr),
+                        intro h, transitivity j+1, apply nat.le_add_right, exact h } }
 
 /- product -/
 
@@ -3623,6 +3700,19 @@ variable [decidable_rel R]
 @[simp] theorem pw_filter_cons_of_neg {a : α} {l : list α} (h : ¬ ∀ b ∈ pw_filter R l, R a b) :
   pw_filter R (a::l) = pw_filter R l := if_neg h
 
+theorem pw_filter_map (f : β → α) : Π (l : list β), pw_filter R (map f l) = map f (pw_filter (λ x y, R (f x) (f y)) l)
+| [] := rfl
+| (x :: xs) :=
+  if h : ∀ b ∈ pw_filter R (map f xs), R (f x) b
+    then have h' : ∀ (b : β), b ∈ pw_filter (λ (x y : β), R (f x) (f y)) xs → R (f x) (f b),
+           from λ b hb, h _ (by rw [pw_filter_map]; apply mem_map_of_mem _ hb),
+         by rw [map,pw_filter_cons_of_pos h,pw_filter_cons_of_pos h',pw_filter_map,map]
+    else have h' : ¬∀ (b : β), b ∈ pw_filter (λ (x y : β), R (f x) (f y)) xs → R (f x) (f b),
+           from λ hh, h $ λ a ha,
+           by { rw [pw_filter_map,mem_map] at ha, rcases ha with ⟨b,hb₀,hb₁⟩,
+                subst a, exact hh _ hb₀, },
+         by rw [map,pw_filter_cons_of_neg h,pw_filter_cons_of_neg h',pw_filter_map]
+
 theorem pw_filter_sublist : ∀ (l : list α), pw_filter R l <+ l
 | []     := nil_sublist _
 | (x::l) := begin
@@ -3930,6 +4020,10 @@ end
 theorem nodup_erase_of_nodup [decidable_eq α] (a : α) {l} : nodup l → nodup (l.erase a) :=
 nodup_of_sublist (erase_sublist _ _)
 
+theorem nodup_diff [decidable_eq α] : ∀ {l₁ l₂ : list α} (h : l₁.nodup), (l₁.diff l₂).nodup
+| l₁ []      h := h
+| l₁ (a::l₂) h := by rw diff_cons; exact nodup_diff (nodup_erase_of_nodup _ h)
+
 theorem mem_erase_iff_of_nodup [decidable_eq α] {a b : α} {l} (d : nodup l) :
   a ∈ l.erase b ↔ a ≠ b ∧ a ∈ l :=
 by rw nodup_erase_eq_filter b d; simp only [mem_filter, and_comm]
@@ -4002,6 +4096,31 @@ by rw [sublists'_eq_sublists, nodup_map_iff reverse_injective,
 lemma nodup_sublists_len {α : Type*} (n) {l : list α}
   (nd : nodup l) : (sublists_len n l).nodup :=
 nodup_of_sublist (sublists_len_sublist_sublists' _ _) (nodup_sublists'.2 nd)
+
+lemma diff_eq_filter_of_nodup [decidable_eq α] :
+  ∀ {l₁ l₂ : list α} (hl₁ : l₁.nodup), l₁.diff l₂ = l₁.filter (∉ l₂)
+| l₁ []      hl₁ := by simp
+| l₁ (a::l₂) hl₁ :=
+begin
+  rw [diff_cons, diff_eq_filter_of_nodup (nodup_erase_of_nodup _ hl₁),
+    nodup_erase_eq_filter _ hl₁, filter_filter],
+  simp only [mem_cons_iff, not_or_distrib, and.comm],
+  congr
+end
+
+lemma mem_diff_iff_of_nodup [decidable_eq α] {l₁ l₂ : list α} (hl₁ : l₁.nodup) {a : α} :
+  a ∈ l₁.diff l₂ ↔ a ∈ l₁ ∧ a ∉ l₂ :=
+by rw [diff_eq_filter_of_nodup hl₁, mem_filter]
+
+lemma nodup_update_nth : ∀ {l : list α} {n : ℕ} {a : α} (hl : l.nodup) (ha : a ∉ l),
+  (l.update_nth n a).nodup
+| []     n     a hl ha := nodup_nil
+| (b::l) 0     a hl ha := nodup_cons.2 ⟨mt (mem_cons_of_mem _) ha, (nodup_cons.1 hl).2⟩
+| (b::l) (n+1) a hl ha := nodup_cons.2
+  ⟨λ h, (mem_or_eq_of_mem_update_nth h).elim
+      (nodup_cons.1 hl).1
+      (λ hba, ha (hba ▸ mem_cons_self _ _)),
+    nodup_update_nth (nodup_cons.1 hl).2 (mt (mem_cons_of_mem _) ha)⟩
 
 end nodup
 
@@ -4160,7 +4279,7 @@ mt mem_range.1 $ lt_irrefl _
 theorem nth_range {m n : ℕ} (h : m < n) : nth (range n) m = some m :=
 by simp only [range_eq_range', nth_range' _ h, zero_add]
 
-theorem range_concat (n : ℕ) : range (n + 1) = range n ++ [n] :=
+theorem range_concat (n : ℕ) : range (succ n) = range n ++ [n] :=
 by simp only [range_eq_range', range'_concat, zero_add]
 
 theorem iota_eq_reverse_range' : ∀ n : ℕ, iota n = reverse (range' 1 n)
@@ -4188,6 +4307,24 @@ theorem reverse_range' : ∀ s n : ℕ,
     reverse_singleton, map_cons, nat.sub_zero, cons_append,
     nil_append, eq_self_iff_true, true_and, map_map]
   using reverse_range' s n
+
+def fin_range (n : ℕ) : list (fin n) :=
+(range n).pmap fin.mk (λ _, list.mem_range.1)
+
+@[simp] lemma mem_fin_range {n : ℕ} (a : fin n) : a ∈ fin_range n :=
+mem_pmap.2 ⟨a.1, mem_range.2 a.2, fin.eta _ _⟩
+
+lemma nodup_fin_range (n : ℕ) : (fin_range n).nodup :=
+nodup_pmap (λ _ _ _ _, fin.veq_of_eq) (nodup_range _)
+
+@[simp] lemma length_fin_range (n : ℕ) : (fin_range n).length = n :=
+by rw [fin_range, length_pmap, length_range]
+
+@[to_additive]
+theorem prod_range_succ {α : Type u} [monoid α] (f : ℕ → α) (n : ℕ) :
+  ((range n.succ).map f).prod = ((range n).map f).prod * f n :=
+by rw [range_concat, map_append, map_singleton,
+  prod_append, prod_cons, prod_nil, mul_one]
 
 /--
 `Ico n m` is the list of natural numbers `n ≤ x < m`.
@@ -4236,7 +4373,7 @@ by simp [Ico, nat.sub_eq_zero_of_le h]
 theorem map_add (n m k : ℕ) : (Ico n m).map ((+) k) = Ico (n + k) (m + k) :=
 by rw [Ico, Ico, map_add_range', nat.add_sub_add_right, add_comm n k]
 
-theorem map_sub (n m k : ℕ) (h₁ : k ≤ n): (Ico n m).map (λ x, x - k) = Ico (n - k) (m - k) :=
+theorem map_sub (n m k : ℕ) (h₁ : k ≤ n) : (Ico n m).map (λ x, x - k) = Ico (n - k) (m - k) :=
 begin
   by_cases h₂ : n < m,
   { rw [Ico, Ico],
@@ -4351,9 +4488,9 @@ end Ico
   map prod.fst (enum l) = range l.length :=
 by simp only [enum, enum_from_map_fst, range_eq_range']
 
-theorem last'_mem {α} : ∀ a l, @last' α a l ∈ a :: l
+theorem ilast'_mem {α} : ∀ a l, @ilast' α a l ∈ a :: l
 | a []     := or.inl rfl
-| a (b::l) := or.inr (last'_mem b l)
+| a (b::l) := or.inr (ilast'_mem b l)
 
 @[simp] lemma nth_le_attach {α} (L : list α) (i) (H : i < L.attach.length) :
   (L.attach.nth_le i H).1 = L.nth_le i (length_attach L ▸ H) :=
@@ -4380,7 +4517,7 @@ section tfae
 /- tfae: The Following (propositions) Are Equivalent -/
 
 theorem tfae_nil : tfae [] := forall_mem_nil _
-theorem tfae_singleton (p) : tfae [p] := by simp [tfae]
+theorem tfae_singleton (p) : tfae [p] := by simp [tfae, -eq_iff_iff]
 
 theorem tfae_cons_of_mem {a b} {l : list Prop} (h : b ∈ l) :
   tfae (a::l) ↔ (a ↔ b) ∧ tfae l :=
@@ -4400,13 +4537,13 @@ theorem tfae_of_forall (b : Prop) (l : list Prop) (h : ∀ a ∈ l, a ↔ b) : t
 λ a₁ h₁ a₂ h₂, (h _ h₁).trans (h _ h₂).symm
 
 theorem tfae_of_cycle {a b} {l : list Prop} :
-  list.chain (→) a (b::l) → (last' b l → a) → tfae (a::b::l) :=
+  list.chain (→) a (b::l) → (ilast' b l → a) → tfae (a::b::l) :=
 begin
   induction l with c l IH generalizing a b; simp [tfae_cons_cons, tfae_singleton] at *,
   { intros a _ b, exact iff.intro a b },
   intros ab bc ch la,
   have := IH bc ch (ab ∘ la),
-  exact ⟨⟨ab, la ∘ (this.2 c (or.inl rfl) _ (last'_mem _ _)).1 ∘ bc⟩, this⟩
+  exact ⟨⟨ab, la ∘ (this.2 c (or.inl rfl) _ (ilast'_mem _ _)).1 ∘ bc⟩, this⟩
 end
 
 theorem tfae.out {l} (h : tfae l) (n₁ n₂)
@@ -4819,6 +4956,41 @@ begin
 end
 
 end func
+
+namespace nat
+
+/-- The antidiagonal of a natural number `n` is the list of pairs `(i,j)` such that `i+j = n`. -/
+def antidiagonal (n : ℕ) : list (ℕ × ℕ) :=
+(range (n+1)).map (λ i, (i, n - i))
+
+/-- A pair (i,j) is contained in the antidiagonal of `n` if and only if `i+j=n`. -/
+@[simp] lemma mem_antidiagonal {n : ℕ} {x : ℕ × ℕ} :
+  x ∈ antidiagonal n ↔ x.1 + x.2 = n :=
+begin
+  rw [antidiagonal, mem_map], split,
+  { rintros ⟨i, hi, rfl⟩, rw [mem_range, lt_succ_iff] at hi, exact add_sub_of_le hi },
+  { rintro rfl, refine ⟨x.fst, _, _⟩,
+    { rw [mem_range, add_assoc, lt_add_iff_pos_right], exact zero_lt_succ _ },
+    { exact prod.ext rfl (nat.add_sub_cancel_left _ _) } }
+end
+
+/-- The length of the antidiagonal of `n` is `n+1`. -/
+@[simp] lemma length_antidiagonal (n : ℕ) : (antidiagonal n).length = n+1 :=
+by rw [antidiagonal, length_map, length_range]
+
+/-- The antidiagonal of `0` is the list `[(0,0)]` -/
+@[simp] lemma antidiagonal_zero : antidiagonal 0 = [(0, 0)] :=
+ext_le (length_antidiagonal 0) $ λ n h₁ h₂,
+begin
+  rw [length_antidiagonal, lt_succ_iff, le_zero_iff] at h₁,
+  subst n, simp [antidiagonal]
+end
+
+/-- The antidiagonal of `n` does not contain duplicate entries. -/
+lemma nodup_antidiagonal (n : ℕ) : nodup (antidiagonal n) :=
+nodup_map (@injective_of_left_inverse ℕ (ℕ × ℕ) prod.fst (λ i, (i, n-i)) $ λ i, rfl) (nodup_range _)
+
+end nat
 
 end list
 

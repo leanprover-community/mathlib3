@@ -1,7 +1,8 @@
--- Copyright (c) 2017 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
-
+/-
+Copyright (c) 2017 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
+-/
 import category_theory.functor_category
 import category_theory.isomorphism
 
@@ -13,7 +14,7 @@ namespace category_theory
 open nat_trans
 
 /-- The application of a natural isomorphism to an object. We put this definition in a different namespace, so that we can use α.app -/
-@[simp, reducible] def iso.app {C : Sort u₁} [category.{v₁} C] {D : Sort u₂} [category.{v₂} D]
+@[simp, reducible] def iso.app {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
   {F G : C ⥤ D} (α : F ≅ G) (X : C) : F.obj X ≅ G.obj X :=
 { hom := α.hom.app X,
   inv := α.inv.app X,
@@ -25,8 +26,8 @@ namespace nat_iso
 
 open category_theory.category category_theory.functor
 
-variables {C : Sort u₁} [𝒞 : category.{v₁} C] {D : Sort u₂} [𝒟 : category.{v₂} D]
-  {E : Sort u₃} [ℰ : category.{v₃} E]
+variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
+  {E : Type u₃} [ℰ : category.{v₃} E]
 include 𝒞 𝒟
 
 @[simp] lemma trans_app {F G H : C ⥤ D} (α : F ≅ G) (β : G ≅ H) (X : C) :
@@ -82,6 +83,12 @@ def is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso 
 instance is_iso_of_is_iso_app' (α : F ⟶ G) [H : ∀ X : C, is_iso (nat_trans.app α X)] : is_iso α :=
 @nat_iso.is_iso_of_is_iso_app _ _ _ _ _ _ α H
 
+-- TODO can we make this an instance?
+def is_iso_app_of_is_iso (α : F ⟶ G) [is_iso α] (X) : is_iso (α.app X) :=
+{ inv := (inv α).app X,
+  hom_inv_id' := congr_fun (congr_arg nat_trans.app (is_iso.hom_inv_id α)) X,
+  inv_hom_id' := congr_fun (congr_arg nat_trans.app (is_iso.inv_hom_id α)) X }
+
 def of_components (app : ∀ X : C, (F.obj X) ≅ (G.obj X))
   (naturality : ∀ {X Y : C} (f : X ⟶ Y), (F.map f) ≫ ((app Y).hom) = ((app X).hom) ≫ (G.map f)) :
   F ≅ G :=
@@ -114,11 +121,11 @@ namespace functor
 variables {C : Type u₁} [𝒞 : category.{v₁} C]
 include 𝒞
 
-def ulift_down_up : ulift_down.{v₁} C ⋙ ulift_up C ≅ functor.id (ulift.{u₂} C) :=
+def ulift_down_up : ulift_down.{v₁} C ⋙ ulift_up C ≅ 𝟭 (ulift.{u₂} C) :=
 { hom := { app := λ X, @category_struct.id (ulift.{u₂} C) _ X },
   inv := { app := λ X, @category_struct.id (ulift.{u₂} C) _ X } }
 
-def ulift_up_down : ulift_up.{v₁} C ⋙ ulift_down C ≅ functor.id C :=
+def ulift_up_down : ulift_up.{v₁} C ⋙ ulift_down C ≅ 𝟭 C :=
 { hom := { app := λ X, 𝟙 X },
   inv := { app := λ X, 𝟙 X } }
 

@@ -1,7 +1,8 @@
--- Copyright (c) 2017 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Patrick Massot, Scott Morrison, Mario Carneiro
-
+/-
+Copyright (c) 2017 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Patrick Massot, Scott Morrison, Mario Carneiro
+-/
 import category_theory.concrete_category
 import topology.opens
 
@@ -24,11 +25,11 @@ def of (X : Type u) [topological_space X] : Top := ⟨X⟩
 abbreviation forget : Top.{u} ⥤ Type u := forget
 
 def discrete : Type u ⥤ Top.{u} :=
-{ obj := λ X, ⟨X, ⊤⟩,
-  map := λ X Y f, ⟨f, continuous_top⟩ }
-
-def trivial : Type u ⥤ Top.{u} :=
 { obj := λ X, ⟨X, ⊥⟩,
   map := λ X Y f, ⟨f, continuous_bot⟩ }
+
+def trivial : Type u ⥤ Top.{u} :=
+{ obj := λ X, ⟨X, ⊤⟩,
+  map := λ X Y f, ⟨f, continuous_top⟩ }
 
 end Top

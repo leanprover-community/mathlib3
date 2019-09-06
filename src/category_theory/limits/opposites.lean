@@ -1,7 +1,8 @@
--- Copyright (c) 2019 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison, Floris van Doorn
-
+/-
+Copyright (c) 2019 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison, Floris van Doorn
+-/
 import category_theory.limits.limits category_theory.discrete_category
 
 universes v u
@@ -12,7 +13,7 @@ open opposite
 
 namespace category_theory.limits
 
-variables {C : Sort u} [𝒞 : category.{v+1} C]
+variables {C : Type u} [𝒞 : category.{v+1} C]
 include 𝒞
 variables {J : Type v} [small_category J]
 variable (F : J ⥤ Cᵒᵖ)
@@ -77,14 +78,14 @@ instance has_coproducts_opposite [has_limits_of_shape (discrete X) C] :
   has_colimits_of_shape (discrete X) Cᵒᵖ :=
 begin
   haveI : has_limits_of_shape (discrete X)ᵒᵖ C :=
-    has_limits_of_shape_of_equivalence(discrete.opposite X).symm, apply_instance
+    has_limits_of_shape_of_equivalence (discrete.opposite X).symm, apply_instance
 end
 
 instance has_products_opposite [has_colimits_of_shape (discrete X) C] :
   has_limits_of_shape (discrete X) Cᵒᵖ :=
 begin
   haveI : has_colimits_of_shape (discrete X)ᵒᵖ C :=
-    has_colimits_of_shape_of_equivalence(discrete.opposite X).symm, apply_instance
+    has_colimits_of_shape_of_equivalence (discrete.opposite X).symm, apply_instance
 end
 
 

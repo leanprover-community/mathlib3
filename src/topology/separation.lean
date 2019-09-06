@@ -201,7 +201,7 @@ instance t2_space_discrete [topological_space α] [discrete_topology α] : t2_sp
 
 private lemma separated_by_f
   [tα : topological_space α] [tβ : topological_space β] [t2_space β]
-  (f : α → β) (hf : tβ.induced f ≤ tα) {x y : α} (h : f x ≠ f y) :
+  (f : α → β) (hf : tα ≤ tβ.induced f) {x y : α} (h : f x ≠ f y) :
   ∃u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅ :=
 let ⟨u, v, uo, vo, xu, yv, uv⟩ := t2_separation h in
 ⟨f ⁻¹' u, f ⁻¹' v, hf _ ⟨u, uo, rfl⟩, hf _ ⟨v, vo, rfl⟩, xu, yv,
@@ -215,14 +215,14 @@ instance [t₁ : topological_space α] [t2_space α] [t₂ : topological_space �
   t2_space (α × β) :=
 ⟨assume ⟨x₁,x₂⟩ ⟨y₁,y₂⟩ h,
   or.elim (not_and_distrib.mp (mt prod.ext_iff.mpr h))
-    (λ h₁, separated_by_f prod.fst le_sup_left h₁)
-    (λ h₂, separated_by_f prod.snd le_sup_right h₂)⟩
+    (λ h₁, separated_by_f prod.fst inf_le_left h₁)
+    (λ h₂, separated_by_f prod.snd inf_le_right h₂)⟩
 
 instance Pi.t2_space {β : α → Type v} [t₂ : Πa, topological_space (β a)] [Πa, t2_space (β a)] :
   t2_space (Πa, β a) :=
 ⟨assume x y h,
   let ⟨i, hi⟩ := not_forall.mp (mt funext h) in
-  separated_by_f (λz, z i) (le_supr _ i) hi⟩
+  separated_by_f (λz, z i) (infi_le _ i) hi⟩
 
 end separation
 

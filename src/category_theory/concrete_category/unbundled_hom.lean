@@ -1,9 +1,21 @@
 import category_theory.concrete_category.bundled_hom
 
+/-!
+# Category instances for structures that use unbundled homs
+
+This file provides a basic infrastructure to define concrete
+categories using unbundled homs (see `class unbundled_hom`), and
+define forgetful functors between them (see
+`unbundled_hom.mk_has_forget`).
+-/
+
 universes v u
 
 namespace category_theory
 
+/-- A class for unbundled homs used to define a category. `hom` must
+take two types `α`, `β` and instances of the corresponding structures,
+and return a predicate on `α → β`. -/
 class unbundled_hom {c : Type u → Type v} (hom : Π {α β}, c α → c β → (α → β) → Prop) :=
 (hom_id : ∀ {α} (ia : c α), hom ia ia id)
 (hom_comp : ∀ {α β γ} {Iα : c α} {Iβ : c β} {Iγ : c γ} {g : β → γ} {f : α → β}
@@ -31,6 +43,7 @@ include 𝒞'
 variables (obj : ∀ ⦃α⦄, c α → c' α)
   (map : ∀ ⦃α β Iα Iβ f⦄, @hom α β Iα Iβ f → hom' (obj Iα) (obj Iβ) f)
 
+/-- A custom constructor for forgetful functor between concrete categories defined using `unbundled_hom`. -/
 def mk_has_forget : has_forget (bundled c) (bundled c') :=
 bundled_hom.mk_has_forget obj (λ X Y f, ⟨f.val, map f.property⟩) (λ _ _ _, rfl)
 

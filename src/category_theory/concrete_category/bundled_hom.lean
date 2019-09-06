@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Scott Morrison, Yury Kudryashov
 -/
 import category_theory.concrete_category.basic
 import category_theory.concrete_category.bundled
@@ -12,8 +12,9 @@ import category_theory.concrete_category.bundled
 Many algebraic structures in Lean initially used unbundled homs (e.g. a bare function between types, along with
 an a `is_monoid_hom` typeclass), but the general trend is towards using bundled homs.
 
-While the helper functions in `category_theory/concrete_category.lean` are useful for categories
-with unbundled homs, this file provides similar infrastructure for categories with bundled homs.
+This file provides a basic infrastructure to define concrete
+categories using bundled homs, and define forgetful functors between
+them.
 -/
 
 universes w v u
@@ -23,7 +24,7 @@ namespace category_theory
 variables {c : Type u → Type v} (hom : Π ⦃α β : Type u⦄ (Iα : c α) (Iβ : c β), Type w)
 
 /-- Class for bundled homs. Note that the arguments order follows that of lemmas for `monoid_hom`.
-This way we can use `⟨@monoid_hom, @monoid_hom.to_fun, ...⟩` in an instance. -/
+This way we can use `⟨@monoid_hom.to_fun, @monoid_hom.id ...⟩` in an instance. -/
 structure bundled_hom :=
 (to_fun : Π {α β : Type u} (Iα : c α) (Iβ : c β), hom Iα Iβ → α → β)
 (id : Π {α : Type u} (I : c α), hom I I)
@@ -44,6 +45,7 @@ namespace bundled_hom
 variable [𝒞 : bundled_hom hom]
 include 𝒞
 
+/-- Every `@bundled_hom c _` defines a category with objects in `bundled c`. -/
 instance : category (bundled c) :=
 by refine
 { hom := λ X Y, @hom X.1 Y.1 X.str Y.str,
@@ -55,6 +57,7 @@ by refine
 intros; apply 𝒞.hom_ext;
   simp only [𝒞.id_to_fun, 𝒞.comp_to_fun, function.left_id, function.right_id]
 
+/-- A category given by `bundled_hom` is a concrete category. -/
 instance concrete_category : concrete_category (bundled c) :=
 { forget := { obj := λ X, X,
               map := λ X Y f, 𝒞.to_fun X.str Y.str f,
@@ -62,6 +65,8 @@ instance concrete_category : concrete_category (bundled c) :=
               map_comp' := by intros; erw 𝒞.comp_to_fun; refl },
   forget_faithful := { injectivity' := by intros; apply 𝒞.hom_ext } }
 
+/-- Usually a bundled hom structure already has a coercion to function
+that works with different universes. So we don't use this as an instance. -/
 def has_coe_to_fun {X Y : bundled c} : has_coe_to_fun (X ⟶ Y) :=
 { F   := λ f, X → Y,
   coe := λ f, (forget _).map f }
@@ -79,7 +84,7 @@ section full_subcategory
 variables {hom} (𝒞) {d : Type u → Type v} (obj : ∀ ⦃α⦄, d α → c α)
 include obj
 
-/-- Construct a `bundled_hom` representing a full subcategory of a given `bundled_hom` category. -/
+/-- Construct a `bundled_hom` representing a full subcategory of a given `bundled_hom` category. The corresponding `category` and `concrete_category` instances agree with `induced_category (bundled.map @obj)`. -/
 protected def full_subcategory : bundled_hom (λ α β (Iα : d α) (Iβ : d β), hom (obj Iα) (obj Iβ)) :=
 { to_fun := by intros; apply 𝒞.to_fun; assumption,
   id := by intros; apply 𝒞.id,
@@ -91,13 +96,13 @@ protected def full_subcategory : bundled_hom (λ α β (Iα : d α) (Iβ : d β)
 def full_subcategory_has_forget :
   @has_forget (bundled d) (bundled c)
     (by haveI := 𝒞.full_subcategory obj; apply_instance) _ :=
-{ forget₂ := { obj := bundled.map @obj, map := by intros; assumption },
-  forget_comp := rfl }
+induced_category.has_forget (bundled.map @obj)
 
 end full_subcategory
 
 variables {hom}
 
+/-- A version of `has_forget.mk'` for categories defined using `@bundled_hom`. -/
 def mk_has_forget {d : Type u → Type v} {hom_d : Π ⦃α β : Type u⦄ (Iα : d α) (Iβ : d β), Type w}
   [bundled_hom hom_d] (obj : ∀ ⦃α⦄, c α → d α)
   (map : ∀ {X Y : bundled c}, (X ⟶ Y) → ((bundled.map obj X) ⟶ (bundled.map obj Y)))

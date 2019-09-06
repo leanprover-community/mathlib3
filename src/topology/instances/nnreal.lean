@@ -10,7 +10,7 @@ noncomputable theory
 open set topological_space metric
 
 namespace nnreal
-local notation ` ℝ≥0 ` := nnreal
+open_locale nnreal
 
 instance : topological_space ℝ≥0 := infer_instance
 
@@ -29,10 +29,15 @@ topological_space.subtype.second_countable_topology _ _
 
 instance : orderable_topology ℝ≥0 :=
 ⟨ le_antisymm
+    (le_generate_from $ assume s hs,
+    match s, hs with
+    | _, ⟨⟨a, ha⟩, or.inl rfl⟩ := ⟨{b : ℝ | a < b}, is_open_lt' a, rfl⟩
+    | _, ⟨⟨a, ha⟩, or.inr rfl⟩ := ⟨{b : ℝ | b < a}, is_open_gt' a, set.ext $ assume b, iff.refl _⟩
+    end)
     begin
-      apply induced_le_iff_le_coinduced.2,
+      apply coinduced_le_iff_le_induced.1,
       rw [orderable_topology.topology_eq_generate_intervals ℝ],
-      apply generate_from_le,
+      apply le_generate_from,
       assume s hs,
       rcases hs with ⟨a, rfl | rfl⟩,
       { show topological_space.generate_open _ {b : ℝ≥0 | a < b },
@@ -51,12 +56,7 @@ instance : orderable_topology ℝ≥0 :=
               show 0 ≤ a, from le_trans b.2 (le_of_lt hb)),
           rw [this],
           apply @is_open_empty } },
-    end
-    (generate_from_le $ assume s hs,
-    match s, hs with
-    | _, ⟨⟨a, ha⟩, or.inl rfl⟩ := ⟨{b : ℝ | a < b}, is_open_lt' a, rfl⟩
-    | _, ⟨⟨a, ha⟩, or.inr rfl⟩ := ⟨{b : ℝ | b < a}, is_open_gt' a, set.ext $ assume b, iff.refl _⟩
-    end) ⟩
+    end⟩
 
 section coe
 variable {α : Type*}
@@ -72,14 +72,24 @@ lemma tendsto_coe {f : filter α} {m : α → nnreal} :
   ∀{x : nnreal}, tendsto (λa, (m a : ℝ)) f (nhds (x : ℝ)) ↔ tendsto m f (nhds x)
 | ⟨r, hr⟩ := by rw [nhds_subtype_eq_comap, tendsto_comap_iff]; refl
 
-lemma tendsto_of_real {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m f (nhds x)):
+lemma tendsto_of_real {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m f (nhds x)) :
   tendsto (λa, nnreal.of_real (m a)) f (nhds (nnreal.of_real x)) :=
-h.comp (continuous_iff_continuous_at.1 continuous_of_real _)
+tendsto.comp (continuous_iff_continuous_at.1 continuous_of_real _) h
 
 lemma tendsto_sub {f : filter α} {m n : α → nnreal} {r p : nnreal}
   (hm : tendsto m f (nhds r)) (hn : tendsto n f (nhds p)) :
   tendsto (λa, m a - n a) f (nhds (r - p)) :=
 tendsto_of_real $ tendsto_sub (tendsto_coe.2 hm) (tendsto_coe.2 hn)
+
+lemma continuous_sub' : continuous (λp:nnreal×nnreal, p.1 - p.2) :=
+  continuous_subtype_mk _ (continuous_max
+    (continuous_sub (continuous.comp continuous_coe continuous_fst)
+                    (continuous.comp continuous_coe continuous_snd))
+                                                      continuous_const)
+
+lemma continuous_sub [topological_space α] {f g : α → nnreal}
+  (hf : continuous f) (hg : continuous g) : continuous (λ a, f a - g a) :=
+continuous_sub'.comp (hf.prod_mk hg)
 
 lemma has_sum_coe {f : α → nnreal} {r : nnreal} : has_sum (λa, (f a : ℝ)) (r : ℝ) ↔ has_sum f r :=
 by simp [has_sum, sum_coe.symm, tendsto_coe]

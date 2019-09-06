@@ -9,7 +9,7 @@ import order.filter.basic
 
 open lattice set
 
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 namespace filter
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Sort*}
@@ -28,6 +28,9 @@ infi_sets_eq'
   (assume s hs t ht, ⟨s ∩ t, inter_mem_sets hs ht,
     hg $ inter_subset_left s t, hg $ inter_subset_right s t⟩)
   ⟨univ, univ_mem_sets⟩
+
+lemma mem_lift_iff (hg : monotone g) {s : set β} : s ∈ f.lift g ↔ s ∈ ⋃t∈f.sets, (g t).sets :=
+show s ∈ (f.lift g).sets ↔ _, by rw lift_sets_eq hg
 
 lemma mem_lift {s : set β} {t : set α} (ht : t ∈ f.sets) (hs : s ∈ (g t).sets) :
   s ∈ (f.lift g).sets :=
@@ -112,7 +115,7 @@ lemma lift_lift_same_le_lift {g : set α → set α → filter β} :
 le_infi $ assume s, le_infi $ assume hs, infi_le_of_le s $ infi_le_of_le hs $ infi_le_of_le s $ infi_le _ hs
 
 lemma lift_lift_same_eq_lift {g : set α → set α → filter β}
-  (hg₁ : ∀s, monotone (λt, g s t)) (hg₂ : ∀t, monotone (λs, g s t)):
+  (hg₁ : ∀s, monotone (λt, g s t)) (hg₂ : ∀t, monotone (λs, g s t)) :
   f.lift (λs, f.lift (g s)) = f.lift (λs, g s s) :=
 le_antisymm
   lift_lift_same_le_lift
@@ -175,8 +178,7 @@ le_antisymm
           @hg s₁ s₂ ▸ le_inf (infi_le_of_le i $ infi_le_of_le s₁ $ infi_le _ hs₁) hs₂)
         (assume s₁ s₂ hs₁ hs₂, le_trans hs₂ $ g_mono hs₁),
     begin
-      rw [lift_sets_eq g_mono],
-      simp only [mem_Union, exists_imp_distrib],
+      simp only [mem_lift_iff g_mono, mem_Union, exists_imp_distrib],
       exact assume t ht hs, this t ht hs
     end)
 
@@ -264,7 +266,7 @@ lemma lift_lift'_same_le_lift' {g : set α → set α → set β} :
 lift_lift_same_le_lift
 
 lemma lift_lift'_same_eq_lift' {g : set α → set α → set β}
-  (hg₁ : ∀s, monotone (λt, g s t)) (hg₂ : ∀t, monotone (λs, g s t)):
+  (hg₁ : ∀s, monotone (λt, g s t)) (hg₂ : ∀t, monotone (λs, g s t)) :
   f.lift (λs, f.lift' (g s)) = f.lift' (λs, g s s) :=
 lift_lift_same_eq_lift
   (assume s, monotone_comp monotone_id $ monotone_comp (hg₁ s) monotone_principal)
@@ -302,7 +304,7 @@ le_antisymm
   (le_infi $ assume i, lift_mono (infi_le _ _) (le_refl _))
   (assume s,
   begin
-    rw [lift_sets_eq hg],
+    rw mem_lift_iff hg,
     simp only [mem_Union, exists_imp_distrib, infi_sets_eq hf hι],
     exact assume t i ht hs, mem_infi_sets i $ mem_lift ht hs
   end)

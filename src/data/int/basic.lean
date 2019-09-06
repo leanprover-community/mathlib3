@@ -404,8 +404,14 @@ by rw [mul_comm, mul_mod_left]
 @[simp] theorem mod_self {a : ℤ} : a % a = 0 :=
 by have := mul_mod_left 1 a; rwa one_mul at this
 
-@[simp] lemma mod_mod (a b : ℤ) : a % b % b = a % b :=
+@[simp] theorem mod_mod (a b : ℤ) : a % b % b = a % b :=
 by conv {to_rhs, rw [← mod_add_div a b, add_mul_mod_self_left]}
+
+@[simp] theorem mod_mod_of_dvd (n : int) {m k : int} (h : m ∣ k) : n % k % m = n % m :=
+begin
+  conv { to_rhs, rw ←mod_add_div n k },
+  rcases h with ⟨t, rfl⟩, rw [mul_assoc, add_mul_mod_self_left]
+end
 
 /- properties of / and % -/
 
@@ -1119,6 +1125,8 @@ instance cast.is_ring_hom [ring α] :
   is_ring_hom (int.cast : ℤ → α) :=
 ⟨cast_one, cast_mul, cast_add⟩
 
+instance coe.is_ring_hom [ring α] : is_ring_hom (coe : ℤ → α) := cast.is_ring_hom
+
 theorem mul_cast_comm [ring α] (a : α) (n : ℤ) : a * n = n * a :=
 by cases n; simp [nat.mul_cast_comm, left_distrib, right_distrib, *]
 
@@ -1164,6 +1172,9 @@ begin
       ← show -[1+ n] + (↑n + 1) = 0, from neg_add_self (↑n+1),
       Hadd, show f (n+1) = n+1, from H (n+1)]
 end
+
+lemma eq_cast' [ring α] (f : ℤ → α) [is_ring_hom f] : f = int.cast :=
+funext $ int.eq_cast f (is_ring_hom.map_one f) (λ _ _, is_ring_hom.map_add f)
 
 @[simp, squash_cast] theorem cast_id (n : ℤ) : ↑n = n :=
 (eq_cast id rfl (λ _ _, rfl) n).symm

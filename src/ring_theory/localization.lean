@@ -282,14 +282,15 @@ by simp [lift', quotient.lift_on_beta, of, mk, this]
 @[simp] lemma lift'_apply_coe (f : localization α S → β) [is_ring_hom f]
   (g : S → units β) (hg : ∀ s, (g s : β) = f s) :
   lift' (λ a : α, f a) g hg = f :=
-have g = (λ s, units.map f (to_units s)),
-  from funext $ λ x, units.ext_iff.2 $ (hg x).symm ▸ rfl,
+have g = (λ s, (units.map' f : units (localization α S) → units β) (to_units s)),
+  from funext $ λ x, units.ext $ (hg x).symm ▸ rfl,
 funext $ λ x, localization.induction_on x
-  (λ r s, by subst this; rw [lift'_mk, ← is_group_hom.map_inv (units.map f), units.coe_map];
+  (λ r s, by subst this; rw [lift'_mk, ← (units.map' f).map_inv, units.coe_map'];
     simp [is_ring_hom.map_mul f])
 
 @[simp] lemma lift_apply_coe (f : localization α S → β) [is_ring_hom f] :
-  lift (λ a : α, f a) (λ s hs, is_unit_unit (units.map f (to_units ⟨s, hs⟩))) = f :=
+  lift (λ a : α, f a)
+    (λ s hs, is_unit.map' f (is_unit_unit (to_units ⟨s, hs⟩))) = f :=
 by rw [lift, lift'_apply_coe]
 
 /-- Function extensionality for localisations:
@@ -395,7 +396,7 @@ instance prime.is_submonoid :
 
 @[reducible] def at_prime := localization α (-P)
 
-instance at_prime.local_ring : is_local_ring (at_prime P) :=
+instance at_prime.local_ring : local_ring (at_prime P) :=
 local_of_nonunits_ideal
   (λ hze,
     let ⟨t, hts, ht⟩ := quotient.exact hze in

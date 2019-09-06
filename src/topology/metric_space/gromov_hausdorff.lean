@@ -31,7 +31,7 @@ topology.metric_space.completion
 
 
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 universes u v w
 
 open classical lattice set function topological_space filter metric quotient
@@ -87,7 +87,7 @@ begin
   { rintros ⟨Ψ, ⟨isomΨ, rangeΨ⟩⟩,
     have f := ((Kuratowski_embedding_isometry α).isometric_on_range.symm.trans
                isomΨ.isometric_on_range).symm,
-    have E : (range Ψ) ≃ᵢ (nonempty_compacts.Kuratowski_embedding α).val = (p.val ≃ᵢ range (Kuratowski_embedding α)),
+    have E : (range Ψ ≃ᵢ (nonempty_compacts.Kuratowski_embedding α).val) = (p.val ≃ᵢ range (Kuratowski_embedding α)),
       by { dunfold nonempty_compacts.Kuratowski_embedding, rw [rangeΨ]; refl },
     have g := cast E f,
     exact ⟨g⟩ }
@@ -999,13 +999,14 @@ begin
   rcases cauchy_seq_tendsto_of_complete this with ⟨L, hL⟩,
   -- the images of `X3 n` in the Gromov-Hausdorff space converge to the image of `L`
   have M : tendsto (λn, (X3 n).to_GH_space) at_top (nhds L.to_GH_space) :=
-    tendsto.comp hL (to_GH_space_continuous.tendsto _),
+    tendsto.comp (to_GH_space_continuous.tendsto _) hL,
   -- By construction, the image of `X3 n` in the Gromov-Hausdorff space is `u n`.
   have : ∀n, (X3 n).to_GH_space = u n,
   { assume n,
     rw [nonempty_compacts.to_GH_space, ← (u n).to_GH_space_rep,
         to_GH_space_eq_to_GH_space_iff_isometric],
-    exact ⟨(isom n).isometric_on_range.symm⟩
+    constructor,
+    convert (isom n).isometric_on_range.symm,
   },
   -- Finally, we have proved the convergence of `u n`
   exact ⟨L.to_GH_space, by simpa [this] using M⟩

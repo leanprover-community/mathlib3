@@ -11,6 +11,10 @@ open function
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
+protected noncomputable def classical.decidable_linear_order [I : linear_order α] :
+  decidable_linear_order α :=
+{ decidable_le := classical.dec_rel _, ..I }
+
 theorem ge_of_eq [preorder α] {a b : α} : a = b → a ≥ b :=
 λ h, h ▸ le_refl a
 
@@ -122,6 +126,10 @@ begin
   { transitivity, assumption, exact hf _ }
 end
 
+lemma reflect_lt {α β} [linear_order α] [preorder β] {f : α → β} (hf : monotone f)
+  {x x' : α} (h : f x < f x') : x < x' :=
+by { rw [← not_le], intro h', apply not_le_of_lt h, exact hf h' }
+
 end monotone
 
 def order_dual (α : Type*) := α
@@ -147,6 +155,8 @@ instance (α : Type*) [decidable_linear_order α] : decidable_linear_order (orde
 { decidable_le := show decidable_rel (λa b:α, b ≤ a), by apply_instance,
   decidable_lt := show decidable_rel (λa b:α, b < a), by apply_instance,
   .. order_dual.linear_order α }
+
+instance : Π [inhabited α], inhabited (order_dual α) := id
 
 end order_dual
 
@@ -493,7 +503,7 @@ protected def lt_sup {α} {r : α → α → Prop} (wf : well_founded r) {s : se
 min_mem wf { x | ∀a ∈ s, r a x } (ne_empty_iff_exists_mem.mpr h) x hx
 
 section
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 protected noncomputable def succ {α} {r : α → α → Prop} (wf : well_founded r) (x : α) : α :=
 if h : ∃y, r x y then wf.min { y | r x y } (ne_empty_iff_exists_mem.mpr h) else x
 
@@ -519,7 +529,7 @@ end
 end well_founded
 
 variable (r)
-local infix `≼` : 50 := r
+local infix ` ≼ ` : 50 := r
 
 /-- A family of elements of α is directed (with respect to a relation `≼` on α)
   if there is a member of the family `≼`-above any pair in the family.  -/
@@ -537,3 +547,6 @@ theorem directed_comp {ι} (f : ι → β) (g : β → α) :
 theorem directed_mono {s : α → α → Prop} {ι} (f : ι → α)
   (H : ∀ a b, r a b → s a b) (h : directed r f) : directed s f :=
 λ a b, let ⟨c, h₁, h₂⟩ := h a b in ⟨c, H _ _ h₁, H _ _ h₂⟩
+
+class directed_order (α : Type u) extends preorder α :=
+(directed : ∀ i j : α, ∃ k, i ≤ k ∧ j ≤ k)

@@ -28,13 +28,22 @@ do cs ← get_ancestors cl,
 end tactic
 
 attribute [ancestor has_mul] semigroup
+attribute [ancestor semigroup] comm_semigroup
 attribute [ancestor semigroup has_one] monoid
+attribute [ancestor monoid comm_semigroup] comm_monoid
 attribute [ancestor monoid has_inv] group
-attribute [ancestor group has_comm] comm_group
+attribute [ancestor group comm_monoid] comm_group
 attribute [ancestor has_add] add_semigroup
+attribute [ancestor add_semigroup] add_comm_semigroup
 attribute [ancestor add_semigroup has_zero] add_monoid
+attribute [ancestor add_monoid add_comm_semigroup] add_comm_monoid
 attribute [ancestor add_monoid has_neg] add_group
-attribute [ancestor add_group has_add_comm] add_comm_group
+attribute [ancestor add_group add_comm_monoid] add_comm_group
+
+attribute [ancestor semigroup] left_cancel_semigroup
+attribute [ancestor semigroup] right_cancel_semigroup
+attribute [ancestor add_semigroup] add_left_cancel_semigroup
+attribute [ancestor add_semigroup] add_right_cancel_semigroup
 
 attribute [ancestor ring has_inv zero_ne_one_class] division_ring
 attribute [ancestor division_ring comm_ring] field

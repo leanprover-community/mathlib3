@@ -348,6 +348,7 @@ do o ← (tk ":" *> small_nat)?, pure $ o.get_or_else 5
 
 precedence `?`:max
 meta def rcases_parse : parser (pexpr × (listΣ (listΠ rcases_patt) ⊕ nat)) :=
+with_desc "('?' expr (: n)?) | (expr (with patt_list)?)" $
 do hint ← (tk "?")?,
   p ← texpr,
   match hint with
@@ -358,6 +359,7 @@ do hint ← (tk "?")?,
   end
 
 meta def rintro_parse : parser (listΠ rcases_patt ⊕ nat) :=
+with_desc "('?' (: n)?) | patt_list" $
 (tk "?" >> sum.inr <$> rcases_parse_depth) <|>
 sum.inl <$> (rcases_patt_inverted.invert <$>
   (brackets "(" ")" rcases_patt_parse_list <|>
@@ -411,7 +413,7 @@ meta def rcases : parse rcases_parse → tactic unit
 /--
 The `rintro` tactic is a combination of the `intros` tactic with `rcases` to
 allow for destructuring patterns while introducing variables. See `rcases` for
-a description of supported patterns. For example, `rintros (a | ⟨b, c⟩) ⟨d, e⟩`
+a description of supported patterns. For example, `rintro (a | ⟨b, c⟩) ⟨d, e⟩`
 will introduce two variables, and then do case splits on both of them producing
 two subgoals, one with variables `a d e` and the other with `b c d e`.
 
@@ -430,6 +432,44 @@ meta def rintro : parse rintro_parse → tactic unit
 
 /-- Alias for `rintro`. -/
 meta def rintros := rintro
+
+setup_tactic_parser
+
+meta def obtain_parse :
+  parser (option (listΣ rcases_patt_inverted) × (option pexpr) × (option pexpr)) :=
+with_desc "patt_list? (: expr)? (:= expr)?" $
+  do pat ← rcases_patt_parse_list?,
+     tp  ← (tk ":" >> texpr)?,
+     val ←  (tk ":=" >> texpr)?,
+     return (pat, tp, val)
+
+/--
+The `obtain` tactic is a combination of `have` and `rcases`.
+`obtain ⟨patt⟩ : type,
+ { ... }`
+is equivalent to
+`have h : type,
+ { ... },
+ rcases h with ⟨patt⟩`.
+ The syntax `obtain ⟨patt⟩ : type := proof` is also supported.
+ If `⟨patt⟩` is omitted, `rcases` will try to infer the pattern.
+ If `type` is omitted, `:= proof` is required.
+-/
+meta def obtain : interactive.parse obtain_parse → tactic unit
+| (pat, tp, some val) :=
+  tactic.rcases ``(%%val : %%(tp.get_or_else pexpr.mk_placeholder)) $
+    rcases_patt_inverted.invert_list (pat.get_or_else [default _])
+| (pat, some tp, none) :=
+  do nm ← mk_fresh_name,
+    e ← to_expr tp >>= assert nm,
+    (g :: gs) ← get_goals,
+    set_goals gs,
+    tactic.rcases ``(%%e) $ rcases_patt_inverted.invert_list (pat.get_or_else [default _]),
+    gs ← get_goals,
+    set_goals (g::gs)
+| (pat, none, none) :=
+  fail $ "`obtain` requires either an expected type or a value.\n" ++
+         "usage: `obtain ⟨patt⟩? : type (:= val)?` or `obtain ⟨patt⟩? (: type)? := val`"
 
 end interactive
 end tactic

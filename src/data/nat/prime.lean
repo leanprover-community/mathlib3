@@ -421,4 +421,18 @@ show p^k*p ∣ m ∨ p^l*p ∣ n, from
     (assume : p ∣ m / p ^ k, or.inl $ mul_dvd_of_dvd_div hpm this)
     (assume : p ∣ n / p ^ l, or.inr $ mul_dvd_of_dvd_div hpn this)
 
+/-- The type of prime numbers -/
+def primes := {p : ℕ // p.prime}
+
+namespace primes
+
+instance : has_repr nat.primes := ⟨λ p, repr p.val⟩
+
+instance coe_nat  : has_coe nat.primes ℕ  := ⟨subtype.val⟩
+
+theorem coe_nat_inj (p q : nat.primes) : (p : ℕ) = (q : ℕ) → p = q :=
+λ h, subtype.eq h
+
+end primes
+
 end nat

@@ -1,6 +1,8 @@
--- Copyright (c) 2017 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison, Reid Barton
+/-
+Copyright (c) 2017 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison, Reid Barton
+-/
 import category_theory.fully_faithful
 
 namespace category_theory
@@ -24,12 +26,12 @@ section induced
 
 -/
 
-variables {C : Sort u₁} {D : Sort u₂} [𝒟 : category.{v u₂} D]
+variables {C : Type u₁} {D : Type u₂} [𝒟 : category.{v} D]
 include 𝒟
 variables (F : C → D)
 include F
 
-def induced_category : Sort u₁ := C
+def induced_category : Type u₁ := C
 
 instance induced_category.category : category.{v} (induced_category F) :=
 { hom  := λ X Y, F X ⟶ F Y,
@@ -42,15 +44,16 @@ def induced_functor : induced_category F ⥤ D :=
 @[simp] lemma induced_functor.obj {X} : (induced_functor F).obj X = F X := rfl
 @[simp] lemma induced_functor.hom {X Y} {f : X ⟶ Y} : (induced_functor F).map f = f := rfl
 
-instance induced_category.fully_faithful : fully_faithful (induced_functor F) :=
+instance induced_category.full : full (induced_functor F) :=
 { preimage := λ x y f, f }
+instance induced_category.faithful : faithful (induced_functor F) := {}
 
 end induced
 
 section full_subcategory
 /- A full subcategory is the special case of an induced category with F = subtype.val. -/
 
-variables {C : Sort u₂} [𝒞 : category.{v} C]
+variables {C : Type u₂} [𝒞 : category.{v} C]
 include 𝒞
 variables (Z : C → Prop)
 
@@ -65,8 +68,10 @@ induced_functor subtype.val
 @[simp] lemma full_subcategory_inclusion.map {X Y} {f : X ⟶ Y} :
   (full_subcategory_inclusion Z).map f = f := rfl
 
-instance full_subcategory.fully_faithful : fully_faithful (full_subcategory_inclusion Z) :=
-induced_category.fully_faithful subtype.val
+instance full_subcategory.ful : full (full_subcategory_inclusion Z) :=
+induced_category.full subtype.val
+instance full_subcategory.faithful : faithful (full_subcategory_inclusion Z) :=
+induced_category.faithful subtype.val
 
 end full_subcategory
 

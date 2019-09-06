@@ -22,20 +22,16 @@ namespace metric
 /-- The distance on the completion is obtained by extending the distance on the original space,
 by uniform continuity. -/
 instance : has_dist (completion α) :=
-⟨λx y, completion.extension (λp:α×α, dist p.1 p.2) (completion.prod (x, y))⟩
+⟨completion.extension₂ dist⟩
 
 /-- The new distance is uniformly continuous. -/
 protected lemma completion.uniform_continuous_dist :
   uniform_continuous (λp:completion α × completion α, dist p.1 p.2) :=
-uniform_continuous.comp uniform_continuous_prod uniform_continuous_extension
+uniform_continuous_extension₂ dist
 
 /-- The new distance is an extension of the original distance. -/
 protected lemma completion.dist_eq (x y : α) : dist (x : completion α) y = dist x y :=
-begin
-  unfold dist,
-  rw [completion.prod_coe_coe, completion.extension_coe],
-  exact uniform_continuous_dist',
-end
+completion.extension₂_coe_coe uniform_continuous_dist' _ _
 
 /- Let us check that the new distance satisfies the axioms of a distance, by starting from the
 properties on α and extending them to `completion α` by continuity. -/
@@ -43,9 +39,8 @@ protected lemma completion.dist_self (x : completion α) : dist x x = 0 :=
 begin
   apply induction_on x,
   { refine is_closed_eq _ continuous_const,
-    have : continuous (λx : completion α, (x, x)) :=
-      continuous.prod_mk continuous_id continuous_id,
-    exact completion.uniform_continuous_dist.continuous.comp this },
+    exact (completion.uniform_continuous_dist.continuous.comp
+             (continuous.prod_mk continuous_id continuous_id) : _) },
   { assume a,
     rw [completion.dist_eq, dist_self] }
 end
@@ -54,7 +49,7 @@ protected lemma completion.dist_comm (x y : completion α) : dist x y = dist y x
 begin
   apply induction_on₂ x y,
   { refine is_closed_eq completion.uniform_continuous_dist.continuous _,
-    exact completion.uniform_continuous_dist.continuous.comp continuous_swap },
+    exact (completion.uniform_continuous_dist.continuous.comp continuous_swap : _) },
   { assume a b,
     rw [completion.dist_eq, completion.dist_eq, dist_comm] }
 end
@@ -65,14 +60,14 @@ begin
   { refine is_closed_le _ (continuous_add _ _),
     { have : continuous (λp : completion α × completion α × completion α, (p.1, p.2.2)) :=
         continuous.prod_mk continuous_fst (continuous.comp continuous_snd continuous_snd),
-      exact completion.uniform_continuous_dist.continuous.comp this },
+      exact (completion.uniform_continuous_dist.continuous.comp this : _) },
     { have : continuous (λp : completion α × completion α × completion α, (p.1, p.2.1)) :=
         continuous.prod_mk continuous_fst (continuous_fst.comp continuous_snd),
-      exact completion.uniform_continuous_dist.continuous.comp this },
+      exact (completion.uniform_continuous_dist.continuous.comp this : _) },
     { have : continuous (λp : completion α × completion α × completion α, (p.2.1, p.2.2)) :=
         continuous.prod_mk (continuous_fst.comp continuous_snd)
                            (continuous.comp continuous_snd continuous_snd),
-      exact continuous.comp completion.uniform_continuous_dist.continuous this }},
+      exact (continuous.comp completion.uniform_continuous_dist.continuous this : _) } },
   { assume a b c,
     rw [completion.dist_eq, completion.dist_eq, completion.dist_eq],
     exact dist_triangle a b c }

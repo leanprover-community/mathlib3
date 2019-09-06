@@ -17,7 +17,7 @@ This files introduces:
 import topology.metric_space.isometry topology.instances.ennreal
        topology.metric_space.lipschitz
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 universes u v w
 
 open classical lattice set function topological_space filter
@@ -25,7 +25,7 @@ open classical lattice set function topological_space filter
 namespace emetric
 
 section inf_edist
-local notation `∞` := (⊤ : ennreal)
+open_locale ennreal
 variables {α : Type u} {β : Type v} [emetric_space α] [emetric_space β] {x y : α} {s t : set α} {Φ : α → β}
 
 /-- The minimal edistance of a point to a set -/
@@ -139,16 +139,20 @@ is contained in the `r`-neighborhood of the other one -/
 def Hausdorff_edist {α : Type u} [emetric_space α] (s t : set α) : ennreal :=
   Sup ((λx, inf_edist x t) '' s) ⊔ Sup ((λx, inf_edist x s) '' t)
 
+lemma Hausdorff_edist_def {α : Type u} [emetric_space α] (s t : set α) :
+  Hausdorff_edist s t = Sup ((λx, inf_edist x t) '' s) ⊔ Sup ((λx, inf_edist x s) '' t) := rfl
+
+attribute [irreducible] Hausdorff_edist
+
 section Hausdorff_edist
-local notation `∞` := (⊤ : ennreal)
+open_locale ennreal
 variables {α : Type u} {β : Type v} [emetric_space α] [emetric_space β]
           {x y : α} {s t u : set α} {Φ : α → β}
 
 /-- The Hausdorff edistance of a set to itself vanishes -/
 @[simp] lemma Hausdorff_edist_self : Hausdorff_edist s s = 0 :=
 begin
-  unfold Hausdorff_edist,
-  erw [lattice.sup_idem, ← le_bot_iff],
+  erw [Hausdorff_edist_def, lattice.sup_idem, ← le_bot_iff],
   apply Sup_le _,
   simp [le_bot_iff, inf_edist_zero_of_mem] {contextual := tt},
 end
@@ -185,6 +189,7 @@ end
 /-- The distance to a set is controlled by the Hausdorff distance -/
 lemma inf_edist_le_Hausdorff_edist_of_mem (h : x ∈ s) : inf_edist x t ≤ Hausdorff_edist s t :=
 begin
+  rw Hausdorff_edist_def,
   refine le_trans (le_Sup _) le_sup_left,
   exact mem_image_of_mem _ h
 end
@@ -196,7 +201,7 @@ lemma exists_edist_lt_of_Hausdorff_edist_lt {r : ennreal} (h : x ∈ s) (H : Hau
 exists_edist_lt_of_inf_edist_lt $ calc
   inf_edist x t ≤ Sup ((λx, inf_edist x t) '' s) : le_Sup (mem_image_of_mem _ h)
   ... ≤ Sup ((λx, inf_edist x t) '' s) ⊔ Sup ((λx, inf_edist x s) '' t) : le_sup_left
-  ... < r : H
+  ... < r : by rwa Hausdorff_edist_def at H
 
 /-- The distance from `x` to `s`or `t` is controlled in terms of the Hausdorff distance
 between `s` and `t` -/
@@ -261,7 +266,7 @@ end
 /-- The Hausdorff distance satisfies the triangular inequality -/
 lemma Hausdorff_edist_triangle : Hausdorff_edist s u ≤ Hausdorff_edist s t + Hausdorff_edist t u :=
 begin
-  change Sup ((λx, inf_edist x u) '' s) ⊔ Sup ((λx, inf_edist x s) '' u) ≤ Hausdorff_edist s t + Hausdorff_edist t u,
+  rw Hausdorff_edist_def,
   simp only [and_imp, set.mem_image, lattice.Sup_le_iff, exists_imp_distrib,
              lattice.sup_le_iff, -mem_image, set.ball_image_iff],
   split,

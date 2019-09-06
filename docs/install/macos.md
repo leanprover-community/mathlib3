@@ -1,4 +1,5 @@
-# How to install Lean and mathlib on MacOS
+How to install Lean and mathlib on MacOS
+===
 
 This document explains how to get started with Lean and mathlib.
 
@@ -13,7 +14,8 @@ Rather than installing Lean directly, we'll install a small program called `elan
 automatically provides the correct version of Lean on a per-project basis. This is recommended for
 all users.
 
-### Installing `elan`
+Installing `elan`
+---
 
 1. We'll need a terminal, along with some basic prerequisites.
   Install [homebrew](https://brew.sh/), then run `brew install gmp coreutils` in a terminal
@@ -28,26 +30,30 @@ all users.
    It is recommended that you re-login, so that your environment knows about `elan`.
    (Alternatively, type `source $HOME/.elan/env` to update the current terminal.)
 
-### Installing mathlib supporting tools
 
-In order to use mathlib supporting tools, you need to [get python](https://www.python.org/downloads/) first.
-Then, at a terminal, run the command
+Installing mathlib supporting tools
+---
+
+At a terminal, run the command
   ```bash
   curl https://raw.githubusercontent.com/leanprover-community/mathlib-tools/master/scripts/remote-install-update-mathlib.sh -sSf | bash
   ```
+(This will install tools that, amongst other things, let you download compiled binaries for mathlib.)
 
-### Installing and configuring an editor
+Installing and configuring an editor
+---
 
-There are two Lean-aware editors, VS Code and emacs.
+There are two editors you can use with Lean, VS Code and emacs.
 This document describes using VS Code (for emacs, look at https://github.com/leanprover/lean-mode).
 
 1. Install [VS Code](https://code.visualstudio.com/).
 2. Launch VS Code.
-3. Click on the extension icon in the view bar at the left
-   and search for `leanprover`.
+3. Click on the extension icon ![(image of icon)](new-extensions-icon.png) 
+   (or ![(image of icon)](extensions-icon.png) in older versions) in the side bar on the left edge of 
+   the screen (or press <kbd>⇧ Shift</kbd><kbd>⌘ Command</kbd><kbd>X</kbd>) and search for `leanprover`.
 4. Click "install", and then "reload" to restart VS Code.
 5. Verify Lean is working, for example by saving a file `test.lean` and entering `#eval 1+1`.
-   A green line should appear under this, and hovering the mouse over it you should see `2`
+   A green line should appear underneath `#eval 1+1`, and hovering the mouse over it you should see `2`
    displayed.
 
 You can now read instructions about creating and working on [Lean projects](project.md)

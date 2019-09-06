@@ -21,7 +21,7 @@ import topology.uniform_space.separation topology.uniform_space.uniform_embeddin
 open lattice set filter classical
 noncomputable theory
 
-local notation `𝓤` := uniformity
+open_locale uniformity
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -353,7 +353,7 @@ eq_empty_iff_forall_not_mem.2 $ λ z ⟨h₁, h₂⟩,
 not_lt_of_le (edist_triangle_left x y z)
   (lt_of_lt_of_le (ennreal.add_lt_add h₁ h₂) h)
 
-theorem ball_subset (h : edist x y + ε₁ ≤ ε₂) (h' : edist x y < ⊤): ball x ε₁ ⊆ ball y ε₂ :=
+theorem ball_subset (h : edist x y + ε₁ ≤ ε₂) (h' : edist x y < ⊤) : ball x ε₁ ⊆ ball y ε₂ :=
 λ z zx, calc
   edist z y ≤ edist z x + edist x y : edist_triangle _ _ _
   ... = edist x y + edist z x : add_comm _ _

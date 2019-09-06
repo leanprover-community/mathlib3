@@ -132,9 +132,12 @@ conj_bijective.1.eq_iff
 @[simp] lemma conj_eq_zero {z : ℂ} : conj z = 0 ↔ z = 0 :=
 by simpa using @conj_inj z 0
 
-@[simp] lemma eq_conj_iff_real (z : ℂ) : conj z = z ↔ ∃ r : ℝ, z = r :=
+lemma eq_conj_iff_real {z : ℂ} : conj z = z ↔ ∃ r : ℝ, z = r :=
 ⟨λ h, ⟨z.re, ext rfl $ eq_zero_of_neg_eq (congr_arg im h)⟩,
  λ ⟨h, e⟩, e.symm ▸ rfl⟩
+
+lemma eq_conj_iff_re {z : ℂ} : conj z = z ↔ (z.re : ℂ) = z :=
+eq_conj_iff_real.trans ⟨by rintro ⟨r, rfl⟩; simp, λ h, ⟨_, h.symm⟩⟩
 
 def norm_sq (z : ℂ) : ℝ := z.re * z.re + z.im * z.im
 
@@ -185,6 +188,8 @@ ext_iff.2 $ by simp [two_mul]
 instance : comm_ring ℂ :=
 by refine { zero := 0, add := (+), neg := has_neg.neg, one := 1, mul := (*), ..};
    { intros, apply ext_iff.2; split; simp; ring }
+
+@[simp] lemma I_sq : I ^ 2 = -1 := by rw [pow_two, I_mul_I]
 
 @[simp] lemma bit0_re (z : ℂ) : (bit0 z).re = bit0 z.re := rfl
 @[simp] lemma bit1_re (z : ℂ) : (bit1 z).re = bit1 z.re := rfl
@@ -239,10 +244,10 @@ noncomputable instance : discrete_field ℂ :=
   ..complex.comm_ring }
 
 instance re.is_add_group_hom : is_add_group_hom complex.re :=
-by refine_struct {..}; simp
+{ map_add := complex.add_re }
 
 instance im.is_add_group_hom : is_add_group_hom complex.im :=
-by refine_struct {..}; simp
+{ map_add := complex.add_im }
 
 instance : is_ring_hom conj :=
 by refine_struct {..}; simp

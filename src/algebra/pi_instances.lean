@@ -8,6 +8,7 @@ Pi instances for algebraic structures.
 import order.basic
 import algebra.module algebra.group
 import data.finset
+import ring_theory.subring
 import tactic.pi_instances
 
 namespace pi
@@ -22,8 +23,8 @@ instance has_zero [∀ i, has_zero $ f i] : has_zero (Π i : I, f i) := ⟨λ i,
 instance has_one [∀ i, has_one $ f i] : has_one (Π i : I, f i) := ⟨λ i, 1⟩
 @[simp] lemma one_apply [∀ i, has_one $ f i] : (1 : Π i, f i) i = 1 := rfl
 
-attribute [to_additive pi.has_zero] pi.has_one
-attribute [to_additive pi.zero_apply] pi.one_apply
+attribute [to_additive] pi.has_one
+attribute [to_additive] pi.one_apply
 
 instance has_add [∀ i, has_add $ f i] : has_add (Π i : I, f i) := ⟨λ x y, λ i, x i + y i⟩
 @[simp] lemma add_apply [∀ i, has_add $ f i] : (x + y) i = x i + y i := rfl
@@ -31,8 +32,8 @@ instance has_add [∀ i, has_add $ f i] : has_add (Π i : I, f i) := ⟨λ x y, 
 instance has_mul [∀ i, has_mul $ f i] : has_mul (Π i : I, f i) := ⟨λ x y, λ i, x i * y i⟩
 @[simp] lemma mul_apply [∀ i, has_mul $ f i] : (x * y) i = x i * y i := rfl
 
-attribute [to_additive pi.has_add] pi.has_mul
-attribute [to_additive pi.add_apply] pi.mul_apply
+attribute [to_additive] pi.has_mul
+attribute [to_additive] pi.mul_apply
 
 instance has_inv [∀ i, has_inv $ f i] : has_inv (Π i : I, f i) := ⟨λ x, λ i, (x i)⁻¹⟩
 @[simp] lemma inv_apply [∀ i, has_inv $ f i] : x⁻¹ i = (x i)⁻¹ := rfl
@@ -40,8 +41,8 @@ instance has_inv [∀ i, has_inv $ f i] : has_inv (Π i : I, f i) := ⟨λ x, λ
 instance has_neg [∀ i, has_neg $ f i] : has_neg (Π i : I, f i) := ⟨λ x, λ i, -(x i)⟩
 @[simp] lemma neg_apply [∀ i, has_neg $ f i] : (-x) i = -x i := rfl
 
-attribute [to_additive pi.has_neg] pi.has_inv
-attribute [to_additive pi.neg_apply] pi.inv_apply
+attribute [to_additive] pi.has_inv
+attribute [to_additive] pi.inv_apply
 
 instance has_scalar {α : Type*} [∀ i, has_scalar α $ f i] : has_scalar α (Π i : I, f i) := ⟨λ s x, λ i, s • (x i)⟩
 @[simp] lemma smul_apply {α : Type*} [∀ i, has_scalar α $ f i] (s : α) : (s • x) i = s • x i := rfl
@@ -99,33 +100,40 @@ by pi_instance
 instance ordered_cancel_comm_monoid [∀ i, ordered_cancel_comm_monoid $ f i] : ordered_cancel_comm_monoid (Π i : I, f i) :=
 by pi_instance
 
-attribute [to_additive pi.add_semigroup]              pi.semigroup
-attribute [to_additive pi.add_comm_semigroup]         pi.comm_semigroup
-attribute [to_additive pi.add_monoid]                 pi.monoid
-attribute [to_additive pi.add_comm_monoid]            pi.comm_monoid
-attribute [to_additive pi.add_group]                  pi.group
-attribute [to_additive pi.add_comm_group]             pi.comm_group
-attribute [to_additive pi.add_left_cancel_semigroup]  pi.left_cancel_semigroup
-attribute [to_additive pi.add_right_cancel_semigroup] pi.right_cancel_semigroup
+instance ordered_comm_group [∀ i, ordered_comm_group $ f i] : ordered_comm_group (Π i : I, f i) :=
+{ add_lt_add_left := λ a b hab c, ⟨λ i, add_le_add_left (hab.1 i) (c i),
+    λ h, hab.2 $ λ i, le_of_add_le_add_left (h i)⟩,
+  add_le_add_left := λ x y hxy c i, add_le_add_left (hxy i) _,
+  ..pi.add_comm_group,
+  ..pi.partial_order }
 
-@[to_additive pi.list_sum_apply]
+attribute [to_additive add_semigroup]              pi.semigroup
+attribute [to_additive add_comm_semigroup]         pi.comm_semigroup
+attribute [to_additive add_monoid]                 pi.monoid
+attribute [to_additive add_comm_monoid]            pi.comm_monoid
+attribute [to_additive add_group]                  pi.group
+attribute [to_additive add_comm_group]             pi.comm_group
+attribute [to_additive add_left_cancel_semigroup]  pi.left_cancel_semigroup
+attribute [to_additive add_right_cancel_semigroup] pi.right_cancel_semigroup
+
+@[to_additive]
 lemma list_prod_apply {α : Type*} {β : α → Type*} [∀a, monoid (β a)] (a : α) :
   ∀ (l : list (Πa, β a)), l.prod a = (l.map (λf:Πa, β a, f a)).prod
 | []       := rfl
 | (f :: l) := by simp [mul_apply f l.prod a, list_prod_apply l]
 
-@[to_additive pi.multiset_sum_apply]
+@[to_additive]
 lemma multiset_prod_apply {α : Type*} {β : α → Type*} [∀a, comm_monoid (β a)] (a : α)
   (s : multiset (Πa, β a)) : s.prod a = (s.map (λf:Πa, β a, f a)).prod :=
 quotient.induction_on s $ assume l, begin simp [list_prod_apply a l] end
 
-@[to_additive pi.finset_sum_apply]
+@[to_additive]
 lemma finset_prod_apply {α : Type*} {β : α → Type*} {γ} [∀a, comm_monoid (β a)] (a : α)
   (s : finset γ) (g : γ → Πa, β a) : s.prod g a = s.prod (λc, g c a) :=
 show (s.val.map g).prod a = (s.val.map (λc, g c a)).prod,
   by rw [multiset_prod_apply, multiset.map_map]
 
-def is_ring_hom_pi
+instance is_ring_hom_pi
   {α : Type u} {β : α → Type v} [R : Π a : α, ring (β a)]
   {γ : Type w} [ring γ]
   (f : Π a : α, γ → β a) [Rh : Π a : α, is_ring_hom (f a)] :
@@ -138,7 +146,6 @@ begin
   { intros x y, ext1 z, rw [is_ring_hom.map_add (f z)], refl, }
 end
 
-
 end pi
 
 namespace prod
@@ -147,44 +154,44 @@ variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {p q : α × β}
 
 instance [has_add α] [has_add β] : has_add (α × β) :=
 ⟨λp q, (p.1 + q.1, p.2 + q.2)⟩
-@[to_additive prod.has_add]
+@[to_additive]
 instance [has_mul α] [has_mul β] : has_mul (α × β) :=
 ⟨λp q, (p.1 * q.1, p.2 * q.2)⟩
 
-@[simp, to_additive prod.fst_add]
+@[simp, to_additive]
 lemma fst_mul [has_mul α] [has_mul β] : (p * q).1 = p.1 * q.1 := rfl
-@[simp, to_additive prod.snd_add]
+@[simp, to_additive]
 lemma snd_mul [has_mul α] [has_mul β] : (p * q).2 = p.2 * q.2 := rfl
-@[simp, to_additive prod.mk_add_mk]
+@[simp, to_additive]
 lemma mk_mul_mk [has_mul α] [has_mul β] (a₁ a₂ : α) (b₁ b₂ : β) :
   (a₁, b₁) * (a₂, b₂) = (a₁ * a₂, b₁ * b₂) := rfl
 
 instance [has_zero α] [has_zero β] : has_zero (α × β) := ⟨(0, 0)⟩
-@[to_additive prod.has_zero]
+@[to_additive]
 instance [has_one α] [has_one β] : has_one (α × β) := ⟨(1, 1)⟩
 
-@[simp, to_additive prod.fst_zero]
+@[simp, to_additive]
 lemma fst_one [has_one α] [has_one β] : (1 : α × β).1 = 1 := rfl
-@[simp, to_additive prod.snd_zero]
+@[simp, to_additive]
 lemma snd_one [has_one α] [has_one β] : (1 : α × β).2 = 1 := rfl
-@[to_additive prod.zero_eq_mk]
+@[to_additive]
 lemma one_eq_mk [has_one α] [has_one β] : (1 : α × β) = (1, 1) := rfl
 
 instance [has_neg α] [has_neg β] : has_neg (α × β) := ⟨λp, (- p.1, - p.2)⟩
-@[to_additive prod.has_neg]
+@[to_additive]
 instance [has_inv α] [has_inv β] : has_inv (α × β) := ⟨λp, (p.1⁻¹, p.2⁻¹)⟩
 
-@[simp, to_additive prod.fst_neg]
+@[simp, to_additive]
 lemma fst_inv [has_inv α] [has_inv β] : (p⁻¹).1 = (p.1)⁻¹ := rfl
-@[simp, to_additive prod.snd_neg]
+@[simp, to_additive]
 lemma snd_inv [has_inv α] [has_inv β] : (p⁻¹).2 = (p.2)⁻¹ := rfl
-@[to_additive prod.neg_mk]
+@[to_additive]
 lemma inv_mk [has_inv α] [has_inv β] (a : α) (b : β) : (a, b)⁻¹ = (a⁻¹, b⁻¹) := rfl
 
 instance [add_semigroup α] [add_semigroup β] : add_semigroup (α × β) :=
 { add_assoc := assume a b c, mk.inj_iff.mpr ⟨add_assoc _ _ _, add_assoc _ _ _⟩,
   .. prod.has_add }
-@[to_additive prod.add_semigroup]
+@[to_additive add_semigroup]
 instance [semigroup α] [semigroup β] : semigroup (α × β) :=
 { mul_assoc := assume a b c, mk.inj_iff.mpr ⟨mul_assoc _ _ _, mul_assoc _ _ _⟩,
   .. prod.has_mul }
@@ -193,7 +200,7 @@ instance [add_monoid α] [add_monoid β] : add_monoid (α × β) :=
 { zero_add := assume a, prod.rec_on a $ λa b, mk.inj_iff.mpr ⟨zero_add _, zero_add _⟩,
   add_zero := assume a, prod.rec_on a $ λa b, mk.inj_iff.mpr ⟨add_zero _, add_zero _⟩,
   .. prod.add_semigroup, .. prod.has_zero }
-@[to_additive prod.add_monoid]
+@[to_additive add_monoid]
 instance [monoid α] [monoid β] : monoid (α × β) :=
 { one_mul := assume a, prod.rec_on a $ λa b, mk.inj_iff.mpr ⟨one_mul _, one_mul _⟩,
   mul_one := assume a, prod.rec_on a $ λa b, mk.inj_iff.mpr ⟨mul_one _, mul_one _⟩,
@@ -202,7 +209,7 @@ instance [monoid α] [monoid β] : monoid (α × β) :=
 instance [add_group α] [add_group β] : add_group (α × β) :=
 { add_left_neg := assume a, mk.inj_iff.mpr ⟨add_left_neg _, add_left_neg _⟩,
   .. prod.add_monoid, .. prod.has_neg }
-@[to_additive prod.add_group]
+@[to_additive add_group]
 instance [group α] [group β] : group (α × β) :=
 { mul_left_inv := assume a, mk.inj_iff.mpr ⟨mul_left_inv _, mul_left_inv _⟩,
   .. prod.monoid, .. prod.has_inv }
@@ -210,46 +217,46 @@ instance [group α] [group β] : group (α × β) :=
 instance [add_comm_semigroup α] [add_comm_semigroup β] : add_comm_semigroup (α × β) :=
 { add_comm := assume a b, mk.inj_iff.mpr ⟨add_comm _ _, add_comm _ _⟩,
   .. prod.add_semigroup }
-@[to_additive prod.add_comm_semigroup]
+@[to_additive add_comm_semigroup]
 instance [comm_semigroup α] [comm_semigroup β] : comm_semigroup (α × β) :=
 { mul_comm := assume a b, mk.inj_iff.mpr ⟨mul_comm _ _, mul_comm _ _⟩,
   .. prod.semigroup }
 
 instance [add_comm_monoid α] [add_comm_monoid β] : add_comm_monoid (α × β) :=
 { .. prod.add_comm_semigroup, .. prod.add_monoid }
-@[to_additive prod.add_comm_monoid]
+@[to_additive add_comm_monoid]
 instance [comm_monoid α] [comm_monoid β] : comm_monoid (α × β) :=
 { .. prod.comm_semigroup, .. prod.monoid }
 
 instance [add_comm_group α] [add_comm_group β] : add_comm_group (α × β) :=
 { .. prod.add_comm_semigroup, .. prod.add_group }
-@[to_additive prod.add_comm_group]
+@[to_additive add_comm_group]
 instance [comm_group α] [comm_group β] : comm_group (α × β) :=
 { .. prod.comm_semigroup, .. prod.group }
 
-@[to_additive fst.is_add_monoid_hom]
+@[to_additive is_add_monoid_hom]
 lemma fst.is_monoid_hom [monoid α] [monoid β] : is_monoid_hom (prod.fst : α × β → α) :=
 { map_mul := λ _ _, rfl, map_one := rfl }
-@[to_additive snd.is_add_monoid_hom]
+@[to_additive is_add_monoid_hom]
 lemma snd.is_monoid_hom [monoid α] [monoid β] : is_monoid_hom (prod.snd : α × β → β) :=
 { map_mul := λ _ _, rfl, map_one := rfl }
 
-@[to_additive fst.is_add_group_hom]
+@[to_additive is_add_group_hom]
 lemma fst.is_group_hom [group α] [group β] : is_group_hom (prod.fst : α × β → α) :=
-by refine_struct {..}; simp
-@[to_additive snd.is_add_group_hom]
+{ map_mul := λ _ _, rfl }
+@[to_additive is_add_group_hom]
 lemma snd.is_group_hom [group α] [group β] : is_group_hom (prod.snd : α × β → β) :=
-by refine_struct {..}; simp
+{ map_mul := λ _ _, rfl }
 
 attribute [instance] fst.is_monoid_hom fst.is_add_monoid_hom snd.is_monoid_hom snd.is_add_monoid_hom
 fst.is_group_hom fst.is_add_group_hom snd.is_group_hom snd.is_add_group_hom
 
-@[to_additive prod.fst_sum]
+@[to_additive]
 lemma fst_prod [comm_monoid α] [comm_monoid β] {t : finset γ} {f : γ → α × β} :
   (t.prod f).1 = t.prod (λc, (f c).1) :=
 (finset.prod_hom prod.fst).symm
 
-@[to_additive prod.snd_sum]
+@[to_additive]
 lemma snd_prod [comm_monoid α] [comm_monoid β] {t : finset γ} {f : γ → α × β} :
   (t.prod f).2 = t.prod (λc, (f c).2) :=
 (finset.prod_hom prod.snd).symm
@@ -340,11 +347,32 @@ instance {r : ring α} [add_comm_group β] [add_comm_group γ]
 instance {r : discrete_field α} [add_comm_group β] [add_comm_group γ]
   [vector_space α β] [vector_space α γ] : vector_space α (β × γ) := {}
 
+section substructures
+variables (s : set α) (t : set β)
+
+@[to_additive is_add_submonoid]
+instance [monoid α] [monoid β] [is_submonoid s] [is_submonoid t] :
+  is_submonoid (s.prod t) :=
+{ one_mem := by rw set.mem_prod; split; apply is_submonoid.one_mem,
+  mul_mem := by intros; rw set.mem_prod at *; split; apply is_submonoid.mul_mem; tauto }
+
+@[to_additive prod.is_add_subgroup.prod]
+instance is_subgroup.prod [group α] [group β] [is_subgroup s] [is_subgroup t] :
+  is_subgroup (s.prod t) :=
+{ inv_mem := by intros; rw set.mem_prod at *; split; apply is_subgroup.inv_mem; tauto,
+  .. prod.is_submonoid s t }
+
+instance is_subring.prod [ring α] [ring β] [is_subring s] [is_subring t] :
+  is_subring (s.prod t) :=
+{ .. prod.is_submonoid s t, .. prod.is_add_subgroup.prod s t }
+
+end substructures
+
 end prod
 
 namespace finset
 
-@[to_additive finset.prod_mk_sum]
+@[to_additive prod_mk_sum]
 lemma prod_mk_prod {α β γ : Type*} [comm_monoid α] [comm_monoid β] (s : finset γ)
   (f : γ → α) (g : γ → β) : (s.prod f, s.prod g) = s.prod (λ x, (f x, g x)) :=
 by haveI := classical.dec_eq γ; exact

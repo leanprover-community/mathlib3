@@ -88,7 +88,7 @@ theorem right_inverse.comp {γ} {f : α → β} {g : β → α} {h : β → γ} 
   (hf : right_inverse f g) (hh : right_inverse h i) : right_inverse (h ∘ f) (g ∘ i) :=
 left_inverse.comp hh hf
 
-local attribute [instance] classical.prop_decidable
+local attribute [instance, priority 1] classical.prop_decidable
 
 /-- We can use choice to construct explicitly a partial inverse for
   a given injective function `f`. -/
@@ -113,7 +113,7 @@ end
 section inv_fun
 variables {α : Type u} [inhabited α] {β : Sort v} {f : α → β} {s : set α} {a : α} {b : β}
 
-local attribute [instance] classical.prop_decidable
+local attribute [instance, priority 1] classical.prop_decidable
 
 /-- Construct the inverse for a function `f` on domain `s`. -/
 noncomputable def inv_fun_on (f : α → β) (s : set α) (b : β) : α :=
@@ -218,9 +218,20 @@ end update
 lemma uncurry_def {α β γ} (f : α → β → γ) : uncurry f = (λp, f p.1 p.2) :=
 funext $ assume ⟨a, b⟩, rfl
 
+-- `uncurry'` is the version of `uncurry` with correct definitional reductions
+def uncurry' {α β γ} (f : α → β → γ) := λ p : α × β, f p.1 p.2
+
+@[simp]
+lemma curry_uncurry' {α : Type*} {β : Type*} {γ : Type*} (f : α → β → γ) : curry (uncurry' f) = f :=
+by funext ; refl
+
+@[simp]
+lemma uncurry'_curry {α : Type*} {β : Type*} {γ : Type*} (f : α × β → γ) : uncurry' (curry f) = f :=
+by { funext, simp [curry, uncurry', prod.mk.eta] }
+
 def restrict {α β} (f : α → β) (s : set α) : subtype s → β := λ x, f x.val
 
-theorem restrict_eq {α β} (f : α → β) (s : set α): function.restrict f s = f ∘ (@subtype.val _ s) := rfl
+theorem restrict_eq {α β} (f : α → β) (s : set α) : function.restrict f s = f ∘ (@subtype.val _ s) := rfl
 
 section bicomp
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ε : Type*}
@@ -238,6 +249,8 @@ lemma uncurry_bicompr (f : α → β → γ) (g : γ → δ) :
   uncurry (g ∘₂ f) = (g ∘ uncurry f) :=
 funext $ λ ⟨p, q⟩, rfl
 
+lemma uncurry'_bicompr (f : α → β → γ) (g : γ → δ) :
+  uncurry' (g ∘₂ f) = (g ∘ uncurry' f) := rfl
 end bicomp
 
 end function

@@ -23,9 +23,10 @@ The best is to define a copy and select the instances best suited.
 import data.finset data.set.finite algebra.big_operators algebra.module
 
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 
 open finset
+
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ι : Type*}
   {α₁ : Type*} {α₂ : Type*} {β₁ : Type*} {β₂ : Type*}
 

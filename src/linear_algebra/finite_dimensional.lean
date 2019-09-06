@@ -88,10 +88,9 @@ by rw [← nat_cast_inj.{v}, findim_eq_dim, ← fintype_card, ← lift_inj, ← 
 lemma eq_top_of_findim_eq [finite_dimensional K V] {S : submodule K V}
   (h : findim K S = findim K V) : S = ⊤ :=
 begin
-  letI := classical.dec_eq V,
   cases exists_is_basis K S with bS hbS,
   have : linear_independent K (subtype.val : (subtype.val '' bS : set V) → V),
-    from @linear_independent.image_subtype _ _ _ _ _ _ _ _ _ _ _ _
+    from @linear_independent.image_subtype _ _ _ _ _ _ _ _ _
       (submodule.subtype S) hbS.1 (by simp),
   cases exists_subset_is_basis this with b hb,
   letI : fintype b := classical.choice (finite_of_linear_independent hb.2.1),
@@ -99,7 +98,7 @@ begin
   letI : fintype bS := classical.choice (finite_of_linear_independent hbS.1),
   have : subtype.val '' bS = b, from set.eq_of_subset_of_card_le hb.1
     (by rw [set.card_image_of_injective _ subtype.val_injective, card_eq_findim hbS,
-         card_eq_findim hb.2, h]; apply_instance),
+         card_eq_findim hb.2, h]),
   erw [← hb.2.2, subtype.val_range, ← this, set.set_of_mem_eq, ← subtype_eq_val, span_image],
   have := hbS.2,
   erw [subtype.val_range, set.set_of_mem_eq] at this,

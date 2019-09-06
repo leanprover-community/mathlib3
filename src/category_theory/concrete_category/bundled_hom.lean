@@ -95,7 +95,7 @@ protected def full_subcategory : bundled_hom (λ α β (Iα : d α) (Iβ : d β)
 
 def full_subcategory_has_forget :
   @has_forget (bundled d) (bundled c)
-    (by haveI := 𝒞.full_subcategory obj; apply_instance) _ :=
+    (by haveI := 𝒞.full_subcategory obj; apply_instance) (by apply_instance) :=
 induced_category.has_forget (bundled.map @obj)
 
 end full_subcategory

@@ -531,9 +531,10 @@ lemma degrees_one : degrees (1 : mv_polynomial σ α) = 0 := degrees_C 1
 lemma degrees_add (p q : mv_polynomial σ α) : (p + q).degrees ≤ p.degrees ⊔ q.degrees :=
 begin
   refine finset.sup_le (assume b hb, _),
-  cases finset.mem_union.1 (finsupp.support_add hb),
-  { exact le_sup_left_of_le (finset.le_sup h) },
-  { exact le_sup_right_of_le (finset.le_sup h) },
+  have := finsupp.support_add hb, rw finset.mem_union at this,
+  cases this,
+  { exact le_sup_left_of_le (finset.le_sup this) },
+  { exact le_sup_right_of_le (finset.le_sup this) },
 end
 
 lemma degrees_sum {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ α) :
@@ -640,9 +641,10 @@ lemma total_degree_add (a b : mv_polynomial σ α) :
 finset.sup_le $ assume n hn,
   have _ := finsupp.support_add hn,
   begin
-    rcases finset.mem_union.1 this,
-    { exact le_max_left_of_le (finset.le_sup h) },
-    { exact le_max_right_of_le (finset.le_sup h) }
+    rw finset.mem_union at this,
+    cases this,
+    { exact le_max_left_of_le (finset.le_sup this) },
+    { exact le_max_right_of_le (finset.le_sup this) }
   end
 
 lemma total_degree_mul (a b : mv_polynomial σ α) :
@@ -897,7 +899,8 @@ finset.sup_le $ assume b,
     assume h,
     rw rename_eq at h,
     have h' := finsupp.map_domain_support h,
-    rcases finset.mem_image.1 h' with ⟨s, hs, rfl⟩,
+    rw finset.mem_image at h',
+    rcases h' with ⟨s, hs, rfl⟩,
     rw finsupp.sum_map_domain_index,
     exact le_trans (le_refl _) (finset.le_sup hs),
     exact assume _, rfl,

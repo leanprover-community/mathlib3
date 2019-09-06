@@ -126,14 +126,14 @@ variables {α : Type v} [comm_ring α] [decidable_eq n]
 open finsupp matrix linear_map
 
 /-- to_lin is the left inverse of to_matrix. -/
-lemma to_matrix_to_lin [decidable_eq α] {f : (n → α) →ₗ[α] (m → α)} :
+lemma to_matrix_to_lin {f : (n → α) →ₗ[α] (m → α)} :
   to_lin (to_matrix f) = f :=
 begin
   ext : 1,
   -- Show that the two sides are equal by showing that they are equal on a basis
-  convert linear_eq_on (set.range _) _ (is_basis.mem_span (@pi.is_basis_fun α _ n _ _ _) _),
+  convert linear_eq_on (set.range _) _ (is_basis.mem_span (@pi.is_basis_fun α n _ _) _),
   assume e he,
-  rw [@std_basis_eq_single α _ _ _ _ 1] at he,
+  rw [@std_basis_eq_single α _ _ _ 1] at he,
   cases (set.mem_range.mp he) with i h,
   ext j,
   change finset.univ.sum (λ k, (f.to_fun (λ l, ite (k = l) 1 0)) j * (e k)) = _,
@@ -165,7 +165,7 @@ begin
 end
 
 /-- Linear maps (n → α) →ₗ[α] (m → α) are linearly equivalent to matrix  m n α. -/
-def lin_equiv_matrix' [decidable_eq α] : ((n → α) →ₗ[α] (m → α)) ≃ₗ[α] matrix m n α :=
+def lin_equiv_matrix' : ((n → α) →ₗ[α] (m → α)) ≃ₗ[α] matrix m n α :=
 { to_fun := to_matrix,
   inv_fun := to_lin,
   right_inv := λ _, to_lin_to_matrix,
@@ -175,9 +175,9 @@ def lin_equiv_matrix' [decidable_eq α] : ((n → α) →ₗ[α] (m → α)) ≃
 
 /-- Given a basis of two modules β and γ over a commutative ring α, we get a linear equivalence
 between linear maps β →ₗ γ and matrices over α indexed by the bases. -/
-def lin_equiv_matrix {ι κ β γ : Type*} [decidable_eq α]
-  [add_comm_group β] [decidable_eq β] [module α β]
-  [add_comm_group γ] [decidable_eq γ] [module α γ]
+def lin_equiv_matrix {ι κ β γ : Type*}
+  [add_comm_group β] [module α β]
+  [add_comm_group γ] [module α γ]
   [fintype ι] [decidable_eq ι] [fintype κ] [decidable_eq κ]
   {v₁ : ι → β} {v₂ : κ → γ} (hv₁ : is_basis α v₁) (hv₂ : is_basis α v₂) :
   (β →ₗ[α] γ) ≃ₗ[α] matrix κ ι α :=
@@ -250,7 +250,7 @@ begin
   rw [← linear_map.range_comp, diagonal_comp_std_basis, range_smul'],
 end
 
-lemma rank_diagonal [decidable_eq m] [decidable_eq α] (w : m → α) :
+lemma rank_diagonal [decidable_eq m] (w : m → α) :
   rank (diagonal w).to_lin = fintype.card { i // w i ≠ 0 } :=
 begin
   have hu : univ ⊆ - {i : m | w i = 0} ∪ {i : m | w i = 0}, { rw set.compl_union_self },

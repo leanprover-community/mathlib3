@@ -110,8 +110,8 @@ begin
   ext, rw [←nat_trans.exchange], simp, refl
 end
 omit ℰ
--- suggested local notation for nat_iso.hcomp. Currently unused.
-local infix ` ■ `:80 := hcomp
+-- declare local notation for nat_iso.hcomp
+localized "infix ` ■ `:80 := category_theory.nat_iso.hcomp" in category
 
 
 end nat_iso

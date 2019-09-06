@@ -545,7 +545,7 @@ begin
 end
 
 section
-local attribute  [instance] classical.prop_decidable
+open_locale classical
 
 lemma core_res (f : α → β) (s : set α) (t : set β) : core (res f s) t = -s ∪ f ⁻¹' t :=
 by { ext, rw mem_core_res, by_cases h : x ∈ s; simp [h] }

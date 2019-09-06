@@ -9,7 +9,7 @@ import topology.order topology.separation
 noncomputable theory
 
 open set filter lattice
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
@@ -45,6 +45,14 @@ lemma dense_range.inhabited (df : dense_range f) (b : β) : inhabited α :=
   exact classical.some (classical.some_spec this),
  end⟩
 
+lemma dense_range.nonempty (hf : dense_range f) : nonempty α ↔ nonempty β :=
+begin
+  split ; intro h ; cases classical.inhabited_of_nonempty h with x,
+  { exact ⟨f x⟩ },
+  { rcases exists_mem_of_ne_empty (mem_closure_iff.1 (hf x) _ is_open_univ trivial)
+      with ⟨_, ⟨_, a, _⟩⟩,
+    exact ⟨a⟩ },
+end
 end dense_range
 
 section inducing

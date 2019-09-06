@@ -9,7 +9,7 @@ universes u v
 variables {α : Type u} {β : Type v} {a b : α}
 open set function lattice
 
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 namespace ideal
 variables [comm_ring α] (I : ideal α)
@@ -511,4 +511,3 @@ instance : local_ring α :=
   else or.inl $ is_unit_of_mul_one a a⁻¹ $ div_self h }
 
 end discrete_field
-

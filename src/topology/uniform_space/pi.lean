@@ -10,7 +10,7 @@ import topology.uniform_space.cauchy
 import topology.uniform_space.separation
 noncomputable theory
 
-local notation `𝓤` := uniformity
+open_locale uniformity
 
 section
 open filter lattice uniform_space

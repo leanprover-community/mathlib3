@@ -12,6 +12,9 @@ import data.polynomial data.mv_polynomial
 import ring_theory.subring
 import ring_theory.ideals ring_theory.noetherian
 
+noncomputable theory
+local attribute [instance, priority 100] classical.prop_decidable
+
 universes u v w
 
 namespace polynomial

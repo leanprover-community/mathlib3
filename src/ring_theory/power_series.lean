@@ -715,7 +715,8 @@ lemma monomial_eq_mk (n : ℕ) (a : α) :
 ext $ λ m, by { rw [coeff_monomial, coeff_mk] }
 
 @[simp] lemma coeff_monomial' (n : ℕ) (a : α) :
-  coeff n (monomial n a) = a := if_pos rfl
+  coeff n (monomial n a) = a :=
+by convert if_pos rfl
 
 lemma coeff_C (n : ℕ) (a : α) :
   coeff n (C a : power_series α) = if n = 0 then a else 0 :=

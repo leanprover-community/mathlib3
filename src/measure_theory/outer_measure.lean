@@ -13,7 +13,7 @@ import algebra.big_operators algebra.module
 noncomputable theory
 
 open set lattice finset function filter encodable
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 namespace measure_theory
 

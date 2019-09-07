@@ -477,6 +477,8 @@ by simp [and_comm]
 
 @[simp] theorem exists_eq {a' : α} : ∃ a, a = a' := ⟨_, rfl⟩
 
+@[simp] theorem exists_eq' {a' : α} : Exists (eq a') := ⟨_, rfl⟩
+
 @[simp] theorem exists_eq_left {a' : α} : (∃ a, a = a' ∧ p a) ↔ p a' :=
 ⟨λ ⟨a, e, h⟩, e ▸ h, λ h, ⟨_, rfl, h⟩⟩
 

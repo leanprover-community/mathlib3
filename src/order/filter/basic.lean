@@ -11,7 +11,7 @@ open lattice set
 
 universes u v w x y
 
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 namespace lattice
 variables {α : Type u} {ι : Sort v}
@@ -196,7 +196,7 @@ end join
 section lattice
 
 instance : partial_order (filter α) :=
-{ le            := λf g, g.sets ⊆ f.sets,
+{ le            := λf g, ∀ ⦃U : set α⦄, U ∈ g → U ∈ f,
   le_antisymm   := assume a b h₁ h₂, filter_eq $ subset.antisymm h₂ h₁,
   le_refl       := assume a, subset.refl _,
   le_trans      := assume a b c h₁ h₂, subset.trans h₂ h₁ }
@@ -212,7 +212,7 @@ inductive generate_sets (g : set (set α)) : set α → Prop
 
 /-- `generate g` is the smallest filter containing the sets `g`. -/
 def generate (g : set (set α)) : filter α :=
-{ sets             := {s | generate_sets g s},
+{ sets             := generate_sets g,
   univ_sets        := generate_sets.univ,
   sets_of_superset := assume x y, generate_sets.superset,
   inter_sets       := assume s t, generate_sets.inter }
@@ -239,7 +239,7 @@ show u ∈ (filter.mk_of_closure s hs).sets ↔ u ∈ (generate s).sets, from hs
 def gi_generate (α : Type*) :
   @galois_insertion (set (set α)) (order_dual (filter α)) _ _ filter.generate filter.sets :=
 { gc        := assume s f, sets_iff_generate,
-  le_l_u    := assume f u, generate_sets.basic,
+  le_l_u    := assume f u h, generate_sets.basic h,
   choice    := λs hs, filter.mk_of_closure s (le_antisymm hs $ sets_iff_generate.1 $ le_refl _),
   choice_eq := assume s hs, mk_of_closure_sets }
 

@@ -8,8 +8,8 @@ Uniform embeddings of uniform spaces. Extension of uniform continuous functions.
 import topology.uniform_space.cauchy topology.uniform_space.separation
 
 open filter topological_space lattice set classical
-local attribute [instance, priority 0] prop_decidable
-local notation `𝓤` := uniformity
+open_locale classical
+open_locale uniformity
 
 section
 variables {α : Type*} {β : Type*} {γ : Type*}

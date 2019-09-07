@@ -202,16 +202,16 @@ end nat
 section
 variables {α : Type*} [discrete_linear_ordered_field α] (a b c : α)
 
-lemma inv_pos' {a : α} : 0 < a⁻¹ ↔ 0 < a :=
+@[simp] lemma inv_pos' {a : α} : 0 < a⁻¹ ↔ 0 < a :=
 ⟨by rw [inv_eq_one_div]; exact pos_of_one_div_pos, inv_pos⟩
 
-lemma inv_neg' {a : α} : a⁻¹ < 0 ↔ a < 0 :=
+@[simp] lemma inv_neg' {a : α} : a⁻¹ < 0 ↔ a < 0 :=
 ⟨by rw [inv_eq_one_div]; exact neg_of_one_div_neg, inv_lt_zero⟩
 
-lemma inv_nonneg {a : α} : 0 ≤ a⁻¹ ↔ 0 ≤ a :=
+@[simp] lemma inv_nonneg {a : α} : 0 ≤ a⁻¹ ↔ 0 ≤ a :=
 le_iff_le_iff_lt_iff_lt.2 inv_neg'
 
-lemma inv_nonpos {a : α} : a⁻¹ ≤ 0 ↔ a ≤ 0 :=
+@[simp] lemma inv_nonpos {a : α} : a⁻¹ ≤ 0 ↔ a ≤ 0 :=
 le_iff_le_iff_lt_iff_lt.2 inv_pos'
 
 lemma abs_inv : abs a⁻¹ = (abs a)⁻¹ :=

@@ -104,7 +104,7 @@ meta def aux_attr : user_attribute (name_map name) name :=
   parser    := lean.parser.ident }
 
 meta def map_namespace (src tgt : name) : command :=
-do decl ← get_decl `bool, -- random choice
+do decl ← get_decl `expr, -- random choice
    let n := src.mk_string "_to_additive",
    let decl := decl.update_name n,
    add_decl decl,

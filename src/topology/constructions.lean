@@ -1142,8 +1142,9 @@ end
 section distrib
 variables {ι : Type*} {σ : ι → Type*} [Π i, topological_space (σ i)] [topological_space β]
 
-def sigma_prod_distrib : (Σ i, (σ i × β)) ≃ₜ ((Σ i, σ i) × β) :=
-homeomorph_of_continuous_open (equiv.sigma_prod_distrib σ β)
+def sigma_prod_distrib : ((Σ i, σ i) × β) ≃ₜ (Σ i, (σ i × β)) :=
+homeomorph.symm $
+homeomorph_of_continuous_open (equiv.sigma_prod_distrib σ β).symm
   (continuous_sigma $ λ i,
     continuous.prod_mk (continuous_sigma_mk.comp continuous_fst) continuous_snd)
   (is_open_map_sigma $ λ i,

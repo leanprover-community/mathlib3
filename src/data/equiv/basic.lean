@@ -492,11 +492,11 @@ calc α × (β ⊕ γ) ≃ (β ⊕ γ) × α       : prod_comm _ _
    prod_sum_distrib α β γ (a, sum.inr c) = sum.inr (a, c) := rfl
 
 def sigma_prod_distrib {ι : Type*} (α : ι → Type*) (β : Type*) :
-  (Σ i, (α i × β)) ≃ ((Σ i, α i) × β) :=
-⟨λ p, (⟨p.1, p.2.1⟩, p.2.2),
- λ p, ⟨p.1.1, (p.1.2, p.2)⟩,
- λ p, by { rcases p with ⟨_, ⟨_, _⟩⟩, refl },
- λ p, by { rcases p with ⟨⟨_, _⟩, _⟩, refl }⟩
+  ((Σ i, α i) × β) ≃ (Σ i, (α i × β)) :=
+⟨λ p, ⟨p.1.1, (p.1.2, p.2)⟩,
+ λ p, (⟨p.1, p.2.1⟩, p.2.2),
+ λ p, by { rcases p with ⟨⟨_, _⟩, _⟩, refl },
+ λ p, by { rcases p with ⟨_, ⟨_, _⟩⟩, refl }⟩
 
 def bool_prod_equiv_sum (α : Type u) : bool × α ≃ α ⊕ α :=
 calc bool × α ≃ (unit ⊕ unit) × α       : prod_congr bool_equiv_punit_sum_punit (equiv.refl _)

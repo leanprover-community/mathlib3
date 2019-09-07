@@ -138,8 +138,6 @@ theorem normal_iff_eq_cosets : normal_subgroup s ↔ ∀ g, g *l s = s *r g :=
 
 end coset_subgroup
 
-run_cmd to_additive.map_namespace `quotient_group `quotient_add_group
-
 namespace quotient_group
 
 @[to_additive]

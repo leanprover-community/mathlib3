@@ -72,10 +72,13 @@ begin
   refl
 end
 
+/-- Two local homeomorphisms are equal when they have equal to_fun, inv_fun and source. It is not
+sufficient to have equal to_fun and source, as this only determines inv_fun on the target. This
+would only be true for a weaker notion of equality, arguably the right one, called `eq_on_source`. -/
 @[extensionality]
 protected lemma ext (e' : local_homeomorph α β) (h : ∀x, e.to_fun x = e'.to_fun x)
-  (hsymm : ∀x, e.inv_fun x = e'.inv_fun x) (hs : e.source = e'.source) : e = e' :=
-eq_of_local_equiv_eq (local_equiv.ext e.to_local_equiv e'.to_local_equiv h hsymm hs)
+  (hinv: ∀x, e.inv_fun x = e'.inv_fun x) (hs : e.source = e'.source) : e = e' :=
+eq_of_local_equiv_eq (local_equiv.ext e.to_local_equiv e'.to_local_equiv h hinv hs)
 
 /-- The inverse of a local homeomorphism -/
 protected def symm : local_homeomorph β α :=
@@ -128,21 +131,33 @@ begin
       end }
 end
 
+/-- Restricting a local homeomorphism `e` to `e.source ∩ s` when `s` is open. This is sometimes hard
+to use because of the openness assumption, but it has the advantage that when it can
+be used then its local_equiv is defeq to local_equiv.restr -/
+protected def restr_open (s : set α) (hs : is_open s) :
+  local_homeomorph α β :=
+{ open_source := is_open_inter e.open_source hs,
+  open_target := (continuous_on_open_iff e.open_target).1 e.continuous_inv_fun s hs,
+  continuous_to_fun  := e.continuous_to_fun.mono (inter_subset_left _ _),
+  continuous_inv_fun := e.continuous_inv_fun.mono (inter_subset_left _ _),
+  ..e.to_local_equiv.restr s}
+
+@[simp] lemma restr_open_source (s : set α) (hs : is_open s) :
+  (e.restr_open s hs).source = e.source ∩ s := rfl
+
+@[simp] lemma restr_open_to_local_equiv (s : set α) (hs : is_open s) :
+  (e.restr_open s hs).to_local_equiv = e.to_local_equiv.restr s := rfl
+
 /-- Restricting a local homeomorphism `e` to `e.source ∩ interior s`. We use the interior to make
 sure that the restriction is well defined whatever the set s, since local homeomorphisms are by
 definition defined on open sets. In applications where `s` is open, this coincides with the
 restriction of local equivalences -/
 protected def restr (s : set α) : local_homeomorph α β :=
-{ open_source        := is_open_inter e.open_source is_open_interior,
-  open_target        := (continuous_on_open_iff e.open_target).1 e.continuous_inv_fun (interior s)
-                          is_open_interior,
-  continuous_to_fun  := e.continuous_to_fun.mono (inter_subset_left _ _),
-  continuous_inv_fun := e.continuous_inv_fun.mono (inter_subset_left _ _),
-  ..e.to_local_equiv.restr (interior s) }
+e.restr_open (interior s) is_open_interior
 
-@[simp] lemma restr_to_fun (s : set α) : (e.restr s).to_fun = e.to_fun := rfl
+@[simp] lemma restr_to_fun (s : set α)  : (e.restr s).to_fun = e.to_fun := rfl
 @[simp] lemma restr_inv_fun (s : set α) : (e.restr s).inv_fun = e.inv_fun := rfl
-@[simp] lemma restr_source (s : set α) : (e.restr s).source = e.source ∩ interior s := rfl
+@[simp] lemma restr_source (s : set α)  : (e.restr s).source = e.source ∩ interior s := rfl
 @[simp] lemma restr_target (s : set α) :
   (e.restr s).target = e.target ∩ e.inv_fun ⁻¹' (interior s) := rfl
 @[simp] lemma restr_to_local_equiv (s : set α) :
@@ -168,22 +183,12 @@ end
 @[simp] lemma restr_univ {e : local_homeomorph α β} : e.restr univ = e :=
 restr_eq_of_source_subset (subset_univ _)
 
-/-- Restricting a local homeomorphism `e` to `e.source ∩ s` when `s` is open. This is less easy
-to use than restr because of the openness assumption, but it has the advantage that when it can
-be used then its local_equiv is defeq to local_equiv.restr -/
-protected def restr_open (s : set α) (hs : is_open s) :
-  local_homeomorph α β :=
-{ open_source := is_open_inter e.open_source hs,
-  open_target := (continuous_on_open_iff e.open_target).1 e.continuous_inv_fun s hs,
-  continuous_to_fun  := e.continuous_to_fun.mono (inter_subset_left _ _),
-  continuous_inv_fun := e.continuous_inv_fun.mono (inter_subset_left _ _),
-  ..e.to_local_equiv.restr s}
-
-@[simp] lemma restr_open_source (s : set α) (hs : is_open s) :
-  (e.restr_open s hs).source = e.source ∩ s := rfl
-
-lemma restr_open_to_local_equiv (s : set α) (hs : is_open s) :
-  (e.restr_open s hs).to_local_equiv = e.to_local_equiv.restr s := rfl
+lemma restr_source_inter (s : set α) : e.restr (e.source ∩ s) = e.restr s :=
+begin
+  refine local_homeomorph.ext _ _ (λx, rfl) (λx, rfl) _,
+  simp [interior_eq_of_open e.open_source],
+  rw [← inter_assoc, inter_self]
+end
 
 /-- The identity on the whole space as a local homeomorphism. -/
 protected def refl (α : Type*) [topological_space α] : local_homeomorph α α :=
@@ -288,21 +293,16 @@ local_homeomorph.ext _ _ (λx, rfl) (λx, rfl) $
 
 lemma trans_of_set' {s : set β} (hs : is_open s) :
   e.trans (of_set s hs) = e.restr (e.source ∩ e.to_fun ⁻¹' s) :=
-begin
-  refine local_homeomorph.ext _ _ (λx, rfl) (λx, rfl) _,
-  simp only [refl_source, interior_inter, restr_source, univ_inter, trans_source, of_set_source],
-  rw [interior_eq_of_open e.open_source, ← inter_assoc, inter_self,
-      (e.preimage_interior _).symm, interior_eq_of_open hs]
-end
+by rw [trans_of_set, restr_source_inter]
 
-lemma trans_of_set'' {s : set β} (hs : is_open s) :
-  e.trans (of_set s hs) = e.restr (e.source ∩ e.to_fun ⁻¹' s) :=
-begin
-  refine local_homeomorph.ext _ _ (λx, rfl) (λx, rfl) _,
-  simp only [refl_source, interior_inter, restr_source, univ_inter, trans_source, of_set_source],
-  rw [interior_eq_of_open e.open_source, ← inter_assoc, inter_self,
-      (e.preimage_interior _).symm, interior_eq_of_open hs]
-end
+lemma of_set_trans {s : set α} (hs : is_open s) :
+  (of_set s hs).trans e = e.restr s :=
+local_homeomorph.ext _ _ (λx, rfl) (λx, rfl) $
+  by simp [local_equiv.trans_source, interior_eq_of_open hs, inter_comm]
+
+lemma of_set_trans' {s : set α} (hs : is_open s) :
+  (of_set s hs).trans e = e.restr (e.source ∩ s) :=
+by rw [of_set_trans, restr_source_inter]
 
 lemma restr_trans (s : set α) :
   (e.restr s).trans e' = (e.trans e').restr s :=

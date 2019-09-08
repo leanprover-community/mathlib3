@@ -1372,8 +1372,9 @@ variables [is_lawful_monad m]
 
 end mfoldl_mfoldr
 
-/- sum -/
+/- prod -/
 
+-- list.sum was already defined in defs.lean, but we couldn't tag it with `to_additive` yet.
 attribute [to_additive] list.prod
 
 section monoid

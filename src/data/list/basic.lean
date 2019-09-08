@@ -4539,10 +4539,10 @@ theorem tfae_of_forall (b : Prop) (l : list Prop) (h : ∀ a ∈ l, a ↔ b) : t
 theorem tfae_of_cycle {a b} {l : list Prop} :
   list.chain (→) a (b::l) → (ilast' b l → a) → tfae (a::b::l) :=
 begin
-  induction l with c l IH generalizing a b; simp [tfae_cons_cons, tfae_singleton] at *,
-  { intros a _ b, exact iff.intro a b },
-  intros ab bc ch la,
-  have := IH bc ch (ab ∘ la),
+  induction l with c l IH generalizing a b; simp only [tfae_cons_cons, tfae_singleton, and_true, chain_cons, chain.nil] at *,
+  { intros a b, exact iff.intro a b },
+  rintros ⟨ab,⟨bc,ch⟩⟩ la,
+  have := IH ⟨bc,ch⟩ (ab ∘ la),
   exact ⟨⟨ab, la ∘ (this.2 c (or.inl rfl) _ (ilast'_mem _ _)).1 ∘ bc⟩, this⟩
 end
 

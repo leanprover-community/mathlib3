@@ -392,6 +392,8 @@ variable {R}
   chain R a (b::l) ↔ R a b ∧ chain R b l :=
 ⟨λ p, by cases p with _ a b l n p; exact ⟨n, p⟩, λ ⟨n, p⟩, p.cons n⟩
 
+attribute [simp] chain.nil
+
 instance decidable_chain [decidable_rel R] (a : α) (l : list α) : decidable (chain R a l) :=
 by induction l generalizing a; simp only [chain.nil, chain_cons]; resetI; apply_instance
 

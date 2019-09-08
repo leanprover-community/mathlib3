@@ -137,8 +137,8 @@ def domineering' : Π (n : ℕ) (b : finset (ℤ × ℤ)), b.card = n → pgame
 | 1 b _ := pgame.mk (left b) (right b) (λ m, 0) (λ m, 0)
 | (n + 2) b h :=
   pgame.mk (left b) (right b)
-    (λ m, domineering' n (move_left b m) begin have t := (move_left_card b m), rw h at t, simp at t, exact t, end )
-    (λ m, domineering' n (move_right b m) begin have t := (move_right_card b m), rw h at t, simp at t, exact t, end)
+    (λ m, domineering' n (move_left b m) begin have t := (move_left_card b m), rw h at t, exact t, end )
+    (λ m, domineering' n (move_right b m) begin have t := (move_right_card b m), rw h at t, exact t, end)
 
 /-- We construct a domineering game from any finite subset of `ℤ × ℤ`. -/
 def domineering (b : finset (ℤ × ℤ)) : pgame :=

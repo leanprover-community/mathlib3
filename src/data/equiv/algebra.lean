@@ -366,7 +366,12 @@ In each case this type also forms a group.
 
 @[extensionality] lemma mul_equiv.ext {α β : Type*} [has_mul α] [has_mul β]
   {f g : mul_equiv α β} (h : f.to_fun = g.to_fun) : f = g :=
-by { cases f, cases g, congr, apply equiv.eq_of_to_fun_eq h }
+begin
+  have h₁ := @equiv.eq_of_to_fun_eq _ _ f.to_equiv g.to_equiv h,
+  cases f, cases g, congr,
+  { exact h },
+  { exact congr_arg equiv.inv_fun h₁ }
+end
 
 namespace monoid
 
@@ -400,7 +405,12 @@ end group
 
 @[extensionality] lemma add_equiv.ext {α β : Type*} [has_add α] [has_add β]
   {f g : add_equiv α β} (h : f.to_fun = g.to_fun) : f = g :=
-by { cases f, cases g, congr, apply equiv.eq_of_to_fun_eq h }
+begin
+  have h₁ := @equiv.eq_of_to_fun_eq _ _ f.to_equiv g.to_equiv h,
+  cases f, cases g, congr,
+  { exact h },
+  { exact congr_arg equiv.inv_fun h₁ }
+end
 
 namespace add_monoid
 
@@ -434,7 +444,12 @@ end add_group
 
 @[extensionality] lemma ring_equiv.ext {R S : Type*} [ring R] [ring S]
   {f g : ring_equiv R S} (h : f.to_fun = g.to_fun) : f = g :=
-by { cases f, cases g, congr, apply equiv.eq_of_to_fun_eq h }
+begin
+  have h₁ := @equiv.eq_of_to_fun_eq _ _ f.to_equiv g.to_equiv h,
+  cases f, cases g, congr,
+  { exact h },
+  { exact congr_arg equiv.inv_fun h₁ }
+end
 
 namespace ring
 
@@ -459,6 +474,6 @@ Map from the automorphisms of a ring to the automorphisms of the additive
 group defined by addition in R.
 -/
 def ring_aut_to_add_monoid_aut (R : Type*) [ring R] (f : aut R) : add_monoid.aut R :=
-⟨ f.1,  ⟨ f.hom.map_add ⟩ ⟩
+{ map_add' := f.hom.map_add .. f }
 
 end ring

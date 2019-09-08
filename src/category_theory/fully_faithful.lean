@@ -100,23 +100,25 @@ protected def faithful.div (F : C ⥤ E) [faithful F] (G : D ⥤ E) [faithful G]
   C ⥤ D :=
 { obj := obj,
   map := @map,
-  map_id' := begin
-             assume X,
-             apply G.injectivity,
-             apply eq_of_heq,
-             transitivity F.map (𝟙 X), from h_map,
-             rw [F.map_id, G.map_id, h_obj X]
-             end,
-  map_comp' := begin
-               assume X Y Z f g,
-               apply G.injectivity,
-               apply eq_of_heq,
-               transitivity F.map (f ≫ g), from h_map,
-               rw [F.map_comp, G.map_comp],
-               congr' 1;
-                 try { exact (h_obj _).symm };
-                 exact h_map.symm
-               end }
+  map_id' :=
+  begin
+    assume X,
+    apply G.injectivity,
+    apply eq_of_heq,
+    transitivity F.map (𝟙 X), from h_map,
+    rw [F.map_id, G.map_id, h_obj X]
+  end,
+  map_comp' :=
+  begin
+    assume X Y Z f g,
+    apply G.injectivity,
+    apply eq_of_heq,
+    transitivity F.map (f ≫ g), from h_map,
+    rw [F.map_comp, G.map_comp],
+    congr' 1;
+      try { exact (h_obj _).symm };
+      exact h_map.symm
+  end }
 
 lemma faithful.div_comp (F : C ⥤ E) [faithful F] (G : D ⥤ E) [faithful G]
   (obj : C → D) (h_obj : ∀ X, G.obj (obj X) = F.obj X)
@@ -124,15 +126,15 @@ lemma faithful.div_comp (F : C ⥤ E) [faithful F] (G : D ⥤ E) [faithful G]
   (h_map : ∀ {X Y} {f : X ⟶ Y}, G.map (map f) == F.map f) :
   (faithful.div F G obj @h_obj @map @h_map) ⋙ G = F :=
 begin
-tactic.unfreeze_local_instances,
-cases F with F_obj _ _ _; cases G with G_obj _ _ _,
-unfold faithful.div functor.comp,
-unfold_projs at h_obj,
-have: F_obj = G_obj ∘ obj := (funext h_obj).symm,
-subst this,
-congr,
-funext,
-exact eq_of_heq h_map
+  tactic.unfreeze_local_instances,
+  cases F with F_obj _ _ _; cases G with G_obj _ _ _,
+  unfold faithful.div functor.comp,
+  unfold_projs at h_obj,
+  have: F_obj = G_obj ∘ obj := (funext h_obj).symm,
+  subst this,
+  congr,
+  funext,
+  exact eq_of_heq h_map
 end
 
 lemma faithful.div_faithful (F : C ⥤ E) [faithful F] (G : D ⥤ E) [faithful G]

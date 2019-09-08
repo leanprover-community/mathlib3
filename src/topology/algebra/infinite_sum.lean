@@ -40,8 +40,8 @@ sum operator.
 
 This is based on Mario Carneiro's infinite sum in Metamath.
 
-It is not needed for the definition or many statements to be an a topological monoid. We only add
-this assumption in the next section, for the lemmas where it is relevant.
+For the definition or many statements, α does not need to be a topological monoid. We only add
+this assumption later, for the lemmas where it is relevant.
 -/
 def has_sum (f : β → α) (a : α) : Prop := tendsto (λs:finset β, s.sum f) at_top (nhds a)
 
@@ -117,12 +117,7 @@ assume s (hs : {t : finset ℕ | t.sum f ∈ s} ∈ at_top),
 let ⟨t, ht⟩ := mem_at_top_sets.mp hs, ⟨n, hn⟩ := @exists_nat_subset_range t in
 mem_at_top_sets.mpr ⟨n, assume n' hn', ht _ $ finset.subset.trans hn $ range_subset.mpr hn'⟩
 
-end has_sum
-
-section has_sum_topological_monoid
-
-variables [add_comm_monoid α] [topological_space α] [topological_add_monoid α]
-variables {f g : β → α} {a b : α} {s : finset β}
+variable [topological_add_monoid α]
 
 lemma has_sum_add (hf : has_sum f a) (hg : has_sum g b) : has_sum (λb, f b + g b) (a + b) :=
 by simp [has_sum, sum_add_distrib]; exact tendsto_add hf hg
@@ -186,7 +181,7 @@ lemma summable_sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) 
   (hf : ∀b, summable (λc, f ⟨b, c⟩)) (ha : summable f) : summable (λb, ∑c, f ⟨b, c⟩) :=
 summable_spec $ has_sum_sigma (assume b, has_sum_tsum $ hf b) (has_sum_tsum ha)
 
-end has_sum_topological_monoid
+end has_sum
 
 section has_sum_iff_has_sum_of_iso_ne_zero
 variables [add_comm_monoid α] [topological_space α]

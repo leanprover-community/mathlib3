@@ -108,8 +108,7 @@ is_open_lt continuous_id continuous_const
 end linear_order
 
 section decidable_linear_order
-variables [topological_space α] [decidable_linear_order α] [t : ordered_topology α]
-   {f g : β → α}
+variables [topological_space α] [decidable_linear_order α] [t : ordered_topology α] {f g : β → α}
 include t
 
 section

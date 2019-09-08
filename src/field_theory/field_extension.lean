@@ -402,83 +402,12 @@ open vector_space
 variables (α : Type u) [discrete_field α]
 variables {β : Type u} [discrete_field β] [field_extension α β] [finite_dimensional α β]
 variables (b : β)
-#check @finsupp.sum_map_domain_index
+
 lemma sum_single_range {α β γ : Type*} [decidable_eq α] [has_zero β] [add_comm_monoid γ] [decidable_eq γ]
   (f : α →₀ β) (g : β → γ) (hg : g 0 = 0) :
   finsupp.sum f (λ (a : α) (b : β), finsupp.single a (g b)) =
   finsupp.map_range g hg f :=
 by { rw [←finsupp.sum_map_range_index, finsupp.sum_single], intro _, exact finsupp.single_zero }
-
-lemma sum_single3 {α β γ δ : Type*} [decidable_eq α] [decidable_eq β] [add_comm_monoid β]
-  [add_comm_monoid γ] [decidable_eq γ] [decidable_eq δ]
-  (f : α →₀ β) (g : α → β → γ) (i : δ) :
-  finsupp.sum f (λ (a : α) (b : β), finsupp.single i (g a b)) =
-  finsupp.single i (f.sum g) :=
-begin
-ext j,
-rw [finsupp.single_apply, finsupp.sum_apply],
-conv_lhs { congr, skip, funext, rw [finsupp.single_apply] },
-split_ifs,
-refl,
-exact finsupp.sum_zero
-end
-
-lemma sum_single2 {α β γ : Type*} [decidable_eq α] [has_zero β] [add_comm_monoid γ] [decidable_eq γ]
-  (f : α →₀ β) (g : α → β → γ) (hg : ∀ a : α, g a 0 = 0) (a : α) :
-  finsupp.sum f (λ (a₂ : α) (b : β), (finsupp.single a (g a b)).to_fun a₂) =
-  g a (f a) :=
-suffices finsupp.sum f (λ (a₂ : α) (b : β), ite (a = a₂) (g a b) 0) =
-  (finset.singleton a).sum (λ (a₂ : α), ite (a = a₂) (g a (f a₂)) 0),
-  by { convert this, rw [finset.sum_singleton, if_pos rfl] },
-begin
-  unfold finsupp.sum,
-  by_cases ha : a ∈ f.support,
-  { refine (finset.sum_subset _ _).symm,
-    { assume x hx, rw [finset.mem_singleton] at hx, rwa [hx] },
-    { assume x _ hx, rw [finset.not_mem_singleton] at hx, rw [if_neg], exact ne.symm hx } },
-  { convert (rfl : (0:γ) = 0),
-    { apply finset.sum_eq_zero,
-      intros j hj,
-      apply if_neg,
-      intro h,
-      exact ha (eq.symm h ▸ hj) },
-    { apply finset.sum_eq_zero,
-      intros j hj,
-      rw [finset.mem_singleton] at hj,
-      rw [if_pos (eq.symm hj)],
-      convert hg a,
-      have h : ¬(f j ≠ 0), from mt (finsupp.mem_support_to_fun f j).mpr ((eq.symm hj) ▸ ha),
-      rwa [ne.def, classical.not_not] at h } }
-end
-
--- move
-lemma sum_ite {α β γ : Type*} [decidable_eq α] [has_zero β] [add_comm_monoid γ]
-  (f : α →₀ β) (g : α → β → γ) (hg : ∀ a : α, g a 0 = 0) (a : α) :
-  finsupp.sum f (λ (a₂ : α) (b : β), ite (a₂ = a) (g a b) 0) =
-  g a (f a) :=
-suffices finsupp.sum f (λ (a₂ : α) (b : β), ite (a₂ = a) (g a b) 0) =
-  (finset.singleton a).sum (λ (a₂ : α), ite (a₂ = a) (g a (f a₂)) 0),
-  by { convert this, rw [finset.sum_singleton, if_pos rfl] },
-begin
-  unfold finsupp.sum,
-  by_cases ha : a ∈ f.support,
-  { refine (finset.sum_subset _ _).symm,
-    { assume x hx, rw [finset.mem_singleton] at hx, rwa [hx] },
-    { assume x _ hx, rw [finset.not_mem_singleton] at hx, rwa [if_neg] } },
-  { convert (rfl : (0:γ) = 0),
-    { apply finset.sum_eq_zero,
-      intros j hj,
-      apply if_neg,
-      intro h,
-      exact ha (h ▸ hj) },
-    { apply finset.sum_eq_zero,
-      intros j hj,
-      rw [finset.mem_singleton] at hj,
-      rw [if_pos hj],
-      convert hg a,
-      have h : ¬(f j ≠ 0), from mt (finsupp.mem_support_to_fun f j).mpr ((eq.symm hj) ▸ ha),
-      rwa [ne.def, classical.not_not] at h } }
-end
 
 --move
 lemma finsupp.curry_apply {α β γ : Type*} [decidable_eq α] [decidable_eq β] [decidable_eq γ] [add_comm_monoid γ]
@@ -486,8 +415,7 @@ lemma finsupp.curry_apply {α β γ : Type*} [decidable_eq α] [decidable_eq β]
 begin
 change ((f.sum $ λ p c, finsupp.single p.1 (finsupp.single p.2 c)) x) y = f (x, y),
 rw [finsupp.sum_apply, finsupp.sum_apply],
-conv_lhs { congr, skip, funext, rw [finsupp.single_apply],
-  change (ite (a₁.fst = x) (finsupp.single (a₁.snd) b) 0).to_fun y,
+conv_lhs { congr, skip, funext, change (ite (a₁.fst = x) (finsupp.single (a₁.snd) b) 0).to_fun y,
   rw [show (ite (a₁.fst = x) (finsupp.single (a₁.snd) b) 0).to_fun y = ite (a₁ = (x, y)) b 0,
     { split_ifs with hx h,
       { rwa [show (finsupp.single _ _).to_fun _ = _, from finsupp.single_apply, h, if_pos rfl] },
@@ -496,8 +424,8 @@ conv_lhs { congr, skip, funext, rw [finsupp.single_apply],
         rwa [if_neg (h rfl)] },
       { rw [show a₁ = (a₁.fst, a₁.snd), from eq.symm prod.mk.eta, prod.mk.inj_iff] at h, exact false.elim (hx h.1) },
       { refl } }] },
-refine sum_ite f (λ _ b, b) _ _,
-intro _, refl
+conv_lhs { congr, skip, funext, rw [←finsupp.single_apply] },
+rw [←finsupp.sum_apply, finsupp.sum_single]
 end
 
 /-lemma finsupp_basis (η : Type*) {ι α β : Type*} [ring α] [decidable_eq α] [add_comm_group β] [module α β]
@@ -562,7 +490,7 @@ begin
       conv_lhs { congr, congr, skip, funext, rw [finsupp.smul_single] },
       rw [←finsupp.sum_curry_index f (λ (n:η) (i:ι) (a:α), finsupp.single n (a • v i))],
       { dsimp,
-        conv_lhs { congr, congr, skip, funext, rw [sum_single3] },
+        conv_lhs { congr, congr, skip, funext, rw [←finsupp.single_sum] },
         rw [sum_single_range _ (λ f:ι →₀ α, finsupp.sum f (λ (i:ι) (a:α), a • v i)) finsupp.sum_zero_index],
         rw [finsupp.ext_iff],
         split,

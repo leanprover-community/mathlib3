@@ -197,6 +197,10 @@ rw [h],
 exact degree_le_mul_left _ hq
 end
 
+lemma eq_zero_of_degree_lt {p : polynomial α} (hp : p ∈ vanishing_ideal α b)
+  (hd : degree p < degree (minimal_polynomial α hb)) : p = 0 :=
+classical.by_contradiction (λ hn, not_le_of_lt hd $ minimal α hb hp hn)
+
 lemma not_is_unit : ¬ is_unit (minimal_polynomial α hb) :=
 λ h, not_lt.mpr (le_refl (0 : with_bot ℕ))
   (by { convert degree_pos α hb, exact eq.symm (degree_eq_zero_of_is_unit h) })
@@ -277,7 +281,7 @@ end minimal_polynomial
 
 section adjoin
 
-open polynomial algebra minimal_polynomial
+open polynomial algebra minimal_polynomial vector_space
 
 variables (α : Type u) [discrete_field α]
 variables {β : Type v} [discrete_field β] [field_extension α β]
@@ -292,13 +296,100 @@ by { rw [pow_mem_iff, ←subalgebra.mem_coe, ←set.singleton_subset_iff],
 instance hint1 : module α β := by apply_instance
 instance hint2 : comm_ring α := by apply_instance
 
-lemma basis_adjoin : @is_basis {n:ℕ | n < nat_degree (minimal_polynomial α hb)} α (adjoin α {b} : subalgebra α β)
-  (λ i, ⟨b^i.val, pow_mem_adjoin α b i.val⟩) _ _ (by apply_instance) _ _ _ :=
+#check @finsupp.sum_map_range_index
+#check @finsupp.sum_comap_domain
+#check @finsupp.sum_subtype_domain_index
+#check @finsupp.subtype_domain
+#check subtype_val.is_add_monoid_hom
+
+#check pow_mem_adjoin
+--set_option pp.implicit true
+
+#check @finsupp.map_domain
+#check @finsupp.map_domain_sum
+#check @finsupp.sum_map_domain_index
+#check div_by_monic
+
+#check finsupp.comap_domain
+
+--set_option pp.notation false
+--set_option pp.implicit true
+--set_option pp.all true
+
+lemma basis_adjoin : @is_basis (fin $ nat_degree $ minimal_polynomial α hb) α (adjoin α {b} : subalgebra α β)
+  (λ i, subtype.mk (b^i.val) (pow_mem_adjoin α b i.val)) _ _ (by apply_instance) _ _ _ :=
 begin
   split,
-  sorry,
-  sorry
+  { rw [linear_independent_iff],
+    assume f hf,
+    rw [finsupp.total_apply] at hf,
+    replace hf := congr_arg subtype.val hf,
+    unfold finsupp.sum at hf,
+    rw [←finset.sum_hom (subtype.val : _ → β)] at hf,
+    { conv_lhs at hf { congr, skip, funext, rw [algebra.smul_def, algebra_map] },
+      unfold algebra.to_fun at hf,
+      conv_lhs at hf { congr, skip, funext, rw [subtype_val.is_monoid_hom.map_mul], dsimp },
+      change f.sum (λ i a, algebra_map β a * b^i.val) = 0 at hf,
+      have : ∀ j:ℕ, (λ (i:ℕ) (a:α), algebra_map β a * b^i) j 0 = 0,
+        { intro _, dsimp, rw [algebra.map_zero, zero_mul] },
+      rw [←finsupp.sum_map_domain_index this] at hf,
+      { let v := @fin.val (nat_degree $ minimal_polynomial α hb),
+        let p := f.map_domain v,
+        have hpv : p ∈ vanishing_ideal α b, by rwa [mem_vanishing_ideal_iff],
+        have hpd : degree p < degree (minimal_polynomial α hb), from sorry,
+        have hp : p = 0, from minimal_polynomial.eq_zero_of_degree_lt α hb hpv hpd,
+        have h : p = (finsupp.map_domain v) 0, { rwa [hp, finsupp.map_domain_zero] },
+        rwa [function.injective.eq_iff (finsupp.injective_map_domain _)] at h,
+        exact λ x y, (fin.ext_iff x y).mpr },
+      { assume _ _ _, simp only [algebra.map_add, add_mul] } },
+      { sorry } },
+    { rw [submodule.eq_top_iff'],
+      intro g,
+      rw [←set.image_univ, finsupp.mem_span_iff_total],
+      have hg : g.val ∈ (aeval α β b).range,
+        { convert g.property, symmetry, exact adjoin_singleton_eq_range α b },
+      cases set.mem_range.mp hg with l hl,
+      --let p := l %ₘ (minimal_polynomial α hb),
+      have hp : aeval α β b (l %ₘ minimal_polynomial α hb) = g.val,
+        { rwa [mod_by_monic_eq_sub_mul_div _ (monic α hb), (aeval α β b).map_sub,
+            (aeval α β b).map_mul, aeval_zero, zero_mul, sub_zero] },
+      have hd : degree (l %ₘ minimal_polynomial α hb) < degree (minimal_polynomial α hb), from
+        degree_mod_by_monic_lt _ (monic α hb) (ne_zero α hb),
+      have hs : (l %ₘ minimal_polynomial α hb).support.to_set ⊆ {n | n < nat_degree (minimal_polynomial α hb)},
+        { rw [set.subset_def],
+          assume n,
+          rw [finset.to_set, finset.set_of_mem, finset.mem_coe, finsupp.mem_support_to_fun,
+            set.mem_set_of_eq, ←with_bot.coe_lt_coe, ←degree_eq_nat_degree (ne_zero α hb)],
+          assume hn,
+          refine lt_of_le_of_lt (le_of_not_lt _) hd,
+          revert hn,
+          contrapose,
+          rw [ne.def, not_not, not_not],
+          exact coeff_eq_zero_of_degree_lt },
+      have hv : set.bij_on fin.val (fin.val ⁻¹' (l %ₘ minimal_polynomial α hb).support.to_set)
+        ((l %ₘ minimal_polynomial α hb).support.to_set),
+        { sorry },--{ assume _ _ _ _ _, rwa [fin.ext_iff] },
+      rw [finsupp.supported_univ],
+      existsi [(l %ₘ minimal_polynomial α hb).comap_domain fin.val (set.inj_on_of_bij_on hv), submodule.mem_top],
+      rw [finsupp.total_apply],
+      --change ((l %ₘ minimal_polynomial α hb).comap_domain fin.val _).sum (λ i, (λ a, _)) = g,
+      --change ((l %ₘ minimal_polynomial α hb).comap_domain fin.val _).sum
+      --  (λ j c, ((λ (i:ℕ), (λ (a:α), _)) ∘ (@fin.val (nat_degree (minimal_polynomial α hb)))) j c) = g,
+      --conv_lhs { congr, skip, funext,
+      --  rw [show a • subtype.mk (b^i.val) (pow_mem_adjoin α b i.val) = (λ j c, c • subtype.mk (b^j.val) (pow_mem_adjoin α b j.val)) i a,
+      --    begin dsimp, end], }
+      convert finsupp.sum_comap_domain _ _ (λ (i:ℕ) (a:α), a • _) hv,
+
+
+    }
 end
+
+lemma dim_adjoin : dim α (adjoin α {b} : subalgebra α β) = nat_degree (minimal_polynomial α hb) :=
+calc dim α (adjoin α {b} : subalgebra α β)
+      = cardinal.lift.{v 0} (dim α (adjoin α {b} : subalgebra α β)) : by rw [cardinal.lift_id']
+  ... = cardinal.lift.{0 v} (cardinal.mk $ fin $ nat_degree $ minimal_polynomial α hb) :
+    eq.symm (is_basis.mk_eq_dim $ basis_adjoin α b hb)
+  ... = ↑(nat_degree $ minimal_polynomial α hb) : cardinal.lift_mk_fin _
 
 end adjoin
 
@@ -311,18 +402,26 @@ open vector_space
 variables (α : Type u) [discrete_field α]
 variables {β : Type u} [discrete_field β] [field_extension α β] [finite_dimensional α β]
 variables (b : β)
+#check @finsupp.sum_map_domain_index
+lemma sum_single_range {α β γ : Type*} [decidable_eq α] [has_zero β] [add_comm_monoid γ] [decidable_eq γ]
+  (f : α →₀ β) (g : β → γ) (hg : g 0 = 0) :
+  finsupp.sum f (λ (a : α) (b : β), finsupp.single a (g b)) =
+  finsupp.map_range g hg f :=
+by { rw [←finsupp.sum_map_range_index, finsupp.sum_single], intro _, exact finsupp.single_zero }
 
-instance mf : module α (ℕ →₀ α) := finsupp.module ℕ α
-
-def power_basis : (ℕ →₀ α) →ₗ[α] β :=
-{ to_fun := λ f, finsupp.sum f (λ i a, algebra_map β a * b ^ i),
-  add := λ f g, begin refine finsupp.sum_add_index _ _,
-      { intro, rw [algebra.map_zero, zero_mul] },
-      { intros, rw [algebra.map_add, add_mul] } end,
-  smul := λ f g, begin
-      rw [finsupp.sum_smul_index, finsupp.smul_sum],
-      conv_rhs { congr, skip, funext, rw [algebra.smul_def, ←mul_assoc, ←algebra.map_mul] },
-      { intro, rw [algebra.map_zero, zero_mul] } end }
+lemma sum_single3 {α β γ δ : Type*} [decidable_eq α] [decidable_eq β] [add_comm_monoid β]
+  [add_comm_monoid γ] [decidable_eq γ] [decidable_eq δ]
+  (f : α →₀ β) (g : α → β → γ) (i : δ) :
+  finsupp.sum f (λ (a : α) (b : β), finsupp.single i (g a b)) =
+  finsupp.single i (f.sum g) :=
+begin
+ext j,
+rw [finsupp.single_apply, finsupp.sum_apply],
+conv_lhs { congr, skip, funext, rw [finsupp.single_apply] },
+split_ifs,
+refl,
+exact finsupp.sum_zero
+end
 
 lemma sum_single2 {α β γ : Type*} [decidable_eq α] [has_zero β] [add_comm_monoid γ] [decidable_eq γ]
   (f : α →₀ β) (g : α → β → γ) (hg : ∀ a : α, g a 0 = 0) (a : α) :
@@ -389,20 +488,19 @@ change ((f.sum $ λ p c, finsupp.single p.1 (finsupp.single p.2 c)) x) y = f (x,
 rw [finsupp.sum_apply, finsupp.sum_apply],
 conv_lhs { congr, skip, funext, rw [finsupp.single_apply],
   change (ite (a₁.fst = x) (finsupp.single (a₁.snd) b) 0).to_fun y,
-  rw [show (ite (a₁.fst = x) (finsupp.single (a₁.snd) b) 0).to_fun y =
-    ite (a₁ = (x, y)) b 0, { split_ifs with hx h,
-    { rwa [show (finsupp.single _ _).to_fun _ = _, from finsupp.single_apply, h, if_pos rfl] },
-    { rw [show (finsupp.single _ _).to_fun _ = _, from finsupp.single_apply],
-      rw [show a₁ = (a₁.fst, a₁.snd), from eq.symm prod.mk.eta, ←hx, prod.mk.inj_iff, not_and] at h,
-      rwa [if_neg (h rfl)] },
-    { rw [show a₁ = (a₁.fst, a₁.snd), from eq.symm prod.mk.eta, prod.mk.inj_iff] at h, exact false.elim (hx h.1) },
-    { refl } }]
- },
+  rw [show (ite (a₁.fst = x) (finsupp.single (a₁.snd) b) 0).to_fun y = ite (a₁ = (x, y)) b 0,
+    { split_ifs with hx h,
+      { rwa [show (finsupp.single _ _).to_fun _ = _, from finsupp.single_apply, h, if_pos rfl] },
+      { rw [show (finsupp.single _ _).to_fun _ = _, from finsupp.single_apply],
+        rw [show a₁ = (a₁.fst, a₁.snd), from eq.symm prod.mk.eta, ←hx, prod.mk.inj_iff, not_and] at h,
+        rwa [if_neg (h rfl)] },
+      { rw [show a₁ = (a₁.fst, a₁.snd), from eq.symm prod.mk.eta, prod.mk.inj_iff] at h, exact false.elim (hx h.1) },
+      { refl } }] },
 refine sum_ite f (λ _ b, b) _ _,
 intro _, refl
 end
 
-lemma finsupp_basis (η : Type*) {ι α β : Type*} [ring α] [decidable_eq α] [add_comm_group β] [module α β]
+/-lemma finsupp_basis (η : Type*) {ι α β : Type*} [ring α] [decidable_eq α] [add_comm_group β] [module α β]
   [decidable_eq η] [decidable_eq β] [decidable_eq ι] {v : ι → β} (hv : is_basis α v) :
   is_basis α (λ i : η × ι, finsupp.single i.1 (v i.2)) :=
 begin
@@ -451,7 +549,92 @@ begin
       { intro _, exact finsupp.sum_zero_index } },
     { intros _ _, simp only [zero_smul, if_t_t] },
     { intros _ _ _ _, dsimp, split_ifs, rw [add_smul], rw [add_zero] } }
+end-/
+
+lemma finsupp_basis (η : Type*) {ι α β : Type*} [ring α] [decidable_eq α] [add_comm_group β] [module α β]
+  [decidable_eq η] [decidable_eq β] [decidable_eq ι] {v : ι → β} (hv : is_basis α v) :
+  is_basis α (λ i : η × ι, finsupp.single i.1 (v i.2)) :=
+begin
+  have h : ∀ (f : η × ι →₀ α) (g : η →₀ β), (finsupp.total (η × ι) (η →₀ β) α (λ (i : η × ι), finsupp.single i.1 (v i.2))) f = g ↔
+    ∀ n, (finsupp.total ι β α v) (finsupp.curry f n) = g n,
+    { intros f g,
+      rw [finsupp.total_apply],
+      conv_lhs { congr, congr, skip, funext, rw [finsupp.smul_single] },
+      rw [←finsupp.sum_curry_index f (λ (n:η) (i:ι) (a:α), finsupp.single n (a • v i))],
+      { dsimp,
+        conv_lhs { congr, congr, skip, funext, rw [sum_single3] },
+        rw [sum_single_range _ (λ f:ι →₀ α, finsupp.sum f (λ (i:ι) (a:α), a • v i)) finsupp.sum_zero_index],
+        rw [finsupp.ext_iff],
+        split,
+        { intros h n, replace h := h n, rwa [finsupp.map_range_apply, ←finsupp.total_apply] at h },
+        { intros h n, replace h := h n, rwa [finsupp.map_range_apply, ←finsupp.total_apply] } },
+      { intros _ _, dsimp, rw [zero_smul, finsupp.single_zero] },
+      { intros _ _ _ _, dsimp, rw [add_smul, finsupp.single_add] } },
+  split,
+  { rw [linear_independent_iff],
+    intros f hf,
+    ext i,
+    rw [h] at hf,
+    have : _ = _, from congr_arg (λ g:ι →₀ α, g i.2) (linear_independent_iff.mp hv.1 _ (hf i.1)),
+    rwa [finsupp.curry_apply, prod.mk.eta] at this },
+  { rw [submodule.eq_top_iff'],
+    intro g,
+    rw [←set.image_univ, finsupp.mem_span_iff_total],
+    let f := finsupp.uncurry (finsupp.map_range hv.repr.to_fun hv.repr.map_zero g),
+    have H : f ∈ finsupp.supported α α (set.univ : set (η × ι)),
+      { rw [finsupp.supported_univ], exact submodule.mem_top },
+    existsi [f, H],
+    rw [h],
+    intro n,
+    rw [show finsupp.curry f = _, from finsupp.finsupp_prod_equiv.right_inv _, finsupp.map_range_apply],
+    change (linear_map.comp (finsupp.total ι β α v) (is_basis.repr hv)) (g n) = g n,
+    rw [hv.total_comp_repr, linear_map.id_apply] },
 end
+
+/-lemma finsupp_basis (η : Type*) {ι α β : Type*} [ring α] [decidable_eq α] [add_comm_group β] [module α β]
+  [decidable_eq η] [decidable_eq β] [decidable_eq ι] {v : ι → β} (hv : is_basis α v) :
+  is_basis α (λ i : η × ι, finsupp.single i.1 (v i.2)) :=
+begin
+  split,
+  { rw [linear_independent_iff],
+    intros f hf,
+    rw [finsupp.total_apply] at hf,
+    conv_lhs at hf { congr, skip, funext, rw [finsupp.smul_single] },
+    rw [←finsupp.sum_curry_index f (λ (n:η) (i:ι) (a:α), finsupp.single n (a • v i))] at hf,
+    { dsimp at hf,
+      conv_lhs at hf { congr, skip, funext, rw [sum_single3] },
+      rw [sum_single_range _ (λ f:ι →₀ α, finsupp.sum f (λ (i:ι) (a:α), a • v i)) finsupp.sum_zero_index] at hf,
+      rw [finsupp.ext_iff] at hf,
+      ext i,
+      replace hf := hf i.1,
+      rw [finsupp.map_range_apply, ←finsupp.total_apply] at hf,
+      dsimp at ⊢ hf,
+      have h : _ = _, from congr_arg (λ g:ι →₀ α, g i.2) (linear_independent_iff.mp hv.1 _ hf),
+      rwa [finsupp.curry_apply, prod.mk.eta] at h },
+    { intros _ _, dsimp, rw [zero_smul, finsupp.single_zero] },
+    { intros _ _ _ _, dsimp, rw [add_smul, finsupp.single_add] } },
+  { rw [submodule.eq_top_iff'],
+    intro g,
+    rw [←set.image_univ, finsupp.mem_span_iff_total],
+    let f := finsupp.uncurry (finsupp.map_range hv.repr.to_fun hv.repr.map_zero g),
+    have H : f ∈ finsupp.supported α α (set.univ : set (η × ι)),
+      { rw [finsupp.supported_univ], exact submodule.mem_top },
+    existsi [f, H],
+    rw [finsupp.total_apply],
+    conv_lhs { congr, skip, funext, rw [finsupp.smul_single] },
+    rw [←finsupp.sum_curry_index f (λ (n:η) (i:ι) (a:α), finsupp.single n (a • v i))],
+    { dsimp,
+      conv_lhs { congr, skip, funext, rw [sum_single3] },
+      rw [sum_single_range _ (λ f:ι →₀ α, finsupp.sum f (λ (i:ι) (a:α), a • v i)) finsupp.sum_zero_index],
+      ext n,
+      have : finsupp.curry f = finsupp.map_range hv.repr.to_fun hv.repr.map_zero g, from
+        finsupp.finsupp_prod_equiv.right_inv _,
+      rw [finsupp.map_range_apply, ←finsupp.total_apply, this, finsupp.map_range_apply],
+      change (linear_map.comp (finsupp.total ι β α v) (is_basis.repr hv)) (g n) = g n,
+      rw [hv.total_comp_repr, linear_map.id_apply] },
+    { intros _ _, dsimp, rw [zero_smul, finsupp.single_zero] },
+    { intros _ _ _ _, dsimp, rw [add_smul, finsupp.single_add] } }
+end-/
 
 -- move
 /-lemma finsupp_basis (α : Type*) (ι : Type*) [discrete_field α] [decidable_eq ι] :
@@ -538,6 +721,7 @@ end
 -/
 
 --TODO: set priorities correct to avoid these instances
+instance mf : module α (ℕ →₀ α) := finsupp.module ℕ α
 instance ms (p : submodule α (ℕ →₀ α)) : module α p := submodule.module p
 instance vs (p : submodule α (ℕ →₀ α)) : vector_space α p := vector_space.mk α p
 
@@ -553,6 +737,16 @@ calc dim α (η →₀ β) = cardinal.lift.{(max v w) (max v w)} (dim α (η →
                 ... = cardinal.lift.{v w} (cardinal.mk η) * cardinal.lift.{w (max w v)} (cardinal.mk.{w} b) : by rw[cardinal.lift_mul, cardinal.lift_lift, cardinal.lift_lift, cardinal.lift_umax]
                 ... = cardinal.lift.{v w} (cardinal.mk η) * cardinal.lift.{w v} (cardinal.lift.{w w} (cardinal.mk.{w} b)) : by rw [cardinal.lift_id, cardinal.lift_umax]
                 ... = cardinal.lift.{v w} (cardinal.mk η) * cardinal.lift.{w v} (dim α β) : by rw [hb.mk_eq_dim, cardinal.lift_id]
+
+def power_basis : (ℕ →₀ α) →ₗ[α] β :=
+{ to_fun := λ f, finsupp.sum f (λ i a, algebra_map β a * b ^ i),
+  add := λ f g, begin refine finsupp.sum_add_index _ _,
+      { intro, rw [algebra.map_zero, zero_mul] },
+      { intros, rw [algebra.map_add, add_mul] } end,
+  smul := λ f g, begin
+      rw [finsupp.sum_smul_index, finsupp.smul_sum],
+      conv_rhs { congr, skip, funext, rw [algebra.smul_def, ←mul_assoc, ←algebra.map_mul] },
+      { intro, rw [algebra.map_zero, zero_mul] } end }
 
 lemma power_basis.dim_ker_ge_omega : dim α (power_basis α b).ker ≥ cardinal.omega :=
 begin

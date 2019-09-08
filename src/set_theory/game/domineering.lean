@@ -144,7 +144,7 @@ def domineering' : Π (n : ℕ) (b : finset (ℤ × ℤ)), b.card = n → pgame
 def domineering (b : finset (ℤ × ℤ)) : pgame :=
 domineering' b.card b rfl
 
--- We now prove that this definition is that same as the nicer non-computational one.
+-- We now prove that this definition is the same as the nicer non-computational one.
 -- This is grungy!
 
 lemma domineering_def' : Π (n : ℕ) (b : finset (ℤ × ℤ)) (h : b.card = n),

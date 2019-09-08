@@ -3,7 +3,7 @@ Copyright (c) 2018 Michael Jendrusch. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Jendrusch, Scott Morrison
 -/
-import category_theory.products
+import category_theory.products.basic
 import category_theory.natural_isomorphism
 import tactic.basic
 import tactic.slice
@@ -393,14 +393,14 @@ nat_iso.of_components
 
 /-- The left unitor as a natural isomorphism. -/
 def left_unitor_nat_iso :
-  tensor_unit_left C ≅ functor.id C :=
+  tensor_unit_left C ≅ 𝟭 C :=
 nat_iso.of_components
   (by { intros, apply monoidal_category.left_unitor })
   (by { intros, apply monoidal_category.left_unitor_naturality })
 
 /-- The right unitor as a natural isomorphism. -/
 def right_unitor_nat_iso :
-  tensor_unit_right C ≅ functor.id C :=
+  tensor_unit_right C ≅ 𝟭 C :=
 nat_iso.of_components
   (by { intros, apply monoidal_category.right_unitor })
   (by { intros, apply monoidal_category.right_unitor_naturality })

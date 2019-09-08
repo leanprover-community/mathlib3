@@ -56,7 +56,7 @@ p-adic, p adic, padic, norm, valuation, cauchy, completion, p-adic completion
 -/
 
 noncomputable theory
-local attribute [instance, priority 1] classical.prop_decidable
+open_locale classical
 
 open nat multiplicity padic_norm cau_seq cau_seq.completion metric
 
@@ -463,7 +463,7 @@ by induction n; simp
 lemma cast_eq_of_rat : ∀ (q : ℚ), (↑q : ℚ_[p]) = of_rat p q
 | ⟨n, d, h1, h2⟩ :=
   show ↑n / ↑d = _, from
-    have (⟨n, d, h1, h2⟩ : ℚ) = rat.mk n d, from rat.num_denom _,
+    have (⟨n, d, h1, h2⟩ : ℚ) = rat.mk n d, from rat.num_denom',
     by simp [this, rat.mk_eq_div, of_rat_div]
 
 @[move_cast] lemma coe_add : ∀ {x y : ℚ}, (↑(x + y) : ℚ_[p]) = ↑x + ↑y := by simp [cast_eq_of_rat]

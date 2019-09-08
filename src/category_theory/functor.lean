@@ -49,7 +49,7 @@ section
 variables (C : Type u₁) [𝒞 : category.{v₁} C]
 include 𝒞
 
-/-- `functor.id C` is the identity functor on a category `C`. -/
+/-- `𝟭 C` is the identity functor on a category `C`. -/
 protected def id : C ⥤ C :=
 { obj := λ X, X,
   map := λ _ _ f, f }
@@ -58,8 +58,8 @@ notation `𝟭` := functor.id
 
 variable {C}
 
-@[simp] lemma id_obj (X : C) : (functor.id C).obj X = X := rfl
-@[simp] lemma id_map {X Y : C} (f : X ⟶ Y) : (functor.id C).map f = f := rfl
+@[simp] lemma id_obj (X : C) : (𝟭 C).obj X = X := rfl
+@[simp] lemma id_map {X Y : C} (f : X ⟶ Y) : (𝟭 C).map f = f := rfl
 end
 
 section

@@ -15,7 +15,7 @@ open list subtype nat lattice
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
-local infix ` • ` := add_monoid.smul
+open_locale add_monoid
 
 /-- `multiset α` is the quotient of `list α` by list permutation. The result
   is a type of finite sets with duplicates allowed.  -/

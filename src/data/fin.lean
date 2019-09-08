@@ -34,7 +34,11 @@ lemma eq_iff_veq (a b : fin n) : a = b ↔ a.1 = b.1 :=
 
 instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨fin.val⟩
 
-@[simp] def mk_val {m n : ℕ} (h : m < n) : (⟨m, h⟩ : fin n).val = m := rfl
+@[simp] lemma mk_val {m n : ℕ} (h : m < n) : (⟨m, h⟩ : fin n).val = m := rfl
+
+@[simp] lemma coe_mk {m n : ℕ} (h : m < n) : ((⟨m, h⟩ : fin n) : ℕ) = m := rfl
+
+lemma coe_eq_val (a : fin n) : (a : ℕ) = a.val := rfl
 
 instance {n : ℕ} : decidable_linear_order (fin n) :=
 decidable_linear_order.lift fin.val (@fin.eq_of_veq _) (by apply_instance)

@@ -9,7 +9,7 @@ Theory of topological rings.
 import topology.algebra.group ring_theory.ideals
 
 open classical set lattice filter topological_space
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 section topological_ring
 universes u v w

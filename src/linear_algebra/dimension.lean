@@ -96,7 +96,8 @@ begin
   rw e,
   apply cardinal.lift_inj.1,
   rw cardinal.mk_range_eq_of_inj (h.injective zero_ne_one),
-  convert @mk_eq_mk_of_basis _ _ _ _ _ (id _) _ _ _ (id _) _ _ h v'.property
+  convert @mk_eq_mk_of_basis _ _ _ _ _ (id _) _ _ _ (id _) _ _ h v'.property,
+  apply_instance,
 end
 
 theorem is_basis.mk_eq_dim [decidable_eq β] {v : ι → β} (h : is_basis α v) :

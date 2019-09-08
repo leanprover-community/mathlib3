@@ -4,3 +4,4 @@
 _cache
 __pycache__
 all.lean
+*.depend

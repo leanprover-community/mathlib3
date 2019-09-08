@@ -120,6 +120,13 @@ let (b', l') := scanr_aux f b l in b' :: l'
      prod [a, b, c] = ((1 * a) * b) * c -/
 def prod [has_mul α] [has_one α] : list α → α := foldl (*) 1
 
+/-- Sum of a list.
+
+     sum [a, b, c] = ((0 + a) + b) + c -/
+-- Later this will be tagged with `to_additive`, but this can't be done yet because of import
+-- dependencies.
+def sum [has_add α] [has_zero α] : list α → α := foldl (+) 0
+
 def partition_map (f : α → β ⊕ γ) : list α → list β × list γ
 | [] := ([],[])
 | (x::xs) :=

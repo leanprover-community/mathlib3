@@ -47,7 +47,7 @@ open function set premetric lattice
 namespace metric
 section approx_gluing
 
-variables [nonempty γ] [metric_space α] [metric_space β]
+variables [metric_space α] [metric_space β]
           {Φ : γ → α} {Ψ : γ → β} {ε : ℝ}
 open lattice
 open sum (inl inr)
@@ -63,7 +63,7 @@ private lemma glue_dist_self (Φ : γ → α) (Ψ : γ → β) (ε : ℝ) : ∀x
 | (inl x) := dist_self _
 | (inr x) := dist_self _
 
-lemma glue_dist_glued_points (Φ : γ → α) (Ψ : γ → β) (ε : ℝ) (p : γ) :
+lemma glue_dist_glued_points [nonempty γ] (Φ : γ → α) (Ψ : γ → β) (ε : ℝ) (p : γ) :
   glue_dist Φ Ψ ε (inl (Φ p)) (inr (Ψ p)) = ε :=
 begin
   have : infi (λq, dist (Φ p) (Φ q) + dist (Ψ p) (Ψ q)) = 0,
@@ -82,6 +82,8 @@ private lemma glue_dist_comm (Φ : γ → α) (Ψ : γ → β) (ε : ℝ) :
 | (inr x) (inr y) := dist_comm _ _
 | (inl x) (inr y) := rfl
 | (inr x) (inl y) := rfl
+
+variable [nonempty γ]
 
 private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
   (H : ∀p q, abs (dist (Φ p) (Φ q) - dist (Ψ p) (Ψ q)) ≤ 2 * ε) :
@@ -162,12 +164,12 @@ private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
   end
 | (inl x) (inr y) (inl z) := real.le_of_forall_epsilon_le $ λδ δpos, begin
     have : ∃a ∈ range (λp, dist x (Φ p) + dist y (Ψ p)), a < infi (λp, dist x (Φ p) + dist y (Ψ p)) + δ/2 :=
-      exists_lt_of_cInf_lt (by simp [_inst_1]) (by rw [infi]; linarith),
+      exists_lt_of_cInf_lt (by simp [_inst_3]) (by rw [infi]; linarith),
     rcases this with ⟨a, arange, ha⟩,
     rcases mem_range.1 arange with ⟨p, pa⟩,
     rw ← pa at ha,
     have : ∃b ∈ range (λp, dist z (Φ p) + dist y (Ψ p)), b < infi (λp, dist z (Φ p) + dist y (Ψ p)) + δ/2 :=
-      exists_lt_of_cInf_lt (by simp [_inst_1]) (by rw [infi]; linarith),
+      exists_lt_of_cInf_lt (by simp [_inst_3]) (by rw [infi]; linarith),
     rcases this with ⟨b, brange, hb⟩,
     rcases mem_range.1 brange with ⟨q, qb⟩,
     rw ← qb at hb,
@@ -182,12 +184,12 @@ private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
   end
 | (inr x) (inl y) (inr z) := real.le_of_forall_epsilon_le $ λδ δpos, begin
     have : ∃a ∈ range (λp, dist y (Φ p) + dist x (Ψ p)), a < infi (λp, dist y (Φ p) + dist x (Ψ p)) + δ/2 :=
-      exists_lt_of_cInf_lt (by simp [_inst_1]) (by rw [infi]; linarith),
+      exists_lt_of_cInf_lt (by simp [_inst_3]) (by rw [infi]; linarith),
     rcases this with ⟨a, arange, ha⟩,
     rcases mem_range.1 arange with ⟨p, pa⟩,
     rw ← pa at ha,
     have : ∃b ∈ range (λp, dist y (Φ p) + dist z (Ψ p)), b < infi (λp, dist y (Φ p) + dist z (Ψ p)) + δ/2 :=
-      exists_lt_of_cInf_lt (by simp [_inst_1]) (by rw [infi]; linarith),
+      exists_lt_of_cInf_lt (by simp [_inst_3]) (by rw [infi]; linarith),
     rcases this with ⟨b, brange, hb⟩,
     rcases mem_range.1 brange with ⟨q, qb⟩,
     rw ← qb at hb,

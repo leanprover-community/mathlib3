@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import set_theory.game.short
 import tactic.norm_num
+import tactic.tidy
 
 /-!
 # Domineering as a combinatorial game.
@@ -37,6 +38,9 @@ def left  (b : finset (ℤ × ℤ)) : Type := { p | p ∈ b ∩ b.map shift_up }
 /-- Right can play anywhere that a square and the square to the right are open. -/
 def right (b : finset (ℤ × ℤ)) : Type := { p | p ∈ b ∩ b.map shift_right }
 
+def left_empty_equiv : left ∅ ≃ pempty := by tidy
+def right_empty_equiv : right ∅ ≃ pempty := by tidy
+
 instance fintype_left (b : finset (ℤ × ℤ)) : fintype (left b) :=
 fintype.subtype _ (λ x, iff.refl _)
 
@@ -57,7 +61,7 @@ lemma int.pred_ne_self (n : ℤ) : n - 1 ≠ n :=
 λ h, one_ne_zero (neg_inj ((add_left_inj n).mp (by { convert h, simp })))
 
 -- TODO Golf?
-lemma move_left_card (b : finset (ℤ × ℤ)) (m : left b) :
+@[simp] lemma move_left_card (b : finset (ℤ × ℤ)) (m : left b) :
   finset.card (move_left b m) = finset.card b - 2 :=
 begin
   erw finset.card_erase_of_mem,
@@ -74,7 +78,7 @@ begin
       convert w,
       simp, } }
 end
-lemma move_right_card (b : finset (ℤ × ℤ)) (m : right b) :
+@[simp] lemma move_right_card (b : finset (ℤ × ℤ)) (m : right b) :
   finset.card (move_right b m) = finset.card b - 2 :=
 begin
   erw finset.card_erase_of_mem,

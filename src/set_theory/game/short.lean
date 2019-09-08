@@ -64,6 +64,9 @@ by { resetI, cases S with _ _ _ _ _ R _ _, apply R }
 instance move_right_short' {xl xr xL xR} [S : short (mk xl xr xL xR)] (j : xr) : short (xR j) :=
 by { resetI, cases S with _ _ _ _ _ R _ _, apply R }
 
+instance short.of_pempty {xL} {xR} : short (mk pempty pempty xL xR) :=
+short.mk (λ i, pempty.elim i) (λ j, pempty.elim j)
+
 instance short_0 : short 0 :=
 short.mk (λ i, by cases i) (λ j, by cases j)
 
@@ -95,6 +98,9 @@ begin
     (λ i, by { rw ←(L.right_inv i), exact short_of_relabelling (rL (L.symm i)), })
     (λ j, short_of_relabelling (rR j))
 end
+
+def short_of_equiv_empty {x : pgame.{u}} (el : x.left_moves ≃ pempty) (er : x.right_moves ≃ pempty) : short x :=
+@short_of_relabelling _ _ (relabel_relabelling el er).symm short.of_pempty
 
 instance short_neg : Π (x : pgame.{u}) [short x], short (-x)
 | (mk xl xr xL xR) _ :=

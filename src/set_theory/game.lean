@@ -507,6 +507,29 @@ le_of_restricted (restricted_of_relabelling r)
 theorem equiv_of_relabelling {x y : pgame} (r : relabelling x y) : x ≈ y :=
 ⟨le_of_relabelling r, le_of_relabelling r.symm⟩
 
+/-- Replace the types indexing the next moves for Left and Right by equivalent types. -/
+def relabel {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') :=
+pgame.mk xl' xr' (λ i, x.move_left (el.symm i)) (λ j, x.move_right (er.symm j))
+
+@[simp] lemma relabel_move_left {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') (i : x.left_moves) :
+  move_left (relabel el er) (el i) = x.move_left i :=
+by { dsimp [relabel], simp }
+@[simp] lemma relabel_move_left' {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') (i : xl') :
+  move_left (relabel el er) i = x.move_left (el.symm i) :=
+by { dsimp [relabel], simp }
+
+@[simp] lemma relabel_move_right {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') (j : x.right_moves) :
+  move_right (relabel el er) (er j) = x.move_right j :=
+by { dsimp [relabel], simp }
+@[simp] lemma relabel_move_right' {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') (j : xr') :
+  move_right (relabel el er) j = x.move_right (er.symm j) :=
+by { dsimp [relabel], simp }
+
+/-- The game obtained by relabelling the next moves is a relabelling of the original game. -/
+def relabel_relabelling {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') :
+  relabelling x (relabel el er) :=
+relabelling.mk el er (λ i, by simp) (λ j, by simp)
+
 /-- The negation of `{L | R}` is `{-R | -L}`. -/
 def neg : pgame → pgame
 | ⟨l, r, L, R⟩ := ⟨r, l, λ i, neg (R i), λ i, neg (L i)⟩

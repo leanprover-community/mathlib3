@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Chris Hughes
 -/
 
-import data.rat.basic data.equiv.denumerable
+import data.rat set_theory.cardinal
 
 namespace rat
 open denumerable
@@ -28,3 +28,9 @@ begin
 end
 
 end rat
+
+namespace cardinal
+lemma mk_rat : cardinal.mk ℚ = omega :=
+denumerable_iff.mp ⟨by apply_instance⟩
+
+end cardinal

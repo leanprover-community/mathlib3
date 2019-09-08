@@ -16,17 +16,7 @@ open tactic
 namespace omega
 namespace nat
 
-local notation `&` k    := preterm.cst k
-local infix ` ** ` : 300 := preterm.var
-local notation t ` +* ` s := preterm.add t s
-local notation t ` -* ` s := preterm.sub t s
-
-local notation x ` =* ` y := form.eq x y
-local notation x ` ≤* ` y := form.le x y
-local notation `¬* ` p   := form.not p
-local notation p ` ∨* ` q := form.or p q
-local notation p ` ∧* ` q := form.and p q
-
+open_locale omega.nat
 
 run_cmd mk_simp_attr `sugar_nat
 attribute [sugar_nat]
@@ -36,6 +26,7 @@ attribute [sugar_nat]
   or_false false_or
   and_true true_and
   ge gt mul_add add_mul mul_comm
+  one_mul mul_one
   classical.imp_iff_not_or
   classical.iff_iff_not_or_and_or_not
 

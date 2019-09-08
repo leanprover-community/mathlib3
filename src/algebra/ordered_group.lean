@@ -241,17 +241,19 @@ begin
     ..with_top.partial_order,
     ..with_top.add_comm_monoid, ..},
   { intros a b c h,
-    refine ⟨λ c h₂, _, λ h₂, h.2 $ this _ _ h₂ _⟩,
+    have h' := h,
+    rw lt_iff_le_not_le at h' ⊢,
+    refine ⟨λ c h₂, _, λ h₂, h'.2 $ this _ _ h₂ _⟩,
     cases h₂, cases a with a,
     { exact (not_le_of_lt h).elim le_top },
     cases b with b,
     { exact (not_le_of_lt h).elim le_top },
     { exact ⟨_, rfl, le_of_lt (lt_of_add_lt_add_left' $
         with_top.some_lt_some.1 h)⟩ } },
-  { intros a b h c cb h₂,
+  { intros a b h c ca h₂,
     cases c with c, {cases h₂},
     cases b with b; cases h₂,
-    cases a with a, {cases le_antisymm h le_top},
+    cases a with a, {cases le_antisymm h le_top },
     simp at h,
     exact ⟨_, rfl, add_le_add_left' h⟩, }
 end
@@ -401,7 +403,7 @@ instance ordered_cancel_comm_monoid.to_ordered_comm_monoid
 { lt_of_add_lt_add_left := @lt_of_add_lt_add_left _ _, ..H }
 
 section ordered_cancel_comm_monoid
-variables [ordered_cancel_comm_monoid α] {a b c : α}
+variables [ordered_cancel_comm_monoid α] {a b c x y : α}
 
 @[simp] lemma add_le_add_iff_left (a : α) {b c : α} : a + b ≤ a + c ↔ b ≤ c :=
 ⟨le_of_add_le_add_left, λ h, add_le_add_left h _⟩
@@ -428,6 +430,18 @@ by rwa add_zero at this
 
 @[simp] lemma lt_add_iff_pos_left (a : α) {b : α} : a < b + a ↔ 0 < b :=
 by rw [add_comm, lt_add_iff_pos_right]
+
+@[simp] lemma add_le_iff_nonpos_left : x + y ≤ y ↔ x ≤ 0 :=
+by { convert add_le_add_iff_right y, rw [zero_add] }
+
+@[simp] lemma add_le_iff_nonpos_right : x + y ≤ x ↔ y ≤ 0 :=
+by { convert add_le_add_iff_left x, rw [add_zero] }
+
+@[simp] lemma add_lt_iff_neg_right : x + y < y ↔ x < 0 :=
+by { convert add_lt_add_iff_right y, rw [zero_add] }
+
+@[simp] lemma add_lt_iff_neg_left : x + y < x ↔ y < 0 :=
+by { convert add_lt_add_iff_left x, rw [add_zero] }
 
 lemma add_eq_zero_iff_eq_zero_of_nonneg
   (ha : 0 ≤ a) (hb : 0 ≤ b) : a + b = 0 ↔ a = 0 ∧ b = 0 :=
@@ -622,6 +636,9 @@ instance : decidable_linear_ordered_cancel_comm_monoid α :=
   add_left_cancel := λ x y z, add_left_cancel,
   add_right_cancel := λ x y z, add_right_cancel,
   ..s }
+
+lemma eq_of_abs_sub_nonpos {a b : α} (h : abs (a - b) ≤ 0) : a = b :=
+eq_of_abs_sub_eq_zero (le_antisymm _ _ h (abs_nonneg (a - b)))
 
 end decidable_linear_ordered_comm_group
 

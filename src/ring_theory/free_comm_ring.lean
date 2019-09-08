@@ -7,6 +7,9 @@ Authors: Kenny Lau, Johan Commelin
 import group_theory.free_abelian_group data.equiv.algebra data.equiv.functor data.polynomial
 import ring_theory.ideal_operations ring_theory.free_ring
 
+noncomputable theory
+local attribute [instance, priority 100] classical.prop_decidable
+
 universes u v
 
 variables (α : Type u)
@@ -170,9 +173,11 @@ assume hps : is_supported (of p) s, begin
     { rintros _ ⟨z, hzs, rfl⟩ _ _, use 0, rw [lift_mul, lift_of, if_pos hzs, zero_mul], norm_cast },
     { rintros x y ⟨q, hq⟩ ⟨r, hr⟩, refine ⟨q+r, _⟩, rw [lift_add, hq, hr], norm_cast } },
   specialize this (of p) hps, rw [lift_of] at this, split_ifs at this, { exact h },
-  exfalso, apply int.zero_ne_one,
+  exfalso, apply ne.symm int.zero_ne_one,
   rcases this with ⟨w, H⟩, rw polynomial.int_cast_eq_C at H,
-  exact congr_arg (λ (f : polynomial ℤ), f.coeff 1) H.symm
+  have : polynomial.X.coeff 1 = (polynomial.C ↑w).coeff 1, by rw H,
+  rwa [polynomial.coeff_C, if_neg one_ne_zero, polynomial.coeff_X, if_pos rfl] at this,
+  apply_instance
 end
 
 theorem map_subtype_val_restriction {x} (s : set α) [decidable_pred s] (hxs : is_supported x s) :
@@ -265,27 +270,25 @@ end
 
 def subsingleton_equiv_free_comm_ring [subsingleton α] :
   free_ring α ≃r free_comm_ring α :=
-{ to_equiv := @functor.map_equiv _ _ free_abelian_group _ _ $ multiset.subsingleton_equiv α,
-  hom :=
+{ hom :=
   begin
     delta functor.map_equiv,
     rw congr_arg is_ring_hom _,
     work_on_goal 2 { symmetry, exact coe_eq α },
     apply_instance
-  end }
+  end,
+  ..@functor.map_equiv _ _ free_abelian_group _ _ $ multiset.subsingleton_equiv α }
 
 instance [subsingleton α] : comm_ring (free_ring α) :=
 { mul_comm := λ x y,
   by rw [← (subsingleton_equiv_free_comm_ring α).left_inv (y * x),
-        is_ring_hom.map_mul ((subsingleton_equiv_free_comm_ring α).to_equiv).to_fun,
+        is_ring_hom.map_mul ((subsingleton_equiv_free_comm_ring α)).to_fun,
         mul_comm,
-        ← is_ring_hom.map_mul ((subsingleton_equiv_free_comm_ring α).to_equiv).to_fun,
+        ← is_ring_hom.map_mul ((subsingleton_equiv_free_comm_ring α)).to_fun,
         (subsingleton_equiv_free_comm_ring α).left_inv],
   .. free_ring.ring α }
 
 end free_ring
-
-variables [decidable_eq α]
 
 def free_comm_ring_equiv_mv_polynomial_int :
   free_comm_ring α ≃r mv_polynomial α ℤ :=
@@ -299,14 +302,17 @@ def free_comm_ring_equiv_mv_polynomial_int :
       @@is_ring_hom.is_semiring_hom _ _ _ (@@int.cast.is_ring_hom _),
     refine free_abelian_group.induction_on x rfl _ _ _,
     { intro s,
-      refine multiset.induction_on s rfl _,
-      intros hd tl ih,
-      show mv_polynomial.eval₂ coe free_comm_ring.of
-        (free_comm_ring.lift (λ a, mv_polynomial.X a)
-        (free_comm_ring.of hd * free_abelian_group.of tl)) =
-        free_comm_ring.of hd * free_abelian_group.of tl,
-      rw [free_comm_ring.lift_mul, free_comm_ring.lift_of,
-        mv_polynomial.eval₂_mul, mv_polynomial.eval₂_X, ih] },
+      refine multiset.induction_on s _ _,
+      { unfold free_comm_ring.lift,
+        rw [free_abelian_group.lift.of],
+        exact mv_polynomial.eval₂_one _ _ },
+      { intros hd tl ih,
+        show mv_polynomial.eval₂ coe free_comm_ring.of
+          (free_comm_ring.lift (λ a, mv_polynomial.X a)
+          (free_comm_ring.of hd * free_abelian_group.of tl)) =
+          free_comm_ring.of hd * free_abelian_group.of tl,
+        rw [free_comm_ring.lift_mul, free_comm_ring.lift_of,
+          mv_polynomial.eval₂_mul, mv_polynomial.eval₂_X, ih] } },
     { intros s ih,
       rw [free_comm_ring.lift_neg, ← neg_one_mul, mv_polynomial.eval₂_mul,
         ← mv_polynomial.C_1, ← mv_polynomial.C_neg, mv_polynomial.eval₂_C,

@@ -10,7 +10,7 @@ noncomputable theory
 open set topological_space metric
 
 namespace nnreal
-local notation ` ℝ≥0 ` := nnreal
+open_locale nnreal
 
 instance : topological_space ℝ≥0 := infer_instance
 
@@ -72,7 +72,7 @@ lemma tendsto_coe {f : filter α} {m : α → nnreal} :
   ∀{x : nnreal}, tendsto (λa, (m a : ℝ)) f (nhds (x : ℝ)) ↔ tendsto m f (nhds x)
 | ⟨r, hr⟩ := by rw [nhds_subtype_eq_comap, tendsto_comap_iff]; refl
 
-lemma tendsto_of_real {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m f (nhds x)):
+lemma tendsto_of_real {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m f (nhds x)) :
   tendsto (λa, nnreal.of_real (m a)) f (nhds (nnreal.of_real x)) :=
 tendsto.comp (continuous_iff_continuous_at.1 continuous_of_real _) h
 

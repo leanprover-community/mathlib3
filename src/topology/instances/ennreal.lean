@@ -8,13 +8,14 @@ Extended non-negative reals
 import topology.instances.nnreal data.real.ennreal
 noncomputable theory
 open classical set lattice filter metric
-local attribute [instance] prop_decidable
+open_locale classical
 variables {α : Type*} {β : Type*} {γ : Type*}
 
-local notation `∞` := ennreal.infinity
+open_locale ennreal
 
 namespace ennreal
 variables {a b c d : ennreal} {r p q : nnreal}
+variables {x y z : ennreal} {ε ε₁ ε₂ : ennreal} {s : set ennreal}
 
 section topological_space
 open topological_space
@@ -47,8 +48,7 @@ instance : second_countable_topology ennreal :=
     end)⟩⟩
 
 lemma embedding_coe : embedding (coe : nnreal → ennreal) :=
-and.intro (assume a b, coe_eq_coe.1) $
-begin
+⟨⟨begin
   refine le_antisymm _ _,
   { rw [orderable_topology.topology_eq_generate_intervals ennreal,
       ← coinduced_le_iff_le_induced],
@@ -62,11 +62,14 @@ begin
     refine le_generate_from (assume s ha, _),
     rcases ha with ⟨a, rfl | rfl⟩,
     exact ⟨{b : ennreal | ↑a < b}, @is_open_lt' ennreal ennreal.topological_space _ _ _, by simp⟩,
-    exact ⟨{b : ennreal | b < ↑a}, @is_open_gt' ennreal ennreal.topological_space _ _ _, by simp⟩, },
-end
+    exact ⟨{b : ennreal | b < ↑a}, @is_open_gt' ennreal ennreal.topological_space _ _ _, by simp⟩ }
+  end⟩,
+  assume a b, coe_eq_coe.1⟩
 
 lemma is_open_ne_top : is_open {a : ennreal | a ≠ ⊤} :=
 is_open_neg (is_closed_eq continuous_id continuous_const)
+
+lemma is_open_Ico_zero : is_open (Ico 0 b) := by { rw ennreal.Ico_eq_Iio, exact is_open_Iio}
 
 lemma coe_range_mem_nhds : range (coe : nnreal → ennreal) ∈ nhds (r : ennreal) :=
 have {a : ennreal | a ≠ ⊤} = range (coe : nnreal → ennreal),
@@ -82,12 +85,12 @@ continuous (λa, (f a : ennreal)) ↔ continuous f :=
 embedding_coe.continuous_iff.symm
 
 lemma nhds_coe {r : nnreal} : nhds (r : ennreal) = (nhds r).map coe :=
-by rw [embedding_coe.2, map_nhds_induced_eq coe_range_mem_nhds]
+by rw [embedding_coe.induced, map_nhds_induced_eq coe_range_mem_nhds]
 
 lemma nhds_coe_coe {r p : nnreal} : nhds ((r : ennreal), (p : ennreal)) =
   (nhds (r, p)).map (λp:nnreal×nnreal, (p.1, p.2)) :=
 begin
-  rw [(embedding_prod_mk embedding_coe embedding_coe).map_nhds_eq],
+  rw [(embedding_coe.prod_mk embedding_coe).map_nhds_eq],
   rw [← prod_range_range_eq],
   exact prod_mem_nhds_sets coe_range_mem_nhds coe_range_mem_nhds
 end
@@ -117,6 +120,96 @@ match s, hs with
     lt_trans (show (r : ennreal) < n, from (coe_nat n) ▸ coe_lt_coe.2 hrn) hnma
 | _, ⟨a,      or.inr rfl⟩, hr := (not_top_lt $ show ⊤ < a, from hr).elim
 end
+
+lemma nhds_top : nhds ∞ = ⨅a:{a:ennreal // a ≠ ⊤}, principal (Ioi a) :=
+begin
+  rw nhds_generate_from,
+  refine le_antisymm
+           (infi_le_infi2 _)
+           (le_infi $ assume s, le_infi $ assume hs, _),
+  { rintros ⟨a, ha⟩, use {b : ennreal | a < b}, refine infi_le_of_le _ _,
+    { simp only [mem_set_of_eq], split, { rwa lt_top_iff_ne_top }, { use a, exact or.inl rfl } },
+    { simp only [mem_principal_sets, le_principal_iff], assume a, simp } },
+  { rcases hs with ⟨ht, ⟨a, hs⟩⟩, cases hs,
+    case or.inl
+      { rw [hs, mem_set_of_eq, lt_top_iff_ne_top] at ht,
+        refine infi_le_of_le ⟨a, ht⟩ _,
+        simp only [mem_principal_sets, le_principal_iff],
+        assume x, simp [hs] },
+    case or.inr
+      { rw [hs, mem_set_of_eq, lt_iff_not_ge] at ht,
+        have := le_top,
+        contradiction } }
+end
+
+lemma nhds_zero : nhds (0 : ennreal) = ⨅a:{a:ennreal // a ≠ 0}, principal (Iio a) :=
+begin
+  rw nhds_generate_from,
+  refine le_antisymm
+           (infi_le_infi2 _)
+           (le_infi $ assume s, le_infi $ assume hs, _),
+  { rintros ⟨a, ha⟩, use {b : ennreal | b < a}, refine infi_le_of_le _ _,
+    { simp only [mem_set_of_eq], split, { rwa zero_lt_iff_ne_zero }, { use a, exact or.inr rfl } },
+    { simp only [mem_principal_sets, le_principal_iff], assume a, simp } },
+  { rcases hs with ⟨hz, ⟨a, hs⟩⟩, cases hs,
+    case or.inr
+      { rw [hs, mem_set_of_eq, zero_lt_iff_ne_zero] at hz,
+        refine infi_le_of_le ⟨a, hz⟩ _,
+        simp only [mem_principal_sets, le_principal_iff],
+        assume x, simp [hs] },
+    case or.inl
+      { rw [hs, mem_set_of_eq, lt_iff_not_ge] at hz,
+        have := zero_le a,
+        contradiction } }
+end
+
+-- using Icc because
+-- • don't have 'Ioo (x - ε) (x + ε) ∈ nhds x' unless x > 0
+-- • (x - y ≤ ε ↔ x ≤ ε + y) is true, while (x - y < ε ↔ x < ε + y) is not
+lemma Icc_mem_nhds : x ≠ ⊤ → ε > 0 → Icc (x - ε) (x + ε) ∈ nhds x :=
+begin
+  assume xt ε0, rw mem_nhds_sets_iff,
+  by_cases x0 : x = 0,
+  { use Iio (x + ε),
+    have : Iio (x + ε) ⊆ Icc (x - ε) (x + ε), assume a, rw x0, simpa using le_of_lt,
+    use this, exact ⟨is_open_Iio, mem_Iio_self_add xt ε0⟩ },
+  { use Ioo (x - ε) (x + ε), use Ioo_subset_Icc_self,
+    exact ⟨is_open_Ioo, mem_Ioo_self_sub_add xt x0 ε0 ε0 ⟩ }
+end
+
+lemma nhds_of_ne_top : x ≠ ⊤ → nhds x = ⨅ε:{ε:ennreal // ε > 0}, principal (Icc (x - ε) (x + ε)) :=
+begin
+  assume xt, refine le_antisymm _ _,
+  -- first direction
+  simp only [le_infi_iff, le_principal_iff, subtype.forall], assume ε ε0, exact Icc_mem_nhds xt ε0,
+  -- second direction
+  rw nhds_generate_from, refine le_infi (assume s, le_infi $ assume hs, _),
+  simp only [mem_set_of_eq] at hs, rcases hs with ⟨xs, ⟨a, ha⟩⟩,
+  cases ha,
+  { rw ha at *,
+    rcases dense xs with ⟨b, ⟨ab, bx⟩⟩,
+    have xb_pos : x - b > 0 := zero_lt_sub_iff_lt.2 bx,
+    have xxb : x - (x - b) = b := sub_sub_cancel (by rwa lt_top_iff_ne_top) (le_of_lt bx),
+    refine infi_le_of_le ⟨x - b, xb_pos⟩ _,
+    simp only [mem_principal_sets, le_principal_iff, subtype.coe_mk],
+    assume y, rintros ⟨h₁, h₂⟩, rw xxb at h₁, calc a < b : ab ... ≤ y : h₁ },
+  { rw ha at *,
+    rcases dense xs with ⟨b, ⟨xb, ba⟩⟩,
+    have bx_pos : b - x > 0 := zero_lt_sub_iff_lt.2 xb,
+    have xbx : x + (b - x) = b := add_sub_cancel_of_le (le_of_lt xb),
+    refine infi_le_of_le ⟨b - x, bx_pos⟩ _,
+    simp only [mem_principal_sets, le_principal_iff, subtype.coe_mk],
+    assume y, rintros ⟨h₁, h₂⟩, rw xbx at h₂, calc y ≤ b : h₂ ... < a : ba },
+end
+
+protected theorem tendsto_nhds {f : filter α} {u : α → ennreal} {a : ennreal} (ha : a ≠ ⊤) :
+  tendsto u f (nhds a) ↔ ∀ ε > 0, ∃ n ∈ f, ∀x ∈ n,  (u x) ∈ Icc (a - ε) (a + ε) :=
+by { simp only [nhds_of_ne_top ha, tendsto_infi, subtype.forall, tendsto_principal, mem_Icc],
+  refine forall_congr (assume ε, forall_congr $ assume hε, exists_sets_subset_iff.symm) }
+
+protected lemma tendsto_at_top [nonempty β] [semilattice_sup β] {f : β → ennreal} {a : ennreal}
+  (ha : a ≠ ⊤) : tendsto f at_top (nhds a) ↔ ∀ε>0, ∃N, ∀n≥N, (f n) ∈ Icc (a - ε) (a + ε) :=
+by { simp only [nhds_of_ne_top ha, tendsto_infi, subtype.forall, tendsto_at_top_principal], refl }
 
 lemma tendsto_coe_nnreal_nhds_top {α} {l : filter α} {f : α → nnreal} (h : tendsto f l at_top) :
   tendsto (λa, (f a : ennreal)) l (nhds (⊤:ennreal)) :=
@@ -238,9 +331,12 @@ begin
     simp only [finset.sum_insert has],
     rw [ih, supr_add_supr_of_monotone (hf a)],
     assume i j h,
-    exact (finset.sum_le_sum' $ assume a ha, hf a h) }
+    exact (finset.sum_le_sum $ assume a ha, hf a h) }
 end
 
+section priority
+-- for some reason the next proof fails without changing the priority of this instance
+local attribute [instance, priority 1000] classical.prop_decidable
 lemma mul_Sup {s : set ennreal} {a : ennreal} : a * Sup s = ⨆i∈s, a * i :=
 begin
   by_cases hs : ∀x∈s, x = (0:ennreal),
@@ -261,6 +357,7 @@ begin
         (ennreal.tendsto_mul_right (tendsto_id' inf_le_left) (or.inl s₁))),
     rw [this.symm, Sup_image] }
 end
+end priority
 
 lemma mul_supr {ι : Sort*} {f : ι → ennreal} {a : ennreal} : a * supr f = ⨆i, a * f i :=
 by rw [← Sup_range, mul_Sup, supr_range]
@@ -443,7 +540,7 @@ lemma has_sum_iff_tendsto_nat_of_nonneg {f : ℕ → ℝ} (hf : ∀i, 0 ≤ f i)
 ⟨tendsto_sum_nat_of_has_sum,
   assume hfr,
   have 0 ≤ r := ge_of_tendsto at_top_ne_bot hfr $ univ_mem_sets' $ assume i,
-    show 0 ≤ (finset.range i).sum f, from finset.zero_le_sum $ assume i _, hf i,
+    show 0 ≤ (finset.range i).sum f, from finset.sum_nonneg $ assume i _, hf i,
   let f' (n : ℕ) : nnreal := ⟨f n, hf n⟩, r' : nnreal := ⟨r, this⟩ in
   have f_eq : f = (λi:ℕ, (f' i : ℝ)) := rfl,
   have r_eq : r = r' := rfl,

@@ -6,7 +6,7 @@ Authors: Kenny Lau
 Integral closure of a subring.
 -/
 
-import ring_theory.adjoin
+import ring_theory.adjoin linear_algebra.finsupp
 
 universes u v
 
@@ -132,7 +132,7 @@ theorem is_integral_of_mem_of_fg (M : subalgebra R A)
 begin
   cases HM with m hm,
   have hxm : x ∈ (M : submodule R A) := hx,
-  rw [← hm, mem_span_iff_lc] at hxm,
+  rw [← hm, ← set.image_id ↑m, finsupp.mem_span_iff_total] at hxm,
   rcases hxm with ⟨lx, hlx1, hlx2⟩,
   have : ∀ (jk : (↑(m.product m) : set (A × A))), jk.1.1 * jk.1.2 ∈ (span R ↑m : submodule R A),
   { intros jk,
@@ -141,7 +141,8 @@ begin
     have hj : j.1 ∈ (span R ↑m : submodule R A) := subset_span j.2,
     have hk : k.1 ∈ (span R ↑m : submodule R A) := subset_span k.2,
     revert hj hk, rw hm, exact @is_submonoid.mul_mem A _ M _ j.1 k.1 },
-  simp only [mem_span_iff_lc] at this,
+  rw ← set.image_id ↑m at this,
+  simp only [finsupp.mem_span_iff_total] at this,
   choose lm hlm1 hlm2,
   let S₀' : finset R := lx.frange ∪ finset.bind finset.univ (finsupp.frange ∘ lm),
   let S₀ : set R := ring.closure ↑S₀',
@@ -156,10 +157,12 @@ begin
     rw [algebra.adjoin_eq_span, span_le], intros r hr, refine monoid.in_closure.rec_on hr _ _ _,
     { intros r hr, exact subset_span (set.mem_insert_of_mem _ hr) },
     { exact subset_span (set.mem_insert _ _) },
-    intros r1 r2 hr1 hr2 ih1 ih2, simp only [mem_coe, mem_span_iff_lc] at ih1 ih2,
+    intros r1 r2 hr1 hr2 ih1 ih2,
+    rw ← set.image_id (insert _ ↑m) at ih1 ih2,
+    simp only [mem_coe, finsupp.mem_span_iff_total] at ih1 ih2,
     have ih1' := ih1, have ih2' := ih2,
     rcases ih1' with ⟨l1, hl1, rfl⟩, rcases ih2' with ⟨l2, hl2, rfl⟩,
-    simp only [lc.total_apply, finsupp.sum_mul, finsupp.mul_sum, mem_coe],
+    simp only [finsupp.total_apply, finsupp.sum_mul, finsupp.mul_sum, mem_coe],
     rw [finsupp.sum], refine sum_mem _ _, intros r2 hr2,
     rw [finsupp.sum], refine sum_mem _ _, intros r1 hr1,
     rw [algebra.mul_smul_comm, algebra.smul_mul_assoc],
@@ -169,12 +172,12 @@ begin
     rcases hl2 hr2 with rfl | hr2,
     { change r1 * 1 ∈ _, rw mul_one, exact subset_span (set.mem_insert_of_mem _ hr1) },
     let jk : ↥(↑(finset.product m m) : set (A × A)) := ⟨(r1, r2), finset.mem_product.2 ⟨hr1, hr2⟩⟩,
-    specialize hlm2 jk, change _ = r1 * r2 at hlm2, rw [← hlm2, lc.total_apply],
+    specialize hlm2 jk, change _ = r1 * r2 at hlm2, rw [id, id, ← hlm2, finsupp.total_apply],
     rw [finsupp.sum], refine sum_mem _ _, intros z hz,
     have : lm jk z ∈ S₀,
     { apply ring.subset_closure,
       apply finset.mem_union_right, apply finset.mem_bind.2,
-      exact ⟨jk, finset.mem_univ _, finset.mem_image_of_mem _ hz⟩ },
+      exact ⟨jk, finset.mem_univ _, by convert finset.mem_image_of_mem _ hz⟩ },
     change @has_scalar.smul S₀ (algebra.comap S₀ R A) _inst_6.to_has_scalar ⟨lm jk z, this⟩ z ∈ _,
     exact smul_mem _ _ (subset_span (set.mem_insert_of_mem _ (hlm1 _ hz))) },
   haveI : is_noetherian_ring ↥S₀ :=(by convert is_noetherian_ring_closure _ (finset.finite_to_set _); apply_instance),
@@ -182,10 +185,10 @@ begin
     (algebra.adjoin S₀ ((↑m : set A) : set (algebra.comap S₀ R A)) : subalgebra S₀ (algebra.comap S₀ R A))
     (is_noetherian_of_fg_of_noetherian _ ⟨insert 1 m, by rw finset.coe_insert; convert this⟩),
   show x ∈ ((algebra.adjoin S₀ ((↑m : set A) : set (algebra.comap S₀ R A)) : subalgebra S₀ (algebra.comap S₀ R A)) : submodule S₀ (algebra.comap S₀ R A)),
-  rw [← hlx2, lc.total_apply, finsupp.sum], refine sum_mem _ _, intros r hr,
+  rw [← hlx2, finsupp.total_apply, finsupp.sum], refine sum_mem _ _, intros r hr,
   rw ← this,
   have : lx r ∈ ring.closure ↑S₀' :=
-    ring.subset_closure (finset.mem_union_left _ (finset.mem_image_of_mem _ hr)),
+    ring.subset_closure (finset.mem_union_left _ (by convert finset.mem_image_of_mem _ hr)),
   change @has_scalar.smul S₀ (algebra.comap S₀ R A) _inst_6.to_has_scalar ⟨lx r, this⟩ r ∈ _,
   exact smul_mem _ _ (subset_span (set.mem_insert_of_mem _ (hlx1 hr)))
 end

@@ -14,9 +14,8 @@ import tactic.linarith
 import linear_algebra.basic
 import ring_theory.algebra
 
-local attribute [instance] classical.prop_decidable
-
 open set
+open_locale classical
 
 section vector_space
 variables {α : Type*} {β : Type*} {ι : Sort _}
@@ -124,7 +123,7 @@ begin
         split,
         apply div_nonneg ; linarith,
         apply (div_le_iff this).2,
-        simp, convert hzb, ring},
+        simp, convert hzb },
       use [(z-a)/(b-a), this],
       rw [smul_eq_mul, div_mul_cancel],
       ring,
@@ -154,6 +153,21 @@ begin
     apply and.intro,
     { convert segment_translate (-a) (a + b) (a + c) z hz; simp },
     { simp only [add_sub_cancel'_right] } }
+end
+
+lemma image_Icc_zero_one_eq_segment {x y : α} :
+   (λ (t : ℝ), x + t • (y - x)) '' Icc 0 1 = segment x y :=
+begin
+  apply subset.antisymm,
+  { intros z hz,
+    apply exists.elim hz,
+    intros x hx,
+    use x,
+    simp [hx.2.symm, hx.1] },
+  { intros z hz,
+    apply exists.elim hz,
+    intros a ha,
+    exact ⟨a, ha.1, add_eq_of_eq_sub' (eq.symm ha.2)⟩ }
 end
 
 /-- Alternative defintion of set convexity using segments -/
@@ -340,39 +354,12 @@ convex_inter _ _ (convex_Ioi _) (convex_Iic _)
 lemma convex_Icc (r : ℝ) (s : ℝ) : convex (Icc r s) :=
 convex_inter _ _ (convex_Ici _) (convex_Iic _)
 
-private lemma convex_segment0 (b : α) : convex [0, b] :=
-begin
-  let f := (λ x : ℝ, x • b),
-  have h_image : f '' (Icc 0 1) = [0, b],
-  { apply subset.antisymm,
-    { intros z hz,
-      apply exists.elim hz,
-      intros x hx,
-      use x,
-      simp [hx.2.symm, hx.1] },
-    { intros z hz,
-      apply exists.elim hz,
-      intros x hx,
-      use x,
-      simp at hx,
-      exact and.intro hx.1 hx.2.symm } },
-  have h_lin : is_linear_map ℝ f,
-    from is_linear_map.is_linear_map_smul' _,
-  show convex [0, b],
-  { rw [←h_image],
-    exact convex_linear_image _ f h_lin (convex_Icc _ _) }
-end
-
 lemma convex_segment (a b : α) : convex [a, b] :=
 begin
-  have h: (λx, a + x) '' [0, b-a] = [a, b],
-  { convert segment_translate_image _ _ _,
-    { simp },
-    { simp only [add_sub_cancel'_right] } },
-  show convex [a, b],
-  { rw [← h],
-    apply convex_translation,
-    apply convex_segment0 }
+  have : (λ (t : ℝ), a + t • (b - a)) = (λz : α, a + z) ∘ (λt:ℝ, t • (b - a)) := rfl,
+  rw [← image_Icc_zero_one_eq_segment, this, image_comp],
+  apply convex_translation _ _ (convex_linear_image _ _ _ (convex_Icc _ _)),
+  exact is_linear_map.is_linear_map_smul' _
 end
 
 lemma convex_halfspace_lt (f : α → ℝ) (h : is_linear_map ℝ f) (r : ℝ) :
@@ -444,6 +431,17 @@ convex_halfspace_gt _ (is_linear_map.mk complex.add_im complex.smul_im) _
 lemma convex_halfspace_im_lge (r : ℝ) : convex {c : ℂ | r ≤ c.im} :=
 convex_halfspace_ge _ (is_linear_map.mk complex.add_im complex.smul_im) _
 
+section submodule
+
+open submodule
+
+lemma convex_submodule (K : submodule ℝ α) : convex (↑K : set α) :=
+by { repeat {intro}, refine add_mem _ (smul_mem _ _ _) (smul_mem _ _ _); assumption }
+
+lemma convex_subspace (K : subspace ℝ α) : convex (↑K : set α) := convex_submodule K
+
+end submodule
+
 lemma convex_sum {γ : Type*} (hA : convex A) (z : γ → α) (s : finset γ) :
   ∀ a : γ → ℝ, s.sum a = 1 → (∀ i ∈ s, 0 ≤ a i) → (∀ i ∈ s, z i ∈ A) → s.sum (λi, a i • z i) ∈ A :=
 begin
@@ -468,7 +466,7 @@ begin
         simp,
         exact hz k (finset.mem_insert_self k s) } },
     { have h_sum_nonneg : 0 ≤ s.sum a,
-      { apply finset.zero_le_sum',
+      { apply finset.sum_nonneg,
         intros i hi,
         apply ha _ (finset.mem_insert_of_mem hi) },
       have h_div_in_A: s.sum (λ (i : γ), ((s.sum a)⁻¹ * a i) • z i) ∈ A,
@@ -616,7 +614,7 @@ begin
       rw [finset.sum_insert hks, hak, finset.sum_eq_zero h_afz0],
       simp } },
   { have h_sum_nonneg : 0 ≤ s.sum a ,
-    { apply finset.zero_le_sum',
+    { apply finset.sum_nonneg,
       intros i hi,
       apply ha _ (finset.mem_insert_of_mem hi) },
     have ih_div: f (s.sum (λ (i : γ), ((s.sum a)⁻¹ * a i) • z i))

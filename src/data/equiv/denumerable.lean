@@ -100,13 +100,15 @@ by simp; refl
 @[simp] theorem prod_nat_of_nat : of_nat (ℕ × ℕ) = unpair :=
 by funext; simp
 
-instance int : denumerable ℤ := of_equiv _ equiv.int_equiv_nat
+instance int : denumerable ℤ := denumerable.mk' equiv.int_equiv_nat
+
+instance pnat : denumerable ℕ+ := denumerable.mk' equiv.pnat_equiv_nat
 
 instance ulift : denumerable (ulift α) := of_equiv _ equiv.ulift
 
 instance plift : denumerable (plift α) := of_equiv _ equiv.plift
 
-def pair : (α × α) ≃ α := equiv₂ _ _
+def pair : α × α ≃ α := equiv₂ _ _
 
 end
 end denumerable
@@ -164,16 +166,20 @@ lemma of_nat_surjective_aux : ∀ {x : ℕ} (hx : x ∈ s), ∃ n, of_nat s n = 
   (λ (y : ℕ) (hy : y ∈ s), ⟨y, hy⟩) (by simp) in
 have hmt : ∀ {y : s}, y ∈ t ↔ y < ⟨x, hx⟩,
   by simp [list.mem_filter, subtype.ext, t]; intros; refl,
-if ht : t = [] then ⟨0, le_antisymm (@bot_le s _ _)
-  (le_of_not_gt (λ h, list.not_mem_nil ⊥ $
-    by rw [← ht, hmt]; exact h))⟩
-else by letI : inhabited s := ⟨⊥⟩;
-  exact have wf : (list.maximum t).1 < x, by simpa [hmt] using list.mem_maximum ht,
-  let ⟨a, ha⟩ := of_nat_surjective_aux (list.maximum t).2 in
-  ⟨a + 1, le_antisymm
-    (by rw of_nat; exact succ_le_of_lt (by rw ha; exact wf)) $
-    by rw of_nat; exact le_succ_of_forall_lt_le
-      (λ z hz, by rw ha; exact list.le_maximum_of_mem (hmt.2 hz))⟩
+have wf : ∀ m : s, list.maximum t = m → m.1 < x,
+  from λ m hmax, by simpa [hmt] using list.maximum_mem hmax,
+begin
+  cases hmax : list.maximum t with m,
+  { exact ⟨0, le_antisymm (@bot_le s _ _)
+      (le_of_not_gt (λ h, list.not_mem_nil (⊥ : s) $
+        by rw [← list.maximum_eq_none.1 hmax, hmt]; exact h))⟩ },
+  { cases of_nat_surjective_aux m.2 with a ha,
+    exact ⟨a + 1, le_antisymm
+      (by rw of_nat; exact succ_le_of_lt (by rw ha; exact wf _ hmax)) $
+      by rw of_nat; exact le_succ_of_forall_lt_le
+        (λ z hz, by rw ha; cases m; exact list.le_maximum_of_mem (hmt.2 hz) hmax)⟩ }
+end
+using_well_founded {dec_tac := `[tauto]}
 
 lemma of_nat_surjective : surjective (of_nat s) :=
 λ ⟨x, hx⟩, of_nat_surjective_aux hx

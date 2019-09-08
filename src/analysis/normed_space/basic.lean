@@ -15,7 +15,7 @@ variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 noncomputable theory
 open filter metric
-local notation f `→_{`:50 a `}`:0 b := tendsto f (nhds a) (nhds b)
+localized "notation f `→_{`:50 a `}`:0 b := filter.tendsto f (_root_.nhds a) (_root_.nhds b)" in filter
 
 class has_norm (α : Type*) := (norm : α → ℝ)
 
@@ -375,7 +375,7 @@ instance : normed_field ℝ :=
 instance : nondiscrete_normed_field ℝ :=
 { non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
 
-lemma real.norm_eq_abs (r : ℝ): norm r = abs r := rfl
+lemma real.norm_eq_abs (r : ℝ) : norm r = abs r := rfl
 
 end normed_field
 
@@ -492,7 +492,7 @@ instance fintype.normed_space {E : ι → Type*} [fintype ι] [∀i, normed_grou
 end normed_space
 
 section summable
-local attribute [instance] classical.prop_decidable
+open_locale classical
 open finset filter
 variables [normed_group α] [complete_space α]
 
@@ -515,7 +515,7 @@ summable_iff_vanishing_norm.2 $ assume ε hε,
   let ⟨s, hs⟩ := summable_iff_vanishing_norm.1 hf ε hε in
   ⟨s, assume t ht,
     have ∥t.sum g∥ < ε := hs t ht,
-    have nn : 0 ≤ t.sum g := finset.zero_le_sum (assume a _, le_trans (norm_nonneg _) (h a)),
+    have nn : 0 ≤ t.sum g := finset.sum_nonneg (assume a _, le_trans (norm_nonneg _) (h a)),
     lt_of_le_of_lt (norm_triangle_sum t f) $ lt_of_le_of_lt (finset.sum_le_sum $ assume i _, h i) $
       by rwa [real.norm_eq_abs, abs_of_nonneg nn] at this⟩
 

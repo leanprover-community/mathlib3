@@ -1,13 +1,19 @@
--- Copyright (c) 2017 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison
-
-/- The Yoneda embedding, as a functor `yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁)`,
-   along with an instance that it is `fully_faithful`.
-
-   Also the Yoneda lemma, `yoneda_lemma : (yoneda_pairing C) ≅ (yoneda_evaluation C)`. -/
-
+/-
+Copyright (c) 2017 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import category_theory.opposites
+import category_theory.hom_functor
+
+/-!
+# The Yoneda embedding
+
+The Yoneda embedding as a functor `yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁)`,
+along with an instance that it is `fully_faithful`.
+
+Also the Yoneda lemma, `yoneda_lemma : (yoneda_pairing C) ≅ (yoneda_evaluation C)`.
+-/
 
 namespace category_theory
 open opposite
@@ -50,9 +56,10 @@ by obviously
   {Z Z' : C} (f : Z ⟶ Z') (h : Z' ⟶ X) : f ≫ α.app (op Z') h = α.app (op Z) (f ≫ h) :=
 begin erw [functor_to_types.naturality], refl end
 
-instance yoneda_fully_faithful : fully_faithful (@yoneda C _) :=
-{ preimage := λ X Y f, (f.app (op X)) (𝟙 X),
-  injectivity' := λ X Y f g p,
+instance yoneda_full : full (@yoneda C _) :=
+{ preimage := λ X Y f, (f.app (op X)) (𝟙 X) }
+instance yoneda_faithful : faithful (@yoneda C _) :=
+{ injectivity' := λ X Y f g p,
   begin
     injection p with h,
     convert (congr_fun (congr_fun h (op X)) (𝟙 X)); dsimp; simp,
@@ -73,14 +80,36 @@ def ext (X Y : C)
 @preimage_iso _ _ _ _ yoneda _ _ _ _
   (nat_iso.of_components (λ Z, { hom := p, inv := q, }) (by tidy))
 
+def is_iso {X Y : C} (f : X ⟶ Y) [is_iso (yoneda.map f)] : is_iso f :=
+is_iso_of_fully_faithful yoneda f
+
 end yoneda
 
 namespace coyoneda
+
 @[simp] lemma obj_obj (X : Cᵒᵖ) (Y : C) : (coyoneda.obj X).obj Y = (unop X ⟶ Y) := rfl
 @[simp] lemma obj_map {X' X : C} (f : X' ⟶ X) (Y : Cᵒᵖ) :
   (coyoneda.obj Y).map f = λ g, g ≫ f := rfl
 @[simp] lemma map_app (X : C) {Y Y' : Cᵒᵖ} (f : Y ⟶ Y') :
   (coyoneda.map f).app X = λ g, f.unop ≫ g := rfl
+
+@[simp] lemma naturality {X Y : Cᵒᵖ} (α : coyoneda.obj X ⟶ coyoneda.obj Y)
+  {Z Z' : C} (f : Z' ⟶ Z) (h : unop X ⟶ Z') : (α.app Z' h) ≫ f = α.app Z (h ≫ f) :=
+begin erw [functor_to_types.naturality], refl end
+
+instance coyoneda_full : full (@coyoneda C _) :=
+{ preimage := λ X Y f, ((f.app (unop X)) (𝟙 _)).op }
+instance coyoneda_faithful : faithful (@coyoneda C _) :=
+{ injectivity' := λ X Y f g p,
+  begin
+    injection p with h,
+    have t := (congr_fun (congr_fun h (unop X)) (𝟙 _)),
+    simpa using congr_arg has_hom.hom.op t,
+  end }
+
+def is_iso {X Y : Cᵒᵖ} (f : X ⟶ Y) [is_iso (coyoneda.map f)] : is_iso f :=
+is_iso_of_fully_faithful coyoneda f
+
 end coyoneda
 
 class representable (F : Cᵒᵖ ⥤ Sort v₁) :=
@@ -91,8 +120,7 @@ end category_theory
 
 namespace category_theory
 -- For the rest of the file, we are using product categories,
--- so need to restrict to the case we are in 'Type', not 'Sort',
--- for both objects and morphisms
+-- so need to restrict to the case morphisms are in 'Type', not 'Sort'.
 
 universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
@@ -118,7 +146,7 @@ evaluation_uncurried Cᵒᵖ (Type v₁) ⋙ ulift_functor.{u₁}
   ((yoneda_evaluation C).map α x).down = α.2.app Q.1 (P.2.map α.1 x.down) := rfl
 
 def yoneda_pairing : Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁) ⥤ Type (max u₁ v₁) :=
-functor.prod yoneda.op (functor.id (Cᵒᵖ ⥤ Type v₁)) ⋙ functor.hom (Cᵒᵖ ⥤ Type v₁)
+functor.prod yoneda.op (𝟭 (Cᵒᵖ ⥤ Type v₁)) ⋙ functor.hom (Cᵒᵖ ⥤ Type v₁)
 
 @[simp] lemma yoneda_pairing_map
   (P Q : Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) (α : P ⟶ Q) (β : (yoneda_pairing C).obj P) :

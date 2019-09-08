@@ -12,6 +12,9 @@ import data.polynomial data.mv_polynomial
 import ring_theory.subring
 import ring_theory.ideals ring_theory.noetherian
 
+noncomputable theory
+local attribute [instance, priority 100] classical.prop_decidable
+
 universes u v w
 
 namespace polynomial
@@ -28,7 +31,7 @@ theorem mem_degree_le {n : with_bot ℕ} {f : polynomial R} :
   f ∈ degree_le R n ↔ degree f ≤ n :=
 by simp only [degree_le, submodule.mem_infi, degree_le_iff_coeff_zero, linear_map.mem_ker]; refl
 
-theorem degree_le_mono {m n : with_bot ℕ} (H : m ≤ n):
+theorem degree_le_mono {m n : with_bot ℕ} (H : m ≤ n) :
   degree_le R m ≤ degree_le R n :=
 λ f hf, mem_degree_le.2 (le_trans (mem_degree_le.1 hf) H)
 
@@ -234,7 +237,7 @@ have hm2 : ∀ k, I.leading_coeff_nth k ≤ M := λ k, or.cases_on (le_or_lt k N
   (λ h, HN ▸ I.leading_coeff_nth_mono h)
   (λ h x hx, classical.by_contradiction $ λ hxm,
     have ¬M < I.leading_coeff_nth k, by refine well_founded.not_lt_min
-      well_founded_submodule_gt _ _ _; exact ⟨k, rfl⟩,
+      (well_founded_submodule_gt _ _) _ _ _; exact ⟨k, rfl⟩,
     this ⟨HN ▸ I.leading_coeff_nth_mono (le_of_lt h), λ H, hxm (H hx)⟩),
 have hs2 : ∀ {x}, x ∈ I.degree_le N → x ∈ ideal.span (↑s : set (polynomial R)),
 from hs ▸ λ x hx, submodule.span_induction hx (λ _ hx, ideal.subset_span hx) (ideal.zero_mem _)

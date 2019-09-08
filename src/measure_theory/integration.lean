@@ -14,7 +14,7 @@ import
   measure_theory.borel_space
 noncomputable theory
 open lattice set filter
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 section sequence_of_directed
 variables {α : Type*} {β : Type*} [encodable α] [inhabited α]
@@ -137,7 +137,7 @@ by unfold_coes; simp [restrict, hs]; apply ite_apply hs
 theorem restrict_preimage [has_zero β]
   (f : α →ₛ β) {s : set α} (hs : is_measurable s)
   {t : set β} (ht : (0:β) ∉ t) : restrict f s ⁻¹' t = s ∩ f ⁻¹' t :=
-by ext a; dsimp; rw [restrict_apply]; by_cases a ∈ s; simp [h, hs, ht]
+by ext a; dsimp [preimage]; rw [restrict_apply]; by_cases a ∈ s; simp [h, hs, ht]
 
 def map (g : β → γ) (f : α →ₛ β) : α →ₛ γ := bind f (const α ∘ g)
 
@@ -147,7 +147,8 @@ theorem map_map (g : β → γ) (h: γ → δ) (f : α →ₛ β) : (f.map g).ma
 
 theorem coe_map (g : β → γ) (f : α →ₛ β) : (f.map g : α → γ) = g ∘ f := rfl
 
-@[simp] theorem range_map (g : β → γ) (f : α →ₛ β) : (f.map g).range = f.range.image g :=
+@[simp] theorem range_map [decidable_eq γ] (g : β → γ) (f : α →ₛ β) :
+  (f.map g).range = f.range.image g :=
 begin
   ext c,
   simp [mem_range],
@@ -270,7 +271,7 @@ by rw [approx_apply _ hf, approx_apply _ (hf.comp hg)]
 end
 
 lemma supr_approx_apply [topological_space β] [complete_lattice β] [ordered_topology β] [has_zero β]
-  (i : ℕ → β) (f : α → β) (a : α) (hf : _root_.measurable f) (h_zero : (0 : β) = ⊥):
+  (i : ℕ → β) (f : α → β) (a : α) (hf : _root_.measurable f) (h_zero : (0 : β) = ⊥) :
   (⨆n, (approx i f n : α →ₛ β) a) = (⨆k (h : i k ≤ f a), i k) :=
 begin
   refine le_antisymm (supr_le $ assume n, _) (supr_le $ assume k, supr_le $ assume hk, _),
@@ -408,7 +409,7 @@ begin
 end
 
 lemma restrict_preimage' {r : ennreal} {s : set α}
-  (f : α →ₛ ennreal) (hs : is_measurable s) (hr : r ≠ 0):
+  (f : α →ₛ ennreal) (hs : is_measurable s) (hr : r ≠ 0) :
   (restrict f s) ⁻¹' {r} = (f ⁻¹' {r} ∩ s) :=
 begin
   ext a,
@@ -470,7 +471,7 @@ calc f.integral ⊔ g.integral =
   begin
     rw [map_integral, map_integral],
     refine sup_le _ _;
-      refine finset.sum_le_sum' (λ a _, canonically_ordered_semiring.mul_le_mul _ (le_refl _)),
+      refine finset.sum_le_sum (λ a _, canonically_ordered_semiring.mul_le_mul _ (le_refl _)),
     exact le_sup_left,
     exact le_sup_right
   end
@@ -830,7 +831,7 @@ end
 /-- Monotone convergence theorem for nonincreasing sequences of functions -/
 lemma lintegral_infi_ae
   {f : ℕ → α → ennreal} (h_meas : ∀n, measurable (f n))
-  (h_mono : ∀n:ℕ, ∀ₘ a, f n.succ a ≤ f n a) (h_fin : lintegral (f 0) < ⊤):
+  (h_mono : ∀n:ℕ, ∀ₘ a, f n.succ a ≤ f n a) (h_fin : lintegral (f 0) < ⊤) :
   (∫⁻ a, ⨅n, f n a) = (⨅n, ∫⁻ a, f n a) :=
 have fn_le_f0 : (∫⁻ a, ⨅n, f n a) ≤ lintegral (f 0), from
   lintegral_le_lintegral _ _ (assume a, infi_le_of_le 0 (le_refl _)),
@@ -865,6 +866,9 @@ calc
         (h_mono n))
   ... = lintegral (f 0) - (⨅n, ∫⁻ a, f n a) : ennreal.sub_infi.symm
 
+section priority
+-- for some reason the next proof fails without changing the priority of this instance
+local attribute [instance, priority 1000] classical.prop_decidable
 /-- Known as Fatou's lemma -/
 lemma lintegral_liminf_le {f : ℕ → α → ennreal} (h_meas : ∀n, measurable (f n)) :
   (∫⁻ a, liminf at_top (λ n, f n a)) ≤ liminf at_top (λ n, lintegral (f n)) :=
@@ -887,6 +891,7 @@ calc
       assume i, le_infi $ assume hi, lintegral_le_lintegral _ _
       $ assume a, infi_le_of_le i $ infi_le_of_le hi $ le_refl _
   ... = liminf at_top (λ n, lintegral (f n)) : liminf_eq_supr_infi_of_nat.symm
+end priority
 
 lemma limsup_lintegral_le {f : ℕ → α → ennreal} {g : α → ennreal}
   (hf_meas : ∀ n, measurable (f n)) (hg_meas : measurable g)

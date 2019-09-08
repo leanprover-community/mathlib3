@@ -59,3 +59,49 @@ begin
   rcases s with _ | ⟨⟨⟩⟩,
   { guard_hyp s := α, trivial }
 end
+
+example : true :=
+begin
+  obtain ⟨n, h, f⟩ : ∃ n : ℕ, n = n ∧ true,
+  { existsi 0, simp },
+  guard_hyp n := ℕ,
+  guard_hyp h := n = n,
+  guard_hyp f := true,
+  trivial
+end
+
+example : true :=
+begin
+  obtain : ∃ n : ℕ, n = n ∧ true,
+  { existsi 0, simp },
+  trivial
+end
+
+example : true :=
+begin
+  obtain h | ⟨⟨⟩⟩ : true ∨ false,
+  { left, trivial },
+  guard_hyp h := true,
+  trivial
+end
+
+example : true :=
+begin
+  obtain h | ⟨⟨⟩⟩ : true ∨ false := or.inl trivial,
+  guard_hyp h := true,
+  trivial
+end
+
+example : true :=
+begin
+  obtain ⟨h, h2⟩ := and.intro trivial trivial,
+  guard_hyp h := true,
+  guard_hyp h2 := true,
+  trivial
+end
+
+example : true :=
+begin
+  success_if_fail {obtain ⟨h, h2⟩},
+  trivial
+end

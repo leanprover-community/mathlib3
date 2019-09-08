@@ -31,7 +31,7 @@ end
 lemma card_modeq_card_fixed_points [fintype α] [fintype G] [fintype (fixed_points G α)]
   {p n : ℕ} (hp : nat.prime p) (h : card G = p ^ n) : card α ≡ card (fixed_points G α) [MOD p] :=
 calc card α = card (Σ y : quotient (orbit_rel G α), {x // quotient.mk' x = y}) :
-  card_congr (equiv_fib (@quotient.mk' _ (orbit_rel G α)))
+  card_congr (sigma_preimage_equiv (@quotient.mk' _ (orbit_rel G α))).symm
 ... = univ.sum (λ a : quotient (orbit_rel G α), card {x // quotient.mk' x = a}) : card_sigma _
 ... ≡ (@univ (fixed_points G α) _).sum (λ _, 1) [MOD p] :
 begin
@@ -206,7 +206,7 @@ have hxcard : ∀ {f : fintype (gpowers x)}, card (gpowers x) = p,
 have is_subgroup (mk ⁻¹' gpowers x),
   from is_group_hom.preimage _ _,
 have fintype (mk ⁻¹' gpowers x), by apply_instance,
-have hequiv : H ≃ (subtype.val ⁻¹' H : set (normalizer H)):=
+have hequiv : H ≃ (subtype.val ⁻¹' H : set (normalizer H)) :=
   ⟨λ a, ⟨⟨a.1, subset_normalizer _ a.2⟩, a.2⟩, λ a, ⟨a.1.1, a.2⟩,
     λ ⟨_, _⟩, rfl, λ ⟨⟨_, _⟩, _⟩, rfl⟩,
 ⟨subtype.val '' (mk ⁻¹' gpowers x), by apply_instance,

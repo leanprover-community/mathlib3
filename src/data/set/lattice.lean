@@ -109,7 +109,7 @@ theorem Union_subset {s : ι → set β} {t : set β} (h : ∀ i, s i ⊆ t) : (
 -- TODO: should be simpler when sets' order is based on lattices
 @supr_le (set β) _ set.lattice_set _ _ h
 
-theorem Union_subset_iff {α : Sort u} {s : α → set β} {t : set β} : (⋃ i, s i) ⊆ t ↔ (∀ i, s i ⊆ t):=
+theorem Union_subset_iff {α : Sort u} {s : α → set β} {t : set β} : (⋃ i, s i) ⊆ t ↔ (∀ i, s i ⊆ t) :=
 ⟨assume h i, subset.trans (le_supr s _) h, Union_subset⟩
 
 theorem mem_Inter_of_mem {α : Sort u} {x : β} {s : α → set β} : (∀ i, x ∈ s i) → (x ∈ ⋂ i, s i) :=
@@ -445,6 +445,16 @@ set.ext $ by simp
 
 theorem Union_eq_range_sigma (s : α → set β) : (⋃ i, s i) = range (λ a : Σ i, s i, a.2) :=
 by simp [set.ext_iff]
+
+theorem Union_image_preimage_sigma_mk_eq_self {ι : Type*} {σ : ι → Type*} (s : set (sigma σ)) :
+  (⋃ i, sigma.mk i '' (sigma.mk i ⁻¹' s)) = s :=
+begin
+  ext x,
+  simp only [mem_Union, mem_image, mem_preimage],
+  split,
+  { rintros ⟨i, a, h, rfl⟩, exact h },
+  { intro h, cases x with i a, exact ⟨i, a, h, rfl⟩ }
+end
 
 lemma sUnion_mono {s t : set (set α)} (h : s ⊆ t) : (⋃₀ s) ⊆ (⋃₀ t) :=
 sUnion_subset $ assume t' ht', subset_sUnion_of_mem $ h ht'
@@ -789,6 +799,9 @@ end disjoint
 namespace set
 
 protected theorem disjoint_iff {s t : set α} : disjoint s t ↔ s ∩ t ⊆ ∅ := iff.refl _
+
+lemma not_disjoint_iff {s t : set α} : ¬disjoint s t ↔ ∃x, x ∈ s ∧ x ∈ t :=
+by { rw [set.disjoint_iff, subset_empty_iff], apply ne_empty_iff_exists_mem }
 
 theorem disjoint_diff {a b : set α} : disjoint a (b \ a) :=
 disjoint_iff.2 (inter_diff_self _ _)

@@ -10,7 +10,7 @@ import algebra.pi_instances
 
 universes u v
 variables {α : Type u} (β : Type v) (φ : filter α)
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 namespace filter
 
@@ -32,7 +32,7 @@ variables {α β φ} include φ
 def of_seq : (α → β) → β* := @quotient.mk' (α → β) (bigly_equal β φ)
 
 /-- Equivalence class containing the constant sequence of a term in β -/
-def of (b : β): β* := of_seq (function.const α b)
+def of (b : β) : β* := of_seq (function.const α b)
 
 /-- Lift function to filter product -/
 def lift (f : β → β) : β* → β* :=
@@ -243,7 +243,7 @@ instance [linear_order β] (U : is_ultrafilter φ) : linear_order β* :=
       (λ h, or.inr (sets_of_superset _ h hS))
   ..filter_product.partial_order }
 
-theorem of_inj (NT : φ ≠ ⊥): function.injective (@of _ β φ) :=
+theorem of_inj (NT : φ ≠ ⊥) : function.injective (@of _ β φ) :=
 begin
   intros r s rs, by_contra N,
   rw [of, of, of_seq, quotient.eq', bigly_equal] at rs,

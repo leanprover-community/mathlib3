@@ -22,12 +22,25 @@ include 𝒞 𝒟
 -/
 structure adjunction (F : C ⥤ D) (G : D ⥤ C) :=
 (hom_equiv : Π (X Y), (F.obj X ⟶ Y) ≃ (X ⟶ G.obj Y))
-(unit : functor.id C ⟶ F.comp G)
-(counit : G.comp F ⟶ functor.id D)
+(unit : 𝟭 C ⟶ F.comp G)
+(counit : G.comp F ⟶ 𝟭 D)
 (hom_equiv_unit' : Π {X Y f}, (hom_equiv X Y) f = (unit : _ ⟶ _).app X ≫ G.map f . obviously)
 (hom_equiv_counit' : Π {X Y g}, (hom_equiv X Y).symm g = F.map g ≫ counit.app Y . obviously)
 
 infix ` ⊣ `:15 := adjunction
+
+class is_left_adjoint (left : C ⥤ D) :=
+(right : D ⥤ C)
+(adj : left ⊣ right)
+
+class is_right_adjoint (right : D ⥤ C) :=
+(left : C ⥤ D)
+(adj : left ⊣ right)
+
+def left_adjoint (R : D ⥤ C) [is_right_adjoint R] : C ⥤ D :=
+is_right_adjoint.left R
+def right_adjoint (L : C ⥤ D) [is_left_adjoint L] : D ⥤ C :=
+is_left_adjoint.right L
 
 namespace adjunction
 
@@ -71,15 +84,27 @@ begin
   simp
 end
 
-@[simp] lemma left_triangle_components :
-  F.map (adj.unit.app X) ≫ adj.counit.app (F.obj X) = 𝟙 _ :=
-congr_arg (λ (t : nat_trans _ (functor.id C ⋙ F)), t.app X) adj.left_triangle
+@[simp, reassoc] lemma left_triangle_components :
+  F.map (adj.unit.app X) ≫ adj.counit.app (F.obj X) = 𝟙 (F.obj X) :=
+congr_arg (λ (t : nat_trans _ (𝟭 C ⋙ F)), t.app X) adj.left_triangle
 
-@[simp] lemma right_triangle_components {Y : D} :
-  adj.unit.app (G.obj Y) ≫ G.map (adj.counit.app Y) = 𝟙 _ :=
-congr_arg (λ (t : nat_trans _ (G ⋙ functor.id C)), t.app Y) adj.right_triangle
+@[simp, reassoc] lemma right_triangle_components {Y : D} :
+  adj.unit.app (G.obj Y) ≫ G.map (adj.counit.app Y) = 𝟙 (G.obj Y) :=
+congr_arg (λ (t : nat_trans _ (G ⋙ 𝟭 C)), t.app Y) adj.right_triangle
+
+@[simp, reassoc] lemma counit_naturality {X Y : D} (f : X ⟶ Y) :
+  F.map (G.map f) ≫ (adj.counit).app Y = (adj.counit).app X ≫ f :=
+adj.counit.naturality f
+
+@[simp, reassoc] lemma unit_naturality {X Y : C} (f : X ⟶ Y) :
+  (adj.unit).app X ≫ G.map (F.map f) = f ≫ (adj.unit).app Y :=
+(adj.unit.naturality f).symm
 
 end
+
+end adjunction
+
+namespace adjunction
 
 structure core_hom_equiv (F : C ⥤ D) (G : D ⥤ C) :=
 (hom_equiv : Π (X Y), (F.obj X ⟶ Y) ≃ (X ⟶ G.obj Y))
@@ -107,8 +132,8 @@ by rw [equiv.symm_apply_eq]; simp
 end core_hom_equiv
 
 structure core_unit_counit (F : C ⥤ D) (G : D ⥤ C) :=
-(unit : functor.id C ⟶ F.comp G)
-(counit : G.comp F ⟶ functor.id D)
+(unit : 𝟭 C ⟶ F.comp G)
+(counit : G.comp F ⟶ 𝟭 D)
 (left_triangle' : whisker_right unit F ≫ whisker_left F counit = nat_trans.id _ . obviously)
 (right_triangle' : whisker_left G unit ≫ whisker_right counit G = nat_trans.id _ . obviously)
 
@@ -164,7 +189,7 @@ def mk_of_unit_counit (adj : core_unit_counit F G) : F ⊣ G :=
 section
 omit 𝒟
 
-def id : functor.id C ⊣ functor.id C :=
+def id : 𝟭 C ⊣ 𝟭 C :=
 { hom_equiv := λ X Y, equiv.refl _,
   unit := 𝟙 _,
   counit := 𝟙 _ }
@@ -182,14 +207,6 @@ def comp (adj₁ : F ⊣ G) (adj₂ : H ⊣ I) : F ⋙ H ⊣ I ⋙ G :=
     (whisker_left I $ whisker_right adj₁.counit H) ≫ adj₂.counit }
 
 end
-
-structure is_left_adjoint (left : C ⥤ D) :=
-(right : D ⥤ C)
-(adj : left ⊣ right)
-
-structure is_right_adjoint (right : D ⥤ C) :=
-(left : C ⥤ D)
-(adj : left ⊣ right)
 
 section construct_left
 -- Construction of a left adjoint. In order to construct a left
@@ -257,6 +274,10 @@ mk_of_hom_equiv
 
 end construct_right
 
+end adjunction
+
+open adjunction
+
 namespace equivalence
 
 def to_adjunction (e : C ≌ D) : e.functor ⊣ e.inverse :=
@@ -265,6 +286,11 @@ mk_of_unit_counit ⟨e.unit, e.counit, by { ext, exact e.functor_unit_comp X },
 
 end equivalence
 
-end adjunction
+namespace functor
+
+def adjunction (E : C ⥤ D) [is_equivalence E] : E ⊣ E.inv :=
+(E.as_equivalence).to_adjunction
+
+end functor
 
 end category_theory

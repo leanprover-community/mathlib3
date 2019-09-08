@@ -7,29 +7,38 @@ Lift monoid homomorphisms to group homomorphisms of their units subgroups.
 -/
 import algebra.group.units algebra.group.hom
 
+universes u v w
+
 namespace units
-variables {α : Type*} {β : Type*}
+variables {α : Type u} {β : Type v} {γ : Type w} [monoid α] [monoid β] [monoid γ]
 
-variables {γ : Type*} [monoid α] [monoid β] [monoid γ] (f : α → β) (g : β → γ)
-[is_monoid_hom f] [is_monoid_hom g]
+def map (f : α →* β) : units α →* units β :=
+monoid_hom.mk'
+  (λ u, ⟨f u.val, f u.inv,
+                  by rw [← f.map_mul, u.val_inv, f.map_one],
+                  by rw [← f.map_mul, u.inv_val, f.map_one]⟩)
+  (λ x y, ext (f.map_mul x y))
 
-definition map : units α → units β :=
-λ u, ⟨f u.val, f u.inv,
-      by rw [← is_monoid_hom.map_mul f, u.val_inv, is_monoid_hom.map_one f],
-      by rw [← is_monoid_hom.map_mul f, u.inv_val, is_monoid_hom.map_one f] ⟩
+@[reducible] def map' (f : α → β) [is_monoid_hom f] : units α →* units β :=
+  map (as_monoid_hom f)
 
-instance : is_group_hom (units.map f) :=
-⟨λ a b, by ext; exact is_monoid_hom.map_mul f ⟩
+@[simp] lemma coe_map (f : α →* β) (x : units α) : ↑(map f x) = f x := rfl
 
-instance : is_monoid_hom (coe : units α → α) :=
-{ map_one := rfl, map_mul := by simp }
+@[simp] lemma coe_map' (f : α → β) [is_monoid_hom f] (x : units α) :
+  ↑((map' f : units α → units β) x) = f x :=
+rfl
 
-@[simp] lemma coe_map (u : units α) : (map f u : β) = f u := rfl
+@[simp] lemma map_comp (f : α →* β) (g : β →* γ) : map (g.comp f) = (map g).comp (map f) := rfl
 
-@[simp] lemma map_id : map (id : α → α) = id := by ext; refl
+variables (α)
+@[simp] lemma map_id : map (monoid_hom.id α) = monoid_hom.id (units α) :=
+by ext; refl
 
-lemma map_comp : map (g ∘ f) = map g ∘ map f := rfl
+/-- Coercion `units α → α` as a monoid homomorphism. -/
+def coe_hom : units α →* α := ⟨coe, coe_one, coe_mul⟩
 
-lemma map_comp' : map (λ x, g (f x)) = λ x, map g (map f x) := rfl
+@[simp] lemma coe_hom_apply (x : units α) : coe_hom α x = ↑x := rfl
+
+instance coe_is_monoid_hom : is_monoid_hom (coe : units α → α) := (coe_hom α).is_monoid_hom
 
 end units

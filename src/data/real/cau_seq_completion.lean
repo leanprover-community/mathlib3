@@ -83,7 +83,7 @@ congr_arg mk (const_sub _ _)
 
 end
 
-local attribute [instance] classical.prop_decidable
+open_locale classical
 section
 
 parameters {α : Type*} [discrete_linear_ordered_field α]

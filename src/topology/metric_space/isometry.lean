@@ -124,7 +124,7 @@ structure isometric (α : Type*) (β : Type*) [emetric_space α] [emetric_space 
 (isometry_to_fun  : isometry to_fun)
 (isometry_inv_fun : isometry inv_fun)
 
-infix ` ≃ᵢ`:50 := isometric
+infix ` ≃ᵢ `:25 := isometric
 
 namespace isometric
 variables [emetric_space α] [emetric_space β] [emetric_space γ]
@@ -246,7 +246,7 @@ begin
   rw [← dn] at hd,
   /- Second step: use the norm control at index n to conclude -/
   have C : dist b (x n) - dist a (x n) = embedding_of_subset x b n - embedding_of_subset x a n :=
-    by { simp [embedding_of_subset_coe], ring },
+    by { simp [embedding_of_subset_coe] },
   have := calc
     dist a b ≤ dist a (x n) + dist (x n) b : dist_triangle _ _ _
     ...    = 2 * dist a (x n) + (dist b (x n) - dist a (x n)) : by { simp [dist_comm], ring }

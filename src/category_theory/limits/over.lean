@@ -1,7 +1,8 @@
--- Copyright (c) 2018 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Johan Commelin, Reid Barton
-
+/-
+Copyright (c) 2018 Johan Commelin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johan Commelin, Reid Barton
+-/
 import category_theory.comma
 import category_theory.limits.preserves
 

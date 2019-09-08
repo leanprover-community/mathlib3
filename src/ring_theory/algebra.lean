@@ -11,11 +11,12 @@ import data.complex.basic
 import linear_algebra.tensor_product
 import ring_theory.subring
 
+noncomputable theory
+
 universes u v w u₁ v₁
 
 open lattice
-
-local infix ` ⊗ `:100 := tensor_product
+open_locale tensor_product
 
 /-- The category of R-algebras where R is a commutative
 ring is the under category R ↓ CRing. In the categorical
@@ -144,13 +145,13 @@ variables {R A}
 end algebra
 
 /-- Defining the homomorphism in the category R-Alg. -/
-structure alg_hom {R : Type u} (A : Type v) (B : Type w)
+structure alg_hom (R : Type u) (A : Type v) (B : Type w)
   [comm_ring R] [ring A] [ring B] [algebra R A] [algebra R B] :=
 (to_fun : A → B) [hom : is_ring_hom to_fun]
 (commutes' : ∀ r : R, to_fun (algebra_map A r) = algebra_map B r)
 
-infixr ` →ₐ `:25 := alg_hom
-notation A ` →ₐ[`:25 R `] ` B := @alg_hom R A B _ _ _ _ _
+infixr ` →ₐ `:25 := alg_hom _
+notation A ` →ₐ[`:25 R `] ` B := alg_hom R A B
 
 namespace alg_hom
 
@@ -547,5 +548,24 @@ def subalgebra_of_subring (S : set R) [is_subring S] : subalgebra ℤ R :=
 @[simp] lemma mem_subalgebra_of_subring {x : R} {S : set R} [is_subring S] :
   x ∈ subalgebra_of_subring S ↔ x ∈ S :=
 iff.rfl
+
+section span_int
+open submodule
+
+lemma span_int_eq_add_group_closure (s : set R) :
+  ↑(span ℤ s) = add_group.closure s :=
+set.subset.antisymm (λ x hx, span_induction hx
+  (λ _, add_group.mem_closure)
+  (is_add_submonoid.zero_mem _)
+  (λ a b ha hb, is_add_submonoid.add_mem ha hb)
+  (λ n a ha, by { erw [show n • a = gsmul n a, from (gsmul_eq_mul a n).symm],
+    exact is_add_subgroup.gsmul_mem ha}))
+  (add_group.closure_subset subset_span)
+
+@[simp] lemma span_int_eq (s : set R) [is_add_subgroup s] :
+  (↑(span ℤ s) : set R) = s :=
+by rw [span_int_eq_add_group_closure, add_group.closure_add_subgroup]
+
+end span_int
 
 end int

@@ -103,6 +103,20 @@ begin
     exact nat.modeq.modeq_add (nat.mod_mod a n) (nat.mod_mod 1 n) }
 end
 
+lemma neg_val' {m : pnat} (n : zmod m) : (-n).val = (m - n.val) % m :=
+have ((-n).val + n.val) % m = (m - n.val + n.val) % m,
+  by { rw [←add_val, add_left_neg, nat.sub_add_cancel (le_of_lt n.is_lt), nat.mod_self], refl },
+(nat.mod_eq_of_lt (fin.is_lt _)).symm.trans (nat.modeq.modeq_add_cancel_right rfl this)
+
+lemma neg_val {m : pnat} (n : zmod m) : (-n).val = if n = 0 then 0 else m - n.val :=
+begin
+  rw neg_val',
+  by_cases h : n = 0; simp [h],
+  cases n with n nlt; cases n; dsimp, { contradiction },
+  rw nat.mod_eq_of_lt,
+  apply nat.sub_lt m.2 (nat.succ_pos _),
+end
+
 lemma mk_eq_cast {n : ℕ+} {a : ℕ} (h : a < n) : (⟨a, h⟩ : zmod n) = (a : zmod n) :=
 fin.eq_of_veq (by rw [val_cast_nat, nat.mod_eq_of_lt h])
 
@@ -301,7 +315,7 @@ instance : fintype (zmodp p hp) := @zmod.fintype ⟨p, hp.pos⟩
 
 instance decidable_eq : decidable_eq (zmodp p hp) := fin.decidable_eq _
 
-instance (n : ℕ+) : has_repr (zmodp p hp) := fin.has_repr _
+instance : has_repr (zmodp p hp) := fin.has_repr _
 
 @[simp] lemma card_zmodp : fintype.card (zmodp p hp) = p :=
 @zmod.card_zmod ⟨p, hp.pos⟩

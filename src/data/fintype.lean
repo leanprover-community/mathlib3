@@ -5,7 +5,8 @@ Author: Mario Carneiro
 
 Finite types.
 -/
-import data.finset algebra.big_operators data.array.lemmas
+import data.finset algebra.big_operators data.array.lemmas logic.unique
+import tactic.wlog
 universes u v
 
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -160,33 +161,23 @@ theorem card_congr {α β} [fintype α] [fintype β] (f : α ≃ β) : card α =
 by rw ← of_equiv_card f; congr
 
 theorem card_eq {α β} [F : fintype α] [G : fintype β] : card α = card β ↔ nonempty (α ≃ β) :=
-⟨λ e, match F, G, e with ⟨⟨s, nd⟩, h⟩, ⟨⟨s', nd'⟩, h'⟩, e' := begin
-  change multiset.card s = multiset.card s' at e',
-  revert nd nd' h h' e',
-  refine quotient.induction_on₂ s s' (λ l₁ l₂
-    (nd₁ : l₁.nodup) (nd₂ : l₂.nodup)
-    (h₁ : ∀ x, x ∈ l₁) (h₂ : ∀ x, x ∈ l₂)
-    (e' : l₁.length = l₂.length), _),
-  haveI := classical.dec_eq α,
-  refine ⟨equiv.of_bijective ⟨_, _⟩⟩,
-  { refine λ a, l₂.nth_le (l₁.index_of a) _,
-    rw ← e', exact list.index_of_lt_length.2 (h₁ a) },
-  { intros a b h, simpa [h₁] using congr_arg l₁.nth
-      (list.nodup_iff_nth_le_inj.1 nd₂ _ _ _ _ h) },
-  { have := classical.dec_eq β,
-    refine λ b, ⟨l₁.nth_le (l₂.index_of b) _, _⟩,
-    { rw e', exact list.index_of_lt_length.2 (h₂ b) },
-    { simp [nd₁] } }
-end end, λ ⟨f⟩, card_congr f⟩
+⟨λ h, ⟨by classical;
+  calc α ≃ fin (card α) : trunc.out (equiv_fin α)
+     ... ≃ fin (card β) : by rw h
+     ... ≃ β : (trunc.out (equiv_fin β)).symm⟩,
+λ ⟨f⟩, card_congr f⟩
 
 def of_subsingleton (a : α) [subsingleton α] : fintype α :=
 ⟨finset.singleton a, λ b, finset.mem_singleton.2 (subsingleton.elim _ _)⟩
 
-@[simp] theorem fintype.univ_of_subsingleton (a : α) [subsingleton α] :
+@[simp] theorem univ_of_subsingleton (a : α) [subsingleton α] :
   @univ _ (of_subsingleton a) = finset.singleton a := rfl
 
-@[simp] theorem fintype.card_of_subsingleton (a : α) [subsingleton α] :
+@[simp] theorem card_of_subsingleton (a : α) [subsingleton α] :
   @fintype.card _ (of_subsingleton a) = 1 := rfl
+
+lemma card_eq_sum_ones {α} [fintype α] : fintype.card α = (finset.univ : finset α).sum (λ _, 1) :=
+finset.card_eq_sum_ones _
 
 end fintype
 
@@ -204,6 +195,12 @@ instance (n : ℕ) : fintype (fin n) :=
 
 @[simp] theorem fintype.card_fin (n : ℕ) : fintype.card (fin n) = n :=
 by rw [fin.fintype]; simp [fintype.card, card, univ]
+
+@[instance, priority 0] def unique.fintype {α : Type*} [unique α] : fintype α :=
+⟨finset.singleton (default α), λ x, by rw [unique.eq_default x]; simp⟩
+
+@[simp] lemma univ_unique {α : Type*} [unique α] [f : fintype α] : @finset.univ α _ = {default α} :=
+by rw [subsingleton.elim f (@unique.fintype α _)]; refl
 
 instance : fintype empty := ⟨∅, empty.rec _⟩
 
@@ -442,6 +439,27 @@ instance finset.fintype [fintype α] : fintype (finset α) :=
 instance subtype.fintype [fintype α] (p : α → Prop) [decidable_pred p] : fintype {x // p x} :=
 set_fintype _
 
+theorem fintype.card_subtype_le [fintype α] (p : α → Prop) [decidable_pred p] :
+  fintype.card {x // p x} ≤ fintype.card α :=
+by rw fintype.subtype_card; exact card_le_of_subset (subset_univ _)
+
+instance psigma.fintype {α : Type*} {β : α → Type*} [fintype α] [∀ a, fintype (β a)] :
+  fintype (Σ' a, β a) :=
+fintype.of_equiv _ (equiv.psigma_equiv_sigma _).symm
+
+instance psigma.fintype_prop_left {α : Prop} {β : α → Type*} [∀ a, fintype (β a)] [decidable α] :
+  fintype (Σ' a, β a) :=
+if h : α then fintype.of_equiv (β h) ⟨λ x, ⟨h, x⟩, psigma.snd, λ _, rfl, λ ⟨_, _⟩, rfl⟩
+else ⟨∅, λ x, h x.1⟩
+
+instance psigma.fintype_prop_right {α : Type*} {β : α → Prop} [fintype α] [∀ a, decidable (β a)] :
+  fintype (Σ' a, β a) :=
+fintype.of_equiv {a // β a} ⟨λ ⟨x, y⟩, ⟨x, y⟩, λ ⟨x, y⟩, ⟨x, y⟩, λ ⟨x, y⟩, rfl, λ ⟨x, y⟩, rfl⟩
+
+instance psigma.fintype_prop_prop {α : Prop} {β : α → Prop} [decidable α] [∀ a, decidable (β a)] :
+  fintype (Σ' a, β a) :=
+if h : ∃ a, β a then ⟨{⟨h.fst, h.snd⟩}, λ ⟨_, _⟩, by simp⟩ else ⟨∅, λ ⟨x, y⟩, h ⟨x, y⟩⟩
+
 instance set.fintype [fintype α] [decidable_eq α] : fintype (set α) :=
 pi.fintype
 
@@ -508,7 +526,7 @@ begin
   simp [this], exact setoid.refl _
 end
 
-@[simp, to_additive finset.sum_attach_univ]
+@[simp, to_additive]
 lemma finset.prod_attach_univ [fintype α] [comm_monoid β] (f : {a : α // a ∈ @univ α _} → β) :
   univ.attach.prod (λ x, f x) = univ.prod (λ x, f ⟨x, (mem_univ _)⟩) :=
 prod_bij (λ x _, x.1) (λ _ _, mem_univ _) (λ _ _ , by simp) (by simp) (λ b _, ⟨⟨b, mem_univ _⟩, by simp⟩)
@@ -681,10 +699,30 @@ lemma bijective_bij_inv (f_bij : bijective f) : bijective (bij_inv f_bij) :=
 
 end bijection_inverse
 
+lemma well_founded_of_trans_of_irrefl [fintype α] (r : α → α → Prop)
+  [is_trans α r] [is_irrefl α r] : well_founded r :=
+by classical; exact
+have ∀ x y, r x y → (univ.filter (λ z, r z x)).card < (univ.filter (λ z, r z y)).card,
+  from λ x y hxy, finset.card_lt_card $
+    by simp only [finset.lt_iff_ssubset.symm, lt_iff_le_not_le,
+      finset.le_iff_subset, finset.subset_iff, mem_filter, true_and, mem_univ, hxy];
+    exact ⟨λ z hzx, trans hzx hxy, not_forall_of_exists_not ⟨x, not_imp.2 ⟨hxy, irrefl x⟩⟩⟩,
+subrelation.wf this (measure_wf _)
+
+lemma preorder.well_founded [fintype α] [preorder α] : well_founded ((<) : α → α → Prop) :=
+well_founded_of_trans_of_irrefl _
+
+@[instance, priority 0] lemma linear_order.is_well_order [fintype α] [linear_order α] :
+  is_well_order α (<) :=
+{ wf := preorder.well_founded }
+
 end fintype
 
 class infinite (α : Type*) : Prop :=
 (not_fintype : fintype α → false)
+
+@[simp] lemma not_nonempty_fintype {α : Type*} : ¬nonempty (fintype α) ↔ infinite α :=
+⟨λf, ⟨λ x, f ⟨x⟩⟩, λ⟨f⟩ ⟨x⟩, f x⟩
 
 namespace infinite
 
@@ -699,6 +737,30 @@ lemma of_injective [infinite β] (f : β → α) (hf : injective f) : infinite �
 
 lemma of_surjective [infinite β] (f : α → β) (hf : surjective f) : infinite α :=
 ⟨λ I, by classical; exactI not_fintype (fintype.of_surjective f hf)⟩
+
+private noncomputable def nat_embedding_aux (α : Type*) [infinite α] : ℕ → α
+| n := by letI := classical.dec_eq α; exact classical.some (exists_not_mem_finset
+  ((multiset.range n).pmap (λ m (hm : m < n), nat_embedding_aux m)
+    (λ _, multiset.mem_range.1)).to_finset)
+
+private lemma nat_embedding_aux_injective (α : Type*) [infinite α] :
+  function.injective (nat_embedding_aux α) :=
+begin
+  assume m n h,
+  letI := classical.dec_eq α,
+  wlog hmlen : m ≤ n using m n,
+  by_contradiction hmn,
+  have hmn : m < n, from lt_of_le_of_ne hmlen hmn,
+  refine (classical.some_spec (exists_not_mem_finset
+    ((multiset.range n).pmap (λ m (hm : m < n), nat_embedding_aux α m)
+      (λ _, multiset.mem_range.1)).to_finset)) _,
+  refine multiset.mem_to_finset.2 (multiset.mem_pmap.2
+    ⟨m, multiset.mem_range.2 hmn, _⟩),
+  rw [h, nat_embedding_aux]
+end
+
+noncomputable def nat_embedding (α : Type*) [infinite α] : ℕ ↪ α :=
+⟨_, nat_embedding_aux_injective α⟩
 
 end infinite
 

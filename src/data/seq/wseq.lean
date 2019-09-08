@@ -621,7 +621,7 @@ instance productive_dropn (s : wseq α) [productive s] (n) : productive (drop s 
 def to_seq (s : wseq α) [productive s] : seq α :=
 ⟨λ n, (nth s n).get, λn h,
 begin
-  induction e : computation.get (nth s (n + 1)), {trivial},
+  cases e : computation.get (nth s (n + 1)), {assumption},
   have := mem_of_get_eq _ e,
   simp [nth] at this h, cases head_some_of_head_tail_some this with a' h',
   have := mem_unique h' (@mem_of_get_eq _ _ _ _ h),

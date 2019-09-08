@@ -15,7 +15,7 @@ open lattice set linear_map submodule
 
 namespace mv_polynomial
 universes u v
-variables {σ : Type u} {α : Type v} [decidable_eq σ]
+variables {σ : Type u} {α : Type v}
 
 instance [discrete_field α] : vector_space α (mv_polynomial σ α) :=
 finsupp.vector_space _ _
@@ -56,7 +56,7 @@ begin
 end
 
 lemma map_range_eq_map {β : Type*}
-  [decidable_eq α] [comm_ring α] [decidable_eq β] [comm_ring β] (p : mv_polynomial σ α)
+  [comm_ring α] [comm_ring β] (p : mv_polynomial σ α)
   (f : α → β) [is_semiring_hom f]:
   finsupp.map_range f (is_semiring_hom.map_zero f) p = p.map f :=
 begin
@@ -69,7 +69,6 @@ end
 
 section
 variables (σ α)
-
 lemma is_basis_monomials [discrete_field α] :
   is_basis α ((λs, (monomial s 1 : mv_polynomial σ α))) :=
 suffices is_basis α (λ (sa : Σ _, unit), (monomial sa.1 1 : mv_polynomial σ α)),
@@ -86,14 +85,15 @@ end,
 begin
   apply finsupp.is_basis_single (λ _ _, (1 : α)),
   intro _,
-  apply is_basis_singleton_one, end
+  apply is_basis_singleton_one,
+end
 end
 
 end mv_polynomial
 
 namespace mv_polynomial
 universe u
-variables (σ : Type u) (α : Type u) [decidable_eq σ] [discrete_field α]
+variables (σ : Type u) (α : Type u) [discrete_field α]
 
 open_locale classical
 
@@ -105,7 +105,7 @@ end mv_polynomial
 namespace mv_polynomial
 
 variables {α : Type*} {σ : Type*}
-variables [discrete_field α] [fintype α] [fintype σ] [decidable_eq σ]
+variables [discrete_field α] [fintype α] [fintype σ]
 
 def indicator (a : σ → α) : mv_polynomial σ α :=
 finset.univ.prod (λn, 1 - (X n - C (a n))^(fintype.card α - 1))
@@ -198,7 +198,7 @@ end mv_polynomial
 
 namespace mv_polynomial
 universe u
-variables (σ : Type u) (α : Type u) [decidable_eq σ] [fintype σ] [discrete_field α] [fintype α]
+variables (σ : Type u) (α : Type u) [fintype σ] [discrete_field α] [fintype α]
 
 def R : Type u := restrict_degree σ α (fintype.card α - 1)
 

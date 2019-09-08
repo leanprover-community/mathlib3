@@ -390,7 +390,7 @@ end monoid
 
 namespace group
 
--- An group homomorphism is a monoid homomorphism between groups.
+-- A group homomorphism is a monoid homomorphism between groups.
 def aut (γ : Type*) [group γ] := mul_equiv γ γ
 
 instance aut_group (γ : Type*) [group γ] : group (aut γ) := monoid.aut_group γ

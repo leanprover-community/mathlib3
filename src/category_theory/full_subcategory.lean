@@ -26,12 +26,12 @@ section induced
 
 -/
 
-variables {C : Type u₁} {D : Type u₂} [𝒟 : category.{v} D]
+variables {C : Sort u₁} {D : Sort u₂} [𝒟 : category.{v} D]
 include 𝒟
 variables (F : C → D)
 include F
 
-def induced_category : Type u₁ := C
+def induced_category : Sort u₁ := C
 
 instance induced_category.category : category.{v} (induced_category F) :=
 { hom  := λ X Y, F X ⟶ F Y,
@@ -53,7 +53,7 @@ end induced
 section full_subcategory
 /- A full subcategory is the special case of an induced category with F = subtype.val. -/
 
-variables {C : Type u₂} [𝒞 : category.{v} C]
+variables {C : Sort u₂} [𝒞 : category.{v} C]
 include 𝒞
 variables (Z : C → Prop)
 

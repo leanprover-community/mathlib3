@@ -29,7 +29,7 @@ def sections (F : J ⥤ Type w) : set (Π j, F.obj j) :=
 end functor
 
 namespace functor_to_types
-variables {C : Type u} [𝒞 : category.{v} C] (F G H : C ⥤ Sort w) {X Y Z : C}
+variables {C : Sort u} [𝒞 : category.{v} C] (F G H : C ⥤ Sort w) {X Y Z : C}
 include 𝒞
 variables (σ : F ⟶ G) (τ : G ⟶ H)
 
@@ -65,13 +65,13 @@ instance ulift_functor_faithful : faithful ulift_functor :=
 { injectivity' := λ X Y f g p, funext $ λ x,
     congr_arg ulift.down ((congr_fun p (ulift.up x)) : ((ulift.up (f x)) = (ulift.up (g x)))) }
 
-def hom_of_element {X : Type u} (x : X) : punit ⟶ X := λ _, x
+def hom_of_element {X : Sort u} (x : X) : punit ⟶ X := λ _, x
 
-lemma hom_of_element_eq_iff {X : Type u} (x y : X) :
+lemma hom_of_element_eq_iff {X : Sort u} (x y : X) :
   hom_of_element x = hom_of_element y ↔ x = y :=
 ⟨λ H, congr_fun H punit.star, by cc⟩
 
-lemma mono_iff_injective {X Y : Type u} (f : X ⟶ Y) : mono f ↔ function.injective f :=
+lemma mono_iff_injective {X Y : Sort u} (f : X ⟶ Y) : mono f ↔ function.injective f :=
 begin
   split,
   { intros H x x' h,

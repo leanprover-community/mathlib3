@@ -23,7 +23,7 @@ instance pempty_category : small_category pempty :=
   comp := by obviously }
 
 namespace functor
-variables (C : Type u) [𝒞 : category.{v} C]
+variables (C : Sort u) [𝒞 : category.{v} C]
 include 𝒞
 
 /-- The unique functor from the empty category to any target category. -/

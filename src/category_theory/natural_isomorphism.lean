@@ -14,7 +14,7 @@ namespace category_theory
 open nat_trans
 
 /-- The application of a natural isomorphism to an object. We put this definition in a different namespace, so that we can use α.app -/
-@[simp, reducible] def iso.app {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
+@[simp, reducible] def iso.app {C : Sort u₁} [category.{v₁} C] {D : Sort u₂} [category.{v₂} D]
   {F G : C ⥤ D} (α : F ≅ G) (X : C) : F.obj X ≅ G.obj X :=
 { hom := α.hom.app X,
   inv := α.inv.app X,
@@ -26,8 +26,8 @@ namespace nat_iso
 
 open category_theory.category category_theory.functor
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
-  {E : Type u₃} [ℰ : category.{v₃} E]
+variables {C : Sort u₁} [𝒞 : category.{v₁} C] {D : Sort u₂} [𝒟 : category.{v₂} D]
+  {E : Sort u₃} [ℰ : category.{v₃} E]
 include 𝒞 𝒟
 
 @[simp] lemma trans_app {F G H : C ⥤ D} (α : F ≅ G) (β : G ≅ H) (X : C) :

@@ -28,10 +28,10 @@ namespace Cat
 
 instance str (C : Cat.{v u}) : category.{v u} C.α := C.str
 
-def of (C : Type u) [category.{v} C] : Cat.{v u} := mk_ob C
+def of (C : Sort u) [category.{v} C] : Cat.{v u} := mk_ob C
 
 /-- Category structure on `Cat` -/
-instance category : category.{(max u v)+1 (max v (u+1))} Cat.{v u} :=
+instance category : category.{(max v u 1) (max v u)+1} Cat.{v u} :=
 { hom := λ C D, C.α ⥤ D.α,
   id := λ C, 𝟭 C.α,
   comp := λ C D E F G, F ⋙ G,
@@ -41,11 +41,10 @@ instance category : category.{(max u v)+1 (max v (u+1))} Cat.{v u} :=
 
 /-- Functor that gets the set of objects of a category. It is not
 called `forget`, because it is not a faithful functor. -/
-def objects : Cat.{v u} ⥤ Type u :=
+def objects : Cat.{v u} ⥤ Sort u :=
 { obj := bundled.α,
   map := λ C D F, F.obj }
 
 end Cat
 
 end category_theory
-

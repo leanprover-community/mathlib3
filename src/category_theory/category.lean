@@ -31,13 +31,13 @@ powerful tactics.
 def_replacer obviously
 @[obviously] meta def obviously' := tactic.tidy
 
-class has_hom (obj : Type u) : Type (max u v) :=
+class has_hom (obj : Sort u) : Sort (max u (v+1)) :=
 (hom : obj → obj → Sort v)
 
 infixr ` ⟶ `:10 := has_hom.hom -- type as \h
 
-class category_struct (obj : Type u)
-extends has_hom.{v} obj : Type (max u v) :=
+class category_struct (obj : Sort u)
+extends has_hom.{v} obj : Sort (max u (v+1)) :=
 (id       : Π X : obj, hom X X)
 (comp     : Π {X Y Z : obj}, (X ⟶ Y) → (Y ⟶ Z) → (X ⟶ Z))
 
@@ -49,8 +49,8 @@ The typeclass `category C` describes morphisms associated to objects of type `C`
 The universe levels of the objects and morphisms are unconstrained, and will often need to be
 specified explicitly, as `category.{v} C`. (See also `large_category` and `small_category`.)
 -/
-class category (obj : Type u)
-extends category_struct.{v} obj : Type (max u v) :=
+class category (obj : Sort u)
+extends category_struct.{v} obj : Sort (max u (v+1)) :=
 (id_comp' : ∀ {X Y : obj} (f : hom X Y), 𝟙 X ≫ f = f . obviously)
 (comp_id' : ∀ {X Y : obj} (f : hom X Y), f ≫ 𝟙 Y = f . obviously)
 (assoc'   : ∀ {W X Y Z : obj} (f : hom W X) (g : hom X Y) (h : hom Y Z),
@@ -65,7 +65,7 @@ restate_axiom category.assoc'
 attribute [simp] category.id_comp category.comp_id category.assoc
 attribute [trans] category_struct.comp
 
-lemma category.assoc_symm {C : Type u} [category.{v} C] {W X Y Z : C} (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z) :
+lemma category.assoc_symm {C : Sort u} [category.{v} C] {W X Y Z : C} (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z) :
   f ≫ (g ≫ h) = (f ≫ g) ≫ h :=
 by rw ←category.assoc
 
@@ -74,14 +74,14 @@ A `large_category` has objects in one universe level higher than the universe le
 the morphisms. It is useful for examples such as the category of types, or the category
 of groups, etc.
 -/
-abbreviation large_category (C : Type u) : Type u := category.{u} C
+abbreviation large_category (C : Sort (u+1)) : Sort (u+1) := category.{u} C
 /--
 A `small_category` has objects and morphisms in the same universe level.
 -/
-abbreviation small_category (C : Type u) : Type (u+1) := category.{u+1} C
+abbreviation small_category (C : Sort u) : Sort (u+1) := category.{u} C
 
 section
-variables {C : Type u} [𝒞 : category.{v} C] {X Y Z : C}
+variables {C : Sort u} [𝒞 : category.{v} C] {X Y Z : C}
 include 𝒞
 
 lemma eq_of_comp_left_eq {f g : X ⟶ Y} (w : ∀ {Z : C} (h : Y ⟶ Z), f ≫ h = g ≫ h) : f = g :=

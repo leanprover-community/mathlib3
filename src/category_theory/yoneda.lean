@@ -9,7 +9,7 @@ import category_theory.hom_functor
 /-!
 # The Yoneda embedding
 
-The Yoneda embedding as a functor `yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁)`,
+The Yoneda embedding as a functor `yoneda : C ⥤ (Cᵒᵖ ⥤ Sort v₁)`,
 along with an instance that it is `fully_faithful`.
 
 Also the Yoneda lemma, `yoneda_lemma : (yoneda_pairing C) ≅ (yoneda_evaluation C)`.
@@ -20,7 +20,7 @@ open opposite
 
 universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
+variables {C : Sort u₁} [𝒞 : category.{v₁} C]
 include 𝒞
 
 def yoneda : C ⥤ (Cᵒᵖ ⥤ Sort v₁) :=
@@ -120,7 +120,7 @@ end category_theory
 
 namespace category_theory
 -- For the rest of the file, we are using product categories,
--- so need to restrict to the case morphisms are in 'Type', not 'Sort'.
+-- so need to restrict to the case objects and morphisms are in 'Type', not 'Sort'.
 
 universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
@@ -146,7 +146,9 @@ evaluation_uncurried Cᵒᵖ (Type v₁) ⋙ ulift_functor.{u₁}
   ((yoneda_evaluation C).map α x).down = α.2.app Q.1 (P.2.map α.1 x.down) := rfl
 
 def yoneda_pairing : Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁) ⥤ Type (max u₁ v₁) :=
-functor.prod yoneda.op (𝟭 (Cᵒᵖ ⥤ Type v₁)) ⋙ functor.hom (Cᵒᵖ ⥤ Type v₁)
+functor.prod yoneda.op (𝟭 (Cᵒᵖ ⥤ Type v₁)) ⋙ functor.hom (Cᵒᵖ ⥤ Type v₁).
+
+#exit
 
 @[simp] lemma yoneda_pairing_map
   (P Q : Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) (α : P ⟶ Q) (β : (yoneda_pairing C).obj P) :

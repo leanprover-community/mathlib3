@@ -15,7 +15,7 @@ instance punit_category : small_category punit :=
   comp := λ _ _ _ _ _, punit.star }
 
 namespace functor
-variables {C : Type u} [𝒞 : category.{v} C]
+variables {C : Sort u} [𝒞 : category.{v} C]
 include 𝒞
 
 /-- The constant functor. For `X : C`, `of.obj X` is the functor `punit ⥤ C`

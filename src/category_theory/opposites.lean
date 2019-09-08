@@ -12,7 +12,7 @@ universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.c
 namespace category_theory
 open opposite
 
-variables {C : Type u₁}
+variables {C : Sort u₁}
 
 section has_hom
 
@@ -79,7 +79,7 @@ namespace functor
 
 section
 
-variables {D : Type u₂} [𝒟 : category.{v₂} D]
+variables {D : Sort u₂} [𝒟 : category.{v₂} D]
 include 𝒟
 
 variables {C D}
@@ -157,7 +157,7 @@ end functor
 
 namespace nat_trans
 
-variables {D : Type u₂} [𝒟 : category.{v₂} D]
+variables {D : Sort u₂} [𝒟 : category.{v₂} D]
 include 𝒟
 
 section
@@ -216,7 +216,7 @@ end iso
 
 namespace nat_iso
 
-variables {D : Type u₂} [𝒟 : category.{v₂} D]
+variables {D : Sort u₂} [𝒟 : category.{v₂} D]
 include 𝒟
 variables {F G : C ⥤ D}
 

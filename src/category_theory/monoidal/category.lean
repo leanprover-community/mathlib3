@@ -25,7 +25,7 @@ specified associator, `α_ X Y Z : (X ⊗ Y) ⊗ Z ≅ X ⊗ (Y ⊗ Z)`. There i
 with specified left and right unitor isomorphisms `λ_ X : 𝟙_ C ⊗ X ≅ X` and `ρ_ X : X ⊗ 𝟙_ C ≅ X`.
 These associators and unitors satisfy the pentagon and triangle equations.
 -/
-class monoidal_category (C : Type u) [𝒞 : category.{v} C] :=
+class monoidal_category (C : Sort u) [𝒞 : category.{v} C] :=
 -- curried tensor product of objects:
 (tensor_obj               : C → C → C)
 (infixr ` ⊗ `:70          := tensor_obj) -- This notation is only temporary
@@ -89,7 +89,7 @@ notation `λ_` := left_unitor
 notation `ρ_` := right_unitor
 
 /-- The tensor product of two isomorphisms is an isomorphism. -/
-def tensor_iso {C : Type u} {X Y X' Y' : C} [category.{v} C] [monoidal_category.{v} C] (f : X ≅ Y) (g : X' ≅ Y') :
+def tensor_iso {C : Sort u} {X Y X' Y' : C} [category.{v} C] [monoidal_category.{v} C] (f : X ≅ Y) (g : X' ≅ Y') :
     X ⊗ X' ≅ Y ⊗ Y' :=
 { hom := f.hom ⊗ g.hom,
   inv := f.inv ⊗ g.inv,
@@ -102,7 +102,7 @@ namespace monoidal_category
 
 section
 
-variables {C : Type u} [category.{v} C] [𝒞 : monoidal_category.{v} C]
+variables {C : Sort u} [category.{v} C] [𝒞 : monoidal_category.{v} C]
 include 𝒞
 
 instance tensor_is_iso {W X Y Z : C} (f : W ⟶ X) [is_iso f] (g : Y ⟶ Z) [is_iso g] : is_iso (f ⊗ g) :=

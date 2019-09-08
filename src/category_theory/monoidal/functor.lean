@@ -18,8 +18,8 @@ section
 
 open monoidal_category
 
-variables (C : Type u₁) [category.{v₁} C] [𝒞 : monoidal_category.{v₁} C]
-          (D : Type u₂) [category.{v₂} D] [𝒟 : monoidal_category.{v₂} D]
+variables (C : Sort u₁) [category.{v₁} C] [𝒞 : monoidal_category.{v₁} C]
+          (D : Sort u₂) [category.{v₂} D] [𝒟 : monoidal_category.{v₂} D]
 include 𝒞 𝒟
 
 /-- A lax monoidal functor is a functor `F : C ⥤ D` between monoidal categories, equipped with morphisms
@@ -101,7 +101,7 @@ nat_iso.of_components
 end
 
 section
-variables (C : Type u₁) [category.{v₁} C] [𝒞 : monoidal_category.{v₁} C]
+variables (C : Sort u₁) [category.{v₁} C] [𝒞 : monoidal_category.{v₁} C]
 include 𝒞
 
 /-- The identity monoidal functor. -/
@@ -119,9 +119,9 @@ end
 
 end monoidal_functor
 
-variables {C : Type u₁} [category.{v₁} C] [𝒞 : monoidal_category.{v₁} C]
-variables {D : Type u₂} [category.{v₂} D] [𝒟 : monoidal_category.{v₂} D]
-variables {E : Type u₃} [category.{v₃} E] [ℰ : monoidal_category.{v₃} E]
+variables {C : Sort u₁} [category.{v₁} C] [𝒞 : monoidal_category.{v₁} C]
+variables {D : Sort u₂} [category.{v₂} D] [𝒟 : monoidal_category.{v₂} D]
+variables {E : Sort u₃} [category.{v₃} E] [ℰ : monoidal_category.{v₃} E]
 
 include 𝒞 𝒟 ℰ
 

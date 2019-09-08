@@ -18,7 +18,7 @@ open category_theory
 -- not into `Sort v`.
 -- So we don't allow this case; it's not particularly useful anyway.
 variables {J : Type v} [small_category J]
-variables {C : Type u} [𝒞 : category.{v+1} C]
+variables {C : Sort u} [𝒞 : category.{v+1} C]
 include 𝒞
 
 open category_theory

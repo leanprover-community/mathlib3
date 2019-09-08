@@ -11,7 +11,7 @@ universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `categor
 
 open nat_trans category category_theory.functor
 
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
+variables (C : Sort u₁) [𝒞 : category.{v₁} C] (D : Sort u₂) [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
 /--
@@ -23,12 +23,12 @@ this is another small category at that level.
 However if `C` and `D` are both large categories at the same universe level,
 this is a small category at the next higher level.
 -/
-instance functor.category : category.{(max (u₁+1) v₂)} (C ⥤ D) :=
+instance functor.category : category.{(max u₁ v₂ 1)} (C ⥤ D) :=
 { hom     := λ F G, nat_trans F G,
   id      := λ F, nat_trans.id F,
   comp    := λ _ _ _ α β, vcomp α β }
 
-variables {C D} {E : Type u₃} [ℰ : category.{v₃} E]
+variables {C D} {E : Sort u₃} [ℰ : category.{v₃} E]
 variables {F G H I : C ⥤ D}
 
 namespace nat_trans

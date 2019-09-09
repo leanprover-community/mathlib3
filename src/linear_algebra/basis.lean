@@ -1121,3 +1121,42 @@ end
 end module
 
 end pi
+
+namespace finsupp
+
+lemma is_basis_finsupp (η : Type*) {ι α β : Type*} [ring α] [add_comm_group β] [module α β]
+  [decidable_eq α] [decidable_eq β] [decidable_eq η] [decidable_eq ι]
+  {v : ι → β} (hv : is_basis α v) : is_basis α (λ i : η × ι, single i.1 (v i.2)) :=
+begin
+  have h : ∀ f g, (finsupp.total (η × ι) (η →₀ β) α (λ i, single i.1 (v i.2))) f = g ↔
+    ∀ n, (finsupp.total ι β α v) (finsupp.curry f n) = g n,
+    { intros f g,
+      rw [total_apply],
+      conv in (_ • _) { rw [smul_single] },
+      rw [←sum_curry_index f (λ (n:η) (i:ι) (a:α), single n (a • v i))],
+      { conv_lhs { congr, congr, skip, funext, rw [←single_sum] },
+        rw [sum_single_range _ (λ f:ι →₀ α, f.sum (λ (i:ι) (a:α), a • v i)) sum_zero_index, ext_iff],
+        split, all_goals { intros h n, replace h := h n, simpa } },
+      { intros _ _, dsimp, rw [zero_smul, single_zero] },
+      { intros _ _ _ _, dsimp, rw [add_smul, single_add] } },
+  split,
+  { rw [linear_independent_iff],
+    intros f hf,
+    ext i,
+    rw [h] at hf,
+    have : _ = _, from congr_arg (λ g:ι →₀ α, g i.2) (linear_independent_iff.mp hv.1 _ (hf i.1)),
+    rwa [curry_apply, prod.mk.eta] at this },
+  { rw [submodule.eq_top_iff'],
+    intro g,
+    rw [←set.image_univ, mem_span_iff_total],
+    let f := finsupp.uncurry (map_range hv.repr.to_fun hv.repr.map_zero g),
+    have H : f ∈ supported α α set.univ, { rw [supported_univ], exact submodule.mem_top },
+    existsi [f, H],
+    rw [h],
+    intro n,
+    rw [show finsupp.curry f = _, from finsupp_prod_equiv.right_inv _, map_range_apply],
+    change (linear_map.comp (finsupp.total ι β α v) (is_basis.repr hv)) (g n) = g n,
+    rw [hv.total_comp_repr, linear_map.id_apply] },
+end
+
+end finsupp

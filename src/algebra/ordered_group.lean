@@ -132,6 +132,12 @@ iff.intro
 lemma bit0_pos {a : α} (h : 0 < a) : 0 < bit0 a :=
 add_pos' h h
 
+instance : ordered_comm_monoid (order_dual α) :=
+{ add_le_add_left := λ a b h c, @add_le_add_left' α _ b a c h,
+  lt_of_add_lt_add_left := λ a b c h, @lt_of_add_lt_add_left' α _ a c b h,
+  ..show partial_order (order_dual α), by apply_instance,
+  ..show add_comm_monoid α, by apply_instance }
+
 end ordered_comm_monoid
 
 namespace units

@@ -333,17 +333,16 @@ end fintype
 
 section finsupp
 
-lemma dim_finsupp (α η β : Type*) [discrete_field α] [add_comm_group β] [vector_space α β]
-  [decidable_eq β] [decidable_eq η] :
-  dim α (η →₀ β) = cardinal.lift.{v w} (cardinal.mk η) * cardinal.lift.{w v} (dim α β) :=
+lemma dim_finsupp [decidable_eq β] :
+  dim α (ι →₀ β) = cardinal.lift.{w v} (cardinal.mk ι) * cardinal.lift.{v w} (dim α β) :=
 let ⟨b, hb⟩ := exists_is_basis α β in
-have h : is_basis α (λ i : η × b, _), from finsupp.is_basis_finsupp η hb,
-calc dim α (η →₀ β)
-      = cardinal.lift.{(max v w) (max v w)} (dim α (η →₀ β)) : eq.symm $ cardinal.lift_id _
-  ... = cardinal.lift (cardinal.mk η) * cardinal.lift.{w v} (cardinal.lift.{w w} (cardinal.mk b)) :
+have h : is_basis α (λ i : ι × b, _), from finsupp.is_basis_finsupp ι hb,
+calc dim α (ι →₀ β)
+      = cardinal.lift.{(max v w) (max v w)} (dim α (ι →₀ β)) : eq.symm $ cardinal.lift_id _
+  ... = cardinal.lift (cardinal.mk ι) * cardinal.lift.{v w} (cardinal.lift.{v v} (cardinal.mk b)) :
     by rw[←h.mk_eq_dim, cardinal.mk_prod, cardinal.lift_mul, cardinal.lift_lift, cardinal.lift_umax,
       cardinal.lift_id, cardinal.lift_id]
-  ... = cardinal.lift.{v w} (cardinal.mk η) * cardinal.lift.{w v} (dim α β) :
+  ... = cardinal.lift.{w v} (cardinal.mk ι) * cardinal.lift.{v w} (dim α β) :
     by rw [hb.mk_eq_dim, cardinal.lift_id]
 
 end finsupp

@@ -100,10 +100,8 @@ variable [topological_space H]
 
 /-- Partial order on the set of groupoids, given by inclusion of the members of the groupoid -/
 instance structure_groupoid.partial_order : partial_order (structure_groupoid H) :=
-{ le          := λu v, u.members ⊆ v.members,
-  le_refl     := λu, subset.refl _,
-  le_trans    := λu v w huv hvw, subset.trans huv hvw,
-  le_antisymm := λu v huv hvu, by { cases u, cases v, simp, exact subset.antisymm huv hvu } }
+partial_order.lift structure_groupoid.members
+(λa b h, by { cases a, cases b, dsimp at h, induction h, refl }) (by apply_instance)
 
 /-- The trivial groupoid, containing only the identity (and maps with empty source, as this is
 necessary from the definition) -/
@@ -285,7 +283,7 @@ instance manifold_model_space (H : Type*) [topological_space H] : manifold H H :
   chart_mem_atlas  := λx, mem_singleton _ }
 
 /-- The atlas of a manifold M with respect to the model space H. -/
-def atlas (M : Type*) [topological_space M] (H : Type*) [topological_space H] [h : manifold H M] :
+def atlas (H : Type*) [topological_space H] (M : Type*) [topological_space M] [h : manifold H M] :
   set (local_homeomorph M H) := h.atlas
 
 /-- The preferred chart containing x in its source -/
@@ -300,7 +298,7 @@ lemma mem_chart_source (H : Type*) [topological_space H] {M : Type*} [topologica
 
 /-- The preferred chart at x belongs to the atlas -/
 lemma chart_mem_atlas (H : Type*) [topological_space H] {M : Type*} [topological_space M]
-  [h : manifold H M] (x : M) : chart_at H x ∈ atlas M H :=
+  [h : manifold H M] (x : M) : chart_at H x ∈ atlas H M :=
 (h.chart_mem_atlas : _) x
 
 /-- In the trivial manifold structure of a space modelled over itself through the identity, the
@@ -312,7 +310,7 @@ by simp [atlas, manifold.atlas]
 /-- The set of charts that are defined around x -/
 def atlas_at (H : Type*) [topological_space H] {M : Type*} [topological_space M] [manifold H M]
   (x : M) : set (local_homeomorph M H) :=
-{e : local_homeomorph M H | e ∈ atlas M H ∧ x ∈ e.source}
+{e : local_homeomorph M H | e ∈ atlas H M ∧ x ∈ e.source}
 
 /-- In the trivial manifold structure of a space modelled over itself through the identity, the
 atlas members around any point x are just the identity -/
@@ -419,14 +417,14 @@ def to_manifold : @manifold H _ M c.to_topological_space :=
 end manifold_core
 
 section has_groupoid
+variables [topological_space H] [topological_space M] [manifold H M]
 
 /-- A manifold has an atlas in a groupoid G if the change of coordinates belong to the groupoid -/
 class has_groupoid (H : Type*) [topological_space H] (M : Type*) [topological_space M]
   [manifold H M] (G : structure_groupoid H) : Prop :=
-(compatible : ∀e e' : local_homeomorph M H, e ∈ atlas M H → e' ∈ atlas M H → (e.symm →ₕ e') ∈ G)
+(compatible : ∀e e' : local_homeomorph M H, e ∈ atlas H M → e' ∈ atlas H M → (e.symm →ₕ e') ∈ G)
 
-lemma has_groupoid_of_le {H : Type*} [topological_space H] {M : Type*} [topological_space M]
-  [manifold H M] {G₁ G₂ : structure_groupoid H} (h : has_groupoid H M G₁) (hle : G₁ ≤ G₂) :
+lemma has_groupoid_of_le {G₁ G₂ : structure_groupoid H} (h : has_groupoid H M G₁) (hle : G₁ ≤ G₂) :
   has_groupoid H M G₂ :=
 ⟨ λ e e' he he', hle ((h.compatible : _) e e' he he') ⟩
 
@@ -440,12 +438,17 @@ instance has_groupoid_model_space (H : Type*) [topological_space H] (G : structu
     simp [he, he', structure_groupoid.id_mem]
   end }
 
-variable [topological_space H]
+/-- Any manifold structure is compatible with the groupoid of all local homeomorphisms -/
+instance has_groupoid_continuous_groupoid : has_groupoid H M (continuous_groupoid H) :=
+⟨begin
+  assume e e' he he',
+  rw [continuous_groupoid, mem_groupoid_of_pregroupoid],
+  simp only [and_self]
+end⟩
 
 /-- In a manifold having some structure groupoid, the changes of coordinates belong to this groupoid -/
-lemma compatible (G : structure_groupoid H) {M : Type*} [topological_space M] [manifold H M]
-  [h : has_groupoid H M G]
-  {e e' : local_homeomorph M H} (he : e ∈ atlas M H) (he' : e' ∈ atlas M H) :
+lemma compatible (G : structure_groupoid H) [h : has_groupoid H M G]
+  {e e' : local_homeomorph M H} (he : e ∈ atlas H M) (he' : e' ∈ atlas H M) :
   e.symm →ₕ e' ∈ G :=
 (h.compatible : _) e e' he he'
 
@@ -455,10 +458,10 @@ structure diffeomorph (G : structure_groupoid H) (M : Type*) (M' : Type*)
   [topological_space M] [topological_space M'] [manifold H M] [manifold H M']
   extends homeomorph M M' :=
 (smooth_to_fun : ∀c : local_homeomorph M H, ∀c' : local_homeomorph M' H,
-  c ∈ atlas M H → c' ∈ atlas M' H → c.symm →ₕ to_homeomorph.to_local_homeomorph →ₕ c' ∈ G)
+  c ∈ atlas H M → c' ∈ atlas H M' → c.symm →ₕ to_homeomorph.to_local_homeomorph →ₕ c' ∈ G)
 
-variables [topological_space M] [topological_space M'] [topological_space M'']
-{G : structure_groupoid H} [manifold H M] [manifold H M'] [manifold H M'']
+variables [topological_space M'] [topological_space M'']
+{G : structure_groupoid H} [manifold H M'] [manifold H M'']
 
 /-- The identity is a diffeomorphism of any manifold, for any groupoid. -/
 def diffeomorph.refl (M : Type*) [topological_space M] [manifold H M]

@@ -164,12 +164,12 @@ private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
   end
 | (inl x) (inr y) (inl z) := real.le_of_forall_epsilon_le $ λδ δpos, begin
     have : ∃a ∈ range (λp, dist x (Φ p) + dist y (Ψ p)), a < infi (λp, dist x (Φ p) + dist y (Ψ p)) + δ/2 :=
-      exists_lt_of_cInf_lt (by simp [_inst_3]) (by rw [infi]; linarith),
+      exists_lt_of_cInf_lt (by simp [‹nonempty γ›]) (by rw [infi]; linarith),
     rcases this with ⟨a, arange, ha⟩,
     rcases mem_range.1 arange with ⟨p, pa⟩,
     rw ← pa at ha,
     have : ∃b ∈ range (λp, dist z (Φ p) + dist y (Ψ p)), b < infi (λp, dist z (Φ p) + dist y (Ψ p)) + δ/2 :=
-      exists_lt_of_cInf_lt (by simp [_inst_3]) (by rw [infi]; linarith),
+      exists_lt_of_cInf_lt (by simp [‹nonempty γ›]) (by rw [infi]; linarith),
     rcases this with ⟨b, brange, hb⟩,
     rcases mem_range.1 brange with ⟨q, qb⟩,
     rw ← qb at hb,
@@ -184,12 +184,12 @@ private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
   end
 | (inr x) (inl y) (inr z) := real.le_of_forall_epsilon_le $ λδ δpos, begin
     have : ∃a ∈ range (λp, dist y (Φ p) + dist x (Ψ p)), a < infi (λp, dist y (Φ p) + dist x (Ψ p)) + δ/2 :=
-      exists_lt_of_cInf_lt (by simp [_inst_3]) (by rw [infi]; linarith),
+      exists_lt_of_cInf_lt (by simp [‹nonempty γ›]) (by rw [infi]; linarith),
     rcases this with ⟨a, arange, ha⟩,
     rcases mem_range.1 arange with ⟨p, pa⟩,
     rw ← pa at ha,
     have : ∃b ∈ range (λp, dist y (Φ p) + dist z (Ψ p)), b < infi (λp, dist y (Φ p) + dist z (Ψ p)) + δ/2 :=
-      exists_lt_of_cInf_lt (by simp [_inst_3]) (by rw [infi]; linarith),
+      exists_lt_of_cInf_lt (by simp [‹nonempty γ›]) (by rw [infi]; linarith),
     rcases this with ⟨b, brange, hb⟩,
     rcases mem_range.1 brange with ⟨q, qb⟩,
     rw ← qb at hb,

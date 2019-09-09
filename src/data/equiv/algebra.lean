@@ -398,14 +398,14 @@ In each case this type also forms a group.
 
 namespace monoid
 
-def aut (γ : Type*) [has_mul γ] := mul_equiv γ γ
+def aut (γ : Type u) [has_mul γ] := mul_equiv γ γ
 
 /--
 The group operation on automorphisms of a monoid is defined by
 λ g h, mul_equiv.trans h g.
 This means that multiplication agrees with composition, (g*h)(x) = g (h x) .
 -/
-instance aut_group (γ : Type*) [has_mul γ] : group (aut γ) :=
+instance aut_group (γ : Type u) [has_mul γ] : group (aut γ) :=
 { mul := λ g h, mul_equiv.trans h g,
   one := mul_equiv.refl γ,
   inv := mul_equiv.symm,
@@ -419,22 +419,22 @@ end monoid
 namespace group
 
 -- A group homomorphism is a monoid homomorphism between groups.
-def aut (γ : Type*) [group γ] := mul_equiv γ γ
+def aut (γ : Type u) [group γ] := mul_equiv γ γ
 
-instance aut_group (γ : Type*) [group γ] : group (aut γ) := monoid.aut_group γ
+instance aut_group (γ : Type u) [group γ] : group (aut γ) := monoid.aut_group γ
 
 end group
 
 namespace add_monoid
 
-def aut (α : Type*) [has_add α] := add_equiv α α
+def aut (α : Type u) [has_add α] := add_equiv α α
 
 /--
 The group operation on automorphisms of an additive monoid is defined by
 λ g h, add_equiv.trans h g.
 This means that multiplication agrees with composition, (g*h)(x) = g (h x) .
 -/
-instance aut_group (α : Type*) [has_add α] : group (aut α) :=
+instance aut_group (α : Type u) [has_add α] : group (aut α) :=
 { mul := λ g h, add_equiv.trans h g,
   one := add_equiv.refl α,
   inv := add_equiv.symm,
@@ -448,22 +448,22 @@ end add_monoid
 namespace add_group
 
 -- An additive group homomorphism is an additive monoid homomorphism between groups.
-def aut (γ : Type*) [add_group γ] := add_equiv γ γ
+def aut (γ : Type u) [add_group γ] := add_equiv γ γ
 
-instance aut_group (γ : Type*) [add_group γ] : group (aut γ) := add_monoid.aut_group γ
+instance aut_group (γ : Type u) [add_group γ] : group (aut γ) := add_monoid.aut_group γ
 
 end add_group
 
 namespace ring
 
-def aut (R : Type*) [ring R] := ring_equiv R R
+def aut (R : Type u) [ring R] := ring_equiv R R
 
 /--
 The group operation on automorphisms of a ring is defined by
 λ g h, ring_equiv.trans h g.
 This means that multiplication agrees with composition, (g*h)(x) = g (h x) .
 -/
-instance aut_group (R : Type*) [ring R] : group (aut R) :=
+instance aut_group (R : Type u) [ring R] : group (aut R) :=
 { mul := λ g h, ring_equiv.trans h g,
   one := ring_equiv.refl R,
   inv := ring_equiv.symm,
@@ -476,14 +476,13 @@ instance aut_group (R : Type*) [ring R] : group (aut R) :=
 Map from the automorphisms of a ring to the automorphisms of the additive
 group defined by addition in R.
 -/
-def ring_aut_to_add_monoid_aut (R : Type*) [ring R] (f : aut R) : add_monoid.aut R :=
+def ring_aut_to_add_monoid_aut (R : Type u) [ring R] (f : aut R) : add_monoid.aut R :=
 { map_add' := f.hom.map_add .. f }
 
 /-- The map from the automorphisms of a ring to the automorphisms of an additive
     monoid is a group homomorphism. -/
-instance is_group_hom_ring_aut_to_add_monoid_aut (R : Type*) [ring R] :
-  @is_group_hom _ _ (ring.aut_group R) (add_monoid.aut_group R)
-  (ring_aut_to_add_monoid_aut R) :=
+instance is_group_hom_ring_aut_to_add_monoid_aut (R : Type u) [ring R] :
+  is_group_hom (ring_aut_to_add_monoid_aut R) :=
 { map_mul := λ _ _, rfl }
 
 end ring

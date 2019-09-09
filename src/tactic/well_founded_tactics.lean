@@ -15,7 +15,18 @@ open tactic
 The definition of `default_dec_tac` in core is broken, because `unfold_sizeof`
 could actually discharge the goal.
 
-The usual symptom is an error message
+Here we add a test using `done` to detect this.
+-/
+meta def default_dec_tac' : tactic unit :=
+abstract $
+do clear_internals,
+   unfold_wf_rel,
+   process_lex (unfold_sizeof >> (done <|> (cancel_nat_add_lt >> trivial_nat_lt)))
+end well_founded_tactics
+
+/--
+The default `well_founded_tactics` provided in core are broken in some situations, often indicated
+by the message
 ```
 The nested exception contains the failure state for the decreasing tactic.
 nested exception message:
@@ -26,14 +37,9 @@ no goals
 
 Use this replacement by adding
 ```
-using_well_founded { dec_tac := well_founded_tactics.default_dec_tac' }
+using_well_founded wf_tacs
 ```
 at the end of your inductive definition.
 -/
--- Here we add a test using `done` to detect this.
-meta def default_dec_tac' : tactic unit :=
-abstract $
-do clear_internals,
-   unfold_wf_rel,
-   process_lex (unfold_sizeof >> (done <|> (cancel_nat_add_lt >> trivial_nat_lt)))
-end well_founded_tactics
+meta def wf_tacs : well_founded_tactics :=
+{ dec_tac := well_founded_tactics.default_dec_tac' }

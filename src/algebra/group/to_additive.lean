@@ -105,7 +105,7 @@ meta def aux_attr : user_attribute (name_map name) name :=
 
 meta def map_namespace (src tgt : name) : command :=
 do let n := src.mk_string "_to_additive",
-   let decl := declaration.cnst n [] `(Type) ff,
+   let decl := declaration.thm n [] `(unit) (pure (reflect ())),
    add_decl decl,
    aux_attr.set n tgt tt
 
@@ -162,7 +162,7 @@ do
 
 meta def proceed_fields (env : environment) (src tgt : name) (prio : ℕ) : command :=
 let aux := proceed_fields_aux src tgt prio in
-do
+do 
 aux (λ n, pure $ list.map name.to_string $ (env.structure_fields n).get_or_else []) >>
 aux (λ n, (list.map (λ (x : name), "to_" ++ x.to_string) <$>
                             (ancestor_attr.get_param n <|> pure []))) >>

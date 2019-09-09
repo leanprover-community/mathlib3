@@ -132,12 +132,6 @@ iff.intro
 lemma bit0_pos {a : α} (h : 0 < a) : 0 < bit0 a :=
 add_pos' h h
 
-instance : ordered_comm_monoid (order_dual α) :=
-{ add_le_add_left := λ a b h c, @add_le_add_left' α _ b a c h,
-  lt_of_add_lt_add_left := λ a b c h, @lt_of_add_lt_add_left' α _ a c b h,
-  ..show partial_order (order_dual α), by apply_instance,
-  ..show add_comm_monoid α, by apply_instance }
-
 end ordered_comm_monoid
 
 namespace units
@@ -711,3 +705,25 @@ def to_decidable_linear_ordered_comm_group
   ..@nonneg_comm_group.to_ordered_comm_group _ s }
 
 end nonneg_comm_group
+
+namespace order_dual
+
+instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
+{ add_le_add_left := λ a b h c, @add_le_add_left' α _ b a c h,
+  lt_of_add_lt_add_left := λ a b c h, @lt_of_add_lt_add_left' α _ a c b h,
+  ..order_dual.partial_order α,
+  ..show add_comm_monoid α, by apply_instance }
+
+instance [ordered_cancel_comm_monoid α] : ordered_cancel_comm_monoid (order_dual α) :=
+{ le_of_add_le_add_left := λ a b c : α, le_of_add_le_add_left,
+  add_left_cancel := @add_left_cancel α _,
+  add_right_cancel := @add_right_cancel α _,
+  ..order_dual.ordered_comm_monoid }
+
+instance [ordered_comm_group α] : ordered_comm_group (order_dual α) :=
+{ add_lt_add_left := λ a b : α, ordered_comm_group.add_lt_add_left b a,
+  add_left_neg := λ a : α, add_left_neg a,
+  ..order_dual.ordered_comm_monoid,
+  ..show add_comm_group α, by apply_instance }
+
+end order_dual

@@ -2984,6 +2984,7 @@ theorem erase_diff_erase_sublist_of_sublist {a : α} : ∀ {l₁ l₂ : list α}
 | (b::l₁) l₂ h := if heq : b = a then by simp only [heq, erase_cons_head, diff_cons]
                   else by simpa only [erase_cons_head, erase_cons_tail _ heq, diff_cons, erase_comm a b l₂]
                   using erase_diff_erase_sublist_of_sublist (erase_sublist_erase b h)
+using_well_founded { dec_tac := well_founded_tactics.default_dec_tac' }
 
 end diff
 

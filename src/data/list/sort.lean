@@ -168,6 +168,7 @@ def merge : list α → list α → list α
 | []       l'        := l'
 | l        []        := l
 | (a :: l) (b :: l') := if a ≼ b then a :: merge l (b :: l') else b :: merge (a :: l) l'
+using_well_founded { dec_tac := well_founded_tactics.default_dec_tac' }
 
 include r
 /-- Implementation of a merge sort algorithm to sort a list. -/
@@ -206,6 +207,7 @@ theorem perm_merge : ∀ (l l' : list α), merge l l' ~ l ++ l'
   { suffices : b :: merge r (a :: l) l' ~ a :: (l ++ b :: l'), {simpa [merge, h]},
     exact (skip _ (perm_merge _ _)).trans ((swap _ _ _).trans (skip _ perm_middle.symm)) }
 end
+using_well_founded { dec_tac := well_founded_tactics.default_dec_tac' }
 
 theorem perm_merge_sort : ∀ l : list α, merge_sort l ~ l
 | []        := perm.refl _
@@ -251,6 +253,7 @@ theorem sorted_merge : ∀ {l l' : list α}, sorted r l → sorted r l' → sort
     { exact trans ba (rel_of_sorted_cons h₁ _ bl) },
     { exact rel_of_sorted_cons h₂ _ bl' } }
 end
+using_well_founded { dec_tac := well_founded_tactics.default_dec_tac' }
 
 theorem sorted_merge_sort : ∀ l : list α, sorted r (merge_sort l)
 | []        := sorted_nil

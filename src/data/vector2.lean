@@ -36,7 +36,7 @@ theorem nth_eq_nth_le : ∀ (v : vector α n) (i),
   nth v i = v.to_list.nth_le i.1 (by rw to_list_length; exact i.2)
 | ⟨l, h⟩ i := rfl
 
-@[simp] lemma nth_map {β : Type*} (v : vector α n) (f : α → β) (i : fin n) : 
+@[simp] lemma nth_map {β : Type*} (v : vector α n) (f : α → β) (i : fin n) :
   (v.map f).nth i = f (v.nth i) :=
 by simp [nth_eq_nth_le]
 
@@ -115,6 +115,7 @@ def mmap {m} [monad m] {α} {β : Type u} (f : α → m β) :
   ∀ {n}, vector α n → m (vector β n)
 | _ ⟨[], rfl⟩   := pure nil
 | _ ⟨a::l, rfl⟩ := do h' ← f a, t' ← mmap ⟨l, rfl⟩, pure (h' :: t')
+using_well_founded { dec_tac := well_founded_tactics.default_dec_tac' }
 
 @[simp] theorem mmap_nil {m} [monad m] {α β} (f : α → m β) :
   mmap f nil = pure nil := rfl

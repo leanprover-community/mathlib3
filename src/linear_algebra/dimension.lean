@@ -331,6 +331,23 @@ by simp [dim_fun']
 
 end fintype
 
+section finsupp
+
+lemma dim_finsupp (α η β : Type*) [discrete_field α] [add_comm_group β] [vector_space α β]
+  [decidable_eq β] [decidable_eq η] :
+  dim α (η →₀ β) = cardinal.lift.{v w} (cardinal.mk η) * cardinal.lift.{w v} (dim α β) :=
+let ⟨b, hb⟩ := exists_is_basis α β in
+have h : is_basis α (λ i : η × b, _), from finsupp.is_basis_finsupp η hb,
+calc dim α (η →₀ β)
+      = cardinal.lift.{(max v w) (max v w)} (dim α (η →₀ β)) : eq.symm $ cardinal.lift_id _
+  ... = cardinal.lift (cardinal.mk η) * cardinal.lift.{w v} (cardinal.lift.{w w} (cardinal.mk b)) :
+    by rw[←h.mk_eq_dim, cardinal.mk_prod, cardinal.lift_mul, cardinal.lift_lift, cardinal.lift_umax,
+      cardinal.lift_id, cardinal.lift_id]
+  ... = cardinal.lift.{v w} (cardinal.mk η) * cardinal.lift.{w v} (dim α β) :
+    by rw [hb.mk_eq_dim, cardinal.lift_id]
+
+end finsupp
+
 lemma exists_mem_ne_zero_of_ne_bot {s : submodule α β} (h : s ≠ ⊥) : ∃ b : β, b ∈ s ∧ b ≠ 0 :=
 begin
   classical,

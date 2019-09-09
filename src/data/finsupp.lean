@@ -183,6 +183,16 @@ begin
   { intro h, left, exact ⟨subsingleton.elim _ _, h⟩ }
 end
 
+lemma single_single_apply [add_comm_monoid γ] (i : α₁ × α₂) (a : α₁) (b : α₂) (c : γ) :
+  ((single i.fst (single i.snd c) : α₁ →₀ (α₂ →₀ γ)) a) b = (single i c : α₁ × α₂ →₀ γ) (a, b) :=
+begin
+  rw [single_apply, single_apply],
+  conv_rhs { congr, rw [←@prod.mk.eta α₁ α₂ i, prod.mk.inj_iff] },
+  split_ifs with h,
+  { rw [if_pos h, single_apply], conv in (_ ∧ _) { rw [and_iff_right h] }, convert rfl },
+  { rw [if_neg h, if_neg (not_and_of_not_left _ h)], refl }
+end
+
 end single
 
 section on_finset
@@ -584,6 +594,11 @@ begin
 end,
 ext $ assume a, by simp only [sum_apply, single_apply, this,
   insert_empty_eq_singleton, sum_singleton, if_pos]
+
+@[simp] lemma sum_single_range [has_zero β] [add_comm_monoid γ]
+  (f : α →₀ β) (g : β → γ) (hg : g 0 = 0) :
+  finsupp.sum f (λ (a : α) (b : β), finsupp.single a (g b)) = finsupp.map_range g hg f :=
+by { rw [←finsupp.sum_map_range_index, finsupp.sum_single], intro _, exact finsupp.single_zero }
 
 @[to_additive]
 lemma prod_add_index [add_comm_monoid β] [comm_monoid γ] {f g : α →₀ β}
@@ -1176,6 +1191,15 @@ begin
   rw ← finset.bind_singleton,
   refine finset.subset.trans support_sum _,
   refine finset.bind_mono (assume a _, support_single_subset)
+end
+
+lemma curry_apply [add_comm_monoid γ]
+  (f : (α × β) →₀ γ) (x : α) (y : β) : (finsupp.curry f x) y = f (x, y) :=
+begin
+  change ((f.sum $ λ p c, single p.1 (single p.2 c)) x) y = f (x, y),
+  rw [sum_apply, sum_apply],
+  conv_lhs { congr, skip, funext, rw [single_single_apply] },
+  rw [←sum_apply, sum_single]
 end
 
 end curry_uncurry

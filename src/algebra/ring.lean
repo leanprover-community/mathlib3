@@ -306,6 +306,9 @@ def of {α : Type u} {β : Type v} [semiring α] [semiring β]
   .. as_monoid_hom f,
   .. as_add_monoid_hom f }
 
+@[simp] lemma coe_of {α : Type u} {β : Type v} [semiring α] [semiring β]
+  (f : α → β) [is_semiring_hom f] : ⇑(of f) = f := rfl
+
 variables {β : Type v} {γ : Type w} [semiring α] [semiring β] [semiring γ]
 variables (f : α →+* β) {x y : α}
 

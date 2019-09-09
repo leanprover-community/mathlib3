@@ -25,9 +25,9 @@ private def free_obj (α : Type u) : CommRing.{u} := ⟨mv_polynomial α ℤ⟩
 
 def free : Type u ⥤ CommRing.{u} :=
 { obj := free_obj,
-  map := λ _ _ f, rename_hom f,
-  map_id' := λ X, rename_hom_id,
-  map_comp' := λ X Y Z f g, rename_hom_comp f g }
+  map := λ _ _ f, @ring_hom.of _ _ _ _ (rename f) (rename.is_semiring_hom f),
+  map_id' := λ X, ring_hom.ext _ _ $ funext $ rename_id,
+  map_comp' := λ X Y Z f g, ring_hom.ext _ _ $ funext $ λ p, (rename_rename f g p).symm }
 
 @[simp] lemma free_obj_coe {α : Type u} :
   (free.obj α : Type u) = mv_polynomial α ℤ := rfl

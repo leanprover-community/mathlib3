@@ -60,8 +60,7 @@ inductive relation : prequotient F → prequotient F → Prop
 | symm : Π (x y) (h : relation x y), relation y x
 | trans : Π (x y z) (h : relation x y) (k : relation y z), relation x z
 -- There's always a `map` relation
-| map : Π (j j' : J) (f : j ⟶ j') (x : (F.obj j).α),
-      relation (of j' ((@coe_fn _ ring_hom.has_coe_to_fun $ F.map f) x)) (of j x)
+| map : Π (j j' : J) (f : j ⟶ j') (x : (F.obj j).α), relation (of j' (F.map f x)) (of j x)
 -- Then one relation per operation, describing the interaction with `of`
 | zero : Π (j), relation (of j 0) zero
 | one : Π (j), relation (of j 1) one

@@ -302,7 +302,7 @@ instance is_monoid_hom {α β} [monoid α] [monoid β] (h : α ≃* β) : is_mon
 instance is_group_hom {α β} [group α] [group β] (h : α ≃* β) :
   is_group_hom h := { map_mul := h.map_mul }
 
-/-- Two multplicative isomorphisms agree if they are defined by the
+/-- Two multiplicative isomorphisms agree if they are defined by the
     same underlying function. -/
 @[extensionality] lemma ext {α β : Type*} [has_mul α] [has_mul β]
   {f g : mul_equiv α β} (h : f.to_fun = g.to_fun) : f = g :=

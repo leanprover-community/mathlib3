@@ -331,7 +331,7 @@ lemma chart_mem_atlas_at (H : Type*) [topological_space H] {M : Type*} [topologi
   [manifold H M] (x : M) : chart_at H x ∈ atlas_at H x :=
 ⟨chart_mem_atlas H x, mem_chart_source H x⟩
 
-/-- In the model space, schart_at is always the identity -/
+/-- In the model space, chart_at is always the identity -/
 @[simp] lemma chart_at_model_space_eq {H : Type*} [topological_space H] {x : H} :
   chart_at H x = local_homeomorph.refl H :=
 by simpa using chart_mem_atlas H x

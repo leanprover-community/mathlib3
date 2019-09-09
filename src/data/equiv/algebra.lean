@@ -9,13 +9,16 @@ import data.equiv.basic algebra.field
 /-!
 # equivs in the algebraic hierarchy
 
-The role of this file is twofold. In the first part there are theorems of the following
-form: if α has a group structure and α ≃ β then β has a group structure, and
+In the first part there are theorems of the following
+form: if `α` has a group structure and `α ≃ β` then `β` has a group structure, and
 similarly for monoids, semigroups, rings, integral domains, fields and so on.
 
-In the second part there are extensions of equiv called add_equiv,
-mul_equiv, and ring_equiv, which are datatypes representing isomorphisms
+In the second part there are extensions of `equiv` called `add_equiv`,
+`mul_equiv`, and `ring_equiv`, which are datatypes representing isomorphisms
 of add_monoids/add_groups, monoids/groups and rings.
+
+In the third part we define the automorphism groups of algebraic structure, in terms
+of these extensions of `equiv`.
 
 ## Notations
 
@@ -24,11 +27,11 @@ notation when treating the isomorphisms as maps.
 
 ## Implementation notes
 
-Bundling structures means that many things turn into definitions, meaning that to_additive
+Bundling structures means that many things turn into definitions, meaning that `to_additive`
 cannot do much work for us, and conversely that we have to do a lot of naming for it.
 
-The fields for mul_equiv and add_equiv now avoid the unbundled `is_mul_hom` and `is_add_hom`,
-as these are deprecated. However ring_equiv still relies on `is_ring_hom`; this should
+The fields for `mul_equiv` and `add_equiv` now avoid the unbundled `is_mul_hom` and `is_add_hom`,
+as these are deprecated. However `ring_equiv` still relies on `is_ring_hom`; this should
 be rewritten in future.
 
 ## Tags

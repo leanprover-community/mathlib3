@@ -41,7 +41,7 @@ def walking_parallel_pair_hom.comp :
   | _ _ _ right  (id one) := right
 .
 
-instance walking_parallel_pair_hom_category : small_category.{v} walking_parallel_pair :=
+instance walking_parallel_pair_hom_category : small_category.{v+1} walking_parallel_pair :=
 { hom  := walking_parallel_pair_hom,
   id   := walking_parallel_pair_hom.id,
   comp := walking_parallel_pair_hom.comp }

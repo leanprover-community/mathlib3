@@ -32,10 +32,10 @@ namespace Groupoid
 
 instance str (C : Groupoid.{v u}) : groupoid.{v u} C.α := C.str
 
-def of (C : Type u) [groupoid.{v} C] : Groupoid.{v u} := mk_ob C
+def of (C : Sort u) [groupoid.{v} C] : Groupoid.{v u} := mk_ob C
 
 /-- Category structure on `Groupoid` -/
-instance category : category.{(max u v)+1 (max v (u+1))} Groupoid.{v u} :=
+instance category : category.{(max v u 1) (max v u)+1} Groupoid.{v u} :=
 { hom := λ C D, C.α ⥤ D.α,
   id := λ C, 𝟭 C.α,
   comp := λ C D E F G, F ⋙ G,
@@ -45,7 +45,7 @@ instance category : category.{(max u v)+1 (max v (u+1))} Groupoid.{v u} :=
 
 /-- Functor that gets the set of objects of a groupoid. It is not
 called `forget`, because it is not a faithful functor. -/
-def objects : Groupoid.{v u} ⥤ Type u :=
+def objects : Groupoid.{v u} ⥤ Sort u :=
 { obj := bundled.α,
   map := λ C D F, F.obj }
 
@@ -62,4 +62,3 @@ instance forget_to_Cat_faithful : faithful forget_to_Cat := { }
 end Groupoid
 
 end category_theory
-

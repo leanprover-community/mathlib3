@@ -117,7 +117,7 @@ variables {F : J ⥤ C}
 
 namespace cone
 
-def equiv (F : J ⥤ C) : cone F ≅ Σ X, F.cones.obj X :=
+def equiv (F : J ⥤ C) : cone F ≅ Σ' X, F.cones.obj X :=
 { hom := λ c, ⟨op c.X, c.π⟩,
   inv := λ c, { X := unop c.1, π := c.2 },
   hom_inv_id' := begin ext, cases x, refl, end,
@@ -157,7 +157,7 @@ end cone
 
 namespace cocone
 
-def equiv (F : J ⥤ C) : cocone F ≅ Σ X, F.cocones.obj X :=
+def equiv (F : J ⥤ C) : cocone F ≅ Σ' X, F.cocones.obj X :=
 { hom := λ c, ⟨c.X, c.ι⟩,
   inv := λ c, { X := c.1, ι := c.2 },
   hom_inv_id' := begin ext, cases x, refl, end,
@@ -266,7 +266,7 @@ def forget : cone F ⥤ C :=
 @[simp] lemma forget_map {s t : cone F} {f : s ⟶ t} : forget.map f = f.hom := rfl
 
 section
-variables {D : Type u'} [𝒟 : category.{v+1} D]
+variables {D : Sort u'} [𝒟 : category.{v+1} D]
 include 𝒟
 
 @[simp] def functoriality (G : C ⥤ D) : cone F ⥤ cone (F ⋙ G) :=
@@ -348,7 +348,7 @@ def forget : cocone F ⥤ C :=
 @[simp] lemma forget_map {s t : cocone F} {f : s ⟶ t} : forget.map f = f.hom := rfl
 
 section
-variables {D : Type u'} [𝒟 : category.{v+1} D]
+variables {D : Sort u'} [𝒟 : category.{v+1} D]
 include 𝒟
 
 @[simp] def functoriality (G : C ⥤ D) : cocone F ⥤ cocone (F ⋙ G) :=
@@ -365,7 +365,7 @@ end limits
 
 namespace functor
 
-variables {D : Type u'} [category.{v+1} D]
+variables {D : Sort u'} [category.{v+1} D]
 variables {F : J ⥤ C} {G : J ⥤ C} (H : C ⥤ D)
 
 open category_theory.limits

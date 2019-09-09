@@ -13,7 +13,7 @@ import category_theory.eq_to_hom
 
 This file defines the category of elements, also known as (a special case of) the Grothendieck construction.
 
-Given a functor `F : C ⥤ Type`, an object of `F.elements` is a pair `(X : C, x : F.obj X)`.
+Given a functor `F : C ⥤ Sort`, an object of `F.elements` is a pair `(X : C, x : F.obj X)`.
 A morphism `(X, x) ⟶ (Y, y)` is a morphism `f : X ⟶ Y` in `C`, so `F.map f` takes `x` to `y`.
 
 ## Implementation notes
@@ -32,22 +32,22 @@ category of elements, Grothendieck construction, comma category
 namespace category_theory
 
 universes v u
-variables {C : Type u} [𝒞 : category.{v} C]
+variables {C : Sort u} [𝒞 : category.{v} C]
 include 𝒞
 
-/-- The type of objects for the category of elements of a functor `F : C ⥤ Type` is a pair `(X : C, x : F.obj X)`. -/
-def functor.elements (F : C ⥤ Type u) := (Σ c : C, F.obj c)
+/-- The type of objects for the category of elements of a functor `F : C ⥤ Sort` is a pair `(X : C, x : F.obj X)`. -/
+def functor.elements (F : C ⥤ Sort u) := (Σ' c : C, F.obj c)
 
-/-- The category structure on `F.elements`, for `F : C ⥤ Type`.
+/-- The category structure on `F.elements`, for `F : C ⥤ Sort`.
     A morphism `(X, x) ⟶ (Y, y)` is a morphism `f : X ⟶ Y` in `C`, so `F.map f` takes `x` to `y`.
  -/
-instance category_of_elements (F : C ⥤ Type u) : category F.elements :=
+instance category_of_elements (F : C ⥤ Sort u) : category F.elements :=
 { hom := λ p q, { f : p.1 ⟶ q.1 // (F.map f) p.2 = q.2 },
   id := λ p, ⟨𝟙 p.1, by obviously⟩,
   comp := λ p q r f g, ⟨f.val ≫ g.val, by obviously⟩ }
 
 namespace category_of_elements
-variable (F : C ⥤ Type u)
+variable (F : C ⥤ Sort u)
 
 /-- The functor out of the category of elements which forgets the element. -/
 def π : F.elements ⥤ C :=

@@ -71,7 +71,7 @@ instance (X Y : walking_cospan) : subsingleton (X ⟶ Y) := by tidy
 lemma hom_id (X : walking_cospan.{v}) : hom.id X = 𝟙 X := rfl
 
 /-- The walking_cospan is the index diagram for a pullback. -/
-instance : small_category.{v} walking_cospan.{v} := sparse_category
+instance : small_category.{v+1} walking_cospan.{v} := sparse_category
 
 end walking_cospan
 
@@ -103,7 +103,7 @@ instance (X Y : walking_span) : subsingleton (X ⟶ Y) := by tidy
 lemma hom_id (X : walking_span.{v}) : hom.id X = 𝟙 X := rfl
 
 /-- The walking_span is the index diagram for a pushout. -/
-instance : small_category.{v} walking_span.{v} := sparse_category
+instance : small_category.{v+1} walking_span.{v} := sparse_category
 
 end walking_span
 

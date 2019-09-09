@@ -19,7 +19,7 @@ universes u v
 
 namespace category_theory
 
-variables {C : Type u} [category_struct.{v} C]
+variables {C : Sort u} [category_struct.{v} C]
 
 /-- Construct a category instance from a category_struct, using the fact that
     hom spaces are subsingletons to prove the axioms. -/

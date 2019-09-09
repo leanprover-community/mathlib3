@@ -23,7 +23,7 @@ open topological_space
 open opposite
 open category_theory.category category_theory.functor
 
-variables (C : Type u) [𝒞 : category.{v+1} C]
+variables (C : Sort u) [𝒞 : category.{v+1} C]
 include 𝒞
 
 local attribute [tidy] tactic.op_induction'

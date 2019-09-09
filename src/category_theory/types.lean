@@ -44,7 +44,7 @@ congr_fun (σ.naturality f) x
 
 @[simp] lemma comp (x : F.obj X) : (σ ≫ τ).app X x = τ.app X (σ.app X x) := rfl
 
-variables {D : Type u'} [𝒟 : category.{u'} D] (I J : D ⥤ C) (ρ : I ⟶ J) {W : D}
+variables {D : Sort u'} [𝒟 : category.{u'} D] (I J : D ⥤ C) (ρ : I ⟶ J) {W : D}
 
 @[simp] lemma hcomp (x : (I ⋙ F).obj W) : (ρ ◫ σ).app W x = (G.map (ρ.app W)) (σ.app (I.obj W) x) := rfl
 

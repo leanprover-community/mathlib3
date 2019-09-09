@@ -14,7 +14,7 @@ universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.c
 
 namespace monad
 
-variables {C : Type u₁} [𝒞 : category.{v₁+1} C]
+variables {C : Sort u₁} [𝒞 : category.{v₁+1} C]
 include 𝒞
 variables {T : C ⥤ C} [monad.{v₁+1} T]
 
@@ -93,7 +93,7 @@ def forget_creates_limits (D : J ⥤ algebra T) [has_limit.{v₁} (D ⋙ forget 
 
 end monad
 
-variables {C : Type u₁} [𝒞 : category.{v₁+1} C] {D : Type u₁} [𝒟 : category.{v₁+1} D]
+variables {C : Sort u₁} [𝒞 : category.{v₁+1} C] {D : Sort u₁} [𝒟 : category.{v₁+1} D]
 include 𝒞 𝒟
 variables {J : Type v₁} [𝒥 : small_category J]
 

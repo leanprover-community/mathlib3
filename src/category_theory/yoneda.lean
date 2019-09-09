@@ -148,8 +148,6 @@ evaluation_uncurried Cᵒᵖ (Type v₁) ⋙ ulift_functor.{u₁}
 def yoneda_pairing : Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁) ⥤ Type (max u₁ v₁) :=
 functor.prod yoneda.op (𝟭 (Cᵒᵖ ⥤ Type v₁)) ⋙ functor.hom (Cᵒᵖ ⥤ Type v₁).
 
-#exit
-
 @[simp] lemma yoneda_pairing_map
   (P Q : Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) (α : P ⟶ Q) (β : (yoneda_pairing C).obj P) :
   (yoneda_pairing C).map α β = yoneda.map α.1.unop ≫ β ≫ α.2 := rfl

@@ -15,7 +15,7 @@ open category_theory.limits
 
 universes u₁ u₂ v
 
-variables {C : Type u₁} [𝒞 : category.{v+1} C] {D : Type u₂} [𝒟 : category.{v+1} D]
+variables {C : Sort u₁} [𝒞 : category.{v+1} C] {D : Sort u₂} [𝒟 : category.{v+1} D]
 include 𝒞 𝒟
 
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G)

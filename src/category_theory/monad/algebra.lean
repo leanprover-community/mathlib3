@@ -22,14 +22,14 @@ open category
 
 universes v₁ u₁ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
+variables {C : Sort u₁} [𝒞 : category.{v₁} C]
 include 𝒞
 
 namespace monad
 
 /-- An Eilenberg-Moore algebra for a monad `T`.
     cf Definition 5.2.3 in [Riehl][riehl2017]. -/
-structure algebra (T : C ⥤ C) [monad.{v₁} T] : Type (max u₁ v₁) :=
+structure algebra (T : C ⥤ C) [monad.{v₁} T] : Sort (max 1 u₁ v₁) :=
 (A : C)
 (a : T.obj A ⟶ A)
 (unit' : (η_ T).app A ≫ a = 𝟙 A . obviously)

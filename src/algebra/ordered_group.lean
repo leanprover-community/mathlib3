@@ -241,17 +241,19 @@ begin
     ..with_top.partial_order,
     ..with_top.add_comm_monoid, ..},
   { intros a b c h,
-    refine ⟨λ c h₂, _, λ h₂, h.2 $ this _ _ h₂ _⟩,
+    have h' := h,
+    rw lt_iff_le_not_le at h' ⊢,
+    refine ⟨λ c h₂, _, λ h₂, h'.2 $ this _ _ h₂ _⟩,
     cases h₂, cases a with a,
     { exact (not_le_of_lt h).elim le_top },
     cases b with b,
     { exact (not_le_of_lt h).elim le_top },
     { exact ⟨_, rfl, le_of_lt (lt_of_add_lt_add_left' $
         with_top.some_lt_some.1 h)⟩ } },
-  { intros a b h c cb h₂,
+  { intros a b h c ca h₂,
     cases c with c, {cases h₂},
     cases b with b; cases h₂,
-    cases a with a, {cases le_antisymm h le_top},
+    cases a with a, {cases le_antisymm h le_top },
     simp at h,
     exact ⟨_, rfl, add_le_add_left' h⟩, }
 end

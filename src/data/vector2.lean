@@ -115,7 +115,7 @@ def mmap {m} [monad m] {α} {β : Type u} (f : α → m β) :
   ∀ {n}, vector α n → m (vector β n)
 | _ ⟨[], rfl⟩   := pure nil
 | _ ⟨a::l, rfl⟩ := do h' ← f a, t' ← mmap ⟨l, rfl⟩, pure (h' :: t')
-using_well_founded { dec_tac := well_founded_tactics.default_dec_tac' }
+using_well_founded wf_tacs
 
 @[simp] theorem mmap_nil {m} [monad m] {α β} (f : α → m β) :
   mmap f nil = pure nil := rfl

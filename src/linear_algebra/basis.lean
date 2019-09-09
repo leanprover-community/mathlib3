@@ -1135,7 +1135,7 @@ begin
       conv in (_ • _) { rw [smul_single] },
       rw [←sum_curry_index f (λ (n:η) (i:ι) (a:α), single n (a • v i))],
       { conv_lhs { congr, congr, skip, funext, rw [←single_sum] },
-        rw [sum_single_range _ (λ f:ι →₀ α, f.sum (λ (i:ι) (a:α), a • v i)) sum_zero_index, ext_iff],
+        rw [sum_single_range _ (λ f:ι →₀ α, f.sum (λ i a, a • v i)) sum_zero_index, ext_iff],
         split, all_goals { intros h n, replace h := h n, simpa } },
       { intros _ _, dsimp, rw [zero_smul, single_zero] },
       { intros _ _ _ _, dsimp, rw [add_smul, single_add] } },

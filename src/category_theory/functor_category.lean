@@ -7,7 +7,7 @@ import category_theory.natural_transformation
 
 namespace category_theory
 
-universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 open nat_trans category category_theory.functor
 
@@ -63,8 +63,12 @@ infix ` ◫ `:80 := hcomp
 @[simp] lemma hcomp_app {H I : D ⥤ E} (α : F ⟶ G) (β : H ⟶ I) (X : C) :
   (α ◫ β).app X = (β.app (F.obj X)) ≫ (I.map (α.app X)) := rfl
 
--- Note that we don't yet prove a `hcomp_assoc` lemma here: even stating it is painful, because we
--- need to use associativity of functor composition
+lemma hcomp_assoc
+  {C₁} [category.{v₁ u₁} C₁] {C₂} [category.{v₂ u₂} C₂] {C₃} [category.{v₃ u₃} C₃]
+  {C₄} [category.{v₄ u₄} C₄] {F₁ G₁ : C₁ ⥤ C₂} (α₁ : F₁ ⟶ G₁) {F₂ G₂ : C₂ ⥤ C₃} (α₂ : F₂ ⟶ G₂)
+  {F₃ G₃ : C₃ ⥤ C₄} (α₃ : F₃ ⟶ G₃) :
+  (α₁ ◫ α₂) ◫ α₃ = @category_theory.nat_trans.hcomp C₁ _ C₂ _ C₄ _ _ _ _ _ α₁ (α₂ ◫ α₃) :=
+by ext1; simp only [hcomp_app, functor.map_comp, functor.comp_map, category.assoc]; refl
 
 lemma exchange {I J K : D ⥤ E} (α : F ⟶ G) (β : G ⟶ H)
   (γ : I ⟶ J) (δ : J ⟶ K) : (α ≫ β) ◫ (γ ≫ δ) = (α ◫ γ) ≫ (β ◫ δ) :=

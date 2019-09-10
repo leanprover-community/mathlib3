@@ -43,11 +43,7 @@ instance : category (Module R) := {
 @[simp] lemma module_hom_comp (f : M ⟶ N) (g : N ⟶ U) :
   ((f ≫ g) : M → U) = g.to_fun ∘ f.to_fun := rfl
 
-instance : has_coe_to_fun (M ⟶ N) :=
-  { F   := λ f, M → N,
-    coe := λ f, (f : M → N) }
-
-@[extensionality] lemma hom_ext'  {f g : M ⟶ N} : (f : M → N) = g → f = g :=
+@[extensionality] lemma hom_ext  {f g : M ⟶ N} : (f : M → N) = g → f = g :=
   λ w, linear_map.ext (function.funext_iff.1 w)
 
 @[simp] lemma coe_id {M : Module R} : ((𝟙 M) : M → M) = id := rfl

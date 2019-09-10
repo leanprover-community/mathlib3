@@ -133,12 +133,12 @@ begin
 end
 
 theorem tendsto_iff_rtendsto (l₁ : filter α) (l₂ : filter β) (f : α → β) :
-  tendsto f l₁ l₂ ↔ rtendsto (function.graph f) l₁ l₂ :=
-by { simp [tendsto_def, function.graph, rtendsto_def, rel.core, set.preimage] }
+  tendsto f l₁ l₂ ↔ rtendsto (function.graph' f) l₁ l₂ :=
+by { simp [tendsto_def, function.graph', rtendsto_def, rel.core, set.preimage] }
 
 theorem tendsto_iff_rtendsto' (l₁ : filter α) (l₂ : filter β) (f : α → β) :
-  tendsto f l₁ l₂ ↔ rtendsto' (function.graph f) l₁ l₂ :=
-by { simp [tendsto_def, function.graph, rtendsto'_def, rel.preimage_def, set.preimage] }
+  tendsto f l₁ l₂ ↔ rtendsto' (function.graph' f) l₁ l₂ :=
+by { simp [tendsto_def, function.graph', rtendsto'_def, rel.preimage_def, set.preimage] }
 
 /-
 Partial functions.

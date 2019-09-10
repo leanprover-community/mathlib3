@@ -9,12 +9,11 @@ import category_theory.concrete_category.bundled
 /-!
 # Category instances for algebraic structures that use bundled homs.
 
-Many algebraic structures in Lean initially used unbundled homs (e.g. a bare function between types, along with
-an a `is_monoid_hom` typeclass), but the general trend is towards using bundled homs.
+Many algebraic structures in Lean initially used unbundled homs (e.g. a bare function between types,
+along with an `is_monoid_hom` typeclass), but the general trend is towards using bundled homs.
 
-This file provides a basic infrastructure to define concrete
-categories using bundled homs, and define forgetful functors between
-them.
+This file provides a basic infrastructure to define concrete categories using bundled homs, and
+define forgetful functors between them.
 -/
 
 universes w v u
@@ -84,7 +83,11 @@ section full_subcategory
 variables {hom} (𝒞) {d : Type u → Type v} (obj : ∀ ⦃α⦄, d α → c α)
 include obj
 
-/-- Construct a `bundled_hom` representing a full subcategory of a given `bundled_hom` category. The corresponding `category` and `concrete_category` instances agree with `induced_category (bundled.map @obj)`. -/
+/--
+Construct a `bundled_hom` representing a full subcategory of a given `bundled_hom` category. The
+corresponding `category` and `concrete_category` instances agree with
+`induced_category (bundled.map @obj)`.
+-/
 protected def full_subcategory : bundled_hom (λ α β (Iα : d α) (Iβ : d β), hom (obj Iα) (obj Iβ)) :=
 { to_fun := by intros; apply 𝒞.to_fun; assumption,
   id := by intros; apply 𝒞.id,

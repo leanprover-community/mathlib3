@@ -24,7 +24,7 @@ above; then `forget₂` will satisfy the functor laws automatically, see
 `has_forget.mk'`.
 
 In both cases this is done using the `bundled_category` class. Its
-default constructor assumes the bundled morphisms approach, and requires 
+default constructor assumes the bundled morphisms approach, and requires
 
 * an injective `to_fun : hom (ia : c α) (ib : c β) → α → β` projection;
 * `id` and `comp g f` morphisms that project to `id` and `g ∘ f`.
@@ -66,6 +66,10 @@ attribute [instance] concrete_category.forget_faithful
 instance concrete_category.types : concrete_category (Sort u₂) :=
 { forget := 𝟭 _ }
 
+/--
+`has_forget C D`, where `C` and `D` are both concrete categories, provides a functor
+`forget₂ C D : C ⥤ C` and a proof that `forget₂ ⋙ (forget D) = forget C`.
+-/
 class has_forget (C : Type u₂) (D : Type u₃) [concrete_category.{v u₁} C] [concrete_category.{v u₁} D] :=
 (forget₂ : C ⥤ D)
 (forget_comp : forget₂ ⋙ (forget D) = forget C)
@@ -87,7 +91,10 @@ instance induced_category.has_forget {C : Type u₂} {D : Type u₃} [concrete_c
 { forget₂ := induced_functor f,
   forget_comp := rfl }
 
-/-- In order to construct a “partially forgetting” functor, we do not need to verify functor laws; it suffices to ensure that compositions agree with `forget₂ C D ⋙ forget D = forget C`. -/
+/--
+In order to construct a “partially forgetting” functor, we do not need to verify functor laws;
+it suffices to ensure that compositions agree with `forget₂ C D ⋙ forget D = forget C`.
+-/
 def has_forget.mk' {C D : Type u₂} [concrete_category.{v u₁} C] [concrete_category.{v u₁} D]
   (obj : C → D) (h_obj : ∀ X, (forget D).obj (obj X) = (forget C).obj X)
   (map : ∀ {X Y}, (X ⟶ Y) → (obj X ⟶ obj Y))

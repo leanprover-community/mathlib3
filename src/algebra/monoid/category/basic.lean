@@ -7,7 +7,8 @@ Introduce Mon -- the category of monoids.
 Currently only the basic setup.
 -/
 
-import category_theory.concrete_category algebra.group
+import category_theory.concrete_category
+import algebra.group
 
 universes u v
 

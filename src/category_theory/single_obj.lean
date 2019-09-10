@@ -1,12 +1,15 @@
-import category_theory.endomorphism category_theory.groupoid category_theory.Cat
-import data.equiv.algebra algebra.Mon.basic
-import tactic.find
-
-/-!
+/-
 Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
+-/
+import category_theory.endomorphism
+import category_theory.groupoid
+import category_theory.category.category
+import data.equiv.algebra
+import algebra.monoid.category.basic
 
+/-!
 # Single-object category
 
 Single object category with a given monoid of endomorphisms.  It is defined to facilitate transfering

@@ -7,8 +7,8 @@ Authors: Reid Barton, Patrick Massot, Scott Morrison
 import category_theory.concrete_category
 import category_theory.full_subcategory
 import category_theory.monad.limits
+import topology.topological_space.category.basic
 import topology.uniform_space.completion
-import topology.Top.basic
 
 /-!
 # The category of uniform spaces

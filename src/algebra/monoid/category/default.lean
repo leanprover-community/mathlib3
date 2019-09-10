@@ -4,6 +4,5 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 
-import algebra.CommRing.basic
-import algebra.CommRing.adjunctions
-import algebra.CommRing.colimits
+import algebra.monoid.category.basic
+import algebra.monoid.category.colimits

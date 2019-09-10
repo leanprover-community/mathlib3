@@ -15,7 +15,7 @@ variables (R : Type u) [ring R]
 
 /-- The category of R-modules and their morphisms. -/
 structure Module :=
-  (carrier : Type)
+  (carrier : Type u)
   [is_add_comm_group : add_comm_group carrier]
   [is_module : module R carrier]
 
@@ -24,9 +24,9 @@ attribute [instance] Module.is_add_comm_group Module.is_module
 namespace Module
 
 instance : has_coe_to_sort (Module R) :=
-  { S := Type, coe := Module.carrier }
+  { S := Type u, coe := Module.carrier }
 
-def of (X : Type) [add_comm_group X] [module R X] : Module R := ⟨R, X⟩
+def of (X : Type u) [add_comm_group X] [module R X] : Module R := ⟨R, X⟩
 
 instance : has_zero (Module R) := ⟨ of R punit ⟩
 
@@ -51,5 +51,5 @@ instance hom_is_module_hom {M₁ M₂ : Module R} (f : M₁ ⟶ M₂) :
 
 end Module
 
-instance (M : Type) [add_comm_group M] [module R M] : has_coe (submodule R M) (Module R) :=
+instance (M : Type u) [add_comm_group M] [module R M] : has_coe (submodule R M) (Module R) :=
 ⟨ λ N, Module.of R N ⟩

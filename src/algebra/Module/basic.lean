@@ -38,15 +38,13 @@ instance : category (Module R) := {
   comp := λ A B C f g, g.comp f
 }
 
-@[simp] lemma module_id : (𝟙 M : M → M) = id := rfl
+@[simp] lemma id_apply (m : M) : (𝟙 M : M → M) m = m := rfl
 
 @[simp] lemma module_hom_comp (f : M ⟶ N) (g : N ⟶ U) :
   ((f ≫ g) : M → U) = g ∘ f := rfl
 
 @[extensionality] lemma hom_ext  {f g : M ⟶ N} : (f : M → N) = g → f = g :=
   λ w, linear_map.ext (function.funext_iff.1 w)
-
-@[simp] lemma coe_id {M : Module R} : (𝟙 M : M → M) = id := rfl
 
 instance hom_is_module_hom {M₁ M₂ : Module R} (f : M₁ ⟶ M₂) :
   is_linear_map R (f : M₁ → M₂) := linear_map.is_linear _

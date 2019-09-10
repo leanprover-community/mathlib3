@@ -93,7 +93,8 @@ alias faithful.of_comp_eq ← eq.faithful_of_comp
 
 variables (F G)
 
-protected def faithful.div (F : C ⥤ E) [faithful F] (G : D ⥤ E) [faithful G]
+/-- “Divide” a functor by a faithful functor. -/
+protected def faithful.div (F : C ⥤ E) (G : D ⥤ E) [faithful G]
   (obj : C → D) (h_obj : ∀ X, G.obj (obj X) = F.obj X)
   (map : ∀ {X Y}, (X ⟶ Y) → (obj X ⟶ obj Y))
   (h_map : ∀ {X Y} {f : X ⟶ Y}, G.map (map f) == F.map f) :

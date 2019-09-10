@@ -13,13 +13,6 @@ universe u
 
 variables (R : Type u) [ring R]
 
-/-- An example of a module for any ring is the zero module -/
-instance module.zero_module : module R punit := module.of_core $
-  by refine {
-    smul := λ _ _, punit.star,
-    .. punit.comm_ring, ..};
-    intros; exact subsingleton.elim _ _
-
 /-- The category of R-modules and their morphisms. -/
 structure Module :=
   (carrier : Type)

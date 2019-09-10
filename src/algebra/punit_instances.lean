@@ -63,7 +63,7 @@ instance : decidable_linear_ordered_cancel_comm_monoid punit :=
   decidable_lt := λ _ _, decidable.false,
   .. punit.canonically_ordered_monoid }
 
-instance : module punit punit := module.of_core $
+instance (R : Type u) [ring R] : module R punit := module.of_core $
 by refine
 { smul := λ _ _, star,
   .. punit.comm_ring, .. };

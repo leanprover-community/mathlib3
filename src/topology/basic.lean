@@ -447,7 +447,7 @@ assume a, by rw nhds_def; exact le_infi
   (assume s, le_infi $ assume ⟨h₁, _⟩, principal_mono.mpr $
     singleton_subset_iff.2 h₁)
 
-lemma tendsto_pure_nhds [topological_space β] (f : α → β) (a : α) :
+lemma tendsto_pure_nhds {α : Type*} [topological_space β] (f : α → β) (a : α) :
   tendsto f (pure a) (nhds (f a)) :=
 begin
   rw [tendsto, filter.map_pure],
@@ -860,8 +860,7 @@ have ∀ (a : α), nhds a ⊓ principal s ≠ ⊥ → nhds (f a) ⊓ principal (
   neq_bot_of_le_neq_bot h₁ h₂,
 by simp [image_subset_iff, closure_eq_nhds]; assumption
 
-lemma mem_closure [topological_space α] [topological_space β]
-  {s : set α} {t : set β} {f : α → β} {a : α}
+lemma mem_closure {s : set α} {t : set β} {f : α → β} {a : α}
   (hf : continuous f) (ha : a ∈ closure s) (ht : ∀a∈s, f a ∈ t) : f a ∈ closure t :=
 subset.trans (image_closure_subset_closure_image hf) (closure_mono $ image_subset_iff.2 ht) $
   (mem_image_of_mem f ha)

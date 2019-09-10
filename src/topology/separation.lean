@@ -194,12 +194,12 @@ lim_eq nhds_neq_bot (le_refl _)
 lim_eq begin rw [closure_eq_nhds] at h, exact h end inf_le_left
 end lim
 
-instance t2_space_discrete [topological_space α] [discrete_topology α] : t2_space α :=
+instance t2_space_discrete {α : Type*} [topological_space α] [discrete_topology α] : t2_space α :=
 { t2 := assume x y hxy, ⟨{x}, {y}, is_open_discrete _, is_open_discrete _, mem_insert _ _, mem_insert _ _,
   eq_empty_iff_forall_not_mem.2 $ by intros z hz;
     cases eq_of_mem_singleton hz.1; cases eq_of_mem_singleton hz.2; cc⟩ }
 
-private lemma separated_by_f
+private lemma separated_by_f {α : Type*} {β : Type*}
   [tα : topological_space α] [tβ : topological_space β] [t2_space β]
   (f : α → β) (hf : tα ≤ tβ.induced f) {x y : α} (h : f x ≠ f y) :
   ∃u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅ :=
@@ -207,18 +207,18 @@ let ⟨u, v, uo, vo, xu, yv, uv⟩ := t2_separation h in
 ⟨f ⁻¹' u, f ⁻¹' v, hf _ ⟨u, uo, rfl⟩, hf _ ⟨v, vo, rfl⟩, xu, yv,
   by rw [←preimage_inter, uv, preimage_empty]⟩
 
-instance {p : α → Prop} [t : topological_space α] [t2_space α] : t2_space (subtype p) :=
+instance {α : Type*} {p : α → Prop} [t : topological_space α] [t2_space α] : t2_space (subtype p) :=
 ⟨assume x y h,
   separated_by_f subtype.val (le_refl _) (mt subtype.eq h)⟩
 
-instance [t₁ : topological_space α] [t2_space α] [t₂ : topological_space β] [t2_space β] :
-  t2_space (α × β) :=
+instance {α : Type*} {β : Type*} [t₁ : topological_space α] [t2_space α]
+  [t₂ : topological_space β] [t2_space β] : t2_space (α × β) :=
 ⟨assume ⟨x₁,x₂⟩ ⟨y₁,y₂⟩ h,
   or.elim (not_and_distrib.mp (mt prod.ext_iff.mpr h))
     (λ h₁, separated_by_f prod.fst inf_le_left h₁)
     (λ h₂, separated_by_f prod.snd inf_le_right h₂)⟩
 
-instance Pi.t2_space {β : α → Type v} [t₂ : Πa, topological_space (β a)] [Πa, t2_space (β a)] :
+instance Pi.t2_space {α : Type*} {β : α → Type v} [t₂ : Πa, topological_space (β a)] [Πa, t2_space (β a)] :
   t2_space (Πa, β a) :=
 ⟨assume x y h,
   let ⟨i, hi⟩ := not_forall.mp (mt funext h) in

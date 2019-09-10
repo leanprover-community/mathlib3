@@ -13,7 +13,7 @@ import data.real.nnreal topology.metric_space.emetric_space topology.algebra.ord
 open lattice set filter classical topological_space
 noncomputable theory
 
-local notation `𝓤` := uniformity
+open_locale uniformity
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -672,11 +672,11 @@ def metric_space.induced {α β} (f : α → β) (hf : function.injective f)
       exact ⟨_, dist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
   end }
 
-instance subtype.metric_space {p : α → Prop} [t : metric_space α] : metric_space (subtype p) :=
+instance subtype.metric_space {α : Type*} {p : α → Prop} [t : metric_space α] :
+  metric_space (subtype p) :=
 metric_space.induced subtype.val (λ x y, subtype.eq) t
 
-theorem subtype.dist_eq {p : α → Prop} [t : metric_space α] (x y : subtype p) :
-  dist x y = dist x.1 y.1 := rfl
+theorem subtype.dist_eq {p : α → Prop} (x y : subtype p) : dist x y = dist x.1 y.1 := rfl
 
 section nnreal
 
@@ -894,11 +894,11 @@ class proper_space (α : Type u) [metric_space α] : Prop :=
 (compact_ball : ∀x:α, ∀r, compact (closed_ball x r))
 
 /- A compact metric space is proper -/
-instance proper_of_compact [metric_space α] [compact_space α] : proper_space α :=
+instance proper_of_compact [compact_space α] : proper_space α :=
 ⟨assume x r, compact_of_is_closed_subset compact_univ is_closed_ball (subset_univ _)⟩
 
 /-- A proper space is locally compact -/
-instance locally_compact_of_proper [metric_space α] [proper_space α] :
+instance locally_compact_of_proper [proper_space α] :
   locally_compact_space α :=
 begin
   apply locally_compact_of_compact_nhds,
@@ -913,7 +913,7 @@ begin
 end
 
 /-- A proper space is complete -/
-instance complete_of_proper {α : Type u} [metric_space α] [proper_space α] : complete_space α :=
+instance complete_of_proper [proper_space α] : complete_space α :=
 ⟨begin
   intros f hf,
   /- We want to show that the Cauchy filter `f` is converging. It suffices to find a closed
@@ -932,7 +932,7 @@ end⟩
 compact, and therefore admits a countable dense subset. Taking a countable union over the balls
 centered at a fixed point and with integer radius, one obtains a countable set which is
 dense in the whole space. -/
-instance second_countable_of_proper [metric_space α] [proper_space α] :
+instance second_countable_of_proper [proper_space α] :
   second_countable_topology α :=
 begin
   /- We show that the space admits a countable dense subset. The case where the space is empty

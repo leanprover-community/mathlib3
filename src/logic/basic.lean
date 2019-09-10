@@ -298,7 +298,7 @@ by rw [@iff_def (¬ a), @iff_def' a]; exact and_congr not_imp_not not_imp_not
 theorem not_iff_comm [decidable a] [decidable b] : (¬ a ↔ b) ↔ (¬ b ↔ a) :=
 by rw [@iff_def (¬ a), @iff_def (¬ b)]; exact and_congr not_imp_comm imp_not_comm
 
-theorem not_iff [decidable a] [decidable b] : ¬ (a ↔ b) ↔ (¬ a ↔ b) :=
+theorem not_iff [decidable b] : ¬ (a ↔ b) ↔ (¬ a ↔ b) :=
 by split; intro h; [split, skip]; intro h'; [by_contradiction,intro,skip];
    try { refine h _; simp [*] }; rw [h',not_iff_self] at h; exact h
 
@@ -482,6 +482,8 @@ by simp [and_comm]
 
 @[simp] theorem exists_eq {a' : α} : ∃ a, a = a' := ⟨_, rfl⟩
 
+@[simp] theorem exists_eq' {a' : α} : Exists (eq a') := ⟨_, rfl⟩
+
 @[simp] theorem exists_eq_left {a' : α} : (∃ a, a = a' ∧ p a) ↔ p a' :=
 ⟨λ ⟨a, e, h⟩, e ▸ h, λ h, ⟨_, rfl, h⟩⟩
 
@@ -641,7 +643,7 @@ theorem bex.imp_left (H : ∀ x, p x → q x) :
   (∃ x (_ : p x), r x) → ∃ x (_ : q x), r x
 | ⟨x, hp, hr⟩ := ⟨x, H _ hp, hr⟩
 
-theorem ball_of_forall (h : ∀ x, p x) (x) (_ : q x) : p x :=
+theorem ball_of_forall (h : ∀ x, p x) (x) : p x :=
 h x
 
 theorem forall_of_ball (H : ∀ x, p x) (h : ∀ x, p x → q x) (x) : q x :=

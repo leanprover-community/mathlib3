@@ -8,7 +8,7 @@ The Schröder-Bernstein theorem, and well ordering of cardinals.
 import order.fixed_points data.set.lattice logic.function logic.embedding order.zorn
 
 open lattice set classical
-local attribute [instance] prop_decidable
+open_locale classical
 
 universes u v
 
@@ -129,4 +129,3 @@ end
 
 end embedding
 end function
-

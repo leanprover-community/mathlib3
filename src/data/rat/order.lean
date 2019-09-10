@@ -23,7 +23,7 @@ rat, rationals, field, ℚ, numerator, denominator, num, denom, order, ordering,
 
 namespace rat
 variables (a b c : ℚ)
-local infix ` /. `:70 := rat.mk
+open_locale rat
 
 protected def nonneg : ℚ → Prop
 | ⟨n, d, h, c⟩ := n ≥ 0
@@ -67,7 +67,7 @@ num_denom_cases_on' a $ λ n d h,
 begin
   have d0 : (d:ℤ) > 0 := int.coe_nat_pos.2 (nat.pos_of_ne_zero h),
   simp [d0, h],
-  exact λ h₁ h₂, le_antisymm (nonpos_of_neg_nonneg h₂) h₁
+  exact λ h₁ h₂, le_antisymm h₂ h₁
 end
 
 protected def nonneg_total : rat.nonneg a ∨ rat.nonneg (-a) :=

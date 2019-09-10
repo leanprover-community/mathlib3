@@ -12,11 +12,7 @@ import tactic.omega.int.form
 namespace omega
 namespace int
 
-local notation x ` =* ` y := form.eq x y
-local notation x ` ≤* ` y := form.le x y
-local notation `¬* ` p   := form.not p
-local notation p ` ∨* ` q := form.or p q
-local notation p ` ∧* ` q := form.and p q
+open_locale omega.int
 
 @[simp] def push_neg : form → form
 | (p ∨* q) := (push_neg p) ∧* (push_neg q)

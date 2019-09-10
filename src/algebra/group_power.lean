@@ -31,7 +31,7 @@ def add_monoid.smul [add_monoid α] (n : ℕ) (a : α) : α :=
 @monoid.pow (multiplicative α) _ a n
 
 precedence `•`:70
-local infix ` • ` := add_monoid.smul
+localized "infix ` • ` := add_monoid.smul" in add_monoid
 
 @[priority 5] instance monoid.has_pow [monoid α] : has_pow α ℕ := ⟨monoid.pow⟩
 
@@ -195,8 +195,9 @@ def gsmul (n : ℤ) (a : β) : β :=
 
 @[priority 10] instance group.has_pow : has_pow α ℤ := ⟨gpow⟩
 
-local infix ` • `:70 := gsmul
-local infix ` •ℕ `:70 := add_monoid.smul
+localized "infix ` • `:70 := gsmul" in group
+localized "infix ` •ℕ `:70 := add_monoid.smul" in smul
+localized "infix ` •ℤ `:70 := gsmul" in smul
 
 @[simp] theorem gpow_coe_nat (a : α) (n : ℕ) : a ^ (n:ℤ) = a ^ n := rfl
 @[simp] theorem gsmul_coe_nat (a : β) (n : ℕ) : (n:ℤ) • a = n •ℕ a := rfl
@@ -337,7 +338,7 @@ theorem map_gsmul (a : α) (n : ℤ) : f (gsmul n a) = gsmul n (f a) :=
 
 end is_add_group_hom
 
-local infix ` •ℤ `:70 := gsmul
+open_locale smul
 
 section comm_monoid
 variables [comm_group α] {β : Type*} [add_comm_group β]

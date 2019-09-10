@@ -7,7 +7,7 @@ Disjointed sets
 -/
 import data.set.lattice data.nat.basic tactic.wlog
 open set classical lattice
-local attribute [instance] prop_decidable
+open_locale classical
 
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}

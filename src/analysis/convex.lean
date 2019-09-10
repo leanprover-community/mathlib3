@@ -14,9 +14,8 @@ import tactic.linarith
 import linear_algebra.basic
 import ring_theory.algebra
 
-local attribute [instance] classical.prop_decidable
-
 open set
+open_locale classical
 
 section vector_space
 variables {α : Type*} {β : Type*} {ι : Sort _}
@@ -589,7 +588,7 @@ begin
   exact h' zero_lt_one
 end⟩
 
-lemma convex_on_sum {γ : Type} (s : finset γ) (z : γ → α) (hs : s ≠ ∅) :
+lemma convex_on_sum {γ : Type} (s : finset γ) (z : γ → α) :
   ∀ (a : γ → ℝ), convex_on D f → (∀ i ∈ s, 0 ≤ a i) → (∀ i ∈ s, z i ∈ D) → s.sum a = 1 →
   f (s.sum (λi, a i • z i)) ≤ s.sum (λi, a i • f (z i)) :=
 begin

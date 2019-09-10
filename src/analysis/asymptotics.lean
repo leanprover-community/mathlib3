@@ -780,7 +780,7 @@ have eq₃ : is_O f (λ x, f x / g x * g x) l,
   end,
 eq₃.trans_is_o eq₂
 
-theorem is_o_iff_tendsto [normed_field β] {f g : α → β} {l : filter α}
+theorem is_o_iff_tendsto {f g : α → β} {l : filter α}
     (hgf : ∀ x, g x = 0 → f x = 0) :
   is_o f g l ↔ tendsto (λ x, f x / (g x)) l (nhds 0) :=
 iff.intro tendsto_nhds_zero_of_is_o (is_o_of_tendsto hgf)

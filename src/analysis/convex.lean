@@ -588,7 +588,7 @@ begin
   exact h' zero_lt_one
 end⟩
 
-lemma convex_on_sum {γ : Type} (s : finset γ) (z : γ → α) (hs : s ≠ ∅) :
+lemma convex_on_sum {γ : Type} (s : finset γ) (z : γ → α) :
   ∀ (a : γ → ℝ), convex_on D f → (∀ i ∈ s, 0 ≤ a i) → (∀ i ∈ s, z i ∈ D) → s.sum a = 1 →
   f (s.sum (λi, a i • z i)) ≤ s.sum (λi, a i • f (z i)) :=
 begin

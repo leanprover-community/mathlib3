@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
-import data.dlist.basic category.basic meta.expr meta.rb_map data.string.defs
+import data.dlist.basic category.basic meta.expr meta.rb_map data.bool
 
 namespace expr
 open tactic
@@ -1139,17 +1139,11 @@ do e ← get_env,
   s ← e.decl_olean `tactic.reset_instance_cache,
   return $ s.popn_back 17
 
-/-- Checks whether `ml` is a prefix of the file where `n` is declared.
-  If you want to run `is_in_mathlib` many times, you should use this tactic instead,
-  since it is expensive to execute get_mathlib_dir many times. -/
-meta def is_in_mathlib_aux (ml : string) (n : name) : tactic bool :=
-do e ← get_env, return $ ml.is_prefix_of $ (e.decl_olean n).get_or_else ""
-
 /-- Checks whether a declaration with the given name is declared in mathlib.
-  If you want to run this tactic many times, you should use `is_in_mathlib_aux` instead,
-  since it is expensive to execute get_mathlib_dir many times. -/
+  If you want to run this tactic many times, you should use `environment.is_prefix_of_file` instead,
+  since it is expensive to execute `get_mathlib_dir` many times. -/
 meta def is_in_mathlib (n : name) : tactic bool :=
-do ml ← get_mathlib_dir, is_in_mathlib_aux ml n
+do ml ← get_mathlib_dir, e ← get_env, return $ e.is_prefix_of_file ml n
 
 
 end tactic

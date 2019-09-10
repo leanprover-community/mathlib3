@@ -14,8 +14,7 @@ open_locale classical
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
 section dense_range
-variables [topological_space α] [topological_space β] [topological_space γ]
-          (f : α → β) (g : β → γ)
+variables [topological_space β] [topological_space γ] (f : α → β) (g : β → γ)
 
 def dense_range := ∀ x, x ∈ closure (range f)
 
@@ -38,7 +37,7 @@ begin
   exact hg c
 end
 
-lemma dense_range.inhabited (df : dense_range f) (b : β) : inhabited α :=
+def dense_range.inhabited (df : dense_range f) (b : β) : inhabited α :=
 ⟨begin
   have := exists_mem_of_ne_empty (mem_closure_iff.1 (df b) _ is_open_univ trivial),
   simp only [mem_range, univ_inter] at this,
@@ -91,12 +90,12 @@ let ⟨t, ht, h_eq⟩ := by rw [hf.induced, is_closed_induced_iff] at hs; exact 
 have is_closed (t ∩ range f), from is_closed_inter ht h,
 h_eq.symm ▸ by rwa [image_preimage_eq_inter_range]
 
-lemma inducing.nhds_eq_comap [topological_space α] [topological_space β] {f : α → β}
-  (hf : inducing f) : ∀ (a : α), nhds a = comap f (nhds $ f a) :=
+lemma inducing.nhds_eq_comap {f : α → β} (hf : inducing f) :
+  ∀ (a : α), nhds a = comap f (nhds $ f a) :=
 (induced_iff_nhds_eq f).1 hf.induced
 
-lemma inducing.map_nhds_eq [topological_space α] [topological_space β] {f : α → β}
-  (hf : inducing f) (a : α) (h : range f ∈ nhds (f a)) : (nhds a).map f = nhds (f a) :=
+lemma inducing.map_nhds_eq {f : α → β} (hf : inducing f) (a : α) (h : range f ∈ nhds (f a)) :
+  (nhds a).map f = nhds (f a) :=
 hf.induced.symm ▸ map_nhds_induced_eq h
 
 lemma inducing.tendsto_nhds_iff {ι : Type*}
@@ -121,7 +120,7 @@ structure embedding [tα : topological_space α] [tβ : topological_space β] (f
 
 variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
 
-def embedding.mk' (f : α → β) (inj : function.injective f)
+lemma embedding.mk' (f : α → β) (inj : function.injective f)
   (induced : ∀a, comap f (nhds (f a)) = nhds a) : embedding f :=
 ⟨⟨(induced_iff_nhds_eq f).2 (λ a, (induced a).symm)⟩, inj⟩
 
@@ -152,7 +151,7 @@ lemma embedding_is_closed {f : α → β} {s : set α}
   (hf : embedding f) (h : is_closed (range f)) (hs : is_closed s) : is_closed (f '' s) :=
 inducing_is_closed hf.1 h hs
 
-lemma embedding.map_nhds_eq [topological_space α] [topological_space β] {f : α → β}
+lemma embedding.map_nhds_eq {f : α → β}
   (hf : embedding f) (a : α) (h : range f ∈ nhds (f a)) : (nhds a).map f = nhds (f a) :=
 inducing.map_nhds_eq hf.1 a h
 
@@ -314,7 +313,7 @@ lemma continuous_extend [regular_space γ] {f : α → γ} (di : dense_inducing 
 continuous_iff_continuous_at.mpr $ assume b, di.tendsto_extend $ univ_mem_sets' hf
 
 lemma mk'
-  [topological_space α] [topological_space β] (i : α → β)
+  (i : α → β)
   (c     : continuous i)
   (dense : ∀x, x ∈ closure (range i))
   (H     : ∀ (a:α) s ∈ nhds a,
@@ -465,6 +464,56 @@ this ▸ continuous_iff_is_closed.mp h s hs
 
 end is_closed_map
 
+section open_embedding
+variables [topological_space α] [topological_space β] [topological_space γ]
+
+/-- An open embedding is an embedding with open image. -/
+def open_embedding (f : α → β) : Prop := embedding f ∧ is_open (range f)
+
+lemma open_embedding.open_iff_image_open {f : α → β} (hf : open_embedding f)
+  {s : set α} : is_open s ↔ is_open (f '' s) :=
+⟨embedding_open hf.1 hf.2,
+ λ h, begin
+   convert ←hf.1.continuous _ h,
+   apply preimage_image_eq _ hf.1.inj
+ end⟩
+
+lemma open_embedding.is_open_map {f : α → β} (hf : open_embedding f) : is_open_map f :=
+λ s, hf.open_iff_image_open.mp
+
+lemma open_embedding.open_iff_preimage_open {f : α → β} (hf : open_embedding f)
+  {s : set β} (hs : s ⊆ range f) : is_open s ↔ is_open (f ⁻¹' s) :=
+begin
+  convert ←hf.open_iff_image_open.symm,
+  rwa [image_preimage_eq_inter_range, inter_eq_self_of_subset_left]
+end
+
+lemma open_embedding_of_embedding_open {f : α → β} (h₁ : embedding f)
+  (h₂ : is_open_map f) : open_embedding f :=
+⟨h₁, by convert h₂ univ is_open_univ; simp⟩
+
+lemma open_embedding_of_continuous_injective_open {f : α → β} (h₁ : continuous f)
+  (h₂ : function.injective f) (h₃ : is_open_map f) : open_embedding f :=
+begin
+  refine open_embedding_of_embedding_open ⟨⟨_⟩, h₂⟩ h₃,
+  apply le_antisymm (continuous_iff_le_induced.mp h₁) _,
+  intro s,
+  change is_open _ ≤ is_open _,
+  rw is_open_induced_iff,
+  refine λ hs, ⟨f '' s, h₃ s hs, _⟩,
+  rw preimage_image_eq _ h₂
+end
+
+lemma open_embedding_id : open_embedding (@id α) :=
+⟨embedding_id, by convert is_open_univ; apply range_id⟩
+
+lemma open_embedding_compose {f : α → β} {g : β → γ}
+  (hg : open_embedding g) (hf : open_embedding f) : open_embedding (g ∘ f) :=
+⟨hg.1.comp hf.1, show is_open (range (g ∘ f)),
+ by rw [range_comp, ←hg.open_iff_image_open]; exact hf.2⟩
+
+end open_embedding
+
 section closed_embedding
 variables [topological_space α] [topological_space β] [topological_space γ]
 
@@ -479,6 +528,9 @@ lemma closed_embedding.closed_iff_image_closed {f : α → β} (hf : closed_embe
    apply preimage_image_eq _ hf.1.inj
  end⟩
 
+lemma closed_embedding.is_closed_map {f : α → β} (hf : closed_embedding f) : is_closed_map f :=
+λ s, hf.closed_iff_image_closed.mp
+
 lemma closed_embedding.closed_iff_preimage_closed {f : α → β} (hf : closed_embedding f)
   {s : set β} (hs : s ⊆ range f) : is_closed s ↔ is_closed (f ⁻¹' s) :=
 begin
@@ -486,10 +538,14 @@ begin
   rwa [image_preimage_eq_inter_range, inter_eq_self_of_subset_left]
 end
 
+lemma closed_embedding_of_embedding_closed {f : α → β} (h₁ : embedding f)
+  (h₂ : is_closed_map f) : closed_embedding f :=
+⟨h₁, by convert h₂ univ is_closed_univ; simp⟩
+
 lemma closed_embedding_of_continuous_injective_closed {f : α → β} (h₁ : continuous f)
   (h₂ : function.injective f) (h₃ : is_closed_map f) : closed_embedding f :=
 begin
-  refine ⟨⟨⟨_⟩, h₂⟩, by convert h₃ univ is_closed_univ; simp⟩,
+  refine closed_embedding_of_embedding_closed ⟨⟨_⟩, h₂⟩ h₃,
   apply le_antisymm (continuous_iff_le_induced.mp h₁) _,
   intro s',
   change is_open _ ≤ is_open _,

@@ -29,6 +29,9 @@ infi_sets_eq'
     hg $ inter_subset_left s t, hg $ inter_subset_right s t⟩)
   ⟨univ, univ_mem_sets⟩
 
+lemma mem_lift_iff (hg : monotone g) {s : set β} : s ∈ f.lift g ↔ s ∈ ⋃t∈f.sets, (g t).sets :=
+show s ∈ (f.lift g).sets ↔ _, by rw lift_sets_eq hg
+
 lemma mem_lift {s : set β} {t : set α} (ht : t ∈ f.sets) (hs : s ∈ (g t).sets) :
   s ∈ (f.lift g).sets :=
 le_principal_iff.mp $ show f.lift g ≤ principal s,
@@ -175,8 +178,7 @@ le_antisymm
           @hg s₁ s₂ ▸ le_inf (infi_le_of_le i $ infi_le_of_le s₁ $ infi_le _ hs₁) hs₂)
         (assume s₁ s₂ hs₁ hs₂, le_trans hs₂ $ g_mono hs₁),
     begin
-      rw [lift_sets_eq g_mono],
-      simp only [mem_Union, exists_imp_distrib],
+      simp only [mem_lift_iff g_mono, mem_Union, exists_imp_distrib],
       exact assume t ht hs, this t ht hs
     end)
 
@@ -302,7 +304,7 @@ le_antisymm
   (le_infi $ assume i, lift_mono (infi_le _ _) (le_refl _))
   (assume s,
   begin
-    rw [lift_sets_eq hg],
+    rw mem_lift_iff hg,
     simp only [mem_Union, exists_imp_distrib, infi_sets_eq hf hι],
     exact assume t i ht hs, mem_infi_sets i $ mem_lift ht hs
   end)

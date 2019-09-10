@@ -507,8 +507,8 @@ lemma some_eq_coe (a : α) : (some a : with_top α) = (↑a : with_top α) := rf
 theorem coe_eq_coe {a b : α} : (a : with_top α) = b ↔ a = b :=
 by rw [← option.some.inj_eq a b]; refl
 
-@[simp] theorem top_ne_coe [partial_order α] {a : α} : ⊤ ≠ (a : with_top α) .
-@[simp] theorem coe_ne_top [partial_order α] {a : α} : (a : with_top α) ≠ ⊤ .
+@[simp] theorem top_ne_coe {a : α} : ⊤ ≠ (a : with_top α) .
+@[simp] theorem coe_ne_top {a : α} : (a : with_top α) ≠ ⊤ .
 
 @[priority 10]
 instance has_lt [has_lt α] : has_lt (with_top α) :=

@@ -12,10 +12,18 @@ universes v u
 open category_theory
 namespace category_theory.limits
 
+/-- A category with a `fintype` of objects, and a `fintype` for each morphism space. -/
 class fin_category (J : Type v) extends category.{v+1} J, fintype J :=
-(fintype_hom : Π (j j' : J), fintype (j ⟶ j'))
+(decidable_eq_obj : decidable_eq J . tactic.apply_instance)
+(decidable_eq_hom : Π (j j' : J), decidable_eq (j ⟶ j') . tactic.apply_instance)
+(fintype_hom : Π (j j' : J), fintype (j ⟶ j') . tactic.apply_instance)
 
-attribute [instance] fin_category.fintype_hom
+attribute [instance] fin_category.decidable_eq_obj fin_category.decidable_eq_hom fin_category.fintype_hom
+
+-- We need a `decidable_eq` instance here to construct `fintype` on the morphism spaces.
+instance fin_category_discrete_of_decidable_fintype (J : Type v) [decidable_eq J] [fintype J] :
+  fin_category (discrete J) :=
+{ }
 
 variables (C : Type u) [𝒞 : category.{v+1} C]
 include 𝒞

@@ -25,6 +25,10 @@ instance discrete_category (α : Type u₁) : small_category (discrete α) :=
 namespace discrete
 
 variables {α : Type u₁}
+
+instance [decidable_eq α] (X Y : discrete α) : fintype (X ⟶ Y) :=
+by { apply ulift.fintype }
+
 @[simp] lemma id_def (X : discrete α) : ulift.up (plift.up (eq.refl X)) = 𝟙 X := rfl
 
 end discrete

@@ -29,6 +29,9 @@ universes v u
 variables {C : Type u} [𝒞 : category.{v+1} C]
 include 𝒞
 
+-- Finding the `decidable_eq` instances apparent takes some work.
+set_option class.instance_max_depth 38
+
 @[simp] def fin_equalizer_diagram [has_finite_products.{v} C] {J} [fin_category J] (F : J ⥤ C) : walking_parallel_pair ⥤ C :=
 let pi_obj := limits.pi_obj F.obj in
 let pi_hom := limits.pi_obj (λ f : (Σ p : J × J, p.1 ⟶ p.2), F.obj f.1.2) in

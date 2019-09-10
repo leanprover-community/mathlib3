@@ -12,13 +12,18 @@ universes v u
 open category_theory
 namespace category_theory.limits
 
+class fin_category (J : Type v) extends category.{v+1} J, fintype J :=
+(fintype_hom : Π (j j' : J), fintype (j ⟶ j'))
+
+attribute [instance] fin_category.fintype_hom
+
 variables (C : Type u) [𝒞 : category.{v+1} C]
 include 𝒞
 
 class has_finite_limits :=
-(has_limits_of_shape : Π (J : Type v) [𝒥 : small_category J] [fintype J], has_limits_of_shape.{v} J C)
+(has_limits_of_shape : Π (J : Type v) [𝒥 : fin_category J], has_limits_of_shape.{v} J C)
 class has_finite_colimits :=
-(has_colimits_of_shape : Π (J : Type v) [𝒥 : small_category J] [fintype J], has_colimits_of_shape.{v} J C)
+(has_colimits_of_shape : Π (J : Type v) [𝒥 : fin_category J], has_colimits_of_shape.{v} J C)
 
 attribute [instance] has_finite_limits.has_limits_of_shape has_finite_colimits.has_colimits_of_shape
 

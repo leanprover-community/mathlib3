@@ -32,7 +32,7 @@ include 𝒞
 -- Finding the `decidable_eq` instances apparent takes some work.
 set_option class.instance_max_depth 38
 
-variables {J} [small_category J] [fintype J] [decidable_eq J] [𝒥 : fin_category J]
+variables {J : Type v} [small_category J] [fintype J] [decidable_eq J] [𝒥 : fin_category J]
 include 𝒥
 
 @[simp] def fin_equalizer_diagram [has_finite_products.{v} C] (F : J ⥤ C) : walking_parallel_pair ⥤ C :=

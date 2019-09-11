@@ -81,28 +81,28 @@ def binary_cofan.mk {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) : binary_cofan X
 abbreviation prod (X Y : C) [has_limit (pair X Y)] := limit (pair X Y)
 abbreviation coprod (X Y : C) [has_colimit (pair X Y)] := colimit (pair X Y)
 
-notation X `×_`:20 Y:20 := prod X Y
-notation X `⨿_`:20 Y:20 := coprod X Y
+notation X `⨯`:20 Y:20 := prod X Y
+notation X `⨿`:20 Y:20 := coprod X Y
 
-abbreviation prod.fst {X Y : C} [has_limit (pair X Y)] : X ×_ Y ⟶ X :=
+abbreviation prod.fst {X Y : C} [has_limit (pair X Y)] : X ⨯ Y ⟶ X :=
 limit.π (pair X Y) walking_pair.left
-abbreviation prod.snd {X Y : C} [has_limit (pair X Y)] : X ×_ Y ⟶ Y :=
+abbreviation prod.snd {X Y : C} [has_limit (pair X Y)] : X ⨯ Y ⟶ Y :=
 limit.π (pair X Y) walking_pair.right
-abbreviation coprod.inl {X Y : C} [has_colimit (pair X Y)] : X ⟶ X ⨿_ Y :=
+abbreviation coprod.inl {X Y : C} [has_colimit (pair X Y)] : X ⟶ X ⨿ Y :=
 colimit.ι (pair X Y) walking_pair.left
-abbreviation coprod.inr {X Y : C} [has_colimit (pair X Y)] : Y ⟶ X ⨿_ Y :=
+abbreviation coprod.inr {X Y : C} [has_colimit (pair X Y)] : Y ⟶ X ⨿ Y :=
 colimit.ι (pair X Y) walking_pair.right
 
-abbreviation prod.lift {W X Y : C} [has_limit (pair X Y)] (f : W ⟶ X) (g : W ⟶ Y) : W ⟶ X ×_ Y :=
+abbreviation prod.lift {W X Y : C} [has_limit (pair X Y)] (f : W ⟶ X) (g : W ⟶ Y) : W ⟶ X ⨯ Y :=
 limit.lift _ (binary_fan.mk f g)
-abbreviation coprod.desc {W X Y : C} [has_colimit (pair X Y)] (f : X ⟶ W) (g : Y ⟶ W) : X ⨿_ Y ⟶ W :=
+abbreviation coprod.desc {W X Y : C} [has_colimit (pair X Y)] (f : X ⟶ W) (g : Y ⟶ W) : X ⨿ Y ⟶ W :=
 colimit.desc _ (binary_cofan.mk f g)
 
 abbreviation prod.map {W X Y Z : C} [has_limits_of_shape.{v} (discrete walking_pair) C]
-  (f : W ⟶ Y) (g : X ⟶ Z) : W ×_ X ⟶ Y ×_ Z :=
+  (f : W ⟶ Y) (g : X ⟶ Z) : W ⨯ X ⟶ Y ⨯ Z :=
 lim.map (map_pair f g)
 abbreviation coprod.map {W X Y Z : C} [has_colimits_of_shape.{v} (discrete walking_pair) C]
-  (f : W ⟶ Y) (g : X ⟶ Z) : W ⨿_ X ⟶ Y ⨿_ Z :=
+  (f : W ⟶ Y) (g : X ⟶ Z) : W ⨿ X ⟶ Y ⨿ Z :=
 colim.map (map_pair f g)
 
 variables (C)
@@ -127,7 +127,7 @@ variables {C} [has_binary_products.{v} C]
 local attribute [tidy] tactic.case_bash
 
 /-- The braiding isomorphism which swaps a binary product. -/
-@[simp] def prod.braiding (P Q : C) : P ×_ Q ≅ Q ×_ P :=
+@[simp] def prod.braiding (P Q : C) : P ⨯ Q ≅ Q ⨯ P :=
 { hom := prod.lift prod.snd prod.fst,
   inv := prod.lift prod.snd prod.fst }
 
@@ -138,7 +138,7 @@ by tidy
 
 /-- The associator isomorphism for binary products. -/
 @[simp] def prod.associator
-  (P Q R : C) : (P ×_ Q) ×_ R ≅ P ×_ (Q ×_ R) :=
+  (P Q R : C) : (P ⨯ Q) ⨯ R ≅ P ⨯ (Q ⨯ R) :=
 { hom :=
   prod.lift
     (prod.fst ≫ prod.fst)
@@ -152,13 +152,13 @@ variables [has_terminal.{v} C]
 
 /-- The left unitor isomorphism for binary products with the terminal object. -/
 @[simp] def prod.left_unitor
-  (P : C) : ⊤_ C ×_ P ≅ P :=
+  (P : C) : ⊤_ C ⨯ P ≅ P :=
 { hom := prod.snd,
   inv := prod.lift (terminal.from P) (𝟙 _) }
 
 /-- The right unitor isomorphism for binary products with the terminal object. -/
 @[simp] def prod.right_unitor
-  (P : C) : P ×_ ⊤_ C ≅ P :=
+  (P : C) : P ⨯ ⊤_ C ≅ P :=
 { hom := prod.fst,
   inv := prod.lift (𝟙 _) (terminal.from P) }
 end
@@ -169,7 +169,7 @@ variables {C} [has_binary_coproducts.{v} C]
 local attribute [tidy] tactic.case_bash
 
 /-- The braiding isomorphism which swaps a binary coproduct. -/
-@[simp] def coprod.braiding (P Q : C) : P ⨿_ Q ≅ Q ⨿_ P :=
+@[simp] def coprod.braiding (P Q : C) : P ⨿ Q ≅ Q ⨿ P :=
 { hom := coprod.desc coprod.inr coprod.inl,
   inv := coprod.desc coprod.inr coprod.inl }
 
@@ -180,7 +180,7 @@ by tidy
 
 /-- The associator isomorphism for binary coproducts. -/
 @[simp] def coprod.associator
-  (P Q R : C) : (P ⨿_ Q) ⨿_ R ≅ P ⨿_ (Q ⨿_ R) :=
+  (P Q R : C) : (P ⨿ Q) ⨿ R ≅ P ⨿ (Q ⨿ R) :=
 { hom :=
   coprod.desc
     (coprod.desc coprod.inl (coprod.inl ≫ coprod.inr))
@@ -194,13 +194,13 @@ variables [has_initial.{v} C]
 
 /-- The left unitor isomorphism for binary coproducts with the initial object. -/
 @[simp] def coprod.left_unitor
-  (P : C) : ⊥_ C ⨿_ P ≅ P :=
+  (P : C) : ⊥_ C ⨿ P ≅ P :=
 { hom := coprod.desc (initial.to P) (𝟙 _),
   inv := coprod.inr }
 
 /-- The right unitor isomorphism for binary coproducts with the initial object. -/
 @[simp] def coprod.right_unitor
-  (P : C) : P ⨿_ ⊥_ C ≅ P :=
+  (P : C) : P ⨿ ⊥_ C ≅ P :=
 { hom := coprod.desc (𝟙 _) (initial.to P),
   inv := coprod.inl }
 end

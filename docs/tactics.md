@@ -169,9 +169,23 @@ they are only meant to be used on small, straightforward problems.
 All accept an optional list of simplifier rules, typically definitions that should be expanded.
 (The equations and identities should not refer to the local context.) All also accept an optional list of `ematch` lemmas, which must be preceded by `using`.
 
+### abel
+
+Evaluate expressions in the language of *additive*, commutative monoids and groups.
+It attempts to prove the goal outright if there is no `at`
+specifier and the target is an equality, but if this
+fails, it falls back to rewriting all monoid expressions into a normal form.
+If there is an `at` specifier, it rewrites the given target into a normal form.
+```lean
+example {α : Type*} {a b : α} [add_comm_monoid α] : a + (b + a) = a + a + b := by abel
+example {α : Type*} {a b : α} [add_comm_group α] : (a + b) - ((b + a) + a) = -a := by abel
+example {α : Type*} {a b : α} [add_comm_group α] (hyp : a + a - a = b - b) : a = 0 :=
+by { abel at hyp, exact hyp }
+```
+
 ### ring
 
-Evaluate expressions in the language of (semi-)rings.
+Evaluate expressions in the language of *commutative* (semi)rings.
 Based on [Proving Equalities in a Commutative Ring Done Right in Coq](http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf) by Benjamin Grégoire and Assia Mahboubi.
 
 ### congr'
@@ -1159,3 +1173,10 @@ Lift an expression to another type.
   specify it again as the third argument to `with`, like this: `lift n to ℕ using h with n rfl h`.
 * More generally, this can lift an expression from `α` to `β` assuming that there is an instance
   of `can_lift α β`. In this case the proof obligation is specified by `can_lift.cond`.
+
+### default_dec_tac'
+
+`default_dec_tac'` is a replacement for the core tactic `default_dec_tac`, fixing a bug. This
+bug is often indicated by a message `nested exception message: tactic failed, there are no goals to be solved`,and solved by appending `using_well_founded wf_tacs` to the recursive definition.
+See also additional documentation of `using_well_founded` in
+[docs/extras/well_founded_recursion.md](extras/well_founded_recursion.md).

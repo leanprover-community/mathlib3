@@ -204,13 +204,14 @@ in the French literature, but we do not include it here. -/
 class compact_space (α : Type*) [topological_space α] : Prop :=
 (compact_univ : compact (univ : set α))
 
-lemma compact_univ [topological_space α] [h : compact_space α] : compact (univ : set α) := h.compact_univ
+lemma compact_univ [h : compact_space α] : compact (univ : set α) := h.compact_univ
 
-lemma compact_of_closed [topological_space α] [compact_space α] {s : set α} (h : is_closed s) :
+lemma compact_of_closed [compact_space α] {s : set α} (h : is_closed s) :
   compact s :=
 compact_of_is_closed_subset compact_univ h (subset_univ _)
 
-lemma compact_image [topological_space β] {s : set α} {f : α → β} (hs : compact s) (hf : continuous f) : compact (f '' s) :=
+lemma compact_image [topological_space β] {s : set α} {f : α → β} (hs : compact s) (hf : continuous f) :
+  compact (f '' s) :=
 compact_of_finite_subcover $ assume c hco hcs,
   have hdo : ∀t∈c, is_open (f ⁻¹' t), from assume t' ht, hf _ $ hco _ ht,
   have hds : s ⊆ ⋃i∈c, f ⁻¹' i,
@@ -218,7 +219,8 @@ compact_of_finite_subcover $ assume c hco hcs,
   let ⟨d', hcd', hfd', hd'⟩ := compact_elim_finite_subcover_image hs hdo hds in
   ⟨d', hcd', hfd', by simpa [subset_def, -mem_image, image_subset_iff] using hd'⟩
 
-lemma compact_range [compact_space α] [topological_space β] {f : α → β} (hf : continuous f) : compact (range f) :=
+lemma compact_range [compact_space α] [topological_space β] {f : α → β} (hf : continuous f) :
+  compact (range f) :=
 by rw ← image_univ; exact compact_image compact_univ hf
 
 /-- There are various definitions of "locally compact space" in the literature, which agree for

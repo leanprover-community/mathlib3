@@ -32,7 +32,10 @@ include 𝒞
 -- Finding the `decidable_eq` instances apparent takes some work.
 set_option class.instance_max_depth 38
 
-@[simp] def fin_equalizer_diagram [has_finite_products.{v} C] {J} [fin_category J] (F : J ⥤ C) : walking_parallel_pair ⥤ C :=
+variables {J} [small_category J] [fintype J] [decidable_eq J] [𝒥 : fin_category J]
+include 𝒥
+
+@[simp] def fin_equalizer_diagram [has_finite_products.{v} C] (F : J ⥤ C) : walking_parallel_pair ⥤ C :=
 let pi_obj := limits.pi_obj F.obj in
 let pi_hom := limits.pi_obj (λ f : (Σ p : J × J, p.1 ⟶ p.2), F.obj f.1.2) in
 let s : pi_obj ⟶ pi_hom :=
@@ -41,7 +44,7 @@ let t : pi_obj ⟶ pi_hom :=
   pi.lift (λ f : (Σ p : J × J, p.1 ⟶ p.2), pi.π F.obj f.1.2) in
 parallel_pair s t
 
-@[simp] def fin_equalizer_diagram.cones_hom [has_finite_products.{v} C] {J} [fin_category J] (F : J ⥤ C) :
+@[simp] def fin_equalizer_diagram.cones_hom [has_finite_products.{v} C] (F : J ⥤ C) :
   (fin_equalizer_diagram F).cones ⟶ F.cones :=
 { app := λ X c,
   { app := λ j, c.app walking_parallel_pair.zero ≫ pi.π _ j,
@@ -55,7 +58,7 @@ parallel_pair s t
       simpa only [limit.lift_π, fan.mk_π_app, category.assoc, category.id_comp] using t,
     end }, }.
 
-@[simp] def fin_equalizer_diagram.cones_inv [has_finite_products.{v} C] {J} [fin_category J] (F : J ⥤ C) :
+@[simp] def fin_equalizer_diagram.cones_inv [has_finite_products.{v} C] (F : J ⥤ C) :
   F.cones ⟶ (fin_equalizer_diagram F).cones :=
 { app := λ X c,
   begin
@@ -71,7 +74,7 @@ parallel_pair s t
   end,
   naturality' := λ X Y f, by { ext c j, cases j; tidy, } }.
 
-def fin_equalizer_diagram.cones_iso [has_finite_products.{v} C] {J} [fin_category J] (F : J ⥤ C) :
+def fin_equalizer_diagram.cones_iso [has_finite_products.{v} C] (F : J ⥤ C) :
   (fin_equalizer_diagram F).cones ≅ F.cones :=
 { hom := fin_equalizer_diagram.cones_hom F,
   inv := fin_equalizer_diagram.cones_inv F,
@@ -86,13 +89,15 @@ def fin_equalizer_diagram.cones_iso [has_finite_products.{v} C] {J} [fin_categor
       simp [t], }
   end }
 
-instance has_limit_of_has_finite_products_of_has_equalizers [has_finite_products.{v} C] [has_equalizers.{v} C] {J} [fin_category J] (F : J ⥤ C) :
+instance has_limit_of_has_finite_products_of_has_equalizers [has_finite_products.{v} C] [has_equalizers.{v} C] (F : J ⥤ C) :
   has_limit.{v} F :=
 has_limit.of_cones_iso (fin_equalizer_diagram F) F (fin_equalizer_diagram.cones_iso F)
 
+omit 𝒥
+
 def finite_limits_from_equalizers_and_finite_products
   [has_finite_products.{v} C] [has_equalizers.{v} C] : has_finite_limits.{v} C :=
-{ has_limits_of_shape := λ J 𝒥, by exactI
+{ has_limits_of_shape := λ J _ _ _ _, by exactI
   { has_limit := λ F, by apply_instance } }
 
 end category_theory.limits

@@ -32,7 +32,7 @@ include 𝒞
 -- Finding the `decidable_eq` instances apparent takes some work.
 set_option class.instance_max_depth 38
 
-variables {J : Type v} [small_category J] [fintype J] [decidable_eq J] [𝒥 : fin_category J]
+variables {J : Type v} [small_category J] [𝒥 : fin_category J]
 include 𝒥
 
 @[simp] def fin_equalizer_diagram [has_finite_products.{v} C] (F : J ⥤ C) : walking_parallel_pair ⥤ C :=
@@ -97,7 +97,7 @@ omit 𝒥
 
 def finite_limits_from_equalizers_and_finite_products
   [has_finite_products.{v} C] [has_equalizers.{v} C] : has_finite_limits.{v} C :=
-{ has_limits_of_shape := λ J _ _ _ _, by exactI
+{ has_limits_of_shape := λ J _ _, by exactI
   { has_limit := λ F, by apply_instance } }
 
 end category_theory.limits

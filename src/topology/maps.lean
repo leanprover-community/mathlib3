@@ -14,8 +14,7 @@ open_locale classical
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
 section dense_range
-variables [topological_space α] [topological_space β] [topological_space γ]
-          (f : α → β) (g : β → γ)
+variables [topological_space β] [topological_space γ] (f : α → β) (g : β → γ)
 
 def dense_range := ∀ x, x ∈ closure (range f)
 
@@ -38,7 +37,7 @@ begin
   exact hg c
 end
 
-lemma dense_range.inhabited (df : dense_range f) (b : β) : inhabited α :=
+def dense_range.inhabited (df : dense_range f) (b : β) : inhabited α :=
 ⟨begin
   have := exists_mem_of_ne_empty (mem_closure_iff.1 (df b) _ is_open_univ trivial),
   simp only [mem_range, univ_inter] at this,
@@ -91,12 +90,12 @@ let ⟨t, ht, h_eq⟩ := by rw [hf.induced, is_closed_induced_iff] at hs; exact 
 have is_closed (t ∩ range f), from is_closed_inter ht h,
 h_eq.symm ▸ by rwa [image_preimage_eq_inter_range]
 
-lemma inducing.nhds_eq_comap [topological_space α] [topological_space β] {f : α → β}
-  (hf : inducing f) : ∀ (a : α), nhds a = comap f (nhds $ f a) :=
+lemma inducing.nhds_eq_comap {f : α → β} (hf : inducing f) :
+  ∀ (a : α), nhds a = comap f (nhds $ f a) :=
 (induced_iff_nhds_eq f).1 hf.induced
 
-lemma inducing.map_nhds_eq [topological_space α] [topological_space β] {f : α → β}
-  (hf : inducing f) (a : α) (h : range f ∈ nhds (f a)) : (nhds a).map f = nhds (f a) :=
+lemma inducing.map_nhds_eq {f : α → β} (hf : inducing f) (a : α) (h : range f ∈ nhds (f a)) :
+  (nhds a).map f = nhds (f a) :=
 hf.induced.symm ▸ map_nhds_induced_eq h
 
 lemma inducing.tendsto_nhds_iff {ι : Type*}
@@ -121,7 +120,7 @@ structure embedding [tα : topological_space α] [tβ : topological_space β] (f
 
 variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
 
-def embedding.mk' (f : α → β) (inj : function.injective f)
+lemma embedding.mk' (f : α → β) (inj : function.injective f)
   (induced : ∀a, comap f (nhds (f a)) = nhds a) : embedding f :=
 ⟨⟨(induced_iff_nhds_eq f).2 (λ a, (induced a).symm)⟩, inj⟩
 
@@ -152,7 +151,7 @@ lemma embedding_is_closed {f : α → β} {s : set α}
   (hf : embedding f) (h : is_closed (range f)) (hs : is_closed s) : is_closed (f '' s) :=
 inducing_is_closed hf.1 h hs
 
-lemma embedding.map_nhds_eq [topological_space α] [topological_space β] {f : α → β}
+lemma embedding.map_nhds_eq {f : α → β}
   (hf : embedding f) (a : α) (h : range f ∈ nhds (f a)) : (nhds a).map f = nhds (f a) :=
 inducing.map_nhds_eq hf.1 a h
 
@@ -314,7 +313,7 @@ lemma continuous_extend [regular_space γ] {f : α → γ} (di : dense_inducing 
 continuous_iff_continuous_at.mpr $ assume b, di.tendsto_extend $ univ_mem_sets' hf
 
 lemma mk'
-  [topological_space α] [topological_space β] (i : α → β)
+  (i : α → β)
   (c     : continuous i)
   (dense : ∀x, x ∈ closure (range i))
   (H     : ∀ (a:α) s ∈ nhds a,

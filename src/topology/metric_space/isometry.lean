@@ -179,7 +179,7 @@ end isometric
 
 /-- An isometry induces an isometric isomorphism between the source space and the
 range of the isometry. -/
-lemma isometry.isometric_on_range [emetric_space α] [emetric_space β] {f : α → β} (h : isometry f) :
+def isometry.isometric_on_range [emetric_space α] [emetric_space β] {f : α → β} (h : isometry f) :
   α ≃ᵢ range f :=
 { isometry_to_fun := λx y,
   begin

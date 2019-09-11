@@ -17,12 +17,7 @@ open_locale classical
 set_option class.instance_max_depth 70
 
 variables {𝕜 : Type*} {E : Type*} {F : Type*} {G : Type*}
-[nondiscrete_normed_field 𝕜]
-[normed_group E] [normed_space 𝕜 E]
-[normed_group F] [normed_space 𝕜 F]
-[normed_group G] [normed_space 𝕜 G]
-(c : 𝕜) (f g : E →L[𝕜] F) (h : F →L[𝕜] G) (x y z : E)
-include 𝕜
+[normed_group E] [normed_group F] [normed_group G]
 
 open metric continuous_linear_map
 
@@ -31,6 +26,10 @@ lemma exists_pos_bound_of_bound {f : E → F} (M : ℝ) (h : ∀x, ∥f x∥ ≤
 ⟨max M 1, lt_of_lt_of_le zero_lt_one (le_max_right _ _), λx, calc
   ∥f x∥ ≤ M * ∥x∥ : h x
   ... ≤ max M 1 * ∥x∥ : mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg _) ⟩
+
+variables [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F] [normed_space 𝕜 G]
+(c : 𝕜) (f g : E →L[𝕜] F) (h : F →L[𝕜] G) (x y z : E)
+include 𝕜
 
 lemma linear_map.continuous_of_bound (f : E →ₗ[𝕜] F) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   continuous f :=
@@ -92,7 +91,7 @@ theorem is_O_id (l : filter E) : is_O f (λ x, x) l :=
 let ⟨M, hMp, hM⟩ := f.bound in
 ⟨M, hMp, mem_sets_of_superset univ_mem_sets (λ x _, hM x)⟩
 
-theorem is_O_comp (g : F →L[𝕜] G) (f : E → F) (l : filter E) :
+theorem is_O_comp {E : Type*} (g : F →L[𝕜] G) (f : E → F) (l : filter E) :
   is_O (λ x', g (f x')) f l :=
 ((g.is_O_id ⊤).comp _).mono (map_le_iff_le_comap.mp lattice.le_top)
 

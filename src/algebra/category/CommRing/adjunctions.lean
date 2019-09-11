@@ -1,14 +1,16 @@
-/- Copyright (c) 2019 Scott Morrison. All rights reserved.
+/-
+Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl
+-/
+import algebra.category.CommRing.basic
+import category_theory.adjunction.basic
+import data.mv_polynomial
 
+/-!
 Multivariable polynomials on a type is the left adjoint of the
 forgetful functor from commutative rings to types.
 -/
-
-import algebra.CommRing.basic
-import category_theory.adjunction.basic
-import data.mv_polynomial
 
 noncomputable theory
 

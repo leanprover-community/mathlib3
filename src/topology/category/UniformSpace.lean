@@ -8,7 +8,7 @@ import category_theory.concrete_category.unbundled_hom
 import category_theory.full_subcategory
 import category_theory.monad.limits
 import topology.uniform_space.completion
-import topology.Top.basic
+import topology.category.Top.basic
 
 /-!
 # The category of uniform spaces

@@ -1,10 +1,12 @@
-import category_theory.functor category_theory.types category_theory.concrete_category.bundled
-
-/-!
+/-
 Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
+-/
 
+import category_theory.concrete_category
+
+/-!
 # Category of categories
 
 This file contains definition of category `Cat` of all categories.  In

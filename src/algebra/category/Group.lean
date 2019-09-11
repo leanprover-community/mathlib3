@@ -5,7 +5,7 @@ Authors: Johan Commelin
 Introduce Group -- the category of groups.
 
 Currently only the basic setup.
-Copied from monoids.lean.
+Copied from `algebra/category/Mon/basic.lean`.
 -/
 
 import algebra.punit_instances

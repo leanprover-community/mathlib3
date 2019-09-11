@@ -3,8 +3,8 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import topology.Top.presheaf
-import topology.algebra.TopCommRing.basic
+import topology.sheaves.presheaf
+import topology.category.TopCommRing
 import category_theory.yoneda
 import ring_theory.subring
 import topology.algebra.continuous_functions

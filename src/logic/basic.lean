@@ -18,6 +18,11 @@ maybe it is useful for writing automation.
 
 section miscellany
 
+/- We add the `inline` attribute to optimize VM computation using these declarations. For example,
+  `if p ∧ q then ... else ...` will not evaluate the decidability of `q` if `p` is false. -/
+attribute [inline] and.decidable or.decidable decidable.false xor.decidable iff.decidable
+  decidable.true implies.decidable not.decidable ne.decidable
+
 variables {α : Type*} {β : Type*}
 
 @[reducible] def hidden {a : α} := a

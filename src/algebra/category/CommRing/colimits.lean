@@ -427,8 +427,7 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
     refl
   end }.
 
--- FIXME why is this infer_instance needed!?
-instance has_colimits_CommRing : @has_colimits CommRing.{v} infer_instance :=
+instance has_colimits_CommRing : has_colimits.{v} CommRing.{v} :=
 { has_colimits_of_shape := λ J 𝒥,
   { has_colimit := λ F, by exactI
     { cocone := colimit_cocone F,

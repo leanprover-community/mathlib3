@@ -21,6 +21,8 @@ variables {m n k : ℕ}
 attribute [simp] nat.add_sub_cancel nat.add_sub_cancel_left
 attribute [simp] nat.sub_self
 
+@[simp] lemma succ_pos' {n : ℕ} : 0 < succ n := succ_pos n
+
 theorem succ_inj' {n m : ℕ} : succ n = succ m ↔ n = m :=
 ⟨succ_inj, congr_arg _⟩
 
@@ -689,7 +691,7 @@ protected theorem pow_mul (a b n : ℕ) : n ^ (a * b) = (n ^ a) ^ b :=
 by induction b; simp [*, nat.succ_eq_add_one, nat.pow_add, mul_add, mul_comm]
 
 theorem pow_pos {p : ℕ} (hp : p > 0) : ∀ n : ℕ, p ^ n > 0
-| 0 := by simpa using zero_lt_one
+| 0 := by simp
 | (k+1) := mul_pos (pow_pos _) hp
 
 lemma pow_eq_mul_pow_sub (p : ℕ) {m n : ℕ} (h : m ≤ n) : p ^ m * p ^ (n - m)  = p ^ n :=

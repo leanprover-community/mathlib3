@@ -64,7 +64,9 @@ infix ` ◫ `:80 := hcomp
   (α ◫ β).app X = (β.app (F.obj X)) ≫ (I.map (α.app X)) := rfl
 
 -- Note that we don't yet prove a `hcomp_assoc` lemma here: even stating it is painful, because we
--- need to use associativity of functor composition
+-- need to use associativity of functor composition. (It's "true" without the explicit associator,
+-- because functor composition is definitionally associative, but relying on the definitional equality
+-- causes bad problems with elaboration later.)
 
 lemma exchange {I J K : D ⥤ E} (α : F ⟶ G) (β : G ⟶ H)
   (γ : I ⟶ J) (δ : J ⟶ K) : (α ≫ β) ◫ (γ ≫ δ) = (α ◫ γ) ≫ (β ◫ δ) :=

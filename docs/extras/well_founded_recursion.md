@@ -15,7 +15,12 @@ Because < is a well founded relation on naturals, and because `y % succ x < succ
 
 Whenever you use the equation compiler there will be a default well founded relation on the type being recursed on and the equation compiler will automatically attempt to prove the function is well founded.
 
-If the equation compiler fails, there are two main reasons for this. The first is that it has failed to prove the required inequality. The second is that it is not using the correct well founded relation.
+When the equation compiler fails, there are three main causes.
+
+1. It has failed to prove the required inequality.
+2. It is not using the correct well founded relation.
+3. A bug in the default tactic. (Often indicated by the message `nested exception message:
+tactic failed, there are no goals to be solved`, and solved by appending `using_well_founded wf_tacs`.)
 
 ### Proving required inequality ###
 

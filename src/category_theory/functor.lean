@@ -81,6 +81,11 @@ infixr ` ⋙ `:80 := comp
 @[simp] lemma comp_map (F : C ⥤ D) (G : D ⥤ E) (X Y : C) (f : X ⟶ Y) :
   (F ⋙ G).map f = G.map (F.map f) := rfl
 
+omit ℰ
+
+@[simp] protected lemma comp_id (F : C ⥤ D) : F ⋙ (𝟭 D) = F := by cases F; refl
+@[simp] protected lemma id_comp (F : C ⥤ D) : (𝟭 C) ⋙ F = F := by cases F; refl
+
 end
 
 section

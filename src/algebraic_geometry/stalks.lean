@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebraic_geometry.presheafed_space
-import topology.Top.stalks
+import topology.sheaves.stalks
 
 /-!
 # Stalks for presheaved spaces
@@ -44,7 +44,6 @@ begin
   convert (stalk_functor C x).map_id X.𝒪,
   tidy,
 end
-.
 
 @[simp] lemma comp {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) (x : X) :
   stalk_map (α ≫ β) x =

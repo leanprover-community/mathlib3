@@ -55,11 +55,11 @@ universes v u₁ u₂ u₃
 namespace category_theory
 
 /-- A concrete category is a category `C` with a fixed faithful functor `forget : C ⥤ Type`. -/
-class concrete_category (C : Type u₂) extends category.{v} C :=
+class concrete_category (C : Type (u₁+1)) extends category.{u₁} C :=
 (forget : C ⥤ Type u₁)
 [forget_faithful : faithful forget]
 
-@[reducible] def forget (C : Type u₂) [concrete_category C] := concrete_category.forget C
+@[reducible] def forget (C : Type (u₁+1)) [concrete_category C] := concrete_category.forget C
 
 attribute [instance] concrete_category.forget_faithful
 
@@ -70,23 +70,23 @@ instance concrete_category.types : concrete_category (Type u₂) :=
 `has_forget C D`, where `C` and `D` are both concrete categories, provides a functor
 `forget₂ C D : C ⥤ C` and a proof that `forget₂ ⋙ (forget D) = forget C`.
 -/
-class has_forget (C : Type u₂) (D : Type u₃) [concrete_category.{v u₁} C] [concrete_category.{v u₁} D] :=
+class has_forget (C : Type (u₁+1)) (D : Type (u₁+1)) [concrete_category C] [concrete_category D] :=
 (forget₂ : C ⥤ D)
 (forget_comp : forget₂ ⋙ (forget D) = forget C)
 
-@[reducible] def forget₂ (C D : Type u₂) [concrete_category.{v u₁} C] [concrete_category.{v u₁} D]
+@[reducible] def forget₂ (C D : Type (u₁+1)) [concrete_category C] [concrete_category D]
   [has_forget C D] : C ⥤ D :=
 has_forget.forget₂ C D
 
-instance forget_faithful (C D : Type u₂) [concrete_category.{v u₁} C] [concrete_category.{v u₁} D]
+instance forget_faithful (C D : Type (u₁+1)) [concrete_category C] [concrete_category D]
   [has_forget C D] : faithful (forget₂ C D) :=
 (has_forget.forget_comp C D).faithful_of_comp
 
-instance induced_category.concrete_category {C : Type u₂} {D : Type u₃} [concrete_category D] (f : C → D) :
+instance induced_category.concrete_category {C : Type (u₁+1)} {D : Type (u₁+1)} [concrete_category D] (f : C → D) :
   concrete_category (induced_category f) :=
 { forget := induced_functor f ⋙ forget D }
 
-instance induced_category.has_forget {C : Type u₂} {D : Type u₃} [concrete_category D] (f : C → D) :
+instance induced_category.has_forget {C : Type (u₁+1)} {D : Type (u₁+1)} [concrete_category D] (f : C → D) :
   has_forget (induced_category f) D :=
 { forget₂ := induced_functor f,
   forget_comp := rfl }
@@ -95,7 +95,7 @@ instance induced_category.has_forget {C : Type u₂} {D : Type u₃} [concrete_c
 In order to construct a “partially forgetting” functor, we do not need to verify functor laws;
 it suffices to ensure that compositions agree with `forget₂ C D ⋙ forget D = forget C`.
 -/
-def has_forget.mk' {C D : Type u₂} [concrete_category.{v u₁} C] [concrete_category.{v u₁} D]
+def has_forget.mk' {C D : Type (u₁+1)} [concrete_category C] [concrete_category D]
   (obj : C → D) (h_obj : ∀ X, (forget D).obj (obj X) = (forget C).obj X)
   (map : ∀ {X Y}, (X ⟶ Y) → (obj X ⟶ obj Y))
   (h_map : ∀ {X Y} {f : X ⟶ Y}, (forget D).map (map f) == (forget C).map f) :
@@ -103,7 +103,7 @@ has_forget C D :=
 { forget₂ := faithful.div _ _ _ @h_obj _ @h_map,
   forget_comp := by apply faithful.div_comp }
 
-instance (C : Type u₂) [concrete_category.{u₂ u₂} C] : has_forget C (Type u₂) :=
+instance (C : Type (u₁+1)) [concrete_category C] : has_forget C (Type u₁) :=
 { forget₂ := forget C,
   forget_comp := functor.comp_id _ }
 

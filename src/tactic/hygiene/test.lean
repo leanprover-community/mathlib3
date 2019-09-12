@@ -123,9 +123,24 @@ hygienic.{u₁ u₁+1} (λ (A : bundled m), p A.α A.str)
 
 attribute [class] bundled_hygienic
 
-def hygienic_bundled_forall {m : Type u₁ → Type u₁} (q : Π (α : Type u₁) (i : m α), α → Prop) [hygienic.{v₁} (λ X : functor.elements (@forget m _ _), q X.1.1 X.1.2 X.2)] :
-  hygienic.{u₁} (λ X : bundled m, ∀ a : X.α, q X.α X.str a) :=
-sorry
+-- TODO is this one really necessary?
+-- Why aren't we calling `hygienic_forall`?
+def hygienic_forall_forget (C : Type (u₁+1)) [concrete_category C]
+  (q : Π (X : C), (forget C).obj X → Prop) [hygienic.{u₁} (λ X : (forget C).elements, q X.1 X.2)] :
+    hygienic.{u₁} (λ X : C, ∀ a : (forget C).obj X, q X a) :=
+begin
+  fsplit,
+  intros X Y f,
+  fsplit,
+  { intros h a,
+    have qh := hygienic.map.{u₁} (λ (X : (forget C).elements), q X.1 X.2) (as_element_iso f.symm a),
+    apply qh.2,
+    apply h, },
+  { intros h a,
+    have qh := hygienic.map.{u₁} (λ (X : (forget C).elements), q X.1 X.2) (as_element_iso f a),
+    apply qh.2,
+    apply h, },
+end
 
 
 instance hygienic_zero_eq_one : bundled_hygienic.{u₁} (λ (α : Type u₁) [comm_ring α], by exactI (0 : α) = (1 : α)) :=
@@ -135,24 +150,25 @@ begin
   intros X Y f,
   fsplit,
   { intro h,
-    haveI := f.hom.property,
-    have t := congr_arg f.hom.val h,
-    rw [is_ring_hom.map_zero f.hom.val] at t,
-    rw [is_ring_hom.map_one f.hom.val] at t,
+    have t := congr_arg f.hom h,
+    rw [is_ring_hom.map_zero f.hom] at t,
+    rw [is_ring_hom.map_one f.hom] at t,
     exact t },
   { intro h,
-    haveI := f.inv.property,
-    have t := congr_arg f.inv.val h,
-    rw [is_ring_hom.map_zero f.inv.val] at t,
-    rw [is_ring_hom.map_one f.inv.val] at t,
+    have t := congr_arg f.inv h,
+    rw [is_ring_hom.map_zero f.inv] at t,
+    rw [is_ring_hom.map_one f.inv] at t,
     exact t },
 end
 
 instance hygienic_is_unit :
   hygienic.{u₁ u₁+1}
-  (λ (X : bundled.{u₁ u₁} comm_ring.{u₁}), ∀ (a : X.α), is_unit.{u₁} a ∨ is_unit.{u₁} (1 + -a)) :=
+  (λ (X : CommRing.{u₁}), ∀ (a : X.α), is_unit.{u₁} a ∨ is_unit.{u₁} (1 + -a)) :=
 begin
-  apply hygienic_forall,
+  apply @hygienic_forall_forget.{u₁} CommRing _ _ _,
+  apply @hygienic_or _ _ _ _ _ _,
+  dsimp [is_unit],
+
 end
 
 instance : bundled_hygienic.{u₁} is_local_ring.{u₁} :=
@@ -167,12 +183,7 @@ begin
   apply @hygienic_and _ _ _ _ _ _,
   apply @hygienic_not _ _ _ _,
   apply hygienic_zero_eq_one,
-  extract_goal,
-  apply @hygienic_forall _ _ (forget) (λ (a : forget.elements.{u₁}), by {haveI : comm_ring.{u₁} (forget.obj a.1) := a.1.2, exact is_unit a.2 ∨ is_unit (1 + - a.2)}) _,
-  funext,
-  dsimp [forget],
-  funext,
-  sorry,
+  apply hygienic_is_unit,
 end
 
 

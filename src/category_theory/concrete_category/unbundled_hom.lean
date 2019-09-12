@@ -16,14 +16,14 @@ namespace category_theory
 /-- A class for unbundled homs used to define a category. `hom` must
 take two types `α`, `β` and instances of the corresponding structures,
 and return a predicate on `α → β`. -/
-class unbundled_hom {c : Type u → Type v} (hom : Π {α β}, c α → c β → (α → β) → Prop) :=
+class unbundled_hom {c : Type u → Type u} (hom : Π {α β}, c α → c β → (α → β) → Prop) :=
 (hom_id : ∀ {α} (ia : c α), hom ia ia id)
 (hom_comp : ∀ {α β γ} {Iα : c α} {Iβ : c β} {Iγ : c γ} {g : β → γ} {f : α → β}
   (hg : hom Iβ Iγ g) (hf : hom Iα Iβ f), hom Iα Iγ (g ∘ f))
 
 namespace unbundled_hom
 
-variables (c : Type u → Type v) (hom : Π ⦃α β⦄, c α → c β → (α → β) → Prop) [𝒞 : unbundled_hom hom]
+variables (c : Type u → Type u) (hom : Π ⦃α β⦄, c α → c β → (α → β) → Prop) [𝒞 : unbundled_hom hom]
 include 𝒞
 
 instance bundled_hom : bundled_hom (λ α β (Iα : c α) (Iβ : c β), subtype (hom Iα Iβ)) :=
@@ -36,7 +36,7 @@ instance bundled_hom : bundled_hom (λ α β (Iα : c α) (Iβ : c β), subtype 
 
 section has_forget
 
-variables {c hom} {c' : Type u → Type v} {hom' : Π ⦃α β⦄, c' α → c' β → (α → β) → Prop}
+variables {c hom} {c' : Type u → Type u} {hom' : Π ⦃α β⦄, c' α → c' β → (α → β) → Prop}
   [𝒞' : unbundled_hom hom']
 include 𝒞'
 

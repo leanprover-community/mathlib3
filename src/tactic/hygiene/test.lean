@@ -2,7 +2,7 @@ import category_theory.types
 import category_theory.core
 import category_theory.concrete_category
 import category_theory.elements
-import algebra.CommRing.basic
+import algebra.category.CommRing.basic
 import ring_theory.ideals
 
 universes w₁ v₁ v₂ u₁ u₂

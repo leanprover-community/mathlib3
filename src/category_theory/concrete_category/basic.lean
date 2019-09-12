@@ -56,14 +56,14 @@ namespace category_theory
 
 /-- A concrete category is a category `C` with a fixed faithful functor `forget : C ⥤ Type`. -/
 class concrete_category (C : Type u₂) extends category.{v} C :=
-(forget : C ⥤ Sort u₁)
+(forget : C ⥤ Type u₁)
 [forget_faithful : faithful forget]
 
 @[reducible] def forget (C : Type u₂) [concrete_category C] := concrete_category.forget C
 
 attribute [instance] concrete_category.forget_faithful
 
-instance concrete_category.types : concrete_category (Sort u₂) :=
+instance concrete_category.types : concrete_category (Type u₂) :=
 { forget := 𝟭 _ }
 
 /--
@@ -103,7 +103,7 @@ has_forget C D :=
 { forget₂ := faithful.div _ _ _ @h_obj _ @h_map,
   forget_comp := by apply faithful.div_comp }
 
-instance (C : Type u₂) [concrete_category.{u₂ u₂} C] : has_forget C (Sort u₂) :=
+instance (C : Type u₂) [concrete_category.{u₂ u₂} C] : has_forget C (Type u₂) :=
 { forget₂ := forget C,
   forget_comp := functor.comp_id _ }
 

@@ -59,6 +59,11 @@ def as_core_functor (f : C → D) [I : iso_functorial.{v₁ v₂} f] : core C �
 instance functor_obj_iso_functorial (F : C ⥤ D) : iso_functorial.{v₁ v₂} F.obj :=
 { map := λ X Y f, F.map_iso f }
 
+-- TODO specialise some universe variables?
+instance iso_functorial_elements_1 (F : C ⥤ Type w₁) (g : C → D) [iso_functorial.{v₁ v₂} g] :
+  iso_functorial.{v₁ v₂} (λ (X : F.elements), g (X.1)) :=
+{ map := λ X Y f,  iso_functorial.map.{v₁ v₂} g (of_element_iso f) }
+
 omit 𝒟
 instance (p : C → Prop) : subsingleton (functorial.{v₁ 0} (plift ∘ p)) :=
 ⟨by { rintros ⟨a⟩ ⟨b⟩, congr, ext, apply proof_irrel_heq, apply proof_irrel_heq, }⟩

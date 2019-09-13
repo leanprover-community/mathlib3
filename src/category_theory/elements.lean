@@ -71,6 +71,18 @@ def as_element_iso {F : C ⥤ Type w} {X Y : C} (f : X ≅ Y) (x : F.obj X) :
 { hom := as_element_hom f.hom x,
   inv := as_element_hom₂ f.inv (F.map f.hom x) _ (by simp) }
 
+-- TODO name?
+def of_element_iso {F : C ⥤ Type w} {X Y : F.elements} (f : X ≅ Y) : X.1 ≅ Y.1 :=
+{ hom := f.hom.val,
+  inv := f.inv.val,
+  hom_inv_id' := congr_arg subtype.val (f.hom_inv_id),
+  inv_hom_id' := congr_arg subtype.val (f.inv_hom_id), }
+
+@[simp] lemma of_element_iso_id {F : C ⥤ Type w} {X : F.elements} :
+  (of_element_iso (iso.refl X)) = iso.refl (X.1) := rfl
+@[simp] lemma of_element_iso_comp {F : C ⥤ Type w} {X Y Z : F.elements} (f : X ≅ Y) (g : Y ≅ Z) :
+  (of_element_iso (f ≪≫ g)) = of_element_iso f ≪≫ of_element_iso g := rfl
+
 namespace category_of_elements
 variable (F : C ⥤ Type w)
 

@@ -8,7 +8,7 @@ open category_theory
 
 set_option pp.universes true
 
-
+-- TODO Can we express that `0` and `1` are isomorphism invariant?
 instance hygienic_zero_eq_one : bundled_hygienic.{u₁} (λ (α : Type u₁) [comm_ring α], by exactI (0 : α) = (1 : α)) :=
 begin
   dsimp [bundled_hygienic],
@@ -27,25 +27,30 @@ begin
     exact t },
 end
 
-example (X Y : CommRing.{u₁}) (f : X ≅ Y) (x : units.{u₁} (X.α)) :
-  (f.inv : Y →* X) ((f.hom : X →* Y) x) = x :=
+@[simp] lemma hom_inv_id_coe (X Y : CommRing.{u₁}) (f : X ≅ Y) (x : X) :
+  f.inv (f.hom x) = x :=
 begin
-
+  have t := congr_arg ring_hom.to_fun f.hom_inv_id,
+  exact congr_fun t x,
+end
+@[simp] lemma inv_hom_id_coe (X Y : CommRing.{u₁}) (f : X ≅ Y) (y : Y) :
+  f.hom (f.inv y) = y :=
+begin
+  have t := congr_arg ring_hom.to_fun f.inv_hom_id,
+  exact congr_fun t y,
 end
 
 instance iso_functorial_units : iso_functorial.{u₁ u₁} (λ (X : CommRing.{u₁}), units (X.α)) :=
 { map := λ X Y f,
   { hom := λ u, units.map (f.hom : X →* Y) u,
-    inv := λ u, units.map (f.inv : Y →* X) u,
-    hom_inv_id' := begin
-      dsimp,
-      ext1,
-      dsimp,
-      ext1, simp, extract_goal end } }
+    inv := λ u, units.map (f.inv : Y →* X) u } }.
 
-
--- instance iso_functorial_units_crap : iso_functorial.{u₁ u₁} (λ (X : (forget CommRing.{u₁}).elements), units ((X.1).α)) :=
--- { map := λ X Y f, sorry }
+instance iso_functorial_units_1 : iso_functorial.{u₁ u₁} (λ (X : (forget CommRing.{u₁}).elements), units ((X.1).α)) :=
+begin
+  -- Unfortunately unification can't solve for the last argument.
+  -- If we want to automate this we're going to have to do it ourselves, presumably syntactically.
+  apply @iso_functorial_elements_1 _ _ _ _ _ (λ X : CommRing.{u₁}, units (X.α))
+end
 
 set_option pp.universes false
 
@@ -57,13 +62,27 @@ begin
 split,
 intros X Y f,
 split,
-intro h,
-cases X, cases Y, cases f,
-cases f_hom,
-dsimp at *,
-subst f_hom_property,
-sorry,
-sorry,
+-- What on earth is happening here, and how do we automate it?
+{ intro h,
+  cases X, cases Y, cases f,
+  cases f_hom,
+  dsimp at *,
+  subst f_hom_property,
+  cases f_hom_val,
+  cases f_hom_val_hom,
+  dsimp,
+  conv { to_lhs, rw ←f_hom_val_hom_property, rw h, },
+  refl },
+{ intro h,
+  cases X, cases Y, cases f,
+  cases f_inv,
+  dsimp at *,
+  subst f_inv_property,
+  cases f_inv_val,
+  cases f_inv_val_hom,
+  dsimp,
+  conv { to_lhs, rw ←f_inv_val_hom_property, rw h, },
+  refl },
 end
 
 instance hygienic_is_unit :

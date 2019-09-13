@@ -520,16 +520,11 @@ end
 /-- An explicit equivalence between the moves for Left in `-x` and the moves for Right in `x`. -/
 -- This equivalence is useful to avoid having to use `cases` unnecessarily.
 def left_moves_neg (x : pgame) : (-x).left_moves ≃ x.right_moves :=
-begin
-  induction x,
-  refl,
-end
+by { cases x, refl }
+
 /-- An explicit equivalence between the moves for Right in `-x` and the moves for Left in `x`. -/
 def right_moves_neg (x : pgame) : (-x).right_moves ≃ x.left_moves :=
-begin
-  induction x,
-  refl,
-end
+by { cases x, refl }
 
 @[simp] lemma move_right_left_moves_neg {x : pgame} (i : left_moves (-x)) :
   move_right x ((left_moves_neg x) i) = -(move_left (-x) i) :=
@@ -539,10 +534,7 @@ begin
 end
 @[simp] lemma move_left_right_moves_neg_symm {x : pgame} (i : right_moves x) :
   move_left (-x) ((left_moves_neg x).symm i) = -(move_right x i) :=
-begin
-  induction x,
-  refl,
-end
+by { cases x, refl }
 @[simp] lemma move_left_right_moves_neg {x : pgame} (i : right_moves (-x)) :
   move_left x ((right_moves_neg x) i) = -(move_right (-x) i) :=
 begin
@@ -551,10 +543,7 @@ begin
 end
 @[simp] lemma move_right_right_moves_neg_symm {x : pgame} (i : left_moves x) :
   move_right (-x) ((right_moves_neg x).symm i) = -(move_left x i) :=
-begin
-  induction x,
-  refl,
-end
+by { cases x, refl }
 
 theorem le_iff_neg_ge : Π {x y : pgame}, x ≤ y ↔ -y ≤ -x
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
@@ -653,19 +642,12 @@ equiv_of_relabelling (zero_add_relabelling x)
 /-- An explicit equivalence between the moves for Left in `x + y` and the type-theory sum
     of the moves for Left in `x` and in `y`. -/
 def left_moves_add {x y : pgame} : (x + y).left_moves ≃ x.left_moves ⊕ y.left_moves :=
-begin
-  cases x,
-  cases y,
-  refl,
-end
+by { cases x, cases y, refl, }
+
 /-- An explicit equivalence between the moves for Right in `x + y` and the type-theory sum
     of the moves for Right in `x` and in `y`. -/
 def right_moves_add {x y : pgame} : (x + y).right_moves ≃ x.right_moves ⊕ y.right_moves :=
-begin
-  cases x,
-  cases y,
-  refl,
-end
+by { cases x, cases y, refl, }
 
 @[simp] lemma left_moves_add_inv_fun_inl {x y : pgame} {i : x.left_moves} :
   left_moves_add.inv_fun (sum.inl i) = (@left_moves_add x y).symm (sum.inl i) := rfl
@@ -681,37 +663,28 @@ end
 rfl
 @[simp] lemma add_move_left_inl {x y : pgame} {i} :
   (x + y).move_left ((@left_moves_add x y).symm (sum.inl i)) = x.move_left i + y :=
-begin
-  cases x, cases y,
-  refl,
-end
+by { cases x, cases y, refl, }
+
 @[simp] lemma mk_add_move_right_inl {xl xr yl yr} {xL xR yL yR} {i} :
   (mk xl xr xL xR + mk yl yr yL yR).move_right (sum.inl i) = (mk xl xr xL xR).move_right i + (mk yl yr yL yR) :=
 rfl
 @[simp] lemma add_move_right_inl {x y : pgame} {i} :
   (x + y).move_right ((@right_moves_add x y).symm (sum.inl i)) = x.move_right i + y :=
-begin
-  cases x, cases y,
-  refl,
-end
+by { cases x, cases y, refl, }
+
 @[simp] lemma mk_add_move_left_inr {xl xr yl yr} {xL xR yL yR} {i} :
   (mk xl xr xL xR + mk yl yr yL yR).move_left (sum.inr i) = (mk xl xr xL xR) + (mk yl yr yL yR).move_left i :=
 rfl
 @[simp] lemma add_move_left_inr {x y : pgame} {i : y.left_moves} :
   (x + y).move_left ((@left_moves_add x y).symm (sum.inr i)) = x + y.move_left i :=
-begin
-  cases x, cases y,
-  refl,
-end
+by { cases x, cases y, refl, }
+
 @[simp] lemma mk_add_move_right_inr {xl xr yl yr} {xL xR yL yR} {i} :
   (mk xl xr xL xR + mk yl yr yL yR).move_right (sum.inr i) = (mk xl xr xL xR) + (mk yl yr yL yR).move_right i :=
 rfl
 @[simp] lemma add_move_right_inr {x y : pgame} {i} :
   (x + y).move_right ((@right_moves_add x y).symm (sum.inr i)) = x + y.move_right i :=
-begin
-  cases x, cases y,
-  refl,
-end
+by { cases x, cases y, refl, }
 
 instance : has_sub pgame := ⟨λ x y, x + -y⟩
 
@@ -895,23 +868,10 @@ calc x + y ≤ y + x : add_comm_le
 def star : pgame := pgame.of_lists [0] [0]
 
 theorem star_lt_zero : star < 0 :=
-begin
-  rw lt_def,
-  right,
-  use 0,
-  exact zero_lt_one,
-  split;
-  rintros ⟨⟩,
-end
+or.inr ⟨⟨0, zero_lt_one⟩, (by split; rintros ⟨⟩)⟩
+
 theorem zero_lt_star : 0 < star :=
-begin
-  rw lt_def,
-  left,
-  use 0,
-  exact zero_lt_one,
-  split;
-  rintros ⟨⟩,
-end
+or.inl ⟨⟨0, zero_lt_one⟩, (by split; rintros ⟨⟩)⟩
 
 /-- The pre-game `ω`. (In fact all ordinals have game and surreal representatives.) -/
 def omega : pgame := ⟨ulift ℕ, pempty, λ n, ↑n.1, pempty.elim⟩

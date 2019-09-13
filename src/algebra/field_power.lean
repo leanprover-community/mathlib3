@@ -108,11 +108,11 @@ open int
 
 variables {α : Type u} [discrete_linear_ordered_field α]
 
-lemma fpow_nonneg_of_nonneg {a : α} (ha : a ≥ 0) : ∀ (z : ℤ), a ^ z ≥ 0
+lemma fpow_nonneg_of_nonneg {a : α} (ha : 0 ≤ a) : ∀ (z : ℤ), 0 ≤ a ^ z
 | (of_nat n) := pow_nonneg ha _
 | -[1+n] := div_nonneg' zero_le_one $ pow_nonneg ha _
 
-lemma fpow_pos_of_pos {a : α} (ha : a > 0) : ∀ (z : ℤ), a ^ z > 0
+lemma fpow_pos_of_pos {a : α} (ha : 0 < a) : ∀ (z : ℤ), 0 < a ^ z
 | (of_nat n) := pow_pos ha _
 | -[1+n] := div_pos zero_lt_one $ pow_pos ha _
 
@@ -136,7 +136,7 @@ begin
     repeat { apply pow_pos (lt_of_lt_of_le zero_lt_one hx) } }
 end
 
-lemma pow_le_max_of_min_le {x : α} (hx : x ≥ 1) {a b c : ℤ} (h : min a b ≤ c) :
+lemma pow_le_max_of_min_le {x : α} (hx : 1 ≤ x) {a b c : ℤ} (h : min a b ≤ c) :
       x ^ (-c) ≤ max (x ^ (-a)) (x ^ (-b)) :=
 begin
   wlog hle : a ≤ b,
@@ -148,17 +148,17 @@ begin
   simpa only [max_eq_left hfle]
 end
 
-lemma fpow_le_one_of_nonpos {p : α} (hp : p ≥ 1) {z : ℤ} (hz : z ≤ 0) : p ^ z ≤ 1 :=
+lemma fpow_le_one_of_nonpos {p : α} (hp : 1 ≤ p) {z : ℤ} (hz : z ≤ 0) : p ^ z ≤ 1 :=
 calc p ^ z ≤ p ^ 0 : fpow_le_of_le hp hz
           ... = 1        : by simp
 
-lemma fpow_ge_one_of_nonneg {p : α} (hp : p ≥ 1) {z : ℤ} (hz : z ≥ 0) : p ^ z ≥ 1 :=
+lemma fpow_ge_one_of_nonneg {p : α} (hp : 1 ≤ p) {z : ℤ} (hz : 0 ≤ z) : 1 ≤ p ^ z :=
 calc p ^ z ≥ p ^ 0 : fpow_le_of_le hp hz
           ... = 1        : by simp
 
 end ordered_field_power
 
-lemma one_lt_pow {α} [linear_ordered_semiring α] {p : α} (hp : p > 1) : ∀ {n : ℕ}, 1 ≤ n → 1 < p ^ n
+lemma one_lt_pow {α} [linear_ordered_semiring α] {p : α} (hp : 1 < p) : ∀ {n : ℕ}, 1 ≤ n → 1 < p ^ n
 | 1 h := by simp; assumption
 | (k+2) h :=
   begin
@@ -170,6 +170,6 @@ lemma one_lt_pow {α} [linear_ordered_semiring α] {p : α} (hp : p > 1) : ∀ {
     { apply le_of_lt (lt_trans zero_lt_one hp) }
   end
 
-lemma one_lt_fpow {α}  [discrete_linear_ordered_field α] {p : α} (hp : p > 1) :
-  ∀ z : ℤ, z > 0 → 1 < p ^ z
+lemma one_lt_fpow {α}  [discrete_linear_ordered_field α] {p : α} (hp : 1 < p) :
+  ∀ z : ℤ, 0 < z → 1 < p ^ z
 | (int.of_nat n) h := one_lt_pow hp (nat.succ_le_of_lt (int.lt_of_coe_nat_lt_coe_nat h))

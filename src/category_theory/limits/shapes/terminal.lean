@@ -22,8 +22,6 @@ class has_initial :=
 
 attribute [instance] has_terminal.has_limits_of_shape has_initial.has_colimits_of_shape
 
-set_option pp.universes true
-
 instance [has_finite_products.{v} C] : has_terminal.{v} C :=
 { has_limits_of_shape :=
   { has_limit := λ F,

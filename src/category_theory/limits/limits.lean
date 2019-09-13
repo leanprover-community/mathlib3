@@ -586,11 +586,11 @@ instance has_limit_equivalence_comp (e : K ≌ J) [has_limit F] : has_limit (e.f
       slice_lhs 1 2 { erw [w (e.inverse.obj j)] }, simp
     end } }
 
+local attribute [elab_simple] inv_fun_id_assoc -- not entirely sure why this is needed
 def has_limit_of_equivalence_comp (e : K ≌ J) [has_limit (e.functor ⋙ F)] : has_limit F :=
 begin
   haveI : has_limit (e.inverse ⋙ e.functor ⋙ F) := limits.has_limit_equivalence_comp e.symm,
-  -- TODO Why is the @ needed in the next line? Ideally we'd just write `e.inv_fun_id_assoc F`
-  apply has_limit_of_iso (@inv_fun_id_assoc K _ J _ _ _ e F),
+  apply has_limit_of_iso (e.inv_fun_id_assoc F),
 end
 
 -- `has_limit_comp_equivalence` and `has_limit_of_comp_equivalence`

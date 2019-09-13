@@ -23,31 +23,9 @@ to verify that `forget₂.obj` and `forget₂.map` agree with the equality
 above; then `forget₂` will satisfy the functor laws automatically, see
 `has_forget.mk'`.
 
-In both cases this is done using the `bundled_category` class. Its
-default constructor assumes the bundled morphisms approach, and requires
-
-* an injective `to_fun : hom (ia : c α) (ib : c β) → α → β` projection;
-* `id` and `comp g f` morphisms that project to `id` and `g ∘ f`.
-
-Note that the argument order agrees with `function.comp`, not
-`category_theory.comp`. This way we can directly use
-`@monoid_hom.comp` as an argument to `bundled_category.mk`.
-
-For a full concrete subcategory `D = bundled d` of a bundled category
-`C = bundled c` we provide `bundled_category.restrict_str`
-constructor. This constructor agrees with `induced_category` but also
-allows us to automatically prove that the `induced_functor : C ⥤ D` is
-a “partially forgetting” functor, i.e., `induced_functor ⋙ forget D =
-forget C`.
-
-For unbundled morphisms we provide a convenience constructor
-`bundled_category.of_hom_class`. It accepts a morphism class `hom : Π
-α β (ia : c α) (ib : c β), (α → β) → Prop` together with proofs of
-`hom id` and `hom g → hom f → hom (g ∘ f)`, and creates a
-`bundled_category` instance using `subtype hom` as the bundled
-morphisms type.
-
-
+Two classes helping construct concrete categories in the two most
+common cases are provided in the files `bundled_hom` and
+`unbundled_hom`, see their documentation for details.
 -/
 
 universe u

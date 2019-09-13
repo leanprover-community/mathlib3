@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebraic_geometry.presheafed_space
-import topology.Top.stalks
+import topology.sheaves.stalks
 
 /-!
 # Stalks for presheaved spaces

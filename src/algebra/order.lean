@@ -7,6 +7,9 @@ Authors: Mario Carneiro
 universe u
 variables {α : Type u}
 
+@[simp] lemma ge_iff_le [preorder α] {a b : α} : a ≥ b ↔ b ≤ a := iff.refl _
+@[simp] lemma gt_iff_lt [preorder α] {a b : α} : a > b ↔ b < a := iff.refl _
+
 lemma not_le_of_lt [preorder α] {a b : α} (h : a < b) : ¬ b ≤ a :=
 (le_not_le_of_lt h).right
 

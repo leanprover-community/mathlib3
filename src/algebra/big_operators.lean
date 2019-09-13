@@ -505,6 +505,9 @@ by rw [sum_insert ha,
   add_eq_zero_iff' (H _ $ mem_insert_self _ _) (sum_nonneg this),
   forall_mem_insert, ih this]
 
+lemma sum_eq_zero_iff_of_nonpos : (∀x∈s, f x ≤ 0) → (s.sum f = 0 ↔ ∀x∈s, f x = 0) :=
+@sum_eq_zero_iff_of_nonneg _ (order_dual β) _ _ _ _
+
 lemma single_le_sum (hf : ∀x∈s, 0 ≤ f x) {a} (h : a ∈ s) : f a ≤ s.sum f :=
 have (singleton a).sum f ≤ s.sum f,
   from sum_le_sum_of_subset_of_nonneg

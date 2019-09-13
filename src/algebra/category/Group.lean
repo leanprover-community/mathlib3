@@ -9,7 +9,7 @@ Copied from `algebra/category/Mon/basic.lean`.
 -/
 
 import algebra.punit_instances
-import algebra.Mon.basic
+import algebra.category.Mon.basic
 
 universes u v
 

@@ -1009,7 +1009,7 @@ lemma remove_nth_insert_nth (n:ℕ) (l : list α) : (l.insert_nth n a).remove_nt
 by rw [remove_nth_eq_nth_tail, insert_nth, modify_nth_tail_modify_nth_tail_same];
 from modify_nth_tail_id _ _
 
-lemma insert_nth_remove_nth_of_ge : ∀n m as, n < length as → n ≤ m →
+lemma insert_nth_remove_nth_of_ge : ∀n m as, n < length as → m ≥ n →
   insert_nth m a (as.remove_nth n) = (as.insert_nth (m + 1) a).remove_nth n
 | 0     0     []      has _   := (lt_irrefl _ has).elim
 | 0     0     (a::as) has hmn := by simp [remove_nth, insert_nth]
@@ -4461,7 +4461,7 @@ end
 lemma filter_le_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, l ≤ x) = Ico n m :=
 filter_eq_self.2 $ assume k hk, le_trans hln (mem.1 hk).1
 
-lemma filter_le_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, l ≤ xl) = [] :=
+lemma filter_le_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, l ≤ x) = [] :=
 filter_eq_nil.2 $ assume k hk, not_le_of_gt (lt_of_lt_of_le (mem.1 hk).2 hml)
 
 lemma filter_le_of_le {n m l : ℕ} (hnl : n ≤ l) : (Ico n m).filter (λ x, l ≤ x) = Ico l m :=

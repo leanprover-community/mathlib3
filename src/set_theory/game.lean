@@ -53,6 +53,8 @@ theorem le_antisymm : ∀ x y : game, x ≤ y → y ≤ x → x = y :=
 by { rintro ⟨x⟩ ⟨y⟩ h₁ h₂, apply quot.sound, exact ⟨h₁, h₂⟩ }
 
 /-- The relation `x < y` on games. -/
+-- We don't yet make this into an instance, because it will conflict with the (incorrect) notion
+-- of `<` provided by `partial_order` later.
 def lt : game → game → Prop :=
 quotient.lift₂ (λ x y, x < y) (λ x₁ y₁ x₂ y₂ hx hy, propext (lt_congr hx hy))
 

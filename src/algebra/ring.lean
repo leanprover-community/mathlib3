@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston
 -/
 
 import algebra.group
+import tactic.norm_cast
 
 /-!
 # Properties and homomorphisms of semirings and rings
@@ -304,9 +305,9 @@ instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe (α →
 instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe (α →+* β) (α →+ β) :=
 ⟨ring_hom.to_add_monoid_hom⟩
 
-lemma coe_monoid_hom {α : Type*} {β : Type*} [semiring α] [semiring β] (f : α →+* β) (a : α) :
+@[squash_cast] lemma coe_monoid_hom {α : Type*} {β : Type*} [semiring α] [semiring β] (f : α →+* β) (a : α) :
   ((f : α →* β) : α → β) a = (f : α → β) a := rfl
-lemma coe_add_monoid_hom {α : Type*} {β : Type*} [semiring α] [semiring β] (f : α →+* β) (a : α) :
+@[squash_cast] lemma coe_add_monoid_hom {α : Type*} {β : Type*} [semiring α] [semiring β] (f : α →+* β) (a : α) :
   ((f : α →+ β) : α → β) a = (f : α → β) a := rfl
 
 namespace ring_hom

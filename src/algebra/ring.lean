@@ -304,6 +304,11 @@ instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe (α →
 instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe (α →+* β) (α →+ β) :=
 ⟨ring_hom.to_add_monoid_hom⟩
 
+lemma coe_monoid_hom {α : Type*} {β : Type*} [semiring α] [semiring β] (f : α →+* β) (a : α) :
+  ((f : α →* β) : α → β) a = (f : α → β) a := rfl
+lemma coe_add_monoid_hom {α : Type*} {β : Type*} [semiring α] [semiring β] (f : α →+* β) (a : α) :
+  ((f : α →+ β) : α → β) a = (f : α → β) a := rfl
+
 namespace ring_hom
 
 variables {β : Type v} [semiring α] [semiring β]

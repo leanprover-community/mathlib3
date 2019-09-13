@@ -31,27 +31,38 @@ for `g`.
 While it is often convenient to work "by induction" on pregames, in some situations this becomes
 awkward, so we also define accessor functions `left_moves`, `right_moves`, `move_left` and
 `move_right`. There is a relation `subsequent p q`, saying that `p` can be reached by playing some
-sequence of moves starting from `q`, an instance `well_founded subsequent`, and a local tactic
-`pgame_wf_tac` which is helpful for discharging proof obligations in inductive proofs relying on this
-relation.
+non-empty sequence of moves starting from `q`, an instance `well_founded subsequent`, and a local
+tactic `pgame_wf_tac` which is helpful for discharging proof obligations in inductive proofs relying
+on this relation.
 
 ## Order properties
 
-Pregames have both a `≤` and a `<` relation, which are related in quite a subtle way. In
-particular, it is worth noting that they _do not_ satisfy the axioms of a partial order.
+Pregames have both a `≤` and a `<` relation, which are related in quite a subtle way. In particular,
+it is worth noting that in Lean's (perhaps unfortunate?) definition of a `preorder`, we have
+`lt_iff_le_not_le : ∀ a b : α, a < b ↔ (a ≤ b ∧ ¬ b ≤ a)`, but this is _not_ satisfied by the usual
+`≤` and `<` relations on pregames. (It is satisfied once we restrict to the surreal numbers.) In
+particular, `<` is not transitive; there is an example below showing `0 < star ∧ star < 0`.
 
-The statement `0 ≤ x` means that Left has a good response to any move by Right; in particular,
-the theorem `zero_le` below states
+We do have
+```
+theorem not_le {x y : pgame} : ¬ x ≤ y ↔ y < x := ...
+theorem not_lt {x y : pgame} : ¬ x < y ↔ y ≤ x := ...
+```
+
+The statement `0 ≤ x` means that Left has a good response to any move by Right; in particular, the
+theorem `zero_le` below states
 ```
 0 ≤ x ↔ ∀ j : x.right_moves, ∃ i : (x.move_right j).left_moves, 0 ≤ (x.move_right j).move_left i
 ```
-On the other hand the statement `0 < x` means that Left has a good move; in particular
-the theorem `zero_lt` below states
+On the other hand the statement `0 < x` means that Left has a good move right now; in particular the
+theorem `zero_lt` below states
 ```
 0 < x ↔ ∃ i : left_moves x, ∀ j : right_moves (x.move_left i), 0 < (x.move_left i).move_right j
 ```
-The theorems `le_def`, `lt_def`, `le_def_lt` and `lt_def_lt` give recursive characterisations of the
-two relations.
+
+The theorems `le_def`, `lt_def`, give a recursive characterisation of each relation, in terms of
+themselves two moves later. The theorems `le_def_lt` and `lt_def_lt` give recursive
+characterisations of each relation in terms of the other relation one move later.
 
 We define an equivalence relation `equiv p q ↔ p ≤ q ∧ q ≤ p`. Later, games will be defined as the
 quotient by this relation.
@@ -59,23 +70,28 @@ quotient by this relation.
 ## Algebraic structures
 
 We next turn to defining the operations necessary to make games into a commutative additive group.
-Addition is defined for $x = \{xL | xR\}$ and $y = \{yL | yR\}$ by
-$x + y = \{xL + y, x + yL | xR + y, x + yR\}$.
-Negation is defined by $\{xL | xR\} = \{-xR | -xL\}$. We show that these operations respect the
-equivalence relation, and hence descend to games.
-At the level of games, these operations satisfy all the laws of a commutative group. To prove
-the necessary equivalence relations at the level of pregames, we introduce the notion of a `relabelling`
-of a game, and show, for example, that there is a relabelling between `x + (y + z)` and `(x + y) + z`.
+Addition is defined for $x = \{xL | xR\}$ and $y = \{yL | yR\}$ by $x + y = \{xL + y, x + yL | xR +
+y, x + yR\}$. Negation is defined by $\{xL | xR\} = \{-xR | -xL\}$.
+
+The order structures interact in the expected way with addition, so we have
+```
+theorem le_iff_sub_nonneg {x y : pgame} : x ≤ y ↔ 0 ≤ y - x := sorry
+theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x := sorry
+```
+
+We show that these operations respect the equivalence relation, and hence descend to games. At the
+level of games, these operations satisfy all the laws of a commutative group. To prove the necessary
+equivalence relations at the level of pregames, we introduce the notion of a `relabelling` of a
+game, and show, for example, that there is a relabelling between `x + (y + z)` and `(x + y) + z`.
 
 ## Future work
-* The theory of dominated and reversible positions, and unique normal form
-for short games.
+* The theory of dominated and reversible positions, and unique normal form for short games.
 * Analysis of basic domineering positions.
 * Impartial games, nym, and the Sprague-Grundy theorem.
 * Hex.
 * Temperature.
-* The development of surreal numbers, based on this development of combinatorial games,
-is still quite incomplete.
+* The development of surreal numbers, based on this development of combinatorial games, is still
+  quite incomplete.
 
 ## References
 
@@ -395,6 +411,11 @@ local infix ` ≈ ` := pgame.equiv
 @[trans] theorem equiv_trans {x y z} : x ≈ y → y ≈ z → x ≈ z
 | ⟨xy, yx⟩ ⟨yz, zy⟩ := ⟨le_trans xy yz, le_trans zy yx⟩
 
+theorem lt_of_lt_of_equiv {x y z} (h₁ : x < y) (h₂ : y ≈ z) : x < z := lt_of_lt_of_le h₁ h₂.1
+theorem le_of_le_of_equiv {x y z} (h₁ : x ≤ y) (h₂ : y ≈ z) : x ≤ z := le_trans h₁ h₂.1
+theorem lt_of_equiv_of_lt {x y z} (h₁ : x ≈ y) (h₂ : y < z) : x < z := lt_of_le_of_lt h₁.1 h₂
+theorem le_of_equiv_of_le {x y z} (h₁ : x ≈ y) (h₂ : y ≤ z) : x ≤ z := le_trans h₁.1 h₂
+
 theorem le_congr {x₁ y₁ x₂ y₂} : x₁ ≈ x₂ → y₁ ≈ y₂ → (x₁ ≤ y₁ ↔ x₂ ≤ y₂)
 | ⟨x12, x21⟩ ⟨y12, y21⟩ := ⟨λ h, le_trans x21 (le_trans h y12), λ h, le_trans x12 (le_trans h y21)⟩
 
@@ -471,6 +492,8 @@ le_of_restricted (restricted_of_relabelling r)
 /-- A relabelling lets us prove equivalence of games. -/
 theorem equiv_of_relabelling {x y : pgame} (r : relabelling x y) : x ≈ y :=
 ⟨le_of_relabelling r, le_of_relabelling r.symm⟩
+
+instance {x y : pgame} : has_coe (relabelling x y) (x ≈ y) := ⟨equiv_of_relabelling⟩
 
 /-- Replace the types indexing the next moves for Left and Right by equivalent types. -/
 def relabel {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') :=
@@ -863,6 +886,23 @@ theorem add_lt_add_left {x y z : pgame} (h : y < z) : x + y < x + z :=
 calc x + y ≤ y + x : add_comm_le
      ... < z + x   : add_lt_add_right h
      ... ≤ x + z   : add_comm_le
+
+theorem le_iff_sub_nonneg {x y : pgame} : x ≤ y ↔ 0 ≤ y - x :=
+⟨λ h, le_trans zero_le_add_right_neg (add_le_add_right h),
+ λ h,
+  calc x ≤ 0 + x : le_of_relabelling (zero_add_relabelling x).symm
+     ... ≤ (y - x) + x : add_le_add_right h
+     ... ≤ y + (-x + x) : le_of_relabelling (add_assoc_relabelling _ _ _)
+     ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero)
+     ... ≤ y : le_of_relabelling (add_zero_relabelling y)⟩
+theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
+⟨λ h, lt_of_le_of_lt zero_le_add_right_neg (add_lt_add_right h),
+ λ h,
+  calc x ≤ 0 + x : le_of_relabelling (zero_add_relabelling x).symm
+     ... < (y - x) + x : add_lt_add_right h
+     ... ≤ y + (-x + x) : le_of_relabelling (add_assoc_relabelling _ _ _)
+     ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero)
+     ... ≤ y : le_of_relabelling (add_zero_relabelling y)⟩
 
 /-- The pre-game `star`, which is fuzzy/confused with zero. -/
 def star : pgame := pgame.of_lists [0] [0]

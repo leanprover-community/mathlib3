@@ -298,6 +298,12 @@ infixr ` →+* `:25 := ring_hom
 instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe_to_fun (α →+* β) :=
 ⟨_, ring_hom.to_fun⟩
 
+instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe (α →+* β) (α →* β) :=
+⟨ring_hom.to_monoid_hom⟩
+
+instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe (α →+* β) (α →+ β) :=
+⟨ring_hom.to_add_monoid_hom⟩
+
 namespace ring_hom
 
 variables {β : Type v} [semiring α] [semiring β]

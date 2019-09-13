@@ -16,11 +16,11 @@ This file provides a basic infrastructure to define concrete categories using bu
 define forgetful functors between them.
 -/
 
-universes w v u
+universes u
 
 namespace category_theory
 
-variables {c : Type u → Type v} (hom : Π ⦃α β : Type u⦄ (Iα : c α) (Iβ : c β), Type w)
+variables {c : Type u → Type u} (hom : Π ⦃α β : Type u⦄ (Iα : c α) (Iβ : c β), Type u)
 
 /-- Class for bundled homs. Note that the arguments order follows that of lemmas for `monoid_hom`.
 This way we can use `⟨@monoid_hom.to_fun, @monoid_hom.id ...⟩` in an instance. -/
@@ -80,7 +80,7 @@ congr_fun ((forget _).map_comp _ _) x
 
 section full_subcategory
 
-variables {hom} (𝒞) {d : Type u → Type v} (obj : ∀ ⦃α⦄, d α → c α)
+variables {hom} (𝒞) {d : Type u → Type u} (obj : ∀ ⦃α⦄, d α → c α)
 include obj
 
 /--
@@ -106,7 +106,7 @@ end full_subcategory
 variables {hom}
 
 /-- A version of `has_forget.mk'` for categories defined using `@bundled_hom`. -/
-def mk_has_forget {d : Type u → Type v} {hom_d : Π ⦃α β : Type u⦄ (Iα : d α) (Iβ : d β), Type w}
+def mk_has_forget {d : Type u → Type u} {hom_d : Π ⦃α β : Type u⦄ (Iα : d α) (Iβ : d β), Type u}
   [bundled_hom hom_d] (obj : ∀ ⦃α⦄, c α → d α)
   (map : ∀ {X Y : bundled c}, (X ⟶ Y) → ((bundled.map obj X) ⟶ (bundled.map obj Y)))
   (h_map : ∀ {X Y : bundled c} (f : X ⟶ Y), (map f : X → Y) = f)

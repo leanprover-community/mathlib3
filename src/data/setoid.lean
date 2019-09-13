@@ -8,18 +8,19 @@ import data.quot data.set.lattice data.fintype order.order_iso order.galois_conn
 
 /-!
 # Equivalence relations
+
 The first section of the file defines the complete lattice of equivalence relations 
 on a type, results about the inductively defined equivalence closure of a binary relation, 
 and the analogues of some isomorphism theorems for quotients of arbitrary types.
 
-The second section comprises properties of equivalence relations viewed as partitions and 
-a function "bell" that computes the number of possible partitions of a finite set, along 
-with some preliminary results about "bell".
+The second section comprises properties of equivalence relations viewed as partitions, and 
+a function "bell" that computes Bell numbers - the numbers of possible partitions of a finite 
+set - along with some preliminary results about "bell".
 
 ## Implementation notes
+
 The function "rel" and lemmas ending in ' make it easier to talk about different 
-equivalence relations on the same type without adding a coercion instance from 
-setoid α to (α → α → Prop).
+equivalence relations on the same type.
 
 The complete lattice instance for setoids could be defined by lifting the Galois
 insertion of equivalence relations on α into binary relations on α, but the resulting
@@ -31,10 +32,16 @@ reason about them using the existing "setoid" and its infrastructure.
 Eventually there should be a proof here that Bell numbers are the number of possible
 partitions of a finite set.
 
+## References
+
+* https://en.wikipedia.org/wiki/Bell_triangle
+
 ## Tags
+
 setoid, equivalence, iseqv, relation, equivalence relation, partition, equivalence 
 class, Bell number, Bell triangle
 -/
+
 variables {α : Type*} {β : Type*}
 
 open lattice 
@@ -63,16 +70,14 @@ namespace setoid
 /-- A version of setoid.r that takes the equivalence relation as an explicit argument. -/
 def rel (r : setoid α) := @setoid.r _ r
 
-@[extensionality] lemma ext' {r s : setoid α} 
-  (H : ∀ a b, r.rel a b ↔ s.rel a b) : r = s := ext H
+@[extensionality] lemma ext' {r s : setoid α} (H : ∀ a b, r.rel a b ↔ s.rel a b) : 
+  r = s := ext H
 
 lemma ext_iff {r s : setoid α} : r = s ↔ ∀ a b, r.rel a b ↔ s.rel a b :=
 ⟨λ h a b, h ▸ iff.rfl, ext'⟩
 
 /-- Defining the relation '≤' for equivalence relations. -/
 instance : has_le (setoid α) := ⟨λ r s, ∀ x y, r.rel x y → s.rel x y⟩
-
-instance : has_mem (α × α) (setoid α) := ⟨λ x r, r.rel x.1 x.2⟩
 
 @[refl] lemma refl' (r : setoid α) (x) : r.rel x x := r.2.1 x
 @[symm] lemma symm' (r : setoid α) : ∀ {x y}, r.rel x y → r.rel y x := λ _ _ h, r.2.2.1 h
@@ -90,13 +95,13 @@ ext' $ λ x y, quotient.eq
 /-- The infimum of two equivalence relations. -/
 instance : has_inf (setoid α) :=
 ⟨λ r s, ⟨λ x y, r.rel x y ∧ s.rel x y, ⟨λ x, ⟨r.refl' x, s.refl' x⟩, 
- λ x y h, ⟨r.symm' h.1, s.symm' h.2⟩, 
+ λ _ _ h, ⟨r.symm' h.1, s.symm' h.2⟩, 
  λ _ _ _ h1 h2, ⟨r.trans' h1.1 h2.1, s.trans' h1.2 h2.2⟩⟩⟩⟩
 
 /-- The infimum of a set of equivalence relations. -/
 instance : has_Inf (setoid α) :=
-⟨λ S, ⟨λ x y, (∀ r ∈ S, rel r x y), 
-⟨λ x r hr, r.refl' x, λ x y h r hr, r.symm' $ h r hr, 
+⟨λ S, ⟨λ x y, ∀ r ∈ S, rel r x y, 
+⟨λ x r hr, r.refl' x, λ _ _ h r hr, r.symm' $ h r hr, 
  λ _ _ _ h1 h2 r hr, r.trans' (h1 r hr) $ h2 r hr⟩⟩⟩
 
 /-- The infimum of a set of equivalence relations is contained in any element of the set. -/
@@ -118,8 +123,8 @@ instance complete_lattice : complete_lattice (setoid α) :=
 { sup := has_sup.sup,
   le := (≤),
   lt := λ r s, r ≤ s ∧ ¬s ≤ r,
-  le_refl := λ r x y h, h,
-  le_trans := λ _ _ _ hr hs x y h, hs x y $ hr x y h,
+  le_refl := λ _ _ _ h, h,
+  le_trans := λ _ _ _ hr hs _ _ h, hs _ _ $ hr _ _ h,
   lt_iff_le_not_le := λ _ _, iff.rfl,
   le_antisymm := λ r s h1 h2, setoid.ext' $ λ x y, ⟨h1 x y, h2 x y⟩,
   le_sup_left := λ r s, le_Inf _ r $ λ _ hx, hx.1,
@@ -140,7 +145,7 @@ instance complete_lattice : complete_lattice (setoid α) :=
   Inf_le := Inf_le,
   le_Inf := le_Inf }
 
-/-- The inductively defined equivalence closure of an arbitrary binary relation r is the infimum 
+/-- The inductively defined equivalence closure of a binary relation r is the infimum 
     of the set of all equivalence relations containing r. -/
 theorem eqv_gen_eq (r : α → α → Prop) : 
   eqv_gen.setoid r = Inf {s : setoid α | ∀ x y, r x y → s.rel x y} :=
@@ -160,13 +165,13 @@ by rw eqv_gen_eq; apply congr_arg Inf; ext; exact
 /-- The supremum of a set S of equivalence relations is the equivalence closure of the binary
     relation 'there exists r ∈ S relating x and y'. -/
 lemma Sup_eq_eqv_gen (S : set (setoid α)) : 
-  Sup S = eqv_gen.setoid (λ x y, ∃ r : setoid α, r∈S ∧ r.rel x y) :=
+  Sup S = eqv_gen.setoid (λ x y, ∃ r : setoid α, r ∈ S ∧ r.rel x y) :=
 by rw eqv_gen_eq; apply congr_arg Inf; ext;
    exact ⟨λ h _ _ ⟨r, hr⟩, h r hr.1 _ _ hr.2, λ h r hS _ _ hr, h _ _ ⟨r, hS, hr⟩⟩
 
 /-- The equivalence closure of an equivalence relation r is r. -/
 @[simp] lemma eqv_gen_of_setoid (r : setoid α) : eqv_gen.setoid r.r = r :=
-le_antisymm (by rw eqv_gen_eq; exact Inf_le _ r (λ x y h, h)) eqv_gen.rel
+le_antisymm (by rw eqv_gen_eq; exact Inf_le _ r (λ _ _ h, h)) eqv_gen.rel
 
 /-- Equivalence closure is idempotent. -/
 @[simp] lemma eqv_gen_idem (r : α → α → Prop) : 
@@ -182,7 +187,7 @@ by rw eqv_gen_eq; exact Inf_le _ _ h
 /-- Equivalence closure of binary relations is monotonic. -/
 theorem eqv_gen_mono {r s : α → α → Prop} (h : ∀ x y, r x y → s x y) : 
   eqv_gen.setoid r ≤ eqv_gen.setoid s :=
-eqv_gen_le $ λ x y hr, eqv_gen.rel _ _ $ h x y hr
+eqv_gen_le $ λ _ _ hr, eqv_gen.rel _ _ $ h _ _ hr
 
 theorem le_def {r s : setoid α} : r ≤ s ↔ ∀ {x y}, r.rel x y → s.rel x y := iff.rfl
 
@@ -199,8 +204,7 @@ theorem inf_iff_and {r s : setoid α} {x y} :
   (r ⊓ s).rel x y ↔ r.rel x y ∧ s.rel x y := iff.rfl
 
 /-- The underlying binary operation of the infimum of a set of equivalence relations
-    is the infimum of the set's image under the map to the underlying
-    binary operation. -/
+    is the infimum of the set's image under the map to the underlying binary operation. -/
 theorem Inf_def {s : set (setoid α)} : (Inf s).rel = Inf (rel '' s) :=
 begin
   ext x y,
@@ -339,7 +343,7 @@ let ⟨_, _, _, h⟩ := H x in (h b hc hb).symm.trans $ h b' hc' hb'
 def mk_classes (c : set (set α)) 
   (H : ∀ a, ∃ b ∈ c, a ∈ b ∧ ∀ b' ∈ c, a ∈ b' → b = b') : 
   setoid α := 
-⟨λ x y, ∀ b ∈ c, (x ∈ b → y ∈ b), ⟨λ _ _ _ hx, hx, 
+⟨λ x y, ∀ b ∈ c, x ∈ b → y ∈ b, ⟨λ _ _ _ hx, hx, 
  λ x _ h _ hb hy, let ⟨z, hc, hx, hz⟩ := H x in 
     eq_of_mem_eqv_class H hc (h z hc hx) hb hy ▸ hx,
  λ x y z h1 h2 b hc hb, let ⟨v, hvc, hy, hv⟩ := H y in let ⟨w, hwc, hz, hw⟩ := H z in 
@@ -384,7 +388,7 @@ lemma eq_of_mem_classes {r : setoid α} {x b} (hc : b ∈ r.classes)
   (hb : x ∈ b) {b'} (hc' : b' ∈ r.classes) (hb' : x ∈ b') : b = b' :=
 eq_of_mem_eqv_class classes_eqv_classes hc hb hc' hb'
 
-/-- The elements of a set of set partitioning α are the equivalence classes of the 
+/-- The elements of a set of sets partitioning α are the equivalence classes of the 
     equivalence relation defined by the set of sets. -/
 lemma eq_eqv_class_of_mem {c : set (set α)} 
   (H : ∀ a, ∃ b ∈ c, a ∈ b ∧ ∀ b' ∈ c, a ∈ b' → b = b')
@@ -413,7 +417,7 @@ lemma eqv_classes_disjoint {c : set (set α)}
 set.disjoint_left.2 $ λ x hx1 hx2, let ⟨b, hc, hx, hb⟩ := H x in
   h $ eq_of_mem_eqv_class H h₁ hx1 h₂ hx2
  
-/-- A set of disjoint sets covering α partition α. -/
+/-- A set of disjoint sets covering α partition α (classical). -/
 lemma eqv_classes_of_disjoint_union {c : set (set α)} (hu : set.sUnion c = @set.univ α) 
   (H : ∀ b b' ∈ c, b ≠ b' → disjoint b b') : 
   ∀ a, ∃ b ∈ c, a ∈ b ∧ ∀ b' ∈ c, a ∈ b' → b = b' :=
@@ -424,8 +428,8 @@ lemma eqv_classes_of_disjoint_union {c : set (set α)} (hu : set.sUnion c = @set
 /-- If x ∈ α is in 2 elements of a set of disjoint sets covering α, those elements 
     are equal. -/
 lemma eq_of_mem_disjoint {c : set (set α)} (hu : set.sUnion c = @set.univ α) 
-  (H : ∀ b b' ∈ c, b ≠ b' → disjoint b b') {x b} (hb : b ∈ c) (hx : x ∈ b)
-  {b'} (hb' : b' ∈ c) (hx' : x ∈ b') : b = b' :=
+  (H : ∀ b b' ∈ c, b ≠ b' → disjoint b b') {x b b'} (hb : b ∈ c) (hx : x ∈ b)
+  (hb' : b' ∈ c) (hx' : x ∈ b') : b = b' :=
 eq_of_mem_eqv_class (eqv_classes_of_disjoint_union hu H) hb hx hb' hx'
 
 /-- Makes an equivalence relation from a set of disjoints sets covering α. -/
@@ -486,7 +490,7 @@ variables (α)
 
 /-- The order-preserving bijection between equivalence relations and partitions of sets. -/
 def partition.order_iso : 
-  ((≤) : setoid α → setoid α → Prop) ≃o (@setoid.partitions.partial_order α).le := 
+  ((≤) : setoid α → setoid α → Prop) ≃o (@setoid.partition.partial_order α).le := 
 { to_fun := λ r, ⟨r.classes, empty_not_mem_classes, classes_eqv_classes⟩,
   inv_fun := λ x, mk_classes x.1 x.2.2,
   left_inv := λ r, mk_classes_classes r,
@@ -531,14 +535,14 @@ lemma init_length {a : ℕ} {l : list ℕ} :
   length (bell_init (a::l)) = length (a::l) + 1 :=
 length_cons _ _ 
 
-/-- Folding a function over a list from the left, appending the function's value on
-    an input to the beginning, increases its length by 1. -/
+/-- Folding a function over a list from the left and returning a list of partial results, 
+    after appending an inital input to the beginning, increases its length by 1. -/
 lemma length_scanl {β : Type*} {f : α → β → α} : 
   ∀ a l, length (scanl f a l) = l.length + 1
 | a [] := rfl
 | a (x :: l) := by erw [length_cons, length_cons, length_scanl] 
 
-/-- Applying "bell_aux" does not change a list's length. -/
+/-- Applying "bell_aux" to a nonempty list does not change the list's length. -/
 lemma aux_length {a : ℕ} {l : list ℕ} : 
   length (bell_aux (a :: l)) = length (a :: l) := 
 by erw length_scanl; norm_num

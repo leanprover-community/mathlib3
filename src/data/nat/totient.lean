@@ -34,7 +34,7 @@ calc ((range n.succ).filter (∣ n)).sum φ
     (λ _ _, rfl)
     (λ a b ha hb h,
       have ha : a * (n / a) = n, from nat.mul_div_cancel' (mem_filter.1 ha).2,
-      have (n / a) > 0, from nat.pos_of_ne_zero (λ h, by simp [*, lt_irrefl] at *),
+      have 0 < (n / a), from nat.pos_of_ne_zero (λ h, by simp [*, lt_irrefl] at *),
       by rw [← nat.mul_right_inj this, ha, h, nat.mul_div_cancel' (mem_filter.1 hb).2])
     (λ b hb,
       have hb : b < n.succ ∧ b ∣ n, by simpa [-range_succ] using hb,

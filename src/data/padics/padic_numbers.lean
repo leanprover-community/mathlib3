@@ -71,7 +71,7 @@ variables {p : ℕ} [nat.prime p]
 /-- The p-adic norm of the entries of a nonzero Cauchy sequence of rationals is eventually
 constant. -/
 lemma stationary {f : cau_seq ℚ (padic_norm p)} (hf : ¬ f ≈ 0) :
-  ∃ N, ∀ m n, m ≥ N → n ≥ N → padic_norm p (f n) = padic_norm p (f m) :=
+  ∃ N, ∀ m n, N ≤ m → N ≤ n → padic_norm p (f n) = padic_norm p (f m) :=
 have ∃ ε > 0, ∃ N1, ∀ j ≥ N1, ε ≤ padic_norm p (f j),
   from cau_seq.abv_pos_of_not_lim_zero $ not_lim_zero_of_not_congr_zero hf,
 let ⟨ε, hε, N1, hN1⟩ := this,

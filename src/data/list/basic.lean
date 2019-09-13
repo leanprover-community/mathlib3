@@ -770,7 +770,7 @@ theorem nth_le_nth : ∀ {l : list α} {n} h, nth l n = some (nth_le l n h)
 | (a :: l) 0     h := rfl
 | (a :: l) (n+1) h := @nth_le_nth l n _
 
-theorem nth_ge_len : ∀ {l : list α} {n}, n ≥ length l → nth l n = none
+theorem nth_ge_len : ∀ {l : list α} {n}, length l ≤ n → nth l n = none
 | []       n     h := rfl
 | (a :: l) (n+1) h := nth_ge_len (le_of_succ_le_succ h)
 
@@ -1009,7 +1009,7 @@ lemma remove_nth_insert_nth (n:ℕ) (l : list α) : (l.insert_nth n a).remove_nt
 by rw [remove_nth_eq_nth_tail, insert_nth, modify_nth_tail_modify_nth_tail_same];
 from modify_nth_tail_id _ _
 
-lemma insert_nth_remove_nth_of_ge : ∀n m as, n < length as → m ≥ n →
+lemma insert_nth_remove_nth_of_ge : ∀n m as, n < length as → n ≤ m →
   insert_nth m a (as.remove_nth n) = (as.insert_nth (m + 1) a).remove_nth n
 | 0     0     []      has _   := (lt_irrefl _ has).elim
 | 0     0     (a::as) has hmn := by simp [remove_nth, insert_nth]
@@ -1060,7 +1060,7 @@ theorem take_cons (n) (a : α) (l : list α) : take (succ n) (a::l) = a :: take 
 | []     := rfl
 | (a::l) := begin change a :: (take (length l) l) = a :: l, rw take_all end
 
-theorem take_all_of_ge : ∀ {n} {l : list α}, n ≥ length l → take n l = l
+theorem take_all_of_ge : ∀ {n} {l : list α}, length l ≤ n → take n l = l
 | 0     []     h := rfl
 | 0     (a::l) h := absurd h (not_le_of_gt (zero_lt_succ _))
 | (n+1) []     h := rfl
@@ -4424,7 +4424,7 @@ by rwa [← succ_singleton, append_consecutive]; exact nat.le_succ _
 theorem eq_cons {n m : ℕ} (h : n < m) : Ico n m = n :: Ico (n + 1) m :=
 by rw [← append_consecutive (nat.le_succ n) h, succ_singleton]; refl
 
-@[simp] theorem pred_singleton {m : ℕ} (h : m > 0) : Ico (m - 1) m = [m - 1] :=
+@[simp] theorem pred_singleton {m : ℕ} (h : 0 < m) : Ico (m - 1) m = [m - 1] :=
 by dsimp [Ico]; rw nat.sub_sub_self h; simp
 
 theorem chain'_succ (n m : ℕ) : chain' (λa b, b = succ a) (Ico n m) :=
@@ -4458,13 +4458,13 @@ begin
   { rw [min_eq_right hlm, filter_lt_of_ge hlm] }
 end
 
-lemma filter_ge_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, x ≥ l) = Ico n m :=
+lemma filter_ge_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, l ≤ x) = Ico n m :=
 filter_eq_self.2 $ assume k hk, le_trans hln (mem.1 hk).1
 
-lemma filter_ge_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, x ≥ l) = [] :=
+lemma filter_ge_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, l ≤ xl) = [] :=
 filter_eq_nil.2 $ assume k hk, not_le_of_gt (lt_of_lt_of_le (mem.1 hk).2 hml)
 
-lemma filter_ge_of_ge {n m l : ℕ} (hnl : n ≤ l) : (Ico n m).filter (λ x, x ≥ l) = Ico l m :=
+lemma filter_ge_of_ge {n m l : ℕ} (hnl : n ≤ l) : (Ico n m).filter (λ x, l ≤ x) = Ico l m :=
 begin
   cases le_total l m with hlm hml,
   { rw [← append_consecutive hnl hlm, filter_append,
@@ -4472,7 +4472,7 @@ begin
   { rw [eq_nil_of_le hml, filter_ge_of_top_le hml] }
 end
 
-@[simp] lemma filter_ge (n m l : ℕ) : (Ico n m).filter (λ x, x ≥ l) = Ico (_root_.max n l) m :=
+@[simp] lemma filter_ge (n m l : ℕ) : (Ico n m).filter (λ x, l ≤ x) = Ico (_root_.max n l) m :=
 begin
   cases le_total n l with hnl hln,
   { rw [max_eq_right hnl, filter_ge_of_ge hnl] },

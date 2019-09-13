@@ -277,7 +277,7 @@ by simp [hq, padic_norm]
 /--
 The p-adic norm is nonnegative.
 -/
-protected lemma nonneg (q : ℚ) : padic_norm p q ≥ 0 :=
+protected lemma nonneg (q : ℚ) : 0 ≤ padic_norm p q :=
 if hq : q = 0 then by simp [hq]
 else
   begin

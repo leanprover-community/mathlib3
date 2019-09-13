@@ -35,7 +35,7 @@ begin rw [h, dist_self] end
 theorem dist_eq_sub_of_le {n m : ℕ} (h : n ≤ m) : dist n m = m - n :=
 begin rw [dist.def, sub_eq_zero_of_le h, zero_add] end
 
-theorem dist_eq_sub_of_ge {n m : ℕ} (h : n ≥ m) : dist n m = n - m :=
+theorem dist_eq_sub_of_ge {n m : ℕ} (h : m ≤ n) : dist n m = n - m :=
 begin rw [dist_comm], apply dist_eq_sub_of_le h end
 
 theorem dist_zero_right (n : ℕ) : dist n 0 = n :=
@@ -92,7 +92,7 @@ or.elim (lt_or_ge i j)
 theorem dist_succ_succ {i j : nat} : dist (succ i) (succ j) = dist i j :=
 by simp [dist.def, succ_sub_succ]
 
-theorem dist_pos_of_ne {i j : nat} : i ≠ j → dist i j > 0 :=
+theorem dist_pos_of_ne {i j : nat} : i ≠ j → 0 < dist i j :=
 assume hne, nat.lt_by_cases
   (assume : i < j,
      begin rw [dist_eq_sub_of_le (le_of_lt this)], apply nat.sub_pos_of_lt this end)

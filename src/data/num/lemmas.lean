@@ -32,7 +32,7 @@ namespace pos_num
   | (bit0 p) := rfl
   | (bit1 p) := (congr_arg _root_.bit0 (succ_to_nat p)).trans $
     show ↑p + 1 + ↑p + 1 = ↑p + ↑p + 1 + 1, by simp
-  
+
   theorem one_add (n : pos_num) : 1 + n = succ n := by cases n; refl
   theorem add_one (n : pos_num) : n + 1 = succ n := by cases n; refl
 
@@ -72,7 +72,7 @@ namespace pos_num
   | (bit1 p) := (add_to_nat (bit0 (m * p)) m).trans $
     show (↑(m * p) + ↑(m * p) + ↑m : ℕ) = ↑m * (p + p) + m, by rw [mul_to_nat, left_distrib]
 
-  theorem to_nat_pos : ∀ n : pos_num, (n : ℕ) > 0
+  theorem to_nat_pos : ∀ n : pos_num, 0 < (n : ℕ)
   | 1        := zero_lt_one
   | (bit0 p) := let h := to_nat_pos p in add_pos h h
   | (bit1 p) := nat.succ_pos _
@@ -429,7 +429,7 @@ namespace num
 
   @[simp] theorem cast_bit0 [semiring α] (n : num) : (n.bit0 : α) = _root_.bit0 n :=
   by rw [← bit0_of_bit0, _root_.bit0, cast_add]; refl
-  
+
   @[simp] theorem cast_bit1 [semiring α] (n : num) : (n.bit1 : α) = _root_.bit1 n :=
   by rw [← bit1_of_bit1, _root_.bit1, bit0_of_bit0, cast_add, cast_bit0]; refl
 

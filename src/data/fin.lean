@@ -112,7 +112,7 @@ else i.pred $
   ne_of_gt (lt_of_le_of_lt (zero_le p) this)
 
 /-- `sub_nat i h` subtracts `m` from `i`, generalizes `fin.pred`. -/
-def sub_nat (m) (i : fin (n + m)) (h : i.val ≥ m) : fin n :=
+def sub_nat (m) (i : fin (n + m)) (h : m ≤ i.val) : fin n :=
 ⟨i.val - m, by simp [nat.sub_lt_right_iff_lt_add h, i.is_lt]⟩
 
 /-- `add_nat i h` adds `m` on `i`, generalizes `fin.succ`. -/
@@ -144,10 +144,10 @@ fin.eq_of_veq rfl
 @[simp] lemma cast_lt_cast_succ {n : ℕ} (a : fin n) (h : a.1 < n) : cast_lt (cast_succ a) h = a :=
 by cases a; refl
 
-@[simp] lemma sub_nat_val (i : fin (n + m)) (h : i.val ≥ m) : (i.sub_nat m h).val = i.val - m :=
+@[simp] lemma sub_nat_val (i : fin (n + m)) (h : m ≤ i.val) : (i.sub_nat m h).val = i.val - m :=
 rfl
 
-@[simp] lemma add_nat_val (i : fin (n + m)) (h : i.val ≥ m) : (i.add_nat m).val = i.val + m :=
+@[simp] lemma add_nat_val (i : fin (n + m)) (h : m ≤ i.val) : (i.add_nat m).val = i.val + m :=
 rfl
 
 @[simp] lemma cast_succ_inj {a b : fin n} : a.cast_succ = b.cast_succ ↔ a = b :=

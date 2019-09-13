@@ -26,9 +26,9 @@ variables (a b c : ℚ)
 open_locale rat
 
 protected def nonneg : ℚ → Prop
-| ⟨n, d, h, c⟩ := n ≥ 0
+| ⟨n, d, h, c⟩ := 0 ≤ n
 
-@[simp] theorem mk_nonneg (a : ℤ) {b : ℤ} (h : b > 0) : (a /. b).nonneg ↔ a ≥ 0 :=
+@[simp] theorem mk_nonneg (a : ℤ) {b : ℤ} (h : 0 < b) : (a /. b).nonneg ↔ 0 ≤ a :=
 begin
   generalize ha : a /. b = x, cases x with n₁ d₁ h₁ c₁, rw num_denom' at ha,
   simp [rat.nonneg],
@@ -84,7 +84,7 @@ instance : has_le ℚ := ⟨rat.le⟩
 instance decidable_le : decidable_rel ((≤) : ℚ → ℚ → Prop)
 | a b := show decidable (rat.nonneg (b - a)), by apply_instance
 
-protected theorem le_def {a b c d : ℤ} (b0 : b > 0) (d0 : d > 0) :
+protected theorem le_def {a b c d : ℤ} (b0 : 0 < b) (d0 : 0 < d) :
   a /. b ≤ c /. d ↔ a * d ≤ c * b :=
 show rat.nonneg _ ↔ _,
 by simpa [ne_of_gt b0, ne_of_gt d0, mul_pos b0 d0, mul_comm]

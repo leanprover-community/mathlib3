@@ -793,6 +793,12 @@ protected theorem disjoint_iff {s t : set α} : disjoint s t ↔ s ∩ t ⊆ ∅
 lemma not_disjoint_iff {s t : set α} : ¬disjoint s t ↔ ∃x, x ∈ s ∧ x ∈ t :=
 by { rw [set.disjoint_iff, subset_empty_iff], apply ne_empty_iff_exists_mem }
 
+lemma disjoint_left {s t : set α} : disjoint s t ↔ ∀ {a}, a ∈ s → a ∉ t :=
+show (∀ x, ¬(x ∈ s ∩ t)) ↔ _, from ⟨λ h a, not_and.1 $ h a, λ h a, not_and.2 $ h a⟩
+
+theorem disjoint_right {s t : set α} : disjoint s t ↔ ∀ {a}, a ∈ t → a ∉ s :=
+by rw [disjoint.comm, disjoint_left]
+
 theorem disjoint_diff {a b : set α} : disjoint a (b \ a) :=
 disjoint_iff.2 (inter_diff_self _ _)
 

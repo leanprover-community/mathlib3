@@ -83,6 +83,11 @@ theorem length_pos_iff_exists_mem {l : list α} : 0 < length l ↔ ∃ a, a ∈ 
 theorem length_eq_one {l : list α} : length l = 1 ↔ ∃ a, l = [a] :=
 ⟨match l with [a], _ := ⟨a, rfl⟩ end, λ ⟨a, e⟩, e.symm ▸ rfl⟩
 
+lemma exists_of_length_succ {n} :
+  ∀ l : list α, l.length = n + 1 → ∃ h t, l = h :: t
+| [] H := absurd H.symm $ succ_ne_zero n
+| (h :: t) H := ⟨h, t, rfl⟩
+
 theorem mem_split {a : α} {l : list α} (h : a ∈ l) : ∃ s t : list α, l = s ++ a :: t :=
 begin
   induction l with b l ih, {cases h}, rcases h with rfl | h,
@@ -831,6 +836,15 @@ lemma nth_append  {l₁ l₂ : list α} {n : ℕ} (hn : n < l₁.length) :
 have hn' : n < (l₁ ++ l₂).length := lt_of_lt_of_le hn
   (by rw length_append; exact le_add_right _ _),
 by rw [nth_le_nth hn, nth_le_nth hn', nth_le_append]
+
+lemma last_eq_nth_le : ∀ (l : list α), l ≠ [] →
+   last l (by exact a) = l.nth_le (l.length - 1)
+     (sub_lt (show 0 < l.length, by exact pos_iff_ne_zero.2 
+     (λ h0, a $ length_eq_zero.1 h0)) $ show 0 < 1, from dec_trivial)
+| [] H := rfl
+| [a] H := by rw [last_singleton, nth_le_singleton]
+| (a :: b :: l) H := by {rw [last_cons, last_eq_nth_le (b :: l)], 
+                         refl, exact cons_ne_nil b l}
 
 @[simp] lemma nth_concat_length: ∀ (l : list α) (a : α), (l ++ [a]).nth l.length = a
 | []     a := rfl

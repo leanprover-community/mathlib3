@@ -27,40 +27,21 @@ begin
     exact t },
 end
 
-example (X Y : CommRing) (f : X ⟶ Y) : X →+* Y :=
+example (X Y : CommRing.{u₁}) (f : X ≅ Y) (x : units.{u₁} (X.α)) :
+  (f.inv : Y →* X) ((f.hom : X →* Y) x) = x :=
 begin
-  exact f,
-end
 
-instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe (α →+* β) (α →+ β) :=
-⟨ring_hom.to_add_monoid_hom⟩
-
-
-example (X Y : CommRing) (f : X ⟶ Y) : X →+ Y :=
-begin
-  have f' : X →+* Y := f,
-  exact f,
-  exact f',
-  exact f'.to_add_monoid_hom,
 end
 
 instance iso_functorial_units : iso_functorial.{u₁ u₁} (λ (X : CommRing.{u₁}), units (X.α)) :=
 { map := λ X Y f,
-  { hom := λ u, units.map f.hom u,
-    -- { val := f.hom u.val,
-    --   inv := f.hom u.inv,
-    --   val_inv := sorry,
-    --   inv_val := sorry },
-    inv := λ u,
-    { val := f.inv u.val,
-      inv := f.inv u.inv,
-      val_inv := sorry,
-      inv_val := sorry },
+  { hom := λ u, units.map (f.hom : X →* Y) u,
+    inv := λ u, units.map (f.inv : Y →* X) u,
     hom_inv_id' := begin
       dsimp,
       ext1,
       dsimp,
-      ext1,  end } }
+      ext1, simp, extract_goal end } }
 
 
 -- instance iso_functorial_units_crap : iso_functorial.{u₁ u₁} (λ (X : (forget CommRing.{u₁}).elements), units ((X.1).α)) :=

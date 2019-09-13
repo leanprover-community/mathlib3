@@ -1173,3 +1173,10 @@ Lift an expression to another type.
   specify it again as the third argument to `with`, like this: `lift n to ℕ using h with n rfl h`.
 * More generally, this can lift an expression from `α` to `β` assuming that there is an instance
   of `can_lift α β`. In this case the proof obligation is specified by `can_lift.cond`.
+
+### default_dec_tac'
+
+`default_dec_tac'` is a replacement for the core tactic `default_dec_tac`, fixing a bug. This
+bug is often indicated by a message `nested exception message: tactic failed, there are no goals to be solved`,and solved by appending `using_well_founded wf_tacs` to the recursive definition.
+See also additional documentation of `using_well_founded` in
+[docs/extras/well_founded_recursion.md](extras/well_founded_recursion.md).

@@ -167,12 +167,13 @@ section quotient_topological_group
 variables [topological_space α] [group α] [topological_group α] (N : set α) [normal_subgroup N]
 
 @[to_additive]
-instance : topological_space (quotient_group.quotient N) :=
+instance {α : Type u} [group α] [topological_space α] (N : set α) [normal_subgroup N] :
+  topological_space (quotient_group.quotient N) :=
 by dunfold quotient_group.quotient; apply_instance
 
 open quotient_group
 @[to_additive quotient_add_group_saturate]
-lemma quotient_group_saturate (s : set α) :
+lemma quotient_group_saturate {α : Type u} [group α] (N : set α) [normal_subgroup N] (s : set α) :
   (coe : α → quotient N) ⁻¹' ((coe : α → quotient N) '' s) = (⋃ x : N, (λ y, y*x.1) '' s) :=
 begin
   ext x,
@@ -410,7 +411,7 @@ begin
 end
 
 @[to_additive]
-def nhds_is_mul_hom : is_mul_hom (λx:α, nhds x) := ⟨λ_ _, nhds_pointwise_mul _ _⟩
+lemma nhds_is_mul_hom : is_mul_hom (λx:α, nhds x) := ⟨λ_ _, nhds_pointwise_mul _ _⟩
 
 end
 

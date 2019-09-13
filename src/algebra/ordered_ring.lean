@@ -52,14 +52,14 @@ lemma lt_mul_iff_one_lt_right {a b : α} (hb : 0 < b) : b < b * a ↔ 1 < a :=
 suffices b * 1 < b * a ↔ 1 < a, by rwa mul_one at this,
 mul_lt_mul_left hb
 
-lemma lt_mul_of_gt_one_right' {a b : α} (hb : 0 < b) : 1 < a → b < b * a :=
+lemma lt_mul_of_one_lt_right' {a b : α} (hb : 0 < b) : 1 < a → b < b * a :=
 (lt_mul_iff_one_lt_right hb).2
 
-lemma le_mul_of_ge_one_right' {a b : α} (hb : 0 ≤ b) (h : 1 ≤ a) : b ≤ b * a :=
+lemma le_mul_of_one_le_right' {a b : α} (hb : 0 ≤ b) (h : 1 ≤ a) : b ≤ b * a :=
 suffices b * 1 ≤ b * a, by rwa mul_one at this,
 mul_le_mul_of_nonneg_left h hb
 
-lemma le_mul_of_ge_one_left' {a b : α} (hb : 0 ≤ b) (h : 1 ≤ a) : b ≤ a * b :=
+lemma le_mul_of_one_le_left' {a b : α} (hb : 0 ≤ b) (h : 1 ≤ a) : b ≤ a * b :=
 suffices 1 * b ≤ a * b, by rwa one_mul at this,
 mul_le_mul_of_nonneg_right h hb
 

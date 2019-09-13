@@ -1921,14 +1921,14 @@ eq_of_veq $ multiset.Ico.filter_lt_of_ge hlm
 @[simp] lemma filter_lt (n m l : ℕ) : (Ico n m).filter (λ x, x < l) = Ico n (min m l) :=
 eq_of_veq $ multiset.Ico.filter_lt n m l
 
-lemma filter_ge_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, l ≤ x) = Ico n m :=
-eq_of_veq $ multiset.Ico.filter_ge_of_le_bot hln
+lemma filter_le_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, l ≤ x) = Ico n m :=
+eq_of_veq $ multiset.Ico.filter_le_of_le_bot hln
 
-lemma filter_ge_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, l ≤ x) = ∅ :=
-eq_of_veq $ multiset.Ico.filter_ge_of_top_le hml
+lemma filter_le_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, l ≤ x) = ∅ :=
+eq_of_veq $ multiset.Ico.filter_le_of_top_le hml
 
-lemma filter_ge_of_ge {n m l : ℕ} (hnl : n ≤ l) : (Ico n m).filter (λ x, l ≤ x) = Ico l m :=
-eq_of_veq $ multiset.Ico.filter_ge_of_ge hnl
+lemma filter_le_of_le {n m l : ℕ} (hnl : n ≤ l) : (Ico n m).filter (λ x, l ≤ x) = Ico l m :=
+eq_of_veq $ multiset.Ico.filter_le_of_le hnl
 
 @[simp] lemma filter_ge (n m l : ℕ) : (Ico n m).filter (λ x, l ≤ x) = Ico (max n l) m :=
 eq_of_veq $ multiset.Ico.filter_ge n m l

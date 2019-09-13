@@ -152,7 +152,7 @@ lemma fpow_le_one_of_nonpos {p : α} (hp : 1 ≤ p) {z : ℤ} (hz : z ≤ 0) : p
 calc p ^ z ≤ p ^ 0 : fpow_le_of_le hp hz
           ... = 1        : by simp
 
-lemma fpow_ge_one_of_nonneg {p : α} (hp : 1 ≤ p) {z : ℤ} (hz : 0 ≤ z) : 1 ≤ p ^ z :=
+lemma one_le_fpow_of_nonneg {p : α} (hp : 1 ≤ p) {z : ℤ} (hz : 0 ≤ z) : 1 ≤ p ^ z :=
 calc p ^ z ≥ p ^ 0 : fpow_le_of_le hp hz
           ... = 1        : by simp
 

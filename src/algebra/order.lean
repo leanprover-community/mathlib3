@@ -7,6 +7,9 @@ Authors: Mario Carneiro
 universe u
 variables {α : Type u}
 
+@[simp] lemma ge_iff_le [preorder α] {a b : α} : a ≥ b ↔ b ≤ a := iff.refl _
+@[simp] lemma gt_iff_lt [preorder α] {a b : α} : a > b ↔ b < a := iff.refl _
+
 lemma not_le_of_lt [preorder α] {a b : α} (h : a < b) : ¬ b ≤ a :=
 (le_not_le_of_lt h).right
 
@@ -163,6 +166,9 @@ lemma le_imp_le_iff_lt_imp_lt {β} [linear_order α] [decidable_linear_order β]
 lemma le_iff_le_iff_lt_iff_lt {β} [decidable_linear_order α] [decidable_linear_order β]
   {a b : α} {c d : β} : (a ≤ b ↔ c ≤ d) ↔ (b < a ↔ d < c) :=
 ⟨lt_iff_lt_of_le_iff_le, λ H, not_lt.symm.trans $ iff.trans (not_congr H) $ not_lt⟩
+
+lemma min_le_max [decidable_linear_order α] (a b : α) : min a b ≤ max a b :=
+le_trans (min_le_left a b) (le_max_left a b)
 
 end decidable
 

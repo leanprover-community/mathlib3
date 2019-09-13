@@ -8,7 +8,7 @@ import category_theory.limits.shapes.terminal
 import category_theory.discrete_category
 
 /-!
-# Pullbacks
+# Binary (co)products
 
 We define a category `walking_pair`, which is the index category
 for a binary (co)product diagram. A convenience method `pair X Y`

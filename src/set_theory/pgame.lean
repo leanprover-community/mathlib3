@@ -780,16 +780,16 @@ begin
       have t := h_left i,
       rcases t with ⟨i', ih⟩ | ⟨j, jh⟩,
       { left,
-        use left_moves_add.inv_fun (sum.inl i'),
+        refine ⟨(left_moves_add _ _).inv_fun (sum.inl i'), _⟩,
         exact add_le_add_right ih, },
       { right,
-        use right_moves_add.inv_fun (sum.inl j),
+        refine ⟨(right_moves_add _ _).inv_fun (sum.inl j), _⟩,
         convert add_le_add_right jh,
         apply add_move_right_inl },
       },
     { -- or play in z
       left,
-      use left_moves_add.inv_fun (sum.inr i),
+      refine ⟨(left_moves_add _ _).inv_fun (sum.inr i), _⟩,
       exact add_le_add_right h, }, },
   { -- if Right plays first
     intros j,
@@ -801,15 +801,15 @@ begin
       have t := h_right j,
       rcases t with ⟨i, ih⟩ | ⟨j', jh⟩,
       { left,
-        use left_moves_add.inv_fun (sum.inl i),
+        refine ⟨(left_moves_add _ _).inv_fun (sum.inl i), _⟩,
         convert add_le_add_right ih,
         apply add_move_left_inl },
       { right,
-        use right_moves_add.inv_fun (sum.inl j'),
+        refine ⟨(right_moves_add _ _).inv_fun (sum.inl j'), _⟩,
         exact add_le_add_right jh } },
     { -- or play in z
       right,
-      use right_moves_add.inv_fun (sum.inr j),
+      refine ⟨(right_moves_add _ _).inv_fun (sum.inr j), _⟩,
       exact add_le_add_right h } }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
@@ -835,13 +835,13 @@ begin
     cases i,
     { -- If Left played in -x, Right responds with the same move in x.
       right,
-      use right_moves_add.inv_fun (sum.inr i),
+      refine ⟨(right_moves_add _ _).inv_fun (sum.inr i), _⟩,
       convert @add_left_neg_le_zero (xR i),
       exact add_move_right_inr },
     { -- If Left in x, Right responds with the same move in -x.
       right,
       dsimp,
-      use right_moves_add.inv_fun (sum.inl i),
+      refine ⟨(right_moves_add _ _).inv_fun (sum.inl i), _⟩,
       convert @add_left_neg_le_zero (xL i),
       exact add_move_right_inl }, },
   { rintro ⟨⟩, }

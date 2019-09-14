@@ -139,7 +139,7 @@ have hd : d ≠ 0, from rat.mk_denom_ne_zero_of_ne_zero hqz qdf,
 let ⟨c, hc1, hc2⟩ := rat.num_denom_mk hn hd qdf in
 by rw [padic_val_rat, dif_pos];
   simp [hc1, hc2, multiplicity.mul' (nat.prime_iff_prime_int.1 p_prime),
-    (ne.symm (ne_of_lt p_prime.gt_one)), hqz]
+    (ne.symm (ne_of_lt p_prime.one_lt)), hqz]
 
 /--
 A rewrite lemma for `padic_val_rat p (q * r)` with conditions `q ≠ 0`, `r ≠ 0`.

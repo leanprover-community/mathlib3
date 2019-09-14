@@ -244,7 +244,7 @@ lemma prime.eq_two_or_odd {p : ℕ} (hp : prime p) : p = 2 ∨ p % 2 = 1 :=
   or.inr
 
 theorem factors_lemma {k} : (k+2) / min_fac (k+2) < k+2 :=
-div_lt_self dec_trivial (min_fac_prime dec_trivial).gt_one
+div_lt_self dec_trivial (min_fac_prime dec_trivial).one_lt
 
 /-- `factors n` is the prime factorization of `n`, listed in increasing order. -/
 def factors : ℕ → list ℕ
@@ -278,7 +278,7 @@ lemma prod_factors : ∀ {n}, 0 < n → list.prod (factors n) = n
 
 theorem prime.coprime_iff_not_dvd {p n : ℕ} (pp : prime p) : coprime p n ↔ ¬ p ∣ n :=
 ⟨λ co d, pp.not_dvd_one $ co.dvd_of_dvd_mul_left (by simp [d]),
- λ nd, coprime_of_dvd $ λ m m2 mp, ((dvd_prime_ge_two pp m2).1 mp).symm ▸ nd⟩
+ λ nd, coprime_of_dvd $ λ m m2 mp, ((dvd_prime_two_le pp m2).1 mp).symm ▸ nd⟩
 
 theorem prime.dvd_iff_not_coprime {p n : ℕ} (pp : prime p) : p ∣ n ↔ ¬ coprime p n :=
 iff_not_comm.2 pp.coprime_iff_not_dvd
@@ -327,7 +327,7 @@ theorem prime.coprime_pow_of_not_dvd {p m a : ℕ} (pp : prime p) (h : ¬ p ∣ 
 (pp.coprime_iff_not_dvd.2 h).symm.pow_right _
 
 theorem coprime_primes {p q : ℕ} (pp : prime p) (pq : prime q) : coprime p q ↔ p ≠ q :=
-pp.coprime_iff_not_dvd.trans $ not_congr $ dvd_prime_ge_two pq pp.ge_two
+pp.coprime_iff_not_dvd.trans $ not_congr $ dvd_prime_two_le pq pp.two_le
 
 theorem coprime_pow_primes {p q : ℕ} (n m : ℕ) (pp : prime p) (pq : prime q) (h : p ≠ q) :
   coprime (p^n) (q^m) :=

@@ -1060,14 +1060,14 @@ theorem take_cons (n) (a : α) (l : list α) : take (succ n) (a::l) = a :: take 
 | []     := rfl
 | (a::l) := begin change a :: (take (length l) l) = a :: l, rw take_all end
 
-theorem take_all_of_ge : ∀ {n} {l : list α}, length l ≤ n → take n l = l
+theorem take_all_of_le : ∀ {n} {l : list α}, length l ≤ n → take n l = l
 | 0     []     h := rfl
 | 0     (a::l) h := absurd h (not_le_of_gt (zero_lt_succ _))
 | (n+1) []     h := rfl
 | (n+1) (a::l) h :=
   begin
     change a :: take n l = a :: l,
-    rw [take_all_of_ge (le_of_succ_le_succ h)]
+    rw [take_all_of_le (le_of_succ_le_succ h)]
   end
 
 @[simp] theorem take_left : ∀ l₁ l₂ : list α, take (length l₁) (l₁ ++ l₂) = l₁

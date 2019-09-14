@@ -29,7 +29,7 @@ hp.eq_two_or_odd.elim
     λ hx, have 2 * (p / 2) ∣ n * (p / 2),
         by rw [two_mul_odd_div_two hp1, ← card_units_zmodp hp, ← order_of_eq_card_of_forall_mem_gpowers hg];
         exact order_of_dvd_of_pow_eq_one (by rwa [pow_mul, hn]),
-      let ⟨m, hm⟩ := dvd_of_mul_dvd_mul_right (nat.div_pos hp.ge_two dec_trivial) this in
+      let ⟨m, hm⟩ := dvd_of_mul_dvd_mul_right (nat.div_pos hp.two_le dec_trivial) this in
       ⟨g ^ m, by rwa [← pow_mul, mul_comm, ← hm]⟩⟩)
 
 lemma euler_criterion {a : zmodp p hp} (ha : a ≠ 0) :
@@ -147,7 +147,7 @@ finset.ext.2 $ λ x,
     exact calc 2 * m + (q - 1) * p ≤ 2 * (p / 2) + (q - 1) * p :
       add_le_add_right ((mul_le_mul_left dec_trivial).2 (le_of_lt_succ (mem_range.1 (by simp * at *)))) _
     ... < _ : begin rw [two_mul_odd_div_two hp1, nat.mul_sub_right_distrib, one_mul],
-        rw [← nat.sub_add_comm hp.pos, nat.add_sub_cancel' (le_mul_of_ge_one_left' (nat.zero_le _) hq.pos), mul_comm],
+        rw [← nat.sub_add_comm hp.pos, nat.add_sub_cancel' (le_mul_of_one_le_left' (nat.zero_le _) hq.pos), mul_comm],
         exact lt_add_of_pos_right _ dec_trivial
       end,
   end,
@@ -298,7 +298,7 @@ have hpqpnat : (((⟨p * q, mul_pos hp.pos hq.pos⟩ : ℕ+) : ℕ) : ℤ) = (p 
 have hpqpnat' : ((⟨p * q, mul_pos hp.pos hq.pos⟩ : ℕ+) : ℕ) = p * q, by simp,
 have hpq1 : ((⟨p * q, mul_pos hp.pos hq.pos⟩ : ℕ+) : ℕ) % 2 = 1,
   from nat.odd_mul_odd hp1 hq1,
-have hpq1' : p * q > 1, from one_lt_mul hp.pos hq.gt_one,
+have hpq1' : p * q > 1, from one_lt_mul hp.pos hq.one_lt,
 have hhq0 : ∀ a : ℕ, coprime q a → a ≠ 0,
   from λ a, imp_not_comm.1 $ by simp [hq.coprime_iff_not_dvd] {contextual := tt},
 have hpq0 : 0 < p * q / 2, from nat.div_pos (succ_le_of_lt $ one_lt_mul hp.pos hq.one_lt) dec_trivial,

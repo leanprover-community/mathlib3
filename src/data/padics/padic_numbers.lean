@@ -263,7 +263,7 @@ by simpa [hk] using padic_norm.image p hk'
 
 lemma norm_one : norm (1 : padic_seq p) = 1 :=
 have h1 : ¬ (1 : padic_seq p) ≈ 0, from one_not_equiv_zero _,
-by simp [h1, norm, hp.gt_one]
+by simp [h1, norm, hp.one_lt]
 
 private lemma norm_eq_of_equiv_aux {f g : padic_seq p} (hf : ¬ f ≈ 0) (hg : ¬ g ≈ 0) (hfg : f ≈ g)
   (h : padic_norm p (f (stationary_point hf)) ≠ padic_norm p (g (stationary_point hg)))

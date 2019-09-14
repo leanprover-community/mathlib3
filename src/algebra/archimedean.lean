@@ -30,7 +30,7 @@ have hy0 : 0 <  y - 1 := sub_pos_of_lt hy1,
 let ⟨n, h⟩ := archimedean.arch x hy0 in
 ⟨n, calc x ≤ n • (y - 1)     : h
        ... < 1 + n • (y - 1) : by rw add_comm; exact lt_add_one _
-       ... ≤ y ^ n           : pow_ge_one_add_sub_mul (le_of_lt hy1) _⟩
+       ... ≤ y ^ n           : one_add_sub_mul_le_pow (le_of_lt hy1) _⟩
 
 lemma exists_nat_pow_near {x : α} {y : α} (hx : 1 < x) (hy : 1 < y) :
   ∃ n : ℕ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=

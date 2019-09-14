@@ -1930,8 +1930,8 @@ eq_of_veq $ multiset.Ico.filter_le_of_top_le hml
 lemma filter_le_of_le {n m l : ℕ} (hnl : n ≤ l) : (Ico n m).filter (λ x, l ≤ x) = Ico l m :=
 eq_of_veq $ multiset.Ico.filter_le_of_le hnl
 
-@[simp] lemma filter_ge (n m l : ℕ) : (Ico n m).filter (λ x, l ≤ x) = Ico (max n l) m :=
-eq_of_veq $ multiset.Ico.filter_ge n m l
+@[simp] lemma filter_le (n m l : ℕ) : (Ico n m).filter (λ x, l ≤ x) = Ico (max n l) m :=
+eq_of_veq $ multiset.Ico.filter_le n m l
 
 @[simp] lemma diff_left (l n m : ℕ) : (Ico n m) \ (Ico n l) = Ico (max n l) m :=
 by ext k; by_cases n ≤ k; simp [h, and_comm]

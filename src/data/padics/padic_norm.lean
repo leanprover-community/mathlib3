@@ -124,15 +124,15 @@ include p_prime
 The multiplicity of `p : ℕ` in `a : ℤ` is finite exactly when `a ≠ 0`.
 -/
 lemma finite_int_prime_iff {p : ℕ} [p_prime : p.prime] {a : ℤ} : finite (p : ℤ) a ↔ a ≠ 0 :=
-by simp [finite_int_iff, ne.symm (ne_of_lt (p_prime.gt_one))]
+by simp [finite_int_iff, ne.symm (ne_of_lt (p_prime.one_lt))]
 
 /--
 A rewrite lemma for `padic_val_rat p q` when `q` is expressed in terms of `rat.mk`.
 -/
 protected lemma defn {q : ℚ} {n d : ℤ} (hqz : q ≠ 0) (qdf : q = n /. d) :
   padic_val_rat p q = (multiplicity (p : ℤ) n).get (finite_int_iff.2
-    ⟨ne.symm $ ne_of_lt p_prime.gt_one, λ hn, by simp * at *⟩) -
-  (multiplicity (p : ℤ) d).get (finite_int_iff.2 ⟨ne.symm $ ne_of_lt p_prime.gt_one,
+    ⟨ne.symm $ ne_of_lt p_prime.one_lt, λ hn, by simp * at *⟩) -
+  (multiplicity (p : ℤ) d).get (finite_int_iff.2 ⟨ne.symm $ ne_of_lt p_prime.one_lt,
     λ hd, by simp * at *⟩) :=
 have hn : n ≠ 0, from rat.mk_num_ne_zero_of_ne_zero hqz qdf,
 have hd : d ≠ 0, from rat.mk_denom_ne_zero_of_ne_zero hqz qdf,
@@ -320,7 +320,7 @@ end
 -/
 @[simp] protected lemma neg (q : ℚ) : padic_norm p (-q) = padic_norm p q :=
 if hq : q = 0 then by simp [hq]
-else by simp [padic_norm, hq, hp.gt_one]
+else by simp [padic_norm, hq, hp.one_lt]
 
 /--
 If the p-adic norm of `q` is 0, then `q` is 0.
@@ -363,7 +363,7 @@ begin
   unfold padic_norm,
   rw [if_neg _],
   { refine fpow_le_one_of_nonpos _ _,
-    { exact_mod_cast le_of_lt hp.gt_one, },
+    { exact_mod_cast le_of_lt hp.one_lt, },
     { rw [padic_val_rat_of_int _ hp.ne_one hz, neg_nonpos],
       norm_cast, simp }},
   exact_mod_cast hz
@@ -385,7 +385,7 @@ else
     apply le_max_iff.2,
     left,
     apply fpow_le_of_le,
-    { exact_mod_cast le_of_lt hp.gt_one },
+    { exact_mod_cast le_of_lt hp.one_lt },
     { apply neg_le_neg,
       have : padic_val_rat p q =
               min (padic_val_rat p q) (padic_val_rat p r),
@@ -472,7 +472,7 @@ begin
   { apply fpow_nonneg_of_nonneg,
     exact_mod_cast le_of_lt hp.pos },
   { apply fpow_le_of_le,
-    exact_mod_cast le_of_lt hp.gt_one,
+    exact_mod_cast le_of_lt hp.one_lt,
     apply neg_le_neg,
     rw padic_val_rat_of_int _ hp.ne_one _,
     { norm_cast,

@@ -3161,7 +3161,7 @@ congr_arg coe $ list.Ico.filter_lt_of_ge hlm
 @[simp] lemma filter_lt (n m l : ℕ) : (Ico n m).filter (λ x, x < l) = Ico n (min m l) :=
 congr_arg coe $ list.Ico.filter_lt n m l
 
-lemma filter_le_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, l ≤ x₂) = Ico n m :=
+lemma filter_le_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, l ≤ x) = Ico n m :=
 congr_arg coe $ list.Ico.filter_le_of_le_bot hln
 
 lemma filter_le_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, l ≤ x) = ∅ :=

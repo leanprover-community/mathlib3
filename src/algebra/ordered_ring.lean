@@ -12,6 +12,11 @@ variable {α : Type u}
 lemma zero_le_mul [ordered_semiring α] {a b : α} : 0 ≤ a → 0 ≤ b → 0 ≤ a * b :=
 mul_nonneg
 
+-- mul_pos in core is stated in terms of `>`, so we restate it here for
+-- the sake of syntactic tactics (e.g. `simp` and `rw`).
+lemma mul_pos' [ordered_semiring α] {a b : α} (ha : 0 < a) (hb : 0 < b) : 0 < a * b :=
+mul_pos ha hb
+
 section linear_ordered_semiring
 variable [linear_ordered_semiring α]
 

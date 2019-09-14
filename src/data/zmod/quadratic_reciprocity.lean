@@ -301,7 +301,7 @@ have hpq1 : ((⟨p * q, mul_pos hp.pos hq.pos⟩ : ℕ+) : ℕ) % 2 = 1,
 have hpq1' : p * q > 1, from one_lt_mul hp.pos hq.gt_one,
 have hhq0 : ∀ a : ℕ, coprime q a → a ≠ 0,
   from λ a, imp_not_comm.1 $ by simp [hq.coprime_iff_not_dvd] {contextual := tt},
-have hpq0 : 0 < p * q / 2, from nat.div_pos (succ_le_of_lt $ one_lt_mul hp.pos hq.gt_one) dec_trivial,
+have hpq0 : 0 < p * q / 2, from nat.div_pos (succ_le_of_lt $ one_lt_mul hp.pos hq.one_lt) dec_trivial,
 have hinj : ∀ a₁ a₂ : ℕ,
     a₁ ∈ (range (p * q / 2).succ).filter (coprime (p * q)) →
     a₂ ∈ (range (p * q / 2).succ).filter (coprime (p * q)) →
@@ -483,7 +483,7 @@ def legendre_sym (a p : ℕ) (hp : nat.prime p) : ℤ :=
 if (a : zmodp p hp) = 0 then 0 else if ∃ b : zmodp p hp, b ^ 2 = a then 1 else -1
 
 lemma legendre_sym_eq_pow (a p : ℕ) (hp : nat.prime p) : (legendre_sym a p hp : zmodp p hp) = (a ^ (p / 2)) :=
-if ha : (a : zmodp p hp) = 0 then by simp [*, legendre_sym, _root_.zero_pow (nat.div_pos hp.ge_two (succ_pos 1))]
+if ha : (a : zmodp p hp) = 0 then by simp [*, legendre_sym, _root_.zero_pow (nat.div_pos hp.two_le (succ_pos 1))]
 else
 (nat.prime.eq_two_or_odd hp).elim
   (λ hp2, begin subst hp2,

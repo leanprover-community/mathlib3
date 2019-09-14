@@ -46,11 +46,11 @@ ordered_comm_monoid.lt_of_add_lt_add_left a b c
 lemma add_le_add' (h₁ : a ≤ b) (h₂ : c ≤ d) : a + c ≤ b + d :=
 le_trans (add_le_add_right' h₁) (add_le_add_left' h₂)
 
-lemma le_add_of_nonneg_right' (h : b ≥ 0) : a ≤ a + b :=
+lemma le_add_of_nonneg_right' (h : 0 ≤ b) : a ≤ a + b :=
 have a + b ≥ a + 0, from add_le_add_left' h,
 by rwa add_zero at this
 
-lemma le_add_of_nonneg_left' (h : b ≥ 0) : a ≤ b + a :=
+lemma le_add_of_nonneg_left' (h : 0 ≤ b) : a ≤ b + a :=
 have 0 + a ≤ b + a, from add_le_add_right' h,
 by rwa zero_add at this
 

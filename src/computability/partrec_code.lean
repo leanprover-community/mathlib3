@@ -809,7 +809,7 @@ private lemma evaln_map (k c n) :
 begin
   by_cases kn : n < k,
   { simp [list.nth_range kn] },
-  { rw list.nth_ge_len,
+  { rw list.nth_len_le,
     { cases e : evaln k c n, {refl},
       exact kn.elim (evaln_bound e) },
     simpa using kn }

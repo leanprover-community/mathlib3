@@ -315,7 +315,7 @@ namespace ring_hom
 variables {β : Type v} [semiring α] [semiring β]
 variables (f : α →+* β) {x y : α}
 
-@[extensionality] theorem ext (f g : α →+* β) (h : (f : α → β) = g) : f = g :=
+@[extensionality] theorem ext ⦃f g : α →+* β⦄ (h : (f : α → β) = g) : f = g :=
 by cases f; cases g; cases h; refl
 
 /-- Ring homomorphisms map zero to zero. -/

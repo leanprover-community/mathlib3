@@ -174,13 +174,13 @@ end category_theory.iso
 universe u
 
 -- We prove `equiv_iso_iso` and then use that to sneakily construct `equiv_equiv_iso`.
--- We do it in this order so the proofs are handled by `obviously`.
+-- (In this order the proofs are handled by `obviously`.)
 
 /-- equivalences (between types in the same universe) are the same as (isomorphic to) isomorphisms of types -/
 def equiv_iso_iso {X Y : Sort u} : (X ≃ Y) ≅ (X ≅ Y) :=
 { hom := λ e, e.to_iso,
   inv := λ i, i.to_equiv, }
 
-/-- isomorphisms of types are the same as (equivalent to) equivalences -/
+/-- equivalences (between types in the same universe) are the same as (equivalent to) isomorphisms of types -/
 def equiv_equiv_iso {X Y : Sort u} : (X ≃ Y) ≃ (X ≅ Y) :=
 equiv_iso_iso.inv (equiv_iso_iso)

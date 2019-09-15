@@ -15,6 +15,7 @@ cache:
   directories:
     - $TRAVIS_BUILD_DIR/test/
     - $TRAVIS_BUILD_DIR/src/
+    - $TRAVIS_BUILD_DIR/docs/
     - $TRAVIS_BUILD_DIR/archive/
     - $HOME/.elan
 

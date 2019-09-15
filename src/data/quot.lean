@@ -55,11 +55,16 @@ quot.hrec_on₂ qa qb f
   (λ _ _ _ p, c _ _ _ _ p (setoid.refl _))
   (λ _ _ _ p, c _ _ _ _ (setoid.refl _) p)
 
+/-- Map a function `f : α → β` that sends equivalent elements to equivalent elements
+to a function `quotient sa → quotiebt sb`. Useful to define unary operations on quotients. -/
 protected def map (f : α → β) (h : ((≈) ⇒ (≈)) f f) : quotient sa → quotient sb :=
 quot.map f @h
 
 variables {γ : Sort*} [sc : setoid γ]
 
+/-- Map a function `f : α → β → γ` that sends equivalent elements to equivalent elements
+to a function `f : quotient sa → quotient sb → quotient sc`.
+Useful to define binary operations on quotients. -/
 protected def map₂ (f : α → β → γ) (h : ((≈) ⇒ (≈) ⇒ (≈)) f f) :
   quotient sa → quotient sb → quotient sc :=
 quotient.lift₂ (λ x y, ⟦f x y⟧) (λ x₁ y₁ x₂ y₂ h₁ h₂, quot.sound $ h h₁ h₂)

@@ -48,8 +48,8 @@ include 𝒞
 instance : category (bundled c) :=
 by refine
 { hom := λ X Y, @hom X.1 Y.1 X.str Y.str,
-  id := λ X, @bundled_hom.id c hom 𝒞 X X.str,
-  comp := λ X Y Z f g, @bundled_hom.comp c hom 𝒞 X Y Z X.str Y.str Z.str g f,
+  id := λ X, @bundled_hom.id c hom 𝒞 X.1 X.str,
+  comp := λ X Y Z f g, @bundled_hom.comp c hom 𝒞 X.1 Y.1 Z.1 X.str Y.str Z.str g f,
   comp_id' := _,
   id_comp' := _,
   assoc' := _};
@@ -58,7 +58,7 @@ intros; apply 𝒞.hom_ext;
 
 /-- A category given by `bundled_hom` is a concrete category. -/
 instance concrete_category : concrete_category (bundled c) :=
-{ forget := { obj := λ X, X,
+{ forget := { obj := λ X, X.1,
               map := λ X Y f, 𝒞.to_fun X.str Y.str f,
               map_id' := λ X, 𝒞.id_to_fun X.str,
               map_comp' := by intros; erw 𝒞.comp_to_fun; refl },
@@ -78,7 +78,7 @@ local attribute [instance] has_coe_to_fun
   (f ≫ g) x = g (f x) :=
 congr_fun ((forget _).map_comp _ _) x
 
-section full_subcategory
+section induced_category
 
 variables {hom} (𝒞) {d : Type u → Type u} (obj : ∀ ⦃α⦄, d α → c α)
 include obj
@@ -88,7 +88,7 @@ Construct a `bundled_hom` representing a full subcategory of a given `bundled_ho
 corresponding `category` and `concrete_category` instances agree with
 `induced_category (bundled.map @obj)`.
 -/
-protected def full_subcategory : bundled_hom (λ α β (Iα : d α) (Iβ : d β), hom (obj Iα) (obj Iβ)) :=
+protected def induced_category : bundled_hom (λ α β (Iα : d α) (Iβ : d β), hom (obj Iα) (obj Iβ)) :=
 { to_fun := by intros; apply 𝒞.to_fun; assumption,
   id := by intros; apply 𝒞.id,
   comp := by intros; apply 𝒞.comp; assumption,
@@ -96,12 +96,12 @@ protected def full_subcategory : bundled_hom (λ α β (Iα : d α) (Iβ : d β)
   id_to_fun := by intros; apply 𝒞.id_to_fun,
   comp_to_fun := by intros; apply 𝒞.comp_to_fun }
 
-def full_subcategory_has_forget :
+def induced_category_has_forget :
   @has_forget (bundled d) (bundled c)
-    (by haveI := 𝒞.full_subcategory obj; apply_instance) (by apply_instance) :=
+    (by haveI := 𝒞.induced_category obj; apply_instance) (by apply_instance) :=
 induced_category.has_forget (bundled.map @obj)
 
-end full_subcategory
+end induced_category
 
 variables {hom}
 

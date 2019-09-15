@@ -29,9 +29,6 @@ namespace bundled
 
 def of {c : Type u → Type v} (α : Type u) [str : c α] : bundled c := ⟨α, str⟩
 
-instance : has_coe_to_sort (bundled c) :=
-{ S := Type u, coe := bundled.α }
-
 /-- Map over the bundled structure -/
 def map (f : ∀ {α}, c α → d α) (b : bundled c) : bundled d :=
 ⟨b.α, f b.str⟩

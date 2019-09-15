@@ -268,7 +268,7 @@ lemma mul_val : ∀ a b : zmodp p hp, (a * b).val = (a.val * b.val) % p
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
 @[simp] lemma one_val : (1 : zmodp p hp).val = 1 :=
-nat.mod_eq_of_lt hp.gt_one
+nat.mod_eq_of_lt hp.one_lt
 
 @[simp] lemma zero_val : (0 : zmodp p hp).val = 0 := rfl
 
@@ -345,7 +345,7 @@ end
 
 instance : discrete_field (zmodp p hp) :=
 { zero_ne_one := fin.ne_of_vne $ show 0 ≠ 1 % p,
-    by rw nat.mod_eq_of_lt hp.gt_one;
+    by rw nat.mod_eq_of_lt hp.one_lt;
       exact zero_ne_one,
   mul_inv_cancel := mul_inv_cancel_aux hp,
   inv_mul_cancel := λ a, by rw mul_comm; exact mul_inv_cancel_aux hp _,

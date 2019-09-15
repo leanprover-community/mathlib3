@@ -85,7 +85,7 @@ begin
     rw [to_dual_swap_eq_to_dual, to_dual_apply],
     { split_ifs with hx,
       { rwa [hx, coord_fun_eq_repr, repr_eq_single, finsupp.single_apply, if_pos rfl] },
-      { rwa [coord_fun_eq_repr, repr_eq_single, finsupp.single_apply, if_neg hx] } } },
+      { rw [coord_fun_eq_repr, repr_eq_single, finsupp.single_apply], symmetry, convert if_neg hx } } },
   { exact classical.dec_eq K }
 end
 

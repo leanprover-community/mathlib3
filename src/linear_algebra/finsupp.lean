@@ -6,14 +6,16 @@ Author: Johannes Hölzl
 Linear structures on function with finite support `α →₀ β`.
 -/
 import data.finsupp linear_algebra.basic
+
 noncomputable theory
+local attribute [instance, priority 0] classical.prop_decidable
 
 open lattice set linear_map submodule
 
 namespace finsupp
 
 variables {α : Type*} {β : Type*} {γ : Type*}
-variables [decidable_eq α] [decidable_eq β] [ring γ] [add_comm_group β] [module γ β]
+variables [ring γ] [add_comm_group β] [module γ β]
 
 def lsingle (a : α) : β →ₗ[γ] (α →₀ β) :=
 ⟨single a, assume a b, single_add, assume c b, (smul_single _ _ _).symm⟩
@@ -21,7 +23,7 @@ def lsingle (a : α) : β →ₗ[γ] (α →₀ β) :=
 def lapply (a : α) : (α →₀ β) →ₗ[γ] β := ⟨λg, g a, assume a b, rfl, assume a b, rfl⟩
 
 section lsubtype_domain
-variables (s : set α) [decidable_pred (λx, x ∈ s)]
+variables (s : set α)
 
 def lsubtype_domain : (α →₀ β) →ₗ[γ] (s →₀ β) :=
 ⟨subtype_domain (λx, x ∈ s), assume a b, subtype_domain_add, assume c a, ext $ assume a, rfl⟩
@@ -111,7 +113,7 @@ lemma single_mem_supported {s : set α} {a : α} (b : β) (h : a ∈ s) :
   single a b ∈ supported β γ s :=
 set.subset.trans support_single_subset (set.singleton_subset_iff.2 h)
 
-lemma supported_eq_span_single [decidable_eq γ] [has_one β] (s : set α) :
+lemma supported_eq_span_single [has_one β] (s : set α) :
   supported γ γ s = span γ ((λ i, single i 1) '' s) :=
 begin
   refine (span_eq_of_le _ _ (le_def'.2 $ λ l hl, _)).symm,
@@ -126,7 +128,7 @@ end
 
 variables (β γ)
 
-def restrict_dom (s : set α) [decidable_pred (λ x, x ∈ s)]: (α →₀ β) →ₗ supported β γ s :=
+def restrict_dom (s : set α) : (α →₀ β) →ₗ supported β γ s :=
 linear_map.cod_restrict _
   { to_fun := filter (∈ s),
     add := λ l₁ l₂, filter_add,
@@ -137,11 +139,11 @@ variables {β γ}
 
 section
 set_option class.instance_max_depth 50
-@[simp] theorem restrict_dom_apply (s : set α) [decidable_pred (λ x, x ∈ s)] (l : α →₀ β) :
+@[simp] theorem restrict_dom_apply (s : set α) (l : α →₀ β) :
   ((restrict_dom β γ s : (α →₀ β) →ₗ supported β γ s) l : α →₀ β) = finsupp.filter (∈ s) l := rfl
 end
 
-theorem restrict_dom_comp_subtype (s : set α) [decidable_pred (λ x, x ∈ s)] :
+theorem restrict_dom_comp_subtype (s : set α) :
   (restrict_dom β γ s).comp (submodule.subtype _) = linear_map.id :=
 begin
   ext l,
@@ -154,7 +156,7 @@ begin
     exact ((mem_supported' γ l.1).1 l.2 a h).symm }
 end
 
-theorem range_restrict_dom (s : set α) [decidable_pred (λ x, x ∈ s)] :
+theorem range_restrict_dom (s : set α) :
   (restrict_dom β γ s).range = ⊤ :=
 begin
   have := linear_map.range_comp (submodule.subtype _) (restrict_dom β γ s),
@@ -207,7 +209,7 @@ end
 
 section
 set_option class.instance_max_depth 37
-def supported_equiv_finsupp (s : set α) [decidable_pred (λ (x : α), x ∈ s)] :
+def supported_equiv_finsupp (s : set α) :
   (supported β γ s) ≃ₗ[γ] (s →₀ β) :=
 (restrict_support_equiv s).to_linear_equiv
 begin
@@ -217,16 +219,16 @@ begin
 end
 end
 
-def lsum [decidable_eq γ] (f : α → γ →ₗ[γ] β) : (α →₀ γ) →ₗ[γ] β :=
+def lsum (f : α → γ →ₗ[γ] β) : (α →₀ γ) →ₗ[γ] β :=
 ⟨λ d, d.sum (λ i, f i),
   assume d₁ d₂, by simp [sum_add_index],
   assume a d, by simp [sum_smul_index, smul_sum, -smul_eq_mul, smul_eq_mul.symm]⟩
 
-@[simp] theorem lsum_apply [decidable_eq γ] (f : α → γ →ₗ[γ] β) (l : α →₀ γ) :
+@[simp] theorem lsum_apply (f : α → γ →ₗ[γ] β) (l : α →₀ γ) :
   (finsupp.lsum f : (α →₀ γ) →ₗ β) l = l.sum (λ b, f b) := rfl
 
 section lmap_domain
-variables {α' : Type*} [decidable_eq α'] {α'' : Type*} [decidable_eq α''] (β γ)
+variables {α' : Type*} {α'' : Type*} (β γ)
 
 def lmap_domain (f : α → α') : (α →₀ β) →ₗ[γ] (α' →₀ β) :=
 ⟨map_domain f, assume a b, map_domain_add, map_domain_smul⟩
@@ -285,7 +287,7 @@ end lmap_domain
 
 section total
 variables (α) {α' : Type*} (β) {β' : Type*} (γ)
-          [decidable_eq α'] [decidable_eq β'] [add_comm_group β'] [decidable_eq γ] [module γ β']
+          [add_comm_group β'] [module γ β']
           (v : α → β) {v' : α' → β'}
 
 /-- Interprets (l : α →₀ γ) as linear combination of the elements in the family (v : α → β) and
@@ -399,7 +401,7 @@ by rw finsupp.total_apply; refl
 end total
 
 protected def dom_lcongr
-  {α₁ : Type*} {α₂ : Type*} [decidable_eq α₁] [decidable_eq α₂] (e : α₁ ≃ α₂) :
+  {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) :
   (α₁ →₀ β) ≃ₗ[γ] (α₂ →₀ β) :=
 (finsupp.dom_congr e).to_linear_equiv
 begin
@@ -407,7 +409,7 @@ begin
   exact linear_map.is_linear _
 end
 
-noncomputable def congr {α' : Type*} [decidable_eq α'] (s : set α) (t : set α') (e : s ≃ t) :
+noncomputable def congr {α' : Type*} (s : set α) (t : set α') (e : s ≃ t) :
   supported β γ s ≃ₗ[γ] supported β γ t :=
 begin
   haveI := classical.dec_pred (λ x, x ∈ s),

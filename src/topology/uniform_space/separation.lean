@@ -8,7 +8,7 @@ Hausdorff properties of uniform spaces. Separation quotient.
 import topology.uniform_space.basic
 
 open filter topological_space lattice set classical
-local attribute [instance, priority 0] prop_decidable
+open_locale classical
 noncomputable theory
 set_option eqn_compiler.zeta true
 
@@ -16,7 +16,7 @@ universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 variables [uniform_space α] [uniform_space β] [uniform_space γ]
 
-local notation `𝓤` := uniformity
+open_locale uniformity
 
 /- separated uniformity -/
 

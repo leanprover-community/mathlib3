@@ -89,6 +89,22 @@ jobs:
         - lean --recursive --export=mathlib.txt src/
         - travis_long "leanchecker mathlib.txt"
 
+    - stage: Docs
+      env: TASK="check Lean proofs"
+      if: type != cron
+      script:
+        - leanpkg configure
+        - travis_long "lean --make docs/"
+
+    - stage: Docs
+      env: TASK="check Lean proofs" LEAN="nightly"
+      if: type = cron
+      script:
+        - elan toolchain install leanprover-community/lean:nightly
+        - elan override set leanprover-community/lean:nightly
+        - leanpkg configure
+        - travis_long "lean --make docs/"
+
     - stage: Archive
       env: TASK="check Lean proofs"
       if: type != cron

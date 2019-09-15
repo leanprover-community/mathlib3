@@ -15,7 +15,7 @@ namespace category_theory
 
 open category_theory.monoidal_category
 
-variables (V : Type v) [𝒱 : monoidal_category.{v} V]
+variables (V : Type v) [category.{v} V] [𝒱 : monoidal_category.{v} V]
 include 𝒱
 
 local notation `𝟙_` := tensor_unit
@@ -55,7 +55,7 @@ end
 
 section
 variables {V}
-variables {W : Type v} [𝒲 : monoidal_category.{v} W]
+variables {W : Type v} [category.{v} W] [𝒲 : monoidal_category.{v} W]
 include 𝒲
 variables (Λ : lax_monoidal_functor.{v v} V W)
 def transport_enrichment (Λ : lax_monoidal_functor.{v v} V W) (C : Type u) := C

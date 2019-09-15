@@ -36,8 +36,8 @@ instance : monoidal_category (bundled c) :=
 
 
 
-variables (C : Sort u) [𝒞 : category.{v+1} C]
-variables (c : Sort v → Sort v) [𝒱 : monoidal_category.{v} (bundled c)]
+variables (C : Type u) [𝒞 : category.{v+1} C]
+variables (c) [category.{v} (bundled c)] [𝒱 : monoidal_category.{v} (bundled c)]
 include 𝒞 𝒱
 
 set_option pp.universes true

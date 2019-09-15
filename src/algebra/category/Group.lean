@@ -21,14 +21,14 @@ def Group : Type (u+1) := bundled group
 
 namespace Group
 
-@[to_additive add_group]
-instance (G : Group) : group G := G.str
-
 @[to_additive] def of (X : Type u) [group X] : Group := bundled.of X
 
 @[to_additive]
 instance bundled_hom : bundled_hom _ :=
 Mon.bundled_hom.full_subcategory @group.to_monoid
+
+@[to_additive add_group]
+instance (G : Group) : group G := G.str
 
 @[to_additive]
 instance : has_one Group := ⟨Group.of punit⟩

@@ -16,10 +16,10 @@ universe u
 
 namespace Top
 
-instance topological_space_unbundled (x : Top) : topological_space x := x.str
-
 instance concrete_category_continuous : unbundled_hom @continuous :=
 ⟨@continuous_id, @continuous.comp⟩
+
+instance topological_space_unbundled (x : Top) : topological_space x := x.str
 
 example : large_category Top.{u} := infer_instance
 

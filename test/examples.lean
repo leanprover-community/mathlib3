@@ -140,6 +140,14 @@ end
 
 end refine_struct
 
+example : true :=
+begin
+   success_if_fail { let := compact_relation },
+   trivial
+end
+import_private compact_relation from tactic.coinduction
+#check compact_relation
+
 /- traversable -/
 open tactic.interactive
 

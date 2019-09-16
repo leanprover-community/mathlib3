@@ -46,11 +46,11 @@ ordered_comm_monoid.lt_of_add_lt_add_left a b c
 lemma add_le_add' (h₁ : a ≤ b) (h₂ : c ≤ d) : a + c ≤ b + d :=
 le_trans (add_le_add_right' h₁) (add_le_add_left' h₂)
 
-lemma le_add_of_nonneg_right' (h : b ≥ 0) : a ≤ a + b :=
+lemma le_add_of_nonneg_right' (h : 0 ≤ b) : a ≤ a + b :=
 have a + b ≥ a + 0, from add_le_add_left' h,
 by rwa add_zero at this
 
-lemma le_add_of_nonneg_left' (h : b ≥ 0) : a ≤ b + a :=
+lemma le_add_of_nonneg_left' (h : 0 ≤ b) : a ≤ b + a :=
 have 0 + a ≤ b + a, from add_le_add_right' h,
 by rwa zero_add at this
 
@@ -705,3 +705,25 @@ def to_decidable_linear_ordered_comm_group
   ..@nonneg_comm_group.to_ordered_comm_group _ s }
 
 end nonneg_comm_group
+
+namespace order_dual
+
+instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
+{ add_le_add_left := λ a b h c, @add_le_add_left' α _ b a c h,
+  lt_of_add_lt_add_left := λ a b c h, @lt_of_add_lt_add_left' α _ a c b h,
+  ..order_dual.partial_order α,
+  ..show add_comm_monoid α, by apply_instance }
+
+instance [ordered_cancel_comm_monoid α] : ordered_cancel_comm_monoid (order_dual α) :=
+{ le_of_add_le_add_left := λ a b c : α, le_of_add_le_add_left,
+  add_left_cancel := @add_left_cancel α _,
+  add_right_cancel := @add_right_cancel α _,
+  ..order_dual.ordered_comm_monoid }
+
+instance [ordered_comm_group α] : ordered_comm_group (order_dual α) :=
+{ add_lt_add_left := λ a b : α, ordered_comm_group.add_lt_add_left b a,
+  add_left_neg := λ a : α, add_left_neg a,
+  ..order_dual.ordered_comm_monoid,
+  ..show add_comm_group α, by apply_instance }
+
+end order_dual

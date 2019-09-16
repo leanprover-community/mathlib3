@@ -215,7 +215,7 @@ lemma Liminf_le_Liminf_of_le {f g : filter α} (h : g ≤ f)
   f.Liminf ≤ g.Liminf :=
 Liminf_le_Liminf hf hg (assume a ha, h ha)
 
-lemma limsup_le_limsup [conditionally_complete_lattice β] {f : filter α} {u v : α → β}
+lemma limsup_le_limsup {α : Type*} [conditionally_complete_lattice β] {f : filter α} {u v : α → β}
   (h : {a | u a ≤ v a} ∈ f.sets)
   (hu : f.is_cobounded_under (≤) u . is_bounded_default)
   (hv : f.is_bounded_under (≤) v . is_bounded_default) :
@@ -223,7 +223,7 @@ lemma limsup_le_limsup [conditionally_complete_lattice β] {f : filter α} {u v 
 Limsup_le_Limsup hu hv $ assume b (hb : {a | v a ≤ b} ∈ f.sets), show {a | u a ≤ b} ∈ f.sets,
   by filter_upwards [h, hb] assume a, le_trans
 
-lemma liminf_le_liminf [conditionally_complete_lattice β] {f : filter α} {u v : α → β}
+lemma liminf_le_liminf {α : Type*} [conditionally_complete_lattice β] {f : filter α} {u v : α → β}
   (h : {a | u a ≤ v a} ∈ f.sets)
   (hu : f.is_bounded_under (≥) u . is_bounded_default)
   (hv : f.is_cobounded_under (≥) v . is_bounded_default) :
@@ -258,7 +258,7 @@ top_unique $ le_Inf $
 bot_unique $ Sup_le $
   by simp [eq_univ_iff_forall]; exact assume b hb, (bot_unique $ hb _)
 
-lemma liminf_le_limsup {f : filter β} (hf : f ≠ ⊥) {u : β → α}  : liminf f u ≤ limsup f u := 
+lemma liminf_le_limsup {f : filter β} (hf : f ≠ ⊥) {u : β → α}  : liminf f u ≤ limsup f u :=
   Liminf_le_Limsup (map_ne_bot hf) is_bounded_le_of_top is_bounded_ge_of_bot
 
 theorem Limsup_eq_infi_Sup {f : filter α} : f.Limsup = ⨅s∈f.sets, Sup s :=
@@ -280,18 +280,18 @@ calc f.limsup u = ⨅s∈(f.map u).sets, Sup s : Limsup_eq_infi_Sup
         infi_le_of_le _ $ infi_le_of_le hs $ supr_le $ assume a, supr_le $ assume ha, le_Sup ha)
 
 lemma limsup_eq_infi_supr_of_nat {u : ℕ → α} : limsup at_top u = ⨅n:ℕ, ⨆i≥n, u i :=
-calc 
+calc
   limsup at_top u = ⨅s∈(@at_top ℕ _).sets, ⨆n∈s, u n : limsup_eq_infi_supr
   ... = ⨅n:ℕ, ⨆i≥n, u i :
-    le_antisymm 
-      (le_infi $ assume n, infi_le_of_le {i | i ≥ n} $ infi_le_of_le 
-        (begin 
-           simp only [mem_at_top_sets, mem_set_of_eq, nonempty_of_inhabited], 
-           use n, simp 
-         end) 
+    le_antisymm
+      (le_infi $ assume n, infi_le_of_le {i | i ≥ n} $ infi_le_of_le
+        (begin
+           simp only [mem_at_top_sets, mem_set_of_eq, nonempty_of_inhabited],
+           use n, simp
+         end)
         (supr_le_supr $ assume i, supr_le_supr_const (by simp)))
       (le_infi $ assume s, le_infi $ assume hs,
-        let ⟨n, hn⟩ := mem_at_top_sets.1 hs in 
+        let ⟨n, hn⟩ := mem_at_top_sets.1 hs in
         infi_le_of_le n $ supr_le_supr $ assume i, supr_le_supr_const (hn i))
 
 theorem Liminf_eq_supr_Inf {f : filter α} : f.Liminf = ⨆s∈f.sets, Inf s :=
@@ -313,18 +313,18 @@ calc f.liminf u = ⨆s∈(f.map u).sets, Inf s : Liminf_eq_supr_Inf
         le_supr_of_le (u '' s) $ le_supr_of_le (image_mem_map hs) $ ge_of_eq Inf_image)
 
 lemma liminf_eq_supr_infi_of_nat {u : ℕ → α} : liminf at_top u = ⨆n:ℕ, ⨅i≥n, u i :=
-calc 
+calc
   liminf at_top u = ⨆s∈(@at_top ℕ _).sets, ⨅n∈s, u n : liminf_eq_supr_infi
   ... = ⨆n:ℕ, ⨅i≥n, u i :
-    le_antisymm 
-      (supr_le $ assume s, supr_le $ assume hs, 
+    le_antisymm
+      (supr_le $ assume s, supr_le $ assume hs,
         let ⟨n, hn⟩ := mem_at_top_sets.1 hs in
         le_supr_of_le n $ infi_le_infi $ assume i, infi_le_infi_const (hn _) )
-      (supr_le $ assume n, le_supr_of_le {i | n ≤ i} $ 
-        le_supr_of_le 
-          (begin 
-             simp only [mem_at_top_sets, mem_set_of_eq, nonempty_of_inhabited], 
-             use n, simp 
+      (supr_le $ assume n, le_supr_of_le {i | n ≤ i} $
+        le_supr_of_le
+          (begin
+             simp only [mem_at_top_sets, mem_set_of_eq, nonempty_of_inhabited],
+             use n, simp
           end)
           (infi_le_infi $ assume i, infi_le_infi_const (by simp)))
 

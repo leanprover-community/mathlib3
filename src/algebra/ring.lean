@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston
 -/
 
 import algebra.group
+import tactic.norm_cast
 
 /-!
 # Properties and homomorphisms of semirings and rings
@@ -298,12 +299,23 @@ infixr ` →+* `:25 := ring_hom
 instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe_to_fun (α →+* β) :=
 ⟨_, ring_hom.to_fun⟩
 
+instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe (α →+* β) (α →* β) :=
+⟨ring_hom.to_monoid_hom⟩
+
+instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe (α →+* β) (α →+ β) :=
+⟨ring_hom.to_add_monoid_hom⟩
+
+@[squash_cast] lemma coe_monoid_hom {α : Type*} {β : Type*} [semiring α] [semiring β] (f : α →+* β) (a : α) :
+  ((f : α →* β) : α → β) a = (f : α → β) a := rfl
+@[squash_cast] lemma coe_add_monoid_hom {α : Type*} {β : Type*} [semiring α] [semiring β] (f : α →+* β) (a : α) :
+  ((f : α →+ β) : α → β) a = (f : α → β) a := rfl
+
 namespace ring_hom
 
 variables {β : Type v} [semiring α] [semiring β]
 variables (f : α →+* β) {x y : α}
 
-@[extensionality] theorem ext (f g : α →+* β) (h : (f : α → β) = g) : f = g :=
+@[extensionality] theorem ext ⦃f g : α →+* β⦄ (h : (f : α → β) = g) : f = g :=
 by cases f; cases g; cases h; refl
 
 /-- Ring homomorphisms map zero to zero. -/

@@ -24,7 +24,7 @@ variables {α : Type u₁} {β : Type u₂} {γ : Type v₁} {δ : Type v₂}
 variables (R : α → β → Prop) (S : γ → δ → Prop)
 
 def lift_fun (f : α → γ) (g : β → δ) : Prop :=
-∀{a b}, R a b → S (f a) (g b)
+∀⦃a b⦄, R a b → S (f a) (g b)
 
 infixr ⇒ := lift_fun
 

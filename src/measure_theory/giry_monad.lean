@@ -15,6 +15,9 @@ measurable spaces and measurable functions, called the Giry monad.
 Note that most sources use the term "Giry monad" for the restriction
 to *probability* measures. Here we include all measures on X.
 
+See also `measure_theory/category/Meas.lean`, containing an upgrade of the type-level
+monad to an honest monad of the functor `Measure : Meas ⥤ Meas`.
+
 ## References
 
 * https://ncatlab.org/nlab/show/Giry+monad

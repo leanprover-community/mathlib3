@@ -14,7 +14,13 @@ namespace category_theory
 
 open category_theory.monoidal_category
 
-
+/--
+A concrete monoidal category is a monoidal category whose forgetful functor to `Type` is lax
+monoidal. A prototypical example to think about is `Vec`, equipped with tensor products as the
+monoidal structure, forgetting to `Type`, equipped with cartesian products as the monoidal
+structure. Observe that we have a map (in `Type`) `V × W → V ⊗ W`, which is the lax tensorator, but
+there is not a map in the other direction.
+-/
 class concrete_monoidal_category (C : Type (u+1)) extends concrete_category.{u} C, monoidal_category.{u} C :=
 (lax_monoidal : lax_monoidal.{u u} (concrete_category.forget C).obj)
 

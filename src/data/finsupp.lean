@@ -596,7 +596,7 @@ end,
 ext $ assume a, by simp only [sum_apply, single_apply, this,
   insert_empty_eq_singleton, sum_singleton, if_pos]
 
-@[simp] lemma sum_single_range [has_zero β] [add_comm_monoid γ]
+lemma sum_single_range [has_zero β] [add_comm_monoid γ]
   (f : α →₀ β) (g : β → γ) (hg : g 0 = 0) :
   sum f (λ (a : α) (b : β), single a (g b)) = map_range g hg f :=
 by { rw [←sum_map_range_index, sum_single], intro _, exact single_zero }

@@ -120,6 +120,18 @@ section group
     rwa [inv_mul_cancel_left, mul_assoc, mul_inv_cancel_right] at this
   end
 
+@[to_additive]
+lemma mul_left_eq_self {α : Type*} [group α] {a b : α} :
+  a * b = b ↔ a = 1 :=
+⟨λ h, @mul_right_cancel _ _ a b 1 (by simp [h]), λ h, by simp [h]⟩
+
+@[to_additive]
+lemma mul_right_eq_self {α : Type*} [group α] {a b : α} :
+  a * b = a ↔ b = 1 :=
+⟨λ h, @mul_left_cancel _ _ a b 1 (by simp [h]), λ h, by simp [h]⟩
+
+attribute [simp] mul_left_eq_self mul_right_eq_self add_left_eq_self add_right_eq_self
+
 end group
 
 

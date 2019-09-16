@@ -426,6 +426,29 @@ instance has_limits_of_shape_of_has_limits
   {J : Type v} [small_category J] [H : has_limits.{v} C] : has_limits_of_shape J C :=
 has_limits.has_limits_of_shape C J
 
+/--
+If `F.cones` is representable, then the cone corresponding to the identity morphism on
+the representing object is a limit cone.
+-/
+def has_limit.of_nat_iso {X : C} (h : yoneda.obj X ≅ F.cones) : has_limit.{v} F :=
+{ cone := is_limit.of_nat_iso.limit_cone h,
+  is_limit := is_limit.of_nat_iso h }
+
+/--
+If `F.cones` is representable for all functors `F : J ⥤ C`, for some fixed `J` then `C` has all
+limits of shape `J`.
+-/
+def has_limits_of_shape.of_nat_iso
+  (h : Π (F : J ⥤ C), Σ X, yoneda.obj X ≅ F.cones) : has_limits_of_shape.{v} J C :=
+{ has_limit := λ F, has_limit.of_nat_iso (h F).2 }
+
+/--
+If `F.cones` is representable for all functors `F : J ⥤ C`, then `C` has all limits.
+-/
+def has_limits.of_nat_iso {X : C}
+  (h : Π {J : Type v} [𝒥 : small_category J] (F : J ⥤ C), Σ X, yoneda.obj X ≅ F.cones) : has_limits.{v} C :=
+{ has_limits_of_shape := λ J _, by exactI has_limits_of_shape.of_nat_iso h }
+
 /- Interface to the `has_limit` class. -/
 
 def limit.cone (F : J ⥤ C) [has_limit F] : cone F := has_limit.cone F
@@ -683,6 +706,29 @@ has_colimits_of_shape.has_colimit F
 instance has_colimits_of_shape_of_has_colimits
   {J : Type v} [small_category J] [H : has_colimits.{v} C] : has_colimits_of_shape J C :=
 has_colimits.has_colimits_of_shape C J
+
+/--
+If `F.cones` is representable, then the cone corresponding to the identity morphism on
+the representing object is a limit cone.
+-/
+def has_colimit.of_nat_iso {X : C} (h : coyoneda.obj (op X) ≅ F.cocones) : has_colimit.{v} F :=
+{ cocone := is_colimit.of_nat_iso.colimit_cocone h,
+  is_colimit := is_colimit.of_nat_iso h }
+
+/--
+If `F.cones` is representable for all functors `F : J ⥤ C`, for some fixed `J` then `C` has all
+limits of shape `J`.
+-/
+def has_colimits_of_shape.of_nat_iso
+  (h : Π (F : J ⥤ C), Σ X, coyoneda.obj (op X) ≅ F.cocones) : has_colimits_of_shape.{v} J C :=
+{ has_colimit := λ F, has_colimit.of_nat_iso (h F).2 }
+
+/--
+If `F.cones` is representable for all functors `F : J ⥤ C`, then `C` has all limits.
+-/
+def has_colimits.of_nat_iso
+  (h : Π {J : Type v} [𝒥 : small_category J] (F : J ⥤ C), Σ X, coyoneda.obj (op X) ≅ F.cocones) : has_colimits.{v} C :=
+{ has_colimits_of_shape := λ J _, by exactI has_colimits_of_shape.of_nat_iso h }
 
 /- Interface to the `has_colimit` class. -/
 

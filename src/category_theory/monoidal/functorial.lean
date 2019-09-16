@@ -67,7 +67,15 @@ end lax_monoidal_functor
 
 instance (F : lax_monoidal_functor.{v₁ v₂} C D) : lax_monoidal.{v₁ v₂} (F.obj) := { .. F }
 
--- TODO instances for identity and composition
+section
+omit 𝒟
+
+instance lax_monoidal_id : lax_monoidal.{v₁ v₁} (id : C → C) :=
+{ ε := 𝟙 _,
+  μ := λ X Y, 𝟙 _ }
+
+end
+-- TODO instances for composition
 
 -- TODO monoidal, as well as lax monoidal (... but it seems for enriched categories I'll only need unbundled lax monoidal functors at first)
 

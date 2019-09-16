@@ -251,8 +251,8 @@ namespace monoid_hom
 variables {M : Type*} {N : Type*} {P : Type*} [monoid M] [monoid N] [monoid P]
 variables {G : Type*} {H : Type*} [group G] [comm_group H]
 
-/-- Reinterpret a map `f : M → N` as a homomorphism `M →* N` -/
-@[to_additive]
+/-- Interpret a map `f : M → N` as a homomorphism `M →* N`. -/
+@[to_additive "Interpret a map `f : M → N` as a homomorphism `M →+ N`."]
 def of (f : M → N) [h : is_monoid_hom f] : M →* N :=
 { to_fun := f,
   map_one' := h.2,

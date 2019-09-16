@@ -39,7 +39,7 @@ between rings from monoid homs given only a proof that addition is preserved.
 is_ring_hom, is_semiring_hom, ring_hom, semiring_hom, semiring, comm_semiring, ring, comm_ring,
 domain, integral_domain, nonzero_comm_semiring, nonzero_comm_ring, units
 -/
-universes u v
+universes u v w
 variable {α : Type u}
 
 section
@@ -312,6 +312,7 @@ instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe (α →
 
 namespace ring_hom
 
+/-- Interpret `f : α → β` with `is_semiring_hom f` as a ring homomorphism. -/
 def of {α : Type u} {β : Type v} [semiring α] [semiring β]
   (f : α → β) [is_semiring_hom f] : α →+* β :=
 { to_fun := f,

@@ -20,7 +20,7 @@ monoid_hom.mk'
   (λ x y, ext (f.map_mul x y))
 
 @[reducible] def map' (f : α → β) [is_monoid_hom f] : units α →* units β :=
-  map (as_monoid_hom f)
+  map (monoid_hom.of f)
 
 @[simp] lemma coe_map (f : α →* β) (x : units α) : ↑(map f x) = f x := rfl
 

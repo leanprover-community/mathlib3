@@ -312,7 +312,17 @@ instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe (α →
 
 namespace ring_hom
 
-variables {β : Type v} [semiring α] [semiring β]
+def of {α : Type u} {β : Type v} [semiring α] [semiring β]
+  (f : α → β) [is_semiring_hom f] : α →+* β :=
+{ to_fun := f,
+  .. monoid_hom.of f,
+  .. add_monoid_hom.of f }
+
+@[simp] lemma coe_of {α : Type u} {β : Type v} [semiring α] [semiring β]
+  (f : α → β) [is_semiring_hom f] : ⇑(of f) = f := rfl
+
+variables {β : Type v} {γ : Type w} [semiring α] [semiring β] [semiring γ]
+
 variables (f : α →+* β) {x y : α}
 
 @[extensionality] theorem ext (f g : α →+* β) (h : (f : α → β) = g) : f = g :=

@@ -129,6 +129,10 @@ lemma apply_eq_coeff : p n = coeff p n := rfl
 
 @[simp] lemma coeff_add (p q : polynomial α) (n : ℕ) : coeff (p + q) n = coeff p n + coeff q n := rfl
 
+instance coeff.is_add_monoid_hom {n : ℕ} : is_add_monoid_hom (λ p : polynomial α, p.coeff n) :=
+{ map_add  := λ p q, coeff_add p q n,
+  map_zero := coeff_zero _ }
+
 lemma coeff_C : coeff (C a) n = ite (n = 0) a 0 :=
 by simp [coeff, eq_comm, C, single]; congr
 
@@ -331,6 +335,10 @@ calc coeff p 0 = coeff p 0 * 0 ^ 0 : by simp
 ... = p.eval 0 : eq.symm $
   finset.sum_eq_single _ (λ b _ hb, by simp [zero_pow (nat.pos_of_ne_zero hb)]) (by simp)
 
+lemma zero_is_root_of_coeff_zero_eq_zero {p : polynomial α} (hp : p.coeff 0 = 0) :
+  is_root p 0 :=
+by rwa coeff_zero_eq_eval_zero at hp
+
 end eval
 
 section comp
@@ -436,6 +444,23 @@ lemma eval_map (x : β) : (p.map f).eval x = p.eval₂ f x := eval₂_map _ _ _
 
 end map
 
+section
+variables {γ : Type*} [comm_semiring β] [comm_semiring γ]
+variables (f : α → β) (g : β → γ) [is_semiring_hom f] [is_semiring_hom g] (p)
+
+lemma hom_eval₂ (x : β) : g (p.eval₂ f x) = p.eval₂ (g ∘ f) (g x) :=
+begin
+  apply polynomial.induction_on p; clear p,
+  { intros a, rw [eval₂_C, eval₂_C] },
+  { intros p q hp hq, simp only [hp, hq, eval₂_add, is_semiring_hom.map_add g] },
+  { intros n a ih,
+    simp only [pow_succ', is_semiring_hom.map_mul g, (mul_assoc _ _ _).symm,
+      eval₂_C, eval₂_mul, eval₂_X] at ih ⊢,
+    rw ih }
+end
+
+end
+
 /-- `leading_coeff p` gives the coefficient of the highest power of `X` in `p`-/
 def leading_coeff (p : polynomial α) : α := coeff p (nat_degree p)
 
@@ -446,6 +471,9 @@ lemma monic.def : monic p ↔ leading_coeff p = 1 := iff.rfl
 
 instance monic.decidable : decidable (monic p) :=
 by unfold monic; apply_instance
+
+@[simp] lemma monic.leading_coeff {p : polynomial α} (hp : p.monic) :
+  leading_coeff p = 1 := hp
 
 @[simp] lemma degree_zero : degree (0 : polynomial α) = ⊥ := rfl
 
@@ -470,6 +498,20 @@ let ⟨n, hn⟩ :=
   classical.not_forall.1 (mt option.eq_none_iff_forall_not_mem.2 (mt degree_eq_bot.1 hp)) in
 have hn : degree p = some n := not_not.1 hn,
 by rw [nat_degree, hn]; refl
+
+lemma degree_eq_iff_nat_degree_eq {p : polynomial α} {n : ℕ} (hp : p ≠ 0) :
+  p.degree = n ↔ p.nat_degree = n :=
+by rw [degree_eq_nat_degree hp, with_bot.coe_eq_coe]
+
+lemma degree_eq_iff_nat_degree_eq_of_pos {p : polynomial α} {n : ℕ} (hn : n > 0) :
+  p.degree = n ↔ p.nat_degree = n :=
+begin
+  split,
+  { intro H, rwa ← degree_eq_iff_nat_degree_eq, rintro rfl,
+    rw degree_zero at H, exact option.no_confusion H },
+  { intro H, rwa degree_eq_iff_nat_degree_eq, rintro rfl,
+    rw nat_degree_zero at H, rw H at hn, exact lt_irrefl _ hn }
+end
 
 lemma nat_degree_eq_of_degree_eq_some {p : polynomial α} {n : ℕ}
   (h : degree p = n) : nat_degree p = n :=
@@ -528,6 +570,30 @@ if h : a = 0 then by rw [h, C_0, zero_mul]; exact bot_le else le_of_eq (degree_m
 
 lemma coeff_eq_zero_of_degree_lt (h : degree p < n) : coeff p n = 0 :=
 not_not.1 (mt le_degree_of_ne_zero (not_le_of_gt h))
+
+lemma coeff_eq_zero_of_nat_degree_lt {p : polynomial α} {n : ℕ} (h : p.nat_degree < n) :
+  p.coeff n = 0 :=
+begin
+  apply coeff_eq_zero_of_degree_lt,
+  by_cases hp : p = 0,
+  { subst hp, exact with_bot.bot_lt_coe n },
+  { rwa [degree_eq_nat_degree hp, with_bot.coe_lt_coe] }
+end
+
+lemma as_sum (p : polynomial α) :
+  p = (finset.range (p.nat_degree + 1)).sum (λ i, C (p.coeff i) * X^i) :=
+begin
+  rw ext, intro n, symmetry,
+  calc _ = _ : (finset.sum_hom (λ q : polynomial α, q.coeff n)).symm
+     ... = _ :
+  begin
+    rw finset.sum_eq_single n;
+    try { simp only [mul_one, coeff_X_pow, if_pos rfl, coeff_C_mul], },
+    { intros i hi hne, rw [if_neg hne.symm, mul_zero] },
+    { intro h, rw [finset.mem_range, not_lt] at h,
+      exact coeff_eq_zero_of_nat_degree_lt h }
+  end
+end
 
 lemma coeff_nat_degree_eq_zero_of_degree_lt (h : degree p < degree q) : coeff p (nat_degree q) = 0 :=
 coeff_eq_zero_of_degree_lt (lt_of_lt_of_le h degree_le_nat_degree)

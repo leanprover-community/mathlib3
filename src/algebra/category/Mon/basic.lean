@@ -37,7 +37,7 @@ instance hom_is_monoid_hom {R S : Mon} (f : R ⟶ S) : is_monoid_hom (f : R → 
 /-- Morphisms in `Mon` are defined using `subtype is_monoid_hom`,
 so we provide a canonical bijection with `R →* S`. -/
 def hom_equiv_monoid_hom (R S : Mon) : (R ⟶ S) ≃ (R →* S) :=
-{ to_fun := λ f, @as_monoid_hom _ _ _ _ f.val f.property,
+{ to_fun := λ f, @monoid_hom.of _ _ _ _ f.val f.property,
   inv_fun := λ f, ⟨f, f.is_monoid_hom⟩,
   right_inv := λ f, by rcases f; refl,
   left_inv := λ f, by rcases f; refl }

@@ -172,7 +172,7 @@ abbreviation equalizer := limit (parallel_pair f g)
 abbreviation equalizer.ι : equalizer f g ⟶ X :=
 limit.π (parallel_pair f g) zero
 
-@[simp, reassoc] lemma equalizer.condition : equalizer.ι f g ≫ f = equalizer.ι f g ≫ g :=
+@[reassoc] lemma equalizer.condition : equalizer.ι f g ≫ f = equalizer.ι f g ≫ g :=
 begin
   erw limit.w (parallel_pair f g) walking_parallel_pair_hom.left,
   erw limit.w (parallel_pair f g) walking_parallel_pair_hom.right
@@ -190,7 +190,7 @@ abbreviation coequalizer := colimit (parallel_pair f g)
 abbreviation coequalizer.π : Y ⟶ coequalizer f g :=
 colimit.ι (parallel_pair f g) one
 
-@[simp, reassoc] lemma coequalizer.condition : f ≫ coequalizer.π f g = g ≫ coequalizer.π f g :=
+@[reassoc] lemma coequalizer.condition : f ≫ coequalizer.π f g = g ≫ coequalizer.π f g :=
 begin
   erw colimit.w (parallel_pair f g) walking_parallel_pair_hom.left,
   erw colimit.w (parallel_pair f g) walking_parallel_pair_hom.right

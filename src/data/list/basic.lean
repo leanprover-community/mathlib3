@@ -2652,7 +2652,7 @@ lemma rel_filter_map {f : α → option γ} {q : β → option δ} :
 @[to_additive]
 lemma rel_prod [monoid α] [monoid β]
   (h : r 1 1) (hf : (r ⇒ r ⇒ r) (*) (*)) : (forall₂ r ⇒ r) prod prod :=
-assume a b, rel_foldl (assume a b, hf) h
+rel_foldl hf h
 
 end forall₂
 

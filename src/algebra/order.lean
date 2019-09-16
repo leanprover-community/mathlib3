@@ -152,7 +152,7 @@ begin
   apply h₂, apply le_antisymm; apply le_of_not_gt; assumption
 end
 
-lemma ne_iff_lt_or_gt [decidable_linear_order α] {a b : α} : a ≠ b ↔ a < b ∨ a > b :=
+lemma ne_iff_lt_or_gt [decidable_linear_order α] {a b : α} : a ≠ b ↔ a < b ∨ b < a :=
 ⟨lt_or_gt_of_ne, λo, o.elim ne_of_lt ne_of_gt⟩
 
 lemma le_imp_le_of_lt_imp_lt {β} [preorder α] [decidable_linear_order β]

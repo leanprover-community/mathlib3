@@ -22,10 +22,10 @@ class has_initial :=
 
 attribute [instance] has_terminal.has_limits_of_shape has_initial.has_colimits_of_shape
 
-instance [has_finite_products.{v} C] : has_terminal.{v} C :=
+instance has_terminal_of_has_finite_products [has_finite_products.{v} C] : has_terminal.{v} C :=
 { has_limits_of_shape :=
   { has_limit := λ F, has_limit_of_equivalence_comp ((functor.empty (discrete pempty)).as_equivalence.symm) } }
-instance [has_finite_coproducts.{v} C] : has_initial.{v} C :=
+instance has_initial_of_has_finite_coproducts [has_finite_coproducts.{v} C] : has_initial.{v} C :=
 { has_colimits_of_shape :=
   { has_colimit := λ F, has_colimit_of_equivalence_comp ((functor.empty (discrete pempty)).as_equivalence.symm) } }
 
@@ -37,6 +37,17 @@ notation `⊥_` C:20 := initial C
 
 section
 variables {C}
+
+def has_terminal_of_unique (X : C) [h : Π Y : C, unique (Y ⟶ X)] : has_terminal.{v} C :=
+{ has_limits_of_shape :=
+  { has_limit := λ F,
+    { cone     := { X := X, π := { app := pempty.rec _ } },
+      is_limit := { lift := λ s, (h s.X).default } } } }
+def has_initial_of_unique (X : C) [h : Π Y : C, unique (X ⟶ Y)] : has_initial.{v} C :=
+{ has_colimits_of_shape :=
+  { has_colimit := λ F,
+    { cocone     := { X := X, ι := { app := pempty.rec _ } },
+      is_colimit := { desc := λ s, (h s.X).default } } } }
 
 abbreviation terminal.from [has_terminal.{v} C] (P : C) : P ⟶ ⊤_ C :=
 limit.lift (functor.empty C) { X := P, π := by tidy }.

@@ -2,6 +2,7 @@ import category_theory.types
 import category_theory.core
 import category_theory.concrete_category
 import category_theory.elements
+import category_theory.functorial
 
 universes w₁ v₁ v₂ u₁ u₂
 
@@ -12,24 +13,6 @@ set_option pp.universes true
 variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
 
 section
-include 𝒞 𝒟
-class functorial (f : C → D) :=
-(map : Π {X Y : C}, (X ⟶ Y) → (f X ⟶ f Y))
-(map_id'   : ∀ (X : C), map (𝟙 X) = 𝟙 (f X) . obviously)
-(map_comp' : ∀ {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z), map (f ≫ g) = (map f) ≫ (map g) . obviously)
-
-restate_axiom functorial.map_id'
-attribute [simp] functorial.map_id
-restate_axiom functorial.map_comp'
-attribute [simp] functorial.map_comp
-
-def as_functor (f : C → D) [I : functorial.{v₁ v₂} f] : C ⥤ D :=
-{ obj := f,
-  ..I }
-
-@[simp] lemma as_functor_obj  (f : C → D) [functorial.{v₁ v₂} f] (X : C) : (as_functor f).obj X = f X := rfl
-
-instance functor_obj_functorial (F : C ⥤ D) : functorial.{v₁ v₂} F.obj := { .. F }
 
 class iso_functorial (f : C → D) :=
 (map : Π {X Y : C}, (X ≅ Y) → (f X ≅ f Y))

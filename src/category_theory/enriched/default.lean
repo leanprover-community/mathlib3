@@ -37,21 +37,13 @@ restate_axiom enriched_category.id_comp'
 restate_axiom enriched_category.comp_id'
 restate_axiom enriched_category.assoc'
 attribute [simp] enriched_category.id_comp enriched_category.comp_id enriched_category.assoc
+attribute [reassoc] enriched_category.id_comp enriched_category.comp_id
+
 
 notation `𝟙[` V `]` := enriched_category.id V
 notation X ` ⟶[` V `] ` Y:10 := enriched_category.hom V X Y
 
 open enriched_category
-
-section
-variables {C : Type u} [𝒞 : enriched_category V C]
-include 𝒞
-
-@[simp] lemma id_comp_assoc {X Y : C} {α : V} (f : (X ⟶[V] Y) ⟶ α) : (𝟙[V] X ⊗ 𝟙 _) ≫ comp V X X Y ≫ f = (λ_ (X ⟶[V] Y)).hom ≫ f :=
-by rw [←category.assoc, enriched_category.id_comp]
-@[simp] lemma comp_id_assoc {X Y : C} {α : V} (f : (X ⟶[V] Y) ⟶ α) : (𝟙 _ ⊗ 𝟙[V] Y) ≫ comp V X Y Y ≫ f = (ρ_ (X ⟶[V] Y)).hom ≫ f :=
-by rw [←category.assoc, enriched_category.comp_id]
-end
 
 section
 variables {V}
@@ -84,15 +76,9 @@ structure enriched_functor :=
 (map_comp' : Π X Y Z : C, comp _ X Y Z ≫ map X Z = (map X Y ⊗ map Y Z) ≫ comp _ _ _ _ . obviously)
 
 restate_axiom enriched_functor.map_id'
-attribute [simp] enriched_functor.map_id
 restate_axiom enriched_functor.map_comp'
-attribute [simp] enriched_functor.map_comp
+attribute [simp, reassoc] enriched_functor.map_id enriched_functor.map_comp
 
-variables (F : enriched_functor V C D)
-@[simp] lemma map_id_assoc {X : C} {α} (f : (F.obj X ⟶[V] F.obj X) ⟶ α) : (𝟙[V] X) ≫ F.map X X ≫ f = 𝟙[V] (F.obj X) ≫ f :=
-by rw [←category.assoc, enriched_functor.map_id]
-@[simp] lemma map_comp_assoc {X Y Z : C} {α} (f : (F.obj X ⟶[V] F.obj Z) ⟶ α) : comp _ X Y Z ≫ F.map X Z ≫ f = (F.map X Y ⊗ F.map Y Z) ≫ comp _ _ _ _ ≫ f :=
-by rw [←category.assoc, enriched_functor.map_comp, category.assoc]
 end
 
 namespace enriched_functor

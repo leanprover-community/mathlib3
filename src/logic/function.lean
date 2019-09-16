@@ -44,6 +44,12 @@ mt (assume h, hf h)
 def injective.decidable_eq [decidable_eq β] (I : injective f) : decidable_eq α
 | a b := decidable_of_iff _ I.eq_iff
 
+def injective.of_comp {γ : Sort w} {g : γ → α} (I : injective (f ∘ g)) : injective g :=
+λ x y h, I $ show f (g x) = f (g y), from congr_arg f h
+
+def surjective.of_comp {γ : Sort w} {g : γ → α} (S : surjective (f ∘ g)) : surjective f :=
+λ y, let ⟨x, h⟩ := S y in ⟨g x, h⟩
+
 instance decidable_eq_pfun (p : Prop) [decidable p] (α : p → Type*)
   [Π hp, decidable_eq (α hp)] : decidable_eq (Π hp, α hp)
 | f g := decidable_of_iff (∀ hp, f hp = g hp) funext_iff.symm

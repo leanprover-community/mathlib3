@@ -18,22 +18,20 @@ namespace CommRing
 
 variables {J : Type u} [small_category J]
 
-instance comm_ring_obj (F : J ⥤ CommRing.{u}) (j) : comm_ring ((F ⋙ CommRing.forget).obj j) :=
-by { dsimp, apply_instance }
-instance is_ring_hom_map (F : J ⥤ CommRing.{u}) (j j') (f : j ⟶ j') : is_ring_hom ((F ⋙ CommRing.forget).map f) :=
+instance comm_ring_obj (F : J ⥤ CommRing.{u}) (j) :
+  comm_ring ((F ⋙ forget CommRing).obj j) :=
 by { dsimp, apply_instance }
 
-instance sections_submonoid (F : J ⥤ CommRing.{u}) : is_submonoid (F ⋙ forget).sections :=
+instance sections_submonoid (F : J ⥤ CommRing.{u}) :
+  is_submonoid (F ⋙ forget CommRing).sections :=
 { one_mem := λ j j' f,
   begin
-    simp only [functor.comp_map],
-    erw is_ring_hom.map_one (CommRing.forget.map (F.map f)),
-    refl,
+    erw [functor.comp_map, forget_map_eq_coe, (F.map f).map_one],
+    refl
   end,
   mul_mem := λ a b ah bh j j' f,
   begin
-    simp only [functor.comp_map],
-    erw is_ring_hom.map_mul (CommRing.forget.map (F.map f)),
+    erw [functor.comp_map, forget_map_eq_coe, (F.map f).map_mul],
     dsimp [functor.sections] at ah,
     rw ah f,
     dsimp [functor.sections] at bh,
@@ -41,17 +39,16 @@ instance sections_submonoid (F : J ⥤ CommRing.{u}) : is_submonoid (F ⋙ forge
     refl,
   end }
 
-instance sections_add_submonoid (F : J ⥤ CommRing.{u}) : is_add_submonoid (F ⋙ forget).sections :=
+instance sections_add_submonoid (F : J ⥤ CommRing.{u}) :
+  is_add_submonoid (F ⋙ forget CommRing).sections :=
 { zero_mem := λ j j' f,
   begin
-    simp only [functor.comp_map],
-    erw is_ring_hom.map_zero (CommRing.forget.map (F.map f)),
+    erw [functor.comp_map, forget_map_eq_coe, (F.map f).map_zero],
     refl,
   end,
   add_mem := λ a b ah bh j j' f,
   begin
-    simp only [functor.comp_map],
-    erw is_ring_hom.map_add (CommRing.forget.map (F.map f)),
+    erw [functor.comp_map, forget_map_eq_coe, (F.map f).map_add],
     dsimp [functor.sections] at ah,
     rw ah f,
     dsimp [functor.sections] at bh,
@@ -59,56 +56,63 @@ instance sections_add_submonoid (F : J ⥤ CommRing.{u}) : is_add_submonoid (F �
     refl,
   end }
 
-instance sections_add_subgroup (F : J ⥤ CommRing.{u}) : is_add_subgroup (F ⋙ forget).sections :=
+instance sections_add_subgroup (F : J ⥤ CommRing.{u}) :
+  is_add_subgroup (F ⋙ forget CommRing).sections :=
 { neg_mem := λ a ah j j' f,
   begin
-    simp only [functor.comp_map],
-    erw is_ring_hom.map_neg (CommRing.forget.map (F.map f)),
+    erw [functor.comp_map, forget_map_eq_coe, (F.map f).map_neg],
     dsimp [functor.sections] at ah,
     rw ah f,
     refl,
   end,
   ..(CommRing.sections_add_submonoid F) }
 
-instance sections_subring (F : J ⥤ CommRing.{u}) : is_subring (F ⋙ forget).sections :=
+instance sections_subring (F : J ⥤ CommRing.{u}) :
+  is_subring (F ⋙ forget CommRing).sections :=
 { ..(CommRing.sections_submonoid F),
   ..(CommRing.sections_add_subgroup F) }
 
-instance limit_comm_ring (F : J ⥤ CommRing.{u}) : comm_ring (limit (F ⋙ forget)) :=
-@subtype.comm_ring ((Π (j : J), (F ⋙ forget).obj j)) (by apply_instance) _
+instance limit_comm_ring (F : J ⥤ CommRing.{u}) :
+  comm_ring (limit (F ⋙ forget CommRing)) :=
+@subtype.comm_ring ((Π (j : J), (F ⋙ forget _).obj j)) (by apply_instance) _
   (by convert (CommRing.sections_subring F))
 
-instance limit_π_is_ring_hom (F : J ⥤ CommRing.{u}) (j) : is_ring_hom (limit.π (F ⋙ CommRing.forget) j) :=
+instance limit_π_is_ring_hom (F : J ⥤ CommRing.{u}) (j) :
+  is_ring_hom (limit.π (F ⋙ forget CommRing) j) :=
 { map_one := by { simp only [types.types_limit_π], refl },
   map_mul := λ x y, by { simp only [types.types_limit_π], refl },
   map_add := λ x y, by { simp only [types.types_limit_π], refl } }
 
 def limit (F : J ⥤ CommRing.{u}) : cone F :=
-{ X := ⟨limit (F ⋙ forget), by apply_instance⟩,
+{ X := ⟨limit (F ⋙ forget _), by apply_instance⟩,
   π :=
-  { app := λ j, ⟨limit.π (F ⋙ forget) j, by apply_instance⟩,
-    naturality' := λ j j' f, subtype.eq ((limit.cone (F ⋙ forget)).π.naturality f) } }
+  { app := λ j, ring_hom.of $ limit.π (F ⋙ forget _) j,
+    naturality' := λ j j' f,
+      ring_hom.ext _ _ ((limit.cone (F ⋙ forget _)).π.naturality f) } }
 
 def limit_is_limit (F : J ⥤ CommRing.{u}) : is_limit (limit F) :=
 begin
-  refine is_limit.of_faithful forget (limit.is_limit _) (λ s, ⟨_, _⟩) (λ s, rfl),
-  dsimp, split,
+  refine is_limit.of_faithful
+    (forget CommRing) (limit.is_limit _)
+    (λ s, ⟨_, _, _, _, _⟩) (λ s, rfl); dsimp,
   { apply subtype.eq, funext, dsimp,
-    erw is_ring_hom.map_one (CommRing.forget.map (s.π.app j)), refl },
+    erw (s.π.app j).map_one, refl },
   { intros x y, apply subtype.eq, funext, dsimp,
-    erw is_ring_hom.map_mul (CommRing.forget.map (s.π.app j)), refl },
+    erw (s.π.app j).map_mul, refl },
+  { apply subtype.eq, funext, dsimp,
+    erw (s.π.app j).map_zero, refl },
   { intros x y, apply subtype.eq, funext, dsimp,
-    erw is_ring_hom.map_add (CommRing.forget.map (s.π.app j)), refl },
+    erw (s.π.app j).map_add, refl }
 end
 
 instance CommRing_has_limits : has_limits.{u} CommRing.{u} :=
 { has_limits_of_shape := λ J 𝒥,
   { has_limit := λ F, by exactI { cone := limit F, is_limit := limit_is_limit F } } }
 
-instance forget_preserves_limits : preserves_limits (forget : CommRing.{u} ⥤ Type u) :=
+instance forget_preserves_limits : preserves_limits (forget CommRing.{u}) :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ F,
     by exactI preserves_limit_of_preserves_limit_cone
-      (limit.is_limit F) (limit.is_limit (F ⋙ forget)) } }
+      (limit.is_limit F) (limit.is_limit (F ⋙ forget _)) } }
 
 end CommRing

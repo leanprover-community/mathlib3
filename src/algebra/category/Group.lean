@@ -9,59 +9,51 @@ Copied from `algebra/category/Mon/basic.lean`.
 -/
 
 import algebra.punit_instances
-import category_theory.concrete_category
+import algebra.category.Mon.basic
 
 universes u v
 
 open category_theory
 
 /-- The category of groups and group morphisms. -/
-@[reducible] def Group : Type (u+1) := bundled group
-
-/-- The category of additive commutative groups and group morphisms. -/
-@[reducible] def AddCommGroup : Type (u+1) := bundled add_comm_group
+@[reducible, to_additive AddGroup]
+def Group : Type (u+1) := bundled group
 
 namespace Group
 
+@[to_additive add_group]
 instance (G : Group) : group G := G.str
 
-instance concrete_is_group_hom :
-  concrete_category @is_group_hom :=
-⟨by introsI α ia; apply_instance,
-  by introsI α β γ ia ib ic f g hf hg; apply_instance⟩
+@[to_additive] def of (X : Type u) [group X] : Group := bundled.of X
 
-def of (X : Type u) [group X] : Group := ⟨X⟩
+@[to_additive]
+instance bundled_hom : bundled_hom _ :=
+Mon.bundled_hom.full_subcategory @group.to_monoid
 
-instance hom_is_group_hom {G₁ G₂ : Group} (f : G₁ ⟶ G₂) :
-  is_group_hom (f : G₁ → G₂) := f.2
-
-instance : has_one Group := ⟨⟨punit⟩⟩
+@[to_additive]
+instance : has_one Group := ⟨Group.of punit⟩
 
 end Group
 
-namespace AddCommGroup
 
-instance (A : AddCommGroup) : add_comm_group A := A.str
+/-- The category of commutative groups and group morphisms. -/
+@[reducible, to_additive AddCommGroup]
+def CommGroup : Type (u+1) := bundled comm_group
 
-@[reducible] def is_add_comm_group_hom {α β} [add_comm_group α] [add_comm_group β] (f : α → β) : Prop :=
-is_add_group_hom f
+namespace CommGroup
 
-instance concrete_is_comm_group_hom : concrete_category @is_add_comm_group_hom :=
-⟨by introsI α ia; apply_instance,
-  by introsI α β γ ia ib ic f g hf hg; apply_instance⟩
+@[to_additive add_comm_group]
+instance (G : CommGroup) : comm_group G := G.str
 
-def of (X : Type u) [add_comm_group X] : AddCommGroup := ⟨X⟩
+@[to_additive] def of (G : Type u) [comm_group G] : CommGroup := bundled.of G
 
-instance hom_is_comm_group_hom {A₁ A₂ : AddCommGroup} (f : A₁ ⟶ A₂) :
-  is_add_comm_group_hom (f : A₁ → A₂) := f.2
+@[to_additive] instance : bundled_hom _ :=
+Group.bundled_hom.full_subcategory @comm_group.to_group
 
-/-- The forgetful functor from additive commutative groups to groups. -/
-def forget_to_Group : AddCommGroup ⥤ Group :=
-{ obj := λ A₁, ⟨multiplicative A₁⟩,
-  map := λ A₁ A₂ f, ⟨f, multiplicative.is_group_hom f⟩ }
+@[to_additive has_forget_to_AddGroup]
+instance has_forget_to_Group : has_forget CommGroup.{u} Group.{u} :=
+Group.bundled_hom.full_subcategory_has_forget _
 
-instance : faithful (forget_to_Group) := {}
+@[to_additive] instance : has_one CommGroup := ⟨CommGroup.of punit⟩
 
-instance : has_zero AddCommGroup := ⟨⟨punit⟩⟩
-
-end AddCommGroup
+end CommGroup

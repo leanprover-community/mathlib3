@@ -1,6 +1,6 @@
 /- Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison, Johannes Hölzl
+Authors: Scott Morrison, Johannes Hölzl, Yury Kudryashov
 
 Introduce CommRing -- the category of commutative rings.
 -/
@@ -14,73 +14,93 @@ universes u v
 
 open category_theory
 
+/-- The category of semirings. -/
+@[reducible] def SemiRing : Type (u+1) := bundled semiring
+
+namespace SemiRing
+
+def of (R : Type u) [semiring R] : SemiRing := bundled.of R
+
+instance (R : SemiRing) : semiring R := R.str
+
+instance bundled_hom : bundled_hom @ring_hom :=
+⟨@ring_hom.to_fun, @ring_hom.id, @ring_hom.comp, @ring_hom.ext⟩
+
+instance has_forget_to_Mon : has_forget SemiRing.{u} Mon.{u} :=
+bundled_hom.mk_has_forget @semiring.to_monoid (λ R₁ R₂ f, f.to_monoid_hom) (λ _ _ _, rfl)
+
+end SemiRing
+
 /-- The category of rings. -/
 @[reducible] def Ring : Type (u+1) := bundled ring
-
-/-- The category of commutative rings. -/
-@[reducible] def CommRing : Type (u+1) := bundled comm_ring
 
 namespace Ring
 
 instance (x : Ring) : ring x := x.str
 
-instance concrete_is_ring_hom : concrete_category @is_ring_hom :=
-⟨by introsI α ia; apply_instance,
-  by introsI α β γ ia ib ic f g hf hg; apply_instance⟩
+def of (R : Type u) [ring R] : Ring := bundled.of R
 
-def of (α : Type u) [ring α] : Ring := ⟨α⟩
+instance bundled_hom : bundled_hom _ :=
+SemiRing.bundled_hom.full_subcategory @ring.to_semiring
 
-abbreviation forget : Ring.{u} ⥤ Type u := forget
-
-instance hom_is_ring_hom {R S : Ring} (f : R ⟶ S) : is_ring_hom (f : R → S) := f.2
+instance has_forget_to_SemiRing : has_forget Ring.{u} SemiRing.{u} :=
+SemiRing.bundled_hom.full_subcategory_has_forget _
 
 end Ring
+
+/-- The category of commutative semirings. -/
+@[reducible] def CommSemiRing : Type (u+1) := bundled comm_semiring
+
+namespace CommSemiRing
+
+instance (x : CommSemiRing) : comm_semiring x := x.str
+
+def of (R : Type u) [comm_semiring R] : CommSemiRing := bundled.of R
+
+instance bundled_hom : bundled_hom _ :=
+SemiRing.bundled_hom.full_subcategory @comm_semiring.to_semiring
+
+instance has_forget_to_SemiRing : has_forget CommSemiRing.{u} SemiRing.{u} :=
+bundled_hom.full_subcategory_has_forget _ _
+
+/-- The forgetful functor from commutative rings to (multiplicative) commutative monoids. -/
+instance has_forget_to_CommMon : has_forget CommSemiRing.{u} CommMon.{u} :=
+bundled_hom.mk_has_forget
+  @comm_semiring.to_comm_monoid
+  (λ R₁ R₂ f, f.to_monoid_hom)
+  (by intros; refl)
+
+end CommSemiRing
+
+/-- The category of commutative rings. -/
+@[reducible] def CommRing : Type (u+1) := bundled comm_ring
 
 namespace CommRing
 
 instance (x : CommRing) : comm_ring x := x.str
 
-abbreviation is_comm_ring_hom {α β} [comm_ring α] [comm_ring β] (f : α → β) : Prop :=
-is_ring_hom f
+def of (R : Type u) [comm_ring R] : CommRing := bundled.of R
 
-instance concrete_is_comm_ring_hom : concrete_category @is_comm_ring_hom :=
-⟨by introsI α ia; apply_instance,
-  by introsI α β γ ia ib ic f g hf hg; apply_instance⟩
+instance bundled_hom : bundled_hom _ :=
+Ring.bundled_hom.full_subcategory @comm_ring.to_ring
 
-def of (α : Type u) [comm_ring α] : CommRing := ⟨α⟩
+@[simp] lemma id_eq (R : CommRing) : 𝟙 R = ring_hom.id R := rfl
+@[simp] lemma comp_eq {R₁ R₂ R₃ : CommRing} (f : R₁ ⟶ R₂) (g : R₂ ⟶ R₃) :
+  f ≫ g = g.comp f := rfl
 
-abbreviation forget : CommRing.{u} ⥤ Type u := forget
+@[simp] lemma forget_obj_eq_coe {R : CommRing} : (forget CommRing).obj R = R := rfl
+@[simp] lemma forget_map_eq_coe {R₁ R₂ : CommRing} (f : R₁ ⟶ R₂) :
+  (forget CommRing).map f = f :=
+rfl
 
-instance hom_is_ring_hom {R S : CommRing} (f : R ⟶ S) : is_ring_hom (f : R → S) := f.2
-
-variables {R S T : CommRing.{u}}
-
--- TODO rename the next two definitions?
-def Int.cast {R : CommRing} : CommRing.of ℤ ⟶ R := { val := int.cast, property := by apply_instance }
-
-def Int.hom_unique {R : CommRing} : unique (CommRing.of ℤ ⟶ R) :=
-{ default := Int.cast,
-  uniq := λ f, subtype.ext.mpr $ funext $ int.eq_cast f f.2.map_one f.2.map_add }
-
-instance forget.faithful : faithful (forget) := {}
-
-instance forget_comm_ring (R : CommRing) : comm_ring (forget.obj R) := R.str
-instance forget_is_ring_hom {R S : CommRing} (f : R ⟶ S) : is_ring_hom (forget.map f) := f.property
-
-/-- The functor from commutative rings to rings. -/
-def to_Ring : CommRing.{u} ⥤ Ring.{u} :=
-{ obj := λ X, { α := X.1 },
-  map := λ X Y f, ⟨ f, by apply_instance ⟩ }
-
-instance to_Ring.faithful : faithful (to_Ring) := {}
+instance has_forget_to_Ring : has_forget CommRing.{u} Ring.{u} :=
+by apply bundled_hom.full_subcategory_has_forget
 
 /-- The forgetful functor from commutative rings to (multiplicative) commutative monoids. -/
-def forget_to_CommMon : CommRing.{u} ⥤ CommMon.{u} :=
-{ obj := λ X, { α := X.1 },
-  map := λ X Y f, ⟨ f, by apply_instance ⟩ }
-
-instance forget_to_CommMon.faithful : faithful (forget_to_CommMon) := {}
-
-example : faithful (forget_to_CommMon ⋙ CommMon.forget_to_Mon) := by apply_instance
+instance has_forget_to_CommSemiRing : has_forget CommRing.{u} CommSemiRing.{u} :=
+bundled_hom.mk_has_forget
+  @comm_ring.to_comm_semiring
+  (λ _ _, id)
+  (by intros; refl)
 
 end CommRing

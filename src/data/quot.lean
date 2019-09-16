@@ -56,7 +56,7 @@ quot.hrec_on₂ qa qb f
   (λ _ _ _ p, c _ _ _ _ (setoid.refl _) p)
 
 /-- Map a function `f : α → β` that sends equivalent elements to equivalent elements
-to a function `quotient sa → quotiebt sb`. Useful to define unary operations on quotients. -/
+to a function `quotient sa → quotient sb`. Useful to define unary operations on quotients. -/
 protected def map (f : α → β) (h : ((≈) ⇒ (≈)) f f) : quotient sa → quotient sb :=
 quot.map f @h
 

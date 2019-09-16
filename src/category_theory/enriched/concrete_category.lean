@@ -112,6 +112,8 @@ instance enriched_category_of_enriched_over [enriched_over.{v} V C] : enriched_c
     dsimp [as_term],
     rw ←functor_to_types.map_comp,
 
+    -- move the λ_ to the rhs, and then use left_unitality?
+
     -- We next transport `y` through `e_hom_forget`:
     -- have t := (enriched_over.e_hom_forget V X Y).left_inv y,
     -- generalize_hyp : (enriched_over.e_hom_forget V X Y).to_fun y = f at t,
@@ -119,7 +121,7 @@ instance enriched_category_of_enriched_over [enriched_over.{v} V C] : enriched_c
 
     -- simp,
     -- ...
-    exact category.comp_id C f,
+
   end,
   comp_id' := sorry,
   assoc' := sorry, }

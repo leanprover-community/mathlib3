@@ -61,6 +61,7 @@ def has_binary_products_of_hom_equiv
           (naturality₁ (F.obj left) (F.obj right))
           (naturality₂ (F.obj left) (F.obj right))⟩) }
 
+-- We verify that this construction allows us to easily build binary products in `Type`.
 example : has_binary_products.{v} (Type v) :=
 has_binary_products_of_hom_equiv
   (λ X Y, X × Y)
@@ -68,5 +69,28 @@ has_binary_products_of_hom_equiv
     { hom := λ f, (λ q, (f q).1, λ q, (f q).2),
       inv := λ p q, (p.1 q, p.2 q) })
   (by tidy) (by tidy)
+
+-- For completeness, we now construct these explicit `hom_equiv` and naturality statements
+-- starting from any binary product.
+section
+local attribute [tidy] tactic.case_bash
+
+def binary_product.hom_equiv [has_binary_products.{v} C] (X Y Q : C) : (Q ⟶ prod X Y) ≃ (Q ⟶ X) × (Q ⟶ Y) :=
+iso.to_equiv
+{ hom := λ f, (f ≫ prod.fst, f ≫ prod.snd),
+  inv := λ p, prod.lift p.1 p.2, }
+end
+
+local attribute [simp] binary_product.hom_equiv
+
+lemma binary_product.naturality₁ [has_binary_products.{v} C] (X Y : C) {Q Q' : C} (f : Q ⟶ Q') (g : Q' ⟶ prod X Y) :
+  ((binary_product.hom_equiv X Y Q : (Q ⟶ prod X Y) → (Q ⟶ X) × (Q ⟶ Y)) (f ≫ g)).1 =
+    f ≫ ((binary_product.hom_equiv X Y Q').to_fun g).1 :=
+by tidy
+
+lemma binary_product.naturality₂ [has_binary_products.{v} C] (X Y : C) {Q Q' : C} (f : Q ⟶ Q') (g : Q' ⟶ prod X Y) :
+  ((binary_product.hom_equiv X Y Q : (Q ⟶ prod X Y) → (Q ⟶ X) × (Q ⟶ Y)) (f ≫ g)).2 =
+    f ≫ ((binary_product.hom_equiv X Y Q').to_fun g).2 :=
+by tidy
 
 end category_theory.limits

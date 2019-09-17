@@ -22,9 +22,11 @@ set - along with some preliminary results about `bell`.
 The function `rel` and lemmas ending in ' make it easier to talk about different 
 equivalence relations on the same type.
 
-The complete lattice instance for setoids could be defined by lifting the Galois
-insertion of equivalence relations on α into binary relations on α, but the resulting
-functions are less easy to use. 
+The complete lattice instance for equivalence relations could have been defined by lifting 
+the Galois insertion of equivalence relations on α into binary relations on α, and then using
+`complete_lattice.copy` to define a complete lattice instance with more appropriate 
+definitional equalities (a similar example is at line 284 of `order/filter/basic.lean`). 
+This does not save space, however, and is less clear.
 
 Partitions are not defined as a separate structure here; users are encouraged to
 reason about them using the existing `setoid` and its infrastructure.

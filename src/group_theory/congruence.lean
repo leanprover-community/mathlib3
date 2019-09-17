@@ -64,7 +64,7 @@ inductive add_con_gen.rel [has_add M] (r : M → M → Prop) : M → M → Prop
 ⟨con_gen.rel r, ⟨λ _, con_gen.rel.refl _, λ _ _ h, con_gen.rel.symm _ _ h, 
   λ _ _ _ h1 h2, con_gen.rel.trans _ _ _ h1 h2⟩, con_gen.rel.mul⟩
 
-variables {M}
+variables {M} (c : con M)
 namespace con
 
 section
@@ -75,19 +75,21 @@ variables [has_mul M] [has_mul N] [has_mul P]
 instance : has_coe_to_fun (con M) := ⟨_, λ c, λ x y, c.r x y⟩
 
 /-- Congruence relations are reflexive. -/
-@[simp, refl, to_additive] lemma refl (c : con M) (x) : c.1 x x := c.2.1 x
+@[simp, refl, to_additive] lemma refl (x) : c.1 x x := c.2.1 x
 /-- Congruence relations are symmetric. -/
-@[simp, symm, to_additive] lemma symm (c : con M) : ∀ {x y}, c x y → c.1 y x := λ _ _ h, c.2.2.1 h
+@[simp, symm, to_additive] lemma symm : ∀ {x y}, c x y → c.1 y x := λ _ _ h, c.2.2.1 h
 /-- Congruence relations are transitive. -/
-@[simp, trans, to_additive] lemma trans (c : con M) : ∀ {x y z}, c x y → c y z → c.1 x z := 
+@[simp, trans, to_additive] lemma trans : ∀ {x y z}, c x y → c y z → c.1 x z := 
 λ  _ _ _ hx hy, c.2.2.2 hx hy
 /-- Multiplicative congruence relations preserve multiplication. -/
-@[simp, to_additive] lemma mul (c : con M) : ∀ {w x y z}, c w x → c y z → c (w*y) (x*z) :=
+@[simp, to_additive] lemma mul : ∀ {w x y z}, c w x → c y z → c (w*y) (x*z) :=
 λ _ _ _ _ h1 h2, c.3 h1 h2
 
 /-- For x, y ∈ M, for a congruence relation r on M we define 
     (x, y) ∈ M × M ↔ x is related to y by r. -/
 @[to_additive] instance : has_mem (M × M) (con M) := ⟨λ x r, r x.1 x.2⟩
+
+variables {c} 
 
 /-- The map sending a congruence relation to its underlying binary relation is injective. -/
 @[to_additive] lemma r_inj {c d : con M} (H : c.r = d.r) : c = d :=
@@ -117,7 +119,7 @@ by cases c; cases d; simpa using H
               λ _ _ _ h1 h2 i, (C i).trans (h1 i) (h2 i)⟩,
   mul' := λ _ _ _ _ h1 h2 i, (C i).mul (h1 i) (h2 i) }
 
-variable (c : con M)
+variables (c)
 
 @[simp, to_additive] lemma setoid_eq : c.to_setoid.r = c := rfl
 
@@ -205,10 +207,14 @@ open lattice
  λ _ _ _ h1 h2 c hc, c.trans (h1 c hc) $ h2 c hc⟩,
  λ _ _ _ _ h1 h2 c hc, c.mul (h1 c hc) $ h2 c hc⟩⟩
 
+/-- The infimum of a set of congruence relations is the same as the infimum of the set's image
+    under the map to the underlying equivalence relation. -/
 @[to_additive] lemma Inf_to_setoid (S : set (con M)) : (Inf S).to_setoid = Inf (to_setoid '' S) :=
 setoid.ext' $ λ x y, ⟨λ h r ⟨c, hS, hr⟩, by rw ←hr; exact h c hS, 
   λ h c hS, h c.to_setoid ⟨c, hS, rfl⟩⟩
 
+/-- The infimum of a set of congruence relations is the same as the infimum of the set's image 
+    under the map to the underlying binary relation. -/
 @[to_additive] lemma Inf_def (S : set (con M)) : (Inf S).r = Inf (r '' S) :=
 begin
   show (Inf S).to_setoid.rel = _,
@@ -301,6 +307,18 @@ lemma con_gen_idem (r : M → M → Prop) :
   con_gen (con_gen r).r = con_gen r :=
 con_gen_of_con _ 
 
+variables (M)
+
+/-- There is a Galois insertion of congruence relations on α into binary relations 
+    on α, with congruence closure the lower adjoint. -/
+@[to_additive] def con.gi : @galois_insertion (M → M → Prop) (con M) _ _ con_gen r :=
+{ choice := λ r h, con_gen r,
+ gc := λ r c, ⟨λ H _ _ h, H _ _ $ con_gen.rel.of _ _ h, λ H, con_gen_of_con c ▸ con_gen_mono H⟩,
+  le_l_u := λ x, (con_gen_of_con x).symm ▸ le_refl x,
+  choice_eq := λ _ _, rfl} 
+
+variables {M}
+
 /-- The supremum of congruence relations c, d equals the congruence closure of the binary relation
     'x is related to y by c or d'. -/
 @[to_additive sup_eq_add_con_gen] 
@@ -318,6 +336,8 @@ lemma Sup_eq_con_gen (S : set (con M)) :
 by rw con_gen_eq; apply congr_arg Inf; ext;
    exact ⟨λ h _ _ ⟨r, hr⟩, h r hr.1 _ _ hr.2, λ h r hS _ _ hr, h _ _ ⟨r, hS, hr⟩⟩
 
+/-- The supremum of a set of congruence relations is the same as the congruence closure of the
+    supremum of the set's image under the map to the underlying binary relation. -/
 @[to_additive] lemma Sup_def {S : set (con M)} : Sup S = con_gen (Sup (r '' S)) := 
 begin
   rw Sup_eq_con_gen, 
@@ -336,16 +356,23 @@ end
 
 variables (c)
 
+/-- Given a congruence relation c on M, the natural map from congruence relations containing
+    c to congruence relations on the quotient of M by c. -/
 @[to_additive to_add_con] def to_con (d : {d // c ≤ d}) : con c.quotient :=
 { mul' := λ w x y z, quotient.induction_on₂' w x $ 
     λ _ _, quotient.induction_on₂' y z $ λ _ _ h1 h2, d.1.mul h1 h2, 
   ..c.to_setoid.to_quotient (⟨d.1.to_setoid, d.2⟩ : {d : setoid M // c.to_setoid ≤ d}) }
 
-@[to_additive of_add_con] def of_con (f : M → c.quotient) (d : con c.quotient) : con M :=
+/-- Given an congruence relation c on M and a map f to the quotient of M by c, an
+    congruence relation d on the quotient induces an congruence relation on f's domain defined
+    by x ≈ y ↔ f(x) is related to f(y) by d. -/
+@[to_additive of_add_con] def of_con (f : N → c.quotient) (d : con c.quotient) : con N :=
 { r := λ x y, d (f x) (f y),
-  iseqv := ⟨λ x, d.refl ↑x, λ _ _ h, d.symm h, λ _ _ _ h1 h2, d.trans h1 h2⟩,
+  iseqv := ⟨λ x, d.refl _, λ _ _ h, d.symm h, λ _ _ _ h1 h2, d.trans h1 h2⟩,
   mul' := λ _ _ _ _ h1 h2, d.mul h1 h2}
 
+/-- Given an congruence relation c on M, the order-preserving bijection between the set of 
+    congruence relations containing c and the congruence relations on the quotient of M by c. -/
 @[to_additive] def correspondence : ((≤) : {d // c ≤ d} → {d // c ≤ d} → Prop) ≃o
   ((≤) : con c.quotient → con c.quotient → Prop) :=
 { to_fun := λ d, c.to_con d,
@@ -358,18 +385,12 @@ variables (c)
        λ w z h, by apply hle w z h,
      λ H p q h, by apply H (p : _) (q : _) h⟩ }
 
-@[to_additive] def con.gi : @galois_insertion (M → M → Prop) (con M) _ _ con_gen r :=
-{ choice := λ r h, con_gen r,
- gc := λ r c, ⟨λ H _ _ h, H _ _ $ con_gen.rel.of _ _ h, λ H, con_gen_of_con c ▸ con_gen_mono H⟩,
-  le_l_u := λ x, (con_gen_of_con x).symm ▸ le_refl x,
-  choice_eq := λ _ _, rfl} 
-
 end 
 
-variables (M) [monoid M] [monoid N] [monoid P] {c : con M}
+variables (M) [monoid M] [monoid N] [monoid P]
 
 /-- The submonoid of M × M defined by a congruence relation on a monoid M. -/
-@[to_additive add_submonoid] protected def submonoid (c : con M) : submonoid (M × M) :=
+@[to_additive add_submonoid] protected def submonoid : submonoid (M × M) :=
 { carrier := { x | c x.1 x.2 },
   one_mem' := c.iseqv.1 1,
   mul_mem' := λ _ _ hx hy, c.mul hx hy }
@@ -390,22 +411,25 @@ def of_submonoid (N : submonoid (M × M)) (H : equivalence (λ x y, (x, y) ∈ N
   iseqv := ⟨λ _, rfl, λ _ _ h, h.symm, λ _ _ _ hx hy, eq.trans hx hy⟩,
   mul' := λ _ _ _ _ h1 h2, by rw [f.map_mul, h1, h2, f.map_mul] }
 
+/-- Stating the definition of the congruence relation defined by a monoid homomorphism's kernel. -/
 @[to_additive] lemma ker_rel (f : M →* P) {x y} : con.ker f x y ↔ f x = f y := iff.rfl
 
-variables (c) 
-
+/-- Restriction of a congruence relation to a submonoid. -/
 @[to_additive] def subtype (A : submonoid M) : con A :=
 ⟨λ x y, c x y, ⟨λ x, c.refl x, λ x y h, c.symm h, λ x y z h1 h2, c.trans h1 h2⟩,
  λ w x y z h1 h2, c.mul h1 h2⟩
 
 variables {c} 
 
+/-- Stating the definition of the restriction of a congruence relation to a submonoid. -/
 @[simp, to_additive] lemma subtype_apply {A : submonoid M} {x y} : c.subtype A x y ↔ c x y := iff.rfl
 
+/-- There exists an element of the quotient of a monoid by a congruence relation (namely 1). -/
 @[to_additive] instance : inhabited c.quotient := ⟨((1 : M) : c.quotient)⟩
 
 variables (c)
 
+/-- The quotient of a monoid by a congruence relation is a monoid. -/
 @[to_additive add_monoid] instance monoid : monoid c.quotient :=
 { one := ((1 : M) : c.quotient),
   mul := (*),
@@ -414,14 +438,18 @@ variables (c)
   mul_one := λ x, quotient.induction_on' x $ λ _, congr_arg coe $ mul_one _,
   one_mul := λ x, quotient.induction_on' x $ λ _, congr_arg coe $ one_mul _ }
 
+/-- The natural homomorphism from a monoid to its quotient by a congruence relation. -/
 @[to_additive] def mk' : M →* c.quotient := ⟨coe, rfl, λ _ _, rfl⟩
 
 variables (x y : M)
 
+/-- The kernel of the natural homomorphism from a monoid to its quotient by a congruence relation is the
+    original relation. -/
 @[simp, to_additive] lemma mk'_ker : con.ker c.mk' = c := ext $ λ _ _, c.eq _ _
 
 variables {c}
 
+/-- The natural homomorphism from a monoid to its quotient by a congruence relation is surjective. -/
 @[to_additive] lemma mk'_surjective : function.surjective c.mk' :=
 by apply ind; exact λ x, ⟨x, rfl⟩
 

@@ -18,18 +18,17 @@ by their defining property.
 -/
 
 universes u v w
-open polynomial set function
 
 noncomputable theory
 
-/- Turn down the instance priority for subtype.decidable_eq and use classical.dec_eq everywhere,
-  to avoid diamonds -/
-local attribute [instance, priority 0] subtype.decidable_eq
+open_locale classical
+
+open polynomial set function
 
 variables {α : Type u} {β : Type v}
 
 section min_poly_def
-variables [decidable_eq α] [decidable_eq β] [comm_ring α] [comm_ring β] [algebra α β]
+variables [comm_ring α] [comm_ring β] [algebra α β]
 
 /-- Let B be an A-algebra, and x an element of B that is integral over A.
 The minimal polynomial of x if the monic polynomial of smallest degree that has x as its root. -/
@@ -41,7 +40,7 @@ end min_poly_def
 namespace minimal_polynomial
 
 section ring
-variables [decidable_eq α] [decidable_eq β] [comm_ring α] [comm_ring β] [algebra α β]
+variables [comm_ring α] [comm_ring β] [algebra α β]
 variables {x : β} (hx : is_integral α x)
 
 /--A Minimal polynomial is monic.-/

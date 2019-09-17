@@ -26,7 +26,7 @@ universes v u
 namespace category_theory
 
 section
-variables (C : Type u) [𝒞 : category.{v+1} C]
+variables (C : Type u) [𝒞 : category.{v} C]
 include 𝒞
 
 local attribute [tidy] tactic.case_bash

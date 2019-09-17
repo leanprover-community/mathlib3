@@ -76,7 +76,7 @@ def rel (r : setoid α) := @setoid.r _ r
 lemma ext_iff {r s : setoid α} : r = s ↔ ∀ a b, r.rel a b ↔ s.rel a b :=
 ⟨λ h a b, h ▸ iff.rfl, ext'⟩
 
-/-- Defining the relation '≤' for equivalence relations. -/
+/-- Defining '≤' for equivalence relations. -/
 instance : has_le (setoid α) := ⟨λ r s, ∀ x y, r.rel x y → s.rel x y⟩
 
 @[refl] lemma refl' (r : setoid α) (x) : r.rel x x := r.2.1 x
@@ -195,7 +195,7 @@ theorem le_def {r s : setoid α} : r ≤ s ↔ ∀ {x y}, r.rel x y → s.rel x 
     of the underlying binary operations. -/
 lemma inf_def {r s : setoid α} : (r ⊓ s).rel = r.rel ⊓ s.rel := rfl 
 
-/-- The supremum of 2 equivalence relations r and s is equivalence closure of the 
+/-- The supremum of 2 equivalence relations r and s is the equivalence closure of the 
     supremum of the underlying binary operations. -/
 lemma sup_def {r s : setoid α} : r ⊔ s = eqv_gen.setoid (r.rel ⊔ s.rel) :=
 by rw sup_eq_eqv_gen; refl
@@ -219,9 +219,8 @@ begin
   exact h hr,
 end 
 
-/-- The underlying binary operation of the supremum of a set of equivalence relations
-    is the equivalence closure of the supremum of the set's image under the map to 
-    the underlying binary operation. -/
+/-- The supremum of a set of equivalence relations is the equivalence closure of the 
+    supremum of the set's image under the map to the underlying binary operation. -/
 lemma Sup_def {s : set (setoid α)} : Sup s = eqv_gen.setoid (Sup (rel '' s)) := 
 begin
   rw Sup_eq_eqv_gen, 
@@ -462,7 +461,7 @@ lemma exists_of_mem_partition {c : subtype (partitions α)} {s} (hs : s ∈ c.1)
 let ⟨y, hy⟩ := set.exists_mem_of_ne_empty $ ne_empty_of_mem_partition hs in 
   ⟨y, eq_eqv_class_of_mem c.2.2 hs hy⟩
 
-/-- The equivalence classes of the equivalence relation defined by a partition of α are
+/-- The equivalence classes of the equivalence relation defined by a partition of α equal
     the original partition. -/
 theorem classes_mk_classes (c : subtype (partitions α)) : 
   (mk_classes c.1 c.2.2).classes = c.1 := 

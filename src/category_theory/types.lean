@@ -182,5 +182,11 @@ def equiv_iso_iso {X Y : Sort u} : (X ≃ Y) ≅ (X ≅ Y) :=
   inv := λ i, i.to_equiv, }
 
 /-- equivalences (between types in the same universe) are the same as (equivalent to) isomorphisms of types -/
-def equiv_equiv_iso {X Y : Sort u} : (X ≃ Y) ≃ (X ≅ Y) :=
+-- We leave `X` and `Y` as explicit arguments here, because the coercions from `equiv` to a function won't fire without them.
+def equiv_equiv_iso (X Y : Sort u) : (X ≃ Y) ≃ (X ≅ Y) :=
 equiv_iso_iso.inv (equiv_iso_iso)
+
+@[simp] lemma equiv_iso_iso_hom {X Y : Sort u} (e : X ≃ Y) : equiv_iso_iso.hom e = e.to_iso := rfl
+@[simp] lemma equiv_iso_iso_inv {X Y : Sort u} (e : X ≅ Y) : equiv_iso_iso.inv e = e.to_equiv := rfl
+@[simp] lemma equiv_equiv_iso_hom {X Y : Sort u} (e : X ≃ Y) : (equiv_equiv_iso X Y) e = e.to_iso := rfl
+@[simp] lemma equiv_equiv_iso_inv {X Y : Sort u} (e : X ≅ Y) : (equiv_equiv_iso X Y).symm e = e.to_equiv := rfl

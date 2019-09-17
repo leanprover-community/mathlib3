@@ -522,13 +522,6 @@ lemma init_length {a : ℕ} {l : list ℕ} :
   length (bell_init (a::l)) = length (a::l) + 1 :=
 length_cons _ _ 
 
-/-- Folding a function over a list from the left and returning a list of partial results, 
-    after appending an inital input to the beginning, increases its length by 1. -/
-lemma length_scanl {β : Type*} {f : α → β → α} : 
-  ∀ a l, length (scanl f a l) = l.length + 1
-| a [] := rfl
-| a (x :: l) := by erw [length_cons, length_cons, length_scanl] 
-
 /-- Applying `bell_aux` to a nonempty list does not change the list's length. -/
 lemma aux_length {a : ℕ} {l : list ℕ} : 
   length (bell_aux (a :: l)) = length (a :: l) := 

@@ -293,10 +293,10 @@ def to_quotient (s : {s // r ≤ s}) : setoid (quotient r) :=
               λ x y, quotient.induction_on₂' x y $ λ _ _ h', s.1.symm' h',
               λ x y z, quotient.induction_on₃' x y z $ λ _ _ _ h1 h2, s.1.trans' h1 h2⟩}
 
-/-- Given an equivalence relation r on α and a map from α to the quotient of α by r, an
-    equivalence relation s on the quotient of α by r induces an equivalence relation on α defined
+/-- Given an equivalence relation r on α and a map f to the quotient of α by r, an
+    equivalence relation s on the quotient induces an equivalence relation on f's domain defined
     by x ≈ y ↔ f(x) is related to f(y) by s. -/
-def of_quotient (f : α → quotient r) (s : setoid (quotient r)) : setoid α :=
+def of_quotient (f : β → quotient r) (s : setoid (quotient r)) : setoid β :=
 ⟨λ x y, s.rel (f x) (f y), ⟨λ _, s.refl' _, λ _ _ h, s.symm' h, λ _ _ _ h1 h2, s.trans' h1 h2⟩⟩
 
 /-- Given an equivalence relation r on α, the order-preserving bijection between the set of 

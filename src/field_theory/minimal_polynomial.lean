@@ -6,6 +6,17 @@ Authors: Chris Hughes, Johan Commelin
 
 import ring_theory.integral_closure
 
+/-!
+# Minimal polynomials
+
+This file contains the utmost basics on minimal polynomials. If gives the definition in the setting
+of a commutative algebra over a commutative ring. After stating the defining property we specialize
+to the setting of field extensions and derive some well-known properties,
+amongst which the fact that minimal polynomials are irreducible, and uniquely determined
+by their defining property.
+
+-/
+
 universes u v w
 open polynomial set function
 
@@ -20,6 +31,8 @@ variables {α : Type u} {β : Type v}
 section min_poly_def
 variables [decidable_eq α] [decidable_eq β] [comm_ring α] [comm_ring β] [algebra α β]
 
+/-- Let B be an A-algebra, and x an element of B that is integral over A.
+The minimal polynomial of x if the monic polynomial of smallest degree that has x as its root. -/
 def minimal_polynomial {x : β} (hx : is_integral α x) : polynomial α :=
 well_founded.min polynomial.degree_lt_wf _ (ne_empty_iff_exists_mem.mpr hx)
 
@@ -31,13 +44,17 @@ section ring
 variables [decidable_eq α] [decidable_eq β] [comm_ring α] [comm_ring β] [algebra α β]
 variables {x : β} (hx : is_integral α x)
 
-protected lemma monic : monic (minimal_polynomial hx) :=
+/--A Minimal polynomial is monic.-/
+lemma monic : monic (minimal_polynomial hx) :=
 (well_founded.min_mem degree_lt_wf _ (ne_empty_iff_exists_mem.mpr hx)).1
 
-@[simp] protected lemma aeval : aeval α β x (minimal_polynomial hx) = 0 :=
+/--An element is a root of its minimal polynomial.-/
+@[simp] lemma aeval : aeval α β x (minimal_polynomial hx) = 0 :=
 (well_founded.min_mem degree_lt_wf _ (ne_empty_iff_exists_mem.mpr hx)).2
 
-protected lemma min {p : polynomial α} (pmonic : p.monic) (hp : polynomial.aeval α β x p = 0) :
+/--The defining property of the minimal polynomial of an element x:
+it is the monic polynomial with smallest degree that has x as its root.-/
+lemma min {p : polynomial α} (pmonic : p.monic) (hp : polynomial.aeval α β x p = 0) :
   degree (minimal_polynomial hx) ≤ degree p :=
 le_of_not_lt $ well_founded.not_lt_min degree_lt_wf _ (ne_empty_iff_exists_mem.mpr hx) ⟨pmonic, hp⟩
 
@@ -47,10 +64,13 @@ section field
 variables [discrete_field α] [discrete_field β] [algebra α β]
 variables {x : β} (hx : is_integral α x)
 
-protected lemma ne_zero : (minimal_polynomial hx) ≠ 0 :=
+/--A minimal polynomial is nonzero.-/
+lemma ne_zero : (minimal_polynomial hx) ≠ 0 :=
 ne_zero_of_monic (minimal_polynomial.monic hx)
 
-protected lemma degree_le_of_ne_zero
+/--If an element x is a root of a nonzero polynomial p,
+then the degree of p is at least the degree of the minimal polynomial of x.-/
+lemma degree_le_of_ne_zero
   {p : polynomial α} (pnz : p ≠ 0) (hp : polynomial.aeval α β x p = 0) :
   degree (minimal_polynomial hx) ≤ degree p :=
 begin
@@ -59,7 +79,10 @@ begin
   simp [hp]
 end
 
-protected lemma unique {p : polynomial α} (pmonic : p.monic) (hp : polynomial.aeval α β x p = 0)
+/--The minimal polynomial of an element x is uniquely characterized by its defining property:
+if there is another monic polynomial of minimal degree that has x as a root,
+then this polynomial is equal to the minimal polynomial of x.-/
+lemma unique {p : polynomial α} (pmonic : p.monic) (hp : polynomial.aeval α β x p = 0)
   (pmin : ∀ q : polynomial α, q.monic → polynomial.aeval α β x q = 0 → degree p ≤ degree q) :
   p = minimal_polynomial hx :=
 begin
@@ -73,7 +96,8 @@ begin
       (pmin (minimal_polynomial hx) (minimal_polynomial.monic hx) (minimal_polynomial.aeval hx)) },
 end
 
-protected lemma dvd {p : polynomial α} (hp : polynomial.aeval α β x p = 0) :
+/--If an element x is a root of a polynomial p, then the minimal polynomial of x divides p.-/
+lemma dvd {p : polynomial α} (hp : polynomial.aeval α β x p = 0) :
   minimal_polynomial hx ∣ p :=
 begin
   rw ← dvd_iff_mod_by_monic_eq_zero (minimal_polynomial.monic hx),
@@ -85,7 +109,8 @@ begin
     simpa using hp }
 end
 
-protected lemma degree_ne_zero : degree (minimal_polynomial hx) ≠ 0 :=
+/--The degree of a minimal polynomial is nonzero.-/
+lemma degree_ne_zero : degree (minimal_polynomial hx) ≠ 0 :=
 begin
   assume deg_eq_zero,
   have ndeg_eq_zero : nat_degree (minimal_polynomial hx) = 0,
@@ -96,16 +121,19 @@ begin
   simpa [eq_one, aeval_def] using minimal_polynomial.aeval hx
 end
 
-protected lemma not_is_unit : ¬ is_unit (minimal_polynomial hx) :=
+/--A minimal polynomial is not a unit.-/
+lemma not_is_unit : ¬ is_unit (minimal_polynomial hx) :=
 begin
   intro H, apply minimal_polynomial.degree_ne_zero hx,
   exact degree_eq_zero_of_is_unit H
 end
 
-protected lemma degree_pos : 0 < degree (minimal_polynomial hx) :=
+/--The degree of a minimal polynomial is positive.-/
+lemma degree_pos : 0 < degree (minimal_polynomial hx) :=
 degree_pos_of_ne_zero_of_nonunit (minimal_polynomial.ne_zero hx) (minimal_polynomial.not_is_unit hx)
 
-protected lemma prime : prime (minimal_polynomial hx) :=
+/--A minimal polynomial is prime.-/
+lemma prime : prime (minimal_polynomial hx) :=
 begin
   refine ⟨minimal_polynomial.ne_zero hx, minimal_polynomial.not_is_unit hx, _⟩,
   rintros p q ⟨d, h⟩,
@@ -114,9 +142,12 @@ begin
   cases this; [left, right]; apply minimal_polynomial.dvd; assumption
 end
 
-protected lemma irreducible : irreducible (minimal_polynomial hx) :=
+/--A minimal polynomial is irreducible.-/
+lemma irreducible : irreducible (minimal_polynomial hx) :=
 irreducible_of_prime (minimal_polynomial.prime hx)
 
+/--If L/K is a field extension, and x is an element of L in the image of K,
+then the minimal polynomial of x is X - C x.-/
 @[simp] protected lemma algebra_map (a : α) (ha : is_integral α (algebra_map β a)) :
   minimal_polynomial ha = X - C a :=
 begin
@@ -140,23 +171,29 @@ begin
 end
 
 variable (β)
-protected lemma algebra_map' (a : α) :
+/--If L/K is a field extension, and x is an element of L in the image of K,
+then the minimal polynomial of x is X - C x.-/
+lemma algebra_map' (a : α) :
   minimal_polynomial (@is_integral_algebra_map α β _ _ _ _ _ a) =
   X - C a :=
 minimal_polynomial.algebra_map _ _
 variable {β}
 
-@[simp] protected lemma zero {h₀ : is_integral α (0:β)} :
+/--The minimal polynomial of 0 is X.-/
+@[simp] lemma zero {h₀ : is_integral α (0:β)} :
   minimal_polynomial h₀ = X :=
 by simpa only [add_zero, polynomial.C_0, sub_eq_add_neg, neg_zero, algebra.map_zero]
   using minimal_polynomial.algebra_map' β (0:α)
 
-@[simp] protected lemma one {h₁ : is_integral α (1:β)} :
+/--The minimal polynomial of 1 is X - 1.-/
+@[simp] lemma one {h₁ : is_integral α (1:β)} :
   minimal_polynomial h₁ = X - 1 :=
 by simpa only [algebra.map_one, polynomial.C_1, sub_eq_add_neg]
   using minimal_polynomial.algebra_map' β (1:α)
 
-protected lemma root {x : β} (hx : is_integral α x) {y : α}
+/--If L/K is a field extension and an element y of K is a root of the minimal polynomial
+of an element x ∈ L, then y maps to x under the field embedding.-/
+lemma root {x : β} (hx : is_integral α x) {y : α}
   (h : is_root (minimal_polynomial hx) y) : algebra_map β y = x :=
 begin
   have ndeg_one : nat_degree (minimal_polynomial hx) = 1,
@@ -175,7 +212,9 @@ begin
   simpa [ndeg_one, finset.sum_range_succ, coeff_one, aeval_def] using H
 end
 
-@[simp] protected lemma coeff_zero_eq_zero : coeff (minimal_polynomial hx) 0 = 0 ↔ x = 0 :=
+/--The constant coefficient of the minimal polynomial of x is 0
+if and only if x = 0.-/
+@[simp] lemma coeff_zero_eq_zero : coeff (minimal_polynomial hx) 0 = 0 ↔ x = 0 :=
 begin
   split,
   { intro h,
@@ -185,7 +224,8 @@ begin
   { rintro rfl, simp }
 end
 
-protected lemma coeff_zero_ne_zero (h : x ≠ 0) : coeff (minimal_polynomial hx) 0 ≠ 0 :=
+/--The minimal polynomial of a nonzero element has nonzero constant coefficient.-/
+lemma coeff_zero_ne_zero (h : x ≠ 0) : coeff (minimal_polynomial hx) 0 ≠ 0 :=
 by { contrapose! h, simpa using h }
 
 end field

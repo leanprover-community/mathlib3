@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston, Bryan Gin-ge Chen
 -/
 
-import data.quot data.set.lattice data.fintype order.order_iso order.galois_connection
+import data.quot data.set.lattice data.fintype order.galois_connection
 
 /-!
 # Equivalence relations
@@ -14,20 +14,20 @@ on a type, results about the inductively defined equivalence closure of a binary
 and the analogues of some isomorphism theorems for quotients of arbitrary types.
 
 The second section comprises properties of equivalence relations viewed as partitions, and 
-a function "bell" that computes Bell numbers - the numbers of possible partitions of a finite 
-set - along with some preliminary results about "bell".
+a function `bell` that computes Bell numbers - the numbers of possible partitions of a finite 
+set - along with some preliminary results about `bell`.
 
 ## Implementation notes
 
-The function "rel" and lemmas ending in ' make it easier to talk about different 
+The function `rel` and lemmas ending in ' make it easier to talk about different 
 equivalence relations on the same type.
 
 The complete lattice instance for setoids could be defined by lifting the Galois
 insertion of equivalence relations on α into binary relations on α, but the resulting
 functions are less easy to use. 
 
-Partitions are not defined as a separate structure here; it is encouraged that users
-reason about them using the existing "setoid" and its infrastructure.
+Partitions are not defined as a separate structure here; users are encouraged to
+reason about them using the existing `setoid` and its infrastructure.
 
 Eventually there should be a proof here that Bell numbers are the number of possible
 partitions of a finite set.
@@ -41,29 +41,9 @@ partitions of a finite set.
 setoid, equivalence, iseqv, relation, equivalence relation, partition, equivalence 
 class, Bell number, Bell triangle
 -/
-
 variables {α : Type*} {β : Type*}
 
 open lattice 
-
-namespace order_iso
-
-variables [preorder α] [preorder β] (oi : @order_iso α β (≤) (≤))
-
--- order.order_iso doesn't import order.galois_connection, and vice versa.
-
-/-- Makes a Galois connection from an order-preserving bijection. -/
-theorem to_galois_connection : galois_connection oi oi.symm :=
-λ b g, by rw [ord' oi, apply_symm_apply]
-
-/-- Makes a Galois insertion from an order-preserving bijection. -/
-protected def to_galois_insertion : @galois_insertion α β _ _ (oi) (oi.symm) :=
-{ choice := λ b h, oi b,
-  gc := to_galois_connection oi,
-  le_l_u := λ g, le_of_eq (oi.right_inv g).symm,
-  choice_eq := λ b h, rfl }
-
-end order_iso
 
 namespace setoid
 
@@ -78,6 +58,8 @@ lemma ext_iff {r s : setoid α} : r = s ↔ ∀ a b, r.rel a b ↔ s.rel a b :=
 
 /-- Defining '≤' for equivalence relations. -/
 instance : has_le (setoid α) := ⟨λ r s, ∀ x y, r.rel x y → s.rel x y⟩
+
+theorem le_def {r s : setoid α} : r ≤ s ↔ ∀ {x y}, r.rel x y → s.rel x y := iff.rfl
 
 @[refl] lemma refl' (r : setoid α) (x) : r.rel x x := r.2.1 x
 @[symm] lemma symm' (r : setoid α) : ∀ {x y}, r.rel x y → r.rel y x := λ _ _ h, r.2.2.1 h
@@ -98,11 +80,34 @@ instance : has_inf (setoid α) :=
  λ _ _ h, ⟨r.symm' h.1, s.symm' h.2⟩, 
  λ _ _ _ h1 h2, ⟨r.trans' h1.1 h2.1, s.trans' h1.2 h2.2⟩⟩⟩⟩
 
+/-- The infimum of 2 equivalence relations r and s is the same relation as the infimum 
+    of the underlying binary operations. -/
+lemma inf_def {r s : setoid α} : (r ⊓ s).rel = r.rel ⊓ s.rel := rfl 
+
+theorem inf_iff_and {r s : setoid α} {x y} : 
+  (r ⊓ s).rel x y ↔ r.rel x y ∧ s.rel x y := iff.rfl
+
 /-- The infimum of a set of equivalence relations. -/
 instance : has_Inf (setoid α) :=
 ⟨λ S, ⟨λ x y, ∀ r ∈ S, rel r x y, 
 ⟨λ x r hr, r.refl' x, λ _ _ h r hr, r.symm' $ h r hr, 
  λ _ _ _ h1 h2 r hr, r.trans' (h1 r hr) $ h2 r hr⟩⟩⟩
+
+/-- The underlying binary operation of the infimum of a set of equivalence relations
+    is the infimum of the set's image under the map to the underlying binary operation. -/
+theorem Inf_def {s : set (setoid α)} : (Inf s).rel = Inf (rel '' s) :=
+begin
+  ext x y,
+  erw [Inf_image, infi_apply, infi_apply, infi_Prop_eq],
+  split,
+    intros h r,
+    rw [infi_apply, infi_apply, infi_Prop_eq],
+    exact λ hr, h r hr,
+  intros h r hr,
+  specialize h r,
+  rw [infi_apply, infi_apply, infi_Prop_eq] at h, 
+  exact h hr,
+end 
 
 /-- The infimum of a set of equivalence relations is contained in any element of the set. -/
 lemma Inf_le (S : set (setoid α)) (r∈S) : Inf S ≤ r :=
@@ -113,9 +118,31 @@ lemma Inf_le (S : set (setoid α)) (r∈S) : Inf S ≤ r :=
 lemma le_Inf (S : set (setoid α)) (r) : (∀ s∈S, r ≤ s) → r ≤ Inf S :=
 λ H _ _ h s hs, H s hs _ _ h
 
+/-- The inductively defined equivalence closure of a binary relation r is the infimum 
+    of the set of all equivalence relations containing r. -/
+theorem eqv_gen_eq (r : α → α → Prop) : 
+  eqv_gen.setoid r = Inf {s : setoid α | ∀ x y, r x y → s.rel x y} :=
+setoid.ext' $ λ _ _, 
+  ⟨λ H, eqv_gen.rec (λ _ _ h _ hs, hs _ _ h) (refl' _) 
+    (λ _ _ _ h, symm' _ h) (λ _ _ _ _ _ h1 h2, trans' _ h1 h2) H, 
+  Inf_le _ _ (λ _ _, eqv_gen.rel _ _) _ _⟩
+
 /-- The supremum of two equivalence relations, defined as the infimum of the set of
     equivalence relations containing both. -/
 instance : has_sup (setoid α) := ⟨λ r s, Inf { x | r ≤ x ∧ s ≤ x}⟩
+
+/-- The supremum of two equivalence relations r and s is the equivalence closure of the binary
+    relation 'x is related to y by r or s'. -/
+lemma sup_eq_eqv_gen (r s : setoid α) : 
+  r ⊔ s = eqv_gen.setoid (λ x y, r.rel x y ∨ s.rel x y) :=
+by rw eqv_gen_eq; apply congr_arg Inf; ext; exact 
+  ⟨λ h _ _ H, or.elim H (λ hl, h.1 _ _ hl) $ λ hr, h.2 _ _ hr, 
+   λ H, ⟨λ _ _ h, H _ _ $ or.inl h, λ _ _ h, H _ _ $ or.inr h⟩⟩
+
+/-- The supremum of 2 equivalence relations r and s is the equivalence closure of the 
+    supremum of the underlying binary operations. -/
+lemma sup_def {r s : setoid α} : r ⊔ s = eqv_gen.setoid (r.rel ⊔ s.rel) :=
+by rw sup_eq_eqv_gen; refl
 
 /-- The complete lattice of equivalence relations on a type, with bottom element '='
     and top element the trivial equivalence relation. -/
@@ -145,29 +172,30 @@ instance complete_lattice : complete_lattice (setoid α) :=
   Inf_le := Inf_le,
   le_Inf := le_Inf }
 
-/-- The inductively defined equivalence closure of a binary relation r is the infimum 
-    of the set of all equivalence relations containing r. -/
-theorem eqv_gen_eq (r : α → α → Prop) : 
-  eqv_gen.setoid r = Inf {s : setoid α | ∀ x y, r x y → s.rel x y} :=
-setoid.ext' $ λ _ _, 
-  ⟨λ H, eqv_gen.rec (λ _ _ h _ hs, hs _ _ h) (refl' _) 
-    (λ _ _ _ h, symm' _ h) (λ _ _ _ _ _ h1 h2, trans' _ h1 h2) H, 
-  Inf_le _ _ (λ _ _, eqv_gen.rel _ _) _ _⟩
-
-/-- The supremum of two equivalence relations r and s is the equivalence closure of the binary
-    relation 'x is related to y by r or s'. -/
-lemma sup_eq_eqv_gen (r s : setoid α) : 
-  r ⊔ s = eqv_gen.setoid (λ x y, r.rel x y ∨ s.rel x y) :=
-by rw eqv_gen_eq; apply congr_arg Inf; ext; exact 
-  ⟨λ h _ _ H, or.elim H (λ hl, h.1 _ _ hl) $ λ hr, h.2 _ _ hr, 
-   λ H, ⟨λ _ _ h, H _ _ $ or.inl h, λ _ _ h, H _ _ $ or.inr h⟩⟩
-
 /-- The supremum of a set S of equivalence relations is the equivalence closure of the binary
     relation 'there exists r ∈ S relating x and y'. -/
 lemma Sup_eq_eqv_gen (S : set (setoid α)) : 
   Sup S = eqv_gen.setoid (λ x y, ∃ r : setoid α, r ∈ S ∧ r.rel x y) :=
 by rw eqv_gen_eq; apply congr_arg Inf; ext;
    exact ⟨λ h _ _ ⟨r, hr⟩, h r hr.1 _ _ hr.2, λ h r hS _ _ hr, h _ _ ⟨r, hS, hr⟩⟩
+
+/-- The supremum of a set of equivalence relations is the equivalence closure of the 
+    supremum of the set's image under the map to the underlying binary operation. -/
+lemma Sup_def {s : set (setoid α)} : Sup s = eqv_gen.setoid (Sup (rel '' s)) := 
+begin
+  rw Sup_eq_eqv_gen, 
+  congr,
+  ext x y,
+  erw [Sup_image, supr_apply, supr_apply, supr_Prop_eq], 
+  split,
+    rintro ⟨r, h, hr⟩, 
+    use r,
+    rw [supr_apply, supr_apply, supr_Prop_eq], 
+    exact ⟨h, hr⟩,
+  rintro ⟨r, h⟩, 
+  obtain ⟨h, hr⟩ := by rw [supr_apply, supr_apply, supr_Prop_eq] at h; exact h,
+  exact ⟨r, h, hr⟩,
+end 
 
 /-- The equivalence closure of an equivalence relation r is r. -/
 @[simp] lemma eqv_gen_of_setoid (r : setoid α) : eqv_gen.setoid r.r = r :=
@@ -189,53 +217,13 @@ theorem eqv_gen_mono {r s : α → α → Prop} (h : ∀ x y, r x y → s x y) :
   eqv_gen.setoid r ≤ eqv_gen.setoid s :=
 eqv_gen_le $ λ _ _ hr, eqv_gen.rel _ _ $ h _ _ hr
 
-theorem le_def {r s : setoid α} : r ≤ s ↔ ∀ {x y}, r.rel x y → s.rel x y := iff.rfl
-
-/-- The infimum of 2 equivalence relations r and s is the same relation as the infimum 
-    of the underlying binary operations. -/
-lemma inf_def {r s : setoid α} : (r ⊓ s).rel = r.rel ⊓ s.rel := rfl 
-
-/-- The supremum of 2 equivalence relations r and s is the equivalence closure of the 
-    supremum of the underlying binary operations. -/
-lemma sup_def {r s : setoid α} : r ⊔ s = eqv_gen.setoid (r.rel ⊔ s.rel) :=
-by rw sup_eq_eqv_gen; refl
-
-theorem inf_iff_and {r s : setoid α} {x y} : 
-  (r ⊓ s).rel x y ↔ r.rel x y ∧ s.rel x y := iff.rfl
-
-/-- The underlying binary operation of the infimum of a set of equivalence relations
-    is the infimum of the set's image under the map to the underlying binary operation. -/
-theorem Inf_def {s : set (setoid α)} : (Inf s).rel = Inf (rel '' s) :=
-begin
-  ext x y,
-  erw [Inf_image, infi_apply, infi_apply, infi_Prop_eq],
-  split,
-    intros h r,
-    rw [infi_apply, infi_apply, infi_Prop_eq],
-    exact λ hr, h r hr,
-  intros h r hr,
-  specialize h r,
-  rw [infi_apply, infi_apply, infi_Prop_eq] at h, 
-  exact h hr,
-end 
-
-/-- The supremum of a set of equivalence relations is the equivalence closure of the 
-    supremum of the set's image under the map to the underlying binary operation. -/
-lemma Sup_def {s : set (setoid α)} : Sup s = eqv_gen.setoid (Sup (rel '' s)) := 
-begin
-  rw Sup_eq_eqv_gen, 
-  congr,
-  ext x y,
-  erw [Sup_image, supr_apply, supr_apply, supr_Prop_eq], 
-  split,
-    rintro ⟨r, h, hr⟩, 
-    use r,
-    rw [supr_apply, supr_apply, supr_Prop_eq], 
-    exact ⟨h, hr⟩,
-  rintro ⟨r, h⟩, 
-  obtain ⟨h, hr⟩ := by rw [supr_apply, supr_apply, supr_Prop_eq] at h; exact h,
-  exact ⟨r, h, hr⟩,
-end 
+/-- There is a Galois insertion of equivalence relations on α into binary relations 
+    on α, with equivalence closure the lower adjoint. -/
+def gi : @galois_insertion (α → α → Prop) (setoid α) _ _ eqv_gen.setoid rel :=
+{ choice := λ r h, eqv_gen.setoid r,
+  gc := λ r s, ⟨λ H _ _ h, H _ _ $ eqv_gen.rel _ _ h, λ H, eqv_gen_of_setoid s ▸ eqv_gen_mono H⟩,
+  le_l_u := λ x, (eqv_gen_of_setoid x).symm ▸ le_refl x,
+  choice_eq := λ _ _, rfl}
 
 open function
 
@@ -318,14 +306,6 @@ def correspondence : ((≤) : {s // r ≤ s} → {s // r ≤ s} → Prop) ≃o
   right_inv := λ s, by ext; rcases a; rcases b; refl,
   ord := λ a b, ⟨λ hle x y, quotient.induction_on₂ x y $ λ w z h, hle w z h,
                  λ H p q h, H ⟦p⟧ ⟦q⟧ h⟩ }
-
-/-- There is a Galois insertion of equivalence relations on α into binary relations 
-    on α, with equivalence closure the lower adjoint. -/
-def gi : @galois_insertion (α → α → Prop) (setoid α) _ _ eqv_gen.setoid rel :=
-{ choice := λ r h, eqv_gen.setoid r,
-  gc := λ r s, ⟨λ H _ _ h, H _ _ $ eqv_gen.rel _ _ h, λ H, eqv_gen_of_setoid s ▸ eqv_gen_mono H⟩,
-  le_l_u := λ x, (eqv_gen_of_setoid x).symm ▸ le_refl x,
-  choice_eq := λ _ _, rfl}
 
 -- Partitions 
 
@@ -545,7 +525,7 @@ lemma length_scanl {β : Type*} {f : α → β → α} :
 | a [] := rfl
 | a (x :: l) := by erw [length_cons, length_cons, length_scanl] 
 
-/-- Applying "bell_aux" to a nonempty list does not change the list's length. -/
+/-- Applying `bell_aux` to a nonempty list does not change the list's length. -/
 lemma aux_length {a : ℕ} {l : list ℕ} : 
   length (bell_aux (a :: l)) = length (a :: l) := 
 by erw length_scanl; norm_num

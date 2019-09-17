@@ -8,7 +8,7 @@ import computability.halting
 
 /-!
 # Strong reducibility and degrees.
-This file defines the many-one reduction and one-one reduction on ℕ.
+This file defines the many-one reduction and one-one reduction on set ℕ.
 ## Notations
 This file uses the local notation `⊕` for `disjoin`.
 ## Implementation notes

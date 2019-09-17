@@ -1269,6 +1269,13 @@ by rw reverse_reverse l at t; rwa t
 @[simp] theorem reverse_foldl {l : list α} : reverse (foldl (λ t h, h :: t) [] l) = l :=
 by rw ←foldr_reverse; simp
 
+/- scanl -/
+
+lemma length_scanl {β : Type*} {f : α → β → α} : 
+  ∀ a l, length (scanl f a l) = l.length + 1
+| a [] := rfl
+| a (x :: l) := by erw [length_cons, length_cons, length_scanl]
+
 /- scanr -/
 
 @[simp] theorem scanr_nil (f : α → β → β) (b : β) : scanr f b [] = [b] := rfl

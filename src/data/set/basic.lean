@@ -1323,6 +1323,35 @@ theorem prod_mono {s₁ s₂ : set α} {t₁ t₂ : set β} (hs : s₁ ⊆ s₂)
   set.prod s₁ t₁ ⊆ set.prod s₂ t₂ :=
 assume x ⟨h₁, h₂⟩, ⟨hs h₁, ht h₂⟩
 
+lemma prod_subset_prod_iff :
+  (set.prod s t ⊆ set.prod s₁ t₁) ↔ (s ⊆ s₁ ∧ t ⊆ t₁) ∨ (s = ∅) ∨ (t = ∅) :=
+begin
+  classical,
+  split,
+  { by_cases h : s = ∅ ∨ t = ∅,
+    { simp [h] },
+    { simp [h],
+      push_neg at h,
+      assume H : set.prod s t ⊆ set.prod s₁ t₁,
+      split,
+      show s ⊆ s₁,
+      { assume x xs,
+        rcases ne_empty_iff_exists_mem.1 h.2 with ⟨y, yt⟩,
+        have : (x, y) ∈ set.prod s t := ⟨xs, yt⟩,
+        have : (x, y) ∈ set.prod s₁ t₁ := H this,
+        exact (mem_prod.1 this).1 },
+      show t ⊆ t₁,
+      { assume y yt,
+        rcases ne_empty_iff_exists_mem.1 h.1 with ⟨x, xs⟩,
+        have : (x, y) ∈ set.prod s t := ⟨xs, yt⟩,
+        have : (x, y) ∈ set.prod s₁ t₁ := H this,
+        exact (mem_prod.1 this).2 } } },
+  { assume h,
+    cases h,
+    { exact prod_mono h.1 h.2 },
+    { cases h; simp [h] } }
+end
+
 theorem prod_inter_prod : set.prod s₁ t₁ ∩ set.prod s₂ t₂ = set.prod (s₁ ∩ s₂) (t₁ ∩ t₂) :=
 subset.antisymm
   (assume ⟨a, b⟩ ⟨⟨ha₁, hb₁⟩, ⟨ha₂, hb₂⟩⟩, ⟨⟨ha₁, ha₂⟩, ⟨hb₁, hb₂⟩⟩)

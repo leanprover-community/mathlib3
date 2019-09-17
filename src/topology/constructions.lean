@@ -115,6 +115,36 @@ begin
       ⟨u, ⟨u, subset.refl u, uo, au⟩, v, ⟨v, subset.refl v, vo, bv⟩, h⟩⟩)
 end
 
+lemma is_open_prod_iff' {s : set α} {t : set β} :
+  is_open (set.prod s t) ↔ (is_open s ∧ is_open t) ∨ (s = ∅) ∨ (t = ∅) :=
+begin
+  split,
+  { by_cases h : s = ∅ ∨ t = ∅,
+    { simp [h] },
+    { simp [h],
+      push_neg at h,
+      assume H : is_open (set.prod s t),
+      split,
+      show is_open s,
+      { rw is_open_iff_forall_mem_open,
+        assume x xs,
+        rcases ne_empty_iff_exists_mem.1 h.2 with ⟨y, yt⟩,
+        rcases is_open_prod_iff.1 H x y ⟨xs, yt⟩ with ⟨ox, oy, ox_open, oy_open, xox, yoy, ho⟩,
+        simp [prod_subset_prod_iff, ne_empty_of_mem xox, ne_empty_of_mem yoy] at ho,
+        exact ⟨ox, ho.1, ox_open, xox⟩ },
+      show is_open t,
+      { rw is_open_iff_forall_mem_open,
+        assume y yt,
+        rcases ne_empty_iff_exists_mem.1 h.1 with ⟨x, xs⟩,
+        rcases is_open_prod_iff.1 H x y ⟨xs, yt⟩ with ⟨ox, oy, ox_open, oy_open, xox, yoy, ho⟩,
+        simp [prod_subset_prod_iff, ne_empty_of_mem xox, ne_empty_of_mem yoy] at ho,
+        exact ⟨oy, ho.2, oy_open, yoy⟩ } } },
+  { assume h,
+    cases h,
+    { exact is_open_prod h.1 h.2 },
+    { cases h; simp [h] } },
+end
+
 lemma closure_prod_eq {s : set α} {t : set β} :
   closure (set.prod s t) = set.prod (closure s) (closure t) :=
 set.ext $ assume ⟨a, b⟩,

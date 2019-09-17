@@ -295,7 +295,7 @@ quotient_ker_equiv_of_surjective _ $ λ x, by rcases x; exact ⟨quotient.mk' x,
 
 /-- Given an equivalence relation r on α, the natural map from equivalence relations containing
     r to equivalence relations on the quotient of α by r. -/
-def to_setoid (s : {s // r ≤ s}) : setoid (quotient r) :=
+def to_quotient (s : {s // r ≤ s}) : setoid (quotient r) :=
 { r := λ x y, quotient.lift_on₂' x y s.1.rel $ λ _ _ _ _ ha hb, iff_iff_eq.1
          ⟨λ h', s.1.trans' (s.1.symm' $ s.2 _ _ ha) $ s.1.trans' h' $ s.2 _ _ hb,
           λ h', s.1.trans' (s.2 _ _ ha) $ s.1.trans' h' $ s.1.symm' $ s.2 _ _ hb⟩,
@@ -305,17 +305,17 @@ def to_setoid (s : {s // r ≤ s}) : setoid (quotient r) :=
 
 /-- Given an equivalence relation r on α, the natural map from equivalence relations on the
     quotient of α by r to equivalence relations on α. -/
-def of_setoid (s : setoid (quotient r)) : setoid α :=
+def of_quotient (s : setoid (quotient r)) : setoid α :=
 ⟨λ x y, s.rel ⟦x⟧ ⟦y⟧, ⟨λ _, s.refl' _, λ _ _ h, s.symm' h, λ _ _ _ h1 h2, s.trans' h1 h2⟩⟩
 
 /-- Given an equivalence relation r on α, the order-preserving bijection between the set of 
     equivalence relations containing r and the equivalence relations on the quotient of α by r. -/
 def correspondence : ((≤) : {s // r ≤ s} → {s // r ≤ s} → Prop) ≃o
 ((≤) : setoid (quotient r) → setoid (quotient r) → Prop) :=
-{ to_fun := λ s, r.to_setoid s,
-  inv_fun := λ s, subtype.mk (r.of_setoid s) $ 
+{ to_fun := λ s, r.to_quotient s,
+  inv_fun := λ s, subtype.mk (r.of_quotient s) $ 
     λ x y h, show s.rel ⟦x⟧ ⟦y⟧, from quotient.sound h ▸ s.refl' ⟦x⟧,
-  left_inv := λ s, subtype.ext.2 $ show r.of_setoid (r.to_setoid s) = s.1, by ext; refl,
+  left_inv := λ s, subtype.ext.2 $ show r.of_quotient (r.to_quotient s) = s.1, by ext; refl,
   right_inv := λ s, by ext; rcases a; rcases b; refl,
   ord := λ a b, ⟨λ hle x y, quotient.induction_on₂ x y $ λ w z h, hle w z h,
                  λ H p q h, H ⟦p⟧ ⟦q⟧ h⟩ }
@@ -324,9 +324,11 @@ def correspondence : ((≤) : {s // r ≤ s} → {s // r ≤ s} → Prop) ≃o
     on α, with equivalence closure the lower adjoint. -/
 def gi : @galois_insertion (α → α → Prop) (setoid α) _ _ eqv_gen.setoid rel :=
 { choice := λ r h, eqv_gen.setoid r,
-  gc := λ r s, ⟨λ H _ _ h, H _ _ $ eqv_gen.rel _ _ h, λ H, (eqv_gen_eq r).symm ▸ Inf_le _ s H⟩,
+  gc := λ r s, ⟨λ H _ _ h, H _ _ $ eqv_gen.rel _ _ h, λ H, eqv_gen_of_setoid s ▸ eqv_gen_mono H⟩,
   le_l_u := λ x, (eqv_gen_of_setoid x).symm ▸ le_refl x,
   choice_eq := λ _ _, rfl}
+
+-- Partitions 
 
 /-- Two equivalence relations are equal iff their underlying binary operations are equal. -/
 theorem eq_iff_r_eq {r₁ r₂ : setoid α} : r₁ = r₂ ↔ r₁.rel = r₂.rel :=
@@ -509,6 +511,8 @@ _ (subtype (partitions α)) _ (partial_order.to_preorder _) $ partition.order_is
 theorem partition.le_def (c d : subtype (partitions α)) : 
   c ≤ d ↔ mk_classes c.1 c.2.2 ≤ mk_classes d.1 d.2.2 := 
 iff.rfl
+
+-- Bell numbers 
 
 open list
 

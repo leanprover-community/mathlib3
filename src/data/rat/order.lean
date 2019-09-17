@@ -26,9 +26,9 @@ variables (a b c : ℚ)
 open_locale rat
 
 protected def nonneg : ℚ → Prop
-| ⟨n, d, h, c⟩ := n ≥ 0
+| ⟨n, d, h, c⟩ := 0 ≤ n
 
-@[simp] theorem mk_nonneg (a : ℤ) {b : ℤ} (h : b > 0) : (a /. b).nonneg ↔ a ≥ 0 :=
+@[simp] theorem mk_nonneg (a : ℤ) {b : ℤ} (h : 0 < b) : (a /. b).nonneg ↔ 0 ≤ a :=
 begin
   generalize ha : a /. b = x, cases x with n₁ d₁ h₁ c₁, rw num_denom' at ha,
   simp [rat.nonneg],
@@ -45,27 +45,27 @@ protected def nonneg_add {a b} : rat.nonneg a → rat.nonneg b → rat.nonneg (a
 num_denom_cases_on' a $ λ n₁ d₁ h₁,
 num_denom_cases_on' b $ λ n₂ d₂ h₂,
 begin
-  have d₁0 : (d₁:ℤ) > 0 := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₁),
-  have d₂0 : (d₂:ℤ) > 0 := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₂),
-  simp [d₁0, d₂0, h₁, h₂, mul_pos d₁0 d₂0],
+  have d₁0 : 0 < (d₁:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₁),
+  have d₂0 : 0 < (d₂:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₂),
+  simp [d₁0, d₂0, h₁, h₂, mul_pos' d₁0 d₂0],
   intros n₁0 n₂0,
-  apply add_nonneg; apply mul_nonneg; {assumption <|> apply int.coe_zero_le}
+  apply add_nonneg; apply mul_nonneg; {assumption <|> apply int.coe_zero_le},
 end
 
 protected def nonneg_mul {a b} : rat.nonneg a → rat.nonneg b → rat.nonneg (a * b) :=
 num_denom_cases_on' a $ λ n₁ d₁ h₁,
 num_denom_cases_on' b $ λ n₂ d₂ h₂,
 begin
-  have d₁0 : (d₁:ℤ) > 0 := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₁),
-  have d₂0 : (d₂:ℤ) > 0 := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₂),
-  simp [d₁0, d₂0, h₁, h₂, mul_pos d₁0 d₂0],
+  have d₁0 : 0 < (d₁:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₁),
+  have d₂0 : 0 < (d₂:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₂),
+  simp [d₁0, d₂0, h₁, h₂, mul_pos' d₁0 d₂0],
   exact mul_nonneg
 end
 
 protected def nonneg_antisymm {a} : rat.nonneg a → rat.nonneg (-a) → a = 0 :=
 num_denom_cases_on' a $ λ n d h,
 begin
-  have d0 : (d:ℤ) > 0 := int.coe_nat_pos.2 (nat.pos_of_ne_zero h),
+  have d0 : 0 < (d:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h),
   simp [d0, h],
   exact λ h₁ h₂, le_antisymm h₂ h₁
 end
@@ -84,10 +84,10 @@ instance : has_le ℚ := ⟨rat.le⟩
 instance decidable_le : decidable_rel ((≤) : ℚ → ℚ → Prop)
 | a b := show decidable (rat.nonneg (b - a)), by apply_instance
 
-protected theorem le_def {a b c d : ℤ} (b0 : b > 0) (d0 : d > 0) :
+protected theorem le_def {a b c d : ℤ} (b0 : 0 < b) (d0 : 0 < d) :
   a /. b ≤ c /. d ↔ a * d ≤ c * b :=
 show rat.nonneg _ ↔ _,
-by simpa [ne_of_gt b0, ne_of_gt d0, mul_pos b0 d0, mul_comm]
+by simpa [ne_of_gt b0, ne_of_gt d0, mul_pos' b0 d0, mul_comm]
    using @sub_nonneg _ _ (b * c) (a * d)
 
 protected theorem le_refl : a ≤ a :=

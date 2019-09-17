@@ -5,6 +5,7 @@ Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl
 -/
 import category_theory.functor_category
 import category_theory.fully_faithful
+import category_theory.endomorphism
 import data.equiv.basic
 
 namespace category_theory
@@ -190,3 +191,14 @@ equiv_iso_iso.inv (equiv_iso_iso)
 @[simp] lemma equiv_iso_iso_inv {X Y : Sort u} (e : X ≅ Y) : equiv_iso_iso.inv e = e.to_equiv := rfl
 @[simp] lemma equiv_equiv_iso_hom {X Y : Sort u} (e : X ≃ Y) : (equiv_equiv_iso X Y) e = e.to_iso := rfl
 @[simp] lemma equiv_equiv_iso_inv {X Y : Sort u} (e : X ≅ Y) : (equiv_equiv_iso X Y).symm e = e.to_equiv := rfl
+
+namespace category_theory
+
+def Aut_mul_equiv_perm {α : Type u} : Aut α ≃* equiv.perm α :=
+{ to_fun    := iso.to_equiv,
+  inv_fun   := equiv.to_iso,
+  left_inv  := by tidy, -- I miss `auto_param`s
+  right_inv := by tidy,
+  map_mul'  := by tidy, }
+
+end category_theory

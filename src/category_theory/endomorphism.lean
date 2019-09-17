@@ -6,8 +6,12 @@ Authors: Yury Kudryashov, Scott Morrison, Simon Hudon
 Definition and basic properties of endomorphisms and automorphisms of an object in a category.
 -/
 
-import category_theory.category category_theory.isomorphism category_theory.groupoid category_theory.functor
-import algebra.group.units data.equiv.algebra
+import category_theory.category
+import category_theory.isomorphism
+import category_theory.groupoid
+import category_theory.functor
+import algebra.group.units
+import data.equiv.algebra
 
 universes v v' u u'
 
@@ -63,12 +67,12 @@ by refine { one := iso.refl X,
             inv := iso.symm,
             mul := flip iso.trans, .. } ; dunfold flip; obviously
 
-def units_End_eqv_Aut : units (End X) ≃* Aut X :=
-{ to_fun := λ f, ⟨f.1, f.2, f.4, f.3⟩,
-  inv_fun := λ f, ⟨f.1, f.2, f.4, f.3⟩,
-  left_inv := λ ⟨f₁, f₂, f₃, f₄⟩, rfl,
+def units_End_equiv_Aut : units (End X) ≃* Aut X :=
+{ to_fun    := λ f, ⟨f.1, f.2, f.4, f.3⟩,
+  inv_fun   := λ f, ⟨f.1, f.2, f.4, f.3⟩,
+  left_inv  := λ ⟨f₁, f₂, f₃, f₄⟩, rfl,
   right_inv := λ ⟨f₁, f₂, f₃, f₄⟩, rfl,
-  map_mul' := λ f g, by rcases f; rcases g; refl }
+  map_mul'  := λ f g, by rcases f; rcases g; refl }
 
 end Aut
 

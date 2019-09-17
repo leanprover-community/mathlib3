@@ -77,7 +77,7 @@ end CommSemiRing
 
 namespace CommRing
 
-instance (x : CommRing) : comm_ring x := x.str
+instance (R : CommRing) : comm_ring R := R.str
 
 def of (R : Type u) [comm_ring R] : CommRing := bundled.of R
 

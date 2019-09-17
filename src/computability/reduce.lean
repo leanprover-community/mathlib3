@@ -2,11 +2,22 @@
 Copyright (c) 2019 Minchao Wu. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Minchao Wu
-
-Strong reducibility and degrees.
 -/
 
 import computability.halting 
+
+/-!
+# Strong reducibility and degrees.
+This file defines the many-one reduction and one-one reduction on ℕ.
+## Notations
+This file uses the local notation `⊕` for `disjoin`.
+## Implementation notes
+
+## References
+
+## Tags
+computability, reducibility, reduction
+-/
 open function
 
 def many_one_reducible {α} [primcodable α] (p q : α → Prop) := 

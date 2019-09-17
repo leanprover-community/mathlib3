@@ -85,6 +85,14 @@ attribute [symm] ne.symm
 
 lemma ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨ne.symm, ne.symm⟩
 
+@[simp] lemma eq_iff_eq_cancel_left {b c : α} :
+  (∀ {a}, a = b ↔ a = c) ↔ (b = c) :=
+⟨λ h, by rw [← h], λ h a, by rw h⟩
+
+@[simp] lemma eq_iff_eq_cancel_right {a b : α} :
+  (∀ {c}, a = c ↔ b = c) ↔ (a = b) :=
+⟨λ h, by rw h, λ h a, by rw h⟩
+
 end miscellany
 
 /-

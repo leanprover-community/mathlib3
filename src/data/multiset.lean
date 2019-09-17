@@ -2068,7 +2068,7 @@ end
 
 lemma rel_map {p : γ → δ → Prop} {s t} {f : α → γ} {g : β → δ} (h : (r ⇒ p) f g) (hst : rel r s t) :
   rel p (s.map f) (t.map g) :=
-by rw [rel_map_left, rel_map_right]; exact hst.mono (assume a b, h)
+by rw [rel_map_left, rel_map_right]; exact hst.mono h
 
 lemma rel_bind {p : γ → δ → Prop} {s t} {f : α → multiset γ} {g : β → multiset δ}
   (h : (r ⇒ rel p) f g) (hst : rel r s t) :
@@ -3149,7 +3149,7 @@ by rw [Ico, list.Ico.succ_top h, ← coe_add, add_comm]; refl
 theorem eq_cons {n m : ℕ} (h : n < m) : Ico n m = n :: Ico (n + 1) m :=
 congr_arg coe $ list.Ico.eq_cons h
 
-@[simp] theorem pred_singleton {m : ℕ} (h : m > 0) : Ico (m - 1) m = {m - 1} :=
+@[simp] theorem pred_singleton {m : ℕ} (h : 0 < m) : Ico (m - 1) m = {m - 1} :=
 congr_arg coe $ list.Ico.pred_singleton h
 
 @[simp] theorem not_mem_top {n m : ℕ} : m ∉ Ico n m :=
@@ -3167,17 +3167,17 @@ congr_arg coe $ list.Ico.filter_lt_of_ge hlm
 @[simp] lemma filter_lt (n m l : ℕ) : (Ico n m).filter (λ x, x < l) = Ico n (min m l) :=
 congr_arg coe $ list.Ico.filter_lt n m l
 
-lemma filter_ge_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, x ≥ l) = Ico n m :=
-congr_arg coe $ list.Ico.filter_ge_of_le_bot hln
+lemma filter_le_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, l ≤ x) = Ico n m :=
+congr_arg coe $ list.Ico.filter_le_of_le_bot hln
 
-lemma filter_ge_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, x ≥ l) = ∅ :=
-congr_arg coe $ list.Ico.filter_ge_of_top_le hml
+lemma filter_le_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, l ≤ x) = ∅ :=
+congr_arg coe $ list.Ico.filter_le_of_top_le hml
 
-lemma filter_ge_of_ge {n m l : ℕ} (hnl : n ≤ l) : (Ico n m).filter (λ x, x ≥ l) = Ico l m :=
-congr_arg coe $ list.Ico.filter_ge_of_ge hnl
+lemma filter_le_of_le {n m l : ℕ} (hnl : n ≤ l) : (Ico n m).filter (λ x, l ≤ x) = Ico l m :=
+congr_arg coe $ list.Ico.filter_le_of_le hnl
 
-@[simp] lemma filter_ge (n m l : ℕ) : (Ico n m).filter (λ x, x ≥ l) = Ico (max n l) m :=
-congr_arg coe $ list.Ico.filter_ge n m l
+@[simp] lemma filter_le (n m l : ℕ) : (Ico n m).filter (λ x, l ≤ x) = Ico (max n l) m :=
+congr_arg coe $ list.Ico.filter_le n m l
 
 end Ico
 

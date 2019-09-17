@@ -36,7 +36,7 @@ instance str (C : Groupoid.{v u}) : groupoid.{v u} C.α := C.str
 def of (C : Type u) [groupoid.{v} C] : Groupoid.{v u} := bundled.of C
 
 /-- Category structure on `Groupoid` -/
-instance category : category.{(max u v)+1 (max v (u+1))} Groupoid.{v u} :=
+instance category : large_category.{max v u} Groupoid.{v u} :=
 { hom := λ C D, C.α ⥤ D.α,
   id := λ C, 𝟭 C.α,
   comp := λ C D E F G, F ⋙ G,

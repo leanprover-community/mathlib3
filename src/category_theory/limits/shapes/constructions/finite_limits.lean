@@ -26,7 +26,7 @@ open opposite
 namespace category_theory.limits
 
 universes v u
-variables {C : Type u} [𝒞 : category.{v+1} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
 -- Finding the `decidable_eq` instances apparent takes some work.

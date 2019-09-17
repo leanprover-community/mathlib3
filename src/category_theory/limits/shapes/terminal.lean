@@ -12,7 +12,7 @@ open category_theory
 
 namespace category_theory.limits
 
-variables (C : Type u) [𝒞 : category.{v+1} C]
+variables (C : Type u) [𝒞 : category.{v} C]
 include 𝒞
 
 class has_terminal :=

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
 
-import group_theory.submonoid data.setoid tactic.default algebra.pi_instances data.equiv.algebra 
+import group_theory.submonoid algebra.pi_instances data.equiv.algebra 
 
 /-!
 # Congruence relations
@@ -195,14 +195,8 @@ open lattice
     related to y by c. -/
 @[to_additive] instance : has_le (con M) := ⟨λ c d, c.to_setoid ≤ d.to_setoid⟩
 
-/-- The partial order of congruence relations on a given type. -/
-@[to_additive] instance : partial_order (con M) :=
-{ le := (≤),
-  lt := λ c d, c ≤ d ∧ ¬d ≤ c,
-  le_refl := λ c x y h, h,
-  le_trans := λ c1 c2 c3 h1 h2 x y h, h2 x y $ h1 x y h,
-  lt_iff_le_not_le := λ _ _, iff.rfl,
-  le_antisymm := λ c d hc hd, ext $ λ x y, ⟨hc x y, hd x y⟩}
+/-- Stating the definition of ≤ for congruence relations. -/
+@[to_additive] theorem le_def {c d : con M} : c ≤ d ↔ ∀ {x y}, c x y → d x y := iff.rfl
 
 /-- The infimum of a set of congruence relations on a given type. -/
 @[to_additive] instance : has_Inf (con M) :=
@@ -210,6 +204,19 @@ open lattice
 ⟨λ x c hc, c.refl x, λ _ _ h c hc, c.symm $ h c hc, 
  λ _ _ _ h1 h2 c hc, c.trans (h1 c hc) $ h2 c hc⟩,
  λ _ _ _ _ h1 h2 c hc, c.mul (h1 c hc) $ h2 c hc⟩⟩
+
+@[to_additive] lemma Inf_to_setoid (S : set (con M)) : (Inf S).to_setoid = Inf (to_setoid '' S) :=
+setoid.ext' $ λ x y, ⟨λ h r ⟨c, hS, hr⟩, by rw ←hr; exact h c hS, 
+  λ h c hS, h c.to_setoid ⟨c, hS, rfl⟩⟩
+
+@[to_additive] lemma Inf_def (S : set (con M)) : (Inf S).r = Inf (r '' S) :=
+begin
+  show (Inf S).to_setoid.rel = _,
+  rw [Inf_to_setoid S, setoid.Inf_def], 
+  congr' 1, ext, 
+  exact ⟨λ ⟨r, ⟨r', hS, hr'⟩, hr⟩, ⟨r', hS, by rw [←hr, ←hr']; refl⟩,
+         λ ⟨r, hS, hr⟩, ⟨r.to_setoid, set.mem_image_of_mem _ hS, hr⟩⟩,
+end 
 
 /-- If a congruence relation c is contained in every element of a set s of congruence relations,
     c is contained in the infimum of s. -/
@@ -221,9 +228,38 @@ open lattice
 @[to_additive] lemma Inf_le (s : set (con M)) (c) : c ∈ s → Inf s ≤ c :=
 λ hc _ _ h, h c hc 
 
+/-- The inductively defined congruence closure of a binary relation r equals the infimum of the 
+    set of congruence relations containing r. -/
+@[to_additive add_con_gen_eq] theorem con_gen_eq (r : M → M → Prop) : 
+  con_gen r = Inf {s : con M | ∀ x y, r x y → s.r x y} :=
+ext $ λ x y, 
+  ⟨λ H, con_gen.rel.rec_on H (λ _ _ h _ hs, hs _ _ h) (refl _) (λ _ _ _ h, symm _ h) 
+    (λ _ _ _ _ _ h1 h2, trans _ h1 h2) 
+    $ λ w x y z _ _ h1 h2 c hc, c.mul (h1 c hc) $ h2 c hc, 
+  Inf_le _ _ (λ _ _, con_gen.rel.of _ _) _ _⟩
+
+/-- The congruence closure of a binary relation r is contained in any congruence relation containing
+    r. -/
+@[to_additive add_con_gen_le] 
+theorem con_gen_le {r : M → M → Prop} {c : con M} (h : ∀ x y, r x y → c.r x y) : 
+  con_gen r ≤ c :=
+by rw con_gen_eq; exact Inf_le _ _ h
+
+/-- Congruence closure of binary relations is monotonic. -/
+@[to_additive add_con_gen_mono] 
+theorem con_gen_mono {r s : M → M → Prop} (h : ∀ x y, r x y → s x y) : 
+  con_gen r ≤ con_gen s :=
+con_gen_le $ λ x y hr, con_gen.rel.of _ _ $ h x y hr
+
 /-- The complete lattice of congruence relations on a given type. -/
 @[to_additive] instance : complete_lattice (con M) :=
 { sup := λ c d, Inf { x | c ≤ x ∧ d ≤ x},
+  le := (≤),
+  lt := λ c d, c ≤ d ∧ ¬d ≤ c,
+  le_refl := λ c x y h, h,
+  le_trans := λ c1 c2 c3 h1 h2 x y h, h2 x y $ h1 x y h,
+  lt_iff_le_not_le := λ _ _, iff.rfl,
+  le_antisymm := λ c d hc hd, ext $ λ x y, ⟨hc x y, hd x y⟩
   le_sup_left := λ _ _ _ _ h r hr, hr.1 _ _ h,
   le_sup_right := λ _ _ _ _ h r hr, hr.2 _ _ h,
   sup_le := λ _ _ c h1 h2, Inf_le _ c ⟨h1, h2⟩,
@@ -241,18 +277,18 @@ open lattice
   le_Sup := λ _ _ hs, le_Inf _ _ $ λ c' hc', hc' _ hs,
   Sup_le := λ _ _ hs, Inf_le _ _ hs,
   Inf_le := λ  _ _, Inf_le _ _,
-  le_Inf := λ _ _, le_Inf _ _,
-  ..con.partial_order}
+  le_Inf := λ _ _, le_Inf _ _ }
 
-/-- The inductively defined congruence closure of a binary relation r equals the infimum of the 
-    set of congruence relations containing r. -/
-@[to_additive add_con_gen_eq] theorem con_gen_eq (r : M → M → Prop) : 
-  con_gen r = Inf {s : con M | ∀ x y, r x y → s.r x y} :=
-ext $ λ x y, 
-  ⟨λ H, con_gen.rel.rec_on H (λ _ _ h _ hs, hs _ _ h) (refl _) (λ _ _ _ h, symm _ h) 
-    (λ _ _ _ _ _ h1 h2, trans _ h1 h2) 
-    $ λ w x y z _ _ h1 h2 c hc, c.mul (h1 c hc) $ h2 c hc, 
-  Inf_le _ _ (λ _ _, con_gen.rel.of _ _) _ _⟩
+/-- The infimum of 2 congruence relations equals the infimum of the underlying binary operations. -/
+@[to_additive] lemma inf_def {c d : con M} : (c ⊓ d).r = c.r ⊓ d.r := rfl 
+
+/-- The supremum of 2 congruence relations equals the congruence closure of the infimum of the 
+    underlying binary operations. -/
+@[to_additive] lemma sup_def {c d : con M} : c ⊔ d = con_gen (c.r ⊔ d.r) :=
+by rw sup_eq_con_gen; refl
+
+/-- Stating the definition of the infimum of two congruence relations. -/
+@[to_additive] theorem inf_iff_and {c d : con M} {x y} : (c ⊓ d) x y ↔ c x y ∧ d x y := iff.rfl
 
 /-- Congruence relations equal their congruence closure. -/
 @[simp, to_additive add_con_gen_of_add_con] 
@@ -264,19 +300,6 @@ le_antisymm (by rw con_gen_eq; exact Inf_le _ c (λ x y h, h)) con_gen.rel.of
 lemma con_gen_idem (r : M → M → Prop) : 
   con_gen (con_gen r).r = con_gen r :=
 con_gen_of_con _ 
-
-/-- The congruence closure of a binary relation r is contained in any congruence relation containing
-    r. -/
-@[to_additive add_con_gen_le] 
-theorem con_gen_le {r : M → M → Prop} {c : con M} (h : ∀ x y, r x y → c.r x y) : 
-  con_gen r ≤ c :=
-by rw con_gen_eq; exact Inf_le _ _ h
-
-/-- Congruence closure of binary relations is monotonic. -/
-@[to_additive add_con_gen_mono] 
-theorem con_gen_mono {r s : M → M → Prop} (h : ∀ x y, r x y → s x y) : 
-  con_gen r ≤ con_gen s :=
-con_gen_le $ λ x y hr, con_gen.rel.of _ _ $ h x y hr
 
 /-- The supremum of congruence relations c, d equals the congruence closure of the binary relation
     'x is related to y by c or d'. -/
@@ -294,33 +317,6 @@ lemma Sup_eq_con_gen (S : set (con M)) :
   Sup S = con_gen (λ x y, ∃ c : con M, c∈S ∧ c x y) :=
 by rw con_gen_eq; apply congr_arg Inf; ext;
    exact ⟨λ h _ _ ⟨r, hr⟩, h r hr.1 _ _ hr.2, λ h r hS _ _ hr, h _ _ ⟨r, hS, hr⟩⟩
-
-/-- Stating the definition of ≤ for congruence relations. -/
-@[to_additive] theorem le_def {c d : con M} : c ≤ d ↔ ∀ {x y}, c x y → d x y := iff.rfl
-
-/-- The infimum of 2 congruence relations equals the infimum of the underlying binary operations. -/
-@[to_additive] lemma inf_def {c d : con M} : (c ⊓ d).r = c.r ⊓ d.r := rfl 
-
-/-- The supremum of 2 congruence relations equals the congruence closure of the infimum of the 
-    underlying binary operations. -/
-@[to_additive] lemma sup_def {c d : con M} : c ⊔ d = con_gen (c.r ⊔ d.r) :=
-by rw sup_eq_con_gen; refl
-
-/-- Stating the definition of the infimum of two congruence relations. -/
-@[to_additive] theorem inf_iff_and {c d : con M} {x y} : (c ⊓ d) x y ↔ c x y ∧ d x y := iff.rfl
-
-@[to_additive] lemma Inf_to_setoid (S : set (con M)) : (Inf S).to_setoid = Inf (to_setoid '' S) :=
-setoid.ext' $ λ x y, ⟨λ h r ⟨c, hS, hr⟩, by rw ←hr; exact h c hS, 
-  λ h c hS, h c.to_setoid ⟨c, hS, rfl⟩⟩
-
-@[to_additive] lemma Inf_def (S : set (con M)) : (Inf S).r = Inf (r '' S) :=
-begin
-  show (Inf S).to_setoid.rel = _,
-  rw [Inf_to_setoid S, setoid.Inf_def], 
-  congr' 1, ext, 
-  exact ⟨λ ⟨r, ⟨r', hS, hr'⟩, hr⟩, ⟨r', hS, by rw [←hr, ←hr']; refl⟩,
-         λ ⟨r, hS, hr⟩, ⟨r.to_setoid, set.mem_image_of_mem _ hS, hr⟩⟩,
-end 
 
 @[to_additive] lemma Sup_def {S : set (con M)} : Sup S = con_gen (Sup (r '' S)) := 
 begin
@@ -345,15 +341,15 @@ variables (c)
     λ _ _, quotient.induction_on₂' y z $ λ _ _ h1 h2, d.1.mul h1 h2, 
   ..c.to_setoid.to_quotient (⟨d.1.to_setoid, d.2⟩ : {d : setoid M // c.to_setoid ≤ d}) }
 
-@[to_additive of_add_con] def of_con (d : con c.quotient) : con M :=
-{ r := λ x y, d ↑x ↑y,
+@[to_additive of_add_con] def of_con (f : M → c.quotient) (d : con c.quotient) : con M :=
+{ r := λ x y, d (f x) (f y),
   iseqv := ⟨λ x, d.refl ↑x, λ _ _ h, d.symm h, λ _ _ _ h1 h2, d.trans h1 h2⟩,
   mul' := λ _ _ _ _ h1 h2, d.mul h1 h2}
 
 @[to_additive] def correspondence : ((≤) : {d // c ≤ d} → {d // c ≤ d} → Prop) ≃o
   ((≤) : con c.quotient → con c.quotient → Prop) :=
 { to_fun := λ d, c.to_con d,
-  inv_fun := λ d, subtype.mk (c.of_con d) $ 
+  inv_fun := λ d, subtype.mk (c.of_con quotient.mk' d) $ 
     λ x y h, show d x y, from (c.eq _ _).2 h ▸ d.refl x,
   left_inv := λ d, by rw subtype.ext; ext; refl,
   right_inv := λ d, by ext; rcases x; rcases y; refl,

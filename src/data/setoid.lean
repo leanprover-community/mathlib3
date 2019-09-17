@@ -255,7 +255,7 @@ lemma injective_ker_lift (f : α → β) : injective (@quotient.lift _ _ (ker f)
 
 /-- Given a map f from α to β, the kernel of f is the unique equivalence relation on α whose
     induced map from the quotient of α to β is injective. -/
-lemma ker_eq_lift_injective {r : setoid α} (f : α → β) (H : ∀ x y, r.rel x y → f x = f y) 
+lemma ker_eq_lift_of_injective {r : setoid α} (f : α → β) (H : ∀ x y, r.rel x y → f x = f y) 
   (h : injective (quotient.lift f H)) : ker f = r :=
 le_antisymm 
  (λ x y hk, quotient.exact $ h $ show quotient.lift f H ⟦x⟧ = quotient.lift f H ⟦y⟧, from hk)
@@ -263,7 +263,8 @@ le_antisymm
 
 variables (r : setoid α) (f : α → β)
 
-/-- The quotient of α by the kernel of a function f bijects with f's image. -/
+/-- The first isomorphism theorem for sets: the quotient of α by the kernel of a function f 
+    bijects with f's image. -/
 noncomputable def quotient_ker_equiv_range : 
   quotient (ker f) ≃ set.range f :=
 @equiv.of_bijective _ (set.range f) (@quotient.lift _ (set.range f) (ker f) 
@@ -277,7 +278,7 @@ noncomputable def quotient_ker_equiv_of_surjective (hf : surjective f) :
 @equiv.of_bijective _ _ (@quotient.lift _ _ (ker f) f (λ _ _ h, h)) 
   ⟨injective_ker_lift f, λ y, exists.elim (hf y) $ λ w hw, ⟨quotient.mk' w, hw⟩⟩
 
-/-- The analogue of the third isomorphism theorem for quotients of arbitrary types. -/
+/-- The third isomorphism theorem for sets. -/
 noncomputable def quotient_quotient_equiv_quotient (s : setoid α) (h : r ≤ s) :
   quotient (ker (quot.map_right h)) ≃ quotient s :=
 quotient_ker_equiv_of_surjective _ $ λ x, by rcases x; exact ⟨quotient.mk' x, rfl⟩
@@ -292,19 +293,20 @@ def to_quotient (s : {s // r ≤ s}) : setoid (quotient r) :=
               λ x y, quotient.induction_on₂' x y $ λ _ _ h', s.1.symm' h',
               λ x y z, quotient.induction_on₃' x y z $ λ _ _ _ h1 h2, s.1.trans' h1 h2⟩}
 
-/-- Given an equivalence relation r on α, the natural map from equivalence relations on the
-    quotient of α by r to equivalence relations on α. -/
-def of_quotient (s : setoid (quotient r)) : setoid α :=
-⟨λ x y, s.rel ⟦x⟧ ⟦y⟧, ⟨λ _, s.refl' _, λ _ _ h, s.symm' h, λ _ _ _ h1 h2, s.trans' h1 h2⟩⟩
+/-- Given an equivalence relation r on α and a map from α to the quotient of α by r, an
+    equivalence relation s on the quotient of α by r induces an equivalence relation on α defined
+    by x ≈ y ↔ f(x) is related to f(y) by s. -/
+def of_quotient (f : α → quotient r) (s : setoid (quotient r)) : setoid α :=
+⟨λ x y, s.rel (f x) (f y), ⟨λ _, s.refl' _, λ _ _ h, s.symm' h, λ _ _ _ h1 h2, s.trans' h1 h2⟩⟩
 
 /-- Given an equivalence relation r on α, the order-preserving bijection between the set of 
     equivalence relations containing r and the equivalence relations on the quotient of α by r. -/
 def correspondence : ((≤) : {s // r ≤ s} → {s // r ≤ s} → Prop) ≃o
-((≤) : setoid (quotient r) → setoid (quotient r) → Prop) :=
+  ((≤) : setoid (quotient r) → setoid (quotient r) → Prop) :=
 { to_fun := λ s, r.to_quotient s,
-  inv_fun := λ s, subtype.mk (r.of_quotient s) $ 
+  inv_fun := λ s, subtype.mk (r.of_quotient quotient.mk' s) $ 
     λ x y h, show s.rel ⟦x⟧ ⟦y⟧, from quotient.sound h ▸ s.refl' ⟦x⟧,
-  left_inv := λ s, subtype.ext.2 $ show r.of_quotient (r.to_quotient s) = s.1, by ext; refl,
+  left_inv := λ s, subtype.ext.2 $ show r.of_quotient quotient.mk' (r.to_quotient s) = s.1, by ext; refl,
   right_inv := λ s, by ext; rcases a; rcases b; refl,
   ord := λ a b, ⟨λ hle x y, quotient.induction_on₂ x y $ λ w z h, hle w z h,
                  λ H p q h, H ⟦p⟧ ⟦q⟧ h⟩ }
@@ -335,9 +337,9 @@ def mk_classes (c : set (set α))
 
 /-- Makes the equivalence classes of an equivalence relation. -/
 def classes (r : setoid α) : set (set α) := 
-{ s | ∃ y ∈ s, s = {x | r.rel x y}}
+{ s | ∃ y, s = {x | r.rel x y}}
 
-lemma mem_classes (r : setoid α) (y) : {x | r.rel x y} ∈ r.classes := ⟨y, r.refl' y, rfl⟩ 
+lemma mem_classes (r : setoid α) (y) : {x | r.rel x y} ∈ r.classes := ⟨y, rfl⟩ 
 
 /-- Two equivalence relations are equal iff all their equivalence classes are equal. -/
 lemma eq_iff_classes_eq' {r₁ r₂ : setoid α} :
@@ -345,25 +347,25 @@ lemma eq_iff_classes_eq' {r₁ r₂ : setoid α} :
 ⟨λ h x, h ▸ rfl, λ h, ext' $ λ x, (set.ext_iff _ _).1 $ h x⟩
 
 /-- Two equivalence relations are equal iff their equivalence classes are equal. -/
-lemma eq_iff_classes_eq {r₁ r₂ : setoid α} :
+lemma classes_inj {r₁ r₂ : setoid α} :
   r₁ = r₂ ↔ r₁.classes = r₂.classes :=
 ⟨λ h, h ▸ rfl, λ h, ext' $ λ a b, 
-  ⟨λ h1, let ⟨w, hm, hw⟩ := show _ ∈ r₂.classes, by rw ←h; exact r₁.mem_classes a in 
+  ⟨λ h1, let ⟨w, hw⟩ := show _ ∈ r₂.classes, by rw ←h; exact r₁.mem_classes a in 
       r₂.trans' (show a ∈ {x | r₂.rel x w}, from hw ▸ r₁.refl' a) $
         r₂.symm' (show b ∈ {x | r₂.rel x w}, by rw ←hw; exact r₁.symm' h1), 
-   λ h1, let ⟨w, hm, hw⟩ := show _ ∈ r₁.classes, by rw h; exact r₂.mem_classes a in
+   λ h1, let ⟨w, hw⟩ := show _ ∈ r₁.classes, by rw h; exact r₂.mem_classes a in
       r₁.trans' (show a ∈ {x | r₁.rel x w}, from hw ▸ r₂.refl' a) $
         r₁.symm' (show b ∈ {x | r₁.rel x w}, by rw ←hw; exact r₂.symm' h1)⟩⟩
 
 /-- The empty set is not an equivalence class. -/
 lemma empty_not_mem_classes {r : setoid α} : ∅ ∉ r.classes :=
-λ ⟨y, h, hy⟩, set.not_mem_empty y h
+λ ⟨y, hy⟩, set.not_mem_empty y $ hy.symm ▸ r.refl' y
 
 /-- Equivalence classes partition the type. -/
 lemma classes_eqv_classes {r : setoid α} : 
   ∀ a, ∃ b ∈ r.classes, a ∈ b ∧ ∀ b' ∈ r.classes, a ∈ b' → b = b' :=
 λ a, ⟨{x | r.rel x a}, r.mem_classes a, 
-  ⟨r.refl' a, λ s ⟨y, hy, h⟩ ha, by rw h at *; ext; 
+  ⟨r.refl' a, λ s ⟨y, h⟩ ha, by rw h at *; ext; 
     exact ⟨λ hx, r.trans' hx ha, λ hx, r.trans' hx $ r.symm' ha⟩⟩⟩
 
 /-- If x ∈ α is in 2 equivalence classes, the equivalence classes are equal. -/
@@ -429,38 +431,38 @@ ext' $ λ x y, ⟨λ h, r.symm' (h {z | r.rel z x} (r.mem_classes x) $ r.refl' x
 
 section partition
 
-def partitions (α) (c : set (set α)) := 
+def is_partition (α) (c : set (set α)) := 
 ∅ ∉ c ∧ ∀ a, ∃ b ∈ c, a ∈ b ∧ ∀ b' ∈ c, a ∈ b' → b = b'
 
 /-- A partition of α does not contain the empty set. -/
-lemma ne_empty_of_mem_partition {c : subtype (partitions α)} {s} (h : s ∈ c.1) : 
+lemma ne_empty_of_mem_partition {c : subtype (is_partition α)} {s} (h : s ∈ c.1) : 
   s ≠ ∅ :=
 λ hs0, c.2.1 $ hs0 ▸ h 
 
 /-- All elements of a partition of α are the equivalence class of some y ∈ α. -/
-lemma exists_of_mem_partition {c : subtype (partitions α)} {s} (hs : s ∈ c.1) : 
+lemma exists_of_mem_partition {c : subtype (is_partition α)} {s} (hs : s ∈ c.1) : 
   ∃ y, s = { x | rel (mk_classes c.1 c.2.2) x y } :=
 let ⟨y, hy⟩ := set.exists_mem_of_ne_empty $ ne_empty_of_mem_partition hs in 
   ⟨y, eq_eqv_class_of_mem c.2.2 hs hy⟩
 
 /-- The equivalence classes of the equivalence relation defined by a partition of α equal
     the original partition. -/
-theorem classes_mk_classes (c : subtype (partitions α)) : 
+theorem classes_mk_classes (c : subtype (is_partition α)) : 
   (mk_classes c.1 c.2.2).classes = c.1 := 
 set.ext $ λ s,
-  ⟨λ ⟨y, hm, hs⟩, by rcases c.2.2 y with ⟨b, hc, hb, hy⟩; convert hc; rw hs; ext; 
+  ⟨λ ⟨y, hs⟩, by rcases c.2.2 y with ⟨b, hc, hb, hy⟩; convert hc; rw hs; ext; 
       exact ⟨λ hx, symm' (mk_classes c.1 c.2.2) hx b hc hb, λ hx b' hc' hx', 
               eq_of_mem_eqv_class c.2.2 hc hx hc' hx' ▸ hb⟩, 
    λ h, let ⟨y, hy⟩ := set.exists_mem_of_ne_empty $ ne_empty_of_mem_partition h in 
-     ⟨y, hy, eq_eqv_class_of_mem c.2.2 h hy⟩⟩
+     ⟨y, eq_eqv_class_of_mem c.2.2 h hy⟩⟩
 
 /-- Defining ≤ on partitions as the ≤ defined on their induced equivalence relations. -/
-instance partition.le : has_le (subtype (partitions α)) :=
+instance partition.le : has_le (subtype (is_partition α)) :=
 ⟨λ x y, mk_classes x.1 x.2.2 ≤ mk_classes y.1 y.2.2⟩
 
 /-- Defining a partial order on partitions as the partial order on their induced
     equivalence relations. -/
-instance partition.partial_order : partial_order (subtype (partitions α)) :=
+instance partition.partial_order : partial_order (subtype (is_partition α)) :=
 { le := (≤),
   lt := λ x y, x ≤ y ∧ ¬y ≤ x,
   le_refl := λ x, @le_refl (setoid α) _ _,
@@ -485,11 +487,11 @@ variables {α}
 /-- A complete lattice instance for partitions; there is more infrastructure for the 
     equivalent complete lattice on equivalence relations. -/
 instance partition.complete_lattice : 
-  _root_.lattice.complete_lattice (subtype (partitions α)) :=
+  _root_.lattice.complete_lattice (subtype (is_partition α)) :=
 galois_insertion.lift_complete_lattice $ @order_iso.to_galois_insertion
-_ (subtype (partitions α)) _ (partial_order.to_preorder _) $ partition.order_iso α
+_ (subtype (is_partition α)) _ (partial_order.to_preorder _) $ partition.order_iso α
  
-theorem partition.le_def (c d : subtype (partitions α)) : 
+theorem partition.le_def (c d : subtype (is_partition α)) : 
   c ≤ d ↔ mk_classes c.1 c.2.2 ≤ mk_classes d.1 d.2.2 := 
 iff.rfl
 

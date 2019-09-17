@@ -38,10 +38,15 @@ inverse, to which the change of coordinates should belong.
 `has_groupoid M G`       : when `G` is a structure groupoid on `H` and `M` is a manifold modelled on
                            `H`, require that all coordinate changes belong to `G`. This is a type
                            class
-`atlas M H`              : when `M` is a manifold modelled on `H`, the atlas of this manifold
+`atlas H M`              : when `M` is a manifold modelled on `H`, the atlas of this manifold
                            structure, i.e., the set of charts
 `diffeomorph G M M'`     : the set of diffeomorphisms between the manifolds M and M' for the
                            groupoid G
+
+As a basic example, we give the instance
+`instance manifold_model_space (H : Type*) [topological_space H] : manifold H H`
+saying that a topological space is a manifold over itself, with the identity as unique chart. This
+manifold structure is compatible with any groupoid.
 
 ## Implementation notes
 
@@ -61,7 +66,7 @@ universes u
 
 variables {H : Type u} {M : Type*} {M' : Type*} {M'' : Type*}
 
-local infixr  ` →ₕ `:100 := local_homeomorph.trans
+local infixr  ` ≫ₕ `:100 := local_homeomorph.trans
 
 open set local_homeomorph
 
@@ -86,7 +91,7 @@ the other values are irrelevant.
 composition and inverse. They appear in the definition of the smoothness class of a manifold. -/
 structure structure_groupoid (H : Type u) [topological_space H] :=
 (members      : set (local_homeomorph H H))
-(comp         : ∀e e' : local_homeomorph H H, e ∈ members → e' ∈ members → e →ₕ e' ∈ members)
+(comp         : ∀e e' : local_homeomorph H H, e ∈ members → e' ∈ members → e ≫ₕ e' ∈ members)
 (inv          : ∀e : local_homeomorph H H, e ∈ members → e.symm ∈ members)
 (id_mem       : local_homeomorph.refl H ∈ members)
 (locality     : ∀e : local_homeomorph H H, (∀x ∈ e.source, ∃s, is_open s ∧
@@ -110,9 +115,9 @@ def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
   comp := λe e' he he', begin
     cases he; simp at he he',
     { simpa [he] },
-    { have : (e →ₕ e').source ⊆ e.source := sep_subset _ _,
+    { have : (e ≫ₕ e').source ⊆ e.source := sep_subset _ _,
       rw he at this,
-      have : (e →ₕ e') ∈ {e : local_homeomorph H H | e.source = ∅} := disjoint_iff.1 this,
+      have : (e ≫ₕ e') ∈ {e : local_homeomorph H H | e.source = ∅} := disjoint_iff.1 this,
       exact (mem_union _ _ _).2 (or.inr this) },
   end,
   inv := λe he, begin
@@ -422,7 +427,7 @@ variables [topological_space H] [topological_space M] [manifold H M]
 /-- A manifold has an atlas in a groupoid G if the change of coordinates belong to the groupoid -/
 class has_groupoid (H : Type*) [topological_space H] (M : Type*) [topological_space M]
   [manifold H M] (G : structure_groupoid H) : Prop :=
-(compatible : ∀e e' : local_homeomorph M H, e ∈ atlas H M → e' ∈ atlas H M → (e.symm →ₕ e') ∈ G)
+(compatible : ∀e e' : local_homeomorph M H, e ∈ atlas H M → e' ∈ atlas H M → e.symm ≫ₕ e' ∈ G)
 
 lemma has_groupoid_of_le {G₁ G₂ : structure_groupoid H} (h : has_groupoid H M G₁) (hle : G₁ ≤ G₂) :
   has_groupoid H M G₂ :=
@@ -449,7 +454,7 @@ end⟩
 /-- In a manifold having some structure groupoid, the changes of coordinates belong to this groupoid -/
 lemma compatible (G : structure_groupoid H) [h : has_groupoid H M G]
   {e e' : local_homeomorph M H} (he : e ∈ atlas H M) (he' : e' ∈ atlas H M) :
-  e.symm →ₕ e' ∈ G :=
+  e.symm ≫ₕ e' ∈ G :=
 (h.compatible : _) e e' he he'
 
 /-- A G-diffeomorphism between two manifolds is a homeomorphism which, when read in the charts,
@@ -458,7 +463,7 @@ structure diffeomorph (G : structure_groupoid H) (M : Type*) (M' : Type*)
   [topological_space M] [topological_space M'] [manifold H M] [manifold H M']
   extends homeomorph M M' :=
 (smooth_to_fun : ∀c : local_homeomorph M H, ∀c' : local_homeomorph M' H,
-  c ∈ atlas H M → c' ∈ atlas H M' → c.symm →ₕ to_homeomorph.to_local_homeomorph →ₕ c' ∈ G)
+  c ∈ atlas H M → c' ∈ atlas H M' → c.symm ≫ₕ to_homeomorph.to_local_homeomorph ≫ₕ c' ∈ G)
 
 variables [topological_space M'] [topological_space M'']
 {G : structure_groupoid H} [manifold H M'] [manifold H M'']
@@ -467,7 +472,7 @@ variables [topological_space M'] [topological_space M'']
 def diffeomorph.refl (M : Type*) [topological_space M] [manifold H M]
   [has_groupoid H M G] : diffeomorph G M M :=
 { smooth_to_fun := λc c' hc hc', begin
-    change (local_homeomorph.symm c) →ₕ (local_homeomorph.refl M) →ₕ c' ∈ G,
+    change (local_homeomorph.symm c) ≫ₕ (local_homeomorph.refl M) ≫ₕ c' ∈ G,
     rw local_homeomorph.refl_trans,
     exact compatible G hc hc'
   end,
@@ -477,7 +482,7 @@ def diffeomorph.refl (M : Type*) [topological_space M] [manifold H M]
 def diffeomorph.symm (e : diffeomorph G M M') : diffeomorph G M' M :=
 { smooth_to_fun := begin
     assume c c' hc hc',
-    have : (c'.symm →ₕ e.to_homeomorph.to_local_homeomorph →ₕ c).symm ∈ G :=
+    have : (c'.symm ≫ₕ e.to_homeomorph.to_local_homeomorph ≫ₕ c).symm ∈ G :=
       G.inv _ (e.smooth_to_fun c' c hc' hc),
     simp at this,
     rwa [trans_symm_eq_symm_trans_symm, trans_symm_eq_symm_trans_symm, symm_symm, trans_assoc]
@@ -497,15 +502,15 @@ def diffeomorph.trans (e : diffeomorph G M M') (e' : diffeomorph G M' M'') : dif
     let f₁ := e.to_homeomorph.to_local_homeomorph,
     let f₂ := e'.to_homeomorph.to_local_homeomorph,
     let f  := (e.to_homeomorph.trans e'.to_homeomorph).to_local_homeomorph,
-    have feq : f = f₁ →ₕ f₂ := homeomorph.trans_to_local_homeomorph _ _,
+    have feq : f = f₁ ≫ₕ f₂ := homeomorph.trans_to_local_homeomorph _ _,
     -- define the atlas g around y
-    let y := (c.symm →ₕ f₁).to_fun x,
+    let y := (c.symm ≫ₕ f₁).to_fun x,
     let g := chart_at H y,
     have hg₁ := chart_mem_atlas H y,
     have hg₂ := mem_chart_source H y,
-    let s := (c.symm →ₕ f₁).source ∩ (c.symm →ₕ f₁).to_fun ⁻¹' g.source,
+    let s := (c.symm ≫ₕ f₁).source ∩ (c.symm ≫ₕ f₁).to_fun ⁻¹' g.source,
     have open_s : is_open s,
-      by apply (c.symm →ₕ f₁).continuous_to_fun.preimage_open_of_open; apply open_source,
+      by apply (c.symm ≫ₕ f₁).continuous_to_fun.preimage_open_of_open; apply open_source,
     have : x ∈ s,
     { split,
       { simp only [trans_source, preimage_univ, inter_univ, homeomorph.to_local_homeomorph_source],
@@ -513,18 +518,18 @@ def diffeomorph.trans (e : diffeomorph G M M') (e' : diffeomorph G M' M'') : dif
         exact hx.1 },
       { exact hg₂ } },
     refine ⟨s, open_s, ⟨this, _⟩⟩,
-    let F₁ := (c.symm →ₕ f₁ →ₕ g) →ₕ (g.symm →ₕ f₂ →ₕ c'),
+    let F₁ := (c.symm ≫ₕ f₁ ≫ₕ g) ≫ₕ (g.symm ≫ₕ f₂ ≫ₕ c'),
     have A : F₁ ∈ G := G.comp _ _ (e.smooth_to_fun c g hc hg₁) (e'.smooth_to_fun g c' hg₁ hc'),
-    let F₂ := (c.symm →ₕ f →ₕ c').restr s,
+    let F₂ := (c.symm ≫ₕ f ≫ₕ c').restr s,
     have : F₁ ≈ F₂ := calc
-      F₁ ≈ c.symm →ₕ f₁ →ₕ (g →ₕ g.symm) →ₕ f₂ →ₕ c' : by simp [F₁, trans_assoc]
-      ... ≈ c.symm →ₕ f₁ →ₕ (of_set g.source g.open_source) →ₕ f₂ →ₕ c' :
+      F₁ ≈ c.symm ≫ₕ f₁ ≫ₕ (g ≫ₕ g.symm) ≫ₕ f₂ ≫ₕ c' : by simp [F₁, trans_assoc]
+      ... ≈ c.symm ≫ₕ f₁ ≫ₕ (of_set g.source g.open_source) ≫ₕ f₂ ≫ₕ c' :
         by simp [eq_on_source_trans, trans_self_symm g]
-      ... ≈ ((c.symm →ₕ f₁) →ₕ (of_set g.source g.open_source)) →ₕ (f₂ →ₕ c') :
+      ... ≈ ((c.symm ≫ₕ f₁) ≫ₕ (of_set g.source g.open_source)) ≫ₕ (f₂ ≫ₕ c') :
         by simp [trans_assoc]
-      ... ≈ ((c.symm →ₕ f₁).restr s) →ₕ (f₂ →ₕ c') : by simp [s, trans_of_set']
-      ... ≈ ((c.symm →ₕ f₁) →ₕ (f₂ →ₕ c')).restr s : by simp [restr_trans]
-      ... ≈ (c.symm →ₕ (f₁ →ₕ f₂) →ₕ c').restr s : by simp [eq_on_source_restr, trans_assoc]
+      ... ≈ ((c.symm ≫ₕ f₁).restr s) ≫ₕ (f₂ ≫ₕ c') : by simp [s, trans_of_set']
+      ... ≈ ((c.symm ≫ₕ f₁) ≫ₕ (f₂ ≫ₕ c')).restr s : by simp [restr_trans]
+      ... ≈ (c.symm ≫ₕ (f₁ ≫ₕ f₂) ≫ₕ c').restr s : by simp [eq_on_source_restr, trans_assoc]
       ... ≈ F₂ : by simp [F₂, feq],
     have : F₂ ∈ G := G.eq_on_source F₁ F₂ A (setoid.symm this),
     exact this

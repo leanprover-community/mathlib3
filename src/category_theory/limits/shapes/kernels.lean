@@ -12,7 +12,7 @@ open category_theory
 
 namespace category_theory.limits
 
-variables {C : Type u} [𝒞 : category.{v+1} C] [has_zero_morphisms.{v} C]
+variables {C : Type u} [𝒞 : category.{v} C] [has_zero_morphisms.{v} C]
 include 𝒞
 
 variables {X Y : C} (f : X ⟶ Y)

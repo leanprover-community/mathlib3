@@ -14,7 +14,7 @@ open Top
 open category_theory.limits
 open topological_space
 
-variables {C : Type u} [𝒞 : category.{v+1} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
 variables [has_colimits.{v} C]

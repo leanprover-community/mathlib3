@@ -28,7 +28,7 @@ The field `app` provides the components of the natural transformation.
 
 Naturality is expressed by `α.naturality_lemma`.
 -/
-structure nat_trans (F G : C ⥤ D) : Sort (max (u₁+1) v₂) :=
+structure nat_trans (F G : C ⥤ D) : Type (max u₁ v₂) :=
 (app : Π X : C, (F.obj X) ⟶ (G.obj X))
 (naturality' : ∀ {{X Y : C}} (f : X ⟶ Y), (F.map f) ≫ (app Y) = (app X) ≫ (G.map f) . obviously)
 

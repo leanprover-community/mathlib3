@@ -27,7 +27,7 @@ instance fin_category_discrete_of_decidable_fintype (J : Type v) [fintype J] [de
   fin_category (discrete J) :=
 { }
 
-variables (C : Type u) [𝒞 : category.{v+1} C]
+variables (C : Type u) [𝒞 : category.{v} C]
 include 𝒞
 
 class has_finite_limits :=

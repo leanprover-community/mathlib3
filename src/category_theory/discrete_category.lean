@@ -11,7 +11,6 @@ namespace category_theory
 
 universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
--- We only work in `Type`, rather than `Sort`, as we need to use `ulift`.
 def discrete (α : Type u₁) := α
 
 instance {α : Type u₁} [fintype α] : fintype (discrete α) :=

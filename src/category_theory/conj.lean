@@ -22,7 +22,7 @@ namespace category_theory
 
 namespace iso
 
-variables {C : Type u} [𝒞 : category.{v+1} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
 /- If `X` is isomorphic to `X₁` and `Y` is isomorphic to `Y₁`, then
@@ -122,7 +122,7 @@ namespace functor
 
 universes v₁ u₁
 
-variables {C : Type u} [𝒞 : category.{v+1} C] {D : Type u₁} [𝒟 : category.{v₁+1} D] (F : C ⥤ D)
+variables {C : Type u} [𝒞 : category.{v} C] {D : Type u₁} [𝒟 : category.{v₁} D] (F : C ⥤ D)
 include 𝒞 𝒟
 
 lemma map_hom_congr {X Y X₁ Y₁ : C} (α : X ≅ X₁) (β : Y ≅ Y₁) (f : X ⟶ Y) :

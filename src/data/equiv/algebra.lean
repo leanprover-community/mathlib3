@@ -241,6 +241,11 @@ def map_mul (f : α ≃* β) :  ∀ x y : α, f (x * y) = f x * f y := f.map_mul
 @[to_additive]
 instance (h : α ≃* β) : is_mul_hom h := ⟨h.map_mul⟩
 
+/-- Makes a multiplicative isomorphism from a bijection which preserves multiplication. -/
+@[to_additive]
+def mk' (f : α ≃ β) (h : ∀ x y, f (x * y) = f x * f y) : α ≃* β :=
+⟨f.1, f.2, f.3, f.4, h⟩
+
 /-- The identity map is a multiplicative isomorphism. -/
 @[refl, to_additive]
 def refl (α : Type*) [has_mul α] : α ≃* α :=

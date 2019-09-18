@@ -241,7 +241,7 @@ end
 The initial set and number used to define
 all the homogeneous projections.
 -/
-def init (f : [ℕ]² → color) := (⟨f, NatInf, 0⟩ : homogeneous_proj f)
+def init (f : [ℕ]² → color) : homogeneous_proj f := ⟨f, NatInf, 0⟩
 
 /--
 Iterate the procedure of refining a homogeneous projection.

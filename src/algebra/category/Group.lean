@@ -65,3 +65,14 @@ instance : faithful (forget_to_Group) := {}
 instance : has_zero AddCommGroup := ⟨⟨punit⟩⟩
 
 end AddCommGroup
+
+namespace category_theory
+
+def Aut_mul_equiv_perm {α : Type u} : Aut α ≃* equiv.perm α :=
+{ to_fun    := iso.to_equiv,
+  inv_fun   := equiv.to_iso,
+  left_inv  := by tidy, -- I miss `auto_param`s
+  right_inv := by tidy,
+  map_mul'  := by tidy, }
+
+end category_theory

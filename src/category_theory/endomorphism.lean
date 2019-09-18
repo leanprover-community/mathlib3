@@ -77,11 +77,13 @@ namespace functor
 variables {D : Type u'} [𝒟 : category.{v'} D] (f : C ⥤ D) (X)
 include 𝒟
 
+/-- `f.map` as a monoid hom between endomorphism monoids. -/
 def map_End : End X →* End (f.obj X) :=
 { to_fun := functor.map f,
   map_mul' := λ x y, f.map_comp y x,
   map_one' := f.map_id X }
 
+/-- `f.map_iso` as a group hom between automorphism groups. -/
 def map_Aut : Aut X →* Aut (f.obj X) :=
 { to_fun := f.map_iso,
   map_mul' := λ x y, f.map_iso_trans y x,

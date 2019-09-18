@@ -9,8 +9,8 @@ import category_theory.limits.shapes.equalizers
 /-!
 # Kernels and cokernels
 
-In a category with zero morphisms, the kernel of a morphism `f : X ⟶ Y` is just the equaliser of `f`
-and `0 : X ⟶ Y`. (Similarly the cokernel is the coequaliser.)
+In a category with zero morphisms, the kernel of a morphism `f : X ⟶ Y` is just the equalizer of `f`
+and `0 : X ⟶ Y`. (Similarly the cokernel is the coequalizer.)
 
 We don't yet prove much here, just provide
 * `kernel : (X ⟶ Y) → C`
@@ -42,13 +42,16 @@ variables {X Y : C} (f : X ⟶ Y)
 section
 variables [has_limit (parallel_pair f 0)]
 
+/-- The kernel of a morphism, expressed as the equalizer with the 0 morphism. -/
 abbreviation kernel : C := equalizer f 0
 
+/-- The map from `kernel f` into the source of `f`. -/
 abbreviation kernel.ι : kernel f ⟶ X := equalizer.ι f 0
 
 @[simp, reassoc] lemma kernel.condition : kernel.ι f ≫ f = 0 :=
 by simp [equalizer.condition]
 
+/-- Given any morphism `k` so `k ≫ f = 0`, `k` factors through `kernel f`. -/
 abbreviation kernel.lift {W : C} (k : W ⟶ X) (h : k ≫ f = 0) : W ⟶ kernel f :=
 limit.lift (parallel_pair f 0) (fork.of_ι k (by simpa))
 end
@@ -56,13 +59,16 @@ end
 section
 variables [has_colimit (parallel_pair f 0)]
 
+/-- The cokernel of a morphism, expressed as the coequalizer with the 0 morphism. -/
 abbreviation cokernel : C := coequalizer f 0
 
+/-- The map from the target of `f` to `cokernel f`. -/
 abbreviation cokernel.π : Y ⟶ cokernel f := coequalizer.π f 0
 
 @[simp, reassoc] lemma cokernel.condition : f ≫ cokernel.π f = 0 :=
 by simp [coequalizer.condition]
 
+/-- Given any morphism `k` so `f ≫ k = 0`, `k` factors through `cokernel f`. -/
 abbreviation cokernel.desc {W : C} (k : Y ⟶ W) (h : f ≫ k = 0) : cokernel f ⟶ W :=
 colimit.desc (parallel_pair f 0) (cofork.of_π k (by simpa))
 end

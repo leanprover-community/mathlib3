@@ -231,7 +231,7 @@ has_sum_of_has_sum $ assume u, exists.intro (ii u) $
       by simp [mem_bind]; existsi i h; simp [h, hi, this],
     by rw [hji h] at this; exact hnc this,
   calc (u ∪ jj v).sum g = (jj v).sum g : (sum_subset (subset_union_right _ _) this).symm
-    ... = v.sum _ : sum_bind $ by intros x hx y hy hxy; by_cases f x = 0; by_cases f y = 0; simp [*]; cc
+    ... = v.sum _ : sum_bind $ by intros x _ y _ _; by_cases f x = 0; by_cases f y = 0; simp [*]; cc
     ... = v.sum f : sum_congr rfl $ by intros x hx; by_cases f x = 0; simp [*]
 
 lemma has_sum_iff_has_sum_of_ne_zero : has_sum f a ↔ has_sum g a :=

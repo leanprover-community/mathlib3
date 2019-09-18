@@ -182,7 +182,8 @@ calc (range (q / 2)).prod (λ n, ((range p).erase 0).prod (+ p * n)) *
   have h₂ : ∀ x, x ∈ range (q / 2) → ∀ y, y ∈ range (q / 2) → x ≠ y →
       disjoint (image (+p * x) (erase (range p) 0)) (image (+ p * y) (erase (range p) 0)) :=
     λ x hx y hy hxy, begin
-      suffices : ∀ z a, a ≠ 0 → a < p → a + p * x = z → ∀ bpy b, b ≠ 0 → b < p → b + p * y = bpy → z ≠ bpy,
+      suffices : ∀ z a, a ≠ 0 → a < p → a + p * x = z →
+                 ∀ bpy b, b ≠ 0 → b < p → b + p * y = bpy → z ≠ bpy,
       { simpa [disjoint_iff_ne] },
       assume z a ha0 hap ha bpy b hb0 hbp hb hzb,
       have : (a + p * x) / p = (b + p * y) / p,
@@ -259,7 +260,8 @@ have hq0 : (q : zmodp p hp) ≠ 0, by rwa [← nat.cast_zero, ne.def, zmodp.eq_i
             zero_mod, mod_eq_of_lt (lt_of_le_of_lt hxp (nat.div_lt_self hp.pos (lt_succ_self _)))]))).1 $
 have h₁ : disjoint ((range (succ (p * q / 2))).filter (coprime (p * q)))
       (filter (λ x, ¬coprime q x) (filter (coprime p) (range (succ (p * q / 2))))),
-  by { rw [finset.filter_filter], apply finset.disjoint_filter, rintros _ hpq ⟨_, hq⟩, exact hq (coprime.coprime_mul_left hpq) },
+  by {rw [finset.filter_filter], apply finset.disjoint_filter,
+      rintros _ hpq ⟨_, hq⟩, exact hq (coprime.coprime_mul_left hpq)},
 calc ((((range ((p * q) / 2).succ).filter (coprime (p * q))).prod (λ x, x) : ℕ) : zmodp p hp)
      * (q ^ (p / 2) * ((range (p / 2).succ).erase 0).prod (λ x, x) : zmodp p hp)
    = (((range (succ (p * q / 2))).filter (coprime (p * q)) ∪

@@ -91,7 +91,7 @@ open color
 Given a function from natural numbers to colors,
 this property describes the numbers which are mapped to red.
 -/
-def reds (f : ℕ → color) (H : set ℕ) := (λ n : ℕ, f n = red ∧ n ∈ H )
+def reds (f : ℕ → color) (H : set ℕ) := {n : ℕ | f n = red ∧ n ∈ H}
 
 /--
 Given a function from natural numbers to colors,

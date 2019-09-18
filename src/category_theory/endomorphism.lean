@@ -62,7 +62,7 @@ attribute [extensionality Aut] iso.ext
 
 namespace Aut
 
-instance: group (Aut X) :=
+instance : group (Aut X) :=
 by refine { one := iso.refl X,
             inv := iso.symm,
             mul := flip iso.trans, .. } ; dunfold flip; obviously

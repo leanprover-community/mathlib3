@@ -78,6 +78,19 @@ local attribute [instance] has_coe_to_fun
   (f ≫ g) x = g (f x) :=
 congr_fun ((forget _).map_comp _ _) x
 
+@[simp] lemma hom_inv_id {X Y : bundled c} (f : X ≅ Y) (x : X) : f.inv (f.hom x) = x :=
+begin
+  have t := congr_fun (congr_arg (λ f, (forget _).map f) f.hom_inv_id) x,
+  simp only [functor.map_comp, functor.map_id, types_comp, types_id] at t,
+  exact t,
+end
+@[simp] lemma inv_hom_id {X Y : bundled c} (f : X ≅ Y) (y : Y) : f.hom (f.inv y) = y :=
+begin
+  have t := congr_fun (congr_arg (λ f, (forget _).map f) f.inv_hom_id) y,
+  simp only [functor.map_comp, functor.map_id, types_comp, types_id] at t,
+  exact t,
+end
+
 section induced_category
 
 variables {hom} (𝒞) {d : Type u → Type u} (obj : ∀ ⦃α⦄, d α → c α)

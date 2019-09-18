@@ -44,13 +44,6 @@ instance (C : Type (u+1)) [concrete_category C] : has_coe_to_sort C :=
 
 attribute [instance] concrete_category.forget_faithful
 
--- TODO generalize this!
-@[simp] lemma hom_inv_id {C : Type (u+1)} [concrete_category C] {X Y : C} (f : X ≅ Y) (x : X) : f.inv (f.hom x) = x :=
-congr_fun (congr_arg monoid_hom.to_fun (f.hom_inv_id) : (f.hom ≫ f.inv).to_fun = _) x
-@[simp] lemma inv_hom_id {X Y : Mon} (f : X ≅ Y) (y : Y) : f.hom (f.inv y) = y :=
-congr_fun (congr_arg monoid_hom.to_fun (f.inv_hom_id) : (f.inv ≫ f.hom).to_fun = _) y
-
-
 instance concrete_category.types : concrete_category (Type u) :=
 { forget := 𝟭 _ }
 

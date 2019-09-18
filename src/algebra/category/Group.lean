@@ -33,6 +33,11 @@ instance (G : Group) : group G := G.str
 @[to_additive]
 instance : has_one Group := ⟨Group.of punit⟩
 
+-- TODO I wish this wasn't necessary, but the more general lemma in bundled_hom.lean doesn't fire.
+@[simp, to_additive] lemma coe_comp {X Y Z : Group} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
+  (f ≫ g) x = g (f x) :=
+congr_fun ((forget Group).map_comp _ _) x
+
 end Group
 
 
@@ -55,6 +60,11 @@ instance has_forget_to_Group : has_forget CommGroup.{u} Group.{u} :=
 Group.bundled_hom.induced_category_has_forget _
 
 @[to_additive] instance : has_one CommGroup := ⟨CommGroup.of punit⟩
+
+-- TODO I wish this wasn't necessary, but the more general lemma in bundled_hom.lean doesn't fire.
+@[simp, to_additive] lemma coe_comp {X Y Z : CommGroup} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
+  (f ≫ g) x = g (f x) :=
+congr_fun ((forget CommGroup).map_comp _ _) x
 
 end CommGroup
 
@@ -118,13 +128,10 @@ def mul_equiv_iso_CommGroup_iso {X Y : Type u} [comm_group X] [comm_group Y] :
 namespace category_theory.Aut
 
 def iso_perm {α : Type u} : Group.of (Aut α) ≅ Group.of (equiv.perm α) :=
-{ to_fun    := iso.to_equiv,
-  inv_fun   := equiv.to_iso,
-  left_inv  := by tidy, -- I miss `auto_param`s
-  right_inv := by tidy,
-  map_mul'  := by tidy, }
+{ hom := ⟨λ g, g.to_equiv, (by tidy), (by tidy)⟩,
+  inv := ⟨λ g, g.to_iso, (by tidy), (by tidy)⟩ }
 
 def mul_equiv_perm {α : Type u} : Aut α ≃* equiv.perm α :=
-Aut_iso_perm.Group_iso_to_mul_equiv
+iso_perm.Group_iso_to_mul_equiv
 
 end category_theory.Aut

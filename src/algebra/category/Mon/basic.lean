@@ -30,12 +30,6 @@ instance bundled_hom : bundled_hom @monoid_hom :=
 @[to_additive add_monoid]
 instance (x : Mon) : monoid x := x.str
 
--- TODO generalize this!
-@[simp] lemma hom_inv_id {X Y : Mon} (f : X ≅ Y) (x : X) : f.inv (f.hom x) = x :=
-congr_fun (congr_arg monoid_hom.to_fun (f.hom_inv_id) : (f.hom ≫ f.inv).to_fun = _) x
-@[simp] lemma inv_hom_id {X Y : Mon} (f : X ≅ Y) (y : Y) : f.hom (f.inv y) = y :=
-congr_fun (congr_arg monoid_hom.to_fun (f.inv_hom_id) : (f.inv ≫ f.hom).to_fun = _) y
-
 end Mon
 
 /-- The category of commutative monoids and monoid morphisms. -/
@@ -58,16 +52,10 @@ instance (x : CommMon) : comm_monoid x := x.str
 instance has_forget_to_Mon : has_forget CommMon.{u} Mon.{u} :=
 Mon.bundled_hom.induced_category_has_forget _
 
--- TODO understand why this is necessary?
+-- TODO I wish this wasn't necessary, but the more general lemma in bundled_hom.lean doesn't fire.
 @[simp, to_additive] lemma coe_comp {X Y Z : CommMon} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
   (f ≫ g) x = g (f x) :=
 congr_fun ((forget CommMon).map_comp _ _) x
-
--- TODO generalize this!
-@[simp] lemma hom_inv_id {X Y : CommMon} (f : X ≅ Y) (x : X) : f.inv (f.hom x) = x :=
-congr_fun (congr_arg monoid_hom.to_fun (f.hom_inv_id) : (f.hom ≫ f.inv).to_fun = _) x
-@[simp] lemma inv_hom_id {X Y : CommMon} (f : X ≅ Y) (y : Y) : f.hom (f.inv y) = y :=
-congr_fun (congr_arg monoid_hom.to_fun (f.inv_hom_id) : (f.inv ≫ f.hom).to_fun = _) y
 
 end CommMon
 

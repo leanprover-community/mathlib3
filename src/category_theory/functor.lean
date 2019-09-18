@@ -85,6 +85,7 @@ omit ℰ
 
 -- These are not simp lemmas because rewriting along equalities between functors
 -- is not necessarily a good idea.
+-- Natural isomorphisms are also provided in `whiskering.lean`.
 protected lemma comp_id (F : C ⥤ D) : F ⋙ (𝟭 D) = F := by cases F; refl
 protected lemma id_comp (F : C ⥤ D) : (𝟭 C) ⋙ F = F := by cases F; refl
 

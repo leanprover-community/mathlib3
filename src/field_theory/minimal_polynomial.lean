@@ -19,8 +19,7 @@ by their defining property.
 
 universes u v w
 
-noncomputable theory
-
+-- local attribute [instance, priority 1] classical.prop_decidable
 open_locale classical
 
 open polynomial set function
@@ -32,7 +31,7 @@ variables [comm_ring α] [comm_ring β] [algebra α β]
 
 /-- Let B be an A-algebra, and x an element of B that is integral over A.
 The minimal polynomial of x if the monic polynomial of smallest degree that has x as its root. -/
-def minimal_polynomial {x : β} (hx : is_integral α x) : polynomial α :=
+noncomputable def minimal_polynomial {x : β} (hx : is_integral α x) : polynomial α :=
 well_founded.min polynomial.degree_lt_wf _ (ne_empty_iff_exists_mem.mpr hx)
 
 end min_poly_def
@@ -65,18 +64,15 @@ variables {x : β} (hx : is_integral α x)
 
 /--A minimal polynomial is nonzero.-/
 lemma ne_zero : (minimal_polynomial hx) ≠ 0 :=
-ne_zero_of_monic (minimal_polynomial.monic hx)
+ne_zero_of_monic (monic hx)
 
 /--If an element x is a root of a nonzero polynomial p,
 then the degree of p is at least the degree of the minimal polynomial of x.-/
 lemma degree_le_of_ne_zero
   {p : polynomial α} (pnz : p ≠ 0) (hp : polynomial.aeval α β x p = 0) :
   degree (minimal_polynomial hx) ≤ degree p :=
-begin
-  rw ← degree_mul_leading_coeff_inv p pnz,
-  apply minimal_polynomial.min _ (monic_mul_leading_coeff_inv pnz),
-  simp [hp]
-end
+calc degree (minimal_polynomial hx) ≤ _ : min _ (monic_mul_leading_coeff_inv pnz) _
+  ... = degree p : degree_mul_leading_coeff_inv p pnz
 
 /--The minimal polynomial of an element x is uniquely characterized by its defining property:
 if there is another monic polynomial of minimal degree that has x as a root,
@@ -87,24 +83,24 @@ lemma unique {p : polynomial α} (pmonic : p.monic) (hp : polynomial.aeval α β
 begin
   symmetry, apply eq_of_sub_eq_zero,
   by_contra hnz,
-  have := minimal_polynomial.degree_le_of_ne_zero hx hnz (by simp [hp]),
+  have := degree_le_of_ne_zero hx hnz (by simp [hp]),
   contrapose! this,
-  apply degree_sub_lt _ (minimal_polynomial.ne_zero hx),
-  { rw [(minimal_polynomial.monic hx).leading_coeff, pmonic.leading_coeff] },
-  { exact le_antisymm (minimal_polynomial.min hx pmonic hp)
-      (pmin (minimal_polynomial hx) (minimal_polynomial.monic hx) (minimal_polynomial.aeval hx)) },
+  apply degree_sub_lt _ (ne_zero hx),
+  { rw [(monic hx).leading_coeff, pmonic.leading_coeff] },
+  { exact le_antisymm (min hx pmonic hp)
+      (pmin (minimal_polynomial hx) (monic hx) (aeval hx)) },
 end
 
 /--If an element x is a root of a polynomial p, then the minimal polynomial of x divides p.-/
 lemma dvd {p : polynomial α} (hp : polynomial.aeval α β x p = 0) :
   minimal_polynomial hx ∣ p :=
 begin
-  rw ← dvd_iff_mod_by_monic_eq_zero (minimal_polynomial.monic hx),
+  rw ← dvd_iff_mod_by_monic_eq_zero (monic hx),
   by_contra hnz,
-  have := minimal_polynomial.degree_le_of_ne_zero hx hnz _,
+  have := degree_le_of_ne_zero hx hnz _,
   { contrapose! this,
-    exact degree_mod_by_monic_lt _ (minimal_polynomial.monic hx) (minimal_polynomial.ne_zero hx) },
-  { rw ← mod_by_monic_add_div p (minimal_polynomial.monic hx) at hp,
+    exact degree_mod_by_monic_lt _ (monic hx) (ne_zero hx) },
+  { rw ← mod_by_monic_add_div p (monic hx) at hp,
     simpa using hp }
 end
 
@@ -116,41 +112,41 @@ begin
   { simpa using congr_arg nat_degree (eq_C_of_degree_eq_zero deg_eq_zero) },
   have eq_one : minimal_polynomial hx = 1,
   { rw eq_C_of_degree_eq_zero deg_eq_zero, congr,
-    simpa [ndeg_eq_zero.symm] using (minimal_polynomial.monic hx).leading_coeff },
-  simpa [eq_one, aeval_def] using minimal_polynomial.aeval hx
+    simpa [ndeg_eq_zero.symm] using (monic hx).leading_coeff },
+  simpa [eq_one, aeval_def] using aeval hx
 end
 
 /--A minimal polynomial is not a unit.-/
 lemma not_is_unit : ¬ is_unit (minimal_polynomial hx) :=
 begin
-  intro H, apply minimal_polynomial.degree_ne_zero hx,
+  intro H, apply degree_ne_zero hx,
   exact degree_eq_zero_of_is_unit H
 end
 
 /--The degree of a minimal polynomial is positive.-/
 lemma degree_pos : 0 < degree (minimal_polynomial hx) :=
-degree_pos_of_ne_zero_of_nonunit (minimal_polynomial.ne_zero hx) (minimal_polynomial.not_is_unit hx)
+degree_pos_of_ne_zero_of_nonunit (ne_zero hx) (not_is_unit hx)
 
 /--A minimal polynomial is prime.-/
 lemma prime : prime (minimal_polynomial hx) :=
 begin
-  refine ⟨minimal_polynomial.ne_zero hx, minimal_polynomial.not_is_unit hx, _⟩,
+  refine ⟨ne_zero hx, not_is_unit hx, _⟩,
   rintros p q ⟨d, h⟩,
-  have :    polynomial.aeval α β x (p*q) = 0 := by simp [h, minimal_polynomial.aeval hx],
+  have :    polynomial.aeval α β x (p*q) = 0 := by simp [h, aeval hx],
   replace : polynomial.aeval α β x p = 0 ∨ polynomial.aeval α β x q = 0 := by simpa,
-  cases this; [left, right]; apply minimal_polynomial.dvd; assumption
+  cases this; [left, right]; apply dvd; assumption
 end
 
 /--A minimal polynomial is irreducible.-/
 lemma irreducible : irreducible (minimal_polynomial hx) :=
-irreducible_of_prime (minimal_polynomial.prime hx)
+irreducible_of_prime (prime hx)
 
 /--If L/K is a field extension, and x is an element of L in the image of K,
 then the minimal polynomial of x is X - C x.-/
 @[simp] protected lemma algebra_map (a : α) (ha : is_integral α (algebra_map β a)) :
   minimal_polynomial ha = X - C a :=
 begin
-  refine (minimal_polynomial.unique ha (monic_X_sub_C a) (by simp [aeval_def]) _).symm,
+  refine (unique ha (monic_X_sub_C a) (by simp [aeval_def]) _).symm,
   intros q hq H,
   rw degree_X_sub_C,
   suffices : 0 < degree q,
@@ -182,13 +178,13 @@ variable {β}
 @[simp] lemma zero {h₀ : is_integral α (0:β)} :
   minimal_polynomial h₀ = X :=
 by simpa only [add_zero, polynomial.C_0, sub_eq_add_neg, neg_zero, algebra.map_zero]
-  using minimal_polynomial.algebra_map' β (0:α)
+  using algebra_map' β (0:α)
 
 /--The minimal polynomial of 1 is X - 1.-/
 @[simp] lemma one {h₁ : is_integral α (1:β)} :
   minimal_polynomial h₁ = X - 1 :=
 by simpa only [algebra.map_one, polynomial.C_1, sub_eq_add_neg]
-  using minimal_polynomial.algebra_map' β (1:α)
+  using algebra_map' β (1:α)
 
 /--If L/K is a field extension and an element y of K is a root of the minimal polynomial
 of an element x ∈ L, then y maps to x under the field embedding.-/
@@ -197,16 +193,16 @@ lemma root {x : β} (hx : is_integral α x) {y : α}
 begin
   have ndeg_one : nat_degree (minimal_polynomial hx) = 1,
   { rw ← polynomial.degree_eq_iff_nat_degree_eq_of_pos (nat.zero_lt_one),
-    exact degree_eq_one_of_irreducible_of_root (minimal_polynomial.irreducible hx) h },
+    exact degree_eq_one_of_irreducible_of_root (irreducible hx) h },
   have coeff_one : (minimal_polynomial hx).coeff 1 = 1,
-  { simpa [ndeg_one, leading_coeff] using (minimal_polynomial.monic hx).leading_coeff },
+  { simpa [ndeg_one, leading_coeff] using (monic hx).leading_coeff },
   have hy : y = - coeff (minimal_polynomial hx) 0,
   { rw (minimal_polynomial hx).as_sum at h,
     apply eq_neg_of_add_eq_zero,
     simpa [ndeg_one, finset.sum_range_succ, coeff_one] using h },
   subst y,
   rw [algebra.map_neg, neg_eq_iff_add_eq_zero],
-  have H := minimal_polynomial.aeval hx,
+  have H := aeval hx,
   rw (minimal_polynomial hx).as_sum at H,
   simpa [ndeg_one, finset.sum_range_succ, coeff_one, aeval_def] using H
 end
@@ -218,7 +214,7 @@ begin
   split,
   { intro h,
     have zero_root := polynomial.zero_is_root_of_coeff_zero_eq_zero h,
-    rw ← minimal_polynomial.root hx zero_root,
+    rw ← root hx zero_root,
     exact is_ring_hom.map_zero _ },
   { rintro rfl, simp }
 end

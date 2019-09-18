@@ -290,6 +290,16 @@ def to_monoid_hom {α β} [monoid α] [monoid β] (h : α ≃* β) : (α →* β
   map_mul' := h.map_mul,
   map_one' := h.map_one }
 
+@[simp, to_additive to_monoid_hom_left_inv]
+lemma to_monoid_hom_left_inv {X Y : Type u} [monoid X] [monoid Y] (e : X ≃* Y) (x : X) :
+  e.symm.to_monoid_hom (e.to_monoid_hom x) = x :=
+e.left_inv x
+
+@[simp, to_additive to_monoid_hom_right_inv]
+lemma to_monoid_hom_right_inv {X Y : Type u} [monoid X] [monoid Y] (e : X ≃* Y) (y : Y) :
+  e.to_monoid_hom (e.symm.to_monoid_hom y) = y :=
+e.right_inv y
+
 /-- A multiplicative bijection between two monoids is a monoid hom
   (deprecated -- use to_monoid_hom). -/
 @[to_additive is_add_monoid_hom]
@@ -335,6 +345,13 @@ def to_mul_equiv (e : α ≃r β) : α ≃* β :=
 def to_add_equiv (e : α ≃r β) : α ≃+ β :=
 { map_add' := e.hom.map_add, .. e.to_equiv }
 
+def to_ring_hom {α β} [ring α] [ring β] (h : α ≃r β) : (α →+* β) :=
+{ to_fun := h.to_fun,
+  map_add'  := λ x y, is_ring_hom.map_add h.to_fun,
+  map_zero' := is_ring_hom.map_zero h.to_fun,
+  map_mul'  := λ x y, is_ring_hom.map_mul h.to_fun,
+  map_one'  := is_ring_hom.map_one h.to_fun }
+
 protected def refl (α : Type*) [ring α] : α ≃r α :=
 { hom := is_ring_hom.id, .. equiv.refl α }
 
@@ -347,6 +364,16 @@ protected def symm {α β : Type*} [ring α] [ring β] (e : α ≃r β) : β ≃
 protected def trans {α β γ : Type*} [ring α] [ring β] [ring γ]
   (e₁ : α ≃r β) (e₂ : β ≃r γ) : α ≃r γ :=
 { hom := is_ring_hom.comp _ _, .. e₁.to_equiv.trans e₂.to_equiv  }
+
+@[simp]
+lemma to_ring_hom_left_inv {X Y : Type u} [ring X] [ring Y] (e : X ≃r Y) (x : X) :
+  e.symm.to_ring_hom (e.to_ring_hom x) = x :=
+e.left_inv x
+
+@[simp]
+lemma to_ring_hom_right_inv {X Y : Type u} [ring X] [ring Y] (e : X ≃r Y) (y : Y) :
+  e.to_ring_hom (e.symm.to_ring_hom y) = y :=
+e.right_inv y
 
 instance symm.is_ring_hom {e : α ≃r β} : is_ring_hom e.to_equiv.symm := hom e.symm
 

@@ -52,41 +52,46 @@ Mon.bundled_hom.full_subcategory @comm_monoid.to_monoid
 instance has_forget_to_Mon : has_forget CommMon.{u} Mon.{u} :=
 Mon.bundled_hom.full_subcategory_has_forget _
 
+-- TODO understand why this is necessary?
+@[simp, to_additive] lemma coe_comp {X Y Z : CommMon} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
+  (f ≫ g) x = g (f x) :=
+congr_fun ((forget CommMon).map_comp _ _) x
 end CommMon
 
 namespace mul_equiv
 
-variables {X Y : Type u} [monoid X] [monoid Y]
+variables {X Y : Type u}
+
+section
+variables [monoid X] [monoid Y]
 
 def to_Mon_iso (e : X ≃* Y) : Mon.of X ≅ Mon.of Y :=
 { hom := e.to_monoid_hom,
-  inv := ⟨e.inv_fun, by apply_instance⟩,
-  hom_inv_id' := by { ext, exact e.left_inv x, },
-  inv_hom_id' := funext e.right_inv }
+  inv := e.symm.to_monoid_hom }
 
-@[simp] lemma to_Mon_iso_hom {e : X ≃* Y} : e.to_Mon_iso.hom = e := rfl
-@[simp] lemma to_Mon_iso_inv {e : X ≃* Y} : e.to_Mon_iso.inv = e.symm := rfl
+@[simp] lemma to_Mon_iso_hom {e : X ≃* Y} : e.to_Mon_iso.hom = e.to_monoid_hom := rfl
+@[simp] lemma to_Mon_iso_inv {e : X ≃* Y} : e.to_Mon_iso.inv = e.symm.to_monoid_hom := rfl
+end
+
+section
+variables [comm_monoid X] [comm_monoid Y]
 
 def to_CommMon_iso (e : X ≃* Y) : CommMon.of X ≅ CommMon.of Y :=
-{ hom := e.to_fun,
-  inv := e.inv_fun,
-  hom_inv_id' := funext e.left_inv,
-  inv_hom_id' := funext e.right_inv }
+{ hom := e.to_monoid_hom,
+  inv := e.symm.to_monoid_hom }
 
-@[simp] lemma to_CommMon_iso_hom {e : X ≃* Y} : e.to_CommMon_iso.hom = e := rfl
-@[simp] lemma to_CommMon_iso_inv {e : X ≃* Y} : e.to_CommMon_iso.inv = e.symm := rfl
-
+@[simp] lemma to_CommMon_iso_hom {e : X ≃* Y} : e.to_CommMon_iso.hom = e.to_monoid_hom := rfl
+@[simp] lemma to_CommMon_iso_inv {e : X ≃* Y} : e.to_CommMon_iso.inv = e.symm.to_monoid_hom := rfl
+end
 
 end mul_equiv
-
-universe u
 
 namespace Mon.iso
 variables {X Y : Mon.{u}}
 
 def to_mul_equiv (i : X ≅ Y) : X ≃* Y :=
 { to_fun := i.hom,
-  inv_fun := i.inv,
+  inv_fun := { .. i.inv },
   left_inv := λ x, congr_fun i.hom_inv_id x,
   right_inv := λ y, congr_fun i.inv_hom_id y }
 

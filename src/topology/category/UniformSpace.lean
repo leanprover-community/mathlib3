@@ -47,7 +47,6 @@ instance (X Y : UniformSpace) : has_coe_to_fun (X ⟶ Y) :=
 
 def hom_ext {X Y : UniformSpace} {f g : X ⟶ Y} : (f : X → Y) = g → f = g := subtype.eq
 
--- TODO: define and use `unbundled_hom.mk_has_forget`
 /-- The forgetful functor from uniform spaces to topological spaces. -/
 instance has_forget_to_Top : has_forget UniformSpace.{u} Top.{u} :=
 unbundled_hom.mk_has_forget
@@ -132,7 +131,7 @@ extension_hom (completion_hom X ≫ f) = f :=
 by { apply subtype.eq, funext x, exact congr_fun (completion.extension_comp_coe f.property) x }
 
 /-- The completion functor is left adjoint to the forgetful functor. -/
-noncomputable def adj : completion_functor ⊣ (forget₂ CpltSepUniformSpace UniformSpace) :=
+noncomputable def adj : completion_functor ⊣ forget₂ CpltSepUniformSpace UniformSpace :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y,
   { to_fun := λ f, completion_hom X ≫ f,

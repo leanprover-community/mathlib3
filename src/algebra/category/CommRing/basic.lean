@@ -36,7 +36,7 @@ end SemiRing
 
 namespace Ring
 
-instance (x : Ring) : ring x := x.str
+ instance (R : Ring) : ring R := R.str
 
 def of (R : Type u) [ring R] : Ring := bundled.of R
 

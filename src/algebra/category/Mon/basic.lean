@@ -49,7 +49,7 @@ instance bundled_hom : bundled_hom _ :=
 Mon.bundled_hom.full_subcategory @comm_monoid.to_monoid
 
 @[to_additive has_forget_to_AddMon]
-instance has_forget_to_Mon : has_forget CommMon.{u} Mon.{u} :=
-Mon.bundled_hom.full_subcategory_has_forget _
+instance has_forget_to_Mon : has_forget₂ CommMon.{u} Mon.{u} :=
+Mon.bundled_hom.full_subcategory_has_forget₂ _
 
 end CommMon

@@ -26,8 +26,8 @@ instance (R : SemiRing) : semiring R := R.str
 instance bundled_hom : bundled_hom @ring_hom :=
 ⟨@ring_hom.to_fun, @ring_hom.id, @ring_hom.comp, @ring_hom.ext⟩
 
-instance has_forget_to_Mon : has_forget SemiRing.{u} Mon.{u} :=
-bundled_hom.mk_has_forget @semiring.to_monoid (λ R₁ R₂ f, f.to_monoid_hom) (λ _ _ _, rfl)
+instance has_forget_to_Mon : has_forget₂ SemiRing.{u} Mon.{u} :=
+bundled_hom.mk_has_forget₂ @semiring.to_monoid (λ R₁ R₂ f, f.to_monoid_hom) (λ _ _ _, rfl)
 
 end SemiRing
 
@@ -43,8 +43,8 @@ def of (R : Type u) [ring R] : Ring := bundled.of R
 instance bundled_hom : bundled_hom _ :=
 SemiRing.bundled_hom.full_subcategory @ring.to_semiring
 
-instance has_forget_to_SemiRing : has_forget Ring.{u} SemiRing.{u} :=
-SemiRing.bundled_hom.full_subcategory_has_forget _
+instance has_forget_to_SemiRing : has_forget₂ Ring.{u} SemiRing.{u} :=
+SemiRing.bundled_hom.full_subcategory_has_forget₂ _
 
 end Ring
 
@@ -60,12 +60,12 @@ def of (R : Type u) [comm_semiring R] : CommSemiRing := bundled.of R
 instance bundled_hom : bundled_hom _ :=
 SemiRing.bundled_hom.full_subcategory @comm_semiring.to_semiring
 
-instance has_forget_to_SemiRing : has_forget CommSemiRing.{u} SemiRing.{u} :=
-bundled_hom.full_subcategory_has_forget _ _
+instance has_forget_to_SemiRing : has_forget₂ CommSemiRing.{u} SemiRing.{u} :=
+bundled_hom.full_subcategory_has_forget₂ _ _
 
 /-- The forgetful functor from commutative rings to (multiplicative) commutative monoids. -/
-instance has_forget_to_CommMon : has_forget CommSemiRing.{u} CommMon.{u} :=
-bundled_hom.mk_has_forget
+instance has_forget_to_CommMon : has_forget₂ CommSemiRing.{u} CommMon.{u} :=
+bundled_hom.mk_has_forget₂
   @comm_semiring.to_comm_monoid
   (λ R₁ R₂ f, f.to_monoid_hom)
   (by intros; refl)
@@ -93,12 +93,12 @@ Ring.bundled_hom.full_subcategory @comm_ring.to_ring
   (forget CommRing).map f = f :=
 rfl
 
-instance has_forget_to_Ring : has_forget CommRing.{u} Ring.{u} :=
-by apply bundled_hom.full_subcategory_has_forget
+instance has_forget_to_Ring : has_forget₂ CommRing.{u} Ring.{u} :=
+by apply bundled_hom.full_subcategory_has_forget₂
 
 /-- The forgetful functor from commutative rings to (multiplicative) commutative monoids. -/
-instance has_forget_to_CommSemiRing : has_forget CommRing.{u} CommSemiRing.{u} :=
-bundled_hom.mk_has_forget
+instance has_forget_to_CommSemiRing : has_forget₂ CommRing.{u} CommSemiRing.{u} :=
+bundled_hom.mk_has_forget₂
   @comm_ring.to_comm_semiring
   (λ _ _, id)
   (by intros; refl)

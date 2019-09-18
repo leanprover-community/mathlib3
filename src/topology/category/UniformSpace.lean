@@ -48,8 +48,8 @@ instance (X Y : UniformSpace) : has_coe_to_fun (X ⟶ Y) :=
 lemma hom_ext {X Y : UniformSpace} {f g : X ⟶ Y} : (f : X → Y) = g → f = g := subtype.eq
 
 /-- The forgetful functor from uniform spaces to topological spaces. -/
-instance has_forget_to_Top : has_forget UniformSpace.{u} Top.{u} :=
-unbundled_hom.mk_has_forget
+instance has_forget_to_Top : has_forget₂ UniformSpace.{u} Top.{u} :=
+unbundled_hom.mk_has_forget₂
   @uniform_space.to_topological_space
   @uniform_continuous.continuous
 
@@ -81,8 +81,8 @@ def of (X : Type u) [uniform_space X] [complete_space X] [separated X] : CpltSep
 instance concrete_category : concrete_category CpltSepUniformSpace :=
 induced_category.concrete_category to_UniformSpace
 
-instance has_forget_to_UniformSpace : has_forget CpltSepUniformSpace UniformSpace :=
-induced_category.has_forget to_UniformSpace
+instance has_forget_to_UniformSpace : has_forget₂ CpltSepUniformSpace UniformSpace :=
+induced_category.has_forget₂ to_UniformSpace
 
 end CpltSepUniformSpace
 

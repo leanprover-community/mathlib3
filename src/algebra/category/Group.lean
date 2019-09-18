@@ -51,8 +51,8 @@ instance (G : CommGroup) : comm_group G := G.str
 Group.bundled_hom.full_subcategory @comm_group.to_group
 
 @[to_additive has_forget_to_AddGroup]
-instance has_forget_to_Group : has_forget CommGroup.{u} Group.{u} :=
-Group.bundled_hom.full_subcategory_has_forget _
+instance has_forget_to_Group : has_forget₂ CommGroup.{u} Group.{u} :=
+Group.bundled_hom.full_subcategory_has_forget₂ _
 
 @[to_additive] instance : has_one CommGroup := ⟨CommGroup.of punit⟩
 

@@ -262,7 +262,7 @@ namespace is_ring_hom
 variables {β : Type v} [ring α] [ring β]
 
 /-- A map of rings that is a semiring homomorphism is also a ring homomorphism. -/
-def of_semiring (f : α → β) [H : is_semiring_hom f] : is_ring_hom f := {..H}
+lemma of_semiring (f : α → β) [H : is_semiring_hom f] : is_ring_hom f := {..H}
 
 variables (f : α → β) [is_ring_hom f] {x y : α}
 

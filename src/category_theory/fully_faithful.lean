@@ -25,7 +25,8 @@ class faithful (F : C ⥤ D) : Prop :=
 restate_axiom faithful.injectivity'
 
 namespace functor
-def injectivity (F : C ⥤ D) [faithful F] {X Y : C} : function.injective $ @functor.map _ _ _ _ F X Y :=
+lemma injectivity (F : C ⥤ D) [faithful F] {X Y : C} :
+  function.injective $ @functor.map _ _ _ _ F X Y :=
 faithful.injectivity F
 
 def preimage (F : C ⥤ D) [full F] {X Y : C} (f : F.obj X ⟶ F.obj Y) : X ⟶ Y :=
@@ -72,7 +73,7 @@ include 𝒞
 instance full.id : full (𝟭 C) :=
 { preimage := λ _ _ f, f }
 
-instance : faithful (𝟭 C) := by obviously
+instance faithful.id : faithful (𝟭 C) := by obviously
 
 variables {D : Type u₂} [𝒟 : category.{v₂} D] {E : Type u₃} [ℰ : category.{v₃} E]
 include 𝒟 ℰ

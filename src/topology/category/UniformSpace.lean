@@ -45,7 +45,7 @@ instance (X Y : UniformSpace) : has_coe_to_fun (X ⟶ Y) :=
 @[simp] lemma coe_mk {X Y : UniformSpace} (f : X → Y) (hf : uniform_continuous f) :
   ((⟨f, hf⟩ : X ⟶ Y) : X → Y) = f := rfl
 
-def hom_ext {X Y : UniformSpace} {f g : X ⟶ Y} : (f : X → Y) = g → f = g := subtype.eq
+lemma hom_ext {X Y : UniformSpace} {f g : X ⟶ Y} : (f : X → Y) = g → f = g := subtype.eq
 
 /-- The forgetful functor from uniform spaces to topological spaces. -/
 instance has_forget_to_Top : has_forget UniformSpace.{u} Top.{u} :=

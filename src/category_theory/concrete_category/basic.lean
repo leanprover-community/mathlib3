@@ -81,7 +81,7 @@ has_forget C D :=
 { forget₂ := faithful.div _ _ _ @h_obj _ @h_map,
   forget_comp := by apply faithful.div_comp }
 
-instance (C : Type (u+1)) [concrete_category C] : has_forget C (Type u) :=
+instance has_forget_to_Type (C : Type (u+1)) [concrete_category C] : has_forget C (Type u) :=
 { forget₂ := forget C,
   forget_comp := functor.comp_id _ }
 

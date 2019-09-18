@@ -46,11 +46,11 @@ ordered_comm_monoid.lt_of_add_lt_add_left a b c
 lemma add_le_add' (h₁ : a ≤ b) (h₂ : c ≤ d) : a + c ≤ b + d :=
 le_trans (add_le_add_right' h₁) (add_le_add_left' h₂)
 
-lemma le_add_of_nonneg_right' (h : b ≥ 0) : a ≤ a + b :=
+lemma le_add_of_nonneg_right' (h : 0 ≤ b) : a ≤ a + b :=
 have a + b ≥ a + 0, from add_le_add_left' h,
 by rwa add_zero at this
 
-lemma le_add_of_nonneg_left' (h : b ≥ 0) : a ≤ b + a :=
+lemma le_add_of_nonneg_left' (h : 0 ≤ b) : a ≤ b + a :=
 have 0 + a ≤ b + a, from add_le_add_right' h,
 by rwa zero_add at this
 
@@ -470,6 +470,29 @@ by simpa [add_comm] using @with_top.add_lt_add_iff_left _ _ a b c
 end ordered_cancel_comm_monoid
 
 section ordered_comm_group
+
+/--
+The `add_lt_add_left` field of `ordered_comm_group` is redundant, but it is in core so
+we can't remove it for now. This alternative constructor is the best we can do.
+-/
+def ordered_comm_group.mk' {α : Type u} [add_comm_group α] [partial_order α]
+  (add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b) :
+  ordered_comm_group α :=
+{ add_le_add_left := add_le_add_left,
+  add_lt_add_left := λ a b h c,
+  begin
+    rw lt_iff_le_not_le at h,
+    rw lt_iff_le_not_le,
+    split,
+    { apply add_le_add_left _ _ h.1 },
+    { intro w,
+      replace w : -c + (c + b) ≤ -c + (c + a) := add_le_add_left _ _ w _,
+      simp only [add_zero, add_comm, add_left_neg, add_left_comm] at w,
+      exact h.2 w },
+  end,
+  ..(by apply_instance : add_comm_group α),
+  ..(by apply_instance : partial_order α)  }
+
 variables [ordered_comm_group α] {a b c : α}
 
 lemma neg_neg_iff_pos {α : Type} [_inst_1 : ordered_comm_group α] {a : α} : -a < 0 ↔ 0 < a :=

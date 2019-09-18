@@ -15,7 +15,7 @@ universes u v
 namespace category_theory.monoidal
 
 local attribute [instance] monoidal_of_has_finite_products
-instance types : monoidal_category.{u+1} (Type u) := by apply_instance
+instance types : monoidal_category.{u} (Type u) := by apply_instance
 
 -- TODO Once we add braided/symmetric categories, include the braiding/symmetry.
 

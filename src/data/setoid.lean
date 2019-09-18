@@ -49,6 +49,10 @@ def rel (r : setoid α) : α → α → Prop := @setoid.r _ r
 lemma ext_iff {r s : setoid α} : r = s ↔ ∀ a b, r.rel a b ↔ s.rel a b :=
 ⟨λ h a b, h ▸ iff.rfl, ext'⟩
 
+/-- Two equivalence relations are equal iff their underlying binary operations are equal. -/
+theorem eq_iff_rel_eq {r₁ r₂ : setoid α} : r₁ = r₂ ↔ r₁.rel = r₂.rel :=
+⟨λ h, h ▸ rfl, λ h, setoid.ext' $ λ x y, h ▸ iff.rfl⟩
+
 /-- Defining '≤' for equivalence relations. -/
 instance : has_le (setoid α) := ⟨λ r s, ∀ x y, r.rel x y → s.rel x y⟩
 
@@ -301,10 +305,6 @@ def correspondence : ((≤) : {s // r ≤ s} → {s // r ≤ s} → Prop) ≃o
 
 -- Partitions
 
-/-- Two equivalence relations are equal iff their underlying binary operations are equal. -/
-theorem eq_iff_r_eq {r₁ r₂ : setoid α} : r₁ = r₂ ↔ r₁.rel = r₂.rel :=
-⟨λ h, h ▸ rfl, λ h, setoid.ext' $ λ x y, h ▸ iff.rfl⟩
-
 /-- If x ∈ α is in 2 elements of a set of sets partitioning α, those 2 sets are equal. -/
 lemma eq_of_mem_eqv_class {c : set (set α)}
   (H : ∀ a, ∃ b ∈ c, a ∈ b ∧ ∀ b' ∈ c, a ∈ b' → b = b')
@@ -330,7 +330,7 @@ def classes (r : setoid α) : set (set α) :=
 lemma mem_classes (r : setoid α) (y) : {x | r.rel x y} ∈ r.classes := ⟨y, rfl⟩
 
 /-- Two equivalence relations are equal iff all their equivalence classes are equal. -/
-lemma eq_iff_classes_eq' {r₁ r₂ : setoid α} :
+lemma eq_iff_classes_eq {r₁ r₂ : setoid α} :
   r₁ = r₂ ↔ ∀ x, {y | r₁.rel x y} = {y | r₂.rel x y} :=
 ⟨λ h x, h ▸ rfl, λ h, ext' $ λ x, (set.ext_iff _ _).1 $ h x⟩
 
@@ -365,7 +365,7 @@ eq_of_mem_eqv_class classes_eqv_classes hc hb hc' hb'
     equivalence relation defined by the set of sets. -/
 lemma eq_eqv_class_of_mem {c : set (set α)}
   (H : ∀ a, ∃ b ∈ c, a ∈ b ∧ ∀ b' ∈ c, a ∈ b' → b = b')
-  {s y} (hs : s ∈ c) (hy : y ∈ s) : s = {x | rel (mk_classes c H) x y} :=
+  {s y} (hs : s ∈ c) (hy : y ∈ s) : s = {x | (mk_classes c H).rel x y} :=
 set.ext $ λ x,
   ⟨λ hs', symm' (mk_classes c H) $ λ b' hb' h', eq_of_mem_eqv_class H hs hy hb' h' ▸ hs',
    λ hx, let ⟨b', hc', hb', h'⟩ := H x in
@@ -375,39 +375,26 @@ set.ext $ λ x,
     partitioning α are elements of the set of sets. -/
 lemma eqv_class_mem {c : set (set α)}
   (H : ∀ a, ∃ b ∈ c, a ∈ b ∧ ∀ b' ∈ c, a ∈ b' → b = b') {y} :
-  {x | rel (mk_classes c H) x y} ∈ c :=
+  {x | (mk_classes c H).rel x y} ∈ c :=
 let ⟨b, hc, hy, hb⟩ := H y in eq_eqv_class_of_mem H hc hy ▸ hc
-
-/-- The union of a set of sets covering α is the entirety of α. -/
-lemma eqv_classes_union {c : set (set α)} (H : ∀ a, ∃ b ∈ c, a ∈ b) :
-  set.sUnion c = @set.univ α :=
-set.univ_subset_iff.1 $ λ x hx, let ⟨b, hm, hb⟩ := H x in set.mem_sUnion_of_mem hb hm
 
 /-- Distinct elements of a set of sets partitioning α are disjoint. -/
 lemma eqv_classes_disjoint {c : set (set α)}
-  (H : ∀ a, ∃ b ∈ c, a ∈ b ∧ ∀ b' ∈ c, a ∈ b' → b = b')
-  (b₁ b₂) (h₁ : b₁ ∈ c) (h₂ : b₂ ∈ c) (h : b₁ ≠ b₂) : disjoint b₁ b₂ :=
-set.disjoint_left.2 $ λ x hx1 hx2, let ⟨b, hc, hx, hb⟩ := H x in
-  h $ eq_of_mem_eqv_class H h₁ hx1 h₂ hx2
+  (H : ∀ a, ∃ b ∈ c, a ∈ b ∧ ∀ b' ∈ c, a ∈ b' → b = b') :
+  set.pairwise_disjoint c :=
+λ b₁ h₁ b₂ h₂ h, set.disjoint_left.2 $
+  λ x hx1 hx2, let ⟨b, hc, hx, hb⟩ := H x in h $ eq_of_mem_eqv_class H h₁ hx1 h₂ hx2
 
 /-- A set of disjoint sets covering α partition α (classical). -/
-lemma eqv_classes_of_disjoint_union {c : set (set α)} (hu : set.sUnion c = @set.univ α)
-  (H : ∀ b b' ∈ c, b ≠ b' → disjoint b b') :
-  ∀ a, ∃ b ∈ c, a ∈ b ∧ ∀ b' ∈ c, a ∈ b' → b = b' :=
-λ a, let ⟨b, hc, ha⟩ := set.mem_sUnion.1 $ show a ∈ _, by rw hu; exact set.mem_univ a in
-  ⟨b, hc, ha, λ b' hc' ha', let hp := classical.prop_decidable in
-  (@not_not _ $ hp _).1 $ λ hn, set.not_mem_empty a $ H b b' hc hc' hn ⟨ha, ha'⟩⟩
-
-/-- If x ∈ α is in 2 elements of a set of disjoint sets covering α, those elements
-    are equal. -/
-lemma eq_of_mem_disjoint {c : set (set α)} (hu : set.sUnion c = @set.univ α)
-  (H : ∀ b b' ∈ c, b ≠ b' → disjoint b b') {x b b'} (hb : b ∈ c) (hx : x ∈ b)
-  (hb' : b' ∈ c) (hx' : x ∈ b') : b = b' :=
-eq_of_mem_eqv_class (eqv_classes_of_disjoint_union hu H) hb hx hb' hx'
+lemma eqv_classes_of_disjoint_union {c : set (set α)}
+  (hu : set.sUnion c = @set.univ α) (H : set.pairwise_disjoint c) (a) :
+  ∃ b ∈ c, a ∈ b ∧ ∀ b' ∈ c, a ∈ b' → b = b' :=
+let ⟨b, hc, ha⟩ := set.mem_sUnion.1 $ show a ∈ _, by rw hu; exact set.mem_univ a in
+  ⟨b, hc, ha, λ b' hc' ha', set.pairwise_disjoint_elim H hc hc' a ha ha'⟩
 
 /-- Makes an equivalence relation from a set of disjoints sets covering α. -/
 def setoid_of_disjoint_union {c : set (set α)} (hu : set.sUnion c = @set.univ α)
-  (H : ∀ b b' ∈ c, b ≠ b' → disjoint b b') : setoid α :=
+  (H : set.pairwise_disjoint c) : setoid α :=
 setoid.mk_classes c $ eqv_classes_of_disjoint_union hu H
 
 /-- The equivalence relation made from the equivalence classes of an equivalence
@@ -419,45 +406,46 @@ ext' $ λ x y, ⟨λ h, r.symm' (h {z | r.rel z x} (r.mem_classes x) $ r.refl' x
 
 section partition
 
-def is_partition (α) (c : set (set α)) :=
+def is_partition (c : set (set α)) :=
 ∅ ∉ c ∧ ∀ a, ∃ b ∈ c, a ∈ b ∧ ∀ b' ∈ c, a ∈ b' → b = b'
 
 /-- A partition of α does not contain the empty set. -/
-lemma ne_empty_of_mem_partition {c : subtype (is_partition α)} {s} (h : s ∈ c.1) :
+lemma ne_empty_of_mem_partition {c : set (set α)} (hc : is_partition c) {s} (h : s ∈ c) :
   s ≠ ∅ :=
-λ hs0, c.2.1 $ hs0 ▸ h
+λ hs0, hc.1 $ hs0 ▸ h
 
 /-- All elements of a partition of α are the equivalence class of some y ∈ α. -/
-lemma exists_of_mem_partition {c : subtype (is_partition α)} {s} (hs : s ∈ c.1) :
-  ∃ y, s = {x | rel (mk_classes c.1 c.2.2) x y} :=
-let ⟨y, hy⟩ := set.exists_mem_of_ne_empty $ ne_empty_of_mem_partition hs in
-  ⟨y, eq_eqv_class_of_mem c.2.2 hs hy⟩
+lemma exists_of_mem_partition {c : set (set α)} (hc : is_partition c) {s} (hs : s ∈ c) :
+  ∃ y, s = {x | (mk_classes c hc.2).rel x y} :=
+let ⟨y, hy⟩ := set.exists_mem_of_ne_empty $ ne_empty_of_mem_partition hc hs in
+  ⟨y, eq_eqv_class_of_mem hc.2 hs hy⟩
 
 /-- The equivalence classes of the equivalence relation defined by a partition of α equal
     the original partition. -/
-theorem classes_mk_classes (c : subtype (is_partition α)) :
-  (mk_classes c.1 c.2.2).classes = c.1 :=
+theorem classes_mk_classes (c : set (set α)) (hc : is_partition c) :
+  (mk_classes c hc.2).classes = c :=
 set.ext $ λ s,
-  ⟨λ ⟨y, hs⟩, by rcases c.2.2 y with ⟨b, hc, hb, hy⟩; convert hc; rw hs; ext;
-      exact ⟨λ hx, symm' (mk_classes c.1 c.2.2) hx b hc hb, λ hx b' hc' hx',
-              eq_of_mem_eqv_class c.2.2 hc hx hc' hx' ▸ hb⟩,
-   λ h, let ⟨y, hy⟩ := set.exists_mem_of_ne_empty $ ne_empty_of_mem_partition h in
-     ⟨y, eq_eqv_class_of_mem c.2.2 h hy⟩⟩
+  ⟨λ ⟨y, hs⟩, by rcases hc.2 y with ⟨b, hm, hb, hy⟩;
+    rwa (show s = b, from hs.symm ▸ set.ext
+      (λ x, ⟨λ hx, symm' (mk_classes c hc.2) hx b hm hb,
+             λ hx b' hc' hx', eq_of_mem_eqv_class hc.2 hm hx hc' hx' ▸ hb⟩)),
+   λ h, let ⟨y, hy⟩ := set.exists_mem_of_ne_empty $ ne_empty_of_mem_partition hc h in
+     ⟨y, eq_eqv_class_of_mem hc.2 h hy⟩⟩
 
 /-- Defining ≤ on partitions as the ≤ defined on their induced equivalence relations. -/
-instance partition.le : has_le (subtype (is_partition α)) :=
+instance partition.le : has_le (subtype (@is_partition α)) :=
 ⟨λ x y, mk_classes x.1 x.2.2 ≤ mk_classes y.1 y.2.2⟩
 
 /-- Defining a partial order on partitions as the partial order on their induced
     equivalence relations. -/
-instance partition.partial_order : partial_order (subtype (is_partition α)) :=
+instance partition.partial_order : partial_order (subtype (@is_partition α)) :=
 { le := (≤),
   lt := λ x y, x ≤ y ∧ ¬y ≤ x,
   le_refl := λ _, @le_refl (setoid α) _ _,
   le_trans := λ _ _ _, @le_trans (setoid α) _ _ _ _,
   lt_iff_le_not_le := λ _ _, iff.rfl,
   le_antisymm := λ x y hx hy, let h := @le_antisymm (setoid α) _ _ _ hx hy in by
-    rw [subtype.ext, ←classes_mk_classes x, ←classes_mk_classes y, h] }
+    rw [subtype.ext, ←classes_mk_classes x.1 x.2, ←classes_mk_classes y.1 y.2, h] }
 
 variables (α)
 
@@ -467,7 +455,7 @@ def partition.order_iso :
 { to_fun := λ r, ⟨r.classes, empty_not_mem_classes, classes_eqv_classes⟩,
   inv_fun := λ x, mk_classes x.1 x.2.2,
   left_inv := mk_classes_classes,
-  right_inv := λ x, by rw [subtype.ext, ←classes_mk_classes x],
+  right_inv := λ x, by rw [subtype.ext, ←classes_mk_classes x.1 x.2],
   ord := λ x y, by conv {to_lhs, rw [←mk_classes_classes x, ←mk_classes_classes y]}; refl }
 
 variables {α}
@@ -475,13 +463,9 @@ variables {α}
 /-- A complete lattice instance for partitions; there is more infrastructure for the
     equivalent complete lattice on equivalence relations. -/
 instance partition.complete_lattice :
-  _root_.lattice.complete_lattice (subtype (is_partition α)) :=
+  _root_.lattice.complete_lattice (subtype (@is_partition α)) :=
 galois_insertion.lift_complete_lattice $ @order_iso.to_galois_insertion
-_ (subtype (is_partition α)) _ (partial_order.to_preorder _) $ partition.order_iso α
-
-theorem partition.le_def (c d : subtype (is_partition α)) :
-  c ≤ d ↔ mk_classes c.1 c.2.2 ≤ mk_classes d.1 d.2.2 :=
-iff.rfl
+_ (subtype (@is_partition α)) _ (partial_order.to_preorder _) $ partition.order_iso α
 
 end partition
 

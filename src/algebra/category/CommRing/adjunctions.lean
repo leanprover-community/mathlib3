@@ -23,6 +23,10 @@ namespace CommRing
 
 open_locale classical
 
+/--
+The free functor `Type u ⥤ CommRing.{u}` sending a type `X` to the multivariable (commutative)
+polynomials with variables `x : X`.
+-/
 def free : Type u ⥤ CommRing.{u} :=
 { obj := λ α, of (mv_polynomial α ℤ),
   -- TODO this should just be `ring_hom.of (rename f)`, but this causes a mysterious deterministic timeout!
@@ -37,6 +41,9 @@ def free : Type u ⥤ CommRing.{u} :=
 @[simp] lemma free_map_coe {α β : Type u} {f : α → β} :
   ⇑(free.map f) = rename f := rfl
 
+/--
+The free-forgetful adjunction for commutative rings.
+-/
 def adj : free ⊣ forget CommRing :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X R, hom_equiv,

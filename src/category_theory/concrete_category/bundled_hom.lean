@@ -96,6 +96,8 @@ protected def full_subcategory : bundled_hom (λ α β (Iα : d α) (Iβ : d β)
   id_to_fun := by intros; apply 𝒞.id_to_fun,
   comp_to_fun := by intros; apply 𝒞.comp_to_fun }
 
+/-- A full subcategory of a concrete category with bundled homs has a forgetful functor to the
+entire category. This is used to construct instances of `has_forget` in many concrete examples. -/
 def full_subcategory_has_forget :
   @has_forget (bundled d) (bundled c)
     (by haveI := 𝒞.full_subcategory obj; apply_instance) (by apply_instance) :=

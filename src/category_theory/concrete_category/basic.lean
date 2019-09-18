@@ -26,6 +26,11 @@ above; then `forget₂` will satisfy the functor laws automatically, see
 Two classes helping construct concrete categories in the two most
 common cases are provided in the files `bundled_hom` and
 `unbundled_hom`, see their documentation for details.
+
+## References
+
+See [Ahrens and Lumsdaine, *Displayed Categories*][ahrens2017] for
+related work.
 -/
 
 universe u
@@ -37,7 +42,9 @@ class concrete_category (C : Type (u+1)) extends category.{u} C :=
 (forget : C ⥤ Type u)
 [forget_faithful : faithful forget]
 
-@[reducible] def forget (C : Type (u+1)) [concrete_category C] := concrete_category.forget C
+/-- The forgetful functor from a concrete category to `Type u`. -/
+@[reducible] def forget (C : Type (u+1)) [concrete_category C] : C ⥤ Type u :=
+concrete_category.forget C
 
 attribute [instance] concrete_category.forget_faithful
 
@@ -52,6 +59,8 @@ class has_forget (C D : Type (u+1)) [concrete_category C] [concrete_category D] 
 (forget₂ : C ⥤ D)
 (forget_comp : forget₂ ⋙ (forget D) = forget C)
 
+/-- The forgetful functor `C ⥤ D` between concrete categories for which we have an instance
+`has_forget C `. -/
 @[reducible] def forget₂ (C D : Type (u+1)) [concrete_category C] [concrete_category D]
   [has_forget C D] : C ⥤ D :=
 has_forget.forget₂ C D

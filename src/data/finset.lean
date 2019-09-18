@@ -1002,6 +1002,9 @@ card_eq_zero.trans val_eq_zero
 theorem card_pos {s : finset α} : 0 < card s ↔ s ≠ ∅ :=
 pos_iff_ne_zero.trans $ not_congr card_eq_zero
 
+theorem card_ne_zero_of_mem {s : finset α} {a : α} (h : a ∈ s) : card s ≠ 0 :=
+(not_congr card_eq_zero).2 (ne_empty_of_mem h)
+
 theorem card_eq_one {s : finset α} : s.card = 1 ↔ ∃ a, s = finset.singleton a :=
 by cases s; simp [multiset.card_eq_one, finset.singleton, finset.card]
 
@@ -1017,6 +1020,10 @@ rw [card_insert_of_not_mem h]]
 @[simp] theorem card_singleton (a : α) : card (singleton a) = 1 := card_singleton _
 
 theorem card_erase_of_mem [decidable_eq α] {a : α} {s : finset α} : a ∈ s → card (erase s a) = pred (card s) := card_erase_of_mem
+
+theorem card_erase_lt_of_mem [decidable_eq α] {a : α} {s : finset α} : a ∈ s → card (erase s a) < card s := card_erase_lt_of_mem
+
+theorem card_erase_le [decidable_eq α] {a : α} {s : finset α} : card (erase s a) ≤ card s := card_erase_le
 
 @[simp] theorem card_range (n : ℕ) : card (range n) = n := card_range n
 

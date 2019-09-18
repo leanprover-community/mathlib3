@@ -27,10 +27,12 @@ structure bundled (c : Type u → Type v) : Type (max (u+1) v) :=
 
 namespace bundled
 
+/-- A generic function for lifting a type equipped with an instance to a bundled object. -/
+-- Usually explicit instances will provide their own version of this, e.g. `Mon.of` and `Top.of`.
 def of {c : Type u → Type v} (α : Type u) [str : c α] : bundled c := ⟨α, str⟩
 
 /-- Map over the bundled structure -/
-def map (f : ∀ {α}, c α → d α) (b : bundled c) : bundled d :=
+def map (f : Π {α}, c α → d α) (b : bundled c) : bundled d :=
 ⟨b.α, f b.str⟩
 
 end bundled

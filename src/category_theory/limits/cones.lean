@@ -143,11 +143,9 @@ def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cone F) : cone (E
   (c.whisker E).π.app k = (c.π).app (E.obj k) := rfl
 
 -- We now prove a lemma about naturality of cones over functors into bundled categories.
--- Since we now have two ways to construct bundled categories (unbundled homs, or bundled homs),
--- we prove this lemma twice, with slightly different hypotheses.
 section
 omit 𝒞
-variables {m : Type v → Type v} (hom : ∀ ⦃α β⦄ (Iα : m α) (Iβ : m β), Type v) [S : bundled_hom hom]
+variables {m : Type v → Type v} (hom : Π ⦃α β⦄ (Iα : m α) (Iβ : m β), Type v) [S : bundled_hom hom]
 include S
 
 local attribute [instance] bundled_hom.has_coe_to_fun
@@ -191,11 +189,9 @@ def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cocone F) : cocon
   (c.whisker E).ι.app k = (c.ι).app (E.obj k) := rfl
 
 -- We now prove a lemma about naturality of cocones over functors into bundled categories.
--- Since we now have two ways to construct bundled categories (unbundled homs, or bundled homs),
--- we prove this lemma twice, with slightly different hypotheses.
 section
 omit 𝒞
-variables {m : Type v → Type v} (hom : ∀ ⦃α β⦄ (Iα : m α) (Iβ : m β), Type v) [S : bundled_hom hom]
+variables {m : Type v → Type v} (hom : Π ⦃α β⦄ (Iα : m α) (Iβ : m β), Type v) [S : bundled_hom hom]
 include S
 
 local attribute [instance] bundled_hom.has_coe_to_fun

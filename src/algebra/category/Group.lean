@@ -56,8 +56,8 @@ Group.bundled_hom.induced_category @comm_group.to_group
 instance (G : CommGroup) : comm_group G := G.str
 
 @[to_additive has_forget_to_AddGroup]
-instance has_forget_to_Group : has_forget CommGroup.{u} Group.{u} :=
-Group.bundled_hom.induced_category_has_forget _
+instance has_forget_to_Group : has_forget₂ CommGroup.{u} Group.{u} :=
+Group.bundled_hom.full_subcategory_has_forget₂ _
 
 @[to_additive] instance : has_one CommGroup := ⟨CommGroup.of punit⟩
 

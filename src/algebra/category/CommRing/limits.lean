@@ -88,7 +88,7 @@ def limit (F : J ⥤ CommRing.{u}) : cone F :=
   π :=
   { app := λ j, ring_hom.of $ limit.π (F ⋙ forget _) j,
     naturality' := λ j j' f,
-      ring_hom.ext _ _ ((limit.cone (F ⋙ forget _)).π.naturality f) } }
+      ring_hom.ext ((limit.cone (F ⋙ forget _)).π.naturality f) } }
 
 def limit_is_limit (F : J ⥤ CommRing.{u}) : is_limit (limit F) :=
 begin

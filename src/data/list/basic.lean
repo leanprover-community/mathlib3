@@ -1961,6 +1961,10 @@ if_pos rfl
 @[simp] theorem count_cons_of_ne {a b : α} (h : a ≠ b) (l : list α) : count a (b::l) = count a l :=
 if_neg h
 
+theorem count_tail : Π (l : list α) (a : α) (h : 0 < l.length),
+  l.tail.count a = l.count a - ite (a = list.nth_le l 0 h) 1 0
+| (_ :: _) a h := by { rw [count_cons], split_ifs; simp }
+
 theorem count_le_of_sublist (a : α) {l₁ l₂} : l₁ <+ l₂ → count a l₁ ≤ count a l₂ :=
 countp_le_of_sublist
 
@@ -2648,7 +2652,7 @@ lemma rel_filter_map {f : α → option γ} {q : β → option δ} :
 @[to_additive]
 lemma rel_prod [monoid α] [monoid β]
   (h : r 1 1) (hf : (r ⇒ r ⇒ r) (*) (*)) : (forall₂ r ⇒ r) prod prod :=
-assume a b, rel_foldl (assume a b, hf) h
+rel_foldl hf h
 
 end forall₂
 

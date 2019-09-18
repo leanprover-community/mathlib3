@@ -166,9 +166,9 @@ calc (range (q / 2)).prod (λ n, ((range p).erase 0).prod (+ p * n)) *
   by simp only [prod_image (λ _ _ _ _ h, add_right_cancel h)]; refl
 ... = ((range (q / 2)).bind (λ x, (erase (range p) 0).image (+ p * x))
          ∪ (erase (range (succ (p / 2))) 0).image (+ q / 2 * p)).prod (λ x, x) :
-  have h₁ : finset.bind (range (q / 2)) (λ x, ((range p).erase 0).image (+ p * x)) ∩
-      image (+ q / 2 * p) (erase (range (succ (p / 2))) 0) = ∅ :=
-    eq_empty_iff_forall_not_mem.2 $ λ x, begin
+  have h₁ : disjoint (finset.bind (range (q / 2)) (λ x, ((range p).erase 0).image (+ p * x)))
+      (image (+ q / 2 * p) (erase (range (succ (p / 2))) 0)) :=
+    disjoint_iff.2 $ eq_empty_iff_forall_not_mem.2 $ λ x, begin
       suffices : ∀ a, a ≠ 0 → a ≤ p / 2 → a + q / 2 * p = x → ∀ b, b < q / 2 →
         ∀ c, c ≠ 0 → c < p → ¬c + p * b = x,
       { simpa [lt_succ_iff] },
@@ -180,13 +180,14 @@ calc (range (q / 2)).prod (λ n, ((range p).erase 0).prod (+ p * n)) *
       exact lt_irrefl _ hbq
     end,
   have h₂ : ∀ x, x ∈ range (q / 2) → ∀ y, y ∈ range (q / 2) → x ≠ y →
-      (erase (range p) 0).image (+ p * x) ∩ image (+ p * y) (erase (range p) 0) = ∅ :=
+      disjoint (image (+p * x) (erase (range p) 0)) (image (+ p * y) (erase (range p) 0)) :=
     λ x hx y hy hxy, begin
-      suffices : ∀ z a, a ≠ 0 → a < p → a + p * x = z → ∀ b, b ≠ 0 → b < p → b + p * y ≠ z,
-      { simpa [finset.ext] },
-      assume z a ha0 hap ha b hb0 hbp hb,
+      suffices : ∀ z a, a ≠ 0 → a < p → a + p * x = z →
+                 ∀ bpy b, b ≠ 0 → b < p → b + p * y = bpy → z ≠ bpy,
+      { simpa [disjoint_iff_ne] },
+      assume z a ha0 hap ha bpy b hb0 hbp hb hzb,
       have : (a + p * x) / p = (b + p * y) / p,
-      { rw [ha, hb] },
+      { rw [ha, hb, hzb] },
       rw [nat.add_mul_div_left _ _ hp.pos, nat.add_mul_div_left _ _ hp.pos,
         (nat.div_eq_zero_iff hp.pos).2 hap, (nat.div_eq_zero_iff hp.pos).2 hbp] at this,
       simpa [hxy]
@@ -257,9 +258,10 @@ have hq0 : (q : zmodp p hp) ≠ 0, by rwa [← nat.cast_zero, ne.def, zmodp.eq_i
           assume x hx0 hxp,
           by rwa [← @nat.cast_zero (zmodp p hp), zmodp.eq_iff_modeq_nat, nat.modeq,
             zero_mod, mod_eq_of_lt (lt_of_le_of_lt hxp (nat.div_lt_self hp.pos (lt_succ_self _)))]))).1 $
-have h₁ : (range (succ (p * q / 2))).filter (coprime (p * q)) ∩
-      filter (λ x, ¬coprime q x) (filter (coprime p) (range (succ (p * q / 2)))) = ∅,
-  by have := @coprime.coprime_mul_left p q; simp [finset.ext, *] at * {contextual := tt},
+have h₁ : disjoint ((range (succ (p * q / 2))).filter (coprime (p * q)))
+      (filter (λ x, ¬coprime q x) (filter (coprime p) (range (succ (p * q / 2))))),
+  by {rw [finset.filter_filter], apply finset.disjoint_filter,
+      rintros _ hpq ⟨_, hq⟩, exact hq (coprime.coprime_mul_left hpq)},
 calc ((((range ((p * q) / 2).succ).filter (coprime (p * q))).prod (λ x, x) : ℕ) : zmodp p hp)
      * (q ^ (p / 2) * ((range (p / 2).succ).erase 0).prod (λ x, x) : zmodp p hp)
    = (((range (succ (p * q / 2))).filter (coprime (p * q)) ∪
@@ -432,7 +434,7 @@ calc ((((range (p / 2).succ).erase 0).prod (λ x, (x : zmodp p hp)) ^ 2)) * (-1)
   begin
     rw ← prod_union,
     { exact finset.prod_congr (by simp [finset.ext, -not_lt, -not_le]; tauto) (λ _ _, rfl) },
-    { simp [finset.ext, -not_lt, - not_le]; tauto }
+    { apply disjoint_filter, tauto }
   end
 ... = -1 : by simp
 

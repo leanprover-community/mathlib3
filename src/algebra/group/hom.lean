@@ -263,7 +263,7 @@ lemma coe_of (f : M → N) [is_monoid_hom f] : ⇑ (monoid_hom.of f) = f :=
 rfl
 
 @[extensionality, to_additive]
-lemma ext (f g : M →* N) (h : (f : M → N) = g) : f = g :=
+lemma ext ⦃f g : M →* N⦄ (h : (f : M → N) = g) : f = g :=
 by cases f; cases g; cases h; refl
 
 /-- If f is a monoid homomorphism then f 1 = 1. -/

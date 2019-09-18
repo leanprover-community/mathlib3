@@ -99,18 +99,18 @@ this property describes the numbers which are mapped to blues.
 -/
 def blues (f : ℕ → color) (H : set ℕ) := (λ n : ℕ, f n = blue ∧ H n)
 
-lemma lt_succ_sum : forall x y : ℕ, x < x + y + 1 :=
-λ x y : ℕ, lt_add_of_pos_right x (succ_pos y)
+lemma lt_succ_sum (x y : ℕ) : x < x + y + 1 :=
+  lt_add_of_pos_right x (succ_pos y)
 
 /--
 Unordered pairs are defined as ordered pairs with the condition
 that the second element is strictly greater than the first.
 -/
 def unordered_pairs (S : set ℕ) :=
-  {p : ℕ × ℕ // p.fst < p.snd ∧ S p.fst ∧ S p.snd}
+  {p : ℕ × ℕ // p.fst < p.snd ∧ p.fst ∈ S ∧ p.snd ∈ S}
 
-notation `[ℕ]²` := unordered_pairs univ
-notation `[` S `]²` := unordered_pairs S
+local notation `[ℕ]²` := unordered_pairs univ
+local notation `[` S `]²` := unordered_pairs S
 
 /--
 Given a number m and a coloring f, the projection of a coloring
@@ -120,16 +120,16 @@ as the color assigned to any number below m.
 -/
 def project (f : [ℕ]² → color) (m : ℕ) : ℕ → color :=
   λ n : ℕ,
-    dite (m < n)
-      (λ h : m < n, f (subtype.mk (m, n) ⟨h, trivial, trivial⟩))
-      (λ _, red)
+    if h : m < n
+      then f ⟨(m, n), ⟨h, trivial, trivial⟩⟩
+      else red
 
 /--
 The coloring of an unordered pair {a, b}, where a < b,
 agrees with the projection of a applied to b.
 -/
-lemma project_eq (f : [ℕ]² → color) (p : [ℕ]²):
-  f p = project f p.val.fst p.val.snd :=
+@[simp] lemma project_eq (f : [ℕ]² → color) (p : [ℕ]²):
+  project f p.val.fst p.val.snd = f p :=
 begin
   unfold project,
   simp [p.property.left]
@@ -139,7 +139,7 @@ end
 Given coloring of natural numbers, a homogeneous set is
 one which is always mapped to the same color.
 -/
-def homogeneous (f : ℕ → color) (H : Inf) :=
+def homogeneous (f : ℕ → color) (H : set ℕ) :=
   ∃ c : color, ∀ n, n ∈ H → f n = c
 
 /--
@@ -163,7 +163,8 @@ on the set given by q.
 def refines {f : [ℕ]² → color} (p q: homogeneous_proj f) :=
 p.pt < q.pt ∧ q.pt ∈ p.s ∧ q.s ⊆ p.s ∧ homogeneous (project f q.pt) q
 
-infix `<<`:50 := refines
+instance (f : [ℕ]² → color) : has_lt (homogeneous_proj f) :=
+  ⟨λp q : homogeneous_proj f, refines p q⟩
 
 local attribute [instance] prop_decidable
 
@@ -192,8 +193,7 @@ begin
   {
     cases hrb with hRed hBlue,
     { exact absurd (and.intro hRed Hb.right) (Hw b w_lt_b) },
-    { exact ⟨hBlue, Hb.right⟩ }
-  }
+    { exact ⟨hBlue, Hb.right⟩ } }
 end
 
 /--
@@ -202,7 +202,7 @@ to the pigeon hole principle. It shows how to refine one homogeneous
 projection to get another homogeneous projection.
 -/
 lemma refine_homo_proj (f : [ℕ]² → color) :
-  ∀ (p : homogeneous_proj f), ∃ q : homogeneous_proj f, p << q :=
+  ∀ (p : homogeneous_proj f), ∃ q : homogeneous_proj f, p < q :=
 begin
   intros p,
   cases p.pf p.pt with x Hx,
@@ -210,22 +210,20 @@ begin
     infinite (reds (project f x) p.s) ∨ infinite (blues (project f x) p.s),
     apply pigeon_hole_principle,
   cases Hinf,
-  any_goals { -- Red Case
-    apply exists.intro (homogeneous_proj.mk f ⟨reds (project f x) p.s, Hinf⟩ x),
-  },
-  any_goals { -- Blue Case
-    apply exists.intro (homogeneous_proj.mk f ⟨blues (project f x) p.s, Hinf⟩ x)
-  },
+  any_goals
+  -- Red Case
+  { apply exists.intro (homogeneous_proj.mk f ⟨reds (project f x) p.s, Hinf⟩ x) },
+  -- Blue Case
+  any_goals
+  { apply exists.intro (homogeneous_proj.mk f ⟨blues (project f x) p.s, Hinf⟩ x) },
   all_goals
-  {
-    constructor,
+  { constructor,
     { exact Hx.left },
     constructor,
     { exact Hx.right },
     constructor,
     { intros n Hn, exact Hn.right },
-    { apply exists.intro, intros n Hn, exact Hn.left },
-  }
+    { apply exists.intro, intros n Hn, exact Hn.left } }
 end
 
 /--
@@ -258,28 +256,24 @@ There exists an infinite sequence of homogeneous projections,
 each a refinement of the previous one.
 -/
 lemma exists_homo_proj_seq (f : [ℕ]² → color) :
-∃ (g : ℕ → homogeneous_proj f), init f << g 0 ∧ ∀ n, g n << g (n+1) :=
+∃ (g : ℕ → homogeneous_proj f), init f < g 0 ∧ ∀ n, g n < g (n+1) :=
 begin
   have ac : ∃ (cf : Π (x : homogeneous_proj f), (λ (x : homogeneous_proj f), homogeneous_proj f) x),
-    ∀ (p : homogeneous_proj f), (λ (p q : homogeneous_proj f), p<<q) p (cf p),
+    ∀ (p : homogeneous_proj f), (λ (p q : homogeneous_proj f), p<q) p (cf p),
     exact axiom_of_choice (refine_homo_proj f),
   cases ac with cf Hcf,
   let g := λ m : ℕ, (iterate_refinement f cf m),
   apply exists.intro g,
   constructor,
-  {
-    exact Hcf (init f)
-  },
-  {
-    intro n,
-    have h1 : (g n) << cf (g n),
+  { exact Hcf (init f) },
+  { intro n,
+    have h1 : (g n) < cf (g n),
       exact Hcf (g n),
     have h2 : ∀ p : homogeneous_proj f, p = ⟨f, ↑p, p.pt⟩,
       intro p, cases p with H n, cases H with s pf, refl,
     have h3 : cf (g n) = iterate_refinement f cf (n+1),
       unfold iterate_refinement, simp, rw ← (h2 (g n)),
-    simp * at *
-  }
+    simp * at * }
 end
 
 /--
@@ -289,18 +283,14 @@ closed upward under inclusion.
 lemma homo_proj_seq_mono_sets
   (f : [ℕ]² → color)
   (g : ℕ → homogeneous_proj f)
-  (h : ∀ n, g n << g (n+1))
+  (h : ∀ n, g n < g (n+1))
   (x y : ℕ) :
   (g (x+y)).s ⊆ (g x).s :=
 begin
   induction y with y ih,
-  {
-    intros y hy, exact hy,
-  },
-  {
-    intros a ha,
-    exact ih ((h (x+y)).right.right.left ha),
-  }
+  { intros y hy, exact hy },
+  { intros a ha,
+    exact ih ((h (x+y)).right.right.left ha) }
 end
 
 /--
@@ -310,7 +300,7 @@ contained in the previous sets.
 lemma homo_proj_seq_mono_pts
   (f : [ℕ]² → color)
   (g : ℕ → homogeneous_proj f)
-  (h : ∀ n, g n << g (n+1))
+  (h : ∀ n, g n < g (n+1))
   (x y : ℕ) :
   (g (x+y+1)).pt ∈ (g x).s :=
 (homo_proj_seq_mono_sets f g h x y) ((h (x+y)).right.left)
@@ -322,30 +312,26 @@ the property that f {xᵢ, y} = f {xᵢ, z} for all xᵢ < y < z in Sₓ.
 lemma homo_proj_seq_stable_colors
   (f : [ℕ]² → color)
   (g : ℕ → homogeneous_proj f)
-  (h0 : (init f) << g 0)
-  (hn : ∀ n, g n << g (n+1))
+  (h0 : (init f) < g 0)
+  (hn : ∀ n, g n < g (n+1))
   (x y : ℕ) :
   (project f (g x).pt) (g (x+1)).pt = (project f (g x).pt) (g (x+y+1)).pt :=
 begin
   cases x,
-  {
-    have h : homogeneous (project f (g 0).pt) (g 0),
+  { have h : homogeneous (project f (g 0).pt) (g 0),
       exact h0.right.right.right,
     cases h with c hm,
     simp,
     rw hm ((g 1).pt) (homo_proj_seq_mono_pts f g hn 0 0),
     have hzy : y + 1 = 0 + y + 1, simp,
     rw hzy,
-    rw hm ((g (0+y+1)).pt) (homo_proj_seq_mono_pts f g hn 0 y),
-  },
-  {
-    have hgx : g x << g (x+1), exact (hn x),
+    rw hm ((g (0+y+1)).pt) (homo_proj_seq_mono_pts f g hn 0 y) },
+  { have hgx : g x < g (x+1), exact (hn x),
     have hm : homogeneous (project f (g (x+1)).pt) (g (x+1)),
       exact hgx.right.right.right,
     cases hm with c Hm',
     rw Hm' ((g (x + 1 + 1)).pt) (homo_proj_seq_mono_pts f g hn (x+1) 0),
-    rw Hm' ((g (x + 1 + y + 1)).pt) (homo_proj_seq_mono_pts f g hn (x+1) y),
-  }
+    rw Hm' ((g (x + 1 + y + 1)).pt) (homo_proj_seq_mono_pts f g hn (x+1) y) }
 end
 
 section increasing_functions
@@ -410,12 +396,12 @@ are increasing.
 lemma homo_proj_seq_incr
 (f : [ℕ]² → color)
 (g : ℕ → homogeneous_proj f)
-(h : ∀ n, g n << g (n+1)) :
+(h : ∀ n, g n < g (n+1)) :
 increasing (λ n : ℕ, (g n).pt) :=
 begin
-have h : ∀ n : ℕ, (g n).pt < (g (n+1)).pt,
-intro, exact (h n).left,
-exact increasing_by_step (λ n : ℕ, (g n).pt) h,
+  have h : ∀ n : ℕ, (g n).pt < (g (n+1)).pt,
+  intro, exact (h n).left,
+  exact increasing_by_step (λ n : ℕ, (g n).pt) h,
 end
 
 /--
@@ -435,7 +421,7 @@ theorem infinite_ramsey_pairs_two_colors (f : [ℕ]² → color) :
   ∀ h : [H]²,
   (restrict f H) h = c :=
 begin
-  have hseq : ∃ (g : ℕ → homogeneous_proj f), init f << g 0 ∧ ∀ n, g n << g (n+1),
+  have hseq : ∃ (g : ℕ → homogeneous_proj f), init f < g 0 ∧ ∀ n, g n < g (n+1),
     exact exists_homo_proj_seq f,
   cases hseq with g Hg,
   cases Hg with HgInit HgSeq,
@@ -445,20 +431,20 @@ begin
   let preH := (⟨image g' NatInf, incr_range_inf NatInf g' HgIncr⟩ : Inf),
   cases (pigeon_hole_principle f' preH) with Hred Hblue,
 
-  any_goals { -- Red Case
-    let H := (⟨reds f' preH, Hred⟩ : Inf),
+  any_goals
+  -- Red Case
+  { let H := (⟨reds f' preH, Hred⟩ : Inf),
     apply exists.intro (⟨image g' H, incr_range_inf H g' HgIncr⟩ : Inf),
     apply exists.intro red,
-    intros p,
-  },
-  any_goals { -- Blue Case
-    let H := (⟨blues f' preH, Hblue⟩ : Inf),
+    intros p },
+  any_goals
+  -- Blue Case
+  { let H := (⟨blues f' preH, Hblue⟩ : Inf),
     apply exists.intro (⟨image g' H, incr_range_inf H g' HgIncr⟩ : Inf),
     apply exists.intro blue,
-    intros p,
-  },
-  all_goals {
-    have hp1 : p.val.fst ∈ image g' H, exact p.property.right.left,
+    intros p },
+  all_goals
+  { have hp1 : p.val.fst ∈ image g' H, exact p.property.right.left,
     cases hp1 with h₁ Hh₁,
     have hfh₁ : f' h₁ = _, exact Hh₁.left.left,
     have hfgh₁ : project f (g' h₁) (g' (h₁+1)) = _, rw ←hfh₁,
@@ -474,10 +460,9 @@ begin
       exact homo_proj_seq_stable_colors f g HgInit HgSeq h₁ d,
     rw [hfgh₁, ←hd, Hh₁.right, Hgh₂.right] at stable,
     have hproj : f ⟨p.val, _⟩ = project f p.val.fst p.val.snd,
-      exact project_eq f ⟨p.val, ⟨p.property.left, trivial, trivial⟩⟩,
+      simp [project_eq f ⟨p.val, ⟨p.property.left, trivial, trivial⟩⟩],
     rw [←stable, hproj] at hproj,
-    rw ←hproj, refl,
-  }
+    rw ←hproj, refl }
 end
 
 end infinite_ramsey_pairs

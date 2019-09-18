@@ -13,9 +13,7 @@ The first section of the file defines the complete lattice of equivalence relati
 on a type, results about the inductively defined equivalence closure of a binary relation,
 and the analogues of some isomorphism theorems for quotients of arbitrary types.
 
-The second section comprises properties of equivalence relations viewed as partitions, and
-a function `bell` that computes Bell numbers - the numbers of possible partitions of a finite
-set - along with some preliminary results about `bell`.
+The second section comprises properties of equivalence relations viewed as partitions.
 
 ## Implementation notes
 
@@ -31,17 +29,10 @@ definitional equalities (a similar example is `filter.lattice.complete_lattice` 
 Partitions are not defined as a separate structure here; users are encouraged to
 reason about them using the existing `setoid` and its infrastructure.
 
-Eventually there should be a proof here that Bell numbers are the number of possible
-partitions of a finite set.
-
-## References
-
-* https://en.wikipedia.org/wiki/Bell_triangle
-
 ## Tags
 
 setoid, equivalence, iseqv, relation, equivalence relation, partition, equivalence
-class, Bell number, Bell triangle
+class
 -/
 variables {α : Type*} {β : Type*}
 
@@ -491,85 +482,6 @@ _ (subtype (is_partition α)) _ (partial_order.to_preorder _) $ partition.order_
 theorem partition.le_def (c d : subtype (is_partition α)) :
   c ≤ d ↔ mk_classes c.1 c.2.2 ≤ mk_classes d.1 d.2.2 :=
 iff.rfl
-
--- Bell numbers
-
-open list
-
-/-- Appends the last element of a list to the beginning. -/
-def bell_init : list ℕ → list ℕ
-| [] := []
-| (a :: l) := (last (a :: l) $ cons_ne_nil a l) :: (a :: l)
-
-/-- Folds (+) over a list from the left, returning the list of partial results. -/
-def bell_aux : list ℕ → list ℕ
-| [] := []
-| (a :: l) := (scanl (+) 0 (a :: l)).tail
-
-/-- The nth row of the Bell triangle. -/
-def bell_row : ℕ → list ℕ
-| 0 := [1]
-| (n + 1) := bell_aux (bell_init (bell_row n))
-
-/-- The nth Bell number. -/
-def bell (n : ℕ) : ℕ := (bell_row n).head
-
-/-- Appending the last element of a list to its beginning increases its length by one. -/
-lemma init_length {a : ℕ} {l : list ℕ} :
-  length (bell_init (a::l)) = length (a::l) + 1 :=
-length_cons _ _
-
-/-- Applying `bell_aux` to a nonempty list does not change the list's length. -/
-lemma aux_length {a : ℕ} {l : list ℕ} :
-  length (bell_aux (a :: l)) = length (a :: l) :=
-by erw length_scanl; exact length_cons a l
-
-/-- The length of the nth row of the Bell triangle is n + 1. -/
-lemma row_length (n : ℕ) : length (bell_row n) = n + 1 :=
-begin
-  induction n with n hn,
-  { refl },
-  { rcases exists_of_length_succ (bell_row n) hn with ⟨h, t, H⟩,
-    rcases exists_of_length_succ (bell_init (bell_row n))
-    (by rw H; exact init_length) with ⟨h', t', H'⟩,
-    rw [bell_row, H', aux_length, ←H', H, init_length, ←H, hn] }
-end
-
-/-- Restatement of appending the last element of the nth row of the Bell triangle to
-    the row's beginning. -/
-lemma init_row : ∀ n, bell_init (bell_row n) =
-  nth_le (bell_row n) n ((row_length n).symm ▸ nat.lt_succ_self n) :: bell_row n :=
-begin
-  intro n,
-  rcases exists_of_length_succ (bell_row n)
-    (row_length _) with ⟨h, t, hl⟩,
-  conv {congr, rw hl},
-  rw [bell_init, last_eq_nth_le],
-  congr' 2,
-  repeat { rw ←hl },
-  { rw row_length,
-    refl }
-end
-
-/-- The (n + 1)th Bell number is the last element of the nth row of the Bell triangle. -/
-lemma bell_succ (n : ℕ) :
-  bell (n + 1) = nth_le (bell_row n) n ((row_length n).symm ▸ nat.lt_succ_self n) :=
-begin
-  rw [bell, (show nth_le _ _ _ = (bell_init (bell_row n)).head, by
-        rw init_row n; refl), bell_row],
-  rcases exists_of_length_succ (bell_row n) (row_length n) with ⟨h, t, H⟩,
-  rcases exists_of_length_succ (bell_init (bell_row n))
-    (by rw H; exact init_length) with ⟨h', t', H'⟩,
-  rw [H', bell_aux, ←H', H, bell_init, scanl, tail, zero_add],
-  refl,
-end
-
-/-- There are finitely many equivalence relations on a finite type. -/
-noncomputable instance [h : fintype α] : fintype (setoid α) :=
-@fintype.of_equiv _ _
-(@subtype.fintype _ (@set.fintype _ (@set.fintype _  h $ classical.dec_eq _) $
-  classical.dec_eq _) _ $ classical.dec_pred _) $
-  (partition.order_iso α).to_equiv.symm
 
 end partition
 

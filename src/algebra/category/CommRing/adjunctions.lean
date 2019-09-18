@@ -25,6 +25,8 @@ open_locale classical
 
 private def free_obj (α : Type u) : CommRing.{u} := ⟨mv_polynomial α ℤ⟩
 
+-- TODO: Something is painfully slow in this definition, perhaps a heavy definitional equality.
+-- If that can be solved, ideally the proofs here could be done by `tidy`.
 def free : Type u ⥤ CommRing.{u} :=
 { obj := free_obj,
   map := λ _ _ f, @ring_hom.of _ _ _ _ (rename f) (rename.is_semiring_hom f),

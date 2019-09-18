@@ -25,12 +25,7 @@ intros; exact subsingleton.elim _ _
 
 instance : comm_ring punit :=
 by refine
-{ add := (+),
-  zero := 0,
-  neg := has_neg.neg,
-  mul := (*),
-  one := 1,
-  .. punit.comm_group,
+{ .. punit.comm_group,
   .. punit.add_comm_group,
   .. };
 intros; exact subsingleton.elim _ _

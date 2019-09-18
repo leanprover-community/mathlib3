@@ -254,7 +254,7 @@ def iterate_refinement (f : [ℕ]² → color)
 | (n+1) := let p := iterate_refinement n in cf ⟨f, p, p.pt⟩
 
 /--
-There exists an infinet sequence of homogeneous projections,
+There exists an infinite sequence of homogeneous projections,
 each a refinement of the previous one.
 -/
 lemma exists_homo_proj_seq (f : [ℕ]² → color) :

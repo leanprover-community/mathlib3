@@ -22,8 +22,9 @@ namespace mul_equiv
 
 -- group_theory.submonoid doesn't import data.equiv.algebra and vice versa. 
 
-/-- Makes the identity multiplicative isomorphism from a proof two submonoids are equal. -/
-@[to_additive add_submonoid_congr] 
+/-- Makes the identity multiplicative isomorphism from a proof two submonoids of a multiplicative 
+    monoid are equal. -/
+@[to_additive add_submonoid_congr "Makes the identity additive isomorphism from a proof two submonoids of an additive monoid are equal."] 
 def submonoid_congr [monoid M] {A B : submonoid M} (h : A = B) : A ≃* B :=
 { map_mul' := λ x y, rfl, ..equiv.set_congr $ submonoid.ext'_iff.2 h }
 
@@ -31,16 +32,15 @@ end mul_equiv
 
 variables (M)
 
-/-- Defining congruence relations as equivalence relations which preserve multiplication. -/
-structure con [has_mul M] extends setoid M :=
-(mul' : ∀ {w x y z}, r w x → r y z → r (w * y) (x * z))
-
 /-- Defining congruence relations on additive monoids as equivalence relations which 
     preserve addition. -/
 structure add_con (M : Type*) [has_add M] extends setoid M :=
 (add' : ∀ {w x y z}, r w x → r y z → r (w + y) (x + z))
 
-attribute [to_additive add_con] con
+/-- Defining congruence relations as equivalence relations which preserve multiplication. -/
+@[to_additive add_con] structure con [has_mul M] extends setoid M :=
+(mul' : ∀ {w x y z}, r w x → r y z → r (w * y) (x * z))
+
 variables {M} 
 
 /-- The inductively defined additive congruence closure of a binary relation. -/
@@ -60,59 +60,69 @@ inductive add_con_gen.rel [has_add M] (r : M → M → Prop) : M → M → Prop
 | mul {} : Π w x y z, con_gen.rel w x → con_gen.rel y z → con_gen.rel (w * y) (x * z)
 
 /-- The inductively defined multiplicative congruence closure of a binary relation. -/
-@[to_additive add_con_gen] def con_gen [has_mul M] (r : M → M → Prop) : con M :=
+@[to_additive add_con_gen "The inductively defined additive congruence closure of a binary relation."] 
+def con_gen [has_mul M] (r : M → M → Prop) : con M :=
 ⟨con_gen.rel r, ⟨λ _, con_gen.rel.refl _, λ _ _ h, con_gen.rel.symm _ _ h, 
   λ _ _ _ h1 h2, con_gen.rel.trans _ _ _ h1 h2⟩, con_gen.rel.mul⟩
 
-variables {M} (c : con M)
+variables {M}
 namespace con
 
 section
-variables [has_mul M] [has_mul N] [has_mul P]
-
+variables [has_mul M] [has_mul N] [has_mul P] (c : con M)
 /-- A coercion from a congruence relation to its underlying binary relation. -/
-@[to_additive]
+@[to_additive "A coercion from a congruence relation to its underlying binary relation."]
 instance : has_coe_to_fun (con M) := ⟨_, λ c, λ x y, c.r x y⟩
 
 /-- Congruence relations are reflexive. -/
-@[simp, refl, to_additive] lemma refl (x) : c.1 x x := c.2.1 x
+@[simp, refl, to_additive "Congruence relations are reflexive."] 
+lemma refl (x) : c.1 x x := c.2.1 x
 /-- Congruence relations are symmetric. -/
-@[simp, symm, to_additive] lemma symm : ∀ {x y}, c x y → c.1 y x := λ _ _ h, c.2.2.1 h
+@[simp, symm, to_additive "Congruence relations are symmetric."] 
+lemma symm : ∀ {x y}, c x y → c.1 y x := λ _ _ h, c.2.2.1 h
 /-- Congruence relations are transitive. -/
-@[simp, trans, to_additive] lemma trans : ∀ {x y z}, c x y → c y z → c.1 x z := 
-λ  _ _ _ hx hy, c.2.2.2 hx hy
+@[simp, trans, to_additive "Congruence relations are transitive."] 
+lemma trans : ∀ {x y z}, c x y → c y z → c.1 x z := 
+λ  _ _ _ hx, c.2.2.2 hx
 /-- Multiplicative congruence relations preserve multiplication. -/
-@[simp, to_additive] lemma mul : ∀ {w x y z}, c w x → c y z → c (w*y) (x*z) :=
+@[simp, to_additive "Additive congruence relations preserve addition."] 
+lemma mul : ∀ {w x y z}, c w x → c y z → c (w*y) (x*z) :=
 λ _ _ _ _ h1 h2, c.3 h1 h2
 
 /-- For x, y ∈ M, for a congruence relation r on M we define 
     (x, y) ∈ M × M ↔ x is related to y by r. -/
-@[to_additive] instance : has_mem (M × M) (con M) := ⟨λ x r, r x.1 x.2⟩
+@[to_additive "For x, y ∈ M, for a congruence relation r on M we define (x, y) ∈ M × M ↔ x is related to y by r."] 
+instance : has_mem (M × M) (con M) := ⟨λ x r, r x.1 x.2⟩
 
 variables {c} 
 
 /-- The map sending a congruence relation to its underlying binary relation is injective. -/
-@[to_additive] lemma r_inj {c d : con M} (H : c.r = d.r) : c = d :=
+@[to_additive "The map sending a congruence relation to its underlying binary relation is injective."] 
+lemma r_inj {c d : con M} (H : c.r = d.r) : c = d :=
 by cases c; cases d; simpa using H
 
 /-- Extensionality rule for congruence relations. -/
-@[extensionality, to_additive] lemma ext {c d : con M} (H : ∀ x y, c x y ↔ d x y) :
+@[extensionality, to_additive "Extensionality rule for congruence relations."] 
+lemma ext {c d : con M} (H : ∀ x y, c x y ↔ d x y) :
   c = d := r_inj $ by ext x y; exact H x y
 
 /-- Iff version of extensionality rule for congruence relations. -/
-@[to_additive] lemma ext_iff {c d : con M} : (∀ x y, c x y ↔ d x y) ↔ c = d :=
+@[to_additive "Iff version of extensionality rule for congruence relations."] 
+lemma ext_iff {c d : con M} : (∀ x y, c x y ↔ d x y) ↔ c = d :=
 ⟨λ h, ext h, λ h x y, h ▸ iff.rfl⟩
 
 /-- The product of two congruence relations c on M, d on N defined as 
     (x₁, x₂) and (y₁, y₂) ∈ M × N are related by c × d ↔ c x₁ y₁ and d x₂ y₂. -/
-@[to_additive prod] protected def prod (c : con M) (d : con N) : con (M × N) :=
+@[to_additive prod "The product of two congruence relations c on M, d on N defined as (x₁, x₂) and (y₁, y₂) ∈ M × N are related by c × d ↔ c x₁ y₁ and d x₂ y₂."] 
+protected def prod (c : con M) (d : con N) : con (M × N) :=
 { r := λ x y, c x.1 y.1 ∧ d x.2 y.2,
   iseqv := ⟨λ x, ⟨c.refl x.1, d.refl x.2⟩, λ _ _ h, ⟨c.symm h.1, d.symm h.2⟩,
             λ _ _ _ h1 h2, ⟨c.trans h1.1 h2.1, d.trans h1.2 h2.2⟩⟩,
   mul' := λ _ _ _ _ h1 h2, ⟨c.mul h1.1 h2.1, d.mul h1.2 h2.2⟩ }
 
 /-- The product of an indexed collection of congruence relations. -/
-@[to_additive] def pi {ι : Type*} {f : ι → Type*} [Π i, has_mul (f i)] 
+@[to_additive "The product of an indexed collection of congruence relations."] 
+def pi {ι : Type*} {f : ι → Type*} [Π i, has_mul (f i)] 
   (C : Π i, con (f i)) : con (Π i, f i) :=
 { r := λ x y, ∀ i, (C i) (x i) (y i),
   iseqv := ⟨λ x i, (C i).refl (x i), λ _ _ h i, (C i).symm (h i),
@@ -124,10 +134,12 @@ variables (c)
 @[simp, to_additive] lemma setoid_eq : c.to_setoid.r = c := rfl
 
 /-- Defining the quotient of a type by a congruence relation. -/
-@[to_additive] protected def quotient := quotient $ c.to_setoid
+@[to_additive "Defining the quotient of a type by a congruence relation."] 
+protected def quotient := quotient $ c.to_setoid
 
 /-- Coercion from a type to its quotient under a congruence relation. -/
-@[to_additive, priority 0] instance : has_coe M (c.quotient) := ⟨@quotient.mk _ c.to_setoid⟩
+@[to_additive "Coercion from a type to its quotient under a congruence relation", priority 0] 
+instance : has_coe M (c.quotient) := ⟨@quotient.mk _ c.to_setoid⟩
 
 /-- The quotient of a type with decidable equality under a congruence relation also has
     decidable equality. -/

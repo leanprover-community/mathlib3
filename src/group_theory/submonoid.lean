@@ -364,56 +364,39 @@ instance : has_le (submonoid M) := ⟨λ S T, S.carrier ⊆ T.carrier⟩
 lemma mem_coe {m : M} : m ∈ (S : set M) ↔ m ∈ S := iff.rfl
 
 /-- Two submonoids are equal if the underlying subsets are equal. -/
-@[to_additive]
+@[to_additive "Two add_submonoids are equal if the underlying subsets are equal."]
 theorem ext' {S T : submonoid M} (h : (S : set M) = T) : S = T :=
 by cases S; cases T; congr'
 
-run_cmd tactic.add_doc_string `add_submonoid.ext'
-  "Two add_submonoids are equal if the underling subsets are equal."
-
 /-- Two submonoids are equal if and only if the underlying subsets are equal. -/
-@[to_additive]
+@[to_additive "Two add_submonoids are equal if and only if the underling subsets are equal."]
 protected theorem ext'_iff {S T : submonoid M}  : (S : set M) = T ↔ S = T :=
 ⟨ext', λ h, h ▸ rfl⟩
 
-run_cmd tactic.add_doc_string `add_submonoid.ext'_iff
-  "Two add_submonoids are equal if and only if the underling subsets are equal."
-
 /-- Two submonoids are equal if they have the same elements. -/
-@[extensionality, to_additive]
+@[extensionality, to_additive "Two add_submonoids are equal if they have the same elements."]
 theorem ext {S T : submonoid M}
   (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := ext' $ set.ext h
 
 attribute [extensionality] add_submonoid.ext
-run_cmd tactic.add_doc_string `add_submonoid.ext
-  "Two add_submonoids are equal if they have the same elements."
 
 /-- A submonoid contains the monoid's 1. -/
-@[to_additive]
+@[to_additive "An add_submonoid contains the monoid's 0."]
 theorem one_mem : (1 : M) ∈ S := S.one_mem'
 
-run_cmd tactic.add_doc_string `add_submonoid.zero_mem
-  "An add_submonoid contains the monoid's 0."
-
 /-- A submonoid is closed under multiplication. -/
-@[to_additive]
+@[to_additive "An add_submonoid is closed under addition."]
 theorem mul_mem {x y : M} : x ∈ S → y ∈ S → x * y ∈ S := submonoid.mul_mem' S
 
-run_cmd tactic.add_doc_string `add_submonoid.add_mem
-  "An add_submonoid is closed under addition."
-
 /-- A finite product of elements of a submonoid of a commutative monoid is in the submonoid. -/
-@[to_additive]
+@[to_additive "A finite sum of elements of an add_submonoid of an add_comm_monoid is in the add_submonoid."]
 lemma prod_mem {M : Type*} [comm_monoid M] (S : submonoid M)
   {ι : Type*} [decidable_eq ι] {t : finset ι} {f : ι → M} :
   (∀c ∈ t, f c ∈ S) → t.prod f ∈ S :=
 finset.induction_on t (by simp [S.one_mem]) (by simp [S.mul_mem] {contextual := tt})
 
-run_cmd tactic.add_doc_string `add_submonoid.sum_mem
-  "A finite sum of elements of an add_submonoid of an add_comm_monoid is in the add_submonoid."
-
 /-- A directed union of submonoids is a submonoid. -/
-@[to_additive]
+@[to_additive "A directed union of add_submonoids is an add_submonoid."]
 def Union_of_directed {ι : Type*} [hι : nonempty ι]
   (s : ι → submonoid M)
   (directed : ∀ i j, ∃ k, s i ≤ s k ∧ s j ≤ s k) :
@@ -426,43 +409,29 @@ def Union_of_directed {ι : Type*} [hι : nonempty ι]
     let ⟨k, hk⟩ := directed i j in
     set.mem_Union.2 ⟨k, (s k).mul_mem (hk.1 hi) (hk.2 hj)⟩ }
 
-run_cmd tactic.add_doc_string `add_submonoid.Union_of_directed
-  "A directed union of add_submonoids is an add_submonoid."
-
 /-- A submonoid of a monoid inherits a multiplication. -/
-@[to_additive]
+@[to_additive "An add_submonoid of an add_monoid inherits an addition."]
 instance has_mul : has_mul S := ⟨λ a b, ⟨a.1 * b.1, S.mul_mem a.2 b.2⟩⟩
 
-run_cmd tactic.add_doc_string `add_submonoid.has_add
-  "An add_submonoid of an add_monoid inherits an addition."
-
 /-- A submonoid of a monoid inherits a 1. -/
-@[to_additive]
+@[to_additive "An add_submonoid of an add_monoid inherits a zero."]
 instance has_one : has_one S := ⟨⟨_, S.one_mem⟩⟩
-
-run_cmd tactic.add_doc_string `add_submonoid.has_zero
-  "An add_submonoid of an add_monoid inherits a zero."
 
 @[simp, to_additive] lemma coe_mul (x y : S) : (↑(x * y) : M) = ↑x * ↑y := rfl
 @[simp, to_additive] lemma coe_one : ((1 : S) : M) = 1 := rfl
 
 /-- A submonoid of a monoid inherits a monoid structure. -/
-@[to_additive add_submonoid.to_add_monoid] -- should I have to name the additive version here?
+@[to_additive to_add_monoid "An add_submonoid of an add_monoid inherits an add_monoid structure."] 
+-- should I have to name the additive version here?
 instance to_monoid {M : Type*} [monoid M] {S : submonoid M} : monoid S :=
 by refine { mul := (*), one := 1, ..}; by simp [mul_assoc]
 
-run_cmd tactic.add_doc_string `add_submonoid.to_add_monoid
-  "An add_submonoid of an add_monoid inherits an add_monoid structure."
-
 /-- The natural monoid hom from a submonoid of monoid M to M. -/
-@[to_additive]
+@[to_additive "The natural monoid hom from an add_submonoid of add_monoid M to M."]
 def subtype : S →* M :=
 { to_fun := coe,
   map_one' := rfl,
   map_mul' := λ _ _, rfl }
-
-run_cmd tactic.add_doc_string `add_submonoid.subtype
-  "The natural monoid hom from an add_submonoid of add_monoid M to M."
 
 @[simp, to_additive] theorem subtype_apply (x : S) : S.subtype x = x := rfl
 
@@ -536,22 +505,18 @@ namespace submonoid
 variables {M : Type*} [monoid M] (S : submonoid M)
 
 /-- `univ` is the submonoid M of the monoid M. -/
-@[to_additive] def univ : submonoid M :=
+@[to_additive "`univ` is the add_submonoid M of the add_monoid M."] 
+def univ : submonoid M :=
 { carrier := set.univ,
   one_mem' := set.mem_univ 1,
   mul_mem' := λ _ _ _ _, set.mem_univ _ }
 
-run_cmd tactic.add_doc_string `add_submonoid.univ
-  "`univ` is the add_submonoid M of the add_monoid M."
-
 /-- ⊥ is the trivial submonoid {1} of the monoid M. -/
-@[to_additive] def bot : submonoid M :=
+@[to_additive "⊥ is the zero submonoid of the add_monoid M."] 
+def bot : submonoid M :=
 { carrier := {1},
   one_mem' := set.mem_singleton 1,
   mul_mem' := λ a b ha hb, by simp * at *}
-
-run_cmd tactic.add_doc_string `add_submonoid.bot
-  "⊥ is the zero submonoid of the add_monoid M."
 
 /-- submonoids of M are partially ordered (by inclusion) -/
 @[to_additive]
@@ -587,16 +552,13 @@ instance : order_top (submonoid M) :=
   ..submonoid.partial_order}
 
 /-- The inf of two submonoids is their intersection. -/
-@[to_additive]
+@[to_additive "The inf of two add_submonoids is their intersection."]
 def inf (S₁ S₂ : submonoid M) :
   submonoid M :=
 { carrier := S₁ ∩ S₂,
   one_mem' := ⟨S₁.one_mem, S₂.one_mem⟩,
   mul_mem' := λ _ _ ⟨hx, hx'⟩ ⟨hy, hy'⟩,
     ⟨S₁.mul_mem hx hy, S₂.mul_mem hx' hy'⟩ }
-
-run_cmd tactic.add_doc_string `add_submonoid.inf
-  "The inf of two add_submonoids is their intersection."
 
 @[to_additive]
 instance : has_inf (submonoid M) := ⟨inf⟩
@@ -625,7 +587,7 @@ set.subset_bInter
 lemma mem_Inf {S : set (submonoid M)} {x : M} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_bInter_iff
 
 /-- Submonoids of a monoid form a lattice. -/
-@[to_additive]
+@[to_additive "Add_submonoids of an add_monoid form a lattice."]
 instance lattice.lattice : lattice (submonoid M) :=
 { sup          := λ a b, Inf {x | a ≤ x ∧ b ≤ x},
   le_sup_left  := λ a b, le_Inf' $ λ x ⟨ha, hb⟩, ha,
@@ -636,11 +598,8 @@ instance lattice.lattice : lattice (submonoid M) :=
   inf_le_left  := λ a b, set.inter_subset_left _ _,
   inf_le_right := λ a b, set.inter_subset_right _ _, ..submonoid.partial_order}
 
-run_cmd tactic.add_doc_string `add_submonoid.lattice.lattice
-  " Add_submonoids of an add_monoid form a lattice."
-
 /-- Submonoids of a monoid form a complete lattice. -/
-@[to_additive]
+@[to_additive "Add_submonoids of an add_monoid form a complete lattice."]
 instance : complete_lattice (submonoid M) :=
 { Sup          := λ tt, Inf {t | ∀t'∈tt, t' ≤ t},
   le_Sup       := λ s p hs, le_Inf' $ λ p' hp', hp' _ hs,
@@ -652,11 +611,8 @@ instance : complete_lattice (submonoid M) :=
   ..submonoid.lattice.order_bot,
   ..submonoid.lattice.lattice}
 
-run_cmd tactic.add_doc_string `add_submonoid.lattice.complete_lattice
-  " Add_submonoids of an add_monoid form a complete lattice."
-
 /-- Submonoids of a monoid form an add_comm_monoid. -/
-@[to_additive]
+@[to_additive "Add_submonoids of an add_monoid form an add_comm_monoid."]
 instance : add_comm_monoid (submonoid M) :=
 { add := (⊔),
   add_assoc := λ _ _ _, sup_assoc,
@@ -664,9 +620,6 @@ instance : add_comm_monoid (submonoid M) :=
   zero_add := λ _, bot_sup_eq,
   add_zero := λ _, sup_bot_eq,
   add_comm := λ _ _, sup_comm }
-
-run_cmd tactic.add_doc_string `add_submonoid.add_comm_monoid
-  " Add_submonoids of an add_monoid form an add_comm_monoid."
 
 end submonoid
 
@@ -677,7 +630,7 @@ variables {M : Type*} [monoid M] (S : submonoid M)
 open submonoid
 
 /-- The preimage of a submonoid along a monoid homomorphism is a submonoid. -/
-@[to_additive]
+@[to_additive "The preimage of an add_submonoid along an add_monoid homomorphism is an add_submonoid."]
 def comap {N : Type*} [monoid N] (f : M →* N)
   (S : submonoid N) : submonoid M :=
 { carrier := (f ⁻¹' S),
@@ -685,27 +638,18 @@ def comap {N : Type*} [monoid N] (f : M →* N)
   mul_mem' := λ a b ha hb,
     show f (a * b) ∈ S, by rw f.map_mul; exact S.mul_mem ha hb }
 
-run_cmd tactic.add_doc_string `add_monoid_hom.comap
-  "The preimage of an add_submonoid along an add_monoid homomorphism is an add_submonoid."
-
 /-- The image of a submonoid along a monoid homomorphism is a submonoid. -/
-@[to_additive]
+@[to_additive "The image of an add_submonoid along an add_monoid homomorphism is an add_submonoid."]
 def map {N : Type*} [monoid N] (f : M →* N) (S : submonoid M) : submonoid N :=
 { carrier := (f '' S),
   one_mem' := ⟨1, S.one_mem, f.map_one⟩,
   mul_mem' := begin rintros _ _ ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩, exact ⟨x * y, S.mul_mem hx hy,
     by rw f.map_mul; refl⟩ end }
 
-run_cmd tactic.add_doc_string `add_monoid_hom.map
-  "The image of an add_submonoid along an add_monoid homomorphism is an add_submonoid."
-
 /-- The range of a monoid homomorphism is a submonoid. -/
-@[to_additive]
+@[to_additive "The range of an add_monoid_hom is an add_submonoid."]
 def range {N : Type*} [monoid N] (f : M →* N) :
   submonoid N := map f univ
-
-run_cmd tactic.add_doc_string `add_monoid_hom.range
-  "The range of an add_monoid_hom is an add_submonoid."
 
 end monoid_hom
 
@@ -714,7 +658,7 @@ namespace submonoid
 variables {M : Type*} [monoid M] (S : submonoid M)
 
 /-- Product of a list of elements in a submonoid is in the submonoid. -/
-@[to_additive]
+@[to_additive "Sum of a list of elements in an add_submonoid is in the add_submonoid."]
 lemma list_prod_mem : ∀ {l : list M}, (∀x∈l, x ∈ S) → l.prod ∈ S
 | []     h := S.one_mem
 | (a::l) h :=
@@ -722,11 +666,8 @@ lemma list_prod_mem : ∀ {l : list M}, (∀x∈l, x ∈ S) → l.prod ∈ S
   have a ∈ S ∧ (∀ x ∈ l, x ∈ S), by simpa using h,
   S.mul_mem this.1 (list_prod_mem this.2)
 
-run_cmd tactic.add_doc_string `add_submonoid.list_sum_mem
-  "Sum of a list of elements in an add_submonoid is in the add_submonoid."
-
 /-- Product of a multiset of elements in a submonoid of a comm_monoid is in the submonoid. -/
-@[to_additive]
+@[to_additive "Sum of a multiset of elements in an add_submonoid of an add_comm_monoid is in the add_submonoid."]
 lemma multiset_prod_mem {M} [comm_monoid M] (S : submonoid M) (m : multiset M) :
   (∀a ∈ m, a ∈ S) → m.prod ∈ S :=
 begin
@@ -735,11 +676,8 @@ begin
   exact S.list_prod_mem hl
 end
 
-run_cmd tactic.add_doc_string `add_submonoid.multiset_sum_mem
-  "Sum of a multiset of elements in an add_submonoid of an add_comm_monoid is in the add_submonoid."
-
 /-- Product of a finset of elements in a submonoid of a comm_monoid is in the submonoid. -/
-@[to_additive]
+@[to_additive "Sum of a finset of elements in an add_submonoid of an add_comm_monoid is in the add_submonoid."]
 lemma finset_prod_mem {M ι} [comm_monoid M] (S : submonoid M) (f : ι → M) :
   ∀(t : finset ι), (∀b∈t, f b ∈ S) → t.prod f ∈ S
 | ⟨m, hm⟩ hs :=
@@ -751,9 +689,6 @@ lemma finset_prod_mem {M ι} [comm_monoid M] (S : submonoid M) (f : ι → M) :
     exact hs _ hb
   end
 
-run_cmd tactic.add_doc_string `add_submonoid.finset_sum_mem
-  "Sum of a finset of elements in an add_submonoid of an add_comm_monoid is in the add_submonoid."
-
 end submonoid
 
 namespace monoid_hom
@@ -761,41 +696,30 @@ namespace monoid_hom
 variables {M : Type*} [monoid M] (S : submonoid M)
 
 /-- Restriction of a monoid_hom to a submonoid of the codomain. -/
-@[to_additive]
+@[to_additive "Restriction of an add_monoid_hom to an add_submonoid of the codomain."]
+-- 'would be nice if it errored if [the additive docstring (I think?)] doesn't exist' 
 def subtype_mk {N : Type*} [monoid N] (f : N →* M) (h : ∀ x, f x ∈ S) : N →* S :=
 { to_fun := λ n, ⟨f n, h n⟩,
   map_one' := subtype.eq (is_monoid_hom.map_one f),
   map_mul' := λ x y, subtype.eq (is_monoid_hom.map_mul f x y) }
 
-run_cmd tactic.add_doc_string `add_monoid_hom.subtype_mk -- would be nice if it errored if this
--- didn't exist
-  "Restriction of an add_monoid_hom to an add_submonoid of the codomain. "
 
 /-- Restriction of a monoid_hom to its range. -/
-@[to_additive]
+@[to_additive "Restriction of an add_monoid_hom to its range."]
 def range_mk {N} [monoid N] (f : M →* N) : M →* f.range :=
 subtype_mk f.range f $ λ x, ⟨x, submonoid.mem_top x, rfl⟩
 
-run_cmd tactic.add_doc_string `add_monoid_hom.range_mk
-  "Restriction of an add_monoid_hom to its range."
-
 /-- The range of a surjective monoid_hom is the top submonoid. -/
-@[to_additive]
+@[to_additive "The range of a surjective add_monoid_hom is the top add_submonoid."]
 lemma range_top_of_surjective {N} [monoid N] (f : M →* N) (hf : function.surjective f) :
   f.range = (⊤ : submonoid N) :=
 submonoid.ext'_iff.1 $ (set.ext_iff _ _).2 $ λ x,
 ⟨λ h, submonoid.mem_top x, λ h, exists.elim (hf x) $ λ w hw, ⟨w, submonoid.mem_top w, hw⟩⟩
 
-run_cmd tactic.add_doc_string `add_monoid_hom.range_top_of_surjective
-  "The range of a surjective add_monoid_hom is the top add_submonoid."
-
 /-- The monoid_hom associated to an inclusion of submonoids. -/
-@[to_additive]
+@[to_additive "The add_monoid_hom associated to an inclusion of submonoids."]
 def set_inclusion (T : submonoid M) (h : S ≤ T) : S →* T :=
 subtype_mk _ S.subtype (λ x, h x.2)
-
-run_cmd tactic.add_doc_string `add_monoid_hom.set_inclusion
-  "The add_monoid_hom associated to an inclusion of submonoids."
 
 end monoid_hom
 

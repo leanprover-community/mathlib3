@@ -20,7 +20,7 @@ open category_theory.limits category_theory.category category_theory.functor
 open algebraic_geometry
 open topological_space
 
-variables {C : Type u} [𝒞 : category.{v+1} C] [has_colimits.{v} C]
+variables {C : Type u} [𝒞 : category.{v} C] [has_colimits.{v} C]
 include 𝒞
 
 local attribute [tidy] tactic.op_induction'

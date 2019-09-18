@@ -185,7 +185,7 @@ def equiv_iso_iso {X Y : Type u} : (X ≃ Y) ≅ (X ≅ Y) :=
 /-- equivalences (between types in the same universe) are the same as (equivalent to) isomorphisms of types -/
 -- We leave `X` and `Y` as explicit arguments here, because the coercions from `equiv` to a function won't fire without them.
 def equiv_equiv_iso (X Y : Type u) : (X ≃ Y) ≃ (X ≅ Y) :=
-equiv_iso_iso.inv (equiv_iso_iso)
+(equiv_iso_iso).to_equiv
 
 @[simp] lemma equiv_iso_iso_hom {X Y : Type u} (e : X ≃ Y) : equiv_iso_iso.hom e = e.to_iso := rfl
 @[simp] lemma equiv_iso_iso_inv {X Y : Type u} (e : X ≅ Y) : equiv_iso_iso.inv e = e.to_equiv := rfl

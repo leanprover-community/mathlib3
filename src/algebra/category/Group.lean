@@ -58,13 +58,73 @@ Group.bundled_hom.full_subcategory_has_forget _
 
 end CommGroup
 
-namespace category_theory
+namespace mul_equiv
 
-def Aut_mul_equiv_perm {α : Type u} : Aut α ≃* equiv.perm α :=
+variables {X Y : Type u}
+
+section
+variables [group X] [group Y]
+
+def to_Group_iso (e : X ≃* Y) : Group.of X ≅ Group.of Y :=
+{ hom := e.to_monoid_hom,
+  inv := e.symm.to_monoid_hom }
+
+@[simp] lemma to_Group_iso_hom {e : X ≃* Y} : e.to_Group_iso.hom = e.to_monoid_hom := rfl
+@[simp] lemma to_Group_iso_inv {e : X ≃* Y} : e.to_Group_iso.inv = e.symm.to_monoid_hom := rfl
+end
+
+section
+variables [comm_group X] [comm_group Y]
+
+def to_CommGroup_iso (e : X ≃* Y) : CommGroup.of X ≅ CommGroup.of Y :=
+{ hom := e.to_monoid_hom,
+  inv := e.symm.to_monoid_hom }
+
+@[simp] lemma to_CommGroup_iso_hom {e : X ≃* Y} : e.to_CommGroup_iso.hom = e.to_monoid_hom := rfl
+@[simp] lemma to_CommGroup_iso_inv {e : X ≃* Y} : e.to_CommGroup_iso.inv = e.symm.to_monoid_hom := rfl
+end
+
+end mul_equiv
+
+namespace category_theory.iso
+
+def Group_iso_to_mul_equiv {X Y : Group.{u}} (i : X ≅ Y) : X ≃* Y :=
+{ to_fun    := i.hom,
+  inv_fun   := i.inv,
+  left_inv  := by tidy,
+  right_inv := by tidy,
+  map_mul'  := by tidy }.
+
+def CommGroup_iso_to_mul_equiv {X Y : CommGroup.{u}} (i : X ≅ Y) : X ≃* Y :=
+{ to_fun    := i.hom,
+  inv_fun   := i.inv,
+  left_inv  := by tidy,
+  right_inv := by tidy,
+  map_mul'  := by tidy }.
+
+end category_theory.iso
+
+/-- multiplicative equivalences are the same as (isomorphic to) isomorphisms of monoids -/
+def mul_equiv_iso_Group_iso {X Y : Type u} [group X] [group Y] :
+  (X ≃* Y) ≅ (Group.of X ≅ Group.of Y) :=
+{ hom := λ e, e.to_Group_iso,
+  inv := λ i, i.Group_iso_to_mul_equiv, }
+
+def mul_equiv_iso_CommGroup_iso {X Y : Type u} [comm_group X] [comm_group Y] :
+  (X ≃* Y) ≅ (CommGroup.of X ≅ CommGroup.of Y) :=
+{ hom := λ e, e.to_CommGroup_iso,
+  inv := λ i, i.CommGroup_iso_to_mul_equiv, }
+
+namespace category_theory.Aut
+
+def iso_perm {α : Type u} : Group.of (Aut α) ≅ Group.of (equiv.perm α) :=
 { to_fun    := iso.to_equiv,
   inv_fun   := equiv.to_iso,
   left_inv  := by tidy, -- I miss `auto_param`s
   right_inv := by tidy,
   map_mul'  := by tidy, }
 
-end category_theory
+def mul_equiv_perm {α : Type u} : Aut α ≃* equiv.perm α :=
+Aut_iso_perm.Group_iso_to_mul_equiv
+
+end category_theory.Aut

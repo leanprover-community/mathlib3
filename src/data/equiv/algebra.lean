@@ -233,6 +233,20 @@ instance {α β} [has_mul α] [has_mul β] : has_coe_to_fun (α ≃* β) := ⟨_
 
 variables [has_mul α] [has_mul β] [has_mul γ]
 
+/-- To show two multiplicative equivalences are equal, it suffices to show the functions are equal. -/
+@[extensionality, to_additive]
+lemma ext {e f : α ≃* β} (h : (e : α → β) = (f : α → β)) : e = f :=
+begin
+  -- first, use extensionality for equivalences to also learn that the `inv_fun`s are equal.
+  replace h : e.to_equiv = f.to_equiv, { ext x, exact congr_fun h x, },
+  cases e, cases f,
+  congr,
+  { funext x,
+    exact congr_fun (congr_arg equiv.to_fun h) x, },
+  { funext y,
+    exact congr_fun (congr_arg equiv.inv_fun h) y, },
+end
+
 /-- A multiplicative isomorphism preserves multiplication (canonical form). -/
 @[to_additive]
 def map_mul (f : α ≃* β) :  ∀ x y : α, f (x * y) = f x * f y := f.map_mul'

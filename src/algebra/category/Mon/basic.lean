@@ -30,6 +30,12 @@ def of (M : Type u) [monoid M] : Mon := bundled.of M
 instance bundled_hom : bundled_hom @monoid_hom :=
 ⟨@monoid_hom.to_fun, @monoid_hom.id, @monoid_hom.comp, @monoid_hom.ext⟩
 
+-- TODO generalize this!
+@[simp] lemma hom_inv_id {X Y : Mon} (f : X ≅ Y) (x : X) : f.inv (f.hom x) = x :=
+congr_fun (congr_arg monoid_hom.to_fun (f.hom_inv_id) : (f.hom ≫ f.inv).to_fun = _) x
+@[simp] lemma inv_hom_id {X Y : Mon} (f : X ≅ Y) (y : Y) : f.hom (f.inv y) = y :=
+congr_fun (congr_arg monoid_hom.to_fun (f.inv_hom_id) : (f.inv ≫ f.hom).to_fun = _) y
+
 end Mon
 
 /-- The category of commutative monoids and monoid morphisms. -/
@@ -56,6 +62,13 @@ Mon.bundled_hom.full_subcategory_has_forget _
 @[simp, to_additive] lemma coe_comp {X Y Z : CommMon} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
   (f ≫ g) x = g (f x) :=
 congr_fun ((forget CommMon).map_comp _ _) x
+
+-- TODO generalize this!
+@[simp] lemma hom_inv_id {X Y : CommMon} (f : X ≅ Y) (x : X) : f.inv (f.hom x) = x :=
+congr_fun (congr_arg monoid_hom.to_fun (f.hom_inv_id) : (f.hom ≫ f.inv).to_fun = _) x
+@[simp] lemma inv_hom_id {X Y : CommMon} (f : X ≅ Y) (y : Y) : f.hom (f.inv y) = y :=
+congr_fun (congr_arg monoid_hom.to_fun (f.inv_hom_id) : (f.inv ≫ f.hom).to_fun = _) y
+
 end CommMon
 
 namespace mul_equiv
@@ -86,34 +99,31 @@ end
 
 end mul_equiv
 
-namespace Mon.iso
-variables {X Y : Mon.{u}}
+namespace category_theory.iso
 
-def to_mul_equiv (i : X ≅ Y) : X ≃* Y :=
-{ to_fun := i.hom,
-  inv_fun := { .. i.inv },
-  left_inv := λ x, congr_fun i.hom_inv_id x,
-  right_inv := λ y, congr_fun i.inv_hom_id y }
+def Mon_iso_to_mul_equiv {X Y : Mon.{u}} (i : X ≅ Y) : X ≃* Y :=
+{ to_fun    := i.hom,
+  inv_fun   := i.inv,
+  left_inv  := by tidy,
+  right_inv := by tidy,
+  map_mul'  := by tidy }.
 
-@[simp] lemma to_equiv_fun (i : X ≅ Y) : (i.to_equiv : X → Y) = i.hom := rfl
-@[simp] lemma to_equiv_symm_fun (i : X ≅ Y) : (i.to_equiv.symm : Y → X) = i.inv := rfl
-end Mon.iso
+def CommMon_iso_to_mul_equiv {X Y : CommMon.{u}} (i : X ≅ Y) : X ≃* Y :=
+{ to_fun    := i.hom,
+  inv_fun   := i.inv,
+  left_inv  := by tidy,
+  right_inv := by tidy,
+  map_mul'  := by tidy }.
 
-namespace CommMon.iso
-variables {X Y : CommMon.{u}}
-
-def to_mul_equiv (i : X ≅ Y) : X ≃* Y :=
-{ to_fun := i.hom,
-  inv_fun := i.inv,
-  left_inv := λ x, congr_fun i.hom_inv_id x,
-  right_inv := λ y, congr_fun i.inv_hom_id y }
-
-@[simp] lemma to_equiv_fun (i : X ≅ Y) : (i.to_equiv : X → Y) = i.hom := rfl
-@[simp] lemma to_equiv_symm_fun (i : X ≅ Y) : (i.to_equiv.symm : Y → X) = i.inv := rfl
-end CommMon.iso
+end category_theory.iso
 
 /-- multiplicative equivalences are the same as (isomorphic to) isomorphisms of monoids -/
--- TODO Anything in `Mul`, `Semigroup`, `Mon`, `CommMon`, `Group`, `CommGroup` would work here in place of `Mon`.
-def mul_equiv_iso_Mon_iso {X Y : Type u} [monoid X] [monoid Y] : (X ≃* Y) ≅ (Mon.of X ≅ Mon.of Y) :=
-{ hom := λ e, e.to_iso,
-  inv := λ i, i.to_equiv, }
+def mul_equiv_iso_Mon_iso {X Y : Type u} [monoid X] [monoid Y] :
+  (X ≃* Y) ≅ (Mon.of X ≅ Mon.of Y) :=
+{ hom := λ e, e.to_Mon_iso,
+  inv := λ i, i.Mon_iso_to_mul_equiv, }
+
+def mul_equiv_iso_CommMon_iso {X Y : Type u} [comm_monoid X] [comm_monoid Y] :
+  (X ≃* Y) ≅ (CommMon.of X ≅ CommMon.of Y) :=
+{ hom := λ e, e.to_CommMon_iso,
+  inv := λ i, i.CommMon_iso_to_mul_equiv, }

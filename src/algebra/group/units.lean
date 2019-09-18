@@ -149,9 +149,3 @@ theorem divp_mul_divp (x y : α) (ux uy : units α) :
 by rw [← divp_divp_eq_divp_mul, divp_assoc, mul_comm x, divp_assoc, mul_comm]
 
 end comm_monoid
-
-namespace group
-  variables [group α]
-
-  def to_units (x : α) : units α := ⟨x, x⁻¹, mul_inv_self _, inv_mul_self _⟩
-end group

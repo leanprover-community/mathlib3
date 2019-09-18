@@ -3402,6 +3402,33 @@ theorem of_fn_nth_le : ∀ l : list α, of_fn (λ i, nth_le l i.1 i.2) = l
 | [] := rfl
 | (a::l) := by rw of_fn_succ; congr; simp only [fin.succ_val]; exact of_fn_nth_le l
 
+lemma mem_of_fn_id {n} (x : fin n) : x ∈ of_fn (@id (fin n)) :=
+begin
+  suffices : ∀ xs m (h : m ≤ n), x ∈ of_fn_aux id m h xs ↔ x.val < m ∨ x ∈ xs,
+  { erw this, simp [fin.is_lt] },
+  intros, induction m generalizing xs; simp [of_fn_aux,*,nat.not_lt_zero],
+  rw ← or_assoc, congr' 2, apply iff.to_eq,
+  split,
+  { rintro (h|h), apply lt_trans h (lt_succ_self _),
+    refine h.symm ▸ lt_succ_self _ },
+  { intro h', cases lt_or_eq_of_le (nat.le_of_lt_succ h') with hh hh,
+    { exact or.inl hh },
+    { exact or.inr (fin.eq_of_veq hh) } }
+end
+
+lemma map_of_fn {n} (f : fin n → α) (g : α → β) : (of_fn f).map g = of_fn (g ∘ f) :=
+begin
+  suffices : ∀ xs m (h : m ≤ n), (of_fn_aux f m h xs).map g = of_fn_aux (g ∘ f) m h (xs.map g),
+  { simp [of_fn,this] },
+  intros, induction m generalizing xs; simp [of_fn_aux,*]
+end
+
+lemma mem_of_fn {n} {f : fin n → α} (x : α) : x ∈ of_fn f ↔ ∃ i, f i = x :=
+begin
+  have : of_fn f = (of_fn id).map f, by simp [map_of_fn],
+  simp [this,mem_of_fn_id],
+end
+
 /- disjoint -/
 section disjoint
 

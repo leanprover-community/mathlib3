@@ -67,7 +67,7 @@ neg_of_neg_pos (by simpa)
 
 lemma mul_nonpos {α} [ordered_ring α] {a b : α} (ha : a ≤ 0) (hb : b > 0) : b * a ≤ 0 :=
 have (-b)*a ≥ 0, from mul_nonneg_of_nonpos_of_nonpos (le_of_lt (neg_neg_of_pos hb)) ha,
-nonpos_of_neg_nonneg (by simp at this; exact this)
+(by simpa)
 
 lemma mul_eq {α} [ordered_semiring α] {a b : α} (ha : a = 0) (hb : b > 0) : b * a = 0 :=
 by simp *

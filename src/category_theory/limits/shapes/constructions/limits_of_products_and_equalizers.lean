@@ -21,7 +21,7 @@ open opposite
 namespace category_theory.limits
 
 universes v u
-variables {C : Type u} [𝒞 : category.{v+1} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
 @[simp] def equalizer_diagram [has_products.{v} C] {J} [small_category J] (F : J ⥤ C) : walking_parallel_pair ⥤ C :=

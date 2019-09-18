@@ -23,6 +23,7 @@ do t' ← infer_type h,
   | `(prod _ _)  := tt
   | `(and _ _)   := tt
   | `(sigma _)   := tt
+  | `(psigma _)  := tt
   | `(subtype _) := tt
   | `(Exists _)  := tt
   | `(fin 0)     := tt

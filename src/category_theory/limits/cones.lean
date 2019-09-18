@@ -18,7 +18,7 @@ open category_theory
 -- not into `Sort v`.
 -- So we don't allow this case; it's not particularly useful anyway.
 variables {J : Type v} [small_category J]
-variables {C : Type u} [𝒞 : category.{v+1} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
 open category_theory
@@ -207,7 +207,7 @@ attribute [simp] cone_morphism.w
   (w : f.hom = g.hom) : f = g :=
 by cases f; cases g; simpa using w
 
-instance cone.category : category.{v+1} (cone F) :=
+instance cone.category : category.{v} (cone F) :=
 { hom  := λ A B, cone_morphism A B,
   comp := λ X Y Z f g,
   { hom := f.hom ≫ g.hom,
@@ -266,7 +266,7 @@ def forget : cone F ⥤ C :=
 @[simp] lemma forget_map {s t : cone F} {f : s ⟶ t} : forget.map f = f.hom := rfl
 
 section
-variables {D : Type u'} [𝒟 : category.{v+1} D]
+variables {D : Type u'} [𝒟 : category.{v} D]
 include 𝒟
 
 @[simp] def functoriality (G : C ⥤ D) : cone F ⥤ cone (F ⋙ G) :=
@@ -291,7 +291,7 @@ attribute [simp] cocone_morphism.w
   {A B : cocone F} {f g : cocone_morphism A B} (w : f.hom = g.hom) : f = g :=
 by cases f; cases g; simpa using w
 
-instance cocone.category : category.{v+1} (cocone F) :=
+instance cocone.category : category.{v} (cocone F) :=
 { hom  := λ A B, cocone_morphism A B,
   comp := λ _ _ _ f g,
   { hom := f.hom ≫ g.hom,
@@ -348,7 +348,7 @@ def forget : cocone F ⥤ C :=
 @[simp] lemma forget_map {s t : cocone F} {f : s ⟶ t} : forget.map f = f.hom := rfl
 
 section
-variables {D : Type u'} [𝒟 : category.{v+1} D]
+variables {D : Type u'} [𝒟 : category.{v} D]
 include 𝒟
 
 @[simp] def functoriality (G : C ⥤ D) : cocone F ⥤ cocone (F ⋙ G) :=
@@ -365,7 +365,7 @@ end limits
 
 namespace functor
 
-variables {D : Type u'} [category.{v+1} D]
+variables {D : Type u'} [category.{v} D]
 variables {F : J ⥤ C} {G : J ⥤ C} (H : C ⥤ D)
 
 open category_theory.limits

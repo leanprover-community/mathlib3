@@ -16,6 +16,11 @@ maybe it is useful for writing automation.
 
 section miscellany
 
+/- We add the `inline` attribute to optimize VM computation using these declarations. For example,
+  `if p ∧ q then ... else ...` will not evaluate the decidability of `q` if `p` is false. -/
+attribute [inline] and.decidable or.decidable decidable.false xor.decidable iff.decidable
+  decidable.true implies.decidable not.decidable ne.decidable
+
 variables {α : Type*} {β : Type*}
 
 @[reducible] def hidden {a : α} := a
@@ -63,10 +68,10 @@ instance subsingleton_pempty : subsingleton pempty := ⟨λa, a.elim⟩
 @[simp] lemma not_nonempty_pempty : ¬ nonempty pempty :=
 assume ⟨h⟩, h.elim
 
-theorem forall_pempty {P : pempty → Prop} : (∀ x : pempty, P x) ↔ true :=
+@[simp] theorem forall_pempty {P : pempty → Prop} : (∀ x : pempty, P x) ↔ true :=
 ⟨λ h, trivial, λ h x, by cases x⟩
 
-theorem exists_pempty {P : pempty → Prop} : (∃ x : pempty, P x) ↔ false :=
+@[simp] theorem exists_pempty {P : pempty → Prop} : (∃ x : pempty, P x) ↔ false :=
 ⟨λ h, by { cases h with w, cases w }, false.elim⟩
 
 lemma congr_arg_heq {α} {β : α → Sort*} (f : ∀ a, β a) : ∀ {a₁ a₂ : α}, a₁ = a₂ → f a₁ == f a₂
@@ -79,6 +84,14 @@ lemma plift.down_inj {α : Sort*} : ∀ (a b : plift α), a.down = b.down → a 
 attribute [symm] ne.symm
 
 lemma ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨ne.symm, ne.symm⟩
+
+@[simp] lemma eq_iff_eq_cancel_left {b c : α} :
+  (∀ {a}, a = b ↔ a = c) ↔ (b = c) :=
+⟨λ h, by rw [← h], λ h a, by rw h⟩
+
+@[simp] lemma eq_iff_eq_cancel_right {a b : α} :
+  (∀ {c}, a = c ↔ b = c) ↔ (a = b) :=
+⟨λ h, by rw h, λ h a, by rw h⟩
 
 end miscellany
 
@@ -297,7 +310,7 @@ by rw [@iff_def (¬ a), @iff_def' a]; exact and_congr not_imp_not not_imp_not
 theorem not_iff_comm [decidable a] [decidable b] : (¬ a ↔ b) ↔ (¬ b ↔ a) :=
 by rw [@iff_def (¬ a), @iff_def (¬ b)]; exact and_congr not_imp_comm imp_not_comm
 
-theorem not_iff [decidable a] [decidable b] : ¬ (a ↔ b) ↔ (¬ a ↔ b) :=
+theorem not_iff [decidable b] : ¬ (a ↔ b) ↔ (¬ a ↔ b) :=
 by split; intro h; [split, skip]; intro h'; [by_contradiction,intro,skip];
    try { refine h _; simp [*] }; rw [h',not_iff_self] at h; exact h
 
@@ -642,7 +655,7 @@ theorem bex.imp_left (H : ∀ x, p x → q x) :
   (∃ x (_ : p x), r x) → ∃ x (_ : q x), r x
 | ⟨x, hp, hr⟩ := ⟨x, H _ hp, hr⟩
 
-theorem ball_of_forall (h : ∀ x, p x) (x) (_ : q x) : p x :=
+theorem ball_of_forall (h : ∀ x, p x) (x) : p x :=
 h x
 
 theorem forall_of_ball (H : ∀ x, p x) (h : ∀ x, p x → q x) (x) : q x :=

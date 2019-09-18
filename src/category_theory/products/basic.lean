@@ -10,18 +10,15 @@ import tactic.interactive
 namespace category_theory
 
 universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄ -- declare the `v`'s first; see `category_theory.category` for an explanation
--- An awkward note on universes:
--- we need to make sure we're in `Type`, not `Sort`
--- for both objects and morphisms when taking products.
 
 section
-variables (C : Type u₁) [𝒞 : category.{v₁+1} C] (D : Type u₂) [𝒟 : category.{v₂+1} D]
+variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
 /--
 `prod C D` gives the cartesian product of two categories.
 -/
-instance prod : category.{max (v₁+1) (v₂+1)} (C × D) :=
+instance prod : category.{max v₁ v₂} (C × D) :=
 { hom     := λ X Y, ((X.1) ⟶ (Y.1)) × ((X.2) ⟶ (Y.2)),
   id      := λ X, ⟨ 𝟙 (X.1), 𝟙 (X.2) ⟩,
   comp    := λ _ _ _ f g, (f.1 ≫ g.1, f.2 ≫ g.2) }
@@ -39,18 +36,18 @@ instance prod : category.{max (v₁+1) (v₂+1)} (C × D) :=
 end
 
 section
-variables (C : Type u₁) [𝒞 : category.{v₁+1} C] (D : Type u₁) [𝒟 : category.{v₁+1} D]
+variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₁) [𝒟 : category.{v₁} D]
 include 𝒞 𝒟
 /--
 `prod.category.uniform C D` is an additional instance specialised so both factors have the same universe levels. This helps typeclass resolution.
 -/
 instance uniform_prod : category (C × D) := category_theory.prod C D
 end
--- Next we define the natural functors into and out of product categories. For now this doesn't address the universal properties.
 
+-- Next we define the natural functors into and out of product categories. For now this doesn't address the universal properties.
 namespace prod
 
-variables (C : Type u₁) [𝒞 : category.{v₁+1} C] (D : Type u₂) [𝒟 : category.{v₂+1} D]
+variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
 /-- `inl C Z` is the functor `X ↦ (X, Z)`. -/
@@ -123,11 +120,6 @@ def evaluation : C ⥤ (C ⥤ D) ⥤ D :=
   ((evaluation C D).obj X).map α = α.app X := rfl
 @[simp] lemma evaluation_map_app {X Y} (f : X ⟶ Y) (F) :
   ((evaluation C D).map f).app F = F.map f := rfl
-end
-
-section
-variables (C : Type u₁) [𝒞 : category.{v₁+1} C] (D : Type u₂) [𝒟 : category.{v₂+1} D]
-include 𝒞 𝒟
 
 def evaluation_uncurried : C × (C ⥤ D) ⥤ D :=
 { obj := λ p, p.2.obj p.1,
@@ -146,10 +138,10 @@ def evaluation_uncurried : C × (C ⥤ D) ⥤ D :=
 
 end
 
-variables {A : Type u₁} [𝒜 : category.{v₁+1} A]
-          {B : Type u₂} [ℬ : category.{v₂+1} B]
-          {C : Type u₃} [𝒞 : category.{v₃+1} C]
-          {D : Type u₄} [𝒟 : category.{v₄+1} D]
+variables {A : Type u₁} [𝒜 : category.{v₁} A]
+          {B : Type u₂} [ℬ : category.{v₂} B]
+          {C : Type u₃} [𝒞 : category.{v₃} C]
+          {D : Type u₄} [𝒟 : category.{v₄} D]
 include 𝒜 ℬ 𝒞 𝒟
 
 namespace functor

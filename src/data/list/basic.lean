@@ -770,14 +770,14 @@ theorem nth_le_nth : ∀ {l : list α} {n} h, nth l n = some (nth_le l n h)
 | (a :: l) 0     h := rfl
 | (a :: l) (n+1) h := @nth_le_nth l n _
 
-theorem nth_ge_len : ∀ {l : list α} {n}, n ≥ length l → nth l n = none
+theorem nth_len_le : ∀ {l : list α} {n}, length l ≤ n → nth l n = none
 | []       n     h := rfl
-| (a :: l) (n+1) h := nth_ge_len (le_of_succ_le_succ h)
+| (a :: l) (n+1) h := nth_len_le (le_of_succ_le_succ h)
 
 theorem nth_eq_some {l : list α} {n a} : nth l n = some a ↔ ∃ h, nth_le l n h = a :=
 ⟨λ e,
   have h : n < length l, from lt_of_not_ge $ λ hn,
-    by rw nth_ge_len hn at e; contradiction,
+    by rw nth_len_le hn at e; contradiction,
   ⟨h, by rw nth_le_nth h at e;
     injection e with e; apply nth_le_mem⟩,
 λ ⟨h, e⟩, e ▸ nth_le_nth _⟩
@@ -847,7 +847,7 @@ theorem ext : ∀ {l₁ l₂ : list α}, (∀n, nth l₁ n = nth l₂ n) → l�
 theorem ext_le {l₁ l₂ : list α} (hl : length l₁ = length l₂) (h : ∀n h₁ h₂, nth_le l₁ n h₁ = nth_le l₂ n h₂) : l₁ = l₂ :=
 ext $ λn, if h₁ : n < length l₁
   then by rw [nth_le_nth, nth_le_nth, h n h₁ (by rwa [← hl])]
-  else let h₁ := le_of_not_gt h₁ in by rw [nth_ge_len h₁, nth_ge_len (by rwa [← hl])]
+  else let h₁ := le_of_not_gt h₁ in by { rw [nth_len_le h₁, nth_len_le], rwa [←hl], }
 
 @[simp] theorem index_of_nth_le [decidable_eq α] {a : α} : ∀ {l : list α} h, nth_le l (index_of a l) h = a
 | (b::l) h := by by_cases h' : a = b; simp only [h', if_pos, if_false, index_of_cons, nth_le, @index_of_nth_le l]
@@ -1060,14 +1060,14 @@ theorem take_cons (n) (a : α) (l : list α) : take (succ n) (a::l) = a :: take 
 | []     := rfl
 | (a::l) := begin change a :: (take (length l) l) = a :: l, rw take_all end
 
-theorem take_all_of_ge : ∀ {n} {l : list α}, n ≥ length l → take n l = l
+theorem take_all_of_le : ∀ {n} {l : list α}, length l ≤ n → take n l = l
 | 0     []     h := rfl
 | 0     (a::l) h := absurd h (not_le_of_gt (zero_lt_succ _))
 | (n+1) []     h := rfl
 | (n+1) (a::l) h :=
   begin
     change a :: take n l = a :: l,
-    rw [take_all_of_ge (le_of_succ_le_succ h)]
+    rw [take_all_of_le (le_of_succ_le_succ h)]
   end
 
 @[simp] theorem take_left : ∀ l₁ l₂ : list α, take (length l₁) (l₁ ++ l₂) = l₁
@@ -1372,8 +1372,9 @@ variables [is_lawful_monad m]
 
 end mfoldl_mfoldr
 
-/- sum -/
+/- prod -/
 
+-- list.sum was already defined in defs.lean, but we couldn't tag it with `to_additive` yet.
 attribute [to_additive] list.prod
 
 section monoid
@@ -1959,6 +1960,10 @@ if_pos rfl
 
 @[simp] theorem count_cons_of_ne {a b : α} (h : a ≠ b) (l : list α) : count a (b::l) = count a l :=
 if_neg h
+
+theorem count_tail : Π (l : list α) (a : α) (h : 0 < l.length),
+  l.tail.count a = l.count a - ite (a = list.nth_le l 0 h) 1 0
+| (_ :: _) a h := by { rw [count_cons], split_ifs; simp }
 
 theorem count_le_of_sublist (a : α) {l₁ l₂} : l₁ <+ l₂ → count a l₁ ≤ count a l₂ :=
 countp_le_of_sublist
@@ -2647,7 +2652,7 @@ lemma rel_filter_map {f : α → option γ} {q : β → option δ} :
 @[to_additive]
 lemma rel_prod [monoid α] [monoid β]
   (h : r 1 1) (hf : (r ⇒ r ⇒ r) (*) (*)) : (forall₂ r ⇒ r) prod prod :=
-assume a b, rel_foldl (assume a b, hf) h
+rel_foldl hf h
 
 end forall₂
 
@@ -2983,6 +2988,7 @@ theorem erase_diff_erase_sublist_of_sublist {a : α} : ∀ {l₁ l₂ : list α}
 | (b::l₁) l₂ h := if heq : b = a then by simp only [heq, erase_cons_head, diff_cons]
                   else by simpa only [erase_cons_head, erase_cons_tail _ heq, diff_cons, erase_comm a b l₂]
                   using erase_diff_erase_sublist_of_sublist (erase_sublist_erase b h)
+using_well_founded wf_tacs
 
 end diff
 
@@ -4422,7 +4428,7 @@ by rwa [← succ_singleton, append_consecutive]; exact nat.le_succ _
 theorem eq_cons {n m : ℕ} (h : n < m) : Ico n m = n :: Ico (n + 1) m :=
 by rw [← append_consecutive (nat.le_succ n) h, succ_singleton]; refl
 
-@[simp] theorem pred_singleton {m : ℕ} (h : m > 0) : Ico (m - 1) m = [m - 1] :=
+@[simp] theorem pred_singleton {m : ℕ} (h : 0 < m) : Ico (m - 1) m = [m - 1] :=
 by dsimp [Ico]; rw nat.sub_sub_self h; simp
 
 theorem chain'_succ (n m : ℕ) : chain' (λa b, b = succ a) (Ico n m) :=
@@ -4456,25 +4462,25 @@ begin
   { rw [min_eq_right hlm, filter_lt_of_ge hlm] }
 end
 
-lemma filter_ge_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, x ≥ l) = Ico n m :=
+lemma filter_le_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, l ≤ x) = Ico n m :=
 filter_eq_self.2 $ assume k hk, le_trans hln (mem.1 hk).1
 
-lemma filter_ge_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, x ≥ l) = [] :=
+lemma filter_le_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, l ≤ x) = [] :=
 filter_eq_nil.2 $ assume k hk, not_le_of_gt (lt_of_lt_of_le (mem.1 hk).2 hml)
 
-lemma filter_ge_of_ge {n m l : ℕ} (hnl : n ≤ l) : (Ico n m).filter (λ x, x ≥ l) = Ico l m :=
+lemma filter_le_of_le {n m l : ℕ} (hnl : n ≤ l) : (Ico n m).filter (λ x, l ≤ x) = Ico l m :=
 begin
   cases le_total l m with hlm hml,
   { rw [← append_consecutive hnl hlm, filter_append,
-      filter_ge_of_top_le (le_refl l), filter_ge_of_le_bot (le_refl l), nil_append] },
-  { rw [eq_nil_of_le hml, filter_ge_of_top_le hml] }
+      filter_le_of_top_le (le_refl l), filter_le_of_le_bot (le_refl l), nil_append] },
+  { rw [eq_nil_of_le hml, filter_le_of_top_le hml] }
 end
 
-@[simp] lemma filter_ge (n m l : ℕ) : (Ico n m).filter (λ x, x ≥ l) = Ico (_root_.max n l) m :=
+@[simp] lemma filter_le (n m l : ℕ) : (Ico n m).filter (λ x, l ≤ x) = Ico (_root_.max n l) m :=
 begin
   cases le_total n l with hnl hln,
-  { rw [max_eq_right hnl, filter_ge_of_ge hnl] },
-  { rw [max_eq_left hln, filter_ge_of_le_bot hln] }
+  { rw [max_eq_right hnl, filter_le_of_le hnl] },
+  { rw [max_eq_left hln, filter_le_of_le_bot hln] }
 end
 
 end Ico
@@ -4539,10 +4545,10 @@ theorem tfae_of_forall (b : Prop) (l : list Prop) (h : ∀ a ∈ l, a ↔ b) : t
 theorem tfae_of_cycle {a b} {l : list Prop} :
   list.chain (→) a (b::l) → (ilast' b l → a) → tfae (a::b::l) :=
 begin
-  induction l with c l IH generalizing a b; simp [tfae_cons_cons, tfae_singleton] at *,
-  { intros a _ b, exact iff.intro a b },
-  intros ab bc ch la,
-  have := IH bc ch (ab ∘ la),
+  induction l with c l IH generalizing a b; simp only [tfae_cons_cons, tfae_singleton, and_true, chain_cons, chain.nil] at *,
+  { intros a b, exact iff.intro a b },
+  rintros ⟨ab,⟨bc,ch⟩⟩ la,
+  have := IH ⟨bc,ch⟩ (ab ∘ la),
   exact ⟨⟨ab, la ∘ (this.2 c (or.inl rfl) _ (ilast'_mem _ _)).1 ∘ bc⟩, this⟩
 end
 

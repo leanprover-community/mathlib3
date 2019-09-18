@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston
 -/
 
 import algebra.group
+import tactic.norm_cast
 
 /-!
 # Properties and homomorphisms of semirings and rings
@@ -227,6 +228,16 @@ section comm_ring
   theorem dvd_add_right {a b c : α} (h : a ∣ b) : a ∣ b + c ↔ a ∣ c :=
   (dvd_add_iff_right h).symm
 
+/-- An element a divides the sum a + b if and only if a divides b.-/
+@[simp] lemma dvd_add_self_left {a b : α} :
+  a ∣ a + b ↔ a ∣ b :=
+dvd_add_right (dvd_refl a)
+
+/-- An element a divides the sum b + a if and only if a divides b.-/
+@[simp] lemma dvd_add_self_right {a b : α} :
+  a ∣ b + a ↔ a ∣ b :=
+dvd_add_left (dvd_refl a)
+
 /-- Vieta's formula for a quadratic equation, relating the coefficients of the polynomial with
   its roots. This particular version states that if we have a root `x` of a monic quadratic
   polynomial, then there is another root `y` such that `x + y` is negative the `a_1` coefficient
@@ -298,12 +309,23 @@ infixr ` →+* `:25 := ring_hom
 instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe_to_fun (α →+* β) :=
 ⟨_, ring_hom.to_fun⟩
 
+instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe (α →+* β) (α →* β) :=
+⟨ring_hom.to_monoid_hom⟩
+
+instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe (α →+* β) (α →+ β) :=
+⟨ring_hom.to_add_monoid_hom⟩
+
+@[squash_cast] lemma coe_monoid_hom {α : Type*} {β : Type*} [semiring α] [semiring β] (f : α →+* β) (a : α) :
+  ((f : α →* β) : α → β) a = (f : α → β) a := rfl
+@[squash_cast] lemma coe_add_monoid_hom {α : Type*} {β : Type*} [semiring α] [semiring β] (f : α →+* β) (a : α) :
+  ((f : α →+ β) : α → β) a = (f : α → β) a := rfl
+
 namespace ring_hom
 
 variables {β : Type v} [semiring α] [semiring β]
 variables (f : α →+* β) {x y : α}
 
-@[extensionality] theorem ext (f g : α →+* β) (h : (f : α → β) = g) : f = g :=
+@[extensionality] theorem ext ⦃f g : α →+* β⦄ (h : (f : α → β) = g) : f = g :=
 by cases f; cases g; cases h; refl
 
 /-- Ring homomorphisms map zero to zero. -/

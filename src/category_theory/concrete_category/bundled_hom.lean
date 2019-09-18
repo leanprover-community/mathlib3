@@ -29,9 +29,9 @@ structure bundled_hom :=
 (id : Π {α : Type u} (I : c α), hom I I)
 (comp : Π {α β γ : Type u} (Iα : c α) (Iβ : c β) (Iγ : c γ),
   hom Iβ Iγ → hom Iα Iβ → hom Iα Iγ)
-(hom_ext : Π {α β : Type u} (Iα : c α) (Iβ : c β), function.injective (to_fun Iα Iβ) . obviously)
-(id_to_fun : Π {α : Type u} (I : c α), to_fun I I (id I) = _root_.id . obviously)
-(comp_to_fun : Π {α β γ : Type u} (Iα : c α) (Iβ : c β) (Iγ : c γ)
+(hom_ext : ∀ {α β : Type u} (Iα : c α) (Iβ : c β), function.injective (to_fun Iα Iβ) . obviously)
+(id_to_fun : ∀ {α : Type u} (I : c α), to_fun I I (id I) = _root_.id . obviously)
+(comp_to_fun : ∀ {α β γ : Type u} (Iα : c α) (Iβ : c β) (Iγ : c γ)
   (f : hom Iα Iβ) (g : hom Iβ Iγ),
   to_fun Iα Iγ (comp Iα Iβ Iγ g f) = (to_fun Iβ Iγ g) ∘ (to_fun Iα Iβ f) . obviously)
 
@@ -80,7 +80,7 @@ congr_fun ((forget _).map_comp _ _) x
 
 section full_subcategory
 
-variables {hom} (𝒞) {d : Type u → Type u} (obj : ∀ ⦃α⦄, d α → c α)
+variables {hom} (𝒞) {d : Type u → Type u} (obj : Π ⦃α⦄, d α → c α)
 include obj
 
 /--
@@ -107,8 +107,8 @@ variables {hom}
 
 /-- A version of `has_forget.mk'` for categories defined using `@bundled_hom`. -/
 def mk_has_forget {d : Type u → Type u} {hom_d : Π ⦃α β : Type u⦄ (Iα : d α) (Iβ : d β), Type u}
-  [bundled_hom hom_d] (obj : ∀ ⦃α⦄, c α → d α)
-  (map : ∀ {X Y : bundled c}, (X ⟶ Y) → ((bundled.map obj X) ⟶ (bundled.map obj Y)))
+  [bundled_hom hom_d] (obj : Π ⦃α⦄, c α → d α)
+  (map : Π {X Y : bundled c}, (X ⟶ Y) → ((bundled.map obj X) ⟶ (bundled.map obj Y)))
   (h_map : ∀ {X Y : bundled c} (f : X ⟶ Y), (map f : X → Y) = f)
   : has_forget (bundled c) (bundled d) :=
 has_forget.mk'

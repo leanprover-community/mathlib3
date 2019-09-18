@@ -40,7 +40,7 @@ variables {c hom} {c' : Type u → Type u} {hom' : Π ⦃α β⦄, c' α → c' 
   [𝒞' : unbundled_hom hom']
 include 𝒞'
 
-variables (obj : ∀ ⦃α⦄, c α → c' α)
+variables (obj : Π ⦃α⦄, c α → c' α)
   (map : ∀ ⦃α β Iα Iβ f⦄, @hom α β Iα Iβ f → hom' (obj Iα) (obj Iβ) f)
 
 /-- A custom constructor for forgetful functor between concrete categories defined using `unbundled_hom`. -/

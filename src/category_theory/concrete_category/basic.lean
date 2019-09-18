@@ -75,7 +75,7 @@ it suffices to ensure that compositions agree with `forget₂ C D ⋙ forget D =
 -/
 def has_forget.mk' {C D : Type (u+1)} [concrete_category C] [concrete_category D]
   (obj : C → D) (h_obj : ∀ X, (forget D).obj (obj X) = (forget C).obj X)
-  (map : ∀ {X Y}, (X ⟶ Y) → (obj X ⟶ obj Y))
+  (map : Π {X Y}, (X ⟶ Y) → (obj X ⟶ obj Y))
   (h_map : ∀ {X Y} {f : X ⟶ Y}, (forget D).map (map f) == (forget C).map f) :
 has_forget C D :=
 { forget₂ := faithful.div _ _ _ @h_obj _ @h_map,

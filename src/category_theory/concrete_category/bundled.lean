@@ -33,7 +33,7 @@ instance : has_coe_to_sort (bundled c) :=
 { S := Type u, coe := bundled.α }
 
 /-- Map over the bundled structure -/
-def map (f : ∀ {α}, c α → d α) (b : bundled c) : bundled d :=
+def map (f : Π {α}, c α → d α) (b : bundled c) : bundled d :=
 ⟨b.α, f b.str⟩
 
 end bundled

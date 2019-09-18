@@ -97,7 +97,7 @@ variables (F G)
 /-- “Divide” a functor by a faithful functor. -/
 protected def faithful.div (F : C ⥤ E) (G : D ⥤ E) [faithful G]
   (obj : C → D) (h_obj : ∀ X, G.obj (obj X) = F.obj X)
-  (map : ∀ {X Y}, (X ⟶ Y) → (obj X ⟶ obj Y))
+  (map : Π {X Y}, (X ⟶ Y) → (obj X ⟶ obj Y))
   (h_map : ∀ {X Y} {f : X ⟶ Y}, G.map (map f) == F.map f) :
   C ⥤ D :=
 { obj := obj,
@@ -124,7 +124,7 @@ protected def faithful.div (F : C ⥤ E) (G : D ⥤ E) [faithful G]
 
 lemma faithful.div_comp (F : C ⥤ E) [faithful F] (G : D ⥤ E) [faithful G]
   (obj : C → D) (h_obj : ∀ X, G.obj (obj X) = F.obj X)
-  (map : ∀ {X Y}, (X ⟶ Y) → (obj X ⟶ obj Y))
+  (map : Π {X Y}, (X ⟶ Y) → (obj X ⟶ obj Y))
   (h_map : ∀ {X Y} {f : X ⟶ Y}, G.map (map f) == F.map f) :
   (faithful.div F G obj @h_obj @map @h_map) ⋙ G = F :=
 begin
@@ -141,7 +141,7 @@ end
 
 lemma faithful.div_faithful (F : C ⥤ E) [faithful F] (G : D ⥤ E) [faithful G]
   (obj : C → D) (h_obj : ∀ X, G.obj (obj X) = F.obj X)
-  (map : ∀ {X Y}, (X ⟶ Y) → (obj X ⟶ obj Y))
+  (map : Π {X Y}, (X ⟶ Y) → (obj X ⟶ obj Y))
   (h_map : ∀ {X Y} {f : X ⟶ Y}, G.map (map f) == F.map f) :
   faithful (faithful.div F G obj @h_obj @map @h_map) :=
 (faithful.div_comp F G _ h_obj _ @h_map).faithful_of_comp

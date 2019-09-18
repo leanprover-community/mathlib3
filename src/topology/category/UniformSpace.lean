@@ -98,7 +98,7 @@ noncomputable def completion_functor : UniformSpace ⥤ CpltSepUniformSpace :=
   map := λ X Y f, ⟨completion.map f.1, completion.uniform_continuous_map⟩,
   map_comp' := λ X Y Z f g,
   begin
-  apply subtype.ext.2,
+  apply subtype.eq,
   dsimp,
   rw ←completion.map_comp,
   refl,
@@ -129,7 +129,7 @@ noncomputable def extension_hom {X : UniformSpace} {Y : CpltSepUniformSpace}
 @[simp] lemma extension_comp_coe {X : UniformSpace} {Y : CpltSepUniformSpace}
 (f : to_UniformSpace (CpltSepUniformSpace.of (completion X)) ⟶ to_UniformSpace Y) :
 extension_hom (completion_hom X ≫ f) = f :=
-by { apply subtype.ext.2, funext x, exact congr_fun (completion.extension_comp_coe f.property) x }
+by { apply subtype.eq, funext x, exact congr_fun (completion.extension_comp_coe f.property) x }
 
 /-- The completion functor is left adjoint to the forgetful functor. -/
 noncomputable def adj : completion_functor ⊣ (forget₂ CpltSepUniformSpace UniformSpace) :=
@@ -140,7 +140,7 @@ adjunction.mk_of_hom_equiv
     left_inv := λ f, by { dsimp, erw extension_comp_coe },
     right_inv := λ f,
     begin
-      apply subtype.ext.2, funext x, cases f,
+      apply subtype.eq, funext x, cases f,
       change completion.extension f_val _ = f_val x,
       erw completion.extension_coe, assumption
     end },

@@ -17,7 +17,7 @@ import group_theory.submonoid algebra.pi_instances data.equiv.algebra
 variables {M : Type*} {N : Type*} {P : Type*}
 
 set_option old_structure_cmd true
-
+local infix ` • ` := add_monoid.smul
 namespace mul_equiv
 
 -- group_theory.submonoid doesn't import data.equiv.algebra and vice versa. 
@@ -62,8 +62,7 @@ inductive add_con_gen.rel [has_add M] (r : M → M → Prop) : M → M → Prop
 /-- The inductively defined multiplicative congruence closure of a binary relation. -/
 @[to_additive add_con_gen "The inductively defined additive congruence closure of a binary relation."] 
 def con_gen [has_mul M] (r : M → M → Prop) : con M :=
-⟨con_gen.rel r, ⟨λ _, con_gen.rel.refl _, λ _ _ h, con_gen.rel.symm _ _ h, 
-  λ _ _ _ h1 h2, con_gen.rel.trans _ _ _ h1 h2⟩, con_gen.rel.mul⟩
+⟨con_gen.rel r, ⟨con_gen.rel.refl, con_gen.rel.symm, con_gen.rel.trans⟩, con_gen.rel.mul⟩
 
 variables {M}
 namespace con
@@ -106,6 +105,8 @@ by cases c; cases d; simpa using H
 lemma ext {c d : con M} (H : ∀ x y, c x y ↔ d x y) :
   c = d := r_inj $ by ext x y; exact H x y
 
+attribute [extensionality] add_con.ext
+
 /-- Iff version of extensionality rule for congruence relations. -/
 @[to_additive "Iff version of extensionality rule for congruence relations."] 
 lemma ext_iff {c d : con M} : (∀ x y, c x y ↔ d x y) ↔ c = d :=
@@ -133,87 +134,99 @@ variables (c)
 
 @[simp, to_additive] lemma setoid_eq : c.to_setoid.r = c := rfl
 
+-- Quotients 
+
 /-- Defining the quotient of a type by a congruence relation. -/
 @[to_additive "Defining the quotient of a type by a congruence relation."] 
 protected def quotient := quotient $ c.to_setoid
 
-/-- Coercion from a type to its quotient under a congruence relation. -/
-@[to_additive "Coercion from a type to its quotient under a congruence relation", priority 0] 
+/-- Coercion from a type to its quotient by a congruence relation. -/
+@[to_additive "Coercion from a type to its quotient by a congruence relation", priority 0] 
 instance : has_coe M (c.quotient) := ⟨@quotient.mk _ c.to_setoid⟩
 
-/-- The quotient of a type with decidable equality under a congruence relation also has
+/-- The quotient of a type with decidable equality by a congruence relation also has
     decidable equality. -/
-@[to_additive] instance [d : ∀ a b, decidable (c a b)] : decidable_eq c.quotient :=
+@[to_additive "The quotient of a type with decidable equality by a congruence relation also has decidable equality."] 
+instance [d : ∀ a b, decidable (c a b)] : decidable_eq c.quotient :=
 @quotient.decidable_eq M c.to_setoid d
 
-/-- Defines a function on the quotient of M by a congruence relation c, given a function 
-    on M that is constant on c's equivalence classes. -/
-@[elab_as_eliminator, reducible, to_additive]
+/-- Defines a function on the quotient by a congruence relation c, given a function 
+    that is constant on c's equivalence classes. -/
+@[elab_as_eliminator, reducible, to_additive "Defines a function on the quotient by a congruence relation c, given a function that is constant on c's equivalence classes."]
 protected def lift_on {β} {c : con M} (q : c.quotient) (f : M → β)
   (h : ∀ a b, c a b → f a = f b) : β := quotient.lift_on' q f h
 
 variables {c}
 
-/-- A proposition is true for all elements of a quotient of M by a congruence relation if it is
-    for all x ∈ M, it is true for the image of x under the coercion to the quotient. -/
-@[elab_as_eliminator, to_additive]
-lemma ind {C : c.quotient → Prop} (H : ∀ x : M, C x) : ∀ q, C q :=
-quotient.ind' H
+--/-- A proposition is true for all elements of a quotient by a congruence relation if it is true 
+--    for all elements that are coercions. -/
+--@[elab_as_eliminator, to_additive "A proposition is true for all elements of a quotient by a congruence relation if it is true for all elements that are coercions."]
+--lemma ind {C : c.quotient → Prop} (H : ∀ x : M, C x) : ∀ q, C q :=
+--quotient.ind' H
 
-/-- A proposition is true for an element of a quotient of M by a congruence relation if
-    for all x ∈ M, it is true for the image of x under the coercion to the quotient. -/
-@[elab_as_eliminator, to_additive]
+/-- A proposition is true for an element of the quotient by a congruence relation if it is true 
+    for all elements that are coercions. -/
+@[elab_as_eliminator, to_additive "A proposition is true for an element of the quotient by a congruence relation if it is true for all elements that are coercions"]
 lemma induction_on {C : c.quotient → Prop} (q : c.quotient) (H : ∀ x : M, C x) : C q :=
 quotient.induction_on' q H
 
-/-- A version of con.induction_on which takes two arguments (which needn't be from quotients 
-    on the same type). -/
-@[elab_as_eliminator, to_additive]
-lemma induction_on₂ {d : con N} {C : c.quotient → d.quotient → Prop}
-  (p : c.quotient) (q : d.quotient) (H : ∀ (x : M) (y : N), C x y) : C p q :=
-quotient.induction_on₂' p q H
+--/-- A version of con.induction_on which takes two arguments (which needn't be from quotients 
+--    on the same type). -/
+--@[elab_as_eliminator, to_additive "A version of add_con.induction_on which takes two arguments (which needn't be from quotients on the same type)."]
+--lemma induction_on₂ {d : con N} {C : c.quotient → d.quotient → Prop}
+--  (p : c.quotient) (q : d.quotient) (H : ∀ (x : M) (y : N), C x y) : C p q :=
+--quotient.induction_on₂' p q H
 
 variables (c)
 
-/-- Two elements are related by a congruence relation ↔ they are mapped to the same element
-   of the quotient type. -/
-@[simp, to_additive] protected lemma eq (a b : M) : (a : c.quotient) = b ↔ c a b :=
+/-- Two elements are related by a congruence relation iff they are represented by the same element
+    of the quotient. -/
+@[simp, to_additive "Two elements are related by a congruence relation iff they are represented by the same element of the quotient."] 
+protected lemma eq (a b : M) : (a : c.quotient) = b ↔ c a b :=
 quotient.eq'
+-- The additive version of this is not protected, going by to_additive.lean
 
-/-- Defining multiplication on the quotient of a type by a congruence relation. -/
-@[to_additive] instance has_mul : has_mul c.quotient :=
+/-- Defining multiplication on the quotient of a congruence relation. -/
+@[to_additive "Defining addition on the quotient of a congruence relation."] 
+instance has_mul : has_mul c.quotient :=
 ⟨λ x y, quotient.lift_on₂' x y (λ w z, (((w*z) : M) : c.quotient))
          $ λ _ _ _ _ h1 h2, (c.eq _ _).2 $ c.mul h1 h2⟩
 
 variables {c} 
 
-/-- The coercion to the quotient by a congruence relation commutes with multiplication by definition. -/
-@[simp, to_additive] lemma coe_mul (x y : M) : 
+/-- The coercion to the quotient of a congruence relation commutes with multiplication by 
+    definition. -/
+@[simp, to_additive "The coercion to the quotient of a congruence relation commutes with addition by definition."] 
+lemma coe_mul (x y : M) : 
   (x : c.quotient) * (y : c.quotient) = ((x * y : M) : c.quotient)  := rfl
 
-/-- Stating the definition of the function on the quotient of M by a congruence relation c
-    induced by a function on M that is constant on c's equivalence classes. -/
-@[simp, to_additive] lemma lift_on_beta {β} (c : con M) (f : M → β)
+/-- Definition of the function on the quotient of a congruence relation c induced by a function that is constant on c's equivalence classes. -/
+@[simp, to_additive "Definition of the function on the quotient of a congruence relation induced by a function that is constant on c's equivalence classes."] 
+lemma lift_on_beta {β} (c : con M) (f : M → β)
   (h : ∀ a b, c a b → f a = f b) (x : M) :
   con.lift_on (x : c.quotient) f h = f x := rfl 
 
-/-- Makes a multiplicative isomorphism between the quotients of M by 2 congruence relations, given 
+/-- Makes a multiplicative isomorphism between the quotients of 2 congruence relations, given 
     that the relations are equal. -/
-@[to_additive] protected def congr {c d : con M} (h : c = d) :  c.quotient ≃* d.quotient :=
+@[to_additive "Makes an additive isomorphism between the quotients of 2 congruence relations, given that the relations are equal."] 
+protected def congr {c d : con M} (h : c = d) :  c.quotient ≃* d.quotient :=
 { map_mul' := λ x y, by rcases x; rcases y; refl,
   ..quotient.congr (equiv.refl M) $ by apply ext_iff.2 h }
 
 open lattice 
 
-/-- For congruence relations c d, c ≤ d iff ∀ x y ∈ M, x is related to y by d if x is
-    related to y by c. -/
-@[to_additive] instance : has_le (con M) := ⟨λ c d, c.to_setoid ≤ d.to_setoid⟩
+/-- For congruence relations c d on a type M with a multiplication, c ≤ d iff ∀ x y ∈ M, x is 
+    related to y by d if x is related to y by c. -/
+@[to_additive "For congruence relations c d on a type M with an addition, c ≤ d iff ∀ x y ∈ M, x is related to y by d if x is related to y by c."] 
+instance : has_le (con M) := ⟨λ c d, c.to_setoid ≤ d.to_setoid⟩
 
-/-- Stating the definition of ≤ for congruence relations. -/
-@[to_additive] theorem le_def {c d : con M} : c ≤ d ↔ ∀ {x y}, c x y → d x y := iff.rfl
+/-- Definition of ≤ for congruence relations. -/
+@[to_additive "Definition of ≤ for congruence relations."] 
+theorem le_def {c d : con M} : c ≤ d ↔ ∀ {x y}, c x y → d x y := iff.rfl
 
 /-- The infimum of a set of congruence relations on a given type. -/
-@[to_additive] instance : has_Inf (con M) :=
+@[to_additive "The infimum of a set of congruence relations on a given type."] 
+instance : has_Inf (con M) :=
 ⟨λ S, ⟨λ x y, ∀ c : con M, c ∈ S → c x y, 
 ⟨λ x c hc, c.refl x, λ _ _ h c hc, c.symm $ h c hc, 
  λ _ _ _ h1 h2 c hc, c.trans (h1 c hc) $ h2 c hc⟩,
@@ -221,13 +234,15 @@ open lattice
 
 /-- The infimum of a set of congruence relations is the same as the infimum of the set's image
     under the map to the underlying equivalence relation. -/
-@[to_additive] lemma Inf_to_setoid (S : set (con M)) : (Inf S).to_setoid = Inf (to_setoid '' S) :=
+@[to_additive "The infimum of a set of congruence relations is the same as the infimum of the set's image under the map to the underlying equivalence relation."] 
+lemma Inf_to_setoid (S : set (con M)) : (Inf S).to_setoid = Inf (to_setoid '' S) :=
 setoid.ext' $ λ x y, ⟨λ h r ⟨c, hS, hr⟩, by rw ←hr; exact h c hS, 
   λ h c hS, h c.to_setoid ⟨c, hS, rfl⟩⟩
 
 /-- The infimum of a set of congruence relations is the same as the infimum of the set's image 
     under the map to the underlying binary relation. -/
-@[to_additive] lemma Inf_def (S : set (con M)) : (Inf S).r = Inf (r '' S) :=
+@[to_additive "The infimum of a set of congruence relations is the same as the infimum of the set's image under the map to the underlying binary relation."] 
+lemma Inf_def (S : set (con M)) : (Inf S).r = Inf (r '' S) :=
 begin
   show (Inf S).to_setoid.rel = _,
   rw [Inf_to_setoid S, setoid.Inf_def], 
@@ -238,39 +253,43 @@ end
 
 /-- If a congruence relation c is contained in every element of a set s of congruence relations,
     c is contained in the infimum of s. -/
-@[to_additive] lemma le_Inf (s : set (con M)) (c) : (∀d ∈ s, c ≤ d) → c ≤ Inf s :=
+@[to_additive "If a congruence relation c is contained in every element of a set s of congruence relations, c is contained in the infimum of s."] 
+lemma le_Inf (s : set (con M)) (c) : (∀d ∈ s, c ≤ d) → c ≤ Inf s :=
 λ h _ _ hc r hr, h r hr _ _ hc
 
 /-- The infimum of a set of congruence relations on a given type is contained in every element
     of the set. -/
-@[to_additive] lemma Inf_le (s : set (con M)) (c) : c ∈ s → Inf s ≤ c :=
+@[to_additive "The infimum of a set of congruence relations on a given type is contained in every element of the set."] 
+lemma Inf_le (s : set (con M)) (c) : c ∈ s → Inf s ≤ c :=
 λ hc _ _ h, h c hc 
 
 /-- The inductively defined congruence closure of a binary relation r equals the infimum of the 
     set of congruence relations containing r. -/
-@[to_additive add_con_gen_eq] theorem con_gen_eq (r : M → M → Prop) : 
+@[to_additive add_con_gen_eq "The inductively defined congruence closure of a binary relation r equals the infimum of the set of congruence relations containing r."] 
+theorem con_gen_eq (r : M → M → Prop) : 
   con_gen r = Inf {s : con M | ∀ x y, r x y → s.r x y} :=
 ext $ λ x y, 
   ⟨λ H, con_gen.rel.rec_on H (λ _ _ h _ hs, hs _ _ h) (refl _) (λ _ _ _ h, symm _ h) 
-    (λ _ _ _ _ _ h1 h2, trans _ h1 h2) 
+    (λ _ _ _ _ _ h1, trans _ h1) 
     $ λ w x y z _ _ h1 h2 c hc, c.mul (h1 c hc) $ h2 c hc, 
   Inf_le _ _ (λ _ _, con_gen.rel.of _ _) _ _⟩
 
-/-- The congruence closure of a binary relation r is contained in any congruence relation containing
-    r. -/
-@[to_additive add_con_gen_le] 
+/-- The congruence closure of a binary relation r is contained in any congruence relation 
+    containing r. -/
+@[to_additive add_con_gen_le "The congruence closure of a binary relation r is contained in any congruence relation containing r."] 
 theorem con_gen_le {r : M → M → Prop} {c : con M} (h : ∀ x y, r x y → c.r x y) : 
   con_gen r ≤ c :=
 by rw con_gen_eq; exact Inf_le _ _ h
 
 /-- Congruence closure of binary relations is monotonic. -/
-@[to_additive add_con_gen_mono] 
+@[to_additive add_con_gen_mono "Congruence closure of binary relations is monotonic."] 
 theorem con_gen_mono {r s : M → M → Prop} (h : ∀ x y, r x y → s x y) : 
   con_gen r ≤ con_gen s :=
 con_gen_le $ λ x y hr, con_gen.rel.of _ _ $ h x y hr
 
 /-- The complete lattice of congruence relations on a given type. -/
-@[to_additive] instance : complete_lattice (con M) :=
+@[to_additive "The complete lattice of congruence relations on a given type."] 
+instance : complete_lattice (con M) :=
 { sup := λ c d, Inf { x | c ≤ x ∧ d ≤ x},
   le := (≤),
   lt := λ c d, c ≤ d ∧ ¬d ≤ c,
@@ -298,23 +317,26 @@ con_gen_le $ λ x y hr, con_gen.rel.of _ _ $ h x y hr
   le_Inf := λ _ _, le_Inf _ _ }
 
 /-- The infimum of 2 congruence relations equals the infimum of the underlying binary operations. -/
-@[to_additive] lemma inf_def {c d : con M} : (c ⊓ d).r = c.r ⊓ d.r := rfl 
+@[to_additive "The infimum of 2 congruence relations equals the infimum of the underlying binary operations."] 
+lemma inf_def {c d : con M} : (c ⊓ d).r = c.r ⊓ d.r := rfl 
 
 /-- The supremum of 2 congruence relations equals the congruence closure of the infimum of the 
     underlying binary operations. -/
-@[to_additive] lemma sup_def {c d : con M} : c ⊔ d = con_gen (c.r ⊔ d.r) :=
+@[to_additive "The supremum of 2 congruence relations equals the congruence closure of the infimum of the underlying binary operations."] 
+lemma sup_def {c d : con M} : c ⊔ d = con_gen (c.r ⊔ d.r) :=
 by rw sup_eq_con_gen; refl
 
 /-- Stating the definition of the infimum of two congruence relations. -/
-@[to_additive] theorem inf_iff_and {c d : con M} {x y} : (c ⊓ d) x y ↔ c x y ∧ d x y := iff.rfl
+@[to_additive "Stating the definition of the infimum of two congruence relations."] 
+theorem inf_iff_and {c d : con M} {x y} : (c ⊓ d) x y ↔ c x y ∧ d x y := iff.rfl
 
 /-- Congruence relations equal their congruence closure. -/
-@[simp, to_additive add_con_gen_of_add_con] 
+@[simp, to_additive add_con_gen_of_add_con "Congruence relations equal their congruence closure."] 
 lemma con_gen_of_con (c : con M) : con_gen c.r = c :=
 le_antisymm (by rw con_gen_eq; exact Inf_le _ c (λ x y h, h)) con_gen.rel.of
 
 /-- Congruence closure of binary relations is idempotent. -/
-@[simp, to_additive add_con_gen_idem] 
+@[simp, to_additive add_con_gen_idem "Congruence closure of binary relations is idempotent."] 
 lemma con_gen_idem (r : M → M → Prop) : 
   con_gen (con_gen r).r = con_gen r :=
 con_gen_of_con _ 
@@ -323,7 +345,8 @@ variables (M)
 
 /-- There is a Galois insertion of congruence relations on α into binary relations 
     on α, with congruence closure the lower adjoint. -/
-@[to_additive] def con.gi : @galois_insertion (M → M → Prop) (con M) _ _ con_gen r :=
+@[to_additive "There is a Galois insertion of congruence relations on α into binary relations on α, with congruence closure the lower adjoint."] 
+def con.gi : @galois_insertion (M → M → Prop) (con M) _ _ con_gen r :=
 { choice := λ r h, con_gen r,
  gc := λ r c, ⟨λ H _ _ h, H _ _ $ con_gen.rel.of _ _ h, λ H, con_gen_of_con c ▸ con_gen_mono H⟩,
   le_l_u := λ x, (con_gen_of_con x).symm ▸ le_refl x,
@@ -333,7 +356,7 @@ variables {M}
 
 /-- The supremum of congruence relations c, d equals the congruence closure of the binary relation
     'x is related to y by c or d'. -/
-@[to_additive sup_eq_add_con_gen] 
+@[to_additive sup_eq_add_con_gen "The supremum of congruence relations c, d equals the congruence closure of the binary relation 'x is related to y by c or d'."] 
 lemma sup_eq_con_gen (c d : con M) : 
   c ⊔ d = con_gen (λ x y, c x y ∨ d x y) :=
 by rw con_gen_eq; apply congr_arg Inf; ext; exact 
@@ -342,7 +365,7 @@ by rw con_gen_eq; apply congr_arg Inf; ext; exact
 
 /-- The supremum of a set of congruence relations S equals the congruence closure of the 
     binary relation '∃ c ∈ S such that x is related to y by c'. -/
-@[to_additive Sup_eq_add_con_gen] 
+@[to_additive Sup_eq_add_con_gen "The supremum of a set of congruence relations S equals the congruence closure of the binary relation '∃ c ∈ S such that x is related to y by c'."] 
 lemma Sup_eq_con_gen (S : set (con M)) : 
   Sup S = con_gen (λ x y, ∃ c : con M, c∈S ∧ c x y) :=
 by rw con_gen_eq; apply congr_arg Inf; ext;
@@ -350,7 +373,8 @@ by rw con_gen_eq; apply congr_arg Inf; ext;
 
 /-- The supremum of a set of congruence relations is the same as the congruence closure of the
     supremum of the set's image under the map to the underlying binary relation. -/
-@[to_additive] lemma Sup_def {S : set (con M)} : Sup S = con_gen (Sup (r '' S)) := 
+@[to_additive "The supremum of a set of congruence relations is the same as the congruence closure of the supremum of the set's image under the map to the underlying binary relation."] 
+lemma Sup_def {S : set (con M)} : Sup S = con_gen (Sup (r '' S)) := 
 begin
   rw Sup_eq_con_gen, 
   congr,
@@ -368,28 +392,32 @@ end
 
 variables (c)
 
-/-- Given a congruence relation c on M, the natural map from congruence relations containing
-    c to congruence relations on the quotient of M by c. -/
-@[to_additive to_add_con] def to_con (d : {d // c ≤ d}) : con c.quotient :=
+/-- Given a congruence relation c, the natural map from congruence relations containing
+    c to congruence relations on the quotient by c. -/
+@[to_additive to_add_con "Given a congruence relation c, the natural map from congruence relations containing c to congruence relations on the quotient by c."] 
+def to_con (d : {d // c ≤ d}) : con c.quotient :=
 { mul' := λ w x y z, quotient.induction_on₂' w x $ 
     λ _ _, quotient.induction_on₂' y z $ λ _ _ h1 h2, d.1.mul h1 h2, 
   ..c.to_setoid.to_quotient (⟨d.1.to_setoid, d.2⟩ : {d : setoid M // c.to_setoid ≤ d}) }
 
-/-- Given an congruence relation c on M and a map f to the quotient of M by c, an
-    congruence relation d on the quotient induces an congruence relation on f's domain defined
+/-- Given a multiplicative congruence relation c and a map f to the quotient by c which preserves 
+    multiplication, a congruence relation d on the quotient induces a congruence relation on f's domain defined
     by x ≈ y ↔ f(x) is related to f(y) by d. -/
-@[to_additive of_add_con] def of_con (f : N → c.quotient) (d : con c.quotient) : con N :=
+@[to_additive of_add_con "Given an additive congruence relation c and a map f to the quotient by c which preserves addition, a congruence relation d on the quotient induces a congruence relation on f's domain defined by x ≈ y ↔ f(x) is related to f(y) by d."] 
+def of_con (f : N → c.quotient) (h : ∀ x y, f x * f y = f (x * y))
+  (d : con c.quotient) : con N :=
 { r := λ x y, d (f x) (f y),
-  iseqv := ⟨λ x, d.refl _, λ _ _ h, d.symm h, λ _ _ _ h1 h2, d.trans h1 h2⟩,
-  mul' := λ _ _ _ _ h1 h2, d.mul h1 h2}
+  iseqv := ⟨λ x, d.refl _, λ _ _ h, d.symm h, λ _ _ _ h1, d.trans h1⟩,
+  mul' := λ w x y z h1 h2, h w y ▸ h x z ▸ d.mul h1 h2 }
 
-/-- Given an congruence relation c on M, the order-preserving bijection between the set of 
-    congruence relations containing c and the congruence relations on the quotient of M by c. -/
-@[to_additive] def correspondence : ((≤) : {d // c ≤ d} → {d // c ≤ d} → Prop) ≃o
+/-- Given a congruence relation c, the order-preserving bijection between the set of 
+    congruence relations containing c and the congruence relations on the quotient by c. -/
+@[to_additive "Given a congruence relation c, the order-preserving bijection between the set of congruence relations containing c and the congruence relations on the quotient by c."] 
+def correspondence : ((≤) : {d // c ≤ d} → {d // c ≤ d} → Prop) ≃o
   ((≤) : con c.quotient → con c.quotient → Prop) :=
 { to_fun := λ d, c.to_con d,
-  inv_fun := λ d, subtype.mk (c.of_con quotient.mk' d) $ 
-    λ x y h, show d x y, from (c.eq _ _).2 h ▸ d.refl x,
+  inv_fun := λ d, subtype.mk (c.of_con quotient.mk' coe_mul d) $ 
+    λ x y h, show d x y, from (c.eq x y).2 h ▸ refl d x,
   left_inv := λ d, by rw subtype.ext; ext; refl,
   right_inv := λ d, by ext; rcases x; rcases y; refl,
   ord := λ a b,
@@ -399,10 +427,44 @@ variables (c)
 
 end 
 
-variables (M) [monoid M] [monoid N] [monoid P]
+-- Monoids
+
+variables {M} [monoid M] [monoid N] [monoid P] (c : con M)
+
+/-- The quotient of a monoid by a congruence relation is a monoid. -/
+@[to_additive add_monoid "The quotient of an add_monoid by a congruence relation is an add_monoid."] 
+instance monoid : monoid c.quotient :=
+{ one := ((1 : M) : c.quotient),
+  mul := (*),
+  mul_assoc := λ x y z, quotient.induction_on₃' x y z
+               $ λ _ _ _, congr_arg coe $ mul_assoc _ _ _,
+  mul_one := λ x, quotient.induction_on' x $ λ _, congr_arg coe $ mul_one _,
+  one_mul := λ x, quotient.induction_on' x $ λ _, congr_arg coe $ one_mul _ }
+
+variables {c} 
+
+@[simp, to_additive] lemma coe_one : ((1 : M) : c.quotient) = 1 := rfl
+
+lemma coe_pow (x) : ∀ n : ℕ, (x ^ n : c.quotient) = (x : c.quotient) ^ n
+| 0       := pow_zero _
+| (n + 1) := pow_succ x n
+
+end con 
+
+lemma add_con.coe_smul [add_monoid M] {c : add_con M} (x) :
+  ∀ n : ℕ, (n • x : c.quotient) = n • (x : c.quotient) 
+| 0 := add_monoid.zero_smul _ 
+| (n + 1) := succ_smul x n 
+
+namespace con 
+
+attribute [to_additive coe_smul] coe_pow 
+
+variables (M) [monoid M] [monoid N] [monoid P] {c : con M}
 
 /-- The submonoid of M × M defined by a congruence relation on a monoid M. -/
-@[to_additive add_submonoid] protected def submonoid : submonoid (M × M) :=
+@[to_additive add_submonoid "The add_submonoid of M × M defined by a congruence relation on an add_monoid M."] 
+protected def submonoid : submonoid (M × M) :=
 { carrier := { x | c x.1 x.2 },
   one_mem' := c.iseqv.1 1,
   mul_mem' := λ _ _ hx hy, c.mul hx hy }
@@ -411,72 +473,64 @@ variables {M}
 
 /-- Makes a congruence relation on a monoid M from a submonoid of M × M which is 
     also an equivalence relation. -/
-@[to_additive of_add_submonoid] 
+@[to_additive of_add_submonoid "Makes a congruence relation on an add_monoid M from an add_submonoid of M × M which is also an equivalence relation."] 
 def of_submonoid (N : submonoid (M × M)) (H : equivalence (λ x y, (x, y) ∈ N)) : con M :=
 { r := λ x y, (x, y) ∈ N,
   iseqv := H,
   mul' := λ _ _ _ _ h1 h2, N.mul_mem h1 h2 }
 
 /-- The kernel of a monoid homomorphism as a congruence relation. -/
-@[to_additive] def ker (f : M →* P) : con M :=
+@[to_additive "The kernel of an add_monoid homomorphism as a congruence relation."] 
+def ker (f : M →* P) : con M :=
 { r := λ x y, f x = f y,
   iseqv := ⟨λ _, rfl, λ _ _ h, h.symm, λ _ _ _ hx hy, eq.trans hx hy⟩,
   mul' := λ _ _ _ _ h1 h2, by rw [f.map_mul, h1, h2, f.map_mul] }
 
 /-- Stating the definition of the congruence relation defined by a monoid homomorphism's kernel. -/
-@[to_additive] lemma ker_rel (f : M →* P) {x y} : con.ker f x y ↔ f x = f y := iff.rfl
+@[to_additive "Stating the definition of the congruence relation defined by an add_monoid homomorphism's kernel."] 
+lemma ker_rel (f : M →* P) {x y} : con.ker f x y ↔ f x = f y := iff.rfl
+
+variables (c) 
 
 /-- Restriction of a congruence relation to a submonoid. -/
-@[to_additive] def subtype (A : submonoid M) : con A :=
+@[to_additive "Restriction of a congruence relation to an add_submonoid."] 
+def subtype (A : submonoid M) : con A :=
 ⟨λ x y, c x y, ⟨λ x, c.refl x, λ x y h, c.symm h, λ x y z h1 h2, c.trans h1 h2⟩,
  λ w x y z h1 h2, c.mul h1 h2⟩
 
 variables {c} 
 
 /-- Stating the definition of the restriction of a congruence relation to a submonoid. -/
-@[simp, to_additive] lemma subtype_apply {A : submonoid M} {x y} : c.subtype A x y ↔ c x y := iff.rfl
+@[simp, to_additive "Stating the definition of the restriction of a congruence relation to an add_submonoid."] 
+lemma subtype_apply {A : submonoid M} {x y} : c.subtype A x y ↔ c x y := iff.rfl
 
 /-- There exists an element of the quotient of a monoid by a congruence relation (namely 1). -/
-@[to_additive] instance : inhabited c.quotient := ⟨((1 : M) : c.quotient)⟩
+@[to_additive "There exists an element of the quotient of an add_monoid by a congruence relation (namely 0)."] 
+instance : inhabited c.quotient := ⟨((1 : M) : c.quotient)⟩
 
 variables (c)
 
-/-- The quotient of a monoid by a congruence relation is a monoid. -/
-@[to_additive add_monoid] instance monoid : monoid c.quotient :=
-{ one := ((1 : M) : c.quotient),
-  mul := (*),
-  mul_assoc := λ x y z, quotient.induction_on₃' x y z
-               $ λ _ _ _, congr_arg coe $ mul_assoc _ _ _,
-  mul_one := λ x, quotient.induction_on' x $ λ _, congr_arg coe $ mul_one _,
-  one_mul := λ x, quotient.induction_on' x $ λ _, congr_arg coe $ one_mul _ }
-
 /-- The natural homomorphism from a monoid to its quotient by a congruence relation. -/
-@[to_additive] def mk' : M →* c.quotient := ⟨coe, rfl, λ _ _, rfl⟩
+@[to_additive "The natural homomorphism from an add_monoid to its quotient by a congruence relation."] 
+def mk' : M →* c.quotient := ⟨coe, rfl, λ _ _, rfl⟩
 
 variables (x y : M)
 
-/-- The kernel of the natural homomorphism from a monoid to its quotient by a congruence relation is the
-    original relation. -/
-@[simp, to_additive] lemma mk'_ker : con.ker c.mk' = c := ext $ λ _ _, c.eq _ _
+/-- The kernel of the natural homomorphism from a monoid to its quotient by a congruence 
+    relation c equals c. -/
+@[simp, to_additive "The kernel of the natural homomorphism from an add_monoid to its quotient by a congruence relation c equals c."] 
+lemma mk'_ker : con.ker c.mk' = c := ext $ λ _ _, c.eq _ _
 
 variables {c}
 
 /-- The natural homomorphism from a monoid to its quotient by a congruence relation is surjective. -/
-@[to_additive] lemma mk'_surjective : function.surjective c.mk' :=
-by apply ind; exact λ x, ⟨x, rfl⟩
+@[to_additive "The natural homomorphism from an add_monoid to its quotient by a congruence relation is surjective."] 
+lemma mk'_surjective : function.surjective c.mk' :=
+λ x, by rcases x; exact ⟨x, rfl⟩
 
-@[simp, to_additive] lemma mk'_one : c.mk' 1 = 1 := rfl
-@[simp, to_additive] lemma mk'_mul : c.mk' (x * y) = c.mk' x * c.mk' y := rfl
-@[simp] lemma mk'_pow : ∀ n : ℕ, c.mk' (x ^ n) = (c.mk' x) ^ n
-| 0 := c.mk'.map_one
-| (m + 1) := by rw [pow_succ, c.mk'.map_mul, mk'_pow m]; refl
-@[simp, to_additive] lemma comp_mk'_apply (g : c.quotient →* P) {x} : g.comp c.mk' x = g x := rfl
+@[simp, to_additive] lemma comp_mk'_apply (g : c.quotient →* P) {x} : 
+  g.comp c.mk' x = g x := rfl
 
-@[simp, to_additive] lemma coe_one : ((1 : M) : c.quotient) = 1 := rfl
-
-lemma coe_pow : ∀ n : ℕ, (x ^ n : c.quotient) = (x : c.quotient) ^ n
-| 0            := pow_zero _
-| (nat.succ n) := by rw pow_succ _
 
 @[to_additive] lemma ker_apply_eq_preimage {f : M →* P} (x) : (con.ker f) x = f ⁻¹' {f x} :=
 set.ext $ λ x,

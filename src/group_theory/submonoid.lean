@@ -17,7 +17,6 @@ First unbundled (is_submonoid) (deprecated) and then bundled.
 
 no coercion from submonoid to subset, the idea is that the API does it all for us.
 there is ∈ though
-
 -/
 
 variables {α : Type*} [monoid α] {s : set α}
@@ -378,7 +377,7 @@ protected theorem ext'_iff {S T : submonoid M}  : (S : set M) = T ↔ S = T :=
 theorem ext {S T : submonoid M}
   (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := ext' $ set.ext h
 
-attribute [extensionality] add_submonoid.ext
+attribute [extensionality] add_submonoid.ext --I can't find whether there's a newer way to do this
 
 /-- A submonoid contains the monoid's 1. -/
 @[to_additive "An add_submonoid contains the monoid's 0."]
@@ -518,8 +517,8 @@ def bot : submonoid M :=
   one_mem' := set.mem_singleton 1,
   mul_mem' := λ a b ha hb, by simp * at *}
 
-/-- submonoids of M are partially ordered (by inclusion) -/
-@[to_additive]
+/-- Submonoids of a monoid are partially ordered (by inclusion). -/
+@[to_additive "Add_submonoids of an add_monoid are partially ordered (by inclusion)."]
 instance : partial_order (submonoid M) :=
 partial_order.lift (coe : submonoid M → set M) (λ a b, ext') (by apply_instance)
 
@@ -697,7 +696,7 @@ variables {M : Type*} [monoid M] (S : submonoid M)
 
 /-- Restriction of a monoid_hom to a submonoid of the codomain. -/
 @[to_additive "Restriction of an add_monoid_hom to an add_submonoid of the codomain."]
--- 'would be nice if it errored if [the additive docstring (I think?)] doesn't exist' 
+-- 'would be nice if it errored if [the additive docstring] doesn't exist' 
 def subtype_mk {N : Type*} [monoid N] (f : N →* M) (h : ∀ x, f x ∈ S) : N →* S :=
 { to_fun := λ n, ⟨f n, h n⟩,
   map_one' := subtype.eq (is_monoid_hom.map_one f),

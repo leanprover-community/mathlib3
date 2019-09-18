@@ -63,7 +63,7 @@ theorem le_def {r s : setoid α} : r ≤ s ↔ ∀ {x y}, r.rel x y → s.rel x 
 def ker (f : α → β) : setoid α :=
 ⟨λ x y, f x = f y, ⟨λ _, rfl, λ _ _ h, h.symm, λ _ _ _ h, h.trans⟩⟩
 
-/-- The kernel of the quotient map induced by an equivalence relation on r equals r. -/
+/-- The kernel of the quotient map induced by an equivalence relation r equals r. -/
 @[simp] lemma ker_mk_eq (r : setoid α) : ker (@quotient.mk _ r) = r :=
 ext' $ λ x y, quotient.eq
 

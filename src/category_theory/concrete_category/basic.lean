@@ -37,6 +37,9 @@ class concrete_category (C : Type (u+1)) extends category.{u} C :=
 (forget : C ⥤ Type u)
 [forget_faithful : faithful forget]
 
+instance (C : Type (u+1)) [concrete_category C] : has_coe_to_sort C :=
+{ S := Type u, coe := (concrete_category.forget C).obj }
+
 @[reducible] def forget (C : Type (u+1)) [concrete_category C] := concrete_category.forget C
 
 attribute [instance] concrete_category.forget_faithful

@@ -20,15 +20,15 @@ def Mon : Type (u+1) := bundled monoid
 
 namespace Mon
 
-@[to_additive add_monoid]
-instance (x : Mon) : monoid x := x.str
-
 @[to_additive]
 def of (M : Type u) [monoid M] : Mon := bundled.of M
 
 @[to_additive]
 instance bundled_hom : bundled_hom @monoid_hom :=
 ⟨@monoid_hom.to_fun, @monoid_hom.id, @monoid_hom.comp, @monoid_hom.ext⟩
+
+@[to_additive add_monoid]
+instance (x : Mon) : monoid x := x.str
 
 -- TODO generalize this!
 @[simp] lemma hom_inv_id {X Y : Mon} (f : X ≅ Y) (x : X) : f.inv (f.hom x) = x :=
@@ -44,19 +44,19 @@ def CommMon : Type (u+1) := bundled comm_monoid
 
 namespace CommMon
 
-@[to_additive add_comm_monoid]
-instance (x : CommMon) : comm_monoid x := x.str
-
 @[to_additive]
 def of (X : Type u) [comm_monoid X] : CommMon := bundled.of X
 
 @[to_additive]
 instance bundled_hom : bundled_hom _ :=
-Mon.bundled_hom.full_subcategory @comm_monoid.to_monoid
+Mon.bundled_hom.induced_category @comm_monoid.to_monoid
+
+@[to_additive add_comm_monoid]
+instance (x : CommMon) : comm_monoid x := x.str
 
 @[to_additive has_forget_to_AddMon]
 instance has_forget_to_Mon : has_forget CommMon.{u} Mon.{u} :=
-Mon.bundled_hom.full_subcategory_has_forget _
+Mon.bundled_hom.induced_category_has_forget _
 
 -- TODO understand why this is necessary?
 @[simp, to_additive] lemma coe_comp {X Y Z : CommMon} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :

@@ -28,13 +28,13 @@ open category_theory
 
 namespace UniformSpace
 
-instance (x : UniformSpace) : uniform_space x := x.str
-
 def of (α : Type u) [uniform_space α] : UniformSpace := ⟨α⟩
 
 /-- The category instance on `UniformSpace`. -/
 instance concrete_category_uniform_continuous : unbundled_hom @uniform_continuous :=
 ⟨@uniform_continuous_id, @uniform_continuous.comp⟩
+
+instance (x : UniformSpace) : uniform_space x := x.str
 
 instance (X Y : UniformSpace) : has_coe_to_fun (X ⟶ Y) :=
 { F := λ _, X → Y, coe := category_theory.functor.map (forget UniformSpace) }
@@ -47,7 +47,6 @@ instance (X Y : UniformSpace) : has_coe_to_fun (X ⟶ Y) :=
 
 def hom_ext {X Y : UniformSpace} {f g : X ⟶ Y} : (f : X → Y) = g → f = g := subtype.eq
 
--- TODO: define and use `unbundled_hom.mk_has_forget`
 /-- The forgetful functor from uniform spaces to topological spaces. -/
 instance has_forget_to_Top : has_forget UniformSpace.{u} Top.{u} :=
 unbundled_hom.mk_has_forget

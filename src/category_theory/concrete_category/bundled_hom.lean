@@ -98,22 +98,22 @@ protected def full_subcategory : bundled_hom (λ α β (Iα : d α) (Iβ : d β)
 
 /-- A full subcategory of a concrete category with bundled homs has a forgetful functor to the
 entire category. This is used to construct instances of `has_forget` in many concrete examples. -/
-def full_subcategory_has_forget :
-  @has_forget (bundled d) (bundled c)
+def full_subcategory_has_forget₂ :
+  @has_forget₂ (bundled d) (bundled c)
     (by haveI := 𝒞.full_subcategory obj; apply_instance) (by apply_instance) :=
-induced_category.has_forget (bundled.map @obj)
+induced_category.has_forget₂ (bundled.map @obj)
 
 end full_subcategory
 
 variables {hom}
 
-/-- A version of `has_forget.mk'` for categories defined using `@bundled_hom`. -/
-def mk_has_forget {d : Type u → Type u} {hom_d : Π ⦃α β : Type u⦄ (Iα : d α) (Iβ : d β), Type u}
+/-- A version of `has_forget₂.mk'` for categories defined using `@bundled_hom`. -/
+def mk_has_forget₂ {d : Type u → Type u} {hom_d : Π ⦃α β : Type u⦄ (Iα : d α) (Iβ : d β), Type u}
   [bundled_hom hom_d] (obj : Π ⦃α⦄, c α → d α)
   (map : Π {X Y : bundled c}, (X ⟶ Y) → ((bundled.map obj X) ⟶ (bundled.map obj Y)))
   (h_map : ∀ {X Y : bundled c} (f : X ⟶ Y), (map f : X → Y) = f)
-  : has_forget (bundled c) (bundled d) :=
-has_forget.mk'
+  : has_forget₂ (bundled c) (bundled d) :=
+has_forget₂.mk'
   (bundled.map @obj)
   (λ _, rfl)
   @map

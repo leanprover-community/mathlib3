@@ -2,7 +2,9 @@
 Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
+-/
 
+/-!
 Theorems that require decidability hypotheses are in the namespace "decidable".
 Classical versions are in the namespace "classical".
 
@@ -10,11 +12,7 @@ Note: in the presence of automation, this whole file may be unnecessary. On the 
 maybe it is useful for writing automation.
 -/
 
-/-
-    miscellany
 
-    TODO: move elsewhere
--/
 
 section miscellany
 
@@ -67,19 +65,33 @@ def pempty.elim {C : Sort*} : pempty → C.
 
 instance subsingleton_pempty : subsingleton pempty := ⟨λa, a.elim⟩
 
+@[simp] lemma not_nonempty_pempty : ¬ nonempty pempty :=
+assume ⟨h⟩, h.elim
+
+@[simp] theorem forall_pempty {P : pempty → Prop} : (∀ x : pempty, P x) ↔ true :=
+⟨λ h, trivial, λ h x, by cases x⟩
+
+@[simp] theorem exists_pempty {P : pempty → Prop} : (∃ x : pempty, P x) ↔ false :=
+⟨λ h, by { cases h with w, cases w }, false.elim⟩
+
 lemma congr_arg_heq {α} {β : α → Sort*} (f : ∀ a, β a) : ∀ {a₁ a₂ : α}, a₁ = a₂ → f a₁ == f a₂
 | a _ rfl := heq.rfl
 
 lemma plift.down_inj {α : Sort*} : ∀ (a b : plift α), a.down = b.down → a = b
 | ⟨a⟩ ⟨b⟩ rfl := rfl
 
-@[simp] lemma nonempty_pempty : ¬ nonempty pempty :=
-assume ⟨h⟩, h.elim
-
 -- missing [symm] attribute for ne in core.
 attribute [symm] ne.symm
 
 lemma ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨ne.symm, ne.symm⟩
+
+@[simp] lemma eq_iff_eq_cancel_left {b c : α} :
+  (∀ {a}, a = b ↔ a = c) ↔ (b = c) :=
+⟨λ h, by rw [← h], λ h a, by rw h⟩
+
+@[simp] lemma eq_iff_eq_cancel_right {a b : α} :
+  (∀ {c}, a = c ↔ b = c) ↔ (a = b) :=
+⟨λ h, by rw h, λ h a, by rw h⟩
 
 end miscellany
 

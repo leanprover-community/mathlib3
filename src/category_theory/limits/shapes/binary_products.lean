@@ -39,7 +39,7 @@ def pair_function {C : Type u} (X Y : C) : walking_pair → C
 | walking_pair.left := X
 | walking_pair.right := Y
 
-variables {C : Type u} [𝒞 : category.{v+1} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
 def pair (X Y : C) : discrete walking_pair ⥤ C :=

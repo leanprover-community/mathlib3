@@ -341,10 +341,7 @@ end
 end
 
 section
--- In order to be able to describe the tensor product as a functor, we
--- need to be up in at least `Type 0` for both objects and morphisms,
--- so that we can construct products.
-variables (C : Type u) [category.{v+1} C] [𝒞 : monoidal_category.{v+1} C]
+variables (C : Type u) [category.{v} C] [𝒞 : monoidal_category.{v} C]
 include 𝒞
 
 /-- The tensor product expressed as a functor. -/

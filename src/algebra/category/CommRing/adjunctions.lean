@@ -23,11 +23,11 @@ namespace CommRing
 
 open_locale classical
 
--- TODO: Something is painfully slow in this definition, perhaps a heavy definitional equality.
--- If that can be solved, ideally the proofs here could be done by `tidy`.
 def free : Type u ⥤ CommRing.{u} :=
 { obj := λ α, of (mv_polynomial α ℤ),
-  map := λ _ _ f, @ring_hom.of _ _ _ _ (rename f) (rename.is_semiring_hom f),
+  -- TODO this should just be `ring_hom.of (rename f)`, but this causes a mysterious deterministic timeout!
+  map := λ X Y f, @ring_hom.of _ _ _ _ (rename f) (by apply_instance),
+  -- TODO these next two fields can be done by `tidy`, but the calls in `dsimp` and `simp` it generates are too slow.
   map_id' := λ X, ring_hom.ext $ funext $ rename_id,
   map_comp' := λ X Y Z f g, ring_hom.ext $ funext $ λ p, (rename_rename f g p).symm }
 

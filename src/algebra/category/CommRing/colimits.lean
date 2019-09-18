@@ -357,41 +357,12 @@ begin
   }
 end
 
-instance desc_fun_is_morphism (s : cocone F) : is_ring_hom (desc_fun F s) :=
-{ map_one := rfl,
-  map_add := λ x y,
-  begin
-    induction x, induction y,
-    refl,
-    refl,
-    refl,
-  end,
-  map_mul := λ x y,
-  begin
-    induction x, induction y,
-    refl,
-    refl,
-    refl,
-  end, }
-
 @[simp] def desc_morphism (s : cocone F) : colimit F ⟶ s.X :=
 { to_fun := desc_fun F s,
   map_one' := rfl,
   map_zero' := rfl,
-  map_add' := λ x y,
-  begin
-    induction x, induction y,
-    refl,
-    refl,
-    refl,
-  end,
-  map_mul' := λ x y,
-  begin
-    induction x, induction y,
-    refl,
-    refl,
-    refl,
-  end }
+  map_add' := λ x y, by { induction x; induction y; refl },
+  map_mul' := λ x y, by { induction x; induction y; refl }, }
 
 def colimit_is_colimit : is_colimit (colimit_cocone F) :=
 { desc := λ s, desc_morphism F s,

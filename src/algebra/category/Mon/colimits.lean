@@ -189,13 +189,7 @@ end
 @[simp] def desc_morphism (s : cocone F) : colimit F ⟶ s.X :=
 { to_fun := desc_fun F s,
   map_one' := rfl,
-  map_mul' := λ x y,
-  begin
-    induction x, induction y,
-    refl,
-    refl,
-    refl,
-  end }
+  map_mul' := λ x y, by { induction x; induction y; refl }, }
 
 def colimit_is_colimit : is_colimit (colimit_cocone F) :=
 { desc := λ s, desc_morphism F s,

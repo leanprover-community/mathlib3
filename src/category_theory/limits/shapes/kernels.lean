@@ -6,6 +6,28 @@ Authors: Scott Morrison
 import category_theory.limits.shapes.zero
 import category_theory.limits.shapes.equalizers
 
+/-!
+# Kernels and cokernels
+
+In a category with zero morphisms, the kernel of a morphism `f : X ⟶ Y` is just the equaliser of `f`
+and `0 : X ⟶ Y`. (Similarly the cokernel is the coequaliser.)
+
+We don't yet prove much here, just provide
+* `kernel : (X ⟶ Y) → C`
+* `kernel.ι : kernel f ⟶ X`
+* `kernel.condition : kernel.ι f ≫ f = 0` and
+* `kernel.lift (k : W ⟶ X) (h : k ≫ f = 0) : W ⟶ kernel f` (as well as the dual versions)
+
+## Future work
+* TODO: images and coimages, and then abelian categories.
+* TODO: connect this with existing working in the group theory and ring theory libraries.
+
+## Implementation notes
+As with the other special shapes in the limits library, all the definitions here are given as
+`abbreviation`s of the general statements for limits, so all the `simp` lemmas and theorems about
+general limits can be used.
+-/
+
 universes v u
 
 open category_theory

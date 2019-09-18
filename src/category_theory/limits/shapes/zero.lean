@@ -11,7 +11,7 @@ open category_theory
 
 namespace category_theory.limits
 
-variables (C : Type u) [𝒞 : category.{v+1} C]
+variables (C : Type u) [𝒞 : category.{v} C]
 include 𝒞
 
 /-- A category "has zero morphisms" if there is a designated "zero morphism" in each morphism space,

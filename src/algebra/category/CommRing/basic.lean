@@ -43,6 +43,10 @@ SemiRing.bundled_hom.induced_category @ring.to_semiring
 
 instance (x : Ring) : ring x := x.str
 
+@[simp] lemma id_eq (R : Ring) : 𝟙 R = ring_hom.id R := rfl
+@[simp] lemma comp_eq {R₁ R₂ R₃ : Ring} (f : R₁ ⟶ R₂) (g : R₂ ⟶ R₃) :
+  f ≫ g = g.comp f := rfl
+
 instance has_forget_to_SemiRing : has_forget Ring.{u} SemiRing.{u} :=
 SemiRing.bundled_hom.induced_category_has_forget _
 
@@ -104,3 +108,60 @@ bundled_hom.mk_has_forget
   (by intros; refl)
 
 end CommRing
+
+namespace ring_equiv
+
+variables {X Y : Type u}
+
+section
+variables [ring X] [ring Y]
+
+def to_Ring_iso (e : X ≃r Y) : Ring.of X ≅ Ring.of Y :=
+{ hom := e.to_ring_hom,
+  inv := e.symm.to_ring_hom }
+
+@[simp] lemma to_Ring_iso_hom {e : X ≃r Y} : e.to_Ring_iso.hom = e.to_ring_hom := rfl
+@[simp] lemma to_Ring_iso_inv {e : X ≃r Y} : e.to_Ring_iso.inv = e.symm.to_ring_hom := rfl
+end
+
+section
+variables [comm_ring X] [comm_ring Y]
+
+def to_CommRing_iso (e : X ≃r Y) : CommRing.of X ≅ CommRing.of Y :=
+{ hom := e.to_ring_hom,
+  inv := e.symm.to_ring_hom }
+
+@[simp] lemma to_CommRing_iso_hom {e : X ≃r Y} : e.to_CommRing_iso.hom = e.to_ring_hom := rfl
+@[simp] lemma to_CommRing_iso_inv {e : X ≃r Y} : e.to_CommRing_iso.inv = e.symm.to_ring_hom := rfl
+end
+
+end ring_equiv
+
+namespace category_theory.iso
+
+def Ring_iso_to_ring_equiv {X Y : Ring.{u}} (i : X ≅ Y) : X ≃r Y :=
+{ to_fun    := i.hom,
+  inv_fun   := i.inv,
+  left_inv  := by tidy,
+  right_inv := by tidy,
+  hom       := by apply_instance }.
+
+def CommRing_iso_to_ring_equiv {X Y : CommRing.{u}} (i : X ≅ Y) : X ≃r Y :=
+{ to_fun    := i.hom,
+  inv_fun   := i.inv,
+  left_inv  := by tidy,
+  right_inv := by tidy,
+  hom       := by apply_instance  }.
+
+end category_theory.iso
+
+/-- ring equivalences are the same as (isomorphic to) isomorphisms of rings -/
+def ring_equiv_iso_Ring_iso {X Y : Type u} [ring X] [ring Y] :
+  (X ≃r Y) ≅ (Ring.of X ≅ Ring.of Y) :=
+{ hom := λ e, e.to_Ring_iso,
+  inv := λ i, i.Ring_iso_to_ring_equiv, }
+
+def mul_equiv_iso_CommRing_iso {X Y : Type u} [comm_ring X] [comm_ring Y] :
+  (X ≃r Y) ≅ (CommRing.of X ≅ CommRing.of Y) :=
+{ hom := λ e, e.to_CommRing_iso,
+  inv := λ i, i.CommRing_iso_to_ring_equiv, }

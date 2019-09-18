@@ -350,8 +350,10 @@ namespace ring_equiv
 
 variables [ring α] [ring β] [ring γ]
 
-instance (h : α ≃r β) : is_ring_hom h.to_equiv := h.hom
-instance ring_equiv.is_ring_hom' (h : α ≃r β) : is_ring_hom h.to_fun := h.hom
+instance : has_coe_to_fun (α ≃r β) := ⟨_, ring_equiv.to_fun⟩
+
+instance ring_equiv.is_ring_hom (h : α ≃r β) : is_ring_hom h := h.hom
+instance ring_equiv.is_ring_hom' (h : α ≃r β) : is_ring_hom h.to_equiv := h.hom
 
 def to_mul_equiv (e : α ≃r β) : α ≃* β :=
 { map_mul' := e.hom.map_mul, .. e.to_equiv }
@@ -365,6 +367,20 @@ def to_ring_hom {α β} [ring α] [ring β] (h : α ≃r β) : (α →+* β) :=
   map_zero' := is_ring_hom.map_zero h.to_fun,
   map_mul'  := λ x y, is_ring_hom.map_mul h.to_fun,
   map_one'  := is_ring_hom.map_one h.to_fun }
+
+/-- To show two ring equivalences are equal, it suffices to show the functions are equal. -/
+@[extensionality]
+lemma ext {e f : α ≃r β} (h : (e : α → β) = (f : α → β)) : e = f :=
+begin
+  -- first, use extensionality for equivalences to also learn that the `inv_fun`s are equal.
+  replace h : e.to_equiv = f.to_equiv, { ext x, exact congr_fun h x, },
+  cases e, cases f,
+  congr,
+  { funext x,
+    exact congr_fun (congr_arg equiv.to_fun h) x, },
+  { funext y,
+    exact congr_fun (congr_arg equiv.inv_fun h) y, },
+end
 
 protected def refl (α : Type*) [ring α] : α ≃r α :=
 { hom := is_ring_hom.id, .. equiv.refl α }

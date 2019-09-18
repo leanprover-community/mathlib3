@@ -9,25 +9,26 @@ import ring_theory.integral_closure
 /-!
 # Minimal polynomials
 
-This file contains the utmost basics on minimal polynomials. If gives the definition in the setting
-of a commutative algebra over a commutative ring. After stating the defining property we specialize
-to the setting of field extensions and derive some well-known properties,
-amongst which the fact that minimal polynomials are irreducible, and uniquely determined
-by their defining property.
+This file defines the minimal polynomial of an element x of an A-algebra B,
+under the assumption that x is integral over A.
+
+After stating the defining property we specialize to the setting of field extensions
+and derive some well-known properties, amongst which the fact that minimal polynomials
+are irreducible, and uniquely determined by their defining property.
 
 -/
 
 universes u v w
 
 -- local attribute [instance, priority 1] classical.prop_decidable
-open_locale classical
+-- open_locale classical
 
 open polynomial set function
 
 variables {α : Type u} {β : Type v}
 
 section min_poly_def
-variables [comm_ring α] [comm_ring β] [algebra α β]
+variables [decidable_eq α] [decidable_eq β] [comm_ring α] [comm_ring β] [algebra α β]
 
 /-- Let B be an A-algebra, and x an element of B that is integral over A.
 The minimal polynomial of x if the monic polynomial of smallest degree that has x as its root. -/
@@ -39,7 +40,7 @@ end min_poly_def
 namespace minimal_polynomial
 
 section ring
-variables [comm_ring α] [comm_ring β] [algebra α β]
+variables [decidable_eq α] [decidable_eq β] [comm_ring α] [comm_ring β] [algebra α β]
 variables {x : β} (hx : is_integral α x)
 
 /--A Minimal polynomial is monic.-/
@@ -71,7 +72,8 @@ then the degree of p is at least the degree of the minimal polynomial of x.-/
 lemma degree_le_of_ne_zero
   {p : polynomial α} (pnz : p ≠ 0) (hp : polynomial.aeval α β x p = 0) :
   degree (minimal_polynomial hx) ≤ degree p :=
-calc degree (minimal_polynomial hx) ≤ _ : min _ (monic_mul_leading_coeff_inv pnz) _
+calc degree (minimal_polynomial hx) ≤ degree (p * C (leading_coeff p)⁻¹) :
+    min _ (monic_mul_leading_coeff_inv pnz) (by simp [hp])
   ... = degree p : degree_mul_leading_coeff_inv p pnz
 
 /--The minimal polynomial of an element x is uniquely characterized by its defining property:

@@ -585,4 +585,5 @@ lemma subtype_val.closed_embedding {s : set α} (hs : is_closed s) :
 { induced := rfl,
   inj := subtype.val_injective,
   closed_range := (subtype.val_range : range subtype.val = s).symm ▸ hs }
+
 end closed_embedding

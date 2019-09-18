@@ -434,7 +434,7 @@ calc ((((range (p / 2).succ).erase 0).prod (λ x, (x : zmodp p hp)) ^ 2)) * (-1)
   begin
     rw ← prod_union,
     { exact finset.prod_congr (by simp [finset.ext, -not_lt, -not_le]; tauto) (λ _ _, rfl) },
-    { apply disjoint_filter, simp [-not_lt, - not_le]; tauto }
+    { apply disjoint_filter, tauto }
   end
 ... = -1 : by simp
 

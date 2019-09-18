@@ -161,7 +161,7 @@ def ring_equiv_iso_Ring_iso {X Y : Type u} [ring X] [ring Y] :
 { hom := λ e, e.to_Ring_iso,
   inv := λ i, i.Ring_iso_to_ring_equiv, }
 
-def mul_equiv_iso_CommRing_iso {X Y : Type u} [comm_ring X] [comm_ring Y] :
+def ring_equiv_iso_CommRing_iso {X Y : Type u} [comm_ring X] [comm_ring Y] :
   (X ≃r Y) ≅ (CommRing.of X ≅ CommRing.of Y) :=
 { hom := λ e, e.to_CommRing_iso,
   inv := λ i, i.CommRing_iso_to_ring_equiv, }

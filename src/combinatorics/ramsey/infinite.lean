@@ -313,7 +313,7 @@ lemma homo_proj_seq_mono_pts
   (h : ∀ n, g n << g (n+1))
   (x y : ℕ) :
   (g (x+y+1)).pt ∈ (g x).s :=
-by exact (homo_proj_seq_mono_sets f g h x y) ((h (x+y)).right.left)
+(homo_proj_seq_mono_sets f g h x y) ((h (x+y)).right.left)
 
 /--
 The points in a sequence of refined homogeneous projections have

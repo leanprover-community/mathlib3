@@ -1,21 +1,31 @@
 import data.rat.basic
 import tactic
 
+/-!
+# IMO1988 Q6 and constant descent Vieta jumping
+
+Question 6 of IMO1988 is somewhat (in)famous. Several expert problem solvers
+could not tackle the question within the given time limit.
+The problem lead to the introduction of a new proof technique,
+so called “Vieta jumping”.
+
+In this file we formalise constant descent Vieta jumping,
+and apply this to prove Q6 of IMO1988.
+To illustrate the technique, we also prove a similar result.
+
+-/
+
+-- open_locale classical
+
 local attribute [instance] classical.prop_decidable
 local attribute [simp] nat.pow_two
 
-/- Vieta's formula for a quadratic equation -/
-lemma Vieta_formula_quadratic {α} [comm_ring α] {b c x : α}
-  (h : x * x - b * x + c = 0) : ∃ y : α,
-    y * y - b * y + c = 0 ∧ x + y = b ∧ x * y = c :=
-begin
-  have : c = b * x - x * x, { apply eq_of_sub_eq_zero, simpa using h },
-  use b - x, simp [left_distrib, right_distrib, mul_comm, this],
-end
+/-- Constant descent Vieta jumping is a proof technique
+that can typically be used to show that certain algebraic curves of degree 2
+in the affine plane do not have integral points (or only an explicit set of solutions).
 
-/-
-We need a long list of assumptions for the following lemma.
-The upside is that it takes care of a bunch of annoying edge cases.
+We need a long list of assumptions for this lemma.
+The upside is that it takes care of several annoying edge cases.
 First of all, the user should provide $x$ and $y$
 that satisfy the predicate $H(x,y)$.
 The functions $B(x)$ and $C(x)$ give the coefficient of the quadratic equation
@@ -29,9 +39,7 @@ Next the user should prove that $H$ is symmetric in `H_symm`.
 Then the user should prove $H(x,0)$ and $H(x,x)$ for every $x$,
 in `H_zero` and `H_diag` respectively.
 Finally, the user should prove the descent step in `H_desc`,
-and the remaining bases cases in `H_base`.
--/
-
+and the remaining bases cases in `H_base`. -/
 lemma constant_descent_vieta_jumping (x y : ℕ) {claim : Prop} {H : ℕ → ℕ → Prop}
   (h₀ : H x y) (B : ℕ → ℤ) (C : ℕ → ℤ) (base : ℕ → ℕ → Prop)
   (H_quad : ∀ {x y}, H x y ↔ (y:ℤ) * y - B x * y + C x = 0) (H_symm : ∀ {x y}, H x y ↔ H y x)
@@ -166,7 +174,7 @@ begin
   apply constant_descent_vieta_jumping a b hk (λ x, k * x) (λ x, x*x - k) (λ x y, false),
   { intros x y, dsimp,
     rw [← int.coe_nat_inj', ← sub_eq_zero],
-    apply eq_iff_eq_cancel_right,
+    apply eq_iff_eq_cancel_right.2,
     simp, ring, },
   { intros x y, simp [add_comm (x*x), mul_comm x], },
   { simp, rintros x rfl, use x },

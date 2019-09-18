@@ -1124,9 +1124,11 @@ end pi
 
 namespace finsupp
 
-lemma is_basis_finsupp (η : Type*) {ι α β : Type*} [ring α] [add_comm_group β] [module α β]
-  [decidable_eq α] [decidable_eq β] [decidable_eq η] [decidable_eq ι]
-  {v : ι → β} (hv : is_basis α v) : is_basis α (λ i : η × ι, single i.1 (v i.2)) :=
+open linear_map
+variables (η : Type*) [decidable_eq η]
+variables [ring α] [add_comm_group β] [module α β]
+
+lemma is_basis_finsupp (hv : is_basis α v) : is_basis α (λ i : η × ι, single i.1 (v i.2)) :=
 begin
   have h : ∀ f g, (finsupp.total (η × ι) (η →₀ β) α (λ i, single i.1 (v i.2))) f = g ↔
     ∀ n, (finsupp.total ι β α v) (finsupp.curry f n) = g n,
@@ -1157,6 +1159,16 @@ begin
     rw [show finsupp.curry f = _, from finsupp_prod_equiv.right_inv _, map_range_apply],
     change (linear_map.comp (finsupp.total ι β α v) (is_basis.repr hv)) (g n) = g n,
     rw [hv.total_comp_repr, linear_map.id_apply] },
+end
+
+lemma std_basis_eq_basis_finsupp :
+  (λ i : η × ι, (std_basis α (λ _ : η, β) i.1) (v i.2)) = (λ i : η × ι, single i.1 (v i.2)) :=
+begin
+  ext,
+  rw [std_basis_apply, single_apply],
+  split_ifs,
+  { rw [←h, function.update_same] },
+  { rw [function.update_noteq (ne.symm h)], refl }
 end
 
 end finsupp

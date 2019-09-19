@@ -39,7 +39,7 @@ between rings from monoid homs given only a proof that addition is preserved.
 is_ring_hom, is_semiring_hom, ring_hom, semiring_hom, semiring, comm_semiring, ring, comm_ring,
 domain, integral_domain, nonzero_comm_semiring, nonzero_comm_ring, units
 -/
-universes u v
+universes u v w
 variable {α : Type u}
 
 section
@@ -228,6 +228,16 @@ section comm_ring
   theorem dvd_add_right {a b c : α} (h : a ∣ b) : a ∣ b + c ↔ a ∣ c :=
   (dvd_add_iff_right h).symm
 
+/-- An element a divides the sum a + b if and only if a divides b.-/
+@[simp] lemma dvd_add_self_left {a b : α} :
+  a ∣ a + b ↔ a ∣ b :=
+dvd_add_right (dvd_refl a)
+
+/-- An element a divides the sum b + a if and only if a divides b.-/
+@[simp] lemma dvd_add_self_right {a b : α} :
+  a ∣ b + a ↔ a ∣ b :=
+dvd_add_left (dvd_refl a)
+
 /-- Vieta's formula for a quadratic equation, relating the coefficients of the polynomial with
   its roots. This particular version states that if we have a root `x` of a monic quadratic
   polynomial, then there is another root `y` such that `x + y` is negative the `a_1` coefficient
@@ -252,7 +262,7 @@ namespace is_ring_hom
 variables {β : Type v} [ring α] [ring β]
 
 /-- A map of rings that is a semiring homomorphism is also a ring homomorphism. -/
-def of_semiring (f : α → β) [H : is_semiring_hom f] : is_ring_hom f := {..H}
+lemma of_semiring (f : α → β) [H : is_semiring_hom f] : is_ring_hom f := {..H}
 
 variables (f : α → β) [is_ring_hom f] {x y : α}
 
@@ -312,7 +322,17 @@ instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe (α →
 
 namespace ring_hom
 
-variables {β : Type v} [semiring α] [semiring β]
+/-- Construct a bundled `ring_hom` from a bare function and the appropriate typeclasses. -/
+def of {α : Type u} {β : Type v} [semiring α] [semiring β]
+  (f : α → β) [is_semiring_hom f] : α →+* β :=
+{ to_fun := f,
+  .. as_monoid_hom f,
+  .. as_add_monoid_hom f }
+
+@[simp] lemma coe_of {α : Type u} {β : Type v} [semiring α] [semiring β]
+  (f : α → β) [is_semiring_hom f] : ⇑(of f) = f := rfl
+
+variables {β : Type v} {γ : Type w} [semiring α] [semiring β] [semiring γ]
 variables (f : α →+* β) {x y : α}
 
 @[extensionality] theorem ext ⦃f g : α →+* β⦄ (h : (f : α → β) = g) : f = g :=
@@ -345,12 +365,14 @@ def id (α : Type*) [semiring α] : α →+* α :=
 by refine {to_fun := id, ..}; intros; refl
 
 /-- Composition of ring homomorphisms is a ring homomorphism. -/
-def comp {γ} [semiring γ] (hnp : β →+* γ) (hmn : α →+* β) : α →+* γ :=
+def comp (hnp : β →+* γ) (hmn : α →+* β) : α →+* γ :=
 { to_fun := hnp ∘ hmn,
   map_zero' := by simp,
   map_one' := by simp,
   map_add' := λ x y, by simp,
   map_mul' := λ x y, by simp}
+
+@[simp] lemma coe_comp (hnp : β →+* γ) (hmn : α →+* β) : (hnp.comp hmn : α → γ) = hnp ∘ hmn := rfl
 
 /-- Ring homomorphisms preserve additive inverse. -/
 @[simp] theorem map_neg {α β} [ring α] [ring β] (f : α →+* β) (x : α) : f (-x) = -(f x) :=

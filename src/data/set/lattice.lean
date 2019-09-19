@@ -403,9 +403,9 @@ theorem sInter_pair (s t : set α) : ⋂₀ {s, t} = s ∩ t :=
 @[simp] theorem sInter_range (f : ι → set β) : ⋂₀ (range f) = ⋂ x, f x := Inf_range
 
 lemma sUnion_eq_univ_iff {c : set (set α)} :
-  (∀ a, ∃ b ∈ c, a ∈ b) ↔ ⋃₀ c = @set.univ α :=
-⟨λ H, set.univ_subset_iff.1 $ λ x hx, let ⟨b, hm, hb⟩ := H x in set.mem_sUnion_of_mem hb hm,
- λ H a, let ⟨b, hm, hb⟩ := mem_sUnion.1 $ by rw H; exact mem_univ a in ⟨b, hm, hb⟩⟩
+  ⋃₀ c = @set.univ α ↔ ∀ a, ∃ b ∈ c, a ∈ b :=
+⟨λ H a, let ⟨b, hm, hb⟩ := mem_sUnion.1 $ by rw H; exact mem_univ a in ⟨b, hm, hb⟩,
+ λ H, set.univ_subset_iff.1 $ λ x hx, let ⟨b, hm, hb⟩ := H x in set.mem_sUnion_of_mem hb hm⟩
 
 theorem compl_sUnion (S : set (set α)) :
   - ⋃₀ S = ⋂₀ (compl '' S) :=

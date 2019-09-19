@@ -277,7 +277,7 @@ noncomputable def quotient_quotient_equiv_quotient (s : setoid α) (h : r ≤ s)
 quotient_ker_equiv_of_surjective _ $ λ x, by rcases x; exact ⟨quotient.mk' x, rfl⟩
 
 /-- Given an equivalence relation r on α and a surjective map f from α to the quotient of α by r,
-    the natural map from equivalence relations containing r to equivalence relations on the 
+    the natural map from equivalence relations containing r to equivalence relations on the
     quotient of α by r. -/
 def to_quotient {f : α → quotient r} (hf : surjective f) (s : {s // r ≤ s}) :
   setoid (quotient r) :=
@@ -301,18 +301,18 @@ section
     inv_fun := λ s, subtype.mk (r.of_quotient quotient.mk' s) $
       λ x y h, show s.rel ⟦x⟧ ⟦y⟧, from sound h ▸ s.refl' ⟦x⟧,
     left_inv := λ s, subtype.ext.2 $ ext' $ λ x y,
-        ⟨λ h, s.1.trans' (s.1.trans' (s.2 x (some $ exists_rep ⟦x⟧) $ 
-                eq_rel.1 (some_spec $ exists_rep ⟦x⟧).symm) h) $ 
-                  s.2 (some $ exists_rep ⟦y⟧) y $ eq_rel.1 $ some_spec $ exists_rep ⟦y⟧, 
-         λ h, s.1.trans' (s.1.trans' (s.2 (some $ exists_rep ⟦x⟧) x $ 
+        ⟨λ h, s.1.trans' (s.1.trans' (s.2 x (some $ exists_rep ⟦x⟧) $
+                eq_rel.1 (some_spec $ exists_rep ⟦x⟧).symm) h) $
+                  s.2 (some $ exists_rep ⟦y⟧) y $ eq_rel.1 $ some_spec $ exists_rep ⟦y⟧,
+         λ h, s.1.trans' (s.1.trans' (s.2 (some $ exists_rep ⟦x⟧) x $
                 eq_rel.1 (some_spec $ exists_rep ⟦x⟧)) h) $
                   s.2 y (some $ exists_rep ⟦y⟧) $ eq_rel.1 (some_spec $ exists_rep ⟦y⟧).symm⟩,
-    right_inv := λ s, ext' $ λ x y, show s.rel ⟦(some _)⟧ ⟦(some _)⟧ ↔ s.rel x y, by 
+    right_inv := λ s, ext' $ λ x y, show s.rel ⟦(some _)⟧ ⟦(some _)⟧ ↔ s.rel x y, by
       rw [some_spec (exists_rep _), some_spec (exists_rep _)],
-    ord := λ a b, ⟨λ h x y ha, h (some $ exists_rep x) (some $ exists_rep y) ha, 
-      λ h x y ha, b.1.trans' (b.1.trans' (b.2 x (some $ exists_rep ⟦x⟧) $ 
+    ord := λ a b, ⟨λ h x y ha, h (some $ exists_rep x) (some $ exists_rep y) ha,
+      λ h x y ha, b.1.trans' (b.1.trans' (b.2 x (some $ exists_rep ⟦x⟧) $
           eq_rel.1 (some_spec $ exists_rep ⟦x⟧).symm) $
-            h ⟦x⟧ ⟦y⟧ (a.1.trans' (a.1.trans' (a.2 (some $ exists_rep ⟦x⟧) x $ 
+            h ⟦x⟧ ⟦y⟧ (a.1.trans' (a.1.trans' (a.2 (some $ exists_rep ⟦x⟧) x $
               eq_rel.1 $ some_spec $ exists_rep ⟦x⟧) ha) $
                 a.2 y (some $ exists_rep ⟦y⟧) $ eq_rel.1 (some_spec $ exists_rep ⟦y⟧).symm)) $
                   b.2 (some $ exists_rep ⟦y⟧) y $ eq_rel.1 $ some_spec $ exists_rep ⟦y⟧⟩ }

@@ -1176,10 +1176,12 @@ Lift an expression to another type.
 
 ### import_private
 
-`import_private foo from bar` finds a private declaration in the same file as `bar` and creates a 
+`import_private foo from bar` finds a private declaration `foo` in the same file as `bar` and creates a 
 local notation to refer to it. 
     
-`import_private foo`, looks for `foo` in the global namespace.
+`import_private foo`, looks for `foo` in all the files.
+
+When possible, make `foo` non-private rather than using this feature. 
 
 ### default_dec_tac'
 

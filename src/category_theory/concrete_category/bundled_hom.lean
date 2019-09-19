@@ -48,8 +48,8 @@ include 𝒞
 instance : category (bundled c) :=
 by refine
 { hom := λ X Y, @hom X.1 Y.1 X.str Y.str,
-  id := λ X, @bundled_hom.id c hom 𝒞 X X.str,
-  comp := λ X Y Z f g, @bundled_hom.comp c hom 𝒞 X Y Z X.str Y.str Z.str g f,
+  id := λ X, @bundled_hom.id c hom 𝒞 X.1 X.str,
+  comp := λ X Y Z f g, @bundled_hom.comp c hom 𝒞 X.1 Y.1 Z.1 X.str Y.str Z.str g f,
   comp_id' := _,
   id_comp' := _,
   assoc' := _};
@@ -58,7 +58,7 @@ intros; apply 𝒞.hom_ext;
 
 /-- A category given by `bundled_hom` is a concrete category. -/
 instance concrete_category : concrete_category (bundled c) :=
-{ forget := { obj := λ X, X,
+{ forget := { obj := λ X, X.1,
               map := λ X Y f, 𝒞.to_fun X.str Y.str f,
               map_id' := λ X, 𝒞.id_to_fun X.str,
               map_comp' := by intros; erw 𝒞.comp_to_fun; refl },

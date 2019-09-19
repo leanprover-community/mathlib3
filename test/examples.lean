@@ -146,7 +146,11 @@ begin
    trivial
 end
 import_private compact_relation from tactic.coinduction
-#check compact_relation
+example : true :=
+begin
+  let := compact_relation,
+  trivial
+end
 
 /- traversable -/
 open tactic.interactive

@@ -20,8 +20,13 @@ structure TopCommRing :=
 
 namespace TopCommRing
 
-instance : has_coe_to_sort TopCommRing :=
+section
+-- We momentarily turn on some instances; public versions will be provided by `concrete_category`.
+def has_coe_to_sort_TopCommRing : has_coe_to_sort TopCommRing :=
 { S := Type u, coe := TopCommRing.α }
+
+local attribute [instance] has_coe_to_sort_TopCommRing
+local attribute [instance] TopCommRing.is_comm_ring TopCommRing.is_topological_space TopCommRing.is_topological_ring
 
 instance : concrete_category TopCommRing.{u} :=
 { to_category :=
@@ -34,9 +39,10 @@ instance : concrete_category TopCommRing.{u} :=
       end⟩ },
   forget := { obj := λ R, R, map := λ R S f, f.val },
   forget_faithful := { } }
+end
 
 instance (X : TopCommRing) : comm_ring X := X.is_comm_ring
-instance (X : TopCommRing) : is_topological_space X := X.is_is_topological_space
+instance (X : TopCommRing) : topological_space X := X.is_topological_space
 instance (X : TopCommRing) : topological_ring X := X.is_topological_ring
 
 /-- Construct a bundled `TopCommRing` from the underlying type and the appropriate typeclasses. -/

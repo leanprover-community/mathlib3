@@ -1166,7 +1166,7 @@ lemma std_basis_eq_basis_finsupp :
 begin
   ext,
   rw [std_basis_apply, single_apply],
-  split_ifs,
+  split_ifs with h h,
   { rw [←h, function.update_same] },
   { rw [function.update_noteq (ne.symm h)], refl }
 end

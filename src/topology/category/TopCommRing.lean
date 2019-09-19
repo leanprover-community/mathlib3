@@ -22,6 +22,10 @@ namespace TopCommRing
 
 attribute [instance] is_comm_ring is_topological_space is_topological_ring
 
+-- TODO consider removing this after #1438 merges?
+instance : has_coe_to_sort TopCommRing :=
+{ S := Type u, coe := TopCommRing.α }
+
 instance : concrete_category TopCommRing.{u} :=
 { to_category :=
   { hom   := λ R S, {f : R →+* S // continuous f },

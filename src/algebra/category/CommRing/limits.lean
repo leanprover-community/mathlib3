@@ -9,6 +9,17 @@ import category_theory.limits.preserves
 import ring_theory.subring
 import algebra.pi_instances
 
+/-!
+# The category of commutative rings has all limits
+
+Further, these limits are preserves by the forgetful functor --- that is,
+the underlying types are just the limits in the category of types.
+
+## Further work
+A lot of this should be generalised / automated, as it's quite common for concrete
+categories that the forgetful functor preserves limits.
+-/
+
 open category_theory
 open category_theory.limits
 
@@ -83,14 +94,18 @@ instance limit_π_is_ring_hom (F : J ⥤ CommRing.{u}) (j) :
   map_mul := λ x y, by { simp only [types.types_limit_π], refl },
   map_add := λ x y, by { simp only [types.types_limit_π], refl } }
 
-def limit (F : J ⥤ CommRing.{u}) : cone F :=
+-- The next two definitions are used in the construction of `has_limits CommRing`.
+-- After that, the limits should be constructed using the generic limits API,
+-- e.g. `limit F`, `limit.cone F`, and `limit.is_limit F`.
+
+private def limit (F : J ⥤ CommRing.{u}) : cone F :=
 { X := ⟨limit (F ⋙ forget _), by apply_instance⟩,
   π :=
   { app := λ j, ring_hom.of $ limit.π (F ⋙ forget _) j,
     naturality' := λ j j' f,
       ring_hom.ext ((limit.cone (F ⋙ forget _)).π.naturality f) } }
 
-def limit_is_limit (F : J ⥤ CommRing.{u}) : is_limit (limit F) :=
+private def limit_is_limit (F : J ⥤ CommRing.{u}) : is_limit (limit F) :=
 begin
   refine is_limit.of_faithful
     (forget CommRing) (limit.is_limit _)
@@ -105,10 +120,15 @@ begin
     erw (s.π.app j).map_add, refl }
 end
 
+/-- The category of commutative rings has all limits. -/
 instance CommRing_has_limits : has_limits.{u} CommRing.{u} :=
 { has_limits_of_shape := λ J 𝒥,
   { has_limit := λ F, by exactI { cone := limit F, is_limit := limit_is_limit F } } }
 
+/--
+The forgetful functor from commutative rings to types preserves all limits. (That is, the underlying
+types could have been computed instead as limits in the category of types.)
+-/
 instance forget_preserves_limits : preserves_limits (forget CommRing.{u}) :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ F,

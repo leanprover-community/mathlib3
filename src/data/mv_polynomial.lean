@@ -775,6 +775,8 @@ mv_polynomial.induction_on x
 (λ p q hp hq, by { rw [eval₂_add, hp, hq], exact (is_ring_hom.map_add f).symm })
 (λ p n hp, by { rw [eval₂_mul, eval₂_X, hp], exact (is_ring_hom.map_mul f).symm })
 
+/-- Ring homomorphisms out of integer polynomials on a type `σ` are the same as
+functions out of the the type `σ`, -/
 def hom_equiv : (mv_polynomial σ ℤ →+* β) ≃ (σ → β) :=
 { to_fun := λ f, ⇑f ∘ X,
   inv_fun := λ f, ring_hom.of (eval₂ (λ n : ℤ, (n : β)) f),

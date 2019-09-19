@@ -11,6 +11,7 @@ universes u
 
 open category_theory
 
+/-- A bundled topological commutative ring. -/
 structure TopCommRing :=
 (α : Type u)
 [is_comm_ring : comm_ring α]
@@ -37,6 +38,7 @@ instance : concrete_category TopCommRing.{u} :=
   forget_faithful := { }
 }
 
+/-- Construct a bundled `TopCommRing` from the underlying type and the appropriate typeclasses. -/
 def of (X : Type u) [comm_ring X] [topological_space X] [topological_ring X] : TopCommRing := ⟨X⟩
 
 noncomputable example : TopCommRing := TopCommRing.of ℚ

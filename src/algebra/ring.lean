@@ -322,6 +322,7 @@ instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe (α →
 
 namespace ring_hom
 
+/-- Construct a bundled `ring_hom` from a bare function and the appropriate typeclasses. -/
 def of {α : Type u} {β : Type v} [semiring α] [semiring β]
   (f : α → β) [is_semiring_hom f] : α →+* β :=
 { to_fun := f,

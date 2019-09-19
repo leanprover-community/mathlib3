@@ -1,14 +1,22 @@
-/- Copyright (c) 2018 Scott Morrison. All rights reserved.
+/-
+Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
-
-Introduce Mon -- the category of monoids.
-
-Currently only the basic setup.
 -/
 
 import category_theory.concrete_category
 import algebra.group
+
+/-!
+# Category instances for monoid, add_monoid, comm_monoid, and add_comm_monoid.
+
+We introduce the bundled categories:
+* `Mon`
+* `AddMon`
+* `CommMon`
+* `AddCommMon`
+along with the relevant forgetful functors between them.
+-/
 
 universes u v
 
@@ -20,6 +28,7 @@ def Mon : Type (u+1) := bundled monoid
 
 namespace Mon
 
+/-- Construct a bundled Mon from the underlying type and typeclass. -/
 @[to_additive]
 def of (M : Type u) [monoid M] : Mon := bundled.of M
 
@@ -38,6 +47,7 @@ def CommMon : Type (u+1) := bundled comm_monoid
 
 namespace CommMon
 
+/-- Construct a bundled CommMon from the underlying type and typeclass. -/
 @[to_additive]
 def of (X : Type u) [comm_monoid X] : CommMon := bundled.of X
 

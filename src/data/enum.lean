@@ -2,17 +2,18 @@
 Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author(s): Simon Hudon
-
-Type class for finitely fin_enum types. The property is stronger
-than`fintype in that it assigns each element a rank in a finite
-enumeration.
--/
-
+/-
 import category.monad.basic
 import data.list.basic
 import data.equiv.basic
 import data.finset
 import data.fintype
+
+/--
+Type class for finitely fin_enum types. The property is stronger
+than`fintype in that it assigns each element a rank in a finite
+enumeration.
+-/
 
 open finset (hiding singleton)
 

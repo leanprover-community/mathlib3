@@ -147,7 +147,7 @@ begin
   rw [exceptional_empty, set.diff_empty],
   -- Now we are ready to prove that p' = (c, m_x) lies on the upper branch.
   -- We need to check two conditions: H(c, m_x) and c < m_x.
-  split; dsimp,
+  split; dsimp only,
   { -- The first condition is not so hard. After all, c is the other root of the quadratic equation.
     rw [H_symm, H_quad],
     simpa using h_root, },
@@ -173,12 +173,10 @@ begin
   apply constant_descent_vieta_jumping a b hk (λ x, k * x) (λ x, x*x - k) (λ x y, false);
   clear hk a b,
   { -- We will now show that the fibres of the solution set are described by a quadratic equation.
-    intros x y, dsimp,
+    intros x y, dsimp only,
     rw [← int.coe_nat_inj', ← sub_eq_zero],
     apply eq_iff_eq_cancel_right.2,
-    -- For some tragic reason, `ring` doesn't solve the current goal.
-    suffices : -(((1:ℤ) + x * y) * k) = -k - k * x * y, by simpa,
-    ring, },
+    simp, ring, },
   { -- Show that the solution set is symmetric in a and b.
     intros x y, simp [add_comm (x*x), mul_comm x], },
   { -- Show that the claim is true if b = 0.
@@ -206,8 +204,7 @@ begin
         { apply mul_pos; exact_mod_cast hx }, },
       have hzx : z*z + x*x = (z * x + 1) * k,
       { rw [← sub_eq_zero, ← h_root],
-        suffices : -((1 + z * x) * k) = -k + -(k * x * z), by simpa,
-        ring, },
+        simp, ring, },
       rw hzx at hpos,
       replace hpos : z * x + 1 > 0 := pos_of_mul_pos_right hpos (int.coe_zero_le k),
       replace hpos : z * x ≥ 0 := int.le_of_lt_add_one hpos,
@@ -229,12 +226,10 @@ begin
   apply constant_descent_vieta_jumping a b hk (λ x, k * x) (λ x, x*x + 1) (λ x y, x ≤ 1);
   clear hk a b,
   { -- We will now show that the fibres of the solution set are described by a quadratic equation.
-    intros x y, dsimp,
+    intros x y, dsimp only,
     rw [← int.coe_nat_inj', ← sub_eq_zero],
     apply eq_iff_eq_cancel_right.2,
-    -- Another `ring` failure
-    suffices : (x:ℤ) * y * k = k * x * y, by simpa,
-    ring, },
+    simp, ring, },
   { -- Show that the solution set is symmetric in a and b.
     intros x y, simp [mul_comm], },
   { -- Show that the claim is true if b = 0.

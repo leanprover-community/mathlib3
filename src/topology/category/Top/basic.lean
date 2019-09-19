@@ -21,9 +21,6 @@ instance concrete_category_continuous : unbundled_hom @continuous :=
 
 instance topological_space_unbundled (x : Top) : topological_space x := x.str
 
-instance concrete_category_continuous : unbundled_hom @continuous :=
-⟨@continuous_id, @continuous.comp⟩
-
 instance hom_has_coe_to_fun (X Y : Top.{u}) : has_coe_to_fun (X ⟶ Y) :=
 { F := _, coe := subtype.val }
 

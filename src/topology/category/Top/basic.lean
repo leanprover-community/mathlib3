@@ -21,7 +21,8 @@ instance concrete_category_continuous : unbundled_hom @continuous :=
 
 instance topological_space_unbundled (x : Top) : topological_space x := x.str
 
-example : large_category Top.{u} := infer_instance
+instance concrete_category_continuous : unbundled_hom @continuous :=
+⟨@continuous_id, @continuous.comp⟩
 
 instance hom_has_coe_to_fun (X Y : Top.{u}) : has_coe_to_fun (X ⟶ Y) :=
 { F := _, coe := subtype.val }
@@ -29,12 +30,15 @@ instance hom_has_coe_to_fun (X Y : Top.{u}) : has_coe_to_fun (X ⟶ Y) :=
 @[simp] lemma id_app (X : Top.{u}) (x : X) :
   @coe_fn (X ⟶ X) (Top.hom_has_coe_to_fun X X) (𝟙 X) x = x := rfl
 
+/-- Construct a bundled `Top` from the underlying type and the typeclass. -/
 def of (X : Type u) [topological_space X] : Top := ⟨X⟩
 
+/-- The discrete topology on any type. -/
 def discrete : Type u ⥤ Top.{u} :=
 { obj := λ X, ⟨X, ⊥⟩,
   map := λ X Y f, ⟨f, continuous_bot⟩ }
 
+/-- The trivial topology on any type. -/
 def trivial : Type u ⥤ Top.{u} :=
 { obj := λ X, ⟨X, ⊤⟩,
   map := λ X Y f, ⟨f, continuous_top⟩ }

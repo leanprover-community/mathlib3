@@ -7,9 +7,9 @@ import algebra.category.Mon.basic
 import category_theory.limits.limits
 
 /-!
-We build colimits of monoids.
+# The category of monoids has all colimits.
 
-We do so knowing nothing about monoids.
+We do this construction knowing nothing about monoids.
 In particular, I want to claim that this file could be produced by a python script
 that just looks at the output of `#print monoid`:
 
@@ -25,6 +25,9 @@ and if we'd fed it the output of `#print comm_ring`, this file would instead bui
 colimits of commutative rings.
 
 A slightly bolder claim is that we could do this with tactics, as well.
+
+Because this file is "pre-automated", it doesn't meet current documentation standards.
+Hopefully eventually most of it will be automatically synthesised.
 -/
 
 universes v
@@ -189,13 +192,7 @@ end
 @[simp] def desc_morphism (s : cocone F) : colimit F ⟶ s.X :=
 { to_fun := desc_fun F s,
   map_one' := rfl,
-  map_mul' := λ x y,
-  begin
-    induction x, induction y,
-    refl,
-    refl,
-    refl,
-  end }
+  map_mul' := λ x y, by { induction x; induction y; refl }, }
 
 def colimit_is_colimit : is_colimit (colimit_cocone F) :=
 { desc := λ s, desc_morphism F s,

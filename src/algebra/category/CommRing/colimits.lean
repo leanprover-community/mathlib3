@@ -6,6 +6,14 @@ Authors: Scott Morrison
 import algebra.category.CommRing.basic
 import category_theory.limits.limits
 
+/-!
+# The category of commutative rings has all colimits.
+
+This file uses a "pre-automated" approach, just as for `Mon/colimits.lean`.
+It is a very uniform approach, that conceivably could be synthesised directly
+by a tactic that analyses the shape of `comm_ring` and `ring_hom`.
+-/
+
 universes u v
 
 open category_theory
@@ -14,6 +22,7 @@ open category_theory.limits
 -- [ROBOT VOICE]:
 -- You should pretend for now that this file was automatically generated.
 -- It follows the same template as colimits in Mon.
+-- Note that this means this file does not meet documentation standards.
 /-
 `#print comm_ring` says:
 
@@ -357,41 +366,12 @@ begin
   }
 end
 
-instance desc_fun_is_morphism (s : cocone F) : is_ring_hom (desc_fun F s) :=
-{ map_one := rfl,
-  map_add := λ x y,
-  begin
-    induction x, induction y,
-    refl,
-    refl,
-    refl,
-  end,
-  map_mul := λ x y,
-  begin
-    induction x, induction y,
-    refl,
-    refl,
-    refl,
-  end, }
-
 @[simp] def desc_morphism (s : cocone F) : colimit F ⟶ s.X :=
 { to_fun := desc_fun F s,
   map_one' := rfl,
   map_zero' := rfl,
-  map_add' := λ x y,
-  begin
-    induction x, induction y,
-    refl,
-    refl,
-    refl,
-  end,
-  map_mul' := λ x y,
-  begin
-    induction x, induction y,
-    refl,
-    refl,
-    refl,
-  end }
+  map_add' := λ x y, by { induction x; induction y; refl },
+  map_mul' := λ x y, by { induction x; induction y; refl }, }
 
 def colimit_is_colimit : is_colimit (colimit_cocone F) :=
 { desc := λ s, desc_morphism F s,

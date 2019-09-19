@@ -33,6 +33,7 @@ namespace Groupoid
 
 instance str (C : Groupoid.{v u}) : groupoid.{v u} C.α := C.str
 
+/-- Construct a bundled `Groupoid` from the underlying type and the typeclass. -/
 def of (C : Type u) [groupoid.{v} C] : Groupoid.{v u} := bundled.of C
 
 /-- Category structure on `Groupoid` -/

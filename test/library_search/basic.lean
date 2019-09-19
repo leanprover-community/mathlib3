@@ -20,6 +20,21 @@ begin
   success_if_fail { library_search },
 end
 
+-- Verify that `library_search` solves goals via `solve_by_elim` when the library isn't
+-- even needed.
+example (P : Prop) (p : P) : P :=
+by library_search
+example (P : Prop) (p : P) (np : ¬P) : false :=
+by library_search
+example (X : Type) (P : Prop) (x : X) (h : Π x : X, x = x → P) : P :=
+by library_search
+
+def lt_one (n : ℕ) := n < 1
+lemma zero_lt_one (n : ℕ) (h : n = 0) : lt_one n := by subst h; dsimp [lt_one]; simp
+-- Verify that calls to solve_by_elim to discharge subgoals use `rfl`
+example : lt_one 0 :=
+by library_search
+
 example (a b : ℕ) : a + b = b + a :=
 by library_search -- says: `exact add_comm a b`
 
@@ -47,20 +62,11 @@ by library_search -- says: `exact nat.le_of_dvd w h`
 
 -- We even find `iff` results:
 
-example {b : ℕ} (w : b > 0) : b ≥ 1 :=
-by library_search -- says: `exact nat.succ_le_iff.mpr w`
-
 example : ∀ P : Prop, ¬(P ↔ ¬P) :=
 by library_search -- says: `λ (a : Prop), (iff_not_self a).mp`
 
 example {a b c : ℕ} (ha : a > 0) (w : b ∣ c) : a * b ∣ a * c :=
 by library_search -- exact mul_dvd_mul_left a w
-
-def P : Prop := true
-def Q : Prop := true
-def f (n : ℕ) : P ↔ Q := by refl
-
-example (n : ℕ) (q : Q) : P := by library_search -- exact (f n).mpr q
 
 example {a b c : ℕ} (h₁ : a ∣ c) (h₂ : a ∣ b + c) : a ∣ b :=
 by library_search -- says `exact (nat.dvd_add_left h₁).mp h₂`
@@ -72,7 +78,7 @@ easy side goals.
 We'll need a cleverer architecture before this is possible without
 slowly things down too badly.
 -/
--- example {a b : ℕ} (h : a * 2 ≤ b) : a ≤ b / 2 :=
--- by library_search -- exact (nat.le_div_iff_mul_le a b (dec_trivial)).mpr h
+example {a b : ℕ} (h : a * 2 ≤ b) : a ≤ b / 2 :=
+by library_search! -- exact (nat.le_div_iff_mul_le a b (dec_trivial)).mpr h
 
 end test.library_search

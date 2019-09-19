@@ -30,17 +30,18 @@ end fin
 class fin_enum (α : Sort*) :=
 (card : ℕ)
 (equiv : α ≃ fin card)
+[dec_eq : decidable_eq α]
+
+attribute [instance] fin_enum.dec_eq
 
 namespace fin_enum
 
 variables {α : Type*}
 
-instance [fin_enum α] : decidable_eq α :=
-equiv.decidable_eq_of_equiv (equiv α)
-
 def of_equiv (α) {β} [fin_enum α] (h : β ≃ α) : fin_enum β :=
 { card := card α,
-  equiv := h.trans (equiv α)  }
+  equiv := h.trans (equiv α),
+  dec_eq := equiv.decidable_eq_of_equiv (h.trans (equiv _)) }
 
 def of_nodup_list [decidable_eq α] (xs : list α) (h : ∀ x : α, x ∈ xs) (h' : list.nodup xs) : fin_enum α :=
 { card := xs.length,
@@ -151,6 +152,8 @@ instance [fin_enum α] : fintype α :=
 { elems := univ.map (equiv α).symm.to_embedding,
   complete := by intros; simp; existsi (equiv α x); simp }
 
+/- For `pi.cons x xs y f` create a function where every `i ∈ xs` is mapped to `f i` and
+`x` is mapped to `y`  -/
 def pi.cons {β : α → Type*} [decidable_eq α] (x : α) (xs : list α) (b : β x)
   (f : Π a, a ∈ xs → β a) :
   Π a, a ∈ (x :: xs : list α) → β a
@@ -158,11 +161,14 @@ def pi.cons {β : α → Type*} [decidable_eq α] (x : α) (xs : list α) (b : �
   if h' : y = x then cast (by rw h') b
     else f y (list.mem_of_ne_of_mem h' h)
 
+/- Given `f` a function whose domain is `x :: xs`, produce a function whose domain
+is restricted to `xs`.  -/
 def pi.tail {α : Type*} {β : α → Type*} [decidable_eq α] {x : α} {xs : list α}
   (f : Π a, a ∈ (x :: xs : list α) → β a) :
   Π a, a ∈ xs → β a
 | a h := f a (list.mem_cons_of_mem _ h)
 
+/- `pi xs f` creates the list of functions `g` such that, for `x ∈ xs`, `g x ∈ f x` -/
 def pi {α : Type*} {β : α → Type*} [decidable_eq α] : Π xs : list α, (Π a, list (β a)) → list (Π a, a ∈ xs → β a)
 | [] fs := [λ x h, h.elim]
 | (x :: xs) fs :=

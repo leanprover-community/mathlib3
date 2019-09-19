@@ -106,10 +106,8 @@ noncomputable def completion_functor : UniformSpace ⥤ CpltSepUniformSpace :=
   begin
     apply subtype.eq,
     dsimp,
-    rw ←completion.map_comp,
+    rw ←completion.map_comp g.property f.property,
     refl,
-    exact g.property,
-    exact f.property
   end }.
 
 /-- The inclusion of any uniform spaces into its completion. -/
@@ -130,11 +128,11 @@ noncomputable def extension_hom {X : UniformSpace} {Y : CpltSepUniformSpace}
 
 @[simp] lemma extension_hom_val {X : UniformSpace} {Y : CpltSepUniformSpace}
   (f : X ⟶ forget Y) (x) :
-  (extension_hom f) x = completion.extension f x := rfl.
+    (extension_hom f) x = completion.extension f x := rfl.
 
 @[simp] lemma extension_comp_coe {X : UniformSpace} {Y : CpltSepUniformSpace}
-(f : forget (CpltSepUniformSpace.of (completion X)) ⟶ forget Y) :
-extension_hom (completion_hom X ≫ f) = f :=
+  (f : forget (CpltSepUniformSpace.of (completion X)) ⟶ forget Y) :
+    extension_hom (completion_hom X ≫ f) = f :=
 by { apply subtype.eq, funext x, exact congr_fun (completion.extension_comp_coe f.property) x }
 
 /-- The completion functor is left adjoint to the forgetful functor. -/
@@ -148,7 +146,7 @@ adjunction.mk_of_hom_equiv
     begin
       apply subtype.eq, funext x, cases f,
       change completion.extension f_val _ = f_val x,
-      erw completion.extension_coe, assumption
+      erw completion.extension_coe f_property x,
     end },
   hom_equiv_naturality_left_symm' := λ X X' Y f g,
   begin

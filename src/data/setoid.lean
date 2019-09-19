@@ -38,10 +38,13 @@ variables {α : Type*} {β : Type*}
 
 open lattice
 
-namespace setoid
+/-- A version of `setoid.r` that takes the equivalence relation as an explicit argument. -/
+def setoid.rel (r : setoid α) : α → α → Prop := @setoid.r _ r
 
-/-- A version of setoid.r that takes the equivalence relation as an explicit argument. -/
-def rel (r : setoid α) : α → α → Prop := @setoid.r _ r
+/-- A version of `quotient.eq'` compatible with `setoid.rel`, to make rewriting possible. -/
+lemma quotient.eq_rel {r : setoid α} {x y} : ⟦x⟧ = ⟦y⟧ ↔ r.rel x y := quotient.eq'
+
+namespace setoid
 
 @[extensionality] lemma ext' {r s : setoid α} (H : ∀ a b, r.rel a b ↔ s.rel a b) :
   r = s := ext H
@@ -53,7 +56,7 @@ lemma ext_iff {r s : setoid α} : r = s ↔ ∀ a b, r.rel a b ↔ s.rel a b :=
 theorem eq_iff_rel_eq {r₁ r₂ : setoid α} : r₁ = r₂ ↔ r₁.rel = r₂.rel :=
 ⟨λ h, h ▸ rfl, λ h, setoid.ext' $ λ x y, h ▸ iff.rfl⟩
 
-/-- Defining '≤' for equivalence relations. -/
+/-- Defining `≤` for equivalence relations. -/
 instance : has_le (setoid α) := ⟨λ r s, ∀ x y, r.rel x y → s.rel x y⟩
 
 theorem le_def {r s : setoid α} : r ≤ s ↔ ∀ {x y}, r.rel x y → s.rel x y := iff.rfl
@@ -118,7 +121,7 @@ setoid.ext' $ λ _ _,
 instance : has_sup (setoid α) := ⟨λ r s, Inf {x | r ≤ x ∧ s ≤ x}⟩
 
 /-- The supremum of two equivalence relations r and s is the equivalence closure of the binary
-    relation 'x is related to y by r or s'. -/
+    relation `x is related to y by r or s`. -/
 lemma sup_eq_eqv_gen (r s : setoid α) :
   r ⊔ s = eqv_gen.setoid (λ x y, r.rel x y ∨ s.rel x y) :=
 begin
@@ -134,7 +137,7 @@ end
 lemma sup_def {r s : setoid α} : r ⊔ s = eqv_gen.setoid (r.rel ⊔ s.rel) :=
 by rw sup_eq_eqv_gen; refl
 
-/-- The complete lattice of equivalence relations on a type, with bottom element '='
+/-- The complete lattice of equivalence relations on a type, with bottom element `=`
     and top element the trivial equivalence relation. -/
 instance complete_lattice : complete_lattice (setoid α) :=
 { sup := has_sup.sup,
@@ -163,7 +166,7 @@ instance complete_lattice : complete_lattice (setoid α) :=
   le_Inf := le_Inf }
 
 /-- The supremum of a set S of equivalence relations is the equivalence closure of the binary
-    relation 'there exists r ∈ S relating x and y'. -/
+    relation `there exists r ∈ S relating x and y`. -/
 lemma Sup_eq_eqv_gen (S : set (setoid α)) :
   Sup S = eqv_gen.setoid (λ x y, ∃ r : setoid α, r ∈ S ∧ r.rel x y) :=
 begin
@@ -273,15 +276,13 @@ noncomputable def quotient_quotient_equiv_quotient (s : setoid α) (h : r ≤ s)
   quotient (ker (quot.map_right h)) ≃ quotient s :=
 quotient_ker_equiv_of_surjective _ $ λ x, by rcases x; exact ⟨quotient.mk' x, rfl⟩
 
-/-- Given an equivalence relation r on α, the natural map from equivalence relations containing
-    r to equivalence relations on the quotient of α by r. -/
-def to_quotient (s : {s // r ≤ s}) : setoid (quotient r) :=
-{ r := λ x y, quotient.lift_on₂' x y s.1.rel $ λ _ _ _ _ ha hb, iff_iff_eq.1
-         ⟨λ h', s.1.trans' (s.1.symm' $ s.2 _ _ ha) $ s.1.trans' h' $ s.2 _ _ hb,
-          λ h', s.1.trans' (s.2 _ _ ha) $ s.1.trans' h' $ s.1.symm' $ s.2 _ _ hb⟩,
-  iseqv := ⟨λ x, quotient.induction_on' x s.1.refl',
-            λ x y, quotient.induction_on₂' x y $ λ _ _, s.1.symm',
-            λ x y z, quotient.induction_on₃' x y z $ λ _ _ _, s.1.trans'⟩ }
+/-- Given an equivalence relation r on α and a surjective map f from α to the quotient of α by r,
+    the natural map from equivalence relations containing r to equivalence relations on the 
+    quotient of α by r. -/
+def to_quotient {f : α → quotient r} (hf : surjective f) (s : {s // r ≤ s}) :
+  setoid (quotient r) :=
+{ r := λ x y, s.1.rel (classical.some $ hf x) (classical.some $ hf y),
+  iseqv := ⟨λ x, s.1.refl' _, λ _ _ h, s.1.symm' h, λ _ _ _ h1, s.1.trans' h1⟩ }
 
 /-- Given an equivalence relation r on α and a map f to the quotient of α by r, an
     equivalence relation s on the quotient induces an equivalence relation on f's domain defined
@@ -290,18 +291,32 @@ def of_quotient (f : β → quotient r) (s : setoid (quotient r)) : setoid β :=
 ⟨λ x y, s.rel (f x) (f y),
  ⟨λ _, s.refl' _, λ _ _ h, s.symm' h, λ _ _ _ h1 h2, s.trans' h1 h2⟩⟩
 
-/-- Given an equivalence relation r on α, the order-preserving bijection between the set of
-    equivalence relations containing r and the equivalence relations on the quotient of α by r. -/
-def correspondence : ((≤) : {s // r ≤ s} → {s // r ≤ s} → Prop) ≃o
-  ((≤) : setoid (quotient r) → setoid (quotient r) → Prop) :=
-{ to_fun := λ s, r.to_quotient s,
-  inv_fun := λ s, subtype.mk (r.of_quotient quotient.mk' s) $
-    λ x y h, show s.rel ⟦x⟧ ⟦y⟧, from quotient.sound h ▸ s.refl' ⟦x⟧,
-  left_inv := λ s, subtype.ext.2 $ show r.of_quotient quotient.mk' (r.to_quotient s) = s.1,
-    by ext; refl,
-  right_inv := λ s, by ext; rcases a; rcases b; refl,
-  ord := λ a b, ⟨λ hle x y, quotient.induction_on₂ x y hle,
-                 λ H p q h, H ⟦p⟧ ⟦q⟧ h⟩ }
+section
+  open classical quotient
+  /-- Given an equivalence relation r on α, the order-preserving bijection between the set of
+      equivalence relations containing r and the equivalence relations on the quotient of α by r. -/
+  def correspondence : ((≤) : {s // r ≤ s} → {s // r ≤ s} → Prop) ≃o
+    ((≤) : setoid (quotient r) → setoid (quotient r) → Prop) :=
+  { to_fun := λ s, r.to_quotient exists_rep s,
+    inv_fun := λ s, subtype.mk (r.of_quotient quotient.mk' s) $
+      λ x y h, show s.rel ⟦x⟧ ⟦y⟧, from sound h ▸ s.refl' ⟦x⟧,
+    left_inv := λ s, subtype.ext.2 $ ext' $ λ x y,
+        ⟨λ h, s.1.trans' (s.1.trans' (s.2 x (some $ exists_rep ⟦x⟧) $ 
+                eq_rel.1 (some_spec $ exists_rep ⟦x⟧).symm) h) $ 
+                  s.2 (some $ exists_rep ⟦y⟧) y $ eq_rel.1 $ some_spec $ exists_rep ⟦y⟧, 
+         λ h, s.1.trans' (s.1.trans' (s.2 (some $ exists_rep ⟦x⟧) x $ 
+                eq_rel.1 (some_spec $ exists_rep ⟦x⟧)) h) $
+                  s.2 y (some $ exists_rep ⟦y⟧) $ eq_rel.1 (some_spec $ exists_rep ⟦y⟧).symm⟩,
+    right_inv := λ s, ext' $ λ x y, show s.rel ⟦(some _)⟧ ⟦(some _)⟧ ↔ s.rel x y, by 
+      rw [some_spec (exists_rep _), some_spec (exists_rep _)],
+    ord := λ a b, ⟨λ h x y ha, h (some $ exists_rep x) (some $ exists_rep y) ha, 
+      λ h x y ha, b.1.trans' (b.1.trans' (b.2 x (some $ exists_rep ⟦x⟧) $ 
+          eq_rel.1 (some_spec $ exists_rep ⟦x⟧).symm) $
+            h ⟦x⟧ ⟦y⟧ (a.1.trans' (a.1.trans' (a.2 (some $ exists_rep ⟦x⟧) x $ 
+              eq_rel.1 $ some_spec $ exists_rep ⟦x⟧) ha) $
+                a.2 y (some $ exists_rep ⟦y⟧) $ eq_rel.1 (some_spec $ exists_rep ⟦y⟧).symm)) $
+                  b.2 (some $ exists_rep ⟦y⟧) y $ eq_rel.1 $ some_spec $ exists_rep ⟦y⟧⟩ }
+end
 
 -- Partitions
 
@@ -432,7 +447,7 @@ set.ext $ λ s,
    λ h, let ⟨y, hy⟩ := set.exists_mem_of_ne_empty $ ne_empty_of_mem_partition hc h in
      ⟨y, eq_eqv_class_of_mem hc.2 h hy⟩⟩
 
-/-- Defining ≤ on partitions as the ≤ defined on their induced equivalence relations. -/
+/-- Defining `≤` on partitions as the `≤` defined on their induced equivalence relations. -/
 instance partition.le : has_le (subtype (@is_partition α)) :=
 ⟨λ x y, mk_classes x.1 x.2.2 ≤ mk_classes y.1 y.2.2⟩
 

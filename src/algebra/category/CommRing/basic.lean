@@ -32,10 +32,10 @@ namespace SemiRing
 /-- Construct a bundled SemiRing from the underlying type and typeclass. -/
 def of (R : Type u) [semiring R] : SemiRing := bundled.of R
 
-instance (R : SemiRing) : semiring R := R.str
-
 instance bundled_hom : bundled_hom @ring_hom :=
 ⟨@ring_hom.to_fun, @ring_hom.id, @ring_hom.comp, @ring_hom.ext⟩
+
+instance (R : SemiRing) : semiring R := R.str
 
 instance has_forget_to_Mon : has_forget₂ SemiRing.{u} Mon.{u} :=
 bundled_hom.mk_has_forget₂ @semiring.to_monoid (λ R₁ R₂ f, f.to_monoid_hom) (λ _ _ _, rfl)
@@ -47,16 +47,16 @@ end SemiRing
 
 namespace Ring
 
-instance (R : Ring) : ring R := R.str
-
 /-- Construct a bundled Ring from the underlying type and typeclass. -/
 def of (R : Type u) [ring R] : Ring := bundled.of R
 
 instance bundled_hom : bundled_hom _ :=
-SemiRing.bundled_hom.full_subcategory @ring.to_semiring
+SemiRing.bundled_hom.induced_category @ring.to_semiring
+
+instance (R : Ring) : ring R := R.str
 
 instance has_forget_to_SemiRing : has_forget₂ Ring.{u} SemiRing.{u} :=
-SemiRing.bundled_hom.full_subcategory_has_forget₂ _
+SemiRing.bundled_hom.induced_category_has_forget₂ _
 
 end Ring
 
@@ -65,16 +65,16 @@ end Ring
 
 namespace CommSemiRing
 
-instance (R : CommSemiRing) : comm_semiring R := R.str
-
 /-- Construct a bundled CommSemiRing from the underlying type and typeclass. -/
 def of (R : Type u) [comm_semiring R] : CommSemiRing := bundled.of R
 
 instance bundled_hom : bundled_hom _ :=
-SemiRing.bundled_hom.full_subcategory @comm_semiring.to_semiring
+SemiRing.bundled_hom.induced_category @comm_semiring.to_semiring
+
+instance (R : CommSemiRing) : comm_semiring R := R.str
 
 instance has_forget_to_SemiRing : has_forget₂ CommSemiRing.{u} SemiRing.{u} :=
-bundled_hom.full_subcategory_has_forget₂ _ _
+bundled_hom.induced_category_has_forget₂ _ _
 
 /-- The forgetful functor from commutative rings to (multiplicative) commutative monoids. -/
 instance has_forget_to_CommMon : has_forget₂ CommSemiRing.{u} CommMon.{u} :=
@@ -90,13 +90,13 @@ end CommSemiRing
 
 namespace CommRing
 
-instance (R : CommRing) : comm_ring R := R.str
-
 /-- Construct a bundled CommRing from the underlying type and typeclass. -/
 def of (R : Type u) [comm_ring R] : CommRing := bundled.of R
 
 instance bundled_hom : bundled_hom _ :=
-Ring.bundled_hom.full_subcategory @comm_ring.to_ring
+Ring.bundled_hom.induced_category @comm_ring.to_ring
+
+instance (R : CommRing) : comm_ring R := R.str
 
 @[simp] lemma id_eq (R : CommRing) : 𝟙 R = ring_hom.id R := rfl
 @[simp] lemma comp_eq {R₁ R₂ R₃ : CommRing} (f : R₁ ⟶ R₂) (g : R₂ ⟶ R₃) :
@@ -108,7 +108,7 @@ Ring.bundled_hom.full_subcategory @comm_ring.to_ring
 rfl
 
 instance has_forget_to_Ring : has_forget₂ CommRing.{u} Ring.{u} :=
-by apply bundled_hom.full_subcategory_has_forget₂
+by apply bundled_hom.induced_category_has_forget₂
 
 /-- The forgetful functor from commutative rings to (multiplicative) commutative monoids. -/
 instance has_forget_to_CommSemiRing : has_forget₂ CommRing.{u} CommSemiRing.{u} :=

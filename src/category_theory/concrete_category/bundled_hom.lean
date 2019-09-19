@@ -98,7 +98,7 @@ protected def induced_category : bundled_hom (λ α β (Iα : d α) (Iβ : d β)
 
 /-- A full subcategory of a concrete category with bundled homs has a forgetful functor to the
 entire category. This is used to construct instances of `has_forget` in many concrete examples. -/
-def full_subcategory_has_forget₂ :
+def induced_category_has_forget₂ :
   @has_forget₂ (bundled d) (bundled c)
     (by haveI := 𝒞.induced_category obj; apply_instance) (by apply_instance) :=
 induced_category.has_forget₂ (bundled.map @obj)

@@ -60,6 +60,6 @@ instance (x : CommMon) : comm_monoid x := x.str
 
 @[to_additive has_forget_to_AddMon]
 instance has_forget_to_Mon : has_forget₂ CommMon.{u} Mon.{u} :=
-Mon.bundled_hom.full_subcategory_has_forget₂ _
+Mon.bundled_hom.induced_category_has_forget₂ _
 
 end CommMon

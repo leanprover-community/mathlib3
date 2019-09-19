@@ -1,14 +1,24 @@
-/- Copyright (c) 2018 Scott Morrison. All rights reserved.
+/-
+Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl, Yury Kudryashov
-
-Introduce CommRing -- the category of commutative rings.
 -/
 
 import algebra.category.Mon.basic
 import category_theory.fully_faithful
 import algebra.ring
 import data.int.basic
+
+/-!
+# Category instances for semiring, ring, comm_semiring, and comm_ring.
+
+We introduce the bundled categories:
+* `SemiRing`
+* `Ring`
+* `CommSemiRing`
+* `CommRing`
+along with the relevant forgetful functors between them.
+-/
 
 universes u v
 
@@ -19,6 +29,7 @@ open category_theory
 
 namespace SemiRing
 
+/-- Construct a bundled SemiRing from the underlying type and typeclass. -/
 def of (R : Type u) [semiring R] : SemiRing := bundled.of R
 
 instance (R : SemiRing) : semiring R := R.str
@@ -36,8 +47,9 @@ end SemiRing
 
 namespace Ring
 
- instance (R : Ring) : ring R := R.str
+instance (R : Ring) : ring R := R.str
 
+/-- Construct a bundled Ring from the underlying type and typeclass. -/
 def of (R : Type u) [ring R] : Ring := bundled.of R
 
 instance bundled_hom : bundled_hom _ :=
@@ -55,6 +67,7 @@ namespace CommSemiRing
 
 instance (R : CommSemiRing) : comm_semiring R := R.str
 
+/-- Construct a bundled CommSemiRing from the underlying type and typeclass. -/
 def of (R : Type u) [comm_semiring R] : CommSemiRing := bundled.of R
 
 instance bundled_hom : bundled_hom _ :=
@@ -79,6 +92,7 @@ namespace CommRing
 
 instance (R : CommRing) : comm_ring R := R.str
 
+/-- Construct a bundled CommRing from the underlying type and typeclass. -/
 def of (R : Type u) [comm_ring R] : CommRing := bundled.of R
 
 instance bundled_hom : bundled_hom _ :=

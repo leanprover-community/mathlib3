@@ -6,6 +6,14 @@ Authors: Scott Morrison
 import algebra.category.CommRing.basic
 import category_theory.limits.limits
 
+/-!
+# The category of commutative rings has all colimits.
+
+This file uses a "pre-automated" approach, just as for `Mon/colimits.lean`.
+It is a very uniform approach, that conceivably could be synthesised directly
+by a tactic that analyses the shape of `comm_ring` and `ring_hom`.
+-/
+
 universes u v
 
 open category_theory
@@ -14,6 +22,7 @@ open category_theory.limits
 -- [ROBOT VOICE]:
 -- You should pretend for now that this file was automatically generated.
 -- It follows the same template as colimits in Mon.
+-- Note that this means this file does not meet documentation standards.
 /-
 `#print comm_ring` says:
 

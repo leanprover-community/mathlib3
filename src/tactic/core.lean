@@ -1168,7 +1168,7 @@ do env ← get_env,
 
 open lean.parser interactive
 
-/-- `import_private foo from bar` finds a private declaration in the same file as `bar` 
+/-- `import_private foo from bar` finds a private declaration `foo` in the same file as `bar` 
     and creates a local notation to refer to it. 
     
     `import_private foo`, looks for `foo` in the global namespace.

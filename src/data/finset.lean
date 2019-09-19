@@ -1002,6 +1002,9 @@ card_eq_zero.trans val_eq_zero
 theorem card_pos {s : finset α} : 0 < card s ↔ s ≠ ∅ :=
 pos_iff_ne_zero.trans $ not_congr card_eq_zero
 
+theorem card_ne_zero_of_mem {s : finset α} {a : α} (h : a ∈ s) : card s ≠ 0 :=
+(not_congr card_eq_zero).2 (ne_empty_of_mem h)
+
 theorem card_eq_one {s : finset α} : s.card = 1 ↔ ∃ a, s = finset.singleton a :=
 by cases s; simp [multiset.card_eq_one, finset.singleton, finset.card]
 
@@ -1017,6 +1020,10 @@ rw [card_insert_of_not_mem h]]
 @[simp] theorem card_singleton (a : α) : card (singleton a) = 1 := card_singleton _
 
 theorem card_erase_of_mem [decidable_eq α] {a : α} {s : finset α} : a ∈ s → card (erase s a) = pred (card s) := card_erase_of_mem
+
+theorem card_erase_lt_of_mem [decidable_eq α] {a : α} {s : finset α} : a ∈ s → card (erase s a) < card s := card_erase_lt_of_mem
+
+theorem card_erase_le [decidable_eq α] {a : α} {s : finset α} : card (erase s a) ≤ card s := card_erase_le
 
 @[simp] theorem card_range (n : ℕ) : card (range n) = n := card_range n
 
@@ -1747,6 +1754,11 @@ by rw [← card_union_add_card_inter, disjoint_iff_inter_eq_empty.1 h, card_empt
 theorem card_sdiff {s t : finset α} (h : s ⊆ t) : card (t \ s) = card t - card s :=
 suffices card (t \ s) = card ((t \ s) ∪ s) - card s, by rwa sdiff_union_of_subset h at this,
 by rw [card_disjoint_union sdiff_disjoint, nat.add_sub_cancel]
+
+lemma disjoint_filter {s : finset α} {p q : α → Prop} [decidable_pred p] [decidable_pred q] :
+    (∀x, p x → ¬ q x) → disjoint (s.filter p) (s.filter q) :=
+assume h, by simp only [disjoint_iff_ne, mem_filter]; rintros a ⟨_, ha⟩ b ⟨_, hb⟩ eq;
+rw [eq] at ha; exact h _ ha hb
 
 end disjoint
 

@@ -15,7 +15,7 @@ namespace Top
 
 lemma epi_iff_surjective {X Y : Top.{u}} (f : X ⟶ Y) : epi f ↔ function.surjective f :=
 begin
-  suffices : epi f ↔ epi (forget.map f),
+  suffices : epi f ↔ epi ((forget Top).map f),
   { rw [this, category_theory.epi_iff_surjective], refl },
   split,
   { apply left_adjoint_preserves_epi adj₂ },
@@ -24,7 +24,7 @@ end
 
 lemma mono_iff_injective {X Y : Top.{u}} (f : X ⟶ Y) : mono f ↔ function.injective f :=
 begin
-  suffices : mono f ↔ mono (forget.map f),
+  suffices : mono f ↔ mono ((forget Top).map f),
   { rw [this, category_theory.mono_iff_injective], refl },
   split,
   { apply right_adjoint_preserves_mono adj₁ },

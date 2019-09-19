@@ -442,7 +442,7 @@ by simp [uniform_continuous]; exact tendsto_id
 lemma uniform_continuous_const [uniform_space β] {b : β} : uniform_continuous (λa:α, b) :=
 @tendsto_const_uniformity _ _ _ b (𝓤 α)
 
-lemma uniform_continuous.comp [uniform_space β] [uniform_space γ] {f : α → β} {g : β → γ}
+lemma uniform_continuous.comp [uniform_space β] [uniform_space γ] {g : β → γ} {f : α → β}
   (hg : uniform_continuous g) (hf : uniform_continuous f) : uniform_continuous (g ∘ f) :=
 hg.comp hf
 end uniform_space

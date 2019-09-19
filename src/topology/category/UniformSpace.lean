@@ -30,6 +30,7 @@ namespace UniformSpace
 
 instance (x : UniformSpace) : uniform_space x := x.str
 
+/-- Construct a bundled `UniformSpace` from the underlying type and the typeclass. -/
 def of (α : Type u) [uniform_space α] : UniformSpace := ⟨α⟩
 
 /-- The category instance on `UniformSpace`. -/
@@ -75,6 +76,7 @@ UniformSpace.of X
 instance (X : CpltSepUniformSpace) : complete_space ((to_UniformSpace X).α) := CpltSepUniformSpace.is_complete_space X
 instance (X : CpltSepUniformSpace) : separated ((to_UniformSpace X).α) := CpltSepUniformSpace.is_separated X
 
+/-- Construct a bundled `UniformSpace` from the underlying type and the appropriate typeclasses. -/
 def of (X : Type u) [uniform_space X] [complete_space X] [separated X] : CpltSepUniformSpace := ⟨X⟩
 
 /-- The category instance on `CpltSepUniformSpace`. -/

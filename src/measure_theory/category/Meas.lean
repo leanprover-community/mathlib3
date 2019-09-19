@@ -35,6 +35,7 @@ namespace Meas
 
 instance (X : Meas) : measurable_space X := X.str
 
+/-- Construct a bundled `Meas` from the underlying type and the typeclass. -/
 def of (α : Type u) [measurable_space α] : Meas := ⟨α⟩
 
 instance unbundled_hom : unbundled_hom @measurable := ⟨@measurable_id, @measurable.comp⟩

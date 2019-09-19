@@ -7,9 +7,9 @@ import algebra.category.Mon.basic
 import category_theory.limits.limits
 
 /-!
-We build colimits of monoids.
+# The category of monoids has all colimits.
 
-We do so knowing nothing about monoids.
+We do this construction knowing nothing about monoids.
 In particular, I want to claim that this file could be produced by a python script
 that just looks at the output of `#print monoid`:
 
@@ -25,6 +25,9 @@ and if we'd fed it the output of `#print comm_ring`, this file would instead bui
 colimits of commutative rings.
 
 A slightly bolder claim is that we could do this with tactics, as well.
+
+Because this file is "pre-automated", it doesn't meet current documentation standards.
+Hopefully eventually most of it will be automatically synthesised.
 -/
 
 universes v

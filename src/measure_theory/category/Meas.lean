@@ -33,15 +33,12 @@ universes u v
 
 namespace Meas
 
-instance (x : Meas) : measurable_space x := x.str
+instance (X : Meas) : measurable_space X := X.str
 
-instance : concrete_category @measurable := ⟨@measurable_id, @measurable.comp⟩
+/-- Construct a bundled `Meas` from the underlying type and the typeclass. -/
+def of (α : Type u) [measurable_space α] : Meas := ⟨α⟩
 
-def of (X : Type u) [measurable_space X] : Meas := ⟨X⟩
-
--- -- If `measurable` were a class, we would summon instances:
--- local attribute [class] measurable
--- instance {X Y : Meas} (f : X ⟶ Y) : measurable (f : X → Y) := f.2
+instance unbundled_hom : unbundled_hom @measurable := ⟨@measurable_id, @measurable.comp⟩
 
 /-- `Measure X` is the measurable space of measures over the measurable space `X`. It is the
 weakest measurable space, s.t. λμ, μ s is measurable for all measurable sets `s` in `X`. An
@@ -89,6 +86,11 @@ def Integral : monad.algebra Measure :=
 
 end Meas
 
+instance Top.has_forget_to_Meas : has_forget₂ Top.{u} Meas.{u} :=
+bundled_hom.mk_has_forget₂
+  @measure_theory.borel
+  (λ X Y f, ⟨f.1, measure_theory.measurable_of_continuous f.2⟩)
+  (by intros; refl)
+
 /-- The Borel functor, the canonical embedding of topological spaces into measurable spaces. -/
-def Borel : Top ⥤ Meas :=
-concrete_functor @measure_theory.borel @measure_theory.measurable_of_continuous
+@[reducible] def Borel : Top.{u} ⥤ Meas.{u} := forget₂ Top.{u} Meas.{u}

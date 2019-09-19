@@ -5,7 +5,7 @@ Authors: Robert A. Spencer
 -/
 import algebra.module
 import algebra.punit_instances
-import category_theory.types
+import category_theory.concrete_category
 import linear_algebra.basic
 open category_theory
 
@@ -23,19 +23,24 @@ attribute [instance] Module.is_add_comm_group Module.is_module
 
 namespace Module
 
+-- TODO consider removing this after #1438 merges?
 instance : has_coe_to_sort (Module R) :=
 { S := Type u, coe := Module.carrier }
 
+instance : concrete_category (Module.{u} R) :=
+{ to_category :=
+  { hom   := λ M N, M →ₗ[R] N,
+    id    := λ M, 1,
+    comp  := λ A B C f g, g.comp f },
+  forget := { obj := λ R, R, map := λ R S f, (f : R → S) },
+  forget_faithful := { } }
+
 def of (X : Type u) [add_comm_group X] [module R X] : Module R := ⟨R, X⟩
 
-instance : has_zero (Module R) := ⟨ of R punit ⟩
+-- TODO: Once #1445 has merged, replace this with `has_zero_object (Module R)`
+instance : has_zero (Module R) := ⟨of R punit⟩
 
 variables (M N U : Module R)
-
-instance : category (Module R) :=
-{ hom  := λ M N, M →ₗ[R] N,
-  id   := λ M, 1,
-  comp := λ A B C f g, g.comp f }
 
 @[simp] lemma id_apply (m : M) : (𝟙 M : M → M) m = m := rfl
 

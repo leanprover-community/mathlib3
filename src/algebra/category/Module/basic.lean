@@ -47,9 +47,6 @@ variables (M N U : Module R)
 @[simp] lemma module_hom_comp (f : M ⟶ N) (g : N ⟶ U) :
   ((f ≫ g) : M → U) = g ∘ f := rfl
 
-@[extensionality] lemma hom_ext  {f g : M ⟶ N} : (f : M → N) = g → f = g :=
-λ w, linear_map.ext (function.funext_iff.1 w)
-
 instance hom_is_module_hom {M₁ M₂ : Module R} (f : M₁ ⟶ M₂) :
   is_linear_map R (f : M₁ → M₂) := linear_map.is_linear _
 

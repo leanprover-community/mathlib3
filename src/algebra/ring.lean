@@ -322,17 +322,16 @@ instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe (α →
 
 namespace ring_hom
 
-/-- Construct a bundled `ring_hom` from a bare function and the appropriate typeclasses. -/
-def of {α : Type u} {β : Type v} [semiring α] [semiring β]
-  (f : α → β) [is_semiring_hom f] : α →+* β :=
-{ to_fun := f,
-  .. as_monoid_hom f,
-  .. as_add_monoid_hom f }
-
-@[simp] lemma coe_of {α : Type u} {β : Type v} [semiring α] [semiring β]
-  (f : α → β) [is_semiring_hom f] : ⇑(of f) = f := rfl
-
 variables {β : Type v} {γ : Type w} [semiring α] [semiring β] [semiring γ]
+
+/-- Interpret `f : α → β` with `is_semiring_hom f` as a ring homomorphism. -/
+def of (f : α → β) [is_semiring_hom f] : α →+* β :=
+{ to_fun := f,
+  .. monoid_hom.of f,
+  .. add_monoid_hom.of f }
+
+@[simp] lemma coe_of (f : α → β) [is_semiring_hom f] : ⇑(of f) = f := rfl
+
 variables (f : α →+* β) {x y : α}
 
 @[extensionality] theorem ext ⦃f g : α →+* β⦄ (h : (f : α → β) = g) : f = g :=

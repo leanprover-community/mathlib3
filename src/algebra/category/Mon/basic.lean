@@ -37,7 +37,7 @@ instance bundled_hom : bundled_hom @monoid_hom :=
 ⟨@monoid_hom.to_fun, @monoid_hom.id, @monoid_hom.comp, @monoid_hom.ext⟩
 
 @[to_additive add_monoid]
-instance (x : Mon) : monoid x := x.str
+instance (M : Mon) : monoid M := M.str
 
 end Mon
 

@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2019 Johan Commelin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johan Commelin
+-/
+
 import data.rat.basic
 import tactic
 
@@ -176,7 +182,8 @@ begin
     intros x y, dsimp only,
     rw [← int.coe_nat_inj', ← sub_eq_zero],
     apply eq_iff_eq_cancel_right.2,
-    simp, ring, },
+    norm_cast,
+    squeeze_simp, ring, },
   { -- Show that the solution set is symmetric in a and b.
     intros x y, simp [add_comm (x*x), mul_comm x], },
   { -- Show that the claim is true if b = 0.

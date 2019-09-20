@@ -1090,7 +1090,7 @@ theorem bind_ret_eq_map (f : α → β) (l : list α) :
   l.bind (list.ret ∘ f) = map f l :=
 by unfold list.bind; induction l; simp only [map, join, list.ret, cons_append, nil_append, *]; split; refl
 
-@[simp] theorem map_eq_map (f : α → β) (l : list α) : f <$> l = map f l := rfl
+@[simp] theorem map_eq_map {α β} (f : α → β) (l : list α) : f <$> l = map f l := rfl
 
 @[simp] theorem map_tail (f : α → β) (l) : map f (tail l) = tail (map f l) :=
 by cases l; refl

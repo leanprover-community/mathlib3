@@ -233,10 +233,10 @@ iff.intro or_exists_of_exists_mem_cons
 
 theorem subset_def {l₁ l₂ : list α} : l₁ ⊆ l₂ ↔ ∀ ⦃a : α⦄, a ∈ l₁ → a ∈ l₂ := iff.rfl
 
-theorem subset_app_of_subset_left (l l₁ l₂ : list α) : l ⊆ l₁ → l ⊆ l₁++l₂ :=
+theorem subset_append_of_subset_left (l l₁ l₂ : list α) : l ⊆ l₁ → l ⊆ l₁++l₂ :=
 λ s, subset.trans s $ subset_append_left _ _
 
-theorem subset_app_of_subset_right (l l₁ l₂ : list α) : l ⊆ l₂ → l ⊆ l₁++l₂ :=
+theorem subset_append_of_subset_right (l l₁ l₂ : list α) : l ⊆ l₂ → l ⊆ l₁++l₂ :=
 λ s, subset.trans s $ subset_append_right _ _
 
 @[simp] theorem cons_subset {a : α} {l m : list α} :
@@ -247,7 +247,7 @@ theorem cons_subset_of_subset_of_mem {a : α} {l m : list α}
   (ainm : a ∈ m) (lsubm : l ⊆ m) : a::l ⊆ m :=
 cons_subset.2 ⟨ainm, lsubm⟩
 
-theorem app_subset_of_subset_of_subset {l₁ l₂ l : list α} (l₁subl : l₁ ⊆ l) (l₂subl : l₂ ⊆ l) :
+theorem append_subset_of_subset_of_subset {l₁ l₂ l : list α} (l₁subl : l₁ ⊆ l) (l₂subl : l₂ ⊆ l) :
   l₁ ++ l₂ ⊆ l :=
 λ a h, (mem_append.1 h).elim (@l₁subl _) (@l₂subl _)
 
@@ -256,7 +256,7 @@ theorem app_subset_of_subset_of_subset {l₁ l₂ l : list α} (l₁subl : l₁ 
 begin
   split,
   { intro h, simp only [subset_def] at *, split; intros; simp* },
-  { rintro ⟨h1, h2⟩, apply app_subset_of_subset_of_subset h1 h2 }
+  { rintro ⟨h1, h2⟩, apply append_subset_of_subset_of_subset h1 h2 }
 end
 
 theorem eq_nil_of_subset_nil : ∀ {l : list α}, l ⊆ [] → l = []
@@ -602,10 +602,10 @@ sublist.cons2 _ _ _ s
 theorem sublist_cons_of_sublist (a : α) {l₁ l₂ : list α} : l₁ <+ l₂ → l₁ <+ a::l₂ :=
 sublist.cons _ _ _
 
-theorem sublist_app_of_sublist_left {l l₁ l₂ : list α} (s : l <+ l₁) : l <+ l₁++l₂ :=
+theorem sublist_append_of_sublist_left {l l₁ l₂ : list α} (s : l <+ l₁) : l <+ l₁++l₂ :=
 s.trans $ sublist_append_left _ _
 
-theorem sublist_app_of_sublist_right {l l₁ l₂ : list α} (s : l <+ l₂) : l <+ l₁++l₂ :=
+theorem sublist_append_of_sublist_right {l l₁ l₂ : list α} (s : l <+ l₂) : l <+ l₁++l₂ :=
 s.trans $ sublist_append_right _ _
 
 theorem sublist_of_cons_sublist_cons {l₁ l₂ : list α} : ∀ {a : α}, a::l₁ <+ a::l₂ → l₁ <+ l₂
@@ -639,7 +639,7 @@ end
 theorem reverse_sublist {l₁ l₂ : list α} (h : l₁ <+ l₂) : l₁.reverse <+ l₂.reverse :=
 begin
   induction h with _ _ _ _ ih _ _ a _ ih, {refl},
-  { rw reverse_cons, exact sublist_app_of_sublist_left ih },
+  { rw reverse_cons, exact sublist_append_of_sublist_left ih },
   { rw [reverse_cons, reverse_cons], exact append_sublist_append_of_sublist_right ih [a] }
 end
 
@@ -3657,7 +3657,7 @@ theorem pairwise_append {l₁ l₂ : list α} : pairwise R (l₁++l₂) ↔
 by induction l₁ with x l₁ IH; [simp only [list.pairwise.nil, forall_prop_of_false (not_mem_nil _), forall_true_iff, and_true, true_and, nil_append],
 simp only [cons_append, pairwise_cons, forall_mem_append, IH, forall_mem_cons, forall_and_distrib, and_assoc, and.left_comm]]
 
-theorem pairwise_app_comm (s : symmetric R) {l₁ l₂ : list α} :
+theorem pairwise_append_comm (s : symmetric R) {l₁ l₂ : list α} :
   pairwise R (l₁++l₂) ↔ pairwise R (l₂++l₁) :=
 have ∀ l₁ l₂ : list α,
   (∀ (x : α), x ∈ l₁ → ∀ (y : α), y ∈ l₂ → R x y) →
@@ -3668,7 +3668,7 @@ by simp only [pairwise_append, and.left_comm]; rw iff.intro (this l₁ l₂) (th
 theorem pairwise_middle (s : symmetric R) {a : α} {l₁ l₂ : list α} :
   pairwise R (l₁ ++ a::l₂) ↔ pairwise R (a::(l₁++l₂)) :=
 show pairwise R (l₁ ++ ([a] ++ l₂)) ↔ pairwise R ([a] ++ l₁ ++ l₂),
-by rw [← append_assoc, pairwise_append, @pairwise_append _ _ ([a] ++ l₁), pairwise_app_comm s];
+by rw [← append_assoc, pairwise_append, @pairwise_append _ _ ([a] ++ l₁), pairwise_append_comm s];
    simp only [mem_append, or_comm]
 
 theorem pairwise_map (f : β → α) :
@@ -4056,10 +4056,11 @@ by simp only [nodup, pairwise_append, disjoint_iff_ne]
 theorem disjoint_of_nodup_append {l₁ l₂ : list α} (d : nodup (l₁++l₂)) : disjoint l₁ l₂ :=
 (nodup_append.1 d).2.2
 
-theorem nodup_append_of_nodup {l₁ l₂ : list α} (d₁ : nodup l₁) (d₂ : nodup l₂) (dj : disjoint l₁ l₂) : nodup (l₁++l₂) :=
+theorem nodup_append_of_nodup {l₁ l₂ : list α} (d₁ : nodup l₁) (d₂ : nodup l₂)
+  (dj : disjoint l₁ l₂) : nodup (l₁++l₂) :=
 nodup_append.2 ⟨d₁, d₂, dj⟩
 
-theorem nodup_app_comm {l₁ l₂ : list α} : nodup (l₁++l₂) ↔ nodup (l₂++l₁) :=
+theorem nodup_append_comm {l₁ l₂ : list α} : nodup (l₁++l₂) ↔ nodup (l₂++l₁) :=
 by simp only [nodup_append, and.left_comm, disjoint_comm]
 
 theorem nodup_middle {a : α} {l₁ l₂ : list α} : nodup (l₁ ++ a::l₂) ↔ nodup (a::(l₁++l₂)) :=

@@ -60,7 +60,7 @@ instance (x : CommMon) : comm_monoid x := x.str
 
 @[to_additive has_forget_to_AddMon]
 instance has_forget_to_Mon : has_forget₂ CommMon.{u} Mon.{u} :=
-Mon.bundled_hom.full_subcategory_has_forget₂ _
+Mon.bundled_hom.induced_category_has_forget₂ _
 
 -- TODO I wish this wasn't necessary, but the more general lemma in bundled_hom.lean doesn't fire.
 @[simp, to_additive] lemma coe_comp {X Y Z : CommMon} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :

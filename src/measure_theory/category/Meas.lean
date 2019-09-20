@@ -33,12 +33,12 @@ universes u v
 
 namespace Meas
 
-instance (X : Meas) : measurable_space X := X.str
-
 /-- Construct a bundled `Meas` from the underlying type and the typeclass. -/
 def of (α : Type u) [measurable_space α] : Meas := ⟨α⟩
 
 instance unbundled_hom : unbundled_hom @measurable := ⟨@measurable_id, @measurable.comp⟩
+
+instance (X : Meas) : measurable_space X := X.str
 
 /-- `Measure X` is the measurable space of measures over the measurable space `X`. It is the
 weakest measurable space, s.t. λμ, μ s is measurable for all measurable sets `s` in `X`. An

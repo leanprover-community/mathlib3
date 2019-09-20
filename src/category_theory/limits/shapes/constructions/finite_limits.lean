@@ -29,14 +29,14 @@ universes v u
 variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
+variables {J : Type v} [small_category J] [𝒥 : fin_category J]
+include 𝒥
+
 -- We hide the "implementation details" inside a namespace
 namespace has_limit_of_has_finite_products_of_has_equalizers
 
 -- Finding the `decidable_eq` instances apparently takes some work.
 set_option class.instance_max_depth 38
-
-variables {J : Type v} [small_category J] [𝒥 : fin_category J]
-include 𝒥
 
 /-- See has_limit_of_has_products_of_has_equalizers.diagram. -/
 @[simp] def diagram [has_finite_products.{v} C] (F : J ⥤ C) : walking_parallel_pair ⥤ C :=

@@ -115,33 +115,63 @@ begin
       ⟨u, ⟨u, subset.refl u, uo, au⟩, v, ⟨v, subset.refl v, vo, bv⟩, h⟩⟩)
 end
 
-lemma is_open_prod_iff' {s : set α} {t : set β} :
+/-- The first projection in a product of topological spaces sends open sets to open sets. -/
+lemma is_open_map_fst : is_open_map (@prod.fst α β) :=
+begin
+  assume s hs,
+  rw is_open_iff_forall_mem_open,
+  assume x xs,
+  rw mem_image_eq at xs,
+  rcases xs with ⟨⟨y₁, y₂⟩, ys, yx⟩,
+  rcases is_open_prod_iff.1 hs _ _ ys with ⟨o₁, o₂, o₁_open, o₂_open, yo₁, yo₂, ho⟩,
+  simp at yx,
+  rw yx at yo₁,
+  refine ⟨o₁, _, o₁_open, yo₁⟩,
+  assume z zs,
+  rw mem_image_eq,
+  exact ⟨(z, y₂), ho (by simp [zs, yo₂]), rfl⟩
+end
+
+/-- The second projection in a product of topological spaces sends open sets to open sets. -/
+lemma is_open_map_snd : is_open_map (@prod.snd α β) :=
+begin
+  /- This lemma could be proved by composing the fact that the first projection is open, and
+  exchanging coordinates is a homeomorphism, hence open. As the `prod_comm` homeomorphism is defined
+  later, we rather go for the direct proof, copy-pasting the proof for the first projection. -/
+  assume s hs,
+  rw is_open_iff_forall_mem_open,
+  assume x xs,
+  rw mem_image_eq at xs,
+  rcases xs with ⟨⟨y₁, y₂⟩, ys, yx⟩,
+  rcases is_open_prod_iff.1 hs _ _ ys with ⟨o₁, o₂, o₁_open, o₂_open, yo₁, yo₂, ho⟩,
+  simp at yx,
+  rw yx at yo₂,
+  refine ⟨o₂, _, o₂_open, yo₂⟩,
+  assume z zs,
+  rw mem_image_eq,
+  exact ⟨(y₁, z), ho (by simp [zs, yo₁]), rfl⟩
+end
+
+/-- A product set is open in a product space if and only if each factor is open, or one of them is
+empty -/
+lemma is_open_prod_iff' [topological_space α] [topological_space β] {s : set α} {t : set β} :
   is_open (set.prod s t) ↔ (is_open s ∧ is_open t) ∨ (s = ∅) ∨ (t = ∅) :=
 begin
-  split,
-  { by_cases h : s = ∅ ∨ t = ∅,
-    { simp [h] },
-    { push_neg at h,
-      assume H : is_open (set.prod s t),
+  by_cases h : set.prod s t = ∅,
+  { simp [h, prod_eq_empty_iff.1 h] },
+  { have st : s ≠ ∅ ∧ t ≠ ∅, by rwa [← ne.def, prod_neq_empty_iff] at h,
+    split,
+    { assume H : is_open (set.prod s t),
       refine or.inl ⟨_, _⟩,
       show is_open s,
-      { rw is_open_iff_forall_mem_open,
-        assume x xs,
-        rcases ne_empty_iff_exists_mem.1 h.2 with ⟨y, yt⟩,
-        rcases is_open_prod_iff.1 H x y ⟨xs, yt⟩ with ⟨ox, oy, ox_open, oy_open, xox, yoy, ho⟩,
-        simp [prod_subset_prod_iff, ne_empty_of_mem xox, ne_empty_of_mem yoy] at ho,
-        exact ⟨ox, ho.1, ox_open, xox⟩ },
+      { rw ← fst_image_prod s st.2,
+        exact is_open_map_fst _ H },
       show is_open t,
-      { rw is_open_iff_forall_mem_open,
-        assume y yt,
-        rcases ne_empty_iff_exists_mem.1 h.1 with ⟨x, xs⟩,
-        rcases is_open_prod_iff.1 H x y ⟨xs, yt⟩ with ⟨ox, oy, ox_open, oy_open, xox, yoy, ho⟩,
-        simp [prod_subset_prod_iff, ne_empty_of_mem xox, ne_empty_of_mem yoy] at ho,
-        exact ⟨oy, ho.2, oy_open, yoy⟩ } } },
-  { assume h,
-    cases h,
-    { exact is_open_prod h.1 h.2 },
-    { cases h; simp [h] } },
+      { rw ← snd_image_prod st.1 t,
+        exact is_open_map_snd _ H } },
+    { assume H,
+      simp [st] at H,
+      exact is_open_prod H.1 H.2 } }
 end
 
 lemma closure_prod_eq {s : set α} {t : set β} :

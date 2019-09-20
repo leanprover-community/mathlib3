@@ -1323,34 +1323,6 @@ theorem prod_mono {s₁ s₂ : set α} {t₁ t₂ : set β} (hs : s₁ ⊆ s₂)
   set.prod s₁ t₁ ⊆ set.prod s₂ t₂ :=
 assume x ⟨h₁, h₂⟩, ⟨hs h₁, ht h₂⟩
 
-lemma prod_subset_prod_iff :
-  (set.prod s t ⊆ set.prod s₁ t₁) ↔ (s ⊆ s₁ ∧ t ⊆ t₁) ∨ (s = ∅) ∨ (t = ∅) :=
-begin
-  classical,
-  split,
-  { by_cases h : s = ∅ ∨ t = ∅,
-    { simp [h] },
-    { push_neg at h,
-      assume H : set.prod s t ⊆ set.prod s₁ t₁,
-      refine or.inl ⟨_, _⟩,
-      show s ⊆ s₁,
-      { assume x xs,
-        rcases ne_empty_iff_exists_mem.1 h.2 with ⟨y, yt⟩,
-        have : (x, y) ∈ set.prod s t := ⟨xs, yt⟩,
-        have : (x, y) ∈ set.prod s₁ t₁ := H this,
-        exact (mem_prod.1 this).1 },
-      show t ⊆ t₁,
-      { assume y yt,
-        rcases ne_empty_iff_exists_mem.1 h.1 with ⟨x, xs⟩,
-        have : (x, y) ∈ set.prod s t := ⟨xs, yt⟩,
-        have : (x, y) ∈ set.prod s₁ t₁ := H this,
-        exact (mem_prod.1 this).2 } } },
-  { assume h,
-    cases h,
-    { exact prod_mono h.1 h.2 },
-    { cases h; simp [h] } }
-end
-
 theorem prod_inter_prod : set.prod s₁ t₁ ∩ set.prod s₂ t₂ = set.prod (s₁ ∩ s₂) (t₁ ∩ t₂) :=
 subset.antisymm
   (assume ⟨a, b⟩ ⟨⟨ha₁, hb₁⟩, ⟨ha₂, hb₂⟩⟩, ⟨⟨ha₁, ha₂⟩, ⟨hb₁, hb₂⟩⟩)
@@ -1416,6 +1388,30 @@ lemma snd_image_prod {s : set α} (hs : s ≠ ∅) (t : set β) :
 set.subset.antisymm (snd_image_prod_subset _ _)
   $ λ y y_in, let (⟨x, x_in⟩ : ∃ (x : α), x ∈ s) := set.exists_mem_of_ne_empty hs in
     ⟨(x, y), ⟨x_in, y_in⟩, rfl⟩
+
+/-- A product set is included in a product set if and only factors are included, or a factor of the
+first set is empty. -/
+lemma prod_subset_prod_iff :
+  (set.prod s t ⊆ set.prod s₁ t₁) ↔ (s ⊆ s₁ ∧ t ⊆ t₁) ∨ (s = ∅) ∨ (t = ∅) :=
+begin
+  classical,
+  by_cases h : set.prod s t = ∅,
+  { simp [h, prod_eq_empty_iff.1 h] },
+  { have st : s ≠ ∅ ∧ t ≠ ∅, by rwa [← ne.def, prod_neq_empty_iff] at h,
+    split,
+    { assume H : set.prod s t ⊆ set.prod s₁ t₁,
+      have h' : s₁ ≠ ∅ ∧ t₁ ≠ ∅ := prod_neq_empty_iff.1 (subset_ne_empty H h),
+      refine or.inl ⟨_, _⟩,
+      show s ⊆ s₁,
+      { have := image_subset (prod.fst : α × β → α) H,
+        rwa [fst_image_prod _ st.2, fst_image_prod _ h'.2] at this },
+      show t ⊆ t₁,
+      { have := image_subset (prod.snd : α × β → β) H,
+        rwa [snd_image_prod st.1, snd_image_prod h'.1] at this } },
+    { assume H,
+      simp [st] at H,
+      exact prod_mono H.1 H.2 } }
+end
 
 end prod
 

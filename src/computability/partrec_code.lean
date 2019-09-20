@@ -512,18 +512,15 @@ theorem curry_prim : primrec₂ curry :=
 comp_prim.comp primrec.fst $
 pair_prim.comp (const_prim.comp primrec.snd) (primrec.const code.id)
 
-theorem one_one_curry {c₁ c₂ n₁ n₂} (h : curry c₁ n₁ = curry c₂ n₂) : c₁ = c₂ ∧ n₁ = n₂ :=
+theorem injective_curry {c₁ c₂ n₁ n₂} (h : curry c₁ n₁ = curry c₂ n₂) : c₁ = c₂ ∧ n₁ = n₂ :=
 ⟨by injection h, by { injection h, 
                       injection h with h₁ h₂, 
                       injection h₂ with h₃ h₄, 
                       exact injective_const h₃ }⟩
 
-theorem injective_curry : function.injective curry :=
-λ a b h, (@one_one_curry _ _ 0 0 $ by rw h).1
-
-theorem s_m_n (c n x) : ∃ f : code → ℕ → code, 
-  function.injective f ∧ computable₂ f ∧ eval (f c n) x = eval c (mkpair n x) := 
-⟨curry, injective_curry, primrec₂.to_comp curry_prim, eval_curry _ _ _⟩
+theorem smn : ∃ f : code → ℕ → code, 
+  computable₂ f ∧ ∀ c n x, eval (f c n) x = eval c (mkpair n x) := 
+⟨curry, primrec₂.to_comp curry_prim, eval_curry⟩
 
 theorem exists_code {f : ℕ →. ℕ} : nat.partrec f ↔ ∃ c : code, eval c = f :=
 ⟨λ h, begin

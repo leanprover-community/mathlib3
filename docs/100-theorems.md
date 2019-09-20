@@ -153,16 +153,17 @@ lemma not_countable_real : ¬ countable (set.univ : set ℝ)
 
 * Author:
 * Link:
+-->
 
 ## <a name="24"></a>24. The Undecidability of the Continuum Hypothesis
 
-* **Partial progress**: The unprovability of the continuum hypothesis. Caveat: ZFC is extended with a limited number of function symbols in this statement.
+*
 ```lean
-theorem CH_f_unprovable : ¬ (ZFC' ⊢' CH_f)
+theorem independence_of_CH : independent ZFC' CH_f
 ```
-* Author: Floris van Doorn and Jesse Michael Han
-* Link: [result](https://github.com/flypitch/flypitch/blob/ffd4ff5152a7ccb170accf7709be734e69c3d98d/src/zfc'.lean#L449), [website](https://flypitch.github.io/)
--->
+* Author: Jesse Michael Han and Floris van Doorn
+* Link: [result](https://github.com/flypitch/flypitch/), [website](https://flypitch.github.io/)
+* Remarks: see the `README` file in the linked repository.
 
 
 ## <a name="25"></a>25. Schroeder-Bernstein Theorem

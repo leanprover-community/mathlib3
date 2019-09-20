@@ -40,7 +40,7 @@ def PartialOrder : Type (u+1) := induced_category (bundled.map partial_order.to_
 
 namespace PartialOrder
 
-instance (G : PartialOrder) : partial_order G := G.str
+instance (X : PartialOrder) : partial_order X := X.str
 
 def of (X : Type u) [partial_order X] : PartialOrder := bundled.of X
 
@@ -54,7 +54,7 @@ def LinOrder : Type (u+1) := @induced_category _ PartialOrder _ (bundled.map lin
 
 namespace LinOrder
 
-instance (G : LinOrder) : linear_order G := G.str
+instance (X : LinOrder) : linear_order X := X.str
 
 def of (X : Type u) [linear_order X] : LinOrder := bundled.of X
 
@@ -68,7 +68,7 @@ def DecLinOrder : Type (u+1) := @induced_category _ LinOrder _ (bundled.map deci
 
 namespace DecLinOrder
 
-instance (G : DecLinOrder) : decidable_linear_order G := G.str
+instance (X : DecLinOrder) : decidable_linear_order X := X.str
 
 def of (X : Type u) [decidable_linear_order X] : DecLinOrder := bundled.of X
 

@@ -41,12 +41,12 @@ instance : concrete_category TopCommRing.{u} :=
   forget_faithful := { } }
 end
 
-instance (X : TopCommRing) : comm_ring X := X.is_comm_ring
-instance (X : TopCommRing) : topological_space X := X.is_topological_space
-instance (X : TopCommRing) : topological_ring X := X.is_topological_ring
+instance (R : TopCommRing) : comm_ring R := R.is_comm_ring
+instance (R : TopCommRing) : topological_space R := R.is_topological_space
+instance (R : TopCommRing) : topological_ring R := R.is_topological_ring
 
 /-- Construct a bundled `TopCommRing` from the underlying type and the appropriate typeclasses. -/
-def of (X : Type u) [comm_ring X] [topological_space X] [topological_ring X] : TopCommRing := ⟨X⟩
+def of (R : Type u) [comm_ring R] [topological_space R] [topological_ring R] : TopCommRing := ⟨R⟩
 
 noncomputable example : TopCommRing := TopCommRing.of ℚ
 noncomputable example : TopCommRing := TopCommRing.of ℝ

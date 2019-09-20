@@ -120,7 +120,6 @@ begin
   rcases m_mem with ⟨⟨mx, my⟩, ⟨⟨hHm, mx_lt_my⟩, h_base⟩, m_eq⟩,
   -- This means that m_y = m,
   -- and the conditions H(m_x, m_y) and m_x < m_y are satisfied.
-  simp only at hHm,
   simp [exceptional, hHm] at mx_lt_my h_base m_eq,
   push_neg at h_base,
   -- Finally, it also means that (m_x, m_y) does not lie in the base locus,
@@ -183,7 +182,7 @@ begin
     rw [← int.coe_nat_inj', ← sub_eq_zero],
     apply eq_iff_eq_cancel_right.2,
     norm_cast,
-    squeeze_simp, ring, },
+    simp, ring, },
   { -- Show that the solution set is symmetric in a and b.
     intros x y, simp [add_comm (x*x), mul_comm x], },
   { -- Show that the claim is true if b = 0.
@@ -223,6 +222,11 @@ begin
   { -- There is no base case in this application of Vieta jumping.
     simp },
 end
+
+/-
+The following example illustrates the use of constant descent Vieta jumping
+in the presence of a non-trivial base case.
+-/
 
 example {a b : ℕ} (h : a*b ∣ a^2 + b^2 + 1) :
   3*a*b = a^2 + b^2 + 1 :=

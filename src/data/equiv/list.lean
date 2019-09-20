@@ -245,6 +245,7 @@ end denumerable
 
 namespace equiv
 
+/-- The type of natural numbers is naturally equivalent to lists on unit. -/
 def list_unit_equiv : list unit ≃ ℕ :=
 { to_fun := list.length,
   inv_fun := list.repeat (),

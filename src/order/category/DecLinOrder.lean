@@ -1,17 +1,24 @@
-/- Copyright (c) 2019 Scott Morrison. All rights reserved.
+/-
+Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
+-/
 
-Introduce
+import category_theory.concrete_category
+import order.basic
+
+/-!
+# Category instances for ordered structures
+
+We introduce
 * Preorder     : the category of preorders and monotone functions.
 * PartialOrder : the category of partial orders and monotone functions.
 * LinOrder     : the category of linear orders and monotone functions.
 * DecLinOrder  : the category of decidable linear orders and monotone functions.
 
+and the appropriate forgetful functors between them.
 -/
 
-import category_theory.concrete_category
-import order.basic
 
 universes u v
 

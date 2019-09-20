@@ -56,7 +56,7 @@ instance bundled_hom : bundled_hom _ :=
 Mon.bundled_hom.induced_category @comm_monoid.to_monoid
 
 @[to_additive add_comm_monoid]
-instance (x : CommMon) : comm_monoid x := x.str
+instance (M : CommMon) : comm_monoid M := M.str
 
 @[to_additive has_forget_to_AddMon]
 instance has_forget_to_Mon : has_forget₂ CommMon.{u} Mon.{u} :=

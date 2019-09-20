@@ -114,28 +114,18 @@ end has_limit_of_has_products_of_has_equalizers
 
 open has_limit_of_has_products_of_has_equalizers
 
-instance has_limit_of_has_products_of_has_equalizers
-  [has_products.{v} C] [has_equalizers.{v} C] {J} [small_category J] (F : J ⥤ C) :
-    has_limit.{v} F :=
-has_limit.of_cones_iso (diagram F) F (cones_iso F)
-
 /-- Any category with products and equalizers has all limits. -/
 -- This is not an instance, as it is not always how one wants to construct limits!
 def limits_from_equalizers_and_products
   [has_products.{v} C] [has_equalizers.{v} C] : has_limits.{v} C :=
 { has_limits_of_shape := λ J 𝒥, by exactI
-  { has_limit := λ F, by apply_instance } }
-
-instance has_limit_of_has_finite_products_of_has_equalizers
-  [has_finite_products.{v} C] [has_equalizers.{v} C] {J} [small_category J] [𝒥 : fin_category J] (F : J ⥤ C) :
-    has_limit.{v} F :=
-has_limit.of_cones_iso (diagram F) F (cones_iso F)
+  { has_limit := λ F, has_limit.of_cones_iso (diagram F) F (cones_iso F) } }
 
 /-- Any category with finite products and equalizers has all finite limits. -/
 -- This is not an instance, as it is not always how one wants to construct finite limits!
 def finite_limits_from_equalizers_and_finite_products
   [has_finite_products.{v} C] [has_equalizers.{v} C] : has_finite_limits.{v} C :=
 { has_limits_of_shape := λ J _ _, by exactI
-  { has_limit := λ F, by apply_instance } }
+  { has_limit := λ F, has_limit.of_cones_iso (diagram F) F (cones_iso F) } }
 
 end category_theory.limits

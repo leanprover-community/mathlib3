@@ -28,7 +28,7 @@ def of (X : Type u) [preorder X] : Preorder := bundled.of X
 instance : unbundled_hom @monotone :=
 ⟨@monotone_id, (λ _ _ _ _ _ _ _ _ m₁ m₂, by exactI monotone_comp m₂ m₁)⟩
 
-instance (G : Preorder) : preorder G := G.str
+instance (X : Preorder) : preorder X := X.str
 
 example : large_category Preorder.{u} := infer_instance
 

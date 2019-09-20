@@ -93,7 +93,7 @@ induced_category.has_forget₂ to_UniformSpace
 end CpltSepUniformSpace
 
 namespace UniformSpace
-local notation `forget` := (forget₂ CpltSepUniformSpace UniformSpace).obj
+local notation `U` := (forget₂ CpltSepUniformSpace UniformSpace).obj
 
 open uniform_space
 open CpltSepUniformSpace
@@ -112,7 +112,7 @@ noncomputable def completion_functor : UniformSpace ⥤ CpltSepUniformSpace :=
 
 /-- The inclusion of any uniform spaces into its completion. -/
 def completion_hom (X : UniformSpace) :
-  X ⟶ forget (completion_functor.obj X) :=
+  X ⟶ U (completion_functor.obj X) :=
 { val := (coe : X → completion X),
   property := completion.uniform_continuous_coe X }
 
@@ -121,17 +121,17 @@ def completion_hom (X : UniformSpace) :
 
 /-- The mate of a morphism from a `UniformSpace` to a `CpltSepUniformSpace`. -/
 noncomputable def extension_hom {X : UniformSpace} {Y : CpltSepUniformSpace}
-  (f : X ⟶ forget Y) :
+  (f : X ⟶ U Y) :
   completion_functor.obj X ⟶ Y :=
 { val := completion.extension f,
   property := completion.uniform_continuous_extension }
 
 @[simp] lemma extension_hom_val {X : UniformSpace} {Y : CpltSepUniformSpace}
-  (f : X ⟶ forget Y) (x) :
+  (f : X ⟶ U Y) (x) :
     (extension_hom f) x = completion.extension f x := rfl.
 
 @[simp] lemma extension_comp_coe {X : UniformSpace} {Y : CpltSepUniformSpace}
-  (f : forget (CpltSepUniformSpace.of (completion X)) ⟶ forget Y) :
+  (f : U (CpltSepUniformSpace.of (completion X)) ⟶ U Y) :
     extension_hom (completion_hom X ≫ f) = f :=
 by { apply subtype.eq, funext x, exact congr_fun (completion.extension_comp_coe f.property) x }
 

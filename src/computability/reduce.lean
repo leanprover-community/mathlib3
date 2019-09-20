@@ -287,9 +287,7 @@ quotient.lift_on₂' d₁ d₂ (λ a b, deg (a ⊕' b)) $
   (hr₂.trans one_one_reducible.disjoin_right.to_many_one)⟩
 
 instance degree_add {α} [denumerable α] : has_add (many_one_degree α) :=
-⟨λ d₁ d₂,
-  ((d₁.comap _ (computable.eqv _).symm).add
-   (d₂.comap _ (computable.eqv _).symm)).comap _ (computable.equiv₂ _ _)⟩
+⟨λ d₁ d₂, (d₁.add d₂).comap _ (computable.equiv₂ _ _)⟩
 
 theorem many_one_degree.add_le {α β γ} [primcodable α] [primcodable β] [primcodable γ]
   {d₁ : many_one_degree α} {d₂ : many_one_degree β} {d₃ : many_one_degree γ} :
@@ -307,9 +305,7 @@ theorem many_one_degree.le_add_right {α β} [primcodable α] [primcodable β]
 theorem many_one_degree.add_le' {α β} [denumerable α] [primcodable β]
   {d₁ d₂ : many_one_degree α} {d₃ : many_one_degree β} :
   (d₁ + d₂).le d₃ ↔ d₁.le d₃ ∧ d₂.le d₃ :=
-(many_one_degree.le_comap_left _ _).trans $
-many_one_degree.add_le.trans $ and_congr
-  (many_one_degree.le_comap_left _ _) (many_one_degree.le_comap_left _ _)
+(many_one_degree.le_comap_left _ _).trans many_one_degree.add_le
 
 theorem many_one_degree.le_add_left' {α} [denumerable α]
   (d₁ d₂ : many_one_degree α) : d₁ ≤ d₁ + d₂ :=

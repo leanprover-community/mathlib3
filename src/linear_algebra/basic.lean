@@ -7,7 +7,7 @@ Basics of linear algebra. This sets up the "categorical/lattice structure" of
 modules, submodules, and linear maps.
 -/
 
-import algebra.pi_instances data.finsupp data.equiv.algebra order.order_iso
+import algebra.pi_instances data.finsupp data.dfinsupp data.equiv.algebra order.order_iso
 
 open function lattice
 
@@ -1558,6 +1558,24 @@ begin
   { rw [h, function.update_same] },
   { rw [function.update_noteq (ne.symm h)], refl },
 end
+
+
+open dfinsupp
+instance hintm : module α (Π₀ (i : ι), φ i) := dfinsupp.to_module
+
+def std_basis₀ (i : ι) : φ i →ₗ[α] (Π₀i, φ i) :=
+⟨λ c, dfinsupp.mk (finset.singleton i) (λ j, std_basis α φ i c j),
+  λ c d, by { ext j, rw [dfinsupp.add_apply], repeat {rw mk_apply}, split_ifs,
+    { rw [map_add], refl }, { rw [add_zero] } },
+  λ r c, by { ext j, rw [dfinsupp.smul_apply], dsimp, split_ifs,
+    { rw [map_smul], refl }, { rw [smul_zero] } }⟩
+
+lemma std_basis₀_eq_std_basis (i j : ι) (c : φ i) :
+  ((std_basis₀ α φ i : φ i →ₗ[α] (Π₀i, φ i)) c : Πi, φ i) j = std_basis α φ i c j :=
+if h : _ then dif_pos h else
+  eq.symm (std_basis_ne α φ i j (finset.not_mem_singleton.mp h) c) ▸ dif_neg h
+
+
 
 end
 

@@ -1040,9 +1040,10 @@ open set linear_map
 
 section module
 variables {η : Type*} {ιs : η → Type*} {φ : η → Type*}
-variables [ring α] [∀i, add_comm_group (φ i)] [∀i, module α (φ i)] [fintype η] [decidable_eq η]
+variables [ring α] [∀i, add_comm_group (φ i)] [∀i, module α (φ i)] [decidable_eq η]
 
 lemma linear_independent_std_basis [∀ j, decidable_eq (ιs j)]  [∀ i, decidable_eq (φ i)]
+  [decidable_eq (Π (i : η), φ i)]
   (v : Πj, ιs j → (φ j)) (hs : ∀i, linear_independent α (v i)) :
   linear_independent α (λ (ji : Σ j, ιs j), std_basis α φ ji.1 (v ji.1 ji.2)) :=
 begin
@@ -1073,7 +1074,7 @@ begin
       (disjoint_std_basis_std_basis _ _ _ _ h₃), }
 end
 
-lemma is_basis_std_basis [∀ j, decidable_eq (ιs j)] [∀ j, decidable_eq (φ j)]
+/-lemma is_basis_std_basis [∀ j, decidable_eq (ιs j)] [∀ j, decidable_eq (φ j)]
   (s : Πj, ιs j → (φ j)) (hs : ∀j, is_basis α (s j)) :
   is_basis α (λ (ji : Σ j, ιs j), std_basis α φ ji.1 (s ji.1 ji.2)) :=
 begin
@@ -1092,6 +1093,31 @@ begin
   rw span_Union,
   simp only [h₂],
   apply supr_range_std_basis
+end-/
+
+lemma linear_independent_std_basis₀ [∀ j, decidable_eq (ιs j)]  [∀ i, decidable_eq (φ i)]
+  (v : Πj, ιs j → (φ j)) (hs : ∀i, linear_independent α (v i)) :
+  linear_independent α
+    (λ (ji : Σ j, ιs j), (std_basis₀ α φ ji.1 : φ ji.1 →ₗ[α] Π₀i, φ i) (v ji.1 ji.2)) :=
+begin
+  rw [linear_independent_iff],
+  intros l hl,
+  apply linear_independent_iff.mp (linear_independent_std_basis v hs),
+  --rw [dfinsupp.ext_iff] at hl,
+  ext n,
+  convert (congr_arg (λ g : Π₀i, φ i, g n) hl),
+  rw [finsupp.total_apply, finsupp.total_apply],
+  unfold finsupp.sum,
+  change (λ (g : Πi, φ i), g n) (l.support.sum (λi, l i • (std_basis α φ i.1) (v (i.1) (i.2))))
+    = (λ (g : Π₀i, φ i), g n) (l.support.sum (λi, l i • (std_basis₀ α φ i.1).to_fun (v (i.1) (i.2)))),
+  letI h : is_add_monoid_hom (λ (g : Π (i : η), φ i), g n) := sorry,
+  rw [←finset.sum_hom (λ g : Π₀i, φ i, g n), ←finset.sum_hom (λ g : Πi, φ i, g n)],
+  congr,
+  ext i,
+  dsimp,
+  rw [dfinsupp.smul_apply],
+  congr,
+  exact eq.symm (std_basis₀_eq_std_basis α φ i.1 n _)
 end
 
 section
@@ -1128,13 +1154,15 @@ open linear_map
 variables (η : Type*) [decidable_eq η]
 variables [ring α] [add_comm_group β] [module α β]
 
-lemma is_basis_finsupp (hv : is_basis α v) : is_basis α (λ i : η × ι, single i.1 (v i.2)) :=
+--def std_basis₀ (hv : is_basis α v) (i : η × ι) : η →₀ β := single i.1 (v i.2)
+
+lemma is_basis_finsupp (hv : is_basis α v) : is_basis α (std_basis₀ η hv) :=
 begin
-  have h : ∀ f g, (finsupp.total (η × ι) (η →₀ β) α (λ i, single i.1 (v i.2))) f = g ↔
+  have h : ∀ f g, (finsupp.total (η × ι) (η →₀ β) α (λ i, std_basis₀ η hv i)) f = g ↔
     ∀ n, (finsupp.total ι β α v) (finsupp.curry f n) = g n,
     { intros f g,
       rw [total_apply],
-      conv in (_ • _) { rw [smul_single] },
+      conv in (_ • _) { rw [std_basis₀, smul_single] },
       rw [←sum_curry_index f (λ (n:η) (i:ι) (a:α), single n (a • v i))],
       { conv_lhs { congr, congr, skip, funext, rw [←single_sum] },
         rw [sum_single_range _ (λ f:ι →₀ α, f.sum (λ i a, a • v i)) sum_zero_index, ext_iff],
@@ -1161,6 +1189,9 @@ begin
     rw [hv.total_comp_repr, linear_map.id_apply] },
 end
 
+/-- The basis constructed in is_basis_finsupp is equal to std_basis as functions. The difference
+is that std_basis forms a basis for η → β where η is a fintype, while the basis constructed in
+is_basis_finsupp forms a basis for η →₀ β where η may be infinite. -/
 lemma std_basis_eq_basis_finsupp :
   (λ i : η × ι, (std_basis α (λ _ : η, β) i.1) (v i.2)) = (λ i : η × ι, single i.1 (v i.2)) :=
 begin

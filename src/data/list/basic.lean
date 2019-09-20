@@ -1487,7 +1487,7 @@ by induction L; [refl, simp only [*, join, map, sum_cons, length_append]]
 @[simp] theorem length_bind (l : list α) (f : α → list β) : length (list.bind l f) = sum (map (length ∘ f) l) :=
 by rw [list.bind, length_join, map_map]
 
-def exists_lt_of_sum_lt [decidable_linear_ordered_cancel_comm_monoid β] {l : list α}
+lemma exists_lt_of_sum_lt [decidable_linear_ordered_cancel_comm_monoid β] {l : list α}
   (f g : α → β) (h : (l.map f).sum < (l.map g).sum) : ∃ x ∈ l, f x < g x :=
 begin
   induction l with x l,
@@ -1497,7 +1497,7 @@ begin
     exact lt_of_add_lt_add_left' (lt_of_lt_of_le h $ add_le_add_right (le_of_not_gt h') _) }
 end
 
-def exists_le_of_sum_le [decidable_linear_ordered_cancel_comm_monoid β] {l : list α}
+lemma exists_le_of_sum_le [decidable_linear_ordered_cancel_comm_monoid β] {l : list α}
   (hl : l ≠ []) (f g : α → β) (h : (l.map f).sum ≤ (l.map g).sum) : ∃ x ∈ l, f x ≤ g x :=
 begin
   cases l with x l,
@@ -2725,8 +2725,7 @@ begin
   { rw filter_map_cons_some _ _ _ eq },
 end
 
-lemma rel_filter_map {f : α → option γ} {q : β → option δ} :
-  ((r ⇒ option.rel p) ⇒ forall₂ r ⇒ forall₂ p) filter_map filter_map
+lemma rel_filter_map : ((r ⇒ option.rel p) ⇒ forall₂ r ⇒ forall₂ p) filter_map filter_map
 | f g hfg _ _ forall₂.nil := forall₂.nil
 | f g hfg (a::as) (b::bs) (forall₂.cons h₁ h₂) :=
   by rw [filter_map_cons, filter_map_cons];
@@ -2813,11 +2812,11 @@ mem_insert_iff.2 (or.inr h)
 theorem eq_or_mem_of_mem_insert {a b : α} {l : list α} (h : a ∈ insert b l) : a = b ∨ a ∈ l :=
 mem_insert_iff.1 h
 
-@[simp] theorem length_insert_of_mem {a : α} [decidable_eq α] {l : list α} (h : a ∈ l) :
+@[simp] theorem length_insert_of_mem {a : α} {l : list α} (h : a ∈ l) :
   length (insert a l) = length l :=
 by rw insert_of_mem h
 
-@[simp] theorem length_insert_of_not_mem {a : α} [decidable_eq α] {l : list α} (h : a ∉ l) :
+@[simp] theorem length_insert_of_not_mem {a : α} {l : list α} (h : a ∉ l) :
   length (insert a l) = length l + 1 :=
 by rw insert_of_not_mem h; refl
 
@@ -3937,7 +3936,7 @@ theorem chain'.iff {S : α → α → Prop}
   (H : ∀ a b, R a b ↔ S a b) {l : list α} : chain' R l ↔ chain' S l :=
 ⟨chain'.imp (λ a b, (H a b).1), chain'.imp (λ a b, (H a b).2)⟩
 
-theorem chain'.iff_mem {S : α → α → Prop} : ∀ {l : list α},
+theorem chain'.iff_mem : ∀ {l : list α},
   chain' R l ↔ chain' (λ x y, x ∈ l ∧ y ∈ l ∧ R x y) l
 | [] := iff.rfl
 | (x::l) :=
@@ -5087,8 +5086,6 @@ end nat
 
 end list
 
-theorem option.to_list_nodup : ∀ o : option α, o.to_list.nodup
+theorem option.to_list_nodup {α} : ∀ o : option α, o.to_list.nodup
 | none     := list.nodup_nil
 | (some x) := list.nodup_singleton x
-
-#sanity_check

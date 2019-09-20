@@ -59,7 +59,7 @@ def mk : Type u → cardinal := quotient.mk
 
 localized "notation `#` := cardinal.mk" in cardinal
 
-protected lemma eq {α β : Type*} : mk α = mk β ↔ nonempty (α ≃ β) := quotient.eq
+protected lemma eq : mk α = mk β ↔ nonempty (α ≃ β) := quotient.eq
 
 @[simp] theorem mk_def (α : Type u) : @eq cardinal ⟦α⟧ (mk α) := rfl
 

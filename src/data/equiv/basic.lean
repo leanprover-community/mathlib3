@@ -909,7 +909,7 @@ by { dsimp [set_value], simp [swap_apply_left] }
 
 end swap
 
-protected lemma forall_congr {α β} {p : α → Prop} {q : β → Prop} (f : α ≃ β)
+protected lemma forall_congr {p : α → Prop} {q : β → Prop} (f : α ≃ β)
   (h : ∀{x}, p x ↔ q (f x)) : (∀x, p x) ↔ (∀y, q y) :=
 begin
   split; intros h₂ x,

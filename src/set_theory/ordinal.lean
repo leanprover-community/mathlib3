@@ -1743,7 +1743,7 @@ begin
   exact ordinal.min_le (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧) ⟨_, _⟩
 end
 
-lemma ord_eq_min (α : Type u) : ord (mk α) =
+def ord_eq_min (α : Type u) : ord (mk α) =
   @ordinal.min _ _ (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) := rfl
 
 theorem ord_eq (α) : ∃ (r : α → α → Prop) [wo : is_well_order α r],
@@ -2730,7 +2730,7 @@ end, λ ⟨o, e⟩, e.symm ▸ le_of_eq (H.deriv_fp _)⟩
 end ordinal
 
 namespace cardinal
-section
+section using_ordinals
 open ordinal
 
 theorem ord_is_limit {c} (co : omega ≤ c) : (ord c).is_limit :=
@@ -2924,7 +2924,7 @@ begin
     rw [mk_def, e], apply typein_lt_type }
 end
 
-end
+end using_ordinals
 
 theorem mul_eq_max {a b : cardinal} (ha : omega ≤ a) (hb : omega ≤ b) : a * b = max a b :=
 le_antisymm
@@ -3210,18 +3210,6 @@ begin
   refine ⟨h, _⟩, rintro ⟨x, hx⟩, simp [set.sum_compl_symm_apply_of_mem, hx, equiv.symm]
 end
 
-theorem extend_function_infinite {α : Type u} {β : Type v} {s : set α} (f : s ↪ β)
-  (hα : omega ≤ #α) (hs : #s < #α) (h : nonempty (α ≃ β)) :
-  ∃ (g : α ≃ β), ∀ x : s, g x = f x :=
-begin
-  apply extend_function f, have := h, cases this with g, rw [← lift_mk_eq] at h,
-  cases cardinal.eq.mp (mk_compl_of_omega_le s hα hs) with g2,
-  cases cardinal.eq.mp (mk_compl_of_omega_le (range f) _ _) with g3,
-  { constructor, exact g2.trans (g.trans g3.symm) },
-  { rw [← lift_le, ← h], refine le_trans _ (lift_le.mpr hα), simp },
-  rwa [← lift_lt, ← h, mk_range_eq_lift, lift_lt], exact f.2
-end
-
 theorem extend_function_finite {α β : Type*} {s : set α} (f : s ↪ β)
   (hs : #α < omega) (h : nonempty (α ≃ β)) : ∃ (g : α ≃ β), ∀ x : s, g x = f x :=
 begin
@@ -3236,7 +3224,12 @@ theorem extend_function_of_lt {α β : Type*} {s : set α} (f : s ↪ β) (hs : 
   (h : nonempty (α ≃ β)) : ∃ (g : α ≃ β), ∀ x : s, g x = f x :=
 begin
   cases (le_or_lt omega (#α)) with hα hα,
-  { exact extend_function_infinite f hα hs h },
+  { apply extend_function f, have := h, cases this with g, rw [← lift_mk_eq] at h,
+    cases cardinal.eq.mp (mk_compl_of_omega_le s hα hs) with g2,
+    cases cardinal.eq.mp (mk_compl_of_omega_le (range f) _ _) with g3,
+    { constructor, exact g2.trans (g.trans g3.symm) },
+    { rw [← lift_le, ← h], refine le_trans _ (lift_le.mpr hα), simp },
+    rwa [← lift_lt, ← h, mk_range_eq_lift, lift_lt], exact f.2 },
   { exact extend_function_finite f hα h }
 end
 

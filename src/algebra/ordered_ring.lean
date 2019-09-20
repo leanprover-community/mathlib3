@@ -82,7 +82,6 @@ lt_add_of_le_of_pos (le_refl _) zero_lt_one
 lemma lt_one_add (x : α) : x < 1 + x :=
 by { rw [add_comm], apply lt_add_one }
 
-
 lemma one_lt_two : 1 < (2 : α) := lt_add_one _
 
 lemma one_lt_mul {a b : α} (ha : 1 ≤ a) (hb : 1 < b) : 1 < a * b :=

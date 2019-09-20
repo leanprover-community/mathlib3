@@ -257,7 +257,7 @@ theorem append_subset_of_subset_of_subset {l₁ l₂ l : list α} (l₁subl : l�
   l₁ ++ l₂ ⊆ l :=
 λ a h, (mem_append.1 h).elim (@l₁subl _) (@l₂subl _)
 
-@[simp] theorem append_subset_iff {α} {l₁ l₂ l : list α} :
+@[simp] theorem append_subset_iff {l₁ l₂ l : list α} :
   l₁ ++ l₂ ⊆ l ↔ l₁ ⊆ l ∧ l₂ ⊆ l :=
 begin
   split,
@@ -443,7 +443,7 @@ by induction n; [refl, simp only [*, repeat, join, append_nil]]
 @[simp] theorem bind_eq_bind {α β} (f : α → list β) (l : list α) :
   l >>= f = l.bind f := rfl
 
-@[simp] theorem bind_append {α β} (f : α → list β) (l₁ l₂ : list α) :
+@[simp] theorem bind_append (f : α → list β) (l₁ l₂ : list α) :
   (l₁ ++ l₂).bind f = l₁.bind f ++ l₂.bind f :=
 append_bind _ _ _
 
@@ -1086,17 +1086,16 @@ eq_nil_of_length_eq_zero $ by rw [← length_map f l, h]; refl
   map f (join L) = join (map (map f) L) :=
 by induction L; [refl, simp only [*, join, map, map_append]]
 
-theorem bind_ret_eq_map {α β} (f : α → β) (l : list α) :
+theorem bind_ret_eq_map (f : α → β) (l : list α) :
   l.bind (list.ret ∘ f) = map f l :=
 by unfold list.bind; induction l; simp only [map, join, list.ret, cons_append, nil_append, *]; split; refl
 
-@[simp] theorem map_eq_map {α β} (f : α → β) (l : list α) :
-  f <$> l = map f l := rfl
+@[simp] theorem map_eq_map (f : α → β) (l : list α) : f <$> l = map f l := rfl
 
 @[simp] theorem map_tail (f : α → β) (l) : map f (tail l) = tail (map f l) :=
 by cases l; refl
 
-@[simp] theorem injective_map_iff {α β} {f : α → β} : injective (map f) ↔ injective f :=
+@[simp] theorem injective_map_iff {f : α → β} : injective (map f) ↔ injective f :=
 begin
   split; intros h x y hxy,
   { suffices : [x] = [y], { simpa using this }, apply h, simp [hxy] },
@@ -3936,8 +3935,7 @@ theorem chain'.iff {S : α → α → Prop}
   (H : ∀ a b, R a b ↔ S a b) {l : list α} : chain' R l ↔ chain' S l :=
 ⟨chain'.imp (λ a b, (H a b).1), chain'.imp (λ a b, (H a b).2)⟩
 
-theorem chain'.iff_mem : ∀ {l : list α},
-  chain' R l ↔ chain' (λ x y, x ∈ l ∧ y ∈ l ∧ R x y) l
+theorem chain'.iff_mem : ∀ {l : list α}, chain' R l ↔ chain' (λ x y, x ∈ l ∧ y ∈ l ∧ R x y) l
 | [] := iff.rfl
 | (x::l) :=
   ⟨λ h, (chain.iff_mem.1 h).imp $ λ a b ⟨h₁, h₂, h₃⟩, ⟨h₁, or.inr h₂, h₃⟩,

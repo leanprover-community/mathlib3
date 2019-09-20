@@ -149,10 +149,3 @@ theorem divp_mul_divp (x y : α) (ux uy : units α) :
 by rw [← divp_divp_eq_divp_mul, divp_assoc, mul_comm x, divp_assoc, mul_comm]
 
 end comm_monoid
-
-section group
-  variables [group α]
-
-  instance : has_lift α (units α) :=
-  ⟨λ a, ⟨a, a⁻¹, mul_inv_self _, inv_mul_self _⟩⟩
-end group

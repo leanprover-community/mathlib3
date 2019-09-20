@@ -524,58 +524,6 @@ by {induction s, contradiction, refl}
 theorem cons_head_tail [inhabited α] {l : list α} (h : l ≠ []) : (head l)::(tail l) = l :=
 by {induction l, contradiction, refl}
 
-/- map -/
-
-lemma map_congr {f g : α → β} : ∀ {l : list α}, (∀ x ∈ l, f x = g x) → map f l = map g l
-| []     _ := rfl
-| (a::l) h := let ⟨h₁, h₂⟩ := forall_mem_cons.1 h in
-  by rw [map, map, h₁, map_congr h₂]
-
-theorem map_concat (f : α → β) (a : α) (l : list α) : map f (concat l a) = concat (map f l) (f a) :=
-by induction l; [refl, simp only [*, concat_eq_append, cons_append, map, map_append]]; split; refl
-
-theorem map_id' {f : α → α} (h : ∀ x, f x = x) (l : list α) : map f l = l :=
-by induction l; [refl, simp only [*, map]]; split; refl
-
-@[simp] theorem foldl_map (g : β → γ) (f : α → γ → α) (a : α) (l : list β) : foldl f a (map g l) = foldl (λx y, f x (g y)) a l :=
-by revert a; induction l; intros; [refl, simp only [*, map, foldl]]
-
-@[simp] theorem foldr_map (g : β → γ) (f : γ → α → α) (a : α) (l : list β) : foldr f a (map g l) = foldr (f ∘ g) a l :=
-by revert a; induction l; intros; [refl, simp only [*, map, foldr]]
-
-theorem foldl_hom (f : α → β) (g : α → γ → α) (g' : β → γ → β) (a : α)
-  (h : ∀a x, f (g a x) = g' (f a) x) (l : list γ) : f (foldl g a l) = foldl g' (f a) l :=
-by revert a; induction l; intros; [refl, simp only [*, foldl]]
-
-theorem foldr_hom (f : α → β) (g : γ → α → α) (g' : γ → β → β) (a : α)
-  (h : ∀x a, f (g x a) = g' x (f a)) (l : list γ) : f (foldr g a l) = foldr g' (f a) l :=
-by revert a; induction l; intros; [refl, simp only [*, foldr]]
-
-theorem eq_nil_of_map_eq_nil {f : α → β} {l : list α} (h : map f l = nil) : l = nil :=
-eq_nil_of_length_eq_zero $ by rw [← length_map f l, h]; refl
-
-@[simp] theorem map_join (f : α → β) (L : list (list α)) :
-  map f (join L) = join (map (map f) L) :=
-by induction L; [refl, simp only [*, join, map, map_append]]
-
-theorem bind_ret_eq_map {α β} (f : α → β) (l : list α) :
-  l.bind (list.ret ∘ f) = map f l :=
-by unfold list.bind; induction l; simp only [map, join, list.ret, cons_append, nil_append, *]; split; refl
-
-@[simp] theorem map_eq_map {α β} (f : α → β) (l : list α) :
-  f <$> l = map f l := rfl
-
-@[simp] theorem map_tail (f : α → β) (l) : map f (tail l) = tail (map f l) :=
-by cases l; refl
-
-/- map₂ -/
-
-theorem nil_map₂ (f : α → β → γ) (l : list β) : map₂ f [] l = [] :=
-by cases l; refl
-
-theorem map₂_nil (f : α → β → γ) (l : list α) : map₂ f l [] = [] :=
-by cases l; refl
-
 /- sublists -/
 
 @[simp] theorem nil_sublist : Π (l : list α), [] <+ l
@@ -1046,6 +994,58 @@ lemma mem_insert_nth {a b : α} : ∀ {n : ℕ} {l : list α} (hi : n ≤ l.leng
 end
 
 end insert_nth
+
+/- map -/
+
+lemma map_congr {f g : α → β} : ∀ {l : list α}, (∀ x ∈ l, f x = g x) → map f l = map g l
+| []     _ := rfl
+| (a::l) h := let ⟨h₁, h₂⟩ := forall_mem_cons.1 h in
+  by rw [map, map, h₁, map_congr h₂]
+
+theorem map_concat (f : α → β) (a : α) (l : list α) : map f (concat l a) = concat (map f l) (f a) :=
+by induction l; [refl, simp only [*, concat_eq_append, cons_append, map, map_append]]; split; refl
+
+theorem map_id' {f : α → α} (h : ∀ x, f x = x) (l : list α) : map f l = l :=
+by induction l; [refl, simp only [*, map]]; split; refl
+
+@[simp] theorem foldl_map (g : β → γ) (f : α → γ → α) (a : α) (l : list β) : foldl f a (map g l) = foldl (λx y, f x (g y)) a l :=
+by revert a; induction l; intros; [refl, simp only [*, map, foldl]]
+
+@[simp] theorem foldr_map (g : β → γ) (f : γ → α → α) (a : α) (l : list β) : foldr f a (map g l) = foldr (f ∘ g) a l :=
+by revert a; induction l; intros; [refl, simp only [*, map, foldr]]
+
+theorem foldl_hom (f : α → β) (g : α → γ → α) (g' : β → γ → β) (a : α)
+  (h : ∀a x, f (g a x) = g' (f a) x) (l : list γ) : f (foldl g a l) = foldl g' (f a) l :=
+by revert a; induction l; intros; [refl, simp only [*, foldl]]
+
+theorem foldr_hom (f : α → β) (g : γ → α → α) (g' : γ → β → β) (a : α)
+  (h : ∀x a, f (g x a) = g' x (f a)) (l : list γ) : f (foldr g a l) = foldr g' (f a) l :=
+by revert a; induction l; intros; [refl, simp only [*, foldr]]
+
+theorem eq_nil_of_map_eq_nil {f : α → β} {l : list α} (h : map f l = nil) : l = nil :=
+eq_nil_of_length_eq_zero $ by rw [← length_map f l, h]; refl
+
+@[simp] theorem map_join (f : α → β) (L : list (list α)) :
+  map f (join L) = join (map (map f) L) :=
+by induction L; [refl, simp only [*, join, map, map_append]]
+
+theorem bind_ret_eq_map {α β} (f : α → β) (l : list α) :
+  l.bind (list.ret ∘ f) = map f l :=
+by unfold list.bind; induction l; simp only [map, join, list.ret, cons_append, nil_append, *]; split; refl
+
+@[simp] theorem map_eq_map {α β} (f : α → β) (l : list α) :
+  f <$> l = map f l := rfl
+
+@[simp] theorem map_tail (f : α → β) (l) : map f (tail l) = tail (map f l) :=
+by cases l; refl
+
+/- map₂ -/
+
+theorem nil_map₂ (f : α → β → γ) (l : list β) : map₂ f [] l = [] :=
+by cases l; refl
+
+theorem map₂_nil (f : α → β → γ) (l : list α) : map₂ f l [] = [] :=
+by cases l; refl
 
 /- take, drop -/
 @[simp] theorem take_zero (l : list α) : take 0 l = [] := rfl

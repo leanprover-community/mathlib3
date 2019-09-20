@@ -164,11 +164,17 @@ theorem length_pos_iff_exists_mem {l : list α} : 0 < length l ↔ ∃ a, a ∈ 
 theorem length_eq_one {l : list α} : length l = 1 ↔ ∃ a, l = [a] :=
 ⟨match l with [a], _ := ⟨a, rfl⟩ end, λ ⟨a, e⟩, e.symm ▸ rfl⟩
 
-lemma injective_length [subsingleton α] : injective (length : list α → ℕ) :=
+lemma injective_length_iff : subsingleton α ↔ injective (list.length : list α → ℕ) :=
 begin
-  intro l, induction l with x l; intros l' h; cases l'; try {contradiction},
-  refl, simp only, use subsingleton.elim _ _, apply l_ih, injection h
+  split,
+  { intros hα l1 l2 hl, induction l1 generalizing l2; cases l2,
+    { refl }, { cases hl }, { cases hl },
+    congr, exactI subsingleton.elim _ _, apply l1_ih, simpa using hl },
+  { intro h, refine ⟨λ x y, _⟩, suffices : [x] = [y], { simpa using this }, apply h, refl }
 end
+
+lemma injective_length [subsingleton α] : injective (length : list α → ℕ) :=
+injective_length_iff.mp $ by apply_instance
 
 /- set-theoretic notation of lists -/
 

@@ -11,7 +11,7 @@ import order.order_iso set_theory.cardinal data.sum
 noncomputable theory
 
 open function cardinal set
-open_locale classical
+open_locale classical cardinal
 
 universes u v w
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -2888,6 +2888,8 @@ theorem aleph'_is_normal : is_normal (ord ∘ aleph') :=
 theorem aleph_is_normal : is_normal (ord ∘ aleph) :=
 aleph'_is_normal.trans $ add_is_normal ordinal.omega
 
+/- properties of mul -/
+
 theorem mul_eq_self {c : cardinal} (h : omega ≤ c) : c * c = c :=
 begin
   refine le_antisymm _
@@ -2953,6 +2955,42 @@ begin
   rw [max_eq_left this], convert mul_le_mul_left _ (one_le_iff_ne_zero.mpr h'), rw [mul_one],
 end
 
+lemma mul_eq_left {a b : cardinal} (ha : omega ≤ a) (hb : b ≤ a) (hb' : b ≠ 0) : a * b = a :=
+by { rw [mul_eq_max_of_omega_le_left ha hb', max_eq_left hb] }
+
+lemma mul_eq_right {a b : cardinal} (hb : omega ≤ b) (ha : a ≤ b) (ha' : a ≠ 0) : a * b = b :=
+by { rw [mul_comm, mul_eq_left hb ha ha'] }
+
+lemma le_mul_left {a b : cardinal} (h : b ≠ 0) : a ≤ b * a :=
+by { convert mul_le_mul_right _ (one_le_iff_ne_zero.mpr h), rw [one_mul] }
+
+lemma le_mul_right {a b : cardinal} (h : b ≠ 0) : a ≤ a * b :=
+by { rw [mul_comm], exact le_mul_left h }
+
+lemma mul_eq_left_iff {a b : cardinal} : a * b = a ↔ ((max omega b ≤ a ∧ b ≠ 0) ∨ b = 1 ∨ a = 0) :=
+begin
+  rw [max_le_iff], split,
+  { intro h,
+    cases (le_or_lt omega a) with ha ha,
+    { have : a ≠ 0, { rintro rfl, exact not_lt_of_le ha omega_pos },
+      left, use ha,
+      { rw [← not_lt], intro hb, apply ne_of_gt _ h, refine lt_of_lt_of_le hb (le_mul_left this) },
+      { rintro rfl, apply this, rw [mul_zero] at h, subst h }},
+    right, by_cases h2a : a = 0, { right, exact h2a },
+    have hb : b ≠ 0, { rintro rfl, apply h2a, rw [mul_zero] at h, subst h },
+    left, rw [← h, mul_lt_omega_iff, lt_omega, lt_omega] at ha,
+    rcases ha with rfl|rfl|⟨⟨n, rfl⟩, ⟨m, rfl⟩⟩, contradiction, contradiction,
+    rw [← ne] at h2a, rw [← one_le_iff_ne_zero] at h2a hb, norm_cast at h2a hb h ⊢,
+    apply le_antisymm _ hb, rw [← not_lt], intro h2b,
+    apply ne_of_gt _ h, rw [gt], conv_lhs { rw [← mul_one n] },
+    rwa [mul_lt_mul_left], apply nat.lt_of_succ_le h2a },
+  { rintro (⟨⟨ha, hab⟩, hb⟩|rfl|rfl),
+    { rw [mul_eq_max_of_omega_le_left ha hb, max_eq_left hab] },
+    all_goals {simp}}
+end
+
+/- properties of add -/
+
 theorem add_eq_self {c : cardinal} (h : omega ≤ c) : c + c = c :=
 le_antisymm
   (by simpa only [nat.cast_bit0, nat.cast_one, mul_eq_self h, two_mul] using
@@ -2972,11 +3010,64 @@ lt_of_le_of_lt (add_le_add (le_max_left a b) (le_max_right a b)) $
   (λ h, lt_of_lt_of_le (add_lt_omega h h) hc)
   (λ h, by rw add_eq_self h; exact max_lt h1 h2)
 
+lemma eq_of_add_eq_of_omega_le {a b c : cardinal} (h : a + b = c) (ha : a < c) (hc : omega ≤ c) :
+  b = c :=
+begin
+  apply le_antisymm,
+  { rw [← h], apply cardinal.le_add_left },
+  rw[← not_lt], intro hb,
+  have : a + b < c := add_lt_of_lt hc ha hb,
+  simpa [h, lt_irrefl] using this
+end
+
+lemma add_eq_left {a b : cardinal} (ha : omega ≤ a) (hb : b ≤ a) : a + b = a :=
+by { rw [add_eq_max ha, max_eq_left hb] }
+
+lemma add_eq_right {a b : cardinal} (hb : omega ≤ b) (ha : a ≤ b) : a + b = b :=
+by { rw [add_comm, add_eq_left hb ha] }
+
+lemma add_eq_left_iff {a b : cardinal} : a + b = a ↔ (max omega b ≤ a ∨ b = 0) :=
+begin
+  rw [max_le_iff], split,
+  { intro h, cases (le_or_lt omega a) with ha ha,
+    { left, use ha, rw [← not_lt], intro hb, apply ne_of_gt _ h,
+      exact lt_of_lt_of_le hb (le_add_left b a) },
+    right, rw [← h, add_lt_omega_iff, lt_omega, lt_omega] at ha,
+    rcases ha with ⟨⟨n, rfl⟩, ⟨m, rfl⟩⟩, norm_cast at h ⊢,
+    rw [← add_left_inj, h, add_zero] },
+  { rintro (⟨h1, h2⟩|h3), rw [add_eq_max h1, max_eq_left h2], rw [h3, add_zero] }
+end
+
+lemma add_eq_right_iff {a b : cardinal} : a + b = b ↔ (max omega a ≤ b ∨ a = 0) :=
+by { rw [add_comm, add_eq_left_iff] }
+
 lemma add_one_eq {a : cardinal} (ha : omega ≤ a) : a + 1 = a :=
 have 1 ≤ a, from le_trans (le_of_lt one_lt_omega) ha,
-by simp only [max_eq_left, add_eq_max, ha, this]
+add_eq_left ha this
 
-theorem pow_le {κ μ : cardinal.{u}} (H1 : omega ≤ κ) (H2 : μ < omega) : κ^μ ≤ κ :=
+protected lemma eq_of_add_eq_add_left {a b c : cardinal} (h : a + b = a + c) (ha : a < omega) :
+  b = c :=
+begin
+  cases le_or_lt omega b with hb hb,
+  { have : a < b := lt_of_lt_of_le ha hb,
+    rw [add_eq_right hb (le_of_lt this), eq_comm] at h,
+    rw [eq_of_add_eq_of_omega_le h this hb] },
+  { have hc : c < omega,
+    { rw [← not_le], intro hc,
+      apply lt_irrefl omega, apply lt_of_le_of_lt (le_trans hc (le_add_left _ a)),
+      rw [← h], apply add_lt_omega ha hb },
+    rw [lt_omega] at *,
+    rcases ha with ⟨n, rfl⟩, rcases hb with ⟨m, rfl⟩, rcases hc with ⟨k, rfl⟩,
+    norm_cast at h ⊢, apply eq_of_add_eq_add_left h }
+end
+
+protected lemma eq_of_add_eq_add_right {a b c : cardinal} (h : a + b = c + b) (hb : b < omega) :
+  a = c :=
+by { rw [add_comm a b, add_comm c b] at h, exact cardinal.eq_of_add_eq_add_left h hb }
+
+/- properties about power -/
+
+theorem pow_le {κ μ : cardinal.{u}} (H1 : omega ≤ κ) (H2 : μ < omega) : κ ^ μ ≤ κ :=
 let ⟨n, H3⟩ := lt_omega.1 H2 in
 H3.symm ▸ (quotient.induction_on κ (λ α H1, nat.rec_on n
   (le_of_lt $ lt_of_lt_of_le (by rw [nat.cast_zero, power_zero];
@@ -3009,6 +3100,8 @@ begin
   rw [powerlt_le], intros c' hc',
   refine le_trans (le_of_lt $ power_lt_omega h hc') (le_max_right _ _)
 end
+
+/- compute cardinality of various types -/
 
 theorem mk_list_eq_mk {α : Type u} (H1 : omega ≤ mk α) : mk (list α) = mk α :=
 eq.symm $ le_antisymm ⟨⟨λ x, [x], λ x y H, (list.cons.inj H).1⟩⟩ $
@@ -3062,6 +3155,89 @@ begin
   { rintros ⟨t, ht1, ht2⟩ ⟨t', h1t', h2t'⟩ h, apply subtype.eq, dsimp only at h ⊢,
     refine (preimage_eq_preimage' _ _).1 h; rw [subtype.range_val]; assumption },
   rintro ⟨t, h1t, h2t⟩, exact le_trans (mk_preimage_of_injective _ _ subtype.val_injective) h2t
+end
+
+/- compl -/
+
+lemma mk_compl_of_omega_le {α : Type*} (s : set α) (h : omega ≤ #α) (h2 : #s < #α) :
+  #(-s : set α) = #α :=
+by { refine eq_of_add_eq_of_omega_le _ h2 h, exact mk_sum_compl s }
+
+lemma mk_compl_finset_of_omega_le {α : Type*} (s : finset α) (h : omega ≤ #α) :
+  #(-s : set α) = #α :=
+by { apply mk_compl_of_omega_le _ h, exact lt_of_lt_of_le (finset_card_lt_omega s) h }
+
+lemma mk_compl_eq_mk_compl_infinite {α : Type*} {s t : set α} (h : omega ≤ #α) (hs : #s < #α)
+  (ht : #t < #α) : #(-s : set α) = #(-t : set α) :=
+by { rw [mk_compl_of_omega_le s h hs, mk_compl_of_omega_le t h ht] }
+
+lemma mk_compl_eq_mk_compl_finite_lift {α : Type u} {β : Type v} {s : set α} {t : set β}
+  (hα : #α < omega) (h1 : lift.{u (max v w)} (#α) = lift.{v (max u w)} (#β))
+  (h2 : lift.{u (max v w)} (#s) = lift.{v (max u w)} (#t)) :
+  lift.{u (max v w)} (#(-s : set α)) = lift.{v (max u w)} (#(-t : set β)) :=
+begin
+  have hα' := hα, have h1' := h1,
+  rw [← mk_sum_compl s, ← mk_sum_compl t] at h1,
+  rw [← mk_sum_compl s, add_lt_omega_iff] at hα,
+  lift #s to ℕ using hα.1 with n hn,
+  lift #(- s : set α) to ℕ using hα.2 with m hm,
+  have : #(- t : set β) < omega,
+  { refine lt_of_le_of_lt (mk_subtype_le _) _,
+    rw [← lift_lt, lift_omega, ← h1', ← lift_omega.{u (max v w)}, lift_lt], exact hα' },
+  lift #(- t : set β) to ℕ using this with k hk,
+  simp [nat_eq_lift_eq_iff] at h2, rw [nat_eq_lift_eq_iff.{v (max u w)}] at h2,
+  simp [h2.symm] at h1 ⊢, norm_cast at h1, simp at h1, exact h1
+end
+
+lemma mk_compl_eq_mk_compl_finite {α β : Type u} {s : set α} {t : set β}
+  (hα : #α < omega) (h1 : #α = #β) (h : #s = #t) : #(-s : set α) = #(-t : set β) :=
+by { rw [← lift_inj], apply mk_compl_eq_mk_compl_finite_lift hα; rw [lift_inj]; assumption }
+
+lemma mk_compl_eq_mk_compl_finite_same {α : Type*} {s t : set α} (hα : #α < omega)
+  (h : #s = #t) : #(-s : set α) = #(-t : set α) :=
+mk_compl_eq_mk_compl_finite hα rfl h
+
+/- extend an injection to an equiv -/
+
+theorem extend_function {α β : Type*} {s : set α} (f : s ↪ β)
+  (h : nonempty ((-s : set α) ≃ (- range f : set β))) :
+  ∃ (g : α ≃ β), ∀ x : s, g x = f x :=
+begin
+  intros, have := h, cases this with g,
+  let h : α ≃ β := (set.sum_compl (s : set α)).symm.trans
+    ((equiv.sum_congr (equiv.set.range f f.2) g).trans
+    (equiv.set.sum_compl (range f))),
+  refine ⟨h, _⟩, rintro ⟨x, hx⟩, simp [set.sum_compl_symm_apply_of_mem, hx, equiv.symm]
+end
+
+theorem extend_function_infinite {α : Type u} {β : Type v} {s : set α} (f : s ↪ β)
+  (hα : omega ≤ #α) (hs : #s < #α) (h : nonempty (α ≃ β)) :
+  ∃ (g : α ≃ β), ∀ x : s, g x = f x :=
+begin
+  apply extend_function f, have := h, cases this with g, rw [← lift_mk_eq] at h,
+  cases cardinal.eq.mp (mk_compl_of_omega_le s hα hs) with g2,
+  cases cardinal.eq.mp (mk_compl_of_omega_le (range f) _ _) with g3,
+  { constructor, exact g2.trans (g.trans g3.symm) },
+  { rw [← lift_le, ← h], refine le_trans _ (lift_le.mpr hα), simp },
+  rwa [← lift_lt, ← h, mk_range_eq_lift, lift_lt], exact f.2
+end
+
+theorem extend_function_finite {α β : Type*} {s : set α} (f : s ↪ β)
+  (hs : #α < omega) (h : nonempty (α ≃ β)) : ∃ (g : α ≃ β), ∀ x : s, g x = f x :=
+begin
+  apply extend_function f,
+  have := h, cases this with g,
+  rw [← lift_mk_eq] at h,
+  rw [←lift_mk_eq, mk_compl_eq_mk_compl_finite_lift hs h],
+  rw [mk_range_eq_lift], exact f.2
+end
+
+theorem extend_function_of_lt {α β : Type*} {s : set α} (f : s ↪ β) (hs : #s < #α)
+  (h : nonempty (α ≃ β)) : ∃ (g : α ≃ β), ∀ x : s, g x = f x :=
+begin
+  cases (le_or_lt omega (#α)) with hα hα,
+  { exact extend_function_infinite f hα hs h },
+  { exact extend_function_finite f hα h }
 end
 
 end cardinal

@@ -245,6 +245,12 @@ end denumerable
 
 namespace equiv
 
+def list_unit_equiv : list unit ≃ ℕ :=
+{ to_fun := list.length,
+  inv_fun := list.repeat (),
+  left_inv := λ u, list.injective_length (by simp),
+  right_inv := λ n, list.length_repeat () n }
+
 def list_nat_equiv_nat : list ℕ ≃ ℕ := denumerable.eqv _
 
 def list_equiv_self_of_equiv_nat {α : Type} (e : α ≃ ℕ) : list α ≃ α :=

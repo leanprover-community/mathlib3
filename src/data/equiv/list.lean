@@ -245,7 +245,7 @@ end denumerable
 
 namespace equiv
 
-/-- The type of natural numbers is naturally equivalent to lists on unit. -/
+/-- The type lists on unit is canonically equivalent to the natural numbers. -/
 def list_unit_equiv : list unit ≃ ℕ :=
 { to_fun := list.length,
   inv_fun := list.repeat (),

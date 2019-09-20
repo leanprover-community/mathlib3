@@ -909,6 +909,14 @@ by { dsimp [set_value], simp [swap_apply_left] }
 
 end swap
 
+protected lemma forall_congr {α β} {p : α → Prop} {q : β → Prop} (f : α ≃ β)
+  (h : ∀{x}, p x ↔ q (f x)) : (∀x, p x) ↔ (∀y, q y) :=
+begin
+  split; intros h₂ x,
+  { rw [←f.right_inv x], apply h.mp, apply h₂ },
+  apply h.mpr, apply h₂
+end
+
 end equiv
 
 instance {α} [subsingleton α] : subsingleton (ulift α) := equiv.ulift.subsingleton

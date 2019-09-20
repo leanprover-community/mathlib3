@@ -807,6 +807,10 @@ quotient.sound ⟨equiv.set.univ α⟩
 theorem mk_image_le {α β : Type u} {f : α → β} {s : set α} : mk (f '' s) ≤ mk s :=
 mk_le_of_surjective surjective_onto_image
 
+theorem mk_image_le_lift {α : Type u} {β : Type v} {f : α → β} {s : set α} :
+  lift.{v u} (mk (f '' s)) ≤ lift.{u v} (mk s) :=
+lift_mk_le.{v u 0}.mpr ⟨embedding.of_surjective surjective_onto_image⟩
+
 theorem mk_range_le {α β : Type u} {f : α → β} : mk (range f) ≤ mk α :=
 mk_le_of_surjective surjective_onto_range
 

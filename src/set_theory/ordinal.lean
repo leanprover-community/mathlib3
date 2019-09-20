@@ -1642,6 +1642,17 @@ if a0 : a = 0 then by simp only [a0, zero_mul, sub_self] else
 eq_of_forall_ge_iff $ λ d,
 by rw [sub_le, ← le_div a0, sub_le, ← le_div a0, mul_add_div _ a0]
 
+theorem is_limit_add_iff {a b} : is_limit (a + b) ↔ is_limit b ∨ (b = 0 ∧ is_limit a) :=
+begin
+  split; intro h,
+  { by_cases h' : b = 0,
+    { rw [h', add_zero] at h, right, exact ⟨h', h⟩ },
+      left, rw [←add_sub_cancel a b], apply sub_is_limit h,
+      suffices : a + 0 < a + b, simpa only [add_zero],
+      rwa [add_lt_add_iff_left, pos_iff_ne_zero] },
+  rcases h with h|⟨rfl, h⟩, exact add_is_limit a h, simpa only [add_zero]
+end
+
 /-- Divisibility is defined by right multiplication:
   `a ∣ b` if there exists `c` such that `b = a * c`. -/
 instance : has_dvd ordinal := ⟨λ a b, ∃ c, b = a * c⟩
@@ -1935,12 +1946,28 @@ by rw [bsup_le, sup_le]; exact
 theorem le_bsup {o} (f : Π a < o, ordinal) (i h) : f i h ≤ bsup o f :=
 bsup_le.1 (le_refl _) _ _
 
+theorem lt_bsup {o : ordinal} {f : Π a < o, ordinal}
+  (hf : ∀{a a'} (ha : a < o) (ha' : a' < o), a < a' → f a ha < f a' ha')
+  (ho : o.is_limit) (i h) : f i h < bsup o f :=
+lt_of_lt_of_le (hf _ _ $ lt_succ_self i) (le_bsup f i.succ $ ho.2 _ h)
+
+theorem bsup_id {o} (ho : is_limit o) : bsup.{u u} o (λ x _, x) = o :=
+begin
+  apply le_antisymm, rw [bsup_le], intro i, apply le_of_lt,
+  rw [←not_lt], intro h, apply lt_irrefl (bsup.{u u} o (λ x _, x)),
+  apply lt_of_le_of_lt _ (lt_bsup _ ho _ h), refl, intros, assumption
+end
+
 theorem is_normal.bsup {f} (H : is_normal f)
   {o : ordinal} : ∀ (g : Π a < o, ordinal) (h : o ≠ 0),
   f (bsup o g) = bsup o (λ a h, f (g a h)) :=
 induction_on o $ λ α r _ g h,
 by resetI; rw [bsup_type,
      H.sup (type_ne_zero_iff_nonempty.1 h), bsup_type]
+
+theorem is_normal.bsup_eq {f} (H : is_normal f) {o : ordinal} (h : is_limit o) :
+  bsup.{u} o (λx _, f x) = f o :=
+by { rw [←is_normal.bsup.{u u} H (λ x _, x) h.1, bsup_id h] }
 
 /-- The ordinal exponential, defined by transfinite recursion. -/
 def power (a b : ordinal) : ordinal :=
@@ -2648,6 +2675,9 @@ theorem is_normal.le_nfp {f} (H : is_normal f) {a b} :
 ⟨le_trans (H.le_self _), λ h,
   by simpa only [H.nfp_fp] using H.le_iff.2 h⟩
 
+theorem nfp_eq_self {f : ordinal → ordinal} {a} (h : f a = a) : nfp f a = a :=
+le_antisymm (sup_le.mpr $ λ i, by rw [nat.iterate₀ h]) (le_nfp_self f a)
+
 /-- The derivative of a normal function `f` is
   the sequence of fixed points of `f`. -/
 def deriv (f : ordinal → ordinal) (o : ordinal) : ordinal :=
@@ -2815,6 +2845,10 @@ eq_of_forall_ge_iff $ λ c, begin
   exact forall_swap.trans (forall_congr $ λ n, by simp only [forall_eq, aleph'_nat]),
 end
 
+/-- aleph' and aleph_idx form an equivalence between `ordinal` and `cardinal` -/
+@[simp] def aleph'_equiv : ordinal ≃ cardinal :=
+⟨aleph', aleph_idx, aleph_idx_aleph', aleph'_aleph_idx⟩
+
 /-- The `aleph` function gives the infinite cardinals listed by their
   ordinal index. `aleph 0 = ω`, `aleph 1 = succ ω` is the first
   uncountable cardinal, and so on. -/
@@ -2838,7 +2872,7 @@ by rw [← aleph'_omega, aleph'_le]
 theorem omega_le_aleph (o : ordinal) : omega ≤ aleph o :=
 by rw [aleph, omega_le_aleph']; apply ordinal.le_add_right
 
-theorem aleph_is_limit (o : ordinal) : is_limit (aleph o).ord :=
+theorem ord_aleph_is_limit (o : ordinal) : is_limit (aleph o).ord :=
 ord_is_limit $ omega_le_aleph _
 
 theorem exists_aleph {c : cardinal} : omega ≤ c ↔ ∃ o, c = aleph o :=

@@ -6,6 +6,8 @@
 
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.equalizers
+import category_theory.limits.shapes.finite_limits
+import category_theory.limits.shapes.finite_products
 
 /-!
 # Constructing limits from products and equalizers.
@@ -24,8 +26,17 @@ universes v u
 variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
+variables {J : Type v} [small_category J]
+
 -- We hide the "implementation details" inside a namespace
 namespace has_limit_of_has_products_of_has_equalizers
+
+-- We assume here only that we have exactly the products we need, so that we can prove
+-- variations of the construction (all products gives all limits, finite products gives finite limits...)
+variables (F : J ⥤ C)
+          [H₁ : has_limit.{v} (functor.of_function F.obj)]
+          [H₂ : has_limit.{v} (functor.of_function (λ f : (Σ p : J × J, p.1 ⟶ p.2), F.obj f.1.2))]
+include H₁ H₂
 
 /--
 Corresponding to any functor `F : J ⥤ C`, we construct a new functor from the walking parallel
@@ -39,9 +50,9 @@ where the two morphisms `s` and `t` are defined componentwise:
 * The `s_f` component is the projection `∏_j F j ⟶ F j` followed by `f`.
 * The `t_f` component is the projection `∏_j F j ⟶ F j'`.
 
-In a moment we prove that cones over `F` are isomorphism to cones over this new diagram.
+In a moment we prove that cones over `F` are isomorphic to cones over this new diagram.
 -/
-@[simp] def diagram [has_products.{v} C] {J} [small_category J] (F : J ⥤ C) : walking_parallel_pair ⥤ C :=
+@[simp] def diagram : walking_parallel_pair ⥤ C :=
 let pi_obj := limits.pi_obj F.obj in
 let pi_hom := limits.pi_obj (λ f : (Σ p : J × J, p.1 ⟶ p.2), F.obj f.1.2) in
 let s : pi_obj ⟶ pi_hom :=
@@ -52,8 +63,7 @@ parallel_pair s t
 
 /-- The morphism from cones over the walking pair diagram `diagram F` to cones over
 the original diagram `F`. -/
-@[simp] def cones_hom [has_products.{v} C] {J} [small_category J] (F : J ⥤ C) :
-  (diagram F).cones ⟶ F.cones :=
+@[simp] def cones_hom : (diagram F).cones ⟶ F.cones :=
 { app := λ X c,
   { app := λ j, c.app walking_parallel_pair.zero ≫ pi.π _ j,
     naturality' := λ j j' f,
@@ -68,8 +78,7 @@ the original diagram `F`. -/
 
 /-- The morphism from cones over the original diagram `F` to cones over the walking pair diagram
 `diagram F`. -/
-@[simp] def cones_inv [has_products.{v} C] {J} [small_category J] (F : J ⥤ C) :
-  F.cones ⟶ (diagram F).cones :=
+@[simp] def cones_inv : F.cones ⟶ (diagram F).cones :=
 { app := λ X c,
   begin
     refine (fork.of_ι _ _).π,
@@ -85,9 +94,8 @@ the original diagram `F`. -/
   naturality' := λ X Y f, by { ext c j, cases j; tidy, } }.
 
 /-- The natural isomorphism between cones over the
-walking pair diagram `equalizer_diagram F` and cones over the original diagram `F`. -/
-def cones_iso [has_products.{v} C] {J} [small_category J] (F : J ⥤ C) :
-  (diagram F).cones ≅ F.cones :=
+walking pair diagram `diagram F` and cones over the original diagram `F`. -/
+def cones_iso : (diagram F).cones ≅ F.cones :=
 { hom := cones_hom F,
   inv := cones_inv F,
   hom_inv_id' :=
@@ -115,6 +123,18 @@ has_limit.of_cones_iso (diagram F) F (cones_iso F)
 def limits_from_equalizers_and_products
   [has_products.{v} C] [has_equalizers.{v} C] : has_limits.{v} C :=
 { has_limits_of_shape := λ J 𝒥, by exactI
+  { has_limit := λ F, by apply_instance } }
+
+instance has_limit_of_has_finite_products_of_has_equalizers
+  [has_finite_products.{v} C] [has_equalizers.{v} C] {J} [small_category J] [𝒥 : fin_category J] (F : J ⥤ C) :
+    has_limit.{v} F :=
+has_limit.of_cones_iso (diagram F) F (cones_iso F)
+
+/-- Any category with finite products and equalizers has all finite limits. -/
+-- This is not an instance, as it is not always how one wants to construct finite limits!
+def finite_limits_from_equalizers_and_finite_products
+  [has_finite_products.{v} C] [has_equalizers.{v} C] : has_finite_limits.{v} C :=
+{ has_limits_of_shape := λ J _ _, by exactI
   { has_limit := λ F, by apply_instance } }
 
 end category_theory.limits

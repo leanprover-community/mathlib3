@@ -30,7 +30,7 @@ variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
 -- We hide the "implementation details" inside a namespace
-namespace has_finite_limit_of_has_finite_products_of_has_equalizers
+namespace has_limit_of_has_finite_products_of_has_equalizers
 
 -- Finding the `decidable_eq` instances apparently takes some work.
 set_option class.instance_max_depth 38

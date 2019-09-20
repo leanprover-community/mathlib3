@@ -109,7 +109,7 @@ end walking_span
 
 open walking_span walking_cospan walking_span.hom walking_cospan.hom
 
-variables {C : Type u} [𝒞 : category.{v+1} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
 /-- `cospan f g` is the functor from the walking cospan hitting `f` and `g`. -/

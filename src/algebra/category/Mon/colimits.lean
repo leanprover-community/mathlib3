@@ -7,9 +7,9 @@ import algebra.category.Mon.basic
 import category_theory.limits.limits
 
 /-!
-We build colimits of monoids.
+# The category of monoids has all colimits.
 
-We do so knowing nothing about monoids.
+We do this construction knowing nothing about monoids.
 In particular, I want to claim that this file could be produced by a python script
 that just looks at the output of `#print monoid`:
 
@@ -25,6 +25,9 @@ and if we'd fed it the output of `#print comm_ring`, this file would instead bui
 colimits of commutative rings.
 
 A slightly bolder claim is that we could do this with tactics, as well.
+
+Because this file is "pre-automated", it doesn't meet current documentation standards.
+Hopefully eventually most of it will be automatically synthesised.
 -/
 
 universes v
@@ -129,21 +132,10 @@ def colimit : Mon := ⟨colimit_type F, by apply_instance⟩
 def cocone_fun (j : J) (x : (F.obj j).α) : colimit_type F :=
 quot.mk _ (of j x)
 
-instance cocone_is_hom (j : J) : is_monoid_hom (cocone_fun F j) :=
-{ map_one :=
-  begin
-    apply quot.sound,
-    apply relation.one,
-  end,
-  map_mul := λ x y,
-  begin
-    apply quot.sound,
-    apply relation.mul,
-  end }
-
 def cocone_morphism (j : J) : F.obj j ⟶ colimit F :=
-{ val := cocone_fun F j,
-  property := by apply_instance }
+{ to_fun := cocone_fun F j,
+  map_one' := quot.sound (relation.one _ _),
+  map_mul' := λ x y, quot.sound (relation.mul _ _ _) }
 
 @[simp] lemma cocone_naturality {j j' : J} (f : j ⟶ j') :
   F.map f ≫ (cocone_morphism F j') = cocone_morphism F j :=
@@ -197,19 +189,10 @@ begin
     { rw mul_one, } }
 end
 
-instance desc_fun_is_morphism (s : cocone F) : is_monoid_hom (desc_fun F s) :=
-{ map_one := rfl,
-  map_mul := λ x y,
-  begin
-    induction x, induction y,
-    refl,
-    refl,
-    refl,
-  end, }
-
 @[simp] def desc_morphism (s : cocone F) : colimit F ⟶ s.X :=
-{ val := desc_fun F s,
-  property := by apply_instance }
+{ to_fun := desc_fun F s,
+  map_one' := rfl,
+  map_mul' := λ x y, by { induction x; induction y; refl }, }
 
 def colimit_is_colimit : is_colimit (colimit_cocone F) :=
 { desc := λ s, desc_morphism F s,

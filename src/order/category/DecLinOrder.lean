@@ -30,7 +30,7 @@ instance : unbundled_hom @monotone :=
 
 instance (X : Preorder) : preorder X := X.str
 
-example : large_category Preorder.{u} := infer_instance
+example : concrete_category Preorder.{u} := infer_instance
 
 end Preorder
 
@@ -44,7 +44,7 @@ instance (G : PartialOrder) : partial_order G := G.str
 
 def of (X : Type u) [partial_order X] : PartialOrder := bundled.of X
 
-example : large_category PartialOrder.{u} := infer_instance
+example : concrete_category PartialOrder.{u} := infer_instance
 
 end PartialOrder
 
@@ -58,7 +58,7 @@ instance (G : LinOrder) : linear_order G := G.str
 
 def of (X : Type u) [linear_order X] : LinOrder := bundled.of X
 
-example : large_category LinOrder.{u} := infer_instance
+example : concrete_category LinOrder.{u} := infer_instance
 
 end LinOrder
 
@@ -72,6 +72,6 @@ instance (G : DecLinOrder) : decidable_linear_order G := G.str
 
 def of (X : Type u) [decidable_linear_order X] : DecLinOrder := bundled.of X
 
-example : large_category DecLinOrder.{u} := infer_instance
+example : concrete_category DecLinOrder.{u} := infer_instance
 
 end DecLinOrder

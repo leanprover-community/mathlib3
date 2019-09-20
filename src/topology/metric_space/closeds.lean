@@ -16,7 +16,7 @@ always finite in this context.
 
 import topology.metric_space.hausdorff_distance topology.opens
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 
 universe u
 open classical lattice set function topological_space filter
@@ -202,7 +202,7 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
     are finitely many, and ε-dense for the Hausdorff distance. -/
   refine compact_of_totally_bounded_is_closed (emetric.totally_bounded_iff.2 (λε εpos, _)) is_closed_univ,
   rcases dense εpos with ⟨δ, δpos, δlt⟩,
-  rcases emetric.totally_bounded_iff.1 (compact_iff_totally_bounded_complete.1 (@compact_univ α _ _ _)).1 δ δpos
+  rcases emetric.totally_bounded_iff.1 (compact_iff_totally_bounded_complete.1 (@compact_univ α _ _)).1 δ δpos
     with ⟨s, fs, hs⟩,
   -- s : set α,  fs : finite s,  hs : univ ⊆ ⋃ (y : α) (H : y ∈ s), eball y δ
   -- we first show that any set is well approximated by a subset of `s`.

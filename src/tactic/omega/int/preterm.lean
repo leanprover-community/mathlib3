@@ -17,9 +17,9 @@ inductive preterm : Type
 | var : int → nat → preterm
 | add : preterm → preterm → preterm
 
-local notation `&` k    := preterm.cst k
-local infix ` ** ` : 300 := preterm.var
-local notation t `+*` s := preterm.add t s
+localized "notation `&` k    := omega.int.preterm.cst k" in omega.int
+localized "infix ` ** ` : 300 := omega.int.preterm.var" in omega.int
+localized "notation t `+*` s := omega.int.preterm.add t s" in omega.int
 
 namespace preterm
 
@@ -47,7 +47,7 @@ def repr : preterm → string
 
 end preterm
 
-local notation as ` {` m ` ↦ ` a `}` := list.func.set a as m
+open_locale list.func -- get notation for list.func.set
 
 @[simp] def canonize : preterm → term
 | (& i)      := ⟨i, []⟩

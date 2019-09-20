@@ -31,7 +31,7 @@ p-adic, p adic, padic, p-adic integer
 
 noncomputable theory
 
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 -- We begin with some general lemmas that are used below in the computation.
 

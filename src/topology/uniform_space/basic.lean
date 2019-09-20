@@ -27,7 +27,7 @@ A major difference is that this formalization is heavily based on the filter lib
 import order.filter.basic order.filter.lift topology.constructions
 
 open set lattice filter classical
-local attribute [instance, priority 0] prop_decidable
+open_locale classical
 
 set_option eqn_compiler.zeta true
 
@@ -152,7 +152,7 @@ variables [uniform_space α]
 def uniformity (α : Type u) [uniform_space α] : filter (α × α) :=
   (@uniform_space.to_core α _).uniformity
 
-local notation `𝓤` := uniformity
+localized "notation `𝓤` := uniformity" in uniformity
 
 lemma is_open_uniformity {s : set α} :
   is_open s ↔ (∀x∈s, { p : α × α | p.1 = x → p.2 ∈ s } ∈ 𝓤 α) :=
@@ -412,7 +412,7 @@ lemma interior_mem_uniformity {s : set (α × α)} (hs : s ∈ 𝓤 α) :
   interior s ∈ 𝓤 α :=
 by rw [uniformity_eq_uniformity_interior]; exact mem_lift' hs
 
-lemma mem_uniformity_is_closed [uniform_space α] {s : set (α×α)} (h : s ∈ 𝓤 α) :
+lemma mem_uniformity_is_closed {s : set (α×α)} (h : s ∈ 𝓤 α) :
   ∃t ∈ 𝓤 α, is_closed t ∧ t ⊆ s :=
 have s ∈ (𝓤 α).lift' closure, by rwa [uniformity_eq_uniformity_closure] at h,
 have ∃ t ∈ 𝓤 α, closure t ⊆ s,
@@ -442,28 +442,13 @@ by simp [uniform_continuous]; exact tendsto_id
 lemma uniform_continuous_const [uniform_space β] {b : β} : uniform_continuous (λa:α, b) :=
 @tendsto_const_uniformity _ _ _ b (𝓤 α)
 
-lemma uniform_continuous.comp [uniform_space β] [uniform_space γ] {f : α → β} {g : β → γ}
+lemma uniform_continuous.comp [uniform_space β] [uniform_space γ] {g : β → γ} {f : α → β}
   (hg : uniform_continuous g) (hf : uniform_continuous f) : uniform_continuous (g ∘ f) :=
 hg.comp hf
-
-lemma uniform_continuous.continuous [uniform_space β] {f : α → β}
-  (hf : uniform_continuous f) : continuous f :=
-continuous_iff_continuous_at.mpr $ assume a,
-calc map f (nhds a) ≤
-    (map (λp:α×α, (f p.1, f p.2)) (𝓤 α)).lift' (λs:set (β×β), {y | (f a, y) ∈ s}) :
-  begin
-    rw [nhds_eq_uniformity, map_lift'_eq, map_lift'_eq2],
-    exact (lift'_mono' $ assume s hs b ⟨a', (ha' : (_, a') ∈ s), a'_eq⟩,
-      ⟨(a, a'), ha', show (f a, f a') = (f a, b), from a'_eq ▸ rfl⟩),
-    exact monotone_preimage,
-    exact monotone_preimage
-  end
-  ... ≤ nhds (f a) :
-    by rw [nhds_eq_uniformity]; exact lift'_mono hf (le_refl _)
 end uniform_space
 end
 
-local notation `𝓤` := uniformity
+open_locale uniformity
 
 section constructions
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ι : Sort*}
@@ -578,7 +563,7 @@ lemma uniform_space.comap_comap_comp {α β γ} [uγ : uniform_space γ] {f : α
   uniform_space.comap (g ∘ f) uγ = uniform_space.comap f (uniform_space.comap g uγ) :=
 by ext ; dsimp [uniform_space.comap] ; rw filter.comap_comap_comp
 
-lemma uniform_continuous_iff {α β} [uα : uniform_space α] [uβ : uniform_space β] (f : α → β) :
+lemma uniform_continuous_iff {α β} [uα : uniform_space α] [uβ : uniform_space β] {f : α → β} :
   uniform_continuous f ↔ uα ≤ uβ.comap f :=
 filter.map_le_iff_le_comap
 
@@ -598,6 +583,10 @@ lemma to_topological_space_mono {u₁ u₂ : uniform_space α} (h : u₁ ≤ u�
   @uniform_space.to_topological_space _ u₁ ≤ @uniform_space.to_topological_space _ u₂ :=
 le_of_nhds_le_nhds $ assume a,
   by rw [@nhds_eq_uniformity α u₁ a, @nhds_eq_uniformity α u₂ a]; exact (lift'_mono h $ le_refl _)
+
+lemma uniform_continuous.continuous [uniform_space α] [uniform_space β] {f : α → β}
+  (hf : uniform_continuous f) : continuous f :=
+continuous_iff_le_induced.mpr $ to_topological_space_mono $ uniform_continuous_iff.1 hf
 
 lemma to_topological_space_bot : @uniform_space.to_topological_space α ⊥ = ⊥ := rfl
 
@@ -752,7 +741,7 @@ lemma uniform_continuous.prod_mk_right {f : α × β → γ} (h : uniform_contin
   uniform_continuous (λ b, f (a,b)) :=
 h.comp (uniform_continuous_const.prod_mk  uniform_continuous_id)
 
-lemma to_topological_space_prod [u : uniform_space α] [v : uniform_space β] :
+lemma to_topological_space_prod {α} {β} [u : uniform_space α] [v : uniform_space β] :
   @uniform_space.to_topological_space (α × β) prod.uniform_space =
     @prod.topological_space α β u.to_topological_space v.to_topological_space := rfl
 
@@ -849,12 +838,11 @@ begin
 end
 
 /- We can now define the uniform structure on the disjoint union -/
-instance sum.uniform_space [u₁ : uniform_space α] [u₂ : uniform_space β] : uniform_space (α ⊕ β) :=
+instance sum.uniform_space : uniform_space (α ⊕ β) :=
 { to_core := uniform_space.core.sum,
   is_open_uniformity := λ s, ⟨uniformity_sum_of_open_aux, open_of_uniformity_sum_aux⟩ }
 
-lemma sum.uniformity [uniform_space α] [uniform_space β] :
-  𝓤 (α ⊕ β) =
+lemma sum.uniformity : 𝓤 (α ⊕ β) =
     map (λ p : α × α, (inl p.1, inl p.2)) (𝓤 α) ⊔
     map (λ p : β × β, (inr p.1, inr p.2)) (𝓤 β) := rfl
 

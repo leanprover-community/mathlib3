@@ -23,7 +23,7 @@ this is another small category at that level.
 However if `C` and `D` are both large categories at the same universe level,
 this is a small category at the next higher level.
 -/
-instance functor.category : category.{(max (u₁+1) v₂)} (C ⥤ D) :=
+instance functor.category : category.{(max u₁ v₂)} (C ⥤ D) :=
 { hom     := λ F G, nat_trans F G,
   id      := λ F, nat_trans.id F,
   comp    := λ _ _ _ α β, vcomp α β }
@@ -63,7 +63,10 @@ infix ` ◫ `:80 := hcomp
 @[simp] lemma hcomp_app {H I : D ⥤ E} (α : F ⟶ G) (β : H ⟶ I) (X : C) :
   (α ◫ β).app X = (β.app (F.obj X)) ≫ (I.map (α.app X)) := rfl
 
--- Note that we don't yet prove a `hcomp_assoc` lemma here: even stating it is painful, because we need to use associativity of functor composition
+-- Note that we don't yet prove a `hcomp_assoc` lemma here: even stating it is painful, because we
+-- need to use associativity of functor composition. (It's true without the explicit associator,
+-- because functor composition is definitionally associative, but relying on the definitional equality
+-- causes bad problems with elaboration later.)
 
 lemma exchange {I J K : D ⥤ E} (α : F ⟶ G) (β : G ⟶ H)
   (γ : I ⟶ J) (δ : J ⟶ K) : (α ≫ β) ◫ (γ ≫ δ) = (α ◫ γ) ≫ (β ◫ δ) :=

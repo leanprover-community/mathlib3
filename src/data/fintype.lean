@@ -337,7 +337,7 @@ match n, hn with
     (λ _ _ _, h _ _))⟩
 end
 
-lemma fintype.exists_ne_of_card_gt_one [fintype α] (h : fintype.card α > 1) (a : α) :
+lemma fintype.exists_ne_of_one_lt_card [fintype α] (h : 1 < fintype.card α) (a : α) :
   ∃ b : α, b ≠ a :=
 let ⟨b, hb⟩ := classical.not_forall.1 (mt fintype.card_le_one_iff.2 (not_le_of_gt h)) in
 let ⟨c, hc⟩ := classical.not_forall.1 hb in
@@ -438,6 +438,10 @@ instance finset.fintype [fintype α] : fintype (finset α) :=
 
 instance subtype.fintype [fintype α] (p : α → Prop) [decidable_pred p] : fintype {x // p x} :=
 set_fintype _
+
+theorem fintype.card_subtype_le [fintype α] (p : α → Prop) [decidable_pred p] :
+  fintype.card {x // p x} ≤ fintype.card α :=
+by rw fintype.subtype_card; exact card_le_of_subset (subset_univ _)
 
 instance psigma.fintype {α : Type*} {β : α → Type*} [fintype α] [∀ a, fintype (β a)] :
   fintype (Σ' a, β a) :=

@@ -8,7 +8,7 @@ Order on topological structures. Lattice structure, Galois connection, and appli
 import topology.basic
 
 open set filter lattice classical
-local attribute [instance] prop_decidable
+open_locale classical
 
 universes u v w
 
@@ -273,7 +273,7 @@ lemma induced_id [t : topological_space α] : t.induced id = t :=
 topological_space_eq $ funext $ assume s, propext $
   ⟨assume ⟨s', hs, h⟩, h ▸ hs, assume hs, ⟨s, hs, rfl⟩⟩
 
-lemma induced_compose [tβ : topological_space β] [tγ : topological_space γ]
+lemma induced_compose [tγ : topological_space γ]
   {f : α → β} {g : β → γ} : (tγ.induced g).induced f = tγ.induced (g ∘ f) :=
 topological_space_eq $ funext $ assume s, propext $
   ⟨assume ⟨s', ⟨s, hs, h₂⟩, h₁⟩, h₁ ▸ h₂ ▸ ⟨s, hs, rfl⟩,
@@ -563,7 +563,7 @@ tβ = tα.induced f ↔ ∀ b, nhds b = comap f (nhds $ f b) :=
 ⟨λ h a, h.symm ▸ nhds_induced f a, λ h, eq_of_nhds_eq_nhds $ λ x, by rw [h, nhds_induced]⟩
 
 theorem map_nhds_induced_of_surjective [T : topological_space α]
-    {f : β → α} (hf : function.surjective f) (a : β) (s : set α) :
+    {f : β → α} (hf : function.surjective f) (a : β) :
   map f (@nhds β (topological_space.induced f T) a) = nhds (f a) :=
 by rw [nhds_induced, map_comap_of_surjective hf]
 
@@ -583,7 +583,7 @@ theorem nhds_subtype (s : set α) (a : {x // x ∈ s}) :
   nhds a = comap subtype.val (nhds a.val) :=
 by rw nhds_induced
 
-theorem principal_subtype (s : set α) (t : set {x // x ∈ s}) :
+theorem principal_subtype {α : Type*} (s : set α) (t : set {x // x ∈ s}) :
   principal t = comap subtype.val (principal (subtype.val '' t)) :=
 by rw comap_principal; rw set.preimage_image_eq; apply subtype.val_injective
 
@@ -673,11 +673,11 @@ theorem nhds_within_le_comap {x : α} {s : set α} {f : α → β} (ctsf : conti
   nhds_within x s ≤ comap f (nhds_within (f x) (f '' s)) :=
 map_le_iff_le_comap.1 ctsf.tendsto_nhds_within_image
 
-theorem continuous_within_at_iff_ptendsto_res (f : α → β) {x : α} {s : set α} (xs : x ∈ s) :
+theorem continuous_within_at_iff_ptendsto_res (f : α → β) {x : α} {s : set α} :
   continuous_within_at f s x ↔ ptendsto (pfun.res f s) (nhds x) (nhds (f x)) :=
 tendsto_iff_ptendsto _ _ _ _
 
-def continuous_iff_continuous_on_univ {f : α → β} : continuous f ↔ continuous_on f univ :=
+lemma continuous_iff_continuous_on_univ {f : α → β} : continuous f ↔ continuous_on f univ :=
 by simp [continuous_iff_continuous_at, continuous_on, continuous_at, continuous_within_at,
          nhds_within_univ]
 

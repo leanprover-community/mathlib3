@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 
 The primitive recursive functions are the least collection of functions
-nat -> nat which are closed under projections (using the mkpair
+nat → nat which are closed under projections (using the mkpair
 pairing function), composition, zero, successor, and primitive recursion
 (i.e. nat.rec where the motive is C n := nat).
 
@@ -60,7 +60,7 @@ protected theorem id : primrec id :=
 
 theorem prec1 {f} (m : ℕ) (hf : primrec f) : primrec (λ n,
    n.elim m (λ y IH, f $ mkpair y IH)) :=
-((prec (const m) (hf.comp right)).comp 
+((prec (const m) (hf.comp right)).comp
   (zero.pair primrec.id)).of_eq $
 λ n, by simp; dsimp; rw [unpair_mkpair]
 
@@ -761,7 +761,7 @@ this.of_eq $ λ a, begin
     generalize : f a = l, generalize : g a = x,
     induction n with n IH generalizing l x, {refl},
     simp, cases l with b l; simp [IH] },
-  rw [this, list.take_all_of_ge (length_le_encode _)]
+  rw [this, list.take_all_of_le (length_le_encode _)]
 end
 
 private lemma list_cons' : by haveI := prim H; exact primrec₂ (@list.cons β) :=
@@ -1237,7 +1237,7 @@ theorem if_lt {n a b f g}
 λ v, begin
   cases e : b v - a v,
   { simp [not_lt.2 (nat.le_of_sub_eq_zero e)] },
-  { simp [nat.lt_of_sub_eq_succ e] }  
+  { simp [nat.lt_of_sub_eq_succ e] }
 end
 
 theorem mkpair : @primrec' 2 (λ v, v.head.mkpair v.tail.head) :=

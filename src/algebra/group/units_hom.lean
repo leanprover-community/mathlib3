@@ -19,8 +19,9 @@ monoid_hom.mk'
                   by rw [← f.map_mul, u.inv_val, f.map_one]⟩)
   (λ x y, ext (f.map_mul x y))
 
+/-- The group homomorphism on units induced by a multiplicative morphism. -/
 @[reducible] def map' (f : α → β) [is_monoid_hom f] : units α →* units β :=
-  map (as_monoid_hom f)
+  map (monoid_hom.of f)
 
 @[simp] lemma coe_map (f : α →* β) (x : units α) : ↑(map f x) = f x := rfl
 

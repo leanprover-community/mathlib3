@@ -9,7 +9,7 @@ universes u v
 variables {α : Type u} {β : Type v} {a b : α}
 open set function lattice
 
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 namespace ideal
 variables [comm_ring α] (I : ideal α)

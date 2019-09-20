@@ -157,7 +157,6 @@ lemma not_countable_real : ¬ countable (set.univ : set ℝ)
 
 ## <a name="24"></a>24. The Undecidability of the Continuum Hypothesis
 
-*
 ```lean
 theorem independence_of_CH : independent ZFC' CH_f
 ```

@@ -13,6 +13,7 @@ import category_theory.limits.shapes.finite_products
 # Constructing limits from products and equalizers.
 
 If a category has all products, and all equalizers, then it has all limits.
+Similarly, if it has all finite products, and all equalizers, then it has all finite limits.
 
 TODO: provide the dual result.
 -/

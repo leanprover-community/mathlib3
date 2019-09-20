@@ -568,7 +568,7 @@ theorem cannot_cube_a_cube :
   false
 ```
 * Author: Floris van Doorn
-* Link: https://github.com/fpvandoorn/mathlib/blob/92f6874c49674f04b175637335bb21cf206bb74a/src/cube.lean#L586
+* Link: https://github.com/leanprover-community/mathlib/blob/708a28cc763383522c5c5808aaf27b433d6e4283/archive/cubing_a_cube.lean#L497
 <!--
 ## <a name="83"></a>83. The Friendship Theorem
 

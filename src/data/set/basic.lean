@@ -64,6 +64,8 @@ h hx
 
 @[simp] theorem set_of_mem_eq {s : set α} : {x | x ∈ s} = s := rfl
 
+@[simp] lemma set_of_app_iff {α} {p : α → Prop} {x : α} : { x | p x } x ↔ p x := iff.refl _
+
 theorem mem_def {a : α} {s : set α} : a ∈ s ↔ s a := iff.rfl
 
 instance decidable_mem (s : set α) [H : decidable_pred s] : ∀ a, decidable (a ∈ s) := H

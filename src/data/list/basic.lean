@@ -68,21 +68,6 @@ mt mem_append.1 $ not_or_distrib.2 ⟨h₁, h₂⟩
 theorem ne_nil_of_mem {a : α} {l : list α} (h : a ∈ l) : l ≠ [] :=
 by intro e; rw e at h; cases h
 
-theorem length_eq_zero {l : list α} : length l = 0 ↔ l = [] :=
-⟨eq_nil_of_length_eq_zero, λ h, h.symm ▸ rfl⟩
-
-theorem length_pos_of_mem {a : α} : ∀ {l : list α}, a ∈ l → 0 < length l
-| (b::l) _ := zero_lt_succ _
-
-theorem exists_mem_of_length_pos : ∀ {l : list α}, 0 < length l → ∃ a, a ∈ l
-| (b::l) _ := ⟨b, mem_cons_self _ _⟩
-
-theorem length_pos_iff_exists_mem {l : list α} : 0 < length l ↔ ∃ a, a ∈ l :=
-⟨exists_mem_of_length_pos, λ ⟨a, h⟩, length_pos_of_mem h⟩
-
-theorem length_eq_one {l : list α} : length l = 1 ↔ ∃ a, l = [a] :=
-⟨match l with [a], _ := ⟨a, rfl⟩ end, λ ⟨a, e⟩, e.symm ▸ rfl⟩
-
 theorem mem_split {a : α} {l : list α} (h : a ∈ l) : ∃ s t : list α, l = s ++ a :: t :=
 begin
   induction l with b l ih, {cases h}, rcases h with rfl | h,
@@ -162,6 +147,42 @@ lemma bind_map {g : α → list β} {f : β → γ} :
 | [] := rfl
 | (a::l) := by simp only [cons_bind, map_append, bind_map l]
 
+/- length -/
+
+theorem length_eq_zero {l : list α} : length l = 0 ↔ l = [] :=
+⟨eq_nil_of_length_eq_zero, λ h, h.symm ▸ rfl⟩
+
+theorem length_pos_of_mem {a : α} : ∀ {l : list α}, a ∈ l → 0 < length l
+| (b::l) _ := zero_lt_succ _
+
+theorem exists_mem_of_length_pos : ∀ {l : list α}, 0 < length l → ∃ a, a ∈ l
+| (b::l) _ := ⟨b, mem_cons_self _ _⟩
+
+theorem length_pos_iff_exists_mem {l : list α} : 0 < length l ↔ ∃ a, a ∈ l :=
+⟨exists_mem_of_length_pos, λ ⟨a, h⟩, length_pos_of_mem h⟩
+
+theorem length_eq_one {l : list α} : length l = 1 ↔ ∃ a, l = [a] :=
+⟨match l with [a], _ := ⟨a, rfl⟩ end, λ ⟨a, e⟩, e.symm ▸ rfl⟩
+
+lemma injective_length [subsingleton α] : injective (length : list α → ℕ) :=
+begin
+  intro l, induction l with x l; intros l' h; cases l'; try {contradiction},
+  refl, simp only, use subsingleton.elim _ _, apply l_ih, injection h
+end
+
+/- set-theoretic notation of lists -/
+
+lemma empty_eq : (∅ : list α) = [] := by refl
+lemma singleton_eq [decidable_eq α] (x : α) : ({x} : list α) = [x] := by refl
+lemma insert_neg [decidable_eq α] {x : α} {l : list α} (h : x ∉ l) :
+  has_insert.insert x l = x :: l :=
+if_neg h
+lemma insert_pos [decidable_eq α] {x : α} {l : list α} (h : x ∈ l) :
+  has_insert.insert x l = l :=
+if_pos h
+lemma doubleton_eq [decidable_eq α] {x y : α} (h : x ≠ y) : ({x, y} : list α) = [y, x] :=
+by { rw [insert_neg, singleton_eq], show y ∉ [x], rw [mem_singleton], exact h.symm }
+
 /- bounded quantifiers over lists -/
 
 theorem forall_mem_nil (p : α → Prop) : ∀ x ∈ @nil α, p x.
@@ -230,6 +251,14 @@ theorem app_subset_of_subset_of_subset {l₁ l₂ l : list α} (l₁subl : l₁ 
   l₁ ++ l₂ ⊆ l :=
 λ a h, (mem_append.1 h).elim (@l₁subl _) (@l₂subl _)
 
+@[simp] theorem append_subset_iff {α} {l₁ l₂ l : list α} :
+  l₁ ++ l₂ ⊆ l ↔ l₁ ⊆ l ∧ l₂ ⊆ l :=
+begin
+  split,
+  { intro h, simp only [subset_def] at *, split; intros; simp* },
+  { rintro ⟨h1, h2⟩, apply app_subset_of_subset_of_subset h1 h2 }
+end
+
 theorem eq_nil_of_subset_nil : ∀ {l : list α}, l ⊆ [] → l = []
 | []     s := rfl
 | (a::l) s := false.elim $ s $ mem_cons_self a l
@@ -239,6 +268,13 @@ show l = [] ↔ l ⊆ [], from ⟨λ e, e ▸ subset.refl _, eq_nil_of_subset_ni
 
 theorem map_subset {l₁ l₂ : list α} (f : α → β) (H : l₁ ⊆ l₂) : map f l₁ ⊆ map f l₂ :=
 λ x, by simp only [mem_map, not_and, exists_imp_distrib, and_imp]; exact λ a h e, ⟨a, H h, e⟩
+
+theorem map_subset_iff {l₁ l₂ : list α} (f : α → β) (h : injective f) : map f l₁ ⊆ map f l₂ ↔ l₁ ⊆ l₂ :=
+begin
+  refine ⟨_, map_subset f⟩, intros h2 x hx,
+  rcases mem_map.1 (h2 (mem_map_of_mem f hx)) with ⟨x', hx', hxx'⟩,
+  cases h hxx', exact hx'
+end
 
 /- append -/
 
@@ -352,6 +388,9 @@ theorem join_eq_nil : ∀ {L : list (list α)}, join L = [] ↔ ∀ l ∈ L, l =
 
 @[simp] theorem join_append (L₁ L₂ : list (list α)) : join (L₁ ++ L₂) = join L₁ ++ join L₂ :=
 by induction L₁; [refl, simp only [*, join, cons_append, append_assoc]]
+
+lemma join_join (l : list (list (list α))) : l.join.join = (l.map join).join :=
+by { induction l, simp, simp [l_ih] }
 
 /- repeat -/
 
@@ -611,7 +650,7 @@ end
 ⟨λ h, by have := reverse_sublist h; simp only [reverse_append, append_sublist_append_left, reverse_sublist_iff] at this; assumption,
  λ h, append_sublist_append_of_sublist_right h l⟩
 
-theorem append_sublist_append {α} {l₁ l₂ r₁ r₂ : list α}
+theorem append_sublist_append {l₁ l₂ r₁ r₂ : list α}
   (hl : l₁ <+ l₂) (hr : r₁ <+ r₂) : l₁ ++ r₁ <+ l₂ ++ r₂ :=
 (append_sublist_append_of_sublist_right hl _).trans
   ((append_sublist_append_left _).2 hr)
@@ -753,6 +792,11 @@ mem_iff_nth_le.trans $ exists_congr $ λ n, nth_eq_some.symm
 
 theorem nth_le_map (f : α → β) {l n} (H1 H2) : nth_le (map f l) n H1 = f (nth_le l n H2) :=
 option.some.inj $ by rw [← nth_le_nth, nth_map, nth_le_nth]; refl
+
+/-- A version of `nth_le_map` that can be used for rewriting. -/
+theorem nth_le_map_rev (f : α → β) {l n} (H) :
+  f (nth_le l n H) = nth_le (map f l) n ((length_map f l).symm ▸ H) :=
+(nth_le_map f _ _).symm
 
 @[simp] theorem nth_le_map' (f : α → β) {l n} (H) :
   nth_le (map f l) n H = f (nth_le l n (length_map f l ▸ H)) :=
@@ -1002,6 +1046,13 @@ lemma map_congr {f g : α → β} : ∀ {l : list α}, (∀ x ∈ l, f x = g x) 
 | (a::l) h := let ⟨h₁, h₂⟩ := forall_mem_cons.1 h in
   by rw [map, map, h₁, map_congr h₂]
 
+lemma map_eq_map_iff {f g : α → β} {l : list α} : map f l = map g l ↔ (∀ x ∈ l, f x = g x) :=
+begin
+  refine ⟨_, map_congr⟩, intros h x hx,
+  rw [mem_iff_nth_le] at hx, rcases hx with ⟨n, hn, rfl⟩,
+  rw [nth_le_map_rev f, nth_le_map_rev g], congr, exact h
+end
+
 theorem map_concat (f : α → β) (a : α) (l : list α) : map f (concat l a) = concat (map f l) (f a) :=
 by induction l; [refl, simp only [*, concat_eq_append, cons_append, map, map_append]]; split; refl
 
@@ -1038,6 +1089,14 @@ by unfold list.bind; induction l; simp only [map, join, list.ret, cons_append, n
 
 @[simp] theorem map_tail (f : α → β) (l) : map f (tail l) = tail (map f l) :=
 by cases l; refl
+
+@[simp] theorem injective_map_iff {α β} {f : α → β} : injective (map f) ↔ injective f :=
+begin
+  split; intros h x y hxy,
+  { suffices : [x] = [y], { simpa using this }, apply h, simp [hxy] },
+  { induction y generalizing x, simpa using hxy,
+    cases x, simpa using hxy, simp at hxy, simp [y_ih hxy.2, h hxy.1] }
+end
 
 /- map₂ -/
 
@@ -1372,7 +1431,7 @@ variables [is_lawful_monad m]
 
 end mfoldl_mfoldr
 
-/- prod -/
+/- prod and sum -/
 
 -- list.sum was already defined in defs.lean, but we couldn't tag it with `to_additive` yet.
 attribute [to_additive] list.prod
@@ -1421,6 +1480,27 @@ by induction L; [refl, simp only [*, join, map, sum_cons, length_append]]
 
 @[simp] theorem length_bind (l : list α) (f : α → list β) : length (list.bind l f) = sum (map (length ∘ f) l) :=
 by rw [list.bind, length_join, map_map]
+
+def exists_lt_of_sum_lt [decidable_linear_ordered_cancel_comm_monoid β] {l : list α}
+  (f g : α → β) (h : (l.map f).sum < (l.map g).sum) : ∃ x ∈ l, f x < g x :=
+begin
+  induction l with x l,
+  { exfalso, exact lt_irrefl _ h },
+  { by_cases h' : f x < g x, exact ⟨x, mem_cons_self _ _, h'⟩,
+    rcases l_ih _ with ⟨y, h1y, h2y⟩, refine ⟨y, mem_cons_of_mem x h1y, h2y⟩, simp at h,
+    exact lt_of_add_lt_add_left' (lt_of_lt_of_le h $ add_le_add_right (le_of_not_gt h') _) }
+end
+
+def exists_le_of_sum_le [decidable_linear_ordered_cancel_comm_monoid β] {l : list α}
+  (hl : l ≠ []) (f g : α → β) (h : (l.map f).sum ≤ (l.map g).sum) : ∃ x ∈ l, f x ≤ g x :=
+begin
+  cases l with x l,
+  { contradiction },
+  { by_cases h' : f x ≤ g x, exact ⟨x, mem_cons_self _ _, h'⟩,
+    rcases exists_lt_of_sum_lt f g _ with ⟨y, h1y, h2y⟩,
+    exact ⟨y, mem_cons_of_mem x h1y, le_of_lt h2y⟩, simp at h,
+    exact lt_of_add_lt_add_left' (lt_of_le_of_lt h $ add_lt_add_right (lt_of_not_ge h') _) }
+end
 
 /- lexicographic ordering -/
 
@@ -1638,7 +1718,7 @@ by simp only [pmap_eq_map_attach, mem_map, mem_attach, true_and, subtype.exists]
   {l H} : length (pmap f l H) = length l :=
 by induction l; [refl, simp only [*, pmap, length]]
 
-@[simp] lemma length_attach {α} (L : list α) : L.attach.length = L.length := length_pmap
+@[simp] lemma length_attach (L : list α) : L.attach.length = L.length := length_pmap
 
 /- find -/
 
@@ -4494,11 +4574,11 @@ end Ico
   map prod.fst (enum l) = range l.length :=
 by simp only [enum, enum_from_map_fst, range_eq_range']
 
-theorem ilast'_mem {α} : ∀ a l, @ilast' α a l ∈ a :: l
+theorem ilast'_mem : ∀ a l, @ilast' α a l ∈ a :: l
 | a []     := or.inl rfl
 | a (b::l) := or.inr (ilast'_mem b l)
 
-@[simp] lemma nth_le_attach {α} (L : list α) (i) (H : i < L.attach.length) :
+@[simp] lemma nth_le_attach (L : list α) (i) (H : i < L.attach.length) :
   (L.attach.nth_le i H).1 = L.nth_le i (length_attach L ▸ H) :=
 calc  (L.attach.nth_le i H).1
     = (L.attach.map subtype.val).nth_le i (by simpa using H) : by rw nth_le_map'
@@ -5000,6 +5080,8 @@ end nat
 
 end list
 
-theorem option.to_list_nodup {α} : ∀ o : option α, o.to_list.nodup
+theorem option.to_list_nodup : ∀ o : option α, o.to_list.nodup
 | none     := list.nodup_nil
 | (some x) := list.nodup_singleton x
+
+#sanity_check

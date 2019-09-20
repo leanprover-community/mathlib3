@@ -79,6 +79,18 @@ theorem le_cof_type [is_well_order α r] {c} : c ≤ cof (type r) ↔
 by dsimp [cof, strict_order.cof, order.cof, type, quotient.mk, quot.lift_on];
    rw [cardinal.le_min, subtype.forall]; refl
 
+theorem le_cof {c o} : c ≤ cof o ↔
+  ∀ S : set o.out.α, (∀ a < o, ∃ b ∈ S, a ≤ typein o.out.r b) → c ≤ mk S :=
+begin
+  transitivity _, rw [←type_out o, le_cof_type],
+  apply forall_congr, intro S, apply imp_congr _ iff.rfl,
+  symmetry, transitivity ∀ a, a < type o.out.r → ∃ (b : o.out.α) (H : b ∈ S), a ≤ typein o.out.r b,
+  rw [type_out], rw [subtype.forall'], symmetry,
+  apply (typein_iso o.out.r).to_equiv.forall_congr,
+  unfold_coes, dsimp only [typein_iso], intro x, apply exists_congr, intro y,
+  rw [typein_le_typein]
+end
+
 theorem cof_type_le [is_well_order α r] (S : set α) (h : ∀ a, ∃ b ∈ S, ¬ r b a) :
   cof (type r) ≤ mk S :=
 le_cof_type.1 (le_refl _) S h
@@ -151,8 +163,11 @@ induction_on o $ λ α r _, begin
   rw ← this, exact cof_type_le set.univ (λ a, ⟨a, ⟨⟩, irrefl a⟩)
 end
 
-theorem cof_ord_le (c : cardinal) : cof c.ord ≤ c :=
+theorem cof_ord_le (c : cardinal) : c.ord.cof ≤ c :=
 by simpa using cof_le_card c.ord
+
+theorem ord_cof_le (o : ordinal) : o.cof.ord ≤ o :=
+by { rw [ord_le], exact cof_le_card o }
 
 @[simp] theorem cof_zero : cof 0 = 0 :=
 le_antisymm (by simpa using cof_le_card 0) (cardinal.zero_le _)
@@ -299,13 +314,58 @@ by simpa using cof_sup_le_lift.{u u} f H
 theorem cof_bsup_le_lift {o : ordinal} : ∀ (f : Π a < o, ordinal), (∀ i h, f i h < bsup o f) →
   cof (bsup o f) ≤ o.card.lift :=
 induction_on o $ λ α r _ f H,
-by rw bsup_type; refine cof_sup_le_lift _ _;
-   rw ← bsup_type; intro a; apply H
+by { rw bsup_type, refine cof_sup_le_lift _ _, rw ← bsup_type, intro a, apply H }
 
-theorem cof_bsup_le {o : ordinal} : ∀ (f : Π a < o, ordinal), (∀ i h, f i h < bsup.{u u} o f) →
+theorem cof_bsup_le {o : ordinal} (f : Π a < o, ordinal) (H : ∀ i h, f i h < bsup.{u u} o f) :
   cof (bsup.{u u} o f) ≤ o.card :=
-induction_on o $ λ α r _ f H,
 by simpa using cof_bsup_le_lift.{u u} f H
+
+theorem cof_sup_le_cof {ι} {r : ι → ι → Prop} [is_well_order ι r] (f : ι → ordinal)
+  (H : ∀ i, f i < sup f) (hf : ∀i j, r i j → f i < f j) : cof (sup.{u v} f) ≤ (type r).lift.cof :=
+begin
+  generalize e : sup f = o,
+  refine ordinal.induction_on o _ e, clear e o, introsI α r' _ e, rw e at H,
+  rcases cof_eq r with ⟨S, hS, h2S⟩,
+  refine le_trans (cof_type_le ((λ i : ι, enum r' (f i) (H i)) '' S) _) _,
+  { intro a, by_contra h, apply not_le_of_lt (typein_lt_type r' a),
+    rw [← e, sup_le], intro i, rcases hS i with ⟨j, hj, h2j⟩,
+    simp only [not_exists, mem_image, and_imp, exists_prop, not_and, not_not,
+      exists_imp_distrib] at h,
+    have := (typein_lt_typein r').2 (h _ j hj rfl),
+    rw [typein_enum] at this, rcases trichotomous_of r i j with h|rfl|h,
+    apply le_of_lt (lt_trans (hf _ _ h) this), apply le_of_lt this, exfalso, apply h2j h },
+  rw [←cardinal.lift_id' (mk _)], refine le_trans mk_image_le_lift _,
+  rw [h2S, ←lift_cof, ←cardinal.lift_id' (cardinal.lift.{u v} _), cardinal.lift_lift]
+end
+
+theorem cof_bsup_le_cof {o : ordinal} (f : Π a < o, ordinal)
+  (H : ∀ a (h : a < o), f a h < bsup.{u u} o f)
+  (hf : ∀{{a a'}} (ha : a < o) (ha' : a' < o), a < a' → f a ha < f a' ha') :
+    cof (bsup.{u u} o f) ≤ cof o :=
+begin
+  refine ordinal.induction_on o _ f H hf, clear H hf f o, intros α r _ f H hf, resetI,
+  rw [bsup_type],
+  convert (cof_sup_le_cof.{u u} (λ a, f (typein r a) (typein_lt_type _ _)) _ _) using 1,
+  { rw [← lift_cof, cardinal.lift_id] },
+  { intro x, rw [← bsup_type], exact H (typein r x) (typein_lt_type _ _) },
+  { intros x y hxy,
+    exact hf (typein_lt_type r x) (typein_lt_type r y) ((typein_lt_typein r).2 hxy) }
+end
+
+theorem cof_bsup_eq {o : ordinal} : ∀(f : Π a < o, ordinal)
+  (hf : ∀{{a a'}} (ha : a < o) (ha' : a' < o), a < a' → f a ha < f a' ha') (ho : is_limit o),
+  cof (bsup.{u u} o f) = cof o :=
+begin
+  refine ordinal.induction_on o _, intros α r _ f hf hr, resetI,
+  apply le_antisymm (cof_bsup_le_cof f (lt_bsup hf hr) hf),
+  rw [← type_out (bsup.{u u} (type r) f), le_cof_type],
+  -- rcases cof_eq' r hr with ⟨S, h1S, h2S⟩,
+  sorry
+end
+
+theorem cof_eq_of_is_normal {f} (H : is_normal.{u} f) {o : ordinal} (h : is_limit o) :
+  cof (f o) = cof o :=
+by { rw [← is_normal.bsup_eq.{u u} H h, cof_bsup_eq _ _ h], intros, rwa [is_normal.lt_iff H] }
 
 @[simp] theorem cof_univ : cof univ.{u v} = cardinal.univ :=
 le_antisymm (cof_le_card _) begin
@@ -417,6 +477,18 @@ local infixr ^ := @pow cardinal.{u} cardinal cardinal.has_pow
 def is_limit (c : cardinal) : Prop :=
 c ≠ 0 ∧ ∀ x < c, succ x < c
 
+lemma is_limit_aleph' {o : ordinal} : is_limit (aleph' o) ↔ o.is_limit :=
+begin
+  apply and_congr,
+  { rw [←pos_iff_ne_zero, ←aleph'_zero, aleph'_lt, ordinal.pos_iff_ne_zero] },
+  symmetry, apply aleph'_equiv.forall_congr, unfold_coes, dsimp only [aleph'_equiv],
+  intro o', apply imp_congr, rw [aleph'_lt],
+  rw [←aleph'_succ, aleph'_lt],
+end
+
+lemma is_limit_aleph {o : ordinal} : is_limit (aleph o) ↔ o.is_limit ∨ o = 0 :=
+by { rw [aleph, is_limit_aleph', is_limit_add_iff], simp [omega_is_limit] }
+
 /-- A cardinal is a strong limit if it is not zero and it is
   closed under powersets. Note that `ω` is a strong limit by this definition. -/
 def is_strong_limit (c : cardinal) : Prop :=
@@ -472,8 +544,7 @@ theorem sum_lt_of_is_regular {ι} (f : ι → cardinal)
 lt_of_le_of_lt (sum_le_sup _) $ mul_lt_of_lt hc.1 H1 $
 sup_lt_of_is_regular f hc H1 H2
 
-/-- A cardinal is inaccessible if it is an
-  uncountable regular strong limit cardinal. -/
+/-- A cardinal is inaccessible if it is an uncountable regular strong limit cardinal. -/
 def is_inaccessible (c : cardinal) :=
 omega < c ∧ is_regular c ∧ is_strong_limit c
 
@@ -483,8 +554,7 @@ theorem is_inaccessible.mk {c}
 ⟨h₁, ⟨le_of_lt h₁, le_antisymm (cof_ord_le _) h₂⟩,
   ne_of_gt (lt_trans omega_pos h₁), h₃⟩
 
-/- Lean's foundations prove the existence of ω many inaccessible
-   cardinals -/
+/- Lean's foundations prove the existence of ω many inaccessible cardinals -/
 theorem univ_inaccessible : is_inaccessible (univ.{u v}) :=
 is_inaccessible.mk
   (by simpa using lift_lt_univ' omega)
@@ -494,6 +564,26 @@ is_inaccessible.mk
     rw ← lift_two_power.{u (max (u+1) v)},
     apply lift_lt_univ'
   end)
+
+/-- A cardinal is weakly inaccessible if it is an uncountable regular limit cardinal. -/
+def is_weakly_inaccessible (c : cardinal) :=
+omega < c ∧ is_regular c ∧ is_limit c
+
+theorem is_inaccessible.is_weakly_inaccessible {c} (H : is_inaccessible c) :
+  is_weakly_inaccessible c :=
+⟨H.1, H.2.1, is_strong_limit.is_limit H.2.2⟩
+
+theorem aleph_of_is_weakly_inaccessible {c} (H : is_weakly_inaccessible c) :
+  aleph c.ord = c :=
+begin
+  rcases exists_aleph.mp (le_of_lt H.1) with ⟨o, rfl⟩, congr,
+  have ho : o ≠ 0, rintro rfl, rw [aleph_zero] at H, apply lt_irrefl _ H.1,
+  have h2o : o.is_limit, { apply or.resolve_right _ ho, rw [←is_limit_aleph], exact H.2.2 },
+  have : aleph o = cof o, { rw [← H.2.1.2, cof_eq_of_is_normal aleph_is_normal h2o] },
+  apply le_antisymm,
+  { rw [this], apply ord_cof_le },
+  { exact is_normal.le_self aleph_is_normal o }
+end
 
 theorem lt_power_cof {c : cardinal.{u}} : omega ≤ c → c < c ^ cof c.ord :=
 quotient.induction_on c $ λ α h, begin

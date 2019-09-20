@@ -10,7 +10,7 @@ import computability.halting
 # Strong reducibility and degrees.
 This file defines the many-one reduction and one-one reduction on set ℕ.
 ## Notations
-This file uses the local notation `⊕` for `disjoin`.
+This file uses the local notation `⊕'` for `disjoin`.
 ## Implementation notes
 
 ## References
@@ -83,20 +83,17 @@ open computable
 theorem computable_of_many_one_reducible
   {p : α → Prop} {q : β → Prop}
   (h₁ : p ≤₀ q) (h₂ : computable_pred q) : computable_pred p :=
-  begin
-    rcases h₁ with ⟨f, c, hf⟩,
-    rcases computable_iff.1 h₂ with ⟨g, hg, rfl⟩, split,
-    { apply computable.of_eq (cond (comp hg c) (const tt) (const ff)),
-      intro, cases heq : g (f n), repeat { simp [hf, heq] },
-      { intro, cases heq : g (f a),
-        { left, simp [hf, heq] },
-        { right, simp [hf, heq] } } }
-  end
+begin
+  rcases h₁ with ⟨f, c, hf⟩,
+  rw [show p = λ a, q (f a), from set.ext hf],
+  rcases computable_iff.1 h₂ with ⟨g, hg, rfl⟩,
+  exact ⟨by apply_instance, by simpa using hg.comp c⟩
+end
 
 theorem computable_of_one_one_reducible
   {p : α → Prop} {q : β → Prop}
-  (h₁ : p ≤₁ q) (h₂ : computable_pred q) : computable_pred p :=
-  by { rcases h₁ with ⟨f, c, hinj, hf⟩, apply computable_of_many_one_reducible ⟨f, c, hf⟩ h₂ }
+  (h : p ≤₁ q) : computable_pred q → computable_pred p :=
+computable_of_many_one_reducible h.to_many_one
 
 end computable_pred
 
@@ -315,7 +312,7 @@ theorem many_one_degree.le_add_right' {α} [denumerable α]
   (d₁ d₂ : many_one_degree α) : d₂ ≤ d₁ + d₂ :=
 (many_one_degree.add_le'.1 (many_one_degree.le_refl _)).2
 
-instance join_semilattice_many_one_degree {α} [denumerable α] :
+instance many_one_degree.semilattice_sup {α} [denumerable α] :
   lattice.semilattice_sup (many_one_degree α) :=
 { le := has_le.le,
   sup := has_add.add,

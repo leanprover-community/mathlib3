@@ -79,7 +79,7 @@ bit1_pos (le_of_lt h)
 lemma lt_add_one (a : α) : a < a + 1 :=
 lt_add_of_le_of_pos (le_refl _) zero_lt_one
 
-lemma lt_one_add (x : α) : x < 1 + x :=
+lemma lt_one_add (a : α) : a < 1 + a :=
 by { rw [add_comm], apply lt_add_one }
 
 lemma one_lt_two : 1 < (2 : α) := lt_add_one _

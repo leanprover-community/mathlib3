@@ -87,8 +87,10 @@ theorem equivalence_of_one_one_equiv {α} [primcodable α] : equivalence (@one_o
  λ x y h, ⟨h.2, h.1⟩, 
  λ x y z h₁ h₂, ⟨transitive_one_one_reducible h₁.1 h₂.1, transitive_one_one_reducible h₂.2 h₁.2⟩⟩
 
-instance many_one_equiv_setoid {α} [primcodable α] : setoid (set α) := 
+def many_one_equiv_setoid {α} [primcodable α] : setoid (set α) := 
 ⟨many_one_equiv, @equivalence_of_many_one_equiv α _⟩
+
+local attribute [instance] many_one_equiv_setoid
 
 def many_one_degree {α} [primcodable α] := quotient (@many_one_equiv_setoid α _)
 

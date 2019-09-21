@@ -21,24 +21,23 @@ structure TopCommRing :=
 namespace TopCommRing
 
 section
--- We momentarily turn on some instances; public versions will be provided by `concrete_category`.
-def has_coe_to_sort_TopCommRing : has_coe_to_sort TopCommRing :=
-{ S := Type u, coe := TopCommRing.α }
-
-local attribute [instance] has_coe_to_sort_TopCommRing
+-- We momentarily turn on some instances; we'll provide permanant instances in a moment,
+-- written in terms of the coercion to `Type u`.
 local attribute [instance] TopCommRing.is_comm_ring TopCommRing.is_topological_space TopCommRing.is_topological_ring
 
 instance : concrete_category TopCommRing.{u} :=
 { to_category :=
-  { hom   := λ R S, {f : R →+* S // continuous f },
-    id    := λ R, ⟨ring_hom.id R, by obviously⟩, -- TODO remove obviously?
+  { hom   := λ R S, {f : R.1 →+* S.1 // continuous f },
+    id    := λ R, ⟨ring_hom.id R.1, λ s a, a⟩,
     comp  := λ R S T f g, ⟨g.val.comp f.val,
       begin -- TODO automate
         cases f, cases g,
         dsimp, apply continuous.comp ; assumption
       end⟩ },
-  forget := { obj := λ R, R, map := λ R S f, f.val },
+  forget := { obj := λ R, R.1, map := λ R S f, f.val },
   forget_faithful := { } }
+
+instance : has_coe_to_sort TopCommRing.{u} := concrete_category.has_coe_to_sort TopCommRing
 end
 
 instance (R : TopCommRing) : comm_ring R := R.is_comm_ring

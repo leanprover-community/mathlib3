@@ -42,7 +42,16 @@ class concrete_category (C : Type (u+1)) extends category.{u} C :=
 (forget : C ⥤ Type u)
 [forget_faithful : faithful forget]
 
-instance (C : Type (u+1)) [concrete_category C] : has_coe_to_sort C :=
+/--
+Provide a coercion to `Type u` for a concrete category. This is not marked as an instance
+as it could potentially apply to every type, and so is too expensive in typeclass search.
+
+You can use it on particular examples as:
+```
+instance : has_coe_to_sort X := concrete_category.has_coe_to_sort X
+```
+-/
+def concrete_category.has_coe_to_sort (C : Type (u+1)) [concrete_category C] : has_coe_to_sort C :=
 { S := Type u, coe := (concrete_category.forget C).obj }
 
 /-- The forgetful functor from a concrete category to `Type u`. -/
@@ -75,6 +84,10 @@ instance forget_faithful (C D : Type (u+1)) [concrete_category C] [concrete_cate
 instance induced_category.concrete_category {C D : Type (u+1)} [concrete_category D] (f : C → D) :
   concrete_category (induced_category f) :=
 { forget := induced_functor f ⋙ forget D }
+
+instance induced_category.has_coe_to_sort {C D : Type (u+1)} [concrete_category D] (f : C → D) :
+  has_coe_to_sort (induced_category f) :=
+concrete_category.has_coe_to_sort (induced_category f)
 
 instance induced_category.has_forget₂ {C D : Type (u+1)} [concrete_category D] (f : C → D) :
   has_forget₂ (induced_category f) D :=

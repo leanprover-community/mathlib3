@@ -71,14 +71,4 @@ by library_search -- exact mul_dvd_mul_left a w
 example {a b c : ℕ} (h₁ : a ∣ c) (h₂ : a ∣ b + c) : a ∣ b :=
 by library_search -- says `exact (nat.dvd_add_left h₁).mp h₂`
 
-/-
-It would be really nice to have `norm_num` or `dec_trivial` discharge
-easy side goals.
-
-We'll need a cleverer architecture before this is possible without
-slowly things down too badly.
--/
-example {a b : ℕ} (h : a * 2 ≤ b) : a ≤ b / 2 :=
-by library_search! -- exact (nat.le_div_iff_mul_le a b (dec_trivial)).mpr h
-
 end test.library_search

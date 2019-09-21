@@ -495,6 +495,9 @@ meta def norm_num (hs : parse simp_arg_list) (l : parse location) : tactic unit 
 repeat1 $ orelse' (norm_num1 l) $
 simp_core {} (norm_num1 (loc.ns [none])) ff hs [] l
 
+meta def run_norm_num : tactic unit :=
+norm_num [] (loc.ns [none])
+
 meta def apply_normed (x : parse texpr) : tactic unit :=
 do x₁ ← to_expr x,
   (x₂,_) ← derive x₁,

@@ -640,6 +640,7 @@ section
 -- this section needs to be before applicative, otherwise the wrong instance will be chosen
 protected def monad : monad filter := { map := @filter.map }
 
+-- `sanity_check` false positive: we want to unfold this `def`, so it shouldn't be a `lemma`
 local attribute [instance] filter.monad
 protected def is_lawful_monad : is_lawful_monad filter :=
 { id_map     := assume α f, filter_eq rfl,

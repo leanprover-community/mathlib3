@@ -619,7 +619,7 @@ quot.induction_on s $ λ l, mem_map
 @[simp] theorem card_map (f : α → β) (s) : card (map f s) = card s :=
 quot.induction_on s $ λ l, length_map _ _
 
-@[simp] theorem multiset.map_eq_zero {s : multiset α} {f : α → β} : s.map f = 0 ↔ s = 0 :=
+@[simp] theorem map_eq_zero {s : multiset α} {f : α → β} : s.map f = 0 ↔ s = 0 :=
 by rw [← multiset.card_eq_zero, multiset.card_map, multiset.card_eq_zero]
 
 theorem mem_map_of_mem (f : α → β) {a : α} {s : multiset α} (h : a ∈ s) : f a ∈ map f s :=

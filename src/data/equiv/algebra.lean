@@ -328,6 +328,14 @@ instance is_group_hom {α β} [group α] [group β] (h : α ≃* β) :
 
 end mul_equiv
 
+/-- A group is isomorphic to its group of units. -/
+def to_units (α) [group α] : α ≃* units α :=
+{ to_fun := λ x, ⟨x, x⁻¹, mul_inv_self _, inv_mul_self _⟩,
+  inv_fun := coe,
+  left_inv := λ x, rfl,
+  right_inv := λ u, units.ext rfl,
+  map_mul' := λ x y, units.ext rfl }
+
 namespace units
 
 variables [monoid α] [monoid β] [monoid γ]

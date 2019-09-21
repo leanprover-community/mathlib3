@@ -37,13 +37,16 @@ instance bundled_hom : bundled_hom @monoid_hom :=
 ⟨@monoid_hom.to_fun, @monoid_hom.id, @monoid_hom.comp, @monoid_hom.ext⟩
 
 @[to_additive add_monoid]
-instance (x : Mon) : monoid x := x.str
+instance (M : Mon) : monoid M := M.str
+
+-- Verify the expected instances:
+example : concrete_category Mon.{u} := infer_instance
 
 end Mon
 
 /-- The category of commutative monoids and monoid morphisms. -/
 @[reducible, to_additive AddCommMon]
-def CommMon : Type (u+1) := bundled comm_monoid
+def CommMon : Type (u+1) := induced_category Mon (bundled.map comm_monoid.to_monoid.{u})
 
 namespace CommMon
 
@@ -51,16 +54,12 @@ namespace CommMon
 @[to_additive]
 def of (X : Type u) [comm_monoid X] : CommMon := bundled.of X
 
-@[to_additive]
-instance bundled_hom : bundled_hom _ :=
-Mon.bundled_hom.induced_category @comm_monoid.to_monoid
-
 @[to_additive add_comm_monoid]
-instance (x : CommMon) : comm_monoid x := x.str
+instance (M : CommMon) : comm_monoid M := M.str
 
-@[to_additive has_forget_to_AddMon]
-instance has_forget_to_Mon : has_forget₂ CommMon.{u} Mon.{u} :=
-Mon.bundled_hom.induced_category_has_forget₂ _
+-- These examples verify that we have successfully provided the expected instances.
+example : concrete_category CommMon.{u} := infer_instance
+example : has_forget₂ CommMon.{u} Mon.{u} := infer_instance
 
 -- TODO I wish this wasn't necessary, but the more general lemma in bundled_hom.lean doesn't fire.
 @[simp, to_additive] lemma coe_comp {X Y Z : CommMon} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :

@@ -148,7 +148,7 @@ omit 𝒞
 variables {m : Type v → Type v} (hom : Π ⦃α β⦄ (Iα : m α) (Iβ : m β), Type v) [S : bundled_hom hom]
 include S
 
-local attribute [instance] bundled_hom.has_coe_to_fun
+local attribute [instance] concrete_category.has_coe_to_fun
 
 @[simp] lemma naturality_bundled {G : J ⥤ bundled m} (s : cone G) {j j' : J} (f : j ⟶ j') (x : s.X) :
    (G.map f) ((s.π.app j) x) = (s.π.app j') x :=
@@ -194,9 +194,28 @@ omit 𝒞
 variables {m : Type v → Type v} (hom : Π ⦃α β⦄ (Iα : m α) (Iβ : m β), Type v) [S : bundled_hom hom]
 include S
 
-local attribute [instance] bundled_hom.has_coe_to_fun
+local attribute [instance] concrete_category.has_coe_to_fun
 
 @[simp] lemma naturality_bundled {G : J ⥤ bundled m} (s : cocone G) {j j' : J} (f : j ⟶ j') (x : G.obj j) :
+  (s.ι.app j') ((G.map f) x) = (s.ι.app j) x :=
+begin
+  convert congr_fun (congr_arg (λ k : G.obj j ⟶ s.X, (k : G.obj j → s.X)) (s.ι.naturality f)) x;
+  { dsimp, simp },
+end
+
+end
+
+-- We now prove a lemma about naturality of cocones over functors into concrete categories.
+section
+omit 𝒞
+variables {J' : Type u} [small_category J']
+variables {C' : Type (u+1)} [𝒞' : concrete_category C']
+include 𝒞'
+
+local attribute [instance] concrete_category.has_coe_to_sort
+local attribute [instance] concrete_category.has_coe_to_fun
+
+@[simp] lemma naturality_bundled' {G : J' ⥤ C'} (s : cocone G) {j j' : J'} (f : j ⟶ j') (x : G.obj j) :
   (s.ι.app j') ((G.map f) x) = (s.ι.app j) x :=
 begin
   convert congr_fun (congr_arg (λ k : G.obj j ⟶ s.X, (k : G.obj j → s.X)) (s.ι.naturality f)) x;

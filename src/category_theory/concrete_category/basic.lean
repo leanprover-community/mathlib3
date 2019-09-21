@@ -42,14 +42,47 @@ class concrete_category (C : Type (u+1)) extends category.{u} C :=
 (forget : C ⥤ Type u)
 [forget_faithful : faithful forget]
 
-instance (C : Type (u+1)) [concrete_category C] : has_coe_to_sort C :=
-{ S := Type u, coe := (concrete_category.forget C).obj }
+attribute [instance] concrete_category.forget_faithful
 
 /-- The forgetful functor from a concrete category to `Type u`. -/
 @[reducible] def forget (C : Type (u+1)) [concrete_category C] : C ⥤ Type u :=
 concrete_category.forget C
 
-attribute [instance] concrete_category.forget_faithful
+/--
+Provide a coercion to `Type u` for a concrete category. This is not marked as an instance
+as it could potentially apply to every type, and so is too expensive in typeclass search.
+
+You can use it on particular examples as:
+```
+instance : has_coe_to_sort X := concrete_category.has_coe_to_sort X
+```
+-/
+def concrete_category.has_coe_to_sort (C : Type (u+1)) [concrete_category C] : has_coe_to_sort C :=
+{ S := Type u, coe := (concrete_category.forget C).obj }
+
+section
+local attribute [instance] concrete_category.has_coe_to_sort
+
+variables {C : Type (u+1)} [concrete_category C]
+
+@[simp] lemma forget_obj_eq_coe {X : C} : (forget C).obj X = X := rfl
+
+/-- Usually a bundled hom structure already has a coercion to function
+that works with different universes. So we don't use this as an instance. -/
+def concrete_category.has_coe_to_fun {X Y : C} : has_coe_to_fun (X ⟶ Y) :=
+{ F   := λ f, X → Y,
+  coe := λ f, (forget _).map f }
+
+local attribute [instance] concrete_category.has_coe_to_fun
+
+@[simp] lemma forget_map_eq_coe {X Y : C} (f : X ⟶ Y) : (forget C).map f = f := rfl
+
+@[simp] lemma coe_id {X : C} : ((𝟙 X) : X → X) = _root_.id :=
+(forget _).map_id X
+@[simp] lemma coe_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
+  (f ≫ g) x = g (f x) :=
+congr_fun ((forget _).map_comp _ _) x
+end
 
 instance concrete_category.types : concrete_category (Type u) :=
 { forget := 𝟭 _ }
@@ -73,11 +106,15 @@ instance forget_faithful (C D : Type (u+1)) [concrete_category C] [concrete_cate
 (has_forget₂.forget_comp C D).faithful_of_comp
 
 instance induced_category.concrete_category {C D : Type (u+1)} [concrete_category D] (f : C → D) :
-  concrete_category (induced_category f) :=
+  concrete_category (induced_category D f) :=
 { forget := induced_functor f ⋙ forget D }
 
+instance induced_category.has_coe_to_sort {C D : Type (u+1)} [concrete_category D] (f : C → D) :
+  has_coe_to_sort (induced_category D f) :=
+concrete_category.has_coe_to_sort (induced_category D f)
+
 instance induced_category.has_forget₂ {C D : Type (u+1)} [concrete_category D] (f : C → D) :
-  has_forget₂ (induced_category f) D :=
+  has_forget₂ (induced_category D f) D :=
 { forget₂ := induced_functor f,
   forget_comp := rfl }
 

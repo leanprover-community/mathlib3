@@ -12,7 +12,7 @@ import algebra.pi_instances
 /-!
 # The category of commutative rings has all limits
 
-Further, these limits are preserves by the forgetful functor --- that is,
+Further, these limits are preserved by the forgetful functor --- that is,
 the underlying types are just the limits in the category of types.
 
 ## Further work
@@ -71,10 +71,10 @@ instance sections_add_subgroup (F : J ⥤ CommRing.{u}) :
   is_add_subgroup (F ⋙ forget CommRing).sections :=
 { neg_mem := λ a ah j j' f,
   begin
-    erw [functor.comp_map, forget_map_eq_coe, (F.map f).map_neg],
+    dsimp,
     dsimp [functor.sections] at ah,
-    rw ah f,
-    refl,
+    -- pi.neg_apply is hard to use as a `simp` lemma; you need to specify the arguments by hand
+    simp only [ring_hom.map_neg, pi.neg_apply a j, pi.neg_apply a j', neg_inj', ah],
   end,
   ..(CommRing.sections_add_submonoid F) }
 
@@ -88,24 +88,26 @@ instance limit_comm_ring (F : J ⥤ CommRing.{u}) :
 @subtype.comm_ring ((Π (j : J), (F ⋙ forget _).obj j)) (by apply_instance) _
   (by convert (CommRing.sections_subring F))
 
-instance limit_π_is_ring_hom (F : J ⥤ CommRing.{u}) (j) :
-  is_ring_hom (limit.π (F ⋙ forget CommRing) j) :=
+instance limit_π_is_semiring_hom (F : J ⥤ CommRing.{u}) (j) :
+  is_semiring_hom (limit.π (F ⋙ forget CommRing) j) :=
 { map_one := by { simp only [types.types_limit_π], refl },
+  map_zero := by { simp only [types.types_limit_π], refl },
   map_mul := λ x y, by { simp only [types.types_limit_π], refl },
   map_add := λ x y, by { simp only [types.types_limit_π], refl } }
 
+namespace CommRing_has_limits
 -- The next two definitions are used in the construction of `has_limits CommRing`.
 -- After that, the limits should be constructed using the generic limits API,
 -- e.g. `limit F`, `limit.cone F`, and `limit.is_limit F`.
 
-private def limit (F : J ⥤ CommRing.{u}) : cone F :=
+def limit (F : J ⥤ CommRing.{u}) : cone F :=
 { X := ⟨limit (F ⋙ forget _), by apply_instance⟩,
   π :=
   { app := λ j, ring_hom.of $ limit.π (F ⋙ forget _) j,
     naturality' := λ j j' f,
       ring_hom.ext ((limit.cone (F ⋙ forget _)).π.naturality f) } }
 
-private def limit_is_limit (F : J ⥤ CommRing.{u}) : is_limit (limit F) :=
+def limit_is_limit (F : J ⥤ CommRing.{u}) : is_limit (limit F) :=
 begin
   refine is_limit.of_faithful
     (forget CommRing) (limit.is_limit _)
@@ -119,6 +121,9 @@ begin
   { intros x y, apply subtype.eq, funext, dsimp,
     erw (s.π.app j).map_add, refl }
 end
+
+end CommRing_has_limits
+open CommRing_has_limits
 
 /-- The category of commutative rings has all limits. -/
 instance CommRing_has_limits : has_limits.{u} CommRing.{u} :=

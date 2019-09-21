@@ -129,13 +129,6 @@ do [g] ← get_goals | fail "`library_search` should be called with exactly one 
    when (¬ is_trace_enabled_for `silence_library_search) $ tactic.trace r,
    return $ to_string r
 
-meta def run_tactic (n : name) : tactic unit :=
-do
-   -- TODO use `resolve_name` if you need to know whether the tactic failed,
-   -- or there just wasn't a tactic with that name
-   e ← mk_const n,
-   eval_expr (tactic unit) e >>= (λ t, t)
-
 namespace interactive
 open lean.parser interactive
 
@@ -146,12 +139,8 @@ matches the goal, and then discharge any new goals using `solve_by_elim`.
 If it succeeds, it prints a trace message `exact ...` which can replace the invocation
 of `library_search`.
 -/
-meta def library_search (desperate : parse $ optional (tk "!")) :=
-tactic.library_search
-  (if desperate.is_some then
-     `[simp] <|> (run_tactic `tactic.interactive.run_norm_num) <|> `[exact_dec_trivial]
-   else
-     tactic.done)
+meta def library_search :=
+tactic.library_search tactic.done
 
 end interactive
 

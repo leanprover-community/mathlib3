@@ -53,7 +53,7 @@ variables {J : Type v} [small_category J] (F : J ⥤ CommRing.{v})
 
 inductive prequotient
 -- There's always `of`
-| of : Π (j : J) (x : (F.obj j).α), prequotient
+| of : Π (j : J) (x : F.obj j), prequotient
 -- Then one generator for each operation
 | zero {} : prequotient
 | one {} : prequotient
@@ -69,13 +69,13 @@ inductive relation : prequotient F → prequotient F → Prop
 | symm : Π (x y) (h : relation x y), relation y x
 | trans : Π (x y z) (h : relation x y) (k : relation y z), relation x z
 -- There's always a `map` relation
-| map : Π (j j' : J) (f : j ⟶ j') (x : (F.obj j).α), relation (of j' (F.map f x)) (of j x)
+| map : Π (j j' : J) (f : j ⟶ j') (x : F.obj j), relation (of j' (F.map f x)) (of j x)
 -- Then one relation per operation, describing the interaction with `of`
 | zero : Π (j), relation (of j 0) zero
 | one : Π (j), relation (of j 1) one
-| neg : Π (j) (x : (F.obj j).α), relation (of j (-x)) (neg (of j x))
-| add : Π (j) (x y : (F.obj j).α), relation (of j (x + y)) (add (of j x) (of j y))
-| mul : Π (j) (x y : (F.obj j).α), relation (of j (x * y)) (mul (of j x) (of j y))
+| neg : Π (j) (x : F.obj j), relation (of j (-x)) (neg (of j x))
+| add : Π (j) (x y : F.obj j), relation (of j (x + y)) (add (of j x) (of j y))
+| mul : Π (j) (x y : F.obj j), relation (of j (x * y)) (mul (of j x) (of j y))
 -- Then one relation per argument of each operation
 | neg_1 : Π (x x') (r : relation x x'), relation (neg x) (neg x')
 | add_1 : Π (x x' y) (r : relation x x'), relation (add x y) (add x' y)
@@ -272,7 +272,7 @@ instance : comm_ring (colimit_type F) :=
 
 def colimit : CommRing := CommRing.of (colimit_type F)
 
-def cocone_fun (j : J) (x : (F.obj j).α) : colimit_type F :=
+def cocone_fun (j : J) (x : F.obj j) : colimit_type F :=
 quot.mk _ (of j x)
 
 def cocone_morphism (j : J) : F.obj j ⟶ colimit F :=
@@ -296,8 +296,7 @@ by { rw ←cocone_naturality F f, refl }
 
 def colimit_cocone : cocone F :=
 { X := colimit F,
-  ι :=
-  { app := cocone_morphism F } }.
+  ι := { app := cocone_morphism F } }.
 
 @[simp] def desc_fun_lift (s : cocone F) : prequotient F → s.X
 | (of j x)  := (s.ι.app j) x
@@ -320,17 +319,17 @@ begin
     -- trans
     { exact eq.trans r_ih_h r_ih_k },
     -- map
-    { rw cocone.naturality_bundled, },
+    { apply cocone.naturality_bundled', },
     -- zero
-    { erw is_ring_hom.map_zero ⇑((s.ι).app r), refl },
+    { exact ((s.ι).app r).map_zero, }, -- TODO why doesn't `simp only [ring_hom.map_zero]` work?
     -- one
-    { erw is_ring_hom.map_one ⇑((s.ι).app r), refl },
+    { exact ((s.ι).app r).map_one },
     -- neg
-    { rw is_ring_hom.map_neg ⇑((s.ι).app r_j) },
+    { simp only [ring_hom.map_neg], },
     -- add
-    { rw is_ring_hom.map_add ⇑((s.ι).app r_j) },
+    { simp only [ring_hom.map_add], },
     -- mul
-    { rw is_ring_hom.map_mul ⇑((s.ι).app r_j) },
+    { simp only [ring_hom.map_mul], },
     -- neg_1
     { rw r_ih, },
     -- add_1
@@ -384,23 +383,14 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
       erw w',
       refl, },
     { simp only [desc_morphism, quot_zero],
-      erw is_ring_hom.map_zero ⇑m,
+      erw m.map_zero, -- TODO why doesn't simp only [ring_hom.map_zero] work?
       refl, },
     { simp only [desc_morphism, quot_one],
-      erw is_ring_hom.map_one ⇑m,
+      erw m.map_one,
       refl, },
-    { simp only [desc_morphism, quot_neg],
-      erw is_ring_hom.map_neg ⇑m,
-      rw [x_ih],
-      refl, },
-    { simp only [desc_morphism, quot_add],
-      erw is_ring_hom.map_add ⇑m,
-      rw [x_ih_a, x_ih_a_1],
-      refl, },
-    { simp only [desc_morphism, quot_mul],
-      erw is_ring_hom.map_mul ⇑m,
-      rw [x_ih_a, x_ih_a_1],
-      refl, },
+    { simp only [desc_morphism, quot_neg, ring_hom.map_neg, x_ih], },
+    { simp only [desc_morphism, quot_add, ring_hom.map_add, x_ih_a, x_ih_a_1], },
+    { simp only [desc_morphism, quot_mul, ring_hom.map_mul, x_ih_a, x_ih_a_1], },
     refl
   end }.
 

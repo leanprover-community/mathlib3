@@ -41,7 +41,7 @@ variables {J : Type v} [small_category J] (F : J ⥤ Mon.{v})
 
 inductive prequotient
 -- There's always `of`
-| of : Π (j : J) (x : (F.obj j).α), prequotient
+| of : Π (j : J) (x : F.obj j), prequotient
 -- Then one generator for each operation
 | one {} : prequotient
 | mul : prequotient → prequotient → prequotient
@@ -54,9 +54,9 @@ inductive relation : prequotient F → prequotient F → Prop
 | symm : Π (x y) (h : relation x y), relation y x
 | trans : Π (x y z) (h : relation x y) (k : relation y z), relation x z
 -- There's always a `map` relation
-| map : Π (j j' : J) (f : j ⟶ j') (x : (F.obj j).α), relation (of j' ((F.map f) x)) (of j x)
+| map : Π (j j' : J) (f : j ⟶ j') (x : F.obj j), relation (of j' ((F.map f) x)) (of j x)
 -- Then one relation per operation, describing the interaction with `of`
-| mul : Π (j) (x y : (F.obj j).α), relation (of j (x * y)) (mul (of j x) (of j y))
+| mul : Π (j) (x y : F.obj j), relation (of j (x * y)) (mul (of j x) (of j y))
 | one : Π (j), relation (of j 1) one
 -- Then one relation per argument of each operation
 | mul_1 : Π (x x' y) (r : relation x x'), relation (mul x y) (mul x' y)
@@ -129,7 +129,7 @@ instance monoid_colimit_type : monoid (colimit_type F) :=
 
 def colimit : Mon := ⟨colimit_type F, by apply_instance⟩
 
-def cocone_fun (j : J) (x : (F.obj j).α) : colimit_type F :=
+def cocone_fun (j : J) (x : F.obj j) : colimit_type F :=
 quot.mk _ (of j x)
 
 def cocone_morphism (j : J) : F.obj j ⟶ colimit F :=
@@ -151,8 +151,7 @@ by { rw ←cocone_naturality F f, refl }
 
 def colimit_cocone : cocone F :=
 { X := colimit F,
-  ι :=
-  { app := cocone_morphism F, } }.
+  ι := { app := cocone_morphism F, } }.
 
 @[simp] def desc_fun_lift (s : cocone F) : prequotient F → s.X
 | (of j x)  := (s.ι.app j) x

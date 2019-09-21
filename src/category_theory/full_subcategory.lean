@@ -26,19 +26,21 @@ section induced
 
 -/
 
-variables {C : Type u₁} {D : Type u₂} [𝒟 : category.{v} D]
+variables {C : Type u₁} (D : Type u₂) [𝒟 : category.{v} D]
 include 𝒟
 variables (F : C → D)
 include F
 
 def induced_category : Type u₁ := C
 
-instance induced_category.category : category.{v} (induced_category F) :=
+variables {D}
+
+instance induced_category.category : category.{v} (induced_category D F) :=
 { hom  := λ X Y, F X ⟶ F Y,
   id   := λ X, 𝟙 (F X),
   comp := λ _ _ _ f g, f ≫ g }
 
-def induced_functor : induced_category F ⥤ D :=
+def induced_functor : induced_category D F ⥤ D :=
 { obj := F, map := λ x y f, f }
 
 @[simp] lemma induced_functor.obj {X} : (induced_functor F).obj X = F X := rfl

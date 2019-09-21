@@ -38,6 +38,11 @@ instance : has_coe_to_sort (bundled c) :=
 def map (f : Π {α}, c α → d α) (b : bundled c) : bundled d :=
 ⟨b.α, f b.str⟩
 
+@[simp] lemma map_α (f : Π {α}, c α → d α) (b : bundled c) :
+  (map @f b).α = b.α := rfl
+@[simp] lemma map_str (f : Π {α}, c α → d α) (b : bundled c) :
+  (map @f b).str = f b.str := rfl
+
 end bundled
 
 end category_theory

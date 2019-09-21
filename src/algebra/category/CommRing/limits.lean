@@ -67,6 +67,8 @@ instance sections_add_submonoid (F : J ⥤ CommRing.{u}) :
     refl,
   end }
 
+local attribute [instance] comm_ring_carrier
+
 instance sections_add_subgroup (F : J ⥤ CommRing.{u}) :
   is_add_subgroup (F ⋙ forget CommRing).sections :=
 { neg_mem := λ a ah j j' f,

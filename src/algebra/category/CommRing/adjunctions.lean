@@ -41,12 +41,16 @@ def free : Type u ⥤ CommRing.{u} :=
 @[simp] lemma free_map_coe {α β : Type u} {f : α → β} :
   ⇑(free.map f) = rename f := rfl
 
+
+-- FIXME we shouldn't need this!
+local attribute [instance] comm_ring_carrier
+
 /--
 The free-forgetful adjunction for commutative rings.
 -/
-def adj : free ⊣ forget CommRing :=
+def adj : free ⊣ forget CommRing.{u} :=
 adjunction.mk_of_hom_equiv
-{ hom_equiv := λ X R, hom_equiv,
+{ hom_equiv := λ X R, hom_equiv R X,
   hom_equiv_naturality_left_symm' := by {intros, ext, dsimp, apply eval₂_cast_comp} }
 
 end CommRing

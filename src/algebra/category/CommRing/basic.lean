@@ -81,40 +81,21 @@ end CommSemiRing
 
 /-- The category of commutative rings. -/
 -- TODO experiment with making @[reducible] local
-def CommRing : Type (u+1) := bundled comm_ring
--- induced_category Ring (bundled.map comm_ring.to_ring.{u})
-lemma CommRing_as_induced : CommRing = induced_category Ring (bundled.map comm_ring.to_ring.{u}) := rfl
-local attribute [simp] CommRing_as_induced
+@[reducible] def CommRing : Type (u+1) := induced_category Ring (bundled.map comm_ring.to_ring.{u})
 
 namespace CommRing
-
-instance : concrete_category CommRing.{u} := by { dsimp; apply_instance }
-instance : has_coe_to_sort CommRing.{u} := concrete_category.has_coe_to_sort CommRing
 
 /-- Construct a bundled CommRing from the underlying type and typeclass. -/
 def of (R : Type u) [comm_ring R] : CommRing := bundled.of R
 
 instance (R : CommRing) : comm_ring R := R.str
--- FIXME we shouldn't need this!
-def comm_ring_carrier (R : CommRing) : comm_ring R.α := R.str
 
-
-/-- The forgetful functor from commutative rings to rings. -/
-instance has_forget_to_Ring : has_forget₂ CommRing.{u} Ring.{u} :=
-has_forget₂.mk' (λ R : CommRing.{u}, Ring.of R) (λ R, rfl) (λ R₁ R₂ f, f) (by tidy)
+-- These examples verify that we have successfully provided the expected instances.
+example : concrete_category CommRing.{u} := infer_instance
+example : has_forget₂ CommRing.{u} Ring.{u} := infer_instance
 
 /-- The forgetful functor from commutative rings to commutative semirings. -/
 instance has_forget_to_CommSemiRing : has_forget₂ CommRing.{u} CommSemiRing.{u} :=
 has_forget₂.mk' (λ R : CommRing.{u}, CommSemiRing.of R) (λ R, rfl) (λ R₁ R₂ f, f) (by tidy)
-
--- @[simp] lemma id_eq (R : CommRing) : 𝟙 R = ring_hom.id R := rfl
--- @[simp] lemma comp_eq {R₁ R₂ R₃ : CommRing} (f : R₁ ⟶ R₂) (g : R₂ ⟶ R₃) :
---   f ≫ g = g.comp f := rfl
-
--- @[simp] lemma forget_obj_eq_coe {R : CommRing} : (forget CommRing).obj R = R := rfl
--- @[simp] lemma forget_map_eq_coe {R₁ R₂ : CommRing} (f : R₁ ⟶ R₂) :
---   (forget CommRing).map f = f :=
--- rfl
-
 
 end CommRing

@@ -319,7 +319,7 @@ begin
     -- trans
     { exact eq.trans r_ih_h r_ih_k },
     -- map
-    { apply cocone.naturality_bundled', },
+    { apply cocone.naturality_concrete, },
     -- zero
     { exact ((s.ι).app r).map_zero, }, -- TODO why doesn't `simp only [ring_hom.map_zero]` work?
     -- one

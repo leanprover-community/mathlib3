@@ -777,7 +777,7 @@ mv_polynomial.induction_on x
 
 variables (σ β)
 /-- Ring homomorphisms out of integer polynomials on a type `σ` are the same as
-functions out of the the type `σ`, -/
+functions out of the the type `σ`. -/
 def hom_equiv : (mv_polynomial σ ℤ →+* β) ≃ (σ → β) :=
 { to_fun := λ f, ⇑f ∘ X,
   inv_fun := λ f, ring_hom.of (eval₂ (λ n : ℤ, (n : β)) f),

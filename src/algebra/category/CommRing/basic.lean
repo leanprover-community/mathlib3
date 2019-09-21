@@ -52,6 +52,7 @@ def of (R : Type u) [ring R] : Ring := bundled.of R
 
 instance (R : Ring) : ring R := R.str
 
+-- These examples verify that we have successfully provided the expected instances.
 example : concrete_category Ring.{u} := infer_instance
 example : has_forget₂ Ring.{u} SemiRing.{u} := infer_instance
 

@@ -51,22 +51,17 @@ noncomputable example : TopCommRing := TopCommRing.of ℚ
 noncomputable example : TopCommRing := TopCommRing.of ℝ
 noncomputable example : TopCommRing := TopCommRing.of ℂ
 
-instance forget_topological_space (R : TopCommRing) :
-  topological_space ((forget TopCommRing).obj R) :=
+instance forget_topological_space (R : TopCommRing) : topological_space ((forget TopCommRing).obj R) :=
 R.is_topological_space
-instance forget_comm_ring (R : TopCommRing) :
-  comm_ring ((forget TopCommRing).obj R) :=
+instance forget_comm_ring (R : TopCommRing) : comm_ring ((forget TopCommRing).obj R) :=
 R.is_comm_ring
-instance forget_topological_ring (R : TopCommRing) :
-  topological_ring ((forget TopCommRing).obj R) :=
+instance forget_topological_ring (R : TopCommRing) : topological_ring ((forget TopCommRing).obj R) :=
 R.is_topological_ring
 
 instance has_forget_to_CommRing : has_forget₂ TopCommRing CommRing :=
 has_forget₂.mk'
-  (λ R, CommRing.of R)
-  (λ x, rfl)
-  (λ R S f, f.val)
-  (λ R S f, heq.rfl)
+  (λ R, CommRing.of R) (by tidy)
+  (λ R S f, f.val) (by tidy)
 
 instance forget_to_CommRing_topological_space (R : TopCommRing) :
   topological_space ((forget₂ TopCommRing CommRing).obj R) :=
@@ -75,17 +70,12 @@ R.is_topological_space
 /-- The forgetful functor to Top. -/
 instance has_forget_to_Top : has_forget₂ TopCommRing Top :=
 has_forget₂.mk'
-  (λ R, Top.of R)
-  (λ x, rfl)
-  (λ R S f, ⟨⇑f.1, f.2⟩)
-  (λ R S f, heq.rfl)
+  (λ R, Top.of R) (by tidy)
+  (λ R S f, ⟨f.1, f.2⟩) (by tidy)
 
-instance forget_to_Top_comm_ring (R : TopCommRing) :
-  comm_ring ((forget₂ TopCommRing Top).obj R) :=
+instance forget_to_Top_comm_ring (R : TopCommRing) : comm_ring ((forget₂ TopCommRing Top).obj R) :=
 R.is_comm_ring
-
-instance forget_to_Top_topological_ring (R : TopCommRing) :
-  topological_ring ((forget₂ TopCommRing Top).obj R) :=
+instance forget_to_Top_topological_ring (R : TopCommRing) : topological_ring ((forget₂ TopCommRing Top).obj R) :=
 R.is_topological_ring
 
 end TopCommRing

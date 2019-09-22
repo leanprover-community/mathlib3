@@ -17,6 +17,7 @@ def Top : Type (u+1) := bundled topological_space
 namespace Top
 local attribute [reducible] Top
 
+-- Setup instances while `Top` is reducible:
 instance : unbundled_hom @continuous := ⟨@continuous_id, @continuous.comp⟩
 instance : concrete_category Top.{u} := infer_instance
 instance (X : Top) : topological_space X := X.str

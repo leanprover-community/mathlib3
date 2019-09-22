@@ -43,8 +43,11 @@ def free : Type u ⥤ CommRing.{u} :=
 
 namespace adj
 -- The next two definitions are (unfortunate) "implementation details", helping the elaborator / typeclass search.
-def hom_equiv (X : Type u) (R : CommRing) := hom_equiv R X
-instance (R : CommRing) : is_ring_hom (λ (n : ℤ), (n : R)) := by tidy
+
+/-- Version of `mv_polynomial.hom_equiv` for bundled commutative rings. -/
+def hom_equiv (X : Type u) (R : CommRing) : (mv_polynomial X ℤ →+* R) ≃ (X → R) := hom_equiv R X
+instance (R : CommRing) : is_ring_hom (λ (n : ℤ), (n : R)) := by apply_instance
+
 end adj
 open adj
 

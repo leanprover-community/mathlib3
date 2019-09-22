@@ -29,16 +29,20 @@ noncomputable theory
 open category_theory measure_theory
 universes u v
 
-@[reducible] def Meas : Type (u+1) := bundled measurable_space
+def Meas : Type (u+1) := bundled measurable_space
 
 namespace Meas
+local attribute [reducible] Meas
 
 /-- Construct a bundled `Meas` from the underlying type and the typeclass. -/
 def of (α : Type u) [measurable_space α] : Meas := ⟨α⟩
 
-instance unbundled_hom : unbundled_hom @measurable := ⟨@measurable_id, @measurable.comp⟩
-
+-- Setup instances while `Meas` is reducible:
+instance : unbundled_hom @measurable := ⟨@measurable_id, @measurable.comp⟩
+instance : concrete_category Meas.{u} := infer_instance
 instance (X : Meas) : measurable_space X := X.str
+instance : has_coe_to_sort Meas.{u} := infer_instance
+instance (X Y : Meas.{u}) : has_coe_to_fun (X ⟶ Y) := concrete_category.has_coe_to_fun
 
 /-- `Measure X` is the measurable space of measures over the measurable space `X`. It is the
 weakest measurable space, s.t. λμ, μ s is measurable for all measurable sets `s` in `X`. An

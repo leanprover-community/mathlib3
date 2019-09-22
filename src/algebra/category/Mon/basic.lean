@@ -63,11 +63,6 @@ local attribute [reducible] CommMon
 @[to_additive]
 def of (X : Type u) [comm_monoid X] : CommMon := bundled.of X
 
--- FIXME I wish this wasn't necessary, but the more general lemma in bundled_hom.lean doesn't fire.
-@[simp, to_additive] lemma coe_comp {X Y Z : CommMon} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
-  (f ≫ g) x = g (f x) :=
-congr_fun ((forget CommMon).map_comp _ _) x
-
 end CommMon
 
 variables {X Y : Type u}

@@ -82,6 +82,14 @@ local attribute [instance] concrete_category.has_coe_to_fun
 @[simp] lemma coe_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
   (f ≫ g) x = g (f x) :=
 congr_fun ((forget _).map_comp _ _) x
+
+@[simp] lemma coe_hom_inv_id {X Y : C} (f : X ≅ Y) (x : X) :
+  f.inv (f.hom x) = x :=
+congr_fun ((forget C).map_iso f).hom_inv_id x
+@[simp] lemma coe_inv_hom_id {X Y : C} (f : X ≅ Y) (y : Y) :
+  f.hom (f.inv y) = y :=
+congr_fun ((forget C).map_iso f).inv_hom_id y
+
 end
 
 instance concrete_category.types : concrete_category (Type u) :=

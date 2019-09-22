@@ -9,27 +9,29 @@ import algebra.continued_fractions.definitions.basic
 
 ## Summary
 
-Some simple translation lemmas between the different functions defined in `..definitions.basic`.
+Some simple translation lemmas between the different functions defined in
+`algebra.continued_fractions.definitions.basic`.
 -/
 
-namespace gcf
+namespace generalized_continued_fraction
+open generalized_continued_fraction as gcf
 variables {α : Type*} {g : gcf α} {n : ℕ}
 
-lemma terminates_at_iff_s_terminates_at : g.terminates_at n ↔ g.s.terminates_at n := by refl
+lemma terminated_at_iff_s_terminated_at : g.terminated_at n ↔ g.s.terminated_at n := by refl
 
-lemma terminates_at_iff_s_none : g.terminates_at n ↔ g.s.nth n = none := by refl
+lemma terminated_at_iff_s_none : g.terminated_at n ↔ g.s.nth n = none := by refl
 
 lemma part_num_none_iff_s_none : g.partial_numerators.nth n = none ↔ g.s.nth n = none :=
 by cases s_nth_eq : (g.s.nth n); simp [partial_numerators, s_nth_eq]
 
-lemma terminates_at_iff_part_num_none : g.terminates_at n ↔ g.partial_numerators.nth n = none :=
-by rw [terminates_at_iff_s_none, part_num_none_iff_s_none]
+lemma terminated_at_iff_part_num_none : g.terminated_at n ↔ g.partial_numerators.nth n = none :=
+by rw [terminated_at_iff_s_none, part_num_none_iff_s_none]
 
 lemma part_denom_none_iff_s_none : g.partial_denominators.nth n = none ↔ g.s.nth n = none :=
 by cases s_nth_eq : (g.s.nth n); simp [partial_denominators, s_nth_eq]
 
-lemma terminates_at_iff_part_denom_none : g.terminates_at n ↔ g.partial_denominators.nth n = none :=
-by rw [terminates_at_iff_s_none, part_denom_none_iff_s_none]
+lemma terminated_at_iff_part_denom_none : g.terminated_at n ↔ g.partial_denominators.nth n = none :=
+by rw [terminated_at_iff_s_none, part_denom_none_iff_s_none]
 
 lemma part_num_eq_s_a {gp : gcf.pair α} (s_nth_eq : g.s.nth n = some gp) :
   g.partial_numerators.nth n = some gp.a :=
@@ -80,4 +82,4 @@ lemma zeroth_convergent'_aux_eq_zero {s : seq $ gcf.pair α} : convergents'_aux 
 lemma zeroth_convergent'_eq_h : g.convergents' 0 = g.h := by simp [convergents']
 
 end with_division_ring
-end gcf
+end generalized_continued_fraction

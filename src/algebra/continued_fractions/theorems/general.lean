@@ -8,7 +8,8 @@ import algebra.continued_fractions.definitions.basic
 # General Theorems for Continued Fractions
 -/
 
-namespace gcf
+namespace generalized_continued_fraction
+open generalized_continued_fraction as gcf
 variables {α : Type*}
 
 /-- Two gcfs `g` and `g'` are equal if and only if their components are equal. -/
@@ -17,6 +18,6 @@ by { cases g, cases g', simp }
 
 @[extensionality]
 protected lemma ext {g g' : gcf α} (hyp : g.h = g'.h ∧ g.s = g'.s) : g = g' :=
-gcf.ext_iff.elim_right hyp
+generalized_continued_fraction.ext_iff.elim_right hyp
 
-end gcf
+end generalized_continued_fraction

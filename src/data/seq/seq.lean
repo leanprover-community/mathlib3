@@ -41,16 +41,16 @@ def cons (a : α) : seq α → seq α
 /-- Get the nth element of a sequence (if it exists) -/
 def nth : seq α → ℕ → option α := subtype.val
 
-/-- A sequence terminates at position `n` if the value at position `n` equals `none`. -/
-def terminates_at (s : seq α) (n : ℕ) : Prop := s.nth n = none
+/-- A sequence has terminated at position `n` if the value at position `n` equals `none`. -/
+def terminated_at (s : seq α) (n : ℕ) : Prop := s.nth n = none
 
 /-- It is decidable whether a sequence terminates at a given position. -/
-instance terminates_at_decidable (s : seq α) (n : ℕ) : decidable (s.terminates_at n) :=
+instance terminated_at_decidable (s : seq α) (n : ℕ) : decidable (s.terminated_at n) :=
 if p : s.nth n = none then is_true p
 else is_false (assume h, by contradiction)
 
-/-- A sequence terminates if there is some position `n` at which it terminates. -/
-def terminates (s : seq α) : Prop := ∃ (n : ℕ), s.terminates_at n
+/-- A sequence terminates if there is some position `n` at which it has terminated. -/
+def terminates (s : seq α) : Prop := ∃ (n : ℕ), s.terminated_at n
 
 /-- Functorial action of the functor `option (α × _)` -/
 @[simp] def omap (f : β → γ) : option (α × β) → option (α × γ)
@@ -73,11 +73,11 @@ theorem le_stable (s : seq α) {m n} (h : m ≤ n) :
   s.1 m = none → s.1 n = none :=
 by {cases s with f al, induction h with n h IH, exacts [id, λ h2, al (IH h2)]}
 
-/-- If a sequence terminates at position `n`, it also terminates at `m ≥ n `. -/
-lemma terminates_stable {s : seq α} {m n : ℕ} (m_le_n : m ≤ n)
-(terminates_at_m : s.terminates_at m) :
-  s.terminates_at n :=
-le_stable s m_le_n terminates_at_m
+/-- If a sequence terminated at position `n`, it also terminated at `m ≥ n `. -/
+lemma terminated_stable {s : seq α} {m n : ℕ} (m_le_n : m ≤ n)
+(terminated_at_m : s.terminated_at m) :
+  s.terminated_at n :=
+le_stable s m_le_n terminated_at_m
 
 /--
 If `s.nth n = some aₙ` for some value `aₙ`, then there is also some value `aₘ` such

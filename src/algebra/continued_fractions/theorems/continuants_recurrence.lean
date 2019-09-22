@@ -9,13 +9,14 @@ import algebra.continued_fractions.theorems.translations
 
 ## Summary
 
-Given a gcf `g`, for all `n ≥ 1`, we prove that the `continuants` function indeed satisfies the
-following recurrences:
+Given a generalized continued fraction `g`, for all `n ≥ 1`, we prove that the `continuants`
+function indeed satisfies the following recurrences:
 
   `Aₙ = bₙ * Aₙ₋₁ + aₙ * Aₙ₋₂`, and `Bₙ = bₙ * Bₙ₋₁ + aₙ * Bₙ₋₂`.
 -/
 
-namespace gcf
+namespace generalized_continued_fraction
+open generalized_continued_fraction as gcf
 variables {α : Type*} {g : gcf α} {n : ℕ} [division_ring α]
 
 lemma continuants_aux_recurrence {gp ppred pred : gcf.pair α}
@@ -71,4 +72,4 @@ begin
   rw [denom_eq_conts_b, (continuants_recurrence succ_nth_s_eq nth_conts_eq succ_nth_conts_eq)]
 end
 
-end gcf
+end generalized_continued_fraction

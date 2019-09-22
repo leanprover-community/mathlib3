@@ -339,12 +339,15 @@ section well_ordering_thm
 parameter {σ : Type u}
 open function
 
-noncomputable lemma embedding_to_cardinal : σ ↪ cardinal.{u} :=
-classical.choice $ embedding.total.resolve_left $ λ ⟨⟨f, hf⟩⟩,
+theorem nonempty_embedding_to_cardinal : nonempty (σ ↪ cardinal.{u}) :=
+embedding.total.resolve_left $ λ ⟨⟨f, hf⟩⟩,
   let g : σ → cardinal.{u} := inv_fun f in
   let ⟨x, (hx : g x = 2 ^ sum g)⟩ := inv_fun_surjective hf (2 ^ sum g) in
   have g x ≤ sum g, from le_sum.{u u} g x,
   not_le_of_gt (by rw hx; exact cantor _) this
+
+/-- An embedding of any type to the set of cardinals. -/
+def embedding_to_cardinal : σ ↪ cardinal.{u} := classical.choice nonempty_embedding_to_cardinal
 
 /-- The relation whose existence is given by the well-ordering theorem -/
 def well_ordering_rel : σ → σ → Prop := embedding_to_cardinal ⁻¹'o (<)
@@ -1571,8 +1574,9 @@ instance : has_div ordinal := ⟨ordinal.div⟩
 
 @[simp] theorem div_zero (a : ordinal) : a / 0 = 0 := dif_pos rfl
 
-def div_def (a) {b : ordinal} (h : b ≠ 0) : a / b =
-  omin {o | a < b * succ o} _ := dif_neg h
+-- TODO This should be a theorem but Lean fails to synthesize the placeholder
+def div_def (a) {b : ordinal} (h : b ≠ 0) :
+  a / b = omin {o | a < b * succ o} _ := dif_neg h
 
 theorem lt_mul_succ_div (a) {b : ordinal} (h : b ≠ 0) : a < b * succ (a / b) :=
 by rw div_def a h; exact omin_mem {o | a < b * succ o} _
@@ -1735,6 +1739,7 @@ begin
   exact ordinal.min_le (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧) ⟨_, _⟩
 end
 
+-- TODO This should be a theorem but Lean fails to synthesize the placeholders
 def ord_eq_min (α : Type u) : ord (mk α) =
   @ordinal.min _ _ (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) := rfl
 

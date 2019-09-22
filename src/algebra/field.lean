@@ -39,7 +39,7 @@ def mk0 (a : α) (ha : a ≠ 0) : units α :=
 @[simp] lemma mk0_coe (u : units α) (h : (u : α) ≠ 0) : mk0 (u : α) h = u :=
 units.ext rfl
 
-@[simp] lemma units.mk0_inj {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) :
+@[simp] lemma mk0_inj {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) :
   units.mk0 a ha = units.mk0 b hb ↔ a = b :=
 ⟨λ h, by injection h, λ h, units.ext h⟩
 

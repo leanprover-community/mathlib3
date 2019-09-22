@@ -1099,7 +1099,7 @@ calc n = card (range n) : (card_range n).symm
     (by simpa only [mem_range])
     (by simp only [mem_range]; exact assume a₁ h₁ a₂ h₂, f_inj a₁ a₂ h₁ h₂)
 
-@[elab_as_eliminator] lemma strong_induction_on {p : finset α → Sort*} :
+@[elab_as_eliminator] def strong_induction_on {p : finset α → Sort*} :
   ∀ (s : finset α), (∀s, (∀t ⊂ s, p t) → p s) → p s
 | ⟨s, nd⟩ ih := multiset.strong_induction_on s
   (λ s IH nd, ih ⟨s, nd⟩ (λ ⟨t, nd'⟩ ss, IH t (val_lt_iff.2 ss) nd')) nd

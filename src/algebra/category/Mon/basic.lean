@@ -68,36 +68,45 @@ congr_fun ((forget CommMon).map_comp _ _) x
 
 end CommMon
 
-namespace mul_equiv
-
 variables {X Y : Type u}
 
 section
 variables [monoid X] [monoid Y]
 
-def to_Mon_iso (e : X ≃* Y) : Mon.of X ≅ Mon.of Y :=
+@[to_additive add_equiv.to_AddMon_iso
+  "Build an isomorphism in the category `AddMon` from a `add_equiv` between `add_monoid`s."]
+/-- Build an isomorphism in the category `Mon` from a `mul_equiv` between `monoid`s. -/
+def mul_equiv.to_Mon_iso (e : X ≃* Y) : Mon.of X ≅ Mon.of Y :=
 { hom := e.to_monoid_hom,
   inv := e.symm.to_monoid_hom }
 
-@[simp] lemma to_Mon_iso_hom {e : X ≃* Y} : e.to_Mon_iso.hom = e.to_monoid_hom := rfl
-@[simp] lemma to_Mon_iso_inv {e : X ≃* Y} : e.to_Mon_iso.inv = e.symm.to_monoid_hom := rfl
+@[simp, to_additive add_equiv.to_AddMon_iso_hom]
+lemma mul_equiv.to_Mon_iso_hom {e : X ≃* Y} : e.to_Mon_iso.hom = e.to_monoid_hom := rfl
+@[simp, to_additive add_equiv.to_AddMon_iso_inv]
+lemma mul_equiv.to_Mon_iso_inv {e : X ≃* Y} : e.to_Mon_iso.inv = e.symm.to_monoid_hom := rfl
 end
 
 section
 variables [comm_monoid X] [comm_monoid Y]
 
-def to_CommMon_iso (e : X ≃* Y) : CommMon.of X ≅ CommMon.of Y :=
+@[to_additive add_equiv.to_AddCommMon_iso
+  "Build an isomorphism in the category `AddCommMon` from a `add_equiv` between `add_comm_monoid`s."]
+/-- Build an isomorphism in the category `CommMon` from a `mul_equiv` between `comm_monoid`s. -/
+def mul_equiv.to_CommMon_iso (e : X ≃* Y) : CommMon.of X ≅ CommMon.of Y :=
 { hom := e.to_monoid_hom,
   inv := e.symm.to_monoid_hom }
 
-@[simp] lemma to_CommMon_iso_hom {e : X ≃* Y} : e.to_CommMon_iso.hom = e.to_monoid_hom := rfl
-@[simp] lemma to_CommMon_iso_inv {e : X ≃* Y} : e.to_CommMon_iso.inv = e.symm.to_monoid_hom := rfl
+@[simp, to_additive add_equiv.to_AddCommMon_iso_hom]
+lemma mul_equiv.to_CommMon_iso_hom {e : X ≃* Y} : e.to_CommMon_iso.hom = e.to_monoid_hom := rfl
+@[simp, to_additive add_equiv.to_AddCommMon_iso_inv]
+lemma mul_equiv.to_CommMon_iso_inv {e : X ≃* Y} : e.to_CommMon_iso.inv = e.symm.to_monoid_hom := rfl
 end
-
-end mul_equiv
 
 namespace category_theory.iso
 
+@[to_additive AddMond_iso_to_add_equiv
+  "Build an `add_equiv` from an isomorphism in the category `AddMon`."]
+/-- Build a `mul_equiv` from an isomorphism in the category `Mon`. -/
 def Mon_iso_to_mul_equiv {X Y : Mon.{u}} (i : X ≅ Y) : X ≃* Y :=
 { to_fun    := i.hom,
   inv_fun   := i.inv,
@@ -105,6 +114,9 @@ def Mon_iso_to_mul_equiv {X Y : Mon.{u}} (i : X ≅ Y) : X ≃* Y :=
   right_inv := by tidy,
   map_mul'  := by tidy }.
 
+@[to_additive AddCommMon_iso_to_add_equiv
+  "Build an `add_equiv` from an isomorphism in the category `AddCommMon`."]
+/-- Build a `mul_equiv` from an isomorphism in the category `CommMon`. -/
 def CommMon_iso_to_mul_equiv {X Y : CommMon.{u}} (i : X ≅ Y) : X ≃* Y :=
 { to_fun    := i.hom,
   inv_fun   := i.inv,
@@ -114,12 +126,17 @@ def CommMon_iso_to_mul_equiv {X Y : CommMon.{u}} (i : X ≅ Y) : X ≃* Y :=
 
 end category_theory.iso
 
-/-- multiplicative equivalences are the same as (isomorphic to) isomorphisms of monoids -/
+@[to_additive add_equiv_iso_AddMon_iso
+  "additive equivalences between `add_monoid`s are the same as (isomorphic to) isomorphisms in `AddMon`"]
+/-- multiplicative equivalences between `monoid`s are the same as (isomorphic to) isomorphisms in `Mon` -/
 def mul_equiv_iso_Mon_iso {X Y : Type u} [monoid X] [monoid Y] :
   (X ≃* Y) ≅ (Mon.of X ≅ Mon.of Y) :=
 { hom := λ e, e.to_Mon_iso,
   inv := λ i, i.Mon_iso_to_mul_equiv, }
 
+@[to_additive add_equiv_iso_AddCommMon_iso
+  "additive equivalences between `add_comm_monoid`s are the same as (isomorphic to) isomorphisms in `AddCommMon`"]
+/-- multiplicative equivalences between `comm_monoid`s are the same as (isomorphic to) isomorphisms in `CommMon` -/
 def mul_equiv_iso_CommMon_iso {X Y : Type u} [comm_monoid X] [comm_monoid Y] :
   (X ≃* Y) ≅ (CommMon.of X ≅ CommMon.of Y) :=
 { hom := λ e, e.to_CommMon_iso,

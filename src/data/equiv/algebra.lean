@@ -363,12 +363,15 @@ instance : has_coe_to_fun (α ≃r β) := ⟨_, ring_equiv.to_fun⟩
 instance ring_equiv.is_ring_hom (h : α ≃r β) : is_ring_hom h := h.hom
 instance ring_equiv.is_ring_hom' (h : α ≃r β) : is_ring_hom h.to_equiv := h.hom
 
+/-- Convert a `ring_equiv` to a `mul_equiv`. -/
 def to_mul_equiv (e : α ≃r β) : α ≃* β :=
 { map_mul' := e.hom.map_mul, .. e.to_equiv }
 
+/-- Convert a `ring_equiv` to an `add_equiv`. -/
 def to_add_equiv (e : α ≃r β) : α ≃+ β :=
 { map_add' := e.hom.map_add, .. e.to_equiv }
 
+/-- Extract the forward direction of a `ring_equiv` as a `ring_hom`. -/
 def to_ring_hom {α β} [ring α] [ring β] (h : α ≃r β) : (α →+* β) :=
 { to_fun := h.to_fun,
   map_add'  := λ x y, is_ring_hom.map_add h.to_fun,

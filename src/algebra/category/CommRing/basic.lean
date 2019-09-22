@@ -118,6 +118,7 @@ variables {X Y : Type u}
 section
 variables [ring X] [ring Y]
 
+/-- Build an isomorphism in the category `Ring` from a `ring_equiv` between `ring`s. -/
 def to_Ring_iso (e : X ≃r Y) : Ring.of X ≅ Ring.of Y :=
 { hom := e.to_ring_hom,
   inv := e.symm.to_ring_hom }
@@ -129,6 +130,7 @@ end
 section
 variables [comm_ring X] [comm_ring Y]
 
+/-- Build an isomorphism in the category `CommRing` from a `ring_equiv` between `comm_ring`s. -/
 def to_CommRing_iso (e : X ≃r Y) : CommRing.of X ≅ CommRing.of Y :=
 { hom := e.to_ring_hom,
   inv := e.symm.to_ring_hom }
@@ -141,6 +143,7 @@ end ring_equiv
 
 namespace category_theory.iso
 
+/-- Build a `ring_equiv` from an isomorphism in the category `Ring`. -/
 def Ring_iso_to_ring_equiv {X Y : Ring.{u}} (i : X ≅ Y) : X ≃r Y :=
 { to_fun    := i.hom,
   inv_fun   := i.inv,
@@ -148,6 +151,7 @@ def Ring_iso_to_ring_equiv {X Y : Ring.{u}} (i : X ≅ Y) : X ≃r Y :=
   right_inv := by tidy,
   hom       := by apply_instance }.
 
+/-- Build a `ring_equiv` from an isomorphism in the category `CommRing`. -/
 def CommRing_iso_to_ring_equiv {X Y : CommRing.{u}} (i : X ≅ Y) : X ≃r Y :=
 { to_fun    := i.hom,
   inv_fun   := i.inv,
@@ -157,12 +161,13 @@ def CommRing_iso_to_ring_equiv {X Y : CommRing.{u}} (i : X ≅ Y) : X ≃r Y :=
 
 end category_theory.iso
 
-/-- ring equivalences are the same as (isomorphic to) isomorphisms of rings -/
+/-- ring equivalences between `ring`s are the same as (isomorphic to) isomorphisms in `Ring`. -/
 def ring_equiv_iso_Ring_iso {X Y : Type u} [ring X] [ring Y] :
   (X ≃r Y) ≅ (Ring.of X ≅ Ring.of Y) :=
 { hom := λ e, e.to_Ring_iso,
   inv := λ i, i.Ring_iso_to_ring_equiv, }
 
+/-- ring equivalences between `comm_ring`s are the same as (isomorphic to) isomorphisms in `CommRing`. -/
 def ring_equiv_iso_CommRing_iso {X Y : Type u} [comm_ring X] [comm_ring Y] :
   (X ≃r Y) ≅ (CommRing.of X ≅ CommRing.of Y) :=
 { hom := λ e, e.to_CommRing_iso,

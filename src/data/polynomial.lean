@@ -581,11 +581,14 @@ begin
 end
 
 lemma as_sum (p : polynomial α) :
-  p = (finset.range (p.nat_degree + 1)).sum (λ i, C (p.coeff i) * X^i) :=
+  p = (range (p.nat_degree + 1)).sum (λ i, C (p.coeff i) * X^i) :=
 begin
-  rw ext, intro n, symmetry,
-  calc _ = _ : (finset.sum_hom (λ q : polynomial α, q.coeff n)).symm
-     ... = _ :
+  ext n, symmetry,
+  calc
+    coeff (sum (range (nat_degree p + 1)) (λ (i : ℕ), C (coeff p i) * X ^ i)) n
+         = sum (range (p.nat_degree + 1)) (λ k, coeff (C (coeff p k) * X ^ k) n)
+             : (finset.sum_hom (λ q : polynomial α, q.coeff n)).symm
+     ... = coeff p n :
   begin
     rw finset.sum_eq_single n;
     try { simp only [mul_one, coeff_X_pow, if_pos rfl, coeff_C_mul], },

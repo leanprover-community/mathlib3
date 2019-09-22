@@ -96,7 +96,8 @@ begin
   rw e,
   apply cardinal.lift_inj.1,
   rw cardinal.mk_range_eq_of_inj (h.injective zero_ne_one),
-  convert @mk_eq_mk_of_basis _ _ _ _ _ (id _) _ _ _ (id _) _ _ h v'.property
+  convert @mk_eq_mk_of_basis _ _ _ _ _ (id _) _ _ _ (id _) _ _ h v'.property,
+  apply_instance,
 end
 
 theorem is_basis.mk_eq_dim [decidable_eq β] {v : ι → β} (h : is_basis α v) :
@@ -114,7 +115,7 @@ cardinal.lift_inj.1 $ hb.mk_eq_dim.symm.trans (f.is_basis hb).mk_eq_dim
 
 @[simp] lemma dim_bot : dim α (⊥ : submodule α β) = 0 :=
 by letI := classical.dec_eq β;
-  rw [← cardinal.lift_inj, ← (@is_basis_empty_bot pempty α β _ _ _ _ _ _ nonempty_pempty).mk_eq_dim,
+  rw [← cardinal.lift_inj, ← (@is_basis_empty_bot pempty α β _ _ _ _ _ _ not_nonempty_pempty).mk_eq_dim,
     cardinal.mk_pempty]
 
 @[simp] lemma dim_top : dim α (⊤ : submodule α β) = dim α β :=

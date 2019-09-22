@@ -16,6 +16,9 @@ namespace tactic
 namespace interactive
 open interactive interactive.types expr
 
+/-- Similar to `constructor`, but does not reorder goals. -/
+meta def fconstructor : tactic unit := concat_tags tactic.fconstructor
+
 /-- `try_for n { tac }` executes `tac` for `n` ticks, otherwise uses `sorry` to close the goal.
 Never fails. Useful for debugging. -/
 meta def try_for (max : parse parser.pexpr) (tac : itactic) : tactic unit :=

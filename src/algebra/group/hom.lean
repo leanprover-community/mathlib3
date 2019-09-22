@@ -246,25 +246,24 @@ infixr ` →* `:25 := monoid_hom
 instance {M : Type*} {N : Type*} [monoid M] [monoid N] : has_coe_to_fun (M →* N) :=
 ⟨_, monoid_hom.to_fun⟩
 
-/-- Reinterpret a map `f : M → N` as a homomorphism `M →* N` -/
-@[to_additive as_add_monoid_hom]
-def as_monoid_hom {M : Type u} {N : Type v} [monoid M] [monoid N]
-  (f : M → N) [h : is_monoid_hom f] : M →* N :=
-{ to_fun := f,
-  map_one' := h.2,
-  map_mul' := h.1.1 }
-
-@[simp, to_additive coe_as_add_monoid_hom]
-lemma coe_as_monoid_hom {M : Type u} {N : Type v} [monoid M] [monoid N]
-  (f : M → N) [is_monoid_hom f] : ⇑ (as_monoid_hom f) = f :=
-rfl
 
 namespace monoid_hom
 variables {M : Type*} {N : Type*} {P : Type*} [monoid M] [monoid N] [monoid P]
 variables {G : Type*} {H : Type*} [group G] [comm_group H]
 
+/-- Interpret a map `f : M → N` as a homomorphism `M →* N`. -/
+@[to_additive "Interpret a map `f : M → N` as a homomorphism `M →+ N`."]
+def of (f : M → N) [h : is_monoid_hom f] : M →* N :=
+{ to_fun := f,
+  map_one' := h.2,
+  map_mul' := h.1.1 }
+
+@[simp, to_additive]
+lemma coe_of (f : M → N) [is_monoid_hom f] : ⇑ (monoid_hom.of f) = f :=
+rfl
+
 @[extensionality, to_additive]
-lemma ext (f g : M →* N) (h : (f : M → N) = g) : f = g :=
+lemma ext ⦃f g : M →* N⦄ (h : (f : M → N) = g) : f = g :=
 by cases f; cases g; cases h; refl
 
 /-- If f is a monoid homomorphism then f 1 = 1. -/

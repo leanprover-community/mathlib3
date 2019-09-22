@@ -9,7 +9,7 @@ Bochner integral on real normed space
 import measure_theory.simple_func_dense
 
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 
 set_option class.instance_max_depth 100
 
@@ -27,7 +27,7 @@ def simple_func : Type* :=
 { f : α →₁ γ // ∃ (s : simple_func α γ) (hs : integrable s), mk s s.measurable hs = f}
 variables {α γ}
 
-local infixr ` →ₛ `:25 := simple_func
+local infixr ` →ₛ `:25 := measure_theory.l1.simple_func
 
 namespace simple_func
 open ae_eq_fun

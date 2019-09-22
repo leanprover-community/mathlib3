@@ -120,6 +120,18 @@ section group
     rwa [inv_mul_cancel_left, mul_assoc, mul_inv_cancel_right] at this
   end
 
+@[to_additive]
+lemma mul_left_eq_self {α : Type*} [group α] {a b : α} :
+  a * b = b ↔ a = 1 :=
+⟨λ h, @mul_right_cancel _ _ a b 1 (by simp [h]), λ h, by simp [h]⟩
+
+@[to_additive]
+lemma mul_right_eq_self {α : Type*} [group α] {a b : α} :
+  a * b = a ↔ b = 1 :=
+⟨λ h, @mul_left_cancel _ _ a b 1 (by simp [h]), λ h, by simp [h]⟩
+
+attribute [simp] mul_left_eq_self mul_right_eq_self add_left_eq_self add_right_eq_self
+
 end group
 
 
@@ -127,8 +139,6 @@ section add_group
   variables [add_group α] {a b c : α}
 
   local attribute [simp] sub_eq_add_neg
-
-  def sub_sub_cancel := @sub_sub_self
 
   @[simp] lemma sub_left_inj : a - b = a - c ↔ b = c :=
   (add_left_inj _).trans neg_inj'
@@ -174,6 +184,8 @@ end add_group
 
 section add_comm_group
   variables [add_comm_group α] {a b c : α}
+
+  lemma sub_sub_cancel (a b : α) : a - (a - b) = b := sub_sub_self a b
 
   lemma sub_eq_neg_add (a b : α) : a - b = -b + a :=
   add_comm _ _

@@ -3,15 +3,14 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import data.rat.order tactic.lift
+import data.rat.order
 /-!
 # Casts for Rational Numbers
 
 ## Summary
 
-1. We define the canonical injection from ℚ into an arbitrary division ring and prove various
+We define the canonical injection from ℚ into an arbitrary division ring and prove various
 casting lemmas showing the well-behavedness of this injection.
-2. We prove basic properties about the casts from ℤ and ℕ into ℚ (i.e. `(n : ℚ) = n / 1`) .
 
 ## Notations
 
@@ -24,7 +23,7 @@ rat, rationals, field, ℚ, numerator, denominator, num, denom, cast, coercion, 
 
 namespace rat
 variable {α : Type*}
-local infix ` /. `:70 := rat.mk
+open_locale rat
 
 section with_div_ring
 variable [division_ring α]
@@ -38,51 +37,11 @@ protected def cast : ℚ → α
 
 @[priority 0] instance cast_coe : has_coe ℚ α := ⟨rat.cast⟩
 
-theorem coe_int_eq_mk : ∀ (z : ℤ), ↑z = z /. 1
-| (n : ℕ) := show (n:ℚ) = n /. 1,
-  by induction n with n IH n; simp [*, show (1:ℚ) = 1 /. 1, from rfl]
-| -[1+ n] := show (-(n + 1) : ℚ) = -[1+ n] /. 1, begin
-  induction n with n IH, {refl},
-  show -(n + 1 + 1 : ℚ) = -[1+ n.succ] /. 1,
-  rw [neg_add, IH],
-  simpa [show -1 = (-1) /. 1, from rfl]
-end
-
-theorem mk_eq_div (n d : ℤ) : n /. d = ((n : ℚ) / d) :=
-begin
-  by_cases d0 : d = 0, {simp [d0, div_zero]},
-  simp [division_def, coe_int_eq_mk, mul_def one_ne_zero d0]
-end
-
-theorem coe_int_eq_of_int (z : ℤ) : ↑z = of_int z :=
-(coe_int_eq_mk z).trans (of_int_eq_mk z).symm
-
 @[simp] theorem cast_of_int (n : ℤ) : (of_int n : α) = n :=
 show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one]
 
 @[simp, squash_cast] theorem cast_coe_int (n : ℤ) : ((n : ℚ) : α) = n :=
 by rw [coe_int_eq_of_int, cast_of_int]
-
-@[simp, elim_cast] theorem coe_int_num (n : ℤ) : (n : ℚ).num = n :=
-by rw coe_int_eq_of_int; refl
-
-@[simp, elim_cast] theorem coe_int_denom (n : ℤ) : (n : ℚ).denom = 1 :=
-by rw coe_int_eq_of_int; refl
-
-lemma coe_int_num_of_denom_eq_one {q : ℚ} (hq : q.denom = 1) : ↑(q.num) = q :=
-by { conv_rhs { rw [num_denom q, hq] }, rw [coe_int_eq_mk], refl }
-
-instance : can_lift ℚ ℤ :=
-⟨coe, λ q, q.denom = 1, λ q hq, ⟨q.num, coe_int_num_of_denom_eq_one hq⟩⟩
-
-theorem coe_nat_eq_mk (n : ℕ) : ↑n = n /. 1 :=
-by rw [← int.cast_coe_nat, coe_int_eq_mk]
-
-@[simp, elim_cast] theorem coe_nat_num (n : ℕ) : (n : ℚ).num = n :=
-by rw [← int.cast_coe_nat, coe_int_num]
-
-@[simp, elim_cast] theorem coe_nat_denom (n : ℕ) : (n : ℚ).denom = 1 :=
-by rw [← int.cast_coe_nat, coe_int_denom]
 
 @[simp, squash_cast] theorem cast_coe_nat (n : ℕ) : ((n : ℚ) : α) = n := cast_coe_int n
 
@@ -169,7 +128,7 @@ end
 @[move_cast] theorem cast_div_of_ne_zero {m n : ℚ} (md : (m.denom : α) ≠ 0)
   (nn : (n.num : α) ≠ 0) (nd : (n.denom : α) ≠ 0) : ((m / n : ℚ) : α) = m / n :=
 have (n⁻¹.denom : ℤ) ∣ n.num,
-by conv in n⁻¹.denom { rw [num_denom n, inv_def] };
+by conv in n⁻¹.denom { rw [←(@num_denom n), inv_def] };
    apply denom_dvd,
 have (n⁻¹.denom : α) = 0 → (n.num : α) = 0, from
 λ h, let ⟨k, e⟩ := this in
@@ -239,7 +198,7 @@ cast_mul_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ 
 
 @[simp, move_cast] theorem cast_inv [discrete_field α] [char_zero α] (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ :=
 if n0 : n.num = 0 then
-  by simp [show n = 0, by rw [num_denom n, n0]; simp, inv_zero] else
+  by simp [show n = 0, by rw [←(@num_denom n), n0]; simp, inv_zero] else
 cast_inv_of_ne_zero (int.cast_ne_zero.2 n0) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
 
 @[simp, move_cast] theorem cast_div [discrete_field α] [char_zero α] (m n) :

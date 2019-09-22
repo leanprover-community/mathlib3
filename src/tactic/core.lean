@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
-import data.dlist.basic category.basic meta.expr meta.rb_map data.string.defs
+import data.dlist.basic category.basic meta.expr meta.rb_map data.bool
 
 namespace expr
 open tactic
@@ -105,8 +105,18 @@ meta def mk_user_fresh_name : tactic name :=
 do nm ← mk_fresh_name,
    return $ `user__ ++ nm.pop_prefix.sanitize_name ++ `user__
 
+
+/-- Checks whether n' has attribute n. -/
+meta def has_attribute' : name → name → tactic bool | n n' :=
+succeeds (has_attribute n n')
+
+/-- Checks whether the name is a simp lemma -/
 meta def is_simp_lemma : name → tactic bool :=
-succeeds ∘ tactic.has_attribute `simp
+has_attribute' `simp
+
+/-- Checks whether the name is an instance. -/
+meta def is_instance : name → tactic bool :=
+has_attribute' `instance
 
 meta def local_decls : tactic (name_map declaration) :=
 do e ← tactic.get_env,
@@ -314,6 +324,20 @@ whnf type >>= get_expl_pi_arity_aux
 /-- Compute the arity of explicit arguments of the given function -/
 meta def get_expl_arity (fn : expr) : tactic nat :=
 infer_type fn >>= get_expl_pi_arity
+
+/-- Auxilliary defintion for `get_pi_binders`. -/
+meta def get_pi_binders_aux : list binder → expr → tactic (list binder × expr)
+| es (expr.pi n bi d b) :=
+  do m ← mk_fresh_name,
+     let l := expr.local_const m n bi d,
+     let new_b := expr.instantiate_var b l,
+     get_pi_binders_aux (⟨n, bi, d⟩::es) new_b
+| es e                  := return (es, e)
+
+/-- Get the binders and target of a pi-type. Instantiates bound variables by
+  local constants. -/
+meta def get_pi_binders : expr → tactic (list binder × expr) | e :=
+do (es, e) ← get_pi_binders_aux [] e, return (es.reverse, e)
 
 /-- variation on `assert` where a (possibly incomplete)
     proof of the assertion is provided as a parameter.
@@ -1115,17 +1139,11 @@ do e ← get_env,
   s ← e.decl_olean `tactic.reset_instance_cache,
   return $ s.popn_back 17
 
-/-- Checks whether `ml` is a prefix of the file where `n` is declared.
-  If you want to run `is_in_mathlib` many times, you should use this tactic instead,
-  since it is expensive to execute get_mathlib_dir many times. -/
-meta def is_in_mathlib_aux (ml : string) (n : name) : tactic bool :=
-do e ← get_env, return $ ml.is_prefix_of $ (e.decl_olean n).get_or_else ""
-
 /-- Checks whether a declaration with the given name is declared in mathlib.
-  If you want to run this tactic many times, you should use `is_in_mathlib_aux` instead,
-  since it is expensive to execute get_mathlib_dir many times. -/
+  If you want to run this tactic many times, you should use `environment.is_prefix_of_file` instead,
+  since it is expensive to execute `get_mathlib_dir` many times. -/
 meta def is_in_mathlib (n : name) : tactic bool :=
-do ml ← get_mathlib_dir, is_in_mathlib_aux ml n
+do ml ← get_mathlib_dir, e ← get_env, return $ e.is_prefix_of_file ml n
 
 
 end tactic

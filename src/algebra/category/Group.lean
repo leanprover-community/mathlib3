@@ -66,11 +66,6 @@ induced_category.has_forget₂ (λ G : CommGroup, CommMon.of G)
 
 @[to_additive] instance : has_one CommGroup := ⟨CommGroup.of punit⟩
 
--- FIXME I wish this wasn't necessary, but the more general lemma in bundled_hom.lean doesn't fire.
-@[simp, to_additive] lemma coe_comp {X Y Z : CommGroup} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
-  (f ≫ g) x = g (f x) :=
-congr_fun ((forget CommGroup).map_comp _ _) x
-
 end CommGroup
 
 variables {X Y : Type u}
@@ -100,9 +95,9 @@ def mul_equiv.to_CommGroup_iso (e : X ≃* Y) : CommGroup.of X ≅ CommGroup.of 
   inv := e.symm.to_monoid_hom }
 
 @[simp, to_additive add_equiv.to_AddCommGroup_iso_hom]
-@[simp] lemma mul_equiv.to_CommGroup_iso_hom {e : X ≃* Y} : e.to_CommGroup_iso.hom = e.to_monoid_hom := rfl
+lemma mul_equiv.to_CommGroup_iso_hom {e : X ≃* Y} : e.to_CommGroup_iso.hom = e.to_monoid_hom := rfl
 @[simp, to_additive add_equiv.to_AddCommGroup_iso_inv]
-@[simp] lemma mul_equiv.to_CommGroup_iso_inv {e : X ≃* Y} : e.to_CommGroup_iso.inv = e.symm.to_monoid_hom := rfl
+lemma mul_equiv.to_CommGroup_iso_inv {e : X ≃* Y} : e.to_CommGroup_iso.inv = e.symm.to_monoid_hom := rfl
 end
 
 namespace category_theory.iso

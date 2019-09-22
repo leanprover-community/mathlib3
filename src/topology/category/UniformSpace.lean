@@ -24,27 +24,20 @@ universes u
 open category_theory
 
 /-- A (bundled) uniform spaces. -/
-@[reducible] def UniformSpace : Type (u+1) := bundled uniform_space
+def UniformSpace : Type (u+1) := bundled uniform_space
 
 namespace UniformSpace
+local attribute [reducible] UniformSpace
+
+-- Setup instances while `UniformSpace` is reducible:
+instance : unbundled_hom @uniform_continuous := ⟨@uniform_continuous_id, @uniform_continuous.comp⟩
+instance : concrete_category UniformSpace.{u} := infer_instance
+instance (X : UniformSpace) : uniform_space X := X.str
+instance : has_coe_to_sort UniformSpace.{u} := infer_instance
+instance (X Y : UniformSpace.{u}) : has_coe_to_fun (X ⟶ Y) := concrete_category.has_coe_to_fun
 
 /-- Construct a bundled `UniformSpace` from the underlying type and the typeclass. -/
 def of (α : Type u) [uniform_space α] : UniformSpace := ⟨α⟩
-
-/-- The category instance on `UniformSpace`. -/
-instance concrete_category_uniform_continuous : unbundled_hom @uniform_continuous :=
-⟨@uniform_continuous_id, @uniform_continuous.comp⟩
-
-instance (X : UniformSpace) : uniform_space X := X.str
-
-instance (X Y : UniformSpace) : has_coe_to_fun (X ⟶ Y) :=
-{ F := λ _, X → Y, coe := category_theory.functor.map (forget UniformSpace) }
-
-@[simp] lemma coe_comp {X Y Z : UniformSpace} (f : X ⟶ Y) (g : Y ⟶ Z) :
-  (f ≫ g : X → Z) = g ∘ f := rfl
-@[simp] lemma coe_id (X : UniformSpace) : (𝟙 X : X → X) = id := rfl
-@[simp] lemma coe_mk {X Y : UniformSpace} (f : X → Y) (hf : uniform_continuous f) :
-  ((⟨f, hf⟩ : X ⟶ Y) : X → Y) = f := rfl
 
 @[extensionality] lemma hom_ext {X Y : UniformSpace} {f g : X ⟶ Y} (h : ∀ x : X, f x = g x) : f = g :=
 subtype.eq (funext h)
@@ -55,7 +48,7 @@ unbundled_hom.mk_has_forget₂
   @uniform_space.to_topological_space
   @uniform_continuous.continuous
 
-instance complete_space_forget (X) : uniform_space ((forget₂ UniformSpace Top).obj X) := X.str
+instance uniform_space_forget (X) : uniform_space ((forget₂ UniformSpace Top).obj X) := X.str
 
 end UniformSpace
 

@@ -12,20 +12,16 @@ open topological_space
 universe u
 
 /-- The category of topological spaces and continuous maps. -/
-@[reducible] def Top : Type (u+1) := bundled topological_space
+def Top : Type (u+1) := bundled topological_space
 
 namespace Top
+local attribute [reducible] Top
 
-instance concrete_category_continuous : unbundled_hom @continuous :=
-⟨@continuous_id, @continuous.comp⟩
-
-instance topological_space (X : Top) : topological_space X := X.str
-
-instance hom_has_coe_to_fun (X Y : Top.{u}) : has_coe_to_fun (X ⟶ Y) :=
-{ F := _, coe := subtype.val }
-
-@[simp] lemma id_app (X : Top.{u}) (x : X) :
-  @coe_fn (X ⟶ X) (Top.hom_has_coe_to_fun X X) (𝟙 X) x = x := rfl
+instance : unbundled_hom @continuous := ⟨@continuous_id, @continuous.comp⟩
+instance : concrete_category Top.{u} := infer_instance
+instance (X : Top) : topological_space X := X.str
+instance : has_coe_to_sort Top.{u} := infer_instance
+instance (X Y : Top.{u}) : has_coe_to_fun (X ⟶ Y) := concrete_category.has_coe_to_fun
 
 /-- Construct a bundled `Top` from the underlying type and the typeclass. -/
 def of (X : Type u) [topological_space X] : Top := ⟨X⟩

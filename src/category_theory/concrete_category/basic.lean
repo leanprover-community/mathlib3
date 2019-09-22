@@ -18,9 +18,9 @@ Each concrete category `C` comes with a canonical faithful functor
 `forget C : C ⥤ Type*`.  We say that a concrete category `C` admits a
 *forgetful functor* to a concrete category `D`, if it has a functor
 `forget₂ C D : C ⥤ D` such that `(forget₂ C D) ⋙ (forget D) = forget
-C`, see `class has_forget₂`.  Due to `faithful.div_comp`, it suffices
+C`; see `class has_forget₂`.  Due to `faithful.div_comp`, it suffices
 to verify that `forget₂.obj` and `forget₂.map` agree with the equality
-above; then `forget₂` will satisfy the functor laws automatically, see
+above; then `forget₂` will satisfy the functor laws automatically; see
 `has_forget₂.mk'`.
 
 Two classes helping construct concrete categories in the two most
@@ -68,7 +68,7 @@ variables {C : Type (u+1)} [concrete_category C]
 @[simp] lemma forget_obj_eq_coe {X : C} : (forget C).obj X = X := rfl
 
 /-- Usually a bundled hom structure already has a coercion to function
-that works with different universes. So we don't use this as an instance. -/
+that works with different universes. So we don't use this as a global instance. -/
 def concrete_category.has_coe_to_fun {X Y : C} : has_coe_to_fun (X ⟶ Y) :=
 { F   := λ f, X → Y,
   coe := λ f, (forget _).map f }

@@ -25,9 +25,10 @@ universes u v
 open category_theory
 
 /-- The category of semirings. -/
-@[reducible] def SemiRing : Type (u+1) := bundled semiring
+def SemiRing : Type (u+1) := bundled semiring
 
 namespace SemiRing
+local attribute [reducible] SemiRing
 
 /-- Construct a bundled SemiRing from the underlying type and typeclass. -/
 def of (R : Type u) [semiring R] : SemiRing := bundled.of R
@@ -37,40 +38,48 @@ instance bundled_hom : bundled_hom @ring_hom :=
 
 instance (R : SemiRing) : semiring R := R.str
 
+-- Setup instances while `SemiRing` is reducible:
+instance : concrete_category SemiRing.{u} := infer_instance
+instance : has_coe_to_sort SemiRing.{u} := infer_instance
+
 instance has_forget_to_Mon : has_forget₂ SemiRing.{u} Mon.{u} :=
 bundled_hom.mk_has_forget₂ @semiring.to_monoid (λ R₁ R₂ f, f.to_monoid_hom) (λ _ _ _, rfl)
 
 end SemiRing
 
 /-- The category of rings. -/
-@[reducible] def Ring : Type (u+1) := induced_category SemiRing (bundled.map @ring.to_semiring.{u})
+def Ring : Type (u+1) := induced_category SemiRing (bundled.map @ring.to_semiring.{u})
 
 namespace Ring
+local attribute [reducible] Ring
 
 /-- Construct a bundled Ring from the underlying type and typeclass. -/
 def of (R : Type u) [ring R] : Ring := bundled.of R
 
 instance (R : Ring) : ring R := R.str
 
--- These examples verify that we have successfully provided the expected instances.
-example : concrete_category Ring.{u} := infer_instance
-example : has_forget₂ Ring.{u} SemiRing.{u} := infer_instance
+-- Setup instances while `Ring` is reducible:
+instance : concrete_category Ring.{u} := infer_instance
+instance : has_coe_to_sort Ring.{u} := infer_instance
+instance : has_forget₂ Ring.{u} SemiRing.{u} := infer_instance
 
 end Ring
 
 /-- The category of commutative semirings. -/
-@[reducible] def CommSemiRing : Type (u+1) := induced_category SemiRing (bundled.map comm_semiring.to_semiring.{u})
+def CommSemiRing : Type (u+1) := induced_category SemiRing (bundled.map comm_semiring.to_semiring.{u})
 
 namespace CommSemiRing
+local attribute [reducible] CommSemiRing
 
 /-- Construct a bundled CommSemiRing from the underlying type and typeclass. -/
 def of (R : Type u) [comm_semiring R] : CommSemiRing := bundled.of R
 
 instance (R : CommSemiRing) : comm_semiring R := R.str
 
--- These examples verify that we have successfully provided the expected instances.
-example : concrete_category CommSemiRing.{u} := infer_instance
-example : has_forget₂ CommSemiRing.{u} SemiRing.{u} := infer_instance
+-- Setup instances while `CommSemiRing` is reducible:
+instance : concrete_category CommSemiRing.{u} := infer_instance
+instance : has_coe_to_sort CommSemiRing.{u} := infer_instance
+instance : has_forget₂ CommSemiRing.{u} SemiRing.{u} := infer_instance
 
 /-- The forgetful functor from commutative rings to (multiplicative) commutative monoids. -/
 instance has_forget_to_CommMon : has_forget₂ CommSemiRing.{u} CommMon.{u} :=
@@ -81,19 +90,20 @@ has_forget₂.mk'
 end CommSemiRing
 
 /-- The category of commutative rings. -/
--- TODO experiment with making @[reducible] local
-@[reducible] def CommRing : Type (u+1) := induced_category Ring (bundled.map comm_ring.to_ring.{u})
+def CommRing : Type (u+1) := induced_category Ring (bundled.map comm_ring.to_ring.{u})
 
 namespace CommRing
+local attribute [reducible] CommRing
 
 /-- Construct a bundled CommRing from the underlying type and typeclass. -/
 def of (R : Type u) [comm_ring R] : CommRing := bundled.of R
 
 instance (R : CommRing) : comm_ring R := R.str
 
--- These examples verify that we have successfully provided the expected instances.
-example : concrete_category CommRing.{u} := infer_instance
-example : has_forget₂ CommRing.{u} Ring.{u} := infer_instance
+-- Setup instances while `CommRing` is reducible:
+instance : concrete_category CommRing.{u} := infer_instance
+instance : has_coe_to_sort CommRing.{u} := infer_instance
+instance : has_forget₂ CommRing.{u} Ring.{u} := infer_instance
 
 /-- The forgetful functor from commutative rings to commutative semirings. -/
 instance has_forget_to_CommSemiRing : has_forget₂ CommRing.{u} CommSemiRing.{u} :=

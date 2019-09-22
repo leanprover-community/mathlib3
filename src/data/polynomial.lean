@@ -31,10 +31,10 @@ instance : has_add (polynomial α) := finsupp.has_add
 instance : has_mul (polynomial α) := finsupp.has_mul
 instance : comm_semiring (polynomial α) := finsupp.comm_semiring
 
-def polynomial.has_coe_to_fun : has_coe_to_fun (polynomial α) :=
+def coeff_coe_to_fun : has_coe_to_fun (polynomial α) :=
 finsupp.has_coe_to_fun
 
-local attribute [instance] finsupp.comm_semiring polynomial.has_coe_to_fun
+local attribute [instance] finsupp.comm_semiring coeff_coe_to_fun
 
 @[simp] lemma support_zero : (0 : polynomial α).support = ∅ := rfl
 
@@ -68,7 +68,7 @@ theorem ext {p q : polynomial α} : p = q ↔ ∀ n, coeff p n = coeff q n :=
 `degree 0 = ⊥`. -/
 def degree (p : polynomial α) : with_bot ℕ := p.support.sup some
 
-def degree_lt_wf : well_founded (λp q : polynomial α, degree p < degree q) :=
+lemma degree_lt_wf : well_founded (λp q : polynomial α, degree p < degree q) :=
 inv_image.wf degree (with_bot.well_founded_lt nat.lt_wf)
 
 instance : has_well_founded (polynomial α) := ⟨_, degree_lt_wf⟩
@@ -959,7 +959,7 @@ have zn0 : (0 : α) ≠ 1, from λ h, by haveI := subsingleton_of_zero_eq_one _ 
   begin
     have := congr_arg nat_degree hr,
     rw [nat_degree_mul_eq' hpnr0,  nat_degree_pow_eq' hpn0', add_mul, add_assoc] at this,
-    exact ne_of_lt (lt_add_of_le_of_pos (le_mul_of_ge_one_right' (nat.zero_le _) hnp)
+    exact ne_of_lt (lt_add_of_le_of_pos (le_mul_of_one_le_right' (nat.zero_le _) hnp)
       (add_pos_of_pos_of_nonneg (by rwa one_mul) (nat.zero_le _))) this
   end⟩
 

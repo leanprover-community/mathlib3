@@ -107,7 +107,7 @@ open library_search.head_symbol_match
 declare_trace silence_library_search -- Turn off `exact ...` trace message
 declare_trace library_search         -- Trace a list of all relevant lemmas
 
-meta def library_search (discharger : tactic unit := done): tactic string :=
+meta def library_search (discharger : tactic unit := done) : tactic string :=
 do [g] ← get_goals | fail "`library_search` should be called with exactly one goal",
    t ← infer_type g,
 

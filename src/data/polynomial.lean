@@ -599,7 +599,7 @@ lemma ite_le_nat_degree_coeff (p : polynomial α) (n : ℕ) (I : decidable (n < 
 begin
   split_ifs,
   { refl },
-  { exact (coeff_eq_zero_of_nat_degree_lt (not_le.1 (λ w, h (lt_one_add_iff.2 w)))).symm, }
+  { exact (coeff_eq_zero_of_nat_degree_lt (not_le.1 (λ w, h (nat.lt_one_add_iff.2 w)))).symm, }
 end
 
 lemma as_sum (p : polynomial α) :

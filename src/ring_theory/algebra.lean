@@ -490,7 +490,7 @@ def adjoin (s : set A) : subalgebra R A :=
   range_le := le_trans (set.subset_union_left _ _) ring.subset_closure }
 variables {R}
 
-protected def gc : galois_connection (adjoin R : set A → subalgebra R A) coe :=
+protected lemma gc : galois_connection (adjoin R : set A → subalgebra R A) coe :=
 λ s S, ⟨λ H, le_trans (le_trans (set.subset_union_right _ _) ring.subset_closure) H,
 λ H, ring.closure_subset $ set.union_subset S.range_le H⟩
 

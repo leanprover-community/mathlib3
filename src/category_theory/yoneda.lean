@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.opposites
+import category_theory.hom_functor
 
 /-!
 # The Yoneda embedding
@@ -22,7 +23,7 @@ universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.catego
 variables {C : Type u₁} [𝒞 : category.{v₁} C]
 include 𝒞
 
-def yoneda : C ⥤ (Cᵒᵖ ⥤ Sort v₁) :=
+def yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁) :=
 { obj := λ X,
   { obj := λ Y, unop Y ⟶ X,
     map := λ Y Y' f g, f.unop ≫ g,
@@ -30,7 +31,7 @@ def yoneda : C ⥤ (Cᵒᵖ ⥤ Sort v₁) :=
     map_id' := λ Y, begin ext1, dsimp, erw [category.id_comp] end },
   map := λ X X' f, { app := λ Y g, g ≫ f } }
 
-def coyoneda : Cᵒᵖ ⥤ (C ⥤ Sort v₁) :=
+def coyoneda : Cᵒᵖ ⥤ (C ⥤ Type v₁) :=
 { obj := λ X,
   { obj := λ Y, unop X ⟶ Y,
     map := λ Y Y' f g, g ≫ f,
@@ -111,7 +112,7 @@ is_iso_of_fully_faithful coyoneda f
 
 end coyoneda
 
-class representable (F : Cᵒᵖ ⥤ Sort v₁) :=
+class representable (F : Cᵒᵖ ⥤ Type v₁) :=
 (X : C)
 (w : yoneda.obj X ≅ F)
 
@@ -125,7 +126,7 @@ universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.catego
 
 open opposite
 
-variables (C : Type u₁) [𝒞 : category.{v₁+1} C]
+variables (C : Type u₁) [𝒞 : category.{v₁} C]
 include 𝒞
 
 -- We need to help typeclass inference with some awkward universe levels here.
@@ -145,7 +146,7 @@ evaluation_uncurried Cᵒᵖ (Type v₁) ⋙ ulift_functor.{u₁}
   ((yoneda_evaluation C).map α x).down = α.2.app Q.1 (P.2.map α.1 x.down) := rfl
 
 def yoneda_pairing : Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁) ⥤ Type (max u₁ v₁) :=
-functor.prod yoneda.op (functor.id (Cᵒᵖ ⥤ Type v₁)) ⋙ functor.hom (Cᵒᵖ ⥤ Type v₁)
+functor.prod yoneda.op (𝟭 (Cᵒᵖ ⥤ Type v₁)) ⋙ functor.hom (Cᵒᵖ ⥤ Type v₁)
 
 @[simp] lemma yoneda_pairing_map
   (P Q : Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) (α : P ⟶ Q) (β : (yoneda_pairing C).obj P) :
@@ -201,11 +202,13 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
 
 variables {C}
 
-@[simp] def yoneda_sections (X : C) (F : Cᵒᵖ ⥤ Type v₁) : (yoneda.obj X ⟶ F) ≅ ulift.{u₁} (F.obj (op X)) :=
+@[simp] def yoneda_sections (X : C) (F : Cᵒᵖ ⥤ Type v₁) :
+  (yoneda.obj X ⟶ F) ≅ ulift.{u₁} (F.obj (op X)) :=
 (yoneda_lemma C).app (op X, F)
 
 omit 𝒞
-@[simp] def yoneda_sections_small {C : Type u₁} [small_category C] (X : C) (F : Cᵒᵖ ⥤ Type u₁) : (yoneda.obj X ⟶ F) ≅ F.obj (op X) :=
+@[simp] def yoneda_sections_small {C : Type u₁} [small_category C] (X : C) (F : Cᵒᵖ ⥤ Type u₁) :
+  (yoneda.obj X ⟶ F) ≅ F.obj (op X) :=
 yoneda_sections X F ≪≫ ulift_trivial _
 
 end category_theory

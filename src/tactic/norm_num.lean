@@ -6,7 +6,7 @@ Authors: Simon Hudon, Mario Carneiro
 Evaluating arithmetic expressions including *, +, -, ^, ≤
 -/
 
-import algebra.group_power data.rat data.nat.prime
+import algebra.group_power data.rat.order data.rat.cast data.nat.prime
 import tactic.interactive tactic.converter.interactive
 
 universes u v w
@@ -119,7 +119,7 @@ meta def eval_pow (simp : expr → tactic (expr × expr)) : expr → tactic (exp
   e'' ← to_expr ``(%%e' * %%e' * %%e₁),
   return (e'', p')
 | `(nat.pow %%e₁ %%e₂) := do
-  p₁ ← mk_app ``nat.pow_eq_pow [e₁, e₂],
+  p₁ ← mk_app ``nat.pow_eq_pow [e₁, e₂] >>= mk_eq_symm,
   e ← mk_app ``monoid.pow [e₁, e₂],
   (e', p₂) ← simp e,
   p ← mk_eq_trans p₁ p₂,

@@ -12,7 +12,7 @@ open category_theory
 
 namespace category_theory.limits
 
-variables (C : Type u) [𝒞 : category.{v+1} C]
+variables (C : Type u) [𝒞 : category.{v} C]
 include 𝒞
 
 class has_terminal :=
@@ -24,10 +24,12 @@ attribute [instance] has_terminal.has_limits_of_shape has_initial.has_colimits_o
 
 instance [has_finite_products.{v} C] : has_terminal.{v} C :=
 { has_limits_of_shape :=
-  { has_limit := λ F, has_limit_of_equivalence_comp ((functor.empty (discrete pempty)).as_equivalence.symm) } }
+  { has_limit := λ F,
+      has_limit_of_equivalence_comp ((functor.empty.{v} (discrete pempty.{v+1})).as_equivalence.symm) } }
 instance [has_finite_coproducts.{v} C] : has_initial.{v} C :=
 { has_colimits_of_shape :=
-  { has_colimit := λ F, has_colimit_of_equivalence_comp ((functor.empty (discrete pempty)).as_equivalence.symm) } }
+  { has_colimit := λ F,
+      has_colimit_of_equivalence_comp ((functor.empty.{v} (discrete pempty.{v+1})).as_equivalence.symm) } }
 
 abbreviation terminal [has_terminal.{v} C] : C := limit (functor.empty C)
 abbreviation initial [has_initial.{v} C] : C := colimit (functor.empty C)
@@ -45,19 +47,11 @@ colimit.desc (functor.empty C) { X := P, ι := by tidy }.
 
 instance unique_to_terminal [has_terminal.{v} C] (P : C) : unique (P ⟶ ⊤_ C) :=
 { default := terminal.from P,
-  uniq := λ m,
-  begin
-    rw [is_limit.hom_lift infer_instance m],
-    congr, funext j, cases j,
-  end }
+  uniq := λ m, by { apply limit.hom_ext, rintro ⟨⟩ } }
 
 instance unique_from_initial [has_initial.{v} C] (P : C) : unique (⊥_ C ⟶ P) :=
 { default := initial.to P,
-  uniq := λ m,
-  begin
-    rw [is_colimit.hom_desc infer_instance m],
-    congr, funext j, cases j,
-  end }
+  uniq := λ m, by { apply colimit.hom_ext, rintro ⟨⟩ } }
 end
 
 #check category_theory.functor.const pempty

@@ -46,7 +46,7 @@ rat, rationals, field, ℚ, numerator, denominator, num, denom
 structure rat := mk' ::
 (num : ℤ)
 (denom : ℕ)
-(pos : denom > 0)
+(pos : 0 < denom)
 (cop : num.nat_abs.coprime denom)
 notation `ℚ` := rat
 
@@ -60,7 +60,7 @@ instance : has_repr ℚ := ⟨rat.repr⟩
 instance : has_to_string ℚ := ⟨rat.repr⟩
 meta instance : has_to_format ℚ := ⟨coe ∘ rat.repr⟩
 
-instance : encodable ℚ := encodable.of_equiv (Σ n : ℤ, {d : ℕ // d > 0 ∧ n.nat_abs.coprime d})
+instance : encodable ℚ := encodable.of_equiv (Σ n : ℤ, {d : ℕ // 0 < d ∧ n.nat_abs.coprime d})
   ⟨λ ⟨a, b, c, d⟩, ⟨a, b, c, d⟩, λ⟨a, b, c, d⟩, ⟨a, b, c, d⟩,
    λ ⟨a, b, c, d⟩, rfl, λ⟨a, b, c, d⟩, rfl⟩
 
@@ -97,7 +97,7 @@ def mk : ℤ → ℤ → ℚ
 | n (int.of_nat d) := mk_nat n d
 | n -[1+ d]        := mk_pnat (-n) d.succ_pnat
 
-local infix ` /. `:70 := mk
+localized "infix ` /. `:70 := rat.mk" in rat
 
 theorem mk_pnat_eq (n d h) : mk_pnat n ⟨d, h⟩ = n /. d :=
 by change n /. d with dite _ _ _; simp [ne_of_gt h]
@@ -221,11 +221,11 @@ theorem num_denom' {n d h c} : (⟨n, d, h, c⟩ : ℚ) = n /. d := num_denom.sy
 
 theorem of_int_eq_mk (z : ℤ) : of_int z = z /. 1 := num_denom'
 
-@[elab_as_eliminator] theorem {u} num_denom_cases_on {C : ℚ → Sort u}
-   : ∀ (a : ℚ) (H : ∀ n d, d > 0 → (int.nat_abs n).coprime d → C (n /. d)), C a
+@[elab_as_eliminator] def {u} num_denom_cases_on {C : ℚ → Sort u}
+   : ∀ (a : ℚ) (H : ∀ n d, 0 < d → (int.nat_abs n).coprime d → C (n /. d)), C a
 | ⟨n, d, h, c⟩ H := by rw num_denom'; exact H n d h c
 
-@[elab_as_eliminator] theorem {u} num_denom_cases_on' {C : ℚ → Sort u}
+@[elab_as_eliminator] def {u} num_denom_cases_on' {C : ℚ → Sort u}
    (a : ℚ) (H : ∀ (n:ℤ) (d:ℕ), d ≠ 0 → C (n /. d)) : C a :=
 num_denom_cases_on a $ λ n d h c,
 H n d $ ne_of_gt h

@@ -19,7 +19,7 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 namespace polynomial
 
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 variables [discrete_field α] [discrete_field β] [discrete_field γ]
 open polynomial
 
@@ -34,7 +34,7 @@ f = 0 ∨ ∀ {g : polynomial β}, irreducible g → g ∣ f.map i → degree g 
 @[simp] lemma splits_zero : splits i (0 : polynomial α) := or.inl rfl
 
 @[simp] lemma splits_C (a : α) : splits i (C a) :=
-if ha : a = 0 then ha.symm ▸ (@C_0 α _ _).symm ▸ splits_zero i
+if ha : a = 0 then ha.symm ▸ (@C_0 α _).symm ▸ splits_zero i
 else
 have hia : i a ≠ 0, from mt ((is_add_group_hom.injective_iff i).1
   (is_field_hom.injective i) _) ha,

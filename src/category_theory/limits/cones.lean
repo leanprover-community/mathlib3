@@ -5,7 +5,7 @@ Authors: Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import category_theory.const
 import category_theory.yoneda
-import category_theory.concrete_category
+import category_theory.concrete_category.bundled_hom
 import category_theory.equivalence
 
 universes v u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
@@ -18,7 +18,7 @@ open category_theory
 -- not into `Sort v`.
 -- So we don't allow this case; it's not particularly useful anyway.
 variables {J : Type v} [small_category J]
-variables {C : Type u} [𝒞 : category.{v+1} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
 open category_theory
@@ -87,7 +87,7 @@ A `c : cone F` is:
 * an object `c.X` and
 * a natural transformation `c.π : c.X ⟶ F` from the constant `c.X` functor to `F`.
 
-`cone F` is equivalent, in the obvious way, to `Σ X, F.cones.obj X`.
+`cone F` is equivalent, via `cone.equiv` below, to `Σ X, F.cones.obj X`.
 -/
 structure cone (F : J ⥤ C) :=
 (X : C)
@@ -102,7 +102,7 @@ A `c : cocone F` is
 * an object `c.X` and
 * a natural transformation `c.ι : F ⟶ c.X` from `F` to the constant `c.X` functor.
 
-`cocone F` is equivalent, in the obvious way, to `Σ X, F.cocones.obj X`.
+`cocone F` is equivalent, via `cone.equiv` below, to `Σ X, F.cocones.obj X`.
 -/
 structure cocone (F : J ⥤ C) :=
 (X : C)
@@ -116,6 +116,12 @@ by convert ←(c.ι.naturality f); apply comp_id
 variables {F : J ⥤ C}
 
 namespace cone
+
+def equiv (F : J ⥤ C) : cone F ≅ Σ X, F.cones.obj X :=
+{ hom := λ c, ⟨op c.X, c.π⟩,
+  inv := λ c, { X := unop c.1, π := c.2 },
+  hom_inv_id' := begin ext, cases x, refl, end,
+  inv_hom_id' := begin ext, cases x, refl, end }
 
 @[simp] def extensions (c : cone F) : yoneda.obj c.X ⟶ F.cones :=
 { app := λ X f, ((const J).map f) ≫ c.π }
@@ -136,20 +142,33 @@ def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cone F) : cone (E
 @[simp] lemma whisker_π_app (c : cone F) {K : Type v} [small_category K] (E : K ⥤ J) (k : K) :
   (c.whisker E).π.app k = (c.π).app (E.obj k) := rfl
 
+-- We now prove a lemma about naturality of cones over functors into bundled categories.
 section
 omit 𝒞
-variables {m : Type v → Type v}
-variables (hom : ∀ {α β : Type v}, m α → m β → (α → β) → Prop)
-variables [h : concrete_category @hom]
-include h
+variables {m : Type v → Type v} (hom : Π ⦃α β⦄ (Iα : m α) (Iβ : m β), Type v) [S : bundled_hom hom]
+include S
+
+local attribute [instance] bundled_hom.has_coe_to_fun
 
 @[simp] lemma naturality_bundled {G : J ⥤ bundled m} (s : cone G) {j j' : J} (f : j ⟶ j') (x : s.X) :
    (G.map f) ((s.π.app j) x) = (s.π.app j') x :=
-congr_fun (congr_arg (λ k : s.X ⟶ G.obj j', (k : s.X → G.obj j')) (s.π.naturality f).symm) x
+begin
+  convert congr_fun (congr_arg (λ k : s.X ⟶ G.obj j', (k : s.X → G.obj j')) (s.π.naturality f).symm) x;
+  { dsimp, simp },
 end
+
+end
+
 end cone
 
 namespace cocone
+
+def equiv (F : J ⥤ C) : cocone F ≅ Σ X, F.cocones.obj X :=
+{ hom := λ c, ⟨c.X, c.ι⟩,
+  inv := λ c, { X := c.1, ι := c.2 },
+  hom_inv_id' := begin ext, cases x, refl, end,
+  inv_hom_id' := begin ext, cases x, refl, end }
+
 @[simp] def extensions (c : cocone F) : coyoneda.obj (op c.X) ⟶ F.cocones :=
 { app := λ X f, c.ι ≫ (const J).map f }
 
@@ -169,16 +188,21 @@ def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cocone F) : cocon
 @[simp] lemma whisker_ι_app (c : cocone F) {K : Type v} [small_category K] (E : K ⥤ J) (k : K) :
   (c.whisker E).ι.app k = (c.ι).app (E.obj k) := rfl
 
+-- We now prove a lemma about naturality of cocones over functors into bundled categories.
 section
 omit 𝒞
-variables {m : Type v → Type v}
-variables (hom : ∀ {α β : Type v}, m α → m β → (α → β) → Prop)
-variables [h : concrete_category @hom]
-include h
+variables {m : Type v → Type v} (hom : Π ⦃α β⦄ (Iα : m α) (Iβ : m β), Type v) [S : bundled_hom hom]
+include S
+
+local attribute [instance] bundled_hom.has_coe_to_fun
 
 @[simp] lemma naturality_bundled {G : J ⥤ bundled m} (s : cocone G) {j j' : J} (f : j ⟶ j') (x : G.obj j) :
   (s.ι.app j') ((G.map f) x) = (s.ι.app j) x :=
-congr_fun (congr_arg (λ k : G.obj j ⟶ s.X, (k : G.obj j → s.X)) (s.ι.naturality f)) x
+begin
+  convert congr_fun (congr_arg (λ k : G.obj j ⟶ s.X, (k : G.obj j → s.X)) (s.ι.naturality f)) x;
+  { dsimp, simp },
+end
+
 end
 
 end cocone
@@ -194,7 +218,7 @@ attribute [simp] cone_morphism.w
   (w : f.hom = g.hom) : f = g :=
 by cases f; cases g; simpa using w
 
-instance cone.category : category.{v+1} (cone F) :=
+instance cone.category : category.{v} (cone F) :=
 { hom  := λ A B, cone_morphism A B,
   comp := λ X Y Z f g,
   { hom := f.hom ≫ g.hom,
@@ -235,7 +259,7 @@ def postcompose_comp {G H : J ⥤ C} (α : F ⟶ G) (β : G ⟶ H) :
   postcompose (α ≫ β) ≅ postcompose α ⋙ postcompose β :=
 by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obviously }
 
-def postcompose_id : postcompose (𝟙 F) ≅ functor.id (cone F) :=
+def postcompose_id : postcompose (𝟙 F) ≅ 𝟭 (cone F) :=
 by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obviously }
 
 def postcompose_equivalence {G : J ⥤ C} (α : F ≅ G) : cone F ≌ cone G :=
@@ -253,7 +277,7 @@ def forget : cone F ⥤ C :=
 @[simp] lemma forget_map {s t : cone F} {f : s ⟶ t} : forget.map f = f.hom := rfl
 
 section
-variables {D : Type u'} [𝒟 : category.{v+1} D]
+variables {D : Type u'} [𝒟 : category.{v} D]
 include 𝒟
 
 @[simp] def functoriality (G : C ⥤ D) : cone F ⥤ cone (F ⋙ G) :=
@@ -278,7 +302,7 @@ attribute [simp] cocone_morphism.w
   {A B : cocone F} {f g : cocone_morphism A B} (w : f.hom = g.hom) : f = g :=
 by cases f; cases g; simpa using w
 
-instance cocone.category : category.{v+1} (cocone F) :=
+instance cocone.category : category.{v} (cocone F) :=
 { hom  := λ A B, cocone_morphism A B,
   comp := λ _ _ _ f g,
   { hom := f.hom ≫ g.hom,
@@ -318,7 +342,7 @@ def precompose_comp {G H : J ⥤ C} (α : F ⟶ G) (β : G ⟶ H) :
   precompose (α ≫ β) ≅ precompose β ⋙ precompose α :=
 by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obviously }
 
-def precompose_id : precompose (𝟙 F) ≅ functor.id (cocone F) :=
+def precompose_id : precompose (𝟙 F) ≅ 𝟭 (cocone F) :=
 by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obviously }
 
 def precompose_equivalence {G : J ⥤ C} (α : G ≅ F) : cocone F ≌ cocone G :=
@@ -335,7 +359,7 @@ def forget : cocone F ⥤ C :=
 @[simp] lemma forget_map {s t : cocone F} {f : s ⟶ t} : forget.map f = f.hom := rfl
 
 section
-variables {D : Type u'} [𝒟 : category.{v+1} D]
+variables {D : Type u'} [𝒟 : category.{v} D]
 include 𝒟
 
 @[simp] def functoriality (G : C ⥤ D) : cocone F ⥤ cocone (F ⋙ G) :=
@@ -352,7 +376,7 @@ end limits
 
 namespace functor
 
-variables {D : Type u'} [category.{v+1} D]
+variables {D : Type u'} [category.{v} D]
 variables {F : J ⥤ C} {G : J ⥤ C} (H : C ⥤ D)
 
 open category_theory.limits

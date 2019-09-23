@@ -111,7 +111,7 @@ variable  {α : Type u}
 variables (p q : Prop)
 variable  (s : α → Prop)
 
-local attribute [instance] classical.prop_decidable
+local attribute [instance, priority 1] classical.prop_decidable
 theorem not_not_eq : (¬ ¬ p) = p := propext not_not
 theorem not_and_eq : (¬ (p ∧ q)) = (¬ p ∨ ¬ q) := propext not_and_distrib
 theorem not_or_eq : (¬ (p ∨ q)) = (¬ p ∧ ¬ q) := propext not_or_distrib
@@ -323,7 +323,7 @@ do p ← resolve_name n,
    end
 
 private meta def add_hinst_lemma_from_pexpr (md : transparency) (lhs_lemma : bool) (hs : hinst_lemmas)
-  : pexpr -> smt_tactic hinst_lemmas
+  : pexpr → smt_tactic hinst_lemmas
 | p@(expr.const c [])          := add_hinst_lemma_from_name md lhs_lemma c hs p
 | p@(expr.local_const c _ _ _) := add_hinst_lemma_from_name md lhs_lemma c hs p
 | p                          := do new_e ← to_expr p, h ← hinst_lemma.mk_core md new_e lhs_lemma,

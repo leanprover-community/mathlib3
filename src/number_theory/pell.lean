@@ -603,13 +603,13 @@ lemma eq_pow_of_pell_lem {a y k} (a1 : 1 < a) (ypos : y > 0) : k > 0 → a > y^k
 have y < a → 2*a*y ≥ a + (y*y + 1), begin
   intro ya, induction y with y IH, exact absurd ypos (lt_irrefl _),
   cases nat.eq_zero_or_pos y with y0 ypos,
-  { rw y0, simp [two_mul], apply add_le_add_left, exact a1 },
+  { rw y0, simpa [two_mul], },
   { rw [nat.mul_succ, nat.mul_succ, nat.succ_mul y],
     have : 2 * a ≥ y + nat.succ y,
     { change y + y < 2 * a, rw ← two_mul,
       exact mul_lt_mul_of_pos_left (nat.lt_of_succ_lt ya) dec_trivial },
     have := add_le_add (IH ypos (nat.lt_of_succ_lt ya)) this,
-    simp at this, simp, exact this }
+    simpa }
 end, λk0 yak,
 lt_of_lt_of_le (int.coe_nat_lt_coe_nat_of_lt yak) $
 by rw sub_sub; apply le_sub_right_of_add_le;

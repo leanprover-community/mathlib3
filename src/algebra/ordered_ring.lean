@@ -8,9 +8,13 @@ import tactic.split_ifs order.basic algebra.order algebra.ordered_group algebra.
 universe u
 variable {α : Type u}
 
--- TODO: this is necessary additionally to mul_nonneg otherwise the simplifier can not match
-lemma zero_le_mul [ordered_semiring α] {a b : α} : 0 ≤ a → 0 ≤ b → 0 ≤ a * b :=
+-- `mul_nonneg` and `mul_pos` in core are stated in terms of `≥` and `>`, so we restate them here
+-- for use in syntactic tactics (e.g. `simp` and `rw`).
+lemma mul_nonneg' [ordered_semiring α] {a b : α} : 0 ≤ a → 0 ≤ b → 0 ≤ a * b :=
 mul_nonneg
+
+lemma mul_pos' [ordered_semiring α] {a b : α} (ha : 0 < a) (hb : 0 < b) : 0 < a * b :=
+mul_pos ha hb
 
 section linear_ordered_semiring
 variable [linear_ordered_semiring α]
@@ -36,30 +40,30 @@ lemma mul_lt_mul'' {a b c d : α} (h1 : a < c) (h2 : b < d) (h3 : 0 ≤ a) (h4 :
   (λ b0, by rw [← b0, mul_zero]; exact
     mul_pos (lt_of_le_of_lt h3 h1) (lt_of_le_of_lt h4 h2))
 
-lemma le_mul_iff_one_le_left {a b : α} (hb : b > 0) : b ≤ a * b ↔ 1 ≤ a :=
+lemma le_mul_iff_one_le_left {a b : α} (hb : 0 < b) : b ≤ a * b ↔ 1 ≤ a :=
 suffices 1 * b ≤ a * b ↔ 1 ≤ a, by rwa one_mul at this,
 mul_le_mul_right hb
 
-lemma lt_mul_iff_one_lt_left {a b : α} (hb : b > 0) : b < a * b ↔ 1 < a :=
+lemma lt_mul_iff_one_lt_left {a b : α} (hb : 0 < b) : b < a * b ↔ 1 < a :=
 suffices 1 * b < a * b ↔ 1 < a, by rwa one_mul at this,
 mul_lt_mul_right hb
 
-lemma le_mul_iff_one_le_right {a b : α} (hb : b > 0) : b ≤ b * a ↔ 1 ≤ a :=
+lemma le_mul_iff_one_le_right {a b : α} (hb : 0 < b) : b ≤ b * a ↔ 1 ≤ a :=
 suffices b * 1 ≤ b * a ↔ 1 ≤ a, by rwa mul_one at this,
 mul_le_mul_left hb
 
-lemma lt_mul_iff_one_lt_right {a b : α} (hb : b > 0) : b < b * a ↔ 1 < a :=
+lemma lt_mul_iff_one_lt_right {a b : α} (hb : 0 < b) : b < b * a ↔ 1 < a :=
 suffices b * 1 < b * a ↔ 1 < a, by rwa mul_one at this,
 mul_lt_mul_left hb
 
-lemma lt_mul_of_gt_one_right' {a b : α} (hb : b > 0) : a > 1 → b < b * a :=
+lemma lt_mul_of_one_lt_right' {a b : α} (hb : 0 < b) : 1 < a → b < b * a :=
 (lt_mul_iff_one_lt_right hb).2
 
-lemma le_mul_of_ge_one_right' {a b : α} (hb : b ≥ 0) (h : a ≥ 1) : b ≤ b * a :=
+lemma le_mul_of_one_le_right' {a b : α} (hb : 0 ≤ b) (h : 1 ≤ a) : b ≤ b * a :=
 suffices b * 1 ≤ b * a, by rwa mul_one at this,
 mul_le_mul_of_nonneg_left h hb
 
-lemma le_mul_of_ge_one_left' {a b : α} (hb : b ≥ 0) (h : a ≥ 1) : b ≤ a * b :=
+lemma le_mul_of_one_le_left' {a b : α} (hb : 0 ≤ b) (h : 1 ≤ a) : b ≤ a * b :=
 suffices 1 * b ≤ a * b, by rwa one_mul at this,
 mul_le_mul_of_nonneg_right h hb
 
@@ -109,19 +113,19 @@ lemma mul_lt_one_of_nonneg_of_lt_one_right {a b : α}
 calc a * b ≤ b : mul_le_of_le_one_left hb0 ha
 ... < 1 : hb
 
-lemma mul_le_iff_le_one_left {a b : α} (hb : b > 0) : a * b ≤ b ↔ a ≤ 1 :=
+lemma mul_le_iff_le_one_left {a b : α} (hb : 0 < b) : a * b ≤ b ↔ a ≤ 1 :=
 ⟨ λ h, le_of_not_lt (mt (lt_mul_iff_one_lt_left hb).2 (not_lt_of_ge h)),
   λ h, le_of_not_lt (mt (lt_mul_iff_one_lt_left hb).1 (not_lt_of_ge h)) ⟩
 
-lemma mul_lt_iff_lt_one_left {a b : α} (hb : b > 0) : a * b < b ↔ a < 1 :=
+lemma mul_lt_iff_lt_one_left {a b : α} (hb : 0 < b) : a * b < b ↔ a < 1 :=
 ⟨ λ h, lt_of_not_ge (mt (le_mul_iff_one_le_left hb).2 (not_le_of_gt h)),
   λ h, lt_of_not_ge (mt (le_mul_iff_one_le_left hb).1 (not_le_of_gt h)) ⟩
 
-lemma mul_le_iff_le_one_right {a b : α} (hb : b > 0) : b * a ≤ b ↔ a ≤ 1 :=
+lemma mul_le_iff_le_one_right {a b : α} (hb : 0 < b) : b * a ≤ b ↔ a ≤ 1 :=
 ⟨ λ h, le_of_not_lt (mt (lt_mul_iff_one_lt_right hb).2 (not_lt_of_ge h)),
   λ h, le_of_not_lt (mt (lt_mul_iff_one_lt_right hb).1 (not_lt_of_ge h)) ⟩
 
-lemma mul_lt_iff_lt_one_right {a b : α} (hb : b > 0) : b * a < b ↔ a < 1 :=
+lemma mul_lt_iff_lt_one_right {a b : α} (hb : 0 < b) : b * a < b ↔ a < 1 :=
 ⟨ λ h, lt_of_not_ge (mt (le_mul_iff_one_le_right hb).2 (not_le_of_gt h)),
   λ h, lt_of_not_ge (mt (le_mul_iff_one_le_right hb).1 (not_le_of_gt h)) ⟩
 
@@ -248,7 +252,7 @@ instance to_ordered_ring : ordered_ring α :=
   mul_pos := λ a b, by simp [pos_def.symm]; exact mul_pos,
   ..s }
 
-def nonneg_ring.to_linear_nonneg_ring
+def to_linear_nonneg_ring
   (nonneg_total : ∀ a : α, nonneg a ∨ nonneg (-a))
   : linear_nonneg_ring α :=
 { nonneg_total := nonneg_total,

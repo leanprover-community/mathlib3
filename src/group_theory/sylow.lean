@@ -31,7 +31,7 @@ end
 lemma card_modeq_card_fixed_points [fintype α] [fintype G] [fintype (fixed_points G α)]
   {p n : ℕ} (hp : nat.prime p) (h : card G = p ^ n) : card α ≡ card (fixed_points G α) [MOD p] :=
 calc card α = card (Σ y : quotient (orbit_rel G α), {x // quotient.mk' x = y}) :
-  card_congr (equiv_fib (@quotient.mk' _ (orbit_rel G α)))
+  card_congr (sigma_preimage_equiv (@quotient.mk' _ (orbit_rel G α))).symm
 ... = univ.sum (λ a : quotient (orbit_rel G α), card {x // quotient.mk' x = a}) : card_sigma _
 ... ≡ (@univ (fixed_points G α) _).sum (λ _, 1) [MOD p] :
 begin
@@ -120,7 +120,7 @@ rotate_eq_self_iff_eq_repeat.2 ⟨(1 : G),
 /-- Cauchy's theorem -/
 lemma exists_prime_order_of_dvd_card [fintype G] {p : ℕ} (hp : nat.prime p)
   (hdvd : p ∣ card G) : ∃ x : G, order_of x = p :=
-let n : ℕ+ := ⟨p - 1, nat.sub_pos_of_lt hp.gt_one⟩ in
+let n : ℕ+ := ⟨p - 1, nat.sub_pos_of_lt hp.one_lt⟩ in
 let p' : ℕ+ := ⟨p, hp.pos⟩ in
 have hn : p' = n + 1 := subtype.eq (nat.succ_sub hp.pos),
 have hcard : card (vectors_prod_eq_one G (n + 1)) = card G ^ (n : ℕ),
@@ -140,9 +140,9 @@ have hcard_pos : 0 < card (fixed_points (multiplicative (zmod p')) (vectors_prod
   fintype.card_pos_iff.2 ⟨⟨⟨vector.repeat 1 p', one_mem_vectors_prod_eq_one _⟩,
     one_mem_fixed_points_rotate _⟩⟩,
 have hlt : 1 < card (fixed_points (multiplicative (zmod p')) (vectors_prod_eq_one G p')) :=
-  calc (1 : ℕ) < p' : hp.gt_one
+  calc (1 : ℕ) < p' : hp.one_lt
   ... ≤ _ : nat.le_of_dvd hcard_pos hdvdcard₂,
-let ⟨⟨⟨⟨x, hx₁⟩, hx₂⟩, hx₃⟩, hx₄⟩ := fintype.exists_ne_of_card_gt_one hlt
+let ⟨⟨⟨⟨x, hx₁⟩, hx₂⟩, hx₃⟩, hx₄⟩ := fintype.exists_ne_of_one_lt_card hlt
   ⟨_, one_mem_fixed_points_rotate p'⟩ in
 have hx : x ≠ list.repeat (1 : G) p', from λ h, by simpa [h, vector.repeat] using hx₄,
 have nG : nonempty G, from ⟨1⟩,
@@ -174,7 +174,7 @@ lemma mem_fixed_points_mul_left_cosets_iff_mem_normalizer {H : set G} [is_subgro
   $ by rw hx at hb₂;
     simpa [mul_inv_rev, mul_assoc] using hb₂)⟩
 
-lemma fixed_points_mul_left_cosets_equiv_quotient (H : set G) [is_subgroup H] [fintype H] :
+def fixed_points_mul_left_cosets_equiv_quotient (H : set G) [is_subgroup H] [fintype H] :
   fixed_points H (quotient H) ≃ quotient (subtype.val ⁻¹' H : set (normalizer H)) :=
 @subtype_quotient_equiv_quotient_subtype G (normalizer H) (id _) (id _) (fixed_points _ _)
   (λ a, mem_fixed_points_mul_left_cosets_iff_mem_normalizer.symm) (by intros; refl)

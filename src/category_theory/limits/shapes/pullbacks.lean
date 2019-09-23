@@ -109,7 +109,7 @@ end walking_span
 
 open walking_span walking_cospan walking_span.hom walking_cospan.hom
 
-variables {C : Type u} [𝒞 : category.{v+1} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
 /-- `cospan f g` is the functor from the walking cospan hitting `f` and `g`. -/
@@ -224,8 +224,8 @@ def cone.of_pullback_cone
     naturality' := λ j j' g,
     begin
       cases j; cases j'; cases g; dsimp; simp,
-      erw ← t.w inl, refl,
-      erw ← t.w inr, refl,
+      exact (t.w inl).symm,
+      exact (t.w inr).symm
     end } }.
 
 @[simp] lemma cone.of_pullback_cone_π
@@ -240,8 +240,8 @@ def cocone.of_pushout_cocone
     naturality' := λ j j' g,
     begin
       cases j; cases j'; cases g; dsimp; simp,
-      erw ← t.w fst, refl,
-      erw ← t.w snd, refl,
+      exact t.w fst,
+      exact t.w snd
     end } }.
 
 @[simp] lemma cocone.of_pushout_cocone_ι
@@ -289,16 +289,13 @@ colimit.desc _ (pushout_cocone.mk h k w)
 
 lemma pullback.condition {W X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)] :
   (pullback.fst : pullback f g ⟶ X) ≫ f = pullback.snd ≫ g :=
-begin
-  erw limit.w (cospan f g) walking_cospan.hom.inl,
-  erw limit.w (cospan f g) walking_cospan.hom.inr
-end
+(limit.w (cospan f g) walking_cospan.hom.inl).trans
+(limit.w (cospan f g) walking_cospan.hom.inr).symm
+
 lemma pushout.condition {W X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (span f g)] :
   f ≫ (pushout.inl : Y ⟶ pushout f g) = g ≫ pushout.inr :=
-begin
-  erw colimit.w (span f g) walking_span.hom.fst,
-  erw colimit.w (span f g) walking_span.hom.snd
-end
+(colimit.w (span f g) walking_span.hom.fst).trans
+(colimit.w (span f g) walking_span.hom.snd).symm
 
 variables (C)
 

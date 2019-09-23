@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors Jeremy Avigad, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
+Authors: Jeremy Avigad, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 
 -- QUESTION: can make the first argument in ∀ x ∈ a, ... implicit?
 -/
@@ -445,6 +445,16 @@ set.ext $ by simp
 
 theorem Union_eq_range_sigma (s : α → set β) : (⋃ i, s i) = range (λ a : Σ i, s i, a.2) :=
 by simp [set.ext_iff]
+
+theorem Union_image_preimage_sigma_mk_eq_self {ι : Type*} {σ : ι → Type*} (s : set (sigma σ)) :
+  (⋃ i, sigma.mk i '' (sigma.mk i ⁻¹' s)) = s :=
+begin
+  ext x,
+  simp only [mem_Union, mem_image, mem_preimage],
+  split,
+  { rintros ⟨i, a, h, rfl⟩, exact h },
+  { intro h, cases x with i a, exact ⟨i, a, h, rfl⟩ }
+end
 
 lemma sUnion_mono {s t : set (set α)} (h : s ⊆ t) : (⋃₀ s) ⊆ (⋃₀ t) :=
 sUnion_subset $ assume t' ht', subset_sUnion_of_mem $ h ht'

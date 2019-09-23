@@ -71,3 +71,6 @@ do cmds ← get_localized ns, cmds.mmap' trace
 
 -- you can run `open_locale classical` to get the decidability of all propositions.
 localized "attribute [instance, priority 1] classical.prop_decidable" in classical
+
+localized "postfix `?`:9001 := optional" in parser
+localized "postfix *:9001 := lean.parser.many" in parser

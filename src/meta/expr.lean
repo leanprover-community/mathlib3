@@ -3,7 +3,7 @@ Copyright (c) 2019 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis
 -/
-
+import data.string.defs
 /-!
 # Additional operations on expr and related types
 
@@ -14,6 +14,19 @@ Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lew
  ## Tags
  expr, name, declaration, level, environment, meta, metaprogramming, tactic
 -/
+
+namespace binder_info
+
+instance : inhabited binder_info := ⟨ binder_info.default ⟩
+
+/-- The brackets corresponding to a given binder_info. -/
+def brackets : binder_info → string × string
+| binder_info.implicit        := ("{", "}")
+| binder_info.strict_implicit := ("{{", "}}")
+| binder_info.inst_implicit   := ("[", "]")
+| _                           := ("(", ")")
+
+end binder_info
 
 namespace name
 
@@ -274,6 +287,15 @@ meta def mfold {α : Type} {m : Type → Type} [monad m] (e : environment) (x : 
   (fn : declaration → α → m α) : m α :=
 e.fold (return x) (λ d t, t >>= fn d)
 
+/-- Filters all declarations in the environment. -/
+meta def mfilter (e : environment) (test : declaration → tactic bool) : tactic (list declaration) :=
+e.mfold [] $ λ d ds, do b ← test d, return $ if b then d::ds else ds
+
+/-- Checks whether `ml` is a prefix of the file where `n` is declared.
+  This is used to check whether `n` is declared in mathlib, where `s` is the mathlib directory. -/
+meta def is_prefix_of_file (e : environment) (s : string) (n : name) : bool :=
+s.is_prefix_of $ (e.decl_olean n).get_or_else ""
+
 end environment
 
 namespace declaration
@@ -286,7 +308,8 @@ let decl := decl.update_type $ decl.type.apply_replacement_fun f in
 decl.update_value $ decl.value.apply_replacement_fun f
 
 /-- Checks whether the declaration is declared in the current file.
-  This is a simple wrapper around `environment.in_current_file'` -/
+  This is a simple wrapper around `environment.in_current_file'`
+  Use `environment.in_current_file'` instead if performance matters. -/
 meta def in_current_file (d : declaration) : tactic bool :=
 do e ← get_env, return $ e.in_current_file' d.to_name
 
@@ -305,4 +328,37 @@ meta def is_axiom : declaration → bool
 | (ax _ _ _) := tt
 | _          := ff
 
+/-- Checks whether a declaration is automatically generated in the environment -/
+meta def is_auto_generated (e : environment) (d : declaration) : bool :=
+e.is_constructor d.to_name ∨
+(e.is_projection d.to_name).is_some ∨
+(e.is_constructor d.to_name.get_prefix ∧
+  d.to_name.last ∈ ["inj", "inj_eq", "sizeof_spec", "inj_arrow"]) ∨
+(e.is_inductive d.to_name.get_prefix ∧
+  d.to_name.last ∈ ["below", "binduction_on", "brec_on", "cases_on", "dcases_on", "drec_on", "drec",
+  "rec", "rec_on", "no_confusion", "no_confusion_type", "sizeof", "ibelow", "has_sizeof_inst"])
+
 end declaration
+
+/-- The type of binders containing a name, the binding info and the binding type -/
+@[derive decidable_eq]
+meta structure binder :=
+  (name : name)
+  (info : binder_info)
+  (type : expr)
+
+namespace binder
+/-- Turn a binder into a string. Uses expr.to_string for the type. -/
+protected meta def to_string (b : binder) : string :=
+let (l, r) := b.info.brackets in
+l ++ b.name.to_string ++ " : " ++ b.type.to_string ++ r
+
+open tactic
+meta instance : inhabited binder := ⟨⟨default _, default _, default _⟩⟩
+meta instance : has_to_string binder := ⟨ binder.to_string ⟩
+meta instance : has_to_format binder := ⟨ λ b, b.to_string ⟩
+meta instance : has_to_tactic_format binder :=
+⟨ λ b, let (l, r) := b.info.brackets in
+  (λ e, l ++ b.name.to_string ++ " : " ++ e ++ r) <$> pp b.type ⟩
+
+end binder

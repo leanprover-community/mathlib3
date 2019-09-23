@@ -18,7 +18,7 @@ import measure_theory.measurable_space topology.instances.ennreal analysis.norme
 noncomputable theory
 
 open classical set lattice real
-local attribute [instance] prop_decidable
+open_locale classical
 
 universes u v w x y
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x} {ι : Sort y} {s t u : set α}

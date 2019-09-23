@@ -1039,6 +1039,9 @@ card_eq_zero.trans val_eq_zero
 theorem card_pos {s : finset α} : 0 < card s ↔ s ≠ ∅ :=
 pos_iff_ne_zero.trans $ not_congr card_eq_zero
 
+theorem card_ne_zero_of_mem {s : finset α} {a : α} (h : a ∈ s) : card s ≠ 0 :=
+(not_congr card_eq_zero).2 (ne_empty_of_mem h)
+
 theorem card_eq_one {s : finset α} : s.card = 1 ↔ ∃ a, s = finset.singleton a :=
 by cases s; simp [multiset.card_eq_one, finset.singleton, finset.card]
 
@@ -1054,6 +1057,10 @@ rw [card_insert_of_not_mem h]]
 @[simp] theorem card_singleton (a : α) : card (singleton a) = 1 := card_singleton _
 
 theorem card_erase_of_mem [decidable_eq α] {a : α} {s : finset α} : a ∈ s → card (erase s a) = pred (card s) := card_erase_of_mem
+
+theorem card_erase_lt_of_mem [decidable_eq α] {a : α} {s : finset α} : a ∈ s → card (erase s a) < card s := card_erase_lt_of_mem
+
+theorem card_erase_le [decidable_eq α] {a : α} {s : finset α} : card (erase s a) ≤ card s := card_erase_le
 
 @[simp] theorem card_range (n : ℕ) : card (range n) = n := card_range n
 
@@ -1089,7 +1096,7 @@ lemma card_eq_succ [decidable_eq α] {s : finset α} {n : ℕ} :
   s.card = n + 1 ↔ (∃a t, a ∉ t ∧ insert a t = s ∧ card t = n) :=
 iff.intro
   (assume eq,
-    have card s > 0, from eq.symm ▸ nat.zero_lt_succ _,
+    have 0 < card s, from eq.symm ▸ nat.zero_lt_succ _,
     let ⟨a, has⟩ := finset.exists_mem_of_ne_empty $ card_pos.mp this in
     ⟨a, s.erase a, s.not_mem_erase a, insert_erase has, by simp only [eq, card_erase_of_mem has, pred_succ]⟩)
   (assume ⟨a, t, hat, s_eq, n_eq⟩, s_eq ▸ n_eq ▸ card_insert_of_not_mem hat)
@@ -1117,7 +1124,7 @@ calc n = card (range n) : (card_range n).symm
     (by simpa only [mem_range])
     (by simp only [mem_range]; exact assume a₁ h₁ a₂ h₂, f_inj a₁ a₂ h₁ h₂)
 
-@[elab_as_eliminator] lemma strong_induction_on {p : finset α → Sort*} :
+@[elab_as_eliminator] def strong_induction_on {p : finset α → Sort*} :
   ∀ (s : finset α), (∀s, (∀t ⊂ s, p t) → p s) → p s
 | ⟨s, nd⟩ ih := multiset.strong_induction_on s
   (λ s IH nd, ih ⟨s, nd⟩ (λ ⟨t, nd'⟩ ss, IH t (val_lt_iff.2 ss) nd')) nd
@@ -1785,6 +1792,11 @@ theorem card_sdiff {s t : finset α} (h : s ⊆ t) : card (t \ s) = card t - car
 suffices card (t \ s) = card ((t \ s) ∪ s) - card s, by rwa sdiff_union_of_subset h at this,
 by rw [card_disjoint_union sdiff_disjoint, nat.add_sub_cancel]
 
+lemma disjoint_filter {s : finset α} {p q : α → Prop} [decidable_pred p] [decidable_pred q] :
+    (∀x, p x → ¬ q x) → disjoint (s.filter p) (s.filter q) :=
+assume h, by simp only [disjoint_iff_ne, mem_filter]; rintros a ⟨_, ha⟩ b ⟨_, hb⟩ eq;
+rw [eq] at ha; exact h _ ha hb
+
 end disjoint
 
 theorem sort_sorted_lt [decidable_linear_order α] (s : finset α) :
@@ -1940,7 +1952,7 @@ end
 theorem eq_cons {n m : ℕ} (h : n < m) : Ico n m = insert n (Ico (n + 1) m) :=
 by rw [← to_finset, multiset.Ico.eq_cons h, multiset.to_finset_cons, to_finset]
 
-@[simp] theorem pred_singleton {m : ℕ} (h : m > 0) : Ico (m - 1) m = {m - 1} :=
+@[simp] theorem pred_singleton {m : ℕ} (h : 0 < m) : Ico (m - 1) m = {m - 1} :=
 eq_of_veq $ multiset.Ico.pred_singleton h
 
 @[simp] theorem not_mem_top {n m : ℕ} : m ∉ Ico n m :=
@@ -1958,17 +1970,17 @@ eq_of_veq $ multiset.Ico.filter_lt_of_ge hlm
 @[simp] lemma filter_lt (n m l : ℕ) : (Ico n m).filter (λ x, x < l) = Ico n (min m l) :=
 eq_of_veq $ multiset.Ico.filter_lt n m l
 
-lemma filter_ge_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, x ≥ l) = Ico n m :=
-eq_of_veq $ multiset.Ico.filter_ge_of_le_bot hln
+lemma filter_le_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, l ≤ x) = Ico n m :=
+eq_of_veq $ multiset.Ico.filter_le_of_le_bot hln
 
-lemma filter_ge_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, x ≥ l) = ∅ :=
-eq_of_veq $ multiset.Ico.filter_ge_of_top_le hml
+lemma filter_le_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, l ≤ x) = ∅ :=
+eq_of_veq $ multiset.Ico.filter_le_of_top_le hml
 
-lemma filter_ge_of_ge {n m l : ℕ} (hnl : n ≤ l) : (Ico n m).filter (λ x, x ≥ l) = Ico l m :=
-eq_of_veq $ multiset.Ico.filter_ge_of_ge hnl
+lemma filter_le_of_le {n m l : ℕ} (hnl : n ≤ l) : (Ico n m).filter (λ x, l ≤ x) = Ico l m :=
+eq_of_veq $ multiset.Ico.filter_le_of_le hnl
 
-@[simp] lemma filter_ge (n m l : ℕ) : (Ico n m).filter (λ x, x ≥ l) = Ico (max n l) m :=
-eq_of_veq $ multiset.Ico.filter_ge n m l
+@[simp] lemma filter_le (n m l : ℕ) : (Ico n m).filter (λ x, l ≤ x) = Ico (max n l) m :=
+eq_of_veq $ multiset.Ico.filter_le n m l
 
 @[simp] lemma diff_left (l n m : ℕ) : (Ico n m) \ (Ico n l) = Ico (max n l) m :=
 by ext k; by_cases n ≤ k; simp [h, and_comm]

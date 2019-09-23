@@ -63,11 +63,11 @@ def fin_prod_fin_equiv : fin m × fin n ≃ fin (m * n) :=
     ... = (x.1.1 + 1) * n : eq.symm $ nat.succ_mul _ _
     ... ≤ m * n : nat.mul_le_mul_right _ x.1.2⟩,
   inv_fun := λ x,
-    have H : n > 0, from nat.pos_of_ne_zero $ λ H, nat.not_lt_zero x.1 $ by subst H; from x.2,
+    have H : 0 < n, from nat.pos_of_ne_zero $ λ H, nat.not_lt_zero x.1 $ by subst H; from x.2,
     (⟨x.1 / n, (nat.div_lt_iff_lt_mul _ _ H).2 x.2⟩,
      ⟨x.1 % n, nat.mod_lt _ H⟩),
   left_inv := λ ⟨x, y⟩,
-    have H : n > 0, from nat.pos_of_ne_zero $ λ H, nat.not_lt_zero y.1 $ H ▸ y.2,
+    have H : 0 < n, from nat.pos_of_ne_zero $ λ H, nat.not_lt_zero y.1 $ H ▸ y.2,
     prod.ext
       (fin.eq_of_veq $ calc
               (y.1 + n * x.1) / n

@@ -20,15 +20,13 @@ are irreducible, and uniquely determined by their defining property.
 
 universes u v w
 
--- local attribute [instance, priority 1] classical.prop_decidable
--- open_locale classical
-
+open_locale classical
 open polynomial set function
 
 variables {α : Type u} {β : Type v}
 
 section min_poly_def
-variables [decidable_eq α] [decidable_eq β] [comm_ring α] [comm_ring β] [algebra α β]
+variables [comm_ring α] [comm_ring β] [algebra α β]
 
 /-- Let B be an A-algebra, and x an element of B that is integral over A.
 The minimal polynomial of x is a monic polynomial of smallest degree that has x as its root. -/
@@ -40,7 +38,7 @@ end min_poly_def
 namespace minimal_polynomial
 
 section ring
-variables [decidable_eq α] [decidable_eq β] [comm_ring α] [comm_ring β] [algebra α β]
+variables [comm_ring α] [comm_ring β] [algebra α β]
 variables {x : β} (hx : is_integral α x)
 
 /--A minimal polynomial is monic.-/
@@ -73,7 +71,7 @@ lemma degree_le_of_ne_zero
   {p : polynomial α} (pnz : p ≠ 0) (hp : polynomial.aeval α β x p = 0) :
   degree (minimal_polynomial hx) ≤ degree p :=
 calc degree (minimal_polynomial hx) ≤ degree (p * C (leading_coeff p)⁻¹) :
-    min _ (monic_mul_leading_coeff_inv pnz) (by simp [hp])
+    min _ (monic_mul_leading_coeff_inv pnz) (by erw [alg_hom.map_mul, hp, zero_mul])
   ... = degree p : degree_mul_leading_coeff_inv p pnz
 
 /--The minimal polynomial of an element x is uniquely characterized by its defining property:
@@ -85,7 +83,7 @@ lemma unique {p : polynomial α} (pmonic : p.monic) (hp : polynomial.aeval α β
 begin
   symmetry, apply eq_of_sub_eq_zero,
   by_contra hnz,
-  have := degree_le_of_ne_zero hx hnz (by simp [hp]),
+  have := degree_le_of_ne_zero hx hnz (by erw [alg_hom.map_sub, hp, aeval, sub_zero]),
   contrapose! this,
   apply degree_sub_lt _ (ne_zero hx),
   { rw [(monic hx).leading_coeff, pmonic.leading_coeff] },
@@ -103,6 +101,9 @@ begin
   { contrapose! this,
     exact degree_mod_by_monic_lt _ (monic hx) (ne_zero hx) },
   { rw ← mod_by_monic_add_div p (monic hx) at hp,
+    -- simp at hp, -- this doesn't do enough... minimal_polynomial.aeval does not trigger )-;
+    -- The next line shouldn't be necessary. The simpa should be able to close immediately.
+    erw [alg_hom.map_add, alg_hom.map_mul, aeval] at hp,
     simpa using hp }
 end
 
@@ -131,7 +132,7 @@ lemma prime : prime (minimal_polynomial hx) :=
 begin
   refine ⟨ne_zero hx, not_is_unit hx, _⟩,
   rintros p q ⟨d, h⟩,
-  have :    polynomial.aeval α β x (p*q) = 0 := by simp [h, aeval hx],
+  have :    polynomial.aeval α β x (p*q) = 0 := by erw [h, alg_hom.map_mul, aeval, zero_mul],
   replace : polynomial.aeval α β x p = 0 ∨ polynomial.aeval α β x q = 0 := by simpa,
   cases this; [left, right]; apply dvd; assumption
 end

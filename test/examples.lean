@@ -177,3 +177,25 @@ meta structure meta_struct (α : Type u) : Type u :=
   (z : list α)
   (k : list (list α))
   (w : expr)
+
+/- tests of has_sep on finset -/
+
+
+example {α} (s : finset α) (p : α → Prop) [decidable_pred p] : {x ∈ s | p x} = s.filter p :=
+by simp
+
+example {α} (s : finset α) (p : α → Prop) [decidable_pred p] :
+  {x ∈ s | p x} = @finset.filter α p (λ _, classical.prop_decidable _) s :=
+by simp
+
+section
+open_locale classical
+
+example {α} (s : finset α) (p : α → Prop) : {x ∈ s | p x} = s.filter p :=
+by simp
+
+example (n m k : ℕ) : {x ∈ finset.range n | x < m ∨ x < k } =
+  {x ∈ finset.range n | x < m } ∪ {x ∈ finset.range n | x < k } :=
+by simp [finset.filter_or]
+
+end

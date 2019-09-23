@@ -28,6 +28,8 @@ instance has_finite_products_of_has_products [has_products.{v} C] : has_finite_p
 instance has_finite_coproducts_of_has_coproducts [has_coproducts.{v} C] : has_finite_coproducts.{v} C :=
 { has_colimits_of_shape := λ J _, by apply_instance }
 
+-- FIXME this is broken now (finite_limits is not written in terms of enumerable...)
+
 instance has_finite_products_of_has_finite_limits [has_finite_limits.{v} C] : has_finite_products.{v} C :=
 { has_limits_of_shape := λ J _ _, by { resetI, apply_instance } }
 instance has_finite_coproducts_of_has_finite_colimits [has_finite_colimits.{v} C] : has_finite_coproducts.{v} C :=

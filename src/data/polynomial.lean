@@ -462,9 +462,9 @@ begin
   { intros a, rw [eval₂_C, eval₂_C] },
   { intros p q hp hq, simp only [hp, hq, eval₂_add, is_semiring_hom.map_add g] },
   { intros n a ih,
-    simp only [pow_succ', is_semiring_hom.map_mul g, (mul_assoc _ _ _).symm,
-      eval₂_C, eval₂_mul, eval₂_X] at ih ⊢,
-    rw ih }
+    replace ih := congr_arg (λ y, y * g x) ih,
+    simpa [pow_succ', is_semiring_hom.map_mul g, (mul_assoc _ _ _).symm,
+      eval₂_C, eval₂_mul, eval₂_X] using ih }
 end
 
 end

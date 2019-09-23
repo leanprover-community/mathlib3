@@ -27,6 +27,12 @@ instance (X Y : Top.{u}) : has_coe_to_fun (X ⟶ Y) := concrete_category.has_coe
 /-- Construct a bundled `Top` from the underlying type and the typeclass. -/
 def of (X : Type u) [topological_space X] : Top := ⟨X⟩
 
+-- We provide specialised versions of the generic `coe_id` and `coe_comp` lemmas
+-- from `concrete_category.lean`, as here they are `rfl` lemmas.
+@[simp] lemma coe_id {X : Top} (x : X) : ((𝟙 X) : X → X) x = x := rfl
+@[simp] lemma coe_comp {X Y Z : Top} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
+  (f ≫ g) x = g (f x) := rfl
+
 /-- The discrete topology on any type. -/
 def discrete : Type u ⥤ Top.{u} :=
 { obj := λ X, ⟨X, ⊥⟩,

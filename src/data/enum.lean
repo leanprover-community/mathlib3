@@ -10,7 +10,7 @@ import data.finset
 import data.fintype
 
 /--
-Type class for finitely fin_enum types. The property is stronger
+Type class for finitely enumerable types. The property is stronger
 than`fintype in that it assigns each element a rank in a finite
 enumeration.
 -/

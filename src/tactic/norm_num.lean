@@ -502,14 +502,6 @@ do x₁ ← to_expr x,
 
 end tactic.interactive
 
-namespace tactic
-open norm_num interactive interactive.types
-
-/-- A "non-interactive" wrapper for the full `norm_num` tactic, for use by other tactics. -/
-meta def run_norm_num : tactic unit :=
-tactic.interactive.norm_num [] (loc.ns [none])
-end tactic
-
 namespace conv.interactive
 open conv interactive tactic.interactive
 open norm_num (derive)

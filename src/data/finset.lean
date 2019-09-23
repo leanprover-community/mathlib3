@@ -659,6 +659,18 @@ begin
   { intro x, simp, intros hx hx₂, refine ⟨or.resolve_left (h hx) hx₂, hx₂⟩ }
 end
 
+@[simp] lemma filter_eq [decidable_eq β] (s : finset β) (b : β) :
+  s.filter(eq b) = ite (b ∈ s) {b} ∅ :=
+begin
+  split_ifs,
+  { ext,
+    simp only [mem_filter, insert_empty_eq_singleton, mem_singleton],
+    exact ⟨λ h, h.2.symm, by { rintro ⟨h⟩, exact ⟨h, rfl⟩, }⟩ },
+  { ext,
+    simp only [mem_filter, not_and, iff_false, not_mem_empty],
+    rintros m ⟨e⟩, exact h m, }
+end
+
 end filter
 
 /- range -/

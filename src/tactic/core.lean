@@ -1144,7 +1144,6 @@ do e ← get_env,
   since it is expensive to execute `get_mathlib_dir` many times. -/
 meta def is_in_mathlib (n : name) : tactic bool :=
 do ml ← get_mathlib_dir, e ← get_env, return $ e.is_prefix_of_file ml n
-#check reducibility_hints
 /--
 Tries to derive unary instances by unfolding the newly introduced type.
 

@@ -1145,6 +1145,29 @@ do e ← get_env,
 meta def is_in_mathlib (n : name) : tactic bool :=
 do ml ← get_mathlib_dir, e ← get_env, return $ e.is_prefix_of_file ml n
 
+/--
+Tries to derive unary algebraic instances by unfolding the newly introduced type.
 
+For example,
+```
+@[derive ring] def new_int : Type := ℤ
+```
+adds an instance `ring new_int`, defined to be the instance of `ring ℤ` found by `apply_instance`.
+
+Multiple instances can be added with `@[derive [ring, module ℝ]]`.
+-/
+@[derive_handler] meta def delta_instance : derive_handler :=
+λ cls tp,
+(do tp' ← mk_const tp,
+   tgt ← to_expr ``(%%cls %%tp'),
+   (_, v) ← solve_aux tgt (delta_target [tp] >> apply_instance >> done),
+   v ← instantiate_mvars v,
+   nm ← get_unused_name $ tp ++
+     match tgt with
+     | expr.app (expr.const nm _) _ := nm
+     | _ := "inst"
+     end,
+   add_decl $ declaration.defn nm [] tgt v reducibility_hints.abbrev tt,
+   set_basic_attribute `instance nm tt,
+   return tt) <|> return ff
 end tactic
-open tactic

@@ -3,14 +3,14 @@ Copyright (c) 2019 Kevin Kappelmann. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Kappelmann
 -/
-import algebra.continued_fractions.definitions.basic
+import algebra.continued_fractions.basic
 /-!
 # Translation Lemmas Between Functions Defined for Continued Fractions
 
 ## Summary
 
 Some simple translation lemmas between the different functions defined in
-`algebra.continued_fractions.definitions.basic`.
+`algebra.continued_fractions.basic`.
 -/
 
 namespace generalized_continued_fraction

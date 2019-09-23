@@ -1074,54 +1074,56 @@ begin
       (disjoint_std_basis_std_basis _ _ _ _ h₃), }
 end
 
-/-lemma is_basis_std_basis [∀ j, decidable_eq (ιs j)] [∀ j, decidable_eq (φ j)]
+variable [decidable_eq (Π (i : η), φ i)]
+
+lemma linear_independent_std_basis₀ [∀ j, decidable_eq (ιs j)]  [∀ i, decidable_eq (φ i)]
+  (v : Πj, ιs j → (φ j)) (hs : ∀i, linear_independent α (v i)) :
+  linear_independent α
+    (λ (ji : Σ j, ιs j), std_basis₀ α φ ji.1 (v ji.1 ji.2)) :=
+begin
+  rw [linear_independent_iff],
+  intros l hl,
+  apply linear_independent_iff.mp (linear_independent_std_basis v hs),
+  ext n,
+  convert (congr_arg (λ g : Π₀i, φ i, g n) hl),
+  change (λ (g : Πi, φ i), g n) (l.support.sum (λi, l i • std_basis α φ i.1 (v (i.1) (i.2))))
+    = (λ (g : Π₀i, φ i), g n) (l.support.sum (λi, l i • std_basis₀ α φ i.1 (v (i.1) (i.2)))),
+  letI h : is_add_monoid_hom (λ (g : Π (i : η), φ i), g n) := sorry,
+  rw [←finset.sum_hom (λ g : Π₀i, φ i, g n), ←finset.sum_hom (λ g : Πi, φ i, g n)],
+  congr, ext i,
+  dsimp [dfinsupp.smul_apply],
+  rw [←std_basis₀_eq_std_basis], refl
+end
+
+lemma is_basis_std_basis₀ [∀ j, decidable_eq (ιs j)] [∀ j, decidable_eq (φ j)]
   (s : Πj, ιs j → (φ j)) (hs : ∀j, is_basis α (s j)) :
-  is_basis α (λ (ji : Σ j, ιs j), std_basis α φ ji.1 (s ji.1 ji.2)) :=
+  is_basis α (λ (ji : Σ j, ιs j), (std_basis₀ α φ ji.1).to_fun (s ji.1 ji.2)) :=
 begin
   split,
-  { apply linear_independent_std_basis _ (assume i, (hs i).1) },
-  have h₁ : Union (λ j, set.range (std_basis α φ j ∘ s j))
-    ⊆ range (λ (ji : Σ (j : η), ιs j), (std_basis α φ (ji.fst)) (s (ji.fst) (ji.snd))),
+  { apply linear_independent_std_basis₀ _ (assume i, (hs i).1) },
+  have h₁ : Union (λ j, set.range (std_basis₀ α φ j ∘ s j))
+    ⊆ range (λ (ji : Σ (j : η), ιs j), std_basis₀ α φ ji.fst (s (ji.fst) (ji.snd))),
   { apply Union_subset, intro i,
     apply range_comp_subset_range (λ x : ιs i, (⟨i, x⟩ : Σ (j : η), ιs j))
-        (λ (ji : Σ (j : η), ιs j), std_basis α φ (ji.fst) (s (ji.fst) (ji.snd))) },
-  have h₂ : ∀ i, span α (range (std_basis α φ i ∘ s i)) = range (std_basis α φ i),
+        (λ (ji : Σ (j : η), ιs j), std_basis₀ α φ ji.fst (s (ji.fst) (ji.snd))) },
+  have h₂ : ∀ i, span α (range (std_basis₀ α φ i ∘ s i)) = (std_basis₀ α φ i).range,
   { intro i,
     rw [set.range_comp, submodule.span_image, (assume i, (hs i).2), submodule.map_top] },
   apply eq_top_mono,
   apply span_mono h₁,
   rw span_Union,
   simp only [h₂],
-  apply supr_range_std_basis
-end-/
-
-lemma linear_independent_std_basis₀ [∀ j, decidable_eq (ιs j)]  [∀ i, decidable_eq (φ i)]
-  (v : Πj, ιs j → (φ j)) (hs : ∀i, linear_independent α (v i)) :
-  linear_independent α
-    (λ (ji : Σ j, ιs j), (std_basis₀ α φ ji.1 : φ ji.1 →ₗ[α] Π₀i, φ i) (v ji.1 ji.2)) :=
-begin
-  rw [linear_independent_iff],
-  intros l hl,
-  apply linear_independent_iff.mp (linear_independent_std_basis v hs),
-  --rw [dfinsupp.ext_iff] at hl,
-  ext n,
-  convert (congr_arg (λ g : Π₀i, φ i, g n) hl),
-  rw [finsupp.total_apply, finsupp.total_apply],
-  unfold finsupp.sum,
-  change (λ (g : Πi, φ i), g n) (l.support.sum (λi, l i • (std_basis α φ i.1) (v (i.1) (i.2))))
-    = (λ (g : Π₀i, φ i), g n) (l.support.sum (λi, l i • (std_basis₀ α φ i.1).to_fun (v (i.1) (i.2)))),
-  letI h : is_add_monoid_hom (λ (g : Π (i : η), φ i), g n) := sorry,
-  rw [←finset.sum_hom (λ g : Π₀i, φ i, g n), ←finset.sum_hom (λ g : Πi, φ i, g n)],
-  congr,
-  ext i,
-  dsimp,
-  rw [dfinsupp.smul_apply],
-  congr,
-  exact eq.symm (std_basis₀_eq_std_basis α φ i.1 n _)
+  apply supr_range_std_basis₀
 end
+
+lemma is_basis_std_basis [∀ j, decidable_eq (ιs j)] [∀ j, decidable_eq (φ j)]
+  (s : Πj, ιs j → (φ j)) (hs : ∀j, is_basis α (s j)) :
+  is_basis α (λ (ji : Σ j, ιs j), std_basis α φ ji.1 (s ji.1 ji.2)) := sorry
+
 
 section
 variables (α ι)
+variable [decidable_eq (Π (i : η), α)] --TODO: remove
 
 lemma is_basis_fun₀ : is_basis α
     (λ (ji : Σ (j : η), (λ _, unit) j),
@@ -1156,7 +1158,7 @@ variables [ring α] [add_comm_group β] [module α β]
 
 --def std_basis₀ (hv : is_basis α v) (i : η × ι) : η →₀ β := single i.1 (v i.2)
 
-lemma is_basis_finsupp (hv : is_basis α v) : is_basis α (std_basis₀ η hv) :=
+/-lemma is_basis_finsupp (hv : is_basis α v) : is_basis α (std_basis₀ η hv) :=
 begin
   have h : ∀ f g, (finsupp.total (η × ι) (η →₀ β) α (λ i, std_basis₀ η hv i)) f = g ↔
     ∀ n, (finsupp.total ι β α v) (finsupp.curry f n) = g n,
@@ -1187,19 +1189,6 @@ begin
     rw [show finsupp.curry f = _, from finsupp_prod_equiv.right_inv _, map_range_apply],
     change (linear_map.comp (finsupp.total ι β α v) (is_basis.repr hv)) (g n) = g n,
     rw [hv.total_comp_repr, linear_map.id_apply] },
-end
-
-/-- The basis constructed in is_basis_finsupp is equal to std_basis as functions. The difference
-is that std_basis forms a basis for η → β where η is a fintype, while the basis constructed in
-is_basis_finsupp forms a basis for η →₀ β where η may be infinite. -/
-lemma std_basis_eq_basis_finsupp :
-  (λ i : η × ι, (std_basis α (λ _ : η, β) i.1) (v i.2)) = (λ i : η × ι, single i.1 (v i.2)) :=
-begin
-  ext,
-  rw [std_basis_apply, single_apply],
-  split_ifs with h h,
-  { rw [←h, function.update_same] },
-  { rw [function.update_noteq (ne.symm h)], refl }
-end
+end-/
 
 end finsupp

@@ -1438,6 +1438,10 @@ begin
 end
 end
 
+instance hintm : module α (Π₀ (i : ι), φ i) := dfinsupp.to_module --make local instance
+def proj₀ (i : ι) : (Π₀i, φ i) →ₗ[α] φ i :=
+⟨ λa, a i, assume f g, dfinsupp.add_apply, assume c f, dfinsupp.smul_apply ⟩
+
 section
 variable [decidable_eq ι]
 
@@ -1561,7 +1565,7 @@ end
 
 
 open dfinsupp
-instance hintm : module α (Π₀ (i : ι), φ i) := dfinsupp.to_module
+--instance hintm : module α (Π₀ (i : ι), φ i) := dfinsupp.to_module --make local instance
 
 def std_basis₀ (i : ι) : φ i →ₗ[α] (Π₀i, φ i) :=
 ⟨λ c, dfinsupp.mk (finset.singleton i) (λ j, std_basis α φ i c j),
@@ -1571,11 +1575,47 @@ def std_basis₀ (i : ι) : φ i →ₗ[α] (Π₀i, φ i) :=
     { rw [map_smul], refl }, { rw [smul_zero] } }⟩
 
 lemma std_basis₀_eq_std_basis (i j : ι) (c : φ i) :
-  ((std_basis₀ α φ i : φ i →ₗ[α] (Π₀i, φ i)) c : Πi, φ i) j = std_basis α φ i c j :=
+  std_basis₀ α φ i c j = std_basis α φ i c j :=
 if h : _ then dif_pos h else
   eq.symm (std_basis_ne α φ i j (finset.not_mem_singleton.mp h) c) ▸ dif_neg h
 
+lemma finset_sum_apply0 {α : Type*} {β : α → Type*} {γ} [∀a, add_comm_monoid (β a)] (a : α)
+  (s : finset γ) (g : γ → Π₀a, β a) : s.sum g a = s.sum (λc, g c a) := sorry
 
+variable [∀i, decidable_eq (φ i)]
+lemma infi_ker_proj_le_supr_range_std_basis₀ {I : set ι} {J : set ι} (hu : set.univ ⊆ I ∪ J) :
+  (⨅ i∈J, ker (proj₀ i)) ≤ (⨆i∈I, (std_basis₀ α φ i).range) :=
+submodule.le_def'.2
+begin
+  assume b hb,
+  simp only [mem_infi, mem_ker, proj_apply] at hb,
+  have : ∀ i, i ∈ b.support → i ∈ I,
+  { intros i hib,
+    refine set.mem_union.elim (set.mem_of_subset_of_mem hu $ set.mem_univ i) (λ h, h) _,
+    rw [dfinsupp.mem_support_iff, ne.def] at hib,
+    intro hiJ,
+    exfalso,
+    exact hib (hb i hiJ) },
+  rw ← show b.support.sum (λi, std_basis₀ α φ i (b i)) = b,
+  { ext i,
+    rw [@finset_sum_apply0 _ φ _ _, ← std_basis_same α φ i (b i)],
+    conv_lhs { congr, skip, funext, rw [std_basis₀_eq_std_basis] },
+    refine finset.sum_eq_single i (assume j hjI ne, std_basis_ne _ _ _ _ ne.symm _) _,
+    assume hiI,
+    rw [std_basis_same],
+    rwa [dfinsupp.mem_support_iff, ne.def, not_not] at hiI },
+  exact sum_mem _ (assume i hiI, mem_supr_of_mem _ i $ mem_supr_of_mem _ (this i hiI) $
+    linear_map.mem_range.2 ⟨_, rfl⟩)
+end
+
+lemma supr_range_std_basis₀ : (⨆i:ι, range (std_basis₀ α φ i)) = ⊤ :=
+have (set.univ : set ι) ⊆ set.univ ∪ ∅ := set.subset_union_left _ _,
+begin
+  apply top_unique,
+  convert (infi_ker_proj_le_supr_range_std_basis₀ α φ this),
+  exact infi_emptyset.symm,
+  exact (funext $ λi, (@supr_pos _ _ _ (λh, (std_basis₀ α φ i).range) $ set.mem_univ i).symm)
+end
 
 end
 

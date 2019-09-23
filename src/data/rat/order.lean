@@ -41,7 +41,7 @@ begin
     rw ← this, exact mul_nonneg h₂ (int.coe_zero_le _) },
 end
 
-protected def nonneg_add {a b} : rat.nonneg a → rat.nonneg b → rat.nonneg (a + b) :=
+protected lemma nonneg_add {a b} : rat.nonneg a → rat.nonneg b → rat.nonneg (a + b) :=
 num_denom_cases_on' a $ λ n₁ d₁ h₁,
 num_denom_cases_on' b $ λ n₂ d₂ h₂,
 begin
@@ -52,7 +52,7 @@ begin
   apply add_nonneg; apply mul_nonneg; {assumption <|> apply int.coe_zero_le},
 end
 
-protected def nonneg_mul {a b} : rat.nonneg a → rat.nonneg b → rat.nonneg (a * b) :=
+protected lemma nonneg_mul {a b} : rat.nonneg a → rat.nonneg b → rat.nonneg (a * b) :=
 num_denom_cases_on' a $ λ n₁ d₁ h₁,
 num_denom_cases_on' b $ λ n₂ d₂ h₂,
 begin
@@ -62,7 +62,7 @@ begin
   exact mul_nonneg
 end
 
-protected def nonneg_antisymm {a} : rat.nonneg a → rat.nonneg (-a) → a = 0 :=
+protected lemma nonneg_antisymm {a} : rat.nonneg a → rat.nonneg (-a) → a = 0 :=
 num_denom_cases_on' a $ λ n d h,
 begin
   have d0 : 0 < (d:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h),
@@ -70,7 +70,7 @@ begin
   exact λ h₁ h₂, le_antisymm h₂ h₁
 end
 
-protected def nonneg_total : rat.nonneg a ∨ rat.nonneg (-a) :=
+protected lemma nonneg_total : rat.nonneg a ∨ rat.nonneg (-a) :=
 by cases a with n; exact
 or.imp_right neg_nonneg_of_nonpos (le_total 0 n)
 

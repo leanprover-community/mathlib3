@@ -759,12 +759,20 @@ by rw [to_nat_eq_max, max_eq_left h]
 theorem le_to_nat (a : ℤ) : a ≤ to_nat a :=
 by rw [to_nat_eq_max]; apply le_max_left
 
-@[simp] theorem to_nat_le (a : ℤ) (n : ℕ) : to_nat a ≤ n ↔ a ≤ n :=
+@[simp] theorem to_nat_le {a : ℤ} {n : ℕ} : to_nat a ≤ n ↔ a ≤ n :=
 by rw [(coe_nat_le_coe_nat_iff _ _).symm, to_nat_eq_max, max_le_iff];
    exact and_iff_left (coe_zero_le _)
 
+@[simp] theorem lt_to_nat {n : ℕ} {a : ℤ} : n < to_nat a ↔ (n : ℤ) < a :=
+le_iff_le_iff_lt_iff_lt.1 to_nat_le
+
 theorem to_nat_le_to_nat {a b : ℤ} (h : a ≤ b) : to_nat a ≤ to_nat b :=
 by rw to_nat_le; exact le_trans h (le_to_nat b)
+
+theorem to_nat_lt_to_nat {a b : ℤ} (hb : 0 < b) (h : a < b) : to_nat a < to_nat b :=
+by rw lt_to_nat; cases a; [exact h, exact hb]
+
+
 
 def to_nat' : ℤ → option ℕ
 | (n : ℕ) := some n

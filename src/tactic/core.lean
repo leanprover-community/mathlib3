@@ -1146,7 +1146,7 @@ meta def is_in_mathlib (n : name) : tactic bool :=
 do ml ← get_mathlib_dir, e ← get_env, return $ e.is_prefix_of_file ml n
 
 /--
-Tries to derive unary algebraic instances by unfolding the newly introduced type.
+Tries to derive unary instances by unfolding the newly introduced type.
 
 For example,
 ```

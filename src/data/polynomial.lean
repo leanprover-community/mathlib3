@@ -63,6 +63,10 @@ instance [has_repr α] : has_repr (polynomial α) :=
 theorem ext {p q : polynomial α} : p = q ↔ ∀ n, coeff p n = coeff q n :=
 ⟨λ h n, h ▸ rfl, finsupp.ext⟩
 
+-- TODO fix naming
+@[extensionality] lemma ext2 {p q : polynomial α} : (∀ n, coeff p n = coeff q n) → p = q :=
+(@ext _ _ p q).2
+
 /-- `degree p` is the degree of the polynomial `p`, i.e. the largest `X`-exponent in `p`.
 `degree p = some n` when `p ≠ 0` and `n` is the highest power of `X` that appears in `p`, otherwise
 `degree 0 = ⊥`. -/
@@ -584,22 +588,26 @@ begin
   { rwa [degree_eq_nat_degree hp, with_bot.coe_lt_coe] }
 end
 
+-- TODO find a home (this file)
+@[simp] lemma finset_sum_coeff (s : finset β) (f : β → polynomial α) (n : ℕ) :
+  coeff (s.sum f) n = s.sum (λ b, coeff (f b) n) :=
+(finset.sum_hom (λ q : polynomial α, q.coeff n)).symm
+
+-- We need the explicit `decidable` argument here because an exotic one shows up in a moment!
+lemma ite_le_nat_degree_coeff (p : polynomial α) (n : ℕ) (I : decidable (n < 1 + nat_degree p)) :
+  @ite (n < 1 + nat_degree p) I _ (coeff p n) 0 = coeff p n :=
+begin
+  split_ifs,
+  { refl },
+  { exact (coeff_eq_zero_of_nat_degree_lt (not_le.1 (λ w, h (lt_one_add_iff.2 w)))).symm, }
+end
+
 lemma as_sum (p : polynomial α) :
   p = (range (p.nat_degree + 1)).sum (λ i, C (p.coeff i) * X^i) :=
 begin
-  ext n, symmetry,
-  calc
-    coeff (sum (range (nat_degree p + 1)) (λ (i : ℕ), C (coeff p i) * X ^ i)) n
-         = sum (range (p.nat_degree + 1)) (λ k, coeff (C (coeff p k) * X ^ k) n)
-             : (finset.sum_hom (λ q : polynomial α, q.coeff n)).symm
-     ... = coeff p n :
-  begin
-    rw finset.sum_eq_single n;
-    try { simp only [mul_one, coeff_X_pow, if_pos rfl, coeff_C_mul], },
-    { intros i hi hne, rw [if_neg hne.symm, mul_zero] },
-    { intro h, rw [finset.mem_range, not_lt] at h,
-      exact coeff_eq_zero_of_nat_degree_lt h }
-  end
+  ext n,
+  simp only [add_comm, coeff_X_pow, coeff_C_mul, finset.mem_range,
+    finset.sum_mul_boole, finset_sum_coeff, ite_le_nat_degree_coeff],
 end
 
 lemma coeff_nat_degree_eq_zero_of_degree_lt (h : degree p < degree q) : coeff p (nat_degree q) = 0 :=

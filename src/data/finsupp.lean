@@ -1514,7 +1514,7 @@ end
 variable (σ)
 
 /-- The order on σ →₀ ℕ is well-founded.-/
-def lt_wf : well_founded (@has_lt.lt (σ →₀ ℕ) _) :=
+lemma lt_wf : well_founded (@has_lt.lt (σ →₀ ℕ) _) :=
 subrelation.wf (sum_id_lt_of_lt) $ inv_image.wf _ nat.lt_wf
 
 instance decidable_le : decidable_rel (@has_le.le (σ →₀ ℕ) _) :=

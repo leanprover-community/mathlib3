@@ -259,4 +259,19 @@ lemma uncurry'_bicompr (f : α → β → γ) (g : γ → δ) :
   uncurry' (g ∘₂ f) = (g ∘ uncurry' f) := rfl
 end bicomp
 
+/-- A function is involutive, if `f ∘ f = id`. -/
+def involutive {α} (f : α → α) : Prop := ∀ x, f (f x) = x
+
+namespace involutive
+variables {α : Sort u} {f : α → α} (h : involutive f)
+
+protected lemma left_inverse : left_inverse f f := h
+protected lemma right_inverse : right_inverse f f := h
+
+protected lemma injective : injective f := injective_of_left_inverse h.left_inverse
+protected lemma surjective : surjective f := λ x, ⟨f x, h x⟩
+protected lemma bijective : bijective f := ⟨h.injective, h.surjective⟩
+
+end involutive
+
 end function

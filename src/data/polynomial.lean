@@ -448,9 +448,6 @@ def monic (p : polynomial α) := leading_coeff p = (1 : α)
 
 lemma monic.def : monic p ↔ leading_coeff p = 1 := iff.rfl
 
-instance monic.decidable [decidable_eq α] : decidable (monic p) :=
-by unfold monic; apply_instance
-
 @[simp] lemma degree_zero : degree (0 : polynomial α) = ⊥ := rfl
 
 @[simp] lemma nat_degree_zero : nat_degree (0 : polynomial α) = 0 := rfl

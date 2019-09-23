@@ -71,7 +71,7 @@ lemma degree_le_of_ne_zero
   {p : polynomial α} (pnz : p ≠ 0) (hp : polynomial.aeval α β x p = 0) :
   degree (minimal_polynomial hx) ≤ degree p :=
 calc degree (minimal_polynomial hx) ≤ degree (p * C (leading_coeff p)⁻¹) :
-    min _ (monic_mul_leading_coeff_inv pnz) (by erw [alg_hom.map_mul, hp, zero_mul])
+    min _ (monic_mul_leading_coeff_inv pnz) (by simp [hp])
   ... = degree p : degree_mul_leading_coeff_inv p pnz
 
 /--The minimal polynomial of an element x is uniquely characterized by its defining property:
@@ -83,7 +83,7 @@ lemma unique {p : polynomial α} (pmonic : p.monic) (hp : polynomial.aeval α β
 begin
   symmetry, apply eq_of_sub_eq_zero,
   by_contra hnz,
-  have := degree_le_of_ne_zero hx hnz (by erw [alg_hom.map_sub, hp, aeval, sub_zero]),
+  have := degree_le_of_ne_zero hx hnz (by simp [hp]),
   contrapose! this,
   apply degree_sub_lt _ (ne_zero hx),
   { rw [(monic hx).leading_coeff, pmonic.leading_coeff] },
@@ -101,9 +101,6 @@ begin
   { contrapose! this,
     exact degree_mod_by_monic_lt _ (monic hx) (ne_zero hx) },
   { rw ← mod_by_monic_add_div p (monic hx) at hp,
-    -- simp at hp, -- this doesn't do enough... minimal_polynomial.aeval does not trigger )-;
-    -- The next line shouldn't be necessary. The simpa should be able to close immediately.
-    erw [alg_hom.map_add, alg_hom.map_mul, aeval] at hp,
     simpa using hp }
 end
 
@@ -132,7 +129,7 @@ lemma prime : prime (minimal_polynomial hx) :=
 begin
   refine ⟨ne_zero hx, not_is_unit hx, _⟩,
   rintros p q ⟨d, h⟩,
-  have :    polynomial.aeval α β x (p*q) = 0 := by erw [h, alg_hom.map_mul, aeval, zero_mul],
+  have :    polynomial.aeval α β x (p*q) = 0 := by simp [h, aeval hx],
   replace : polynomial.aeval α β x p = 0 ∨ polynomial.aeval α β x q = 0 := by simpa,
   cases this; [left, right]; apply dvd; assumption
 end

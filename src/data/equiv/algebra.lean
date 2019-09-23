@@ -249,7 +249,7 @@ end
 
 /-- A multiplicative isomorphism preserves multiplication (canonical form). -/
 @[to_additive]
-def map_mul (f : α ≃* β) :  ∀ x y : α, f (x * y) = f x * f y := f.map_mul'
+lemma map_mul (f : α ≃* β) :  ∀ x y : α, f (x * y) = f x * f y := f.map_mul'
 
 /-- A multiplicative isomorphism preserves multiplication (deprecated). -/
 @[to_additive]
@@ -284,17 +284,17 @@ def trans (h1 : α ≃* β) (h2 : β ≃* γ) : (α ≃* γ) :=
 
 /-- e.right_inv in canonical form -/
 @[simp, to_additive]
-def apply_symm_apply (e : α ≃* β) : ∀ (y : β), e (e.symm y) = y :=
+lemma apply_symm_apply (e : α ≃* β) : ∀ (y : β), e (e.symm y) = y :=
 e.to_equiv.apply_symm_apply
 
 /-- e.left_inv in canonical form -/
 @[simp, to_additive]
-def symm_apply_apply (e : α ≃* β) : ∀ (x : α), e.symm (e x) = x :=
+lemma symm_apply_apply (e : α ≃* β) : ∀ (x : α), e.symm (e x) = x :=
 equiv.symm_apply_apply (e.to_equiv)
 
 /-- a multiplicative equiv of monoids sends 1 to 1 (and is hence a monoid isomorphism) -/
 @[simp, to_additive]
-def map_one {α β} [monoid α] [monoid β] (h : α ≃* β) : h 1 = 1 :=
+lemma map_one {α β} [monoid α] [monoid β] (h : α ≃* β) : h 1 = 1 :=
 by rw [←mul_one (h 1), ←h.apply_symm_apply 1, ←h.map_mul, one_mul]
 
 /-- A multiplicative bijection between two monoids is an isomorphism. -/
@@ -360,8 +360,10 @@ variables [ring α] [ring β] [ring γ]
 
 instance : has_coe_to_fun (α ≃r β) := ⟨_, ring_equiv.to_fun⟩
 
-instance ring_equiv.is_ring_hom (h : α ≃r β) : is_ring_hom h := h.hom
-instance ring_equiv.is_ring_hom' (h : α ≃r β) : is_ring_hom h.to_equiv := h.hom
+-- FIXME are these all necessary?
+instance is_ring_hom_coe (h : α ≃r β) : is_ring_hom h := h.hom
+instance is_ring_hom_to_equiv (h : α ≃r β) : is_ring_hom h.to_equiv := h.hom
+instance is_ring_hom_to_fun (h : α ≃r β) : is_ring_hom h.to_fun := h.hom
 
 /-- Convert a `ring_equiv` to a `mul_equiv`. -/
 def to_mul_equiv (e : α ≃r β) : α ≃* β :=

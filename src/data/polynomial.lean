@@ -31,10 +31,10 @@ instance : has_add (polynomial α) := finsupp.has_add
 instance : has_mul (polynomial α) := finsupp.has_mul
 instance : comm_semiring (polynomial α) := finsupp.comm_semiring
 
-def polynomial.has_coe_to_fun : has_coe_to_fun (polynomial α) :=
+def coeff_coe_to_fun : has_coe_to_fun (polynomial α) :=
 finsupp.has_coe_to_fun
 
-local attribute [instance] finsupp.comm_semiring polynomial.has_coe_to_fun
+local attribute [instance] finsupp.comm_semiring coeff_coe_to_fun
 
 @[simp] lemma support_zero : (0 : polynomial α).support = ∅ := rfl
 
@@ -68,7 +68,7 @@ theorem ext {p q : polynomial α} : p = q ↔ ∀ n, coeff p n = coeff q n :=
 `degree 0 = ⊥`. -/
 def degree (p : polynomial α) : with_bot ℕ := p.support.sup some
 
-def degree_lt_wf : well_founded (λp q : polynomial α, degree p < degree q) :=
+lemma degree_lt_wf : well_founded (λp q : polynomial α, degree p < degree q) :=
 inv_image.wf degree (with_bot.well_founded_lt nat.lt_wf)
 
 instance : has_well_founded (polynomial α) := ⟨_, degree_lt_wf⟩

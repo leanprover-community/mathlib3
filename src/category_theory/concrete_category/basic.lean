@@ -77,8 +77,8 @@ local attribute [instance] concrete_category.has_coe_to_fun
 
 @[simp] lemma forget_map_eq_coe {X Y : C} (f : X ⟶ Y) : (forget C).map f = f := rfl
 
-@[simp] lemma coe_id {X : C} : ((𝟙 X) : X → X) = _root_.id :=
-(forget _).map_id X
+@[simp] lemma coe_id {X : C} (x : X) : ((𝟙 X) : X → X) x = x :=
+congr_fun ((forget _).map_id X) x
 @[simp] lemma coe_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
   (f ≫ g) x = g (f x) :=
 congr_fun ((forget _).map_comp _ _) x

@@ -252,7 +252,7 @@ instance to_ordered_ring : ordered_ring α :=
   mul_pos := λ a b, by simp [pos_def.symm]; exact mul_pos,
   ..s }
 
-def nonneg_ring.to_linear_nonneg_ring
+def to_linear_nonneg_ring
   (nonneg_total : ∀ a : α, nonneg a ∨ nonneg (-a))
   : linear_nonneg_ring α :=
 { nonneg_total := nonneg_total,

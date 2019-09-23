@@ -825,7 +825,7 @@ noncomputable def of_bijective {α β} {f : α → β} (hf : bijective f) : α �
 
 @[simp] theorem of_bijective_to_fun {α β} {f : α → β} (hf : bijective f) : (of_bijective hf : α → β) = f := rfl
 
-lemma subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid α]
+def subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid α]
   [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ :  ∀ a, p₁ a ↔ p₂ ⟦a⟧)
   (h : ∀ x y : subtype p₁, @setoid.r _ s₂ x y ↔ (x : α) ≈ y) :
   {x // p₂ x} ≃ quotient s₂ :=

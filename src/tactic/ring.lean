@@ -423,7 +423,7 @@ by simp [horner, mul_comm]
 theorem mul_assoc_rev {α} [semigroup α] (a b c : α) : a * (b * c) = a * b * c :=
 by simp [mul_assoc]
 
-theorem pow_add_rev {α} [monoid α] (a b : α) (m n : ℕ) : a ^ m * a ^ n = a ^ (m + n) :=
+theorem pow_add_rev {α} [monoid α] (a : α) (m n : ℕ) : a ^ m * a ^ n = a ^ (m + n) :=
 by simp [pow_add]
 
 theorem pow_add_rev_right {α} [monoid α] (a b : α) (m n : ℕ) : b * a ^ m * a ^ n = b * a ^ (m + n) :=

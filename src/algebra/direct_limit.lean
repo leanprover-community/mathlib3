@@ -195,7 +195,7 @@ namespace direct_limit
 variables (f : Π i j, i ≤ j → G i → G j)
 variables [Π i j hij, is_add_group_hom (f i j hij)] [directed_system G f]
 
-def directed_system : module.directed_system G (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij) :=
+lemma directed_system : module.directed_system G (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij) :=
 ⟨directed_system.map_self f, directed_system.map_map f⟩
 
 local attribute [instance] directed_system

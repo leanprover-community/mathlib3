@@ -741,10 +741,10 @@ by rw [smul_eq_C_mul, eval_mul, eval_C]
 
 section degrees
 
-lemma degrees_neg [comm_ring α] (p : mv_polynomial σ α) : (- p).degrees = p.degrees :=
+lemma degrees_neg (p : mv_polynomial σ α) : (- p).degrees = p.degrees :=
 by rw [degrees, finsupp.support_neg]; refl
 
-lemma degrees_sub [comm_ring α] (p q : mv_polynomial σ α) :
+lemma degrees_sub (p q : mv_polynomial σ α) :
   (p - q).degrees ≤ p.degrees ⊔ q.degrees :=
 le_trans (degrees_add p (-q)) $ by rw [degrees_neg]
 

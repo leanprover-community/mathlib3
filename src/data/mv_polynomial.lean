@@ -780,7 +780,7 @@ functiosn out of the the type `σ`, -/
 def hom_equiv : (mv_polynomial σ ℤ →+* β) ≃ (σ → β) :=
 { to_fun := λ f, ⇑f ∘ X,
   inv_fun := λ f, ring_hom.of (eval₂ (λ n : ℤ, (n : β)) f),
-  left_inv := λ f, ring_hom.ext $ funext $ eval₂_hom_X _ _,
+  left_inv := λ f, ring_hom.ext  $ eval₂_hom_X _ _,
   right_inv := λ f, funext $ λ x, by simp only [ring_hom.coe_of, function.comp_app, eval₂_X] }
 
 end eval₂

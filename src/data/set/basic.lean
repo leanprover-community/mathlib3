@@ -1391,6 +1391,30 @@ set.subset.antisymm (snd_image_prod_subset _ _)
   $ λ y y_in, let (⟨x, x_in⟩ : ∃ (x : α), x ∈ s) := set.exists_mem_of_ne_empty hs in
     ⟨(x, y), ⟨x_in, y_in⟩, rfl⟩
 
+/-- A product set is included in a product set if and only factors are included, or a factor of the
+first set is empty. -/
+lemma prod_subset_prod_iff :
+  (set.prod s t ⊆ set.prod s₁ t₁) ↔ (s ⊆ s₁ ∧ t ⊆ t₁) ∨ (s = ∅) ∨ (t = ∅) :=
+begin
+  classical,
+  by_cases h : set.prod s t = ∅,
+  { simp [h, prod_eq_empty_iff.1 h] },
+  { have st : s ≠ ∅ ∧ t ≠ ∅, by rwa [← ne.def, prod_neq_empty_iff] at h,
+    split,
+    { assume H : set.prod s t ⊆ set.prod s₁ t₁,
+      have h' : s₁ ≠ ∅ ∧ t₁ ≠ ∅ := prod_neq_empty_iff.1 (subset_ne_empty H h),
+      refine or.inl ⟨_, _⟩,
+      show s ⊆ s₁,
+      { have := image_subset (prod.fst : α × β → α) H,
+        rwa [fst_image_prod _ st.2, fst_image_prod _ h'.2] at this },
+      show t ⊆ t₁,
+      { have := image_subset (prod.snd : α × β → β) H,
+        rwa [snd_image_prod st.1, snd_image_prod h'.1] at this } },
+    { assume H,
+      simp [st] at H,
+      exact prod_mono H.1 H.2 } }
+end
+
 end prod
 
 section pi

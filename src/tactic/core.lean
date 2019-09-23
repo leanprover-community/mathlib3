@@ -1144,7 +1144,7 @@ do e ← get_env,
   since it is expensive to execute `get_mathlib_dir` many times. -/
 meta def is_in_mathlib (n : name) : tactic bool :=
 do ml ← get_mathlib_dir, e ← get_env, return $ e.is_prefix_of_file ml n
-
+#check reducibility_hints
 /--
 Tries to derive unary instances by unfolding the newly introduced type.
 
@@ -1167,7 +1167,7 @@ Multiple instances can be added with `@[derive [ring, module ℝ]]`.
      | expr.app (expr.const nm _) _ := nm
      | _ := "inst"
      end,
-   add_decl $ declaration.defn nm [] tgt v reducibility_hints.abbrev tt,
+   add_decl $ mk_definition nm [] tgt v,
    set_basic_attribute `instance nm tt,
    return tt) <|> return ff
 end tactic

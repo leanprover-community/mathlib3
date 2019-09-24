@@ -15,9 +15,11 @@ import tactic.core
   You can append a `-` to any command to only run the subset of the tests that don't take long to
   execute.
 
-  Currently this will check for unused arguments in declarations, whether a declaration is
-  incorrectly marked as a def/lemma, and whether a namespace is duplicated in the name of a
-  declaration
+  Currently this will check for
+  * unused arguments in declarations,
+  * whether a declaration is incorrectly marked as a def/lemma,
+  * whether a namespace is duplicated in the name of a declaration
+  * whether ≥/> is used in the declaration
 
   You can customize the performed checks like this:
   ```
@@ -139,18 +141,22 @@ return $ let nm := d.to_name.components in if nm.chain' (≠) then none
 
 /-- Checks whether a declaration has a classical proof in the statement -/
 -- TODO: this probably needs to also check whether the argument is a variable or @eq <var> _ _
+-- meta def illegal_constants_in_statement (d : declaration) : tactic (option string) :=
+-- return $ if d.type.contains_constant (λ n, (n.get_prefix = `classical ∧
+--   n.last ∈ ["prop_decidable", "dec", "dec_rel", "dec_eq"]) ∨ n ∈ [`gt, `ge])
+-- then
+--   let illegal1 := [`classical.prop_decidable, `classical.dec, `classical.dec_rel, `classical.dec_eq],
+--       illegal2 := [`gt, `ge],
+--       occur1 := illegal1.filter (λ n, d.type.contains_constant (eq n)),
+--       occur2 := illegal2.filter (λ n, d.type.contains_constant (eq n)) in
+--   some $ sformat!"the type contains the following declarations: {occur1 ++ occur2}." ++
+--     (if occur1 = [] then "" else " Add decidability type-class arguments instead.") ++
+--     (if occur2 = [] then "" else " Use ≤/< instead.")
+-- else none
 meta def illegal_constants_in_statement (d : declaration) : tactic (option string) :=
-return $ if d.type.contains_constant (λ n, (n.get_prefix = `classical ∧
-  n.last ∈ ["prop_decidable", "dec", "dec_rel", "dec_eq"]) ∨ n ∈ [`gt, `ge])
-then
-  let illegal1 := [`classical.prop_decidable, `classical.dec, `classical.dec_rel, `classical.dec_eq],
-      illegal2 := [`gt, `ge],
-      occur1 := illegal1.filter (λ n, d.type.contains_constant (eq n)),
-      occur2 := illegal2.filter (λ n, d.type.contains_constant (eq n)) in
-  some $ sformat!"the type contains the following declarations: {occur1 ++ occur2}." ++
-    (if occur1 = [] then "" else " Add decidability type-class arguments instead.") ++
-    (if occur2 = [] then "" else " Use ≤/< instead.")
-else none
+return $ let illegal := [`gt, `ge] in if d.type.contains_constant (λ n, n ∈ illegal)
+  then some "the type contains ≥/>. Use ≤/< instead."
+  else none
 
 /- The default checks of `#sanity_check` -/
 meta def standard_checks : list ((declaration → tactic (option string)) × string × string) :=
@@ -169,7 +175,7 @@ meta def default_checks (slow : bool := tt) :
 standard_checks ++ if slow then slow_checks else []
 
 /-- The common denominator of `#sanity_check[|mathlib|all]`.
-  The different options have different configurations for `l`, `printer` and `where_desc`.
+  The different commands have different configurations for `l`, `printer` and `where_desc`.
   If `slow` is false, doesn't do the checks that take a lot of time.
   By setting `checks` you can customize which checks are performed. -/
 meta def sanity_check_aux (l : list declaration)
@@ -235,7 +241,7 @@ do b ← optional (tk "-"), s ← sanity_check_mathlib b.is_none, trace s
   parser unit :=
 do b ← optional (tk "-"), s ← sanity_check_all b.is_none, trace s
 
-/-- Use sanity check as a hole command. Note : In a large file, there might be some delay between
+/-- Use sanity check as a hole command. Note: In a large file, there might be some delay between
   choosing the option and the information appearing -/
 @[hole_command] meta def sanity_check_hole_cmd : hole_command :=
 { name := "Sanity Check",

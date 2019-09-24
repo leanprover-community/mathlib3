@@ -1148,9 +1148,12 @@ User commands to spot common mistakes in the code
 You can append a `-` to any command to only run the subset of the tests that don't take long to
 execute.
 
-Currently this will check for unused arguments in declarations, whether a declaration is
-incorrectly marked as a def/lemma, and whether a namespace is duplicated in the name of a
-declaration
+Currently this will check for
+
+* unused arguments in declarations,
+* whether a declaration is incorrectly marked as a def/lemma,
+* whether a namespace is duplicated in the name of a declaration
+* whether ≥/> is used in the declaration
 
 You can customize the performed checks like this:
 ```lean

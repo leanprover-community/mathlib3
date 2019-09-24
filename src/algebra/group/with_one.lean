@@ -187,7 +187,7 @@ variables [group α]
 @[simp] lemma inv_one : (1 : with_zero α)⁻¹ = 1 :=
 show ((1⁻¹ : α) : with_zero α) = 1, by simp [coe_one]
 
-definition with_zero.div (x y : with_zero α) : with_zero α :=
+definition div (x y : with_zero α) : with_zero α :=
 x * y⁻¹
 
 instance : has_div (with_zero α) := ⟨with_zero.div⟩

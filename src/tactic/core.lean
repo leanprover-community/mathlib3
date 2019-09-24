@@ -1175,8 +1175,7 @@ open lean.parser interactive
 /-- `import_private foo from bar` finds a private declaration `foo` in the same file as `bar` 
     and creates a local notation to refer to it. 
     
-    `import_private foo`, looks for `foo` in the global namespace.
-    -/
+    `import_private foo`, looks for `foo` in all imported files. -/
 @[user_command]
 meta def import_private_cmd (_ : parse $ tk "import_private") : lean.parser unit :=
 do n  ← ident,

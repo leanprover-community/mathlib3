@@ -158,8 +158,8 @@ return $ let illegal := [`gt, `ge] in if d.type.contains_constant (λ n, n ∈ i
   then some "the type contains ≥/>. Use ≤/< instead."
   else none
 
-/- The default checks of `#sanity_check` -/
-meta def standard_checks : list ((declaration → tactic (option string)) × string × string) :=
+/- The quick checks of `#sanity_check` -/
+meta def quick_checks : list ((declaration → tactic (option string)) × string × string) :=
 [ (unused_arguments, "No unused arguments", "UNUSED ARGUMENTS"),
   (incorrect_def_lemma, "All declarations correctly marked as def/lemma", "INCORRECT DEF/LEMMA"),
   (dup_namespace, "No declarations have a duplicate namespace", "DUPLICATED NAMESPACES IN NAME")]
@@ -169,10 +169,10 @@ meta def slow_checks : list ((declaration → tactic (option string)) × string 
 [ (illegal_constants_in_statement, "No illegal constants in declarations",
     "ILLEGAL CONSTANTS IN DECLARATIONS")]
 
-/- The default checks of `#sanity_check`. Depends on whether `expensive` is true -/
+/- The default checks of `#sanity_check`. Depends on whether `slow` is true -/
 meta def default_checks (slow : bool := tt) :
   list ((declaration → tactic (option string)) × string × string) :=
-standard_checks ++ if slow then slow_checks else []
+quick_checks ++ if slow then slow_checks else []
 
 /-- The common denominator of `#sanity_check[|mathlib|all]`.
   The different commands have different configurations for `l`, `printer` and `where_desc`.

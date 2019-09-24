@@ -1145,6 +1145,10 @@ do e ← get_env,
 meta def is_in_mathlib (n : name) : tactic bool :=
 do ml ← get_mathlib_dir, e ← get_env, return $ e.is_prefix_of_file ml n
 
+/-- `find_private_decl n none` finds a private declaration named `n` in any of the imported files.
+
+`find_private_decl n (some m)` finds a private declaration named `n` in the same file where a declaration named `m`
+can be found.  -/
 meta def find_private_decl (n : name) (fr : option name) : tactic name :=
 do env ← get_env,
    fn ← option_t.run (do

@@ -12,8 +12,8 @@ import tactic.core
   * `#sanity_check_all`: check all declarations in the environment (the current file and all
     imported files)
 
-  You can append a `-` to any command to only run the subset of the tests that don't take long to
-  execute.
+  You can append a `-` to any command (e.g. `#sanity_check_mathlib-`) to only run the subset of the
+  tests that don't take long to execute.
 
   Currently this will check for
   * unused arguments in declarations,

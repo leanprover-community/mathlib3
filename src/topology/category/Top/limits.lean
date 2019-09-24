@@ -17,6 +17,8 @@ namespace Top
 
 variables {J : Type u} [small_category J]
 
+local notation `forget` := forget Top
+
 def limit (F : J ⥤ Top.{u}) : cone F :=
 { X := ⟨limit (F ⋙ forget), ⨅j, (F.obj j).str.induced (limit.π (F ⋙ forget) j)⟩,
   π :=

@@ -33,11 +33,11 @@ protected lemma comp_map {α β γ : Type u} (g : α → β) (h : β → γ) (x 
   equiv.map (h ∘ g) x = equiv.map h (equiv.map g x) :=
 by simp [equiv.map]; apply comp_map
 
-protected def is_lawful_functor : @is_lawful_functor _ equiv.functor :=
+protected lemma is_lawful_functor : @is_lawful_functor _ equiv.functor :=
 { id_map := @equiv.id_map _ _,
   comp_map := @equiv.comp_map _ _ }
 
-protected def is_lawful_functor' [F : _root_.functor t']
+protected lemma is_lawful_functor' [F : _root_.functor t']
   (h₀ : ∀ {α β} (f : α → β), _root_.functor.map f = equiv.map f)
   (h₁ : ∀ {α β} (f : β), _root_.functor.map_const f = (equiv.map ∘ function.const α) f) :
   _root_.is_lawful_functor t' :=

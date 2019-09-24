@@ -23,28 +23,30 @@ namespace CommRing
 
 open_locale classical
 
-private def free_obj (α : Type u) : CommRing.{u} := ⟨mv_polynomial α ℤ⟩
-
+/--
+The free functor `Type u ⥤ CommRing.{u}` sending a type `X` to the multivariable (commutative)
+polynomials with variables `x : X`.
+-/
 def free : Type u ⥤ CommRing.{u} :=
-{ obj := free_obj,
-  map := λ α β f, ⟨rename f, by apply_instance⟩, }
+{ obj := λ α, of (mv_polynomial α ℤ),
+  -- TODO this should just be `ring_hom.of (rename f)`, but this causes a mysterious deterministic timeout!
+  map := λ X Y f, @ring_hom.of _ _ _ _ (rename f) (by apply_instance),
+  -- TODO these next two fields can be done by `tidy`, but the calls in `dsimp` and `simp` it generates are too slow.
+  map_id' := λ X, ring_hom.ext $ rename_id,
+  map_comp' := λ X Y Z f g, ring_hom.ext $ λ p, (rename_rename f g p).symm }
 
-@[simp] lemma free_obj_α {α : Type u} :
-  (free.obj α).α = mv_polynomial α ℤ := rfl
+@[simp] lemma free_obj_coe {α : Type u} :
+  (free.obj α : Type u) = mv_polynomial α ℤ := rfl
 
-@[simp] lemma free_map_val {α β : Type u} {f : α → β} :
-  (free.map f).val = rename f := rfl
+@[simp] lemma free_map_coe {α β : Type u} {f : α → β} :
+  ⇑(free.map f) = rename f := rfl
 
-def hom_equiv (α : Type u) (R : CommRing.{u}) : (free.obj α ⟶ R) ≃ (α ⟶ forget.obj R) :=
-{ to_fun    := λ f, f ∘ X,
-  inv_fun   := λ f, ⟨eval₂ (λ n : ℤ, (n : R)) f, by { unfold_coes, apply_instance }⟩,
-  left_inv  := λ f, bundled.hom_ext (@eval₂_hom_X _ _ _ _ _ f.val _),
-  right_inv := λ x, by { ext1, unfold_coes, simp only [function.comp_app, eval₂_X] } }
-
-def adj : free ⊣ (forget : CommRing ⥤ Type u) :=
+/--
+The free-forgetful adjunction for commutative rings.
+-/
+def adj : free ⊣ forget CommRing :=
 adjunction.mk_of_hom_equiv
-{ hom_equiv := hom_equiv,
-  hom_equiv_naturality_left_symm' :=
-  λ X X' Y f g, by { ext1, dsimp, apply eval₂_cast_comp } }.
+{ hom_equiv := λ X R, hom_equiv,
+  hom_equiv_naturality_left_symm' := by {intros, ext, dsimp, apply eval₂_cast_comp} }
 
 end CommRing

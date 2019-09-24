@@ -185,7 +185,7 @@ lemma is_add_monoid_hom_mul_left (M : matrix l m α) :
   is_add_monoid_hom (λ x : matrix m n α, M ⬝ x) :=
 { to_is_add_hom := ⟨matrix.mul_add _⟩, map_zero := matrix.mul_zero _ }
 
-def is_add_monoid_hom_mul_right (M : matrix m n α) :
+lemma is_add_monoid_hom_mul_right (M : matrix m n α) :
   is_add_monoid_hom (λ x : matrix l m α, x ⬝ M) :=
 { to_is_add_hom := ⟨λ _ _, matrix.add_mul _ _ _⟩, map_zero := matrix.zero_mul _ }
 

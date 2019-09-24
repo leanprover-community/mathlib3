@@ -74,28 +74,27 @@ lemma prod_union_inter [decidable_eq α] : (s₁ ∪ s₂).prod f * (s₁ ∩ s�
 fold_union_inter
 
 @[to_additive]
-lemma prod_union [decidable_eq α] (h : s₁ ∩ s₂ = ∅) : (s₁ ∪ s₂).prod f = s₁.prod f * s₂.prod f :=
-by rw [←prod_union_inter, h]; exact (mul_one _).symm
+lemma prod_union [decidable_eq α] (h : disjoint s₁ s₂) : (s₁ ∪ s₂).prod f = s₁.prod f * s₂.prod f :=
+by rw [←prod_union_inter, (disjoint_iff_inter_eq_empty.mp h)]; exact (mul_one _).symm
 
 @[to_additive]
 lemma prod_sdiff [decidable_eq α] (h : s₁ ⊆ s₂) : (s₂ \ s₁).prod f * s₁.prod f = s₂.prod f :=
-by rw [←prod_union (sdiff_inter_self _ _), sdiff_union_of_subset h]
+by rw [←prod_union sdiff_disjoint, sdiff_union_of_subset h]
 
 @[to_additive]
 lemma prod_bind [decidable_eq α] {s : finset γ} {t : γ → finset α} :
-  (∀x∈s, ∀y∈s, x ≠ y → t x ∩ t y = ∅) → (s.bind t).prod f = s.prod (λx, (t x).prod f) :=
+  (∀x∈s, ∀y∈s, x ≠ y → disjoint (t x) (t y)) → (s.bind t).prod f = s.prod (λx, (t x).prod f) :=
 by haveI := classical.dec_eq γ; exact
 finset.induction_on s (λ _, by simp only [bind_empty, prod_empty])
   (assume x s hxs ih hd,
-  have hd' : ∀x∈s, ∀y∈s, x ≠ y → t x ∩ t y = ∅,
+  have hd' : ∀x∈s, ∀y∈s, x ≠ y → disjoint (t x) (t y),
     from assume _ hx _ hy, hd _ (mem_insert_of_mem hx) _ (mem_insert_of_mem hy),
-  have t x ∩ finset.bind s t = ∅,
-    from eq_empty_of_forall_not_mem $ assume a,
-      by rw [mem_inter, mem_bind];
-      rintro ⟨h₁, y, hys, hy₂⟩;
-      exact eq_empty_iff_forall_not_mem.1
-        (hd _ (mem_insert_self _ _) _ (mem_insert_of_mem hys) (assume h, hxs (h.symm ▸ hys)))
-        _ (mem_inter_of_mem h₁ hy₂),
+  have ∀y∈s, x ≠ y,
+    from assume _ hy h, by rw [←h] at hy; contradiction,
+  have ∀y∈s, disjoint (t x) (t y),
+    from assume _ hy, hd _ (mem_insert_self _ _) _ (mem_insert_of_mem hy) (this _ hy),
+  have disjoint (t x) (finset.bind s t),
+    from (disjoint_bind_right _ _ _).mpr this,
   by simp only [bind_insert, prod_insert hxs, prod_union this, ih hd'])
 
 @[to_additive]
@@ -103,9 +102,11 @@ lemma prod_product {s : finset γ} {t : finset α} {f : γ×α → β} :
   (s.product t).prod f = s.prod (λx, t.prod $ λy, f (x, y)) :=
 begin
   haveI := classical.dec_eq α, haveI := classical.dec_eq γ,
-  rw [product_eq_bind, prod_bind (λ x hx y hy h, eq_empty_of_forall_not_mem _)],
+  rw [product_eq_bind, prod_bind],
   { congr, funext, exact prod_image (λ _ _ _ _ H, (prod.mk.inj H).2) },
-  simp only [mem_inter, mem_image], rintro ⟨_, _⟩ ⟨⟨_, _, _⟩, ⟨_, _, _⟩⟩, apply h, cc
+  simp only [disjoint_iff_ne, mem_image],
+  rintros _ _ _ _ h ⟨_, _⟩ ⟨_, _, ⟨_, _⟩⟩ ⟨_, _⟩ ⟨_, _, ⟨_, _⟩⟩ _,
+  apply h, cc
 end
 
 @[to_additive]
@@ -116,9 +117,9 @@ by haveI := classical.dec_eq α; haveI := (λ a, classical.dec_eq (σ a)); exact
 calc (s.sigma t).prod f =
        (s.bind (λa, (t a).image (λs, sigma.mk a s))).prod f : by rw sigma_eq_bind
   ... = s.prod (λa, ((t a).image (λs, sigma.mk a s)).prod f) :
-    prod_bind $ assume a₁ ha a₂ ha₂ h, eq_empty_of_forall_not_mem $
-    by simp only [mem_inter, mem_image];
-    rintro ⟨_, _⟩ ⟨⟨_, _, _⟩, ⟨_, _, _⟩⟩; apply h; cc
+    prod_bind $ assume a₁ ha a₂ ha₂ h,
+    by simp only [disjoint_iff_ne, mem_image];
+    rintro ⟨_, _⟩ ⟨_, _, _⟩ ⟨_, _⟩ ⟨_, _, _⟩ ⟨_, _⟩; apply h; cc
   ... = (s.prod $ λa, (t a).prod $ λs, f ⟨a, s⟩) :
     prod_congr rfl $ λ _ _, prod_image $ λ _ _ _ _ _, by cc
 
@@ -134,7 +135,7 @@ begin
     rcases finset.mem_image.1 ha with ⟨b, hb, rfl⟩,
     exact eq b hb },
   assume a₀ _ a₁ _ ne,
-  refine disjoint_iff_inter_eq_empty.1 (disjoint_iff_ne.2 _),
+  refine (disjoint_iff_ne.2 _),
   assume c₀ h₀ c₁ h₁,
   rcases mem_filter.1 h₀ with ⟨h₀, rfl⟩,
   rcases mem_filter.1 h₁ with ⟨h₁, rfl⟩,
@@ -199,6 +200,14 @@ from classical.by_cases
   (assume : a ∉ s,
     (prod_congr rfl $ λ b hb, h₀ b hb $ by rintro rfl; cc).trans $
       prod_const_one.trans (h₁ this).symm)
+
+@[simp, to_additive] lemma prod_ite [decidable_eq α] (s : finset α) (a : α) (b : β) :
+  s.prod (λ x, (ite (a = x) b 1)) = ite (a ∈ s) b 1 :=
+begin
+  rw ←finset.prod_filter,
+  split_ifs;
+  simp only [filter_eq, if_true, if_false, h, prod_empty, prod_singleton, insert_empty_eq_singleton],
+end
 
 @[to_additive]
 lemma prod_attach {f : α → β} : s.attach.prod (λx, f x.val) = s.prod f :=
@@ -389,7 +398,7 @@ end comm_group
 multiset.card_sigma _ _
 
 lemma card_bind [decidable_eq β] {s : finset α} {t : α → finset β}
-  (h : ∀ x ∈ s, ∀ y ∈ s, x ≠ y → t x ∩ t y = ∅) :
+  (h : ∀ x ∈ s, ∀ y ∈ s, x ≠ y → disjoint (t x) (t y)) :
   (s.bind t).card = s.sum (λ u, card (t u)) :=
 calc (s.bind t).card = (s.bind t).sum (λ _, 1) : by simp
 ... = s.sum (λ a, (t a).sum (λ _, 1)) : finset.sum_bind h
@@ -426,6 +435,21 @@ lemma sum_mul : s.sum f * b = s.sum (λx, f x * b) :=
 lemma mul_sum : b * s.sum f = s.sum (λx, b * f x) :=
 (sum_hom (λx, b * x)).symm
 
+@[simp] lemma sum_mul_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
+  s.sum (λ x, (f x * ite (a = x) 1 0)) = ite (a ∈ s) (f a) 0 :=
+begin
+  convert sum_ite s a (f a),
+  funext,
+  split_ifs with h; simp [h],
+end
+@[simp] lemma sum_boole_mul [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
+  s.sum (λ x, (ite (a = x) 1 0) * f x) = ite (a ∈ s) (f a) 0 :=
+begin
+  convert sum_ite s a (f a),
+  funext,
+  split_ifs with h; simp [h],
+end
+
 end semiring
 
 section comm_semiring
@@ -443,13 +467,12 @@ begin
   induction s using finset.induction with a s ha ih,
   { rw [pi_empty, sum_singleton], refl },
   { have h₁ : ∀x ∈ t a, ∀y ∈ t a, ∀h : x ≠ y,
-        image (pi.cons s a x) (pi s t) ∩ image (pi.cons s a y) (pi s t) = ∅,
+        disjoint (image (pi.cons s a x) (pi s t)) (image (pi.cons s a y) (pi s t)),
     { assume x hx y hy h,
-      apply eq_empty_of_forall_not_mem,
-      simp only [mem_inter, mem_image],
-      rintro p₁ ⟨⟨p₂, hp, eq⟩, ⟨p₃, hp₃, rfl⟩⟩,
+      simp only [disjoint_iff_ne, mem_image],
+      rintros _ ⟨p₂, hp, eq₂⟩ _ ⟨p₃, hp₃, eq₃⟩ eq,
       have : pi.cons s a x p₂ a (mem_insert_self _ _) = pi.cons s a y p₃ a (mem_insert_self _ _),
-      { rw [eq] },
+      { rw [eq₂, eq₃, eq] },
       rw [pi.cons_same, pi.cons_same] at this,
       exact h this },
     rw [prod_insert ha, pi_insert ha, ih, sum_mul, sum_bind h₁],
@@ -495,7 +518,7 @@ lemma sum_le_sum_of_subset_of_nonneg
   (h : s₁ ⊆ s₂) (hf : ∀x∈s₂, x ∉ s₁ → 0 ≤ f x) : s₁.sum f ≤ s₂.sum f :=
 calc s₁.sum f ≤ (s₂ \ s₁).sum f + s₁.sum f :
     le_add_of_nonneg_left' $ sum_nonneg $ by simpa only [mem_sdiff, and_imp]
-  ... = (s₂ \ s₁ ∪ s₁).sum f : (sum_union (sdiff_inter_self _ _)).symm
+  ... = (s₂ \ s₁ ∪ s₁).sum f : (sum_union sdiff_disjoint).symm
   ... = s₂.sum f : by rw [sdiff_union_of_subset h]
 
 lemma sum_eq_zero_iff_of_nonneg : (∀x∈s, 0 ≤ f x) → (s.sum f = 0 ↔ ∀x∈s, f x = 0) :=
@@ -524,7 +547,8 @@ sum_le_sum_of_subset_of_nonneg h $ assume x h₁ h₂, zero_le _
 
 lemma sum_le_sum_of_ne_zero (h : ∀x∈s₁, f x ≠ 0 → x ∈ s₂) : s₁.sum f ≤ s₂.sum f :=
 calc s₁.sum f = (s₁.filter (λx, f x = 0)).sum f + (s₁.filter (λx, f x ≠ 0)).sum f :
-    by rw [←sum_union, filter_union_filter_neg_eq]; apply filter_inter_filter_neg_eq
+    by rw [←sum_union, filter_union_filter_neg_eq];
+       exact disjoint_filter (assume _ h n_h, n_h h)
   ... ≤ s₂.sum f : add_le_of_nonpos_of_le'
       (sum_nonpos $ by simp only [mem_filter, and_imp]; exact λ _ _, le_of_eq)
       (sum_le_sum_of_subset $ by simpa only [subset_iff, mem_filter, and_imp])

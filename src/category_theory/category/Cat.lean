@@ -30,7 +30,8 @@ namespace Cat
 
 instance str (C : Cat.{v u}) : category.{v u} C.α := C.str
 
-def of (C : Type u) [category.{v} C] : Cat.{v u} := mk_ob C
+/-- Construct a bundled `Cat` from the underlying type and the typeclass. -/
+def of (C : Type u) [category.{v} C] : Cat.{v u} := bundled.of C
 
 /-- Category structure on `Cat` -/
 instance category : large_category.{max v u} Cat.{v u} :=

@@ -276,46 +276,57 @@ noncomputable def quotient_quotient_equiv_quotient (s : setoid α) (h : r ≤ s)
   quotient (ker (quot.map_right h)) ≃ quotient s :=
 quotient_ker_equiv_of_surjective _ $ λ x, by rcases x; exact ⟨quotient.mk' x, rfl⟩
 
-/-- Given an equivalence relation r on α and a surjective map f from α to the quotient of α by r,
-    the natural map from equivalence relations containing r to equivalence relations on the
-    quotient of α by r. -/
-def to_quotient {f : α → quotient r} (hf : surjective f) (s : {s // r ≤ s}) :
-  setoid (quotient r) :=
-{ r := λ x y, s.1.rel (classical.some $ hf x) (classical.some $ hf y),
-  iseqv := ⟨λ x, s.1.refl' _, λ _ _ h, s.1.symm' h, λ _ _ _ h1, s.1.trans' h1⟩ }
+variables {r f}
+
+/-- Given a function f whose kernel is contained in an equivalence relation r, the equivalence
+    closure of the relation on f's image defined by x ≈ y ↔ the elements of f⁻¹(x) are related
+    to the elements of f⁻¹(y) by r. -/
+def map (r) (f : α → β) (h : ker f ≤ r) : setoid β :=
+eqv_gen.setoid $ λ x y, ∃ a b, f a = x ∧ f b = y ∧ r.rel a b
+
+/-- Given a surjective function f whose kernel is contained in an equivalence relation r, the
+    equivalence relation on f's codomain defined by x ≈ y ↔ the elements of f⁻¹(x) are related to
+    the elements of f⁻¹(y) by r. -/
+def map_of_surjective (r) (f : α → β) (h : ker f ≤ r) (hf : surjective f) :
+  setoid β :=
+⟨λ x y, ∃ a b, f a = x ∧ f b = y ∧ r.rel a b,
+  ⟨λ x, let ⟨y, hy⟩ := hf x in ⟨y, y, hy, hy, r.refl' y⟩,
+   λ _ _ ⟨x, y, hx, hy, h⟩, ⟨y, x, hy, hx, r.symm' h⟩,
+   λ _ _ _ ⟨x, y, hx, hy, h₁⟩ ⟨y', z, hy', hz, h₂⟩,
+     ⟨x, z, hx, hz, r.trans' h₁ $ r.trans' (h y y' $ by rwa ←hy' at hy) h₂⟩⟩⟩
+
+/-- A special case of the equivalence closure of an equivalence relation r equalling r. -/
+lemma map_of_surjective_eq_map (h : ker f ≤ r) (hf : surjective f) :
+  map r f h = map_of_surjective r f h hf :=
+by rw ←eqv_gen_of_setoid (map_of_surjective r f h hf); refl
 
 /-- Given an equivalence relation r on α and a map f to the quotient of α by r, an
     equivalence relation s on the quotient induces an equivalence relation on f's domain defined
     by x ≈ y ↔ f(x) is related to f(y) by s. -/
-def of_quotient (f : β → quotient r) (s : setoid (quotient r)) : setoid β :=
-⟨λ x y, s.rel (f x) (f y),
- ⟨λ _, s.refl' _, λ _ _ h, s.symm' h, λ _ _ _ h1 h2, s.trans' h1 h2⟩⟩
+def comap (f : β → quotient r) (s : setoid (quotient r)) : setoid β :=
+⟨λ x y, s.rel (f x) (f y), ⟨λ _, s.refl' _, λ _ _ h, s.symm' h, λ _ _ _ h1, s.trans' h1⟩⟩
 
 section
-  open classical quotient
-  /-- Given an equivalence relation r on α, the order-preserving bijection between the set of
-      equivalence relations containing r and the equivalence relations on the quotient of α by r. -/
-  def correspondence : ((≤) : {s // r ≤ s} → {s // r ≤ s} → Prop) ≃o
+open quotient
+
+/-- Given an equivalence relation r on α, the order-preserving bijection between the set of
+    equivalence relations containing r and the equivalence relations on the quotient of α by r. -/
+  def correspondence (r : setoid α) : ((≤) : {s // r ≤ s} → {s // r ≤ s} → Prop) ≃o
     ((≤) : setoid (quotient r) → setoid (quotient r) → Prop) :=
-  { to_fun := λ s, r.to_quotient exists_rep s,
-    inv_fun := λ s, subtype.mk (r.of_quotient quotient.mk' s) $
-      λ x y h, show s.rel ⟦x⟧ ⟦y⟧, from sound h ▸ s.refl' ⟦x⟧,
-    left_inv := λ s, subtype.ext.2 $ ext' $ λ x y,
-        ⟨λ h, s.1.trans' (s.1.trans' (s.2 x (some $ exists_rep ⟦x⟧) $
-                eq_rel.1 (some_spec $ exists_rep ⟦x⟧).symm) h) $
-                  s.2 (some $ exists_rep ⟦y⟧) y $ eq_rel.1 $ some_spec $ exists_rep ⟦y⟧,
-         λ h, s.1.trans' (s.1.trans' (s.2 (some $ exists_rep ⟦x⟧) x $
-                eq_rel.1 (some_spec $ exists_rep ⟦x⟧)) h) $
-                  s.2 y (some $ exists_rep ⟦y⟧) $ eq_rel.1 (some_spec $ exists_rep ⟦y⟧).symm⟩,
-    right_inv := λ s, ext' $ λ x y, show s.rel ⟦(some _)⟧ ⟦(some _)⟧ ↔ s.rel x y, by
-      rw [some_spec (exists_rep _), some_spec (exists_rep _)],
-    ord := λ a b, ⟨λ h x y ha, h (some $ exists_rep x) (some $ exists_rep y) ha,
-      λ h x y ha, b.1.trans' (b.1.trans' (b.2 x (some $ exists_rep ⟦x⟧) $
-          eq_rel.1 (some_spec $ exists_rep ⟦x⟧).symm) $
-            h ⟦x⟧ ⟦y⟧ (a.1.trans' (a.1.trans' (a.2 (some $ exists_rep ⟦x⟧) x $
-              eq_rel.1 $ some_spec $ exists_rep ⟦x⟧) ha) $
-                a.2 y (some $ exists_rep ⟦y⟧) $ eq_rel.1 (some_spec $ exists_rep ⟦y⟧).symm)) $
-                  b.2 (some $ exists_rep ⟦y⟧) y $ eq_rel.1 $ some_spec $ exists_rep ⟦y⟧⟩ }
+  { to_fun := λ s, map_of_surjective s.1 quotient.mk ((ker_mk_eq r).symm ▸ s.2) exists_rep,
+    inv_fun := λ s, ⟨comap quotient.mk s, λ x y h, show s.rel ⟦x⟧ ⟦y⟧, by rw eq_rel.2 h⟩,
+    left_inv := λ s, subtype.ext.2 $ ext' $ λ _ _,
+      ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in
+        s.1.trans' (s.1.symm' $ s.2 a _ $ eq_rel.1 hx) $ s.1.trans' H $ s.2 b _ $ eq_rel.1 hy,
+       λ h, ⟨_, _, rfl, rfl, h⟩⟩,
+    right_inv := λ s, let Hm : ker quotient.mk ≤ comap quotient.mk s :=
+        λ x y h, show s.rel ⟦x⟧ ⟦y⟧, by rw (@eq_rel _ r x y).2 ((ker_mk_eq r) ▸ h) in
+      ext' $ λ x y, ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in hx ▸ hy ▸ H,
+        quotient.induction_on₂ x y $ λ w z h, ⟨w, z, rfl, rfl, h⟩⟩,
+    ord := λ s t, ⟨λ h x y hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h _ _ Hs⟩,
+      λ h x y hs, let ⟨a, b, hx, hy, ht⟩ := h ⟦x⟧ ⟦y⟧ ⟨x, y, rfl, rfl, hs⟩ in
+        t.1.trans' (t.1.symm' $ t.2 a x $ eq_rel.1 hx) $ t.1.trans' ht $ t.2 b y $ eq_rel.1 hy⟩ }
+
 end
 
 -- Partitions

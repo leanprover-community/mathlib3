@@ -4,10 +4,10 @@ def foo1 (n m : ℕ) : ℕ := n + 1
 def foo2 (n m : ℕ) : m = m := by refl
 lemma foo3 (n m : ℕ) : ℕ := n - m
 lemma foo.foo (n m : ℕ) : n ≥ n := le_refl n
-section
-local attribute [instance, priority 1001] classical.prop_decidable
-lemma foo4 : (if 3 = 3 then 1 else 2) = 1 := if_pos (by refl)
-end
+-- section
+-- local attribute [instance, priority 1001] classical.prop_decidable
+-- lemma foo4 : (if 3 = 3 then 1 else 2) = 1 := if_pos (by refl)
+-- end
 
 open tactic
 
@@ -31,9 +31,9 @@ run_cmd do
   guard $ l3.length = 1,
   guard $ ∃(x ∈ l3), (x : declaration × _).1.to_name = `foo.foo,
   l4 ← fold_over_with_cond l illegal_constants_in_statement,
-  guard $ l4.length = 2,
+  guard $ l4.length = 1,
   guard $ ∃(x ∈ l4), (x : declaration × _).1.to_name = `foo.foo,
-  guard $ ∃(x ∈ l4), (x : declaration × _).1.to_name = `foo4,
+  -- guard $ ∃(x ∈ l4), (x : declaration × _).1.to_name = `foo4,
   s ← sanity_check ff,
   guard $ "/- (slow tests skipped) -/\n".is_suffix_of s.to_string,
   s2 ← sanity_check tt,

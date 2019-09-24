@@ -5,8 +5,8 @@ Authors: Floris van Doorn
 -/
 import tactic.core
 /-!
-  # reduce_projections attribute
-  This file defines the `@[reduce_projections]` attribute, to automatically generate simp-lemmas
+  # simps attribute
+  This file defines the `@[simps]` attribute, to automatically generate simp-lemmas
   reducing a definition when projections are applied to it.
 
   ## Tags
@@ -25,7 +25,7 @@ meta def add_projection (nm : name) (type lhs rhs : expr) (args : list expr)
   let decl_type := eq_ap.pis args,
   let decl_value := refl_ap.lambdas args,
   let decl := declaration.thm nm univs decl_type (pure decl_value),
-  add_decl decl <|> fail format!"failed to add projection lemma {nm}",
+  add_decl decl <|> fail format!"failed to add projection lemma {nm}.",
   when add_simp $ set_basic_attribute `simp nm tt
 
 /-- Derive lemmas specifying the projections of the declaration. -/
@@ -34,7 +34,7 @@ meta def add_projections : ∀(e : environment) (nm : name) (type lhs rhs : expr
   | e nm type lhs rhs args univs add_simp must_be_str := do
   (type_args, tgt) ← mk_local_pis type,
   let new_args := args ++ type_args,
-  let lhs_ap := lhs.apps type_args,
+  let lhs_ap := lhs.mk_app type_args,
   let rhs_ap := rhs.instantiate_lambdas_or_apps type_args,
   let str := tgt.get_app_fn.const_name,
   if e.is_structure str then do
@@ -61,28 +61,27 @@ meta def add_projections : ∀(e : environment) (nm : name) (type lhs rhs : expr
       end
     else (do
       when must_be_str $
-        fail "Invalid `reduce_projections` attribute. Body is not a constructor application",
+        fail "Invalid `simps` attribute. Body is not a constructor application",
       add_projection nm tgt lhs_ap rhs_ap new_args univs add_simp)
   else
     (do when must_be_str $
-      fail "Invalid `reduce_projections` attribute. Target is not a structure",
+      fail "Invalid `simps` attribute. Target is not a structure",
     add_projection nm tgt lhs_ap rhs_ap new_args univs add_simp)
 
 /-- Derive lemmas specifying the projections of the declaration. -/
-meta def reduce_projections_tac (nm : name) (add_simp : bool) : tactic unit := do
+meta def simps_tac (nm : name) (add_simp : bool) : tactic unit := do
   e ← get_env,
   d ← e.get nm,
   let lhs : expr := const d.to_name (d.univ_params.map level.param),
-  add_projections e nm d.type lhs d.value [] d.univ_params add_simp ff,
-  skip
+  add_projections e nm d.type lhs d.value [] d.univ_params add_simp tt
 
-reserve notation `no_simp`
+reserve notation `lemmas_only`
 setup_tactic_parser
 
 /-- Automatically derive lemmas specifying the projections of this declaration.
   Example: (note that the forward and reverse functions are specified differently!)
   ```
-  @[reduce_projections] def refl (α) : α ≃ α := ⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
+  @[simps] def refl (α) : α ≃ α := ⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
   ```
   derives two simp-lemmas:
   ```
@@ -94,16 +93,16 @@ setup_tactic_parser
   * If one of the fields itself is a structure, this command will recursively create
     simp-lemmas for all fields in that structure.
   * If one of the values is an eta-expanded structure, we will eta-reduce this structure.
-  * You can use `@[reduce_projections no_simp]` to derive the lemmas, but not mark them
+  * You can use `@[simps lemmas_only]` to derive the lemmas, but not mark them
     as simp-lemmas.
   * If one of the projections is marked as a coercion, the generated lemmas do *not* use this
     coercion.
   * If one of the fields is a partially applied constructor, we will eta-expand it
     (this likely never happens).
   -/
-@[user_attribute] meta def reduce_projections_attr : user_attribute unit (option unit) :=
-{ name := `reduce_projections,
+@[user_attribute] meta def simps_attr : user_attribute unit (option unit) :=
+{ name := `simps,
   descr := "Automatically derive lemmas specifying the projections of this declaration.",
-  parser := optional (tk "no_simp"),
+  parser := optional (tk "lemmas_only"),
   after_set := some $
-    λ n _ _, option.is_none <$> reduce_projections_attr.get_param n >>= reduce_projections_tac n }
+    λ n _ _, option.is_none <$> simps_attr.get_param n >>= simps_tac n }

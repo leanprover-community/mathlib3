@@ -128,10 +128,6 @@ end level
 namespace expr
 open tactic
 
-/-- Apply `e` to all elements of `es` -/
-meta def apps (e : expr) (es : list expr) : expr :=
-es.foldl expr.app e
-
 /-- Apply a function to each constant (inductive type, defined function etc) in an expression. -/
 protected meta def apply_replacement_fun (f : name → name) (e : expr) : expr :=
 e.replace $ λ e d,
@@ -248,7 +244,7 @@ If the length of `es` is larger than the number of lambdas in `e`,
 then the term is applied to the remaining terms -/
 meta def instantiate_lambdas_or_apps : list expr → expr → expr
 | (e'::es) (lam n bi t e) := instantiate_lambdas_or_apps es (e.instantiate_var e')
-| es       e              := apps e es
+| es       e              := mk_app e es
 
 end expr
 
@@ -340,7 +336,7 @@ open tactic
 /-- Checks whether for all elements `(nm, val)` in the list we have `val = nm.{univs} args` -/
 meta def is_eta_expansion_of (args : list expr) (univs : list level) (l : list (name × expr)) :
   bool :=
-l.all $ λ⟨proj, val⟩, val = (const proj univs).apps args
+l.all $ λ⟨proj, val⟩, val = (const proj univs).mk_app args
 
 /-- Checks whether there is an expression `e` such that for all elements `(nm, val)` in the list
   `val = nm ... e` where `...` denotes the same list of parameters for all applications.

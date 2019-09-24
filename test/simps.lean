@@ -1,4 +1,4 @@
-import tactic.reduce_projections
+import tactic.simps
 
 open function tactic expr
 structure equiv (α : Sort*) (β : Sort*) :=
@@ -11,10 +11,10 @@ infix ` ≃ `:25 := equiv
 
 namespace foo
 
-@[reduce_projections] protected def rfl {α} : α ≃ α :=
+@[simps] protected def rfl {α} : α ≃ α :=
 ⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
 
-/- reduce_projections adds declarations -/
+/- simps adds declarations -/
 run_cmd do
   e ← get_env,
   e.get `foo.rfl_to_fun,
@@ -26,7 +26,7 @@ example (n : ℕ) : foo.rfl.to_fun n = n := by rw [foo.rfl_to_fun, id]
 example (n : ℕ) : foo.rfl.inv_fun n = n := by rw [foo.rfl_inv_fun]
 
 /- the declarations are simp-lemmas -/
-@[reduce_projections] def foo : ℕ × ℤ := (1, 2)
+@[simps] def foo : ℕ × ℤ := (1, 2)
 
 example : foo.1 = 1 := by simp
 example : foo.2 = 2 := by simp
@@ -37,9 +37,22 @@ example {α} (x : α) : foo.rfl.to_fun = @id α := by { success_if_fail {simp}, 
 /- check some failures -/
 def bar1 : ℕ := 1 -- type is not a structure
 def bar2 : ℕ × ℤ := prod.map (λ x, x + 2) (λ y, y - 3) (3, 4) -- value is not a constructor
+noncomputable def bar3 {α} : α ≃ α :=
+classical.choice ⟨foo.rfl⟩
+
 run_cmd do
-  success_if_fail (reduce_projections_tac `bar1 tt),
-  success_if_fail (reduce_projections_tac `bar2 tt)
+  success_if_fail_with_msg (simps_tac `foo.bar1 tt)
+    "Invalid `simps` attribute. Target is not a structure",
+  success_if_fail_with_msg (simps_tac `foo.bar2 tt)
+    "Invalid `simps` attribute. Body is not a constructor application",
+  success_if_fail_with_msg (simps_tac `foo.bar3 tt)
+    "Invalid `simps` attribute. Body is not a constructor application",
+  e ← get_env,
+  let nm := `foo.bar1,
+  d ← e.get nm,
+  let lhs : expr := const d.to_name (d.univ_params.map level.param),
+  success_if_fail_with_msg (add_projections e nm d.type lhs d.value [] d.univ_params tt ff)
+    sformat!"failed to add projection lemma {nm}."
 
 end foo
 
@@ -55,10 +68,10 @@ run_cmd do e ← get_env, e.mfold ()
 /- check projections for nested structures -/
 
 namespace count_nested
-@[reduce_projections] def nested1 : ℕ × ℤ × ℕ :=
+@[simps] def nested1 : ℕ × ℤ × ℕ :=
 ⟨2, -1, 1⟩
 
-@[reduce_projections] def nested2 : ℕ × ℕ × ℕ :=
+@[simps lemmas_only] def nested2 : ℕ × ℕ × ℕ :=
 ⟨2, prod.map nat.succ nat.pred (1, 2)⟩
 
 end count_nested
@@ -70,12 +83,13 @@ run_cmd do
   e.get `count_nested.nested1_snd_snd,
   e.get `count_nested.nested2_fst,
   e.get `count_nested.nested2_snd,
-  b ← is_simp_lemma `count_nested.nested1_fst >>= λ b, guard b, -- simp attribute is global
+  is_simp_lemma `count_nested.nested1_fst >>= λ b, guard b, -- simp attribute is global
+  is_simp_lemma `count_nested.nested2_fst >>= λ b, guard $ ¬b, --lemmas_only doesn't add simp lemma
   guard $ 7 = e.fold 0 -- there are no other lemmas generated
     (λ d n, n + if d.to_name.components.init.ilast = `count_nested then 1 else 0)
 
 -- testing with arguments
-@[reduce_projections] def bar {α : Type*} (n m : ℕ) : ℕ × ℤ :=
+@[simps] def bar {α : Type*} (n m : ℕ) : ℕ × ℤ :=
 ⟨n - m, n + m⟩
 
 structure equiv_plus_data (α β) extends α ≃ β :=
@@ -87,20 +101,20 @@ structure automorphism_plus_data α extends α ⊕ α ≃ α ⊕ α :=
 (data : P to_fun)
 (extra : bool → ℕ × ℕ)
 
-@[reduce_projections]
+@[simps]
 def refl_with_data {α} : equiv_plus_data α α :=
 { P := λ f, f = id,
   data := rfl,
   ..foo.rfl }
 
-@[reduce_projections]
+@[simps]
 def refl_with_data' {α} : equiv_plus_data α α :=
 { P := λ f, f = id,
   data := rfl,
   to_equiv := foo.rfl }
 
 /- test whether eta expansions are reduced correctly -/
-@[reduce_projections]
+@[simps]
 def test {α} : automorphism_plus_data α :=
 { P := λ f, f = id,
   data := rfl,
@@ -120,7 +134,7 @@ structure partially_applied_str :=
 (data : ℕ → ℕ × ℕ)
 
 /- if we have a partially applied constructor, we treat it as if it were eta-expanded -/
-@[reduce_projections]
+@[simps]
 def partially_applied_term : partially_applied_str := ⟨prod.mk 3⟩
 
 run_cmd do

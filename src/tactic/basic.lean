@@ -13,12 +13,12 @@ import
   tactic.mk_iff_of_inductive_prop
   tactic.push_neg
   tactic.rcases
-  tactic.reduce_projections
   tactic.replacer
   tactic.restate_axiom
   tactic.rewrite
   tactic.sanity_check
   tactic.simpa
+  tactic.simps
   tactic.split_ifs
   tactic.squeeze
   tactic.well_founded_tactics

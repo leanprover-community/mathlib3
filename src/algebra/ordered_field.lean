@@ -8,7 +8,7 @@ import algebra.ordered_ring algebra.field
 section linear_ordered_field
 variables {α : Type*} [linear_ordered_field α] {a b c d : α}
 
-def div_pos := @div_pos_of_pos_of_pos
+lemma div_pos : 0 < a → 0 < b → 0 < a / b := div_pos_of_pos_of_pos
 
 lemma inv_pos {a : α} : 0 < a → 0 < a⁻¹ :=
 by rw [inv_eq_one_div]; exact div_pos zero_lt_one
@@ -87,7 +87,7 @@ lt_iff_lt_of_le_iff_le (inv_le hb ha)
 lemma one_div_lt_one_div (ha : 0 < a) (hb : 0 < b) : 1 / a < 1 / b ↔ b < a :=
 lt_iff_lt_of_le_iff_le (one_div_le_one_div hb ha)
 
-def div_nonneg := @div_nonneg_of_nonneg_of_pos
+lemma div_nonneg : 0 ≤ a → 0 < b → 0 ≤ a / b := div_nonneg_of_nonneg_of_pos
 
 lemma div_lt_div_right (hc : 0 < c) : a / c < b / c ↔ a < b :=
 ⟨lt_imp_lt_of_le_imp_le (λ h, div_le_div_of_le_of_pos h hc),
@@ -125,7 +125,7 @@ lemma half_pos {a : α} (h : 0 < a) : 0 < a / 2 := div_pos h two_pos
 
 lemma one_half_pos : (0:α) < 1 / 2 := half_pos zero_lt_one
 
-def half_lt_self := @div_two_lt_of_pos
+lemma half_lt_self : 0 < a → a / 2 < a := div_two_lt_of_pos
 
 lemma one_half_lt_one : (1 / 2 : α) < 1 := half_lt_self zero_lt_one
 

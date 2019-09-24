@@ -338,6 +338,10 @@ e.is_constructor d.to_name ∨
   d.to_name.last ∈ ["below", "binduction_on", "brec_on", "cases_on", "dcases_on", "drec_on", "drec",
   "rec", "rec_on", "no_confusion", "no_confusion_type", "sizeof", "ibelow", "has_sizeof_inst"])
 
+/-- Returns the list of universe levels of a declaration. -/
+meta def univ_levels (d : declaration) : list level :=
+d.univ_params.map level.param
+
 end declaration
 
 /-- The type of binders containing a name, the binding info and the binding type -/

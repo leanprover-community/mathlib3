@@ -118,12 +118,14 @@ def numeric : pgame → Prop
 | ⟨l, r, L, R⟩ :=
   (∀ i j, L i < R j) ∧ (∀ i, numeric (L i)) ∧ (∀ i, numeric (R i))
 
-def numeric.move_left {x : pgame} (o : numeric x) (i : x.left_moves) : numeric (x.move_left i) :=
+lemma numeric.move_left {x : pgame} (o : numeric x) (i : x.left_moves) :
+  numeric (x.move_left i) :=
 begin
   cases x with xl xr xL xR,
   exact o.2.1 i,
 end
-def numeric.move_right {x : pgame} (o : numeric x) (j : x.right_moves) : numeric (x.move_right j) :=
+lemma numeric.move_right {x : pgame} (o : numeric x) (j : x.right_moves) :
+  numeric (x.move_right j) :=
 begin
   cases x with xl xr xL xR,
   exact o.2.2 j,

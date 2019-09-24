@@ -82,7 +82,7 @@ lift_pred (λp:β×γ, r p.1 p.2)
   (comp₂ prod.mk (measurable_prod_mk
     (measurable_fst measurable_id) (measurable_snd measurable_id)) f g)
 
-def lift_rel_mk_mk {γ : Type*} [measurable_space γ] (r : β → γ → Prop)
+lemma lift_rel_mk_mk {γ : Type*} [measurable_space γ] (r : β → γ → Prop)
   (f : α → β) (g : α → γ) (hf hg) : lift_rel r (mk f hf) (mk g hg) ↔ ∀ₘ a, r (f a) (g a) :=
 iff.rfl
 

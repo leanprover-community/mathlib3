@@ -1154,8 +1154,17 @@ do e ← get_env,
   since it is expensive to execute `get_mathlib_dir` many times. -/
 meta def is_in_mathlib (n : name) : tactic bool :=
 do ml ← get_mathlib_dir, e ← get_env, return $ e.is_prefix_of_file ml n
+
+private meta def apply_under_pis_aux (p : pexpr) (cnst : pexpr) : ℕ → expr → pexpr
+| n (expr.pi nm bi tp bd) := expr.pi nm bi (pexpr.of_expr tp) (apply_under_pis_aux (n+1) bd)
+| n _ := let vars := ((list.range n).reverse.map (@expr.var ff)), bd := vars.foldl expr.app cnst.mk_explicit in
+         p bd
+
+private meta def apply_under_pis (p : pexpr) (cnst : pexpr) (body : expr) : pexpr :=
+apply_under_pis_aux p cnst 0 body
+
 /--
-Tries to derive unary instances by unfolding the newly introduced type.
+Tries to derive instances by unfolding the newly introduced type and applying type class resolution.
 
 For example,
 ```
@@ -1167,16 +1176,21 @@ Multiple instances can be added with `@[derive [ring, module ℝ]]`.
 -/
 @[derive_handler] meta def delta_instance : derive_handler :=
 λ cls tp,
-(do tp' ← mk_const tp,
-   tgt ← to_expr ``(%%cls %%tp'),
-   (_, v) ← solve_aux tgt (delta_target [tp] >> apply_instance >> done),
+(do body_tp ← declaration.type <$> get_decl tp,
+   tp' ← resolve_name tp,
+   tgt ← to_expr $ apply_under_pis cls tp' body_tp,
+   (_, v) ← solve_aux tgt
+     (intros >> reset_instance_cache >> delta_target [tp]  >> apply_instance >> done),
    v ← instantiate_mvars v,
+   tgt ← instantiate_mvars tgt,
    nm ← get_unused_name $ tp ++
-     match tgt with
-     | expr.app (expr.const nm _) _ := nm
+     match cls with
+     -- the postfix is needed because we can't protect this name. using nm.last directly can
+     -- conflict with open namespaces
+     | (expr.const nm _) := nm.last ++ "_1"
      | _ := "inst"
      end,
-   add_decl $ mk_definition nm [] tgt v,
+   add_decl $ mk_definition nm v.collect_univ_params tgt v,
    set_basic_attribute `instance nm tt,
    return tt) <|> return ff
 
@@ -1207,9 +1221,9 @@ do env ← get_env,
 
 open lean.parser interactive
 
-/-- `import_private foo from bar` finds a private declaration `foo` in the same file as `bar` 
-    and creates a local notation to refer to it. 
-    
+/-- `import_private foo from bar` finds a private declaration `foo` in the same file as `bar`
+    and creates a local notation to refer to it.
+
     `import_private foo`, looks for `foo` in all imported files. -/
 @[user_command]
 meta def import_private_cmd (_ : parse $ tk "import_private") : lean.parser unit :=

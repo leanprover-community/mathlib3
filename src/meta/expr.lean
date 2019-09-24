@@ -296,7 +296,7 @@ e.fold (return x) (λ d t, t >>= fn d)
 meta def mfilter (e : environment) (test : declaration → tactic bool) : tactic (list declaration) :=
 e.mfold [] $ λ d ds, do b ← test d, return $ if b then d::ds else ds
 
-/-- Checks whether `ml` is a prefix of the file where `n` is declared.
+/-- Checks whether `s` is a prefix of the file where `n` is declared.
   This is used to check whether `n` is declared in mathlib, where `s` is the mathlib directory. -/
 meta def is_prefix_of_file (e : environment) (s : string) (n : name) : bool :=
 s.is_prefix_of $ (e.decl_olean n).get_or_else ""

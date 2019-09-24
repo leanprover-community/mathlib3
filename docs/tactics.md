@@ -1138,10 +1138,26 @@ Here too, the `reassoc` attribute can be used instead. It works well when combin
 attribute [simp, reassoc] some_class.bar
 ```
 ### sanity_check
+User commands to spot common mistakes in the code
 
-The `#sanity_check` command checks for common mistakes in the current file or in all of mathlib, respectively.
+* `#sanity_check`: check all declarations in the current file
+* `#sanity_check_mathlib`: check all declarations in mathlib (excluding the current file)
+* `#sanity_check_all`: check all declarations in the environment (the current file and all
+  imported files)
 
-Currently this will check for unused arguments in declarations and whether a declaration is incorrectly marked as a def/lemma.
+You can append a `-` to any command to only run the subset of the tests that don't take long to
+execute.
+
+Currently this will check for unused arguments in declarations, whether a declaration is
+incorrectly marked as a def/lemma, and whether a namespace is duplicated in the name of a
+declaration
+
+You can customize the performed checks like this:
+```lean
+meta def my_check (d : declaration) : tactic (option string) :=
+return $ if d.to_name = `foo then some "gotcha!" else none
+run_cmd sanity_check tt [(my_check, "found nothing", "found something")] >>= trace
+```
 
 ### lift
 

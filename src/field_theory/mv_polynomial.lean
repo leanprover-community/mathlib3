@@ -200,10 +200,8 @@ namespace mv_polynomial
 universe u
 variables (σ : Type u) (α : Type u) [fintype σ] [discrete_field α] [fintype α]
 
+@[derive [add_comm_group, vector_space α]]
 def R : Type u := restrict_degree σ α (fintype.card α - 1)
-
-instance R.add_comm_group : add_comm_group (R σ α) := by dunfold R; apply_instance
-instance R.vector_space : vector_space α (R σ α) := by dunfold R; apply_instance
 
 noncomputable instance decidable_restrict_degree (m : ℕ) :
   decidable_pred (λn, n ∈ {n : σ →₀ ℕ | ∀i, n i ≤ m }) :=

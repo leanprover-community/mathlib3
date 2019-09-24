@@ -15,3 +15,5 @@ instance : binclass ℤ ℤ := ⟨_, _⟩
 @[derive [ring, binclass ℤ]] def U := ℤ
 
 @[derive λ α, binclass α ℤ] def V := ℤ
+
+@[derive ring] def id_ring (α) [ring α] : Type := α

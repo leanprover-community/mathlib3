@@ -140,7 +140,7 @@ end
 
 end refine_struct
 
-example : true :=
+meta example : true :=
 begin
    success_if_fail { let := compact_relation },
    trivial

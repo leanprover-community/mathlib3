@@ -145,20 +145,24 @@ begin
    success_if_fail { let := compact_relation },
    trivial
 end
+
 import_private compact_relation from tactic.coinduction
-example : true :=
+
+meta example : true :=
 begin
   let := compact_relation,
   trivial
 end
 
-example : true :=
+meta example : true :=
 begin
    success_if_fail { let := elim_gen_sum_aux },
    trivial
 end
+
 import_private elim_gen_sum_aux
-example : true :=
+
+meta example : true :=
 begin
   let := elim_gen_sum_aux,
   trivial

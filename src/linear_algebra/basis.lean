@@ -1074,25 +1074,38 @@ begin
       (disjoint_std_basis_std_basis _ _ _ _ h₃), }
 end
 
-variable [decidable_eq (Π (i : η), φ i)]
+variables [decidable_eq (Π (i : η), φ i)] [∀ i j, decidable_eq (φ i →ₗ[α] φ j)]
+local attribute [instance] dfinsupp.to_module
 
 lemma linear_independent_std_basis₀ [∀ j, decidable_eq (ιs j)]  [∀ i, decidable_eq (φ i)]
   (v : Πj, ιs j → (φ j)) (hs : ∀i, linear_independent α (v i)) :
-  linear_independent α
-    (λ (ji : Σ j, ιs j), std_basis₀ α φ ji.1 (v ji.1 ji.2)) :=
+  linear_independent α (λ (ji : Σ j, ιs j), std_basis₀ α φ ji.1 (v ji.1 ji.2)) :=
 begin
-  rw [linear_independent_iff],
-  intros l hl,
-  apply linear_independent_iff.mp (linear_independent_std_basis v hs),
-  ext n,
-  convert (congr_arg (λ g : Π₀i, φ i, g n) hl),
-  change (λ (g : Πi, φ i), g n) (l.support.sum (λi, l i • std_basis α φ i.1 (v (i.1) (i.2))))
-    = (λ (g : Π₀i, φ i), g n) (l.support.sum (λi, l i • std_basis₀ α φ i.1 (v (i.1) (i.2)))),
-  letI h : is_add_monoid_hom (λ (g : Π (i : η), φ i), g n) := sorry,
-  rw [←finset.sum_hom (λ g : Π₀i, φ i, g n), ←finset.sum_hom (λ g : Πi, φ i, g n)],
-  congr, ext i,
-  dsimp [dfinsupp.smul_apply],
-  rw [←std_basis₀_eq_std_basis], refl
+  have hs' : ∀j : η, linear_independent α (λ i : ιs j, std_basis₀ α φ j (v j i)),
+  { intro j,
+    apply linear_independent.image (hs j),
+    simp [ker_std_basis₀] },
+  apply linear_independent_Union_finite hs',
+  { assume j J _ hiJ,
+    simp [(set.Union.equations._eqn_1 _).symm, submodule.span_image, submodule.span_Union],
+    have h₀ : ∀ j, span α (range (λ (i : ιs j), std_basis₀ α φ j (v j i)))
+        ≤ range (std_basis₀ α φ j),
+    { intro j,
+      rw [span_le, linear_map.range_coe],
+      apply range_comp_subset_range },
+    have h₁ : span α (range (λ (i : ιs j), std_basis₀ α φ j (v j i)))
+        ≤ ⨆ i ∈ {j}, range (std_basis₀ α φ i),
+    { rw @supr_singleton _ _ _ (λ i, linear_map.range (std_basis₀ α (λ (j : η), φ j) i)),
+      apply h₀ },
+    have h₂ : (⨆ j ∈ J, span α (range (λ (i : ιs j), std_basis₀ α φ j (v j i)))) ≤
+               ⨆ j ∈ J, range (std_basis₀ α (λ (j : η), φ j) j) :=
+      supr_le_supr (λ i, supr_le_supr (λ H, h₀ i)),
+    have h₃ : disjoint (λ (i : η), i ∈ {j}) J,
+    { convert set.disjoint_singleton_left.2 hiJ,
+      rw ←@set_of_mem_eq _ {j},
+      refl },
+    refine disjoint_mono h₁ h₂
+      (disjoint_std_basis_std_basis₀ _ _ _ _ h₃) }
 end
 
 lemma is_basis_std_basis₀ [∀ j, decidable_eq (ιs j)] [∀ j, decidable_eq (φ j)]
@@ -1116,10 +1129,22 @@ begin
   apply supr_range_std_basis₀
 end
 
-lemma is_basis_std_basis [∀ j, decidable_eq (ιs j)] [∀ j, decidable_eq (φ j)]
-  (s : Πj, ιs j → (φ j)) (hs : ∀j, is_basis α (s j)) :
-  is_basis α (λ (ji : Σ j, ιs j), std_basis α φ ji.1 (s ji.1 ji.2)) := sorry
+variables [∀i, decidable_eq (φ i)]
+def dfinsupp_equiv_pi_fintype [fintype η] : (Π₀i, φ i) ≃ (Πi, φ i) :=
+{ to_fun := λ f i, f i,
+  inv_fun := λ f, dfinsupp.mk finset.univ (λ i, f i),
+  left_inv := λ f, dfinsupp.ext $ λ i, dif_pos (finset.mem_univ i),
+  right_inv := λ f, funext $ λ i, dif_pos (finset.mem_univ i) }
 
+def dfinsupp_linear_equiv_pi_fintype [fintype η] : (Π₀i, φ i) ≃ₗ[α] (Πi, φ i) :=
+dfinsupp_equiv_pi_fintype.to_linear_equiv
+  ⟨λ f g, funext $ λ _, dfinsupp.add_apply, λ c f, funext $ λ _, dfinsupp.smul_apply ⟩
+
+/-lemma is_basis_std_basis [fintype η] [∀ j, decidable_eq (ιs j)] [∀ j, decidable_eq (φ j)]
+  (s : Πj, ιs j → (φ j)) (hs : ∀j, is_basis α (s j)) :
+  is_basis α (λ (ji : Σ j, ιs j),
+    dfinsupp_linear_equiv_pi_fintype.to_fun ∘ (std_basis₀ α φ ji.1 (s ji.1 ji.2) : Π₀i, φ i)) :=
+dfinsupp_linear_equiv_pi_fintype.is_basis (is_basis_std_basis₀ s hs)-/
 
 section
 variables (α ι)

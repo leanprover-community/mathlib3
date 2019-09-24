@@ -59,6 +59,9 @@ instance : inhabited (Π₀ i, β i) := ⟨0⟩
 lemma ext {f g : Π₀ i, β i} (H : ∀ i, f i = g i) : f = g :=
 quotient.induction_on₂ f g (λ _ _ H, quotient.sound H) H
 
+lemma ext_iff {f g : Π₀ i, β i} : f = g ↔ (∀i, f i = g i) :=
+⟨by rintros rfl a; refl, ext⟩
+
 /-- The composition of `f : β₁ → β₂` and `g : Π₀ i, β₁ i` is
   `map_range f hf g : Π₀ i, β₂ i`, well defined when `f 0 = 0`. -/
 def map_range (f : Π i, β₁ i → β₂ i) (hf : ∀ i, f i 0 = 0) (g : Π₀ i, β₁ i) : Π₀ i, β₂ i :=
@@ -759,5 +762,20 @@ lemma subtype_domain_finsupp_sum {δ : γ → Type x} [decidable_eq γ]
 subtype_domain_sum
 
 end prod_and_sum
+
+lemma list_sum_apply [∀i, add_monoid (β i)] (i : ι) :
+  ∀ (l : list (Π₀i, β i)), l.sum i = (l.map (λf:Π₀i, β i, f i)).sum
+| []       := rfl
+| (f :: l) := by rw[list.map_cons, list.sum_cons, ←list_sum_apply l, ←add_apply, ←list.sum_cons]
+
+lemma multiset_sum_apply [∀i, add_comm_monoid (β i)] (i : ι)
+  (s : multiset (Π₀i, β i)) : s.sum i = (s.map (λf:Π₀i, β i, f i)).sum :=
+quotient.induction_on s $ assume l,
+  by { rw [multiset.quot_mk_to_coe, multiset.coe_sum], simp [list_sum_apply i l] }
+
+lemma finset_sum_apply {γ} [∀i, add_comm_monoid (β i)] (i : ι)
+  (s : finset γ) (g : γ → Π₀i, β i) : s.sum g i = s.sum (λc, g c i) :=
+show (s.val.map g).sum i = (s.val.map (λc, g c i)).sum,
+  by rw [multiset_sum_apply, multiset.map_map]
 
 end dfinsupp

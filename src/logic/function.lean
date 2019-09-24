@@ -262,6 +262,9 @@ end bicomp
 /-- A function is involutive, if `f ∘ f = id`. -/
 def involutive {α} (f : α → α) : Prop := ∀ x, f (f x) = x
 
+lemma involutive_iff_iter_2_eq_id {α} {f : α → α} : involutive f ↔ (f^[2] = id) :=
+funext_iff.symm
+
 namespace involutive
 variables {α : Sort u} {f : α → α} (h : involutive f)
 

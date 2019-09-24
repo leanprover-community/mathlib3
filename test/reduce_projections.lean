@@ -1,27 +1,38 @@
-import tactic.reduce_projections data.equiv.basic
+import tactic.reduce_projections
 
-open tactic
+open function tactic expr
+structure equiv (α : Sort*) (β : Sort*) :=
+(to_fun    : α → β)
+(inv_fun   : β → α)
+(left_inv  : left_inverse inv_fun to_fun)
+(right_inv : right_inverse inv_fun to_fun)
+
+infix ` ≃ `:25 := equiv
+
 namespace foo
 
-/- the declarations exist -/
-@[reduce_projections no_simp] protected def refl (α) : α ≃ α :=
+@[reduce_projections] protected def rfl {α} : α ≃ α :=
 ⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
 
+/- reduce_projections adds declarations -/
 run_cmd do
   e ← get_env,
-  e.get `foo.refl_to_fun,
-  e.get `foo.refl_inv_fun,
-  success_if_fail (e.get `foo.refl_left_inv),
-  success_if_fail (e.get `foo.refl_right_inv)
+  e.get `foo.rfl_to_fun,
+  e.get `foo.rfl_inv_fun,
+  success_if_fail (e.get `foo.rfl_left_inv),
+  success_if_fail (e.get `foo.rfl_right_inv)
 
-example (n : ℕ) : (foo.refl ℕ).to_fun n = n := by { rw [foo.refl_to_fun, id] }
-example (n : ℕ) : (foo.refl ℕ).inv_fun n = n := by { rw [foo.refl_inv_fun] }
+example (n : ℕ) : foo.rfl.to_fun n = n := by rw [foo.rfl_to_fun, id]
+example (n : ℕ) : foo.rfl.inv_fun n = n := by rw [foo.rfl_inv_fun]
 
 /- the declarations are simp-lemmas -/
 @[reduce_projections] def foo : ℕ × ℤ := (1, 2)
 
 example : foo.1 = 1 := by simp
 example : foo.2 = 2 := by simp
+example {α} (x : α) : foo.rfl.to_fun x = x := by simp
+example {α} (x : α) : foo.rfl.inv_fun x = x := by simp
+example {α} (x : α) : foo.rfl.to_fun = @id α := by { success_if_fail {simp}, refl }
 
 /- check some failures -/
 def bar1 : ℕ := 1 -- type is not a structure
@@ -41,33 +52,78 @@ meta def test_projection (env : environment) (n : name) : tactic unit := do
 run_cmd do e ← get_env, e.mfold ()
   (λ d _, if e.is_structure d.to_name then test_projection e d.to_name else skip)
 
-namespace dummy_nat
+/- check projections for nested structures -/
 
-/- test whether the declarations are created in a more complicated instance -/
+namespace count_nested
+@[reduce_projections] def nested1 : ℕ × ℤ × ℕ :=
+⟨2, -1, 1⟩
+
+@[reduce_projections] def nested2 : ℕ × ℕ × ℕ :=
+⟨2, prod.map nat.succ nat.pred (1, 2)⟩
+
+end count_nested
+
+run_cmd do
+  e ← get_env,
+  e.get `count_nested.nested1_fst,
+  e.get `count_nested.nested1_snd_fst,
+  e.get `count_nested.nested1_snd_snd,
+  e.get `count_nested.nested2_fst,
+  e.get `count_nested.nested2_snd,
+  b ← is_simp_lemma `count_nested.nested1_fst >>= λ b, guard b, -- simp attribute is global
+  guard $ 7 = e.fold 0 -- there are no other lemmas generated
+    (λ d n, n + if d.to_name.components.init.ilast = `count_nested then 1 else 0)
+
+-- testing with arguments
+@[reduce_projections] def bar {α : Type*} (n m : ℕ) : ℕ × ℤ :=
+⟨n - m, n + m⟩
+
+structure equiv_plus_data (α β) extends α ≃ β :=
+(P : (α → β) → Prop)
+(data : P to_fun)
+
+structure automorphism_plus_data α extends α ⊕ α ≃ α ⊕ α :=
+(P : (α ⊕ α → α ⊕ α) → Prop)
+(data : P to_fun)
+(extra : bool → ℕ × ℕ)
+
 @[reduce_projections]
-instance my_nat_instance : decidable_linear_ordered_semiring nat :=
-{ add_left_cancel            := @nat.add_left_cancel,
-  add_right_cancel           := @nat.add_right_cancel,
-  lt                         := nat.lt,
-  le                         := nat.le,
-  le_refl                    := nat.le_refl,
-  le_trans                   := @nat.le_trans,
-  le_antisymm                := @nat.le_antisymm,
-  le_total                   := @nat.le_total,
-  lt_iff_le_not_le           := @lt_iff_le_not_le _ _,
-  add_le_add_left            := @nat.add_le_add_left,
-  le_of_add_le_add_left      := @nat.le_of_add_le_add_left,
-  zero_lt_one                := nat.zero_lt_succ 0,
-  mul_le_mul_of_nonneg_left  := assume a b c h₁ h₂, nat.mul_le_mul_left c h₁,
-  mul_le_mul_of_nonneg_right := assume a b c h₁ h₂, nat.mul_le_mul_right c h₁,
-  mul_lt_mul_of_pos_left     := @nat.mul_lt_mul_of_pos_left,
-  mul_lt_mul_of_pos_right    := @nat.mul_lt_mul_of_pos_right,
-  decidable_lt               := nat.decidable_lt,
-  decidable_le               := nat.decidable_le,
-  decidable_eq               := nat.decidable_eq,
-  ..nat.comm_semiring }
+def refl_with_data {α} : equiv_plus_data α α :=
+{ P := λ f, f = id,
+  data := rfl,
+  ..foo.rfl }
 
-run_cmd do e ← get_env, guard $ 10 = e.fold 0
-  (λ d n, n + if d.to_name.components.init.ilast = `dummy_nat then 1 else 0)
+@[reduce_projections]
+def refl_with_data' {α} : equiv_plus_data α α :=
+{ P := λ f, f = id,
+  data := rfl,
+  to_equiv := foo.rfl }
 
-end dummy_nat
+/- test whether eta expansions are reduced correctly -/
+@[reduce_projections]
+def test {α} : automorphism_plus_data α :=
+{ P := λ f, f = id,
+  data := rfl,
+  extra := λ b, ((3,5).1,(3,5).2),
+  ..foo.rfl }
+
+run_cmd do
+  e ← get_env,
+  e.get `refl_with_data_to_equiv,
+  e.get `refl_with_data'_to_equiv,
+  e.get `test_extra,
+  success_if_fail (e.get `refl_with_data_to_equiv_to_fun),
+  success_if_fail (e.get `refl_with_data'_to_equiv_to_fun),
+  success_if_fail (e.get `test_extra_fst)
+
+structure partially_applied_str :=
+(data : ℕ → ℕ × ℕ)
+
+/- if we have a partially applied constructor, we treat it as if it were eta-expanded -/
+@[reduce_projections]
+def partially_applied_term : partially_applied_str := ⟨prod.mk 3⟩
+
+run_cmd do
+  e ← get_env,
+  e.get `partially_applied_term_data_fst,
+  e.get `partially_applied_term_data_snd

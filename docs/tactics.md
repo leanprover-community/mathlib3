@@ -1194,7 +1194,13 @@ See also additional documentation of `using_well_founded` in
   @[simp] lemma refl_inv_fun (α) : (refl α).inv_fun = id
   ```
 * It does not derive simp-lemmas for the prop-valued projections.
-
-* You can use `@[reduce_projections no_simp]` to derive the lemmas, but not mark them as simp-lemmas.
-
-* If one of the projections is marked as a coercion, the generated lemmas do *not* use this coercion.
+* It will automatically reduce newly created beta-redexes, but not unfold any definitions.
+* If one of the fields itself is a structure, this command will recursively create
+  simp-lemmas for all fields in that structure.
+* If one of the values is an eta-expanded structure, we will eta-reduce this structure.
+* You can use `@[reduce_projections no_simp]` to derive the lemmas, but not mark them
+  as simp-lemmas.
+* If one of the projections is marked as a coercion, the generated lemmas do *not* use this
+  coercion.
+* If one of the fields is a partially applied constructor, we will eta-expand it
+  (this likely never happens).

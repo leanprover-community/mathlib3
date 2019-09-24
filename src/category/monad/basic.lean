@@ -45,3 +45,13 @@ universes u v
 @[monad_norm]
 lemma map_eq_bind_pure_comp (m : Type u → Type v) [monad m] [is_lawful_monad m] {α β : Type u} (f : α → β) (x : m α) :
   f <$> x = x >>= pure ∘ f := by rw bind_pure_comp_eq_map
+
+namespace list
+/-- the monad combinator that checks whether p holds for all elements in the list -/
+def mall {m : Type → Type v} [monad m] {α} (l : list α) (p : α → m bool) : m bool :=
+l.mfoldr (λ a r, (&& r) <$> p a) tt
+
+/-- the monad combinator that checks whether p holds for some element in the list -/
+def many {m : Type → Type v} [monad m] {α} (l : list α) (p : α → m bool) : m bool :=
+l.mfoldr (λ a r, ( || r) <$> p a) tt
+end list

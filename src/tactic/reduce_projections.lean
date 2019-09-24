@@ -15,126 +15,91 @@ import tactic.core
 
 open tactic expr
 
-/- broken -/
-meta def add_projection_expr
-  -- (nm : name) (value : expr) (type : expr)
-  -- (args params : list expr) (univs : list name) (add_simp : bool)
-  (nm : name) (type value lhs : expr) (args : list expr)
-  -- (args params : list expr)
-  (univs : list name) (add_simp : bool)
-  : tactic unit := do
-  -- value_type ← infer_type value,
-  -- decl_ap ← mk_app nm args,
-  -- -- cannot use `mk_app` here, since the resulting application might still be a function.
-  -- proj_ap ← mk_mapp proj $ (params ++ [decl_ap]).map some,
-  eq_ap ← mk_app `eq [type, lhs, value],
-  refl_ap ← mk_app `eq.refl [type, value],
+/-- Add a lemma with `nm` stating that `lhs = rhs`. `type` is the type of both `lhs` and `rhs`,
+  `args` is the list of local constants occurring, and `univs` is the list of universe variables.
+  If `add_simp` then we make the resulting lemma a simp-lemma. -/
+meta def add_projection (nm : name) (type lhs rhs : expr) (args : list expr)
+  (univs : list name) (add_simp : bool) : tactic unit := do
+  eq_ap ← mk_app `eq [type, lhs, rhs],
+  refl_ap ← mk_app `eq.refl [type, lhs],
   let decl_type := eq_ap.pis args,
   let decl_value := refl_ap.lambdas args,
   let decl := declaration.thm nm univs decl_type (pure decl_value),
   add_decl decl <|> fail format!"failed to add projection lemma {nm}",
   when add_simp $ set_basic_attribute `simp nm tt
 
-/- Add a lemma stating that the projection `proj` (with parameters `params`) applied to
-  "`d` applied to `args`" is equal to `value`. Makes it a simp-lemma if `add_simp` is `tt`. -/
--- meta def add_projection_decl (d : declaration) (proj : name) (value : expr)
---   (args params : list expr) (add_simp : bool) : tactic unit := do
---   value_type ← infer_type value,
---   b ← is_prop value_type,
---   when ¬ b $ do
---     decl_ap ← mk_app d.to_name args,
---     -- cannot use `mk_app` here, since the resulting application might still be a function.
---     proj_ap ← mk_mapp proj $ (params ++ [decl_ap]).map some,
---     eq_ap ← mk_app `eq [value_type, proj_ap, value],
---     refl_ap ← mk_app `eq.refl [value_type, value],
---     let decl_name := d.to_name.append_suffix $ "_" ++ proj.last,
---     let decl_type := eq_ap.pis args,
---     let decl_value := refl_ap.lambdas args,
---     let decl := declaration.thm decl_name d.univ_params decl_type (pure decl_value),
---     add_decl decl <|> fail format!"failed to add projection lemma for {proj}",
---     when add_simp $ set_basic_attribute `simp decl_name
-
-namespace expr
-  meta def apps (e : expr) (es : list expr) : expr :=
-  es.foldl expr.app e
-end expr
-
 /-- Derive lemmas specifying the projections of the declaration. -/
-meta def add_projections_expr : ∀(e : environment) (nm : name) (type value lhs : expr)
-  (args : list expr)
-  -- (args params : list expr)
-  (univs : list name) (add_simp must_be_str : bool),
-  tactic unit | e nm value type lhs args univs add_simp must_be_str := do
+meta def add_projections : ∀(e : environment) (nm : name) (type lhs rhs : expr)
+  (args : list expr) (univs : list name) (add_simp must_be_str : bool), tactic unit
+  | e nm type lhs rhs args univs add_simp must_be_str := do
   (type_args, tgt) ← mk_local_pis type,
-  const str _ ← return tgt.get_app_fn,
+  let new_args := args ++ type_args,
+  let lhs_ap := lhs.apps type_args,
+  let rhs_ap := rhs.instantiate_lambdas_or_apps type_args,
+  let str := tgt.get_app_fn.const_name,
   if e.is_structure str then do
     projs ← e.get_projections str,
-    [intro] ← return $ e.constructors_of str,
-    let params := get_app_args tgt,
-    let val := value.instantiate_lambdas type_args,
-    when (¬ is_constant_of (get_app_fn val) intro ∧ must_be_str) $
-      fail "Invalid `reduce_projections` attribute. Body is not a constructor application",
-    guard ((get_app_args val).take params.length = params) <|> fail "unreachable code (1)",
-    let values := (get_app_args val).drop params.length,
-    guard (values.length = projs.length) <|> fail "unreachable code (2)",
-    (projs.zip values).mmap' $ λ ⟨proj, value⟩, do
-      new_type ← infer_type value,
-      b ← is_prop new_type,
-      when ¬ b $ do
-        let lhs_ap := lhs.apps type_args,
-        -- cannot use `mk_app` here, since the resulting application might still be a function.
-        new_lhs ← mk_mapp proj $ (params ++ [lhs_ap]).map some,
-        let new_nm := nm.append_suffix $ "_" ++ proj.last,
-        let new_args := args ++ type_args,
-
-        let new_value := value,
-        add_projections_expr e new_nm new_type new_value new_lhs new_args univs add_simp ff,
-    skip --add_projection_decl d proj value args params add_simp
+    [intro] ← return $ e.constructors_of str | fail "unreachable code (3)",
+    let params := get_app_args tgt, -- the parameters of the structure
+    if is_constant_of (get_app_fn rhs_ap) intro then do -- if the value is a constructor application
+      guard ((get_app_args rhs_ap).take params.length = params) <|> fail "unreachable code (1)",
+      let rhs_args := (get_app_args rhs_ap).drop params.length, -- the fields of the structure
+      guard (rhs_args.length = projs.length) <|> fail "unreachable code (2)",
+      let pairs := projs.zip rhs_args,
+      eta ← expr.is_eta_expansion_aux pairs,
+      match eta with
+      | none                 :=
+        pairs.mmap' $ λ ⟨proj, new_rhs⟩, do
+          new_type ← infer_type new_rhs,
+          b ← is_prop new_type,
+          when ¬ b $ do -- if this field is a proposition, we skip it
+            -- cannot use `mk_app` here, since the resulting application might still be a function.
+            new_lhs ← mk_mapp proj $ (params ++ [lhs_ap]).map some,
+            let new_nm := nm.append_suffix $ "_" ++ proj.last,
+            add_projections e new_nm new_type new_lhs new_rhs new_args univs add_simp ff
+      | (some eta_reduction) := add_projection nm tgt lhs_ap eta_reduction new_args univs add_simp
+      end
+    else (do
+      when must_be_str $
+        fail "Invalid `reduce_projections` attribute. Body is not a constructor application",
+      add_projection nm tgt lhs_ap rhs_ap new_args univs add_simp)
   else
-    when must_be_str $
+    (do when must_be_str $
       fail "Invalid `reduce_projections` attribute. Target is not a structure",
-    skip --add_projection_expr nm proj value type args params univs add_simp
-
+    add_projection nm tgt lhs_ap rhs_ap new_args univs add_simp)
 
 /-- Derive lemmas specifying the projections of the declaration. -/
 meta def reduce_projections_tac (nm : name) (add_simp : bool) : tactic unit := do
   e ← get_env,
   d ← e.get nm,
-  add_projections_expr e nm d.type d.value _/-lhs-/ [] d.univ_params add_simp ff,
+  let lhs : expr := const d.to_name (d.univ_params.map level.param),
+  add_projections e nm d.type lhs d.value [] d.univ_params add_simp ff,
   skip
-  -- (args, tgt) ← mk_local_pis d.type,
-  -- const str _ ← return tgt.get_app_fn,
-  --   when (¬ e.is_structure str) $
-  --   fail "Invalid `reduce_projections` attribute. Target is not a structure",
-  -- projs ← e.get_projections str,
-  -- [intro] ← return $ e.constructors_of str,
-  -- let params := get_app_args tgt,
-  -- let val := d.value.instantiate_lambdas args,
-  -- when (¬ is_constant_of (get_app_fn val) intro) $
-  --   fail "Invalid `reduce_projections` attribute. Body is not a constructor application",
-  -- guard ((get_app_args val).take params.length = params) <|> fail "unreachable code (1)",
-  -- let values := (get_app_args val).drop params.length,
-  -- guard (values.length = projs.length) <|> fail "unreachable code (2)",
-  -- (projs.zip values).mmap' $ λ ⟨proj, value⟩, add_projection_decl d proj value args params add_simp
 
 reserve notation `no_simp`
 setup_tactic_parser
 
 /-- Automatically derive lemmas specifying the projections of this declaration.
-  Example:
+  Example: (note that the forward and reverse functions are specified differently!)
   ```
-  @[reduce_projections] def refl (α) : α ≃ α := ⟨id, id, λ x, rfl, λ x, rfl⟩
+  @[reduce_projections] def refl (α) : α ≃ α := ⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
   ```
   derives two simp-lemmas:
   ```
-  @[simp] lemma refl_to_fun (α) : (refl α).to_fun = id
-  @[simp] lemma refl_inv_fun (α) : (refl α).inv_fun = id
+  @[simp] lemma refl_to_fun (α) (x : α) : (refl α).to_fun x = id x
+  @[simp] lemma refl_inv_fun (α) (x : α) : (refl α).inv_fun x = x
   ```
-  It does not derive simp-lemmas for the prop-valued projections.
-
-  You can use `@[reduce_projections no_simp]` to derive the lemmas, but not mark them as simp-lemmas.
-
-  If one of the projections is marked as a coercion, the generated lemmas do *not* use this coercion.
+  * It does not derive simp-lemmas for the prop-valued projections.
+  * It will automatically reduce newly created beta-redexes, but not unfold any definitions.
+  * If one of the fields itself is a structure, this command will recursively create
+    simp-lemmas for all fields in that structure.
+  * If one of the values is an eta-expanded structure, we will eta-reduce this structure.
+  * You can use `@[reduce_projections no_simp]` to derive the lemmas, but not mark them
+    as simp-lemmas.
+  * If one of the projections is marked as a coercion, the generated lemmas do *not* use this
+    coercion.
+  * If one of the fields is a partially applied constructor, we will eta-expand it
+    (this likely never happens).
   -/
 @[user_attribute] meta def reduce_projections_attr : user_attribute unit (option unit) :=
 { name := `reduce_projections,
@@ -142,6 +107,3 @@ setup_tactic_parser
   parser := optional (tk "no_simp"),
   after_set := some $
     λ n _ _, option.is_none <$> reduce_projections_attr.get_param n >>= reduce_projections_tac n }
-
-@[reduce_projections] def bar2 : ℕ × ℤ :=
-⟨2, -1⟩

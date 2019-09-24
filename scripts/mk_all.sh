@@ -15,7 +15,7 @@ do
 done
 
 cd $DIR/../src/
-cat <<EOT >> sanity_check_mathlib.lean
+cat <<EOT > sanity_check_mathlib.lean
 import all
 
 open nat -- need to do something before running a command

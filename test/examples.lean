@@ -140,6 +140,34 @@ end
 
 end refine_struct
 
+meta example : true :=
+begin
+   success_if_fail { let := compact_relation },
+   trivial
+end
+
+import_private compact_relation from tactic.coinduction
+
+meta example : true :=
+begin
+  let := compact_relation,
+  trivial
+end
+
+meta example : true :=
+begin
+   success_if_fail { let := elim_gen_sum_aux },
+   trivial
+end
+
+import_private elim_gen_sum_aux
+
+meta example : true :=
+begin
+  let := elim_gen_sum_aux,
+  trivial
+end
+
 /- traversable -/
 open tactic.interactive
 

@@ -196,7 +196,7 @@ structure pregroupoid (H : Type*) [topological_space H] :=
 (locality : ∀{f u}, is_open u → (∀x∈u, ∃v, is_open v ∧ x ∈ v ∧ P f (u ∩ v)) → P f u)
 (congr    : ∀{f g : H → H} {u}, is_open u → (∀x∈u, g x = f x) → P f u → P g u)
 
-/- Construct a groupoid of local homeos for which the map and its inverse have some property,
+/-- Construct a groupoid of local homeos for which the map and its inverse have some property,
 from a pregroupoid asserting that this property is stable under composition. -/
 def groupoid_of_pregroupoid (PG : pregroupoid H) : structure_groupoid H :=
 { members  := {e : local_homeomorph H H | PG.P e.to_fun e.source ∧ PG.P e.inv_fun e.target},

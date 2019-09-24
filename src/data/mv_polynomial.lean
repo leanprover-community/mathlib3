@@ -962,14 +962,15 @@ variables (α) [comm_ring α]
 
 set_option class.instance_max_depth 40
 
-def pempty_ring_equiv : mv_polynomial pempty α ≃r α :=
+def pempty_ring_equiv : mv_polynomial pempty α ≃+* α :=
 { to_fun    := mv_polynomial.eval₂ id $ pempty.elim,
   inv_fun   := C,
   left_inv  := is_id _ (by apply_instance) (assume a, by rw [eval₂_C]; refl) (assume a, a.elim),
   right_inv := λ r, eval₂_C _ _ _,
-  hom       := eval₂.is_ring_hom _ _ }
+  map_mul'  := λ _ _, eval₂_mul _ _,
+  map_add'  := λ _ _, eval₂_add _ _ }
 
-def punit_ring_equiv : mv_polynomial punit α ≃r polynomial α :=
+def punit_ring_equiv : mv_polynomial punit α ≃+* polynomial α :=
 { to_fun    := eval₂ polynomial.C (λu:punit, polynomial.X),
   inv_fun   := polynomial.eval₂ mv_polynomial.C (X punit.star),
   left_inv  :=
@@ -985,16 +986,18 @@ def punit_ring_equiv : mv_polynomial punit α ≃r polynomial α :=
     (assume p n hp,
       by rw [polynomial.eval₂_mul, polynomial.eval₂_pow, polynomial.eval₂_X, polynomial.eval₂_C,
         eval₂_mul, eval₂_C, eval₂_pow, eval₂_X]),
-  hom       := eval₂.is_ring_hom _ _ }
+  map_mul'  := λ _ _, eval₂_mul _ _,
+  map_add'  := λ _ _, eval₂_add _ _ }
 
-def ring_equiv_of_equiv (e : β ≃ γ) : mv_polynomial β α ≃r mv_polynomial γ α :=
+def ring_equiv_of_equiv (e : β ≃ γ) : mv_polynomial β α ≃+* mv_polynomial γ α :=
 { to_fun    := rename e,
   inv_fun   := rename e.symm,
   left_inv  := λ p, by simp only [rename_rename, (∘), e.symm_apply_apply]; exact rename_id p,
   right_inv := λ p, by simp only [rename_rename, (∘), e.apply_symm_apply]; exact rename_id p,
-  hom       := rename.is_ring_hom e }
+  map_mul'  := rename_mul e,
+  map_add'  := rename_add e }
 
-def ring_equiv_congr [comm_ring γ] (e : α ≃r γ) : mv_polynomial β α ≃r mv_polynomial β γ :=
+def ring_equiv_congr [comm_ring γ] (e : α ≃+* γ) : mv_polynomial β α ≃+* mv_polynomial β γ :=
 { to_fun    := map e.to_equiv,
   inv_fun   := map e.symm.to_equiv,
   left_inv  := assume p,
@@ -1005,7 +1008,8 @@ def ring_equiv_congr [comm_ring γ] (e : α ≃r γ) : mv_polynomial β α ≃r 
     have (e.to_equiv ∘ e.symm.to_equiv) = id,
     { ext a, exact e.to_equiv.apply_symm_apply a },
     by simp only [map_map, this, map_id],
-  hom       := map.is_ring_hom e.to_fun }
+  map_mul'  := map_mul _,
+  map_add'  := map_add _ }
 
 section
 variables (β γ δ)
@@ -1058,13 +1062,14 @@ def mv_polynomial_equiv_mv_polynomial [comm_ring δ]
   (hfgX : ∀n, f (g (X n)) = X n)
   (hgfC : ∀a, g (f (C a)) = C a)
   (hgfX : ∀n, g (f (X n)) = X n) :
-  mv_polynomial β α ≃r mv_polynomial γ δ :=
+  mv_polynomial β α ≃+* mv_polynomial γ δ :=
 { to_fun    := f, inv_fun := g,
   left_inv  := is_id _ (is_semiring_hom.comp _ _) hgfC hgfX,
   right_inv := is_id _ (is_semiring_hom.comp _ _) hfgC hfgX,
-  hom       := is_ring_hom.of_semiring f }
+  map_mul'  := hf.map_mul,
+  map_add'  := hf.map_add }
 
-def sum_ring_equiv : mv_polynomial (β ⊕ γ) α ≃r mv_polynomial β (mv_polynomial γ α) :=
+def sum_ring_equiv : mv_polynomial (β ⊕ γ) α ≃+* mv_polynomial β (mv_polynomial γ α) :=
 begin
   apply @mv_polynomial_equiv_mv_polynomial α (β ⊕ γ) _ _ _ _
     (sum_to_iter α β γ) _ (iter_to_sum α β γ) _,
@@ -1099,12 +1104,12 @@ instance polynomial_ring : ring (polynomial (mv_polynomial β α)) :=
 instance polynomial_ring2 : ring (mv_polynomial β (polynomial α)) :=
 by apply_instance
 
-def option_equiv_left : mv_polynomial (option β) α ≃r polynomial (mv_polynomial β α) :=
+def option_equiv_left : mv_polynomial (option β) α ≃+* polynomial (mv_polynomial β α) :=
 (ring_equiv_of_equiv α $ (equiv.option_equiv_sum_punit β).trans (equiv.sum_comm _ _)).trans $
 (sum_ring_equiv α _ _).trans $
 punit_ring_equiv _
 
-def option_equiv_right : mv_polynomial (option β) α ≃r mv_polynomial β (polynomial α) :=
+def option_equiv_right : mv_polynomial (option β) α ≃+* mv_polynomial β (polynomial α) :=
 (ring_equiv_of_equiv α $ equiv.option_equiv_sum_punit.{0} β).trans $
 (sum_ring_equiv α β unit).trans $
 ring_equiv_congr (mv_polynomial unit α) (punit_ring_equiv α)

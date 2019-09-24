@@ -282,6 +282,16 @@ equiv.symm_apply_apply (e.to_equiv)
 lemma map_one {α β} [monoid α] [monoid β] (h : α ≃* β) : h 1 = 1 :=
 by rw [←mul_one (h 1), ←h.apply_symm_apply 1, ←h.map_mul, one_mul]
 
+@[to_additive]
+lemma map_eq_one_iff {α β} [monoid α] [monoid β] (h : α ≃* β) (x : α) :
+  h x = 1 ↔ x = 1 :=
+⟨λ h₀, h.symm_apply_apply x ▸ h₀.symm ▸ h.symm.map_one, λ h₀, h₀.symm ▸ h.map_one⟩
+
+@[to_additive]
+lemma map_ne_one_iff {α β} [monoid α] [monoid β] (h : α ≃* β) (x : α) :
+  h x ≠ 1 ↔ x ≠ 1 :=
+⟨mt (h.map_eq_one_iff x).2, mt (h.map_eq_one_iff x).1⟩
+
 /-- A multiplicative bijection between two monoids is an isomorphism. -/
 @[to_additive to_add_monoid_hom]
 def to_monoid_hom {α β} [monoid α] [monoid β] (h : α ≃* β) : (α →* β) :=
@@ -342,9 +352,9 @@ infix ` ≃+* `:25 := ring_equiv
 
 namespace ring_equiv
 
-section coes
+section basic
 
-variables {α β} [has_mul α] [has_add α] [has_mul β] [has_add β]
+variables [has_mul α] [has_add α] [has_mul β] [has_add β] [has_mul γ] [has_add γ]
 
 instance : has_coe_to_fun (α ≃+* β) := ⟨_, ring_equiv.to_fun⟩
 
@@ -358,7 +368,27 @@ instance has_coe_to_add_equiv : has_coe (α ≃+* β) (α ≃+ β) := ⟨ring_eq
 @[squash_cast] lemma coe_add_equiv (f : α ≃+* β) (a : α) :
   (f : α ≃+ β) a = f a := rfl
 
-end coes
+variable (α)
+
+/-- The identity map is a ring isomorphism. -/
+@[refl] protected def refl : α ≃+* α := { .. mul_equiv.refl α, .. add_equiv.refl α }
+
+variables {α}
+
+/-- The inverse of a ring isomorphism is a ring isomorphis. -/
+@[symm] protected def symm (e : α ≃+* β) : β ≃+* α :=
+{ .. e.to_mul_equiv.symm, .. e.to_add_equiv.symm }
+
+/-- Transitivity of `ring_equiv`. -/
+@[trans] protected def trans (e₁ : α ≃+* β) (e₂ : β ≃+* γ) : α ≃+* γ :=
+{ .. (e₁.to_mul_equiv.trans e₂.to_mul_equiv), .. (e₁.to_add_equiv.trans e₂.to_add_equiv) }
+
+@[simp] lemma to_equiv_symm (e : α ≃+* β) : e.symm.to_equiv = e.to_equiv.symm := rfl
+
+@[simp] lemma to_equiv_symm_apply (e : α ≃+* β) (x : β) :
+  e.symm.to_equiv x = e.to_equiv.symm x := rfl
+
+end basic
 
 section
 
@@ -398,6 +428,7 @@ variables [semiring α] [semiring β]
 def to_ring_hom (e : α ≃+* β) : α →+* β :=
 { .. e.to_mul_equiv.to_monoid_hom, .. e.to_add_equiv.to_add_monoid_hom }
 
+/-- Interpret an equivalence `f : α ≃ β` as a ring equivalence `α ≃+* β`. -/
 def of (e : α ≃ β) [is_semiring_hom e] : α ≃+* β :=
 { .. e, .. monoid_hom.of e, .. add_monoid_hom.of e }
 
@@ -409,6 +440,7 @@ section ring_hom
 
 variables [ring α] [ring β]
 
+/-- Interpret an equivalence `f : α ≃ β` as a ring equivalence `α ≃+* β`. -/
 def of' (e : α ≃ β) [is_ring_hom e] : α ≃+* β :=
 { .. e, .. monoid_hom.of e, .. add_monoid_hom.of e }
 
@@ -418,24 +450,5 @@ instance is_ring_hom' (e : α ≃+* β) : is_ring_hom e.to_equiv.to_fun :=
 e.is_ring_hom
 
 end ring_hom
-
-variables [semiring α] [semiring β] [semiring γ]
-
-variable (α)
-
-protected def refl : α ≃+* α := { .. mul_equiv.refl α, .. add_equiv.refl α }
-
-variable {α}
-
-protected def symm (e : α ≃+* β) : β ≃+* α :=
-{ .. e.to_mul_equiv.symm, .. e.to_add_equiv.symm }
-
-protected def trans (e₁ : α ≃+* β) (e₂ : β ≃+* γ) : α ≃+* γ :=
-{ .. (e₁.to_mul_equiv.trans e₂.to_mul_equiv), .. (e₁.to_add_equiv.trans e₂.to_add_equiv) }
-
-@[simp] lemma to_equiv_symm (e : α ≃+* β) : e.symm.to_equiv = e.to_equiv.symm := rfl
-
-@[simp] lemma to_equiv_symm_apply (e : α ≃+* β) (x : β) :
-  e.symm.to_equiv x = e.to_equiv.symm x := rfl
 
 end ring_equiv

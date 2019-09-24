@@ -217,8 +217,8 @@ set_option old_structure_cmd true
 structure add_equiv (α β : Type*) [has_add α] [has_add β] extends α ≃ β :=
 (map_add' : ∀ x y : α, to_fun (x + y) = to_fun x + to_fun y)
 
-/-- mul_equiv α β is the type of an equiv α ≃ β which preserves multiplication. -/
-@[to_additive]
+/-- `mul_equiv α β` is the type of an equiv `α ≃ β` which preserves multiplication. -/
+@[to_additive "`add_equiv α β` is the type of an equiv `α ≃ β` which preserves addition."]
 structure mul_equiv (α β : Type*) [has_mul α] [has_mul β] extends α ≃ β :=
 (map_mul' : ∀ x y : α, to_fun (x * y) = to_fun x * to_fun y)
 
@@ -344,7 +344,7 @@ def map_equiv (h : α ≃* β) : units α ≃* units β :=
 
 end units
 
-/- -/
+/- (semi)ring equivalence. -/
 structure ring_equiv (α β : Type*) [has_mul α] [has_add α] [has_mul β] [has_add β]
   extends α ≃ β, α ≃* β, α ≃+ β
 

@@ -37,7 +37,7 @@ def of (M : Type u) [monoid M] : Mon := bundled.of M
 
 @[to_additive]
 instance bundled_hom : bundled_hom @monoid_hom :=
-⟨@monoid_hom.to_fun, @monoid_hom.id, @monoid_hom.comp, @monoid_hom.ext⟩
+⟨@monoid_hom.to_fun, @monoid_hom.id, @monoid_hom.comp, @monoid_hom.coe_inj⟩
 
 end Mon
 

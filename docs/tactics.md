@@ -1179,7 +1179,7 @@ Lift an expression to another type.
 `import_private foo from bar` finds a private declaration `foo` in the same file as `bar` and creates a 
 local notation to refer to it. 
     
-`import_private foo`, looks for `foo` in all the files.
+`import_private foo`, looks for `foo` in all (imported) files.
 
 When possible, make `foo` non-private rather than using this feature. 
 

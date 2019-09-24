@@ -659,7 +659,9 @@ begin
   { intro x, simp, intros hx hx₂, refine ⟨or.resolve_left (h hx) hx₂, hx₂⟩ }
 end
 
-@[simp] lemma filter_eq [decidable_eq β] (s : finset β) (b : β) :
+-- This is not a good simp lemma, as it would prevent `finset.mem_filter` from firing
+-- on, e.g. `x ∈ s.filter(eq b)`.
+lemma filter_eq [decidable_eq β] (s : finset β) (b : β) :
   s.filter(eq b) = ite (b ∈ s) {b} ∅ :=
 begin
   split_ifs,

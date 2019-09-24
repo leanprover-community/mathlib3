@@ -161,6 +161,15 @@ theorem exists_mem_of_length_pos : ∀ {l : list α}, 0 < length l → ∃ a, a 
 theorem length_pos_iff_exists_mem {l : list α} : 0 < length l ↔ ∃ a, a ∈ l :=
 ⟨exists_mem_of_length_pos, λ ⟨a, h⟩, length_pos_of_mem h⟩
 
+theorem ne_nil_of_length_pos {l : list α} : 0 < length l → l ≠ [] :=
+λ h1 h2, lt_irrefl 0 ((length_eq_zero.2 h2).subst h1)
+
+theorem length_pos_of_ne_nil {l : list α} : l ≠ [] → 0 < length l :=
+λ h, pos_iff_ne_zero.2 $ λ h0, h $ length_eq_zero.1 h0
+
+theorem length_pos_iff_ne_nil {l : list α} : 0 < length l ↔ l ≠ [] :=
+⟨ne_nil_of_length_pos, length_pos_of_ne_nil⟩
+
 theorem length_eq_one {l : list α} : length l = 1 ↔ ∃ a, l = [a] :=
 ⟨match l with [a], _ := ⟨a, rfl⟩ end, λ ⟨a, e⟩, e.symm ▸ rfl⟩
 
@@ -836,8 +845,7 @@ have hn' : n < (l₁ ++ l₂).length := lt_of_lt_of_le hn
 by rw [nth_le_nth hn, nth_le_nth hn', nth_le_append]
 
 lemma last_eq_nth_le : ∀ (l : list α) (h : l ≠ []),
-  last l h = l.nth_le (l.length - 1)
-    (sub_lt (nat.pos_of_ne_zero $ λ h0, h $ length_eq_zero.1 h0) one_pos)
+  last l h = l.nth_le (l.length - 1) (sub_lt (length_pos_of_ne_nil h) one_pos)
 | [] h := rfl
 | [a] h := by rw [last_singleton, nth_le_singleton]
 | (a :: b :: l) h := by { rw [last_cons, last_eq_nth_le (b :: l)],

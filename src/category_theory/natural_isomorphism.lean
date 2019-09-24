@@ -94,12 +94,12 @@ def of_components (app : ∀ X : C, (F.obj X) ≅ (G.obj X))
   F ≅ G :=
 as_iso { app := λ X, (app X).hom }
 
-@[simp] def of_components.app (app' : ∀ X : C, (F.obj X) ≅ (G.obj X)) (naturality) (X) :
+@[simp] lemma of_components.app (app' : ∀ X : C, (F.obj X) ≅ (G.obj X)) (naturality) (X) :
   (of_components app' naturality).app X = app' X :=
 by tidy
-@[simp] def of_components.hom_app (app : ∀ X : C, (F.obj X) ≅ (G.obj X)) (naturality) (X) :
+@[simp] lemma of_components.hom_app (app : ∀ X : C, (F.obj X) ≅ (G.obj X)) (naturality) (X) :
   (of_components app naturality).hom.app X = (app X).hom := rfl
-@[simp] def of_components.inv_app (app : ∀ X : C, (F.obj X) ≅ (G.obj X)) (naturality) (X) :
+@[simp] lemma of_components.inv_app (app : ∀ X : C, (F.obj X) ≅ (G.obj X)) (naturality) (X) :
   (of_components app naturality).inv.app X = (app X).inv := rfl
 
 include ℰ

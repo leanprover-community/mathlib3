@@ -185,7 +185,7 @@ instance : lattice.order_bot (structure_groupoid H) :=
   end,
   ..structure_groupoid.partial_order }
 
-/- To construct a groupoid, one may consider classes of local homeos such that both the function
+/-- To construct a groupoid, one may consider classes of local homeos such that both the function
 and its inverse have some property. If this property is stable under composition,
 one gets a groupoid. `pregroupoid` bundles the properties needed for this construction, with the
 groupoid of smooth functions with smooth inverses as an application. -/

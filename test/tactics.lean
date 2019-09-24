@@ -262,6 +262,16 @@ instance can_lift_unit : can_lift unit unit :=
 /- test whether new instances of `can_lift` are added as simp lemmas -/
 run_cmd do l ← can_lift_attr.get_cache, guard (`can_lift_unit ∈ l)
 
+/- test error messages -/
+example (n : ℤ) (hn : 0 < n) : true :=
+begin
+  success_if_fail_with_msg {lift n to ℕ using hn} "lift tactic failed. The type of\n  hn\nis
+  0 < n\nbut it is expected to be\n  0 ≤ n",
+  success_if_fail_with_msg {lift (n : option ℤ) to ℕ}
+    "Failed to find a lift from option ℤ to ℕ. Provide an instance of\n  can_lift (option ℤ) ℕ",
+  trivial
+end
+
 end lift
 
 private meta def get_exception_message (t : lean.parser unit) : lean.parser string

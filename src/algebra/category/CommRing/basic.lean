@@ -35,7 +35,7 @@ def of (R : Type u) [semiring R] : SemiRing := bundled.of R
 instance (R : SemiRing) : semiring R := R.str
 
 instance bundled_hom : bundled_hom @ring_hom :=
-⟨@ring_hom.to_fun, @ring_hom.id, @ring_hom.comp, @ring_hom.ext⟩
+⟨@ring_hom.to_fun, @ring_hom.id, @ring_hom.comp, @ring_hom.coe_inj⟩
 
 instance has_forget_to_Mon : has_forget₂ SemiRing.{u} Mon.{u} :=
 bundled_hom.mk_has_forget₂ @semiring.to_monoid (λ R₁ R₂ f, f.to_monoid_hom) (λ _ _ _, rfl)

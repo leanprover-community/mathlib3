@@ -681,6 +681,19 @@ noncomputable instance {α : Type*} : has_sep α (finset α) := ⟨λ p x, x.fil
 
 end classical
 
+-- This is not a good simp lemma, as it would prevent `finset.mem_filter` from firing
+-- on, e.g. `x ∈ s.filter(eq b)`.
+lemma filter_eq [decidable_eq β] (s : finset β) (b : β) :
+  s.filter(eq b) = ite (b ∈ s) {b} ∅ :=
+begin
+  split_ifs,
+  { ext,
+    simp only [mem_filter, insert_empty_eq_singleton, mem_singleton],
+    exact ⟨λ h, h.2.symm, by { rintro ⟨h⟩, exact ⟨h, rfl⟩, }⟩ },
+  { ext,
+    simp only [mem_filter, not_and, iff_false, not_mem_empty],
+    rintros m ⟨e⟩, exact h m, }
+end
 
 end filter
 

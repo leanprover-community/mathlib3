@@ -641,14 +641,14 @@ section
 protected def monad : monad filter := { map := @filter.map }
 
 local attribute [instance] filter.monad
-protected def is_lawful_monad : is_lawful_monad filter :=
+protected lemma is_lawful_monad : is_lawful_monad filter :=
 { id_map     := assume α f, filter_eq rfl,
-  pure_bind  := assume α β a f, by simp only [bind, Sup_image, image_singleton,
+  pure_bind  := assume α β a f, by simp only [has_bind.bind, pure, bind, Sup_image, image_singleton,
     join_principal_eq_Sup, lattice.Sup_singleton, map_principal, eq_self_iff_true],
   bind_assoc := assume α β γ f m₁ m₂, filter_eq rfl,
   bind_pure_comp_eq_map := assume α β f x, filter_eq $
-    by simp only [bind, join, map, preimage, principal, set.subset_univ, eq_self_iff_true,
-      function.comp_app, mem_set_of_eq, singleton_subset_iff] }
+    by simp only [has_bind.bind, pure, functor.map, bind, join, map, preimage, principal,
+      set.subset_univ, eq_self_iff_true, function.comp_app, mem_set_of_eq, singleton_subset_iff] }
 end
 
 instance : applicative filter := { map := @filter.map, seq := @filter.seq }

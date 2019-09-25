@@ -57,6 +57,10 @@ run_cmd do
 
 end foo
 
+/- we reduce the type when applying [simps] -/
+def my_equiv := equiv
+@[simps] def baz : my_equiv ℕ ℕ := ⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
+
 /- test name clashes -/
 def name_clash_fst := 1
 def name_clash_snd := 1

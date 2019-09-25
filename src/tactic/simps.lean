@@ -22,9 +22,10 @@ meta def add_projection (nm : name) (type lhs rhs : expr) (args : list expr)
   (univs : list name) (add_simp : bool) : tactic unit := do
   eq_ap ← mk_app `eq [type, lhs, rhs],
   refl_ap ← mk_app `eq.refl [type, lhs],
+  decl_name ← get_unused_decl_name nm,
   let decl_type := eq_ap.pis args,
   let decl_value := refl_ap.lambdas args,
-  let decl := declaration.thm nm univs decl_type (pure decl_value),
+  let decl := declaration.thm decl_name univs decl_type (pure decl_value),
   add_decl decl <|> fail format!"failed to add projection lemma {nm}.",
   when add_simp $ set_basic_attribute `simp nm tt
 

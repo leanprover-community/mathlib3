@@ -51,10 +51,20 @@ run_cmd do
   let nm := `foo.bar1,
   d ← e.get nm,
   let lhs : expr := const d.to_name (d.univ_params.map level.param),
-  success_if_fail_with_msg (add_projections e nm d.type lhs d.value [] d.univ_params tt ff)
-    sformat!"failed to add projection lemma {nm}."
+  add_projections e nm d.type lhs d.value [] d.univ_params tt ff
 
 end foo
+
+/- test name clashes -/
+def name_clash_fst := 1
+def name_clash_snd := 1
+def name_clash_snd_2 := 1
+@[simps] def name_clash := (2, 3)
+
+run_cmd do
+  e ← get_env,
+  e.get `name_clash_fst_2,
+  e.get `name_clash_snd_3
 
 /- test whether environment.get_projections works correctly on all structures -/
 meta def test_projection (env : environment) (n : name) : tactic unit := do

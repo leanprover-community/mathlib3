@@ -60,12 +60,11 @@ instance [has_repr α] : has_repr (polynomial α) :=
           else if (coeff p n) = 1 then "X ^ " ++ repr n
             else "C (" ++ repr (coeff p n) ++ ") * X ^ " ++ repr n) ""⟩
 
-theorem ext {p q : polynomial α} : p = q ↔ ∀ n, coeff p n = coeff q n :=
+theorem ext_iff {p q : polynomial α} : p = q ↔ ∀ n, coeff p n = coeff q n :=
 ⟨λ h n, h ▸ rfl, finsupp.ext⟩
 
--- TODO fix naming
-@[extensionality] lemma ext2 {p q : polynomial α} : (∀ n, coeff p n = coeff q n) → p = q :=
-(@ext _ _ p q).2
+@[extensionality] lemma ext {p q : polynomial α} : (∀ n, coeff p n = coeff q n) → p = q :=
+(@ext_iff _ _ p q).2
 
 /-- `degree p` is the degree of the polynomial `p`, i.e. the largest `X`-exponent in `p`.
 `degree p = some n` when `p ≠ 0` and `n` is the highest power of `X` that appears in `p`, otherwise
@@ -215,7 +214,7 @@ by simpa only [pow_one] using coeff_mul_X_pow p 1 n
 
 theorem mul_X_pow_eq_zero {p : polynomial α} {n : ℕ}
   (H : p * X ^ n = 0) : p = 0 :=
-ext.2 $ λ k, (coeff_mul_X_pow p n k).symm.trans $ ext.1 H (k+n)
+ext $ λ k, (coeff_mul_X_pow p n k).symm.trans $ ext_iff.1 H (k+n)
 
 end coeff
 
@@ -362,7 +361,7 @@ lemma eval_comp : (p.comp q).eval a = p.eval (q.eval a) := eval₂_comp _
 
 @[simp] lemma comp_X : p.comp X = p :=
 begin
-  refine polynomial.ext.2 (λ n, _),
+  refine ext (λ n, _),
   rw [comp, eval₂],
   conv in (C _ * _) { rw ← single_eq_C_mul_X },
   rw finsupp.sum_single
@@ -436,7 +435,7 @@ end
 
 lemma map_map {γ : Type*} [comm_semiring γ] (g : β → γ) [is_semiring_hom g]
   (p : polynomial α) : (p.map f).map g = p.map (λ x, g (f x)) :=
-polynomial.ext.2 (by simp [coeff_map])
+ext (by simp [coeff_map])
 
 lemma eval₂_map {γ : Type*} [comm_semiring γ] (g : β → γ) [is_semiring_hom g] (x : γ) :
   (p.map f).eval₂ g x = p.eval₂ (λ y, g (f y)) x :=
@@ -448,7 +447,7 @@ polynomial.induction_on p
 
 lemma eval_map (x : β) : (p.map f).eval x = p.eval₂ f x := eval₂_map _ _ _
 
-@[simp] lemma map_id : p.map id = p := by simp [id, polynomial.ext, coeff_map]
+@[simp] lemma map_id : p.map id = p := by simp [id, polynomial.ext_iff, coeff_map]
 
 end map
 
@@ -917,7 +916,7 @@ simp only [polynomial.coeff_X_zero, finset.insert_empty_eq_singleton, finset.sum
 end comm_semiring
 
 instance subsingleton [subsingleton α] [comm_semiring α] : subsingleton (polynomial α) :=
-⟨λ _ _, polynomial.ext.2 (λ _, subsingleton.elim _ _)⟩
+⟨λ _ _, ext (λ _, subsingleton.elim _ _)⟩
 
 section comm_semiring
 
@@ -928,7 +927,7 @@ lemma ne_zero_of_monic_of_zero_ne_one (hp : monic p) (h : (0 : α) ≠ 1) :
 
 lemma eq_X_add_C_of_degree_le_one (h : degree p ≤ 1) :
   p = C (p.coeff 1) * X + C (p.coeff 0) :=
-polynomial.ext.2 (λ n, nat.cases_on n (by simp)
+ext (λ n, nat.cases_on n (by simp)
   (λ n, nat.cases_on n (by simp [coeff_C])
     (λ m, have degree p < m.succ.succ, from lt_of_le_of_lt h dec_trivial,
       by simp [coeff_eq_zero_of_degree_lt this, coeff_C, nat.succ_ne_zero, coeff_X,
@@ -1105,20 +1104,20 @@ def div_X (p : polynomial α) : polynomial α :=
       λ h, ⟨n + 1, ⟨h, nat.succ_pos _⟩, nat.succ_sub_one _⟩⟩ }
 
 lemma div_X_mul_X_add (p : polynomial α) : div_X p * X + C (p.coeff 0) = p :=
-polynomial.ext.2 $ λ n,
+ext $ λ n,
   nat.cases_on n
    (by simp)
    (by simp [coeff_C, nat.succ_ne_zero, coeff_mul_X, div_X])
 
 @[simp] lemma div_X_C (a : α) : div_X (C a) = 0 :=
-polynomial.ext.2 $ λ n, by cases n; simp [div_X, coeff_C]; simp [coeff]
+ext $ λ n, by cases n; simp [div_X, coeff_C]; simp [coeff]
 
 lemma div_X_eq_zero_iff : div_X p = 0 ↔ p = C (p.coeff 0) :=
 ⟨λ h, by simpa [eq_comm, h] using div_X_mul_X_add p,
   λ h, by rw [h, div_X_C]⟩
 
 lemma div_X_add : div_X (p + q) = div_X p + div_X q :=
-polynomial.ext.2 $ by simp [div_X]
+ext $ by simp [div_X]
 
 def nonzero_comm_semiring.of_polynomial_ne (h : p ≠ q) : nonzero_comm_semiring α :=
 { zero_ne_one := λ h01 : 0 = 1, h $
@@ -1217,7 +1216,7 @@ coeff (r • p) n = r * coeff p n := finsupp.smul_apply
 
 -- TODO -- this is OK for semimodules
 lemma C_mul' (a : α) (f : polynomial α) : C a * f = a • f :=
-ext.2 $ λ n, coeff_C_mul f
+ext $ λ n, coeff_C_mul f
 
 variable (α)
 def lcoeff (n : ℕ) : polynomial α →ₗ α :=
@@ -2119,7 +2118,7 @@ else by rw [mod_def, mod_def, leading_coeff_map f, ← is_field_hom.map_inv f, �
 
 @[simp] lemma map_eq_zero [discrete_field β] (f : α → β) [is_field_hom f] :
   p.map f = 0 ↔ p = 0 :=
-by simp [polynomial.ext, is_field_hom.map_eq_zero f, coeff_map]
+by simp [polynomial.ext_iff, is_field_hom.map_eq_zero f, coeff_map]
 
 lemma exists_root_of_degree_eq_one (h : degree p = 1) : ∃ x, is_root p x :=
 ⟨-(p.coeff 0 / p.coeff 1),

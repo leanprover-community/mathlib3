@@ -1141,7 +1141,8 @@ attribute [simp, reassoc] some_class.bar
 User commands to spot common mistakes in the code
 
 * `#sanity_check`: check all declarations in the current file
-* `#sanity_check_mathlib`: check all declarations in mathlib (excluding the current file)
+* `#sanity_check_mathlib`: check all declarations in mathlib (so excluding core or other projects,
+  and also excluding the current file)
 * `#sanity_check_all`: check all declarations in the environment (the current file and all
   imported files)
 

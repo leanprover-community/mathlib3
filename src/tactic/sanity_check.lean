@@ -8,7 +8,8 @@ import tactic.core
   # sanity_check command
   This file defines the following user commands to spot common mistakes in the code.
   * `#sanity_check`: check all declarations in the current file
-  * `#sanity_check_mathlib`: check all declarations in mathlib (excluding the current file)
+  * `#sanity_check_mathlib`: check all declarations in mathlib (so excluding core or other projects,
+    and also excluding the current file)
   * `#sanity_check_all`: check all declarations in the environment (the current file and all
     imported files)
 
@@ -139,7 +140,8 @@ return $ let nm := d.to_name.components in if nm.chain' (≠) then none
   else let s := (nm.find $ λ n, nm.count n ≥ 2).iget.to_string in
   some $ "The namespace `" ++ s ++ "` is duplicated in the name"
 
-/-- Checks whether a declaration has a classical proof in the statement -/
+/-- Checks whether a `>`/`≥` is used in the statement of `d`. -/
+-- TODO: the commented out code also checks for classicality in statements, but needs fixing
 -- TODO: this probably needs to also check whether the argument is a variable or @eq <var> _ _
 -- meta def illegal_constants_in_statement (d : declaration) : tactic (option string) :=
 -- return $ if d.type.contains_constant (λ n, (n.get_prefix = `classical ∧

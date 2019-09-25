@@ -7,7 +7,7 @@ for d in $(find $DIR/../src/ -type d)
 # For every subfolder of src/ (including src/ itself)
 do
   cd "$d" # cd to that directory
-  echo /- automatically generated file importing all files in this directory and subdirectories. -/ > all.lean
+  echo "/- automatically generated file importing all files in this directory and subdirectories. -/" > all.lean
   find . -maxdepth 1 -mindepth 1 -name 'all.lean' -prune -o -name '*.lean' -print -o -type d -print |
   # find all files with .lean extension (except all.lean) and all subdirectories
   sed 's/$/\.all/; s/\.lean\.all//; s/^\.\//       \./; 1s/^      /import/' >> all.lean

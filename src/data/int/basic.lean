@@ -1047,7 +1047,7 @@ protected def cast : ℤ → α
 | (n : ℕ) := n
 | -[1+ n] := -(n+1)
 
-@[priority 0] instance cast_coe : has_coe ℤ α := ⟨int.cast⟩
+@[priority 10] instance cast_coe : has_coe ℤ α := ⟨int.cast⟩
 
 @[simp, squash_cast] theorem cast_zero : ((0 : ℤ) : α) = 0 := rfl
 

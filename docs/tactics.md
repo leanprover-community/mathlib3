@@ -1148,10 +1148,10 @@ User commands to spot common mistakes in the code
 
 Currently this will check for
 
-* unused arguments in declarations,
-* whether a declaration is incorrectly marked as a def/lemma,
-* whether a namespace is duplicated in the name of a declaration
-* whether ≥/> is used in the declaration
+1. unused arguments in declarations,
+2. whether a declaration is incorrectly marked as a def/lemma,
+3. whether a namespace is duplicated in the name of a declaration
+4. whether ≥/> is used in the declaration
 
 You can append a `-` to any command (e.g. `#sanity_check_mathlib-`) to omit the slow tests (4).
 

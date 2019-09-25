@@ -1174,6 +1174,15 @@ Lift an expression to another type.
 * More generally, this can lift an expression from `α` to `β` assuming that there is an instance
   of `can_lift α β`. In this case the proof obligation is specified by `can_lift.cond`.
 
+### import_private
+
+`import_private foo from bar` finds a private declaration `foo` in the same file as `bar` and creates a 
+local notation to refer to it. 
+    
+`import_private foo`, looks for `foo` in all (imported) files.
+
+When possible, make `foo` non-private rather than using this feature. 
+
 ### default_dec_tac'
 
 `default_dec_tac'` is a replacement for the core tactic `default_dec_tac`, fixing a bug. This

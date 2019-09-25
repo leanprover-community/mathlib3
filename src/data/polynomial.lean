@@ -617,7 +617,7 @@ mt degree_eq_bot.2 (ne.symm (ne_of_lt (lt_of_le_of_lt bot_le h)))
 
 lemma eq_C_of_degree_le_zero (h : degree p ≤ 0) : p = C (coeff p 0) :=
 begin
-  refine polynomial.ext.2 (λ n, _),
+  refine ext (λ n, _),
   cases n,
   { simp },
   { have : degree p < ↑(nat.succ n) := lt_of_le_of_lt h (with_bot.some_lt_some.2 (nat.succ_pos _)),

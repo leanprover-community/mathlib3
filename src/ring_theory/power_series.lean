@@ -119,7 +119,7 @@ lemma coeff_monomial (m n : σ →₀ ℕ) (a : α) :
 
 @[simp] lemma coeff_comp_monomial (n : σ →₀ ℕ) :
   (coeff α n).comp (monomial α n) = add_monoid_hom.id α :=
-add_monoid_hom.ext $ funext $ coeff_monomial' n
+add_monoid_hom.ext $ coeff_monomial' n
 
 @[simp] lemma coeff_zero (n : σ →₀ ℕ) : coeff α n (0 : mv_power_series σ α) = 0 := rfl
 
@@ -801,7 +801,7 @@ by convert if_pos rfl
 
 @[simp] lemma coeff_comp_monomial (n : ℕ) :
   (coeff α n).comp (monomial α n) = add_monoid_hom.id α :=
-add_monoid_hom.ext $ funext $ coeff_monomial' n
+add_monoid_hom.ext $ coeff_monomial' n
 
 end add_monoid
 

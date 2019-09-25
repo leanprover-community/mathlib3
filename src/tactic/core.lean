@@ -1155,13 +1155,20 @@ do e ← get_env,
 meta def is_in_mathlib (n : name) : tactic bool :=
 do ml ← get_mathlib_dir, e ← get_env, return $ e.is_prefix_of_file ml n
 
-private meta def apply_under_pis_aux (p : pexpr) (cnst : pexpr) : ℕ → expr → pexpr
+/-- auxiliary function for apply_under_pis -/
+private meta def apply_under_pis_aux (func arg : pexpr) : ℕ → expr → pexpr
 | n (expr.pi nm bi tp bd) := expr.pi nm bi (pexpr.of_expr tp) (apply_under_pis_aux (n+1) bd)
-| n _ := let vars := ((list.range n).reverse.map (@expr.var ff)), bd := vars.foldl expr.app cnst.mk_explicit in
-         p bd
+| n _ :=
+  let vars := ((list.range n).reverse.map (@expr.var ff)),
+      bd := vars.foldl expr.app arg.mk_explicit in
+  func bd
 
-private meta def apply_under_pis (p : pexpr) (cnst : pexpr) (body : expr) : pexpr :=
-apply_under_pis_aux p cnst 0 body
+/--
+Assumes `pi_expr` is of the form `Π x1 ... xn, _`.
+Creates a pexpr of the form `Π x1 ... xn, func (arg x1 ... xn)`.
+All arguments (implicit and explicit) to `arg` should be supplied. -/
+meta def apply_under_pis (func arg : pexpr) (pi_expr : expr) : pexpr :=
+apply_under_pis_aux func arg 0 pi_expr
 
 /--
 Tries to derive instances by unfolding the newly introduced type and applying type class resolution.
@@ -1175,22 +1182,22 @@ adds an instance `ring new_int`, defined to be the instance of `ring ℤ` found 
 Multiple instances can be added with `@[derive [ring, module ℝ]]`.
 -/
 @[derive_handler] meta def delta_instance : derive_handler :=
-λ cls tp,
-(do body_tp ← declaration.type <$> get_decl tp,
-   tp' ← resolve_name tp,
-   tgt ← to_expr $ apply_under_pis cls tp' body_tp,
-   (_, v) ← solve_aux tgt
-     (intros >> reset_instance_cache >> delta_target [tp]  >> apply_instance >> done),
-   v ← instantiate_mvars v,
+λ cls new_decl_name,
+(do new_decl_type ← declaration.type <$> get_decl new_decl_name,
+   new_decl_pexpr ← resolve_name new_decl_name,
+   tgt ← to_expr $ apply_under_pis cls new_decl_pexpr new_decl_type,
+   (_, inst) ← solve_aux tgt
+     (intros >> reset_instance_cache >> delta_target [new_decl_name]  >> apply_instance >> done),
+   inst ← instantiate_mvars inst,
    tgt ← instantiate_mvars tgt,
-   nm ← get_unused_name $ tp ++
+   nm ← get_unused_name $ new_decl_name ++
      match cls with
      -- the postfix is needed because we can't protect this name. using nm.last directly can
      -- conflict with open namespaces
-     | (expr.const nm _) := nm.last ++ "_1"
+     | (expr.const nm _) := (nm.last ++ "_1" : string)
      | _ := "inst"
      end,
-   add_decl $ mk_definition nm v.collect_univ_params tgt v,
+   add_decl $ mk_definition nm inst.collect_univ_params tgt inst,
    set_basic_attribute `instance nm tt,
    return tt) <|> return ff
 

@@ -1136,30 +1136,51 @@ def dfinsupp_equiv_pi_fintype [fintype η] : (Π₀i, φ i) ≃ (Πi, φ i) :=
   left_inv := λ f, dfinsupp.ext $ λ i, dif_pos (finset.mem_univ i),
   right_inv := λ f, funext $ λ i, dif_pos (finset.mem_univ i) }
 
+def dfinsupp_equiv_finsupp {β} [has_zero β] [decidable_eq β] : (Π₀i, (λ _:η, β) i) ≃ (η →₀ β) :=
+{ to_fun := λ f, ⟨f.support, f, f.mem_support_iff⟩,
+  inv_fun := λ f, ⟦⟨f, f.support.val, λ i,
+    by { rw [←finset.mem_def, finsupp.mem_support_iff, or_comm], exact classical.or_not }⟩⟧,
+  left_inv := λ f, dfinsupp.ext $ (λ _, rfl),
+  right_inv := λ f, finsupp.ext $ (λ _, rfl) }
+
+section linear_equiv
+variable (α)
+
 def dfinsupp_linear_equiv_pi_fintype [fintype η] : (Π₀i, φ i) ≃ₗ[α] (Πi, φ i) :=
 dfinsupp_equiv_pi_fintype.to_linear_equiv
   ⟨λ f g, funext $ λ _, dfinsupp.add_apply, λ c f, funext $ λ _, dfinsupp.smul_apply ⟩
 
-/-lemma is_basis_std_basis [fintype η] [∀ j, decidable_eq (ιs j)] [∀ j, decidable_eq (φ j)]
-  (s : Πj, ιs j → (φ j)) (hs : ∀j, is_basis α (s j)) :
-  is_basis α (λ (ji : Σ j, ιs j),
-    dfinsupp_linear_equiv_pi_fintype.to_fun ∘ (std_basis₀ α φ ji.1 (s ji.1 ji.2) : Π₀i, φ i)) :=
-dfinsupp_linear_equiv_pi_fintype.is_basis (is_basis_std_basis₀ s hs)-/
+def dfinsupp_linear_equiv_finsupp {β} [add_comm_group β] [decidable_eq β] [module α β] :
+  (Π₀i, (λ _:η, β) i) ≃ₗ[α] (η →₀ β) :=
+(@dfinsupp_equiv_finsupp η _ β _ _).to_linear_equiv ⟨λ f g, sorry, λ c f, sorry⟩
+
+end linear_equiv
 
 section
 variables (α ι)
-variable [decidable_eq (Π (i : η), α)] --TODO: remove
+variables [decidable_eq (Π (i : η), α)] [decidable_eq (α →ₗ[α] α)] [fintype η] --TODO: (re)move
+
+--move to basic.lean
+def std_basis_fun (φ : η → Type*) [∀i, add_comm_group (φ i)] [∀i, module α (φ i)]
+  [∀i,  decidable_eq (φ i)] [∀i j, decidable_eq (φ i →ₗ[α] φ j)]
+  (i : η) :  φ i →ₗ[α] (Πi, φ i) :=
+(dfinsupp_linear_equiv_pi_fintype α).to_linear_map.comp (std_basis₀ α φ i)
+
+lemma is_basis_std_basis_fun [fintype η] [∀ j, decidable_eq (ιs j)]
+  (s : Πj, ιs j → (φ j)) (hs : ∀j, is_basis α (s j)) :
+  is_basis α (λ (ji : Σ j, ιs j), std_basis_fun α (λ j, φ j) ji.1 (s ji.1 ji.2)) :=
+(dfinsupp_linear_equiv_pi_fintype α).is_basis (is_basis_std_basis₀ s hs)
 
 lemma is_basis_fun₀ : is_basis α
-    (λ (ji : Σ (j : η), (λ _, unit) j),
-       (std_basis α (λ (i : η), α) (ji.fst)) 1) :=
+  (λ (ji : Σ (j : η), (λ _, unit) j), (std_basis_fun α (λ (i : η), α) (ji.fst)) 1) :=
 begin
   haveI := classical.dec_eq,
-  apply @is_basis_std_basis α _ η (λi:η, unit) (λi:η, α) _ _ _ _ _ _ _ (λ _ _, (1 : α))
+  apply @is_basis_std_basis_fun α _ η (λi:η, unit) (λi:η, α) _ _ _ _ _ _ _ _ _ _ _ _ (λ _ _, (1 : α))
       (assume i, @is_basis_singleton_one _ _ _ _ _ _),
 end
 
-lemma is_basis_fun : is_basis α (λ i, std_basis α (λi:η, α) i 1) :=
+lemma is_basis_fun :
+  is_basis α (λ i, std_basis_fun α (λi:η, α) i 1) :=
 begin
   apply is_basis.comp (is_basis_fun₀ α) (λ i, ⟨i, punit.star⟩),
   { apply bijective_iff_has_inverse.2,
@@ -1168,6 +1189,32 @@ begin
     intros _ b,
     rw [unique.eq_default b, unique.eq_default punit.star] },
 end
+
+/-lemma is_basis_std_basis [fintype η] [∀ j, decidable_eq (ιs j)]
+  (s : Πj, ιs j → (φ j)) (hs : ∀j, is_basis α (s j)) :
+  is_basis α ((dfinsupp_linear_equiv_pi_fintype α).to_fun ∘
+    λ (ji : Σ j, ιs j), std_basis₀ α (λ j, φ j) ji.1 (s ji.1 ji.2)) :=
+(dfinsupp_linear_equiv_pi_fintype α).is_basis (is_basis_std_basis₀ s hs)
+
+lemma is_basis_fun₀ : is_basis α
+    ((dfinsupp_linear_equiv_pi_fintype α).to_fun ∘ λ (ji : Σ (j : η), (λ _, unit) j),
+       (std_basis₀ α (λ (i : η), α) (ji.fst)) 1) :=
+begin
+  haveI := classical.dec_eq,
+  apply @is_basis_std_basis α _ η (λi:η, unit) (λi:η, α) _ _ _ _ _ _ _ _ _ (λ _ _, (1 : α))
+      (assume i, @is_basis_singleton_one _ _ _ _ _ _),
+end
+
+lemma is_basis_fun :
+  is_basis α ((dfinsupp_linear_equiv_pi_fintype α).to_fun ∘ λ i, std_basis₀ α (λi:η, α) i 1) :=
+begin
+  apply is_basis.comp (is_basis_fun₀ α) (λ i, ⟨i, punit.star⟩),
+  { apply bijective_iff_has_inverse.2,
+    use (λ x, x.1),
+    simp [function.left_inverse, function.right_inverse],
+    intros _ b,
+    rw [unique.eq_default b, unique.eq_default punit.star] },
+end-/
 
 end
 

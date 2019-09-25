@@ -31,7 +31,7 @@ instance : subsingleton empty := ⟨λa, a.elim⟩
 
 instance : decidable_eq empty := λa, a.elim
 
-@[priority 0] instance decidable_eq_of_subsingleton
+@[priority 10] instance decidable_eq_of_subsingleton
   {α} [subsingleton α] : decidable_eq α
 | a b := is_true (subsingleton.elim a b)
 

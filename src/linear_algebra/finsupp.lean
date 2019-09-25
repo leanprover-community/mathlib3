@@ -8,7 +8,7 @@ Linear structures on function with finite support `α →₀ β`.
 import data.finsupp linear_algebra.basic
 
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+local attribute [instance, priority 10] classical.prop_decidable
 
 open lattice set linear_map submodule
 

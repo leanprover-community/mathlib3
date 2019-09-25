@@ -11,9 +11,10 @@ variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 open lattice
 
 /-- is unit -/
-def is_unit [monoid α] (a : α) : Prop := ∃u:units α, a = u
+@[to_additive is_add_unit] def is_unit [monoid α] (a : α) : Prop := ∃u:units α, a = u
 
-@[simp] lemma is_unit_unit [monoid α] (u : units α) : is_unit (u : α) := ⟨u, rfl⟩
+@[simp, to_additive is_add_unit_add_unit]
+lemma is_unit_unit [monoid α] (u : units α) : is_unit (u : α) := ⟨u, rfl⟩
 
 theorem is_unit.mk0 [division_ring α] (x : α) (hx : x ≠ 0) : is_unit x := is_unit_unit (units.mk0 x hx)
 

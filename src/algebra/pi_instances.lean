@@ -241,6 +241,14 @@ lemma fst.is_monoid_hom [monoid α] [monoid β] : is_monoid_hom (prod.fst : α �
 lemma snd.is_monoid_hom [monoid α] [monoid β] : is_monoid_hom (prod.snd : α × β → β) :=
 { map_mul := λ _ _, rfl, map_one := rfl }
 
+@[to_additive prod.add_monoid_hom.fst]
+def monoid_hom.fst [monoid α] [monoid β] : α × β →* α :=
+⟨λ x, x.1, rfl, λ _ _, prod.fst_mul⟩
+
+@[to_additive prod.add_monoid_hom.snd]
+def monoid_hom.snd [monoid α] [monoid β] : α × β →* β :=
+⟨λ x, x.2, rfl, λ _ _, prod.snd_mul⟩
+
 @[to_additive is_add_group_hom]
 lemma fst.is_group_hom [group α] [group β] : is_group_hom (prod.fst : α × β → α) :=
 { map_mul := λ _ _, rfl }

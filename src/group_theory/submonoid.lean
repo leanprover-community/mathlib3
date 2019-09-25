@@ -420,10 +420,15 @@ instance has_one : has_one S := ⟨⟨_, S.one_mem⟩⟩
 @[simp, to_additive] lemma coe_one : ((1 : S) : M) = 1 := rfl
 
 /-- A submonoid of a monoid inherits a monoid structure. -/
-@[to_additive to_add_monoid "An add_submonoid of an add_monoid inherits an add_monoid structure."] 
+@[to_additive to_add_monoid "An add_submonoid of an add_monoid inherits an add_monoid structure."]
 -- should I have to name the additive version here?
 instance to_monoid {M : Type*} [monoid M] {S : submonoid M} : monoid S :=
 by refine { mul := (*), one := 1, ..}; by simp [mul_assoc]
+
+/-- A submonoid of a comm_monoid is a comm_monoid. -/
+@[to_additive to_add_comm_monoid "An add_submonoid of an add_comm_monoid is an add_comm_monoid."]
+instance to_comm_monoid {M} [comm_monoid M] (S : submonoid M) : comm_monoid S :=
+{ mul_comm := λ _ _, subtype.ext.2 $ mul_comm _ _, ..submonoid.to_monoid}
 
 /-- The natural monoid hom from a submonoid of monoid M to M. -/
 @[to_additive "The natural monoid hom from an add_submonoid of add_monoid M to M."]
@@ -504,14 +509,14 @@ namespace submonoid
 variables {M : Type*} [monoid M] (S : submonoid M)
 
 /-- `univ` is the submonoid M of the monoid M. -/
-@[to_additive "`univ` is the add_submonoid M of the add_monoid M."] 
+@[to_additive "`univ` is the add_submonoid M of the add_monoid M."]
 def univ : submonoid M :=
 { carrier := set.univ,
   one_mem' := set.mem_univ 1,
   mul_mem' := λ _ _ _ _, set.mem_univ _ }
 
 /-- ⊥ is the trivial submonoid {1} of the monoid M. -/
-@[to_additive "⊥ is the zero submonoid of the add_monoid M."] 
+@[to_additive "⊥ is the zero submonoid of the add_monoid M."]
 def bot : submonoid M :=
 { carrier := {1},
   one_mem' := set.mem_singleton 1,
@@ -610,9 +615,11 @@ instance : complete_lattice (submonoid M) :=
   ..submonoid.lattice.order_bot,
   ..submonoid.lattice.lattice}
 
+-- Need the additive version of this not to be called 'add_submonoid.add_comm_monoid' but I can't think of a good alternative...
 /-- Submonoids of a monoid form an add_comm_monoid. -/
 @[to_additive "Add_submonoids of an add_monoid form an add_comm_monoid."]
-instance : add_comm_monoid (submonoid M) :=
+instance complete_lattice.add_comm_monoid :
+  add_comm_monoid (submonoid M) :=
 { add := (⊔),
   add_assoc := λ _ _ _, sup_assoc,
   zero := ⊥,
@@ -696,7 +703,7 @@ variables {M : Type*} [monoid M] (S : submonoid M)
 
 /-- Restriction of a monoid_hom to a submonoid of the codomain. -/
 @[to_additive "Restriction of an add_monoid_hom to an add_submonoid of the codomain."]
--- 'would be nice if it errored if [the additive docstring] doesn't exist' 
+-- 'would be nice if it errored if [the additive docstring] doesn't exist'
 def subtype_mk {N : Type*} [monoid N] (f : N →* M) (h : ∀ x, f x ∈ S) : N →* S :=
 { to_fun := λ n, ⟨f n, h n⟩,
   map_one' := subtype.eq (is_monoid_hom.map_one f),

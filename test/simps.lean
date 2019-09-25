@@ -30,6 +30,8 @@ example (n : ℕ) : foo.rfl.inv_fun n = n := by rw [foo.rfl_inv_fun]
 
 example : foo.1 = 1 := by simp
 example : foo.2 = 2 := by simp
+example : foo.1 = 1 := by { dsimp, refl } -- check that dsimp also unfolds
+example : foo.2 = 2 := by { dsimp, refl }
 example {α} (x : α) : foo.rfl.to_fun x = x := by simp
 example {α} (x : α) : foo.rfl.inv_fun x = x := by simp
 example {α} (x : α) : foo.rfl.to_fun = @id α := by { success_if_fail {simp}, refl }
@@ -151,3 +153,15 @@ run_cmd do
   e ← get_env,
   e.get `partially_applied_term_data_fst,
   e.get `partially_applied_term_data_snd
+
+structure very_partially_applied_str :=
+(data : ∀β, ℕ → β → ℕ × β)
+
+/- if we have a partially applied constructor, we treat it as if it were eta-expanded -/
+@[simps]
+def very_partially_applied_term : very_partially_applied_str := ⟨@prod.mk ℕ⟩
+
+run_cmd do
+  e ← get_env,
+  e.get `very_partially_applied_term_data_fst,
+  e.get `very_partially_applied_term_data_snd

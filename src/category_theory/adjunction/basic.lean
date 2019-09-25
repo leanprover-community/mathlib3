@@ -46,13 +46,13 @@ namespace adjunction
 
 restate_axiom hom_equiv_unit'
 restate_axiom hom_equiv_counit'
-attribute [simp, priority 1] hom_equiv_unit hom_equiv_counit
+attribute [simp, priority 10] hom_equiv_unit hom_equiv_counit
 
 section
 
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G) {X' X : C} {Y Y' : D}
 
-@[simp, priority 1] lemma hom_equiv_naturality_left_symm (f : X' ⟶ X) (g : X ⟶ G.obj Y) :
+@[simp, priority 10] lemma hom_equiv_naturality_left_symm (f : X' ⟶ X) (g : X ⟶ G.obj Y) :
   (adj.hom_equiv X' Y).symm (f ≫ g) = F.map f ≫ (adj.hom_equiv X Y).symm g :=
 by rw [hom_equiv_counit, F.map_comp, assoc, adj.hom_equiv_counit.symm]
 
@@ -60,7 +60,7 @@ by rw [hom_equiv_counit, F.map_comp, assoc, adj.hom_equiv_counit.symm]
   (adj.hom_equiv X' Y) (F.map f ≫ g) = f ≫ (adj.hom_equiv X Y) g :=
 by rw [← equiv.eq_symm_apply]; simp [-hom_equiv_unit]
 
-@[simp, priority 1] lemma hom_equiv_naturality_right (f : F.obj X ⟶ Y) (g : Y ⟶ Y') :
+@[simp, priority 10] lemma hom_equiv_naturality_right (f : F.obj X ⟶ Y) (g : Y ⟶ Y') :
   (adj.hom_equiv X Y') (f ≫ g) = (adj.hom_equiv X Y) f ≫ G.map g :=
 by rw [hom_equiv_unit, G.map_comp, ← assoc, ←hom_equiv_unit]
 
@@ -117,7 +117,7 @@ namespace core_hom_equiv
 
 restate_axiom hom_equiv_naturality_left_symm'
 restate_axiom hom_equiv_naturality_right'
-attribute [simp, priority 1] hom_equiv_naturality_left_symm hom_equiv_naturality_right
+attribute [simp, priority 10] hom_equiv_naturality_left_symm hom_equiv_naturality_right
 
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : core_hom_equiv F G) {X' X : C} {Y Y' : D}
 

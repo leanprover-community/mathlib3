@@ -580,7 +580,7 @@ section comm_ring
 variable [comm_ring α]
 
 /-- Multivariate formal power series over a local ring form a local ring.-/
-def is_local_ring (h : is_local_ring α) : is_local_ring (mv_power_series σ α) :=
+lemma is_local_ring (h : is_local_ring α) : is_local_ring (mv_power_series σ α) :=
 begin
   split,
   { have H : (0:α) ≠ 1 := ‹is_local_ring α›.1, contrapose! H,

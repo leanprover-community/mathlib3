@@ -358,8 +358,12 @@ meta def is_eta_expansion_test : list (name × expr) → option expr
 /-- Checks whether there is an expression `e` such that for all *non-propositional* elements
   `(nm, val)` in the list `val = e ... nm` where `...` denotes the same list of parameters for all
   applications. -/
-meta def is_eta_expansion_aux (l : list (name × expr)) : tactic (option expr) :=
-is_eta_expansion_test <$> l.mfilter (λ⟨proj, val⟩, bnot <$> is_proof val)
+meta def is_eta_expansion_aux (val : expr) (l : list (name × expr)) : tactic (option expr) :=
+do l' ← l.mfilter (λ⟨proj, val⟩, bnot <$> is_proof val),
+  match is_eta_expansion_test l' with
+  | some e := option.map (λ _, e) <$> try_core (unify e val)
+  | none   := return none
+  end
 
 /-- Checks whether there is an expression `e` such that `val` is the eta-expansion of `e`.
   This assumes that `val` is a fully-applied application of the constructor of a structure.
@@ -374,7 +378,7 @@ meta def is_eta_expansion (val : expr) : tactic (option expr) := do
   type ← infer_type val,
   projs ← e.get_projections type.get_app_fn.const_name,
   let args := (val.get_app_args).drop type.get_app_args.length,
-  is_eta_expansion_aux (projs.zip args)
+  is_eta_expansion_aux val (projs.zip args)
 
 end expr
 

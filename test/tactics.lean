@@ -312,12 +312,25 @@ def eta_expansion_test2 : ℕ ≃ ℕ :=
 run_cmd do e ← get_env, x ← e.get `eta_expansion_test2,
   let v := (x.value.get_app_args).drop 2,
   projs ← e.get_projections `equiv,
-  b ← expr.is_eta_expansion_aux (projs.zip v),
+  b ← expr.is_eta_expansion_aux x.value (projs.zip v),
   guard $ b = some `(@my_rfl ℕ)
 
 run_cmd do e ← get_env, x1 ← e.get `eta_expansion_test, x2 ← e.get `eta_expansion_test2,
   b1 ← expr.is_eta_expansion x1.value,
   b2 ← expr.is_eta_expansion x2.value,
   guard $ b1 = some `((1, 0)) ∧ b2 = some `(@my_rfl ℕ)
+
+structure my_str (n : ℕ) := (x y : ℕ)
+
+def dummy : my_str 3 := ⟨3, 1, 1⟩
+def wrong_param : my_str 2 := ⟨2, dummy.1, dummy.2⟩
+def right_param : my_str 3 := ⟨3, dummy.1, dummy.2⟩
+
+run_cmd do e ← get_env,
+  x ← e.get `wrong_param, o ← x.value.is_eta_expansion,
+  guard o.is_none,
+  x ← e.get `right_param, o ← x.value.is_eta_expansion,
+  guard $ o = some `(dummy)
+
 
 end is_eta_expansion

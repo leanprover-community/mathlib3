@@ -20,23 +20,32 @@ open tactic expr
   If `add_simp` then we make the resulting lemma a simp-lemma. -/
 meta def add_projection (nm : name) (type lhs rhs : expr) (args : list expr)
   (univs : list name) (add_simp : bool) : tactic unit := do
-  eq_ap ← mk_app `eq [type, lhs, rhs],
+  -- pp lhs >>= trace, trace "^lhs\n",
+  -- pp rhs >>= trace, trace "^rhs\n",
+  -- pp type >>= trace, trace "^type\n",
+  eq_ap ← mk_mapp `eq $ [type, lhs, rhs].map some,
   refl_ap ← mk_app `eq.refl [type, lhs],
   decl_name ← get_unused_decl_name nm,
   let decl_type := eq_ap.pis args,
   let decl_value := refl_ap.lambdas args,
   let decl := declaration.thm decl_name univs decl_type (pure decl_value),
   add_decl decl <|> fail format!"failed to add projection lemma {nm}.",
-  when add_simp $ set_basic_attribute `simp nm tt
+  when add_simp $ set_basic_attribute `simp nm tt >> set_basic_attribute `_refl_lemma nm tt
 
 /-- Derive lemmas specifying the projections of the declaration. -/
 meta def add_projections : ∀(e : environment) (nm : name) (type lhs rhs : expr)
   (args : list expr) (univs : list name) (add_simp must_be_str : bool), tactic unit
   | e nm type lhs rhs args univs add_simp must_be_str := do
+    -- pp lhs >>= trace, trace "^lhs\n",
+  -- pp rhs >>= trace, trace "^rhs\n",
+  -- pp type >>= trace, trace "^type\n",
   (type_args, tgt) ← mk_local_pis type,
+  -- pp type_args >>= trace, trace "^type_args\n",
+  -- pp tgt >>= trace, trace "^tgt\n",
   let new_args := args ++ type_args,
   let lhs_ap := lhs.mk_app type_args,
   let rhs_ap := rhs.instantiate_lambdas_or_apps type_args,
+  -- pp rhs_ap >>= trace, trace "^rhs_ap\n",
   let str := tgt.get_app_fn.const_name,
   if e.is_structure str then do
     projs ← e.get_projections str,
@@ -47,11 +56,13 @@ meta def add_projections : ∀(e : environment) (nm : name) (type lhs rhs : expr
       let rhs_args := (get_app_args rhs_ap).drop params.length, -- the fields of the structure
       guard (rhs_args.length = projs.length) <|> fail "unreachable code (2)",
       let pairs := projs.zip rhs_args,
-      eta ← expr.is_eta_expansion_aux pairs,
+      -- pp pairs >>= trace, trace "^pairs\n",
+      eta ← expr.is_eta_expansion_aux rhs pairs,
       match eta with
       | none                 :=
         pairs.mmap' $ λ ⟨proj, new_rhs⟩, do
           new_type ← infer_type new_rhs,
+          -- pp new_type >>= trace, trace "^new_type\n",
           b ← is_prop new_type,
           when ¬ b $ do -- if this field is a proposition, we skip it
             -- cannot use `mk_app` here, since the resulting application might still be a function.

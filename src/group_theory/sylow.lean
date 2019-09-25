@@ -11,7 +11,7 @@ open equiv.perm is_subgroup list quotient_group
 universes u v w
 variables {G : Type u} {α : Type v} {β : Type w} [group G]
 
-local attribute [instance, priority 0] subtype.fintype set_fintype classical.prop_decidable
+local attribute [instance, priority 10] subtype.fintype set_fintype classical.prop_decidable
 
 namespace mul_action
 variables [mul_action G α]

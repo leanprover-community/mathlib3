@@ -188,7 +188,7 @@ theorem comm_ring.anti_hom_to_hom (f : R → F) [is_ring_anti_hom f] : is_ring_h
 
 def comm_ring.equiv_to_anti_equiv (Hs : R ≃+* F) : ring_anti_equiv R F :=
 { anti_hom := comm_ring.hom_to_anti_hom Hs,
-  .. Hs.to_equiv }
+  .. Hs }
 
 def comm_ring.anti_equiv_to_equiv (Hs : ring_anti_equiv R F) : R ≃+* F :=
 @ring_equiv.of' _ _ _ _ Hs.to_equiv (comm_ring.anti_hom_to_hom Hs)

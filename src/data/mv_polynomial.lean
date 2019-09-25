@@ -998,15 +998,15 @@ def ring_equiv_of_equiv (e : β ≃ γ) : mv_polynomial β α ≃+* mv_polynomia
   map_add'  := rename_add e }
 
 def ring_equiv_congr [comm_ring γ] (e : α ≃+* γ) : mv_polynomial β α ≃+* mv_polynomial β γ :=
-{ to_fun    := map e.to_equiv,
-  inv_fun   := map e.symm.to_equiv,
+{ to_fun    := map e,
+  inv_fun   := map e.symm,
   left_inv  := assume p,
-    have (e.symm.to_equiv ∘ e.to_equiv) = id,
-    { ext a, exact e.to_equiv.symm_apply_apply a },
+    have (e.symm ∘ e) = id,
+    { ext a, exact e.symm_apply_apply a },
     by simp only [map_map, this, map_id],
   right_inv := assume p,
-    have (e.to_equiv ∘ e.symm.to_equiv) = id,
-    { ext a, exact e.to_equiv.apply_symm_apply a },
+    have (e ∘ e.symm) = id,
+    { ext a, exact e.apply_symm_apply a },
     by simp only [map_map, this, map_id],
   map_mul'  := map_mul _,
   map_add'  := map_add _ }

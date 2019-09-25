@@ -285,7 +285,7 @@ by rw [←mul_one (h 1), ←h.apply_symm_apply 1, ←h.map_mul, one_mul]
 @[to_additive]
 lemma map_eq_one_iff {α β} [monoid α] [monoid β] (h : α ≃* β) (x : α) :
   h x = 1 ↔ x = 1 :=
-⟨λ h₀, h.symm_apply_apply x ▸ h₀.symm ▸ h.symm.map_one, λ h₀, h₀.symm ▸ h.map_one⟩
+h.map_one ▸ h.to_equiv.apply_eq_iff_eq x 1
 
 @[to_additive]
 lemma map_ne_one_iff {α β} [monoid α] [monoid β] (h : α ≃* β) (x : α) :
@@ -383,10 +383,11 @@ variables {α}
 @[trans] protected def trans (e₁ : α ≃+* β) (e₂ : β ≃+* γ) : α ≃+* γ :=
 { .. (e₁.to_mul_equiv.trans e₂.to_mul_equiv), .. (e₁.to_add_equiv.trans e₂.to_add_equiv) }
 
-@[simp] lemma to_equiv_symm (e : α ≃+* β) : e.symm.to_equiv = e.to_equiv.symm := rfl
+@[simp] lemma apply_symm_apply (e : α ≃+* β) : ∀ x, e (e.symm x) = x := e.to_equiv.apply_symm_apply
+@[simp] lemma symm_apply_apply (e : α ≃+* β) : ∀ x, e.symm (e x) = x := e.to_equiv.symm_apply_apply
 
-@[simp] lemma to_equiv_symm_apply (e : α ≃+* β) (x : β) :
-  e.symm.to_equiv x = e.to_equiv.symm x := rfl
+lemma image_eq_preimage (e : α ≃+* β) (s : set α) : e '' s = e.symm ⁻¹' s :=
+e.to_equiv.image_eq_preimage s
 
 end basic
 
@@ -445,9 +446,6 @@ def of' (e : α ≃ β) [is_ring_hom e] : α ≃+* β :=
 { .. e, .. monoid_hom.of e, .. add_monoid_hom.of e }
 
 instance (e : α ≃+* β) : is_ring_hom e := e.to_ring_hom.is_ring_hom
-
-instance is_ring_hom' (e : α ≃+* β) : is_ring_hom e.to_equiv.to_fun :=
-e.is_ring_hom
 
 end ring_hom
 

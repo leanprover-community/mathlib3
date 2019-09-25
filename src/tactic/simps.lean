@@ -36,7 +36,7 @@ meta def add_projection (nm : name) (type lhs rhs : expr) (args : list expr)
 meta def add_projections : ∀(e : environment) (nm : name) (type lhs rhs : expr)
   (args : list expr) (univs : list name) (add_simp must_be_str : bool), tactic unit
   | e nm type lhs rhs args univs add_simp must_be_str := do
-    -- pp lhs >>= trace, trace "^lhs\n",
+  -- pp lhs >>= trace, trace "^lhs\n",
   -- pp rhs >>= trace, trace "^rhs\n",
   -- pp type >>= trace, trace "^type\n",
   (type_args, tgt) ← mk_local_pis type,
@@ -57,7 +57,7 @@ meta def add_projections : ∀(e : environment) (nm : name) (type lhs rhs : expr
       guard (rhs_args.length = projs.length) <|> fail "unreachable code (2)",
       let pairs := projs.zip rhs_args,
       -- pp pairs >>= trace, trace "^pairs\n",
-      eta ← expr.is_eta_expansion_aux rhs pairs,
+      eta ← expr.is_eta_expansion_aux rhs_ap pairs,
       match eta with
       | none                 :=
         pairs.mmap' $ λ ⟨proj, new_rhs⟩, do

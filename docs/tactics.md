@@ -1138,10 +1138,29 @@ Here too, the `reassoc` attribute can be used instead. It works well when combin
 attribute [simp, reassoc] some_class.bar
 ```
 ### sanity_check
+User commands to spot common mistakes in the code
 
-The `#sanity_check` command checks for common mistakes in the current file or in all of mathlib, respectively.
+* `#sanity_check`: check all declarations in the current file
+* `#sanity_check_mathlib`: check all declarations in mathlib (so excluding core or other projects,
+  and also excluding the current file)
+* `#sanity_check_all`: check all declarations in the environment (the current file and all
+  imported files)
 
-Currently this will check for unused arguments in declarations and whether a declaration is incorrectly marked as a def/lemma.
+Currently this will check for
+
+1. unused arguments in declarations,
+2. whether a declaration is incorrectly marked as a def/lemma,
+3. whether a namespace is duplicated in the name of a declaration
+4. whether ≥/> is used in the declaration
+
+You can append a `-` to any command (e.g. `#sanity_check_mathlib-`) to omit the slow tests (4).
+
+You can customize the performed checks like this:
+```lean
+meta def my_check (d : declaration) : tactic (option string) :=
+return $ if d.to_name = `foo then some "gotcha!" else none
+run_cmd sanity_check tt [(my_check, "found nothing", "found something")] >>= trace
+```
 
 ### lift
 
@@ -1173,6 +1192,15 @@ Lift an expression to another type.
   specify it again as the third argument to `with`, like this: `lift n to ℕ using h with n rfl h`.
 * More generally, this can lift an expression from `α` to `β` assuming that there is an instance
   of `can_lift α β`. In this case the proof obligation is specified by `can_lift.cond`.
+
+### import_private
+
+`import_private foo from bar` finds a private declaration `foo` in the same file as `bar` and creates a 
+local notation to refer to it. 
+    
+`import_private foo`, looks for `foo` in all (imported) files.
+
+When possible, make `foo` non-private rather than using this feature. 
 
 ### default_dec_tac'
 

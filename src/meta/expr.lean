@@ -186,6 +186,11 @@ e.fold mk_name_set $ λ e' _ l,
   | _ := l
   end
 
+/-- Returns true if `e` contains a name `n` where `p n` is true.
+  Returns `true` if `p name.anonymous` is true -/
+meta def contains_constant (e : expr) (p : name → Prop) [decidable_pred p] : bool :=
+e.fold ff (λ e' _ b, if p (e'.const_name) then tt else b)
+
 /--
  is_num_eq n1 n2 returns true if n1 and n2 are both numerals with the same numeral structure,
  ignoring differences in type and type class arguments.
@@ -291,7 +296,7 @@ e.fold (return x) (λ d t, t >>= fn d)
 meta def mfilter (e : environment) (test : declaration → tactic bool) : tactic (list declaration) :=
 e.mfold [] $ λ d ds, do b ← test d, return $ if b then d::ds else ds
 
-/-- Checks whether `ml` is a prefix of the file where `n` is declared.
+/-- Checks whether `s` is a prefix of the file where `n` is declared.
   This is used to check whether `n` is declared in mathlib, where `s` is the mathlib directory. -/
 meta def is_prefix_of_file (e : environment) (s : string) (n : name) : bool :=
 s.is_prefix_of $ (e.decl_olean n).get_or_else ""

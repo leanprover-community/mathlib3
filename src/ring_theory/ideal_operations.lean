@@ -231,9 +231,10 @@ theorem bijective_quotient_inf_to_pi_quotient [fintype ι] {f : ι → ideal R}
 /-- Chinese Remainder Theorem. Eisenbud Ex.2.6. Similar to Atiyah-Macdonald 1.10 and Stacks 00DT -/
 noncomputable def quotient_inf_ring_equiv_pi_quotient [fintype ι] (f : ι → ideal R)
   (hf : ∀ i j, i ≠ j → f i ⊔ f j = ⊤) :
-  (⨅ i, f i).quotient ≃r Π i, (f i).quotient :=
-{ hom := is_ring_hom_quotient_inf_to_pi_quotient f,
-  .. equiv.of_bijective (bijective_quotient_inf_to_pi_quotient hf) }
+  (⨅ i, f i).quotient ≃+* Π i, (f i).quotient :=
+by haveI : is_ring_hom (equiv.of_bijective (bijective_quotient_inf_to_pi_quotient hf)) :=
+  is_ring_hom_quotient_inf_to_pi_quotient f;
+    exact ring_equiv.of (equiv.of_bijective (bijective_quotient_inf_to_pi_quotient hf))
 
 end chinese_remainder
 

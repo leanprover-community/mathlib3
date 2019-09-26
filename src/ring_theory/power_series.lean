@@ -974,14 +974,14 @@ lemma coeff_trunc (m) (n) (φ : power_series α) :
   polynomial.coeff (trunc n φ) m = if m ≤ n then coeff α m φ else 0 := rfl
 
 @[simp] lemma trunc_zero (n) : trunc n (0 : power_series α) = 0 :=
-polynomial.ext.2 $ λ m,
+polynomial.ext $ λ m,
 begin
   rw [coeff_trunc, add_monoid_hom.map_zero, polynomial.coeff_zero],
   split_ifs; refl
 end
 
 @[simp] lemma trunc_one (n) : trunc n (1 : power_series α) = 1 :=
-polynomial.ext.2 $ λ m,
+polynomial.ext $ λ m,
 begin
   rw [coeff_trunc, coeff_one],
   split_ifs with H H' H'; rw [polynomial.coeff_one],
@@ -993,6 +993,10 @@ end
 
 @[simp] lemma trunc_C (n) (a : α) : trunc n (C α a) = polynomial.C a :=
 polynomial.ext.2 $ λ m,
+
+@[simp] lemma trunc_C (n) (a : α) : trunc n (C a) = polynomial.C a :=
+polynomial.ext $ λ m,
+
 begin
   rw [coeff_trunc, coeff_C, polynomial.coeff_C],
   split_ifs with H; refl <|> try {simp * at *}
@@ -1000,7 +1004,7 @@ end
 
 @[simp] lemma trunc_add (n) (φ ψ : power_series α) :
   trunc n (φ + ψ) = trunc n φ + trunc n ψ :=
-polynomial.ext.2 $ λ m,
+polynomial.ext $ λ m,
 begin
   simp only [coeff_trunc, add_monoid_hom.map_add, polynomial.coeff_add],
   split_ifs with H, {refl}, {rw [zero_add]}

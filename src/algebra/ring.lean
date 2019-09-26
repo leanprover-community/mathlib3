@@ -362,7 +362,7 @@ instance {α : Type*} {β : Type*} [semiring α] [semiring β] (f : α →+* β)
   map_add := f.map_add,
   map_mul := f.map_mul }
 
-instance {α γ} [ring α] [ring γ] {g : α →+* γ} : is_ring_hom g :=
+instance {α γ} [ring α] [ring γ] (g : α →+* γ) : is_ring_hom g :=
 is_ring_hom.of_semiring g
 
 /-- The identity ring homomorphism from a semiring to itself. -/

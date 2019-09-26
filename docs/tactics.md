@@ -169,9 +169,23 @@ they are only meant to be used on small, straightforward problems.
 All accept an optional list of simplifier rules, typically definitions that should be expanded.
 (The equations and identities should not refer to the local context.) All also accept an optional list of `ematch` lemmas, which must be preceded by `using`.
 
+### abel
+
+Evaluate expressions in the language of *additive*, commutative monoids and groups.
+It attempts to prove the goal outright if there is no `at`
+specifier and the target is an equality, but if this
+fails, it falls back to rewriting all monoid expressions into a normal form.
+If there is an `at` specifier, it rewrites the given target into a normal form.
+```lean
+example {α : Type*} {a b : α} [add_comm_monoid α] : a + (b + a) = a + a + b := by abel
+example {α : Type*} {a b : α} [add_comm_group α] : (a + b) - ((b + a) + a) = -a := by abel
+example {α : Type*} {a b : α} [add_comm_group α] (hyp : a + a - a = b - b) : a = 0 :=
+by { abel at hyp, exact hyp }
+```
+
 ### ring
 
-Evaluate expressions in the language of (semi-)rings.
+Evaluate expressions in the language of *commutative* (semi)rings.
 Based on [Proving Equalities in a Commutative Ring Done Right in Coq](http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf) by Benjamin Grégoire and Assia Mahboubi.
 
 ### congr'
@@ -1124,10 +1138,29 @@ Here too, the `reassoc` attribute can be used instead. It works well when combin
 attribute [simp, reassoc] some_class.bar
 ```
 ### sanity_check
+User commands to spot common mistakes in the code
 
-The `#sanity_check` command checks for common mistakes in the current file or in all of mathlib, respectively.
+* `#sanity_check`: check all declarations in the current file
+* `#sanity_check_mathlib`: check all declarations in mathlib (so excluding core or other projects,
+  and also excluding the current file)
+* `#sanity_check_all`: check all declarations in the environment (the current file and all
+  imported files)
 
-Currently this will check for unused arguments in declarations and whether a declaration is incorrectly marked as a def/lemma.
+Currently this will check for
+
+1. unused arguments in declarations,
+2. whether a declaration is incorrectly marked as a def/lemma,
+3. whether a namespace is duplicated in the name of a declaration
+4. whether ≥/> is used in the declaration
+
+You can append a `-` to any command (e.g. `#sanity_check_mathlib-`) to omit the slow tests (4).
+
+You can customize the performed checks like this:
+```lean
+meta def my_check (d : declaration) : tactic (option string) :=
+return $ if d.to_name = `foo then some "gotcha!" else none
+run_cmd sanity_check tt [(my_check, "found nothing", "found something")] >>= trace
+```
 
 ### lift
 
@@ -1159,3 +1192,19 @@ Lift an expression to another type.
   specify it again as the third argument to `with`, like this: `lift n to ℕ using h with n rfl h`.
 * More generally, this can lift an expression from `α` to `β` assuming that there is an instance
   of `can_lift α β`. In this case the proof obligation is specified by `can_lift.cond`.
+
+### import_private
+
+`import_private foo from bar` finds a private declaration `foo` in the same file as `bar` and creates a 
+local notation to refer to it. 
+    
+`import_private foo`, looks for `foo` in all (imported) files.
+
+When possible, make `foo` non-private rather than using this feature. 
+
+### default_dec_tac'
+
+`default_dec_tac'` is a replacement for the core tactic `default_dec_tac`, fixing a bug. This
+bug is often indicated by a message `nested exception message: tactic failed, there are no goals to be solved`,and solved by appending `using_well_founded wf_tacs` to the recursive definition.
+See also additional documentation of `using_well_founded` in
+[docs/extras/well_founded_recursion.md](extras/well_founded_recursion.md).

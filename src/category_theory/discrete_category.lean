@@ -11,7 +11,6 @@ namespace category_theory
 
 universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
--- We only work in `Type`, rather than `Sort`, as we need to use `ulift`.
 def discrete (α : Type u₁) := α
 
 instance {α : Type u₁} [fintype α] : fintype (discrete α) :=
@@ -25,6 +24,10 @@ instance discrete_category (α : Type u₁) : small_category (discrete α) :=
 namespace discrete
 
 variables {α : Type u₁}
+
+instance [decidable_eq α] (X Y : discrete α) : fintype (X ⟶ Y) :=
+by { apply ulift.fintype }
+
 @[simp] lemma id_def (X : discrete α) : ulift.up (plift.up (eq.refl X)) = 𝟙 X := rfl
 
 end discrete

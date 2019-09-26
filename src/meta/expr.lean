@@ -3,7 +3,7 @@ Copyright (c) 2019 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis
 -/
-
+import data.string.defs
 /-!
 # Additional operations on expr and related types
 
@@ -186,6 +186,11 @@ e.fold mk_name_set $ λ e' _ l,
   | _ := l
   end
 
+/-- Returns true if `e` contains a name `n` where `p n` is true.
+  Returns `true` if `p name.anonymous` is true -/
+meta def contains_constant (e : expr) (p : name → Prop) [decidable_pred p] : bool :=
+e.fold ff (λ e' _ b, if p (e'.const_name) then tt else b)
+
 /--
  is_num_eq n1 n2 returns true if n1 and n2 are both numerals with the same numeral structure,
  ignoring differences in type and type class arguments.
@@ -287,6 +292,15 @@ meta def mfold {α : Type} {m : Type → Type} [monad m] (e : environment) (x : 
   (fn : declaration → α → m α) : m α :=
 e.fold (return x) (λ d t, t >>= fn d)
 
+/-- Filters all declarations in the environment. -/
+meta def mfilter (e : environment) (test : declaration → tactic bool) : tactic (list declaration) :=
+e.mfold [] $ λ d ds, do b ← test d, return $ if b then d::ds else ds
+
+/-- Checks whether `s` is a prefix of the file where `n` is declared.
+  This is used to check whether `n` is declared in mathlib, where `s` is the mathlib directory. -/
+meta def is_prefix_of_file (e : environment) (s : string) (n : name) : bool :=
+s.is_prefix_of $ (e.decl_olean n).get_or_else ""
+
 end environment
 
 namespace declaration
@@ -299,7 +313,8 @@ let decl := decl.update_type $ decl.type.apply_replacement_fun f in
 decl.update_value $ decl.value.apply_replacement_fun f
 
 /-- Checks whether the declaration is declared in the current file.
-  This is a simple wrapper around `environment.in_current_file'` -/
+  This is a simple wrapper around `environment.in_current_file'`
+  Use `environment.in_current_file'` instead if performance matters. -/
 meta def in_current_file (d : declaration) : tactic bool :=
 do e ← get_env, return $ e.in_current_file' d.to_name
 
@@ -327,6 +342,10 @@ e.is_constructor d.to_name ∨
 (e.is_inductive d.to_name.get_prefix ∧
   d.to_name.last ∈ ["below", "binduction_on", "brec_on", "cases_on", "dcases_on", "drec_on", "drec",
   "rec", "rec_on", "no_confusion", "no_confusion_type", "sizeof", "ibelow", "has_sizeof_inst"])
+
+/-- Returns the list of universe levels of a declaration. -/
+meta def univ_levels (d : declaration) : list level :=
+d.univ_params.map level.param
 
 end declaration
 

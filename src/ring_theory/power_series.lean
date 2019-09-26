@@ -551,7 +551,7 @@ instance : algebra α (mv_power_series σ α) :=
   .. mv_power_series.module }
 
 /-- Multivariate formal power series over a local ring form a local ring.-/
-def is_local_ring (h : is_local_ring α) : is_local_ring (mv_power_series σ α) :=
+lemma is_local_ring (h : is_local_ring α) : is_local_ring (mv_power_series σ α) :=
 begin
   split,
   { intro H, apply ‹is_local_ring α›.1, simpa using congr_arg (coeff 0) H },

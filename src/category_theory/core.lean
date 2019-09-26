@@ -19,7 +19,7 @@ def core (C : Type u₁) := C
 variables {C : Type u₁} [𝒞 : category.{v₁} C]
 include 𝒞
 
-instance core_category : groupoid.{(max v₁ 1)} (core C) :=
+instance core_category : groupoid.{v₁} (core C) :=
 { hom  := λ X Y : C, X ≅ Y,
   inv  := λ X Y f, iso.symm f,
   id   := λ X, iso.refl X,

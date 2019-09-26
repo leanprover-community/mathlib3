@@ -507,7 +507,7 @@ lemma sign_surjective (hα : 1 < fintype.card α) : function.surjective (sign : 
 λ a, (int.units_eq_one_or a).elim
   (λ h, ⟨1, by simp [h]⟩)
   (λ h, let ⟨x⟩ := fintype.card_pos_iff.1 (lt_trans zero_lt_one hα) in
-    let ⟨y, hxy⟩ := fintype.exists_ne_of_card_gt_one hα x in
+    let ⟨y, hxy⟩ := fintype.exists_ne_of_one_lt_card hα x in
     ⟨swap y x, by rw [sign_swap hxy, h]⟩ )
 
 lemma eq_sign_of_surjective_hom {s : perm α → units ℤ}

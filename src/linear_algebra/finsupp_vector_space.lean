@@ -119,7 +119,7 @@ begin
   exact classical.choice (equiv_of_dim_eq_lift_dim (cardinal.lift_inj.2 h))
 end
 
-lemma fin_dim_vectorspace_equiv (n : ℕ)
+def fin_dim_vectorspace_equiv (n : ℕ)
   (hn : (dim α β) = n) : β ≃ₗ[α] (fin n → α) :=
 begin
   have : cardinal.lift.{v u} (n : cardinal.{v}) = cardinal.lift.{u v} (n : cardinal.{u}),

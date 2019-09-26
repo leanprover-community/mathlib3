@@ -29,7 +29,7 @@ def unsat (c : clause) : Prop := ¬ c.sat
 def append (c1 c2 : clause) : clause :=
 (c1.fst ++ c2.fst, c1.snd ++ c2.snd)
 
-def holds_append {v : nat → int} {c1 c2 : clause} :
+lemma holds_append {v : nat → int} {c1 c2 : clause} :
 holds v c1 → holds v c2 → holds v (append c1 c2) :=
 begin
   intros h1 h2,

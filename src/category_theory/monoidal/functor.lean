@@ -86,14 +86,12 @@ open monoidal_category
 namespace monoidal_functor
 
 section
--- In order to express the tensorator as a natural isomorphism,
--- we need to be in at least `Type 0`, so we have products.
-variables {C : Type u₁} [category.{v₁+1} C] [𝒞 : monoidal_category.{v₁+1} C]
-variables {D : Type u₂} [category.{v₂+1} D] [𝒟 : monoidal_category.{v₂+1} D]
+variables {C : Type u₁} [category.{v₁} C] [𝒞 : monoidal_category.{v₁} C]
+variables {D : Type u₂} [category.{v₂} D] [𝒟 : monoidal_category.{v₂} D]
 include 𝒞 𝒟
 
 /-- The tensorator as a natural isomorphism. -/
-def μ_nat_iso (F : monoidal_functor.{v₁+1 v₂+1} C D) :
+def μ_nat_iso (F : monoidal_functor.{v₁ v₂} C D) :
   (functor.prod F.to_functor F.to_functor) ⋙ (tensor D) ≅ (tensor C) ⋙ F.to_functor :=
 nat_iso.of_components
   (by { intros, apply F.μ_iso })

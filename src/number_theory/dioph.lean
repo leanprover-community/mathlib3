@@ -305,10 +305,10 @@ parameter {α : Type u}
 instance : has_coe_to_fun (poly α) := ⟨_, λ f, f.1⟩
 
 /-- The underlying function of a `poly` is a polynomial -/
-def isp (f : poly α) : is_poly f := f.2
+lemma isp (f : poly α) : is_poly f := f.2
 
 /-- Extensionality for `poly α` -/
-def ext {f g : poly α} (e : ∀x, f x = g x) : f = g :=
+lemma ext {f g : poly α} (e : ∀x, f x = g x) : f = g :=
 subtype.eq (funext e)
 
 /-- Construct a `poly` given an extensionally equivalent `poly`. -/
@@ -369,7 +369,7 @@ instance : comm_ring (poly α) := by refine
   mul  := (*),
   one  := 1, .. }; {intros, exact ext (λx, by simp [mul_add, mul_left_comm, mul_comm])}
 
-def induction {C : poly α → Prop}
+lemma induction {C : poly α → Prop}
   (H1 : ∀i, C (proj i)) (H2 : ∀n, C (const n))
   (H3 : ∀f g, C f → C g → C (f - g))
   (H4 : ∀f g, C f → C g → C (f * g)) (f : poly α) : C f :=

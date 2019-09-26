@@ -303,10 +303,7 @@ lemma eval (b : α) : eval b (char_polynomial M) = det (diagonal (λ _, b) - M) 
 begin
   change (λ p : polynomial α, eval b p) (det (diagonal (λ _:n, X) - λ (i j : n), C (M i j))) = _,
   rw [det_map_hom (λ p : polynomial α, eval b p)],
-  congr,
-  ext,
-  simp,
-  unfold diagonal,
+  congr, ext, simp [diagonal],
   split_ifs,
   exact eval_X,
   exact eval_zero
@@ -337,6 +334,28 @@ instance leading_coeff_is_monoid_hom :
 lemma with_bot.nat_cast_eq_coe (n : ℕ) : (nat.cast n : with_bot ℕ) = ↑n :=
 nat.rec_on n rfl (λ m hm,
   by { rw [nat.succ_eq_add_one, with_bot.coe_add, with_bot.coe_one, ←hm], exact nat.cast_add_one _ })
+
+lemma degree_aux :
+  char_polynomial M = (char_polynomial M - X ^ fintype.card n) + X ^ fintype.card n ∧
+  degree (char_polynomial M - X ^ fintype.card n) < degree ((X : polynomial α) ^ fintype.card n) :=
+⟨by { rw [add_comm, add_sub, add_comm, ←add_sub, sub_self, add_zero] },
+begin
+  sorry
+end⟩
+
+lemma degree : degree (char_polynomial M) = fintype.card n :=
+begin
+  rw [←degree_X_pow (fintype.card n), (degree_aux M).1],
+  exact degree_add_eq_of_degree_lt (degree_aux M).2
+end
+
+lemma monic : monic (char_polynomial M) :=
+begin
+  rw [monic.def, (degree_aux M).1],
+  convert leading_coeff_add_of_degree_lt (degree_aux M).2,
+  exact eq.symm (leading_coeff_X_pow _)
+end
+
 
 lemma degree_eq_aux (s : finset n) :
   degree (s.prod (λ i, diagonal (λ _:n, X) (equiv.refl n i) i - C (M (equiv.refl n i) i))) = s.card :=

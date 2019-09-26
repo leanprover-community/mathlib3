@@ -94,8 +94,8 @@ if d0 : d = 0 then 0 else mk_pnat n ⟨d, nat.pos_of_ne_zero d0⟩
 
 /-- Form the quotient `n / d` where `n d : ℤ`. -/
 def mk : ℤ → ℤ → ℚ
-| n (int.of_nat d) := mk_nat n d
-| n -[1+ d]        := mk_pnat (-n) d.succ_pnat
+| n (d : ℕ) := mk_nat n d
+| n -[1+ d] := mk_pnat (-n) d.succ_pnat
 
 localized "infix ` /. `:70 := rat.mk" in rat
 

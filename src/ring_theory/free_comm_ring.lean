@@ -269,15 +269,15 @@ begin
 end
 
 def subsingleton_equiv_free_comm_ring [subsingleton α] :
-  free_ring α ≃r free_comm_ring α :=
-{ hom :=
+  free_ring α ≃+* free_comm_ring α :=
+@ring_equiv.of' (free_ring α) (free_comm_ring α) _ _
+  (@functor.map_equiv _ _ free_abelian_group _ _ $ multiset.subsingleton_equiv α) $
   begin
     delta functor.map_equiv,
     rw congr_arg is_ring_hom _,
     work_on_goal 2 { symmetry, exact coe_eq α },
     apply_instance
-  end,
-  ..@functor.map_equiv _ _ free_abelian_group _ _ $ multiset.subsingleton_equiv α }
+  end
 
 instance [subsingleton α] : comm_ring (free_ring α) :=
 { mul_comm := λ x y,
@@ -291,10 +291,11 @@ instance [subsingleton α] : comm_ring (free_ring α) :=
 end free_ring
 
 def free_comm_ring_equiv_mv_polynomial_int :
-  free_comm_ring α ≃r mv_polynomial α ℤ :=
+  free_comm_ring α ≃+* mv_polynomial α ℤ :=
 { to_fun  := free_comm_ring.lift $ λ a, mv_polynomial.X a,
   inv_fun := mv_polynomial.eval₂ coe free_comm_ring.of,
-  hom := by apply_instance,
+  map_mul' := λ _ _, is_ring_hom.map_mul _,
+  map_add' := λ _ _, is_ring_hom.map_add _,
   left_inv :=
   begin
     intro x,
@@ -339,16 +340,16 @@ def free_comm_ring_equiv_mv_polynomial_int :
         free_comm_ring.lift_mul, free_comm_ring.lift_of, ih] }
   end }
 
-def free_comm_ring_pempty_equiv_int : free_comm_ring pempty.{u+1} ≃r ℤ :=
+def free_comm_ring_pempty_equiv_int : free_comm_ring pempty.{u+1} ≃+* ℤ :=
 ring_equiv.trans (free_comm_ring_equiv_mv_polynomial_int _) (mv_polynomial.pempty_ring_equiv _)
 
-def free_comm_ring_punit_equiv_polynomial_int : free_comm_ring punit.{u+1} ≃r polynomial ℤ :=
+def free_comm_ring_punit_equiv_polynomial_int : free_comm_ring punit.{u+1} ≃+* polynomial ℤ :=
 ring_equiv.trans (free_comm_ring_equiv_mv_polynomial_int _) (mv_polynomial.punit_ring_equiv _)
 
 open free_ring
 
-def free_ring_pempty_equiv_int : free_ring pempty.{u+1} ≃r ℤ :=
+def free_ring_pempty_equiv_int : free_ring pempty.{u+1} ≃+* ℤ :=
 ring_equiv.trans (subsingleton_equiv_free_comm_ring _) free_comm_ring_pempty_equiv_int
 
-def free_ring_punit_equiv_polynomial_int : free_ring punit.{u+1} ≃r polynomial ℤ :=
+def free_ring_punit_equiv_polynomial_int : free_ring punit.{u+1} ≃+* polynomial ℤ :=
 ring_equiv.trans (subsingleton_equiv_free_comm_ring _) free_comm_ring_punit_equiv_polynomial_int

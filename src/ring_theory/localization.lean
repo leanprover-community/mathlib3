@@ -338,10 +338,8 @@ def equiv_of_equiv (h₁ : α ≃+* β) (h₂ : h₁ '' S = T) :
 { to_fun := map h₁ $ λ s hs, h₂ ▸ set.mem_image_of_mem _ hs,
   inv_fun := map h₁.symm $ λ t ht,
     by simp [h₁.image_eq_preimage, set.preimage, set.ext_iff, *] at *,
-  left_inv := λ _, by simp only [map_map,
-    h₁.symm_apply_apply]; erw map_id; refl,
-  right_inv := λ _, by simp only [map_map,
-    h₁.apply_symm_apply]; erw map_id; refl,
+  left_inv := λ _, by simp only [map_map, h₁.symm_apply_apply]; erw map_id; refl,
+  right_inv := λ _, by simp only [map_map, h₁.apply_symm_apply]; erw map_id; refl,
   map_mul' := λ _ _, is_ring_hom.map_mul _,
   map_add' := λ _ _, is_ring_hom.map_add _ }
 

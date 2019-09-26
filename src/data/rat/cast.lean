@@ -23,7 +23,7 @@ rat, rationals, field, ℚ, numerator, denominator, num, denom, cast, coercion, 
 
 namespace rat
 variable {α : Type*}
-local infix ` /. `:70 := rat.mk
+open_locale rat
 
 section with_div_ring
 variable [division_ring α]
@@ -35,7 +35,7 @@ variable [division_ring α]
 protected def cast : ℚ → α
 | ⟨n, d, h, c⟩ := n / d
 
-@[priority 0] instance cast_coe : has_coe ℚ α := ⟨rat.cast⟩
+@[priority 10] instance cast_coe : has_coe ℚ α := ⟨rat.cast⟩
 
 @[simp] theorem cast_of_int (n : ℤ) : (of_int n : α) = n :=
 show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one]

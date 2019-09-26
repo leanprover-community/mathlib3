@@ -196,7 +196,7 @@ instance (n : ℕ) : fintype (fin n) :=
 @[simp] theorem fintype.card_fin (n : ℕ) : fintype.card (fin n) = n :=
 by rw [fin.fintype]; simp [fintype.card, card, univ]
 
-@[instance, priority 0] def unique.fintype {α : Type*} [unique α] : fintype α :=
+@[instance, priority 10] def unique.fintype {α : Type*} [unique α] : fintype α :=
 ⟨finset.singleton (default α), λ x, by rw [unique.eq_default x]; simp⟩
 
 @[simp] lemma univ_unique {α : Type*} [unique α] [f : fintype α] : @finset.univ α _ = {default α} :=
@@ -337,7 +337,7 @@ match n, hn with
     (λ _ _ _, h _ _))⟩
 end
 
-lemma fintype.exists_ne_of_card_gt_one [fintype α] (h : fintype.card α > 1) (a : α) :
+lemma fintype.exists_ne_of_one_lt_card [fintype α] (h : 1 < fintype.card α) (a : α) :
   ∃ b : α, b ≠ a :=
 let ⟨b, hb⟩ := classical.not_forall.1 (mt fintype.card_le_one_iff.2 (not_le_of_gt h)) in
 let ⟨c, hc⟩ := classical.not_forall.1 hb in
@@ -438,6 +438,10 @@ instance finset.fintype [fintype α] : fintype (finset α) :=
 
 instance subtype.fintype [fintype α] (p : α → Prop) [decidable_pred p] : fintype {x // p x} :=
 set_fintype _
+
+theorem fintype.card_subtype_le [fintype α] (p : α → Prop) [decidable_pred p] :
+  fintype.card {x // p x} ≤ fintype.card α :=
+by rw fintype.subtype_card; exact card_le_of_subset (subset_univ _)
 
 instance psigma.fintype {α : Type*} {β : α → Type*} [fintype α] [∀ a, fintype (β a)] :
   fintype (Σ' a, β a) :=
@@ -708,7 +712,7 @@ subrelation.wf this (measure_wf _)
 lemma preorder.well_founded [fintype α] [preorder α] : well_founded ((<) : α → α → Prop) :=
 well_founded_of_trans_of_irrefl _
 
-@[instance, priority 0] lemma linear_order.is_well_order [fintype α] [linear_order α] :
+@[instance, priority 10] lemma linear_order.is_well_order [fintype α] [linear_order α] :
   is_well_order α (<) :=
 { wf := preorder.well_founded }
 

@@ -513,7 +513,7 @@ begin
   rw hv at hf_inj,
   haveI : inhabited β := ⟨0⟩,
   rw [linear_independent, finsupp.total_comp],
-  rw [@finsupp.lmap_domain_total _ _ α _ _ _ _ _ _ _ _ _ _ _ _ _ f, ker_comp, eq_bot_iff],
+  rw [@finsupp.lmap_domain_total _ _ α _ _ _ _ _ _ _ _ _ _ f, ker_comp, eq_bot_iff],
   apply hf_inj,
   exact λ _, rfl,
 end
@@ -525,7 +525,8 @@ begin
     map_le_iff_le_comap, comap_bot] at hf_inj,
   haveI : inhabited β := ⟨0⟩,
   rw [linear_independent_subtype_disjoint, disjoint, ← finsupp.lmap_domain_supported _ _ f, map_inf_eq_map_inf_comap,
-      map_le_iff_le_comap, ← ker_comp, @finsupp.lmap_domain_total _ _ α _ _ _ _ _ _ _ _ _ _ _ _ id id, ker_comp],
+      map_le_iff_le_comap, ← ker_comp],
+  rw [@finsupp.lmap_domain_total _ _ α _ _ _, ker_comp],
   { exact le_trans (le_inf inf_le_left hf_inj) (le_trans (linear_independent_subtype_disjoint.1 hs) bot_le) },
   { simp }
 end
@@ -893,7 +894,6 @@ let ⟨b, hb₀, hx, hb₂, hb₃⟩ := exists_linear_independent hs (@subset_un
   by simp; exact eq_top_iff.2 hb₂⟩
 
 variables (α β)
-
 lemma exists_is_basis : ∃b : set β, is_basis α (λ i : b, i.val) :=
 let ⟨b, _, hb⟩ := exists_subset_is_basis linear_independent_empty in ⟨b, hb⟩
 

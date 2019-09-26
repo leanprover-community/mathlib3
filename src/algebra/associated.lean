@@ -23,7 +23,7 @@ by rcases h with ⟨y, rfl⟩; exact is_unit_unit (units.map f y)
 
 lemma is_unit.map' [monoid α] [monoid β] (f : α → β) {x : α} (h : is_unit x) [is_monoid_hom f] :
   is_unit (f x) :=
-h.map (as_monoid_hom f)
+h.map (monoid_hom.of f)
 
 @[simp] theorem is_unit_zero_iff [semiring α] : is_unit (0 : α) ↔ (0:α) = 1 :=
 ⟨λ ⟨⟨_, a, (a0 : 0 * a = 1), _⟩, rfl⟩, by rwa zero_mul at a0,

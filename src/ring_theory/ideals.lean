@@ -9,7 +9,7 @@ universes u v
 variables {α : Type u} {β : Type v} {a b : α}
 open set function lattice
 
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 namespace ideal
 variables [comm_ring α] (I : ideal α)
@@ -89,7 +89,7 @@ begin
   exact or.cases_on (hI.mem_or_mem H) id ih
 end
 
-@[class] def zero_ne_one_of_proper {I : ideal α} (h : I ≠ ⊤) : (0:α) ≠ 1 :=
+theorem zero_ne_one_of_proper {I : ideal α} (h : I ≠ ⊤) : (0:α) ≠ 1 :=
 λ hz, I.ne_top_iff_one.1 h $ hz ▸ I.zero_mem
 
 theorem span_singleton_prime {p : α} (hp : p ≠ 0) :
@@ -148,7 +148,7 @@ end
 def is_coprime (x y : α) : Prop :=
 span ({x, y} : set α) = ⊤
 
-theorem mem_span_pair [comm_ring α] {x y z : α} :
+theorem mem_span_pair {x y z : α} :
   z ∈ span (insert y {x} : set α) ↔ ∃ a b, a * x + b * y = z :=
 begin
   simp only [mem_span_insert, mem_span_singleton', exists_prop],
@@ -158,11 +158,11 @@ begin
   { rintro ⟨b, c, e⟩, exact ⟨c, b * x, ⟨b, rfl⟩, by simp [e.symm]⟩ }
 end
 
-theorem is_coprime_def [comm_ring α] {x y : α} :
+theorem is_coprime_def {x y : α} :
   is_coprime x y ↔ ∀ z, ∃ a b, a * x + b * y = z :=
 by simp [is_coprime, submodule.eq_top_iff', mem_span_pair]
 
-theorem is_coprime_self [comm_ring α] (x y : α) :
+theorem is_coprime_self {x : α} :
   is_coprime x x ↔ is_unit x :=
 by rw [← span_singleton_eq_top]; simp [is_coprime]
 

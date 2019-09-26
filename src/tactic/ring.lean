@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 
-Evaluate expressions in the language of (semi-)rings.
+Evaluate expressions in the language of commutative (semi)rings.
 Based on http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf .
 -/
 import algebra.group_power tactic.norm_num
@@ -423,7 +423,7 @@ by simp [horner, mul_comm]
 theorem mul_assoc_rev {α} [semigroup α] (a b c : α) : a * (b * c) = a * b * c :=
 by simp [mul_assoc]
 
-theorem pow_add_rev {α} [monoid α] (a b : α) (m n : ℕ) : a ^ m * a ^ n = a ^ (m + n) :=
+theorem pow_add_rev {α} [monoid α] (a : α) (m n : ℕ) : a ^ m * a ^ n = a ^ (m + n) :=
 by simp [pow_add]
 
 theorem pow_add_rev_right {α} [monoid α] (a b : α) (m n : ℕ) : b * a ^ m * a ^ n = b * a ^ (m + n) :=
@@ -470,7 +470,7 @@ open tactic.ring
 
 local postfix `?`:9001 := optional
 
-/-- Tactic for solving equations in the language of rings.
+/-- Tactic for solving equations in the language of *commutative* (semi)rings.
   This version of `ring` fails if the target is not an equality
   that is provable by the axioms of commutative (semi)rings. -/
 meta def ring1 (red : parse (tk "!")?) : tactic unit :=
@@ -492,7 +492,7 @@ do mode ← ident?, match mode with
 | _            := failed
 end
 
-/-- Tactic for solving equations in the language of rings.
+/-- Tactic for solving equations in the language of *commutative* (semi)rings.
   Attempts to prove the goal outright if there is no `at`
   specifier and the target is an equality, but if this
   fails it falls back to rewriting all ring expressions

@@ -14,10 +14,10 @@ def left_coset [has_mul α] (a : α) (s : set α) : set α := (λ x, a * x) '' s
 @[to_additive right_add_coset]
 def right_coset [has_mul α] (s : set α) (a : α) : set α := (λ x, x * a) '' s
 
-local infix ` *l `:70 := left_coset
-local infix ` +l `:70 := left_add_coset
-local infix ` *r `:70 := right_coset
-local infix ` +r `:70 := right_add_coset
+localized "infix ` *l `:70 := left_coset" in coset
+localized "infix ` +l `:70 := left_add_coset" in coset
+localized "infix ` *r `:70 := right_coset" in coset
+localized "infix ` +r `:70 := right_add_coset" in coset
 
 section coset_mul
 variable [has_mul α]
@@ -207,7 +207,7 @@ def left_coset_equiv_subgroup (g : α) : left_coset g s ≃ s :=
 noncomputable def group_equiv_quotient_times_subgroup (hs : is_subgroup s) :
   α ≃ quotient s × s :=
 calc α ≃ Σ L : quotient s, {x : α // (x : quotient s)= L} :
-  equiv.equiv_fib quotient_group.mk
+  (equiv.sigma_preimage_equiv quotient_group.mk).symm
     ... ≃ Σ L : quotient s, left_coset (quotient.out' L) s :
   equiv.sigma_congr_right (λ L,
     begin rw ← eq_class_eq_left_coset,

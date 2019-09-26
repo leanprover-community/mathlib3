@@ -9,7 +9,7 @@ Integrable functions and L¹ space
 import measure_theory.ae_eq_fun
 
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 
 set_option class.instance_max_depth 100
 

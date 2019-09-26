@@ -55,7 +55,7 @@ instance : partial_order (opens α) := subtype.partial_order _
 
 def interior (s : set α) : opens α := ⟨interior s, is_open_interior⟩
 
-def gc : galois_connection (subtype.val : opens α → set α) interior :=
+lemma gc : galois_connection (subtype.val : opens α → set α) interior :=
 λ U s, ⟨λ h, interior_maximal h U.property, λ h, le_trans h interior_subset⟩
 
 def gi : @galois_insertion (order_dual (set α)) (order_dual (opens α)) _ _ interior (subtype.val) :=

@@ -136,7 +136,7 @@ begin
 end
 
 instance subtype.second_countable_topology
-  (s : set α) [topological_space α] [second_countable_topology α] : second_countable_topology s :=
+  (s : set α) [second_countable_topology α] : second_countable_topology s :=
 second_countable_topology_induced s α coe
 
 lemma is_open_generated_countable_inter [second_countable_topology α] :

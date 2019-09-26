@@ -3,7 +3,7 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.products
+import category_theory.products.basic
 import category_theory.limits.preserves
 
 open category_theory category_theory.category
@@ -12,7 +12,7 @@ namespace category_theory.limits
 
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Type u} [𝒞 : category.{v+1} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
 variables {J K : Type v} [small_category J] [small_category K]

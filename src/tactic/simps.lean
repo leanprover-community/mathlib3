@@ -26,8 +26,9 @@ meta def add_projection (nm : name) (type lhs rhs : expr) (args : list expr)
   let decl_type := eq_ap.pis args,
   let decl_value := refl_ap.lambdas args,
   let decl := declaration.thm decl_name univs decl_type (pure decl_value),
-  add_decl decl <|> fail format!"failed to add projection lemma {nm}.",
-  when add_simp $ set_basic_attribute `simp nm tt >> set_basic_attribute `_refl_lemma nm tt
+  add_decl decl <|> fail format!"failed to add projection lemma {decl_name}.",
+  when add_simp $
+    set_basic_attribute `simp decl_name tt >> set_basic_attribute `_refl_lemma decl_name tt
 
 /-- Derive lemmas specifying the projections of the declaration. -/
 meta def add_projections : ∀(e : environment) (nm : name) (type lhs rhs : expr)

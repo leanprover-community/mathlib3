@@ -150,6 +150,9 @@ archimedean_iff_rat_lt.trans
  λ H x, let ⟨n, h⟩ := H x in ⟨n+1,
    lt_of_le_of_lt h (rat.cast_lt.2 (lt_add_one _))⟩⟩
 
+/-- `round` rounds a number to the nearest integer. `round (1 / 2) = 1` -/
+def round [floor_ring α] (x : α) : ℤ := ⌊x + 1 / 2⌋
+
 variable [archimedean α]
 
 theorem exists_rat_lt (x : α) : ∃ q : ℚ, (q : α) < x :=
@@ -200,9 +203,6 @@ begin
   { rw [le_floor, ← rat.cast_coe_int, rat.cast_le],
     apply floor_le }
 end
-
-/-- `round` rounds a number to the nearest integer. `round (1 / 2) = 1` -/
-def round [floor_ring α] (x : α) : ℤ := ⌊x + 1 / 2⌋
 
 end linear_ordered_field
 

@@ -73,7 +73,7 @@ def restriction (p : polynomial R) : polynomial (ring.closure (↑p.frange : set
 @[simp] theorem restriction_zero : restriction (0 : polynomial R) = 0 := rfl
 
 @[simp] theorem restriction_one : restriction (1 : polynomial R) = 1 :=
-ext.2 $ λ i, subtype.eq $ by rw [coeff_restriction', coeff_one, coeff_one]; split_ifs; refl
+ext $ λ i, subtype.eq $ by rw [coeff_restriction', coeff_one, coeff_one]; split_ifs; refl
 
 variables {S : Type v} [comm_ring S] {f : R → S} {x : S}
 
@@ -113,7 +113,7 @@ omit hp
 @[simp] theorem to_subring_one : to_subring (1 : polynomial R) T
   (set.subset.trans (finset.coe_subset.2 finsupp.frange_single)
     (set.singleton_subset_iff.2 (is_submonoid.one_mem _))) = 1 :=
-ext.2 $ λ i, subtype.eq $ by rw [coeff_to_subring', coeff_one, coeff_one]; split_ifs; refl
+ext $ λ i, subtype.eq $ by rw [coeff_to_subring', coeff_one, coeff_one]; split_ifs; refl
 end to_subring
 
 variables (T : set R) [is_subring T]

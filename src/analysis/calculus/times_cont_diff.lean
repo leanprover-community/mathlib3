@@ -66,7 +66,7 @@ derivative, differentiability, higher derivative, C^n
 -/
 
 noncomputable theory
-local attribute [instance, priority 0] classical.decidable_inhabited classical.prop_decidable
+local attribute [instance, priority 10] classical.decidable_inhabited classical.prop_decidable
 
 universes u v w
 

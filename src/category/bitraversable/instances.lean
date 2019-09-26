@@ -83,11 +83,11 @@ by constructor; introsI; casesm is_lawful_bitraversable t; apply_assumption
 
 open bitraversable functor
 
-@[priority 0]
+@[priority 10]
 instance bitraversable.traversable {α} : traversable (t α) :=
 { traverse := @tsnd t _ _ }
 
-@[priority 0]
+@[priority 10]
 instance bitraversable.is_lawful_traversable [is_lawful_bitraversable t] {α} :
   is_lawful_traversable (t α) :=
 by { constructor; introsI; simp [traverse,comp_tsnd] with functor_norm,

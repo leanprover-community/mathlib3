@@ -289,7 +289,7 @@ lemma sum_range_one {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) :
   (range 1).sum f = f 0 :=
 by { rw [range_one], apply @sum_singleton ℕ δ 0 f }
 
-local attribute [to_additive finset.sum_range_one] prod_range_one
+attribute [to_additive finset.sum_range_one] prod_range_one
 
 @[simp] lemma prod_const (b : β) : s.prod (λ a, b) = b ^ s.card :=
 by haveI := classical.dec_eq α; exact

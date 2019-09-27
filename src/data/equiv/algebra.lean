@@ -27,9 +27,8 @@ notation when treating the isomorphisms as maps.
 Bundling structures means that many things turn into definitions, meaning that to_additive
 cannot do much work for us, and conversely that we have to do a lot of naming for it.
 
-The fields for mul_equiv and add_equiv now avoid the unbundled `is_mul_hom` and `is_add_hom`,
-as these are deprecated. However ring_equiv still relies on `is_ring_hom`; this should
-be rewritten in future.
+The fields for `mul_equiv`, `add_equiv`, and `ring_equiv` now avoid
+the unbundled `is_mul_hom` and `is_add_hom`, as these are deprecated.
 
 ## Tags
 
@@ -226,8 +225,8 @@ set_option old_structure_cmd true
 structure add_equiv (α β : Type*) [has_add α] [has_add β] extends α ≃ β :=
 (map_add' : ∀ x y : α, to_fun (x + y) = to_fun x + to_fun y)
 
-/-- mul_equiv α β is the type of an equiv α ≃ β which preserves multiplication. -/
-@[to_additive]
+/-- `mul_equiv α β` is the type of an equiv `α ≃ β` which preserves multiplication. -/
+@[to_additive "`add_equiv α β` is the type of an equiv `α ≃ β` which preserves addition."]
 structure mul_equiv (α β : Type*) [has_mul α] [has_mul β] extends α ≃ β :=
 (map_mul' : ∀ x y : α, to_fun (x * y) = to_fun x * to_fun y)
 
@@ -291,12 +290,27 @@ equiv.symm_apply_apply (e.to_equiv)
 lemma map_one {α β} [monoid α] [monoid β] (h : α ≃* β) : h 1 = 1 :=
 by rw [←mul_one (h 1), ←h.apply_symm_apply 1, ←h.map_mul, one_mul]
 
+@[to_additive]
+lemma map_eq_one_iff {α β} [monoid α] [monoid β] (h : α ≃* β) (x : α) :
+  h x = 1 ↔ x = 1 :=
+h.map_one ▸ h.to_equiv.apply_eq_iff_eq x 1
+
+@[to_additive]
+lemma map_ne_one_iff {α β} [monoid α] [monoid β] (h : α ≃* β) (x : α) :
+  h x ≠ 1 ↔ x ≠ 1 :=
+⟨mt (h.map_eq_one_iff x).2, mt (h.map_eq_one_iff x).1⟩
+
 /-- A multiplicative bijection between two monoids is an isomorphism. -/
 @[to_additive to_add_monoid_hom]
 def to_monoid_hom {α β} [monoid α] [monoid β] (h : α ≃* β) : (α →* β) :=
 { to_fun := h,
   map_mul' := h.map_mul,
   map_one' := h.map_one }
+
+/-- A multiplicative equivalence of groups preserves inversion. -/
+@[to_additive]
+lemma map_inv {α β} [group α] [group β] (h : α ≃* β) (x : α) : h x⁻¹ = (h x)⁻¹ :=
+h.to_monoid_hom.map_inv x
 
 /-- A multiplicative bijection between two monoids is a monoid hom
   (deprecated -- use to_monoid_hom). -/
@@ -311,6 +325,11 @@ instance is_group_hom {α β} [group α] [group β] (h : α ≃* β) :
   is_group_hom h := { map_mul := h.map_mul }
 
 end mul_equiv
+
+/-- An additive equivalence of additive groups preserves subtraction. -/
+lemma add_equiv.map_sub {α β} [add_group α] [add_group β] (h : α ≃+ β) (x y : α) :
+  h (x - y) = h x - h y :=
+h.to_add_monoid_hom.map_sub x y
 
 /-- A group is isomorphic to its group of units. -/
 def to_units (α) [group α] : α ≃* units α :=
@@ -333,42 +352,109 @@ def map_equiv (h : α ≃* β) : units α ≃* units β :=
 
 end units
 
-structure ring_equiv (α β : Type*) [ring α] [ring β] extends α ≃ β :=
-(hom : is_ring_hom to_fun)
+/- (semi)ring equivalence. -/
+structure ring_equiv (α β : Type*) [has_mul α] [has_add α] [has_mul β] [has_add β]
+  extends α ≃ β, α ≃* β, α ≃+ β
 
-infix ` ≃r `:25 := ring_equiv
+infix ` ≃+* `:25 := ring_equiv
 
 namespace ring_equiv
 
-variables [ring α] [ring β] [ring γ]
+section basic
 
-instance (h : α ≃r β) : is_ring_hom h.to_equiv := h.hom
-instance is_ring_hom' (h : α ≃r β) : is_ring_hom h.to_fun := h.hom
+variables [has_mul α] [has_add α] [has_mul β] [has_add β] [has_mul γ] [has_add γ]
 
-def to_mul_equiv (e : α ≃r β) : α ≃* β :=
-{ map_mul' := e.hom.map_mul, .. e.to_equiv }
+instance : has_coe_to_fun (α ≃+* β) := ⟨_, ring_equiv.to_fun⟩
 
-def to_add_equiv (e : α ≃r β) : α ≃+ β :=
-{ map_add' := e.hom.map_add, .. e.to_equiv }
+instance has_coe_to_mul_equiv : has_coe (α ≃+* β) (α ≃* β) := ⟨ring_equiv.to_mul_equiv⟩
 
-protected def refl (α : Type*) [ring α] : α ≃r α :=
-{ hom := is_ring_hom.id, .. equiv.refl α }
+instance has_coe_to_add_equiv : has_coe (α ≃+* β) (α ≃+ β) := ⟨ring_equiv.to_add_equiv⟩
 
-protected def symm {α β : Type*} [ring α] [ring β] (e : α ≃r β) : β ≃r α :=
-{ hom := { map_one := e.to_mul_equiv.symm.map_one,
-           map_mul := e.to_mul_equiv.symm.map_mul,
-           map_add := e.to_add_equiv.symm.map_add },
-  .. e.to_equiv.symm }
+@[squash_cast] lemma coe_mul_equiv (f : α ≃+* β) (a : α) :
+  (f : α ≃* β) a = f a := rfl
 
-protected def trans {α β γ : Type*} [ring α] [ring β] [ring γ]
-  (e₁ : α ≃r β) (e₂ : β ≃r γ) : α ≃r γ :=
-{ hom := is_ring_hom.comp _ _, .. e₁.to_equiv.trans e₂.to_equiv  }
+@[squash_cast] lemma coe_add_equiv (f : α ≃+* β) (a : α) :
+  (f : α ≃+ β) a = f a := rfl
 
-instance symm.is_ring_hom {e : α ≃r β} : is_ring_hom e.to_equiv.symm := hom e.symm
+variable (α)
 
-@[simp] lemma to_equiv_symm (e : α ≃r β) : e.symm.to_equiv = e.to_equiv.symm := rfl
+/-- The identity map is a ring isomorphism. -/
+@[refl] protected def refl : α ≃+* α := { .. mul_equiv.refl α, .. add_equiv.refl α }
 
-@[simp] lemma to_equiv_symm_apply (e : α ≃r β) (x : β) :
-  e.symm.to_equiv x = e.to_equiv.symm x := rfl
+variables {α}
+
+/-- The inverse of a ring isomorphism is a ring isomorphis. -/
+@[symm] protected def symm (e : α ≃+* β) : β ≃+* α :=
+{ .. e.to_mul_equiv.symm, .. e.to_add_equiv.symm }
+
+/-- Transitivity of `ring_equiv`. -/
+@[trans] protected def trans (e₁ : α ≃+* β) (e₂ : β ≃+* γ) : α ≃+* γ :=
+{ .. (e₁.to_mul_equiv.trans e₂.to_mul_equiv), .. (e₁.to_add_equiv.trans e₂.to_add_equiv) }
+
+@[simp] lemma apply_symm_apply (e : α ≃+* β) : ∀ x, e (e.symm x) = x := e.to_equiv.apply_symm_apply
+@[simp] lemma symm_apply_apply (e : α ≃+* β) : ∀ x, e.symm (e x) = x := e.to_equiv.symm_apply_apply
+
+lemma image_eq_preimage (e : α ≃+* β) (s : set α) : e '' s = e.symm ⁻¹' s :=
+e.to_equiv.image_eq_preimage s
+
+end basic
+
+section
+
+variables [semiring α] [semiring β] (f : α ≃+* β) (x y : α)
+
+/-- A ring isomorphism preserves multiplication. -/
+lemma map_mul : f (x * y) = f x * f y := f.map_mul' x y
+
+/-- A ring isomorphism sends one to one. -/
+lemma map_one : f 1 = 1 := (f : α ≃* β).map_one
+
+/-- A ring isomorphism preserves addition. -/
+lemma map_add : f (x + y) = f x + f y := f.map_add' x y
+
+/-- A ring isomorphism sends zero to zero. -/
+lemma map_zero : f 0 = 0 := (f : α ≃+ β).map_zero
+
+end
+
+section
+
+variables [ring α] [ring β] (f : α ≃+* β) (x y : α)
+
+lemma map_neg : f (-x) = -f x := (f : α ≃+ β).map_neg x
+
+lemma map_sub : f (x - y) = f x - f y := (f : α ≃+ β).map_sub x y
+
+lemma map_neg_one : f (-1) = -1 := f.map_one ▸ f.map_neg 1
+
+end
+
+section semiring_hom
+
+variables [semiring α] [semiring β]
+
+/-- Reinterpret a ring equivalence as a ring homomorphism. -/
+def to_ring_hom (e : α ≃+* β) : α →+* β :=
+{ .. e.to_mul_equiv.to_monoid_hom, .. e.to_add_equiv.to_add_monoid_hom }
+
+/-- Interpret an equivalence `f : α ≃ β` as a ring equivalence `α ≃+* β`. -/
+def of (e : α ≃ β) [is_semiring_hom e] : α ≃+* β :=
+{ .. e, .. monoid_hom.of e, .. add_monoid_hom.of e }
+
+instance (e : α ≃+* β) : is_semiring_hom e := e.to_ring_hom.is_semiring_hom
+
+end semiring_hom
+
+section ring_hom
+
+variables [ring α] [ring β]
+
+/-- Interpret an equivalence `f : α ≃ β` as a ring equivalence `α ≃+* β`. -/
+def of' (e : α ≃ β) [is_ring_hom e] : α ≃+* β :=
+{ .. e, .. monoid_hom.of e, .. add_monoid_hom.of e }
+
+instance (e : α ≃+* β) : is_ring_hom e := e.to_ring_hom.is_ring_hom
+
+end ring_hom
 
 end ring_equiv

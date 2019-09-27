@@ -19,13 +19,13 @@ instance division_ring.to_domain [s : division_ring α] : domain α :=
       division_ring.mul_ne_zero (mt or.inl hn) (mt or.inr hn) h
   ..s }
 
-lemma discrete_field.inv_inv [discrete_field α] (x : α) : (x⁻¹)⁻¹ = x :=
+@[simp] theorem inv_inv' [discrete_field α] (x : α) : x⁻¹⁻¹ = x :=
 if h : x = 0
 then by rw [h, inv_zero, inv_zero]
 else division_ring.inv_inv h
 
 lemma inv_involutive' [discrete_field α] : function.involutive (has_inv.inv : α → α) :=
-discrete_field.inv_inv
+inv_inv'
 
 namespace units
 variables [division_ring α] {a b : α}

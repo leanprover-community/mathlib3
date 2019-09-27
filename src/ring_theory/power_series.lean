@@ -991,9 +991,6 @@ begin
     intro H', apply H, subst m, exact nat.zero_le _ }
 end
 
-@[simp] lemma trunc_C (n) (a : α) : trunc n (C α a) = polynomial.C a :=
-polynomial.ext.2 $ λ m,
-
 @[simp] lemma trunc_C (n) (a : α) : trunc n (C a) = polynomial.C a :=
 polynomial.ext $ λ m,
 

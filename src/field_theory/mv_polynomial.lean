@@ -173,8 +173,10 @@ end
 
 section
 
-lemma evalₗ_apply (p : mv_polynomial σ α) (e : σ → α) : evalₗ α σ p e = p.eval e :=
-rfl
+set_option class.instance_max_depth 38
+
+lemma evalₗ_apply (p : mv_polynomial σ α) (e : σ → α) : (evalₗ α σ) p e = p.eval e := rfl
+
 end
 
 lemma map_restrict_dom_evalₗ : (restrict_degree σ α (fintype.card α - 1)).map (evalₗ α σ) = ⊤ :=

@@ -22,7 +22,7 @@ open finset
 variables {α : Type*}
 
 /-- The binomial theorem -/
-theorem add_pow_comm [semiring α] {x y : α} (h : commute x y) (n : ℕ) :
+theorem add_pow_of_commute [semiring α] {x y : α} (h : commute x y) (n : ℕ) :
   (x + y) ^ n = (range (succ n)).sum (λ m, x ^ m * y ^ (n - m) * choose n m) :=
 begin
   let t : ℕ → ℕ → α := λ n i, x ^ i * (y ^ (n - i)) * (choose n i),
@@ -59,6 +59,6 @@ end
 
 theorem add_pow [comm_semiring α] (x y : α) (n : ℕ) :
   (x + y) ^ n = (range (succ n)).sum (λ m, x ^ m * y ^ (n - m) * choose n m) :=
-add_pow_comm (commute.all x y) n
+add_pow_of_commute (commute.all x y) n
 
 end binomial

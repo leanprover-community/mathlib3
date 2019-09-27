@@ -190,7 +190,7 @@ end comma
 
 omit 𝒜 ℬ
 
-def over (X : T) := comma.{v₃ 1 v₃} (𝟭 T) (functor.of.obj X)
+def over (X : T) := comma.{v₃ 0 v₃} (𝟭 T) (functor.of.obj X)
 
 namespace over
 
@@ -254,7 +254,7 @@ end
 
 end over
 
-def under (X : T) := comma.{1 v₃ v₃} (functor.of.obj X) (𝟭 T)
+def under (X : T) := comma.{0 v₃ v₃} (functor.of.obj X) (𝟭 T)
 
 namespace under
 

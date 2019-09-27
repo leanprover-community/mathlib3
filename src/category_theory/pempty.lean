@@ -12,12 +12,12 @@ import category_theory.equivalence
 Defines a category structure on `pempty`, and the unique functor `pempty ⥤ C` for any category `C`.
 -/
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u w -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory
 
 /-- The empty category -/
-instance pempty_category : small_category pempty :=
+instance pempty_category : small_category.{w} pempty.{w+1} :=
 { hom  := λ X Y, pempty,
   id   := by obviously,
   comp := by obviously }
@@ -27,12 +27,12 @@ variables (C : Type u) [𝒞 : category.{v} C]
 include 𝒞
 
 /-- The unique functor from the empty category to any target category. -/
-def empty : pempty ⥤ C := by tidy
+def empty : pempty.{v+1} ⥤ C := by tidy
 
 end functor
 
 /-- The category `pempty` is equivalent to the category `discrete pempty`. -/
-instance pempty_equiv_discrete_pempty : is_equivalence (functor.empty (discrete pempty)) :=
+instance pempty_equiv_discrete_pempty : is_equivalence (functor.empty.{v} (discrete pempty.{v+1})) :=
 by obviously
 
 end category_theory

@@ -391,14 +391,14 @@ let ⟨n, hn⟩ := finset.exists_nat_subset_range h.to_finset in
 have n ∈ finset.range n, from finset.subset_iff.mpr hn $ by simp,
 by simp * at *
 
-lemma not_injective_nat_fintype [fintype α] [decidable_eq α] {f : ℕ → α} : ¬ injective f :=
+lemma not_injective_nat_fintype [fintype α] {f : ℕ → α} : ¬ injective f :=
 assume (h : injective f),
 have finite (f '' univ),
   from finite_subset (finset.finite_to_set $ fintype.elems α) (assume a h, fintype.complete a),
 have finite (univ : set ℕ), from finite_of_finite_image (set.inj_on_of_injective _ h) this,
 infinite_univ_nat this
 
-lemma not_injective_int_fintype [fintype α] [decidable_eq α] {f : ℤ → α} : ¬ injective f :=
+lemma not_injective_int_fintype [fintype α] {f : ℤ → α} : ¬ injective f :=
 assume hf,
 have injective (f ∘ (coe : ℕ → ℤ)), from injective_comp hf $ assume i j, int.of_nat_inj,
 not_injective_nat_fintype this

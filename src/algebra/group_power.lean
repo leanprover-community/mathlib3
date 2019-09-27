@@ -17,11 +17,6 @@ import data.int.basic data.list.basic
 universes u v
 variable {α : Type u}
 
-@[simp] theorem inv_one [division_ring α] : (1⁻¹ : α) = 1 := by rw [inv_eq_one_div, one_div_one]
-
-@[simp] theorem inv_inv' [discrete_field α] {a:α} : a⁻¹⁻¹ = a :=
-by rw [inv_eq_one_div, inv_eq_one_div, div_div_eq_mul_div, one_mul, div_one]
-
 /-- The power operation in a monoid. `a^n = a*a*...*a` n times. -/
 def monoid.pow [monoid α] (a : α) : ℕ → α
 | 0     := 1
@@ -167,11 +162,11 @@ by induction n with n ih; [exact one_inv.symm,
 @[simp] theorem add_monoid.neg_smul : ∀ (a : β) (n : ℕ), n•(-a) = -(n•a) :=
 @inv_pow (multiplicative β) _
 
-theorem pow_sub (a : α) {m n : ℕ} (h : m ≥ n) : a^(m - n) = a^m * (a^n)⁻¹ :=
+theorem pow_sub (a : α) {m n : ℕ} (h : n ≤ m) : a^(m - n) = a^m * (a^n)⁻¹ :=
 have h1 : m - n + n = m, from nat.sub_add_cancel h,
 have h2 : a^(m - n) * a^n = a^m, by rw [←pow_add, h1],
 eq_mul_inv_of_mul_eq h2
-theorem add_monoid.smul_sub : ∀ (a : β) {m n : ℕ}, m ≥ n → (m - n)•a = m•a - n•a :=
+theorem add_monoid.smul_sub : ∀ (a : β) {m n : ℕ}, n ≤ m → (m - n)•a = m•a - n•a :=
 @pow_sub (multiplicative β) _
 
 theorem pow_inv_comm (a : α) (m n : ℕ) : (a⁻¹)^m * a^n = a^n * (a⁻¹)^m :=
@@ -524,13 +519,13 @@ theorem one_le_pow_of_one_le {a : α} (H : 1 ≤ a) : ∀ (n : ℕ), 1 ≤ a ^ n
 | (n+1) := by simpa only [mul_one] using mul_le_mul H (one_le_pow_of_one_le n)
     zero_le_one (le_trans zero_le_one H)
 
-theorem pow_ge_one_add_mul {a : α} (H : a ≥ 0) :
+theorem one_add_mul_le_pow {a : α} (H : 0 ≤ a) :
   ∀ (n : ℕ), 1 + n • a ≤ (1 + a) ^ n
 | 0     := le_of_eq $ add_zero _
 | (n+1) := begin
   rw [pow_succ', succ_smul'],
   refine le_trans _ (mul_le_mul_of_nonneg_right
-    (pow_ge_one_add_mul n) (add_nonneg zero_le_one H)),
+    (one_add_mul_le_pow n) (add_nonneg zero_le_one H)),
   rw [mul_add, mul_one, ← add_assoc, add_le_add_iff_left],
   simpa only [one_mul] using mul_le_mul_of_nonneg_right
     ((le_add_iff_nonneg_right 1).2 (add_monoid.smul_nonneg H n)) H
@@ -595,9 +590,9 @@ end linear_ordered_semiring
 theorem pow_two_nonneg [linear_ordered_ring α] (a : α) : 0 ≤ a ^ 2 :=
 by rw pow_two; exact mul_self_nonneg _
 
-theorem pow_ge_one_add_sub_mul [linear_ordered_ring α]
-  {a : α} (H : a ≥ 1) (n : ℕ) : 1 + n • (a - 1) ≤ a ^ n :=
-by simpa only [add_sub_cancel'_right] using pow_ge_one_add_mul (sub_nonneg.2 H) n
+theorem one_add_sub_mul_le_pow [linear_ordered_ring α]
+  {a : α} (H : 1 ≤ a) (n : ℕ) : 1 + n • (a - 1) ≤ a ^ n :=
+by simpa only [add_sub_cancel'_right] using one_add_mul_le_pow (sub_nonneg.2 H) n
 
 namespace int
 

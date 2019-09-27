@@ -104,7 +104,7 @@ lemma floor_eq_iff {r : α} {z : ℤ} :
 by rw [←le_floor, ←int.cast_one, ←int.cast_add, ←floor_lt,
 int.lt_add_one_iff, le_antisymm_iff, and.comm]
 
-lemma floor_ring_unique [linear_ordered_ring α] (inst1 inst2 : floor_ring α) :
+lemma floor_ring_unique {α} [linear_ordered_ring α] (inst1 inst2 : floor_ring α) :
   @floor _ _ inst1 = @floor _ _ inst2 :=
 begin
   ext v,
@@ -218,7 +218,7 @@ lemma ceil_pos {a : α} : 0 < ⌈a⌉ ↔ 0 < a :=
 
 @[simp] theorem ceil_zero : ⌈(0 : α)⌉ = 0 := by simp [ceil]
 
-lemma ceil_nonneg [decidable_rel ((<) : α → α → Prop)] {q : α} (hq : q ≥ 0) : ⌈q⌉ ≥ 0 :=
+lemma ceil_nonneg [decidable_rel ((<) : α → α → Prop)] {q : α} (hq : 0 ≤ q) : 0 ≤ ⌈q⌉ :=
 if h : q > 0 then le_of_lt $ ceil_pos.2 h
 else by rw [le_antisymm (le_of_not_lt h) hq, ceil_zero]; trivial
 

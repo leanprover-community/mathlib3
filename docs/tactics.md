@@ -1208,3 +1208,27 @@ When possible, make `foo` non-private rather than using this feature.
 bug is often indicated by a message `nested exception message: tactic failed, there are no goals to be solved`,and solved by appending `using_well_founded wf_tacs` to the recursive definition.
 See also additional documentation of `using_well_founded` in
 [docs/extras/well_founded_recursion.md](extras/well_founded_recursion.md).
+
+### simps
+
+* The `@[simps]` attribute automatically derives lemmas specifying the projections of the declaration.
+* Example:
+  ```lean
+  @[simps] def refl (α) : α ≃ α := ⟨id, id, λ x, rfl, λ x, rfl⟩
+  ```
+  derives two simp-lemmas:
+  ```lean
+  @[simp] lemma refl_to_fun (α) : (refl α).to_fun = id
+  @[simp] lemma refl_inv_fun (α) : (refl α).inv_fun = id
+  ```
+* It does not derive simp-lemmas for the prop-valued projections.
+* It will automatically reduce newly created beta-redexes, but not unfold any definitions.
+* If one of the fields itself is a structure, this command will recursively create
+  simp-lemmas for all fields in that structure.
+* If one of the values is an eta-expanded structure, we will eta-reduce this structure.
+* You can use `@[simps lemmas_only]` to derive the lemmas, but not mark them
+  as simp-lemmas.
+* If one of the projections is marked as a coercion, the generated lemmas do *not* use this
+  coercion.
+* If one of the fields is a partially applied constructor, we will eta-expand it
+  (this likely never happens).

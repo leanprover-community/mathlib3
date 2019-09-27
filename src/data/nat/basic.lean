@@ -53,6 +53,14 @@ lemma succ_le_iff {m n : ℕ} : succ m ≤ n ↔ m < n :=
 lemma lt_iff_add_one_le {m n : ℕ} : m < n ↔ m + 1 ≤ n :=
 by rw succ_le_iff
 
+-- Just a restatement of `nat.lt_succ_iff` using `+1`.
+lemma lt_add_one_iff {a b : ℕ} : a < b + 1 ↔ a ≤ b :=
+nat.lt_succ_iff
+
+-- A flipped version of `lt_add_one_iff`.
+lemma lt_one_add_iff {a b : ℕ} : a < 1 + b ↔ a ≤ b :=
+by simp only [add_comm, nat.lt_succ_iff]
+
 theorem of_le_succ {n m : ℕ} (H : n ≤ m.succ) : n ≤ m ∨ n = m.succ :=
 (lt_or_eq_of_le H).imp le_of_lt_succ id
 
@@ -104,6 +112,9 @@ begin
 end
 
 theorem pred_eq_of_eq_succ {m n : ℕ} (H : m = n.succ) : m.pred = n := by simp [H]
+
+@[simp] lemma pred_eq_succ_iff {n m : ℕ} : pred n = succ m ↔ n = m + 2 :=
+by cases n; split; rintro ⟨⟩; refl
 
 theorem pred_sub (n m : ℕ) : pred n - m = pred (n - m) :=
 by rw [← sub_one, nat.sub_sub, one_add]; refl

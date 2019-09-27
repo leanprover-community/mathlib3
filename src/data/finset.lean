@@ -659,6 +659,42 @@ begin
   { intro x, simp, intros hx hx₂, refine ⟨or.resolve_left (h hx) hx₂, hx₂⟩ }
 end
 
+/- We can simplify an application of filter where the decidability is inferred in "the wrong way" -/
+@[simp] lemma filter_congr_decidable {α} (s : finset α) (p : α → Prop) (h : decidable_pred p)
+  [decidable_pred p] : @filter α p h s = s.filter p :=
+by congr
+
+section classical
+open_locale classical
+/-- The following instance allows us to write `{ x ∈ s | p x }` for `finset.filter s p`.
+  Since the former notation requires us to define this for all propositions `p`, and `finset.filter`
+  only works for decidable propositions, the notation `{ x ∈ s | p x }` is only compatible with
+  classical logic because it uses `classical.prop_decidable`.
+  We don't want to redo all lemmas of `finset.filter` for `has_sep.sep`, so we make sure that `simp`
+  unfolds the notation `{ x ∈ s | p x }` to `finset.filter s p`. If `p` happens to be decidable, the
+  simp-lemma `filter_congr_decidable` will make sure that `finset.filter` uses the right instance
+  for decidability.
+-/
+noncomputable instance {α : Type*} : has_sep α (finset α) := ⟨λ p x, x.filter p⟩
+
+@[simp] lemma sep_def {α : Type*} (s : finset α) (p : α → Prop) : {x ∈ s | p x} = s.filter p := rfl
+
+end classical
+
+-- This is not a good simp lemma, as it would prevent `finset.mem_filter` from firing
+-- on, e.g. `x ∈ s.filter(eq b)`.
+lemma filter_eq [decidable_eq β] (s : finset β) (b : β) :
+  s.filter(eq b) = ite (b ∈ s) {b} ∅ :=
+begin
+  split_ifs,
+  { ext,
+    simp only [mem_filter, insert_empty_eq_singleton, mem_singleton],
+    exact ⟨λ h, h.2.symm, by { rintro ⟨h⟩, exact ⟨h, rfl⟩, }⟩ },
+  { ext,
+    simp only [mem_filter, not_and, iff_false, not_mem_empty],
+    rintros m ⟨e⟩, exact h m, }
+end
+
 end filter
 
 /- range -/

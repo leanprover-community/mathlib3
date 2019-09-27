@@ -54,7 +54,14 @@ manifold structure is compatible with any groupoid.
 The atlas in a manifold is *not* a maximal atlas in general: the notion of maximality depends on the
 groupoid one considers, and changing groupoids changes the maximal atlas. With the current
 formalization, it makes sense first to choose the atlas, and then to ask whether this precise atlas
-defines a smooth manifold, an orientable manifold, and so on.
+defines a smooth manifold, an orientable manifold, and so on. A consequence is that structomorphisms
+between M and M' do *not* induce a bijection between the atlases of M and M': the definition is only
+that, read in charts, the structomorphism locally belongs to the groupoid under consideration.
+(This is equivalent to inducing a bijection between elements of the maximal atlas). A consequence
+is that the invariance under structomorphisms of properties defined in terms of the atlas is not
+obvious in general, and could require some work in theory (amounting to the fact that these
+properties only depend on the maximal atlas, for instance). In practice, this does not create any
+real difficulty.
 
 We use the letter `H` for the model space thinking of the case of manifolds with boundary, where the
 model space is a half space.

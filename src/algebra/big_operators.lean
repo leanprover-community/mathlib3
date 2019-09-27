@@ -201,6 +201,14 @@ from classical.by_cases
     (prod_congr rfl $ λ b hb, h₀ b hb $ by rintro rfl; cc).trans $
       prod_const_one.trans (h₁ this).symm)
 
+@[simp, to_additive] lemma prod_ite [decidable_eq α] (s : finset α) (a : α) (b : β) :
+  s.prod (λ x, (ite (a = x) b 1)) = ite (a ∈ s) b 1 :=
+begin
+  rw ←finset.prod_filter,
+  split_ifs;
+  simp only [filter_eq, if_true, if_false, h, prod_empty, prod_singleton, insert_empty_eq_singleton],
+end
+
 @[to_additive]
 lemma prod_attach {f : α → β} : s.attach.prod (λx, f x.val) = s.prod f :=
 by haveI := classical.dec_eq α; exact
@@ -426,6 +434,21 @@ lemma sum_mul : s.sum f * b = s.sum (λx, f x * b) :=
 
 lemma mul_sum : b * s.sum f = s.sum (λx, b * f x) :=
 (sum_hom (λx, b * x)).symm
+
+@[simp] lemma sum_mul_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
+  s.sum (λ x, (f x * ite (a = x) 1 0)) = ite (a ∈ s) (f a) 0 :=
+begin
+  convert sum_ite s a (f a),
+  funext,
+  split_ifs with h; simp [h],
+end
+@[simp] lemma sum_boole_mul [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
+  s.sum (λ x, (ite (a = x) 1 0) * f x) = ite (a ∈ s) (f a) 0 :=
+begin
+  convert sum_ite s a (f a),
+  funext,
+  split_ifs with h; simp [h],
+end
 
 end semiring
 

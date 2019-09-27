@@ -11,6 +11,12 @@ begin
   apply_assumption,
 end
 
+example {X : Type} (x : X) : x = x :=
+by solve_by_elim
+
+example : true :=
+by solve_by_elim
+
 example {a b : Prop} (h₀ : a → b) (h₁ : a) : b :=
 by solve_by_elim
 

@@ -45,7 +45,7 @@ uniform spaces, completion, universal property
 -/
 
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+local attribute [instance, priority 10] classical.prop_decidable
 
 open filter set function
 

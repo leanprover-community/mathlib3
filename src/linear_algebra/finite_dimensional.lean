@@ -54,7 +54,7 @@ finite_dimensional_iff_dim_lt_omega.1
 
 set_option pp.universes true
 
-lemma of_fg [decidable_eq V] (hfg : (⊤ : submodule K V).fg) : finite_dimensional K V :=
+lemma of_fg (hfg : (⊤ : submodule K V).fg) : finite_dimensional K V :=
 let ⟨s, hs⟩ := hfg in
 begin
   rw [finite_dimensional_iff_dim_lt_omega, ← dim_top, ← hs],
@@ -62,7 +62,7 @@ begin
 end
 
 lemma exists_is_basis_finite (K V : Type*) [discrete_field K]
-  [add_comm_group V] [vector_space K V] [finite_dimensional K V] [decidable_eq V] :
+  [add_comm_group V] [vector_space K V] [finite_dimensional K V] :
   ∃ s : set V, (is_basis K (subtype.val : s → V)) ∧ s.finite :=
 begin
   cases exists_is_basis K V with s hs,
@@ -81,7 +81,7 @@ lemma findim_eq_dim (K : Type u) (V : Type v) [discrete_field K]
   (findim K V : cardinal.{v}) = dim K V :=
 (classical.some_spec (lt_omega.1 (dim_lt_omega K V))).symm
 
-lemma card_eq_findim [finite_dimensional K V] [decidable_eq V] {s : set V} {hfs : fintype s}
+lemma card_eq_findim [finite_dimensional K V] {s : set V} {hfs : fintype s}
   (hs : is_basis K (λ x : s, x.val)) : fintype.card s = findim K V :=
 by rw [← nat_cast_inj.{v}, findim_eq_dim, ← fintype_card, ← lift_inj, ← hs.mk_eq_dim]
 

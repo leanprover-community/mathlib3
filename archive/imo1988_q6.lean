@@ -79,13 +79,15 @@ begin
   let p : ℕ × ℕ := ⟨x,y⟩,
   have hp : p ∈ upper_branch := ⟨h₀, hxy⟩,
   -- We also consider the exceptional set of solutions (a,b) that satisfy
-  -- a = 0 or a = b or B a = b or B a = b + a.
-  let exceptional  : set (ℕ × ℕ) :=
+  -- a = 0 or a = b or B a = b or B a = b + a or that lie in the base locus.
+  let exceptional : set (ℕ × ℕ) :=
   {p | H p.1 p.2 ∧ (base p.1 p.2 ∨ p.1 = 0 ∨ p.1 = p.2 ∨ B p.1 = p.2 ∨ B p.1 = p.2 + p.1) },
-  -- Let S be the projection on to the y-axis of the upper branch after removing the exceptional locus.
+  -- Let S be the projection of the upper branch on to the y-axis
+  -- after removing the exceptional locus.
   let S : set ℕ := prod.snd '' (upper_branch \ exceptional),
-  -- The strategy is to show that the exceptional locus in nonempty.
-  -- We first show that this is sufficient.
+  -- The strategy is to show that the exceptional locus in nonempty
+  -- by running a descent argument that starts with the given point p = (x,y).
+  -- Our assumptions ensure that we can then prove the claim.
   suffices exc : exceptional ≠ ∅,
   { -- Suppose that there exists an element in the exceptional locus.
     rw set.ne_empty_iff_exists_mem at exc,
@@ -108,7 +110,8 @@ begin
       rw ← H_quad at h_root,
       -- And hence we are done by H_zero and H_diag.
       solve_by_elim } },
-  -- Now assume that the exceptional locus is empty.
+  -- To finish the main proof, we need to show that the exceptional locus is nonempty.
+  -- So we assume that the exceptional locus is empty, and work towards dering a contradiction.
   assume exceptional_empty,
   -- Observe that S is nonempty.
   have S_ne_empty : S ≠ ∅,

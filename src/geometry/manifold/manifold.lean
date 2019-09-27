@@ -79,6 +79,9 @@ universes u
 
 variables {H : Type u} {M : Type*} {M' : Type*} {M'' : Type*}
 
+/- Notational shortcut for the composition of local homeomorphisms, i.e., `local_homeomorph.trans`.
+Note that, as is usual for equivs, the composition is from left to right, hence the direction of
+the arrow. -/
 local infixr  ` ≫ₕ `:100 := local_homeomorph.trans
 
 open set local_homeomorph

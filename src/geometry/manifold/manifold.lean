@@ -40,8 +40,9 @@ inverse, to which the change of coordinates should belong.
                            class
 `atlas H M`              : when `M` is a manifold modelled on `H`, the atlas of this manifold
                            structure, i.e., the set of charts
-`diffeomorph G M M'`     : the set of diffeomorphisms between the manifolds M and M' for the
-                           groupoid G
+`structomorph G M M'`    : the set of diffeomorphisms between the manifolds M and M' for the
+                           groupoid G. We avoid the word diffeomorphisms, keeping it for the
+                           smooth category.
 
 As a basic example, we give the instance
 `instance manifold_model_space (H : Type*) [topological_space H] : manifold H H`
@@ -57,6 +58,18 @@ defines a smooth manifold, an orientable manifold, and so on.
 
 We use the letter `H` for the model space thinking of the case of manifolds with boundary, where the
 model space is a half space.
+
+Manifolds are sometimes defined as topological spaces with an atlas of local diffeomorphisms, and
+sometimes as spaces with an atlas from which a topology is deduced. We use the former approach:
+otherwise, there would be an instance from manifolds to topological spaces, which means that any
+instance search for topological spaces would try to find manifold structures involving a yet
+unknown model space, leading to problems. However, we also introduce the latter approach,
+through a structure `manifold_core` making it possible to construct a topology out of a set of local
+equivs with compatibility conditions (but we do not register it as an instance).
+
+In the definition of a manifold, the model space is written as an explicit parameter as there can be
+several model spaces for a given topological space. For instance, a complex manifold (modelled over
+ℂ^n) will also be seen sometimes as a real manifold modelled over ℝ^(2n).
 -/
 
 noncomputable theory
@@ -80,12 +93,16 @@ of functions respecting the fibers and linear in the fibers (so that a manifold 
 is naturally a vector bundle) I prefer that the members of the groupoid are always defined on
 sets of the form s × E
 
-The only nontrivial requirement is locality: if a local homeomorphisms belongs to the groupoid
+The only nontrivial requirement is locality: if a local homeomorphism belongs to the groupoid
 around each point in its domain of definition, then it belongs to the groupoid. Without this
-requirement, the composition of diffeomorphisms does not have to be a diffeomorphism.
+requirement, the composition of diffeomorphisms does not have to be a diffeomorphism. Note that
+this implies that a local homeomorphism with empty source belongs to any structure groupoid, as
+it trivially satisfies this condition.
 
-We also require that being a member of the groupoid only depends on the values on the source, as
-the other values are irrelevant.
+There is also a technical point, related to the fact that a local homeomorphism is by definition a
+global map which is a homeomorphism when restricted to its source subset (and its values outside
+of the source are not relevant). Therefore, we also require that being a member of the groupoid only
+depends on the values on the source.
 -/
 /-- A structure groupoid is a set of local homeomorphisms of a topological space stable under
 composition and inverse. They appear in the definition of the smoothness class of a manifold. -/
@@ -121,51 +138,43 @@ def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
       exact (mem_union _ _ _).2 (or.inr this) },
   end,
   inv := λe he, begin
-    have E := (mem_union _ _ _).1 he,
-    simp at E,
-    cases E,
-    { rw E, finish },
-    { have : e.target = ∅,
-      { rw [← e.to_local_equiv.image_source_eq_target, E],
-        erw image_empty },
-      have : e.symm ∈ {e : local_homeomorph H H | e.source = ∅} := this,
-      exact (mem_union _ _ _).2 (or.inr this) },
+    cases (mem_union _ _ _).1 he with E E,
+    { finish },
+    { right,
+      simpa [e.to_local_equiv.image_source_eq_target.symm] using E },
   end,
   id_mem := mem_union_left _ (mem_insert _ ∅),
   locality := λe he, begin
     by_cases h : e.source = ∅,
-    { apply mem_union_right, exact h },
-    { rcases ne_empty_iff_exists_mem.1 h with ⟨x, hx⟩,
+    { right, exact h },
+    { left,
+      rcases ne_empty_iff_exists_mem.1 h with ⟨x, hx⟩,
       rcases he x hx with ⟨s, open_s, xs, hs⟩,
       have x's : x ∈ (e.restr s).source,
       { rw [restr_source, interior_eq_of_open open_s],
         exact ⟨hx, xs⟩ },
       cases hs,
-      { simp at hs,
+      { replace hs : local_homeomorph.restr e s = local_homeomorph.refl H,
+          by simpa using hs,
         have : (e.restr s).source = univ, by { rw hs, simp },
-        simp at this,
+        change (e.to_local_equiv).source ∩ interior s = univ at this,
         have : univ ⊆ interior s, by { rw ← this, exact inter_subset_right _ _ },
         have : s = univ, by rwa [interior_eq_of_open open_s, univ_subset_iff] at this,
-        rw [this, restr_univ] at hs,
-        rw hs,
-        exact mem_union_left _ (mem_insert _ _) },
-      { rw mem_set_of_eq at hs,
-        rw hs at x's,
-        exfalso,
-        exact x's } },
+        simpa [this, restr_univ] using hs },
+      { exfalso,
+        rw mem_set_of_eq at hs,
+        rwa hs at x's } },
   end,
   eq_on_source := λe e' he he'e, begin
     cases he,
-    { have : e = e',
+    { left,
+      have : e = e',
       { refine eq_of_eq_on_source_univ (setoid.symm he'e) _ _;
-        rw set.mem_singleton_iff.1 he; refl },
-      rw ← this,
-      apply mem_union_left _ he },
-    { simp at he,
-      have : e'.source = e.source := source_eq_of_eq_on_source he'e,
-      have : e'.source = ∅, by { rw this, exact he },
-      apply mem_union_right,
-      exact this }
+        rw set.mem_singleton_iff.1 he ; refl },
+      rwa ← this },
+    { right,
+      change (e.to_local_equiv).source = ∅ at he,
+      rwa [set.mem_set_of_eq, source_eq_of_eq_on_source he'e] }
   end }
 
 /-- Every structure groupoid contains the identity groupoid -/
@@ -190,16 +199,17 @@ and its inverse have some property. If this property is stable under composition
 one gets a groupoid. `pregroupoid` bundles the properties needed for this construction, with the
 groupoid of smooth functions with smooth inverses as an application. -/
 structure pregroupoid (H : Type*) [topological_space H] :=
-(P        : (H → H) → (set H) → Prop)
-(comp     : ∀{f g u v}, P f u → P g v → is_open (u ∩ f ⁻¹' v) → P (g ∘ f) (u ∩ f ⁻¹' v))
-(id_mem   : P id univ)
-(locality : ∀{f u}, is_open u → (∀x∈u, ∃v, is_open v ∧ x ∈ v ∧ P f (u ∩ v)) → P f u)
-(congr    : ∀{f g : H → H} {u}, is_open u → (∀x∈u, g x = f x) → P f u → P g u)
+(property : (H → H) → (set H) → Prop)
+(comp     : ∀{f g u v}, property f u → property g v → is_open (u ∩ f ⁻¹' v)
+              → property (g ∘ f) (u ∩ f ⁻¹' v))
+(id_mem   : property id univ)
+(locality : ∀{f u}, is_open u → (∀x∈u, ∃v, is_open v ∧ x ∈ v ∧ property f (u ∩ v)) → property f u)
+(congr    : ∀{f g : H → H} {u}, is_open u → (∀x∈u, g x = f x) → property f u → property g u)
 
 /-- Construct a groupoid of local homeos for which the map and its inverse have some property,
 from a pregroupoid asserting that this property is stable under composition. -/
 def groupoid_of_pregroupoid (PG : pregroupoid H) : structure_groupoid H :=
-{ members  := {e : local_homeomorph H H | PG.P e.to_fun e.source ∧ PG.P e.inv_fun e.target},
+{ members  := {e : local_homeomorph H H | PG.property e.to_fun e.source ∧ PG.property e.inv_fun e.target},
   comp     := λe e' he he', begin
     split,
     { apply PG.comp he.1 he'.1,
@@ -227,9 +237,7 @@ def groupoid_of_pregroupoid (PG : pregroupoid H) : structure_groupoid H :=
   eq_on_source := λe e' he ee', begin
     split,
     { apply PG.congr e'.open_source ee'.2,
-      have Z := ee'.1,
-      erw ee'.1,
-      exact he.1 },
+      simp only [ee'.1, he.1] },
     { have A := eq_on_source_symm ee',
       apply PG.congr e'.symm.open_source A.2,
       convert he.2,
@@ -238,10 +246,11 @@ def groupoid_of_pregroupoid (PG : pregroupoid H) : structure_groupoid H :=
   end }
 
 lemma mem_groupoid_of_pregroupoid (PG : pregroupoid H) (e : local_homeomorph H H) :
-  e ∈ groupoid_of_pregroupoid PG ↔ PG.P e.to_fun e.source ∧ PG.P e.inv_fun e.target :=
-by refl
+  e ∈ groupoid_of_pregroupoid PG ↔ PG.property e.to_fun e.source ∧ PG.property e.inv_fun e.target :=
+iff.rfl
 
-lemma groupoid_of_pregroupoid_le (PG₁ PG₂ : pregroupoid H) (h : ∀f s, PG₁.P f s → PG₂.P f s) :
+lemma groupoid_of_pregroupoid_le (PG₁ PG₂ : pregroupoid H)
+  (h : ∀f s, PG₁.property f s → PG₂.property f s) :
   groupoid_of_pregroupoid PG₁ ≤ groupoid_of_pregroupoid PG₂ :=
 begin
   assume e he,
@@ -252,7 +261,7 @@ end
 /-- The groupoid of all local homeomorphisms on a topological space H -/
 def continuous_groupoid (H : Type*) [topological_space H] : structure_groupoid H :=
 groupoid_of_pregroupoid
-{ P        := λf s, true,
+{ property := λf s, true,
   comp     := λf g u v hf hg huv, trivial,
   id_mem   := trivial,
   locality := λf u u_open h, trivial,
@@ -266,19 +275,24 @@ instance : lattice.order_top (structure_groupoid H) :=
 
 end groupoid
 
-section manifold
-
 /-- A manifold is a topological space endowed with an atlas, i.e., a set of local homeomorphisms
 taking value in a model space H, called charts, such that the domains of the charts cover the whole
 space. We express the covering property by chosing for each x a member `chart_at x` of the atlas
 containing x in its source: in the smooth case, this is convenient to construct the tangent bundle
 in an efficient way.
+The model space is written as an explicit parameter as there can be several model spaces for a
+given topological space. For instance, a complex manifold (modelled over ℂ^n) will also be seen
+sometimes as a real manifold over ℝ^(2n).
 -/
 class manifold (H : Type*) [topological_space H] (M : Type*) [topological_space M] :=
 (atlas            : set (local_homeomorph M H))
 (chart_at         : M → local_homeomorph M H)
 (mem_chart_source : ∀x, x ∈ (chart_at x).source)
 (chart_mem_atlas  : ∀x, chart_at x ∈ atlas)
+
+export manifold
+
+section manifold
 
 /-- Any space is a manifold modelled over itself, by just using the identity chart -/
 instance manifold_model_space (H : Type*) [topological_space H] : manifold H H :=
@@ -287,52 +301,11 @@ instance manifold_model_space (H : Type*) [topological_space H] : manifold H H :
   mem_chart_source := λx, mem_univ x,
   chart_mem_atlas  := λx, mem_singleton _ }
 
-/-- The atlas of a manifold M with respect to the model space H. -/
-def atlas (H : Type*) [topological_space H] (M : Type*) [topological_space M] [h : manifold H M] :
-  set (local_homeomorph M H) := h.atlas
-
-/-- The preferred chart containing x in its source -/
-def chart_at (H : Type*) [topological_space H] {M : Type*} [topological_space M] [h : manifold H M]
-  (x : M) : local_homeomorph M H :=
-(h.chart_at : _) x
-
-/-- x belongs to the source of the preferred chart at x -/
-lemma mem_chart_source (H : Type*) [topological_space H] {M : Type*} [topological_space M]
-  [h : manifold H M] (x : M) : x ∈ (chart_at H x).source :=
-(h.mem_chart_source : _) x
-
-/-- The preferred chart at x belongs to the atlas -/
-lemma chart_mem_atlas (H : Type*) [topological_space H] {M : Type*} [topological_space M]
-  [h : manifold H M] (x : M) : chart_at H x ∈ atlas H M :=
-(h.chart_mem_atlas : _) x
-
 /-- In the trivial manifold structure of a space modelled over itself through the identity, the
 atlas members are just the identity -/
 @[simp] lemma model_space_atlas {H : Type*} [topological_space H] {e : local_homeomorph H H} :
   e ∈ atlas H H ↔ e = local_homeomorph.refl H :=
 by simp [atlas, manifold.atlas]
-
-/-- The set of charts that are defined around x -/
-def atlas_at (H : Type*) [topological_space H] {M : Type*} [topological_space M] [manifold H M]
-  (x : M) : set (local_homeomorph M H) :=
-{e : local_homeomorph M H | e ∈ atlas H M ∧ x ∈ e.source}
-
-/-- In the trivial manifold structure of a space modelled over itself through the identity, the
-atlas members around any point x are just the identity -/
-@[simp] lemma model_space_atlas_at {H : Type*} [topological_space H] {e : local_homeomorph H H} {x : H}:
-  e ∈ atlas_at H x ↔ e = local_homeomorph.refl H :=
-begin
-  simp only [atlas_at, model_space_atlas, mem_set_of_eq],
-  refine ⟨λh, h.1, λh, ⟨h, _⟩⟩,
-  cases e,
-  rw h,
-  simp
-end
-
-/-- The preferred chart at any point belongs to the atlas around this point -/
-lemma chart_mem_atlas_at (H : Type*) [topological_space H] {M : Type*} [topological_space M]
-  [manifold H M] (x : M) : chart_at H x ∈ atlas_at H x :=
-⟨chart_mem_atlas H x, mem_chart_source H x⟩
 
 /-- In the model space, chart_at is always the identity -/
 @[simp] lemma chart_at_model_space_eq {H : Type*} [topological_space H] {x : H} :
@@ -425,17 +398,17 @@ section has_groupoid
 variables [topological_space H] [topological_space M] [manifold H M]
 
 /-- A manifold has an atlas in a groupoid G if the change of coordinates belong to the groupoid -/
-class has_groupoid (H : Type*) [topological_space H] (M : Type*) [topological_space M]
+class has_groupoid {H : Type*} [topological_space H] (M : Type*) [topological_space M]
   [manifold H M] (G : structure_groupoid H) : Prop :=
-(compatible : ∀e e' : local_homeomorph M H, e ∈ atlas H M → e' ∈ atlas H M → e.symm ≫ₕ e' ∈ G)
+(compatible : ∀{e e' : local_homeomorph M H}, e ∈ atlas H M → e' ∈ atlas H M → e.symm ≫ₕ e' ∈ G)
 
-lemma has_groupoid_of_le {G₁ G₂ : structure_groupoid H} (h : has_groupoid H M G₁) (hle : G₁ ≤ G₂) :
-  has_groupoid H M G₂ :=
-⟨ λ e e' he he', hle ((h.compatible : _) e e' he he') ⟩
+lemma has_groupoid_of_le {G₁ G₂ : structure_groupoid H} (h : has_groupoid M G₁) (hle : G₁ ≤ G₂) :
+  has_groupoid M G₂ :=
+⟨ λ e e' he he', hle ((h.compatible : _) he he') ⟩
 
 /-- The trivial manifold structure on the model space is compatible with any groupoid -/
 instance has_groupoid_model_space (H : Type*) [topological_space H] (G : structure_groupoid H) :
-  has_groupoid H H G :=
+  has_groupoid H G :=
 { compatible := λe e' he he', begin
     replace he : e ∈ atlas H H := he,
     replace he' : e' ∈ atlas H H := he',
@@ -444,58 +417,53 @@ instance has_groupoid_model_space (H : Type*) [topological_space H] (G : structu
   end }
 
 /-- Any manifold structure is compatible with the groupoid of all local homeomorphisms -/
-instance has_groupoid_continuous_groupoid : has_groupoid H M (continuous_groupoid H) :=
+instance has_groupoid_continuous_groupoid : has_groupoid M (continuous_groupoid H) :=
 ⟨begin
   assume e e' he he',
   rw [continuous_groupoid, mem_groupoid_of_pregroupoid],
   simp only [and_self]
 end⟩
 
-/-- In a manifold having some structure groupoid, the changes of coordinates belong to this groupoid -/
-lemma compatible (G : structure_groupoid H) [h : has_groupoid H M G]
-  {e e' : local_homeomorph M H} (he : e ∈ atlas H M) (he' : e' ∈ atlas H M) :
-  e.symm ≫ₕ e' ∈ G :=
-(h.compatible : _) e e' he he'
-
 /-- A G-diffeomorphism between two manifolds is a homeomorphism which, when read in the charts,
-belongs to G. -/
-structure diffeomorph (G : structure_groupoid H) (M : Type*) (M' : Type*)
+belongs to G. We avoid the word diffeomorph as it is too related to the smooth category, and use
+structomorph instead. -/
+structure structomorph (G : structure_groupoid H) (M : Type*) (M' : Type*)
   [topological_space M] [topological_space M'] [manifold H M] [manifold H M']
   extends homeomorph M M' :=
-(smooth_to_fun : ∀c : local_homeomorph M H, ∀c' : local_homeomorph M' H,
+(to_fun_mem_groupoid : ∀c : local_homeomorph M H, ∀c' : local_homeomorph M' H,
   c ∈ atlas H M → c' ∈ atlas H M' → c.symm ≫ₕ to_homeomorph.to_local_homeomorph ≫ₕ c' ∈ G)
 
 variables [topological_space M'] [topological_space M'']
 {G : structure_groupoid H} [manifold H M'] [manifold H M'']
 
 /-- The identity is a diffeomorphism of any manifold, for any groupoid. -/
-def diffeomorph.refl (M : Type*) [topological_space M] [manifold H M]
-  [has_groupoid H M G] : diffeomorph G M M :=
-{ smooth_to_fun := λc c' hc hc', begin
+def structomorph.refl (M : Type*) [topological_space M] [manifold H M]
+  [has_groupoid M G] : structomorph G M M :=
+{ to_fun_mem_groupoid := λc c' hc hc', begin
     change (local_homeomorph.symm c) ≫ₕ (local_homeomorph.refl M) ≫ₕ c' ∈ G,
     rw local_homeomorph.refl_trans,
-    exact compatible G hc hc'
+    exact has_groupoid.compatible G hc hc'
   end,
   ..homeomorph.refl M }
 
-/-- The inverse of a diffeomorphism is a diffeomorphism -/
-def diffeomorph.symm (e : diffeomorph G M M') : diffeomorph G M' M :=
-{ smooth_to_fun := begin
+/-- The inverse of a structomorphism is a structomorphism -/
+def structomorph.symm (e : structomorph G M M') : structomorph G M' M :=
+{ to_fun_mem_groupoid := begin
     assume c c' hc hc',
     have : (c'.symm ≫ₕ e.to_homeomorph.to_local_homeomorph ≫ₕ c).symm ∈ G :=
-      G.inv _ (e.smooth_to_fun c' c hc' hc),
+      G.inv _ (e.to_fun_mem_groupoid c' c hc' hc),
     simp at this,
     rwa [trans_symm_eq_symm_trans_symm, trans_symm_eq_symm_trans_symm, symm_symm, trans_assoc]
       at this,
   end,
   ..e.to_homeomorph.symm}
 
-/-- The composition of diffeomorphisms is a diffeomorphism -/
-def diffeomorph.trans (e : diffeomorph G M M') (e' : diffeomorph G M' M'') : diffeomorph G M M'' :=
-{ smooth_to_fun := begin
+/-- The composition of structomorphisms is a structomorphism -/
+def structomorph.trans (e : structomorph G M M') (e' : structomorph G M' M'') : structomorph G M M'' :=
+{ to_fun_mem_groupoid := begin
     /- Let c and c' be two charts in M and M''. We want to show that e' ∘ e is smooth in these
     charts, around any point x. For this, let y = e (c⁻¹ x), and consider a chart g around y.
-    Then g ∘ e ∘ c⁻¹ and c' ∘ e' ∘ g⁻¹ are both smooth as e and e' are diffeomorphisms, so
+    Then g ∘ e ∘ c⁻¹ and c' ∘ e' ∘ g⁻¹ are both smooth as e and e' are structomorphisms, so
     their composition is smooth, and it coincides with c' ∘ e' ∘ e ∘ c⁻¹ around x. -/
     assume c c' hc hc',
     refine G.locality _ (λx hx, _),
@@ -519,7 +487,8 @@ def diffeomorph.trans (e : diffeomorph G M M') (e' : diffeomorph G M' M'') : dif
       { exact hg₂ } },
     refine ⟨s, open_s, ⟨this, _⟩⟩,
     let F₁ := (c.symm ≫ₕ f₁ ≫ₕ g) ≫ₕ (g.symm ≫ₕ f₂ ≫ₕ c'),
-    have A : F₁ ∈ G := G.comp _ _ (e.smooth_to_fun c g hc hg₁) (e'.smooth_to_fun g c' hg₁ hc'),
+    have A : F₁ ∈ G :=
+      G.comp _ _ (e.to_fun_mem_groupoid c g hc hg₁) (e'.to_fun_mem_groupoid g c' hg₁ hc'),
     let F₂ := (c.symm ≫ₕ f ≫ₕ c').restr s,
     have : F₁ ≈ F₂ := calc
       F₁ ≈ c.symm ≫ₕ f₁ ≫ₕ (g ≫ₕ g.symm) ≫ₕ f₂ ≫ₕ c' : by simp [F₁, trans_assoc]

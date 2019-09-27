@@ -34,7 +34,8 @@ under the following conditions:
 
 * `h₀`     : There exists an integral point `(x,y)` on the hyperbola `H`.
 * `H_symm` : The hyperbola has a symmetry along the diagonal in the plane.
-* `H_zero` : If an integral point `(x,0)` lies on the hyperbola `H`, then the claim is true.
+* `H_zero` : If an integral point `(x,0)` lies on the hyperbola `H`, then `claim` is true.
+* `H_diag` : If an integral point `(x,x)` lies on the hyperbola `H`, then `claim` is true.
 * `H_desc` : If `(x,y)` is an integral point on the hyperbola `H`,
 with `x < y` then there exists a “smaller” point on `H`: a point `(x',y')` with `x' < y' ≤ x`.
 

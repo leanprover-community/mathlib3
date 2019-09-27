@@ -1154,7 +1154,75 @@ do e ← get_env,
   since it is expensive to execute `get_mathlib_dir` many times. -/
 meta def is_in_mathlib (n : name) : tactic bool :=
 do ml ← get_mathlib_dir, e ← get_env, return $ e.is_prefix_of_file ml n
+/--
+Tries to derive unary instances by unfolding the newly introduced type.
 
+For example,
+```
+@[derive ring] def new_int : Type := ℤ
+```
+adds an instance `ring new_int`, defined to be the instance of `ring ℤ` found by `apply_instance`.
+
+Multiple instances can be added with `@[derive [ring, module ℝ]]`.
+-/
+@[derive_handler] meta def delta_instance : derive_handler :=
+λ cls tp,
+(do tp' ← mk_const tp,
+   tgt ← to_expr ``(%%cls %%tp'),
+   (_, v) ← solve_aux tgt (delta_target [tp] >> apply_instance >> done),
+   v ← instantiate_mvars v,
+   nm ← get_unused_name $ tp ++
+     match tgt with
+     | expr.app (expr.const nm _) _ := nm
+     | _ := "inst"
+     end,
+   add_decl $ mk_definition nm [] tgt v,
+   set_basic_attribute `instance nm tt,
+   return tt) <|> return ff
+
+/-- `find_private_decl n none` finds a private declaration named `n` in any of the imported files.
+
+`find_private_decl n (some m)` finds a private declaration named `n` in the same file where a declaration named `m`
+can be found.  -/
+meta def find_private_decl (n : name) (fr : option name) : tactic name :=
+do env ← get_env,
+   fn ← option_t.run (do
+         fr ← option_t.mk (return fr),
+         d ← monad_lift $ get_decl fr,
+         option_t.mk (return $ env.decl_olean d.to_name) ),
+   let p : string → bool :=
+     match fn with
+     | (some fn) := λ x, fn = x
+     | none := λ _, tt
+     end,
+   let xs := env.decl_filter_map (λ d,
+     do fn ← env.decl_olean d.to_name,
+        guard ((`_private).is_prefix_of d.to_name ∧ p fn ∧ d.to_name.update_prefix name.anonymous = n),
+        pure d.to_name),
+   match xs with
+   | [n] := pure n
+   | [] := fail "no such private found"
+   | _ := fail "many matches found"
+   end
+
+open lean.parser interactive
+
+/-- `import_private foo from bar` finds a private declaration `foo` in the same file as `bar` 
+    and creates a local notation to refer to it. 
+    
+    `import_private foo`, looks for `foo` in all imported files. -/
+@[user_command]
+meta def import_private_cmd (_ : parse $ tk "import_private") : lean.parser unit :=
+do n  ← ident,
+   fr ← optional (tk "from" *> ident),
+   n ← find_private_decl n fr,
+   c ← resolve_constant n,
+   d ← get_decl n,
+   let c := @expr.const tt c d.univ_levels,
+   new_n ← new_aux_decl_name,
+   add_decl $ declaration.defn new_n d.univ_params d.type c reducibility_hints.abbrev d.is_trusted,
+   let new_not := sformat!"local notation `{n.update_prefix name.anonymous}` := {new_n}",
+   emit_command_here $ new_not,
+   skip .
 
 end tactic
-open tactic

@@ -22,12 +22,15 @@ structure equiv (α : Sort*) (β : Sort*) :=
 (left_inv  : left_inverse inv_fun to_fun)
 (right_inv : right_inverse inv_fun to_fun)
 
+infix ` ≃ `:25 := equiv
+
+def function.involutive.to_equiv {f : α → α} (h : involutive f) : α ≃ α :=
+⟨f, f, h.left_inverse, h.right_inverse⟩
+
 namespace equiv
 
 /-- `perm α` is the type of bijections from `α` to itself. -/
 @[reducible] def perm (α : Sort*) := equiv α α
-
-infix ` ≃ `:25 := equiv
 
 instance : has_coe_to_fun (α ≃ β) :=
 ⟨_, to_fun⟩
@@ -885,7 +888,7 @@ by { cases π, refl }
 @[simp] lemma swap_inv {α : Type*} [decidable_eq α] (x y : α) :
   (swap x y)⁻¹ = swap x y := rfl
 
-@[simp] lemma symm_trans_swap_trans [decidable_eq α] [decidable_eq β] (a b : α)
+@[simp] lemma symm_trans_swap_trans [decidable_eq β] (a b : α)
   (e : α ≃ β) : (e.symm.trans (swap a b)).trans e = swap (e a) (e b) :=
 equiv.ext _ _ (λ x, begin
   have : ∀ a, e.symm x = a ↔ x = e a :=
@@ -908,6 +911,14 @@ def set_value (f : α ≃ β) (a : α) (b : β) : α ≃ β :=
 by { dsimp [set_value], simp [swap_apply_left] }
 
 end swap
+
+protected lemma forall_congr {p : α → Prop} {q : β → Prop} (f : α ≃ β)
+  (h : ∀{x}, p x ↔ q (f x)) : (∀x, p x) ↔ (∀y, q y) :=
+begin
+  split; intros h₂ x,
+  { rw [←f.right_inv x], apply h.mp, apply h₂ },
+  apply h.mpr, apply h₂
+end
 
 end equiv
 

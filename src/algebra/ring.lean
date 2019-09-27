@@ -334,8 +334,14 @@ def of (f : α → β) [is_semiring_hom f] : α →+* β :=
 
 variables (f : α →+* β) {x y : α}
 
-@[extensionality] theorem ext ⦃f g : α →+* β⦄ (h : (f : α → β) = g) : f = g :=
+theorem coe_inj ⦃f g : α →+* β⦄ (h : (f : α → β) = g) : f = g :=
 by cases f; cases g; cases h; refl
+
+@[extensionality] theorem ext ⦃f g : α →+* β⦄ (h : ∀ x, f x = g x) : f = g :=
+coe_inj (funext h)
+
+theorem ext_iff {f g : α →+* β} : f = g ↔ ∀ x, f x = g x :=
+⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
 /-- Ring homomorphisms map zero to zero. -/
 @[simp] lemma map_zero (f : α →+* β) : f 0 = 0 := f.map_zero'
@@ -356,7 +362,7 @@ instance {α : Type*} {β : Type*} [semiring α] [semiring β] (f : α →+* β)
   map_add := f.map_add,
   map_mul := f.map_mul }
 
-instance {α γ} [ring α] [ring γ] {g : α →+* γ} : is_ring_hom g :=
+instance {α γ} [ring α] [ring γ] (g : α →+* γ) : is_ring_hom g :=
 is_ring_hom.of_semiring g
 
 /-- The identity ring homomorphism from a semiring to itself. -/

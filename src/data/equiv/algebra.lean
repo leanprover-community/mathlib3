@@ -64,13 +64,21 @@ protected def inv (α) [group α] : α ≃ α :=
   left_inv  := assume a, inv_inv a,
   right_inv := assume a, inv_inv a }
 
-def units_equiv_ne_zero (α : Type*) [field α] : units α ≃ {a : α | a ≠ 0} :=
+end group
+
+section field
+
+variables (α) [field α]
+
+def units_equiv_ne_zero : units α ≃ {a : α | a ≠ 0} :=
 ⟨λ a, ⟨a.1, units.ne_zero _⟩, λ a, units.mk0 _ a.2, λ ⟨_, _, _, _⟩, units.ext rfl, λ ⟨_, _⟩, rfl⟩
 
-@[simp] lemma coe_units_equiv_ne_zero [field α] (a : units α) :
+variable {α}
+
+@[simp] lemma coe_units_equiv_ne_zero (a : units α) :
   ((units_equiv_ne_zero α a) : α) = a := rfl
 
-end group
+end field
 
 section instances
 

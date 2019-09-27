@@ -885,7 +885,7 @@ by { cases π, refl }
 @[simp] lemma swap_inv {α : Type*} [decidable_eq α] (x y : α) :
   (swap x y)⁻¹ = swap x y := rfl
 
-@[simp] lemma symm_trans_swap_trans [decidable_eq α] [decidable_eq β] (a b : α)
+@[simp] lemma symm_trans_swap_trans [decidable_eq β] (a b : α)
   (e : α ≃ β) : (e.symm.trans (swap a b)).trans e = swap (e a) (e b) :=
 equiv.ext _ _ (λ x, begin
   have : ∀ a, e.symm x = a ↔ x = e a :=

@@ -11,7 +11,7 @@ import topology.algebra.ring data.polynomial data.real.cau_seq
 open polynomial is_absolute_value
 
 lemma polynomial.tendsto_infinity {α β : Type*} [comm_ring α] [discrete_linear_ordered_field β]
-  (abv : α → β) [is_absolute_value abv] [decidable_eq α] {p : polynomial α} (h : 0 < degree p) :
+  (abv : α → β) [is_absolute_value abv] {p : polynomial α} (h : 0 < degree p) :
   ∀ x : β, ∃ r > 0, ∀ z : α, r < abv z → x < abv (p.eval z) :=
 degree_pos_induction_on p h
   (λ a ha x, ⟨max (x / abv a) 1, (lt_max_iff.2 (or.inr zero_lt_one)), λ z hz,
@@ -27,7 +27,7 @@ degree_pos_induction_on p h
         (by rw abv_neg abv; exact (hr z hz)))
         (le_trans (le_abs_self _) (abs_abv_sub_le_abv_sub _ _ _))⟩)
 
-lemma polynomial.continuous_eval {α} [comm_semiring α] [decidable_eq α] [topological_space α]
+lemma polynomial.continuous_eval {α} [comm_semiring α] [topological_space α]
   [topological_semiring α] (p : polynomial α) : continuous (λ x, p.eval x) :=
 begin
   apply p.induction,

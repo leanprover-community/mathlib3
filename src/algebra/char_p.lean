@@ -125,7 +125,7 @@ calc (k : α) = ↑(k % p + p * (k / p)) : by rw [nat.mod_add_div]
 theorem char_ne_zero_of_fintype (p : ℕ) [hc : char_p α p] [fintype α] : p ≠ 0 :=
 assume h : p = 0,
 have char_zero α := @char_p_to_char_zero α _ (h ▸ hc),
-absurd (@nat.cast_injective α _ _ this) (@set.not_injective_nat_fintype α _ _ _)
+absurd (@nat.cast_injective α _ _ this) (@set.not_injective_nat_fintype α _ _)
 
 end
 

@@ -25,12 +25,10 @@ end rb_set
 
 namespace rb_map
 
-meta def find_def {α β} [has_lt α] [decidable_rel ((<) : α → α → Prop)]
-  (x : β) (m : rb_map α β) (k : α) :=
+meta def find_def {α β} [has_lt α] (x : β) (m : rb_map α β) (k : α) :=
 (m.find k).get_or_else x
 
-meta def insert_cons {α β} [has_lt α] [decidable_rel ((<) : α → α → Prop)]
-  (k : α) (x : β) (m : rb_map α (list β)) : rb_map α (list β) :=
+meta def insert_cons {α β} [has_lt α] (k : α) (x : β) (m : rb_map α (list β)) : rb_map α (list β) :=
 m.insert k (x :: m.find_def [] k)
 
 meta def ifind {α β} [inhabited β] (m : rb_map α β) (a : α) : β :=
@@ -74,6 +72,16 @@ meta instance : has_to_tactic_format (rb_map key data) :=
 end
 
 end rb_map
+
+namespace rb_lmap
+
+/-- Construct a rb_lmap from a list of key-data pairs -/
+protected meta def of_list {key : Type} {data : Type} [has_lt key]
+  [decidable_rel ((<) : key → key → Prop)] : list (key × data) → rb_lmap key data
+| []           := rb_lmap.mk key data
+| ((k, v)::ls) := (of_list ls).insert k v
+
+end rb_lmap
 end native
 
 namespace name_set

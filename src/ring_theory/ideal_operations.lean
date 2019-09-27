@@ -231,9 +231,10 @@ theorem bijective_quotient_inf_to_pi_quotient [fintype ι] {f : ι → ideal R}
 /-- Chinese Remainder Theorem. Eisenbud Ex.2.6. Similar to Atiyah-Macdonald 1.10 and Stacks 00DT -/
 noncomputable def quotient_inf_ring_equiv_pi_quotient [fintype ι] (f : ι → ideal R)
   (hf : ∀ i j, i ≠ j → f i ⊔ f j = ⊤) :
-  (⨅ i, f i).quotient ≃r Π i, (f i).quotient :=
-{ hom := is_ring_hom_quotient_inf_to_pi_quotient f,
-  .. equiv.of_bijective (bijective_quotient_inf_to_pi_quotient hf) }
+  (⨅ i, f i).quotient ≃+* Π i, (f i).quotient :=
+by haveI : is_ring_hom (equiv.of_bijective (bijective_quotient_inf_to_pi_quotient hf)) :=
+  is_ring_hom_quotient_inf_to_pi_quotient f;
+    exact ring_equiv.of (equiv.of_bijective (bijective_quotient_inf_to_pi_quotient hf))
 
 end chinese_remainder
 
@@ -303,6 +304,14 @@ submodule.smul_sup I J K
 theorem sup_mul : (I ⊔ J) * K = I * K ⊔ J * K :=
 submodule.sup_smul I J K
 variables {I J K}
+
+lemma pow_le_pow {m n : ℕ} (h : m ≤ n) :
+  I^n ≤ I^m :=
+begin
+  cases nat.exists_eq_add_of_le h with k hk,
+  rw [hk, pow_add],
+  exact le_trans (mul_le_inf) (lattice.inf_le_left)
+end
 
 def radical (I : ideal R) : ideal R :=
 { carrier := { r | ∃ n : ℕ, r ^ n ∈ I },
@@ -471,6 +480,12 @@ theorem comap_radical : comap f (radical K) = radical (comap f K) :=
 le_antisymm (λ r ⟨n, hfrnk⟩, ⟨n, show f (r ^ n) ∈ K,
   from (is_semiring_hom.map_pow f r n).symm ▸ hfrnk⟩)
 (λ r ⟨n, hfrnk⟩, ⟨n, is_semiring_hom.map_pow f r n ▸ hfrnk⟩)
+
+@[simp] lemma map_quotient_self :
+  map (quotient.mk I) I = ⊥ :=
+lattice.eq_bot_iff.2 $ ideal.map_le_iff_le_comap.2 $ λ x hx,
+(submodule.mem_bot I.quotient).2 $ ideal.quotient.eq_zero_iff_mem.2 hx
+
 variables {I J K L}
 
 theorem map_inf_le : map f (I ⊓ J) ≤ map f I ⊓ map f J :=

@@ -1,7 +1,8 @@
--- Copyright (c) 2017 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl
-
+/-
+Copyright (c) 2017 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl
+-/
 import category_theory.functor_category
 import category_theory.fully_faithful
 import data.equiv.basic
@@ -10,14 +11,14 @@ namespace category_theory
 
 universes v v' w u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-instance types : large_category (Sort u) :=
+instance types : large_category (Type u) :=
 { hom     := λ a b, (a → b),
   id      := λ a, id,
   comp    := λ _ _ _ f g, g ∘ f }
 
-@[simp] lemma types_hom {α β : Sort u} : (α ⟶ β) = (α → β) := rfl
-@[simp] lemma types_id (X : Sort u) : 𝟙 X = id := rfl
-@[simp] lemma types_comp {X Y Z : Sort u} (f : X ⟶ Y) (g : Y ⟶ Z) : f ≫ g = g ∘ f := rfl
+@[simp] lemma types_hom {α β : Type u} : (α ⟶ β) = (α → β) := rfl
+@[simp] lemma types_id (X : Type u) : 𝟙 X = id := rfl
+@[simp] lemma types_comp {X Y Z : Type u} (f : X ⟶ Y) (g : Y ⟶ Z) : f ≫ g = g ∘ f := rfl
 
 namespace functor
 variables {J : Type u} [𝒥 : category.{v} J]
@@ -28,7 +29,7 @@ def sections (F : J ⥤ Type w) : set (Π j, F.obj j) :=
 end functor
 
 namespace functor_to_types
-variables {C : Sort u} [𝒞 : category.{v} C] (F G H : C ⥤ Sort w) {X Y Z : C}
+variables {C : Type u} [𝒞 : category.{v} C] (F G H : C ⥤ Type w) {X Y Z : C}
 include 𝒞
 variables (σ : F ⟶ G) (τ : G ⟶ H)
 
@@ -43,7 +44,7 @@ congr_fun (σ.naturality f) x
 
 @[simp] lemma comp (x : F.obj X) : (σ ≫ τ).app X x = τ.app X (σ.app X x) := rfl
 
-variables {D : Sort u'} [𝒟 : category.{u'} D] (I J : D ⥤ C) (ρ : I ⟶ J) {W : D}
+variables {D : Type u'} [𝒟 : category.{u'} D] (I J : D ⥤ C) (ρ : I ⟶ J) {W : D}
 
 @[simp] lemma hcomp (x : (I ⋙ F).obj W) : (ρ ◫ σ).app W x = (G.map (ρ.app W)) (σ.app (I.obj W) x) := rfl
 
@@ -55,12 +56,13 @@ def ulift_functor : Type u ⥤ Type (max u v) :=
 { obj := λ X, ulift.{v} X,
   map := λ X Y f, λ x : ulift.{v} X, ulift.up (f x.down) }
 
-@[simp] lemma ulift_functor.map {X Y : Type u} (f : X ⟶ Y) (x : ulift.{v} X) :
+@[simp] lemma ulift_functor_map {X Y : Type u} (f : X ⟶ Y) (x : ulift.{v} X) :
   ulift_functor.map f x = ulift.up (f x.down) := rfl
 
-instance ulift_functor_faithful : fully_faithful ulift_functor :=
-{ preimage := λ X Y f x, (f (ulift.up x)).down,
-  injectivity' := λ X Y f g p, funext $ λ x,
+instance ulift_functor_full : full ulift_functor :=
+{ preimage := λ X Y f x, (f (ulift.up x)).down }
+instance ulift_functor_faithful : faithful ulift_functor :=
+{ injectivity' := λ X Y f g p, funext $ λ x,
     congr_arg ulift.down ((congr_fun p (ulift.up x)) : ((ulift.up (f x)) = (ulift.up (g x)))) }
 
 def hom_of_element {X : Type u} (x : X) : punit ⟶ X := λ _, x
@@ -109,6 +111,28 @@ begin
     exact (congr_fun H₂ x : _) }
 end
 
+section
+
+/-- `of_type_functor m` converts from Lean's `Type`-based `category` to `category_theory`. This
+allows us to use these functors in category theory. -/
+def of_type_functor (m : Type u → Type v) [_root_.functor m] [is_lawful_functor m] :
+  Type u ⥤ Type v :=
+{ obj       := m,
+  map       := λα β, _root_.functor.map,
+  map_id'   := assume α, _root_.functor.map_id,
+  map_comp' := assume α β γ f g, funext $ assume a, is_lawful_functor.comp_map f g _ }
+
+variables (m : Type u → Type v) [_root_.functor m] [is_lawful_functor m]
+
+@[simp]
+lemma of_type_functor_obj : (of_type_functor m).obj = m := rfl
+
+@[simp]
+lemma of_type_functor_map {α β} (f : α → β) :
+  (of_type_functor m).map f = (_root_.functor.map f : m α → m β) := rfl
+
+end
+
 end category_theory
 
 -- Isomorphisms in Type and equivalences.
@@ -117,7 +141,7 @@ namespace equiv
 
 universe u
 
-variables {X Y : Sort u}
+variables {X Y : Type u}
 
 def to_iso (e : X ≃ Y) : X ≅ Y :=
 { hom := e.to_fun,
@@ -134,7 +158,7 @@ namespace category_theory.iso
 
 universe u
 
-variables {X Y : Sort u}
+variables {X Y : Type u}
 
 def to_equiv (i : X ≅ Y) : X ≃ Y :=
 { to_fun := i.hom,

@@ -3,7 +3,8 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Scott Morrison
 -/
-import tactic.interactive tactic.finish tactic.ext
+
+import tactic.interactive tactic.finish tactic.ext tactic.lift tactic.apply
 
 example (m n p q : nat) (h : m + n = p) : true :=
 begin
@@ -35,6 +36,17 @@ begin
     case list.cons
     { change list.cons hd tl = L₃ at H,
       admit } },
+  trivial
+end
+
+example (x y : ℕ) (p q : Prop) (h : x = y) (h' : p ↔ q) : true :=
+begin
+  symmetry' at h,
+  guard_hyp' h := y = x,
+  guard_hyp' h' := p ↔ q,
+  symmetry' at *,
+  guard_hyp' h := x = y,
+  guard_hyp' h' := q ↔ p,
   trivial
 end
 
@@ -200,6 +212,67 @@ begin
 end
 
 end congr
+
+section convert_to
+
+example {a b c d : ℕ} (H : a = c) (H' : b = d) : a + b = d + c :=
+by {convert_to c + d = _ using 2, from H, from H', rw[add_comm]}
+
+example {a b c d : ℕ} (H : a = c) (H' : b = d) : a + b = d + c :=
+by {convert_to c + d = _ using 0, congr' 2, from H, from H', rw[add_comm]}
+
+example (a b c d e f g N : ℕ) : (a + b) + (c + d) + (e + f) + g ≤ a + d + e + f + c + g + b :=
+by {ac_change a + d + e + f + c + g + b ≤ _, refl}
+
+end convert_to
+
+section swap
+
+example {α₁ α₂ α₃ : Type} : true :=
+by {have : α₁, have : α₂, have : α₃, swap, swap,
+    rotate, rotate, rotate, rotate 2, rotate 2, triv, recover}
+
+end swap
+
+section lift
+
+example (n m k x z u : ℤ) (hn : 0 < n) (hk : 0 ≤ k + n) (hu : 0 ≤ u) (h : k + n = 2 + x) :
+  k + n = m + x :=
+begin
+  lift n to ℕ using le_of_lt hn,
+    guard_target (k + ↑n = m + x), guard_hyp hn := (0 : ℤ) < ↑n,
+  lift m to ℕ,
+    guard_target (k + ↑n = ↑m + x), tactic.swap, guard_target (0 ≤ m), tactic.swap,
+    tactic.num_goals >>= λ n, guard (n = 2),
+  lift (k + n) to ℕ using hk with l hl,
+    guard_hyp l := ℕ, guard_hyp hl := ↑l = k + ↑n, guard_target (↑l = ↑m + x),
+    tactic.success_if_fail (tactic.get_local `hk),
+  lift x to ℕ with y hy,
+    guard_hyp y := ℕ, guard_hyp hy := ↑y = x, guard_target (↑l = ↑m + x),
+  lift z to ℕ with w,
+    guard_hyp w := ℕ, tactic.success_if_fail (tactic.get_local `z),
+  lift u to ℕ using hu with u rfl hu,
+    guard_hyp hu := (0 : ℤ) ≤ ↑u,
+  all_goals { admit }
+end
+
+instance can_lift_unit : can_lift unit unit :=
+⟨id, λ x, true, λ x _, ⟨x, rfl⟩⟩
+
+/- test whether new instances of `can_lift` are added as simp lemmas -/
+run_cmd do l ← can_lift_attr.get_cache, guard (`can_lift_unit ∈ l)
+
+/- test error messages -/
+example (n : ℤ) (hn : 0 < n) : true :=
+begin
+  success_if_fail_with_msg {lift n to ℕ using hn} "lift tactic failed. The type of\n  hn\nis
+  0 < n\nbut it is expected to be\n  0 ≤ n",
+  success_if_fail_with_msg {lift (n : option ℤ) to ℕ}
+    "Failed to find a lift from option ℤ to ℕ. Provide an instance of\n  can_lift (option ℤ) ℕ",
+  trivial
+end
+
+end lift
 
 private meta def get_exception_message (t : lean.parser unit) : lean.parser string
 | s := match t s with

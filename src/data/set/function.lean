@@ -23,7 +23,7 @@ image_subset_iff.symm
 theorem maps_to_of_eq_on {f1 f2 : α → β} {a : set α} {b : set β} (h₁ : eq_on f1 f2 a)
     (h₂ : maps_to f1 a b) :
   maps_to f2 a b :=
-λ x h, by rw [mem_preimage_eq, ← h₁ _ h]; exact h₂ h
+λ x h, by rw [mem_preimage, ← h₁ _ h]; exact h₂ h
 
 theorem maps_to_comp {g : β → γ} {f : α → β} {a : set α} {b : set β} {c : set γ}
    (h₁ : maps_to g b c) (h₂ : maps_to f a b) : maps_to (g ∘ f) a c :=
@@ -68,6 +68,10 @@ theorem inj_on_of_inj_on_of_subset {f : α → β} {a b : set α} (h₁ : inj_on
 
 lemma injective_iff_inj_on_univ {f : α → β} : injective f ↔ inj_on f univ :=
 iff.intro (λ h _ _ _ _ heq, h heq) (λ h _ _ heq, h trivial trivial heq)
+
+lemma inj_on_of_injective {α β : Type*} {f : α → β} (s : set α) (h : injective f) :
+  inj_on f s :=
+inj_on_of_inj_on_of_subset (injective_iff_inj_on_univ.1 h) (subset_univ s)
 
 theorem inj_on_comp {g : β → γ} {f : α → β} {a : set α} {b : set β}
     (h₁ : maps_to f a b) (h₂ : inj_on g b) (h₃: inj_on f a) :
@@ -287,5 +291,9 @@ left_inv_on g f a ∧ right_inv_on g f b
 theorem bij_on_of_inv_on {g : β → α} {f : α → β} {a : set α} {b : set β} (h₁ : maps_to f a b)
   (h₂ : maps_to g b a) (h₃ : inv_on g f a b) : bij_on f a b :=
 ⟨h₁, inj_on_of_left_inv_on h₃.left, surj_on_of_right_inv_on h₂ h₃.right⟩
+
+lemma range_restrict {α : Type*} {β : Type*} (f : α → β) (p : set α) :
+  range (restrict f p) = f '' (p : set α) :=
+by { ext x, simp [restrict], refl }
 
 end set

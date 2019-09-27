@@ -15,20 +15,21 @@ open lattice
 namespace punit
 variables (x y : punit.{u+1}) (s : set punit.{u+1})
 
+@[to_additive add_comm_group]
+instance : comm_group punit :=
+by refine
+{ mul := λ _ _, star,
+  one := star,
+  inv := λ _, star, .. };
+intros; exact subsingleton.elim _ _
+
 instance : comm_ring punit :=
 by refine
-{ add := λ _ _, star,
-  zero := star,
-  neg := λ _, star,
-  mul := λ _ _, star,
-  one := star,
+{ .. punit.comm_group,
+  .. punit.add_comm_group,
   .. };
 intros; exact subsingleton.elim _ _
 
-instance : comm_group punit :=
-{ inv := λ _, star,
-  mul_left_inv := λ _, subsingleton.elim _ _,
-  .. punit.comm_ring }
 
 instance : complete_boolean_algebra punit :=
 by refine
@@ -70,14 +71,11 @@ by refine
 intros; exact subsingleton.elim _ _
 
 @[simp] lemma zero_eq : (0 : punit) = star := rfl
-@[simp] lemma one_eq : (1 : punit) = star := rfl
-attribute [to_additive punit.zero_eq] punit.one_eq
+@[simp, to_additive] lemma one_eq : (1 : punit) = star := rfl
 @[simp] lemma add_eq : x + y = star := rfl
-@[simp] lemma mul_eq : x * y = star := rfl
-attribute [to_additive punit.add_eq] punit.mul_eq
+@[simp, to_additive] lemma mul_eq : x * y = star := rfl
 @[simp] lemma neg_eq : -x = star := rfl
-@[simp] lemma inv_eq : x⁻¹ = star := rfl
-attribute [to_additive punit.neg_eq] punit.inv_eq
+@[simp, to_additive] lemma inv_eq : x⁻¹ = star := rfl
 @[simp] lemma smul_eq : x • y = star := rfl
 @[simp] lemma top_eq : (⊤ : punit) = star := rfl
 @[simp] lemma bot_eq : (⊥ : punit) = star := rfl
@@ -88,17 +86,23 @@ attribute [to_additive punit.neg_eq] punit.inv_eq
 @[simp] protected lemma le : x ≤ y := trivial
 @[simp] lemma not_lt : ¬(x < y) := not_false
 
+instance {α : Type*} [has_mul α] (f : α → punit) : is_mul_hom f :=
+⟨λ _ _, subsingleton.elim _ _⟩
+
+instance {α : Type*} [has_add α] (f : α → punit) : is_add_hom f :=
+⟨λ _ _, subsingleton.elim _ _⟩
+
 instance {α : Type*} [monoid α] (f : α → punit) : is_monoid_hom f :=
-{ map_one := subsingleton.elim _ _, map_mul := λ _ _, subsingleton.elim _ _ }
+{ map_one := subsingleton.elim _ _ }
 
 instance {α : Type*} [add_monoid α] (f : α → punit) : is_add_monoid_hom f :=
-{ map_zero := subsingleton.elim _ _, map_add := λ _ _, subsingleton.elim _ _ }
+{ map_zero := subsingleton.elim _ _ }
 
 instance {α : Type*} [group α] (f : α → punit) : is_group_hom f :=
-⟨λ _ _, subsingleton.elim _ _⟩
+{ }
 
 instance {α : Type*} [add_group α] (f : α → punit) : is_add_group_hom f :=
-⟨λ _ _, subsingleton.elim _ _⟩
+{ }
 
 instance {α : Type*} [semiring α] (f : α → punit) : is_semiring_hom f :=
 { .. punit.is_monoid_hom f, .. punit.is_add_monoid_hom f }

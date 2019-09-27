@@ -1,6 +1,8 @@
--- Copyright (c) 2017 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison
+/-
+Copyright (c) 2017 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 
 import category_theory.products.bifunctor
 import category_theory.equivalence
@@ -10,9 +12,9 @@ namespace category_theory
 
 universes v₁ v₂ v₃ u₁ u₂ u₃
 
-variables {C : Type u₁} [𝒞 : category.{v₁+1} C]
-          {D : Type u₂} [𝒟 : category.{v₂+1} D]
-          {E : Type u₃} [ℰ : category.{v₃+1} E]
+variables {C : Type u₁} [𝒞 : category.{v₁} C]
+          {D : Type u₂} [𝒟 : category.{v₂} D]
+          {E : Type u₃} [ℰ : category.{v₃} E]
 include 𝒞 𝒟 ℰ
 
 def uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E) :=

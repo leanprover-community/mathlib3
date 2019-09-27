@@ -2,7 +2,9 @@
 Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
+-/
 
+/-!
 Theorems that require decidability hypotheses are in the namespace "decidable".
 Classical versions are in the namespace "classical".
 
@@ -10,13 +12,14 @@ Note: in the presence of automation, this whole file may be unnecessary. On the 
 maybe it is useful for writing automation.
 -/
 
-/-
-    miscellany
 
-    TODO: move elsewhere
--/
 
 section miscellany
+
+/- We add the `inline` attribute to optimize VM computation using these declarations. For example,
+  `if p ∧ q then ... else ...` will not evaluate the decidability of `q` if `p` is false. -/
+attribute [inline] and.decidable or.decidable decidable.false xor.decidable iff.decidable
+  decidable.true implies.decidable not.decidable ne.decidable
 
 variables {α : Type*} {β : Type*}
 
@@ -28,7 +31,7 @@ instance : subsingleton empty := ⟨λa, a.elim⟩
 
 instance : decidable_eq empty := λa, a.elim
 
-@[priority 0] instance decidable_eq_of_subsingleton
+@[priority 10] instance decidable_eq_of_subsingleton
   {α} [subsingleton α] : decidable_eq α
 | a b := is_true (subsingleton.elim a b)
 
@@ -62,11 +65,33 @@ def pempty.elim {C : Sort*} : pempty → C.
 
 instance subsingleton_pempty : subsingleton pempty := ⟨λa, a.elim⟩
 
+@[simp] lemma not_nonempty_pempty : ¬ nonempty pempty :=
+assume ⟨h⟩, h.elim
+
+@[simp] theorem forall_pempty {P : pempty → Prop} : (∀ x : pempty, P x) ↔ true :=
+⟨λ h, trivial, λ h x, by cases x⟩
+
+@[simp] theorem exists_pempty {P : pempty → Prop} : (∃ x : pempty, P x) ↔ false :=
+⟨λ h, by { cases h with w, cases w }, false.elim⟩
+
 lemma congr_arg_heq {α} {β : α → Sort*} (f : ∀ a, β a) : ∀ {a₁ a₂ : α}, a₁ = a₂ → f a₁ == f a₂
 | a _ rfl := heq.rfl
 
 lemma plift.down_inj {α : Sort*} : ∀ (a b : plift α), a.down = b.down → a = b
 | ⟨a⟩ ⟨b⟩ rfl := rfl
+
+-- missing [symm] attribute for ne in core.
+attribute [symm] ne.symm
+
+lemma ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨ne.symm, ne.symm⟩
+
+@[simp] lemma eq_iff_eq_cancel_left {b c : α} :
+  (∀ {a}, a = b ↔ a = c) ↔ (b = c) :=
+⟨λ h, by rw [← h], λ h a, by rw h⟩
+
+@[simp] lemma eq_iff_eq_cancel_right {a b : α} :
+  (∀ {c}, a = c ↔ b = c) ↔ (a = b) :=
+⟨λ h, by rw h, λ h a, by rw h⟩
 
 end miscellany
 
@@ -86,9 +111,11 @@ theorem iff_of_eq (e : a = b) : a ↔ b := e ▸ iff.rfl
 
 theorem iff_iff_eq : (a ↔ b) ↔ a = b := ⟨propext, iff_of_eq⟩
 
+@[simp] lemma eq_iff_iff {p q : Prop} : (p = q) ↔ (p ↔ q) := iff_iff_eq.symm
+
 @[simp] theorem imp_self : (a → a) ↔ true := iff_true_intro id
 
-theorem imp_intro {α β} (h : α) (h₂ : β) : α := h
+theorem imp_intro {α β : Prop} (h : α) : β → α := λ _, h
 
 theorem imp_false : (a → false) ↔ ¬ a := iff.rfl
 
@@ -113,14 +140,14 @@ iff_true_intro $ λ_, trivial
 
 /- not -/
 
-theorem not.elim {α : Sort*} (H1 : ¬a) (H2 : a) : α := absurd H2 H1
+def not.elim {α : Sort*} (H1 : ¬a) (H2 : a) : α := absurd H2 H1
 
 @[reducible] theorem not.imp {a b : Prop} (H2 : ¬b) (H1 : a → b) : ¬a := mt H1 H2
 
 theorem not_not_of_not_imp : ¬(a → b) → ¬¬a :=
 mt not.elim
 
-theorem not_of_not_imp {α} : ¬(α → b) → ¬b :=
+theorem not_of_not_imp {a : Prop} : ¬(a → b) → ¬b :=
 mt imp_intro
 
 theorem dec_em (p : Prop) [decidable p] : p ∨ ¬p := decidable.em p
@@ -283,7 +310,7 @@ by rw [@iff_def (¬ a), @iff_def' a]; exact and_congr not_imp_not not_imp_not
 theorem not_iff_comm [decidable a] [decidable b] : (¬ a ↔ b) ↔ (¬ b ↔ a) :=
 by rw [@iff_def (¬ a), @iff_def (¬ b)]; exact and_congr not_imp_comm imp_not_comm
 
-theorem not_iff [decidable a] [decidable b] : ¬ (a ↔ b) ↔ (¬ a ↔ b) :=
+theorem not_iff [decidable b] : ¬ (a ↔ b) ↔ (¬ a ↔ b) :=
 by split; intro h; [split, skip]; intro h'; [by_contradiction,intro,skip];
    try { refine h _; simp [*] }; rw [h',not_iff_self] at h; exact h
 
@@ -370,6 +397,9 @@ protected lemma eq.congr {x₁ x₂ y₁ y₂ : α} (h₁ : x₁ = y₁) (h₂ :
   (x₁ = x₂) ↔ (y₁ = y₂) :=
 by { subst h₁, subst h₂ }
 
+lemma eq.congr_left {x y z : α} (h : x = y) : x = z ↔ y = z := by rw [h]
+lemma eq.congr_right {x y z : α} (h : x = y) : z = x ↔ z = y := by rw [h]
+
 lemma congr_arg2 {α β γ : Type*} (f : α → β → γ) {x x' : α} {y y' : β}
   (hx : x = x') (hy : y = y') : f x y = f x' y' :=
 by { subst hx, subst hy }
@@ -381,14 +411,17 @@ end equality
 -/
 
 section quantifiers
-variables {α : Sort*} {p q : α → Prop} {b : Prop}
+variables {α : Sort*} {β : Sort*} {p q : α → Prop} {b : Prop}
 
 def Exists.imp := @exists_imp_exists
 
-theorem forall_swap {α β} {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
+lemma exists_imp_exists' {p : α → Prop} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a)) (hp : ∃ a, p a) : ∃ b, q b :=
+exists.elim hp (λ a hp', ⟨_, hpq _ hp'⟩)
+
+theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
 ⟨function.swap, function.swap⟩
 
-theorem exists_swap {α β} {p : α → β → Prop} : (∃ x y, p x y) ↔ ∃ y x, p x y :=
+theorem exists_swap {p : α → β → Prop} : (∃ x y, p x y) ↔ ∃ y x, p x y :=
 ⟨λ ⟨x, y, h⟩, ⟨y, x, h⟩, λ ⟨y, x, h⟩, ⟨x, y, h⟩⟩
 
 @[simp] theorem exists_imp_distrib : ((∃ x, p x) → b) ↔ ∀ x, p x → b :=
@@ -460,6 +493,8 @@ by simp [and_comm]
 ⟨λ h, h a' rfl, λ h a e, e.symm ▸ h⟩
 
 @[simp] theorem exists_eq {a' : α} : ∃ a, a = a' := ⟨_, rfl⟩
+
+@[simp] theorem exists_eq' {a' : α} : Exists (eq a') := ⟨_, rfl⟩
 
 @[simp] theorem exists_eq_left {a' : α} : (∃ a, a = a' ∧ p a) ↔ p a' :=
 ⟨λ ⟨a, e, h⟩, e ▸ h, λ h, ⟨_, rfl, h⟩⟩
@@ -565,7 +600,7 @@ noncomputable theorem dec_eq (α : Sort*) : decidable_eq α := by apply_instance
 noncomputable def {u} exists_cases {C : Sort u} (H0 : C) (H : ∀ a, p a → C) : C :=
 if h : ∃ a, p a then H (classical.some h) (classical.some_spec h) else H0
 
-lemma some_spec2 {α : Type*} {p : α → Prop} {h : ∃a, p a}
+lemma some_spec2 {α : Sort*} {p : α → Prop} {h : ∃a, p a}
   (q : α → Prop) (hpq : ∀a, p a → q a) : q (some h) :=
 hpq _ $ some_spec _
 
@@ -620,7 +655,7 @@ theorem bex.imp_left (H : ∀ x, p x → q x) :
   (∃ x (_ : p x), r x) → ∃ x (_ : q x), r x
 | ⟨x, hp, hr⟩ := ⟨x, H _ hp, hr⟩
 
-theorem ball_of_forall (h : ∀ x, p x) (x) (_ : q x) : p x :=
+theorem ball_of_forall (h : ∀ x, p x) (x) : p x :=
 h x
 
 theorem forall_of_ball (H : ∀ x, p x) (h : ∀ x, p x → q x) (x) : q x :=
@@ -677,7 +712,7 @@ iff.intro (λ⟨a, _⟩, ⟨a⟩) (λ⟨a⟩, ⟨a, trivial⟩)
 @[simp] lemma nonempty_Prop {p : Prop} : nonempty p ↔ p :=
 iff.intro (assume ⟨h⟩, h) (assume h, ⟨h⟩)
 
-lemma not_nonempty_iff_imp_false {p : Prop} : ¬ nonempty α ↔ α → false :=
+lemma not_nonempty_iff_imp_false : ¬ nonempty α ↔ α → false :=
 ⟨λ h a, h ⟨a⟩, λ h ⟨a⟩, h a⟩
 
 @[simp] lemma nonempty_sigma : nonempty (Σa:α, γ a) ↔ (∃a:α, nonempty (γ a)) :=

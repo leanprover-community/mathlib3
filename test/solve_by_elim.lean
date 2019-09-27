@@ -11,6 +11,12 @@ begin
   apply_assumption,
 end
 
+example {X : Type} (x : X) : x = x :=
+by solve_by_elim
+
+example : true :=
+by solve_by_elim
+
 example {a b : Prop} (h₀ : a → b) (h₁ : a) : b :=
 by solve_by_elim
 
@@ -91,7 +97,7 @@ begin
 end
 
 -- Verifying that `solve_by_elim*` backtracks when given multiple goals.
-example (n m : ℕ) (f : ℕ → ℕ → Prop) (h : f n m): ∃ p : ℕ × ℕ, f p.1 p.2 :=
+example (n m : ℕ) (f : ℕ → ℕ → Prop) (h : f n m) : ∃ p : ℕ × ℕ, f p.1 p.2 :=
 begin
   repeat { split },
   solve_by_elim*,

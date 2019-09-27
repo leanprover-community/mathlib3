@@ -11,11 +11,12 @@ import data.complex.basic
 import linear_algebra.tensor_product
 import ring_theory.subring
 
+noncomputable theory
+
 universes u v w u₁ v₁
 
 open lattice
-
-local infix ` ⊗ `:100 := tensor_product
+open_locale tensor_product
 
 /-- The category of R-algebras where R is a commutative
 ring is the under category R ↓ CRing. In the categorical
@@ -101,15 +102,15 @@ by rw [smul_def, smul_def, left_comm]
 by rw [smul_def, smul_def, mul_assoc]
 
 /-- R[X] is the generator of the category R-Alg. -/
-instance polynomial (R : Type u) [comm_ring R] [decidable_eq R] : algebra R (polynomial R) :=
+instance polynomial (R : Type u) [comm_ring R] : algebra R (polynomial R) :=
 { to_fun := polynomial.C,
   commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ c p, (polynomial.C_mul' c p).symm,
   .. polynomial.module }
 
 /-- The algebra of multivariate polynomials. -/
-instance mv_polynomial (R : Type u) [comm_ring R] [decidable_eq R]
-  (ι : Type v) [decidable_eq ι] : algebra R (mv_polynomial ι R) :=
+instance mv_polynomial (R : Type u) [comm_ring R]
+  (ι : Type v) : algebra R (mv_polynomial ι R) :=
 { to_fun := mv_polynomial.C,
   commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ c p, (mv_polynomial.C_mul' c p).symm,
@@ -144,13 +145,13 @@ variables {R A}
 end algebra
 
 /-- Defining the homomorphism in the category R-Alg. -/
-structure alg_hom {R : Type u} (A : Type v) (B : Type w)
+structure alg_hom (R : Type u) (A : Type v) (B : Type w)
   [comm_ring R] [ring A] [ring B] [algebra R A] [algebra R B] :=
 (to_fun : A → B) [hom : is_ring_hom to_fun]
 (commutes' : ∀ r : R, to_fun (algebra_map A r) = algebra_map B r)
 
-infixr ` →ₐ `:25 := alg_hom
-notation A ` →ₐ[`:25 R `] ` B := @alg_hom R A B _ _ _ _ _
+infixr ` →ₐ `:25 := alg_hom _
+notation A ` →ₐ[`:25 R `] ` B := alg_hom R A B
 
 namespace alg_hom
 
@@ -293,7 +294,7 @@ namespace polynomial
 
 variables (R : Type u) (A : Type v)
 variables [comm_ring R] [comm_ring A] [algebra R A]
-variables [decidable_eq R] (x : A)
+variables (x : A)
 
 /-- A → Hom[R-Alg](R[X],A) -/
 def aeval : polynomial R →ₐ[R] A :=
@@ -323,7 +324,7 @@ namespace mv_polynomial
 
 variables (R : Type u) (A : Type v)
 variables [comm_ring R] [comm_ring A] [algebra R A]
-variables [decidable_eq R] [decidable_eq A] (σ : set A)
+variables (σ : set A)
 
 /-- (ι → A) → Hom[R-Alg](R[ι],A) -/
 def aeval : mv_polynomial σ R →ₐ[R] A :=
@@ -336,7 +337,7 @@ theorem aeval_def (p : mv_polynomial σ R) : aeval R A σ p = eval₂ (algebra_m
 instance aeval.is_ring_hom : is_ring_hom (aeval R A σ) :=
 alg_hom.hom _
 
-variables (ι : Type w) [decidable_eq ι]
+variables (ι : Type w)
 
 theorem eval_unique (φ : mv_polynomial ι R →ₐ[R] A) (p) :
   φ p = eval₂ (algebra_map A) (φ ∘ X) p :=
@@ -489,7 +490,7 @@ def adjoin (s : set A) : subalgebra R A :=
   range_le := le_trans (set.subset_union_left _ _) ring.subset_closure }
 variables {R}
 
-protected def gc : galois_connection (adjoin R : set A → subalgebra R A) coe :=
+protected lemma gc : galois_connection (adjoin R : set A → subalgebra R A) coe :=
 λ s S, ⟨λ H, le_trans (le_trans (set.subset_union_right _ _) ring.subset_closure) H,
 λ H, ring.closure_subset $ set.union_subset S.range_le H⟩
 
@@ -547,5 +548,24 @@ def subalgebra_of_subring (S : set R) [is_subring S] : subalgebra ℤ R :=
 @[simp] lemma mem_subalgebra_of_subring {x : R} {S : set R} [is_subring S] :
   x ∈ subalgebra_of_subring S ↔ x ∈ S :=
 iff.rfl
+
+section span_int
+open submodule
+
+lemma span_int_eq_add_group_closure (s : set R) :
+  ↑(span ℤ s) = add_group.closure s :=
+set.subset.antisymm (λ x hx, span_induction hx
+  (λ _, add_group.mem_closure)
+  (is_add_submonoid.zero_mem _)
+  (λ a b ha hb, is_add_submonoid.add_mem ha hb)
+  (λ n a ha, by { erw [show n • a = gsmul n a, from (gsmul_eq_mul a n).symm],
+    exact is_add_subgroup.gsmul_mem ha}))
+  (add_group.closure_subset subset_span)
+
+@[simp] lemma span_int_eq (s : set R) [is_add_subgroup s] :
+  (↑(span ℤ s) : set R) = s :=
+by rw [span_int_eq_add_group_closure, add_group.closure_add_subgroup]
+
+end span_int
 
 end int

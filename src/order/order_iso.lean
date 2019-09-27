@@ -25,7 +25,7 @@ end
 structure order_embedding {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends α ↪ β :=
 (ord : ∀ {a b}, r a b ↔ s (to_embedding a) (to_embedding b))
 
-infix ` ≼o `:50 := order_embedding
+infix ` ≼o `:25 := order_embedding
 
 /-- the induced order on a subtype is an embedding under the natural inclusion. -/
 definition subtype.order_embedding {X : Type*} (r : X → X → Prop) (p : X → Prop) :
@@ -148,7 +148,7 @@ def lt_embedding_of_le_embedding [preorder α] [preorder β]
   inj := f.inj,
   ord := by intros; simp [lt_iff_le_not_le,f.ord] }
 
-theorem nat_lt [is_strict_order α r] (f : ℕ → α) (H : ∀ n:ℕ, r (f n) (f (n+1))) :
+def nat_lt [is_strict_order α r] (f : ℕ → α) (H : ∀ n:ℕ, r (f n) (f (n+1))) :
   ((<) : ℕ → ℕ → Prop) ≼o r :=
 of_monotone f $ λ a b h, begin
   induction b with b IH, {exact (nat.not_lt_zero _ h).elim},
@@ -157,11 +157,12 @@ of_monotone f $ λ a b h, begin
   { subst b, apply H }
 end
 
-theorem nat_gt [is_strict_order α r] (f : ℕ → α) (H : ∀ n:ℕ, r (f (n+1)) (f n)) :
+def nat_gt [is_strict_order α r] (f : ℕ → α) (H : ∀ n:ℕ, r (f (n+1)) (f n)) :
   ((>) : ℕ → ℕ → Prop) ≼o r :=
 by haveI := is_strict_order.swap r; exact rsymm (nat_lt f H)
 
-theorem well_founded_iff_no_descending_seq [is_strict_order α r] : well_founded r ↔ ¬ nonempty (((>) : ℕ → ℕ → Prop) ≼o r) :=
+theorem well_founded_iff_no_descending_seq [is_strict_order α r] :
+  well_founded r ↔ ¬ nonempty (((>) : ℕ → ℕ → Prop) ≼o r) :=
 ⟨λ ⟨h⟩ ⟨⟨f, o⟩⟩,
   suffices ∀ a, acc r a → ∀ n, a ≠ f n, from this (f 0) (h _) 0 rfl,
   λ a ac, begin
@@ -195,7 +196,7 @@ instance fin.lt.is_well_order (n) : is_well_order (fin n) (<) :=
 structure order_iso {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends α ≃ β :=
 (ord : ∀ {a b}, r a b ↔ s (to_equiv a) (to_equiv b))
 
-infix ` ≃o `:50 := order_iso
+infix ` ≃o `:25 := order_iso
 
 namespace order_iso
 
@@ -254,14 +255,14 @@ noncomputable def of_surjective (f : r ≼o s) (H : surjective f) : r ≃o s :=
 @[simp] theorem of_surjective_coe (f : r ≼o s) (H) : (of_surjective f H : α → β) = f :=
 by delta of_surjective; simp
 
-theorem sum_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
+def sum_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
   (e₁ : @order_iso α₁ α₂ r₁ r₂) (e₂ : @order_iso β₁ β₂ s₁ s₂) :
   sum.lex r₁ s₁ ≃o sum.lex r₂ s₂ :=
 ⟨equiv.sum_congr e₁.to_equiv e₂.to_equiv, λ a b,
  by cases e₁ with f hf; cases e₂ with g hg;
     cases a; cases b; simp [hf, hg]⟩
 
-theorem prod_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
+def prod_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
   (e₁ : @order_iso α₁ α₂ r₁ r₂) (e₂ : @order_iso β₁ β₂ s₁ s₂) :
   prod.lex r₁ s₁ ≃o prod.lex r₂ s₂ :=
 ⟨equiv.prod_congr e₁.to_equiv e₂.to_equiv,  λ a b, begin

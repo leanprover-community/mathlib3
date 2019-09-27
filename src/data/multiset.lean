@@ -15,7 +15,7 @@ open list subtype nat lattice
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
-local infix ` • ` := add_monoid.smul
+open_locale add_monoid
 
 /-- `multiset α` is the quotient of `list α` by list permutation. The result
   is a type of finite sets with duplicates allowed.  -/
@@ -534,9 +534,6 @@ theorem le_cons_erase (s : multiset α) (a : α) : s ≤ a :: s.erase a :=
 if h : a ∈ s then le_of_eq (cons_erase h).symm
 else by rw erase_of_not_mem h; apply le_cons_self
 
-@[simp] theorem card_erase_of_mem {a : α} {s : multiset α} : a ∈ s → card (s.erase a) = pred (card s) :=
-quot.induction_on s $ λ l, length_erase_of_mem
-
 theorem erase_add_left_pos {a : α} {s : multiset α} (t) : a ∈ s → (s + t).erase a = s.erase a + t :=
 quotient.induction_on₂ s t $ λ l₁ l₂ h, congr_arg coe $ erase_append_left l₂ h
 
@@ -577,6 +574,15 @@ theorem erase_le_iff_le_cons {s t : multiset α} {a : α} : s.erase a ≤ t ↔ 
   then by rw ← cons_erase m at h; exact (cons_le_cons_iff _).1 h
   else le_trans (erase_le _ _) ((le_cons_of_not_mem m).1 h)⟩
 
+@[simp] theorem card_erase_of_mem {a : α} {s : multiset α} : a ∈ s → card (s.erase a) = pred (card s) :=
+quot.induction_on s $ λ l, length_erase_of_mem
+
+theorem card_erase_lt_of_mem {a : α} {s : multiset α} : a ∈ s → card (s.erase a) < card s :=
+λ h, card_lt_of_lt (erase_lt.mpr h)
+
+theorem card_erase_le {a : α} {s : multiset α} : card (s.erase a) ≤ card s :=
+card_le_of_le (erase_le a s)
+
 end erase
 
 @[simp] theorem coe_reverse (l : list α) : (reverse l : multiset α) = l :=
@@ -612,6 +618,9 @@ quot.induction_on s $ λ l, mem_map
 
 @[simp] theorem card_map (f : α → β) (s) : card (map f s) = card s :=
 quot.induction_on s $ λ l, length_map _ _
+
+@[simp] theorem map_eq_zero {s : multiset α} {f : α → β} : s.map f = 0 ↔ s = 0 :=
+by rw [← multiset.card_eq_zero, multiset.card_map, multiset.card_eq_zero]
 
 theorem mem_map_of_mem (f : α → β) {a : α} {s : multiset α} (h : a ∈ s) : f a ∈ map f s :=
 mem_map.2 ⟨_, h, rfl⟩
@@ -699,35 +708,34 @@ theorem foldl_swap (f : β → α → β) (H : right_commutative f) (b : β) (s 
 
 /-- Product of a multiset given a commutative monoid structure on `α`.
   `prod {a, b, c} = a * b * c` -/
+@[to_additive]
 def prod [comm_monoid α] : multiset α → α :=
 foldr (*) (λ x y z, by simp [mul_left_comm]) 1
-attribute [to_additive multiset.sum._proof_1] prod._proof_1
-attribute [to_additive multiset.sum] prod
 
-@[to_additive multiset.sum_eq_foldr]
+@[to_additive]
 theorem prod_eq_foldr [comm_monoid α] (s : multiset α) :
   prod s = foldr (*) (λ x y z, by simp [mul_left_comm]) 1 s := rfl
 
-@[to_additive multiset.sum_eq_foldl]
+@[to_additive]
 theorem prod_eq_foldl [comm_monoid α] (s : multiset α) :
   prod s = foldl (*) (λ x y z, by simp [mul_right_comm]) 1 s :=
 (foldr_swap _ _ _ _).trans (by simp [mul_comm])
 
-@[simp, to_additive multiset.coe_sum]
+@[simp, to_additive]
 theorem coe_prod [comm_monoid α] (l : list α) : prod ↑l = l.prod :=
 prod_eq_foldl _
 
-@[simp, to_additive multiset.sum_zero]
+@[simp, to_additive]
 theorem prod_zero [comm_monoid α] : @prod α _ 0 = 1 := rfl
 
-@[simp, to_additive multiset.sum_cons]
+@[simp, to_additive]
 theorem prod_cons [comm_monoid α] (a : α) (s) : prod (a :: s) = a * prod s :=
 foldr_cons _ _ _ _ _
 
-@[to_additive multiset.sum_singleton]
+@[to_additive]
 theorem prod_singleton [comm_monoid α] (a : α) : prod (a :: 0) = a := by simp
 
-@[simp, to_additive multiset.sum_add]
+@[simp, to_additive]
 theorem prod_add [comm_monoid α] (s t : multiset α) : prod (s + t) = prod s * prod t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, by simp
 
@@ -744,7 +752,7 @@ lemma prod_smul {α : Type*} [comm_monoid α] (m : multiset α) :
 by simp [repeat, list.prod_repeat]
 @[simp] theorem sum_repeat [add_comm_monoid α] : ∀ (a : α) (n : ℕ), sum (multiset.repeat a n) = n • a :=
 @prod_repeat (multiplicative α) _
-attribute [to_additive multiset.sum_repeat] prod_repeat
+attribute [to_additive] prod_repeat
 
 @[simp] lemma prod_map_one [comm_monoid γ] {m : multiset α} :
   prod (m.map (λa, (1 : γ))) = (1 : γ) :=
@@ -752,9 +760,9 @@ multiset.induction_on m (by simp) (by simp)
 @[simp] lemma sum_map_zero [add_comm_monoid γ] {m : multiset α} :
   sum (m.map (λa, (0 : γ))) = (0 : γ) :=
 multiset.induction_on m (by simp) (by simp)
-attribute [to_additive multiset.sum_map_zero] prod_map_one
+attribute [to_additive] prod_map_one
 
-@[simp, to_additive multiset.sum_map_add]
+@[simp, to_additive]
 lemma prod_map_mul [comm_monoid γ] {m : multiset α} {f g : α → γ} :
   prod (m.map $ λa, f a * g a) = prod (m.map f) * prod (m.map g) :=
 multiset.induction_on m (by simp) (assume a m ih, by simp [ih]; cc)
@@ -766,7 +774,7 @@ multiset.induction_on m (by simp) (assume a m ih, by simp [ih])
 lemma sum_map_sum_map [add_comm_monoid γ] : ∀ (m : multiset α) (n : multiset β) {f : α → β → γ},
   sum (m.map $ λa, sum $ n.map $ λb, f a b) = sum (n.map $ λb, sum $ m.map $ λa, f a b) :=
 @prod_map_prod_map _ _ (multiplicative γ) _
-attribute [to_additive multiset.sum_map_sum_map] prod_map_prod_map
+attribute [to_additive] prod_map_prod_map
 
 lemma sum_map_mul_left [semiring β] {b : β} {s : multiset α} {f : α → β} :
   sum (s.map (λa, b * f a)) = b * sum (s.map f) :=
@@ -788,7 +796,7 @@ lemma sum_hom [add_comm_monoid α] [add_comm_monoid β] (f : α → β) [is_add_
   (s.map f).sum = f s.sum :=
 multiset.induction_on s (by simp [is_add_monoid_hom.map_zero f])
   (by simp [is_add_monoid_hom.map_add f] {contextual := tt})
-attribute [to_additive multiset.sum_hom] multiset.prod_hom
+attribute [to_additive] multiset.prod_hom
 
 lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_comm_monoid β]
   (f : α → β) (h_zero : f 0 = 0) (h_add : ∀x y, f (x + y) ≤ f x + f y) (s : multiset α) :
@@ -893,7 +901,7 @@ lemma bind_map_comm (m : multiset α) (n : multiset β) {f : α → β → γ} :
   (bind m $ λa, n.map $ λb, f a b) = (bind n $ λb, m.map $ λa, f a b) :=
 multiset.induction_on m (by simp) (by simp {contextual := tt})
 
-@[simp, to_additive multiset.sum_bind]
+@[simp, to_additive]
 lemma prod_bind [comm_monoid β] (s : multiset α) (t : α → multiset β) :
   prod (bind s t) = prod (s.map $ λa, prod (t a)) :=
 multiset.induction_on s (by simp) (assume a s ih, by simp [ih, cons_bind])
@@ -1585,18 +1593,18 @@ end
   card (powerset s) = 2 ^ card s :=
 quotient.induction_on s $ by simp
 
-/- diagonal -/
+/- antidiagonal -/
 
-theorem revzip_powerset_aux {l : list α} ⦃s t⦄
-  (h : (s, t) ∈ revzip (powerset_aux l)) : s + t = ↑l :=
+theorem revzip_powerset_aux {l : list α} ⦃x⦄
+  (h : x ∈ revzip (powerset_aux l)) : x.1 + x.2 = ↑l :=
 begin
   rw [revzip, powerset_aux_eq_map_coe, ← map_reverse, zip_map, ← revzip] at h,
   simp at h, rcases h with ⟨l₁, l₂, h, rfl, rfl⟩,
   exact quot.sound (revzip_sublists _ _ _ h)
 end
 
-theorem revzip_powerset_aux' {l : list α} ⦃s t⦄
-  (h : (s, t) ∈ revzip (powerset_aux' l)) : s + t = ↑l :=
+theorem revzip_powerset_aux' {l : list α} ⦃x⦄
+  (h : x ∈ revzip (powerset_aux' l)) : x.1 + x.2 = ↑l :=
 begin
   rw [revzip, powerset_aux', ← map_reverse, zip_map, ← revzip] at h,
   simp at h, rcases h with ⟨l₁, l₂, h, rfl, rfl⟩,
@@ -1604,7 +1612,7 @@ begin
 end
 
 theorem revzip_powerset_aux_lemma [decidable_eq α] (l : list α)
-  {l' : list (multiset α)} (H : ∀ ⦃s t⦄, (s, t) ∈ revzip l' → s + t = ↑l) :
+  {l' : list (multiset α)} (H : ∀ ⦃x : _ × _⦄, x ∈ revzip l' → x.1 + x.2 = ↑l) :
   revzip l' = l'.map (λ x, (x, ↑l - x)) :=
 begin
   have : forall₂ (λ (p : multiset α × multiset α) (s : multiset α), p = (s, ↑l - s))
@@ -1632,55 +1640,61 @@ begin
   exact perm_map _ (powerset_aux_perm p)
 end
 
-def diagonal (s : multiset α) : multiset (multiset α × multiset α) :=
+/-- The antidiagonal of a multiset `s` consists of all pairs `(t₁, t₂)`
+    such that `t₁ + t₂ = s`. These pairs are counted with multiplicities. -/
+def antidiagonal (s : multiset α) : multiset (multiset α × multiset α) :=
 quot.lift_on s
   (λ l, (revzip (powerset_aux l) : multiset (multiset α × multiset α)))
   (λ l₁ l₂ h, quot.sound (revzip_powerset_aux_perm h))
 
-theorem diagonal_coe (l : list α) :
-  @diagonal α l = revzip (powerset_aux l) := rfl
+theorem antidiagonal_coe (l : list α) :
+  @antidiagonal α l = revzip (powerset_aux l) := rfl
 
-@[simp] theorem diagonal_coe' (l : list α) :
-  @diagonal α l = revzip (powerset_aux' l) :=
+@[simp] theorem antidiagonal_coe' (l : list α) :
+  @antidiagonal α l = revzip (powerset_aux' l) :=
 quot.sound revzip_powerset_aux_perm_aux'
 
-@[simp] theorem mem_diagonal {s₁ s₂ t : multiset α} :
-  (s₁, s₂) ∈ diagonal t ↔ s₁ + s₂ = t :=
-quotient.induction_on t $ λ l, begin
-  simp [diagonal_coe], refine ⟨λ h, revzip_powerset_aux h, λ h, _⟩,
+/-- A pair `(t₁, t₂)` of multisets is contained in `antidiagonal s`
+    if and only if `t₁ + t₂ = s`. -/
+@[simp] theorem mem_antidiagonal {s : multiset α} {x : multiset α × multiset α} :
+  x ∈ antidiagonal s ↔ x.1 + x.2 = s :=
+quotient.induction_on s $ λ l, begin
+  simp [antidiagonal_coe], refine ⟨λ h, revzip_powerset_aux h, λ h, _⟩,
   haveI := classical.dec_eq α,
   simp [revzip_powerset_aux_lemma l revzip_powerset_aux, h.symm],
-  exact ⟨_, le_add_right _ _, rfl, add_sub_cancel_left _ _⟩
+  cases x with x₁ x₂,
+  exact ⟨_, le_add_right _ _, by rw add_sub_cancel_left _ _⟩
 end
 
-@[simp] theorem diagonal_map_fst (s : multiset α) :
-  (diagonal s).map prod.fst = powerset s :=
+@[simp] theorem antidiagonal_map_fst (s : multiset α) :
+  (antidiagonal s).map prod.fst = powerset s :=
 quotient.induction_on s $ λ l,
 by simp [powerset_aux']
 
-@[simp] theorem diagonal_map_snd (s : multiset α) :
-  (diagonal s).map prod.snd = powerset s :=
+@[simp] theorem antidiagonal_map_snd (s : multiset α) :
+  (antidiagonal s).map prod.snd = powerset s :=
 quotient.induction_on s $ λ l,
 by simp [powerset_aux']
 
-@[simp] theorem diagonal_zero : @diagonal α 0 = (0, 0)::0 := rfl
+@[simp] theorem antidiagonal_zero : @antidiagonal α 0 = (0, 0)::0 := rfl
 
-@[simp] theorem diagonal_cons (a : α) (s) : diagonal (a::s) =
-  map (prod.map id (cons a)) (diagonal s) +
-  map (prod.map (cons a) id) (diagonal s) :=
+@[simp] theorem antidiagonal_cons (a : α) (s) : antidiagonal (a::s) =
+  map (prod.map id (cons a)) (antidiagonal s) +
+  map (prod.map (cons a) id) (antidiagonal s) :=
 quotient.induction_on s $ λ l, begin
   simp [revzip, reverse_append],
   rw [← zip_map, ← zip_map, zip_append, (_ : _++_=_)],
   {congr; simp}, {simp}
 end
 
-@[simp] theorem card_diagonal (s : multiset α) :
-  card (diagonal s) = 2 ^ card s :=
+@[simp] theorem card_antidiagonal (s : multiset α) :
+  card (antidiagonal s) = 2 ^ card s :=
 by have := card_powerset s;
-   rwa [← diagonal_map_fst, card_map] at this
+   rwa [← antidiagonal_map_fst, card_map] at this
 
 lemma prod_map_add [comm_semiring β] {s : multiset α} {f g : α → β} :
-  prod (s.map (λa, f a + g a)) = sum ((diagonal s).map (λp, (p.1.map f).prod * (p.2.map g).prod)) :=
+  prod (s.map (λa, f a + g a)) =
+  sum ((antidiagonal s).map (λp, (p.1.map f).prod * (p.2.map g).prod)) :=
 begin
   refine s.induction_on _ _,
   { simp },
@@ -1926,7 +1940,8 @@ theorem le_iff_count {s t : multiset α} : s ≤ t ↔ ∀ a, count a s ≤ coun
 
 instance : distrib_lattice (multiset α) :=
 { le_sup_inf := λ s t u, le_of_eq $ eq.symm $
-    ext.2 $ λ a, by simp [max_min_distrib_left],
+    ext.2 $ λ a, by simp only [max_min_distrib_left,
+      multiset.count_inter, multiset.sup_eq_union, multiset.count_union, multiset.inf_eq_inter],
   ..multiset.lattice.lattice }
 
 instance : semilattice_sup_bot (multiset α) :=
@@ -2053,7 +2068,7 @@ end
 
 lemma rel_map {p : γ → δ → Prop} {s t} {f : α → γ} {g : β → δ} (h : (r ⇒ p) f g) (hst : rel r s t) :
   rel p (s.map f) (t.map g) :=
-by rw [rel_map_left, rel_map_right]; exact hst.mono (assume a b, h)
+by rw [rel_map_left, rel_map_right]; exact hst.mono h
 
 lemma rel_bind {p : γ → δ → Prop} {s t} {f : α → multiset γ} {g : β → multiset δ}
   (h : (r ⇒ rel p) f g) (hst : rel r s t) :
@@ -2792,6 +2807,9 @@ quot.induction_on s $ λ l, quot.sound $ perm_merge_sort _ _
 @[simp] theorem mem_sort {s : multiset α} {a : α} : a ∈ sort r s ↔ a ∈ s :=
 by rw [← mem_coe, sort_eq]
 
+@[simp] theorem length_sort {s : multiset α} : (sort r s).length = s.card :=
+quot.induction_on s $ length_merge_sort _
+
 end sort
 
 instance [has_repr α] : has_repr (multiset α) :=
@@ -3131,7 +3149,7 @@ by rw [Ico, list.Ico.succ_top h, ← coe_add, add_comm]; refl
 theorem eq_cons {n m : ℕ} (h : n < m) : Ico n m = n :: Ico (n + 1) m :=
 congr_arg coe $ list.Ico.eq_cons h
 
-@[simp] theorem pred_singleton {m : ℕ} (h : m > 0) : Ico (m - 1) m = {m - 1} :=
+@[simp] theorem pred_singleton {m : ℕ} (h : 0 < m) : Ico (m - 1) m = {m - 1} :=
 congr_arg coe $ list.Ico.pred_singleton h
 
 @[simp] theorem not_mem_top {n m : ℕ} : m ∉ Ico n m :=
@@ -3149,17 +3167,17 @@ congr_arg coe $ list.Ico.filter_lt_of_ge hlm
 @[simp] lemma filter_lt (n m l : ℕ) : (Ico n m).filter (λ x, x < l) = Ico n (min m l) :=
 congr_arg coe $ list.Ico.filter_lt n m l
 
-lemma filter_ge_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, x ≥ l) = Ico n m :=
-congr_arg coe $ list.Ico.filter_ge_of_le_bot hln
+lemma filter_le_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, l ≤ x) = Ico n m :=
+congr_arg coe $ list.Ico.filter_le_of_le_bot hln
 
-lemma filter_ge_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, x ≥ l) = ∅ :=
-congr_arg coe $ list.Ico.filter_ge_of_top_le hml
+lemma filter_le_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, l ≤ x) = ∅ :=
+congr_arg coe $ list.Ico.filter_le_of_top_le hml
 
-lemma filter_ge_of_ge {n m l : ℕ} (hnl : n ≤ l) : (Ico n m).filter (λ x, x ≥ l) = Ico l m :=
-congr_arg coe $ list.Ico.filter_ge_of_ge hnl
+lemma filter_le_of_le {n m l : ℕ} (hnl : n ≤ l) : (Ico n m).filter (λ x, l ≤ x) = Ico l m :=
+congr_arg coe $ list.Ico.filter_le_of_le hnl
 
-@[simp] lemma filter_ge (n m l : ℕ) : (Ico n m).filter (λ x, x ≥ l) = Ico (max n l) m :=
-congr_arg coe $ list.Ico.filter_ge n m l
+@[simp] lemma filter_le (n m l : ℕ) : (Ico n m).filter (λ x, l ≤ x) = Ico (max n l) m :=
+congr_arg coe $ list.Ico.filter_le n m l
 
 end Ico
 
@@ -3171,5 +3189,31 @@ def subsingleton_equiv [subsingleton α] : list α ≃ multiset α :=
     list.ext_le (perm_length h) $ λ n h₁ h₂, subsingleton.elim _ _,
   left_inv := λ l, rfl,
   right_inv := λ m, quot.induction_on m $ λ l, rfl }
+
+namespace nat
+
+/-- The antidiagonal of a natural number `n` is
+    the multiset of pairs `(i,j)` such that `i+j = n`. -/
+def antidiagonal (n : ℕ) : multiset (ℕ × ℕ) :=
+list.nat.antidiagonal n
+
+/-- A pair (i,j) is contained in the antidiagonal of `n` if and only if `i+j=n`. -/
+@[simp] lemma mem_antidiagonal {n : ℕ} {x : ℕ × ℕ} :
+  x ∈ antidiagonal n ↔ x.1 + x.2 = n :=
+by rw [antidiagonal, mem_coe, list.nat.mem_antidiagonal]
+
+/-- The cardinality of the antidiagonal of `n` is `n+1`. -/
+@[simp] lemma card_antidiagonal (n : ℕ) : (antidiagonal n).card = n+1 :=
+by rw [antidiagonal, coe_card, list.nat.length_antidiagonal]
+
+/-- The antidiagonal of `0` is the list `[(0,0)]` -/
+@[simp] lemma antidiagonal_zero : antidiagonal 0 = {(0, 0)} :=
+by { rw [antidiagonal, list.nat.antidiagonal_zero], refl }
+
+/-- The antidiagonal of `n` does not contain duplicate entries. -/
+lemma nodup_antidiagonal (n : ℕ) : nodup (antidiagonal n) :=
+coe_nodup.2 $ list.nat.nodup_antidiagonal n
+
+end nat
 
 end multiset

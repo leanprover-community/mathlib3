@@ -19,7 +19,7 @@ protected def cast : ℕ → α
 | 0     := 0
 | (n+1) := cast n + 1
 
-@[priority 0] instance cast_coe : has_coe ℕ α := ⟨nat.cast⟩
+@[priority 10] instance cast_coe : has_coe ℕ α := ⟨nat.cast⟩
 
 @[simp, squash_cast] theorem cast_zero : ((0 : ℕ) : α) = 0 := rfl
 
@@ -43,7 +43,7 @@ by rw [bit1, cast_add_one, cast_bit0]; refl
 
 lemma cast_two {α : Type*} [semiring α] : ((2 : ℕ) : α) = 2 := by simp
 
-@[simp, move_cast] theorem cast_pred [add_group α] [has_one α] : ∀ {n}, n > 0 → ((n - 1 : ℕ) : α) = n - 1
+@[simp, move_cast] theorem cast_pred [add_group α] [has_one α] : ∀ {n}, 0 < n → ((n - 1 : ℕ) : α) = n - 1
 | (n+1) h := (add_sub_cancel (n:α) 1).symm
 
 @[simp, move_cast] theorem cast_sub [add_group α] [has_one α] {m n} (h : m ≤ n) : ((n - m : ℕ) : α) = n - m :=
@@ -76,6 +76,9 @@ by simpa [-cast_le] using not_congr (@cast_le α _ n m)
 
 @[simp] theorem cast_pos [linear_ordered_semiring α] {n : ℕ} : (0 : α) < n ↔ 0 < n :=
 by rw [← cast_zero, cast_lt]
+
+lemma cast_add_one_pos [linear_ordered_semiring α] (n : ℕ) : 0 < (n : α) + 1 :=
+  add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
 
 theorem eq_cast [add_monoid α] [has_one α] (f : ℕ → α)
   (H0 : f 0 = 0) (H1 : f 1 = 1)

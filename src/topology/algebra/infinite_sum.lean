@@ -22,7 +22,7 @@ import logic.function algebra.big_operators data.set.lattice data.finset
 
 noncomputable theory
 open lattice finset filter function classical
-local attribute [instance] prop_decidable
+local attribute [instance] classical.prop_decidable -- TODO: use "open_locale classical"
 
 def option.cases_on' {α β} : option α → β → (α → β) → β
 | none     n s := n
@@ -31,7 +31,7 @@ def option.cases_on' {α β} : option α → β → (α → β) → β
 variables {α : Type*} {β : Type*} {γ : Type*}
 
 section has_sum
-variables [add_comm_monoid α] [topological_space α] [topological_add_monoid α]
+variables [add_comm_monoid α] [topological_space α]
 
 /-- Infinite sum on a topological monoid
 The `at_top` filter on `finset α` is the limit of all finite sets towards the entire type. So we sum
@@ -39,6 +39,9 @@ up bigger and bigger sets. This sum operation is still invariant under reorderin
 sum operator.
 
 This is based on Mario Carneiro's infinite sum in Metamath.
+
+For the definition or many statements, α does not need to be a topological monoid. We only add
+this assumption later, for the lemmas where it is relevant.
 -/
 def has_sum (f : β → α) (a : α) : Prop := tendsto (λs:finset β, s.sum f) at_top (nhds a)
 
@@ -61,20 +64,6 @@ lemma has_sum_zero : has_sum (λb, 0 : β → α) 0 :=
 by simp [has_sum, tendsto_const_nhds]
 
 lemma summable_zero : summable (λb, 0 : β → α) := summable_spec has_sum_zero
-
-lemma has_sum_add (hf : has_sum f a) (hg : has_sum g b) : has_sum (λb, f b + g b) (a + b) :=
-by simp [has_sum, sum_add_distrib]; exact tendsto_add hf hg
-
-lemma summable_add (hf : summable f) (hg : summable g) : summable (λb, f b + g b) :=
-summable_spec $ has_sum_add (has_sum_tsum hf)(has_sum_tsum hg)
-
-lemma has_sum_sum {f : γ → β → α} {a : γ → α} {s : finset γ} :
-  (∀i∈s, has_sum (f i) (a i)) → has_sum (λb, s.sum $ λi, f i b) (s.sum a) :=
-finset.induction_on s (by simp [has_sum_zero]) (by simp [has_sum_add] {contextual := tt})
-
-lemma summable_sum {f : γ → β → α} {s : finset γ} (hf : ∀i∈s, summable (f i)) :
-  summable (λb, s.sum $ λi, f i b) :=
-summable_spec $ has_sum_sum $ assume i hi, has_sum_tsum $ hf i hi
 
 lemma has_sum_sum_of_ne_finset_zero (hf : ∀b∉s, f b = 0) : has_sum f (s.sum f) :=
 tendsto_infi' s $ tendsto.congr'
@@ -112,7 +101,7 @@ iff.intro
     by simp [(∘), h₂] at this; assumption)
   (assume hf, has_sum_of_iso hf h₁ h₂)
 
-lemma has_sum_hom (g : α → γ) [add_comm_monoid γ] [topological_space γ] [topological_add_monoid γ]
+lemma has_sum_hom (g : α → γ) [add_comm_monoid γ] [topological_space γ]
   [is_add_monoid_hom g] (h₃ : continuous g) (hf : has_sum f a) :
   has_sum (g ∘ f) (g a) :=
 have (λs:finset β, s.sum (g ∘ f)) = g ∘ (λs:finset β, s.sum f),
@@ -127,6 +116,22 @@ suffices map (λ (n : ℕ), sum (range n) f) at_top ≤ map (λ (s : finset ℕ)
 assume s (hs : {t : finset ℕ | t.sum f ∈ s} ∈ at_top),
 let ⟨t, ht⟩ := mem_at_top_sets.mp hs, ⟨n, hn⟩ := @exists_nat_subset_range t in
 mem_at_top_sets.mpr ⟨n, assume n' hn', ht _ $ finset.subset.trans hn $ range_subset.mpr hn'⟩
+
+variable [topological_add_monoid α]
+
+lemma has_sum_add (hf : has_sum f a) (hg : has_sum g b) : has_sum (λb, f b + g b) (a + b) :=
+by simp [has_sum, sum_add_distrib]; exact tendsto_add hf hg
+
+lemma summable_add (hf : summable f) (hg : summable g) : summable (λb, f b + g b) :=
+summable_spec $ has_sum_add (has_sum_tsum hf)(has_sum_tsum hg)
+
+lemma has_sum_sum {f : γ → β → α} {a : γ → α} {s : finset γ} :
+  (∀i∈s, has_sum (f i) (a i)) → has_sum (λb, s.sum $ λi, f i b) (s.sum a) :=
+finset.induction_on s (by simp [has_sum_zero]) (by simp [has_sum_add] {contextual := tt})
+
+lemma summable_sum {f : γ → β → α} {s : finset γ} (hf : ∀i∈s, summable (f i)) :
+  summable (λb, s.sum $ λi, f i b) :=
+summable_spec $ has_sum_sum $ assume i hi, has_sum_tsum $ hf i hi
 
 lemma has_sum_sigma [regular_space α] {γ : β → Type*} {f : (Σ b:β, γ b) → α} {g : β → α} {a : α}
   (hf : ∀b, has_sum (λc, f ⟨b, c⟩) (g b)) (ha : has_sum f a) : has_sum g a :=
@@ -173,13 +178,13 @@ mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
   hss' this
 
 lemma summable_sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
-  (hf : ∀b, summable (λc, f ⟨b, c⟩)) (ha : summable f) : summable (λb, ∑c, f ⟨b, c⟩):=
+  (hf : ∀b, summable (λc, f ⟨b, c⟩)) (ha : summable f) : summable (λb, ∑c, f ⟨b, c⟩) :=
 summable_spec $ has_sum_sigma (assume b, has_sum_tsum $ hf b) (has_sum_tsum ha)
 
 end has_sum
 
 section has_sum_iff_has_sum_of_iso_ne_zero
-variables [add_comm_monoid α] [topological_space α] [topological_add_monoid α]
+variables [add_comm_monoid α] [topological_space α]
 variables {f : β → α} {g : γ → α} {a : α}
 
 lemma has_sum_of_has_sum
@@ -226,7 +231,7 @@ has_sum_of_has_sum $ assume u, exists.intro (ii u) $
       by simp [mem_bind]; existsi i h; simp [h, hi, this],
     by rw [hji h] at this; exact hnc this,
   calc (u ∪ jj v).sum g = (jj v).sum g : (sum_subset (subset_union_right _ _) this).symm
-    ... = v.sum _ : sum_bind $ by intros x hx y hy hxy; by_cases f x = 0; by_cases f y = 0; simp [*]
+    ... = v.sum _ : sum_bind $ by intros x _ y _ _; by_cases f x = 0; by_cases f y = 0; simp [*]; cc
     ... = v.sum f : sum_congr rfl $ by intros x hx; by_cases f x = 0; simp [*]
 
 lemma has_sum_iff_has_sum_of_ne_zero : has_sum f a ↔ has_sum g a :=
@@ -242,7 +247,7 @@ exists_congr $
 end has_sum_iff_has_sum_of_iso_ne_zero
 
 section has_sum_iff_has_sum_of_bij_ne_zero
-variables [add_comm_monoid α] [topological_space α] [topological_add_monoid α]
+variables [add_comm_monoid α] [topological_space α]
 variables {f : β → α} {g : γ → α} {a : α}
   (i : Π⦃c⦄, g c ≠ 0 → β)
   (h₁ : ∀⦃c₁ c₂⦄ (h₁ : g c₁ ≠ 0) (h₂ : g c₂ ≠ 0), i h₁ = i h₂ → c₁ = c₂)
@@ -270,7 +275,7 @@ exists_congr $
 end has_sum_iff_has_sum_of_bij_ne_zero
 
 section tsum
-variables [add_comm_monoid α] [topological_space α] [topological_add_monoid α] [t2_space α]
+variables [add_comm_monoid α] [topological_space α] [t2_space α]
 variables {f g : β → α} {a a₁ a₂ : α}
 
 lemma has_sum_unique : has_sum f a₁ → has_sum f a₂ → a₁ = a₂ := tendsto_nhds_unique at_top_ne_bot
@@ -281,13 +286,6 @@ lemma has_sum_iff_of_summable (h : summable f) : has_sum f a ↔ (∑b, f b) = a
 iff.intro tsum_eq_has_sum (assume eq, eq ▸ has_sum_tsum h)
 
 @[simp] lemma tsum_zero : (∑b:β, 0:α) = 0 := tsum_eq_has_sum has_sum_zero
-
-lemma tsum_add (hf : summable f) (hg : summable g) : (∑b, f b + g b) = (∑b, f b) + (∑b, g b) :=
-tsum_eq_has_sum $ has_sum_add (has_sum_tsum hf) (has_sum_tsum hg)
-
-lemma tsum_sum {f : γ → β → α} {s : finset γ} (hf : ∀i∈s, summable (f i)) :
-  (∑b, s.sum (λi, f i b)) = s.sum (λi, ∑b, f i b) :=
-tsum_eq_has_sum $ has_sum_sum $ assume i hi, has_sum_tsum $ hf i hi
 
 lemma tsum_eq_sum {f : β → α} {s : finset β} (hf : ∀b∉s, f b = 0)  :
   (∑b, f b) = s.sum f :=
@@ -300,10 +298,6 @@ lemma tsum_eq_single {f : β → α} (b : β) (hf : ∀b' ≠ b, f b' = 0)  :
   (∑b, f b) = f b :=
 calc (∑b, f b) = (finset.singleton b).sum f : tsum_eq_sum $ by simp [hf] {contextual := tt}
   ... = f b : by simp
-
-lemma tsum_sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
-  (h₁ : ∀b, summable (λc, f ⟨b, c⟩)) (h₂ : summable f) : (∑p, f p) = (∑b c, f ⟨b, c⟩):=
-(tsum_eq_has_sum $ has_sum_sigma (assume b, has_sum_tsum $ h₁ b) $ has_sum_tsum h₂).symm
 
 @[simp] lemma tsum_ite_eq (b : β) (a : α) : (∑b', if b' = b then a else 0) = a :=
 tsum_eq_has_sum (has_sum_ite_eq b a)
@@ -344,6 +338,19 @@ tsum_eq_tsum_of_has_sum_iff_has_sum $ assume a, has_sum_iff_has_sum_of_iso i h�
 lemma tsum_equiv (j : γ ≃ β) : (∑c, f (j c)) = (∑b, f b) :=
 tsum_eq_tsum_of_iso j j.symm (by simp) (by simp)
 
+variable [topological_add_monoid α]
+
+lemma tsum_add (hf : summable f) (hg : summable g) : (∑b, f b + g b) = (∑b, f b) + (∑b, g b) :=
+tsum_eq_has_sum $ has_sum_add (has_sum_tsum hf) (has_sum_tsum hg)
+
+lemma tsum_sum {f : γ → β → α} {s : finset γ} (hf : ∀i∈s, summable (f i)) :
+  (∑b, s.sum (λi, f i b)) = s.sum (λi, ∑b, f i b) :=
+tsum_eq_has_sum $ has_sum_sum $ assume i hi, has_sum_tsum $ hf i hi
+
+lemma tsum_sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
+  (h₁ : ∀b, summable (λc, f ⟨b, c⟩)) (h₂ : summable f) : (∑p, f p) = (∑b c, f ⟨b, c⟩) :=
+(tsum_eq_has_sum $ has_sum_sigma (assume b, has_sum_tsum $ h₁ b) $ has_sum_tsum h₂).symm
+
 end tsum
 
 section topological_group
@@ -371,6 +378,38 @@ tsum_eq_has_sum $ has_sum_neg $ has_sum_tsum $ hf
 lemma tsum_sub (hf : summable f) (hg : summable g) : (∑b, f b - g b) = (∑b, f b) - (∑b, g b) :=
 tsum_eq_has_sum $ has_sum_sub (has_sum_tsum hf) (has_sum_tsum hg)
 
+lemma tsum_eq_zero_add {f : ℕ → α} (hf : summable f) : (∑b, f b) = f 0 + (∑b, f (b + 1)) :=
+begin
+  let f₁ : ℕ → α := λ n, nat.rec (f 0) (λ _ _, 0) n,
+  let f₂ : ℕ → α := λ n, nat.rec 0 (λ k _, f (k+1)) n,
+  have : f = λ n, f₁ n + f₂ n, { ext n, symmetry, cases n, apply add_zero, apply zero_add },
+  have hf₁ : summable f₁,
+  { fapply summable_sum_of_ne_finset_zero,
+    { exact finset.singleton 0 },
+    { rintros (_ | n) hn,
+      { exfalso,
+        apply hn,
+        apply finset.mem_singleton_self },
+      { refl } } },
+  have hf₂ : summable f₂,
+  { have : f₂ = λ n, f n - f₁ n, ext, rw [eq_sub_iff_add_eq', this],
+    rw [this], apply summable_sub hf hf₁ },
+  conv_lhs { rw [this] },
+  rw [tsum_add hf₁ hf₂, tsum_eq_single 0],
+  { congr' 1,
+    fapply tsum_eq_tsum_of_ne_zero_bij (λ n _, n + 1),
+    { intros _ _ _ _, exact nat.succ_inj },
+    { rintros (_ | n) h,
+      { contradiction },
+      { exact ⟨n, h, rfl⟩ } },
+    { intros, refl },
+    { apply_instance } },
+  { rintros (_ | n) hn,
+    { contradiction },
+    { refl } },
+  { apply_instance }
+end
+
 end tsum
 
 end topological_group
@@ -383,7 +422,7 @@ lemma has_sum_mul_left (a₂) : has_sum f a₁ → has_sum (λb, a₂ * f b) (a�
 has_sum_hom _ (continuous_mul continuous_const continuous_id)
 
 lemma has_sum_mul_right (a₂) (hf : has_sum f a₁) : has_sum (λb, f b * a₂) (a₁ * a₂) :=
-@has_sum_hom _ _ _ _ _ _ f a₁ (λa, a * a₂) _ _ _ _
+@has_sum_hom _ _ _ _ _ f a₁ (λa, a * a₂) _ _ _
   (continuous_mul continuous_id continuous_const) hf
 
 lemma summable_mul_left (a) (hf : summable f) : summable (λb, a * f b) :=
@@ -407,12 +446,11 @@ end topological_semiring
 
 section order_topology
 variables [ordered_comm_monoid α] [topological_space α] [ordered_topology α]
-  [topological_add_monoid α]
 variables {f g : β → α} {a a₁ a₂ : α}
 
 lemma has_sum_le (h : ∀b, f b ≤ g b) (hf : has_sum f a₁) (hg : has_sum g a₂) : a₁ ≤ a₂ :=
 le_of_tendsto_of_tendsto at_top_ne_bot hf hg $ univ_mem_sets' $
-  assume s, sum_le_sum' $ assume b _, h b
+  assume s, sum_le_sum $ assume b _, h b
 
 lemma has_sum_le_inj {g : γ → α} (i : β → γ) (hi : injective i) (hs : ∀c∉set.range i, 0 ≤ g c)
   (h : ∀b, f b ≤ g (i b)) (hf : has_sum f a₁) (hg : has_sum g a₂) : a₁ ≤ a₂ :=
@@ -445,11 +483,13 @@ end order_topology
 
 section uniform_group
 
-variables [add_comm_group α] [uniform_space α] [complete_space α] [uniform_add_group α]
+variables [add_comm_group α] [uniform_space α] [complete_space α]
 variables (f g : β → α) {a a₁ a₂ : α}
 
 lemma summable_iff_cauchy : summable f ↔ cauchy (map (λ (s : finset β), sum s f) at_top) :=
 (cauchy_map_iff_exists_tendsto at_top_ne_bot).symm
+
+variable [uniform_add_group α]
 
 lemma summable_iff_vanishing :
   summable f ↔ ∀ e ∈ nhds (0:α), (∃s:finset β, ∀t, disjoint t s → t.sum f ∈ e) :=
@@ -462,9 +502,8 @@ begin
     rcases h e he with ⟨⟨s₁, s₂⟩, h⟩,
     use [s₁ ∪ s₂],
     assume t ht,
-    have : (s₁ ∪ s₂) ∩ t = ∅ := finset.disjoint_iff_inter_eq_empty.1 ht.symm,
     specialize h (s₁ ∪ s₂, (s₁ ∪ s₂) ∪ t) ⟨le_sup_left, le_sup_left_of_le le_sup_right⟩,
-    simpa only [finset.sum_union this, add_sub_cancel'] using h },
+    simpa only [finset.sum_union ht.symm, add_sub_cancel'] using h },
   { assume h e he,
     rcases exists_nhds_half_neg he with ⟨d, hd, hde⟩,
     rcases h d hd with ⟨s, h⟩,

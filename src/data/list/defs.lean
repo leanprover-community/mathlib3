@@ -120,6 +120,13 @@ let (b', l') := scanr_aux f b l in b' :: l'
      prod [a, b, c] = ((1 * a) * b) * c -/
 def prod [has_mul α] [has_one α] : list α → α := foldl (*) 1
 
+/-- Sum of a list.
+
+     sum [a, b, c] = ((0 + a) + b) + c -/
+-- Later this will be tagged with `to_additive`, but this can't be done yet because of import
+-- dependencies.
+def sum [has_add α] [has_zero α] : list α → α := foldl (+) 0
+
 def partition_map (f : α → β ⊕ γ) : list α → list β × list γ
 | [] := ([],[])
 | (x::xs) :=
@@ -144,7 +151,7 @@ find_indexes_aux p l 0
 
 /-- `lookmap` is a combination of `lookup` and `filter_map`.
   `lookmap f l` will apply `f : α → option α` to each element of the list,
-  replacing `a -> b` at the first value `a` in the list such that `f a = some b`. -/
+  replacing `a → b` at the first value `a` in the list such that `f a = some b`. -/
 def lookmap (f : α → option α) : list α → list α
 | []     := []
 | (a::l) :=
@@ -392,10 +399,12 @@ variable {R}
   chain R a (b::l) ↔ R a b ∧ chain R b l :=
 ⟨λ p, by cases p with _ a b l n p; exact ⟨n, p⟩, λ ⟨n, p⟩, p.cons n⟩
 
+attribute [simp] chain.nil
+
 instance decidable_chain [decidable_rel R] (a : α) (l : list α) : decidable (chain R a l) :=
 by induction l generalizing a; simp only [chain.nil, chain_cons]; resetI; apply_instance
 
-instance decidable_chain' [decidable_rel R] (a : α) (l : list α) : decidable (chain' R l) :=
+instance decidable_chain' [decidable_rel R] (l : list α) : decidable (chain' R l) :=
 by cases l; dunfold chain'; apply_instance
 
 end chain
@@ -431,9 +440,18 @@ def map_last {α} (f : α → α) : list α → list α
 | [x] := [f x]
 | (x :: xs) := x :: map_last xs
 
-@[simp] def last' {α} : α → list α → α
+/-- `ilast' x xs` returns the last element of `xs` if `xs` is non-empty;
+it returns `x` otherwise -/
+@[simp] def ilast' {α} : α → list α → α
 | a []     := a
-| a (b::l) := last' b l
+| a (b::l) := ilast' b l
+
+/-- `last' xs` returns the last element of `xs` if `xs` is non-empty;
+it returns `none` otherwise -/
+@[simp] def last' {α} : list α → option α
+| []     := none
+| [a]    := some a
+| (b::l) := last' l
 
 /- tfae: The Following (propositions) Are Equivalent -/
 def tfae (l : list Prop) : Prop := ∀ x ∈ l, ∀ y ∈ l, x ↔ y
@@ -500,5 +518,12 @@ def sub {α : Type u} [has_zero α] [has_sub α] : list α → list α → list 
 @pointwise α α α ⟨0⟩ ⟨0⟩ (@has_sub.sub α _)
 
 end func
+
+/-- Filters and maps elements of a list -/
+def mmap_filter {m : Type → Type v} [monad m] {α β} (f : α → m (option β)) :
+  list α → m (list β)
+| []       := return []
+| (h :: t) := do b ← f h, t' ← t.mmap_filter, return $
+  match b with none := t' | (some x) := x::t' end
 
 end list

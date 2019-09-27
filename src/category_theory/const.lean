@@ -1,6 +1,8 @@
--- Copyright (c) 2018 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison
+/-
+Copyright (c) 2018 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 
 import category_theory.functor_category
 import category_theory.opposites
@@ -11,8 +13,8 @@ open category_theory
 
 namespace category_theory.functor
 
-variables (J : Sort u₁) [𝒥 : category.{v₁} J]
-variables {C : Sort u₂} [𝒞 : category.{v₂} C]
+variables (J : Type u₁) [𝒥 : category.{v₁} J]
+variables {C : Type u₂} [𝒞 : category.{v₂} C]
 include 𝒥 𝒞
 
 def const : C ⥤ (J ⥤ C) :=
@@ -47,12 +49,14 @@ def op_obj_unop (X : Cᵒᵖ) :
 @[simp] lemma op_obj_unop_hom_app (X : Cᵒᵖ) (j : Jᵒᵖ) : (op_obj_unop.{v₁ v₂} X).hom.app j = 𝟙 _ := rfl
 @[simp] lemma op_obj_unop_inv_app (X : Cᵒᵖ) (j : Jᵒᵖ) : (op_obj_unop.{v₁ v₂} X).inv.app j = 𝟙 _ := rfl
 
+@[simp] lemma unop_functor_op_obj_map (X : Cᵒᵖ) {j₁ j₂ : J} (f : j₁ ⟶ j₂) :
+  (unop ((functor.op (const J)).obj X)).map f = 𝟙 (unop X) := rfl
 end const
 
 
 
 section
-variables {D : Sort u₃} [𝒟 : category.{v₃} D]
+variables {D : Type u₃} [𝒟 : category.{v₃} D]
 include 𝒟
 
 /-- These are actually equal, of course, but not definitionally equal

@@ -45,6 +45,9 @@ lemma le_iff_le (H : strict_mono f) {a b} :
  λ h, (lt_or_eq_of_le h).elim (λ h', le_of_lt (H _ _ h')) (λ h', h' ▸ le_refl _)⟩
 end
 
+protected lemma nat {β} [preorder β] {f : ℕ → β} (h : ∀n, f n < f (n+1)) : strict_mono f :=
+by { intros n m hnm, induction hnm with m' hnm' ih, apply h, exact lt.trans ih (h _) }
+
 -- `preorder α` isn't strong enough: if the preorder on α is an equivalence relation,
 -- then `strict_mono f` is vacuously true.
 lemma monotone [partial_order α] [preorder β] {f : α → β} (H : strict_mono f) : monotone f :=
@@ -160,6 +163,25 @@ lemma min_sub {α : Type u} [decidable_linear_ordered_comm_group α] (a b c : α
       min a b - c = min (a - c) (b - c) :=
 by simp [min_add, sub_eq_add_neg]
 
+
+/- Some lemmas about types that have an ordering and a binary operation, with no
+  rules relating them. -/
+lemma fn_min_add_fn_max [decidable_linear_order α] [add_comm_semigroup β] (f : α → β) (n m : α) :
+  f (min n m) + f (max n m) = f n + f m :=
+by { cases le_total n m with h h; simp [h] }
+
+lemma min_add_max [decidable_linear_order α] [add_comm_semigroup α] (n m : α) :
+  min n m + max n m = n + m :=
+fn_min_add_fn_max id n m
+
+lemma fn_min_mul_fn_max [decidable_linear_order α] [comm_semigroup β] (f : α → β) (n m : α) :
+  f (min n m) * f (max n m) = f n * f m :=
+by { cases le_total n m with h h; simp [h, mul_comm] }
+
+lemma min_mul_max [decidable_linear_order α] [comm_semigroup α] (n m : α) :
+  min n m * max n m = n * m :=
+fn_min_mul_fn_max id n m
+
 section decidable_linear_ordered_comm_group
 variables [decidable_linear_ordered_comm_group α] {a b c : α}
 
@@ -186,7 +208,7 @@ def sub_abs_le_abs_sub := @abs_sub_abs_le_abs_sub
 lemma abs_abs_sub_le_abs_sub (a b : α) : abs (abs a - abs b) ≤ abs (a - b) :=
 abs_sub_le_iff.2 ⟨sub_abs_le_abs_sub _ _, by rw abs_sub; apply sub_abs_le_abs_sub⟩
 
-lemma abs_eq (hb : b ≥ 0) : abs a = b ↔ a = b ∨ a = -b :=
+lemma abs_eq (hb : 0 ≤ b) : abs a = b ↔ a = b ∨ a = -b :=
 iff.intro
   begin
     cases le_total a 0 with a_nonpos a_nonneg,
@@ -200,6 +222,9 @@ iff.intro
 
 lemma abs_pos_iff {a : α} : 0 < abs a ↔ a ≠ 0 :=
 ⟨λ h, mt abs_eq_zero.2 (ne_of_gt h), abs_pos_of_ne_zero⟩
+
+@[simp] lemma abs_nonpos_iff {a : α} : abs a ≤ 0 ↔ a = 0 :=
+by rw [← not_lt, abs_pos_iff, not_not]
 
 lemma abs_le_max_abs_abs (hab : a ≤ b)  (hbc : b ≤ c) : abs b ≤ max (abs a) (abs c) :=
 abs_le_of_le_of_neg_le
@@ -228,10 +253,8 @@ max_le_iff.2 (by split; simpa)
 
 end decidable_linear_ordered_comm_group
 
-section decidable_linear_ordered_comm_ring
-variables [decidable_linear_ordered_comm_ring α] {a b c d : α}
-
-@[simp] lemma abs_one : abs (1 : α) = 1 := abs_of_pos zero_lt_one
+section decidable_linear_ordered_semiring
+variables [decidable_linear_ordered_semiring α] {a b c d : α}
 
 lemma monotone_mul_of_nonneg (ha : 0 ≤ a) : monotone (λ x, a*x) :=
 assume b c b_le_c, mul_le_mul_of_nonneg_left b_le_c ha
@@ -241,6 +264,13 @@ max_distrib_of_monotone (monotone_mul_of_nonneg ha)
 
 lemma mul_min_of_nonneg (b c : α) (ha : 0 ≤ a) : a * min b c = min (a * b) (a * c) :=
 min_distrib_of_monotone (monotone_mul_of_nonneg ha)
+
+end decidable_linear_ordered_semiring
+
+section decidable_linear_ordered_comm_ring
+variables [decidable_linear_ordered_comm_ring α] {a b c d : α}
+
+@[simp] lemma abs_one : abs (1 : α) = 1 := abs_of_pos zero_lt_one
 
 lemma max_mul_mul_le_max_mul_max (b c : α) (ha : 0 ≤ a) (hd: 0 ≤ d) :
   max (a * b) (d * c) ≤ max a c * max d b :=

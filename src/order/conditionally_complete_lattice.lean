@@ -97,7 +97,7 @@ end preorder
 ⟨⊤, by intros; apply order_top.le_top⟩
 
 /--When there is a global minimum, every set is bounded below.-/
-@[simp] lemma bdd_below_bot [order_bot α] (s : set α): bdd_below s :=
+@[simp] lemma bdd_below_bot [order_bot α] (s : set α) : bdd_below s :=
 ⟨⊥, by intros; apply order_bot.bot_le⟩
 
 /-When there is a max (i.e., in the class semilattice_sup), then the union of
@@ -459,10 +459,10 @@ calc Inf (insert a s)
     ... = Inf {a} ⊓ Inf s : by apply cInf_union _ _ ‹bdd_below s› ‹s ≠ ∅›; simp only [ne.def, not_false_iff, set.singleton_ne_empty,bdd_below_singleton]
     ... = a ⊓ Inf s       : by simp only [eq_self_iff_true, lattice.cInf_singleton]
 
-@[simp] lemma cInf_interval [conditionally_complete_lattice α] : Inf {b | a ≤ b} = a :=
+@[simp] lemma cInf_interval : Inf {b | a ≤ b} = a :=
 cInf_of_mem_of_le (by simp only [set.mem_set_of_eq]) (λw Hw, by simp only [set.mem_set_of_eq] at Hw; apply Hw)
 
-@[simp] lemma cSup_interval [conditionally_complete_lattice α] : Sup {b | b ≤ a} = a :=
+@[simp] lemma cSup_interval : Sup {b | b ≤ a} = a :=
 cSup_of_mem_of_le (by simp only [set.mem_set_of_eq]) (λw Hw, by simp only [set.mem_set_of_eq] at Hw; apply Hw)
 
 /--The indexed supremum of two functions are comparable if the functions are pointwise comparable-/
@@ -537,8 +537,8 @@ end conditionally_complete_lattice
 section conditionally_complete_linear_order
 variables [conditionally_complete_linear_order α] {s t : set α} {a b : α}
 
-/--When b < Sup s, there is an element a in s with b < a, if s is nonempty and the order is
-a linear order.-/
+/-- When b < Sup s, there is an element a in s with b < a, if s is nonempty and the order is
+a linear order. -/
 lemma exists_lt_of_lt_cSup (_ : s ≠ ∅) (_ : b < Sup s) : ∃a∈s, b < a :=
 begin
   classical, by_contra h,
@@ -546,6 +546,15 @@ begin
     by apply cSup_le ‹s ≠ ∅› _; finish,
   apply lt_irrefl b (lt_of_lt_of_le ‹b < Sup s› ‹Sup s ≤ b›)
 end
+
+/--
+Indexed version of the above lemma `exists_lt_of_lt_cSup`.
+When `b < supr f`, there is an element `i` such that `b < f i`.
+-/
+lemma exists_lt_of_lt_csupr {ι : Sort*} (ne : nonempty ι) {f : ι → α} (h : b < supr f) :
+  ∃i, b < f i :=
+have h' : range f ≠ ∅ := nonempty.elim ne (λ i, ne_empty_of_mem (mem_range_self i)),
+let ⟨_, ⟨i, rfl⟩, h⟩ := exists_lt_of_lt_cSup h' h in ⟨i, h⟩
 
 /--When Inf s < b, there is an element a in s with a < b, if s is nonempty and the order is
 a linear order.-/
@@ -556,6 +565,15 @@ begin
     by apply le_cInf ‹s ≠ ∅› _; finish,
   apply lt_irrefl b (lt_of_le_of_lt ‹b ≤ Inf s› ‹Inf s < b›)
 end
+
+/--
+Indexed version of the above lemma `exists_lt_of_cInf_lt`
+When `infi f < a`, there is an element `i` such that `f i < a`.
+-/
+lemma exists_lt_of_cinfi_lt {ι : Sort*} (ne : nonempty ι) {f : ι → α} (h : infi f < a) :
+  (∃i, f i < a) :=
+have h' : range f ≠ ∅ := nonempty.elim ne (λ i, ne_empty_of_mem (mem_range_self i)),
+let ⟨_, ⟨i, rfl⟩, h⟩ := exists_lt_of_cInf_lt h' h in ⟨i, h⟩
 
 /--Introduction rule to prove that b is the supremum of s: it suffices to check that
 1) b is an upper bound
@@ -569,7 +587,6 @@ le_antisymm
 end conditionally_complete_linear_order
 
 section conditionally_complete_linear_order_bot
-variables [conditionally_complete_linear_order_bot α]
 
 lemma cSup_empty [conditionally_complete_linear_order_bot α] : (Sup ∅ : α) = ⊥ :=
 conditionally_complete_linear_order_bot.cSup_empty α
@@ -578,7 +595,7 @@ end conditionally_complete_linear_order_bot
 
 section
 
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 noncomputable instance : has_Inf ℕ :=
 ⟨λs, if h : ∃n, n ∈ s then @nat.find (λn, n ∈ s) _ h else 0⟩
@@ -619,7 +636,7 @@ end lattice /-end of namespace lattice-/
 
 namespace with_top
 open lattice
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 variables [conditionally_complete_linear_order_bot α]
 

@@ -21,7 +21,7 @@ import topology.uniform_space.separation topology.uniform_space.uniform_embeddin
 open lattice set filter classical
 noncomputable theory
 
-local notation `𝓤` := uniformity
+open_locale uniformity
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -250,13 +250,12 @@ def emetric_space.induced {α β} (f : α → β) (hf : function.injective f)
   end }
 
 /-- Emetric space instance on subsets of emetric spaces -/
-instance {p : α → Prop} [t : emetric_space α] : emetric_space (subtype p) :=
+instance {α : Type*} {p : α → Prop} [t : emetric_space α] : emetric_space (subtype p) :=
 t.induced subtype.val (λ x y, subtype.eq)
 
 /-- The extended distance on a subset of an emetric space is the restriction of
 the original distance, by definition -/
-theorem subtype.edist_eq {p : α → Prop} [t : emetric_space α] (x y : subtype p) :
-  edist x y = edist x.1 y.1 := rfl
+theorem subtype.edist_eq {p : α → Prop} (x y : subtype p) : edist x y = edist x.1 y.1 := rfl
 
 /-- The product of two emetric spaces, with the max distance, is an extended
 metric spaces. We make sure that the uniform structure thus constructed is the one
@@ -353,7 +352,7 @@ eq_empty_iff_forall_not_mem.2 $ λ z ⟨h₁, h₂⟩,
 not_lt_of_le (edist_triangle_left x y z)
   (lt_of_lt_of_le (ennreal.add_lt_add h₁ h₂) h)
 
-theorem ball_subset (h : edist x y + ε₁ ≤ ε₂) (h' : edist x y < ⊤): ball x ε₁ ⊆ ball y ε₂ :=
+theorem ball_subset (h : edist x y + ε₁ ≤ ε₂) (h' : edist x y < ⊤) : ball x ε₁ ⊆ ball y ε₂ :=
 λ z zx, calc
   edist z y ≤ edist z x + edist x y : edist_triangle _ _ _
   ... = edist x y + edist z x : add_comm _ _

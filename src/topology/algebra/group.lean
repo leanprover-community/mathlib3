@@ -7,22 +7,17 @@ Theory of topological groups.
 
 -/
 import data.equiv.algebra
+import algebra.pointwise order.filter.pointwise
 import group_theory.quotient_group
 import topology.algebra.monoid topology.order
 
 open classical set lattice filter topological_space
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
 section topological_group
-
-/-- A topological group is a group in which the multiplication and inversion operations are
-continuous. -/
-class topological_group (α : Type*) [topological_space α] [group α]
-  extends topological_monoid α : Prop :=
-(continuous_inv : continuous (λa:α, a⁻¹))
 
 /-- A topological (additive) group is a group in which the addition and negation operations are
 continuous. -/
@@ -30,72 +25,77 @@ class topological_add_group (α : Type u) [topological_space α] [add_group α]
   extends topological_add_monoid α : Prop :=
 (continuous_neg : continuous (λa:α, -a))
 
-attribute [to_additive topological_add_group] topological_group
-attribute [to_additive topological_add_group.mk] topological_group.mk
-attribute [to_additive topological_add_group.continuous_neg] topological_group.continuous_inv
-attribute [to_additive topological_add_group.to_topological_add_monoid] topological_group.to_topological_monoid
+/-- A topological group is a group in which the multiplication and inversion operations are
+continuous. -/
+@[to_additive topological_add_group]
+class topological_group (α : Type*) [topological_space α] [group α]
+  extends topological_monoid α : Prop :=
+(continuous_inv : continuous (λa:α, a⁻¹))
 
 variables [topological_space α] [group α]
 
-@[to_additive continuous_neg']
+@[to_additive]
 lemma continuous_inv' [topological_group α] : continuous (λx:α, x⁻¹) :=
 topological_group.continuous_inv α
 
-@[to_additive continuous_neg]
+@[to_additive]
 lemma continuous_inv [topological_group α] [topological_space β] {f : β → α}
   (hf : continuous f) : continuous (λx, (f x)⁻¹) :=
 continuous_inv'.comp hf
 
-@[to_additive tendsto_neg]
+@[to_additive]
+lemma continuous_on.inv [topological_group α] [topological_space β] {f : β → α} {s : set β}
+  (hf : continuous_on f s) : continuous_on (λx, (f x)⁻¹) s :=
+continuous_inv'.comp_continuous_on hf
+
+@[to_additive]
 lemma tendsto_inv [topological_group α] {f : β → α} {x : filter β} {a : α}
   (hf : tendsto f x (nhds a)) : tendsto (λx, (f x)⁻¹) x (nhds a⁻¹) :=
 tendsto.comp (continuous_iff_continuous_at.mp (topological_group.continuous_inv α) a) hf
 
-@[to_additive prod.topological_add_group]
+@[to_additive topological_add_group]
 instance [topological_group α] [topological_space β] [group β] [topological_group β] :
   topological_group (α × β) :=
 { continuous_inv := continuous.prod_mk (continuous_inv continuous_fst) (continuous_inv continuous_snd) }
 
 attribute [instance] prod.topological_add_group
 
+@[to_additive]
 protected def homeomorph.mul_left [topological_group α] (a : α) : α ≃ₜ α :=
 { continuous_to_fun  := continuous_mul continuous_const continuous_id,
   continuous_inv_fun := continuous_mul continuous_const continuous_id,
   .. equiv.mul_left a }
-attribute [to_additive homeomorph.add_left._proof_1] homeomorph.mul_left._proof_1
-attribute [to_additive homeomorph.add_left._proof_2] homeomorph.mul_left._proof_2
-attribute [to_additive homeomorph.add_left._proof_3] homeomorph.mul_left._proof_3
-attribute [to_additive homeomorph.add_left._proof_4] homeomorph.mul_left._proof_4
-attribute [to_additive homeomorph.add_left] homeomorph.mul_left
 
-@[to_additive is_open_map_add_left]
+@[to_additive]
 lemma is_open_map_mul_left [topological_group α] (a : α) : is_open_map (λ x, a * x) :=
 (homeomorph.mul_left a).is_open_map
 
+@[to_additive]
+lemma is_closed_map_mul_left [topological_group α] (a : α) : is_closed_map (λ x, a * x) :=
+(homeomorph.mul_left a).is_closed_map
+
+@[to_additive]
 protected def homeomorph.mul_right
   {α : Type*} [topological_space α] [group α] [topological_group α] (a : α) :
   α ≃ₜ α :=
 { continuous_to_fun  := continuous_mul continuous_id continuous_const,
   continuous_inv_fun := continuous_mul continuous_id continuous_const,
   .. equiv.mul_right a }
-attribute [to_additive homeomorph.add_right._proof_1] homeomorph.mul_right._proof_1
-attribute [to_additive homeomorph.add_right._proof_2] homeomorph.mul_right._proof_2
-attribute [to_additive homeomorph.add_right._proof_3] homeomorph.mul_right._proof_3
-attribute [to_additive homeomorph.add_right._proof_4] homeomorph.mul_right._proof_4
-attribute [to_additive homeomorph.add_right] homeomorph.mul_right
 
-@[to_additive is_open_map_add_right]
+@[to_additive]
 lemma is_open_map_mul_right [topological_group α] (a : α) : is_open_map (λ x, x * a) :=
 (homeomorph.mul_right a).is_open_map
 
+@[to_additive]
+lemma is_closed_map_mul_right [topological_group α] (a : α) : is_closed_map (λ x, x * a) :=
+(homeomorph.mul_right a).is_closed_map
+
+@[to_additive]
 protected def homeomorph.inv (α : Type*) [topological_space α] [group α] [topological_group α] :
   α ≃ₜ α :=
 { continuous_to_fun  := continuous_inv',
   continuous_inv_fun := continuous_inv',
   .. equiv.inv α }
-attribute [to_additive homeomorph.neg._proof_1] homeomorph.inv._proof_1
-attribute [to_additive homeomorph.neg._proof_2] homeomorph.inv._proof_2
-attribute [to_additive homeomorph.neg] homeomorph.inv
 
 @[to_additive exists_nhds_half]
 lemma exists_nhds_split [topological_group α] {s : set α} (hs : s ∈ nhds (1 : α)) :
@@ -133,7 +133,7 @@ end
 
 section
 variable (α)
-@[to_additive nhds_zero_symm]
+@[to_additive]
 lemma nhds_one_symm [topological_group α] : comap (λr:α, r⁻¹) (nhds (1 : α)) = nhds (1 : α) :=
 begin
   have lim : tendsto (λr:α, r⁻¹) (nhds 1) (nhds 1),
@@ -143,7 +143,7 @@ begin
 end
 end
 
-@[to_additive nhds_translation_add_neg]
+@[to_additive]
 lemma nhds_translation_mul_inv [topological_group α] (x : α) :
   comap (λy:α, y * x⁻¹) (nhds 1) = nhds x :=
 begin
@@ -155,7 +155,7 @@ begin
     exact tendsto_mul tendsto_id tendsto_const_nhds }
 end
 
-@[to_additive topological_add_group.ext]
+@[to_additive]
 lemma topological_group.ext {G : Type*} [group G] {t t' : topological_space G}
   (tg : @topological_group G t _) (tg' : @topological_group G t' _)
   (h : @nhds G t 1 = @nhds G t' 1) : t = t' :=
@@ -166,26 +166,25 @@ end topological_group
 section quotient_topological_group
 variables [topological_space α] [group α] [topological_group α] (N : set α) [normal_subgroup N]
 
-@[to_additive quotient_add_group.quotient.topological_space]
-instance : topological_space (quotient_group.quotient N) :=
+@[to_additive]
+instance {α : Type u} [group α] [topological_space α] (N : set α) [normal_subgroup N] :
+  topological_space (quotient_group.quotient N) :=
 by dunfold quotient_group.quotient; apply_instance
-
-attribute [instance] quotient_add_group.quotient.topological_space
 
 open quotient_group
 @[to_additive quotient_add_group_saturate]
-lemma quotient_group_saturate (s : set α) :
+lemma quotient_group_saturate {α : Type u} [group α] (N : set α) [normal_subgroup N] (s : set α) :
   (coe : α → quotient N) ⁻¹' ((coe : α → quotient N) '' s) = (⋃ x : N, (λ y, y*x.1) '' s) :=
 begin
   ext x,
-  simp only [mem_preimage_eq, mem_image, mem_Union, quotient_group.eq],
+  simp only [mem_preimage, mem_image, mem_Union, quotient_group.eq],
   split,
   { exact assume ⟨a, a_in, h⟩, ⟨⟨_, h⟩, a, a_in, mul_inv_cancel_left _ _⟩ },
   { exact assume ⟨⟨i, hi⟩, a, ha, eq⟩,
       ⟨a, ha, by simp only [eq.symm, (mul_assoc _ _ _).symm, inv_mul_cancel_left, hi]⟩ }
 end
 
-@[to_additive quotient_add_group.open_coe]
+@[to_additive]
 lemma quotient_group.open_coe : is_open_map (coe : α →  quotient N) :=
 begin
   intros s s_op,
@@ -231,6 +230,10 @@ by simp; exact continuous_add hf (continuous_neg hg)
 
 lemma continuous_sub' [topological_add_group α] : continuous (λp:α×α, p.1 - p.2) :=
 continuous_sub continuous_fst continuous_snd
+
+lemma continuous_on.sub [topological_add_group α] [topological_space β] {f : β → α} {g : β → α} {s : set β}
+  (hf : continuous_on f s) (hg : continuous_on g s) : continuous_on (λx, f x - g x) s :=
+continuous_sub'.comp_continuous_on (hf.prod hg)
 
 lemma tendsto_sub [topological_add_group α] {f : β → α} {g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) : tendsto (λx, f x - g x) x (nhds (a - b)) :=
@@ -320,3 +323,96 @@ instance : topological_add_group α :=
   end⟩
 
 end add_group_with_zero_nhd
+
+section filter_mul
+local attribute [instance]
+  set.pointwise_one set.pointwise_mul set.pointwise_add filter.pointwise_mul filter.pointwise_add
+  filter.pointwise_one
+
+section
+variables [topological_space α] [group α] [topological_group α]
+
+@[to_additive]
+lemma is_open_pointwise_mul_left {s t : set α} : is_open t → is_open (s * t) := λ ht,
+begin
+  have : ∀a, is_open ((λ (x : α), a * x) '' t),
+    assume a, apply is_open_map_mul_left, exact ht,
+  rw pointwise_mul_eq_Union_mul_left,
+  exact is_open_Union (λa, is_open_Union $ λha, this _),
+end
+
+@[to_additive]
+lemma is_open_pointwise_mul_right {s t : set α} : is_open s → is_open (s * t) := λ hs,
+begin
+  have : ∀a, is_open ((λ (x : α), x * a) '' s),
+    assume a, apply is_open_map_mul_right, exact hs,
+  rw pointwise_mul_eq_Union_mul_right,
+  exact is_open_Union (λa, is_open_Union $ λha, this _),
+end
+
+variables (α)
+
+lemma topological_group.t1_space (h : @is_closed α _ {1}) : t1_space α :=
+⟨assume x, by { convert is_closed_map_mul_right x _ h, simp }⟩
+
+lemma topological_group.regular_space [t1_space α] : regular_space α :=
+⟨assume s a hs ha,
+ let f := λ p : α × α, p.1 * (p.2)⁻¹ in
+ have hf : continuous f :=
+   continuous.comp continuous_mul'
+     (continuous.prod_mk (continuous_fst) (continuous.comp continuous_inv' continuous_snd)),
+ -- a ∈ -s implies f (a, 1) ∈ -s, and so (a, 1) ∈ f⁻¹' (-s);
+ -- and so can find t₁ t₂ open such that a ∈ t₁ × t₂ ⊆ f⁻¹' (-s)
+ let ⟨t₁, t₂, ht₁, ht₂, a_mem_t₁, one_mem_t₂, t_subset⟩ :=
+   is_open_prod_iff.1 (hf _ (is_open_compl_iff.2 hs)) a (1:α) (by simpa [f]) in
+ begin
+   use s * t₂,
+   use is_open_pointwise_mul_left ht₂,
+   use λ x hx, ⟨x, hx, 1, one_mem_t₂, (mul_one _).symm⟩,
+   apply inf_principal_eq_bot,
+   rw mem_nhds_sets_iff,
+   refine ⟨t₁, _, ht₁, a_mem_t₁⟩,
+   rintros x hx ⟨y, hy, z, hz, yz⟩,
+   have : x * z⁻¹ ∈ -s := (prod_subset_iff.1 t_subset) x hx z hz,
+   have : x * z⁻¹ ∈ s, rw yz, simpa,
+   contradiction
+ end⟩
+
+local attribute [instance] topological_group.regular_space
+
+lemma topological_group.t2_space [t1_space α] : t2_space α := regular_space.t2_space α
+
+end
+
+section
+variables [topological_space α] [comm_group α] [topological_group α]
+
+@[to_additive]
+lemma nhds_pointwise_mul (x y : α) : nhds (x * y) = nhds x * nhds y :=
+filter_eq $ set.ext $ assume s,
+begin
+  rw [← nhds_translation_mul_inv x, ← nhds_translation_mul_inv y, ← nhds_translation_mul_inv (x*y)],
+  split,
+  { rintros ⟨t, ht, ts⟩,
+    rcases exists_nhds_split ht with ⟨V, V_mem, h⟩,
+    refine ⟨(λa, a * x⁻¹) ⁻¹' V, ⟨V, V_mem, subset.refl _⟩,
+            (λa, a * y⁻¹) ⁻¹' V, ⟨V, V_mem, subset.refl _⟩, _⟩,
+    rintros a ⟨v, v_mem, w, w_mem, rfl⟩,
+    apply ts,
+    simpa [mul_comm, mul_assoc, mul_left_comm] using h (v * x⁻¹) (w * y⁻¹) v_mem w_mem },
+  { rintros ⟨a, ⟨b, hb, ba⟩, c, ⟨d, hd, dc⟩, ac⟩,
+    refine ⟨b ∩ d, inter_mem_sets hb hd, assume v, _⟩,
+    simp only [preimage_subset_iff, mul_inv_rev, mem_preimage] at *,
+    rintros ⟨vb, vd⟩,
+    refine ac ⟨v * y⁻¹, _, y, _, _⟩,
+    { rw ← mul_assoc _ _ _ at vb, exact ba _ vb },
+    { apply dc y, rw mul_right_inv, exact mem_of_nhds hd },
+    { simp only [inv_mul_cancel_right] } }
+end
+
+@[to_additive]
+lemma nhds_is_mul_hom : is_mul_hom (λx:α, nhds x) := ⟨λ_ _, nhds_pointwise_mul _ _⟩
+
+end
+
+end filter_mul

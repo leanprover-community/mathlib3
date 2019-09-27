@@ -3,3 +3,6 @@
 /leanpkg.path
 _cache
 __pycache__
+all.lean
+sanity_check_mathlib.lean
+*.depend

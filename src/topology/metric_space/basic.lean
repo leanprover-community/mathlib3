@@ -13,7 +13,7 @@ import data.real.nnreal topology.metric_space.emetric_space topology.algebra.ord
 open lattice set filter classical topological_space
 noncomputable theory
 
-local notation `𝓤` := uniformity
+open_locale uniformity
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -147,7 +147,7 @@ by simp [nndist, edist_dist, nnreal.of_real, max_eq_left dist_nonneg, ennreal.of
 
 /--Express `edist` in terms of `nndist`-/
 lemma edist_nndist (x y : α) : edist x y = ↑(nndist x y) :=
-by simp [nndist, edist_dist, nnreal.of_real, max_eq_left dist_nonneg, ennreal.of_real]
+by { rw [edist_dist, nndist, ennreal.of_real_eq_coe_nnreal] }
 
 /--In a metric space, the extended distance is always finite-/
 lemma edist_ne_top (x y : α) : edist x y ≠ ⊤ :=
@@ -672,11 +672,11 @@ def metric_space.induced {α β} (f : α → β) (hf : function.injective f)
       exact ⟨_, dist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
   end }
 
-instance subtype.metric_space {p : α → Prop} [t : metric_space α] : metric_space (subtype p) :=
+instance subtype.metric_space {α : Type*} {p : α → Prop} [t : metric_space α] :
+  metric_space (subtype p) :=
 metric_space.induced subtype.val (λ x y, subtype.eq) t
 
-theorem subtype.dist_eq {p : α → Prop} [t : metric_space α] (x y : subtype p) :
-  dist x y = dist x.1 y.1 := rfl
+theorem subtype.dist_eq {p : α → Prop} (x y : subtype p) : dist x y = dist x.1 y.1 := rfl
 
 section nnreal
 
@@ -773,6 +773,10 @@ uniform_continuous_subtype_mk uniform_continuous_dist' _
 lemma continuous_nndist' : continuous (λp:α×α, nndist p.1 p.2) :=
 uniform_continuous_nndist'.continuous
 
+lemma continuous_nndist [topological_space β] {f g : β → α}
+  (hf : continuous f) (hg : continuous g) : continuous (λb, nndist (f b) (g b)) :=
+continuous_nndist'.comp (hf.prod_mk hg)
+
 lemma tendsto_nndist' (a b :α) :
   tendsto (λp:α×α, nndist p.1 p.2) (filter.prod (nhds a) (nhds b)) (nhds (nndist a b)) :=
 by rw [← nhds_prod_eq]; exact continuous_iff_continuous_at.1 continuous_nndist' _
@@ -802,6 +806,25 @@ begin
   have B : b ∈ o ∩ s := ⟨hε (by simpa [dist_comm]), bs⟩,
   apply ne_empty_of_mem B
 end⟩
+
+lemma mem_closure_range_iff {α : Type u} [metric_space α] {e : β → α} {a : α} :
+  a ∈ closure (range e) ↔ ∀ε>0, ∃ k : β, dist a (e k) < ε :=
+iff.intro
+( assume ha ε hε,
+  let ⟨b, ⟨hb, hab⟩⟩ := metric.mem_closure_iff'.1 ha ε hε in
+  let ⟨k, hk⟩ := mem_range.1 hb in
+  ⟨k, by { rw hk, exact hab }⟩ )
+( assume h, metric.mem_closure_iff'.2 (assume ε hε,
+  let ⟨k, hk⟩ := h ε hε in
+  ⟨e k, ⟨mem_range.2 ⟨k, rfl⟩, hk⟩⟩) )
+
+lemma mem_closure_range_iff_nat {α : Type u} [metric_space α] {e : β → α} {a : α} :
+  a ∈ closure (range e) ↔ ∀n : ℕ, ∃ k : β, dist a (e k) < 1 / ((n : ℝ) + 1) :=
+⟨assume ha n, mem_closure_range_iff.1 ha (1 / ((n : ℝ) + 1)) nat.one_div_pos_of_nat,
+ assume h, mem_closure_range_iff.2 $ assume ε hε,
+  let ⟨n, hn⟩ := exists_nat_one_div_lt hε in
+  let ⟨k, hk⟩ := h n  in
+  ⟨k, calc dist a (e k) < 1 / ((n : ℝ) + 1) : hk ... < ε : hn⟩⟩
 
 theorem mem_of_closed' {α : Type u} [metric_space α] {s : set α} (hs : is_closed s)
   {a : α} : a ∈ s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
@@ -871,11 +894,11 @@ class proper_space (α : Type u) [metric_space α] : Prop :=
 (compact_ball : ∀x:α, ∀r, compact (closed_ball x r))
 
 /- A compact metric space is proper -/
-instance proper_of_compact [metric_space α] [compact_space α] : proper_space α :=
+instance proper_of_compact [compact_space α] : proper_space α :=
 ⟨assume x r, compact_of_is_closed_subset compact_univ is_closed_ball (subset_univ _)⟩
 
 /-- A proper space is locally compact -/
-instance locally_compact_of_proper [metric_space α] [proper_space α] :
+instance locally_compact_of_proper [proper_space α] :
   locally_compact_space α :=
 begin
   apply locally_compact_of_compact_nhds,
@@ -890,7 +913,7 @@ begin
 end
 
 /-- A proper space is complete -/
-instance complete_of_proper {α : Type u} [metric_space α] [proper_space α] : complete_space α :=
+instance complete_of_proper [proper_space α] : complete_space α :=
 ⟨begin
   intros f hf,
   /- We want to show that the Cauchy filter `f` is converging. It suffices to find a closed
@@ -909,7 +932,7 @@ end⟩
 compact, and therefore admits a countable dense subset. Taking a countable union over the balls
 centered at a fixed point and with integer radius, one obtains a countable set which is
 dense in the whole space. -/
-instance second_countable_of_proper [metric_space α] [proper_space α] :
+instance second_countable_of_proper [proper_space α] :
   second_countable_topology α :=
 begin
   /- We show that the space admits a countable dense subset. The case where the space is empty

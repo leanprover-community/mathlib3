@@ -282,14 +282,15 @@ by simp [lift', quotient.lift_on_beta, of, mk, this]
 @[simp] lemma lift'_apply_coe (f : localization α S → β) [is_ring_hom f]
   (g : S → units β) (hg : ∀ s, (g s : β) = f s) :
   lift' (λ a : α, f a) g hg = f :=
-have g = (λ s, units.map f (to_units s)),
-  from funext $ λ x, units.ext_iff.2 $ (hg x).symm ▸ rfl,
+have g = (λ s, (units.map' f : units (localization α S) → units β) (to_units s)),
+  from funext $ λ x, units.ext $ (hg x).symm ▸ rfl,
 funext $ λ x, localization.induction_on x
-  (λ r s, by subst this; rw [lift'_mk, ← is_group_hom.map_inv (units.map f), units.coe_map];
+  (λ r s, by subst this; rw [lift'_mk, ← (units.map' f).map_inv, units.coe_map'];
     simp [is_ring_hom.map_mul f])
 
 @[simp] lemma lift_apply_coe (f : localization α S → β) [is_ring_hom f] :
-  lift (λ a : α, f a) (λ s hs, is_unit_unit (units.map f (to_units ⟨s, hs⟩))) = f :=
+  lift (λ a : α, f a)
+    (λ s hs, is_unit.map' f (is_unit_unit (to_units ⟨s, hs⟩))) = f :=
 by rw [lift, lift'_apply_coe]
 
 /-- Function extensionality for localisations:
@@ -332,16 +333,15 @@ lemma map_map {γ : Type*} [comm_ring γ]  (hf : ∀ s ∈ S, f s ∈ T) (U : se
   map g hg (map f hf x) = map (λ x, g (f x)) (λ s hs, hg _ (hf _ hs)) x :=
 congr_fun (map_comp_map _ _ _ _ _) x
 
-def equiv_of_equiv (h₁ : α ≃r β) (h₂ : h₁.to_equiv '' S = T) :
-  localization α S ≃r localization β T :=
-{ to_fun := map h₁.to_equiv $ λ s hs, by {rw ← h₂, simp [hs]},
-  inv_fun := map h₁.symm.to_equiv $ λ t ht,
-    by simp [equiv.image_eq_preimage, set.preimage, set.ext_iff, *] at *,
-  left_inv := λ _, by simp only [map_map, ring_equiv.to_equiv_symm_apply,
-    equiv.symm_apply_apply]; erw map_id; refl,
-  right_inv := λ _, by simp only [map_map, ring_equiv.to_equiv_symm_apply,
-    equiv.apply_symm_apply]; erw map_id; refl,
-  hom := map.is_ring_hom _ _ }
+def equiv_of_equiv (h₁ : α ≃+* β) (h₂ : h₁ '' S = T) :
+  localization α S ≃+* localization β T :=
+{ to_fun := map h₁ $ λ s hs, h₂ ▸ set.mem_image_of_mem _ hs,
+  inv_fun := map h₁.symm $ λ t ht,
+    by simp [h₁.image_eq_preimage, set.preimage, set.ext_iff, *] at *,
+  left_inv := λ _, by simp only [map_map, h₁.symm_apply_apply]; erw map_id; refl,
+  right_inv := λ _, by simp only [map_map, h₁.apply_symm_apply]; erw map_id; refl,
+  map_mul' := λ _ _, is_ring_hom.map_mul _,
+  map_add' := λ _ _, is_ring_hom.map_add _ }
 
 end
 
@@ -395,7 +395,7 @@ instance prime.is_submonoid :
 
 @[reducible] def at_prime := localization α (-P)
 
-instance at_prime.local_ring : is_local_ring (at_prime P) :=
+instance at_prime.local_ring : local_ring (at_prime P) :=
 local_of_nonunits_ideal
   (λ hze,
     let ⟨t, hts, ht⟩ := quotient.exact hze in
@@ -550,14 +550,13 @@ localization.map_comp_of _ _
 instance map.is_field_hom (hf : injective f) : is_field_hom (map f hf) :=
 localization.map.is_ring_hom _ _
 
-def equiv_of_equiv (h : A ≃r B) : fraction_ring A ≃r fraction_ring B :=
+def equiv_of_equiv (h : A ≃+* B) : fraction_ring A ≃+* fraction_ring B :=
 localization.equiv_of_equiv h
 begin
   ext b,
-  rw [equiv.image_eq_preimage, set.preimage, set.mem_set_of_eq,
+  rw [h.image_eq_preimage, set.preimage, set.mem_set_of_eq,
     mem_non_zero_divisors_iff_ne_zero, mem_non_zero_divisors_iff_ne_zero, ne.def],
-  exact ⟨mt (λ h, h.symm ▸ is_ring_hom.map_zero _),
-    mt ((is_add_group_hom.injective_iff _).1 h.to_equiv.symm.injective _)⟩
+  exact h.to_add_equiv.symm.map_ne_zero_iff b
 end
 
 end map

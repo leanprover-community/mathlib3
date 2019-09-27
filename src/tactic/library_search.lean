@@ -1,7 +1,8 @@
--- Copyright (c) 2019 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison
-
+/-
+Copyright (c) 2019 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import tactic.solve_by_elim
 import data.list.defs
 
@@ -75,27 +76,27 @@ meta def library_defs (hs : name) : tactic (list decl_data) :=
 do env ← get_env,
    return $ env.decl_filter_map (process_declaration hs)
 
-meta def apply_and_solve (e : expr) :=
+meta def apply_and_solve (discharger : tactic unit) (e : expr) :=
 apply e >>
 (done <|>
  solve_by_elim
- { all_goals := tt })
+ { all_goals := tt, discharger := discharger })
 
-meta def apply_declaration (d : decl_data) : tactic unit :=
+meta def apply_declaration (discharger : tactic unit) (d : decl_data) : tactic unit :=
 do (e, t) ← decl_mk_const d.d,
    match d.m with
-   | ex := apply_and_solve e
+   | ex := apply_and_solve discharger e
    | mp :=
       do l ← iff_mp_core e t,
-         apply_and_solve l
+         apply_and_solve discharger l
    | mpr :=
       do l ← iff_mpr_core e t,
-         apply_and_solve l
+         apply_and_solve discharger l
    | both :=
       (do l ← iff_mp_core e t,
-         apply_and_solve l) <|>
+         apply_and_solve discharger l) <|>
       (do l ← iff_mpr_core e t,
-         apply_and_solve l)
+         apply_and_solve discharger l)
    end
 
 end library_search
@@ -106,10 +107,12 @@ open library_search.head_symbol_match
 declare_trace silence_library_search -- Turn off `exact ...` trace message
 declare_trace library_search         -- Trace a list of all relevant lemmas
 
-meta def library_search : tactic string :=
+meta def library_search (discharger : tactic unit := done) : tactic string :=
 do [g] ← get_goals | fail "`library_search` should be called with exactly one goal",
    t ← infer_type g,
 
+   -- Make sure that `solve_by_elim` doesn't just solve the goal immediately:
+   solve_by_elim { discharger := discharger } <|> (do
    -- Collect all definitions with the correct head symbol
    defs ← library_defs (head_symbol t),
    -- Sort by length; people like short proofs
@@ -118,7 +121,7 @@ do [g] ← get_goals | fail "`library_search` should be called with exactly one 
      trace format!"Found {defs.length} relevant lemmas:",
      trace $ defs.map (λ ⟨d, n, m, l⟩, (n, m.to_string))),
    -- Try `apply` followed by `solve_by_elim`, for each definition.
-   defs.mfirst apply_declaration,
+   defs.mfirst (apply_declaration discharger)),
 
    -- If something worked, prepare a string to print.
    p ← instantiate_mvars g >>= head_beta >>= pp,
@@ -127,6 +130,8 @@ do [g] ← get_goals | fail "`library_search` should be called with exactly one 
    return $ to_string r
 
 namespace interactive
+open lean.parser interactive
+
 /--
 `library_search` attempts to apply every definition in the library whose head symbol
 matches the goal, and then discharge any new goals using `solve_by_elim`.
@@ -134,7 +139,9 @@ matches the goal, and then discharge any new goals using `solve_by_elim`.
 If it succeeds, it prints a trace message `exact ...` which can replace the invocation
 of `library_search`.
 -/
-meta def library_search := tactic.library_search
+meta def library_search :=
+tactic.library_search tactic.done
+
 end interactive
 
 @[hole_command] meta def library_search_hole_cmd : hole_command :=

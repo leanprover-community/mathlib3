@@ -31,7 +31,7 @@ topology.metric_space.completion
 
 
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 universes u v w
 
 open classical lattice set function topological_space filter metric quotient
@@ -87,7 +87,7 @@ begin
   { rintros ⟨Ψ, ⟨isomΨ, rangeΨ⟩⟩,
     have f := ((Kuratowski_embedding_isometry α).isometric_on_range.symm.trans
                isomΨ.isometric_on_range).symm,
-    have E : (range Ψ) ≃ᵢ (nonempty_compacts.Kuratowski_embedding α).val = (p.val ≃ᵢ range (Kuratowski_embedding α)),
+    have E : (range Ψ ≃ᵢ (nonempty_compacts.Kuratowski_embedding α).val) = (p.val ≃ᵢ range (Kuratowski_embedding α)),
       by { dunfold nonempty_compacts.Kuratowski_embedding, rw [rangeΨ]; refl },
     have g := cast E f,
     exact ⟨g⟩ }
@@ -225,7 +225,7 @@ begin
   simp [Aα, Bβ]
 end
 
-local attribute [instance, priority 0] inhabited_of_nonempty'
+local attribute [instance, priority 10] inhabited_of_nonempty'
 
 /-- The optimal coupling constructed above realizes exactly the Gromov-Hausdorff distance,
 essentially by design. -/
@@ -371,8 +371,8 @@ end
 
 -- without the next two lines, { exact closed_of_compact (range Φ) hΦ } in the next
 -- proof is very slow, as the t2_space instance is very hard to find
-local attribute [instance, priority 0] orderable_topology.t2_space
-local attribute [instance, priority 0] ordered_topology.to_t2_space
+local attribute [instance, priority 10] orderable_topology.t2_space
+local attribute [instance, priority 10] ordered_topology.to_t2_space
 
 /-- The Gromov-Hausdorff distance defines a genuine distance on the Gromov-Hausdorff space. -/
 instance GH_space_metric_space : metric_space GH_space :=
@@ -603,7 +603,7 @@ begin
   let ε := (2/5) * δ,
   have εpos : 0 < ε := mul_pos (by norm_num) δpos,
   have : ∀p:GH_space, ∃s : set (p.rep), finite s ∧ (univ ⊆ (⋃x∈s, ball x ε)) :=
-    λp, by simpa using finite_cover_balls_of_compact (@compact_univ (p.rep) _ _ _) εpos,
+    λp, by simpa using finite_cover_balls_of_compact (@compact_univ p.rep _ _) εpos,
   -- for each p, s p is a finite ε-dense subset of p (or rather the metric space
   -- p.rep representing p)
   choose s hs using this,
@@ -1005,7 +1005,8 @@ begin
   { assume n,
     rw [nonempty_compacts.to_GH_space, ← (u n).to_GH_space_rep,
         to_GH_space_eq_to_GH_space_iff_isometric],
-    exact ⟨(isom n).isometric_on_range.symm⟩
+    constructor,
+    convert (isom n).isometric_on_range.symm,
   },
   -- Finally, we have proved the convergence of `u n`
   exact ⟨L.to_GH_space, by simpa [this] using M⟩

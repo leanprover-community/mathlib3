@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 
 Additional theorems about the `vector` type.
 -/
-import data.vector data.list.basic category.traversable.basic data.set.basic
+import data.vector data.list.basic category.traversable.basic data.set.basic tactic.tauto
 
 universes u
 variables {n : ℕ}
@@ -29,9 +29,16 @@ subtype.val_injective
   ∀ (v : vector α n) h, (⟨to_list v, h⟩ : vector α n) = v
 | ⟨l, h₁⟩ h₂ := rfl
 
+@[simp] lemma to_list_map {β : Type*} (v : vector α n) (f : α → β) : (v.map f).to_list =
+  v.to_list.map f := by cases v; refl
+
 theorem nth_eq_nth_le : ∀ (v : vector α n) (i),
   nth v i = v.to_list.nth_le i.1 (by rw to_list_length; exact i.2)
 | ⟨l, h⟩ i := rfl
+
+@[simp] lemma nth_map {β : Type*} (v : vector α n) (f : α → β) (i : fin n) :
+  (v.map f).nth i = f (v.nth i) :=
+by simp [nth_eq_nth_le]
 
 @[simp] theorem nth_of_fn {n} (f : fin n → α) (i) : nth (of_fn f) i = f i :=
 by rw [nth_eq_nth_le, ← list.nth_le_of_fn f];
@@ -52,6 +59,26 @@ end
 @[simp] theorem tail_of_fn {n : ℕ} (f : fin n.succ → α) :
   tail (of_fn f) = of_fn (λ i, f i.succ) :=
 (of_fn_nth _).symm.trans $ by congr; funext i; simp
+
+lemma mem_iff_nth {a : α} {v : vector α n} : a ∈ v.to_list ↔ ∃ i, v.nth i = a :=
+by simp only [list.mem_iff_nth_le, fin.exists_iff, vector.nth_eq_nth_le];
+  exact ⟨λ ⟨i, hi, h⟩, ⟨i, by rwa to_list_length at hi, h⟩,
+    λ ⟨i, hi, h⟩, ⟨i, by rwa to_list_length, h⟩⟩
+
+lemma nodup_iff_nth_inj {v : vector α n} : v.to_list.nodup ↔ function.injective v.nth :=
+begin
+  cases v with l hl,
+  subst hl,
+  simp only [list.nodup_iff_nth_le_inj],
+  split,
+  { intros h i j hij,
+    cases i, cases j, simp [nth_eq_nth_le] at *, tauto },
+  { intros h i j hi hj hij,
+    have := @h ⟨i, hi⟩ ⟨j, hj⟩, simp [nth_eq_nth_le] at *, tauto }
+end
+
+@[simp] lemma nth_mem (i : fin n) (v : vector α n) : v.nth i ∈ v.to_list :=
+by rw [nth_eq_nth_le]; exact list.nth_le_mem _ _ _
 
 theorem head'_to_list : ∀ (v : vector α n.succ),
   (to_list v).head' = some (head v)
@@ -88,6 +115,7 @@ def mmap {m} [monad m] {α} {β : Type u} (f : α → m β) :
   ∀ {n}, vector α n → m (vector β n)
 | _ ⟨[], rfl⟩   := pure nil
 | _ ⟨a::l, rfl⟩ := do h' ← f a, t' ← mmap ⟨l, rfl⟩, pure (h' :: t')
+using_well_founded wf_tacs
 
 @[simp] theorem mmap_nil {m} [monad m] {α β} (f : α → m β) :
   mmap f nil = pure nil := rfl
@@ -168,6 +196,27 @@ lemma insert_nth_comm (a b : α) (i j : fin (n+1)) (h : i ≤ j) :
   end
 
 end insert_nth
+
+section update_nth
+
+/-- `update_nth v n a` replaces the `n`th element of `v` with `a` -/
+def update_nth (v : vector α n) (i : fin n) (a : α) : vector α n :=
+⟨v.1.update_nth i.1 a, by rw [list.update_nth_length, v.2]⟩
+
+@[simp] lemma nth_update_nth_same (v : vector α n) (i : fin n) (a : α) :
+  (v.update_nth i a).nth i = a :=
+by cases v; cases i; simp [vector.update_nth, vector.nth_eq_nth_le]
+
+lemma nth_update_nth_of_ne {v : vector α n} {i j : fin n} (h : i ≠ j) (a : α) :
+  (v.update_nth i a).nth j = v.nth j :=
+by cases v; cases i; cases j; simp [vector.update_nth, vector.nth_eq_nth_le,
+  list.nth_le_update_nth_of_ne (fin.vne_of_ne h)]
+
+lemma nth_update_nth_eq_if {v : vector α n} {i j : fin n} (a : α) :
+  (v.update_nth i a).nth j = if i = j then a else v.nth j :=
+by split_ifs; try {simp *}; try {rw nth_update_nth_of_ne}; assumption
+
+end update_nth
 
 end vector
 

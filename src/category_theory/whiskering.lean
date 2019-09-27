@@ -1,18 +1,18 @@
--- Copyright (c) 2018 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison
-
-import category_theory.isomorphism
-import category_theory.functor_category
+/-
+Copyright (c) 2018 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
+import category_theory.natural_isomorphism
 
 namespace category_theory
 
 universes u₁ v₁ u₂ v₂ u₃ v₃ u₄ v₄
 
 section
-variables (C : Sort u₁) [𝒞 : category.{v₁} C]
-          (D : Sort u₂) [𝒟 : category.{v₂} D]
-          (E : Sort u₃) [ℰ : category.{v₃} E]
+variables (C : Type u₁) [𝒞 : category.{v₁} C]
+          (D : Type u₂) [𝒟 : category.{v₂} D]
+          (E : Type u₃) [ℰ : category.{v₃} E]
 include 𝒞 𝒟 ℰ
 
 def whiskering_left : (C ⥤ D) ⥤ ((D ⥤ E) ⥤ (C ⥤ E)) :=
@@ -116,7 +116,12 @@ rfl
   (iso_whisker_right α F).inv = whisker_right α.inv F :=
 rfl
 
-variables {B : Sort u₄} [ℬ : category.{v₄} B]
+instance is_iso_whisker_left (F : C ⥤ D) {G H : D ⥤ E} (α : G ⟶ H) [is_iso α] : is_iso (whisker_left F α) :=
+{ .. iso_whisker_left F (as_iso α) }
+instance is_iso_whisker_right {G H : C ⥤ D} (α : G ⟶ H) (F : D ⥤ E) [is_iso α] : is_iso (whisker_right α F) :=
+{ .. iso_whisker_right (as_iso α) F }
+
+variables {B : Type u₄} [ℬ : category.{v₄} B]
 include ℬ
 
 local attribute [elab_simple] whisker_left whisker_right
@@ -138,26 +143,26 @@ namespace functor
 
 universes u₅ v₅
 
-variables {A : Sort u₁} [𝒜 : category.{v₁} A]
-variables {B : Sort u₂} [ℬ : category.{v₂} B]
+variables {A : Type u₁} [𝒜 : category.{v₁} A]
+variables {B : Type u₂} [ℬ : category.{v₂} B]
 include 𝒜 ℬ
 
-def left_unitor (F : A ⥤ B) : ((functor.id _) ⋙ F) ≅ F :=
+def left_unitor (F : A ⥤ B) : ((𝟭 _) ⋙ F) ≅ F :=
 { hom := { app := λ X, 𝟙 (F.obj X) },
   inv := { app := λ X, 𝟙 (F.obj X) } }
 
 @[simp] lemma left_unitor_hom_app {F : A ⥤ B} {X} : F.left_unitor.hom.app X = 𝟙 _ := rfl
 @[simp] lemma left_unitor_inv_app {F : A ⥤ B} {X} : F.left_unitor.inv.app X = 𝟙 _ := rfl
 
-def right_unitor (F : A ⥤ B) : (F ⋙ (functor.id _)) ≅ F :=
+def right_unitor (F : A ⥤ B) : (F ⋙ (𝟭 _)) ≅ F :=
 { hom := { app := λ X, 𝟙 (F.obj X) },
   inv := { app := λ X, 𝟙 (F.obj X) } }
 
 @[simp] lemma right_unitor_hom_app {F : A ⥤ B} {X} : F.right_unitor.hom.app X = 𝟙 _ := rfl
 @[simp] lemma right_unitor_inv_app {F : A ⥤ B} {X} : F.right_unitor.inv.app X = 𝟙 _ := rfl
 
-variables {C : Sort u₃} [𝒞 : category.{v₃} C]
-variables {D : Sort u₄} [𝒟 : category.{v₄} D]
+variables {C : Type u₃} [𝒞 : category.{v₃} C]
+variables {D : Type u₄} [𝒟 : category.{v₄} D]
 include 𝒞 𝒟
 
 def associator (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D) : ((F ⋙ G) ⋙ H) ≅ (F ⋙ (G ⋙ H)) :=
@@ -172,7 +177,7 @@ def associator (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D) : ((F ⋙ G) ⋙ H) ≅
 omit 𝒟
 
 lemma triangle (F : A ⥤ B) (G : B ⥤ C) :
-  (associator F (functor.id B) G).hom ≫ (whisker_left F (left_unitor G).hom) =
+  (associator F (𝟭 B) G).hom ≫ (whisker_left F (left_unitor G).hom) =
     (whisker_right (right_unitor F).hom G) :=
 begin
   ext1,
@@ -180,7 +185,7 @@ begin
   simp
 end
 
-variables {E : Sort u₅} [ℰ : category.{v₅} E]
+variables {E : Type u₅} [ℰ : category.{v₅} E]
 include 𝒟 ℰ
 
 variables (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D) (K : D ⥤ E)

@@ -10,23 +10,21 @@ bounded linear map between Banach spaces has a bounded inverse.
 -/
 
 import topology.metric_space.baire analysis.normed_space.bounded_linear_maps
-local attribute [instance] classical.prop_decidable
 
 open function metric set filter finset
+open_locale classical
 
-class banach_space (α : Type*) (β : Type*) [normed_field α]
-  extends normed_space α β, complete_space β
-
-variables {k : Type*} [nondiscrete_normed_field k]
-variables {E : Type*} [banach_space k E]
-variables {F : Type*} [banach_space k F] {f : E → F}
-include k
+variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+{E : Type*} [normed_group E] [complete_space E] [normed_space 𝕜 E]
+{F : Type*} [normed_group F] [complete_space F] [normed_space 𝕜 F]
+{f : E → F}
+include 𝕜
 
 set_option class.instance_max_depth 70
 
 /-- The Banach open mapping theorem: if a bounded linear map between Banach spaces is onto, then
 any point has a preimage with controlled norm. -/
-theorem exists_preimage_norm_le (hf : is_bounded_linear_map k f) (surj : surjective f) :
+theorem exists_preimage_norm_le (hf : is_bounded_linear_map 𝕜 f) (surj : surjective f) :
   ∃C, 0 < C ∧ ∀y, ∃x, f x = y ∧ ∥x∥ ≤ C * ∥y∥ :=
 begin
   have lin := hf.to_is_linear_map,
@@ -47,7 +45,7 @@ begin
     nonempty_interior_of_Union_of_closed (λn, is_closed_closure) A,
   have : ∃C, 0 ≤ C ∧ ∀y, ∃x, dist (f x) y ≤ (1/2) * ∥y∥ ∧ ∥x∥ ≤ C * ∥y∥,
   { rcases this with ⟨n, a, ε, ⟨εpos, H⟩⟩,
-    rcases exists_one_lt_norm k with ⟨c, hc⟩,
+    rcases exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
     refine ⟨(ε/2)⁻¹ * ∥c∥ * 2 * n, _, λy, _⟩,
     { refine mul_nonneg (mul_nonneg (mul_nonneg _ (norm_nonneg _)) (by norm_num)) _,
       refine inv_nonneg.2 (div_nonneg' (le_of_lt εpos) (by norm_num)),
@@ -95,7 +93,7 @@ begin
           ... = ∥y∥/2 : by { rw [inv_mul_cancel, one_mul],  simp [norm_eq_zero, hd] }
           ... = (1/2) * ∥y∥ : by ring,
         rw ← dist_eq_norm at J,
-        have K : ∥d⁻¹ • x∥ ≤ (ε / 2)⁻¹ * ∥c∥ * 2 * ↑n * ∥y∥ := calc
+        have 𝕜 : ∥d⁻¹ • x∥ ≤ (ε / 2)⁻¹ * ∥c∥ * 2 * ↑n * ∥y∥ := calc
           ∥d⁻¹ • x∥ = ∥d∥⁻¹ * ∥x₁ - x₂∥ : by rw [norm_smul, norm_inv]
           ... ≤ ((ε / 2)⁻¹ * ∥c∥ * ∥y∥) * (n + n) : begin
               refine mul_le_mul dinv _ (norm_nonneg _) _,
@@ -104,7 +102,7 @@ begin
                 exact inv_nonneg.2 (le_of_lt (half_pos εpos)) }
             end
           ... = (ε / 2)⁻¹ * ∥c∥ * 2 * ↑n * ∥y∥ : by ring,
-        exact ⟨d⁻¹ • x, J, K⟩ } } },
+        exact ⟨d⁻¹ • x, J, 𝕜⟩ } } },
   rcases this with ⟨C, C0, hC⟩,
   /- Second step of the proof: starting from `y`, we want an exact preimage of `y`. Let `g y` be
   the approximate preimage of `y` given by the first step, and `h y = y - f(g y)` the part that
@@ -176,7 +174,7 @@ begin
 end
 
 /-- The Banach open mapping theorem: a surjective bounded linear map between Banach spaces is open. -/
-theorem open_mapping (hf : is_bounded_linear_map k f) (surj : surjective f) : is_open_map f :=
+theorem open_mapping (hf : is_bounded_linear_map 𝕜 f) (surj : surjective f) : is_open_map f :=
 begin
   assume s hs,
   have lin := hf.to_is_linear_map,
@@ -200,8 +198,8 @@ begin
 end
 
 /-- If a bounded linear map is a bijection, then its inverse is also a bounded linear map. -/
-theorem linear_equiv.is_bounded_inv (e : linear_equiv k E F) (h : is_bounded_linear_map k e.to_fun) :
-  is_bounded_linear_map k e.inv_fun :=
+theorem linear_equiv.is_bounded_inv (e : linear_equiv 𝕜 E F) (h : is_bounded_linear_map 𝕜 e.to_fun) :
+  is_bounded_linear_map 𝕜 e.inv_fun :=
 { bound := begin
     have : surjective e.to_fun := (equiv.bijective e.to_equiv).2,
     rcases exists_preimage_norm_le h this with ⟨M, Mpos, hM⟩,

@@ -7,7 +7,7 @@ import tactic.core
 
 namespace tactic
 
-meta def mk_assumption_set (no_dflt : bool) (hs : list simp_arg_type) (attr : list name): tactic (list expr) :=
+meta def mk_assumption_set (no_dflt : bool) (hs : list simp_arg_type) (attr : list name) : tactic (list expr) :=
 do (hs, gex, hex, all_hyps) ← decode_simp_arg_list hs,
    hs ← hs.mmap i_to_expr_for_apply,
    l ← attr.mmap $ λ a, attribute.get_instances a,
@@ -17,9 +17,11 @@ do (hs, gex, hex, all_hyps) ← decode_simp_arg_list hs,
    hs ← if no_dflt then
           return hs
         else
-          do { congr_fun ← mk_const `congr_fun,
+          do { rfl_const ← mk_const `rfl,
+               trivial_const ← mk_const `trivial,
+               congr_fun ← mk_const `congr_fun,
                congr_arg ← mk_const `congr_arg,
-               return (congr_fun :: congr_arg :: hs) },
+               return (rfl_const :: trivial_const :: congr_fun :: congr_arg :: hs) },
    if ¬ no_dflt ∨ all_hyps then do
     ctx ← local_context,
     return $ hs.append (ctx.filter (λ h, h.local_uniq_name ∉ hex)) -- remove local exceptions
@@ -28,13 +30,13 @@ do (hs, gex, hex, all_hyps) ← decode_simp_arg_list hs,
 meta def solve_by_elim_aux (discharger : tactic unit) (asms : tactic (list expr))  : ℕ → tactic unit
 | 0 := done
 | (n+1) := done <|>
-              (discharger >> solve_by_elim_aux n) <|>
-              (apply_assumption asms $ solve_by_elim_aux n)
+              (apply_assumption asms $ solve_by_elim_aux n) <|>
+              (discharger >> solve_by_elim_aux n)
 
 meta structure by_elim_opt :=
   (all_goals : bool := ff)
   (discharger : tactic unit := done)
-  (assumptions : tactic (list expr) := local_context)
+  (assumptions : tactic (list expr) := mk_assumption_set false [] [])
   (max_rep : ℕ := 3)
 
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
@@ -75,14 +77,14 @@ performing at most `max_rep` recursive steps.
 
 `solve_by_elim` performs back-tracking if `apply_assumption` chooses an unproductive assumption
 
-By default, the assumptions passed to apply_assumption are the local context, `congr_fun` and
+By default, the assumptions passed to apply_assumption are the local context, `rfl`, `trivial`, `congr_fun` and
 `congr_arg`.
 
 `solve_by_elim [h₁, h₂, ..., hᵣ]` also applies the named lemmas.
 
 `solve_by_elim with attr₁ ... attrᵣ also applied all lemmas tagged with the specified attributes.
 
-`solve_by_elim only [h₁, h₂, ..., hᵣ]` does not include the local context, `congr_fun`, or `congr_arg`
+`solve_by_elim only [h₁, h₂, ..., hᵣ]` does not include the local context, `rfl`, `trivial`, `congr_fun`, or `congr_arg`
 unless they are explicitly included.
 
 `solve_by_elim [-id]` removes a specified assumption.

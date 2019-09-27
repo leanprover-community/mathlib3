@@ -7,9 +7,9 @@ import algebra.archimedean algebra.geom_sum
 import data.nat.choose data.complex.basic
 import tactic.linarith
 
-local attribute [instance, priority 0] classical.prop_decidable
 local notation `abs'` := _root_.abs
 open is_absolute_value
+open_locale classical
 
 section
 open real is_absolute_value finset
@@ -256,7 +256,7 @@ have hsumlesum : (range (max N M + 1)).sum (λ i, abv (a i) *
 have hsumltP : sum (range (max N M + 1)) (λ n, abv (a n)) < P :=
   calc sum (range (max N M + 1)) (λ n, abv (a n))
       = abs (sum (range (max N M + 1)) (λ n, abv (a n))) :
-  eq.symm (abs_of_nonneg (zero_le_sum (λ x h, abv_nonneg abv (a x))))
+  eq.symm (abs_of_nonneg (sum_nonneg (λ x h, abv_nonneg abv (a x))))
   ... < P : hP (max N M + 1),
 begin
   rw [h₁, h₂, h₃, sum_mul, ← sub_sub, sub_right_comm, sub_self, zero_sub, abv_neg abv],
@@ -307,7 +307,7 @@ series_ratio_test n (complex.abs z / n) (div_nonneg_of_nonneg_of_pos (complex.ab
       mul_comm m.succ, nat.cast_mul, ← div_div_eq_div_mul, mul_div_assoc,
       mul_div_right_comm, abs_mul, abs_div, abs_cast_nat];
     exact mul_le_mul_of_nonneg_right
-      (div_le_div_of_le_left (abs_nonneg _) (nat.cast_pos.2 (nat.succ_pos _)) hn0
+      (div_le_div_of_le_left (abs_nonneg _) hn0
         (nat.cast_le.2 (le_trans hm (nat.le_succ _)))) (abs_nonneg _))
 
 noncomputable theory
@@ -832,7 +832,7 @@ calc x + 1 ≤ lim (⟨(λ n : ℕ, ((exp' x) n).re), is_cau_seq_re (exp' x)⟩ 
           add_re, add_re, h₁, h₂, add_assoc,
           ← @sum_hom _ _ _ _ _ _ _ complex.re
             (is_add_group_hom.to_is_add_monoid_hom _)],
-        refine le_add_of_nonneg_of_le (zero_le_sum (λ m hm, _)) (le_refl _), dsimp [-nat.fact_succ],
+        refine le_add_of_nonneg_of_le (sum_nonneg (λ m hm, _)) (le_refl _), dsimp [-nat.fact_succ],
         rw [← of_real_pow, ← of_real_nat_cast, ← of_real_div, of_real_re],
         exact div_nonneg (pow_nonneg hx _) (nat.cast_pos.2 (nat.fact_pos _)),
       end⟩)
@@ -862,6 +862,12 @@ lemma exp_injective : function.injective exp := exp_strict_mono.injective
 
 @[simp] lemma exp_eq_one_iff : exp x = 1 ↔ x = 0 :=
 by rw [← exp_zero, exp_injective.eq_iff]
+
+lemma one_lt_exp_iff {x : ℝ} : 1 < exp x ↔ 0 < x :=
+by rw [← exp_zero, exp_lt_exp]
+
+lemma exp_lt_one_iff {x : ℝ} : exp x < 1 ↔ x < 0 :=
+by rw [← exp_zero, exp_lt_exp]
 
 end real
 

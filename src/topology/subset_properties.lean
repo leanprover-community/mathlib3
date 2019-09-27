@@ -10,7 +10,7 @@ connected, totally disconnected, totally separated.
 import topology.basic
 
 open set filter lattice classical
-local attribute [instance] prop_decidable
+open_locale classical
 
 universes u v
 variables {α : Type u} {β : Type v} [topological_space α]
@@ -118,6 +118,9 @@ have ∀(x : α) (i : set α), i ∈ d → x ∈ i → (∃ (i : β), i ∈ f ''
   finite_image f hd₂,
   subset.trans hd₃ $ by simpa only [subset_def, mem_sUnion, exists_imp_distrib, mem_Union, exists_prop, and_imp]⟩
 
+section
+-- this proof times out without this
+local attribute [instance, priority 1000] classical.prop_decidable
 lemma compact_of_finite_subcover {s : set α}
   (h : ∀c, (∀t∈c, is_open t) → s ⊆ ⋃₀ c → ∃c'⊆c, finite c' ∧ s ⊆ ⋃₀ c') : compact s :=
 assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ nhds x ≠ ⊥),
@@ -152,6 +155,7 @@ assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ nhds
         ... ⊆ - - closure (b ⟨t, htc'⟩) : by rw lattice.neg_neg; exact subset.refl _),
     show false, from this hxt,
   hfn $ by rwa [empty_in_sets_eq_bot] at this
+end
 
 lemma compact_iff_finite_subcover {s : set α} :
   compact s ↔ (∀c, (∀t∈c, is_open t) → s ⊆ ⋃₀ c → ∃c'⊆c, finite c' ∧ s ⊆ ⋃₀ c') :=
@@ -200,13 +204,14 @@ in the French literature, but we do not include it here. -/
 class compact_space (α : Type*) [topological_space α] : Prop :=
 (compact_univ : compact (univ : set α))
 
-lemma compact_univ [topological_space α] [h : compact_space α] : compact (univ : set α) := h.compact_univ
+lemma compact_univ [h : compact_space α] : compact (univ : set α) := h.compact_univ
 
-lemma compact_of_closed [topological_space α] [compact_space α] {s : set α} (h : is_closed s) :
+lemma compact_of_closed [compact_space α] {s : set α} (h : is_closed s) :
   compact s :=
 compact_of_is_closed_subset compact_univ h (subset_univ _)
 
-lemma compact_image [topological_space β] {s : set α} {f : α → β} (hs : compact s) (hf : continuous f) : compact (f '' s) :=
+lemma compact_image [topological_space β] {s : set α} {f : α → β} (hs : compact s) (hf : continuous f) :
+  compact (f '' s) :=
 compact_of_finite_subcover $ assume c hco hcs,
   have hdo : ∀t∈c, is_open (f ⁻¹' t), from assume t' ht, hf _ $ hco _ ht,
   have hds : s ⊆ ⋃i∈c, f ⁻¹' i,
@@ -214,7 +219,8 @@ compact_of_finite_subcover $ assume c hco hcs,
   let ⟨d', hcd', hfd', hd'⟩ := compact_elim_finite_subcover_image hs hdo hds in
   ⟨d', hcd', hfd', by simpa [subset_def, -mem_image, image_subset_iff] using hd'⟩
 
-lemma compact_range [compact_space α] [topological_space β] {f : α → β} (hf : continuous f) : compact (range f) :=
+lemma compact_range [compact_space α] [topological_space β] {f : α → β} (hf : continuous f) :
+  compact (range f) :=
 by rw ← image_univ; exact compact_image compact_univ hf
 
 /-- There are various definitions of "locally compact space" in the literature, which agree for

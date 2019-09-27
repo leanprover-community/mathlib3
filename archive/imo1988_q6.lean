@@ -26,32 +26,42 @@ To illustrate the technique, we also prove a similar result.
 local attribute [instance] classical.prop_decidable
 local attribute [simp] nat.pow_two
 
-/-- Constant descent Vieta jumping is a proof technique
-that can typically be used to show that certain algebraic curves of degree 2
-in the affine plane do not have integral points (or only an explicit set of solutions).
+/-- Constant descent Vieta jumping.
 
-We need a long list of assumptions for this lemma.
-The upside is that it takes care of several annoying edge cases.
-First of all, the user should provide x and y
-that satisfy the predicate H(x,y).
-The functions B(x) and C(x) give the coefficient of the quadratic equation
-y^2 - B(x) * y + C(x) = 0.
-The predicate `base` allows the user to specify a locus of base cases
-that will be proven apart from the descent step `H_desc`.
-This is the end of the input data. What follows are proof obligations.
-In `H_quad` the user must supply a proof that H(x,y) is satisfied
-if and only if the quadratic equation y^2 - B(x) * y + C(x) = 0 is satisfied.
-Next the user should prove that H is symmetric in `H_symm`.
-Then the user should prove H(x,0) and H(x,x) for every x,
-in `H_zero` and `H_diag` respectively.
-Finally, the user should prove the descent step in `H_desc`,
-and the remaining bases cases in `H_base`. -/
+This proof technique allows one to prove an arbitrary proposition `claim`,
+by running a descent argument on a hyperbola `H` in the first quadrant of the plane,
+under the following conditions:
+
+* `h₀`     : There exists an integral point `(x,y)` on the hyperbola `H`.
+* `H_symm` : The hyperbola has a symmetry along the diagonal in the plane.
+* `H_zero` : If an integral point `(x,0)` lies on the hyperbola `H`, then the claim is true.
+* `H_desc` : If `(x,y)` is an integral point on the hyperbola `H`,
+with `x < y` then there exists a “smaller” point on `H`: a point `(x',y')` with `x' < y' ≤ x`.
+
+For reasons of usability, the hyperbola `H` is implemented as an arbitrary predicate.
+(In question 6 of IMO1988, where this proof technique was first developped,
+the predicate `claim` would be `∃ (d : ℕ), d ^ 2 = k` for some natural number `k`,
+and the predicate `H` would be `λ a b, a * a + b * b = (a * b + 1) * k`.)
+
+To ensure that the predicate `H` actually describes a hyperbola,
+the user must provide arguments `B` and `C` that are used as coefficients for a quadratic equation.
+Finally, `H_quad` is the proof obligation that the quadratic equation
+  `(y:ℤ) * y - B x * y + C x = 0`
+describes the same hyperbola as the predicate `H`.
+
+For extra flexibility, one must provide a predicate `base` on the integral points in the plane.
+In the descent step `H_desc` this will give the user the additional assumption that
+the point `(x,y)` does not lie in this base locus.
+The user must provide a proof that the proposition `claim` is true
+if there exists an integral point `(x,y)` on the hyperbola `H` that lies in the base locus.
+If such a base locus is not necessary, once can simply let it be `λ x y, false`.
+-/
 lemma constant_descent_vieta_jumping (x y : ℕ) {claim : Prop} {H : ℕ → ℕ → Prop}
   (h₀ : H x y) (B : ℕ → ℤ) (C : ℕ → ℤ) (base : ℕ → ℕ → Prop)
   (H_quad : ∀ {x y}, H x y ↔ (y:ℤ) * y - B x * y + C x = 0) (H_symm : ∀ {x y}, H x y ↔ H y x)
   (H_zero : ∀ {x}, H x 0 → claim) (H_diag : ∀ {x}, H x x → claim)
-  (H_desc : ∀ {x y}, x < y → x > 0 → ¬base x y → H x y →
-    ∀ y', y' * y' - B x * y' + C x = 0 → y' = B x - y → y' * y = C x → y' ≥ 0 ∧ y' ≤ x)
+  (H_desc : ∀ {x y}, 0 < x → x < y → ¬base x y → H x y →
+    ∀ y', y' * y' - B x * y' + C x = 0 → y' = B x - y → y' * y = C x → 0 ≤ y' ∧ y' ≤ x)
   (H_base : ∀ {x y}, H x y → base x y → claim) :
   claim :=
 begin
@@ -125,7 +135,7 @@ begin
   -- Finally, it also means that (m_x, m_y) does not lie in the base locus,
   -- that m_x ≠ 0, m_x ≠ m_y, B(m_x) ≠ m_y, and B(m_x) ≠ m_x + m_y.
   rcases h_base with ⟨h_base, hmx, hm_diag, hm_B₁, hm_B₂⟩,
-  replace hmx : mx > 0 := nat.pos_iff_ne_zero.mpr hmx,
+  replace hmx : 0 < mx := nat.pos_iff_ne_zero.mpr hmx,
   -- Consider the quadratic equation that (m_x, m_y) satisfies.
   have h_quad := hHm, rw H_quad at h_quad,
   -- We find the other root of the equation, and Vieta's formulas.
@@ -133,7 +143,7 @@ begin
   -- No we rewrite Vietas formulas a bit, and apply the descent step.
   replace hV₁ : c = B mx - my := eq_sub_of_add_eq' hV₁,
   rw mul_comm at hV₂,
-  have Hc := H_desc mx_lt_my hmx h_base hHm c h_root hV₁ hV₂,
+  have Hc := H_desc hmx mx_lt_my h_base hHm c h_root hV₁ hV₂,
   -- This means that we may assume that c ≥ 0 and c ≤ m_x.
   cases Hc with c_nonneg c_lt,
   -- In other words, c is a natural number.
@@ -201,7 +211,7 @@ begin
                ... ≤ x*x * k       : nat.mul_le_mul_left (x*x) k_lt_one
                ... < (x*x + 1) * k : by apply mul_lt_mul; linarith },
   { -- Show the descent step.
-    intros x y x_lt_y hx hxky h z h_root hV₁ hV₀,
+    intros x y hx x_lt_y hxky h z h_root hV₁ hV₀,
     split,
     { dsimp [-sub_eq_add_neg] at *,
       have hpos : z*z + x*x > 0,

@@ -150,9 +150,6 @@ archimedean_iff_rat_lt.trans
  λ H x, let ⟨n, h⟩ := H x in ⟨n+1,
    lt_of_le_of_lt h (rat.cast_lt.2 (lt_add_one _))⟩⟩
 
-/-- `round` rounds a number to the nearest integer. `round (1 / 2) = 1` -/
-def round [floor_ring α] (x : α) : ℤ := ⌊x + 1 / 2⌋
-
 variable [archimedean α]
 
 theorem exists_rat_lt (x : α) : ∃ q : ℚ, (q : α) < x :=
@@ -177,7 +174,7 @@ begin
   { rw [rat.coe_nat_denom, nat.cast_one], exact one_ne_zero }
 end
 
-theorem exists_nat_one_div_lt {ε : α} (hε : ε > 0) : ∃ n : ℕ, 1 / (n + 1: α) < ε :=
+theorem exists_nat_one_div_lt {ε : α} (hε : 0 < ε) : ∃ n : ℕ, 1 / (n + 1: α) < ε :=
 begin
   cases archimedean_iff_nat_lt.1 (by apply_instance) (1/ε) with n hn,
   existsi n,
@@ -207,13 +204,10 @@ end
 end linear_ordered_field
 
 section
-variables [discrete_linear_ordered_field α] [archimedean α]
+variables [discrete_linear_ordered_field α]
 
-theorem exists_rat_near (x : α) {ε : α} (ε0 : ε > 0) :
-  ∃ q : ℚ, abs (x - q) < ε :=
-let ⟨q, h₁, h₂⟩ := exists_rat_btwn $
-  lt_trans ((sub_lt_self_iff x).2 ε0) ((lt_add_iff_pos_left x).2 ε0) in
-⟨q, abs_sub_lt_iff.2 ⟨sub_lt.1 h₁, sub_lt_iff_lt_add.2 h₂⟩⟩
+/-- `round` rounds a number to the nearest integer. `round (1 / 2) = 1` -/
+def round [floor_ring α] (x : α) : ℤ := ⌊x + 1 / 2⌋
 
 lemma abs_sub_round [floor_ring α] (x : α) : abs (x - round x) ≤ 1 / 2 :=
 begin
@@ -223,11 +217,18 @@ begin
   split; linarith
 end
 
+variable [archimedean α]
+
+theorem exists_rat_near (x : α) {ε : α} (ε0 : 0 < ε) :
+  ∃ q : ℚ, abs (x - q) < ε :=
+let ⟨q, h₁, h₂⟩ := exists_rat_btwn $
+  lt_trans ((sub_lt_self_iff x).2 ε0) ((lt_add_iff_pos_left x).2 ε0) in
+⟨q, abs_sub_lt_iff.2 ⟨sub_lt.1 h₁, sub_lt_iff_lt_add.2 h₂⟩⟩
+
 instance : archimedean ℚ :=
 archimedean_iff_rat_le.2 $ λ q, ⟨q, by rw rat.cast_id⟩
 
-@[simp] theorem rat.cast_round {α : Type*} [discrete_linear_ordered_field α]
-  [archimedean α] (x : ℚ) : by haveI := archimedean.floor_ring α;
+@[simp] theorem rat.cast_round (x : ℚ) : by haveI := archimedean.floor_ring α;
   exact round (x:α) = round x :=
 have ((x + (1 : ℚ) / (2 : ℚ) : ℚ) : α) = x + 1 / 2, by simp,
 by rw [round, round, ← this, rat.cast_floor]

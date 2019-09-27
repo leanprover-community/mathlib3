@@ -147,6 +147,7 @@ begin
   exact degrees_X _
 end
 
+set_option class.instance_max_depth 50
 lemma indicator_mem_restrict_degree (c : σ → α) :
   indicator c ∈ restrict_degree σ α (fintype.card α - 1) :=
 begin
@@ -172,11 +173,9 @@ def evalₗ : mv_polynomial σ α →ₗ[α] (σ → α) → α :=
 end
 
 section
-
-set_option class.instance_max_depth 38
-
-lemma evalₗ_apply (p : mv_polynomial σ α) (e : σ → α) : (evalₗ α σ) p e = p.eval e := rfl
-
+set_option class.instance_max_depth 50
+lemma evalₗ_apply (p : mv_polynomial σ α) (e : σ → α) : evalₗ α σ p e = p.eval e :=
+rfl
 end
 
 lemma map_restrict_dom_evalₗ : (restrict_degree σ α (fintype.card α - 1)).map (evalₗ α σ) = ⊤ :=
@@ -210,6 +209,7 @@ noncomputable instance decidable_restrict_degree (m : ℕ) :
   decidable_pred (λn, n ∈ {n : σ →₀ ℕ | ∀i, n i ≤ m }) :=
 by simp only [set.mem_set_of_eq]; apply_instance
 
+set_option class.instance_max_depth 60
 lemma dim_R : vector_space.dim α (R σ α) = fintype.card (σ → α) :=
 calc vector_space.dim α (R σ α) =
   vector_space.dim α (↥{s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card α - 1} →₀ α) :

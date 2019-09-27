@@ -125,6 +125,16 @@ do e ← tactic.get_env,
              then s.insert d.to_name d else s),
    pure xs
 
+/-- If `{nm}_{n}` doesn't exist in the environment, returns that, otherwise tries `{nm}_{n+1}` -/
+meta def get_unused_decl_name_aux (e : environment) (nm : name) : ℕ → tactic name | n :=
+let nm' := nm.append_suffix ("_" ++ to_string n) in
+if e.contains nm' then get_unused_decl_name_aux (n+1) else return nm'
+
+/-- Return a name which doesn't already exist in the environment. If `nm` doesn't exist, it
+  returns that, otherwise it tries nm_2, nm_3, ... -/
+meta def get_unused_decl_name (nm : name) : tactic name :=
+get_env >>= λ e, if e.contains nm then get_unused_decl_name_aux e nm 2 else return nm
+
 /--
 Returns a pair (e, t), where `e ← mk_const d.to_name`, and `t = d.type`
 but with universe params updated to match the fresh universe metavariables in `e`.

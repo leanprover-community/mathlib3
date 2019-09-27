@@ -19,8 +19,6 @@ instance division_ring.to_domain [s : division_ring α] : domain α :=
       division_ring.mul_ne_zero (mt or.inl hn) (mt or.inr hn) h
   ..s }
 
-@[simp] theorem inv_one [division_ring α] : (1⁻¹ : α) = 1 := by rw [inv_eq_one_div, one_div_one]
-
 @[simp] theorem inv_inv' [discrete_field α] (x : α) : x⁻¹⁻¹ = x :=
 if h : x = 0
 then by rw [h, inv_zero, inv_zero]

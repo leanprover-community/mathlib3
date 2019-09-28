@@ -192,7 +192,7 @@ def gsmul (n : ℤ) (a : β) : β :=
 
 @[priority 10] instance group.has_pow : has_pow α ℤ := ⟨gpow⟩
 
-localized "infix ` • `:70 := gsmul" in group
+localized "infix ` • `:70 := gsmul" in add_group
 localized "infix ` •ℕ `:70 := add_monoid.smul" in smul
 localized "infix ` •ℤ `:70 := gsmul" in smul
 

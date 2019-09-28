@@ -114,7 +114,7 @@ theorem monotone_id : @monotone α α _ _ id := assume x y h, h
 
 theorem monotone_const {b : β} : monotone (λ(a:α), b) := assume x y h, le_refl b
 
-theorem monotone_comp {f : α → β} {g : β → γ} (m_f : monotone f) (m_g : monotone g) :
+protected theorem monotone.comp {g : β → γ} {f : α → β} (m_g : monotone g) (m_f : monotone f) :
   monotone (g ∘ f) :=
 assume a b h, m_g (m_f h)
 

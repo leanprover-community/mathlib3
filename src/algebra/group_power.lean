@@ -17,8 +17,6 @@ import data.int.basic data.list.basic
 universes u v
 variable {α : Type u}
 
-@[simp] theorem inv_one [division_ring α] : (1⁻¹ : α) = 1 := by rw [inv_eq_one_div, one_div_one]
-
 /-- The power operation in a monoid. `a^n = a*a*...*a` n times. -/
 def monoid.pow [monoid α] (a : α) : ℕ → α
 | 0     := 1

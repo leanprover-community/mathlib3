@@ -1190,7 +1190,7 @@ Multiple instances can be added with `@[derive [ring, module ℝ]]`.
      (intros >> reset_instance_cache >> delta_target [new_decl_name]  >> apply_instance >> done),
    inst ← instantiate_mvars inst,
    tgt ← instantiate_mvars tgt,
-   nm ← get_unused_name $ new_decl_name ++
+   nm ← get_unused_decl_name $ new_decl_name ++
      match cls with
      -- the postfix is needed because we can't protect this name. using nm.last directly can
      -- conflict with open namespaces

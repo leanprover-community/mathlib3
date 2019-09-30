@@ -39,7 +39,7 @@ begin
   simp only [lift_id] at this,
   rw [← this, lt_omega_iff_fintype, ← @set.set_of_mem_eq _ b, ← subtype.val_range],
   split,
-  { intro, convert finite_of_linear_independent hb.1, simp },
+  { intro, resetI, convert finite_of_linear_independent hb.1, simp },
   { assume hbfinite,
     refine @is_noetherian_of_linear_equiv K (⊤ : submodule K V) V _
       _ _ _ _ (linear_equiv.of_top _ rfl) (id _),

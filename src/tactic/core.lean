@@ -1180,10 +1180,16 @@ For example,
 adds an instance `ring new_int`, defined to be the instance of `ring ℤ` found by `apply_instance`.
 
 Multiple instances can be added with `@[derive [ring, module ℝ]]`.
+
+This derive handler applies only to declarations made using `def`, and will fail on such a
+declaration if it is unable to derive an instance. It is run with higher priority than the built-in
+handlers, which will fail on `def`s.
 -/
-@[derive_handler] meta def delta_instance : derive_handler :=
+@[derive_handler, priority 1000] meta def delta_instance : derive_handler :=
 λ cls new_decl_name,
-(do new_decl_type ← declaration.type <$> get_decl new_decl_name,
+do env ← get_env,
+if env.is_inductive new_decl_name then return ff else
+do new_decl_type ← declaration.type <$> get_decl new_decl_name,
    new_decl_pexpr ← resolve_name new_decl_name,
    tgt ← to_expr $ apply_under_pis cls new_decl_pexpr new_decl_type,
    (_, inst) ← solve_aux tgt
@@ -1199,7 +1205,7 @@ Multiple instances can be added with `@[derive [ring, module ℝ]]`.
      end,
    add_decl $ mk_definition nm inst.collect_univ_params tgt inst,
    set_basic_attribute `instance nm tt,
-   return tt) <|> return ff
+   return tt
 
 /-- `find_private_decl n none` finds a private declaration named `n` in any of the imported files.
 

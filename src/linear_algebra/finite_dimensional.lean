@@ -34,7 +34,6 @@ open is_noetherian
 
 lemma finite_dimensional_iff_dim_lt_omega : finite_dimensional K V ↔ dim K V < omega.{v} :=
 begin
-  letI := classical.dec_eq V,
   cases exists_is_basis K V with b hb,
   have := is_basis.mk_eq_dim hb,
   simp only [lift_id] at this,

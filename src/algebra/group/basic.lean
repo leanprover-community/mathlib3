@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Simon Hudon, Mario Carneiro
 
 Various multiplicative and additive structures.
 -/
-import algebra.group.to_additive
+import algebra.group.to_additive logic.function
 
 universe u
 variable {α : Type u}
@@ -241,3 +241,6 @@ section add_monoid
   show 0+0+1=(1:α), by rw [zero_add, zero_add]
 
 end add_monoid
+
+@[to_additive]
+lemma inv_involutive {α} [group α] : function.involutive (has_inv.inv : α → α) := inv_inv

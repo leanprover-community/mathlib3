@@ -295,3 +295,52 @@ do
 -- a VM check error, and instead catch the error gracefully and just
 -- run and succeed silently.
 test_parser1
+
+section is_eta_expansion
+/- test the is_eta_expansion tactic -/
+open function tactic
+structure equiv (α : Sort*) (β : Sort*) :=
+(to_fun    : α → β)
+(inv_fun   : β → α)
+(left_inv  : left_inverse inv_fun to_fun)
+(right_inv : right_inverse inv_fun to_fun)
+
+infix ` ≃ `:25 := equiv
+
+protected def my_rfl {α} : α ≃ α :=
+⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
+
+def eta_expansion_test : ℕ × ℕ := ((1,0).1,(1,0).2)
+run_cmd do e ← get_env, x ← e.get `eta_expansion_test,
+  let v := (x.value.get_app_args).drop 2,
+  let nms := [`prod.fst, `prod.snd],
+  guard $ expr.is_eta_expansion_test (nms.zip v) = some `((1, 0))
+
+def eta_expansion_test2 : ℕ ≃ ℕ :=
+⟨my_rfl.to_fun, my_rfl.inv_fun, λ x, rfl, λ x, rfl⟩
+
+run_cmd do e ← get_env, x ← e.get `eta_expansion_test2,
+  let v := (x.value.get_app_args).drop 2,
+  projs ← e.get_projections `equiv,
+  b ← expr.is_eta_expansion_aux x.value (projs.zip v),
+  guard $ b = some `(@my_rfl ℕ)
+
+run_cmd do e ← get_env, x1 ← e.get `eta_expansion_test, x2 ← e.get `eta_expansion_test2,
+  b1 ← expr.is_eta_expansion x1.value,
+  b2 ← expr.is_eta_expansion x2.value,
+  guard $ b1 = some `((1, 0)) ∧ b2 = some `(@my_rfl ℕ)
+
+structure my_str (n : ℕ) := (x y : ℕ)
+
+def dummy : my_str 3 := ⟨3, 1, 1⟩
+def wrong_param : my_str 2 := ⟨2, dummy.1, dummy.2⟩
+def right_param : my_str 3 := ⟨3, dummy.1, dummy.2⟩
+
+run_cmd do e ← get_env,
+  x ← e.get `wrong_param, o ← x.value.is_eta_expansion,
+  guard o.is_none,
+  x ← e.get `right_param, o ← x.value.is_eta_expansion,
+  guard $ o = some `(dummy)
+
+
+end is_eta_expansion

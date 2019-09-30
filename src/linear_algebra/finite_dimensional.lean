@@ -97,7 +97,7 @@ begin
   letI : fintype bS := classical.choice (finite_of_linear_independent hbS.1),
   have : subtype.val '' bS = b, from set.eq_of_subset_of_card_le hb.1
     (by rw [set.card_image_of_injective _ subtype.val_injective, card_eq_findim hbS,
-         card_eq_findim hb.2, h]),
+         card_eq_findim hb.2, h]; apply_instance),
   erw [← hb.2.2, subtype.val_range, ← this, set.set_of_mem_eq, ← subtype_eq_val, span_image],
   have := hbS.2,
   erw [subtype.val_range, set.set_of_mem_eq] at this,

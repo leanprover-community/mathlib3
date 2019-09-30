@@ -1042,8 +1042,10 @@ section module
 variables {η : Type*} {ιs : η → Type*} {φ : η → Type*}
 variables [ring α] [∀i, add_comm_group (φ i)] [∀i, module α (φ i)] [decidable_eq η]
 
+variables [decidable_eq (Π (i : η), φ i)] [∀ i j, decidable_eq (φ i →ₗ[α] φ j)]
+local attribute [instance] dfinsupp.to_module
+
 lemma linear_independent_std_basis [∀ j, decidable_eq (ιs j)]  [∀ i, decidable_eq (φ i)]
-  [decidable_eq (Π (i : η), φ i)]
   (v : Πj, ιs j → (φ j)) (hs : ∀i, linear_independent α (v i)) :
   linear_independent α (λ (ji : Σ j, ιs j), std_basis α φ ji.1 (v ji.1 ji.2)) :=
 begin
@@ -1071,71 +1073,41 @@ begin
       rw ←@set_of_mem_eq _ {j},
       refl },
     refine disjoint_mono h₁ h₂
-      (disjoint_std_basis_std_basis _ _ _ _ h₃), }
+      (disjoint_std_basis_std_basis _ _ _ _ h₃) }
 end
 
-variables [decidable_eq (Π (i : η), φ i)] [∀ i j, decidable_eq (φ i →ₗ[α] φ j)]
-local attribute [instance] dfinsupp.to_module
-
-lemma linear_independent_std_basis₀ [∀ j, decidable_eq (ιs j)]  [∀ i, decidable_eq (φ i)]
-  (v : Πj, ιs j → (φ j)) (hs : ∀i, linear_independent α (v i)) :
-  linear_independent α (λ (ji : Σ j, ιs j), std_basis₀ α φ ji.1 (v ji.1 ji.2)) :=
-begin
-  have hs' : ∀j : η, linear_independent α (λ i : ιs j, std_basis₀ α φ j (v j i)),
-  { intro j,
-    apply linear_independent.image (hs j),
-    simp [ker_std_basis₀] },
-  apply linear_independent_Union_finite hs',
-  { assume j J _ hiJ,
-    simp [(set.Union.equations._eqn_1 _).symm, submodule.span_image, submodule.span_Union],
-    have h₀ : ∀ j, span α (range (λ (i : ιs j), std_basis₀ α φ j (v j i)))
-        ≤ range (std_basis₀ α φ j),
-    { intro j,
-      rw [span_le, linear_map.range_coe],
-      apply range_comp_subset_range },
-    have h₁ : span α (range (λ (i : ιs j), std_basis₀ α φ j (v j i)))
-        ≤ ⨆ i ∈ {j}, range (std_basis₀ α φ i),
-    { rw @supr_singleton _ _ _ (λ i, linear_map.range (std_basis₀ α (λ (j : η), φ j) i)),
-      apply h₀ },
-    have h₂ : (⨆ j ∈ J, span α (range (λ (i : ιs j), std_basis₀ α φ j (v j i)))) ≤
-               ⨆ j ∈ J, range (std_basis₀ α (λ (j : η), φ j) j) :=
-      supr_le_supr (λ i, supr_le_supr (λ H, h₀ i)),
-    have h₃ : disjoint (λ (i : η), i ∈ {j}) J,
-    { convert set.disjoint_singleton_left.2 hiJ,
-      rw ←@set_of_mem_eq _ {j},
-      refl },
-    refine disjoint_mono h₁ h₂
-      (disjoint_std_basis_std_basis₀ _ _ _ _ h₃) }
-end
-
-lemma is_basis_std_basis₀ [∀ j, decidable_eq (ιs j)] [∀ j, decidable_eq (φ j)]
+lemma is_basis_std_basis [∀ j, decidable_eq (ιs j)] [∀ j, decidable_eq (φ j)]
   (s : Πj, ιs j → (φ j)) (hs : ∀j, is_basis α (s j)) :
-  is_basis α (λ (ji : Σ j, ιs j), (std_basis₀ α φ ji.1).to_fun (s ji.1 ji.2)) :=
+  is_basis α (λ (ji : Σ j, ιs j), (std_basis α φ ji.1).to_fun (s ji.1 ji.2)) :=
 begin
   split,
-  { apply linear_independent_std_basis₀ _ (assume i, (hs i).1) },
-  have h₁ : Union (λ j, set.range (std_basis₀ α φ j ∘ s j))
-    ⊆ range (λ (ji : Σ (j : η), ιs j), std_basis₀ α φ ji.fst (s (ji.fst) (ji.snd))),
+  { apply linear_independent_std_basis _ (assume i, (hs i).1) },
+  have h₁ : Union (λ j, set.range (std_basis α φ j ∘ s j))
+    ⊆ range (λ (ji : Σ (j : η), ιs j), std_basis α φ ji.fst (s (ji.fst) (ji.snd))),
   { apply Union_subset, intro i,
     apply range_comp_subset_range (λ x : ιs i, (⟨i, x⟩ : Σ (j : η), ιs j))
-        (λ (ji : Σ (j : η), ιs j), std_basis₀ α φ ji.fst (s (ji.fst) (ji.snd))) },
-  have h₂ : ∀ i, span α (range (std_basis₀ α φ i ∘ s i)) = (std_basis₀ α φ i).range,
+        (λ (ji : Σ (j : η), ιs j), std_basis α φ ji.fst (s (ji.fst) (ji.snd))) },
+  have h₂ : ∀ i, span α (range (std_basis α φ i ∘ s i)) = (std_basis α φ i).range,
   { intro i,
     rw [set.range_comp, submodule.span_image, (assume i, (hs i).2), submodule.map_top] },
   apply eq_top_mono,
   apply span_mono h₁,
   rw span_Union,
   simp only [h₂],
-  apply supr_range_std_basis₀
+  apply supr_range_std_basis
 end
 
 variables [∀i, decidable_eq (φ i)]
+/-- For finite `η`, finitely supported functions `Π₀i:η, φ i` are equivalent to functions
+`Πi:η, φ i`. -/
 def dfinsupp_equiv_pi_fintype [fintype η] : (Π₀i, φ i) ≃ (Πi, φ i) :=
 { to_fun := λ f i, f i,
   inv_fun := λ f, dfinsupp.mk finset.univ (λ i, f i),
   left_inv := λ f, dfinsupp.ext $ λ i, dif_pos (finset.mem_univ i),
   right_inv := λ f, funext $ λ i, dif_pos (finset.mem_univ i) }
 
+/-- Dependend finitely supported functions with domain `η` and constant codomain `β` are equivalent
+to finitely supported functions `η →₀ β`. -/
 def dfinsupp_equiv_finsupp {β} [has_zero β] [decidable_eq β] : (Π₀i, (λ _:η, β) i) ≃ (η →₀ β) :=
 { to_fun := λ f, ⟨f.support, f, f.mem_support_iff⟩,
   inv_fun := λ f, ⟦⟨f, f.support.val, λ i,
@@ -1146,13 +1118,18 @@ def dfinsupp_equiv_finsupp {β} [has_zero β] [decidable_eq β] : (Π₀i, (λ _
 section linear_equiv
 variable (α)
 
+/-- For finite `η`, finitely supported functions `Π₀i:η, φ i` are linearly equivalent to functions
+`Πi:η, φ i`. -/
 def dfinsupp_linear_equiv_pi_fintype [fintype η] : (Π₀i, φ i) ≃ₗ[α] (Πi, φ i) :=
 dfinsupp_equiv_pi_fintype.to_linear_equiv
   ⟨λ f g, funext $ λ _, dfinsupp.add_apply, λ c f, funext $ λ _, dfinsupp.smul_apply ⟩
 
+/-- Dependend finitely supported functions with domain `η` and constant codomain `β` are linearly
+equivalent to finitely supported functions `η →₀ β`. -/
 def dfinsupp_linear_equiv_finsupp {β} [add_comm_group β] [decidable_eq β] [module α β] :
   (Π₀i, (λ _:η, β) i) ≃ₗ[α] (η →₀ β) :=
-(@dfinsupp_equiv_finsupp η _ β _ _).to_linear_equiv ⟨λ f g, sorry, λ c f, sorry⟩
+(@dfinsupp_equiv_finsupp η _ β _ _).to_linear_equiv
+  ⟨λ f g, finsupp.ext $ (λ _, dfinsupp.add_apply), λ c f, finsupp.ext $ (λ _, dfinsupp.smul_apply)⟩
 
 end linear_equiv
 
@@ -1160,16 +1137,17 @@ section
 variables (α ι)
 variables [decidable_eq (Π (i : η), α)] [decidable_eq (α →ₗ[α] α)] [fintype η] --TODO: (re)move
 
---move to basic.lean
+--move
+/-- Standard basis for functions -/
 def std_basis_fun (φ : η → Type*) [∀i, add_comm_group (φ i)] [∀i, module α (φ i)]
   [∀i,  decidable_eq (φ i)] [∀i j, decidable_eq (φ i →ₗ[α] φ j)]
   (i : η) :  φ i →ₗ[α] (Πi, φ i) :=
-(dfinsupp_linear_equiv_pi_fintype α).to_linear_map.comp (std_basis₀ α φ i)
+(dfinsupp_linear_equiv_pi_fintype α).to_linear_map.comp (std_basis α φ i)
 
 lemma is_basis_std_basis_fun [fintype η] [∀ j, decidable_eq (ιs j)]
   (s : Πj, ιs j → (φ j)) (hs : ∀j, is_basis α (s j)) :
   is_basis α (λ (ji : Σ j, ιs j), std_basis_fun α (λ j, φ j) ji.1 (s ji.1 ji.2)) :=
-(dfinsupp_linear_equiv_pi_fintype α).is_basis (is_basis_std_basis₀ s hs)
+(dfinsupp_linear_equiv_pi_fintype α).is_basis (is_basis_std_basis s hs)
 
 lemma is_basis_fun₀ : is_basis α
   (λ (ji : Σ (j : η), (λ _, unit) j), (std_basis_fun α (λ (i : η), α) (ji.fst)) 1) :=
@@ -1190,32 +1168,6 @@ begin
     rw [unique.eq_default b, unique.eq_default punit.star] },
 end
 
-/-lemma is_basis_std_basis [fintype η] [∀ j, decidable_eq (ιs j)]
-  (s : Πj, ιs j → (φ j)) (hs : ∀j, is_basis α (s j)) :
-  is_basis α ((dfinsupp_linear_equiv_pi_fintype α).to_fun ∘
-    λ (ji : Σ j, ιs j), std_basis₀ α (λ j, φ j) ji.1 (s ji.1 ji.2)) :=
-(dfinsupp_linear_equiv_pi_fintype α).is_basis (is_basis_std_basis₀ s hs)
-
-lemma is_basis_fun₀ : is_basis α
-    ((dfinsupp_linear_equiv_pi_fintype α).to_fun ∘ λ (ji : Σ (j : η), (λ _, unit) j),
-       (std_basis₀ α (λ (i : η), α) (ji.fst)) 1) :=
-begin
-  haveI := classical.dec_eq,
-  apply @is_basis_std_basis α _ η (λi:η, unit) (λi:η, α) _ _ _ _ _ _ _ _ _ (λ _ _, (1 : α))
-      (assume i, @is_basis_singleton_one _ _ _ _ _ _),
-end
-
-lemma is_basis_fun :
-  is_basis α ((dfinsupp_linear_equiv_pi_fintype α).to_fun ∘ λ i, std_basis₀ α (λi:η, α) i 1) :=
-begin
-  apply is_basis.comp (is_basis_fun₀ α) (λ i, ⟨i, punit.star⟩),
-  { apply bijective_iff_has_inverse.2,
-    use (λ x, x.1),
-    simp [function.left_inverse, function.right_inverse],
-    intros _ b,
-    rw [unique.eq_default b, unique.eq_default punit.star] },
-end-/
-
 end
 
 end module
@@ -1228,39 +1180,13 @@ open linear_map
 variables (η : Type*) [decidable_eq η]
 variables [ring α] [add_comm_group β] [module α β]
 
---def std_basis₀ (hv : is_basis α v) (i : η × ι) : η →₀ β := single i.1 (v i.2)
+open pi --remove
+variables [decidable_eq (β →ₗ[α] β)] [decidable_eq (η → β)] --remove
+local attribute [instance] dfinsupp.to_module --remove?
 
-/-lemma is_basis_finsupp (hv : is_basis α v) : is_basis α (std_basis₀ η hv) :=
-begin
-  have h : ∀ f g, (finsupp.total (η × ι) (η →₀ β) α (λ i, std_basis₀ η hv i)) f = g ↔
-    ∀ n, (finsupp.total ι β α v) (finsupp.curry f n) = g n,
-    { intros f g,
-      rw [total_apply],
-      conv in (_ • _) { rw [std_basis₀, smul_single] },
-      rw [←sum_curry_index f (λ (n:η) (i:ι) (a:α), single n (a • v i))],
-      { conv_lhs { congr, congr, skip, funext, rw [←single_sum] },
-        rw [sum_single_range _ (λ f:ι →₀ α, f.sum (λ i a, a • v i)) sum_zero_index, ext_iff],
-        split, all_goals { intros h n, replace h := h n, simpa } },
-      { intros _ _, dsimp, rw [zero_smul, single_zero] },
-      { intros _ _ _ _, dsimp, rw [add_smul, single_add] } },
-  split,
-  { rw [linear_independent_iff],
-    intros f hf,
-    ext i,
-    rw [h] at hf,
-    have : _ = _, from congr_arg (λ g:ι →₀ α, g i.2) (linear_independent_iff.mp hv.1 _ (hf i.1)),
-    rwa [curry_apply, prod.mk.eta] at this },
-  { rw [submodule.eq_top_iff'],
-    intro g,
-    rw [←set.image_univ, mem_span_iff_total],
-    let f := finsupp.uncurry (map_range hv.repr.to_fun hv.repr.map_zero g),
-    have H : f ∈ supported α α set.univ, { rw [supported_univ], exact submodule.mem_top },
-    existsi [f, H],
-    rw [h],
-    intro n,
-    rw [show finsupp.curry f = _, from finsupp_prod_equiv.right_inv _, map_range_apply],
-    change (linear_map.comp (finsupp.total ι β α v) (is_basis.repr hv)) (g n) = g n,
-    rw [hv.total_comp_repr, linear_map.id_apply] },
-end-/
+lemma is_basis_finsupp [decidable_eq β] [decidable_eq ι] (hv : is_basis α v) :
+  is_basis α ((@dfinsupp_linear_equiv_finsupp α _ η _ _ β _ _ _).to_fun ∘
+    λ (ji : Σ j:η, ι), (std_basis α (λ _:η, β) ji.1 (v ji.2))) :=
+(dfinsupp_linear_equiv_finsupp α).is_basis (is_basis_std_basis _ (λ i:η, hv))
 
 end finsupp

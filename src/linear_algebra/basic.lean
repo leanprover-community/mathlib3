@@ -1367,6 +1367,187 @@ def scalar_prod_space_iso {α β γ : Type*} [comm_ring α] [add_comm_group β] 
 
 end prod
 
+section dfinsupp
+open dfinsupp
+
+universe i
+variables {φ : ι → Type i}
+variables [decidable_eq ι] [∀i, add_comm_group (φ i)] [∀i, module α (φ i)]
+variables [∀i, decidable_eq (γ →ₗ[α] φ i)] --needed?
+
+local attribute [instance] dfinsupp.to_module
+
+/-- `pi` construction for finitely-supported linear functions. From a finitely-supported family of
+linear functions it produces a linear function into a finitely-supported family of modules. -/
+def pi₀ (f : Π₀i, γ →ₗ[α] φ i) : γ →ₗ[α] (Π₀i, φ i) :=
+⟨λc, dfinsupp.mk f.support (λ i, f i c),
+  assume c d, by { simp only [map_add], convert mk_add },
+  assume c d, by { simp only [map_smul], exact mk_smul α _ }⟩
+
+@[simp] lemma pi₀_apply (f : Π₀i, γ →ₗ[α] φ i) (c : γ) (i : ι) :
+  pi₀ f c i = f i c :=
+by { rw [pi₀], dsimp, split_ifs with h h, refl, { rw [mem_support_iff, ne.def, not_not] at h, rw h, refl } }
+
+lemma ker_pi₀ (f : Π₀i, γ →ₗ[α] φ i) : ker (pi₀ f) = (⨅i:ι, ker (f i)) :=
+by { ext c, simp [dfinsupp.ext_iff] }
+
+lemma pi₀_eq_zero (f : Π₀i, γ →ₗ[α] φ i) : pi₀ f = 0 ↔ (∀i, f i = 0) :=
+by { simp only [linear_map.ext_iff, pi₀_apply, dfinsupp.ext_iff],
+  exact ⟨λh a b, h b a, λh a b, h b a⟩ }
+
+lemma pi₀_zero : pi₀ (0 : Π₀i, γ →ₗ[α] φ i) = 0 :=
+by ext; refl
+
+/-- Linear projection -/
+def proj₀ (i : ι) : (Π₀i, φ i) →ₗ[α] φ i :=
+⟨ λa, a i, assume f g, dfinsupp.add_apply, assume c f, dfinsupp.smul_apply ⟩
+
+@[simp] lemma proj₀_apply (i : ι) (b : Π₀i, φ i) : (proj₀ i : (Π₀i, φ i) →ₗ[α] φ i) b = b i := rfl
+
+lemma proj₀_pi₀ (f : Π₀i, γ →ₗ[α] φ i) (i : ι) : (proj₀ i).comp (pi₀ f) = f i :=
+ext $ assume c, pi₀_apply _ c _
+
+lemma infi_ker_proj₀ : (⨅i, ker (proj₀ i) : submodule α (Π₀i, φ i)) = ⊥ :=
+bot_unique $ submodule.le_def'.2 $ assume a h,
+begin
+  simp only [mem_infi, mem_ker, proj₀_apply] at h,
+  exact (mem_bot _).2 (dfinsupp.ext h)
+end
+
+/-- `diag₀ i j` is the identity map if `i = j` otherwise it is the constant 0 map. -/
+def diag (i : ι) : Π₀j, (φ i →ₗ[α] φ j) :=
+dfinsupp.mk (finset.singleton i) (λ j, @function.update ι (λj, φ i →ₗ[α] φ j) _ 0 i id j)
+
+lemma update_apply (f : Πi, γ →ₗ[α] φ i) (c : γ) (i j : ι) (b : γ →ₗ[α] φ i) :
+  (update f i b j) c = update (λi, f i c) i (b c) j :=
+begin
+  by_cases j = i,
+  { rw [h, update_same, update_same] },
+  { rw [update_noteq h, update_noteq h] }
+end
+
+lemma diag_apply (i j : ι) (c : φ i) :
+  (diag i : Π₀j, φ i →ₗ[α] φ j) j c = @function.update ι (λj, φ i →ₗ[α] φ j) _ 0 i id j c :=
+by { rw [diag, mk_apply], dsimp, split_ifs with h h, { rw [dif_pos h] },
+  { rw [dif_neg h], rw [finset.mem_singleton] at h, rw [update_noteq h], refl } }
+
+section
+variables (α φ) [∀ i j, decidable_eq (φ i →ₗ[α] φ j)] --needed?
+
+/-- Standard basis -/
+def std_basis (i : ι) : φ i →ₗ[α] (Π₀i, φ i) := pi₀ (diag i)
+
+lemma std_basis_apply (i j : ι) (b : φ i) : std_basis α φ i b j = update 0 i b j :=
+by { rw [std_basis, pi₀_apply, diag_apply, update_apply], refl }
+
+@[simp] lemma std_basis_same (i : ι) (b : φ i) : std_basis α φ i b i = b :=
+by rw [std_basis_apply, update_same]
+
+lemma std_basis_ne (i j : ι) (h : j ≠ i) (b : φ i) : std_basis α φ i b j = 0 :=
+by { rw [std_basis_apply, update_noteq h], refl }
+
+lemma ker_std_basis (i : ι) : ker (std_basis α φ i) = ⊥ :=
+ker_eq_bot.2 $ assume f g hfg,
+  have std_basis α φ i f i = std_basis α φ i g i := hfg ▸ rfl,
+  by simpa only [std_basis_same]
+
+lemma proj_comp_std_basis (i j : ι) :
+  (proj₀ j).comp (std_basis α φ i) = (diag i : Π₀j, φ i →ₗ[α] φ j) j :=
+by rw [std_basis, proj₀_pi₀]
+
+lemma proj_std_basis_same (i : ι) : (proj₀ i).comp (std_basis α φ i) = id :=
+by ext b; simp
+
+lemma proj₀_std_basis_ne (i j : ι) (h : i ≠ j) : (proj₀ i).comp (std_basis α φ j) = 0 :=
+by { ext b, simp [std_basis_ne α φ _ _ h] }
+
+lemma supr_range_std_basis_le_infi_ker_proj (I J : set ι) (h : disjoint I J) :
+  (⨆i∈I, range (std_basis α φ i)) ≤ (⨅i∈J, ker (proj₀ i)) :=
+begin
+  refine (supr_le $ assume i, supr_le $ assume hi, range_le_iff_comap.2 _),
+  simp only [(ker_comp _ _).symm, eq_top_iff, le_def', mem_ker, comap_infi, mem_infi],
+  assume b hb j hj,
+  have : i ≠ j := assume eq, h ⟨hi, eq.symm ▸ hj⟩,
+  rw [proj₀_std_basis_ne α φ j i this.symm, zero_apply]
+end
+
+section
+variable [∀i, decidable_eq (φ i)]
+
+lemma infi_ker_proj_le_supr_range_std_basis {I J : set ι} (hu : set.univ ⊆ I ∪ J) :
+  (⨅ i∈J, ker (proj₀ i)) ≤ (⨆i∈I, (std_basis α φ i).range) :=
+submodule.le_def'.2
+begin
+  assume b hb,
+  simp only [mem_infi, mem_ker, proj₀_apply] at hb,
+  have : ∀ i, i ∈ b.support → i ∈ I,
+  { intros i hib,
+    refine set.mem_union.elim (set.mem_of_subset_of_mem hu $ set.mem_univ i) (λ h, h) _,
+    rw [dfinsupp.mem_support_iff, ne.def] at hib,
+    intro hiJ,
+    exfalso,
+    exact hib (hb i hiJ) },
+  rw ← show b.support.sum (λi, std_basis α φ i (b i)) = b,
+  { ext i,
+    rw [@finset_sum_apply _ φ _ _ _, ← std_basis_same α φ i (b i)],
+    refine finset.sum_eq_single i (assume j hjI ne, std_basis_ne _ _ _ _ ne.symm _) _,
+    assume hiI,
+    rw [std_basis_same],
+    rwa [dfinsupp.mem_support_iff, ne.def, not_not] at hiI },
+  exact sum_mem _ (assume i hiI, mem_supr_of_mem _ i $ mem_supr_of_mem _ (this i hiI) $
+    linear_map.mem_range.2 ⟨_, rfl⟩)
+end
+
+lemma supr_range_std_basis_eq_infi_ker_proj {I J : set ι} (hd : disjoint I J)
+  (hu : set.univ ⊆ I ∪ J) : (⨆i∈I, range (std_basis α φ i)) = (⨅i∈J, ker (proj₀ i)) :=
+begin
+  refine le_antisymm (supr_range_std_basis_le_infi_ker_proj _ _ _ _ hd) _,
+  refine le_trans (infi_ker_proj_le_supr_range_std_basis α φ hu) (supr_le_supr $ assume i, _),
+  exact le_refl _
+end
+
+lemma supr_range_std_basis : (⨆i:ι, range (std_basis α φ i)) = ⊤ :=
+have (set.univ : set ι) ⊆ set.univ ∪ ∅ := set.subset_union_left _ _,
+begin
+  apply top_unique,
+  convert (infi_ker_proj_le_supr_range_std_basis α φ this),
+  exact infi_emptyset.symm,
+  exact (funext $ λi, (@supr_pos _ _ _ (λh, (std_basis α φ i).range) $ set.mem_univ i).symm)
+end
+end
+
+lemma disjoint_std_basis_std_basis (I J : set ι) (h : disjoint I J) :
+  disjoint (⨆i∈I, range (std_basis α φ i)) (⨆i∈J, range (std_basis α φ i)) :=
+begin
+  refine disjoint_mono
+    (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ set.disjoint_compl I)
+    (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ set.disjoint_compl J) _,
+  simp only [disjoint, submodule.le_def', mem_infi, mem_inf, mem_ker, mem_bot, proj₀_apply,
+    dfinsupp.ext_iff],
+  rintros b ⟨hI, hJ⟩ i,
+  classical,
+  by_cases hiI : i ∈ I,
+  { by_cases hiJ : i ∈ J,
+    { exact (h ⟨hiI, hiJ⟩).elim },
+    { exact hJ i hiJ } },
+  { exact hI i hiI }
+end
+
+variable [decidable_eq (α →ₗ[α] α)] --remove
+lemma std_basis_eq_single [decidable_eq α] {a : α} :
+  (λ (i : ι), (std_basis α (λ _ : ι, α) i) a) = λ (i : ι), (dfinsupp.single i a) :=
+begin
+  ext i j,
+  rw [std_basis_apply, dfinsupp.single_apply],
+  split_ifs,
+  { subst h, rw [function.update_same] },
+  { rw [function.update_noteq (ne.symm h)], refl },
+end
+
+end
+
+end dfinsupp
+
 section pi
 universe i
 variables {φ : ι → Type i}
@@ -1436,347 +1617,10 @@ begin
     { rw [dif_neg h],
       exact (hb _ $ (hu trivial).resolve_left h).symm } }
 end
-end
 
---instance hintm : module α (Π₀ (i : ι), φ i) := dfinsupp.to_module --make local instance
---def proj₀ (i : ι) : (Π₀i, φ i) →ₗ[α] φ i :=
---⟨ λa, a i, assume f g, dfinsupp.add_apply, assume c f, dfinsupp.smul_apply ⟩
-
-section
-variable [decidable_eq ι]
-
-/-- `diag i j` is the identity map if `i = j` otherwise it is the constant 0 map. -/
-def diag (i j : ι) : φ i →ₗ[α] φ j :=
-@function.update ι (λj, φ i →ₗ[α] φ j) _ 0 i id j
-
-lemma update_apply (f : Πi, γ →ₗ[α] φ i) (c : γ) (i j : ι) (b : γ →ₗ[α] φ i) :
-  (update f i b j) c = update (λi, f i c) i (b c) j :=
-begin
-  by_cases j = i,
-  { rw [h, update_same, update_same] },
-  { rw [update_noteq h, update_noteq h] }
-end
-
-end
-
-section
-variable [decidable_eq ι]
-variables (α φ)
-
-/-- Standard basis -/
-def std_basis (i : ι) : φ i →ₗ[α] (Πi, φ i) := pi (diag i)
-
-lemma std_basis_apply (i : ι) (b : φ i) : std_basis α φ i b = update 0 i b :=
-by ext j; rw [std_basis, pi_apply, diag, update_apply]; refl
-
-@[simp] lemma std_basis_same (i : ι) (b : φ i) : std_basis α φ i b i = b :=
-by rw [std_basis_apply, update_same]
-
-lemma std_basis_ne (i j : ι) (h : j ≠ i) (b : φ i) : std_basis α φ i b j = 0 :=
-by rw [std_basis_apply, update_noteq h]; refl
-
-lemma ker_std_basis (i : ι) : ker (std_basis α φ i) = ⊥ :=
-ker_eq_bot.2 $ assume f g hfg,
-  have std_basis α φ i f i = std_basis α φ i g i := hfg ▸ rfl,
-  by simpa only [std_basis_same]
-
-lemma proj_comp_std_basis (i j : ι) : (proj i).comp (std_basis α φ j) = diag j i :=
-by rw [std_basis, proj_pi]
-
-lemma proj_std_basis_same (i : ι) : (proj i).comp (std_basis α φ i) = id :=
-by ext b; simp
-
-lemma proj_std_basis_ne (i j : ι) (h : i ≠ j) : (proj i).comp (std_basis α φ j) = 0 :=
-by ext b; simp [std_basis_ne α φ _ _ h]
-
-lemma supr_range_std_basis_le_infi_ker_proj (I J : set ι) (h : disjoint I J) :
-  (⨆i∈I, range (std_basis α φ i)) ≤ (⨅i∈J, ker (proj i)) :=
-begin
-  refine (supr_le $ assume i, supr_le $ assume hi, range_le_iff_comap.2 _),
-  simp only [(ker_comp _ _).symm, eq_top_iff, le_def', mem_ker, comap_infi, mem_infi],
-  assume b hb j hj,
-  have : i ≠ j := assume eq, h ⟨hi, eq.symm ▸ hj⟩,
-  rw [proj_std_basis_ne α φ j i this.symm, zero_apply]
-end
-
-lemma infi_ker_proj_le_supr_range_std_basis {I : finset ι} {J : set ι} (hu : set.univ ⊆ ↑I ∪ J) :
-  (⨅ i∈J, ker (proj i)) ≤ (⨆i∈I, range (std_basis α φ i)) :=
-submodule.le_def'.2
-begin
-  assume b hb,
-  simp only [mem_infi, mem_ker, proj_apply] at hb,
-  rw ← show I.sum (λi, std_basis α φ i (b i)) = b,
-  { ext i,
-    rw [pi.finset_sum_apply, ← std_basis_same α φ i (b i)],
-    refine finset.sum_eq_single i (assume j hjI ne, std_basis_ne _ _ _ _ ne.symm _) _,
-    assume hiI,
-    rw [std_basis_same],
-    exact hb _ ((hu trivial).resolve_left hiI) },
-  exact sum_mem _ (assume i hiI, mem_supr_of_mem _ i $ mem_supr_of_mem _ hiI $
-    linear_map.mem_range.2 ⟨_, rfl⟩)
-end
-
-lemma supr_range_std_basis_eq_infi_ker_proj {I J : set ι}
-  (hd : disjoint I J) (hu : set.univ ⊆ I ∪ J) (hI : set.finite I) :
-  (⨆i∈I, range (std_basis α φ i)) = (⨅i∈J, ker (proj i)) :=
-begin
-  refine le_antisymm (supr_range_std_basis_le_infi_ker_proj _ _ _ _ hd) _,
-  have : set.univ ⊆ ↑hI.to_finset ∪ J, { rwa [finset.coe_to_finset] },
-  refine le_trans (infi_ker_proj_le_supr_range_std_basis α φ this) (supr_le_supr $ assume i, _),
-  rw [← finset.mem_coe, finset.coe_to_finset],
-  exact le_refl _
-end
-
-lemma supr_range_std_basis [fintype ι] : (⨆i:ι, range (std_basis α φ i)) = ⊤ :=
-have (set.univ : set ι) ⊆ ↑(finset.univ : finset ι) ∪ ∅ := by rw [finset.coe_univ, set.union_empty],
-begin
-  apply top_unique,
-  convert (infi_ker_proj_le_supr_range_std_basis α φ this),
-  exact infi_emptyset.symm,
-  exact (funext $ λi, (@supr_pos _ _ _ (λh, range (std_basis α φ i)) $ finset.mem_univ i).symm)
-end
-
-lemma disjoint_std_basis_std_basis (I J : set ι) (h : disjoint I J) :
-  disjoint (⨆i∈I, range (std_basis α φ i)) (⨆i∈J, range (std_basis α φ i)) :=
-begin
-  refine disjoint_mono
-    (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ set.disjoint_compl I)
-    (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ set.disjoint_compl J) _,
-  simp only [disjoint, submodule.le_def', mem_infi, mem_inf, mem_ker, mem_bot, proj_apply,
-    funext_iff],
-  rintros b ⟨hI, hJ⟩ i,
-  classical,
-  by_cases hiI : i ∈ I,
-  { by_cases hiJ : i ∈ J,
-    { exact (h ⟨hiI, hiJ⟩).elim },
-    { exact hJ i hiJ } },
-  { exact hI i hiI }
-end
-
-lemma std_basis_eq_single [decidable_eq α] {a : α} :
-  (λ (i : ι), (std_basis α (λ _ : ι, α) i) a) = λ (i : ι), (finsupp.single i a) :=
-begin
-  ext i j,
-  rw [std_basis_apply, finsupp.single_apply],
-  split_ifs,
-  { rw [h, function.update_same] },
-  { rw [function.update_noteq (ne.symm h)], refl },
-end
-
-
-/-open dfinsupp
---instance hintm : module α (Π₀ (i : ι), φ i) := dfinsupp.to_module --make local instance
-
-def std_basis₀ (i : ι) : φ i →ₗ[α] (Π₀i, φ i) :=
-⟨λ c, dfinsupp.mk (finset.singleton i) (λ j, std_basis α φ i c j),
-  λ c d, by { ext j, rw [dfinsupp.add_apply], repeat {rw mk_apply}, split_ifs,
-    { rw [map_add], refl }, { rw [add_zero] } },
-  λ r c, by { ext j, rw [dfinsupp.smul_apply], dsimp, split_ifs,
-    { rw [map_smul], refl }, { rw [smul_zero] } }⟩
-
-lemma std_basis₀_eq_std_basis (i j : ι) (c : φ i) :
-  std_basis₀ α φ i c j = std_basis α φ i c j :=
-if h : _ then dif_pos h else
-  eq.symm (std_basis_ne α φ i j (finset.not_mem_singleton.mp h) c) ▸ dif_neg h
-
-lemma finset_sum_apply0 {α : Type*} {β : α → Type*} {γ} [∀a, add_comm_monoid (β a)] (a : α)
-  (s : finset γ) (g : γ → Π₀a, β a) : s.sum g a = s.sum (λc, g c a) := sorry
-
-variable [∀i, decidable_eq (φ i)]
-lemma infi_ker_proj_le_supr_range_std_basis₀ {I : set ι} {J : set ι} (hu : set.univ ⊆ I ∪ J) :
-  (⨅ i∈J, ker (proj₀ i)) ≤ (⨆i∈I, (std_basis₀ α φ i).range) :=
-submodule.le_def'.2
-begin
-  assume b hb,
-  simp only [mem_infi, mem_ker, proj_apply] at hb,
-  have : ∀ i, i ∈ b.support → i ∈ I,
-  { intros i hib,
-    refine set.mem_union.elim (set.mem_of_subset_of_mem hu $ set.mem_univ i) (λ h, h) _,
-    rw [dfinsupp.mem_support_iff, ne.def] at hib,
-    intro hiJ,
-    exfalso,
-    exact hib (hb i hiJ) },
-  rw ← show b.support.sum (λi, std_basis₀ α φ i (b i)) = b,
-  { ext i,
-    rw [@finset_sum_apply0 _ φ _ _, ← std_basis_same α φ i (b i)],
-    conv_lhs { congr, skip, funext, rw [std_basis₀_eq_std_basis] },
-    refine finset.sum_eq_single i (assume j hjI ne, std_basis_ne _ _ _ _ ne.symm _) _,
-    assume hiI,
-    rw [std_basis_same],
-    rwa [dfinsupp.mem_support_iff, ne.def, not_not] at hiI },
-  exact sum_mem _ (assume i hiI, mem_supr_of_mem _ i $ mem_supr_of_mem _ (this i hiI) $
-    linear_map.mem_range.2 ⟨_, rfl⟩)
-end
-
-lemma supr_range_std_basis₀ : (⨆i:ι, range (std_basis₀ α φ i)) = ⊤ :=
-have (set.univ : set ι) ⊆ set.univ ∪ ∅ := set.subset_union_left _ _,
-begin
-  apply top_unique,
-  convert (infi_ker_proj_le_supr_range_std_basis₀ α φ this),
-  exact infi_emptyset.symm,
-  exact (funext $ λi, (@supr_pos _ _ _ (λh, (std_basis₀ α φ i).range) $ set.mem_univ i).symm)
-end
--/
 end
 
 end pi
-
-section pi₀
-open dfinsupp
-universe i
-variables {φ : ι → Type i}
-variables [decidable_eq ι] [∀i, add_comm_group (φ i)] [∀i, module α (φ i)]
-variables [∀i, decidable_eq (φ i)] [∀i, decidable_eq (γ →ₗ[α] φ i)] --needed?
-
-local attribute [instance] dfinsupp.to_module
-
-/-- `pi` construction for finitely-supported linear functions. From a finitely-supported family of
-linear functions it produces a linear function into a finitely-supported family of modules. -/
-def pi₀ (f : Π₀i, γ →ₗ[α] φ i) : γ →ₗ[α] (Π₀i, φ i) :=
-⟨λc, dfinsupp.mk f.support (λ i, f i c),
-  assume c d, by { simp only [map_add], convert mk_add },
-  assume c d, by { simp only [map_smul], exact mk_smul α _ }⟩
-
-@[simp] lemma pi₀_apply (f : Π₀i, γ →ₗ[α] φ i) (c : γ) (i : ι) :
-  pi₀ f c i = f i c :=
-by { rw [pi₀], dsimp, split_ifs with h h, refl, { rw [mem_support_iff, ne.def, not_not] at h, rw h, refl } }
-
-lemma ker_pi₀ (f : Π₀i, γ →ₗ[α] φ i) : ker (pi₀ f) = (⨅i:ι, ker (f i)) :=
-by { ext c, simp [dfinsupp.ext_iff] }
-
-lemma pi₀_eq_zero (f : Π₀i, γ →ₗ[α] φ i) : pi₀ f = 0 ↔ (∀i, f i = 0) :=
-by { simp only [linear_map.ext_iff, pi₀_apply, dfinsupp.ext_iff],
-  exact ⟨λh a b, h b a, λh a b, h b a⟩ }
-
-/-lemma pi₀_zero : pi₀ (λi, 0 : Π₀i, γ →ₗ[α] φ i) = 0 :=
-by ext; refl
-
-lemma pi₀_comp (f : Π₀i, γ →ₗ[α] φ i) (g : δ →ₗ[α] γ) : (pi₀ f).comp g = pi₀ (λi, (f i).comp g) :=
-rfl-/
-
-/-- Linear projection -/
-def proj₀ (i : ι) : (Π₀i, φ i) →ₗ[α] φ i :=
-⟨ λa, a i, assume f g, dfinsupp.add_apply, assume c f, dfinsupp.smul_apply ⟩
-
-@[simp] lemma proj₀_apply (i : ι) (b : Π₀i, φ i) : (proj₀ i : (Π₀i, φ i) →ₗ[α] φ i) b = b i := rfl
-
-lemma proj₀_pi₀ (f : Π₀i, γ →ₗ[α] φ i) (i : ι) : (proj₀ i).comp (pi₀ f) = f i :=
-ext $ assume c, pi₀_apply _ c _
-
-lemma infi_ker_proj₀ : (⨅i, ker (proj₀ i) : submodule α (Π₀i, φ i)) = ⊥ :=
-bot_unique $ submodule.le_def'.2 $ assume a h,
-begin
-  simp only [mem_infi, mem_ker, proj₀_apply] at h,
-  exact (mem_bot _).2 (dfinsupp.ext h)
-end
-
-/-- `diag₀ i j` is the identity map if `i = j` otherwise it is the constant 0 map. -/
-def diag₀ (i : ι) : Π₀j, (φ i →ₗ[α] φ j) :=
-dfinsupp.mk (finset.singleton i) (λ j, @function.update ι (λj, φ i →ₗ[α] φ j) _ 0 i id j)
-
-lemma diag₀_apply (i j : ι) (c : φ i) :
-  (diag₀ i : Π₀j, φ i →ₗ[α] φ j) j c = @function.update ι (λj, φ i →ₗ[α] φ j) _ 0 i id j c :=
-by { rw [diag₀, mk_apply], dsimp, split_ifs with h h, { rw [dif_pos h] },
-  { rw [dif_neg h], rw [finset.mem_singleton] at h, rw [update_noteq h], refl } }
-
-section
-variables (α φ) [∀ i j, decidable_eq (φ i →ₗ[α] φ j)] --needed?
-
-def std_basis₀ (i : ι) : φ i →ₗ[α] (Π₀i, φ i) := pi₀ (diag₀ i)
-
-lemma std_basis₀_apply (i j : ι) (b : φ i) : std_basis₀ α φ i b j = update 0 i b j :=
-by { rw [std_basis₀, pi₀_apply, diag₀_apply, update_apply], refl }
-
-@[simp] lemma std_basis₀_same (i : ι) (b : φ i) : std_basis₀ α φ i b i = b :=
-by rw [std_basis₀_apply, update_same]
-
-lemma std_basis₀_ne (i j : ι) (h : j ≠ i) (b : φ i) : std_basis₀ α φ i b j = 0 :=
-by { rw [std_basis₀_apply, update_noteq h], refl }
-
-lemma ker_std_basis₀ (i : ι) : ker (std_basis₀ α φ i) = ⊥ :=
-ker_eq_bot.2 $ assume f g hfg,
-  have std_basis₀ α φ i f i = std_basis₀ α φ i g i := hfg ▸ rfl,
-  by simpa only [std_basis₀_same]
-
-/-lemma proj₀_comp_std_basis₀ (i j : ι) : (proj₀ i).comp (std_basis₀ α φ j) = (diag₀ j) i :=
-by rw [std_basis₀, proj₀_pi₀]
-
-lemma proj_std_basis_same (i : ι) : (proj i).comp (std_basis α φ i) = id :=
-by ext b; simp-/
-
-lemma proj₀_std_basis₀_ne (i j : ι) (h : i ≠ j) : (proj₀ i).comp (std_basis₀ α φ j) = 0 :=
-by { ext b, simp [std_basis₀_ne α φ _ _ h] }
-
-lemma supr_range_std_basis_le_infi_ker_proj₀ (I J : set ι) (h : disjoint I J) :
-  (⨆i∈I, range (std_basis₀ α φ i)) ≤ (⨅i∈J, ker (proj₀ i)) :=
-begin
-  refine (supr_le $ assume i, supr_le $ assume hi, range_le_iff_comap.2 _),
-  simp only [(ker_comp _ _).symm, eq_top_iff, le_def', mem_ker, comap_infi, mem_infi],
-  assume b hb j hj,
-  have : i ≠ j := assume eq, h ⟨hi, eq.symm ▸ hj⟩,
-  rw [proj₀_std_basis₀_ne α φ j i this.symm, zero_apply]
-end
-
-lemma infi_ker_proj_le_supr_range_std_basis₀ {I J : set ι} (hu : set.univ ⊆ I ∪ J) :
-  (⨅ i∈J, ker (proj₀ i)) ≤ (⨆i∈I, (std_basis₀ α φ i).range) :=
-submodule.le_def'.2
-begin
-  assume b hb,
-  simp only [mem_infi, mem_ker, proj_apply] at hb,
-  have : ∀ i, i ∈ b.support → i ∈ I,
-  { intros i hib,
-    refine set.mem_union.elim (set.mem_of_subset_of_mem hu $ set.mem_univ i) (λ h, h) _,
-    rw [dfinsupp.mem_support_iff, ne.def] at hib,
-    intro hiJ,
-    exfalso,
-    exact hib (hb i hiJ) },
-  rw ← show b.support.sum (λi, std_basis₀ α φ i (b i)) = b,
-  { ext i,
-    rw [@finset_sum_apply _ φ _ _ _, ← std_basis₀_same α φ i (b i)],
-    refine finset.sum_eq_single i (assume j hjI ne, std_basis₀_ne _ _ _ _ ne.symm _) _,
-    assume hiI,
-    rw [std_basis₀_same],
-    rwa [dfinsupp.mem_support_iff, ne.def, not_not] at hiI },
-  exact sum_mem _ (assume i hiI, mem_supr_of_mem _ i $ mem_supr_of_mem _ (this i hiI) $
-    linear_map.mem_range.2 ⟨_, rfl⟩)
-end
-
-lemma supr_range_std_basis_eq_infi_ker_proj₀ {I J : set ι} (hd : disjoint I J)
-  (hu : set.univ ⊆ I ∪ J) : (⨆i∈I, range (std_basis₀ α φ i)) = (⨅i∈J, ker (proj₀ i)) :=
-begin
-  refine le_antisymm (supr_range_std_basis_le_infi_ker_proj₀ _ _ _ _ hd) _,
-  refine le_trans (infi_ker_proj_le_supr_range_std_basis₀ α φ hu) (supr_le_supr $ assume i, _),
-  exact le_refl _
-end
-
-lemma supr_range_std_basis₀ : (⨆i:ι, range (std_basis₀ α φ i)) = ⊤ :=
-have (set.univ : set ι) ⊆ set.univ ∪ ∅ := set.subset_union_left _ _,
-begin
-  apply top_unique,
-  convert (infi_ker_proj_le_supr_range_std_basis₀ α φ this),
-  exact infi_emptyset.symm,
-  exact (funext $ λi, (@supr_pos _ _ _ (λh, (std_basis₀ α φ i).range) $ set.mem_univ i).symm)
-end
-
-lemma disjoint_std_basis_std_basis₀ (I J : set ι) (h : disjoint I J) :
-  disjoint (⨆i∈I, range (std_basis₀ α φ i)) (⨆i∈J, range (std_basis₀ α φ i)) :=
-begin
-  refine disjoint_mono
-    (supr_range_std_basis_le_infi_ker_proj₀ _ _ _ _ $ set.disjoint_compl I)
-    (supr_range_std_basis_le_infi_ker_proj₀ _ _ _ _ $ set.disjoint_compl J) _,
-  simp only [disjoint, submodule.le_def', mem_infi, mem_inf, mem_ker, mem_bot, proj₀_apply,
-    dfinsupp.ext_iff],
-  rintros b ⟨hI, hJ⟩ i,
-  classical,
-  by_cases hiI : i ∈ I,
-  { by_cases hiJ : i ∈ J,
-    { exact (h ⟨hiI, hiJ⟩).elim },
-    { exact hJ i hiJ } },
-  { exact hI i hiI }
-end
-
-end
-end pi₀
 
 variables (α β)
 

@@ -104,7 +104,7 @@ lemma floor_eq_iff {r : α} {z : ℤ} :
 by rw [←le_floor, ←int.cast_one, ←int.cast_add, ←floor_lt,
 int.lt_add_one_iff, le_antisymm_iff, and.comm]
 
-lemma floor_ring_unique [linear_ordered_ring α] (inst1 inst2 : floor_ring α) :
+lemma floor_ring_unique {α} [linear_ordered_ring α] (inst1 inst2 : floor_ring α) :
   @floor _ _ inst1 = @floor _ _ inst2 :=
 begin
   ext v,

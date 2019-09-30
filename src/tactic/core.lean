@@ -1185,7 +1185,7 @@ This derive handler applies only to declarations made using `def`, and will fail
 declaration if it is unable to derive an instance. It is run with higher priority than the built-in
 handlers, which will fail on `def`s.
 -/
-@[derive_handler, priority 1000] meta def delta_instance : derive_handler :=
+@[derive_handler, priority 2000] meta def delta_instance : derive_handler :=
 λ cls new_decl_name,
 do env ← get_env,
 if env.is_inductive new_decl_name then return ff else

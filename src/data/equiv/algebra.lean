@@ -14,11 +14,10 @@ form: if `α` has a group structure and `α ≃ β` then `β` has a group struct
 similarly for monoids, semigroups, rings, integral domains, fields and so on.
 
 In the second part there are extensions of `equiv` called `add_equiv`,
-`mul_equiv`, and `ring_equiv`, which are datatypes representing isomorphisms
-of add_monoids/add_groups, monoids/groups and rings.
-
-In the third part we define the automorphism groups of algebraic structure, in terms
-of these extensions of `equiv`.
+`mul_equiv`, and `ring_equiv`, which are datatypes representing
+isomorphisms of add_monoids/add_groups, monoids/groups and rings. We
+also introduce the corresponding groups of automorphisms `add_aut`,
+`mul_aut`, and `ring_aut`.
 
 ## Notations
 
@@ -27,15 +26,17 @@ notation when treating the isomorphisms as maps.
 
 ## Implementation notes
 
-Bundling structures means that many things turn into definitions, meaning that `to_additive`
-cannot do much work for us, and conversely that we have to do a lot of naming for it.
-
 The fields for `mul_equiv`, `add_equiv`, and `ring_equiv` now avoid
 the unbundled `is_mul_hom` and `is_add_hom`, as these are deprecated.
 
+Definition of multiplication in the groups of automorphisms agrees
+with function composition, multiplication in `equiv.perm`, and
+multiplication in `category_theory.End`, not with
+`category_theory.comp`.
+
 ## Tags
 
-equiv, mul_equiv, add_equiv, ring_equiv
+equiv, mul_equiv, add_equiv, ring_equiv, mul_aut, add_aut, ring_aut
 -/
 
 universes u v w x
@@ -329,32 +330,63 @@ instance is_group_hom {α β} [group α] [group β] (h : α ≃* β) :
 
 /-- Two multiplicative isomorphisms agree if they are defined by the
     same underlying function. -/
-@[extensionality] lemma ext {α β : Type*} [has_mul α] [has_mul β]
-  {f g : mul_equiv α β} (h : (f : α → β) = (g : α → β)) : f = g :=
+@[extensionality, to_additive
+  "Two additive isomorphisms agree if they are defined by the same underlying function."]
+lemma ext {α β : Type*} [has_mul α] [has_mul β]
+  {f g : mul_equiv α β} (h : ∀ x, f x = g x) : f = g :=
 begin
-  have h₁ := @equiv.eq_of_to_fun_eq _ _ f.to_equiv g.to_equiv h,
+  have h₁ := equiv.ext f.to_equiv g.to_equiv h,
   cases f, cases g, congr,
-  { exact h },
+  { exact (funext h) },
   { exact congr_arg equiv.inv_fun h₁ }
 end
+
+attribute [extensionality] add_equiv.ext
 
 end mul_equiv
-
-/-- Two additive isomorphisms agree if they are defined by the
-    same underlying function. -/
-@[extensionality] lemma add_equiv.ext {α β : Type*} [has_add α] [has_add β]
-  {f g : add_equiv α β} (h : (f : α → β) = (g : α → β)) : f = g :=
-begin
-  have h₁ := @equiv.eq_of_to_fun_eq _ _ f.to_equiv g.to_equiv h,
-  cases f, cases g, congr,
-  { exact h },
-  { exact congr_arg equiv.inv_fun h₁ }
-end
 
 /-- An additive equivalence of additive groups preserves subtraction. -/
 lemma add_equiv.map_sub {α β} [add_group α] [add_group β] (h : α ≃+ β) (x y : α) :
   h (x - y) = h x - h y :=
 h.to_add_monoid_hom.map_sub x y
+
+
+/-- The group of multiplicative automorphisms. -/
+@[to_additive "The group of additive automorphisms."]
+def mul_aut (α : Type u) [has_mul α] := α ≃* α
+
+namespace mul_aut
+
+variables (α) [has_mul α]
+
+/--
+The group operation on multiplicative automorphisms is defined by
+`λ g h, mul_equiv.trans h g`.
+This means that multiplication agrees with composition, `(g*h)(x) = g (h x)`.
+-/
+instance : group (mul_aut α) :=
+by refine_struct
+{ mul := λ g h, mul_equiv.trans h g,
+  one := mul_equiv.refl α,
+  inv := mul_equiv.symm };
+intros; ext; try { refl }; apply equiv.left_inv
+
+/-- Monoid hom from the group of multiplicative automorphisms to the group of permutations. -/
+def to_perm : mul_aut α →* equiv.perm α :=
+by refine_struct { to_fun := mul_equiv.to_equiv }; intros; refl
+
+/--
+The group operation on additive automorphisms is defined by
+`λ g h, mul_equiv.trans h g`.
+This means that multiplication agrees with composition, `(g*h)(x) = g (h x)`.
+-/
+instance add_aut_group (α : Type u) [has_add α] : group (add_aut α) :=
+by refine_struct
+{ mul := λ g h, add_equiv.trans h g,
+  one := add_equiv.refl α,
+  inv := add_equiv.symm };
+intros; ext; try { refl }; apply equiv.left_inv
+
 
 /-- A group is isomorphic to its group of units. -/
 def to_units (α) [group α] : α ≃* units α :=
@@ -484,110 +516,46 @@ end ring_hom
 
 /-- Two ring isomorphisms agree if they are defined by the
     same underlying function. -/
-@[extensionality] lemma ext {R S : Type*} [semiring R] [semiring S]
-  {f g : R ≃+* S} (h : (f : R → S) = (g : R → S)) : f = g :=
+@[extensionality] lemma ext {R S : Type*} [has_mul R] [has_add R] [has_mul S] [has_add S]
+  {f g : R ≃+* S} (h : ∀ x, f x = g x) : f = g :=
 begin
-  have h₁ := @equiv.eq_of_to_fun_eq _ _ f.to_equiv g.to_equiv h,
+  have h₁ := equiv.ext f.to_equiv g.to_equiv h,
   cases f, cases g, congr,
-  { exact h },
+  { exact (funext h) },
   { exact congr_arg equiv.inv_fun h₁ }
 end
 
 end ring_equiv
 
-/-
-We define the type of automorphisms on groups, additive monoids,
-additive groups and rings using `mul_equiv`, `add_equiv` and `ring_equiv`.
-In each case this type also forms a group.
--/
+/-- The group of ring automorphisms. -/
+def ring_aut (R : Type u) [has_mul R] [has_add R] := ring_equiv R R
 
-namespace monoid
+namespace ring_aut
 
-def aut (γ : Type u) [monoid γ] := mul_equiv γ γ
-
-/--
-The group operation on automorphisms of a monoid is defined by
-λ g h, mul_equiv.trans h g.
-This means that multiplication agrees with composition, (g*h)(x) = g (h x) .
--/
-instance aut_group (γ : Type u) [monoid γ] : group (aut γ) :=
-{ mul := λ g h, mul_equiv.trans h g,
-  one := mul_equiv.refl γ,
-  inv := mul_equiv.symm,
-  mul_assoc := λ _ _ _, by { ext, refl },
-  one_mul := λ _, by { ext, refl },
-  mul_one := λ _, by { ext, refl },
-  mul_left_inv := λ _, by { ext, apply equiv.left_inv } }
-
-end monoid
-
-namespace group
-
--- A group homomorphism is a monoid homomorphism between groups.
-def aut (γ : Type u) [group γ] := mul_equiv γ γ
-
-instance aut_group (γ : Type u) [group γ] : group (aut γ) := monoid.aut_group γ
-
-end group
-
-namespace add_monoid
-
-def aut (α : Type u) [add_monoid α] := add_equiv α α
-
-/--
-The group operation on automorphisms of an additive monoid is defined by
-λ g h, add_equiv.trans h g.
-This means that multiplication agrees with composition, (g*h)(x) = g (h x) .
--/
-instance aut_group (α : Type u) [add_monoid α] : group (aut α) :=
-{ mul := λ g h, add_equiv.trans h g,
-  one := add_equiv.refl α,
-  inv := add_equiv.symm,
-  mul_assoc := λ _ _ _, by { ext, refl },
-  one_mul := λ _, by { ext, refl },
-  mul_one := λ _, by { ext, refl },
-  mul_left_inv := λ _, by { ext, apply equiv.left_inv } }
-
-end add_monoid
-
-namespace add_group
-
--- An additive group homomorphism is an additive monoid homomorphism between groups.
-def aut (γ : Type u) [add_group γ] := add_equiv γ γ
-
-instance aut_group (γ : Type u) [add_group γ] : group (aut γ) := add_monoid.aut_group γ
-
-end add_group
-
-namespace ring
-
-def aut (R : Type u) [ring R] := ring_equiv R R
+variables (R : Type u) [has_mul R] [has_add R]
 
 /--
 The group operation on automorphisms of a ring is defined by
 λ g h, ring_equiv.trans h g.
 This means that multiplication agrees with composition, (g*h)(x) = g (h x) .
 -/
-instance aut_group (R : Type u) [ring R] : group (aut R) :=
+instance : group (ring_aut R) :=
+by refine_struct
 { mul := λ g h, ring_equiv.trans h g,
   one := ring_equiv.refl R,
-  inv := ring_equiv.symm,
-  mul_assoc := λ _ _ _, by { ext, refl },
-  one_mul := λ _, by { ext, refl },
-  mul_one := λ _, by { ext, refl },
-  mul_left_inv := λ _, by { ext, apply equiv.left_inv } }
+  inv := ring_equiv.symm };
+intros; ext; try { refl }; apply equiv.left_inv
 
-/--
-Map from the automorphisms of a ring to the automorphisms of the additive
-group defined by addition in R.
--/
-def ring_aut_to_add_monoid_aut (R : Type u) [ring R] (f : aut R) : add_monoid.aut R :=
-{ map_add' := f.to_add_equiv.map_add .. f }
+/-- Monoid homomorphism from ring automorphisms to additive automorphisms. -/
+def to_add_aut : ring_aut R →* add_aut R :=
+by refine_struct { to_fun := ring_equiv.to_add_equiv }; intros; refl
 
-/-- The map from the automorphisms of a ring to the automorphisms of an additive
-    monoid is a group homomorphism. -/
-instance is_group_hom_ring_aut_to_add_monoid_aut (R : Type u) [ring R] :
-  is_group_hom (ring_aut_to_add_monoid_aut R) :=
-{ map_mul := λ _ _, rfl }
+/-- Monoid homomorphism from ring automorphisms to multiplicative automorphisms. -/
+def to_mul_aut : ring_aut R →* mul_aut R :=
+by refine_struct { to_fun := ring_equiv.to_mul_equiv }; intros; refl
 
-end ring
+/-- Monoid homomorphism from ring automorphisms to permutations. -/
+def to_perm : ring_aut R →* equiv.perm R :=
+by refine_struct { to_fun := ring_equiv.to_equiv }; intros; refl
+
+end ring_aut

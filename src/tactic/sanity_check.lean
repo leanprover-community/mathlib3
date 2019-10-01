@@ -137,7 +137,8 @@ meta def incorrect_def_lemma (d : declaration) : tactic (option string) := do
 
 /-- Checks whether a declaration has a namespace twice consecutively in its name -/
 meta def dup_namespace (d : declaration) : tactic (option string) :=
-return $ let nm := d.to_name.components in if nm.chain' (≠) then none
+is_instance d.to_name >>= λ is_inst,
+return $ let nm := d.to_name.components in if nm.chain' (≠) ∨ is_inst then none
   else let s := (nm.find $ λ n, nm.count n ≥ 2).iget.to_string in
   some $ "The namespace `" ++ s ++ "` is duplicated in the name"
 

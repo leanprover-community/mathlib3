@@ -503,14 +503,14 @@ In each case this type also forms a group.
 
 namespace monoid
 
-def aut (γ : Type u) [has_mul γ] := mul_equiv γ γ
+def aut (γ : Type u) [monoid γ] := mul_equiv γ γ
 
 /--
 The group operation on automorphisms of a monoid is defined by
 λ g h, mul_equiv.trans h g.
 This means that multiplication agrees with composition, (g*h)(x) = g (h x) .
 -/
-instance aut_group (γ : Type u) [has_mul γ] : group (aut γ) :=
+instance aut_group (γ : Type u) [monoid γ] : group (aut γ) :=
 { mul := λ g h, mul_equiv.trans h g,
   one := mul_equiv.refl γ,
   inv := mul_equiv.symm,
@@ -532,14 +532,14 @@ end group
 
 namespace add_monoid
 
-def aut (α : Type u) [has_add α] := add_equiv α α
+def aut (α : Type u) [add_monoid α] := add_equiv α α
 
 /--
 The group operation on automorphisms of an additive monoid is defined by
 λ g h, add_equiv.trans h g.
 This means that multiplication agrees with composition, (g*h)(x) = g (h x) .
 -/
-instance aut_group (α : Type u) [has_add α] : group (aut α) :=
+instance aut_group (α : Type u) [add_monoid α] : group (aut α) :=
 { mul := λ g h, add_equiv.trans h g,
   one := add_equiv.refl α,
   inv := add_equiv.symm,

@@ -606,7 +606,8 @@ by apply_instance
   * We have to mark them as noncomputable, because otherwise Lean will try to generate bytecode
     for them, and fail because it depends on `classical.choice`.
   * We make them lemmas, and not definitions, because otherwise later declarations will raise
-    "failed to generate bytecode" errors. -/
+    "failed to generate bytecode" errors.
+  Cf. https://leanprover-community.github.io/archive/113488general/08268noncomputabletheorem.html -/
 
 @[elab_as_eliminator]
 noncomputable def {u} exists_cases {C : Sort u} (H0 : C) (H : ∀ a, p a → C) : C :=

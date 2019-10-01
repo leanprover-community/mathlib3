@@ -24,18 +24,16 @@ include 𝒥
 namespace forget_creates_limits
 variables (D : J ⥤ algebra T) [has_limit.{v₁} (D ⋙ forget T)]
 
-def γ : (D ⋙ forget T ⋙ T) ⟶ (D ⋙ forget T) := { app := λ j, (D.obj j).a }
+@[simps] def γ : (D ⋙ forget T ⋙ T) ⟶ (D ⋙ forget T) := { app := λ j, (D.obj j).a }
 
-@[simp] lemma γ_app (j) : (γ D).app j = (D.obj j).a := rfl
-
-def c : cone (D ⋙ forget T) :=
+@[simps] def c : cone (D ⋙ forget T) :=
 { X := T.obj (limit (D ⋙ forget T)),
   π := (functor.const_comp _ _ T).inv ≫ whisker_right (limit.cone (D ⋙ forget T)).π T ≫ (γ D) }
 
-@[simp] lemma c_π (j) :
-(c D).π.app j = 𝟙 _ ≫ T.map (limit.π (D ⋙ forget T) j) ≫ (D.obj j).a := rfl
+-- @[simp] lemma c_π (j) :
+-- (c D).π.app j = 𝟙 _ ≫ T.map (limit.π (D ⋙ forget T) j) ≫ (D.obj j).a := rfl
 
-def cone_point (D : J ⥤ algebra T) [has_limit.{v₁} (D ⋙ forget T)] : algebra T :=
+@[simps] def cone_point (D : J ⥤ algebra T) [has_limit.{v₁} (D ⋙ forget T)] : algebra T :=
 { A := limit (D ⋙ forget T),
   a := limit.lift _ (c D),
   unit' :=
@@ -51,8 +49,10 @@ def cone_point (D : J ⥤ algebra T) [has_limit.{v₁} (D ⋙ forget T)] : algeb
   begin
     ext1,
     dsimp,
-    simp only [limit.lift_π, γ_app, c_π, limit.cone_π, id_comp, functor.const_comp,
-                whisker_right.app, nat_trans.comp_app, category.assoc],
+    simp only [limit.lift_π, γ_app, c_π, limit.cone_π, functor.const_comp, whisker_right.app,
+                nat_trans.comp_app, category.assoc],
+    dsimp,
+    simp only [id_comp],
     conv { to_rhs,
       rw [←category.assoc, ←T.map_comp, limit.lift_π],
       dsimp [c],
@@ -61,12 +61,6 @@ def cone_point (D : J ⥤ algebra T) [has_limit.{v₁} (D ⋙ forget T)] : algeb
       rw [←category.assoc, ←nat_trans.naturality, category.assoc],
       erw [algebra.assoc (D.obj j), ←category.assoc, ←T.map_comp], },
   end }
-
-@[simp] lemma cone_point_a (D : J ⥤ algebra T) [has_limit.{v₁} (D ⋙ forget T)] :
-(cone_point D).a = limit.lift _ (
-let μ := limit.cone (D ⋙ forget T) in
-  { X := T.obj μ.X,
-    π := (functor.const_comp _ _ T).inv ≫ whisker_right μ.π T ≫ (γ D) }) := rfl
 
 end forget_creates_limits
 

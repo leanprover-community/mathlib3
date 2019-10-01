@@ -125,18 +125,16 @@ instance : linear_order ℚ            := by apply_instance
 instance : partial_order ℚ           := by apply_instance
 instance : preorder ℚ                := by apply_instance
 
-protected lemma le_def' {p q : ℚ} (p_pos : 0 < p) (q_pos : 0 < q) :
-  p ≤ q ↔ p.num * q.denom ≤ q.num * p.denom :=
+protected lemma le_def' {p q : ℚ} : p ≤ q ↔ p.num * q.denom ≤ q.num * p.denom :=
 begin
   rw [←(@num_denom q), ←(@num_denom p)],
   conv_rhs { simp only [num_denom] },
   exact rat.le_def (by exact_mod_cast p.pos) (by exact_mod_cast q.pos)
 end
 
-protected lemma lt_def {p q : ℚ} (p_pos : 0 < p) (q_pos : 0 < q) :
-  p < q ↔ p.num * q.denom < q.num * p.denom :=
+protected lemma lt_def {p q : ℚ} : p < q ↔ p.num * q.denom < q.num * p.denom :=
 begin
-  rw [lt_iff_le_and_ne, (rat.le_def' p_pos q_pos)],
+  rw [lt_iff_le_and_ne, rat.le_def'],
   suffices : p ≠ q ↔ p.num * q.denom ≠ q.num * p.denom, by {
     split; intro h,
     { exact lt_iff_le_and_ne.elim_right ⟨h.left, (this.elim_left h.right)⟩ },

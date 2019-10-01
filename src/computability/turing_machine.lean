@@ -1359,7 +1359,7 @@ def st_write {k : K} (v : σ) (l : list (Γ k)) : st_act k → list (Γ k)
 | (pop ff f) := l
 | (pop tt f) := l.tail
 
-@[elab_as_eliminator] theorem {l} stmt_st_rec
+@[elab_as_eliminator] def {l} stmt_st_rec
   {C : stmt₂ → Sort l}
   (H₁ : Π k (s : st_act k) q (IH : C q), C (st_run s q))
   (H₂ : Π a q (IH : C q), C (TM2.stmt.load a q))

@@ -65,7 +65,7 @@ instance decidable_eq_equiv_fintype [fintype α] [decidable_eq β] :
 instance decidable_injective_fintype [fintype α] [decidable_eq α] [decidable_eq β] :
   decidable_pred (injective : (α → β) → Prop) := λ x, by unfold injective; apply_instance
 
-instance decidable_surjective_fintype [fintype α] [decidable_eq α] [fintype β] [decidable_eq β] :
+instance decidable_surjective_fintype [fintype α] [fintype β] [decidable_eq β] :
   decidable_pred (surjective : (α → β) → Prop) := λ x, by unfold surjective; apply_instance
 
 instance decidable_bijective_fintype [fintype α] [decidable_eq α] [fintype β] [decidable_eq β] :

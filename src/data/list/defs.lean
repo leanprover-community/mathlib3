@@ -487,6 +487,8 @@ namespace func
 /- Definitions for using lists as finite
    representations of functions with domain ℕ. -/
 
+def neg [has_neg α] (as : list α) := as.map (λ a, -a)
+
 variables [inhabited α] [inhabited β]
 
 @[simp] def set (a : α) : list α → ℕ → list α
@@ -502,8 +504,6 @@ variables [inhabited α] [inhabited β]
 
 def equiv (as1 as2 : list α) : Prop :=
 ∀ (m : nat), get m as1 = get m as2
-
-def neg [has_neg α] (as : list α) := as.map (λ a, -a)
 
 @[simp] def pointwise (f : α → β → γ) : list α → list β → list γ
 | []      []      := []

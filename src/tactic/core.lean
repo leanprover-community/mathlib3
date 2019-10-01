@@ -991,7 +991,7 @@ attribute [higher_order map_comp_pure] map_pure
 private meta def tactic.use_aux (h : pexpr) : tactic unit :=
 (focus1 (refine h >> done)) <|> (fconstructor >> tactic.use_aux)
 
-meta def tactic.use (l : list pexpr) : tactic unit :=
+protected meta def use (l : list pexpr) : tactic unit :=
 focus1 $ l.mmap' $ λ h, tactic.use_aux h <|> fail format!"failed to instantiate goal with {h}"
 
 meta def clear_aux_decl_aux : list expr → tactic unit
@@ -1207,9 +1207,9 @@ do env ← get_env,
 
 open lean.parser interactive
 
-/-- `import_private foo from bar` finds a private declaration `foo` in the same file as `bar` 
-    and creates a local notation to refer to it. 
-    
+/-- `import_private foo from bar` finds a private declaration `foo` in the same file as `bar`
+    and creates a local notation to refer to it.
+
     `import_private foo`, looks for `foo` in all imported files. -/
 @[user_command]
 meta def import_private_cmd (_ : parse $ tk "import_private") : lean.parser unit :=

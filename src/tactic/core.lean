@@ -718,6 +718,9 @@ instance : monad id :=
      let out := format.to_string format!"{{ {fs} }",
      return [(out,"")] }
 
+/-- Like `resolve_name` except when the list of goals is 
+    empty. In that situation `resolve_name` fails whereas
+    `resolve_name'` simply proceeds on a dummy goal -/
 meta def resolve_name' (n : name) : tactic pexpr :=
 do [] ← get_goals | resolve_name n,
    g ← mk_mvar,

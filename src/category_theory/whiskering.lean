@@ -15,7 +15,7 @@ variables (C : Type u₁) [𝒞 : category.{v₁} C]
           (E : Type u₃) [ℰ : category.{v₃} E]
 include 𝒞 𝒟 ℰ
 
-def whiskering_left : (C ⥤ D) ⥤ ((D ⥤ E) ⥤ (C ⥤ E)) :=
+@[simps] def whiskering_left : (C ⥤ D) ⥤ ((D ⥤ E) ⥤ (C ⥤ E)) :=
 { obj := λ F,
   { obj := λ G, F ⋙ G,
     map := λ G H α,
@@ -27,7 +27,7 @@ def whiskering_left : (C ⥤ D) ⥤ ((D ⥤ E) ⥤ (C ⥤ E)) :=
       naturality' := λ X Y f, begin dsimp, rw [←H.map_comp, ←H.map_comp, ←τ.naturality] end },
     naturality' := λ X Y f, begin ext1, dsimp, rw [f.naturality] end } }
 
-def whiskering_right : (D ⥤ E) ⥤ ((C ⥤ D) ⥤ (C ⥤ E)) :=
+@[simps] def whiskering_right : (D ⥤ E) ⥤ ((C ⥤ D) ⥤ (C ⥤ E)) :=
 { obj := λ H,
   { obj := λ F, F ⋙ H,
     map := λ _ _ α,
@@ -45,16 +45,9 @@ variables {C} {D} {E}
 def whisker_left (F : C ⥤ D) {G H : D ⥤ E} (α : G ⟶ H) : (F ⋙ G) ⟶ (F ⋙ H) :=
 ((whiskering_left C D E).obj F).map α
 
-@[simp] lemma whiskering_left_obj_obj (F : C ⥤ D) (G : D ⥤ E) :
-  ((whiskering_left C D E).obj F).obj G = F ⋙ G :=
-rfl
 @[simp] lemma whiskering_left_obj_map (F : C ⥤ D) {G H : D ⥤ E} (α : G ⟶ H) :
   ((whiskering_left C D E).obj F).map α = whisker_left F α :=
 rfl
-@[simp] lemma whiskering_left_map_app_app {F G : C ⥤ D} (τ : F ⟶ G) (H : D ⥤ E) (c) :
-  (((whiskering_left C D E).map τ).app H).app c = H.map (τ.app c) :=
-rfl
-
 @[simp] lemma whisker_left.app (F : C ⥤ D) {G H : D ⥤ E} (α : G ⟶ H) (X : C) :
   (whisker_left F α).app X = α.app (F.obj X) :=
 rfl
@@ -62,16 +55,9 @@ rfl
 def whisker_right {G H : C ⥤ D} (α : G ⟶ H) (F : D ⥤ E) : (G ⋙ F) ⟶ (H ⋙ F) :=
 ((whiskering_right C D E).obj F).map α
 
-@[simp] lemma whiskering_right_obj_obj (G : C ⥤ D) (F : D ⥤ E) :
-  ((whiskering_right C D E).obj F).obj G = G ⋙ F :=
-rfl
 @[simp] lemma whiskering_right_obj_map {G H : C ⥤ D} (α : G ⟶ H) (F : D ⥤ E) :
   ((whiskering_right C D E).obj F).map α = whisker_right α F :=
 rfl
-@[simp] lemma whiskering_right_map_app_app (F : C ⥤ D) {G H : D ⥤ E} (τ : G ⟶ H) (c) :
-  (((whiskering_right C D E).map τ).app F).app c = τ.app (F.obj c) :=
-rfl
-
 @[simp] lemma whisker_right.app {G H : C ⥤ D} (α : G ⟶ H) (F : D ⥤ E) (X : C) :
    (whisker_right α F).app X = F.map (α.app X) :=
 rfl
@@ -147,32 +133,21 @@ variables {A : Type u₁} [𝒜 : category.{v₁} A]
 variables {B : Type u₂} [ℬ : category.{v₂} B]
 include 𝒜 ℬ
 
-def left_unitor (F : A ⥤ B) : ((𝟭 _) ⋙ F) ≅ F :=
+@[simps] def left_unitor (F : A ⥤ B) : ((𝟭 _) ⋙ F) ≅ F :=
 { hom := { app := λ X, 𝟙 (F.obj X) },
   inv := { app := λ X, 𝟙 (F.obj X) } }
 
-@[simp] lemma left_unitor_hom_app {F : A ⥤ B} {X} : F.left_unitor.hom.app X = 𝟙 _ := rfl
-@[simp] lemma left_unitor_inv_app {F : A ⥤ B} {X} : F.left_unitor.inv.app X = 𝟙 _ := rfl
-
-def right_unitor (F : A ⥤ B) : (F ⋙ (𝟭 _)) ≅ F :=
+@[simps] def right_unitor (F : A ⥤ B) : (F ⋙ (𝟭 _)) ≅ F :=
 { hom := { app := λ X, 𝟙 (F.obj X) },
   inv := { app := λ X, 𝟙 (F.obj X) } }
-
-@[simp] lemma right_unitor_hom_app {F : A ⥤ B} {X} : F.right_unitor.hom.app X = 𝟙 _ := rfl
-@[simp] lemma right_unitor_inv_app {F : A ⥤ B} {X} : F.right_unitor.inv.app X = 𝟙 _ := rfl
 
 variables {C : Type u₃} [𝒞 : category.{v₃} C]
 variables {D : Type u₄} [𝒟 : category.{v₄} D]
 include 𝒞 𝒟
 
-def associator (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D) : ((F ⋙ G) ⋙ H) ≅ (F ⋙ (G ⋙ H)) :=
+@[simps] def associator (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D) : ((F ⋙ G) ⋙ H) ≅ (F ⋙ (G ⋙ H)) :=
 { hom := { app := λ _, 𝟙 _ },
   inv := { app := λ _, 𝟙 _ } }
-
-@[simp] lemma associator_hom_app {F : A ⥤ B} {G : B ⥤ C} {H : C ⥤ D} {X} :
-(associator F G H).hom.app X = 𝟙 _ := rfl
-@[simp] lemma associator_inv_app {F : A ⥤ B} {G : B ⥤ C} {H : C ⥤ D} {X} :
-(associator F G H).inv.app X = 𝟙 _ := rfl
 
 omit 𝒟
 

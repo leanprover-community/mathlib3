@@ -485,7 +485,7 @@ end ring_hom
 /-- Two ring isomorphisms agree if they are defined by the
     same underlying function. -/
 @[extensionality] lemma ext {R S : Type*} [ring R] [ring S]
-  {f g : ring_equiv R S} (h : f.to_fun = g.to_fun) : f = g :=
+  {f g : R ≃+* S} (h : (f : R → S) = (g : R → S)) : f = g :=
 begin
   have h₁ := @equiv.eq_of_to_fun_eq _ _ f.to_equiv g.to_equiv h,
   cases f, cases g, congr,

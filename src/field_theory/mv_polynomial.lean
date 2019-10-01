@@ -173,7 +173,7 @@ def evalₗ : mv_polynomial σ α →ₗ[α] (σ → α) → α :=
 end
 
 section
-set_option class.instance_max_depth 50
+
 lemma evalₗ_apply (p : mv_polynomial σ α) (e : σ → α) : evalₗ α σ p e = p.eval e :=
 rfl
 end

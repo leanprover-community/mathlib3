@@ -13,6 +13,7 @@ variable {α : Type u}
 
 open finset
 
+/-- Sum of the finite geometric series $∑_{i=0}^{n-1} x^i$. -/
 def geom_series [semiring α] (x : α) (n : ℕ) :=
 (range n).sum (λ i, x ^ i)
 
@@ -26,6 +27,7 @@ theorem geom_series_def [semiring α] (x : α) (n : ℕ) :
   geom_series x 1 = 1 :=
 by { rw [geom_series_def, sum_range_one, pow_zero] }
 
+/-- Sum of the finite geometric series $∑_{i=0}^{n-1} x^i y^{n-1-i}$. -/
 def geom_series₂ [semiring α] (x y : α) (n : ℕ) :=
 (range n).sum (λ i, x ^ i * (y ^ (n - 1 - i)))
 
@@ -44,7 +46,8 @@ by { have : 1 - 1 - 0 = 0 := rfl,
   geom_series₂ x 1 n = geom_series x n :=
 sum_congr rfl (λ i _, by { rw [one_pow, mul_one] })
 
-theorem geom_sum₂_mul_add_comm [semiring α] {x y : α} (h : commute x y) (n : ℕ) :
+/-- $x^n-y^n=(x-y)∑x^ky^{n-1-k}$ reformulated without `-` signs. -/
+protected theorem commute.geom_sum₂_mul_add [semiring α] {x y : α} (h : commute x y) (n : ℕ) :
   (geom_series₂ (x + y) y n) * x + y ^ n = (x + y) ^ n :=
 begin
   let f := λ (m i : ℕ), (x + y) ^ i * y ^ (m - 1 - i),
@@ -73,14 +76,15 @@ begin
     rw[mul_assoc, ← mul_add y, ih] }
 end
 
+/-- $x^n-y^n=(x-y)∑x^ky^{n-1-k}$ reformulated without `-` signs. -/
 theorem geom_sum₂_mul_add [comm_semiring α] (x y : α) (n : ℕ) :
   (geom_series₂ (x + y) y n) * x + y ^ n = (x + y) ^ n :=
-geom_sum₂_mul_add_comm (commute.all x y) n
+(commute.all x y).geom_sum₂_mul_add n
 
 theorem geom_sum_mul_add [semiring α] (x : α) (n : ℕ) :
   (geom_series (x + 1) n) * x + 1 = (x + 1) ^ n :=
 begin
-  have := geom_sum₂_mul_add_comm (commute.one x) n,
+  have := (commute.one x).geom_sum₂_mul_add n,
   rw [one_pow, geom_series₂_with_one] at this,
   exact this
 end
@@ -88,7 +92,7 @@ end
 theorem geom_sum₂_mul_comm [ring α] {x y : α} (h : commute x y) (n : ℕ) :
   (geom_series₂ x y n) * (x - y) = x ^ n - y ^ n :=
 begin
-  have := geom_sum₂_mul_add_comm (h.sub_left (commute.refl y)) n,
+  have := (h.sub_left (commute.refl y)).geom_sum₂_mul_add n,
   rw [sub_add_cancel] at this,
   rw [← this, add_sub_cancel]
 end

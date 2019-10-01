@@ -330,7 +330,7 @@ instance is_group_hom {α β} [group α] [group β] (h : α ≃* β) :
 /-- Two multiplicative isomorphisms agree if they are defined by the
     same underlying function. -/
 @[extensionality] lemma ext {α β : Type*} [has_mul α] [has_mul β]
-  {f g : mul_equiv α β} (h : f.to_fun = g.to_fun) : f = g :=
+  {f g : mul_equiv α β} (h : (f : α → β) = (g : α → β)) : f = g :=
 begin
   have h₁ := @equiv.eq_of_to_fun_eq _ _ f.to_equiv g.to_equiv h,
   cases f, cases g, congr,
@@ -343,7 +343,7 @@ end mul_equiv
 /-- Two additive isomorphisms agree if they are defined by the
     same underlying function. -/
 @[extensionality] lemma add_equiv.ext {α β : Type*} [has_add α] [has_add β]
-  {f g : add_equiv α β} (h : f.to_fun = g.to_fun) : f = g :=
+  {f g : add_equiv α β} (h : (f : α → β) = (g : α → β)) : f = g :=
 begin
   have h₁ := @equiv.eq_of_to_fun_eq _ _ f.to_equiv g.to_equiv h,
   cases f, cases g, congr,

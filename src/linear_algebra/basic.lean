@@ -2,12 +2,34 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard
-
-Basics of linear algebra. This sets up the "categorical/lattice structure" of
-modules, submodules, and linear maps.
 -/
 
 import algebra.pi_instances data.finsupp data.equiv.algebra order.order_iso
+
+/-!
+# Linear algebra
+
+This file defines the basics of linear algebra. It sets up the "categorical/lattice structure" of
+modules, submodules, and linear maps. Many of the relevant definitions are found in
+`src/algebra/module.lean`.
+
+## Main definitions
+
+## Main statements
+
+## Notations
+
+* We continue to use the notation `β →ₗ[α] γ` for the type of linear maps from `β` to `γ` over the
+  ring `α`.
+* We introduce the notations `β ≃ₗ γ` `β ≃ₗ[α] γ` for linear equivalences between `β` and `γ`. In
+  the first, the ring `α` is implicit.
+
+## Implementation notes
+
+## Tags
+linear algebra, vector space, module
+
+-/
 
 open function lattice
 
@@ -50,6 +72,8 @@ linear_map.ext $ λ x, rfl
 theorem comp_assoc (g : γ →ₗ[α] δ) (h : δ →ₗ[α] ε) : (h.comp g).comp f = h.comp (g.comp f) :=
 rfl
 
+/-- A linear map `f : γ → β` whose values lie in a submodule `p ⊆ β` can be restricted to a
+linear map γ → p. -/
 def cod_restrict (p : submodule α β) (f : γ →ₗ[α] β) (h : ∀c, f c ∈ p) : γ →ₗ[α] p :=
 by refine {to_fun := λc, ⟨f c, h c⟩, ..}; intros; apply set_coe.ext; simp
 
@@ -64,23 +88,28 @@ ext $ assume b, rfl
   p.subtype.comp (cod_restrict p f h) = f :=
 ext $ assume b, rfl
 
+/-- If a function `g` is a left and right inverse of a linear map `f`, then `g` is linear itself. -/
 def inverse (g : γ → β) (h₁ : left_inverse g f) (h₂ : right_inverse g f) : γ →ₗ[α] β :=
 by dsimp [left_inverse, function.right_inverse] at h₁ h₂; exact
 ⟨g, λ x y, by rw [← h₁ (g (x + y)), ← h₁ (g x + g y)]; simp [h₂],
     λ a b, by rw [← h₁ (g (a • b)), ← h₁ (a • g b)]; simp [h₂]⟩
 
+/-- The constant 0 map is linear. -/
 instance : has_zero (β →ₗ[α] γ) := ⟨⟨λ _, 0, by simp, by simp⟩⟩
 
 @[simp] lemma zero_apply (x : β) : (0 : β →ₗ[α] γ) x = 0 := rfl
 
+/-- The negation of a linear map is linear. -/
 instance : has_neg (β →ₗ[α] γ) := ⟨λ f, ⟨λ b, - f b, by simp, by simp⟩⟩
 
 @[simp] lemma neg_apply (x : β) : (- f) x = - f x := rfl
 
+/-- The sum of two linear maps is linear. -/
 instance : has_add (β →ₗ[α] γ) := ⟨λ f g, ⟨λ b, f b + g b, by simp, by simp [smul_add]⟩⟩
 
 @[simp] lemma add_apply (x : β) : (f + g) x = f x + g x := rfl
 
+/-- The type of linear maps is an additive group. -/
 instance : add_comm_group (β →ₗ[α] γ) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
    intros; ext; simp
@@ -98,6 +127,7 @@ lemma sum_apply [decidable_eq δ] (t : finset δ) (f : δ → β →ₗ[α] γ) 
 
 @[simp] lemma sub_apply (x : β) : (f - g) x = f x - g x := rfl
 
+/-- `λb, f b • x` is a linear map. -/
 def smul_right (f : γ →ₗ[α] α) (x : β) : γ →ₗ[α] β :=
 ⟨λb, f b • x, by simp [add_smul], by simp [smul_smul]⟩.
 
@@ -128,13 +158,18 @@ end
 
 section
 variables (α β γ)
+
+/-- The first projection of a product is a linear map. -/
 def fst : β × γ →ₗ[α] β := ⟨prod.fst, λ x y, rfl, λ x y, rfl⟩
+
+/-- The second projection of a product is a linear map. -/
 def snd : β × γ →ₗ[α] γ := ⟨prod.snd, λ x y, rfl, λ x y, rfl⟩
 end
 
 @[simp] theorem fst_apply (x : β × γ) : fst α β γ x = x.1 := rfl
 @[simp] theorem snd_apply (x : β × γ) : snd α β γ x = x.2 := rfl
 
+/-- The pair of two linear maps is a linear map. -/
 def pair (f : β →ₗ[α] γ) (g : β →ₗ[α] δ) : β →ₗ[α] γ × δ :=
 ⟨λ x, (f x, g x), λ x y, by simp, λ x y, by simp⟩
 
@@ -152,13 +187,19 @@ by ext; refl
 
 section
 variables (α β γ)
+
+/-- The left injection into a product is a linear map. -/
 def inl : β →ₗ[α] β × γ := by refine ⟨prod.inl, _, _⟩; intros; simp [prod.inl]
+
+/-- The right injection into a product is a linear map. -/
 def inr : γ →ₗ[α] β × γ := by refine ⟨prod.inr, _, _⟩; intros; simp [prod.inr]
+
 end
 
 @[simp] theorem inl_apply (x : β) : inl α β γ x = (x, 0) := rfl
 @[simp] theorem inr_apply (x : γ) : inr α β γ x = (0, x) := rfl
 
+/-- The copair function `λ x : β × γ, f x.1 + g x.2` is a linear map. -/
 def copair (f : β →ₗ[α] δ) (g : γ →ₗ[α] δ) : β × γ →ₗ[α] δ :=
 ⟨λ x, f x.1 + g x.2, λ x y, by simp, λ x y, by simp [smul_add]⟩
 
@@ -199,6 +240,8 @@ instance : module α (β →ₗ[α] γ) :=
 module.of_core $ by refine { smul := (•), ..};
   intros; ext; simp [smul_add, add_smul, smul_smul]
 
+/-- Composition by `f : γ → δ` is a linear map from the space of linear maps `β → γ` to the space of
+linear maps `γ → δ`. -/
 def congr_right (f : γ →ₗ[α] δ) : (β →ₗ[α] γ) →ₗ[α] (β →ₗ[α] δ) :=
 ⟨linear_map.comp f,
 λ _ _, linear_map.ext $ λ _, f.2 _ _,
@@ -237,6 +280,7 @@ lemma subtype_comp_of_le (p q : submodule α β) (h : p ≤ q) :
   (submodule.subtype q).comp (of_le h) = submodule.subtype p :=
 by ext ⟨b, hb⟩; simp
 
+/-- The set `{0}` is the bottom element of the lattice of submodules. -/
 instance : has_bot (submodule α β) :=
 ⟨by split; try {exact {0}}; simp {contextual := tt}⟩
 
@@ -252,6 +296,7 @@ instance : order_bot (submodule α β) :=
   bot_le := λ p x, by simp {contextual := tt},
   ..submodule.partial_order }
 
+/-- The universal set is the top element of the lattice of submodules. -/
 instance : has_top (submodule α β) :=
 ⟨by split; try {exact set.univ}; simp⟩
 
@@ -339,7 +384,7 @@ theorem disjoint_def {p p' : submodule α β} :
   disjoint p p' ↔ ∀ x ∈ p, x ∈ p' → x = (0:β) :=
 show (∀ x, x ∈ p ∧ x ∈ p' → x ∈ ({0} : set β)) ↔ _, by simp
 
-/-- The pushforward -/
+/-- The pushforward of a submodule `p ⊆ β` by `f : β → γ` -/
 def map (f : β →ₗ[α] γ) (p : submodule α β) : submodule α γ :=
 { carrier := f '' p,
   zero  := ⟨0, p.zero_mem, f.map_zero⟩,
@@ -371,7 +416,7 @@ image_subset _
 have ∃ (x : β), x ∈ p := ⟨0, p.zero_mem⟩,
 ext $ by simp [this, eq_comm]
 
-/-- The pullback -/
+/-- The pullback of a submodule `p ⊆ γ` along `f : β → γ` -/
 def comap (f : β →ₗ[α] γ) (p : submodule α γ) : submodule α β :=
 { carrier := f ⁻¹' p,
   zero  := by simp,
@@ -442,6 +487,8 @@ lemma eq_zero_of_bot_submodule : ∀(b : (⊥ : submodule α β)), b = 0
 
 section
 variables (α)
+
+/-- The span of a set `s ⊆ β` is the smallest submodule of β that contains `s`. -/
 def span (s : set β) : submodule α β := Inf {p | s ⊆ p}
 end
 
@@ -464,6 +511,9 @@ le_antisymm (span_le.2 h₁) h₂
 @[simp] lemma span_eq : span α (p : set β) = p :=
 span_eq_of_le _ (subset.refl _) subset_span
 
+/-- An induction principle for span membership. If `p` holds for 0 and all elements of `s`, and is
+preserved under addition and scalar multiplication, then `p` holds for all elements of the span of
+`s`. -/
 @[elab_as_eliminator] lemma span_induction {p : β → Prop} (h : x ∈ span α s)
   (Hs : ∀ x ∈ s, p x) (H0 : p 0)
   (H1 : ∀ x y, p x → p y → p (x + y))
@@ -472,11 +522,14 @@ span_eq_of_le _ (subset.refl _) subset_span
 
 section
 variables (α β)
+
+/-- `span` forms a Galois insertion with the coercion from submodule to set. -/
 protected def gi : galois_insertion (@span α β _ _ _) coe :=
 { choice := λ s _, span α s,
   gc := λ s t, span_le,
   le_l_u := λ s, subset_span,
   choice_eq := λ s h, rfl }
+
 end
 
 @[simp] lemma span_empty : span α (∅ : set β) = ⊥ :=
@@ -612,6 +665,7 @@ lemma linear_eq_on (s : set β) {f g : β →ₗ[α] γ} (H : ∀x∈s, f x = g 
   f x = g x :=
 by apply span_induction h H; simp {contextual := tt}
 
+/-- The product of two submodules is a submodule. -/
 def prod : submodule α (β × γ) :=
 { carrier := set.prod p q,
   zero := ⟨zero_mem _, zero_mem _⟩,
@@ -659,6 +713,7 @@ def quotient_rel : setoid β :=
  λ x y h, by simpa using neg_mem _ h,
  λ x y z h₁ h₂, by simpa using add_mem _ h₁ h₂⟩
 
+/-- The quotient of a module `β` by a submodule `p ⊆ β`. -/
 def quotient : Type* := quotient (quotient_rel p)
 
 namespace quotient
@@ -796,6 +851,8 @@ begin
   simp
 end
 
+/-- The kernel of a linear map `f : β → γ` is defined to be `comap f ⊥`. This is equivalent to the
+set of `x : β` such that `f x = 0`. The kernel is a submodule of `β`. -/
 def ker (f : β →ₗ[α] γ) : submodule α β := comap f ⊥
 
 @[simp] theorem mem_ker {f : β →ₗ[α] γ} {y} : y ∈ ker f ↔ f y = 0 := mem_bot α
@@ -1007,6 +1064,8 @@ def map_subtype.order_iso :
   right_inv := λ ⟨q, hq⟩, subtype.eq' $ by simp [map_comap_subtype p, inf_of_le_right hq],
   ord       := λ p₁ p₂, (map_le_map_iff $ ker_subtype _).symm }
 
+/-- If `p ⊆ β` is a submodule, the ordering of submodules of `p` is embedded in the ordering of
+submodules of β. -/
 def map_subtype.le_order_embedding :
   ((≤) : submodule α p → submodule α p → Prop) ≼o ((≤) : submodule α β → submodule α β → Prop) :=
 (order_iso.to_order_embedding $ map_subtype.order_iso p).trans (subtype.order_embedding _ _)
@@ -1014,6 +1073,8 @@ def map_subtype.le_order_embedding :
 @[simp] lemma map_subtype_embedding_eq (p' : submodule α p) :
   map_subtype.le_order_embedding p p' = map p.subtype p' := rfl
 
+/-- If `p ⊆ β` is a submodule, the ordering of submodules of `p` is embedded in the ordering of
+submodules of β. -/
 def map_subtype.lt_order_embedding :
   ((<) : submodule α p → submodule α p → Prop) ≼o ((<) : submodule α β → submodule α β → Prop) :=
 (map_subtype.le_order_embedding p).lt_embedding_of_le_embedding
@@ -1052,10 +1113,12 @@ by rw [range, ← prod_top, prod_map_fst]
 @[simp] theorem range_snd : (snd α β γ).range = ⊤ :=
 by rw [range, ← prod_top, prod_map_snd]
 
+/-- The map from a module `β` to the quotient of `β` by a submodule `p` is a linear map. -/
 def mkq : β →ₗ[α] p.quotient := ⟨quotient.mk, by simp, by simp⟩
 
 @[simp] theorem mkq_apply (x : β) : p.mkq x = quotient.mk x := rfl
 
+/-- The map from the quotient of `β` by a submodule `p` to `γ` along `f : β → γ` is linear. -/
 def liftq (f : β →ₗ[α] γ) (h : p ≤ f.ker) : p.quotient →ₗ[α] γ :=
 ⟨λ x, _root_.quotient.lift_on' x f $
    λ a b (ab : a - b ∈ p), eq_of_sub_eq_zero $ by simpa using h ab,
@@ -1083,6 +1146,8 @@ by rw [eq_bot_iff, map_le_iff_le_comap, comap_bot, ker_mkq]; exact le_refl _
 @[simp] theorem comap_map_mkq : comap p.mkq (map p.mkq p') = p ⊔ p' :=
 by simp [comap_map_eq, sup_comm]
 
+/-- The map from the quotient of `β` by submodule `p` to the quotient of `γ` by submodule `q` along
+`f : β → γ` is linear. -/
 def mapq (f : β →ₗ[α] γ) (h : p ≤ comap f q) : p.quotient →ₗ[α] q.quotient :=
 p.liftq (q.mkq.comp f) $ by simpa [ker_comp] using h
 
@@ -1113,7 +1178,8 @@ theorem range_liftq (f : β →ₗ[α] γ) (h) :
 theorem ker_liftq_eq_bot (f : β →ₗ[α] γ) (h) (h' : ker f ≤ p) : ker (p.liftq f h) = ⊥ :=
 by rw [ker_liftq, le_antisymm h h', mkq_map_self]
 
-/-- Correspondence Theorem -/
+/-- The correspondence theorem for modules: there is an order isomorphism between submodules of the
+quotient of `β` by `p`, and submodules of `β` larger than `p`. -/
 def comap_mkq.order_iso :
   ((≤) : submodule α p.quotient → submodule α p.quotient → Prop) ≃o
   ((≤) : {p' : submodule α β // p ≤ p'} → {p' : submodule α β // p ≤ p'} → Prop) :=
@@ -1123,6 +1189,8 @@ def comap_mkq.order_iso :
   right_inv := λ ⟨q, hq⟩, subtype.eq' $ by simp [comap_map_mkq p, sup_of_le_right hq],
   ord       := λ p₁ p₂, (comap_le_comap_iff $ range_mkq _).symm }
 
+/-- The ordering on submodules of the quotient of `β` by `p` embeds into the ordering on submodules
+of `β`. -/
 def comap_mkq.le_order_embedding :
   ((≤) : submodule α p.quotient → submodule α p.quotient → Prop) ≼o ((≤) : submodule α β → submodule α β → Prop) :=
 (order_iso.to_order_embedding $ comap_mkq.order_iso p).trans (subtype.order_embedding _ _)
@@ -1130,6 +1198,8 @@ def comap_mkq.le_order_embedding :
 @[simp] lemma comap_mkq_embedding_eq (p' : submodule α p.quotient) :
   comap_mkq.le_order_embedding p p' = comap p.mkq p' := rfl
 
+/-- The ordering on submodules of the quotient of `β` by `p` embeds into the ordering on submodules
+of `β`. -/
 def comap_mkq.lt_order_embedding :
   ((<) : submodule α p.quotient → submodule α p.quotient → Prop) ≼o ((<) : submodule α β → submodule α β → Prop) :=
 (comap_mkq.le_order_embedding p).lt_embedding_of_le_embedding
@@ -1138,6 +1208,8 @@ end submodule
 
 section
 set_option old_structure_cmd true
+
+/-- A linear equivalence is an invertible linear map. -/
 structure linear_equiv (α : Type u) (β : Type v) (γ : Type w)
   [ring α] [add_comm_group β] [add_comm_group γ] [module α β] [module α γ]
   extends β →ₗ[α] γ, β ≃ γ
@@ -1164,13 +1236,17 @@ to_equiv_injective (equiv.eq_of_to_fun_eq h)
 
 section
 variable (β)
+
+/-- The identity map is a linear equivalence. -/
 def refl : β ≃ₗ[α] β := { .. linear_map.id, .. equiv.refl β }
 end
 
+/-- Linear equivalences are symmetric. -/
 def symm (e : β ≃ₗ[α] γ) : γ ≃ₗ[α] β :=
 { .. e.to_linear_map.inverse e.inv_fun e.left_inv e.right_inv,
   .. e.to_equiv.symm }
 
+/-- Linear equivalences are transitive. -/
 def trans (e₁ : β ≃ₗ[α] γ) (e₂ : γ ≃ₗ[α] δ) : β ≃ₗ[α] δ :=
 { .. e₂.to_linear_map.comp e₁.to_linear_map,
   .. e₁.to_equiv.trans e₂.to_equiv }
@@ -1178,6 +1254,8 @@ def trans (e₁ : β ≃ₗ[α] γ) (e₂ : γ ≃ₗ[α] δ) : β ≃ₗ[α] δ
 @[simp] theorem apply_symm_apply (e : β ≃ₗ[α] γ) (c : γ) : e (e.symm c) = c := e.6 c
 @[simp] theorem symm_apply_apply (e : β ≃ₗ[α] γ) (b : β) : e.symm (e b) = b := e.5 b
 
+/-- A bijective linear map is a linear equivalence. Here, bijectivity is described by saying that
+the kernel of `f` is `{0}` and the range is the universal set. -/
 noncomputable def of_bijective
   (f : β →ₗ[α] γ) (hf₁ : f.ker = ⊥) (hf₂ : f.range = ⊤) : β ≃ₗ[α] γ :=
 { ..f, ..@equiv.of_bijective _ _ f
@@ -1186,6 +1264,7 @@ noncomputable def of_bijective
 @[simp] theorem of_bijective_apply (f : β →ₗ[α] γ) {hf₁ hf₂} (x : β) :
   of_bijective f hf₁ hf₂ x = f x := rfl
 
+/-- If a linear map has an inverse, it is a linear equivalence. -/
 def of_linear (f : β →ₗ[α] γ) (g : γ →ₗ[α] β)
   (h₁ : f.comp g = linear_map.id) (h₂ : g.comp f = linear_map.id) : β ≃ₗ[α] γ :=
 { inv_fun   := g,
@@ -1205,6 +1284,7 @@ linear_map.ker_eq_bot.2 f.to_equiv.injective
 @[simp] protected theorem range (f : β ≃ₗ[α] γ) : (f : β →ₗ[α] γ).range = ⊤ :=
 linear_map.range_eq_top.2 f.to_equiv.surjective
 
+/-- The top submodule of `β` is linearly equivalent to `β`. -/
 def of_top (p : submodule α β) (h : p = ⊤) : p ≃ₗ[α] β :=
 { inv_fun   := λ x, ⟨x, h.symm ▸ trivial⟩,
   left_inv  := λ ⟨x, h⟩, rfl,
@@ -1237,6 +1317,7 @@ open linear_map
 
 set_option class.instance_max_depth 39
 
+/-- Multiplying by a unit `a` of the ring `α` is a linear equivalence. -/
 def smul_of_unit (a : units α) : β ≃ₗ[α] β :=
 of_linear ((a:α) • 1 : β →ₗ β) (((a⁻¹ : units α) : α) • 1 : β →ₗ β)
   (by rw [smul_comp, comp_smul, smul_smul, units.mul_inv, one_smul]; refl)
@@ -1278,6 +1359,7 @@ variables [module α β] [module α γ] [module α δ]
 variable (β)
 open linear_map
 
+/-- Multiplying by a nonzero element `a` of the field `α` is a linear equivalence. -/
 def smul_of_ne_zero (a : α) (ha : a ≠ 0) : β ≃ₗ[α] β :=
 smul_of_unit $ units.mk0 a ha
 
@@ -1288,6 +1370,7 @@ end linear_equiv
 namespace equiv
 variables [ring α] [add_comm_group β] [module α β] [add_comm_group γ] [module α γ]
 
+/-- An equivalence whose underlying function is linear is a linear equivalence. -/
 def to_linear_equiv (e : β ≃ γ) (h : is_linear_map α (e : β → γ)) : β ≃ₗ[α] γ :=
 { add := h.add, smul := h.smul, .. e}
 
@@ -1298,7 +1381,8 @@ variables [ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group δ]
 variables [module α β] [module α γ] [module α δ]
 variables (f : β →ₗ[α] γ)
 
-/-- First Isomorphism Law -/
+/-- The first isomorphism law for modules. The quotient of `β` by the kernel of `f` is linearly
+equivalent to the range of `f`.  -/
 noncomputable def quot_ker_equiv_range : f.ker.quotient ≃ₗ[α] f.range :=
 have hr : ∀ x : f.range, ∃ y, f y = ↑x := λ x, x.2.imp $ λ _, and.right,
 let F : f.ker.quotient →ₗ[α] f.range :=
@@ -1340,6 +1424,7 @@ noncomputable def sup_quotient_equiv_quotient_inf (p p' : submodule α β) :
 
 section prod
 
+/-- The product of two linear maps is a linear map. -/
 def prod {α β γ δ : Type*} [ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group δ]
   [module α β] [module α γ] [module α δ]
   (f₁ : β →ₗ[α] γ) (f₂ : β →ₗ[α] δ) : β →ₗ[α] (γ × δ) :=
@@ -1356,6 +1441,7 @@ lemma is_linear_map_prod_iso {α β γ δ : Type*} [comm_ring α] [add_comm_grou
   is_linear_map α (λ(p : (β →ₗ[α] γ) × (β →ₗ[α] δ)), (linear_map.prod p.1 p.2 : (β →ₗ[α] (γ × δ)))) :=
 ⟨λu v, rfl, λc u, rfl⟩
 
+/-- The product by a linear map into the scalar ring is a linear map. -/
 def scalar_prod_space_iso {α β γ : Type*} [comm_ring α] [add_comm_group β] [add_comm_group γ]
   [module α β] [module α γ] (c : β →ₗ[α] α) (f : γ) : β →ₗ[α] γ :=
 { to_fun := λx, (c x) • f,
@@ -1393,7 +1479,7 @@ by ext; refl
 lemma pi_comp (f : Πi, γ →ₗ[α] φ i) (g : δ →ₗ[α] γ) : (pi f).comp g = pi (λi, (f i).comp g) :=
 rfl
 
-/-- Linear projection -/
+/-- The projections from a family of modules are linear maps. -/
 def proj (i : ι) : (Πi, φ i) →ₗ[α] φ i :=
 ⟨ λa, a i, assume f g, rfl, assume c f, rfl ⟩
 
@@ -1411,6 +1497,9 @@ end
 
 section
 variables (α φ)
+
+/-- If `I` and `J` are disjoint index sets, the product of the kernels of the `J`th projections of
+`φ` is linearly equivalent to the product over `I`. -/
 def infi_ker_proj_equiv {I J : set ι} [decidable_pred (λi, i ∈ I)]
   (hd : disjoint I J) (hu : set.univ ⊆ I ∪ J) :
   (⨅i ∈ J, ker (proj i) : submodule α (Πi, φ i)) ≃ₗ[α] (Πi:I, φ i) :=
@@ -1441,7 +1530,7 @@ end
 section
 variable [decidable_eq ι]
 
-/-- `diag i j` is the identity map if `i = j` otherwise it is the constant 0 map. -/
+/-- `diag i j` is the identity map if `i = j`. Otherwise it is the constant 0 map. -/
 def diag (i j : ι) : φ i →ₗ[α] φ j :=
 @function.update ι (λj, φ i →ₗ[α] φ j) _ 0 i id j
 
@@ -1459,7 +1548,7 @@ section
 variable [decidable_eq ι]
 variables (α φ)
 
-/-- Standard basis -/
+/-- The standard basis of the product of `φ`. -/
 def std_basis (i : ι) : φ i →ₗ[α] (Πi, φ i) := pi (diag i)
 
 lemma std_basis_apply (i : ι) (b : φ i) : std_basis α φ i b = update 0 i b :=
@@ -1587,6 +1676,7 @@ variables {α β}
 
 instance : group (general_linear_group α β) := by delta general_linear_group; apply_instance
 
+/-- An invertible linear map `f` determines an equivalence from `β` to itself. -/
 def to_linear_equiv (f : general_linear_group α β) : (β ≃ₗ[α] β) :=
 { inv_fun := f.inv.to_fun,
   left_inv := λ m, show (f.inv * f.val) m = m,
@@ -1595,6 +1685,7 @@ def to_linear_equiv (f : general_linear_group α β) : (β ≃ₗ[α] β) :=
     by erw f.val_inv; simp,
   ..f.val }
 
+/-- An equivalence from `β` to itself determines an invertible linear map. -/
 def of_linear_equiv (f : (β ≃ₗ[α] β)) : general_linear_group α β :=
 { val := f,
   inv := f.symm,
@@ -1603,6 +1694,8 @@ def of_linear_equiv (f : (β ≃ₗ[α] β)) : general_linear_group α β :=
 
 variables (α β)
 
+/-- The general linear group on `α` and `β` is multiplicatively equivalent to the type of linear
+equivalences between `β` and itself. -/
 def general_linear_equiv : general_linear_group α β ≃* (β ≃ₗ[α] β) :=
 { to_fun := to_linear_equiv,
   inv_fun := of_linear_equiv,

@@ -24,17 +24,17 @@ let ⟨n, h⟩ := archimedean.arch x zero_lt_one in
 section linear_ordered_ring
 variables [linear_ordered_ring α] [archimedean α]
 
-lemma pow_unbounded_of_gt_one (x : α) {y : α}
+lemma pow_unbounded_of_one_lt (x : α) {y : α}
     (hy1 : 1 < y) : ∃ n : ℕ, x < y ^ n :=
 have hy0 : 0 <  y - 1 := sub_pos_of_lt hy1,
 let ⟨n, h⟩ := archimedean.arch x hy0 in
 ⟨n, calc x ≤ n • (y - 1)     : h
        ... < 1 + n • (y - 1) : by rw add_comm; exact lt_add_one _
-       ... ≤ y ^ n           : pow_ge_one_add_sub_mul (le_of_lt hy1) _⟩
+       ... ≤ y ^ n           : one_add_sub_mul_le_pow (le_of_lt hy1) _⟩
 
 lemma exists_nat_pow_near {x : α} {y : α} (hx : 1 < x) (hy : 1 < y) :
   ∃ n : ℕ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
-have h : ∃ n : ℕ, x < y ^ n, from pow_unbounded_of_gt_one _ hy,
+have h : ∃ n : ℕ, x < y ^ n, from pow_unbounded_of_one_lt _ hy,
 by classical; exact let n := nat.find h in
   have hn  : x < y ^ n, from nat.find_spec h,
   have hnp : 0 < n,     from nat.pos_iff_ne_zero.2 (λ hn0,
@@ -71,11 +71,11 @@ lemma exists_int_pow_near [discrete_linear_ordered_field α] [archimedean α]
   {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
   ∃ n : ℤ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
 by classical; exact
-let ⟨N, hN⟩ := pow_unbounded_of_gt_one x⁻¹ hy in
+let ⟨N, hN⟩ := pow_unbounded_of_one_lt x⁻¹ hy in
   have he: ∃ m : ℤ, y ^ m ≤ x, from
     ⟨-N, le_of_lt (by rw [(fpow_neg y (↑N)), one_div_eq_inv];
     exact (inv_lt hx (lt_trans (inv_pos hx) hN)).1 hN)⟩,
-let ⟨M, hM⟩ := pow_unbounded_of_gt_one x hy in
+let ⟨M, hM⟩ := pow_unbounded_of_one_lt x hy in
   have hb: ∃ b : ℤ, ∀ m, y ^ m ≤ x → m ≤ b, from
     ⟨M, λ m hm, le_of_not_lt (λ hlt, not_lt_of_ge
   (fpow_le_of_le (le_of_lt hy) (le_of_lt hlt)) (lt_of_le_of_lt hm hM))⟩,
@@ -174,7 +174,7 @@ begin
   { rw [rat.coe_nat_denom, nat.cast_one], exact one_ne_zero }
 end
 
-theorem exists_nat_one_div_lt {ε : α} (hε : ε > 0) : ∃ n : ℕ, 1 / (n + 1: α) < ε :=
+theorem exists_nat_one_div_lt {ε : α} (hε : 0 < ε) : ∃ n : ℕ, 1 / (n + 1: α) < ε :=
 begin
   cases archimedean_iff_nat_lt.1 (by apply_instance) (1/ε) with n hn,
   existsi n,
@@ -201,19 +201,13 @@ begin
     apply floor_le }
 end
 
-/-- `round` rounds a number to the nearest integer. `round (1 / 2) = 1` -/
-def round [floor_ring α] (x : α) : ℤ := ⌊x + 1 / 2⌋
-
 end linear_ordered_field
 
 section
-variables [discrete_linear_ordered_field α] [archimedean α]
+variables [discrete_linear_ordered_field α]
 
-theorem exists_rat_near (x : α) {ε : α} (ε0 : ε > 0) :
-  ∃ q : ℚ, abs (x - q) < ε :=
-let ⟨q, h₁, h₂⟩ := exists_rat_btwn $
-  lt_trans ((sub_lt_self_iff x).2 ε0) ((lt_add_iff_pos_left x).2 ε0) in
-⟨q, abs_sub_lt_iff.2 ⟨sub_lt.1 h₁, sub_lt_iff_lt_add.2 h₂⟩⟩
+/-- `round` rounds a number to the nearest integer. `round (1 / 2) = 1` -/
+def round [floor_ring α] (x : α) : ℤ := ⌊x + 1 / 2⌋
 
 lemma abs_sub_round [floor_ring α] (x : α) : abs (x - round x) ≤ 1 / 2 :=
 begin
@@ -223,11 +217,18 @@ begin
   split; linarith
 end
 
+variable [archimedean α]
+
+theorem exists_rat_near (x : α) {ε : α} (ε0 : 0 < ε) :
+  ∃ q : ℚ, abs (x - q) < ε :=
+let ⟨q, h₁, h₂⟩ := exists_rat_btwn $
+  lt_trans ((sub_lt_self_iff x).2 ε0) ((lt_add_iff_pos_left x).2 ε0) in
+⟨q, abs_sub_lt_iff.2 ⟨sub_lt.1 h₁, sub_lt_iff_lt_add.2 h₂⟩⟩
+
 instance : archimedean ℚ :=
 archimedean_iff_rat_le.2 $ λ q, ⟨q, by rw rat.cast_id⟩
 
-@[simp] theorem rat.cast_round {α : Type*} [discrete_linear_ordered_field α]
-  [archimedean α] (x : ℚ) : by haveI := archimedean.floor_ring α;
+@[simp] theorem rat.cast_round (x : ℚ) : by haveI := archimedean.floor_ring α;
   exact round (x:α) = round x :=
 have ((x + (1 : ℚ) / (2 : ℚ) : ℚ) : α) = x + 1 / 2, by simp,
 by rw [round, round, ← this, rat.cast_floor]

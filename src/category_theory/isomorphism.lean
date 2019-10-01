@@ -53,7 +53,7 @@ variables {X Y Z : C}
 
 namespace iso
 
-@[extensionality] lemma ext (α β : X ≅ Y) (w : α.hom = β.hom) : α = β :=
+@[extensionality] lemma ext ⦃α β : X ≅ Y⦄ (w : α.hom = β.hom) : α = β :=
 suffices α.inv = β.inv, by cases α; cases β; cc,
 calc α.inv
     = α.inv ≫ (β.hom ≫ β.inv) : by rw [iso.hom_inv_id, category.comp_id]
@@ -113,8 +113,8 @@ by ext; simp only [trans_hom, category.assoc]
 @[simp] lemma refl_trans (α : X ≅ Y) : (iso.refl X) ≪≫ α = α := by ext; apply category.id_comp
 @[simp] lemma trans_refl (α : X ≅ Y) : α ≪≫ (iso.refl Y) = α := by ext; apply category.comp_id
 
-@[simp] lemma symm_self_id (α : X ≅ Y) : α.symm ≪≫ α = iso.refl Y := ext _ _ α.inv_hom_id
-@[simp] lemma self_symm_id (α : X ≅ Y) : α ≪≫ α.symm = iso.refl X := ext _ _ α.hom_inv_id
+@[simp] lemma symm_self_id (α : X ≅ Y) : α.symm ≪≫ α = iso.refl Y := ext α.inv_hom_id
+@[simp] lemma self_symm_id (α : X ≅ Y) : α ≪≫ α.symm = iso.refl X := ext α.hom_inv_id
 
 @[simp] lemma symm_self_id_assoc (α : X ≅ Y) (β : Y ≅ Z) : α.symm ≪≫ α ≪≫ β = β :=
 by rw [← trans_assoc, symm_self_id, refl_trans]
@@ -135,7 +135,7 @@ lemma eq_comp_inv (α : X ≅ Y) {f : Z ⟶ Y} {g : Z ⟶ X} : g = f ≫ α.inv 
 (comp_inv_eq α.symm).symm
 
 lemma inv_eq_inv (f g : X ≅ Y) : f.inv = g.inv ↔ f.hom = g.hom :=
-have ∀{X Y : C} (f g : X ≅ Y), f.hom = g.hom → f.inv = g.inv, from λ X Y f g h, by rw [ext _ _ h],
+have ∀{X Y : C} (f g : X ≅ Y), f.hom = g.hom → f.inv = g.inv, from λ X Y f g h, by rw [ext h],
 ⟨this f.symm g.symm, this f g⟩
 
 lemma hom_comp_eq_id (α : X ≅ Y) {f : Y ⟶ X} : α.hom ≫ f = 𝟙 X ↔ f = α.inv :=
@@ -252,6 +252,9 @@ rfl
 @[simp] lemma map_iso_trans (F : C ⥤ D) {X Y Z : C} (i : X ≅ Y) (j : Y ≅ Z) :
   F.map_iso (i ≪≫ j) = (F.map_iso i) ≪≫ (F.map_iso j) :=
 by ext; apply functor.map_comp
+
+@[simp] lemma map_iso_refl (F : C ⥤ D) (X : C) : F.map_iso (iso.refl X) = iso.refl (F.obj X) :=
+iso.ext $ F.map_id X
 
 instance map_is_iso (F : C ⥤ D) (f : X ⟶ Y) [is_iso f] : is_iso (F.map f) :=
 is_iso.of_iso $ F.map_iso (as_iso f)

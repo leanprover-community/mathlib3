@@ -540,26 +540,24 @@ lemma measurable_sum_rec {f : α → γ} {g : β → γ}
   (hf : measurable f) (hg : measurable g) : @measurable (α ⊕ β) γ _ _ (@sum.rec α β (λ_, γ) f g) :=
 measurable_sum hf hg
 
-lemma is_measurable_inl_image [measurable_space α] [measurable_space β] {s : set α}
-  (hs : is_measurable s) : is_measurable (sum.inl '' s : set (α ⊕ β)) :=
+lemma is_measurable_inl_image {s : set α} (hs : is_measurable s) :
+  is_measurable (sum.inl '' s : set (α ⊕ β)) :=
 ⟨show is_measurable (sum.inl ⁻¹' _), by rwa [preimage_image_eq]; exact (assume a b, sum.inl.inj),
   have sum.inr ⁻¹' (sum.inl '' s : set (α ⊕ β)) = ∅ :=
     eq_empty_of_subset_empty $ assume x ⟨y, hy, eq⟩, by contradiction,
   show is_measurable (sum.inr ⁻¹' _), by rw [this]; exact is_measurable.empty⟩
 
-lemma is_measurable_range_inl [measurable_space α] [measurable_space β] :
-  is_measurable (range sum.inl : set (α ⊕ β)) :=
+lemma is_measurable_range_inl : is_measurable (range sum.inl : set (α ⊕ β)) :=
 by rw [← image_univ]; exact is_measurable_inl_image is_measurable.univ
 
-lemma is_measurable_inr_image [measurable_space α] [measurable_space β] {s : set β}
-  (hs : is_measurable s) : is_measurable (sum.inr '' s : set (α ⊕ β)) :=
+lemma is_measurable_inr_image {s : set β} (hs : is_measurable s) :
+  is_measurable (sum.inr '' s : set (α ⊕ β)) :=
 ⟨ have sum.inl ⁻¹' (sum.inr '' s : set (α ⊕ β)) = ∅ :=
     eq_empty_of_subset_empty $ assume x ⟨y, hy, eq⟩, by contradiction,
   show is_measurable (sum.inl ⁻¹' _), by rw [this]; exact is_measurable.empty,
   show is_measurable (sum.inr ⁻¹' _), by rwa [preimage_image_eq]; exact (assume a b, sum.inr.inj)⟩
 
-lemma is_measurable_range_inr [measurable_space α] [measurable_space β] :
-  is_measurable (range sum.inr : set (α ⊕ β)) :=
+lemma is_measurable_range_inr : is_measurable (range sum.inr : set (α ⊕ β)) :=
 by rw [← image_univ]; exact is_measurable_inr_image is_measurable.univ
 
 end sum

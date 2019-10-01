@@ -250,13 +250,12 @@ def emetric_space.induced {α β} (f : α → β) (hf : function.injective f)
   end }
 
 /-- Emetric space instance on subsets of emetric spaces -/
-instance {p : α → Prop} [t : emetric_space α] : emetric_space (subtype p) :=
+instance {α : Type*} {p : α → Prop} [t : emetric_space α] : emetric_space (subtype p) :=
 t.induced subtype.val (λ x y, subtype.eq)
 
 /-- The extended distance on a subset of an emetric space is the restriction of
 the original distance, by definition -/
-theorem subtype.edist_eq {p : α → Prop} [t : emetric_space α] (x y : subtype p) :
-  edist x y = edist x.1 y.1 := rfl
+theorem subtype.edist_eq {p : α → Prop} (x y : subtype p) : edist x y = edist x.1 y.1 := rfl
 
 /-- The product of two emetric spaces, with the max distance, is an extended
 metric spaces. We make sure that the uniform structure thus constructed is the one

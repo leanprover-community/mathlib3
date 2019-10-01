@@ -295,8 +295,7 @@ lemma well_founded_submodule_gt (α β) [ring α] [add_comm_group β] [module α
 is_noetherian_iff_well_founded.mp
 
 lemma finite_of_linear_independent {α β} [nonzero_comm_ring α] [add_comm_group β] [module α β]
-  [decidable_eq α] [decidable_eq β] [is_noetherian α β] {s : set β}
-  (hs : linear_independent α (subtype.val : s → β)) : s.finite :=
+  [is_noetherian α β] {s : set β} (hs : linear_independent α (subtype.val : s → β)) : s.finite :=
 begin
   refine classical.by_contradiction (λ hf, order_embedding.well_founded_iff_no_descending_seq.1
     (well_founded_submodule_gt α β) ⟨_⟩),

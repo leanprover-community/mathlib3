@@ -10,21 +10,41 @@ import algebra.pi_instances data.finsupp data.equiv.algebra order.order_iso
 # Linear algebra
 
 This file defines the basics of linear algebra. It sets up the "categorical/lattice structure" of
-modules, submodules, and linear maps. Many of the relevant definitions are found in
+modules, submodules, and linear maps. If `p` and `q` are submodules of a module, `p ≤ q` means that
+`p ⊆ q`.
+
+Many of the relevant definitions, including `module`, `submodule`, and `linear_map`, are found in
 `src/algebra/module.lean`.
 
 ## Main definitions
 
+* Many constructors for linear maps, including `pair` and `copair`
+* `submodule.span s` is defined to be the smallest submodule containing the set `s`.
+* If `p` is a submodule of `β`, `submodule.quotient p` is the quotient of `β` with respect to `p`:
+  that is, elements of `β` are identified if their difference is in `p`. This is itself a module.
+* The kernel `ker` and range `range` of a linear map are submodules of the domain and codomain
+  respectively.
+* `lin_equiv β γ`, the type of linear equivalences between `β` and `γ`, is a structure that extends
+  `linear_map` and `equiv`.
+* The general linear group is defined to be the group of invertible linear maps from `β` to itself.
+
 ## Main statements
+
+* The first and second isomorphism laws for modules are proved as `quot_ker_equiv_range` and
+  `sup_quotient_equiv_quotient_inf`.
 
 ## Notations
 
 * We continue to use the notation `β →ₗ[α] γ` for the type of linear maps from `β` to `γ` over the
   ring `α`.
-* We introduce the notations `β ≃ₗ γ` `β ≃ₗ[α] γ` for linear equivalences between `β` and `γ`. In
-  the first, the ring `α` is implicit.
+* We introduce the notations `β ≃ₗ γ` and `β ≃ₗ[α] γ` for `lin_equiv β γ`. In the first, the ring
+  `α` is implicit.
 
 ## Implementation notes
+
+We note that, when constructing linear maps, it is convenient to use operations defined on bundled
+maps (`pair`, `copair`, arithmetic operations like `+`) instead of defining a function and proving
+it is linear.
 
 ## Tags
 linear algebra, vector space, module
@@ -814,6 +834,7 @@ theorem comap_cod_restrict (p : submodule α β) (f : γ →ₗ[α] β) (hf p') 
   submodule.comap (cod_restrict p f hf) p' = submodule.comap f (map p.subtype p') :=
 submodule.ext $ λ x, ⟨λ h, ⟨⟨_, hf x⟩, h, rfl⟩, by rintro ⟨⟨_, _⟩, h, ⟨⟩⟩; exact h⟩
 
+/-- The range of a linear map `f : β → γ` is a submodule of `γ`. -/
 def range (f : β →ₗ[α] γ) : submodule α γ := map f ⊤
 
 theorem range_coe (f : β →ₗ[α] γ) : (range f : set γ) = set.range f := set.image_univ

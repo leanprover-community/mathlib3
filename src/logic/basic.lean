@@ -591,11 +591,12 @@ begin
   simp only [imp_iff_not_or, or.comm]
 end
 
-/- use shortened names to avoid conflict when classical namespace is open -/
-noncomputable def dec (p : Prop) : decidable p := by apply_instance
-noncomputable def dec_pred (p : α → Prop) : decidable_pred p := by apply_instance
-noncomputable def dec_rel (p : α → α → Prop) : decidable_rel p := by apply_instance
-noncomputable def dec_eq (α : Sort*) : decidable_eq α := by apply_instance
+/- use shortened names to avoid conflict when classical namespace is open.
+  These are marked as lemmas, to avoid "failed to generate bytecode" errors -/
+noncomputable lemma dec (p : Prop) : decidable p := by apply_instance
+noncomputable lemma dec_pred (p : α → Prop) : decidable_pred p := by apply_instance
+noncomputable lemma dec_rel (p : α → α → Prop) : decidable_rel p := by apply_instance
+noncomputable lemma dec_eq (α : Sort*) : decidable_eq α := by apply_instance
 
 @[elab_as_eliminator]
 noncomputable def {u} exists_cases {C : Sort u} (H0 : C) (H : ∀ a, p a → C) : C :=

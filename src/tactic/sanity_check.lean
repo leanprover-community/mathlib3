@@ -45,6 +45,7 @@ meta def sanity_skip_attr : user_attribute :=
   descr := "Do not report this declaration in any of the tests of `#sanity_check`" }
 
 attribute [sanity_skip] imp_intro
+  classical.dec classical.dec_pred classical.dec_rel classical.dec_eq
 
 setup_tactic_parser
 universe variable v

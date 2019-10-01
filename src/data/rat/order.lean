@@ -198,7 +198,7 @@ end
 lemma lt_one_iff_num_lt_denom {q : ℚ} : q < 1 ↔ q.num < q.denom :=
 begin
   cases decidable.em (0 < q) with q_pos q_nonpos,
-  { simp [(rat.lt_def q_pos zero_lt_one)] },
+  { simp [rat.lt_def] },
   { replace q_nonpos : q ≤ 0, from not_lt.elim_left q_nonpos,
     have : q.num < q.denom, by
     { have : ¬0 < q.num ↔ ¬0 < q, from not_iff_not.elim_right num_pos_iff_pos,

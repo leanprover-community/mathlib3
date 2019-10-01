@@ -109,8 +109,8 @@ namespace vector3
 @[pattern] def cons {α} {n} (a : α) (v : vector3 α n) : vector3 α (succ n) :=
 λi, by {refine i.cases' _ _, exact a, exact v}
 
-notation a :: b := cons a b
-notation `[` l:(foldr `, ` (h t, cons h t) nil `]`) := l
+localized "notation a :: b := cons a b" in vector3
+localized "notation `[` l:(foldr `, ` (h t, cons h t) nil `]`) := l" in vector3
 
 @[simp] theorem cons_fz {α} {n} (a : α) (v : vector3 α n) : (a :: v) fz = a := rfl
 @[simp] theorem cons_fs {α} {n} (a : α) (v : vector3 α n) (i) : (a :: v) (fs i) = v i := rfl
@@ -204,7 +204,9 @@ end
 
 end vector3
 
+section vector3
 open vector3
+open_locale vector3
 
 /-- "Curried" exists, i.e. ∃ x1 ... xn, f [x1, ..., xn] -/
 def vector_ex {α} : Π k, (vector3 α k → Prop) → Prop
@@ -254,6 +256,7 @@ end
 theorem vector_allp.imp {α} {p q : α → Prop} (h : ∀ x, p x → q x)
   {n} {v : vector3 α n} (al : vector_allp p v) : vector_allp q v :=
 (vector_allp_iff_forall _ _).2 (λi, h _ $ (vector_allp_iff_forall _ _).1 al _)
+end vector3
 
 /-- `list_all p l` is equivalent to `∀ a ∈ l, p a`, but unfolds directly to a conjunction,
   i.e. `list_all p [0, 1, 2] = p 0 ∧ p 1 ∧ p 2`. -/
@@ -579,7 +582,8 @@ end
 
 section
   variables {α β γ : Type}
-
+  open vector3
+  open_locale vector3
   theorem dioph_fn_vec_comp1 {n} {S : set (vector3 ℕ (succ n))} (d : dioph S) {f : (vector3 ℕ n) → ℕ} (df : dioph_fn f) :
     dioph (λv : vector3 ℕ n, S (cons (f v) v)) :=
   ext (dioph_fn_comp1 (reindex_dioph d (none :: some)) df) $ λv, by rw [
@@ -591,11 +595,12 @@ section
     show (option.cons x v) ∘ (cons none some) = x :: v,
     from funext $ λs, by cases s with a b; refl]
 
-  theorem dioph_fn_vec {n} (f : vector3 ℕ n → ℕ) : dioph_fn f ↔ dioph (λv : vector3 ℕ (succ n), f (v ∘ fs) = v fz) :=
-  ⟨λh, reindex_dioph h (fz :: fs), λh, reindex_dioph h (none :: some)⟩
+  theorem dioph_fn_vec {n} (f : vector3 ℕ n → ℕ) :
+    dioph_fn f ↔ dioph (λv : vector3 ℕ (succ n), f (v ∘ fs) = v fz) :=
+  ⟨λh, reindex_dioph h (option.cons fz fs), λh, reindex_dioph h (none :: some)⟩
 
   theorem dioph_pfun_vec {n} (f : vector3 ℕ n →. ℕ) : dioph_pfun f ↔ dioph (λv : vector3 ℕ (succ n), f.graph (v ∘ fs, v fz)) :=
-  ⟨λh, reindex_dioph h (fz :: fs), λh, reindex_dioph h (none :: some)⟩
+  ⟨λh, reindex_dioph h (option.cons fz fs), λh, reindex_dioph h (none :: some)⟩
 
   theorem dioph_fn_compn {α : Type} : ∀ {n} {S : set (α ⊕ fin2 n → ℕ)} (d : dioph S) {f : vector3 ((α → ℕ) → ℕ) n} (df : vector_allp dioph_fn f),
     dioph (λv : α → ℕ, S (v ⊗ λi, f i v))

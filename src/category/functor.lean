@@ -106,7 +106,7 @@ instance : functor (comp F G) := { map := @comp.map F G _ _ }
 @[functor_norm] lemma map_mk {α β} (h : α → β) (x : F (G α)) :
   h <$> comp.mk x = comp.mk ((<$>) h <$> x) := rfl
 
-@[simp] protected lemma run_map {α β γ} (h : α → β) (x : comp F G α) :
+@[simp] protected lemma run_map {α β} (h : α → β) (x : comp F G α) :
   (h <$> x).run = (<$>) h <$> x.run := rfl
 
 variables [is_lawful_functor F] [is_lawful_functor G]

@@ -413,9 +413,10 @@ end equality
 section quantifiers
 variables {α : Sort*} {β : Sort*} {p q : α → Prop} {b : Prop}
 
-lemma Exists.imp := @exists_imp_exists
+lemma Exists.imp (h : ∀ a, (p a → q a)) (p : ∃ a, p a) : ∃ a, q a := exists_imp_exists h p
 
-lemma exists_imp_exists' {p : α → Prop} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a)) (hp : ∃ a, p a) : ∃ b, q b :=
+lemma exists_imp_exists' {p : α → Prop} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a))
+  (hp : ∃ a, p a) : ∃ b, q b :=
 exists.elim hp (λ a hp', ⟨_, hpq _ hp'⟩)
 
 theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=

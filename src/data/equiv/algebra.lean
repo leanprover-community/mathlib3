@@ -375,18 +375,29 @@ intros; ext; try { refl }; apply equiv.left_inv
 def to_perm : mul_aut α →* equiv.perm α :=
 by refine_struct { to_fun := mul_equiv.to_equiv }; intros; refl
 
+end mul_aut
+
+namespace add_aut
+
+variables (α) [has_add α]
+
 /--
 The group operation on additive automorphisms is defined by
 `λ g h, mul_equiv.trans h g`.
 This means that multiplication agrees with composition, `(g*h)(x) = g (h x)`.
 -/
-instance add_aut_group (α : Type u) [has_add α] : group (add_aut α) :=
+instance group : group (add_aut α) :=
 by refine_struct
 { mul := λ g h, add_equiv.trans h g,
   one := add_equiv.refl α,
   inv := add_equiv.symm };
 intros; ext; try { refl }; apply equiv.left_inv
 
+/-- Monoid hom from the group of multiplicative automorphisms to the group of permutations. -/
+def to_perm : add_aut α →* equiv.perm α :=
+by refine_struct { to_fun := add_equiv.to_equiv }; intros; refl
+
+end add_aut
 
 /-- A group is isomorphic to its group of units. -/
 def to_units (α) [group α] : α ≃* units α :=

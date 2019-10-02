@@ -605,8 +605,9 @@ by apply_instance
   We make decidability results that depends on `classical.choice` noncomputable lemmas.
   * We have to mark them as noncomputable, because otherwise Lean will try to generate bytecode
     for them, and fail because it depends on `classical.choice`.
-  * We make them lemmas, and not definitions, because otherwise later declarations will raise
-    "failed to generate bytecode" errors.
+  * We make them lemmas, and not definitions, because otherwise later definitions will raise
+    "failed to generate bytecode" errors when writing something like
+    `letI := classical.dec_eq _`.
   Cf. https://leanprover-community.github.io/archive/113488general/08268noncomputabletheorem.html -/
 
 @[elab_as_eliminator]

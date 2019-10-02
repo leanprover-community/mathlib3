@@ -23,7 +23,7 @@ attribute [instance] Module.is_add_comm_group Module.is_module
 
 namespace Module
 
--- TODO consider removing this after #1438 merges?
+-- TODO revisit this after #1438 merges, to check coercions and instances are handled consistently
 instance : has_coe_to_sort (Module R) :=
 { S := Type u, coe := Module.carrier }
 

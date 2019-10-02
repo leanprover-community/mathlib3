@@ -86,15 +86,16 @@ namespace commute
 
 section semigroup
 
-variables {S : Type*} [semigroup S]
+variables {S : Type*} [semigroup S] {a b c : S}
 
 /-- If `a` commutes with both `b` and `c`, then it commutes with their product. -/
-protected theorem mul {a b c : S} (hab : commute a b) (hac : commute a c) : commute a (b * c) :=
+protected theorem mul (hab : commute a b) (hac : commute a c) :
+  commute a (b * c) :=
 by dunfold commute; assoc_rw [hab.eq, hac.eq]
 
 /-- If both `a` and `b` commute with `c`, then their product commutes with `c`. -/
-theorem mul_left {a b c : S}
-  (hac : commute a c) (hbc : commute b c) : commute (a * b) c :=
+theorem mul_left (hac : commute a c) (hbc : commute b c) :
+  commute (a * b) c :=
 (hac.symm.mul hbc.symm).symm
 
 end semigroup

@@ -29,7 +29,7 @@ to define its instances. This is because writing, for example,
 results in an instance of the form `id (bundled_hom.concrete_category _)`
 and this `id`, not being [reducible], prevents a later instance search
 (once SemiRing is no longer reducible) from seeing that the morphisms of
-SemiRing are really semiring morphisms (→+*), and therefore have a coercion
+SemiRing are really semiring morphisms (`→+*`), and therefore have a coercion
 to functions, for example. It's especially important that the `has_coe_to_sort`
 instance not contain an extra `id` as we want the `semiring ↥R` instance to
 also apply to `semiring R.α` (it seems to be impractical to guarantee that

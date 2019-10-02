@@ -10,7 +10,7 @@ import algebra.pi_instances data.finsupp data.equiv.algebra order.order_iso
 # Linear algebra
 
 This file defines the basics of linear algebra. It sets up the "categorical/lattice structure" of
-modules, submodules, and linear maps. If `p` and `q` are submodules of a module, `p ≤ q` means that
+modules over a ring, submodules, and linear maps. If `p` and `q` are submodules of a module, `p ≤ q` means that
 `p ⊆ q`.
 
 Many of the relevant definitions, including `module`, `submodule`, and `linear_map`, are found in

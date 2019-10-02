@@ -14,7 +14,7 @@ import data.equiv.algebra algebra.group_power
 ## Main definitions
 
 * `commute a b` : `a * b = b * a`
-* `cetralizer a` : `{ x | commute a x }`
+* `centralizer a` : `{ x | commute a x }`
 * `set.centralizer s` : elements that commute with all `a ∈ s`
 
 We prove that `centralizer` and `set_centralilzer` are submonoid/subgroups/subrings depending on the available structures, and provide operations on `commute _ _`.

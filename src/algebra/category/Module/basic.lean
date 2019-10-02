@@ -44,7 +44,7 @@ variables (M N U : Module R)
 
 @[simp] lemma id_apply (m : M) : (𝟙 M : M → M) m = m := rfl
 
-@[simp] lemma module_hom_comp (f : M ⟶ N) (g : N ⟶ U) :
+@[simp] lemma coe_comp (f : M ⟶ N) (g : N ⟶ U) :
   ((f ≫ g) : M → U) = g ∘ f := rfl
 
 instance hom_is_module_hom {M₁ M₂ : Module R} (f : M₁ ⟶ M₂) :

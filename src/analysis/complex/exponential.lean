@@ -590,11 +590,11 @@ begin
   norm_num, norm_num, apply pow_pos h
 end
 
-namespace angle
-
 /-- The type of angles -/
 def angle : Type :=
 quotient_add_group.quotient (gmultiples (2 * π))
+
+namespace angle
 
 instance angle.add_comm_group : add_comm_group angle :=
 quotient_add_group.add_comm_group _

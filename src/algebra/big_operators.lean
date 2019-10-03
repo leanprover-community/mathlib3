@@ -332,7 +332,7 @@ finset.strong_induction_on s
         prod_insert (not_mem_erase _ _), ih', mul_one, h₁ x hx])
 
 @[to_additive]
-lemma prod_eq_one [comm_monoid β] {f : α → β} {s : finset α} (h : ∀x∈s, f x = 1) : s.prod f = 1 :=
+lemma prod_eq_one {f : α → β} {s : finset α} (h : ∀x∈s, f x = 1) : s.prod f = 1 :=
 calc s.prod f = s.prod (λx, 1) : finset.prod_congr rfl h
   ... = 1 : finset.prod_const_one
 
@@ -540,12 +540,13 @@ by rwa sum_singleton at this
 end ordered_comm_monoid
 
 section canonically_ordered_monoid
-variables [decidable_eq α] [canonically_ordered_monoid β] [@decidable_rel β (≤)]
+variables [decidable_eq α] [canonically_ordered_monoid β]
 
 lemma sum_le_sum_of_subset (h : s₁ ⊆ s₂) : s₁.sum f ≤ s₂.sum f :=
 sum_le_sum_of_subset_of_nonneg h $ assume x h₁ h₂, zero_le _
 
-lemma sum_le_sum_of_ne_zero (h : ∀x∈s₁, f x ≠ 0 → x ∈ s₂) : s₁.sum f ≤ s₂.sum f :=
+lemma sum_le_sum_of_ne_zero [@decidable_rel β (≤)] (h : ∀x∈s₁, f x ≠ 0 → x ∈ s₂) :
+  s₁.sum f ≤ s₂.sum f :=
 calc s₁.sum f = (s₁.filter (λx, f x = 0)).sum f + (s₁.filter (λx, f x ≠ 0)).sum f :
     by rw [←sum_union, filter_union_filter_neg_eq];
        exact disjoint_filter (assume _ h n_h, n_h h)

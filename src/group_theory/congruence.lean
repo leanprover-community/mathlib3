@@ -76,13 +76,16 @@ instance : has_coe_to_fun (con M) := ⟨_, λ c, λ x y, c.r x y⟩
 /-- Congruence relations are reflexive. -/
 @[simp, refl, to_additive "Congruence relations are reflexive."]
 lemma refl (x) : c.1 x x := c.2.1 x
+
 /-- Congruence relations are symmetric. -/
 @[simp, symm, to_additive "Congruence relations are symmetric."]
 lemma symm : ∀ {x y}, c x y → c.1 y x := λ _ _ h, c.2.2.1 h
+
 /-- Congruence relations are transitive. -/
 @[simp, trans, to_additive "Congruence relations are transitive."]
 lemma trans : ∀ {x y z}, c x y → c y z → c.1 x z :=
 λ  _ _ _ hx, c.2.2.2 hx
+
 /-- Multiplicative congruence relations preserve multiplication. -/
 @[simp, to_additive "Additive congruence relations preserve addition."]
 lemma mul : ∀ {w x y z}, c w x → c y z → c (w*y) (x*z) :=
@@ -107,6 +110,11 @@ lemma ext {c d : con M} (H : ∀ x y, c x y ↔ d x y) :
 
 attribute [extensionality] add_con.ext
 
+/-- The map sending a congruence relation to its underlying equivalence relation is injective. -/
+@[to_additive "The map sending a congruence relation to its underlying equivalence relation is injective."]
+lemma to_setoid_inj {c d : con M} (H : c.to_setoid = d.to_setoid) : c = d :=
+ext $ λ x y, setoid.ext_iff.1 H x y
+
 /-- Iff version of extensionality rule for congruence relations. -/
 @[to_additive "Iff version of extensionality rule for congruence relations."]
 lemma ext_iff {c d : con M} : (∀ x y, c x y ↔ d x y) ↔ c = d :=
@@ -114,7 +122,7 @@ lemma ext_iff {c d : con M} : (∀ x y, c x y ↔ d x y) ↔ c = d :=
 
 /-- The kernel of a multiplication-preserving function as a congruence relation. -/
 @[to_additive "The kernel of an addition-preserving function as a congruence relation."]
-def ker (f : M → P) (h : ∀ x y, f (x * y) = f x * f y) : con M :=
+def ker' (f : M → P) (h : ∀ x y, f (x * y) = f x * f y) : con M :=
 { r := λ x y, f x = f y,
   iseqv := ⟨λ _, rfl, λ _ _ h, h.symm, λ _ _ _ hx hy, eq.trans hx hy⟩,
   mul' := λ _ _ _ _ h1 h2, by rw [h, h1, h2, h] }
@@ -194,7 +202,7 @@ instance has_mul : has_mul c.quotient :=
          $ λ _ _ _ _ h1 h2, (c.eq _ _).2 $ c.mul h1 h2⟩
 
 /-- The kernel of the quotient map induced by a congruence relation c equals c. -/
-@[simp] lemma ker_mk_eq : ker (coe : M → c.quotient) (λ x y, rfl) = c :=
+@[simp] lemma ker_mk_eq : ker' (coe : M → c.quotient) (λ x y, rfl) = c :=
 ext $ λ x y, quotient.eq'
 
 variables {c}
@@ -395,13 +403,13 @@ open function setoid
 /-- Given a multiplication-preserving function f whose kernel is contained in an congruence
     relation c, the congruence closure of the relation on f's image defined by x ≈ y ↔ the
     elements of f⁻¹(x) are related to the elements of f⁻¹(y) by c. -/
-def map' (f : M → N) (H : ∀ x y, f (x * y) = f x * f y) (h : ker f H ≤ c) : con N :=
+def map' (f : M → N) (H : ∀ x y, f (x * y) = f x * f y) (h : ker' f H ≤ c) : con N :=
 con_gen $ λ x y, ∃ a b, f a = x ∧ f b = y ∧ c a b
 
 /-- Given a surjective multiplicative-preserving function f whose kernel is contained in an
     congruence relation r, the congruence relation on f's codomain defined by x ≈ y ↔ the
     elements of f⁻¹(x) are related to the elements of f⁻¹(y) by c. -/
-def map_of_surjective (f : M → N) (H : ∀ x y, f (x * y) = f x * f y) (h : ker f H ≤ c)
+def map_of_surjective (f : M → N) (H : ∀ x y, f (x * y) = f x * f y) (h : ker' f H ≤ c)
   (hf : surjective f) : con N :=
 { mul' := λ w x y z ⟨a, b, hw, hx, h1⟩ ⟨p, q, hy, hz, h2⟩,
     ⟨a * p, b * q, by rw [H, hw, hy], by rw [H, hx, hz], c.mul h1 h2⟩,
@@ -409,7 +417,7 @@ def map_of_surjective (f : M → N) (H : ∀ x y, f (x * y) = f x * f y) (h : ke
 
 /-- A special case of the congruence closure of an congruence relation c equalling c. -/
 lemma map_of_surjective_eq_map {c : con M} {f : M → N} (H : ∀ x y, f (x * y) = f x * f y)
-  (h : ker f H ≤ c) (hf : surjective f) :
+  (h : ker' f H ≤ c) (hf : surjective f) :
   c.map' f H h = c.map_of_surjective f H h hf :=
 by rw ←con_gen_of_con (map_of_surjective c f H h hf); refl
 
@@ -437,7 +445,7 @@ open quotient
       ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in
         d.1.trans (d.1.symm $ d.2 a _ $ (c.eq _ _).1 hx) $ d.1.trans H $ d.2 b _ $ (c.eq _ _).1 hy,
        λ h, ⟨_, _, rfl, rfl, h⟩⟩,
-    right_inv := λ d, let Hm : ker (coe : M → c.quotient) (λ x y, rfl) ≤
+    right_inv := λ d, let Hm : ker' (coe : M → c.quotient) (λ x y, rfl) ≤
           c.comap (coe : M → c.quotient) (λ x y, rfl) d :=
         λ x y h, show d _ _, by rw (c.eq x y).2 ((ker_mk_eq c) ▸ h); exact d.refl _ in
       ext $ λ x y, ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in hx ▸ hy ▸ H,
@@ -507,9 +515,13 @@ def of_submonoid (N : submonoid (M × M)) (H : equivalence (λ x y, (x, y) ∈ N
   iseqv := H,
   mul' := λ _ _ _ _ h1 h2, N.mul_mem h1 h2 }
 
+/-- The kernel of a monoid homomorphism as a congruence relation. -/
+@[to_additive "The kernel of an add_monoid homomorphism as a congruence relation."]
+def ker (f : M →* P) : con M := ker' f f.3
+
 /-- Stating the definition of the congruence relation defined by a monoid homomorphism's kernel. -/
 @[to_additive "Stating the definition of the congruence relation defined by an add_monoid homomorphism's kernel."]
-lemma ker_rel (f : M →* P) {x y} : ker f f.3 x y ↔ f x = f y := iff.rfl
+lemma ker_rel (f : M →* P) {x y} : ker f x y ↔ f x = f y := iff.rfl
 
 variables (c)
 
@@ -540,7 +552,7 @@ variables (x y : M)
 /-- The kernel of the natural homomorphism from a monoid to its quotient by a congruence
     relation c equals c. -/
 @[simp, to_additive "The kernel of the natural homomorphism from an add_monoid to its quotient by a congruence relation c equals c."]
-lemma mk'_ker : ker c.mk' c.mk'.3 = c := ext $ λ _ _, c.eq _ _
+lemma mk'_ker : ker c.mk' = c := ext $ λ _ _, c.eq _ _
 
 variables {c}
 open function
@@ -555,7 +567,7 @@ lemma mk'_surjective : surjective c.mk' :=
 /-- The elements related to x ∈ M, M a monoid, by the kernel of a monoid homomorphism are those in
     the preimage of f(x) under f. -/
 @[to_additive "The elements related to x ∈ M, M an add_monoid, by the kernel of an add_monoid homomorphism are those in the preimage of f(x) under f. "]
-lemma ker_apply_eq_preimage {f : M →* P} (x) : (ker f f.3) x = f ⁻¹' {f x} :=
+lemma ker_apply_eq_preimage {f : M →* P} (x) : (ker f) x = f ⁻¹' {f x} :=
 set.ext $ λ x,
   ⟨λ h, set.mem_preimage.2 (set.mem_singleton_iff.2 h.symm),
    λ h, (set.mem_singleton_iff.1 (set.mem_preimage.1 h)).symm⟩
@@ -570,42 +582,42 @@ instance to_submonoid : has_coe (con M) (submonoid (M × M)) := ⟨λ c, c.submo
 lemma le_iff {c d : con M} : c ≤ d ↔ (c : submonoid (M × M)) ≤ d :=
 ⟨λ h x hx, h x.1 x.2 hx, λ h x y hc, h $ show (x, y) ∈ c, from hc⟩
 
---@[to_additive] lemma mem_coe {c : con M} {x y} :
---  (x, y) ∈ (↑c : submonoid (M × M)) ↔ (x, y) ∈ c := iff.rfl
+@[to_additive] lemma mem_coe {c : con M} {x y} :
+  (x, y) ∈ (↑c : submonoid (M × M)) ↔ (x, y) ∈ c := iff.rfl
 
---@[to_additive to_add_submonoid_inj]
---theorem to_submonoid_inj (c d : con M) (H : (c : submonoid (M × M)) = d) : c = d :=
---ext $ λ x y, show (x,y) ∈ (c : submonoid (M × M)) ↔ (x,y) ∈ ↑d, by rw H
+@[to_additive to_add_submonoid_inj]
+theorem to_submonoid_inj (c d : con M) (H : (c : submonoid (M × M)) = d) : c = d :=
+ext $ λ x y, show (x,y) ∈ (c : submonoid (M × M)) ↔ (x,y) ∈ ↑d, by rw H
 
 variables (c) (f : M →* P)
 
 /-- The homomorphism described by the universal property for quotients of monoids. -/
 @[to_additive "The homomorphism described by the universal property for quotients of add_monoids."]
-def lift (H : c ≤ ker f f.3) : c.quotient →* P :=
+def lift (H : c ≤ ker f) : c.quotient →* P :=
 { to_fun := λ x, quotient.lift_on' x f $ λ _ _ h, H _ _ h,
   map_one' := by rw ←f.map_one; refl,
   map_mul' := λ x y, quotient.induction_on₂' x y $ λ m n, f.map_mul m n ▸ rfl}
 
 /-- The homomorphism induced on the quotient of a monoid by the kernel of a monoid homomorphism. -/
 @[to_additive "The homomorphism induced on the quotient of an add_monoid by the kernel of an add_monoid homomorphism."]
-def ker_lift (f : M →* P) : (ker f f.3).quotient →* P :=
-(ker f f.3).lift f $ λ _ _, id
+def ker_lift (f : M →* P) : (ker f).quotient →* P :=
+(ker f).lift f $ λ _ _, id
 
 variables {c f}
 
 /-- The diagram describing the universal property for quotients of monoids commutes. -/
 @[simp, to_additive "The diagram describing the universal property for quotients of add_monoids commutes."]
-lemma lift_mk' (H : c ≤ ker f f.3) (x) :
+lemma lift_mk' (H : c ≤ ker f) (x) :
   c.lift f H (c.mk' x) = f x := rfl
 
 /-- The diagram describing the universal property for quotients of monoids commutes. -/
 @[simp, to_additive "The diagram describing the universal property for quotients of add_monoids commutes."]
-lemma lift_coe (H : c ≤ ker f f.3) (x : M) :
+lemma lift_coe (H : c ≤ ker f) (x : M) :
   c.lift f H x = f x := rfl
 
 /-- The diagram describing the universal property for quotients of monoids commutes. -/
 @[simp, to_additive "The diagram describing the universal property for quotients of add_monoids commutes."]
-theorem lift_comp_mk' (H : c ≤ ker f f.3) :
+theorem lift_comp_mk' (H : c ≤ ker f) :
   (c.lift f H).comp c.mk' = f := by ext; refl
 
 /-- Given a homomorphism f from the quotient of a monoid by a congruence relation, the homomorphism
@@ -624,7 +636,7 @@ by { rw [←lift_apply_mk' f, ← lift_apply_mk' g], congr' 1, ext, apply h x }
 
 /-- The uniqueness part of the universal property for quotients of monoids. -/
 @[to_additive "The uniqueness part of the universal property for quotients of add_monoids."]
-theorem lift_unique (H : c ≤ ker f f.3) (g : c.quotient →* P)
+theorem lift_unique (H : c ≤ ker f) (g : c.quotient →* P)
   (Hg : g.comp c.mk' = f) : g = c.lift f H :=
 lift_funext g (c.lift f H) $ λ x, by rw [lift_coe H, ←comp_mk'_apply, Hg]
 
@@ -632,7 +644,7 @@ lift_funext g (c.lift f H) $ λ x, by rw [lift_coe H, ←comp_mk'_apply, Hg]
     monoid equals the image of the map described by the universal property for quotients of monoids
     applied to f. -/
 @[to_additive "The image of a homomorphism f constant on the equivalence classes of a congruence relation on an add_monoid equals the image of the map described by the universal property for quotients of add_monoids applied to f."]
-theorem lift_range (H : c ≤ ker f f.3) : (c.lift f H).range = f.range :=
+theorem lift_range (H : c ≤ ker f) : (c.lift f H).range = f.range :=
 submonoid.ext $ λ x,
   ⟨λ ⟨y, hy⟩, by revert hy; rcases y; exact
      (λ hy, ⟨y, hy.1, by rw [hy.2.symm, (lift_coe H _).symm]; refl⟩),
@@ -649,16 +661,17 @@ lemma ker_lift_mk (x : M) :  ker_lift f x = f x := rfl
 lemma ker_lift_range_eq : (ker_lift f).range = f.range :=
 lift_range $ λ _ _, id
 
-/-- The map described by the universal property for quotients of monoids, when the congruence relation is the kernel of the homomorphism, is injective. -/
+/-- The map described by the universal property for quotients of monoids, when the congruence
+    relation is the kernel of the homomorphism, is injective. -/
 @[to_additive "The map described by the universal property for quotients of add_monoids, when the congruence relation is the kernel of the homomorphism, is injective."]
 lemma injective_ker_lift (f : M →* P) : injective (ker_lift f) :=
-λ x y, quotient.induction_on₂' x y $ λ _ _ h, ((ker f f.3).eq _ _).2 h
+λ x y, quotient.induction_on₂' x y $ λ _ _ h, ((ker f).eq _ _).2 h
 
 /-- The map described by the universal property for quotients of monoids when the homomorphism
     is the natural map to the quotient of a `≥` congruence relation. -/
 @[to_additive "The map described by the universal property for quotients of add_monoids when the homomorphism is the natural map to the quotient by a `≥` congruence relation."]
 def map (c d : con M) (h : c ≤ d) : c.quotient →* d.quotient :=
-c.lift d.mk' $ λ x y hc, show (ker d.mk' d.mk'.3) x y, from
+c.lift d.mk' $ λ x y hc, show (ker d.mk') x y, from
   (mk'_ker d).symm ▸ h x y hc
 
 /-- The diagram described by the universal property for quotients of monoids when the homomorphism
@@ -667,19 +680,18 @@ c.lift d.mk' $ λ x y hc, show (ker d.mk' d.mk'.3) x y, from
 lemma map_apply {c d : con M} (h : c ≤ d) (x) :
   c.map d h x = c.lift d.mk' (λ x y hc, (d.eq x y).2 $ h x y hc) x := rfl
 
---@[to_additive] lemma ker_eq_of_equiv (h : c.quotient ≃* P) (f : M →* P)
---  (H : c ≤ ker f) (hf : h.to_monoid_hom = c.lift f H) :
---  ker f = c :=
---le_antisymm (λ x y hk, by change f x = f y at hk;
---    rw [←lift_coe H, ←lift_coe H, ←hf] at hk;
---    exact (c.eq _ _).1 (h.to_equiv.injective hk)) $
---  λ _ _ h, H _ _ h
+/-- Given a monoid homomorphism f from M to P, the kernel of f is the unique congruence relation on
+    M whose induced map from the quotient of M to P is injective. -/
+@[to_additive "Given an add_monoid homomorphism f from M to P, the kernel of f is the unique congruence relation on M whose induced map from the quotient of M to P is injective."]
+lemma ker_eq_lift_of_injective (c : con M) (f : M →* P) (H : c ≤ ker f)
+  (h : injective (c.lift f H)) : ker f = c :=
+to_setoid_inj $ setoid.ker_eq_lift_of_injective f H h
 
 variables (c)
 
 /-- The first isomorphism theorem for monoids. -/
 @[to_additive "The first isomorphism theorem for add_monoids."]
-noncomputable def quotient_ker_equiv_range (f : M →* P) : (ker f f.3).quotient ≃* f.range :=
+noncomputable def quotient_ker_equiv_range (f : M →* P) : (ker f).quotient ≃* f.range :=
 { map_mul' := monoid_hom.map_mul _,
   ..@equiv.of_bijective _ _
       ((@mul_equiv.to_monoid_hom (ker_lift f).range _ _ _
@@ -691,14 +703,14 @@ noncomputable def quotient_ker_equiv_range (f : M →* P) : (ker f f.3).quotient
 /-- The map described by the universal property for quotients of monoids is surjective for
     surjective homomorphisms. -/
 @[to_additive "The map described by the universal property for quotients of add_monoids is surjective for surjective homomorphisms."]
-lemma lift_surjective_of_surjective (h : c ≤ ker f f.3) (hf : surjective f) :
+lemma lift_surjective_of_surjective (h : c ≤ ker f) (hf : surjective f) :
   surjective (c.lift f h) :=
 λ y, exists.elim (hf y) $ λ w hw, ⟨w, (lift_mk' h w).symm ▸ hw⟩
 
 /-- The first isomorphism theorem for monoids in the case of a surjective homomorphism. -/
 @[to_additive "The first isomorphism theorem for add_monoids in the case of a surjective homomorphism."]
 noncomputable def quotient_ker_equiv_of_surjective (f : M →* P) (hf : surjective f) :
-  (ker f f.3).quotient ≃* P :=
+  (ker f).quotient ≃* P :=
 { map_mul' := monoid_hom.map_mul _,
   ..(@equiv.of_bijective _ _ (ker_lift f)
   ⟨injective_ker_lift f, lift_surjective_of_surjective _ (le_refl _) hf⟩) }
@@ -708,7 +720,7 @@ noncomputable def quotient_ker_equiv_of_surjective (f : M →* P) (hf : surjecti
     the monoid. -/
 @[to_additive "The restriction of a congruence relation to an add_submonoid equals the kernel of the natural homomorphism to the quotient composed with the inclusion homomorphism of the add_submonoid into the add_monoid."]
 lemma subtype_eq (A : submonoid M) :
-  c.subtype A = ker (c.mk'.comp A.subtype) (monoid_hom.map_mul _) :=
+  c.subtype A = ker (c.mk'.comp A.subtype) :=
 ext $ λ x y,
   ⟨λ h, show ((x : M) : c.quotient) = (y : M), from (c.eq _ _).2 $ subtype_apply.2 h,
    λ h, by rw [subtype_apply, ←mk'_ker c]; simpa using h⟩
@@ -722,7 +734,7 @@ mul_equiv.trans (con.congr $ subtype_eq c A) $ quotient_ker_equiv_range (c.mk'.c
 /-- The third isomorphism theorem for monoids. -/
 @[to_additive "The third isomorphism theorem for add_monoids."]
 noncomputable def quotient_quotient_equiv_quotient (c d : con M) (h : c ≤ d) :
-  (ker (c.map d h) (c.map d h).3).quotient ≃* d.quotient :=
+  (ker (c.map d h)).quotient ≃* d.quotient :=
 quotient_ker_equiv_of_surjective _ $ λ x, by rcases x; exact ⟨x, rfl⟩
 
 end con

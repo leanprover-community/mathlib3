@@ -1,24 +1,30 @@
-import group_theory.quotient_monoid ring_theory.ideal_operations
+import group_theory.quotient_monoid
 
 variables (α : Type*) [comm_ring α] (S : submonoid α)
 
 namespace localization
 
 instance : has_add (localization α S) :=
-⟨lift₂ S S
+⟨quotient.lift₂
 (λ x y : α × S, (mk ((y.2 : α) * x.1 + x.2 * y.1) (y.2 * x.2)))
-$ λ x y w z ⟨s, hs⟩ ⟨t, ht⟩,
-by { rw r_eq_r', use (↑s*↑t),
-     apply S.mul_mem s.2 t.2,
-  calc
-    ↑s * ↑t * ((↑y.2 * x.1 + ↑x.2 * y.1) * (↑z.2 * ↑w.2))
-    = ↑s * (x.1 * ↑w.2) * ↑t * (↑y.2 * ↑z.2) + ↑s * (↑t * (y.1 * ↑z.2)) * (↑x.2 * ↑w.2) : by ring
-... = ↑s * ↑t * ((↑z.2 * w.1 + ↑w.2 * z.1) * (↑y.2 * ↑x.2)) : by rw [hs, ht]; ring}⟩
+$ λ x y w z hs ht,
+by {
+--  rcases (S.r_eq_r' ▸ hs) with ⟨s, hs⟩,rw r_eq_r', use (↑s*↑t),
+--     apply S.mul_mem s.2 t.2,
+--  calc
+--    ↑s * ↑t * ((↑y.2 * x.1 + ↑x.2 * y.1) * (↑z.2 * ↑w.2))
+--    = ↑s * (x.1 * ↑w.2) * ↑t * (↑y.2 * ↑z.2) + ↑s * (↑t * (y.1 * ↑z.2)) * (↑x.2 * ↑w.2) : by ring
+--... = ↑s * ↑t * ((↑z.2 * w.1 + ↑w.2 * z.1) * (↑y.2 * ↑x.2)) : by rw [hs, ht]; ring
+
+
+}⟩
 
 instance : has_neg (localization α S) :=
-⟨lift₁ S (λ x : α × S, (mk (-x.1) x.2)) $ λ ⟨r1, s1⟩ ⟨r2, s2⟩ ⟨v, hv⟩,
-  by {rw r_eq_r', use v, ring at hv ⊢, rw mul_neg_eq_neg_mul_symm, simp [hv]}⟩
-
+⟨quotient.lift (λ x : α × S, (mk (-x.1) x.2)) $ λ ⟨r1, s1⟩ ⟨r2, s2⟩ hv,
+  by {--rw r_eq_r', use v, ring at hv ⊢, rw mul_neg_eq_neg_mul_symm, simp [hv]
+  }
+  ⟩
+#exit
 instance : comm_ring (localization α S) :=
 by refine
 { add            := has_add.add,
@@ -236,13 +242,13 @@ away.lift (of (submonoid.powers (x*y))) $
       monoid_hom.mk_eq_mul_mk_one (x*y) _]; refl
 
 end away
-
+/-
 section at_prime
 variables {α} (P : ideal α) [hp : ideal.is_prime P]
 include hp
 
 /- I can't coerce ideals to sets at any point after the monoid instance for
-   quotient monoids (line 204 in data/equiv/congruence.lean).
+   quotient monoids (line 204 in group_theory/congruence.lean).
    I have no idea why. Changing the instance priority doesn't seem to help. -/
 instance : has_coe_to_fun (ideal α) := ⟨_, λ I, I.1⟩
 
@@ -279,7 +285,7 @@ local_of_nonunits_ideal
   end)
 
 end at_prime
-
+-/
 end localization
 
 def non_zero_divisors' : set α := {x | ∀ z, z * x = 0 → z = 0}

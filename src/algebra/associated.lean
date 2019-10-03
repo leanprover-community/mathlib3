@@ -37,6 +37,7 @@ mt is_unit_zero_iff.1 zero_ne_one
 
 @[simp] theorem is_unit_one [monoid α] : is_unit (1:α) := ⟨1, rfl⟩
 
+@[to_additive is_add_unit_of_add_zero]
 theorem is_unit_of_mul_one [comm_monoid α] (a b : α) (h : a * b = 1) : is_unit a :=
 ⟨units.mk_of_mul_eq_one a b h, rfl⟩
 

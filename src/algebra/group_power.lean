@@ -109,6 +109,9 @@ by induction n with n ih; [refl, rw [list.repeat_succ, list.prod_cons, ih]]; ref
 @[simp] lemma units.coe_pow (u : units α) (n : ℕ) : ((u ^ n : units α) : α) = u ^ n :=
 by induction n; simp [*, pow_succ]
 
+@[simp] lemma add_units.coe_smul (u : add_units β) (n : ℕ) : ((n • u : add_units β) : β) = n • u :=
+by induction n; simp [*, succ_smul]
+
 end monoid
 
 namespace is_monoid_hom

@@ -440,7 +440,7 @@ def of (e : α ≃ β) [is_semiring_hom e] : α ≃+* β :=
 
 instance (e : α ≃+* β) : is_semiring_hom e := e.to_ring_hom.is_semiring_hom
 
-instance is_ring_hom_of_mul_equiv {R : Type*} {S : Type*} [ring R] [ring S]
+def is_ring_hom_of_mul_equiv {R : Type*} {S : Type*} [ring R] [ring S]
   (h : R ≃* S) (H: ∀ x y : R, h (x + y) = h x + h y) : is_ring_hom h :=
 @ring_hom.is_ring_hom _ _ _ _ $ ring_hom.mk' h.to_monoid_hom H
 

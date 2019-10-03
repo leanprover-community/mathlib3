@@ -61,7 +61,7 @@ begin
       λ i hi, by {
         dsimp [f],
         have : commute y ((x + y) ^ i) :=
-         (h.symm.add (commute.refl y)).pow i,
+         (h.symm.add_right (commute.refl y)).pow_right i,
         rw [← mul_assoc, this.eq, mul_assoc, ← pow_succ y (n - 1 - i)],
         congr' 2,
         rw [nat.succ_eq_add_one, nat.add_sub_cancel, nat.sub_sub, add_comm 1 i],
@@ -70,7 +70,7 @@ begin
         rw [← this, nat.add_sub_cancel, add_comm i 1, ← add_assoc,
             nat.add_sub_cancel] },
     rw [pow_succ (x + y), add_mul, sum_range_succ, f_last, add_mul, add_assoc],
-    rw [(((commute.refl x).add h).pow n).eq],
+    rw [(((commute.refl x).add_right h).pow_right n).eq],
     congr' 1,
     rw[sum_congr rfl f_succ, ← mul_sum, pow_succ y],
     rw[mul_assoc, ← mul_add y, ih] }
@@ -84,7 +84,7 @@ theorem geom_sum₂_mul_add [comm_semiring α] (x y : α) (n : ℕ) :
 theorem geom_sum_mul_add [semiring α] (x : α) (n : ℕ) :
   (geom_series (x + 1) n) * x + 1 = (x + 1) ^ n :=
 begin
-  have := (commute.one x).geom_sum₂_mul_add n,
+  have := (commute.one_right x).geom_sum₂_mul_add n,
   rw [one_pow, geom_series₂_with_one] at this,
   exact this
 end
@@ -104,7 +104,7 @@ geom_sum₂_mul_comm (commute.all x y) n
 theorem geom_sum_mul [ring α] (x : α) (n : ℕ) :
   (geom_series x n) * (x - 1) = x ^ n - 1 :=
 begin
-  have := geom_sum₂_mul_comm (commute.one x) n,
+  have := geom_sum₂_mul_comm (commute.one_right x) n,
   rw [one_pow, geom_series₂_with_one] at this,
   exact this
 end

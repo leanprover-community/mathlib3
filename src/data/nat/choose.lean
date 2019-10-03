@@ -40,7 +40,7 @@ begin
     rw [choose_succ_succ, nat.cast_add, mul_add],
     congr' 1,
     { rw[pow_succ x, succ_sub_succ, mul_assoc, mul_assoc, mul_assoc] },
-    { rw[← mul_assoc y, ← mul_assoc y, (h.symm.pow i.succ).eq],
+    { rw[← mul_assoc y, ← mul_assoc y, (h.symm.pow_right i.succ).eq],
       by_cases h_eq : i = n,
       { rw [h_eq, choose_succ_self, nat.cast_zero, mul_zero, mul_zero] },
       { rw[succ_sub (lt_of_le_of_ne h_le h_eq)],

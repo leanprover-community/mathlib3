@@ -1549,7 +1549,7 @@ begin
   { exact hI i hiI }
 end
 
-lemma std_basis_eq_single [decidable_eq α] {a : α} :
+lemma std_basis_eq_single {a : α} :
   (λ (i : ι), (std_basis α (λ _ : ι, α) i) a) = λ (i : ι), (finsupp.single i a) :=
 begin
   ext i j,

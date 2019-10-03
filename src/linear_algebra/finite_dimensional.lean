@@ -34,13 +34,12 @@ open is_noetherian
 
 lemma finite_dimensional_iff_dim_lt_omega : finite_dimensional K V ↔ dim K V < omega.{v} :=
 begin
-  letI := classical.dec_eq V,
   cases exists_is_basis K V with b hb,
   have := is_basis.mk_eq_dim hb,
   simp only [lift_id] at this,
   rw [← this, lt_omega_iff_fintype, ← @set.set_of_mem_eq _ b, ← subtype.val_range],
   split,
-  { intro, convert finite_of_linear_independent hb.1, simp },
+  { intro, resetI, convert finite_of_linear_independent hb.1, simp },
   { assume hbfinite,
     refine @is_noetherian_of_linear_equiv K (⊤ : submodule K V) V _
       _ _ _ _ (linear_equiv.of_top _ rfl) (id _),
@@ -54,7 +53,7 @@ finite_dimensional_iff_dim_lt_omega.1
 
 set_option pp.universes true
 
-lemma of_fg [decidable_eq V] (hfg : (⊤ : submodule K V).fg) : finite_dimensional K V :=
+lemma of_fg (hfg : (⊤ : submodule K V).fg) : finite_dimensional K V :=
 let ⟨s, hs⟩ := hfg in
 begin
   rw [finite_dimensional_iff_dim_lt_omega, ← dim_top, ← hs],
@@ -62,7 +61,7 @@ begin
 end
 
 lemma exists_is_basis_finite (K V : Type*) [discrete_field K]
-  [add_comm_group V] [vector_space K V] [finite_dimensional K V] [decidable_eq V] :
+  [add_comm_group V] [vector_space K V] [finite_dimensional K V] :
   ∃ s : set V, (is_basis K (subtype.val : s → V)) ∧ s.finite :=
 begin
   cases exists_is_basis K V with s hs,
@@ -81,17 +80,16 @@ lemma findim_eq_dim (K : Type u) (V : Type v) [discrete_field K]
   (findim K V : cardinal.{v}) = dim K V :=
 (classical.some_spec (lt_omega.1 (dim_lt_omega K V))).symm
 
-lemma card_eq_findim [finite_dimensional K V] [decidable_eq V] {s : set V} {hfs : fintype s}
+lemma card_eq_findim [finite_dimensional K V] {s : set V} {hfs : fintype s}
   (hs : is_basis K (λ x : s, x.val)) : fintype.card s = findim K V :=
 by rw [← nat_cast_inj.{v}, findim_eq_dim, ← fintype_card, ← lift_inj, ← hs.mk_eq_dim]
 
 lemma eq_top_of_findim_eq [finite_dimensional K V] {S : submodule K V}
   (h : findim K S = findim K V) : S = ⊤ :=
 begin
-  letI := classical.dec_eq V,
   cases exists_is_basis K S with bS hbS,
   have : linear_independent K (subtype.val : (subtype.val '' bS : set V) → V),
-    from @linear_independent.image_subtype _ _ _ _ _ _ _ _ _ _ _ _
+    from @linear_independent.image_subtype _ _ _ _ _ _ _ _ _
       (submodule.subtype S) hbS.1 (by simp),
   cases exists_subset_is_basis this with b hb,
   letI : fintype b := classical.choice (finite_of_linear_independent hb.2.1),

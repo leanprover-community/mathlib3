@@ -295,9 +295,9 @@ end
 
 variable (a)
 
-theorem self_pow : commute a (a ^ n) := (commute.refl a).pow_right n
-theorem pow_self : commute (a ^ n) a := (commute.refl a).pow_left n
-theorem pow_pow_self : commute (a ^ n) (a ^ m) := (commute.refl a).pow_pow n m
+@[simp] theorem self_pow : commute a (a ^ n) := (commute.refl a).pow_right n
+@[simp] theorem pow_self : commute (a ^ n) a := (commute.refl a).pow_left n
+@[simp] theorem pow_pow_self : commute (a ^ n) (a ^ m) := (commute.refl a).pow_pow n m
 
 end monoid
 
@@ -311,9 +311,9 @@ variables {G : Type*} [group G] {a b : G} (hab : commute a b) (n m : ℤ)
 
 variable (a)
 
-theorem self_gpow : commute a (a ^ n) := (commute.refl a).gpow_right n
-theorem gpow_self : commute (a ^ n) a := (commute.refl a).gpow_left n
-theorem gpow_gpow_self : commute (a ^ n) (a ^ m) := (commute.refl a).gpow_gpow n m
+@[simp] theorem self_gpow : commute a (a ^ n) := (commute.refl a).gpow_right n
+@[simp] theorem gpow_self : commute (a ^ n) a := (commute.refl a).gpow_left n
+@[simp] theorem gpow_gpow_self : commute (a ^ n) (a ^ m) := (commute.refl a).gpow_gpow n m
 
 include hab
 
@@ -338,9 +338,9 @@ open_locale add_monoid
 
 variable (a)
 
-theorem self_smul : commute a (n • a) := (commute.refl a).smul_right n
-theorem smul_self : commute (n • a) a := (commute.refl a).smul_left n
-theorem self_smul_smul : commute (n • a) (m • a) := (commute.refl a).smul_smul n m
+@[simp] theorem self_smul : commute a (n • a) := (commute.refl a).smul_right n
+@[simp] theorem smul_self : commute (n • a) a := (commute.refl a).smul_left n
+@[simp] theorem self_smul_smul : commute (n • a) (m • a) := (commute.refl a).smul_smul n m
 
 @[simp] theorem cast_nat_right : commute a (n : A) :=
 by rw [← add_monoid.smul_one n]; exact (commute.one_right a).smul_right n
@@ -360,9 +360,9 @@ open_locale add_group
 @[simp] theorem gsmul_left : commute (n • a) b := (hab.symm.gsmul_right n).symm
 @[simp] theorem gsmul_gsmul : commute (n • a) (m • b) := (hab.gsmul_left n).gsmul_right m
 
-theorem self_gsmul : commute a (n • a) := (commute.refl a).gsmul_right n
-theorem gsmul_self : commute (n • a) a := (commute.refl a).gsmul_left n
-theorem self_gsmul_gsmul : commute (n • a) (m • a) := (commute.refl a).gsmul_gsmul n m
+@[simp] theorem self_gsmul : commute a (n • a) := (commute.refl a).gsmul_right n
+@[simp] theorem gsmul_self : commute (n • a) a := (commute.refl a).gsmul_left n
+@[simp] theorem self_gsmul_gsmul : commute (n • a) (m • a) := (commute.refl a).gsmul_gsmul n m
 
 variable (a)
 

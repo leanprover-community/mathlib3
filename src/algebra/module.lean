@@ -133,7 +133,8 @@ variables [module α β] [module α γ] [module α δ]
 variables (f g : β →ₗ[α] γ)
 include α
 
-instance : has_coe_to_fun (β →ₗ[α] γ) := ⟨_, to_fun⟩
+instance {α β γ : Type*} {r : ring α} {gβ : add_comm_group β} {gγ : add_comm_group γ}
+  {mβ : module α β} {mγ : module α γ} : has_coe_to_fun (β →ₗ[α] γ) := ⟨_, to_fun⟩
 
 @[simp] lemma coe_mk (f : β → γ) (h₁ h₂) :
   ((linear_map.mk f h₁ h₂ : β →ₗ[α] γ) : β → γ) = f := rfl

@@ -5,7 +5,7 @@ Author: Johannes Hölzl
 
 Galois connections - order theoretic adjoints.
 -/
-import order.bounds
+import order.bounds order.order_iso
 open function set lattice
 
 universes u v w x
@@ -15,6 +15,11 @@ variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {a a₁ a₂ :
   `l a ≤ b ↔ a ≤ u b`. They are closely connected to adjoint functors
   in category theory. -/
 def galois_connection [preorder α] [preorder β] (l : α → β) (u : β → α) := ∀a b, l a ≤ b ↔ a ≤ u b
+
+/-- Makes a Galois connection from an order-preserving bijection. -/
+theorem order_iso.to_galois_connection [preorder α] [preorder β] (oi : @order_iso α β (≤) (≤)) : 
+  galois_connection oi oi.symm :=
+λ b g, by rw [order_iso.ord' oi, order_iso.apply_symm_apply]
 
 namespace galois_connection
 
@@ -186,6 +191,14 @@ structure galois_insertion {α β : Type*} [preorder α] [preorder β] (l : α �
 (gc : galois_connection l u)
 (le_l_u : ∀x, x ≤ l (u x))
 (choice_eq : ∀a h, choice a h = l a)
+
+/-- Makes a Galois insertion from an order-preserving bijection. -/
+protected def order_iso.to_galois_insertion [preorder α] [preorder β] (oi : @order_iso α β (≤) (≤)) : 
+@galois_insertion α β _ _ (oi) (oi.symm) :=
+{ choice := λ b h, oi b,
+  gc := oi.to_galois_connection,
+  le_l_u := λ g, le_of_eq (oi.right_inv g).symm,
+  choice_eq := λ b h, rfl }
 
 /-- Lift the bottom along a Galois connection -/
 def galois_connection.lift_order_bot {α β : Type*} [order_bot α] [partial_order β]

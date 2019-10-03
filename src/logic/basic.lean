@@ -31,7 +31,7 @@ instance : subsingleton empty := ⟨λa, a.elim⟩
 
 instance : decidable_eq empty := λa, a.elim
 
-@[priority 0] instance decidable_eq_of_subsingleton
+@[priority 10] instance decidable_eq_of_subsingleton
   {α} [subsingleton α] : decidable_eq α
 | a b := is_true (subsingleton.elim a b)
 
@@ -115,7 +115,7 @@ theorem iff_iff_eq : (a ↔ b) ↔ a = b := ⟨propext, iff_of_eq⟩
 
 @[simp] theorem imp_self : (a → a) ↔ true := iff_true_intro id
 
-theorem imp_intro {α β} (h : α) (h₂ : β) : α := h
+theorem imp_intro {α β : Prop} (h : α) : β → α := λ _, h
 
 theorem imp_false : (a → false) ↔ ¬ a := iff.rfl
 
@@ -140,14 +140,14 @@ iff_true_intro $ λ_, trivial
 
 /- not -/
 
-theorem not.elim {α : Sort*} (H1 : ¬a) (H2 : a) : α := absurd H2 H1
+def not.elim {α : Sort*} (H1 : ¬a) (H2 : a) : α := absurd H2 H1
 
 @[reducible] theorem not.imp {a b : Prop} (H2 : ¬b) (H1 : a → b) : ¬a := mt H1 H2
 
 theorem not_not_of_not_imp : ¬(a → b) → ¬¬a :=
 mt not.elim
 
-theorem not_of_not_imp {α} : ¬(α → b) → ¬b :=
+theorem not_of_not_imp {a : Prop} : ¬(a → b) → ¬b :=
 mt imp_intro
 
 theorem dec_em (p : Prop) [decidable p] : p ∨ ¬p := decidable.em p

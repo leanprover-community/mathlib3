@@ -15,15 +15,17 @@ variables {α : Type u} {β γ δ ε : Type v}
 variables {ι : Type w} {ι' : Type w'} {η : Type u''} {φ : η → Type u'}
 -- TODO: relax these universe constraints
 
+open_locale classical
+
 section vector_space
-variables [decidable_eq ι] [decidable_eq ι'] [discrete_field α] [add_comm_group β] [vector_space α β]
+variables [discrete_field α] [add_comm_group β] [vector_space α β]
 include α
 open submodule lattice function set
 
 variables (α β)
 def vector_space.dim : cardinal :=
 cardinal.min
-  (nonempty_subtype.2 (@exists_is_basis α β _ (classical.dec_eq _) _ _ _))
+  (nonempty_subtype.2 (@exists_is_basis α β _ _ _))
   (λ b, cardinal.mk b.1)
 variables {α β}
 
@@ -31,7 +33,7 @@ open vector_space
 
 section
 set_option class.instance_max_depth 50
-theorem is_basis.le_span (zero_ne_one : (0 : α) ≠ 1) [decidable_eq β] {v : ι → β} {J : set β} (hv : is_basis α v)
+theorem is_basis.le_span (zero_ne_one : (0 : α) ≠ 1) {v : ι → β} {J : set β} (hv : is_basis α v)
    (hJ : span α J = ⊤) : cardinal.mk (range v) ≤ cardinal.mk J :=
 begin
   cases le_or_lt cardinal.omega (cardinal.mk J) with oJ oJ,
@@ -69,7 +71,7 @@ end
 end
 
 /-- dimension theorem -/
-theorem mk_eq_mk_of_basis [decidable_eq β] {v : ι → β} {v' : ι' → β}
+theorem mk_eq_mk_of_basis {v : ι → β} {v' : ι' → β}
   (hv : is_basis α v) (hv' : is_basis α v') :
   cardinal.lift.{w w'} (cardinal.mk ι) = cardinal.lift.{w' w} (cardinal.mk ι') :=
 begin
@@ -88,7 +90,7 @@ begin
       apply (cardinal.mk_range_eq_of_inj (hv.injective zero_ne_one)).symm, }, }
 end
 
-theorem is_basis.mk_range_eq_dim [decidable_eq β] {v : ι → β} (h : is_basis α v) :
+theorem is_basis.mk_range_eq_dim {v : ι → β} (h : is_basis α v) :
   cardinal.mk (range v) = dim α β :=
 begin
   have := show ∃ v', dim α β = _, from cardinal.min_eq _ _,
@@ -96,11 +98,10 @@ begin
   rw e,
   apply cardinal.lift_inj.1,
   rw cardinal.mk_range_eq_of_inj (h.injective zero_ne_one),
-  convert @mk_eq_mk_of_basis _ _ _ _ _ (id _) _ _ _ (id _) _ _ h v'.property,
-  apply_instance,
+  convert @mk_eq_mk_of_basis _ _ _ _ _ _ _ _ _ h v'.property
 end
 
-theorem is_basis.mk_eq_dim [decidable_eq β] {v : ι → β} (h : is_basis α v) :
+theorem is_basis.mk_eq_dim {v : ι → β} (h : is_basis α v) :
   cardinal.lift.{w v} (cardinal.mk ι) = cardinal.lift.{v w} (dim α β) :=
 by rw [←h.mk_range_eq_dim, cardinal.mk_range_eq_of_inj (h.injective zero_ne_one)]
 
@@ -115,21 +116,21 @@ cardinal.lift_inj.1 $ hb.mk_eq_dim.symm.trans (f.is_basis hb).mk_eq_dim
 
 @[simp] lemma dim_bot : dim α (⊥ : submodule α β) = 0 :=
 by letI := classical.dec_eq β;
-  rw [← cardinal.lift_inj, ← (@is_basis_empty_bot pempty α β _ _ _ _ _ _ not_nonempty_pempty).mk_eq_dim,
+  rw [← cardinal.lift_inj, ← (@is_basis_empty_bot pempty α β _ _ _ not_nonempty_pempty).mk_eq_dim,
     cardinal.mk_pempty]
 
 @[simp] lemma dim_top : dim α (⊤ : submodule α β) = dim α β :=
 linear_equiv.dim_eq (linear_equiv.of_top _ rfl)
 
 lemma dim_of_field (α : Type*) [discrete_field α] : dim α α = 1 :=
-by rw [←cardinal.lift_inj, ← (@is_basis_singleton_one punit _ α _ _ _).mk_eq_dim, cardinal.mk_punit]
+by rw [←cardinal.lift_inj, ← (@is_basis_singleton_one punit α _ _).mk_eq_dim, cardinal.mk_punit]
 
-lemma dim_span [decidable_eq β] {v : ι → β} (hv : linear_independent α v) :
+lemma dim_span {v : ι → β} (hv : linear_independent α v) :
   dim α ↥(span α (range v)) = cardinal.mk (range v) :=
 by rw [←cardinal.lift_inj, ← (is_basis_span hv).mk_eq_dim,
-    cardinal.mk_range_eq_of_inj (@linear_independent.injective ι α β v _ _ _ _ _ _ zero_ne_one hv)]
+    cardinal.mk_range_eq_of_inj (@linear_independent.injective ι α β v _ _ _ zero_ne_one hv)]
 
-lemma dim_span_set [decidable_eq β] {s : set β} (hs : linear_independent α (λ x, x : s → β)) :
+lemma dim_span_set {s : set β} (hs : linear_independent α (λ x, x : s → β)) :
   dim α ↥(span α s) = cardinal.mk s :=
 by rw [← @set_of_mem_eq _ s, ← subtype.val_range]; exact dim_span hs
 
@@ -158,7 +159,7 @@ begin
   rcases exists_is_basis α β with ⟨b, hb⟩,
   rcases exists_is_basis α γ with ⟨c, hc⟩,
   rw [← cardinal.lift_inj,
-      ← @is_basis.mk_eq_dim α (β × γ) _ _ _ _ _ _ _ (is_basis_inl_union_inr hb hc),
+      ← @is_basis.mk_eq_dim α (β × γ) _ _ _ _ _ (is_basis_inl_union_inr hb hc),
       cardinal.lift_add, cardinal.lift_mk,
       ← hb.mk_eq_dim, ← hc.mk_eq_dim,
       cardinal.lift_mk, cardinal.lift_mk,
@@ -167,7 +168,7 @@ begin
       ⟨equiv.ulift.trans (equiv.sum_congr (@equiv.ulift b) (@equiv.ulift c)).symm ⟩),
 end
 
-theorem dim_quotient (p : submodule α β) [decidable_eq p.quotient]:
+theorem dim_quotient (p : submodule α β) :
   dim α p.quotient + dim α p = dim α β :=
 by classical; exact let ⟨f⟩ := quotient_prod_linear_equiv p in dim_prod.symm.trans f.dim_eq
 
@@ -305,9 +306,7 @@ open linear_map
 
 lemma dim_pi : vector_space.dim α (Πi, φ i) = cardinal.sum (λi, vector_space.dim α (φ i)) :=
 begin
-  letI := λ i, classical.dec_eq (φ i),
   choose b hb using assume i, exists_is_basis α (φ i),
-  haveI := classical.dec_eq η,
   have : is_basis α (λ (ji : Σ j, b j), std_basis α (λ j, φ j) ji.fst ji.snd.val),
     by apply pi.is_basis_std_basis _ hb,
   rw [←cardinal.lift_inj, ← this.mk_eq_dim],
@@ -343,7 +342,7 @@ lemma exists_mem_ne_zero_of_dim_pos {s : submodule α β} (h : vector_space.dim 
   ∃ b : β, b ∈ s ∧ b ≠ 0 :=
 exists_mem_ne_zero_of_ne_bot $ assume eq, by rw [(>), eq, dim_bot] at h; exact lt_irrefl _ h
 
-lemma exists_is_basis_fintype [decidable_eq β] (h : dim α β < cardinal.omega) :
+lemma exists_is_basis_fintype (h : dim α β < cardinal.omega) :
   ∃ s : (set β), (is_basis α (subtype.val : s → β)) ∧ nonempty (fintype s) :=
 begin
   cases exists_is_basis α β with s hs,
@@ -404,7 +403,7 @@ variables [discrete_field α] [add_comm_group β] [vector_space α β]
 open vector_space
 
 /-- Version of linear_equiv.dim_eq without universe constraints. -/
-theorem linear_equiv.dim_eq_lift [decidable_eq β] [decidable_eq γ'] (f : β ≃ₗ[α] γ') :
+theorem linear_equiv.dim_eq_lift (f : β ≃ₗ[α] γ') :
   cardinal.lift.{v v'} (dim α β) = cardinal.lift.{v' v} (dim α γ') :=
 begin
   cases exists_is_basis α β with b hb,

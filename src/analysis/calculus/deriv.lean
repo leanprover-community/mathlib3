@@ -53,7 +53,7 @@ import analysis.asymptotics analysis.calculus.tangent_cone
 open filter asymptotics continuous_linear_map set
 
 noncomputable theory
-local attribute [instance, priority 0] classical.decidable_inhabited classical.prop_decidable
+local attribute [instance, priority 10] classical.decidable_inhabited classical.prop_decidable
 
 set_option class.instance_max_depth 90
 

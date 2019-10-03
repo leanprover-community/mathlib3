@@ -287,12 +287,12 @@ abbreviation pushout.desc {W X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit
   (h : Y ⟶ W) (k : Z ⟶ W) (w : f ≫ h = g ≫ k) : pushout f g ⟶ W :=
 colimit.desc _ (pushout_cocone.mk h k w)
 
-lemma pullback.condition {W X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)] :
+lemma pullback.condition {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)] :
   (pullback.fst : pullback f g ⟶ X) ≫ f = pullback.snd ≫ g :=
 (limit.w (cospan f g) walking_cospan.hom.inl).trans
 (limit.w (cospan f g) walking_cospan.hom.inr).symm
 
-lemma pushout.condition {W X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (span f g)] :
+lemma pushout.condition {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (span f g)] :
   f ≫ (pushout.inl : Y ⟶ pushout f g) = g ≫ pushout.inr :=
 (colimit.w (span f g) walking_span.hom.fst).trans
 (colimit.w (span f g) walking_span.hom.snd).symm

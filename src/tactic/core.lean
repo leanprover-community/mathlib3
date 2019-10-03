@@ -1154,8 +1154,24 @@ do e ← get_env,
   since it is expensive to execute `get_mathlib_dir` many times. -/
 meta def is_in_mathlib (n : name) : tactic bool :=
 do ml ← get_mathlib_dir, e ← get_env, return $ e.is_prefix_of_file ml n
+
+/-- auxiliary function for apply_under_pis -/
+private meta def apply_under_pis_aux (func arg : pexpr) : ℕ → expr → pexpr
+| n (expr.pi nm bi tp bd) := expr.pi nm bi (pexpr.of_expr tp) (apply_under_pis_aux (n+1) bd)
+| n _ :=
+  let vars := ((list.range n).reverse.map (@expr.var ff)),
+      bd := vars.foldl expr.app arg.mk_explicit in
+  func bd
+
 /--
-Tries to derive unary instances by unfolding the newly introduced type.
+Assumes `pi_expr` is of the form `Π x1 ... xn, _`.
+Creates a pexpr of the form `Π x1 ... xn, func (arg x1 ... xn)`.
+All arguments (implicit and explicit) to `arg` should be supplied. -/
+meta def apply_under_pis (func arg : pexpr) (pi_expr : expr) : pexpr :=
+apply_under_pis_aux func arg 0 pi_expr
+
+/--
+Tries to derive instances by unfolding the newly introduced type and applying type class resolution.
 
 For example,
 ```
@@ -1164,21 +1180,32 @@ For example,
 adds an instance `ring new_int`, defined to be the instance of `ring ℤ` found by `apply_instance`.
 
 Multiple instances can be added with `@[derive [ring, module ℝ]]`.
+
+This derive handler applies only to declarations made using `def`, and will fail on such a
+declaration if it is unable to derive an instance. It is run with higher priority than the built-in
+handlers, which will fail on `def`s.
 -/
-@[derive_handler] meta def delta_instance : derive_handler :=
-λ cls tp,
-(do tp' ← mk_const tp,
-   tgt ← to_expr ``(%%cls %%tp'),
-   (_, v) ← solve_aux tgt (delta_target [tp] >> apply_instance >> done),
-   v ← instantiate_mvars v,
-   nm ← get_unused_name $ tp ++
-     match tgt with
-     | expr.app (expr.const nm _) _ := nm
+@[derive_handler, priority 2000] meta def delta_instance : derive_handler :=
+λ cls new_decl_name,
+do env ← get_env,
+if env.is_inductive new_decl_name then return ff else
+do new_decl_type ← declaration.type <$> get_decl new_decl_name,
+   new_decl_pexpr ← resolve_name new_decl_name,
+   tgt ← to_expr $ apply_under_pis cls new_decl_pexpr new_decl_type,
+   (_, inst) ← solve_aux tgt
+     (intros >> reset_instance_cache >> delta_target [new_decl_name]  >> apply_instance >> done),
+   inst ← instantiate_mvars inst,
+   tgt ← instantiate_mvars tgt,
+   nm ← get_unused_decl_name $ new_decl_name ++
+     match cls with
+     -- the postfix is needed because we can't protect this name. using nm.last directly can
+     -- conflict with open namespaces
+     | (expr.const nm _) := (nm.last ++ "_1" : string)
      | _ := "inst"
      end,
-   add_decl $ mk_definition nm [] tgt v,
+   add_decl $ mk_definition nm inst.collect_univ_params tgt inst,
    set_basic_attribute `instance nm tt,
-   return tt) <|> return ff
+   return tt
 
 /-- `find_private_decl n none` finds a private declaration named `n` in any of the imported files.
 
@@ -1207,9 +1234,9 @@ do env ← get_env,
 
 open lean.parser interactive
 
-/-- `import_private foo from bar` finds a private declaration `foo` in the same file as `bar` 
-    and creates a local notation to refer to it. 
-    
+/-- `import_private foo from bar` finds a private declaration `foo` in the same file as `bar`
+    and creates a local notation to refer to it.
+
     `import_private foo`, looks for `foo` in all imported files. -/
 @[user_command]
 meta def import_private_cmd (_ : parse $ tk "import_private") : lean.parser unit :=

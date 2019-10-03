@@ -5055,7 +5055,7 @@ by {apply get_pointwise, apply sub_zero}
 @length_pointwise α α α ⟨0⟩ ⟨0⟩ _ _ _
 
 @[simp] lemma nil_sub {α : Type} [add_group α]
-  (as : list α) : sub [] as = @neg α ⟨0⟩ _ as :=
+  (as : list α) : sub [] as = neg as :=
 begin
   rw [sub, nil_pointwise],
   congr, ext,

@@ -197,7 +197,7 @@ is_iso.of_iso $ (as_iso f) ≪≫ (as_iso h)
 
 @[simp] lemma inv_id : inv (𝟙 X) = 𝟙 X := rfl
 @[simp] lemma inv_comp [is_iso f] [is_iso h] : inv (f ≫ h) = inv h ≫ inv f := rfl
-@[simp] lemma is_iso.inv_inv [is_iso f] : inv (inv f) = f := rfl
+@[simp] lemma inv_inv [is_iso f] : inv (inv f) = f := rfl
 @[simp] lemma iso.inv_inv (f : X ≅ Y) : inv (f.inv) = f.hom := rfl
 @[simp] lemma iso.inv_hom (f : X ≅ Y) : inv (f.hom) = f.inv := rfl
 

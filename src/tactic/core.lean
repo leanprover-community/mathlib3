@@ -991,7 +991,7 @@ attribute [higher_order map_comp_pure] map_pure
 private meta def tactic.use_aux (h : pexpr) : tactic unit :=
 (focus1 (refine h >> done)) <|> (fconstructor >> tactic.use_aux)
 
-meta def tactic.use (l : list pexpr) : tactic unit :=
+protected meta def use (l : list pexpr) : tactic unit :=
 focus1 $ l.mmap' $ λ h, tactic.use_aux h <|> fail format!"failed to instantiate goal with {h}"
 
 meta def clear_aux_decl_aux : list expr → tactic unit

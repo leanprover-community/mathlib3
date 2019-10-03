@@ -728,6 +728,15 @@ instance : monad id :=
      let out := format.to_string format!"{{ {fs} }",
      return [(out,"")] }
 
+/-- Like `resolve_name` except when the list of goals is 
+    empty. In that situation `resolve_name` fails whereas
+    `resolve_name'` simply proceeds on a dummy goal -/
+meta def resolve_name' (n : name) : tactic pexpr :=
+do [] ← get_goals | resolve_name n,
+   g ← mk_mvar,
+   set_goals [g],
+   resolve_name n <* set_goals []
+
 meta def strip_prefix' (n : name) : list string → name → tactic name
 | s name.anonymous := pure $ s.foldl (flip name.mk_string) name.anonymous
 | s (name.mk_string a p) :=
@@ -737,11 +746,15 @@ meta def strip_prefix' (n : name) : list string → name → tactic name
             then pure n'
             else strip_prefix' (a :: s) p }
      <|> strip_prefix' (a :: s) p
-| s (name.mk_numeral a p) := interaction_monad.failed
+| s n@(name.mk_numeral a p) := pure $ s.foldl (flip name.mk_string) n
 
 meta def strip_prefix : name → tactic name
-| n@(name.mk_string a a_1) := strip_prefix' n [a] a_1
-| _ := interaction_monad.failed
+| n@(name.mk_string a a_1) :=
+  if (`_private).is_prefix_of n
+    then let n' := n.update_prefix name.anonymous in
+            n' <$ resolve_name' n' <|> pure n
+    else strip_prefix' n [a] a_1
+| n := pure n
 
 meta def local_binding_info : expr → binder_info
 | (expr.local_const _ _ bi _) := bi

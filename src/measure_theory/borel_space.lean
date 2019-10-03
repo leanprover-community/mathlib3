@@ -157,11 +157,11 @@ sup_le
   (comap_le_iff_le_map.mpr $ measurable_of_continuous continuous_fst)
   (comap_le_iff_le_map.mpr $ measurable_of_continuous continuous_snd)
 
-lemma borel_induced [t : topological_space β] (f : α → β) :
+lemma borel_induced {α β} [t : topological_space β] (f : α → β) :
   @borel α (t.induced f) = (borel β).comap f :=
 comap_generate_from.symm
 
-lemma borel_eq_subtype [topological_space α] (s : set α) : borel s = subtype.measurable_space :=
+lemma borel_eq_subtype (s : set α) : borel s = subtype.measurable_space :=
 borel_induced coe
 
 lemma borel_prod [second_countable_topology α] [topological_space β] [second_countable_topology β] :
@@ -178,7 +178,7 @@ le_antisymm borel_prod_le begin
       eq.symm ▸ is_measurable_set_prod (is_measurable_of_is_open hu) (is_measurable_of_is_open hv))
 end
 
-lemma measurable_of_continuous2
+lemma measurable_of_continuous2 {α β γ}
   [topological_space α] [second_countable_topology α]
   [topological_space β] [second_countable_topology β]
   [topological_space γ] [measurable_space δ] {f : δ → α} {g : δ → β} {c : α → β → γ}
@@ -236,7 +236,7 @@ lemma measurable_coe_int_real : measurable (λa, a : ℤ → ℝ) :=
 assume s (hs : is_measurable s), by trivial
 
 section ordered_topology
-variables [linear_order α] [topological_space α] [ordered_topology α] {a b c : α}
+variables [linear_order α] [ordered_topology α] {a b c : α}
 
 lemma is_measurable_Ioo : is_measurable (Ioo a b) := is_measurable_of_is_open is_open_Ioo
 
@@ -299,7 +299,6 @@ lemma measurable.infi {α} [topological_space α] [complete_linear_order α]
 measurable.is_glb hf $ λ b, is_glb_infi
 
 lemma measurable.supr_Prop {α} [topological_space α] [complete_linear_order α]
-  [orderable_topology α] [second_countable_topology α]
   {β} [measurable_space β] {p : Prop} {f : β → α} (hf : measurable f) :
   measurable (λ b, ⨆ h : p, f b) :=
 classical.by_cases
@@ -307,7 +306,6 @@ classical.by_cases
   (assume h : ¬p, begin convert measurable_const, funext, exact supr_neg h end)
 
 lemma measurable.infi_Prop {α} [topological_space α] [complete_linear_order α]
-  [orderable_topology α] [second_countable_topology α]
   {β} [measurable_space β] {p : Prop} {f : β → α} (hf : measurable f) :
   measurable (λ b, ⨅ h : p, f b) :=
 classical.by_cases
@@ -505,8 +503,8 @@ lemma measurable_smul' {α : Type*} {β : Type*} {γ : Type*}
 measurable_of_continuous2 (continuous_smul continuous_fst continuous_snd) hf hg
 
 lemma measurable_smul {α : Type*} {β : Type*} {γ : Type*}
-  [semiring α] [topological_space α] [second_countable_topology α]
-  [topological_space β] [add_comm_monoid β] [second_countable_topology β]
+  [semiring α] [topological_space α]
+  [topological_space β] [add_comm_monoid β]
   [semimodule α β] [topological_semimodule α β] [measurable_space γ]
   {c : α} {g : γ → β} (hg : measurable g) : measurable (λ x, c • g x) :=
 measurable.comp (measurable_of_continuous (continuous_smul continuous_const continuous_id)) hg

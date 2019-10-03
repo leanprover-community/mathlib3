@@ -94,8 +94,8 @@ if d0 : d = 0 then 0 else mk_pnat n ⟨d, nat.pos_of_ne_zero d0⟩
 
 /-- Form the quotient `n / d` where `n d : ℤ`. -/
 def mk : ℤ → ℤ → ℚ
-| n (int.of_nat d) := mk_nat n d
-| n -[1+ d]        := mk_pnat (-n) d.succ_pnat
+| n (d : ℕ) := mk_nat n d
+| n -[1+ d] := mk_pnat (-n) d.succ_pnat
 
 localized "infix ` /. `:70 := rat.mk" in rat
 
@@ -221,11 +221,11 @@ theorem num_denom' {n d h c} : (⟨n, d, h, c⟩ : ℚ) = n /. d := num_denom.sy
 
 theorem of_int_eq_mk (z : ℤ) : of_int z = z /. 1 := num_denom'
 
-@[elab_as_eliminator] theorem {u} num_denom_cases_on {C : ℚ → Sort u}
+@[elab_as_eliminator] def {u} num_denom_cases_on {C : ℚ → Sort u}
    : ∀ (a : ℚ) (H : ∀ n d, 0 < d → (int.nat_abs n).coprime d → C (n /. d)), C a
 | ⟨n, d, h, c⟩ H := by rw num_denom'; exact H n d h c
 
-@[elab_as_eliminator] theorem {u} num_denom_cases_on' {C : ℚ → Sort u}
+@[elab_as_eliminator] def {u} num_denom_cases_on' {C : ℚ → Sort u}
    (a : ℚ) (H : ∀ (n:ℤ) (d:ℕ), d ≠ 0 → C (n /. d)) : C a :=
 num_denom_cases_on a $ λ n d h c,
 H n d $ ne_of_gt h

@@ -31,7 +31,7 @@ instance : subsingleton empty := ⟨λa, a.elim⟩
 
 instance : decidable_eq empty := λa, a.elim
 
-@[priority 0] instance decidable_eq_of_subsingleton
+@[priority 10] instance decidable_eq_of_subsingleton
   {α} [subsingleton α] : decidable_eq α
 | a b := is_true (subsingleton.elim a b)
 
@@ -115,7 +115,7 @@ theorem iff_iff_eq : (a ↔ b) ↔ a = b := ⟨propext, iff_of_eq⟩
 
 @[simp] theorem imp_self : (a → a) ↔ true := iff_true_intro id
 
-theorem imp_intro {α β} (h : α) (h₂ : β) : α := h
+theorem imp_intro {α β : Prop} (h : α) : β → α := λ _, h
 
 theorem imp_false : (a → false) ↔ ¬ a := iff.rfl
 
@@ -140,14 +140,14 @@ iff_true_intro $ λ_, trivial
 
 /- not -/
 
-theorem not.elim {α : Sort*} (H1 : ¬a) (H2 : a) : α := absurd H2 H1
+def not.elim {α : Sort*} (H1 : ¬a) (H2 : a) : α := absurd H2 H1
 
 @[reducible] theorem not.imp {a b : Prop} (H2 : ¬b) (H1 : a → b) : ¬a := mt H1 H2
 
 theorem not_not_of_not_imp : ¬(a → b) → ¬¬a :=
 mt not.elim
 
-theorem not_of_not_imp {α} : ¬(α → b) → ¬b :=
+theorem not_of_not_imp {a : Prop} : ¬(a → b) → ¬b :=
 mt imp_intro
 
 theorem dec_em (p : Prop) [decidable p] : p ∨ ¬p := decidable.em p
@@ -413,9 +413,10 @@ end equality
 section quantifiers
 variables {α : Sort*} {β : Sort*} {p q : α → Prop} {b : Prop}
 
-def Exists.imp := @exists_imp_exists
+lemma Exists.imp (h : ∀ a, (p a → q a)) (p : ∃ a, p a) : ∃ a, q a := exists_imp_exists h p
 
-lemma exists_imp_exists' {p : α → Prop} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a)) (hp : ∃ a, p a) : ∃ b, q b :=
+lemma exists_imp_exists' {p : α → Prop} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a))
+  (hp : ∃ a, p a) : ∃ b, q b :=
 exists.elim hp (λ a hp', ⟨_, hpq _ hp'⟩)
 
 theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
@@ -590,11 +591,24 @@ begin
   simp only [imp_iff_not_or, or.comm]
 end
 
-/- use shortened names to avoid conflict when classical namespace is open -/
-noncomputable theorem dec (p : Prop) : decidable p := by apply_instance
-noncomputable theorem dec_pred (p : α → Prop) : decidable_pred p := by apply_instance
-noncomputable theorem dec_rel (p : α → α → Prop) : decidable_rel p := by apply_instance
-noncomputable theorem dec_eq (α : Sort*) : decidable_eq α := by apply_instance
+/- use shortened names to avoid conflict when classical namespace is open. -/
+noncomputable lemma dec (p : Prop) : decidable p := -- see Note [classical lemma]
+by apply_instance
+noncomputable lemma dec_pred (p : α → Prop) : decidable_pred p := -- see Note [classical lemma]
+by apply_instance
+noncomputable lemma dec_rel (p : α → α → Prop) : decidable_rel p := -- see Note [classical lemma]
+by apply_instance
+noncomputable lemma dec_eq (α : Sort*) : decidable_eq α := -- see Note [classical lemma]
+by apply_instance
+
+/- Note [classical lemma]:
+  We make decidability results that depends on `classical.choice` noncomputable lemmas.
+  * We have to mark them as noncomputable, because otherwise Lean will try to generate bytecode
+    for them, and fail because it depends on `classical.choice`.
+  * We make them lemmas, and not definitions, because otherwise later definitions will raise
+    "failed to generate bytecode" errors when writing something like
+    `letI := classical.dec_eq _`.
+  Cf. https://leanprover-community.github.io/archive/113488general/08268noncomputabletheorem.html -/
 
 @[elab_as_eliminator]
 noncomputable def {u} exists_cases {C : Sort u} (H0 : C) (H : ∀ a, p a → C) : C :=

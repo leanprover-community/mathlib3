@@ -21,7 +21,7 @@ lemma linear_independent_single {φ : α → Type*}
   {f : Π α, φ α → β} (hf : ∀a, linear_independent γ (f a)) :
   linear_independent γ (λ ax : Σ a, φ a, single ax.1 (f ax.1 ax.2)) :=
 begin
-  apply @linear_independent_Union_finite γ _ _ _ _ _ _ α φ _ _ (λ a x, single a (f a x)),
+  apply @linear_independent_Union_finite γ _ _ _ _ α φ (λ a x, single a (f a x)),
   { assume a,
     have h_disjoint : disjoint (span γ (range (f a))) (ker (lsingle a)),
     { rw ker_lsingle,
@@ -119,7 +119,7 @@ begin
   exact classical.choice (equiv_of_dim_eq_lift_dim (cardinal.lift_inj.2 h))
 end
 
-lemma fin_dim_vectorspace_equiv (n : ℕ)
+def fin_dim_vectorspace_equiv (n : ℕ)
   (hn : (dim α β) = n) : β ≃ₗ[α] (fin n → α) :=
 begin
   have : cardinal.lift.{v u} (n : cardinal.{v}) = cardinal.lift.{u v} (n : cardinal.{u}),

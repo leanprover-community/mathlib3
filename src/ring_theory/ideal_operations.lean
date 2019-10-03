@@ -231,9 +231,10 @@ theorem bijective_quotient_inf_to_pi_quotient [fintype ι] {f : ι → ideal R}
 /-- Chinese Remainder Theorem. Eisenbud Ex.2.6. Similar to Atiyah-Macdonald 1.10 and Stacks 00DT -/
 noncomputable def quotient_inf_ring_equiv_pi_quotient [fintype ι] (f : ι → ideal R)
   (hf : ∀ i j, i ≠ j → f i ⊔ f j = ⊤) :
-  (⨅ i, f i).quotient ≃r Π i, (f i).quotient :=
-{ hom := is_ring_hom_quotient_inf_to_pi_quotient f,
-  .. equiv.of_bijective (bijective_quotient_inf_to_pi_quotient hf) }
+  (⨅ i, f i).quotient ≃+* Π i, (f i).quotient :=
+by haveI : is_ring_hom (equiv.of_bijective (bijective_quotient_inf_to_pi_quotient hf)) :=
+  is_ring_hom_quotient_inf_to_pi_quotient f;
+    exact ring_equiv.of (equiv.of_bijective (bijective_quotient_inf_to_pi_quotient hf))
 
 end chinese_remainder
 
@@ -554,10 +555,16 @@ end ideal
 
 namespace is_ring_hom
 
-variables {R : Type u} {S : Type v} [comm_ring R] [comm_ring S]
-variables (f : R → S) [is_ring_hom f]
+variables {R : Type u} {S : Type v} (f : R → S) [comm_ring R]
+
+section comm_ring
+variables [comm_ring S] [is_ring_hom f]
 
 def ker : ideal R := ideal.comap f ⊥
+
+/-- An element is in the kernel if and only if it maps to zero.-/
+lemma mem_ker {r} : r ∈ ker f ↔ f r = 0 :=
+by rw [ker, ideal.mem_comap, submodule.mem_bot]
 
 lemma ker_eq : ((ker f) : set R) = is_add_group_hom.ker f := rfl
 
@@ -569,6 +576,18 @@ by rw [←submodule.ext'_iff, ker_eq]; exact is_add_group_hom.trivial_ker_iff_eq
 
 lemma injective_iff : function.injective f ↔ ∀ x, f x = 0 → x = 0 :=
 is_add_group_hom.injective_iff f
+
+end comm_ring
+
+/-- If the target is not the zero ring, then one is not in the kernel.-/
+lemma not_one_mem_ker [nonzero_comm_ring S] [is_ring_hom f] : (1:R) ∉ ker f :=
+by { rw [mem_ker, is_ring_hom.map_one f], exact one_ne_zero }
+
+/-- The kernel of a homomorphism to an integral domain is a prime ideal.-/
+lemma ker_is_prime [integral_domain S] [is_ring_hom f] :
+  (ker f).is_prime :=
+⟨by { rw [ne.def, ideal.eq_top_iff_one], exact not_one_mem_ker f },
+λ x y, by simpa only [mem_ker, is_ring_hom.map_mul f] using eq_zero_or_eq_zero_of_mul_eq_zero⟩
 
 end is_ring_hom
 

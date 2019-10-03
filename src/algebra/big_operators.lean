@@ -201,6 +201,14 @@ from classical.by_cases
     (prod_congr rfl $ λ b hb, h₀ b hb $ by rintro rfl; cc).trans $
       prod_const_one.trans (h₁ this).symm)
 
+@[simp, to_additive] lemma prod_ite [decidable_eq α] (s : finset α) (a : α) (b : β) :
+  s.prod (λ x, (ite (a = x) b 1)) = ite (a ∈ s) b 1 :=
+begin
+  rw ←finset.prod_filter,
+  split_ifs;
+  simp only [filter_eq, if_true, if_false, h, prod_empty, prod_singleton, insert_empty_eq_singleton],
+end
+
 @[to_additive]
 lemma prod_attach {f : α → β} : s.attach.prod (λx, f x.val) = s.prod f :=
 by haveI := classical.dec_eq α; exact
@@ -324,7 +332,7 @@ finset.strong_induction_on s
         prod_insert (not_mem_erase _ _), ih', mul_one, h₁ x hx])
 
 @[to_additive]
-lemma prod_eq_one [comm_monoid β] {f : α → β} {s : finset α} (h : ∀x∈s, f x = 1) : s.prod f = 1 :=
+lemma prod_eq_one {f : α → β} {s : finset α} (h : ∀x∈s, f x = 1) : s.prod f = 1 :=
 calc s.prod f = s.prod (λx, 1) : finset.prod_congr rfl h
   ... = 1 : finset.prod_const_one
 
@@ -427,6 +435,21 @@ lemma sum_mul : s.sum f * b = s.sum (λx, f x * b) :=
 lemma mul_sum : b * s.sum f = s.sum (λx, b * f x) :=
 (sum_hom (λx, b * x)).symm
 
+@[simp] lemma sum_mul_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
+  s.sum (λ x, (f x * ite (a = x) 1 0)) = ite (a ∈ s) (f a) 0 :=
+begin
+  convert sum_ite s a (f a),
+  funext,
+  split_ifs with h; simp [h],
+end
+@[simp] lemma sum_boole_mul [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
+  s.sum (λ x, (ite (a = x) 1 0) * f x) = ite (a ∈ s) (f a) 0 :=
+begin
+  convert sum_ite s a (f a),
+  funext,
+  split_ifs with h; simp [h],
+end
+
 end semiring
 
 section comm_semiring
@@ -517,12 +540,13 @@ by rwa sum_singleton at this
 end ordered_comm_monoid
 
 section canonically_ordered_monoid
-variables [decidable_eq α] [canonically_ordered_monoid β] [@decidable_rel β (≤)]
+variables [decidable_eq α] [canonically_ordered_monoid β]
 
 lemma sum_le_sum_of_subset (h : s₁ ⊆ s₂) : s₁.sum f ≤ s₂.sum f :=
 sum_le_sum_of_subset_of_nonneg h $ assume x h₁ h₂, zero_le _
 
-lemma sum_le_sum_of_ne_zero (h : ∀x∈s₁, f x ≠ 0 → x ∈ s₂) : s₁.sum f ≤ s₂.sum f :=
+lemma sum_le_sum_of_ne_zero [@decidable_rel β (≤)] (h : ∀x∈s₁, f x ≠ 0 → x ∈ s₂) :
+  s₁.sum f ≤ s₂.sum f :=
 calc s₁.sum f = (s₁.filter (λx, f x = 0)).sum f + (s₁.filter (λx, f x ≠ 0)).sum f :
     by rw [←sum_union, filter_union_filter_neg_eq];
        exact disjoint_filter (assume _ h n_h, n_h h)

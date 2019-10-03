@@ -40,7 +40,7 @@ variables {S : Type*} [has_mul S]
 protected theorem eq {a b : S} (h : commute a b) : a * b = b * a := h
 
 /-- Any element commutes with itself. -/
-@[refl] protected theorem refl (a : S) : commute a a := eq.refl (a * a)
+@[refl, simp] protected theorem refl (a : S) : commute a a := eq.refl (a * a)
 
 /-- If `a` commutes with `b`, then `b` commutes with `a`. -/
 @[symm]  theorem symm {a b : S} (h : commute a b) : commute b a :=
@@ -58,18 +58,18 @@ variables {S : Type*} [has_mul S]
 /-- Centralizer of an element `a : S` is the set of elements that commute with `a`. -/
 def centralizer (a : S) : set S := { x | commute a x }
 
-theorem mem_centralizer {a b : S} : b ∈ centralizer a ↔ commute a b := iff.rfl
+@[simp] theorem mem_centralizer {a b : S} : b ∈ centralizer a ↔ commute a b := iff.rfl
 
 /-- Centralizer of a set `T` is the set of elements that commute with all `a ∈ T`. -/
 protected def set.centralizer (s : set S) : set S := { x | ∀ a ∈ s, commute a x }
 
-protected theorem set.mem_centralizer (s : set S) {x : S} :
+@[simp] protected theorem set.mem_centralizer (s : set S) {x : S} :
   x ∈ s.centralizer ↔ ∀ a ∈ s, commute a x :=
 iff.rfl
 
 protected theorem set.mem_centralizer_iff_subset (s : set S) {x : S} :
   x ∈ s.centralizer ↔ s ⊆ centralizer x :=
-by simp only [set.centralizer, centralizer, set.mem_set_of_eq, @commute.symm_iff _ _ x]; refl
+by simp only [set.mem_centralizer, mem_centralizer, set.subset_def, commute.symm_iff]
 
 protected theorem set.centralizer_eq (s : set S) :
   s.centralizer =  ⋂ a ∈ s, centralizer a :=
@@ -78,7 +78,7 @@ by simp only [s.mem_centralizer, set.mem_bInter_iff, mem_centralizer]
 
 protected theorem set.centralizer_decreasing {s t : set S} (h : s ⊆ t) :
   t.centralizer ⊆ s.centralizer :=
-by simp only [set.centralizer_eq, set.bInter_subset_bInter_left h]
+s.centralizer_eq.symm ▸ t.centralizer_eq.symm ▸ set.bInter_subset_bInter_left h
 
 end defs
 
@@ -89,12 +89,12 @@ section semigroup
 variables {S : Type*} [semigroup S] {a b c : S}
 
 /-- If `a` commutes with both `b` and `c`, then it commutes with their product. -/
-theorem mul_right (hab : commute a b) (hac : commute a c) :
+@[simp] theorem mul_right (hab : commute a b) (hac : commute a c) :
   commute a (b * c) :=
 by dunfold commute; assoc_rw [hab.eq, hac.eq]
 
 /-- If both `a` and `b` commute with `c`, then their product commutes with `c`. -/
-theorem mul_left (hac : commute a c) (hbc : commute b c) :
+@[simp] theorem mul_left (hac : commute a c) (hbc : commute b c) :
   commute (a * b) c :=
 (hac.symm.mul_right hbc.symm).symm
 
@@ -106,20 +106,20 @@ section monoid
 
 variables {M : Type*} [monoid M]
 
-theorem one_right (a : M) : commute a 1 :=
+@[simp] theorem one_right (a : M) : commute a 1 :=
 by rw [commute, one_mul, mul_one]
 
-theorem one_left (a : M) : commute 1 a := (commute.one_right a).symm
+@[simp] theorem one_left (a : M) : commute 1 a := (commute.one_right a).symm
 
-theorem units_inv_right {a : M} {u : units M} (h : commute a u) : commute a ↑u⁻¹ :=
+@[simp] theorem units_inv_right {a : M} {u : units M} (h : commute a u) : commute a ↑u⁻¹ :=
 calc a * ↑u⁻¹ = ↑u⁻¹ * u * a * ↑u⁻¹ : by rw [units.inv_mul, one_mul]
           ... = ↑u⁻¹ * a * u * ↑u⁻¹ : by assoc_rw [h.eq]
           ... = ↑u⁻¹ * a            : units.mul_inv_cancel_right _ u
 
-theorem units_inv_left {u : units M} {a : M} (h : commute ↑u a) : commute ↑u⁻¹ a :=
+@[simp] theorem units_inv_left {u : units M} {a : M} (h : commute ↑u a) : commute ↑u⁻¹ a :=
 h.symm.units_inv_right.symm
 
-protected theorem map {N : Type*} [monoid N] (f : M →* N) {a b : M} (h : commute a b) :
+@[simp] protected theorem map {N : Type*} [monoid N] (f : M →* N) {a b : M} (h : commute a b) :
   commute (f a) (f b) :=
 by rw [commute, ← f.map_mul, h.eq, f.map_mul]
 
@@ -132,10 +132,10 @@ section group
 
 variables {G : Type*} [group G]
 
-theorem inv_right {a b : G} (h : commute a b) : commute a b⁻¹ :=
+@[simp] theorem inv_right {a b : G} (h : commute a b) : commute a b⁻¹ :=
 @units_inv_right G _ a (to_units G b) h
 
-theorem inv_left {a b : G} (h : commute a b) : commute a⁻¹ b :=
+@[simp] theorem inv_left {a b : G} (h : commute a b) : commute a⁻¹ b :=
 h.symm.inv_right.symm
 
 theorem inv_inv {a b : G} (hab : commute a b) : commute a⁻¹ b⁻¹ :=
@@ -147,14 +147,15 @@ section semiring
 
 variables {A : Type*}
 
-theorem zero_right [mul_zero_class A] (a : A) : commute a 0 := by rw [commute, mul_zero, zero_mul]
-theorem zero_left [mul_zero_class A] (a : A) : commute 0 a := (commute.zero_right a).symm
+@[simp] theorem zero_right [mul_zero_class A] (a : A) : commute a 0 :=
+by rw [commute, mul_zero, zero_mul]
+@[simp] theorem zero_left [mul_zero_class A] (a : A) : commute 0 a := (commute.zero_right a).symm
 
-theorem add_right [distrib A] {a b c : A} (hab : commute a b) (hac : commute a c) :
+@[simp] theorem add_right [distrib A] {a b c : A} (hab : commute a b) (hac : commute a c) :
   commute a (b + c) :=
 by rw [commute, mul_add, add_mul, hab.eq, hac.eq]
 
-theorem add_left [distrib A] {a b c : A} (hac : commute a c) (hbc : commute b c) :
+@[simp] theorem add_left [distrib A] {a b c : A} (hac : commute a c) (hbc : commute b c) :
   commute (a + b) c :=
 (hac.symm.add_right hbc.symm).symm
 
@@ -164,20 +165,20 @@ section ring
 
 variables {R : Type*} [ring R]
 
-theorem neg_right {a b : R} (hab : commute a b) : commute a (- b) :=
+@[simp] theorem neg_right {a b : R} (hab : commute a b) : commute a (- b) :=
 by rw [commute, ← neg_mul_eq_mul_neg, hab.eq, neg_mul_eq_neg_mul_symm ]
 
-theorem neg_left {a b : R} (hab : commute a b) : commute (- a) b :=
+@[simp] theorem neg_left {a b : R} (hab : commute a b) : commute (- a) b :=
 hab.symm.neg_right.symm
 
-theorem neg_one_right (a : R) : commute a (-1) := (commute.one_right a).neg_right
-theorem neg_one_left (a : R): commute (-1) a := (commute.neg_one_right a).symm
+@[simp] theorem neg_one_right (a : R) : commute a (-1) := (commute.one_right a).neg_right
+@[simp] theorem neg_one_left (a : R): commute (-1) a := (commute.neg_one_right a).symm
 
-theorem sub_right {a b c : R} (hab : commute a b) (hac : commute a c) :
+@[simp] theorem sub_right {a b c : R} (hab : commute a b) (hac : commute a c) :
   commute a (b - c) :=
 hab.add_right hac.neg_right
 
-theorem sub_left {a b c : R} (hac : commute a c) (hbc : commute b c) :
+@[simp] theorem sub_left {a b c : R} (hac : commute a c) (hbc : commute b c) :
   commute (a - b) c :=
 (hac.symm.sub_right hbc.symm).symm
 
@@ -197,7 +198,7 @@ instance centralizer.is_submonoid : is_submonoid (centralizer a) :=
 instance set.centralizer.is_submonoid : is_submonoid s.centralizer :=
 by rw s.centralizer_eq; apply_instance
 
-theorem monoid.centralizer_closure : (monoid.closure s).centralizer = s.centralizer :=
+@[simp] theorem monoid.centralizer_closure : (monoid.closure s).centralizer = s.centralizer :=
 set.subset.antisymm
   (set.centralizer_decreasing monoid.subset_closure)
   (λ x, by simp only [set.mem_centralizer_iff_subset]; exact monoid.closure_subset)
@@ -220,7 +221,7 @@ instance centralizer.is_subgroup : is_subgroup (centralizer a) :=
 instance set.centralizer.is_subgroup : is_subgroup s.centralizer :=
 by rw s.centralizer_eq; apply_instance
 
-lemma group.centralizer_closure : (group.closure s).centralizer = s.centralizer :=
+@[simp] lemma group.centralizer_closure : (group.closure s).centralizer = s.centralizer :=
 set.subset.antisymm
   (set.centralizer_decreasing group.subset_closure)
   (λ x, by simp only [set.mem_centralizer_iff_subset]; exact group.closure_subset)
@@ -239,7 +240,7 @@ instance centralizer.is_add_submonoid : is_add_submonoid (centralizer a) :=
 instance set.centralizer.is_add_submonoid : is_add_submonoid s.centralizer :=
 by rw s.centralizer_eq; apply_instance
 
-lemma add_monoid.centralizer_closure : (add_monoid.closure s).centralizer = s.centralizer :=
+@[simp] lemma add_monoid.centralizer_closure : (add_monoid.closure s).centralizer = s.centralizer :=
 set.subset.antisymm
   (set.centralizer_decreasing add_monoid.subset_closure)
   (λ x, by simp only [set.mem_centralizer_iff_subset]; exact add_monoid.closure_subset)
@@ -256,7 +257,7 @@ instance centralizer.is_subring : is_subring (centralizer a) :=
 instance set.centralizer.is_subring : is_subring s.centralizer :=
 by rw s.centralizer_eq; apply_instance
 
-lemma ring.centralizer_closure : (ring.closure s).centralizer = s.centralizer :=
+@[simp] lemma ring.centralizer_closure : (ring.closure s).centralizer = s.centralizer :=
 set.subset.antisymm
   (set.centralizer_decreasing ring.subset_closure)
   (λ x, by simp only [set.mem_centralizer_iff_subset]; exact ring.closure_subset)
@@ -269,9 +270,9 @@ section monoid
 
 variables {M : Type*} [monoid M] {a b : M} (hab : commute a b) (n m : ℕ)
 
-theorem pow_right : commute a (b ^ n) := is_submonoid.pow_mem (mem_centralizer.2 hab)
-theorem pow_left : commute (a ^ n) b := (hab.symm.pow_right n).symm
-theorem pow_pow : commute (a ^ n) (b ^ m) := commute.pow_right (commute.pow_left hab n) m
+@[simp] theorem pow_right : commute a (b ^ n) := is_submonoid.pow_mem (mem_centralizer.2 hab)
+@[simp] theorem pow_left : commute (a ^ n) b := (hab.symm.pow_right n).symm
+@[simp] theorem pow_pow : commute (a ^ n) (b ^ m) := commute.pow_right (commute.pow_left hab n) m
 
 theorem list_prod_right {a : M} {l : list M} (h : ∀ x ∈ l, commute a x) :
   commute a l.prod :=
@@ -304,9 +305,9 @@ section group
 
 variables {G : Type*} [group G] {a b : G} (hab : commute a b) (n m : ℤ)
 
-theorem gpow_right : commute a (b ^ n) := is_subgroup.gpow_mem (mem_centralizer.2 hab)
-theorem gpow_left : commute (a ^ n) b := (hab.symm.gpow_right n).symm
-theorem gpow_gpow : commute (a ^ n) (b ^ m) := (hab.gpow_right m).gpow_left n
+@[simp] theorem gpow_right : commute a (b ^ n) := is_subgroup.gpow_mem (mem_centralizer.2 hab)
+@[simp] theorem gpow_left : commute (a ^ n) b := (hab.symm.gpow_right n).symm
+@[simp] theorem gpow_gpow : commute (a ^ n) (b ^ m) := (hab.gpow_right m).gpow_left n
 
 variable (a)
 
@@ -330,10 +331,10 @@ variables {A : Type*} [semiring A] {a b : A} (hab : commute a b) (n m : ℕ)
 
 open_locale add_monoid
 
-theorem smul_right : commute a (n • b) := is_add_submonoid.smul_mem (mem_centralizer.2 hab)
+@[simp] theorem smul_right : commute a (n • b) := is_add_submonoid.smul_mem (mem_centralizer.2 hab)
 
-theorem smul_left : commute (n • a) b := (hab.symm.smul_right n).symm
-theorem smul_smul : commute (n • a) (m • b) := (hab.smul_left n).smul_right m
+@[simp] theorem smul_left : commute (n • a) b := (hab.symm.smul_right n).symm
+@[simp] theorem smul_smul : commute (n • a) (m • b) := (hab.smul_left n).smul_right m
 
 variable (a)
 
@@ -341,10 +342,10 @@ theorem self_smul : commute a (n • a) := (commute.refl a).smul_right n
 theorem smul_self : commute (n • a) a := (commute.refl a).smul_left n
 theorem self_smul_smul : commute (n • a) (m • a) := (commute.refl a).smul_smul n m
 
-theorem cast_nat_right : commute a (n : A) :=
+@[simp] theorem cast_nat_right : commute a (n : A) :=
 by rw [← add_monoid.smul_one n]; exact (commute.one_right a).smul_right n
 
-theorem cast_nat_left : commute (n : A) a :=
+@[simp] theorem cast_nat_left : commute (n : A) a :=
 (cast_nat_right a n).symm
 
 end semiring
@@ -355,9 +356,9 @@ variables {R : Type*} [ring R] {a b : R} (hab : commute a b) (n m : ℤ)
 
 open_locale add_group
 
-theorem gsmul_right : commute a (n • b) := is_add_subgroup.gsmul_mem (mem_centralizer.2 hab)
-theorem gsmul_left : commute (n • a) b := (hab.symm.gsmul_right n).symm
-theorem gsmul_gsmul : commute (n • a) (m • b) := (hab.gsmul_left n).gsmul_right m
+@[simp] theorem gsmul_right : commute a (n • b) := is_add_subgroup.gsmul_mem (mem_centralizer.2 hab)
+@[simp] theorem gsmul_left : commute (n • a) b := (hab.symm.gsmul_right n).symm
+@[simp] theorem gsmul_gsmul : commute (n • a) (m • b) := (hab.gsmul_left n).gsmul_right m
 
 theorem self_gsmul : commute a (n • a) := (commute.refl a).gsmul_right n
 theorem gsmul_self : commute (n • a) a := (commute.refl a).gsmul_left n
@@ -365,10 +366,10 @@ theorem self_gsmul_gsmul : commute (n • a) (m • a) := (commute.refl a).gsmul
 
 variable (a)
 
-theorem cast_int_right : commute a (n : R) :=
+@[simp] theorem cast_int_right : commute a (n : R) :=
 by rw [← gsmul_one n]; exact (commute.one_right a).gsmul_right n
 
-theorem cast_int_left : commute (n : R) a := (commute.cast_int_right a n).symm
+@[simp] theorem cast_int_left : commute (n : R) a := (commute.cast_int_right a n).symm
 
 end ring
 

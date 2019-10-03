@@ -30,9 +30,6 @@ variables (D : J ⥤ algebra T) [has_limit.{v₁} (D ⋙ forget T)]
 { X := T.obj (limit (D ⋙ forget T)),
   π := (functor.const_comp _ _ T).inv ≫ whisker_right (limit.cone (D ⋙ forget T)).π T ≫ (γ D) }
 
--- @[simp] lemma c_π (j) :
--- (c D).π.app j = 𝟙 _ ≫ T.map (limit.π (D ⋙ forget T) j) ≫ (D.obj j).a := rfl
-
 @[simps] def cone_point (D : J ⥤ algebra T) [has_limit.{v₁} (D ⋙ forget T)] : algebra T :=
 { A := limit (D ⋙ forget T),
   a := limit.lift _ (c D),

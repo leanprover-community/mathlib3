@@ -33,6 +33,12 @@ variables {ι β}
 lemma single_eq_lof (i : ι) (b : β i) :
   dfinsupp.single i b = lof R ι β i b := rfl
 
+lemma lof_same (i : ι) (b : β i) : lof R ι β i b i = b :=
+by rw [←single_eq_lof, dfinsupp.single_eq_same]
+
+lemma lof_ne (i j : ι) (h : i ≠ j) (b : β i) : lof R ι β i b j = 0 :=
+by rw [←single_eq_lof, dfinsupp.single_eq_of_ne h]
+
 theorem mk_smul (s : finset ι) (c : R) (x) : mk β s (c • x) = c • mk β s x :=
 (lmk R ι β s).map_smul c x
 
@@ -104,5 +110,96 @@ dfinsupp.ext h
 lemma ext_iff {f g : direct_sum ι β} : f = g ↔
   ∀ i, component R ι β i f = component R ι β i g :=
 ⟨λ h _, by rw h, ext R⟩
+
+open linear_map lattice submodule
+
+lemma ker_lof (i : ι) : ker (lof R ι β i) = ⊥ :=
+ker_eq_bot.2 $ assume f g hfg,
+  have lof R ι β i f i = lof R ι β i g i := hfg ▸ rfl,
+  by simpa only [lof_same]
+
+lemma supr_range_lof_le_infi_ker_component (I J : set ι) (h : disjoint I J) :
+  (⨆i∈I, range (lof R ι β i)) ≤ (⨅i∈J, ker (component R ι β i)) :=
+begin
+  refine (supr_le $ assume i, supr_le $ assume hi, range_le_iff_comap.2 _),
+  simp only [(ker_comp _ _).symm, eq_top_iff, le_def', mem_ker, comap_infi, mem_infi],
+  assume b hb j hj,
+  have : i ≠ j := assume eq, h ⟨hi, eq.symm ▸ hj⟩,
+  rw [comp_apply, component.of, dif_neg this]
+end
+
+lemma infi_ker_component_le_supr_range_lof [∀i, decidable_eq (β i)] {I J : set ι} (hu : set.univ ⊆ I ∪ J) :
+  (⨅ i∈J, ker (component R ι β i)) ≤ (⨆i∈I, range (lof R ι β i)) :=
+submodule.le_def'.2
+begin
+  assume b hb,
+  simp only [mem_infi, mem_ker, apply_eq_component] at hb,
+  have : ∀ i, i ∈ b.support → i ∈ I,
+  { intros i hib,
+    refine set.mem_union.elim (set.mem_of_subset_of_mem hu $ set.mem_univ i) (λ h, h) _,
+    rw [dfinsupp.mem_support_iff, ne.def] at hib,
+    intro hiJ,
+    exfalso,
+    exact hib (hb i hiJ) },
+  rw ← show b.support.sum (λi, lof R ι β i (b i)) = b,
+  { ext i,
+    rw [@dfinsupp.finset_sum_apply _ β _ _ _, ←lof_same R i (b i)],
+    refine finset.sum_eq_single i (assume j hjI ne, lof_ne _ _ _ ne _) _,
+    assume hiI,
+    rw [lof_same],
+    rwa [dfinsupp.mem_support_iff, ne.def, not_not] at hiI },
+  exact sum_mem _ (assume i hiI, mem_supr_of_mem _ i $ mem_supr_of_mem _ (this i hiI) $
+    linear_map.mem_range.2 ⟨_, rfl⟩)
+end
+
+lemma supr_range_lof [∀i, decidable_eq (β i)] : (⨆i:ι, range (lof R ι β i)) = ⊤ :=
+have (set.univ : set ι) ⊆ set.univ ∪ ∅ := set.subset_union_left _ _,
+begin
+  apply top_unique,
+  convert (infi_ker_component_le_supr_range_lof R this),
+  exact infi_emptyset.symm,
+  exact (funext $ λi, (@supr_pos _ _ _ (λh, (lof R ι β i).range) $ set.mem_univ i).symm),
+  apply_instance
+end
+
+lemma disjoint_lof_lof (I J : set ι) (h : disjoint I J) :
+  disjoint (⨆i∈I, range (lof R ι β i)) (⨆i∈J, range (lof R ι β i)) :=
+begin
+  refine disjoint_mono
+    (supr_range_lof_le_infi_ker_component _ _ _ $ set.disjoint_compl I)
+    (supr_range_lof_le_infi_ker_component _ _ _ $ set.disjoint_compl J) _,
+  simp only [disjoint, submodule.le_def', mem_infi, mem_inf, mem_ker, mem_bot, apply_eq_component,
+    dfinsupp.ext_iff],
+  rintros b ⟨hI, hJ⟩ i,
+  classical,
+  by_cases hiI : i ∈ I,
+  { by_cases hiJ : i ∈ J,
+    { exact (h ⟨hiI, hiJ⟩).elim },
+    { exact hJ i hiJ } },
+  { exact hI i hiI }
+end
+
+/-- The finite direct sum of `R`-modules `Π₀i:ι, β i` is linearly equivalent to the product of modules
+`Πi:ι, β i` when the index type `ι` is finite. -/
+def direct_sum_linear_equiv_pi_fintype [fintype ι] : direct_sum ι β ≃ₗ[R] (Πi, β i) :=
+dfinsupp.dfinsupp_equiv_pi_fintype.to_linear_equiv
+  ⟨λ f g, funext $ λ _, dfinsupp.add_apply, λ c f, funext $ λ _, dfinsupp.smul_apply ⟩
+
+--TODO:move
+/-- Dependend finitely supported functions with domain `η` and constant codomain `β` are equivalent
+to finitely supported functions `η →₀ β`. -/
+def dfinsupp_equiv_finsupp {S} [has_zero S] [decidable_eq S] : (Π₀i:ι, (λ _, S) i) ≃ (ι →₀ S) :=
+{ to_fun := λ f, ⟨f.support, f, f.mem_support_iff⟩,
+  inv_fun := λ f, ⟦⟨f, f.support.val, λ i,
+    by { rw [←finset.mem_def, finsupp.mem_support_iff, or_comm], exact classical.or_not }⟩⟧,
+  left_inv := λ f, dfinsupp.ext $ (λ _, rfl),
+  right_inv := λ f, finsupp.ext $ (λ _, rfl) }
+
+/-- The direct sum of an `R`-module `S` indexed over a type `ι` is linearly equivalent to the
+`R`-module of finitely supported functions from `ι` to `S`. -/
+noncomputable def direct_sum_linear_equiv_finsupp {S} [add_comm_group S] [decidable_eq S] [module R S] :
+  (direct_sum ι (λ _, S)) ≃ₗ[R] (ι →₀ S) :=
+(@dfinsupp_equiv_finsupp R _ ι _ S _ _).to_linear_equiv
+  ⟨λ f g, finsupp.ext $ (λ _, dfinsupp.add_apply), λ c f, finsupp.ext $ (λ _, dfinsupp.smul_apply)⟩
 
 end direct_sum

@@ -292,6 +292,14 @@ by simp
 @[simp] lemma erase_ne {i i' : ι} {f : Π₀ i, β i} (h : i' ≠ i) : (f.erase i) i' = f i' :=
 by simp [h]
 
+/-- For finite `ι`, finitely supported functions `Π₀i:ι, β i` are equivalent to functions
+`Πi:ι, β i`. -/
+def dfinsupp_equiv_pi_fintype [fintype ι] : (Π₀i, β i) ≃ (Πi, β i) :=
+{ to_fun := λ f i, f i,
+  inv_fun := λ f, mk finset.univ (λ i, f i),
+  left_inv := λ f, ext $ λ i, dif_pos (finset.mem_univ i),
+  right_inv := λ f, funext $ λ i, dif_pos (finset.mem_univ i) }
+
 end basic
 
 section add_monoid

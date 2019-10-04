@@ -116,8 +116,14 @@ calc a * ↑u⁻¹ = ↑u⁻¹ * u * a * ↑u⁻¹ : by rw [units.inv_mul, one_m
           ... = ↑u⁻¹ * a * u * ↑u⁻¹ : by assoc_rw [h.eq]
           ... = ↑u⁻¹ * a            : units.mul_inv_cancel_right _ u
 
+@[simp] theorem units_inv_right_iff {a : M} {u : units M} : commute a ↑u⁻¹ ↔ commute a u :=
+⟨units_inv_right, units_inv_right⟩
+
 @[simp] theorem units_inv_left {u : units M} {a : M} (h : commute ↑u a) : commute ↑u⁻¹ a :=
 h.symm.units_inv_right.symm
+
+@[simp] theorem units_inv_left_iff {u : units M} {a : M}: commute ↑u⁻¹ a ↔ commute ↑u a :=
+⟨units_inv_left, units_inv_left⟩
 
 @[simp] protected theorem map {N : Type*} [monoid N] (f : M →* N) {a b : M} (h : commute a b) :
   commute (f a) (f b) :=
@@ -135,11 +141,20 @@ variables {G : Type*} [group G]
 @[simp] theorem inv_right {a b : G} (h : commute a b) : commute a b⁻¹ :=
 @units_inv_right G _ a (to_units G b) h
 
+@[simp] theorem inv_right_iff {a b : G} : commute a b⁻¹ ↔ commute a b :=
+@units_inv_right_iff G _ a (to_units G b)
+
 @[simp] theorem inv_left {a b : G} (h : commute a b) : commute a⁻¹ b :=
 h.symm.inv_right.symm
 
+@[simp] theorem inv_left_iff {a b : G} : commute a⁻¹ b ↔ commute a b :=
+@units_inv_left_iff G _ (to_units G a) b
+
 theorem inv_inv {a b : G} (hab : commute a b) : commute a⁻¹ b⁻¹ :=
 hab.inv_left.inv_right
+
+@[simp] theorem inv_inv_iff {a b : G} : commute a⁻¹ b⁻¹ ↔ commute a b :=
+inv_left_iff.trans inv_right_iff
 
 end group
 
@@ -168,8 +183,14 @@ variables {R : Type*} [ring R]
 @[simp] theorem neg_right {a b : R} (hab : commute a b) : commute a (- b) :=
 by rw [commute, ← neg_mul_eq_mul_neg, hab.eq, neg_mul_eq_neg_mul_symm ]
 
+@[simp] theorem neg_right_iff {a b : R} : commute a (-b) ↔ commute a b :=
+⟨λ h, neg_neg b ▸ h.neg_right, neg_right⟩
+
 @[simp] theorem neg_left {a b : R} (hab : commute a b) : commute (- a) b :=
 hab.symm.neg_right.symm
+
+@[simp] theorem neg_left_iff {a b : R} : commute (-a) b ↔ commute a b :=
+⟨λ h, neg_neg a ▸ h.neg_left, neg_left⟩
 
 @[simp] theorem neg_one_right (a : R) : commute a (-1) := (commute.one_right a).neg_right
 @[simp] theorem neg_one_left (a : R): commute (-1) a := (commute.neg_one_right a).symm

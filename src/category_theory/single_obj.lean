@@ -1,12 +1,16 @@
-import category_theory.endomorphism category_theory.groupoid category_theory.Cat
-import data.equiv.algebra algebra.Mon.basic
-import tactic.find
-
-/-!
+/-
 Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
+-/
 
+import category_theory.endomorphism
+import category_theory.groupoid
+import category_theory.category.Cat
+import data.equiv.algebra
+import algebra.category.Mon.basic
+
+/-!
 # Single-object category
 
 Single object category with a given monoid of endomorphisms.  It is defined to facilitate transfering
@@ -137,10 +141,10 @@ open category_theory
 /-- The fully faithful functor from `Mon` to `Cat`. -/
 def to_Cat : Mon ⥤ Cat :=
 { obj := λ x, Cat.of (single_obj x),
-  map := λ x y f, (Mon.hom_equiv_monoid_hom x y).trans (single_obj.map_hom x y) f }
+  map := λ x y f, single_obj.map_hom x y f }
 
 instance to_Cat_full : full to_Cat :=
-{ preimage := λ x y, ((Mon.hom_equiv_monoid_hom x y).trans (single_obj.map_hom x y)).inv_fun,
+{ preimage := λ x y, (single_obj.map_hom x y).inv_fun,
   witness' := λ x y, by apply equiv.right_inv }
 
 instance to_Cat_faithful : faithful to_Cat :=

@@ -975,7 +975,7 @@ variables [add_monoid β] {v v' : α' →₀ β}
   (v + v').subtype_domain p = v.subtype_domain p + v'.subtype_domain p :=
 ext $ λ _, rfl
 
-instance subtype_domain.is_add_monoid_hom [add_monoid β] :
+instance subtype_domain.is_add_monoid_hom :
   is_add_monoid_hom (subtype_domain p : (α →₀ β) → subtype p →₀ β) :=
 { map_add := λ _ _, subtype_domain_add, map_zero := subtype_domain_zero }
 
@@ -1541,7 +1541,7 @@ end
 variable (σ)
 
 /-- The order on σ →₀ ℕ is well-founded.-/
-def lt_wf : well_founded (@has_lt.lt (σ →₀ ℕ) _) :=
+lemma lt_wf : well_founded (@has_lt.lt (σ →₀ ℕ) _) :=
 subrelation.wf (sum_id_lt_of_lt) $ inv_image.wf _ nat.lt_wf
 
 instance decidable_le : decidable_rel (@has_le.le (σ →₀ ℕ) _) :=

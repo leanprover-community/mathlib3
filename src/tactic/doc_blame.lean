@@ -7,7 +7,7 @@ import tactic.core
 open tactic declaration environment
 
 /-- Print the declaration name if it's a definition without a docstring -/
-meta def print_item (use_thms : bool) (env : environment) : declaration → tactic unit
+meta def print_item (use_thms : bool) : declaration → tactic unit
 | (defn n _ _ _ _ _) := doc_string n >> skip <|> trace n
 | (cnst n _ _ _) := doc_string n >> skip <|> trace n
 | (thm n _ _ _) := when use_thms (doc_string n >> skip <|> trace n)
@@ -21,7 +21,7 @@ do curr_env ← get_env,
         not (to_name x).is_internal &&
         not (is_auto_generated curr_env x) then x::t
      else t,
-   local_decls.mmap' (print_item use_thms curr_env)
+   local_decls.mmap' (print_item use_thms)
 
 setup_tactic_parser
 

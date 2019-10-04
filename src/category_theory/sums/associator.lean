@@ -16,9 +16,9 @@ open sum
 
 namespace category_theory.sum
 
-variables (C : Type u) [𝒞 : category.{v+1} C]
-          (D : Type u) [𝒟 : category.{v+1} D]
-          (E : Type u) [ℰ : category.{v+1} E]
+variables (C : Type u) [𝒞 : category.{v} C]
+          (D : Type u) [𝒟 : category.{v} D]
+          (E : Type u) [ℰ : category.{v} E]
 include 𝒞 𝒟 ℰ
 
 def associator : ((C ⊕ D) ⊕ E) ⥤ (C ⊕ (D ⊕ E)) :=

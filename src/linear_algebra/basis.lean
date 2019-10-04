@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp
 
 import linear_algebra.basic linear_algebra.finsupp order.zorn
 
-/-
+/-!
 
 # Linear independence and bases
 
@@ -417,8 +417,7 @@ end subtype
 section repr
 variables (hv : linear_independent α v)
 
-/- Given a family of linearly independent vectors, we have a canonical isomorphism between
-   their linear combinations and their span. -/
+/-- Canonical isomorphism between linear combinations and the span of linearly independent vectors. -/
 def linear_independent.total_equiv (hv : linear_independent α v) : (ι →₀ α) ≃ₗ[α] span α (range v) :=
 begin
 apply linear_equiv.of_bijective (linear_map.cod_restrict (span α (range v)) (finsupp.total ι β α v) _),
@@ -434,7 +433,9 @@ apply linear_equiv.of_bijective (linear_map.cod_restrict (span α (range v)) (fi
   apply mem_range_self l }
 end
 
-/- Given a family of linearly independent vectors, we can represent any vector in their span as
+/-- Linear combination representing a vector in the span of linearly independent vectors.
+
+   Given a family of linearly independent vectors, we can represent any vector in their span as
    a linear combination of these vectors. These are provided by this linear map.
    It is simply one direction of `linear_independent.total_equiv` -/
 def linear_independent.repr (hv : linear_independent α v) :
@@ -725,13 +726,12 @@ lemma constr_range [inhabited ι] (hv : is_basis α v) {f : ι  → γ} :
 by rw [is_basis.constr, linear_map.range_comp, linear_map.range_comp, is_basis.repr_range,
     finsupp.lmap_domain_supported, ←set.image_univ, ←finsupp.span_eq_map_total, image_id]
 
-/- Given a basis, there is a canonical linear equivalence between a module and the linear
-  combinations of basis vectors. -/
+/-- Canonical equivalence between a module and the linear combinations of basis vectors. -/
 def module_equiv_finsupp (hv : is_basis α v) : β ≃ₗ[α] ι →₀ α :=
 (hv.1.total_equiv.trans (linear_equiv.of_top _ hv.2)).symm
 
-/- Given two modules β and γ with respective bases v and v' and a bijection between the two bases,
-   we obtain an isomorphism between the two modules. -/
+/-- Isomorphism between the two modules, given two modules β and γ with respective bases v and v'
+   and a bijection between the two bases. -/
 def equiv_of_is_basis {v : ι → β} {v' : ι' → γ} {f : β → γ} {g : γ → β}
   (hv : is_basis α v) (hv' : is_basis α v') (hf : ∀i, f (v i) ∈ range v') (hg : ∀i, g (v' i) ∈ range v)
   (hgf : ∀i, g (f (v i)) = v i) (hfg : ∀i, f (g (v' i)) = v' i) :

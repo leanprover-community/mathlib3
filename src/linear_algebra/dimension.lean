@@ -306,10 +306,12 @@ open linear_map
 lemma dim_pi : vector_space.dim α (Πi, φ i) = cardinal.sum (λi, vector_space.dim α (φ i)) :=
 begin
   letI := λ i, classical.dec_eq (φ i),
+  letI := classical.dec_eq (α →ₗ[α] α), --TODO:remove
+  letI := λ i j, classical.dec_eq (φ i →ₗ[α] φ j), --TODO:remove
   choose b hb using assume i, exists_is_basis α (φ i),
   haveI := classical.dec_eq η,
-  have : is_basis α (λ (ji : Σ j, b j), std_basis α (λ j, φ j) ji.fst ji.snd.val),
-    by apply pi.is_basis_std_basis _ hb,
+  have : is_basis α (λ (ji : Σ j, b j), pi.std_basis_fun α φ ji.fst ji.snd.val),
+    by apply pi.is_basis_std_basis_fun α _ hb,
   rw [←cardinal.lift_inj, ← this.mk_eq_dim],
   simp [λ i, (hb i).mk_range_eq_dim.symm, cardinal.sum_mk]
 end
@@ -331,21 +333,40 @@ by simp [dim_fun']
 
 end fintype
 
-section finsupp
+section direct_sum
+open direct_sum
+variable [decidable_eq η]
+variables [∀i, add_comm_group (φ i)] [∀i, vector_space α (φ i)]
+
+variables [∀i, decidable_eq (φ i)] [∀i j, decidable_eq (φ i →ₗ[α] φ j)] [decidable_eq (Π i, φ i)] --TODO:remove
+
+instance hint1 : vector_space α (direct_sum η φ) := vector_space.mk _ _ --TODO:remove
+
+lemma dim_direct_sum :
+  dim α (direct_sum η φ) = cardinal.sum (λ i:η, dim α (φ i)) :=
+begin
+  letI b := λ i, classical.some (exists_is_basis α (φ i)),
+  letI hb := λ i, classical.some_spec (exists_is_basis α (φ i)),
+  have h : is_basis α (λ _: Σ j, b j, _), from is_basis_lof _ hb,
+  rw [←cardinal.lift_id (dim α _), ←h.mk_eq_dim, ←cardinal.sum_mk, cardinal.lift_id],
+  congr,
+  funext,
+  rw [←cardinal.lift_inj, (hb i).mk_eq_dim]
+end
+
+instance hint2 : vector_space α (direct_sum ι (λ _, β)) := vector_space.mk _ _ --TODO:remove
+
+variables [decidable_eq (β →ₗ[α] β)] [decidable_eq (ι → β)] --TODO:remove
 
 lemma dim_finsupp [decidable_eq β] :
   dim α (ι →₀ β) = cardinal.lift.{w v} (cardinal.mk ι) * cardinal.lift.{v w} (dim α β) :=
-let ⟨b, hb⟩ := exists_is_basis α β in
-have h : is_basis α (λ i : ι × b, _), from finsupp.is_basis_finsupp ι hb,
-calc dim α (ι →₀ β)
-      = cardinal.lift.{(max v w) (max v w)} (dim α (ι →₀ β)) : eq.symm $ cardinal.lift_id _
-  ... = cardinal.lift (cardinal.mk ι) * cardinal.lift.{v w} (cardinal.lift.{v v} (cardinal.mk b)) :
-    by rw[←h.mk_eq_dim, cardinal.mk_prod, cardinal.lift_mul, cardinal.lift_lift, cardinal.lift_umax,
-      cardinal.lift_id, cardinal.lift_id]
-  ... = cardinal.lift.{w v} (cardinal.mk ι) * cardinal.lift.{v w} (dim α β) :
-    by rw [hb.mk_eq_dim, cardinal.lift_id]
+begin
+  rw [←linear_equiv.dim_eq (@direct_sum_linear_equiv_finsupp α _ ι _ β _ _ _)],
+  rw [←cardinal.sum_const_eq_lift_mul],
+  exact dim_direct_sum
+end
 
-end finsupp
+end direct_sum
 
 lemma exists_mem_ne_zero_of_ne_bot {s : submodule α β} (h : s ≠ ⊥) : ∃ b : β, b ∈ s ∧ b ≠ 0 :=
 begin

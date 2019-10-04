@@ -215,7 +215,7 @@ ne_empty_of_mem (mem_insert_self a s)
 theorem insert_subset {a : α} {s t : finset α} : insert a s ⊆ t ↔ a ∈ t ∧ s ⊆ t :=
 by simp only [subset_iff, mem_insert, forall_eq, or_imp_distrib, forall_and_distrib]
 
-theorem subset_insert [h : decidable_eq α] (a : α) (s : finset α) : s ⊆ insert a s :=
+theorem subset_insert (a : α) (s : finset α) : s ⊆ insert a s :=
 λ b, mem_insert_of_mem
 
 theorem insert_subset_insert (a : α) {s t : finset α} (h : s ⊆ t) : insert a s ⊆ insert a t :=
@@ -606,6 +606,9 @@ subset_empty.1 $ filter_subset _
 lemma filter_subset_filter {s t : finset α} (h : s ⊆ t) : s.filter p ⊆ t.filter p :=
 assume a ha, mem_filter.2 ⟨h (mem_filter.1 ha).1, (mem_filter.1 ha).2⟩
 
+@[simp] lemma coe_filter (s : finset α) : ↑(s.filter p) = ({x ∈ ↑s | p x} : set α) :=
+set.ext $ λ _, mem_filter
+
 variable [decidable_eq α]
 theorem filter_union (s₁ s₂ : finset α) :
   (s₁ ∪ s₂).filter p = s₁.filter p ∪ s₂.filter p :=
@@ -646,9 +649,6 @@ by simp only [filter_not, union_sdiff_of_subset (filter_subset s)]
 
 theorem filter_inter_filter_neg_eq (s : finset α) : s.filter p ∩ s.filter (λa, ¬ p a) = ∅ :=
 by simp only [filter_not, inter_sdiff_self]
-
-@[simp] lemma coe_filter (s : finset α) : ↑(s.filter p) = ({x ∈ ↑s | p x} : set α) :=
-set.ext $ λ _, mem_filter
 
 lemma subset_union_elim {s : finset α} {t₁ t₂ : set α} [decidable_pred (∈ t₁)] (h : ↑s ⊆ t₁ ∪ t₂) :
   ∃s₁ s₂ : finset α, s₁ ∪ s₂ = s ∧ ↑s₁ ⊆ t₁ ∧ ↑s₂ ⊆ t₂ \ t₁ :=
@@ -847,7 +847,7 @@ def map (f : α ↪ β) (s : finset α) : finset β :=
 
 @[simp] theorem map_val (f : α ↪ β) (s : finset α) : (map f s).1 = s.1.map f := rfl
 
-@[simp] theorem map_empty (f : α ↪ β) (s : finset α) : (∅ : finset α).map f = ∅ := rfl
+@[simp] theorem map_empty (f : α ↪ β) : (∅ : finset α).map f = ∅ := rfl
 
 variables {f : α ↪ β} {s : finset α}
 
@@ -968,7 +968,7 @@ ext.2 $ by simp only [mem_image, exists_prop, mem_inter]; exact λ b,
 ⟨λ ⟨a, ⟨m₁, m₂⟩, e⟩, ⟨⟨a, m₁, e⟩, ⟨a, m₂, e⟩⟩,
  λ ⟨⟨a, m₁, e₁⟩, ⟨a', m₂, e₂⟩⟩, ⟨a, ⟨m₁, hf _ _ (e₂.trans e₁.symm) ▸ m₂⟩, e₁⟩⟩.
 
-@[simp] theorem image_singleton [decidable_eq α] (f : α → β) (a : α) : (singleton a).image f = singleton (f a) :=
+@[simp] theorem image_singleton (f : α → β) (a : α) : (singleton a).image f = singleton (f a) :=
 ext.2 $ λ x, by simpa only [mem_image, exists_prop, mem_singleton, exists_eq_left] using eq_comm
 
 @[simp] theorem image_insert [decidable_eq α] (f : α → β) (a : α) (s : finset α) :
@@ -993,7 +993,7 @@ ext.2 $ λ ⟨x, hx⟩, ⟨or.cases_on (mem_insert.1 hx)
 theorem map_eq_image (f : α ↪ β) (s : finset α) : s.map f = s.image f :=
 eq_of_veq $ (multiset.erase_dup_eq_self.2 (s.map f).2).symm
 
-lemma image_const [decidable_eq β] {s : finset α} (h : s ≠ ∅) (b : β) : s.image (λa, b) = singleton b :=
+lemma image_const {s : finset α} (h : s ≠ ∅) (b : β) : s.image (λa, b) = singleton b :=
 ext.2 $ assume b', by simp only [mem_image, exists_prop, exists_and_distrib_right,
   exists_mem_of_ne_empty h, true_and, mem_singleton, eq_comm]
 
@@ -1005,7 +1005,7 @@ protected def subtype {α} (p : α → Prop) [decidable_pred p] (s : finset α) 
   ∀{a : subtype p}, a ∈ s.subtype p ↔ a.val ∈ s
 | ⟨a, ha⟩ := by simp [finset.subtype, ha]
 
-lemma subset_image_iff [decidable_eq α] [decidable_eq β] {f : α → β}
+lemma subset_image_iff [decidable_eq α] {f : α → β}
   {s : finset β} {t : set α} : ↑s ⊆ f '' t ↔ ∃s' : finset α, ↑s' ⊆ t ∧ s'.image f = s :=
 begin
   split, swap,
@@ -1106,10 +1106,10 @@ multiset.card_le_of_le ∘ val_le_iff.mpr
 theorem eq_of_subset_of_card_le {s t : finset α} (h : s ⊆ t) (h₂ : card t ≤ card s) : s = t :=
 eq_of_veq $ multiset.eq_of_le_of_card_le (val_le_iff.mpr h) h₂
 
-lemma card_lt_card [decidable_eq α] {s t : finset α} (h : s ⊂ t) : s.card < t.card :=
+lemma card_lt_card {s t : finset α} (h : s ⊂ t) : s.card < t.card :=
 card_lt_of_lt (val_lt_iff.2 h)
 
-lemma card_le_card_of_inj_on [decidable_eq α] [decidable_eq β] {s : finset α} {t : finset β}
+lemma card_le_card_of_inj_on [decidable_eq β] {s : finset α} {t : finset β}
   (f : α → β) (hf : ∀a∈s, f a ∈ t) (f_inj : ∀a₁∈s, ∀a₂∈s, f a₁ = f a₂ → a₁ = a₂) :
   card s ≤ card t :=
 calc card s = card (s.image f) : by rw [card_image_of_inj_on f_inj]
@@ -1293,7 +1293,7 @@ def pi (s : finset α) (t : Πa, finset (δ a)) : finset (Πa∈s, δ a) :=
   f ∈ s.pi t ↔ (∀a (h : a ∈ s), f a h ∈ t a) :=
 mem_pi _ _ _
 
-def pi.empty (β : α → Sort*) [decidable_eq α] (a : α) (h : a ∈ (∅ : finset α)) : β a :=
+def pi.empty (β : α → Sort*) (a : α) (h : a ∈ (∅ : finset α)) : β a :=
 multiset.pi.empty β a h
 
 def pi.cons (s : finset α) (a : α) (b : δ a) (f : Πa, a ∈ s → δ a) (a' : α) (h : a' ∈ insert a s) : δ a' :=
@@ -1404,7 +1404,7 @@ by unfold fold; rw [insert_val, ndinsert_of_not_mem h, map_cons, fold_cons_left]
 
 @[simp] theorem fold_singleton : (singleton a).fold op b f = f a * b := rfl
 
-@[simp] theorem fold_map [decidable_eq α] {g : γ ↪ α} {s : finset γ} :
+@[simp] theorem fold_map {g : γ ↪ α} {s : finset γ} :
   (s.map g).fold op b f = s.fold op b (f ∘ g) :=
 by simp only [fold, map, multiset.map_map]
 

@@ -413,9 +413,10 @@ end equality
 section quantifiers
 variables {α : Sort*} {β : Sort*} {p q : α → Prop} {b : Prop}
 
-def Exists.imp := @exists_imp_exists
+lemma Exists.imp (h : ∀ a, (p a → q a)) (p : ∃ a, p a) : ∃ a, q a := exists_imp_exists h p
 
-lemma exists_imp_exists' {p : α → Prop} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a)) (hp : ∃ a, p a) : ∃ b, q b :=
+lemma exists_imp_exists' {p : α → Prop} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a))
+  (hp : ∃ a, p a) : ∃ b, q b :=
 exists.elim hp (λ a hp', ⟨_, hpq _ hp'⟩)
 
 theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
@@ -590,11 +591,24 @@ begin
   simp only [imp_iff_not_or, or.comm]
 end
 
-/- use shortened names to avoid conflict when classical namespace is open -/
-noncomputable theorem dec (p : Prop) : decidable p := by apply_instance
-noncomputable theorem dec_pred (p : α → Prop) : decidable_pred p := by apply_instance
-noncomputable theorem dec_rel (p : α → α → Prop) : decidable_rel p := by apply_instance
-noncomputable theorem dec_eq (α : Sort*) : decidable_eq α := by apply_instance
+/- use shortened names to avoid conflict when classical namespace is open. -/
+noncomputable lemma dec (p : Prop) : decidable p := -- see Note [classical lemma]
+by apply_instance
+noncomputable lemma dec_pred (p : α → Prop) : decidable_pred p := -- see Note [classical lemma]
+by apply_instance
+noncomputable lemma dec_rel (p : α → α → Prop) : decidable_rel p := -- see Note [classical lemma]
+by apply_instance
+noncomputable lemma dec_eq (α : Sort*) : decidable_eq α := -- see Note [classical lemma]
+by apply_instance
+
+/- Note [classical lemma]:
+  We make decidability results that depends on `classical.choice` noncomputable lemmas.
+  * We have to mark them as noncomputable, because otherwise Lean will try to generate bytecode
+    for them, and fail because it depends on `classical.choice`.
+  * We make them lemmas, and not definitions, because otherwise later definitions will raise
+    "failed to generate bytecode" errors when writing something like
+    `letI := classical.dec_eq _`.
+  Cf. https://leanprover-community.github.io/archive/113488general/08268noncomputabletheorem.html -/
 
 @[elab_as_eliminator]
 noncomputable def {u} exists_cases {C : Sort u} (H0 : C) (H : ∀ a, p a → C) : C :=

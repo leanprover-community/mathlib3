@@ -4,6 +4,7 @@ def foo1 (n m : ℕ) : ℕ := n + 1
 def foo2 (n m : ℕ) : m = m := by refl
 lemma foo3 (n m : ℕ) : ℕ := n - m
 lemma foo.foo (n m : ℕ) : n ≥ n := le_refl n
+instance bar.bar : has_add ℕ := by apply_instance -- we don't check the name of instances
 -- section
 -- local attribute [instance, priority 1001] classical.prop_decidable
 -- lemma foo4 : (if 3 = 3 then 1 else 2) = 1 := if_pos (by refl)

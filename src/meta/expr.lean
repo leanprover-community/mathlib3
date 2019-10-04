@@ -112,6 +112,12 @@ meta def length : name → ℕ
 | (mk_numeral n p)        := p.length
 | anonymous               := "[anonymous]".length
 
+/-- checks whether `nm` has a prefix (including itself) such that P is true -/
+def has_prefix (P : name → bool) : name → bool
+| anonymous := ff
+| (mk_string s nm)  := P (mk_string s nm) ∨ has_prefix nm
+| (mk_numeral s nm) := P (mk_numeral s nm) ∨ has_prefix nm
+
 end name
 
 namespace level
@@ -293,6 +299,13 @@ meta def get_projections (env : environment) (n : name) : option (list name) := 
     (some di.type) | none,
   return $ tgt.binding_names.map (λ x, n ++ x.deinternalize_field)
 
+/-- Tests whether `nm` is a generalized inductive type that is not a normal inductive type.
+  Note that `is_ginductive` returns `tt` even on regular inductive types.
+  This returns `tt` if `nm` is (part of a) mutually defined inductive type or a nested inductive
+  type. -/
+meta def is_ginductive' (e : environment) (nm : name) : bool :=
+e.is_ginductive nm ∧ ¬ e.is_inductive nm
+
 /-- For all declarations `d` where `f d = some x` this adds `x` to the returned list.  -/
 meta def decl_filter_map {α : Type} (e : environment) (f : declaration → option α) : list α :=
   e.fold [] $ λ d l, match f d with
@@ -416,7 +429,10 @@ meta def is_axiom : declaration → bool
 | (ax _ _ _) := tt
 | _          := ff
 
-/-- Checks whether a declaration is automatically generated in the environment -/
+/-- Checks whether a declaration is automatically generated in the environment.
+  There is no cheap way to check whether a declaration in the namespace of a generalized
+  inductive type is automatically generated, so for now we say that all of them are automatically
+  generated. -/
 meta def is_auto_generated (e : environment) (d : declaration) : bool :=
 e.is_constructor d.to_name ∨
 (e.is_projection d.to_name).is_some ∨
@@ -424,7 +440,8 @@ e.is_constructor d.to_name ∨
   d.to_name.last ∈ ["inj", "inj_eq", "sizeof_spec", "inj_arrow"]) ∨
 (e.is_inductive d.to_name.get_prefix ∧
   d.to_name.last ∈ ["below", "binduction_on", "brec_on", "cases_on", "dcases_on", "drec_on", "drec",
-  "rec", "rec_on", "no_confusion", "no_confusion_type", "sizeof", "ibelow", "has_sizeof_inst"])
+  "rec", "rec_on", "no_confusion", "no_confusion_type", "sizeof", "ibelow", "has_sizeof_inst"]) ∨
+d.to_name.has_prefix (λ nm, e.is_ginductive' nm)
 
 /-- Returns the list of universe levels of a declaration. -/
 meta def univ_levels (d : declaration) : list level :=

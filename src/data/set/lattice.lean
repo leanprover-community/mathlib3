@@ -113,7 +113,7 @@ theorem Union_subset_iff {α : Sort u} {s : α → set β} {t : set β} : (⋃ i
 ⟨assume h i, subset.trans (le_supr s _) h, Union_subset⟩
 
 theorem mem_Inter_of_mem {α : Sort u} {x : β} {s : α → set β} : (∀ i, x ∈ s i) → (x ∈ ⋂ i, s i) :=
-assume h t ⟨a, (eq : s a = t)⟩, eq ▸ h a
+mem_Inter.2
 
 theorem subset_Inter {t : set β} {s : α → set β} (h : ∀ i, t ⊆ s i) : t ⊆ ⋂ i, s i :=
 -- TODO: should be simpler when sets' order is based on lattices

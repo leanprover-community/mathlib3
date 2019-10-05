@@ -42,6 +42,6 @@ def isomorphic_class_functor : Cat.{v u} ⥤ Type u :=
 
 lemma groupoid.is_isomorphic_iff_nonempty_hom {C : Type u} [groupoid.{v} C] {X Y : C} :
   is_isomorphic X Y ↔ nonempty (X ⟶ Y) :=
-(groupoid.iso_equiv_hom C).nonempty_iff_nonempty
+(groupoid.iso_equiv_hom X Y).nonempty_iff_nonempty
 
 end category_theory

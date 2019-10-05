@@ -33,7 +33,7 @@ include 𝒞
 
 instance is_iso.of_groupoid (f : X ⟶ Y) : is_iso f := { inv := groupoid.inv f }
 
-variable (C)
+variables (X Y)
 
 /-- In a groupoid, isomorphisms are equivalent to homomorphisms. -/
 def groupoid.iso_equiv_hom : (X ≅ Y) ≃ (X ⟶ Y) :=

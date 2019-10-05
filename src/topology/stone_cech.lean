@@ -132,12 +132,14 @@ section extension
   dense embedding and `γ` is Hausdorff. For existence, we will invoke
   `dense_embedding.continuous_extend`. -/
 
-variables {γ : Type*} [topological_space γ] [t2_space γ]
+variables {γ : Type*} [topological_space γ]
 
 /-- The extension of a function `α → γ` to a function `ultrafilter α → γ`.
   When `γ` is a compact Hausdorff space it will be continuous. -/
 def ultrafilter.extend (f : α → γ) : ultrafilter α → γ :=
 by letI : topological_space α := ⊥; exact dense_inducing_pure.extend f
+
+variables [t2_space γ]
 
 lemma ultrafilter_extend_extends (f : α → γ) : ultrafilter.extend f ∘ pure = f :=
 begin

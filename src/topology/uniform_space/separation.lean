@@ -102,7 +102,7 @@ def separation_setoid (α : Type u) [uniform_space α] : setoid α :=
 
 local attribute [instance] separation_setoid
 
-instance separation_quotient.uniform_space {α : Type u} [u : uniform_space α] :
+instance separation_setoid.uniform_space {α : Type u} [u : uniform_space α] :
   uniform_space (quotient (separation_setoid α)) :=
 { to_topological_space := u.to_topological_space.coinduced (λx, ⟦x⟧),
   uniformity := map (λp:(α×α), (⟦p.1⟧, ⟦p.2⟧)) u.uniformity,

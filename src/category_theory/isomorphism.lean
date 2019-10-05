@@ -149,6 +149,22 @@ by { erw [inv_eq_inv α.symm β, eq_comm], refl }
 
 end iso
 
+section setoid
+
+variables (X Y)
+
+/-- An object `X` is isomorphic to an object `Y`, if `X ≅ Y` is not empty. -/
+def is_isomorphic : Prop := nonempty (X ≅ Y)
+
+variable (C)
+
+/-- `is_isomorphic` defines a setoid. -/
+def is_isomorphic_setoid : setoid C :=
+{ r := is_isomorphic,
+  iseqv := ⟨λ X, ⟨iso.refl X⟩, λ X Y ⟨α⟩, ⟨α.symm⟩, λ X Y Z ⟨α⟩ ⟨β⟩, ⟨α.trans β⟩⟩ }
+
+end setoid
+
 /-- `is_iso` typeclass expressing that a morphism is invertible.
     This contains the data of the inverse, but is a subsingleton type. -/
 class is_iso (f : X ⟶ Y) :=

@@ -6,11 +6,13 @@ Authors: Reid Barton
 
 import category_theory.category
 import category_theory.isomorphism
+import data.equiv.basic
 
 namespace category_theory
 
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
+/-- A `groupoid` is a category such that all homomorphismss are isomorphisms. -/
 class groupoid (obj : Type u) extends category.{v} obj : Type (max u (v+1)) :=
 (inv       : Π {X Y : obj}, (X ⟶ Y) → (Y ⟶ X))
 (inv_comp' : ∀ {X Y : obj} (f : X ⟶ Y), comp (inv f) f = id Y . obviously)
@@ -24,7 +26,25 @@ attribute [simp] groupoid.inv_comp groupoid.comp_inv
 abbreviation large_groupoid (C : Type (u+1)) : Type (u+1) := groupoid.{u} C
 abbreviation small_groupoid (C : Type u) : Type (u+1) := groupoid.{u} C
 
-instance of_groupoid {C : Type u} [groupoid.{v} C] {X Y : C} (f : X ⟶ Y) : is_iso f :=
-{ inv := groupoid.inv f }
+section
+
+variables {C : Type u} [𝒞 : groupoid.{v} C] {X Y : C}
+include 𝒞
+
+instance is_iso.of_groupoid (f : X ⟶ Y) : is_iso f := { inv := groupoid.inv f }
+
+variable (C)
+
+/-- In a groupoid, isomorphisms are equivalent to homomorphisms. -/
+def groupoid.iso_equiv_hom : (X ≅ Y) ≃ (X ⟶ Y) :=
+{ to_fun := iso.hom,
+  inv_fun := λ f, as_iso f,
+  left_inv := λ i, iso.ext rfl,
+  right_inv := λ f, rfl }
+
+lemma groupoid.is_isomorphic_iff_nonempty_hom : is_isomorphic X Y ↔ nonempty (X ⟶ Y) :=
+(groupoid.iso_equiv_hom C).nonempty_iff_nonempty
+
+end
 
 end category_theory

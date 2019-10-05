@@ -154,7 +154,7 @@ end
 
 /-- A product set is open in a product space if and only if each factor is open, or one of them is
 empty -/
-lemma is_open_prod_iff' [topological_space α] [topological_space β] {s : set α} {t : set β} :
+lemma is_open_prod_iff' [topological_space β] {s : set α} {t : set β} :
   is_open (set.prod s t) ↔ (is_open s ∧ is_open t) ∨ (s = ∅) ∨ (t = ∅) :=
 begin
   by_cases h : set.prod s t = ∅,

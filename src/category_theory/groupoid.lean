@@ -42,9 +42,6 @@ def groupoid.iso_equiv_hom : (X ≅ Y) ≃ (X ⟶ Y) :=
   left_inv := λ i, iso.ext rfl,
   right_inv := λ f, rfl }
 
-lemma groupoid.is_isomorphic_iff_nonempty_hom : is_isomorphic X Y ↔ nonempty (X ⟶ Y) :=
-(groupoid.iso_equiv_hom C).nonempty_iff_nonempty
-
 end
 
 end category_theory

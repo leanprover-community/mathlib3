@@ -64,11 +64,12 @@ private meta def trace_match (pat : pexpr) (ty : expr) (n : name) : tactic unit 
 meta def find_cmd (_ : parse $ tk "#find") : lean.parser unit :=
 do pat ← lean.parser.pexpr 0,
    env ← get_env,
-   env.fold (pure ()) $ λ d acc, acc >> (match d with
+   env.mfold () $ λ d _,
+     match d with
      | declaration.thm n _ ty _ := trace_match pat ty n
      | declaration.defn n _ ty _ _ _ := trace_match pat ty n
      | _ := skip
-     end)
+     end
 
 -- #find (_ : nat) + _ = _ + _
 -- #find _ + _ = _ + _

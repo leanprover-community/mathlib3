@@ -382,49 +382,6 @@ instance Pi.topological_space {β : α → Type v} [t₂ : Πa, topological_spac
   topological_space (Πa, β a) :=
 ⨅a, induced (λf, f a) (t₂ a)
 
-instance [topological_space α] : topological_space (list α) :=
-topological_space.mk_of_nhds (traverse nhds)
-
-lemma nhds_list [topological_space α] (as : list α) : nhds as = traverse nhds as :=
-begin
-  refine nhds_mk_of_nhds _ _ _ _,
-  { assume l, induction l,
-    case list.nil { exact le_refl _ },
-    case list.cons : a l ih {
-      suffices : list.cons <$> pure a <*> pure l ≤ list.cons <$> nhds a <*> traverse nhds l,
-      { simpa only [-filter.pure_def] with functor_norm using this },
-      exact filter.seq_mono (filter.map_mono $ pure_le_nhds a) ih } },
-  { assume l s hs,
-    rcases (mem_traverse_sets_iff _ _).1 hs with ⟨u, hu, hus⟩, clear as hs,
-    have : ∃v:list (set α), l.forall₂ (λa s, is_open s ∧ a ∈ s) v ∧ sequence v ⊆ s,
-    { induction hu generalizing s,
-      case list.forall₂.nil : hs this { existsi [], simpa only [list.forall₂_nil_left_iff, exists_eq_left] },
-      case list.forall₂.cons : a s as ss ht h ih t hts {
-        rcases mem_nhds_sets_iff.1 ht with ⟨u, hut, hu⟩,
-        rcases ih (subset.refl _) with ⟨v, hv, hvss⟩,
-        exact ⟨u::v, list.forall₂.cons hu hv,
-          subset.trans (set.seq_mono (set.image_subset _ hut) hvss) hts⟩ } },
-    rcases this with ⟨v, hv, hvs⟩,
-    refine ⟨sequence v, mem_traverse_sets _ _ _, hvs, _⟩,
-    { exact hv.imp (assume a s ⟨hs, ha⟩, mem_nhds_sets hs ha) },
-    { assume u hu,
-      have hu := (list.mem_traverse _ _).1 hu,
-      have : list.forall₂ (λa s, is_open s ∧ a ∈ s) u v,
-      { refine list.forall₂.flip _,
-        replace hv := hv.flip,
-        simp only [list.forall₂_and_left, flip] at ⊢ hv,
-        exact ⟨hv.1, hu.flip⟩ },
-      refine mem_sets_of_superset _ hvs,
-      exact mem_traverse_sets _ _ (this.imp $ assume a s ⟨hs, ha⟩, mem_nhds_sets hs ha) } }
-end
-
-lemma nhds_nil [topological_space α] : nhds ([] : list α) = pure [] :=
-by rw [nhds_list, list.traverse_nil _]; apply_instance
-
-lemma nhds_cons [topological_space α] (a : α) (l : list α) :
-  nhds (a :: l) = list.cons <$> nhds a <*> nhds l  :=
-by rw [nhds_list, list.traverse_cons _, ← nhds_list]; apply_instance
-
 lemma quotient_dense_of_dense [setoid α] [topological_space α] {s : set α} (H : ∀ x, x ∈ closure s) :
   closure (quotient.mk '' s) = univ :=
 eq_univ_of_forall $ λ x, begin

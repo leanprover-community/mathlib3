@@ -5,28 +5,13 @@ import field_theory.minimal_polynomial
 universe variables u v w
 
 namespace polynomial
-
 variables {α : Type*} {β : Type*} {γ : Type*}
 
-section
-variables [decidable_eq α] [comm_semiring α] [comm_semiring β] [comm_semiring γ]
-variables (f : α → β) (g : β → γ) [is_semiring_hom f] [is_semiring_hom g] (p : polynomial α) (x : β)
-
-lemma hom_eval₂ : g (p.eval₂ f x) = p.eval₂ (g ∘ f) (g x) :=
-begin
-  apply polynomial.induction_on p; clear p,
-  { intros a, rw [eval₂_C, eval₂_C] },
-  { intros p q hp hq, simp only [hp, hq, eval₂_add, is_semiring_hom.map_add g] },
-  { intros n a ih,
-    simp only [pow_succ', is_semiring_hom.map_mul g, (mul_assoc _ _ _).symm,
-      eval₂_C, eval₂_mul, eval₂_X] at ih ⊢,
-    rw ih }
-end
-
-end
+noncomputable theory
+open_locale classical
 
 section coeffs
-variables [decidable_eq α] [comm_semiring α] (p : polynomial α)
+variables [comm_semiring α] (p : polynomial α)
 
 def nonzero_coeffs : finset α := p.support.image p.coeff
 
@@ -58,9 +43,9 @@ variables {f : α → β} [is_semiring_hom f]
 
 lemma map_injective (hf : function.injective f) :
   function.injective (map f : polynomial α → polynomial β) :=
-λ p q h, ext.mpr $ λ m, hf $
+λ p q h, ext $ λ m, hf $
 begin
-  rw ext at h,
+  rw ext_iff at h,
   specialize h m,
   rw [coeff_map f, coeff_map f] at h,
   exact h
@@ -91,7 +76,7 @@ def lift : polynomial s :=
 lemma map_coe_lift : map coe (p.lift s hp) = p :=
 begin
   conv_rhs {rw p.as_sum},
-  rw ext, intro n,
+  rw ext_iff, intro n,
   rw [coeff_map, lift, coeff_sum', coeff_sum', ← finset.sum_hom coe],
   all_goals { try {apply_instance} },
   apply finset.sum_congr rfl,
@@ -156,7 +141,7 @@ variables (L_alg : ∀ x:L, is_integral K x)
 include L_alg
 
 instance (E : subalgebra K L) : discrete_field (subtype E.carrier) :=
-subfield_of_inv_mem _ $ λ x (hx : x ∈ E), _
+subfield_of_inv_mem _ $ λ x (hx : x ∈ E), sorry
 
 end subalgebra
 
@@ -214,7 +199,7 @@ begin
       rw [finset.mem_coe, finset.mem_image, coeff_map],
       exact ⟨i, hi, rfl⟩ },
     { rw [finset.mem_range, not_lt] at hi,
-      rw [coeff_map, coeff_eq_zero_nat_degree_lt hi, alg_hom.map_zero],
+      rw [coeff_map, coeff_eq_zero_of_nat_degree_lt hi, alg_hom.map_zero],
       exact subalgebra.zero_mem _ } },
   let q : polynomial (adjoin R S) := polynomial.lift _ (p.map $ to_comap R A B) coeffs_mem,
   have hq : (q.map (algebra_map (comap R A B))) = (p.map $ to_comap R A B) :=
@@ -230,7 +215,7 @@ begin
     replace hq := congr_arg (eval (comap.to_comap R A B x)) hq,
     convert hq using 1; symmetry, swap,
     exact eval_map _ _,
-    refine @eval_map _ _ _ _ _ _ _ _ (by exact is_ring_hom.is_semiring_hom _) _ },
+    refine @eval_map _ _ _ _ _ _ (by exact is_ring_hom.is_semiring_hom _) _ },
 end
 
 lemma is_integral_trans (x : B) (hx : is_integral A x) :

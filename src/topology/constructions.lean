@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 Constructions of new topological spaces from old ones: product, sum, subtype, quotient, list, vector
 -/
 import topology.maps topology.subset_properties topology.separation topology.bases
+import topology.dense_embedding
 noncomputable theory
 
 open set filter lattice

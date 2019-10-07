@@ -19,7 +19,9 @@ This file also defines locally finite families of subsets of `α`.
 For topological spaces `α` and `β`, a function `f : α → β` and a point `a : α`,
 `continuous_at f a` means `f` is continuous at `a`, and global continuity is
 `continuous f`. There are also relative versions `continuous_within_at` and `continuous_on`
-and continuity `pcontinuous` for partially defined functions.
+and continuity `pcontinuous` for partially defined functions. Some basic properties
+of these various notions of continuity are proved in `topology.order`, after the
+ordering on topologies has been established.
 
 ## Implementation notes
 

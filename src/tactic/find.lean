@@ -55,10 +55,11 @@ do (p_pis, p) ← p.get_uninst_pis,
    match_hyps p_pis [] pis
 
 private meta def trace_match (pat : pexpr) (ty : expr) (n : name) : tactic unit :=
-(do guard ¬ n.is_internal,
-   match_sig pat ty,
-   ty ← pp ty,
-   trace format!"{n}: {ty}") <|> skip
+try $ do
+  guard ¬ n.is_internal,
+  match_sig pat ty,
+  ty ← pp ty,
+  trace format!"{n}: {ty}"
 
 @[user_command]
 meta def find_cmd (_ : parse $ tk "#find") : lean.parser unit :=

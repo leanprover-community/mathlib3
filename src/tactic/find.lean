@@ -54,19 +54,21 @@ do (p_pis, p) ← p.get_uninst_pis,
    match_exact p e,
    match_hyps p_pis [] pis
 
+private meta def trace_match (pat : pexpr) (ty : expr) (n : name) : tactic unit :=
+(do guard ¬ n.is_internal,
+   match_sig pat ty,
+   ty ← pp ty,
+   trace format!"{n}: {ty}") <|> skip
+
 @[user_command]
 meta def find_cmd (_ : parse $ tk "#find") : lean.parser unit :=
 do pat ← lean.parser.pexpr 0,
    env ← get_env,
-   env.fold (pure ()) $ λ d acc, acc >> (do
-     declaration.thm n _ ty _ ← pure d,
-     match n with
-     | name.mk_string _ (name.mk_string "equations" _) := skip
-     | _ := do
-       match_sig pat ty,
-       ty ← pp ty,
-       trace format!"{n}: {ty}"
-     end) <|> skip
+   env.fold (pure ()) $ λ d acc, acc >> (match d with
+     | declaration.thm n _ ty _ := trace_match pat ty n
+     | declaration.defn n _ ty _ _ _ := trace_match pat ty n
+     | _ := skip
+     end)
 
 -- #find (_ : nat) + _ = _ + _
 -- #find _ + _ = _ + _

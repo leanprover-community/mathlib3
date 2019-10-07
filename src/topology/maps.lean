@@ -45,13 +45,7 @@ def dense_range.inhabited (df : dense_range f) (b : β) : inhabited α :=
  end⟩
 
 lemma dense_range.nonempty (hf : dense_range f) : nonempty α ↔ nonempty β :=
-begin
-  split ; intro h ; cases classical.inhabited_of_nonempty h with x,
-  { exact ⟨f x⟩ },
-  { rcases exists_mem_of_ne_empty (mem_closure_iff.1 (hf x) _ is_open_univ trivial)
-      with ⟨_, ⟨_, a, _⟩⟩,
-    exact ⟨a⟩ },
-end
+⟨nonempty.map f, λ ⟨b⟩, @nonempty_of_inhabited _ (hf.inhabited b)⟩
 end dense_range
 
 section inducing
@@ -175,7 +169,7 @@ end embedding
 
 structure dense_inducing [topological_space α] [topological_space β] (i : α → β)
   extends inducing i : Prop :=
-(dense   : ∀x, x ∈ closure (range i))
+(dense : dense_range i)
 
 namespace dense_inducing
 variables [topological_space α] [topological_space β]
@@ -183,17 +177,13 @@ variables {i : α → β} (di : dense_inducing i)
 
 lemma nhds_eq_comap (di : dense_inducing i) :
   ∀ a : α, nhds a = comap i (nhds $ i a) :=
-di.induced.symm ▸ nhds_induced i
-
-protected lemma continuous_at (di : dense_inducing i) {a : α} : continuous_at i a :=
-by rw [continuous_at, di.nhds_eq_comap a]; exact tendsto_comap
+di.to_inducing.nhds_eq_comap
 
 protected lemma continuous (di : dense_inducing i) : continuous i :=
-continuous_iff_continuous_at.mpr $ λ a, di.continuous_at
+di.to_inducing.continuous
 
 lemma closure_range : closure (range i) = univ :=
-let h := di.dense in
-set.ext $ assume x, ⟨assume _, trivial, assume _, @h x⟩
+(dense_range_iff_closure_eq _).mp di.dense
 
 lemma self_sub_closure_image_preimage_of_open {s : set β} (di : dense_inducing i) :
   is_open s → s ⊆ closure (i '' (i ⁻¹' s)) :=
@@ -241,9 +231,8 @@ end
 
 protected lemma nhds_inf_neq_bot (di : dense_inducing i) {b : β} : nhds b ⊓ principal (range i) ≠ ⊥ :=
 begin
-  have h := di.dense,
-  simp [closure_eq_nhds] at h,
-  exact h _
+  convert di.dense b,
+  simp [closure_eq_nhds]
 end
 
 lemma comap_nhds_neq_bot (di : dense_inducing i) {b : β} : comap i (nhds b) ≠ ⊥ :=

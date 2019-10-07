@@ -8,10 +8,12 @@ import algebra.direct_limit
 import set_theory.schroeder_bernstein
 import field_theory.algebraic
 
+noncomputable theory
+open_locale classical
+
 universes u v w
 open polynomial zorn set function
 variables {K : Type u} [discrete_field K]
-noncomputable theory
 
 /- Turn down the instance priority for subtype.decidable_eq and use classical.dec_eq everywhere,
   to avoid diamonds -/
@@ -28,18 +30,29 @@ instance equiv.is_ring_hom.symm {α β : Type*} [ring β] (e : α ≃ β) :
   @is_ring_hom α β (equiv.ring e) _ e :=
 by split; simp [equiv.mul_def, equiv.add_def, equiv.one_def]
 
-def equiv.ring_equiv {α β : Type*} [ring β] (e : α ≃ β) :
-  @ring_equiv α β (equiv.ring e) _ :=
-{ hom := by apply_instance, ..e }
+def equiv.add_equiv {α β : Type*} [has_add β] (e : α ≃ β) :
+  @add_equiv α β e.has_add _ :=
+{ map_add' := λ x y, e.apply_symm_apply _,
+  ..e }
 
-lemma exists_root_of_equiv {α β : Type*} [comm_ring α] [comm_ring β] [decidable_eq α]
-  [decidable_eq β] (e : α ≃r β) {f : polynomial α} {x : β} (hx : f.eval₂ e.to_equiv x = 0) :
-  f.eval (e.symm.to_equiv x) = 0 :=
+def equiv.mul_equiv {α β : Type*} [has_mul β] (e : α ≃ β) :
+  @mul_equiv α β e.has_mul _ :=
+{ map_mul' := λ x y, e.apply_symm_apply _,
+  ..e }
+
+def equiv.ring_equiv {α β : Type*} [has_mul β] [has_add β] (e : α ≃ β) :
+  @ring_equiv α β e.has_mul e.has_add _ _ :=
+{ map_add' := λ x y, e.apply_symm_apply _,
+  map_mul' := λ x y, e.apply_symm_apply _,
+  ..e }
+
+lemma exists_root_of_equiv {α β : Type*} [comm_ring α] [comm_ring β] (e : α ≃+* β)
+  {f : polynomial α} {x : β} (hx : f.eval₂ e x = 0) :
+  f.eval (e.symm x) = 0 :=
 begin
-  letI : is_ring_hom e.to_equiv := e.hom,
-  rw [← e.to_equiv.injective.eq_iff,
-    ← eval₂_hom e.to_equiv, ring_equiv.to_equiv_symm,
-    equiv.apply_symm_apply, is_ring_hom.map_zero e.to_equiv, hx],
+  have e_inj : function.injective e := e.to_equiv.injective,
+  apply e_inj,
+  rw [← eval₂_hom e, e.apply_symm_apply, is_ring_hom.map_zero e, hx],
 end
 
 namespace alg_hom
@@ -137,25 +150,28 @@ end
 
 open submodule
 
-lemma fg {f : polynomial K} (hf : f ≠ 0) : submodule.fg (⊤ : submodule K (adjoin_root f)) :=
-begin
-  let tmp : _ := _,
-  let ψ : adjoin_root (f * C (leading_coeff f)⁻¹) →ₗ[K] adjoin_root f :=
-  { to_fun := ideal.quotient.lift _ mk tmp,
-    add := λ x y, is_ring_hom.map_add _,
-    smul := λ c x, is_ring_hom.map_mul _ },
-  have trick := fg_of_monic _ (monic_mul_leading_coeff_inv hf),
-  { convert fg_map trick, swap,
-    { exact ψ },
-    { refine (submodule.eq_top_iff'.mpr _).symm,
-      intros x, apply quotient.induction_on' x, clear x,
-      intro g,
-      rw mem_map,
-      use [mk g, mem_top, rfl] } },
-  { intros g hg, erw quotient.mk_eq_zero,
+def adjoin_root_of_monic (f : polynomial K) :
+  adjoin_root (f * C (leading_coeff f)⁻¹) →ₐ[K] adjoin_root f :=
+{ to_fun := ideal.quotient.lift _ mk $ λ g hg,
+  begin
+    erw quotient.mk_eq_zero,
     rw ideal.mem_span_singleton' at hg ⊢,
     rcases hg with ⟨g, rfl⟩, rw [mul_comm f, ← mul_assoc],
-    exact ⟨_, rfl⟩ },
+    exact ⟨_, rfl⟩,
+  end,
+  hom := ideal.quotient.is_ring_hom,
+  commutes' := λ g, rfl }
+
+lemma fg {f : polynomial K} (hf : f ≠ 0) : submodule.fg (⊤ : submodule K (adjoin_root f)) :=
+begin
+  let φ := adjoin_root_of_monic f,
+  have trick := fg_of_monic _ (monic_mul_leading_coeff_inv hf),
+  convert fg_map trick, swap, exact φ.to_linear_map,
+  { refine (submodule.eq_top_iff'.mpr _).symm,
+    intros x, apply quotient.induction_on' x, clear x,
+    intro g,
+    rw mem_map,
+    use [mk g, mem_top, rfl] }
 end
 .
 
@@ -521,7 +537,7 @@ if h : nonempty c
           rw aeval_def at hp ⊢,
           replace hp := congr_arg (inclusion (set.subset_Union (λ i : c, i.1.carrier) L')) hp,
           convert hp using 1; symmetry,
-          { rw polynomial.hom_eval₂ _ (inclusion _) p _,
+          { rw p.hom_eval₂ _ (inclusion _) _,
             congr' 1,
             { exact Union_compat c L L' },
             { apply_instance, },
@@ -606,19 +622,22 @@ private lemma le_adjoin_root_extension : L ≤ adjoin_root_extension K f :=
   end⟩
 
 private def equiv_adjoin_root_of_le (h : adjoin_root_extension K f ≤ L) :
-  L.carrier ≃r adjoin_root f :=
+  L.carrier ≃+* adjoin_root f :=
 have left_inv : left_inverse (inclusion h.fst ∘ (equiv.set.range _
     (adjoin_root_extension_map K f).2)) adjoin_root.of,
-  from λ _, by simp [adjoin_root_extension_map_apply, inclusion],
+from λ _, by simp [adjoin_root_extension_map_apply, inclusion],
+have hom : is_ring_hom (coe : L.carrier → adjoin_root f), by apply_instance,
 { to_fun := coe,
   inv_fun := inclusion h.fst ∘ (equiv.set.range _ (adjoin_root_extension_map K f).2),
   left_inv := left_inv,
   right_inv := right_inverse_of_injective_of_left_inverse
     (injective_comp (inclusion_injective _) (equiv.injective _))
     left_inv,
-  hom := by apply_instance }
+  map_add' := hom.map_add,
+  map_mul' := hom.map_mul }
 
-private def adjoin_root_equiv_adjoin_root_extension : adjoin_root f ≃r (adjoin_root_extension K f).carrier :=
+private def adjoin_root_equiv_adjoin_root_extension :
+  adjoin_root f ≃+* (adjoin_root_extension K f).carrier :=
 (equiv.set.range _ (adjoin_root_extension_map K f).2).symm.ring_equiv.symm
 
 end adjoin_root
@@ -645,12 +664,12 @@ include hif
 
 variable (K)
 
-def algebraic_closure_equiv_adjoin_root : algebraic_closure K ≃r adjoin_root f :=
+def algebraic_closure_equiv_adjoin_root : algebraic_closure K ≃+* adjoin_root f :=
 equiv_adjoin_root_of_le K f $
   classical.some_spec (exists_algebraic_closure K) _ (le_adjoin_root_extension _ _)
 
-instance ring_equiv.is_semiring_hom {α β : Type*} [ring α] [ring β] (e : α ≃r β) :
-  is_semiring_hom (e.to_equiv : α → β) :=
+instance ring_equiv.is_semiring_hom {α β : Type*} [ring α] [ring β] (e : α ≃+* β) :
+  is_semiring_hom (e : α → β) :=
 is_ring_hom.is_semiring_hom _
 
 omit hif
@@ -752,11 +771,12 @@ classical.some_spec (exists_maximal_subfield_with_hom M hL)
 lemma emb_injective (E : subfield_with_hom K L M hL) :
   injective E.emb :=
 begin
-  let tmpa : _ := _, let tmpb : _ := _,
-  refine @is_field_hom.injective _ M tmpa _ _ tmpb,
-  swap,
-  { },
-  { exact { .. E.emb.hom } }
+  sorry
+  -- let tmpa : _ := _, let tmpb : _ := _,
+  -- refine @is_field_hom.injective _ M tmpa _ _ tmpb,
+  -- swap,
+  -- { sorry },
+  -- { exact { .. E.emb.hom } }
 end
 
 lemma maximal_subfield_with_hom_surj :
@@ -774,7 +794,7 @@ begin
        ... = degree (p.map (maximal_subfield_with_hom M hL).emb) :
     begin
       symmetry,
-      refine @polynomial.degree_map' _ _ _ _ _ _ p _ (by exact is_ring_hom.is_semiring_hom _) _,
+      -- refine @polynomial.degree_map' _ _ _ _ _ _ p _ (by exact is_ring_hom.is_semiring_hom _) _,
       sorry,
     end },
   let y := classical.some H,

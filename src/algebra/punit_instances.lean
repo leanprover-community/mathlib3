@@ -15,20 +15,21 @@ open lattice
 namespace punit
 variables (x y : punit.{u+1}) (s : set punit.{u+1})
 
+@[to_additive add_comm_group]
+instance : comm_group punit :=
+by refine
+{ mul := λ _ _, star,
+  one := star,
+  inv := λ _, star, .. };
+intros; exact subsingleton.elim _ _
+
 instance : comm_ring punit :=
 by refine
-{ add := λ _ _, star,
-  zero := star,
-  neg := λ _, star,
-  mul := λ _ _, star,
-  one := star,
+{ .. punit.comm_group,
+  .. punit.add_comm_group,
   .. };
 intros; exact subsingleton.elim _ _
 
-instance : comm_group punit :=
-{ inv := λ _, star,
-  mul_left_inv := λ _, subsingleton.elim _ _,
-  .. punit.comm_ring }
 
 instance : complete_boolean_algebra punit :=
 by refine
@@ -63,7 +64,7 @@ instance : decidable_linear_ordered_cancel_comm_monoid punit :=
   decidable_lt := λ _ _, decidable.false,
   .. punit.canonically_ordered_monoid }
 
-instance : module punit punit := module.of_core $
+instance (R : Type u) [ring R] : module R punit := module.of_core $
 by refine
 { smul := λ _ _, star,
   .. punit.comm_ring, .. };

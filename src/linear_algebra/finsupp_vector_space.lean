@@ -7,6 +7,7 @@ Linear structures on function with finite support `α →₀ β`.
 -/
 import data.finsupp data.mv_polynomial linear_algebra.dimension
 noncomputable theory
+local attribute [instance, priority 100] classical.prop_decidable
 
 open lattice set linear_map submodule
 
@@ -14,13 +15,13 @@ namespace finsupp
 
 section module
 variables {α : Type*} {β : Type*} {γ : Type*}
-variables [decidable_eq α] [decidable_eq β] [ring γ] [add_comm_group β] [module γ β]
+variables [ring γ] [add_comm_group β] [module γ β]
 
-lemma linear_independent_single [decidable_eq γ] {φ : α → Type*} [∀ a, decidable_eq (φ a)]
+lemma linear_independent_single {φ : α → Type*}
   {f : Π α, φ α → β} (hf : ∀a, linear_independent γ (f a)) :
   linear_independent γ (λ ax : Σ a, φ a, single ax.1 (f ax.1 ax.2)) :=
 begin
-  apply @linear_independent_Union_finite γ _ _ _ _ _ _ α φ _ _ (λ a x, single a (f a x)),
+  apply @linear_independent_Union_finite γ _ _ _ _ α φ (λ a x, single a (f a x)),
   { assume a,
     have h_disjoint : disjoint (span γ (range (f a))) (ker (lsingle a)),
     { rw ker_lsingle,
@@ -43,11 +44,11 @@ end module
 
 section vector_space
 variables {α : Type*} {β : Type*} {γ : Type*}
-variables [decidable_eq α] [decidable_eq β] [discrete_field γ] [add_comm_group β] [vector_space γ β]
+variables [discrete_field γ] [add_comm_group β] [vector_space γ β]
 
 open linear_map submodule
 
-lemma is_basis_single {φ : α → Type*} [∀ a, decidable_eq (φ a)] (f : Π α, φ α → β)
+lemma is_basis_single {φ : α → Type*} (f : Π α, φ α → β)
   (hf : ∀a, is_basis γ (f a)) :
   is_basis γ (λ ax : Σ a, φ a, single ax.1 (f ax.1 ax.2)) :=
 begin
@@ -64,7 +65,7 @@ end vector_space
 section dim
 universes u v
 variables {α : Type u} {β : Type u} {γ : Type v}
-variables [decidable_eq α] [decidable_eq β] [discrete_field γ] [add_comm_group β] [vector_space γ β]
+variables [discrete_field γ] [add_comm_group β] [vector_space γ β]
 
 lemma dim_eq : vector_space.dim γ (α →₀ β) = cardinal.mk α * vector_space.dim γ β :=
 begin
@@ -118,7 +119,7 @@ begin
   exact classical.choice (equiv_of_dim_eq_lift_dim (cardinal.lift_inj.2 h))
 end
 
-lemma fin_dim_vectorspace_equiv (n : ℕ)
+def fin_dim_vectorspace_equiv (n : ℕ)
   (hn : (dim α β) = n) : β ≃ₗ[α] (fin n → α) :=
 begin
   have : cardinal.lift.{v u} (n : cardinal.{v}) = cardinal.lift.{u v} (n : cardinal.{u}),
@@ -162,7 +163,7 @@ local attribute [instance] submodule.module
 set_option pp.universes false
 
 lemma cardinal_mk_eq_cardinal_mk_field_pow_dim
-  {α β : Type u} [decidable_eq β] [discrete_field α] [add_comm_group β] [vector_space α β]
+  {α β : Type u} [discrete_field α] [add_comm_group β] [vector_space α β]
   (h : dim α β < cardinal.omega) : cardinal.mk β = cardinal.mk α ^ dim α β  :=
 begin
   rcases exists_is_basis α β with ⟨s, hs⟩,
@@ -175,7 +176,7 @@ begin
 end
 
 lemma cardinal_lt_omega_of_dim_lt_omega
-  {α β : Type u} [decidable_eq β] [discrete_field α] [add_comm_group β] [vector_space α β] [fintype α]
+  {α β : Type u} [discrete_field α] [add_comm_group β] [vector_space α β] [fintype α]
   (h : dim α β < cardinal.omega) : cardinal.mk β < cardinal.omega :=
 begin
   rw [cardinal_mk_eq_cardinal_mk_field_pow_dim h],

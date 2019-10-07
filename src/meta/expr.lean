@@ -3,7 +3,7 @@ Copyright (c) 2019 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis
 -/
-
+import data.string.defs
 /-!
 # Additional operations on expr and related types
 
@@ -14,6 +14,19 @@ Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lew
  ## Tags
  expr, name, declaration, level, environment, meta, metaprogramming, tactic
 -/
+
+namespace binder_info
+
+instance : inhabited binder_info := ⟨ binder_info.default ⟩
+
+/-- The brackets corresponding to a given binder_info. -/
+def brackets : binder_info → string × string
+| binder_info.implicit        := ("{", "}")
+| binder_info.strict_implicit := ("{{", "}}")
+| binder_info.inst_implicit   := ("[", "]")
+| _                           := ("(", ")")
+
+end binder_info
 
 namespace name
 
@@ -99,6 +112,12 @@ meta def length : name → ℕ
 | (mk_numeral n p)        := p.length
 | anonymous               := "[anonymous]".length
 
+/-- checks whether `nm` has a prefix (including itself) such that P is true -/
+def has_prefix (P : name → bool) : name → bool
+| anonymous := ff
+| (mk_string s nm)  := P (mk_string s nm) ∨ has_prefix nm
+| (mk_numeral s nm) := P (mk_numeral s nm) ∨ has_prefix nm
+
 end name
 
 namespace level
@@ -173,6 +192,11 @@ e.fold mk_name_set $ λ e' _ l,
   | _ := l
   end
 
+/-- Returns true if `e` contains a name `n` where `p n` is true.
+  Returns `true` if `p name.anonymous` is true -/
+meta def contains_constant (e : expr) (p : name → Prop) [decidable_pred p] : bool :=
+e.fold ff (λ e' _ b, if p (e'.const_name) then tt else b)
+
 /--
  is_num_eq n1 n2 returns true if n1 and n2 are both numerals with the same numeral structure,
  ignoring differences in type and type class arguments.
@@ -215,6 +239,24 @@ meta def pi_arity_aux : ℕ → expr → ℕ
 meta def pi_arity : expr → ℕ :=
 pi_arity_aux 0
 
+/-- Get the names of the bound variables by a sequence of pis or lambdas. -/
+meta def binding_names : expr → list name
+| (pi n _ _ e)  := n :: e.binding_names
+| (lam n _ _ e) := n :: e.binding_names
+| e             := []
+
+/-- Instantiate lambdas in the second argument by expressions from the first. -/
+meta def instantiate_lambdas : list expr → expr → expr
+| (e'::es) (lam n bi t e) := instantiate_lambdas es (e.instantiate_var e')
+| _        e              := e
+
+/-- Instantiate lambdas in the second argument `e` by expressions from the first argument `es`.
+If the length of `es` is larger than the number of lambdas in `e`,
+then the term is applied to the remaining terms -/
+meta def instantiate_lambdas_or_apps : list expr → expr → expr
+| (e'::es) (lam n bi t e) := instantiate_lambdas_or_apps es (e.instantiate_var e')
+| es       e              := mk_app e es
+
 end expr
 
 namespace environment
@@ -246,6 +288,24 @@ option.is_some $ do
     (some di.type) | none,
   env.is_projection (n ++ x.deinternalize_field)
 
+/-- Get all projections of the structure `n`. Returns `none` if `n` is not structure-like.
+  If `n` is not a structure, but is structure-like, this does not check whether the names
+  are existing declarations. -/
+meta def get_projections (env : environment) (n : name) : option (list name) := do
+  (nparams, intro) ← env.is_structure_like n,
+  di ← (env.get intro).to_option,
+  tgt ← nparams.iterate
+    (λ e : option expr, do expr.pi _ _ _ body ← e | none, some body)
+    (some di.type) | none,
+  return $ tgt.binding_names.map (λ x, n ++ x.deinternalize_field)
+
+/-- Tests whether `nm` is a generalized inductive type that is not a normal inductive type.
+  Note that `is_ginductive` returns `tt` even on regular inductive types.
+  This returns `tt` if `nm` is (part of a) mutually defined inductive type or a nested inductive
+  type. -/
+meta def is_ginductive' (e : environment) (nm : name) : bool :=
+e.is_ginductive nm ∧ ¬ e.is_inductive nm
+
 /-- For all declarations `d` where `f d = some x` this adds `x` to the returned list.  -/
 meta def decl_filter_map {α : Type} (e : environment) (f : declaration → option α) : list α :=
   e.fold [] $ λ d l, match f d with
@@ -274,7 +334,70 @@ meta def mfold {α : Type} {m : Type → Type} [monad m] (e : environment) (x : 
   (fn : declaration → α → m α) : m α :=
 e.fold (return x) (λ d t, t >>= fn d)
 
+/-- Filters all declarations in the environment. -/
+meta def mfilter (e : environment) (test : declaration → tactic bool) : tactic (list declaration) :=
+e.mfold [] $ λ d ds, do b ← test d, return $ if b then d::ds else ds
+
+/-- Checks whether `s` is a prefix of the file where `n` is declared.
+  This is used to check whether `n` is declared in mathlib, where `s` is the mathlib directory. -/
+meta def is_prefix_of_file (e : environment) (s : string) (n : name) : bool :=
+s.is_prefix_of $ (e.decl_olean n).get_or_else ""
+
 end environment
+
+
+namespace expr
+/- In this section we define the tactic `is_eta_expansion` which checks whether an expression
+  is an eta-expansion of a structure. (not to be confused with eta-expanion for `λ`). -/
+open tactic
+
+/-- Checks whether for all elements `(nm, val)` in the list we have `val = nm.{univs} args` -/
+meta def is_eta_expansion_of (args : list expr) (univs : list level) (l : list (name × expr)) :
+  bool :=
+l.all $ λ⟨proj, val⟩, val = (const proj univs).mk_app args
+
+/-- Checks whether there is an expression `e` such that for all elements `(nm, val)` in the list
+  `val = nm ... e` where `...` denotes the same list of parameters for all applications.
+  Returns e if it exists. -/
+meta def is_eta_expansion_test : list (name × expr) → option expr
+| []              := none
+| (⟨proj, val⟩::l) :=
+  match val.get_app_fn with
+  | (const nm univs : expr) :=
+    if nm = proj then
+      let args := val.get_app_args in
+      let e := args.ilast in
+      if is_eta_expansion_of args univs l then some e else none
+    else
+      none
+  | _                       := none
+  end
+
+/-- Checks whether there is an expression `e` such that for all *non-propositional* elements
+  `(nm, val)` in the list `val = e ... nm` where `...` denotes the same list of parameters for all
+  applications. Also checks whether the resulting expression unifies with the given one -/
+meta def is_eta_expansion_aux (val : expr) (l : list (name × expr)) : tactic (option expr) :=
+do l' ← l.mfilter (λ⟨proj, val⟩, bnot <$> is_proof val),
+  match is_eta_expansion_test l' with
+  | some e := option.map (λ _, e) <$> try_core (unify e val)
+  | none   := return none
+  end
+
+/-- Checks whether there is an expression `e` such that `val` is the eta-expansion of `e`.
+  This assumes that `val` is a fully-applied application of the constructor of a structure.
+
+  This is useful to reduce expressions generated by the notation
+    `{ field_1 := _, ..other_structure }`
+  If `other_structure` is itself a field of the structure, then the elaborator will insert an
+  eta-expanded version of `other_structure`. -/
+meta def is_eta_expansion (val : expr) : tactic (option expr) := do
+  e ← get_env,
+  type ← infer_type val,
+  projs ← e.get_projections type.get_app_fn.const_name,
+  let args := (val.get_app_args).drop type.get_app_args.length,
+  is_eta_expansion_aux val (projs.zip args)
+
+end expr
 
 namespace declaration
 open tactic
@@ -286,7 +409,8 @@ let decl := decl.update_type $ decl.type.apply_replacement_fun f in
 decl.update_value $ decl.value.apply_replacement_fun f
 
 /-- Checks whether the declaration is declared in the current file.
-  This is a simple wrapper around `environment.in_current_file'` -/
+  This is a simple wrapper around `environment.in_current_file'`
+  Use `environment.in_current_file'` instead if performance matters. -/
 meta def in_current_file (d : declaration) : tactic bool :=
 do e ← get_env, return $ e.in_current_file' d.to_name
 
@@ -305,4 +429,45 @@ meta def is_axiom : declaration → bool
 | (ax _ _ _) := tt
 | _          := ff
 
+/-- Checks whether a declaration is automatically generated in the environment.
+  There is no cheap way to check whether a declaration in the namespace of a generalized
+  inductive type is automatically generated, so for now we say that all of them are automatically
+  generated. -/
+meta def is_auto_generated (e : environment) (d : declaration) : bool :=
+e.is_constructor d.to_name ∨
+(e.is_projection d.to_name).is_some ∨
+(e.is_constructor d.to_name.get_prefix ∧
+  d.to_name.last ∈ ["inj", "inj_eq", "sizeof_spec", "inj_arrow"]) ∨
+(e.is_inductive d.to_name.get_prefix ∧
+  d.to_name.last ∈ ["below", "binduction_on", "brec_on", "cases_on", "dcases_on", "drec_on", "drec",
+  "rec", "rec_on", "no_confusion", "no_confusion_type", "sizeof", "ibelow", "has_sizeof_inst"]) ∨
+d.to_name.has_prefix (λ nm, e.is_ginductive' nm)
+
+/-- Returns the list of universe levels of a declaration. -/
+meta def univ_levels (d : declaration) : list level :=
+d.univ_params.map level.param
+
 end declaration
+
+/-- The type of binders containing a name, the binding info and the binding type -/
+@[derive decidable_eq]
+meta structure binder :=
+  (name : name)
+  (info : binder_info)
+  (type : expr)
+
+namespace binder
+/-- Turn a binder into a string. Uses expr.to_string for the type. -/
+protected meta def to_string (b : binder) : string :=
+let (l, r) := b.info.brackets in
+l ++ b.name.to_string ++ " : " ++ b.type.to_string ++ r
+
+open tactic
+meta instance : inhabited binder := ⟨⟨default _, default _, default _⟩⟩
+meta instance : has_to_string binder := ⟨ binder.to_string ⟩
+meta instance : has_to_format binder := ⟨ λ b, b.to_string ⟩
+meta instance : has_to_tactic_format binder :=
+⟨ λ b, let (l, r) := b.info.brackets in
+  (λ e, l ++ b.name.to_string ++ " : " ++ e ++ r) <$> pp b.type ⟩
+
+end binder

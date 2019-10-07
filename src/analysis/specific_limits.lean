@@ -5,11 +5,11 @@ Authors: Johannes Hölzl
 
 A collection of specific limit computations.
 -/
-import analysis.normed_space.basic
+import analysis.normed_space.basic algebra.geom_sum
 import topology.instances.ennreal
 
 noncomputable theory
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 open classical function lattice filter finset metric
 
@@ -34,7 +34,7 @@ tendsto_infi.2 $ assume p, tendsto_principal.2 $
       ... ≤ n * (r - 1) : mul_le_mul (le_of_lt hn) (le_refl _) (le_of_lt this) hn_nn
       ... ≤ 1 + n * (r - 1) : le_add_of_nonneg_of_le zero_le_one (le_refl _)
       ... = 1 + add_monoid.smul n (r - 1) : by rw [add_monoid.smul_eq_mul]
-      ... ≤ (1 + (r - 1)) ^ n : pow_ge_one_add_mul (le_of_lt this) _
+      ... ≤ (1 + (r - 1)) ^ n : one_add_mul_le_pow (le_of_lt this) _
       ... ≤ r ^ n : by simp; exact le_refl _,
   show {n | p ≤ r ^ n} ∈ at_top,
     from mem_at_top_sets.mpr ⟨n, assume m hnm, le_trans this (pow_le_pow (le_of_lt h) hnm)⟩
@@ -95,6 +95,7 @@ have r + -1 ≠ 0,
 have tendsto (λn, (r ^ n - 1) * (r - 1)⁻¹) at_top (nhds ((0 - 1) * (r - 1)⁻¹)),
   from tendsto_mul
     (tendsto_sub (tendsto_pow_at_top_nhds_0_of_lt_1 h₁ h₂) tendsto_const_nhds) tendsto_const_nhds,
+have (λ n, (range n).sum (λ i, r ^ i)) = (λ n, geom_series r n) := rfl,
 (has_sum_iff_tendsto_nat_of_nonneg (pow_nonneg h₁) _).mpr $
   by simp [neg_inv, geom_sum, div_eq_mul_inv, *] at *
 

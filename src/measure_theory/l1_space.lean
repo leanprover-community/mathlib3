@@ -9,7 +9,7 @@ Integrable functions and L¹ space
 import measure_theory.ae_eq_fun
 
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 
 set_option class.instance_max_depth 100
 
@@ -18,7 +18,7 @@ open set lattice filter topological_space ennreal emetric
 
 universes u v
 variables {α : Type u} {β : Type v} [measure_space α]
-variables {γ : Type*} [normed_group γ] [second_countable_topology γ]
+variables {γ : Type*} [normed_group γ]
 
 infixr ` →ₘ `:25 := ae_eq_fun
 
@@ -44,6 +44,8 @@ assume hfi hgi,
       lintegral_nnnorm_add hfm hgm
     ... < ⊤ : add_lt_top.2 ⟨hfi, hgi⟩
 
+-- We don't need `f` to be measurable here, but it's easier to have a uniform API
+@[sanity_skip]
 lemma lintegral_nnnorm_neg {f : α → γ} (hf : measurable f) :
   (∫⁻ (a : α), ↑(nnnorm ((-f) a))) = ∫⁻ (a : α), ↑(nnnorm ((f) a)) :=
 lintegral_congr_ae $ by { filter_upwards [], simp }
@@ -69,6 +71,8 @@ begin
 end
 
 end normed_space
+
+variables [second_countable_topology γ]
 
 namespace ae_eq_fun
 

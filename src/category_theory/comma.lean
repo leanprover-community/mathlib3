@@ -108,7 +108,7 @@ variables {X Y : comma L₂ R} {f : X ⟶ Y} {l : L₁ ⟶ L₂}
 @[simp] lemma map_left_map_right : ((map_left R l).map f).right = f.right               := rfl
 end
 
-def map_left_id : map_left R (𝟙 L) ≅ functor.id _ :=
+def map_left_id : map_left R (𝟙 L) ≅ 𝟭 _ :=
 { hom :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
   inv :=
@@ -156,7 +156,7 @@ variables {X Y : comma L R₁} {f : X ⟶ Y} {r : R₁ ⟶ R₂}
 @[simp] lemma map_right_map_right : ((map_right L r).map f).right = f.right                := rfl
 end
 
-def map_right_id : map_right L (𝟙 R) ≅ functor.id _ :=
+def map_right_id : map_right L (𝟙 R) ≅ 𝟭 _ :=
 { hom :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
   inv :=
@@ -190,13 +190,12 @@ end comma
 
 omit 𝒜 ℬ
 
-def over (X : T) := comma.{v₃ 1 v₃} (functor.id T) (functor.of.obj X)
+@[derive category]
+def over (X : T) := comma.{v₃ 0 v₃} (𝟭 T) (functor.of.obj X)
 
 namespace over
 
 variables {X : T}
-
-instance category : category (over X) := by delta over; apply_instance
 
 @[extensionality] lemma over_morphism.ext {X : T} {U V : over X} {f g : U ⟶ V}
   (h : f.left = g.left) : f = g :=
@@ -254,13 +253,12 @@ end
 
 end over
 
-def under (X : T) := comma.{1 v₃ v₃} (functor.of.obj X) (functor.id T)
+@[derive category]
+def under (X : T) := comma.{0 v₃ v₃} (functor.of.obj X) (𝟭 T)
 
 namespace under
 
 variables {X : T}
-
-instance : category (under X) := by delta under; apply_instance
 
 @[extensionality] lemma under_morphism.ext {X : T} {U V : under X} {f g : U ⟶ V}
   (h : f.right = g.right) : f = g :=

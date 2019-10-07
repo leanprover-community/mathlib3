@@ -23,10 +23,11 @@ import
   tactic.finish
   tactic.tauto
   tactic.tidy
-  tactic.abel tactic.ring
-  tactic.linarith tactic.omega
+  tactic.abel
+  tactic.ring
+  tactic.linarith
+  tactic.omega
   tactic.wlog
   tactic.tfae
   tactic.apply_fun
-  tactic.localized
   tactic.apply

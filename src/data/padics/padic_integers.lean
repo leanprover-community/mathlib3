@@ -40,7 +40,7 @@ p-adic, p adic, padic, p-adic integer
 
 open nat padic metric
 noncomputable theory
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 /-- The p-adic integers ℤ_p are the p-adic numbers with norm ≤ 1. -/
 def padic_int (p : ℕ) [p.prime] := {x : ℚ_[p] // ∥x∥ ≤ 1}

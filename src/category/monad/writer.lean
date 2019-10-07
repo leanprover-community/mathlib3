@@ -67,7 +67,7 @@ section
   instance (m m') [monad m] [monad m'] : monad_functor m m' (writer_t ω m) (writer_t ω m') :=
   ⟨@writer_t.monad_map ω m m' _ _⟩
 
-  @[inline] protected def adapt {ω' : Type u} [monad m] {α : Type u} (f : ω → ω') : writer_t ω m α → writer_t ω' m α :=
+  @[inline] protected def adapt {ω' : Type u} {α : Type u} (f : ω → ω') : writer_t ω m α → writer_t ω' m α :=
   λ x, ⟨prod.map id f <$> x.run⟩
 
   instance (ε) [has_one ω] [monad m] [monad_except ε m] : monad_except ε (writer_t ω m) :=

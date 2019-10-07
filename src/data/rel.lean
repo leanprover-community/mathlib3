@@ -9,14 +9,12 @@ import tactic.basic data.set.lattice order.complete_lattice
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
+@[derive lattice.complete_lattice]
 def rel (α : Type*) (β : Type*) := α → β → Prop
 
 namespace rel
 
 variables {δ : Type*} (r : rel α β)
-
-instance : lattice.complete_lattice (rel α β) :=
-by unfold rel; apply_instance
 
 def inv : rel β α := flip r
 

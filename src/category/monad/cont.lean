@@ -71,7 +71,7 @@ instance : is_lawful_monad (cont_t r m) :=
   pure_bind := by { intros, ext, refl },
   bind_assoc := by { intros, ext, refl } }
 
-def cont_t.monad_lift [monad m] {α} : m α → cont_t r m α :=
+def monad_lift [monad m] {α} : m α → cont_t r m α :=
 λ x f, x >>= f
 
 instance [monad m] : has_monad_lift m (cont_t r m) :=

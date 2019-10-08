@@ -332,6 +332,8 @@ begin
     refine @eval_map _ _ _ _ _ _ (by exact is_ring_hom.is_semiring_hom _) _ },
 end
 
+/-- If A is an R-algebra all of whose elements are integral over R,
+and x is an element of an A-algebra that is integral over A, then x is integral over R.-/
 lemma is_integral_trans (x : B) (hx : is_integral A x) :
   is_integral R (comap.to_comap R A B x) :=
 begin
@@ -356,6 +358,9 @@ begin
     exact is_integral_trans_aux A_alg _ pmonic hp _ rfl }
 end
 
+/-- If A is an R-algebra all of whose elements are integral over R,
+and B is an A-algebra all of whose elements are integral over A,
+then all elements of B are integral over R.-/
 lemma algebra.is_integral_trans (B_alg : ∀ x:B, is_integral A x) :
   ∀ x:(comap R A B), is_integral R x :=
 λ x, is_integral_trans A_alg x (B_alg x)

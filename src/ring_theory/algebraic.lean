@@ -24,14 +24,17 @@ def is_algebraic (x : A) : Prop :=
 
 variables {R}
 
+/-- A subalgebra is algebraic if all its elements are algebraic. -/
 def subalgebra.is_algebraic (S : subalgebra R A) : Prop := ∀ x ∈ S, is_algebraic R x
 
 variables (R A)
 
+/-- An algebra is algebraic if it is algebraic as a subalgebra. -/
 def algebra.is_algebraic : Prop := (⊤ : subalgebra R A).is_algebraic
 
 variables {R A}
 
+/-- An algebra is algebraic if and only if all its elements are algebraic. -/
 lemma algebra.is_algebraic_iff : algebra.is_algebraic R A ↔ ∀ x : A, is_algebraic R x :=
 begin
   delta algebra.is_algebraic subalgebra.is_algebraic,
@@ -43,6 +46,7 @@ end
 section zero_ne_one
 variables (R : Type u) {A : Type v} [nonzero_comm_ring R] [comm_ring A] [algebra R A]
 
+/-- An integral element of an algebra is algebraic.-/
 lemma is_integral.is_algebraic {x : A} (h : is_integral R x) : is_algebraic R x :=
 begin
   rcases h with ⟨p, hp, hpx⟩,
@@ -52,9 +56,10 @@ end
 end zero_ne_one
 
 section field
-variables (K : Type u) {L : Type v} [discrete_field K] [comm_ring L] [algebra K L]
+variables (K : Type u) {A : Type v} [discrete_field K] [comm_ring A] [algebra K A]
 
-lemma is_algebraic_iff_is_integral {x : L} :
+/-- An element of an algebra over a field is algebraic if and only if it is integral.-/
+lemma is_algebraic_iff_is_integral {x : A} :
   is_algebraic K x ↔ is_integral K x :=
 begin
   refine ⟨_, is_integral.is_algebraic K⟩,
@@ -70,6 +75,8 @@ variables {K : Type*} {L : Type*} {A : Type*}
 variables [discrete_field K] [discrete_field L] [comm_ring A]
 variables [algebra K L] [algebra L A]
 
+/-- If L is an algebraic field extension of K and A is an algebraic algebra over L,
+then A is algebraic over K. -/
 lemma is_algebraic_trans (L_alg : is_algebraic K L) (A_alg : is_algebraic L A) :
   is_algebraic K (comap K L A) :=
 begin

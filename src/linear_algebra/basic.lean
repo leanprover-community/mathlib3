@@ -55,8 +55,9 @@ open function lattice
 
 reserve infix ` ≃ₗ `:25
 
-universes u v w x y z
-variables {R 𝕜 : Type u} {M V : Type v} {M₂ V₂ : Type w} {M₃ V₃ : Type y} {M₄ : Type z} {ι : Type x}
+universes u v w x y z u' v' w' y'
+variables {R : Type u} {𝕜 : Type u'} {M : Type v} {V : Type v'} {M₂ : Type w} {V₂ : Type w'}
+variables {M₃ : Type y} {V₃ : Type y'} {M₄ : Type z} {ι : Type x}
 
 namespace finset
 

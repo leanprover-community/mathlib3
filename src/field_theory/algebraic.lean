@@ -65,6 +65,7 @@ begin
 end
 
 end injective
+
 section lift
 open function
 variables [decidable_eq α] [comm_ring α] (s : set α) [is_subring s]

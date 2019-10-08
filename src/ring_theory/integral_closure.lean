@@ -10,11 +10,12 @@ import ring_theory.adjoin linear_algebra.finsupp
 
 universes u v
 
+open_locale classical
 open polynomial submodule
 
+section
 variables (R : Type u) {A : Type v}
 variables [comm_ring R] [comm_ring A]
-variables [decidable_eq R] [decidable_eq A]
 variables [algebra R A]
 
 def is_integral (x : A) : Prop :=
@@ -148,7 +149,7 @@ begin
   let S₀ : set R := ring.closure ↑S₀',
   refine is_integral_of_subring (ring.closure ↑S₀') _,
   letI : algebra S₀ (algebra.comap S₀ R A) := algebra.comap.algebra _ _ _,
-  letI : module S₀ (algebra.comap S₀ R A) := algebra.module,
+  letI hmod : module S₀ (algebra.comap S₀ R A) := algebra.module,
   have : (span S₀ (insert 1 (↑m:set A) : set (algebra.comap S₀ R A)) : submodule S₀ (algebra.comap S₀ R A)) =
       (algebra.adjoin S₀ ((↑m : set A) : set (algebra.comap S₀ R A)) : subalgebra S₀ (algebra.comap S₀ R A)),
   { apply le_antisymm,
@@ -166,7 +167,7 @@ begin
     rw [finsupp.sum], refine sum_mem _ _, intros r2 hr2,
     rw [finsupp.sum], refine sum_mem _ _, intros r1 hr1,
     rw [algebra.mul_smul_comm, algebra.smul_mul_assoc],
-    letI : module ↥S₀ A := _inst_6, refine smul_mem _ _ (smul_mem _ _ _),
+    letI hS₀A : module ↥S₀ A := ‹_›, refine smul_mem _ _ (smul_mem _ _ _),
     rcases hl1 hr1 with rfl | hr1,
     { change 1 * r2 ∈ _, rw one_mul r2, exact subset_span (hl2 hr2) },
     rcases hl2 hr2 with rfl | hr2,
@@ -178,7 +179,7 @@ begin
     { apply ring.subset_closure,
       apply finset.mem_union_right, apply finset.mem_bind.2,
       exact ⟨jk, finset.mem_univ _, by convert finset.mem_image_of_mem _ hz⟩ },
-    change @has_scalar.smul S₀ (algebra.comap S₀ R A) _inst_6.to_has_scalar ⟨lm jk z, this⟩ z ∈ _,
+    change @has_scalar.smul S₀ (algebra.comap S₀ R A) hS₀A.to_has_scalar ⟨lm jk z, this⟩ z ∈ _,
     exact smul_mem _ _ (subset_span (set.mem_insert_of_mem _ (hlm1 _ hz))) },
   haveI : is_noetherian_ring ↥S₀ :=(by convert is_noetherian_ring_closure _ (finset.finite_to_set _); apply_instance),
   apply is_integral_of_noetherian
@@ -189,7 +190,7 @@ begin
   rw ← this,
   have : lx r ∈ ring.closure ↑S₀' :=
     ring.subset_closure (finset.mem_union_left _ (by convert finset.mem_image_of_mem _ hr)),
-  change @has_scalar.smul S₀ (algebra.comap S₀ R A) _inst_6.to_has_scalar ⟨lx r, this⟩ r ∈ _,
+  change @has_scalar.smul S₀ (algebra.comap S₀ R A) hmod.to_has_scalar ⟨lx r, this⟩ r ∈ _,
   exact smul_mem _ _ (subset_span (set.mem_insert_of_mem _ (hlx1 hr)))
 end
 
@@ -281,3 +282,82 @@ begin
   replace hmp := congr_arg subtype.val hmp,
   exact subtype.eq hmp
 end
+
+end
+
+section algebra
+open algebra
+variables {R : Type*} {A : Type*} {B : Type*}
+variables [comm_ring R] [comm_ring A] [comm_ring B]
+variables [algebra R A] [algebra A B]
+variables (A_alg : ∀ x : A, is_integral R x)
+
+include A_alg
+
+set_option class.instance_max_depth 50
+
+lemma is_integral_trans_aux (x : B) {p : polynomial A} (pmonic : monic p) (hp : aeval A B x p = 0)
+  (S : set (comap R A B))
+  (hS : S = (↑((finset.range (p.nat_degree + 1)).image
+    (λ i, to_comap R A B (p.coeff i))) : set (comap R A B))) :
+  is_integral (adjoin R S) (comap.to_comap R A B x) :=
+begin
+  have coeffs_mem : ∀ i, coeff (map (to_comap R A B) p) i ∈ adjoin R S,
+  { intro i,
+    by_cases hi : i ∈ finset.range (p.nat_degree + 1),
+    { apply algebra.subset_adjoin, subst S,
+      rw [finset.mem_coe, finset.mem_image, coeff_map],
+      exact ⟨i, hi, rfl⟩ },
+    { rw [finset.mem_range, not_lt] at hi,
+      rw [coeff_map, coeff_eq_zero_of_nat_degree_lt hi, alg_hom.map_zero],
+      exact submodule.zero_mem (adjoin R S : submodule R (comap R A B)) } },
+  obtain ⟨q, hq⟩ : ∃ q : polynomial (adjoin R S), q.map (algebra_map (comap R A B)) =
+      (p.map $ to_comap R A B),
+  { rw [← set.mem_range], dsimp only,
+    apply (polynomial.mem_map_range _).2,
+    { intros i, specialize coeffs_mem i, rw ← subalgebra.mem_coe at coeffs_mem,
+      convert coeffs_mem, exact subtype.val_range },
+    { apply is_ring_hom.is_semiring_hom } },
+  use q,
+  split,
+  { suffices h : (q.map (algebra_map (comap R A B))).monic,
+    { refine @monic_of_injective _ _ _ _ _
+        (by exact is_ring_hom.is_semiring_hom _) _ _ h,
+      exact subtype.val_injective },
+    { rw hq, exact monic_map _ pmonic } },
+  { convert hp using 1,
+    replace hq := congr_arg (eval (comap.to_comap R A B x)) hq,
+    convert hq using 1; symmetry, swap,
+    exact eval_map _ _,
+    refine @eval_map _ _ _ _ _ _ (by exact is_ring_hom.is_semiring_hom _) _ },
+end
+
+lemma is_integral_trans (x : B) (hx : is_integral A x) :
+  is_integral R (comap.to_comap R A B x) :=
+begin
+  rcases hx with ⟨p, pmonic, hp⟩,
+  let S : set (comap R A B) :=
+    (↑((finset.range (p.nat_degree + 1)).image
+      (λ i, to_comap R A B (p.coeff i))) : set (comap R A B)),
+  refine is_integral_of_mem_of_fg (adjoin R (S ∪ {comap.to_comap R A B x})) _ _ _,
+  swap, { apply subset_adjoin, simp },
+  apply fg_trans,
+  { apply fg_adjoin_of_finite, { apply finset.finite_to_set },
+    intros x hx,
+    rw [finset.mem_coe, finset.mem_image] at hx,
+    rcases hx with ⟨i, hi, rfl⟩,
+    rcases A_alg (p.coeff i) with ⟨q, hq, hqx⟩,
+    use [q, hq],
+    replace hqx := congr_arg (to_comap R A B : A → (comap R A B)) hqx,
+    rw alg_hom.map_zero at hqx,
+    convert hqx using 1,
+    symmetry, exact polynomial.hom_eval₂ _ _ _ _ },
+  { apply fg_adjoin_singleton_of_integral,
+    exact is_integral_trans_aux A_alg _ pmonic hp _ rfl }
+end
+
+lemma algebra.is_integral_trans (B_alg : ∀ x:B, is_integral A x) :
+  ∀ x:(comap R A B), is_integral R x :=
+λ x, is_integral_trans A_alg x (B_alg x)
+
+end algebra

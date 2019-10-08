@@ -106,7 +106,7 @@ lt_of_le_of_ne (norm_nonneg _) (ne.symm deriv_norm_ne_zero)
 private lemma deriv_ne_zero : F.derivative.eval a ≠ 0 := mt (norm_eq_zero _).2 deriv_norm_ne_zero
 
 private lemma T_def : T = ∥F.eval a∥ / ∥F.derivative.eval a∥^2 :=
-calc T = ∥(F.eval a).val∥ / ∥((F.derivative.eval a).val)^2∥ : norm_div _ _
+calc T = ∥(F.eval a).val∥ / ∥((F.derivative.eval a).val)^2∥ : normed_field.norm_div _ _
    ... = ∥F.eval a∥ / ∥(F.derivative.eval a)^2∥ : by simp [norm, padic_norm_z]
    ... = ∥F.eval a∥ / ∥(F.derivative.eval a)∥^2 : by simp [pow, monoid.pow]
 
@@ -132,7 +132,7 @@ private lemma ih_0 : ih 0 a :=
 private lemma calc_norm_le_one {n : ℕ} {z : ℤ_[p]} (hz : ih n z) :
          ∥(↑(F.eval z) : ℚ_[p]) / ↑(F.derivative.eval z)∥ ≤ 1 :=
 calc ∥(↑(F.eval z) : ℚ_[p]) / ↑(F.derivative.eval z)∥
-    = ∥(↑(F.eval z) : ℚ_[p])∥ / ∥(↑(F.derivative.eval z) : ℚ_[p])∥ : norm_div _ _
+    = ∥(↑(F.eval z) : ℚ_[p])∥ / ∥(↑(F.derivative.eval z) : ℚ_[p])∥ : normed_field.norm_div _ _
 ... = ∥F.eval z∥ / ∥F.derivative.eval a∥ : by simp [hz.1]
 ... ≤ ∥F.derivative.eval a∥^2 * T^(2^n) / ∥F.derivative.eval a∥ :
   (div_le_div_right deriv_norm_pos).2 hz.2
@@ -260,7 +260,7 @@ calc ∥newton_seq (n+2) - newton_seq (n+1)∥
                                                            deriv_norm_pos
 ... = ∥F.eval a∥ / ∥F.derivative.eval a∥ :
   begin
-    rw [T, _root_.pow_two, _root_.pow_one, norm_div, ←mul_div_assoc, padic_norm_e.mul],
+    rw [T, _root_.pow_two, _root_.pow_one, normed_field.norm_div, ←mul_div_assoc, padic_norm_e.mul],
     apply mul_div_mul_left',
     apply deriv_norm_ne_zero; assumption
   end

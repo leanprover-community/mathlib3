@@ -18,7 +18,7 @@ instance [has_add α] : has_add (completion α) := ⟨completion.map₂ (+)⟩
 
 -- TODO: switch sides once #1103 is fixed
 @[elim_cast]
-lemma coe_zero [has_zero α] : 0 = ((0 : α) : completion α) := rfl
+lemma uniform_space.completion.coe_zero [has_zero α] : 0 = ((0 : α) : completion α) := rfl
 end group
 
 namespace uniform_space.completion

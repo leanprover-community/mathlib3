@@ -2,10 +2,45 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
-
-Order on topological structures. Lattice structure, Galois connection, and applications.
 -/
 import topology.basic
+
+/-!
+# Ordering on topologies and (co)induced topologies
+
+Topologies on a fixed type `α` are ordered, by reverse inclusion.
+That is, for topologies `t₁` and `t₂` on `α`, we write `t₁ ≤ t₂`
+if every set open in `t₂` is also open in `t₁`.
+(One also calls `t₁` finer than `t₂`, and `t₂` coarser than `t₁`.)
+
+Any function `f : α → β` induces
+       `induced f : topological_space β → topological_space α`
+and  `coinduced f : topological_space α → topological_space β`.
+Continuity, the ordering on topologies and (co)induced topologies are
+related as follows:
+* The identity map (α, t₁) → (α, t₂) is continuous iff t₁ ≤ t₂.
+* A map f : (α, t) → (β, u) is continuous
+    iff             t ≤ induced f u   (`continuous_iff_le_induced`)
+    iff coinduced f t ≤ u             (`continuous_iff_coinduced_le`).
+
+Topologies on α form a complete lattice, with ⊥ the discrete topology
+and ⊤ the indiscrete topology. We use this complete lattice to equip
+subtypes, quotients, sums and products of topological spaces with their
+usual topologies.
+
+For a function f : α → β, (coinduced f, induced f) is a Galois connection
+between topologies on α and topologies on β.
+
+## Implementation notes
+
+There is a Galois insertion between topologies on α (with the inclusion ordering)
+and all collections of sets in α. The complete lattice structure on topologies
+on α is defined as the reverse of the one obtained via this Galois insertion.
+
+## Tags
+finer, coarser
+
+-/
 
 open set filter lattice classical
 open_locale classical
@@ -15,7 +50,7 @@ universes u v w
 namespace topological_space
 variables {α : Type u}
 
-/-- The least topology containing a collection of basic sets. -/
+/-- The open sets of the least topology containing a collection of basic sets. -/
 inductive generate_open (g : set (set α)) : set α → Prop
 | basic  : ∀s∈g, generate_open s
 | univ   : generate_open univ
@@ -54,6 +89,7 @@ lemma tendsto_nhds_generate_from {β : Type*} {m : α → β} {f : filter α} {g
 by rw [nhds_generate_from]; exact
   (tendsto_infi.2 $ assume s, tendsto_infi.2 $ assume ⟨hbs, hsg⟩, tendsto_principal.2 $ h s hsg hbs)
 
+/-- Construct a topology on α given the filter of neighborhoods of each point of α. -/
 protected def mk_of_nhds (n : α → filter α) : topological_space α :=
 { is_open        := λs, ∀a∈s, s ∈ n a,
   is_open_univ   := assume x h, univ_mem_sets,
@@ -82,11 +118,9 @@ section lattice
 
 variables {α : Type u} {β : Type v}
 
-/- The following partial order will be convenient in order to get a complete
+/-- The inclusion ordering on topologies on α. We use it to get a complete
    lattice instance via the Galois insertion method, but the partial order
-   that will be used elsewhere is the dual one, defined at the end of this
-   section. -/
-
+   that we will eventually impose on `topological_space α` is the reverse one. -/
 def tmp_order : partial_order (topological_space α) :=
 { le          := λt s, t.is_open ≤ s.is_open,
   le_antisymm := assume t s h₁ h₂, topological_space_eq $ le_antisymm h₁ h₂,
@@ -95,6 +129,7 @@ def tmp_order : partial_order (topological_space α) :=
 
 local attribute [instance] tmp_order
 
+/- We'll later restate this lemma in terms of the correct order on `topological_space α`. -/
 private lemma generate_from_le_iff_subset_is_open {g : set (set α)} {t : topological_space α} :
   topological_space.generate_from g ≤ t ↔ g ⊆ {s | t.is_open s} :=
 iff.intro
@@ -102,6 +137,8 @@ iff.intro
   (assume hg s hs, hs.rec_on (assume v hv, hg hv)
     t.is_open_univ (assume u v _ _, t.is_open_inter u v) (assume k _, t.is_open_sUnion k))
 
+/-- If `s` equals the collection of open sets in the topology it generates,
+  then `s` defines a topology. -/
 protected def mk_of_closure (s : set (set α))
   (hs : {u | (topological_space.generate_from s).is_open u} = s) : topological_space α :=
 { is_open        := λu, u ∈ s,
@@ -114,6 +151,9 @@ lemma mk_of_closure_sets {s : set (set α)}
   mk_of_closure s hs = topological_space.generate_from s :=
 topological_space_eq hs.symm
 
+/-- The Galois insertion between `set (set α)` and `topological_space α` whose lower part
+  sends a collection of subsets of α to the topology they generate, and whose upper part
+  sends a topology to its collection of open subsets. -/
 def gi_generate_from (α : Type*) :
   galois_insertion topological_space.generate_from (λt:topological_space α, {s | t.is_open s}) :=
 { gc        := assume g t, generate_from_le_iff_subset_is_open,
@@ -126,10 +166,13 @@ lemma generate_from_mono {α} {g₁ g₂ : set (set α)} (h : g₁ ⊆ g₂) :
   topological_space.generate_from g₁ ≤ topological_space.generate_from g₂ :=
 (gi_generate_from _).gc.monotone_l h
 
+/-- The complete lattice of topological spaces, but built on the inclusion ordering. -/
 def tmp_complete_lattice {α : Type u} : complete_lattice (topological_space α) :=
 (gi_generate_from α).lift_complete_lattice
 
 
+/-- The ordering on topologies on the type `α`.
+  `t ≤ s` if every set open in `s` is also open in `t` (`t` is finer than `s`). -/
 instance : partial_order (topological_space α) :=
 { le          := λ t s, s.is_open ≤ t.is_open,
   le_antisymm := assume t s h₁ h₂, topological_space_eq $ le_antisymm h₂ h₁,
@@ -140,9 +183,15 @@ lemma le_generate_from_iff_subset_is_open {g : set (set α)} {t : topological_sp
   t ≤ topological_space.generate_from g ↔ g ⊆ {s | t.is_open s} :=
 generate_from_le_iff_subset_is_open
 
+/-- Topologies on `α` form a complete lattice, with `⊥` the discrete topology
+  and `⊤` the indiscrete topology. The infimum of a collection of topologies
+  is the topology generated by all their open sets, while the supremem is the
+  topology whose open sets are those sets open in every member of the collection. -/
 instance : complete_lattice (topological_space α) :=
 @order_dual.lattice.complete_lattice _ tmp_complete_lattice
 
+/-- A topological space is discrete if every set is open, that is,
+  its topology equals the discrete topology `⊥`. -/
 class discrete_topology (α : Type*) [t : topological_space α] : Prop :=
 (eq_bot : t = ⊥)
 
@@ -333,49 +382,6 @@ instance Pi.topological_space {β : α → Type v} [t₂ : Πa, topological_spac
   topological_space (Πa, β a) :=
 ⨅a, induced (λf, f a) (t₂ a)
 
-instance [topological_space α] : topological_space (list α) :=
-topological_space.mk_of_nhds (traverse nhds)
-
-lemma nhds_list [topological_space α] (as : list α) : nhds as = traverse nhds as :=
-begin
-  refine nhds_mk_of_nhds _ _ _ _,
-  { assume l, induction l,
-    case list.nil { exact le_refl _ },
-    case list.cons : a l ih {
-      suffices : list.cons <$> pure a <*> pure l ≤ list.cons <$> nhds a <*> traverse nhds l,
-      { simpa only [-filter.pure_def] with functor_norm using this },
-      exact filter.seq_mono (filter.map_mono $ pure_le_nhds a) ih } },
-  { assume l s hs,
-    rcases (mem_traverse_sets_iff _ _).1 hs with ⟨u, hu, hus⟩, clear as hs,
-    have : ∃v:list (set α), l.forall₂ (λa s, is_open s ∧ a ∈ s) v ∧ sequence v ⊆ s,
-    { induction hu generalizing s,
-      case list.forall₂.nil : hs this { existsi [], simpa only [list.forall₂_nil_left_iff, exists_eq_left] },
-      case list.forall₂.cons : a s as ss ht h ih t hts {
-        rcases mem_nhds_sets_iff.1 ht with ⟨u, hut, hu⟩,
-        rcases ih (subset.refl _) with ⟨v, hv, hvss⟩,
-        exact ⟨u::v, list.forall₂.cons hu hv,
-          subset.trans (set.seq_mono (set.image_subset _ hut) hvss) hts⟩ } },
-    rcases this with ⟨v, hv, hvs⟩,
-    refine ⟨sequence v, mem_traverse_sets _ _ _, hvs, _⟩,
-    { exact hv.imp (assume a s ⟨hs, ha⟩, mem_nhds_sets hs ha) },
-    { assume u hu,
-      have hu := (list.mem_traverse _ _).1 hu,
-      have : list.forall₂ (λa s, is_open s ∧ a ∈ s) u v,
-      { refine list.forall₂.flip _,
-        replace hv := hv.flip,
-        simp only [list.forall₂_and_left, flip] at ⊢ hv,
-        exact ⟨hv.1, hu.flip⟩ },
-      refine mem_sets_of_superset _ hvs,
-      exact mem_traverse_sets _ _ (this.imp $ assume a s ⟨hs, ha⟩, mem_nhds_sets hs ha) } }
-end
-
-lemma nhds_nil [topological_space α] : nhds ([] : list α) = pure [] :=
-by rw [nhds_list, list.traverse_nil _]; apply_instance
-
-lemma nhds_cons [topological_space α] (a : α) (l : list α) :
-  nhds (a :: l) = list.cons <$> nhds a <*> nhds l  :=
-by rw [nhds_list, list.traverse_cons _, ← nhds_list]; apply_instance
-
 lemma quotient_dense_of_dense [setoid α] [topological_space α] {s : set α} (H : ∀ x, x ∈ closure s) :
   closure (quotient.mk '' s) = univ :=
 eq_univ_of_forall $ λ x, begin
@@ -401,6 +407,8 @@ le_antisymm
   (coinduced_le_iff_le_induced.1 $ le_generate_from $ assume s hs,
     generate_open.basic _ $ mem_image_of_mem _ hs)
 
+/-- This construction is left adjoint to the operation sending a topology on `α`
+  to its neighborhood filter at a fixed point `a : α`. -/
 protected def topological_space.nhds_adjoint (a : α) (f : filter α) : topological_space α :=
 { is_open        := λs, a ∈ s → s ∈ f,
   is_open_univ   := assume s, univ_mem_sets,

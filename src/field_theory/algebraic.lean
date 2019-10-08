@@ -129,52 +129,6 @@ def subfield_of_inv_mem (h : ∀ x ∈ s, x⁻¹ ∈ s) : discrete_field s :=
 
 end subfield
 
-namespace subalgebra
-open polynomial
-variables {K : Type u} {L : Type v} [discrete_field K] [discrete_field L] [algebra K L]
-
-noncomputable def inv_poly (x : L) (hx : is_integral K x) : polynomial K :=
-let p := minimal_polynomial hx in
-((p - C (p.coeff 0)) /ₘ X) * C (p.coeff 0)⁻¹
-
-variables (L_alg : ∀ x:L, is_integral K x)
-include L_alg
-
-instance (E : subalgebra K L) : discrete_field (subtype E.carrier) :=
-subfield_of_inv_mem _ $ λ x (hx : x ∈ E), sorry
-
-end subalgebra
-
-namespace algebra
-open set polynomial
-variables {R : Type*} {A : Type*} {B : Type*}
-variables [decidable_eq R] [decidable_eq A] [decidable_eq B]
-variables [comm_ring R] [comm_ring A] [algebra R A] [comm_ring B]
-
-def adjoin_singleton_desc (x : A) (hx : is_integral R x)
-  (f : R → B) [is_ring_hom f] (y : B) (hy : is_root ((minimal_polynomial hx).map f) y) :
-(adjoin R ({x} : set A) : Type _) → B :=
-sorry
-
-instance adjoin_singleton_desc.is_ring_hom (x : A) (hx : is_integral R x)
-  (f : R → B) [is_ring_hom f] (y : B) (hy : is_root ((minimal_polynomial hx).map f) y) :
-  is_ring_hom (adjoin_singleton_desc x hx f y hy) :=
-sorry
-
-end algebra
-
--- namespace subalgebra
--- open set lattice
--- variables {R : Type*} {A : Type*} {B : Type*}
--- variables [comm_ring R] [comm_ring A] [algebra R A] [comm_ring B] [algebra R B]
-
--- def Sup.desc (Ss : set (subalgebra R A)) (f : Π S : Ss, (S : subalgebra R A) →ₐ[R] B)
---   (hf : ∀ S₁ S₂ : Ss, ∃ h : (S₁ : subalgebra R A) ≤ S₂, (f S₂) ∘ inclusion h = f S₁) :
---   (Sup Ss : subalgebra R A) →ₐ[R] B :=
--- sorry
-
--- end subalgebra
-
 open function algebra polynomial
 variables {R : Type*} {A : Type*} {B : Type*}
 variables [decidable_eq R] [decidable_eq A] [decidable_eq B]
@@ -241,7 +195,6 @@ begin
   { apply fg_adjoin_singleton_of_integral,
     exact is_integral_trans_aux A_alg _ pmonic hp _ rfl }
 end
-.
 
 lemma algebraic_trans (B_alg : ∀ x : B, is_integral A x) :
   ∀ x : comap R A B, is_integral R x :=

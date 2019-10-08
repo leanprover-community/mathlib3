@@ -191,7 +191,7 @@ when it's continuous at every point of `s` within `s`. -/
 def continuous_on (f : α → β) (s : set α) : Prop := ∀ x ∈ s, continuous_within_at f s x
 
 theorem continuous_within_at_univ (f : α → β) (x : α) :
-   continuous_within_at f set.univ x ↔ continuous_at f x :=
+  continuous_within_at f set.univ x ↔ continuous_at f x :=
 by rw [continuous_at, continuous_within_at, nhds_within_univ]
 
 theorem continuous_within_at_iff_continuous_at_restrict (f : α → β) {x : α} {s : set α} (h : x ∈ s) :

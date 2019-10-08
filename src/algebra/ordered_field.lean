@@ -81,7 +81,7 @@ lt_iff_lt_of_le_iff_le (inv_le_inv hb ha)
 lemma inv_lt (ha : 0 < a) (hb : 0 < b) : a⁻¹ < b ↔ b⁻¹ < a :=
 lt_iff_lt_of_le_iff_le (le_inv hb ha)
 
-lemma one_div_lt (ha : 0 < a) (hb : 0 < b) : 1/a < b ↔ 1/b < a :=
+lemma one_div_lt (ha : 0 < a) (hb : 0 < b) : 1 / a < b ↔ 1 / b < a :=
 (one_div_eq_inv a).symm ▸ (one_div_eq_inv b).symm ▸ inv_lt ha hb
 
 lemma lt_inv (ha : 0 < a) (hb : 0 < b) : a < b⁻¹ ↔ b < a⁻¹ :=

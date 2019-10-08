@@ -8,6 +8,10 @@ import ring_theory.integral_closure
 
 /-!
 # Algebraic elements and algebraic extensions
+
+An element of an R-algebra is algebraic over R if it is the root of a nonzero polynomial.
+The main result in this file proves that transitivity of algebraicity:
+a tower of algebraic field extensions is algebraic.
 -/
 
 universe variables u v

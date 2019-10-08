@@ -41,15 +41,15 @@ variables {l m n : Type u} [fintype l] [fintype m] [fintype n]
 
 namespace matrix
 
-variables {α : Type v} [comm_ring α]
-instance [decidable_eq m] [decidable_eq n] (α) [fintype α] : fintype (matrix m n α) :=
+variables {R : Type v} [comm_ring R]
+instance [decidable_eq m] [decidable_eq n] (R) [fintype R] : fintype (matrix m n R) :=
 by unfold matrix; apply_instance
 
-/-- Evaluation of matrices gives a linear map from matrix m n α to
-linear maps (n → α) →ₗ[α] (m → α). -/
-def eval : (matrix m n α) →ₗ[α] ((n → α) →ₗ[α] (m → α)) :=
+/-- Evaluation of matrices gives a linear map from matrix m n R to
+linear maps (n → R) →ₗ[R] (m → R). -/
+def eval : (matrix m n R) →ₗ[R] ((n → R) →ₗ[R] (m → R)) :=
 begin
-  refine linear_map.mk₂ α mul_vec _ _ _ _,
+  refine linear_map.mk₂ R mul_vec _ _ _ _,
   { assume M N v, funext x,
     change finset.univ.sum (λy:n, (M x y + N x y) * v y) = _,
     simp only [_root_.add_mul, finset.sum_add_distrib],
@@ -69,28 +69,28 @@ begin
     refl }
 end
 
-/-- Evaluation of matrices gives a map from matrix m n α to
-linear maps (n → α) →ₗ[α] (m → α). -/
-def to_lin : matrix m n α → (n → α) →ₗ[α] (m → α) := eval.to_fun
+/-- Evaluation of matrices gives a map from matrix m n R to
+linear maps (n → R) →ₗ[R] (m → R). -/
+def to_lin : matrix m n R → (n → R) →ₗ[R] (m → R) := eval.to_fun
 
-lemma to_lin_add (M N : matrix m n α) : (M + N).to_lin = M.to_lin + N.to_lin :=
+lemma to_lin_add (M N : matrix m n R) : (M + N).to_lin = M.to_lin + N.to_lin :=
 matrix.eval.map_add M N
 
-@[simp] lemma to_lin_zero : (0 : matrix m n α).to_lin = 0 :=
+@[simp] lemma to_lin_zero : (0 : matrix m n R).to_lin = 0 :=
 matrix.eval.map_zero
 
 instance to_lin.is_linear_map :
-  @is_linear_map α (matrix m n α) ((n → α) →ₗ[α] (m → α)) _ _ _ _ _ to_lin :=
+  @is_linear_map R (matrix m n R) ((n → R) →ₗ[R] (m → R)) _ _ _ _ _ to_lin :=
 matrix.eval.is_linear
 
 instance to_lin.is_add_monoid_hom :
-  @is_add_monoid_hom (matrix m n α) ((n → α) →ₗ[α] (m → α)) _ _ to_lin :=
+  @is_add_monoid_hom (matrix m n R) ((n → R) →ₗ[R] (m → R)) _ _ to_lin :=
 { map_zero := to_lin_zero, map_add := to_lin_add }
 
-@[simp] lemma to_lin_apply (M : matrix m n α) (v : n → α) :
-  (M.to_lin : (n → α) → (m → α)) v = mul_vec M v := rfl
+@[simp] lemma to_lin_apply (M : matrix m n R) (v : n → R) :
+  (M.to_lin : (n → R) → (m → R)) v = mul_vec M v := rfl
 
-lemma mul_to_lin [decidable_eq l] (M : matrix m n α) (N : matrix n l α) :
+lemma mul_to_lin [decidable_eq l] (M : matrix m n R) (N : matrix n l R) :
   (M.mul N).to_lin = M.to_lin.comp N.to_lin :=
 begin
   ext v x,
@@ -104,44 +104,44 @@ end matrix
 
 namespace linear_map
 
-variables {α : Type v} [comm_ring α]
+variables {R : Type v} [comm_ring R]
 
-/-- The linear map from linear maps (n → α) →ₗ[α] (m → α) to matrix m n α. -/
-def to_matrixₗ [decidable_eq n] : ((n → α) →ₗ[α] (m → α)) →ₗ[α] matrix m n α :=
+/-- The linear map from linear maps (n → R) →ₗ[R] (m → R) to matrix m n R. -/
+def to_matrixₗ [decidable_eq n] : ((n → R) →ₗ[R] (m → R)) →ₗ[R] matrix m n R :=
 begin
   refine linear_map.mk (λ f i j, f (λ n, ite (j = n) 1 0) i) _ _,
   { assume f g, simp only [add_apply], refl },
   { assume f g, simp only [smul_apply], refl }
 end
 
-/-- The map from linear maps (n → α) →ₗ[α] (m → α) to matrix m n α. -/
-def to_matrix [decidable_eq n] : ((n → α) →ₗ[α] (m → α)) → matrix m n α := to_matrixₗ.to_fun
+/-- The map from linear maps (n → R) →ₗ[R] (m → R) to matrix m n R. -/
+def to_matrix [decidable_eq n] : ((n → R) →ₗ[R] (m → R)) → matrix m n R := to_matrixₗ.to_fun
 
 end linear_map
 
 section lin_equiv_matrix
 
-variables {α : Type v} [comm_ring α] [decidable_eq n]
+variables {R : Type v} [comm_ring R] [decidable_eq n]
 
 open finsupp matrix linear_map
 
 /-- to_lin is the left inverse of to_matrix. -/
-lemma to_matrix_to_lin {f : (n → α) →ₗ[α] (m → α)} :
+lemma to_matrix_to_lin {f : (n → R) →ₗ[R] (m → R)} :
   to_lin (to_matrix f) = f :=
 begin
   ext : 1,
   -- Show that the two sides are equal by showing that they are equal on a basis
-  convert linear_eq_on (set.range _) _ (is_basis.mem_span (@pi.is_basis_fun α n _ _) _),
+  convert linear_eq_on (set.range _) _ (is_basis.mem_span (@pi.is_basis_fun R n _ _) _),
   assume e he,
-  rw [@std_basis_eq_single α _ _ _ 1] at he,
+  rw [@std_basis_eq_single R _ _ _ 1] at he,
   cases (set.mem_range.mp he) with i h,
   ext j,
   change finset.univ.sum (λ k, (f.to_fun (λ l, ite (k = l) 1 0)) j * (e k)) = _,
   rw [←h],
   conv_lhs { congr, skip, funext,
     rw [mul_comm, ←smul_eq_mul, ←pi.smul_apply, ←linear_map.smul],
-    rw [show _ = ite (i = k) (1:α) 0, by convert single_apply],
-    rw [show f.to_fun (ite (i = k) (1:α) 0 • (λ l, ite (k = l) 1 0)) = ite (i = k) (f.to_fun _) 0,
+    rw [show _ = ite (i = k) (1:R) 0, by convert single_apply],
+    rw [show f.to_fun (ite (i = k) (1:R) 0 • (λ l, ite (k = l) 1 0)) = ite (i = k) (f.to_fun _) 0,
       { split_ifs, { rw [one_smul] }, { rw [zero_smul], exact linear_map.map_zero f } }] },
   convert finset.sum_eq_single i _ _,
   { rw [if_pos rfl], convert rfl, ext, congr },
@@ -150,7 +150,7 @@ begin
 end
 
 /-- to_lin is the right inverse of to_matrix. -/
-lemma to_lin_to_matrix {M : matrix m n α} : to_matrix (to_lin M) = M :=
+lemma to_lin_to_matrix {M : matrix m n R} : to_matrix (to_lin M) = M :=
 begin
   ext,
   change finset.univ.sum (λ y, M i y * ite (j = y) 1 0) = M i j,
@@ -164,8 +164,8 @@ begin
   exact if_pos rfl
 end
 
-/-- Linear maps (n → α) →ₗ[α] (m → α) are linearly equivalent to matrix  m n α. -/
-def lin_equiv_matrix' : ((n → α) →ₗ[α] (m → α)) ≃ₗ[α] matrix m n α :=
+/-- Linear maps (n → R) →ₗ[R] (m → R) are linearly equivalent to matrix  m n R. -/
+def lin_equiv_matrix' : ((n → R) →ₗ[R] (m → R)) ≃ₗ[R] matrix m n R :=
 { to_fun := to_matrix,
   inv_fun := to_lin,
   right_inv := λ _, to_lin_to_matrix,
@@ -173,14 +173,14 @@ def lin_equiv_matrix' : ((n → α) →ₗ[α] (m → α)) ≃ₗ[α] matrix m n
   add := to_matrixₗ.add,
   smul := to_matrixₗ.smul }
 
-/-- Given a basis of two modules β and γ over a commutative ring α, we get a linear equivalence
-between linear maps β →ₗ γ and matrices over α indexed by the bases. -/
-def lin_equiv_matrix {ι κ β γ : Type*}
-  [add_comm_group β] [module α β]
-  [add_comm_group γ] [module α γ]
+/-- Given a basis of two modules M₁ and M₂ over a commutative ring R, we get a linear equivalence
+between linear maps M₁ →ₗ M₂ and matrices over R indexed by the bases. -/
+def lin_equiv_matrix {ι κ M₁ M₂ : Type*}
+  [add_comm_group M₁] [module R M₁]
+  [add_comm_group M₂] [module R M₂]
   [fintype ι] [decidable_eq ι] [fintype κ] [decidable_eq κ]
-  {v₁ : ι → β} {v₂ : κ → γ} (hv₁ : is_basis α v₁) (hv₂ : is_basis α v₂) :
-  (β →ₗ[α] γ) ≃ₗ[α] matrix κ ι α :=
+  {v₁ : ι → M₁} {v₂ : κ → M₂} (hv₁ : is_basis R v₁) (hv₂ : is_basis R v₂) :
+  (M₁ →ₗ[R] M₂) ≃ₗ[R] matrix κ ι R :=
 linear_equiv.trans (linear_equiv.arrow_congr (equiv_fun_basis hv₁) (equiv_fun_basis hv₂)) lin_equiv_matrix'
 
 end lin_equiv_matrix
@@ -189,33 +189,33 @@ namespace matrix
 
 section ring
 
-variables {α : Type v} [comm_ring α]
+variables {R : Type v} [comm_ring R]
 open linear_map matrix
 
-lemma proj_diagonal [decidable_eq m] (i : m) (w : m → α) :
+lemma proj_diagonal [decidable_eq m] (i : m) (w : m → R) :
   (proj i).comp (to_lin (diagonal w)) = (w i) • proj i :=
 by ext j; simp [mul_vec_diagonal]
 
-lemma diagonal_comp_std_basis [decidable_eq n] (w : n → α) (i : n) :
-  (diagonal w).to_lin.comp (std_basis α (λ_:n, α) i) = (w i) • std_basis α (λ_:n, α) i :=
+lemma diagonal_comp_std_basis [decidable_eq n] (w : n → R) (i : n) :
+  (diagonal w).to_lin.comp (std_basis R (λ_:n, R) i) = (w i) • std_basis R (λ_:n, R) i :=
 begin
   ext a j,
   simp only [linear_map.comp_apply, smul_apply, to_lin_apply, mul_vec_diagonal, smul_apply,
     pi.smul_apply, smul_eq_mul],
   by_cases i = j,
   { subst h },
-  { rw [std_basis_ne α (λ_:n, α) _ _ (ne.symm h), _root_.mul_zero, _root_.mul_zero] }
+  { rw [std_basis_ne R (λ_:n, R) _ _ (ne.symm h), _root_.mul_zero, _root_.mul_zero] }
 end
 
 end ring
 
 section vector_space
 
-variables {α : Type u} [discrete_field α] -- maybe try to relax the universe constraint
+variables {𝕜 : Type u} [discrete_field 𝕜] -- maybe try to relax the universe constraint
 
 open linear_map matrix
 
-lemma rank_vec_mul_vec [decidable_eq n] (w : m → α) (v : n → α) :
+lemma rank_vec_mul_vec [decidable_eq n] (w : m → 𝕜) (v : n → 𝕜) :
   rank (vec_mul_vec w v).to_lin ≤ 1 :=
 begin
   rw [vec_mul_vec_eq, mul_to_lin],
@@ -227,22 +227,22 @@ end
 
 set_option class.instance_max_depth 100
 
-lemma diagonal_to_lin [decidable_eq m] (w : m → α) :
+lemma diagonal_to_lin [decidable_eq m] (w : m → 𝕜) :
   (diagonal w).to_lin = linear_map.pi (λi, w i • linear_map.proj i) :=
 by ext v j; simp [mul_vec_diagonal]
 
-lemma ker_diagonal_to_lin [decidable_eq m] (w : m → α) :
-  ker (diagonal w).to_lin = (⨆i∈{i | w i = 0 }, range (std_basis α (λi, α) i)) :=
+lemma ker_diagonal_to_lin [decidable_eq m] (w : m → 𝕜) :
+  ker (diagonal w).to_lin = (⨆i∈{i | w i = 0 }, range (std_basis 𝕜 (λi, 𝕜) i)) :=
 begin
   rw [← comap_bot, ← infi_ker_proj],
   simp only [comap_infi, (ker_comp _ _).symm, proj_diagonal, ker_smul'],
   have : univ ⊆ {i : m | w i = 0} ∪ -{i : m | w i = 0}, { rw set.union_compl_self },
-  exact (supr_range_std_basis_eq_infi_ker_proj α (λi:m, α)
+  exact (supr_range_std_basis_eq_infi_ker_proj 𝕜 (λi:m, 𝕜)
     (disjoint_compl {i | w i = 0}) this (finite.of_fintype _)).symm
 end
 
-lemma range_diagonal [decidable_eq m] (w : m → α) :
-  (diagonal w).to_lin.range = (⨆ i ∈ {i | w i ≠ 0}, (std_basis α (λi, α) i).range) :=
+lemma range_diagonal [decidable_eq m] (w : m → 𝕜) :
+  (diagonal w).to_lin.range = (⨆ i ∈ {i | w i ≠ 0}, (std_basis 𝕜 (λi, 𝕜) i).range) :=
 begin
   dsimp only [mem_set_of_eq],
   rw [← map_top, ← supr_range_std_basis, map_supr],
@@ -250,14 +250,14 @@ begin
   rw [← linear_map.range_comp, diagonal_comp_std_basis, range_smul'],
 end
 
-lemma rank_diagonal [decidable_eq m] (w : m → α) :
+lemma rank_diagonal [decidable_eq m] (w : m → 𝕜) :
   rank (diagonal w).to_lin = fintype.card { i // w i ≠ 0 } :=
 begin
   have hu : univ ⊆ - {i : m | w i = 0} ∪ {i : m | w i = 0}, { rw set.compl_union_self },
   have hd : disjoint {i : m | w i ≠ 0} {i : m | w i = 0} := (disjoint_compl {i | w i = 0}).symm,
-  have h₁ := supr_range_std_basis_eq_infi_ker_proj α (λi:m, α) hd hu (finite.of_fintype _),
-  have h₂ := @infi_ker_proj_equiv α _ _ (λi:m, α) _ _ _ _ (by simp; apply_instance) hd hu,
-  rw [rank, range_diagonal, h₁, ←@dim_fun' α],
+  have h₁ := supr_range_std_basis_eq_infi_ker_proj 𝕜 (λi:m, 𝕜) hd hu (finite.of_fintype _),
+  have h₂ := @infi_ker_proj_equiv 𝕜 _ _ (λi:m, 𝕜) _ _ _ _ (by simp; apply_instance) hd hu,
+  rw [rank, range_diagonal, h₁, ←@dim_fun' 𝕜],
   apply linear_equiv.dim_eq,
   apply h₂,
 end

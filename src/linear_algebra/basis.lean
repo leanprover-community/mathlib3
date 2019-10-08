@@ -2,28 +2,61 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp
+-/
 
-Linear independence and basis sets in a module or vector space.
+import linear_algebra.basic linear_algebra.finsupp order.zorn
 
-This file is inspired by Isabelle/HOL's linear algebra, and hence indirectly by HOL Light.
+/-!
 
-We define the following concepts:
+# Linear independence and bases
 
-* `linear_independent α v`: states that the elements of the family `v` are linear independent
+This file defines linear independence and bases in a module or vector space.
 
-* `linear_independent.repr hv x`: choose the linear combination representing `x` on the linear
-  independent vectors `v`, given `hv : linear_independent α v`.
-  `x` should be in `span α (range v)` (uses classical choice).
+It is inspired by Isabelle/HOL's linear algebra, and hence indirectly by HOL Light.
 
-* `is_basis α v`: if `v` is a basis, i.e. linear independent and spans the entire space
+## Main definitions
 
-* `is_basis.repr hv x`: like `linear_independent.repr` but as a `linear_map`
+All definitions are given for families of vectors, i.e. `v : ι → β` where β is the module or
+vectorspace and `ι : Type*` is an arbitrary indexing type.
 
-* `is_basis.constr hv g`: constructs a `linear_map` by extending `g` from the basis `v`,
-  given `hv : is_basis α v`.
+* `linear_independent α v` states that the elements of the family `v` are linear independent
+
+* `linear_independent.repr hv x` returns the linear combination representing `x : span α (range v)`
+  on the linear independent vectors `v`, given `hv : linear_independent α v`
+  (using classical choice). `linear_independent.repr hv` is provided as a linear map.
+
+* `is_basis α v` states that the vector family `v` is a basis, i.e. it is linear independent and
+  spans the entire space
+
+* `is_basis.repr hv x` is the basis version of `linear_independent.repr hv x`. It returns the
+  linear combination representing `x : β` on a basis `v` of `β` (using classical choice).
+  The argument `hv` must be a proof that `is_basis α v`. `is_basis.repr hv` is given as a linear
+  map as well.
+
+* `is_basis.constr hv f` constructs a linear map `β →ₗ[α] γ` given the values `f : ι → γ` at the
+  basis `v : ι → β`, given `hv : is_basis α v`.
+
+## Main statements
+
+* `is_basis.ext` states that two linear maps are equal if they coincide on a basis.
+
+* `exists_is_basis` states that every vector space has a basis.
+
+## Implementation notes
+
+We use families instead of sets because it allows us to say that two identical vectors are linearly
+dependent. For bases, this is useful as well because we can easily derive ordered bases by using an
+ordered index type ι.
+If you want to use sets, use the family `(λ x, x : s → β)` given a set `s : set β`. The lemmas
+`linear_independent.to_subtype_range` and `linear_independent.of_subtype_range` connect those two
+worlds.
+
+## Tags
+
+linearly dependent, linear dependence, linearly independent, linear independence, basis
 
 -/
-import linear_algebra.basic linear_algebra.finsupp order.zorn
+
 noncomputable theory
 
 open function lattice set submodule
@@ -38,7 +71,7 @@ variables {a b : α} {x y : β}
 include α
 
 variables (α) (v)
-/-- Linearly independent set of vectors -/
+/-- Linearly independent family of vectors -/
 def linear_independent : Prop := (finsupp.total ι β α v).ker = ⊥
 variables {α} {v}
 
@@ -384,6 +417,7 @@ end subtype
 section repr
 variables (hv : linear_independent α v)
 
+/-- Canonical isomorphism between linear combinations and the span of linearly independent vectors. -/
 def linear_independent.total_equiv (hv : linear_independent α v) : (ι →₀ α) ≃ₗ[α] span α (range v) :=
 begin
 apply linear_equiv.of_bijective (linear_map.cod_restrict (span α (range v)) (finsupp.total ι β α v) _),
@@ -399,6 +433,11 @@ apply linear_equiv.of_bijective (linear_map.cod_restrict (span α (range v)) (fi
   apply mem_range_self l }
 end
 
+/-- Linear combination representing a vector in the span of linearly independent vectors.
+
+   Given a family of linearly independent vectors, we can represent any vector in their span as
+   a linear combination of these vectors. These are provided by this linear map.
+   It is simply one direction of `linear_independent.total_equiv` -/
 def linear_independent.repr (hv : linear_independent α v) :
   span α (range v) →ₗ[α] ι →₀ α := hv.total_equiv.symm
 
@@ -585,7 +624,7 @@ lemma span_le_span_iff {s t u: set β} (zero_ne_one : (0 : α) ≠ 1)
 ⟨le_of_span_le_span zero_ne_one hl hsu htu, span_mono⟩
 
 variables (α) (v)
-/-- A set of vectors is a basis if it is linearly independent and all vectors are in the span α. -/
+/-- A family of vectors is a basis if it is linearly independent and all vectors are in the span. -/
 def is_basis := linear_independent α v ∧ span α (range v) = ⊤
 variables {α} {v}
 
@@ -605,6 +644,8 @@ end
 lemma is_basis.injective (hv : is_basis α v) (zero_ne_one : (0 : α) ≠ 1) : injective v :=
   λ x y h, linear_independent.injective zero_ne_one hv.1 h
 
+/- Given a basis, any vector can be written as a linear combination of the basis vectors. They are
+   given by this linear map. This is one direction of `module_equiv_finsupp` -/
 def is_basis.repr : β →ₗ (ι →₀ α) :=
 (hv.1.repr).comp (linear_map.id.cod_restrict _ hv.mem_span)
 
@@ -685,9 +726,12 @@ lemma constr_range [inhabited ι] (hv : is_basis α v) {f : ι  → γ} :
 by rw [is_basis.constr, linear_map.range_comp, linear_map.range_comp, is_basis.repr_range,
     finsupp.lmap_domain_supported, ←set.image_univ, ←finsupp.span_eq_map_total, image_id]
 
+/-- Canonical equivalence between a module and the linear combinations of basis vectors. -/
 def module_equiv_finsupp (hv : is_basis α v) : β ≃ₗ[α] ι →₀ α :=
 (hv.1.total_equiv.trans (linear_equiv.of_top _ hv.2)).symm
 
+/-- Isomorphism between the two modules, given two modules β and γ with respective bases v and v'
+   and a bijection between the two bases. -/
 def equiv_of_is_basis {v : ι → β} {v' : ι' → γ} {f : β → γ} {g : γ → β}
   (hv : is_basis α v) (hv' : is_basis α v') (hf : ∀i, f (v i) ∈ range v') (hg : ∀i, g (v' i) ∈ range v)
   (hgf : ∀i, g (f (v i)) = v i) (hfg : ∀i, f (g (v' i)) = v' i) :

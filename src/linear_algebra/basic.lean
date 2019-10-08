@@ -65,10 +65,6 @@ lemma smul_sum {α : Type u} {M : Type v} {R : Type w}
   {s : finset α} {a : R} {f : α → M} :
   a • (s.sum f) = s.sum (λc, a • f c) :=
 (finset.sum_hom ((•) a)).symm
-/- lemma smul_sum {γ} [ring R] [add_comm_group M] [module R M]
-  {s : finset γ} {a : R} {f : γ → M} :
-  a • (s.sum f) = s.sum (λc, a • f c) :=
-(finset.sum_hom ((•) a)).symm -/
 
 end finset
 
@@ -79,10 +75,6 @@ lemma smul_sum {α : Type u} {β : Type v} {R : Type w} {M : Type y}
   {v : α →₀ β} {c : R} {h : α → β → M} :
   c • (v.sum h) = v.sum (λa b, c • h a b) :=
 finset.smul_sum
-/- lemma smul_sum {α γ} [has_zero α] [ring R] [add_comm_group M] [module R M]
-  {v : γ →₀ α} {c : R} {h : γ → α → M} :
-  c • (v.sum h) = v.sum (λa b, c • h a b) :=
-finset.smul_sum -/
 
 end finsupp
 

@@ -47,6 +47,7 @@ vectorspace and `ι : Type*` is an arbitrary indexing type.
 We use families instead of sets because it allows us to say that two identical vectors are linearly
 dependent. For bases, this is useful as well because we can easily derive ordered bases by using an
 ordered index type ι.
+
 If you want to use sets, use the family `(λ x, x : s → M)` given a set `s : set M`. The lemmas
 `linear_independent.to_subtype_range` and `linear_independent.of_subtype_range` connect those two
 worlds.

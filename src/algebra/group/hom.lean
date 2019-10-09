@@ -38,6 +38,10 @@ as `map_mul`; a separate constructor `monoid_hom.mk'` will construct
 group homs (i.e. monoid homs between groups) given only a proof
 that multiplication is preserved,
 
+Throughout the `monoid_hom` section implicit `{}` brackets are somtimes used instead of type class `[]` brackets. 
+This is done when the instances can be inferred because they are implicit arguments to the type `monoid_hom`. 
+When they can be inferred from the type it is faster to use this method than to use type class inference -/
+
 ## Tags
 
 is_group_hom, is_monoid_hom, monoid_hom
@@ -250,10 +254,6 @@ instance {M : Type*} {N : Type*} {mM : monoid M} {mN : monoid N} : has_coe_to_fu
 namespace monoid_hom
 variables {M : Type*} {N : Type*} {P : Type*} [mM : monoid M] [mN : monoid N] {mP : monoid P}
 variables {G : Type*} {H : Type*} [group G] [comm_group H]
-
-/- Throughout this section implicit `{}` brackets are somtimes used instead of type class `[]` brackets. 
-  This is done when the instances can be inferred because they are implicit arguments to the type ring_hom. 
-  When they can be inferred from the type it is faster to use this method than to use type class inference -/
 
 include mM mN
 /-- Interpret a map `f : M → N` as a homomorphism `M →* N`. -/

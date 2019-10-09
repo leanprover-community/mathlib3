@@ -167,7 +167,7 @@ begin
     rw [finsupp.sum], refine sum_mem _ _, intros r2 hr2,
     rw [finsupp.sum], refine sum_mem _ _, intros r1 hr1,
     rw [algebra.mul_smul_comm, algebra.smul_mul_assoc],
-    letI : module ↥S₀ A := ‹_›, refine smul_mem _ _ (smul_mem _ _ _),
+    letI : module ↥S₀ A := hmod, refine smul_mem _ _ (smul_mem _ _ _),
     rcases hl1 hr1 with rfl | hr1,
     { change 1 * r2 ∈ _, rw one_mul r2, exact subset_span (hl2 hr2) },
     rcases hl2 hr2 with rfl | hr2,

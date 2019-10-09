@@ -306,23 +306,25 @@ structure ring_hom (α : Type*) (β : Type*) [semiring α] [semiring β]
 
 infixr ` →+* `:25 := ring_hom
 
-instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe_to_fun (α →+* β) :=
+instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe_to_fun (α →+* β) :=
 ⟨_, ring_hom.to_fun⟩
 
-instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe (α →+* β) (α →* β) :=
+instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe (α →+* β) (α →* β) :=
 ⟨ring_hom.to_monoid_hom⟩
 
-instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe (α →+* β) (α →+ β) :=
+instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe (α →+* β) (α →+ β) :=
 ⟨ring_hom.to_add_monoid_hom⟩
 
-@[squash_cast] lemma coe_monoid_hom {α : Type*} {β : Type*} [semiring α] [semiring β] (f : α →+* β) (a : α) :
+@[squash_cast] lemma coe_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) (a : α) :
   ((f : α →* β) : α → β) a = (f : α → β) a := rfl
-@[squash_cast] lemma coe_add_monoid_hom {α : Type*} {β : Type*} [semiring α] [semiring β] (f : α →+* β) (a : α) :
+@[squash_cast] lemma coe_add_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) (a : α) :
   ((f : α →+ β) : α → β) a = (f : α → β) a := rfl
 
 namespace ring_hom
 
-variables {β : Type v} {γ : Type w} [semiring α] [semiring β] [semiring γ]
+variables {β : Type v} {γ : Type w} [rα : semiring α] [rβ : semiring β] {rγ : semiring γ}
+
+include rα rβ
 
 /-- Interpret `f : α → β` with `is_semiring_hom f` as a ring homomorphism. -/
 def of (f : α → β) [is_semiring_hom f] : α →+* β :=
@@ -332,7 +334,7 @@ def of (f : α → β) [is_semiring_hom f] : α →+* β :=
 
 @[simp] lemma coe_of (f : α → β) [is_semiring_hom f] : ⇑(of f) = f := rfl
 
-variables (f : α →+* β) {x y : α}
+variables (f : α →+* β) {x y : α} {rα rβ}
 
 theorem coe_inj ⦃f g : α →+* β⦄ (h : (f : α → β) = g) : f = g :=
 by cases f; cases g; cases h; refl
@@ -355,12 +357,13 @@ theorem ext_iff {f g : α →+* β} : f = g ↔ ∀ x, f x = g x :=
 /-- Ring homomorphisms preserve multiplication. -/
 @[simp] lemma map_mul (f : α →+* β) (a b : α) : f (a * b) = f a * f b := f.map_mul' a b
 
-instance {α : Type*} {β : Type*} [semiring α] [semiring β] (f : α →+* β) :
-  is_semiring_hom f :=
+instance (f : α →+* β) : is_semiring_hom f :=
 { map_zero := f.map_zero,
   map_one := f.map_one,
   map_add := f.map_add,
   map_mul := f.map_mul }
+
+omit rα rβ
 
 instance {α γ} [ring α] [ring γ] (g : α →+* γ) : is_ring_hom g :=
 is_ring_hom.of_semiring g
@@ -368,6 +371,8 @@ is_ring_hom.of_semiring g
 /-- The identity ring homomorphism from a semiring to itself. -/
 def id (α : Type*) [semiring α] : α →+* α :=
 by refine {to_fun := id, ..}; intros; refl
+
+include rα rβ rγ
 
 /-- Composition of ring homomorphisms is a ring homomorphism. -/
 def comp (hnp : β →+* γ) (hmn : α →+* β) : α →+* γ :=
@@ -379,6 +384,8 @@ def comp (hnp : β →+* γ) (hmn : α →+* β) : α →+* γ :=
 
 @[simp] lemma coe_comp (hnp : β →+* γ) (hmn : α →+* β) : (hnp.comp hmn : α → γ) = hnp ∘ hmn := rfl
 
+omit rα rβ rγ
+
 /-- Ring homomorphisms preserve additive inverse. -/
 @[simp] theorem map_neg {α β} [ring α] [ring β] (f : α →+* β) (x : α) : f (-x) = -(f x) :=
 eq_neg_of_add_eq_zero $ by rw [←f.map_add, neg_add_self, f.map_zero]
@@ -386,6 +393,8 @@ eq_neg_of_add_eq_zero $ by rw [←f.map_add, neg_add_self, f.map_zero]
 /-- Ring homomorphisms preserve subtraction. -/
 @[simp] theorem map_sub {α β} [ring α] [ring β] (f : α →+* β) (x y : α) :
   f (x - y) = (f x) - (f y) := by simp
+
+include rα
 
 /-- Makes a ring homomorphism from a monoid homomorphism of rings which preserves addition. -/
 def mk' {γ} [ring γ] (f : α →* γ) (map_add : ∀ a b : α, f (a + b) = f a + f b) : α →+* γ :=

@@ -40,7 +40,7 @@ that multiplication is preserved,
 
 Throughout the `monoid_hom` section implicit `{}` brackets are somtimes used instead of type class `[]` brackets. 
 This is done when the instances can be inferred because they are implicit arguments to the type `monoid_hom`. 
-When they can be inferred from the type it is faster to use this method than to use type class inference -/
+When they can be inferred from the type it is faster to use this method than to use type class inference.
 
 ## Tags
 

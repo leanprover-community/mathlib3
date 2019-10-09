@@ -907,13 +907,6 @@ le_antisymm (degree_map_le f) $
     rw [coeff_map], exact hf
   end
 
-lemma degree_map_eq_of_injective [comm_semiring β] (f : α → β) [is_semiring_hom f]
-  (hf : function.injective f) : degree (p.map f) = degree p :=
-if h : p = 0 then by simp [h]
-else degree_map_eq_of_leading_coeff_ne_zero _
-  (by rw [← is_semiring_hom.map_zero f]; exact mt hf.eq_iff.1
-    (mt leading_coeff_eq_zero.1 h))
-
 lemma monic_map [comm_semiring β] (f : α → β)
   [is_semiring_hom f] (hp : monic p) : monic (p.map f) :=
 if h : (0 : β) = 1 then
@@ -975,17 +968,24 @@ by simpa only [C_1, one_mul, pow_one] using degree_C_mul_X_pow_le (1:α) 1
 
 section injective
 open function
-variables [comm_semiring β] {f : α → β} [is_semiring_hom f]
+variables [comm_semiring β] {f : α → β} [is_semiring_hom f] (hf : function.injective f)
+include hf
 
-lemma degree_map' (hf : injective f) (p : polynomial α) :
+lemma degree_map_eq_of_injective (p : polynomial α) : degree (p.map f) = degree p :=
+if h : p = 0 then by simp [h]
+else degree_map_eq_of_leading_coeff_ne_zero _
+  (by rw [← is_semiring_hom.map_zero f]; exact mt hf.eq_iff.1
+    (mt leading_coeff_eq_zero.1 h))
+
+lemma degree_map' (p : polynomial α) :
   degree (p.map f) = degree p :=
-degree_map_eq_of_injective _ hf
+p.degree_map_eq_of_injective hf
 
-lemma nat_degree_map' (hf : injective f) (p : polynomial α) :
+lemma nat_degree_map' (p : polynomial α) :
   nat_degree (p.map f) = nat_degree p :=
 nat_degree_eq_of_degree_eq (degree_map' hf p)
 
-lemma map_injective (hf : injective f) (p : polynomial α) :
+lemma map_injective (p : polynomial α) :
   injective (map f : polynomial α → polynomial β) :=
 λ p q h, ext $ λ m, hf $
 begin
@@ -995,14 +995,14 @@ begin
   exact h
 end
 
-lemma leading_coeff_of_injective (hf : injective f) (p : polynomial α) :
+lemma leading_coeff_of_injective (p : polynomial α) :
   leading_coeff (p.map f) = f (leading_coeff p) :=
 begin
   delta leading_coeff,
   rw [coeff_map f, nat_degree_map' hf p]
 end
 
-lemma monic_of_injective (hf : injective f) {p : polynomial α} (hp : (p.map f).monic) : p.monic :=
+lemma monic_of_injective {p : polynomial α} (hp : (p.map f).monic) : p.monic :=
 begin
   apply hf,
   rw [← leading_coeff_of_injective hf, hp.leading_coeff, is_semiring_hom.map_one f]
@@ -2141,7 +2141,7 @@ by rw [div_def, mul_comm, degree_mul_leading_coeff_inv _ hq0];
 
 @[simp] lemma degree_map [discrete_field β] (p : polynomial α) (f : α → β) [is_field_hom f] :
   degree (p.map f) = degree p :=
-degree_map_eq_of_injective _ (is_field_hom.injective f)
+p.degree_map_eq_of_injective (is_field_hom.injective f)
 
 @[simp] lemma nat_degree_map [discrete_field β] (f : α → β) [is_field_hom f] :
   nat_degree (p.map f) = nat_degree p :=

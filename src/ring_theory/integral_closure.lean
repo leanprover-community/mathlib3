@@ -107,13 +107,13 @@ begin
   rw [linear_map.map_sub, hpe, sub_self]
 end
 
-theorem is_integral_of_noetherian (M : subalgebra R A)
-  (H : is_noetherian R (M : submodule R A)) (x : A) (hx : x ∈ M) :
+theorem is_integral_of_noetherian (S : subalgebra R A)
+  (H : is_noetherian R (S : submodule R A)) (x : A) (hx : x ∈ S) :
   is_integral R x :=
 begin
-  letI : algebra R M := M.algebra,
-  letI : comm_ring M := M.comm_ring R A,
-  suffices : is_integral R (⟨x, hx⟩ : M),
+  letI : algebra R S := S.algebra,
+  letI : comm_ring S := S.comm_ring R A,
+  suffices : is_integral R (⟨x, hx⟩ : S),
   { rcases this with ⟨p, hpm, hpx⟩,
     replace hpx := congr_arg subtype.val hpx,
     refine ⟨p, hpm, eq.trans _ hpx⟩,
@@ -128,30 +128,30 @@ begin
 end
 
 set_option class.instance_max_depth 100
-theorem is_integral_of_mem_of_fg (M : subalgebra R A)
-  (HM : (M : submodule R A).fg) (x : A) (hx : x ∈ M) : is_integral R x :=
+theorem is_integral_of_mem_of_fg (S : subalgebra R A)
+  (HS : (S : submodule R A).fg) (x : A) (hx : x ∈ S) : is_integral R x :=
 begin
-  cases HM with m hm,
-  have hxm : x ∈ (M : submodule R A) := hx,
-  rw [← hm, ← set.image_id ↑m, finsupp.mem_span_iff_total] at hxm,
-  rcases hxm with ⟨lx, hlx1, hlx2⟩,
-  have : ∀ (jk : (↑(m.product m) : set (A × A))), jk.1.1 * jk.1.2 ∈ (span R ↑m : submodule R A),
+  cases HS with y hy,
+  obtain ⟨lx, hlx1, hlx2⟩ :
+    ∃ (l : A →₀ R) (H : l ∈ finsupp.supported R R ↑y), (finsupp.total A A R id) l = x,
+  { rwa [←(@finsupp.mem_span_iff_total A A R _ _ _ id ↑y x), set.image_id ↑y, hy] },
+  have : ∀ (jk : (↑(y.product y) : set (A × A))), jk.1.1 * jk.1.2 ∈ (span R ↑y : submodule R A),
   { intros jk,
-    let j : ↥(↑m : set A) := ⟨jk.1.1, (finset.mem_product.1 jk.2).1⟩,
-    let k : ↥(↑m : set A) := ⟨jk.1.2, (finset.mem_product.1 jk.2).2⟩,
-    have hj : j.1 ∈ (span R ↑m : submodule R A) := subset_span j.2,
-    have hk : k.1 ∈ (span R ↑m : submodule R A) := subset_span k.2,
-    revert hj hk, rw hm, exact @is_submonoid.mul_mem A _ M _ j.1 k.1 },
-  rw ← set.image_id ↑m at this,
+    let j : ↥(↑y : set A) := ⟨jk.1.1, (finset.mem_product.1 jk.2).1⟩,
+    let k : ↥(↑y : set A) := ⟨jk.1.2, (finset.mem_product.1 jk.2).2⟩,
+    have hj : j.1 ∈ (span R ↑y : submodule R A) := subset_span j.2,
+    have hk : k.1 ∈ (span R ↑y : submodule R A) := subset_span k.2,
+    revert hj hk, rw hy, exact @is_submonoid.mul_mem A _ S _ j.1 k.1 },
+  rw ← set.image_id ↑y at this,
   simp only [finsupp.mem_span_iff_total] at this,
-  choose lm hlm1 hlm2,
-  let S₀' : finset R := lx.frange ∪ finset.bind finset.univ (finsupp.frange ∘ lm),
+  choose ly hly1 hly2,
+  let S₀' : finset R := lx.frange ∪ finset.bind finset.univ (finsupp.frange ∘ ly),
   let S₀ : set R := ring.closure ↑S₀',
   refine is_integral_of_subring (ring.closure ↑S₀') _,
   letI : algebra S₀ (algebra.comap S₀ R A) := algebra.comap.algebra _ _ _,
   letI hmod : module S₀ (algebra.comap S₀ R A) := algebra.module,
-  have : (span S₀ (insert 1 (↑m:set A) : set (algebra.comap S₀ R A)) : submodule S₀ (algebra.comap S₀ R A)) =
-      (algebra.adjoin S₀ ((↑m : set A) : set (algebra.comap S₀ R A)) : subalgebra S₀ (algebra.comap S₀ R A)),
+  have : (span S₀ (insert 1 (↑y:set A) : set (algebra.comap S₀ R A)) : submodule S₀ (algebra.comap S₀ R A)) =
+      (algebra.adjoin S₀ ((↑y : set A) : set (algebra.comap S₀ R A)) : subalgebra S₀ (algebra.comap S₀ R A)),
   { apply le_antisymm,
     { rw [span_le, set.insert_subset, mem_coe], split,
       change _ ∈ ring.closure _, exact is_submonoid.one_mem _, exact algebra.subset_adjoin },
@@ -159,7 +159,7 @@ begin
     { intros r hr, exact subset_span (set.mem_insert_of_mem _ hr) },
     { exact subset_span (set.mem_insert _ _) },
     intros r1 r2 hr1 hr2 ih1 ih2,
-    rw ← set.image_id (insert _ ↑m) at ih1 ih2,
+    rw ← set.image_id (insert _ ↑y) at ih1 ih2,
     simp only [mem_coe, finsupp.mem_span_iff_total] at ih1 ih2,
     have ih1' := ih1, have ih2' := ih2,
     rcases ih1' with ⟨l1, hl1, rfl⟩, rcases ih2' with ⟨l2, hl2, rfl⟩,
@@ -167,31 +167,34 @@ begin
     rw [finsupp.sum], refine sum_mem _ _, intros r2 hr2,
     rw [finsupp.sum], refine sum_mem _ _, intros r1 hr1,
     rw [algebra.mul_smul_comm, algebra.smul_mul_assoc],
-    letI hS₀A : module ↥S₀ A := ‹_›, refine smul_mem _ _ (smul_mem _ _ _),
+    letI : module ↥S₀ A := ‹_›, refine smul_mem _ _ (smul_mem _ _ _),
     rcases hl1 hr1 with rfl | hr1,
     { change 1 * r2 ∈ _, rw one_mul r2, exact subset_span (hl2 hr2) },
     rcases hl2 hr2 with rfl | hr2,
     { change r1 * 1 ∈ _, rw mul_one, exact subset_span (set.mem_insert_of_mem _ hr1) },
-    let jk : ↥(↑(finset.product m m) : set (A × A)) := ⟨(r1, r2), finset.mem_product.2 ⟨hr1, hr2⟩⟩,
-    specialize hlm2 jk, change _ = r1 * r2 at hlm2, rw [id, id, ← hlm2, finsupp.total_apply],
+    let jk : ↥(↑(finset.product y y) : set (A × A)) := ⟨(r1, r2), finset.mem_product.2 ⟨hr1, hr2⟩⟩,
+    specialize hly2 jk, change _ = r1 * r2 at hly2, rw [id, id, ← hly2, finsupp.total_apply],
     rw [finsupp.sum], refine sum_mem _ _, intros z hz,
-    have : lm jk z ∈ S₀,
+    have : ly jk z ∈ S₀,
     { apply ring.subset_closure,
       apply finset.mem_union_right, apply finset.mem_bind.2,
       exact ⟨jk, finset.mem_univ _, by convert finset.mem_image_of_mem _ hz⟩ },
-    change @has_scalar.smul S₀ (algebra.comap S₀ R A) hS₀A.to_has_scalar ⟨lm jk z, this⟩ z ∈ _,
-    exact smul_mem _ _ (subset_span (set.mem_insert_of_mem _ (hlm1 _ hz))) },
-  haveI : is_noetherian_ring ↥S₀ :=(by convert is_noetherian_ring_closure _ (finset.finite_to_set _); apply_instance),
+    change @has_scalar.smul S₀ (algebra.comap S₀ R A) hmod.to_has_scalar ⟨ly jk z, this⟩ z ∈ _,
+    exact smul_mem _ _ (subset_span (set.mem_insert_of_mem _ (hly1 _ hz))) },
+  haveI : is_noetherian_ring ↥S₀ :=
+  by { convert is_noetherian_ring_closure _ (finset.finite_to_set _), apply_instance },
   apply is_integral_of_noetherian
-    (algebra.adjoin S₀ ((↑m : set A) : set (algebra.comap S₀ R A)) : subalgebra S₀ (algebra.comap S₀ R A))
-    (is_noetherian_of_fg_of_noetherian _ ⟨insert 1 m, by rw finset.coe_insert; convert this⟩),
-  show x ∈ ((algebra.adjoin S₀ ((↑m : set A) : set (algebra.comap S₀ R A)) : subalgebra S₀ (algebra.comap S₀ R A)) : submodule S₀ (algebra.comap S₀ R A)),
+    (algebra.adjoin S₀ ((↑y : set A) : set (algebra.comap S₀ R A)) : subalgebra S₀ (algebra.comap S₀ R A))
+    (is_noetherian_of_fg_of_noetherian _ ⟨insert 1 y, by rw finset.coe_insert; convert this⟩),
+  show x ∈ ((algebra.adjoin S₀ ((↑y : set A) : set (algebra.comap S₀ R A)) :
+      subalgebra S₀ (algebra.comap S₀ R A)) : submodule S₀ (algebra.comap S₀ R A)),
   rw [← hlx2, finsupp.total_apply, finsupp.sum], refine sum_mem _ _, intros r hr,
   rw ← this,
   have : lx r ∈ ring.closure ↑S₀' :=
     ring.subset_closure (finset.mem_union_left _ (by convert finset.mem_image_of_mem _ hr)),
   change @has_scalar.smul S₀ (algebra.comap S₀ R A) hmod.to_has_scalar ⟨lx r, this⟩ r ∈ _,
-  exact smul_mem _ _ (subset_span (set.mem_insert_of_mem _ (hlx1 hr)))
+  rw finsupp.mem_supported at hlx1,
+  exact smul_mem _ _ (subset_span (set.mem_insert_of_mem _ (hlx1 hr))),
 end
 
 theorem is_integral_of_mem_closure {x y z : A}

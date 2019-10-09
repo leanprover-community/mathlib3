@@ -108,6 +108,10 @@ instance polynomial (R : Type u) [comm_ring R] : algebra R (polynomial R) :=
   smul_def' := λ c p, (polynomial.C_mul' c p).symm,
   .. polynomial.module }
 
+instance polynomial' (R : Type u) (A : Type v) [comm_ring R] [comm_ring A] [algebra R A] :
+  algebra R (polynomial A) :=
+of_ring_hom (polynomial.C ∘ algebra_map A) (is_ring_hom.comp _ _)
+
 /-- The algebra of multivariate polynomials. -/
 instance mv_polynomial (R : Type u) [comm_ring R]
   (ι : Type v) : algebra R (mv_polynomial ι R) :=
@@ -115,6 +119,10 @@ instance mv_polynomial (R : Type u) [comm_ring R]
   commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ c p, (mv_polynomial.C_mul' c p).symm,
   .. mv_polynomial.module }
+
+instance mv_polynomial' (R : Type u) (A : Type v) [comm_ring R] [comm_ring A] [algebra R A]
+  (ι : Type w) : algebra R (mv_polynomial ι A) :=
+of_ring_hom (mv_polynomial.C ∘ algebra_map A) (is_ring_hom.comp _ _)
 
 /-- Creating an algebra from a subring. This is the dual of ring extension. -/
 instance of_subring (S : set R) [is_subring S] : algebra S R :=
@@ -484,7 +492,7 @@ instance id : algebra R R :=
 algebra.of_ring_hom id $ by apply_instance
 
 def of_id : R →ₐ A :=
-{ commutes' := λ _, rfl.. ring_hom.of (algebra_map A) }
+{ commutes' := λ _, rfl, ..ring_hom.of (algebra_map A) }
 variables {R}
 
 theorem of_id_apply (r) : of_id R A r = algebra_map A r := rfl

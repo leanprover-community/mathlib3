@@ -674,6 +674,18 @@ meta def choose : expr → list name → tactic unit
   v ← get_unused_name >>= choose1 h n,
   choose v ns
 
+/--
+Instantiates metavariables that appear in the current goal.
+-/
+meta def instantiate_mvars_in_target : tactic unit :=
+target >>= instantiate_mvars >>= change
+
+/--
+Instantiates metavariables in all goals.
+-/
+meta def instantiate_mvars_in_goals : tactic unit :=
+all_goals $ instantiate_mvars_in_target
+
 /-- This makes sure that the execution of the tactic does not change the tactic state.
     This can be helpful while using rewrite, apply, or expr munging.
     Remember to instantiate your metavariables before you're done! -/
@@ -728,7 +740,7 @@ instance : monad id :=
      let out := format.to_string format!"{{ {fs} }",
      return [(out,"")] }
 
-/-- Like `resolve_name` except when the list of goals is 
+/-- Like `resolve_name` except when the list of goals is
     empty. In that situation `resolve_name` fails whereas
     `resolve_name'` simply proceeds on a dummy goal -/
 meta def resolve_name' (n : name) : tactic pexpr :=
@@ -1005,7 +1017,9 @@ private meta def tactic.use_aux (h : pexpr) : tactic unit :=
 (focus1 (refine h >> done)) <|> (fconstructor >> tactic.use_aux)
 
 protected meta def use (l : list pexpr) : tactic unit :=
-focus1 $ l.mmap' $ λ h, tactic.use_aux h <|> fail format!"failed to instantiate goal with {h}"
+focus1 $ seq (l.mmap' $ λ h, tactic.use_aux h <|> fail format!"failed to instantiate goal with {h}")
+              instantiate_mvars_in_target
+
 
 meta def clear_aux_decl_aux : list expr → tactic unit
 | []     := skip

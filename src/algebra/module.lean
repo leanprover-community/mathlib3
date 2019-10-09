@@ -4,6 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 
 Modules over a ring.
+
+## Implemetation notes
+
+
+Throughout the `linear_map` section implicit `{}` brackets are somtimes used instead of type class `[]` brackets. 
+This is done when the instances can be inferred because they are implicit arguments to the type `linear_map`. 
+When they can be inferred from the type it is faster to use this method than to use type class inference
+
 -/
 
 import algebra.ring algebra.big_operators group_theory.subgroup group_theory.group_action

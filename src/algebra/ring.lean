@@ -37,7 +37,7 @@ between rings from monoid homs given only a proof that addition is preserved.
 
 Throughout the section on `ring_hom` implicit `{}` brackets are somtimes used instead of type class `[]` brackets. 
 This is done when the instances can be inferred because they are implicit arguments to the type `ring_hom`. 
-When they can be inferred from the type it is faster to use this method than to use type class inference -/
+When they can be inferred from the type it is faster to use this method than to use type class inference.
 
 ## Tags
 

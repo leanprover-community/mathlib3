@@ -293,9 +293,6 @@ open algebra
 variables {R : Type*} {A : Type*} {B : Type*}
 variables [comm_ring R] [comm_ring A] [comm_ring B]
 variables [algebra R A] [algebra A B]
-variables (A_alg : ∀ x : A, is_integral R x)
-
-include A_alg
 
 set_option class.instance_max_depth 50
 
@@ -337,7 +334,7 @@ end
 
 /-- If A is an R-algebra all of whose elements are integral over R,
 and x is an element of an A-algebra that is integral over A, then x is integral over R.-/
-lemma is_integral_trans (x : B) (hx : is_integral A x) :
+lemma is_integral_trans (A_int : ∀ x : A, is_integral R x) (x : B) (hx : is_integral A x) :
   is_integral R (comap.to_comap R A B x) :=
 begin
   rcases hx with ⟨p, pmonic, hp⟩,
@@ -351,21 +348,21 @@ begin
     intros x hx,
     rw [finset.mem_coe, finset.mem_image] at hx,
     rcases hx with ⟨i, hi, rfl⟩,
-    rcases A_alg (p.coeff i) with ⟨q, hq, hqx⟩,
+    rcases A_int (p.coeff i) with ⟨q, hq, hqx⟩,
     use [q, hq],
     replace hqx := congr_arg (to_comap R A B : A → (comap R A B)) hqx,
     rw alg_hom.map_zero at hqx,
     convert hqx using 1,
     symmetry, exact polynomial.hom_eval₂ _ _ _ _ },
   { apply fg_adjoin_singleton_of_integral,
-    exact is_integral_trans_aux A_alg _ pmonic hp _ rfl }
+    exact is_integral_trans_aux _ pmonic hp _ rfl }
 end
 
 /-- If A is an R-algebra all of whose elements are integral over R,
 and B is an A-algebra all of whose elements are integral over A,
 then all elements of B are integral over R.-/
-lemma algebra.is_integral_trans (B_alg : ∀ x:B, is_integral A x) :
+lemma algebra.is_integral_trans (A_int : ∀ x : A, is_integral R x)(B_int : ∀ x:B, is_integral A x) :
   ∀ x:(comap R A B), is_integral R x :=
-λ x, is_integral_trans A_alg x (B_alg x)
+λ x, is_integral_trans A_int x (B_int x)
 
 end algebra

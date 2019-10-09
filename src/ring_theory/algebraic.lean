@@ -53,10 +53,7 @@ variables (R : Type u) {A : Type v} [nonzero_comm_ring R] [comm_ring A] [algebra
 
 /-- An integral element of an algebra is algebraic.-/
 lemma is_integral.is_algebraic {x : A} (h : is_integral R x) : is_algebraic R x :=
-begin
-  rcases h with ⟨p, hp, hpx⟩,
-  refine ⟨p, hp.ne_zero, hpx⟩,
-end
+by { rcases h with ⟨p, hp, hpx⟩, exact ⟨p, hp.ne_zero, hpx⟩ }
 
 end zero_ne_one
 
@@ -85,8 +82,7 @@ then A is algebraic over K. -/
 lemma is_algebraic_trans (L_alg : is_algebraic K L) (A_alg : is_algebraic L A) :
   is_algebraic K (comap K L A) :=
 begin
-  rw is_algebraic_iff at *,
-  simp [is_algebraic_iff_is_integral] at L_alg A_alg ⊢,
+  simp only [is_algebraic_iff, is_algebraic_iff_is_integral] at L_alg A_alg ⊢,
   exact is_integral_trans L_alg A_alg,
 end
 

@@ -5,7 +5,7 @@ Authors: Robert Y. Lewis
 -/
 
 import data.padics.padic_integers data.polynomial topology.metric_space.cau_seq_filter
-import analysis.specific_limits topology.instances.polynomial
+import analysis.specific_limits topology.algebra.polynomial
 
 /-!
 # Hensel's lemma on ℤ_p

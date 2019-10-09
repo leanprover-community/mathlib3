@@ -144,10 +144,10 @@ variables {R A}
 
 end algebra
 
+set_option old_structure_cmd true
 /-- Defining the homomorphism in the category R-Alg. -/
 structure alg_hom (R : Type u) (A : Type v) (B : Type w)
-  [comm_ring R] [ring A] [ring B] [algebra R A] [algebra R B] :=
-(to_fun : A → B) [hom : is_ring_hom to_fun]
+  [comm_ring R] [ring A] [ring B] [algebra R A] [algebra R B] extends ring_hom A B :=
 (commutes' : ∀ r : R, to_fun (algebra_map A r) = algebra_map B r)
 
 infixr ` →ₐ `:25 := alg_hom _
@@ -156,15 +156,17 @@ notation A ` →ₐ[`:25 R `] ` B := alg_hom R A B
 namespace alg_hom
 
 variables {R : Type u} {A : Type v} {B : Type w} {C : Type u₁} {D : Type v₁}
-variables [comm_ring R] [ring A] [ring B] [ring C] [ring D]
-variables [algebra R A] [algebra R B] [algebra R C] [algebra R D]
-include R
+variables {rR : comm_ring R} {rA : ring A} {rB : ring B} {rC : ring C} {rD : ring D}
+variables {aA : algebra R A} {aB : algebra R B} {aC : algebra R C} {aD : algebra R D}
+include R rR rA rB aA aB
 
-instance : has_coe_to_fun (A →ₐ[R] B) := ⟨λ _, A → B, to_fun⟩
+instance : has_coe_to_fun (A →ₐ[R] B) := ⟨_, λ f, f.to_fun⟩
+
+instance : has_coe (A →ₐ[R] B) (A →+* B) := ⟨alg_hom.to_ring_hom⟩
 
 variables (φ : A →ₐ[R] B)
 
-instance : is_ring_hom ⇑φ := hom φ
+instance : is_ring_hom ⇑φ := ring_hom.is_ring_hom φ.to_ring_hom
 
 @[extensionality]
 theorem ext {φ₁ φ₂ : A →ₐ[R] B} (H : ∀ x, φ₁ x = φ₂ x) : φ₁ = φ₂ :=
@@ -202,18 +204,23 @@ theorem to_linear_map_inj {φ₁ φ₂ : A →ₐ[R] B} (H : φ₁.to_linear_map
 ext $ λ x, show φ₁.to_linear_map x = φ₂.to_linear_map x, by rw H
 
 variables (R A)
+omit rB aB
+variables [rR] [rA] [aA]
 protected def id : A →ₐ[R] A :=
-{ to_fun := id, commutes' := λ _, rfl }
-variables {R A}
+{ commutes' := λ _, rfl,
+  ..ring_hom.id A  }
+variables {R A rR rA aA}
 
 @[simp] lemma id_to_linear_map :
   (alg_hom.id R A).to_linear_map = @linear_map.id R A _ _ _ := rfl
 
 @[simp] lemma id_apply (p : A) : alg_hom.id R A p = p := rfl
 
-def comp (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) : A →ₐ C :=
-{ to_fun := φ₁ ∘ φ₂,
-  commutes' := λ r, by rw [function.comp_apply, φ₂.commutes, φ₁.commutes] }
+include rB rC aB aC
+
+def comp (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) : A →ₐ[R] C :=
+{ commutes' := λ r : R, by rw [← φ₁.commutes, ← φ₂.commutes]; refl,
+  .. φ₁.to_ring_hom.comp ↑φ₂ }
 
 @[simp] lemma comp_to_linear_map (f : A →ₐ[R] B) (g : B →ₐ[R] C) :
   (g.comp f).to_linear_map = g.to_linear_map.comp f.to_linear_map := rfl
@@ -221,11 +228,15 @@ def comp (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) : A →ₐ C :=
 @[simp] lemma comp_apply (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) (p : A) :
   φ₁.comp φ₂ p = φ₁ (φ₂ p) := rfl
 
+omit rC aC
+
 @[simp] theorem comp_id : φ.comp (alg_hom.id R A) = φ :=
 ext $ λ x, rfl
 
 @[simp] theorem id_comp : (alg_hom.id R B).comp φ = φ :=
 ext $ λ x, rfl
+
+include rC aC rD aD
 
 theorem comp_assoc (φ₁ : C →ₐ[R] D) (φ₂ : B →ₐ[R] C) (φ₃ : A →ₐ[R] B) :
   (φ₁.comp φ₂).comp φ₃ = φ₁.comp (φ₂.comp φ₃) :=

@@ -372,7 +372,11 @@ is_ring_hom.of_semiring g
 def id (α : Type*) [semiring α] : α →+* α :=
 by refine {to_fun := id, ..}; intros; refl
 
-include rα rβ rγ
+include rα
+
+@[simp] lemma id_apply : ring_hom.id α x = x := rfl
+
+include rβ rγ
 
 /-- Composition of ring homomorphisms is a ring homomorphism. -/
 def comp (hnp : β →+* γ) (hmn : α →+* β) : α →+* γ :=
@@ -383,6 +387,9 @@ def comp (hnp : β →+* γ) (hmn : α →+* β) : α →+* γ :=
   map_mul' := λ x y, by simp}
 
 @[simp] lemma coe_comp (hnp : β →+* γ) (hmn : α →+* β) : (hnp.comp hmn : α → γ) = hnp ∘ hmn := rfl
+
+@[simp] lemma comp_apply (hnp : β →+* γ) (hmn : α →+* β) (x : α) : (hnp.comp hmn : α → γ) x =
+  (hnp (hmn x)) := rfl
 
 omit rα rβ rγ
 

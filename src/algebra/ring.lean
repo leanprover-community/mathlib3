@@ -306,6 +306,10 @@ structure ring_hom (α : Type*) (β : Type*) [semiring α] [semiring β]
 
 infixr ` →+* `:25 := ring_hom
 
+/- Throughout this section implicit `{}` brackets are somtimes used instead of type class `[]` brackets. 
+  This is done when the instances can be inferred because they are implicit arguments to the type ring_hom. 
+  When they can be inferred from the type it is faster to use this method than to use type class inference -/
+
 instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe_to_fun (α →+* β) :=
 ⟨_, ring_hom.to_fun⟩
 

@@ -34,6 +34,11 @@ The constructor for a `ring_hom` between semirings needs a proof of `map_zero`, 
 `map_add` as well as `map_mul`; a separate constructor `ring_hom.mk'` will construct ring homs
 between rings from monoid homs given only a proof that addition is preserved.
 
+
+Throughout the section on `ring_hom` implicit `{}` brackets are somtimes used instead of type class `[]` brackets. 
+This is done when the instances can be inferred because they are implicit arguments to the type `ring_hom`. 
+When they can be inferred from the type it is faster to use this method than to use type class inference -/
+
 ## Tags
 
 is_ring_hom, is_semiring_hom, ring_hom, semiring_hom, semiring, comm_semiring, ring, comm_ring,
@@ -305,10 +310,6 @@ structure ring_hom (α : Type*) (β : Type*) [semiring α] [semiring β]
   extends monoid_hom α β, add_monoid_hom α β
 
 infixr ` →+* `:25 := ring_hom
-
-/- Throughout this section implicit `{}` brackets are somtimes used instead of type class `[]` brackets. 
-  This is done when the instances can be inferred because they are implicit arguments to the type ring_hom. 
-  When they can be inferred from the type it is faster to use this method than to use type class inference -/
 
 instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe_to_fun (α →+* β) :=
 ⟨_, ring_hom.to_fun⟩

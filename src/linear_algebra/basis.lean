@@ -63,7 +63,7 @@ noncomputable theory
 open function lattice set submodule
 open_locale classical
 
-variables {ι : Type*} {ι' : Type*} {R : Type*} {𝕜 : Type*}
+variables {ι : Type*} {ι' : Type*} {R : Type*} {K : Type*}
           {M : Type*} {M' : Type*} {V : Type*} {V' : Type*}
 
 section module
@@ -842,10 +842,10 @@ end module
 section vector_space
 variables
   {v : ι → V}
-  [discrete_field 𝕜] [add_comm_group V] [add_comm_group V']
-  [vector_space 𝕜 V] [vector_space 𝕜 V']
+  [discrete_field K] [add_comm_group V] [add_comm_group V']
+  [vector_space K V] [vector_space K V']
   {s t : set V} {x y z : V}
-include 𝕜
+include K
 open submodule
 
 /- TODO: some of the following proofs can generalized with a zero_ne_one predicate type class
@@ -854,7 +854,7 @@ open submodule
 section
 set_option class.instance_max_depth 36
 
-lemma mem_span_insert_exchange : x ∈ span 𝕜 (insert y s) → x ∉ span 𝕜 s → y ∈ span 𝕜 (insert x s) :=
+lemma mem_span_insert_exchange : x ∈ span K (insert y s) → x ∉ span K s → y ∈ span K (insert x s) :=
 begin
   simp [mem_span_insert],
   rintro a z hz rfl h,
@@ -865,7 +865,7 @@ end
 
 end
 
-lemma linear_independent_iff_not_mem_span : linear_independent 𝕜 v ↔ (∀i, v i ∉ span 𝕜 (v '' (univ \ {i}))) :=
+lemma linear_independent_iff_not_mem_span : linear_independent K v ↔ (∀i, v i ∉ span K (v '' (univ \ {i}))) :=
 begin
   apply linear_independent_iff_not_smul_mem_span.trans,
   split,
@@ -876,7 +876,7 @@ begin
     exact false.elim (h _ ((smul_mem_iff _ ha').1 ha)) }
 end
 
-lemma linear_independent_unique [unique ι] (h : v (default ι) ≠ 0): linear_independent 𝕜 v :=
+lemma linear_independent_unique [unique ι] (h : v (default ι) ≠ 0): linear_independent K v :=
 begin
   rw linear_independent_iff,
   intros l hl,
@@ -889,15 +889,15 @@ begin
   exact h this.symm
 end
 
-lemma linear_independent_singleton {x : V} (hx : x ≠ 0) : linear_independent 𝕜 (λ x, x : ({x} : set V) → V) :=
+lemma linear_independent_singleton {x : V} (hx : x ≠ 0) : linear_independent K (λ x, x : ({x} : set V) → V) :=
 begin
   apply @linear_independent_unique _ _ _ _ _ _ _ _ _,
   apply set.unique_singleton,
   apply hx,
 end
 
-lemma disjoint_span_singleton {p : submodule 𝕜 V} {x : V} (x0 : x ≠ 0) :
-  disjoint p (span 𝕜 {x}) ↔ x ∉ p :=
+lemma disjoint_span_singleton {p : submodule K V} {x : V} (x0 : x ≠ 0) :
+  disjoint p (span K {x}) ↔ x ∉ p :=
 ⟨λ H xp, x0 (disjoint_def.1 H _ xp (singleton_subset_iff.1 subset_span:_)),
 begin
   simp [disjoint_def, mem_span_singleton],
@@ -906,8 +906,8 @@ begin
   exact xp.elim ((smul_mem_iff p a0).1 yp),
 end⟩
 
-lemma linear_independent.insert (hs : linear_independent 𝕜 (λ b, b : s → V)) (hx : x ∉ span 𝕜 s) :
-  linear_independent 𝕜 (λ b, b : insert x s → V) :=
+lemma linear_independent.insert (hs : linear_independent K (λ b, b : s → V)) (hx : x ∉ span K s) :
+  linear_independent K (λ b, b : insert x s → V) :=
 begin
   rw ← union_singleton,
   have x0 : x ≠ 0 := mt (by rintro rfl; apply zero_mem _) hx,
@@ -915,13 +915,13 @@ begin
   rwa [disjoint_span_singleton x0]
 end
 
-lemma exists_linear_independent (hs : linear_independent 𝕜 (λ x, x : s → V)) (hst : s ⊆ t) :
-  ∃b⊆t, s ⊆ b ∧ t ⊆ span 𝕜 b ∧ linear_independent 𝕜 (λ x, x : b → V) :=
+lemma exists_linear_independent (hs : linear_independent K (λ x, x : s → V)) (hst : s ⊆ t) :
+  ∃b⊆t, s ⊆ b ∧ t ⊆ span K b ∧ linear_independent K (λ x, x : b → V) :=
 begin
-  rcases zorn.zorn_subset₀ {b | b ⊆ t ∧ linear_independent 𝕜 (λ x, x : b → V)} _ _
+  rcases zorn.zorn_subset₀ {b | b ⊆ t ∧ linear_independent K (λ x, x : b → V)} _ _
     ⟨hst, hs⟩ with ⟨b, ⟨bt, bi⟩, sb, h⟩,
   { refine ⟨b, bt, sb, λ x xt, _, bi⟩,
-    haveI := classical.dec (x ∈ span 𝕜 b),
+    haveI := classical.dec (x ∈ span K b),
     by_contra hn,
     apply hn,
     rw ← h _ ⟨insert_subset.2 ⟨xt, bt⟩, bi.insert hn⟩ (subset_insert _ _),
@@ -932,29 +932,29 @@ begin
     { exact subset_sUnion_of_mem } }
 end
 
-lemma exists_subset_is_basis (hs : linear_independent 𝕜 (λ x, x : s → V)) :
-  ∃b, s ⊆ b ∧ is_basis 𝕜 (λ i : b, i.val) :=
+lemma exists_subset_is_basis (hs : linear_independent K (λ x, x : s → V)) :
+  ∃b, s ⊆ b ∧ is_basis K (λ i : b, i.val) :=
 let ⟨b, hb₀, hx, hb₂, hb₃⟩ := exists_linear_independent hs (@subset_univ _ _) in
 ⟨ b, hx,
   @linear_independent.restrict_of_comp_subtype _ _ _ id _ _ _ _ hb₃,
   by simp; exact eq_top_iff.2 hb₂⟩
 
-variables (𝕜 V)
-lemma exists_is_basis : ∃b : set V, is_basis 𝕜 (λ i : b, i.val) :=
+variables (K V)
+lemma exists_is_basis : ∃b : set V, is_basis K (λ i : b, i.val) :=
 let ⟨b, _, hb⟩ := exists_subset_is_basis linear_independent_empty in ⟨b, hb⟩
 
-variables {𝕜 V}
+variables {K V}
 
 -- TODO(Mario): rewrite?
 lemma exists_of_linear_independent_of_finite_span {t : finset V}
-  (hs : linear_independent 𝕜 (λ x, x : s → V)) (hst : s ⊆ (span 𝕜 ↑t : submodule 𝕜 V)) :
+  (hs : linear_independent K (λ x, x : s → V)) (hst : s ⊆ (span K ↑t : submodule K V)) :
   ∃t':finset V, ↑t' ⊆ s ∪ ↑t ∧ s ⊆ ↑t' ∧ t'.card = t.card :=
-have ∀t, ∀(s' : finset V), ↑s' ⊆ s → s ∩ ↑t = ∅ → s ⊆ (span 𝕜 ↑(s' ∪ t) : submodule 𝕜 V) →
+have ∀t, ∀(s' : finset V), ↑s' ⊆ s → s ∩ ↑t = ∅ → s ⊆ (span K ↑(s' ∪ t) : submodule K V) →
   ∃t':finset V, ↑t' ⊆ s ∪ ↑t ∧ s ⊆ ↑t' ∧ t'.card = (s' ∪ t).card :=
 assume t, finset.induction_on t
   (assume s' hs' _ hss',
     have s = ↑s',
-      from eq_of_linear_independent_of_span_subtype (@zero_ne_one 𝕜 _) hs hs' $
+      from eq_of_linear_independent_of_span_subtype (@zero_ne_one K _) hs hs' $
           by simpa using hss',
     ⟨s', by simp [this]⟩)
   (assume b₁ t hb₁t ih s' hs' hst hss',
@@ -967,23 +967,23 @@ assume t, finset.induction_on t
       from eq_empty_of_subset_empty $ subset.trans
         (by simp [inter_subset_inter, subset.refl]) (le_of_eq hst),
     classical.by_cases
-      (assume : s ⊆ (span 𝕜 ↑(s' ∪ t) : submodule 𝕜 V),
+      (assume : s ⊆ (span K ↑(s' ∪ t) : submodule K V),
         let ⟨u, hust, hsu, eq⟩ := ih _ hs' hst this in
         have hb₁u : b₁ ∉ u, from assume h, (hust h).elim hb₁s hb₁t,
         ⟨insert b₁ u, by simp [insert_subset_insert hust],
           subset.trans hsu (by simp), by simp [eq, hb₁t, hb₁s', hb₁u]⟩)
-      (assume : ¬ s ⊆ (span 𝕜 ↑(s' ∪ t) : submodule 𝕜 V),
+      (assume : ¬ s ⊆ (span K ↑(s' ∪ t) : submodule K V),
         let ⟨b₂, hb₂s, hb₂t⟩ := not_subset.mp this in
         have hb₂t' : b₂ ∉ s' ∪ t, from assume h, hb₂t $ subset_span h,
-        have s ⊆ (span 𝕜 ↑(insert b₂ s' ∪ t) : submodule 𝕜 V), from
+        have s ⊆ (span K ↑(insert b₂ s' ∪ t) : submodule K V), from
           assume b₃ hb₃,
           have ↑(s' ∪ insert b₁ t) ⊆ insert b₁ (insert b₂ ↑(s' ∪ t) : set V),
             by simp [insert_eq, -singleton_union, -union_singleton, union_subset_union, subset.refl, subset_union_right],
-          have hb₃ : b₃ ∈ span 𝕜 (insert b₁ (insert b₂ ↑(s' ∪ t) : set V)),
+          have hb₃ : b₃ ∈ span K (insert b₁ (insert b₂ ↑(s' ∪ t) : set V)),
             from span_mono this (hss' hb₃),
-          have s ⊆ (span 𝕜 (insert b₁ ↑(s' ∪ t)) : submodule 𝕜 V),
+          have s ⊆ (span K (insert b₁ ↑(s' ∪ t)) : submodule K V),
             by simpa [insert_eq, -singleton_union, -union_singleton] using hss',
-          have hb₁ : b₁ ∈ span 𝕜 (insert b₂ ↑(s' ∪ t)),
+          have hb₁ : b₁ ∈ span K (insert b₂ ↑(s' ∪ t)),
             from mem_span_insert_exchange (this hb₂s) hb₂t,
           by rw [span_insert_eq_span hb₁] at hb₃; simpa using hb₃,
         let ⟨u, hust, hsu, eq⟩ := ih _ (by simp [insert_subset, hb₂s, hs']) hst this in
@@ -1003,20 +1003,20 @@ begin
 end
 
 lemma exists_finite_card_le_of_finite_of_linear_independent_of_span
-  (ht : finite t) (hs : linear_independent 𝕜 (λ x, x : s → V)) (hst : s ⊆ span 𝕜 t) :
+  (ht : finite t) (hs : linear_independent K (λ x, x : s → V)) (hst : s ⊆ span K t) :
   ∃h : finite s, h.to_finset.card ≤ ht.to_finset.card :=
-have s ⊆ (span 𝕜 ↑(ht.to_finset) : submodule 𝕜 V), by simp; assumption,
+have s ⊆ (span K ↑(ht.to_finset) : submodule K V), by simp; assumption,
 let ⟨u, hust, hsu, eq⟩ := exists_of_linear_independent_of_finite_span hs this in
 have finite s, from finite_subset u.finite_to_set hsu,
 ⟨this, by rw [←eq]; exact (finset.card_le_of_subset $ finset.coe_subset.mp $ by simp [hsu])⟩
 
-lemma exists_left_inverse_linear_map_of_injective {f : V →ₗ[𝕜] V'}
+lemma exists_left_inverse_linear_map_of_injective {f : V →ₗ[K] V'}
   (hf_inj : f.ker = ⊥) : ∃g:V' →ₗ V, g.comp f = linear_map.id :=
 begin
-  rcases exists_is_basis 𝕜 V with ⟨B, hB⟩,
+  rcases exists_is_basis K V with ⟨B, hB⟩,
   have hB₀ : _ := hB.1.to_subtype_range,
-  have : linear_independent 𝕜 (λ x, x : f '' B → V'),
-  { have h₁ := hB₀.image_subtype (show disjoint (span 𝕜 (range (λ i : B, i.val))) (linear_map.ker f), by simp [hf_inj]),
+  have : linear_independent K (λ x, x : f '' B → V'),
+  { have h₁ := hB₀.image_subtype (show disjoint (span K (range (λ i : B, i.val))) (linear_map.ker f), by simp [hf_inj]),
     have h₂ : range (λ (i : B), i.val) = B := subtype.range_val B,
     rwa h₂ at h₁ },
   rcases exists_subset_is_basis this with ⟨C, BC, hC⟩,
@@ -1035,10 +1035,10 @@ begin
   exact left_inverse_inv_fun (linear_map.ker_eq_bot.1 hf_inj) _,
 end
 
-lemma exists_right_inverse_linear_map_of_surjective {f : V →ₗ[𝕜] V'}
+lemma exists_right_inverse_linear_map_of_surjective {f : V →ₗ[K] V'}
   (hf_surj : f.range = ⊤) : ∃g:V' →ₗ V, f.comp g = linear_map.id :=
 begin
-  rcases exists_is_basis 𝕜 V' with ⟨C, hC⟩,
+  rcases exists_is_basis K V' with ⟨C, hC⟩,
   haveI : inhabited V := ⟨0⟩,
   use hC.constr (function.restrict (inv_fun f) C : C → V),
   apply @is_basis.ext _ _ _ _ _ _ _ _ _ _ _ _ hC,
@@ -1049,8 +1049,8 @@ end
 
 set_option class.instance_max_depth 49
 open submodule linear_map
-theorem quotient_prod_linear_equiv (p : submodule 𝕜 V) :
-  nonempty ((p.quotient × p) ≃ₗ[𝕜] V) :=
+theorem quotient_prod_linear_equiv (p : submodule K V) :
+  nonempty ((p.quotient × p) ≃ₗ[K] V) :=
 begin
   haveI := classical.dec_eq (quotient p),
   rcases exists_right_inverse_linear_map_of_surjective p.range_mkq with ⟨f, hf⟩,
@@ -1069,10 +1069,10 @@ end
 
 open fintype
 
-theorem vector_space.card_fintype [fintype 𝕜] [fintype V] :
-  ∃ n : ℕ, card V = (card 𝕜) ^ n :=
+theorem vector_space.card_fintype [fintype K] [fintype V] :
+  ∃ n : ℕ, card V = (card K) ^ n :=
 begin
-  apply exists.elim (exists_is_basis 𝕜 V),
+  apply exists.elim (exists_is_basis K V),
   intros b hb,
   haveI := classical.dec_pred (λ x, x ∈ b),
   use card b,

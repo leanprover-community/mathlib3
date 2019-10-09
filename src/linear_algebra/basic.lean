@@ -56,7 +56,7 @@ open function lattice
 reserve infix ` ≃ₗ `:25
 
 universes u v w x y z u' v' w' y'
-variables {R : Type u} {𝕜 : Type u'} {M : Type v} {V : Type v'} {M₂ : Type w} {V₂ : Type w'}
+variables {R : Type u} {K : Type u'} {M : Type v} {V : Type v'} {M₂ : Type w} {V₂ : Type w'}
 variables {M₃ : Type y} {V₃ : Type y'} {M₄ : Type z} {ι : Type x}
 
 namespace finset
@@ -784,23 +784,23 @@ module.of_core $ by refine {smul := (•), ..};
   repeat {rintro ⟨⟩ <|> intro}; simp [smul_add, add_smul, smul_smul,
     -mk_add, (mk_add p).symm, -mk_smul, (mk_smul p).symm]
 
-instance {𝕜 M} {R:discrete_field 𝕜} [add_comm_group M] [vector_space 𝕜 M]
-  (p : submodule 𝕜 M) : vector_space 𝕜 (quotient p) := {}
+instance {K M} {R:discrete_field K} [add_comm_group M] [vector_space K M]
+  (p : submodule K M) : vector_space K (quotient p) := {}
 
 end quotient
 
 end submodule
 
 namespace submodule
-variables [discrete_field 𝕜]
-variables [add_comm_group V] [vector_space 𝕜 V]
-variables [add_comm_group V₂] [vector_space 𝕜 V₂]
+variables [discrete_field K]
+variables [add_comm_group V] [vector_space K V]
+variables [add_comm_group V₂] [vector_space K V₂]
 
-lemma comap_smul (f : V →ₗ[𝕜] V₂) (p : submodule 𝕜 V₂) (a : 𝕜) (h : a ≠ 0) :
+lemma comap_smul (f : V →ₗ[K] V₂) (p : submodule K V₂) (a : K) (h : a ≠ 0) :
   p.comap (a • f) = p.comap f :=
 by ext b; simp only [submodule.mem_comap, p.smul_mem_iff h, linear_map.smul_apply]
 
-lemma map_smul (f : V →ₗ[𝕜] V₂) (p : submodule 𝕜 V) (a : 𝕜) (h : a ≠ 0) :
+lemma map_smul (f : V →ₗ[K] V₂) (p : submodule K V) (a : K) (h : a ≠ 0) :
   p.map (a • f) = p.map f :=
 le_antisymm
   begin rw [map_le_iff_le_comap, comap_smul f _ a h, ← map_le_iff_le_comap], exact le_refl _ end
@@ -808,11 +808,11 @@ le_antisymm
 
 set_option class.instance_max_depth 40
 
-lemma comap_smul' (f : V →ₗ[𝕜] V₂) (p : submodule 𝕜 V₂) (a : 𝕜) :
+lemma comap_smul' (f : V →ₗ[K] V₂) (p : submodule K V₂) (a : K) :
   p.comap (a • f) = (⨅ h : a ≠ 0, p.comap f) :=
 by by_cases a = 0; simp [h, comap_smul]
 
-lemma map_smul' (f : V →ₗ[𝕜] V₂) (p : submodule 𝕜 V) (a : 𝕜) :
+lemma map_smul' (f : V →ₗ[K] V₂) (p : submodule K V) (a : K) :
   p.map (a • f) = (⨆ h : a ≠ 0, p.map f) :=
 by by_cases a = 0; simp [h, map_smul]
 
@@ -1007,20 +1007,20 @@ by rw [ker, ← prod_bot, comap_pair_prod]; refl
 end linear_map
 
 namespace linear_map
-variables [discrete_field 𝕜]
-variables [add_comm_group V] [vector_space 𝕜 V]
-variables [add_comm_group V₂] [vector_space 𝕜 V₂]
+variables [discrete_field K]
+variables [add_comm_group V] [vector_space K V]
+variables [add_comm_group V₂] [vector_space K V₂]
 
-lemma ker_smul (f : V →ₗ[𝕜] V₂) (a : 𝕜) (h : a ≠ 0) : ker (a • f) = ker f :=
+lemma ker_smul (f : V →ₗ[K] V₂) (a : K) (h : a ≠ 0) : ker (a • f) = ker f :=
 submodule.comap_smul f _ a h
 
-lemma ker_smul' (f : V →ₗ[𝕜] V₂) (a : 𝕜) : ker (a • f) = ⨅(h : a ≠ 0), ker f :=
+lemma ker_smul' (f : V →ₗ[K] V₂) (a : K) : ker (a • f) = ⨅(h : a ≠ 0), ker f :=
 submodule.comap_smul' f _ a
 
-lemma range_smul (f : V →ₗ[𝕜] V₂) (a : 𝕜) (h : a ≠ 0) : range (a • f) = range f :=
+lemma range_smul (f : V →ₗ[K] V₂) (a : K) (h : a ≠ 0) : range (a • f) = range f :=
 submodule.map_smul f _ a h
 
-lemma range_smul' (f : V →ₗ[𝕜] V₂) (a : 𝕜) : range (a • f) = ⨆(h : a ≠ 0), range f :=
+lemma range_smul' (f : V →ₗ[K] V₂) (a : K) : range (a • f) = ⨆(h : a ≠ 0), range f :=
 submodule.map_smul' f _ a
 
 end linear_map
@@ -1378,13 +1378,13 @@ def conj (e : M ≃ₗ[R] M₂) : (M →ₗ[R] M) ≃ₗ[R] (M₂ →ₗ[R] M₂
 end comm_ring
 
 section field
-variables [field 𝕜] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
-variables [module 𝕜 M] [module 𝕜 M₂] [module 𝕜 M₃]
+variables [field K] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
+variables [module K M] [module K M₂] [module K M₃]
 variable (M)
 open linear_map
 
-/-- Multiplying by a nonzero element `a` of the field `𝕜` is a linear equivalence. -/
-def smul_of_ne_zero (a : 𝕜) (ha : a ≠ 0) : M ≃ₗ[𝕜] M :=
+/-- Multiplying by a nonzero element `a` of the field `K` is a linear equivalence. -/
+def smul_of_ne_zero (a : K) (ha : a ≠ 0) : M ≃ₗ[K] M :=
 smul_of_unit $ units.mk0 a ha
 
 end field

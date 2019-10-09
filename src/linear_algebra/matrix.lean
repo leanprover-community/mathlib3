@@ -211,11 +211,11 @@ end ring
 
 section vector_space
 
-variables {𝕜 : Type u} [discrete_field 𝕜] -- maybe try to relax the universe constraint
+variables {K : Type u} [discrete_field K] -- maybe try to relax the universe constraint
 
 open linear_map matrix
 
-lemma rank_vec_mul_vec [decidable_eq n] (w : m → 𝕜) (v : n → 𝕜) :
+lemma rank_vec_mul_vec [decidable_eq n] (w : m → K) (v : n → K) :
   rank (vec_mul_vec w v).to_lin ≤ 1 :=
 begin
   rw [vec_mul_vec_eq, mul_to_lin],
@@ -227,22 +227,22 @@ end
 
 set_option class.instance_max_depth 100
 
-lemma diagonal_to_lin [decidable_eq m] (w : m → 𝕜) :
+lemma diagonal_to_lin [decidable_eq m] (w : m → K) :
   (diagonal w).to_lin = linear_map.pi (λi, w i • linear_map.proj i) :=
 by ext v j; simp [mul_vec_diagonal]
 
-lemma ker_diagonal_to_lin [decidable_eq m] (w : m → 𝕜) :
-  ker (diagonal w).to_lin = (⨆i∈{i | w i = 0 }, range (std_basis 𝕜 (λi, 𝕜) i)) :=
+lemma ker_diagonal_to_lin [decidable_eq m] (w : m → K) :
+  ker (diagonal w).to_lin = (⨆i∈{i | w i = 0 }, range (std_basis K (λi, K) i)) :=
 begin
   rw [← comap_bot, ← infi_ker_proj],
   simp only [comap_infi, (ker_comp _ _).symm, proj_diagonal, ker_smul'],
   have : univ ⊆ {i : m | w i = 0} ∪ -{i : m | w i = 0}, { rw set.union_compl_self },
-  exact (supr_range_std_basis_eq_infi_ker_proj 𝕜 (λi:m, 𝕜)
+  exact (supr_range_std_basis_eq_infi_ker_proj K (λi:m, K)
     (disjoint_compl {i | w i = 0}) this (finite.of_fintype _)).symm
 end
 
-lemma range_diagonal [decidable_eq m] (w : m → 𝕜) :
-  (diagonal w).to_lin.range = (⨆ i ∈ {i | w i ≠ 0}, (std_basis 𝕜 (λi, 𝕜) i).range) :=
+lemma range_diagonal [decidable_eq m] (w : m → K) :
+  (diagonal w).to_lin.range = (⨆ i ∈ {i | w i ≠ 0}, (std_basis K (λi, K) i).range) :=
 begin
   dsimp only [mem_set_of_eq],
   rw [← map_top, ← supr_range_std_basis, map_supr],
@@ -250,14 +250,14 @@ begin
   rw [← linear_map.range_comp, diagonal_comp_std_basis, range_smul'],
 end
 
-lemma rank_diagonal [decidable_eq m] (w : m → 𝕜) :
+lemma rank_diagonal [decidable_eq m] (w : m → K) :
   rank (diagonal w).to_lin = fintype.card { i // w i ≠ 0 } :=
 begin
   have hu : univ ⊆ - {i : m | w i = 0} ∪ {i : m | w i = 0}, { rw set.compl_union_self },
   have hd : disjoint {i : m | w i ≠ 0} {i : m | w i = 0} := (disjoint_compl {i | w i = 0}).symm,
-  have h₁ := supr_range_std_basis_eq_infi_ker_proj 𝕜 (λi:m, 𝕜) hd hu (finite.of_fintype _),
-  have h₂ := @infi_ker_proj_equiv 𝕜 _ _ (λi:m, 𝕜) _ _ _ _ (by simp; apply_instance) hd hu,
-  rw [rank, range_diagonal, h₁, ←@dim_fun' 𝕜],
+  have h₁ := supr_range_std_basis_eq_infi_ker_proj K (λi:m, K) hd hu (finite.of_fintype _),
+  have h₂ := @infi_ker_proj_equiv K _ _ (λi:m, K) _ _ _ _ (by simp; apply_instance) hd hu,
+  rw [rank, range_diagonal, h₁, ←@dim_fun' K],
   apply linear_equiv.dim_eq,
   apply h₂,
 end

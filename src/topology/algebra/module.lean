@@ -218,7 +218,8 @@ instance : is_ring_hom (λ c : α, c • (1 : γ →L[α] γ)) :=
   map_mul := λ _ _, ext $ λ _, mul_smul _ _ _ }
 
 instance : algebra α (γ →L[α] γ) :=
-{ to_fun    := λ c, c • 1,
+{ smul := (•),
+  to_fun    := λ c, c • 1,
   smul_def' := λ _ _, rfl,
   commutes' := λ _ _, ext $ λ _, map_smul _ _ _ }
 

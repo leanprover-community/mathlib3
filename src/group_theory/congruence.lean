@@ -61,19 +61,6 @@ inductive con_gen.rel [has_mul M] (r : M → M → Prop) : M → M → Prop
 | mul {} : Π w x y z, con_gen.rel w x → con_gen.rel y z → con_gen.rel (w * y) (x * z)
 
 /-- The inductively defined multiplicative congruence closure of a binary relation. -/
-inductive con_gen.rel' [has_mul M] (r : M → M → Prop) : M → M → Prop
-| of {} : Π x y, r x y → con_gen.rel' x y
-| eqv {} : Π x y, eqv_gen con_gen.rel' x y → con_gen.rel' x y
-| mul {} : Π w x y z, con_gen.rel' w x → con_gen.rel' y z → con_gen.rel' (w * y) (x * z)
-
-def con_gen' [has_mul M] (r : M → M → Prop) : con M :=
-⟨con_gen.rel' r, ⟨λ x, con_gen.rel'.eqv _ _ $ eqv_gen.refl x,
-  λ x y h, con_gen.rel'.eqv _ _ $ eqv_gen.symm _ _ $ eqv_gen.rel _ _ h,
-  λ x y z h1 h2, con_gen.rel'.eqv _ _ $ eqv_gen.trans _ _ _ (eqv_gen.rel _ _ h1) $ eqv_gen.rel _ _ h2⟩,
-con_gen.rel'.mul⟩
-
---theorem hmmm [has_mul M] (r : M → M → Prop) : lattice.Inf { c : con M | ∀ x y, r x y → c x y}
-/-- The inductively defined multiplicative congruence closure of a binary relation. -/
 @[to_additive add_con_gen "The inductively defined additive congruence closure of a binary relation."]
 def con_gen [has_mul M] (r : M → M → Prop) : con M :=
 ⟨con_gen.rel r, ⟨con_gen.rel.refl, con_gen.rel.symm, con_gen.rel.trans⟩, con_gen.rel.mul⟩
@@ -121,33 +108,7 @@ by cases c; cases d; simpa using H
 @[extensionality, to_additive "Extensionality rule for congruence relations."]
 lemma ext {c d : con M} (H : ∀ x y, c x y ↔ d x y) :
   c = d := r_inj $ by ext x y; exact H x y
-/-
 
-lemma hmm [has_mul M] (r : M → M → Prop) : con_gen' r = con_gen' (con_gen' r) :=
-begin
-ext,
-split,
-intro h,
-exact con_gen.rel'.of _ _ h,
-intro h,
-sorry,
-end
-
-
-theorem blah [has_mul M] {r : M → M → Prop} : con_gen' r = con_gen r :=
-begin
-  ext,
-  split,
-  intros h,
-  cases h,
-  exact con_gen.rel.of _ _ h_a,
-  cases h_a,
-  exact con_gen.rel.refl _,
-
-  exact con_gen.rel'.eqv _ _ (eqv_gen.symm _ _ $ eqv_gen.rel _ _ $ show_a),
-  exact con_gen.rel'.eqv (eqv_gen.trans h1 h2),
-end
--/
 attribute [extensionality] add_con.ext
 
 /-- The map sending a congruence relation to its underlying equivalence relation is injective. -/
@@ -315,141 +276,6 @@ lemma le_Inf (s : set (con M)) (c) : (∀d ∈ s, c ≤ d) → c ≤ Inf s :=
 @[to_additive "The infimum of a set of congruence relations on a given type is contained in every element of the set."]
 lemma Inf_le (s : set (con M)) (c) : c ∈ s → Inf s ≤ c :=
 λ hc _ _ h, h c hc
-
-inductive mul_gen (r : M → M → Prop) : M → M → Prop
-| of {} : Π x y, r x y → mul_gen x y
-| mul {} : Π w x y z, mul_gen w x → mul_gen y z → mul_gen (w * y) (x * z)
-
-
-lemma mul_gen_of_mul (r : M → M → Prop) (h : ∀ {w x y z}, r w x → r y z → r (w * y) (x * z)) :
-  mul_gen r = r :=
-funext $ λ x, funext $ λ y, iff_iff_eq.1
-  ⟨@mul_gen.rec _ _ r _ (λ x y, id) (λ w x y z h1 h2 hw hy, h hw hy) _ _, mul_gen.of x y⟩
-
---inductive closing [has_mul M] (r : M → M → Prop) : (M → M → Prop) → Prop
---| of {} : closing r
---| eqv {} : ∀ s, closing s → closing (eqv_gen s)
---| mul {} : ∀ s, closing s → closing (mul_gen s)
-
-#check con_gen.rel'.rec
-#check @con_gen.rel.rec
-
-@[elab_as_eliminator]
-theorem con_gen.rec' {r C : M → M → Prop}
-    (hr : ∀ (x y : M), r x y → C x y)
-    (he : ∀ (x y : M), eqv_gen (con_gen.rel' r) x y → C x y)
-    (hm : ∀ {w x y z}, con_gen.rel' r w x → con_gen.rel' r y z → C (w * y) (x * z)) {a b} :
-    con_gen.rel' r a b → C a b :=
-con_gen.rel'.rec _ _ hr he (λ _ _ _ _ h1 h2 _ _, hm h1 h2) _ _
-
-#check @con_gen.rec'
-
-theorem con_induction{r C : M → M → Prop}
-  (H : ∀ s, closing r s → (∀ x y, s x y → C x y)) {x y} :
-   con_gen.rel' r x y → C x y :=
-begin
-  refine con_gen.rec' _ _ _,
-  intros p q h,
-  exact H r closing.of p q h,
-  sorry,
-  sorry,
-end
-
-def e2m [has_mul M] (r s : M → M → Prop) (h : s = eqv_gen r) := mul_gen s
-def m2e [has_mul M] (r s : M → M → Prop) (h : s = mul_gen r) := eqv_gen s
-
-
-
-
-lemma blah [has_mul M] (r : M → M → Prop) (c : con M) (x y) :
-  eqv_gen r x y → con_gen.rel' r x y :=
-eqv_gen.rec (con_gen.rel'.of) (λ x, con_gen.rel'.eqv _ _ $ eqv_gen.refl x) (λ _ _ h h',
-con_gen.rel'.eqv _ _ $ eqv_gen.symm _ _ $ eqv_gen.rel _ _ h') $
-λ _ _ _ _ _ h h', con_gen.rel'.eqv _ _ $ eqv_gen.trans _ _ _
-  (eqv_gen.rel _ _ h) $ eqv_gen.rel _ _ h'
-
---inductive close (r : M → M → Prop) : (M → M → Prop) → Prop
---| mul {} : close (mul_gen r)
---| eqv {} : close (eqv_gen r)
-
-def close (r : M → M → Prop) := {s // s = eqv_gen r ∨ s = mul_gen r}
-
-
-
-example [monoid M] (r : M → M → Prop) (c : con M) (H : ∀ x y, r x y → c x y) (x y) :
-  con_gen.rel' r x y → c x y :=
-begin
-  have hs : ∀ x y, (con_gen.rel' r x y → c x y) → (con_gen.rel' r x y → c y x) := λ x y H h, c.symm $ H h,
-  have ht : ∀ x y z, (con_gen.rel' r x y → c x y) → (con_gen.rel' r y z → c y z) → (con_gen.rel' r x y → con_gen.rel' r y z → c x z) := λ x y z h1 h2 hx hy, c.trans (h1 hx) $ h2 hy,
-  have hm : ∀ w x y z, (con_gen.rel' r w x → c w x) → (con_gen.rel' r y z → c y z) → (con_gen.rel' r w x → con_gen.rel' r y z → c (w*y) (x*z)) := λ w x y z h1 h2 hw hy, c.mul (h1 hw) $ h2 hy,
-  have he : ∃ x y, con_gen.rel' r x y → c x y := ⟨1, 1, λ h, c.refl 1⟩,
-  intros h,
-
-end
-
-example [has_mul M] (r : M → M → Prop) (c : con M) (H : ∀ x y, r x y → c x y) :
-  con_gen' r ≤ c :=
-begin
-  intros x y,
-  refine con_gen.rel'.rec _ _ H _ _ _ _,
-  intros p q,
-  refine eqv_gen.rec _ _ _ _,
-  change (eqv_gen.setoid (con_gen.rel' r)).rel p q → _,
-  rw setoid.eqv_gen_eq,
-  revert p q, rw ←setoid.le_def,
-  apply setoid.Inf_le,
-  sorry, sorry,
-
-end
-
-def step : ℕ → ((M → M → Prop) → (M → M → Prop))
-| 0 := eqv_gen
-| 1 := mul_gen
-| (n + 2) := step n
-
-def closing (r : M → M → Prop) : ℕ → (M → M → Prop)
-| 0 := r
-| (n + 1) := step n (closing n)
-
-lemma eqv_or_mul (r : M → M → Prop) : ∀ n, step n = @eqv_gen M ∨ step n = @mul_gen M _
-| 0 := or.inl $ rfl
-| 1 := or.inr $ rfl
-| (n + 2) := by {cases eqv_or_mul n, left, rw ←h, refl, right, rw ←h, refl}
-
-def closure (r : M → M → Prop) (n : ℕ) : Prop :=
-equivalence (closing r n) ∧
-(∀ w x y z, closing r n w x → closing r n y z → closing r n (w * y) (x * z))
-
-lemma bin_ext_iff {r s : M → M → Prop} : (∀ a b, r a b ↔ s a b) ↔ r = s :=
-⟨λ h, funext $ λ a, funext $ λ b, iff_iff_eq.1 $ h a b, λ h a b, h ▸ iff.rfl⟩
-
-def con_of_closure (r : M → M → Prop) (n) (h : closure r n) : con M :=
-⟨closing r n, h.1, h.2⟩
-
-theorem terminated (r : M → M → Prop) (n : ℕ) (H : closure r n) :
-  ∀ (i : ℕ), closing r (n + i) = closing r n
-| 0 := rfl
-| (i + 1) := by {rw ←add_assoc, show step (n + i) (closing r (n + i)) = _, rw terminated i, cases eqv_or_mul (closing r n) (n + i),
-rw h, exact bin_ext_iff.1 (λ x y, relation.eqv_gen_iff_of_equivalence H.1),
-rw h, exact mul_gen_of_mul _ H.2}
-
-lemma hmmmmm (r : M → M → Prop) (n : ℕ) (H : closure r n) :
-  closing r n = con_gen.rel' r :=
-begin
-  ext x y,
-  split,
-  intro h,
-  induction n with n hn,
-    exact con_gen.rel'.of _ _ h,
-  change step _ _ _ _ at h,
-
-
-
-
-end
-
-
-
 
 /-- The inductively defined congruence closure of a binary relation r equals the infimum of the
     set of congruence relations containing r. -/

@@ -18,8 +18,6 @@ universes u v w u₁ v₁
 open lattice
 open_locale tensor_product
 
-set_option old_structure_cmd true
-
 /-- The category of R-algebras where R is a commutative
 ring is the under category R ↓ CRing. In the categorical
 setting we have a forgetful functor R-Alg ⥤ R-Mod.

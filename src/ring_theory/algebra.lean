@@ -91,8 +91,7 @@ by rw [smul_def, smul_def, left_comm]
 by rw [smul_def, smul_def, mul_assoc]
 
 instance to_module : module R A :=
-{ smul := (•),
-  one_smul := by simp [smul_def],
+{ one_smul := by simp [smul_def],
   mul_smul := by simp [smul_def, mul_assoc],
   smul_add := by simp [smul_def, mul_add],
   smul_zero := by simp [smul_def],

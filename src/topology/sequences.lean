@@ -163,17 +163,15 @@ instance [topological_space α] [first_countable_topology α] : sequential_space
   assume (p : α) (hp : p ∈ closure M),
   exists.elim (mono_seq_of_has_countable_basis _
     (nhds_generated_countable p)) $ assume g ⟨gmon, gbasis⟩,
-  have x : ∀ i, (g i ∩ M : set α), {
-    rw mem_closure_iff_nhds at hp,
+  have x : ∀ i, (g i ∩ M : set α),
+  { rw mem_closure_iff_nhds at hp,
     intro i, apply classical.choice, rw coe_nonempty_iff_ne_empty,
-    apply hp, rw gbasis, rw ← le_principal_iff, apply lattice.infi_le_of_le i _, apply le_refl _
-  },
-  have gssnhds : ∀ s ∈ nhds p, ∃ i, g i ⊆ s, {
-    intro s, rw gbasis, rw mem_infi,
+    apply hp, rw gbasis, rw ← le_principal_iff, apply lattice.infi_le_of_le i _, apply le_refl _ },
+  have gssnhds : ∀ s ∈ nhds p, ∃ i, g i ⊆ s,
+  { intro s, rw gbasis, rw mem_infi,
     { simp, intros i hi, use i, assumption },
     { apply directed_of_mono, intros, apply principal_mono.mpr, apply gmon, assumption },
-    { apply_instance }
-  },
+    { apply_instance } },
   ⟨λ i, (x i).val, by intro i; simp [(x i).property.right],
     begin
       rw tendsto_at_top', intros s nhdss,

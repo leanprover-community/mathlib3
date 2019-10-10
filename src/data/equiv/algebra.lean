@@ -434,6 +434,12 @@ variables [semiring α] [semiring β]
 def to_ring_hom (e : α ≃+* β) : α →+* β :=
 { .. e.to_mul_equiv.to_monoid_hom, .. e.to_add_equiv.to_add_monoid_hom }
 
+/-- Reinterpret a ring equivalence as a monoid homomorphism. -/
+def to_monoid_hom (e : α ≃+* β) : α →* β := e.to_ring_hom.to_monoid_hom
+
+/-- Reinterpret a ring equivalence as an add_monoid homomorphism. -/
+def to_add_monoid_hom (e : α ≃+* β) : α →+ β := e.to_ring_hom.to_add_monoid_hom
+
 /-- Interpret an equivalence `f : α ≃ β` as a ring equivalence `α ≃+* β`. -/
 def of (e : α ≃ β) [is_semiring_hom e] : α ≃+* β :=
 { .. e, .. monoid_hom.of e, .. add_monoid_hom.of e }

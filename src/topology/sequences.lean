@@ -168,7 +168,7 @@ instance [topological_space α] [first_countable_topology α] : sequential_space
     (nhds_generated_countable p)) $ assume g ⟨gmon, gbasis⟩,
   -- (g i) is a neighborhood of p and hence intersects M.
   -- Via choice we obtain the sequence x such that (x i).val ∈ g i ∩ M:
-  have x : ∀ i, (g i ∩ M : set α),
+  have x : ∀ i, g i ∩ M,
   { rw mem_closure_iff_nhds at hp,
     intro i, apply classical.choice, rw coe_nonempty_iff_ne_empty,
     apply hp, rw gbasis, rw ← le_principal_iff, apply lattice.infi_le_of_le i _, apply le_refl _ },

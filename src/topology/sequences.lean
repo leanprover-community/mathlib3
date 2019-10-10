@@ -160,18 +160,26 @@ instance [topological_space α] [first_countable_topology α] : sequential_space
 ⟨show ∀ M, sequential_closure M = closure M, from assume M,
   suffices closure M ⊆ sequential_closure M,
     from set.subset.antisymm (sequential_closure_subset_closure M) this,
+  -- For every p ∈ closure M, we need to construct a sequence x in M that converges to p:
   assume (p : α) (hp : p ∈ closure M),
+  -- Since we are in a first-countable space, there exists a monotonically decreasing
+  -- sequence g of sets generating the neighborhood filter around p:
   exists.elim (mono_seq_of_has_countable_basis _
     (nhds_generated_countable p)) $ assume g ⟨gmon, gbasis⟩,
+  -- (g i) is a neighborhood of p and hence intersects M.
+  -- Via choice we obtain the sequence x such that (x i).val ∈ g i ∩ M:
   have x : ∀ i, (g i ∩ M : set α),
   { rw mem_closure_iff_nhds at hp,
     intro i, apply classical.choice, rw coe_nonempty_iff_ne_empty,
     apply hp, rw gbasis, rw ← le_principal_iff, apply lattice.infi_le_of_le i _, apply le_refl _ },
+  -- It remains to show that x converges to p. Intuitively this is the case
+  -- because x i ∈ g i, and the g i get "arbitrarily small" around p. Formally:
   have gssnhds : ∀ s ∈ nhds p, ∃ i, g i ⊆ s,
   { intro s, rw gbasis, rw mem_infi,
     { simp, intros i hi, use i, assumption },
     { apply directed_of_mono, intros, apply principal_mono.mpr, apply gmon, assumption },
     { apply_instance } },
+  -- For the sequence (x i) we can now show that a) it lies in M, and b) converges to p.
   ⟨λ i, (x i).val, by intro i; simp [(x i).property.right],
     begin
       rw tendsto_at_top', intros s nhdss,

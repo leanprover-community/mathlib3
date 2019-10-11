@@ -8,7 +8,7 @@ Modules over a ring.
 ## Implemetation notes
 
 
-Throughout the `linear_map` section implicit `{}` brackets are somtimes used instead of type class `[]` brackets. 
+Throughout the `linear_map` section implicit `{}` brackets are often used instead of type class `[]` brackets. 
 This is done when the instances can be inferred because they are implicit arguments to the type `linear_map`. 
 When they can be inferred from the type it is faster to use this method than to use type class inference
 

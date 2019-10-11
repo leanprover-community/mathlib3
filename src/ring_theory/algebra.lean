@@ -387,7 +387,7 @@ variables (S : subalgebra R A)
 
 instance : is_subring (S : set A) := S.subring
 instance : ring S := @@subtype.ring _ S.is_subring
-instance (R : Type u) (A : Type v) {rR : comm_ring R} {rA : comm_ring A}
+instance (R : Type u) (A : Type v) {rR : comm_ring R} [comm_ring A]
   {aA : algebra R A} (S : subalgebra R A) : comm_ring S := @@subtype.comm_ring _ S.is_subring
 
 instance algebra : algebra R S :=

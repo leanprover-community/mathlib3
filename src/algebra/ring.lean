@@ -381,9 +381,8 @@ include rα
 
 @[simp] lemma id_apply : ring_hom.id α x = x := rfl
 
-include rβ rγ
 variable {rγ : semiring γ}
-include rα rβ rγ
+include rβ rγ
 
 /-- Composition of ring homomorphisms is a ring homomorphism. -/
 def comp (hnp : β →+* γ) (hmn : α →+* β) : α →+* γ :=

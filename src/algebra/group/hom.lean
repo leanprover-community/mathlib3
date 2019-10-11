@@ -38,7 +38,7 @@ as `map_mul`; a separate constructor `monoid_hom.mk'` will construct
 group homs (i.e. monoid homs between groups) given only a proof
 that multiplication is preserved,
 
-Throughout the `monoid_hom` section implicit `{}` brackets are somtimes used instead of type class `[]` brackets. 
+Throughout the `monoid_hom` section implicit `{}` brackets are often used instead of type class `[]` brackets. 
 This is done when the instances can be inferred because they are implicit arguments to the type `monoid_hom`. 
 When they can be inferred from the type it is faster to use this method than to use type class inference.
 

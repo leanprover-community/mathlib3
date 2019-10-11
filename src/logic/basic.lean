@@ -2,7 +2,9 @@
 Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
+-/
 
+/-!
 Theorems that require decidability hypotheses are in the namespace "decidable".
 Classical versions are in the namespace "classical".
 
@@ -10,13 +12,14 @@ Note: in the presence of automation, this whole file may be unnecessary. On the 
 maybe it is useful for writing automation.
 -/
 
-/-
-    miscellany
 
-    TODO: move elsewhere
--/
 
 section miscellany
+
+/- We add the `inline` attribute to optimize VM computation using these declarations. For example,
+  `if p ∧ q then ... else ...` will not evaluate the decidability of `q` if `p` is false. -/
+attribute [inline] and.decidable or.decidable decidable.false xor.decidable iff.decidable
+  decidable.true implies.decidable not.decidable ne.decidable
 
 variables {α : Type*} {β : Type*}
 
@@ -28,7 +31,7 @@ instance : subsingleton empty := ⟨λa, a.elim⟩
 
 instance : decidable_eq empty := λa, a.elim
 
-@[priority 0] instance decidable_eq_of_subsingleton
+@[priority 10] instance decidable_eq_of_subsingleton
   {α} [subsingleton α] : decidable_eq α
 | a b := is_true (subsingleton.elim a b)
 
@@ -62,19 +65,33 @@ def pempty.elim {C : Sort*} : pempty → C.
 
 instance subsingleton_pempty : subsingleton pempty := ⟨λa, a.elim⟩
 
+@[simp] lemma not_nonempty_pempty : ¬ nonempty pempty :=
+assume ⟨h⟩, h.elim
+
+@[simp] theorem forall_pempty {P : pempty → Prop} : (∀ x : pempty, P x) ↔ true :=
+⟨λ h, trivial, λ h x, by cases x⟩
+
+@[simp] theorem exists_pempty {P : pempty → Prop} : (∃ x : pempty, P x) ↔ false :=
+⟨λ h, by { cases h with w, cases w }, false.elim⟩
+
 lemma congr_arg_heq {α} {β : α → Sort*} (f : ∀ a, β a) : ∀ {a₁ a₂ : α}, a₁ = a₂ → f a₁ == f a₂
 | a _ rfl := heq.rfl
 
 lemma plift.down_inj {α : Sort*} : ∀ (a b : plift α), a.down = b.down → a = b
 | ⟨a⟩ ⟨b⟩ rfl := rfl
 
-@[simp] lemma nonempty_pempty : ¬ nonempty pempty :=
-assume ⟨h⟩, h.elim
-
 -- missing [symm] attribute for ne in core.
 attribute [symm] ne.symm
 
 lemma ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨ne.symm, ne.symm⟩
+
+@[simp] lemma eq_iff_eq_cancel_left {b c : α} :
+  (∀ {a}, a = b ↔ a = c) ↔ (b = c) :=
+⟨λ h, by rw [← h], λ h a, by rw h⟩
+
+@[simp] lemma eq_iff_eq_cancel_right {a b : α} :
+  (∀ {c}, a = c ↔ b = c) ↔ (a = b) :=
+⟨λ h, by rw h, λ h a, by rw h⟩
 
 end miscellany
 
@@ -98,7 +115,7 @@ theorem iff_iff_eq : (a ↔ b) ↔ a = b := ⟨propext, iff_of_eq⟩
 
 @[simp] theorem imp_self : (a → a) ↔ true := iff_true_intro id
 
-theorem imp_intro {α β} (h : α) (h₂ : β) : α := h
+theorem imp_intro {α β : Prop} (h : α) : β → α := λ _, h
 
 theorem imp_false : (a → false) ↔ ¬ a := iff.rfl
 
@@ -123,14 +140,14 @@ iff_true_intro $ λ_, trivial
 
 /- not -/
 
-theorem not.elim {α : Sort*} (H1 : ¬a) (H2 : a) : α := absurd H2 H1
+def not.elim {α : Sort*} (H1 : ¬a) (H2 : a) : α := absurd H2 H1
 
 @[reducible] theorem not.imp {a b : Prop} (H2 : ¬b) (H1 : a → b) : ¬a := mt H1 H2
 
 theorem not_not_of_not_imp : ¬(a → b) → ¬¬a :=
 mt not.elim
 
-theorem not_of_not_imp {α} : ¬(α → b) → ¬b :=
+theorem not_of_not_imp {a : Prop} : ¬(a → b) → ¬b :=
 mt imp_intro
 
 theorem dec_em (p : Prop) [decidable p] : p ∨ ¬p := decidable.em p
@@ -293,7 +310,7 @@ by rw [@iff_def (¬ a), @iff_def' a]; exact and_congr not_imp_not not_imp_not
 theorem not_iff_comm [decidable a] [decidable b] : (¬ a ↔ b) ↔ (¬ b ↔ a) :=
 by rw [@iff_def (¬ a), @iff_def (¬ b)]; exact and_congr not_imp_comm imp_not_comm
 
-theorem not_iff [decidable a] [decidable b] : ¬ (a ↔ b) ↔ (¬ a ↔ b) :=
+theorem not_iff [decidable b] : ¬ (a ↔ b) ↔ (¬ a ↔ b) :=
 by split; intro h; [split, skip]; intro h'; [by_contradiction,intro,skip];
    try { refine h _; simp [*] }; rw [h',not_iff_self] at h; exact h
 
@@ -396,9 +413,10 @@ end equality
 section quantifiers
 variables {α : Sort*} {β : Sort*} {p q : α → Prop} {b : Prop}
 
-def Exists.imp := @exists_imp_exists
+lemma Exists.imp (h : ∀ a, (p a → q a)) (p : ∃ a, p a) : ∃ a, q a := exists_imp_exists h p
 
-lemma exists_imp_exists' {p : α → Prop} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a)) (hp : ∃ a, p a) : ∃ b, q b :=
+lemma exists_imp_exists' {p : α → Prop} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a))
+  (hp : ∃ a, p a) : ∃ b, q b :=
 exists.elim hp (λ a hp', ⟨_, hpq _ hp'⟩)
 
 theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
@@ -476,6 +494,8 @@ by simp [and_comm]
 ⟨λ h, h a' rfl, λ h a e, e.symm ▸ h⟩
 
 @[simp] theorem exists_eq {a' : α} : ∃ a, a = a' := ⟨_, rfl⟩
+
+@[simp] theorem exists_eq' {a' : α} : Exists (eq a') := ⟨_, rfl⟩
 
 @[simp] theorem exists_eq_left {a' : α} : (∃ a, a = a' ∧ p a) ↔ p a' :=
 ⟨λ ⟨a, e, h⟩, e ▸ h, λ h, ⟨_, rfl, h⟩⟩
@@ -571,11 +591,24 @@ begin
   simp only [imp_iff_not_or, or.comm]
 end
 
-/- use shortened names to avoid conflict when classical namespace is open -/
-noncomputable theorem dec (p : Prop) : decidable p := by apply_instance
-noncomputable theorem dec_pred (p : α → Prop) : decidable_pred p := by apply_instance
-noncomputable theorem dec_rel (p : α → α → Prop) : decidable_rel p := by apply_instance
-noncomputable theorem dec_eq (α : Sort*) : decidable_eq α := by apply_instance
+/- use shortened names to avoid conflict when classical namespace is open. -/
+noncomputable lemma dec (p : Prop) : decidable p := -- see Note [classical lemma]
+by apply_instance
+noncomputable lemma dec_pred (p : α → Prop) : decidable_pred p := -- see Note [classical lemma]
+by apply_instance
+noncomputable lemma dec_rel (p : α → α → Prop) : decidable_rel p := -- see Note [classical lemma]
+by apply_instance
+noncomputable lemma dec_eq (α : Sort*) : decidable_eq α := -- see Note [classical lemma]
+by apply_instance
+
+/- Note [classical lemma]:
+  We make decidability results that depends on `classical.choice` noncomputable lemmas.
+  * We have to mark them as noncomputable, because otherwise Lean will try to generate bytecode
+    for them, and fail because it depends on `classical.choice`.
+  * We make them lemmas, and not definitions, because otherwise later definitions will raise
+    "failed to generate bytecode" errors when writing something like
+    `letI := classical.dec_eq _`.
+  Cf. https://leanprover-community.github.io/archive/113488general/08268noncomputabletheorem.html -/
 
 @[elab_as_eliminator]
 noncomputable def {u} exists_cases {C : Sort u} (H0 : C) (H : ∀ a, p a → C) : C :=
@@ -636,7 +669,7 @@ theorem bex.imp_left (H : ∀ x, p x → q x) :
   (∃ x (_ : p x), r x) → ∃ x (_ : q x), r x
 | ⟨x, hp, hr⟩ := ⟨x, H _ hp, hr⟩
 
-theorem ball_of_forall (h : ∀ x, p x) (x) (_ : q x) : p x :=
+theorem ball_of_forall (h : ∀ x, p x) (x) : p x :=
 h x
 
 theorem forall_of_ball (H : ∀ x, p x) (h : ∀ x, p x → q x) (x) : q x :=

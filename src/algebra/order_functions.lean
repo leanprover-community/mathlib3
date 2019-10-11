@@ -187,7 +187,7 @@ variables [decidable_linear_ordered_comm_group α] {a b c : α}
 
 attribute [simp] abs_zero abs_neg
 
-def abs_add := @abs_add_le_abs_add_abs
+lemma abs_add (a b : α) : abs (a + b) ≤ abs a + abs b := abs_add_le_abs_add_abs a b
 
 theorem abs_le : abs a ≤ b ↔ - b ≤ a ∧ a ≤ b :=
 ⟨assume h, ⟨neg_le_of_neg_le $ le_trans (neg_le_abs_self _) h, le_trans (le_abs_self _) h⟩,
@@ -203,12 +203,12 @@ by rw [abs_le, neg_le_sub_iff_le_add, @sub_le_iff_le_add' _ _ b, and_comm]
 lemma abs_sub_lt_iff : abs (a - b) < c ↔ a - b < c ∧ b - a < c :=
 by rw [abs_lt, neg_lt_sub_iff_lt_add, @sub_lt_iff_lt_add' _ _ b, and_comm]
 
-def sub_abs_le_abs_sub := @abs_sub_abs_le_abs_sub
+lemma sub_abs_le_abs_sub (a b : α) : abs a - abs b ≤ abs (a - b) := abs_sub_abs_le_abs_sub a b
 
 lemma abs_abs_sub_le_abs_sub (a b : α) : abs (abs a - abs b) ≤ abs (a - b) :=
 abs_sub_le_iff.2 ⟨sub_abs_le_abs_sub _ _, by rw abs_sub; apply sub_abs_le_abs_sub⟩
 
-lemma abs_eq (hb : b ≥ 0) : abs a = b ↔ a = b ∨ a = -b :=
+lemma abs_eq (hb : 0 ≤ b) : abs a = b ↔ a = b ∨ a = -b :=
 iff.intro
   begin
     cases le_total a 0 with a_nonpos a_nonneg,

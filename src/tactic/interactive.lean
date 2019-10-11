@@ -4,7 +4,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Sebastien Gouezel, Scott Morrison
 -/
-import tactic.core data.list.defs data.string.defs
+import tactic.sanity_check
 
 open lean
 open lean.parser
@@ -15,6 +15,9 @@ local postfix *:9001 := many
 namespace tactic
 namespace interactive
 open interactive interactive.types expr
+
+/-- Similar to `constructor`, but does not reorder goals. -/
+meta def fconstructor : tactic unit := concat_tags tactic.fconstructor
 
 /-- `try_for n { tac }` executes `tac` for `n` ticks, otherwise uses `sorry` to close the goal.
 Never fails. Useful for debugging. -/
@@ -129,7 +132,7 @@ private meta def generalize_arg_p_aux : pexpr → parser (pexpr × name)
 private meta def generalize_arg_p : parser (pexpr × name) :=
 with_desc "expr = id" $ parser.pexpr 0 >>= generalize_arg_p_aux
 
-lemma {u} generalize_a_aux {α : Sort u}
+@[sanity_skip] lemma {u} generalize_a_aux {α : Sort u}
   (h : ∀ x : Sort u, (α → x) → x) : α := h α id
 
 /--
@@ -748,13 +751,6 @@ do (cxt,_) ← solve_aux `(true) $
    let fmt := mk_paragraph 80 $ title :: cxt' ++ [cxt''.get_or_else ":", stmt],
    trace fmt,
    trace!"begin\n  \nend"
-
-/--
-`symmetry'` behaves like `symmetry` but also offers the option `symmetry' at h` to apply symmetry to assumption `h`
--/
-meta def symmetry' : parse location → tactic unit
-| l@loc.wildcard := l.try_apply symmetry_hyp symmetry
-| (loc.ns hs) := (loc.ns hs.reverse).apply symmetry_hyp symmetry
 
 end interactive
 end tactic

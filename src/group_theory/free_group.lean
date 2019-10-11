@@ -766,10 +766,10 @@ group to its maximal reduction. -/
 def to_word : free_group α → list (α × bool) :=
 quot.lift reduce $ λ L₁ L₂ H, reduce.step.eq H
 
-def to_word.mk : ∀{x : free_group α}, mk (to_word x) = x :=
+lemma to_word.mk : ∀{x : free_group α}, mk (to_word x) = x :=
 by rintros ⟨L⟩; exact reduce.self
 
-def to_word.inj : ∀(x y : free_group α), to_word x = to_word y → x = y :=
+lemma to_word.inj : ∀(x y : free_group α), to_word x = to_word y → x = y :=
 by rintros ⟨L₁⟩ ⟨L₂⟩; exact reduce.exact
 
 /-- Constructive Church-Rosser theorem (compare `church_rosser`). -/

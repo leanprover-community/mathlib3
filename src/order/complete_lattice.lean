@@ -27,8 +27,8 @@ def supr [has_Sup α] (s : ι → α) : α := Sup (range s)
 /-- Indexed infimum -/
 def infi [has_Inf α] (s : ι → α) : α := Inf (range s)
 
-def has_Inf_to_nonempty (α) [has_Inf α] : nonempty α := ⟨Inf ∅⟩
-def has_Sup_to_nonempty (α) [has_Sup α] : nonempty α := ⟨Sup ∅⟩
+lemma has_Inf_to_nonempty (α) [has_Inf α] : nonempty α := ⟨Inf ∅⟩
+lemma has_Sup_to_nonempty (α) [has_Sup α] : nonempty α := ⟨Sup ∅⟩
 
 notation `⨆` binders `, ` r:(scoped f, supr f) := r
 notation `⨅` binders `, ` r:(scoped f, infi f) := r
@@ -572,7 +572,8 @@ theorem supr_le_supr_of_subset {f : β → α} {s t : set β} (h : s ⊆ t) :
   (⨆ x ∈ s, f x) ≤ (⨆ x ∈ t, f x) :=
 by rw [(union_eq_self_of_subset_left h).symm, supr_union]; exact le_sup_left
 
-@[simp] theorem insert_of_has_insert (x : α) (a : set α) : has_insert.insert x a = insert x a := rfl
+@[simp] theorem insert_of_has_insert {α : Type*} (x : α) (a : set α) :
+  has_insert.insert x a = insert x a := rfl
 
 @[simp] theorem infi_insert {f : β → α} {s : set β} {b : β} : (⨅ x ∈ insert b s, f x) = f b ⊓ (⨅x∈s, f x) :=
 eq.trans infi_union $ congr_arg (λx:α, x ⊓ (⨅x∈s, f x)) infi_infi_eq_left
@@ -638,6 +639,10 @@ theorem infi_subtype {p : ι → Prop} {f : subtype p → α} : (⨅ x, f x) = (
 le_antisymm
   (le_infi $ assume i, le_infi $ assume : p i, infi_le _ _)
   (le_infi $ assume ⟨i, h⟩, infi_le_of_le i $ infi_le _ _)
+
+lemma infi_subtype' {p : ι → Prop} {f : ∀ i, p i → α} :
+  (⨅ i (h : p i), f i h) = (⨅ x : subtype p, f x.val x.property) :=
+(@infi_subtype _ _ _ p (λ x, f x.val x.property)).symm
 
 theorem supr_subtype {p : ι → Prop} {f : subtype p → α} : (⨆ x, f x) = (⨆ i (h:p i), f ⟨i, h⟩) :=
 le_antisymm

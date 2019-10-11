@@ -12,7 +12,7 @@ noncomputable theory
 
 universes u
 open set classical
-local attribute [instance] prop_decidable
+open_locale classical
 
 namespace zorn
 

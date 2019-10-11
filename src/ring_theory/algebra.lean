@@ -11,11 +11,12 @@ import data.complex.basic
 import linear_algebra.tensor_product
 import ring_theory.subring
 
+noncomputable theory
+
 universes u v w u₁ v₁
 
 open lattice
-
-local infix ` ⊗ `:100 := tensor_product
+open_locale tensor_product
 
 /-- The category of R-algebras where R is a commutative
 ring is the under category R ↓ CRing. In the categorical
@@ -101,15 +102,15 @@ by rw [smul_def, smul_def, left_comm]
 by rw [smul_def, smul_def, mul_assoc]
 
 /-- R[X] is the generator of the category R-Alg. -/
-instance polynomial (R : Type u) [comm_ring R] [decidable_eq R] : algebra R (polynomial R) :=
+instance polynomial (R : Type u) [comm_ring R] : algebra R (polynomial R) :=
 { to_fun := polynomial.C,
   commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ c p, (polynomial.C_mul' c p).symm,
   .. polynomial.module }
 
 /-- The algebra of multivariate polynomials. -/
-instance mv_polynomial (R : Type u) [comm_ring R] [decidable_eq R]
-  (ι : Type v) [decidable_eq ι] : algebra R (mv_polynomial ι R) :=
+instance mv_polynomial (R : Type u) [comm_ring R]
+  (ι : Type v) : algebra R (mv_polynomial ι R) :=
 { to_fun := mv_polynomial.C,
   commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ c p, (mv_polynomial.C_mul' c p).symm,
@@ -293,7 +294,7 @@ namespace polynomial
 
 variables (R : Type u) (A : Type v)
 variables [comm_ring R] [comm_ring A] [algebra R A]
-variables [decidable_eq R] (x : A)
+variables (x : A)
 
 /-- A → Hom[R-Alg](R[X],A) -/
 def aeval : polynomial R →ₐ[R] A :=
@@ -323,7 +324,7 @@ namespace mv_polynomial
 
 variables (R : Type u) (A : Type v)
 variables [comm_ring R] [comm_ring A] [algebra R A]
-variables [decidable_eq R] [decidable_eq A] (σ : set A)
+variables (σ : set A)
 
 /-- (ι → A) → Hom[R-Alg](R[ι],A) -/
 def aeval : mv_polynomial σ R →ₐ[R] A :=
@@ -336,7 +337,7 @@ theorem aeval_def (p : mv_polynomial σ R) : aeval R A σ p = eval₂ (algebra_m
 instance aeval.is_ring_hom : is_ring_hom (aeval R A σ) :=
 alg_hom.hom _
 
-variables (ι : Type w) [decidable_eq ι]
+variables (ι : Type w)
 
 theorem eval_unique (φ : mv_polynomial ι R →ₐ[R] A) (p) :
   φ p = eval₂ (algebra_map A) (φ ∘ X) p :=
@@ -489,7 +490,7 @@ def adjoin (s : set A) : subalgebra R A :=
   range_le := le_trans (set.subset_union_left _ _) ring.subset_closure }
 variables {R}
 
-protected def gc : galois_connection (adjoin R : set A → subalgebra R A) coe :=
+protected lemma gc : galois_connection (adjoin R : set A → subalgebra R A) coe :=
 λ s S, ⟨λ H, le_trans (le_trans (set.subset_union_right _ _) ring.subset_closure) H,
 λ H, ring.closure_subset $ set.union_subset S.range_le H⟩
 

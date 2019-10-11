@@ -74,13 +74,20 @@ section lift
 @[to_additive]
 def lift {β : Type v} [has_one β] (f : α → β) : (with_one α) → β := λ x, option.cases_on x 1 f
 
-variables [semigroup α] {β : Type v} [monoid β] (f : α → β)
+variables [ha : semigroup α] {β : Type v} [monoid β] (f : α → β)
 
 @[simp, to_additive]
 lemma lift_coe (x : α) : lift f x = f x := rfl
 
 @[simp, to_additive]
 lemma lift_one : lift f 1 = 1 := rfl
+
+@[to_additive]
+theorem lift_unique (f : with_one α → β) (hf : f 1 = 1) :
+  f = lift (f ∘ coe) :=
+funext $ λ x, with_one.cases_on x hf $ λ x, rfl
+
+include ha
 
 @[to_additive lift_is_add_monoid_hom]
 instance lift_is_monoid_hom [hf : is_mul_hom f] : is_monoid_hom (lift f) :=
@@ -90,11 +97,6 @@ instance lift_is_monoid_hom [hf : is_mul_hom f] : is_monoid_hom (lift f) :=
     with_one.cases_on y (by rw [mul_one, lift_one, mul_one]) $ λ y,
     @is_mul_hom.map_mul α β _ _ f hf x y }
 
-@[to_additive]
-theorem lift_unique (f : with_one α → β) (hf : f 1 = 1) :
-  f = lift (f ∘ coe) :=
-funext $ λ x, with_one.cases_on x hf $ λ x, rfl
-
 end lift
 
 section map
@@ -102,16 +104,15 @@ section map
 @[to_additive]
 def map {β : Type v} (f : α → β) : with_one α → with_one β := option.map f
 
-variables [semigroup α] {β : Type v} [semigroup β] (f : α → β)
-
 @[to_additive]
-lemma map_eq [semigroup α] {β : Type v} [semigroup β] (f : α → β) :
-  map f = lift (coe ∘ f) :=
+lemma map_eq {β : Type v} (f : α → β) : map f = lift (coe ∘ f) :=
 funext $ assume x,
 @with_one.cases_on α (λ x, map f x = lift (coe ∘ f) x) x rfl (λ a, rfl)
 
+variables [semigroup α] {β : Type v} [semigroup β] (f : α → β) [is_mul_hom f]
+
 @[to_additive map_is_add_monoid_hom]
-instance map_is_monoid_hom [is_mul_hom f] : is_monoid_hom (map f) :=
+instance map_is_monoid_hom : is_monoid_hom (map f) :=
 by rw map_eq; apply with_one.lift_is_monoid_hom
 
 end map
@@ -187,7 +188,7 @@ variables [group α]
 @[simp] lemma inv_one : (1 : with_zero α)⁻¹ = 1 :=
 show ((1⁻¹ : α) : with_zero α) = 1, by simp [coe_one]
 
-definition with_zero.div (x y : with_zero α) : with_zero α :=
+definition div (x y : with_zero α) : with_zero α :=
 x * y⁻¹
 
 instance : has_div (with_zero α) := ⟨with_zero.div⟩

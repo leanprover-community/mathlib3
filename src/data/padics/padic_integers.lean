@@ -40,7 +40,7 @@ p-adic, p adic, padic, p-adic integer
 
 open nat padic metric
 noncomputable theory
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 /-- The p-adic integers ℤ_p are the p-adic numbers with norm ≤ 1. -/
 def padic_int (p : ℕ) [p.prime] := {x : ℚ_[p] // ∥x∥ ≤ 1}
@@ -189,7 +189,7 @@ theorem nonarchimedean : ∀ (q r : ℤ_[p]), ∥q + r∥ ≤ max (∥q∥) (∥
 theorem add_eq_max_of_ne : ∀ {q r : ℤ_[p]}, ∥q∥ ≠ ∥r∥ → ∥q+r∥ = max (∥q∥) (∥r∥)
 | ⟨_, _⟩ ⟨_, _⟩ := padic_norm_e.add_eq_max_of_ne
 
-@[simp] lemma norm_one : ∥(1 : ℤ_[p])∥ = 1 := norm_one
+@[simp] lemma norm_one : ∥(1 : ℤ_[p])∥ = 1 := normed_field.norm_one
 
 lemma eq_of_norm_add_lt_right {z1 z2 : ℤ_[p]}
   (h : ∥z1 + z2∥ < ∥z2∥) : ∥z1∥ = ∥z2∥ :=

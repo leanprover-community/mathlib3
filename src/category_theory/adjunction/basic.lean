@@ -22,8 +22,8 @@ include 𝒞 𝒟
 -/
 structure adjunction (F : C ⥤ D) (G : D ⥤ C) :=
 (hom_equiv : Π (X Y), (F.obj X ⟶ Y) ≃ (X ⟶ G.obj Y))
-(unit : functor.id C ⟶ F.comp G)
-(counit : G.comp F ⟶ functor.id D)
+(unit : 𝟭 C ⟶ F.comp G)
+(counit : G.comp F ⟶ 𝟭 D)
 (hom_equiv_unit' : Π {X Y f}, (hom_equiv X Y) f = (unit : _ ⟶ _).app X ≫ G.map f . obviously)
 (hom_equiv_counit' : Π {X Y g}, (hom_equiv X Y).symm g = F.map g ≫ counit.app Y . obviously)
 
@@ -46,13 +46,13 @@ namespace adjunction
 
 restate_axiom hom_equiv_unit'
 restate_axiom hom_equiv_counit'
-attribute [simp, priority 1] hom_equiv_unit hom_equiv_counit
+attribute [simp, priority 10] hom_equiv_unit hom_equiv_counit
 
 section
 
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G) {X' X : C} {Y Y' : D}
 
-@[simp, priority 1] lemma hom_equiv_naturality_left_symm (f : X' ⟶ X) (g : X ⟶ G.obj Y) :
+@[simp, priority 10] lemma hom_equiv_naturality_left_symm (f : X' ⟶ X) (g : X ⟶ G.obj Y) :
   (adj.hom_equiv X' Y).symm (f ≫ g) = F.map f ≫ (adj.hom_equiv X Y).symm g :=
 by rw [hom_equiv_counit, F.map_comp, assoc, adj.hom_equiv_counit.symm]
 
@@ -60,7 +60,7 @@ by rw [hom_equiv_counit, F.map_comp, assoc, adj.hom_equiv_counit.symm]
   (adj.hom_equiv X' Y) (F.map f ≫ g) = f ≫ (adj.hom_equiv X Y) g :=
 by rw [← equiv.eq_symm_apply]; simp [-hom_equiv_unit]
 
-@[simp, priority 1] lemma hom_equiv_naturality_right (f : F.obj X ⟶ Y) (g : Y ⟶ Y') :
+@[simp, priority 10] lemma hom_equiv_naturality_right (f : F.obj X ⟶ Y) (g : Y ⟶ Y') :
   (adj.hom_equiv X Y') (f ≫ g) = (adj.hom_equiv X Y) f ≫ G.map g :=
 by rw [hom_equiv_unit, G.map_comp, ← assoc, ←hom_equiv_unit]
 
@@ -86,11 +86,11 @@ end
 
 @[simp, reassoc] lemma left_triangle_components :
   F.map (adj.unit.app X) ≫ adj.counit.app (F.obj X) = 𝟙 (F.obj X) :=
-congr_arg (λ (t : nat_trans _ (functor.id C ⋙ F)), t.app X) adj.left_triangle
+congr_arg (λ (t : nat_trans _ (𝟭 C ⋙ F)), t.app X) adj.left_triangle
 
 @[simp, reassoc] lemma right_triangle_components {Y : D} :
   adj.unit.app (G.obj Y) ≫ G.map (adj.counit.app Y) = 𝟙 (G.obj Y) :=
-congr_arg (λ (t : nat_trans _ (G ⋙ functor.id C)), t.app Y) adj.right_triangle
+congr_arg (λ (t : nat_trans _ (G ⋙ 𝟭 C)), t.app Y) adj.right_triangle
 
 @[simp, reassoc] lemma counit_naturality {X Y : D} (f : X ⟶ Y) :
   F.map (G.map f) ≫ (adj.counit).app Y = (adj.counit).app X ≫ f :=
@@ -117,7 +117,7 @@ namespace core_hom_equiv
 
 restate_axiom hom_equiv_naturality_left_symm'
 restate_axiom hom_equiv_naturality_right'
-attribute [simp, priority 1] hom_equiv_naturality_left_symm hom_equiv_naturality_right
+attribute [simp, priority 10] hom_equiv_naturality_left_symm hom_equiv_naturality_right
 
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : core_hom_equiv F G) {X' X : C} {Y Y' : D}
 
@@ -132,8 +132,8 @@ by rw [equiv.symm_apply_eq]; simp
 end core_hom_equiv
 
 structure core_unit_counit (F : C ⥤ D) (G : D ⥤ C) :=
-(unit : functor.id C ⟶ F.comp G)
-(counit : G.comp F ⟶ functor.id D)
+(unit : 𝟭 C ⟶ F.comp G)
+(counit : G.comp F ⟶ 𝟭 D)
 (left_triangle' : whisker_right unit F ≫ whisker_left F counit = nat_trans.id _ . obviously)
 (right_triangle' : whisker_left G unit ≫ whisker_right counit G = nat_trans.id _ . obviously)
 
@@ -189,7 +189,7 @@ def mk_of_unit_counit (adj : core_unit_counit F G) : F ⊣ G :=
 section
 omit 𝒟
 
-def id : functor.id C ⊣ functor.id C :=
+def id : 𝟭 C ⊣ 𝟭 C :=
 { hom_equiv := λ X Y, equiv.refl _,
   unit := 𝟙 _,
   counit := 𝟙 _ }

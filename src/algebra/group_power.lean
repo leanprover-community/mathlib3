@@ -17,11 +17,6 @@ import data.int.basic data.list.basic
 universes u v
 variable {α : Type u}
 
-@[simp] theorem inv_one [division_ring α] : (1⁻¹ : α) = 1 := by rw [inv_eq_one_div, one_div_one]
-
-@[simp] theorem inv_inv' [discrete_field α] {a:α} : a⁻¹⁻¹ = a :=
-by rw [inv_eq_one_div, inv_eq_one_div, div_div_eq_mul_div, one_mul, div_one]
-
 /-- The power operation in a monoid. `a^n = a*a*...*a` n times. -/
 def monoid.pow [monoid α] (a : α) : ℕ → α
 | 0     := 1
@@ -31,7 +26,7 @@ def add_monoid.smul [add_monoid α] (n : ℕ) (a : α) : α :=
 @monoid.pow (multiplicative α) _ a n
 
 precedence `•`:70
-local infix ` • ` := add_monoid.smul
+localized "infix ` • ` := add_monoid.smul" in add_monoid
 
 @[priority 5] instance monoid.has_pow [monoid α] : has_pow α ℕ := ⟨monoid.pow⟩
 
@@ -167,11 +162,11 @@ by induction n with n ih; [exact one_inv.symm,
 @[simp] theorem add_monoid.neg_smul : ∀ (a : β) (n : ℕ), n•(-a) = -(n•a) :=
 @inv_pow (multiplicative β) _
 
-theorem pow_sub (a : α) {m n : ℕ} (h : m ≥ n) : a^(m - n) = a^m * (a^n)⁻¹ :=
+theorem pow_sub (a : α) {m n : ℕ} (h : n ≤ m) : a^(m - n) = a^m * (a^n)⁻¹ :=
 have h1 : m - n + n = m, from nat.sub_add_cancel h,
 have h2 : a^(m - n) * a^n = a^m, by rw [←pow_add, h1],
 eq_mul_inv_of_mul_eq h2
-theorem add_monoid.smul_sub : ∀ (a : β) {m n : ℕ}, m ≥ n → (m - n)•a = m•a - n•a :=
+theorem add_monoid.smul_sub : ∀ (a : β) {m n : ℕ}, n ≤ m → (m - n)•a = m•a - n•a :=
 @pow_sub (multiplicative β) _
 
 theorem pow_inv_comm (a : α) (m n : ℕ) : (a⁻¹)^m * a^n = a^n * (a⁻¹)^m :=
@@ -195,8 +190,9 @@ def gsmul (n : ℤ) (a : β) : β :=
 
 @[priority 10] instance group.has_pow : has_pow α ℤ := ⟨gpow⟩
 
-local infix ` • `:70 := gsmul
-local infix ` •ℕ `:70 := add_monoid.smul
+localized "infix ` • `:70 := gsmul" in add_group
+localized "infix ` •ℕ `:70 := add_monoid.smul" in smul
+localized "infix ` •ℤ `:70 := gsmul" in smul
 
 @[simp] theorem gpow_coe_nat (a : α) (n : ℕ) : a ^ (n:ℤ) = a ^ n := rfl
 @[simp] theorem gsmul_coe_nat (a : β) (n : ℕ) : (n:ℤ) • a = n •ℕ a := rfl
@@ -232,6 +228,13 @@ open nat
 
 theorem gpow_neg_one (x : α) : x ^ (-1:ℤ) = x⁻¹ := congr_arg has_inv.inv $ pow_one x
 theorem neg_one_gsmul (x : β) : (-1:ℤ) • x = -x := congr_arg has_neg.neg $ add_monoid.one_smul x
+
+theorem gsmul_one [has_one β] (n : ℤ) : n • (1 : β) = n :=
+begin
+cases n,
+  { rw [gsmul_of_nat, add_monoid.smul_one, int.cast_of_nat] },
+  { rw [gsmul_neg_succ, add_monoid.smul_one, int.cast_neg_succ_of_nat, nat.cast_succ] }
+end
 
 theorem inv_gpow (a : α) : ∀n:ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
 | (n : ℕ) := inv_pow a n
@@ -337,7 +340,7 @@ theorem map_gsmul (a : α) (n : ℤ) : f (gsmul n a) = gsmul n (f a) :=
 
 end is_add_group_hom
 
-local infix ` •ℤ `:70 := gsmul
+open_locale smul
 
 section comm_monoid
 variables [comm_group α] {β : Type*} [add_comm_group β]
@@ -523,13 +526,13 @@ theorem one_le_pow_of_one_le {a : α} (H : 1 ≤ a) : ∀ (n : ℕ), 1 ≤ a ^ n
 | (n+1) := by simpa only [mul_one] using mul_le_mul H (one_le_pow_of_one_le n)
     zero_le_one (le_trans zero_le_one H)
 
-theorem pow_ge_one_add_mul {a : α} (H : a ≥ 0) :
+theorem one_add_mul_le_pow {a : α} (H : 0 ≤ a) :
   ∀ (n : ℕ), 1 + n • a ≤ (1 + a) ^ n
 | 0     := le_of_eq $ add_zero _
 | (n+1) := begin
   rw [pow_succ', succ_smul'],
   refine le_trans _ (mul_le_mul_of_nonneg_right
-    (pow_ge_one_add_mul n) (add_nonneg zero_le_one H)),
+    (one_add_mul_le_pow n) (add_nonneg zero_le_one H)),
   rw [mul_add, mul_one, ← add_assoc, add_le_add_iff_left],
   simpa only [one_mul] using mul_le_mul_of_nonneg_right
     ((le_add_iff_nonneg_right 1).2 (add_monoid.smul_nonneg H n)) H
@@ -594,9 +597,9 @@ end linear_ordered_semiring
 theorem pow_two_nonneg [linear_ordered_ring α] (a : α) : 0 ≤ a ^ 2 :=
 by rw pow_two; exact mul_self_nonneg _
 
-theorem pow_ge_one_add_sub_mul [linear_ordered_ring α]
-  {a : α} (H : a ≥ 1) (n : ℕ) : 1 + n • (a - 1) ≤ a ^ n :=
-by simpa only [add_sub_cancel'_right] using pow_ge_one_add_mul (sub_nonneg.2 H) n
+theorem one_add_sub_mul_le_pow [linear_ordered_ring α]
+  {a : α} (H : 1 ≤ a) (n : ℕ) : 1 + n • (a - 1) ≤ a ^ n :=
+by simpa only [add_sub_cancel'_right] using one_add_mul_le_pow (sub_nonneg.2 H) n
 
 namespace int
 

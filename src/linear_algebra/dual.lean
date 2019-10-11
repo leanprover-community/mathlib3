@@ -14,17 +14,11 @@ namespace module
 variables (R : Type*) (M : Type*)
 variables [comm_ring R] [add_comm_group M] [module R M]
 
-def dual := M →ₗ[R] R
+@[derive [add_comm_group, module R]] def dual := M →ₗ[R] R
 
 namespace dual
 
 instance : has_coe_to_fun (dual R M) := ⟨_, linear_map.to_fun⟩
-
-instance : add_comm_group (dual R M) :=
-by delta dual; apply_instance
-
-instance : module R (dual R M) :=
-by delta dual; apply_instance
 
 def eval : M →ₗ[R] (dual R (dual R M)) := linear_map.id.flip
 
@@ -43,9 +37,9 @@ variables {K : Type u} {V : Type v} {ι : Type w}
 variables [discrete_field K] [add_comm_group V] [vector_space K V]
 open vector_space module module.dual submodule linear_map cardinal function
 
-instance dual.vector_space : vector_space K (dual K V) := {..dual.module K V}
+instance dual.vector_space : vector_space K (dual K V) := { ..module.dual.inst K V }
 
-variables [decidable_eq V] [decidable_eq (module.dual K V)] [decidable_eq ι]
+variables [decidable_eq ι]
 variables {B : ι → V} (h : is_basis K B)
 
 include h
@@ -85,8 +79,7 @@ begin
     rw [to_dual_swap_eq_to_dual, to_dual_apply],
     { split_ifs with hx,
       { rwa [hx, coord_fun_eq_repr, repr_eq_single, finsupp.single_apply, if_pos rfl] },
-      { rwa [coord_fun_eq_repr, repr_eq_single, finsupp.single_apply, if_neg hx] } } },
-  { exact classical.dec_eq K }
+      { rw [coord_fun_eq_repr, repr_eq_single, finsupp.single_apply], symmetry, convert if_neg hx } } }
 end
 
 lemma to_dual_inj (v : V) (a : h.to_dual v = 0) : v = 0 :=
@@ -114,8 +107,7 @@ begin
       rw [h.to_dual_eq_repr _ i, repr_total h],
       { simpa },
       { rw [finsupp.mem_supported],
-        exact λ _ _, set.mem_univ _ } },
-    { exact classical.dec_eq K } },
+        exact λ _ _, set.mem_univ _ } } },
   { intros a _,
     apply fin.complete }
 end
@@ -138,9 +130,9 @@ h.to_dual_equiv.is_basis h
 @[simp] lemma to_dual_to_dual [decidable_eq (dual K (dual K V))] [fintype ι] :
   (h.dual_basis_is_basis.to_dual).comp h.to_dual = eval K V :=
 begin
-  apply @is_basis.ext _ _ _ _ _ _ _ _ (classical.dec_eq (dual K (dual K V))) _ _ _ _ _ _ _ h,
+  apply @is_basis.ext _ _ _ _ _ _ _ _ _ _ _ _ h,
   intros i,
-  apply @is_basis.ext _ _ _ _ _ _ _ _ (classical.dec_eq _) _ _ _ _ _ _ _ h.dual_basis_is_basis,
+  apply @is_basis.ext _ _ _ _ _ _ _ _ _ _ _ _ h.dual_basis_is_basis,
   intros j,
   dunfold eval,
   rw [linear_map.flip_apply, linear_map.id_apply, linear_map.comp_apply],
@@ -207,7 +199,6 @@ begin
   rcases exists_is_basis_fintype h with ⟨b, hb, ⟨hf⟩⟩,
   resetI,
   rw [← hb.to_dual_to_dual, range_comp, hb.to_dual_range, map_top, to_dual_range _],
-  delta dual_basis,
   apply_instance
 end
 

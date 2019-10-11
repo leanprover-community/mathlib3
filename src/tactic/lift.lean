@@ -57,7 +57,7 @@ if h_some : h.is_some then
   (do prf ← i_to_expr (option.get h_some), prf_ty ← infer_type prf,
   expected_prf_ty ← mk_app `can_lift.cond [old_tp, new_tp, inst, e],
   unify prf_ty expected_prf_ty <|>
-    (do expected_prf_ty2 ← expected_prf_ty.dsimp {} tt [`can_lift],
+    (do expected_prf_ty2 ← s.dsimplify to_unfold expected_prf_ty,
       pformat!"lift tactic failed. The type of\n  {prf}\nis\n  {prf_ty}\nbut it is expected to be\n  {expected_prf_ty2}" >>= fail),
   return prf)
   else (do prf_nm ← get_unused_name,

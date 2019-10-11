@@ -459,10 +459,10 @@ calc Inf (insert a s)
     ... = Inf {a} ⊓ Inf s : by apply cInf_union _ _ ‹bdd_below s› ‹s ≠ ∅›; simp only [ne.def, not_false_iff, set.singleton_ne_empty,bdd_below_singleton]
     ... = a ⊓ Inf s       : by simp only [eq_self_iff_true, lattice.cInf_singleton]
 
-@[simp] lemma cInf_interval [conditionally_complete_lattice α] : Inf {b | a ≤ b} = a :=
+@[simp] lemma cInf_interval : Inf {b | a ≤ b} = a :=
 cInf_of_mem_of_le (by simp only [set.mem_set_of_eq]) (λw Hw, by simp only [set.mem_set_of_eq] at Hw; apply Hw)
 
-@[simp] lemma cSup_interval [conditionally_complete_lattice α] : Sup {b | b ≤ a} = a :=
+@[simp] lemma cSup_interval : Sup {b | b ≤ a} = a :=
 cSup_of_mem_of_le (by simp only [set.mem_set_of_eq]) (λw Hw, by simp only [set.mem_set_of_eq] at Hw; apply Hw)
 
 /--The indexed supremum of two functions are comparable if the functions are pointwise comparable-/
@@ -587,7 +587,6 @@ le_antisymm
 end conditionally_complete_linear_order
 
 section conditionally_complete_linear_order_bot
-variables [conditionally_complete_linear_order_bot α]
 
 lemma cSup_empty [conditionally_complete_linear_order_bot α] : (Sup ∅ : α) = ⊥ :=
 conditionally_complete_linear_order_bot.cSup_empty α
@@ -596,7 +595,7 @@ end conditionally_complete_linear_order_bot
 
 section
 
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 noncomputable instance : has_Inf ℕ :=
 ⟨λs, if h : ∃n, n ∈ s then @nat.find (λn, n ∈ s) _ h else 0⟩
@@ -637,7 +636,7 @@ end lattice /-end of namespace lattice-/
 
 namespace with_top
 open lattice
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 variables [conditionally_complete_linear_order_bot α]
 

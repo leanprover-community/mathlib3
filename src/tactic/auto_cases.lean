@@ -15,6 +15,7 @@ do t' ← infer_type h,
   let use_cases := match t' with
   | `(empty)     := tt
   | `(pempty)    := tt
+  | `(false)     := tt
   | `(unit)      := tt
   | `(punit)     := tt
   | `(ulift _)   := tt
@@ -22,6 +23,7 @@ do t' ← infer_type h,
   | `(prod _ _)  := tt
   | `(and _ _)   := tt
   | `(sigma _)   := tt
+  | `(psigma _)  := tt
   | `(subtype _) := tt
   | `(Exists _)  := tt
   | `(fin 0)     := tt

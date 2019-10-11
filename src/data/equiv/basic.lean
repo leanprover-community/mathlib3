@@ -22,12 +22,15 @@ structure equiv (α : Sort*) (β : Sort*) :=
 (left_inv  : left_inverse inv_fun to_fun)
 (right_inv : right_inverse inv_fun to_fun)
 
+infix ` ≃ `:25 := equiv
+
+def function.involutive.to_equiv {f : α → α} (h : involutive f) : α ≃ α :=
+⟨f, f, h.left_inverse, h.right_inverse⟩
+
 namespace equiv
 
 /-- `perm α` is the type of bijections from `α` to itself. -/
 @[reducible] def perm (α : Sort*) := equiv α α
-
-infix ` ≃ `:25 := equiv
 
 instance : has_coe_to_fun (α ≃ β) :=
 ⟨_, to_fun⟩
@@ -111,6 +114,8 @@ lemma eq_symm_apply {α β} (e : α ≃ β) {x y} : y = e.symm x ↔ e y = x :=
 @[simp] theorem symm_symm_apply (e : α ≃ β) (a : α) : e.symm.symm a = e a := by { cases e, refl }
 
 @[simp] theorem trans_refl (e : α ≃ β) : e.trans (equiv.refl β) = e := by { cases e, refl }
+
+@[simp] theorem refl_symm : (equiv.refl α).symm = equiv.refl α := rfl
 
 @[simp] theorem refl_trans (e : α ≃ β) : (equiv.refl α).trans e = e := by { cases e, refl }
 
@@ -348,6 +353,10 @@ by { cases e₁, cases e₂, refl }
   sum_congr e₁ e₂ (inr b) = inr (e₂ b) :=
 by { cases e₁, cases e₂, refl }
 
+@[simp] lemma sum_congr_symm {α β γ δ : Type u} (e : α ≃ β) (f : γ ≃ δ) (x) :
+  (equiv.sum_congr e f).symm x = (equiv.sum_congr (e.symm) (f.symm)) x :=
+by { cases e, cases f, cases x; refl }
+
 def bool_equiv_punit_sum_punit : bool ≃ punit.{u+1} ⊕ punit.{v+1} :=
 ⟨λ b, cond b (inr punit.star) (inl punit.star),
  λ s, sum.rec_on s (λ_, ff) (λ_, tt),
@@ -404,9 +413,9 @@ def sum_equiv_sigma_bool (α β : Sort*) : α ⊕ β ≃ (Σ b: bool, cond b α 
  λ s, by cases s; refl,
  λ s, by rcases s with ⟨_|_, _⟩; refl⟩
 
-def equiv_fib {α β : Type*} (f : α → β) :
-  α ≃ Σ y : β, {x // f x = y} :=
-⟨λ x, ⟨f x, x, rfl⟩, λ x, x.2.1, λ x, rfl, λ ⟨y, x, rfl⟩, rfl⟩
+def sigma_preimage_equiv {α β : Type*} (f : α → β) :
+  (Σ y : β, {x // f x = y}) ≃ α :=
+⟨λ x, x.2.1, λ x, ⟨f x, x, rfl⟩, λ ⟨y, x, rfl⟩, rfl, λ x, rfl⟩
 
 end
 
@@ -491,6 +500,13 @@ calc α × (β ⊕ γ) ≃ (β ⊕ γ) × α       : prod_comm _ _
 @[simp] theorem prod_sum_distrib_apply_right {α β γ} (a : α) (c : γ) :
    prod_sum_distrib α β γ (a, sum.inr c) = sum.inr (a, c) := rfl
 
+def sigma_prod_distrib {ι : Type*} (α : ι → Type*) (β : Type*) :
+  ((Σ i, α i) × β) ≃ (Σ i, (α i × β)) :=
+⟨λ p, ⟨p.1.1, (p.1.2, p.2)⟩,
+ λ p, (⟨p.1, p.2.1⟩, p.2.2),
+ λ p, by { rcases p with ⟨⟨_, _⟩, _⟩, refl },
+ λ p, by { rcases p with ⟨_, ⟨_, _⟩⟩, refl }⟩
+
 def bool_prod_equiv_sum (α : Type u) : bool × α ≃ α ⊕ α :=
 calc bool × α ≃ (unit ⊕ unit) × α       : prod_congr bool_equiv_punit_sum_punit (equiv.refl _)
       ...     ≃ α × (unit ⊕ unit)       : prod_comm _ _
@@ -563,26 +579,68 @@ subtype_congr (equiv.refl α) (assume a, h ▸ iff.refl _)
 def set_congr {α : Type*} {s t : set α} (h : s = t) : s ≃ t :=
 subtype_congr_prop h
 
-def subtype_subtype_equiv_subtype {α : Type u} (p : α → Prop) (q : subtype p → Prop) :
+def subtype_subtype_equiv_subtype_exists {α : Type u} (p : α → Prop) (q : subtype p → Prop) :
   subtype q ≃ {a : α // ∃h:p a, q ⟨a, h⟩ } :=
 ⟨λ⟨⟨a, ha⟩, ha'⟩, ⟨a, ha, ha'⟩,
   λ⟨a, ha⟩, ⟨⟨a, ha.cases_on $ assume h _, h⟩, by { cases ha, exact ha_h }⟩,
   assume ⟨⟨a, ha⟩, h⟩, rfl, assume ⟨a, h₁, h₂⟩, rfl⟩
 
-/- A subtype of a sigma-type is a sigma-type over a subtype. -/
+def subtype_subtype_equiv_subtype_inter {α : Type u} (p q : α → Prop) :
+  {x : subtype p // q x.1} ≃ subtype (λ x, p x ∧ q x) :=
+(subtype_subtype_equiv_subtype_exists p _).trans $
+subtype_congr_right $ λ x, exists_prop
+
+/-- If the outer subtype has more restrictive predicate than the inner one,
+then we can drop the latter. -/
+def subtype_subtype_equiv_subtype {α : Type u} {p q : α → Prop} (h : ∀ {x}, q x → p x) :
+  {x : subtype p // q x.1} ≃ subtype q :=
+(subtype_subtype_equiv_subtype_inter p _).trans $
+subtype_congr_right $
+assume x,
+⟨and.right, λ h₁, ⟨h h₁, h₁⟩⟩
+
+/-- If a proposition holds for all elements, then the subtype is
+equivalent to the original type. -/
+def subtype_univ_equiv {α : Type u} {p : α → Prop} (h : ∀ x, p x) :
+  subtype p ≃ α :=
+⟨λ x, x, λ x, ⟨x, h x⟩, λ x, subtype.eq rfl, λ x, rfl⟩
+
+/-- A subtype of a sigma-type is a sigma-type over a subtype. -/
 def subtype_sigma_equiv {α : Type u} (p : α → Type v) (q : α → Prop) :
   { y : sigma p // q y.1 } ≃ Σ(x : subtype q), p x.1 :=
-begin
-  fsplit,
-  rintro ⟨⟨x, y⟩, z⟩, exact ⟨⟨x, z⟩, y⟩,
-  rintro ⟨⟨x, y⟩, z⟩, exact ⟨⟨x, z⟩, y⟩,
-  rintro ⟨⟨x, y⟩, z⟩, refl,
-  rintro ⟨⟨x, y⟩, z⟩, refl,
-end
+⟨λ x, ⟨⟨x.1.1, x.2⟩, x.1.2⟩,
+ λ x, ⟨⟨x.1.1, x.2⟩, x.1.2⟩,
+ λ ⟨⟨x, h⟩, y⟩, rfl,
+ λ ⟨⟨x, y⟩, h⟩, rfl⟩
 
-/-- aka coimage -/
-def equiv_sigma_subtype {α : Type u} {β : Type v} (f : α → β) : α ≃ Σ b, {x : α // f x = b} :=
-⟨λ x, ⟨f x, x, rfl⟩, λ x, x.2.1, λ x, rfl, λ ⟨b, x, H⟩, sigma.eq H $ eq.drec_on H $ subtype.eq rfl⟩
+/-- A sigma type over a subtype is equivalent to the sigma set over the original type,
+if the fiber is empty outside of the subset -/
+def sigma_subtype_equiv_of_subset {α : Type u} (p : α → Type v) (q : α → Prop)
+  (h : ∀ x, p x → q x) :
+  (Σ x : subtype q, p x) ≃ Σ x : α, p x :=
+(subtype_sigma_equiv p q).symm.trans $ subtype_univ_equiv $ λ x, h x.1 x.2
+
+def sigma_subtype_preimage_equiv {α : Type u} {β : Type v} (f : α → β) (p : β → Prop)
+  (h : ∀ x, p (f x)) :
+  (Σ y : subtype p, {x : α // f x = y}) ≃ α :=
+calc _ ≃ Σ y : β, {x : α // f x = y} : sigma_subtype_equiv_of_subset _ p (λ y ⟨x, h'⟩, h' ▸ h x)
+   ... ≃ α                           : sigma_preimage_equiv f
+
+def sigma_subtype_preimage_equiv_subtype {α : Type u} {β : Type v} (f : α → β)
+  {p : α → Prop} {q : β → Prop} (h : ∀ x, p x ↔ q (f x)) :
+  (Σ y : subtype q, {x : α // f x = y}) ≃ subtype p :=
+calc (Σ y : subtype q, {x : α // f x = y}) ≃
+  Σ y : subtype q, {x : subtype p // subtype.mk (f x) ((h x).1 x.2) = y} :
+  begin
+    apply sigma_congr_right,
+    assume y,
+    symmetry,
+    refine (subtype_subtype_equiv_subtype_exists _ _).trans (subtype_congr_right _),
+    assume x,
+    exact ⟨λ ⟨hp, h'⟩, congr_arg subtype.val h', λ h', ⟨(h x).2 (h'.symm ▸ y.2), subtype.eq h'⟩⟩
+  end
+
+   ... ≃ subtype p : sigma_preimage_equiv (λ x : subtype p, (⟨f x, (h x).1 x.property⟩ : subtype q))
 
 def pi_equiv_subtype_sigma (ι : Type*) (π : ι → Type*) :
   (Πi, π i) ≃ {f : ι → Σi, π i | ∀i, (f i).1 = i } :=
@@ -757,10 +815,7 @@ protected def congr {α β : Type*} (e : α ≃ β) : set α ≃ set β :=
 
 protected def sep {α : Type u} (s : set α) (t : α → Prop) :
   ({ x ∈ s | t x } : set α) ≃ { x : s | t x.1 } :=
-begin
-  symmetry, apply (equiv.subtype_subtype_equiv_subtype _ _).trans _,
-  simp only [mem_set_of_eq, exists_prop], refl
-end
+(equiv.subtype_subtype_equiv_subtype_inter s t).symm
 
 end set
 
@@ -770,7 +825,7 @@ noncomputable def of_bijective {α β} {f : α → β} (hf : bijective f) : α �
 
 @[simp] theorem of_bijective_to_fun {α β} {f : α → β} (hf : bijective f) : (of_bijective hf : α → β) = f := rfl
 
-lemma subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid α]
+def subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid α]
   [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ :  ∀ a, p₁ a ↔ p₂ ⟦a⟧)
   (h : ∀ x y : subtype p₁, @setoid.r _ s₂ x y ↔ (x : α) ≈ y) :
   {x // p₂ x} ≃ quotient s₂ :=
@@ -833,7 +888,7 @@ by { cases π, refl }
 @[simp] lemma swap_inv {α : Type*} [decidable_eq α] (x y : α) :
   (swap x y)⁻¹ = swap x y := rfl
 
-@[simp] lemma symm_trans_swap_trans [decidable_eq α] [decidable_eq β] (a b : α)
+@[simp] lemma symm_trans_swap_trans [decidable_eq β] (a b : α)
   (e : α ≃ β) : (e.symm.trans (swap a b)).trans e = swap (e a) (e b) :=
 equiv.ext _ _ (λ x, begin
   have : ∀ a, e.symm x = a ↔ x = e a :=
@@ -856,6 +911,14 @@ def set_value (f : α ≃ β) (a : α) (b : β) : α ≃ β :=
 by { dsimp [set_value], simp [swap_apply_left] }
 
 end swap
+
+protected lemma forall_congr {p : α → Prop} {q : β → Prop} (f : α ≃ β)
+  (h : ∀{x}, p x ↔ q (f x)) : (∀x, p x) ↔ (∀y, q y) :=
+begin
+  split; intros h₂ x,
+  { rw [←f.right_inv x], apply h.mp, apply h₂ },
+  apply h.mpr, apply h₂
+end
 
 end equiv
 

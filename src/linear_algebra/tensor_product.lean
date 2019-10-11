@@ -138,8 +138,8 @@ def tensor_product : Type* :=
 quotient_add_group.quotient (tensor_product.relators R M N)
 variables {R}
 
-local infix ` ⊗ `:100 := tensor_product _
-local notation M ` ⊗[`:100 R `] ` N:100 := tensor_product R M N
+localized "infix ` ⊗ `:100 := tensor_product _" in tensor_product
+localized "notation M ` ⊗[`:100 R `] ` N:100 := tensor_product R M N" in tensor_product
 
 namespace tensor_product
 
@@ -399,16 +399,16 @@ linear_equiv.of_linear (map f g) (map f.symm g.symm)
 
 variables (ι₁ : Type*) (ι₂ : Type*)
 variables [decidable_eq ι₁] [decidable_eq ι₂]
-variables (β₁ : ι₁ → Type*) (β₂ : ι₂ → Type*)
-variables [Π i₁, add_comm_group (β₁ i₁)] [Π i₂, add_comm_group (β₂ i₂)]
-variables [Π i₁, module R (β₁ i₁)] [Π i₂, module R (β₂ i₂)]
+variables (M₁ : ι₁ → Type*) (M₂ : ι₂ → Type*)
+variables [Π i₁, add_comm_group (M₁ i₁)] [Π i₂, add_comm_group (M₂ i₂)]
+variables [Π i₁, module R (M₁ i₁)] [Π i₂, module R (M₂ i₂)]
 
-def direct_sum : direct_sum ι₁ β₁ ⊗[R] direct_sum ι₂ β₂
-  ≃ₗ[R] direct_sum (ι₁ × ι₂) (λ i, β₁ i.1 ⊗[R] β₂ i.2) :=
+def direct_sum : direct_sum ι₁ M₁ ⊗[R] direct_sum ι₂ M₂
+  ≃ₗ[R] direct_sum (ι₁ × ι₂) (λ i, M₁ i.1 ⊗[R] M₂ i.2) :=
 begin
   refine linear_equiv.of_linear
     (lift $ direct_sum.to_module R _ _ $ λ i₁, flip $ direct_sum.to_module R _ _ $ λ i₂,
-      flip $ curry $ direct_sum.lof R (ι₁ × ι₂) (λ i, β₁ i.1 ⊗[R] β₂ i.2) (i₁, i₂))
+      flip $ curry $ direct_sum.lof R (ι₁ × ι₂) (λ i, M₁ i.1 ⊗[R] M₂ i.2) (i₁, i₂))
     (direct_sum.to_module R _ _ $ λ i, map (direct_sum.lof R _ _ _) (direct_sum.lof R _ _ _))
     (linear_map.ext $ direct_sum.to_module.ext _ $ λ i, mk_compr₂_inj $
       linear_map.ext $ λ x₁, linear_map.ext $ λ x₂, _)

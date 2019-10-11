@@ -98,6 +98,9 @@ do (e, t) ← decl_mk_const d.d,
       (do l ← iff_mpr_core e t,
          apply_and_solve discharger l)
    end
+   
+meta def replace_mvars (e : expr) : expr :=
+e.replace (λ e' _, if e'.is_mvar then some (unchecked_cast pexpr.mk_placeholder) else none)
 
 end library_search
 

@@ -12,7 +12,7 @@ namespace category_theory
 
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-/-- A `groupoid` is a category such that all homomorphismss are isomorphisms. -/
+/-- A `groupoid` is a category such that all morphisms are isomorphisms. -/
 class groupoid (obj : Type u) extends category.{v} obj : Type (max u (v+1)) :=
 (inv       : Π {X Y : obj}, (X ⟶ Y) → (Y ⟶ X))
 (inv_comp' : ∀ {X Y : obj} (f : X ⟶ Y), comp (inv f) f = id Y . obviously)

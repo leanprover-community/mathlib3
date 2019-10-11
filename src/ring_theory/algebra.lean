@@ -98,6 +98,7 @@ instance to_module : module R A :=
   add_smul := by simp [smul_def, add_mul],
   zero_smul := by simp [smul_def] }
 
+omit R
 instance {F : Type u} {K : Type v} [discrete_field F] [ring K] [algebra F K] :
   vector_space F K :=
 @vector_space.mk F _ _ _ algebra.to_module

@@ -35,7 +35,7 @@ The constructor for a `ring_hom` between semirings needs a proof of `map_zero`, 
 between rings from monoid homs given only a proof that addition is preserved.
 
 
-Throughout the section on `ring_hom` implicit `{}` brackets are somtimes used instead of type class `[]` brackets. 
+Throughout the section on `ring_hom` implicit `{}` brackets are often used instead of type class `[]` brackets. 
 This is done when the instances can be inferred because they are implicit arguments to the type `ring_hom`. 
 When they can be inferred from the type it is faster to use this method than to use type class inference.
 

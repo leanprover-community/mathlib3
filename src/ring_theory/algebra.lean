@@ -23,7 +23,7 @@ ring is the under category R ↓ CRing. In the categorical
 setting we have a forgetful functor R-Alg ⥤ R-Mod.
 However here it extends module in order to preserve
 definitional equality in certain cases. -/
-class algebra (R : Type u) (A : Type v) [comm_ring R] [ring A] extends module R A :=
+class algebra (R : Type u) (A : Type v) [comm_ring R] [ring A] extends has_scalar R A :=
 (to_fun : R → A) [hom : is_ring_hom to_fun]
 (commutes' : ∀ r x, x * to_fun r = to_fun r * x)
 (smul_def' : ∀ r x, r • x = to_fun r * x)
@@ -39,12 +39,7 @@ variables {R : Type u} {S : Type v} {A : Type w}
 variables [comm_ring R] [comm_ring S] [ring A] [algebra R A]
 
 /-- The codomain of an algebra. -/
-instance : module R A := infer_instance
 instance : has_scalar R A := infer_instance
-
-instance {F : Type u} {K : Type v} [discrete_field F] [ring K] [algebra F K] :
-  vector_space F K :=
-@vector_space.mk F _ _ _ algebra.module
 
 include R
 
@@ -74,12 +69,6 @@ variables {R A}
 /-- Creating an algebra from a morphism in CRing. -/
 def of_ring_hom (i : R → S) (hom : is_ring_hom i) : algebra R S :=
 { smul := λ c x, i c * x,
-  smul_zero := λ x, mul_zero (i x),
-  smul_add := λ r x y, mul_add (i r) x y,
-  add_smul := λ r s x, show i (r + s) * x = _, by rw [hom.3, add_mul],
-  mul_smul := λ r s x, show i (r * s) * x = _, by rw [hom.2, mul_assoc],
-  one_smul := λ x, show i 1 * x = _, by rw [hom.1, one_mul],
-  zero_smul := λ x, show i 0 * x = _, by rw [@@is_ring_hom.map_zero _ _ i hom, zero_mul],
   to_fun := i,
   commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ c x, rfl }
@@ -100,6 +89,19 @@ by rw [smul_def, smul_def, left_comm]
 @[simp] lemma smul_mul_assoc (r : R) (x y : A) :
   (r • x) * y = r • (x * y) :=
 by rw [smul_def, smul_def, mul_assoc]
+
+instance to_module : module R A :=
+{ one_smul := by simp [smul_def],
+  mul_smul := by simp [smul_def, mul_assoc],
+  smul_add := by simp [smul_def, mul_add],
+  smul_zero := by simp [smul_def],
+  add_smul := by simp [smul_def, add_mul],
+  zero_smul := by simp [smul_def] }
+
+omit R
+instance {F : Type u} {K : Type v} [discrete_field F] [ring K] [algebra F K] :
+  vector_space F K :=
+@vector_space.mk F _ _ _ algebra.to_module
 
 /-- R[X] is the generator of the category R-Alg. -/
 instance polynomial (R : Type u) [comm_ring R] : algebra R (polynomial R) :=
@@ -204,7 +206,7 @@ is_ring_hom.map_one _
 def to_linear_map : A →ₗ B :=
 { to_fun := φ,
   add := φ.map_add,
-  smul := λ c x, by rw [algebra.smul_def, φ.map_mul, φ.commutes c, algebra.smul_def] }
+  smul := λ (c : R) x, by rw [algebra.smul_def, φ.map_mul, φ.commutes c, algebra.smul_def] }
 
 @[simp] lemma to_linear_map_apply (p : A) : φ.to_linear_map p = φ p := rfl
 
@@ -266,20 +268,14 @@ instance comap.ring : ring (comap R S A) := _inst_3
 instance comap.comm_ring (R : Type u) (S : Type v) (A : Type w)
   [comm_ring R] [comm_ring S] [comm_ring A] [algebra R S] [algebra S A] :
   comm_ring (comap R S A) := _inst_8
-instance comap.module : module S (comap R S A) := _inst_5.to_module
-instance comap.has_scalar : has_scalar S (comap R S A) := _inst_5.to_module.to_has_scalar
+instance comap.module : module S (comap R S A) := show module S A, by apply_instance
+instance comap.has_scalar : has_scalar S (comap R S A) := show has_scalar S A, by apply_instance
 
 set_option class.instance_max_depth 40
 
 /-- R ⟶ S induces S-Alg ⥤ R-Alg -/
 instance comap.algebra : algebra R (comap R S A) :=
 { smul := λ r x, (algebra_map S r • x : A),
-  smul_add := λ _ _ _, smul_add _ _ _,
-  add_smul := λ _ _ _, by simp only [algebra.map_add]; from add_smul _ _ _,
-  mul_smul := λ _ _ _, by simp only [algebra.map_mul]; from mul_smul _ _ _,
-  one_smul := λ _, by simp only [algebra.map_one]; from one_smul _ _,
-  zero_smul := λ _, by simp only [algebra.map_zero]; from zero_smul _ _,
-  smul_zero := λ _, smul_zero _,
   to_fun := (algebra_map A : S → A) ∘ algebra_map S,
   hom := by letI : is_ring_hom (algebra_map A) := _inst_5.hom; apply_instance,
   commutes' := λ r x, algebra.commutes _ _,
@@ -407,18 +403,12 @@ variables (S : subalgebra R A)
 
 instance : is_subring (S : set A) := S.subring
 instance : ring S := @@subtype.ring _ S.is_subring
-instance (R : Type u) (A : Type v) [comm_ring R] [comm_ring A]
-  [algebra R A] (S : subalgebra R A) : comm_ring S := @@subtype.comm_ring _ S.is_subring
+instance (R : Type u) (A : Type v) {rR : comm_ring R} [comm_ring A]
+  {aA : algebra R A} (S : subalgebra R A) : comm_ring S := @@subtype.comm_ring _ S.is_subring
 
 instance algebra : algebra R S :=
 { smul := λ (c:R) x, ⟨c • x.1,
     by rw algebra.smul_def; exact @@is_submonoid.mul_mem _ S.2.2 (S.3 ⟨c, rfl⟩) x.2⟩,
-  smul_add := λ c x y, subtype.eq $ smul_add _ _ _,
-  add_smul := λ c x y, subtype.eq $ add_smul _ _ _,
-  mul_smul := λ c x y, subtype.eq $ mul_smul _ _ _,
-  one_smul := λ x, subtype.eq $ one_smul _ _,
-  zero_smul := λ x, subtype.eq $ zero_smul _ _,
-  smul_zero := λ x, subtype.eq $ smul_zero _,
   to_fun := λ r, ⟨algebra_map A r, S.range_le ⟨r, rfl⟩⟩,
   hom := ⟨subtype.eq $ algebra.map_one R A, λ x y, subtype.eq $ algebra.map_mul A x y,
     λ x y, subtype.eq $ algebra.map_add A x y⟩,
@@ -492,7 +482,8 @@ instance id : algebra R R :=
 algebra.of_ring_hom id $ by apply_instance
 
 def of_id : R →ₐ A :=
-{ commutes' := λ _, rfl, ..ring_hom.of (algebra_map A) }
+{ commutes' := λ _, rfl, .. ring_hom.of (algebra_map A) }
+
 variables {R}
 
 theorem of_id_apply (r) : of_id R A r = algebra_map A r := rfl

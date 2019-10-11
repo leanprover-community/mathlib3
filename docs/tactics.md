@@ -298,6 +298,48 @@ import tactic.find
 #find (_ : ℕ) + _ = _ + _
 ```
 
+### refine_list
+
+`refine_list` is a modification of `library_search`, which lists possible usages of the `refine` tactic and leaves the tactic state unchanged. It is intended as a complement of the search function in your editor, the `#find` tactic, and `library_search`.
+
+`refine_list` takes an optional natural number `num` as input and returns the first `num` (or less, if all possibilities are exhausted) possibilities ordered by length of lemma names. The default for `num` is `50`.
+
+For performance reasons `refine_list` uses monadic lazy lists (`mllist`). This means that `refine_list` might miss some results if `num` is not large enough. However, because `refine_list` uses monadic lazy lists, smaller values of `num` run faster than larger values.
+
+An example of `refine_list` in action,
+
+```lean
+example (a b : ℕ) : 0 < a → 0 < b → 0 < a + b :=
+begin refine_list, sorry end
+```
+
+prints the list (as of 31/8/2019),
+
+```lean
+refine add_pos
+refine add_pos'
+refine add_lt_add
+refine lt_add_of_pos_of_lt
+refine lt_add_of_lt_of_pos
+refine lt_add_of_pos_of_lt'
+refine lt_add_of_lt_of_pos'
+```
+
+while,
+
+```lean
+example {α : Type} (x y : α) : x = y ↔ y = x :=
+begin refine_list 3, sorry end
+```
+
+returns,
+
+```lean
+refine add_pos
+refine add_pos'
+refine add_lt_add
+```
+
 ### solve_by_elim
 
 The tactic `solve_by_elim` repeatedly applies assumptions to the current goal, and succeeds if this eventually discharges the main goal.

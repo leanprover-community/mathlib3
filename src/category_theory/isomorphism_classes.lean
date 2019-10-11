@@ -36,7 +36,7 @@ end category
 /--
 The functor that sends each category to the quotient space of its objects up to an isomorphism.
 -/
-def isomorphic_class_functor : Cat.{v u} ⥤ Type u :=
+def isomorphism_classes : Cat.{v u} ⥤ Type u :=
 { obj := λ C, quotient (is_isomorphic_setoid C.α),
   map := λ C D F, quot.map F.obj $ λ X Y ⟨f⟩, ⟨F.map_iso f⟩ }
 

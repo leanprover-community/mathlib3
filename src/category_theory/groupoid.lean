@@ -35,7 +35,7 @@ instance is_iso.of_groupoid (f : X ⟶ Y) : is_iso f := { inv := groupoid.inv f 
 
 variables (X Y)
 
-/-- In a groupoid, isomorphisms are equivalent to homomorphisms. -/
+/-- In a groupoid, isomorphisms are equivalent to morphisms. -/
 def groupoid.iso_equiv_hom : (X ≅ Y) ≃ (X ⟶ Y) :=
 { to_fun := iso.hom,
   inv_fun := λ f, as_iso f,

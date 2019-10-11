@@ -148,7 +148,7 @@ begin
   let S₀ : set R := ring.closure ↑S₀',
   refine is_integral_of_subring (ring.closure ↑S₀') _,
   letI : algebra S₀ (algebra.comap S₀ R A) := algebra.comap.algebra _ _ _,
-  letI : module S₀ (algebra.comap S₀ R A) := algebra.module,
+  letI : module S₀ (algebra.comap S₀ R A) := algebra.to_module,
   have : (span S₀ (insert 1 (↑m:set A) : set (algebra.comap S₀ R A)) : submodule S₀ (algebra.comap S₀ R A)) =
       (algebra.adjoin S₀ ((↑m : set A) : set (algebra.comap S₀ R A)) : subalgebra S₀ (algebra.comap S₀ R A)),
   { apply le_antisymm,

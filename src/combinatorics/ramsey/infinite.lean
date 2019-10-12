@@ -6,6 +6,7 @@ Author: Jared Corduan.
 
 import algebra.order_functions
 import logic.basic
+import data.set.finite
 
 /-!
 # The Infinite Ramsey Theorem
@@ -66,7 +67,17 @@ namespace infinite_ramsey_pairs
 A set of natural numbers H is infinite if for any natural
 number there is a larger number in H.
 -/
-def infinite (H : set ℕ) := ∀ x : ℕ, ∃ y : ℕ, x < y ∧ y ∈ H
+lemma infinite_unbounded (H : set ℕ) :
+  set.infinite H ↔ ∀ x : ℕ, ∃ y : ℕ, x < y ∧ y ∈ H :=
+begin
+  constructor,
+  { intros h x, classical, by_contra H_contra, push_neg at H_contra,
+    apply h, refine finite_subset (finite_le_nat x) (λ _ _, by finish) },
+  { intros h hf, let x := hf.to_finset.sup id,
+    rcases h x with ⟨y,⟨Hy₁,Hy₂⟩⟩,
+    have : y ≤ x := finset.le_sup (by simp* : y ∈ hf.to_finset),
+    exact nat.lt_le_antisymm ‹_› ‹_› }
+end
 
 /-
 There are two colors, red and blue.
@@ -80,7 +91,7 @@ An infinite set of natural numbers.
 -/
 structure Inf :=
 (s : set ℕ)
-(pf : infinite s)
+(pf : set.infinite s)
 
 instance Inf.has_coe : has_coe Inf (set ℕ) := ⟨Inf.s⟩
 instance : has_mem ℕ Inf := ⟨λ n H, n ∈ H.s⟩
@@ -174,18 +185,22 @@ local attribute [instance] prop_decidable
 A version of the infinite pigeon hole principle, tailored to our use case.
 -/
 lemma pigeon_hole_principle (f : ℕ → color) (H : Inf):
-  infinite (is_red f ∩ H) ∨ infinite (is_blue f ∩ H) :=
+  set.infinite (is_red f ∩ H) ∨ set.infinite (is_blue f ∩ H) :=
 begin
   rw or_iff_not_imp_left,
   intros redFin,
-  simp [infinite, not_forall, not_exists] at redFin,
+  rw infinite_unbounded at redFin,
+  simp [not_forall, not_exists] at redFin,
   cases redFin with w Hw,
+  rw infinite_unbounded,
   intros x,
   have x_lt_a : x < x + w + 1, exact lt_succ_sum x w,
   have w_lt_a : w < x + w + 1,
-    { simp, exact succ_pos x },
+    { simp },
+  have H' : ∀ x : ℕ, ∃ y : ℕ, x < y ∧ y ∈ H,
+    exact (infinite_unbounded H.s).elim_left H.pf,
   let a : ℕ := x + w + 1,
-    cases (H.pf a) with b Hb,
+    cases (H' a) with b Hb,
   have w_lt_b : w < b, exact lt_trans w_lt_a Hb.left,
   have hrb : f b = red ∨ f b = blue,
     { cases f b, simp, simp },
@@ -207,9 +222,11 @@ lemma refine_homo_proj (f : [ℕ]² → color) :
   ∀ (p : homogeneous_proj f), ∃ q : homogeneous_proj f, p < q :=
 begin
   intros p,
-  cases p.pf p.pt with x Hx,
+  have Hp : ∀ x : ℕ, ∃ y : ℕ, x < y ∧ y ∈ p.s,
+    exact (infinite_unbounded p.s).elim_left p.pf,
+  cases Hp p.pt with x Hx,
   have Hinf :
-    infinite (is_red (project f x) ∩ p.s) ∨ infinite (is_blue (project f x) ∩ p.s),
+    set.infinite (is_red (project f x) ∩ p.s) ∨ set.infinite (is_blue (project f x) ∩ p.s),
     apply pigeon_hole_principle,
   cases Hinf,
   any_goals
@@ -233,6 +250,7 @@ The natural numbers, as an infinite set.
 -/
 def NatInf : Inf := Inf.mk univ
 begin
+  rw infinite_unbounded,
   intro x, apply exists.intro (x+1),
   constructor, exact lt_succ_sum x 0, trivial,
 end
@@ -356,10 +374,13 @@ lemma x_le_fx_incr (f : ℕ → ℕ) (x : ℕ): strict_mono f → x ≤ f x :=
   le_trans (succ_le_succ ih) (incr n (succ n) (lt_succ_self n)))
 
 lemma incr_range_inf (H : Inf) (g : ℕ → ℕ) (hg : strict_mono g) :
-  infinite (image g H) :=
+  set.infinite (image g H) :=
 begin
+  rw infinite_unbounded,
   intros x,
-  have h : ∃ h, x < h ∧ h ∈ H, exact H.pf x,
+  have hu : ∀ x : ℕ, ∃ y : ℕ, x < y ∧ y ∈ H,
+    exact (infinite_unbounded H.s).elim_left H.pf,
+  have h : ∃ h, x < h ∧ h ∈ H, exact hu x,
   cases h with h Hh,
   apply exists.intro (g h),
   constructor,

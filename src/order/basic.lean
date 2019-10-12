@@ -548,5 +548,10 @@ theorem directed_mono {s : α → α → Prop} {ι} (f : ι → α)
   (H : ∀ a b, r a b → s a b) (h : directed r f) : directed s f :=
 λ a b, let ⟨c, h₁, h₂⟩ := h a b in ⟨c, H _ _ h₁, H _ _ h₂⟩
 
+/-- A monotone function on a linear order is directed. -/
+lemma directed_of_mono {ι} [decidable_linear_order ι] (f : ι → α)
+  (H : ∀ i j, i ≤ j → f i ≼ f j) : directed (≼) f :=
+λ a b, ⟨max a b, H _ _ (le_max_left _ _), H _ _ (le_max_right _ _)⟩
+
 class directed_order (α : Type u) extends preorder α :=
 (directed : ∀ i j : α, ∃ k, i ≤ k ∧ j ≤ k)

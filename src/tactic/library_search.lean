@@ -102,6 +102,13 @@ do (e, t) ← decl_mk_const d.d,
 meta def replace_mvars (e : expr) : expr :=
 e.replace (λ e' _, if e'.is_mvar then some (unchecked_cast pexpr.mk_placeholder) else none)
 
+meta def tactic_statement (g : expr) : tactic string :=
+do g ← instantiate_mvars g,
+   g ← head_beta g,
+   r ← pp (replace_mvars g),
+   r ← pure $ if g.has_meta_var then sformat!"refine {r}" else sformat!"exact {r}",
+   return r
+
 end library_search
 
 open library_search
@@ -129,6 +136,11 @@ do [g] ← get_goals | fail "`library_search` should be called with exactly one 
    -- If something worked, prepare a string to print.
    p ← instantiate_mvars g >>= head_beta >>= pp,
    let r := format!"exact {p}",
+   when (¬ is_trace_enabled_for `silence_library_search) $ tactic.trace r,
+   return $ to_string r
+   
+   -- If something worked, prepare a string to print.
+   r ← tactic_statement g,
    when (¬ is_trace_enabled_for `silence_library_search) $ tactic.trace r,
    return $ to_string r
 

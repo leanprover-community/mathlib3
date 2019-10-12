@@ -2,8 +2,7 @@
 
 This document explains how to get started with Lean and mathlib if you
 are using a Linux distribution derived from Debian (Debian itself,
-Ubuntu, LMDE,...). This document has three parts: installing Lean,
-creating a new project, and working on an existing project.
+Ubuntu, LMDE,...).
 
 If you get stuck, please come to [the chat room](https://leanprover.zulipchat.com/) to ask for assistance.
 

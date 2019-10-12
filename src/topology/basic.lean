@@ -23,7 +23,7 @@ partially defined functions.
 ## Implementation notes
 
 Topology in mathlib heavily uses filters (even more than in Bourbaki). See explanations in
-`docs/theories/topological_spaces.md`.
+`docs/theories/topology.md`.
 
 ## References
 

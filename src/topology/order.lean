@@ -360,42 +360,6 @@ instance : discrete_topology ℤ := ⟨rfl⟩
 instance sierpinski_space : topological_space Prop :=
 generate_from {{true}}
 
-instance {p : α → Prop} [t : topological_space α] : topological_space (subtype p) :=
-induced subtype.val t
-
-instance {r : α → α → Prop} [t : topological_space α] : topological_space (quot r) :=
-coinduced (quot.mk r) t
-
-instance {s : setoid α} [t : topological_space α] : topological_space (quotient s) :=
-coinduced quotient.mk t
-
-instance [t₁ : topological_space α] [t₂ : topological_space β] : topological_space (α × β) :=
-induced prod.fst t₁ ⊓ induced prod.snd t₂
-
-instance [t₁ : topological_space α] [t₂ : topological_space β] : topological_space (α ⊕ β) :=
-coinduced sum.inl t₁ ⊔ coinduced sum.inr t₂
-
-instance {β : α → Type v} [t₂ : Πa, topological_space (β a)] : topological_space (sigma β) :=
-⨆a, coinduced (sigma.mk a) (t₂ a)
-
-instance Pi.topological_space {β : α → Type v} [t₂ : Πa, topological_space (β a)] :
-  topological_space (Πa, β a) :=
-⨅a, induced (λf, f a) (t₂ a)
-
-lemma quotient_dense_of_dense [setoid α] [topological_space α] {s : set α} (H : ∀ x, x ∈ closure s) :
-  closure (quotient.mk '' s) = univ :=
-eq_univ_of_forall $ λ x, begin
-  rw mem_closure_iff,
-  intros U U_op x_in_U,
-  let V := quotient.mk ⁻¹' U,
-  cases quotient.exists_rep x with y y_x,
-  have y_in_V : y ∈ V, by simp only [mem_preimage, y_x, x_in_U],
-  have V_op : is_open V := U_op,
-  have : V ∩ s ≠ ∅ := mem_closure_iff.1 (H y) V V_op y_in_V,
-  rcases exists_mem_of_ne_empty this with ⟨w, w_in_V, w_in_range⟩,
-  exact ne_empty_of_mem ⟨w_in_V, mem_image_of_mem quotient.mk w_in_range⟩
-end
-
 lemma le_generate_from {t : topological_space α} { g : set (set α) } (h : ∀s∈g, is_open s) :
   t ≤ generate_from g :=
 le_generate_from_iff_subset_is_open.2 h
@@ -432,19 +396,6 @@ lemma nhds_inf {t₁ t₂ : topological_space α} {a : α} :
   @nhds α (t₁ ⊓ t₂) a = @nhds α t₁ a ⊓ @nhds α t₂ a := (gc_nhds a).u_inf
 
 lemma nhds_top {a : α} : @nhds α ⊤ a = ⊤ := (gc_nhds a).u_top
-
-instance {p : α → Prop} [topological_space α] [discrete_topology α] :
-  discrete_topology (subtype p) :=
-⟨bot_unique $ assume s hs,
-  ⟨subtype.val '' s, is_open_discrete _, (set.preimage_image_eq _ subtype.val_injective)⟩⟩
-
-instance sum.discrete_topology [topological_space α] [topological_space β]
-  [hα : discrete_topology α] [hβ : discrete_topology β] : discrete_topology (α ⊕ β) :=
-⟨by unfold sum.topological_space; simp [hα.eq_bot, hβ.eq_bot]⟩
-
-instance sigma.discrete_topology {β : α → Type v} [Πa, topological_space (β a)]
-  [h : Πa, discrete_topology (β a)] : discrete_topology (sigma β) :=
-⟨by { unfold sigma.topological_space, simp [λ a, (h a).eq_bot] }⟩
 
 local notation `cont` := @continuous _ _
 local notation `tspace` := topological_space
@@ -574,24 +525,6 @@ theorem map_nhds_induced_of_surjective [T : topological_space α]
     {f : β → α} (hf : function.surjective f) (a : β) :
   map f (@nhds β (topological_space.induced f T) a) = nhds (f a) :=
 by rw [nhds_induced, map_comap_of_surjective hf]
-
-section topα
-
-variable [topological_space α]
-
-/-
-The nhds filter and the subspace topology.
--/
-
-theorem mem_nhds_subtype (s : set α) (a : {x // x ∈ s}) (t : set {x // x ∈ s}) :
-  t ∈ nhds a ↔ ∃ u ∈ nhds a.val, (@subtype.val α s) ⁻¹' u ⊆ t :=
-by rw mem_nhds_induced
-
-theorem nhds_subtype (s : set α) (a : {x // x ∈ s}) :
-  nhds a = comap subtype.val (nhds a.val) :=
-by rw nhds_induced
-
-end topα
 
 end constructions
 

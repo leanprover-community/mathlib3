@@ -24,11 +24,6 @@ lemma inducing.comp {f : α → β} {g : β → γ} (hg : inducing g) (hf : indu
   inducing (g ∘ f) :=
 ⟨by rw [hf.induced, hg.induced, induced_compose]⟩
 
-lemma inducing.prod_mk {f : α → β} {g : γ → δ} (hf : inducing f) (hg : inducing g) :
-  inducing (λx:α×γ, (f x.1, g x.2)) :=
-⟨by rw [prod.topological_space, prod.topological_space, hf.induced, hg.induced,
-         induced_compose, induced_compose, induced_inf, induced_compose, induced_compose]⟩
-
 lemma inducing_of_inducing_compose {f : α → β} {g : β → γ} (hf : continuous f) (hg : continuous g)
   (hgf : inducing (g ∘ f)) : inducing f :=
 ⟨le_antisymm
@@ -75,7 +70,7 @@ structure embedding [tα : topological_space α] [tβ : topological_space β] (f
   extends inducing f : Prop :=
 (inj : function.injective f)
 
-variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
+variables [topological_space α] [topological_space β] [topological_space γ]
 
 lemma embedding.mk' (f : α → β) (inj : function.injective f)
   (induced : ∀a, comap f (nhds (f a)) = nhds a) : embedding f :=
@@ -88,12 +83,6 @@ lemma embedding.comp {f : α → β} {g : β → γ} (hg : embedding g) (hf : em
   embedding (g ∘ f) :=
 { inj:= assume a₁ a₂ h, hf.inj $ hg.inj h,
   ..hg.to_inducing.comp hf.to_inducing }
-
-lemma embedding.prod_mk {f : α → β} {g : γ → δ} (hf : embedding f) (hg : embedding g) :
-  embedding (λx:α×γ, (f x.1, g x.2)) :=
-{ inj := assume ⟨x₁, x₂⟩ ⟨y₁, y₂⟩, by simp; exact assume h₁ h₂, ⟨hf.inj h₁, hg.inj h₂⟩,
-  ..hf.to_inducing.prod_mk hg.to_inducing }
-
 
 lemma embedding_of_embedding_compose {f : α → β} {g : β → γ} (hf : continuous f) (hg : continuous g)
   (hgf : embedding (g ∘ f)) : embedding f :=
@@ -296,12 +285,6 @@ lemma open_embedding.comp {f : α → β} {g : β → γ}
 ⟨hg.1.comp hf.1, show is_open (range (g ∘ f)),
  by rw [range_comp, ←hg.open_iff_image_open]; exact hf.2⟩
 
-lemma subtype_val.open_embedding {s : set α} (hs : is_open s) :
-  open_embedding (subtype.val : {x // x ∈ s} → α) :=
-{ induced := rfl,
-  inj := subtype.val_injective,
-  open_range := (subtype.val_range : range subtype.val = s).symm ▸  hs }
-
 end open_embedding
 
 section closed_embedding
@@ -359,11 +342,5 @@ lemma closed_embedding.comp {f : α → β} {g : β → γ}
   (hg : closed_embedding g) (hf : closed_embedding f) : closed_embedding (g ∘ f) :=
 ⟨hg.to_embedding.comp hf.to_embedding, show is_closed (range (g ∘ f)),
  by rw [range_comp, ←hg.closed_iff_image_closed]; exact hf.closed_range⟩
-
-lemma subtype_val.closed_embedding {s : set α} (hs : is_closed s) :
-  closed_embedding (subtype.val : {x // x ∈ s} → α) :=
-{ induced := rfl,
-  inj := subtype.val_injective,
-  closed_range := (subtype.val_range : range subtype.val = s).symm ▸ hs }
 
 end closed_embedding

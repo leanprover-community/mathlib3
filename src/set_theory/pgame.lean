@@ -3,9 +3,8 @@ Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Mario Carneiro, Isabel Longbottom, Scott Morrison
 -/
-import data.equiv.basic logic.embedding
+import logic.embedding
 import data.nat.cast
-import data.finset data.fintype
 
 /-!
 # Combinatorial (pre-)games.
@@ -488,7 +487,16 @@ begin
   { intro j, simpa using (R_relabelling (R_equiv j)).symm }
 end
 
--- TODO trans for relabelling?
+/-- Transitivity of relabelling -/
+@[trans] def relabelling.trans : Π {x y z : pgame}, relabelling x y → relabelling y z → relabelling x z
+| (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR)
+  (relabelling.mk L_equiv₁ R_equiv₁ L_relabelling₁ R_relabelling₁)
+  (relabelling.mk L_equiv₂ R_equiv₂ L_relabelling₂ R_relabelling₂) :=
+begin
+  refine relabelling.mk (L_equiv₁.trans L_equiv₂) (R_equiv₁.trans R_equiv₂) _ _,
+  { intro i, simpa using (L_relabelling₁ _).trans (L_relabelling₂ _) },
+  { intro j, simpa using (R_relabelling₁ _).trans (R_relabelling₂ _) },
+end
 
 theorem le_of_relabelling {x y : pgame} (r : relabelling x y) : x ≤ y :=
 le_of_restricted (restricted_of_relabelling r)

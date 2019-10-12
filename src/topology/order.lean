@@ -24,9 +24,7 @@ related as follows:
     iff coinduced f t ≤ u             (`continuous_iff_coinduced_le`).
 
 Topologies on α form a complete lattice, with ⊥ the discrete topology
-and ⊤ the indiscrete topology. We use this complete lattice to equip
-subtypes, quotients, sums and products of topological spaces with their
-usual topologies.
+and ⊤ the indiscrete topology.
 
 For a function f : α → β, (coinduced f, induced f) is a Galois connection
 between topologies on α and topologies on β.
@@ -38,7 +36,8 @@ and all collections of sets in α. The complete lattice structure on topologies
 on α is defined as the reverse of the one obtained via this Galois insertion.
 
 ## Tags
-finer, coarser
+
+finer, coarser, induced topology, coinduced topology
 
 -/
 

@@ -23,7 +23,7 @@ equipped with the subspace topology.
 open set filter
 
 variables {α : Type*} {β : Type*} {γ : Type*}
-variables [topological_space α] [topological_space β] [topological_space γ]
+variables [topological_space α]
 
 /-- The "neighborhood within" filter. Elements of `nhds_within a s` are sets containing the
 intersection of `s` and a neighborhood of `a`. -/
@@ -180,6 +180,8 @@ theorem tendsto_nhds_within_iff_subtype {s : set α} {a : α} (h : a ∈ s) (f :
   tendsto f (nhds_within a s) l ↔ tendsto (function.restrict f s) (nhds ⟨a, h⟩) l :=
 by rw [tendsto, tendsto, function.restrict, nhds_within_eq_map_subtype_val h,
     ←(@filter.map_map _ _ _ _ subtype.val)]
+
+variables [topological_space β] [topological_space γ]
 
 /-- A function between topological spaces is continuous at a point `x₀` within a subset `s`
 if `f x` tends to `f x₀` when `x` tends to `x₀` while staying within `s`. -/

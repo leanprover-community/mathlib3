@@ -11,9 +11,8 @@ noncomputable theory
 open topological_space set filter lattice
 open_locale classical
 
-universe v
-
-variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
+universes u v w x
+variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
 section constructions
 

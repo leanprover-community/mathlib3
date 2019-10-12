@@ -200,11 +200,11 @@ The remaining directories and files, in no particular order:
 * `instances`
   Specific topological spaces such as the real numbers and the complex numbers.
 * `metric_space`
-  Metric spaces.
+  The theory of metric spaces; but some notions one might expect to find here are instead generalized to uniform spaces.
 * `sheaves`
   Presheaves on a topological space.
 * `uniform_space`
-  Uniform spaces.
+  The theory of uniform spaces, including notions such as completeness, uniform continuity and totally bounded sets.
 * `bases`
   Bases for filters and topological spaces. Separable, first countable and second countable spaces.
 * `bounded_continuous_function`

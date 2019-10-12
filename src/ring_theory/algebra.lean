@@ -103,6 +103,23 @@ instance {F : Type u} {K : Type v} [discrete_field F] [ring K] [algebra F K] :
   vector_space F K :=
 @vector_space.mk F _ _ _ algebra.to_module
 
+def module' (R A M : Type*) [comm_ring R] [comm_ring A] [algebra R A] [add_comm_group M]
+  [module A M] : module R M :=
+{ smul := λ r x, algebra_map A r • x,
+  one_smul := λ _, show algebra_map A (1 : R) • _ = _, by simp,
+  mul_smul := λ _ _ _, show algebra_map A (_ * _) • _ = _, by simp [mul_smul],
+  smul_add := λ _ _ _, show algebra_map A _ • (_ + _) = _ + _, by simp [smul_add],
+  smul_zero := λ _, show algebra_map A _ • (0 : M) = 0, by simp,
+  add_smul := λ _ _ _, show algebra_map A (_ + _) • _ = _ + _, by simp [add_smul],
+  zero_smul := λ _, show algebra_map A (0 : R) • _ = (0 : M), by simp }
+
+def trans (R A S : Type*) [comm_ring R] [comm_ring A] [ring S] [algebra R A] [algebra A S] :
+  algebra R S :=
+{ to_fun := algebra_map S ∘ algebra_map A,
+  commutes' := λ _ _, show _ * _ = _ * _, by simp [commutes],
+  smul_def' := λ _ _, show _ = _ * _, by simp [smul_def],
+  ..module' R A S }
+
 /-- R[X] is the generator of the category R-Alg. -/
 instance polynomial (R : Type u) [comm_ring R] : algebra R (polynomial R) :=
 { to_fun := polynomial.C,
@@ -112,7 +129,7 @@ instance polynomial (R : Type u) [comm_ring R] : algebra R (polynomial R) :=
 
 instance polynomial' (R : Type u) (A : Type v) [comm_ring R] [comm_ring A] [algebra R A] :
   algebra R (polynomial A) :=
-of_ring_hom (polynomial.C ∘ algebra_map A) (is_ring_hom.comp _ _)
+algebra.trans _ A _
 
 /-- The algebra of multivariate polynomials. -/
 instance mv_polynomial (R : Type u) [comm_ring R]
@@ -124,7 +141,7 @@ instance mv_polynomial (R : Type u) [comm_ring R]
 
 instance mv_polynomial' (R : Type u) (A : Type v) [comm_ring R] [comm_ring A] [algebra R A]
   (ι : Type w) : algebra R (mv_polynomial ι A) :=
-of_ring_hom (mv_polynomial.C ∘ algebra_map A) (is_ring_hom.comp _ _)
+algebra.trans _ A _
 
 /-- Creating an algebra from a subring. This is the dual of ring extension. -/
 instance of_subring (S : set R) [is_subring S] : algebra S R :=

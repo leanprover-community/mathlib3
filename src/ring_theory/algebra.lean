@@ -502,7 +502,6 @@ def of_id : R →ₐ A :=
 { commutes' := λ _, rfl, .. ring_hom.of (algebra_map A) }
 
 variables {R}
-
 theorem of_id_apply (r) : of_id R A r = algebra_map A r := rfl
 
 variables (R) {A}

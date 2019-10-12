@@ -4,6 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 
 Modules over a ring.
+
+## Implemetation notes
+
+
+Throughout the `linear_map` section implicit `{}` brackets are often used instead of type class `[]` brackets. 
+This is done when the instances can be inferred because they are implicit arguments to the type `linear_map`. 
+When they can be inferred from the type it is faster to use this method than to use type class inference
+
 -/
 
 import algebra.ring algebra.big_operators group_theory.subgroup group_theory.group_action
@@ -128,13 +136,12 @@ notation β ` →ₗ[`:25 α:25 `] `:0 γ:0 := linear_map α β γ
 
 namespace linear_map
 
-variables [ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group δ]
-variables [module α β] [module α γ] [module α δ]
+variables {rα : ring α} {gβ : add_comm_group β} {gγ : add_comm_group γ} {gδ : add_comm_group δ}
+variables {mβ : module α β} {mγ : module α γ} {mδ : module α δ}
 variables (f g : β →ₗ[α] γ)
-include α
+include α mβ mγ
 
-instance {α β γ : Type*} {r : ring α} {gβ : add_comm_group β} {gγ : add_comm_group γ}
-  {mβ : module α β} {mγ : module α γ} : has_coe_to_fun (β →ₗ[α] γ) := ⟨_, to_fun⟩
+instance : has_coe_to_fun (β →ₗ[α] γ) := ⟨_, to_fun⟩
 
 @[simp] lemma coe_mk (f : β → γ) (h₁ h₂) :
   ((linear_map.mk f h₁ h₂ : β →ₗ[α] γ) : β → γ) = f := rfl
@@ -166,9 +173,14 @@ by simp [map_neg, map_add]
   f (t.sum g) = t.sum (λi, f (g i)) :=
 (finset.sum_hom f).symm
 
+include mδ
+
 def comp (f : γ →ₗ[α] δ) (g : β →ₗ[α] γ) : β →ₗ[α] δ := ⟨f ∘ g, by simp, by simp⟩
 
 @[simp] lemma comp_apply (f : γ →ₗ[α] δ) (g : β →ₗ[α] γ) (x : β) : f.comp g x = f (g x) := rfl
+
+omit mγ mδ
+variables [rα] [gβ] [mβ]
 
 def id : β →ₗ[α] β := ⟨id, by simp, by simp⟩
 

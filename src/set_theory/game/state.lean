@@ -223,6 +223,3 @@ namespace game
 def of {S : Type u} [pgame.state S] (s : S) : game := ⟦pgame.of s⟧
 
 end game
-
-def foo : nonzero_ring ℤ := by apply_instance
-#print foo

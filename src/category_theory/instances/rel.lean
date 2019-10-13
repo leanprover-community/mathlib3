@@ -28,6 +28,7 @@ instance Rel.category : large_category Rel.{u} :=
   id_comp' := @rel.comp_left_id,
   assoc' := @rel.comp_assoc }
 
+/-- The graph of a function as a faithful functor from `Type` to `Rel`. -/
 def graph'_functor : Type u ⥤ Rel.{u} :=
 { obj := id,
   map := @function.graph',

@@ -16,7 +16,7 @@ There are two types defined, `zmod n`, which is for integers modulo a positive n
 
 `val_min_abs` returns the integer closest to zero in the equivalence class.
 
-A coercion `cast` is defined from `zmod n` into any semiring. This is a semiring hom is the ring has
+A coercion `cast` is defined from `zmod n` into any semiring. This is a semiring hom if the ring has
 characteristic dividing `n`
 
 ## Implentation notes

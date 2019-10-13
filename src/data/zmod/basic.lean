@@ -2,8 +2,32 @@
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Chris Hughes
+
+# zmod and zmodp
+
+Definition of the integers mod n, and the field structure on the integers mod p.
+
+There are two types defined, `zmod n`, which is for integers modulo a positive nat `n : ℕ+`.
+`zmodp` is the type of integers modulo a prime number, for which a field structure is defined.
+
+## Definitions
+
+`val` is inherited from `fin` and returns the least natural number in the equivalence class
+
+`val_min_abs` returns the integer closest to zero in the equivalence class.
+
+A coercion `cast` is defined from `zmod n` into any semiring. This is a semiring hom is the ring has
+characteristic dividing `n`
+
+## Implentation notes
+
+`zmod` and `zmodp` are implemented as different types so that the field instance for `zmodp` can be
+synthesized. This leads to a lot of code duplication and most of the functions and theorems for
+`zmod` are restated for `zmodp`
+
 -/
-import data.int.modeq data.int.gcd data.fintype data.pnat.basic
+
+import data.int.modeq data.int.gcd data.fintype data.pnat.basic tactic.ring
 
 open nat nat.modeq int
 
@@ -241,6 +265,45 @@ def units_equiv_coprime {n : ℕ+} : units (zmod n) ≃ {x : zmod n // nat.copri
   left_inv := λ ⟨_, _, _, _⟩, units.ext rfl,
   right_inv := λ ⟨_, _⟩, rfl }
 
+/-- `val_min_abs x` returns the integer in the same equivalence class as `x` that is closest to `0`,
+  The result will be in the interval `(-n/2, n/2]` -/
+def val_min_abs {n : ℕ+} (x : zmod n) : ℤ :=
+if x.val ≤ n / 2 then x.val else x.val - n
+
+@[simp] lemma coe_val_min_abs {n : ℕ+} (x : zmod n) :
+  (x.val_min_abs : zmod n) = x :=
+by simp [zmod.val_min_abs]; split_ifs; simp
+
+lemma nat_abs_val_min_abs_le {n : ℕ+} (x : zmod n) : x.val_min_abs.nat_abs ≤ n / 2 :=
+have (x.val - n : ℤ) ≤ 0, from sub_nonpos.2 $ int.coe_nat_le.2 $ le_of_lt x.2,
+begin
+  rw zmod.val_min_abs,
+  split_ifs with h,
+  { exact h },
+  { rw [← int.coe_nat_le, int.of_nat_nat_abs_of_nonpos this, neg_sub],
+    conv_lhs { congr, rw [coe_coe, ← nat.mod_add_div n 2, int.coe_nat_add, int.coe_nat_mul,
+      int.coe_nat_bit0, int.coe_nat_one] },
+    rw ← sub_nonneg,
+    suffices : (0 : ℤ) ≤ x.val - ((n % 2 : ℕ) + (n / 2 : ℕ)),
+    { exact le_trans this (le_of_eq $ by ring) },
+    exact sub_nonneg.2 (by rw [← int.coe_nat_add, int.coe_nat_le];
+      exact calc (n : ℕ) % 2 + n / 2 ≤ 1 + n / 2 :
+        add_le_add (nat.le_of_lt_succ (nat.mod_lt _ dec_trivial)) (le_refl _)
+        ... ≤ x.val : by rw add_comm; exact nat.succ_le_of_lt (lt_of_not_ge h)) }
+end
+
+@[simp] lemma val_min_abs_zero {n : ℕ+} : (0 : zmod n).val_min_abs = 0 :=
+by simp [zmod.val_min_abs]
+
+@[simp] lemma val_min_abs_eq_zero {n : ℕ+} (x : zmod n) :
+  x.val_min_abs = 0 ↔ x = 0 :=
+⟨λ h, begin
+  dsimp [zmod.val_min_abs] at h,
+  split_ifs at h,
+  { exact fin.eq_of_veq (by simp * at *) },
+  { exact absurd h (mt sub_eq_zero.1 (ne_of_lt $ int.coe_nat_lt.2 x.2)) }
+end, λ hx0, hx0.symm ▸ zmod.val_min_abs_zero⟩
+
 section
 variables {α : Type*} [has_zero α] [has_one α] [has_add α] {n : ℕ+}
 
@@ -326,6 +389,21 @@ lemma le_div_two_iff_lt_neg {p : ℕ} (hp : prime p) (hp1 : p % 2 = 1)
 
 lemma ne_neg_self (hp1 : p % 2 = 1) {a : zmodp p hp} (ha : a ≠ 0) : a ≠ -a :=
 @zmod.ne_neg_self ⟨p, hp.pos⟩ hp1 _ ha
+
+def val_min_abs {n : ℕ+} (x : zmod n) : ℤ := zmod.val_min_abs x
+
+@[simp] lemma coe_val_min_abs {n : ℕ+} (x : zmod n) :
+  (x.val_min_abs : zmod n) = x :=
+zmod.coe_val_min_abs x
+
+lemma nat_abs_val_min_abs_le {n : ℕ+} (x : zmod n) : x.val_min_abs.nat_abs ≤ n / 2 :=
+zmod.nat_abs_val_min_abs_le x
+
+@[simp] lemma val_min_abs_zero {n : ℕ+} : (0 : zmod n).val_min_abs = 0 :=
+zmod.val_min_abs_zero
+
+@[simp] lemma val_min_abs_eq_zero {n : ℕ+} (x : zmod n) : x.val_min_abs = 0 ↔ x = 0 :=
+zmod.val_min_abs_eq_zero x
 
 lemma prime_ne_zero {q : ℕ} (hq : prime q) (hpq : p ≠ q) : (q : zmodp p hp) ≠ 0 :=
 by rwa [← nat.cast_zero, ne.def, zmodp.eq_iff_modeq_nat, nat.modeq.modeq_zero_iff,

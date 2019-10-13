@@ -419,23 +419,20 @@ def mk' {γ} [ring γ] (f : α →* γ) (map_add : ∀ a b : α, f (a + b) = f a
 
 end ring_hom
 
-/-- Predicate for semirings in which zero does not equal one. -/
-class nonzero_semiring (α : Type*) extends semiring α, zero_ne_one_class α
-
-/-- Predicate for rings in which zero does not equal one. -/
-class nonzero_ring (α : Type*) extends ring α, zero_ne_one_class α
-
-lemma succ_ne_self [nonzero_ring α] (a : α) : a + 1 ≠ a :=
-λ h, one_ne_zero ((add_left_inj a).mp (by { convert h, simp, }))
-
-lemma pred_ne_self [nonzero_ring α] (a : α) : a - 1 ≠ a :=
-λ h, one_ne_zero (neg_inj ((add_left_inj a).mp (by { convert h, simp })))
-
 /-- Predicate for commutative semirings in which zero does not equal one. -/
-class nonzero_comm_semiring (α : Type*) extends comm_semiring α, nonzero_semiring α
+class nonzero_comm_semiring (α : Type*) extends comm_semiring α, zero_ne_one_class α
 
 /-- Predicate for commutative rings in which zero does not equal one. -/
-class nonzero_comm_ring (α : Type*) extends comm_ring α, nonzero_ring α
+class nonzero_comm_ring (α : Type*) extends comm_ring α, zero_ne_one_class α
+
+-- This could be generalized, for example if we added `nonzero_ring` into the hierarchy,
+-- but it doesn't seem worth doing just for these lemmas.
+lemma succ_ne_self [nonzero_comm_ring α] (a : α) : a + 1 ≠ a :=
+λ h, one_ne_zero ((add_left_inj a).mp (by { convert h, simp, }))
+
+-- As with succ_ne_self.
+lemma pred_ne_self [nonzero_comm_ring α] (a : α) : a - 1 ≠ a :=
+λ h, one_ne_zero (neg_inj ((add_left_inj a).mp (by { convert h, simp })))
 
 /-- A nonzero commutative ring is a nonzero commutative semiring. -/
 instance nonzero_comm_ring.to_nonzero_comm_semiring {α : Type*} [I : nonzero_comm_ring α] :

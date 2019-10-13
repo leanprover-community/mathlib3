@@ -61,7 +61,7 @@ by simp * at *
 lemma uniform_continuous_add' : uniform_continuous (λp:α×α, p.1 + p.2) :=
 uniform_continuous_add uniform_continuous_fst uniform_continuous_snd
 
-@[priority 0]
+@[priority 10]
 instance uniform_add_group.to_topological_add_group : topological_add_group α :=
 { continuous_add := uniform_continuous_add'.continuous,
   continuous_neg := uniform_continuous_neg'.continuous }
@@ -283,11 +283,10 @@ open add_comm_group filter set function
 section
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
--- α, β and G are abelian topological groups, G is complete Hausdorff
-variables [topological_space α] [add_comm_group α] [topological_add_group α]
-variables [topological_space β] [add_comm_group β] [topological_add_group β]
-variables {G : Type*} [uniform_space G] [add_comm_group G] [uniform_add_group G]
-  [complete_space G] [separated G]
+-- α, β and G are abelian topological groups, G is a uniform space
+variables [topological_space α] [add_comm_group α]
+variables [topological_space β] [add_comm_group β]
+variables {G : Type*} [uniform_space G] [add_comm_group G]
 
 variables {ψ : α × β → G} (hψ : continuous ψ) [ψbilin : is_Z_bilin ψ]
 
@@ -311,7 +310,7 @@ variables {α : Type*} {β : Type*}
 variables [topological_space α] [add_comm_group α] [topological_add_group α]
 
 -- β is a dense subgroup of α, inclusion is denoted by e
-variables [topological_space β] [add_comm_group β] [topological_add_group β]
+variables [topological_space β] [add_comm_group β]
 variables {e : β → α} [is_add_group_hom e] (de : dense_inducing e)
 include de
 

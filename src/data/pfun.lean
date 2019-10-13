@@ -20,7 +20,7 @@ def to_option (o : roption α) [decidable o.dom] : option α :=
 if h : dom o then some (o.get h) else none
 
 /-- `roption` extensionality -/
-lemma ext' : Π {o p : roption α}
+theorem ext' : ∀ {o p : roption α}
   (H1 : o.dom ↔ p.dom)
   (H2 : ∀h₁ h₂, o.get h₁ = p.get h₂), o = p
 | ⟨od, o⟩ ⟨pd, p⟩ H1 H2 := have t : od = pd, from propext H1,
@@ -335,12 +335,12 @@ def eval_opt (f : α →. β) [D : decidable_pred (dom f)] (x : α) : option β 
 @roption.to_option _ _ (D x)
 
 /-- Partial function extensionality -/
-lemma ext' {f g : α →. β}
+theorem ext' {f g : α →. β}
   (H1 : ∀ a, a ∈ dom f ↔ a ∈ dom g)
   (H2 : ∀ a p q, f.fn a p = g.fn a q) : f = g :=
 funext $ λ a, roption.ext' (H1 a) (H2 a)
 
-lemma ext {f g : α →. β} (H : ∀ a b, b ∈ f a ↔ b ∈ g a) : f = g :=
+theorem ext {f g : α →. β} (H : ∀ a b, b ∈ f a ↔ b ∈ g a) : f = g :=
 funext $ λ a, roption.ext (H a)
 
 /-- Turn a partial function into a function out of a subtype -/

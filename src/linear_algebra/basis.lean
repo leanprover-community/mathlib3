@@ -27,10 +27,9 @@ import linear_algebra.basic linear_algebra.finsupp order.zorn
 noncomputable theory
 
 open function lattice set submodule
+open_locale classical
 
 variables {ι : Type*} {ι' : Type*} {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {v : ι → β}
-variables [decidable_eq ι] [decidable_eq ι']
-          [decidable_eq α] [decidable_eq β] [decidable_eq γ] [decidable_eq δ]
 
 section module
 variables [ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group δ]
@@ -104,7 +103,7 @@ end
 
 lemma linear_independent_span (hs : linear_independent α v) :
   @linear_independent ι α (span α (range v))
-      (λ i : ι, ⟨v i, subset_span (mem_range_self i)⟩) _ _ _ _ _ _ :=
+      (λ i : ι, ⟨v i, subset_span (mem_range_self i)⟩) _ _ _ :=
 begin
   rw linear_independent_iff at *,
   intros l hl,
@@ -328,7 +327,6 @@ lemma linear_independent_Union_finite_subtype {ι : Type*} {f : ι → set β}
   (hd : ∀i, ∀t:set ι, finite t → i ∉ t → disjoint (span α (f i)) (⨆i∈t, span α (f i))) :
   linear_independent α (λ x, x : (⋃i, f i) → β) :=
 begin
-  classical,
   rw [Union_eq_Union_finset f],
   apply linear_independent_Union_of_directed,
   apply directed_of_sup,
@@ -354,7 +352,6 @@ begin
 end
 
 lemma linear_independent_Union_finite {η : Type*} {ιs : η → Type*}
-  [decidable_eq η] [∀ j, decidable_eq (ιs j)]
   {f : Π j : η, ιs j → β}
   (hindep : ∀j, linear_independent α (f j))
   (hd : ∀i, ∀t:set η, finite t → i ∉ t →
@@ -513,7 +510,7 @@ begin
   rw hv at hf_inj,
   haveI : inhabited β := ⟨0⟩,
   rw [linear_independent, finsupp.total_comp],
-  rw [@finsupp.lmap_domain_total _ _ α _ _ _ _ _ _ _ _ _ _ _ _ _ f, ker_comp, eq_bot_iff],
+  rw [@finsupp.lmap_domain_total _ _ α _ _ _ _ _ _ _ _ _ _ f, ker_comp, eq_bot_iff],
   apply hf_inj,
   exact λ _, rfl,
 end
@@ -525,7 +522,8 @@ begin
     map_le_iff_le_comap, comap_bot] at hf_inj,
   haveI : inhabited β := ⟨0⟩,
   rw [linear_independent_subtype_disjoint, disjoint, ← finsupp.lmap_domain_supported _ _ f, map_inf_eq_map_inf_comap,
-      map_le_iff_le_comap, ← ker_comp, @finsupp.lmap_domain_total _ _ α _ _ _ _ _ _ _ _ _ _ _ _ id id, ker_comp],
+      map_le_iff_le_comap, ← ker_comp],
+  rw [@finsupp.lmap_domain_total _ _ α _ _ _, ker_comp],
   { exact le_trans (le_inf inf_le_left hf_inj) (le_trans (linear_independent_subtype_disjoint.1 hs) bot_le) },
   { simp }
 end
@@ -676,7 +674,7 @@ lemma constr_sub {g f : ι → γ} (hs : is_basis α v) :
 by simp [constr_add, constr_neg]
 
 -- this only works on functions if `α` is a commutative ring
-lemma constr_smul {ι α β γ} [decidable_eq ι] [decidable_eq α] [decidable_eq β] [decidable_eq γ] [comm_ring α]
+lemma constr_smul {ι α β γ} [comm_ring α]
   [add_comm_group β] [add_comm_group γ] [module α β] [module α γ]
   {v : ι → α} {f : ι → γ} {a : α} (hv : is_basis α v) {b : β} :
   hv.constr (λb, a • f b) = a • hv.constr f :=
@@ -718,7 +716,7 @@ end
 
 end is_basis
 
-lemma is_basis_singleton_one (α : Type*) [unique ι] [decidable_eq α] [ring α] :
+lemma is_basis_singleton_one (α : Type*) [unique ι] [ring α] :
   is_basis α (λ (_ : ι), (1 : α)) :=
 begin
   split,
@@ -734,7 +732,7 @@ lemma linear_equiv.is_basis (hs : is_basis α v)
   (f : β ≃ₗ[α] γ) : is_basis α (f ∘ v) :=
 begin
   split,
-  { apply @linear_independent.image _ _ _ _ _ _ _ _ _ _ _ _ _ _ hs.1 (f : β →ₗ[α] γ),
+  { apply @linear_independent.image _ _ _ _ _ _ _ _ _ _ hs.1 (f : β →ₗ[α] γ),
     simp [linear_equiv.ker f] },
   { rw set.range_comp,
     have : span α ((f : β →ₗ[α] γ) '' range v) = ⊤,
@@ -744,7 +742,7 @@ begin
 end
 
 lemma is_basis_span (hs : linear_independent α v) :
-  @is_basis ι α (span α (range v)) (λ i : ι, ⟨v i, subset_span (mem_range_self _)⟩) _ _ _ _ _ _ :=
+  @is_basis ι α (span α (range v)) (λ i : ι, ⟨v i, subset_span (mem_range_self _)⟩) _ _ _ :=
 begin
 split,
 { apply linear_independent_span hs },
@@ -843,7 +841,7 @@ end
 
 lemma linear_independent_singleton {x : β} (hx : x ≠ 0) : linear_independent α (λ x, x : ({x} : set β) → β) :=
 begin
-  apply @linear_independent_unique _ _ _ _ _ _ _ _ _ _ _ _,
+  apply @linear_independent_unique _ _ _ _ _ _ _ _ _,
   apply set.unique_singleton,
   apply hx,
 end
@@ -864,8 +862,7 @@ begin
   rw ← union_singleton,
   have x0 : x ≠ 0 := mt (by rintro rfl; apply zero_mem _) hx,
   apply linear_independent_union hs (linear_independent_singleton x0),
-  rwa [disjoint_span_singleton x0],
-  exact classical.dec_eq α
+  rwa [disjoint_span_singleton x0]
 end
 
 lemma exists_linear_independent (hs : linear_independent α (λ x, x : s → β)) (hst : s ⊆ t) :
@@ -889,11 +886,10 @@ lemma exists_subset_is_basis (hs : linear_independent α (λ x, x : s → β)) :
   ∃b, s ⊆ b ∧ is_basis α (λ i : b, i.val) :=
 let ⟨b, hb₀, hx, hb₂, hb₃⟩ := exists_linear_independent hs (@subset_univ _ _) in
 ⟨ b, hx,
-  @linear_independent.restrict_of_comp_subtype _ _ _ id _ _ _ _ _ _ _ hb₃,
+  @linear_independent.restrict_of_comp_subtype _ _ _ id _ _ _ _ hb₃,
   by simp; exact eq_top_iff.2 hb₂⟩
 
 variables (α β)
-
 lemma exists_is_basis : ∃b : set β, is_basis α (λ i : b, i.val) :=
 let ⟨b, _, hb⟩ := exists_subset_is_basis linear_independent_empty in ⟨b, hb⟩
 
@@ -976,7 +972,7 @@ begin
   rcases exists_subset_is_basis this with ⟨C, BC, hC⟩,
   haveI : inhabited β := ⟨0⟩,
   use hC.constr (function.restrict (inv_fun f) C : C → β),
-  apply @is_basis.ext _ _ _ _ _ _ _ _ (show decidable_eq β, by assumption) _ _ _ _ _ _ _ hB,
+  apply @is_basis.ext _ _ _ _ _ _ _ _ _ _ _ _ hB,
   intros b,
   rw image_subset_iff at BC,
   simp,
@@ -995,7 +991,7 @@ begin
   rcases exists_is_basis α γ with ⟨C, hC⟩,
   haveI : inhabited β := ⟨0⟩,
   use hC.constr (function.restrict (inv_fun f) C : C → β),
-  apply @is_basis.ext _ _ _ _ _ _ _ _ (show decidable_eq γ, by assumption) _ _ _ _ _ _ _ hC,
+  apply @is_basis.ext _ _ _ _ _ _ _ _ _ _ _ _ hC,
   intros c,
   simp [constr_basis hC],
   exact right_inverse_inv_fun (linear_map.range_eq_top.1 hf_surj) _
@@ -1040,9 +1036,9 @@ open set linear_map
 
 section module
 variables {η : Type*} {ιs : η → Type*} {φ : η → Type*}
-variables [ring α] [∀i, add_comm_group (φ i)] [∀i, module α (φ i)] [fintype η] [decidable_eq η]
+variables [ring α] [∀i, add_comm_group (φ i)] [∀i, module α (φ i)] [fintype η]
 
-lemma linear_independent_std_basis [∀ j, decidable_eq (ιs j)]  [∀ i, decidable_eq (φ i)]
+lemma linear_independent_std_basis
   (v : Πj, ιs j → (φ j)) (hs : ∀i, linear_independent α (v i)) :
   linear_independent α (λ (ji : Σ j, ιs j), std_basis α φ ji.1 (v ji.1 ji.2)) :=
 begin
@@ -1073,8 +1069,7 @@ begin
       (disjoint_std_basis_std_basis _ _ _ _ h₃), }
 end
 
-lemma is_basis_std_basis [∀ j, decidable_eq (ιs j)] [∀ j, decidable_eq (φ j)]
-  (s : Πj, ιs j → (φ j)) (hs : ∀j, is_basis α (s j)) :
+lemma is_basis_std_basis (s : Πj, ιs j → (φ j)) (hs : ∀j, is_basis α (s j)) :
   is_basis α (λ (ji : Σ j, ιs j), std_basis α φ ji.1 (s ji.1 ji.2)) :=
 begin
   split,
@@ -1102,18 +1097,19 @@ lemma is_basis_fun₀ : is_basis α
        (std_basis α (λ (i : η), α) (ji.fst)) 1) :=
 begin
   haveI := classical.dec_eq,
-  apply @is_basis_std_basis α _ η (λi:η, unit) (λi:η, α) _ _ _ _ _ _ _ (λ _ _, (1 : α))
-      (assume i, @is_basis_singleton_one _ _ _ _ _ _),
+  apply @is_basis_std_basis α η (λi:η, unit) (λi:η, α) _ _ _ _ (λ _ _, (1 : α))
+      (assume i, @is_basis_singleton_one _ _ _ _),
 end
 
 lemma is_basis_fun : is_basis α (λ i, std_basis α (λi:η, α) i 1) :=
 begin
-  apply is_basis.comp (is_basis_fun₀ α) (λ i, ⟨i, punit.star⟩),
+  apply is_basis.comp (is_basis_fun₀ α) (λ i, ⟨i, punit.star⟩) ,
   { apply bijective_iff_has_inverse.2,
     use (λ x, x.1),
     simp [function.left_inverse, function.right_inverse],
     intros _ b,
     rw [unique.eq_default b, unique.eq_default punit.star] },
+  apply_instance
 end
 
 end

@@ -120,6 +120,13 @@ let (b', l') := scanr_aux f b l in b' :: l'
      prod [a, b, c] = ((1 * a) * b) * c -/
 def prod [has_mul α] [has_one α] : list α → α := foldl (*) 1
 
+/-- Sum of a list.
+
+     sum [a, b, c] = ((0 + a) + b) + c -/
+-- Later this will be tagged with `to_additive`, but this can't be done yet because of import
+-- dependencies.
+def sum [has_add α] [has_zero α] : list α → α := foldl (+) 0
+
 def partition_map (f : α → β ⊕ γ) : list α → list β × list γ
 | [] := ([],[])
 | (x::xs) :=
@@ -392,6 +399,8 @@ variable {R}
   chain R a (b::l) ↔ R a b ∧ chain R b l :=
 ⟨λ p, by cases p with _ a b l n p; exact ⟨n, p⟩, λ ⟨n, p⟩, p.cons n⟩
 
+attribute [simp] chain.nil
+
 instance decidable_chain [decidable_rel R] (a : α) (l : list α) : decidable (chain R a l) :=
 by induction l generalizing a; simp only [chain.nil, chain_cons]; resetI; apply_instance
 
@@ -478,6 +487,8 @@ namespace func
 /- Definitions for using lists as finite
    representations of functions with domain ℕ. -/
 
+def neg [has_neg α] (as : list α) := as.map (λ a, -a)
+
 variables [inhabited α] [inhabited β]
 
 @[simp] def set (a : α) : list α → ℕ → list α
@@ -494,8 +505,6 @@ variables [inhabited α] [inhabited β]
 def equiv (as1 as2 : list α) : Prop :=
 ∀ (m : nat), get m as1 = get m as2
 
-def neg [has_neg α] (as : list α) := as.map (λ a, -a)
-
 @[simp] def pointwise (f : α → β → γ) : list α → list β → list γ
 | []      []      := []
 | []      (b::bs) := map (f $ default α) (b::bs)
@@ -509,5 +518,12 @@ def sub {α : Type u} [has_zero α] [has_sub α] : list α → list α → list 
 @pointwise α α α ⟨0⟩ ⟨0⟩ (@has_sub.sub α _)
 
 end func
+
+/-- Filters and maps elements of a list -/
+def mmap_filter {m : Type → Type v} [monad m] {α β} (f : α → m (option β)) :
+  list α → m (list β)
+| []       := return []
+| (h :: t) := do b ← f h, t' ← t.mmap_filter, return $
+  match b with none := t' | (some x) := x::t' end
 
 end list

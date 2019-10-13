@@ -22,12 +22,15 @@ structure equiv (α : Sort*) (β : Sort*) :=
 (left_inv  : left_inverse inv_fun to_fun)
 (right_inv : right_inverse inv_fun to_fun)
 
+infix ` ≃ `:25 := equiv
+
+def function.involutive.to_equiv {f : α → α} (h : involutive f) : α ≃ α :=
+⟨f, f, h.left_inverse, h.right_inverse⟩
+
 namespace equiv
 
 /-- `perm α` is the type of bijections from `α` to itself. -/
 @[reducible] def perm (α : Sort*) := equiv α α
-
-infix ` ≃ `:25 := equiv
 
 instance : has_coe_to_fun (α ≃ β) :=
 ⟨_, to_fun⟩
@@ -111,6 +114,8 @@ lemma eq_symm_apply {α β} (e : α ≃ β) {x y} : y = e.symm x ↔ e y = x :=
 @[simp] theorem symm_symm_apply (e : α ≃ β) (a : α) : e.symm.symm a = e a := by { cases e, refl }
 
 @[simp] theorem trans_refl (e : α ≃ β) : e.trans (equiv.refl β) = e := by { cases e, refl }
+
+@[simp] theorem refl_symm : (equiv.refl α).symm = equiv.refl α := rfl
 
 @[simp] theorem refl_trans (e : α ≃ β) : (equiv.refl α).trans e = e := by { cases e, refl }
 
@@ -348,6 +353,10 @@ by { cases e₁, cases e₂, refl }
   sum_congr e₁ e₂ (inr b) = inr (e₂ b) :=
 by { cases e₁, cases e₂, refl }
 
+@[simp] lemma sum_congr_symm {α β γ δ : Type u} (e : α ≃ β) (f : γ ≃ δ) (x) :
+  (equiv.sum_congr e f).symm x = (equiv.sum_congr (e.symm) (f.symm)) x :=
+by { cases e, cases f, cases x; refl }
+
 def bool_equiv_punit_sum_punit : bool ≃ punit.{u+1} ⊕ punit.{v+1} :=
 ⟨λ b, cond b (inr punit.star) (inl punit.star),
  λ s, sum.rec_on s (λ_, ff) (λ_, tt),
@@ -490,6 +499,13 @@ calc α × (β ⊕ γ) ≃ (β ⊕ γ) × α       : prod_comm _ _
    prod_sum_distrib α β γ (a, sum.inl b) = sum.inl (a, b) := rfl
 @[simp] theorem prod_sum_distrib_apply_right {α β γ} (a : α) (c : γ) :
    prod_sum_distrib α β γ (a, sum.inr c) = sum.inr (a, c) := rfl
+
+def sigma_prod_distrib {ι : Type*} (α : ι → Type*) (β : Type*) :
+  ((Σ i, α i) × β) ≃ (Σ i, (α i × β)) :=
+⟨λ p, ⟨p.1.1, (p.1.2, p.2)⟩,
+ λ p, (⟨p.1, p.2.1⟩, p.2.2),
+ λ p, by { rcases p with ⟨⟨_, _⟩, _⟩, refl },
+ λ p, by { rcases p with ⟨_, ⟨_, _⟩⟩, refl }⟩
 
 def bool_prod_equiv_sum (α : Type u) : bool × α ≃ α ⊕ α :=
 calc bool × α ≃ (unit ⊕ unit) × α       : prod_congr bool_equiv_punit_sum_punit (equiv.refl _)
@@ -809,7 +825,7 @@ noncomputable def of_bijective {α β} {f : α → β} (hf : bijective f) : α �
 
 @[simp] theorem of_bijective_to_fun {α β} {f : α → β} (hf : bijective f) : (of_bijective hf : α → β) = f := rfl
 
-lemma subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid α]
+def subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid α]
   [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ :  ∀ a, p₁ a ↔ p₂ ⟦a⟧)
   (h : ∀ x y : subtype p₁, @setoid.r _ s₂ x y ↔ (x : α) ≈ y) :
   {x // p₂ x} ≃ quotient s₂ :=
@@ -872,7 +888,7 @@ by { cases π, refl }
 @[simp] lemma swap_inv {α : Type*} [decidable_eq α] (x y : α) :
   (swap x y)⁻¹ = swap x y := rfl
 
-@[simp] lemma symm_trans_swap_trans [decidable_eq α] [decidable_eq β] (a b : α)
+@[simp] lemma symm_trans_swap_trans [decidable_eq β] (a b : α)
   (e : α ≃ β) : (e.symm.trans (swap a b)).trans e = swap (e a) (e b) :=
 equiv.ext _ _ (λ x, begin
   have : ∀ a, e.symm x = a ↔ x = e a :=
@@ -895,6 +911,14 @@ def set_value (f : α ≃ β) (a : α) (b : β) : α ≃ β :=
 by { dsimp [set_value], simp [swap_apply_left] }
 
 end swap
+
+protected lemma forall_congr {p : α → Prop} {q : β → Prop} (f : α ≃ β)
+  (h : ∀{x}, p x ↔ q (f x)) : (∀x, p x) ↔ (∀y, q y) :=
+begin
+  split; intros h₂ x,
+  { rw [←f.right_inv x], apply h.mp, apply h₂ },
+  apply h.mpr, apply h₂
+end
 
 end equiv
 

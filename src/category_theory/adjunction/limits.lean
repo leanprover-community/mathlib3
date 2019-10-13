@@ -15,7 +15,7 @@ open category_theory.limits
 
 universes u₁ u₂ v
 
-variables {C : Type u₁} [𝒞 : category.{v+1} C] {D : Type u₂} [𝒟 : category.{v+1} D]
+variables {C : Type u₁} [𝒞 : category.{v} C] {D : Type u₂} [𝒟 : category.{v} D]
 include 𝒞 𝒟
 
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G)
@@ -49,11 +49,12 @@ adjunction.left_adjoint_preserves_colimits E.adjunction
 -- verify the preserve_colimits instance works as expected:
 example (E : C ⥤ D) [is_equivalence E]
   (c : cocone K) (h : is_colimit c) : is_colimit (E.map_cocone c) :=
-by apply_instance
+preserves_colimit.preserves E h
 
 instance has_colimit_comp_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimit K] :
   has_colimit (K ⋙ E) :=
-{ cocone := E.map_cocone (colimit.cocone K) }
+{ cocone := E.map_cocone (colimit.cocone K),
+  is_colimit := preserves_colimit.preserves E (colimit.is_colimit K) }
 
 def has_colimit_of_comp_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimit (K ⋙ E)] :
   has_colimit K :=
@@ -91,11 +92,12 @@ adjunction.right_adjoint_preserves_limits E.inv.adjunction
 -- verify the preserve_limits instance works as expected:
 example (E : D ⥤ C) [is_equivalence E]
   (c : cone K) [h : is_limit c] : is_limit (E.map_cone c) :=
-by apply_instance
+preserves_limit.preserves E h
 
 instance has_limit_comp_equivalence (E : D ⥤ C) [is_equivalence E] [has_limit K] :
   has_limit (K ⋙ E) :=
-{ cone := E.map_cone (limit.cone K) }
+{ cone := E.map_cone (limit.cone K),
+  is_limit := preserves_limit.preserves E (limit.is_limit K) }
 
 def has_limit_of_comp_equivalence (E : D ⥤ C) [is_equivalence E] [has_limit (K ⋙ E)] :
   has_limit K :=

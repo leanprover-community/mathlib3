@@ -177,7 +177,7 @@ begin
     have : lm jk z ∈ S₀,
     { apply ring.subset_closure,
       apply finset.mem_union_right, apply finset.mem_bind.2,
-      exact ⟨jk, finset.mem_univ _, finset.mem_image_of_mem _ hz⟩ },
+      exact ⟨jk, finset.mem_univ _, by convert finset.mem_image_of_mem _ hz⟩ },
     change @has_scalar.smul S₀ (algebra.comap S₀ R A) _inst_6.to_has_scalar ⟨lm jk z, this⟩ z ∈ _,
     exact smul_mem _ _ (subset_span (set.mem_insert_of_mem _ (hlm1 _ hz))) },
   haveI : is_noetherian_ring ↥S₀ :=(by convert is_noetherian_ring_closure _ (finset.finite_to_set _); apply_instance),
@@ -188,7 +188,7 @@ begin
   rw [← hlx2, finsupp.total_apply, finsupp.sum], refine sum_mem _ _, intros r hr,
   rw ← this,
   have : lx r ∈ ring.closure ↑S₀' :=
-    ring.subset_closure (finset.mem_union_left _ (finset.mem_image_of_mem _ hr)),
+    ring.subset_closure (finset.mem_union_left _ (by convert finset.mem_image_of_mem _ hr)),
   change @has_scalar.smul S₀ (algebra.comap S₀ R A) _inst_6.to_has_scalar ⟨lx r, this⟩ r ∈ _,
   exact smul_mem _ _ (subset_span (set.mem_insert_of_mem _ (hlx1 hr)))
 end

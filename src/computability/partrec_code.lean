@@ -558,6 +558,7 @@ def evaln : ∀ k : ℕ, code → ℕ → option ℕ
   x ← evaln (k+1) cf (mkpair a m),
   if x = 0 then pure m else
   evaln k (rfind' cf) (mkpair a (m+1)))
+using_well_founded wf_tacs
 
 theorem evaln_bound : ∀ {k c n x}, x ∈ evaln k c n → n < k
 | 0     c n x h := by simp [evaln] at h; cases h
@@ -808,7 +809,7 @@ private lemma evaln_map (k c n) :
 begin
   by_cases kn : n < k,
   { simp [list.nth_range kn] },
-  { rw list.nth_ge_len,
+  { rw list.nth_len_le,
     { cases e : evaln k c n, {refl},
       exact kn.elim (evaln_bound e) },
     simpa using kn }

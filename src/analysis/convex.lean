@@ -474,7 +474,7 @@ begin
         { rw finset.mul_sum.symm,
           exact division_ring.inv_mul_cancel h_cases },
         { intros i hi,
-          exact zero_le_mul (inv_nonneg.2 h_sum_nonneg) (ha i (finset.mem_insert_of_mem hi))},
+          exact mul_nonneg (inv_nonneg.2 h_sum_nonneg) (ha i (finset.mem_insert_of_mem hi))},
         { intros i hi,
           exact hz i (finset.mem_insert_of_mem hi) } },
       have h_sum_in_A: a k • z k
@@ -588,7 +588,7 @@ begin
   exact h' zero_lt_one
 end⟩
 
-lemma convex_on_sum {γ : Type} (s : finset γ) (z : γ → α) (hs : s ≠ ∅) :
+lemma convex_on_sum {γ : Type} (s : finset γ) (z : γ → α) :
   ∀ (a : γ → ℝ), convex_on D f → (∀ i ∈ s, 0 ≤ a i) → (∀ i ∈ s, z i ∈ D) → s.sum a = 1 →
   f (s.sum (λi, a i • z i)) ≤ s.sum (λi, a i • f (z i)) :=
 begin
@@ -621,7 +621,7 @@ begin
                   ≤ s.sum (λ (i : γ), ((s.sum a)⁻¹ * a i) • f (z i)),
     { apply ih _ hf,
       { intros i hi,
-        exact zero_le_mul (inv_nonneg.2 h_sum_nonneg) (ha i (finset.mem_insert_of_mem hi))},
+        exact mul_nonneg (inv_nonneg.2 h_sum_nonneg) (ha i (finset.mem_insert_of_mem hi))},
       { intros i hi,
         exact hz i (finset.mem_insert_of_mem hi) },
       { rw finset.mul_sum.symm,
@@ -631,7 +631,7 @@ begin
       { rw finset.mul_sum.symm,
         exact division_ring.inv_mul_cancel h_cases },
       { intros i hi,
-        exact zero_le_mul (inv_nonneg.2 h_sum_nonneg) (ha i (finset.mem_insert_of_mem hi))},
+        exact mul_nonneg (inv_nonneg.2 h_sum_nonneg) (ha i (finset.mem_insert_of_mem hi))},
       { intros i hi,
         exact hz i (finset.mem_insert_of_mem hi) } },
     have hf': f (a k • z k     + s.sum a •    s.sum (λ (i : γ), ((finset.sum s a)⁻¹ * a i) • z i))

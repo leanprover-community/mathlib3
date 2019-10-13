@@ -34,7 +34,7 @@ f = 0 ∨ ∀ {g : polynomial β}, irreducible g → g ∣ f.map i → degree g 
 @[simp] lemma splits_zero : splits i (0 : polynomial α) := or.inl rfl
 
 @[simp] lemma splits_C (a : α) : splits i (C a) :=
-if ha : a = 0 then ha.symm ▸ (@C_0 α _ _).symm ▸ splits_zero i
+if ha : a = 0 then ha.symm ▸ (@C_0 α _).symm ▸ splits_zero i
 else
 have hia : i a ≠ 0, from mt ((is_add_group_hom.injective_iff i).1
   (is_field_hom.injective i) _) ha,
@@ -118,7 +118,7 @@ is_noetherian_ring.irreducible_induction_on (f.map i)
 
 section UFD
 
-local attribute [instance, priority 0] principal_ideal_domain.to_unique_factorization_domain
+local attribute [instance, priority 10] principal_ideal_domain.to_unique_factorization_domain
 local infix ` ~ᵤ ` : 50 := associated
 
 open unique_factorization_domain associates

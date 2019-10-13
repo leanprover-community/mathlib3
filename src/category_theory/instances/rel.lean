@@ -3,7 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Yury Kudryashov
 -/
-import data.rel category_theory.types
+import logic.rel.basic category_theory.types
 
 /-!
 The category of types with binary relations as morphisms.

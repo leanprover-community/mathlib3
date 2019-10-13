@@ -2,10 +2,33 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
-
-Constructions of new topological spaces from old ones: product, sum, subtype, quotient, list, vector
 -/
 import topology.maps
+
+/-!
+# Constructions of new topological spaces from old ones
+
+This file constructs products, sums, subtypes and quotients of topological spaces
+and sets up their basic theory, such as criteria for maps into or out of these
+constructions to be continuous; descriptions of the open sets, neighborhood filters,
+and generators of these constructions; and their behavior with respect to embeddings
+and other specific classes of maps.
+
+## Implementation note
+
+The constructed topologies are defined using induced and coinduced topologies
+along with the complete lattice structure on topologies. Their universal properties
+(for example, a map `X → Y × Z` is continuous if and only if both projections
+`X → Y`, `X → Z` are) follow easily using order-theoretic descriptions of
+continuity. With more work we can also extract descriptions of the open sets,
+neighborhood filters and so on.
+
+## Tags
+
+product, sum, disjoint union, subspace, quotient space
+
+-/
+
 noncomputable theory
 
 open topological_space set filter lattice

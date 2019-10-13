@@ -95,6 +95,14 @@ protected def symm : local_homeomorph β α :=
 @[simp] lemma symm_target : e.symm.target = e.source := rfl
 @[simp] lemma symm_symm : e.symm.symm = e := eq_of_local_equiv_eq $ by simp
 
+/-- A local homeomorphism is continuous at any point of its source -/
+lemma continuous_at_to_fun {x : α} (h : x ∈ e.source) : continuous_at e.to_fun x :=
+(e.continuous_to_fun x h).continuous_at (mem_nhds_sets e.open_source h)
+
+/-- A local homeomorphism inverse is continuous at any point of its target -/
+lemma continuous_at_inv_fun {x : β} (h : x ∈ e.target) : continuous_at e.inv_fun x :=
+e.symm.continuous_at_to_fun h
+
 /-- Preimage of interior or interior of preimage coincide for local homeomorphisms, when restricted
 to the source. -/
 lemma preimage_interior (s : set β) :
@@ -129,6 +137,15 @@ begin
         apply inter_eq_self_of_subset_left,
         apply e.to_local_equiv.source_subset_preimage_target
       end }
+end
+
+/-- The image of an open set in the source is open. -/
+lemma image_open_of_open {s : set α} (hs : is_open s) (h : s ⊆ e.source) : is_open (e.to_fun '' s) :=
+begin
+  have : e.to_fun '' s = e.target ∩ e.inv_fun ⁻¹' s :=
+    e.to_local_equiv.image_eq_target_inter_inv_preimage h,
+  rw this,
+  exact e.continuous_inv_fun.preimage_open_of_open e.open_target hs
 end
 
 /-- Restricting a local homeomorphism `e` to `e.source ∩ s` when `s` is open. This is sometimes hard
@@ -228,11 +245,13 @@ protected def trans' (h : e.target = e'.source) : local_homeomorph α γ :=
   open_target       := e'.open_target,
   continuous_to_fun := begin
     apply continuous_on.comp e'.continuous_to_fun e.continuous_to_fun,
-    rw [e.to_local_equiv.image_source_eq_target, h]
+    rw ← h,
+    exact e.to_local_equiv.source_subset_preimage_target
   end,
   continuous_inv_fun := begin
     apply continuous_on.comp e.continuous_inv_fun e'.continuous_inv_fun,
-    rw [e'.to_local_equiv.inv_image_target_eq_source, h],
+    rw h,
+    exact e'.to_local_equiv.target_subset_preimage_source
   end,
   ..local_equiv.trans' e.to_local_equiv e'.to_local_equiv h }
 
@@ -387,11 +406,11 @@ def prod (e : local_homeomorph α β) (e' : local_homeomorph γ δ) : local_home
 { open_source := is_open_prod e.open_source e'.open_source,
   open_target := is_open_prod e.open_target e'.open_target,
   continuous_to_fun := continuous_on.prod
-    (continuous_on.comp e.continuous_to_fun continuous_fst.continuous_on (fst_image_prod_subset _ _))
-    (continuous_on.comp e'.continuous_to_fun continuous_snd.continuous_on (snd_image_prod_subset _ _)),
+    (continuous_on.comp e.continuous_to_fun continuous_fst.continuous_on (prod_subset_preimage_fst _ _))
+    (continuous_on.comp e'.continuous_to_fun continuous_snd.continuous_on (prod_subset_preimage_snd _ _)),
   continuous_inv_fun := continuous_on.prod
-    (continuous_on.comp e.continuous_inv_fun continuous_fst.continuous_on (fst_image_prod_subset _ _))
-    (continuous_on.comp e'.continuous_inv_fun continuous_snd.continuous_on (snd_image_prod_subset _ _)),
+    (continuous_on.comp e.continuous_inv_fun continuous_fst.continuous_on (prod_subset_preimage_fst _ _))
+    (continuous_on.comp e'.continuous_inv_fun continuous_snd.continuous_on (prod_subset_preimage_snd _ _)),
   ..e.to_local_equiv.prod e'.to_local_equiv }
 
 @[simp] lemma prod_to_local_equiv (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
@@ -411,7 +430,42 @@ def prod (e : local_homeomorph α β) (e' : local_homeomorph γ δ) : local_home
 
 end prod
 
-section continuous_on
+section continuity
+
+/-- Continuity within a set at a point can be read under right composition with a local
+homeomorphism, if the point is in its target -/
+lemma continuous_within_at_iff_continuous_within_at_comp_right
+  {f : β → γ} {s : set β} {x : β} (h : x ∈ e.target) :
+  continuous_within_at f s x ↔
+  continuous_within_at (f ∘ e.to_fun) (e.to_fun ⁻¹' s) (e.inv_fun x) :=
+begin
+  split,
+  { assume f_cont,
+    have : e.to_fun (e.inv_fun x) = x := e.right_inv h,
+    rw ← this at f_cont,
+    have : e.source ∈ nhds (e.inv_fun x) := mem_nhds_sets e.open_source (e.map_target h),
+    rw [← continuous_within_at_inter this, inter_comm],
+    apply continuous_within_at.comp f_cont
+      ((e.continuous_at_to_fun (e.map_target h)).continuous_within_at) (inter_subset_right _ _) },
+  { assume fe_cont,
+    have : continuous_within_at ((f ∘ e.to_fun) ∘ e.inv_fun) (s ∩ e.target) x,
+    { apply continuous_within_at.comp fe_cont,
+      apply (e.continuous_at_inv_fun h).continuous_within_at,
+      assume x hx,
+      simp [hx.1, hx.2, e.map_target] },
+    have : continuous_within_at f (s ∩ e.target) x :=
+      continuous_within_at.congr this (λy hy, by simp [hy.2]) (by simp [h]),
+    rwa continuous_within_at_inter at this,
+    exact mem_nhds_sets e.open_target h }
+end
+
+/-- Continuity at a point can be read under right composition with a local homeomorphism, if the
+point is in its target -/
+lemma continuous_at_iff_continuous_at_comp_right
+  {f : β → γ} {x : β} (h : x ∈ e.target) :
+  continuous_at f x ↔ continuous_at (f ∘ e.to_fun) (e.inv_fun x) :=
+by rw [← continuous_within_at_univ, e.continuous_within_at_iff_continuous_within_at_comp_right h,
+       preimage_univ, continuous_within_at_univ]
 
 /-- A function is continuous on a set if and only if its composition with a local homeomorphism
 on the right is continuous on the corresponding set. -/
@@ -419,44 +473,98 @@ lemma continuous_on_iff_continuous_on_comp_right {f : β → γ} {s : set β} (h
   continuous_on f s ↔ continuous_on (f ∘ e.to_fun) (e.source ∩ e.to_fun ⁻¹' s) :=
 begin
   split,
+  { assume f_cont x hx,
+    have := e.continuous_within_at_iff_continuous_within_at_comp_right (e.map_source hx.1),
+    rw e.left_inv hx.1 at this,
+    have A := f_cont _ hx.2,
+    rw this at A,
+    exact A.mono (inter_subset_right _ _), },
+  { assume fe_cont x hx,
+    have := e.continuous_within_at_iff_continuous_within_at_comp_right (h hx),
+    rw this,
+    have : e.source ∈ nhds (e.inv_fun x) := mem_nhds_sets e.open_source (e.map_target (h hx)),
+    rw [← continuous_within_at_inter this, inter_comm],
+    exact fe_cont _ (by simp [hx, h hx, e.map_target (h hx)]) }
+end
+
+/-- Continuity within a set at a point can be read under right composition with a local
+homeomorphism if a neighborhood of the initial point is sent to the source of the local
+homeomorphism-/
+lemma continuous_within_at_iff_continuous_within_at_comp_left
+  {f : γ → α} {s : set γ} {x : γ} (hx : f x ∈ e.source) (h : f ⁻¹' e.source ∈ nhds_within x s) :
+  continuous_within_at f s x ↔ continuous_within_at (e.to_fun ∘ f) s x :=
+begin
+  rw [← continuous_within_at_inter' h, ← continuous_within_at_inter' h],
+  split,
   { assume f_cont,
-    apply continuous_on.comp f_cont,
-    apply e.continuous_to_fun.mono (inter_subset_left _ _),
-    have : e.to_fun '' (e.to_fun ⁻¹' s) ⊆ s :=
-      image_preimage_subset _ _,
-    exact subset.trans (image_subset _ (inter_subset_right _ _)) this },
+    have : e.source ∈ nhds (f x) := mem_nhds_sets e.open_source hx,
+    apply continuous_within_at.comp (e.continuous_to_fun (f x) hx) f_cont (inter_subset_right _ _) },
   { assume fe_cont,
-    have A : e.inv_fun '' s ⊆ e.source ∩ e.to_fun ⁻¹' s,
-    { rw [image_subset_iff, preimage_inter],
-      assume x hx,
-      simp [h hx, hx, e.map_target] },
-    have : continuous_on e.inv_fun s := e.continuous_inv_fun.mono h,
-    have : continuous_on ((f ∘ e.to_fun) ∘ e.inv_fun) s := continuous_on.comp fe_cont this A,
-    refine continuous_on.congr_mono this (λx hx, _) (subset.refl _),
-    simp [h hx, hx] }
+    have : continuous_within_at (e.inv_fun ∘ (e.to_fun ∘ f)) (s ∩ f ⁻¹' e.source) x,
+    { have : continuous_within_at e.inv_fun univ (e.to_fun (f x))
+        := (e.continuous_at_inv_fun (e.map_source hx)).continuous_within_at,
+      exact continuous_within_at.comp this fe_cont (subset_univ _) },
+    exact this.congr (λy hy, by simp [e.left_inv hy.2]) (by simp [e.left_inv hx]) }
+end
+
+/-- Continuity at a point can be read under right composition with a local homeomorphism if a
+neighborhood of the initial point is sent to the source of the local homeomorphism-/
+lemma continuous_at_iff_continuous_at_comp_left
+  {f : γ → α} {x : γ} (h : f ⁻¹' e.source ∈ nhds x) :
+  continuous_at f x ↔ continuous_at (e.to_fun ∘ f) x :=
+begin
+  have hx : f x ∈ e.source := (mem_of_nhds h : _),
+  have h' : f ⁻¹' e.source ∈ nhds_within x univ, by rwa nhds_within_univ,
+  rw [← continuous_within_at_univ, ← continuous_within_at_univ,
+      e.continuous_within_at_iff_continuous_within_at_comp_left hx h']
 end
 
 /-- A function is continuous on a set if and only if its composition with a local homeomorphism
 on the left is continuous on the corresponding set. -/
-lemma continuous_on_iff_continuous_on_comp_left {f : γ → α} {s : set γ} (h : f '' s ⊆ e.source) :
+lemma continuous_on_iff_continuous_on_comp_left {f : γ → α} {s : set γ} (h : s ⊆ f ⁻¹' e.source) :
   continuous_on f s ↔ continuous_on (e.to_fun ∘ f) s :=
 begin
   split,
   { assume f_cont,
     exact continuous_on.comp e.continuous_to_fun f_cont h },
   { assume fe_cont,
-    have : e.to_fun ∘ f '' s ⊆ e.target, from calc
-      e.to_fun ∘ f '' s = e.to_fun '' (f '' s) : by rw image_comp
-      ... ⊆ e.to_fun '' (e.source) : image_subset _ h
-      ... = e.target : e.to_local_equiv.image_source_eq_target,
-    have : continuous_on (e.inv_fun ∘ e.to_fun ∘ f) s :=
-      continuous_on.comp e.continuous_inv_fun fe_cont this,
+    have : continuous_on (e.inv_fun ∘ e.to_fun ∘ f) s,
+    { apply continuous_on.comp e.continuous_inv_fun fe_cont,
+      assume x hx,
+      have : f x ∈ e.source := h hx,
+      simp [this] },
     refine continuous_on.congr_mono this (λx hx, _) (subset.refl _),
-    have : f x ∈ e.source := h (mem_image_of_mem _ hx),
+    have : f x ∈ e.source := h hx,
     simp [this] }
 end
 
-end continuous_on
+end continuity
+
+/-- If a local homeomorphism has source and target equal to univ, then it induces a homeomorphism. -/
+def to_homeomorph_of_source_eq_univ_target_eq_univ (h : e.source = (univ : set α))
+  (h' : e.target = univ) : homeomorph α β :=
+{ to_fun := e.to_fun,
+  inv_fun := e.inv_fun,
+  left_inv := λx, e.left_inv $ by { rw h, exact mem_univ _ },
+  right_inv := λx, e.right_inv $ by { rw h', exact mem_univ _ },
+  continuous_to_fun := begin
+    rw [continuous_iff_continuous_on_univ],
+    convert e.continuous_to_fun,
+    rw h
+  end,
+  continuous_inv_fun := begin
+    rw [continuous_iff_continuous_on_univ],
+    convert e.continuous_inv_fun,
+    rw h'
+  end }
+
+@[simp] lemma to_homeomorph_to_fun (h : e.source = (univ : set α))
+  (h' : e.target = univ) :
+  (e.to_homeomorph_of_source_eq_univ_target_eq_univ h h').to_fun = e.to_fun := rfl
+
+@[simp] lemma to_homeomorph_inv_fun (h : e.source = (univ : set α))
+  (h' : e.target = univ) :
+  (e.to_homeomorph_of_source_eq_univ_target_eq_univ h h').inv_fun = e.inv_fun := rfl
 
 end local_homeomorph
 

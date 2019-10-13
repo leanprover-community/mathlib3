@@ -311,13 +311,20 @@ infixr ` →. `:25 := pfun
 namespace pfun
 variables {α : Type*} {β : Type*} {γ : Type*}
 
+/-- The graph of a partial function as a relation. -/
+def graph' (f : α →. β) : rel α β := λ x y, y ∈ f x
+
+/-- The graph of a partial function is the set of pairs
+  `(x, f x)` where `x` is in the domain of `f`. -/
+def graph (f : α →. β) : set (α × β) := f.graph'.graph
+
 /-- The domain of a partial function -/
 def dom (f : α →. β) : set α := λ a, (f a).dom
 
 theorem mem_dom (f : α →. β) (x : α) : x ∈ dom f ↔ ∃ y, y ∈ f x :=
 by simp [dom, set.mem_def, roption.dom_iff_mem]
 
-theorem dom_eq (f : α →. β) : dom f = {x | ∃ y, y ∈ f x} :=
+theorem dom_eq (f : α →. β) : dom f = f.graph'.dom :=
 set.ext (mem_dom f)
 
 /-- Evaluate a partial function -/
@@ -359,11 +366,8 @@ instance : has_coe (α → β) (α →. β) := ⟨pfun.lift⟩
 @[simp] theorem coe_val (f : α → β) (a : α) :
   (f : α →. β) a = roption.some (f a) := rfl
 
-/-- The graph of a partial function is the set of pairs
-  `(x, f x)` where `x` is in the domain of `f`. -/
-def graph (f : α →. β) : set (α × β) := {p | p.2 ∈ f p.1}
-
-def graph' (f : α →. β) : rel α β := λ x y, y ∈ f x
+theorem coe_graph' (f : α → β) : function.graph' f = (f : α →. β).graph' :=
+by ext; simp only [function.graph', graph', coe_val, roption.mem_some_iff]; exact eq_comm
 
 /-- The range of a partial function is the set of values
   `f x` where `x` is in the domain of `f`. -/
@@ -378,8 +382,13 @@ theorem mem_restrict {f : α →. β} {s : set α} (h : s ⊆ f.dom) (a : α) (b
   b ∈ restrict f h a ↔ a ∈ s ∧ b ∈ f a :=
 by { simp [restrict], reflexivity }
 
+/-- Restrict a total function to a set. -/
 def res (f : α → β) (s : set α) : α →. β :=
 restrict (pfun.lift f) (set.subset_univ s)
+
+theorem restrict_res (f : α → β) (s : set α) {p : set α} (H : p ⊆ s) :
+  (res f s).restrict H = res f p :=
+rfl
 
 theorem mem_res (f : α → β) (s : set α) (a : α) (b : β) :
   b ∈ res f s a ↔ (a ∈ s ∧ f a = b) :=
@@ -481,45 +490,50 @@ namespace pfun
 
 variables {α : Type*} {β : Type*} (f : α →. β)
 
-def image (s : set α) : set β := rel.image f.graph' s
+/-- Image of a set by a partial function. -/
+def image (s : set α) : set β := f.graph'.image s
 
 lemma image_def (s : set α) : image f s = {y | ∃ x ∈ s, y ∈ f x} := rfl
 
 lemma mem_image (y : β) (s : set α) : y ∈ image f s ↔ ∃ x ∈ s, y ∈ f x :=
-iff.refl _
+iff.rfl
 
 lemma image_mono {s t : set α} (h : s ⊆ t) : f.image s ⊆ f.image t :=
-rel.image_mono _ h
+f.graph'.image_mono h
 
 lemma image_inter (s t : set α) : f.image (s ∩ t) ⊆ f.image s ∩ f.image t :=
-rel.image_inter _ s t
+f.graph'.image_inter s t
 
 lemma image_union (s t : set α) : f.image (s ∪ t) = f.image s ∪ f.image t :=
-rel.image_union _ s t
+f.graph'.image_union s t
 
-def preimage (s : set β) : set α := rel.preimage (λ x y, y ∈ f x) s
+/-- Preimage of a set `s` by a partial function `f` is the set of `x ∈ dom f`
+such that `f x ∈ s`. -/
+def preimage (s : set β) : set α := f.graph'.preimage s
 
-lemma preimage_def (s : set β) : preimage f s = {x | ∃ y ∈ s, y ∈ f x} := rfl
+lemma preimage_def (s : set β) : f.preimage s = {x | ∃ y ∈ s, y ∈ f x} := rfl
 
-def mem_preimage (s : set β) (x : α) : x ∈ preimage f s ↔ ∃ y ∈ s, y ∈ f x :=
-iff.refl _
+lemma mem_preimage (s : set β) (x : α) : x ∈ preimage f s ↔ ∃ y ∈ s, y ∈ f x :=
+iff.rfl
 
-lemma preimage_subset_dom (s : set β) : f.preimage s ⊆ f.dom :=
-assume x ⟨y, ys, fxy⟩, roption.dom_iff_mem.mpr ⟨y, fxy⟩
+lemma preimage_univ : f.preimage set.univ = f.dom :=
+f.graph'.preimage_univ.trans f.dom_eq.symm
 
 lemma preimage_mono {s t : set β} (h : s ⊆ t) : f.preimage s ⊆ f.preimage t :=
 rel.preimage_mono _ h
+
+lemma preimage_subset_dom (s : set β) : f.preimage s ⊆ f.dom :=
+f.preimage_univ ▸ f.preimage_mono s.subset_univ
 
 lemma preimage_inter (s t : set β) : f.preimage (s ∩ t) ⊆ f.preimage s ∩ f.preimage t :=
 rel.preimage_inter _ s t
 
 lemma preimage_union (s t : set β) : f.preimage (s ∪ t) = f.preimage s ∪ f.preimage t :=
-rel.preimage_union _ s t
+f.graph'.preimage_union s t
 
-lemma preimage_univ : f.preimage set.univ = f.dom :=
-by ext; simp [mem_preimage, mem_dom]
-
-def core (s : set β) : set α := rel.core f.graph' s
+/-- Core of a set `s` by a partial function `f` is the set of `x`
+such that `f x ∈ s` whenever it is defined. -/
+def core (s : set β) : set α := f.graph'.core s
 
 lemma core_def (s : set β) : core f s = {x | ∀ y, y ∈ f x → y ∈ s} := rfl
 
@@ -527,14 +541,13 @@ lemma mem_core (x : α) (s : set β) : x ∈ core f s ↔ (∀ y, y ∈ f x → 
 iff.rfl
 
 lemma compl_dom_subset_core (s : set β) : -f.dom ⊆ f.core s :=
-assume x hx y fxy,
-absurd ((mem_dom f x).mpr ⟨y, fxy⟩) hx
+f.dom_eq.symm ▸ f.graph'.compl_dom_subset_core s
 
 lemma core_mono {s t : set β} (h : s ⊆ t) : f.core s ⊆ f.core t :=
-rel.core_mono _ h
+f.graph'.core_mono h
 
 lemma core_inter (s t : set β) : f.core (s ∩ t) = f.core s ∩ f.core t :=
-rel.core_inter _ s t
+f.graph'.core_inter s t
 
 lemma mem_core_res (f : α → β) (s : set α) (t : set β) (x : α) :
   x ∈ core (res f s) t ↔ (x ∈ s → f x ∈ t) :=

@@ -84,7 +84,7 @@ lemma comp_left_id (r : rel α β) : @eq α ∘ r = r :=
 by { ext, apply exists_eq_left' }
 
 lemma inv_id : inv (@eq α) = @eq α :=
-by { ext x y, split; apply eq.symm }
+by { ext x y, apply eq_comm }
 
 lemma inv_comp (r : rel α β) (s : rel β γ) : inv (r ∘ s) = inv s ∘ inv r :=
 by { ext x z, simp only [comp, inv, flip, and.comm] }
@@ -192,6 +192,10 @@ begin
   { intros h y rxy z syz, exact h z y rxy syz },
   intros h z y rzy syz, exact h y rzy z syz
 end
+
+lemma compl_dom_subset_core (s : set β) : - r.dom ⊆ r.core s :=
+assume x hx y rxy,
+absurd (Exists.intro y rxy) hx
 
 /-- Restrict the domain of a relation -/
 def restrict_domain (s : set α) : rel {x // x ∈ s} β :=

@@ -164,6 +164,9 @@ by simp [neg_succ_of_nat_eq]
 lemma nat_abs_ne_zero_of_ne_zero {z : ℤ} (hz : z ≠ 0) : z.nat_abs ≠ 0 :=
 λ h, hz $ int.eq_zero_of_nat_abs_eq_zero h
 
+@[simp] lemma nat_abs_eq_zero {a : ℤ} : a.nat_abs = 0 ↔ a = 0 :=
+⟨int.eq_zero_of_nat_abs_eq_zero, λ h, h.symm ▸ rfl⟩
+
 /- /  -/
 
 @[simp] theorem of_nat_div (m n : ℕ) : of_nat (m / n) = (of_nat m) / (of_nat n) := rfl

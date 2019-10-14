@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl
+Authors: Johannes Hölzl, Callum Sutton
 -/
 
 import data.equiv.basic algebra.field
@@ -9,13 +9,15 @@ import data.equiv.basic algebra.field
 /-!
 # equivs in the algebraic hierarchy
 
-The role of this file is twofold. In the first part there are theorems of the following
-form: if α has a group structure and α ≃ β then β has a group structure, and
+In the first part there are theorems of the following
+form: if `α` has a group structure and `α ≃ β` then `β` has a group structure, and
 similarly for monoids, semigroups, rings, integral domains, fields and so on.
 
-In the second part there are extensions of equiv called add_equiv,
-mul_equiv, and ring_equiv, which are datatypes representing isomorphisms
-of add_monoids/add_groups, monoids/groups and rings.
+In the second part there are extensions of `equiv` called `add_equiv`,
+`mul_equiv`, and `ring_equiv`, which are datatypes representing
+isomorphisms of add_monoids/add_groups, monoids/groups and rings. We
+also introduce the corresponding groups of automorphisms `add_aut`,
+`mul_aut`, and `ring_aut`.
 
 ## Notations
 
@@ -24,15 +26,17 @@ notation when treating the isomorphisms as maps.
 
 ## Implementation notes
 
-Bundling structures means that many things turn into definitions, meaning that to_additive
-cannot do much work for us, and conversely that we have to do a lot of naming for it.
-
 The fields for `mul_equiv`, `add_equiv`, and `ring_equiv` now avoid
 the unbundled `is_mul_hom` and `is_add_hom`, as these are deprecated.
 
+Definition of multiplication in the groups of automorphisms agrees
+with function composition, multiplication in `equiv.perm`, and
+multiplication in `category_theory.End`, not with
+`category_theory.comp`.
+
 ## Tags
 
-equiv, mul_equiv, add_equiv, ring_equiv
+equiv, mul_equiv, add_equiv, ring_equiv, mul_aut, add_aut, ring_aut
 -/
 
 universes u v w x
@@ -324,12 +328,76 @@ instance is_monoid_hom {α β} [monoid α] [monoid β] (h : α ≃* β) : is_mon
 instance is_group_hom {α β} [group α] [group β] (h : α ≃* β) :
   is_group_hom h := { map_mul := h.map_mul }
 
+/-- Two multiplicative isomorphisms agree if they are defined by the
+    same underlying function. -/
+@[extensionality, to_additive
+  "Two additive isomorphisms agree if they are defined by the same underlying function."]
+lemma ext {α β : Type*} [has_mul α] [has_mul β]
+  {f g : mul_equiv α β} (h : ∀ x, f x = g x) : f = g :=
+begin
+  have h₁ := equiv.ext f.to_equiv g.to_equiv h,
+  cases f, cases g, congr,
+  { exact (funext h) },
+  { exact congr_arg equiv.inv_fun h₁ }
+end
+
+attribute [extensionality] add_equiv.ext
+
 end mul_equiv
 
 /-- An additive equivalence of additive groups preserves subtraction. -/
 lemma add_equiv.map_sub {α β} [add_group α] [add_group β] (h : α ≃+ β) (x y : α) :
   h (x - y) = h x - h y :=
 h.to_add_monoid_hom.map_sub x y
+
+
+/-- The group of multiplicative automorphisms. -/
+@[to_additive "The group of additive automorphisms."]
+def mul_aut (α : Type u) [has_mul α] := α ≃* α
+
+namespace mul_aut
+
+variables (α) [has_mul α]
+
+/--
+The group operation on multiplicative automorphisms is defined by
+`λ g h, mul_equiv.trans h g`.
+This means that multiplication agrees with composition, `(g*h)(x) = g (h x)`.
+-/
+instance : group (mul_aut α) :=
+by refine_struct
+{ mul := λ g h, mul_equiv.trans h g,
+  one := mul_equiv.refl α,
+  inv := mul_equiv.symm };
+intros; ext; try { refl }; apply equiv.left_inv
+
+/-- Monoid hom from the group of multiplicative automorphisms to the group of permutations. -/
+def to_perm : mul_aut α →* equiv.perm α :=
+by refine_struct { to_fun := mul_equiv.to_equiv }; intros; refl
+
+end mul_aut
+
+namespace add_aut
+
+variables (α) [has_add α]
+
+/--
+The group operation on additive automorphisms is defined by
+`λ g h, mul_equiv.trans h g`.
+This means that multiplication agrees with composition, `(g*h)(x) = g (h x)`.
+-/
+instance group : group (add_aut α) :=
+by refine_struct
+{ mul := λ g h, add_equiv.trans h g,
+  one := add_equiv.refl α,
+  inv := add_equiv.symm };
+intros; ext; try { refl }; apply equiv.left_inv
+
+/-- Monoid hom from the group of multiplicative automorphisms to the group of permutations. -/
+def to_perm : add_aut α →* equiv.perm α :=
+by refine_struct { to_fun := add_equiv.to_equiv }; intros; refl
+
+end add_aut
 
 /-- A group is isomorphic to its group of units. -/
 def to_units (α) [group α] : α ≃* units α :=
@@ -457,4 +525,48 @@ instance (e : α ≃+* β) : is_ring_hom e := e.to_ring_hom.is_ring_hom
 
 end ring_hom
 
+/-- Two ring isomorphisms agree if they are defined by the
+    same underlying function. -/
+@[extensionality] lemma ext {R S : Type*} [has_mul R] [has_add R] [has_mul S] [has_add S]
+  {f g : R ≃+* S} (h : ∀ x, f x = g x) : f = g :=
+begin
+  have h₁ := equiv.ext f.to_equiv g.to_equiv h,
+  cases f, cases g, congr,
+  { exact (funext h) },
+  { exact congr_arg equiv.inv_fun h₁ }
+end
+
 end ring_equiv
+
+/-- The group of ring automorphisms. -/
+def ring_aut (R : Type u) [has_mul R] [has_add R] := ring_equiv R R
+
+namespace ring_aut
+
+variables (R : Type u) [has_mul R] [has_add R]
+
+/--
+The group operation on automorphisms of a ring is defined by
+λ g h, ring_equiv.trans h g.
+This means that multiplication agrees with composition, (g*h)(x) = g (h x) .
+-/
+instance : group (ring_aut R) :=
+by refine_struct
+{ mul := λ g h, ring_equiv.trans h g,
+  one := ring_equiv.refl R,
+  inv := ring_equiv.symm };
+intros; ext; try { refl }; apply equiv.left_inv
+
+/-- Monoid homomorphism from ring automorphisms to additive automorphisms. -/
+def to_add_aut : ring_aut R →* add_aut R :=
+by refine_struct { to_fun := ring_equiv.to_add_equiv }; intros; refl
+
+/-- Monoid homomorphism from ring automorphisms to multiplicative automorphisms. -/
+def to_mul_aut : ring_aut R →* mul_aut R :=
+by refine_struct { to_fun := ring_equiv.to_mul_equiv }; intros; refl
+
+/-- Monoid homomorphism from ring automorphisms to permutations. -/
+def to_perm : ring_aut R →* equiv.perm R :=
+by refine_struct { to_fun := ring_equiv.to_equiv }; intros; refl
+
+end ring_aut

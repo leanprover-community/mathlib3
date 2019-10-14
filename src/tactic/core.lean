@@ -674,6 +674,18 @@ meta def choose : expr → list name → tactic unit
   v ← get_unused_name >>= choose1 h n,
   choose v ns
 
+/--
+Instantiates metavariables that appear in the current goal.
+-/
+meta def instantiate_mvars_in_target : tactic unit :=
+target >>= instantiate_mvars >>= change
+
+/--
+Instantiates metavariables in all goals.
+-/
+meta def instantiate_mvars_in_goals : tactic unit :=
+all_goals $ instantiate_mvars_in_target
+
 /-- This makes sure that the execution of the tactic does not change the tactic state.
     This can be helpful while using rewrite, apply, or expr munging.
     Remember to instantiate your metavariables before you're done! -/
@@ -728,6 +740,15 @@ instance : monad id :=
      let out := format.to_string format!"{{ {fs} }",
      return [(out,"")] }
 
+/-- Like `resolve_name` except when the list of goals is
+    empty. In that situation `resolve_name` fails whereas
+    `resolve_name'` simply proceeds on a dummy goal -/
+meta def resolve_name' (n : name) : tactic pexpr :=
+do [] ← get_goals | resolve_name n,
+   g ← mk_mvar,
+   set_goals [g],
+   resolve_name n <* set_goals []
+
 meta def strip_prefix' (n : name) : list string → name → tactic name
 | s name.anonymous := pure $ s.foldl (flip name.mk_string) name.anonymous
 | s (name.mk_string a p) :=
@@ -737,11 +758,15 @@ meta def strip_prefix' (n : name) : list string → name → tactic name
             then pure n'
             else strip_prefix' (a :: s) p }
      <|> strip_prefix' (a :: s) p
-| s (name.mk_numeral a p) := interaction_monad.failed
+| s n@(name.mk_numeral a p) := pure $ s.foldl (flip name.mk_string) n
 
 meta def strip_prefix : name → tactic name
-| n@(name.mk_string a a_1) := strip_prefix' n [a] a_1
-| _ := interaction_monad.failed
+| n@(name.mk_string a a_1) :=
+  if (`_private).is_prefix_of n
+    then let n' := n.update_prefix name.anonymous in
+            n' <$ resolve_name' n' <|> pure n
+    else strip_prefix' n [a] a_1
+| n := pure n
 
 meta def local_binding_info : expr → binder_info
 | (expr.local_const _ _ bi _) := bi
@@ -991,8 +1016,10 @@ attribute [higher_order map_comp_pure] map_pure
 private meta def tactic.use_aux (h : pexpr) : tactic unit :=
 (focus1 (refine h >> done)) <|> (fconstructor >> tactic.use_aux)
 
-meta def tactic.use (l : list pexpr) : tactic unit :=
-focus1 $ l.mmap' $ λ h, tactic.use_aux h <|> fail format!"failed to instantiate goal with {h}"
+protected meta def use (l : list pexpr) : tactic unit :=
+focus1 $ seq (l.mmap' $ λ h, tactic.use_aux h <|> fail format!"failed to instantiate goal with {h}")
+              instantiate_mvars_in_target
+
 
 meta def clear_aux_decl_aux : list expr → tactic unit
 | []     := skip
@@ -1154,8 +1181,24 @@ do e ← get_env,
   since it is expensive to execute `get_mathlib_dir` many times. -/
 meta def is_in_mathlib (n : name) : tactic bool :=
 do ml ← get_mathlib_dir, e ← get_env, return $ e.is_prefix_of_file ml n
+
+/-- auxiliary function for apply_under_pis -/
+private meta def apply_under_pis_aux (func arg : pexpr) : ℕ → expr → pexpr
+| n (expr.pi nm bi tp bd) := expr.pi nm bi (pexpr.of_expr tp) (apply_under_pis_aux (n+1) bd)
+| n _ :=
+  let vars := ((list.range n).reverse.map (@expr.var ff)),
+      bd := vars.foldl expr.app arg.mk_explicit in
+  func bd
+
 /--
-Tries to derive unary instances by unfolding the newly introduced type.
+Assumes `pi_expr` is of the form `Π x1 ... xn, _`.
+Creates a pexpr of the form `Π x1 ... xn, func (arg x1 ... xn)`.
+All arguments (implicit and explicit) to `arg` should be supplied. -/
+meta def apply_under_pis (func arg : pexpr) (pi_expr : expr) : pexpr :=
+apply_under_pis_aux func arg 0 pi_expr
+
+/--
+Tries to derive instances by unfolding the newly introduced type and applying type class resolution.
 
 For example,
 ```
@@ -1164,21 +1207,32 @@ For example,
 adds an instance `ring new_int`, defined to be the instance of `ring ℤ` found by `apply_instance`.
 
 Multiple instances can be added with `@[derive [ring, module ℝ]]`.
+
+This derive handler applies only to declarations made using `def`, and will fail on such a
+declaration if it is unable to derive an instance. It is run with higher priority than the built-in
+handlers, which will fail on `def`s.
 -/
-@[derive_handler] meta def delta_instance : derive_handler :=
-λ cls tp,
-(do tp' ← mk_const tp,
-   tgt ← to_expr ``(%%cls %%tp'),
-   (_, v) ← solve_aux tgt (delta_target [tp] >> apply_instance >> done),
-   v ← instantiate_mvars v,
-   nm ← get_unused_name $ tp ++
-     match tgt with
-     | expr.app (expr.const nm _) _ := nm
+@[derive_handler, priority 2000] meta def delta_instance : derive_handler :=
+λ cls new_decl_name,
+do env ← get_env,
+if env.is_inductive new_decl_name then return ff else
+do new_decl_type ← declaration.type <$> get_decl new_decl_name,
+   new_decl_pexpr ← resolve_name new_decl_name,
+   tgt ← to_expr $ apply_under_pis cls new_decl_pexpr new_decl_type,
+   (_, inst) ← solve_aux tgt
+     (intros >> reset_instance_cache >> delta_target [new_decl_name]  >> apply_instance >> done),
+   inst ← instantiate_mvars inst,
+   tgt ← instantiate_mvars tgt,
+   nm ← get_unused_decl_name $ new_decl_name ++
+     match cls with
+     -- the postfix is needed because we can't protect this name. using nm.last directly can
+     -- conflict with open namespaces
+     | (expr.const nm _) := (nm.last ++ "_1" : string)
      | _ := "inst"
      end,
-   add_decl $ mk_definition nm [] tgt v,
+   add_decl $ mk_definition nm inst.collect_univ_params tgt inst,
    set_basic_attribute `instance nm tt,
-   return tt) <|> return ff
+   return tt
 
 /-- `find_private_decl n none` finds a private declaration named `n` in any of the imported files.
 
@@ -1207,9 +1261,9 @@ do env ← get_env,
 
 open lean.parser interactive
 
-/-- `import_private foo from bar` finds a private declaration `foo` in the same file as `bar` 
-    and creates a local notation to refer to it. 
-    
+/-- `import_private foo from bar` finds a private declaration `foo` in the same file as `bar`
+    and creates a local notation to refer to it.
+
     `import_private foo`, looks for `foo` in all imported files. -/
 @[user_command]
 meta def import_private_cmd (_ : parse $ tk "import_private") : lean.parser unit :=

@@ -14,7 +14,7 @@ noncomputable theory
 
 namespace uniform_space.completion
 open dense_inducing uniform_space function
-variables (α : Type*) [ring α] [uniform_space α] [uniform_add_group α] [topological_ring α]
+variables (α : Type*) [ring α] [uniform_space α]
 
 instance : has_one (completion α) := ⟨(1:α)⟩
 
@@ -24,12 +24,14 @@ instance : has_mul (completion α) :=
 @[elim_cast]
 lemma coe_one : ((1 : α) : completion α) = 1 := rfl
 
-variables {α}
+variables {α} [topological_ring α]
 
 @[move_cast]
 lemma coe_mul (a b : α) : ((a * b : α) : completion α) = a * b :=
 ((dense_inducing_coe.prod dense_inducing_coe).extend_eq_of_cont
   ((continuous_coe α).comp continuous_mul') (a, b)).symm
+
+variables [uniform_add_group α]
 
 lemma continuous_mul' : continuous (λ p : completion α × completion α, p.1 * p.2) :=
 begin

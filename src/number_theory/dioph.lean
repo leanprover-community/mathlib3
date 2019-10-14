@@ -109,8 +109,11 @@ namespace vector3
 @[pattern] def cons {α} {n} (a : α) (v : vector3 α n) : vector3 α (succ n) :=
 λi, by {refine i.cases' _ _, exact a, exact v}
 
+/- We do not want to make the following notation global, because then these expressions will be
+overloaded, and only the expected type will be able to disambiguate the meaning. Worse: Lean will
+try to insert a coercion from `vector3 α _` to `list α`, if a list is expected. -/
+localized "notation `[` l:(foldr `, ` (h t, vector3.cons h t) nil `]`) := l" in vector3
 notation a :: b := cons a b
-notation `[` l:(foldr `, ` (h t, cons h t) nil `]`) := l
 
 @[simp] theorem cons_fz {α} {n} (a : α) (v : vector3 α n) : (a :: v) fz = a := rfl
 @[simp] theorem cons_fs {α} {n} (a : α) (v : vector3 α n) (i) : (a :: v) (fs i) = v i := rfl
@@ -161,7 +164,7 @@ rfl
 def append {α} {m} (v : vector3 α m) {n} (w : vector3 α n) : vector3 α (n+m) :=
 nat.rec_on m (λ_, w) (λm IH v, v.cons_elim $ λa t, @fin2.cases' (n+m) (λ_, α) a (IH t)) v
 
-infix ` +-+ `:65 := append
+local infix ` +-+ `:65 := vector3.append
 
 @[simp] theorem append_nil {α} {n} (w : vector3 α n) : [] +-+ w = w := rfl
 
@@ -204,7 +207,9 @@ end
 
 end vector3
 
+section vector3
 open vector3
+open_locale vector3
 
 /-- "Curried" exists, i.e. ∃ x1 ... xn, f [x1, ..., xn] -/
 def vector_ex {α} : Π k, (vector3 α k → Prop) → Prop
@@ -254,6 +259,7 @@ end
 theorem vector_allp.imp {α} {p q : α → Prop} (h : ∀ x, p x → q x)
   {n} {v : vector3 α n} (al : vector_allp p v) : vector_allp q v :=
 (vector_allp_iff_forall _ _).2 (λi, h _ $ (vector_allp_iff_forall _ _).1 al _)
+end vector3
 
 /-- `list_all p l` is equivalent to `∀ a ∈ l, p a`, but unfolds directly to a conjunction,
   i.e. `list_all p [0, 1, 2] = p 0 ∧ p 1 ∧ p 2`. -/
@@ -449,7 +455,6 @@ def dioph {α : Type u} (S : set (α → ℕ)) : Prop :=
 namespace dioph
 section
   variables {α β γ : Type u}
-
   theorem ext {S S' : set (α → ℕ)} (d : dioph S) (H : ∀v, S v ↔ S' v) : dioph S' :=
   eq.rec d $ show S = S', from set.ext H
 
@@ -579,7 +584,8 @@ end
 
 section
   variables {α β γ : Type}
-
+  open vector3
+  open_locale vector3
   theorem dioph_fn_vec_comp1 {n} {S : set (vector3 ℕ (succ n))} (d : dioph S) {f : (vector3 ℕ n) → ℕ} (df : dioph_fn f) :
     dioph (λv : vector3 ℕ n, S (cons (f v) v)) :=
   ext (dioph_fn_comp1 (reindex_dioph d (none :: some)) df) $ λv, by rw [

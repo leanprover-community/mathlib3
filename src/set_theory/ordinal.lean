@@ -172,9 +172,9 @@ def lt_le (f : r ≺i s) (g : s ≼i t) : r ≺i t :=
 @[simp] theorem lt_le_apply [is_trans β s] [is_trans γ t] (f : r ≺i s) (g : s ≼i t) (a : α) : (f.lt_le g) a = g (f a) :=
 order_embedding.trans_apply _ _ _
 
-@[simp] theorem lt_le_top [is_trans β s] (f : r ≺i s) (g : s ≼i t) : (f.lt_le g).top = g f.top := rfl
+@[simp] theorem lt_le_top (f : r ≺i s) (g : s ≼i t) : (f.lt_le g).top = g f.top := rfl
 
-@[trans] protected def trans [is_trans β s] [is_trans γ t] (f : r ≺i s) (g : s ≺i t) : r ≺i t :=
+@[trans] protected def trans [is_trans γ t] (f : r ≺i s) (g : s ≺i t) : r ≺i t :=
 lt_le f g
 
 @[simp] theorem trans_apply [is_trans β s] [is_trans γ t] (f : r ≺i s) (g : s ≺i t) (a : α) : (f.trans g) a = g (f a) :=
@@ -198,10 +198,10 @@ def lt_equiv {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ �
     intro y, exact ⟨congr_arg g, λ h, g.to_equiv.bijective.1 h⟩
   end⟩
 
-@[simp] theorem equiv_lt_apply [is_trans β s] [is_trans γ t] (f : r ≃o s) (g : s ≺i t) (a : α) : (equiv_lt f g) a = g (f a) :=
+@[simp] theorem equiv_lt_apply [is_trans γ t] (f : r ≃o s) (g : s ≺i t) (a : α) : (equiv_lt f g) a = g (f a) :=
 order_embedding.trans_apply _ _ _
 
-@[simp] theorem equiv_lt_top [is_trans β s] [is_trans γ t] (f : r ≃o s) (g : s ≺i t) : (equiv_lt f g).top = g.top := rfl
+@[simp] theorem equiv_lt_top (f : r ≃o s) (g : s ≺i t) : (equiv_lt f g).top = g.top := rfl
 
 instance [is_well_order β s] : subsingleton (r ≺i s) :=
 ⟨λ f g, begin
@@ -215,7 +215,7 @@ instance [is_well_order β s] : subsingleton (r ≺i s) :=
   have := order_embedding.eq_of_to_fun_eq ef; congr'
 end⟩
 
-theorem top_eq [is_well_order β s] [is_well_order γ t]
+theorem top_eq [is_well_order γ t]
   (e : r ≃o s) (f : r ≺i t) (g : s ≺i t) : f.top = g.top :=
 by rw subsingleton.elim f (principal_seg.equiv_lt e g); refl
 
@@ -232,7 +232,7 @@ def of_element {α : Type*} (r : α → α → Prop) (a : α) : subrel r {b | r 
 @[simp] theorem of_element_apply {α : Type*} (r : α → α → Prop) [is_well_order α r] (a : α) (b) :
   of_element r a b = b.1 := rfl
 
-@[simp] theorem of_element_top {α : Type*} (r : α → α → Prop) [is_well_order α r] (a : α) :
+@[simp] theorem of_element_top {α : Type*} (r : α → α → Prop) (a : α) :
   (of_element r a).top = a := rfl
 
 /-- Restrict the codomain of a principal segment -/

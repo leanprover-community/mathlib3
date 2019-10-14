@@ -213,7 +213,7 @@ instance fintype_map {α β} [decidable_eq β] :
 theorem finite_map {α β} {s : set α} :
   ∀ (f : α → β), finite s → finite (f <$> s) := finite_image
 
-def fintype_of_fintype_image [decidable_eq β] (s : set α)
+def fintype_of_fintype_image (s : set α)
   {f : α → β} {g} (I : is_partial_inv f g) [fintype (f '' s)] : fintype s :=
 fintype_of_finset ⟨_, @multiset.nodup_filter_map β α g _
   (@injective_of_partial_inv_right _ _ f g I) (f '' s).to_finset.2⟩ $ λ a,
@@ -352,7 +352,7 @@ by simp [set.ext_iff]
 @[simp] lemma coe_to_finset {s : set α} {hs : set.finite s} : ↑(hs.to_finset) = s :=
 by simp [set.ext_iff]
 
-@[simp] lemma coe_to_finset' [decidable_eq α] (s : set α) [fintype s] : (↑s.to_finset : set α) = s :=
+@[simp] lemma coe_to_finset' (s : set α) [fintype s] : (↑s.to_finset : set α) = s :=
 by ext; simp
 
 end finset

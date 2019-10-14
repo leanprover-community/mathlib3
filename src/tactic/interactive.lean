@@ -4,7 +4,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Sebastien Gouezel, Scott Morrison
 -/
-import tactic.core data.list.defs data.string.defs
+import tactic.sanity_check
 
 open lean
 open lean.parser
@@ -132,7 +132,7 @@ private meta def generalize_arg_p_aux : pexpr → parser (pexpr × name)
 private meta def generalize_arg_p : parser (pexpr × name) :=
 with_desc "expr = id" $ parser.pexpr 0 >>= generalize_arg_p_aux
 
-lemma {u} generalize_a_aux {α : Sort u}
+@[sanity_skip] lemma {u} generalize_a_aux {α : Sort u}
   (h : ∀ x : Sort u, (α → x) → x) : α := h α id
 
 /--

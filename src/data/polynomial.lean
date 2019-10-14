@@ -1840,6 +1840,9 @@ begin
   exact (classical.some_spec (exists_finset_roots hp0)).1
 end
 
+lemma card_roots' {p : polynomial α} (hp0 : p ≠ 0) : p.roots.card ≤ nat_degree p :=
+with_bot.coe_le_coe.1 (le_trans (card_roots hp0) (le_of_eq $ degree_eq_nat_degree hp0))
+
 @[simp] lemma mem_roots (hp : p ≠ 0) : a ∈ p.roots ↔ is_root p a :=
 by unfold roots; rw dif_neg hp; exact (classical.some_spec (exists_finset_roots hp)).2 _
 

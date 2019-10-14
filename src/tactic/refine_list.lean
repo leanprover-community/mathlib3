@@ -1,8 +1,10 @@
+-- Copyright (c) 2019 Lucas Allen. All rights reserved.
+-- Released under Apache 2.0 license as described in the file LICENSE.
+-- Authors: Lucas Allen
+
  --To Do
   -- * new examples which can't be solved with `library_search`
   -- * Need another non misleading example for tactics.md
-  -- * print_message/message functions as an mmap?
-  -- * tests must suppress output, need a silence option like in library_Search
 
 import tactic.library_search
 import data.mllist
@@ -31,7 +33,6 @@ end
 meta def try_assumption_and_solve_by_elim : tactic unit :=
 try_core (any_goals (propositional_goal >> assumption)) >>
   try_core (solve_by_elim { all_goals := tt }) >>
-  --try_core (`[trivial]) >>
   skip
 
 --This function prints the apply tactic with the corresponding lemma/theorem with inputs
@@ -71,7 +72,14 @@ do (g::gs) ← get_goals,
    L ← results_with_num_goals.take num,
    let L := L.qsort(λ d₁ d₂, d₁.2 ≤ d₂.2),
    -- Print the fist num successful lemmas
-   print_messages g (L.map (λ d, d.1))
+   if L.length = 0 then do
+    let r := "There are no applicable lemmas or theorems",
+    trace r,
+    return r
+   else
+   if (¬ is_trace_enabled_for `silence_library_search)
+   then print_messages g (L.map (λ d, d.1))
+   else return ""
 
 end tactic
 

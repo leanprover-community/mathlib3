@@ -34,13 +34,28 @@ def subalgebra.is_algebraic (S : subalgebra R A) : Prop := ∀ x ∈ S, is_algeb
 
 variables (R A)
 
-/-- An algebra is algebraic if it is algebraic as a subalgebra. -/
-def algebra.is_algebraic : Prop := (⊤ : subalgebra R A).is_algebraic
+/-- An algebra is algebraic if all its elements are algebraic. -/
+def algebra.is_algebraic : Prop := ∀ x : A, is_algebraic R x
 
 variables {R A}
 
-/-- An algebra is algebraic if and only if all its elements are algebraic. -/
-lemma algebra.is_algebraic_iff : algebra.is_algebraic R A ↔ ∀ x : A, is_algebraic R x :=
+/-- A subalgebra is algebraic if and only if it is algebraic an algebra. -/
+def subalgebra.is_algebraic_iff (S : subalgebra R A) :
+  S.is_algebraic ↔ @algebra.is_algebraic R S _ _ (by convert S.algebra) :=
+begin
+  delta algebra.is_algebraic subalgebra.is_algebraic,
+  rw [subtype.forall'],
+  apply forall_congr, rintro ⟨x, hx⟩,
+  apply exists_congr, intro p,
+  apply and_congr iff.rfl,
+  have h : function.injective (S.val) := subtype.val_injective,
+  conv_rhs { rw [← h.eq_iff, alg_hom.map_zero], },
+  apply eq_iff_eq_cancel_right.mpr,
+  symmetry, apply hom_eval₂,
+end
+
+/-- An algebra is algebraic if and only if it is algebraic as a subalgebra. -/
+lemma algebra.is_algebraic_iff : algebra.is_algebraic R A ↔ (⊤ : subalgebra R A).is_algebraic :=
 begin
   delta algebra.is_algebraic subalgebra.is_algebraic,
   simp only [algebra.mem_top, forall_prop_of_true, iff_self],
@@ -82,7 +97,7 @@ then A is algebraic over K. -/
 lemma is_algebraic_trans (L_alg : is_algebraic K L) (A_alg : is_algebraic L A) :
   is_algebraic K (comap K L A) :=
 begin
-  simp only [is_algebraic_iff, is_algebraic_iff_is_integral] at L_alg A_alg ⊢,
+  simp only [is_algebraic, is_algebraic_iff_is_integral] at L_alg A_alg ⊢,
   exact is_integral_trans L_alg A_alg,
 end
 

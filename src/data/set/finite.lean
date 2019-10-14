@@ -451,6 +451,20 @@ begin
     { exact ih c hcs hbc } }
 end
 
+section
+
+local attribute [instance, priority 1] classical.prop_decidable
+local attribute [instance, priority 0] set.decidable_mem_of_fintype
+
+lemma to_finset_card {α : Type*} [fintype α] (H : set α) :
+  H.to_finset.card = fintype.card H :=
+multiset.card_map subtype.val finset.univ.val
+
+lemma finset.to_finset_inter {α : Type*} [fintype α] (s t : set α) [decidable_eq α] :
+  (s ∩ t).to_finset = s.to_finset ∩ t.to_finset :=
+by ext; simp
+
+end
 end set
 
 namespace finset

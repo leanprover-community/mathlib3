@@ -6,8 +6,9 @@ Authors: Johan Commelin, Fabian Glöckle
 Dual vector spaces, the spaces of linear functionals to the base field, including the dual basis
 isomorphism and evaluation isomorphism in the finite-dimensional case.
 -/
-import linear_algebra.dimension
 import linear_algebra.tensor_product
+import linear_algebra.finite_dimensional
+import tactic.apply_fun
 noncomputable theory
 
 namespace module
@@ -127,7 +128,7 @@ linear_equiv.of_bijective h.to_dual h.to_dual_ker h.to_dual_range
 theorem dual_basis_is_basis [fintype ι] : is_basis K h.dual_basis :=
 h.to_dual_equiv.is_basis h
 
-@[simp] lemma to_dual_to_dual [decidable_eq (dual K (dual K V))] [fintype ι] :
+@[simp] lemma to_dual_to_dual [fintype ι] :
   (h.dual_basis_is_basis.to_dual).comp h.to_dual = eval K V :=
 begin
   apply @is_basis.ext _ _ _ _ _ _ _ _ _ _ _ _ h,
@@ -206,3 +207,118 @@ def eval_equiv (h : dim K V < omega) : V ≃ₗ[K] dual K (dual K V) :=
 linear_equiv.of_bijective (eval K V) eval_ker (eval_range h)
 
 end vector_space
+
+section dual_pair
+
+open vector_space module module.dual linear_map function
+
+universes u v w
+variables {K : Type u} {V : Type v} {ι : Type w} [decidable_eq ι]
+variables [discrete_field K] [add_comm_group V] [vector_space K V]
+          [decidable_eq V] [decidable_eq (ι → V)] [decidable_eq $ dual K V]
+
+local notation `V'` := dual K V
+
+/-- `e` and `ε` have characteristic properties of a basis and its dual -/
+structure dual_pair (e : ι → V) (ε : ι → V') :=
+(eval : ∀ i j : ι, ε i (e j) = if i = j then 1 else 0)
+(total : ∀ {v : V}, (∀ i, ε i v = 0) → v = 0)
+[finite : ∀ v : V, fintype {i | ε i v ≠ 0}]
+
+end dual_pair
+
+namespace dual_pair
+
+local attribute [instance, priority 1] classical.prop_decidable
+
+open vector_space module module.dual linear_map function
+
+universes u v w
+variables {K : Type u} {V : Type v} {ι : Type w} [decidable_eq ι]
+variables [discrete_field K] [add_comm_group V] [vector_space K V]
+          [decidable_eq V] [decidable_eq (ι → V)] [decidable_eq $ dual K V]
+variables {e : ι → V} {ε : ι → dual K V} (h : dual_pair e ε)
+
+include  h
+
+/-- The coefficients of `v` on the basis `e` -/
+def coeffs (v : V) : ι →₀ K :=
+{ to_fun := λ i, ε i v,
+  support := by { haveI := h.finite v, exact {i : ι | ε i v ≠ 0}.to_finset },
+  mem_support_to_fun := by {intro i, rw set.mem_to_finset, exact iff.rfl } }
+
+omit h
+
+@[simp]
+lemma coeffs_apply (v : V) (i : ι) : h.coeffs v i = ε i v := rfl
+
+private def help_tcs : has_scalar K V := mul_action.to_has_scalar _ _
+
+local attribute [instance] help_tcs
+
+/-- linear combinations of elements of `e` -/
+def lc (e : ι → V) (l : ι →₀ K) : V := l.sum (λ (i : ι) (a : K), a • (e i))
+
+include h
+
+lemma dual_lc (l : ι →₀ K) (i : ι) : ε i (dual_pair.lc e l) = l i :=
+begin
+  erw linear_map.map_sum,
+  simp only [h.eval, map_smul, smul_eq_mul],
+  rw finset.sum_eq_single i,
+  { simp },
+  { intros q q_in q_ne,
+    simp [q_ne.symm] },
+  { intro p_not_in,
+    simp [finsupp.not_mem_support_iff.1 p_not_in] },
+end
+
+@[simp]
+lemma coeffs_lc (l : ι →₀ K) : h.coeffs (dual_pair.lc e l) = l :=
+by { ext i, rw [h.coeffs_apply, h.dual_lc] }
+
+/-- For any v : V n, \sum_{p ∈ Q n} (ε p v) • e p = v -/
+lemma decomposition (v : V) : dual_pair.lc e (h.coeffs v) = v :=
+begin
+  refine eq_of_sub_eq_zero (h.total _),
+  intros i,
+  simp [-sub_eq_add_neg, linear_map.map_sub, h.dual_lc, sub_eq_zero_iff_eq]
+end
+
+lemma mem_of_mem_span {H : set ι} {x : V} (hmem : x ∈ submodule.span K (e '' H)) :
+  ∀ i : ι, ε i x ≠ 0 → i ∈ H :=
+begin
+  intros i hi,
+  rcases (finsupp.mem_span_iff_total _).mp hmem with ⟨l, supp_l, sum_l⟩,
+  change dual_pair.lc e l = x at sum_l,
+  rw finsupp.mem_supported' at supp_l,
+  by_contradiction i_not,
+  apply hi,
+  rw ← sum_l,
+  simpa [h.dual_lc] using supp_l i i_not,
+end
+
+lemma is_basis : is_basis K e :=
+begin
+  split,
+  { rw linear_independent_iff,
+    intros l H,
+    change dual_pair.lc e l = 0 at H,
+    ext i,
+    apply_fun ε i at H,
+    simpa [h.dual_lc] using H },
+  { rw submodule.eq_top_iff',
+    intro v,
+    rw [← set.image_univ, finsupp.mem_span_iff_total],
+    exact ⟨h.coeffs v, by simp, h.decomposition v⟩ },
+end
+omit h
+
+lemma eq_dual : ε = is_basis.dual_basis h.is_basis :=
+begin
+  funext i,
+  refine h.is_basis.ext (λ _, _),
+  erw [is_basis.to_dual_apply, h.eval]
+end
+
+end dual_pair

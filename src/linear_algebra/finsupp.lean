@@ -420,3 +420,17 @@ begin
 end
 
 end finsupp
+
+lemma linear_map.map_finsupp_total {R : Type*} {β : Type*} {γ : Type*} [ring R] [decidable_eq R]
+  [add_comm_group β] [decidable_eq β] [module R β]
+  [add_comm_group γ] [decidable_eq γ] [module R γ]
+  (f : β →ₗ[R] γ)
+  {ι : Type*} [fintype ι] [decidable_eq ι]
+  {g : ι → β} (l : ι →₀ R) : f (finsupp.total ι β R g l) = finsupp.total ι γ R (f ∘ g) l :=
+begin
+  rw [finsupp.total_apply,
+     finsupp.total_apply, finsupp.sum, finsupp.sum, f.map_sum],
+  congr,
+  ext i,
+  exact f.map_smul _ _,
+end

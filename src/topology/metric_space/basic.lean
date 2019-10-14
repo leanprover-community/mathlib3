@@ -9,7 +9,7 @@ Many definitions and theorems expected on metric spaces are already introduced o
 topological spaces. For example:
   open and closed sets, compactness, completeness, continuity and uniform continuity
 -/
-import data.real.nnreal topology.metric_space.emetric_space topology.algebra.ordered
+import data.real.nnreal topology.metric_space.emetric_space topology.algebra.ordered topology.uniform_space.pi
 open lattice set filter classical topological_space
 noncomputable theory
 
@@ -865,6 +865,19 @@ instance metric_space_pi : metric_space (Πb, π b) :=
     { refine eq.symm (comp_sup_eq_sup_comp _ _ _),
       exact (assume x y h, ennreal.coe_le_coe.2 h), refl },
     simp [dist, edist_nndist, ennreal.of_real, A]
+  end,
+  to_uniform_space := Pi.uniform_space _,
+  uniformity_dist := begin
+    simp [Pi.uniformity, uniformity_dist, comap_infi],
+    rw infi_comm, congr, funext ε,
+    rw infi_comm, congr, funext εpos,
+    simp [ext_iff, εpos, dist],
+    assume a b,
+    let ε' : nnreal := ⟨ε, le_of_lt εpos⟩,
+    have A : ε' = nnreal.of_real ε, by simp [nnreal.of_real, ε', le_of_lt εpos],
+    change (∀ (i : β), dist (a i) (b i) < ε) ↔ (sup univ (λ (i : β), nndist (a i) (b i))) < ε',
+    simp only [finset.sup_lt_iff (show ⊥ < ε', from εpos)],
+    simp [nndist_dist, A, εpos]
   end }
 
 end pi

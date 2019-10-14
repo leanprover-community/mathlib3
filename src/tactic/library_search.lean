@@ -98,7 +98,7 @@ do (e, t) ← decl_mk_const d.d,
       (do l ← iff_mpr_core e t,
          apply_and_solve discharger l)
    end
-   
+
 meta def replace_mvars (e : expr) : expr :=
 e.replace (λ e' _, if e'.is_mvar then some (unchecked_cast pexpr.mk_placeholder) else none)
 
@@ -133,12 +133,6 @@ do [g] ← get_goals | fail "`library_search` should be called with exactly one 
    -- Try `apply` followed by `solve_by_elim`, for each definition.
    defs.mfirst (apply_declaration discharger)),
 
-   -- If something worked, prepare a string to print.
-   p ← instantiate_mvars g >>= head_beta >>= pp,
-   let r := format!"exact {p}",
-   when (¬ is_trace_enabled_for `silence_library_search) $ tactic.trace r,
-   return $ to_string r
-   
    -- If something worked, prepare a string to print.
    r ← tactic_statement g,
    when (¬ is_trace_enabled_for `silence_library_search) $ tactic.trace r,

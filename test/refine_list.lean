@@ -4,7 +4,7 @@
 
 import data.nat.basic
 import data.nat.prime
-import tactic.library_search.refine_list
+import tactic.refine_list
 
 open tactic
 

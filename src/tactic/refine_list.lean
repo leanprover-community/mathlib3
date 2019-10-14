@@ -3,7 +3,6 @@
   -- * Need another non misleading example for tactics.md
   -- * print_message/message functions as an mmap?
   -- * tests must suppress output, need a silence option like in library_Search
-  -- * refine list doesn't find or_true for some reason
 
 import tactic.library_search
 import data.mllist
@@ -13,6 +12,14 @@ namespace tactic
 --list_refine uses some functions from Library search
 open tactic.library_search
 
+--get state function. Returns the current state
+meta def get_state : tactic tactic_state
+:= λ s, result.success s s
+
+--set state function. Sets the current state to some state
+meta def set_state (s' : tactic_state) : tactic tactic_state
+:= λ s, result.success s s'
+
 --Run and save state function. Slightly modified version of lock_tactic_state.
 --This runs a tactic and returns a tuple of the result and it's tactic state.
 meta def run_and_save_state {α : Type} (t : tactic α) : tactic (α × tactic_state)
@@ -20,6 +27,12 @@ meta def run_and_save_state {α : Type} (t : tactic α) : tactic (α × tactic_s
        | result.success a s' := result.success (a, s') s
        | result.exception msg pos s' := result.exception msg pos s
 end
+
+meta def try_assumption_and_solve_by_elim : tactic unit :=
+try_core (any_goals (propositional_goal >> assumption)) >>
+  try_core (solve_by_elim { all_goals := tt }) >>
+  --try_core (`[trivial]) >>
+  skip
 
 --This function prints the apply tactic with the corresponding lemma/theorem with inputs
 meta def message (l : decl_data × tactic_state) (g : expr) : tactic string :=

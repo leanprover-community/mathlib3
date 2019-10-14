@@ -540,7 +540,8 @@ end
 
 end continuity
 
-/-- If a local homeomorphism has source and target equal to univ, then it induces a homeomorphism. -/
+/-- If a local homeomorphism has source and target equal to univ, then it induces a homeomorphism
+between the whole spaces, expressed through the following definition. -/
 def to_homeomorph_of_source_eq_univ_target_eq_univ (h : e.source = (univ : set α))
   (h' : e.target = univ) : homeomorph α β :=
 { to_fun := e.to_fun,
@@ -558,12 +559,10 @@ def to_homeomorph_of_source_eq_univ_target_eq_univ (h : e.source = (univ : set �
     rw h'
   end }
 
-@[simp] lemma to_homeomorph_to_fun (h : e.source = (univ : set α))
-  (h' : e.target = univ) :
+@[simp] lemma to_homeomorph_to_fun (h : e.source = (univ : set α)) (h' : e.target = univ) :
   (e.to_homeomorph_of_source_eq_univ_target_eq_univ h h').to_fun = e.to_fun := rfl
 
-@[simp] lemma to_homeomorph_inv_fun (h : e.source = (univ : set α))
-  (h' : e.target = univ) :
+@[simp] lemma to_homeomorph_inv_fun (h : e.source = (univ : set α)) (h' : e.target = univ) :
   (e.to_homeomorph_of_source_eq_univ_target_eq_univ h h').inv_fun = e.inv_fun := rfl
 
 end local_homeomorph

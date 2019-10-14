@@ -39,10 +39,13 @@ example (a b : ℕ) : a + b = b + a :=
 by library_search -- says: `exact add_comm a b`
 
 example {a b : ℕ} : a ≤ a + b :=
-by library_search -- says: `exact le_add_right a b`
+by library_search -- says: `exact nat.le.intro rfl`
 
 example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
 by library_search -- says: `exact nat.mul_sub_left_distrib n m k`
+
+example (n m k : ℕ) : n * m - n * k = n * (m - k) :=
+by library_search -- says: `exact eq.symm (nat.mul_sub_left_distrib n m k)`
 
 example {n m : ℕ} (h : m < n) : m ≤ n - 1 :=
 by library_search -- says: `exact nat.le_pred_of_lt h`

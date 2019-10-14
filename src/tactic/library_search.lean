@@ -76,27 +76,32 @@ meta def library_defs (hs : name) : tactic (list decl_data) :=
 do env ← get_env,
    return $ env.decl_filter_map (process_declaration hs)
 
-meta def apply_and_solve (discharger : tactic unit) (e : expr) :=
-apply e >>
+meta def apply_and_solve (close_goals : bool) (discharger : tactic unit) (e : expr) :=
+(apply e <|> (symmetry >> apply e)) >>
 (done <|>
  solve_by_elim
- { all_goals := tt, discharger := discharger })
+ { all_goals := tt, discharger := discharger } <|>
+ (if ¬ close_goals then
+    do ng ← num_goals,
+       if ng = 1 then
+         -- solve_by_elim has already tried everything
+         skip
+       else
+         -- run solve_by_elim on each goal separately, not worrying if it ever fails
+         try (any_goals (propositional_goal >> solve_by_elim { discharger := discharger }))
+  else
+    failed))
 
-meta def apply_declaration (discharger : tactic unit) (d : decl_data) : tactic unit :=
+meta def apply_declaration (close_goals : bool) (discharger : tactic unit) (d : decl_data) : tactic unit :=
+let tac := apply_and_solve close_goals discharger in
 do (e, t) ← decl_mk_const d.d,
    match d.m with
-   | ex := apply_and_solve discharger e
-   | mp :=
-      do l ← iff_mp_core e t,
-         apply_and_solve discharger l
-   | mpr :=
-      do l ← iff_mpr_core e t,
-         apply_and_solve discharger l
+   | ex   := tac e
+   | mp   := do l ← iff_mp_core e t, tac l
+   | mpr  := do l ← iff_mpr_core e t, tac l
    | both :=
-      (do l ← iff_mp_core e t,
-         apply_and_solve discharger l) <|>
-      (do l ← iff_mpr_core e t,
-         apply_and_solve discharger l)
+      (do l ← iff_mp_core e t, tac l) <|>
+      (do l ← iff_mpr_core e t, tac l)
    end
 
 meta def replace_mvars (e : expr) : expr :=
@@ -131,7 +136,7 @@ do [g] ← get_goals | fail "`library_search` should be called with exactly one 
      trace format!"Found {defs.length} relevant lemmas:",
      trace $ defs.map (λ ⟨d, n, m, l⟩, (n, m.to_string))),
    -- Try `apply` followed by `solve_by_elim`, for each definition.
-   defs.mfirst (apply_declaration discharger)),
+   defs.mfirst (apply_declaration tt discharger)),
 
    -- If something worked, prepare a string to print.
    r ← tactic_statement g,

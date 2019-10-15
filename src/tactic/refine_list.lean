@@ -14,14 +14,6 @@ namespace tactic
 --list_refine uses some functions from library_search
 open tactic.library_search
 
-/-- Returns the current tactic_state. -/
-meta def get_state : tactic tactic_state :=
-λ s, result.success s s
-
-/-- Sets the tactic_state. -/
-meta def set_state (s' : tactic_state) : tactic tactic_state :=
-λ s, result.success s s'
-
 /-- Runs a tactic, returning the result and the new tactic_state, but then reverts the tactic_state. -/
 -- See also `lock_tactic_state`, which is similar but does not return the tactic_state.
 meta def run_and_save_state {α : Type} (t : tactic α) : tactic (α × tactic_state)
@@ -33,10 +25,10 @@ end
 /--This function prints either the `exact` or `refine` tactics with the corresponding
 lemma/theorem with inputs for a specific tactic_state-/
 meta def message (l : decl_data × tactic_state) (g : expr) : tactic string :=
-do s ← get_state,
-   set_state l.2,
+do s ← read,
+   write l.2,
    r ← tactic_statement g,
-   set_state s,
+   write s,
    return r
 
 /--Runs through the list of tactic_states and prints an `exact` or `refine` message for each one-/
@@ -56,7 +48,7 @@ declare_trace silence_refine_list -- Turn off `exact ...` trace message
 declare_trace refine_list         -- Trace a list of all relevant lemmas
 
 /-- The main refine_list tactic, this is very similar to the main library_search function. It returns
-a list of strings consisting of possible applications of the refine tactic. The length of the list is 
+a list of strings consisting of possible applications of the refine tactic. The length of the list is
 no longer than num.-/
 meta def refine_list (num : ℕ := 50) (discharger : tactic unit := done) : tactic (list string) :=
 do (g::gs) ← get_goals,
@@ -85,7 +77,7 @@ do (g::gs) ← get_goals,
    -- `(num_goals, -num_hyps_used)`, where `num_hyps_used` is a putative function that
    -- counts numbers of appearances of local hypotheses in `result`.
    let results_with_num_goals := results.mmap
-        (λ d, lock_tactic_state $ do set_state d.2, ng ← num_goals, return (d, ng)),
+        (λ d, lock_tactic_state $ do write d.2, ng ← num_goals, return (d, ng)),
    -- Get the first num elements of the successful lemmas
    L ← results_with_num_goals.take num,
    let L := L.qsort(λ d₁ d₂, d₁.2 ≤ d₂.2),

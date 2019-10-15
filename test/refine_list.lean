@@ -5,7 +5,7 @@
 import tactic.refine_list
 
 /- Turn off trace messages so they don't pollute the test build: -/
-set_option trace.silence_refine_list true
+--set_option trace.silence_refine_list true
 
 open tactic
 

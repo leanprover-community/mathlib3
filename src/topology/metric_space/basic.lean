@@ -475,24 +475,37 @@ def metric_space.replace_uniformity {α} [U : uniform_space α] (m : metric_spac
   uniformity_dist    := H.trans (metric_space.uniformity_dist α) }
 
 /-- One gets a metric space from an emetric space if the edistance
-is everywhere finite. We set it up so that the edist and the uniformity are
-defeq in the metric space and the emetric space -/
-
-def emetric_space.to_metric_space {α : Type u} [e : emetric_space α] (h : ∀x y: α, edist x y ≠ ⊤) :
+is everywhere finite, by pushing the edistance to reals. We set it up so that the edist and the
+uniformity are defeq in the metric space and the emetric space. In this definition, the distance
+is given separately, to be able to prescribe some expression which is not defeq to the push-forward
+of the edistance to reals. -/
+def emetric_space.to_metric_space_of_dist {α : Type u} [e : emetric_space α]
+  (dist : α → α → ℝ)
+  (edist_ne_top : ∀x y: α, edist x y ≠ ⊤)
+  (h : ∀x y, dist x y = ennreal.to_real (edist x y)) :
   metric_space α :=
 let m : metric_space α :=
-{ dist               := λx y, ennreal.to_real (edist x y),
-  eq_of_dist_eq_zero := λx y hxy, by simpa [dist, ennreal.to_real_eq_zero_iff, h x y] using hxy,
-  dist_self          := λx, by simp,
-  dist_comm          := λx y, by simp [emetric_space.edist_comm],
+{ dist := dist,
+  eq_of_dist_eq_zero := λx y hxy, by simpa [h, ennreal.to_real_eq_zero_iff, edist_ne_top x y] using hxy,
+  dist_self          := λx, by simp [h],
+  dist_comm          := λx y, by simp [h, emetric_space.edist_comm],
   dist_triangle      := λx y z, begin
-    rw [← ennreal.to_real_add (h _ _) (h _ _), ennreal.to_real_le_to_real (h _ _)],
+    simp only [h],
+    rw [← ennreal.to_real_add (edist_ne_top _ _) (edist_ne_top _ _),
+        ennreal.to_real_le_to_real (edist_ne_top _ _)],
     { exact edist_triangle _ _ _ },
-    { simp [ennreal.add_eq_top, h] }
+    { simp [ennreal.add_eq_top, edist_ne_top] }
   end,
-  edist              := λx y, edist x y,
-  edist_dist         := λx y, by simp [ennreal.of_real_to_real, h] } in
+  edist := λx y, edist x y,
+  edist_dist := λx y, by simp [h, ennreal.of_real_to_real, edist_ne_top] } in
 metric_space.replace_uniformity m (by rw [uniformity_edist, uniformity_edist']; refl)
+
+/-- One gets a metric space from an emetric space if the edistance
+is everywhere finite, by pushing the edistance to reals. We set it up so that the edist and the
+uniformity are defeq in the metric space and the emetric space. -/
+def emetric_space.to_metric_space {α : Type u} [e : emetric_space α] (h : ∀x y: α, edist x y ≠ ⊤) :
+  metric_space α :=
+emetric_space.to_metric_space_of_dist (λx y, ennreal.to_real (edist x y)) h (λx y, rfl)
 
 section real
 
@@ -836,52 +849,35 @@ section pi
 open finset lattice
 variables {π : β → Type*} [fintype β] [∀b, metric_space (π b)]
 
-instance has_dist_pi : has_dist (Πb, π b) :=
-⟨λf g, ((finset.sup univ (λb, nndist (f b) (g b)) : nnreal) : ℝ)⟩
+/-- A finite product of metric spaces is a metric space, with the sup distance. -/
+instance metric_space_pi : metric_space (Πb, π b) :=
+begin
+  /- we construct the instance from the emetric space instance to avoid checking again that the
+  uniformity is the same as the product uniformity, but we register nevertheless a nice formula
+  for the distance -/
+  refine emetric_space.to_metric_space_of_dist
+    (λf g, ((sup univ (λb, nndist (f b) (g b)) : nnreal) : ℝ)) _ _,
+  show ∀ (x y : Π (b : β), π b), edist x y ≠ ⊤,
+  { assume x y,
+    rw ← lt_top_iff_ne_top,
+    have : (⊥ : ennreal) < ⊤ := ennreal.coe_lt_top,
+    simp [edist, this],
+    assume b,
+    rw lt_top_iff_ne_top,
+    exact edist_ne_top (x b) (y b) },
+  show ∀ (x y : Π (b : β), π b), ↑(sup univ (λ (b : β), nndist (x b) (y b))) =
+    ennreal.to_real (sup univ (λ (b : β), edist (x b) (y b))),
+  { assume x y,
+    have : sup univ (λ (b : β), edist (x b) (y b)) = ↑(sup univ (λ (b : β), nndist (x b) (y b))),
+    { simp [edist_nndist],
+      refine eq.symm (comp_sup_eq_sup_comp _ _ _),
+      exact (assume x y h, ennreal.coe_le_coe.2 h), refl },
+    rw this,
+    refl }
+end
 
 lemma dist_pi_def (f g : Πb, π b) :
-  dist f g = (finset.sup univ (λb, nndist (f b) (g b)) : nnreal) := rfl
-
-instance metric_space_pi : metric_space (Πb, π b) :=
-{ dist := dist,
-  dist_self := assume f, (nnreal.coe_eq_zero _).2 $ bot_unique $ finset.sup_le $ by simp,
-  dist_comm := assume f g, nnreal.eq_iff.2 $ by congr; ext a; exact nndist_comm _ _,
-  dist_triangle := assume f g h, show dist f h ≤ (dist f g) + (dist g h), from
-    begin
-      simp only [dist_pi_def, (nnreal.coe_add _ _).symm, nnreal.coe_le.symm,
-        finset.sup_le_iff],
-      assume b hb,
-      exact le_trans (nndist_triangle _ (g b) _) (add_le_add (le_sup hb) (le_sup hb))
-    end,
-  eq_of_dist_eq_zero := assume f g eq0,
-    begin
-      simp only [dist_pi_def, nnreal.coe_eq_zero, nnreal.bot_eq_zero.symm, eq_bot_iff,
-        finset.sup_le_iff] at eq0,
-      exact (funext $ assume b, eq_of_nndist_eq_zero $ bot_unique $ eq0 b $ mem_univ b),
-    end,
-  edist := λ f g, finset.sup univ (λb, edist (f b) (g b)),
-  edist_dist := assume x y, begin
-    have A : sup univ (λ (b : β), ((nndist (x b) (y b)) : ennreal)) = ↑(sup univ (λ (b : β), nndist (x b) (y b))),
-    { refine eq.symm (comp_sup_eq_sup_comp _ _ _),
-      exact (assume x y h, ennreal.coe_le_coe.2 h), refl },
-    simp [dist, edist_nndist, ennreal.of_real, A]
-  end,
-  to_uniform_space := Pi.uniform_space _,
-  uniformity_dist := begin
-    -- with simp only on next line, the proof fails for no reason...
-    simp [Pi.uniformity, uniformity_dist, comap_infi, comap_infi, gt_iff_lt, preimage_set_of_eq,
-          comap_principal],
-    rw infi_comm, congr, funext ε,
-    rw infi_comm, congr, funext εpos,
-    simp only [ext_iff, εpos, dist, principal_eq_iff_eq, prod.forall, mem_Inter, mem_set_of_eq,
-               infi_principal_fintype],
-    assume a b,
-    let ε' : nnreal := ⟨ε, le_of_lt εpos⟩,
-    have A : ε' = nnreal.of_real ε, by simp [nnreal.of_real, ε', le_of_lt εpos],
-    change (∀ (i : β), dist (a i) (b i) < ε) ↔ (sup univ (λ (i : β), nndist (a i) (b i))) < ε',
-    simp only [finset.sup_lt_iff (show ⊥ < ε', from εpos)],
-    simp [nndist_dist, A, εpos],
-  end }
+  dist f g = (sup univ (λb, nndist (f b) (g b)) : nnreal) := rfl
 
 end pi
 

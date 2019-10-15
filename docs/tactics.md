@@ -300,7 +300,8 @@ import tactic.find
 
 ### refine_list
 
-`refine_list` is a modification of `library_search`, which lists possible usages of the `refine` tactic and leaves the tactic state unchanged. It is intended as a complement of the search function in your editor, the `#find` tactic, and `library_search`.
+`refine_list` lists possible usages of the `refine` tactic and leaves the tactic state unchanged.
+It is intended as a complement of the search function in your editor, the `#find` tactic, and `library_search`.
 
 `refine_list` takes an optional natural number `num` as input and returns the first `num` (or less, if all possibilities are exhausted) possibilities ordered by length of lemma names. The default for `num` is `50`.
 
@@ -309,35 +310,20 @@ For performance reasons `refine_list` uses monadic lazy lists (`mllist`). This m
 An example of `refine_list` in action,
 
 ```lean
-example (a b : ℕ) : 0 < a → 0 < b → 0 < a + b :=
+example (n : nat) : n < n + 1 :=
 begin refine_list, sorry end
 ```
 
-prints the list (as of 31/8/2019),
+prints the list,
 
 ```lean
-refine add_pos
-refine add_pos'
-refine add_lt_add
-refine lt_add_of_pos_of_lt
-refine lt_add_of_lt_of_pos
-refine lt_add_of_pos_of_lt'
-refine lt_add_of_lt_of_pos'
-```
-
-while,
-
-```lean
-example {α : Type} (x y : α) : x = y ↔ y = x :=
-begin refine_list 3, sorry end
-```
-
-returns,
-
-```lean
-refine add_pos
-refine add_pos'
-refine add_lt_add
+exact nat.lt.base n
+exact nat.lt_succ_self n
+refine not_le.mp _
+refine gt_iff_lt.mp _
+refine nat.lt.step _
+refine lt_of_not_ge _
+...
 ```
 
 ### solve_by_elim
@@ -1237,12 +1223,12 @@ Lift an expression to another type.
 
 ### import_private
 
-`import_private foo from bar` finds a private declaration `foo` in the same file as `bar` and creates a 
-local notation to refer to it. 
-    
+`import_private foo from bar` finds a private declaration `foo` in the same file as `bar` and creates a
+local notation to refer to it.
+
 `import_private foo`, looks for `foo` in all (imported) files.
 
-When possible, make `foo` non-private rather than using this feature. 
+When possible, make `foo` non-private rather than using this feature.
 
 ### default_dec_tac'
 

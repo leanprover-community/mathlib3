@@ -5,7 +5,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 
 Extra definitions on lists.
 -/
-import data.option.defs logic.basic tactic.cache
+import data.option.defs logic.basic logic.rel.defs tactic.cache
 
 namespace list
 
@@ -239,9 +239,9 @@ def sublists_aux₁ : list α → (list α → list β) → list β
 | (a::l) f := f [a] ++ sublists_aux₁ l (λys, f ys ++ f (a :: ys))
 
 section forall₂
-variables {r : α → β → Prop} {p : γ → δ → Prop}
+variables {r : rel α β} {p : rel γ δ}
 
-inductive forall₂ (R : α → β → Prop) : list α → list β → Prop
+inductive forall₂ (R : rel α β) : list α → list β → Prop
 | nil {} : forall₂ [] []
 | cons {a b l₁ l₂} : R a b → forall₂ l₁ l₂ → forall₂ (a::l₁) (b::l₂)
 

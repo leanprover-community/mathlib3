@@ -284,12 +284,11 @@ variable [preorder α]
 
 theorem monotone_and {p q : α → Prop} (m_p : monotone p) (m_q : monotone q) :
   monotone (λx, p x ∧ q x) :=
-assume a b h, and.imp (m_p h) (m_q h)
--- Note: by finish [monotone] doesn't work
+monotone_inf m_p m_q
 
 theorem monotone_or {p q : α → Prop} (m_p : monotone p) (m_q : monotone q) :
   monotone (λx, p x ∨ q x) :=
-assume a b h, or.imp (m_p h) (m_q h)
+monotone_sup m_p m_q
 end logic
 
 /- Function lattices -/

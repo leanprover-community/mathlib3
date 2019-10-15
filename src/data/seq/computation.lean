@@ -5,7 +5,7 @@ Author: Mario Carneiro
 
 Coinductive formalization of unbounded computations.
 -/
-import data.stream logic.relator tactic.basic
+import data.stream logic.rel.defs tactic.basic
 universes u v w
 
 /-
@@ -230,8 +230,8 @@ theorem le_stable (s : computation α) {a m n} (h : m ≤ n) :
 by {cases s with f al, induction h with n h IH, exacts [id, λ h2, al (IH h2)]}
 
 theorem mem_unique :
-   relator.left_unique ((∈) : α → computation α → Prop) :=
-λa s b ⟨m, ha⟩ ⟨n, hb⟩, by injection
+   rel.left_unique ((∈) : α → computation α → Prop) :=
+λa b s ⟨m, ha⟩ ⟨n, hb⟩, by injection
   (le_stable s (le_max_left m n) ha.symm).symm.trans
   (le_stable s (le_max_right m n) hb.symm)
 

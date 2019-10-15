@@ -5,7 +5,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 
 List permutations.
 -/
-import data.list.basic logic.relation
+import data.list.basic
 
 namespace list
 universe variables uu vv
@@ -194,64 +194,63 @@ begin
 end
 
 section rel
-open relator
-variables {γ : Type*} {δ : Type*} {r : α → β → Prop} {p : γ → δ → Prop}
+variables {γ : Type*} {δ : Type*} {r : rel α β} {p : rel γ δ}
 
-local infixr ` ∘r ` : 80 := relation.comp
+local infixr ` ∘r ` : 80 := rel.comp
 
-lemma perm_comp_perm : (perm ∘r perm : list α → list α → Prop) = perm :=
+lemma perm_comp_perm : (perm ∘r perm : rel (list α) (list α)) = perm :=
 begin
   funext a c, apply propext,
   split,
-  { exact assume ⟨b, hab, hba⟩, perm.trans hab hba },
-  { exact assume h, ⟨a, perm.refl a, h⟩ }
+  { exact assume ⟨b, hab, hba⟩, perm.trans hba hab },
+  { exact assume h, ⟨a, h, perm.refl a⟩ }
 end
 
-lemma perm_comp_forall₂ {l u v} (hlu : perm l u) (huv : forall₂ r u v) : (forall₂ r ∘r perm) l v :=
+lemma perm_comp_forall₂ {l u v} (hlu : perm l u) (huv : forall₂ r u v) : (perm ∘r forall₂ r) l v :=
 begin
   induction hlu generalizing v,
-  case perm.nil { cases huv, exact ⟨[], forall₂.nil, perm.nil⟩ },
+  case perm.nil { cases huv, exact ⟨[], perm.nil, forall₂.nil⟩ },
   case perm.skip : a l u hlu ih {
     cases huv with _ b _ v hab huv',
-    rcases ih huv' with ⟨l₂, h₁₂, h₂₃⟩,
-    exact ⟨b::l₂, forall₂.cons hab h₁₂, perm.skip _ h₂₃⟩
+    rcases ih huv' with ⟨l₂, h₂₃, h₁₂⟩,
+    exact ⟨b::l₂, perm.skip _ h₂₃, forall₂.cons hab h₁₂⟩
   },
   case perm.swap : a₁ a₂ l₁ l₂ h₂₃ {
     cases h₂₃ with _ b₁ _ l₂ h₁ hr_₂₃,
     cases hr_₂₃ with _ b₂ _ l₂ h₂ h₁₂,
-    exact ⟨b₂::b₁::l₂, forall₂.cons h₂ (forall₂.cons h₁ h₁₂), perm.swap _ _ _⟩
+    exact ⟨b₂::b₁::l₂, perm.swap _ _ _, forall₂.cons h₂ (forall₂.cons h₁ h₁₂)⟩
   },
   case perm.trans : la₁ la₂ la₃ _ _ ih₁ ih₂ {
-    rcases ih₂ huv with ⟨lb₂, hab₂, h₂₃⟩,
-    rcases ih₁ hab₂ with ⟨lb₁, hab₁, h₁₂⟩,
-    exact ⟨lb₁, hab₁, perm.trans h₁₂ h₂₃⟩
+    rcases ih₂ huv with ⟨lb₂, h₂₃, hab₂⟩,
+    rcases ih₁ hab₂ with ⟨lb₁, h₁₂, hab₁⟩,
+    exact ⟨lb₁, perm.trans h₁₂ h₂₃, hab₁⟩
   }
 end
 
 lemma forall₂_comp_perm_eq_perm_comp_forall₂ : forall₂ r ∘r perm = perm ∘r forall₂ r :=
 begin
-  funext l₁ l₃, apply propext,
+  ext l₁ l₃,
   split,
-  { assume h, rcases h with ⟨l₂, h₁₂, h₂₃⟩,
-    have : forall₂ (flip r) l₂ l₁, from h₁₂.flip ,
-    rcases perm_comp_forall₂ h₂₃.symm this with ⟨l', h₁, h₂⟩,
-    exact ⟨l', h₂.symm, h₁.flip⟩ },
-  { exact assume ⟨l₂, h₁₂, h₂₃⟩, perm_comp_forall₂ h₁₂ h₂₃ }
+  { exact assume ⟨l₂, h₂₃, h₁₂⟩, perm_comp_forall₂ h₁₂ h₂₃ },
+  { assume h, rcases h with ⟨l₂, h₂₃, h₁₂⟩,
+    have : forall₂ r.conv l₂ l₁, from h₁₂.flip,
+    rcases perm_comp_forall₂ h₂₃.symm this with ⟨l', h₁, h₃⟩,
+    exact ⟨l', h₃.flip, h₁.symm⟩ }
 end
 
-lemma rel_perm_imp (hr : right_unique r) : (forall₂ r ⇒ forall₂ r ⇒ implies) perm perm :=
+lemma rel_perm_imp (hr : r.right_unique) : (forall₂ r ⟹ forall₂ r ⟹ implies) perm perm :=
 assume a b h₁ c d h₂ h,
-have (flip (forall₂ r) ∘r (perm ∘r forall₂ r)) b d, from ⟨a, h₁, c, h, h₂⟩,
-have ((flip (forall₂ r) ∘r forall₂ r) ∘r perm) b d,
-  by rwa [← forall₂_comp_perm_eq_perm_comp_forall₂, ← relation.comp_assoc] at this,
-let ⟨b', ⟨c', hbc, hcb⟩, hbd⟩ := this in
+have ((forall₂ r ∘r perm) ∘r flip (forall₂ r)) b d, from rel.comp_mk (rel.comp_mk h₂ h) h₁,
+have (perm ∘r (forall₂ r ∘r flip (forall₂ r))) b d,
+  by rwa [forall₂_comp_perm_eq_perm_comp_forall₂, rel.comp_assoc] at this,
+let ⟨b', hbd, ⟨c', hcb, hbc⟩⟩ := this in
 have b' = b, from right_unique_forall₂ @hr hcb hbc,
 this ▸ hbd
 
-lemma rel_perm (hr : bi_unique r) : (forall₂ r ⇒ forall₂ r ⇒ (↔)) perm perm :=
+lemma rel_perm (hr : r.bi_unique) : (forall₂ r ⟹ forall₂ r ⟹ (↔)) perm perm :=
 assume a b hab c d hcd, iff.intro
   (rel_perm_imp hr.2 hab hcd)
-  (rel_perm_imp (assume a b c, left_unique_flip hr.1) hab.flip hcd.flip)
+  (rel_perm_imp hr.1.conv hab.flip hcd.flip)
 
 end rel
 

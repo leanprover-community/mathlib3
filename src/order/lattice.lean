@@ -84,6 +84,9 @@ by apply le_antisymm; finish
 theorem sup_le_sup (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊔ c ≤ b ⊔ d :=
 by finish
 
+theorem sup_mono : ((≤) ⟹ (≤) ⟹ (≤)).diag ((⊔) : α → α → α) :=
+λ a b h₁ c d h₂, sup_le_sup h₁ h₂
+
 theorem sup_le_sup_left (h₁ : a ≤ b) (c) : c ⊔ a ≤ c ⊔ b :=
 by finish
 
@@ -139,9 +142,14 @@ begin
   cases A; cases B; injection this; congr'
 end
 
-lemma directed_of_sup {β : Type*} {r : β → β → Prop} {f : α → β}
-  (hf : ∀a₁ a₂, a₁ ≤ a₂ → r (f a₁) (f a₂)) : directed r f :=
-assume x y, ⟨x ⊔ y, hf _ _ le_sup_left, hf _ _ le_sup_right⟩
+lemma directed_of_sup {β : Type*} {r : rel β β} {f : α → β}
+  (hf : ((≤) ⟹ r).diag f) : directed r f :=
+assume x y, ⟨x ⊔ y, hf le_sup_left, hf le_sup_right⟩
+
+lemma monotone_sup {α β : Type*} [preorder α] [semilattice_sup β]
+  {f g : α → β} (hf : monotone f) (hg : monotone g) :
+  monotone (λ x, f x ⊔ g x) :=
+monotone_bicompl_diag sup_mono hf hg
 
 end semilattice_sup
 
@@ -189,6 +197,9 @@ by apply le_antisymm; finish
 
 theorem inf_le_inf (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊓ c ≤ b ⊓ d :=
 by finish
+
+theorem inf_mono : ((≤) ⟹ (≤) ⟹ (≤)).diag ((⊓) : α → α → α) :=
+λ a b h₁ c d h₂, inf_le_inf h₁ h₂
 
 theorem le_of_inf_eq (h : a ⊓ b = a) : a ≤ b :=
 by finish
@@ -242,6 +253,11 @@ end
 lemma directed_of_inf {β : Type*} {r : β → β → Prop} {f : α → β}
   (hf : ∀a₁ a₂, a₁ ≤ a₂ → r (f a₂) (f a₁)) : directed r f :=
 assume x y, ⟨x ⊓ y, hf _ _ inf_le_left, hf _ _ inf_le_right⟩
+
+lemma monotone_inf {α β : Type*} [preorder α] [semilattice_inf β]
+  {f g : α → β} (hf : monotone f) (hg : monotone g) :
+  monotone (λ x, f x ⊓ g x) :=
+monotone_bicompl_diag inf_mono hf hg
 
 end semilattice_inf
 
@@ -354,6 +370,26 @@ instance nat.distrib_lattice : distrib_lattice ℕ :=
 by apply_instance
 
 end lattice
+
+
+namespace monotone
+
+open lattice
+
+variables {α : Type u} {β : Type v}
+
+lemma map_sup [semilattice_sup α] [semilattice_sup β]
+  {f : α → β} (h : monotone f) (x y : α) :
+  f x ⊔ f y ≤ f (x ⊔ y) :=
+sup_le (h le_sup_left) (h le_sup_right)
+
+lemma map_inf [semilattice_inf α] [semilattice_inf β]
+  {f : α → β} (h : monotone f) (x y : α) :
+  f (x ⊓ y) ≤ f x ⊓ f y :=
+le_inf (h inf_le_left) (h inf_le_right)
+
+end monotone
+
 
 namespace order_dual
 open lattice

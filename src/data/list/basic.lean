@@ -7,7 +7,7 @@ Basic properties of lists.
 -/
 import
   tactic.interactive tactic.mk_iff_of_inductive_prop
-  logic.basic logic.function logic.relator
+  logic.basic logic.function logic.rel.lemmas
   algebra.group order.basic
   data.list.defs data.nat.basic data.option.basic
   data.bool data.prod data.fin
@@ -2573,12 +2573,11 @@ end
 /- forall₂ -/
 
 section forall₂
-variables {r : α → β → Prop} {p : γ → δ → Prop}
-open relator
+variables {r : rel α β} {p : rel γ δ}
 
 run_cmd tactic.mk_iff_of_inductive_prop `list.forall₂ `list.forall₂_iff
 
-@[simp] theorem forall₂_cons {R : α → β → Prop} {a b l₁ l₂} :
+@[simp] theorem forall₂_cons {R : rel α β} {a b l₁ l₂} :
   forall₂ R (a::l₁) (b::l₂) ↔ R a b ∧ forall₂ R l₁ l₂ :=
 ⟨λ h, by cases h with h₁ h₂; split; assumption, λ ⟨h₁, h₂⟩, forall₂.cons h₁ h₂⟩
 
@@ -2647,30 +2646,29 @@ lemma forall₂_and_left {r : α → β → Prop} {p : α → Prop} :
 | _ []     := by simp only [map, forall₂_nil_right_iff]
 | _ (b::u) := by simp only [map, forall₂_cons_right_iff, forall₂_map_right_iff]
 
-lemma left_unique_forall₂ (hr : left_unique r) : left_unique (forall₂ r)
+lemma left_unique_forall₂ (hr : r.left_unique) : rel.left_unique (forall₂ r)
 | a₀ nil a₁ forall₂.nil forall₂.nil := rfl
 | (a₀::l₀) (b::l) (a₁::l₁) (forall₂.cons ha₀ h₀) (forall₂.cons ha₁ h₁) :=
   hr ha₀ ha₁ ▸ left_unique_forall₂ h₀ h₁ ▸ rfl
 
-lemma right_unique_forall₂ (hr : right_unique r) : right_unique (forall₂ r)
+lemma right_unique_forall₂ (hr : r.right_unique) : rel.right_unique (forall₂ r)
 | nil a₀ a₁ forall₂.nil forall₂.nil := rfl
 | (b::l) (a₀::l₀) (a₁::l₁) (forall₂.cons ha₀ h₀) (forall₂.cons ha₁ h₁) :=
   hr ha₀ ha₁ ▸ right_unique_forall₂ h₀ h₁ ▸ rfl
 
-lemma bi_unique_forall₂ (hr : bi_unique r) : bi_unique (forall₂ r) :=
-⟨assume a b c, left_unique_forall₂ hr.1, assume a b c, right_unique_forall₂ hr.2⟩
+lemma bi_unique_forall₂ (hr : r.bi_unique) : rel.bi_unique (forall₂ r) :=
+⟨left_unique_forall₂ hr.1, right_unique_forall₂ hr.2⟩
 
-theorem forall₂_length_eq {R : α → β → Prop} :
-  ∀ {l₁ l₂}, forall₂ R l₁ l₂ → length l₁ = length l₂
+theorem forall₂_length_eq {R : rel α β} : ((forall₂ R) ⟹ (=)) length length
 | _ _ forall₂.nil          := rfl
 | _ _ (forall₂.cons h₁ h₂) := congr_arg succ (forall₂_length_eq h₂)
 
-theorem forall₂_zip {R : α → β → Prop} :
+theorem forall₂_zip {R : rel α β} :
   ∀ {l₁ l₂}, forall₂ R l₁ l₂ → ∀ {a b}, (a, b) ∈ zip l₁ l₂ → R a b
 | _ _ (forall₂.cons h₁ h₂) x y (or.inl rfl) := h₁
 | _ _ (forall₂.cons h₁ h₂) x y (or.inr h₃) := forall₂_zip h₂ h₃
 
-theorem forall₂_iff_zip {R : α → β → Prop} {l₁ l₂} : forall₂ R l₁ l₂ ↔
+theorem forall₂_iff_zip {R : rel α β} {l₁ l₂} : forall₂ R l₁ l₂ ↔
   length l₁ = length l₂ ∧ ∀ {a b}, (a, b) ∈ zip l₁ l₂ → R a b :=
 ⟨λ h, ⟨forall₂_length_eq h, @forall₂_zip _ _ _ _ _ h⟩,
  λ h, begin
@@ -2681,58 +2679,56 @@ theorem forall₂_iff_zip {R : α → β → Prop} {l₁ l₂} : forall₂ R l�
     exact forall₂.cons (h₂ $ or.inl rfl) (IH h₁ $ λ a b h, h₂ $ or.inr h) }
 end⟩
 
-theorem forall₂_take {R : α → β → Prop} :
-  ∀ n {l₁ l₂}, forall₂ R l₁ l₂ → forall₂ R (take n l₁) (take n l₂)
-| 0 _ _ _ := by simp only [forall₂.nil, take]
-| (n+1) _ _ (forall₂.nil) := by simp only [forall₂.nil, take]
-| (n+1) _ _ (forall₂.cons h₁ h₂) := by simp [and.intro h₁ h₂, forall₂_take n]
+theorem forall₂_take {R : rel α β} : ∀ n, ((forall₂ R) ⟹ (forall₂ R)) (take n) (take n)
+| 0 l₁ l₂ h := by simp only [forall₂.nil, take]
+| (n+1) _ _ (forall₂.nil) := by simp only [forall₂.nil, take_nil]
+| (n+1) _ _ (forall₂.cons h₁ h₂) := by simp [and.intro h₁ h₂, forall₂_take n h₂]
 
-theorem forall₂_drop {R : α → β → Prop} :
-  ∀ n {l₁ l₂}, forall₂ R l₁ l₂ → forall₂ R (drop n l₁) (drop n l₂)
+theorem forall₂_drop {R : rel α β} : ∀ n, ((forall₂ R) ⟹ (forall₂ R)) (drop n) (drop n)
 | 0 _ _ h := by simp only [drop, h]
 | (n+1) _ _ (forall₂.nil) := by simp only [forall₂.nil, drop]
-| (n+1) _ _ (forall₂.cons h₁ h₂) := by simp [and.intro h₁ h₂, forall₂_drop n]
+| (n+1) _ _ (forall₂.cons h₁ h₂) := by simp [and.intro h₁ h₂, forall₂_drop n h₂]
 
-theorem forall₂_take_append {R : α → β → Prop} (l : list α) (l₁ : list β) (l₂ : list β)
+theorem forall₂_take_append {R : rel α β} (l : list α) (l₁ : list β) (l₂ : list β)
   (h : forall₂ R l (l₁ ++ l₂)) : forall₂ R (list.take (length l₁) l) l₁ :=
 have h': forall₂ R (take (length l₁) l) (take (length l₁) (l₁ ++ l₂)), from forall₂_take (length l₁) h,
 by rwa [take_left] at h'
 
-theorem forall₂_drop_append {R : α → β → Prop} (l : list α) (l₁ : list β) (l₂ : list β)
+theorem forall₂_drop_append {R : rel α β} (l : list α) (l₁ : list β) (l₂ : list β)
   (h : forall₂ R l (l₁ ++ l₂)) : forall₂ R (list.drop (length l₁) l) l₂ :=
 have h': forall₂ R (drop (length l₁) l) (drop (length l₁) (l₁ ++ l₂)), from forall₂_drop (length l₁) h,
 by rwa [drop_left] at h'
 
-lemma rel_mem (hr : bi_unique r) : (r ⇒ forall₂ r ⇒ iff) (∈) (∈)
+lemma rel_mem (hr : r.bi_unique) : (r ⟹ forall₂ r ⟹ iff) (∈) (∈)
 | a b h [] [] forall₂.nil := by simp only [not_mem_nil]
-| a b h (a'::as) (b'::bs) (forall₂.cons h₁ h₂) := rel_or (rel_eq hr h h₁) (rel_mem h h₂)
+| a b h (a'::as) (b'::bs) (forall₂.cons h₁ h₂) := rel.rel_or (hr.rel_eq h h₁) (rel_mem h h₂)
 
-lemma rel_map : ((r ⇒ p) ⇒ forall₂ r ⇒ forall₂ p) map map
+lemma rel_map : ((r ⟹ p) ⟹ forall₂ r ⟹ forall₂ p) map map
 | f g h [] [] forall₂.nil := forall₂.nil
 | f g h (a::as) (b::bs) (forall₂.cons h₁ h₂) := forall₂.cons (h h₁) (rel_map @h h₂)
 
-lemma rel_append : (forall₂ r ⇒ forall₂ r ⇒ forall₂ r) append append
+lemma rel_append : (forall₂ r ⟹ forall₂ r ⟹ forall₂ r) append append
 | [] [] h l₁ l₂ hl := hl
 | (a::as) (b::bs) (forall₂.cons h₁ h₂) l₁ l₂ hl := forall₂.cons h₁ (rel_append h₂ hl)
 
-lemma rel_join : (forall₂ (forall₂ r) ⇒ forall₂ r) join join
+lemma rel_join : (forall₂ (forall₂ r) ⟹ forall₂ r) join join
 | [] [] forall₂.nil := forall₂.nil
 | (a::as) (b::bs) (forall₂.cons h₁ h₂) := rel_append h₁ (rel_join h₂)
 
-lemma rel_bind : (forall₂ r ⇒ (r ⇒ forall₂ p) ⇒ forall₂ p) list.bind list.bind :=
+lemma rel_bind : (forall₂ r ⟹ (r ⟹ forall₂ p) ⟹ forall₂ p) list.bind list.bind :=
 assume a b h₁ f g h₂, rel_join (rel_map @h₂ h₁)
 
-lemma rel_foldl : ((p ⇒ r ⇒ p) ⇒ p ⇒ forall₂ r ⇒ p) foldl foldl
+lemma rel_foldl : ((p ⟹ r ⟹ p) ⟹ p ⟹ forall₂ r ⟹ p) foldl foldl
 | f g hfg _ _ h _ _ forall₂.nil := h
 | f g hfg x y hxy _ _ (forall₂.cons hab hs) := rel_foldl @hfg (hfg hxy hab) hs
 
-lemma rel_foldr : ((r ⇒ p ⇒ p) ⇒ p ⇒ forall₂ r ⇒ p) foldr foldr
+lemma rel_foldr : ((r ⟹ p ⟹ p) ⟹ p ⟹ forall₂ r ⟹ p) foldr foldr
 | f g hfg _ _ h _ _ forall₂.nil := h
 | f g hfg x y hxy _ _ (forall₂.cons hab hs) := hfg hab (rel_foldr @hfg hxy hs)
 
 lemma rel_filter {p : α → Prop} {q : β → Prop} [decidable_pred p] [decidable_pred q]
-  (hpq : (r ⇒ (↔)) p q) :
-  (forall₂ r ⇒ forall₂ r) (filter p) (filter q)
+  (hpq : (r ⟹ (↔)) p q) :
+  (forall₂ r ⟹ forall₂ r) (filter p) (filter q)
 | _ _ forall₂.nil := forall₂.nil
 | (a::as) (b::bs) (forall₂.cons h₁ h₂) :=
   begin
@@ -2752,7 +2748,7 @@ begin
   { rw filter_map_cons_some _ _ _ eq },
 end
 
-lemma rel_filter_map : ((r ⇒ option.rel p) ⇒ forall₂ r ⇒ forall₂ p) filter_map filter_map
+lemma rel_filter_map : ((r ⟹ option.rel p) ⟹ forall₂ r ⟹ forall₂ p) filter_map filter_map
 | f g hfg _ _ forall₂.nil := forall₂.nil
 | f g hfg (a::as) (b::bs) (forall₂.cons h₁ h₂) :=
   by rw [filter_map_cons, filter_map_cons];
@@ -2763,7 +2759,7 @@ lemma rel_filter_map : ((r ⇒ option.rel p) ⇒ forall₂ r ⇒ forall₂ p) fi
 
 @[to_additive]
 lemma rel_prod [monoid α] [monoid β]
-  (h : r 1 1) (hf : (r ⇒ r ⇒ r) (*) (*)) : (forall₂ r ⇒ r) prod prod :=
+  (h : r 1 1) (hf : (r ⟹ r ⟹ r) (*) (*)) : (forall₂ r ⟹ r) prod prod :=
 rel_foldl hf h
 
 end forall₂
@@ -2785,7 +2781,7 @@ end
 theorem mem_sections_length {L : list (list α)} {f} (h : f ∈ sections L) : length f = length L :=
 forall₂_length_eq (mem_sections.1 h)
 
-lemma rel_sections {r : α → β → Prop} : (forall₂ (forall₂ r) ⇒ forall₂ (forall₂ r)) sections sections
+lemma rel_sections {r : α → β → Prop} : (forall₂ (forall₂ r) ⟹ forall₂ (forall₂ r)) sections sections
 | _ _ forall₂.nil := forall₂.cons forall₂.nil forall₂.nil
 | _ _ (forall₂.cons h₀ h₁) :=
   rel_bind (rel_sections h₁) (assume _ _ hl, rel_map (assume _ _ ha, forall₂.cons ha hl) h₀)
@@ -4013,10 +4009,10 @@ section nodup
 @[simp] theorem nodup_cons {a : α} {l : list α} : nodup (a::l) ↔ a ∉ l ∧ nodup l :=
 by simp only [nodup, pairwise_cons, forall_mem_ne]
 
-lemma rel_nodup {r : α → β → Prop} (hr : relator.bi_unique r) : (forall₂ r ⇒ (↔)) nodup nodup
+lemma rel_nodup {r : rel α β} (hr : r.bi_unique) : (forall₂ r ⟹ (↔)) nodup nodup
 | _ _ forall₂.nil      := by simp only [nodup_nil]
 | _ _ (forall₂.cons hab h) :=
-  by simpa only [nodup_cons] using relator.rel_and (relator.rel_not (rel_mem hr hab h)) (rel_nodup h)
+  by simpa only [nodup_cons] using rel.rel_and (rel.rel_not (rel_mem hr hab h)) (rel_nodup h)
 
 theorem nodup_cons_of_nodup {a : α} {l : list α} (m : a ∉ l) (n : nodup l) : nodup (a::l) :=
 nodup_cons.2 ⟨m, n⟩

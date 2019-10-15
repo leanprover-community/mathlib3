@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro, Jeremy Avigad
 -/
-import data.set.basic data.equiv.basic logic.rel.basic logic.relator
+import data.set.basic data.equiv.basic logic.rel.lattice
 
 /-- `roption α` is the type of "partial values" of type `α`. It
   is similar to `option α` except the domain condition can be an
@@ -58,8 +58,8 @@ def none : roption α := ⟨false, false.rec _⟩
   function returns `a`. -/
 def some (a : α) : roption α := ⟨true, λ_, a⟩
 
-theorem mem_unique : relator.left_unique ((∈) : α → roption α → Prop)
-| _ ⟨p, f⟩ _ ⟨h₁, rfl⟩ ⟨h₂, rfl⟩ := rfl
+theorem mem_unique : rel.left_unique ((∈) : α → roption α → Prop)
+| _ _ ⟨p, f⟩ ⟨h₁, rfl⟩ ⟨h₂, rfl⟩ := rfl
 
 theorem get_eq_of_mem {o : roption α} {a} (h : a ∈ o) (h') : get o h' = a :=
 mem_unique ⟨_, rfl⟩ h
@@ -135,8 +135,8 @@ def of_option : option α → roption α
   λ h, ⟨trivial, option.some.inj h⟩⟩
 
 @[simp] theorem of_option_dom {α} : ∀ (o : option α), (of_option o).dom ↔ o.is_some
-| option.none     := by simp [of_option, none]
-| (option.some a) := by simp [of_option]
+| option.none     := by simp only [of_option, none, option.is_some, bool.coe_sort_ff]
+| (option.some a) := by simp [of_option, option.is_some]
 
 theorem of_option_eq_get {α} (o : option α) : of_option o = ⟨_, @option.get _ o⟩ :=
 roption.ext' (of_option_dom o) $ λ h₁ h₂, by cases o; [cases h₁, refl]
@@ -578,7 +578,7 @@ set.eq_of_subset_of_subset
   (set.subset_inter (preimage_subset_core f s) (preimage_subset_dom f s))
   (assume x ⟨xcore, xdom⟩,
     let y := (f x).get xdom in
-    have ys : y ∈ s, from xcore _ (roption.get_mem _),
+    have ys : y ∈ s, from xcore (roption.get_mem _),
     show x ∈ preimage f s, from  ⟨(f x).get xdom, ys, roption.get_mem _⟩)
 
 lemma core_eq (f : α →. β) (s : set β) : f.core s = f.preimage s ∪ -f.dom :=

@@ -359,7 +359,7 @@ lemma principal_mono {s t : set α} : principal s ≤ principal t ↔ s ⊆ t :=
 by simp only [le_principal_iff, iff_self, mem_principal_sets]
 
 lemma monotone_principal : monotone (principal : set α → filter α) :=
-by simp only [monotone, principal_mono]; exact assume a b h, h
+λ s t, principal_mono.2
 
 @[simp] lemma principal_eq_iff_eq {s t : set α} : principal s = principal t ↔ s = t :=
 by simp only [le_antisymm_iff, le_principal_iff, mem_principal_sets]; refl

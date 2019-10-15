@@ -2066,12 +2066,12 @@ begin
   case rel.cons : a b s t hab hst ih { simpa using hab.add ih }
 end
 
-lemma rel_map {p : γ → δ → Prop} {s t} {f : α → γ} {g : β → δ} (h : (r ⇒ p) f g) (hst : rel r s t) :
+lemma rel_map {p : γ → δ → Prop} {s t} {f : α → γ} {g : β → δ} (h : (r ⟹ p) f g) (hst : rel r s t) :
   rel p (s.map f) (t.map g) :=
 by rw [rel_map_left, rel_map_right]; exact hst.mono h
 
 lemma rel_bind {p : γ → δ → Prop} {s t} {f : α → multiset γ} {g : β → multiset δ}
-  (h : (r ⇒ rel p) f g) (hst : rel r s t) :
+  (h : (r ⟹ rel p) f g) (hst : rel r s t) :
   rel p (s.bind f) (t.bind g) :=
 by apply rel_join; apply rel_map; assumption
 

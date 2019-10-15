@@ -3,13 +3,13 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro
 -/
-import logic.basic data.sum data.set.basic algebra.order
+import logic.basic logic.rel.defs data.sum data.set.basic algebra.order
 open function
 
 /- TODO: automatic construction of dual definitions / theorems -/
 
-universes u v w
-variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
+universes u v w x y
+variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x} {ε : Type y} {r : α → α → Prop}
 
 protected noncomputable def classical.decidable_linear_order [I : linear_order α] :
   decidable_linear_order α :=
@@ -104,11 +104,11 @@ by haveI this := partial_order.ext H;
 infix ` ⁻¹'o `:80 := order.preimage
 
 section monotone
-variables [preorder α] [preorder β] [preorder γ]
+variables [preorder α] [preorder β] [preorder γ] [preorder δ] [preorder ε]
 
 /-- A function between preorders is monotone if
   `a ≤ b` implies `f a ≤ f b`. -/
-def monotone (f : α → β) := ∀⦃a b⦄, a ≤ b → f a ≤ f b
+def monotone (f : α → β) := ((≤) ⟹ (≤)).diag f
 
 theorem monotone_id : @monotone α α _ _ id := assume x y h, h
 
@@ -117,6 +117,16 @@ theorem monotone_const {b : β} : monotone (λ(a:α), b) := assume x y h, le_ref
 protected theorem monotone.comp {g : β → γ} {f : α → β} (m_g : monotone g) (m_f : monotone f) :
   monotone (g ∘ f) :=
 assume a b h, m_g (m_f h)
+
+theorem monotone_bicompl {f : γ → δ → ε} {g : α → γ} {h : β → δ}
+  (m_f : ((≤) ⟹ (≤) ⟹ (≤)).diag f) (m_g : monotone g) (m_h : monotone h) :
+  ((≤) ⟹ (≤) ⟹ (≤)).diag (function.bicompl f g h) :=
+assume x₁ x₂ hx y₁ y₂ hy, m_f (m_g hx) (m_h hy)
+
+theorem monotone_bicompl_diag {f : β → γ → δ} {g : α → β} {h : α → γ}
+  (m_f : ((≤) ⟹ (≤) ⟹ (≤)).diag f) (m_g : monotone g) (m_h : monotone h) :
+  monotone (λ x, f (g x) (h x)) :=
+assume x₁ x₂ hx, m_f (m_g hx) (m_h hx)
 
 lemma monotone_of_monotone_nat {f : ℕ → α} (hf : ∀n, f n ≤ f (n + 1)) :
   monotone f | n m h :=

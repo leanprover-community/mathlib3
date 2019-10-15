@@ -31,12 +31,12 @@ iff.refl _
 
 @[simp]
 theorem rmap_rmap (r : rel α β) (s : rel β γ) (l : filter α) :
-  rmap s (rmap r l) = rmap (r.comp s) l :=
+  rmap s (rmap r l) = rmap (s.comp r) l :=
 filter_eq $
 by simp [rmap_sets, set.preimage, rel.core_comp]
 
 @[simp]
-lemma rmap_compose (r : rel α β) (s : rel β γ) : rmap s ∘ rmap r = rmap (r.comp s) :=
+lemma rmap_compose (r : rel α β) (s : rel β γ) : rmap s ∘ rmap r = rmap (s.comp r) :=
 funext $ rmap_rmap _ _
 
 def rtendsto (r : rel α β) (l₁ : filter α) (l₂ : filter β) := l₁.rmap r ≤ l₂
@@ -59,7 +59,7 @@ theorem rcomap_sets (r : rel α β) (f : filter β) :
 
 @[simp]
 theorem rcomap_rcomap (r : rel α β) (s : rel β γ) (l : filter γ) :
-  rcomap r (rcomap s l) = rcomap (r.comp s) l :=
+  rcomap r (rcomap s l) = rcomap (s.comp r) l :=
 filter_eq $
 begin
   ext t, simp [rcomap_sets, rel.image, rel.core_comp], split,
@@ -70,7 +70,7 @@ begin
 end
 
 @[simp]
-lemma rcomap_compose (r : rel α β) (s : rel β γ) : rcomap r ∘ rcomap s = rcomap (r.comp s) :=
+lemma rcomap_compose (r : rel α β) (s : rel β γ) : rcomap r ∘ rcomap s = rcomap (s.comp r) :=
 funext $ rcomap_rcomap _ _
 
 theorem rtendsto_iff_le_comap (r : rel α β) (l₁ : filter α) (l₂ : filter β) :
@@ -108,7 +108,7 @@ theorem rcomap'_sets (r : rel α β) (f : filter β) :
 
 @[simp]
 theorem rcomap'_rcomap' (r : rel α β) (s : rel β γ) (l : filter γ) :
-  rcomap' r (rcomap' s l) = rcomap' (r.comp s) l :=
+  rcomap' r (rcomap' s l) = rcomap' (s.comp r) l :=
 filter_eq $
 begin
   ext t, simp [rcomap'_sets, rel.image, rel.preimage_comp], split,
@@ -119,7 +119,7 @@ begin
 end
 
 @[simp]
-lemma rcomap'_compose (r : rel α β) (s : rel β γ) : rcomap' r ∘ rcomap' s = rcomap' (r.comp s) :=
+lemma rcomap'_compose (r : rel α β) (s : rel β γ) : rcomap' r ∘ rcomap' s = rcomap' (s.comp r) :=
 funext $ rcomap'_rcomap' _ _
 
 def rtendsto' (r : rel α β) (l₁ : filter α) (l₂ : filter β) := l₁ ≤ l₂.rcomap' r

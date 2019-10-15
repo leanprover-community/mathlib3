@@ -2,86 +2,41 @@
 Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
-
-Transitive reflexive as well as reflexive closure of relations.
 -/
-import tactic.basic logic.relator
-variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
+import logic.rel.defs tactic.basic
 
-namespace relation
+universes u v
 
-section comp
-variables {r : α → β → Prop} {p : β → γ → Prop} {q : γ → δ → Prop}
+namespace rel
 
-def comp (r : α → β → Prop) (p : β → γ → Prop) (a : α) (c : γ) : Prop := ∃b, r a b ∧ p b c
-
-local infixr ` ∘r ` : 80 := relation.comp
-
-lemma comp_eq : r ∘r (=) = r :=
-funext $ assume a, funext $ assume b, propext $ iff.intro
-  (assume ⟨c, h, eq⟩, eq ▸ h)
-  (assume h, ⟨b, h, rfl⟩)
-
-lemma eq_comp : (=) ∘r r = r :=
-funext $ assume a, funext $ assume b, propext $ iff.intro
-  (assume ⟨c, eq, h⟩, eq.symm ▸ h)
-  (assume h, ⟨a, rfl, h⟩)
-
-lemma iff_comp {r : Prop → α → Prop} : (↔) ∘r r = r :=
-have (↔) = (=), by funext a b; exact iff_eq_eq,
-by rw [this, eq_comp]
-
-lemma comp_iff {r : α → Prop → Prop} : r ∘r (↔) = r :=
-have (↔) = (=), by funext a b; exact iff_eq_eq,
-by rw [this, comp_eq]
-
-lemma comp_assoc : (r ∘r p) ∘r q = r ∘r p ∘r q :=
-begin
-  funext a d, apply propext,
-  split,
-  exact assume ⟨c, ⟨b, hab, hbc⟩, hcd⟩, ⟨b, hab, c, hbc, hcd⟩,
-  exact assume ⟨b, hab, c, hbc, hcd⟩, ⟨c, ⟨b, hab, hbc⟩, hcd⟩
-end
-
-lemma flip_comp : flip (r ∘r p) = (flip p) ∘r (flip r) :=
-begin
-  funext c a, apply propext,
-  split,
-  exact assume ⟨b, hab, hbc⟩, ⟨b, hbc, hab⟩,
-  exact assume ⟨b, hbc, hab⟩, ⟨b, hab, hbc⟩
-end
-
-end comp
-
-protected def map (r : α → β → Prop) (f : α → γ) (g : β → δ) : γ → δ → Prop :=
-λc d, ∃a b, r a b ∧ f a = c ∧ g b = d
-
-variables {r : α → α → Prop} {a b c d : α}
+variables {α : Type u} {β : Type v} (r : rel α α) {a b c d : α}
 
 /-- `refl_trans_gen r`: reflexive transitive closure of `r` -/
-inductive refl_trans_gen (r : α → α → Prop) (a : α) : α → Prop
+inductive refl_trans_gen (a : α) : α → Prop
 | refl {} : refl_trans_gen a
 | tail {b c} : refl_trans_gen b → r b c → refl_trans_gen c
 
 attribute [refl] refl_trans_gen.refl
 
-run_cmd tactic.mk_iff_of_inductive_prop `relation.refl_trans_gen `relation.refl_trans_gen.cases_tail_iff
+run_cmd tactic.mk_iff_of_inductive_prop `rel.refl_trans_gen `rel.refl_trans_gen.cases_tail_iff
 
 /-- `refl_gen r`: reflexive closure of `r` -/
-inductive refl_gen (r : α → α → Prop) (a : α) : α → Prop
+inductive refl_gen (a : α) : α → Prop
 | refl {} : refl_gen a
 | single {b} : r a b → refl_gen b
 
-run_cmd tactic.mk_iff_of_inductive_prop `relation.refl_gen `relation.refl_gen_iff
+run_cmd tactic.mk_iff_of_inductive_prop `rel.refl_gen `rel.refl_gen_iff
+
+attribute [refl] refl_gen.refl
 
 /-- `trans_gen r`: transitive closure of `r` -/
-inductive trans_gen (r : α → α → Prop) (a : α) : α → Prop
+inductive trans_gen (a : α) : α → Prop
 | single {b} : r a b → trans_gen b
 | tail {b c} : trans_gen b → r b c → trans_gen c
 
-run_cmd tactic.mk_iff_of_inductive_prop `relation.trans_gen `relation.trans_gen_iff
+run_cmd tactic.mk_iff_of_inductive_prop `rel.trans_gen `rel.trans_gen_iff
 
-attribute [refl] refl_gen.refl
+variable {r}
 
 lemma refl_gen.to_refl_trans_gen : ∀{a b}, refl_gen r a b → refl_trans_gen r a b
 | a _ refl_gen.refl := by refl
@@ -89,7 +44,8 @@ lemma refl_gen.to_refl_trans_gen : ∀{a b}, refl_gen r a b → refl_trans_gen r
 
 namespace refl_trans_gen
 
-@[trans] lemma trans (hab : refl_trans_gen r a b) (hbc : refl_trans_gen r b c) : refl_trans_gen r a c :=
+@[trans] lemma trans (hab : refl_trans_gen r a b) (hbc : refl_trans_gen r b c) :
+  refl_trans_gen r a c :=
 begin
   induction hbc,
   case refl_trans_gen.refl { assumption },
@@ -140,7 +96,7 @@ end
 
 lemma cases_head (h : refl_trans_gen r a b) : a = b ∨ (∃c, r a c ∧ refl_trans_gen r c b) :=
 begin
-  induction h using relation.refl_trans_gen.head_induction_on,
+  induction h using rel.refl_trans_gen.head_induction_on,
   { left, refl },
   { right, existsi _, split; assumption }
 end
@@ -155,7 +111,7 @@ begin
     { exact head hac hcb } }
 end
 
-lemma total_of_right_unique (U : relator.right_unique r)
+lemma total_of_right_unique (U : r.right_unique)
   (ab : refl_trans_gen r a b) (ac : refl_trans_gen r a c) :
   refl_trans_gen r b c ∨ refl_trans_gen r c b :=
 begin
@@ -376,4 +332,4 @@ end
 
 end eqv_gen
 
-end relation
+end rel

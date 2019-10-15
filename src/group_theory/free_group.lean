@@ -13,11 +13,11 @@ and proof that its join is an equivalence relation.
 
 Then we introduce `free_group α` as a quotient over `free_group.red.step`.
 -/
-import logic.relation
+import logic.rel.closure
 import algebra.group algebra.group_power
 import data.fintype data.list.basic
 import group_theory.subgroup
-open relation
+open rel
 
 universes u v w
 
@@ -130,7 +130,7 @@ refl_trans_gen.single
 /-- Church-Rosser theorem for word reduction: If `w1 w2 w3` are words such that `w1` reduces to `w2`
 and `w3` respectively, then there is a word `w4` such that `w2` and `w3` reduce to `w4` respectively. -/
 theorem church_rosser : red L₁ L₂ → red L₁ L₃ → join red L₂ L₃ :=
-relation.church_rosser (assume a b c hab hac,
+rel.church_rosser (assume a b c hab hac,
 match b, c, red.step.diamond hab hac rfl with
 | b, _, or.inl rfl           := ⟨b, by refl, by refl⟩
 | b, c, or.inr ⟨d, hbd, hcd⟩ := ⟨d, refl_gen.single hbd, hcd.to_red⟩
@@ -145,7 +145,7 @@ iff.intro
     generalize eq₁ : (p :: L₁ : list _) = LL₁,
     generalize eq₂ : (p :: L₂ : list _) = LL₂,
     assume h,
-    induction h using relation.refl_trans_gen.head_induction_on
+    induction h using rel.refl_trans_gen.head_induction_on
       with L₁ L₂ h₁₂ h ih
       generalizing L₁ L₂,
     { subst_vars, cases eq₂, constructor },

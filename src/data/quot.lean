@@ -5,14 +5,15 @@ Authors: Johannes Hölzl
 
 Quotients -- extends the core library
 -/
-import logic.relator
+import logic.rel.defs
 
-variables {α : Sort*} {β : Sort*}
+universes u v w
+
+variables {α : Type u} {β : Type v} {γ : Type w}
 
 namespace setoid
 
-lemma ext {α : Sort*} :
-  ∀{s t : setoid α}, (∀a b, @setoid.r α s a b ↔ @setoid.r α t a b) → s = t
+lemma ext : ∀{s t : setoid α}, (∀a b, @setoid.r α s a b ↔ @setoid.r α t a b) → s = t
 | ⟨r, _⟩ ⟨p, _⟩ eq :=
   have r = p, from funext $ assume a, funext $ assume b, propext $ eq a b,
   by subst this
@@ -35,7 +36,7 @@ quot.hrec_on qa (λ a, quot.hrec_on qb (f a) (λ b₁ b₂ pb, cb pb)) $ λ a₁
 
 /-- Map a function `f : α → β` such that `ra x y` implies `rb (f x) (f y)`
 to a map `quot ra → quot rb`. -/
-protected def map (f : α → β) (h : (ra ⇒ rb) f f) : quot ra → quot rb :=
+protected def map (f : α → β) (h : (ra ⟹ rb) f f) : quot ra → quot rb :=
 quot.lift (λ x, ⟦f x⟧) $ assume x y (h₁ : ra x y), quot.sound $ h h₁
 
 /-- If `ra` is a subrelation of `ra'`, then we have a natural map `quot ra → quot ra'`. -/
@@ -46,7 +47,7 @@ quot.map id h
 end quot
 
 namespace quotient
-variables [sa : setoid α] [sb : setoid β]
+variables [sa : setoid α] [sb : setoid β] [sc : setoid γ]
 variables {φ : quotient sa → quotient sb → Sort*}
 
 protected def hrec_on₂ (qa : quotient sa) (qb : quotient sb) (f : ∀ a b, φ ⟦a⟧ ⟦b⟧)
@@ -57,24 +58,33 @@ quot.hrec_on₂ qa qb f
 
 /-- Map a function `f : α → β` that sends equivalent elements to equivalent elements
 to a function `quotient sa → quotient sb`. Useful to define unary operations on quotients. -/
-protected def map (f : α → β) (h : ((≈) ⇒ (≈)) f f) : quotient sa → quotient sb :=
-quot.map f @h
-
-variables {γ : Sort*} [sc : setoid γ]
+protected def map (f : α → β) (h : ((≈) ⟹ (≈)) f f) : quotient sa → quotient sb :=
+quotient.lift (λ x, ⟦f x⟧) $ assume x y h₁, quot.sound $ h h₁
 
 /-- Map a function `f : α → β → γ` that sends equivalent elements to equivalent elements
 to a function `f : quotient sa → quotient sb → quotient sc`.
 Useful to define binary operations on quotients. -/
-protected def map₂ (f : α → β → γ) (h : ((≈) ⇒ (≈) ⇒ (≈)) f f) :
+protected def map₂ (f : α → β → γ) (h : ((≈) ⟹ (≈) ⟹ (≈)).diag f) :
   quotient sa → quotient sb → quotient sc :=
 quotient.lift₂ (λ x y, ⟦f x y⟧) (λ x₁ y₁ x₂ y₂ h₁ h₂, quot.sound $ h h₁ h₂)
+
+variables {sa sb sc}
+
+protected def map' (f : α → β) (h : ((@setoid.r _ sa) ⟹ (@setoid.r _ sb)).diag f) :
+  quotient sa → quotient sb :=
+quotient.map f h
+
+protected def map₂' (f : α → β → γ)
+  (h : ((@setoid.r _ sa) ⟹ (@setoid.r _ sb) ⟹ (@setoid.r _ sc)).diag f) :
+  quotient sa → quotient sb → quotient sc :=
+quotient.map₂ f h
 
 end quotient
 
 @[simp] theorem quotient.eq [r : setoid α] {x y : α} : ⟦x⟧ = ⟦y⟧ ↔ x ≈ y :=
 ⟨quotient.exact, quotient.sound⟩
 
-theorem forall_quotient_iff {α : Type*} [r : setoid α] {p : quotient r → Prop} :
+theorem forall_quotient_iff [r : setoid α] {p : quotient r → Prop} :
   (∀a:quotient r, p a) ↔ (∀a:α, p ⟦a⟧) :=
 ⟨assume h x, h _, assume h a, a.induction_on h⟩
 
@@ -105,18 +115,18 @@ noncomputable def quotient.out [s : setoid α] : quotient s → α := quot.out
 theorem quotient.mk_out [s : setoid α] (a : α) : ⟦a⟧.out ≈ a :=
 quotient.exact (quotient.out_eq _)
 
-instance pi_setoid {ι : Sort*} {α : ι → Sort*} [∀ i, setoid (α i)] : setoid (Π i, α i) :=
+instance pi_setoid {ι : Sort u} {α : ι → Type v} [∀ i, setoid (α i)] : setoid (Π i, α i) :=
 { r := λ a b, ∀ i, a i ≈ b i,
   iseqv := ⟨
     λ a i, setoid.refl _,
     λ a b h i, setoid.symm (h _),
     λ a b c h₁ h₂ i, setoid.trans (h₁ _) (h₂ _)⟩ }
 
-noncomputable def quotient.choice {ι : Type*} {α : ι → Type*} [S : ∀ i, setoid (α i)]
+noncomputable def quotient.choice {ι : Sort u} {α : ι → Type v} [S : ∀ i, setoid (α i)]
   (f : ∀ i, quotient (S i)) : @quotient (Π i, α i) (by apply_instance) :=
 ⟦λ i, (f i).out⟧
 
-theorem quotient.choice_eq {ι : Type*} {α : ι → Type*} [∀ i, setoid (α i)]
+theorem quotient.choice_eq {ι : Sort u} {α : ι → Type v} [∀ i, setoid (α i)]
   (f : ∀ i, α i) : quotient.choice (λ i, ⟦f i⟧) = ⟦f⟧ :=
 quotient.sound $ λ i, quotient.mk_out _
 
@@ -128,7 +138,7 @@ lemma nonempty_quotient_iff (s : setoid α) : nonempty (quotient s) ↔ nonempty
   in effect to `nonempty α`, but unlike `nonempty α`, `trunc α` is data,
   so the VM representation is the same as `α`, and so this can be used to
   maintain computability. -/
-def {u} trunc (α : Sort u) : Sort u := @quot α (λ _ _, true)
+def trunc (α : Sort u) : Sort u := @quot α (λ _ _, true)
 
 theorem true_equivalence : @equivalence α (λ _ _, true) :=
 ⟨λ _, trivial, λ _ _ _, trivial, λ _ _ _ _ _, trivial⟩
@@ -209,8 +219,7 @@ theorem nonempty_of_trunc (q : trunc α) : nonempty α :=
 let ⟨a, _⟩ := q.exists_rep in ⟨a⟩
 
 namespace quotient
-variables {γ : Sort*} {φ : Sort*}
-  {s₁ : setoid α} {s₂ : setoid β} {s₃ : setoid γ}
+variables {φ : Sort*} {s₁ : setoid α} {s₂ : setoid β} {s₃ : setoid γ}
 
 /- Versions of quotient definitions and lemmas ending in `'` use unification instead
 of typeclass inference for inferring the `setoid` argument. This is useful when there are

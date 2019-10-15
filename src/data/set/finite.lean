@@ -469,7 +469,7 @@ lemma to_finset_card {α : Type*} [fintype α] (H : set α) :
   H.to_finset.card = fintype.card H :=
 multiset.card_map subtype.val finset.univ.val
 
-lemma finset.to_finset_inter {α : Type*} [fintype α] (s t : set α) [decidable_eq α] :
+lemma to_finset_inter {α : Type*} [fintype α] (s t : set α) [decidable_eq α] :
   (s ∩ t).to_finset = s.to_finset ∩ t.to_finset :=
 by ext; simp
 
@@ -520,3 +520,17 @@ calc
   ... = s.prod g : by rw image_preimage
 
 end finset
+
+lemma fintype.exists_max [fintype α] [nonempty α]
+  {β : Type*} [decidable_linear_order β] (f : α → β) :
+  ∃ x₀ : α, ∀ x, f x ≤ f x₀ :=
+begin
+  obtain ⟨y, hy⟩ : ∃ y, y ∈ (set.range f).to_finset,
+  { haveI := classical.inhabited_of_nonempty ‹nonempty α›,
+    exact ⟨f (default α), set.mem_to_finset.mpr $ set.mem_range_self _⟩ },
+  rcases finset.max_of_mem hy with ⟨y₀, h⟩,
+  rcases set.mem_to_finset.1 (finset.mem_of_max h) with ⟨x₀, rfl⟩,
+  use x₀,
+  intro x,
+  apply finset.le_max_of_mem (set.mem_to_finset.mpr $ set.mem_range_self x) h
+end

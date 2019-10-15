@@ -75,7 +75,11 @@ theorem finite_mem_finset (s : finset α) : finite {a | a ∈ s} :=
 theorem finite.of_fintype [fintype α] (s : set α) : finite s :=
 by classical; exact ⟨set_fintype s⟩
 
-instance decidable_mem_of_fintype [decidable_eq α] (s : set α) [fintype s] (a) : decidable (a ∈ s) :=
+/-- Membership of a subset of a finite type is decidable.
+
+Using this as an instance leads to potential loops with `subtype.fintype` under certain decidability
+assumptions, so it should only be declared a local instance. -/
+def decidable_mem_of_fintype [decidable_eq α] (s : set α) [fintype s] (a) : decidable (a ∈ s) :=
 decidable_of_iff _ mem_to_finset
 
 instance fintype_empty : fintype (∅ : set α) :=
@@ -117,9 +121,15 @@ lemma card_image_of_injective (s : set α) [fintype s]
   fintype.card (f '' s) = fintype.card s :=
 card_image_of_inj_on $ λ _ _ _ _ h, H h
 
+section
+
+local attribute [instance] decidable_mem_of_fintype
+
 instance fintype_insert [decidable_eq α] (a : α) (s : set α) [fintype s] : fintype (insert a s : set α) :=
 if h : a ∈ s then by rwa [insert_eq, union_eq_self_of_subset_left (singleton_subset_iff.2 h)]
 else fintype_insert' _ h
+
+end
 
 @[simp] theorem finite_insert (a : α) {s : set α} : finite s → finite (insert a s)
 | ⟨h⟩ := ⟨@set.fintype_insert _ (classical.dec_eq α) _ _ h⟩
@@ -454,7 +464,6 @@ end
 section
 
 local attribute [instance, priority 1] classical.prop_decidable
-local attribute [instance, priority 0] set.decidable_mem_of_fintype
 
 lemma to_finset_card {α : Type*} [fintype α] (H : set α) :
   H.to_finset.card = fintype.card H :=

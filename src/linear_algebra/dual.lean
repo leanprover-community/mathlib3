@@ -40,10 +40,10 @@ open vector_space module module.dual submodule linear_map cardinal function
 
 instance dual.vector_space : vector_space K (dual K V) := { ..module.dual.inst K V }
 
-variables [decidable_eq ι]
+variables [de : decidable_eq ι]
 variables {B : ι → V} (h : is_basis K B)
 
-include h
+include de h
 
 def to_dual : V →ₗ[K] module.dual K V :=
 h.constr $ λ v, h.constr $ λ w, if w = v then 1 else 0
@@ -54,7 +54,7 @@ lemma to_dual_apply (i j : ι) :
 
 def to_dual_flip (v : V) : (V →ₗ[K] K) := (linear_map.flip h.to_dual).to_fun v
 
-omit h
+omit de h
 def eval_finsupp_at (i : ι) : (ι →₀ K) →ₗ[K] K :=
 { to_fun := λ f, f i,
   add := by intros; rw finsupp.add_apply,
@@ -66,6 +66,8 @@ set_option class.instance_max_depth 50
 def coord_fun (i : ι) : (V →ₗ[K] K) := (eval_finsupp_at i).comp h.repr
 
 lemma coord_fun_eq_repr (v : V) (i : ι) : h.coord_fun i v = h.repr v i := rfl
+
+include de
 
 lemma to_dual_swap_eq_to_dual (v w : V) : h.to_dual_flip v w = h.to_dual w v := rfl
 
@@ -234,12 +236,12 @@ local attribute [instance, priority 1] classical.prop_decidable
 open vector_space module module.dual linear_map function
 
 universes u v w
-variables {K : Type u} {V : Type v} {ι : Type w} [decidable_eq ι]
+variables {K : Type u} {V : Type v} {ι : Type w} [dι : decidable_eq ι]
 variables [discrete_field K] [add_comm_group V] [vector_space K V]
-          [decidable_eq V] [decidable_eq (ι → V)] [decidable_eq $ dual K V]
+          [decidable_eq V] [dιv : decidable_eq (ι → V)] [decidable_eq $ dual K V]
 variables {e : ι → V} {ε : ι → dual K V} (h : dual_pair e ε)
 
-include  h
+include dι dιv h
 
 /-- The coefficients of `v` on the basis `e` -/
 def coeffs (v : V) : ι →₀ K :=
@@ -256,8 +258,12 @@ private def help_tcs : has_scalar K V := mul_action.to_has_scalar _ _
 
 local attribute [instance] help_tcs
 
+omit dι dιv
+
 /-- linear combinations of elements of `e` -/
 def lc (e : ι → V) (l : ι →₀ K) : V := l.sum (λ (i : ι) (a : K), a • (e i))
+
+include dι dιv
 
 include h
 

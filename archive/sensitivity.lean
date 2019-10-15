@@ -19,11 +19,10 @@ import linear_algebra.finite_dimensional
 import linear_algebra.dual
 import analysis.normed_space.basic
 
--- The next three lines assert we do not want to give a constructive proof,
+-- The next two lines assert we do not want to give a constructive proof,
 -- but rather use classical logic.
 noncomputable theory
-local attribute [instance, priority 1] classical.prop_decidable
-local attribute [instance, priority 0] set.decidable_mem_of_fintype
+open_locale classical
 
 notation `|`x`|` := abs x
 notation `√` := real.sqrt
@@ -42,7 +41,7 @@ bool = {tt, ff}.
 -/
 
 /-- The hypercube in dimension n. -/
-def Q (n : ℕ) := fin n → bool
+@[derive [inhabited, fintype]] def Q (n : ℕ) := fin n → bool
 
 /-- The projection from Q (n + 1) to Q n forgetting the first value
 (ie. the image of zero). -/
@@ -52,22 +51,13 @@ namespace Q
 -- n will always denote a natural number.
 variable (n : ℕ)
 
-/-- Q n is not empty -/
-instance : inhabited (Q n) := ⟨λ i, tt⟩
-
 /-- Q 0 has a unique element. -/
 instance : unique (Q 0) :=
 ⟨⟨λ _, tt⟩, by { intro, ext x, fin_cases x }⟩
 
-/-- Q n is finite. -/
-instance : fintype (Q n) := by delta Q; apply_instance
-
 /-- Q n has 2^n elements. -/
 lemma card : card (Q n) = 2^n :=
 by simp [Q]
-
-/-- The ℝ-module structure on functions from Q n to ℝ (with finite support). -/
-instance coeffs_module (n) : module ℝ (Q n →₀ ℝ) := finsupp.module (Q n) ℝ
 
 -- Until the end of this namespace, n will be an implicit argument (still
 -- a natural number).
@@ -95,7 +85,7 @@ by rintros ⟨v, _⟩; apply fin_zero_elim v
 
 /-- If p and q in Q (n+1) have different values at zero then they are adjacent
 iff their projections to Q n are equal. -/
-lemma adj_succ_of_zero_neq {p q : Q (n+1)} (h₀ : p 0 ≠ q 0) :
+lemma adj_iff_proj_eq {p q : Q (n+1)} (h₀ : p 0 ≠ q 0) :
   p.adjacent q ↔ π p = π q :=
 begin
   split,
@@ -103,7 +93,7 @@ begin
     ext x, by_contradiction hx,
     apply fin.succ_ne_zero x,
     rw [h_uni _ hx, h_uni _ h₀] },
-    { intro heq,
+  { intro heq,
     use [0, h₀],
     intros y hy,
     contrapose! hy,
@@ -113,7 +103,7 @@ end
 
 /-- If p and q in Q (n+1) have the same value at zero then they are adjacent
 iff their projections to Q n are adjacent. -/
-lemma adj_succ_of_zero_eq {p q : Q (n+1)} (h₀ : p 0 = q 0) :
+lemma adj_iff_proj_adj {p q : Q (n+1)} (h₀ : p 0 = q 0) :
   p.adjacent q ↔ (π p).adjacent (π q) :=
 begin
   split,
@@ -302,8 +292,8 @@ begin
     dsimp [e, ε, f], cases hp : p 0 ; cases hq : q 0,
     all_goals
     { repeat {rw cond_tt}, repeat {rw cond_ff},
-      simp [f_map_zero, hp, hq, IH, duality, abs_of_nonneg ite_nonneg, Q.adj_succ_of_zero_neq,
-            Q.adj_succ_of_zero_eq],
+      simp [f_map_zero, hp, hq, IH, duality, abs_of_nonneg ite_nonneg, Q.adj_iff_proj_eq,
+            Q.adj_iff_proj_adj],
       congr' 1 } }
 end
 

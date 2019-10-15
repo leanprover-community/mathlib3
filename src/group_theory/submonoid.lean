@@ -184,7 +184,8 @@ by induction n; simp [*, pow_succ]
 
 @[simp] lemma is_add_submonoid.smul_coe {β : Type*} [add_monoid β] {s : set β}
   [is_add_submonoid s] (a : s) (n : ℕ) : ((add_monoid.smul n a : s) : β) = add_monoid.smul n a :=
-by induction n; [refl, simp [*, succ_smul]]
+by {induction n, refl, simp [*, succ_smul]}
+
 attribute [to_additive smul_coe] is_submonoid.coe_pow
 
 @[to_additive is_add_monoid_hom]

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
 
-import group_theory.submonoid tactic.default data.setoid algebra.pi_instances data.equiv.algebra
+import group_theory.submonoid data.setoid algebra.pi_instances data.equiv.algebra
 
 /-!
 # Congruence relations
@@ -27,6 +27,22 @@ namespace mul_equiv
 @[to_additive add_submonoid_congr "Makes the identity additive isomorphism from a proof two submonoids of an additive monoid are equal."]
 def submonoid_congr [monoid M] {A B : submonoid M} (h : A = B) : A ≃* B :=
 { map_mul' := λ x y, rfl, ..equiv.set_congr $ submonoid.ext'_iff.2 h }
+
+@[to_additive]
+protected lemma map_eq_comap [monoid M] [monoid N]
+ (e : M ≃* N) (S : submonoid M) : e.to_monoid_hom.map S = e.symm.to_monoid_hom.comap S :=
+submonoid.ext $ assume x, set.mem_image_iff_of_inverse e.left_inv e.right_inv
+
+@[to_additive]
+protected lemma le_map_iff_map_le [monoid M] [monoid N]
+ (e : M ≃* N) (S : submonoid M) (T : submonoid N) :
+  T ≤ e.to_monoid_hom.map S ↔ e.symm.to_monoid_hom.map T ≤ S :=
+equiv.subset_image e.to_equiv S T
+
+@[to_additive]
+lemma symm_map_map [monoid M] [monoid N]
+ (f : M ≃* N) (S : submonoid M) : f.symm.to_monoid_hom.map (f.to_monoid_hom.map S) = S :=
+submonoid.ext $ λ x, (set.ext_iff _ _).1 (equiv.symm_image_image f.to_equiv S) x
 
 end mul_equiv
 

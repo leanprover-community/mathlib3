@@ -48,6 +48,8 @@ variables [fintype α] [integral_domain α]
 
 open finset polynomial
 
+/-- The cardinality of a field is at most n times the cardinality of the image of a degree n
+  polnyomial -/
 lemma card_image_polynomial_eval [decidable_eq α] {p : polynomial α} (hp : 0 < p.degree) :
   fintype.card α ≤ nat_degree p * (univ.image (λ x, eval x p)).card :=
 have hdp : ∀ {a : α}, degree p = degree (p - C a),
@@ -75,7 +77,8 @@ calc fintype.card α = fintype.card (Σ a : set.range (λ x, eval x p), {x // p.
   sum_le_sum (λ a _, by rw [nat_degree_eq_of_degree_eq (@hdp a)]; exact card_roots' (@hp0 a))
 ... = _ : by rw [sum_const, add_monoid.smul_eq_mul', nat.cast_id]
 
-lemma exists_root_sum_quadratic (f g : polynomial α) (hf2 : degree f = 2)
+/-- If `f` and `g` are quadratic polynomials, then the `f.eval a + g.eval b = 0` has a solution. -/
+lemma exists_root_sum_quadratic {f g : polynomial α} (hf2 : degree f = 2)
   (hg2 : degree g = 2) (hα : fintype.card α % 2 = 1) : ∃ a b, f.eval a + g.eval b = 0 :=
 by letI := classical.dec_eq α; exact
 have ∀ f : polynomial α, degree f = 2 →

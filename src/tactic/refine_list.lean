@@ -33,9 +33,8 @@ meta def run_and_save_state {α : Type} (t : tactic α) : tactic (α × tactic_s
        | result.exception msg pos s' := result.exception msg pos s
 end
 
--- TODO finish converting to doc-strings
-
---This function prints the apply tactic with the corresponding lemma/theorem with inputs
+/--This function prints either the `exact` or `refine` tactics with the corresponding
+lemma/theorem with inputs for a specific tactic_state-/
 meta def message (l : decl_data × tactic_state) (g : expr) : tactic string :=
 do s ← get_state,
    set_state l.2,
@@ -43,7 +42,7 @@ do s ← get_state,
    set_state s,
    return r
 
---Runs through the list of things and prints a message for each one
+/--Runs through the list of tactic_states and prints an `exact` or `refine` message for each one-/
 meta def print_messages (g : expr) (silent : bool) : list (decl_data × tactic_state) → tactic (list string)
 | []      := return []
 | (l::ls) := do r ← message l g,
@@ -51,6 +50,7 @@ meta def print_messages (g : expr) (silent : bool) : list (decl_data × tactic_s
                 rs ← print_messages ls,
                 return (r :: rs)
 
+/-- Returns a monadic lazy list of declaration data -/
 meta def get_mldefs (defs : list decl_data) : mllist tactic decl_data :=
 mllist.of_list defs
 
@@ -58,7 +58,7 @@ mllist.of_list defs
 declare_trace silence_refine_list -- Turn off `exact ...` trace message
 declare_trace refine_list         -- Trace a list of all relevant lemmas
 
---The main list_refine tactic, this is very similar to the main Library_search function
+/-- The main list_refine tactic, this is very similar to the main library_search function -/
 meta def refine_list (num : ℕ := 50) (discharger : tactic unit := done) : tactic (list string) :=
 do (g::gs) ← get_goals,
    t ← infer_type g,

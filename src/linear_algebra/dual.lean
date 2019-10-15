@@ -267,7 +267,7 @@ include dι dιv
 
 include h
 
-@[simp] lemma dual_lc (l : ι →₀ K) (i : ι) : ε i (dual_pair.lc e l) = l i :=
+lemma dual_lc (l : ι →₀ K) (i : ι) : ε i (dual_pair.lc e l) = l i :=
 begin
   erw linear_map.map_sum,
   simp only [h.eval, map_smul, smul_eq_mul],

@@ -69,6 +69,13 @@ protected def map₂ (f : α → β → γ) (h : ((≈) ⇒ (≈) ⇒ (≈)) f f
   quotient sa → quotient sb → quotient sc :=
 quotient.lift₂ (λ x y, ⟦f x y⟧) (λ x₁ y₁ x₂ y₂ h₁ h₂, quot.sound $ h h₁ h₂)
 
+/-- A version of `quotient.map₂` using curly braces and unification. -/
+protected def map₂' {α : Sort*} {β : Sort*} {γ : Sort*}
+  {sa : setoid α} {sb : setoid β} {sc : setoid γ}
+  (f : α → β → γ) (h : ((≈) ⇒ (≈) ⇒ (≈)) f f) :
+  quotient sa → quotient sb → quotient sc :=
+quotient.map₂ f h
+
 end quotient
 
 @[simp] theorem quotient.eq [r : setoid α] {x y : α} : ⟦x⟧ = ⟦y⟧ ↔ x ≈ y :=

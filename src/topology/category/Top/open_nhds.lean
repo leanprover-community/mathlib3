@@ -12,10 +12,14 @@ open opposite
 
 universe u
 
-namespace topological_space.open_nhds
 variables {X Y : Top.{u}} (f : X ⟶ Y)
 
+namespace topological_space
+
 def open_nhds (x : X.α) := { U : opens X // x ∈ U }
+
+namespace open_nhds
+
 instance open_nhds_category (x : X.α) : category.{u} (open_nhds x) := by {unfold open_nhds, apply_instance}
 
 def inclusion (x : X.α) : open_nhds x ⥤ opens X :=
@@ -47,4 +51,5 @@ nat_iso.of_components
 @[simp] lemma inclusion_map_iso_hom (x : X) : (inclusion_map_iso f x).hom = 𝟙 _ := rfl
 @[simp] lemma inclusion_map_iso_inv (x : X) : (inclusion_map_iso f x).inv = 𝟙 _ := rfl
 
-end topological_space.open_nhds
+end open_nhds
+end topological_space

@@ -18,6 +18,7 @@ import
   tactic.rewrite
   tactic.sanity_check
   tactic.simpa
+  tactic.simps
   tactic.split_ifs
   tactic.squeeze
   tactic.well_founded_tactics

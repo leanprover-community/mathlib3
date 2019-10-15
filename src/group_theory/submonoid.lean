@@ -50,11 +50,18 @@ theorem multiplicative.is_submonoid_iff
 ⟨λ ⟨h₁, h₂⟩, ⟨h₁, @h₂⟩, λ h, by resetI; apply_instance⟩
 
 @[to_additive]
-lemma is_submonoid.inter (s₁ s₂ : set α) [is_submonoid s₁] [is_submonoid s₂] :
+instance is_submonoid.inter (s₁ s₂ : set α) [is_submonoid s₁] [is_submonoid s₂] :
   is_submonoid (s₁ ∩ s₂) :=
 { one_mem := ⟨is_submonoid.one_mem _, is_submonoid.one_mem _⟩,
   mul_mem := λ x y hx hy,
     ⟨is_submonoid.mul_mem hx.1 hy.1, is_submonoid.mul_mem hx.2 hy.2⟩ }
+
+@[to_additive]
+instance is_submonoid.Inter {ι : Sort*} (s : ι → set α) [h : ∀ y : ι, is_submonoid (s y)] :
+  is_submonoid (set.Inter s) :=
+{ one_mem := set.mem_Inter.2 $ λ y, is_submonoid.one_mem (s y),
+  mul_mem := λ x₁ x₂ h₁ h₂, set.mem_Inter.2 $
+    λ y, is_submonoid.mul_mem (set.mem_Inter.1 h₁ y) (set.mem_Inter.1 h₂ y) }
 
 @[to_additive is_add_submonoid_Union_of_directed]
 lemma is_submonoid_Union_of_directed {ι : Type*} [hι : nonempty ι]
@@ -171,6 +178,10 @@ end is_submonoid
 
 @[to_additive add_monoid]
 instance subtype.monoid {s : set α} [is_submonoid s] : monoid s :=
+by subtype_instance
+
+@[to_additive add_comm_monoid]
+instance subtype.comm_monoid {α} [comm_monoid α] {s : set α} [is_submonoid s] : comm_monoid s :=
 by subtype_instance
 
 @[simp, to_additive]

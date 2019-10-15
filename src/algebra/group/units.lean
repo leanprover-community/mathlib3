@@ -135,7 +135,7 @@ section monoid
   theorem divp_assoc (a b : α) (u : units α) : a * b /ₚ u = a * (b /ₚ u) :=
   mul_assoc _ _ _
 
-  @[simp] theorem divp_inv (x : α) (u : units α) : a /ₚ u⁻¹ = a * u := rfl
+  @[simp] theorem divp_inv (u : units α) : a /ₚ u⁻¹ = a * u := rfl
 
   @[simp] theorem divp_mul_cancel (a : α) (u : units α) : a /ₚ u * u = a :=
   (mul_assoc _ _ _).trans $ by rw [units.inv_mul, mul_one]

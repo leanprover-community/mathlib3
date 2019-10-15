@@ -42,6 +42,69 @@ def field_of_integral_domain [fintype α] [decidable_eq α] [integral_domain α]
   inv_zero := dif_pos rfl,
   ..show integral_domain α, by apply_instance }
 
+section polynomial
+
+variables [fintype α] [integral_domain α]
+
+open finset polynomial
+
+lemma card_image_polynomial_eval [decidable_eq α] {p : polynomial α} (hp : 0 < p.degree) :
+  fintype.card α ≤ nat_degree p * (univ.image (λ x, eval x p)).card :=
+have hdp : ∀ {a : α}, degree p = degree (p - C a),
+  from λ a, eq.symm $ by rw [sub_eq_add_neg, add_comm]; exact
+    degree_add_eq_of_degree_lt
+      (show degree (-C a) < degree p, by rw degree_neg;
+        exact lt_of_le_of_lt (degree_C_le) hp),
+have hp0 : ∀ {a : α}, p - C a ≠ 0, from λ a h, by rw [@hdp a, h] at hp; simp * at *,
+have hroots : ∀ {x a : α}, x ∈ (p - C a).roots ↔ p.eval x = a,
+  from λ _ _, by rw [mem_roots hp0, is_root, eval_sub, eval_C, sub_eq_zero],
+calc fintype.card α = fintype.card (Σ a : set.range (λ x, eval x p), {x // p.eval x = a}) :
+  fintype.card_congr (equiv.sigma_subtype_preimage_equiv _
+    (set.range (λ x, eval x p)) (set.mem_range_self : _)).symm
+... = univ.sum (λ a : set.range (λ x, eval x p), fintype.card {x // p.eval x = a}) :
+  fintype.card_sigma _
+... = (univ.image (λ x, eval x p)).sum (λ a, (p - C a).roots.card) :
+  finset.sum_bij (λ a _, a)
+    (λ ⟨a, x, hx⟩ _, mem_image.2 ⟨x, mem_univ _, hx⟩)
+    (λ ⟨a, ha⟩ _, finset.card_congr (λ a _, a.val) (λ ⟨x, hx⟩ _, by rwa hroots)
+      (λ _ _ _ _, subtype.ext.2)
+      (λ x hx, ⟨⟨x, by rwa ← hroots⟩, mem_univ _, rfl⟩))
+    (λ _ _ _ _, subtype.ext.2)
+    (λ x, by rw [mem_image]; exact λ ⟨a, _, ha⟩, ⟨⟨x, ⟨a, ha⟩⟩, mem_univ _, rfl⟩)
+... ≤ (univ.image (λ x, eval x p)).sum (λ _, p.nat_degree) :
+  sum_le_sum (λ a _, by rw [nat_degree_eq_of_degree_eq (@hdp a)]; exact card_roots' (@hp0 a))
+... = _ : by rw [sum_const, add_monoid.smul_eq_mul', nat.cast_id]
+
+lemma exists_root_sum_quadratic (f g : polynomial α) (hf2 : degree f = 2)
+  (hg2 : degree g = 2) (hα : fintype.card α % 2 = 1) : ∃ a b, f.eval a + g.eval b = 0 :=
+by letI := classical.dec_eq α; exact
+have ∀ f : polynomial α, degree f = 2 →
+    fintype.card α ≤ 2 * (univ.image (λ x : α, eval x f)).card,
+  from λ f hf, have hf0 : f ≠ 0, from λ h, by simp * at *; contradiction,
+    calc fintype.card α ≤ nat_degree f * (univ.image (λ x, eval x f)).card :
+      card_image_polynomial_eval (hf.symm ▸ dec_trivial)
+    ... = _ : by rw [degree_eq_nat_degree hf0, show (2 : with_bot ℕ) = (2 : ℕ), from rfl,
+      with_bot.coe_eq_coe] at hf; rw hf,
+have ∀ f : polynomial α, degree f = 2 →
+    fintype.card α < 2 * (univ.image (λ x : α, eval x f)).card,
+  from λ f hf, lt_of_le_of_ne (this _ hf) (mt (congr_arg (% 2)) (by simp *)),
+have h : fintype.card α < (univ.image (λ x : α, eval x f)).card +
+    (univ.image (λ x : α, eval x (-g))).card,
+  from (mul_lt_mul_left (show 2 > 0, by norm_num)).1 $
+    by rw [two_mul, mul_add]; exact add_lt_add (this _ hf2) (this _ (by simpa)),
+have hd : ¬ disjoint (univ.image (λ x : α, eval x f)) (univ.image (λ x : α, eval x (-g))),
+  from λ hd, by rw [← card_disjoint_union hd, ← not_le] at h;
+    exact h (card_le_of_subset $ subset_univ _),
+begin
+  simp only [disjoint_left, mem_image] at hd,
+  push_neg at hd,
+  rcases hd with ⟨x, ⟨a, _, ha⟩, ⟨b, _, hb⟩⟩,
+  use [a, b],
+  rw [ha, ← hb, eval_neg, neg_add_self]
+end
+
+end polynomial
+
 section
 variables [field α] [fintype α]
 

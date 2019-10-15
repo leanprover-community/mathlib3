@@ -56,7 +56,8 @@ declare_trace silence_refine_list -- Turn off `exact ...` trace message
 declare_trace refine_list         -- Trace a list of all relevant lemmas
 
 /-- The main refine_list tactic, this is very similar to the main library_search function. It returns
-list tactic string consisting of no more than num possiable applications of the refine tactic.-/
+a list of strings consisting of possible applications of the refine tactic. The length of the list is 
+no longer than num.-/
 meta def refine_list (num : ℕ := 50) (discharger : tactic unit := done) : tactic (list string) :=
 do (g::gs) ← get_goals,
    t ← infer_type g,

@@ -2,8 +2,6 @@
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Lucas Allen
 
--- TODO Documentation in tactics.md
-
 import tactic.library_search
 import data.mllist
 
@@ -57,7 +55,8 @@ mllist.of_list defs
 declare_trace silence_refine_list -- Turn off `exact ...` trace message
 declare_trace refine_list         -- Trace a list of all relevant lemmas
 
-/-- The main list_refine tactic, this is very similar to the main library_search function -/
+/-- The main refine_list tactic, this is very similar to the main library_search function. It returns
+list tactic string consisting of no more than num possiable applications of the refine tactic.-/
 meta def refine_list (num : ℕ := 50) (discharger : tactic unit := done) : tactic (list string) :=
 do (g::gs) ← get_goals,
    t ← infer_type g,

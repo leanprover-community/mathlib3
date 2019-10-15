@@ -7,9 +7,8 @@
 import tactic.library_search
 import data.mllist
 
-/-!
-TODO write a paragraph describing this file
-
+/-
+`refine_list` is an extension of `library_search` which lists some applicable lemmas and theorems.
 -/
 
 namespace tactic

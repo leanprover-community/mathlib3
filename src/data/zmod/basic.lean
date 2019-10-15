@@ -390,20 +390,26 @@ lemma le_div_two_iff_lt_neg {p : ℕ} (hp : prime p) (hp1 : p % 2 = 1)
 lemma ne_neg_self (hp1 : p % 2 = 1) {a : zmodp p hp} (ha : a ≠ 0) : a ≠ -a :=
 @zmod.ne_neg_self ⟨p, hp.pos⟩ hp1 _ ha
 
-def val_min_abs {n : ℕ+} (x : zmod n) : ℤ := zmod.val_min_abs x
+variable {hp}
 
-@[simp] lemma coe_val_min_abs {n : ℕ+} (x : zmod n) :
-  (x.val_min_abs : zmod n) = x :=
+/-- `val_min_abs x` returns the integer in the same equivalence class as `x` that is closest to `0`,
+  The result will be in the interval `(-n/2, n/2]` -/
+def val_min_abs (x : zmodp p hp) : ℤ := zmod.val_min_abs x
+
+@[simp] lemma coe_val_min_abs (x : zmodp p hp) :
+  (x.val_min_abs : zmodp p hp) = x :=
 zmod.coe_val_min_abs x
 
-lemma nat_abs_val_min_abs_le {n : ℕ+} (x : zmod n) : x.val_min_abs.nat_abs ≤ n / 2 :=
+lemma nat_abs_val_min_abs_le (x : zmodp p hp) : x.val_min_abs.nat_abs ≤ p / 2 :=
 zmod.nat_abs_val_min_abs_le x
 
-@[simp] lemma val_min_abs_zero {n : ℕ+} : (0 : zmod n).val_min_abs = 0 :=
+@[simp] lemma val_min_abs_zero : (0 : zmodp p hp).val_min_abs = 0 :=
 zmod.val_min_abs_zero
 
-@[simp] lemma val_min_abs_eq_zero {n : ℕ+} (x : zmod n) : x.val_min_abs = 0 ↔ x = 0 :=
+@[simp] lemma val_min_abs_eq_zero (x : zmodp p hp) : x.val_min_abs = 0 ↔ x = 0 :=
 zmod.val_min_abs_eq_zero x
+
+variable (hp)
 
 lemma prime_ne_zero {q : ℕ} (hq : prime q) (hpq : p ≠ q) : (q : zmodp p hp) ≠ 0 :=
 by rwa [← nat.cast_zero, ne.def, zmodp.eq_iff_modeq_nat, nat.modeq.modeq_zero_iff,

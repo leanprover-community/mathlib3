@@ -47,6 +47,23 @@ meta def nolint_attr : user_attribute :=
 attribute [nolint] imp_intro
   classical.dec classical.dec_pred classical.dec_rel classical.dec_eq
 
+meta structure linter :=
+(test : declaration → tactic (option string))
+(no_errors_found : string)
+(errors_found : string)
+(is_fast : bool := tt)
+
+meta def get_linters (l : list name) : tactic (list linter) :=
+l.mmap (λ n, mk_const n >>= eval_expr linter)
+
+@[user_attribute]
+meta def linter_attr : user_attribute (list linter) unit :=
+{ name := "linter",
+  descr := "Use this declaration as a linting test in #lint",
+  after_set := some $ λ nm _ _,
+                mk_const nm >>= infer_type >>= unify `(linter),
+  cache_cfg := ⟨get_linters, []⟩ }
+
 setup_tactic_parser
 universe variable v
 
@@ -123,6 +140,11 @@ meta def unused_arguments (d : declaration) : tactic (option string) := do
     (if ds.countp (λ b', b.type = b'.type) ≥ 2 then " (duplicate)" else "")) <$> pp b),
   return $ some $ ns.to_string_aux tt
 
+@[linter] meta def linter.unused_arguments : linter :=
+{ test := unused_arguments,
+  no_errors_found := "No unused arguments",
+  errors_found := "UNUSED ARGUMENTS" }
+
 /-- Checks whether the correct declaration constructor (definition of theorem) by comparing it
   to its sort. Instances will not be printed -/
 meta def incorrect_def_lemma (d : declaration) : tactic (option string) := do
@@ -136,12 +158,22 @@ meta def incorrect_def_lemma (d : declaration) : tactic (option string) := do
     else if (d.is_definition : bool) then "is a def, should be a lemma/theorem"
     else "is a lemma/theorem, should be a def"
 
+@[linter] meta def linter.incorrect_def_lemma : linter :=
+{ test := incorrect_def_lemma,
+  no_errors_found := "All declarations correctly marked as def/lemma",
+  errors_found := "INCORRECT DEF/LEMMA" }
+
 /-- Checks whether a declaration has a namespace twice consecutively in its name -/
 meta def dup_namespace (d : declaration) : tactic (option string) :=
 is_instance d.to_name >>= λ is_inst,
 return $ let nm := d.to_name.components in if nm.chain' (≠) ∨ is_inst then none
   else let s := (nm.find $ λ n, nm.count n ≥ 2).iget.to_string in
   some $ "The namespace `" ++ s ++ "` is duplicated in the name"
+
+@[linter] meta def linter.dup_namespace : linter :=
+{ test := dup_namespace,
+  no_errors_found := "No declarations have a duplicate namespace",
+  errors_found := "DUPLICATED NAMESPACES IN NAME" }
 
 /-- Checks whether a `>`/`≥` is used in the statement of `d`. -/
 -- TODO: the commented out code also checks for classicality in statements, but needs fixing
@@ -163,21 +195,17 @@ return $ let illegal := [`gt, `ge] in if d.type.contains_constant (λ n, n ∈ i
   then some "the type contains ≥/>. Use ≤/< instead."
   else none
 
-/- The quick checks of `#lint` -/
-meta def quick_checks : list ((declaration → tactic (option string)) × string × string) :=
-[ (unused_arguments, "No unused arguments", "UNUSED ARGUMENTS"),
-  (incorrect_def_lemma, "All declarations correctly marked as def/lemma", "INCORRECT DEF/LEMMA"),
-  (dup_namespace, "No declarations have a duplicate namespace", "DUPLICATED NAMESPACES IN NAME")]
+@[linter] meta def linter.illegal_constants : linter :=
+{ test := illegal_constants_in_statement,
+  no_errors_found := "No illegal constants in declarations",
+  errors_found := "ILLEGAL CONSTANTS IN DECLARATIONS",
+  is_fast := ff }
 
-/- The slow checks of `#lint`. They are not executed with `#lint-` -/
-meta def slow_checks : list ((declaration → tactic (option string)) × string × string) :=
-[ (illegal_constants_in_statement, "No illegal constants in declarations",
-    "ILLEGAL CONSTANTS IN DECLARATIONS")]
-
-/- The default checks of `#lint`. Depends on whether `slow` is true -/
-meta def default_checks (slow : bool := tt) :
-  list ((declaration → tactic (option string)) × string × string) :=
-quick_checks ++ if slow then slow_checks else []
+meta def get_checks (slow : bool := tt) :
+  tactic (list ((declaration → tactic (option string)) × string × string)) :=
+do linter_list ← if slow then linter_attr.get_cache
+                         else list.filter (λ ltr, ltr.is_fast) <$> linter_attr.get_cache,
+   return $ linter_list.map $ λ ⟨f, s1, s2, _⟩, ⟨f, s1, s2⟩
 
 /-- The common denominator of `#lint[|mathlib|all]`.
   The different commands have different configurations for `l`, `printer` and `where_desc`.
@@ -196,9 +224,8 @@ meta def lint_aux (l : list declaration)
   return $ if slow then s else s ++ "/- (slow tests skipped) -/\n"
 
 /-- Return the message printed by `#lint`. -/
-meta def lint (slow : bool := tt)
-  (checks : list ((declaration → tactic (option string)) × string × string) :=
-    default_checks slow) : tactic format := do
+meta def lint (slow : bool := tt) : tactic format := do
+  checks ← get_checks slow,
   e ← get_env,
   l ← e.mfilter (λ d,
     if e.in_current_file' d.to_name ∧ ¬ d.to_name.is_internal ∧ ¬ d.is_auto_generated e
@@ -207,9 +234,8 @@ meta def lint (slow : bool := tt)
     "in the current file" slow checks
 
 /-- Return the message printed by `#lint_mathlib`. -/
-meta def lint_mathlib (slow : bool := tt)
-  (checks : list ((declaration → tactic (option string)) × string × string) :=
-    default_checks slow) : tactic format := do
+meta def lint_mathlib (slow : bool := tt) : tactic format := do
+  checks ← get_checks slow,
   e ← get_env,
   ml ← get_mathlib_dir,
   /- note: we don't separate out some of these tests in `lint_aux` because that causes a
@@ -222,9 +248,8 @@ meta def lint_mathlib (slow : bool := tt)
     "in mathlib (only in imported files)" slow checks
 
 /-- Return the message printed by `#lint_all`. -/
-meta def lint_all (slow : bool := tt)
-  (checks : list ((declaration → tactic (option string)) × string × string) :=
-    default_checks slow) : tactic format := do
+meta def lint_all (slow : bool := tt) : tactic format := do
+  checks ← get_checks slow,
   e ← get_env,
   l ← e.mfilter (λ d, if ¬ d.to_name.is_internal ∧ ¬ d.is_auto_generated e
     then bnot <$> has_attribute' `nolint d.to_name else return ff),
@@ -246,11 +271,11 @@ do b ← optional (tk "-"), s ← lint_mathlib b.is_none, trace s
   parser unit :=
 do b ← optional (tk "-"), s ← lint_all b.is_none, trace s
 
-/-- Use sanity check as a hole command. Note: In a large file, there might be some delay between
+/-- Use `lint` as a hole command. Note: In a large file, there might be some delay between
   choosing the option and the information appearing -/
 @[hole_command] meta def lint_hole_cmd : hole_command :=
-{ name := "Sanity Check",
-  descr := "Sanity check: Find common mistakes in current file.",
+{ name := "Lint",
+  descr := "Lint: Find common mistakes in current file.",
   action := λ es, do s ← lint, return [(s.to_string,"")] }
 
 -- set_option profiler true

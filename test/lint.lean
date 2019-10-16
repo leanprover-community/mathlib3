@@ -47,6 +47,14 @@ run_cmd do
 meta def dummy_check (d : declaration) : tactic (option string) :=
 return $ if d.to_name.last = "foo" then some "gotcha!" else none
 
+meta def dummy_linter : linter :=
+{ name := "dummy_check",
+  test := dummy_check,
+  no_errors_found := "found nothing",
+  errors_found := "found something" }
+
+local attribute [linter] dummy_linter
+
 run_cmd do
-  s ← lint tt [(dummy_check, "found nothing", "found something")],
+  s ← lint tt ["dummy_check"],
   guard $ "/- found something: -/\n#print foo.foo /- gotcha! -/\n\n".is_suffix_of s.to_string

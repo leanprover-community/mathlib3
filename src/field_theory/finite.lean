@@ -52,30 +52,10 @@ open finset polynomial
   polnyomial -/
 lemma card_image_polynomial_eval [decidable_eq α] {p : polynomial α} (hp : 0 < p.degree) :
   fintype.card α ≤ nat_degree p * (univ.image (λ x, eval x p)).card :=
-have hdp : ∀ {a : α}, degree p = degree (p - C a),
-  from λ a, eq.symm $ by rw [sub_eq_add_neg, add_comm]; exact
-    degree_add_eq_of_degree_lt
-      (show degree (-C a) < degree p, by rw degree_neg;
-        exact lt_of_le_of_lt (degree_C_le) hp),
-have hp0 : ∀ {a : α}, p - C a ≠ 0, from λ a h, by rw [@hdp a, h] at hp; simp * at *,
-have hroots : ∀ {x a : α}, x ∈ (p - C a).roots ↔ p.eval x = a,
-  from λ _ _, by rw [mem_roots hp0, is_root, eval_sub, eval_C, sub_eq_zero],
-calc fintype.card α = fintype.card (Σ a : set.range (λ x, eval x p), {x // p.eval x = a}) :
-  fintype.card_congr (equiv.sigma_subtype_preimage_equiv _
-    (set.range (λ x, eval x p)) (set.mem_range_self : _)).symm
-... = univ.sum (λ a : set.range (λ x, eval x p), fintype.card {x // p.eval x = a}) :
-  fintype.card_sigma _
-... = (univ.image (λ x, eval x p)).sum (λ a, (p - C a).roots.card) :
-  finset.sum_bij (λ a _, a)
-    (λ ⟨a, x, hx⟩ _, mem_image.2 ⟨x, mem_univ _, hx⟩)
-    (λ ⟨a, ha⟩ _, finset.card_congr (λ a _, a.val) (λ ⟨x, hx⟩ _, by rwa hroots)
-      (λ _ _ _ _, subtype.ext.2)
-      (λ x hx, ⟨⟨x, by rwa ← hroots⟩, mem_univ _, rfl⟩))
-    (λ _ _ _ _, subtype.ext.2)
-    (λ x, by rw [mem_image]; exact λ ⟨a, _, ha⟩, ⟨⟨x, ⟨a, ha⟩⟩, mem_univ _, rfl⟩)
-... ≤ (univ.image (λ x, eval x p)).sum (λ _, p.nat_degree) :
-  sum_le_sum (λ a _, by rw [nat_degree_eq_of_degree_eq (@hdp a)]; exact card_roots' (@hp0 a))
-... = _ : by rw [sum_const, add_monoid.smul_eq_mul', nat.cast_id]
+finset.card_le_mul_card_image _ _
+  (λ a _, calc _ = (p - C a).roots.card : congr_arg card
+    (by simp [finset.ext, mem_roots_sub_C hp, -sub_eq_add_neg])
+    ... ≤ _ : card_roots_sub_C' hp)
 
 /-- If `f` and `g` are quadratic polynomials, then the `f.eval a + g.eval b = 0` has a solution. -/
 lemma exists_root_sum_quadratic {f g : polynomial α} (hf2 : degree f = 2)

@@ -61,30 +61,28 @@ finset.card_le_mul_card_image _ _
 lemma exists_root_sum_quadratic {f g : polynomial α} (hf2 : degree f = 2)
   (hg2 : degree g = 2) (hα : fintype.card α % 2 = 1) : ∃ a b, f.eval a + g.eval b = 0 :=
 by letI := classical.dec_eq α; exact
-have ∀ f : polynomial α, degree f = 2 →
-    fintype.card α ≤ 2 * (univ.image (λ x : α, eval x f)).card,
-  from λ f hf, have hf0 : f ≠ 0, from λ h, by simp * at *; contradiction,
-    calc fintype.card α ≤ nat_degree f * (univ.image (λ x, eval x f)).card :
-      card_image_polynomial_eval (hf.symm ▸ dec_trivial)
-    ... = _ : by rw [degree_eq_nat_degree hf0, show (2 : with_bot ℕ) = (2 : ℕ), from rfl,
-      with_bot.coe_eq_coe] at hf; rw hf,
-have ∀ f : polynomial α, degree f = 2 →
-    fintype.card α < 2 * (univ.image (λ x : α, eval x f)).card,
-  from λ f hf, lt_of_le_of_ne (this _ hf) (mt (congr_arg (% 2)) (by simp *)),
-have h : fintype.card α < (univ.image (λ x : α, eval x f)).card +
-    (univ.image (λ x : α, eval x (-g))).card,
-  from (mul_lt_mul_left (show 2 > 0, by norm_num)).1 $
-    by rw [two_mul, mul_add]; exact add_lt_add (this _ hf2) (this _ (by simpa)),
-have hd : ¬ disjoint (univ.image (λ x : α, eval x f)) (univ.image (λ x : α, eval x (-g))),
-  from λ hd, by rw [← card_disjoint_union hd, ← not_le] at h;
-    exact h (card_le_of_subset $ subset_univ _),
+suffices ¬ disjoint (univ.image (λ x : α, eval x f)) (univ.image (λ x : α, eval x (-g))),
 begin
-  simp only [disjoint_left, mem_image] at hd,
-  push_neg at hd,
-  rcases hd with ⟨x, ⟨a, _, ha⟩, ⟨b, _, hb⟩⟩,
-  use [a, b],
-  rw [ha, ← hb, eval_neg, neg_add_self]
-end
+  simp only [disjoint_left, mem_image] at this,
+  push_neg at this,
+  rcases this with ⟨x, ⟨a, _, ha⟩, ⟨b, _, hb⟩⟩,
+  exact ⟨a, b, by rw [ha, ← hb, eval_neg, neg_add_self]⟩
+end,
+assume hd : disjoint _ _,
+lt_irrefl (2 * ((univ.image (λ x : α, eval x f)) ∪ (univ.image (λ x : α, eval x (-g)))).card) $
+calc 2 * ((univ.image (λ x : α, eval x f)) ∪ (univ.image (λ x : α, eval x (-g)))).card
+    ≤ 2 * fintype.card α : nat.mul_le_mul_left _ (finset.card_le_of_subset (subset_univ _))
+... = fintype.card α + fintype.card α : two_mul _
+... < nat_degree f * (univ.image (λ x : α, eval x f)).card +
+      nat_degree (-g) * (univ.image (λ x : α, eval x (-g))).card :
+    add_lt_add_of_lt_of_le
+      (lt_of_le_of_ne
+        (card_image_polynomial_eval (by rw hf2; exact dec_trivial))
+        (mt (congr_arg (%2)) (by simp [nat_degree_eq_of_degree_eq_some hf2, hα])))
+      (card_image_polynomial_eval (by rw [degree_neg, hg2]; exact dec_trivial))
+... = 2 * (univ.image (λ x : α, eval x f) ∪ univ.image (λ x : α, eval x (-g))).card :
+  by rw [card_disjoint_union hd]; simp [nat_degree_eq_of_degree_eq_some hf2,
+    nat_degree_eq_of_degree_eq_some hg2, bit0, mul_add]
 
 end polynomial
 

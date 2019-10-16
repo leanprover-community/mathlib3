@@ -1258,6 +1258,9 @@ eval₂.is_ring_hom (C ∘ f)
 @[simp] lemma degree_neg (p : polynomial α) : degree (-p) = degree p :=
 by unfold degree; rw support_neg
 
+@[simp] lemma nat_degree_neg (p : polynomial α) : nat_degree (-p) = nat_degree p :=
+by simp [nat_degree]
+
 @[simp] lemma nat_degree_int_cast (n : ℤ) : nat_degree (n : polynomial α) = 0 :=
 by simp [int_cast_eq_C]
 

@@ -201,7 +201,14 @@ begin
   --   simp only [hd', add_monoid.smul_one, sum_const, prod_empty, card_univ, add_monoid.smul_one,
   --     cast_card_eq_zero, sum_const, nat.cast_pow, fintype.card_fun, prod_empty, zero_pow this], },
   obtain ⟨i, hi⟩ : ∃ i, d i < q - 1,
-  { contrapose! h, sorry },
+  { contrapose! h,
+    refine le_trans _ (finset.le_sup hd),
+    have : univ.sum (λ s:σ, q-1) ≤ univ.sum (λ s, d s) := sum_le_sum (λ s _, h s),
+    rw [sum_const, nat.smul_eq_mul, mul_comm, card_univ] at this,
+    rwa [finsupp.sum, show d.support = univ, from _],
+    rw eq_univ_iff_forall,
+    intro i, rw [finsupp.mem_support_iff, ne.def, ← nat.le_zero_iff],
+    push_neg, exact lt_of_lt_of_le hq (h _), },
   suffices claim : (univ.filter (λ (x : σ → α), ∀ j, j ≠ i → x j = 0)).sum (λ x, x i ^ d i) *
     (univ.filter (λ (x : σ → α), x i = 0)).sum
     (λ (x : σ → α), (univ \ finset.singleton i).prod (λ j, x j ^ d j)) = 0,

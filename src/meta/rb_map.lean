@@ -102,4 +102,7 @@ s.fold (pure mk_name_set) (λ a m,
 meta def union (s t : name_set) : name_set :=
 s.fold t (λ a t, t.insert a)
 
+meta def insert_list (s : name_set) (l : list name) : name_set :=
+l.foldr (λ n s', s'.insert n) s
+
 end name_set

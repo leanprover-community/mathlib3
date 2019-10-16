@@ -3,7 +3,6 @@ import
   tactic.cache
   tactic.converter.interactive
   tactic.core
-  tactic.doc_blame
   tactic.ext
   tactic.generalize_proofs
   tactic.interactive

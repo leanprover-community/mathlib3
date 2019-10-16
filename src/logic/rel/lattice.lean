@@ -1,5 +1,16 @@
+/-
+Copyright (c) 2018 Jeremy Avigad. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jeremy Avigad, Johannes Hölzl, Yury Kudryashov
+-/
 import logic.rel.lemmas order.complete_lattice data.set.lattice
 
+/-!
+# Properties of relations that involve order
+
+In this file we prove various properties of relations using `≤` either in the statement,
+or in the proof.
+-/
 universes u v w x
 
 attribute [derive lattice.complete_lattice] rel
@@ -98,5 +109,8 @@ le_antisymm (r.core_mono.map_inf s t) $ assume x ⟨hs, ht⟩ y hxy, ⟨hs hxy, 
 
 lemma core_union (s t : set β) : r.core (s ∪ t) ⊇ r.core s ∪ r.core t :=
 r.core_mono.map_sup s t
+
+theorem core_preimage_gc : galois_connection (image r) (core r) :=
+image_subset_iff _
 
 end rel

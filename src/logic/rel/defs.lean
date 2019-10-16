@@ -5,6 +5,23 @@ Authors: Jeremy Avigad, Johannes Hölzl, Yury Kudryashov
 -/
 import logic.function
 
+/-!
+# Definitions of a relation, (co)domain, (pre)image etc.
+
+In this file we define `rel α β` to be `α → β → Prop`, and define:
+
+* the graph of a function `f : α → β` (both as a relation and as a set in `α × β`);
+* the graph of a relation;
+* the (co)domain of a relation;
+* the (pre)image of a set by a relation;
+* the converse relation (aka `flip`), and the diagonal of a relation;
+* (co)map₂, (co)map;
+* (left/right/bi)_(unique/total) relations;
+* two ways to lift a pair of relations to a relation on functions.
+
+We prove no properties in this file to avoid circular `import`s.
+-/
+
 universes u v w x
 
 variables (α : Type u) (β : Type v) {γ : Type w} {δ : Type x}
@@ -96,7 +113,7 @@ def lift_fun (rac : rel α γ) (rbd : rel β δ) : rel (α → β) (γ → δ) :
 
 infixr ⟹ := lift_fun
 
--- TODO: better name?
+/-- Lift a pair of relation to a relation on functions with reversed implication. -/
 def lift_fun_rev (rac : rel α γ) (rbd : rel β δ) : rel (α → β) (γ → δ) :=
 λ f g, ∀⦃x y⦄, rbd (f x) (g y) → rac x y
 

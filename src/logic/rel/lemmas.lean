@@ -1,4 +1,15 @@
+/-
+Copyright (c) 2018 Jeremy Avigad. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jeremy Avigad, Johannes Hölzl, Yury Kudryashov
+-/
 import logic.rel.defs data.set.basic
+
+/-!
+# Various properties of relations
+
+In this file we prove various simple properties of relations that do not involve `≤`.
+-/
 
 universes u v w x
 
@@ -172,9 +183,6 @@ theorem image_subset_iff (s : set α) (t : set β) : image r s ⊆ t ↔ s ⊆ c
 iff.intro
   (λ h x xs y rxy, h ⟨x, xs, rxy⟩)
   (λ h y ⟨x, xs, rxy⟩, h xs rxy)
-
--- theorem core_preimage_gc : galois_connection (image r) (core r) :=
--- image_subset_iff _
 
 variables (rac : rel α γ) (rbd : rel β δ)
 

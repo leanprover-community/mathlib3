@@ -218,6 +218,33 @@ return $ let illegal := [`gt, `ge] in if d.type.contains_constant (λ n, n ∈ i
   errors_found := "ILLEGAL CONSTANTS IN DECLARATIONS",
   is_fast := ff }
 
+/-- Reports definitions and constants that are missing doc strings -/
+meta def doc_blame_report_defn : declaration → tactic (option string)
+| (declaration.defn n _ _ _ _ _) := doc_string n >> return none <|> return "definition missing doc string"
+| (declaration.cnst n _ _ _) := doc_string n >> return none <|> return "constant missing doc string"
+| _ := return none
+
+/-- Reports definitions and constants that are missing doc strings -/
+meta def doc_blame_report_thm : declaration → tactic (option string)
+| (declaration.thm n _ _ _) := doc_string n >> return none <|> return "theorem missing doc string"
+| _ := return none
+
+/-- A linter for checking definition doc strings -/
+@[linter] meta def doc_blame : linter :=
+{ name := "doc_blame",
+  test := doc_blame_report_defn,
+  no_errors_found := "No definitions are missing documentation.",
+  errors_found := "DEFINITIONS ARE MISSING DOCUMENTATION STRINGS" }
+
+/-- A linter for checking theorem doc strings -/
+@[linter] meta def doc_blame_thm : linter :=
+{ name := "doc_blame_thm",
+  test := doc_blame_report_thm,
+  no_errors_found := "No theorems are missing documentation.",
+  errors_found := "THEOREMS ARE MISSING DOCUMENTATION STRINGS",
+  is_fast := ff }
+
+
 meta def get_checks (slow : bool := tt) (restrict_to : option (list string)) :
   tactic (list ((declaration → tactic (option string)) × string × string)) :=
 do linter_list ← if slow then linter_attr.get_cache
